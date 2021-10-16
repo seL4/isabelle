@@ -191,7 +191,7 @@ sig
     term * term list * thm * thm list -> thm -> thm * term list
   val RIGHT_ASSOC: Proof.context -> thm -> thm
 
-  val prove: Proof.context -> bool -> term * tactic -> thm
+  val prove: Proof.context -> bool -> term -> (Proof.context -> tactic) -> thm
 end;
 
 signature THRY =
@@ -221,7 +221,9 @@ sig
   val mk_induction: Proof.context ->
     {fconst: term, R: term, SV: term list, pat_TCs_list: (term * term list) list} -> thm
   val postprocess: Proof.context -> bool ->
-    {wf_tac: tactic, terminator: tactic, simplifier: cterm -> thm} ->
+    {wf_tac: Proof.context -> tactic,
+     terminator: Proof.context -> tactic,
+     simplifier: Proof.context -> cterm -> thm} ->
     {rules: thm, induction: thm, TCs: term list list} ->
     {rules: thm, induction: thm, nested_tcs: thm list}
 end;
@@ -1232,7 +1234,9 @@ fun IT_EXISTS ctxt blist th =
 fun SUBS ctxt thl =
   rewrite_rule ctxt (map (fn th => th RS eq_reflection handle THM _ => th) thl);
 
-val rew_conv = Raw_Simplifier.rewrite_cterm (true, false, false) (K (K NONE));
+fun rew_conv ctxt ctm =
+  Raw_Simplifier.rewrite_cterm (true, false, false) (K (K NONE))
+    (Variable.declare_term (Thm.term_of ctm) ctxt) ctm;
 
 fun simpl_conv ctxt thl ctm =
   HOLogic.mk_obj_eq (rew_conv (ctxt addsimps thl) ctm);
@@ -1590,13 +1594,13 @@ fun CONTEXT_REWRITE_RULE main_ctxt (func, G, cut_lemma, congs) th =
  end;
 
 
-fun prove ctxt strict (t, tac) =
+fun prove ctxt strict t tac =
   let
     val ctxt' = Proof_Context.augment t ctxt;
   in
     if strict
-    then Goal.prove ctxt' [] [] t (K tac)
-    else Goal.prove ctxt' [] [] t (K tac)
+    then Goal.prove ctxt' [] [] t (tac o #context)
+    else Goal.prove ctxt' [] [] t (tac o #context)
       handle ERROR msg => (warning msg; raise RULES_ERR "prove" msg)
   end;
 
@@ -2408,11 +2412,13 @@ fun postprocess ctxt strict {wf_tac, terminator, simplifier} {rules,induction,TC
    (*---------------------------------------------------------------------
     * Attempt to eliminate WF condition. It's the only assumption of rules
     *---------------------------------------------------------------------*)
-    val (rules1,induction1)  =
-       let val thm =
-        Rules.prove ctxt strict (HOLogic.mk_Trueprop (hd(#1(Rules.dest_thm rules))), wf_tac)
-       in (Rules.PROVE_HYP thm rules, Rules.PROVE_HYP thm induction)
-       end handle Utils.ERR _ => (rules,induction);
+    val ((rules1, induction1), ctxt') =
+      let
+        val thm =
+          Rules.prove ctxt strict (HOLogic.mk_Trueprop (hd(#1(Rules.dest_thm rules)))) wf_tac
+        val ctxt' = Variable.declare_thm thm ctxt
+      in ((Rules.PROVE_HYP thm rules, Rules.PROVE_HYP thm induction), ctxt')
+      end handle Utils.ERR _ => ((rules, induction), ctxt);
 
    (*----------------------------------------------------------------------
     * The termination condition (tc) is simplified to |- tc = tc' (there
@@ -2425,15 +2431,15 @@ fun postprocess ctxt strict {wf_tac, terminator, simplifier} {rules,induction,TC
 
    fun simplify_tc tc (r,ind) =
        let val tc1 = tych tc
-           val _ = trace_cterm ctxt "TC before simplification: " tc1
-           val tc_eq = simplifier tc1
-           val _ = trace_thms ctxt "result: " [tc_eq]
+           val _ = trace_cterm ctxt' "TC before simplification: " tc1
+           val tc_eq = simplifier ctxt' tc1
+           val _ = trace_thms ctxt' "result: " [tc_eq]
        in
        elim_tc (Rules.MATCH_MP @{thm tfl_eq_True} tc_eq) (r,ind)
        handle Utils.ERR _ =>
         (elim_tc (Rules.MATCH_MP(Rules.MATCH_MP @{thm tfl_rev_eq_mp} tc_eq)
-                  (Rules.prove ctxt strict (HOLogic.mk_Trueprop(USyntax.rhs(concl tc_eq)),
-                           terminator)))
+                  (Rules.prove ctxt' strict (HOLogic.mk_Trueprop(USyntax.rhs(concl tc_eq)))
+                           terminator))
                  (r,ind)
          handle Utils.ERR _ =>
           (Rules.UNDISCH(Rules.MATCH_MP (Rules.MATCH_MP @{thm tfl_simp_thm} r) tc_eq),
@@ -2454,14 +2460,14 @@ fun postprocess ctxt strict {wf_tac, terminator, simplifier} {rules,induction,TC
     *   3. return |- tc = tc'
     *---------------------------------------------------------------------*)
    fun simplify_nested_tc tc =
-      let val tc_eq = simplifier (tych (#2 (USyntax.strip_forall tc)))
+      let val tc_eq = simplifier ctxt' (tych (#2 (USyntax.strip_forall tc)))
       in
-      Rules.GEN_ALL ctxt
+      Rules.GEN_ALL ctxt'
        (Rules.MATCH_MP @{thm tfl_eq_True} tc_eq
         handle Utils.ERR _ =>
           (Rules.MATCH_MP(Rules.MATCH_MP @{thm tfl_rev_eq_mp} tc_eq)
-                      (Rules.prove ctxt strict (HOLogic.mk_Trueprop (USyntax.rhs(concl tc_eq)),
-                               terminator))
+                      (Rules.prove ctxt' strict (HOLogic.mk_Trueprop (USyntax.rhs(concl tc_eq)))
+                               terminator)
             handle Utils.ERR _ => tc_eq))
       end
 
@@ -2512,12 +2518,12 @@ fun termination_goals rules =
  *--------------------------------------------------------------------------*)
 fun std_postprocessor ctxt strict wfs =
   Prim.postprocess ctxt strict
-   {wf_tac = REPEAT (ares_tac ctxt wfs 1),
-    terminator =
-      asm_simp_tac ctxt 1
-      THEN TRY (Arith_Data.arith_tac ctxt 1 ORELSE
-        fast_force_tac (ctxt addSDs @{thms not0_implies_Suc}) 1),
-    simplifier = Rules.simpl_conv ctxt []};
+   {wf_tac = fn ctxt' => REPEAT (ares_tac ctxt' wfs 1),
+    terminator = fn ctxt' =>
+      asm_simp_tac ctxt' 1
+      THEN TRY (Arith_Data.arith_tac ctxt' 1 ORELSE
+        fast_force_tac (ctxt' addSDs @{thms not0_implies_Suc}) 1),
+    simplifier = fn ctxt' => Rules.simpl_conv ctxt' []};
 
 
 
@@ -2581,7 +2587,8 @@ fun proof_stage ctxt strict wfs {f, R, rules, full_pats_TCs, TCs} =
               val simplified' = map (join_assums ctxt) simplified
               val dummy = (Prim.trace_thms ctxt "solved =" solved;
                            Prim.trace_thms ctxt "simplified' =" simplified')
-              val rewr = full_simplify (ctxt addsimps (solved @ simplified'));
+              fun rewr th =
+                full_simplify (Variable.declare_thm th ctxt addsimps (solved @ simplified')) th;
               val dummy = Prim.trace_thms ctxt "Simplifying the induction rule..." [induction]
               val induction' = rewr induction
               val dummy = Prim.trace_thms ctxt "Simplifying the recursion rules..." [rules]
@@ -2610,6 +2617,9 @@ fun meta_outer ctxt =
 val spec'=
   Rule_Insts.read_instantiate \<^context> [((("x", 0), Position.none), "P::'b=>bool")] [] spec;
 
+fun rulify_no_asm ctxt th =
+  Object_Logic.rulify_no_asm (Variable.declare_thm th ctxt) th;
+
 fun simplify_defn ctxt strict congs wfs pats def0 =
   let
     val thy = Proof_Context.theory_of ctxt;
@@ -2624,10 +2634,9 @@ fun simplify_defn ctxt strict congs wfs pats def0 =
        {f = f, R = R, rules = rules,
         full_pats_TCs = full_pats_TCs,
         TCs = TCs}
-    val rules' = map (Drule.export_without_context o Object_Logic.rulify_no_asm ctxt)
-                      (Rules.CONJUNCTS rules)
+    val rules' = map (Drule.export_without_context o rulify_no_asm ctxt) (Rules.CONJUNCTS rules)
   in
-    {induct = meta_outer ctxt (Object_Logic.rulify_no_asm ctxt (induction RS spec')),
+    {induct = meta_outer ctxt (rulify_no_asm ctxt (induction RS spec')),
      rules = ListPair.zip(rules', rows),
      tcs = (termination_goals rules') @ tcs}
   end
@@ -2645,7 +2654,7 @@ local
     | solve_eq _ (_, [a], i) = [(a, i)]
     | solve_eq ctxt (th, splitths, i) =
       (writeln "Proving unsplit equation...";
-      [((Drule.export_without_context o Object_Logic.rulify_no_asm ctxt)
+      [((Drule.export_without_context o rulify_no_asm ctxt)
           (CaseSplit.splitto ctxt splitths th), i)])
       handle ERROR s =>
              (warning ("recdef (solve_eq): " ^ s); map (fn x => (x,i)) splitths);

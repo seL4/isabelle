@@ -317,11 +317,15 @@ val declare_const = map_consts o Symtab.update;
 
 (** bounds **)
 
-fun next_bound (a, T) ctxt =
+fun inc_bound (a, T) ctxt =
   let
     val b = Name.bound (#1 (#bounds (rep_data ctxt)));
     val ctxt' = ctxt |> map_bounds (fn (next, bounds) => (next + 1, ((b, T), a) :: bounds));
   in (Free (b, T), ctxt') end;
+
+fun next_bound a ctxt =
+  let val (x as Free (b, _), ctxt') = inc_bound a ctxt
+  in if Name.is_declared (names_of ctxt') b then inc_bound a ctxt' else (x, ctxt') end;
 
 fun revert_bounds ctxt t =
   (case #2 (#bounds (rep_data ctxt)) of
