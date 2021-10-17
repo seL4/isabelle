@@ -1602,12 +1602,12 @@ fun extension_definition overloaded name fields alphas zeta moreT more vars thy 
     val inject = timeit_msg ctxt "record extension inject proof:" (fn () =>
       simplify (put_simpset HOL_ss defs_ctxt)
         (Goal.prove_sorry_global defs_thy [] [] inject_prop
-          (fn {context = ctxt, ...} =>
-            simp_tac (put_simpset HOL_basic_ss ctxt addsimps [ext_def]) 1 THEN
+          (fn {context = ctxt', ...} =>
+            simp_tac (put_simpset HOL_basic_ss ctxt' addsimps [ext_def]) 1 THEN
             REPEAT_DETERM
-              (resolve_tac ctxt @{thms refl_conj_eq} 1 ORELSE
-                Iso_Tuple_Support.iso_tuple_intros_tac ctxt 1 ORELSE
-                resolve_tac ctxt [refl] 1))));
+              (resolve_tac ctxt' @{thms refl_conj_eq} 1 ORELSE
+                Iso_Tuple_Support.iso_tuple_intros_tac ctxt' 1 ORELSE
+                resolve_tac ctxt' [refl] 1))));
 
 
     (*We need a surjection property r = (| f = f r, g = g r ... |)
@@ -1634,21 +1634,21 @@ fun extension_definition overloaded name fields alphas zeta moreT more vars thy 
 
     val split_meta = timeit_msg ctxt "record extension split_meta proof:" (fn () =>
       Goal.prove_sorry_global defs_thy [] [] split_meta_prop
-        (fn {context = ctxt, ...} =>
+        (fn {context = ctxt', ...} =>
           EVERY1
-           [resolve_tac ctxt @{thms equal_intr_rule},
-            Goal.norm_hhf_tac ctxt,
-            eresolve_tac ctxt @{thms meta_allE}, assume_tac ctxt,
-            resolve_tac ctxt [@{thm prop_subst} OF [surject]],
-            REPEAT o eresolve_tac ctxt @{thms meta_allE}, assume_tac ctxt]));
+           [resolve_tac ctxt' @{thms equal_intr_rule},
+            Goal.norm_hhf_tac ctxt',
+            eresolve_tac ctxt' @{thms meta_allE}, assume_tac ctxt',
+            resolve_tac ctxt' [@{thm prop_subst} OF [surject]],
+            REPEAT o eresolve_tac ctxt' @{thms meta_allE}, assume_tac ctxt']));
 
     val induct = timeit_msg ctxt "record extension induct proof:" (fn () =>
       let val (assm, concl) = induct_prop in
         Goal.prove_sorry_global defs_thy [] [assm] concl
-          (fn {context = ctxt, prems, ...} =>
+          (fn {context = ctxt', prems, ...} =>
             cut_tac (split_meta RS Drule.equal_elim_rule2) 1 THEN
-            resolve_tac ctxt prems 2 THEN
-            asm_simp_tac (put_simpset HOL_ss ctxt) 1)
+            resolve_tac ctxt' prems 2 THEN
+            asm_simp_tac (put_simpset HOL_ss ctxt') 1)
       end);
 
     val ([(_, [induct']), (_, [inject']), (_, [surjective']), (_, [split_meta'])], thm_thy) =
@@ -2141,43 +2141,43 @@ fun definition overloaded (alphas, binding) parent (parents: parent_info list) r
 
     val induct_scheme = timeit_msg defs_ctxt "record induct_scheme proof:" (fn () =>
       Goal.prove_sorry_global defs_thy [] [] induct_scheme_prop
-        (fn {context = ctxt, ...} =>
+        (fn {context = ctxt', ...} =>
           EVERY
-           [case parent_induct of NONE => all_tac | SOME ind => try_param_tac ctxt rN ind 1,
-            try_param_tac ctxt rN ext_induct 1,
-            asm_simp_tac (put_simpset HOL_basic_ss ctxt) 1]));
+           [case parent_induct of NONE => all_tac | SOME ind => try_param_tac ctxt' rN ind 1,
+            try_param_tac ctxt' rN ext_induct 1,
+            asm_simp_tac (put_simpset HOL_basic_ss ctxt') 1]));
 
     val induct = timeit_msg defs_ctxt "record induct proof:" (fn () =>
       Goal.prove_sorry_global defs_thy [] [#1 induct_prop] (#2 induct_prop)
-        (fn {context = ctxt, prems, ...} =>
-          try_param_tac ctxt rN induct_scheme 1
-          THEN try_param_tac ctxt "more" @{thm unit.induct} 1
-          THEN resolve_tac ctxt prems 1));
+        (fn {context = ctxt', prems, ...} =>
+          try_param_tac ctxt' rN induct_scheme 1
+          THEN try_param_tac ctxt' "more" @{thm unit.induct} 1
+          THEN resolve_tac ctxt' prems 1));
 
     val surjective = timeit_msg defs_ctxt "record surjective proof:" (fn () =>
       Goal.prove_sorry_global defs_thy [] [] surjective_prop
-        (fn {context = ctxt, ...} =>
+        (fn {context = ctxt', ...} =>
           EVERY
-           [resolve_tac ctxt [surject_assist_idE] 1,
-            simp_tac (put_simpset HOL_basic_ss ctxt addsimps ext_defs) 1,
+           [resolve_tac ctxt' [surject_assist_idE] 1,
+            simp_tac (put_simpset HOL_basic_ss ctxt' addsimps ext_defs) 1,
             REPEAT
-              (Iso_Tuple_Support.iso_tuple_intros_tac ctxt 1 ORELSE
-                (resolve_tac ctxt [surject_assistI] 1 THEN
-                  simp_tac (put_simpset (get_sel_upd_defs defs_thy) ctxt
+              (Iso_Tuple_Support.iso_tuple_intros_tac ctxt' 1 ORELSE
+                (resolve_tac ctxt' [surject_assistI] 1 THEN
+                  simp_tac (put_simpset (get_sel_upd_defs defs_thy) ctxt'
                     addsimps (sel_defs @ @{thms o_assoc id_apply id_o o_id})) 1))]));
 
     val cases_scheme = timeit_msg defs_ctxt "record cases_scheme proof:" (fn () =>
       Goal.prove_sorry_global defs_thy [] [#1 cases_scheme_prop] (#2 cases_scheme_prop)
-        (fn {context = ctxt, prems, ...} =>
-          resolve_tac ctxt prems 1 THEN
-          resolve_tac ctxt [surjective] 1));
+        (fn {context = ctxt', prems, ...} =>
+          resolve_tac ctxt' prems 1 THEN
+          resolve_tac ctxt' [surjective] 1));
 
     val cases = timeit_msg defs_ctxt "record cases proof:" (fn () =>
       Goal.prove_sorry_global defs_thy [] [] cases_prop
-        (fn {context = ctxt, ...} =>
-          try_param_tac ctxt rN cases_scheme 1 THEN
+        (fn {context = ctxt', ...} =>
+          try_param_tac ctxt' rN cases_scheme 1 THEN
           ALLGOALS (asm_full_simp_tac
-            (put_simpset HOL_basic_ss ctxt addsimps @{thms unit_all_eq1}))));
+            (put_simpset HOL_basic_ss ctxt' addsimps @{thms unit_all_eq1}))));
 
     val split_meta = timeit_msg defs_ctxt "record split_meta proof:" (fn () =>
       Goal.prove_sorry_global defs_thy [] [] split_meta_prop
@@ -2190,24 +2190,24 @@ fun definition overloaded (alphas, binding) parent (parents: parent_info list) r
 
     val split_object = timeit_msg defs_ctxt "record split_object proof:" (fn () =>
       Goal.prove_sorry_global defs_thy [] [] split_object_prop
-        (fn {context = ctxt, ...} =>
-          resolve_tac ctxt [@{lemma "Trueprop A \<equiv> Trueprop B \<Longrightarrow> A = B" by (rule iffI) unfold}] 1 THEN
-          rewrite_goals_tac ctxt @{thms atomize_all [symmetric]} THEN
-          resolve_tac ctxt [split_meta] 1));
+        (fn {context = ctxt', ...} =>
+          resolve_tac ctxt' [@{lemma "Trueprop A \<equiv> Trueprop B \<Longrightarrow> A = B" by (rule iffI) unfold}] 1 THEN
+          rewrite_goals_tac ctxt' @{thms atomize_all [symmetric]} THEN
+          resolve_tac ctxt' [split_meta] 1));
 
     val split_ex = timeit_msg defs_ctxt "record split_ex proof:" (fn () =>
       Goal.prove_sorry_global defs_thy [] [] split_ex_prop
-        (fn {context = ctxt, ...} =>
+        (fn {context = ctxt', ...} =>
           simp_tac
-            (put_simpset HOL_basic_ss ctxt addsimps
+            (put_simpset HOL_basic_ss ctxt' addsimps
               (@{lemma "\<exists>x. P x \<equiv> \<not> (\<forall>x. \<not> P x)" by simp} ::
                 @{thms not_not Not_eq_iff})) 1 THEN
-          resolve_tac ctxt [split_object] 1));
+          resolve_tac ctxt' [split_object] 1));
 
     val equality = timeit_msg defs_ctxt "record equality proof:" (fn () =>
       Goal.prove_sorry_global defs_thy [] [] equality_prop
-        (fn {context = ctxt, ...} =>
-          asm_full_simp_tac (put_simpset record_ss ctxt addsimps (split_meta :: sel_convs)) 1));
+        (fn {context = ctxt', ...} =>
+          asm_full_simp_tac (put_simpset record_ss ctxt' addsimps (split_meta :: sel_convs)) 1));
 
     val ([(_, sel_convs'), (_, upd_convs'), (_, sel_defs'), (_, upd_defs'),
           (_, fold_congs'), (_, unfold_congs'),
