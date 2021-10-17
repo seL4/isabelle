@@ -1355,7 +1355,8 @@ val ex_sel_eq_simproc =
                   (Const (\<^const_name>\<open>Ex\<close>, Tex) $ Abs (s, T, eq), \<^term>\<open>True\<close>));
             in
               SOME (Goal.prove_sorry_global thy [] [] prop
-                (fn _ => simp_tac (put_simpset (get_simpset thy) ctxt
+                (fn {context = ctxt', ...} =>
+                  simp_tac (put_simpset (get_simpset thy) ctxt'
                     addsimps @{thms simp_thms} addsimprocs [split_simproc (K ~1)]) 1))
             end handle TERM _ => NONE)
         | _ => NONE)
@@ -2118,15 +2119,16 @@ fun definition overloaded (alphas, binding) parent (parents: parent_info list) r
     (* 3rd stage: thms_thy *)
 
     val record_ss = get_simpset defs_thy;
-    val sel_upd_ctxt =
-      put_simpset record_ss defs_ctxt
+    fun sel_upd_ctxt ctxt' =
+      put_simpset record_ss ctxt'
         addsimps (sel_defs @ accessor_thms @ upd_defs @ updator_thms);
 
     val (sel_convs, upd_convs) =
       timeit_msg defs_ctxt "record sel_convs/upd_convs proof:" (fn () =>
         grouped 10 Par_List.map (fn prop =>
             Goal.prove_sorry_global defs_thy [] [] prop
-              (fn _ => ALLGOALS (asm_full_simp_tac sel_upd_ctxt)))
+              (fn {context = ctxt', ...} =>
+                ALLGOALS (asm_full_simp_tac (sel_upd_ctxt ctxt'))))
           (sel_conv_props @ upd_conv_props))
       |> chop (length sel_conv_props);
 
