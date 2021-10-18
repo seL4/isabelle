@@ -231,7 +231,10 @@ val _ =
           (* initialize actions *)
           val contexts = actions |> map_index (fn (n, (label, name, args)) =>
             let
-              val make_action = the (get_action name);
+              val make_action =
+                (case get_action name of
+                  SOME f => f
+                | NONE => error "Unknown action");
               val action_subdir = if label = "" then string_of_int n ^ "." ^ name else label;
               val output_dir = Path.append mirabelle_output_dir (Path.basic action_subdir);
               val context =
