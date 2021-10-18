@@ -2,11 +2,11 @@
     Author:     Jasmin Blanchette, TU Munich
     Author:     Sascha Boehme, TU Munich
     Author:     Makarius
-    Author:     Martin Desharnais, UniBw Munich
+    Author:     Martin Desharnais, UniBw Munich, MPI-INF Saarbrücken
 *)
 
 theory Mirabelle
-  imports Sledgehammer Predicate_Compile
+  imports Sledgehammer Predicate_Compile Presburger
 begin
 
 ML_file \<open>Tools/Mirabelle/mirabelle.ML\<close>
@@ -19,9 +19,10 @@ end
 
 ML_file \<open>Tools/Mirabelle/mirabelle_arith.ML\<close>
 ML_file \<open>Tools/Mirabelle/mirabelle_metis.ML\<close>
+ML_file \<open>Tools/Mirabelle/mirabelle_presburger.ML\<close>
 ML_file \<open>Tools/Mirabelle/mirabelle_quickcheck.ML\<close>
-ML_file \<open>Tools/Mirabelle/mirabelle_sledgehammer.ML\<close>
 ML_file \<open>Tools/Mirabelle/mirabelle_sledgehammer_filter.ML\<close>
+ML_file \<open>Tools/Mirabelle/mirabelle_sledgehammer.ML\<close>
 ML_file \<open>Tools/Mirabelle/mirabelle_try0.ML\<close>
 
 end
