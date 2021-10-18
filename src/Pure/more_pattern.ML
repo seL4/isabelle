@@ -48,9 +48,11 @@ fun gen_rewrite_term bot thy rules procs tm =
   let
     val skel0 = Bound 0;
 
-    fun variant_absfree bounds (x, T, t) =
+    fun variant_absfree bounds x tm =
       let
-        val (x', t') = Term.dest_abs (Name.bound bounds, T, t);
+        val ((x', T), t') =
+          Term.dest_abs_fresh (Name.bound bounds) tm
+            handle Term.USED_FREE _ => Term.dest_abs_global tm;  (* FIXME proper context *)
         fun abs u = Abs (x, T, abstract_over (Free (x', T), u));
       in (abs, t') end;
 
@@ -76,9 +78,9 @@ fun gen_rewrite_term bot thy rules procs tm =
                     SOME tm2' => SOME (tm1 $ tm2')
                   | NONE => NONE)
             end)
-      | rew_sub r bounds skel (Abs body) =
+      | rew_sub r bounds skel (tm as Abs (x, _, _)) =
           let
-            val (abs, tm') = variant_absfree bounds body;
+            val (abs, tm') = variant_absfree bounds x tm;
             val skel' = (case skel of Abs (_, _, skel') => skel' | _ => skel0)
           in case r (bounds + 1) skel' tm' of
               SOME tm'' => SOME (abs tm'')

@@ -382,7 +382,7 @@ local
         let val (cu1, cu2) = Thm.dest_comb ct
         in f vs cu1 cu2 #> add_apps f vs cu1 #> add_apps f vs cu2 end
     | Abs _ =>
-        let val (cv, cu) = Thm.dest_abs NONE ct
+        let val (cv, cu) = Thm.dest_abs_global ct
         in add_apps f (Thm.term_of cv :: vs) cu end
     | _ => I)
 

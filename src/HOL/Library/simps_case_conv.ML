@@ -64,8 +64,7 @@ fun was_split t =
   let
     val is_free_eq_imp = is_Free o fst o HOLogic.dest_eq o fst o HOLogic.dest_imp
     val get_conjs = HOLogic.dest_conj o HOLogic.dest_Trueprop
-    fun dest_alls (Const (\<^const_name>\<open>All\<close>, _) $ Abs (_, _, t)) = dest_alls t
-      | dest_alls t = t
+    val dest_alls = Term.strip_qnt_body \<^const_name>\<open>All\<close>
   in forall (is_free_eq_imp o dest_alls) (get_conjs t) end
   handle TERM _ => false
 

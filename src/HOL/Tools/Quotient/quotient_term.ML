@@ -713,12 +713,12 @@ fun inj_repabs_trm ctxt (rtrm, qtrm) =
         mk_repabs ctxt (rty, qty) (Const (\<^const_name>\<open>Babs\<close>, T) $ r $ (inj_repabs_trm ctxt (t, t')))
       end
 
-  | (Abs (x, T, t), Abs (x', T', t')) =>
+  | (t as Abs _, t' as Abs _) =>
       let
         val rty = fastype_of rtrm
         val qty = fastype_of qtrm
-        val (y, s) = Term.dest_abs (x, T, t)
-        val (_, s') = Term.dest_abs (x', T', t')
+        val ((y, T), s) = Term.dest_abs_global t
+        val (_, s') = Term.dest_abs_global t'
         val yvar = Free (y, T)
         val result = Term.lambda_name (y, yvar) (inj_repabs_trm ctxt (s, s'))
       in

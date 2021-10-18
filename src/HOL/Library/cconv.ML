@@ -124,41 +124,37 @@ fun abs_cconv cv ctxt ct =
      Abs (x, _, _) =>
        let
          (* Instantiate the rule properly and apply it to the eq theorem. *)
-         fun abstract_rule u v eq =
+         fun abstract_rule v eq =
            let
              (* Take a variable v and an equality theorem of form:
                   P1 \<Longrightarrow> ... \<Longrightarrow> Pn \<Longrightarrow> L v \<equiv> R v
                 And build a term of form:
                   \<And>v. (\<lambda>x. L x) v \<equiv> (\<lambda>x. R x) v *)
-             fun mk_concl var eq =
+             fun mk_concl eq =
                let
-                 val certify = Thm.cterm_of ctxt
-                 fun abs term = (Term.lambda var term) $ var
-                 fun equals_cong f t =
-                   Logic.dest_equals t
-                   |> (fn (a, b) => (f a, f b))
-                   |> Logic.mk_equals
+                 fun abs t = lambda v t $ v
+                 fun equals_cong f = Logic.dest_equals #> apply2 f #> Logic.mk_equals
                in
                  Thm.concl_of eq
                  |> equals_cong abs
-                 |> Logic.all var |> certify
+                 |> Logic.all v
+                 |> Thm.cterm_of ctxt
                end
              val rule = abstract_rule_thm x
-             val inst = Thm.match (Drule.cprems_of rule |> hd, mk_concl (Thm.term_of v) eq)
+             val inst = Thm.match (hd (Drule.cprems_of rule), mk_concl eq)
+             val gen = (Names.empty, Names.make_set [#1 (dest_Free v)])
            in
-             (Drule.instantiate_normalize inst rule OF
-               [Drule.generalize (Names.empty, Names.make_set [u]) eq])
+             (Drule.instantiate_normalize inst rule OF [Drule.generalize gen eq])
              |> Drule.zero_var_indexes
            end
 
          (* Destruct the abstraction and apply the conversion. *)
-         val (u, ctxt') = yield_singleton Variable.variant_fixes Name.uu ctxt
-         val (v, ct') = Thm.dest_abs (SOME u) ct
+         val ((v, ct'), ctxt') = Variable.dest_abs_cterm ct ctxt
          val eq = cv (v, ctxt') ct'
        in
          if Thm.is_reflexive eq
          then all_cconv ct
-         else abstract_rule u v eq
+         else abstract_rule (Thm.term_of v) eq
        end
    | _ => raise CTERM ("abs_cconv", [ct]))
 
@@ -173,8 +169,7 @@ fun params_cconv n cv ctxt ct =
   then arg_cconv (abs_cconv (params_cconv (n - 1) cv o #2) ctxt) ct
   else cv ctxt ct
 
-(* TODO: This code behaves not exactly like Conv.prems_cconv does.
-         Fix this! *)
+(* FIXME: This code behaves not exactly like Conv.prems_cconv does. *)
 (*rewrite the A's in A1 \<Longrightarrow> ... \<Longrightarrow> An \<Longrightarrow> B*)
 fun prems_cconv 0 cv ct = cv ct
   | prems_cconv n cv ct =

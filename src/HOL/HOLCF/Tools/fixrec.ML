@@ -251,7 +251,7 @@ fun compile_lhs match_name pat rhs vs taken =
                     ^ ML_Syntax.print_term pat)
 
 fun strip_alls t =
-  (case try Logic.dest_all t of
+  (case try Logic.dest_all_global t of
     SOME (_, u) => strip_alls u
   | NONE => t)
 

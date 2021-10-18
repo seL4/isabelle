@@ -221,7 +221,7 @@ fun dest_bcomb ((_ $ l) $ r) = (l, r)
 
 fun unlam t =
   (case t of
-    Abs a => snd (Term.dest_abs a)
+    Abs _ => snd (Term.dest_abs_global t)
   | _ => unlam (Abs("", domain_type (fastype_of t), (incr_boundvars 1 t) $ (Bound 0))))
 
 val bare_concl = HOLogic.dest_Trueprop o Logic.strip_assums_concl

@@ -444,8 +444,8 @@ fun trace_rules _ kind [] = error ("Unable to figure out " ^ kind ^ " rule")
 val equal_def' = Thm.symmetric Induct_Args.equal_def;
 
 fun mark_constraints n ctxt = Conv.fconv_rule
-  (Conv.prems_conv ~1 (Conv.params_conv ~1 (K (Conv.prems_conv n
-     (Raw_Simplifier.rewrite ctxt false [equal_def']))) ctxt));
+  (Conv.prems_conv ~1 (Conv.params_conv ~1 (fn ctxt' =>
+      Conv.prems_conv n (Raw_Simplifier.rewrite ctxt' false [equal_def'])) ctxt));
 
 fun unmark_constraints ctxt =
   Conv.fconv_rule (Raw_Simplifier.rewrite ctxt true [Induct_Args.equal_def]);

@@ -321,7 +321,7 @@ end
 fun strip_top_all_vars acc t =
   if Logic.is_all t then
     let
-      val (v, t') = Logic.dest_all t
+      val (v, t') = Logic.dest_all_global t
       (*bound instances in t' are replaced with free vars*)
     in
       strip_top_all_vars (v :: acc) t'

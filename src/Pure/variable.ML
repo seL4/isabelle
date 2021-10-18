@@ -81,6 +81,10 @@ sig
   val import_vars: Proof.context -> thm -> thm
   val tradeT: (Proof.context -> thm list -> thm list) -> Proof.context -> thm list -> thm list
   val trade: (Proof.context -> thm list -> thm list) -> Proof.context -> thm list -> thm list
+  val dest_abs: term -> Proof.context -> ((string * typ) * term) * Proof.context
+  val dest_abs_cterm: cterm -> Proof.context -> (cterm * cterm) * Proof.context
+  val dest_all: term -> Proof.context -> ((string * typ) * term) * Proof.context
+  val dest_all_cterm: cterm -> Proof.context -> (cterm * cterm) * Proof.context
   val is_bound_focus: Proof.context -> bool
   val set_bound_focus: bool -> Proof.context -> Proof.context
   val restore_bound_focus: Proof.context -> Proof.context -> Proof.context
@@ -313,11 +317,15 @@ val declare_const = map_consts o Symtab.update;
 
 (** bounds **)
 
-fun next_bound (a, T) ctxt =
+fun inc_bound (a, T) ctxt =
   let
     val b = Name.bound (#1 (#bounds (rep_data ctxt)));
     val ctxt' = ctxt |> map_bounds (fn (next, bounds) => (next + 1, ((b, T), a) :: bounds));
   in (Free (b, T), ctxt') end;
+
+fun next_bound a ctxt =
+  let val (x as Free (b, _), ctxt') = inc_bound a ctxt
+  in if Name.is_declared (names_of ctxt') b then inc_bound a ctxt' else (x, ctxt') end;
 
 fun revert_bounds ctxt t =
   (case #2 (#bounds (rep_data ctxt)) of
@@ -326,8 +334,10 @@ fun revert_bounds ctxt t =
       let
         val names = Term.declare_term_names t (names_of ctxt);
         val xs = rev (#1 (fold_map Name.variant (rev (map #2 bounds)) names));
-        fun subst ((b, T), _) x' = (Free (b, T), Syntax_Trans.mark_bound_abs (x', T));
-      in Term.subst_atomic (map2 subst bounds xs) t end);
+        fun substs (((b, T), _), x') =
+          let fun subst U = (Free (b, U), Syntax_Trans.mark_bound_abs (x', U))
+          in [subst T, subst (Type_Annotation.ignore_type T)] end;
+      in Term.subst_atomic (maps substs (bounds ~~ xs)) t end);
 
 
 
@@ -648,6 +658,40 @@ fun gen_trade imp exp f ctxt ths =
 
 val tradeT = gen_trade importT exportT;
 val trade = gen_trade (import true) export;
+
+
+(* destruct binders *)
+
+local
+
+fun gen_dest_abs exn dest term_of arg ctxt =
+  (case term_of arg of
+    Abs (a, T, _) =>
+      let
+        val (x, ctxt') = yield_singleton bound_fixes (a, T) ctxt;
+        val res = dest x arg handle Term.USED_FREE _ =>
+          raise Fail ("Bad context: clash of fresh free for bound: " ^
+            Syntax.string_of_term ctxt (Free (x, T)) ^ " vs. " ^
+            Syntax.string_of_term ctxt' (Free (x, T)));
+      in (res, ctxt') end
+  | _ => raise exn ("dest_abs", [arg]));
+
+in
+
+val dest_abs = gen_dest_abs TERM Term.dest_abs_fresh I;
+val dest_abs_cterm = gen_dest_abs CTERM Thm.dest_abs_fresh Thm.term_of;
+
+fun dest_all t ctxt =
+  (case t of
+    Const ("Pure.all", _) $ u => dest_abs u ctxt
+  | _ => raise TERM ("dest_all", [t]));
+
+fun dest_all_cterm ct ctxt =
+  (case Thm.term_of ct of
+    Const ("Pure.all", _) $ _ => dest_abs_cterm (Thm.dest_arg ct) ctxt
+  | _ => raise CTERM ("dest_all", [ct]));
+
+end;
 
 
 (* focus on outermost parameters: \<And>x y z. B *)

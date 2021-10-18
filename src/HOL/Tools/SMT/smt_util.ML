@@ -181,12 +181,7 @@ fun instT' ct = instT (Thm.ctyp_of_cterm ct)
 
 (* certified terms *)
 
-fun dest_cabs ct ctxt =
-  (case Thm.term_of ct of
-    Abs _ =>
-      let val (n, ctxt') = yield_singleton Variable.variant_fixes Name.uu ctxt
-      in (snd (Thm.dest_abs (SOME n) ct), ctxt') end
-  | _ => raise CTERM ("no abstraction", [ct]))
+fun dest_cabs ct ctxt = Variable.dest_abs_cterm ct ctxt |>> #1
 
 val dest_all_cabs = repeat_yield (try o dest_cabs)
 

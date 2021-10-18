@@ -50,9 +50,9 @@ fun plural sg pl [x] = sg
 
 
 (* Removes all quantifiers from a term, replacing bound variables by frees. *)
-fun dest_all_all (t as (Const (\<^const_name>\<open>Pure.all\<close>,_) $ _)) =
+fun dest_all_all \<^Const>\<open>Pure.all _ for t\<close> =
   let
-    val (v,b) = Logic.dest_all t |> apfst Free
+    val (v,b) = Term.dest_abs_global t |>> Free
     val (vs, b') = dest_all_all b
   in
     (v :: vs, b')

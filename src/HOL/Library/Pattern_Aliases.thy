@@ -55,7 +55,7 @@ fun let_typ a b = a --> (a --> b) --> b
 fun as_typ a = a --> a --> a
 
 fun strip_all t =
-  case try Logic.dest_all t of
+  case try Logic.dest_all_global t of
     NONE => ([], t)
   | SOME (var, t) => apfst (cons var) (strip_all t)
 

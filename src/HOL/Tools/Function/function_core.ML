@@ -622,8 +622,8 @@ fun mk_partial_induct_rule ctxt globals R complete_thm clauses =
         local open Conv in
           val lhs_D = fconv_rule (arg_conv (arg_conv (case_hyp_conv))) x_D
           val sih =
-            fconv_rule (Conv.binder_conv
-              (K (arg1_conv (arg_conv (arg_conv case_hyp_conv)))) ctxt1) aihyp
+            fconv_rule
+              (binder_conv (K (arg1_conv (arg_conv (arg_conv case_hyp_conv)))) ctxt1) aihyp
         end
 
         fun mk_Prec (RCInfo {llRI, RIvs, CCas, rcarg, ...}) = sih

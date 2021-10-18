@@ -2427,16 +2427,16 @@ fun fm_of_term ps vs \<^Const_>\<open>True\<close> = @{code T}
       @{code Imp} (fm_of_term ps vs t1, fm_of_term ps vs t2)
   | fm_of_term ps vs \<^Const_>\<open>HOL.Not for t'\<close> =
       @{code Not} (fm_of_term ps vs t')
-  | fm_of_term ps vs \<^Const_>\<open>Ex _ for \<open>Abs (xn, xT, p)\<close>\<close> =
+  | fm_of_term ps vs \<^Const_>\<open>Ex _ for \<open>t as Abs _\<close>\<close> =
       let
-        val (xn', p') = Term.dest_abs (xn, xT, p);
-        val vs' = (Free (xn', xT), 0) :: map (fn (v, n) => (v, n + 1)) vs;
-      in @{code E} (fm_of_term ps vs' p) end
-  | fm_of_term ps vs \<^Const_>\<open>All _ for \<open>Abs (xn, xT, p)\<close>\<close> =
+        val (x', p') = Term.dest_abs_global t;
+        val vs' = (Free x', 0) :: map (fn (v, n) => (v, n + 1)) vs;
+      in @{code E} (fm_of_term ps vs' p') end
+  | fm_of_term ps vs \<^Const_>\<open>All _ for \<open>t as Abs _\<close>\<close> =
       let
-        val (xn', p') = Term.dest_abs (xn, xT, p);
-        val vs' = (Free (xn', xT), 0) :: map (fn (v, n) => (v, n + 1)) vs;
-      in @{code A} (fm_of_term ps vs' p) end
+        val (x', p') = Term.dest_abs_global t;
+        val vs' = (Free x', 0) :: map (fn (v, n) => (v, n + 1)) vs;
+      in @{code A} (fm_of_term ps vs' p') end
   | fm_of_term ps vs t = error ("fm_of_term : unknown term " ^ Syntax.string_of_term \<^context> t);
 
 fun term_of_num vs (@{code C} i) = HOLogic.mk_number HOLogic.intT (@{code integer_of_int} i)
@@ -2505,7 +2505,7 @@ fun term_bools acc t =
     | f $ a =>
         if is_ty t orelse is_op t then term_bools (term_bools acc f) a
         else insert (op aconv) t acc
-    | Abs p => term_bools acc (snd (Term.dest_abs p))
+    | Abs _ => term_bools acc (snd (Term.dest_abs_global t))
     | _ => if is_ty t orelse is_op t then acc else insert (op aconv) t acc)
   end;
 
