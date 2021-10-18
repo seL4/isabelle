@@ -2104,9 +2104,9 @@ subsubsection \<open>Evaluation and normalization by evaluation\<close>
 method_setup eval = \<open>
   let
     fun eval_tac ctxt =
-      let val conv = Code_Runtime.dynamic_holds_conv ctxt
+      let val conv = Code_Runtime.dynamic_holds_conv
       in
-        CONVERSION (Conv.params_conv ~1 (K (Conv.concl_conv ~1 conv)) ctxt) THEN'
+        CONVERSION (Conv.params_conv ~1 (Conv.concl_conv ~1 o conv) ctxt) THEN'
         resolve_tac ctxt [TrueI]
       end
   in

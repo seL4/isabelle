@@ -308,7 +308,7 @@ fun find_cterm p t =
   if p t then t else
   case Thm.term_of t of
     _$_ => (find_cterm p (Thm.dest_fun t) handle CTERM _ => find_cterm p (Thm.dest_arg t))
-  | Abs (_,_,_) => find_cterm p (Thm.dest_abs NONE t |> snd)
+  | Abs (_,_,_) => find_cterm p (Thm.dest_abs_global t |> snd)
   | _ => raise CTERM ("find_cterm",[t]);
 
 fun is_comb t = (case Thm.term_of t of _ $ _ => true | _ => false);
@@ -496,7 +496,7 @@ fun gen_gen_real_arith ctxt (mk_numeric,
         fun h (acc, t) =
           case Thm.term_of t of
             Const(\<^const_name>\<open>Ex\<close>,_)$Abs(_,_,_) =>
-              h (Thm.dest_abs NONE (Thm.dest_arg t) |>> (fn v => v::acc))
+              h (Thm.dest_abs_global (Thm.dest_arg t) |>> (fn v => v::acc))
           | _ => (acc,t)
       in fn t => h ([],t)
       end
@@ -541,7 +541,7 @@ fun gen_gen_real_arith ctxt (mk_numeric,
         fun h (acc, t) =
           case Thm.term_of t of
             Const(\<^const_name>\<open>All\<close>,_)$Abs(_,_,_) =>
-              h (Thm.dest_abs NONE (Thm.dest_arg t) |>> (fn v => v::acc))
+              h (Thm.dest_abs_global (Thm.dest_arg t) |>> (fn v => v::acc))
           | _ => (acc,t)
       in fn t => h ([],t)
       end

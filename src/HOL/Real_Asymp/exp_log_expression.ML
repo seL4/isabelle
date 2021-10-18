@@ -164,8 +164,7 @@ fun rewrite' ctxt old_prems bounds thms ct =
         handle Pattern.MATCH => NONE
     fun rewrite_subterm prems ct (Abs (x, _, _)) =
       let
-        val (u, ctxt') = yield_singleton Variable.variant_fixes x ctxt;
-        val (v, ct') = Thm.dest_abs (SOME u) ct;
+        val ((v, ct'), ctxt') = Variable.dest_abs_cterm ct ctxt;
         val (thm, prems) = rewrite' ctxt' prems (x :: bounds) thms ct'
       in
         if Thm.is_reflexive thm then

@@ -385,8 +385,8 @@ val list_dest_binop = fn b =>
 val strip_exists =
  let fun h (acc, t) =
       case Thm.term_of t of
-       Const (\<^const_name>\<open>Ex\<close>, _) $ Abs _ =>
-        h (Thm.dest_abs NONE (Thm.dest_arg t) |>> (fn v => v::acc))
+       \<^Const_>\<open>Ex _ for \<open>Abs _\<close>\<close> =>
+        h (Thm.dest_abs_global (Thm.dest_arg t) |>> (fn v => v::acc))
      | _ => (acc,t)
  in fn t => h ([],t)
  end;
@@ -885,40 +885,40 @@ in {ring_conv = ring, simple_ideal = ideal, multi_ideal = solve_idealism,
 end;
 
 
-fun find_term bounds tm =
+fun find_term tm ctxt =
   (case Thm.term_of tm of
     Const (\<^const_name>\<open>HOL.eq\<close>, T) $ _ $ _ =>
-      if domain_type T = HOLogic.boolT then find_args bounds tm
-      else Thm.dest_arg tm
-  | Const (\<^const_name>\<open>Not\<close>, _) $ _ => find_term bounds (Thm.dest_arg tm)
-  | Const (\<^const_name>\<open>All\<close>, _) $ _ => find_body bounds (Thm.dest_arg tm)
-  | Const (\<^const_name>\<open>Ex\<close>, _) $ _ => find_body bounds (Thm.dest_arg tm)
-  | Const (\<^const_name>\<open>HOL.conj\<close>, _) $ _ $ _ => find_args bounds tm
-  | Const (\<^const_name>\<open>HOL.disj\<close>, _) $ _ $ _ => find_args bounds tm
-  | Const (\<^const_name>\<open>HOL.implies\<close>, _) $ _ $ _ => find_args bounds tm
-  | \<^term>\<open>Pure.imp\<close> $_$_ => find_args bounds tm
-  | Const("(==)",_)$_$_ => find_args bounds tm  (* FIXME proper const name *)
-  | \<^term>\<open>Trueprop\<close>$_ => find_term bounds (Thm.dest_arg tm)
+      if domain_type T = HOLogic.boolT then find_args tm ctxt
+      else (Thm.dest_arg tm, ctxt)
+  | Const (\<^const_name>\<open>Not\<close>, _) $ _ => find_term (Thm.dest_arg tm) ctxt
+  | Const (\<^const_name>\<open>All\<close>, _) $ _ => find_body (Thm.dest_arg tm) ctxt
+  | Const (\<^const_name>\<open>Ex\<close>, _) $ _ => find_body (Thm.dest_arg tm) ctxt
+  | Const (\<^const_name>\<open>HOL.conj\<close>, _) $ _ $ _ => find_args tm ctxt
+  | Const (\<^const_name>\<open>HOL.disj\<close>, _) $ _ $ _ => find_args tm ctxt
+  | Const (\<^const_name>\<open>HOL.implies\<close>, _) $ _ $ _ => find_args tm ctxt
+  | \<^term>\<open>Pure.imp\<close> $_$_ => find_args tm ctxt
+  | Const("(==)",_)$_$_ => find_args tm ctxt  (* FIXME proper const name *)
+  | \<^term>\<open>Trueprop\<close>$_ => find_term (Thm.dest_arg tm) ctxt
   | _ => raise TERM ("find_term", []))
-and find_args bounds tm =
+and find_args tm ctxt =
   let val (t, u) = Thm.dest_binop tm
-  in (find_term bounds t handle TERM _ => find_term bounds u) end
-and find_body bounds b =
-  let val (_, b') = Thm.dest_abs (SOME (Name.bound bounds)) b
-  in find_term (bounds + 1) b' end;
+  in (find_term t ctxt handle TERM _ => find_term u ctxt) end
+and find_body b ctxt =
+  let val ((_, b'), ctxt') = Variable.dest_abs_cterm b ctxt
+  in find_term b' ctxt' end;
 
 
 fun get_ring_ideal_convs ctxt form =
- case try (find_term 0) form of
+ case \<^try>\<open>find_term form ctxt\<close> of
   NONE => NONE
-| SOME tm =>
-  (case Semiring_Normalizer.match ctxt tm of
+| SOME (tm, ctxt') =>
+  (case Semiring_Normalizer.match ctxt' tm of
     NONE => NONE
   | SOME (res as (theory, {is_const = _, dest_const,
           mk_const, conv = ring_eq_conv})) =>
      SOME (ring_and_ideal_conv theory
-          dest_const (mk_const (Thm.ctyp_of_cterm tm)) (ring_eq_conv ctxt)
-          (Semiring_Normalizer.semiring_normalize_wrapper ctxt res)))
+          dest_const (mk_const (Thm.ctyp_of_cterm tm)) (ring_eq_conv ctxt')
+          (Semiring_Normalizer.semiring_normalize_wrapper ctxt' res)))
 
 fun presimplify ctxt add_thms del_thms =
   asm_full_simp_tac (put_simpset HOL_basic_ss ctxt

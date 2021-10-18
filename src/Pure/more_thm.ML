@@ -336,36 +336,48 @@ fun forall_intr_name (a, x) th =
 
 local
 
-fun dest_all ct =
+val used_frees =
+  Name.build_context o
+    Thm.fold_terms {hyps = true} Term.declare_term_frees;
+
+fun used_vars i =
+  Name.build_context o
+    (Thm.fold_terms {hyps = false} o Term.fold_aterms)
+      (fn Var ((x, j), _) => i = j ? Name.declare x | _ => I);
+
+fun dest_all ct used =
   (case Thm.term_of ct of
-    Const ("Pure.all", _) $ Abs (a, _, _) =>
-      let val (x, ct') = Thm.dest_abs NONE (Thm.dest_arg ct)
-      in SOME ((a, Thm.ctyp_of_cterm x), ct') end
+    Const ("Pure.all", _) $ Abs (x, _, _) =>
+      let
+        val (x', used') = Name.variant x used;
+        val (v, ct') = Thm.dest_abs_fresh x' (Thm.dest_arg ct);
+      in SOME ((x, Thm.ctyp_of_cterm v), (ct', used')) end
   | _ => NONE);
 
-fun dest_all_list ct =
-  (case dest_all ct of
-    NONE => []
-  | SOME (v, ct') => v :: dest_all_list ct');
+fun dest_all_list ct used =
+  (case dest_all ct used of
+    NONE => ([], used)
+  | SOME (v, (ct', used')) =>
+      let val (vs, used'') = dest_all_list ct' used'
+      in (v :: vs, used'') end);
 
 fun forall_elim_vars_list vars i th =
   let
-    val used =
-      (Thm.fold_terms {hyps = false} o Term.fold_aterms)
-        (fn Var ((x, j), _) => if i = j then insert (op =) x else I | _ => I) th [];
-    val vars' = (Name.variant_list used (map #1 vars), vars)
-      |> ListPair.map (fn (x, (_, T)) => Thm.var ((x, i), T));
+    val (vars', _) =
+      (vars, used_vars i th) |-> fold_map (fn (x, T) => fn used =>
+        let val (x', used') = Name.variant x used
+        in (Thm.var ((x', i), T), used') end);
   in fold Thm.forall_elim vars' th end;
 
 in
 
 fun forall_elim_vars i th =
-  forall_elim_vars_list (dest_all_list (Thm.cprop_of th)) i th;
+  forall_elim_vars_list (#1 (dest_all_list (Thm.cprop_of th) (used_frees th))) i th;
 
 fun forall_elim_var i th =
   let
     val vars =
-      (case dest_all (Thm.cprop_of th) of
+      (case dest_all (Thm.cprop_of th) (used_frees th) of
         SOME (v, _) => [v]
       | NONE => raise THM ("forall_elim_var", i, [th]));
   in forall_elim_vars_list vars i th end;

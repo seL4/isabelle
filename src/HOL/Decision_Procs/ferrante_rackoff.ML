@@ -24,7 +24,7 @@ type entry = {minf: thm list, pinf: thm list, nmi: thm list, npi: thm list,
                  simpset : simpset};
 
 fun get_p1 th =
-  funpow 2 (Thm.dest_arg o snd o Thm.dest_abs NONE)
+  funpow 2 (Thm.dest_arg o snd o Thm.dest_abs_global)
     (funpow 2 Thm.dest_arg (Thm.cprop_of th)) |> Thm.dest_arg
 
 fun ferrack_conv ctxt
@@ -55,7 +55,7 @@ let
     in (S,th) end
 
  val ((p1_v,p2_v),(mp1_v,mp2_v)) =
-   funpow 2 (Thm.dest_arg o snd o Thm.dest_abs NONE)
+   funpow 2 (Thm.dest_arg o snd o Thm.dest_abs_global)
      (funpow 4 Thm.dest_arg (Thm.cprop_of (hd minf)))
    |> Thm.dest_binop |> apply2 Thm.dest_binop |> apfst (apply2 Thm.dest_fun)
    |> apply2 (apply2 (dest_Var o Thm.term_of))
@@ -78,8 +78,8 @@ let
  fun main vs p =
   let
    val ((xn,ce),(x,fm)) = (case Thm.term_of p of
-                   \<^Const_>\<open>Ex _ for \<open>Abs(xn,xT,_)\<close>\<close> =>
-                        Thm.dest_comb p ||> Thm.dest_abs (SOME xn) |>> pair xn
+                   \<^Const_>\<open>Ex _ for \<open>Abs (xn, _, _)\<close>\<close> =>
+                        Thm.dest_comb p ||> Thm.dest_abs_global |>> pair xn
                  | _ => raise CTERM ("main QE only treats existential quantifiers!", [p]))
    val cT = Thm.ctyp_of_cterm x
    val (u,nth) = uset (x::vs) fm |>> distinct (op aconvc)
@@ -174,25 +174,25 @@ end;
 
 val grab_atom_bop =
  let
-  fun h bounds tm =
+  fun h ctxt tm =
    (case Thm.term_of tm of
-     \<^Const_>\<open>HOL.eq \<^Type>\<open>bool\<close> for _ _\<close> => find_args bounds tm
-   | \<^Const_>\<open>Not for _\<close> => h bounds (Thm.dest_arg tm)
-   | \<^Const_>\<open>All _ for _\<close> => find_body bounds (Thm.dest_arg tm)
-   | \<^Const_>\<open>Ex _ for _\<close> => find_body bounds (Thm.dest_arg tm)
-   | \<^Const_>\<open>conj for _ _\<close> => find_args bounds tm
-   | \<^Const_>\<open>disj for _ _\<close> => find_args bounds tm
-   | \<^Const_>\<open>implies for _ _\<close> => find_args bounds tm
-   | \<^Const_>\<open>Pure.imp for _ _\<close> => find_args bounds tm
-   | \<^Const_>\<open>Pure.eq _ for _ _\<close> => find_args bounds tm
-   | \<^Const_>\<open>Pure.all _ for _\<close> => find_body bounds (Thm.dest_arg tm)
-   | \<^Const_>\<open>Trueprop for _\<close> => h bounds (Thm.dest_arg tm)
+     \<^Const_>\<open>HOL.eq \<^Type>\<open>bool\<close> for _ _\<close> => find_args ctxt tm
+   | \<^Const_>\<open>Not for _\<close> => h ctxt (Thm.dest_arg tm)
+   | \<^Const_>\<open>All _ for _\<close> => find_body ctxt (Thm.dest_arg tm)
+   | \<^Const_>\<open>Ex _ for _\<close> => find_body ctxt (Thm.dest_arg tm)
+   | \<^Const_>\<open>conj for _ _\<close> => find_args ctxt tm
+   | \<^Const_>\<open>disj for _ _\<close> => find_args ctxt tm
+   | \<^Const_>\<open>implies for _ _\<close> => find_args ctxt tm
+   | \<^Const_>\<open>Pure.imp for _ _\<close> => find_args ctxt tm
+   | \<^Const_>\<open>Pure.eq _ for _ _\<close> => find_args ctxt tm
+   | \<^Const_>\<open>Pure.all _ for _\<close> => find_body ctxt (Thm.dest_arg tm)
+   | \<^Const_>\<open>Trueprop for _\<close> => h ctxt (Thm.dest_arg tm)
    | _ => Thm.dest_fun2 tm)
-  and find_args bounds tm =
-           (h bounds (Thm.dest_arg tm) handle CTERM _ => Thm.dest_arg1 tm)
- and find_body bounds b =
-   let val (_, b') = Thm.dest_abs (SOME (Name.bound bounds)) b
-   in h (bounds + 1) b' end;
+  and find_args ctxt tm =
+           (h ctxt (Thm.dest_arg tm) handle CTERM _ => Thm.dest_arg1 tm)
+ and find_body ctxt b =
+   let val ((_, b'), ctxt') = Variable.dest_abs_cterm b ctxt
+   in h ctxt' b' end;
 in h end;
 
 fun raw_ferrack_qe_conv ctxt (thy, {isolate_conv, whatis, simpset = ss}) tm =
@@ -213,7 +213,7 @@ fun raw_ferrack_qe_conv ctxt (thy, {isolate_conv, whatis, simpset = ss}) tm =
  in (Simplifier.rewrite (put_simpset ss ctxt) then_conv qe_conv) tm end;
 
 fun dlo_instance ctxt tm =
-  Ferrante_Rackoff_Data.match ctxt (grab_atom_bop 0 tm);
+  Ferrante_Rackoff_Data.match ctxt (grab_atom_bop ctxt tm);
 
 fun dlo_conv ctxt tm =
   (case dlo_instance ctxt tm of

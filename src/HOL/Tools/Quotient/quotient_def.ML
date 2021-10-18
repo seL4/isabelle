@@ -86,21 +86,17 @@ fun add_quotient_def ((var, (name, atts)), (lhs, rhs)) rsp_thm lthy =
     (qconst_data Morphism.identity, lthy'')
   end
 
-fun mk_readable_rsp_thm_eq tm lthy =
+fun mk_readable_rsp_thm_eq tm ctxt =
   let
-    val ctm = Thm.cterm_of lthy tm
+    val ctm = Thm.cterm_of ctxt tm
 
-    fun norm_fun_eq ctm =
-      let
-        fun abs_conv2 cv = Conv.abs_conv (K (Conv.abs_conv (K cv) lthy)) lthy
-        fun erase_quants ctm' =
-          case (Thm.term_of ctm') of
-            Const (\<^const_name>\<open>HOL.eq\<close>, _) $ _ $ _ => Conv.all_conv ctm'
-            | _ => (Conv.binder_conv (K erase_quants) lthy then_conv
-              Conv.rewr_conv @{thm fun_eq_iff[symmetric, THEN eq_reflection]}) ctm'
-      in
-        (abs_conv2 erase_quants then_conv Thm.eta_conversion) ctm
-      end
+    fun abs_conv2 cv = Conv.abs_conv (Conv.abs_conv (cv o #2) o #2) ctxt
+    fun erase_quants ctxt' ctm' =
+      case (Thm.term_of ctm') of
+        Const (\<^const_name>\<open>HOL.eq\<close>, _) $ _ $ _ => Conv.all_conv ctm'
+        | _ => (Conv.binder_conv (erase_quants o #2) ctxt' then_conv
+          Conv.rewr_conv @{thm fun_eq_iff[symmetric, THEN eq_reflection]}) ctm'
+    val norm_fun_eq = abs_conv2 erase_quants then_conv Thm.eta_conversion
 
     fun simp_arrows_conv ctm =
       let
@@ -117,15 +113,15 @@ fun mk_readable_rsp_thm_eq tm lthy =
       end
 
     val unfold_ret_val_invs = Conv.bottom_conv
-      (K (Conv.try_conv (Conv.rewr_conv @{thm eq_onp_same_args[THEN eq_reflection]}))) lthy
+      (K (Conv.try_conv (Conv.rewr_conv @{thm eq_onp_same_args[THEN eq_reflection]}))) ctxt
     val simp_conv = Conv.arg_conv (Conv.fun2_conv simp_arrows_conv)
     val univq_conv = Conv.rewr_conv @{thm HOL.all_simps(6)[symmetric, THEN eq_reflection]}
-    val univq_prenex_conv = Conv.top_conv (K (Conv.try_conv univq_conv)) lthy
+    val univq_prenex_conv = Conv.top_conv (K (Conv.try_conv univq_conv)) ctxt
     val beta_conv = Thm.beta_conversion true
     val eq_thm =
       (simp_conv then_conv univq_prenex_conv then_conv beta_conv then_conv unfold_ret_val_invs) ctm
   in
-    Object_Logic.rulify lthy (eq_thm RS Drule.equal_elim_rule2)
+    Object_Logic.rulify ctxt (eq_thm RS Drule.equal_elim_rule2)
   end
 
 

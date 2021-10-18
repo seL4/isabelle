@@ -7,7 +7,7 @@ structure Cooper_Procedure : sig
     Neg of numa | Add of numa * numa | Sub of numa * numa | Mul of inta * numa
   datatype fm = T | F | Lt of numa | Le of numa | Gt of numa | Ge of numa |
     Eq of numa | NEq of numa | Dvd of inta * numa | NDvd of inta * numa |
-    NOT of fm | And of fm * fm | Or of fm * fm | Imp of fm * fm | Iff of fm * fm
+    Not of fm | And of fm * fm | Or of fm * fm | Imp of fm * fm | Iff of fm * fm
     | E of fm | A of fm | Closed of nat | NClosed of nat
   val pa : fm -> fm
   val nat_of_integer : int -> nat
@@ -619,7 +619,7 @@ val ord_integer =
 
 datatype fm = T | F | Lt of numa | Le of numa | Gt of numa | Ge of numa |
   Eq of numa | NEq of numa | Dvd of inta * numa | NDvd of inta * numa |
-  NOT of fm | And of fm * fm | Or of fm * fm | Imp of fm * fm | Iff of fm * fm |
+  Not of fm | And of fm * fm | Or of fm * fm | Imp of fm * fm | Iff of fm * fm |
   E of fm | A of fm | Closed of nat | NClosed of nat;
 
 fun id x = (fn xa => xa) x;
@@ -643,7 +643,7 @@ fun disjuncts (Or (p, q)) = disjuncts p @ disjuncts q
   | disjuncts (NEq v) = [NEq v]
   | disjuncts (Dvd (v, va)) = [Dvd (v, va)]
   | disjuncts (NDvd (v, va)) = [NDvd (v, va)]
-  | disjuncts (NOT v) = [NOT v]
+  | disjuncts (Not v) = [Not v]
   | disjuncts (And (v, va)) = [And (v, va)]
   | disjuncts (Imp (v, va)) = [Imp (v, va)]
   | disjuncts (Iff (v, va)) = [Iff (v, va)]
@@ -711,22 +711,22 @@ fun equal_fm (Closed x18) (NClosed x19) = false
   | equal_fm (Imp (x141, x142)) (And (x121, x122)) = false
   | equal_fm (And (x121, x122)) (Or (x131, x132)) = false
   | equal_fm (Or (x131, x132)) (And (x121, x122)) = false
-  | equal_fm (NOT x11) (NClosed x19) = false
-  | equal_fm (NClosed x19) (NOT x11) = false
-  | equal_fm (NOT x11) (Closed x18) = false
-  | equal_fm (Closed x18) (NOT x11) = false
-  | equal_fm (NOT x11) (A x17) = false
-  | equal_fm (A x17) (NOT x11) = false
-  | equal_fm (NOT x11) (E x16) = false
-  | equal_fm (E x16) (NOT x11) = false
-  | equal_fm (NOT x11) (Iff (x151, x152)) = false
-  | equal_fm (Iff (x151, x152)) (NOT x11) = false
-  | equal_fm (NOT x11) (Imp (x141, x142)) = false
-  | equal_fm (Imp (x141, x142)) (NOT x11) = false
-  | equal_fm (NOT x11) (Or (x131, x132)) = false
-  | equal_fm (Or (x131, x132)) (NOT x11) = false
-  | equal_fm (NOT x11) (And (x121, x122)) = false
-  | equal_fm (And (x121, x122)) (NOT x11) = false
+  | equal_fm (Not x11) (NClosed x19) = false
+  | equal_fm (NClosed x19) (Not x11) = false
+  | equal_fm (Not x11) (Closed x18) = false
+  | equal_fm (Closed x18) (Not x11) = false
+  | equal_fm (Not x11) (A x17) = false
+  | equal_fm (A x17) (Not x11) = false
+  | equal_fm (Not x11) (E x16) = false
+  | equal_fm (E x16) (Not x11) = false
+  | equal_fm (Not x11) (Iff (x151, x152)) = false
+  | equal_fm (Iff (x151, x152)) (Not x11) = false
+  | equal_fm (Not x11) (Imp (x141, x142)) = false
+  | equal_fm (Imp (x141, x142)) (Not x11) = false
+  | equal_fm (Not x11) (Or (x131, x132)) = false
+  | equal_fm (Or (x131, x132)) (Not x11) = false
+  | equal_fm (Not x11) (And (x121, x122)) = false
+  | equal_fm (And (x121, x122)) (Not x11) = false
   | equal_fm (NDvd (x101, x102)) (NClosed x19) = false
   | equal_fm (NClosed x19) (NDvd (x101, x102)) = false
   | equal_fm (NDvd (x101, x102)) (Closed x18) = false
@@ -743,8 +743,8 @@ fun equal_fm (Closed x18) (NClosed x19) = false
   | equal_fm (Or (x131, x132)) (NDvd (x101, x102)) = false
   | equal_fm (NDvd (x101, x102)) (And (x121, x122)) = false
   | equal_fm (And (x121, x122)) (NDvd (x101, x102)) = false
-  | equal_fm (NDvd (x101, x102)) (NOT x11) = false
-  | equal_fm (NOT x11) (NDvd (x101, x102)) = false
+  | equal_fm (NDvd (x101, x102)) (Not x11) = false
+  | equal_fm (Not x11) (NDvd (x101, x102)) = false
   | equal_fm (Dvd (x91, x92)) (NClosed x19) = false
   | equal_fm (NClosed x19) (Dvd (x91, x92)) = false
   | equal_fm (Dvd (x91, x92)) (Closed x18) = false
@@ -761,8 +761,8 @@ fun equal_fm (Closed x18) (NClosed x19) = false
   | equal_fm (Or (x131, x132)) (Dvd (x91, x92)) = false
   | equal_fm (Dvd (x91, x92)) (And (x121, x122)) = false
   | equal_fm (And (x121, x122)) (Dvd (x91, x92)) = false
-  | equal_fm (Dvd (x91, x92)) (NOT x11) = false
-  | equal_fm (NOT x11) (Dvd (x91, x92)) = false
+  | equal_fm (Dvd (x91, x92)) (Not x11) = false
+  | equal_fm (Not x11) (Dvd (x91, x92)) = false
   | equal_fm (Dvd (x91, x92)) (NDvd (x101, x102)) = false
   | equal_fm (NDvd (x101, x102)) (Dvd (x91, x92)) = false
   | equal_fm (NEq x8) (NClosed x19) = false
@@ -781,8 +781,8 @@ fun equal_fm (Closed x18) (NClosed x19) = false
   | equal_fm (Or (x131, x132)) (NEq x8) = false
   | equal_fm (NEq x8) (And (x121, x122)) = false
   | equal_fm (And (x121, x122)) (NEq x8) = false
-  | equal_fm (NEq x8) (NOT x11) = false
-  | equal_fm (NOT x11) (NEq x8) = false
+  | equal_fm (NEq x8) (Not x11) = false
+  | equal_fm (Not x11) (NEq x8) = false
   | equal_fm (NEq x8) (NDvd (x101, x102)) = false
   | equal_fm (NDvd (x101, x102)) (NEq x8) = false
   | equal_fm (NEq x8) (Dvd (x91, x92)) = false
@@ -803,8 +803,8 @@ fun equal_fm (Closed x18) (NClosed x19) = false
   | equal_fm (Or (x131, x132)) (Eq x7) = false
   | equal_fm (Eq x7) (And (x121, x122)) = false
   | equal_fm (And (x121, x122)) (Eq x7) = false
-  | equal_fm (Eq x7) (NOT x11) = false
-  | equal_fm (NOT x11) (Eq x7) = false
+  | equal_fm (Eq x7) (Not x11) = false
+  | equal_fm (Not x11) (Eq x7) = false
   | equal_fm (Eq x7) (NDvd (x101, x102)) = false
   | equal_fm (NDvd (x101, x102)) (Eq x7) = false
   | equal_fm (Eq x7) (Dvd (x91, x92)) = false
@@ -827,8 +827,8 @@ fun equal_fm (Closed x18) (NClosed x19) = false
   | equal_fm (Or (x131, x132)) (Ge x6) = false
   | equal_fm (Ge x6) (And (x121, x122)) = false
   | equal_fm (And (x121, x122)) (Ge x6) = false
-  | equal_fm (Ge x6) (NOT x11) = false
-  | equal_fm (NOT x11) (Ge x6) = false
+  | equal_fm (Ge x6) (Not x11) = false
+  | equal_fm (Not x11) (Ge x6) = false
   | equal_fm (Ge x6) (NDvd (x101, x102)) = false
   | equal_fm (NDvd (x101, x102)) (Ge x6) = false
   | equal_fm (Ge x6) (Dvd (x91, x92)) = false
@@ -853,8 +853,8 @@ fun equal_fm (Closed x18) (NClosed x19) = false
   | equal_fm (Or (x131, x132)) (Gt x5) = false
   | equal_fm (Gt x5) (And (x121, x122)) = false
   | equal_fm (And (x121, x122)) (Gt x5) = false
-  | equal_fm (Gt x5) (NOT x11) = false
-  | equal_fm (NOT x11) (Gt x5) = false
+  | equal_fm (Gt x5) (Not x11) = false
+  | equal_fm (Not x11) (Gt x5) = false
   | equal_fm (Gt x5) (NDvd (x101, x102)) = false
   | equal_fm (NDvd (x101, x102)) (Gt x5) = false
   | equal_fm (Gt x5) (Dvd (x91, x92)) = false
@@ -881,8 +881,8 @@ fun equal_fm (Closed x18) (NClosed x19) = false
   | equal_fm (Or (x131, x132)) (Le x4) = false
   | equal_fm (Le x4) (And (x121, x122)) = false
   | equal_fm (And (x121, x122)) (Le x4) = false
-  | equal_fm (Le x4) (NOT x11) = false
-  | equal_fm (NOT x11) (Le x4) = false
+  | equal_fm (Le x4) (Not x11) = false
+  | equal_fm (Not x11) (Le x4) = false
   | equal_fm (Le x4) (NDvd (x101, x102)) = false
   | equal_fm (NDvd (x101, x102)) (Le x4) = false
   | equal_fm (Le x4) (Dvd (x91, x92)) = false
@@ -911,8 +911,8 @@ fun equal_fm (Closed x18) (NClosed x19) = false
   | equal_fm (Or (x131, x132)) (Lt x3) = false
   | equal_fm (Lt x3) (And (x121, x122)) = false
   | equal_fm (And (x121, x122)) (Lt x3) = false
-  | equal_fm (Lt x3) (NOT x11) = false
-  | equal_fm (NOT x11) (Lt x3) = false
+  | equal_fm (Lt x3) (Not x11) = false
+  | equal_fm (Not x11) (Lt x3) = false
   | equal_fm (Lt x3) (NDvd (x101, x102)) = false
   | equal_fm (NDvd (x101, x102)) (Lt x3) = false
   | equal_fm (Lt x3) (Dvd (x91, x92)) = false
@@ -943,8 +943,8 @@ fun equal_fm (Closed x18) (NClosed x19) = false
   | equal_fm (Or (x131, x132)) F = false
   | equal_fm F (And (x121, x122)) = false
   | equal_fm (And (x121, x122)) F = false
-  | equal_fm F (NOT x11) = false
-  | equal_fm (NOT x11) F = false
+  | equal_fm F (Not x11) = false
+  | equal_fm (Not x11) F = false
   | equal_fm F (NDvd (x101, x102)) = false
   | equal_fm (NDvd (x101, x102)) F = false
   | equal_fm F (Dvd (x91, x92)) = false
@@ -977,8 +977,8 @@ fun equal_fm (Closed x18) (NClosed x19) = false
   | equal_fm (Or (x131, x132)) T = false
   | equal_fm T (And (x121, x122)) = false
   | equal_fm (And (x121, x122)) T = false
-  | equal_fm T (NOT x11) = false
-  | equal_fm (NOT x11) T = false
+  | equal_fm T (Not x11) = false
+  | equal_fm (Not x11) T = false
   | equal_fm T (NDvd (x101, x102)) = false
   | equal_fm (NDvd (x101, x102)) T = false
   | equal_fm T (Dvd (x91, x92)) = false
@@ -1009,7 +1009,7 @@ fun equal_fm (Closed x18) (NClosed x19) = false
     equal_fm x131 y131 andalso equal_fm x132 y132
   | equal_fm (And (x121, x122)) (And (y121, y122)) =
     equal_fm x121 y121 andalso equal_fm x122 y122
-  | equal_fm (NOT x11) (NOT y11) = equal_fm x11 y11
+  | equal_fm (Not x11) (Not y11) = equal_fm x11 y11
   | equal_fm (NDvd (x101, x102)) (NDvd (y101, y102)) =
     equal_inta x101 y101 andalso equal_numa x102 y102
   | equal_fm (Dvd (x91, x92)) (Dvd (y91, y92)) =
@@ -1030,7 +1030,7 @@ fun djf f p q =
                   | Le _ => Or (f p, q) | Gt _ => Or (f p, q)
                   | Ge _ => Or (f p, q) | Eq _ => Or (f p, q)
                   | NEq _ => Or (f p, q) | Dvd (_, _) => Or (f p, q)
-                  | NDvd (_, _) => Or (f p, q) | NOT _ => Or (f p, q)
+                  | NDvd (_, _) => Or (f p, q) | Not _ => Or (f p, q)
                   | And (_, _) => Or (f p, q) | Or (_, _) => Or (f p, q)
                   | Imp (_, _) => Or (f p, q) | Iff (_, _) => Or (f p, q)
                   | E _ => Or (f p, q) | A _ => Or (f p, q)
@@ -1089,7 +1089,7 @@ fun minusinf (And (p, q)) = And (minusinf p, minusinf q)
   | minusinf (NEq (Mul (va, vb))) = NEq (Mul (va, vb))
   | minusinf (Dvd (v, va)) = Dvd (v, va)
   | minusinf (NDvd (v, va)) = NDvd (v, va)
-  | minusinf (NOT v) = NOT v
+  | minusinf (Not v) = Not v
   | minusinf (Imp (v, va)) = Imp (v, va)
   | minusinf (Iff (v, va)) = Iff (v, va)
   | minusinf (E v) = E v
@@ -1138,7 +1138,7 @@ fun subst0 t T = T
   | subst0 t (NEq a) = NEq (numsubst0 t a)
   | subst0 t (Dvd (i, a)) = Dvd (i, numsubst0 t a)
   | subst0 t (NDvd (i, a)) = NDvd (i, numsubst0 t a)
-  | subst0 t (NOT p) = NOT (subst0 t p)
+  | subst0 t (Not p) = Not (subst0 t p)
   | subst0 t (And (p, q)) = And (subst0 t p, subst0 t q)
   | subst0 t (Or (p, q)) = Or (subst0 t p, subst0 t q)
   | subst0 t (Imp (p, q)) = Imp (subst0 t p, subst0 t q)
@@ -1263,25 +1263,25 @@ fun conj p q =
     else (if equal_fm p T then q
            else (if equal_fm q T then p else And (p, q))));
 
-fun nota (NOT p) = p
+fun nota (Not p) = p
   | nota T = F
   | nota F = T
-  | nota (Lt v) = NOT (Lt v)
-  | nota (Le v) = NOT (Le v)
-  | nota (Gt v) = NOT (Gt v)
-  | nota (Ge v) = NOT (Ge v)
-  | nota (Eq v) = NOT (Eq v)
-  | nota (NEq v) = NOT (NEq v)
-  | nota (Dvd (v, va)) = NOT (Dvd (v, va))
-  | nota (NDvd (v, va)) = NOT (NDvd (v, va))
-  | nota (And (v, va)) = NOT (And (v, va))
-  | nota (Or (v, va)) = NOT (Or (v, va))
-  | nota (Imp (v, va)) = NOT (Imp (v, va))
-  | nota (Iff (v, va)) = NOT (Iff (v, va))
-  | nota (E v) = NOT (E v)
-  | nota (A v) = NOT (A v)
-  | nota (Closed v) = NOT (Closed v)
-  | nota (NClosed v) = NOT (NClosed v);
+  | nota (Lt v) = Not (Lt v)
+  | nota (Le v) = Not (Le v)
+  | nota (Gt v) = Not (Gt v)
+  | nota (Ge v) = Not (Ge v)
+  | nota (Eq v) = Not (Eq v)
+  | nota (NEq v) = Not (NEq v)
+  | nota (Dvd (v, va)) = Not (Dvd (v, va))
+  | nota (NDvd (v, va)) = Not (NDvd (v, va))
+  | nota (And (v, va)) = Not (And (v, va))
+  | nota (Or (v, va)) = Not (Or (v, va))
+  | nota (Imp (v, va)) = Not (Imp (v, va))
+  | nota (Iff (v, va)) = Not (Iff (v, va))
+  | nota (E v) = Not (E v)
+  | nota (A v) = Not (A v)
+  | nota (Closed v) = Not (Closed v)
+  | nota (NClosed v) = Not (NClosed v);
 
 fun imp p q =
   (if equal_fm p F orelse equal_fm q T then T
@@ -1301,7 +1301,7 @@ fun simpfm (And (p, q)) = conj (simpfm p) (simpfm q)
   | simpfm (Or (p, q)) = disj (simpfm p) (simpfm q)
   | simpfm (Imp (p, q)) = imp (simpfm p) (simpfm q)
   | simpfm (Iff (p, q)) = iff (simpfm p) (simpfm q)
-  | simpfm (NOT p) = nota (simpfm p)
+  | simpfm (Not p) = nota (simpfm p)
   | simpfm (Lt a) =
     let
       val aa = simpnum a;
@@ -1442,7 +1442,7 @@ fun a_beta (And (p, q)) k = And (a_beta p k, a_beta q k)
   | a_beta (NDvd (v, Add (vb, vc))) k = NDvd (v, Add (vb, vc))
   | a_beta (NDvd (v, Sub (vb, vc))) k = NDvd (v, Sub (vb, vc))
   | a_beta (NDvd (v, Mul (vb, vc))) k = NDvd (v, Mul (vb, vc))
-  | a_beta (NOT v) k = NOT v
+  | a_beta (Not v) k = Not v
   | a_beta (Imp (v, va)) k = Imp (v, va)
   | a_beta (Iff (v, va)) k = Iff (v, va)
   | a_beta (E v) k = E v
@@ -1515,7 +1515,7 @@ fun delta (And (p, q)) = lcm_int (delta p) (delta q)
   | delta (NDvd (v, Add (vb, vc))) = one_inta
   | delta (NDvd (v, Sub (vb, vc))) = one_inta
   | delta (NDvd (v, Mul (vb, vc))) = one_inta
-  | delta (NOT v) = one_inta
+  | delta (Not v) = one_inta
   | delta (Imp (v, va)) = one_inta
   | delta (Iff (v, va)) = one_inta
   | delta (E v) = one_inta
@@ -1569,7 +1569,7 @@ fun alpha (And (p, q)) = alpha p @ alpha q
   | alpha (NEq (Mul (va, vb))) = []
   | alpha (Dvd (v, va)) = []
   | alpha (NDvd (v, va)) = []
-  | alpha (NOT v) = []
+  | alpha (Not v) = []
   | alpha (Imp (v, va)) = []
   | alpha (Iff (v, va)) = []
   | alpha (E v) = []
@@ -1637,7 +1637,7 @@ fun zeta (And (p, q)) = lcm_int (zeta p) (zeta q)
   | zeta (NDvd (v, Add (vb, vc))) = one_inta
   | zeta (NDvd (v, Sub (vb, vc))) = one_inta
   | zeta (NDvd (v, Mul (vb, vc))) = one_inta
-  | zeta (NOT v) = one_inta
+  | zeta (Not v) = one_inta
   | zeta (Imp (v, va)) = one_inta
   | zeta (Iff (v, va)) = one_inta
   | zeta (E v) = one_inta
@@ -1697,7 +1697,7 @@ fun beta (And (p, q)) = beta p @ beta q
   | beta (NEq (Mul (va, vb))) = []
   | beta (Dvd (v, va)) = []
   | beta (NDvd (v, va)) = []
-  | beta (NOT v) = []
+  | beta (Not v) = []
   | beta (Imp (v, va)) = []
   | beta (Iff (v, va)) = []
   | beta (E v) = []
@@ -1766,7 +1766,7 @@ fun mirror (And (p, q)) = And (mirror p, mirror q)
   | mirror (NDvd (v, Add (vb, vc))) = NDvd (v, Add (vb, vc))
   | mirror (NDvd (v, Sub (vb, vc))) = NDvd (v, Sub (vb, vc))
   | mirror (NDvd (v, Mul (vb, vc))) = NDvd (v, Mul (vb, vc))
-  | mirror (NOT v) = NOT v
+  | mirror (Not v) = Not v
   | mirror (Imp (v, va)) = Imp (v, va)
   | mirror (Iff (v, va)) = Iff (v, va)
   | mirror (E v) = E v
@@ -1848,9 +1848,9 @@ fun zsplit0 (C c) = (zero_inta, C c)
 
 fun zlfm (And (p, q)) = And (zlfm p, zlfm q)
   | zlfm (Or (p, q)) = Or (zlfm p, zlfm q)
-  | zlfm (Imp (p, q)) = Or (zlfm (NOT p), zlfm q)
+  | zlfm (Imp (p, q)) = Or (zlfm (Not p), zlfm q)
   | zlfm (Iff (p, q)) =
-    Or (And (zlfm p, zlfm q), And (zlfm (NOT p), zlfm (NOT q)))
+    Or (And (zlfm p, zlfm q), And (zlfm (Not p), zlfm (Not q)))
   | zlfm (Lt a) =
     let
       val (c, r) = zsplit0 a;
@@ -1920,28 +1920,28 @@ fun zlfm (And (p, q)) = And (zlfm p, zlfm q)
                       else NDvd (abs_int i,
                                   CN (zero_nat, uminus_int c, Neg r))))
            end)
-  | zlfm (NOT (And (p, q))) = Or (zlfm (NOT p), zlfm (NOT q))
-  | zlfm (NOT (Or (p, q))) = And (zlfm (NOT p), zlfm (NOT q))
-  | zlfm (NOT (Imp (p, q))) = And (zlfm p, zlfm (NOT q))
-  | zlfm (NOT (Iff (p, q))) =
-    Or (And (zlfm p, zlfm (NOT q)), And (zlfm (NOT p), zlfm q))
-  | zlfm (NOT (NOT p)) = zlfm p
-  | zlfm (NOT T) = F
-  | zlfm (NOT F) = T
-  | zlfm (NOT (Lt a)) = zlfm (Ge a)
-  | zlfm (NOT (Le a)) = zlfm (Gt a)
-  | zlfm (NOT (Gt a)) = zlfm (Le a)
-  | zlfm (NOT (Ge a)) = zlfm (Lt a)
-  | zlfm (NOT (Eq a)) = zlfm (NEq a)
-  | zlfm (NOT (NEq a)) = zlfm (Eq a)
-  | zlfm (NOT (Dvd (i, a))) = zlfm (NDvd (i, a))
-  | zlfm (NOT (NDvd (i, a))) = zlfm (Dvd (i, a))
-  | zlfm (NOT (Closed p)) = NClosed p
-  | zlfm (NOT (NClosed p)) = Closed p
+  | zlfm (Not (And (p, q))) = Or (zlfm (Not p), zlfm (Not q))
+  | zlfm (Not (Or (p, q))) = And (zlfm (Not p), zlfm (Not q))
+  | zlfm (Not (Imp (p, q))) = And (zlfm p, zlfm (Not q))
+  | zlfm (Not (Iff (p, q))) =
+    Or (And (zlfm p, zlfm (Not q)), And (zlfm (Not p), zlfm q))
+  | zlfm (Not (Not p)) = zlfm p
+  | zlfm (Not T) = F
+  | zlfm (Not F) = T
+  | zlfm (Not (Lt a)) = zlfm (Ge a)
+  | zlfm (Not (Le a)) = zlfm (Gt a)
+  | zlfm (Not (Gt a)) = zlfm (Le a)
+  | zlfm (Not (Ge a)) = zlfm (Lt a)
+  | zlfm (Not (Eq a)) = zlfm (NEq a)
+  | zlfm (Not (NEq a)) = zlfm (Eq a)
+  | zlfm (Not (Dvd (i, a))) = zlfm (NDvd (i, a))
+  | zlfm (Not (NDvd (i, a))) = zlfm (Dvd (i, a))
+  | zlfm (Not (Closed p)) = NClosed p
+  | zlfm (Not (NClosed p)) = Closed p
   | zlfm T = T
   | zlfm F = F
-  | zlfm (NOT (E va)) = NOT (E va)
-  | zlfm (NOT (A va)) = NOT (A va)
+  | zlfm (Not (E va)) = Not (E va)
+  | zlfm (Not (A va)) = Not (A va)
   | zlfm (E v) = E v
   | zlfm (A v) = A v
   | zlfm (Closed v) = Closed v
@@ -1976,7 +1976,7 @@ fun decr (Lt a) = Lt (decrnum a)
   | decr (NEq a) = NEq (decrnum a)
   | decr (Dvd (i, a)) = Dvd (i, decrnum a)
   | decr (NDvd (i, a)) = NDvd (i, decrnum a)
-  | decr (NOT p) = NOT (decr p)
+  | decr (Not p) = Not (decr p)
   | decr (And (p, q)) = And (decr p, decr q)
   | decr (Or (p, q)) = Or (decr p, decr q)
   | decr (Imp (p, q)) = Imp (decr p, decr q)
@@ -2014,8 +2014,8 @@ fun cooper p =
   end;
 
 fun qelim (E p) = (fn qe => dj qe (qelim p qe))
-  | qelim (A p) = (fn qe => nota (qe (qelim (NOT p) qe)))
-  | qelim (NOT p) = (fn qe => nota (qelim p qe))
+  | qelim (A p) = (fn qe => nota (qe (qelim (Not p) qe)))
+  | qelim (Not p) = (fn qe => nota (qelim p qe))
   | qelim (And (p, q)) = (fn qe => conj (qelim p qe) (qelim q qe))
   | qelim (Or (p, q)) = (fn qe => disj (qelim p qe) (qelim q qe))
   | qelim (Imp (p, q)) = (fn qe => imp (qelim p qe) (qelim q qe))
@@ -2036,13 +2036,13 @@ fun qelim (E p) = (fn qe => dj qe (qelim p qe))
 fun prep (E T) = T
   | prep (E F) = F
   | prep (E (Or (p, q))) = Or (prep (E p), prep (E q))
-  | prep (E (Imp (p, q))) = Or (prep (E (NOT p)), prep (E q))
+  | prep (E (Imp (p, q))) = Or (prep (E (Not p)), prep (E q))
   | prep (E (Iff (p, q))) =
-    Or (prep (E (And (p, q))), prep (E (And (NOT p, NOT q))))
-  | prep (E (NOT (And (p, q)))) = Or (prep (E (NOT p)), prep (E (NOT q)))
-  | prep (E (NOT (Imp (p, q)))) = prep (E (And (p, NOT q)))
-  | prep (E (NOT (Iff (p, q)))) =
-    Or (prep (E (And (p, NOT q))), prep (E (And (NOT p, q))))
+    Or (prep (E (And (p, q))), prep (E (And (Not p, Not q))))
+  | prep (E (Not (And (p, q)))) = Or (prep (E (Not p)), prep (E (Not q)))
+  | prep (E (Not (Imp (p, q)))) = prep (E (And (p, Not q)))
+  | prep (E (Not (Iff (p, q)))) =
+    Or (prep (E (And (p, Not q))), prep (E (And (Not p, q))))
   | prep (E (Lt v)) = E (prep (Lt v))
   | prep (E (Le v)) = E (prep (Le v))
   | prep (E (Gt v)) = E (prep (Gt v))
@@ -2051,69 +2051,69 @@ fun prep (E T) = T
   | prep (E (NEq v)) = E (prep (NEq v))
   | prep (E (Dvd (v, va))) = E (prep (Dvd (v, va)))
   | prep (E (NDvd (v, va))) = E (prep (NDvd (v, va)))
-  | prep (E (NOT T)) = E (prep (NOT T))
-  | prep (E (NOT F)) = E (prep (NOT F))
-  | prep (E (NOT (Lt va))) = E (prep (NOT (Lt va)))
-  | prep (E (NOT (Le va))) = E (prep (NOT (Le va)))
-  | prep (E (NOT (Gt va))) = E (prep (NOT (Gt va)))
-  | prep (E (NOT (Ge va))) = E (prep (NOT (Ge va)))
-  | prep (E (NOT (Eq va))) = E (prep (NOT (Eq va)))
-  | prep (E (NOT (NEq va))) = E (prep (NOT (NEq va)))
-  | prep (E (NOT (Dvd (va, vb)))) = E (prep (NOT (Dvd (va, vb))))
-  | prep (E (NOT (NDvd (va, vb)))) = E (prep (NOT (NDvd (va, vb))))
-  | prep (E (NOT (NOT va))) = E (prep (NOT (NOT va)))
-  | prep (E (NOT (Or (va, vb)))) = E (prep (NOT (Or (va, vb))))
-  | prep (E (NOT (E va))) = E (prep (NOT (E va)))
-  | prep (E (NOT (A va))) = E (prep (NOT (A va)))
-  | prep (E (NOT (Closed va))) = E (prep (NOT (Closed va)))
-  | prep (E (NOT (NClosed va))) = E (prep (NOT (NClosed va)))
+  | prep (E (Not T)) = E (prep (Not T))
+  | prep (E (Not F)) = E (prep (Not F))
+  | prep (E (Not (Lt va))) = E (prep (Not (Lt va)))
+  | prep (E (Not (Le va))) = E (prep (Not (Le va)))
+  | prep (E (Not (Gt va))) = E (prep (Not (Gt va)))
+  | prep (E (Not (Ge va))) = E (prep (Not (Ge va)))
+  | prep (E (Not (Eq va))) = E (prep (Not (Eq va)))
+  | prep (E (Not (NEq va))) = E (prep (Not (NEq va)))
+  | prep (E (Not (Dvd (va, vb)))) = E (prep (Not (Dvd (va, vb))))
+  | prep (E (Not (NDvd (va, vb)))) = E (prep (Not (NDvd (va, vb))))
+  | prep (E (Not (Not va))) = E (prep (Not (Not va)))
+  | prep (E (Not (Or (va, vb)))) = E (prep (Not (Or (va, vb))))
+  | prep (E (Not (E va))) = E (prep (Not (E va)))
+  | prep (E (Not (A va))) = E (prep (Not (A va)))
+  | prep (E (Not (Closed va))) = E (prep (Not (Closed va)))
+  | prep (E (Not (NClosed va))) = E (prep (Not (NClosed va)))
   | prep (E (And (v, va))) = E (prep (And (v, va)))
   | prep (E (E v)) = E (prep (E v))
   | prep (E (A v)) = E (prep (A v))
   | prep (E (Closed v)) = E (prep (Closed v))
   | prep (E (NClosed v)) = E (prep (NClosed v))
   | prep (A (And (p, q))) = And (prep (A p), prep (A q))
-  | prep (A T) = prep (NOT (E (NOT T)))
-  | prep (A F) = prep (NOT (E (NOT F)))
-  | prep (A (Lt v)) = prep (NOT (E (NOT (Lt v))))
-  | prep (A (Le v)) = prep (NOT (E (NOT (Le v))))
-  | prep (A (Gt v)) = prep (NOT (E (NOT (Gt v))))
-  | prep (A (Ge v)) = prep (NOT (E (NOT (Ge v))))
-  | prep (A (Eq v)) = prep (NOT (E (NOT (Eq v))))
-  | prep (A (NEq v)) = prep (NOT (E (NOT (NEq v))))
-  | prep (A (Dvd (v, va))) = prep (NOT (E (NOT (Dvd (v, va)))))
-  | prep (A (NDvd (v, va))) = prep (NOT (E (NOT (NDvd (v, va)))))
-  | prep (A (NOT v)) = prep (NOT (E (NOT (NOT v))))
-  | prep (A (Or (v, va))) = prep (NOT (E (NOT (Or (v, va)))))
-  | prep (A (Imp (v, va))) = prep (NOT (E (NOT (Imp (v, va)))))
-  | prep (A (Iff (v, va))) = prep (NOT (E (NOT (Iff (v, va)))))
-  | prep (A (E v)) = prep (NOT (E (NOT (E v))))
-  | prep (A (A v)) = prep (NOT (E (NOT (A v))))
-  | prep (A (Closed v)) = prep (NOT (E (NOT (Closed v))))
-  | prep (A (NClosed v)) = prep (NOT (E (NOT (NClosed v))))
-  | prep (NOT (NOT p)) = prep p
-  | prep (NOT (And (p, q))) = Or (prep (NOT p), prep (NOT q))
-  | prep (NOT (A p)) = prep (E (NOT p))
-  | prep (NOT (Or (p, q))) = And (prep (NOT p), prep (NOT q))
-  | prep (NOT (Imp (p, q))) = And (prep p, prep (NOT q))
-  | prep (NOT (Iff (p, q))) = Or (prep (And (p, NOT q)), prep (And (NOT p, q)))
-  | prep (NOT T) = NOT (prep T)
-  | prep (NOT F) = NOT (prep F)
-  | prep (NOT (Lt v)) = NOT (prep (Lt v))
-  | prep (NOT (Le v)) = NOT (prep (Le v))
-  | prep (NOT (Gt v)) = NOT (prep (Gt v))
-  | prep (NOT (Ge v)) = NOT (prep (Ge v))
-  | prep (NOT (Eq v)) = NOT (prep (Eq v))
-  | prep (NOT (NEq v)) = NOT (prep (NEq v))
-  | prep (NOT (Dvd (v, va))) = NOT (prep (Dvd (v, va)))
-  | prep (NOT (NDvd (v, va))) = NOT (prep (NDvd (v, va)))
-  | prep (NOT (E v)) = NOT (prep (E v))
-  | prep (NOT (Closed v)) = NOT (prep (Closed v))
-  | prep (NOT (NClosed v)) = NOT (prep (NClosed v))
+  | prep (A T) = prep (Not (E (Not T)))
+  | prep (A F) = prep (Not (E (Not F)))
+  | prep (A (Lt v)) = prep (Not (E (Not (Lt v))))
+  | prep (A (Le v)) = prep (Not (E (Not (Le v))))
+  | prep (A (Gt v)) = prep (Not (E (Not (Gt v))))
+  | prep (A (Ge v)) = prep (Not (E (Not (Ge v))))
+  | prep (A (Eq v)) = prep (Not (E (Not (Eq v))))
+  | prep (A (NEq v)) = prep (Not (E (Not (NEq v))))
+  | prep (A (Dvd (v, va))) = prep (Not (E (Not (Dvd (v, va)))))
+  | prep (A (NDvd (v, va))) = prep (Not (E (Not (NDvd (v, va)))))
+  | prep (A (Not v)) = prep (Not (E (Not (Not v))))
+  | prep (A (Or (v, va))) = prep (Not (E (Not (Or (v, va)))))
+  | prep (A (Imp (v, va))) = prep (Not (E (Not (Imp (v, va)))))
+  | prep (A (Iff (v, va))) = prep (Not (E (Not (Iff (v, va)))))
+  | prep (A (E v)) = prep (Not (E (Not (E v))))
+  | prep (A (A v)) = prep (Not (E (Not (A v))))
+  | prep (A (Closed v)) = prep (Not (E (Not (Closed v))))
+  | prep (A (NClosed v)) = prep (Not (E (Not (NClosed v))))
+  | prep (Not (Not p)) = prep p
+  | prep (Not (And (p, q))) = Or (prep (Not p), prep (Not q))
+  | prep (Not (A p)) = prep (E (Not p))
+  | prep (Not (Or (p, q))) = And (prep (Not p), prep (Not q))
+  | prep (Not (Imp (p, q))) = And (prep p, prep (Not q))
+  | prep (Not (Iff (p, q))) = Or (prep (And (p, Not q)), prep (And (Not p, q)))
+  | prep (Not T) = Not (prep T)
+  | prep (Not F) = Not (prep F)
+  | prep (Not (Lt v)) = Not (prep (Lt v))
+  | prep (Not (Le v)) = Not (prep (Le v))
+  | prep (Not (Gt v)) = Not (prep (Gt v))
+  | prep (Not (Ge v)) = Not (prep (Ge v))
+  | prep (Not (Eq v)) = Not (prep (Eq v))
+  | prep (Not (NEq v)) = Not (prep (NEq v))
+  | prep (Not (Dvd (v, va))) = Not (prep (Dvd (v, va)))
+  | prep (Not (NDvd (v, va))) = Not (prep (NDvd (v, va)))
+  | prep (Not (E v)) = Not (prep (E v))
+  | prep (Not (Closed v)) = Not (prep (Closed v))
+  | prep (Not (NClosed v)) = Not (prep (NClosed v))
   | prep (Or (p, q)) = Or (prep p, prep q)
   | prep (And (p, q)) = And (prep p, prep q)
-  | prep (Imp (p, q)) = prep (Or (NOT p, q))
-  | prep (Iff (p, q)) = Or (prep (And (p, q)), prep (And (NOT p, NOT q)))
+  | prep (Imp (p, q)) = prep (Or (Not p, q))
+  | prep (Iff (p, q)) = Or (prep (And (p, q)), prep (And (Not p, Not q)))
   | prep T = T
   | prep F = F
   | prep (Lt v) = Lt v
