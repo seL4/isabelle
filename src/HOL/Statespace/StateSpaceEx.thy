@@ -1,5 +1,6 @@
 (*  Title:      HOL/Statespace/StateSpaceEx.thy
-    Author:     Norbert Schirmer, TU Muenchen
+    Author:     Norbert Schirmer, TU Muenchen, 2007
+    Author:     Norbert Schirmer, Apple, 2021
 *)
 
 section \<open>Examples \label{sec:Examples}\<close>
@@ -32,7 +33,7 @@ print_locale vars
 
 text \<open>\noindent This resembles a \<^theory_text>\<open>record\<close> definition, 
 but introduces sophisticated locale
-infrastructure instead of HOL type schemes.  The resulting context
+infrastructure instead of HOL type schemes. The resulting context
 postulates two distinct names \<^term>\<open>n\<close> and \<^term>\<open>b\<close> and
 projection~/ injection functions that convert from abstract values to
 \<^typ>\<open>nat\<close> and \<open>bool\<close>. The logical content of the locale is:\<close>
@@ -53,16 +54,11 @@ defines the raw logical content that is defined in the state space
 locale. We also maintain non-logical context information to support
 the user:
 
-\begin{itemize}
-
-\item Syntax for state lookup and updates that automatically inserts
+\<^item> Syntax for state lookup and updates that automatically inserts
 the corresponding projection and injection functions.
-
-\item Setup for the proof tools that exploit the distinctness
+\<^item> Setup for the proof tools that exploit the distinctness
 information and the cancellation of projections and injections in
 deductions and simplifications.
-
-\end{itemize}
 
 This extra-logical information is added to the locale in form of
 declarations, which associate the name of a variable to the
@@ -72,8 +68,9 @@ corresponding distinctness theorem. As state spaces are merged or
 extended there are multiple distinctness theorems in the context. Our
 declarations take care that the link always points to the strongest
 distinctness assumption.  With these declarations in place, a lookup
-can be written as \<open>s\<cdot>n\<close>, which is translated to \<open>project_nat (s n)\<close>, and an update as \<open>s\<langle>n := 2\<rangle>\<close>, which is
-translated to \<open>s(n := inject_nat 2)\<close>. We can now establish the
+can be written as \<open>s\<cdot>n\<close>, which is translated to \<open>project_nat (s n)\<close>, and an 
+update as \<open>s\<langle>n := 2\<rangle>\<close>, which is translated to \<open>s(n := inject_nat 2)\<close>. 
+We can now establish the
 following lemma:\<close>
 
 lemma (in vars) foo: "s<n := 2>\<cdot>b = s\<cdot>b" by simp
@@ -92,7 +89,8 @@ to upper-case letters, and adds another variable \<^term>\<open>x\<close> of typ
 \<^typ>\<open>'a\<close>. This type is fixed inside the state space but may get
 instantiated later on, analogous to type parameters of an ML-functor.
 The distinctness assumption is now \<open>distinct [N, B, n, b, x]\<close>,
-from this we can derive both \<^term>\<open>distinct [N,B]\<close> and \<^term>\<open>distinct [n,b]\<close>, the distinction assumptions for the two versions of
+from this we can derive both \<^term>\<open>distinct [N,B]\<close> and \<^term>\<open>distinct [n,b]\<close>,
+the distinction assumptions for the two versions of
 locale \<open>vars\<close> above.  Moreover we have all necessary
 projection and injection assumptions available. These assumptions
 together allow us to establish state space \<^term>\<open>varsX\<close> as an
@@ -112,8 +110,8 @@ distinctness predicate is refined to operate on balanced trees. Thus
 we get logarithmic certificates for the distinctness of two names by
 the distinctness of the paths in the tree. Asked for the distinctness
 of two names, our tool produces the paths of the variables in the tree
-(this is implemented in SML, outside the logic) and returns a
-certificate corresponding to the different paths.  Merging state
+(this is implemented in Isabelle/ML, outside the logic) and returns a
+certificate corresponding to the different paths. Merging state
 spaces requires to prove that the combined distinctness assumption
 implies the distinctness assumptions of the components.  Such a proof
 is of the order $m \cdot \log n$, where $n$ and $m$ are the number of
@@ -194,7 +192,7 @@ lemma (in dup)
   by simp
 
 text \<open>There were known problems with syntax-declarations. They only
-worked, when the context is already completely built. This is now overcome. e.g.:\<close>
+worked when the context is already completely built. This is now overcome. e.g.:\<close>
 
 locale fooX = foo +
  assumes "s<a:=i>\<cdot>b = k"
@@ -211,15 +209,15 @@ locale side_by_side = foo + bar where b="B::'a" and c=C for B C
 
 context side_by_side
 begin
-text \<open>Simplification within on of the statespaces works as expected.\<close>
+text \<open>Simplification within one of the statespaces works as expected.\<close>
 lemma "s<B := i>\<cdot>C = s\<cdot>C"
   by simp
 
 lemma "s<a := i>\<cdot>b = s\<cdot>b"
   by simp
 
-text \<open>In contrast to the statespace @{locale loo} there is no 'inter' statespece distinctness between the
-names of @{locale foo} and @{locale bar}. }\<close>
+text \<open>In contrast to the statespace @{locale loo} there is no 'inter' statespace distinctness 
+between the names of @{locale foo} and @{locale bar}.\<close>
 end
 
 
@@ -252,7 +250,8 @@ statespace merge_vars1_vars2 = vars1 + vars2
 
 context merge_vars1_vars2
 begin
-text \<open>When defining a statespace instead of a side-by-side locale we get the distinctness of all variables.\<close>
+text \<open>When defining a statespace instead of a side-by-side locale we get the distinctness of 
+all variables.\<close>
 lemma "s<k := i>\<cdot>m = s\<cdot>m"
   by simp
 end

@@ -1,5 +1,6 @@
 (*  Title:      HOL/Statespace/state_fun.ML
-    Author:     Norbert Schirmer, TU Muenchen
+    Author:     Norbert Schirmer, TU Muenchen, 2007
+    Author:     Norbert Schirmer, Apple, 2021
 *)
 
 signature STATE_FUN =

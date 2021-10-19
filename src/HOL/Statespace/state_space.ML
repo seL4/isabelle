@@ -1,5 +1,6 @@
 (*  Title:      HOL/Statespace/state_space.ML
-    Author:     Norbert Schirmer, TU Muenchen
+    Author:     Norbert Schirmer, TU Muenchen, 2007
+    Author:     Norbert Schirmer, Apple, 2021
 *)
 
 signature STATE_SPACE =
@@ -659,8 +660,7 @@ fun gen_lookup_tr ctxt s n =
       if get_silent (Context.Proof ctxt)
       then Syntax.const \<^const_name>\<open>StateFun.lookup\<close> $
         Syntax.const \<^const_syntax>\<open>undefined\<close> $ Syntax.free n $ s
-      else (trace_name_space_data (Context.Proof ctxt);
-            raise TERM ("StateSpace.gen_lookup_tr: component " ^ quote n ^ " not defined", [])));
+      else raise TERM ("StateSpace.gen_lookup_tr: component " ^ quote n ^ " not defined", []));
 
 fun lookup_tr ctxt [s, x] =
   (case Term_Position.strip_positions x of

@@ -1,5 +1,6 @@
 (*  Title:      HOL/Statespace/distinct_tree_prover.ML
-    Author:     Norbert Schirmer, TU Muenchen
+    Author:     Norbert Schirmer, TU Muenchen, 2007
+    Author:     Norbert Schirmer, Apple, 2021
 *)
 
 signature DISTINCT_TREE_PROVER =
