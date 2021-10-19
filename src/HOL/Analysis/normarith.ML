@@ -325,9 +325,9 @@ local
         (map (fn t =>
           Drule.instantiate_normalize (TVars.make [(tv_n, Thm.ctyp_of_cterm t)], Vars.empty) pth_zero)
             zerodests,
-        map (fconv_rule (try_conv (Conv.top_sweep_conv (K (norm_canon_conv ctxt)) ctxt) then_conv
+        map (fconv_rule (try_conv (Conv.top_sweep_conv norm_canon_conv ctxt) then_conv
                        arg_conv (arg_conv real_poly_conv))) ges',
-        map (fconv_rule (try_conv (Conv.top_sweep_conv (K (norm_canon_conv ctxt)) ctxt) then_conv
+        map (fconv_rule (try_conv (Conv.top_sweep_conv norm_canon_conv ctxt) then_conv
                        arg_conv (arg_conv real_poly_conv))) gts))
   end
 in val real_vector_combo_prover = real_vector_combo_prover
