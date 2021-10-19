@@ -1,16 +1,15 @@
 (*  Title:      HOL/Library/cconv.ML
     Author:     Christoph Traut, Lars Noschinski, TU Muenchen
 
-FIXME!?
+Conditional conversions.
 *)
 
 infix 1 then_cconv
 infix 0 else_cconv
 
-type cconv = conv
-
 signature BASIC_CCONV =
 sig
+  type cconv = conv
   val then_cconv: cconv * cconv -> cconv
   val else_cconv: cconv * cconv -> cconv
   val CCONVERSION: cconv -> int -> tactic
@@ -42,6 +41,8 @@ end
 structure CConv : CCONV =
 struct
 
+type cconv = conv
+
 val concl_lhs_of = Thm.cprop_of #> Drule.strip_imp_concl #> Thm.dest_equals_lhs
 val concl_rhs_of = Thm.cprop_of #> Drule.strip_imp_concl #> Thm.dest_equals_rhs
 
@@ -69,13 +70,7 @@ fun abstract_rule_thm n =
 
 val no_cconv = Conv.no_conv
 val all_cconv = Conv.all_conv
-
-fun (cv1 else_cconv cv2) ct =
-  (cv1 ct
-    handle THM _ => cv2 ct
-      | CTERM _ => cv2 ct
-      | TERM _ => cv2 ct
-      | TYPE _ => cv2 ct)
+val op else_cconv = Conv.else_conv
 
 fun (cv1 then_cconv cv2) ct =
   let
