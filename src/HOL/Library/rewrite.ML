@@ -263,7 +263,7 @@ fun match_pconv cv (t,fixes) ctxt (tyenv, env_ts) ct =
 
 fun rewrs_pconv to thms ctxt (tyenv, env_ts) =
   let
-    fun instantiate_normalize_env ctxt env thm =
+    fun instantiate_normalize_env env thm =
       let
         val prop = Thm.prop_of thm
         val norm_type = Envir.norm_type o Envir.type_env
@@ -274,28 +274,28 @@ fun rewrs_pconv to thms ctxt (tyenv, env_ts) =
           |> map (fn x => (x, Thm.ctyp_of ctxt (norm_type env (TVar x))))
       in Drule.instantiate_normalize (TVars.make tyinsts, Vars.make insts) thm end
     
-    fun unify_with_rhs context to env thm =
+    fun unify_with_rhs to env thm =
       let
         val (_, rhs) = thm |> Thm.concl_of |> Logic.dest_equals
-        val env' = Pattern.unify context (Logic.mk_term to, Logic.mk_term rhs) env
+        val env' = Pattern.unify (Context.Proof ctxt) (Logic.mk_term to, Logic.mk_term rhs) env
           handle Pattern.Unif => raise NO_TO_MATCH
       in env' end
     
-    fun inst_thm_to _ (NONE, _) thm = thm
-      | inst_thm_to (ctxt : Proof.context) (SOME to, env) thm =
-          instantiate_normalize_env ctxt (unify_with_rhs (Context.Proof ctxt) to env thm) thm
+    fun inst_thm_to (NONE, _) thm = thm
+      | inst_thm_to (SOME to, env) thm =
+          instantiate_normalize_env (unify_with_rhs to env thm) thm
     
-    fun inst_thm ctxt idents (to, tyenv) thm =
+    fun inst_thm idents (to, tyenv) thm =
       let
         (* Replace any identifiers with their corresponding bound variables. *)
         val maxidx = Term.maxidx_typs (map (snd o snd) (Vartab.dest tyenv)) 0
         val env = Envir.Envir {maxidx = maxidx, tenv = Vartab.empty, tyenv = tyenv}
         val maxidx = Envir.maxidx_of env |> fold Term.maxidx_term (the_list to)
         val thm' = Thm.incr_indexes (maxidx + 1) thm
-      in SOME (inst_thm_to ctxt (Option.map (replace_idents idents) to, env) thm') end
+      in SOME (inst_thm_to (Option.map (replace_idents idents) to, env) thm') end
       handle NO_TO_MATCH => NONE
     
-  in CConv.rewrs_cconv (map_filter (inst_thm ctxt env_ts (to, tyenv)) thms) end
+  in CConv.rewrs_cconv (map_filter (inst_thm env_ts (to, tyenv)) thms) end
 
 fun rewrite_conv ctxt (pattern, to) thms ct =
   let
@@ -320,7 +320,7 @@ fun rewrite_export_tac ctxt (pat, pat_ctxt) thms =
   let
     val export = case pat_ctxt of
         NONE => I
-      | SOME inner => singleton (Proof_Context.export inner ctxt)
+      | SOME ctxt' => singleton (Proof_Context.export ctxt' ctxt)
   in CCONVERSION (export o rewrite_conv ctxt pat thms) end
 
 val _ =
@@ -349,7 +349,7 @@ val _ =
       let
         val (r, toks') = scan toks
         val (r', context') = Context.map_proof_result (fn ctxt => f ctxt r) context
-      in (r', (context', toks' : Token.T list)) end
+      in (r', (context', toks')) end
 
     fun read_fixes fixes ctxt =
       let fun read_typ (b, rawT, mx) = (b, Option.map (Syntax.read_typ ctxt) rawT, mx)
@@ -448,6 +448,6 @@ val _ =
     Method.setup \<^binding>\<open>rewrite\<close> (subst_parser >>
       (fn (pattern, inthms, (to, pat_ctxt)) => fn orig_ctxt =>
         SIMPLE_METHOD' (rewrite_export_tac orig_ctxt ((pattern, to), SOME pat_ctxt) inthms)))
-      "single-step rewriting, allowing subterm selection via patterns."
+      "single-step rewriting, allowing subterm selection via patterns"
   end
 end
