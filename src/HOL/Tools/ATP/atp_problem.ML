@@ -99,9 +99,10 @@ sig
   val tptp_true : string
   val tptp_lambda : string
   val tptp_empty_list : string
-  val tptp_unary_builtins : string list
-  val tptp_binary_builtins : string list
-  val tptp_ternary_builtins : string list
+
+  type tptp_builtin_desc = {arity : int, is_predicate : bool}
+  val tptp_builtins : tptp_builtin_desc Symtab.table
+
   val dfg_individual_type : string
   val isabelle_info_prefix : string
   val isabelle_info : bool -> string -> int -> (string, 'a) atp_term list
@@ -264,10 +265,21 @@ val tptp_true = "$true"
 val tptp_lambda = "^"
 val tptp_empty_list = "[]"
 
-val tptp_unary_builtins = [tptp_not]
-val tptp_binary_builtins =
-  [tptp_and, tptp_or, tptp_implies, tptp_if, tptp_iff, tptp_not_iff, tptp_equal]
-val tptp_ternary_builtins = [tptp_ite]
+(* A predicate has return type $o (i.e. bool) *)
+type tptp_builtin_desc = {arity : int, is_predicate : bool}
+
+val tptp_builtins =
+  let
+    fun make_builtin arity is_predicate name = (name, {arity = arity, is_predicate = is_predicate})
+  in
+    map (make_builtin 0 true) [tptp_false, tptp_true] @
+    map (make_builtin 1 true) [tptp_not] @
+    map (make_builtin 2 true) [tptp_and, tptp_or, tptp_implies, tptp_if, tptp_iff, tptp_not_iff,
+      tptp_equal, tptp_old_equal] @
+    map (make_builtin 2 false) [tptp_let] @
+    map (make_builtin 3 false) [tptp_ite]
+    |> Symtab.make
+  end
 
 val dfg_individual_type = "iii" (* cannot clash *)
 
@@ -467,14 +479,13 @@ fun string_of_bound_var format (s, ty) =
    else
      "")
 
-fun tptp_string_of_term _ (ATerm ((s, []), [])) =
-    s |> member (op =) (tptp_unary_builtins @ tptp_binary_builtins) s ? parens
+fun tptp_string_of_term _ (ATerm ((s, []), [])) = s |> Symtab.defined tptp_builtins s ? parens
   | tptp_string_of_term format (ATerm ((s, tys), ts)) =
     let
       val of_type = string_of_type format
       val of_term = tptp_string_of_term format
       fun app () =
-        tptp_string_of_app format s
+        tptp_string_of_app format (s |> Symtab.defined tptp_builtins s ? parens)
           (map (of_type #> is_format_higher_order format ? parens) tys @ map of_term ts)
     in
       if s = tptp_empty_list then
@@ -502,11 +513,11 @@ fun tptp_string_of_term _ (ATerm ((s, []), [])) =
             in
             s ^ "(" ^ declaration ^ ", " ^ definition ^ ", " ^ usage ^ ")"
             end
-        | _ => app ())
+        | _ => error "$let is special syntax and must have exactly two arguments")
       else if s = tptp_ite then
         (case ts of
           [t1, t2, t3] => s ^ "(" ^ of_term t1 ^ ", " ^ of_term t2 ^ ", " ^ of_term t3 ^ ")"
-        | _ => app ())
+        | _ => error "$ite is special syntax and must have exactly three arguments")
       else if s = tptp_choice then
         (case ts of
           [AAbs (((s', ty), tm), args)] =>
@@ -517,16 +528,15 @@ fun tptp_string_of_term _ (ATerm ((s, []), [])) =
                "]: " ^ of_term tm ^ ""
                |> parens) (map of_term args)
         | _ => app ())
-      else if member (op =) tptp_unary_builtins s then
-        (* generate e.g. "~ t" instead of "~ @ t". *)
-        (case ts of [t] => s ^ " " ^ (of_term t |> parens) |> parens)
-      else if member (op =) tptp_binary_builtins s then
-        (* generate e.g. "t1 & t2" instead of "& @ t1 @ t2". *)
-        (case ts of
-          [t1, t2] => (of_term t1 |> parens) ^ " " ^ s ^ " " ^ (of_term t2 |> parens) |> parens
-        | _ => app ())
       else
-        app ()
+        (case (Symtab.lookup tptp_builtins s, ts) of
+          (SOME {arity = 1, is_predicate = true}, [t]) =>
+          (* generate e.g. "~ t" instead of "~ @ t". *)
+          s ^ " " ^ (of_term t |> parens) |> parens
+        | (SOME {arity = 2, is_predicate = true}, [t1, t2]) =>
+          (* generate e.g. "t1 & t2" instead of "& @ t1 @ t2". *)
+          (of_term t1 |> parens) ^ " " ^ s ^ " " ^ (of_term t2 |> parens) |> parens
+        | _ => app ())
     end
   | tptp_string_of_term (format as THF _) (AAbs (((s, ty), tm), args)) =
     tptp_string_of_app format
