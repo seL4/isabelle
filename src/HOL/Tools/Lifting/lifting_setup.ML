@@ -148,7 +148,7 @@ in
         pcr_rel_def
         |> infer_instantiate args_ctxt args_inst
         |> Conv.fconv_rule (Conv.arg_conv (Conv.arg1_conv 
-          (Transfer.bottom_rewr_conv (Transfer.get_relator_eq args_ctxt))))
+          (Conv.bottom_rewrs_conv (Transfer.get_relator_eq args_ctxt) args_ctxt)))
   in
     case (Thm.term_of o Thm.rhs_of) pcr_cr_eq of
       Const (\<^const_name>\<open>relcompp\<close>, _) $ Const (\<^const_name>\<open>HOL.eq\<close>, _) $ _ =>

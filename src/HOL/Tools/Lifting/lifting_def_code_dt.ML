@@ -242,8 +242,9 @@ and add_lift_def_code_dt config var qty rhs rsp_thm par_thms lthy =
         Const (\<^const_name>\<open>rel_fun\<close>, _) $ _ $ _ =>
           binop_conv2 Conv.all_conv conv ctm
         | _ => conv ctm
-    fun R_conv rel_eq_onps = Transfer.top_sweep_rewr_conv @{thms eq_onp_top_eq_eq[symmetric, THEN eq_reflection]}
-      then_conv Transfer.bottom_rewr_conv rel_eq_onps
+    fun R_conv rel_eq_onps ctxt =
+      Conv.top_sweep_rewrs_conv @{thms eq_onp_top_eq_eq[symmetric, THEN eq_reflection]} ctxt
+      then_conv Conv.bottom_rewrs_conv rel_eq_onps ctxt
 
     val (ret_lift_def, lthy1) = add_lift_def (#lift_config config) var qty rhs rsp_thm par_thms lthy
   in
@@ -282,7 +283,8 @@ and add_lift_def_code_dt config var qty rhs rsp_thm par_thms lthy =
             val f'_qty = strip_type qty |> fst |> rpair qty_isom |> op --->
             val f'_rsp_rel = Lifting_Term.equiv_relation lthy3 (rty, f'_qty);
             val rsp = rsp_thm_of_lift_def lift_def
-            val rel_eq_onps_conv = HOLogic.Trueprop_conv (Conv.fun2_conv (ret_rel_conv (R_conv rel_eq_onps)))
+            val rel_eq_onps_conv =
+              HOLogic.Trueprop_conv (Conv.fun2_conv (ret_rel_conv (R_conv rel_eq_onps lthy3)))
             val rsp_norm = Conv.fconv_rule rel_eq_onps_conv rsp
             val f'_rsp_goal = HOLogic.mk_Trueprop (f'_rsp_rel $ rhs $ rhs);
             val f'_rsp = Goal.prove_sorry lthy3 [] [] f'_rsp_goal
@@ -558,9 +560,11 @@ and constr qty (quot_thm, (lthy0, rel_eq_onps)) =
       else error ("code_dt: " ^ quote rty_name ^ " is not a datatype.")
     val rel_eq_onp = safe_mk_meta_eq (Transfer.rel_eq_onp pred_data);
     val rel_eq_onps = insert Thm.eq_thm rel_eq_onp rel_eq_onps
-    val R_conv = Transfer.top_sweep_rewr_conv @{thms eq_onp_top_eq_eq[symmetric, THEN eq_reflection]}
+    fun R_conv ctxt =
+      Conv.top_sweep_rewrs_conv @{thms eq_onp_top_eq_eq[symmetric, THEN eq_reflection]} ctxt
       then_conv Conv.rewr_conv rel_eq_onp
-    val quot_thm = Conv.fconv_rule(HOLogic.Trueprop_conv (Quotient_R_conv R_conv)) quot_thm;
+    val quot_thm =
+      Conv.fconv_rule (HOLogic.Trueprop_conv (Quotient_R_conv (R_conv lthy0))) quot_thm;
   in
     if is_none (code_dt_of lthy0 (rty, qty)) then
       let
@@ -685,7 +689,7 @@ fun mk_readable_rsp_thm_eq tm ctxt =
         val eq_onp_assms_tac_rules = @{thm left_unique_OO} :: 
             eq_onp_assms_tac_fixed_rules @ (Transfer.get_transfer_raw ctxt)
         val intro_top_rule = @{thm eq_onp_top_eq_eq[symmetric, THEN eq_reflection]}
-        val kill_tops = Transfer.top_sweep_rewr_conv [@{thm eq_onp_top_eq_eq[THEN eq_reflection]}]
+        val kill_tops = Conv.top_sweep_rewrs_conv @{thms eq_onp_top_eq_eq[THEN eq_reflection]} ctxt
         val eq_onp_assms_tac = (CONVERSION kill_tops THEN' 
           TRY o REPEAT_ALL_NEW (resolve_tac ctxt eq_onp_assms_tac_rules) 
           THEN_ALL_NEW (DETERM o Transfer.eq_tac ctxt)) 1
@@ -705,7 +709,7 @@ fun mk_readable_rsp_thm_eq tm ctxt =
     val unfold_ret_val_invs = Conv.bottom_conv 
       (K (Conv.try_conv (Conv.rewr_conv @{thm eq_onp_same_args[THEN eq_reflection]}))) ctxt
     val unfold_inv_conv = 
-      Conv.top_sweep_conv (K (Conv.rewr_conv @{thm eq_onp_def[THEN eq_reflection]})) ctxt
+      Conv.top_sweep_rewrs_conv @{thms eq_onp_def[THEN eq_reflection]} ctxt
     val simp_conv = HOLogic.Trueprop_conv (Conv.fun2_conv simp_arrows_conv)
     val univq_conv = Conv.rewr_conv @{thm HOL.all_simps(6)[symmetric, THEN eq_reflection]}
     val univq_prenex_conv = Conv.top_conv (K (Conv.try_conv univq_conv)) ctxt
