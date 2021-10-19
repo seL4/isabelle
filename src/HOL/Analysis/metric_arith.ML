@@ -223,19 +223,18 @@ fun augment_dist_pos ctxt metric_ty ct =
   in map inst (find_dist metric_ty ct) end
 
 (* apply maxdist_conv and metric_eq_conv to the goal, thereby embedding the goal in (\<real>\<^sup>n,dist\<^sub>\<infinity>) *)
-fun embedding_tac ctxt metric_ty i goal =
+fun embedding_tac ctxt metric_ty = CSUBGOAL (fn (goal, i) =>
   let
-    val ct = (Thm.cprem_of goal 1)
-    val points = find_points ctxt metric_ty ct
+    val points = find_points ctxt metric_ty goal
     val fset_ct = mk_ct_set ctxt metric_ty points
     (* embed all subterms of the form "dist x y" in (\<real>\<^sup>n,dist\<^sub>\<infinity>) *)
-    val eq1 = map (maxdist_conv ctxt fset_ct) (find_dist metric_ty ct)
+    val eq1 = map (maxdist_conv ctxt fset_ct) (find_dist metric_ty goal)
     (* replace point equality by equality of components in \<real>\<^sup>n *)
-    val eq2 = map (metric_eq_conv ctxt fset_ct) (find_eq metric_ty ct)
+    val eq2 = map (metric_eq_conv ctxt fset_ct) (find_eq metric_ty goal)
   in
     (K (trace_tac ctxt "Embedding into \<real>\<^sup>n") THEN'
-      CONVERSION (Conv.top_sweep_rewrs_conv (eq1 @ eq2) ctxt)) i goal
-  end
+      CONVERSION (Conv.top_sweep_rewrs_conv (eq1 @ eq2) ctxt)) i
+  end)
 
 (* decision procedure for linear real arithmetic *)
 fun lin_real_arith_tac ctxt metric_ty i goal =
