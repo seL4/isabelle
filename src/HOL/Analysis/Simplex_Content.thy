@@ -1,6 +1,6 @@
 (*
    File:      Analysis/Simplex_Content.thy
-   Author:    Manuel Eberl <eberlm@in.tum.de>
+   Author:    Manuel Eberl <manuel@pruvisto.org>
 
    The content of an n-dimensional simplex, including the formula for the content of a
    triangle and Heron's formula.

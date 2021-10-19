@@ -1,6 +1,6 @@
 (*
   File:      HOL/Number_Theory/Prime_Powers.thy
-  Author:    Manuel Eberl <eberlm@in.tum.de>
+  Author:    Manuel Eberl <manuel@pruvisto.org>
 
   Prime powers and the Mangoldt function
 *)

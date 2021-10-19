@@ -1,6 +1,6 @@
 (*
   File:   Landau_Symbols_Definition.thy
-  Author: Manuel Eberl <eberlm@in.tum.de>
+  Author: Manuel Eberl <manuel@pruvisto.org>
 
   Landau symbols for reasoning about the asymptotic growth of functions.
 *)

@@ -1,6 +1,6 @@
 (*
   File:      HOL/Computational_Algebra/Nth_Powers.thy
-  Author:    Manuel Eberl <eberlm@in.tum.de>
+  Author:    Manuel Eberl <manuel@pruvisto.org>
 
   n-th powers in general and n-th roots of natural numbers
 *)
