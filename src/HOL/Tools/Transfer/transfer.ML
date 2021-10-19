@@ -13,11 +13,6 @@ sig
   val pred_def: pred_data -> thm
   val pred_simps: pred_data -> thm list
   val update_pred_simps: thm list -> pred_data -> pred_data
-
-  val bottom_rewr_conv: thm list -> conv
-  val top_rewr_conv: thm list -> conv
-  val top_sweep_rewr_conv: thm list -> conv
-
   val prep_conv: conv
   val fold_relator_eqs_conv: Proof.context -> conv
   val unfold_relator_eqs_conv: Proof.context -> conv
@@ -57,9 +52,6 @@ end
 structure Transfer : TRANSFER =
 struct
 
-fun bottom_rewr_conv rewrs = Conv.bottom_conv (K (Conv.try_conv (Conv.rewrs_conv rewrs))) \<^context>
-fun top_rewr_conv rewrs = Conv.top_conv (K (Conv.try_conv (Conv.rewrs_conv rewrs))) \<^context>
-fun top_sweep_rewr_conv rewrs = Conv.top_sweep_conv (K (Conv.rewrs_conv rewrs)) \<^context>
 
 (** Theory Data **)
 
@@ -228,8 +220,8 @@ fun prep_conv ct = (
       else_conv
       Conv.all_conv) ct
 
-fun fold_relator_eqs_conv ctxt ct = (bottom_rewr_conv (get_relator_eq ctxt)) ct;
-fun unfold_relator_eqs_conv ctxt ct = (top_rewr_conv (get_sym_relator_eq ctxt)) ct;
+fun fold_relator_eqs_conv ctxt = Conv.bottom_rewrs_conv (get_relator_eq ctxt) ctxt
+fun unfold_relator_eqs_conv ctxt = Conv.top_rewrs_conv (get_sym_relator_eq ctxt) ctxt
 
 
 (** Replacing explicit equalities with is_equality premises **)
