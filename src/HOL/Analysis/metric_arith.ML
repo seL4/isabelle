@@ -1,9 +1,17 @@
-signature METRIC_ARITH = sig
-  val metric_arith_tac : Proof.context -> int -> tactic
+(*  Title:      HOL/Analysis/metric_arith.ML
+    Author:     Maximilian Schäffeler (port from HOL Light)
+
+A decision procedure for metric spaces.
+*)
+
+signature METRIC_ARITH =
+sig
   val trace: bool Config.T
+  val metric_arith_tac : Proof.context -> int -> tactic
 end
 
-structure MetricArith : METRIC_ARITH = struct
+structure Metric_Arith : METRIC_ARITH =
+struct
 
 fun default d x = case x of SOME y => SOME y | NONE => d
 
@@ -318,4 +326,5 @@ fun metric_arith_tac ctxt =
   IF_UNSOLVED' (SUBPROOF (fn {context=ctxt', ...} =>
     trace_tac ctxt' "Focused on subgoal" THEN
     elim_exists ctxt') ctxt)
+
 end
