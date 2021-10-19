@@ -115,7 +115,7 @@ local
     Verit_Proof.veriT_current_strategy (Context.Proof ctxt) @
     (case SMT_Config.get_timeout ctxt of
       NONE => []
-    | SOME t => ["--max-time " ^ string_of_int (Time.toMilliseconds t)])
+    | SOME t => ["--max-time=" ^ string_of_int (Time.toMilliseconds t)])
 in
 
 val veriT: SMT_Solver.solver_config = {
