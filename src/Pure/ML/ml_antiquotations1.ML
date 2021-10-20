@@ -221,18 +221,26 @@ val _ = Theory.setup
 
 (* type/term constructors *)
 
-local
-
-fun read_embedded ctxt src parse =
+fun read_embedded ctxt keywords src parse =
   let
-    val keywords = Thy_Header.get_keywords' ctxt;
     val input = #1 (Token.syntax (Scan.lift Args.embedded_input) src ctxt);
-    val syms = Input.source_explode input;
+    val toks = input
+      |> Input.source_explode
+      |> Token.tokenize keywords {strict = true}
+      |> filter Token.is_proper;
+    val _ = Context_Position.reports_text ctxt (maps (Token.reports keywords) toks);
   in
-    (case Token.read_body keywords parse syms of
+    (case Scan.read Token.stopper parse toks of
       SOME res => res
     | NONE => error ("Bad input" ^ Position.here (Input.pos_of input)))
   end;
+
+val parse_embedded_ml =
+  Parse.embedded_input >> ML_Lex.read_source ||
+  Parse.control >> (ML_Lex.read_symbols o Antiquote.control_symbols);
+
+val parse_embedded_ml_underscore =
+  Parse.input Parse.underscore >> ML_Lex.read_source || parse_embedded_ml;
 
 fun ml_args ctxt args =
   let
@@ -240,17 +248,14 @@ fun ml_args ctxt args =
     fun decl' ctxt'' = map (fn decl => decl ctxt'') decls;
   in (decl', ctxt') end
 
+local
+
+val keywords = Keyword.add_minor_keywords ["for", "=>"] Keyword.empty_keywords;
+
 val parse_name = Parse.input Parse.name;
 
-val parse_arg =
-  Parse.input Parse.underscore >> ML_Lex.read_source ||
-  Parse.embedded_input >> ML_Lex.read_source ||
-  Parse.control >> (ML_Lex.read_symbols o Antiquote.control_symbols);
-
-val parse_args = Scan.repeat parse_arg;
-val parse_for_args =
-  Scan.optional ((Parse.position (Parse.$$$ "for") >> #2) -- Parse.!!! parse_args)
-    (Position.none, []);
+val parse_args = Scan.repeat parse_embedded_ml_underscore;
+val parse_for_args = Scan.optional (Parse.$$$ "for" |-- Parse.!!! parse_args) [];
 
 fun parse_body b =
   if b then Parse.$$$ "=>" |-- Parse.!!! Parse.embedded_input >> (ML_Lex.read_source #> single)
@@ -275,7 +280,7 @@ fun type_antiquotation binding {function} =
     (fn range => fn src => fn ctxt =>
       let
         val ((s, type_args), fn_body) =
-          read_embedded ctxt src (parse_name -- parse_args -- parse_body function);
+          read_embedded ctxt keywords src (parse_name -- parse_args -- parse_body function);
         val pos = Input.pos_of s;
 
         val Type (c, Ts) =
@@ -309,9 +314,9 @@ fun const_antiquotation binding {pattern, function} =
   ML_Context.add_antiquotation binding true
     (fn range => fn src => fn ctxt =>
       let
-        val (((s, type_args), (for_pos, term_args)), fn_body) =
-          read_embedded ctxt src (parse_name -- parse_args -- parse_for_args -- parse_body function);
-        val _ = Context_Position.report ctxt for_pos (Markup.keyword_properties Markup.keyword1);
+        val (((s, type_args), term_args), fn_body) =
+          read_embedded ctxt keywords src
+            (parse_name -- parse_args -- parse_for_args -- parse_body function);
 
         val Const (c, T) =
           Proof_Context.read_const {proper = true, strict = true} ctxt
