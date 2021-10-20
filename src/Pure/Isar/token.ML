@@ -793,7 +793,6 @@ fun read_embedded ctxt keywords parse input =
   end;
 
 
-
 (* wrapped syntax *)
 
 fun syntax_generic scan src context =

@@ -221,32 +221,9 @@ val _ = Theory.setup
 
 (* type/term constructors *)
 
-fun read_embedded ctxt keywords src parse =
-  let
-    val input = #1 (Token.syntax (Scan.lift Args.embedded_input) src ctxt);
-    val toks = input
-      |> Input.source_explode
-      |> Token.tokenize keywords {strict = true}
-      |> filter Token.is_proper;
-    val _ = Context_Position.reports_text ctxt (maps (Token.reports keywords) toks);
-  in
-    (case Scan.read Token.stopper parse toks of
-      SOME res => res
-    | NONE => error ("Bad input" ^ Position.here (Input.pos_of input)))
-  end;
-
-val parse_embedded_ml =
-  Parse.embedded_input >> ML_Lex.read_source ||
-  Parse.control >> (ML_Lex.read_symbols o Antiquote.control_symbols);
-
-val parse_embedded_ml_underscore =
-  Parse.input Parse.underscore >> ML_Lex.read_source || parse_embedded_ml;
-
-fun ml_args ctxt args =
-  let
-    val (decls, ctxt') = fold_map (ML_Context.expand_antiquotes) args ctxt;
-    fun decl' ctxt'' = map (fn decl => decl ctxt'') decls;
-  in (decl', ctxt') end
+fun read_embedded ctxt keywords parse src =
+  Token.syntax (Scan.lift Args.embedded_input) src ctxt
+  |> #1 |> Token.read_embedded ctxt keywords parse;
 
 local
 
@@ -254,7 +231,7 @@ val keywords = Keyword.add_minor_keywords ["for", "=>"] Keyword.empty_keywords;
 
 val parse_name = Parse.input Parse.name;
 
-val parse_args = Scan.repeat parse_embedded_ml_underscore;
+val parse_args = Scan.repeat Parse.embedded_ml_underscore;
 val parse_for_args = Scan.optional (Parse.$$$ "for" |-- Parse.!!! parse_args) [];
 
 fun parse_body b =
@@ -279,8 +256,8 @@ fun type_antiquotation binding {function} =
   ML_Context.add_antiquotation binding true
     (fn range => fn src => fn ctxt =>
       let
-        val ((s, type_args), fn_body) =
-          read_embedded ctxt keywords src (parse_name -- parse_args -- parse_body function);
+        val ((s, type_args), fn_body) = src
+          |> read_embedded ctxt keywords (parse_name -- parse_args -- parse_body function);
         val pos = Input.pos_of s;
 
         val Type (c, Ts) =
@@ -292,8 +269,8 @@ fun type_antiquotation binding {function} =
             error ("Type constructor " ^ quote (Proof_Context.markup_type ctxt c) ^
               " takes " ^ string_of_int n ^ " argument(s)" ^ Position.here pos);
 
-        val (decls1, ctxt1) = ml_args ctxt type_args;
-        val (decls2, ctxt2) = ml_args ctxt1 fn_body;
+        val (decls1, ctxt1) = ML_Context.expand_antiquotes_list type_args ctxt;
+        val (decls2, ctxt2) = ML_Context.expand_antiquotes_list fn_body ctxt1;
         fun decl' ctxt' =
           let
             val (ml_args_env, ml_args_body) = split_list (decls1 ctxt');
@@ -314,9 +291,9 @@ fun const_antiquotation binding {pattern, function} =
   ML_Context.add_antiquotation binding true
     (fn range => fn src => fn ctxt =>
       let
-        val (((s, type_args), term_args), fn_body) =
-          read_embedded ctxt keywords src
-            (parse_name -- parse_args -- parse_for_args -- parse_body function);
+        val (((s, type_args), term_args), fn_body) = src
+          |> read_embedded ctxt keywords
+              (parse_name -- parse_args -- parse_for_args -- parse_body function);
 
         val Const (c, T) =
           Proof_Context.read_const {proper = true, strict = true} ctxt
@@ -338,9 +315,9 @@ fun const_antiquotation binding {pattern, function} =
           length term_args > m andalso Term.is_Type (Term.body_type T) andalso
             err (" cannot have more than " ^ string_of_int m ^ " argument(s)");
 
-        val (decls1, ctxt1) = ml_args ctxt type_args;
-        val (decls2, ctxt2) = ml_args ctxt1 term_args;
-        val (decls3, ctxt3) = ml_args ctxt2 fn_body;
+        val (decls1, ctxt1) = ML_Context.expand_antiquotes_list type_args ctxt;
+        val (decls2, ctxt2) = ML_Context.expand_antiquotes_list term_args ctxt1;
+        val (decls3, ctxt3) = ML_Context.expand_antiquotes_list fn_body ctxt2;
         fun decl' ctxt' =
           let
             val (ml_args_env1, ml_args_body1) = split_list (decls1 ctxt');

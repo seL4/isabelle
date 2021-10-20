@@ -118,6 +118,8 @@ sig
   val thm: (Facts.ref * Token.src list) parser
   val thms1: (Facts.ref * Token.src list) list parser
   val options: ((string * Position.T) * (string * Position.T)) list parser
+  val embedded_ml: ML_Lex.token Antiquote.antiquote list parser
+  val embedded_ml_underscore: ML_Lex.token Antiquote.antiquote list parser
 end;
 
 structure Parse: PARSE =
@@ -493,5 +495,15 @@ val option =
     Scan.optional ($$$ "=" |-- !!! (position option_value)) ("true", pos));
 
 val options = $$$ "[" |-- list1 option --| $$$ "]";
+
+
+(* embedded ML *)
+
+val embedded_ml =
+  embedded_input >> ML_Lex.read_source ||
+  control >> (ML_Lex.read_symbols o Antiquote.control_symbols);
+
+val embedded_ml_underscore =
+  input underscore >> ML_Lex.read_source || embedded_ml;
 
 end;
