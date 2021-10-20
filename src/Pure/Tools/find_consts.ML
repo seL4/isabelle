@@ -140,8 +140,7 @@ val criterion =
   Parse.reserved "strict" |-- Parse.!!! (Parse.$$$ ":" |-- Parse.typ) >> Strict ||
   Parse.typ >> Loose;
 
-val query_keywords =
-  Keyword.add_keywords [((":", \<^here>), Keyword.no_spec)] Keyword.empty_keywords;
+val query_keywords = Keyword.add_minor_keywords [":"] Keyword.empty_keywords;
 
 in
 

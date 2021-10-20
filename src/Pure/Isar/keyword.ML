@@ -51,6 +51,7 @@ sig
   val empty_keywords: keywords
   val merge_keywords: keywords * keywords -> keywords
   val add_keywords: ((string * Position.T) * spec) list -> keywords -> keywords
+  val add_minor_keywords: string list -> keywords -> keywords
   val is_keyword: keywords -> string -> bool
   val is_command: keywords -> string -> bool
   val is_literal: keywords -> string -> bool
@@ -198,6 +199,9 @@ val add_keywords =
         val major' = Scan.extend_lexicon (Symbol.explode name) major;
         val commands' = Symtab.update (name, entry) commands;
       in (minor, major', commands') end));
+
+val add_minor_keywords =
+  add_keywords o map (fn name => ((name, Position.none), no_spec));
 
 
 (* keyword status *)

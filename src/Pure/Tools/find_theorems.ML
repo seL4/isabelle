@@ -524,8 +524,7 @@ val criterion =
   Parse.reserved "simp" |-- Parse.!!! (Parse.$$$ ":" |-- Parse.term) >> Simp ||
   Parse.term >> Pattern;
 
-val query_keywords =
-  Keyword.add_keywords [((":", \<^here>), Keyword.no_spec)] Keyword.empty_keywords;
+val query_keywords = Keyword.add_minor_keywords [":"] Keyword.empty_keywords;
 
 in
 
