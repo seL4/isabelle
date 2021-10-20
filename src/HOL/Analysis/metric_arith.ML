@@ -1,9 +1,17 @@
-signature METRIC_ARITH = sig
-  val metric_arith_tac : Proof.context -> int -> tactic
+(*  Title:      HOL/Analysis/metric_arith.ML
+    Author:     Maximilian Schäffeler (port from HOL Light)
+
+A decision procedure for metric spaces.
+*)
+
+signature METRIC_ARITH =
+sig
   val trace: bool Config.T
+  val metric_arith_tac : Proof.context -> int -> tactic
 end
 
-structure MetricArith : METRIC_ARITH = struct
+structure Metric_Arith : METRIC_ARITH =
+struct
 
 fun default d x = case x of SOME y => SOME y | NONE => d
 
@@ -214,22 +222,19 @@ fun augment_dist_pos ctxt metric_ty ct =
     in infer_instantiate' ctxt [SOME xct, SOME yct] @{thm zero_le_dist} end
   in map inst (find_dist metric_ty ct) end
 
-fun top_sweep_rewrs_tac ctxt thms =
-  CONVERSION (Conv.top_sweep_conv (K (Conv.rewrs_conv thms)) ctxt)
-
 (* apply maxdist_conv and metric_eq_conv to the goal, thereby embedding the goal in (\<real>\<^sup>n,dist\<^sub>\<infinity>) *)
-fun embedding_tac ctxt metric_ty i goal =
+fun embedding_tac ctxt metric_ty = CSUBGOAL (fn (goal, i) =>
   let
-    val ct = (Thm.cprem_of goal 1)
-    val points = find_points ctxt metric_ty ct
+    val points = find_points ctxt metric_ty goal
     val fset_ct = mk_ct_set ctxt metric_ty points
     (* embed all subterms of the form "dist x y" in (\<real>\<^sup>n,dist\<^sub>\<infinity>) *)
-    val eq1 = map (maxdist_conv ctxt fset_ct) (find_dist metric_ty ct)
+    val eq1 = map (maxdist_conv ctxt fset_ct) (find_dist metric_ty goal)
     (* replace point equality by equality of components in \<real>\<^sup>n *)
-    val eq2 = map (metric_eq_conv ctxt fset_ct) (find_eq metric_ty ct)
+    val eq2 = map (metric_eq_conv ctxt fset_ct) (find_eq metric_ty goal)
   in
-    ( K (trace_tac ctxt "Embedding into \<real>\<^sup>n") THEN' top_sweep_rewrs_tac ctxt (eq1 @ eq2))i goal
-  end
+    (K (trace_tac ctxt "Embedding into \<real>\<^sup>n") THEN'
+      CONVERSION (Conv.top_sweep_rewrs_conv (eq1 @ eq2) ctxt)) i
+  end)
 
 (* decision procedure for linear real arithmetic *)
 fun lin_real_arith_tac ctxt metric_ty i goal =
@@ -320,4 +325,5 @@ fun metric_arith_tac ctxt =
   IF_UNSOLVED' (SUBPROOF (fn {context=ctxt', ...} =>
     trace_tac ctxt' "Focused on subgoal" THEN
     elim_exists ctxt') ctxt)
+
 end

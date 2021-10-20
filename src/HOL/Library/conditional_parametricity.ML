@@ -384,7 +384,8 @@ fun abstract_domains_transfer ctxt thm =
 fun transfer_rel_conv conv =
   Conv.concl_conv ~1 (HOLogic.Trueprop_conv (Conv.fun2_conv (Conv.arg_conv conv)));
 
-fun fold_relator_eqs_conv ctxt ct = (Transfer.bottom_rewr_conv (Transfer.get_relator_eq ctxt)) ct;
+fun fold_relator_eqs_conv ctxt =
+  Conv.bottom_rewrs_conv (Transfer.get_relator_eq ctxt) ctxt;
 
 fun mk_is_equality t =
   Const (\<^const_name>\<open>is_equality\<close>, Term.fastype_of t --> HOLogic.boolT) $ t;

@@ -39,6 +39,9 @@ sig
   val implies_concl_conv: conv -> conv
   val rewr_conv: thm -> conv
   val rewrs_conv: thm list -> conv
+  val bottom_rewrs_conv: thm list -> Proof.context -> conv
+  val top_rewrs_conv: thm list -> Proof.context -> conv
+  val top_sweep_rewrs_conv: thm list -> Proof.context -> conv
   val sub_conv: (Proof.context -> conv) -> Proof.context -> conv
   val bottom_conv: (Proof.context -> conv) -> Proof.context -> conv
   val top_conv: (Proof.context -> conv) -> Proof.context -> conv
@@ -153,8 +156,9 @@ fun implies_concl_conv cv ct =
   | _ => raise CTERM ("implies_concl_conv", [ct]));
 
 
-(* single rewrite step, cf. REWR_CONV in HOL *)
+(* rewrite steps *)
 
+(*cf. REWR_CONV in HOL*)
 fun rewr_conv rule ct =
   let
     val rule1 = Thm.incr_indexes (Thm.maxidx_of_cterm ct + 1) rule;
@@ -171,6 +175,10 @@ fun rewr_conv rule ct =
   in Thm.transitive rule4 (Thm.beta_conversion true (Thm.rhs_of rule4)) end;
 
 fun rewrs_conv rules = first_conv (map rewr_conv rules);
+
+fun bottom_rewrs_conv rewrs = bottom_conv (K (try_conv (rewrs_conv rewrs)));
+fun top_rewrs_conv rewrs = top_conv (K (try_conv (rewrs_conv rewrs)));
+fun top_sweep_rewrs_conv rewrs = top_sweep_conv (K (rewrs_conv rewrs));
 
 
 (* conversions on HHF rules *)

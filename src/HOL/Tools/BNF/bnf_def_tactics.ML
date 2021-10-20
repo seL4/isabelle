@@ -387,8 +387,8 @@ fun mk_rel_cong_tac ctxt (eqs, prems) mono =
   end;
 
 fun subst_conv ctxt thm =
-  Conv.arg_conv (Conv.arg_conv
-   (Conv.top_sweep_conv (K (Conv.rewr_conv (safe_mk_meta_eq thm))) ctxt));
+  (Conv.arg_conv o Conv.arg_conv)
+   (Conv.top_sweep_rewrs_conv [safe_mk_meta_eq thm] ctxt);
 
 fun mk_rel_eq_onp_tac ctxt pred_def map_id0 rel_Grp =
   HEADGOAL (EVERY'

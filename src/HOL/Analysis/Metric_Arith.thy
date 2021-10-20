@@ -1,5 +1,5 @@
-(*  Title:    Metric_Arith.thy
-    Author:   Maximilian Schäffeler (port from HOL Light)
+(*  Title:      HOL/Analysis/Metric_Arith.thy
+    Author:     Maximilian Schäffeler (port from HOL Light)
 *)
 
 chapter \<open>Functional Analysis\<close>
@@ -108,7 +108,7 @@ theorem metric_eq_thm [THEN HOL.eq_reflection]:
 ML_file "metric_arith.ML"
 
 method_setup metric = \<open>
-  Scan.succeed (SIMPLE_METHOD' o MetricArith.metric_arith_tac)
+  Scan.succeed (SIMPLE_METHOD' o Metric_Arith.metric_arith_tac)
 \<close> "prove simple linear statements in metric spaces (\<forall>\<exists>\<^sub>p fragment)"
 
 end

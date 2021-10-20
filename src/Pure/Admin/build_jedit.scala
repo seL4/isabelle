@@ -98,7 +98,7 @@ object Build_JEdit
       "CommonControls" -> "1.7.4",
       "Console" -> "5.1.4",
       "ErrorList" -> "2.4.0",
-      "Highlight" -> "2.2",
+      "Highlight" -> "2.5",
       "Navigator" -> "2.7",
       "SideKick" -> "1.8")
 

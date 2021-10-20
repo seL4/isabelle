@@ -313,7 +313,7 @@ qed
 context
 begin
 
-private lemma prime_elem_powerD:
+lemma prime_elem_powerD:
   assumes "prime_elem (p ^ n)"
   shows   "prime_elem p \<and> n = 1"
 proof (cases n)

@@ -1,6 +1,6 @@
 (*
   File:      HOL/Computational_Algebra/Squarefree.thy
-  Author:    Manuel Eberl <eberlm@in.tum.de>
+  Author:    Manuel Eberl <manuel@pruvisto.org>
 
   Squarefreeness and decomposition of ring elements into square part and squarefree part
 *)

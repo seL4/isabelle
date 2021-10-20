@@ -1341,11 +1341,9 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
 
         val pred_injects =
           let
-            fun top_sweep_rewr_conv rewrs =
-              Conv.top_sweep_conv (K (Conv.rewrs_conv rewrs)) \<^context>;
-
-            val rel_eq_onp_with_tops_of = Conv.fconv_rule (HOLogic.Trueprop_conv (Conv.arg1_conv
-              (top_sweep_rewr_conv @{thms eq_onp_top_eq_eq[symmetric, THEN eq_reflection]})));
+            val rel_eq_onp_with_tops_of =
+              Conv.fconv_rule (HOLogic.Trueprop_conv (Conv.arg1_conv
+                (Conv.top_sweep_rewrs_conv @{thms eq_onp_top_eq_eq[symmetric, THEN eq_reflection]} lthy)));
 
             val eq_onps = map rel_eq_onp_with_tops_of
               (map rel_eq_onp_of_bnf fp_bnfs @ fp_nesting_rel_eq_onps @ live_nesting_rel_eq_onps @
