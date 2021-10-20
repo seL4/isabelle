@@ -189,8 +189,7 @@ fun eval ctxt pos (opts, src) =
 in
 
 fun read_antiq ctxt ({range = (pos, _), body, ...}: Antiquote.antiq) =
-  let val keywords = Thy_Header.get_keywords' ctxt;
-  in Token.read_antiq keywords parse_antiq (body, pos) end;
+  Token.read_antiq (Thy_Header.get_keywords' ctxt) parse_antiq (body, pos);
 
 fun evaluate eval_text ctxt antiq =
   (case antiq of
