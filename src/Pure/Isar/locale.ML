@@ -187,7 +187,7 @@ fun check thy = #1 o Name_Space.check (Context.Theory thy) (Locales.get thy);
 
 val _ = Theory.setup
  (ML_Antiquotation.inline_embedded \<^binding>\<open>locale\<close>
-   (Args.theory -- Scan.lift Args.embedded_position >>
+   (Args.theory -- Scan.lift Parse.embedded_position >>
       (ML_Syntax.print_string o uncurry check)));
 
 fun extern thy = Name_Space.extern (Proof_Context.init_global thy) (locale_space thy);

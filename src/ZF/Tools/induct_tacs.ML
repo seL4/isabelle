@@ -177,11 +177,11 @@ fun rep_datatype raw_elim raw_induct raw_case_eqns raw_recursor_eqns thy =
 val _ =
   Theory.setup
     (Method.setup \<^binding>\<open>induct_tac\<close>
-      (Args.goal_spec -- Scan.lift (Args.embedded -- Parse.for_fixes) >>
+      (Args.goal_spec -- Scan.lift (Parse.embedded -- Parse.for_fixes) >>
         (fn (quant, (s, xs)) => fn ctxt => SIMPLE_METHOD'' quant (induct_tac ctxt s xs)))
       "induct_tac emulation (dynamic instantiation!)" #>
     Method.setup \<^binding>\<open>case_tac\<close>
-     (Args.goal_spec -- Scan.lift (Args.embedded -- Parse.for_fixes) >>
+     (Args.goal_spec -- Scan.lift (Parse.embedded -- Parse.for_fixes) >>
         (fn (quant, (s, xs)) => fn ctxt => SIMPLE_METHOD'' quant (exhaust_tac ctxt s xs)))
       "datatype case_tac emulation (dynamic instantiation!)");
 

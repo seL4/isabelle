@@ -28,11 +28,6 @@ sig
   val cartouche_inner_syntax: string parser
   val cartouche_input: Input.source parser
   val text_token: Token.T parser
-  val embedded_token: Token.T parser
-  val embedded_inner_syntax: string parser
-  val embedded_input: Input.source parser
-  val embedded: string parser
-  val embedded_position: (string * Position.T) parser
   val text_input: Input.source parser
   val text: string parser
   val binding: binding parser
@@ -115,13 +110,7 @@ val cartouche = Parse.token Parse.cartouche;
 val cartouche_inner_syntax = cartouche >> Token.inner_syntax_of;
 val cartouche_input = cartouche >> Token.input_of;
 
-val embedded_token = ident || string || cartouche;
-val embedded_inner_syntax = embedded_token >> Token.inner_syntax_of;
-val embedded_input = embedded_token >> Token.input_of;
-val embedded = embedded_token >> Token.content_of;
-val embedded_position = embedded_input >> Input.source_content;
-
-val text_token = embedded_token || Parse.token Parse.verbatim;
+val text_token = Parse.token (Parse.embedded || Parse.verbatim);
 val text_input = text_token >> Token.input_of;
 val text = text_token >> Token.content_of;
 
@@ -151,10 +140,12 @@ fun named_source read =
   internal_source || name_token >> Token.evaluate Token.Source read;
 
 fun named_typ read =
-  internal_typ || embedded_token >> Token.evaluate Token.Typ (read o Token.inner_syntax_of);
+  internal_typ ||
+  Parse.token Parse.embedded >> Token.evaluate Token.Typ (read o Token.inner_syntax_of);
 
 fun named_term read =
-  internal_term || embedded_token >> Token.evaluate Token.Term (read o Token.inner_syntax_of);
+  internal_term ||
+  Parse.token Parse.embedded >> Token.evaluate Token.Term (read o Token.inner_syntax_of);
 
 fun named_fact get =
   internal_fact ||

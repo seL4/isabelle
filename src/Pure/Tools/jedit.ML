@@ -78,7 +78,8 @@ fun check_action (name, pos) =
 
 val _ =
   Theory.setup
-    (Document_Output.antiquotation_verbatim_embedded \<^binding>\<open>action\<close> (Scan.lift Args.embedded_position)
+    (Document_Output.antiquotation_verbatim_embedded \<^binding>\<open>action\<close>
+      (Scan.lift Parse.embedded_position)
       (fn ctxt => fn (name, pos) =>
         let
           val _ =

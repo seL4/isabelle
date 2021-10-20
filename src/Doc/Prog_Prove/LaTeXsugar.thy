@@ -45,7 +45,7 @@ syntax (IfThenNoBox output)
 
 setup \<open>
   Document_Output.antiquotation_pretty_source \<^binding>\<open>const_typ\<close>
-    (Scan.lift Args.embedded_inner_syntax)
+    (Scan.lift Parse.embedded_inner_syntax)
     (fn ctxt => fn c =>
       let val tc = Proof_Context.read_const {proper = false, strict = false} ctxt c in
         Pretty.block [Document_Output.pretty_term ctxt tc, Pretty.str " ::",

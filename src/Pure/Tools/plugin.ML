@@ -40,7 +40,7 @@ fun check ctxt =
 
 val _ = Theory.setup
   (ML_Antiquotation.inline_embedded \<^binding>\<open>plugin\<close>
-    (Args.context -- Scan.lift Args.embedded_position >> (ML_Syntax.print_string o uncurry check)));
+    (Args.context -- Scan.lift Parse.embedded_position >> (ML_Syntax.print_string o uncurry check)));
 
 
 (* indirections *)

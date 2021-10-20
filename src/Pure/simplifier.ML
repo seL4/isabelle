@@ -114,7 +114,7 @@ val the_simproc = Name_Space.get o get_simprocs;
 
 val _ = Theory.setup
   (ML_Antiquotation.value_embedded \<^binding>\<open>simproc\<close>
-    (Args.context -- Scan.lift Args.embedded_position
+    (Args.context -- Scan.lift Parse.embedded_position
       >> (fn (ctxt, name) =>
         "Simplifier.the_simproc ML_context " ^ ML_Syntax.print_string (check_simproc ctxt name))));
 

@@ -289,7 +289,7 @@ fun mkex_induct_tac ctxt sch exA exB =
 \<close>
 
 method_setup mkex_induct = \<open>
-  Scan.lift (Args.embedded -- Args.embedded -- Args.embedded)
+  Scan.lift (Parse.embedded -- Parse.embedded -- Parse.embedded)
     >> (fn ((sch, exA), exB) => fn ctxt =>
       SIMPLE_METHOD' (mkex_induct_tac ctxt sch exA exB))
 \<close>

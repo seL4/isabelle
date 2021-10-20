@@ -63,7 +63,7 @@ val _ =
 val _ =
   Theory.setup
     (Method.setup \<^binding>\<open>ind_cases\<close>
-      (Scan.lift (Scan.repeat1 Args.embedded_inner_syntax) >>
+      (Scan.lift (Scan.repeat1 Parse.embedded_inner_syntax) >>
         (fn props => fn ctxt => Method.erule ctxt 0 (map (smart_cases ctxt) props)))
       "dynamic case analysis on sets");
 

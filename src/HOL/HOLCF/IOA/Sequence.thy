@@ -996,13 +996,13 @@ fun pair_induct_tac ctxt s rws i =
 \<close>
 
 method_setup Seq_case =
-  \<open>Scan.lift Args.embedded >> (fn s => fn ctxt => SIMPLE_METHOD' (Seq_case_tac ctxt s))\<close>
+  \<open>Scan.lift Parse.embedded >> (fn s => fn ctxt => SIMPLE_METHOD' (Seq_case_tac ctxt s))\<close>
 
 method_setup Seq_case_simp =
-  \<open>Scan.lift Args.embedded >> (fn s => fn ctxt => SIMPLE_METHOD' (Seq_case_simp_tac ctxt s))\<close>
+  \<open>Scan.lift Parse.embedded >> (fn s => fn ctxt => SIMPLE_METHOD' (Seq_case_simp_tac ctxt s))\<close>
 
 method_setup Seq_induct =
-  \<open>Scan.lift Args.embedded --
+  \<open>Scan.lift Parse.embedded --
     Scan.optional ((Scan.lift (Args.$$$ "simp" -- Args.colon) |-- Attrib.thms)) []
     >> (fn (s, rws) => fn ctxt => SIMPLE_METHOD' (Seq_induct_tac ctxt s rws))\<close>
 
@@ -1010,10 +1010,10 @@ method_setup Seq_Finite_induct =
   \<open>Scan.succeed (SIMPLE_METHOD' o Seq_Finite_induct_tac)\<close>
 
 method_setup pair =
-  \<open>Scan.lift Args.embedded >> (fn s => fn ctxt => SIMPLE_METHOD' (pair_tac ctxt s))\<close>
+  \<open>Scan.lift Parse.embedded >> (fn s => fn ctxt => SIMPLE_METHOD' (pair_tac ctxt s))\<close>
 
 method_setup pair_induct =
-  \<open>Scan.lift Args.embedded --
+  \<open>Scan.lift Parse.embedded --
     Scan.optional ((Scan.lift (Args.$$$ "simp" -- Args.colon) |-- Attrib.thms)) []
     >> (fn (s, rws) => fn ctxt => SIMPLE_METHOD' (pair_induct_tac ctxt s rws))\<close>
 

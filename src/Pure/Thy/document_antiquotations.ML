@@ -78,13 +78,13 @@ val _ = Theory.setup
   basic_entity \<^binding>\<open>term_type\<close> (Term_Style.parse -- Args.term) pretty_term_typ #>
   basic_entity \<^binding>\<open>typeof\<close> (Term_Style.parse -- Args.term) pretty_term_typeof #>
   basic_entity \<^binding>\<open>const\<close> (Args.const {proper = true, strict = false}) pretty_const #>
-  basic_entity \<^binding>\<open>abbrev\<close> (Scan.lift Args.embedded_inner_syntax) pretty_abbrev #>
+  basic_entity \<^binding>\<open>abbrev\<close> (Scan.lift Parse.embedded_inner_syntax) pretty_abbrev #>
   basic_entity \<^binding>\<open>typ\<close> Args.typ_abbrev Syntax.pretty_typ #>
-  basic_entity \<^binding>\<open>locale\<close> (Scan.lift Args.embedded_position) pretty_locale #>
-  basic_entity \<^binding>\<open>bundle\<close> (Scan.lift Args.embedded_position) pretty_bundle #>
-  basic_entity \<^binding>\<open>class\<close> (Scan.lift Args.embedded_inner_syntax) pretty_class #>
-  basic_entity \<^binding>\<open>type\<close> (Scan.lift Args.embedded_inner_syntax) pretty_type #>
-  basic_entity \<^binding>\<open>theory\<close> (Scan.lift Args.embedded_position) pretty_theory #>
+  basic_entity \<^binding>\<open>locale\<close> (Scan.lift Parse.embedded_position) pretty_locale #>
+  basic_entity \<^binding>\<open>bundle\<close> (Scan.lift Parse.embedded_position) pretty_bundle #>
+  basic_entity \<^binding>\<open>class\<close> (Scan.lift Parse.embedded_inner_syntax) pretty_class #>
+  basic_entity \<^binding>\<open>type\<close> (Scan.lift Parse.embedded_inner_syntax) pretty_type #>
+  basic_entity \<^binding>\<open>theory\<close> (Scan.lift Parse.embedded_position) pretty_theory #>
   basic_entities \<^binding>\<open>prf\<close> Attrib.thms (pretty_prf false) #>
   basic_entities \<^binding>\<open>full_prf\<close> Attrib.thms (pretty_prf true) #>
   Document_Antiquotation.setup \<^binding>\<open>thm\<close> (Term_Style.parse -- Attrib.thms)
@@ -151,7 +151,7 @@ in end;
 local
 
 val index_like = Parse.$$$ "(" |-- Parse.!!! (Parse.$$$ "is" |-- Args.name --| Parse.$$$ ")");
-val index_args = Parse.enum1 "!" (Args.embedded_input -- Scan.option index_like);
+val index_args = Parse.enum1 "!" (Parse.embedded_input -- Scan.option index_like);
 
 fun output_text ctxt = Document_Output.output_document ctxt {markdown = false};
 
@@ -292,14 +292,14 @@ val _ = Theory.setup
 
 val _ = Theory.setup
   (Document_Output.antiquotation_verbatim_embedded \<^binding>\<open>bash_function\<close>
-    (Scan.lift Args.embedded_position) Isabelle_System.check_bash_function);
+    (Scan.lift Parse.embedded_position) Isabelle_System.check_bash_function);
 
 
 (* system options *)
 
 val _ = Theory.setup
   (Document_Output.antiquotation_verbatim_embedded \<^binding>\<open>system_option\<close>
-    (Scan.lift Args.embedded_position)
+    (Scan.lift Parse.embedded_position)
     (fn ctxt => fn (name, pos) =>
       let val _ = Completion.check_option (Options.default ()) ctxt (name, pos);
       in name end));
@@ -418,7 +418,7 @@ val escape_url =
   translate_string (fn c => if c = "%" orelse c = "#" orelse c = "^" then "\\" ^ c else c);
 
 val _ = Theory.setup
-  (Document_Output.antiquotation_raw_embedded \<^binding>\<open>url\<close> (Scan.lift Args.embedded_input)
+  (Document_Output.antiquotation_raw_embedded \<^binding>\<open>url\<close> (Scan.lift Parse.embedded_input)
     (fn ctxt => fn source =>
       let
         val url = Input.string_of source;

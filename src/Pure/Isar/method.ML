@@ -427,7 +427,7 @@ fun checked_text (Source src) = Token.checked_src src
 
 val _ = Theory.setup
  (ML_Antiquotation.inline_embedded \<^binding>\<open>method\<close>
-    (Args.context -- Scan.lift Args.embedded_position >>
+    (Args.context -- Scan.lift Parse.embedded_position >>
       (ML_Syntax.print_string o uncurry check_name)));
 
 

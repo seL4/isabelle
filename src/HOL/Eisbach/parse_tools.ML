@@ -36,7 +36,7 @@ fun parse_term_val scan =
     (fn ((_, SOME t), _) => Real_Val t
       | ((tok, NONE), v) => Parse_Val (v, fn t => ignore (Token.assign (SOME (Token.Term t)) tok)));
 
-val name_term = parse_term_val Args.embedded_inner_syntax;
+val name_term = parse_term_val Parse.embedded_inner_syntax;
 
 fun parse_thm_val scan =
   Scan.ahead Parse.not_eof -- Scan.ahead (Scan.option (Args.internal_fact >> the_single)) -- scan >>

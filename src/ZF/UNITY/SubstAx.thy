@@ -373,7 +373,7 @@ fun ensures_tac ctxt sact =
 \<close>
 
 method_setup ensures = \<open>
-    Args.goal_spec -- Scan.lift Args.embedded_inner_syntax >>
+    Args.goal_spec -- Scan.lift Parse.embedded_inner_syntax >>
     (fn (quant, s) => fn ctxt => SIMPLE_METHOD'' quant (ensures_tac ctxt s))
 \<close> "for proving progress properties"
 

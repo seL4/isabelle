@@ -67,6 +67,7 @@ sig
   val name_position: (string * Position.T) parser
   val binding: binding parser
   val embedded: string parser
+  val embedded_inner_syntax: string parser
   val embedded_input: Input.source parser
   val embedded_position: (string * Position.T) parser
   val text: string parser
@@ -281,6 +282,7 @@ val embedded =
     (cartouche || string || short_ident || long_ident || sym_ident ||
       term_var || type_ident || type_var || number);
 
+val embedded_inner_syntax = inner_syntax embedded;
 val embedded_input = input embedded;
 val embedded_position = embedded_input >> Input.source_content;
 

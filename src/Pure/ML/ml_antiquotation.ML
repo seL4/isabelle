@@ -71,7 +71,7 @@ fun special_form binding operator =
   ML_Context.add_antiquotation binding true
     (fn _ => fn src => fn ctxt =>
       let
-        val (s, _) = Token.syntax (Scan.lift Args.embedded_input) src ctxt;
+        val (s, _) = Token.syntax (Scan.lift Parse.embedded_input) src ctxt;
         val tokenize = ML_Lex.tokenize_no_range;
         val tokenize_range = ML_Lex.tokenize_range (Input.range_of s);
 
@@ -89,7 +89,7 @@ fun special_form binding operator =
 fun conditional binding check =
   ML_Context.add_antiquotation binding true
     (fn _ => fn src => fn ctxt =>
-      let val (s, _) = Token.syntax (Scan.lift Args.embedded_input) src ctxt in
+      let val (s, _) = Token.syntax (Scan.lift Parse.embedded_input) src ctxt in
         if check ctxt then
           ML_Context.expand_antiquotes (ML_Lex.read_source s) ctxt
         else (K ([], []), ctxt)
@@ -106,7 +106,7 @@ val _ = Theory.setup
   inline (Binding.make ("make_string", \<^here>)) (Args.context >> K ML_Pretty.make_string_fn) #>
 
   value_embedded (Binding.make ("binding", \<^here>))
-    (Scan.lift (Parse.input Args.embedded) >> (ML_Syntax.make_binding o Input.source_content)) #>
+    (Scan.lift Parse.embedded_input >> (ML_Syntax.make_binding o Input.source_content)) #>
 
   value_embedded (Binding.make ("cartouche", \<^here>))
     (Scan.lift Args.cartouche_input >> (fn source =>
@@ -114,6 +114,6 @@ val _ = Theory.setup
         ML_Syntax.atomic (ML_Syntax.print_range (Input.range_of source)))) #>
 
   inline_embedded (Binding.make ("verbatim", \<^here>))
-    (Scan.lift Args.embedded >> ML_Syntax.print_string));
+    (Scan.lift Parse.embedded >> ML_Syntax.print_string));
 
 end;

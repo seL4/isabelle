@@ -188,7 +188,7 @@ fun read_instantiate ctxt insts xs =
 
 val named_insts =
   Parse.and_list1
-    (Parse.position Args.var -- (Args.$$$ "=" |-- Parse.!!! Args.embedded_inner_syntax))
+    (Parse.position Args.var -- (Args.$$$ "=" |-- Parse.!!! Parse.embedded_inner_syntax))
     -- Parse.for_fixes;
 
 val _ = Theory.setup
@@ -202,7 +202,7 @@ val _ = Theory.setup
 
 local
 
-val inst = Args.maybe Args.embedded_inner_syntax;
+val inst = Args.maybe Parse.embedded_inner_syntax;
 val concl = Args.$$$ "concl" -- Args.colon;
 
 val insts =
@@ -343,12 +343,12 @@ val _ = Theory.setup
   Method.setup \<^binding>\<open>cut_tac\<close> (method cut_inst_tac (K cut_rules_tac))
     "cut rule (dynamic instantiation)" #>
   Method.setup \<^binding>\<open>subgoal_tac\<close>
-    (Args.goal_spec -- Scan.lift (Scan.repeat1 Args.embedded_inner_syntax -- Parse.for_fixes) >>
+    (Args.goal_spec -- Scan.lift (Scan.repeat1 Parse.embedded_inner_syntax -- Parse.for_fixes) >>
       (fn (quant, (props, fixes)) => fn ctxt =>
         SIMPLE_METHOD'' quant (EVERY' (map (fn prop => subgoal_tac ctxt prop fixes) props))))
     "insert subgoal (dynamic instantiation)" #>
   Method.setup \<^binding>\<open>thin_tac\<close>
-    (Args.goal_spec -- Scan.lift (Args.embedded_inner_syntax -- Parse.for_fixes) >>
+    (Args.goal_spec -- Scan.lift (Parse.embedded_inner_syntax -- Parse.for_fixes) >>
       (fn (quant, (prop, fixes)) => fn ctxt => SIMPLE_METHOD'' quant (thin_tac ctxt prop fixes)))
     "remove premise (dynamic instantiation)");
 

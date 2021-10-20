@@ -450,7 +450,7 @@ fun pc_tac ctxt thms = DEPTH_SOLVE_1 o (step_tac ctxt thms)
 
 method_setup eqintr = \<open>Scan.succeed (SIMPLE_METHOD o eqintr_tac)\<close>
 method_setup NE = \<open>
-  Scan.lift Args.embedded_inner_syntax >> (fn s => fn ctxt => SIMPLE_METHOD' (NE_tac ctxt s))
+  Scan.lift Parse.embedded_inner_syntax >> (fn s => fn ctxt => SIMPLE_METHOD' (NE_tac ctxt s))
 \<close>
 method_setup pc = \<open>Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD' (pc_tac ctxt ths))\<close>
 method_setup add_mp = \<open>Scan.succeed (SIMPLE_METHOD' o add_mp_tac)\<close>

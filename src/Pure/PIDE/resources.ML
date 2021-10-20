@@ -203,7 +203,7 @@ val _ = Theory.setup
     (Args.context -- Scan.lift Parse.embedded_position
       >> (uncurry check_scala_function #> #1 #> ML_Syntax.print_string)) #>
   ML_Antiquotation.value_embedded \<^binding>\<open>scala\<close>
-    (Args.context -- Scan.lift Args.embedded_position >> (fn (ctxt, arg) =>
+    (Args.context -- Scan.lift Parse.embedded_position >> (fn (ctxt, arg) =>
       let
         val (name, multi) = check_scala_function ctxt arg;
         val func = if multi then "Scala.function" else "Scala.function1";

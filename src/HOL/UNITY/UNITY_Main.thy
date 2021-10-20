@@ -16,7 +16,7 @@ method_setup safety = \<open>
     "for proving safety properties"
 
 method_setup ensures_tac = \<open>
-  Args.goal_spec -- Scan.lift Args.embedded_inner_syntax >>
+  Args.goal_spec -- Scan.lift Parse.embedded_inner_syntax >>
   (fn (quant, s) => fn ctxt => SIMPLE_METHOD'' quant (ensures_tac ctxt s))
 \<close> "for proving progress properties"
 

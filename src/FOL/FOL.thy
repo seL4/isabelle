@@ -72,7 +72,7 @@ ML \<open>
 \<close>
 
 method_setup case_tac = \<open>
-  Args.goal_spec -- Scan.lift (Args.embedded_inner_syntax -- Parse.for_fixes) >>
+  Args.goal_spec -- Scan.lift (Parse.embedded_inner_syntax -- Parse.for_fixes) >>
     (fn (quant, (s, fixes)) => fn ctxt => SIMPLE_METHOD'' quant (case_tac ctxt s fixes))
 \<close> "case_tac emulation (dynamic instantiation!)"
 
