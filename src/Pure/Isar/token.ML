@@ -104,8 +104,8 @@ sig
   val make_src: string * Position.T -> T list -> src
   type 'a parser = T list -> 'a * T list
   type 'a context_parser = Context.generic * T list -> 'a * (Context.generic * T list)
-  val read_body: Keyword.keywords -> 'a parser -> Symbol_Pos.T list -> 'a option
   val read_antiq: Keyword.keywords -> 'a parser -> Symbol_Pos.T list * Position.T -> 'a
+  val read_embedded: Proof.context -> Keyword.keywords -> 'a parser -> Input.source -> 'a
   val syntax_generic: 'a context_parser -> src -> Context.generic -> 'a * Context.generic
   val syntax: 'a context_parser -> src -> Proof.context -> 'a * Proof.context
 end;
@@ -766,17 +766,32 @@ type 'a parser = T list -> 'a * T list;
 type 'a context_parser = Context.generic * T list -> 'a * (Context.generic * T list);
 
 
-(* read body -- e.g. antiquotation source *)
-
-fun read_body keywords scan =
-  tokenize (Keyword.no_command_keywords keywords) {strict = true}
-  #> filter is_proper
-  #> Scan.read stopper scan;
+(* embedded source, e.g. for antiquotations *)
 
 fun read_antiq keywords scan (syms, pos) =
-  (case read_body keywords scan syms of
-    SOME x => x
-  | NONE => error ("Malformed antiquotation" ^ Position.here pos));
+  let
+    val toks = syms
+      |> tokenize (Keyword.no_command_keywords keywords) {strict = true}
+      |> filter is_proper;
+  in
+    (case Scan.read stopper scan toks of
+      SOME res => res
+    | NONE => error ("Malformed antiquotation" ^ Position.here pos))
+  end;
+
+fun read_embedded ctxt keywords parse input =
+  let
+    val toks = input
+      |> Input.source_explode
+      |> tokenize keywords {strict = true}
+      |> filter is_proper;
+    val _ = Context_Position.reports_text ctxt (maps (reports keywords) toks);
+  in
+    (case Scan.read stopper parse toks of
+      SOME res => res
+    | NONE => error ("Bad input" ^ Position.here (Input.pos_of input)))
+  end;
+
 
 
 (* wrapped syntax *)

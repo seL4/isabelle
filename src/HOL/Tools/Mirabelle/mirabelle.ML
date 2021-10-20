@@ -35,13 +35,15 @@ struct
 
 (* concrete syntax *)
 
-val keywords = Keyword.no_command_keywords (Thy_Header.get_keywords \<^theory>);
-
 fun read_actions str =
   let
-    val actions = Token.read_body keywords
+    val thy = \<^theory>;
+    val ctxt = Proof_Context.init_global thy
+    val keywords = Keyword.no_command_keywords (Thy_Header.get_keywords thy)
+
+    fun read_actions () = Token.read_embedded ctxt keywords
       (Parse.enum ";" (Parse.name -- Sledgehammer_Commands.parse_params))
-      (Symbol_Pos.explode0 str)
+      (Input.string str)
     fun split_name_label (name, args) labels =
         (case String.tokens (fn c => c = #".") name of
           [name] => (("", name, args), labels)
@@ -53,7 +55,8 @@ fun read_actions str =
            ((label, name, args), Symtab.insert_set label labels))
         | _ => error "Cannot parse action")
   in
-    Option.map (fn xs => fst (fold_map split_name_label xs Symtab.empty)) actions
+    try read_actions ()
+    |> Option.map (fn xs => fst (fold_map split_name_label xs Symtab.empty))
   end
 
 
