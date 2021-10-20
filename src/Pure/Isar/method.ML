@@ -426,6 +426,11 @@ fun checked_text (Source src) = Token.checked_src src
   | checked_text (Basic _) = true
   | checked_text (Combinator (_, _, body)) = forall checked_text body;
 
+val _ = Theory.setup
+ (ML_Antiquotation.inline_embedded \<^binding>\<open>method\<close>
+    (Args.context -- Scan.lift Args.embedded_position >>
+      (ML_Syntax.print_string o uncurry check_name)));
+
 
 (* method setup *)
 

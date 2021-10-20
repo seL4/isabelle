@@ -1,16 +1,16 @@
-(*  Title:      Pure/ML/ml_antiquotations1.ML
+(*  Title:      Pure/ML/ml_antiquotations.ML
     Author:     Makarius
 
-Miscellaneous ML antiquotations: part 1.
+Miscellaneous ML antiquotations.
 *)
 
-signature ML_ANTIQUOTATIONS1 =
+signature ML_ANTIQUOTATIONS =
 sig
   val make_judgment: Proof.context -> term -> term
   val dest_judgment: Proof.context -> term -> term
 end;
 
-structure ML_Antiquotations1: ML_ANTIQUOTATIONS1 =
+structure ML_Antiquotations: ML_ANTIQUOTATIONS =
 struct
 
 (* ML support *)
@@ -214,9 +214,9 @@ fun dest_judgment ctxt =
 
 val _ = Theory.setup
  (ML_Antiquotation.value \<^binding>\<open>make_judgment\<close>
-   (Scan.succeed "ML_Antiquotations1.make_judgment ML_context") #>
+   (Scan.succeed "ML_Antiquotations.make_judgment ML_context") #>
   ML_Antiquotation.value \<^binding>\<open>dest_judgment\<close>
-   (Scan.succeed "ML_Antiquotations1.dest_judgment ML_context"));
+   (Scan.succeed "ML_Antiquotations.dest_judgment ML_context"));
 
 
 (* type/term constructors *)
