@@ -169,7 +169,6 @@ structure Foundation_Interpretations = Theory_Data
 (
   type T = (binding * (term * term list) -> Context.generic -> Context.generic) Inttab.table;
   val empty = Inttab.empty;
-  val extend = I;
   val merge = Inttab.merge (K true);
 );
 

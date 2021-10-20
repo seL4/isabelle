@@ -46,7 +46,6 @@ structure Old_Appl_Syntax = Theory_Data
 (
   type T = bool;
   val empty = false;
-  val extend = I;
   fun merge (b1, b2) : T =
     if b1 = b2 then b1
     else error "Cannot merge theories with different application syntax";

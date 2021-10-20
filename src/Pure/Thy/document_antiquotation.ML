@@ -100,7 +100,6 @@ structure Data = Theory_Data
   val empty : T =
     (Name_Space.empty_table Markup.document_antiquotationN,
       Name_Space.empty_table Markup.document_antiquotation_optionN);
-  val extend = I;
   fun merge ((commands1, options1), (commands2, options2)) : T =
     (Name_Space.merge_tables (commands1, commands2),
       Name_Space.merge_tables (options1, options2));

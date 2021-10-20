@@ -256,7 +256,6 @@ structure Subtype_Predicates = Generic_Data
 (
   type T = (term * string) list
   val empty = []
-  val extend = I
   fun merge data : T = AList.merge (op =) (K true) data
 )
 

@@ -105,7 +105,6 @@ structure Extensions = Theory_Data
 (
   type T = (serial * extension) list
   val empty = []
-  val extend = I
   val merge = merge eq_extension 
 )
 

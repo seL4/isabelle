@@ -156,7 +156,6 @@ structure TPTP_Reconstruction_Data = Theory_Data
 (
   type T = manifest list
   val empty = []
-  val extend = I
   fun merge data : T = Library.merge manifest_eq data
 )
 val get_manifests : theory -> manifest list = TPTP_Reconstruction_Data.get
@@ -207,7 +206,6 @@ structure TPTP_Reconstruction_Internal_Data = Theory_Data
 (
   type T = tptp_reconstruction_state
   val empty = {next_int = 0}
-  val extend = I
   fun merge data : T = snd data
 )
 

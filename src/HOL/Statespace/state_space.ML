@@ -95,7 +95,6 @@ structure NameSpaceData = Generic_Data
 (
   type T = namespace_info;
   val empty = {declinfo = Termtab.empty, distinctthm = Symtab.empty, silent = false};
-  val extend = I;
   fun merge
     ({declinfo=declinfo1, distinctthm=distinctthm1, silent=silent1},
       {declinfo=declinfo2, distinctthm=distinctthm2, silent=silent2}) : T =
@@ -156,7 +155,6 @@ structure StateSpaceData = Generic_Data
 (
   type T = statespace_info Symtab.table;
   val empty = Symtab.empty;
-  val extend = I;
   fun merge data : T = Symtab.merge (K true) data;
 );
 

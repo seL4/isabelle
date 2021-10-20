@@ -50,7 +50,6 @@ structure Data = Generic_Data
 (
   type T = thm list * thm list;
   val empty = ([], []);
-  val extend = I;
   fun merge ((ths1, rths1), (ths2, rths2)) =
     (Thm.merge_thms (ths1, ths2), Thm.merge_thms (rths1, rths2));
 );

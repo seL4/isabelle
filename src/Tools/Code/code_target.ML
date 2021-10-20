@@ -186,7 +186,6 @@ structure Targets = Theory_Data
 (
   type T = (target * Code_Printer.data) Symtab.table * int;
   val empty = (Symtab.empty, 0);
-  val extend = I;
   fun merge ((targets1, index1), (targets2, index2)) : T =
     let
       val targets' =

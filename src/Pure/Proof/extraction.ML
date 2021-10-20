@@ -213,7 +213,6 @@ structure ExtractionData = Theory_Data
      defs = [],
      expand = [],
      prep = NONE};
-  val extend = I;
 
   fun merge
     ({realizes_eqns = realizes_eqns1, typeof_eqns = typeof_eqns1, types = types1,

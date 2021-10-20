@@ -55,7 +55,6 @@ structure NominalDatatypesData = Theory_Data
 (
   type T = nominal_datatype_info Symtab.table;
   val empty = Symtab.empty;
-  val extend = I;
   fun merge data = Symtab.merge (K true) data;
 );
 

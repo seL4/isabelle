@@ -214,7 +214,6 @@ structure Data = Generic_Data
 (
   type T = data;
   val empty = make_data (empty_infos, [], empty_equations);
-  val extend = I;
   fun merge (Data {infos = infos1, monos = monos1, equations = equations1},
       Data {infos = infos2, monos = monos2, equations = equations2}) =
     make_data (Item_Net.merge (infos1, infos2),

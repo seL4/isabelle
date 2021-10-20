@@ -32,7 +32,6 @@ structure Data = Theory_Data
   type T = data
   val empty = Symtab.empty
   val merge = Symtab.merge op =
-  val extend = I
 )
 
 fun mk_eq_dummy (lhs, rhs) =

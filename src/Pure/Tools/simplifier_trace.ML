@@ -47,7 +47,6 @@ structure Data = Generic_Data
      memory = true,
      parent = 0,
      breakpoints = empty_breakpoints}
-  val extend = I
   fun merge
     ({max_depth = max_depth1, mode = mode1, interactive = interactive1,
       memory = memory1, breakpoints = breakpoints1, ...}: T,

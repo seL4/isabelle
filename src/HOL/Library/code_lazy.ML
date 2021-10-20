@@ -56,7 +56,6 @@ structure Laziness_Data = Theory_Data(
   type T = lazy_info Symtab.table;
   val empty = Symtab.empty;
   val merge = Symtab.join (fn _ => fn (_, record) => record);
-  val extend = I;
 );
 
 fun fold_type type' tfree tvar typ =

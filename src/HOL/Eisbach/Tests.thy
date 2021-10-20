@@ -417,7 +417,6 @@ structure Data = Generic_Data
 (
   type T = thm list;
   val empty: T = [];
-  val extend = I;
   fun merge data : T = Thm.merge_thms data;
 );
 \<close>

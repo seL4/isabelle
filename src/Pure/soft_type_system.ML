@@ -49,7 +49,6 @@ structure Data = Theory_Data
 (
   type T = (operations * stamp) option;
   val empty = NONE;
-  val extend = I;
   fun merge (data as SOME (_, s), SOME (_, s')) =
         if s = s' then data
         else error "Cannot merge theories with different soft-type systems"

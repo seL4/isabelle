@@ -65,7 +65,6 @@ structure Data = Generic_Data
 (
   type T = (typ * term_postprocessor) list
   val empty = []
-  val extend = I
   fun merge data = AList.merge (op =) (K true) data
 )
 

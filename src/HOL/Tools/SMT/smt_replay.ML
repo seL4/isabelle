@@ -159,7 +159,6 @@ local
   (
     type T = simpset
     val empty = basic_simpset
-    val extend = I
     val merge = Simplifier.merge_ss
   )
 in

@@ -34,7 +34,6 @@ structure DatatypesData = Theory_Data
 (
   type T = datatype_info Symtab.table;
   val empty = Symtab.empty;
-  val extend = I;
   fun merge data : T = Symtab.merge (K true) data;
 );
 
@@ -53,7 +52,6 @@ structure ConstructorsData = Theory_Data
 (
   type T = constructor_info Symtab.table
   val empty = Symtab.empty
-  val extend = I
   fun merge data = Symtab.merge (K true) data;
 );
 

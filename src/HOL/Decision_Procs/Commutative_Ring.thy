@@ -720,7 +720,6 @@ structure Ring_Simps = Generic_Data
 (struct
   type T = (term * (thm list * thm list * thm list * thm list * thm * thm)) Net.net
   val empty = Net.empty
-  val extend = I
   val merge = Net.merge eq_ring_simps
 end);
 

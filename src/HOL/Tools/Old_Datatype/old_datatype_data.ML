@@ -43,7 +43,6 @@ structure Data = Theory_Data
 
   val empty =
     {types = Symtab.empty, constrs = Symtab.empty, cases = Symtab.empty};
-  val extend = I;
   fun merge
     ({types = types1, constrs = constrs1, cases = cases1},
      {types = types2, constrs = constrs2, cases = cases2}) : T =

@@ -97,7 +97,6 @@ structure Data = Generic_Data
 (
   type T = data
   val empty = empty_data
-  val extend = I
   val merge = merge_data
 )
 

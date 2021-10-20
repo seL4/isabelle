@@ -393,7 +393,6 @@ structure Data = Generic_Data
 (
   type T = fp_sugar Symtab.table;
   val empty = Symtab.empty;
-  val extend = I;
   fun merge data : T = Symtab.merge (K true) data;
 );
 

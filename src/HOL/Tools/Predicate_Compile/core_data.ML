@@ -131,7 +131,6 @@ structure PredData = Theory_Data
 (
   type T = pred_data Graph.T;
   val empty = Graph.empty;
-  val extend = I;
   val merge =
     Graph.join (fn key => fn (x, y) =>
       if eq_pred_data (x, y)
@@ -427,7 +426,6 @@ structure Alt_Compilations_Data = Theory_Data
 (
   type T = (mode * (compilation_funs -> typ -> term)) list Symtab.table
   val empty = Symtab.empty
-  val extend = I
   fun merge data : T = Symtab.merge (K true) data
 );
 

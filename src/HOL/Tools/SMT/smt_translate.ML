@@ -473,7 +473,6 @@ structure Configs = Generic_Data
 (
   type T = (Proof.context -> config) SMT_Util.dict
   val empty = []
-  val extend = I
   fun merge data = SMT_Util.dict_merge fst data
 )
 

@@ -46,7 +46,6 @@ structure Pack = Generic_Data
 (
   type T = pack;
   val empty = empty_pack;
-  val extend = I;
   fun merge (Pack (safes, unsafes), Pack (safes', unsafes')) =
     Pack
      (sort_rules (Thm.merge_thms (safes, safes')),

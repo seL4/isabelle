@@ -233,7 +233,6 @@ structure Data = Generic_Data
      (init_rules (left_var_concl o #2), init_rules (Thm.concl_of o #2)),
      simpset_of (empty_simpset \<^context>
       addsimprocs [rearrange_eqs_simproc] addsimps [Drule.norm_hhf_eq]));
-  val extend = I;
   fun merge (((casesT1, casesP1), (inductT1, inductP1), (coinductT1, coinductP1), simpset1),
       ((casesT2, casesP2), (inductT2, inductP2), (coinductT2, coinductP2), simpset2)) =
     ((Item_Net.merge (casesT1, casesT2), Item_Net.merge (casesP1, casesP2)),

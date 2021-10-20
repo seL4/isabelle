@@ -26,7 +26,6 @@ structure Markers = Theory_Data
 (
   type T = (Token.src -> Proof.context -> Proof.context) Name_Space.table;
   val empty : T = Name_Space.empty_table "document_marker";
-  val extend = I;
   val merge = Name_Space.merge_tables;
 );
 

@@ -119,7 +119,6 @@ structure Rec_Data = Theory_Data
   (* list indicates which type arguments allow indirect recursion *)
   type T = (bool list) Symtab.table
   val empty = Symtab.empty
-  val extend = I
   fun merge data = Symtab.merge (K true) data
 )
 

@@ -43,7 +43,6 @@ structure Data = Generic_Data
 (
   type T = tcset;
   val empty = TC {rules = [], net = Net.empty};
-  val extend = I;
   fun merge (TC {rules, net}, TC {rules = rules', net = net'}) =
     TC {rules = Thm.merge_thms (rules, rules'), net = Net.merge Thm.eq_thm_prop (net, net')};
 );

@@ -19,7 +19,6 @@ structure Data = Theory_Data
 (
   type T = (Proof.context -> term -> term) parser Name_Space.table;
   val empty : T = Name_Space.empty_table "antiquotation_style";
-  val extend = I;
   fun merge data : T = Name_Space.merge_tables data;
 );
 

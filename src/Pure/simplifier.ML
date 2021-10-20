@@ -101,7 +101,6 @@ structure Simprocs = Generic_Data
 (
   type T = simproc Name_Space.table;
   val empty : T = Name_Space.empty_table "simproc";
-  val extend = I;
   fun merge data : T = Name_Space.merge_tables data;
 );
 

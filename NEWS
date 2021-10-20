@@ -37,6 +37,9 @@ interpretation), similar to type string in Isabelle/ML. Isabelle symbols
 now work uniformly in Isabelle/Haskell vs. Isabelle/ML vs.
 Isabelle/Scala/PIDE.
 
+* Theory_Data / Generic_Data: "val extend = I" has been removed;
+obsolete since Isabelle2021.
+
 
 *** Isar ***
 

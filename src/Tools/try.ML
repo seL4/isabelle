@@ -39,7 +39,6 @@ structure Data = Theory_Data
 (
   type T = tool list;
   val empty = [];
-  val extend = I;
   fun merge data : T = Ord_List.merge tool_ord data;
 );
 

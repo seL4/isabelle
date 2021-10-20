@@ -81,7 +81,6 @@ structure Data = Generic_Data
     quotients Symtab.table *
     quotconsts list Symtab.table
   val empty: T = (Symtab.empty, Symtab.empty, Symtab.empty, Symtab.empty)
-  val extend = I
   fun merge
    ((quotmaps1, abs_rep1, quotients1, quotconsts1),
     (quotmaps2, abs_rep2, quotients2, quotconsts2)) : T =

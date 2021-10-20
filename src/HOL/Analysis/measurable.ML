@@ -56,7 +56,6 @@ structure Data = Generic_Data
     dest_thms = Thm.item_net,
     cong_thms = Thm.item_net,
     preprocessors = [] };
-  val extend = I;
   fun merge ({measurable_thms = t1, dest_thms = dt1, cong_thms = ct1, preprocessors = i1 },
       {measurable_thms = t2, dest_thms = dt2, cong_thms = ct2, preprocessors = i2 }) : T = {
     measurable_thms = Item_Net.merge (t1, t2),

@@ -92,7 +92,6 @@ structure Data = Generic_Data
       restore_data = Symtab.empty,
       no_code_types = Symtab.empty
     }
-  val extend = I
   fun merge
     ( { quot_maps = qm1, quotients = q1, reflexivity_rules = rr1, relator_distr_data = rdd1,
         restore_data = rd1, no_code_types = nct1 },

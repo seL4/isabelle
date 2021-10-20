@@ -110,7 +110,6 @@ structure Data = Generic_Data
 (
   type T = code_dt Item_Net.T
   val empty = Item_Net.init code_dt_eq term_of_code_dt
-  val extend = I
   val merge = Item_Net.merge
 );
 

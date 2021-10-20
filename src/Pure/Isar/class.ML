@@ -109,7 +109,6 @@ structure Class_Data = Theory_Data
 (
   type T = class_data Graph.T
   val empty = Graph.empty;
-  val extend = I;
   val merge = Graph.join merge_class_data;
 );
 

@@ -136,7 +136,6 @@ structure Data = Generic_Data
 (
   type T = value Inttab.table;
   val empty = Inttab.empty;
-  val extend = I;
   fun merge data = Inttab.merge (K true) data;
 );
 

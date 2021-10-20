@@ -65,7 +65,6 @@ structure Overload_Data = Generic_Data
     {variants : (term * typ) list Symtab.table,
      oconsts : string Termtab.table};
   val empty = {variants = Symtab.empty, oconsts = Termtab.empty};
-  val extend = I;
 
   fun merge
     ({variants = vtab1, oconsts = otab1},

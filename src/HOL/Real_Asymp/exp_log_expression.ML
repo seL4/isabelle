@@ -135,7 +135,6 @@ structure Custom_Funs = Generic_Data
   fun merge ({name_table = tbl1, net = net1}, {name_table = tbl2, net = net2}) = 
     {name_table = Name_Space.join_tables (fn _ => raise DUP) (tbl1, tbl2),
      net = Item_Net.merge (net1, net2)}
-  val extend = I
 )
 
 fun rewrite' ctxt old_prems bounds thms ct =

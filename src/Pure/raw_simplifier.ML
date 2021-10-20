@@ -347,7 +347,6 @@ structure Simpset = Generic_Data
 (
   type T = simpset;
   val empty = empty_ss;
-  val extend = I;
   val merge = merge_ss;
 );
 
@@ -859,7 +858,6 @@ structure Trace_Ops = Theory_Data
   val empty: T =
    {trace_invoke = fn _ => fn ctxt => ctxt,
     trace_apply = fn _ => fn ctxt => fn cont => cont ctxt};
-  val extend = I;
   fun merge (trace_ops, _) = trace_ops;
 );
 

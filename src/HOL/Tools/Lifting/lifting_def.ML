@@ -514,7 +514,6 @@ local
   (
     type T = code_eq option
     val empty = NONE
-    val extend = I
     fun merge _ = NONE
   );
 

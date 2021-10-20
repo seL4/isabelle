@@ -121,7 +121,6 @@ structure Rules = Generic_Data
 (
   type T = spec_rule Item_Net.T;
   val empty : T = Item_Net.init eq_spec #terms;
-  val extend = I;
   val merge = Item_Net.merge;
 );
 

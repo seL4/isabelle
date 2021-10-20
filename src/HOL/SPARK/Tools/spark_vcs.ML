@@ -58,7 +58,6 @@ structure VCs = Theory_Data
         path: Path.T,
         prefix: string} option}
   val empty : T = {pfuns = Symtab.empty, type_map = Symtab.empty, env = NONE}
-  val extend = I
   fun merge ({pfuns = pfuns1, type_map = type_map1, env = NONE},
         {pfuns = pfuns2, type_map = type_map2, env = NONE}) =
         {pfuns = Symtab.merge (eq_pair (op =) (op aconv)) (pfuns1, pfuns2),

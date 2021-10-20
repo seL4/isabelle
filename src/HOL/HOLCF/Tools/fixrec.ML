@@ -88,7 +88,6 @@ structure FixrecUnfoldData = Generic_Data
 (
   type T = thm Symtab.table
   val empty = Symtab.empty
-  val extend = I
   fun merge data : T = Symtab.merge (K true) data
 )
 
@@ -190,7 +189,6 @@ structure FixrecMatchData = Theory_Data
 (
   type T = string Symtab.table
   val empty = Symtab.empty
-  val extend = I
   fun merge data = Symtab.merge (K true) data
 )
 

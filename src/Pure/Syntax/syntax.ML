@@ -143,7 +143,6 @@ structure Operations = Theory_Data
 (
   type T = operations option;
   val empty = NONE;
-  val extend = I;
   val merge = merge_options;
 );
 

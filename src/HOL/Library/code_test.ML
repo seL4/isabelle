@@ -70,7 +70,6 @@ structure Drivers = Theory_Data
   type T =
     (string * ((Proof.context -> (string * string) list * string -> Path.T -> string) * string)) list
   val empty = []
-  val extend = I
   fun merge data : T = AList.merge (op =) (K true) data
 )
 

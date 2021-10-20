@@ -258,7 +258,6 @@ structure Data = Generic_Data
     Item_Net.init (op aconv o apply2 fst) (single o fst),
     fn _ => error "Termination prover not configured",
     empty_preproc check_defs)
-  val extend = I
   fun merge
    ((termination_rules1, functions1, termination_prover1, preproc1),
     (termination_rules2, functions2, _, _)) : T =

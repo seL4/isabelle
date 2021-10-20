@@ -143,7 +143,6 @@ structure Data = Theory_Data
 (
   type T = lfp_rec_extension option;
   val empty = NONE;
-  val extend = I;
   val merge = merge_options;
 );
 

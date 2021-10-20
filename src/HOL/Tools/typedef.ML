@@ -66,7 +66,6 @@ structure Data = Generic_Data
 (
   type T = info list Symtab.table;
   val empty = Symtab.empty;
-  val extend = I;
   fun merge data = Symtab.merge_list (K true) data;
 );
 

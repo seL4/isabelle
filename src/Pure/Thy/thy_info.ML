@@ -44,7 +44,6 @@ structure Presentation = Theory_Data
 (
   type T = ((presentation_context -> theory -> unit) * stamp) list;
   val empty = [];
-  val extend = I;
   fun merge data : T = Library.merge (eq_snd op =) data;
 );
 

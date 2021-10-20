@@ -45,7 +45,6 @@ structure Triv_Class_Data = Theory_Data
 (
   type T = (class * thm) list;
   val empty = [];
-  val extend = I;
   fun merge data : T = AList.merge (op =) (K true) data;
 );
 

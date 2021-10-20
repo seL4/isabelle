@@ -36,7 +36,6 @@ structure Data = Generic_Data
 (
   type T = def Item_Net.T;
   val empty : T = Item_Net.init eq_def (single o #lhs);
-  val extend = I;
   val merge = Item_Net.merge;
 );
 

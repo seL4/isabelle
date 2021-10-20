@@ -20,7 +20,6 @@ structure Evaluators = Theory_Data
 (
   type T = (Proof.context -> term -> term) Name_Space.table;
   val empty = Name_Space.empty_table "evaluator";
-  val extend = I;
   val merge = Name_Space.merge_tables;
 )
 

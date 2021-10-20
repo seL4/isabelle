@@ -119,7 +119,6 @@ structure Data = Generic_Data
 (
   type T = verit_strategy
   val empty = empty_data
-  val extend = I
   val merge = merge_data
 )
 

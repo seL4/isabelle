@@ -11,7 +11,6 @@ structure Data = Generic_Data
 (
   type T = Universal.universal Inttab.table;
   val empty = Inttab.empty;
-  val extend = I;
   val merge = Inttab.merge (K true);
 );
 

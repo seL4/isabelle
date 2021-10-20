@@ -81,7 +81,6 @@ structure Data = Theory_Data'
 (
   type T = data;
   val empty = make_data (Symtab.empty, [], (Symtab.empty, Symtab.empty));
-  val extend = I;
   fun merge old_thys
       (Data {axclasses = axclasses1, params = params1, inst_params = inst_params1},
        Data {axclasses = axclasses2, params = params2, inst_params = inst_params2}) =

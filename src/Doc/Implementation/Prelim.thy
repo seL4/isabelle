@@ -380,7 +380,6 @@ ML \<open>
   (
     type T = term Ord_List.T;
     val empty = [];
-    val extend = I;
     fun merge (ts1, ts2) =
       Ord_List.union Term_Ord.fast_term_ord ts1 ts2;
   );

@@ -97,7 +97,6 @@ structure Builtins = Generic_Data
      (typ -> (string * typ list) option) * (typ -> int -> string option)) ttab *
     (term list bfun, bfunr option bfun) btab
   val empty = ([], Symtab.empty)
-  val extend = I
   fun merge ((t1, b1), (t2, b2)) = (merge_ttab (t1, t2), merge_btab (b1, b2))
 )
 

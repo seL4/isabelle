@@ -95,7 +95,6 @@ structure Attributes = Generic_Data
 (
   type T = ((Token.src -> attribute) * string) Name_Space.table;
   val empty : T = Name_Space.empty_table Markup.attributeN;
-  val extend = I;
   fun merge data : T = Name_Space.merge_tables data;
 );
 
@@ -383,7 +382,6 @@ structure Configs = Theory_Data
 (
   type T = Config.value Config.T Symtab.table;
   val empty = Symtab.empty;
-  val extend = I;
   fun merge data = Symtab.merge (K true) data;
 );
 

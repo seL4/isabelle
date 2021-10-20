@@ -137,7 +137,6 @@ structure Data = Generic_Data
 (
   type T = corec_sugar_data;
   val empty = (Symtab.empty, Symtab.empty, Symtab.empty);
-  val extend = I;
   fun merge data : T =
     (Symtab.merge (K true) (apply2 #1 data), Symtab.merge (K true) (apply2 #2 data),
      Symtab.join (K merge_friend_extras) (apply2 #3 data));

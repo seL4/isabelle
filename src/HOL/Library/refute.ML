@@ -192,7 +192,6 @@ structure Data = Theory_Data
       (int -> bool) -> term option)) list,
      parameters: string Symtab.table};
   val empty = {interpreters = [], printers = [], parameters = Symtab.empty};
-  val extend = I;
   fun merge
     ({interpreters = in1, printers = pr1, parameters = pa1},
      {interpreters = in2, printers = pr2, parameters = pa2}) : T =

@@ -180,7 +180,6 @@ structure Rules = Generic_Data
 (
   type T = thm list;
   val empty = [];
-  val extend = I;
   val merge = Thm.merge_thms;
 );
 

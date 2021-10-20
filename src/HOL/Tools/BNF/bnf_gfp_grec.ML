@@ -406,7 +406,6 @@ structure Data = Generic_Data
 (
   type T = corec_data;
   val empty = (Symtab.empty, [Symtab.empty]);
-  val extend = I;
   fun merge ((version_tab1, info_tabs1), (version_tab2, info_tabs2)) : T =
     (Symtab.join (K Int.max) (version_tab1, version_tab2), info_tabs1 @ info_tabs2);
 );

@@ -46,7 +46,6 @@ structure NominalData = Theory_Data
 (
   type T = atom_info Symtab.table;
   val empty = Symtab.empty;
-  val extend = I;
   fun merge data = Symtab.merge (K true) data;
 );
 

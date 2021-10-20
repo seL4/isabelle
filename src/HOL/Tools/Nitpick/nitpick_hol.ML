@@ -288,7 +288,6 @@ structure Data = Generic_Data
             ersatz_table: (string * string) list,
             codatatypes: (string * (string * (string * typ) list)) list}
   val empty = {frac_types = [], ersatz_table = [], codatatypes = []}
-  val extend = I
   fun merge ({frac_types = fs1, ersatz_table = et1, codatatypes = cs1},
              {frac_types = fs2, ersatz_table = et2, codatatypes = cs2}) : T =
     {frac_types = AList.merge (op =) (K true) (fs1, fs2),

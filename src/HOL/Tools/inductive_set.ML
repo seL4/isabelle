@@ -148,7 +148,6 @@ structure Data = Generic_Data
      pred_arities: (typ * (int list list option list * int list list option)) list Symtab.table};
   val empty = {to_set_simps = [], to_pred_simps = [],
     set_arities = Symtab.empty, pred_arities = Symtab.empty};
-  val extend = I;
   fun merge
     ({to_set_simps = to_set_simps1, to_pred_simps = to_pred_simps1,
       set_arities = set_arities1, pred_arities = pred_arities1},

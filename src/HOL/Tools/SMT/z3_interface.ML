@@ -95,7 +95,6 @@ structure Mk_Builtins = Generic_Data
 (
   type T = (int * mk_builtins) list
   val empty = []
-  val extend = I
   fun merge data = Ord_List.merge fst_int_ord data
 )
 

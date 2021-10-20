@@ -23,7 +23,6 @@ structure Data = Generic_Data
 (
   type T = simpset * (thm * entry) list;
   val empty = (HOL_basic_ss, []);
-  val extend = I;
   fun merge ((ss1, es1), (ss2, es2)) : T =
     (merge_ss (ss1, ss2), AList.merge eq_key (K true) (es1, es2));
 );

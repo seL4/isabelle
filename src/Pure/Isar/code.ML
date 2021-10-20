@@ -401,7 +401,6 @@ structure Code_Data = Theory_Data
 (
   type T = specs * (string * (data * Context.theory_id) option Synchronized.var);
   val empty = (empty_specs, make_dataref (Context.the_global_context ()));
-  val extend = I;
   fun merge ((specs1, dataref), (specs2, _)) =
     (merge_specs (specs1, specs2), dataref);
 );

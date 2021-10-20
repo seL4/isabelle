@@ -1658,7 +1658,6 @@ struct
   (
     type T = ((term -> bool) * stamp) list;
     val empty = [];
-    val extend = I;
     fun merge data : T = Library.merge (eq_snd (op =)) data;
   );
   fun add m = Data.map (cons (m, stamp ()));

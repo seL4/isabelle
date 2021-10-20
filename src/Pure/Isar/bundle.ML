@@ -37,7 +37,6 @@ structure Data = Generic_Data
 (
   type T = Attrib.thms Name_Space.table * Attrib.thms option;
   val empty : T = (Name_Space.empty_table Markup.bundleN, NONE);
-  val extend = I;
   fun merge ((tab1, target1), (tab2, target2)) =
     (Name_Space.merge_tables (tab1, tab2), merge_options (target1, target2));
 );

@@ -187,7 +187,6 @@ structure Solvers = Generic_Data
 (
   type T = solver_info Symtab.table
   val empty = Symtab.empty
-  val extend = I
   fun merge data = Symtab.merge (K true) data
 )
 

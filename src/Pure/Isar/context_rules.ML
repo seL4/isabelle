@@ -99,7 +99,6 @@ structure Rules = Generic_Data
 (
   type T = rules;
   val empty = make_rules ~1 [] empty_netpairs ([], []);
-  val extend = I;
   fun merge
     (Rules {rules = rules1, wrappers = (ws1, ws1'), ...},
       Rules {rules = rules2, wrappers = (ws2, ws2'), ...}) =

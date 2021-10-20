@@ -146,7 +146,6 @@ structure TPTP_Data = Theory_Data
 (
   type T = manifest list
   val empty = []
-  val extend = I
   fun merge data : T = Library.merge (op =) data
 )
 val get_manifests = TPTP_Data.get

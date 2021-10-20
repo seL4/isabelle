@@ -213,7 +213,6 @@ structure Data = Generic_Data
     (string * (Proof.context -> term list -> (int -> bool) list)) list *
     test_params;
   val empty = ([], [], [], Test_Params {default_type = [], expect = No_Expectation});
-  val extend = I;
   fun merge
    ((testers1, batch_generators1, batch_validators1, params1),
     (testers2, batch_generators2, batch_validators2, params2)) : T =

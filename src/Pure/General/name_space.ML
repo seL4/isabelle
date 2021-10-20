@@ -495,7 +495,6 @@ struct
   type T = naming;
   val empty = global_naming;
   fun init _ = local_naming;
-  val extend = I;
   val merge = #1;
 end;
 

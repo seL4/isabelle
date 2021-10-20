@@ -16,7 +16,6 @@ structure Data = Generic_Data
 (
   type T = thm Net.net
   val empty = Net.empty
-  val extend = I
   val merge = Net.merge Thm.eq_thm
 )
 

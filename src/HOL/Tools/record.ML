@@ -79,7 +79,6 @@ structure Iso_Tuple_Thms = Theory_Data
 (
   type T = thm Symtab.table;
   val empty = Symtab.make [tuple_iso_tuple];
-  val extend = I;
   fun merge data = Symtab.merge Thm.eq_thm_prop data;   (* FIXME handle Symtab.DUP ?? *)
 );
 
@@ -396,7 +395,6 @@ structure Data = Theory_Data
       {selectors = Symtab.empty, updates = Symtab.empty,
         simpset = HOL_basic_ss, defset = HOL_basic_ss}
        Symtab.empty [] Symtab.empty Symtab.empty Symtab.empty Symtab.empty;
-  val extend = I;
   fun merge
    ({records = recs1,
      sel_upd = {selectors = sels1, updates = upds1, simpset = ss1, defset = ds1},

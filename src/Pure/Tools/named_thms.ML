@@ -22,7 +22,6 @@ structure Data = Generic_Data
 (
   type T = thm Item_Net.T;
   val empty = Thm.item_net;
-  val extend = I;
   val merge = Item_Net.merge;
 );
 

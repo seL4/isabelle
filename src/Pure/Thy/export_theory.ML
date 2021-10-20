@@ -22,7 +22,6 @@ structure Data = Theory_Data
 (
   type T = (theory -> Name_Space.T) Inttab.table;
   val empty = Inttab.empty;
-  val extend = I;
   val merge = Inttab.merge (K true);
 );
 

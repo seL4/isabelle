@@ -22,7 +22,6 @@ structure Data = Generic_Data
     consts: string list
   };
   val empty = {intros = [], unfolds = [], refolds = [], consts = []};
-  val extend = I;
   fun merge
     ({intros = intros1, unfolds = unfolds1,
       refolds = refolds1, consts = consts1},

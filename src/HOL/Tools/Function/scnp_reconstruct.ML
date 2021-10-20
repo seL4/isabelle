@@ -63,7 +63,6 @@ structure Multiset_Setup = Theory_Data
 (
   type T = multiset_setup option
   val empty = NONE
-  val extend = I;
   val merge = merge_options
 )
 

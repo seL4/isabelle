@@ -30,7 +30,6 @@ structure Arith_Tactics = Theory_Data
 (
   type T = (serial * (string * (Proof.context -> int -> tactic))) list;
   val empty = [];
-  val extend = I;
   fun merge data : T = AList.merge (op =) (K true) data;
 );
 

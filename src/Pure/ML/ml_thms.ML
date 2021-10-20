@@ -111,7 +111,6 @@ structure Data = Theory_Data
 (
   type T = thm list;
   val empty = [];
-  val extend = I;
   val merge = #1;
 );
 

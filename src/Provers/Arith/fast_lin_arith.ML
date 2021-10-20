@@ -131,7 +131,6 @@ structure Data = Generic_Data
    {add_mono_thms = [], mult_mono_thms = [], inj_thms = [],
     lessD = [], neqE = [], simpset = empty_ss,
     number_of = NONE};
-  val extend = I;
   fun merge
     ({add_mono_thms = add_mono_thms1, mult_mono_thms = mult_mono_thms1, inj_thms = inj_thms1,
       lessD = lessD1, neqE = neqE1, simpset = simpset1, number_of = number_of1},

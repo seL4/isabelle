@@ -27,7 +27,6 @@ structure Data = Theory_Data
     {Basic: string, Skip: string, Seq: string, Cond: string, While: string,
       Valid: string, ValidTC: string} option;
   val empty: T = NONE;
-  val extend = I;
   fun merge (data1, data2) =
     if is_some data1 andalso is_some data2 andalso data1 <> data2 then
       error "Cannot merge syntax from different Hoare Logics"

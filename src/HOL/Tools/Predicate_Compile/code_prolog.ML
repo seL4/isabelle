@@ -95,7 +95,6 @@ structure Options = Theory_Data
   type T = code_options
   val empty = {ensure_groundness = false, limit_globally = NONE,
     limited_types = [], limited_predicates = [], replacing = [], manual_reorder = []}
-  val extend = I;
   fun merge
     ({ensure_groundness = ensure_groundness1, limit_globally = limit_globally1,
       limited_types = limited_types1, limited_predicates = limited_predicates1,

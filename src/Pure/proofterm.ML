@@ -1589,7 +1589,6 @@ structure Data = Theory_Data
     (theory -> proof -> proof) option;
 
   val empty = (([], []), NONE);
-  val extend = I;
   fun merge (((rules1, procs1), preproc1), ((rules2, procs2), preproc2)) : T =
     ((AList.merge (op =) (K true) (rules1, rules2),
       AList.merge (op =) (K true) (procs1, procs2)),

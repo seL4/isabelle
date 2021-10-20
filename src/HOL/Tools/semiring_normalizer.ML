@@ -60,7 +60,6 @@ structure Data = Generic_Data
 (
   type T = (thm * entry) list;
   val empty = [];
-  val extend = I;
   fun merge data = AList.merge Thm.eq_thm (K true) data;
 );
 

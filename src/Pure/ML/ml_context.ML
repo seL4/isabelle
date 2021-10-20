@@ -63,7 +63,6 @@ structure Antiquotations = Theory_Data
 (
   type T = (bool * antiquotation) Name_Space.table;
   val empty : T = Name_Space.empty_table Markup.ML_antiquotationN;
-  val extend = I;
   fun merge data : T = Name_Space.merge_tables data;
 );
 

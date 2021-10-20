@@ -136,7 +136,6 @@ structure Data = Generic_Data
 (
   type T = (Proof.context -> int -> tactic) Name_Space.table;
   val empty : T = Name_Space.empty_table "sign_oracle_tactic";
-  val extend = I;
   fun merge (tactics1, tactics2) : T = Name_Space.merge_tables (tactics1, tactics2);
 );
 

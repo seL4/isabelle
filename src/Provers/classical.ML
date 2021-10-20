@@ -614,7 +614,6 @@ structure Claset = Generic_Data
 (
   type T = claset;
   val empty = empty_cs;
-  val extend = I;
   val merge = merge_cs;
 );
 

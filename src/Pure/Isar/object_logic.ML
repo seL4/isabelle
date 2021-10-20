@@ -52,7 +52,6 @@ structure Data = Generic_Data
 (
   type T = data;
   val empty = make_data (NONE, NONE, ([], []));
-  val extend = I;
 
   fun merge_opt eq (SOME x, SOME y) =
         if eq (x, y) then SOME x else error "Attempt to merge different object-logics"

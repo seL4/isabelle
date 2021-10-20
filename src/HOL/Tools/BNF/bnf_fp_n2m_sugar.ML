@@ -44,7 +44,6 @@ structure Data = Generic_Data
 (
   type T = n2m_sugar Typtab.table;
   val empty = Typtab.empty;
-  val extend = I;
   fun merge data : T = Typtab.merge (K true) data;
 );
 

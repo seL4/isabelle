@@ -2739,7 +2739,6 @@ structure Data = Generic_Data
 (
   type T = recdef_info Symtab.table * hints;
   val empty = (Symtab.empty, mk_hints ([], [], [])): T;
-  val extend = I;
   fun merge
    ((tab1, {simps = simps1, congs = congs1, wfs = wfs1}),
     (tab2, {simps = simps2, congs = congs2, wfs = wfs2})) : T =

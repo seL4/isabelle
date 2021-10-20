@@ -74,7 +74,6 @@ structure Lin_Arith_Data = Generic_Data
             inj_consts: (string * typ) list,
             discrete: string list};
   val empty = {splits = [], inj_consts = [], discrete = []};
-  val extend = I;
   fun merge
    ({splits = splits1, inj_consts = inj_consts1, discrete = discrete1},
     {splits = splits2, inj_consts = inj_consts2, discrete = discrete2}) : T =

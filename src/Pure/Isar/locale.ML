@@ -178,7 +178,6 @@ structure Locales = Theory_Data
 (
   type T = locale Name_Space.table;
   val empty : T = Name_Space.empty_table Markup.localeN;
-  val extend = I;
   val merge = Name_Space.join_tables (K merge_locale);
 );
 
@@ -288,7 +287,6 @@ structure Idents = Generic_Data
 (
   type T = idents;
   val empty = empty_idents;
-  val extend = I;
   val merge = merge_idents;
 );
 
@@ -360,7 +358,6 @@ structure Global_Registrations = Theory_Data'
     unique registration serial points to mixin list*)
   type T = regs * mixins;
   val empty: T = (Idtab.empty, Inttab.empty);
-  val extend = I;
   fun merge old_thys =
     let
       fun recursive_merge ((regs1, mixins1), (regs2, mixins2)) : T =
@@ -675,7 +672,6 @@ structure Thms = Generic_Data
 (
   type T = thm Item_Net.T * thm Item_Net.T * thm Item_Net.T;
   val empty = (Thm.item_net, Thm.item_net, Thm.item_net);
-  val extend = I;
   fun merge ((witnesses1, intros1, unfolds1), (witnesses2, intros2, unfolds2)) =
    (Item_Net.merge (witnesses1, witnesses2),
     Item_Net.merge (intros1, intros2),

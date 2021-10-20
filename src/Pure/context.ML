@@ -96,8 +96,7 @@ sig
   include CONTEXT
   structure Theory_Data:
   sig
-    val declare: Position.T -> Any.T -> (Any.T -> Any.T) ->
-      (theory * theory -> Any.T * Any.T -> Any.T) -> serial
+    val declare: Position.T -> Any.T -> (theory * theory -> Any.T * Any.T -> Any.T) -> serial
     val get: serial -> (Any.T -> 'a) -> theory -> 'a
     val put: serial -> ('a -> Any.T) -> 'a -> theory -> theory
   end
@@ -266,7 +265,6 @@ local
 type kind =
  {pos: Position.T,
   empty: Any.T,
-  extend: Any.T -> Any.T,
   merge: theory * theory -> Any.T * Any.T -> Any.T};
 
 val kinds = Synchronized.var "Theory_Data" (Datatab.empty: kind Datatab.table);
@@ -284,18 +282,16 @@ in
 
 fun invoke_pos k = invoke "" (K o #pos) k ();
 fun invoke_empty k = invoke "" (K o #empty) k ();
-val invoke_extend = invoke "extend" #extend;
 fun invoke_merge thys = invoke "merge" (fn kind => #merge kind thys);
 
-fun declare_theory_data pos empty extend merge =
+fun declare_theory_data pos empty merge =
   let
     val k = serial ();
-    val kind = {pos = pos, empty = empty, extend = extend, merge = merge};
+    val kind = {pos = pos, empty = empty, merge = merge};
     val _ = Synchronized.change kinds (Datatab.update (k, kind));
   in k end;
 
-val extend_data = Datatab.map invoke_extend;
-fun merge_data thys = Datatab.join (invoke_merge thys) o apply2 extend_data;
+fun merge_data thys = Datatab.join (invoke_merge thys);
 
 end;
 
@@ -357,20 +353,20 @@ fun change_thy finish f thy =
   let
     val ({id, ids}, {name, stage}) = rep_theory_id (theory_id thy);
     val Theory (_, ancestry, data) = thy;
-    val (ancestry', data') =
-      if is_none stage then
-        (make_ancestry [thy] (extend_ancestors thy (ancestors_of thy)), extend_data data)
-      else (ancestry, data);
+    val ancestry' =
+      if is_none stage
+      then make_ancestry [thy] (extend_ancestors thy (ancestors_of thy))
+      else ancestry;
     val history' = {name = name, stage = if finish then NONE else Option.map next_stage stage};
     val ids' = insert_id id ids;
-    val data'' = f data';
-  in create_thy ids' history' ancestry' data'' end;
+    val data' = f data;
+  in create_thy ids' history' ancestry' data' end;
 
 in
 
 val update_thy = change_thy false;
 val extend_thy = update_thy I;
-val finish_thy = change_thy true I #> tap extend_thy;
+val finish_thy = change_thy true I;
 
 end;
 
@@ -639,7 +635,6 @@ signature THEORY_DATA'_ARGS =
 sig
   type T
   val empty: T
-  val extend: T -> T
   val merge: theory * theory -> T * T -> T
 end;
 
@@ -647,7 +642,6 @@ signature THEORY_DATA_ARGS =
 sig
   type T
   val empty: T
-  val extend: T -> T
   val merge: T * T -> T
 end;
 
@@ -670,13 +664,6 @@ val kind =
     Context.Theory_Data.declare
       pos
       (Data Data.empty)
-      (fn Data x =>
-        let
-          val y = Data.extend x;
-          val _ =
-            if pointer_eq (x, y) then ()
-            else raise Fail ("Theory_Data extend needs to be identity" ^ Position.here pos)
-        in Data y end)
       (fn thys => fn (Data x1, Data x2) => Data (Data.merge thys (x1, x2)))
   end;
 
@@ -691,7 +678,6 @@ functor Theory_Data(Data: THEORY_DATA_ARGS): THEORY_DATA =
   (
     type T = Data.T;
     val empty = Data.empty;
-    val extend = Data.extend;
     fun merge _ = Data.merge;
   );
 
@@ -735,7 +721,6 @@ signature GENERIC_DATA_ARGS =
 sig
   type T
   val empty: T
-  val extend: T -> T
   val merge: T * T -> T
 end;
 

@@ -94,7 +94,6 @@ structure Data = Generic_Data
       relator_eq_raw = Thm.item_net,
       relator_domain = Thm.item_net,
       pred_data = Symtab.empty }
-  val extend = I
   fun merge
     ( { transfer_raw = t1, known_frees = k1,
         compound_lhs = l1,

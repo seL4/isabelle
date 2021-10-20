@@ -72,7 +72,6 @@ structure Data = Theory_Data
     (Symtab.empty,
      Name_Space.empty_table Markup.file_typeN,
      Name_Space.empty_table Markup.antiquotationN);
-  val extend = I;
   fun merge ((files1, types1, antiqs1), (files2, types2, antiqs2)) =
     let
       val files' =

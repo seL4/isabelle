@@ -89,7 +89,6 @@ structure Data = Theory_Data
 (
   type T = raw_param list
   val empty = default_default_params |> map (apsnd single)
-  val extend = I
   fun merge data = AList.merge (op =) (K true) data
 );
 

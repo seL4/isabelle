@@ -133,7 +133,6 @@ structure Plugins = Generic_Data
     (int * (term abstracter -> term option abstracter)) list *
     th_lemma_method Symtab.table
   val empty = ([], Symtab.empty)
-  val extend = I
   fun merge ((abss1, ths1), (abss2, ths2)) = (
     Ord_List.merge id_ord (abss1, abss2),
     Symtab.merge (K true) (ths1, ths2))

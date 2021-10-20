@@ -26,7 +26,6 @@ structure Data = Generic_Data
 (
   type T = thm Item_Net.T Symtab.table;
   val empty: T = Symtab.empty;
-  val extend = I;
   val merge : T * T -> T = Symtab.join (K Item_Net.merge);
 );
 

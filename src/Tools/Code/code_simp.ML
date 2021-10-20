@@ -26,7 +26,6 @@ structure Simpset = Theory_Data
 (
   type T = simpset;
   val empty = empty_ss;
-  val extend = I;
   val merge = merge_ss;
 );
 

@@ -29,7 +29,6 @@ structure Data = Theory_Data
             const_def: thm Symtab.table, ty_def: thm Symtab.table}
   val empty = {const_map = Symtab.empty, ty_map = Symtab.empty,
                const_def = Symtab.empty, ty_def = Symtab.empty}
-  val extend = I
   fun merge
    ({const_map = cm1, ty_map = tm1, const_def = cd1, ty_def = td1},
     {const_map = cm2, ty_map = tm2, const_def = cd2, ty_def = td2}) : T =

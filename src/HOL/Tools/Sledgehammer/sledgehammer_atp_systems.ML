@@ -131,7 +131,6 @@ structure Data = Theory_Data
 (
   type T = ((unit -> atp_config) * stamp) Symtab.table
   val empty = Symtab.empty
-  val extend = I
   fun merge data : T =
     Symtab.merge (eq_snd (op =)) data
     handle Symtab.DUP name => error ("Duplicate ATP: " ^ quote name)

@@ -385,7 +385,6 @@ functor Order_Tac(structure Base_Tac : BASE_ORDER_TAC) = struct
   structure Data = Generic_Data(
     type T = (order_context * (order_context -> thm list -> Proof.context -> int -> tactic)) list
     val empty = []
-    val extend = I
     fun merge data = Library.merge order_data_eq data
   )
 

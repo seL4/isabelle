@@ -49,7 +49,6 @@ structure Data = Generic_Data
 (
   type T = data;
   val empty = make_data (Symreltab.empty, Graph.empty, Graph.empty, Symtab.empty, Symtab.empty);
-  val extend = I;
   fun merge
     (Data {coes = coes1, full_graph = full_graph1, coes_graph = coes_graph1,
       tmaps = tmaps1, coerce_args = coerce_args1},

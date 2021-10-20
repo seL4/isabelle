@@ -75,7 +75,6 @@ structure Logics = Generic_Data
 (
   type T = (int * (term list -> string option)) list
   val empty = []
-  val extend = I
   fun merge data = Ord_List.merge fst_int_ord data
 )
 

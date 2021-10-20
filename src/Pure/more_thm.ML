@@ -665,7 +665,6 @@ structure Proofs = Theory_Data
 (
   type T = thm list lazy Inttab.table;
   val empty = Inttab.empty;
-  val extend = I;
   val merge = Inttab.merge (K true);
 );
 

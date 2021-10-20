@@ -100,7 +100,6 @@ structure Code_Preproc_Data = Theory_Data
 (
   type T = thmproc;
   val empty = make_thmproc ((Simplifier.empty_ss, Simplifier.empty_ss), []);
-  val extend = I;
   val merge = merge_thmproc;
 );
 
@@ -319,7 +318,6 @@ structure Trace_Switch = Generic_Data
 (
   type T = string list option;
   val empty = SOME [];
-  val extend = I;
   fun merge (NONE, _) = NONE
     | merge (_, NONE) = NONE
     | merge (SOME cs1, SOME cs2) = SOME (Library.merge (op =) (cs1, cs2));

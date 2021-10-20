@@ -471,7 +471,6 @@ structure Extra_Norms = Generic_Data
 (
   type T = extra_norm SMT_Util.dict
   val empty = []
-  val extend = I
   fun merge data = SMT_Util.dict_merge fst data
 )
 

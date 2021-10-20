@@ -20,7 +20,6 @@ structure Specialisations = Theory_Data
 (
   type T = (term * term) Item_Net.T
   val empty : T = Item_Net.init (op aconv o apply2 fst) (single o fst)
-  val extend = I
   val merge = Item_Net.merge
 )
 

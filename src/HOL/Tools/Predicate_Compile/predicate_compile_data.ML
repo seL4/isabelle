@@ -34,7 +34,6 @@ structure Data = Theory_Data
     {ignore_consts = Symtab.empty,
      keep_functions = Symtab.empty,
      processed_specs =  Symtab.empty};
-  val extend = I;
   fun merge
     ({ignore_consts = c1, keep_functions = k1, processed_specs = s1},
      {ignore_consts = c2, keep_functions = k2, processed_specs = s2}) =

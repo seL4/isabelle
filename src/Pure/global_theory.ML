@@ -64,7 +64,6 @@ structure Data = Theory_Data
 (
   type T = Facts.T * Thm_Name.T Inttab.table lazy option;
   val empty: T = (Facts.empty, NONE);
-  val extend = I;
   fun merge ((facts1, _), (facts2, _)) = (Facts.merge (facts1, facts2), NONE);
 );
 

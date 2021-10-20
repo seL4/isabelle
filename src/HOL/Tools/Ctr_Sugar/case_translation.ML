@@ -65,7 +65,6 @@ structure Data = Generic_Data
 (
   type T = data;
   val empty = make_data (Symtab.empty, Symtab.empty);
-  val extend = I;
   fun merge
     (Data {constrs = constrs1, cases = cases1},
      Data {constrs = constrs2, cases = cases2}) =

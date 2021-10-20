@@ -340,7 +340,6 @@ structure Computation_Preproc_Data = Theory_Data
 (
   type T = thm list;
   val empty = [];
-  val extend = I;
   val merge = Library.merge Thm.eq_thm_prop;
 );
 
@@ -800,7 +799,6 @@ structure Loaded_Values = Theory_Data
 (
   type T = string list
   val empty = []
-  val extend = I
   fun merge data : T = Library.merge (op =) data
 );
 

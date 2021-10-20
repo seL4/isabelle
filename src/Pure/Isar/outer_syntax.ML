@@ -81,7 +81,6 @@ structure Data = Theory_Data
 (
   type T = command Symtab.table;
   val empty = Symtab.empty;
-  val extend = I;
   fun merge data : T =
     data |> Symtab.join (fn name => fn (cmd1, cmd2) =>
       if eq_command (cmd1, cmd2) then raise Symtab.SAME
