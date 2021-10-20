@@ -24,6 +24,8 @@ sig
   val every_conv: conv list -> conv
   val try_conv: conv -> conv
   val repeat_conv: conv -> conv
+  val changed_conv: conv -> conv
+  val repeat_changed_conv: conv -> conv
   val cache_conv: conv -> conv
   val abs_conv: (cterm * Proof.context -> conv) -> Proof.context -> conv
   val combination_conv: conv -> conv -> conv
@@ -83,6 +85,12 @@ fun every_conv cvs = fold_rev (curry op then_conv) cvs all_conv;
 
 fun try_conv cv = cv else_conv all_conv;
 fun repeat_conv cv ct = try_conv (cv then_conv repeat_conv cv) ct;
+
+fun changed_conv conv ct =
+  let val th = conv ct
+  in if Thm.is_reflexive th then raise CTERM ("changed_conv", [ct]) else th end;
+
+val repeat_changed_conv = repeat_conv o changed_conv;
 
 fun cache_conv (cv: conv) = Ctermtab.cterm_cache cv;
 

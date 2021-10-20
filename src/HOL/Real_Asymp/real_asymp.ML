@@ -72,15 +72,6 @@ val filter_substs =
 val filterlim_substs = map (fn thm => thm RS @{thm filterlim_conv_filtermap}) filter_substs
 val eventually_substs = map (fn thm => thm RS @{thm eventually_conv_filtermap}) filter_substs
 
-fun changed_conv conv ct =
-  let
-    val thm = conv ct
-  in
-    if Thm.is_reflexive thm then raise CTERM ("changed_conv", [ct]) else thm
-  end
-
-val repeat'_conv = Conv.repeat_conv o changed_conv
-
 fun preproc_exp_log_natintfun_conv ctxt =
   let
     fun reify_power_conv x _ ct =
@@ -100,8 +91,8 @@ fun preproc_exp_log_natintfun_conv ctxt =
            Named_Theorems.get ctxt \<^named_theorems>\<open>real_asymp_int_reify\<close>
         val ctxt' = put_simpset HOL_basic_ss ctxt addsimps (thms1 @ thms2)
       in
-        repeat'_conv (
-          Simplifier.rewrite ctxt'
+        Conv.repeat_changed_conv
+         (Simplifier.rewrite ctxt'
           then_conv Conv.bottom_conv (Conv.try_conv o reify_power_conv (Thm.term_of x)) ctxt)
       end
   in
