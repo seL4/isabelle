@@ -111,7 +111,7 @@ fun expand_antiquote ant ctxt =
         (Token.make_src name (if null body then [] else [Token.read_cartouche body]))
   | Antiquote.Antiq {range, body, ...} =>
       ctxt |> apply_antiquotation range
-        (Token.read_antiq (Thy_Header.get_keywords' ctxt) antiq (body, #1 range)));
+        (Parse.read_antiq (Thy_Header.get_keywords' ctxt) antiq (body, #1 range)));
 
 in
 

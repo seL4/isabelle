@@ -62,7 +62,7 @@ fun evaluate cmd_name input ctxt =
     val body = Symbol_Pos.cartouche_content syms;
     val markers =
       Input.source true (Symbol_Pos.implode body) (Symbol_Pos.range body)
-      |> Token.read_embedded ctxt keywords (Parse.list parse_marker);
+      |> Parse.read_embedded ctxt keywords (Parse.list parse_marker);
   in
     ctxt
     |> Config.put config_command_name cmd_name

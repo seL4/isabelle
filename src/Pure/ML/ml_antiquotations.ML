@@ -221,10 +221,6 @@ val _ = Theory.setup
 
 (* type/term constructors *)
 
-fun read_embedded ctxt keywords parse src =
-  Token.syntax (Scan.lift Parse.embedded_input) src ctxt
-  |> #1 |> Token.read_embedded ctxt keywords parse;
-
 local
 
 val keywords = Keyword.add_minor_keywords ["for", "=>"] Keyword.empty_keywords;
@@ -257,7 +253,7 @@ fun type_antiquotation binding {function} =
     (fn range => fn src => fn ctxt =>
       let
         val ((s, type_args), fn_body) = src
-          |> read_embedded ctxt keywords (parse_name -- parse_args -- parse_body function);
+          |> Parse.read_embedded_src ctxt keywords (parse_name -- parse_args -- parse_body function);
         val pos = Input.pos_of s;
 
         val Type (c, Ts) =
@@ -292,7 +288,7 @@ fun const_antiquotation binding {pattern, function} =
     (fn range => fn src => fn ctxt =>
       let
         val (((s, type_args), term_args), fn_body) = src
-          |> read_embedded ctxt keywords
+          |> Parse.read_embedded_src ctxt keywords
               (parse_name -- parse_args -- parse_for_args -- parse_body function);
 
         val Const (c, T) =

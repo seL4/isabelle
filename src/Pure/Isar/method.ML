@@ -741,7 +741,7 @@ fun read_closure ctxt src0 =
 
 fun read_closure_input ctxt =
   let val keywords = Keyword.no_command_keywords (Thy_Header.get_keywords' ctxt)
-  in Token.read_embedded ctxt keywords (Scan.many Token.not_eof) #> read_closure ctxt end;
+  in Parse.read_embedded ctxt keywords (Scan.many Token.not_eof) #> read_closure ctxt end;
 
 val text_closure =
   Args.context -- Scan.lift (Parse.token Parse.text) >> (fn (ctxt, tok) =>

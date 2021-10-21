@@ -41,7 +41,7 @@ fun read_actions str =
     val ctxt = Proof_Context.init_global thy
     val keywords = Keyword.no_command_keywords (Thy_Header.get_keywords thy)
 
-    fun read_actions () = Token.read_embedded ctxt keywords
+    fun read_actions () = Parse.read_embedded ctxt keywords
       (Parse.enum ";" (Parse.name -- Sledgehammer_Commands.parse_params))
       (Input.string str)
     fun split_name_label (name, args) labels =

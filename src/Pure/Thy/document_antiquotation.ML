@@ -188,7 +188,7 @@ fun eval ctxt pos (opts, src) =
 in
 
 fun read_antiq ctxt ({range = (pos, _), body, ...}: Antiquote.antiq) =
-  Token.read_antiq (Thy_Header.get_keywords' ctxt) parse_antiq (body, pos);
+  Parse.read_antiq (Thy_Header.get_keywords' ctxt) parse_antiq (body, pos);
 
 fun evaluate eval_text ctxt antiq =
   (case antiq of

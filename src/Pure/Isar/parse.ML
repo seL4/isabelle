@@ -121,6 +121,9 @@ sig
   val options: ((string * Position.T) * (string * Position.T)) list parser
   val embedded_ml: ML_Lex.token Antiquote.antiquote list parser
   val embedded_ml_underscore: ML_Lex.token Antiquote.antiquote list parser
+  val read_antiq: Keyword.keywords -> 'a parser -> Symbol_Pos.T list * Position.T -> 'a
+  val read_embedded: Proof.context -> Keyword.keywords -> 'a parser -> Input.source -> 'a
+  val read_embedded_src: Proof.context -> Keyword.keywords -> 'a parser -> Token.src -> 'a
 end;
 
 structure Parse: PARSE =
@@ -507,5 +510,36 @@ val embedded_ml =
 
 val embedded_ml_underscore =
   input underscore >> ML_Lex.read_source || embedded_ml;
+
+
+(* read embedded source, e.g. for antiquotations *)
+
+fun read_antiq keywords scan (syms, pos) =
+  let
+    val toks = syms
+      |> Token.tokenize (Keyword.no_command_keywords keywords) {strict = true}
+      |> filter Token.is_proper;
+  in
+    (case Scan.read Token.stopper scan toks of
+      SOME res => res
+    | NONE => error ("Malformed antiquotation" ^ Position.here pos))
+  end;
+
+fun read_embedded ctxt keywords parse input =
+  let
+    val toks = input
+      |> Input.source_explode
+      |> Token.tokenize keywords {strict = true}
+      |> filter Token.is_proper;
+    val _ = Context_Position.reports_text ctxt (maps (Token.reports keywords) toks);
+  in
+    (case Scan.read Token.stopper parse toks of
+      SOME res => res
+    | NONE => error ("Bad input" ^ Position.here (Input.pos_of input)))
+  end;
+
+fun read_embedded_src ctxt keywords parse src =
+  Token.syntax (Scan.lift embedded_input) src ctxt
+  |> #1 |> read_embedded ctxt keywords parse;
 
 end;
