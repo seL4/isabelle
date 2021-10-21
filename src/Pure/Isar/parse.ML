@@ -514,23 +514,16 @@ val embedded_ml_underscore =
 
 (* read embedded source, e.g. for antiquotations *)
 
+fun tokenize keywords = Token.tokenize keywords {strict = true} #> filter Token.is_proper;
+
 fun read_antiq keywords scan (syms, pos) =
-  let
-    val toks = syms
-      |> Token.tokenize (Keyword.no_command_keywords keywords) {strict = true}
-      |> filter Token.is_proper;
-  in
-    (case Scan.read Token.stopper scan toks of
-      SOME res => res
-    | NONE => error ("Malformed antiquotation" ^ Position.here pos))
-  end;
+  (case Scan.read Token.stopper scan (tokenize (Keyword.no_command_keywords keywords) syms) of
+    SOME res => res
+  | NONE => error ("Malformed antiquotation" ^ Position.here pos));
 
 fun read_embedded ctxt keywords parse input =
   let
-    val toks = input
-      |> Input.source_explode
-      |> Token.tokenize keywords {strict = true}
-      |> filter Token.is_proper;
+    val toks = tokenize keywords (Input.source_explode input);
     val _ = Context_Position.reports_text ctxt (maps (Token.reports keywords) toks);
   in
     (case Scan.read Token.stopper parse toks of
