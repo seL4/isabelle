@@ -8,6 +8,12 @@ signature ML_ANTIQUOTATIONS =
 sig
   val make_judgment: Proof.context -> term -> term
   val dest_judgment: Proof.context -> term -> term
+  type insts = ((indexname * sort) * typ) list * ((indexname * typ) * term) list
+  type cinsts = ((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list
+  val instantiate_typ: insts -> typ -> typ
+  val instantiate_ctyp: cinsts -> ctyp -> ctyp
+  val instantiate_term: insts -> term -> term
+  val instantiate_cterm: cinsts -> cterm -> cterm
 end;
 
 structure ML_Antiquotations: ML_ANTIQUOTATIONS =
@@ -219,7 +225,142 @@ val _ = Theory.setup
    (Scan.succeed "ML_Antiquotations.dest_judgment ML_context"));
 
 
-(* type/term constructors *)
+(* type/term instantiations and constructors *)
+
+type insts = ((indexname * sort) * typ) list * ((indexname * typ) * term) list
+type cinsts = ((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list
+
+fun instantiate_typ (insts: insts) = Term_Subst.instantiateT (TVars.make (#1 insts));
+fun instantiate_ctyp (cinsts: cinsts) = Thm.instantiate_ctyp (TVars.make (#1 cinsts));
+
+fun instantiate_term (insts: insts) =
+  let
+    val instT = TVars.make (#1 insts);
+    val instantiateT = Term_Subst.instantiateT instT;
+    val inst = Vars.make ((map o apfst o apsnd) instantiateT (#2 insts));
+  in Term_Subst.instantiate (instT, inst) end;
+
+fun instantiate_cterm (cinsts: cinsts) =
+  let
+    val cinstT = TVars.make (#1 cinsts);
+    val instantiateT = Term_Subst.instantiateT (TVars.map (K Thm.typ_of) cinstT);
+    val cinst = Vars.make ((map o apfst o apsnd) instantiateT (#2 cinsts));
+  in Thm.instantiate_cterm (cinstT, cinst) end;
+
+
+local
+
+fun make_keywords ctxt =
+  Thy_Header.get_keywords' ctxt
+  |> Keyword.no_command_keywords
+  |> Keyword.add_major_keywords ["typ", "term", "prop", "ctyp", "cterm", "cprop"];
+
+val parse_inst =
+  Parse.position (Parse.type_ident >> pair true || Parse.name >> pair false) --
+    (Parse.$$$ "=" |-- Parse.!!! Parse.embedded_ml) >> (fn (((b, a), pos), ml) => (b, ((a, pos), ml)));
+
+val parse_insts =
+  Parse.and_list1 parse_inst >> (List.partition #1 #> apply2 (map #2));
+
+val ml = ML_Lex.tokenize_no_range;
+val ml_range = ML_Lex.tokenize_range;
+fun ml_parens x = ml "(" @ x @ ml ")";
+fun ml_bracks x = ml "[" @ x @ ml "]";
+fun ml_commas xs = flat (separate (ml ", ") xs);
+val ml_list = ml_bracks o ml_commas;
+fun ml_pair (x, y) = ml_parens (ml_commas [x, y]);
+val ml_list_pair = ml_list o ListPair.map ml_pair;
+
+fun get_tfree envT (a, pos) =
+  (case AList.lookup (op =) envT a of
+    SOME S => (a, S)
+  | NONE => error ("Unused type variable " ^ quote a ^ Position.here pos));
+
+fun get_free env (x, pos) =
+  (case AList.lookup (op =) env x of
+    SOME T => (x, T)
+  | NONE => error ("Unused variable " ^ quote x ^ Position.here pos));
+
+fun make_instT (a, pos) T =
+  (case try (Term.dest_TVar o Logic.dest_type) T of
+    NONE => error ("Not a free type variable " ^ quote a ^ Position.here pos)
+  | SOME v => ml (ML_Syntax.print_pair ML_Syntax.print_indexname ML_Syntax.print_sort v));
+
+fun make_inst (a, pos) t =
+  (case try Term.dest_Var t of
+    NONE => error ("Not a free variable " ^ quote a ^ Position.here pos)
+  | SOME v => ml (ML_Syntax.print_pair ML_Syntax.print_indexname ML_Syntax.print_typ v));
+
+fun prepare_insts ctxt1 ctxt0 (instT, inst) t =
+  let
+    val envT = Term.add_tfrees t [];
+    val env = Term.add_frees t [];
+    val freesT = map (Logic.mk_type o TFree o get_tfree envT) instT;
+    val frees = map (Free o get_free env) inst;
+    val (t' :: varsT, vars) =
+      Variable.export_terms ctxt1 ctxt0 (t :: freesT @ frees)
+      |> chop (1 + length freesT);
+    val ml_insts = (map2 make_instT instT varsT, map2 make_inst inst vars);
+  in (ml_insts, t') end;
+
+fun prepare_ml range (kind, ml1, ml2) ml_val (ml_instT, ml_inst) ctxt =
+  let
+    val (ml_name, ctxt') = ML_Context.variant kind ctxt;
+    val ml_env = ml ("val " ^ ml_name ^ " = ") @ ml ml1 @ ml_parens (ml ml_val) @ ml ";\n";
+    fun ml_body (ml_argsT, ml_args) =
+      ml_parens (ml ml2 @
+        ml_pair (ml_list_pair (ml_instT, ml_argsT), ml_list_pair (ml_inst, ml_args)) @
+        ml_range range (ML_Context.struct_name ctxt ^ "." ^ ml_name));
+  in ((ml_env, ml_body), ctxt') end;
+
+fun prepare_type range (arg, s) insts ctxt =
+  let
+    val T = Syntax.read_typ ctxt s;
+    val t = Logic.mk_type T;
+    val ctxt1 = Proof_Context.augment t ctxt;
+    val (ml_insts, T') = prepare_insts ctxt1 ctxt insts t ||> Logic.dest_type;
+  in prepare_ml range arg (ML_Syntax.print_typ T') ml_insts ctxt end;
+
+fun prepare_term read range (arg, (s, fixes)) insts ctxt =
+  let
+    val ctxt' = #2 (Proof_Context.add_fixes_cmd fixes ctxt);
+    val t = read ctxt' s;
+    val ctxt1 = Proof_Context.augment t ctxt';
+    val (ml_insts, t') = prepare_insts ctxt1 ctxt insts t;
+  in prepare_ml range arg (ML_Syntax.print_term t') ml_insts ctxt end;
+
+fun typ_ml kind = (kind, "", "ML_Antiquotations.instantiate_typ");
+fun ctyp_ml kind = (kind, "Thm.ctyp_of ML_context", "ML_Antiquotations.instantiate_ctyp");
+fun term_ml kind = (kind, "", "ML_Antiquotations.instantiate_term");
+fun cterm_ml kind = (kind, "Thm.cterm_of ML_context", "ML_Antiquotations.instantiate_cterm");
+
+fun parse_body range =
+  (Parse.command_name "typ" >> typ_ml || Parse.command_name "ctyp" >> ctyp_ml) --
+    Parse.!!! Parse.typ >> prepare_type range ||
+  (Parse.command_name "term" >> term_ml || Parse.command_name "cterm" >> cterm_ml)
+    -- Parse.!!! (Parse.term -- Parse.for_fixes) >> prepare_term Syntax.read_term range ||
+  (Parse.command_name "prop" >> term_ml || Parse.command_name "cprop" >> cterm_ml)
+    -- Parse.!!! (Parse.term -- Parse.for_fixes) >> prepare_term Syntax.read_prop range;
+
+val _ = Theory.setup
+  (ML_Context.add_antiquotation \<^binding>\<open>let\<close> true
+    (fn range => fn src => fn ctxt =>
+      let
+        val (insts, prepare_val) = src
+          |> Parse.read_embedded_src ctxt (make_keywords ctxt)
+              ((parse_insts --| Parse.$$$ "in") -- parse_body range);
+
+        val (((ml_env, ml_body), decls), ctxt1) = ctxt
+          |> prepare_val (apply2 (map #1) insts)
+          ||>> ML_Context.expand_antiquotes_list (op @ (apply2 (map #2) insts));
+
+        fun decl' ctxt' =
+          let val (ml_args_env, ml_args) = split_list (decls ctxt')
+          in (ml_env @ flat ml_args_env, ml_body (chop (length (#1 insts)) ml_args)) end;
+      in (decl', ctxt1) end));
+
+in end;
+
 
 local
 

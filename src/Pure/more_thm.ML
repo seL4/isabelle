@@ -25,6 +25,7 @@ sig
   val add_vars: thm -> cterm Vars.table -> cterm Vars.table
   val dest_funT: ctyp -> ctyp * ctyp
   val strip_type: ctyp -> ctyp list * ctyp
+  val instantiate_ctyp: ctyp TVars.table -> ctyp -> ctyp
   val all_name: Proof.context -> string * cterm -> cterm -> cterm
   val all: Proof.context -> cterm -> cterm -> cterm
   val mk_binop: cterm -> cterm -> cterm -> cterm
@@ -155,6 +156,10 @@ fun strip_type cT =
         val (cTs, cT') = strip_type cT2
       in (cT1 :: cTs, cT') end
   | _ => ([], cT));
+
+fun instantiate_ctyp instT cT =
+  Thm.instantiate_cterm (instT, Vars.empty) (Thm.var (("x", 0), cT))
+  |> Thm.ctyp_of_cterm;
 
 
 (* cterm operations *)
