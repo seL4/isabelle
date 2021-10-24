@@ -39,7 +39,7 @@ fun read_actions str =
   let
     val thy = \<^theory>;
     val ctxt = Proof_Context.init_global thy
-    val keywords = Keyword.no_command_keywords (Thy_Header.get_keywords thy)
+    val keywords = Keyword.no_major_keywords (Thy_Header.get_keywords thy)
 
     fun read_actions () = Parse.read_embedded ctxt keywords
       (Parse.enum ";" (Parse.name -- Sledgehammer_Commands.parse_params))

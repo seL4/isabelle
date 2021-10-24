@@ -740,7 +740,7 @@ fun read_closure ctxt src0 =
   in (text, src2) end;
 
 fun read_closure_input ctxt =
-  let val keywords = Keyword.no_command_keywords (Thy_Header.get_keywords' ctxt)
+  let val keywords = Keyword.no_major_keywords (Thy_Header.get_keywords' ctxt)
   in Parse.read_embedded ctxt keywords (Scan.many Token.not_eof) #> read_closure ctxt end;
 
 val text_closure =

@@ -517,7 +517,7 @@ val embedded_ml_underscore =
 fun tokenize keywords = Token.tokenize keywords {strict = true} #> filter Token.is_proper;
 
 fun read_antiq keywords scan (syms, pos) =
-  (case Scan.read Token.stopper scan (tokenize (Keyword.no_command_keywords keywords) syms) of
+  (case Scan.read Token.stopper scan (tokenize (Keyword.no_major_keywords keywords) syms) of
     SOME res => res
   | NONE => error ("Malformed antiquotation" ^ Position.here pos));
 

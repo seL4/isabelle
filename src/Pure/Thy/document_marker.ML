@@ -58,7 +58,7 @@ fun evaluate cmd_name input ctxt =
 
     val _ = Context_Position.reports ctxt (map (pair pos) (Comment.kind_markups Comment.Marker));
 
-    val keywords = Keyword.no_command_keywords (Thy_Header.get_keywords' ctxt);
+    val keywords = Keyword.no_major_keywords (Thy_Header.get_keywords' ctxt);
     val body = Symbol_Pos.cartouche_content syms;
     val markers =
       Input.source true (Symbol_Pos.implode body) (Symbol_Pos.range body)

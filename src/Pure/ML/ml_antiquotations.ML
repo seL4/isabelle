@@ -252,7 +252,7 @@ local
 
 fun make_keywords ctxt =
   Thy_Header.get_keywords' ctxt
-  |> Keyword.no_command_keywords
+  |> Keyword.no_major_keywords
   |> Keyword.add_major_keywords ["typ", "term", "prop", "ctyp", "cterm", "cprop"];
 
 val parse_inst =
