@@ -639,8 +639,9 @@ fun term_of_result (x, (y, zs)) =
 
 local
 
-fun fnorm (ctxt, ct, t) = Thm.mk_binop \<^cterm>\<open>Pure.eq :: pexpr \<times> pexpr \<times> pexpr list \<Rightarrow> pexpr \<times> pexpr \<times> pexpr list \<Rightarrow> prop\<close>
-  ct (Thm.cterm_of ctxt t);
+fun fnorm (ctxt, ct, t) =
+  \<^let>\<open>x = ct and y = \<open>Thm.cterm_of ctxt t\<close>
+    in cterm \<open>x \<equiv> y\<close> for x y :: \<open>pexpr \<times> pexpr \<times> pexpr list\<close>\<close>;
 
 val (_, raw_fnorm_oracle) = Context.>>> (Context.map_theory_result
   (Thm.add_oracle (\<^binding>\<open>fnorm\<close>, fnorm)));
@@ -880,8 +881,7 @@ fun field_tac in_prem ctxt =
       val cxs = Thm.cterm_of ctxt (HOLogic.mk_list T (map Free xs));
       val ce = Thm.cterm_of ctxt (reif xs t);
       val ce' = Thm.cterm_of ctxt (reif xs u);
-      val fnorm = cv ctxt
-        (Thm.apply \<^cterm>\<open>fnorm\<close> (Thm.apply (Thm.apply \<^cterm>\<open>FSub\<close> ce) ce'));
+      val fnorm = cv ctxt \<^let>\<open>e = ce and e' = ce' in cterm \<open>fnorm (FSub e e')\<close>\<close>;
       val (_, [n, dc]) = strip_app (Thm.rhs_of fnorm);
       val (_, [_, c]) = strip_app dc;
       val th =

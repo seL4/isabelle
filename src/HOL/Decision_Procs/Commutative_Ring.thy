@@ -659,8 +659,9 @@ fun term_of_pol (@{code Pc} k) = \<^Const>\<open>Pc\<close> $ term_of_int k
 
 local
 
-fun pol (ctxt, ct, t) = Thm.mk_binop \<^cterm>\<open>Pure.eq :: pol \<Rightarrow> pol \<Rightarrow> prop\<close>
-  ct (Thm.cterm_of ctxt t);
+fun pol (ctxt, ct, t) =
+  \<^let>\<open>x = ct and y = \<open>Thm.cterm_of ctxt t\<close>
+    in cterm \<open>x \<equiv> y\<close> for x y :: pol\<close>;
 
 val (_, raw_pol_oracle) = Context.>>> (Context.map_theory_result
   (Thm.add_oracle (\<^binding>\<open>pnsubstl\<close>, pol)));

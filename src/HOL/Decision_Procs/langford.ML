@@ -81,7 +81,7 @@ fun conjuncts ct =
   | _ => [ct]);
 
 val list_conj =
-  foldr1 (fn (c, c') => Thm.apply (Thm.apply \<^cterm>\<open>HOL.conj\<close> c) c');
+  foldr1 (fn (A, B) => \<^let>\<open>A = A and B = B in cterm \<open>A \<and> B\<close>\<close>);
 
 fun mk_conj_tab th =
   let
@@ -133,7 +133,6 @@ fun proc ctxt ct =
         val e = Thm.dest_fun ct
         val (x,p) = Thm.dest_abs_global (Thm.dest_arg ct)
         val Free (xn, _) = Thm.term_of x
-        val Pp = Thm.apply \<^cterm>\<open>Trueprop\<close> p
         val (eqs,neqs) = List.partition (is_eqx x) (all_conjuncts p)
       in
         (case eqs of
@@ -144,8 +143,8 @@ fun proc ctxt ct =
               case ndx of
                 [] => NONE
               | _ =>
-                conj_aci_rule (Thm.mk_binop \<^cterm>\<open>(\<equiv>) :: prop => _\<close> Pp
-                  (Thm.apply \<^cterm>\<open>Trueprop\<close> (list_conj (ndx @ dx))))
+                conj_aci_rule
+                  \<^let>\<open>A = p and B = \<open>list_conj (ndx @ dx)\<close> in cterm \<open>Trueprop A \<equiv> Trueprop B\<close>\<close>
                 |> Thm.abstract_rule xn x
                 |> Drule.arg_cong_rule e
                 |> Conv.fconv_rule
@@ -155,8 +154,8 @@ fun proc ctxt ct =
                 |> SOME
             end
         | _ =>
-            conj_aci_rule (Thm.mk_binop \<^cterm>\<open>(\<equiv>) :: prop => _\<close> Pp
-              (Thm.apply \<^cterm>\<open>Trueprop\<close> (list_conj (eqs @ neqs))))
+            conj_aci_rule
+              \<^let>\<open>A = p and B = \<open>list_conj (eqs @ neqs)\<close> in cterm \<open>Trueprop A \<equiv> Trueprop B\<close>\<close>
             |> Thm.abstract_rule xn x |> Drule.arg_cong_rule e
             |> Conv.fconv_rule
                 (Conv.arg_conv
