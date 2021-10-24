@@ -456,6 +456,7 @@
 \<^cterm>               argument: cartouche
 \<^ctyp>                argument: cartouche
 \<^keyword>             argument: cartouche
+\<^let>                 argument: cartouche
 \<^locale>              argument: cartouche
 \<^make_judgment>
 \<^dest_judgment>
@@ -505,4 +506,3 @@
 \<^if_macos>            argument: cartouche
 \<^if_windows>          argument: cartouche
 \<^if_unix>             argument: cartouche
-
