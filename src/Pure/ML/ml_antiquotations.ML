@@ -255,9 +255,12 @@ fun make_keywords ctxt =
   |> Keyword.no_major_keywords
   |> Keyword.add_major_keywords ["typ", "term", "prop", "ctyp", "cterm", "cprop"];
 
+val parse_inst_name = Parse.position (Parse.type_ident >> pair true || Parse.name >> pair false);
+
 val parse_inst =
-  Parse.position (Parse.type_ident >> pair true || Parse.name >> pair false) --
-    (Parse.$$$ "=" |-- Parse.!!! Parse.embedded_ml) >> (fn (((b, a), pos), ml) => (b, ((a, pos), ml)));
+  (parse_inst_name -- (Parse.$$$ "=" |-- Parse.!!! Parse.embedded_ml) ||
+    Scan.ahead parse_inst_name -- Parse.embedded_ml)
+  >> (fn (((b, a), pos), ml) => (b, ((a, pos), ml)));
 
 val parse_insts =
   Parse.and_list1 parse_inst >> (List.partition #1 #> apply2 (map #2));
@@ -274,12 +277,12 @@ val ml_list_pair = ml_list o ListPair.map ml_pair;
 fun get_tfree envT (a, pos) =
   (case AList.lookup (op =) envT a of
     SOME S => (a, S)
-  | NONE => error ("Unused type variable " ^ quote a ^ Position.here pos));
+  | NONE => error ("No occurrence of type variable " ^ quote a ^ Position.here pos));
 
 fun get_free env (x, pos) =
   (case AList.lookup (op =) env x of
     SOME T => (x, T)
-  | NONE => error ("Unused variable " ^ quote x ^ Position.here pos));
+  | NONE => error ("No occurrence of variable " ^ quote x ^ Position.here pos));
 
 fun make_instT (a, pos) T =
   (case try (Term.dest_TVar o Logic.dest_type) T of
@@ -343,7 +346,7 @@ fun parse_body range =
     -- Parse.!!! (Parse.term -- Parse.for_fixes) >> prepare_term Syntax.read_prop range;
 
 val _ = Theory.setup
-  (ML_Context.add_antiquotation \<^binding>\<open>let\<close> true
+  (ML_Context.add_antiquotation \<^binding>\<open>instantiate\<close> true
     (fn range => fn src => fn ctxt =>
       let
         val (insts, prepare_val) = src

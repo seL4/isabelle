@@ -455,8 +455,8 @@
 \<^cprop>               argument: cartouche
 \<^cterm>               argument: cartouche
 \<^ctyp>                argument: cartouche
+\<^instantiate>         argument: cartouche
 \<^keyword>             argument: cartouche
-\<^let>                 argument: cartouche
 \<^locale>              argument: cartouche
 \<^make_judgment>
 \<^dest_judgment>

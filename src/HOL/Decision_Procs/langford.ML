@@ -81,7 +81,7 @@ fun conjuncts ct =
   | _ => [ct]);
 
 val list_conj =
-  foldr1 (fn (A, B) => \<^let>\<open>A = A and B = B in cterm \<open>A \<and> B\<close>\<close>);
+  foldr1 (fn (A, B) => \<^instantiate>\<open>A and B in cterm \<open>A \<and> B\<close>\<close>);
 
 fun mk_conj_tab th =
   let
@@ -144,7 +144,7 @@ fun proc ctxt ct =
                 [] => NONE
               | _ =>
                 conj_aci_rule
-                  \<^let>\<open>A = p and B = \<open>list_conj (ndx @ dx)\<close> in cterm \<open>Trueprop A \<equiv> Trueprop B\<close>\<close>
+                  \<^instantiate>\<open>A = p and B = \<open>list_conj (ndx @ dx)\<close> in cterm \<open>Trueprop A \<equiv> Trueprop B\<close>\<close>
                 |> Thm.abstract_rule xn x
                 |> Drule.arg_cong_rule e
                 |> Conv.fconv_rule
@@ -155,7 +155,7 @@ fun proc ctxt ct =
             end
         | _ =>
             conj_aci_rule
-              \<^let>\<open>A = p and B = \<open>list_conj (eqs @ neqs)\<close> in cterm \<open>Trueprop A \<equiv> Trueprop B\<close>\<close>
+              \<^instantiate>\<open>A = p and B = \<open>list_conj (eqs @ neqs)\<close> in cterm \<open>Trueprop A \<equiv> Trueprop B\<close>\<close>
             |> Thm.abstract_rule xn x |> Drule.arg_cong_rule e
             |> Conv.fconv_rule
                 (Conv.arg_conv
