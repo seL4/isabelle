@@ -8,6 +8,8 @@ signature ML_ANTIQUOTATIONS =
 sig
   val make_judgment: Proof.context -> term -> term
   val dest_judgment: Proof.context -> term -> term
+  val make_ctyp: Proof.context -> typ -> ctyp
+  val make_cterm: Proof.context -> term -> cterm
   type insts = ((indexname * sort) * typ) list * ((indexname * typ) * term) list
   type cinsts = ((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list
   val instantiate_typ: insts -> typ -> typ
@@ -227,6 +229,9 @@ val _ = Theory.setup
 
 (* type/term instantiations and constructors *)
 
+fun make_ctyp ctxt T = Thm.ctyp_of ctxt T |> Thm.trim_context_ctyp;
+fun make_cterm ctxt t = Thm.cterm_of ctxt t |> Thm.trim_context_cterm;
+
 type insts = ((indexname * sort) * typ) list * ((indexname * typ) * term) list
 type cinsts = ((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list
 
@@ -334,9 +339,11 @@ fun prepare_term read range (arg, (s, fixes)) insts ctxt =
   in prepare_ml range arg (ML_Syntax.print_term t') ml_insts ctxt end;
 
 fun typ_ml kind = (kind, "", "ML_Antiquotations.instantiate_typ");
-fun ctyp_ml kind = (kind, "Thm.ctyp_of ML_context", "ML_Antiquotations.instantiate_ctyp");
 fun term_ml kind = (kind, "", "ML_Antiquotations.instantiate_term");
-fun cterm_ml kind = (kind, "Thm.cterm_of ML_context", "ML_Antiquotations.instantiate_cterm");
+fun ctyp_ml kind =
+  (kind, "ML_Antiquotations.make_ctyp ML_context", "ML_Antiquotations.instantiate_ctyp");
+fun cterm_ml kind =
+  (kind, "ML_Antiquotations.make_cterm ML_context", "ML_Antiquotations.instantiate_cterm");
 
 fun parse_body range =
   (Parse.command_name "typ" >> typ_ml || Parse.command_name "ctyp" >> ctyp_ml) --
