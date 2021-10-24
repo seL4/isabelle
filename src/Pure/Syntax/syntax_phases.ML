@@ -7,6 +7,7 @@ of parse/unparse operations.
 
 signature SYNTAX_PHASES =
 sig
+  val markup_free: Proof.context -> string -> Markup.T list
   val reports_of_scope: Position.T list -> Position.report list
   val decode_sort: term -> sort
   val decode_typ: term -> typ

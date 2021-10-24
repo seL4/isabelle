@@ -279,9 +279,10 @@ fun get_tfree envT (a, pos) =
     SOME S => (a, S)
   | NONE => error ("No occurrence of type variable " ^ quote a ^ Position.here pos));
 
-fun get_free env (x, pos) =
+fun check_free ctxt env (x, pos) =
   (case AList.lookup (op =) env x of
-    SOME T => (x, T)
+    SOME T =>
+      (Context_Position.reports ctxt (map (pair pos) (Syntax_Phases.markup_free ctxt x)); (x, T))
   | NONE => error ("No occurrence of variable " ^ quote x ^ Position.here pos));
 
 fun make_instT (a, pos) T =
@@ -299,7 +300,7 @@ fun prepare_insts ctxt1 ctxt0 (instT, inst) t =
     val envT = Term.add_tfrees t [];
     val env = Term.add_frees t [];
     val freesT = map (Logic.mk_type o TFree o get_tfree envT) instT;
-    val frees = map (Free o get_free env) inst;
+    val frees = map (Free o check_free ctxt1 env) inst;
     val (t' :: varsT, vars) =
       Variable.export_terms ctxt1 ctxt0 (t :: freesT @ frees)
       |> chop (1 + length freesT);
