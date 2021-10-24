@@ -16,21 +16,21 @@ struct
  open Conv;
  val bool_eq = op = : bool *bool -> bool
   fun dest_ratconst t = case Thm.term_of t of
-   Const(\<^const_name>\<open>divide\<close>, _)$a$b => Rat.make(HOLogic.dest_number a |> snd, HOLogic.dest_number b |> snd)
- | Const(\<^const_name>\<open>inverse\<close>, _)$a => Rat.make(1, HOLogic.dest_number a |> snd)
- | _ => Rat.of_int (HOLogic.dest_number (Thm.term_of t) |> snd)
+    \<^Const_>\<open>divide _ for a b\<close> => Rat.make(HOLogic.dest_number a |> snd, HOLogic.dest_number b |> snd)
+  | \<^Const_>\<open>inverse _ for a\<close> => Rat.make(1, HOLogic.dest_number a |> snd)
+  | _ => Rat.of_int (HOLogic.dest_number (Thm.term_of t) |> snd)
  fun is_ratconst t = can dest_ratconst t
  fun augment_norm b t acc = case Thm.term_of t of
-     Const(\<^const_name>\<open>norm\<close>, _) $ _ => insert (eq_pair bool_eq (op aconvc)) (b,Thm.dest_arg t) acc
+     \<^Const_>\<open>norm _ for _\<close> => insert (eq_pair bool_eq (op aconvc)) (b,Thm.dest_arg t) acc
    | _ => acc
  fun find_normedterms t acc = case Thm.term_of t of
-    \<^term>\<open>(+) :: real => _\<close>$_$_ =>
+     \<^Const_>\<open>plus \<^typ>\<open>real\<close> for _ _\<close> =>
             find_normedterms (Thm.dest_arg1 t) (find_normedterms (Thm.dest_arg t) acc)
-      | \<^term>\<open>(*) :: real => _\<close>$_$_ =>
+   | \<^Const_>\<open>times \<^typ>\<open>real\<close> for _ _\<close> =>
             if not (is_ratconst (Thm.dest_arg1 t)) then acc else
             augment_norm (dest_ratconst (Thm.dest_arg1 t) >= @0)
                       (Thm.dest_arg t) acc
-      | _ => augment_norm true t acc
+   | _ => augment_norm true t acc
 
  val cterm_lincomb_neg = FuncUtil.Ctermfunc.map (K ~)
  fun cterm_lincomb_cmul c t =
@@ -51,13 +51,13 @@ struct
 *)
 
 fun vector_lincomb t = case Thm.term_of t of
-   Const(\<^const_name>\<open>plus\<close>, _) $ _ $ _ =>
+   \<^Const_>\<open>plus _ for _ _\<close> =>
     cterm_lincomb_add (vector_lincomb (Thm.dest_arg1 t)) (vector_lincomb (Thm.dest_arg t))
- | Const(\<^const_name>\<open>minus\<close>, _) $ _ $ _ =>
+ | \<^Const_>\<open>minus _ for _ _\<close> =>
     cterm_lincomb_sub (vector_lincomb (Thm.dest_arg1 t)) (vector_lincomb (Thm.dest_arg t))
- | Const(\<^const_name>\<open>scaleR\<close>, _)$_$_ =>
+ | \<^Const_>\<open>scaleR _ for _ _\<close> =>
     cterm_lincomb_cmul (dest_ratconst (Thm.dest_arg1 t)) (vector_lincomb (Thm.dest_arg t))
- | Const(\<^const_name>\<open>uminus\<close>, _)$_ =>
+ | \<^Const_>\<open>uminus _ for _\<close> =>
      cterm_lincomb_neg (vector_lincomb (Thm.dest_arg t))
 (* FIXME: how should we handle numerals?
  | Const(@ {const_name vec},_)$_ =>
@@ -82,8 +82,8 @@ fun vector_lincomb t = case Thm.term_of t of
    | SOME _ => fns) ts []
 
 fun replacenegnorms cv t = case Thm.term_of t of
-  \<^term>\<open>(+) :: real => _\<close>$_$_ => binop_conv (replacenegnorms cv) t
-| \<^term>\<open>(*) :: real => _\<close>$_$_ =>
+  \<^Const_>\<open>plus \<^typ>\<open>real\<close> for _ _\<close> => binop_conv (replacenegnorms cv) t
+| \<^Const_>\<open>times \<^typ>\<open>real\<close> for _ _\<close> =>
     if dest_ratconst (Thm.dest_arg1 t) < @0 then arg_conv cv t else Thm.reflexive t
 | _ => Thm.reflexive t
 (*
@@ -148,10 +148,12 @@ fun match_mp PQ P = P RS PQ;
 fun cterm_of_rat x =
 let val (a, b) = Rat.dest x
 in
- if b = 1 then Numeral.mk_cnumber \<^ctyp>\<open>real\<close> a
-  else Thm.apply (Thm.apply \<^cterm>\<open>(/) :: real => _\<close>
-                   (Numeral.mk_cnumber \<^ctyp>\<open>real\<close> a))
-        (Numeral.mk_cnumber \<^ctyp>\<open>real\<close> b)
+  if b = 1 then Numeral.mk_cnumber \<^ctyp>\<open>real\<close> a
+  else
+    \<^instantiate>\<open>
+        a = \<open>Numeral.mk_cnumber \<^ctyp>\<open>real\<close> a\<close> and
+        b = \<open>Numeral.mk_cnumber \<^ctyp>\<open>real\<close> b\<close>
+      in cterm \<open>a / b\<close> for a b :: real\<close>
 end;
 
 fun norm_cmul_rule c th = Thm.instantiate' [] [SOME (cterm_of_rat c)] (th RS @{thm norm_cmul_rule_thm});
@@ -190,9 +192,8 @@ end;
  val apply_pthd = try_conv (rewr_conv @{thm pth_d});
 
 fun headvector t = case t of
-  Const(\<^const_name>\<open>plus\<close>, _)$
-   (Const(\<^const_name>\<open>scaleR\<close>, _)$_$v)$_ => v
- | Const(\<^const_name>\<open>scaleR\<close>, _)$_$v => v
+   \<^Const_>\<open>plus _ for \<^Const_>\<open>scaleR _ for _ v\<close> _\<close> => v
+ | \<^Const_>\<open>scaleR _ for _ v\<close> => v
  | _ => error "headvector: non-canonical term"
 
 fun vector_cmul_conv ctxt ct =
@@ -204,7 +205,7 @@ fun vector_add_conv ctxt ct = apply_pth7 ct
   (apply_pth8 ctxt ct
    handle CTERM _ =>
     (case Thm.term_of ct of
-     Const(\<^const_name>\<open>plus\<close>,_)$lt$rt =>
+     \<^Const_>\<open>plus _ for lt rt\<close> =>
       let
        val l = headvector lt
        val r = headvector rt
@@ -220,7 +221,7 @@ fun vector_add_conv ctxt ct = apply_pth7 ct
      | _ => Thm.reflexive ct))
 
 fun vector_canon_conv ctxt ct = case Thm.term_of ct of
- Const(\<^const_name>\<open>plus\<close>,_)$_$_ =>
+  \<^Const_>\<open>plus _ for _ _\<close> =>
   let
    val ((p,l),r) = Thm.dest_comb ct |>> Thm.dest_comb
    val lth = vector_canon_conv ctxt l
@@ -228,16 +229,16 @@ fun vector_canon_conv ctxt ct = case Thm.term_of ct of
    val th = Drule.binop_cong_rule p lth rth
   in fconv_rule (arg_conv (vector_add_conv ctxt)) th end
 
-| Const(\<^const_name>\<open>scaleR\<close>, _)$_$_ =>
+| \<^Const_>\<open>scaleR _ for _ _\<close> =>
   let
    val (p,r) = Thm.dest_comb ct
    val rth = Drule.arg_cong_rule p (vector_canon_conv ctxt r)
   in fconv_rule (arg_conv (apply_pth4 else_conv (vector_cmul_conv ctxt))) rth
   end
 
-| Const(\<^const_name>\<open>minus\<close>,_)$_$_ => (apply_pth2 then_conv (vector_canon_conv ctxt)) ct
+| \<^Const_>\<open>minus _ for _ _\<close> => (apply_pth2 then_conv (vector_canon_conv ctxt)) ct
 
-| Const(\<^const_name>\<open>uminus\<close>,_)$_ => (apply_pth3 then_conv (vector_canon_conv ctxt)) ct
+| \<^Const_>\<open>uminus _ for _\<close> => (apply_pth3 then_conv (vector_canon_conv ctxt)) ct
 
 (* FIXME
 | Const(@{const_name vec},_)$n =>
@@ -249,7 +250,7 @@ fun vector_canon_conv ctxt ct = case Thm.term_of ct of
 | _ => apply_pth1 ct
 
 fun norm_canon_conv ctxt ct = case Thm.term_of ct of
-  Const(\<^const_name>\<open>norm\<close>,_)$_ => arg_conv (vector_canon_conv ctxt) ct
+   \<^Const_>\<open>norm _ for _\<close> => arg_conv (vector_canon_conv ctxt) ct
  | _ => raise CTERM ("norm_canon_conv", [ct])
 
 fun int_flip v eq =
@@ -345,15 +346,12 @@ fun real_vector_ineq_prover ctxt translator (ges,gts) =
   val ntms = fold_rev find_normedterms (map (Thm.dest_arg o concl) (ges @ gts)) []
   val lctab = vector_lincombs (map snd (filter (not o fst) ntms))
   val (fxns, ctxt') = Variable.variant_fixes (replicate (length lctab) "x") ctxt
-  fun instantiate_cterm' ty tms = Drule.cterm_rule (Thm.instantiate' ty tms)
   fun mk_norm t =
-    let val T = Thm.typ_of_cterm t
-    in Thm.apply (Thm.cterm_of ctxt' (Const (\<^const_name>\<open>norm\<close>, T --> \<^typ>\<open>real\<close>))) t end
+    let val T = Thm.ctyp_of_cterm t
+    in \<^instantiate>\<open>'a = T and t in cterm \<open>norm t\<close>\<close> end
   fun mk_equals l r =
-    let
-      val T = Thm.typ_of_cterm l
-      val eq = Thm.cterm_of ctxt (Const (\<^const_name>\<open>Pure.eq\<close>, T --> T --> propT))
-    in Thm.apply (Thm.apply eq l) r end
+    let val T = Thm.ctyp_of_cterm l
+    in \<^instantiate>\<open>'a = T and l and r in cterm \<open>l \<equiv> r\<close>\<close> end
   val asl = map2 (fn (t,_) => fn n => Thm.assume (mk_equals (mk_norm t) (Thm.cterm_of ctxt' (Free(n,\<^typ>\<open>real\<close>))))) lctab fxns
   val replace_conv = try_conv (rewrs_conv asl)
   val replace_rule = fconv_rule (funpow 2 arg_conv (replacenegnorms replace_conv))
