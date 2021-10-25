@@ -20,10 +20,14 @@ sig
   val instantiateT_maxidx: (typ * int) TVars.table -> typ -> int -> typ * int
   val instantiate_maxidx: (typ * int) TVars.table * (term * int) Vars.table ->
     term -> int -> term * int
+  val instantiate_beta_maxidx: (typ * int) TVars.table * (term * int) Vars.table ->
+    term -> int -> term * int
   val instantiateT_same: typ TVars.table -> typ Same.operation
   val instantiate_same: typ TVars.table * term Vars.table -> term Same.operation
+  val instantiate_beta_same: typ TVars.table * term Vars.table -> term Same.operation
   val instantiateT: typ TVars.table -> typ -> typ
   val instantiate: typ TVars.table * term Vars.table -> term -> term
+  val instantiate_beta: typ TVars.table * term Vars.table -> term -> term
   val zero_var_indexes_inst: Name.context -> term list -> typ TVars.table * term Vars.table
   val zero_var_indexes: term -> term
   val zero_var_indexes_list: term list -> term list
@@ -171,9 +175,50 @@ fun inst_same maxidx (instT, inst) tm =
           end
       | subst (Bound _) = raise Same.SAME
       | subst (Abs (x, T, t)) =
-          (Abs (x, substT T, Same.commit subst t)
+          (Abs (x, substT T, subst_commit t)
             handle Same.SAME => Abs (x, T, subst t))
-      | subst (t $ u) = (subst t $ Same.commit subst u handle Same.SAME => t $ subst u);
+      | subst (t $ u) = (subst t $ subst_commit u handle Same.SAME => t $ subst u)
+    and subst_commit t = Same.commit subst t;
+  in subst tm end;
+
+(*version with local beta reduction*)
+fun inst_beta_same maxidx (instT, inst) tm =
+  let
+    fun maxify i = if i > ! maxidx then maxidx := i else ();
+
+    val substT = instT_same maxidx instT;
+
+    fun expand_head t =
+      (case Term.head_of t of
+        Var ((x, i), T) =>
+          let val (T', same) = (substT T, false) handle Same.SAME => (T, true) in
+            (case Vars.lookup inst ((x, i), T') of
+              SOME (u, j) => (maxify j; SOME u)
+            | NONE => (maxify i; if same then NONE else SOME (Var ((x, i), T'))))
+          end
+      | _ => NONE);
+
+    fun subst t =
+      (case expand_head t of
+        NONE =>
+          (case t of
+            Const (c, T) => Const (c, substT T)
+          | Free (x, T) => Free (x, substT T)
+          | Var _ => raise Same.SAME
+          | Bound _ => raise Same.SAME
+          | Abs (x, T, b) =>
+              (Abs (x, substT T, subst_commit b)
+                handle Same.SAME => Abs (x, T, subst b))
+          | _ $ _ => subst_comb t)
+      | SOME (u as Abs _) => Term.betapplys (u, map subst_commit (Term.args_of t))
+      | SOME u => subst_head u t)
+    and subst_comb (t $ u) = (subst_comb t $ subst_commit u handle Same.SAME => t $ subst u)
+      | subst_comb (Var _) = raise Same.SAME
+      | subst_comb t = subst t
+    and subst_head h (t $ u) = subst_head h t $ subst_commit u
+      | subst_head h _ = h
+    and subst_commit t = Same.commit subst t;
+
   in subst tm end;
 
 in
@@ -186,6 +231,11 @@ fun instantiate_maxidx insts tm i =
   let val maxidx = Unsynchronized.ref i
   in (Same.commit (inst_same maxidx insts) tm, ! maxidx) end;
 
+fun instantiate_beta_maxidx insts tm i =
+  let val maxidx = Unsynchronized.ref i
+  in (Same.commit (inst_beta_same maxidx insts) tm, ! maxidx) end;
+
+
 fun instantiateT_same instT ty =
   if TVars.is_empty instT then raise Same.SAME
   else instT_same (Unsynchronized.ref ~1) (no_indexesT instT) ty;
@@ -194,8 +244,16 @@ fun instantiate_same (instT, inst) tm =
   if TVars.is_empty instT andalso Vars.is_empty inst then raise Same.SAME
   else inst_same (Unsynchronized.ref ~1) (no_indexesT instT, no_indexes inst) tm;
 
+fun instantiate_beta_same (instT, inst) tm =
+  if TVars.is_empty instT andalso Vars.is_empty inst then raise Same.SAME
+  else inst_beta_same (Unsynchronized.ref ~1) (no_indexesT instT, no_indexes inst) tm;
+
+
 fun instantiateT instT ty = Same.commit (instantiateT_same instT) ty;
+
 fun instantiate inst tm = Same.commit (instantiate_same inst) tm;
+
+fun instantiate_beta inst tm = Same.commit (instantiate_beta_same inst) tm;
 
 end;
 

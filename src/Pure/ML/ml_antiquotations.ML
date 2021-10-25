@@ -243,14 +243,14 @@ fun instantiate_term (insts: insts) =
     val instT = TVars.make (#1 insts);
     val instantiateT = Term_Subst.instantiateT instT;
     val inst = Vars.make ((map o apfst o apsnd) instantiateT (#2 insts));
-  in Term_Subst.instantiate (instT, inst) end;
+  in Term_Subst.instantiate_beta (instT, inst) end;
 
 fun instantiate_cterm (cinsts: cinsts) =
   let
     val cinstT = TVars.make (#1 cinsts);
     val instantiateT = Term_Subst.instantiateT (TVars.map (K Thm.typ_of) cinstT);
     val cinst = Vars.make ((map o apfst o apsnd) instantiateT (#2 cinsts));
-  in Thm.instantiate_cterm (cinstT, cinst) end;
+  in Thm.instantiate_beta_cterm (cinstT, cinst) end;
 
 
 local
