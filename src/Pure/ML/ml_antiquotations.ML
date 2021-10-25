@@ -227,7 +227,7 @@ val _ = Theory.setup
    (Scan.succeed "ML_Antiquotations.dest_judgment ML_context"));
 
 
-(* type/term instantiations and constructors *)
+(* type/term instantiations *)
 
 fun make_ctyp ctxt T = Thm.ctyp_of ctxt T |> Thm.trim_context_ctyp;
 fun make_cterm ctxt t = Thm.cterm_of ctxt t |> Thm.trim_context_cterm;
@@ -383,6 +383,8 @@ val _ = Theory.setup
 
 in end;
 
+
+(* type/term constructors *)
 
 local
 
