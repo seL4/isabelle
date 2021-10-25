@@ -450,4 +450,50 @@ qed
 lemma partition_on_alt: "partition_on A P \<longleftrightarrow> (\<exists>r. equiv A r \<and> P = A // r)"
   by (auto simp: partition_on_eq_quotient intro!: partition_on_quotient intro: equiv_partition_on)
 
+subsection \<open>Refinement of partitions\<close>
+
+definition refines :: "'a set \<Rightarrow> 'a set set \<Rightarrow> 'a set set \<Rightarrow> bool"
+  where "refines A P Q \<equiv>
+        partition_on A P \<and> partition_on A Q \<and> (\<forall>X\<in>P. \<exists>Y\<in>Q. X \<subseteq> Y)" 
+
+lemma refines_refl: "partition_on A P \<Longrightarrow> refines A P P"
+  using refines_def by blast
+
+lemma refines_asym1:
+  assumes "refines A P Q" "refines A Q P"
+  shows "P \<subseteq> Q"
+proof 
+  fix X
+  assume "X \<in> P"
+  then obtain Y X' where "Y \<in> Q" "X \<subseteq> Y" "X' \<in> P" "Y \<subseteq> X'"
+    by (meson assms refines_def)
+  then have "X' = X"
+    using assms(2) unfolding partition_on_def refines_def
+    by (metis \<open>X \<in> P\<close> \<open>X \<subseteq> Y\<close> disjnt_self_iff_empty disjnt_subset1 pairwiseD)
+  then show "X \<in> Q"
+    using \<open>X \<subseteq> Y\<close> \<open>Y \<in> Q\<close> \<open>Y \<subseteq> X'\<close> by force
+qed
+
+lemma refines_asym: "\<lbrakk>refines A P Q; refines A Q P\<rbrakk> \<Longrightarrow> P=Q"
+  by (meson antisym_conv refines_asym1)
+
+lemma refines_trans: "\<lbrakk>refines A P Q; refines A Q R\<rbrakk> \<Longrightarrow> refines A P R"
+  by (meson order.trans refines_def)
+
+lemma refines_obtains_subset:
+  assumes "refines A P Q" "q \<in> Q"
+  shows "partition_on q {p \<in> P. p \<subseteq> q}"
+proof -
+  have "p \<subseteq> q \<or> disjnt p q" if "p \<in> P" for p
+    using that assms unfolding refines_def partition_on_def disjoint_def
+    by (metis disjnt_def disjnt_subset1)
+  with assms have "q \<subseteq> Union {p \<in> P. p \<subseteq> q}"
+    using assms 
+   by (clarsimp simp: refines_def disjnt_iff partition_on_def) (metis Union_iff)
+  with assms have "q = Union {p \<in> P. p \<subseteq> q}"
+    by auto
+  then show ?thesis
+    using assms by (auto simp: refines_def disjoint_def partition_on_def)
+qed 
+
 end
