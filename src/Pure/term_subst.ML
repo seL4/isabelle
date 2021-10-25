@@ -108,7 +108,7 @@ fun instantiateT_frees_same instT ty =
       fun subst (Type (a, Ts)) = Type (a, Same.map subst Ts)
         | subst (TFree v) =
             (case TFrees.lookup instT v of
-              SOME T => T
+              SOME T' => T'
             | NONE => raise Same.SAME)
         | subst _ = raise Same.SAME;
     in subst ty end;
@@ -122,7 +122,7 @@ fun instantiate_frees_same (instT, inst) tm =
         | subst (Free (x, T)) =
             let val (T', same) = (substT T, false) handle Same.SAME => (T, true) in
               (case Frees.lookup inst (x, T') of
-                 SOME t => t
+                 SOME t' => t'
                | NONE => if same then raise Same.SAME else Free (x, T'))
             end
         | subst (Var (xi, T)) = Var (xi, substT T)
@@ -151,7 +151,7 @@ fun instT_same maxidx instT ty =
     fun subst_typ (Type (a, Ts)) = Type (a, subst_typs Ts)
       | subst_typ (TVar ((a, i), S)) =
           (case TVars.lookup instT ((a, i), S) of
-            SOME (T, j) => (maxify j; T)
+            SOME (T', j) => (maxify j; T')
           | NONE => (maxify i; raise Same.SAME))
       | subst_typ _ = raise Same.SAME
     and subst_typs (T :: Ts) =
@@ -170,7 +170,7 @@ fun inst_same maxidx (instT, inst) tm =
       | subst (Var ((x, i), T)) =
           let val (T', same) = (substT T, false) handle Same.SAME => (T, true) in
             (case Vars.lookup inst ((x, i), T') of
-               SOME (t, j) => (maxify j; t)
+               SOME (t', j) => (maxify j; t')
              | NONE => (maxify i; if same then raise Same.SAME else Var ((x, i), T')))
           end
       | subst (Bound _) = raise Same.SAME
@@ -193,7 +193,7 @@ fun inst_beta_same maxidx (instT, inst) tm =
         Var ((x, i), T) =>
           let val (T', same) = (substT T, false) handle Same.SAME => (T, true) in
             (case Vars.lookup inst ((x, i), T') of
-              SOME (u, j) => (maxify j; SOME u)
+              SOME (t', j) => (maxify j; SOME t')
             | NONE => (maxify i; if same then NONE else SOME (Var ((x, i), T'))))
           end
       | _ => NONE);
