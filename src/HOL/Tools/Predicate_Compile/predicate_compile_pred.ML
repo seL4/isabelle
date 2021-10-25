@@ -65,7 +65,7 @@ fun try_destruct_case thy names atom =
           val (_, [inner_t]) = strip_comb (HOLogic.dest_Trueprop pre_res)
           val pre_rhs =
             fold (curry HOLogic.mk_conj) (map HOLogic.dest_Trueprop prems'') inner_t
-          val rhs = Envir.expand_term_frees subst pre_rhs
+          val rhs = Envir.expand_term_defs dest_Free subst pre_rhs
         in
           (case try_destruct_case thy (var_names @ names') rhs of
             NONE => [(subst, rhs)]
@@ -116,7 +116,7 @@ fun flatten constname atom (defs, thy) =
               val constT = map fastype_of frees ---> HOLogic.boolT
               val lhs = list_comb (Const (full_constname, constT), frees)
               fun mk_def (subst, rhs) =
-                Logic.mk_equals (fold Envir.expand_term_frees (map single subst) lhs, rhs)
+                Logic.mk_equals (fold (Envir.expand_term_defs dest_Free) (map single subst) lhs, rhs)
               val new_defs = map mk_def srs
               val (definition, thy') = thy
               |> Sign.add_consts [(Binding.name constname, constT, NoSyn)]
