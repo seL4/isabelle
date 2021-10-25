@@ -13,13 +13,13 @@ sig
   val generalize_same: Names.set * Names.set -> int -> term Same.operation
   val generalizeT: Names.set -> int -> typ -> typ
   val generalize: Names.set * Names.set -> int -> term -> term
-  val instantiateT_maxidx: (typ * int) TVars.table -> typ -> int -> typ * int
-  val instantiate_maxidx: (typ * int) TVars.table * (term * int) Vars.table ->
-    term -> int -> term * int
   val instantiateT_frees_same: typ TFrees.table -> typ Same.operation
   val instantiate_frees_same: typ TFrees.table * term Frees.table -> term Same.operation
   val instantiateT_frees: typ TFrees.table -> typ -> typ
   val instantiate_frees: typ TFrees.table * term Frees.table -> term -> term
+  val instantiateT_maxidx: (typ * int) TVars.table -> typ -> int -> typ * int
+  val instantiate_maxidx: (typ * int) TVars.table * (term * int) Vars.table ->
+    term -> int -> term * int
   val instantiateT_same: typ TVars.table -> typ Same.operation
   val instantiate_same: typ TVars.table * term Vars.table -> term Same.operation
   val instantiateT: typ TVars.table -> typ -> typ
