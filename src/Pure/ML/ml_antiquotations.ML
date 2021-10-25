@@ -295,6 +295,16 @@ fun check_free ctxt env (x, pos) =
       (Context_Position.reports ctxt (map (pair pos) (Syntax_Phases.markup_free ctxt x)); (x, T))
   | NONE => error ("No occurrence of variable " ^ quote x ^ Position.here pos));
 
+fun missing_instT envT instT =
+  (case filter_out (fn (a, _) => exists (fn (b, _) => a = b) instT) envT of
+    [] => ()
+  | bad => error ("No instantiation for free type variable(s) " ^ commas_quote (map #1 bad)));
+
+fun missing_inst env inst =
+  (case filter_out (fn (a, _) => exists (fn (b, _) => a = b) inst) env of
+    [] => ()
+  | bad => error ("No instantiation for free variable(s) " ^ commas_quote (map #1 bad)));
+
 fun make_instT (a, pos) T =
   (case try (Term.dest_TVar o Logic.dest_type) T of
     NONE => error ("Not a free type variable " ^ quote a ^ Position.here pos)
@@ -305,15 +315,21 @@ fun make_inst (a, pos) t =
     NONE => error ("Not a free variable " ^ quote a ^ Position.here pos)
   | SOME v => ml (ML_Syntax.print_pair ML_Syntax.print_indexname ML_Syntax.print_typ v));
 
+fun term_env t = (Term.add_tfrees t [], Term.add_frees t []);
+
 fun prepare_insts ctxt1 ctxt0 (instT, inst) t =
   let
-    val envT = Term.add_tfrees t [];
-    val env = Term.add_frees t [];
+    val (envT, env) = term_env t;
     val freesT = map (Logic.mk_type o TFree o get_tfree envT) instT;
     val frees = map (Free o check_free ctxt1 env) inst;
     val (t' :: varsT, vars) =
       Variable.export_terms ctxt1 ctxt0 (t :: freesT @ frees)
       |> chop (1 + length freesT);
+
+    val (envT', env') = term_env t';
+    val _ = missing_instT (subtract (eq_fst op =) envT' envT) instT;
+    val _ = missing_inst (subtract (eq_fst op =) env' env) inst;
+
     val ml_insts = (map2 make_instT instT varsT, map2 make_inst inst vars);
   in (ml_insts, t') end;
 
