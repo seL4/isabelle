@@ -124,6 +124,7 @@ sig
   val a_itselfT: typ
   val argument_type_of: term -> int -> typ
   val abs: string * typ -> term -> term
+  val args_of: term -> term list
   val add_tvar_namesT: typ -> indexname list -> indexname list
   val add_tvar_names: term -> indexname list -> indexname list
   val add_tvarsT: typ -> (indexname * sort) list -> (indexname * sort) list
@@ -423,6 +424,10 @@ fun strip_comb u : term * term list =
         |   stripc  x =  x
     in  stripc(u,[])  end;
 
+fun args_of u =
+    let fun args (f $ x) xs = args f (x :: xs)
+        |   args _ xs = xs
+    in args u [] end;
 
 (*maps   f(t1,...,tn)  to  f , which is never a combination*)
 fun head_of (f$t) = head_of f

@@ -48,7 +48,7 @@ sig
   val subst_term: Type.tyenv * tenv -> term -> term
   val expand_atom: typ -> typ * term -> term
   val expand_term: (term -> (typ * term) option) -> term -> term
-  val expand_term_frees: ((string * typ) * term) list -> term -> term
+  val expand_term_defs: (term -> string * typ) -> ((string * typ) * term) list -> term -> term
 end;
 
 structure Envir: ENVIR =
@@ -415,10 +415,10 @@ fun expand_term get =
       end;
   in expand end;
 
-fun expand_term_frees defs =
+fun expand_term_defs dest defs =
   let
-    val eqs = map (fn ((x, U), u) => (x, (U, u))) defs;
-    val get = fn Free (x, _) => AList.lookup (op =) eqs x | _ => NONE;
+    val eqs = map (fn ((x, U), u) => (x: string, (U, u))) defs;
+    fun get t = (case try dest t of SOME (x, _: typ) => AList.lookup (op =) eqs x | _ => NONE);
   in expand_term get end;
 
 end;

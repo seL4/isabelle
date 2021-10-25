@@ -13,9 +13,9 @@ sig
   type insts = ((indexname * sort) * typ) list * ((indexname * typ) * term) list
   type cinsts = ((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list
   val instantiate_typ: insts -> typ -> typ
-  val instantiate_ctyp: cinsts -> ctyp -> ctyp
+  val instantiate_ctyp: Position.T -> cinsts -> ctyp -> ctyp
   val instantiate_term: insts -> term -> term
-  val instantiate_cterm: cinsts -> cterm -> cterm
+  val instantiate_cterm: Position.T -> cinsts -> cterm -> cterm
 end;
 
 structure ML_Antiquotations: ML_ANTIQUOTATIONS =
@@ -227,7 +227,7 @@ val _ = Theory.setup
    (Scan.succeed "ML_Antiquotations.dest_judgment ML_context"));
 
 
-(* type/term instantiations and constructors *)
+(* type/term instantiations *)
 
 fun make_ctyp ctxt T = Thm.ctyp_of ctxt T |> Thm.trim_context_ctyp;
 fun make_cterm ctxt t = Thm.cterm_of ctxt t |> Thm.trim_context_cterm;
@@ -235,22 +235,27 @@ fun make_cterm ctxt t = Thm.cterm_of ctxt t |> Thm.trim_context_cterm;
 type insts = ((indexname * sort) * typ) list * ((indexname * typ) * term) list
 type cinsts = ((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list
 
-fun instantiate_typ (insts: insts) = Term_Subst.instantiateT (TVars.make (#1 insts));
-fun instantiate_ctyp (cinsts: cinsts) = Thm.instantiate_ctyp (TVars.make (#1 cinsts));
+fun instantiate_typ (insts: insts) =
+  Term_Subst.instantiateT (TVars.make (#1 insts));
+
+fun instantiate_ctyp pos (cinsts: cinsts) cT =
+  Thm.instantiate_ctyp (TVars.make (#1 cinsts)) cT
+  handle CTERM (msg, args) => Exn.reraise (CTERM (msg ^ Position.here pos, args));
 
 fun instantiate_term (insts: insts) =
   let
     val instT = TVars.make (#1 insts);
     val instantiateT = Term_Subst.instantiateT instT;
     val inst = Vars.make ((map o apfst o apsnd) instantiateT (#2 insts));
-  in Term_Subst.instantiate (instT, inst) end;
+  in Term_Subst.instantiate_beta (instT, inst) end;
 
-fun instantiate_cterm (cinsts: cinsts) =
+fun instantiate_cterm pos (cinsts: cinsts) ct =
   let
     val cinstT = TVars.make (#1 cinsts);
     val instantiateT = Term_Subst.instantiateT (TVars.map (K Thm.typ_of) cinstT);
     val cinst = Vars.make ((map o apfst o apsnd) instantiateT (#2 cinsts));
-  in Thm.instantiate_cterm (cinstT, cinst) end;
+  in Thm.instantiate_beta_cterm (cinstT, cinst) ct end
+  handle CTERM (msg, args) => Exn.reraise (CTERM (msg ^ Position.here pos, args));
 
 
 local
@@ -290,6 +295,16 @@ fun check_free ctxt env (x, pos) =
       (Context_Position.reports ctxt (map (pair pos) (Syntax_Phases.markup_free ctxt x)); (x, T))
   | NONE => error ("No occurrence of variable " ^ quote x ^ Position.here pos));
 
+fun missing_instT envT instT =
+  (case filter_out (fn (a, _) => exists (fn (b, _) => a = b) instT) envT of
+    [] => ()
+  | bad => error ("No instantiation for free type variable(s) " ^ commas_quote (map #1 bad)));
+
+fun missing_inst env inst =
+  (case filter_out (fn (a, _) => exists (fn (b, _) => a = b) inst) env of
+    [] => ()
+  | bad => error ("No instantiation for free variable(s) " ^ commas_quote (map #1 bad)));
+
 fun make_instT (a, pos) T =
   (case try (Term.dest_TVar o Logic.dest_type) T of
     NONE => error ("Not a free type variable " ^ quote a ^ Position.here pos)
@@ -300,15 +315,21 @@ fun make_inst (a, pos) t =
     NONE => error ("Not a free variable " ^ quote a ^ Position.here pos)
   | SOME v => ml (ML_Syntax.print_pair ML_Syntax.print_indexname ML_Syntax.print_typ v));
 
+fun term_env t = (Term.add_tfrees t [], Term.add_frees t []);
+
 fun prepare_insts ctxt1 ctxt0 (instT, inst) t =
   let
-    val envT = Term.add_tfrees t [];
-    val env = Term.add_frees t [];
+    val (envT, env) = term_env t;
     val freesT = map (Logic.mk_type o TFree o get_tfree envT) instT;
     val frees = map (Free o check_free ctxt1 env) inst;
     val (t' :: varsT, vars) =
       Variable.export_terms ctxt1 ctxt0 (t :: freesT @ frees)
       |> chop (1 + length freesT);
+
+    val (envT', env') = term_env t';
+    val _ = missing_instT (subtract (eq_fst op =) envT' envT) instT;
+    val _ = missing_inst (subtract (eq_fst op =) env' env) inst;
+
     val ml_insts = (map2 make_instT instT varsT, map2 make_inst inst vars);
   in (ml_insts, t') end;
 
@@ -338,19 +359,25 @@ fun prepare_term read range (arg, (s, fixes)) insts ctxt =
     val (ml_insts, t') = prepare_insts ctxt1 ctxt insts t;
   in prepare_ml range arg (ML_Syntax.print_term t') ml_insts ctxt end;
 
-fun typ_ml kind = (kind, "", "ML_Antiquotations.instantiate_typ");
-fun term_ml kind = (kind, "", "ML_Antiquotations.instantiate_term");
-fun ctyp_ml kind =
-  (kind, "ML_Antiquotations.make_ctyp ML_context", "ML_Antiquotations.instantiate_ctyp");
-fun cterm_ml kind =
-  (kind, "ML_Antiquotations.make_cterm ML_context", "ML_Antiquotations.instantiate_cterm");
+val ml_here = ML_Syntax.atomic o ML_Syntax.print_position;
+
+fun typ_ml (kind, _: Position.T) = (kind, "", "ML_Antiquotations.instantiate_typ ");
+fun term_ml (kind, _: Position.T) = (kind, "", "ML_Antiquotations.instantiate_term ");
+fun ctyp_ml (kind, pos) =
+  (kind, "ML_Antiquotations.make_ctyp ML_context",
+    "ML_Antiquotations.instantiate_ctyp " ^ ml_here pos);
+fun cterm_ml (kind, pos) =
+  (kind, "ML_Antiquotations.make_cterm ML_context",
+    "ML_Antiquotations.instantiate_cterm " ^ ml_here pos);
+
+val command_name = Parse.position o Parse.command_name;
 
 fun parse_body range =
-  (Parse.command_name "typ" >> typ_ml || Parse.command_name "ctyp" >> ctyp_ml) --
+  (command_name "typ" >> typ_ml || command_name "ctyp" >> ctyp_ml) --
     Parse.!!! Parse.typ >> prepare_type range ||
-  (Parse.command_name "term" >> term_ml || Parse.command_name "cterm" >> cterm_ml)
+  (command_name "term" >> term_ml || command_name "cterm" >> cterm_ml)
     -- Parse.!!! (Parse.term -- Parse.for_fixes) >> prepare_term Syntax.read_term range ||
-  (Parse.command_name "prop" >> term_ml || Parse.command_name "cprop" >> cterm_ml)
+  (command_name "prop" >> term_ml || command_name "cprop" >> cterm_ml)
     -- Parse.!!! (Parse.term -- Parse.for_fixes) >> prepare_term Syntax.read_prop range;
 
 val _ = Theory.setup
@@ -372,6 +399,8 @@ val _ = Theory.setup
 
 in end;
 
+
+(* type/term constructors *)
 
 local
 

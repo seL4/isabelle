@@ -285,14 +285,16 @@ fun cterm_of_rat x =
     val (a, b) = Rat.dest x
   in
     if b = 1 then Numeral.mk_cnumber \<^ctyp>\<open>real\<close> a
-    else Thm.apply (Thm.apply \<^cterm>\<open>(/) :: real \<Rightarrow> _\<close>
-      (Numeral.mk_cnumber \<^ctyp>\<open>real\<close> a))
-      (Numeral.mk_cnumber \<^ctyp>\<open>real\<close> b)
+    else
+      \<^instantiate>\<open>
+          a = \<open>Numeral.mk_cnumber \<^ctyp>\<open>real\<close> a\<close> and
+          b = \<open>Numeral.mk_cnumber \<^ctyp>\<open>real\<close> b\<close>
+        in cterm \<open>a / b\<close> for a b :: real\<close>
   end;
 
 fun dest_ratconst t =
   case Thm.term_of t of
-    Const(\<^const_name>\<open>divide\<close>, _)$a$b => Rat.make(HOLogic.dest_number a |> snd, HOLogic.dest_number b |> snd)
+    \<^Const_>\<open>divide _ for a b\<close> => Rat.make(HOLogic.dest_number a |> snd, HOLogic.dest_number b |> snd)
   | _ => Rat.of_int (HOLogic.dest_number (Thm.term_of t) |> snd)
 fun is_ratconst t = can dest_ratconst t
 
@@ -319,8 +321,9 @@ fun is_binop ct ct' = ct aconvc (Thm.dest_fun (Thm.dest_fun ct'))
 
 (* Map back polynomials to HOL.                         *)
 
-fun cterm_of_varpow x k = if k = 1 then x else Thm.apply (Thm.apply \<^cterm>\<open>(^) :: real \<Rightarrow> _\<close> x)
-  (Numeral.mk_cnumber \<^ctyp>\<open>nat\<close> k)
+fun cterm_of_varpow x k =
+  if k = 1 then x
+  else \<^instantiate>\<open>x and k = \<open>Numeral.mk_cnumber \<^ctyp>\<open>nat\<close> k\<close> in cterm \<open>x ^ k\<close> for x :: real\<close>
 
 fun cterm_of_monomial m =
   if FuncUtil.Ctermfunc.is_empty m then \<^cterm>\<open>1::real\<close>
@@ -328,13 +331,13 @@ fun cterm_of_monomial m =
     let
       val m' = FuncUtil.dest_monomial m
       val vps = fold_rev (fn (x,k) => cons (cterm_of_varpow x k)) m' []
-    in foldr1 (fn (s, t) => Thm.apply (Thm.apply \<^cterm>\<open>(*) :: real \<Rightarrow> _\<close> s) t) vps
+    in foldr1 (fn (s, t) => \<^instantiate>\<open>s and t in cterm \<open>s * t\<close> for s t :: real\<close>) vps
     end
 
 fun cterm_of_cmonomial (m,c) =
   if FuncUtil.Ctermfunc.is_empty m then cterm_of_rat c
   else if c = @1 then cterm_of_monomial m
-  else Thm.apply (Thm.apply \<^cterm>\<open>(*)::real \<Rightarrow> _\<close> (cterm_of_rat c)) (cterm_of_monomial m);
+  else \<^instantiate>\<open>x = \<open>cterm_of_rat c\<close> and y = \<open>cterm_of_monomial m\<close> in cterm \<open>x * y\<close> for x y :: real\<close>;
 
 fun cterm_of_poly p =
   if FuncUtil.Monomialfunc.is_empty p then \<^cterm>\<open>0::real\<close>
@@ -342,7 +345,7 @@ fun cterm_of_poly p =
     let
       val cms = map cterm_of_cmonomial
         (sort (prod_ord FuncUtil.monomial_order (K EQUAL)) (FuncUtil.Monomialfunc.dest p))
-    in foldr1 (fn (t1, t2) => Thm.apply(Thm.apply \<^cterm>\<open>(+) :: real \<Rightarrow> _\<close> t1) t2) cms
+    in foldr1 (fn (t1, t2) => \<^instantiate>\<open>t1 and t2 in cterm \<open>t1 + t2\<close> for t1 t2 :: real\<close>) cms
     end;
 
 (* A general real arithmetic prover *)
@@ -400,15 +403,15 @@ fun gen_gen_real_arith ctxt (mk_numeric,
             Axiom_eq n => nth eqs n
           | Axiom_le n => nth les n
           | Axiom_lt n => nth lts n
-          | Rational_eq x => eqT_elim(numeric_eq_conv(Thm.apply \<^cterm>\<open>Trueprop\<close>
-                          (Thm.apply (Thm.apply \<^cterm>\<open>(=)::real \<Rightarrow> _\<close> (mk_numeric x))
-                               \<^cterm>\<open>0::real\<close>)))
-          | Rational_le x => eqT_elim(numeric_ge_conv(Thm.apply \<^cterm>\<open>Trueprop\<close>
-                          (Thm.apply (Thm.apply \<^cterm>\<open>(\<le>)::real \<Rightarrow> _\<close>
-                                     \<^cterm>\<open>0::real\<close>) (mk_numeric x))))
-          | Rational_lt x => eqT_elim(numeric_gt_conv(Thm.apply \<^cterm>\<open>Trueprop\<close>
-                      (Thm.apply (Thm.apply \<^cterm>\<open>(<)::real \<Rightarrow> _\<close> \<^cterm>\<open>0::real\<close>)
-                        (mk_numeric x))))
+          | Rational_eq x =>
+              eqT_elim (numeric_eq_conv
+                \<^instantiate>\<open>x = \<open>mk_numeric x\<close> in cprop \<open>x = 0\<close> for x :: real\<close>)
+          | Rational_le x =>
+              eqT_elim (numeric_ge_conv
+                \<^instantiate>\<open>x = \<open>mk_numeric x\<close> in cprop \<open>x \<ge> 0\<close> for x :: real\<close>)
+          | Rational_lt x =>
+              eqT_elim (numeric_gt_conv
+                \<^instantiate>\<open>x = \<open>mk_numeric x\<close> in cprop \<open>x > 0\<close> for x :: real\<close>)
           | Square pt => square_rule (cterm_of_poly pt)
           | Eqmul(pt,p) => emul_rule (cterm_of_poly pt) (translate p)
           | Sum(p1,p2) => add_rule (translate p1) (translate p2)
@@ -438,8 +441,8 @@ fun gen_gen_real_arith ctxt (mk_numeric,
           else error "disj_cases : conclusions not alpha convertible"
       in Thm.implies_elim (Thm.implies_elim
           (Thm.implies_elim (Thm.instantiate' [] (map SOME [p,q,c]) @{thm disjE}) th)
-          (Thm.implies_intr (Thm.apply \<^cterm>\<open>Trueprop\<close> p) th1))
-        (Thm.implies_intr (Thm.apply \<^cterm>\<open>Trueprop\<close> q) th2)
+          (Thm.implies_intr \<^instantiate>\<open>p in cprop p\<close> th1))
+        (Thm.implies_intr \<^instantiate>\<open>q in cprop q\<close> th2)
       end
     fun overall cert_choice dun ths =
       case ths of
@@ -481,8 +484,8 @@ fun gen_gen_real_arith ctxt (mk_numeric,
         val th_x = Drule.arg_cong_rule \<^cterm>\<open>uminus :: real \<Rightarrow> _\<close> th_p
         val th_n = fconv_rule (arg_conv poly_neg_conv) th_x
         val th' = Drule.binop_cong_rule \<^cterm>\<open>HOL.disj\<close>
-          (Drule.arg_cong_rule (Thm.apply \<^cterm>\<open>(<)::real \<Rightarrow> _\<close> \<^cterm>\<open>0::real\<close>) th_p)
-          (Drule.arg_cong_rule (Thm.apply \<^cterm>\<open>(<)::real \<Rightarrow> _\<close> \<^cterm>\<open>0::real\<close>) th_n)
+          (Drule.arg_cong_rule \<^cterm>\<open>(<) (0::real)\<close> th_p)
+          (Drule.arg_cong_rule \<^cterm>\<open>(<) (0::real)\<close> th_n)
       in Thm.transitive th th'
       end
     fun equal_implies_1_rule PQ =
@@ -495,7 +498,7 @@ fun gen_gen_real_arith ctxt (mk_numeric,
       let
         fun h (acc, t) =
           case Thm.term_of t of
-            Const(\<^const_name>\<open>Ex\<close>,_)$Abs(_,_,_) =>
+            \<^Const_>\<open>Ex _ for \<open>Abs _\<close>\<close> =>
               h (Thm.dest_abs_global (Thm.dest_arg t) |>> (fn v => v::acc))
           | _ => (acc,t)
       in fn t => h ([],t)
@@ -508,39 +511,38 @@ fun gen_gen_real_arith ctxt (mk_numeric,
 
     fun mk_forall x th =
       let
-        val T = Thm.typ_of_cterm x
-        val all = Thm.cterm_of ctxt (Const (\<^const_name>\<open>All\<close>, (T --> \<^typ>\<open>bool\<close>) --> \<^typ>\<open>bool\<close>))
+        val T = Thm.ctyp_of_cterm x
+        val all = \<^instantiate>\<open>'a = T in cterm All\<close>
       in Drule.arg_cong_rule all (Thm.abstract_rule (name_of x) x th) end
 
     val specl = fold_rev (fn x => fn th => Thm.instantiate' [] [SOME x] (th RS spec));
 
-    fun ext T = Thm.cterm_of ctxt (Const (\<^const_name>\<open>Ex\<close>, (T --> \<^typ>\<open>bool\<close>) --> \<^typ>\<open>bool\<close>))
-    fun mk_ex v t = Thm.apply (ext (Thm.typ_of_cterm v)) (Thm.lambda v t)
+    fun mk_ex v t =
+      \<^instantiate>\<open>'a = \<open>Thm.ctyp_of_cterm v\<close> and P = \<open>Thm.lambda v t\<close>
+        in cprop \<open>Ex P\<close> for P :: \<open>'a \<Rightarrow> bool\<close>\<close>
 
     fun choose v th th' =
       case Thm.concl_of th of
-        \<^term>\<open>Trueprop\<close> $ (Const(\<^const_name>\<open>Ex\<close>,_)$_) =>
-        let
-          val p = (funpow 2 Thm.dest_arg o Thm.cprop_of) th
-          val T = Thm.dest_ctyp0 (Thm.ctyp_of_cterm p)
-          val th0 = fconv_rule (Thm.beta_conversion true)
-            (Thm.instantiate' [SOME T] [SOME p, (SOME o Thm.dest_arg o Thm.cprop_of) th'] exE)
-          val pv = (Thm.rhs_of o Thm.beta_conversion true)
-            (Thm.apply \<^cterm>\<open>Trueprop\<close> (Thm.apply p v))
-          val th1 = Thm.forall_intr v (Thm.implies_intr pv th')
-        in Thm.implies_elim (Thm.implies_elim th0 th) th1  end
+        \<^Const_>\<open>Trueprop for \<^Const_>\<open>Ex _ for _\<close>\<close> =>
+          let
+            val p = (funpow 2 Thm.dest_arg o Thm.cprop_of) th
+            val T = Thm.dest_ctyp0 (Thm.ctyp_of_cterm p)
+            val th0 = fconv_rule (Thm.beta_conversion true)
+              (Thm.instantiate' [SOME T] [SOME p, (SOME o Thm.dest_arg o Thm.cprop_of) th'] exE)
+            val pv = (Thm.rhs_of o Thm.beta_conversion true)
+              (Thm.apply \<^cterm>\<open>Trueprop\<close> (Thm.apply p v))
+            val th1 = Thm.forall_intr v (Thm.implies_intr pv th')
+          in Thm.implies_elim (Thm.implies_elim th0 th) th1  end
       | _ => raise THM ("choose",0,[th, th'])
 
     fun simple_choose v th =
-      choose v
-        (Thm.assume
-          ((Thm.apply \<^cterm>\<open>Trueprop\<close> o mk_ex v) (Thm.dest_arg (hd (Thm.chyps_of th))))) th
+      choose v (Thm.assume (mk_ex v (Thm.dest_arg (hd (Thm.chyps_of th))))) th
 
     val strip_forall =
       let
         fun h (acc, t) =
           case Thm.term_of t of
-            Const(\<^const_name>\<open>All\<close>,_)$Abs(_,_,_) =>
+            \<^Const_>\<open>All _ for \<open>Abs _\<close>\<close> =>
               h (Thm.dest_abs_global (Thm.dest_arg t) |>> (fn v => v::acc))
           | _ => (acc,t)
       in fn t => h ([],t)
@@ -558,7 +560,7 @@ fun gen_gen_real_arith ctxt (mk_numeric,
         fun absremover ct = (literals_conv [\<^term>\<open>HOL.conj\<close>, \<^term>\<open>HOL.disj\<close>] []
                   (try_conv (absconv1 then_conv binop_conv (arg_conv poly_conv))) then_conv
                   try_conv (absconv2 then_conv nnf_norm_conv' then_conv binop_conv absremover)) ct
-        val nct = Thm.apply \<^cterm>\<open>Trueprop\<close> (Thm.apply \<^cterm>\<open>Not\<close> ct)
+        val nct = \<^instantiate>\<open>A = ct in cprop \<open>\<not> A\<close>\<close>
         val th0 = (init_conv then_conv arg_conv nnf_norm_conv') nct
         val tm0 = Thm.dest_arg (Thm.rhs_of th0)
         val (th, certificates) =
@@ -688,8 +690,8 @@ local
 
   fun is_alien ct =
     case Thm.term_of ct of
-      Const(\<^const_name>\<open>of_nat\<close>, _)$ n => not (can HOLogic.dest_number n)
-    | Const(\<^const_name>\<open>of_int\<close>, _)$ n => not (can HOLogic.dest_number n)
+      \<^Const_>\<open>of_nat _ for n\<close> => not (can HOLogic.dest_number n)
+    | \<^Const_>\<open>of_int _ for n\<close> => not (can HOLogic.dest_number n)
     | _ => false
 in
 fun real_linear_prover translator (eq,le,lt) =

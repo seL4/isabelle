@@ -157,7 +157,9 @@ sig
   val generalize_cterm: Names.set * Names.set -> int -> cterm -> cterm
   val generalize_ctyp: Names.set -> int -> ctyp -> ctyp
   val instantiate: ctyp TVars.table * cterm Vars.table -> thm -> thm
+  val instantiate_beta: ctyp TVars.table * cterm Vars.table -> thm -> thm
   val instantiate_cterm: ctyp TVars.table * cterm Vars.table -> cterm -> cterm
+  val instantiate_beta_cterm: ctyp TVars.table * cterm Vars.table -> cterm -> cterm
   val trivial: cterm -> thm
   val of_class: ctyp * class -> thm
   val unconstrainT: thm -> thm
@@ -1675,7 +1677,7 @@ in
 (*Left-to-right replacements: ctpairs = [..., (vi, ti), ...].
   Instantiates distinct Vars by terms of same type.
   Does NOT normalize the resulting theorem!*)
-fun instantiate (instT, inst) th =
+fun gen_instantiate inst_fn (instT, inst) th =
   if TVars.is_empty instT andalso Vars.is_empty inst then th
   else
     let
@@ -1684,7 +1686,7 @@ fun instantiate (instT, inst) th =
         handle CONTEXT (msg, cTs, cts, ths, context) =>
           raise CONTEXT (msg, cTs, cts, th :: ths, context);
 
-      val subst = Term_Subst.instantiate_maxidx (instT', inst');
+      val subst = inst_fn (instT', inst');
       val (prop', maxidx1) = subst prop ~1;
       val (tpairs', maxidx') =
         fold_map (fn (t, u) => fn i => subst t i ||>> subst u) tpairs maxidx1;
@@ -1708,18 +1710,24 @@ fun instantiate (instT, inst) th =
     end
     handle TYPE (msg, _, _) => raise THM (msg, 0, [th]);
 
-fun instantiate_cterm (instT, inst) ct =
+val instantiate = gen_instantiate Term_Subst.instantiate_maxidx;
+val instantiate_beta = gen_instantiate Term_Subst.instantiate_beta_maxidx;
+
+fun gen_instantiate_cterm inst_fn (instT, inst) ct =
   if TVars.is_empty instT andalso Vars.is_empty inst then ct
   else
     let
       val Cterm {cert, t, T, sorts, ...} = ct;
       val ((instT', inst'), (cert', sorts')) = prep_insts (instT, inst) (cert, sorts);
-      val subst = Term_Subst.instantiate_maxidx (instT', inst');
+      val subst = inst_fn (instT', inst');
       val substT = Term_Subst.instantiateT_maxidx instT';
       val (t', maxidx1) = subst t ~1;
       val (T', maxidx') = substT T maxidx1;
     in Cterm {cert = cert', t = t', T = T', sorts = sorts', maxidx = maxidx'} end
     handle TYPE (msg, _, _) => raise CTERM (msg, [ct]);
+
+val instantiate_cterm = gen_instantiate_cterm Term_Subst.instantiate_maxidx;
+val instantiate_beta_cterm = gen_instantiate_cterm Term_Subst.instantiate_beta_maxidx;
 
 end;
 

@@ -153,15 +153,10 @@ fun mk_permuteN src dest =
   "_permute_" ^ implode (map string_of_int src) ^ "_" ^ implode (map string_of_int dest);
 
 
-(*copied from Envir.expand_term_free*)
-fun expand_term_const defs =
-  let
-    val eqs = map ((fn ((x, U), u) => (x, (U, u))) o apfst dest_Const) defs;
-    val get = fn Const (x, _) => AList.lookup (op =) eqs x | _ => NONE;
-  in Envir.expand_term get end;
-
 val id_bnf_def = @{thm id_bnf_def};
-val expand_id_bnf_def = expand_term_const [Thm.prop_of id_bnf_def |> Logic.dest_equals];
+val expand_id_bnf_def =
+  Envir.expand_term_defs dest_Const
+    [Thm.prop_of id_bnf_def |> Logic.dest_equals |> apfst dest_Const];
 
 fun is_sum_prod_natLeq (Const (\<^const_name>\<open>csum\<close>, _) $ t $ u) = forall is_sum_prod_natLeq [t, u]
   | is_sum_prod_natLeq (Const (\<^const_name>\<open>cprod\<close>, _) $ t $ u) = forall is_sum_prod_natLeq [t, u]

@@ -23,8 +23,9 @@ local
   val term_of_int_list = HOLogic.mk_list \<^typ>\<open>int\<close>
     o map (HOLogic.mk_number \<^typ>\<open>int\<close> o @{code integer_of_int});
 
-  fun raw_sort (ctxt, ct, ks) = Thm.mk_binop \<^cterm>\<open>Pure.eq :: int list \<Rightarrow> int list \<Rightarrow> prop\<close>
-    ct (Thm.cterm_of ctxt (term_of_int_list ks));
+  fun raw_sort (ctxt, ct, ks) =
+    \<^instantiate>\<open>x = ct and y = \<open>Thm.cterm_of ctxt (term_of_int_list ks)\<close>
+      in cterm \<open>x \<equiv> y\<close> for x y :: \<open>int list\<close>\<close>;
 
   val (_, sort_oracle) = Context.>>> (Context.map_theory_result
     (Thm.add_oracle (\<^binding>\<open>sort\<close>, raw_sort)));

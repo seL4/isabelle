@@ -272,8 +272,9 @@ text \<open>
 ML %quote \<open>
   local
 
-  fun raw_dvd (b, ct) = Thm.mk_binop \<^cterm>\<open>Pure.eq :: bool \<Rightarrow> bool \<Rightarrow> prop\<close>
-    ct (if b then \<^cterm>\<open>True\<close> else \<^cterm>\<open>False\<close>);
+  fun raw_dvd (b, ct) =
+    \<^instantiate>\<open>x = ct and y = \<open>if b then \<^cterm>\<open>True\<close> else \<^cterm>\<open>False\<close>\<close>
+      in cterm \<open>x \<equiv> y\<close> for x y :: bool\<close>;
 
   val (_, dvd_oracle) = Context.>>> (Context.map_theory_result
     (Thm.add_oracle (\<^binding>\<open>dvd\<close>, raw_dvd)));

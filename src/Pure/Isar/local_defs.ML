@@ -93,7 +93,7 @@ fun expand defs =
       (Names.empty, Names.build (fold (Names.add_set o #1 o head_of_def o Thm.term_of) defs))
   #> funpow (length defs) (fn th => Drule.reflexive_thm RS th);
 
-val expand_term = Envir.expand_term_frees o map (abs_def o Thm.term_of);
+val expand_term = Envir.expand_term_defs dest_Free o map (abs_def o Thm.term_of);
 
 fun def_export _ defs = (expand defs, expand_term defs);
 
@@ -125,7 +125,7 @@ fun fixed_abbrev ((x, mx), rhs) ctxt =
       |> Proof_Context.add_fixes [(x, SOME T, mx)];
     val lhs = Free (x', T);
     val _ = cert_def ctxt' (K []) (Logic.mk_equals (lhs, rhs));
-    fun abbrev_export _ _ = (I, Envir.expand_term_frees [((x', T), rhs)]);
+    fun abbrev_export _ _ = (I, Envir.expand_term_defs dest_Free [((x', T), rhs)]);
     val (_, ctxt'') = Assumption.add_assms abbrev_export [] ctxt';
   in ((lhs, rhs), ctxt'') end;
 
