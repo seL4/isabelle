@@ -323,7 +323,7 @@ fun is_binop ct ct' = ct aconvc (Thm.dest_fun (Thm.dest_fun ct'))
 
 fun cterm_of_varpow x k =
   if k = 1 then x
-  else \<^instantiate>\<open>x and k = \<open>Numeral.mk_cnumber \<^ctyp>\<open>nat\<close> k\<close> in cterm "x ^ k" for x :: real\<close>
+  else \<^instantiate>\<open>x and k = \<open>Numeral.mk_cnumber \<^ctyp>\<open>nat\<close> k\<close> in cterm \<open>x ^ k\<close> for x :: real\<close>
 
 fun cterm_of_monomial m =
   if FuncUtil.Ctermfunc.is_empty m then \<^cterm>\<open>1::real\<close>
@@ -331,13 +331,13 @@ fun cterm_of_monomial m =
     let
       val m' = FuncUtil.dest_monomial m
       val vps = fold_rev (fn (x,k) => cons (cterm_of_varpow x k)) m' []
-    in foldr1 (fn (s, t) => \<^instantiate>\<open>s and t in cterm "s * t" for s t :: real\<close>) vps
+    in foldr1 (fn (s, t) => \<^instantiate>\<open>s and t in cterm \<open>s * t\<close> for s t :: real\<close>) vps
     end
 
 fun cterm_of_cmonomial (m,c) =
   if FuncUtil.Ctermfunc.is_empty m then cterm_of_rat c
   else if c = @1 then cterm_of_monomial m
-  else \<^instantiate>\<open>x = \<open>cterm_of_rat c\<close> and y = \<open>cterm_of_monomial m\<close> in cterm "x * y" for x y :: real\<close>;
+  else \<^instantiate>\<open>x = \<open>cterm_of_rat c\<close> and y = \<open>cterm_of_monomial m\<close> in cterm \<open>x * y\<close> for x y :: real\<close>;
 
 fun cterm_of_poly p =
   if FuncUtil.Monomialfunc.is_empty p then \<^cterm>\<open>0::real\<close>
@@ -345,7 +345,7 @@ fun cterm_of_poly p =
     let
       val cms = map cterm_of_cmonomial
         (sort (prod_ord FuncUtil.monomial_order (K EQUAL)) (FuncUtil.Monomialfunc.dest p))
-    in foldr1 (fn (t1, t2) => \<^instantiate>\<open>t1 and t2 in cterm "t1 + t2" for t1 t2 :: real\<close>) cms
+    in foldr1 (fn (t1, t2) => \<^instantiate>\<open>t1 and t2 in cterm \<open>t1 + t2\<close> for t1 t2 :: real\<close>) cms
     end;
 
 (* A general real arithmetic prover *)
@@ -405,13 +405,13 @@ fun gen_gen_real_arith ctxt (mk_numeric,
           | Axiom_lt n => nth lts n
           | Rational_eq x =>
               eqT_elim (numeric_eq_conv
-                \<^instantiate>\<open>x = \<open>mk_numeric x\<close> in cprop "x = 0" for x :: real\<close>)
+                \<^instantiate>\<open>x = \<open>mk_numeric x\<close> in cprop \<open>x = 0\<close> for x :: real\<close>)
           | Rational_le x =>
               eqT_elim (numeric_ge_conv
-                \<^instantiate>\<open>x = \<open>mk_numeric x\<close> in cprop "x \<ge> 0" for x :: real\<close>)
+                \<^instantiate>\<open>x = \<open>mk_numeric x\<close> in cprop \<open>x \<ge> 0\<close> for x :: real\<close>)
           | Rational_lt x =>
               eqT_elim (numeric_gt_conv
-                \<^instantiate>\<open>x = \<open>mk_numeric x\<close> in cprop "x > 0" for x :: real\<close>)
+                \<^instantiate>\<open>x = \<open>mk_numeric x\<close> in cprop \<open>x > 0\<close> for x :: real\<close>)
           | Square pt => square_rule (cterm_of_poly pt)
           | Eqmul(pt,p) => emul_rule (cterm_of_poly pt) (translate p)
           | Sum(p1,p2) => add_rule (translate p1) (translate p2)
@@ -519,7 +519,7 @@ fun gen_gen_real_arith ctxt (mk_numeric,
 
     fun mk_ex v t =
       \<^instantiate>\<open>'a = \<open>Thm.ctyp_of_cterm v\<close> and P = \<open>Thm.lambda v t\<close>
-        in cprop "Ex P" for P :: "'a \<Rightarrow> bool"\<close>
+        in cprop \<open>Ex P\<close> for P :: \<open>'a \<Rightarrow> bool\<close>\<close>
 
     fun choose v th th' =
       case Thm.concl_of th of
@@ -560,7 +560,7 @@ fun gen_gen_real_arith ctxt (mk_numeric,
         fun absremover ct = (literals_conv [\<^term>\<open>HOL.conj\<close>, \<^term>\<open>HOL.disj\<close>] []
                   (try_conv (absconv1 then_conv binop_conv (arg_conv poly_conv))) then_conv
                   try_conv (absconv2 then_conv nnf_norm_conv' then_conv binop_conv absremover)) ct
-        val nct = \<^instantiate>\<open>ct in cprop "\<not> ct"\<close>
+        val nct = \<^instantiate>\<open>A = ct in cprop \<open>\<not> A\<close>\<close>
         val th0 = (init_conv then_conv arg_conv nnf_norm_conv') nct
         val tm0 = Thm.dest_arg (Thm.rhs_of th0)
         val (th, certificates) =
