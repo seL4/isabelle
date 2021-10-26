@@ -1490,4 +1490,41 @@ lemma [code_post]:
 
 lemmas [code_post] = Num.inc.simps
 
+
+subsection \<open>More on auxiliary conversion\<close>
+
+context semiring_1
+begin
+
+lemma numeral_num_of_nat_unfold:
+  \<open>numeral (num_of_nat n) = (if n = 0 then 1 else of_nat n)\<close>
+  by (induction n) (simp_all add: numeral_inc ac_simps)
+
+lemma num_of_nat_numeral_eq [simp]:
+  \<open>num_of_nat (numeral q) = q\<close>
+proof (induction q)
+  case One
+  then show ?case
+    by simp
+next
+  case (Bit0 q)
+  then show ?case
+    apply (simp only: Num.numeral_Bit0 Num.numeral_add)
+    apply (subst num_of_nat_double)
+     apply simp_all
+    done
+next
+  case (Bit1 q)
+  then show ?case
+    apply (simp only: Num.numeral_Bit1 Num.numeral_add)
+    apply (subst num_of_nat_plus_distrib)
+      apply simp
+     apply simp
+    apply (subst num_of_nat_double)
+     apply simp_all
+    done
+qed
+
+end
+
 end

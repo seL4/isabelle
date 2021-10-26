@@ -241,16 +241,6 @@ proof
   qed
 qed
 
-lemma even_of_nat [simp]:
-  "even (of_nat a) \<longleftrightarrow> even a"
-proof -
-  have "even (of_nat a) \<longleftrightarrow> of_nat 2 dvd of_nat a"
-    by simp
-  also have "\<dots> \<longleftrightarrow> even a"
-    by (simp only: of_nat_dvd_iff)
-  finally show ?thesis .
-qed
-
 lemma even_succ_div_two [simp]:
   "even a \<Longrightarrow> (a + 1) div 2 = a div 2"
   by (cases "a = 0") (auto elim!: evenE dest: mult_not_zero)
@@ -426,6 +416,10 @@ lemma mask_eq_sum_exp_nat:
 
 context semiring_parity
 begin
+
+lemma even_of_nat_iff [simp]:
+  "even (of_nat n) \<longleftrightarrow> even n"
+  by (induction n) simp_all
 
 lemma even_sum_iff:
   \<open>even (sum f A) \<longleftrightarrow> even (card {a\<in>A. odd (f a)})\<close> if \<open>finite A\<close>
@@ -639,31 +633,7 @@ lemma even_add_abs_iff:
   by simp
 
 lemma even_nat_iff: "0 \<le> k \<Longrightarrow> even (nat k) \<longleftrightarrow> even k"
-  by (simp add: even_of_nat [of "nat k", where ?'a = int, symmetric])
-
-lemma zdiv_zmult2_eq:
-  \<open>a div (b * c) = (a div b) div c\<close> if \<open>c \<ge> 0\<close> for a b c :: int
-proof (cases \<open>b \<ge> 0\<close>)
-  case True
-  with that show ?thesis
-    using div_mult2_eq' [of a \<open>nat b\<close> \<open>nat c\<close>] by simp
-next
-  case False
-  with that show ?thesis
-    using div_mult2_eq' [of \<open>- a\<close> \<open>nat (- b)\<close> \<open>nat c\<close>] by simp
-qed
-
-lemma zmod_zmult2_eq:
-  \<open>a mod (b * c) = b * (a div b mod c) + a mod b\<close> if \<open>c \<ge> 0\<close> for a b c :: int
-proof (cases \<open>b \<ge> 0\<close>)
-  case True
-  with that show ?thesis
-    using mod_mult2_eq' [of a \<open>nat b\<close> \<open>nat c\<close>] by simp
-next
-  case False
-  with that show ?thesis
-    using mod_mult2_eq' [of \<open>- a\<close> \<open>nat (- b)\<close> \<open>nat c\<close>] by simp
-qed
+  by (simp add: even_of_nat_iff [of "nat k", where ?'a = int, symmetric])
 
 context
   assumes "SORT_CONSTRAINT('a::division_ring)"
@@ -701,5 +671,7 @@ end
 
 code_identifier
   code_module Parity \<rightharpoonup> (SML) Arith and (OCaml) Arith and (Haskell) Arith
+
+lemmas even_of_nat = even_of_nat_iff
 
 end

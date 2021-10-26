@@ -4148,9 +4148,9 @@ qed auto
 lemma cos_zero_iff_int: "cos x = 0 \<longleftrightarrow> (\<exists>i. odd i \<and> x = of_int i * (pi/2))"
 proof -
   have 1: "\<And>n. odd n \<Longrightarrow> \<exists>i. odd i \<and> real n = real_of_int i"
-    by (metis even_of_nat of_int_of_nat_eq)
+    by (metis even_of_nat_iff of_int_of_nat_eq)
   have 2: "\<And>n. odd n \<Longrightarrow> \<exists>i. odd i \<and> - (real n * pi) = real_of_int i * pi"
-    by (metis even_minus even_of_nat mult.commute mult_minus_right of_int_minus of_int_of_nat_eq)
+    by (metis even_minus even_of_nat_iff mult.commute mult_minus_right of_int_minus of_int_of_nat_eq)
   have 3: "\<lbrakk>odd i;  \<forall>n. even n \<or> real_of_int i \<noteq> - (real n)\<rbrakk>
          \<Longrightarrow> \<exists>n. odd n \<and> real_of_int i = real n" for i
     by (cases i rule: int_cases2) auto
@@ -4167,7 +4167,7 @@ proof safe
   proof cases
     case plus
     then show ?rhs
-      by (metis even_of_nat of_int_of_nat_eq)
+      by (metis even_of_nat_iff of_int_of_nat_eq)
   next
     case minus
     then show ?thesis

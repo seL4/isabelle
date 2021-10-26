@@ -2110,6 +2110,30 @@ instance nat :: unique_euclidean_semiring_with_nat
 instance int :: unique_euclidean_ring_with_nat
   by standard (simp_all add: dvd_eq_mod_eq_0 divide_int_def division_segment_int_def)
 
+lemma zdiv_zmult2_eq:
+  \<open>a div (b * c) = (a div b) div c\<close> if \<open>c \<ge> 0\<close> for a b c :: int
+proof (cases \<open>b \<ge> 0\<close>)
+  case True
+  with that show ?thesis
+    using div_mult2_eq' [of a \<open>nat b\<close> \<open>nat c\<close>] by simp
+next
+  case False
+  with that show ?thesis
+    using div_mult2_eq' [of \<open>- a\<close> \<open>nat (- b)\<close> \<open>nat c\<close>] by simp
+qed
+
+lemma zmod_zmult2_eq:
+  \<open>a mod (b * c) = b * (a div b mod c) + a mod b\<close> if \<open>c \<ge> 0\<close> for a b c :: int
+proof (cases \<open>b \<ge> 0\<close>)
+  case True
+  with that show ?thesis
+    using mod_mult2_eq' [of a \<open>nat b\<close> \<open>nat c\<close>] by simp
+next
+  case False
+  with that show ?thesis
+    using mod_mult2_eq' [of \<open>- a\<close> \<open>nat (- b)\<close> \<open>nat c\<close>] by simp
+qed
+
 
 subsection \<open>Code generation\<close>
 

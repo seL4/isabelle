@@ -141,4 +141,28 @@ lemma smod_mod_positive:
     "\<lbrakk> 0 \<le> (a :: int); 0 \<le> b \<rbrakk> \<Longrightarrow> a smod b = a mod b"
   by (clarsimp simp: smod_int_alt_def zsgn_def)
 
+lemma minus_sdiv_eq [simp]:
+  \<open>- k sdiv l = - (k sdiv l)\<close> for k l :: int
+  by (simp add: signed_divide_int_def)
+
+lemma sdiv_minus_eq [simp]:
+  \<open>k sdiv - l = - (k sdiv l)\<close> for k l :: int
+  by (simp add: signed_divide_int_def)
+
+lemma sdiv_int_numeral_numeral [simp]:
+  \<open>numeral m sdiv numeral n = numeral m div (numeral n :: int)\<close>
+  by (simp add: signed_divide_int_def)
+
+lemma minus_smod_eq [simp]:
+  \<open>- k smod l = - (k smod l)\<close> for k l :: int
+  by (simp add: smod_int_alt_def)
+
+lemma smod_minus_eq [simp]:
+  \<open>k smod - l = k smod l\<close> for k l :: int
+  by (simp add: smod_int_alt_def)
+
+lemma smod_int_numeral_numeral [simp]:
+  \<open>numeral m smod numeral n = numeral m mod (numeral n :: int)\<close>
+  by (simp add: smod_int_alt_def) 
+
 end

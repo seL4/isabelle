@@ -876,7 +876,8 @@ instance proof
     by transfer (auto simp add: not_less take_bit_drop_bit ac_simps simp flip: take_bit_eq_mod drop_bit_eq_div split: split_min_lin)
   show \<open>even ((2 ^ m - 1) div (2::'a word) ^ n) \<longleftrightarrow> 2 ^ n = (0::'a word) \<or> m \<le> n\<close>
     for m n :: nat
-    by transfer (auto simp add: take_bit_of_mask even_mask_div_iff)
+    by transfer
+      (simp flip: drop_bit_eq_div mask_eq_exp_minus_1 add: bit_simps even_drop_bit_iff_not_bit not_less)
   show \<open>even (a * 2 ^ m div 2 ^ n) \<longleftrightarrow> n < m \<or> (2::'a word) ^ n = 0 \<or> m \<le> n \<and> even (a div 2 ^ (n - m))\<close>
     for a :: \<open>'a word\<close> and m n :: nat
   proof transfer
@@ -1109,6 +1110,10 @@ lemma possible_bit_word[simp]:
 context semiring_bit_operations
 begin
 
+lemma unsigned_minus_1_eq_mask:
+  \<open>unsigned (- 1 :: 'b::len word) = mask LENGTH('b)\<close>
+  by (transfer fixing: mask) (simp add: nat_mask_eq of_nat_mask_eq)
+
 lemma unsigned_push_bit_eq:
   \<open>unsigned (push_bit n w) = take_bit LENGTH('b) (push_bit n (unsigned w))\<close>
   for w :: \<open>'b::len word\<close>
@@ -1251,7 +1256,7 @@ begin
 lemma signed_not_eq:
   \<open>signed (NOT w) = signed_take_bit LENGTH('b) (NOT (signed w))\<close>
   for w :: \<open>'b::len word\<close>
-  by (simp add: bit_eq_iff bit_simps possible_bit_min possible_bit_less_imp min_less_iff_disj)
+  by (simp add: bit_eq_iff bit_simps possible_bit_less_imp min_less_iff_disj)
     (auto simp: min_def)
 
 lemma signed_and_eq:
@@ -1359,7 +1364,7 @@ begin
 lemma signed_ucast_eq:
   \<open>signed (ucast w :: 'c::len word) = signed_take_bit (LENGTH('c) - Suc 0) (unsigned w)\<close>
   for w :: \<open>'b::len word\<close>
-  by (simp add: bit_eq_iff bit_simps possible_bit_min min_less_iff_disj)
+  by (simp add: bit_eq_iff bit_simps min_less_iff_disj)
 
 lemma signed_scast_eq:
   \<open>signed (scast w :: 'c::len word) = signed_take_bit (LENGTH('c) - Suc 0) (signed w)\<close>
@@ -1536,6 +1541,58 @@ translations
 
 subsection \<open>Arithmetic operations\<close>
 
+lemma div_word_self:
+  \<open>w div w = 1\<close> if \<open>w \<noteq> 0\<close> for w :: \<open>'a::len word\<close>
+  using that by transfer simp
+
+lemma mod_word_self [simp]:
+  \<open>w mod w = 0\<close> for w :: \<open>'a::len word\<close>
+  apply (cases \<open>w = 0\<close>)
+  apply auto
+  using div_mult_mod_eq [of w w] by (simp add: div_word_self)
+
+lemma div_word_less:
+  \<open>w div v = 0\<close> if \<open>w < v\<close> for w v :: \<open>'a::len word\<close>
+  using that by transfer simp
+
+lemma mod_word_less:
+  \<open>w mod v = w\<close> if \<open>w < v\<close> for w v :: \<open>'a::len word\<close>
+  using div_mult_mod_eq [of w v] using that by (simp add: div_word_less)
+
+lemma div_word_one [simp]:
+  \<open>1 div w = of_bool (w = 1)\<close> for w :: \<open>'a::len word\<close>
+proof transfer
+  fix k :: int
+  show \<open>take_bit LENGTH('a) (take_bit LENGTH('a) 1 div take_bit LENGTH('a) k) =
+         take_bit LENGTH('a) (of_bool (take_bit LENGTH('a) k = take_bit LENGTH('a) 1))\<close>
+  proof (cases \<open>take_bit LENGTH('a) k > 1\<close>)
+    case False
+    with take_bit_nonnegative [of \<open>LENGTH('a)\<close> k]
+    have \<open>take_bit LENGTH('a) k = 0 \<or> take_bit LENGTH('a) k = 1\<close>
+      by linarith
+    then show ?thesis
+      by auto
+  next
+    case True
+    then show ?thesis
+      by simp
+  qed
+qed
+
+lemma mod_word_one [simp]:
+  \<open>1 mod w = 1 - w * of_bool (w = 1)\<close> for w :: \<open>'a::len word\<close>
+  using div_mult_mod_eq [of 1 w] by simp
+
+lemma div_word_by_minus_1_eq [simp]:
+  \<open>w div - 1 = of_bool (w = - 1)\<close> for w :: \<open>'a::len word\<close>
+  by (auto intro: div_word_less simp add: div_word_self word_order.not_eq_extremum)
+
+lemma mod_word_by_minus_1_eq [simp]:
+  \<open>w mod - 1 = w * of_bool (w < - 1)\<close> for w :: \<open>'a::len word\<close>
+  apply (cases \<open>w = - 1\<close>)
+   apply (auto simp add: word_order.not_eq_extremum)
+  using div_mult_mod_eq [of w \<open>- 1\<close>] by simp
+
 text \<open>Legacy theorems:\<close>
 
 lemma word_add_def [code]:
@@ -1664,7 +1721,7 @@ lemma word_zero_le [simp]: "0 \<le> y"
   by (fact word_coorder.extremum)
 
 lemma word_m1_ge [simp] : "word_pred 0 \<ge> y" (* FIXME: delete *)
-  by transfer (simp add: take_bit_minus_one_eq_mask mask_eq_exp_minus_1 )
+  by transfer (simp add: mask_eq_exp_minus_1)
 
 lemma word_n1_ge [simp]: "y \<le> -1"
   for y :: "'a::len word"
@@ -2217,6 +2274,11 @@ lemma sint_below_size: "x \<le> - (2 ^ (size w - 1)) \<Longrightarrow> x \<le> s
   for w :: "'a::len word"
   unfolding word_size by (rule order_trans [OF _ sint_ge])
 
+lemma word_unat_eq_iff:
+  \<open>v = w \<longleftrightarrow> unat v = unat w\<close>
+  for v w :: \<open>'a::len word\<close>
+  by (fact word_eq_iff_unsigned)
+
 
 subsection \<open>Testing bits\<close>
 
@@ -2415,8 +2477,122 @@ proof (cases \<open>LENGTH('a)\<close>)
     by (simp add: bit_iff_odd_drop_bit drop_bit_take_bit odd_iff_mod_2_eq_one)
 qed auto
 
+lemma unat_div:
+  \<open>unat (x div y) = unat x div unat y\<close>
+  by (fact unat_div_distrib)
+
+lemma unat_mod:
+  \<open>unat (x mod y) = unat x mod unat y\<close>
+  by (fact unat_mod_distrib)
+
 
 subsection \<open>Word Arithmetic\<close>
+
+lemmas less_eq_word_numeral_numeral [simp] =
+  word_le_def [of \<open>numeral a\<close> \<open>numeral b\<close>, simplified uint_bintrunc uint_bintrunc_neg unsigned_minus_1_eq_mask mask_eq_exp_minus_1]
+  for a b
+lemmas less_word_numeral_numeral [simp] =
+  word_less_def [of \<open>numeral a\<close> \<open>numeral b\<close>, simplified uint_bintrunc uint_bintrunc_neg unsigned_minus_1_eq_mask mask_eq_exp_minus_1]
+  for a b
+lemmas less_eq_word_minus_numeral_numeral [simp] =
+  word_le_def [of \<open>- numeral a\<close> \<open>numeral b\<close>, simplified uint_bintrunc uint_bintrunc_neg unsigned_minus_1_eq_mask mask_eq_exp_minus_1]
+  for a b
+lemmas less_word_minus_numeral_numeral [simp] =
+  word_less_def [of \<open>- numeral a\<close> \<open>numeral b\<close>, simplified uint_bintrunc uint_bintrunc_neg unsigned_minus_1_eq_mask mask_eq_exp_minus_1]
+  for a b
+lemmas less_eq_word_numeral_minus_numeral [simp] =
+  word_le_def [of \<open>numeral a\<close> \<open>- numeral b\<close>, simplified uint_bintrunc uint_bintrunc_neg unsigned_minus_1_eq_mask mask_eq_exp_minus_1]
+  for a b
+lemmas less_word_numeral_minus_numeral [simp] =
+  word_less_def [of \<open>numeral a\<close> \<open>- numeral b\<close>, simplified uint_bintrunc uint_bintrunc_neg unsigned_minus_1_eq_mask mask_eq_exp_minus_1]
+  for a b
+lemmas less_eq_word_minus_numeral_minus_numeral [simp] =
+  word_le_def [of \<open>- numeral a\<close> \<open>- numeral b\<close>, simplified uint_bintrunc uint_bintrunc_neg unsigned_minus_1_eq_mask mask_eq_exp_minus_1]
+  for a b
+lemmas less_word_minus_numeral_minus_numeral [simp] =
+  word_less_def [of \<open>- numeral a\<close> \<open>- numeral b\<close>, simplified uint_bintrunc uint_bintrunc_neg unsigned_minus_1_eq_mask mask_eq_exp_minus_1]
+  for a b
+lemmas less_word_numeral_minus_1 [simp] =
+  word_less_def [of \<open>numeral a\<close> \<open>- 1\<close>, simplified uint_bintrunc uint_bintrunc_neg unsigned_minus_1_eq_mask mask_eq_exp_minus_1]
+  for a b
+lemmas less_word_minus_numeral_minus_1 [simp] =
+  word_less_def [of \<open>- numeral a\<close> \<open>- 1\<close>, simplified uint_bintrunc uint_bintrunc_neg unsigned_minus_1_eq_mask mask_eq_exp_minus_1]
+  for a b
+
+lemmas sless_eq_word_numeral_numeral [simp] =
+  word_sle_eq [of \<open>numeral a\<close> \<open>numeral b\<close>, simplified sint_sbintrunc sint_sbintrunc_neg]
+  for a b
+lemmas sless_word_numeral_numeral [simp] =
+  word_sless_alt [of \<open>numeral a\<close> \<open>numeral b\<close>, simplified sint_sbintrunc sint_sbintrunc_neg]
+  for a b
+lemmas sless_eq_word_minus_numeral_numeral [simp] =
+  word_sle_eq [of \<open>- numeral a\<close> \<open>numeral b\<close>, simplified sint_sbintrunc sint_sbintrunc_neg]
+  for a b
+lemmas sless_word_minus_numeral_numeral [simp] =
+  word_sless_alt [of \<open>- numeral a\<close> \<open>numeral b\<close>, simplified sint_sbintrunc sint_sbintrunc_neg]
+  for a b
+lemmas sless_eq_word_numeral_minus_numeral [simp] =
+  word_sle_eq [of \<open>numeral a\<close> \<open>- numeral b\<close>, simplified sint_sbintrunc sint_sbintrunc_neg]
+  for a b
+lemmas sless_word_numeral_minus_numeral [simp] =
+  word_sless_alt [of \<open>numeral a\<close> \<open>- numeral b\<close>, simplified sint_sbintrunc sint_sbintrunc_neg]
+  for a b
+lemmas sless_eq_word_minus_numeral_minus_numeral [simp] =
+  word_sle_eq [of \<open>- numeral a\<close> \<open>- numeral b\<close>, simplified sint_sbintrunc sint_sbintrunc_neg]
+  for a b
+lemmas sless_word_minus_numeral_minus_numeral [simp] =
+  word_sless_alt [of \<open>- numeral a\<close> \<open>- numeral b\<close>, simplified sint_sbintrunc sint_sbintrunc_neg]
+  for a b
+
+lemmas div_word_numeral_numeral [simp] =
+  word_div_def [of \<open>numeral a\<close> \<open>numeral b\<close>, simplified uint_bintrunc uint_bintrunc_neg unsigned_minus_1_eq_mask mask_eq_exp_minus_1]
+  for a b
+lemmas div_word_minus_numeral_numeral [simp] =
+  word_div_def [of \<open>- numeral a\<close> \<open>numeral b\<close>, simplified uint_bintrunc uint_bintrunc_neg unsigned_minus_1_eq_mask mask_eq_exp_minus_1]
+  for a b
+lemmas div_word_numeral_minus_numeral [simp] =
+  word_div_def [of \<open>numeral a\<close> \<open>- numeral b\<close>, simplified uint_bintrunc uint_bintrunc_neg unsigned_minus_1_eq_mask mask_eq_exp_minus_1]
+  for a b
+lemmas div_word_minus_numeral_minus_numeral [simp] =
+  word_div_def [of \<open>- numeral a\<close> \<open>- numeral b\<close>, simplified uint_bintrunc uint_bintrunc_neg unsigned_minus_1_eq_mask mask_eq_exp_minus_1]
+  for a b
+lemmas div_word_minus_1_numeral [simp] =
+  word_div_def [of \<open>- 1\<close> \<open>numeral b\<close>, simplified uint_bintrunc uint_bintrunc_neg unsigned_minus_1_eq_mask mask_eq_exp_minus_1]
+  for a b
+lemmas div_word_minus_1_minus_numeral [simp] =
+  word_div_def [of \<open>- 1\<close> \<open>- numeral b\<close>, simplified uint_bintrunc uint_bintrunc_neg unsigned_minus_1_eq_mask mask_eq_exp_minus_1]
+  for a b
+
+lemmas mod_word_numeral_numeral [simp] =
+  word_mod_def [of \<open>numeral a\<close> \<open>numeral b\<close>, simplified uint_bintrunc uint_bintrunc_neg unsigned_minus_1_eq_mask mask_eq_exp_minus_1]
+  for a b
+lemmas mod_word_minus_numeral_numeral [simp] =
+  word_mod_def [of \<open>- numeral a\<close> \<open>numeral b\<close>, simplified uint_bintrunc uint_bintrunc_neg unsigned_minus_1_eq_mask mask_eq_exp_minus_1]
+  for a b
+lemmas mod_word_numeral_minus_numeral [simp] =
+  word_mod_def [of \<open>numeral a\<close> \<open>- numeral b\<close>, simplified uint_bintrunc uint_bintrunc_neg unsigned_minus_1_eq_mask mask_eq_exp_minus_1]
+  for a b
+lemmas mod_word_minus_numeral_minus_numeral [simp] =
+  word_mod_def [of \<open>- numeral a\<close> \<open>- numeral b\<close>, simplified uint_bintrunc uint_bintrunc_neg unsigned_minus_1_eq_mask mask_eq_exp_minus_1]
+  for a b
+lemmas mod_word_minus_1_numeral [simp] =
+  word_mod_def [of \<open>- 1\<close> \<open>numeral b\<close>, simplified uint_bintrunc uint_bintrunc_neg unsigned_minus_1_eq_mask mask_eq_exp_minus_1]
+  for a b
+lemmas mod_word_minus_1_minus_numeral [simp] =
+  word_mod_def [of \<open>- 1\<close> \<open>- numeral b\<close>, simplified uint_bintrunc uint_bintrunc_neg unsigned_minus_1_eq_mask mask_eq_exp_minus_1]
+  for a b
+
+lemma signed_drop_bit_of_1 [simp]:
+  \<open>signed_drop_bit n (1 :: 'a::len word) = of_bool (LENGTH('a) = 1 \<or> n = 0)\<close>
+  apply (transfer fixing: n)
+  apply (cases \<open>LENGTH('a)\<close>)
+   apply (auto simp add: take_bit_signed_take_bit)
+  apply (auto simp add: take_bit_drop_bit gr0_conv_Suc simp flip: take_bit_eq_self_iff_drop_bit_eq_0)
+  done
+
+lemma take_bit_word_beyond_length_eq:
+  \<open>take_bit n w = w\<close> if \<open>LENGTH('a) \<le> n\<close> for w :: \<open>'a::len word\<close>
+  using that by transfer simp
 
 lemmas word_div_no [simp] = word_div_def [of "numeral a" "numeral b"] for a b
 lemmas word_mod_no [simp] = word_mod_def [of "numeral a" "numeral b"] for a b
@@ -2433,6 +2609,52 @@ lemmas size_0_same = size_0_same' [unfolded word_size]
 
 lemmas unat_eq_0 = unat_0_iff
 lemmas unat_eq_zero = unat_0_iff
+
+lemma mask_1: "mask 1 = 1"
+  by simp
+
+lemma mask_Suc_0: "mask (Suc 0) = 1"
+  by simp
+
+lemma bin_last_bintrunc: "odd (take_bit l n) \<longleftrightarrow> l > 0 \<and> odd n"
+  by simp
+
+lemma push_bit_word_beyond [simp]:
+  \<open>push_bit n w = 0\<close> if \<open>LENGTH('a) \<le> n\<close> for w :: \<open>'a::len word\<close>
+  using that by (transfer fixing: n) (simp add: take_bit_push_bit)
+
+lemma drop_bit_word_beyond [simp]:
+  \<open>drop_bit n w = 0\<close> if \<open>LENGTH('a) \<le> n\<close> for w :: \<open>'a::len word\<close>
+  using that by (transfer fixing: n) (simp add: drop_bit_take_bit)
+
+lemma signed_drop_bit_beyond:
+  \<open>signed_drop_bit n w = (if bit w (LENGTH('a) - Suc 0) then - 1 else 0)\<close>
+  if \<open>LENGTH('a) \<le> n\<close> for w :: \<open>'a::len word\<close>
+  by (rule bit_word_eqI) (simp add: bit_signed_drop_bit_iff that)
+
+lemma take_bit_numeral_minus_numeral_word [simp]:
+  \<open>take_bit (numeral m) (- numeral n :: 'a::len word) =
+    (case take_bit_num (numeral m) n of None \<Rightarrow> 0 | Some q \<Rightarrow> take_bit (numeral m) (2 ^ numeral m - numeral q))\<close> (is \<open>?lhs = ?rhs\<close>)
+proof (cases \<open>LENGTH('a) \<le> numeral m\<close>)
+  case True
+  then have *: \<open>(take_bit (numeral m) :: 'a word \<Rightarrow> 'a word) = id\<close>
+    by (simp add: fun_eq_iff take_bit_word_eq_self)
+  have **: \<open>2 ^ numeral m = (0 :: 'a word)\<close>
+    using True by (simp flip: exp_eq_zero_iff)
+  show ?thesis
+    by (auto simp only: * ** split: option.split
+      dest!: take_bit_num_eq_None_imp [where ?'a = \<open>'a word\<close>] take_bit_num_eq_Some_imp [where ?'a = \<open>'a word\<close>])
+      simp_all
+next
+  case False
+  then show ?thesis
+    by (transfer fixing: m n) simp
+qed
+
+lemma of_nat_inverse:
+  \<open>word_of_nat r = a \<Longrightarrow> r < 2 ^ LENGTH('a) \<Longrightarrow> unat a = r\<close>
+  for a :: \<open>'a::len word\<close>
+  by (metis id_apply of_nat_eq_id take_bit_nat_eq_self_iff unsigned_of_nat)
 
 
 subsection \<open>Transferring goals from words to ints\<close>
@@ -2715,13 +2937,53 @@ lemma uint_sub_if':
   for a b :: "'a::len word"
   using mod_sub_if_z [of "uint a" _ "uint b"] by (simp add: uint_word_ariths)
 
-
-subsection \<open>Definition of \<open>uint_arith\<close>\<close>
-
 lemma word_of_int_inverse:
   "word_of_int r = a \<Longrightarrow> 0 \<le> r \<Longrightarrow> r < 2 ^ LENGTH('a) \<Longrightarrow> uint a = r"
   for a :: "'a::len word"
   by transfer (simp add: take_bit_int_eq_self)
+
+lemma unat_split: "P (unat x) \<longleftrightarrow> (\<forall>n. of_nat n = x \<and> n < 2^LENGTH('a) \<longrightarrow> P n)"
+  for x :: "'a::len word"
+  by (auto simp add: unsigned_of_nat take_bit_nat_eq_self)
+
+lemma unat_split_asm: "P (unat x) \<longleftrightarrow> (\<nexists>n. of_nat n = x \<and> n < 2^LENGTH('a) \<and> \<not> P n)"
+  for x :: "'a::len word"
+  by (auto simp add: unsigned_of_nat take_bit_nat_eq_self)
+
+lemma un_ui_le:
+  \<open>unat a \<le> unat b \<longleftrightarrow> uint a \<le> uint b\<close>
+  by transfer (simp add: nat_le_iff) 
+
+lemma unat_plus_if':
+  \<open>unat (a + b) =
+    (if unat a + unat b < 2 ^ LENGTH('a)
+    then unat a + unat b
+    else unat a + unat b - 2 ^ LENGTH('a))\<close> for a b :: \<open>'a::len word\<close>
+  apply (auto simp add: not_less le_iff_add)
+   apply (metis (mono_tags, lifting) of_nat_add of_nat_unat take_bit_nat_eq_self_iff unsigned_less unsigned_of_nat unsigned_word_eqI)
+  apply (smt (verit, ccfv_SIG) dbl_simps(3) dbl_simps(5) numerals(1) of_nat_0_le_iff of_nat_add of_nat_eq_iff of_nat_numeral of_nat_power of_nat_unat uint_plus_if' unsigned_1)
+  done
+
+lemma unat_sub_if_size:
+  "unat (x - y) =
+    (if unat y \<le> unat x
+     then unat x - unat y
+     else unat x + 2 ^ size x - unat y)"
+proof -
+  { assume xy: "\<not> uint y \<le> uint x"
+    have "nat (uint x - uint y + 2 ^ LENGTH('a)) = nat (uint x + 2 ^ LENGTH('a) - uint y)"
+      by simp
+    also have "... = nat (uint x + 2 ^ LENGTH('a)) - nat (uint y)"
+      by (simp add: nat_diff_distrib')
+    also have "... = nat (uint x) + 2 ^ LENGTH('a) - nat (uint y)"
+      by (metis nat_add_distrib nat_eq_numeral_power_cancel_iff order_less_imp_le unsigned_0 unsigned_greater_eq unsigned_less)
+    finally have "nat (uint x - uint y + 2 ^ LENGTH('a)) = nat (uint x) + 2 ^ LENGTH('a) - nat (uint y)" .
+  }
+  then show ?thesis
+    by (simp add: word_size) (metis nat_diff_distrib' uint_sub_if' un_ui_le unat_eq_nat_uint unsigned_greater_eq)
+qed
+
+lemmas unat_sub_if' = unat_sub_if_size [unfolded word_size]
 
 lemma uint_split:
   "P (uint x) = (\<forall>i. word_of_int i = x \<and> 0 \<le> i \<and> i < 2^LENGTH('a) \<longrightarrow> P i)"
@@ -2733,6 +2995,20 @@ lemma uint_split_asm:
   for x :: "'a::len word"
   by (auto simp add: unsigned_of_int take_bit_int_eq_self)
 
+
+subsection \<open>Some proof tool support\<close>
+
+\<comment> \<open>use this to stop, eg. \<open>2 ^ LENGTH(32)\<close> being simplified\<close>
+lemma power_False_cong: "False \<Longrightarrow> a ^ b = c ^ d"
+  by auto
+
+lemmas unat_splits = unat_split unat_split_asm
+
+lemmas unat_arith_simps =
+  word_le_nat_alt word_less_nat_alt
+  word_unat_eq_iff
+  unat_sub_if' unat_plus_if' unat_div unat_mod
+
 lemmas uint_splits = uint_split uint_split_asm
 
 lemmas uint_arith_simps =
@@ -2740,14 +3016,45 @@ lemmas uint_arith_simps =
   word_uint_eq_iff
   uint_sub_if' uint_plus_if'
 
-\<comment> \<open>use this to stop, eg. \<open>2 ^ LENGTH(32)\<close> being simplified\<close>
-lemma power_False_cong: "False \<Longrightarrow> a ^ b = c ^ d"
-  by auto
+\<comment> \<open>\<open>unat_arith_tac\<close>: tactic to reduce word arithmetic to \<open>nat\<close>, try to solve via \<open>arith\<close>\<close>
+ML \<open>
+val unat_arith_simpset =
+  @{context} (* TODO: completely explicitly determined simpset *)
+  |> fold Simplifier.add_simp @{thms unat_arith_simps}
+  |> fold Splitter.add_split @{thms if_split_asm}
+  |> fold Simplifier.add_cong @{thms power_False_cong}
+  |> simpset_of
+
+fun unat_arith_tacs ctxt =
+  let
+    fun arith_tac' n t =
+      Arith_Data.arith_tac ctxt n t
+        handle Cooper.COOPER _ => Seq.empty;
+  in
+    [ clarify_tac ctxt 1,
+      full_simp_tac (put_simpset unat_arith_simpset ctxt) 1,
+      ALLGOALS (full_simp_tac
+        (put_simpset HOL_ss ctxt
+          |> fold Splitter.add_split @{thms unat_splits}
+          |> fold Simplifier.add_cong @{thms power_False_cong})),
+      rewrite_goals_tac ctxt @{thms word_size},
+      ALLGOALS (fn n => REPEAT (resolve_tac ctxt [allI, impI] n) THEN
+                         REPEAT (eresolve_tac ctxt [conjE] n) THEN
+                         REPEAT (dresolve_tac ctxt @{thms of_nat_inverse} n THEN assume_tac ctxt n)),
+      TRYALL arith_tac' ]
+  end
+
+fun unat_arith_tac ctxt = SELECT_GOAL (EVERY (unat_arith_tacs ctxt))
+\<close>
+
+method_setup unat_arith =
+  \<open>Scan.succeed (SIMPLE_METHOD' o unat_arith_tac)\<close>
+  "solving word arithmetic via natural numbers and arith"
 
 \<comment> \<open>\<open>uint_arith_tac\<close>: reduce to arithmetic on int, try to solve by arith\<close>
 ML \<open>
 val uint_arith_simpset =
-  @{context}
+  @{context} (* TODO: completely explicitly determined simpset *)
   |> fold Simplifier.add_simp @{thms uint_arith_simps}
   |> fold Splitter.add_split @{thms if_split_asm}
   |> fold Simplifier.add_cong @{thms power_False_cong}
@@ -2786,13 +3093,13 @@ subsection \<open>More on overflows and monotonicity\<close>
 
 lemma no_plus_overflow_uint_size: "x \<le> x + y \<longleftrightarrow> uint x + uint y < 2 ^ size x"
   for x y :: "'a::len word"
-  unfolding word_size by uint_arith
+  by (auto simp add: word_size word_le_def uint_add_lem uint_sub_lem)
 
 lemmas no_olen_add = no_plus_overflow_uint_size [unfolded word_size]
 
 lemma no_ulen_sub: "x \<ge> x - y \<longleftrightarrow> uint y \<le> uint x"
   for x y :: "'a::len word"
-  by uint_arith
+  by (auto simp add: word_size word_le_def uint_add_lem uint_sub_lem)
 
 lemma no_olen_add': "x \<le> y + x \<longleftrightarrow> uint y + uint x < 2 ^ LENGTH('a)"
   for x y :: "'a::len word"
@@ -2809,19 +3116,20 @@ lemmas word_sub_le = word_sub_le_iff [THEN iffD2]
 
 lemma word_less_sub1: "x \<noteq> 0 \<Longrightarrow> 1 < x \<longleftrightarrow> 0 < x - 1"
   for x :: "'a::len word"
-  by uint_arith
+  by transfer (simp add: take_bit_decr_eq) 
 
 lemma word_le_sub1: "x \<noteq> 0 \<Longrightarrow> 1 \<le> x \<longleftrightarrow> 0 \<le> x - 1"
   for x :: "'a::len word"
-  by uint_arith
+  by transfer (simp add: int_one_le_iff_zero_less less_le)
 
 lemma sub_wrap_lt: "x < x - z \<longleftrightarrow> x < z"
   for x z :: "'a::len word"
-  by uint_arith
-
+  by (simp add: word_less_def uint_sub_lem)
+   (meson linorder_not_le uint_minus_simple_iff uint_sub_lem word_less_iff_unsigned)
+  
 lemma sub_wrap: "x \<le> x - z \<longleftrightarrow> z = 0 \<or> x < z"
   for x z :: "'a::len word"
-  by uint_arith
+  by (simp add: le_less sub_wrap_lt ac_simps)
 
 lemma plus_minus_not_NULL_ab: "x \<le> ab - c \<Longrightarrow> c \<le> ab \<Longrightarrow> c \<noteq> 0 \<Longrightarrow> x + c \<noteq> 0"
   for x ab c :: "'a::len word"
@@ -3059,123 +3367,18 @@ lemma unat_mult_lem:
   for x y :: "'a::len word"
   by (metis mod_less unat_word_ariths(2) unsigned_less)
 
-lemma unat_plus_if':
-  \<open>unat (a + b) =
-    (if unat a + unat b < 2 ^ LENGTH('a)
-    then unat a + unat b
-    else unat a + unat b - 2 ^ LENGTH('a))\<close> for a b :: \<open>'a::len word\<close>
-  apply (auto simp: unat_word_ariths not_less le_iff_add)
-  by (metis add.commute add_less_cancel_right add_strict_mono mod_less unsigned_less)
-
 lemma le_no_overflow: "x \<le> b \<Longrightarrow> a \<le> a + b \<Longrightarrow> x \<le> a + b"
   for a b x :: "'a::len word"
   using word_le_plus_either by blast
-
-lemmas un_ui_le =
-  trans [OF word_le_nat_alt [symmetric] word_le_def]
-
-lemma unat_sub_if_size:
-  "unat (x - y) =
-    (if unat y \<le> unat x
-     then unat x - unat y
-     else unat x + 2 ^ size x - unat y)"
-proof -
-  { assume xy: "\<not> uint y \<le> uint x"
-    have "nat (uint x - uint y + 2 ^ LENGTH('a)) = nat (uint x + 2 ^ LENGTH('a) - uint y)"
-      by simp
-    also have "... = nat (uint x + 2 ^ LENGTH('a)) - nat (uint y)"
-      by (simp add: nat_diff_distrib')
-    also have "... = nat (uint x) + 2 ^ LENGTH('a) - nat (uint y)"
-      by (metis nat_add_distrib nat_eq_numeral_power_cancel_iff order_less_imp_le unsigned_0 unsigned_greater_eq unsigned_less)
-    finally have "nat (uint x - uint y + 2 ^ LENGTH('a)) = nat (uint x) + 2 ^ LENGTH('a) - nat (uint y)" .
-  }
-  then show ?thesis
-  unfolding word_size
-  by (metis nat_diff_distrib' uint_sub_if' un_ui_le unat_eq_nat_uint unsigned_greater_eq)
-qed
-
-lemmas unat_sub_if' = unat_sub_if_size [unfolded word_size]
 
 lemma uint_div:
   \<open>uint (x div y) = uint x div uint y\<close>
   by (fact uint_div_distrib)
 
-lemma unat_div:
-  \<open>unat (x div y) = unat x div unat y\<close>
-  by (fact unat_div_distrib)
-
 lemma uint_mod:
   \<open>uint (x mod y) = uint x mod uint y\<close>
   by (fact uint_mod_distrib)
   
-lemma unat_mod:
-  \<open>unat (x mod y) = unat x mod unat y\<close>
-  by (fact unat_mod_distrib)
-
-
-text \<open>Definition of \<open>unat_arith\<close> tactic\<close>
-
-lemma unat_split: "P (unat x) \<longleftrightarrow> (\<forall>n. of_nat n = x \<and> n < 2^LENGTH('a) \<longrightarrow> P n)"
-  for x :: "'a::len word"
-  by (auto simp add: unsigned_of_nat take_bit_nat_eq_self)
-
-lemma unat_split_asm: "P (unat x) \<longleftrightarrow> (\<nexists>n. of_nat n = x \<and> n < 2^LENGTH('a) \<and> \<not> P n)"
-  for x :: "'a::len word"
-  by (auto simp add: unsigned_of_nat take_bit_nat_eq_self)
-
-lemma of_nat_inverse:
-  \<open>word_of_nat r = a \<Longrightarrow> r < 2 ^ LENGTH('a) \<Longrightarrow> unat a = r\<close>
-  for a :: \<open>'a::len word\<close>
-  by (metis mod_if unat_of_nat)
-
-lemma word_unat_eq_iff:
-  \<open>v = w \<longleftrightarrow> unat v = unat w\<close>
-  for v w :: \<open>'a::len word\<close>
-  by (fact word_eq_iff_unsigned)
-
-lemmas unat_splits = unat_split unat_split_asm
-
-lemmas unat_arith_simps =
-  word_le_nat_alt word_less_nat_alt
-  word_unat_eq_iff
-  unat_sub_if' unat_plus_if' unat_div unat_mod
-
-\<comment> \<open>\<open>unat_arith_tac\<close>: tactic to reduce word arithmetic to \<open>nat\<close>, try to solve via \<open>arith\<close>\<close>
-ML \<open>
-val unat_arith_simpset =
-  @{context} (* TODO: completely explicitly determined simpset *)
-  |> fold Simplifier.del_simp @{thms unsigned_of_nat unsigned_of_int}
-  |> fold Simplifier.add_simp @{thms unat_arith_simps}
-  |> fold Splitter.add_split @{thms if_split_asm}
-  |> fold Simplifier.add_cong @{thms power_False_cong}
-  |> simpset_of
-
-fun unat_arith_tacs ctxt =
-  let
-    fun arith_tac' n t =
-      Arith_Data.arith_tac ctxt n t
-        handle Cooper.COOPER _ => Seq.empty;
-  in
-    [ clarify_tac ctxt 1,
-      full_simp_tac (put_simpset unat_arith_simpset ctxt) 1,
-      ALLGOALS (full_simp_tac
-        (put_simpset HOL_ss ctxt
-          |> fold Splitter.add_split @{thms unat_splits}
-          |> fold Simplifier.add_cong @{thms power_False_cong})),
-      rewrite_goals_tac ctxt @{thms word_size},
-      ALLGOALS (fn n => REPEAT (resolve_tac ctxt [allI, impI] n) THEN
-                         REPEAT (eresolve_tac ctxt [conjE] n) THEN
-                         REPEAT (dresolve_tac ctxt @{thms of_nat_inverse} n THEN assume_tac ctxt n)),
-      TRYALL arith_tac' ]
-  end
-
-fun unat_arith_tac ctxt = SELECT_GOAL (EVERY (unat_arith_tacs ctxt))
-\<close>
-
-method_setup unat_arith =
-  \<open>Scan.succeed (SIMPLE_METHOD' o unat_arith_tac)\<close>
-  "solving word arithmetic via natural numbers and arith"
-
 lemma no_plus_overflow_unat_size: "x \<le> x + y \<longleftrightarrow> unat x + unat y < 2 ^ size x"
   for x y :: "'a::len word"
   unfolding word_size by unat_arith
@@ -3641,7 +3844,7 @@ qualified lemma bit_mask_iff [bit_simps]:
 end
 
 lemma mask_bin: "mask n = word_of_int (take_bit n (- 1))"
-  by transfer (simp add: take_bit_minus_one_eq_mask) 
+  by transfer simp 
 
 lemma and_mask_bintr: "w AND mask n = word_of_int (take_bit n (uint w))"
   by transfer (simp add: ac_simps take_bit_eq_mask)
@@ -3723,7 +3926,7 @@ lemma mask_power_eq: "(x AND mask n) ^ k AND mask n = x ^ k AND mask n"
   by (transfer; simp add: take_bit_eq_mod mod_simps)+
 
 lemma mask_full [simp]: "mask LENGTH('a) = (- 1 :: 'a::len word)"
-  by transfer (simp add: take_bit_minus_one_eq_mask)
+  by transfer simp
 
 
 subsubsection \<open>Slices\<close>
@@ -4266,36 +4469,10 @@ proof -
   finally show ?thesis .
 qed
 
-
-subsection \<open>More\<close>
-
-lemma mask_1: "mask 1 = 1"
-  by simp
-
-lemma mask_Suc_0: "mask (Suc 0) = 1"
-  by simp
-
-lemma bin_last_bintrunc: "odd (take_bit l n) \<longleftrightarrow> l > 0 \<and> odd n"
-  by simp
-
-
-lemma push_bit_word_beyond [simp]:
-  \<open>push_bit n w = 0\<close> if \<open>LENGTH('a) \<le> n\<close> for w :: \<open>'a::len word\<close>
-  using that by (transfer fixing: n) (simp add: take_bit_push_bit)
-
-lemma drop_bit_word_beyond [simp]:
-  \<open>drop_bit n w = 0\<close> if \<open>LENGTH('a) \<le> n\<close> for w :: \<open>'a::len word\<close>
-  using that by (transfer fixing: n) (simp add: drop_bit_take_bit)
-
-lemma signed_drop_bit_beyond:
-  \<open>signed_drop_bit n w = (if bit w (LENGTH('a) - Suc 0) then - 1 else 0)\<close>
-  if \<open>LENGTH('a) \<le> n\<close> for w :: \<open>'a::len word\<close>
-  by (rule bit_word_eqI) (simp add: bit_signed_drop_bit_iff that)
-
 end
 
 
-subsection \<open>SMT support\<close>
+subsection \<open>Tool support\<close>
 
 ML_file \<open>Tools/smt_word.ML\<close>
 
