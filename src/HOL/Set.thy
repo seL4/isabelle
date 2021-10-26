@@ -973,6 +973,9 @@ lemma rangeI: "f x \<in> range f"
 lemma rangeE [elim?]: "b \<in> range (\<lambda>x. f x) \<Longrightarrow> (\<And>x. b = f x \<Longrightarrow> P) \<Longrightarrow> P"
   by (rule imageE)
 
+lemma range_subsetD: "range f \<subseteq> B \<Longrightarrow> f i \<in> B"
+  by blast
+
 lemma full_SetCompr_eq: "{u. \<exists>x. u = f x} = range f"
   by auto
 
@@ -1569,6 +1572,12 @@ lemma Pow_Int_eq [simp]: "Pow (A \<inter> B) = Pow A \<inter> Pow B"
 
 
 text \<open>\<^medskip> Miscellany.\<close>
+
+lemma Int_Diff_disjoint: "A \<inter> B \<inter> (A - B) = {}"
+  by blast
+
+lemma Int_Diff_Un: "A \<inter> B \<union> (A - B) = A"
+  by blast
 
 lemma set_eq_subset: "A = B \<longleftrightarrow> A \<subseteq> B \<and> B \<subseteq> A"
   by blast
