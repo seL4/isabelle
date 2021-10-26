@@ -339,6 +339,7 @@ subsection "Miscellaneous tools and packages for Pure Isabelle";
 
 ML_file "ML/ml_pp.ML";
 ML_file "ML/ml_thms.ML";
+ML_file "ML/ml_instantiate.ML";
 ML_file "ML/ml_file.ML";
 
 ML_file "Tools/build.ML";

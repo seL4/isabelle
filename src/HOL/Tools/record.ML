@@ -2117,16 +2117,17 @@ fun definition overloaded (alphas, binding) parent (parents: parent_info list) r
     (* 3rd stage: thms_thy *)
 
     val record_ss = get_simpset defs_thy;
-    fun sel_upd_ctxt ctxt' =
-      put_simpset record_ss ctxt'
-        addsimps (sel_defs @ accessor_thms @ upd_defs @ updator_thms);
+    val sel_upd_ss =
+      simpset_of
+        (put_simpset record_ss defs_ctxt
+          addsimps (sel_defs @ accessor_thms @ upd_defs @ updator_thms));
 
     val (sel_convs, upd_convs) =
       timeit_msg defs_ctxt "record sel_convs/upd_convs proof:" (fn () =>
         grouped 10 Par_List.map (fn prop =>
             Goal.prove_sorry_global defs_thy [] [] prop
               (fn {context = ctxt', ...} =>
-                ALLGOALS (asm_full_simp_tac (sel_upd_ctxt ctxt'))))
+                ALLGOALS (asm_full_simp_tac (put_simpset sel_upd_ss ctxt'))))
           (sel_conv_props @ upd_conv_props))
       |> chop (length sel_conv_props);
 
