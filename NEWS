@@ -287,6 +287,8 @@ HOL-Library.
 * Theory "HOL-Combinatorics.Transposition" provides elementary swap
 operation "transpose".
 
+* Session "HOL-Statespace": various improvements and cleanup.
+
 
 *** ML ***
 

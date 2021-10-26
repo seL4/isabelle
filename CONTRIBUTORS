@@ -22,6 +22,9 @@ Contributions to Isabelle2021-1
   complex numbers (theory HOL-Library.Complex_Order), and products of uniform
   spaces (theory HOL-Analysis.Product_Vector).
 
+* November 2020 / July 2021: Norbert Schirmer, Apple
+  Various improvements and cleanup of session "HOL-Statespace".
+
 * July 2021: Florian Haftmann
   Further consolidation of bit operations and word types.
 
