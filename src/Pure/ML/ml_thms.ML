@@ -102,7 +102,7 @@ val _ = Theory.setup
         val thms =
           Proof_Context.get_fact ctxt'
             (Facts.named (Proof_Context.full_name ctxt' (Binding.name Auto_Bind.thisN)));
-      in thm_binding "lemma" (length (flat propss) = 1) thms ctxt end));
+      in thm_binding "lemma" (length thms = 1) thms ctxt end));
 
 
 (* old-style theorem bindings *)
