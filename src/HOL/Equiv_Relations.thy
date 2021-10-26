@@ -82,6 +82,9 @@ lemma equiv_class_eq_iff: "equiv A r \<Longrightarrow> (x, y) \<in> r \<longleft
 lemma eq_equiv_class_iff: "equiv A r \<Longrightarrow> x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> r``{x} = r``{y} \<longleftrightarrow> (x, y) \<in> r"
   by (blast intro!: equiv_class_eq dest: eq_equiv_class equiv_type)
 
+lemma disjnt_equiv_class: "equiv A r \<Longrightarrow> disjnt (r``{a}) (r``{b}) \<longleftrightarrow> (a, b) \<notin> r"
+  by (auto dest: equiv_class_self simp: equiv_class_eq_iff disjnt_def)
+
 
 subsection \<open>Quotients\<close>
 
