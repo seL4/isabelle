@@ -222,7 +222,7 @@ end
 
 
 text \<open>Sharing of names in side-by-side statespaces is also possible as long as they are mapped
-to the same type.}\<close>
+to the same type.\<close>
 
 statespace vars1 = n::nat m::nat
 statespace vars2 = n::nat k::nat
