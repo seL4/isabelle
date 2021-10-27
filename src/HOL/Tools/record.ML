@@ -107,17 +107,11 @@ fun do_typedef overloaded raw_tyco repT raw_vs thy =
     |-> (fn (tyco, info) => get_typedef_info tyco vs info)
   end;
 
-fun mk_cons_tuple (left, right) =
-  let
-    val (leftT, rightT) = (fastype_of left, fastype_of right);
-    val prodT = HOLogic.mk_prodT (leftT, rightT);
-    val isomT = Type (\<^type_name>\<open>tuple_isomorphism\<close>, [prodT, leftT, rightT]);
-  in
-    Const (\<^const_name>\<open>Record.iso_tuple_cons\<close>, isomT --> leftT --> rightT --> prodT) $
-      Const (fst tuple_iso_tuple, isomT) $ left $ right
-  end;
+fun mk_cons_tuple (t, u) =
+  let val (A, B) = apply2 fastype_of (t, u)
+  in \<^Const>\<open>iso_tuple_cons \<^Type>\<open>prod A B\<close> A B for \<^Const>\<open>tuple_iso_tuple A B\<close> t u\<close> end;
 
-fun dest_cons_tuple (Const (\<^const_name>\<open>Record.iso_tuple_cons\<close>, _) $ Const _ $ t $ u) = (t, u)
+fun dest_cons_tuple \<^Const_>\<open>iso_tuple_cons _ _ _ for \<open>Const _\<close> t u\<close> = (t, u)
   | dest_cons_tuple t = raise TERM ("dest_cons_tuple", [t]);
 
 fun add_iso_tuple_type overloaded (b, alphas) (leftT, rightT) thy =
@@ -149,7 +143,7 @@ fun add_iso_tuple_type overloaded (b, alphas) (leftT, rightT) thy =
         [((Binding.concealed (Thm.def_binding isom_binding), Logic.mk_equals (isom, body)), [])];
 
     val iso_tuple = isom_def RS (abs_inverse RS (rep_inject RS iso_tuple_intro));
-    val cons = Const (\<^const_name>\<open>Record.iso_tuple_cons\<close>, isomT --> leftT --> rightT --> absT);
+    val cons = \<^Const>\<open>iso_tuple_cons absT leftT rightT\<close>;
 
     val thm_thy =
       cdef_thy
@@ -171,8 +165,7 @@ fun iso_tuple_intros_tac ctxt =
       val goal' = Envir.beta_eta_contract goal;
       val is =
         (case goal' of
-          Const (\<^const_name>\<open>Trueprop\<close>, _) $
-            (Const (\<^const_name>\<open>isomorphic_tuple\<close>, _) $ Const is) => is
+          \<^Const_>\<open>Trueprop for \<^Const>\<open>isomorphic_tuple _ _ _ for \<open>Const is\<close>\<close>\<close> => is
         | _ => err "unexpected goal format" goal');
       val isthm =
         (case Symtab.lookup isthms (#1 is) of
@@ -937,7 +930,7 @@ fun is_sel_upd_pair thy (Const (s, _)) (Const (u, t')) =
 
 fun mk_comp_id f =
   let val T = range_type (fastype_of f)
-  in HOLogic.mk_comp (Const (\<^const_name>\<open>Fun.id\<close>, T --> T), f) end;
+  in HOLogic.mk_comp (\<^Const>\<open>id T\<close>, f) end;
 
 fun get_upd_funs (upd $ _ $ t) = upd :: get_upd_funs t
   | get_upd_funs _ = [];
@@ -1272,7 +1265,7 @@ val eq_simproc =
    {lhss = [\<^term>\<open>r = s\<close>],
     proc = fn _ => fn ctxt => fn ct =>
       (case Thm.term_of ct of
-        Const (\<^const_name>\<open>HOL.eq\<close>, Type (_, [T, _])) $ _ $ _ =>
+        \<^Const_>\<open>HOL.eq T for _ _\<close> =>
           (case rec_id ~1 T of
             "" => NONE
           | name =>
@@ -1325,7 +1318,7 @@ val ex_sel_eq_simproc =
       let
         val thy = Proof_Context.theory_of ctxt;
         val t = Thm.term_of ct;
-        fun mkeq (lr, Teq, (sel, Tsel), x) i =
+        fun mkeq (lr, T, (sel, Tsel), x) i =
           if is_selector thy sel then
             let
               val x' =
@@ -1334,23 +1327,22 @@ val ex_sel_eq_simproc =
                 else raise TERM ("", [x]);
               val sel' = Const (sel, Tsel) $ Bound 0;
               val (l, r) = if lr then (sel', x') else (x', sel');
-            in Const (\<^const_name>\<open>HOL.eq\<close>, Teq) $ l $ r end
+            in \<^Const>\<open>HOL.eq T for l r\<close> end
           else raise TERM ("", [Const (sel, Tsel)]);
 
-        fun dest_sel_eq (Const (\<^const_name>\<open>HOL.eq\<close>, Teq) $ (Const (sel, Tsel) $ Bound 0) $ X) =
-              (true, Teq, (sel, Tsel), X)
-          | dest_sel_eq (Const (\<^const_name>\<open>HOL.eq\<close>, Teq) $ X $ (Const (sel, Tsel) $ Bound 0)) =
-              (false, Teq, (sel, Tsel), X)
+        fun dest_sel_eq (\<^Const_>\<open>HOL.eq T\<close> $ (Const (sel, Tsel) $ Bound 0) $ X) =
+              (true, T, (sel, Tsel), X)
+          | dest_sel_eq (\<^Const_>\<open>HOL.eq T\<close> $ X $ (Const (sel, Tsel) $ Bound 0)) =
+              (false, T, (sel, Tsel), X)
           | dest_sel_eq _ = raise TERM ("", []);
       in
         (case t of
-          Const (\<^const_name>\<open>Ex\<close>, Tex) $ Abs (s, T, t) =>
+          \<^Const_>\<open>Ex T for \<open>Abs (s, _, t)\<close>\<close> =>
            (let
              val eq = mkeq (dest_sel_eq t) 0;
              val prop =
                Logic.list_all ([("r", T)],
-                 Logic.mk_equals
-                  (Const (\<^const_name>\<open>Ex\<close>, Tex) $ Abs (s, T, eq), \<^term>\<open>True\<close>));
+                 Logic.mk_equals (\<^Const>\<open>Ex T for \<open>Abs (s, T, eq)\<close>\<close>, \<^Const>\<open>True\<close>));
             in
               SOME (Goal.prove_sorry_global thy [] [] prop
                 (fn {context = ctxt', ...} =>
@@ -1713,16 +1705,11 @@ fun mk_full_exhaustive_eq tyco vs extN Ts =
     val T = Type (tyco, map TFree vs);
     val test_function = Free ("f", termifyT T --> \<^typ>\<open>(bool \<times> term list) option\<close>);
     val params = Name.invent_names Name.context "x" Ts;
-    fun full_exhaustiveT T =
-      (termifyT T --> \<^typ>\<open>(bool \<times> Code_Evaluation.term list) option\<close>) -->
-        \<^typ>\<open>natural\<close> --> \<^typ>\<open>(bool \<times> Code_Evaluation.term list) option\<close>;
-    fun mk_full_exhaustive T =
-      Const (\<^const_name>\<open>Quickcheck_Exhaustive.full_exhaustive_class.full_exhaustive\<close>,
-        full_exhaustiveT T);
+    fun mk_full_exhaustive U = \<^Const>\<open>full_exhaustive_class.full_exhaustive U\<close>;
     val lhs = mk_full_exhaustive T $ test_function $ size;
     val tc = test_function $ (HOLogic.mk_valtermify_app extN params T);
-    val rhs = fold_rev (fn (v, T) => fn cont =>
-        mk_full_exhaustive T $ (lambda (Free (v, termifyT T)) cont) $ size) params tc;
+    val rhs = fold_rev (fn (v, U) => fn cont =>
+        mk_full_exhaustive U $ (lambda (Free (v, termifyT U)) cont) $ size) params tc;
   in
     (lhs, rhs)
   end;
@@ -1756,10 +1743,7 @@ fun ensure_sort_record (sort, mk_eq) ext_tyco vs extN Ts thy =
 fun add_code ext_tyco vs extT ext simps inject thy =
   if Config.get_global thy codegen then
     let
-      val eq =
-        HOLogic.mk_Trueprop (HOLogic.mk_eq
-          (Const (\<^const_name>\<open>HOL.equal\<close>, extT --> extT --> HOLogic.boolT),
-           Const (\<^const_name>\<open>HOL.eq\<close>, extT --> extT --> HOLogic.boolT)));
+      val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (\<^Const>\<open>HOL.equal extT\<close>, \<^Const>\<open>HOL.eq extT\<close>));
       fun tac ctxt eq_def =
         Class.intro_classes_tac ctxt []
         THEN rewrite_goals_tac ctxt [Simpdata.mk_eq eq_def]
