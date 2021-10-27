@@ -1602,10 +1602,6 @@ lemma measure_Union:
     measure M (A \<union> B) = measure M A + measure M B"
   by (simp add: measure_def plus_emeasure[symmetric] enn2real_plus less_top)
 
-lemma disjoint_family_on_insert:
-  "i \<notin> I \<Longrightarrow> disjoint_family_on A (insert i I) \<longleftrightarrow> A i \<inter> (\<Union>i\<in>I. A i) = {} \<and> disjoint_family_on A I"
-  by (fastforce simp: disjoint_family_on_def)
-
 lemma measure_finite_Union:
   "finite S \<Longrightarrow> A`S \<subseteq> sets M \<Longrightarrow> disjoint_family_on A S \<Longrightarrow> (\<And>i. i \<in> S \<Longrightarrow> emeasure M (A i) \<noteq> \<infinity>) \<Longrightarrow>
     measure M (\<Union>i\<in>S. A i) = (\<Sum>i\<in>S. measure M (A i))"
@@ -2400,7 +2396,7 @@ proof (rule emeasure_measure_of_sigma)
       then have "infinite (\<Union>i. F i)"
         by auto
       ultimately show ?thesis by (simp only:) simp
-         
+
     qed
   qed
 qed

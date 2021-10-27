@@ -122,6 +122,10 @@ lemma disjoint_family_onD:
 lemma disjoint_family_subset: "disjoint_family A \<Longrightarrow> (\<And>x. B x \<subseteq> A x) \<Longrightarrow> disjoint_family B"
   by (force simp add: disjoint_family_on_def)
 
+lemma disjoint_family_on_insert:
+  "i \<notin> I \<Longrightarrow> disjoint_family_on A (insert i I) \<longleftrightarrow> A i \<inter> (\<Union>i\<in>I. A i) = {} \<and> disjoint_family_on A I"
+  by (fastforce simp: disjoint_family_on_def)
+
 lemma disjoint_family_on_bisimulation:
   assumes "disjoint_family_on f S"
   and "\<And>n m. n \<in> S \<Longrightarrow> m \<in> S \<Longrightarrow> n \<noteq> m \<Longrightarrow> f n \<inter> f m = {} \<Longrightarrow> g n \<inter> g m = {}"
