@@ -54,10 +54,10 @@ fun instantiate_cterm pos (cinsts: cinsts) ct =
 
 local
 
-fun make_keywords ctxt =
-  Thy_Header.get_keywords' ctxt
-  |> Keyword.no_major_keywords
-  |> Keyword.add_major_keywords ["typ", "term", "prop", "ctyp", "cterm", "cprop"];
+val make_keywords =
+  Thy_Header.get_keywords'
+  #> Keyword.no_major_keywords
+  #> Keyword.add_major_keywords ["typ", "term", "prop", "ctyp", "cterm", "cprop"];
 
 val parse_inst_name = Parse.position (Parse.type_ident >> pair true || Parse.name >> pair false);
 
@@ -109,18 +109,18 @@ fun make_inst (a, pos) t =
     NONE => error ("Not a free variable " ^ quote a ^ Position.here pos)
   | SOME v => ml (ML_Syntax.print_pair ML_Syntax.print_indexname ML_Syntax.print_typ v));
 
-fun term_env t = (Term.add_tfrees t [], Term.add_frees t []);
+fun make_env t = (Term.add_tfrees t [], Term.add_frees t []);
 
 fun prepare_insts ctxt1 ctxt0 (instT, inst) t =
   let
-    val (envT, env) = term_env t;
+    val (envT, env) = make_env t;
     val freesT = map (Logic.mk_type o TFree o get_tfree envT) instT;
     val frees = map (Free o check_free ctxt1 env) inst;
     val (t' :: varsT, vars) =
       Variable.export_terms ctxt1 ctxt0 (t :: freesT @ frees)
       |> chop (1 + length freesT);
 
-    val (envT', env') = term_env t';
+    val (envT', env') = make_env t';
     val _ = missing_instT (subtract (eq_fst op =) envT' envT) instT;
     val _ = missing_inst (subtract (eq_fst op =) env' env) inst;
 
