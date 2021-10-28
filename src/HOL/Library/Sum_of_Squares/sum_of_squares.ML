@@ -1018,12 +1018,14 @@ fun elim_one_denom_tac ctxt = CSUBGOAL (fn (P, i) =>
     NONE => no_tac
   | SOME (d, ord) =>
       let
-        val simp_ctxt = ctxt
-          |> Simplifier.put_simpset sos_ss
+        val simp_ctxt = ctxt |> Simplifier.put_simpset sos_ss;
         val th =
-          Thm.instantiate' [] [SOME d, SOME (Thm.dest_arg P)]
-            (if ord then @{lemma "(d=0 \<longrightarrow> P) \<and> (d>0 \<longrightarrow> P) \<and> (d<(0::real) \<longrightarrow> P) \<Longrightarrow> P" by auto}
-             else @{lemma "(d=0 \<longrightarrow> P) \<and> (d \<noteq> (0::real) \<longrightarrow> P) \<Longrightarrow> P" by blast})
+          if ord then
+            \<^instantiate>\<open>d and P = \<open>Thm.dest_arg P\<close> in
+              lemma \<open>(d = 0 \<longrightarrow> P) \<and> (d > 0 \<longrightarrow> P) \<and> (d < 0 \<longrightarrow> P) \<Longrightarrow> P\<close> for d :: real by auto\<close>
+          else
+            \<^instantiate>\<open>d and P = \<open>Thm.dest_arg P\<close> in
+              lemma \<open>(d = 0 \<longrightarrow> P) \<and> (d \<noteq> 0 \<longrightarrow> P) \<Longrightarrow> P\<close> for d :: real by blast\<close>
       in resolve_tac ctxt [th] i THEN Simplifier.asm_full_simp_tac simp_ctxt i end));
 
 fun elim_denom_tac ctxt i = REPEAT (elim_one_denom_tac ctxt i);

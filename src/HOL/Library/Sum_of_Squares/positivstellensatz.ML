@@ -174,14 +174,9 @@ fun prove_hyp tha thb =
 
 val pth = @{lemma "(((x::real) < y) \<equiv> (y - x > 0))" and "((x \<le> y) \<equiv> (y - x \<ge> 0))" and
      "((x = y) \<equiv> (x - y = 0))" and "((\<not>(x < y)) \<equiv> (x - y \<ge> 0))" and
-     "((\<not>(x \<le> y)) \<equiv> (x - y > 0))" and "((\<not>(x = y)) \<equiv> (x - y > 0 \<or> -(x - y) > 0))"
+     "((\<not>(x \<le> y)) \<equiv> (x - y > 0))"
   by (atomize (full), auto simp add: less_diff_eq le_diff_eq not_less)};
 
-fun neq_th x y =
-  \<^instantiate>\<open>x and y in lemma \<open>x \<noteq> y \<equiv> x - y > 0 \<or> - (x - y) > 0\<close> for x y :: real
-    by (atomize (full), auto simp add: less_diff_eq le_diff_eq not_less)\<close>;
-
-val pth_final = @{lemma "(\<not>p \<Longrightarrow> False) \<Longrightarrow> p" by blast}
 val pth_add =
   @{lemma "(x = (0::real) \<Longrightarrow> y = 0 \<Longrightarrow> x + y = 0 )" and "( x = 0 \<Longrightarrow> y \<ge> 0 \<Longrightarrow> x + y \<ge> 0)" and
     "(x = 0 \<Longrightarrow> y > 0 \<Longrightarrow> x + y > 0)" and "(x \<ge> 0 \<Longrightarrow> y = 0 \<Longrightarrow> x + y \<ge> 0)" and
@@ -199,7 +194,6 @@ val pth_mul =
     mult_strict_mono[where b="x" and d="y" and a="0" and c="0", simplified])};
 
 val pth_emul = @{lemma "y = (0::real) \<Longrightarrow> x * y = 0"  by simp};
-val pth_square = @{lemma "x * x \<ge> (0::real)"  by simp};
 
 val weak_dnf_simps =
   List.take (@{thms simp_thms}, 34) @
@@ -384,7 +378,7 @@ fun gen_gen_real_arith ctxt (mk_numeric,
       in Thm.transitive th' (oprconv poly_conv (Thm.rhs_of th'))
       end
     val [real_lt_conv, real_le_conv, real_eq_conv,
-         real_not_lt_conv, real_not_le_conv, _] =
+         real_not_lt_conv, real_not_le_conv] =
          map real_ineq_conv pth
     fun match_mp_rule ths ths' =
       let
@@ -398,7 +392,7 @@ fun gen_gen_real_arith ctxt (mk_numeric,
     fun emul_rule ct th = fconv_rule (arg_conv (oprconv poly_mul_conv))
        (Thm.instantiate' [] [SOME ct] (th RS pth_emul))
     fun square_rule t = fconv_rule (arg_conv (oprconv poly_conv))
-       (Thm.instantiate' [] [SOME t] pth_square)
+       \<^instantiate>\<open>x = t in lemma \<open>x * x \<ge> 0\<close> for x :: real by simp\<close>
 
     fun hol_of_positivstellensatz(eqs,les,lts) proof =
       let
@@ -482,7 +476,9 @@ fun gen_gen_real_arith ctxt (mk_numeric,
     fun real_not_eq_conv ct =
       let
         val (l,r) = dest_eq (Thm.dest_arg ct)
-        val th = neq_th l r
+        val th =
+          \<^instantiate>\<open>x = l and y = r in lemma \<open>x \<noteq> y \<equiv> x - y > 0 \<or> - (x - y) > 0\<close> for x y :: real
+            by (atomize (full), auto simp add: less_diff_eq le_diff_eq not_less)\<close>;
         val th_p = poly_conv(Thm.dest_arg(Thm.dest_arg1(Thm.rhs_of th)))
         val th_x = Drule.arg_cong_rule \<^cterm>\<open>uminus :: real \<Rightarrow> _\<close> th_p
         val th_n = fconv_rule (arg_conv poly_neg_conv) th_x
@@ -578,7 +574,9 @@ fun gen_gen_real_arith ctxt (mk_numeric,
                 (prove_hyp (Thm.equal_elim th1 (Thm.assume (Thm.apply \<^cterm>\<open>Trueprop\<close> bod))) th2)
           in (Drule.implies_intr_hyps (prove_hyp (Thm.equal_elim th0 (Thm.assume nct)) th3), certs)
           end
-      in (Thm.implies_elim (Thm.instantiate' [] [SOME ct] pth_final) th, certificates)
+      in
+        (Thm.implies_elim \<^instantiate>\<open>A = ct in lemma \<open>(\<not> A \<Longrightarrow> False) \<Longrightarrow> A\<close> by blast\<close> th,
+          certificates)
       end
   in f
   end;
