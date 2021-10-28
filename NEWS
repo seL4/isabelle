@@ -376,6 +376,32 @@ Examples in HOL:
   fun mk_eq T (t, u) = \<^Const>\<open>HOL.eq T for t u\<close>;
   val dest_eq = \<^Const_fn>\<open>HOL.eq T for t u => \<open>(T, (t, u))\<close>\<close>;
 
+* ML antiquotation "instantiate" allows to instantiate formal entities
+(types, terms, theorems) with values given ML. This works uniformly for
+"typ", "term", "prop", "ctyp", "cterm", "cprop", "lemma" --- given as a
+keyword after the instantiation. A mode "(schematic)" behind the keyword
+means that some variables may remain uninstantiated (fixed in the
+specification and schematic in the result); by default, all variables
+need to be instantiated.
+
+Examples in HOL:
+
+  fun make_assoc_type (A, B) =
+    \<^instantiate>\<open>'a = A and 'b = B in typ \<open>('a \<times> 'b) list\<close>\<close>;
+
+  val make_assoc_list =
+    map (fn (x, y) =>
+      \<^instantiate>\<open>'a = \<open>fastype_of x\<close> and 'b = \<open>fastype_of y\<close> and
+        x and y in term \<open>(x, y)\<close> for x :: 'a and y :: 'b\<close>);
+
+  fun symmetry x y =
+    \<^instantiate>\<open>'a = \<open>Thm.ctyp_of_cterm x\<close> and x and y in
+      lemma \<open>x = y \<Longrightarrow> y = x\<close> for x y :: 'a by simp\<close>
+
+  fun symmetry_schematic A =
+    \<^instantiate>\<open>'a = A in
+      lemma (schematic) \<open>x = y \<Longrightarrow> y = x\<close> for x y :: 'a by simp\<close>
+
 * The "build" combinators of various data structures help to build
 content from bottom-up, by applying an "add" function the "empty" value.
 For example:
