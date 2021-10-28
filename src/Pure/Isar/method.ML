@@ -90,6 +90,7 @@ sig
   val report: text_range -> unit
   val parser: int -> text_range parser
   val parse: text_range parser
+  val parse_by: ((text_range * text_range option) * Position.report list) parser
   val read: Proof.context -> Token.src -> text
   val read_closure: Proof.context -> Token.src -> text * Token.src
   val read_closure_input: Proof.context -> Input.source -> text * Token.src
@@ -721,6 +722,10 @@ fun parser pri =
 val parse = parser 4;
 
 end;
+
+val parse_by =
+  Parse.$$$ "by" |-- parse -- Scan.option parse
+    >> (fn (m1, m2) => ((m1, m2), maps reports_of (m1 :: the_list m2)));
 
 
 (* read method text *)

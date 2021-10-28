@@ -255,19 +255,15 @@ in end;
 
 val _ = Theory.setup
   (Document_Antiquotation.setup \<^binding>\<open>lemma\<close>
-    (Scan.lift (Scan.ahead Parse.not_eof) -- Args.prop --
-      Scan.lift (Parse.position (Parse.reserved "by") -- Method.parse -- Scan.option Method.parse))
-    (fn {context = ctxt, source = src, argument = ((prop_tok, prop), (((_, by_pos), m1), m2))} =>
+    (Scan.lift (Scan.ahead Parse.not_eof) -- Args.prop -- Scan.lift Method.parse_by)
+    (fn {context = ctxt, source = src, argument = ((prop_tok, prop), (methods, reports))} =>
       let
-        val reports =
-          (by_pos, Markup.keyword1 |> Markup.keyword_properties) ::
-            maps Method.reports_of (m1 :: the_list m2);
         val _ = Context_Position.reports ctxt reports;
 
         (* FIXME check proof!? *)
         val _ = ctxt
           |> Proof.theorem NONE (K I) [[(prop, [])]]
-          |> Proof.global_terminal_proof (m1, m2);
+          |> Proof.global_terminal_proof methods;
       in
         Document_Output.pretty_source ctxt {embedded = false}
           [hd src, prop_tok] (Document_Output.pretty_term ctxt prop)

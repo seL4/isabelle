@@ -75,19 +75,12 @@ val _ = Theory.setup
 
 (* ad-hoc goals *)
 
-val and_ = Args.$$$ "and";
-val by = Parse.reserved "by";
-val goal = Scan.unless (by || and_) Parse.embedded_inner_syntax;
-
 val _ = Theory.setup
   (ML_Antiquotation.declaration \<^binding>\<open>lemma\<close>
-    (Scan.lift (Args.mode "open" -- Parse.enum1 "and" (Scan.repeat1 goal) --
-      (Parse.position by -- Method.parse -- Scan.option Method.parse)))
-    (fn _ => fn ((is_open, raw_propss), (((_, by_pos), m1), m2)) => fn ctxt =>
+    (Scan.lift (Args.mode "open" -- Parse.and_list1 (Scan.repeat1 Parse.embedded_inner_syntax) --
+      Method.parse_by))
+    (fn _ => fn ((is_open, raw_propss), (methods, reports)) => fn ctxt =>
       let
-        val reports =
-          (by_pos, Markup.keyword1 |> Markup.keyword_properties) ::
-            maps Method.reports_of (m1 :: the_list m2);
         val _ = Context_Position.reports ctxt reports;
 
         val propss = burrow (map (rpair []) o Syntax.read_props ctxt) raw_propss;
@@ -98,7 +91,7 @@ val _ = Theory.setup
 
         val ctxt' = ctxt
           |> Proof.theorem NONE after_qed propss
-          |> Proof.global_terminal_proof (m1, m2);
+          |> Proof.global_terminal_proof methods;
         val thms =
           Proof_Context.get_fact ctxt'
             (Facts.named (Proof_Context.full_name ctxt' (Binding.name Auto_Bind.thisN)));
