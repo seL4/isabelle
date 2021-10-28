@@ -190,7 +190,6 @@ lemma skolem_COMBK_iff: "P \<longleftrightarrow> skolem (COMBK P (i::nat))"
 unfolding skolem_def COMBK_def by (rule refl)
 
 lemmas skolem_COMBK_I = iffD1 [OF skolem_COMBK_iff]
-lemmas skolem_COMBK_D = iffD2 [OF skolem_COMBK_iff]
 
 
 subsection \<open>Meson package\<close>
@@ -204,6 +203,5 @@ hide_fact (open) not_conjD not_disjD not_notD not_allD not_exD imp_to_disjD
     not_impD iff_to_disjD not_iffD not_refl_disj_D conj_exD1 conj_exD2 disj_exD
     disj_exD1 disj_exD2 disj_assoc disj_comm disj_FalseD1 disj_FalseD2 TruepropI
     ext_cong_neq COMBI_def COMBK_def COMBB_def COMBC_def COMBS_def abs_I abs_K
-    abs_B abs_C abs_S skolem_def skolem_COMBK_iff skolem_COMBK_I skolem_COMBK_D
-
+    abs_B abs_C abs_S skolem_def skolem_COMBK_iff skolem_COMBK_I
 end

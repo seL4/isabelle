@@ -70,9 +70,6 @@ val solver = Attrib.setup_config_string \<^binding>\<open>sat_solver\<close> (K 
 
 val counter = Unsynchronized.ref 0;
 
-val resolution_thm =
-  @{lemma "(P \<Longrightarrow> False) \<Longrightarrow> (\<not> P \<Longrightarrow> False) \<Longrightarrow> False" by (rule case_split)}
-
 (* ------------------------------------------------------------------------- *)
 (* lit_ord: an order on integers that considers their absolute values only,  *)
 (*      thereby treating integers that represent the same atom (positively   *)
@@ -166,12 +163,13 @@ fun resolve_raw_clauses _ [] =
             val c1' = Thm.implies_intr hyp1 c1  (* Gamma1 |- hyp1 ==> False *)
             val c2' = Thm.implies_intr hyp2 c2  (* Gamma2 |- hyp2 ==> False *)
 
-            val res_thm =  (* |- (lit ==> False) ==> (~lit ==> False) ==> False *)
+            val res_thm =
               let
-                val cLit =
+                val P =
                   snd (Thm.dest_comb (if hyp1_is_neg then hyp2 else hyp1))  (* strip Trueprop *)
               in
-                Thm.instantiate (TVars.empty, Vars.make [(\<^var>\<open>?P::bool\<close>, cLit)]) resolution_thm
+                \<^instantiate>\<open>P in
+                  lemma \<open>(P \<Longrightarrow> False) \<Longrightarrow> (\<not> P \<Longrightarrow> False) \<Longrightarrow> False\<close> by (rule case_split)\<close>
               end
 
             val _ =

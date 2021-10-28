@@ -366,9 +366,9 @@ fun cnf_axiom simp_options ctxt0 new_skolem combinators ax_no th =
        th ctxt1
     val (cnf_ths, ctxt2) = clausify nnf_th
     fun intr_imp ct th =
-      Thm.instantiate
-        (TVars.empty, Vars.make [(\<^var>\<open>?i::nat\<close>, Thm.cterm_of ctxt2 (HOLogic.mk_nat ax_no))])
-        (zero_var_indexes @{thm skolem_COMBK_D})
+      \<^instantiate>\<open>i = \<open>Thm.cterm_of ctxt2 (HOLogic.mk_nat ax_no)\<close> in
+        lemma (schematic) \<open>skolem (COMBK P i) \<Longrightarrow> P\<close> for i :: nat
+          by (rule iffD2 [OF skolem_COMBK_iff])\<close>
       RS Thm.implies_intr ct th
   in
     (opt |> Option.map (I #>> singleton (Variable.export ctxt2 ctxt0)

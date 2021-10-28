@@ -1752,9 +1752,8 @@ fun add_code ext_tyco vs extT ext simps inject thy =
         rewrite_rule ctxt
           [Axclass.unoverload ctxt (Thm.symmetric (Simpdata.mk_eq eq_def))] inject;
       fun mk_eq_refl ctxt =
-        @{thm equal_refl}
-        |> Thm.instantiate
-          (TVars.make [(\<^tvar>\<open>?'a::equal\<close>, Thm.ctyp_of ctxt (Logic.varifyT_global extT))], Vars.empty)
+        \<^instantiate>\<open>'a = \<open>Thm.ctyp_of ctxt (Logic.varifyT_global extT)\<close> in
+          lemma (schematic) \<open>equal_class.equal x x \<longleftrightarrow> True\<close> by (rule equal_refl)\<close>
         |> Axclass.unoverload ctxt;
       val ensure_random_record = ensure_sort_record (\<^sort>\<open>random\<close>, mk_random_eq);
       val ensure_exhaustive_record =
