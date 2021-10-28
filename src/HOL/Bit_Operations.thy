@@ -3098,7 +3098,7 @@ definition take_bit_num :: \<open>nat \<Rightarrow> num \<Rightarrow> num option
   where \<open>take_bit_num n m =
     (if take_bit n (numeral m ::nat) = 0 then None else Some (num_of_nat (take_bit n (numeral m ::nat))))\<close>
 
-lemma take_bit_num_simps [code]:
+lemma take_bit_num_simps:
   \<open>take_bit_num 0 m = None\<close>
   \<open>take_bit_num (Suc n) Num.One =
     Some Num.One\<close>
@@ -3106,18 +3106,23 @@ lemma take_bit_num_simps [code]:
     (case take_bit_num n m of None \<Rightarrow> None | Some q \<Rightarrow> Some (Num.Bit0 q))\<close>
   \<open>take_bit_num (Suc n) (Num.Bit1 m) =
     Some (case take_bit_num n m of None \<Rightarrow> Num.One | Some q \<Rightarrow> Num.Bit1 q)\<close>
-  by (auto simp add: take_bit_num_def ac_simps mult_2 num_of_nat_double
-    take_bit_Suc_bit0 take_bit_Suc_bit1)
-
-lemma take_bit_num_numeral_simps:
-  \<open>take_bit_num (numeral n) Num.One =
+  \<open>take_bit_num (numeral r) Num.One =
     Some Num.One\<close>
-  \<open>take_bit_num (numeral n) (Num.Bit0 m) =
-    (case take_bit_num (pred_numeral n) m of None \<Rightarrow> None | Some q \<Rightarrow> Some (Num.Bit0 q))\<close>
-  \<open>take_bit_num (numeral n) (Num.Bit1 m) =
-    Some (case take_bit_num (pred_numeral n) m of None \<Rightarrow> Num.One | Some q \<Rightarrow> Num.Bit1 q)\<close>
+  \<open>take_bit_num (numeral r) (Num.Bit0 m) =
+    (case take_bit_num (pred_numeral r) m of None \<Rightarrow> None | Some q \<Rightarrow> Some (Num.Bit0 q))\<close>
+  \<open>take_bit_num (numeral r) (Num.Bit1 m) =
+    Some (case take_bit_num (pred_numeral r) m of None \<Rightarrow> Num.One | Some q \<Rightarrow> Num.Bit1 q)\<close>
   by (auto simp add: take_bit_num_def ac_simps mult_2 num_of_nat_double
-    take_bit_numeral_bit0 take_bit_numeral_bit1)
+    take_bit_Suc_bit0 take_bit_Suc_bit1 take_bit_numeral_bit0 take_bit_numeral_bit1)
+
+lemma take_bit_num_code [code]:
+  \<comment> \<open>Ocaml-style pattern matching is more robust wrt. different representations of \<^typ>\<open>nat\<close>\<close>
+  \<open>take_bit_num n m = (case (n, m)
+   of (0, _) \<Rightarrow> None
+    | (Suc n, Num.One) \<Rightarrow> Some Num.One
+    | (Suc n, Num.Bit0 m) \<Rightarrow> (case take_bit_num n m of None \<Rightarrow> None | Some q \<Rightarrow> Some (Num.Bit0 q))
+    | (Suc n, Num.Bit1 m) \<Rightarrow> Some (case take_bit_num n m of None \<Rightarrow> Num.One | Some q \<Rightarrow> Num.Bit1 q))\<close>
+  by (cases n; cases m) (simp_all add: take_bit_num_simps)
 
 context semiring_bit_operations
 begin
@@ -3176,7 +3181,8 @@ next
   finally show ?thesis .
 qed
 
-declare take_bit_num_simps [simp] take_bit_num_numeral_simps [simp] take_bit_numeral_numeral [simp]
+declare take_bit_num_simps [simp]
+  take_bit_numeral_numeral [simp]
   take_bit_numeral_minus_numeral_int [simp]
 
 
