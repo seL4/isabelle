@@ -79,18 +79,18 @@ val _ = Theory.setup
   (ML_Antiquotation.declaration \<^binding>\<open>lemma\<close>
     (Scan.lift (Args.mode "open" -- Parse.and_list1 (Scan.repeat1 Parse.embedded_inner_syntax) --
       Method.parse_by))
-    (fn _ => fn ((is_open, raw_propss), (methods, reports)) => fn ctxt =>
+    (fn _ => fn ((is_open, raw_stmt), (methods, reports)) => fn ctxt =>
       let
         val _ = Context_Position.reports ctxt reports;
 
-        val propss = burrow (map (rpair []) o Syntax.read_props ctxt) raw_propss;
+        val stmt = burrow (map (rpair []) o Syntax.read_props ctxt) raw_stmt;
         val prep_result = Goal.norm_result ctxt #> not is_open ? Thm.close_derivation \<^here>;
         fun after_qed res goal_ctxt =
           Proof_Context.put_thms false (Auto_Bind.thisN,
             SOME (map prep_result (Proof_Context.export goal_ctxt ctxt (flat res)))) goal_ctxt;
 
         val ctxt' = ctxt
-          |> Proof.theorem NONE after_qed propss
+          |> Proof.theorem NONE after_qed stmt
           |> Proof.global_terminal_proof methods;
         val thms =
           Proof_Context.get_fact ctxt'
