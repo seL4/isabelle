@@ -60,8 +60,8 @@ fun is_False thm =
 fun is_nat t = (fastype_of1 t = HOLogic.natT);
 
 fun mk_nat_thm thy t =
-  let val ct = Thm.global_cterm_of thy t
-  in Drule.instantiate_normalize (TVars.empty, Vars.make [(\<^var>\<open>?n::nat\<close>, ct)]) @{thm le0} end;
+  \<^instantiate>\<open>n = \<open>Thm.global_cterm_of thy t\<close> in
+    lemma (open) \<open>0 \<le> n\<close> for n :: nat by (rule le0)\<close>;
 
 end;
 
