@@ -66,14 +66,16 @@ fun rewrite_interpret_form_tac ctxt prec splitting taylor i st = let
        val n = vs |> length
                |> HOLogic.mk_number \<^Type>\<open>nat\<close>
                |> Thm.cterm_of ctxt
-       val s = vs
+       val ss = vs
                |> map lookup_splitting
                |> HOLogic.mk_list \<^Type>\<open>nat\<close>
                |> Thm.cterm_of ctxt
      in
-       (resolve_tac ctxt [Thm.instantiate (TVars.empty,
-           Vars.make [(\<^var>\<open>?n::nat\<close>, n), (\<^var>\<open>?prec::nat\<close>, p), (\<^var>\<open>?ss::nat list\<close>, s)])
-            @{thm approx_form}] i
+       (resolve_tac ctxt [
+          \<^instantiate>\<open>n and prec = p and ss in
+            lemma (schematic)
+              \<open>n = length xs \<Longrightarrow> approx_form prec f (replicate n None) ss \<Longrightarrow> interpret_form f xs\<close>
+              by (rule approx_form)\<close>] i
         THEN simp_tac (put_simpset (simpset_of \<^context>) ctxt) i) st
      end
 
@@ -87,9 +89,10 @@ fun rewrite_interpret_form_tac ctxt prec splitting taylor i st = let
        val s = vs |> map lookup_splitting |> hd
             |> Thm.cterm_of ctxt
      in
-       resolve_tac ctxt [Thm.instantiate (TVars.empty,
-            Vars.make [(\<^var>\<open>?s::nat\<close>, s), (\<^var>\<open>?t::nat\<close>, t), (\<^var>\<open>?prec::nat\<close>, p)])
-            @{thm approx_tse_form}] i st
+       resolve_tac ctxt [
+         \<^instantiate>\<open>s and t and prec = p in
+           lemma (schematic) "approx_tse_form prec t s f \<Longrightarrow> interpret_form f [x]"
+            by (rule approx_tse_form)\<close>] i st
      end
   end
 
