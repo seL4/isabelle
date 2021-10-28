@@ -258,17 +258,19 @@ val real_abs_thms1 = @{lemma
   "((a + b + min x y + c > r) = (a + b + x + c > r \<and> a + b + y + c > r))"
   by auto};
 
-val abs_split' = @{lemma "P \<bar>x::'a::linordered_idom\<bar> == (x \<ge> 0 \<and> P x \<or> x < 0 \<and> P (-x))"
-  by (atomize (full)) (auto split: abs_split)};
+val pth_abs =
+  @{lemma "P \<bar>x\<bar> \<equiv> (x \<ge> 0 \<and> P x \<or> x < 0 \<and> P (-x))" for x :: real
+    by (atomize (full)) (auto split: abs_split)}
 
-val max_split = @{lemma "P (max x y) \<equiv> ((x::'a::linorder) \<le> y \<and> P y \<or> x > y \<and> P x)"
-  by (atomize (full)) (cases "x \<le> y", auto simp add: max_def)};
+val pth_max =
+  @{lemma "P (max x y) \<equiv> (x \<le> y \<and> P y \<or> x > y \<and> P x)" for x y :: real
+    by (atomize (full)) (auto simp add: max_def)}
 
-val min_split = @{lemma "P (min x y) \<equiv> ((x::'a::linorder) \<le> y \<and> P x \<or> x > y \<and> P y)"
-  by (atomize (full)) (cases "x \<le> y", auto simp add: min_def)};
+val pth_min =
+  @{lemma "P (min x y) \<equiv> (x \<le> y \<and> P x \<or> x > y \<and> P y)" for x y :: real
+    by (atomize (full)) (auto simp add: min_def)}
 
-
-         (* Miscellaneous *)
+(* Miscellaneous *)
 fun literals_conv bops uops cv =
   let
     fun h t =
@@ -722,9 +724,6 @@ local
 
   val absmaxmin_elim_conv2 =
     let
-      val pth_abs = Thm.instantiate' [SOME \<^ctyp>\<open>real\<close>] [] abs_split'
-      val pth_max = Thm.instantiate' [SOME \<^ctyp>\<open>real\<close>] [] max_split
-      val pth_min = Thm.instantiate' [SOME \<^ctyp>\<open>real\<close>] [] min_split
       val p_v = (("P", 0), \<^typ>\<open>real \<Rightarrow> bool\<close>)
       val x_v = (("x", 0), \<^typ>\<open>real\<close>)
       val y_v = (("y", 0), \<^typ>\<open>real\<close>)
