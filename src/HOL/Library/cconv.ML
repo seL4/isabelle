@@ -173,19 +173,33 @@ fun prems_cconv 0 cv ct = cv ct
           ((if n = 1 then fun_cconv else I) o arg_cconv) (prems_cconv (n-1) cv) ct
       | _ =>  cv ct)
 
-fun inst_imp_cong ct =
-  Thm.instantiate (TVars.empty, Vars.make [(\<^var>\<open>?A::prop\<close>, ct)]) Drule.imp_cong
+fun imp_cong A =
+  \<^instantiate>\<open>A in
+    lemma (schematic) \<open>(PROP A \<Longrightarrow> PROP B \<equiv> PROP C) \<Longrightarrow> (PROP A \<Longrightarrow> PROP B) \<equiv> (PROP A \<Longrightarrow> PROP C)\<close>
+      by (fact Pure.imp_cong)\<close>
 
 (*rewrite B in A1 \<Longrightarrow> ... \<Longrightarrow> An \<Longrightarrow> B*)
 fun concl_cconv 0 cv ct = cv ct
   | concl_cconv n cv ct =
       (case try Thm.dest_implies ct of
         NONE => cv ct
-      | SOME (A,B) => (concl_cconv (n-1) cv B) RS inst_imp_cong A)
+      | SOME (A,B) => (concl_cconv (n-1) cv B) RS imp_cong A)
 
 (* Rewrites A in A \<Longrightarrow> A1 \<Longrightarrow> An \<Longrightarrow> B.
    The premises of the resulting theorem assume A1, ..., An
    *)
+local
+
+fun rewr_imp C =
+  \<^instantiate>\<open>C in
+    lemma (schematic) \<open>PROP A \<equiv> PROP B \<Longrightarrow> (PROP A \<Longrightarrow> PROP C) \<equiv> (PROP B \<Longrightarrow> PROP C)\<close> by simp\<close>
+
+fun cut_rl A =
+  \<^instantiate>\<open>A in
+    lemma (schematic) \<open>(PROP A \<Longrightarrow> PROP B) \<Longrightarrow> PROP A \<Longrightarrow> PROP B\<close> by this\<close>
+
+in
+
 fun with_prems_cconv n cv ct =
   let
     fun strip_prems 0 As B = (As, B)
@@ -194,15 +208,13 @@ fun with_prems_cconv n cv ct =
             NONE => (As, B)
           | SOME (A,B) => strip_prems (i - 1) (A::As) B
     val (prem, (prems, concl)) = ct |> Thm.dest_implies ||> strip_prems n [] 
-    val rewr_imp_concl =
-      Thm.instantiate (TVars.empty, Vars.make [(\<^var>\<open>?C::prop\<close>, concl)]) @{thm rewr_imp}
-    val th1 = cv prem RS rewr_imp_concl
+    val th1 = cv prem RS rewr_imp concl
     val nprems = Thm.nprems_of th1
-    fun inst_cut_rl ct =
-      Thm.instantiate (TVars.empty, Vars.make [(\<^var>\<open>?psi::prop\<close>, ct)]) cut_rl
-    fun f p th = (th RS inst_cut_rl p)
+    fun f p th = (th RS cut_rl p)
       |> Conv.fconv_rule (Conv.concl_conv nprems (Conv.rewr_conv @{thm imp_cong_eq}))
   in fold f prems th1 end
+
+end
 
 (*forward conversion, cf. FCONV_RULE in LCF*)
 fun fconv_rule cv th =
