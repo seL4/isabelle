@@ -725,37 +725,38 @@ local
       val pth_abs = Thm.instantiate' [SOME \<^ctyp>\<open>real\<close>] [] abs_split'
       val pth_max = Thm.instantiate' [SOME \<^ctyp>\<open>real\<close>] [] max_split
       val pth_min = Thm.instantiate' [SOME \<^ctyp>\<open>real\<close>] [] min_split
-      val abs_tm = \<^cterm>\<open>abs :: real \<Rightarrow> _\<close>
       val p_v = (("P", 0), \<^typ>\<open>real \<Rightarrow> bool\<close>)
       val x_v = (("x", 0), \<^typ>\<open>real\<close>)
       val y_v = (("y", 0), \<^typ>\<open>real\<close>)
-      val is_max = is_binop \<^cterm>\<open>max :: real \<Rightarrow> _\<close>
-      val is_min = is_binop \<^cterm>\<open>min :: real \<Rightarrow> _\<close>
-      fun is_abs t = is_comb t andalso Thm.dest_fun t aconvc abs_tm
+      fun is_abs \<^Const_>\<open>abs \<^Type>\<open>real\<close> for _\<close> = true
+        | is_abs _ = false
+      fun is_max \<^Const_>\<open>max \<^Type>\<open>real\<close> for _ _\<close> = true
+        | is_max _ = false
+      fun is_min \<^Const_>\<open>min \<^Type>\<open>real\<close> for _ _\<close> = true
+        | is_min _ = false
       fun eliminate_construct p c tm =
         let
-          val t = find_cterm p tm
-          val th0 = (Thm.symmetric o Thm.beta_conversion false) (Thm.apply (Thm.lambda t tm) t)
-          val (p,ax) = (Thm.dest_comb o Thm.rhs_of) th0
-        in fconv_rule(arg_conv(binop_conv (arg_conv (Thm.beta_conversion false))))
-                     (Thm.transitive th0 (c p ax))
+          val t = find_cterm (p o Thm.term_of) tm
+          val th0 = Thm.symmetric (Thm.beta_conversion false (Thm.apply (Thm.lambda t tm) t))
+          val (P, a) = Thm.dest_comb (Thm.rhs_of th0)
+        in
+          fconv_rule
+            (arg_conv (binop_conv (arg_conv (Thm.beta_conversion false))))
+            (Thm.transitive th0 (c P a))
         end
 
       val elim_abs = eliminate_construct is_abs
-        (fn p => fn ax =>
-          Thm.instantiate (TVars.empty, Vars.make [(p_v,p), (x_v, Thm.dest_arg ax)]) pth_abs)
+        (fn P => fn a =>
+          Thm.instantiate (TVars.empty, Vars.make [(p_v,P), (x_v, Thm.dest_arg a)]) pth_abs)
       val elim_max = eliminate_construct is_max
-        (fn p => fn ax =>
-          let val (ax,y) = Thm.dest_comb ax
-          in Thm.instantiate (TVars.empty, Vars.make [(p_v,p), (x_v, Thm.dest_arg ax), (y_v,y)])
-                             pth_max end)
+        (fn P => fn a =>
+          let val (x, y) = Thm.dest_binop a
+          in Thm.instantiate (TVars.empty, Vars.make [(p_v,P), (x_v,x), (y_v,y)]) pth_max end)
       val elim_min = eliminate_construct is_min
-        (fn p => fn ax =>
-          let val (ax,y) = Thm.dest_comb ax
-          in Thm.instantiate (TVars.empty, Vars.make [(p_v,p), (x_v, Thm.dest_arg ax), (y_v,y)])
-                             pth_min end)
-    in first_conv [elim_abs, elim_max, elim_min, all_conv]
-    end;
+        (fn P => fn a =>
+          let val (x, y) = Thm.dest_binop a
+          in Thm.instantiate (TVars.empty, Vars.make [(p_v,P), (x_v,x), (y_v,y)]) pth_min end)
+    in first_conv [elim_abs, elim_max, elim_min, all_conv] end;
 in
 fun gen_real_arith ctxt (mkconst,eq,ge,gt,norm,neg,add,mul,prover) =
   gen_gen_real_arith ctxt
