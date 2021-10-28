@@ -177,6 +177,10 @@ val pth = @{lemma "(((x::real) < y) \<equiv> (y - x > 0))" and "((x \<le> y) \<e
      "((\<not>(x \<le> y)) \<equiv> (x - y > 0))" and "((\<not>(x = y)) \<equiv> (x - y > 0 \<or> -(x - y) > 0))"
   by (atomize (full), auto simp add: less_diff_eq le_diff_eq not_less)};
 
+fun neq_th x y =
+  \<^instantiate>\<open>x and y in lemma \<open>x \<noteq> y \<equiv> x - y > 0 \<or> - (x - y) > 0\<close> for x y :: real
+    by (atomize (full), auto simp add: less_diff_eq le_diff_eq not_less)\<close>;
+
 val pth_final = @{lemma "(\<not>p \<Longrightarrow> False) \<Longrightarrow> p" by blast}
 val pth_add =
   @{lemma "(x = (0::real) \<Longrightarrow> y = 0 \<Longrightarrow> x + y = 0 )" and "( x = 0 \<Longrightarrow> y \<ge> 0 \<Longrightarrow> x + y \<ge> 0)" and
@@ -475,11 +479,10 @@ fun gen_gen_real_arith ctxt (mk_numeric,
         if is_binop b ct then Thm.dest_binop ct
         else raise CTERM ("dest_binary",[b,ct])
     val dest_eq = dest_binary \<^cterm>\<open>(=) :: real \<Rightarrow> _\<close>
-    val neq_th = nth pth 5
     fun real_not_eq_conv ct =
       let
         val (l,r) = dest_eq (Thm.dest_arg ct)
-        val th = Thm.instantiate (TVars.empty, Vars.make [(\<^var>\<open>?x::real\<close>,l),(\<^var>\<open>?y::real\<close>,r)]) neq_th
+        val th = neq_th l r
         val th_p = poly_conv(Thm.dest_arg(Thm.dest_arg1(Thm.rhs_of th)))
         val th_x = Drule.arg_cong_rule \<^cterm>\<open>uminus :: real \<Rightarrow> _\<close> th_p
         val th_n = fconv_rule (arg_conv poly_neg_conv) th_x
