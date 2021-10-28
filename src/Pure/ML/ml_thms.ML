@@ -8,7 +8,7 @@ signature ML_THMS =
 sig
   val the_attributes: Proof.context -> int -> Token.src list
   val the_thmss: Proof.context -> thm list list
-  val embedded_lemma: (Proof.context -> thm list) parser
+  val embedded_lemma: (Proof.context -> thm list * (term list * Proof.context)) parser
   val get_stored_thms: unit -> thm list
   val get_stored_thm: unit -> thm
   val store_thms: string * thm list -> unit
@@ -83,8 +83,9 @@ val embedded_lemma =
         let
           val _ = Context_Position.reports ctxt reports;
 
-          val stmt_ctxt = #2 (Proof_Context.add_fixes_cmd fixes ctxt);
-          val stmt = burrow (map (rpair []) o Syntax.read_props stmt_ctxt) raw_stmt;
+          val fixes_ctxt = #2 (Proof_Context.add_fixes_cmd fixes ctxt);
+          val stmt = burrow (map (rpair []) o Syntax.read_props fixes_ctxt) raw_stmt;
+          val stmt_ctxt = (fold o fold) (Proof_Context.augment o #1) stmt fixes_ctxt;
 
           val prep_result = Goal.norm_result ctxt #> not is_open ? Thm.close_derivation \<^here>;
           fun after_qed res goal_ctxt =
@@ -97,12 +98,12 @@ val embedded_lemma =
           val thms =
             Proof_Context.get_fact thms_ctxt
               (Facts.named (Proof_Context.full_name thms_ctxt (Binding.name Auto_Bind.thisN)))
-        in thms end);
+        in (thms, (map #1 (flat stmt), stmt_ctxt)) end);
 
 val _ = Theory.setup
   (ML_Antiquotation.declaration \<^binding>\<open>lemma\<close> (Scan.lift embedded_lemma)
     (fn _ => fn make_lemma => fn ctxt =>
-      let val thms = make_lemma ctxt
+      let val thms = #1 (make_lemma ctxt)
       in thm_binding "lemma" (length thms = 1) thms ctxt end));
 
 
