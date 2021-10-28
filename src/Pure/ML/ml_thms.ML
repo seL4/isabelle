@@ -77,23 +77,26 @@ val _ = Theory.setup
 (* embedded lemma *)
 
 val embedded_lemma =
-  Args.mode "open" -- Parse.and_list1 (Scan.repeat1 Parse.embedded_inner_syntax) -- Method.parse_by
-    >> (fn ((is_open, raw_stmt), (methods, reports)) => fn ctxt =>
+  Args.mode "open" -- Parse.and_list1 (Scan.repeat1 Parse.embedded_inner_syntax)
+    -- Parse.for_fixes -- Method.parse_by
+    >> (fn (((is_open, raw_stmt), fixes), (methods, reports)) => fn ctxt =>
         let
           val _ = Context_Position.reports ctxt reports;
 
-          val stmt = burrow (map (rpair []) o Syntax.read_props ctxt) raw_stmt;
+          val stmt_ctxt = #2 (Proof_Context.add_fixes_cmd fixes ctxt);
+          val stmt = burrow (map (rpair []) o Syntax.read_props stmt_ctxt) raw_stmt;
+
           val prep_result = Goal.norm_result ctxt #> not is_open ? Thm.close_derivation \<^here>;
           fun after_qed res goal_ctxt =
             Proof_Context.put_thms false (Auto_Bind.thisN,
               SOME (map prep_result (Proof_Context.export goal_ctxt ctxt (flat res)))) goal_ctxt;
 
-          val ctxt' = ctxt
+          val thms_ctxt = stmt_ctxt
             |> Proof.theorem NONE after_qed stmt
             |> Proof.global_terminal_proof methods;
           val thms =
-            Proof_Context.get_fact ctxt'
-              (Facts.named (Proof_Context.full_name ctxt' (Binding.name Auto_Bind.thisN)))
+            Proof_Context.get_fact thms_ctxt
+              (Facts.named (Proof_Context.full_name thms_ctxt (Binding.name Auto_Bind.thisN)))
         in thms end);
 
 val _ = Theory.setup

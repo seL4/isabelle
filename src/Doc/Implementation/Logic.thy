@@ -704,7 +704,7 @@ text %mlantiq \<open>
   @@{ML_antiquotation thms} thms
   ;
   @@{ML_antiquotation lemma} ('(' @'open' ')')? ((prop +) + @'and') \<newline>
-    @'by' method method?
+    @{syntax for_fixes} @'by' method method?
   ;
   @@{ML_antiquotation oracle_name} embedded
   \<close>

@@ -292,6 +292,11 @@ operation "transpose".
 
 *** ML ***
 
+* Antiquotation for embedded lemma supports local fixes, as usual in
+many other Isar language elements. For example:
+
+  @{lemma "x = x" for x :: nat by (rule refl)}
+
 * Term operations under abstractions are now more robust (and more
 strict) by using the formal proof context in subsequent operations:
 
