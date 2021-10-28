@@ -8,6 +8,7 @@ signature ML_THMS =
 sig
   val the_attributes: Proof.context -> int -> Token.src list
   val the_thmss: Proof.context -> thm list list
+  val embedded_lemma: (Proof.context -> thm list) parser
   val get_stored_thms: unit -> thm list
   val get_stored_thm: unit -> thm
   val store_thms: string * thm list -> unit
@@ -73,28 +74,32 @@ val _ = Theory.setup
    ML_Antiquotation.declaration \<^binding>\<open>thms\<close> Attrib.thms (K (thm_binding "thms" false)));
 
 
-(* ad-hoc goals *)
+(* embedded lemma *)
+
+val embedded_lemma =
+  Args.mode "open" -- Parse.and_list1 (Scan.repeat1 Parse.embedded_inner_syntax) -- Method.parse_by
+    >> (fn ((is_open, raw_stmt), (methods, reports)) => fn ctxt =>
+        let
+          val _ = Context_Position.reports ctxt reports;
+
+          val stmt = burrow (map (rpair []) o Syntax.read_props ctxt) raw_stmt;
+          val prep_result = Goal.norm_result ctxt #> not is_open ? Thm.close_derivation \<^here>;
+          fun after_qed res goal_ctxt =
+            Proof_Context.put_thms false (Auto_Bind.thisN,
+              SOME (map prep_result (Proof_Context.export goal_ctxt ctxt (flat res)))) goal_ctxt;
+
+          val ctxt' = ctxt
+            |> Proof.theorem NONE after_qed stmt
+            |> Proof.global_terminal_proof methods;
+          val thms =
+            Proof_Context.get_fact ctxt'
+              (Facts.named (Proof_Context.full_name ctxt' (Binding.name Auto_Bind.thisN)))
+        in thms end);
 
 val _ = Theory.setup
-  (ML_Antiquotation.declaration \<^binding>\<open>lemma\<close>
-    (Scan.lift (Args.mode "open" -- Parse.and_list1 (Scan.repeat1 Parse.embedded_inner_syntax) --
-      Method.parse_by))
-    (fn _ => fn ((is_open, raw_stmt), (methods, reports)) => fn ctxt =>
-      let
-        val _ = Context_Position.reports ctxt reports;
-
-        val stmt = burrow (map (rpair []) o Syntax.read_props ctxt) raw_stmt;
-        val prep_result = Goal.norm_result ctxt #> not is_open ? Thm.close_derivation \<^here>;
-        fun after_qed res goal_ctxt =
-          Proof_Context.put_thms false (Auto_Bind.thisN,
-            SOME (map prep_result (Proof_Context.export goal_ctxt ctxt (flat res)))) goal_ctxt;
-
-        val ctxt' = ctxt
-          |> Proof.theorem NONE after_qed stmt
-          |> Proof.global_terminal_proof methods;
-        val thms =
-          Proof_Context.get_fact ctxt'
-            (Facts.named (Proof_Context.full_name ctxt' (Binding.name Auto_Bind.thisN)));
+  (ML_Antiquotation.declaration \<^binding>\<open>lemma\<close> (Scan.lift embedded_lemma)
+    (fn _ => fn make_lemma => fn ctxt =>
+      let val thms = make_lemma ctxt
       in thm_binding "lemma" (length thms = 1) thms ctxt end));
 
 
