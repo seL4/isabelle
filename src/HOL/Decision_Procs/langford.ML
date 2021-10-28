@@ -47,7 +47,7 @@ fun basic_dloqe ctxt stupid dlo_qeth dlo_qeth_nolb dlo_qeth_noub gather ep =
           let
             val (a, A) = Thm.dest_comb S |>> Thm.dest_arg
             val cT = Thm.ctyp_of_cterm a
-            val ne = Thm.instantiate' [SOME cT] [SOME a, SOME A] @{thm insert_not_empty}
+            val ne = \<^instantiate>\<open>'a = cT and a and A in lemma \<open>insert a A \<noteq> {}\<close> by simp\<close>
             val f = prove_finite cT (dest_set S)
          in (ne, f) end
 
@@ -112,7 +112,8 @@ fun conj_aci_rule eq =
     val rr = Thm.dest_arg r
     val thl  = prove_conj tabl (conjuncts rr) |> Drule.implies_intr_hyps
     val thr  = prove_conj tabr (conjuncts ll) |> Drule.implies_intr_hyps
-    val eqI = Thm.instantiate' [] [SOME ll, SOME rr] @{thm iffI}
+    val eqI =
+      \<^instantiate>\<open>P = ll and Q = rr in lemma \<open>(P \<Longrightarrow> Q) \<Longrightarrow> (Q \<Longrightarrow> P) \<Longrightarrow> P \<longleftrightarrow> Q\<close> by (rule iffI)\<close>
   in Thm.implies_elim (Thm.implies_elim eqI thl) thr |> mk_meta_eq end;
 
 fun contains x ct =
