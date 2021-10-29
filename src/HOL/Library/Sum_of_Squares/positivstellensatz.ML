@@ -315,9 +315,6 @@ fun find_cterm p t =
 
 fun is_comb t = (case Thm.term_of t of _ $ _ => true | _ => false);
 
-fun is_binop ct ct' = ct aconvc (Thm.dest_fun (Thm.dest_fun ct'))
-  handle CTERM _ => false;
-
 
 (* Map back polynomials to HOL.                         *)
 
@@ -550,21 +547,21 @@ fun gen_gen_real_arith ctxt (mk_numeric,
           | _ => (acc,t)
       in fn t => h ([],t)
       end
-
-    fun f ct =
+  in
+    fn A =>
       let
         val nnf_norm_conv' =
           nnf_conv ctxt then_conv
-          literals_conv [\<^term>\<open>HOL.conj\<close>, \<^term>\<open>HOL.disj\<close>] []
+          literals_conv [\<^Const>\<open>conj\<close>, \<^Const>\<open>disj\<close>] []
           (Conv.cache_conv
             (first_conv [real_lt_conv, real_le_conv,
                          real_eq_conv, real_not_lt_conv,
                          real_not_le_conv, real_not_eq_conv, all_conv]))
-        fun absremover ct = (literals_conv [\<^term>\<open>HOL.conj\<close>, \<^term>\<open>HOL.disj\<close>] []
+        fun absremover ct = (literals_conv [\<^Const>\<open>conj\<close>, \<^Const>\<open>disj\<close>] []
                   (try_conv (absconv1 then_conv binop_conv (arg_conv poly_conv))) then_conv
                   try_conv (absconv2 then_conv nnf_norm_conv' then_conv binop_conv absremover)) ct
-        val nct = \<^instantiate>\<open>A = ct in cprop \<open>\<not> A\<close>\<close>
-        val th0 = (init_conv then_conv arg_conv nnf_norm_conv') nct
+        val not_A = \<^instantiate>\<open>A in cprop \<open>\<not> A\<close>\<close>
+        val th0 = (init_conv then_conv arg_conv nnf_norm_conv') not_A
         val tm0 = Thm.dest_arg (Thm.rhs_of th0)
         val (th, certificates) =
           if tm0 aconvc \<^cterm>\<open>False\<close> then (equal_implies_1_rule th0, Trivial) else
@@ -576,13 +573,12 @@ fun gen_gen_real_arith ctxt (mk_numeric,
             val th3 =
               fold simple_choose evs
                 (prove_hyp (Thm.equal_elim th1 (Thm.assume (Thm.apply \<^cterm>\<open>Trueprop\<close> bod))) th2)
-          in (Drule.implies_intr_hyps (prove_hyp (Thm.equal_elim th0 (Thm.assume nct)) th3), certs)
+          in (Drule.implies_intr_hyps (prove_hyp (Thm.equal_elim th0 (Thm.assume not_A)) th3), certs)
           end
       in
-        (Thm.implies_elim \<^instantiate>\<open>A = ct in lemma \<open>(\<not> A \<Longrightarrow> False) \<Longrightarrow> A\<close> by blast\<close> th,
+        (Thm.implies_elim \<^instantiate>\<open>A in lemma \<open>(\<not> A \<Longrightarrow> False) \<Longrightarrow> A\<close> by blast\<close> th,
           certificates)
       end
-  in f
   end;
 
 (* A linear arithmetic prover *)

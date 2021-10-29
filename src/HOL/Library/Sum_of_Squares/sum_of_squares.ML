@@ -270,7 +270,7 @@ local
         end handle CTERM ("dest_comb",_) => poly_var tm)
 in
   val poly_of_term = fn tm =>
-    if type_of (Thm.term_of tm) = \<^typ>\<open>real\<close>
+    if type_of (Thm.term_of tm) = \<^Type>\<open>real\<close>
     then poly_of_term tm
     else error "poly_of_term: term does not have real type"
 end;
@@ -852,22 +852,22 @@ local
   open Conv
   val concl = Thm.dest_arg o Thm.cprop_of
   val shuffle1 =
-    fconv_rule (rewr_conv @{lemma "(a + x == y) == (x == y - (a::real))"
+    fconv_rule (rewr_conv @{lemma "(a + x \<equiv> y) \<equiv> (x \<equiv> y - a)" for a x y :: real
       by (atomize (full)) (simp add: field_simps)})
   val shuffle2 =
-    fconv_rule (rewr_conv @{lemma "(x + a == y) ==  (x == y - (a::real))"
+    fconv_rule (rewr_conv @{lemma "(x + a \<equiv> y) \<equiv> (x \<equiv> y - a)" for a x y :: real
       by (atomize (full)) (simp add: field_simps)})
   fun substitutable_monomial fvs tm =
     (case Thm.term_of tm of
-      Free (_, \<^typ>\<open>real\<close>) =>
+      Free (_, \<^Type>\<open>real\<close>) =>
         if not (Cterms.defined fvs tm) then (@1, tm)
         else raise Failure "substitutable_monomial"
-    | \<^term>\<open>(*) :: real \<Rightarrow> _\<close> $ _ $ (Free _) =>
+    | \<^Const_>\<open>times \<^typ>\<open>real\<close> for _ \<open>Free _\<close>\<close> =>
         if RealArith.is_ratconst (Thm.dest_arg1 tm) andalso
           not (Cterms.defined fvs (Thm.dest_arg tm))
         then (RealArith.dest_ratconst (Thm.dest_arg1 tm), Thm.dest_arg tm)
         else raise Failure "substitutable_monomial"
-    | \<^term>\<open>(+) :: real \<Rightarrow> _\<close>$_$_ =>
+    | \<^Const_>\<open>plus \<^Type>\<open>real\<close> for _ _\<close> =>
          (substitutable_monomial (Drule.add_frees_cterm (Thm.dest_arg tm) fvs)
            (Thm.dest_arg1 tm)
            handle Failure _ =>
@@ -882,7 +882,7 @@ local
       if v aconvc w then th
       else
         (case Thm.term_of w of
-          \<^term>\<open>(+) :: real \<Rightarrow> _\<close> $ _ $ _ =>
+          \<^Const_>\<open>plus \<^Type>\<open>real\<close> for _ _\<close> =>
             if Thm.dest_arg1 w aconvc v then shuffle2 th
             else isolate_variable v (shuffle1 th)
         | _ => error "isolate variable : This should not happen?")
@@ -938,21 +938,21 @@ fun real_sos prover ctxt =
 end;
 
 val known_sos_constants =
-  [\<^term>\<open>(\<Longrightarrow>)\<close>, \<^term>\<open>Trueprop\<close>,
-   \<^term>\<open>HOL.False\<close>, \<^term>\<open>HOL.implies\<close>, \<^term>\<open>HOL.conj\<close>, \<^term>\<open>HOL.disj\<close>,
-   \<^term>\<open>Not\<close>, \<^term>\<open>(=) :: bool \<Rightarrow> _\<close>,
-   \<^term>\<open>All :: (real \<Rightarrow> _) \<Rightarrow> _\<close>, \<^term>\<open>Ex :: (real \<Rightarrow> _) \<Rightarrow> _\<close>,
-   \<^term>\<open>(=) :: real \<Rightarrow> _\<close>, \<^term>\<open>(<) :: real \<Rightarrow> _\<close>,
-   \<^term>\<open>(\<le>) :: real \<Rightarrow> _\<close>,
-   \<^term>\<open>(+) :: real \<Rightarrow> _\<close>, \<^term>\<open>(-) :: real \<Rightarrow> _\<close>,
-   \<^term>\<open>(*) :: real \<Rightarrow> _\<close>, \<^term>\<open>uminus :: real \<Rightarrow> _\<close>,
-   \<^term>\<open>(/) :: real \<Rightarrow> _\<close>, \<^term>\<open>inverse :: real \<Rightarrow> _\<close>,
-   \<^term>\<open>(^) :: real \<Rightarrow> _\<close>, \<^term>\<open>abs :: real \<Rightarrow> _\<close>,
-   \<^term>\<open>min :: real \<Rightarrow> _\<close>, \<^term>\<open>max :: real \<Rightarrow> _\<close>,
-   \<^term>\<open>0::real\<close>, \<^term>\<open>1::real\<close>,
-   \<^term>\<open>numeral :: num \<Rightarrow> nat\<close>,
-   \<^term>\<open>numeral :: num \<Rightarrow> real\<close>,
-   \<^term>\<open>Num.Bit0\<close>, \<^term>\<open>Num.Bit1\<close>, \<^term>\<open>Num.One\<close>];
+  [\<^Const>\<open>Pure.imp\<close>, \<^Const>\<open>Trueprop\<close>,
+   \<^Const>\<open>False\<close>, \<^Const>\<open>implies\<close>, \<^Const>\<open>conj\<close>, \<^Const>\<open>disj\<close>,
+   \<^Const>\<open>Not\<close>, \<^Const>\<open>HOL.eq \<^Type>\<open>bool\<close>\<close>,
+   \<^Const>\<open>All \<^Type>\<open>real\<close>\<close>, \<^Const>\<open>Ex \<^Type>\<open>real\<close>\<close>,
+   \<^Const>\<open>HOL.eq \<^Type>\<open>real\<close>\<close>, \<^Const>\<open>less \<^Type>\<open>real\<close>\<close>,
+   \<^Const>\<open>less_eq \<^Type>\<open>real\<close>\<close>,
+   \<^Const>\<open>plus \<^Type>\<open>real\<close>\<close>, \<^Const>\<open>minus \<^Type>\<open>real\<close>\<close>,
+   \<^Const>\<open>times \<^Type>\<open>real\<close>\<close>, \<^Const>\<open>uminus \<^Type>\<open>real\<close>\<close>,
+   \<^Const>\<open>divide \<^Type>\<open>real\<close>\<close>, \<^Const>\<open>inverse \<^Type>\<open>real\<close>\<close>,
+   \<^Const>\<open>power \<^Type>\<open>real\<close>\<close>, \<^Const>\<open>abs \<^Type>\<open>real\<close>\<close>,
+   \<^Const>\<open>min \<^Type>\<open>real\<close>\<close>, \<^Const>\<open>max \<^Type>\<open>real\<close>\<close>,
+   \<^Const>\<open>zero_class.zero \<^Type>\<open>real\<close>\<close>, \<^Const>\<open>one_class.one \<^Type>\<open>real\<close>\<close>,
+   \<^Const>\<open>numeral \<^Type>\<open>nat\<close>\<close>,
+   \<^Const>\<open>numeral \<^Type>\<open>real\<close>\<close>,
+   \<^Const>\<open>Num.Bit0\<close>, \<^Const>\<open>Num.Bit1\<close>, \<^Const>\<open>Num.One\<close>];
 
 fun check_sos kcts ct =
   let
@@ -963,12 +963,12 @@ fun check_sos kcts ct =
       else ()
     val fs = Term.add_frees t []
     val _ =
-      if exists (fn ((_,T)) => not (T = \<^typ>\<open>real\<close>)) fs
+      if exists (fn ((_,T)) => T <> \<^Type>\<open>real\<close>) fs
       then error "SOS: not sos. Variables with type not real"
       else ()
     val vs = Term.add_vars t []
     val _ =
-      if exists (fn ((_,T)) => not (T = \<^typ>\<open>real\<close>)) vs
+      if exists (fn ((_,T)) => T <> \<^Type>\<open>real\<close>) vs
       then error "SOS: not sos. Variables with type not real"
       else ()
     val ukcs = subtract (fn (t,p) => Const p aconv t) kcts (Term.add_consts t [])
@@ -996,13 +996,13 @@ local
 in
   fun get_denom b ct =
     (case Thm.term_of ct of
-      \<^term>\<open>(/) :: real \<Rightarrow> _\<close> $ _ $ _ =>
+      \<^Const_>\<open>divide \<^Type>\<open>real\<close> for _ _\<close> =>
         if is_numeral (Thm.dest_arg ct)
         then get_denom b (Thm.dest_arg1 ct)
         else default_SOME (get_denom b) (get_denom b (Thm.dest_arg ct)) (Thm.dest_arg ct, b)
-    | \<^term>\<open>(<) :: real \<Rightarrow> _\<close> $ _ $ _ =>
+    | \<^Const_>\<open>less \<^Type>\<open>real\<close> for _ _\<close> =>
         lift_SOME (get_denom true) (get_denom true (Thm.dest_arg ct)) (Thm.dest_arg1 ct)
-    | \<^term>\<open>(\<le>) :: real \<Rightarrow> _\<close> $ _ $ _ =>
+    | \<^Const_>\<open>less_eq \<^Type>\<open>real\<close> for _ _\<close> =>
         lift_SOME (get_denom true) (get_denom true (Thm.dest_arg ct)) (Thm.dest_arg1 ct)
     | _ $ _ => lift_SOME (get_denom b) (get_denom b (Thm.dest_fun ct)) (Thm.dest_arg ct)
     | _ => NONE)
