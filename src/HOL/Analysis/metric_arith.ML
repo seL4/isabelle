@@ -224,10 +224,11 @@ fun lin_real_arith_tac ctxt metric_ty = CSUBGOAL (fn (goal, i) =>
   in Argo_Tactic.argo_tac ctxt' dist_thms i end)
 
 fun basic_metric_arith_tac ctxt metric_ty =
-  HEADGOAL (dist_refl_sym_tac ctxt THEN'
-  IF_UNSOLVED o (embedding_tac ctxt metric_ty) THEN'
-  IF_UNSOLVED o (pre_arith_tac ctxt) THEN'
-  IF_UNSOLVED o (lin_real_arith_tac ctxt metric_ty))
+  SELECT_GOAL (
+    dist_refl_sym_tac ctxt 1 THEN
+    IF_UNSOLVED (embedding_tac ctxt metric_ty 1) THEN
+    IF_UNSOLVED (pre_arith_tac ctxt 1) THEN
+    IF_UNSOLVED (lin_real_arith_tac ctxt metric_ty 1))
 
 (* tries to infer the metric space from ct from dist terms,
    if no dist terms are present, equality terms will be used *)
@@ -258,9 +259,9 @@ fun guess_metric ctxt tm =
     end
 
 (* solve \<exists> by proving the goal for a single witness from the metric space *)
-fun exists_tac ctxt st =
+fun exists_tac ctxt = CSUBGOAL (fn (goal, i) =>
   let
-    val goal = Thm.cprem_of st 1
+    val _ = \<^assert> (i = 1)
     val metric_ty = guess_metric ctxt (Thm.term_of goal)
     val points = find_points ctxt metric_ty goal
 
@@ -274,32 +275,33 @@ fun exists_tac ctxt st =
         (*variable doesn't occur in body*)
         resolve_tac ctxt @{thms exI}) THEN
         trace_tac ctxt ("Removed existential quantifier, try " ^ @{make_string} pt) THEN
-        try_points_tac ctxt
+        HEADGOAL (try_points_tac ctxt)
       end
-    and try_points_tac ctxt st = (
-      if is_exists (Thm.major_prem_of st) then
+    and try_points_tac ctxt = SUBGOAL (fn (g, _) =>
+      if is_exists g then
         FIRST (map (try_point_tac ctxt) points)
-      else if is_forall (Thm.major_prem_of st) then
-        HEADGOAL (resolve_tac ctxt @{thms HOL.allI} THEN'
+      else if is_forall g then
+        resolve_tac ctxt @{thms HOL.allI} 1 THEN
         Subgoal.FOCUS (fn {context = ctxt', ...} =>
           trace_tac ctxt "Removed universal quantifier" THEN
-          try_points_tac ctxt') ctxt)
-      else basic_metric_arith_tac ctxt metric_ty) st
-  in try_points_tac ctxt st end
+          try_points_tac ctxt' 1) ctxt 1
+      else basic_metric_arith_tac ctxt metric_ty 1)
+  in try_points_tac ctxt 1 end)
 
 fun metric_arith_tac ctxt =
-  (*unfold common definitions to get rid of sets*)
-  unfold_tac ctxt THEN'
-  (*remove all meta-level connectives*)
-  IF_UNSOLVED o (Object_Logic.full_atomize_tac ctxt) THEN'
-  (*convert goal to prenex form*)
-  IF_UNSOLVED o (prenex_tac ctxt) THEN'
-  (*and NNF to ?*)
-  IF_UNSOLVED o (nnf_tac ctxt) THEN'
-  (*turn all universally quantified variables into free variables, by focusing the subgoal*)
-  REPEAT o (resolve_tac ctxt @{thms HOL.allI}) THEN'
-  IF_UNSOLVED o SUBPROOF (fn {context = ctxt', ...} =>
-    trace_tac ctxt' "Focused on subgoal" THEN
-    exists_tac ctxt') ctxt
+  SELECT_GOAL (
+    (*unfold common definitions to get rid of sets*)
+    unfold_tac ctxt 1 THEN
+    (*remove all meta-level connectives*)
+    IF_UNSOLVED (Object_Logic.full_atomize_tac ctxt 1) THEN
+    (*convert goal to prenex form*)
+    IF_UNSOLVED (prenex_tac ctxt 1) THEN
+    (*and NNF to ?*)
+    IF_UNSOLVED (nnf_tac ctxt 1) THEN
+    (*turn all universally quantified variables into free variables, by focusing the subgoal*)
+    REPEAT (HEADGOAL (resolve_tac ctxt @{thms HOL.allI})) THEN
+    IF_UNSOLVED (SUBPROOF (fn {context = ctxt', ...} =>
+      trace_tac ctxt' "Focused on subgoal" THEN
+      exists_tac ctxt' 1) ctxt 1))
 
 end
