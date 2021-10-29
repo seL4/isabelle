@@ -518,26 +518,28 @@ fun gen_gen_real_arith ctxt (mk_numeric,
 
     val specl = fold_rev (fn x => fn th => Thm.instantiate' [] [SOME x] (th RS spec));
 
-    fun mk_ex v t =
-      \<^instantiate>\<open>'a = \<open>Thm.ctyp_of_cterm v\<close> and P = \<open>Thm.lambda v t\<close>
+    fun mk_ex x t =
+      \<^instantiate>\<open>'a = \<open>Thm.ctyp_of_cterm x\<close> and P = \<open>Thm.lambda x t\<close>
         in cprop \<open>Ex P\<close> for P :: \<open>'a \<Rightarrow> bool\<close>\<close>
 
-    fun choose v th th' =
+    fun choose x th th' =
       case Thm.concl_of th of
         \<^Const_>\<open>Trueprop for \<^Const_>\<open>Ex _ for _\<close>\<close> =>
           let
-            val p = (funpow 2 Thm.dest_arg o Thm.cprop_of) th
-            val T = Thm.dest_ctyp0 (Thm.ctyp_of_cterm p)
-            val th0 = fconv_rule (Thm.beta_conversion true)
-              (Thm.instantiate' [SOME T] [SOME p, (SOME o Thm.dest_arg o Thm.cprop_of) th'] exE)
-            val pv = (Thm.rhs_of o Thm.beta_conversion true)
-              (Thm.apply \<^cterm>\<open>Trueprop\<close> (Thm.apply p v))
-            val th1 = Thm.forall_intr v (Thm.implies_intr pv th')
+            val P = Thm.dest_arg (Thm.dest_arg (Thm.cprop_of th))
+            val T = Thm.dest_ctyp0 (Thm.ctyp_of_cterm P)
+            val Q = Thm.dest_arg (Thm.cprop_of th')
+            val th0 =
+              \<^instantiate>\<open>'a = T and P and Q in
+                lemma "\<exists>x::'a. P x \<Longrightarrow> (\<And>x. P x \<Longrightarrow> Q) \<Longrightarrow> Q" by (fact exE)\<close>
+            val Px =
+              \<^instantiate>\<open>'a = T and P and x in cprop \<open>P x\<close> for x :: 'a\<close>
+            val th1 = Thm.forall_intr x (Thm.implies_intr Px th')
           in Thm.implies_elim (Thm.implies_elim th0 th) th1  end
       | _ => raise THM ("choose",0,[th, th'])
 
-    fun simple_choose v th =
-      choose v (Thm.assume (mk_ex v (Thm.dest_arg (hd (Thm.chyps_of th))))) th
+    fun simple_choose x th =
+      choose x (Thm.assume (mk_ex x (Thm.dest_arg (hd (Thm.chyps_of th))))) th
 
     val strip_forall =
       let
