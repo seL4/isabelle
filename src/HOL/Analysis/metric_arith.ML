@@ -150,9 +150,11 @@ fun maxdist_conv ctxt fset_ct ct =
     val real_abs_dist_simp =
       Simplifier.rewrite (put_simpset HOL_ss ctxt addsimps @{thms real_abs_dist})
     val maxdist_thm =
-      @{thm maxdist_thm} |>
-      infer_instantiate' ctxt [SOME fset_ct, SOME x, SOME y] |>
-      solve_prems
+      \<^instantiate>\<open>'a = \<open>Thm.ctyp_of_cterm x\<close> and x and y and s = fset_ct in
+        lemma \<open>finite s \<Longrightarrow> x \<in> s \<Longrightarrow> y \<in> s \<Longrightarrow> dist x y \<equiv> SUP a\<in>s. \<bar>dist x a - dist a y\<bar>\<close>
+          for x y :: \<open>'a::metric_space\<close>
+          by (fact maxdist_thm)\<close>
+      |> solve_prems
   in
     ((Conv.rewr_conv maxdist_thm) then_conv
     (* SUP to Sup *)
@@ -179,9 +181,11 @@ fun metric_eq_conv ctxt fset_ct ct =
     val dist_refl_sym_simp =
       Simplifier.rewrite (put_simpset HOL_ss ctxt addsimps @{thms dist_commute dist_self})
     val metric_eq_thm =
-      @{thm metric_eq_thm} |>
-      infer_instantiate' ctxt [SOME x, SOME fset_ct, SOME y] |>
-      solve_prems
+      \<^instantiate>\<open>'a = \<open>Thm.ctyp_of_cterm x\<close> and x and y and s = fset_ct in
+        lemma \<open>x \<in> s \<Longrightarrow> y \<in> s \<Longrightarrow> x = y \<equiv> \<forall>a\<in>s. dist x a = dist y a\<close>
+          for x y :: \<open>'a::metric_space\<close>
+          by (fact metric_eq_thm)\<close>
+      |> solve_prems
   in
     ((Conv.rewr_conv metric_eq_thm) then_conv
     (*convert \<forall>x\<in>{x\<^sub>1,...,x\<^sub>n}. P x to P x\<^sub>1 \<and> ... \<and> P x\<^sub>n*)
@@ -190,10 +194,12 @@ fun metric_eq_conv ctxt fset_ct ct =
   end
 
 (* build list of theorems "0 \<le> dist x y" for all dist terms in ct *)
-fun augment_dist_pos ctxt metric_ty ct =
+fun augment_dist_pos metric_ty ct =
   let fun inst dist_ct =
-    let val (xct, yct) = Thm.dest_binop dist_ct
-    in infer_instantiate' ctxt [SOME xct, SOME yct] @{thm zero_le_dist} end
+    let val (x, y) = Thm.dest_binop dist_ct in
+      \<^instantiate>\<open>'a = \<open>Thm.ctyp_of_cterm x\<close> and x and y
+        in lemma \<open>dist x y \<ge> 0\<close> for x y :: \<open>'a::metric_space\<close> by simp\<close>
+    end
   in map inst (find_dist metric_ty ct) end
 
 (* apply maxdist_conv and metric_eq_conv to the goal, thereby embedding the goal in (\<real>\<^sup>n,dist\<^sub>\<infinity>) *)
@@ -213,7 +219,7 @@ fun embedding_tac ctxt metric_ty = CSUBGOAL (fn (goal, i) =>
 (* decision procedure for linear real arithmetic *)
 fun lin_real_arith_tac ctxt metric_ty i goal =
   let
-    val dist_thms = augment_dist_pos ctxt metric_ty (Thm.cprem_of goal 1)
+    val dist_thms = augment_dist_pos metric_ty (Thm.cprem_of goal 1)
     val ctxt' = argo_trace_ctxt ctxt
   in (Argo_Tactic.argo_tac ctxt' dist_thms) i goal end
 
