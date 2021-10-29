@@ -238,7 +238,7 @@ fun guess_metric ctxt tm =
       (case t of
         \<^Const_>\<open>HOL.eq T for l r\<close> =>
           if Sign.of_sort thy (T, \<^sort>\<open>metric_space\<close>) then SOME T
-          else (case find_eq l of NONE => find_dist r (* FIXME find_eq!? *) | some => some)
+          else (case find_eq l of NONE => find_eq r | some => some)
       | t1 $ t2 => (case find_eq t1 of NONE => find_eq t2 | some => some)
       | Abs _ => find_eq (#2 (Term.dest_abs_global t))
       | _ => NONE)
