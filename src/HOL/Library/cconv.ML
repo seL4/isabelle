@@ -48,21 +48,12 @@ val concl_rhs_of = Thm.cprop_of #> Drule.strip_imp_concl #> Thm.dest_equals_rhs
 
 fun transitive th1 th2 = Drule.transitive_thm OF [th1, th2]
 
-val combination_thm =
-  let
-    val fg = \<^cprop>\<open>f :: 'a :: {} \<Rightarrow> 'b :: {} \<equiv> g\<close>
-    val st = \<^cprop>\<open>s :: 'a :: {} \<equiv> t\<close>
-    val thm = Thm.combination (Thm.assume fg) (Thm.assume st)
-      |> Thm.implies_intr st
-      |> Thm.implies_intr fg
-  in Drule.export_without_context thm end
-
 fun abstract_rule_thm n =
   let
-    val eq = \<^cprop>\<open>\<And>x :: 'a :: {}. (s :: 'a \<Rightarrow> 'b :: {}) x \<equiv> t x\<close>
-    val x = \<^cterm>\<open>x :: 'a :: {}\<close>
-    val thm = eq
-      |> Thm.assume
+    val eq = \<^cprop>\<open>\<And>x::'a::{}. (s::'a \<Rightarrow> 'b::{}) x \<equiv> t x\<close>
+    val x = \<^cterm>\<open>x::'a::{}\<close>
+    val thm =
+      Thm.assume eq
       |> Thm.forall_elim x
       |> Thm.abstract_rule n x
       |> Thm.implies_intr eq
@@ -89,13 +80,15 @@ fun rewr_cconv rule ct =
     val rule1 = Thm.incr_indexes (Thm.maxidx_of_cterm ct + 1) rule
     val lhs = concl_lhs_of rule1
     val rule2 = Thm.rename_boundvars (Thm.term_of lhs) (Thm.term_of ct) rule1
-    val rule3 = Thm.instantiate (Thm.match (lhs, ct)) rule2
-                handle Pattern.MATCH => raise CTERM ("rewr_cconv", [lhs, ct])
+    val rule3 =
+      Thm.instantiate (Thm.match (lhs, ct)) rule2
+        handle Pattern.MATCH => raise CTERM ("rewr_cconv", [lhs, ct])
     val concl = rule3 |> Thm.cprop_of |> Drule.strip_imp_concl
     val rule4 =
       if Thm.dest_equals_lhs concl aconvc ct then rule3
-      else let val ceq = Thm.dest_fun2 concl
-           in rule3 RS Thm.trivial (Thm.mk_binop ceq ct (Thm.dest_equals_rhs concl)) end
+      else
+        let val ceq = Thm.dest_fun2 concl
+        in rule3 RS Thm.trivial (Thm.mk_binop ceq ct (Thm.dest_equals_rhs concl)) end
   in
     transitive rule4 (Thm.beta_conversion true (concl_rhs_of rule4))
   end
@@ -103,8 +96,10 @@ fun rewr_cconv rule ct =
 fun rewrs_cconv rules = first_cconv (map rewr_cconv rules)
 
 fun combination_cconv cv1 cv2 cterm =
-  let val (l, r) = Thm.dest_comb cterm
-  in combination_thm OF [cv1 l, cv2 r] end
+  let val (l, r) = Thm.dest_comb cterm in
+    @{lemma \<open>f \<equiv> g \<Longrightarrow> s \<equiv> t \<Longrightarrow> f s \<equiv> g t\<close> for f g :: \<open>'a::{} \<Rightarrow> 'b::{}\<close> by simp}
+      OF [cv1 l, cv2 r]
+  end
 
 fun comb_cconv cv = combination_cconv cv cv
 
@@ -169,7 +164,7 @@ fun params_cconv n cv ctxt ct =
 fun prems_cconv 0 cv ct = cv ct
   | prems_cconv n cv ct =
       (case ct |> Thm.term_of of
-        (Const (\<^const_name>\<open>Pure.imp\<close>, _) $ _) $ _ =>
+        \<^Const_>\<open>Pure.imp for _ _\<close> =>
           ((if n = 1 then fun_cconv else I) o arg_cconv) (prems_cconv (n-1) cv) ct
       | _ =>  cv ct)
 
@@ -185,9 +180,9 @@ fun concl_cconv 0 cv ct = cv ct
         NONE => cv ct
       | SOME (A,B) => (concl_cconv (n-1) cv B) RS imp_cong A)
 
-(* Rewrites A in A \<Longrightarrow> A1 \<Longrightarrow> An \<Longrightarrow> B.
+(* Rewrite A in A \<Longrightarrow> A1 \<Longrightarrow> An \<Longrightarrow> B.
    The premises of the resulting theorem assume A1, ..., An
-   *)
+*)
 local
 
 fun rewr_imp C =
@@ -207,11 +202,12 @@ fun with_prems_cconv n cv ct =
           case try Thm.dest_implies B of
             NONE => (As, B)
           | SOME (A,B) => strip_prems (i - 1) (A::As) B
-    val (prem, (prems, concl)) = ct |> Thm.dest_implies ||> strip_prems n [] 
+    val (prem, (prems, concl)) = ct |> Thm.dest_implies ||> strip_prems n []
     val th1 = cv prem RS rewr_imp concl
     val nprems = Thm.nprems_of th1
-    fun f p th = (th RS cut_rl p)
-      |> Conv.fconv_rule (Conv.concl_conv nprems (Conv.rewr_conv @{thm imp_cong_eq}))
+    fun f p th =
+      Conv.fconv_rule (Conv.concl_conv nprems (Conv.rewr_conv @{thm imp_cong_eq}))
+        (th RS cut_rl p)
   in fold f prems th1 end
 
 end
