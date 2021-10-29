@@ -129,15 +129,15 @@ fun nth_hol_goal thm i =
 
 fun dest_measurable_fun t =
   (case t of
-    (Const (\<^const_name>\<open>Set.member\<close>, _) $ f $ (Const (\<^const_name>\<open>measurable\<close>, _) $ _ $ _)) => f
+    \<^Const_>\<open>Set.member _ for f \<^Const_>\<open>measurable _ _ for _ _\<close>\<close> => f
   | _ => raise (TERM ("not a measurability predicate", [t])))
 
 fun not_measurable_prop n thm =
   if length (Thm.prems_of thm) < n then false
   else
     (case nth_hol_goal thm n of
-      (Const (\<^const_name>\<open>Set.member\<close>, _) $ _ $ (Const (\<^const_name>\<open>sets\<close>, _) $ _)) => false
-    | (Const (\<^const_name>\<open>Set.member\<close>, _) $ _ $ (Const (\<^const_name>\<open>measurable\<close>, _) $ _ $ _)) => false
+      \<^Const_>\<open>Set.member _ for _ \<^Const_>\<open>sets _ for _\<close>\<close> => false
+    | \<^Const_>\<open>Set.member _ for _ \<^Const_>\<open>measurable _ _ for _ _\<close>\<close> => false
     | _ => true)
     handle TERM _ => true;
 
@@ -214,16 +214,12 @@ fun measurable_tac ctxt facts =
           THEN' K (debug_tac ctxt (debug_fact (msg ^ " resolved using") thm) all_tac))
       else resolve_tac ctxt
 
-    val elem_congI = @{lemma "A = B \<Longrightarrow> x \<in> B \<Longrightarrow> x \<in> A" by simp}
-
     val (thms, ctxt) = prepare_facts ctxt facts
 
-    fun is_sets_eq (Const (\<^const_name>\<open>HOL.eq\<close>, _) $
-          (Const (\<^const_name>\<open>sets\<close>, _) $ _) $
-          (Const (\<^const_name>\<open>sets\<close>, _) $ _)) = true
-      | is_sets_eq (Const (\<^const_name>\<open>HOL.eq\<close>, _) $
-          (Const (\<^const_name>\<open>measurable\<close>, _) $ _ $ _) $
-          (Const (\<^const_name>\<open>measurable\<close>, _) $ _ $ _)) = true
+    fun is_sets_eq \<^Const_>\<open>HOL.eq _ for
+          \<^Const_>\<open>sets _ for _\<close> \<^Const_>\<open>sets _ for _\<close>\<close> = true
+      | is_sets_eq \<^Const_>\<open>HOL.eq _ for
+          \<^Const_>\<open>measurable _ _ for _ _\<close> \<^Const_>\<open>measurable _ _ for _ _\<close>\<close> = true
       | is_sets_eq _ = false
 
     val cong_thms = get_cong (Context.Proof ctxt) @
@@ -234,7 +230,7 @@ fun measurable_tac ctxt facts =
         let
           val ctxt'' = Simplifier.add_prems prems ctxt'
         in
-          r_tac "cong intro" [elem_congI]
+          r_tac "cong intro" [@{lemma "A = B \<Longrightarrow> x \<in> B \<Longrightarrow> x \<in> A" by simp}]
           THEN' SOLVED' (fn i => REPEAT_DETERM (
               ((r_tac "cong solve" (cong_thms @ [@{thm refl}])
                 ORELSE' IF' (fn i => fn thm => Thm.nprems_of thm > i)
