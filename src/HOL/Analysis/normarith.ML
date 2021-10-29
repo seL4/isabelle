@@ -258,10 +258,6 @@ fun int_flip v eq =
   then FuncUtil.Intfunc.update (v, ~ (FuncUtil.Intfunc.apply eq v)) eq else eq;
 
 local
- val pth_zero = @{thm norm_zero}
- val tv_n =
-  (dest_TVar o Thm.typ_of_cterm o Thm.dest_arg o Thm.dest_arg1 o Thm.dest_arg o Thm.cprop_of)
-    pth_zero
  val concl = Thm.dest_arg o Thm.cprop_of
  fun real_vector_combo_prover ctxt translator (nubs,ges,gts) =
   let
@@ -323,9 +319,9 @@ local
         (fn t => null (FuncUtil.Ctermfunc.dom (vector_lincomb t))) (map snd rawdests)
 
   in fst (RealArith.real_linear_prover translator
-        (map (fn t =>
-          Drule.instantiate_normalize (TVars.make [(tv_n, Thm.ctyp_of_cterm t)], Vars.empty) pth_zero)
-            zerodests,
+        (zerodests |> map (fn t =>
+          \<^instantiate>\<open>'a = \<open>Thm.ctyp_of_cterm t\<close> in
+            lemma \<open>norm (0::'a::real_normed_vector) = 0\<close> by simp\<close>),
         map (fconv_rule (try_conv (Conv.top_sweep_conv norm_canon_conv ctxt) then_conv
                        arg_conv (arg_conv real_poly_conv))) ges',
         map (fconv_rule (try_conv (Conv.top_sweep_conv norm_canon_conv ctxt) then_conv
