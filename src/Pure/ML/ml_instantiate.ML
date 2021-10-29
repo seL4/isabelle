@@ -74,7 +74,7 @@ structure Data = Proof_Data
 fun put_thms ths ctxt =
   let
     val (i, thms) = Data.get ctxt;
-    val ctxt' = ctxt |> Data.put (i + 1, Inttab.update (i, ths) thms);
+    val ctxt' = ctxt |> Data.put (i + 1, Inttab.update (i, map Thm.trim_context ths) thms);
   in (i, ctxt') end;
 
 fun get_thms ctxt i = the (Inttab.lookup (#2 (Data.get ctxt)) i);
