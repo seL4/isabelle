@@ -217,11 +217,11 @@ fun embedding_tac ctxt metric_ty = CSUBGOAL (fn (goal, i) =>
   end)
 
 (* decision procedure for linear real arithmetic *)
-fun lin_real_arith_tac ctxt metric_ty i goal =
+fun lin_real_arith_tac ctxt metric_ty = CSUBGOAL (fn (goal, i) =>
   let
-    val dist_thms = augment_dist_pos metric_ty (Thm.cprem_of goal 1)
+    val dist_thms = augment_dist_pos metric_ty goal
     val ctxt' = argo_trace_ctxt ctxt
-  in (Argo_Tactic.argo_tac ctxt' dist_thms) i goal end
+  in Argo_Tactic.argo_tac ctxt' dist_thms i end)
 
 fun basic_metric_arith_tac ctxt metric_ty =
   HEADGOAL (dist_refl_sym_tac ctxt THEN'
