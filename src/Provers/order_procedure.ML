@@ -1,37 +1,38 @@
 structure Order_Procedure : sig
-  datatype int = Int_of_integer of IntInf.int
-  val integer_of_int : int -> IntInf.int
+  datatype inta = Int_of_integer of int
+  val integer_of_int : inta -> int
   datatype 'a fm = Atom of 'a | And of 'a fm * 'a fm | Or of 'a fm * 'a fm |
     Neg of 'a fm
-  datatype trm = Const of string | App of trm * trm | Var of int
+  datatype trm = Const of string | App of trm * trm | Var of inta
   datatype prf_trm = PThm of string | Appt of prf_trm * trm |
     AppP of prf_trm * prf_trm | AbsP of trm * prf_trm | Bound of trm |
     Conv of trm * prf_trm * prf_trm
-  datatype o_atom = EQ of int * int | LEQ of int * int | LESS of int * int
-  val lo_contr_prf : (bool * o_atom) fm -> prf_trm option
-  val po_contr_prf : (bool * o_atom) fm -> prf_trm option
+  datatype order_atom = EQ of inta * inta | LEQ of inta * inta |
+    LESS of inta * inta
+  val lo_contr_prf : (bool * order_atom) fm -> prf_trm option
+  val po_contr_prf : (bool * order_atom) fm -> prf_trm option
 end = struct
 
-datatype int = Int_of_integer of IntInf.int;
+datatype inta = Int_of_integer of int;
 
 fun integer_of_int (Int_of_integer k) = k;
 
-fun equal_inta k l = (((integer_of_int k) : IntInf.int) = (integer_of_int l));
+fun equal_inta k l = integer_of_int k = integer_of_int l;
 
 type 'a equal = {equal : 'a -> 'a -> bool};
 val equal = #equal : 'a equal -> 'a -> 'a -> bool;
 
-val equal_int = {equal = equal_inta} : int equal;
+val equal_int = {equal = equal_inta} : inta equal;
 
-fun less_eq_int k l = IntInf.<= (integer_of_int k, integer_of_int l);
+fun less_eq_int k l = integer_of_int k <= integer_of_int l;
 
 type 'a ord = {less_eq : 'a -> 'a -> bool, less : 'a -> 'a -> bool};
 val less_eq = #less_eq : 'a ord -> 'a -> 'a -> bool;
 val less = #less : 'a ord -> 'a -> 'a -> bool;
 
-fun less_int k l = IntInf.< (integer_of_int k, integer_of_int l);
+fun less_int k l = integer_of_int k < integer_of_int l;
 
-val ord_int = {less_eq = less_eq_int, less = less_int} : int ord;
+val ord_int = {less_eq = less_eq_int, less = less_int} : inta ord;
 
 type 'a preorder = {ord_preorder : 'a ord};
 val ord_preorder = #ord_preorder : 'a preorder -> 'a ord;
@@ -39,14 +40,14 @@ val ord_preorder = #ord_preorder : 'a preorder -> 'a ord;
 type 'a order = {preorder_order : 'a preorder};
 val preorder_order = #preorder_order : 'a order -> 'a preorder;
 
-val preorder_int = {ord_preorder = ord_int} : int preorder;
+val preorder_int = {ord_preorder = ord_int} : inta preorder;
 
-val order_int = {preorder_order = preorder_int} : int order;
+val order_int = {preorder_order = preorder_int} : inta order;
 
 type 'a linorder = {order_linorder : 'a order};
 val order_linorder = #order_linorder : 'a linorder -> 'a order;
 
-val linorder_int = {order_linorder = order_int} : int linorder;
+val linorder_int = {order_linorder = order_int} : inta linorder;
 
 fun eq A_ a b = equal A_ a b;
 
@@ -89,7 +90,7 @@ datatype 'a set = Set of 'a list | Coset of 'a list;
 datatype 'a fm = Atom of 'a | And of 'a fm * 'a fm | Or of 'a fm * 'a fm |
   Neg of 'a fm;
 
-datatype trm = Const of string | App of trm * trm | Var of int;
+datatype trm = Const of string | App of trm * trm | Var of inta;
 
 datatype prf_trm = PThm of string | Appt of prf_trm * trm |
   AppP of prf_trm * prf_trm | AbsP of trm * prf_trm | Bound of trm |
@@ -97,16 +98,17 @@ datatype prf_trm = PThm of string | Appt of prf_trm * trm |
 
 datatype ('a, 'b) mapping = Mapping of ('a, 'b) rbt;
 
-datatype o_atom = EQ of int * int | LEQ of int * int | LESS of int * int;
+datatype order_atom = EQ of inta * inta | LEQ of inta * inta |
+  LESS of inta * inta;
 
 fun id x = (fn xa => xa) x;
 
 fun impl_of B_ (RBT x) = x;
 
-fun folda f (Branch (c, lt, k, v, rt)) x = folda f rt (f k v (folda f lt x))
-  | folda f Empty x = x;
+fun foldb f (Branch (c, lt, k, v, rt)) x = foldb f rt (f k v (foldb f lt x))
+  | foldb f Empty x = x;
 
-fun fold A_ x xc = folda x (impl_of A_ xc);
+fun fold A_ x xc = foldb x (impl_of A_ xc);
 
 fun gen_keys kts (Branch (c, l, k, v, r)) = gen_keys ((k, r) :: kts) l
   | gen_keys ((k, t) :: kts) Empty = k :: gen_keys kts t
@@ -288,11 +290,6 @@ fun lookup A_ x =
 fun member A_ [] y = false
   | member A_ (x :: xs) y = eq A_ x y orelse member A_ xs y;
 
-fun hd (x21 :: x22) = x21;
-
-fun tl [] = []
-  | tl (x21 :: x22) = x22;
-
 fun remdups A_ [] = []
   | remdups A_ (x :: xs) =
     (if member A_ xs x then remdups A_ xs else x :: remdups A_ xs);
@@ -319,6 +316,8 @@ fun dnf_fm (And (phi_1, phi_2)) = dnf_and_fm (dnf_fm phi_1) (dnf_fm phi_2)
   | dnf_fm (Or (phi_1, phi_2)) = Or (dnf_fm phi_1, dnf_fm phi_2)
   | dnf_fm (Atom v) = Atom v
   | dnf_fm (Neg v) = Neg v;
+
+fun folda A_ f (Mapping t) a = fold A_ f t a;
 
 fun keysa A_ (Mapping t) = Set (keys A_ t);
 
@@ -354,36 +353,26 @@ fun dnf_and_fm_prf (Or (phi_1, phi_2)) psi =
   foldl (fn a => fn b => AppP (a, b)) (PThm "then_conv")
     [PThm "conj_disj_distribR_conv",
       foldl (fn a => fn b => AppP (a, b)) (PThm "combination_conv")
-        [AppP (PThm "arg_conv",
-                hd [dnf_and_fm_prf phi_1 psi, dnf_and_fm_prf phi_2 psi]),
-          hd (tl [dnf_and_fm_prf phi_1 psi, dnf_and_fm_prf phi_2 psi])]]
+        [AppP (PThm "arg_conv", dnf_and_fm_prf phi_1 psi),
+          dnf_and_fm_prf phi_2 psi]]
   | dnf_and_fm_prf (Atom v) (Or (phi_1, phi_2)) =
     foldl (fn a => fn b => AppP (a, b)) (PThm "then_conv")
       [PThm "conj_disj_distribL_conv",
         foldl (fn a => fn b => AppP (a, b)) (PThm "combination_conv")
-          [AppP (PThm "arg_conv",
-                  hd [dnf_and_fm_prf (Atom v) phi_1,
-                       dnf_and_fm_prf (Atom v) phi_2]),
-            hd (tl [dnf_and_fm_prf (Atom v) phi_1,
-                     dnf_and_fm_prf (Atom v) phi_2])]]
+          [AppP (PThm "arg_conv", dnf_and_fm_prf (Atom v) phi_1),
+            dnf_and_fm_prf (Atom v) phi_2]]
   | dnf_and_fm_prf (And (v, va)) (Or (phi_1, phi_2)) =
     foldl (fn a => fn b => AppP (a, b)) (PThm "then_conv")
       [PThm "conj_disj_distribL_conv",
         foldl (fn a => fn b => AppP (a, b)) (PThm "combination_conv")
-          [AppP (PThm "arg_conv",
-                  hd [dnf_and_fm_prf (And (v, va)) phi_1,
-                       dnf_and_fm_prf (And (v, va)) phi_2]),
-            hd (tl [dnf_and_fm_prf (And (v, va)) phi_1,
-                     dnf_and_fm_prf (And (v, va)) phi_2])]]
+          [AppP (PThm "arg_conv", dnf_and_fm_prf (And (v, va)) phi_1),
+            dnf_and_fm_prf (And (v, va)) phi_2]]
   | dnf_and_fm_prf (Neg v) (Or (phi_1, phi_2)) =
     foldl (fn a => fn b => AppP (a, b)) (PThm "then_conv")
       [PThm "conj_disj_distribL_conv",
         foldl (fn a => fn b => AppP (a, b)) (PThm "combination_conv")
-          [AppP (PThm "arg_conv",
-                  hd [dnf_and_fm_prf (Neg v) phi_1,
-                       dnf_and_fm_prf (Neg v) phi_2]),
-            hd (tl [dnf_and_fm_prf (Neg v) phi_1,
-                     dnf_and_fm_prf (Neg v) phi_2])]]
+          [AppP (PThm "arg_conv", dnf_and_fm_prf (Neg v) phi_1),
+            dnf_and_fm_prf (Neg v) phi_2]]
   | dnf_and_fm_prf (Atom v) (Atom va) = PThm "all_conv"
   | dnf_and_fm_prf (Atom v) (And (va, vb)) = PThm "all_conv"
   | dnf_and_fm_prf (Atom v) (Neg va) = PThm "all_conv"
@@ -397,13 +386,11 @@ fun dnf_and_fm_prf (Or (phi_1, phi_2)) psi =
 fun dnf_fm_prf (And (phi_1, phi_2)) =
   foldl (fn a => fn b => AppP (a, b)) (PThm "then_conv")
     [foldl (fn a => fn b => AppP (a, b)) (PThm "combination_conv")
-       [AppP (PThm "arg_conv", hd [dnf_fm_prf phi_1, dnf_fm_prf phi_2]),
-         hd (tl [dnf_fm_prf phi_1, dnf_fm_prf phi_2])],
+       [AppP (PThm "arg_conv", dnf_fm_prf phi_1), dnf_fm_prf phi_2],
       dnf_and_fm_prf (dnf_fm phi_1) (dnf_fm phi_2)]
   | dnf_fm_prf (Or (phi_1, phi_2)) =
     foldl (fn a => fn b => AppP (a, b)) (PThm "combination_conv")
-      [AppP (PThm "arg_conv", hd [dnf_fm_prf phi_1, dnf_fm_prf phi_2]),
-        hd (tl [dnf_fm_prf phi_1, dnf_fm_prf phi_2])]
+      [AppP (PThm "arg_conv", dnf_fm_prf phi_1), dnf_fm_prf phi_2]
   | dnf_fm_prf (Atom v) = PThm "all_conv"
   | dnf_fm_prf (Neg v) = PThm "all_conv";
 
@@ -418,6 +405,9 @@ fun deneg (true, LESS (x, y)) =
   | deneg (v, EQ (vb, vc)) = Atom (v, EQ (vb, vc))
   | deneg (true, LEQ (vb, vc)) = Atom (true, LEQ (vb, vc));
 
+fun map_option f NONE = NONE
+  | map_option f (SOME x2) = SOME (f x2);
+
 fun from_conj_prf trm_of_atom p (And (a, b)) =
   foldl (fn aa => fn ba => AppP (aa, ba)) (PThm "conjE")
     [Bound (trm_of_fm trm_of_atom (And (a, b))),
@@ -428,14 +418,15 @@ fun from_conj_prf trm_of_atom p (And (a, b)) =
   | from_conj_prf trm_of_atom p (Atom a) = p;
 
 fun contr_fm_prf trm_of_atom contr_atom_prf (Or (c, d)) =
-  (case (contr_fm_prf trm_of_atom contr_atom_prf c,
-          contr_fm_prf trm_of_atom contr_atom_prf d)
-    of (NONE, _) => NONE | (SOME _, NONE) => NONE
-    | (SOME p1, SOME p2) =>
-      SOME (foldl (fn a => fn b => AppP (a, b)) (PThm "disjE")
-             [Bound (trm_of_fm trm_of_atom (Or (c, d))),
-               AbsP (trm_of_fm trm_of_atom c, p1),
-               AbsP (trm_of_fm trm_of_atom d, p2)]))
+  (case contr_fm_prf trm_of_atom contr_atom_prf c of NONE => NONE
+    | SOME p1 =>
+      map_option
+        (fn p2 =>
+          foldl (fn a => fn b => AppP (a, b)) (PThm "disjE")
+            [Bound (trm_of_fm trm_of_atom (Or (c, d))),
+              AbsP (trm_of_fm trm_of_atom c, p1),
+              AbsP (trm_of_fm trm_of_atom d, p2)])
+        (contr_fm_prf trm_of_atom contr_atom_prf d))
   | contr_fm_prf trm_of_atom contr_atom_prf (And (a, b)) =
     (case contr_atom_prf (conj_list (And (a, b))) of NONE => NONE
       | SOME p => SOME (from_conj_prf trm_of_atom p (And (a, b))))
@@ -450,6 +441,10 @@ fun deless (true, LESS (x, y)) =
   | deless (v, EQ (vb, vc)) = Atom (v, EQ (vb, vc))
   | deless (v, LEQ (vb, vc)) = Atom (v, LEQ (vb, vc));
 
+fun fst (x1, x2) = x1;
+
+fun snd (x1, x2) = x2;
+
 fun deneg_prf (true, LESS (x, y)) = PThm "less_le"
   | deneg_prf (false, LESS (x, y)) = PThm "nless_le"
   | deneg_prf (false, LEQ (x, y)) = PThm "nle_le"
@@ -459,9 +454,6 @@ fun deneg_prf (true, LESS (x, y)) = PThm "less_le"
 
 val one_nat : nat = Suc Zero_nat;
 
-fun map_option f NONE = NONE
-  | map_option f (SOME x2) = SOME (f x2);
-
 fun deless_prf (true, LESS (x, y)) = PThm "less_le"
   | deless_prf (false, LESS (x, y)) = PThm "nless_le"
   | deless_prf (false, EQ (v, vb)) = PThm "all_conv"
@@ -469,78 +461,68 @@ fun deless_prf (true, LESS (x, y)) = PThm "less_le"
   | deless_prf (v, EQ (vb, vc)) = PThm "all_conv"
   | deless_prf (v, LEQ (vb, vc)) = PThm "all_conv";
 
-fun trm_of_oatom (EQ (x, y)) = App (App (Const "eq", Var x), Var y)
-  | trm_of_oatom (LEQ (x, y)) = App (App (Const "le", Var x), Var y)
-  | trm_of_oatom (LESS (x, y)) = App (App (Const "lt", Var x), Var y);
-
 fun minus_nat (Suc m) (Suc n) = minus_nat m n
   | minus_nat Zero_nat n = Zero_nat
   | minus_nat m Zero_nat = m;
 
-fun mapping_fold A_ f (Mapping t) a = fold A_ f t a;
-
-fun relcomp1_mapping A_ (B1_, B2_) x y1 pxy pm pma =
-  mapping_fold (linorder_prod B2_ B2_)
+fun relcomp1_mapping B_ (C1_, C2_) combine x y1 pxy pm pma =
+  folda (linorder_prod C2_ C2_)
     (fn (y2, z) => fn pyz => fn pmb =>
-      (if eq B1_ y1 y2 andalso not (eq B1_ y2 z)
-        then update (linorder_prod A_ B2_) (x, z)
-               (foldl (fn a => fn b => AppP (a, b)) (PThm "trans") [pxy, pyz])
-               pmb
+      (if eq C1_ y1 y2 andalso not (eq C1_ y2 z)
+        then update (linorder_prod B_ C2_) (x, z) (combine pxy pyz) pmb
         else pmb))
     pm pma;
 
-fun relcomp_mapping (A1_, A2_) pm1 pm2 pma =
-  mapping_fold (linorder_prod A2_ A2_)
+fun relcomp_mapping (B1_, B2_) combine pm1 pm2 pma =
+  folda (linorder_prod B2_ B2_)
     (fn (x, y) => fn pxy => fn pm =>
-      (if eq A1_ x y then pm
-        else relcomp1_mapping A2_ (A1_, A2_) x y pxy pm2 pm))
+      (if eq B1_ x y then pm
+        else relcomp1_mapping B2_ (B1_, B2_) combine x y pxy pm2 pm))
     pm1 pma;
 
-fun ntrancl_mapping (A1_, A2_) Zero_nat m = m
-  | ntrancl_mapping (A1_, A2_) (Suc k) m =
+fun ntrancl_mapping (B1_, B2_) combine Zero_nat m = m
+  | ntrancl_mapping (B1_, B2_) combine (Suc k) m =
     let
-      val trclm = ntrancl_mapping (A1_, A2_) k m;
+      val trclm = ntrancl_mapping (B1_, B2_) combine k m;
     in
-      relcomp_mapping (A1_, A2_) trclm m trclm
+      relcomp_mapping (B1_, B2_) combine trclm m trclm
     end;
 
-fun trancl_mapping (A1_, A2_) m =
-  ntrancl_mapping (A1_, A2_)
-    (minus_nat (card (equal_prod A1_ A1_) (keysa (linorder_prod A2_ A2_) m))
+fun trancl_mapping (B1_, B2_) combine m =
+  ntrancl_mapping (B1_, B2_) combine
+    (minus_nat (card (equal_prod B1_ B1_) (keysa (linorder_prod B2_ B2_) m))
       one_nat)
     m;
 
+fun trm_of_order_atom (EQ (x, y)) = App (App (Const "eq", Var x), Var y)
+  | trm_of_order_atom (LEQ (x, y)) = App (App (Const "le", Var x), Var y)
+  | trm_of_order_atom (LESS (x, y)) = App (App (Const "lt", Var x), Var y);
+
+fun trm_of_order_literal (true, a) = trm_of_order_atom a
+  | trm_of_order_literal (false, a) = App (Const "Not", trm_of_order_atom a);
+
 fun is_in_leq leqm l =
-  let
-    val (x, y) = l;
-  in
-    (if equal_inta x y then SOME (Appt (PThm "refl", Var x))
-      else lookupa (linorder_prod linorder_int linorder_int) leqm l)
-  end;
+  (if equal_inta (fst l) (snd l) then SOME (Appt (PThm "refl", Var (fst l)))
+    else lookupa (linorder_prod linorder_int linorder_int) leqm l);
 
 fun is_in_eq leqm l =
-  let
-    val (x, y) = l;
-  in
-    (case (is_in_leq leqm (x, y), is_in_leq leqm (y, x)) of (NONE, _) => NONE
-      | (SOME _, NONE) => NONE
-      | (SOME p1, SOME p2) =>
-        SOME (foldl (fn a => fn b => AppP (a, b)) (PThm "antisym") [p1, p2]))
-  end;
-
-fun trm_of_oliteral (true, a) = trm_of_oatom a
-  | trm_of_oliteral (false, a) = App (Const "Not", trm_of_oatom a);
+  (case (is_in_leq leqm l, is_in_leq leqm (snd l, fst l)) of (NONE, _) => NONE
+    | (SOME _, NONE) => NONE
+    | (SOME p1, SOME p2) =>
+      SOME (foldl (fn a => fn b => AppP (a, b)) (PThm "antisym") [p1, p2]));
 
 fun contr1_list leqm (false, LEQ (x, y)) =
   map_option
     (fn a =>
-      AppP (AppP (PThm "contr", Bound (trm_of_oliteral (false, LEQ (x, y)))),
+      AppP (AppP (PThm "contr",
+                   Bound (trm_of_order_literal (false, LEQ (x, y)))),
              a))
     (is_in_leq leqm (x, y))
   | contr1_list leqm (false, EQ (x, y)) =
     map_option
       (fn a =>
-        AppP (AppP (PThm "contr", Bound (trm_of_oliteral (false, EQ (x, y)))),
+        AppP (AppP (PThm "contr",
+                     Bound (trm_of_order_literal (false, EQ (x, y)))),
                a))
       (is_in_eq leqm (x, y))
   | contr1_list uu (true, va) = NONE
@@ -552,10 +534,12 @@ fun contr_list_aux leqm [] = NONE
       | SOME a => SOME a);
 
 fun leq1_member_list (true, LEQ (x, y)) =
-  [((x, y), Bound (trm_of_oliteral (true, LEQ (x, y))))]
+  [((x, y), Bound (trm_of_order_literal (true, LEQ (x, y))))]
   | leq1_member_list (true, EQ (x, y)) =
-    [((x, y), AppP (PThm "eqD1", Bound (trm_of_oliteral (true, EQ (x, y))))),
-      ((y, x), AppP (PThm "eqD2", Bound (trm_of_oliteral (true, EQ (x, y)))))]
+    [((x, y),
+       AppP (PThm "eqD1", Bound (trm_of_order_literal (true, EQ (x, y))))),
+      ((y, x),
+        AppP (PThm "eqD2", Bound (trm_of_order_literal (true, EQ (x, y)))))]
   | leq1_member_list (false, va) = []
   | leq1_member_list (v, LESS (vb, vc)) = [];
 
@@ -565,40 +549,44 @@ fun leq1_mapping a =
   of_alist (linorder_prod linorder_int linorder_int) (leq1_list a);
 
 fun contr_list a =
-  contr_list_aux (trancl_mapping (equal_int, linorder_int) (leq1_mapping a)) a;
+  contr_list_aux
+    (trancl_mapping (equal_int, linorder_int)
+      (fn p1 => fn p2 =>
+        foldl (fn aa => fn b => AppP (aa, b)) (PThm "trans") [p1, p2])
+      (leq1_mapping a))
+    a;
 
 fun contr_prf atom_conv phi =
-  contr_fm_prf trm_of_oliteral contr_list (dnf_fm (amap_fm atom_conv phi));
+  contr_fm_prf trm_of_order_literal contr_list (dnf_fm (amap_fm atom_conv phi));
 
 fun amap_f_m_prf ap (Atom a) = AppP (PThm "atom_conv", ap a)
   | amap_f_m_prf ap (And (phi_1, phi_2)) =
     foldl (fn a => fn b => AppP (a, b)) (PThm "combination_conv")
-      [AppP (PThm "arg_conv",
-              hd [amap_f_m_prf ap phi_1, amap_f_m_prf ap phi_2]),
-        hd (tl [amap_f_m_prf ap phi_1, amap_f_m_prf ap phi_2])]
+      [AppP (PThm "arg_conv", amap_f_m_prf ap phi_1), amap_f_m_prf ap phi_2]
   | amap_f_m_prf ap (Or (phi_1, phi_2)) =
     foldl (fn a => fn b => AppP (a, b)) (PThm "combination_conv")
-      [AppP (PThm "arg_conv",
-              hd [amap_f_m_prf ap phi_1, amap_f_m_prf ap phi_2]),
-        hd (tl [amap_f_m_prf ap phi_1, amap_f_m_prf ap phi_2])]
+      [AppP (PThm "arg_conv", amap_f_m_prf ap phi_1), amap_f_m_prf ap phi_2]
   | amap_f_m_prf ap (Neg phi) = AppP (PThm "arg_conv", amap_f_m_prf ap phi);
 
 fun lo_contr_prf phi =
   map_option
     ((fn a =>
-       Conv (trm_of_fm trm_of_oliteral phi, amap_f_m_prf deneg_prf phi, a)) o
+       Conv (trm_of_fm trm_of_order_literal phi, amap_f_m_prf deneg_prf phi,
+              a)) o
       (fn a =>
-        Conv (trm_of_fm trm_of_oliteral (amap_fm deneg phi),
+        Conv (trm_of_fm trm_of_order_literal (amap_fm deneg phi),
                dnf_fm_prf (amap_fm deneg phi), a)))
     (contr_prf deneg phi);
 
 fun po_contr_prf phi =
   map_option
     ((fn a =>
-       Conv (trm_of_fm trm_of_oliteral phi, amap_f_m_prf deless_prf phi, a)) o
+       Conv (trm_of_fm trm_of_order_literal phi, amap_f_m_prf deless_prf phi,
+              a)) o
       (fn a =>
-        Conv (trm_of_fm trm_of_oliteral (amap_fm deless phi),
+        Conv (trm_of_fm trm_of_order_literal (amap_fm deless phi),
                dnf_fm_prf (amap_fm deless phi), a)))
     (contr_prf deless phi);
 
 end; (*struct Order_Procedure*)
+
