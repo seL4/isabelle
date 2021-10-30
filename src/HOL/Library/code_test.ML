@@ -32,11 +32,11 @@ struct
 
 (* convert a list of terms into nested tuples and back *)
 
-fun mk_tuples [] = \<^term>\<open>()\<close>
+fun mk_tuples [] = \<^Const>\<open>Unity\<close>
   | mk_tuples [t] = t
   | mk_tuples (t :: ts) = HOLogic.mk_prod (t, mk_tuples ts)
 
-fun dest_tuples (Const (\<^const_name>\<open>Pair\<close>, _) $ l $ r) = l :: dest_tuples r
+fun dest_tuples \<^Const_>\<open>Pair _ _ for l r\<close> = l :: dest_tuples r
   | dest_tuples t = [t]
 
 
@@ -164,18 +164,16 @@ fun dynamic_value_strict ctxt t compiler =
 
 (* term preprocessing *)
 
-fun add_eval (Const (\<^const_name>\<open>Trueprop\<close>, _) $ t) = add_eval t
-  | add_eval (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ lhs $ rhs) = (fn acc =>
+fun add_eval \<^Const_>\<open>Trueprop for t\<close> = add_eval t
+  | add_eval \<^Const_>\<open>HOL.eq _ for lhs rhs\<close> = (fn acc =>
       acc
       |> add_eval rhs
       |> add_eval lhs
       |> cons rhs
       |> cons lhs)
-  | add_eval (Const (\<^const_name>\<open>Not\<close>, _) $ t) = add_eval t
-  | add_eval (Const (\<^const_name>\<open>Orderings.ord_class.less_eq\<close>, _) $ lhs $ rhs) = (fn acc =>
-      lhs :: rhs :: acc)
-  | add_eval (Const (\<^const_name>\<open>Orderings.ord_class.less\<close>, _) $ lhs $ rhs) = (fn acc =>
-      lhs :: rhs :: acc)
+  | add_eval \<^Const_>\<open>Not for t\<close> = add_eval t
+  | add_eval \<^Const_>\<open>less_eq _ for lhs rhs\<close> = (fn acc => lhs :: rhs :: acc)
+  | add_eval \<^Const_>\<open>less _ for lhs rhs\<close> = (fn acc => lhs :: rhs :: acc)
   | add_eval _ = I
 
 fun mk_term_of [] = \<^Const>\<open>None \<^typ>\<open>unit \<Rightarrow> yxml_of_term\<close>\<close>
@@ -184,9 +182,9 @@ fun mk_term_of [] = \<^Const>\<open>None \<^typ>\<open>unit \<Rightarrow> yxml_o
         val tuple = mk_tuples ts
         val T = fastype_of tuple
       in
-        \<^term>\<open>Some :: (unit \<Rightarrow> yxml_of_term) \<Rightarrow> (unit \<Rightarrow> yxml_of_term) option\<close> $
-          (absdummy \<^typ>\<open>unit\<close> (\<^Const>\<open>yxml_string_of_term\<close> $
-            (Const (\<^const_name>\<open>Code_Evaluation.term_of\<close>, T --> \<^Type>\<open>term\<close>) $ tuple)))
+        \<^Const>\<open>Some \<^typ>\<open>unit \<Rightarrow> yxml_of_term\<close> for
+          \<open>absdummy \<^Type>\<open>unit\<close>
+            \<^Const>\<open>yxml_string_of_term for \<^Const>\<open>Code_Evaluation.term_of T for tuple\<close>\<close>\<close>\<close>
       end
 
 fun test_terms ctxt ts target =
@@ -197,7 +195,7 @@ fun test_terms ctxt ts target =
 
     fun ensure_bool t =
       (case fastype_of t of
-        \<^typ>\<open>bool\<close> => ()
+        \<^Type>\<open>bool\<close> => ()
       | _ =>
         error (Pretty.string_of
           (Pretty.block [Pretty.str "Test case not of type bool:", Pretty.brk 1,
@@ -253,7 +251,7 @@ fun eval_term target ctxt t =
 
     val t' =
       HOLogic.mk_list \<^typ>\<open>bool \<times> (unit \<Rightarrow> yxml_of_term) option\<close>
-        [HOLogic.mk_prod (\<^term>\<open>False\<close>, mk_term_of [t])]
+        [HOLogic.mk_prod (\<^Const>\<open>False\<close>, mk_term_of [t])]
 
     val result = dynamic_value_strict ctxt t' target
   in (case result of [(_, SOME [t])] => t | _ => error "Evaluation failed") end
