@@ -18,7 +18,7 @@ struct
 open Kodkod
 
 datatype sink = ToStdout | ToFile
-datatype availability = Java | JNI of int list
+datatype availability = Java | JNI
 datatype mode = Batch | Incremental
 
 datatype sat_solver_info =
@@ -30,11 +30,11 @@ datatype sat_solver_info =
 val berkmin_exec = getenv "BERKMIN_EXE"
 
 val static_list =
-  [("Lingeling_JNI", Internal (JNI [1, 5], Batch, ["Lingeling"])),
+  [("Lingeling_JNI", Internal (JNI, Batch, ["Lingeling"])),
    ("CryptoMiniSat", External ("CRYPTOMINISAT_HOME", "cryptominisat", [])),
-   ("CryptoMiniSat_JNI", Internal (JNI [1, 5], Batch, ["CryptoMiniSat"])),
+   ("CryptoMiniSat_JNI", Internal (JNI, Batch, ["CryptoMiniSat"])),
    ("MiniSat", ExternalV2 (ToFile, "MINISAT_HOME", "minisat", [], "SAT", "", "UNSAT")),
-   ("MiniSat_JNI", Internal (JNI [], Incremental, ["MiniSat"])),
+   ("MiniSat_JNI", Internal (JNI, Incremental, ["MiniSat"])),
    ("zChaff", ExternalV2 (ToStdout, "ZCHAFF_HOME", "zchaff", [],
                           "Instance Satisfiable", "",
                           "Instance Unsatisfiable")),
@@ -62,16 +62,13 @@ fun dynamic_entry_for_external name dev home exec args markers =
 
 fun dynamic_entry_for_info incremental (name, Internal (Java, mode, ss)) =
     if incremental andalso mode = Batch then NONE else SOME (name, K ss)
-  | dynamic_entry_for_info incremental (name, Internal (JNI from_version, mode, ss)) =
-    if (incremental andalso mode = Batch) orelse
-       is_less (dict_ord int_ord (kodkodi_version (), from_version))
-    then NONE
+  | dynamic_entry_for_info incremental (name, Internal (JNI, mode, ss)) =
+    if incremental andalso mode = Batch then NONE
     else if exists File.is_dir (Path.split (getenv "KODKODI_JAVA_LIBRARY_PATH"))
     then SOME (name, K ss) else NONE
   | dynamic_entry_for_info false (name, External (home, exec, args)) =
     dynamic_entry_for_external name ToStdout home exec args []
-  | dynamic_entry_for_info false
-        (name, ExternalV2 (dev, home, exec, args, m1, m2, m3)) =
+  | dynamic_entry_for_info false (name, ExternalV2 (dev, home, exec, args, m1, m2, m3)) =
     dynamic_entry_for_external name dev home exec args [m1, m2, m3]
   | dynamic_entry_for_info true _ = NONE
 
