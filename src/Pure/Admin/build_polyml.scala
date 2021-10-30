@@ -89,7 +89,7 @@ object Build_PolyML
         {
           ./configure --prefix="$PWD/target" """ + Bash.strings(configure_options) + """
           rm -rf target
-          make compiler && make compiler && make install
+          make && make install
         } || { echo "Build failed" >&2; exit 2; }
       """, redirect = true, echo = true).check
 
