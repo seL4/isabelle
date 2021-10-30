@@ -12,7 +12,7 @@ imports Main
 begin
 
 nitpick_params [verbose, card = 1-8, max_potential = 0,
-                sat_solver = MiniSat_JNI, max_threads = 1, timeout = 240]
+                sat_solver = MiniSat, max_threads = 1, timeout = 240]
 
 datatype nibble = Nibble0 | Nibble1 | Nibble2 | Nibble3
   | Nibble4 | Nibble5 | Nibble6 | Nibble7

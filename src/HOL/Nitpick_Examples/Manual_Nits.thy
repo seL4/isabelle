@@ -17,7 +17,7 @@ begin
 
 section \<open>2. First Steps\<close>
 
-nitpick_params [sat_solver = MiniSat_JNI, max_threads = 1, timeout = 240]
+nitpick_params [sat_solver = MiniSat, max_threads = 1, timeout = 240]
 
 
 subsection \<open>2.1. Propositional Logic\<close>

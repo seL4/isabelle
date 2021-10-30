@@ -13,8 +13,7 @@ begin
 
 ML_file \<open>minipick.ML\<close>
 
-nitpick_params [verbose, sat_solver = MiniSat_JNI, max_threads = 1,
-  total_consts = smart]
+nitpick_params [verbose, sat_solver = MiniSat, max_threads = 1, total_consts = smart]
 
 ML \<open>
 val check = Minipick.minipick \<^context>
