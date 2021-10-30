@@ -499,8 +499,10 @@ Isabelle2021:
 
 *** System ***
 
-* Update to Poly/ML 5.9 with improved support for ARM on Linux. (On
-macOS the Intel version works smoothly with Rosetta 2, as before.)
+* Update to Poly/ML 5.9 with improved support for ARM on Linux. On
+macOS, the Intel version works more smoothly with Rosetta 2, as already
+used in Isabelle2021. Further changes to Poly/ML are documented here:
+http://lists.inf.ed.ac.uk/pipermail/polyml/2021-May/002451.html
 
 * Update to OpenJDK 17: the current long-term support version of Java.
 
