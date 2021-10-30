@@ -30,10 +30,7 @@ struct
 
 (*No reordering of the arguments.*)
 fun fast_mk_iterate_add (n, mset) =
-  let val T = fastype_of mset
-  in
-    Const (\<^const_name>\<open>iterate_add\<close>, \<^typ>\<open>nat\<close> --> T --> T) $ n $ mset
-  end;
+  \<^Const>\<open>iterate_add \<open>fastype_of mset\<close> for n mset\<close>;
 
 (*iterate_add is not symmetric, unlike multiplication over natural numbers.*)
 fun mk_iterate_add (t, u) =
@@ -56,16 +53,16 @@ fun find_first_numeral past (t::terms) =
     handle TERM _ => find_first_numeral (t::past) terms)
   | find_first_numeral _ [] = raise TERM("find_first_numeral", []);
 
-fun typed_zero T = Const (\<^const_name>\<open>Groups.zero\<close>, T);
-fun typed_one T = HOLogic.numeral_const T $ HOLogic.one_const
-val mk_plus = HOLogic.mk_binop \<^const_name>\<open>Groups.plus\<close>;
+fun typed_zero T = \<^Const>\<open>Groups.zero T\<close>;
+fun typed_one T = \<^Const>\<open>numeral T for \<^Const>\<open>num.One\<close>\<close>;
+val mk_plus = HOLogic.mk_binop \<^const_name>\<open>plus\<close>;
 
 (*Thus mk_sum[t] yields t+0; longer sums don't have a trailing zero.*)
 fun mk_sum T [] = typed_zero T
   | mk_sum _ [t,u] = mk_plus (t, u)
   | mk_sum T (t :: ts) = mk_plus (t, mk_sum T ts);
 
-val dest_plus = HOLogic.dest_bin \<^const_name>\<open>Groups.plus\<close> dummyT;
+val dest_plus = HOLogic.dest_bin \<^const_name>\<open>plus\<close> dummyT;
 
 
 (*** Other simproc items ***)

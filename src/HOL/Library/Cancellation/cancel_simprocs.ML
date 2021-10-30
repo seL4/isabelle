@@ -26,24 +26,24 @@ structure Eq_Cancel_Comm_Monoid_add = Cancel_Fun
 
 structure Eq_Cancel_Comm_Monoid_less = Cancel_Fun
  (open Cancel_Data
-  val mk_bal   = HOLogic.mk_binrel \<^const_name>\<open>Orderings.less\<close>
-  val dest_bal = HOLogic.dest_bin \<^const_name>\<open>Orderings.less\<close> dummyT
+  val mk_bal   = HOLogic.mk_binrel \<^const_name>\<open>less\<close>
+  val dest_bal = HOLogic.dest_bin \<^const_name>\<open>less\<close> dummyT
   val bal_add1 = @{thm iterate_add_less_iff1} RS trans
   val bal_add2 = @{thm iterate_add_less_iff2} RS trans
 );
 
 structure Eq_Cancel_Comm_Monoid_less_eq = Cancel_Fun
  (open Cancel_Data
-  val mk_bal   = HOLogic.mk_binrel \<^const_name>\<open>Orderings.less_eq\<close>
-  val dest_bal = HOLogic.dest_bin \<^const_name>\<open>Orderings.less_eq\<close> dummyT
+  val mk_bal   = HOLogic.mk_binrel \<^const_name>\<open>less_eq\<close>
+  val dest_bal = HOLogic.dest_bin \<^const_name>\<open>less_eq\<close> dummyT
   val bal_add1 = @{thm iterate_add_less_eq_iff1} RS trans
   val bal_add2 = @{thm iterate_add_less_eq_iff2} RS trans
 );
 
 structure Diff_Cancel_Comm_Monoid_less_eq = Cancel_Fun
  (open Cancel_Data
-  val mk_bal   = HOLogic.mk_binop \<^const_name>\<open>Groups.minus\<close>
-  val dest_bal = HOLogic.dest_bin \<^const_name>\<open>Groups.minus\<close> dummyT
+  val mk_bal   = HOLogic.mk_binop \<^const_name>\<open>minus\<close>
+  val dest_bal = HOLogic.dest_bin \<^const_name>\<open>minus\<close> dummyT
   val bal_add1 = @{thm iterate_add_add_eq1} RS trans
   val bal_add2 = @{thm iterate_add_diff_add_eq2} RS trans
 );
