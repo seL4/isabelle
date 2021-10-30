@@ -3307,15 +3307,11 @@ by auto
 
 setup \<open>
   let
-    fun msetT T = Type (\<^type_name>\<open>multiset\<close>, [T]);
+    fun msetT T = \<^Type>\<open>multiset T\<close>;
 
-    fun mk_mset T [] = Const (\<^const_abbrev>\<open>empty_mset\<close>, msetT T)
-      | mk_mset T [x] =
-        Const (\<^const_name>\<open>add_mset\<close>, T --> msetT T --> msetT T) $ x $
-          Const (\<^const_abbrev>\<open>empty_mset\<close>, msetT T)
-      | mk_mset T (x :: xs) =
-        Const (\<^const_name>\<open>plus\<close>, msetT T --> msetT T --> msetT T) $
-          mk_mset T [x] $ mk_mset T xs
+    fun mk_mset T [] = \<^instantiate>\<open>'a = T in term \<open>{#}\<close>\<close>
+      | mk_mset T [x] = \<^instantiate>\<open>'a = T and x in term \<open>{#x#}\<close>\<close>
+      | mk_mset T (x :: xs) = \<^Const>\<open>plus \<open>msetT T\<close> for \<open>mk_mset T [x]\<close> \<open>mk_mset T xs\<close>\<close>
 
     fun mset_member_tac ctxt m i =
       if m <= 0 then
@@ -3420,10 +3416,8 @@ declaration \<open>
           in
             (case maps elems_for (all_values elem_T) @
                  (if maybe_opt then [Const (Nitpick_Model.unrep_mixfix (), elem_T)] else []) of
-              [] => Const (\<^const_name>\<open>zero_class.zero\<close>, T)
-            | ts =>
-                foldl1 (fn (s, t) => Const (\<^const_name>\<open>add_mset\<close>, elem_T --> T --> T) $ s $ t)
-                  ts)
+              [] => \<^Const>\<open>Groups.zero T\<close>
+            | ts => foldl1 (fn (s, t) => \<^Const>\<open>add_mset elem_T for s t\<close>) ts)
           end
       | multiset_postproc _ _ _ _ t = t
   in Nitpick_Model.register_term_postprocessor \<^typ>\<open>'a multiset\<close> multiset_postproc end
