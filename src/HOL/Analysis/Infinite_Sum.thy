@@ -320,7 +320,7 @@ lemma
   fixes f :: "'a \<Rightarrow> 'b::{topological_ab_group_add,t2_space}"
   assumes "f summable_on B" and "f summable_on A" and AB: "A \<subseteq> B"
   shows infsum_Diff: "infsum f (B - A) = infsum f B - infsum f A"
-  by (smt (z3) AB assms(1) assms(2) finite_subsets_at_top_neq_bot infsum_def summable_on_def has_sum_Diff has_sum_def tendsto_Lim)
+  by (metis AB assms has_sum_Diff infsumI summable_on_def)
 
 lemma has_sum_mono_neutral:
   fixes f :: "'a\<Rightarrow>'b::{ordered_comm_monoid_add,linorder_topology}"
@@ -440,7 +440,7 @@ proof -
     proof -
       from ev_P
       obtain F' where \<open>finite F'\<close> and \<open>F' \<subseteq> A\<close> and P_sup_F': \<open>finite F \<and> F \<supseteq> F' \<and> F \<subseteq> A \<Longrightarrow> P F\<close> for F
-        apply atomize_elim by (simp add: eventually_finite_subsets_at_top)
+        by atomize_elim (simp add: eventually_finite_subsets_at_top)
       define F where \<open>F = F' \<union> F1 \<union> F2\<close>
       have \<open>finite F\<close> and \<open>F \<subseteq> A\<close>
         using F_def P_def[abs_def] that \<open>finite F'\<close> \<open>F' \<subseteq> A\<close> by auto
@@ -448,7 +448,7 @@ proof -
         by (metis F_def \<open>F \<subseteq> A\<close> P_def P_sup_F' \<open>finite F\<close> le_supE order_refl)
 
       from dist_F have \<open>dist (sum (\<lambda>x. norm (f x)) F) (sum (\<lambda>x. norm (f x)) F2) < 2*d\<close>
-        by (smt (z3) P_def dist_norm real_norm_def that(2))
+        by (smt (verit, ccfv_threshold) P_def dist_norm real_norm_def that(2))
       then have \<open>norm (sum (\<lambda>x. norm (f x)) (F-F2)) < 2*d\<close>
         unfolding dist_norm
         by (metis F_def \<open>finite F\<close> sum_diff sup_commute sup_ge1)
@@ -458,7 +458,7 @@ proof -
         by (metis F_def \<open>finite F\<close> dist_norm sum_diff sup_commute sup_ge1)
 
       from dist_F have \<open>dist (sum (\<lambda>x. norm (f x)) F) (sum (\<lambda>x. norm (f x)) F1) < 2*d\<close>
-        by (smt (z3) P_def dist_norm real_norm_def that(1))
+        by (smt (verit, best) P_def dist_norm real_norm_def that(1))
       then have \<open>norm (sum (\<lambda>x. norm (f x)) (F-F1)) < 2*d\<close>
         unfolding dist_norm
         by (metis F_def \<open>finite F\<close> inf_sup_ord(3) order_trans sum_diff sup_ge2)
@@ -652,7 +652,7 @@ proof -
   have \<open>has_sum (\<lambda>x. f x + g x) A (infsum f A + infsum g A)\<close>
     by (simp add: assms(1) assms(2) has_sum_add)
   then show ?thesis
-    by (smt (z3) finite_subsets_at_top_neq_bot infsum_def summable_on_def has_sum_def tendsto_Lim)
+    using infsumI by blast
 qed
 
 
@@ -1187,7 +1187,7 @@ proof -
         unfolding FMB_def eventually_finite_subsets_at_top
         apply (rule exI[of _ G])
         using \<open>G \<subseteq> Sigma A B\<close> \<open>finite G\<close> that G_sum apply auto
-        by (smt (z3) Sigma_Un_distrib1 dual_order.trans subset_Un_eq)
+        by (meson Sigma_mono dual_order.refl order_trans)
       ultimately have \<open>\<forall>\<^sub>F x in FMB. E (sum b M, a)\<close>
         by (smt (verit, best) DDE' eventually_elim2)
       then show \<open>E (sum b M, a)\<close>

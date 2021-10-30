@@ -1175,14 +1175,15 @@ lemma ennreal_of_enat_eSuc[simp]: "ennreal_of_enat (eSuc x) = 1 + ennreal_of_ena
 
 (* Contributed by Dominique Unruh *)
 lemma ennreal_of_enat_plus[simp]: \<open>ennreal_of_enat (a+b) = ennreal_of_enat a + ennreal_of_enat b\<close>
-  apply (induction a)
-  apply auto
-  by (smt (z3) add.commute add.right_neutral enat.exhaust enat.simps(4) enat.simps(5) ennreal_add_left_cancel ennreal_of_enat_def infinity_ennreal_def of_nat_add of_nat_eq_enat plus_enat_simps(2))
+  apply (induct a)
+   apply (metis enat.exhaust ennreal_add_eq_top ennreal_of_enat_enat ennreal_of_enat_infty infinity_ennreal_def of_nat_add plus_enat_simps(1) plus_eq_infty_iff_enat)
+  apply simp
+  done
 
 (* Contributed by Dominique Unruh *)
 lemma sum_ennreal_of_enat[simp]: "(\<Sum>i\<in>I. ennreal_of_enat (f i)) = ennreal_of_enat (sum f I)"
-  apply (induction I rule: infinite_finite_induct) 
-  by (auto simp: sum_nonneg)
+  by (induct I rule: infinite_finite_induct) (auto simp: sum_nonneg)
+
 
 subsection \<open>Topology on \<^typ>\<open>ennreal\<close>\<close>
 
