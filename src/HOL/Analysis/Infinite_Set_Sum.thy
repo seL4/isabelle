@@ -1242,7 +1242,7 @@ proof -
     moreover have "Sup {y. \<exists>x. (\<exists>y. finite y \<and> y \<subseteq> A \<and> x = ennreal (sum f y)) \<and>
                 y = enn2ereal x} = Sup {y. \<exists>x. finite x \<and> x \<subseteq> A \<and> y = ereal (sum f x)}"
       using enn2ereal_ennreal fnn in_mono sum_nonneg Collect_cong
-      by smt
+      by (smt (verit, ccfv_SIG))
     ultimately show "max 0 (Sup {y. \<exists>x. (\<exists>xa. finite xa \<and> xa \<subseteq> A \<and> x
                                        = ennreal (sum f xa)) \<and> y = enn2ereal x})
          = Sup {y. \<exists>x. finite x \<and> x \<subseteq> A \<and> y = ereal (sum f x)}"

@@ -511,7 +511,7 @@ proof -
       and "finite F" and "F \<subseteq> A"
       by (simp add: atomize_elim)
     hence "norm a \<le> norm (sum f F) + \<epsilon>"
-      by (smt norm_triangle_sub)
+      by (metis add.commute diff_add_cancel dual_order.refl norm_triangle_mono)
     also have "\<dots> \<le> sum (\<lambda>x. norm (f x)) F + \<epsilon>"
       using norm_sum by auto
     also have "\<dots> \<le> n + \<epsilon>"
@@ -570,7 +570,7 @@ next
       by blast
     hence "(\<Sum>x\<in>X. norm (f x)) < 0"
       unfolding S_def by auto      
-    thus False using sumpos by smt
+    thus False by (simp add: leD sumpos)
   qed
   have "\<exists>!h. (sum (\<lambda>x. norm (f x)) \<longlongrightarrow> h) (finite_subsets_at_top A)"
     using t_def finite_subsets_at_top_neq_bot tendsto_unique by blast
