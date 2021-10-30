@@ -77,5 +77,9 @@ fi
 
 if [ -n "$DUMP" ]; then
   export PATH_JVM="$(platform_path "$PATH")"
-  "$ISABELLE_PRINTENV" -0 > "$DUMP"
+  if [ -e "$ISABELLE_PRINTENV" ]; then
+    "$ISABELLE_PRINTENV" -0 > "$DUMP"
+  else
+    exit 2
+  fi
 fi
