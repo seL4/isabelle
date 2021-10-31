@@ -81,7 +81,7 @@ val timeout = Attrib.setup_config_real \<^binding>\<open>argo_timeout\<close> (K
 
 val timeout_seconds = seconds o Config.apply timeout
 
-fun with_timeout ctxt f x = Timeout.apply (timeout_seconds ctxt) f x
+fun with_timeout f ctxt = Timeout.apply (timeout_seconds ctxt) f ctxt
 
 
 (* extending the tactic *)
@@ -308,8 +308,9 @@ fun instantiate cv ct =
 
 (* proof replay for tautologies *)
 
-fun prove_taut ctxt ns t = Goal.prove ctxt ns [] (HOLogic.mk_Trueprop t)
-  (fn {context, ...} => HEADGOAL (Classical.fast_tac context))
+fun prove_taut ctxt ns t =
+  Goal.prove ctxt ns [] (HOLogic.mk_Trueprop t)
+    (fn {context = ctxt', ...} => HEADGOAL (Classical.fast_tac ctxt'))
 
 fun with_frees ctxt n mk =
   let
@@ -714,11 +715,11 @@ fun prove thms ctxt =
 fun argo_tac ctxt thms =
   CONVERSION (Conv.params_conv ~1 (K (Conv.concl_conv ~1
     (Conv.try_conv (Conv.rewr_conv @{thm atomize_eq})))) ctxt)
-  THEN' Tactic.resolve_tac ctxt [@{thm ccontr}]
-  THEN' Subgoal.FOCUS (fn {context, prems, ...} =>
-    (case with_timeout context (prove (thms @ prems)) context of
-      (SOME thm, _) => Tactic.resolve_tac context [thm] 1
-    | (NONE, _) => Tactical.no_tac)) ctxt
+  THEN' resolve_tac ctxt [@{thm ccontr}]
+  THEN' Subgoal.FOCUS (fn {context = ctxt', prems, ...} =>
+    (case with_timeout (prove (thms @ prems)) ctxt' of
+      (SOME thm, _) => resolve_tac ctxt' [thm] 1
+    | (NONE, _) => no_tac)) ctxt
 
 val _ =
   Theory.setup (Method.setup \<^binding>\<open>argo\<close>
