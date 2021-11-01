@@ -153,6 +153,8 @@ targets and in any nested target built on top of a target supporting
 
 *** HOL ***
 
+* New order prover.
+
 * Theorems "antisym" and "eq_iff" in class "order" have been renamed to
 "order.antisym" and "order.eq_iff", to coexist locally with "antisym"
 and "eq_iff" from locale "ordering". INCOMPATIBILITY: significant

@@ -1,37 +1,46 @@
-Subject: Announcing Isabelle2021
+Subject: Announcing Isabelle2021-1
 To: isabelle-users@cl.cam.ac.uk
 
-Isabelle2021 is now available.
+Isabelle2021-1 is now available.
 
-This version introduces many changes over Isabelle2020: see the NEWS
+This version introduces many changes over Isabelle2020-1: see the NEWS
 file for further details. Here are various details:
 
-* Improved HTML presentation in Isabelle/Scala, using PIDE markup.
+* Isar: local theory support for 'syntax' and 'no_syntax' commands.
 
-* Improved PDF document preparation in Isabelle/Scala, using LuaLaTeX.
+* Isabelle/jEdit: distribution of original jEdit editor with Isabelle/Scala
+modules and plugins.
 
-* Isabelle/jEdit: improved monitoring of Java and ML process.
+* HOL: new order prover.
 
-* Isabelle/jEdit: improved look-and-feel and IDE feedback.
+* HOL: many changes and improvements on bit operations and word types.
 
-* Pure: improved handling of named contexts and local syntax bundles.
+* HOL: various library improvements (HOL-Library, HOL-Combinatorics,
+HOL-Analysis, HOL-Statespace)
 
-* HOL: substantially reworked support for Word library.
+* Sledgehammer: update of ATPs and SMTs: E prover, veriT, Zipperposition,
+Vampire (now with Open-Source license).
 
-* HOL: various syntax and library improvements.
+* Nitpick: external MiniSat solver for all supported Isabelle platforms.
 
-* HOL: various Sledgehammer and SMT improvements, with updated external tools.
+* ML: uniform treatment of external processes via Isabelle/Scala.
 
-* HOL: support for Nitpick/Kodkod in Isabelle/Scala.
+* ML: advanced antiquotations for Type/Const constructors, and for inline
+instantiation of types, terms, facts.
 
-* ML: routine support for Isabelle/Scala functions in Isabelle/ML.
+* Haskell: substantially improved Isabelle/Haskell library.
 
-* System: support for Isabelle/Scala services defined in user-space.
+* System: more predefined Isabelle symbols (blackboard-bold, Z notation).
 
-* Support for macOS Big Sur on Intel and Apple Silicon (ARM).
+* System: support for Isabelle/Scala modules defined in user-space.
+
+* System: improved document preparation using Isabelle/Scala.
+
+* System: update to current OpenJDK 17 (LTS) and Poly/ML 5.9 (with preliminary
+support for arm64).
 
 
-You may get Isabelle2021 from the following mirror sites:
+You may get Isabelle2021-1 from the following mirror sites:
 
   Cambridge (UK)       https://www.cl.cam.ac.uk/research/hvg/Isabelle
   Munich (Germany)     https://isabelle.in.tum.de
