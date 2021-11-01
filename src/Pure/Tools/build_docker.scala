@@ -12,7 +12,7 @@ object Build_Docker
   private val default_base = "ubuntu"
   private lazy val default_logic = Isabelle_System.getenv("ISABELLE_LOGIC")
 
-  private val Isabelle_Name = """^.*?(Isabelle[^/\\:]+)_linux\.tar\.gz$""".r
+  private val Isabelle_Name = """^.*?(Isabelle[^/\\:]+)_linux(?:_arm)?\.tar\.gz$""".r
 
   val packages: List[String] =
     List("curl", "less", "libfontconfig1", "libgomp1", "pwgen", "unzip")
