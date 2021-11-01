@@ -511,8 +511,8 @@ macOS, the Intel version works more smoothly with Rosetta 2, as already
 used in Isabelle2021. Further changes to Poly/ML are documented here:
 http://lists.inf.ed.ac.uk/pipermail/polyml/2021-May/002451.html
 
-* Perl is no longer required by Isabelle proper, and longer provided by
-specific Isabelle execution environments (Docker, Cygwin on Windows).
+* Perl is no longer required by Isabelle proper, and no longer provided
+by specific Isabelle execution environments (Docker, Cygwin on Windows).
 Minor INCOMPATIBILITY, add-on applications involving perl need to
 provide it by different means. (Note that proper Isabelle systems
 programming works via Scala/Java, without perl, python, ruby etc.).
