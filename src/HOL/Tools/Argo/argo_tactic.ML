@@ -221,7 +221,7 @@ fun value_of terms model t =
 
 fun trace_props props ctxt =
   tracing ctxt (Pretty.string_of (Pretty.big_list "using these propositions:"
-    (map (Syntax.pretty_term ctxt) props)))
+    (map (Pretty.item o single o Syntax.pretty_term ctxt) props)))
 
 fun trace_result ctxt ({elapsed, ...}: Timing.timing) msg =
   tracing ctxt ("found a " ^ msg ^ " in " ^ string_of_int (Time.toMilliseconds elapsed) ^ " ms")
