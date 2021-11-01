@@ -73,7 +73,7 @@ Packaging
 
 - fully-automated packaging (e.g. on lxcisa0):
 
-  hg up -r DISTNAME && Admin/build_release -J .../java11 -D /home/isabelle/dist -b HOL -l -R DISTNAME
+  hg up -r DISTNAME && Admin/build_release -J .../java11 -D /p/home/isabelle/dist -b HOL -l -R DISTNAME
 
 - Docker image:
 
@@ -95,4 +95,4 @@ Post-release
 
 - update Admin/Release/official
 
-- update /home/isabelle and /home/isabelle/html-data
+- update /p/home/isabelle and /p/home/isabelle/html-data
