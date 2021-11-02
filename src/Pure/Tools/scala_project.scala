@@ -58,7 +58,7 @@ object Scala_Project
     </plugins>
   </build>
 
-  "<dependencies>""" + jars.map(dependency).mkString("\n", "\n", "\n") + """</dependencies>
+  <dependencies>""" + jars.map(dependency).mkString("\n", "\n", "\n") + """</dependencies>
 </project>"""
   }
 
