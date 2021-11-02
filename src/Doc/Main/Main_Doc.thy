@@ -35,12 +35,12 @@ The basic logic: \<^prop>\<open>x = y\<close>, \<^const>\<open>True\<close>, \<^
 
 \subsubsection*{Syntax}
 
-\begin{supertabular}{@ {} l @ {\quad$\equiv$\quad} l l @ {}}
+\begin{tabular}{@ {} l @ {\quad$\equiv$\quad} l l @ {}}
 \<^term>\<open>\<not> (x = y)\<close> & @{term[source]"\<not> (x = y)"} & (\<^verbatim>\<open>~=\<close>)\\
 @{term[source]"P \<longleftrightarrow> Q"} & \<^term>\<open>P \<longleftrightarrow> Q\<close> \\
 \<^term>\<open>If x y z\<close> & @{term[source]"If x y z"}\\
 \<^term>\<open>Let e\<^sub>1 (\<lambda>x. e\<^sub>2)\<close> & @{term[source]"Let e\<^sub>1 (\<lambda>x. e\<^sub>2)"}\\
-\end{supertabular}
+\end{tabular}
 
 
 \section*{Orderings}
@@ -49,7 +49,7 @@ A collection of classes defining basic orderings:
 preorder, partial order, linear order, dense linear order and wellorder.
 \<^smallskip>
 
-\begin{supertabular}{@ {} l @ {~::~} l l @ {}}
+\begin{tabular}{@ {} l @ {~::~} l l @ {}}
 \<^const>\<open>Orderings.less_eq\<close> & \<^typeof>\<open>Orderings.less_eq\<close> & (\<^verbatim>\<open><=\<close>)\\
 \<^const>\<open>Orderings.less\<close> & \<^typeof>\<open>Orderings.less\<close>\\
 \<^const>\<open>Orderings.Least\<close> & \<^typeof>\<open>Orderings.Least\<close>\\
@@ -60,11 +60,11 @@ preorder, partial order, linear order, dense linear order and wellorder.
 @{const[source] bot} & \<^typeof>\<open>Orderings.bot\<close>\\
 \<^const>\<open>Orderings.mono\<close> & \<^typeof>\<open>Orderings.mono\<close>\\
 \<^const>\<open>Orderings.strict_mono\<close> & \<^typeof>\<open>Orderings.strict_mono\<close>\\
-\end{supertabular}
+\end{tabular}
 
 \subsubsection*{Syntax}
 
-\begin{supertabular}{@ {} l @ {\quad$\equiv$\quad} l l @ {}}
+\begin{tabular}{@ {} l @ {\quad$\equiv$\quad} l l @ {}}
 @{term[source]"x \<ge> y"} & \<^term>\<open>x \<ge> y\<close> & (\<^verbatim>\<open>>=\<close>)\\
 @{term[source]"x > y"} & \<^term>\<open>x > y\<close>\\
 \<^term>\<open>\<forall>x\<le>y. P\<close> & @{term[source]"\<forall>x. x \<le> y \<longrightarrow> P"}\\
@@ -72,7 +72,7 @@ preorder, partial order, linear order, dense linear order and wellorder.
 \multicolumn{2}{@ {}l@ {}}{Similarly for $<$, $\ge$ and $>$}\\
 \<^term>\<open>LEAST x. P\<close> & @{term[source]"Least (\<lambda>x. P)"}\\
 \<^term>\<open>GREATEST x. P\<close> & @{term[source]"Greatest (\<lambda>x. P)"}\\
-\end{supertabular}
+\end{tabular}
 
 
 \section*{Lattices}
@@ -91,7 +91,7 @@ latter in theory \<^theory>\<open>HOL.Set\<close>).
 
 Available via \<^theory_text>\<open>unbundle lattice_syntax\<close>.
 
-\begin{supertabular}{@ {} l @ {\quad$\equiv$\quad} l @ {}}
+\begin{tabular}{@ {} l @ {\quad$\equiv$\quad} l @ {}}
 @{text[source]"x \<sqsubseteq> y"} & \<^term>\<open>x \<le> y\<close>\\
 @{text[source]"x \<sqsubset> y"} & \<^term>\<open>x < y\<close>\\
 @{text[source]"x \<sqinter> y"} & \<^term>\<open>inf x y\<close>\\
@@ -100,12 +100,12 @@ Available via \<^theory_text>\<open>unbundle lattice_syntax\<close>.
 @{text[source]"\<Squnion>A"} & \<^term>\<open>Sup A\<close>\\
 @{text[source]"\<top>"} & @{term[source] top}\\
 @{text[source]"\<bottom>"} & @{term[source] bot}\\
-\end{supertabular}
+\end{tabular}
 
 
 \section*{Set}
 
-\begin{supertabular}{@ {} l @ {~::~} l l @ {}}
+\begin{tabular}{@ {} l @ {~::~} l l @ {}}
 \<^const>\<open>Set.empty\<close> & @{term_type_only "Set.empty" "'a set"}\\
 \<^const>\<open>Set.insert\<close> & @{term_type_only insert "'a\<Rightarrow>'a set\<Rightarrow>'a set"}\\
 \<^const>\<open>Collect\<close> & @{term_type_only Collect "('a\<Rightarrow>bool)\<Rightarrow>'a set"}\\
@@ -119,11 +119,11 @@ Available via \<^theory_text>\<open>unbundle lattice_syntax\<close>.
 \<^const>\<open>image\<close> & @{term_type_only image "('a\<Rightarrow>'b)\<Rightarrow>'a set\<Rightarrow>'b set"}\\
 \<^const>\<open>Ball\<close> & @{term_type_only Ball "'a set\<Rightarrow>('a\<Rightarrow>bool)\<Rightarrow>bool"}\\
 \<^const>\<open>Bex\<close> & @{term_type_only Bex "'a set\<Rightarrow>('a\<Rightarrow>bool)\<Rightarrow>bool"}\\
-\end{supertabular}
+\end{tabular}
 
 \subsubsection*{Syntax}
 
-\begin{supertabular}{@ {} l @ {\quad$\equiv$\quad} l l @ {}}
+\begin{tabular}{@ {} l @ {\quad$\equiv$\quad} l l @ {}}
 \<open>{a\<^sub>1,\<dots>,a\<^sub>n}\<close> & \<open>insert a\<^sub>1 (\<dots> (insert a\<^sub>n {})\<dots>)\<close>\\
 \<^term>\<open>a \<notin> A\<close> & @{term[source]"\<not>(x \<in> A)"}\\
 \<^term>\<open>A \<subseteq> B\<close> & @{term[source]"A \<le> B"}\\
@@ -139,12 +139,12 @@ Available via \<^theory_text>\<open>unbundle lattice_syntax\<close>.
 \<^term>\<open>\<forall>x\<in>A. P\<close> & @{term[source]"Ball A (\<lambda>x. P)"}\\
 \<^term>\<open>\<exists>x\<in>A. P\<close> & @{term[source]"Bex A (\<lambda>x. P)"}\\
 \<^term>\<open>range f\<close> & @{term[source]"f ` UNIV"}\\
-\end{supertabular}
+\end{tabular}
 
 
 \section*{Fun}
 
-\begin{supertabular}{@ {} l @ {~::~} l l @ {}}
+\begin{tabular}{@ {} l @ {~::~} l l @ {}}
 \<^const>\<open>Fun.id\<close> & \<^typeof>\<open>Fun.id\<close>\\
 \<^const>\<open>Fun.comp\<close> & \<^typeof>\<open>Fun.comp\<close> & (\texttt{o})\\
 \<^const>\<open>Fun.inj_on\<close> & @{term_type_only Fun.inj_on "('a\<Rightarrow>'b)\<Rightarrow>'a set\<Rightarrow>bool"}\\
@@ -153,7 +153,7 @@ Available via \<^theory_text>\<open>unbundle lattice_syntax\<close>.
 \<^const>\<open>Fun.bij\<close> & \<^typeof>\<open>Fun.bij\<close>\\
 \<^const>\<open>Fun.bij_betw\<close> & @{term_type_only Fun.bij_betw "('a\<Rightarrow>'b)\<Rightarrow>'a set\<Rightarrow>'b set\<Rightarrow>bool"}\\
 \<^const>\<open>Fun.fun_upd\<close> & \<^typeof>\<open>Fun.fun_upd\<close>\\
-\end{supertabular}
+\end{tabular}
 
 \subsubsection*{Syntax}
 
@@ -206,7 +206,7 @@ Type constructor \<open>+\<close>.
 
 Types \<^typ>\<open>unit\<close> and \<open>\<times>\<close>.
 
-\begin{supertabular}{@ {} l @ {~::~} l @ {}}
+\begin{tabular}{@ {} l @ {~::~} l @ {}}
 \<^const>\<open>Product_Type.Unity\<close> & \<^typeof>\<open>Product_Type.Unity\<close>\\
 \<^const>\<open>Pair\<close> & \<^typeof>\<open>Pair\<close>\\
 \<^const>\<open>fst\<close> & \<^typeof>\<open>fst\<close>\\
@@ -214,7 +214,7 @@ Types \<^typ>\<open>unit\<close> and \<open>\<times>\<close>.
 \<^const>\<open>case_prod\<close> & \<^typeof>\<open>case_prod\<close>\\
 \<^const>\<open>curry\<close> & \<^typeof>\<open>curry\<close>\\
 \<^const>\<open>Product_Type.Sigma\<close> & @{term_type_only Product_Type.Sigma "'a set\<Rightarrow>('a\<Rightarrow>'b set)\<Rightarrow>('a*'b)set"}\\
-\end{supertabular}
+\end{tabular}
 
 \subsubsection*{Syntax}
 
@@ -264,13 +264,13 @@ Type synonym \ \<^typ>\<open>'a rel\<close> \<open>=\<close> @{expanded_typ "'a 
 
 \section*{Equiv\_Relations}
 
-\begin{supertabular}{@ {} l @ {~::~} l @ {}}
+\begin{tabular}{@ {} l @ {~::~} l @ {}}
 \<^const>\<open>Equiv_Relations.equiv\<close> & @{term_type_only Equiv_Relations.equiv "'a set \<Rightarrow> ('a*'a)set\<Rightarrow>bool"}\\
 \<^const>\<open>Equiv_Relations.quotient\<close> & @{term_type_only Equiv_Relations.quotient "'a set \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> 'a set set"}\\
 \<^const>\<open>Equiv_Relations.congruent\<close> & @{term_type_only Equiv_Relations.congruent "('a*'a)set\<Rightarrow>('a\<Rightarrow>'b)\<Rightarrow>bool"}\\
 \<^const>\<open>Equiv_Relations.congruent2\<close> & @{term_type_only Equiv_Relations.congruent2 "('a*'a)set\<Rightarrow>('b*'b)set\<Rightarrow>('a\<Rightarrow>'b\<Rightarrow>'c)\<Rightarrow>bool"}\\
 %@ {const Equiv_Relations.} & @ {term_type_only Equiv_Relations. ""}\\
-\end{supertabular}
+\end{tabular}
 
 \subsubsection*{Syntax}
 
@@ -305,7 +305,7 @@ Theories \<^theory>\<open>HOL.Groups\<close>, \<^theory>\<open>HOL.Rings\<close>
 structures from semigroups up to fields. Everything is done in terms of
 overloaded operators:
 
-\begin{supertabular}{@ {} l @ {~::~} l l @ {}}
+\begin{tabular}{@ {} l @ {~::~} l l @ {}}
 \<open>0\<close> & \<^typeof>\<open>zero\<close>\\
 \<open>1\<close> & \<^typeof>\<open>one\<close>\\
 \<^const>\<open>plus\<close> & \<^typeof>\<open>plus\<close>\\
@@ -319,7 +319,7 @@ overloaded operators:
 \<^const>\<open>Rings.dvd\<close> & \<^typeof>\<open>Rings.dvd\<close>\\
 \<^const>\<open>divide\<close> & \<^typeof>\<open>divide\<close>\\
 \<^const>\<open>modulo\<close> & \<^typeof>\<open>modulo\<close>\\
-\end{supertabular}
+\end{tabular}
 
 \subsubsection*{Syntax}
 
@@ -394,53 +394,53 @@ Type \<^typ>\<open>int\<close>
 
 \section*{Finite\_Set}
 
-\begin{supertabular}{@ {} l @ {~::~} l @ {}}
+\begin{tabular}{@ {} l @ {~::~} l @ {}}
 \<^const>\<open>Finite_Set.finite\<close> & @{term_type_only Finite_Set.finite "'a set\<Rightarrow>bool"}\\
 \<^const>\<open>Finite_Set.card\<close> & @{term_type_only Finite_Set.card "'a set \<Rightarrow> nat"}\\
 \<^const>\<open>Finite_Set.fold\<close> & @{term_type_only Finite_Set.fold "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a set \<Rightarrow> 'b"}\\
-\end{supertabular}
+\end{tabular}
 
 
 \section*{Lattices\_Big}
 
-\begin{supertabular}{@ {} l @ {~::~} l l @ {}}
+\begin{tabular}{@ {} l @ {~::~} l l @ {}}
 \<^const>\<open>Lattices_Big.Min\<close> & \<^typeof>\<open>Lattices_Big.Min\<close>\\
 \<^const>\<open>Lattices_Big.Max\<close> & \<^typeof>\<open>Lattices_Big.Max\<close>\\
 \<^const>\<open>Lattices_Big.arg_min\<close> & \<^typeof>\<open>Lattices_Big.arg_min\<close>\\
 \<^const>\<open>Lattices_Big.is_arg_min\<close> & \<^typeof>\<open>Lattices_Big.is_arg_min\<close>\\
 \<^const>\<open>Lattices_Big.arg_max\<close> & \<^typeof>\<open>Lattices_Big.arg_max\<close>\\
 \<^const>\<open>Lattices_Big.is_arg_max\<close> & \<^typeof>\<open>Lattices_Big.is_arg_max\<close>\\
-\end{supertabular}
+\end{tabular}
 
 \subsubsection*{Syntax}
 
-\begin{supertabular}{@ {} l @ {\quad$\equiv$\quad} l l @ {}}
+\begin{tabular}{@ {} l @ {\quad$\equiv$\quad} l l @ {}}
 \<^term>\<open>ARG_MIN f x. P\<close> & @{term[source]"arg_min f (\<lambda>x. P)"}\\
 \<^term>\<open>ARG_MAX f x. P\<close> & @{term[source]"arg_max f (\<lambda>x. P)"}\\
-\end{supertabular}
+\end{tabular}
 
 
 \section*{Groups\_Big}
 
-\begin{supertabular}{@ {} l @ {~::~} l @ {}}
+\begin{tabular}{@ {} l @ {~::~} l @ {}}
 \<^const>\<open>Groups_Big.sum\<close> & @{term_type_only Groups_Big.sum "('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow> 'b::comm_monoid_add"}\\
 \<^const>\<open>Groups_Big.prod\<close> & @{term_type_only Groups_Big.prod "('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow> 'b::comm_monoid_mult"}\\
-\end{supertabular}
+\end{tabular}
 
 
 \subsubsection*{Syntax}
 
-\begin{supertabular}{@ {} l @ {\quad$\equiv$\quad} l l @ {}}
+\begin{tabular}{@ {} l @ {\quad$\equiv$\quad} l l @ {}}
 \<^term>\<open>sum (\<lambda>x. x) A\<close> & @{term[source]"sum (\<lambda>x. x) A"} & (\<^verbatim>\<open>SUM\<close>)\\
 \<^term>\<open>sum (\<lambda>x. t) A\<close> & @{term[source]"sum (\<lambda>x. t) A"}\\
 @{term[source] "\<Sum>x|P. t"} & \<^term>\<open>\<Sum>x|P. t\<close>\\
 \multicolumn{2}{@ {}l@ {}}{Similarly for \<open>\<Prod>\<close> instead of \<open>\<Sum>\<close>} & (\<^verbatim>\<open>PROD\<close>)\\
-\end{supertabular}
+\end{tabular}
 
 
 \section*{Wellfounded}
 
-\begin{supertabular}{@ {} l @ {~::~} l @ {}}
+\begin{tabular}{@ {} l @ {~::~} l @ {}}
 \<^const>\<open>Wellfounded.wf\<close> & @{term_type_only Wellfounded.wf "('a*'a)set\<Rightarrow>bool"}\\
 \<^const>\<open>Wellfounded.acc\<close> & @{term_type_only Wellfounded.acc "('a*'a)set\<Rightarrow>'a set"}\\
 \<^const>\<open>Wellfounded.measure\<close> & @{term_type_only Wellfounded.measure "('a\<Rightarrow>nat)\<Rightarrow>('a*'a)set"}\\
@@ -448,12 +448,12 @@ Type \<^typ>\<open>int\<close>
 \<^const>\<open>Wellfounded.mlex_prod\<close> & @{term_type_only Wellfounded.mlex_prod "('a\<Rightarrow>nat)\<Rightarrow>('a*'a)set\<Rightarrow>('a*'a)set"}\\
 \<^const>\<open>Wellfounded.less_than\<close> & @{term_type_only Wellfounded.less_than "(nat*nat)set"}\\
 \<^const>\<open>Wellfounded.pred_nat\<close> & @{term_type_only Wellfounded.pred_nat "(nat*nat)set"}\\
-\end{supertabular}
+\end{tabular}
 
 
 \section*{Set\_Interval} % \<^theory>\<open>HOL.Set_Interval\<close>
 
-\begin{supertabular}{@ {} l @ {~::~} l @ {}}
+\begin{tabular}{@ {} l @ {~::~} l @ {}}
 \<^const>\<open>lessThan\<close> & @{term_type_only lessThan "'a::ord \<Rightarrow> 'a set"}\\
 \<^const>\<open>atMost\<close> & @{term_type_only atMost "'a::ord \<Rightarrow> 'a set"}\\
 \<^const>\<open>greaterThan\<close> & @{term_type_only greaterThan "'a::ord \<Rightarrow> 'a set"}\\
@@ -462,11 +462,11 @@ Type \<^typ>\<open>int\<close>
 \<^const>\<open>atLeastLessThan\<close> & @{term_type_only atLeastLessThan "'a::ord \<Rightarrow> 'a \<Rightarrow> 'a set"}\\
 \<^const>\<open>greaterThanAtMost\<close> & @{term_type_only greaterThanAtMost "'a::ord \<Rightarrow> 'a \<Rightarrow> 'a set"}\\
 \<^const>\<open>atLeastAtMost\<close> & @{term_type_only atLeastAtMost "'a::ord \<Rightarrow> 'a \<Rightarrow> 'a set"}\\
-\end{supertabular}
+\end{tabular}
 
 \subsubsection*{Syntax}
 
-\begin{supertabular}{@ {} l @ {\quad$\equiv$\quad} l @ {}}
+\begin{tabular}{@ {} l @ {\quad$\equiv$\quad} l @ {}}
 \<^term>\<open>lessThan y\<close> & @{term[source] "lessThan y"}\\
 \<^term>\<open>atMost y\<close> & @{term[source] "atMost y"}\\
 \<^term>\<open>greaterThan x\<close> & @{term[source] "greaterThan x"}\\
@@ -483,7 +483,7 @@ Type \<^typ>\<open>int\<close>
 \<^term>\<open>sum (\<lambda>x. t) {..b}\<close> & @{term[source] "sum (\<lambda>x. t) {..b}"}\\
 \<^term>\<open>sum (\<lambda>x. t) {..<b}\<close> & @{term[source] "sum (\<lambda>x. t) {..<b}"}\\
 \multicolumn{2}{@ {}l@ {}}{Similarly for \<open>\<Prod>\<close> instead of \<open>\<Sum>\<close>}\\
-\end{supertabular}
+\end{tabular}
 
 
 \section*{Power}
@@ -564,13 +564,13 @@ Type \<^typ>\<open>int\<close>
 
 \subsubsection*{Syntax}
 
-\begin{supertabular}{@ {} l @ {\quad$\equiv$\quad} l @ {}}
+\begin{tabular}{@ {} l @ {\quad$\equiv$\quad} l @ {}}
 \<open>[x\<^sub>1,\<dots>,x\<^sub>n]\<close> & \<open>x\<^sub>1 # \<dots> # x\<^sub>n # []\<close>\\
 \<^term>\<open>[m..<n]\<close> & @{term[source]"upt m n"}\\
 \<^term>\<open>[i..j]\<close> & @{term[source]"upto i j"}\\
 \<^term>\<open>xs[n := x]\<close> & @{term[source]"list_update xs n x"}\\
 \<^term>\<open>\<Sum>x\<leftarrow>xs. e\<close> & @{term[source]"listsum (map (\<lambda>x. e) xs)"}\\
-\end{supertabular}
+\end{tabular}
 \<^medskip>
 
 Filter input syntax \<open>[pat \<leftarrow> e. b]\<close>, where
@@ -585,7 +585,7 @@ guard, i.e.\ boolean expression.
 Maps model partial functions and are often used as finite tables. However,
 the domain of a map may be infinite.
 
-\begin{supertabular}{@ {} l @ {~::~} l @ {}}
+\begin{tabular}{@ {} l @ {~::~} l @ {}}
 \<^const>\<open>Map.empty\<close> & \<^typeof>\<open>Map.empty\<close>\\
 \<^const>\<open>Map.map_add\<close> & \<^typeof>\<open>Map.map_add\<close>\\
 \<^const>\<open>Map.map_comp\<close> & \<^typeof>\<open>Map.map_comp\<close>\\
@@ -595,7 +595,7 @@ the domain of a map may be infinite.
 \<^const>\<open>Map.map_le\<close> & \<^typeof>\<open>Map.map_le\<close>\\
 \<^const>\<open>Map.map_of\<close> & \<^typeof>\<open>Map.map_of\<close>\\
 \<^const>\<open>Map.map_upds\<close> & \<^typeof>\<open>Map.map_upds\<close>\\
-\end{supertabular}
+\end{tabular}
 
 \subsubsection*{Syntax}
 
