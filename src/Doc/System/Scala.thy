@@ -278,11 +278,11 @@ text \<open>
     -L           make symlinks to original source files
     -f           force update of existing directory
 
-  Setup Gradle project for Isabelle/Scala/jEdit --- to support Scala IDEs
+  Setup Maven project for Isabelle/Scala/jEdit --- to support common IDEs
   such as IntelliJ IDEA.\<close>}
 
-  The generated configuration is for Gradle\<^footnote>\<open>\<^url>\<open>https://gradle.org\<close>\<close>, but the
-  main purpose is to import it into common Scala IDEs, such as IntelliJ
+  The generated configuration is for Maven\<^footnote>\<open>\<^url>\<open>https://maven.apache.org\<close>\<close>, but
+  the main purpose is to import it into common IDEs, such as IntelliJ
   IDEA\<^footnote>\<open>\<^url>\<open>https://www.jetbrains.com/idea\<close>\<close>. This allows to explore the
   sources with static analysis and other hints in real-time.
 

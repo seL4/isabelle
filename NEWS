@@ -532,7 +532,8 @@ various ways:
   - sources of for the jEdit text editor and the Isabelle/jEdit
     plugins (jedit_base and jedit_main) are included by default,
   - more sources may be given on the command-line,
-  - options -f and -D make the tool more convenient.
+  - options -f and -D make the tool more convenient,
+  - Gradle has been replaced by Maven (less ambitious and more robust).
 
 * Remote provers from SystemOnTPTP (notably for Sledgehammer) are now
 managed via Isabelle/Scala instead of perl; the dependency on
