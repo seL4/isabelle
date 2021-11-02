@@ -2312,7 +2312,9 @@ fun sym_decl_table_of_facts thy type_enc sym_tab (conjs, facts, extra_tms) =
                 SOME ({pred_sym, in_conj, ...} : sym_info) => (pred_sym, in_conj)
               | NONE => (false, false))
             val decl_sym =
-              (case type_enc of Guards _ => not pred_sym | _ => true) andalso is_tptp_user_symbol s
+              (case type_enc of Guards _ => not pred_sym | _ => true) andalso
+              not (String.isPrefix let_bound_var_prefix s) andalso
+              is_tptp_user_symbol s
           in
             if decl_sym then
               Symtab.map_default (s, [])
@@ -2724,7 +2726,10 @@ fun default_type pred_sym =
 fun undeclared_in_problem problem =
   let
     fun do_sym (name as (s, _)) value =
-      if is_tptp_user_symbol s then Symtab.default (s, (name, value)) else I
+      if is_tptp_user_symbol s andalso not (String.isPrefix let_bound_var_prefix s) then
+        Symtab.default (s, (name, value))
+      else
+        I
     fun do_class name = apfst (apfst (do_sym name ()))
     val do_bound_tvars = fold do_class o snd
     fun do_type (AType ((name, _), tys)) =
