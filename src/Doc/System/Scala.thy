@@ -292,12 +292,9 @@ text \<open>
 
   \<^medskip>
   Option \<^verbatim>\<open>-L\<close> produces \<^emph>\<open>symlinks\<close> to the original files: this allows to
-  develop Isabelle/Scala/jEdit modules within an external IDE. Note that the
-  result cannot be built within the IDE: it requires implicit or explicit
-  \<^verbatim>\<open>isabelle scala_build\<close> (\secref{sec:tool-scala-build}) instead.
-
-  The default is to \<^emph>\<open>copy\<close> source files, so editing them within the IDE has
-  no permanent effect on the originals.
+  develop Isabelle/Scala/jEdit modules within an external IDE. The default is
+  to \<^emph>\<open>copy\<close> source files, so editing them within the IDE has no permanent
+  effect on the originals.
 
   \<^medskip>
   Option \<^verbatim>\<open>-D\<close> specifies an explicit project directory, instead of the default
