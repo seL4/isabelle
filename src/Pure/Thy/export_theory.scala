@@ -183,7 +183,7 @@ object Export_Theory
     val DOCUMENT_TEXT = "document_text"
     val PROOF_TEXT = "proof_text"
 
-    def export(kind: String): String =
+    def `export`(kind: String): String =
       kind match {
         case Markup.TYPE_NAME => TYPE
         case Markup.CONSTANT => CONST

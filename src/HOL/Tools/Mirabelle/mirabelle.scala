@@ -85,7 +85,7 @@ object Mirabelle
                   }
                   using(store.open_database_context())(db_context =>
                   {
-                    for (export <- db_context.read_export(session_hierarchy, args.theory_name, args.name)) {
+                    for (`export` <- db_context.read_export(session_hierarchy, args.theory_name, args.name)) {
                       val prefix = args.name.split('/') match {
                         case Array("mirabelle", action, "finalize") =>
                           s"${action} finalize  "

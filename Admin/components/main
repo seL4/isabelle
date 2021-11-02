@@ -19,7 +19,7 @@ nunchaku-0.5
 opam-2.0.7
 polyml-5.9-960de0cd0795
 postgresql-42.2.24
-scala-2.13.5
+scala-2.13.7
 smbc-0.4.1
 spass-3.8ds-2
 sqlite-jdbc-3.36.0.3

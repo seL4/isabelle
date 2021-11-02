@@ -325,7 +325,7 @@ class Build_Job(progress: Progress,
               case _ => false
             }
 
-          private def export(msg: Prover.Protocol_Output): Boolean =
+          private def `export`(msg: Prover.Protocol_Output): Boolean =
             msg.properties match {
               case Protocol.Export(args) =>
                 export_consumer(session_name, args, msg.chunk)
@@ -364,7 +364,7 @@ class Build_Job(progress: Progress,
             if (!progress.stopped) {
               val rendering = new Rendering(snapshot, options, session)
 
-              def export(name: String, xml: XML.Body, compress: Boolean = true): Unit =
+              def `export`(name: String, xml: XML.Body, compress: Boolean = true): Unit =
               {
                 if (!progress.stopped) {
                   val theory_name = snapshot.node_name.theory
