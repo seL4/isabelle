@@ -567,12 +567,7 @@ lemma (in topological_space) at_within_union:
 
 lemma (in topological_space) at_eq_bot_iff: "at a = bot \<longleftrightarrow> open {a}"
   unfolding trivial_limit_def eventually_at_topological
-  apply safe
-   apply (case_tac "S = {a}")
-    apply simp
-   apply fast
-  apply fast
-  done
+  by (metis UNIV_I empty_iff is_singletonE is_singletonI' singleton_iff)
 
 lemma (in perfect_space) at_neq_bot [simp]: "at a \<noteq> bot"
   by (simp add: at_eq_bot_iff not_open_singleton)
@@ -1574,15 +1569,11 @@ proof -
       by (simp add: antimono_iff_le_Suc atMost_Suc)
     show "x \<in> (\<Inter>i\<le>n. A i)" "\<And>n. open (\<Inter>i\<le>n. A i)" for n
       using * by auto
-    show "nhds x = (INF n. principal (\<Inter>i\<le>n. A i))"
-      using *
+    with * show "nhds x = (INF n. principal (\<Inter>i\<le>n. A i))"
       unfolding nhds_def
-      apply -
-      apply (rule INF_eq)
-       apply simp_all
+      apply (intro INF_eq)
        apply fastforce
-      apply (intro exI [of _ "\<Inter>i\<le>n. A i" for n] conjI open_INT)
-         apply auto
+      apply blast
       done
   qed
 qed
@@ -2487,24 +2478,12 @@ lemma compact_imp_fip_image:
     and Q: "\<And>I'. finite I' \<Longrightarrow> I' \<subseteq> I \<Longrightarrow> (s \<inter> (\<Inter>i\<in>I'. f i) \<noteq> {})"
   shows "s \<inter> (\<Inter>i\<in>I. f i) \<noteq> {}"
 proof -
-  note \<open>compact s\<close>
-  moreover from P have "\<forall>i \<in> f ` I. closed i"
+  from P have "\<forall>i \<in> f ` I. closed i"
     by blast
   moreover have "\<forall>A. finite A \<and> A \<subseteq> f ` I \<longrightarrow> (s \<inter> (\<Inter>A) \<noteq> {})"
-    apply rule
-    apply rule
-    apply (erule conjE)
-  proof -
-    fix A :: "'a set set"
-    assume "finite A" and "A \<subseteq> f ` I"
-    then obtain B where "B \<subseteq> I" and "finite B" and "A = f ` B"
-      using finite_subset_image [of A f I] by blast
-    with Q [of B] show "s \<inter> \<Inter>A \<noteq> {}"
-      by simp
-  qed
-  ultimately have "s \<inter> (\<Inter>(f ` I)) \<noteq> {}"
-    by (metis compact_imp_fip)
-  then show ?thesis by simp
+    by (metis Q finite_subset_image)
+  ultimately show "s \<inter> (\<Inter>(f ` I)) \<noteq> {}"
+    by (metis \<open>compact s\<close> compact_imp_fip)
 qed
 
 end
