@@ -6,6 +6,8 @@ Isabelle2021-1 is now available.
 This version introduces many changes over Isabelle2020-1: see the NEWS
 file for further details. Here are various details:
 
+* HTML presentation now includes links to formal entities.
+
 * Isar: local theory support for 'syntax' and 'no_syntax' commands.
 
 * Isabelle/jEdit: distribution of original jEdit editor with Isabelle/Scala
