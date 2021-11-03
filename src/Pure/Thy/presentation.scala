@@ -83,7 +83,8 @@ object Presentation
       html = elements1.html ++ Rendering.markdown_elements,
       language = Markup.Elements(Markup.Language.DOCUMENT))
 
-  /* Foundational Entities */
+
+  /* formal entities */
 
   type Entity = Export_Theory.Entity[Export_Theory.No_Content]
 
@@ -91,6 +92,7 @@ object Presentation
   {
     val seen_ranges: mutable.Set[Symbol.Range] = mutable.Set.empty
   }
+
 
   /* HTML output */
 
@@ -431,12 +433,11 @@ object Presentation
           map(link => HTML.text("View ") ::: List(link))).flatten
     }
 
-    def read_exports(name: Document.Node.Name) =
+    def read_exports(name: Document.Node.Name): Seq[Entity] =
     {
       seen_nodes_cache.get_or_update(name, {
-        if (Sessions.is_pure(name.theory_base_name)) {
-          Vector.empty
-        } else {
+        if (Sessions.is_pure(name.theory_base_name)) Vector.empty
+        else {
           val session1 = deps(session).theory_qualifier(name)
           val provider = Export.Provider.database_context(db_context, List(session1), name.theory)
           provider(Export.THEORY_PREFIX + "parents") match {
@@ -452,31 +453,33 @@ object Presentation
     }
 
     val exports = base.known_theories.map(_._2.name).map(node => node -> read_exports(node)).toMap
-
-    val export_ranges = exports.view.mapValues(_.groupBy { entity =>
-      Text.Range(Position.Offset.get(entity.pos), Position.End_Offset.get(entity.pos))
-    }).toMap
-
-    val export_names = exports.map {
-      case (node, entities) => node.theory -> entities.map(entity => entity.name -> entity).toMap
-    }
+    val export_ranges =
+      exports.view.mapValues(_.groupBy(entity =>
+        Text.Range(Position.Offset.get(entity.pos), Position.End_Offset.get(entity.pos)))).toMap
+    val export_names =
+      exports.map {
+        case (node, entities) => node.theory -> entities.map(entity => entity.name -> entity).toMap
+      }
 
     val theories: List[XML.Body] =
     {
       var seen_files = List.empty[(Path, String, Document.Node.Name)]
 
-      def node_file(node: Document.Node.Name) =
+      def node_file(node: Document.Node.Name): String =
         if (node.node.endsWith(".thy")) html_name(node) else html_path(Path.explode(node.node))
 
-      def entity_anchor(context: Entity_Context, range: Symbol.Range, body: XML.Body) =
+      def entity_anchor(
+        context: Entity_Context, range: Symbol.Range, body: XML.Body): Option[XML.Elem] =
       {
         body match {
           case List(XML.Elem(Markup("span", List("id" -> _)), _)) => None
           case _ =>
             Some {
-              val body1 = if (context.seen_ranges.contains(range)) {
-                HTML.span(HTML.id(html_context.offset_ref(range)), body)
-              } else HTML.span(body)
+              val body1 =
+                if (context.seen_ranges.contains(range)) {
+                  HTML.span(HTML.id(html_context.offset_ref(range)), body)
+                }
+                else HTML.span(body)
               export_ranges.get(context.node).flatMap(_.get(range)) match {
                 case Some(entities) =>
                   entities.map(html_context.export_ref).foldLeft(body1) {
@@ -488,12 +491,11 @@ object Presentation
         }
       }
 
-      def entity_ref(theory: String, name: String) =
-      {
+      def entity_ref(theory: String, name: String): Option[String] =
         export_names.get(theory).flatMap(_.get(name)).map(html_context.export_ref)
-      }
 
-      def offset_ref(context: Entity_Context, theory: String, props: Properties.T) = {
+      def offset_ref(context: Entity_Context, theory: String, props: Properties.T): Option[String] =
+      {
         if (theory == context.node.theory) {
           for {
             offset <- Position.Def_Offset.unapply(props)
@@ -506,14 +508,14 @@ object Presentation
         } else None
       }
 
-      def entity_link(context: Entity_Context, props: Properties.T, body: XML.Body) =
+      def entity_link(
+        context: Entity_Context, props: Properties.T, body: XML.Body): Option[XML.Elem] =
       {
         (props, props, props, props) match {
           case (Markup.Kind(Markup.THEORY), Markup.Name(theory), Position.Def_File(thy_file), _) =>
             val node_name = resources.file_node(Path.explode(thy_file), theory = theory)
-            node_relative(deps, session, node_name) map { html_dir =>
-              HTML.link(html_dir + html_name(node_name), body)
-            }
+            node_relative(deps, session, node_name).map(html_dir =>
+              HTML.link(html_dir + html_name(node_name), body))
           case (Markup.Ref(_), Position.Def_File(thy_file), Position.Def_Theory(def_theory),
               Markup.Name(name)) =>
             val theory = if (def_theory.nonEmpty) def_theory else context.node.theory
