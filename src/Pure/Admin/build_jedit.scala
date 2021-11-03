@@ -161,6 +161,7 @@ isabelle_java java -Duser.home=""" + File.bash_platform_path(tmp_dir) +
       Isabelle_System.copy_dir(jedit_dir, jedit_patched_dir)
 
       val source_dir = jedit_patched_dir + Path.basic("jEdit")
+      val org_source_dir = source_dir + Path.basic("org")
       val tmp_source_dir = tmp_dir + Path.basic("jEdit")
 
       progress.echo("Patching jEdit sources ...")
@@ -187,7 +188,7 @@ isabelle_java java -Duser.home=""" + File.bash_platform_path(tmp_dir) +
 
       val java_sources =
         for {
-          file <- File.find_files(source_dir.file, file => file.getName.endsWith(".java"))
+          file <- File.find_files(org_source_dir.file, file => file.getName.endsWith(".java"))
           package_name <- Scala_Project.package_name(File.path(file))
           if !exclude_package(package_name)
         } yield File.path(component_dir.java_path.relativize(file.toPath).toFile)

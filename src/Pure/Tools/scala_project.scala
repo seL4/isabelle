@@ -1,7 +1,7 @@
 /*  Title:      Pure/Tools/scala_project.scala
     Author:     Makarius
 
-Manage Isabelle/Scala/Java project sources, with output to Gradle for
+Manage Isabelle/Scala/Java project sources, with output to Maven for
 IntelliJ IDEA.
 */
 
@@ -10,15 +10,56 @@ package isabelle
 
 object Scala_Project
 {
-  /* groovy syntax */
+  /* Maven project */
 
-  def groovy_string(s: String): String =
+  def java_version: String = "11"
+  def scala_version: String = scala.util.Properties.versionNumberString
+
+  def maven_project(jars: List[Path]): String =
   {
-    s.map(c =>
-      c match {
-        case '\t' | '\b' | '\n' | '\r' | '\f' | '\\' | '\'' | '"' => "\\" + c
-        case _ => c.toString
-      }).mkString("'", "", "'")
+    def dependency(jar: Path): String =
+    {
+      val name = jar.expand.drop_ext.base.implode
+      val system_path = File.platform_path(jar.absolute)
+      """  <dependency>
+    <groupId>classpath</groupId>
+    <artifactId>""" + XML.text(name) + """</artifactId>
+    <version>0</version>
+    <scope>system</scope>
+    <systemPath>""" + XML.text(system_path) + """</systemPath>
+  </dependency>"""
+    }
+
+    """<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>isabelle</groupId>
+  <artifactId>isabelle</artifactId>
+  <version>0</version>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>""" + java_version + """</maven.compiler.source>
+    <maven.compiler.target>""" + java_version + """</maven.compiler.target>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>net.alchim31.maven</groupId>
+        <artifactId>scala-maven-plugin</artifactId>
+        <version>4.5.3</version>
+        <configuration>
+            <scalaVersion>""" + scala_version + """</scalaVersion>
+        </configuration>
+        </plugin>
+    </plugins>
+  </build>
+
+  <dependencies>""" + jars.map(dependency).mkString("\n", "\n", "\n") + """</dependencies>
+</project>"""
   }
 
 
@@ -127,7 +168,7 @@ object Scala_Project
     if (project_dir.file.exists) {
       val detect =
         project_dir.is_dir &&
-        (project_dir + Path.explode("build.gradle")).is_file &&
+        (project_dir + Path.explode("pom.xml")).is_file &&
         (project_dir + Path.explode("src/main/scala")).is_dir
 
       if (force && detect) {
@@ -146,6 +187,8 @@ object Scala_Project
     val (jars, sources) = isabelle_files
     isabelle_scala_files
 
+    File.write(project_dir + Path.explode("pom.xml"), maven_project(jars))
+
     for (source <- sources ::: more_sources) {
       val dir = (if (source.is_java) java_src_dir else scala_src_dir) + the_package_dir(source)
       val target_dir = project_dir + dir
@@ -156,31 +199,13 @@ object Scala_Project
       if (symlinks) Isabelle_System.symlink(source.absolute, target_dir, native = true)
       else Isabelle_System.copy_file(source, target_dir)
     }
-
-    File.write(project_dir + Path.explode("settings.gradle"), "rootProject.name = 'Isabelle'\n")
-    File.write(project_dir + Path.explode("build.gradle"),
-"""plugins {
-  id 'scala'
-}
-
-repositories {
-  mavenCentral()
-}
-
-dependencies {
-  implementation 'org.scala-lang:scala-library:""" + scala.util.Properties.versionNumberString + """'
-  compileOnly files(
-    """ + jars.map(jar => groovy_string(File.platform_path(jar))).mkString("", ",\n    ", ")") +
-"""
-}
-""")
   }
 
 
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("scala_project", "setup Gradle project for Isabelle/Scala/jEdit",
+    Isabelle_Tool("scala_project", "setup Maven project for Isabelle/Scala/jEdit",
       Scala_Project.here, args =>
     {
       var project_dir = default_project_dir
@@ -195,7 +220,7 @@ Usage: isabelle scala_project [OPTIONS] [MORE_SOURCES ...]
     -L           make symlinks to original source files
     -f           force update of existing directory
 
-  Setup Gradle project for Isabelle/Scala/jEdit --- to support Scala IDEs
+  Setup Maven project for Isabelle/Scala/jEdit --- to support common IDEs
   such as IntelliJ IDEA.
 """,
         "D:" -> (arg => project_dir = Path.explode(arg)),

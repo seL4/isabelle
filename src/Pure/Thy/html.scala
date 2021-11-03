@@ -56,7 +56,7 @@ object HTML
   val code = new Operator("code")
   val item = new Operator("li")
   val list = new Operator("ul")
-  val enum = new Operator("ol")
+  val `enum` = new Operator("ol")
   val descr = new Operator("dl")
   val dt = new Operator("dt")
   val dd = new Operator("dd")
@@ -70,7 +70,7 @@ object HTML
   val subparagraph = new Heading("h6")
 
   def itemize(items: List[XML.Body]): XML.Elem = list(items.map(item(_)))
-  def enumerate(items: List[XML.Body]): XML.Elem = enum(items.map(item(_)))
+  def enumerate(items: List[XML.Body]): XML.Elem = `enum`(items.map(item(_)))
   def description(items: List[(XML.Body, XML.Body)]): XML.Elem =
     descr(items.flatMap({ case (x, y) => List(dt(x), dd(y)) }))
 
