@@ -48,6 +48,7 @@ sig
   val keep': (bool -> state -> unit) -> transition -> transition
   val keep_proof: (state -> unit) -> transition -> transition
   val is_ignored: transition -> bool
+  val is_malformed: transition -> bool
   val ignored: Position.T -> transition
   val malformed: Position.T -> string -> transition
   val generic_theory: (generic_theory -> generic_theory) -> transition -> transition
@@ -416,13 +417,17 @@ fun keep_proof f =
     else if is_skipped_proof st then ()
     else warning "No proof state");
 
-fun is_ignored tr = name_of tr = "<ignored>";
+val ignoredN = "<ignored>";
+val malformedN = "<malformed>";
+
+fun is_ignored tr = name_of tr = ignoredN;
+fun is_malformed tr = name_of tr = malformedN;
 
 fun ignored pos =
-  empty |> name "<ignored>" |> position pos |> keep (fn _ => ());
+  empty |> name ignoredN |> position pos |> keep (fn _ => ());
 
 fun malformed pos msg =
-  empty |> name "<malformed>" |> position pos |> keep (fn _ => error msg);
+  empty |> name malformedN |> position pos |> keep (fn _ => error msg);
 
 
 (* theory transitions *)
