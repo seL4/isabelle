@@ -122,3 +122,30 @@ body {
 }
 
 .tooltip pre { margin: 1px; white-space: pre-wrap; }
+
+
+/* formal entities */
+
+.entity_def {
+  color: inherit;
+  text-decoration: inherit;
+}
+
+.entity_def:hover {
+  color: inherit;
+  text-decoration: inherit;
+  background-color: rgba(50,50,50,20%);
+}
+
+.entity_ref {
+  color: inherit;
+  text-decoration: inherit;
+  border: 0.5px solid rgba(0,0,0,0);
+}
+
+.entity_ref:hover {
+  color: inherit;
+  text-decoration: inherit;
+  background-color: rgba(50,50,50,20%);
+  border: 0.5px solid black;
+}

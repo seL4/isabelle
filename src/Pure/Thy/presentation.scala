@@ -477,13 +477,14 @@ object Presentation
             Some {
               val body1 =
                 if (context.seen_ranges.contains(range)) {
-                  HTML.span(HTML.id(html_context.offset_ref(range)), body)
+                  HTML.entity_def(HTML.span(HTML.id(html_context.offset_ref(range)), body))
                 }
                 else HTML.span(body)
               export_ranges.get(context.node).flatMap(_.get(range)) match {
                 case Some(entities) =>
                   entities.map(html_context.export_ref).foldLeft(body1) {
-                    case (elem, id) => HTML.span(HTML.id(id), List(elem))
+                    case (elem, id) =>
+                      HTML.entity_def(HTML.span(HTML.id(id), List(elem)))
                   }
                 case None => body1
               }
@@ -525,7 +526,7 @@ object Presentation
               html_file = node_file(node_name)
               html_ref <- entity_ref(theory, name).orElse(offset_ref(context, theory, props))
             } yield {
-              HTML.link(html_dir + html_file + "#" + html_ref, body)
+              HTML.entity_ref(HTML.link(html_dir + html_file + "#" + html_ref, body))
             }
           case _ => None
         }

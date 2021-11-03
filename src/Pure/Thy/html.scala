@@ -24,6 +24,9 @@ object HTML
   def height(h: Int): Attribute = new Attribute("height", h.toString)
   def size(w: Int, h: Int)(elem: XML.Elem): XML.Elem = width(w)(height(h)(elem))
 
+  val entity_def: Attribute = class_("entity_def")
+  val entity_ref: Attribute = class_("entity_ref")
+
 
   /* structured markup operators */
 
