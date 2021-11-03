@@ -85,9 +85,9 @@ val bootstrap_keywords =
      ((subparagraphN, \<^here>), Keyword.document_heading_spec),
      ((textN, \<^here>), Keyword.document_body_spec),
      ((txtN, \<^here>), Keyword.document_body_spec),
-     ((text_rawN, \<^here>), (Keyword.document_raw, ["document"])),
-     ((theoryN, \<^here>), (Keyword.thy_begin, ["theory"])),
-     (("ML", \<^here>), (Keyword.thy_decl, ["ML"]))];
+     ((text_rawN, \<^here>), Keyword.command_spec (Keyword.document_raw, ["document"])),
+     ((theoryN, \<^here>), Keyword.command_spec (Keyword.thy_begin, ["theory"])),
+     (("ML", \<^here>), Keyword.command_spec (Keyword.thy_decl, ["ML"]))];
 
 
 (* theory data *)
@@ -132,11 +132,13 @@ fun imports name =
   else Parse.$$$ importsN |-- Parse.!!! (Scan.repeat1 Parse.theory_name);
 
 val load_command =
-  Scan.optional (Parse.$$$ "(" |-- Parse.!!! (Parse.list1 Parse.name) --| Parse.$$$ ")") [];
+  Scan.optional (Parse.$$$ "(" |-- Parse.!!! (Parse.position Parse.name) --| Parse.$$$ ")")
+    ("", Position.none);
 
 val keyword_spec =
   Parse.group (fn () => "outer syntax keyword specification")
-    ((Parse.name --| load_command) -- Document_Source.old_tags);
+    ((Parse.name -- load_command) -- Document_Source.old_tags) >>
+      (fn ((a, b), c) => {kind = a, load_command = b, tags = c});
 
 val keyword_decl =
   Scan.repeat1 Parse.string_position --

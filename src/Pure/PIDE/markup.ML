@@ -85,6 +85,7 @@ sig
   val wordsN: string val words: T
   val hiddenN: string val hidden: T
   val deleteN: string val delete: T
+  val load_commandN: string
   val bash_functionN: string
   val scala_functionN: string
   val system_optionN: string
@@ -476,6 +477,7 @@ val (deleteN, delete) = markup_elem "delete";
 
 (* misc entities *)
 
+val load_commandN = "load_command";
 val bash_functionN = "bash_function";
 val scala_functionN = "scala_function";
 val system_optionN = "system_option";

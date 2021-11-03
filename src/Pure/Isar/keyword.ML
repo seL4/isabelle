@@ -38,7 +38,8 @@ sig
   val prf_script_asm_goal: string
   val before_command: string
   val quasi_command: string
-  type spec = string * string list
+  type spec = {kind: string, load_command: string * Position.T, tags: string list}
+  val command_spec: string * string list -> spec
   val no_spec: spec
   val before_command_spec: spec
   val quasi_command_spec: spec
@@ -133,13 +134,16 @@ val command_kinds =
 
 (* specifications *)
 
-type spec = string * string list;
+type spec = {kind: string, load_command: string * Position.T, tags: string list};
 
-val no_spec: spec = ("", []);
-val before_command_spec: spec = (before_command, []);
-val quasi_command_spec: spec = (quasi_command, []);
-val document_heading_spec: spec = ("document_heading", ["document"]);
-val document_body_spec: spec = ("document_body", ["document"]);
+fun command_spec (kind, tags) : spec =
+  {kind = kind, load_command = ("", Position.none), tags = tags};
+
+val no_spec = command_spec ("", []);
+val before_command_spec = command_spec (before_command, []);
+val quasi_command_spec = command_spec (quasi_command, []);
+val document_heading_spec = command_spec ("document_heading", ["document"]);
+val document_body_spec = command_spec ("document_body", ["document"]);
 
 type entry =
  {pos: Position.T,
@@ -147,7 +151,7 @@ type entry =
   kind: string,
   tags: string list};
 
-fun check_spec pos (kind, tags) : entry =
+fun check_spec pos ({kind, tags, ...}: spec) : entry =
   if not (member (op =) command_kinds kind) then
     error ("Unknown outer syntax keyword kind " ^ quote kind)
   else {pos = pos, id = serial (), kind = kind, tags = tags};
@@ -186,7 +190,7 @@ fun merge_keywords
     Symtab.merge (K true) (commands1, commands2));
 
 val add_keywords =
-  fold (fn ((name, pos), spec as (kind, _)) => map_keywords (fn (minor, major, commands) =>
+  fold (fn ((name, pos), spec as {kind, ...}: spec) => map_keywords (fn (minor, major, commands) =>
     if kind = "" orelse kind = before_command orelse kind = quasi_command then
       let
         val minor' = Scan.extend_lexicon (Symbol.explode name) minor;
@@ -202,7 +206,7 @@ val add_minor_keywords =
   add_keywords o map (fn name => ((name, Position.none), no_spec));
 
 val add_major_keywords =
-  add_keywords o map (fn name => ((name, Position.none), (diag, [])));
+  add_keywords o map (fn name => ((name, Position.none), command_spec (diag, [])));
 
 val no_major_keywords =
   map_keywords (fn (minor, _, _) => (minor, Scan.empty_lexicon, Symtab.empty));

@@ -39,16 +39,18 @@ class Resources(
       pair(list(pair(string, string)),
       pair(list(pair(string, list(string))),
       pair(list(properties),
+      pair(list(pair(string, properties)),
       pair(list(pair(string, pair(bool, properties))),
-      pair(list(pair(string, string)), list(string))))))))(
+      pair(list(pair(string, string)), list(string)))))))))(
        (sessions_structure.session_positions,
        (sessions_structure.dest_session_directories,
        (sessions_structure.session_chapters,
        (sessions_structure.bibtex_entries,
        (command_timings,
+       (Command_Span.load_commands.map(cmd => (cmd.name, cmd.position)),
        (Scala.functions.map(fun => (fun.name, (fun.multi, fun.position))),
        (session_base.global_theories.toList,
-        session_base.loaded_theories.keys)))))))))
+        session_base.loaded_theories.keys))))))))))
   }
 
 

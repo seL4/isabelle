@@ -21,9 +21,12 @@ object Command_Span
   }
   sealed case class Loaded_Files(files: List[String], index: Int)
 
-  class Load_Command(val name: String) extends Isabelle_System.Service
+  abstract class Load_Command(val name: String, val here: Scala_Project.Here)
+    extends Isabelle_System.Service
   {
     override def toString: String = name
+
+    def position: Position.T = here.position
 
     def extensions: List[String] = Nil
 
@@ -38,8 +41,10 @@ object Command_Span
       }
   }
 
+  object Load_Command_Default extends Load_Command("", Scala_Project.here)
+
   lazy val load_commands: List[Load_Command] =
-    new Load_Command("") :: Isabelle_System.make_services(classOf[Load_Command])
+    Load_Command_Default :: Isabelle_System.make_services(classOf[Load_Command])
 
 
   /* span kind */

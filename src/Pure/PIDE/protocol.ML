@@ -120,7 +120,8 @@ val _ =
                               (pair (list (pair string (pair string (list string))))
                                 (list YXML.string_of_body)))) a;
                           val imports' = map (rpair Position.none) imports;
-                          val keywords' = map (fn (x, y) => ((x, Position.none), y)) keywords;
+                          val keywords' =
+                            map (fn (x, y) => ((x, Position.none), Keyword.command_spec y)) keywords;
                           val header = Thy_Header.make (name, Position.none) imports' keywords';
                         in Document.Deps {master = master, header = header, errors = errors} end,
                       fn (a :: b, c) =>
