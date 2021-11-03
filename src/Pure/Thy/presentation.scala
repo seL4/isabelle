@@ -266,7 +266,7 @@ object Presentation
   <center>
     <table width="100%" border="0" cellspacing="10" cellpadding="0">
       <tr>
-        <td width="20%" valign="middle" align="center"><a href="http://isabelle.in.tum.de/"><img align="bottom" src="isabelle.gif" width="100" height="86" alt="[Isabelle]" border="0" /></a></td>
+        <td width="20%" valign="middle" align="center"><a href="https://isabelle.in.tum.de/"><img align="bottom" src="isabelle.gif" width="100" height="86" alt="[Isabelle]" border="0" /></a></td>
 
         <td width="80%" valign="middle" align="center">
           <table width="90%" border="0" cellspacing="0" cellpadding="20">
