@@ -54,7 +54,7 @@ lemma "dist a d \<le> dist a b + dist b c + dist c d"
   by metric
 
 lemma "dist a e \<le> dist a b + dist b c + dist c d + dist d e"
-  by metric
+  using [[argo_timeout = 25]] by metric
 
 lemma "max (dist x y) \<bar>dist x z - dist z y\<bar> = dist x y"
   by metric
