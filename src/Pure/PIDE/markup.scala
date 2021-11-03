@@ -414,6 +414,9 @@ object Markup
 
   /* outer syntax */
 
+  val COMMAND_SPAN = "command_span"
+  val Command_Span = new Markup_String(COMMAND_SPAN, NAME)
+
   val COMMAND = "command"
   val KEYWORD = "keyword"
   val KEYWORD1 = "keyword1"

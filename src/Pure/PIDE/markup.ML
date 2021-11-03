@@ -158,6 +158,7 @@ sig
   val descriptionN: string
   val inputN: string val input: bool -> Properties.T -> T
   val command_keywordN: string val command_keyword: T
+  val command_spanN: string val command_span: string -> T
   val commandN: string val command_properties: T -> T
   val keywordN: string val keyword_properties: T -> T
   val stringN: string val string: T
@@ -592,6 +593,7 @@ fun input delimited props = (inputN, (delimitedN, Value.print_bool delimited) ::
 (* outer syntax *)
 
 val (command_keywordN, command_keyword) = markup_elem "command_keyword";
+val (command_spanN, command_span) = markup_string "command_span" nameN;
 
 val commandN = "command"; val command_properties = properties [(kindN, commandN)];
 val keywordN = "keyword"; val keyword_properties = properties [(kindN, keywordN)];
