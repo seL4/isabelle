@@ -996,6 +996,9 @@ The \<open>[transfer_rule]\<close> attribute is set by the \<open>transfer\<clos
 \item[\<open>t.\<close>\hthm{pred_map}\rm:] ~ \\
 @{thm list.pred_map[no_vars]}
 
+\item[\<open>t.\<close>\hthm{pred_mono} \<open>[mono]\<close>\rm:] ~ \\
+@{thm list.pred_mono[no_vars]}
+
 \item[\<open>t.\<close>\hthm{pred_mono_strong}\rm:] ~ \\
 @{thm list.pred_mono_strong[no_vars]}
 
