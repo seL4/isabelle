@@ -29,7 +29,7 @@ object Position
   val Def_File = new Properties.String(Markup.DEF_FILE)
   val Def_Id = new Properties.Long(Markup.DEF_ID)
 
-  val Def_Theory = new Properties.Long(Markup.DEF_THEORY)
+  val Def_Theory = new Properties.String(Markup.DEF_THEORY)
 
   object Line_File
   {
