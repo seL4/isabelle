@@ -330,9 +330,9 @@ object Presentation
 
   /* cache */
 
-  class Entity_Cache private(cache: mutable.Map[Document.Node.Name, Seq[Entity]])
+  class Entity_Cache private(cache: mutable.Map[Document.Node.Name, List[Entity]])
   {
-    def get_or_update(node: Document.Node.Name, e: => Seq[Entity]): Seq[Entity] =
+    def get_or_update(node: Document.Node.Name, e: => List[Entity]): List[Entity] =
       cache.getOrElseUpdate(node, e)
   }
   object Entity_Cache
@@ -432,20 +432,20 @@ object Presentation
           map(link => HTML.text("View ") ::: List(link))).flatten
     }
 
-    def read_exports(name: Document.Node.Name): Seq[Entity] =
+    def read_exports(name: Document.Node.Name): List[Entity] =
     {
       seen_nodes_cache.get_or_update(name, {
-        if (Sessions.is_pure(name.theory_base_name)) Vector.empty
+        if (Sessions.is_pure(name.theory_base_name)) Nil
         else {
           val session1 = deps(session).theory_qualifier(name)
           val provider = Export.Provider.database_context(db_context, List(session1), name.theory)
           if (Export_Theory.read_theory_parents(provider, name.theory).isDefined) {
             val theory = Export_Theory.read_theory(provider, session1, name.theory)
-            theory.entity_iterator.toVector
+            theory.entity_iterator.toList
           }
           else {
             progress.echo_warning("No theory exports for " + name)
-            Vector.empty
+            Nil
           }
         }
       })
