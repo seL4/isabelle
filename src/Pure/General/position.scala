@@ -7,9 +7,6 @@ Position properties.
 package isabelle
 
 
-import java.io.{File => JFile}
-
-
 object Position
 {
   type T = Properties.T
