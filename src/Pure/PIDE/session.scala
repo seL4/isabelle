@@ -507,8 +507,8 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
               case Protocol.Export(args)
               if args.id.isDefined && Value.Long.unapply(args.id.get).isDefined =>
                 val id = Value.Long.unapply(args.id.get).get
-                val `export` = Export.make_entry("", args, msg.chunk, cache)
-                change_command(_.add_export(id, (args.serial, export)))
+                val entry = Export.make_entry("", args, msg.chunk, cache)
+                change_command(_.add_export(id, (args.serial, entry)))
 
               case Protocol.Loading_Theory(node_name, id) =>
                 val blobs_info = build_blobs_info(node_name)
