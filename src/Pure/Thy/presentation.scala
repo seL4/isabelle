@@ -149,7 +149,7 @@ object Presentation
           val (body1, offset) = html_body(body, end_offset)
           (List(HTML.item(body1)), offset)
         case XML.Elem(Markup(Markup.Markdown_Bullet.name, _), text) =>
-          (Nil, end_offset - Symbol.length(Symbol.decode(XML.content(text))))
+          (Nil, end_offset - Symbol.length(XML.content(text)))
         case XML.Elem(Markup.Markdown_List(kind), body) =>
           val (body1, offset) = html_body(body, end_offset)
           if (kind == Markup.ENUMERATE) (List(HTML.enum(body1)), offset)
@@ -169,16 +169,15 @@ object Presentation
             case None => (html_class(name, html), offset)
           }
         case XML.Text(text) =>
-          val decoded = Symbol.decode(text)
-          val offset = end_offset - Symbol.length(decoded)
-          val body = HTML.text(decoded)
+          val offset = end_offset - Symbol.length(text)
+          val body = HTML.text(Symbol.decode(text))
           entity_anchor(context, Text.Range(offset, end_offset), body) match {
             case Some(body1) => (List(body1), offset)
             case None => (body, offset)
           }
       }
 
-    html_body(xml, Symbol.length(Symbol.decode(XML.content(xml))) + 1)._1
+    html_body(xml, Symbol.length(XML.content(xml)) + 1)._1
   }
 
 
