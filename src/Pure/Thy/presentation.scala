@@ -439,13 +439,13 @@ object Presentation
         else {
           val session1 = deps(session).theory_qualifier(name)
           val provider = Export.Provider.database_context(db_context, List(session1), name.theory)
-          provider(Export.THEORY_PREFIX + "parents") match {
-            case Some(_) =>
-              val theory = Export_Theory.read_theory(provider, session1, name.theory)
-              theory.entity_iterator.toVector
-            case None =>
-              progress.echo_warning("No theory exports for " + name)
-              Vector.empty
+          if (Export_Theory.read_theory_parents(provider, name.theory).isDefined) {
+            val theory = Export_Theory.read_theory(provider, session1, name.theory)
+            theory.entity_iterator.toVector
+          }
+          else {
+            progress.echo_warning("No theory exports for " + name)
+            Vector.empty
           }
         }
       })

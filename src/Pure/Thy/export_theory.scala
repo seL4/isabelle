@@ -116,19 +116,21 @@ object Export_Theory
         (for ((k, xs) <- others.iterator) yield cache.string(k) -> xs.map(_.cache(cache))).toMap)
   }
 
+  def read_theory_parents(provider: Export.Provider, theory_name: String): Option[List[String]] =
+  {
+    if (theory_name == Thy_Header.PURE) Some(Nil)
+    else {
+      provider(Export.THEORY_PREFIX + "parents")
+        .map(entry => split_lines(entry.uncompressed.text))
+    }
+  }
+
   def read_theory(provider: Export.Provider, session_name: String, theory_name: String,
     cache: Term.Cache = Term.Cache.none): Theory =
   {
     val parents =
-      if (theory_name == Thy_Header.PURE) Nil
-      else {
-        provider(Export.THEORY_PREFIX + "parents") match {
-          case Some(entry) => split_lines(entry.uncompressed.text)
-          case None =>
-            error("Missing theory export in session " + quote(session_name) + ": " +
-              quote(theory_name))
-        }
-      }
+      read_theory_parents(provider, theory_name) getOrElse
+        error("Missing theory export in session " + quote(session_name) + ": " + quote(theory_name))
     val theory =
       Theory(theory_name, parents,
         read_types(provider),
