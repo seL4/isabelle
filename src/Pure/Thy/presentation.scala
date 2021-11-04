@@ -328,17 +328,31 @@ object Presentation
   }
 
 
-  /* cache */
+  /* theory cache */
 
-  class Entity_Cache private(cache: mutable.Map[Document.Node.Name, List[Entity]])
+  object Theory_Cache
   {
-    def get_or_update(node: Document.Node.Name, e: => List[Entity]): List[Entity] =
-      cache.getOrElseUpdate(node, e)
+    def apply(): Theory_Cache = new Theory_Cache()
   }
-  object Entity_Cache
+
+  class Theory_Cache private()
   {
-    def empty: Entity_Cache = new Entity_Cache(mutable.Map.empty)
+    private val cache = Synchronized(Map.empty[String, Export_Theory.Theory])
+
+    def apply(thy_name: String, make_thy: => Export_Theory.Theory): Export_Theory.Theory =
+    {
+      cache.change_result(thys =>
+      {
+        thys.get(thy_name) match {
+          case Some(thy) => (thy, thys)
+          case None =>
+            val thy = make_thy
+            (thy, thys + (thy_name -> thy))
+        }
+      })
+    }
   }
+
 
   /* present session */
 
@@ -389,7 +403,7 @@ object Presentation
     html_context: HTML_Context,
     elements: Elements,
     presentation: Context,
-    seen_nodes_cache: Entity_Cache = Entity_Cache.empty): Unit =
+    theory_cache: Theory_Cache = Theory_Cache()): Unit =
   {
     val info = deps.sessions_structure(session)
     val options = info.options
@@ -432,33 +446,25 @@ object Presentation
           map(link => HTML.text("View ") ::: List(link))).flatten
     }
 
-    def read_exports(name: Document.Node.Name): List[Entity] =
-    {
-      seen_nodes_cache.get_or_update(name, {
-        if (Sessions.is_pure(name.theory_base_name)) Nil
-        else {
-          val session1 = deps(session).theory_qualifier(name)
-          val provider = Export.Provider.database_context(db_context, List(session1), name.theory)
-          if (Export_Theory.read_theory_parents(provider, name.theory).isDefined) {
-            val theory = Export_Theory.read_theory(provider, session1, name.theory)
-            theory.entity_iterator.toList
-          }
-          else {
-            progress.echo_warning("No theory exports for " + name)
-            Nil
-          }
-        }
-      })
-    }
-
-    val exports = base.known_theories.map(_._2.name).map(node => node -> read_exports(node)).toMap
-    val export_ranges =
-      exports.view.mapValues(_.groupBy(entity =>
-        Text.Range(Position.Offset.get(entity.pos), Position.End_Offset.get(entity.pos)))).toMap
-    val export_names =
-      exports.map {
-        case (node, entities) => node.theory -> entities.map(entity => entity.name -> entity).toMap
+    def read_theory(thy_name: String): Export_Theory.Theory =
+      if (thy_name == Thy_Header.PURE) Export_Theory.no_theory
+      else {
+        theory_cache(thy_name,
+          {
+            val qualifier = deps(session).theory_qualifier(thy_name)
+            val provider = Export.Provider.database_context(db_context, List(qualifier), thy_name)
+            if (Export_Theory.read_theory_parents(provider, thy_name).isDefined) {
+              Export_Theory.read_theory(provider, qualifier, thy_name)
+            }
+            else {
+              progress.echo_warning("No theory exports for " + quote(thy_name))
+              Export_Theory.no_theory
+            }
+          })
       }
+
+    val theory_by_name: Map[String, Export_Theory.Theory] =
+      base.known_theories.map(_._2.name.theory).map(name => name -> read_theory(name)).toMap
 
     val theories: List[XML.Body] =
     {
@@ -479,11 +485,10 @@ object Presentation
                   HTML.entity_def(HTML.span(HTML.id(html_context.offset_ref(range)), body))
                 }
                 else HTML.span(body)
-              export_ranges.get(context.node).flatMap(_.get(range)) match {
+              theory_by_name.get(context.node.theory).flatMap(_.entity_by_range.get(range)) match {
                 case Some(entities) =>
                   entities.map(html_context.export_ref).foldLeft(body1) {
-                    case (elem, id) =>
-                      HTML.entity_def(HTML.span(HTML.id(id), List(elem)))
+                    case (elem, id) => HTML.entity_def(HTML.span(HTML.id(id), List(elem)))
                   }
                 case None => body1
               }
@@ -491,12 +496,15 @@ object Presentation
         }
       }
 
-      def entity_ref(theory: String, name: String): Option[String] =
-        export_names.get(theory).flatMap(_.get(name)).map(html_context.export_ref)
+      def entity_ref(thy_name: String, kind: String, name: String): Option[String] =
+        for {
+          thy <- theory_by_name.get(thy_name)
+          entity <- thy.entity_by_kname.get(Export_Theory.export_kind_name(kind, name))
+        } yield html_context.export_ref(entity)
 
-      def offset_ref(context: Entity_Context, theory: String, props: Properties.T): Option[String] =
+      def offset_ref(context: Entity_Context, thy_name: String, props: Properties.T): Option[String] =
       {
-        if (theory == context.node.theory) {
+        if (thy_name == context.node.theory) {
           for {
             offset <- Position.Def_Offset.unapply(props)
             end_offset <- Position.Def_End_Offset.unapply(props)
@@ -505,25 +513,26 @@ object Presentation
             context.seen_ranges += range
             html_context.offset_ref(range)
           }
-        } else None
+        }
+        else None
       }
 
       def entity_link(
         context: Entity_Context, props: Properties.T, body: XML.Body): Option[XML.Elem] =
       {
-        (props, props, props, props) match {
-          case (Markup.Kind(Markup.THEORY), Markup.Name(theory), Position.Def_File(thy_file), _) =>
+        (props, props, props, props, props) match {
+          case (Markup.Kind(Markup.THEORY), Markup.Name(theory), Position.Def_File(thy_file), _, _) =>
             val node_name = resources.file_node(Path.explode(thy_file), theory = theory)
             node_relative(deps, session, node_name).map(html_dir =>
               HTML.link(html_dir + html_name(node_name), body))
           case (Markup.Ref(_), Position.Def_File(thy_file), Position.Def_Theory(def_theory),
-              Markup.Name(name)) =>
-            val theory = if (def_theory.nonEmpty) def_theory else context.node.theory
-            val node_name = resources.file_node(Path.explode(thy_file), theory = theory)
+              Markup.Kind(kind), Markup.Name(name)) =>
+            val thy_name = if (def_theory.nonEmpty) def_theory else context.node.theory
+            val node_name = resources.file_node(Path.explode(thy_file), theory = thy_name)
             for {
               html_dir <- node_relative(deps, session, node_name)
               html_file = node_file(node_name)
-              html_ref <- entity_ref(theory, name).orElse(offset_ref(context, theory, props))
+              html_ref <- entity_ref(thy_name, kind, name).orElse(offset_ref(context, thy_name, props))
             } yield {
               HTML.entity_ref(HTML.link(html_dir + html_file + "#" + html_ref, body))
             }
