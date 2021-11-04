@@ -109,6 +109,7 @@ object XML
   }
 
   def text_length(body: Body): Int = traverse_text(body)(0) { case (n, s) => n + s.length }
+  def symbol_length(body: Body): Int = traverse_text(body)(0) { case (n, s) => n + Symbol.length(s) }
 
 
   /* text content */
