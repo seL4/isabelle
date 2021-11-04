@@ -81,8 +81,11 @@ fun run ctxt name mk_cmd input =
           with_trace ctxt ("Using cached certificate from " ^
             Path.print (Cache_IO.cache_path_of certs) ^ " ...") I output))
 
-(* Z3 returns 1 if "get-proof" or "get-model" fails. veriT returns 255. *)
-val normal_return_codes = [0, 1, 255]
+(* Z3 and cvc returns 1 if "get-proof" or "get-model" fails.
+veriT returns 255 in that case and 14 for timeouts. *)
+fun normal_return_codes "z3" = [0, 1]
+  | normal_return_codes "verit" = [0, 14, 255]
+  | normal_return_codes _ = [0, 1]
 
 fun run_solver ctxt name mk_cmd input =
   let
@@ -99,7 +102,7 @@ fun run_solver ctxt name mk_cmd input =
     val _ = SMT_Config.trace_msg ctxt (pretty "Time:") [Value.print_time elapsed ^ "s"]
     val _ = SMT_Config.statistics_msg ctxt (pretty "Time:") [Value.print_time elapsed ^ "s"]
 
-    val _ = member (op =) normal_return_codes return_code orelse
+    val _ = member (op =) (normal_return_codes name) return_code orelse
       raise SMT_Failure.SMT (SMT_Failure.Abnormal_Termination return_code)
   in output end
 
