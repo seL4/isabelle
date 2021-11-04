@@ -182,18 +182,11 @@ object Export_Theory
     val DOCUMENT_HEADING = "document_heading"
     val DOCUMENT_TEXT = "document_text"
     val PROOF_TEXT = "proof_text"
-
-    def `export`(kind: String): String =
-      kind match {
-        case Markup.TYPE_NAME => TYPE
-        case Markup.CONSTANT => CONST
-        case _ => kind
-      }
   }
 
   def export_kind(kind: String): String =
-    if (kind == Markup.TYPE_NAME) "type"
-    else if (kind == Markup.CONSTANT) "const"
+    if (kind == Markup.TYPE_NAME) Kind.TYPE
+    else if (kind == Markup.CONSTANT) Kind.CONST
     else kind
 
   abstract class Content[T]
@@ -213,7 +206,7 @@ object Export_Theory
     serial: Long,
     content: Option[A])
   {
-    def export_kind: String = Kind.export(kind)
+    def export_kind: String = Export_Theory.export_kind(kind)
     override def toString: String = export_kind + " " + quote(name)
 
     def the_content: A =
