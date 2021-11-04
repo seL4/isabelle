@@ -45,10 +45,8 @@ proof -
   have F1: "\<forall>x\<^sub>1::'a::linordered_idom. 0 \<le> \<bar>x\<^sub>1\<bar>" by (metis abs_ge_zero)
   have F2: "\<forall>x\<^sub>1::'a::linordered_idom. 1 * x\<^sub>1 = x\<^sub>1" by (metis mult_1)
   have F3: "\<forall>x\<^sub>1 x\<^sub>3. x\<^sub>3 \<le> \<bar>h x\<^sub>1\<bar> \<longrightarrow> x\<^sub>3 \<le> c * \<bar>f x\<^sub>1\<bar>" by (metis A1 order_trans)
-  have F4: "\<forall>x\<^sub>2 x\<^sub>3::'a::linordered_idom. \<bar>x\<^sub>3\<bar> * \<bar>x\<^sub>2\<bar> = \<bar>x\<^sub>3 * x\<^sub>2\<bar>"
-    by (metis abs_mult)
-  have F5: "\<forall>x\<^sub>3 x\<^sub>1::'a::linordered_idom. 0 \<le> x\<^sub>1 \<longrightarrow> \<bar>x\<^sub>3 * x\<^sub>1\<bar> = \<bar>x\<^sub>3\<bar> * x\<^sub>1"
-    by (metis abs_mult_pos)
+  have F4: "\<forall>x\<^sub>2 x\<^sub>3::'a::linordered_idom. \<bar>x\<^sub>3\<bar> * \<bar>x\<^sub>2\<bar> = \<bar>x\<^sub>3 * x\<^sub>2\<bar>" by (metis abs_mult)
+  have F5: "\<forall>x\<^sub>3 x\<^sub>1::'a::linordered_idom. 0 \<le> x\<^sub>1 \<longrightarrow> \<bar>x\<^sub>3 * x\<^sub>1\<bar> = \<bar>x\<^sub>3\<bar> * x\<^sub>1" by (metis abs_mult_pos)
   hence "\<forall>x\<^sub>1\<ge>0. \<bar>x\<^sub>1::'a::linordered_idom\<bar> = \<bar>1\<bar> * x\<^sub>1" by (metis F2)
   hence "\<forall>x\<^sub>1\<ge>0. \<bar>x\<^sub>1::'a::linordered_idom\<bar> = x\<^sub>1" by (metis F2 abs_one)
   hence "\<forall>x\<^sub>3. 0 \<le> \<bar>h x\<^sub>3\<bar> \<longrightarrow> \<bar>c * \<bar>f x\<^sub>3\<bar>\<bar> = c * \<bar>f x\<^sub>3\<bar>" by (metis F3)
