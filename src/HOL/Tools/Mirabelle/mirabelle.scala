@@ -86,13 +86,14 @@ object Mirabelle
                   using(store.open_database_context())(db_context =>
                   {
                     for (entry <- db_context.read_export(session_hierarchy, args.theory_name, args.name)) {
-                      val prefix = args.name.split('/') match {
-                        case Array("mirabelle", action, "finalize") =>
-                          s"${action} finalize  "
-                        case Array("mirabelle", action, "goal", goal_name, line, offset) =>
-                          s"${action} goal.${goal_name} ${args.theory_name} ${line}:${offset}  "
-                        case _ => ""
-                      }
+                      val prefix =
+                        Export.explode_name(args.name) match {
+                          case List("mirabelle", action, "finalize") => action + " finalize  "
+                          case List("mirabelle", action, "goal", goal_name, line, offset) =>
+                            action + " goal." + goal_name + " " + args.theory_name + " " +
+                              line + ":" + offset + "  "
+                          case _ => ""
+                        }
                       val lines = Pretty.string_of(entry.uncompressed_yxml).trim()
                       val body = Library.prefix_lines(prefix, lines) + "\n"
                       val log_file = output_dir + Path.basic("mirabelle.log")
