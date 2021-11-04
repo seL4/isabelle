@@ -94,6 +94,12 @@ object Export_Theory
       locale_dependencies.iterator.map(_.no_content) ++
       (for { (_, xs) <- others; x <- xs.iterator } yield x.no_content)
 
+    lazy val entity_by_range: Map[Symbol.Range, List[Entity[No_Content]]] =
+      entity_iterator.toList.groupBy(_.range)
+
+    lazy val entity_by_kname: Map[String, Entity[No_Content]] =
+      entity_iterator.map(entity => (entity.kname, entity)).toMap
+
     lazy val entity_kinds: Set[String] =
       entity_iterator.map(_.kind).toSet
 
@@ -124,6 +130,9 @@ object Export_Theory
         .map(entry => split_lines(entry.uncompressed.text))
     }
   }
+
+  def no_theory: Theory =
+    Theory("", Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Map.empty)
 
   def read_theory(provider: Export.Provider, session_name: String, theory_name: String,
     cache: Term.Cache = Term.Cache.none): Theory =
@@ -191,6 +200,9 @@ object Export_Theory
     else if (kind == Markup.CONSTANT) Kind.CONST
     else kind
 
+  def export_kind_name(kind: String, name: String): String =
+    name + "|" + export_kind(kind)
+
   abstract class Content[T]
   {
     def cache(cache: Term.Cache): T
@@ -208,6 +220,9 @@ object Export_Theory
     serial: Long,
     content: Option[A])
   {
+    val kname: String = export_kind_name(kind, name)
+    val range: Symbol.Range = Position.Range.unapply(pos).getOrElse(Text.Range.offside)
+
     def export_kind: String = Export_Theory.export_kind(kind)
     override def toString: String = export_kind + " " + quote(name)
 

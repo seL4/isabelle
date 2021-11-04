@@ -501,7 +501,7 @@ object Build
 
         val resources = Resources.empty
         val html_context = Presentation.html_context()
-        val seen_nodes_cache = Presentation.Entity_Cache.empty
+        val theory_cache = Presentation.Theory_Cache()
 
         using(store.open_database_context())(db_context =>
           for ((_, (session_name, _)) <- presentation_chapters) {
@@ -511,7 +511,7 @@ object Build
               resources, session_name, deps, db_context, progress = progress,
               verbose = verbose, html_context = html_context,
               elements = Presentation.elements1, presentation = presentation,
-              seen_nodes_cache = seen_nodes_cache)
+              theory_cache = theory_cache)
           })
 
         val browser_chapters =
