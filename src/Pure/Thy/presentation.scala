@@ -444,7 +444,7 @@ object Presentation
               val theory = Export_Theory.read_theory(provider, session1, name.theory)
               theory.entity_iterator.toVector
             case None =>
-              progress.echo_error_message("No exports for: " + name)
+              progress.echo_warning("No theory exports for " + name)
               Vector.empty
           }
         }
