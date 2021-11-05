@@ -461,17 +461,16 @@ object Presentation
           case List(XML.Elem(Markup("span", List("id" -> _)), _)) => None
           case _ =>
             Some {
+              val entities =
+                theory_by_name.get(context.node.theory).flatMap(_.entity_by_range.get(range))
+                  .getOrElse(Nil)
               val body1 =
                 if (context.seen_ranges.contains(range)) {
                   HTML.entity_def(HTML.span(HTML.id(html_context.offset_ref(range)), body))
                 }
                 else HTML.span(body)
-              theory_by_name.get(context.node.theory).flatMap(_.entity_by_range.get(range)) match {
-                case Some(entities) =>
-                  entities.map(html_context.export_ref).foldLeft(body1) {
-                    case (elem, id) => HTML.entity_def(HTML.span(HTML.id(id), List(elem)))
-                  }
-                case None => body1
+              entities.map(html_context.export_ref).foldLeft(body1) {
+                case (elem, id) => HTML.entity_def(HTML.span(HTML.id(id), List(elem)))
               }
             }
         }
