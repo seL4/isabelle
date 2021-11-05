@@ -28,6 +28,8 @@ object Presentation
 
     private val theory_cache = Synchronized(Map.empty[String, Export_Theory.Theory])
 
+    def cached_theories: Set[String] = theory_cache.value.keySet
+
     def cache_theory(thy_name: String, make_thy: => Export_Theory.Theory): Export_Theory.Theory =
     {
       theory_cache.change_result(thys =>
@@ -387,8 +389,12 @@ object Presentation
     val options = info.options
     val base = deps(session)
 
+    def make_session_dir(name: String): Path =
+      Isabelle_System.make_directory(
+        presentation.dir(db_context.store, deps.sessions_structure(name)))
+
+    val session_dir = make_session_dir(session)
     val presentation_dir = presentation.dir(db_context.store)
-    val session_dir = Isabelle_System.make_directory(presentation.dir(db_context.store, info))
 
     Bytes.write(session_dir + session_graph_path,
       graphview.Graph_File.make_pdf(options, base.session_graph_display))
@@ -423,6 +429,7 @@ object Presentation
           map(link => HTML.text("View ") ::: List(link))).flatten
     }
 
+    val theory_exports0: Set[String] = html_context.cached_theories
     val theory_exports: Map[String, Export_Theory.Theory] =
       (for ((_, entry) <- base.known_theories.iterator) yield {
         val thy_name = entry.name.theory
@@ -441,7 +448,13 @@ object Presentation
 
     val theories: List[XML.Body] =
     {
-      var seen_files = List.empty[(Path, String, Document.Node.Name)]
+      sealed case class Seen_File(
+        src_path: Path, file_name: String, thy_session: String, thy_name: Document.Node.Name)
+      {
+        def check(src_path1: Path, file_name1: String, thy_session1: String): Boolean =
+          (src_path == src_path1 || file_name == file_name1) && thy_session == thy_session1
+      }
+      var seen_files = List.empty[Seen_File]
 
       def node_file(node: Document.Node.Name): String =
         if (node.node.endsWith(".thy")) html_name(node) else html_path(Path.explode(node.node))
@@ -549,21 +562,26 @@ object Presentation
         }
       }
 
-      for (thy <- Par_List.map(read_theory, base.session_theories).flatten)
-      yield {
+      val present_theories =
+        for ((name, _) <- base.used_theories if !theory_exports0.contains(name.theory))
+          yield name
+
+      (for (thy <- Par_List.map(read_theory, present_theories).flatten) yield {
+        val thy_session = base.theory_qualifier(thy.name)
+        val thy_dir = make_session_dir(thy_session)
         val files =
           for { (src_path, file_html) <- thy.files_html }
           yield {
             val file_name = html_path(src_path)
 
-            seen_files.find(p => p._1 == src_path || p._2 == file_name) match {
-              case None => seen_files ::= (src_path, file_name, thy.name)
-              case Some((_, _, thy_name1)) =>
+            seen_files.find(_.check(src_path, file_name, thy_session)) match {
+              case None => seen_files ::= Seen_File(src_path, file_name, thy_session, thy.name)
+              case Some(seen_file) =>
                 error("Incoherent use of file name " + src_path + " as " + quote(file_name) +
-                  " in theory " + thy_name1 + " vs. " + thy.name)
+                  " in theory " + seen_file.thy_name + " vs. " + thy.name)
             }
 
-            val file_path = session_dir + Path.explode(file_name)
+            val file_path = thy_dir + Path.explode(file_name)
             val file_title = "File " + Symbol.cartouche_decoded(src_path.implode_short)
             HTML.write_document(file_path.dir, file_path.file_name,
               List(HTML.title(file_title)), List(html_context.head(file_title), file_html),
@@ -574,14 +592,18 @@ object Presentation
 
         val thy_title = "Theory " + thy.name.theory_base_name
 
-        HTML.write_document(session_dir, html_name(thy.name),
+        HTML.write_document(thy_dir, html_name(thy.name),
           List(HTML.title(thy_title)), List(html_context.head(thy_title), thy.html),
           base = Some(presentation_dir))
 
-        List(HTML.link(html_name(thy.name),
-          HTML.text(thy.name.theory_base_name) :::
-            (if (files.isEmpty) Nil else List(HTML.itemize(files)))))
-      }
+        if (thy_session == session) {
+          Some(
+            List(HTML.link(html_name(thy.name),
+              HTML.text(thy.name.theory_base_name) :::
+                (if (files.isEmpty) Nil else List(HTML.itemize(files))))))
+        }
+        else None
+      }).flatten
     }
 
     val title = "Session " + session
