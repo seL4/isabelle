@@ -521,7 +521,7 @@ object Build
         for ((chapter, entries) <- browser_chapters)
           Presentation.update_chapter_index(presentation_dir, chapter, entries)
 
-        if (browser_chapters.nonEmpty) Presentation.make_global_index(presentation_dir)
+        if (browser_chapters.nonEmpty) Presentation.update_global_index(presentation_dir)
       }
     }
 

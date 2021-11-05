@@ -301,15 +301,14 @@ object Presentation
                   else HTML.break ::: List(HTML.pre(HTML.text(descr)))) })))))))
   }
 
-  def make_global_index(presentation_dir: Path): Unit =
+  def update_global_index(presentation_dir: Path): Unit =
   {
-    if (!(presentation_dir + Path.explode("index.html")).is_file) {
-      Isabelle_System.make_directory(presentation_dir)
-      Isabelle_System.copy_file(Path.explode("~~/lib/logo/isabelle.gif"),
-        presentation_dir + Path.explode("isabelle.gif"))
-      val title = "The " + XML.text(Isabelle_System.isabelle_name()) + " Library"
-      File.write(presentation_dir + Path.explode("index.html"),
-        HTML.header +
+    Isabelle_System.make_directory(presentation_dir)
+    Isabelle_System.copy_file(Path.explode("~~/lib/logo/isabelle.gif"),
+      presentation_dir + Path.explode("isabelle.gif"))
+    val title = "The " + XML.text(Isabelle_System.isabelle_name()) + " Library"
+    File.write(presentation_dir + Path.explode("index.html"),
+      HTML.header +
 """
 <head>
   """ + HTML.head_meta + """
@@ -337,7 +336,6 @@ object Presentation
 """
 </body>
 """ + HTML.footer)
-    }
   }
 
 
