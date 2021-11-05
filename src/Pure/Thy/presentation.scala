@@ -429,10 +429,13 @@ object Presentation
           map(link => HTML.text("View ") ::: List(link))).flatten
     }
 
-    val theory_exports0: Set[String] = html_context.cached_theories
+    val cached_theories: Set[String] = html_context.cached_theories
+    val all_used_theories = hierarchy.flatMap(a => deps(a).used_theories.map(_._1))
+    val present_theories = all_used_theories.filterNot(name => cached_theories.contains(name.theory))
+
     val theory_exports: Map[String, Export_Theory.Theory] =
-      (for ((_, entry) <- base.known_theories.iterator) yield {
-        val thy_name = entry.name.theory
+      (for (node <- all_used_theories.iterator) yield {
+        val thy_name = node.theory
         val theory =
           if (thy_name == Thy_Header.PURE) Export_Theory.no_theory
           else {
@@ -561,10 +564,6 @@ object Presentation
           Theory(name, command, files_html, html)
         }
       }
-
-      val present_theories =
-        for ((name, _) <- base.used_theories if !theory_exports0.contains(name.theory))
-          yield name
 
       (for (thy <- Par_List.map(read_theory, present_theories).flatten) yield {
         val thy_session = base.theory_qualifier(thy.name)
