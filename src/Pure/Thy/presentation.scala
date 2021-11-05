@@ -478,7 +478,7 @@ object Presentation
       def entity_ref(thy_name: String, kind: String, name: String): Option[String] =
         for {
           thy <- theory_exports.get(thy_name)
-          entity <- thy.entity_by_kname.get(Export_Theory.export_kind_name(kind, name))
+          entity <- thy.entity_by_kind_name.get((kind, name))
         } yield entity.kname
 
       def offset_ref(context: Entity_Context, thy_name: String, props: Properties.T): Option[String] =
