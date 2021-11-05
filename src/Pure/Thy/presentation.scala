@@ -430,7 +430,7 @@ object Presentation
           map(link => HTML.text("View ") ::: List(link))).flatten
     }
 
-    val theory_by_name: Map[String, Export_Theory.Theory] =
+    val theory_exports: Map[String, Export_Theory.Theory] =
       (for ((_, entry) <- base.known_theories.iterator) yield {
         val thy_name = entry.name.theory
         val theory =
@@ -461,7 +461,7 @@ object Presentation
           case _ =>
             Some {
               val entities =
-                theory_by_name.get(context.node.theory).flatMap(_.entity_by_range.get(range))
+                theory_exports.get(context.node.theory).flatMap(_.entity_by_range.get(range))
                   .getOrElse(Nil)
               val body1 =
                 if (context.seen_ranges.contains(range)) {
@@ -477,7 +477,7 @@ object Presentation
 
       def entity_ref(thy_name: String, kind: String, name: String): Option[String] =
         for {
-          thy <- theory_by_name.get(thy_name)
+          thy <- theory_exports.get(thy_name)
           entity <- thy.entity_by_kname.get(Export_Theory.export_kind_name(kind, name))
         } yield entity.kname
 
