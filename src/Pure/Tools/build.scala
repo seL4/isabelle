@@ -144,7 +144,8 @@ object Build
     def infos: List[Sessions.Info] = results.values.map(_._2).toList
     def cancelled(name: String): Boolean = results(name)._1.isEmpty
     def apply(name: String): Process_Result = results(name)._1.getOrElse(Process_Result(1))
-    def info(name: String): Sessions.Info = results(name)._2
+    def get_info(name: String): Option[Sessions.Info] = results.get(name).map(_._2)
+    def info(name: String): Sessions.Info = get_info(name).get
     val rc: Int =
       results.iterator.map({ case (_, (Some(r), _)) => r.rc case (_, (None, _)) => 1 }).
         foldLeft(Process_Result.RC.ok)(_ max _)
@@ -490,14 +491,20 @@ object Build
       val selected = full_sessions_selection.toSet
       val presentation_sessions =
         (for {
-          session_name <- deps.sessions_structure.build_topological_order.iterator
-          info = results.info(session_name)
+          session_name <- deps.sessions_structure.imports_topological_order.iterator
+          info <- results.get_info(session_name)
           if selected(session_name) && presentation.enabled(info) && results(session_name).ok }
         yield info).toList
 
       if (presentation_sessions.nonEmpty) {
         val presentation_dir = presentation.dir(store)
         progress.echo("Presentation in " + presentation_dir.absolute)
+        Presentation.update_global_index(presentation_dir)
+
+        for ((chapter, infos) <- presentation_sessions.groupBy(_.chapter).iterator) {
+          val entries = infos.map(info => (info.name, info.description))
+          Presentation.update_chapter_index(presentation_dir, chapter, entries)
+        }
 
         val resources = Resources.empty
         val html_context = Presentation.html_context()
@@ -511,17 +518,6 @@ object Build
               verbose = verbose, html_context = html_context,
               elements = Presentation.elements1, presentation = presentation)
           })
-
-        val browser_chapters =
-          (for {
-            (chapter, infos) <- presentation_sessions.groupBy(_.chapter).iterator
-            if infos.nonEmpty
-          } yield (chapter, infos.map(info => (info.name, info.description)))).toList
-
-        for ((chapter, entries) <- browser_chapters)
-          Presentation.update_chapter_index(presentation_dir, chapter, entries)
-
-        if (browser_chapters.nonEmpty) Presentation.update_global_index(presentation_dir)
       }
     }
 
