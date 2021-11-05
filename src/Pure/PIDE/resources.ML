@@ -10,7 +10,6 @@ sig
   val init_session:
     {session_positions: (string * Properties.T) list,
      session_directories: (string * string) list,
-     session_chapters: (string * string) list,
      bibtex_entries: (string * string list) list,
      command_timings: Properties.T list,
      load_commands: (string * Position.T) list,
@@ -23,7 +22,6 @@ sig
   val global_theory: string -> string option
   val loaded_theory: string -> bool
   val check_session: Proof.context -> string * Position.T -> string
-  val session_chapter: string -> string
   val last_timing: Toplevel.transition -> Time.time
   val check_load_command: Proof.context -> string * Position.T -> string
   val scala_functions: unit -> string list
@@ -103,7 +101,6 @@ fun make_entry props : entry =
 val empty_session_base =
   ({session_positions = []: (string * entry) list,
     session_directories = Symtab.empty: Path.T list Symtab.table,
-    session_chapters = Symtab.empty: string Symtab.table,
     bibtex_entries = Symtab.empty: string list Symtab.table,
     timings = empty_timings,
     load_commands = []: (string * Position.T) list,
@@ -115,15 +112,14 @@ val global_session_base =
   Synchronized.var "Sessions.base" empty_session_base;
 
 fun init_session
-    {session_positions, session_directories, session_chapters, bibtex_entries,
-      command_timings, load_commands, scala_functions, global_theories, loaded_theories} =
+    {session_positions, session_directories, bibtex_entries, command_timings, load_commands,
+      scala_functions, global_theories, loaded_theories} =
   Synchronized.change global_session_base
     (fn _ =>
       ({session_positions = sort_by #1 (map (apsnd make_entry) session_positions),
         session_directories =
           Symtab.build (session_directories |> fold_rev (fn (dir, name) =>
             Symtab.cons_list (name, Path.explode dir))),
-        session_chapters = Symtab.make session_chapters,
         bibtex_entries = Symtab.make bibtex_entries,
         timings = make_timings command_timings,
         load_commands = load_commands,
@@ -133,22 +129,21 @@ fun init_session
 
 fun init_session_yxml yxml =
   let
-    val (session_positions, (session_directories, (session_chapters, (bibtex_entries,
-        (command_timings, (load_commands, (scala_functions, (global_theories, loaded_theories)))))))) =
+    val (session_positions, (session_directories, (bibtex_entries, (command_timings,
+        (load_commands, (scala_functions, (global_theories, loaded_theories))))))) =
       YXML.parse_body yxml |>
         let open XML.Decode in
           (pair (list (pair string properties))
-            (pair (list (pair string string)) (pair (list (pair string string))
+            (pair (list (pair string string))
               (pair (list (pair string (list string))) (pair (list properties)
                 (pair (list (pair string properties))
                   (pair (list (pair string (pair bool properties)))
-                    (pair (list (pair string string)) (list string)))))))))
+                    (pair (list (pair string string)) (list string))))))))
         end;
   in
     init_session
       {session_positions = session_positions,
        session_directories = session_directories,
-       session_chapters = session_chapters,
        bibtex_entries = bibtex_entries,
        command_timings = command_timings,
        load_commands = (map o apsnd) Position.of_properties load_commands,
@@ -176,9 +171,6 @@ fun check_session ctxt arg =
     (fn (name, {pos, serial}) =>
       Position.make_entity_markup {def = false} serial Markup.sessionN (name, pos))
     (get_session_base1 #session_positions) ctxt arg;
-
-fun session_chapter name =
-  the_default "Unsorted" (Symtab.lookup (get_session_base1 #session_chapters) name);
 
 fun last_timing tr = get_timings (get_session_base1 #timings) tr;
 
