@@ -270,23 +270,21 @@ object Presentation
     else Nil
   }
 
-  private def write_sessions(dir: Path, sessions: List[(String, String)]): Unit =
-  {
-    import XML.Encode._
-    File.write(dir + sessions_path, YXML.string_of_body(list(pair(string, string))(sessions)))
-  }
-
   def update_chapter_index(
-    browser_info: Path, chapter: String, new_sessions: List[(String, String)]): Unit =
+    presentation_dir: Path, chapter: String, new_sessions: List[(String, String)]): Unit =
   {
-    val dir = Isabelle_System.make_directory(browser_info + Path.basic(chapter))
+    val dir = Isabelle_System.make_directory(presentation_dir + Path.basic(chapter))
 
     val sessions0 =
       try { read_sessions(dir) }
       catch { case _: XML.Error => Nil }
 
     val sessions = (SortedMap.empty[String, String] ++ sessions0 ++ new_sessions).toList
-    write_sessions(dir, sessions)
+    File.write(dir + sessions_path,
+      {
+        import XML.Encode._
+        YXML.string_of_body(list(pair(string, string))(sessions))
+      })
 
     val title = "Isabelle/" + chapter + " sessions"
     HTML.write_document(dir, "index.html",
@@ -303,14 +301,14 @@ object Presentation
                   else HTML.break ::: List(HTML.pre(HTML.text(descr)))) })))))))
   }
 
-  def make_global_index(browser_info: Path): Unit =
+  def make_global_index(presentation_dir: Path): Unit =
   {
-    if (!(browser_info + Path.explode("index.html")).is_file) {
-      Isabelle_System.make_directory(browser_info)
+    if (!(presentation_dir + Path.explode("index.html")).is_file) {
+      Isabelle_System.make_directory(presentation_dir)
       Isabelle_System.copy_file(Path.explode("~~/lib/logo/isabelle.gif"),
-        browser_info + Path.explode("isabelle.gif"))
+        presentation_dir + Path.explode("isabelle.gif"))
       val title = "The " + XML.text(Isabelle_System.isabelle_name()) + " Library"
-      File.write(browser_info + Path.explode("index.html"),
+      File.write(presentation_dir + Path.explode("index.html"),
         HTML.header +
 """
 <head>
