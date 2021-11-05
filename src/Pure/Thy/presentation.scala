@@ -57,9 +57,6 @@ object Presentation
     def offset_ref(offset: Text.Range): String =
       "offset/" + offset.start + ".." + offset.stop
 
-    def export_ref(entity: Entity): String =
-      Export_Theory.export_kind(entity.kind) + "/" + entity.name
-
     def contents(heading: String, items: List[XML.Body], css_class: String = "contents")
       : List[XML.Elem] =
     {
@@ -469,7 +466,7 @@ object Presentation
                   HTML.entity_def(HTML.span(HTML.id(html_context.offset_ref(range)), body))
                 }
                 else HTML.span(body)
-              entities.map(html_context.export_ref).foldLeft(body1) {
+              entities.map(_.kname).foldLeft(body1) {
                 case (elem, id) => HTML.entity_def(HTML.span(HTML.id(id), List(elem)))
               }
             }
@@ -480,7 +477,7 @@ object Presentation
         for {
           thy <- theory_by_name.get(thy_name)
           entity <- thy.entity_by_kname.get(Export_Theory.export_kind_name(kind, name))
-        } yield html_context.export_ref(entity)
+        } yield entity.kname
 
       def offset_ref(context: Entity_Context, thy_name: String, props: Properties.T): Option[String] =
       {
