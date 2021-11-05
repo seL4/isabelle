@@ -389,6 +389,7 @@ object Presentation
     elements: Elements,
     presentation: Context): Unit =
   {
+    val hierarchy = deps.sessions_structure.hierarchy(session)
     val info = deps.sessions_structure(session)
     val options = info.options
     val base = deps(session)
@@ -438,16 +439,9 @@ object Presentation
           else {
             html_context.cache_theory(thy_name,
               {
-                val qualifier = deps(session).theory_qualifier(thy_name)
                 val provider =
-                  Export.Provider.database_context(db_context, List(qualifier), thy_name)
-                if (Export_Theory.read_theory_parents(provider, thy_name).isDefined) {
-                  Export_Theory.read_theory(provider, qualifier, thy_name)
-                }
-                else {
-                  progress.echo_warning("No theory exports for " + quote(thy_name))
-                  Export_Theory.no_theory
-                }
+                  Export.Provider.database_context(db_context, hierarchy, thy_name)
+                Export_Theory.read_theory(provider, session, thy_name)
               })
         }
         thy_name -> theory
