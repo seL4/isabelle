@@ -27,6 +27,21 @@ object Presentation
 
   final class HTML_Context private[Presentation](fonts_url: String => String)
   {
+    private val theory_cache = Synchronized(Map.empty[String, Export_Theory.Theory])
+
+    def cache_theory(thy_name: String, make_thy: => Export_Theory.Theory): Export_Theory.Theory =
+    {
+      theory_cache.change_result(thys =>
+      {
+        thys.get(thy_name) match {
+          case Some(thy) => (thy, thys)
+          case None =>
+            val thy = make_thy
+            (thy, thys + (thy_name -> thy))
+        }
+      })
+    }
+
     def init_fonts(dir: Path): Unit =
     {
       val fonts_dir = Isabelle_System.make_directory(dir + fonts_path)
@@ -328,32 +343,6 @@ object Presentation
   }
 
 
-  /* theory cache */
-
-  object Theory_Cache
-  {
-    def apply(): Theory_Cache = new Theory_Cache()
-  }
-
-  class Theory_Cache private()
-  {
-    private val cache = Synchronized(Map.empty[String, Export_Theory.Theory])
-
-    def apply(thy_name: String, make_thy: => Export_Theory.Theory): Export_Theory.Theory =
-    {
-      cache.change_result(thys =>
-      {
-        thys.get(thy_name) match {
-          case Some(thy) => (thy, thys)
-          case None =>
-            val thy = make_thy
-            (thy, thys + (thy_name -> thy))
-        }
-      })
-    }
-  }
-
-
   /* present session */
 
   val session_graph_path = Path.explode("session_graph.pdf")
@@ -402,8 +391,7 @@ object Presentation
     verbose: Boolean = false,
     html_context: HTML_Context,
     elements: Elements,
-    presentation: Context,
-    theory_cache: Theory_Cache = Theory_Cache()): Unit =
+    presentation: Context): Unit =
   {
     val info = deps.sessions_structure(session)
     val options = info.options
@@ -449,7 +437,7 @@ object Presentation
     def read_theory(thy_name: String): Export_Theory.Theory =
       if (thy_name == Thy_Header.PURE) Export_Theory.no_theory
       else {
-        theory_cache(thy_name,
+        html_context.cache_theory(thy_name,
           {
             val qualifier = deps(session).theory_qualifier(thy_name)
             val provider = Export.Provider.database_context(db_context, List(qualifier), thy_name)
