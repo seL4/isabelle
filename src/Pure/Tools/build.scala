@@ -488,14 +488,14 @@ object Build
 
     if (!no_build && !progress.stopped && results.ok) {
       val selected = full_sessions_selection.toSet
-      val presentation_chapters =
+      val presentation_sessions =
         (for {
           session_name <- deps.sessions_structure.build_topological_order.iterator
           info = results.info(session_name)
           if selected(session_name) && presentation.enabled(info) && results(session_name).ok }
-        yield (info.chapter, (session_name, info.description))).toList
+        yield info).toList
 
-      if (presentation_chapters.nonEmpty) {
+      if (presentation_sessions.nonEmpty) {
         val presentation_dir = presentation.dir(store)
         progress.echo("Presentation in " + presentation_dir.absolute)
 
@@ -503,18 +503,20 @@ object Build
         val html_context = Presentation.html_context()
 
         using(store.open_database_context())(db_context =>
-          for ((_, (session_name, _)) <- presentation_chapters) {
+          for (info <- presentation_sessions) {
             progress.expose_interrupt()
-            progress.echo("Presenting " + session_name + " ...")
+            progress.echo("Presenting " + info.name + " ...")
             Presentation.session_html(
-              resources, session_name, deps, db_context, progress = progress,
+              resources, info.name, deps, db_context, progress = progress,
               verbose = verbose, html_context = html_context,
               elements = Presentation.elements1, presentation = presentation)
           })
 
         val browser_chapters =
-          presentation_chapters.groupBy(_._1).
-            map({ case (chapter, es) => (chapter, es.map(_._2)) }).filterNot(_._2.isEmpty)
+          (for {
+            (chapter, infos) <- presentation_sessions.groupBy(_.chapter).iterator
+            if infos.nonEmpty
+          } yield (chapter, infos.map(info => (info.name, info.description)))).toList
 
         for ((chapter, entries) <- browser_chapters)
           Presentation.update_chapter_index(presentation_dir, chapter, entries)
