@@ -430,25 +430,28 @@ object Presentation
           map(link => HTML.text("View ") ::: List(link))).flatten
     }
 
-    def read_theory(thy_name: String): Export_Theory.Theory =
-      if (thy_name == Thy_Header.PURE) Export_Theory.no_theory
-      else {
-        html_context.cache_theory(thy_name,
-          {
-            val qualifier = deps(session).theory_qualifier(thy_name)
-            val provider = Export.Provider.database_context(db_context, List(qualifier), thy_name)
-            if (Export_Theory.read_theory_parents(provider, thy_name).isDefined) {
-              Export_Theory.read_theory(provider, qualifier, thy_name)
-            }
-            else {
-              progress.echo_warning("No theory exports for " + quote(thy_name))
-              Export_Theory.no_theory
-            }
-          })
-      }
-
     val theory_by_name: Map[String, Export_Theory.Theory] =
-      base.known_theories.map(_._2.name.theory).map(name => name -> read_theory(name)).toMap
+      (for ((_, entry) <- base.known_theories.iterator) yield {
+        val thy_name = entry.name.theory
+        val theory =
+          if (thy_name == Thy_Header.PURE) Export_Theory.no_theory
+          else {
+            html_context.cache_theory(thy_name,
+              {
+                val qualifier = deps(session).theory_qualifier(thy_name)
+                val provider =
+                  Export.Provider.database_context(db_context, List(qualifier), thy_name)
+                if (Export_Theory.read_theory_parents(provider, thy_name).isDefined) {
+                  Export_Theory.read_theory(provider, qualifier, thy_name)
+                }
+                else {
+                  progress.echo_warning("No theory exports for " + quote(thy_name))
+                  Export_Theory.no_theory
+                }
+              })
+        }
+        thy_name -> theory
+      }).toMap
 
     val theories: List[XML.Body] =
     {
