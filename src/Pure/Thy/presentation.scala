@@ -27,6 +27,8 @@ object Presentation
 
   final class HTML_Context private[Presentation](fonts_url: String => String)
   {
+    val term_cache: Term.Cache = Term.Cache.make()
+
     private val theory_cache = Synchronized(Map.empty[String, Export_Theory.Theory])
 
     def cache_theory(thy_name: String, make_thy: => Export_Theory.Theory): Export_Theory.Theory =
@@ -436,9 +438,9 @@ object Presentation
           else {
             html_context.cache_theory(thy_name,
               {
-                val provider =
-                  Export.Provider.database_context(db_context, hierarchy, thy_name)
-                Export_Theory.read_theory(provider, session, thy_name)
+                val provider = Export.Provider.database_context(db_context, hierarchy, thy_name)
+                Export_Theory.read_theory(
+                  provider, session, thy_name, cache = html_context.term_cache)
               })
         }
         thy_name -> theory
