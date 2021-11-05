@@ -376,12 +376,20 @@ object HTML
 
   /* fonts */
 
+  val fonts_path: Path = Path.explode("fonts")
+
+  def init_fonts(dir: Path): Unit =
+  {
+    val fonts_dir = Isabelle_System.make_directory(dir + HTML.fonts_path)
+    for (entry <- Isabelle_Fonts.fonts(hidden = true))
+      Isabelle_System.copy_file(entry.path, fonts_dir)
+  }
+
+  def fonts_dir(prefix: String)(ttf_name: String): String = prefix + "/" + ttf_name
+
   def fonts_url(): String => String =
     (for (entry <- Isabelle_Fonts.fonts(hidden = true))
      yield (entry.path.file_name -> Url.print_file(entry.path.file))).toMap
-
-  def fonts_dir(prefix: String)(ttf_name: String): String =
-    prefix + "/" + ttf_name
 
   def fonts_css(make_url: String => String = fonts_url()): String =
   {
@@ -399,26 +407,33 @@ object HTML
       .mkString("", "\n\n", "\n")
   }
 
+  def fonts_css_dir(prefix: String = ""): String =
+  {
+    val prefix1 = if (prefix.isEmpty || prefix.endsWith("/")) prefix else prefix + "/"
+    fonts_css(fonts_dir(prefix1 + fonts_path.implode))
+  }
 
-  /* document directory */
+
+  /* document directory context (fonts + css) */
+
+  def relative_prefix(dir: Path, base: Option[Path]): String =
+    base match {
+      case None => ""
+      case Some(base_dir) =>
+        File.path(dir.absolute.java_path.relativize(base_dir.absolute.java_path).toFile).implode
+    }
 
   def isabelle_css: Path = Path.explode("~~/etc/isabelle.css")
 
-  def write_isabelle_css(dir: Path, make_url: String => String = fonts_dir("fonts")): Unit =
-  {
-    File.write(dir + isabelle_css.base,
-      fonts_css(make_url) + "\n\n" + File.read(isabelle_css))
-  }
-
-  def init_dir(dir: Path): Unit =
-    write_isabelle_css(Isabelle_System.make_directory(dir))
-
   def write_document(dir: Path, name: String, head: XML.Body, body: XML.Body,
+    base: Option[Path] = None,
     css: String = isabelle_css.file_name,
     hidden: Boolean = true,
     structural: Boolean = true): Unit =
   {
-    init_dir(dir)
+    Isabelle_System.make_directory(dir)
+    val prefix = relative_prefix(dir, base)
+    File.write(dir + isabelle_css.base, fonts_css_dir(prefix) + "\n\n" + File.read(isabelle_css))
     File.write(dir + Path.basic(name),
       output_document(head, body, css = css, hidden = hidden, structural = structural))
   }

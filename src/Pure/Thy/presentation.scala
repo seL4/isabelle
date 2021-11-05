@@ -18,14 +18,11 @@ object Presentation
 
   /* HTML context */
 
-  val fonts_path = Path.explode("fonts")
-
   sealed case class HTML_Document(title: String, content: String)
 
-  def html_context(fonts_url: String => String = HTML.fonts_url()): HTML_Context =
-    new HTML_Context(fonts_url)
+  def html_context(): HTML_Context = new HTML_Context
 
-  final class HTML_Context private[Presentation](fonts_url: String => String)
+  final class HTML_Context private[Presentation]
   {
     val term_cache: Term.Cache = Term.Cache.make()
 
@@ -44,13 +41,6 @@ object Presentation
       })
     }
 
-    def init_fonts(dir: Path): Unit =
-    {
-      val fonts_dir = Isabelle_System.make_directory(dir + fonts_path)
-      for (entry <- Isabelle_Fonts.fonts(hidden = true))
-        Isabelle_System.copy_file(entry.path, fonts_dir)
-    }
-
     def head(title: String, rest: XML.Body = Nil): XML.Tree =
       HTML.div("head", HTML.chapter(title) :: rest)
 
@@ -66,15 +56,16 @@ object Presentation
       else List(HTML.div(css_class, List(HTML.section(heading), HTML.itemize(items))))
     }
 
-    def output_document(title: String, body: XML.Body): String =
-      HTML.output_document(
-        List(
-          HTML.style(HTML.fonts_css(fonts_url) + "\n\n" + File.read(HTML.isabelle_css)),
-          HTML.title(title)),
-        List(HTML.source(body)), css = "", structural = false)
-
-    def html_document(title: String, body: XML.Body): HTML_Document =
-      HTML_Document(title, output_document(title, body))
+    def html_document(title: String, body: XML.Body, fonts_css: String): HTML_Document =
+    {
+      val content =
+        HTML.output_document(
+          List(
+            HTML.style(fonts_css + "\n\n" + File.read(HTML.isabelle_css)),
+            HTML.title(title)),
+          List(HTML.source(body)), css = "", structural = false)
+      HTML_Document(title, content)
+    }
   }
 
 
@@ -202,7 +193,8 @@ object Presentation
     snapshot: Document.Snapshot,
     html_context: HTML_Context,
     elements: Elements,
-    plain_text: Boolean = false): HTML_Document =
+    plain_text: Boolean = false,
+    fonts_css: String = HTML.fonts_css()): HTML_Document =
   {
     require(!snapshot.is_outdated, "document snapshot outdated")
 
@@ -210,7 +202,7 @@ object Presentation
     if (plain_text) {
       val title = "File " + Symbol.cartouche_decoded(name.path.file_name)
       val body = HTML.text(snapshot.node.source)
-      html_context.html_document(title, body)
+      html_context.html_document(title, body, fonts_css)
     }
     else {
       resources.html_document(snapshot) getOrElse {
@@ -219,7 +211,7 @@ object Presentation
           else "File " + Symbol.cartouche_decoded(name.path.file_name)
         val xml = snapshot.xml_markup(elements = elements.html)
         val body = make_html(name, elements, (_, _, _) => None, (_, _, _) => None, xml)
-        html_context.html_document(title, body)
+        html_context.html_document(title, body, fonts_css)
       }
     }
   }
@@ -269,7 +261,7 @@ object Presentation
     else Nil
   }
 
-  def update_chapter_index(
+  def update_chapter(
     presentation_dir: Path, chapter: String, new_sessions: List[(String, String)]): Unit =
   {
     val dir = Isabelle_System.make_directory(presentation_dir + Path.basic(chapter))
@@ -297,12 +289,14 @@ object Presentation
                 val descr = Symbol.trim_blank_lines(description)
                 (List(HTML.link(name + "/index.html", HTML.text(name))),
                   if (descr == "") Nil
-                  else HTML.break ::: List(HTML.pre(HTML.text(descr)))) })))))))
+                  else HTML.break ::: List(HTML.pre(HTML.text(descr)))) })))))),
+      base = Some(presentation_dir))
   }
 
-  def update_global_index(presentation_dir: Path): Unit =
+  def update_root(presentation_dir: Path): Unit =
   {
     Isabelle_System.make_directory(presentation_dir)
+    HTML.init_fonts(presentation_dir)
     Isabelle_System.copy_file(Path.explode("~~/lib/logo/isabelle.gif"),
       presentation_dir + Path.explode("isabelle.gif"))
     val title = "The " + XML.text(Isabelle_System.isabelle_name()) + " Library"
@@ -393,9 +387,8 @@ object Presentation
     val options = info.options
     val base = deps(session)
 
-    val session_dir = presentation.dir(db_context.store, info)
-
-    html_context.init_fonts(session_dir)
+    val presentation_dir = presentation.dir(db_context.store)
+    val session_dir = Isabelle_System.make_directory(presentation.dir(db_context.store, info))
 
     Bytes.write(session_dir + session_graph_path,
       graphview.Graph_File.make_pdf(options, base.session_graph_display))
@@ -571,11 +564,10 @@ object Presentation
             }
 
             val file_path = session_dir + Path.explode(file_name)
-            html_context.init_fonts(file_path.dir)
-
             val file_title = "File " + Symbol.cartouche_decoded(src_path.implode_short)
             HTML.write_document(file_path.dir, file_path.file_name,
-              List(HTML.title(file_title)), List(html_context.head(file_title), file_html))
+              List(HTML.title(file_title)), List(html_context.head(file_title), file_html),
+              base = Some(presentation_dir))
 
             List(HTML.link(file_name, HTML.text(file_title)))
           }
@@ -583,7 +575,8 @@ object Presentation
         val thy_title = "Theory " + thy.name.theory_base_name
 
         HTML.write_document(session_dir, html_name(thy.name),
-          List(HTML.title(thy_title)), List(html_context.head(thy_title), thy.html))
+          List(HTML.title(thy_title)), List(html_context.head(thy_title), thy.html),
+          base = Some(presentation_dir))
 
         List(HTML.link(html_name(thy.name),
           HTML.text(thy.name.theory_base_name) :::
@@ -595,6 +588,7 @@ object Presentation
     HTML.write_document(session_dir, "index.html",
       List(HTML.title(title + Isabelle_System.isabelle_heading())),
       html_context.head(title, List(HTML.par(view_links))) ::
-        html_context.contents("Theories", theories))
+        html_context.contents("Theories", theories),
+      base = Some(presentation_dir))
   }
 }

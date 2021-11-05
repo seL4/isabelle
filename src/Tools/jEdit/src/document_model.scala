@@ -324,11 +324,12 @@ object Document_Model
         }
         yield {
           val snapshot = model.await_stable_snapshot()
-          val html_context = Presentation.html_context(fonts_url = HTML.fonts_dir(fonts_root))
+          val html_context = Presentation.html_context()
           val document =
             Presentation.html_document(
               PIDE.resources, snapshot, html_context, Presentation.elements2,
-              plain_text = query.startsWith(plain_text_prefix))
+              plain_text = query.startsWith(plain_text_prefix),
+              fonts_css = HTML.fonts_css_dir(http_root))
           HTTP.Response.html(document.content)
         })
 
