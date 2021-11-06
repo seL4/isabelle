@@ -51,8 +51,8 @@ object Presentation
 
     def source(body: XML.Body): XML.Tree = HTML.pre("source", body)
 
-    def offset_ref(offset: Text.Range): String =
-      "offset/" + offset.start + ".." + offset.stop
+    def physical_ref(range: Text.Range): String =
+      "offset_" + range.start + ".." + range.stop
 
     def contents(heading: String, items: List[XML.Body], css_class: String = "contents")
       : List[XML.Elem] =
@@ -476,7 +476,7 @@ object Presentation
                   .getOrElse(Nil)
               val body1 =
                 if (context.seen_ranges.contains(range)) {
-                  HTML.entity_def(HTML.span(HTML.id(html_context.offset_ref(range)), body))
+                  HTML.entity_def(HTML.span(HTML.id(html_context.physical_ref(range)), body))
                 }
                 else HTML.span(body)
               entities.map(_.kname).foldLeft(body1) {
@@ -486,13 +486,14 @@ object Presentation
         }
       }
 
-      def entity_ref(thy_name: String, kind: String, name: String): Option[String] =
+      def logical_ref(thy_name: String, kind: String, name: String): Option[String] =
         for {
           thy <- theory_exports.get(thy_name)
           entity <- thy.entity_by_kind_name.get((kind, name))
         } yield entity.kname
 
-      def offset_ref(context: Entity_Context, thy_name: String, props: Properties.T): Option[String] =
+      def physical_ref(
+        context: Entity_Context, thy_name: String, props: Properties.T): Option[String] =
       {
         if (thy_name == context.node.theory) {
           for {
@@ -501,10 +502,9 @@ object Presentation
             range = Text.Range(offset, end_offset)
           } yield {
             context.seen_ranges += range
-            html_context.offset_ref(range)
+            html_context.physical_ref(range)
           }
         }
-        else None
       }
 
       def entity_link(
@@ -522,7 +522,8 @@ object Presentation
             for {
               html_dir <- node_relative(deps, session, node_name)
               html_file = node_file(node_name)
-              html_ref <- entity_ref(thy_name, kind, name).orElse(offset_ref(context, thy_name, props))
+              html_ref <-
+                logical_ref(thy_name, kind, name) orElse physical_ref(context, thy_name, props)
             } yield {
               HTML.entity_ref(HTML.link(html_dir + html_file + "#" + html_ref, body))
             }
