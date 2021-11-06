@@ -85,7 +85,8 @@ object Presentation
     Elements(
       html = Rendering.foreground_elements ++ Rendering.text_color_elements +
         Markup.NUMERAL + Markup.COMMENT + Markup.ENTITY + Markup.LANGUAGE,
-      entity = Markup.Elements(Markup.THEORY, Markup.FREE))
+      entity = Markup.Elements(Markup.THEORY, Markup.TYPE_NAME, Markup.CONSTANT, Markup.FACT,
+        Markup.CLASS, Markup.LOCALE, Markup.FREE))
 
   val elements2: Elements =
     Elements(
@@ -547,7 +548,7 @@ object Presentation
 
           val thy_elements =
             session_elements.copy(entity =
-              theory_exports(name.theory).entity_kinds.foldLeft(session_elements.entity)(_ + _))
+              theory_exports(name.theory).others.keySet.foldLeft(session_elements.entity)(_ + _))
 
           val files_html =
             for {
