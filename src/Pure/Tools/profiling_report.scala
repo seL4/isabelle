@@ -11,21 +11,20 @@ object Profiling_Report
 {
   def profiling_report(
     options: Options,
-    session_name: String,
+    session: String,
     theories: List[String] = Nil,
     clean_name: Boolean = false,
     progress: Progress = new Progress): Unit =
   {
     val store = Sessions.store(options)
     val resources = Resources.empty
-    val session = new Session(options, resources)
 
     using(store.open_database_context())(db_context =>
     {
       val result =
-        db_context.input_database(session_name)((db, name) => Some(store.read_theories(db, name)))
+        db_context.input_database(session)((db, name) => Some(store.read_theories(db, name)))
       result match {
-        case None => error("Missing build database for session " + quote(session_name))
+        case None => error("Missing build database for session " + quote(session))
         case Some(used_theories) =>
           theories.filterNot(used_theories.toSet) match {
             case Nil =>
@@ -35,7 +34,7 @@ object Profiling_Report
             (for {
               thy <- used_theories.iterator
               if theories.isEmpty || theories.contains(thy)
-              command <- Build_Job.read_theory(db_context, resources, session_name, thy).iterator
+              command <- Build_Job.read_theory(db_context, resources, List(session), thy).iterator
               snapshot = Document.State.init.snippet(command)
               (Protocol.ML_Profiling(report), _) <- snapshot.messages.iterator
             } yield if (clean_name) report.clean_name else report).toList

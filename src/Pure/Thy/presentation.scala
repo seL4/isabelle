@@ -26,10 +26,13 @@ object Presentation
   {
     val term_cache: Term.Cache = Term.Cache.make()
 
+    private val already_presented = Synchronized(Set.empty[String])
+    def register_presented(nodes: List[Document.Node.Name]): List[Document.Node.Name] =
+      already_presented.change_result(presented =>
+        (nodes.filterNot(name => presented.contains(name.theory)),
+          presented ++ nodes.iterator.map(_.theory)))
+
     private val theory_cache = Synchronized(Map.empty[String, Export_Theory.Theory])
-
-    def cached_theories: Set[String] = theory_cache.value.keySet
-
     def cache_theory(thy_name: String, make_thy: => Export_Theory.Theory): Export_Theory.Theory =
     {
       theory_cache.change_result(thys =>
@@ -429,9 +432,8 @@ object Presentation
           map(link => HTML.text("View ") ::: List(link))).flatten
     }
 
-    val cached_theories: Set[String] = html_context.cached_theories
     val all_used_theories = hierarchy.flatMap(a => deps(a).used_theories.map(_._1))
-    val present_theories = all_used_theories.filterNot(name => cached_theories.contains(name.theory))
+    val present_theories = html_context.register_presented(all_used_theories)
 
     val theory_exports: Map[String, Export_Theory.Theory] =
       (for (node <- all_used_theories.iterator) yield {
@@ -537,10 +539,10 @@ object Presentation
       def read_theory(name: Document.Node.Name): Option[Theory] =
       {
         progress.expose_interrupt()
-        if (verbose) progress.echo("Presenting theory " + name)
 
-        for (command <- Build_Job.read_theory(db_context, resources, session, name.theory))
+        for (command <- Build_Job.read_theory(db_context, resources, hierarchy, name.theory))
         yield {
+          if (verbose) progress.echo("Presenting theory " + name)
           val snapshot = Document.State.init.snippet(command)
 
           val files_html =

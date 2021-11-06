@@ -19,12 +19,12 @@ object Build_Job
   def read_theory(
     db_context: Sessions.Database_Context,
     resources: Resources,
-    session: String,
+    session_hierarchy: List[String],
     theory: String,
     unicode_symbols: Boolean = false): Option[Command] =
   {
     def read(name: String): Export.Entry =
-      db_context.get_export(List(session), theory, name)
+      db_context.get_export(session_hierarchy, theory, name)
 
     def read_xml(name: String): XML.Body =
       YXML.parse_body(
@@ -118,7 +118,8 @@ object Build_Job
             if (theories.isEmpty) used_theories else used_theories.filter(theories.toSet)
           for (thy <- print_theories) {
             val thy_heading = "\nTheory " + quote(thy) + ":"
-            read_theory(db_context, resources, session_name, thy, unicode_symbols = unicode_symbols)
+            read_theory(db_context, resources, List(session_name), thy,
+              unicode_symbols = unicode_symbols)
             match {
               case None => progress.echo(thy_heading + " MISSING")
               case Some(command) =>
