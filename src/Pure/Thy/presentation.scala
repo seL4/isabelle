@@ -431,7 +431,7 @@ object Presentation
           map(link => HTML.text("View ") ::: List(link))).flatten
     }
 
-    val all_used_theories = hierarchy.flatMap(a => deps(a).used_theories.map(_._1))
+    val all_used_theories = hierarchy.reverse.flatMap(a => deps(a).used_theories.map(_._1))
     val present_theories = html_context.register_presented(all_used_theories)
 
     val theory_exports: Map[String, Export_Theory.Theory] =
