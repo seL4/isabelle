@@ -443,8 +443,11 @@ object Presentation
             html_context.cache_theory(thy_name,
               {
                 val provider = Export.Provider.database_context(db_context, hierarchy, thy_name)
-                Export_Theory.read_theory(
-                  provider, session, thy_name, cache = html_context.term_cache)
+                if (Export_Theory.read_theory_parents(provider, thy_name).isDefined) {
+                  Export_Theory.read_theory(
+                    provider, session, thy_name, cache = html_context.term_cache)
+                }
+                else Export_Theory.no_theory
               })
         }
         thy_name -> theory
