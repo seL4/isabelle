@@ -495,15 +495,12 @@ object Presentation
       def physical_ref(
         context: Entity_Context, thy_name: String, props: Properties.T): Option[String] =
       {
-        if (thy_name == context.node.theory) {
-          for {
-            offset <- Position.Def_Offset.unapply(props)
-            end_offset <- Position.Def_End_Offset.unapply(props)
-            range = Text.Range(offset, end_offset)
-          } yield {
-            context.seen_ranges += range
-            html_context.physical_ref(range)
-          }
+        for {
+          range <- Position.Def_Range.unapply(props)
+          if thy_name == context.node.theory
+        } yield {
+          context.seen_ranges += range
+          html_context.physical_ref(range)
         }
       }
 

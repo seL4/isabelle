@@ -63,6 +63,17 @@ object Position
       }
   }
 
+  object Def_Range
+  {
+    def apply(range: Symbol.Range): T = Def_Offset(range.start) ::: Def_End_Offset(range.stop)
+    def unapply(pos: T): Option[Symbol.Range] =
+      (pos, pos) match {
+        case (Def_Offset(start), Def_End_Offset(stop)) if start <= stop => Some(Text.Range(start, stop))
+        case (Def_Offset(start), _) => Some(Text.Range(start, start + 1))
+        case _ => None
+      }
+  }
+
   object Item_Id
   {
     def unapply(pos: T): Option[(Long, Symbol.Range)] =
