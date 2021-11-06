@@ -85,8 +85,7 @@ object Presentation
     Elements(
       html = Rendering.foreground_elements ++ Rendering.text_color_elements +
         Markup.NUMERAL + Markup.COMMENT + Markup.ENTITY + Markup.LANGUAGE,
-      entity = Markup.Elements(Markup.THEORY, Markup.TYPE_NAME, Markup.CONSTANT, Markup.FACT,
-        Markup.CLASS, Markup.LOCALE, Markup.FREE))
+      entity = Markup.Elements(Markup.THEORY, Markup.FREE))
 
   val elements2: Elements =
     Elements(
@@ -384,7 +383,7 @@ object Presentation
     progress: Progress = new Progress,
     verbose: Boolean = false,
     html_context: HTML_Context,
-    elements: Elements,
+    session_elements: Elements,
     presentation: Context): Unit =
   {
     val hierarchy = deps.sessions_structure.hierarchy(session)
@@ -543,9 +542,13 @@ object Presentation
           if (verbose) progress.echo("Presenting theory " + name)
           val snapshot = Document.State.init.snippet(command)
 
+          val thy_elements =
+            session_elements.copy(entity =
+              theory_exports(name.theory).entity_kinds.foldLeft(session_elements.entity)(_ + _))
+
           val files_html =
             for {
-              (src_path, xml) <- snapshot.xml_markup_blobs(elements = elements.html)
+              (src_path, xml) <- snapshot.xml_markup_blobs(elements = thy_elements.html)
               if xml.nonEmpty
             }
             yield {
@@ -553,13 +556,13 @@ object Presentation
               if (verbose) progress.echo("Presenting file " + src_path)
 
               (src_path, html_context.source(
-                make_html(name, elements, entity_anchor, entity_link, xml)))
+                make_html(name, thy_elements, entity_anchor, entity_link, xml)))
             }
 
           val html =
             html_context.source(
-              make_html(name, elements, entity_anchor, entity_link,
-                snapshot.xml_markup(elements = elements.html)))
+              make_html(name, thy_elements, entity_anchor, entity_link,
+                snapshot.xml_markup(elements = thy_elements.html)))
 
           Theory(name, command, files_html, html)
         }

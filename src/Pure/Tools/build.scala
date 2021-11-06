@@ -516,7 +516,7 @@ object Build
             Presentation.session_html(
               resources, info.name, deps, db_context, progress = progress,
               verbose = verbose, html_context = html_context,
-              elements = Presentation.elements1, presentation = presentation)
+              Presentation.elements1, presentation = presentation)
           })
       }
     }
