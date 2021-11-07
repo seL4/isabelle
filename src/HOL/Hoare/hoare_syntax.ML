@@ -99,7 +99,7 @@ fun com_tr ctxt =
           let val (c',a) = tr c xs
               val (v',A) = case v of
                 Const (\<^const_syntax>\<open>HOL.eq\<close>, _) $ z $ t => (t, Syntax_Trans.abs_tr [z, a]) |
-                t => (t, absdummy dummyT a)
+                t => (t, Abs ("n", dummyT, a))
           in (syntax_const ctxt #While $ bexp_tr b xs $ c',
               Syntax.const \<^const_syntax>\<open>Awhile\<close>
                 $ assn_tr i xs $ var_tr v' xs $ A)
