@@ -91,7 +91,7 @@ latter in theory \<^theory>\<open>HOL.Set\<close>).
 
 Available via \<^theory_text>\<open>unbundle lattice_syntax\<close>.
 
-\begin{tabular}{@ {} l @ {\quad$\equiv$\quad} l @ {}}
+\begin{supertabular}{@ {} l @ {\quad$\equiv$\quad} l @ {}}
 @{text[source]"x \<sqsubseteq> y"} & \<^term>\<open>x \<le> y\<close>\\
 @{text[source]"x \<sqsubset> y"} & \<^term>\<open>x < y\<close>\\
 @{text[source]"x \<sqinter> y"} & \<^term>\<open>inf x y\<close>\\
@@ -100,7 +100,7 @@ Available via \<^theory_text>\<open>unbundle lattice_syntax\<close>.
 @{text[source]"\<Squnion>A"} & \<^term>\<open>Sup A\<close>\\
 @{text[source]"\<top>"} & @{term[source] top}\\
 @{text[source]"\<bottom>"} & @{term[source] bot}\\
-\end{tabular}
+\end{supertabular}
 
 
 \section*{Set}
@@ -232,7 +232,7 @@ e.g.\ \mbox{\<^prop>\<open>\<forall>(x,y)\<in>A. P\<close>,} \<^term>\<open>{(x,
 
 \section*{Relation}
 
-\begin{tabular}{@ {} l @ {~::~} l @ {}}
+\begin{supertabular}{@ {} l @ {~::~} l @ {}}
 \<^const>\<open>Relation.converse\<close> & @{term_type_only Relation.converse "('a * 'b)set \<Rightarrow> ('b*'a)set"}\\
 \<^const>\<open>Relation.relcomp\<close> & @{term_type_only Relation.relcomp "('a*'b)set\<Rightarrow>('b*'c)set\<Rightarrow>('a*'c)set"}\\
 \<^const>\<open>Relation.Image\<close> & @{term_type_only Relation.Image "('a*'b)set\<Rightarrow>'a set\<Rightarrow>'b set"}\\
@@ -250,7 +250,7 @@ e.g.\ \mbox{\<^prop>\<open>\<forall>(x,y)\<in>A. P\<close>,} \<^term>\<open>{(x,
 \<^const>\<open>Relation.irrefl\<close> & @{term_type_only Relation.irrefl "('a*'a)set\<Rightarrow>bool"}\\
 \<^const>\<open>Relation.total_on\<close> & @{term_type_only Relation.total_on "'a set\<Rightarrow>('a*'a)set\<Rightarrow>bool"}\\
 \<^const>\<open>Relation.total\<close> & @{term_type_only Relation.total "('a*'a)set\<Rightarrow>bool"}\\
-\end{tabular}
+\end{supertabular}
 
 \subsubsection*{Syntax}
 
@@ -600,7 +600,7 @@ the domain of a map may be infinite.
 \subsubsection*{Syntax}
 
 \begin{tabular}{@ {} l @ {\quad$\equiv$\quad} l @ {}}
-\<^term>\<open>Map.empty\<close> & \<^term>\<open>\<lambda>x. None\<close>\\
+\<^term>\<open>Map.empty\<close> & @{term[source] "\<lambda>_. None"}\\
 \<^term>\<open>m(x:=Some y)\<close> & @{term[source]"m(x:=Some y)"}\\
 \<open>m(x\<^sub>1\<mapsto>y\<^sub>1,\<dots>,x\<^sub>n\<mapsto>y\<^sub>n)\<close> & @{text[source]"m(x\<^sub>1\<mapsto>y\<^sub>1)\<dots>(x\<^sub>n\<mapsto>y\<^sub>n)"}\\
 \<open>[x\<^sub>1\<mapsto>y\<^sub>1,\<dots>,x\<^sub>n\<mapsto>y\<^sub>n]\<close> & @{text[source]"Map.empty(x\<^sub>1\<mapsto>y\<^sub>1,\<dots>,x\<^sub>n\<mapsto>y\<^sub>n)"}\\
