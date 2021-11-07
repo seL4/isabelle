@@ -134,8 +134,8 @@ lemma WhileRuleTC:
   assumes "p \<subseteq> i"
       and "\<And>n::nat . ValidTC (i \<inter> b \<inter> {s . v s = n}) c (A n) (i \<inter> {s . v s < n})"
       and "i \<inter> uminus b \<subseteq> q"
-    shows "ValidTC p (While b c) (Awhile i v A) q"
-proof -
+    shows "ValidTC p (While b c) (Awhile i v (\<lambda>n. A n)) q"
+proof -                             
   {
     fix s n
     have "s \<in> i \<and> v s = n \<longrightarrow> (\<exists>t . Sem (While b c) s t \<and> t \<in> q)"
