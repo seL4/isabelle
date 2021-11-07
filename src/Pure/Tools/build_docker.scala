@@ -65,8 +65,8 @@ WORKDIR /home/isabelle
 """
 RUN tar xzf Isabelle.tar.gz && \
   mv """ + isabelle_name + """ Isabelle && \
-  perl -pi -e 's,ISABELLE_HOME_USER=.*,ISABELLE_HOME_USER="\$USER_HOME/.isabelle",g;' Isabelle/etc/settings && \
-  perl -pi -e 's,ISABELLE_LOGIC=.*,ISABELLE_LOGIC=""" + logic + """,g;' Isabelle/etc/settings && \
+  sed -i -e 's,ISABELLE_HOME_USER=.*,ISABELLE_HOME_USER="\$USER_HOME/.isabelle",g;' Isabelle/etc/settings && \
+  sed -i -e 's,ISABELLE_LOGIC=.*,ISABELLE_LOGIC=""" + logic + """,g;' Isabelle/etc/settings && \
   Isabelle/bin/isabelle build -o system_heaps -b """ + logic + """ && \
   rm Isabelle.tar.gz""" +
  (if (entrypoint) """
