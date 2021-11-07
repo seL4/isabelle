@@ -8,7 +8,7 @@ if grep "ML_system_64.*=.*true" "$ISABELLE_HOME_USER/etc/preferences" >/dev/null
 then
   ML_OPTIONS="--minheap 1000"
 else
-  ML_PLATFORM="${ML_PLATFORM/x86_64/x86_64_32}"
+  ML_PLATFORM="${ML_PLATFORM/64/64_32}"
   ML_OPTIONS="--minheap 500"
 fi
 
