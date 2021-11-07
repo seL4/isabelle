@@ -344,6 +344,14 @@ definition\<^marker>\<open>tag important\<close> convex_on :: "'a::real_vector s
   where "convex_on S f \<longleftrightarrow>
     (\<forall>x\<in>S. \<forall>y\<in>S. \<forall>u\<ge>0. \<forall>v\<ge>0. u + v = 1 \<longrightarrow> f (u *\<^sub>R x + v *\<^sub>R y) \<le> u * f x + v * f y)"
 
+definition\<^marker>\<open>tag important\<close> concave_on :: "'a::real_vector set \<Rightarrow> ('a \<Rightarrow> real) \<Rightarrow> bool"
+  where "concave_on S f \<equiv> convex_on S (\<lambda>x. - f x)"
+
+lemma concave_on_iff:
+  "concave_on S f \<longleftrightarrow>
+    (\<forall>x\<in>S. \<forall>y\<in>S. \<forall>u\<ge>0. \<forall>v\<ge>0. u + v = 1 \<longrightarrow> f (u *\<^sub>R x + v *\<^sub>R y) \<ge> u * f x + v * f y)"
+  by (auto simp: concave_on_def convex_on_def algebra_simps)
+
 lemma convex_onI [intro?]:
   assumes "\<And>t x y. t > 0 \<Longrightarrow> t < 1 \<Longrightarrow> x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow>
     f ((1 - t) *\<^sub>R x + t *\<^sub>R y) \<le> (1 - t) * f x + t * f y"
@@ -865,35 +873,44 @@ lemma f''_ge0_imp_convex:
   assumes conv: "convex C"
     and f': "\<And>x. x \<in> C \<Longrightarrow> DERIV f x :> (f' x)"
     and f'': "\<And>x. x \<in> C \<Longrightarrow> DERIV f' x :> (f'' x)"
-    and pos: "\<And>x. x \<in> C \<Longrightarrow> f'' x \<ge> 0"
+    and 0: "\<And>x. x \<in> C \<Longrightarrow> f'' x \<ge> 0"
   shows "convex_on C f"
-  using f''_imp_f'[OF conv f' f'' pos] assms pos_convex_function
+  using f''_imp_f'[OF conv f' f'' 0] assms pos_convex_function
   by fastforce
+
+lemma f''_le0_imp_concave:
+  fixes f :: "real \<Rightarrow> real"
+  assumes "convex C"
+    and "\<And>x. x \<in> C \<Longrightarrow> DERIV f x :> (f' x)"
+    and "\<And>x. x \<in> C \<Longrightarrow> DERIV f' x :> (f'' x)"
+    and "\<And>x. x \<in> C \<Longrightarrow> f'' x \<le> 0"
+  shows "concave_on C f"
+  unfolding concave_on_def
+  by (rule assms f''_ge0_imp_convex derivative_eq_intros | simp)+
+
+lemma log_concave:
+  fixes b :: real
+  assumes "b > 1"
+  shows "concave_on {0<..} (\<lambda> x. log b x)"
+  using assms
+  by (intro f''_le0_imp_concave derivative_eq_intros | simp)+
+
+lemma ln_concave: "concave_on {0<..} ln"
+  unfolding log_ln by (simp add: log_concave)
 
 lemma minus_log_convex:
   fixes b :: real
   assumes "b > 1"
   shows "convex_on {0 <..} (\<lambda> x. - log b x)"
-proof -
-  have "\<And>z. z > 0 \<Longrightarrow> DERIV (log b) z :> 1 / (ln b * z)"
-    using DERIV_log by auto
-  then have f': "\<And>z. z > 0 \<Longrightarrow> DERIV (\<lambda> z. - log b z) z :> - 1 / (ln b * z)"
-    by (auto simp: DERIV_minus)
-  have "\<And>z::real. z > 0 \<Longrightarrow> DERIV inverse z :> - (inverse z ^ Suc (Suc 0))"
-    using less_imp_neq[THEN not_sym, THEN DERIV_inverse] by auto
-  from this[THEN DERIV_cmult, of _ "- 1 / ln b"]
-  have "\<And>z::real. z > 0 \<Longrightarrow>
-    DERIV (\<lambda> z. (- 1 / ln b) * inverse z) z :> (- 1 / ln b) * (- (inverse z ^ Suc (Suc 0)))"
-    by auto
-  then have f''0: "\<And>z::real. z > 0 \<Longrightarrow>
-    DERIV (\<lambda> z. - 1 / (ln b * z)) z :> 1 / (ln b * z * z)"
-    unfolding inverse_eq_divide by (auto simp: mult.assoc)
-  have f''_ge0: "\<And>z::real. z > 0 \<Longrightarrow> 1 / (ln b * z * z) \<ge> 0"
-    using \<open>b > 1\<close> by (auto intro!: less_imp_le)
-  from f''_ge0_imp_convex[OF convex_real_interval(3), unfolded greaterThan_iff, OF f' f''0 f''_ge0]
-  show ?thesis
-    by auto
-qed
+  using assms concave_on_def log_concave by blast
+
+lemma powr_convex: 
+  assumes "p \<ge> 1" shows "convex_on {0<..} (\<lambda>x. x powr p)"
+  using assms
+  by (intro f''_ge0_imp_convex derivative_eq_intros | simp)+
+
+lemma exp_convex: "convex_on UNIV exp"
+  by (intro f''_ge0_imp_convex derivative_eq_intros | simp)+
 
 
 subsection\<^marker>\<open>tag unimportant\<close> \<open>Convexity of real functions\<close>
@@ -1003,6 +1020,63 @@ proof (cases x y rule: linorder_cases)
   finally show ?thesis .
 qed (insert assms(2), simp_all)
 
+subsection \<open>Some inequalities\<close>
+
+lemma Youngs_inequality_0:
+  fixes a::real
+  assumes "0 \<le> \<alpha>" "0 \<le> \<beta>" "\<alpha>+\<beta> = 1" "a>0" "b>0"
+  shows "a powr \<alpha> * b powr \<beta> \<le> \<alpha>*a + \<beta>*b"
+proof -
+  have "\<alpha> * ln a + \<beta> * ln b \<le> ln (\<alpha> * a + \<beta> * b)"
+    using assms ln_concave by (simp add: concave_on_iff)
+  moreover have "0 < \<alpha> * a + \<beta> * b"
+    using assms by (smt (verit) mult_pos_pos split_mult_pos_le)
+  ultimately show ?thesis
+    using assms by (simp add: powr_def mult_exp_exp flip: ln_ge_iff)
+qed
+
+lemma Youngs_inequality:
+  fixes p::real
+  assumes "p>1" "q>1" "1/p + 1/q = 1" "a\<ge>0" "b\<ge>0"
+  shows "a * b \<le> a powr p / p + b powr q / q"
+proof (cases "a=0 \<or> b=0")
+  case False
+  then show ?thesis 
+  using Youngs_inequality_0 [of "1/p" "1/q" "a powr p" "b powr q"] assms
+  by (simp add: powr_powr)
+qed (use assms in auto)
+
+lemma Cauchy_Schwarz_ineq_sum:
+  fixes a :: "'a \<Rightarrow> 'b::linordered_field"
+  shows "(\<Sum>i\<in>I. a i * b i)\<^sup>2 \<le> (\<Sum>i\<in>I. (a i)\<^sup>2) * (\<Sum>i\<in>I. (b i)\<^sup>2)"
+proof (cases "(\<Sum>i\<in>I. (b i)\<^sup>2) > 0")
+  case False
+  then consider "\<And>i. i\<in>I \<Longrightarrow> b i = 0" | "infinite I"
+    by (metis (mono_tags, lifting) sum_pos2 zero_le_power2 zero_less_power2)
+  thus ?thesis
+    by fastforce
+next
+  case True
+  define r where "r \<equiv> (\<Sum>i\<in>I. a i * b i) / (\<Sum>i\<in>I. (b i)\<^sup>2)"
+  with True have *: "(\<Sum>i\<in>I. a i * b i) = r * (\<Sum>i\<in>I. (b i)\<^sup>2)"
+    by simp
+  have "0 \<le> (\<Sum>i\<in>I. (a i - r * b i)\<^sup>2)"
+    by (meson sum_nonneg zero_le_power2)
+  also have "... = (\<Sum>i\<in>I. (a i)\<^sup>2) - 2 * r * (\<Sum>i\<in>I. a i * b i) + r\<^sup>2 * (\<Sum>i\<in>I. (b i)\<^sup>2)"
+    by (simp add: algebra_simps power2_eq_square sum_distrib_left flip: sum.distrib)
+  also have "\<dots> = (\<Sum>i\<in>I. (a i)\<^sup>2) - (\<Sum>i\<in>I. a i * b i) * r"
+    by (simp add: * power2_eq_square)
+  also have "\<dots> = (\<Sum>i\<in>I. (a i)\<^sup>2) - ((\<Sum>i\<in>I. a i * b i))\<^sup>2 / (\<Sum>i\<in>I. (b i)\<^sup>2)"
+    by (simp add: r_def power2_eq_square)
+  finally have "0 \<le> (\<Sum>i\<in>I. (a i)\<^sup>2) - ((\<Sum>i\<in>I. a i * b i))\<^sup>2 / (\<Sum>i\<in>I. (b i)\<^sup>2)" .
+  hence "((\<Sum>i\<in>I. a i * b i))\<^sup>2 / (\<Sum>i\<in>I. (b i)\<^sup>2) \<le> (\<Sum>i\<in>I. (a i)\<^sup>2)"
+    by (simp add: le_diff_eq)
+  thus "((\<Sum>i\<in>I. a i * b i))\<^sup>2 \<le> (\<Sum>i\<in>I. (a i)\<^sup>2) * (\<Sum>i\<in>I. (b i)\<^sup>2)"
+    by (simp add: pos_divide_le_eq True)
+qed
+
+subsection \<open>Misc related lemmas\<close>
+
 lemma convex_translation_eq [simp]:
   "convex ((+) a ` s) \<longleftrightarrow> convex s"
   by (metis convex_translation translation_galois)
@@ -1015,9 +1089,6 @@ lemma convex_linear_image_eq [simp]:
     fixes f :: "'a::real_vector \<Rightarrow> 'b::real_vector"
     shows "\<lbrakk>linear f; inj f\<rbrakk> \<Longrightarrow> convex (f ` s) \<longleftrightarrow> convex s"
     by (metis (no_types) convex_linear_image convex_linear_vimage inj_vimage_image_eq)
-
-lemma fst_snd_linear: "linear (\<lambda>(x,y). x + y)"
-  unfolding linear_iff by (simp add: algebra_simps)
 
 lemma vector_choose_size:
   assumes "0 \<le> c"
@@ -1044,18 +1115,6 @@ proof -
   show ?thesis
     unfolding * using sum.delta[OF assms, of y "\<lambda>x. f x *\<^sub>R x"] by auto
 qed
-
-lemma dist_triangle_eq:
-  fixes x y z :: "'a::real_inner"
-  shows "dist x z = dist x y + dist y z \<longleftrightarrow>
-    norm (x - y) *\<^sub>R (y - z) = norm (y - z) *\<^sub>R (x - y)"
-proof -
-  have *: "x - y + (y - z) = x - z" by auto
-  show ?thesis unfolding dist_norm norm_triangle_eq[of "x - y" "y - z", unfolded *]
-    by (auto simp:norm_minus_commute)
-qed
-
-
 
 
 subsection \<open>Cones\<close>
