@@ -7,6 +7,7 @@ A decision procedure for metric spaces.
 signature METRIC_ARITH =
 sig
   val trace: bool Config.T
+  val argo_timeout: real Config.T
   val metric_arith_tac : Proof.context -> int -> tactic
 end
 
@@ -21,10 +22,15 @@ val trace = Attrib.setup_config_bool \<^binding>\<open>metric_trace\<close> (K f
 fun trace_tac ctxt msg =
   if Config.get ctxt trace then print_tac ctxt msg else all_tac
 
-fun argo_trace_ctxt ctxt =
-  if Config.get ctxt trace
-  then Config.map (Argo_Tactic.trace) (K "basic") ctxt
-  else ctxt
+val argo_timeout = Attrib.setup_config_real \<^binding>\<open>metric_argo_timeout\<close> (K 20.0)
+
+fun argo_ctxt ctxt =
+  let
+    val ctxt1 =
+      if Config.get ctxt trace
+      then Config.map (Argo_Tactic.trace) (K "basic") ctxt
+      else ctxt
+  in Config.put Argo_Tactic.timeout (Config.get ctxt1 argo_timeout) ctxt1 end
 
 fun free_in v t =
   Term.exists_subterm (fn u => u aconv Thm.term_of v) (Thm.term_of t);
@@ -218,10 +224,8 @@ fun embedding_tac ctxt metric_ty = CSUBGOAL (fn (goal, i) =>
 
 (* decision procedure for linear real arithmetic *)
 fun lin_real_arith_tac ctxt metric_ty = CSUBGOAL (fn (goal, i) =>
-  let
-    val dist_thms = augment_dist_pos metric_ty goal
-    val ctxt' = argo_trace_ctxt ctxt
-  in Argo_Tactic.argo_tac ctxt' dist_thms i end)
+  let val dist_thms = augment_dist_pos metric_ty goal
+  in Argo_Tactic.argo_tac (argo_ctxt ctxt) dist_thms i end)
 
 fun basic_metric_arith_tac ctxt metric_ty =
   SELECT_GOAL (
