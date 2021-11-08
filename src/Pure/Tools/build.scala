@@ -507,7 +507,7 @@ object Build
         }
 
         val resources = Resources.empty
-        val html_context = Presentation.html_context()
+        val html_context = Presentation.html_context(cache = store.cache)
 
         using(store.open_database_context())(db_context =>
           for (info <- presentation_sessions) {

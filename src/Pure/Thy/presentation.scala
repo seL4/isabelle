@@ -20,12 +20,11 @@ object Presentation
 
   sealed case class HTML_Document(title: String, content: String)
 
-  def html_context(): HTML_Context = new HTML_Context
+  def html_context(cache: Term.Cache = Term.Cache.make()): HTML_Context =
+    new HTML_Context(cache)
 
-  final class HTML_Context private[Presentation]
+  final class HTML_Context private[Presentation](val cache: Term.Cache)
   {
-    val term_cache: Term.Cache = Term.Cache.make()
-
     private val already_presented = Synchronized(Set.empty[String])
     def register_presented(nodes: List[Document.Node.Name]): List[Document.Node.Name] =
       already_presented.change_result(presented =>
@@ -446,7 +445,7 @@ object Presentation
                 val provider = Export.Provider.database_context(db_context, hierarchy, thy_name)
                 if (Export_Theory.read_theory_parents(provider, thy_name).isDefined) {
                   Export_Theory.read_theory(
-                    provider, session, thy_name, cache = html_context.term_cache)
+                    provider, session, thy_name, cache = html_context.cache)
                 }
                 else Export_Theory.no_theory
               })

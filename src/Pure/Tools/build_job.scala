@@ -241,7 +241,7 @@ class Build_Job(progress: Progress,
         new Resources(sessions_structure, base, log = log, command_timings = command_timings0)
       val session =
         new Session(options, resources) {
-          override val cache: XML.Cache = store.cache
+          override val cache: Term.Cache = store.cache
 
           override def build_blobs_info(name: Document.Node.Name): Command.Blobs_Info =
           {

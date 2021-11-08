@@ -199,15 +199,15 @@ object XML
   object Cache
   {
     def make(
-      xz: XZ.Cache = XZ.Cache.make(),
-      max_string: Int = isabelle.Cache.default_max_string,
+        xz: XZ.Cache = XZ.Cache.make(),
+        max_string: Int = isabelle.Cache.default_max_string,
         initial_size: Int = isabelle.Cache.default_initial_size): Cache =
       new Cache(xz, max_string, initial_size)
 
     val none: Cache = make(XZ.Cache.none, max_string = 0)
   }
 
-  class Cache private[XML](val xz: XZ.Cache, max_string: Int, initial_size: Int)
+  class Cache(val xz: XZ.Cache, max_string: Int, initial_size: Int)
     extends isabelle.Cache(max_string, initial_size)
   {
     protected def cache_props(x: Properties.T): Properties.T =

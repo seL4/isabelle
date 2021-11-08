@@ -127,7 +127,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
 {
   session =>
 
-  val cache: XML.Cache = XML.Cache.make()
+  val cache: Term.Cache = Term.Cache.make()
 
   def build_blobs_info(name: Document.Node.Name): Command.Blobs_Info =
     Command.Blobs_Info.none

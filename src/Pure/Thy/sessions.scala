@@ -1212,7 +1212,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     val store: Sessions.Store,
     database_server: Option[SQL.Database]) extends AutoCloseable
   {
-    def cache: XML.Cache = store.cache
+    def cache: Term.Cache = store.cache
 
     def close(): Unit = database_server.foreach(_.close())
 
@@ -1267,10 +1267,10 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     }
   }
 
-  def store(options: Options, cache: XML.Cache = XML.Cache.make()): Store =
+  def store(options: Options, cache: Term.Cache = Term.Cache.make()): Store =
     new Store(options, cache)
 
-  class Store private[Sessions](val options: Options, val cache: XML.Cache)
+  class Store private[Sessions](val options: Options, val cache: Term.Cache)
   {
     store =>
 
