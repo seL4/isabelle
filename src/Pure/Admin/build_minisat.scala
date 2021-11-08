@@ -85,6 +85,10 @@ object Build_Minisat
       Isabelle_System.copy_file(
         build_dir + Path.explode("build/release/bin/minisat").platform_exe, platform_dir)
 
+      if (Platform.is_windows) {
+        Isabelle_System.copy_file(Path.explode("/bin/cygwin1.dll"), platform_dir)
+      }
+
 
       /* settings */
 
