@@ -185,9 +185,6 @@ object Document_Build
 
     def document_bibliography: Boolean = options.bool("document_bibliography")
 
-    def document_preprocessor: Option[String] =
-      proper_string(options.string("document_preprocessor"))
-
     def document_logo: Option[String] =
       options.string("document_logo") match {
         case "" => None
@@ -274,16 +271,6 @@ object Document_Build
 
       val root_name1 = "root_" + doc.name
       val root_name = if ((doc_dir + Path.explode(root_name1).tex).is_file) root_name1 else "root"
-
-      for (name <- document_preprocessor) {
-        def message(s: String): String = s + " for document_preprocessor=" + quote(name)
-        val path = doc_dir + Path.explode(name)
-        if (path.is_file) {
-          try { Isabelle_System.bash(File.bash_path(path), cwd = doc_dir.file).check }
-          catch { case ERROR(msg) => cat_error(msg, message("The error(s) above occurred")) }
-        }
-        else error(message("Missing executable"))
-      }
 
       val digests1 = List(doc.print, document_logo.toString, document_build).map(SHA1.digest)
       val digests2 = File.find_files(doc_dir.file, follow_links = true).map(SHA1.digest)
