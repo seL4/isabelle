@@ -116,6 +116,9 @@ The presence of a "build" command within the document output directory
 explicitly requires document_build=build. Minor INCOMPATIBILITY, need to
 adjust session ROOT options.
 
+* Option "document_echo" informs about document file names during
+session presentation.
+
 * The command-line tool "isabelle latex" has been discontinued,
 INCOMPATIBILITY for old document build scripts.
 

@@ -9,6 +9,8 @@ option document : string = ""
   -- "build PDF document (enabled for \"pdf\" or \"true\", disabled for \"\" or \"false\")"
 option document_output : string = ""
   -- "document output directory"
+option document_echo : bool = false
+  -- "inform about document file names during session presentation"
 option document_variants : string = "document"
   -- "alternative document variants (separated by colons)"
 option document_tags : string = ""

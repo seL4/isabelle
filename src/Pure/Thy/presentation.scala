@@ -406,8 +406,10 @@ object Presentation
         doc <- info.document_variants
         document <- db_context.input_database(session)(Document_Build.read_document(_, _, doc.name))
       } yield {
+        val doc_path = (session_dir + doc.path.pdf).expand
         if (verbose) progress.echo("Presenting document " + session + "/" + doc.name)
-        Bytes.write(session_dir + doc.path.pdf, document.pdf)
+        if (options.bool("document_echo")) progress.echo("Document at " + doc_path)
+        Bytes.write(doc_path, document.pdf)
         doc
       }
 
