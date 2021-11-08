@@ -531,6 +531,7 @@ subsubsection \<open>Other examples\<close>
 notepad
 begin
   fix a b :: real
+  fix f :: "real \<Rightarrow> 'a"
   have "f (a + b) = f (b + a)" by argo
 next
   have
