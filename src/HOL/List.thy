@@ -795,8 +795,7 @@ by (induct xs) auto
 lemma tl_Nil: "tl xs = [] \<longleftrightarrow> xs = [] \<or> (\<exists>x. xs = [x])"
 by (cases xs) auto
 
-lemma Nil_tl: "[] = tl xs \<longleftrightarrow> xs = [] \<or> (\<exists>x. xs = [x])"
-by (cases xs) auto
+lemmas Nil_tl = tl_Nil[THEN eq_iff_swap]
 
 lemma length_induct:
   "(\<And>xs. \<forall>ys. length ys < length xs \<longrightarrow> P ys \<Longrightarrow> P xs) \<Longrightarrow> P xs"
@@ -847,9 +846,7 @@ by auto
 lemma length_Suc_conv: "(length xs = Suc n) = (\<exists>y ys. xs = y # ys \<and> length ys = n)"
 by (induct xs) auto
 
-lemma Suc_length_conv:
-  "(Suc n = length xs) = (\<exists>y ys. xs = y # ys \<and> length ys = n)"
-by (induct xs; simp; blast)
+lemmas Suc_length_conv = length_Suc_conv[THEN eq_iff_swap]
 
 lemma Suc_le_length_iff:
   "(Suc n \<le> length xs) = (\<exists>x ys. xs = x # ys \<and> n \<le> length ys)"
@@ -924,14 +921,12 @@ lemma append_Nil2: "xs @ [] = xs"
 lemma append_is_Nil_conv [iff]: "(xs @ ys = []) = (xs = [] \<and> ys = [])"
 by (induct xs) auto
 
-lemma Nil_is_append_conv [iff]: "([] = xs @ ys) = (xs = [] \<and> ys = [])"
-by (induct xs) auto
+lemmas Nil_is_append_conv [iff] = append_is_Nil_conv[THEN eq_iff_swap]
 
 lemma append_self_conv [iff]: "(xs @ ys = xs) = (ys = [])"
 by (induct xs) auto
 
-lemma self_append_conv [iff]: "(xs = xs @ ys) = (ys = [])"
-by (induct xs) auto
+lemmas self_append_conv [iff] = append_self_conv[THEN eq_iff_swap]
 
 lemma append_eq_append_conv [simp]:
   "length xs = length ys \<or> length us = length vs
@@ -958,8 +953,7 @@ by simp
 lemma append_self_conv2 [iff]: "(xs @ ys = ys) = (xs = [])"
 using append_same_eq [of _ _ "[]"] by auto
 
-lemma self_append_conv2 [iff]: "(ys = xs @ ys) = (xs = [])"
-using append_same_eq [of "[]"] by auto
+lemmas self_append_conv2 [iff] = append_self_conv2[THEN eq_iff_swap]
 
 lemma hd_Cons_tl: "xs \<noteq> [] \<Longrightarrow> hd xs # tl xs = xs"
   by (fact list.collapse)
@@ -1087,10 +1081,9 @@ lemma map_cong [fundef_cong]:
 by simp
 
 lemma map_is_Nil_conv [iff]: "(map f xs = []) = (xs = [])"
-by (cases xs) auto
+by (rule list.map_disc_iff)
 
-lemma Nil_is_map_conv [iff]: "([] = map f xs) = (xs = [])"
-by (cases xs) auto
+lemmas Nil_is_map_conv [iff] = map_is_Nil_conv[THEN eq_iff_swap]
 
 lemma map_eq_Cons_conv:
   "(map f xs = y#ys) = (\<exists>z zs. xs = z#zs \<and> f z = y \<and> map f zs = ys)"
@@ -1199,13 +1192,12 @@ by auto
 lemma rev_is_Nil_conv [iff]: "(rev xs = []) = (xs = [])"
 by (induct xs) auto
 
-lemma Nil_is_rev_conv [iff]: "([] = rev xs) = (xs = [])"
-by (induct xs) auto
+lemmas Nil_is_rev_conv [iff] = rev_is_Nil_conv[THEN eq_iff_swap]
 
 lemma rev_singleton_conv [simp]: "(rev xs = [x]) = (xs = [x])"
 by (cases xs) auto
 
-lemma singleton_rev_conv [simp]: "([x] = rev xs) = (xs = [x])"
+lemma singleton_rev_conv [simp]: "([x] = rev xs) = ([x] = xs)"
 by (cases xs) auto
 
 lemma rev_is_rev_conv [iff]: "(rev xs = rev ys) = (xs = ys)"
@@ -1249,7 +1241,7 @@ using \<open>xs \<noteq> []\<close> proof (induct xs rule: rev_induct)
   qed
 qed simp
 
-lemma rev_eq_Cons_iff[iff]: "(rev xs = y#ys) = (xs = rev ys @ [y])"
+lemma rev_eq_Cons_iff[simp]: "(rev xs = y#ys) = (xs = rev ys @ [y])"
 by(rule rev_cases[of xs]) auto
 
 
@@ -1275,8 +1267,7 @@ by auto
 lemma set_empty [iff]: "(set xs = {}) = (xs = [])"
 by (induct xs) auto
 
-lemma set_empty2[iff]: "({} = set xs) = (xs = [])"
-by(induct xs) auto
+lemmas set_empty2[iff] = set_empty[THEN eq_iff_swap]
 
 lemma set_rev [simp]: "set (rev xs) = set xs"
 by (induct xs) auto
@@ -1429,8 +1420,7 @@ lemma concat_append [simp]: "concat (xs @ ys) = concat xs @ concat ys"
 lemma concat_eq_Nil_conv [simp]: "(concat xss = []) = (\<forall>xs \<in> set xss. xs = [])"
   by (induct xss) auto
 
-lemma Nil_eq_concat_conv [simp]: "([] = concat xss) = (\<forall>xs \<in> set xss. xs = [])"
-  by (induct xss) auto
+lemmas Nil_eq_concat_conv [simp] = concat_eq_Nil_conv[THEN eq_iff_swap]
 
 lemma set_concat [simp]: "set (concat xs) = (\<Union>x\<in>set xs. set x)"
   by (induct xs) auto
@@ -1654,10 +1644,7 @@ lemma filter_eq_Cons_iff:
   (\<exists>us vs. ys = us @ x # vs \<and> (\<forall>u\<in>set us. \<not> P u) \<and> P x \<and> xs = filter P vs)"
   by(auto dest:filter_eq_ConsD)
 
-lemma Cons_eq_filter_iff:
-  "(x#xs = filter P ys) =
-  (\<exists>us vs. ys = us @ x # vs \<and> (\<forall>u\<in>set us. \<not> P u) \<and> P x \<and> xs = filter P vs)"
-  by(auto dest:Cons_eq_filterD)
+lemmas Cons_eq_filter_iff = filter_eq_Cons_iff[THEN eq_iff_swap]
 
 lemma inj_on_filter_key_eq:
   assumes "inj_on f (insert y (set xs))"
@@ -2128,8 +2115,17 @@ lemma drop_all [simp]: "length xs \<le> n \<Longrightarrow> drop n xs = []"
 lemma take_all_iff [simp]: "take n xs = xs \<longleftrightarrow> length xs \<le> n"
 by (metis length_take min.order_iff take_all)
 
-lemma drop_all_iff [simp]: "drop n xs = [] \<longleftrightarrow> length xs \<le> n"
+lemmas take_all_iff2[simp] = take_all_iff[THEN eq_iff_swap]
+
+lemma take_eq_Nil[simp]: "(take n xs = []) = (n = 0 \<or> xs = [])"
+  by(induct xs arbitrary: n)(auto simp: take_Cons split:nat.split)
+
+lemmas take_eq_Nil2[simp] = take_eq_Nil[THEN eq_iff_swap]
+
+lemma drop_eq_Nil [simp]: "drop n xs = [] \<longleftrightarrow> length xs \<le> n"
 by (metis diff_is_0_eq drop_all length_drop list.size(3))
+
+lemmas drop_eq_Nil2 [simp] = drop_eq_Nil[THEN eq_iff_swap]
 
 lemma take_append [simp]:
   "take n (xs @ ys) = (take n xs @ take (n - length xs) ys)"
@@ -2177,12 +2173,6 @@ next
   case Suc
   then show ?case by (cases xs) simp_all
 qed
-
-lemma take_eq_Nil[simp]: "(take n xs = []) = (n = 0 \<or> xs = [])"
-  by(induct xs arbitrary: n)(auto simp: take_Cons split:nat.split)
-
-lemma drop_eq_Nil[simp]: "(drop n xs = []) = (length xs \<le> n)"
-  by (induct xs arbitrary: n) (auto simp: drop_Cons split:nat.split)
 
 lemma take_map: "take n (map f xs) = map f (take n xs)"
 proof (induct n arbitrary: xs)
@@ -2308,9 +2298,7 @@ proof -
     using map_append by blast
 qed
 
-lemma append_eq_map_conv:
-  "ys @ zs = map f xs \<longleftrightarrow> (\<exists>us vs. xs = us @ vs \<and> ys = map f us \<and> zs = map f vs)"
-by (metis map_eq_append_conv)
+lemmas append_eq_map_conv = map_eq_append_conv[THEN eq_iff_swap]
 
 lemma take_add:  "take (i+j) xs = take i xs @ take j (drop i xs)"
 proof (induct xs arbitrary: i)
@@ -2763,9 +2751,11 @@ proof -
   from this that show ?thesis by fastforce
 qed
 
-lemma zip_eq_Nil_iff:
+lemma zip_eq_Nil_iff[simp]:
   "zip xs ys = [] \<longleftrightarrow> xs = [] \<or> ys = []"
   by (cases xs; cases ys) simp_all
+
+lemmas Nil_eq_zip_iff[simp] = zip_eq_Nil_iff[THEN eq_iff_swap]
 
 lemma zip_eq_ConsE:
   assumes "zip xs ys = xy # xys"
@@ -3434,8 +3424,7 @@ by(simp add: upto.simps)
 lemma upto_Nil[simp]: "[i..j] = [] \<longleftrightarrow> j < i"
 by (simp add: upto.simps)
 
-lemma upto_Nil2[simp]: "[] = [i..j] \<longleftrightarrow> j < i"
-by (simp add: upto.simps)
+lemmas upto_Nil2[simp] = upto_Nil[THEN eq_iff_swap]
 
 lemma upto_rec1: "i \<le> j \<Longrightarrow> [i..j] = i#[i+1..j]"
 by(simp add: upto.simps)
@@ -3601,8 +3590,7 @@ by (metis distinct_remdups finite_list set_remdups)
 lemma remdups_eq_nil_iff [simp]: "(remdups x = []) = (x = [])"
 by (induct x, auto)
 
-lemma remdups_eq_nil_right_iff [simp]: "([] = remdups x) = (x = [])"
-by (induct x, auto)
+lemmas remdups_eq_nil_right_iff [simp] = remdups_eq_nil_iff[THEN eq_iff_swap]
 
 lemma length_remdups_leq[iff]: "length(remdups xs) \<le> length xs"
 by (induct xs) auto
@@ -4546,8 +4534,7 @@ lemma concat_replicate_trivial[simp]:
 lemma replicate_empty[simp]: "(replicate n x = []) \<longleftrightarrow> n=0"
 by (induct n) auto
 
-lemma empty_replicate[simp]: "([] = replicate n x) \<longleftrightarrow> n=0"
-by (induct n) auto
+lemmas empty_replicate[simp] = replicate_empty[THEN eq_iff_swap]
 
 lemma replicate_eq_replicate[simp]:
   "(replicate m x = replicate n y) \<longleftrightarrow> (m=n \<and> (m\<noteq>0 \<longrightarrow> x=y))"
