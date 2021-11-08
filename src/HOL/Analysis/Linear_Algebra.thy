@@ -1143,6 +1143,15 @@ next
   finally show ?thesis .
 qed
 
+lemma dist_triangle_eq:
+  fixes x y z :: "'a::real_inner"
+  shows "dist x z = dist x y + dist y z \<longleftrightarrow>
+    norm (x - y) *\<^sub>R (y - z) = norm (y - z) *\<^sub>R (x - y)"
+proof -
+  have *: "x - y + (y - z) = x - z" by auto
+  show ?thesis unfolding dist_norm norm_triangle_eq[of "x - y" "y - z", unfolded *]
+    by (auto simp:norm_minus_commute)
+qed
 
 subsection \<open>Collinearity\<close>
 

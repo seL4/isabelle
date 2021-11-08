@@ -2398,6 +2398,9 @@ lemma closure_sum:
   by (intro closure_bounded_linear_image_subset bounded_linear_add
     bounded_linear_fst bounded_linear_snd)
 
+lemma fst_snd_linear: "linear (\<lambda>(x,y). x + y)"
+  unfolding linear_iff by (simp add: algebra_simps)
+
 lemma rel_interior_sum:
   fixes S T :: "'n::euclidean_space set"
   assumes "convex S"
