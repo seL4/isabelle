@@ -8,6 +8,8 @@ begin
 text \<open>An Eisbach implementation of the method @{method metric}.
   Slower than the Isabelle/ML implementation but arguably more readable.\<close>
 
+declare [[argo_timeout = 20]]
+
 method dist_refl_sym = simp only: simp_thms dist_commute dist_self
 
 method lin_real_arith uses thms = argo thms
