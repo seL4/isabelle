@@ -1678,6 +1678,9 @@ end;
 
 subsection \<open>Other simple lemmas and lemma duplicates\<close>
 
+lemma eq_iff_swap: "(x = y \<longleftrightarrow> P) \<Longrightarrow> (y = x \<longleftrightarrow> P)"
+by blast
+
 lemma all_cong1: "(\<And>x. P x = P' x) \<Longrightarrow> (\<forall>x. P x) = (\<forall>x. P' x)"
   by auto
 
