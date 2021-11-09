@@ -12,7 +12,7 @@ object Scala_Project
 {
   /* Maven project */
 
-  def java_version: String = "11"
+  def java_version: String = "15"
   def scala_version: String = scala.util.Properties.versionNumberString
 
   def maven_project(jars: List[Path]): String =
