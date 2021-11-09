@@ -1241,7 +1241,7 @@ using \<open>xs \<noteq> []\<close> proof (induct xs rule: rev_induct)
   qed
 qed simp
 
-lemma rev_eq_Cons_iff[simp]: "(rev xs = y#ys) = (xs = rev ys @ [y])"
+lemma rev_eq_Cons_iff[iff]: "(rev xs = y#ys) = (xs = rev ys @ [y])"
 by(rule rev_cases[of xs]) auto
 
 
@@ -2115,7 +2115,10 @@ lemma drop_all [simp]: "length xs \<le> n \<Longrightarrow> drop n xs = []"
 lemma take_all_iff [simp]: "take n xs = xs \<longleftrightarrow> length xs \<le> n"
 by (metis length_take min.order_iff take_all)
 
+(* Looks like a good simp rule but can cause looping;
+   too much interaction between take and length
 lemmas take_all_iff2[simp] = take_all_iff[THEN eq_iff_swap]
+*)
 
 lemma take_eq_Nil[simp]: "(take n xs = []) = (n = 0 \<or> xs = [])"
   by(induct xs arbitrary: n)(auto simp: take_Cons split:nat.split)
