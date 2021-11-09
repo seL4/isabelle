@@ -69,7 +69,7 @@ public class Build
         for (String p : Environment.getenv("ISABELLE_COMPONENTS").split(":", -1)) {
             if (!p.isEmpty()) {
                 Path dir = Path.of(Environment.platform_path(p));
-                if (Files.exists(dir.resolve(COMPONENT_BUILD_PROPS))) {
+                if (Files.isRegularFile(dir.resolve(COMPONENT_BUILD_PROPS))) {
                     result.add(component_context(dir));
                 }
             }
@@ -151,11 +151,6 @@ public class Build
         {
             return _dir.resolve(Environment.expand_platform_path(file));
         }
-        public boolean exists(String file)
-            throws IOException, InterruptedException
-        {
-            return Files.exists(path(file));
-        }
 
         public List<Path> requirement_paths(String s)
             throws IOException, InterruptedException
@@ -190,12 +185,12 @@ public class Build
         {
             MessageDigest sha = MessageDigest.getInstance("SHA");
             for (Path file : paths) {
-                if (Files.exists(file)) {
+                if (Files.isRegularFile(file)) {
                     sha.update(Files.readAllBytes(file));
                 }
                 else {
                     throw new RuntimeException(
-                        error_message("Missing input file " + Library.quote(file.toString())));
+                        error_message("Bad input file " + Library.quote(file.toString())));
                 }
             }
             return sha_digest(sha, name);
@@ -338,7 +333,7 @@ public class Build
     public static List<String> get_services(Path jar_path)
         throws IOException
     {
-        if (Files.exists(jar_path)) {
+        if (Files.isRegularFile(jar_path)) {
             try (JarFile jar_file = new JarFile(jar_path.toFile()))
             {
                 JarEntry entry = jar_file.getJarEntry(SERVICES);
