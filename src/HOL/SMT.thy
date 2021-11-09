@@ -736,7 +736,7 @@ declare [[smt_certificates = ""]]
 
 text \<open>
 The option \<open>smt_read_only_certificates\<close> controls whether only
-stored certificates are should be used or invocation of an SMT solver
+stored certificates should be used or invocation of an SMT solver
 is allowed. When set to \<open>true\<close>, no SMT solver will ever be
 invoked and only the existing certificates found in the configured
 cache are used;  when set to \<open>false\<close> and there is no cached
