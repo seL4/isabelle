@@ -10,6 +10,7 @@ package isabelle
 import java.io.{File => JFile}
 
 import scala.annotation.tailrec
+import scala.collection.mutable
 import scala.util.matching.Regex
 
 
@@ -21,14 +22,16 @@ object Latex
 
   def output(latex_text: Text, file_pos: String = ""): String =
   {
-    def position(a: String, b: String): String = "%:%" + a + "=" + b + "%:%"
-
-    var positions: List[String] =
-      if (file_pos.isEmpty) Nil
-      else List(position(Markup.FILE, file_pos), "\\endinput")
-
     var line = 1
-    var result = List.empty[String]
+    val result = new mutable.ListBuffer[String]
+    val positions = new mutable.ListBuffer[String]
+
+    def position(a: String, b: String): String = "%:%" + a + "=" + b + "%:%\n"
+
+    if (file_pos.nonEmpty) {
+      positions += "\\endinput\n"
+      positions += position(Markup.FILE, file_pos)
+    }
 
     def traverse(body: XML.Body): Unit =
     {
@@ -38,18 +41,19 @@ object Latex
           if (markup.name == Markup.DOCUMENT_LATEX) {
             for { l <- Position.Line.unapply(markup.properties) if positions.nonEmpty } {
               val s = position(Value.Int(line), Value.Int(l))
-              if (positions.head != s) positions ::= s
+              if (positions.last != s) positions += s
             }
             traverse(body)
           }
         case XML.Text(s) =>
           line += s.count(_ == '\n')
-          result ::= s
+          result += s
       }
     }
     traverse(latex_text)
 
-    result.reverse.mkString + cat_lines(positions.reverse)
+    result ++= positions
+    result.mkString
   }
 
 
