@@ -1545,6 +1545,8 @@ by (induct xs) auto
 lemma filter_empty_conv: "(filter P xs = []) = (\<forall>x\<in>set xs. \<not> P x)"
 by (induct xs) simp_all
 
+lemmas empty_filter_conv = filter_empty_conv[THEN eq_iff_swap]
+
 lemma filter_id_conv: "(filter P xs = xs) = (\<forall>x\<in>set xs. P x)"
 proof (induct xs)
   case (Cons x xs)
