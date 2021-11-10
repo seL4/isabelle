@@ -68,12 +68,10 @@ object Mirabelle
 
       progress.echo("Running Mirabelle ...")
 
-      val structure = Sessions.load_structure(build_options, dirs = dirs, select_dirs = select_dirs)
       val store = Sessions.store(build_options)
 
       def session_setup(session_name: String, session: Session): Unit =
       {
-        val session_hierarchy = structure.hierarchy(session_name)
         session.all_messages +=
           Session.Consumer[Prover.Message]("mirabelle_export") {
             case msg: Prover.Protocol_Output =>
@@ -83,23 +81,19 @@ object Mirabelle
                     progress.echo(
                       "Mirabelle export " + quote(args.compound_name) + " (in " + session_name + ")")
                   }
-                  using(store.open_database_context())(db_context =>
-                  {
-                    for (entry <- db_context.read_export(session_hierarchy, args.theory_name, args.name)) {
-                      val prefix =
-                        Export.explode_name(args.name) match {
-                          case List("mirabelle", action, "finalize") => action + " finalize  "
-                          case List("mirabelle", action, "goal", goal_name, line, offset) =>
-                            action + " goal." + goal_name + " " + args.theory_name + " " +
-                              line + ":" + offset + "  "
-                          case _ => ""
-                        }
-                      val lines = Pretty.string_of(entry.uncompressed_yxml).trim()
-                      val body = Library.prefix_lines(prefix, lines) + "\n"
-                      val log_file = output_dir + Path.basic("mirabelle.log")
-                      File.append(log_file, body)
+                  val yxml = YXML.parse_body(UTF8.decode_permissive(msg.chunk), cache = store.cache)
+                  val lines = Pretty.string_of(yxml).trim()
+                  val prefix =
+                    Export.explode_name(args.name) match {
+                      case List("mirabelle", action, "finalize") => action + " finalize  "
+                      case List("mirabelle", action, "goal", goal_name, line, offset) =>
+                        action + " goal." + goal_name + " " + args.theory_name + " " +
+                          line + ":" + offset + "  "
+                      case _ => ""
                     }
-                  })
+                  val body = Library.prefix_lines(prefix, lines) + "\n"
+                  val log_file = output_dir + Path.basic("mirabelle.log")
+                  File.append(log_file, body)
                 case _ =>
               }
             case _ =>
