@@ -253,11 +253,10 @@ object Document_Build
 
     def prepare_directory(dir: Path, doc: Document_Variant): Directory =
     {
-      val doc_dir = dir + Path.basic(doc.name)
-      Isabelle_System.make_directory(doc_dir)
+      val doc_dir = Isabelle_System.make_directory(dir + Path.basic(doc.name))
 
 
-      /* sources */
+      /* actual sources: with SHA1 digest */
 
       isabelle_styles.foreach(Isabelle_System.copy_file(_, doc_dir))
       doc.isabelletags.write(doc_dir)
@@ -277,7 +276,7 @@ object Document_Build
       val sources = SHA1.digest_set(digests1 ::: digests2)
 
 
-      /* derived material (without SHA1 digest) */
+      /* derived material: without SHA1 digest */
 
       isabelle_logo.foreach(_.write(doc_dir))
 
