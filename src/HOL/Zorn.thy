@@ -4,10 +4,9 @@
     Author:      Christian Sternagel, JAIST
 
 Zorn's Lemma (ported from Larry Paulson's Zorn.thy in ZF).
-The well-ordering theorem.
 *)
 
-section \<open>Zorn's Lemma\<close>
+section \<open>Zorn's Lemma and the Well-ordering Theorem\<close>
 
 theory Zorn
   imports Order_Relation Hilbert_Choice
@@ -155,16 +154,8 @@ proof (induct arbitrary: Y)
   then show ?case
   proof
     assume "Y \<subseteq> X"
-    with * and \<open>Y \<in> \<C>\<close> have "X = Y \<or> suc Y \<subseteq> X" by blast
-    then show ?thesis
-    proof
-      assume "X = Y"
-      then show ?thesis by simp
-    next
-      assume "suc Y \<subseteq> X"
-      then have "suc Y \<subseteq> suc X" by (rule subset_suc)
-      then show ?thesis by simp
-    qed
+    with * and \<open>Y \<in> \<C>\<close> subset_suc show ?thesis
+      by fastforce
   next
     assume "suc X \<subseteq> Y"
     with \<open>Y \<subseteq> suc X\<close> show ?thesis by blast
@@ -186,20 +177,11 @@ next
     then show False
     proof
       assume "Y \<subseteq> x"
-      with * [OF \<open>Y \<in> \<C>\<close>] have "x = Y \<or> suc Y \<subseteq> x" by blast
-      then show False
-      proof
-        assume "x = Y"
-        with \<open>y \<in> x\<close> and \<open>y \<notin> Y\<close> show False by blast
-      next
-        assume "suc Y \<subseteq> x"
-        with \<open>x \<in> X\<close> have "suc Y \<subseteq> \<Union>X" by blast
-        with \<open>\<not> suc Y \<subseteq> \<Union>X\<close> show False by contradiction
-      qed
+      with * [OF \<open>Y \<in> \<C>\<close>] \<open>y \<in> x\<close> \<open>y \<notin> Y\<close> \<open>x \<in> X\<close> \<open>\<not> suc Y \<subseteq> \<Union>X\<close> show False
+        by blast
     next
       assume "suc x \<subseteq> Y"
-      moreover from suc_subset and \<open>y \<in> x\<close> have "y \<in> suc x" by blast
-      ultimately show False using \<open>y \<notin> Y\<close> by blast
+      with \<open>y \<notin> Y\<close> suc_subset \<open>y \<in> x\<close> show False by blast
     qed
   qed
 qed
@@ -874,11 +856,6 @@ proof -
   with 1 show ?thesis by auto
 qed
 
-(* Move this to Hilbert Choice and wfrec to Wellfounded*)
-
-lemma wfrec_def_adm: "f \<equiv> wfrec R F \<Longrightarrow> wf R \<Longrightarrow> adm_wf R F \<Longrightarrow> f = F f"
-  using wfrec_fixpoint by simp
-
 lemma dependent_wf_choice:
   fixes P :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool"
   assumes "wf R"
@@ -894,7 +871,7 @@ proof (intro exI allI)
     show "P f x (f x)"
     proof (subst (2) wfrec_def_adm[OF f_def \<open>wf R\<close>])
       show "adm_wf R (\<lambda>f x. SOME r. P f x r)"
-        by (auto simp add: adm_wf_def intro!: arg_cong[where f=Eps] ext adm)
+        by (auto simp: adm_wf_def intro!: arg_cong[where f=Eps] adm)
       show "P f x (Eps (P f x))"
         using P by (rule someI_ex) fact
     qed

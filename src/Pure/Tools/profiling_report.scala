@@ -17,7 +17,6 @@ object Profiling_Report
     progress: Progress = new Progress): Unit =
   {
     val store = Sessions.store(options)
-    val resources = Resources.empty
 
     using(store.open_database_context())(db_context =>
     {
@@ -34,7 +33,7 @@ object Profiling_Report
             (for {
               thy <- used_theories.iterator
               if theories.isEmpty || theories.contains(thy)
-              command <- Build_Job.read_theory(db_context, resources, List(session), thy).iterator
+              command <- Build_Job.read_theory(db_context, List(session), thy).iterator
               snapshot = Document.State.init.snippet(command)
               (Protocol.ML_Profiling(report), _) <- snapshot.messages.iterator
             } yield if (clean_name) report.clean_name else report).toList
