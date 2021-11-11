@@ -107,7 +107,7 @@ object Presentation
       new Entity_Context {
         private val seen_ranges: mutable.Set[Symbol.Range] = mutable.Set.empty
 
-        override def make_anchor(range: Symbol.Range, body: XML.Body): Option[XML.Elem] =
+        override def make_def(range: Symbol.Range, body: XML.Body): Option[XML.Elem] =
         {
           body match {
             case List(XML.Elem(Markup("span", List("id" -> _)), _)) => None
@@ -148,7 +148,7 @@ object Presentation
             entity <- thy.entity_by_kind_name.get((kind, name))
           } yield entity.kname
 
-        override def make_link(props: Properties.T, body: XML.Body): Option[XML.Elem] =
+        override def make_ref(props: Properties.T, body: XML.Body): Option[XML.Elem] =
         {
           (props, props, props, props, props) match {
             case (Markup.Kind(Markup.THEORY), Markup.Name(theory), Position.Def_File(thy_file), _, _) =>
@@ -179,8 +179,8 @@ object Presentation
 
   class Entity_Context
   {
-    def make_anchor(range: Symbol.Range, body: XML.Body): Option[XML.Elem] = None
-    def make_link(props: Properties.T, body: XML.Body): Option[XML.Elem] = None
+    def make_def(range: Symbol.Range, body: XML.Body): Option[XML.Elem] = None
+    def make_ref(props: Properties.T, body: XML.Body): Option[XML.Elem] = None
   }
 
 
@@ -219,7 +219,7 @@ object Presentation
         case XML.Elem(Markup(Markup.ENTITY, props @ Markup.Kind(kind)), body) =>
           val (body1, offset) = html_body(body, end_offset)
           if (elements.entity(kind)) {
-            entity_context.make_link(props, body1) match {
+            entity_context.make_ref(props, body1) match {
               case Some(link) => (List(link), offset)
               case None => (body1, offset)
             }
@@ -257,7 +257,7 @@ object Presentation
         case XML.Text(text) =>
           val offset = end_offset - Symbol.length(text)
           val body = HTML.text(Symbol.decode(text))
-          entity_context.make_anchor(Text.Range(offset, end_offset), body) match {
+          entity_context.make_def(Text.Range(offset, end_offset), body) match {
             case Some(body1) => (List(body1), offset)
             case None => (body, offset)
           }
