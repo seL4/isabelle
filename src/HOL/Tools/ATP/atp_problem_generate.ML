@@ -153,8 +153,10 @@ datatype type_level =
   Const_Types of ctr_optim |
   No_Types
 
+type syntax = {with_ite: bool}
+
 datatype type_enc =
-  Native of order * fool * polymorphism * type_level |
+  Native of order * fool * syntax * polymorphism * type_level |
   Guards of polymorphism * type_level |
   Tags of polymorphism * type_level
 
@@ -163,15 +165,17 @@ val tag_neg_vars = false
 
 fun is_type_enc_native (Native _) = true
   | is_type_enc_native _ = false
-fun is_type_enc_full_higher_order (Native (Higher_Order THF_Lambda_Free, _, _, _)) = false
-  | is_type_enc_full_higher_order (Native (Higher_Order _, _, _, _)) = true
+fun is_type_enc_full_higher_order (Native (Higher_Order THF_Lambda_Free, _, _, _, _)) = false
+  | is_type_enc_full_higher_order (Native (Higher_Order _, _, _, _, _)) = true
   | is_type_enc_full_higher_order _ = false
-fun is_type_enc_fool (Native (_, With_FOOL, _, _)) = true
+fun is_type_enc_fool (Native (_, With_FOOL, _, _, _)) = true
   | is_type_enc_fool _ = false
-fun is_type_enc_higher_order (Native (Higher_Order _, _, _, _)) = true
+fun is_type_enc_higher_order (Native (Higher_Order _, _, _, _, _)) = true
   | is_type_enc_higher_order _ = false
+fun has_type_enc_ite (Native (_, _, {with_ite, ...}, _, _)) = with_ite
+  | has_type_enc_ite _ = false
 
-fun polymorphism_of_type_enc (Native (_, _, poly, _)) = poly
+fun polymorphism_of_type_enc (Native (_, _, _, poly, _)) = poly
   | polymorphism_of_type_enc (Guards (poly, _)) = poly
   | polymorphism_of_type_enc (Tags (poly, _)) = poly
 
@@ -184,7 +188,7 @@ fun is_type_enc_polymorphic type_enc =
 fun is_type_enc_mangling type_enc =
   polymorphism_of_type_enc type_enc = Mangled_Monomorphic
 
-fun level_of_type_enc (Native (_, _,  _, level)) = level
+fun level_of_type_enc (Native (_, _, _, _, level)) = level
   | level_of_type_enc (Guards (_, level)) = level
   | level_of_type_enc (Tags (_, level)) = level
 
@@ -387,7 +391,7 @@ local
   fun default c = const_prefix ^ lookup_const c
 in
   fun make_fixed_const _ \<^const_name>\<open>HOL.eq\<close> = tptp_old_equal
-    | make_fixed_const (SOME (Native (Higher_Order THF_With_Choice, _, _, _))) c =
+    | make_fixed_const (SOME (Native (Higher_Order THF_With_Choice, _, _, _, _))) c =
       if c = choice_const then tptp_choice else default c
     | make_fixed_const _ c = default c
 end
@@ -680,28 +684,29 @@ fun type_enc_of_string strictness s =
           (case try (unsuffix "_fool") s of
             SOME s => (With_FOOL, s)
           | NONE => (Without_FOOL, s))
+        val syntax = {with_ite = (fool = With_FOOL)}
       in
         (case (core, poly) of
           ("native", SOME poly) =>
           (case (poly, level) of
             (Mangled_Monomorphic, _) =>
             if is_type_level_uniform level then
-              Native (First_Order, fool, Mangled_Monomorphic, level)
+              Native (First_Order, fool, syntax, Mangled_Monomorphic, level)
             else
               raise Same.SAME
           | (Raw_Monomorphic, _) => raise Same.SAME
-          | (poly, All_Types) => Native (First_Order, fool, poly, All_Types))
+          | (poly, All_Types) => Native (First_Order, fool, syntax, poly, All_Types))
         | ("native_higher", SOME poly) =>
           (case (poly, level) of
             (_, Nonmono_Types _) => raise Same.SAME
           | (_, Undercover_Types) => raise Same.SAME
           | (Mangled_Monomorphic, _) =>
             if is_type_level_uniform level then
-              Native (Higher_Order THF_With_Choice, fool, Mangled_Monomorphic, level)
+              Native (Higher_Order THF_With_Choice, fool, syntax, Mangled_Monomorphic, level)
             else
               raise Same.SAME
            | (poly as Raw_Polymorphic _, All_Types) =>
-             Native (Higher_Order THF_With_Choice, fool, poly, All_Types)
+             Native (Higher_Order THF_With_Choice, fool, syntax, poly, All_Types)
            | _ => raise Same.SAME))
       end
 
@@ -753,19 +758,22 @@ fun adjust_fool Without_FOOL _ = Without_FOOL
 fun no_type_classes Type_Class_Polymorphic = Raw_Polymorphic With_Phantom_Type_Vars
   | no_type_classes poly = poly
 
-fun adjust_type_enc (THF (fool, Polymorphic, hologic)) (Native (order, fool', poly, level)) =
-    Native (adjust_hologic hologic order, adjust_fool fool fool', no_type_classes poly, level)
-  | adjust_type_enc (THF (fool, Monomorphic, hologic)) (Native (order, fool', _, level)) =
-    Native (adjust_hologic hologic order, adjust_fool fool fool', Mangled_Monomorphic, level)
-  | adjust_type_enc (TFF (fool, Monomorphic)) (Native (_, fool', _, level)) =
-    Native (First_Order, adjust_fool fool fool', Mangled_Monomorphic, level)
-  | adjust_type_enc (DFG Polymorphic) (Native (_, _, poly, level)) =
-    Native (First_Order, Without_FOOL, poly, level)
-  | adjust_type_enc (DFG Monomorphic) (Native (_, _, _, level)) =
-    Native (First_Order, Without_FOOL, Mangled_Monomorphic, level)
-  | adjust_type_enc (TFF (fool, _)) (Native (_, fool', poly, level)) =
-    Native (First_Order, adjust_fool fool fool', no_type_classes poly, level)
-  | adjust_type_enc format (Native (_, _, poly, level)) =
+fun adjust_type_enc (THF (fool, Polymorphic, hologic))
+      (Native (order, fool', syntax, poly, level)) =
+    Native (adjust_hologic hologic order, adjust_fool fool fool', syntax, no_type_classes poly,
+      level)
+  | adjust_type_enc (THF (fool, Monomorphic, hologic)) (Native (order, fool', syntax, _, level)) =
+    Native (adjust_hologic hologic order, adjust_fool fool fool', syntax, Mangled_Monomorphic,
+      level)
+  | adjust_type_enc (TFF (fool, Monomorphic)) (Native (_, fool', syntax, _, level)) =
+    Native (First_Order, adjust_fool fool fool', syntax, Mangled_Monomorphic, level)
+  | adjust_type_enc (DFG Polymorphic) (Native (_, _, syntax, poly, level)) =
+    Native (First_Order, Without_FOOL, syntax, poly, level)
+  | adjust_type_enc (DFG Monomorphic) (Native (_, _, syntax, _, level)) =
+    Native (First_Order, Without_FOOL, syntax, Mangled_Monomorphic, level)
+  | adjust_type_enc (TFF (fool, _)) (Native (_, fool', syntax, poly, level)) =
+    Native (First_Order, adjust_fool fool fool', syntax, no_type_classes poly, level)
+  | adjust_type_enc format (Native (_, _, _, poly, level)) =
     adjust_type_enc format (Guards (no_type_classes poly, level))
   | adjust_type_enc CNF_UEQ (type_enc as Guards stuff) =
     (if is_type_enc_sound type_enc then Tags else Guards) stuff
@@ -941,8 +949,8 @@ fun filter_type_args thy ctrss type_enc s ary T_args =
       T_args
     else
       (case type_enc of
-        Native (_, _, Raw_Polymorphic _, _) => T_args
-      | Native (_, _, Type_Class_Polymorphic, _) => T_args
+        Native (_, _, _, Raw_Polymorphic _, _) => T_args
+      | Native (_, _, _, Type_Class_Polymorphic, _) => T_args
       | _ =>
         let
           fun gen_type_args _ _ [] = []
@@ -1078,7 +1086,7 @@ fun class_atom type_enc (cl, T) =
     val tm_args =
       tm_args @
       (case type_enc of
-        Native (_, _, Raw_Polymorphic Without_Phantom_Type_Vars, _) =>
+        Native (_, _, _, Raw_Polymorphic Without_Phantom_Type_Vars, _) =>
         [ATerm ((TYPE_name, ty_args), [])]
       | _ => [])
   in AAtom (ATerm ((cl, ty_args), tm_args)) end
@@ -1206,6 +1214,7 @@ fun eta_expand_quantifier_body (tm as IAbs _) = tm
 fun introduce_builtins_and_proxies_in_iterm type_enc =
   let
     val is_fool = is_type_enc_fool type_enc
+    val has_ite = has_type_enc_ite type_enc
     fun tweak_ho_quant ho_quant (T as Type (_, [p_T as Type (_, [x_T, _]), _])) [] =
         (* Eta-expand "!!" and "??", to work around LEO-II, Leo-III, and Satallax parser
            limitations. This works in conjunction with special code in "ATP_Problem" that uses the
@@ -1259,7 +1268,7 @@ fun introduce_builtins_and_proxies_in_iterm type_enc =
         end
       | intro top_level args (IConst (name as (s, _), T, T_args)) =
         let val argc = length args in
-          if is_fool andalso s = "c_If" andalso
+          if has_ite andalso s = "c_If" andalso
               (argc = 3 orelse is_type_enc_higher_order type_enc) then
             IConst (`I tptp_ite, T, [])
           else if is_fool andalso s = "c_Let" andalso argc = 2 then
@@ -1873,10 +1882,10 @@ fun bound_tvars type_enc sorts Ts =
        |> class_membs_of_types type_enc add_sorts_on_tvar
        |> map (class_atom type_enc)))
     #> (case type_enc of
-         Native (_, _, Type_Class_Polymorphic, _) =>
+         Native (_, _, _, Type_Class_Polymorphic, _) =>
          mk_atyquant AForall (map (fn TVar (z as (_, S)) =>
            (AType ((tvar_name z, []), []), map (`make_class) (normalize_classes S) )) Ts)
-       | Native (_, _, Raw_Polymorphic _, _) =>
+       | Native (_, _, _, Raw_Polymorphic _, _) =>
          mk_atyquant AForall (map (fn TVar (z as _) => (AType ((tvar_name z, []), []), [])) Ts)
        | _ => mk_aquant AForall (map (fn TVar z => (tvar_name z, NONE)) Ts)))
 
@@ -1918,28 +1927,36 @@ fun add_helper_facts_of_sym ctxt format type_enc lam_trans completish (s, {types
           end
         else
           specialize_type thy (invert_const unmangled_s, T) t
-      fun dub_and_inst needs_sound ((status, t), j) =
+      fun dub_and_inst needs_sound (j, (status, t)) =
         (if should_specialize_helper type_enc t then
            map_filter (try (specialize_helper t)) types
          else
            [t])
         |> tag_list 1
         |> map (fn (k, t) => ((dub needs_sound j k, (Global, status)), t))
-      val make_facts = map_filter (make_fact ctxt format type_enc false)
+      fun make_facts type_enc = map_filter (make_fact ctxt format type_enc false)
       val sound = is_type_enc_sound type_enc
       val could_specialize = could_specialize_helpers type_enc
       val with_combs = lam_trans <> opaque_combsN
     in
       fold (fn ((helper_s, needs_sound), ths) =>
-               if (needs_sound andalso not sound) orelse
-                  (helper_s <> unmangled_s andalso
-                   (completish < 3 orelse could_specialize)) then
-                 I
-               else
-                 ths ~~ (1 upto length ths)
-                 |> maps (dub_and_inst needs_sound o apfst (apsnd Thm.prop_of))
-                 |> make_facts
-                 |> union (op = o apply2 #iformula))
+        let
+          fun map_syntax_of_type_enc f (Native (order, fool, syntax, polymorphism, type_level)) =
+            Native (order, fool, f syntax, polymorphism, type_level)
+            | map_syntax_of_type_enc _ type_enc = type_enc
+          val remove_ite_syntax = map_syntax_of_type_enc (K {with_ite = false})
+        in
+          if (needs_sound andalso not sound) orelse
+             (helper_s <> unmangled_s andalso
+             (completish < 3 orelse could_specialize)) then
+            I
+          else
+            ths
+            |> map_index (apfst (curry op+ 1))
+            |> maps (dub_and_inst needs_sound o apsnd (apsnd Thm.prop_of))
+            |> make_facts ((helper_s = "If" ? remove_ite_syntax) type_enc)
+            |> union (op = o apply2 #iformula)
+        end)
            ((if completish >= 3 then completish_helper_table else helper_table) with_combs)
     end
   | NONE => I)
@@ -2297,7 +2314,7 @@ fun decl_line_of_class phantoms s =
 
 fun decl_lines_of_classes type_enc =
   (case type_enc of
-    Native (_, _, Raw_Polymorphic phantoms, _) => map (decl_line_of_class phantoms)
+    Native (_, _, _, Raw_Polymorphic phantoms, _) => map (decl_line_of_class phantoms)
   | _ => K [])
 
 fun sym_decl_table_of_facts thy type_enc sym_tab (conjs, facts, extra_tms) =
@@ -2359,7 +2376,7 @@ fun sym_decl_table_of_facts thy type_enc sym_tab (conjs, facts, extra_tms) =
        ? (fold (fold add_fact_syms) [conjs, facts]
           #> fold add_iterm_syms extra_tms
           #> (case type_enc of
-                Native (_, _, Raw_Polymorphic phantoms, _) =>
+                Native (_, _, _, Raw_Polymorphic phantoms, _) =>
                 phantoms = Without_Phantom_Type_Vars ? add_TYPE_const ()
               | Native _ => I
               | _ => fold add_undefined_const (var_types ())))
