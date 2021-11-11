@@ -32,7 +32,8 @@ sig
      gen_prec : bool,
      gen_simp : bool}
 
-  datatype fool = Without_FOOL | With_FOOL
+  type syntax = {with_ite : bool, with_let : bool}
+  datatype fool = Without_FOOL | With_FOOL of syntax
   datatype polymorphism = Monomorphic | Polymorphic
   datatype thf_flavor = THF_Lambda_Free | THF_Without_Choice | THF_With_Choice
 
@@ -40,8 +41,8 @@ sig
     CNF |
     CNF_UEQ |
     FOF |
-    TFF of fool * polymorphism |
-    THF of fool * polymorphism * thf_flavor |
+    TFF of polymorphism * fool |
+    THF of polymorphism * syntax * thf_flavor |
     DFG of polymorphism
 
   datatype atp_formula_role =
@@ -196,7 +197,9 @@ type term_order =
    gen_prec : bool,
    gen_simp : bool}
 
-datatype fool = Without_FOOL | With_FOOL
+
+type syntax = {with_ite : bool, with_let : bool}
+datatype fool = Without_FOOL | With_FOOL of syntax
 datatype polymorphism = Monomorphic | Polymorphic
 datatype thf_flavor = THF_Lambda_Free | THF_Without_Choice | THF_With_Choice
 
@@ -204,8 +207,8 @@ datatype atp_format =
   CNF |
   CNF_UEQ |
   FOF |
-  TFF of fool * polymorphism |
-  THF of fool * polymorphism * thf_flavor |
+  TFF of polymorphism * fool |
+  THF of polymorphism * syntax * thf_flavor |
   DFG of polymorphism
 
 datatype atp_formula_role =
@@ -395,8 +398,8 @@ fun is_format_typed (TFF _) = true
   | is_format_typed (DFG _) = true
   | is_format_typed _ = false
 
-fun is_format_with_fool (THF (With_FOOL, _, _)) = true
-  | is_format_with_fool (TFF (With_FOOL, _)) = true
+fun is_format_with_fool (THF _) = true
+  | is_format_with_fool (TFF (_, With_FOOL _)) = true
   | is_format_with_fool _ = false
 
 fun tptp_string_of_role Axiom = "axiom"

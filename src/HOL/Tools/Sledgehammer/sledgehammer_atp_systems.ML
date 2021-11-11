@@ -67,6 +67,13 @@ open ATP_Problem_Generate
 
 (* ATP configuration *)
 
+val TF0 = TFF (Monomorphic, Without_FOOL)
+val TF1 = TFF (Polymorphic, Without_FOOL)
+val TX0 = TFF (Monomorphic, With_FOOL {with_ite = true, with_let = true})
+val TX1 = TFF (Polymorphic, With_FOOL {with_ite = true, with_let = true})
+val TH0 = THF (Monomorphic, {with_ite = true, with_let = true}, THF_With_Choice)
+val TH1 = THF (Monomorphic, {with_ite = true, with_let = true}, THF_With_Choice)
+
 val default_max_mono_iters = 3 (* FUDGE *)
 val default_max_new_mono_instances = 100 (* FUDGE *)
 
@@ -160,7 +167,6 @@ val xsimpN = "_simp" (* SPASS-specific *)
 val term_order =
   Attrib.setup_config_string \<^binding>\<open>atp_term_order\<close> (K smartN)
 
-
 (* agsyHOL *)
 
 val agsyhol_config : atp_config =
@@ -172,7 +178,7 @@ val agsyhol_config : atp_config =
    prem_role = Hypothesis,
    best_slices =
      (* FUDGE *)
-     K [(1.0, (((60, ""), THF (Without_FOOL, Monomorphic, THF_Without_Choice), "mono_native_higher", keep_lamsN, false), ""))],
+     K [(1.0, (((60, ""), THF (Monomorphic, {with_ite = false, with_let = false}, THF_Without_Choice), "mono_native_higher", keep_lamsN, false), ""))],
    best_max_mono_iters = default_max_mono_iters - 1 (* FUDGE *),
    best_max_new_mono_instances = default_max_new_mono_instances}
 
@@ -194,7 +200,7 @@ val alt_ergo_config : atp_config =
    prem_role = Hypothesis,
    best_slices = fn _ =>
      (* FUDGE *)
-     [(1.0, (((100, ""), TFF (Without_FOOL, Polymorphic), "poly_native", liftingN, false), ""))],
+     [(1.0, (((100, ""), TF1, "poly_native", liftingN, false), ""))],
    best_max_mono_iters = default_max_mono_iters,
    best_max_new_mono_instances = default_max_new_mono_instances}
 
@@ -294,11 +300,11 @@ val e_config : atp_config =
        val heuristic = Config.get ctxt e_selection_heuristic
        val (format, enc, main_lam_trans) =
          if string_ord (getenv "E_VERSION", "2.7") <> LESS then
-           (THF (With_FOOL, Monomorphic, THF_Without_Choice), "mono_native_higher_fool", keep_lamsN)
+           (THF (Monomorphic, {with_ite = true, with_let = false}, THF_Without_Choice), "mono_native_higher_ite", keep_lamsN)
          else if string_ord (getenv "E_VERSION", "2.6") <> LESS then
-           (THF (Without_FOOL, Monomorphic, THF_Without_Choice), "mono_native_higher", keep_lamsN)
+           (THF (Monomorphic, {with_ite = true, with_let = false}, THF_Without_Choice), "mono_native_higher", keep_lamsN)
          else
-           (THF (Without_FOOL, Monomorphic, THF_Lambda_Free), "mono_native_higher", combsN)
+           (THF (Monomorphic, {with_ite = false, with_let = false}, THF_Lambda_Free), "mono_native_higher", combsN)
      in
        (* FUDGE *)
        if heuristic = e_smartN then
@@ -357,7 +363,7 @@ val leo2_config : atp_config =
    prem_role = Hypothesis,
    best_slices =
      (* FUDGE *)
-     K [(1.0, (((40, ""), THF (Without_FOOL, Monomorphic, THF_Without_Choice), "mono_native_higher", keep_lamsN, false), ""))],
+     K [(1.0, (((40, ""), THF (Monomorphic, {with_ite = false, with_let = false}, THF_Without_Choice), "mono_native_higher", keep_lamsN, false), ""))],
    best_max_mono_iters = default_max_mono_iters - 1 (* FUDGE *),
    best_max_new_mono_instances = default_max_new_mono_instances}
 
@@ -378,7 +384,7 @@ val leo3_config : atp_config =
    prem_role = Hypothesis,
    best_slices =
      (* FUDGE *)
-     K [(1.0, (((150, ""), THF (Without_FOOL, Polymorphic, THF_Without_Choice), "mono_native_higher", keep_lamsN, false), ""))],
+     K [(1.0, (((150, ""), THF (Polymorphic, {with_ite = true, with_let = true}, THF_Without_Choice), "mono_native_higher_ite_let", keep_lamsN, false), ""))],
    best_max_mono_iters = default_max_mono_iters - 1 (* FUDGE *),
    best_max_new_mono_instances = default_max_new_mono_instances}
 
@@ -401,7 +407,7 @@ val satallax_config : atp_config =
    prem_role = Hypothesis,
    best_slices =
      (* FUDGE *)
-     K [(1.0, (((150, ""), THF (Without_FOOL, Monomorphic, THF_Without_Choice), "mono_native_higher", keep_lamsN, false), ""))],
+     K [(1.0, (((150, ""), THF (Monomorphic, {with_ite = false, with_let = false}, THF_Without_Choice), "mono_native_higher", keep_lamsN, false), ""))],
    best_max_mono_iters = default_max_mono_iters - 1 (* FUDGE *),
    best_max_new_mono_instances = default_max_new_mono_instances}
 
@@ -465,35 +471,31 @@ val vampire_full_proof_options =
   " --proof_extra free --forced_options avatar=off:equality_proxy=off:general_splitting=off:inequality_splitting=0:naming=0"
 
 val vampire_config : atp_config =
-  let
-    val format = TFF (With_FOOL, Polymorphic)
-  in
-    {exec = (["VAMPIRE_HOME"], ["vampire"]),
-     arguments = fn _ => fn full_proofs => fn sos => fn timeout => fn problem => fn _ =>
-       [vampire_basic_options ^ (if full_proofs then " " ^ vampire_full_proof_options else "") ^
-         " -t " ^ string_of_int (to_secs 1 timeout) ^ " --input_file " ^ File.bash_path problem
-         |> sos = sosN ? prefix "--sos on "],
-     proof_delims =
-       [("=========== Refutation ==========",
-         "======= End of refutation =======")] @
-       tstp_proof_delims,
-     known_failures =
-       [(GaveUp, "UNPROVABLE"),
-        (GaveUp, "CANNOT PROVE"),
-        (Unprovable, "Satisfiability detected"),
-        (Unprovable, "Termination reason: Satisfiable"),
-        (Interrupted, "Aborted by signal SIGINT")] @
-       known_szs_status_failures,
-     prem_role = Hypothesis,
-     best_slices = fn ctxt =>
-       (* FUDGE *)
-       [(0.333, (((500, meshN), format, "mono_native_fool", combs_or_liftingN, false), sosN)),
-        (0.333, (((150, meshN), format, "poly_native_fool", combs_or_liftingN, false), sosN)),
-        (0.334, (((50, meshN), format, "mono_native_fool", combs_or_liftingN, false), no_sosN))]
-       |> Config.get ctxt force_sos ? (hd #> apfst (K 1.0) #> single),
-     best_max_mono_iters = default_max_mono_iters,
-     best_max_new_mono_instances = 2 * default_max_new_mono_instances (* FUDGE *)}
-  end
+  {exec = (["VAMPIRE_HOME"], ["vampire"]),
+   arguments = fn _ => fn full_proofs => fn sos => fn timeout => fn problem => fn _ =>
+     [vampire_basic_options ^ (if full_proofs then " " ^ vampire_full_proof_options else "") ^
+       " -t " ^ string_of_int (to_secs 1 timeout) ^ " --input_file " ^ File.bash_path problem
+       |> sos = sosN ? prefix "--sos on "],
+   proof_delims =
+     [("=========== Refutation ==========",
+       "======= End of refutation =======")] @
+     tstp_proof_delims,
+   known_failures =
+     [(GaveUp, "UNPROVABLE"),
+      (GaveUp, "CANNOT PROVE"),
+      (Unprovable, "Satisfiability detected"),
+      (Unprovable, "Termination reason: Satisfiable"),
+      (Interrupted, "Aborted by signal SIGINT")] @
+     known_szs_status_failures,
+   prem_role = Hypothesis,
+   best_slices = fn ctxt =>
+     (* FUDGE *)
+     [(0.333, (((500, meshN), TX1, "mono_native_fool_ite_let", combs_or_liftingN, false), sosN)),
+      (0.333, (((150, meshN), TX1, "poly_native_fool_ite_let", combs_or_liftingN, false), sosN)),
+      (0.334, (((50, meshN), TX1, "mono_native_fool_ite_let", combs_or_liftingN, false), no_sosN))]
+     |> Config.get ctxt force_sos ? (hd #> apfst (K 1.0) #> single),
+   best_max_mono_iters = default_max_mono_iters,
+   best_max_new_mono_instances = 2 * default_max_new_mono_instances (* FUDGE *)}
 
 val vampire = (vampireN, fn () => vampire_config)
 
@@ -501,24 +503,20 @@ val vampire = (vampireN, fn () => vampire_config)
 (* Z3 with TPTP syntax (half experimental, half legacy) *)
 
 val z3_tptp_config : atp_config =
-  let
-    val format = TFF (Without_FOOL, Monomorphic)
-  in
-    {exec = (["Z3_TPTP_HOME"], ["z3_tptp"]),
-     arguments = fn _ => fn _ => fn _ => fn timeout => fn problem => fn _ =>
-       ["-proof -t:" ^ string_of_int (to_secs 1 timeout) ^ " -file:" ^ File.bash_path problem],
-     proof_delims = [("SZS status Theorem", "")],
-     known_failures = known_szs_status_failures,
-     prem_role = Hypothesis,
-     best_slices =
-       (* FUDGE *)
-       K [(0.5, (((250, meshN), format, "mono_native", combsN, false), "")),
-          (0.25, (((125, mepoN), format, "mono_native", combsN, false), "")),
-          (0.125, (((62, mashN), format, "mono_native", combsN, false), "")),
-          (0.125, (((31, meshN), format, "mono_native", combsN, false), ""))],
-     best_max_mono_iters = default_max_mono_iters,
-     best_max_new_mono_instances = 2 * default_max_new_mono_instances (* FUDGE *)}
-  end
+  {exec = (["Z3_TPTP_HOME"], ["z3_tptp"]),
+   arguments = fn _ => fn _ => fn _ => fn timeout => fn problem => fn _ =>
+     ["-proof -t:" ^ string_of_int (to_secs 1 timeout) ^ " -file:" ^ File.bash_path problem],
+   proof_delims = [("SZS status Theorem", "")],
+   known_failures = known_szs_status_failures,
+   prem_role = Hypothesis,
+   best_slices =
+     (* FUDGE *)
+     K [(0.5, (((250, meshN), TF0, "mono_native", combsN, false), "")),
+        (0.25, (((125, mepoN), TF0, "mono_native", combsN, false), "")),
+        (0.125, (((62, mashN), TF0, "mono_native", combsN, false), "")),
+        (0.125, (((31, meshN), TF0, "mono_native", combsN, false), ""))],
+   best_max_mono_iters = default_max_mono_iters,
+   best_max_new_mono_instances = 2 * default_max_new_mono_instances (* FUDGE *)}
 
 val z3_tptp = (z3_tptpN, fn () => z3_tptp_config)
 
@@ -527,8 +525,9 @@ val z3_tptp = (z3_tptpN, fn () => z3_tptp_config)
 
 val zipperposition_config : atp_config =
   let
-    val format = THF (Without_FOOL, Polymorphic, THF_Without_Choice)
-    val enc = ((512, "meshN"), format, "mono_native_higher", keep_lamsN, false)
+    val format =
+      THF (Polymorphic, {with_ite = true, with_let = false}, THF_Without_Choice)
+    val enc = ((512, "meshN"), format, "mono_native_higher_fool_ite", keep_lamsN, false)
   in
     {exec = (["ZIPPERPOSITION_HOME"], ["zipperposition"]),
      arguments = fn _ => fn _ => fn extra_options => fn timeout => fn problem => fn _ =>
@@ -627,26 +626,26 @@ fun gen_remote_waldmeister name type_enc =
 
 val remote_agsyhol =
   remotify_atp agsyhol "agsyHOL" ["1.0", "1"]
-    (K (((60, ""), THF (Without_FOOL, Monomorphic, THF_Without_Choice), "mono_native_higher", keep_lamsN, false), "") (* FUDGE *))
+    (K (((60, ""), THF (Monomorphic, {with_ite = false, with_let = false}, THF_Without_Choice), "mono_native_higher", keep_lamsN, false), "") (* FUDGE *))
 val remote_alt_ergo =
   remotify_atp alt_ergo "Alt-Ergo" ["0.95.2"]
-    (K (((250, ""), TFF (Without_FOOL, Polymorphic), "poly_native", keep_lamsN, false), "") (* FUDGE *))
+    (K (((250, ""), TF1, "poly_native", keep_lamsN, false), "") (* FUDGE *))
 val remote_e =
   remotify_atp e "E" ["2.0", "1.9.1", "1.8"]
-    (K (((750, ""), TFF (Without_FOOL, Monomorphic), "mono_native", combsN, false), "") (* FUDGE *))
+    (K (((750, ""), TF0, "mono_native", combsN, false), "") (* FUDGE *))
 val remote_iprover =
   remotify_atp iprover "iProver" ["0.99"]
     (K (((150, ""), FOF, "mono_guards??", liftingN, false), "") (* FUDGE *))
 val remote_leo2 =
   remotify_atp leo2 "LEO-II" ["1.5.0", "1.4", "1.3", "1.2", "1"]
-    (K (((40, ""), THF (Without_FOOL, Monomorphic, THF_Without_Choice), "mono_native_higher", liftingN, false), "") (* FUDGE *))
+    (K (((40, ""), THF (Monomorphic, {with_ite = false, with_let = false}, THF_Without_Choice), "mono_native_higher", liftingN, false), "") (* FUDGE *))
 val remote_leo3 =
   remotify_atp leo3 "Leo-III" ["1.1"]
-    (K (((150, ""), THF (Without_FOOL, Polymorphic, THF_Without_Choice), "poly_native_higher", keep_lamsN, false), "") (* FUDGE *))
+    (K (((150, ""), THF (Polymorphic, {with_ite = false, with_let = false}, THF_Without_Choice), "poly_native_higher", keep_lamsN, false), "") (* FUDGE *))
 val remote_waldmeister = gen_remote_waldmeister waldmeisterN "raw_mono_tags??"
 val remote_zipperposition =
   remotify_atp zipperposition "Zipperpin" ["2.1", "2.0"]
-    (K (((512, ""), THF (Without_FOOL, Monomorphic, THF_Without_Choice), "mono_native_higher", keep_lamsN, false), "") (* FUDGE *))
+    (K (((512, ""), THF (Monomorphic, {with_ite = false, with_let = false}, THF_Without_Choice), "mono_native_higher", keep_lamsN, false), "") (* FUDGE *))
 
 
 (* Dummy prover *)
@@ -669,12 +668,11 @@ val dummy_fof_format = FOF
 val dummy_fof_config = dummy_config Hypothesis dummy_fof_format "mono_guards??" false
 val dummy_fof = (dummy_fofN, fn () => dummy_fof_config)
 
-val dummy_tfx_format = TFF (With_FOOL, Polymorphic)
-val dummy_tfx_config = dummy_config Hypothesis dummy_tfx_format "mono_native_fool" false
+val dummy_tfx_config = dummy_config Hypothesis TX1 "mono_native_fool_ite_let" false
 val dummy_tfx = (dummy_tfxN, fn () => dummy_tfx_config)
 
-val dummy_thf_format = THF (With_FOOL, Polymorphic, THF_With_Choice)
-val dummy_thf_config = dummy_config Hypothesis dummy_thf_format "mono_native_higher_fool" false
+val dummy_thf_config =
+  dummy_config Hypothesis TH1 "mono_native_higher_ite_let" false
 val dummy_thf = (dummy_thfN, fn () => dummy_thf_config)
 
 
