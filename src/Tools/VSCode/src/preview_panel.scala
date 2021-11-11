@@ -33,8 +33,7 @@ class Preview_Panel(resources: VSCode_Resources)
                 else {
                   val html_context = Presentation.html_context()
                   val document =
-                    Presentation.html_document(
-                      resources, snapshot, html_context, Presentation.elements2)
+                    Presentation.html_document(snapshot, html_context, Presentation.elements2)
                   channel.write(LSP.Preview_Response(file, column, document.title, document.content))
                   m - file
                 }

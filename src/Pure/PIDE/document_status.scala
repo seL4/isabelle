@@ -268,7 +268,7 @@ object Document_Status
       val update_iterator =
         for {
           name <- domain.getOrElse(nodes1.domain).iterator
-          if !resources.is_hidden(name) && !resources.session_base.loaded_theory(name)
+          if !Resources.hidden_node(name) && !resources.session_base.loaded_theory(name)
           st = Document_Status.Node_Status.make(state, version, name)
           if !rep.isDefinedAt(name) || rep(name) != st
         } yield (name -> st)

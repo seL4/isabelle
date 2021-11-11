@@ -269,7 +269,6 @@ object Presentation
   /* PIDE HTML document */
 
   def html_document(
-    resources: Resources,
     snapshot: Document.Snapshot,
     html_context: HTML_Context,
     elements: Elements,
@@ -285,7 +284,7 @@ object Presentation
       html_context.html_document(title, body, fonts_css)
     }
     else {
-      resources.html_document(snapshot) getOrElse {
+      Resources.html_document(snapshot) getOrElse {
         val title =
           if (name.is_theory) "Theory " + quote(name.theory_base_name)
           else "File " + Symbol.cartouche_decoded(name.path.file_name)

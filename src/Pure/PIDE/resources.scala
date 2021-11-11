@@ -19,6 +19,12 @@ object Resources
 
   def file_node(file: Path, dir: String = "", theory: String = ""): Document.Node.Name =
     empty.file_node(file, dir = dir, theory = theory)
+
+  def hidden_node(name: Document.Node.Name): Boolean =
+    !name.is_theory || name.theory == Sessions.root_name || File_Format.registry.is_theory(name)
+
+  def html_document(snapshot: Document.Snapshot): Option[Presentation.HTML_Document] =
+    File_Format.registry.get(snapshot.node_name).flatMap(_.html_document(snapshot))
 }
 
 class Resources(
@@ -62,12 +68,6 @@ class Resources(
 
   def make_theory_content(thy_name: Document.Node.Name): Option[String] =
     File_Format.registry.get_theory(thy_name).flatMap(_.make_theory_content(resources, thy_name))
-
-  def is_hidden(name: Document.Node.Name): Boolean =
-    !name.is_theory || name.theory == Sessions.root_name || File_Format.registry.is_theory(name)
-
-  def html_document(snapshot: Document.Snapshot): Option[Presentation.HTML_Document] =
-    File_Format.registry.get(snapshot.node_name).flatMap(_.html_document(snapshot))
 
 
   /* file-system operations */
