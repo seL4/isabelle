@@ -18,7 +18,6 @@ object Build_Job
 
   def read_theory(
     db_context: Sessions.Database_Context,
-    resources: Resources,
     session_hierarchy: List[String],
     theory: String,
     unicode_symbols: Boolean = false): Option[Command] =
@@ -33,7 +32,7 @@ object Build_Job
 
     (read(Export.DOCUMENT_ID).text, split_lines(read(Export.FILES).text)) match {
       case (Value.Long(id), thy_file :: blobs_files) =>
-        val node_name = resources.file_node(Path.explode(thy_file), theory = theory)
+        val node_name = Resources.file_node(Path.explode(thy_file), theory = theory)
 
         val results =
           Command.Results.make(
@@ -44,7 +43,7 @@ object Build_Job
           blobs_files.map(file =>
           {
             val path = Path.explode(file)
-            val name = resources.file_node(path)
+            val name = Resources.file_node(path)
             val src_path = File.relative_path(node_name.master_dir_path, path).getOrElse(path)
             Command.Blob(name, src_path, None)
           })
@@ -95,8 +94,7 @@ object Build_Job
     unicode_symbols: Boolean = false): Unit =
   {
     val store = Sessions.store(options)
-    val resources = Resources.empty
-    val session = new Session(options, resources)
+    val session = new Session(options, Resources.empty)
 
     using(store.open_database_context())(db_context =>
     {
@@ -118,8 +116,7 @@ object Build_Job
             if (theories.isEmpty) used_theories else used_theories.filter(theories.toSet)
           for (thy <- print_theories) {
             val thy_heading = "\nTheory " + quote(thy) + ":"
-            read_theory(db_context, resources, List(session_name), thy,
-              unicode_symbols = unicode_symbols)
+            read_theory(db_context, List(session_name), thy, unicode_symbols = unicode_symbols)
             match {
               case None => progress.echo(thy_heading + " MISSING")
               case Some(command) =>

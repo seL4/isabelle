@@ -50,9 +50,6 @@ object Presentation
 
     def source(body: XML.Body): XML.Tree = HTML.pre("source", body)
 
-    def physical_ref(range: Text.Range): String =
-      "offset_" + range.start + ".." + range.stop
-
     def contents(heading: String, items: List[XML.Body], css_class: String = "contents")
       : List[XML.Elem] =
     {
@@ -97,9 +94,92 @@ object Presentation
 
   type Entity = Export_Theory.Entity[Export_Theory.No_Content]
 
-  case class Entity_Context(node: Document.Node.Name)
+  object Entity_Context
   {
-    val seen_ranges: mutable.Set[Symbol.Range] = mutable.Set.empty
+    val empty: Entity_Context = new Entity_Context
+
+    def make(
+        session: String,
+        deps: Sessions.Deps,
+        node: Document.Node.Name,
+        theory_exports: Map[String, Export_Theory.Theory]): Entity_Context =
+      new Entity_Context {
+        private val seen_ranges: mutable.Set[Symbol.Range] = mutable.Set.empty
+
+        override def make_def(range: Symbol.Range, body: XML.Body): Option[XML.Elem] =
+        {
+          body match {
+            case List(XML.Elem(Markup("span", List("id" -> _)), _)) => None
+            case _ =>
+              Some {
+                val entities =
+                  theory_exports.get(node.theory).flatMap(_.entity_by_range.get(range))
+                    .getOrElse(Nil)
+                val body1 =
+                  if (seen_ranges.contains(range)) {
+                    HTML.entity_def(HTML.span(HTML.id(offset_id(range)), body))
+                  }
+                  else HTML.span(body)
+                entities.map(_.kname).foldLeft(body1) {
+                  case (elem, id) => HTML.entity_def(HTML.span(HTML.id(id), List(elem)))
+                }
+              }
+          }
+        }
+
+        private def offset_id(range: Text.Range): String =
+          "offset_" + range.start + ".." + range.stop
+
+        private def physical_ref(thy_name: String, props: Properties.T): Option[String] =
+        {
+          for {
+            range <- Position.Def_Range.unapply(props)
+            if thy_name == node.theory
+          } yield {
+            seen_ranges += range
+            offset_id(range)
+          }
+        }
+
+        private def logical_ref(thy_name: String, kind: String, name: String): Option[String] =
+          for {
+            thy <- theory_exports.get(thy_name)
+            entity <- thy.entity_by_kind_name.get((kind, name))
+          } yield entity.kname
+
+        override def make_ref(props: Properties.T, body: XML.Body): Option[XML.Elem] =
+        {
+          (props, props, props, props, props) match {
+            case (Markup.Kind(Markup.THEORY), Markup.Name(theory), Position.Def_File(thy_file), _, _) =>
+              val node_name = Resources.file_node(Path.explode(thy_file), theory = theory)
+              node_relative(deps, session, node_name).map(html_dir =>
+                HTML.link(html_dir + html_name(node_name), body))
+            case (Markup.Ref(_), Position.Def_File(def_file), Position.Def_Theory(def_theory),
+                Markup.Kind(kind), Markup.Name(name)) =>
+              val file_path = Path.explode(def_file)
+              val proper_thy_name =
+                proper_string(def_theory) orElse
+                  (if (File.eq(node.path, file_path)) Some(node.theory) else None)
+              for {
+                thy_name <- proper_thy_name
+                node_name = Resources.file_node(file_path, theory = thy_name)
+                html_dir <- node_relative(deps, session, node_name)
+                html_file = node_file(node_name)
+                html_ref <-
+                  logical_ref(thy_name, kind, name) orElse physical_ref(thy_name, props)
+              } yield {
+                HTML.entity_ref(HTML.link(html_dir + html_file + "#" + html_ref, body))
+              }
+            case _ => None
+          }
+        }
+      }
+  }
+
+  class Entity_Context
+  {
+    def make_def(range: Symbol.Range, body: XML.Body): Option[XML.Elem] = None
+    def make_ref(props: Properties.T, body: XML.Body): Option[XML.Elem] = None
   }
 
 
@@ -110,14 +190,10 @@ object Presentation
       HTML.descr.name)
 
   def make_html(
-    name: Document.Node.Name,
+    entity_context: Entity_Context,
     elements: Elements,
-    entity_anchor: (Entity_Context, Symbol.Range, XML.Body) => Option[XML.Tree],
-    entity_link: (Entity_Context, Properties.T, XML.Body) => Option[XML.Tree],
     xml: XML.Body): XML.Body =
   {
-    val context = Entity_Context(name)
-
     def html_div(html: XML.Body): Boolean =
       html exists {
         case XML.Elem(markup, body) => div_elements.contains(markup.name) || html_div(body)
@@ -142,7 +218,7 @@ object Presentation
         case XML.Elem(Markup(Markup.ENTITY, props @ Markup.Kind(kind)), body) =>
           val (body1, offset) = html_body(body, end_offset)
           if (elements.entity(kind)) {
-            entity_link(context, props, body1) match {
+            entity_context.make_ref(props, body1) match {
               case Some(link) => (List(link), offset)
               case None => (body1, offset)
             }
@@ -180,7 +256,7 @@ object Presentation
         case XML.Text(text) =>
           val offset = end_offset - Symbol.length(text)
           val body = HTML.text(Symbol.decode(text))
-          entity_anchor(context, Text.Range(offset, end_offset), body) match {
+          entity_context.make_def(Text.Range(offset, end_offset), body) match {
             case Some(body1) => (List(body1), offset)
             case None => (body, offset)
           }
@@ -193,7 +269,6 @@ object Presentation
   /* PIDE HTML document */
 
   def html_document(
-    resources: Resources,
     snapshot: Document.Snapshot,
     html_context: HTML_Context,
     elements: Elements,
@@ -209,12 +284,12 @@ object Presentation
       html_context.html_document(title, body, fonts_css)
     }
     else {
-      resources.html_document(snapshot) getOrElse {
+      Resources.html_document(snapshot) getOrElse {
         val title =
           if (name.is_theory) "Theory " + quote(name.theory_base_name)
           else "File " + Symbol.cartouche_decoded(name.path.file_name)
         val xml = snapshot.xml_markup(elements = elements.html)
-        val body = make_html(name, elements, (_, _, _) => None, (_, _, _) => None, xml)
+        val body = make_html(Entity_Context.empty, elements, xml)
         html_context.html_document(title, body, fonts_css)
       }
     }
@@ -345,7 +420,10 @@ object Presentation
   def html_name(name: Document.Node.Name): String = Path.explode(name.theory_base_name).html.implode
   def html_path(path: Path): String = (files_path + path.squash.html).implode
 
-  def session_relative(deps: Sessions.Deps, session0: String, session1: String): Option[String] =
+  private def node_file(node: Document.Node.Name): String =
+    if (node.node.endsWith(".thy")) html_name(node) else html_path(Path.explode(node.node))
+
+  private def session_relative(deps: Sessions.Deps, session0: String, session1: String): Option[String] =
   {
     for {
       info0 <- deps.sessions_structure.get(session0)
@@ -376,7 +454,6 @@ object Presentation
   }
 
   def session_html(
-    resources: Resources,
     session: String,
     deps: Sessions.Deps,
     db_context: Sessions.Database_Context,
@@ -455,6 +532,9 @@ object Presentation
         thy_name -> theory
       }).toMap
 
+    def entity_context(name: Document.Node.Name): Entity_Context =
+      Entity_Context.make(session, deps, name, theory_exports)
+
     val theories: List[XML.Body] =
     {
       sealed case class Seen_File(
@@ -464,73 +544,6 @@ object Presentation
           (src_path == src_path1 || file_name == file_name1) && thy_session == thy_session1
       }
       var seen_files = List.empty[Seen_File]
-
-      def node_file(node: Document.Node.Name): String =
-        if (node.node.endsWith(".thy")) html_name(node) else html_path(Path.explode(node.node))
-
-      def entity_anchor(
-        context: Entity_Context, range: Symbol.Range, body: XML.Body): Option[XML.Elem] =
-      {
-        body match {
-          case List(XML.Elem(Markup("span", List("id" -> _)), _)) => None
-          case _ =>
-            Some {
-              val entities =
-                theory_exports.get(context.node.theory).flatMap(_.entity_by_range.get(range))
-                  .getOrElse(Nil)
-              val body1 =
-                if (context.seen_ranges.contains(range)) {
-                  HTML.entity_def(HTML.span(HTML.id(html_context.physical_ref(range)), body))
-                }
-                else HTML.span(body)
-              entities.map(_.kname).foldLeft(body1) {
-                case (elem, id) => HTML.entity_def(HTML.span(HTML.id(id), List(elem)))
-              }
-            }
-        }
-      }
-
-      def logical_ref(thy_name: String, kind: String, name: String): Option[String] =
-        for {
-          thy <- theory_exports.get(thy_name)
-          entity <- thy.entity_by_kind_name.get((kind, name))
-        } yield entity.kname
-
-      def physical_ref(
-        context: Entity_Context, thy_name: String, props: Properties.T): Option[String] =
-      {
-        for {
-          range <- Position.Def_Range.unapply(props)
-          if thy_name == context.node.theory
-        } yield {
-          context.seen_ranges += range
-          html_context.physical_ref(range)
-        }
-      }
-
-      def entity_link(
-        context: Entity_Context, props: Properties.T, body: XML.Body): Option[XML.Elem] =
-      {
-        (props, props, props, props, props) match {
-          case (Markup.Kind(Markup.THEORY), Markup.Name(theory), Position.Def_File(thy_file), _, _) =>
-            val node_name = resources.file_node(Path.explode(thy_file), theory = theory)
-            node_relative(deps, session, node_name).map(html_dir =>
-              HTML.link(html_dir + html_name(node_name), body))
-          case (Markup.Ref(_), Position.Def_File(thy_file), Position.Def_Theory(def_theory),
-              Markup.Kind(kind), Markup.Name(name)) =>
-            val thy_name = if (def_theory.nonEmpty) def_theory else context.node.theory
-            val node_name = resources.file_node(Path.explode(thy_file), theory = thy_name)
-            for {
-              html_dir <- node_relative(deps, session, node_name)
-              html_file = node_file(node_name)
-              html_ref <-
-                logical_ref(thy_name, kind, name) orElse physical_ref(context, thy_name, props)
-            } yield {
-              HTML.entity_ref(HTML.link(html_dir + html_file + "#" + html_ref, body))
-            }
-          case _ => None
-        }
-      }
 
       sealed case class Theory(
         name: Document.Node.Name,
@@ -542,7 +555,7 @@ object Presentation
       {
         progress.expose_interrupt()
 
-        for (command <- Build_Job.read_theory(db_context, resources, hierarchy, name.theory))
+        for (command <- Build_Job.read_theory(db_context, hierarchy, name.theory))
         yield {
           if (verbose) progress.echo("Presenting theory " + name)
           val snapshot = Document.State.init.snippet(command)
@@ -561,12 +574,12 @@ object Presentation
               if (verbose) progress.echo("Presenting file " + src_path)
 
               (src_path, html_context.source(
-                make_html(name, thy_elements, entity_anchor, entity_link, xml)))
+                make_html(entity_context(name), thy_elements, xml)))
             }
 
           val html =
             html_context.source(
-              make_html(name, thy_elements, entity_anchor, entity_link,
+              make_html(entity_context(name), thy_elements,
                 snapshot.xml_markup(elements = thy_elements.html)))
 
           Theory(name, command, files_html, html)

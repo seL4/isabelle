@@ -327,7 +327,7 @@ object Document_Model
           val html_context = Presentation.html_context()
           val document =
             Presentation.html_document(
-              PIDE.resources, snapshot, html_context, Presentation.elements2,
+              snapshot, html_context, Presentation.elements2,
               plain_text = query.startsWith(plain_text_prefix),
               fonts_css = HTML.fonts_css_dir(http_root))
           HTTP.Response.html(document.content)

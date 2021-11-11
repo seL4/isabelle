@@ -420,7 +420,8 @@ object HTML
     base match {
       case None => ""
       case Some(base_dir) =>
-        File.path(dir.absolute.java_path.relativize(base_dir.absolute.java_path).toFile).implode
+        val path = File.path(dir.absolute.java_path.relativize(base_dir.absolute.java_path).toFile)
+        if (path.is_current) "" else path.implode + "/"
     }
 
   def isabelle_css: Path = Path.explode("~~/etc/isabelle.css")
