@@ -16,6 +16,9 @@ object Resources
 {
   def empty: Resources =
     new Resources(Sessions.Structure.empty, Sessions.Structure.empty.bootstrap)
+
+  def file_node(file: Path, dir: String = "", theory: String = ""): Document.Node.Name =
+    empty.file_node(file, dir = dir, theory = theory)
 }
 
 class Resources(

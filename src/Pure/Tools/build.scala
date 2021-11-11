@@ -506,7 +506,6 @@ object Build
           Presentation.update_chapter(presentation_dir, chapter, entries)
         }
 
-        val resources = Resources.empty
         val html_context = Presentation.html_context(cache = store.cache)
 
         using(store.open_database_context())(db_context =>
@@ -514,7 +513,7 @@ object Build
             progress.expose_interrupt()
             progress.echo("Presenting " + info.name + " ...")
             Presentation.session_html(
-              resources, info.name, deps, db_context, progress = progress,
+              info.name, deps, db_context, progress = progress,
               verbose = verbose, html_context = html_context,
               Presentation.elements1, presentation = presentation)
           })

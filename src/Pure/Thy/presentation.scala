@@ -99,7 +99,6 @@ object Presentation
     val empty: Entity_Context = new Entity_Context
 
     def make(
-        resources: Resources,
         session: String,
         deps: Sessions.Deps,
         node: Document.Node.Name,
@@ -152,7 +151,7 @@ object Presentation
         {
           (props, props, props, props, props) match {
             case (Markup.Kind(Markup.THEORY), Markup.Name(theory), Position.Def_File(thy_file), _, _) =>
-              val node_name = resources.file_node(Path.explode(thy_file), theory = theory)
+              val node_name = Resources.file_node(Path.explode(thy_file), theory = theory)
               node_relative(deps, session, node_name).map(html_dir =>
                 HTML.link(html_dir + html_name(node_name), body))
             case (Markup.Ref(_), Position.Def_File(def_file), Position.Def_Theory(def_theory),
@@ -163,7 +162,7 @@ object Presentation
                   (if (File.eq(node.path, file_path)) Some(node.theory) else None)
               for {
                 thy_name <- proper_thy_name
-                node_name = resources.file_node(file_path, theory = thy_name)
+                node_name = Resources.file_node(file_path, theory = thy_name)
                 html_dir <- node_relative(deps, session, node_name)
                 html_file = node_file(node_name)
                 html_ref <-
@@ -456,7 +455,6 @@ object Presentation
   }
 
   def session_html(
-    resources: Resources,
     session: String,
     deps: Sessions.Deps,
     db_context: Sessions.Database_Context,
@@ -536,7 +534,7 @@ object Presentation
       }).toMap
 
     def entity_context(name: Document.Node.Name): Entity_Context =
-      Entity_Context.make(resources, session, deps, name, theory_exports)
+      Entity_Context.make(session, deps, name, theory_exports)
 
     val theories: List[XML.Body] =
     {
@@ -558,7 +556,7 @@ object Presentation
       {
         progress.expose_interrupt()
 
-        for (command <- Build_Job.read_theory(db_context, resources, hierarchy, name.theory))
+        for (command <- Build_Job.read_theory(db_context, hierarchy, name.theory))
         yield {
           if (verbose) progress.echo("Presenting theory " + name)
           val snapshot = Document.State.init.snippet(command)
