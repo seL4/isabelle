@@ -1268,8 +1268,7 @@ fun introduce_builtins_and_proxies_in_iterm type_enc =
         end
       | intro top_level args (IConst (name as (s, _), T, T_args)) =
         let val argc = length args in
-          if has_ite andalso s = "c_If" andalso
-              (argc = 3 orelse is_type_enc_higher_order type_enc) then
+          if has_ite andalso s = "c_If" andalso argc >= 3 then
             IConst (`I tptp_ite, T, [])
           else if is_fool andalso s = "c_Let" andalso argc = 2 then
             IConst (`I tptp_let, T, [])
