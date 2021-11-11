@@ -84,6 +84,9 @@ proof (rule ext)
   finally show "wfrec R F x = F (wfrec R F) x" .
 qed
 
+lemma wfrec_def_adm: "f \<equiv> wfrec R F \<Longrightarrow> wf R \<Longrightarrow> adm_wf R F \<Longrightarrow> f = F f"
+  using wfrec_fixpoint by simp
+
 
 subsection \<open>Wellfoundedness of \<open>same_fst\<close>\<close>
 
