@@ -1,6 +1,7 @@
 (*  Title:      HOL/Tools/ATP/atp_problem.ML
     Author:     Jia Meng, Cambridge University Computer Laboratory and NICTA
     Author:     Jasmin Blanchette, TU Muenchen
+    Author:     Martin Desharnais, MPI-INF Saarbruecken
 
 Abstract representation of ATP problems and TPTP syntax.
 *)
@@ -484,9 +485,10 @@ fun tptp_string_of_term _ (ATerm ((s, []), [])) = s |> Symtab.defined tptp_built
     let
       val of_type = string_of_type format
       val of_term = tptp_string_of_term format
-      fun app () =
-        tptp_string_of_app format (s |> Symtab.defined tptp_builtins s ? parens)
-          (map (of_type #> is_format_higher_order format ? parens) tys @ map of_term ts)
+      fun app0 f types args =
+        tptp_string_of_app format (f |> Symtab.defined tptp_builtins f ? parens)
+          (map (of_type #> is_format_higher_order format ? parens) types @ map of_term args)
+      fun app () = app0 s tys ts
     in
       if s = tptp_empty_list then
         (* used for lists in the optional "source" field of a derivation *)
@@ -505,19 +507,28 @@ fun tptp_string_of_term _ (ATerm ((s, []), [])) = s |> Symtab.defined tptp_built
         | _ => app ())
       else if s = tptp_let then
         (case ts of
-          [t1, AAbs (((s', ty), tm), [])] =>
-            let
-              val declaration = s' ^ " : " ^ of_type ty
-              val definition = s' ^ " := " ^ of_term t1
-              val usage = of_term tm
-            in
-            s ^ "(" ^ declaration ^ ", " ^ definition ^ ", " ^ usage ^ ")"
-            end
-        | _ => error "$let is special syntax and must have exactly two arguments")
+          t1 :: AAbs (((s', ty), tm), []) :: ts =>
+          let
+            val declaration = s' ^ " : " ^ of_type ty
+            val definition = s' ^ " := " ^ of_term t1
+            val usage = of_term tm
+          in
+            if ts = [] orelse is_format_higher_order format then
+              app0 (s ^ "(" ^ declaration ^ ", " ^ definition ^ ", " ^ usage ^ ")") [] ts
+            else
+              error (tptp_let ^ " is special syntax and more than three arguments is only \
+                \supported in higher order")
+          end
+        | _ => error (tptp_let ^ " is special syntax and must have at least two arguments"))
       else if s = tptp_ite then
         (case ts of
-          [t1, t2, t3] => s ^ "(" ^ of_term t1 ^ ", " ^ of_term t2 ^ ", " ^ of_term t3 ^ ")"
-        | _ => error "$ite is special syntax and must have exactly three arguments")
+          t1 :: t2 :: t3 :: ts =>
+          if ts = [] orelse is_format_higher_order format then
+            app0 (s ^ "(" ^ of_term t1 ^ ", " ^ of_term t2 ^ ", " ^ of_term t3 ^ ")") [] ts
+          else
+            error (tptp_ite ^" is special syntax and more than three arguments is only supported \
+              \in higher order")
+        | _ => error "$ite is special syntax and must have at least three arguments")
       else if s = tptp_choice then
         (case ts of
           [AAbs (((s', ty), tm), args)] =>

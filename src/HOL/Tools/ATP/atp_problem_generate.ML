@@ -1270,7 +1270,7 @@ fun introduce_builtins_and_proxies_in_iterm type_enc =
         let val argc = length args in
           if has_ite andalso s = "c_If" andalso argc >= 3 then
             IConst (`I tptp_ite, T, [])
-          else if is_fool andalso s = "c_Let" andalso argc = 2 then
+          else if is_fool andalso s = "c_Let" andalso argc >= 2 then
             IConst (`I tptp_let, T, [])
           else
             (case proxify_const s of
