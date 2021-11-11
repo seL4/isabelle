@@ -516,11 +516,15 @@ object Presentation
             val node_name = resources.file_node(Path.explode(thy_file), theory = theory)
             node_relative(deps, session, node_name).map(html_dir =>
               HTML.link(html_dir + html_name(node_name), body))
-          case (Markup.Ref(_), Position.Def_File(thy_file), Position.Def_Theory(def_theory),
+          case (Markup.Ref(_), Position.Def_File(def_file), Position.Def_Theory(def_theory),
               Markup.Kind(kind), Markup.Name(name)) =>
-            val thy_name = if (def_theory.nonEmpty) def_theory else context.node.theory
-            val node_name = resources.file_node(Path.explode(thy_file), theory = thy_name)
+            val file_path = Path.explode(def_file)
+            val proper_thy_name =
+              proper_string(def_theory) orElse
+                (if (File.eq(context.node.path, file_path)) Some(context.node.theory) else None)
             for {
+              thy_name <- proper_thy_name
+              node_name = resources.file_node(file_path, theory = thy_name)
               html_dir <- node_relative(deps, session, node_name)
               html_file = node_file(node_name)
               html_ref <-
