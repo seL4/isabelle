@@ -96,6 +96,27 @@ object Presentation
 
   object Entity_Context
   {
+    object Theory_Ref
+    {
+      def unapply(props: Properties.T): Option[Document.Node.Name] =
+        (props, props, props) match {
+          case (Markup.Kind(Markup.THEORY), Markup.Name(theory), Position.Def_File(thy_file)) =>
+            Some(Resources.file_node(Path.explode(thy_file), theory = theory))
+          case _ => None
+        }
+    }
+
+    object Entity_Ref
+    {
+      def unapply(props: Properties.T): Option[(Path, String, String, String)] =
+        (props, props, props, props, props) match {
+          case (Markup.Ref(_), Position.Def_File(def_file), Position.Def_Theory(def_theory),
+              Markup.Kind(kind), Markup.Name(name)) =>
+            Some((Path.explode(def_file), def_theory, kind, name))
+          case _ => None
+        }
+    }
+
     val empty: Entity_Context = new Entity_Context
 
     def make(
@@ -149,14 +170,11 @@ object Presentation
 
         override def make_ref(props: Properties.T, body: XML.Body): Option[XML.Elem] =
         {
-          (props, props, props, props, props) match {
-            case (Markup.Kind(Markup.THEORY), Markup.Name(theory), Position.Def_File(thy_file), _, _) =>
-              val node_name = Resources.file_node(Path.explode(thy_file), theory = theory)
+          props match {
+            case Theory_Ref(node_name) =>
               node_relative(deps, session, node_name).map(html_dir =>
                 HTML.link(html_dir + html_name(node_name), body))
-            case (Markup.Ref(_), Position.Def_File(def_file), Position.Def_Theory(def_theory),
-                Markup.Kind(kind), Markup.Name(name)) =>
-              val file_path = Path.explode(def_file)
+            case Entity_Ref(file_path, def_theory, kind, name) =>
               val proper_thy_name =
                 proper_string(def_theory) orElse
                   (if (File.eq(node.path, file_path)) Some(node.theory) else None)
