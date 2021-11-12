@@ -75,6 +75,8 @@ formulas that make up the assumptions and conclusion.
 Theorems should be of the form \<open>\<lbrakk> A\<^sub>1; \<dots>; A\<^sub>n \<rbrakk> \<Longrightarrow> A\<close>,
 not \<open>A\<^sub>1 \<and> \<dots> \<and> A\<^sub>n \<longrightarrow> A\<close>. Both are logically equivalent
 but the first one works better when using the theorem in further proofs.
+
+The ASCII representation of \<open>\<lbrakk>\<close> and \<open>\<rbrakk>\<close> is \texttt{[|} and \texttt{|]}.
 \end{warn}
 
 \section{Sets}

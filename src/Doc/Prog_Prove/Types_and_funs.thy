@@ -171,7 +171,7 @@ customized induction rule:
 This customized induction rule can simplify inductive proofs. For example,
 \<close>
 
-lemma "div2(n) = n div 2"
+lemma "div2 n = n div 2"
 apply(induction n rule: div2.induct)
 
 txt\<open>(where the infix \<open>div\<close> is the predefined division operation)
@@ -328,7 +328,7 @@ txt\<open>The induction hypothesis in the induction step is now universally quan
 Thus the proof succeeds:
 \<close>
 
-apply auto
+apply(auto)
 done
 
 text\<open>
