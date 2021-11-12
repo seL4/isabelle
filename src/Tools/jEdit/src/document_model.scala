@@ -324,7 +324,7 @@ object Document_Model
         }
         yield {
           val snapshot = model.await_stable_snapshot()
-          val html_context = Presentation.html_context()
+          val html_context = new Presentation.HTML_Context
           val document =
             Presentation.html_document(
               snapshot, html_context, Presentation.elements2,

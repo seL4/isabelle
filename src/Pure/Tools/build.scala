@@ -506,7 +506,8 @@ object Build
           Presentation.update_chapter(presentation_dir, chapter, entries)
         }
 
-        val html_context = Presentation.html_context(cache = store.cache)
+        val html_context =
+          new Presentation.HTML_Context { override val cache: Term.Cache = store.cache }
 
         using(store.open_database_context())(db_context =>
           for (info <- presentation_sessions) {

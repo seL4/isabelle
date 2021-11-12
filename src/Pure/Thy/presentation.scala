@@ -20,11 +20,10 @@ object Presentation
 
   sealed case class HTML_Document(title: String, content: String)
 
-  def html_context(cache: Term.Cache = Term.Cache.make()): HTML_Context =
-    new HTML_Context(cache)
-
-  final class HTML_Context private[Presentation](val cache: Term.Cache)
+  class HTML_Context
   {
+    val cache: Term.Cache = Term.Cache.make()
+
     private val already_presented = Synchronized(Set.empty[String])
     def register_presented(nodes: List[Document.Node.Name]): List[Document.Node.Name] =
       already_presented.change_result(presented =>
