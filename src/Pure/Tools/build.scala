@@ -506,16 +506,22 @@ object Build
           Presentation.update_chapter(presentation_dir, chapter, entries)
         }
 
-        val html_context = Presentation.html_context(cache = store.cache)
-
         using(store.open_database_context())(db_context =>
-          for (info <- presentation_sessions) {
+          for (session <- presentation_sessions.map(_.name)) {
             progress.expose_interrupt()
-            progress.echo("Presenting " + info.name + " ...")
+            progress.echo("Presenting " + session + " ...")
+
+            val html_context =
+              new Presentation.HTML_Context {
+                override val cache: Term.Cache = store.cache
+                override def root_dir: Path = presentation_dir
+                override def theory_session(name: Document.Node.Name): Sessions.Info =
+                  deps.sessions_structure(deps(session).theory_qualifier(name))
+              }
             Presentation.session_html(
-              info.name, deps, db_context, progress = progress,
+              session, deps, db_context, progress = progress,
               verbose = verbose, html_context = html_context,
-              Presentation.elements1, presentation = presentation)
+              Presentation.elements1)
           })
       }
     }

@@ -3,7 +3,7 @@ Poly/ML for Isabelle
 
 This compilation of Poly/ML (https://www.polyml.org) is based on the
 source distribution from
-https://github.com/polyml/polyml/commit/5d4caa8f7148 (shortly before
+https://github.com/polyml/polyml/commit/cc80e2b43c38 (shortly before
 official version 5.9).
 
 The Isabelle repository provides an administrative tool "isabelle
@@ -55,4 +55,4 @@ will be placed in /usr/local).
 
 
         Makarius
-        07-Nov-2021
+        12-Nov-2021
