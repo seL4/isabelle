@@ -22,6 +22,8 @@ object Presentation
 
   class HTML_Context
   {
+    /* cached theory exports */
+
     val cache: Term.Cache = Term.Cache.make()
 
     private val already_presented = Synchronized(Set.empty[String])
@@ -43,6 +45,9 @@ object Presentation
         }
       })
     }
+
+
+    /* HTML content */
 
     def head(title: String, rest: XML.Body = Nil): XML.Tree =
       HTML.div("head", HTML.chapter(title) :: rest)
