@@ -56,12 +56,14 @@ object Presentation
       else List(HTML.div(css_class, List(HTML.section(heading), HTML.itemize(items))))
     }
 
+    val isabelle_css: String = File.read(HTML.isabelle_css)
+
     def html_document(title: String, body: XML.Body, fonts_css: String): HTML_Document =
     {
       val content =
         HTML.output_document(
           List(
-            HTML.style(fonts_css + "\n\n" + File.read(HTML.isabelle_css)),
+            HTML.style(fonts_css + "\n\n" + isabelle_css),
             HTML.title(title)),
           List(HTML.source(body)), css = "", structural = false)
       HTML_Document(title, content)
