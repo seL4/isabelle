@@ -324,7 +324,13 @@ object Document_Model
         }
         yield {
           val snapshot = model.await_stable_snapshot()
-          val html_context = new Presentation.HTML_Context
+          val html_context =
+            new Presentation.HTML_Context {
+              override def root_dir: Path = Path.current
+              override def theory_session(name: Document.Node.Name): Sessions.Info =
+                PIDE.resources.sessions_structure(
+                  PIDE.resources.session_base.theory_qualifier(name))
+            }
           val document =
             Presentation.html_document(
               snapshot, html_context, Presentation.elements2,

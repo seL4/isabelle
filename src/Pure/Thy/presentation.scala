@@ -20,8 +20,21 @@ object Presentation
 
   sealed case class HTML_Document(title: String, content: String)
 
-  class HTML_Context
+  abstract class HTML_Context
   {
+    /* directory structure */
+
+    def root_dir: Path
+    def theory_session(name: Document.Node.Name): Sessions.Info
+
+    def session_dir(info: Sessions.Info): Path =
+      root_dir + Path.explode(info.chapter_session)
+    def theory_path(name: Document.Node.Name): Path =
+      session_dir(theory_session(name)) + Path.explode(name.theory_base_name).html
+    def files_path(name: Document.Node.Name, path: Path): Path =
+      theory_path(name).dir + Path.explode("files") + path.squash.html
+
+
     /* cached theory exports */
 
     val cache: Term.Cache = Term.Cache.make()
@@ -437,13 +450,12 @@ object Presentation
 
   val session_graph_path = Path.explode("session_graph.pdf")
   val readme_path = Path.explode("README.html")
-  val files_path = Path.explode("files")
 
   def html_name(name: Document.Node.Name): String = Path.explode(name.theory_base_name).html.implode
-  def html_path(path: Path): String = (files_path + path.squash.html).implode
+  def files_path(src_path: Path): String = (Path.explode("files") + src_path.squash.html).implode
 
-  private def node_file(node: Document.Node.Name): String =
-    if (node.node.endsWith(".thy")) html_name(node) else html_path(Path.explode(node.node))
+  private def node_file(name: Document.Node.Name): String =
+    if (name.node.endsWith(".thy")) html_name(name) else files_path(name.path)
 
   private def session_relative(deps: Sessions.Deps, session0: String, session1: String): Option[String] =
   {
@@ -482,20 +494,14 @@ object Presentation
     progress: Progress = new Progress,
     verbose: Boolean = false,
     html_context: HTML_Context,
-    session_elements: Elements,
-    presentation: Context): Unit =
+    session_elements: Elements): Unit =
   {
     val hierarchy = deps.sessions_structure.hierarchy(session)
     val info = deps.sessions_structure(session)
     val options = info.options
     val base = deps(session)
 
-    def make_session_dir(name: String): Path =
-      Isabelle_System.make_directory(
-        presentation.dir(db_context.store, deps.sessions_structure(name)))
-
-    val session_dir = make_session_dir(session)
-    val presentation_dir = presentation.dir(db_context.store)
+    val session_dir = Isabelle_System.make_directory(html_context.session_dir(info))
 
     Bytes.write(session_dir + session_graph_path,
       graphview.Graph_File.make_pdf(options, base.session_graph_display))
@@ -560,10 +566,15 @@ object Presentation
     val theories: List[XML.Body] =
     {
       sealed case class Seen_File(
-        src_path: Path, file_name: String, thy_session: String, thy_name: Document.Node.Name)
+        src_path: Path, thy_name: Document.Node.Name, thy_session: String)
       {
-        def check(src_path1: Path, file_name1: String, thy_session1: String): Boolean =
-          (src_path == src_path1 || file_name == file_name1) && thy_session == thy_session1
+        val files_path: Path = html_context.files_path(thy_name, src_path)
+
+        def check(src_path1: Path, thy_name1: Document.Node.Name, thy_session1: String): Boolean =
+        {
+          val files_path1 = html_context.files_path(thy_name1, src_path1)
+          (src_path == src_path1 || files_path == files_path1) && thy_session == thy_session1
+        }
       }
       var seen_files = List.empty[Seen_File]
 
@@ -609,36 +620,34 @@ object Presentation
       }
 
       (for (thy <- Par_List.map(read_theory, present_theories).flatten) yield {
-        val thy_session = base.theory_qualifier(thy.name)
-        val thy_dir = make_session_dir(thy_session)
+        val thy_session = html_context.theory_session(thy.name)
+        val thy_dir = Isabelle_System.make_directory(html_context.session_dir(thy_session))
         val files =
           for { (src_path, file_html) <- thy.files_html }
           yield {
-            val file_name = html_path(src_path)
-
-            seen_files.find(_.check(src_path, file_name, thy_session)) match {
-              case None => seen_files ::= Seen_File(src_path, file_name, thy_session, thy.name)
+            seen_files.find(_.check(src_path, thy.name, thy_session.name)) match {
+              case None => seen_files ::= Seen_File(src_path, thy.name, thy_session.name)
               case Some(seen_file) =>
-                error("Incoherent use of file name " + src_path + " as " + quote(file_name) +
+                error("Incoherent use of file name " + src_path + " as " + files_path(src_path) +
                   " in theory " + seen_file.thy_name + " vs. " + thy.name)
             }
 
-            val file_path = thy_dir + Path.explode(file_name)
+            val file_path = html_context.files_path(thy.name, src_path)
             val file_title = "File " + Symbol.cartouche_decoded(src_path.implode_short)
             HTML.write_document(file_path.dir, file_path.file_name,
               List(HTML.title(file_title)), List(html_context.head(file_title), file_html),
-              base = Some(presentation_dir))
+              base = Some(html_context.root_dir))
 
-            List(HTML.link(file_name, HTML.text(file_title)))
+            List(HTML.link(files_path(src_path), HTML.text(file_title)))
           }
 
         val thy_title = "Theory " + thy.name.theory_base_name
 
         HTML.write_document(thy_dir, html_name(thy.name),
           List(HTML.title(thy_title)), List(html_context.head(thy_title), thy.html),
-          base = Some(presentation_dir))
+          base = Some(html_context.root_dir))
 
-        if (thy_session == session) {
+        if (thy_session.name == session) {
           Some(
             List(HTML.link(html_name(thy.name),
               HTML.text(thy.name.theory_base_name) :::
@@ -653,6 +662,6 @@ object Presentation
       List(HTML.title(title + Isabelle_System.isabelle_heading())),
       html_context.head(title, List(HTML.par(view_links))) ::
         html_context.contents("Theories", theories),
-      base = Some(presentation_dir))
+      base = Some(html_context.root_dir))
   }
 }
