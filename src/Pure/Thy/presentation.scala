@@ -108,10 +108,10 @@ object Presentation
 
     object Entity_Ref
     {
-      def unapply(props: Properties.T): Option[(Path, String, String, String)] =
-        (props, props, props, props, props) match {
-          case (Markup.Ref(_), Position.Def_File(def_file), Position.Def_Theory(def_theory),
-              Markup.Kind(kind), Markup.Name(name)) =>
+      def unapply(props: Properties.T): Option[(Path, Option[String], String, String)] =
+        (props, props, props, props) match {
+          case (Markup.Ref(_), Position.Def_File(def_file), Markup.Kind(kind), Markup.Name(name)) =>
+            val def_theory = Position.Def_Theory.unapply(props)
             Some((Path.explode(def_file), def_theory, kind, name))
           case _ => None
         }
@@ -175,11 +175,9 @@ object Presentation
               node_relative(deps, session, node_name).map(html_dir =>
                 HTML.link(html_dir + html_name(node_name), body))
             case Entity_Ref(file_path, def_theory, kind, name) =>
-              val proper_thy_name =
-                proper_string(def_theory) orElse
-                  (if (File.eq(node.path, file_path)) Some(node.theory) else None)
               for {
-                thy_name <- proper_thy_name
+                thy_name <-
+                  def_theory orElse (if (File.eq(node.path, file_path)) Some(node.theory) else None)
                 node_name = Resources.file_node(file_path, theory = thy_name)
                 html_dir <- node_relative(deps, session, node_name)
                 html_file = node_file(node_name)
