@@ -46,8 +46,10 @@ struct
 
 type text = XML.body;
 
-fun text ("", _) = []
-  | text (s, pos) = [XML.Elem (Position.markup pos Markup.document_latex, [XML.Text s])];
+fun text (s, pos) =
+  if s = "" then []
+  else if pos = Position.none then [XML.Text s]
+  else [XML.Elem (Position.markup pos Markup.document_latex, [XML.Text s])];
 
 fun string s = text (s, Position.none);
 
