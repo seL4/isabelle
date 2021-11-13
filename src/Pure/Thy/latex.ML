@@ -24,7 +24,6 @@ sig
   val begin_tag: string -> string
   val end_tag: string -> string
   val environment_text: string -> text -> text
-  val environment: string -> string -> string
   val isabelle_body: string -> text -> text
   val theory_entry: string -> string
   val index_escape: string -> string
@@ -208,12 +207,10 @@ fun end_tag tg = enclose_name "%\n\\endisatag" "\n" tg ^ enclose "{\\isafold" "}
 
 (* theory presentation *)
 
-fun environment_delim name =
- ("%\n\\begin{" ^ output_name name ^ "}%\n",
-  "%\n\\end{" ^ output_name name ^ "}");
-
-fun environment_text name = environment_delim name |-> enclose_text;
-fun environment name = environment_delim name |-> enclose;
+fun environment_text name =
+  enclose_text
+    ("%\n\\begin{" ^ output_name name ^ "}%\n")
+    ("%\n\\end{" ^ output_name name ^ "}");
 
 fun isabelle_body name =
   enclose_text
