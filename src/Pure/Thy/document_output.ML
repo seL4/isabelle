@@ -211,8 +211,8 @@ fun present_token ctxt tok =
 
 (* command spans *)
 
-type command = string * Position.T;   (*name, position*)
-type source = (token * (string * int)) list;        (*token, markup flag, meta-comment depth*)
+type command = string * Position.T;  (*name, position*)
+type source = (token * (string * int)) list;  (*token, markup flag, meta-comment depth*)
 
 datatype span = Span of command * (source * source * source * source) * bool;
 
