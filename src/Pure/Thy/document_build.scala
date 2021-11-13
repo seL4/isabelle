@@ -15,18 +15,25 @@ object Document_Build
   {
     def apply(path: Path, content: Bytes): Content = new Content_Bytes(path, content)
     def apply(path: Path, content: String): Content = new Content_String(path, content)
+    def apply(path: Path, content: XML.Body): Content_XML = new Content_XML(path, content)
   }
   trait Content
   {
+    def path: Path
     def write(dir: Path): Unit
   }
-  final class Content_Bytes private[Document_Build](path: Path, content: Bytes) extends Content
+  final class Content_Bytes private[Document_Build](val path: Path, content: Bytes) extends Content
   {
     def write(dir: Path): Unit = Bytes.write(dir + path, content)
   }
-  final class Content_String private[Document_Build](path: Path, content: String) extends Content
+  final class Content_String private[Document_Build](val path: Path, content: String) extends Content
   {
     def write(dir: Path): Unit = File.write(dir + path, content)
+  }
+  final class Content_XML private[Document_Build](val path: Path, content: XML.Body)
+  {
+    def output(out: XML.Body => String): Content_String =
+      new Content_String(path, out(content))
   }
 
   abstract class Document_Name
@@ -211,12 +218,11 @@ object Document_Build
     def session_theories: List[Document.Node.Name] = base.session_theories
     def document_theories: List[Document.Node.Name] = session_theories ::: base.document_theories
 
-    lazy val tex_files: List[Content] =
+    lazy val document_latex: List[Content_XML] =
       for (name <- document_theories)
       yield {
         val path = Path.basic(tex_name(name))
-        val xml = YXML.parse_body(get_export(name.theory, Export.DOCUMENT_LATEX).text)
-        val content = Latex.output(xml, file_pos = name.path.implode_symbolic)
+        val content = YXML.parse_body(get_export(name.theory, Export.DOCUMENT_LATEX).text)
         Content(path, content)
       }
 
@@ -251,7 +257,7 @@ object Document_Build
 
     /* document directory */
 
-    def prepare_directory(dir: Path, doc: Document_Variant): Directory =
+    def prepare_directory(dir: Path, doc: Document_Variant, latex_output: Latex.Output): Directory =
     {
       val doc_dir = Isabelle_System.make_directory(dir + Path.basic(doc.name))
 
@@ -266,7 +272,11 @@ object Document_Build
       }
 
       session_tex.write(doc_dir)
-      tex_files.foreach(_.write(doc_dir))
+
+      for (content <- document_latex) {
+        content.output(latex_output(_, file_pos = content.path.implode_symbolic))
+          .write(doc_dir)
+      }
 
       val root_name1 = "root_" + doc.name
       val root_name = if ((doc_dir + Path.explode(root_name1).tex).is_file) root_name1 else "root"
@@ -349,8 +359,9 @@ object Document_Build
 
   abstract class Bash_Engine(name: String) extends Engine(name)
   {
+    def latex_output: Latex.Output = new Latex.Output
     def prepare_directory(context: Context, dir: Path, doc: Document_Variant): Directory =
-      context.prepare_directory(dir, doc)
+      context.prepare_directory(dir, doc, latex_output)
 
     def use_pdflatex: Boolean = false
     def latex_script(context: Context, directory: Directory): String =

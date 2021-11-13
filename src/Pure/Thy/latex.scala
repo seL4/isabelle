@@ -20,40 +20,42 @@ object Latex
 
   type Text = XML.Body
 
-  def output(latex_text: Text, file_pos: String = ""): String =
+  def position(a: String, b: String): String = "%:%" + a + "=" + b + "%:%\n"
+
+  def init_position(file_pos: String): List[String] =
+    if (file_pos.isEmpty) Nil
+    else List("\\endinput\n", position(Markup.FILE, file_pos))
+
+  class Output
   {
-    var line = 1
-    val result = new mutable.ListBuffer[String]
-    val positions = new mutable.ListBuffer[String]
-
-    def position(a: String, b: String): String = "%:%" + a + "=" + b + "%:%\n"
-
-    if (file_pos.nonEmpty) {
-      positions += "\\endinput\n"
-      positions += position(Markup.FILE, file_pos)
-    }
-
-    def traverse(body: XML.Body): Unit =
+    def apply(latex_text: Text, file_pos: String = ""): String =
     {
-      body.foreach {
-        case XML.Wrapped_Elem(_, _, _) =>
-        case XML.Elem(markup, body) =>
-          if (markup.name == Markup.DOCUMENT_LATEX) {
-            for { l <- Position.Line.unapply(markup.properties) if positions.nonEmpty } {
-              val s = position(Value.Int(line), Value.Int(l))
-              if (positions.last != s) positions += s
-            }
-            traverse(body)
-          }
-        case XML.Text(s) =>
-          line += s.count(_ == '\n')
-          result += s
-      }
-    }
-    traverse(latex_text)
+      var line = 1
+      val result = new mutable.ListBuffer[String]
+      val positions = new mutable.ListBuffer[String] ++= init_position(file_pos)
 
-    result ++= positions
-    result.mkString
+      def traverse(body: XML.Body): Unit =
+      {
+        body.foreach {
+          case XML.Wrapped_Elem(_, _, _) =>
+          case XML.Elem(markup, body) =>
+            if (markup.name == Markup.DOCUMENT_LATEX) {
+              for { l <- Position.Line.unapply(markup.properties) if positions.nonEmpty } {
+                val s = position(Value.Int(line), Value.Int(l))
+                if (positions.last != s) positions += s
+              }
+              traverse(body)
+            }
+          case XML.Text(s) =>
+            line += s.count(_ == '\n')
+            result += s
+        }
+      }
+      traverse(latex_text)
+
+      result ++= positions
+      result.mkString
+    }
   }
 
 
