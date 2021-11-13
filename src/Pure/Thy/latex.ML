@@ -11,7 +11,6 @@ sig
   val string: string -> text
   val block: text -> XML.tree
   val enclose_text: string -> string -> text -> text
-  val latex_text: text -> text
   val output_text: text -> string
   val output_name: string -> string
   val output_ascii: string -> string
@@ -55,13 +54,14 @@ fun string s = text (s, Position.none);
 
 fun block body = XML.Elem (Markup.document_latex, body);
 
-fun latex_text text =
-  text |> maps
-    (fn XML.Elem ((name, _), body) =>
-          if name = Markup.document_latexN then latex_text body else []
-      | t => [t]);
-
-val output_text = XML.content_of o latex_text;
+val output_text =
+  let
+    fun document_latex text =
+      text |> maps
+        (fn XML.Elem ((name, _), body) =>
+              if name = Markup.document_latexN then document_latex body else []
+          | t => [t])
+  in XML.content_of o document_latex end;
 
 fun enclose_text bg en body = string bg @ body @ string en;
 
