@@ -12,7 +12,6 @@ sig
   val block: text -> XML.tree
   val output: text -> text
   val enclose_text: string -> string -> text -> text
-  val output_text: text -> string
   val output_name: string -> string
   val output_ascii: string -> string
   val output_ascii_breakable: string -> string -> string
@@ -27,7 +26,6 @@ sig
   val environment_text: string -> text -> text
   val isabelle_body: string -> text -> text
   val theory_entry: string -> string
-  val index_escape: string -> string
   type index_item = {text: text, like: string}
   type index_entry = {items: index_item list, def: bool}
   val index_entry: index_entry -> text
@@ -55,16 +53,6 @@ fun string s = text (s, Position.none);
 fun block body = XML.Elem (Markup.document_latex, body);
 
 fun output body = [XML.Elem (Markup.latex_output, body)];
-
-val output_text =
-  let
-    fun document_latex text =
-      text |> maps
-        (fn XML.Elem ((name, _), body) =>
-              if name = Markup.document_latexN orelse name = Markup.latex_outputN
-              then document_latex body else []
-          | t => [t])
-  in XML.content_of o document_latex end;
 
 fun enclose_text bg en body = string bg @ body @ string en;
 
@@ -229,24 +217,12 @@ fun theory_entry name = "\\input{" ^ name ^ ".tex}\n\n";
 type index_item = {text: text, like: string};
 type index_entry = {items: index_item list, def: bool};
 
-val index_escape =
-  translate_string (fn s =>
-    if member_string "!\"@|" s then "\\char" ^ string_of_int (ord s)
-    else if member_string "\\{}#" s then "\"" ^ s else s);
-
 fun index_item (item: index_item) =
-  let
-    val like_text =
-      if #like item = "" then ""
-      else index_escape (#like item) ^ "@";
-    val item_text = index_escape (output_text (#text item));
-  in like_text ^ item_text end;
+  XML.wrap_elem ((Markup.latex_index_item, #text item), XML.string (#like item));
 
 fun index_entry (entry: index_entry) =
-  (space_implode "!" (map index_item (#items entry)) ^
-    "|" ^ index_escape (if #def entry then "isaindexdef" else "isaindexref"))
-  |> enclose "\\index{" "}"
-  |> string;
+  [XML.Elem (Markup.latex_index_entry (if #def entry then "isaindexdef" else "isaindexref"),
+    map index_item (#items entry))];
 
 fun index_binding NONE = I
   | index_binding (SOME def) = Binding.map_name (suffix (if def then "_def" else "_ref"));

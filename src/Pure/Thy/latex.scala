@@ -16,6 +16,53 @@ import scala.util.matching.Regex
 
 object Latex
 {
+  /* index entries */
+
+  def index_escape(str: String): String =
+  {
+    val special1 = "!\"@|"
+    val special2 = "\\{}#"
+    if (str.exists(c => special1.contains(c) || special2.contains(c))) {
+      val res = new StringBuilder
+      for (c <- str) {
+        if (special1.contains(c)) {
+          res ++= "\\char"
+          res ++= Value.Int(c)
+        }
+        else {
+          if (special2.contains(c)) { res += '"'}
+          res += c
+        }
+      }
+      res.toString
+    }
+    else str
+  }
+
+  object Index_Item
+  {
+    sealed case class Value(text: Text, like: String)
+    def unapply(tree: XML.Tree): Option[Value] =
+      tree match {
+        case XML.Wrapped_Elem(Markup.Latex_Index_Item(_), text, like) =>
+          Some(Value(text, XML.content(like)))
+        case _ => None
+      }
+  }
+
+  object Index_Entry
+  {
+    sealed case class Value(items: List[Index_Item.Value], kind: String)
+    def unapply(tree: XML.Tree): Option[Value] =
+      tree match {
+        case XML.Elem(Markup.Latex_Index_Entry(kind), body) =>
+          val items = body.map(Index_Item.unapply)
+          if (items.forall(_.isDefined)) Some(Value(items.map(_.get), kind)) else None
+        case _ => None
+      }
+  }
+
+
   /* output text and positions */
 
   type Text = XML.Body
@@ -28,7 +75,27 @@ object Latex
 
   class Output
   {
-    def latex_output(latex_text: Text): Text = List(XML.Text(apply(latex_text)))
+    def latex_output(latex_text: Text): String = apply(latex_text)
+
+    def latex_macro(name: String, arg: Text): Text =
+      XML.string("\\" + name + "{") ::: arg ::: XML.string("}")
+
+    def index_item(item: Index_Item.Value): String =
+    {
+      val like = if (item.like.isEmpty) "" else index_escape(item.like) + "@"
+      val text = index_escape(latex_output(item.text))
+      like + text
+    }
+
+    def index_entry(entry: Index_Entry.Value): Text =
+    {
+      val items = entry.items.map(index_item).mkString("!")
+      val kind = if (entry.kind.isEmpty) "" else "|" + index_escape(entry.kind)
+      latex_macro("index", XML.string(items + kind))
+    }
+
+
+    /* standard output of text with per-line positions */
 
     def apply(latex_text: Text, file_pos: String = ""): String =
     {
@@ -42,14 +109,16 @@ object Latex
           case XML.Text(s) =>
             line += s.count(_ == '\n')
             result += s
-          case XML.Elem(Markup.Latex_Output(_), body) =>
-            traverse(latex_output(body))
           case XML.Elem(Markup.Document_Latex(props), body) =>
             for { l <- Position.Line.unapply(props) if positions.nonEmpty } {
               val s = position(Value.Int(line), Value.Int(l))
               if (positions.last != s) positions += s
             }
             traverse(body)
+          case XML.Elem(Markup.Latex_Output(_), body) =>
+            traverse(XML.string(latex_output(body)))
+          case Index_Entry(entry) =>
+            traverse(index_entry(entry))
           case _: XML.Elem =>
         }
       }
