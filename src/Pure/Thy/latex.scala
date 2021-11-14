@@ -37,18 +37,16 @@ object Latex
       def traverse(body: XML.Body): Unit =
       {
         body.foreach {
-          case XML.Wrapped_Elem(_, _, _) =>
-          case XML.Elem(markup, body) =>
-            if (markup.name == Markup.DOCUMENT_LATEX) {
-              for { l <- Position.Line.unapply(markup.properties) if positions.nonEmpty } {
-                val s = position(Value.Int(line), Value.Int(l))
-                if (positions.last != s) positions += s
-              }
-              traverse(body)
-            }
           case XML.Text(s) =>
             line += s.count(_ == '\n')
             result += s
+          case XML.Elem(Markup.Document_Latex(props), body) =>
+            for { l <- Position.Line.unapply(props) if positions.nonEmpty } {
+              val s = position(Value.Int(line), Value.Int(l))
+              if (positions.last != s) positions += s
+            }
+            traverse(body)
+          case _: XML.Elem =>
         }
       }
       traverse(latex_text)

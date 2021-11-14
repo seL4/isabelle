@@ -61,6 +61,13 @@ object Markup
   val Empty: Markup = Markup("", Nil)
   val Broken: Markup = Markup("broken", Nil)
 
+  class Markup_Elem(val name: String)
+  {
+    def apply(props: Properties.T = Nil): Markup = Markup(name, props)
+    def unapply(markup: Markup): Option[Properties.T] =
+      if (markup.name == name) Some(markup.properties) else None
+  }
+
   class Markup_String(val name: String, prop: String)
   {
     val Prop: Properties.String = new Properties.String(prop)
@@ -359,7 +366,7 @@ object Markup
     val UNIMPORTANT = "unimportant"
   }
 
-  val DOCUMENT_LATEX = "document_latex"
+  val Document_Latex = new Markup_Elem("document_latex")
 
 
   /* Markdown document structure */
