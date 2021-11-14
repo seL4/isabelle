@@ -34,6 +34,7 @@ sig
       Elem of (string * attributes) * tree list
     | Text of string
   type body = tree list
+  val string: string -> body
   val blob: string list -> body
   val is_empty: tree -> bool
   val is_empty_body: body -> bool
@@ -77,6 +78,9 @@ struct
 
 open Output_Primitives.XML;
 
+fun string "" = []
+  | string s = [Text s];
+
 val blob = map Text;
 
 fun is_empty (Text "") = true
@@ -118,9 +122,7 @@ val content_of = Buffer.build_content o fold add_content;
 fun trim_blanks trees =
   trees |> maps
     (fn Elem (markup, body) => [Elem (markup, trim_blanks body)]
-      | Text s =>
-          let val s' = s |> raw_explode |> trim Symbol.is_blank |> implode;
-          in if s' = "" then [] else [Text s'] end);
+      | Text s => s |> raw_explode |> trim Symbol.is_blank |> implode |> string);
 
 
 

@@ -44,6 +44,8 @@ object XML
   val no_text: Text = Text("")
   val newline: Text = Text("\n")
 
+  def string(s: String): Body = if (s.isEmpty) Nil else List(Text(s))
+
 
   /* name space */
 
