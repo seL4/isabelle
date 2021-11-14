@@ -10,6 +10,7 @@ sig
   val text: string * Position.T -> text
   val string: string -> text
   val block: text -> XML.tree
+  val output: text -> text
   val enclose_text: string -> string -> text -> text
   val output_text: text -> string
   val output_name: string -> string
@@ -53,12 +54,15 @@ fun string s = text (s, Position.none);
 
 fun block body = XML.Elem (Markup.document_latex, body);
 
+fun output body = [XML.Elem (Markup.latex_output, body)];
+
 val output_text =
   let
     fun document_latex text =
       text |> maps
         (fn XML.Elem ((name, _), body) =>
-              if name = Markup.document_latexN then document_latex body else []
+              if name = Markup.document_latexN orelse name = Markup.latex_outputN
+              then document_latex body else []
           | t => [t])
   in XML.content_of o document_latex end;
 

@@ -366,7 +366,12 @@ object Markup
     val UNIMPORTANT = "unimportant"
   }
 
+
+  /* LaTeX */
+
   val Document_Latex = new Markup_Elem("document_latex")
+
+  val Latex_Output = new Markup_Elem("latex_output")
 
 
   /* Markdown document structure */

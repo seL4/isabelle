@@ -28,6 +28,8 @@ object Latex
 
   class Output
   {
+    def latex_output(latex_text: Text): Text = List(XML.Text(apply(latex_text)))
+
     def apply(latex_text: Text, file_pos: String = ""): String =
     {
       var line = 1
@@ -40,6 +42,8 @@ object Latex
           case XML.Text(s) =>
             line += s.count(_ == '\n')
             result += s
+          case XML.Elem(Markup.Latex_Output(_), body) =>
+            traverse(latex_output(body))
           case XML.Elem(Markup.Document_Latex(props), body) =>
             for { l <- Position.Line.unapply(props) if positions.nonEmpty } {
               val s = position(Value.Int(line), Value.Int(l))

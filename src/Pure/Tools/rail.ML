@@ -341,47 +341,51 @@ fun output_rules ctxt rules =
   let
     val output_antiq =
       Antiquote.Antiq #>
-      Document_Antiquotation.evaluate Latex.symbols ctxt #>
-      Latex.output_text;
+      Document_Antiquotation.evaluate Latex.symbols ctxt;
     fun output_text b s =
       Output.output s
       |> b ? enclose "\\isakeyword{" "}"
-      |> enclose "\\isa{" "}";
+      |> enclose "\\isa{" "}"
+      |> Latex.string;
 
     fun output_cat c (Cat (_, rails)) = outputs c rails
     and outputs c [rail] = output c rail
-      | outputs _ rails = implode (map (output "") rails)
-    and output _ (Bar []) = ""
+      | outputs _ rails = maps (output "") rails
+    and output _ (Bar []) = []
       | output c (Bar [cat]) = output_cat c cat
       | output _ (Bar (cat :: cats)) =
-          "\\rail@bar\n" ^ output_cat "" cat ^
-          implode (map (fn Cat (y, rails) =>
-              "\\rail@nextbar{" ^ string_of_int y ^ "}\n" ^ outputs "" rails) cats) ^
-          "\\rail@endbar\n"
+          Latex.string ("\\rail@bar\n") @ output_cat "" cat @
+          maps (fn Cat (y, rails) =>
+            Latex.string ("\\rail@nextbar{" ^ string_of_int y ^ "}\n") @ outputs "" rails) cats @
+          Latex.string "\\rail@endbar\n"
       | output c (Plus (cat, Cat (y, rails))) =
-          "\\rail@plus\n" ^ output_cat c cat ^
-          "\\rail@nextplus{" ^ string_of_int y ^ "}\n" ^ outputs "c" rails ^
-          "\\rail@endplus\n"
-      | output _ (Newline y) = "\\rail@cr{" ^ string_of_int y ^ "}\n"
-      | output c (Nonterminal s) = "\\rail@" ^ c ^ "nont{" ^ output_text false s ^ "}[]\n"
-      | output c (Terminal (b, s)) = "\\rail@" ^ c ^ "term{" ^ output_text b s ^ "}[]\n"
+          Latex.string "\\rail@plus\n" @ output_cat c cat @
+          Latex.string ("\\rail@nextplus{" ^ string_of_int y ^ "}\n") @ outputs "c" rails @
+          Latex.string "\\rail@endplus\n"
+      | output _ (Newline y) = Latex.string ("\\rail@cr{" ^ string_of_int y ^ "}\n")
+      | output c (Nonterminal s) =
+          Latex.string ("\\rail@" ^ c ^ "nont{") @ output_text false s @ Latex.string "}[]\n"
+      | output c (Terminal (b, s)) =
+          Latex.string ("\\rail@" ^ c ^ "term{") @ output_text b s @ Latex.string "}[]\n"
       | output c (Antiquote (b, a)) =
-          "\\rail@" ^ c ^ (if b then "term{" else "nont{") ^ output_antiq a ^ "}[]\n";
+          Latex.string ("\\rail@" ^ c ^ (if b then "term{" else "nont{")) @
+          Latex.output (output_antiq a) @
+          Latex.string "}[]\n";
 
     fun output_rule (name, rail) =
       let
         val (rail', y') = vertical_range rail 0;
         val out_name =
           (case name of
-            Antiquote.Text "" => ""
+            Antiquote.Text "" => []
           | Antiquote.Text s => output_text false s
           | Antiquote.Antiq a => output_antiq a);
       in
-        "\\rail@begin{" ^ string_of_int y' ^ "}{" ^ out_name ^ "}\n" ^
-        output "" rail' ^
-        "\\rail@end\n"
+        Latex.string ("\\rail@begin{" ^ string_of_int y' ^ "}{") @ out_name @ Latex.string "}\n" @
+        output "" rail' @
+        Latex.string "\\rail@end\n"
       end;
-  in Latex.environment_text "railoutput" (Latex.string (implode (map output_rule rules))) end;
+  in Latex.environment_text "railoutput" (maps output_rule rules) end;
 
 val _ = Theory.setup
   (Document_Output.antiquotation_raw_embedded \<^binding>\<open>rail\<close> (Scan.lift Args.text_input)
