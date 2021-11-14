@@ -491,7 +491,7 @@ object Build_Log
         match {
           case Some((SESSION_NAME, session) :: props) =>
             for (theory <- Markup.Name.unapply(props))
-            yield (session, theory -> Markup.Timing_Properties.parse(props))
+            yield (session, theory -> Markup.Timing_Properties.get(props))
           case _ => None
         }
     }

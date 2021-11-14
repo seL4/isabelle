@@ -161,7 +161,7 @@ object Build
   {
     val props = build_log.session_timing
     val threads = Markup.Session_Timing.Threads.unapply(props) getOrElse 1
-    val timing = Markup.Timing_Properties.parse(props)
+    val timing = Markup.Timing_Properties.get(props)
     "Timing " + session_name + " (" + threads + " threads, " + timing.message_factor + ")"
   }
 

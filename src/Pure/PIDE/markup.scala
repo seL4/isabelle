@@ -63,29 +63,32 @@ object Markup
 
   class Markup_String(val name: String, prop: String)
   {
-    private val Prop = new Properties.String(prop)
+    val Prop: Properties.String = new Properties.String(prop)
 
     def apply(s: String): Markup = Markup(name, Prop(s))
     def unapply(markup: Markup): Option[String] =
       if (markup.name == name) Prop.unapply(markup.properties) else None
+    def get(markup: Markup): String = unapply(markup).getOrElse("")
   }
 
   class Markup_Int(val name: String, prop: String)
   {
-    private val Prop = new Properties.Int(prop)
+    val Prop: Properties.Int = new Properties.Int(prop)
 
     def apply(i: Int): Markup = Markup(name, Prop(i))
     def unapply(markup: Markup): Option[Int] =
       if (markup.name == name) Prop.unapply(markup.properties) else None
+    def get(markup: Markup): Int = unapply(markup).getOrElse(0)
   }
 
   class Markup_Long(val name: String, prop: String)
   {
-    private val Prop = new Properties.Long(prop)
+    val Prop: Properties.Long = new Properties.Long(prop)
 
     def apply(i: Long): Markup = Markup(name, Prop(i))
     def unapply(markup: Markup): Option[Long] =
       if (markup.name == name) Prop.unapply(markup.properties) else None
+    def get(markup: Markup): Long = unapply(markup).getOrElse(0)
   }
 
 
@@ -104,21 +107,11 @@ object Markup
   val BINDING = "binding"
   val ENTITY = "entity"
 
-  val Def = new Properties.Long("def")
-  val Ref = new Properties.Long("ref")
-
   object Entity
   {
-    object Def
-    {
-      def unapply(markup: Markup): Option[Long] =
-        if (markup.name == ENTITY) Markup.Def.unapply(markup.properties) else None
-    }
-    object Ref
-    {
-      def unapply(markup: Markup): Option[Long] =
-        if (markup.name == ENTITY) Markup.Ref.unapply(markup.properties) else None
-    }
+    val Def = new Markup_Long(ENTITY, "def")
+    val Ref = new Markup_Long(ENTITY, "ref")
+
     object Occ
     {
       def unapply(markup: Markup): Option[Long] =
@@ -127,10 +120,7 @@ object Markup
 
     def unapply(markup: Markup): Option[(String, String)] =
       markup match {
-        case Markup(ENTITY, props) =>
-          val kind = Kind.unapply(props).getOrElse("")
-          val name = Name.unapply(props).getOrElse("")
-          Some((kind, name))
+        case Markup(ENTITY, props) => Some((Kind.get(props), Name.get(props)))
         case _ => None
       }
   }
@@ -183,8 +173,7 @@ object Markup
   {
     def unapply(markup: Markup): Option[String] =
       markup match {
-        case Markup(EXPRESSION, Kind(kind)) => Some(kind)
-        case Markup(EXPRESSION, _) => Some("")
+        case Markup(EXPRESSION, props) => Some(Kind.get(props))
         case _ => None
       }
   }
@@ -263,8 +252,8 @@ object Markup
         (if (i != 0) Indent(i) else Nil))
     def unapply(markup: Markup): Option[(Boolean, Int)] =
       if (markup.name == name) {
-        val c = Consistent.unapply(markup.properties).getOrElse(false)
-        val i = Indent.unapply(markup.properties).getOrElse(0)
+        val c = Consistent.get(markup.properties)
+        val i = Indent.get(markup.properties)
         Some((c, i))
       }
       else None
@@ -279,8 +268,8 @@ object Markup
         (if (i != 0) Indent(i) else Nil))
     def unapply(markup: Markup): Option[(Int, Int)] =
       if (markup.name == name) {
-        val w = Width.unapply(markup.properties).getOrElse(0)
-        val i = Indent.unapply(markup.properties).getOrElse(0)
+        val w = Width.get(markup.properties)
+        val i = Indent.get(markup.properties)
         Some((w, i))
       }
       else None
@@ -364,17 +353,10 @@ object Markup
   val PARAGRAPH = "paragraph"
   val TEXT_FOLD = "text_fold"
 
-  object Document_Tag
+  object Document_Tag extends Markup_String("document_tag", NAME)
   {
-    val ELEMENT = "document_tag"
     val IMPORTANT = "important"
     val UNIMPORTANT = "unimportant"
-
-    def unapply(markup: Markup): Option[String] =
-      markup match {
-        case Markup(ELEMENT, Name(name)) => Some(name)
-        case _ => None
-      }
   }
 
   val DOCUMENT_LATEX = "document_latex"
@@ -459,8 +441,8 @@ object Markup
         case _ => None
       }
 
-    def parse(props: Properties.T): isabelle.Timing =
-      unapply(props) getOrElse isabelle.Timing.zero
+    def get(props: Properties.T): isabelle.Timing =
+      unapply(props).getOrElse(isabelle.Timing.zero)
   }
 
   val TIMING = "timing"
@@ -499,12 +481,7 @@ object Markup
 
   /* command indentation */
 
-  object Command_Indent
-  {
-    val name = "command_indent"
-    def unapply(markup: Markup): Option[Int] =
-      if (markup.name == name) Indent.unapply(markup.properties) else None
-  }
+  val Command_Indent = new Markup_Int("command_indent", Indent.name)
 
 
   /* goals */

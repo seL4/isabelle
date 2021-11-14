@@ -129,7 +129,8 @@ object Presentation
     {
       def unapply(props: Properties.T): Option[(Path, Option[String], String, String)] =
         (props, props, props, props) match {
-          case (Markup.Ref(_), Position.Def_File(def_file), Markup.Kind(kind), Markup.Name(name)) =>
+          case (Markup.Entity.Ref.Prop(_), Position.Def_File(def_file),
+              Markup.Kind(kind), Markup.Name(name)) =>
             val def_theory = Position.Def_Theory.unapply(props)
             Some((Path.explode(def_file), def_theory, kind, name))
           case _ => None
