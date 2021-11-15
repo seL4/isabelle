@@ -10,6 +10,11 @@ theory Infinite_Set_Sum
   imports Set_Integral Infinite_Sum
 begin
 
+(*
+  WARNING! This file is considered obsolete and will, in the long run, be replaced with
+  the more general "Infinite_Sum".
+*)
+
 text \<open>Conflicting notation from \<^theory>\<open>HOL-Analysis.Infinite_Sum\<close>\<close>
 no_notation Infinite_Sum.abs_summable_on (infixr "abs'_summable'_on" 46)
 
@@ -1239,10 +1244,20 @@ proof -
                      y = enn2ereal x}"
       by (metis (mono_tags, lifting) Sup_upper empty_subsetI ennreal_0 finite.emptyI
           mem_Collect_eq sum.empty zero_ennreal.rep_eq)
-    moreover have "Sup {y. \<exists>x. (\<exists>y. finite y \<and> y \<subseteq> A \<and> x = ennreal (sum f y)) \<and>
-                y = enn2ereal x} = Sup {y. \<exists>x. finite x \<and> x \<subseteq> A \<and> y = ereal (sum f x)}"
-      using enn2ereal_ennreal fnn in_mono sum_nonneg Collect_cong
-      by (smt (verit, ccfv_SIG))
+    moreover have "(\<exists>x. (\<exists>y. finite y \<and> y \<subseteq> A \<and> x = ennreal (sum f y)) \<and> y = enn2ereal x) = 
+                   (\<exists>x. finite x \<and> x \<subseteq> A \<and> y = ereal (sum f x))" for y
+    proof -
+      have "(\<exists>x. (\<exists>y. finite y \<and> y \<subseteq> A \<and> x = ennreal (sum f y)) \<and> y = enn2ereal x) \<longleftrightarrow>
+            (\<exists>X x. finite X \<and> X \<subseteq> A \<and> x = ennreal (sum f X) \<and> y = enn2ereal x)"
+        by blast
+      also have "\<dots> \<longleftrightarrow> (\<exists>X. finite X \<and> X \<subseteq> A \<and> y = ereal (sum f X))"
+        by (rule arg_cong[of _ _ Ex])
+           (auto simp: fun_eq_iff intro!: enn2ereal_ennreal sum_nonneg enn2ereal_ennreal[symmetric] fnn)
+      finally show ?thesis .
+    qed
+    hence "Sup {y. \<exists>x. (\<exists>y. finite y \<and> y \<subseteq> A \<and> x = ennreal (sum f y)) \<and> y = enn2ereal x} =
+           Sup {y. \<exists>x. finite x \<and> x \<subseteq> A \<and> y = ereal (sum f x)}"
+      by simp
     ultimately show "max 0 (Sup {y. \<exists>x. (\<exists>xa. finite xa \<and> xa \<subseteq> A \<and> x
                                        = ennreal (sum f xa)) \<and> y = enn2ereal x})
          = Sup {y. \<exists>x. finite x \<and> x \<subseteq> A \<and> y = ereal (sum f x)}"
@@ -1275,7 +1290,7 @@ next
   then have \<open>sum n F \<le> infsetsum n A\<close> if \<open>finite F\<close> and \<open>F\<subseteq>A\<close> for F
     using that by (auto simp flip: infsetsum_finite simp: n_def[abs_def] intro!: infsetsum_mono_neutral)
   then show \<open>n summable_on A\<close>
-    apply (rule_tac pos_summable_on)
+    apply (rule_tac nonneg_bdd_above_summable_on)
     by (auto simp add: n_def bdd_above_def)
 qed
 
