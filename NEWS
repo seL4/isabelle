@@ -205,6 +205,7 @@ INCOMPATIBILITY.
       Vampire 4.6 (with Open Source license)
       veriT 2021.06-rmx
       Zipperposition 2.1
+      Z3 4.4.1
   - Adjusted default provers:
       cvc4 vampire verit e spass z3 zipperposition
   - Adjusted Zipperposition's slicing.
@@ -223,8 +224,8 @@ INCOMPATIBILITY.
     implementation defect. Very slight INCOMPATIBILITY.
 
 * Nitpick: External solver "MiniSat" is available for all supported
-Isabelle platforms (including Windows and ARM); while "MiniSat_JNI" only
-works for Intel Linux and macOS.
+Isabelle platforms (including 64bit Windows and ARM); while
+"MiniSat_JNI" only works for Intel Linux and macOS.
 
 * Theory HOL-Library.Lattice_Syntax has been superseded by bundle
 "lattice_syntax": it can be used in a local context via 'include' or in
@@ -941,8 +942,8 @@ existing server installations should remove libphutil from
 /usr/local/bin/isabelle-phabricator-upgrade and each installation root
 directory (e.g. /var/www/phabricator-vcs/libphutil).
 
-* Experimental support for arm64-linux platform. The reference platform
-is Raspberry Pi 4 with 8 GB RAM running Pi OS (64 bit).
+* Almost complete support for arm64-linux platform. The reference
+platform is Raspberry Pi 4 with 8 GB RAM running Pi OS (64 bit).
 
 * Support for Apple Silicon, using mostly x86_64-darwin runtime
 translation via Rosetta 2 (e.g. Poly/ML and external provers), but also
