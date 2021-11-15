@@ -34,10 +34,11 @@ sig
       Elem of (string * attributes) * tree list
     | Text of string
   type body = tree list
-  val string: string -> body
   val blob: string list -> body
   val is_empty: tree -> bool
   val is_empty_body: body -> bool
+  val string: string -> body
+  val enclose: string -> string -> body -> body
   val xml_elemN: string
   val xml_nameN: string
   val xml_bodyN: string
@@ -78,15 +79,17 @@ struct
 
 open Output_Primitives.XML;
 
-fun string "" = []
-  | string s = [Text s];
-
 val blob = map Text;
 
 fun is_empty (Text "") = true
   | is_empty _ = false;
 
 val is_empty_body = forall is_empty;
+
+fun string "" = []
+  | string s = [Text s];
+
+fun enclose bg en body = string bg @ body @ string en;
 
 
 (* wrapped elements *)
@@ -157,13 +160,13 @@ fun elem name atts =
 
 fun element name atts body =
   let val b = implode body in
-    if b = "" then enclose "<" "/>" (elem name atts)
-    else enclose "<" ">" (elem name atts) ^ b ^ enclose "</" ">" name
+    if b = "" then Library.enclose "<" "/>" (elem name atts)
+    else Library.enclose "<" ">" (elem name atts) ^ b ^ Library.enclose "</" ">" name
   end;
 
 fun output_markup (markup as (name, atts)) =
   if Markup.is_empty markup then Markup.no_output
-  else (enclose "<" ">" (elem name atts), enclose "</" ">" name);
+  else (Library.enclose "<" ">" (elem name atts), Library.enclose "</" ">" name);
 
 
 (* output content *)

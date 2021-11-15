@@ -135,7 +135,7 @@ fun nested_antiquotation name s1 s2 =
   Document_Output.antiquotation_raw_embedded name (Scan.lift Args.cartouche_input)
     (fn ctxt => fn txt =>
       (Context_Position.reports ctxt (Document_Output.document_reports txt);
-        Latex.enclose_text s1 s2 (Document_Output.output_document ctxt {markdown = false} txt)));
+        XML.enclose s1 s2 (Document_Output.output_document ctxt {markdown = false} txt)));
 
 val _ =
   Theory.setup
@@ -423,7 +423,7 @@ val _ = Theory.setup
         val _ =
           Context_Position.reports ctxt
             [(pos, Markup.language_url delimited), (pos, Markup.url url)];
-      in Latex.enclose_text "\\url{" "}" (Latex.string (escape_url url)) end));
+      in XML.enclose "\\url{" "}" (Latex.string (escape_url url)) end));
 
 
 (* formal entities *)
@@ -434,7 +434,7 @@ fun entity_antiquotation name check bg en =
   Document_Output.antiquotation_raw name (Scan.lift Args.name_position)
     (fn ctxt => fn (name, pos) =>
       let val _ = check ctxt (name, pos)
-      in Latex.enclose_text bg en (Latex.string (Output.output name)) end);
+      in XML.enclose bg en (Latex.string (Output.output name)) end);
 
 val _ =
   Theory.setup

@@ -77,8 +77,8 @@ object Latex
   {
     def latex_output(latex_text: Text): String = apply(latex_text)
 
-    def latex_macro(name: String, arg: Text): Text =
-      XML.string("\\" + name + "{") ::: arg ::: XML.string("}")
+    def latex_macro(name: String, body: Text): Text =
+      XML.enclose("\\" + name + "{", "}", body)
 
     def index_item(item: Index_Item.Value): String =
     {

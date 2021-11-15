@@ -46,6 +46,9 @@ object XML
 
   def string(s: String): Body = if (s.isEmpty) Nil else List(Text(s))
 
+  def enclose(bg: String, en:String, body: Body): Body =
+    string(bg) ::: body ::: string(en)
+
 
   /* name space */
 
