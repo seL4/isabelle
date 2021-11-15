@@ -11,6 +11,9 @@ sig
   val string: string -> text
   val block: text -> XML.tree
   val output: text -> text
+  val macro0: string -> text
+  val macro: string -> text -> text
+  val environment: string -> text -> text
   val enclose_text: string -> string -> text -> text
   val output_name: string -> string
   val output_ascii: string -> string
@@ -53,6 +56,10 @@ fun string s = text (s, Position.none);
 fun block body = XML.Elem (Markup.document_latex, body);
 
 fun output body = [XML.Elem (Markup.latex_output, body)];
+
+fun macro0 name = [XML.Elem (Markup.latex_macro0 name, [])];
+fun macro name body = [XML.Elem (Markup.latex_macro name, body)];
+fun environment name body = [XML.Elem (Markup.latex_environment name, body)];
 
 fun enclose_text bg en body = string bg @ body @ string en;
 

@@ -372,6 +372,9 @@ object Markup
   val Document_Latex = new Markup_Elem("document_latex")
 
   val Latex_Output = new Markup_Elem("latex_output")
+  val Latex_Macro0 = new Markup_String("latex_macro0", NAME)
+  val Latex_Macro = new Markup_String("latex_macro", NAME)
+  val Latex_Environment = new Markup_String("latex_environment", NAME)
   val Latex_Index_Item = new Markup_Elem("latex_index_item")
   val Latex_Index_Entry = new Markup_String("latex_index_entry", KIND)
 

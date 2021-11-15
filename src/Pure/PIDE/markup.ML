@@ -150,6 +150,9 @@ sig
   val document_tagN: string val document_tag: string -> T
   val document_latexN: string val document_latex: T
   val latex_outputN: string val latex_output: T
+  val latex_macro0N: string val latex_macro0: string -> T
+  val latex_macroN: string val latex_macro: string -> T
+  val latex_environmentN: string val latex_environment: string -> T
   val latex_index_itemN: string val latex_index_item: T
   val latex_index_entryN: string val latex_index_entry: string -> T
   val markdown_paragraphN: string val markdown_paragraph: T
@@ -578,6 +581,9 @@ val (document_tagN, document_tag) = markup_string "document_tag" nameN;
 val (document_latexN, document_latex) = markup_elem "document_latex";
 
 val (latex_outputN, latex_output) = markup_elem "latex_output";
+val (latex_macro0N, latex_macro0) = markup_string "latex_macro0" nameN;
+val (latex_macroN, latex_macro) = markup_string "latex_macro" nameN;
+val (latex_environmentN, latex_environment) = markup_string "latex_environment" nameN;
 val (latex_index_itemN, latex_index_item) = markup_elem "latex_index_item";
 val (latex_index_entryN, latex_index_entry) = markup_string "latex_index_entry" kindN;
 

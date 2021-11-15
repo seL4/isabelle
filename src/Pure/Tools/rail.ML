@@ -343,10 +343,9 @@ fun output_rules ctxt rules =
       Antiquote.Antiq #>
       Document_Antiquotation.evaluate Latex.symbols ctxt;
     fun output_text b s =
-      Output.output s
-      |> b ? enclose "\\isakeyword{" "}"
-      |> enclose "\\isa{" "}"
-      |> Latex.string;
+      Latex.string (Output.output s)
+      |> b ? Latex.macro "isakeyword"
+      |> Latex.macro "isa";
 
     fun output_cat c (Cat (_, rails)) = outputs c rails
     and outputs c [rail] = output c rail

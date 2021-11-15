@@ -77,8 +77,14 @@ object Latex
   {
     def latex_output(latex_text: Text): String = apply(latex_text)
 
+    def latex_macro0(name: String): Text =
+      XML.string("\\" + name)
+
     def latex_macro(name: String, body: Text): Text =
       XML.enclose("\\" + name + "{", "}", body)
+
+    def latex_environment(name: String, body: Text): Text =
+      XML.enclose("%\n\\begin{" + name + "}%\n", "%\n\\end{" + name + "}", body)
 
     def index_item(item: Index_Item.Value): String =
     {
@@ -117,9 +123,18 @@ object Latex
             traverse(body)
           case XML.Elem(Markup.Latex_Output(_), body) =>
             traverse(XML.string(latex_output(body)))
+          case XML.Elem(Markup.Latex_Macro0(name), Nil) =>
+            traverse(latex_macro0(name))
+          case XML.Elem(Markup.Latex_Macro(name), body) =>
+            traverse(latex_macro(name, body))
+          case XML.Elem(Markup.Latex_Environment(name), body) =>
+            traverse(latex_environment(name, body))
           case Index_Entry(entry) =>
             traverse(index_entry(entry))
-          case _: XML.Elem =>
+          case t: XML.Tree =>
+            error("Bad latex markup" +
+              (if (file_pos.isEmpty) "" else Position.here(Position.File(file_pos))) + ":\n" +
+              XML.string_of_tree(t))
         }
       }
       traverse(latex_text)

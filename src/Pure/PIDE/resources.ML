@@ -418,7 +418,7 @@ fun document_antiq (check: Proof.context -> Path.T option -> Input.source -> Pat
   Args.context -- Scan.lift Parse.path_input >> (fn (ctxt, source) =>
    (check ctxt NONE source;
     Latex.string (Latex.output_ascii_breakable "/" (Input.string_of source))
-    |> XML.enclose "\\isatt{" "}"));
+    |> Latex.macro "isatt"));
 
 fun ML_antiq check =
   Args.context -- Scan.lift Parse.path_input >> (fn (ctxt, source) =>

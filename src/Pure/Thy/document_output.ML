@@ -484,13 +484,13 @@ fun pretty_thm ctxt = pretty_term ctxt o Thm.full_prop_of;
 
 fun isabelle ctxt body =
   if Config.get ctxt Document_Antiquotation.thy_output_display
-  then Latex.environment_text "isabelle" body
-  else XML.enclose "\\isa{" "}" body;
+  then Latex.environment "isabelle" body
+  else Latex.macro "isa" body;
 
 fun isabelle_typewriter ctxt body =
   if Config.get ctxt Document_Antiquotation.thy_output_display
-  then Latex.environment_text "isabellett" body
-  else XML.enclose "\\isatt{" "}" body;
+  then Latex.environment "isabellett" body
+  else Latex.macro "isatt" body;
 
 fun typewriter ctxt s =
   isabelle_typewriter ctxt (Latex.string (Latex.output_ascii s));
