@@ -493,7 +493,7 @@ object Build
         (for {
           session_name <- deps.sessions_structure.imports_topological_order.iterator
           info <- results.get_info(session_name)
-          if selected(session_name) && presentation.enabled(info) && results(session_name).ok }
+          if selected(session_name) && presentation.enabled(info) }
         yield info).toList
 
       if (presentation_sessions.nonEmpty) {
