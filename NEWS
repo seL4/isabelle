@@ -206,7 +206,7 @@ INCOMPATIBILITY.
       . veriT 2021.06.1-rmx
       . Zipperposition 2.1
       . Z3 4.4.1 for arm64-linux, which approximates Z3 4.4.0pre,
-        but sometimes failes or crashes
+        but sometimes fails or crashes
   - Adjusted default provers:
       cvc4 vampire verit e spass z3 zipperposition
   - Adjusted Zipperposition's slicing.
