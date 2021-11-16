@@ -35,31 +35,6 @@ object Presentation
       theory_path(name).dir + Path.explode("files") + path.squash.html
 
 
-    /* cached theory exports */
-
-    val cache: Term.Cache = Term.Cache.make()
-
-    private val already_presented = Synchronized(Set.empty[String])
-    def register_presented(nodes: List[Document.Node.Name]): List[Document.Node.Name] =
-      already_presented.change_result(presented =>
-        (nodes.filterNot(name => presented.contains(name.theory)),
-          presented ++ nodes.iterator.map(_.theory)))
-
-    private val theory_cache = Synchronized(Map.empty[String, Export_Theory.Theory])
-    def cache_theory(thy_name: String, make_thy: => Export_Theory.Theory): Export_Theory.Theory =
-    {
-      theory_cache.change_result(thys =>
-      {
-        thys.get(thy_name) match {
-          case Some(thy) => (thy, thys)
-          case None =>
-            val thy = make_thy
-            (thy, thys + (thy_name -> thy))
-        }
-      })
-    }
-
-
     /* HTML content */
 
     def head(title: String, rest: XML.Body = Nil): XML.Tree =
@@ -85,6 +60,40 @@ object Presentation
             HTML.title(title)),
           List(HTML.source(body)), css = "", structural = false)
       HTML_Document(title, content)
+    }
+  }
+
+
+  /* presentation state */
+
+  class State
+  {
+    /* already presented theories */
+
+    private val already_presented = Synchronized(Set.empty[String])
+
+    def register_presented(nodes: List[Document.Node.Name]): List[Document.Node.Name] =
+      already_presented.change_result(presented =>
+        (nodes.filterNot(name => presented.contains(name.theory)),
+          presented ++ nodes.iterator.map(_.theory)))
+
+
+    /* cached theory exports */
+
+    val cache: Term.Cache = Term.Cache.make()
+
+    private val theory_cache = Synchronized(Map.empty[String, Export_Theory.Theory])
+    def cache_theory(thy_name: String, make_thy: => Export_Theory.Theory): Export_Theory.Theory =
+    {
+      theory_cache.change_result(thys =>
+      {
+        thys.get(thy_name) match {
+          case Some(thy) => (thy, thys)
+          case None =>
+            val thy = make_thy
+            (thy, thys + (thy_name -> thy))
+        }
+      })
     }
   }
 
@@ -495,6 +504,7 @@ object Presentation
     progress: Progress = new Progress,
     verbose: Boolean = false,
     html_context: HTML_Context,
+    state: State,
     session_elements: Elements): Unit =
   {
     val info = deps.sessions_structure(session)
@@ -547,12 +557,12 @@ object Presentation
         val theory =
           if (thy_name == Thy_Header.PURE) Export_Theory.no_theory
           else {
-            html_context.cache_theory(thy_name,
+            state.cache_theory(thy_name,
               {
                 val provider = Export.Provider.database_context(db_context, hierarchy, thy_name)
                 if (Export_Theory.read_theory_parents(provider, thy_name).isDefined) {
                   Export_Theory.read_theory(
-                    provider, session, thy_name, cache = html_context.cache)
+                    provider, session, thy_name, cache = state.cache)
                 }
                 else Export_Theory.no_theory
               })
@@ -645,7 +655,7 @@ object Presentation
       })
     }
 
-    val theories = html_context.register_presented(hierarchy_theories).flatMap(present_theory)
+    val theories = state.register_presented(hierarchy_theories).flatMap(present_theory)
 
     val title = "Session " + session
     HTML.write_document(session_dir, "index.html",

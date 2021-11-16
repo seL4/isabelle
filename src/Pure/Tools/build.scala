@@ -506,6 +506,8 @@ object Build
           Presentation.update_chapter(presentation_dir, chapter, entries)
         }
 
+        val state = new Presentation.State { override val cache: Term.Cache = store.cache }
+
         using(store.open_database_context())(db_context =>
           for (session <- presentation_sessions.map(_.name)) {
             progress.expose_interrupt()
@@ -513,14 +515,13 @@ object Build
 
             val html_context =
               new Presentation.HTML_Context {
-                override val cache: Term.Cache = store.cache
                 override def root_dir: Path = presentation_dir
                 override def theory_session(name: Document.Node.Name): Sessions.Info =
                   deps.sessions_structure(deps(session).theory_qualifier(name))
               }
             Presentation.session_html(
               session, deps, db_context, progress = progress,
-              verbose = verbose, html_context = html_context,
+              verbose = verbose, html_context = html_context, state = state,
               Presentation.elements1)
           })
       }
