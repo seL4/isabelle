@@ -497,10 +497,12 @@ object Presentation
     html_context: HTML_Context,
     session_elements: Elements): Unit =
   {
-    val hierarchy = deps.sessions_structure.hierarchy(session)
     val info = deps.sessions_structure(session)
     val options = info.options
     val base = deps(session)
+
+    val hierarchy = deps.sessions_structure.hierarchy(session)
+    val hierarchy_theories = hierarchy.reverse.flatMap(a => deps(a).used_theories.map(_._1))
 
     val session_dir = Isabelle_System.make_directory(html_context.session_dir(info))
 
@@ -539,11 +541,8 @@ object Presentation
           map(link => HTML.text("View ") ::: List(link))).flatten
     }
 
-    val all_used_theories = hierarchy.reverse.flatMap(a => deps(a).used_theories.map(_._1))
-    val present_theories = html_context.register_presented(all_used_theories)
-
     val theory_exports: Map[String, Export_Theory.Theory] =
-      (for (node <- all_used_theories.iterator) yield {
+      (for (node <- hierarchy_theories.iterator) yield {
         val thy_name = node.theory
         val theory =
           if (thy_name == Thy_Header.PURE) Export_Theory.no_theory
@@ -564,99 +563,89 @@ object Presentation
     def entity_context(name: Document.Node.Name): Entity_Context =
       Entity_Context.make(session, deps, name, theory_exports)
 
-    val theories: List[XML.Body] =
+
+    sealed case class Seen_File(
+      src_path: Path, thy_name: Document.Node.Name, thy_session: String)
     {
-      sealed case class Seen_File(
-        src_path: Path, thy_name: Document.Node.Name, thy_session: String)
+      val files_path: Path = html_context.files_path(thy_name, src_path)
+
+      def check(src_path1: Path, thy_name1: Document.Node.Name, thy_session1: String): Boolean =
       {
-        val files_path: Path = html_context.files_path(thy_name, src_path)
-
-        def check(src_path1: Path, thy_name1: Document.Node.Name, thy_session1: String): Boolean =
-        {
-          val files_path1 = html_context.files_path(thy_name1, src_path1)
-          (src_path == src_path1 || files_path == files_path1) && thy_session == thy_session1
-        }
+        val files_path1 = html_context.files_path(thy_name1, src_path1)
+        (src_path == src_path1 || files_path == files_path1) && thy_session == thy_session1
       }
-      var seen_files = List.empty[Seen_File]
+    }
+    var seen_files = List.empty[Seen_File]
 
-      sealed case class Theory(
-        name: Document.Node.Name,
-        command: Command,
-        files_html: List[(Path, XML.Tree)],
-        html: XML.Tree)
+    def present_theory(name: Document.Node.Name): Option[XML.Body] =
+    {
+      progress.expose_interrupt()
 
-      def read_theory(name: Document.Node.Name): Option[Theory] =
+      Build_Job.read_theory(db_context, hierarchy, name.theory).flatMap(command =>
       {
-        progress.expose_interrupt()
+        if (verbose) progress.echo("Presenting theory " + name)
+        val snapshot = Document.State.init.snippet(command)
 
-        for (command <- Build_Job.read_theory(db_context, hierarchy, name.theory))
-        yield {
-          if (verbose) progress.echo("Presenting theory " + name)
-          val snapshot = Document.State.init.snippet(command)
+        val thy_elements =
+          session_elements.copy(entity =
+            theory_exports(name.theory).others.keySet.foldLeft(session_elements.entity)(_ + _))
 
-          val thy_elements =
-            session_elements.copy(entity =
-              theory_exports(name.theory).others.keySet.foldLeft(session_elements.entity)(_ + _))
-
-          val files_html =
-            for {
-              (src_path, xml) <- snapshot.xml_markup_blobs(elements = thy_elements.html)
-              if xml.nonEmpty
-            }
-            yield {
-              progress.expose_interrupt()
-              if (verbose) progress.echo("Presenting file " + src_path)
-
-              (src_path, html_context.source(
-                make_html(entity_context(name), thy_elements, xml)))
-            }
-
-          val html =
-            html_context.source(
-              make_html(entity_context(name), thy_elements,
-                snapshot.xml_markup(elements = thy_elements.html)))
-
-          Theory(name, command, files_html, html)
-        }
-      }
-
-      (for (thy <- Par_List.map(read_theory, present_theories).flatten) yield {
-        val thy_session = html_context.theory_session(thy.name)
-        val thy_dir = Isabelle_System.make_directory(html_context.session_dir(thy_session))
-        val files =
-          for { (src_path, file_html) <- thy.files_html }
+        val files_html =
+          for {
+            (src_path, xml) <- snapshot.xml_markup_blobs(elements = thy_elements.html)
+            if xml.nonEmpty
+          }
           yield {
-            seen_files.find(_.check(src_path, thy.name, thy_session.name)) match {
-              case None => seen_files ::= Seen_File(src_path, thy.name, thy_session.name)
-              case Some(seen_file) =>
-                error("Incoherent use of file name " + src_path + " as " + files_path(src_path) +
-                  " in theory " + seen_file.thy_name + " vs. " + thy.name)
-            }
+            progress.expose_interrupt()
+            if (verbose) progress.echo("Presenting file " + src_path)
 
-            val file_path = html_context.files_path(thy.name, src_path)
-            val file_title = "File " + Symbol.cartouche_decoded(src_path.implode_short)
-            HTML.write_document(file_path.dir, file_path.file_name,
-              List(HTML.title(file_title)), List(html_context.head(file_title), file_html),
-              base = Some(html_context.root_dir))
-
-            List(HTML.link(files_path(src_path), HTML.text(file_title)))
+            (src_path, html_context.source(
+              make_html(entity_context(name), thy_elements, xml)))
           }
 
-        val thy_title = "Theory " + thy.name.theory_base_name
+        val thy_html =
+          html_context.source(
+            make_html(entity_context(name), thy_elements,
+              snapshot.xml_markup(elements = thy_elements.html)))
 
-        HTML.write_document(thy_dir, html_name(thy.name),
-          List(HTML.title(thy_title)), List(html_context.head(thy_title), thy.html),
+        val thy_session = html_context.theory_session(name)
+        val thy_dir = Isabelle_System.make_directory(html_context.session_dir(thy_session))
+        val files =
+          for { (src_path, file_html) <- files_html }
+            yield {
+              seen_files.find(_.check(src_path, name, thy_session.name)) match {
+                case None => seen_files ::= Seen_File(src_path, name, thy_session.name)
+                case Some(seen_file) =>
+                  error("Incoherent use of file name " + src_path + " as " + files_path(src_path) +
+                    " in theory " + seen_file.thy_name + " vs. " + name)
+              }
+
+              val file_path = html_context.files_path(name, src_path)
+              val file_title = "File " + Symbol.cartouche_decoded(src_path.implode_short)
+              HTML.write_document(file_path.dir, file_path.file_name,
+                List(HTML.title(file_title)), List(html_context.head(file_title), file_html),
+                base = Some(html_context.root_dir))
+
+              List(HTML.link(files_path(src_path), HTML.text(file_title)))
+            }
+
+        val thy_title = "Theory " + name.theory_base_name
+
+        HTML.write_document(thy_dir, html_name(name),
+          List(HTML.title(thy_title)), List(html_context.head(thy_title), thy_html),
           base = Some(html_context.root_dir))
 
         if (thy_session.name == session) {
           Some(
-            List(HTML.link(html_name(thy.name),
-              HTML.text(thy.name.theory_base_name) :::
+            List(HTML.link(html_name(name),
+              HTML.text(name.theory_base_name) :::
                 (if (files.isEmpty) Nil else List(HTML.itemize(files))))))
         }
         else None
-      }).flatten
+      })
     }
+
+    val theories = html_context.register_presented(hierarchy_theories).flatMap(present_theory)
 
     val title = "Session " + session
     HTML.write_document(session_dir, "index.html",
