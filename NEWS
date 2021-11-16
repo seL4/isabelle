@@ -203,7 +203,7 @@ INCOMPATIBILITY.
   - Update of bundled provers:
       . E 2.6
       . Vampire 4.6 (with Open Source license)
-      . veriT 2021.06-rmx
+      . veriT 2021.06.1-rmx
       . Zipperposition 2.1
       . Z3 4.4.1 for arm64-linux, which approximates Z3 4.4.0pre,
         but sometimes failes or crashes
