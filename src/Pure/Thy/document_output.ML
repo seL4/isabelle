@@ -62,11 +62,11 @@ fun output_comment ctxt (kind, syms) =
       Input.cartouche_content syms
       |> output_document (ctxt |> Config.put Document_Antiquotation.thy_output_display false)
           {markdown = false}
-      |> Latex.enclose_text "%\n\\isamarkupcmt{" "%\n}"
+      |> XML.enclose "%\n\\isamarkupcmt{" "%\n}"
   | Comment.Cancel =>
       Symbol_Pos.cartouche_content syms
       |> Latex.symbols_output
-      |> Latex.enclose_text "%\n\\isamarkupcancel{" "}"
+      |> XML.enclose "%\n\\isamarkupcancel{" "}"
   | Comment.Latex => Latex.symbols (Symbol_Pos.cartouche_content syms)
   | Comment.Marker => [])
 and output_comment_document ctxt (comment, syms) =
@@ -122,7 +122,7 @@ val output_symbols_antiq =
         Latex.string (Latex.output_symbols [Symbol.encode (Symbol.Control name)]) @
           Latex.symbols_output body
     | Antiquote.Antiq {body, ...} =>
-        Latex.enclose_text "%\n\\isaantiq\n" "{}%\n\\endisaantiq\n" (Latex.symbols_output body));
+        XML.enclose "%\n\\isaantiq\n" "{}%\n\\endisaantiq\n" (Latex.symbols_output body));
 
 fun output_comment_symbols ctxt {antiq} (comment, syms) =
   (case (comment, antiq) of
@@ -135,7 +135,7 @@ fun output_comment_symbols ctxt {antiq} (comment, syms) =
 fun output_body ctxt antiq bg en syms =
   Comment.read_body syms
   |> maps (output_comment_symbols ctxt {antiq = antiq})
-  |> Latex.enclose_text bg en;
+  |> XML.enclose bg en;
 
 in
 
@@ -201,7 +201,7 @@ fun present_token ctxt tok =
     Ignore => []
   | Token tok => output_token ctxt tok
   | Heading (cmd, source) =>
-      Latex.enclose_text ("%\n\\isamarkup" ^ cmd ^ "{") "%\n}\n"
+      XML.enclose ("%\n\\isamarkup" ^ cmd ^ "{") "%\n}\n"
         (output_document ctxt {markdown = false} source)
   | Body (cmd, source) =>
       Latex.environment_text ("isamarkup" ^ cmd) (output_document ctxt {markdown = true} source)
@@ -211,8 +211,8 @@ fun present_token ctxt tok =
 
 (* command spans *)
 
-type command = string * Position.T;   (*name, position*)
-type source = (token * (string * int)) list;        (*token, markup flag, meta-comment depth*)
+type command = string * Position.T;  (*name, position*)
+type source = (token * (string * int)) list;  (*token, markup flag, meta-comment depth*)
 
 datatype span = Span of command * (source * source * source * source) * bool;
 
@@ -484,13 +484,13 @@ fun pretty_thm ctxt = pretty_term ctxt o Thm.full_prop_of;
 
 fun isabelle ctxt body =
   if Config.get ctxt Document_Antiquotation.thy_output_display
-  then Latex.environment_text "isabelle" body
-  else Latex.enclose_text "\\isa{" "}" body;
+  then Latex.environment "isabelle" body
+  else Latex.macro "isa" body;
 
 fun isabelle_typewriter ctxt body =
   if Config.get ctxt Document_Antiquotation.thy_output_display
-  then Latex.environment_text "isabellett" body
-  else Latex.enclose_text "\\isatt{" "}" body;
+  then Latex.environment "isabellett" body
+  else Latex.macro "isatt" body;
 
 fun typewriter ctxt s =
   isabelle_typewriter ctxt (Latex.string (Latex.output_ascii s));

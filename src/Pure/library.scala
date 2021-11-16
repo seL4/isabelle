@@ -129,9 +129,9 @@ object Library
 
   /* strings */
 
-  def make_string(f: StringBuilder => Unit): String =
+  def make_string(f: StringBuilder => Unit, capacity: Int = 16): String =
   {
-    val s = new StringBuilder
+    val s = new StringBuilder(capacity)
     f(s)
     s.toString
   }

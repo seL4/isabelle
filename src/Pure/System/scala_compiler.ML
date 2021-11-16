@@ -58,8 +58,7 @@ val arguments =
 val args = Scan.optional (Parse.$$$ "(" |-- arguments --| Parse.$$$ ")") " _";
 
 fun scala_name name =
-  Latex.string (Latex.output_ascii_breakable "." name)
-  |> Latex.enclose_text "\\isatt{" "}";
+  Latex.macro "isatt" (Latex.string (Latex.output_ascii_breakable "." name));
 
 in
 

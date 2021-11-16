@@ -131,17 +131,17 @@ val _ =
 
 local
 
-fun nested_antiquotation name s1 s2 =
+fun nested_antiquotation name macro =
   Document_Output.antiquotation_raw_embedded name (Scan.lift Args.cartouche_input)
     (fn ctxt => fn txt =>
       (Context_Position.reports ctxt (Document_Output.document_reports txt);
-        Latex.enclose_text s1 s2 (Document_Output.output_document ctxt {markdown = false} txt)));
+        Latex.macro macro (Document_Output.output_document ctxt {markdown = false} txt)));
 
 val _ =
   Theory.setup
-   (nested_antiquotation \<^binding>\<open>footnote\<close> "\\footnote{" "}" #>
-    nested_antiquotation \<^binding>\<open>emph\<close> "\\emph{" "}" #>
-    nested_antiquotation \<^binding>\<open>bold\<close> "\\textbf{" "}");
+   (nested_antiquotation \<^binding>\<open>footnote\<close> "footnote" #>
+    nested_antiquotation \<^binding>\<open>emph\<close> "emph" #>
+    nested_antiquotation \<^binding>\<open>bold\<close> "textbf");
 
 in end;
 
@@ -423,24 +423,24 @@ val _ = Theory.setup
         val _ =
           Context_Position.reports ctxt
             [(pos, Markup.language_url delimited), (pos, Markup.url url)];
-      in Latex.enclose_text "\\url{" "}" (Latex.string (escape_url url)) end));
+      in Latex.macro "url" (Latex.string (escape_url url)) end));
 
 
 (* formal entities *)
 
 local
 
-fun entity_antiquotation name check bg en =
+fun entity_antiquotation name check macro =
   Document_Output.antiquotation_raw name (Scan.lift Args.name_position)
     (fn ctxt => fn (name, pos) =>
       let val _ = check ctxt (name, pos)
-      in Latex.enclose_text bg en (Latex.string (Output.output name)) end);
+      in Latex.macro macro (Latex.string (Output.output name)) end);
 
 val _ =
   Theory.setup
-   (entity_antiquotation \<^binding>\<open>command\<close> Outer_Syntax.check_command "\\isacommand{" "}" #>
-    entity_antiquotation \<^binding>\<open>method\<close> Method.check_name "\\isa{" "}" #>
-    entity_antiquotation \<^binding>\<open>attribute\<close> Attrib.check_name "\\isa{" "}");
+   (entity_antiquotation \<^binding>\<open>command\<close> Outer_Syntax.check_command "isacommand" #>
+    entity_antiquotation \<^binding>\<open>method\<close> Method.check_name "isa" #>
+    entity_antiquotation \<^binding>\<open>attribute\<close> Attrib.check_name "isa");
 
 in end;
 

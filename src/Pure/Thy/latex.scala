@@ -16,44 +16,132 @@ import scala.util.matching.Regex
 
 object Latex
 {
+  /* index entries */
+
+  def index_escape(str: String): String =
+  {
+    val special1 = "!\"@|"
+    val special2 = "\\{}#"
+    if (str.exists(c => special1.contains(c) || special2.contains(c))) {
+      val res = new StringBuilder
+      for (c <- str) {
+        if (special1.contains(c)) {
+          res ++= "\\char"
+          res ++= Value.Int(c)
+        }
+        else {
+          if (special2.contains(c)) { res += '"'}
+          res += c
+        }
+      }
+      res.toString
+    }
+    else str
+  }
+
+  object Index_Item
+  {
+    sealed case class Value(text: Text, like: String)
+    def unapply(tree: XML.Tree): Option[Value] =
+      tree match {
+        case XML.Wrapped_Elem(Markup.Latex_Index_Item(_), text, like) =>
+          Some(Value(text, XML.content(like)))
+        case _ => None
+      }
+  }
+
+  object Index_Entry
+  {
+    sealed case class Value(items: List[Index_Item.Value], kind: String)
+    def unapply(tree: XML.Tree): Option[Value] =
+      tree match {
+        case XML.Elem(Markup.Latex_Index_Entry(kind), body) =>
+          val items = body.map(Index_Item.unapply)
+          if (items.forall(_.isDefined)) Some(Value(items.map(_.get), kind)) else None
+        case _ => None
+      }
+  }
+
+
   /* output text and positions */
 
   type Text = XML.Body
 
-  def output(latex_text: Text, file_pos: String = ""): String =
+  def position(a: String, b: String): String = "%:%" + a + "=" + b + "%:%\n"
+
+  def init_position(file_pos: String): List[String] =
+    if (file_pos.isEmpty) Nil
+    else List("\\endinput\n", position(Markup.FILE, file_pos))
+
+  class Output
   {
-    var line = 1
-    val result = new mutable.ListBuffer[String]
-    val positions = new mutable.ListBuffer[String]
+    def latex_output(latex_text: Text): String = apply(latex_text)
 
-    def position(a: String, b: String): String = "%:%" + a + "=" + b + "%:%\n"
+    def latex_macro0(name: String): Text =
+      XML.string("\\" + name)
 
-    if (file_pos.nonEmpty) {
-      positions += "\\endinput\n"
-      positions += position(Markup.FILE, file_pos)
+    def latex_macro(name: String, body: Text): Text =
+      XML.enclose("\\" + name + "{", "}", body)
+
+    def latex_environment(name: String, body: Text): Text =
+      XML.enclose("%\n\\begin{" + name + "}%\n", "%\n\\end{" + name + "}", body)
+
+    def index_item(item: Index_Item.Value): String =
+    {
+      val like = if (item.like.isEmpty) "" else index_escape(item.like) + "@"
+      val text = index_escape(latex_output(item.text))
+      like + text
     }
 
-    def traverse(body: XML.Body): Unit =
+    def index_entry(entry: Index_Entry.Value): Text =
     {
-      body.foreach {
-        case XML.Wrapped_Elem(_, _, _) =>
-        case XML.Elem(markup, body) =>
-          if (markup.name == Markup.DOCUMENT_LATEX) {
-            for { l <- Position.Line.unapply(markup.properties) if positions.nonEmpty } {
+      val items = entry.items.map(index_item).mkString("!")
+      val kind = if (entry.kind.isEmpty) "" else "|" + index_escape(entry.kind)
+      latex_macro("index", XML.string(items + kind))
+    }
+
+
+    /* standard output of text with per-line positions */
+
+    def apply(latex_text: Text, file_pos: String = ""): String =
+    {
+      var line = 1
+      val result = new mutable.ListBuffer[String]
+      val positions = new mutable.ListBuffer[String] ++= init_position(file_pos)
+
+      def traverse(body: XML.Body): Unit =
+      {
+        body.foreach {
+          case XML.Text(s) =>
+            line += s.count(_ == '\n')
+            result += s
+          case XML.Elem(Markup.Document_Latex(props), body) =>
+            for { l <- Position.Line.unapply(props) if positions.nonEmpty } {
               val s = position(Value.Int(line), Value.Int(l))
               if (positions.last != s) positions += s
             }
             traverse(body)
-          }
-        case XML.Text(s) =>
-          line += s.count(_ == '\n')
-          result += s
+          case XML.Elem(Markup.Latex_Output(_), body) =>
+            traverse(XML.string(latex_output(body)))
+          case XML.Elem(Markup.Latex_Macro0(name), Nil) =>
+            traverse(latex_macro0(name))
+          case XML.Elem(Markup.Latex_Macro(name), body) =>
+            traverse(latex_macro(name, body))
+          case XML.Elem(Markup.Latex_Environment(name), body) =>
+            traverse(latex_environment(name, body))
+          case Index_Entry(entry) =>
+            traverse(index_entry(entry))
+          case t: XML.Tree =>
+            error("Bad latex markup" +
+              (if (file_pos.isEmpty) "" else Position.here(Position.File(file_pos))) + ":\n" +
+              XML.string_of_tree(t))
+        }
       }
-    }
-    traverse(latex_text)
+      traverse(latex_text)
 
-    result ++= positions
-    result.mkString
+      result ++= positions
+      result.mkString
+    }
   }
 
 

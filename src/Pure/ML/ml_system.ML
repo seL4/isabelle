@@ -28,8 +28,8 @@ val platform_is_linux = String.isSuffix "linux" platform;
 val platform_is_macos = String.isSuffix "darwin" platform;
 val platform_is_windows = String.isSuffix "windows" platform;
 val platform_is_unix = platform_is_linux orelse platform_is_macos;
-val platform_is_64 = String.isPrefix "x86_64-" platform;
-val platform_is_arm = String.isPrefix "arm64-" platform;
+val platform_is_64 = String.isPrefix "x86_64-" platform orelse String.isPrefix "arm64-" platform;
+val platform_is_arm = String.isPrefix "arm64_32-" platform orelse String.isPrefix "arm64-" platform;
 
 val platform_path =
   if platform_is_windows then

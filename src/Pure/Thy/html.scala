@@ -233,7 +233,7 @@ object HTML
   }
 
   def output(body: XML.Body, hidden: Boolean, structural: Boolean): String =
-    Library.make_string(output(_, body, hidden, structural))
+    Library.make_string(output(_, body, hidden, structural), capacity = XML.text_length(body) * 2)
 
   def output(tree: XML.Tree, hidden: Boolean, structural: Boolean): String =
     output(List(tree), hidden, structural)

@@ -257,7 +257,7 @@ object Rendering
       Markup.META_DATE, Markup.META_DESCRIPTION, Markup.META_LICENSE)
 
   val document_tag_elements =
-    Markup.Elements(Markup.Document_Tag.ELEMENT)
+    Markup.Elements(Markup.Document_Tag.name)
 
   val markdown_elements =
     Markup.Elements(Markup.MARKDOWN_PARAGRAPH, Markup.MARKDOWN_ITEM, Markup.Markdown_List.name,

@@ -161,7 +161,7 @@ object Build
   {
     val props = build_log.session_timing
     val threads = Markup.Session_Timing.Threads.unapply(props) getOrElse 1
-    val timing = Markup.Timing_Properties.parse(props)
+    val timing = Markup.Timing_Properties.get(props)
     "Timing " + session_name + " (" + threads + " threads, " + timing.message_factor + ")"
   }
 
@@ -239,6 +239,17 @@ object Build
           progress = progress, inlined_files = true).check_errors
       }
       else deps0
+    }
+
+    val presentation_sessions =
+    {
+      val sessions = deps.sessions_structure
+      val selected = full_sessions_selection.toSet
+      (for {
+        session_name <- sessions.imports_topological_order.iterator
+        info <- sessions.get(session_name)
+        if selected(session_name) && presentation.enabled(info) }
+      yield info).toList
     }
 
 
@@ -488,14 +499,6 @@ object Build
     /* PDF/HTML presentation */
 
     if (!no_build && !progress.stopped && results.ok) {
-      val selected = full_sessions_selection.toSet
-      val presentation_sessions =
-        (for {
-          session_name <- deps.sessions_structure.imports_topological_order.iterator
-          info <- results.get_info(session_name)
-          if selected(session_name) && presentation.enabled(info) && results(session_name).ok }
-        yield info).toList
-
       if (presentation_sessions.nonEmpty) {
         val presentation_dir = presentation.dir(store)
         progress.echo("Presentation in " + presentation_dir.absolute)
@@ -506,6 +509,8 @@ object Build
           Presentation.update_chapter(presentation_dir, chapter, entries)
         }
 
+        val state = new Presentation.State { override val cache: Term.Cache = store.cache }
+
         using(store.open_database_context())(db_context =>
           for (session <- presentation_sessions.map(_.name)) {
             progress.expose_interrupt()
@@ -513,14 +518,13 @@ object Build
 
             val html_context =
               new Presentation.HTML_Context {
-                override val cache: Term.Cache = store.cache
                 override def root_dir: Path = presentation_dir
                 override def theory_session(name: Document.Node.Name): Sessions.Info =
                   deps.sessions_structure(deps(session).theory_qualifier(name))
               }
             Presentation.session_html(
               session, deps, db_context, progress = progress,
-              verbose = verbose, html_context = html_context,
+              verbose = verbose, html_context = html_context, state = state,
               Presentation.elements1)
           })
       }

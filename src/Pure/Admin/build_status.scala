@@ -270,9 +270,11 @@ object Build_Status
               threads1 max threads2
             }
             val ml_platform = res.string(Build_Log.Settings.ML_PLATFORM)
+            val ml_platform_64 =
+              ml_platform.startsWith("x86_64-") || ml_platform.startsWith("arm64-")
             val data_name =
               profile.description +
-                (if (ml_platform.startsWith("x86_64-")) ", 64bit" else "") +
+                (if (ml_platform_64) ", 64bit" else "") +
                 (if (threads == 1) "" else ", " + threads + " threads")
 
             res.get_string(Build_Log.Prop.build_host).foreach(host =>
