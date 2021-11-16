@@ -241,6 +241,17 @@ object Build
       else deps0
     }
 
+    val presentation_sessions =
+    {
+      val sessions = deps.sessions_structure
+      val selected = full_sessions_selection.toSet
+      (for {
+        session_name <- sessions.imports_topological_order.iterator
+        info <- sessions.get(session_name)
+        if selected(session_name) && presentation.enabled(info) }
+      yield info).toList
+    }
+
 
     /* check unknown files */
 
@@ -488,14 +499,6 @@ object Build
     /* PDF/HTML presentation */
 
     if (!no_build && !progress.stopped && results.ok) {
-      val selected = full_sessions_selection.toSet
-      val presentation_sessions =
-        (for {
-          session_name <- deps.sessions_structure.imports_topological_order.iterator
-          info <- results.get_info(session_name)
-          if selected(session_name) && presentation.enabled(info) }
-        yield info).toList
-
       if (presentation_sessions.nonEmpty) {
         val presentation_dir = presentation.dir(store)
         progress.echo("Presentation in " + presentation_dir.absolute)
