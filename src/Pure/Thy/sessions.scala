@@ -267,9 +267,9 @@ object Sessions
               info.document_theories.flatMap(
               {
                 case (thy, pos) =>
-                  val parent_sessions =
+                  val build_hierarchy =
                     if (sessions_structure.build_graph.defined(session_name)) {
-                      sessions_structure.build_requirements(List(session_name))
+                      sessions_structure.build_hierarchy(session_name)
                     }
                     else Nil
 
@@ -283,7 +283,7 @@ object Sessions
                       if (session_theories.contains(name)) {
                         err("Redundant document theory from this session:")
                       }
-                      else if (parent_sessions.contains(qualifier)) None
+                      else if (build_hierarchy.contains(qualifier)) None
                       else if (dependencies.theories.contains(name)) None
                       else err("Document theory from other session not imported properly:")
                   }
