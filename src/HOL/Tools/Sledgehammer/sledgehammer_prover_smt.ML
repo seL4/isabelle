@@ -76,11 +76,17 @@ val is_boring_builtin_typ =
   not o exists_subtype (member (op =) [\<^typ>\<open>nat\<close>, \<^typ>\<open>int\<close>, HOLogic.realT])
 
 fun smt_filter_loop name ({debug, overlord, max_mono_iters, max_new_mono_instances, timeout, slice,
-      ...} : params) state goal i =
+      type_enc, ...} : params) state goal i =
   let
+    val (higher_order, nat_as_int) =
+      (case type_enc of
+        SOME s =>  (String.isSubstring "native_higher" s, String.isSubstring "arith" s)
+      | NONE => (false, false))
     fun repair_context ctxt =
       ctxt |> Context.proof_map (SMT_Config.select_solver name)
            |> Config.put SMT_Config.verbose debug
+           |> Config.put SMT_Config.higher_order higher_order
+           |> Config.put SMT_Config.nat_as_int nat_as_int
            |> (if overlord then
                  Config.put SMT_Config.debug_files
                    (overlord_file_location_of_prover name |> (fn (path, name) => path ^ "/" ^ name))

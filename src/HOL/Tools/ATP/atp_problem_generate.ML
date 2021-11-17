@@ -681,6 +681,10 @@ fun type_enc_of_string strictness s =
 
     fun native_of_string s =
       let
+        val (_, s) =
+          (case try (unsuffix "_arith") s of
+            SOME s => (true, s)
+          | NONE => (false, s))
         val (with_let, s) =
           (case try (unsuffix "_let") s of
             SOME s => (true, s)
