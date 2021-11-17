@@ -781,8 +781,7 @@ object Sessions
         else {
           (for {
             (name, (info, _)) <- graph.iterator
-            if info.dir_selected || select_session(name) ||
-              graph.get_node(name).groups.exists(select_group)
+            if info.dir_selected || select_session(name) || info.groups.exists(select_group)
           } yield name).toList
         }
 
