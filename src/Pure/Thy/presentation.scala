@@ -22,7 +22,7 @@ object Presentation
 
   abstract class HTML_Context
   {
-    /* directory structure */
+    /* directory structure and resources */
 
     def root_dir: Path
     def theory_session(name: Document.Node.Name): Sessions.Info
@@ -33,6 +33,10 @@ object Presentation
       session_dir(theory_session(name)) + Path.explode(name.theory_base_name).html
     def files_path(name: Document.Node.Name, path: Path): Path =
       theory_path(name).dir + Path.explode("files") + path.squash.html
+
+    def theory_exports: Map[String, Export_Theory.Theory] = Map.empty
+    def theory_export(name: String): Export_Theory.Theory =
+      theory_exports.getOrElse(name, Export_Theory.no_theory)
 
 
     /* HTML content */
@@ -60,33 +64,6 @@ object Presentation
             HTML.title(title)),
           List(HTML.source(body)), css = "", structural = false)
       HTML_Document(title, content)
-    }
-  }
-
-
-  /* presentation state */
-
-  class State
-  {
-    /* cached theory exports */
-
-    val cache: Term.Cache = Term.Cache.make()
-
-    private val theory_cache = Synchronized(Map.empty[String, Export_Theory.Theory])
-    def cache_theory(thy_name: String, make_thy: => Export_Theory.Theory): Export_Theory.Theory =
-    {
-      theory_cache.value.get(thy_name) match {
-        case Some(thy) => thy
-        case None =>
-          val thy1 = make_thy
-          theory_cache.change_result(thys =>
-          {
-            thys.get(thy_name) match {
-              case Some(thy) => (thy, thys)
-              case None => (thy1, thys + (thy_name -> thy1))
-            }
-          })
-      }
     }
   }
 
@@ -145,7 +122,7 @@ object Presentation
         session: String,
         deps: Sessions.Deps,
         node: Document.Node.Name,
-        theory_exports: Map[String, Export_Theory.Theory]): Entity_Context =
+        html_context: HTML_Context): Entity_Context =
       new Entity_Context {
         private val seen_ranges: mutable.Set[Symbol.Range] = mutable.Set.empty
 
@@ -156,7 +133,8 @@ object Presentation
             case _ =>
               Some {
                 val entities =
-                  theory_exports.get(node.theory).flatMap(_.entity_by_range.get(range))
+                  html_context.theory_exports.get(node.theory)
+                    .flatMap(_.entity_by_range.get(range))
                     .getOrElse(Nil)
                 val body1 =
                   if (seen_ranges.contains(range)) {
@@ -186,7 +164,7 @@ object Presentation
 
         private def logical_ref(thy_name: String, kind: String, name: String): Option[String] =
           for {
-            thy <- theory_exports.get(thy_name)
+            thy <- html_context.theory_exports.get(thy_name)
             entity <- thy.entity_by_kind_name.get((kind, name))
           } yield entity.kname
 
@@ -490,6 +468,35 @@ object Presentation
     else None
   }
 
+  def read_exports(
+    sessions: List[String],
+    deps: Sessions.Deps,
+    db_context: Sessions.Database_Context): Map[String, Export_Theory.Theory] =
+  {
+    type Batch = (String, List[String])
+    val batches =
+      sessions.foldLeft((Set.empty[String], List.empty[Batch]))(
+        { case ((seen, batches), session) =>
+            val thys = deps(session).loaded_theories.keys.filterNot(seen)
+            (seen ++ thys, (session, thys) :: batches)
+        })._2
+    Par_List.map[Batch, List[(String, Export_Theory.Theory)]](
+      { case (session, thys) =>
+          for (thy_name <- thys) yield {
+            val theory =
+              if (thy_name == Thy_Header.PURE) Export_Theory.no_theory
+              else {
+                val provider = Export.Provider.database_context(db_context, List(session), thy_name)
+                if (Export_Theory.read_theory_parents(provider, thy_name).isDefined) {
+                  Export_Theory.read_theory(provider, session, thy_name, cache = db_context.cache)
+                }
+                else Export_Theory.no_theory
+              }
+            thy_name -> theory
+          }
+      }, batches).iterator.flatten.toMap
+  }
+
   def session_html(
     session: String,
     deps: Sessions.Deps,
@@ -497,7 +504,6 @@ object Presentation
     progress: Progress = new Progress,
     verbose: Boolean = false,
     html_context: HTML_Context,
-    state: State,
     session_elements: Elements): Unit =
   {
     val info = deps.sessions_structure(session)
@@ -544,27 +550,8 @@ object Presentation
           map(link => HTML.text("View ") ::: List(link))).flatten
     }
 
-    val theory_exports: Map[String, Export_Theory.Theory] =
-      (for (node <- hierarchy_theories.iterator) yield {
-        val thy_name = node.theory
-        val theory =
-          if (thy_name == Thy_Header.PURE) Export_Theory.no_theory
-          else {
-            state.cache_theory(thy_name,
-              {
-                val provider = Export.Provider.database_context(db_context, hierarchy, thy_name)
-                if (Export_Theory.read_theory_parents(provider, thy_name).isDefined) {
-                  Export_Theory.read_theory(
-                    provider, session, thy_name, cache = state.cache)
-                }
-                else Export_Theory.no_theory
-              })
-        }
-        thy_name -> theory
-      }).toMap
-
     def entity_context(name: Document.Node.Name): Entity_Context =
-      Entity_Context.make(session, deps, name, theory_exports)
+      Entity_Context.make(session, deps, name, html_context)
 
 
     sealed case class Seen_File(
@@ -591,7 +578,8 @@ object Presentation
 
         val thy_elements =
           session_elements.copy(entity =
-            theory_exports(name.theory).others.keySet.foldLeft(session_elements.entity)(_ + _))
+            html_context.theory_export(name.theory).others.keySet
+              .foldLeft(session_elements.entity)(_ + _))
 
         val files_html =
           for {
