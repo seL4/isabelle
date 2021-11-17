@@ -174,7 +174,7 @@ object Document_Build
   {
     val info = deps.sessions_structure(session)
     val base = deps(session)
-    val hierarchy = deps.sessions_structure.hierarchy(session)
+    val hierarchy = deps.sessions_structure.build_hierarchy(session)
     new Context(info, base, hierarchy, db_context, progress)
   }
 
