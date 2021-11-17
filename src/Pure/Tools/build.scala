@@ -509,7 +509,8 @@ object Build
         val state = new Presentation.State { override val cache: Term.Cache = store.cache }
 
         using(store.open_database_context())(db_context =>
-          for (session <- presentation_sessions.map(_.name)) {
+          Par_List.map((session: String) =>
+          {
             progress.expose_interrupt()
             progress.echo("Presenting " + session + " ...")
 
@@ -523,7 +524,7 @@ object Build
               session, deps, db_context, progress = progress,
               verbose = verbose, html_context = html_context, state = state,
               Presentation.elements1)
-          })
+          }, presentation_sessions.map(_.name)))
       }
     }
 
