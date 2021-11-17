@@ -345,14 +345,15 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
     val {context = ctxt, facts = chained_ths, goal} = Proof.goal st
     val i = 1
     fun set_file_name (SOME dir) =
-        Config.put Sledgehammer_Prover_ATP.atp_dest_dir dir
-        #> Config.put Sledgehammer_Prover_ATP.atp_problem_prefix
-          ("prob_" ^
+        let
+          val filename = "prob_" ^
             StringCvt.padLeft #"0" 5 (str0 (Position.line_of pos)) ^ "_" ^
-            StringCvt.padLeft #"0" 6 (str0 (Position.offset_of pos)) ^ "__")
-        #> Config.put SMT_Config.debug_files
-          (dir ^ "/" ^ Name.desymbolize (SOME false) (ATP_Util.timestamp ()) ^ "_"
-          ^ serial_string ())
+            StringCvt.padLeft #"0" 6 (str0 (Position.offset_of pos))
+        in
+          Config.put Sledgehammer_Prover_ATP.atp_dest_dir dir
+          #> Config.put Sledgehammer_Prover_ATP.atp_problem_prefix (filename ^ "__")
+          #> Config.put SMT_Config.debug_files (dir ^ "/" ^ filename ^ "__" ^ serial_string ())
+        end
       | set_file_name NONE = I
     val st' =
       st
