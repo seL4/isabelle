@@ -75,15 +75,18 @@ object Presentation
     private val theory_cache = Synchronized(Map.empty[String, Export_Theory.Theory])
     def cache_theory(thy_name: String, make_thy: => Export_Theory.Theory): Export_Theory.Theory =
     {
-      theory_cache.change_result(thys =>
-      {
-        thys.get(thy_name) match {
-          case Some(thy) => (thy, thys)
-          case None =>
-            val thy = make_thy
-            (thy, thys + (thy_name -> thy))
-        }
-      })
+      theory_cache.value.get(thy_name) match {
+        case Some(thy) => thy
+        case None =>
+          val thy1 = make_thy
+          theory_cache.change_result(thys =>
+          {
+            thys.get(thy_name) match {
+              case Some(thy) => (thy, thys)
+              case None => (thy1, thys + (thy_name -> thy1))
+            }
+          })
+      }
     }
   }
 
