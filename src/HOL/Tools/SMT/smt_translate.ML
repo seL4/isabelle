@@ -22,7 +22,7 @@ sig
     funcs: (string * (string list * string)) list }
   type config = {
     order: SMT_Util.order,
-    logic: term list -> string,
+    logic: string -> term list -> string,
     fp_kinds: BNF_Util.fp_kind list,
     serialize: (string * string) list -> string list -> sign -> sterm list -> string }
   type replay_data = {
@@ -35,7 +35,7 @@ sig
 
   (*translation*)
   val add_config: SMT_Util.class * (Proof.context -> config) -> Context.generic -> Context.generic
-  val translate: Proof.context -> (string * string) list -> string list -> (int * thm) list ->
+  val translate: Proof.context -> string -> (string * string) list -> string list -> (int * thm) list ->
     string * replay_data
 end;
 
@@ -66,7 +66,7 @@ type sign = {
 
 type config = {
   order: SMT_Util.order,
-  logic: term list -> string,
+  logic: string -> term list -> string,
   fp_kinds: BNF_Util.fp_kind list,
   serialize: (string * string) list -> string list -> sign -> sterm list -> string }
 
@@ -487,7 +487,7 @@ fun get_config ctxt =
         "for solver class " ^ quote (SMT_Util.string_of_class cs)))
   end
 
-fun translate ctxt smt_options comments ithms =
+fun translate ctxt prover smt_options comments ithms =
   let
     val {order, logic, fp_kinds, serialize} = get_config ctxt
 
@@ -529,7 +529,7 @@ fun translate ctxt smt_options comments ithms =
       |>> order = SMT_Util.First_Order ? apfst (cons fun_app_eq)
   in
     (ts4, tr_context)
-    |-> intermediate logic dtyps (builtin SMT_Builtin.dest_builtin) ctxt2
+    |-> intermediate (logic prover) dtyps (builtin SMT_Builtin.dest_builtin) ctxt2
     |>> uncurry (serialize smt_options comments)
     ||> replay_data_of ctxt2 ll_defs rewrite_rules ithms
   end

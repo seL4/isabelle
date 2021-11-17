@@ -132,7 +132,7 @@ fun invoke name command smt_options ithms ctxt =
     val (str, replay_data as {context = ctxt', ...}) =
       ithms
       |> tap (trace_assms ctxt)
-      |> SMT_Translate.translate ctxt smt_options comments
+      |> SMT_Translate.translate ctxt name smt_options comments
       ||> tap trace_replay_data
   in (run_solver ctxt' name (make_command command options) str, replay_data) end
 
