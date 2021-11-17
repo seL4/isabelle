@@ -68,16 +68,6 @@ object Presentation
 
   class State
   {
-    /* already presented theories */
-
-    private val already_presented = Synchronized(Set.empty[String])
-
-    def register_presented(nodes: List[Document.Node.Name]): List[Document.Node.Name] =
-      already_presented.change_result(presented =>
-        (nodes.filterNot(name => presented.contains(name.theory)),
-          presented ++ nodes.iterator.map(_.theory)))
-
-
     /* cached theory exports */
 
     val cache: Term.Cache = Term.Cache.make()
@@ -655,7 +645,7 @@ object Presentation
       })
     }
 
-    val theories = state.register_presented(hierarchy_theories).flatMap(present_theory)
+    val theories = base.session_theories.flatMap(present_theory)
 
     val title = "Session " + session
     HTML.write_document(session_dir, "index.html",

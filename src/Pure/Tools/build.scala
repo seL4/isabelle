@@ -244,7 +244,7 @@ object Build
 
     val presentation_sessions =
       (for {
-        session_name <- deps.sessions_structure.imports_topological_order.iterator
+        session_name <- deps.sessions_structure.build_topological_order.iterator
         info <- deps.sessions_structure.get(session_name)
         if full_sessions_selected(session_name) && presentation.enabled(info) }
       yield info).toList
