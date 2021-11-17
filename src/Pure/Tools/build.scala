@@ -205,6 +205,7 @@ object Build
       Sessions.load_structure(build_options, dirs = dirs, select_dirs = select_dirs, infos = infos)
 
     val full_sessions_selection = full_sessions.imports_selection(selection)
+    val full_sessions_selected = full_sessions_selection.toSet
 
     def sources_stamp(deps: Sessions.Deps, session_name: String): String =
     {
@@ -242,15 +243,11 @@ object Build
     }
 
     val presentation_sessions =
-    {
-      val sessions = deps.sessions_structure
-      val selected = full_sessions_selection.toSet
       (for {
-        session_name <- sessions.imports_topological_order.iterator
-        info <- sessions.get(session_name)
-        if selected(session_name) && presentation.enabled(info) }
+        session_name <- deps.sessions_structure.imports_topological_order.iterator
+        info <- deps.sessions_structure.get(session_name)
+        if full_sessions_selected(session_name) && presentation.enabled(info) }
       yield info).toList
-    }
 
 
     /* check unknown files */
