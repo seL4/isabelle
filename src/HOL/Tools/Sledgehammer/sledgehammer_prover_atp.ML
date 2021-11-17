@@ -151,6 +151,7 @@ fun run_atp mode name
     val problem_file_name =
       Path.basic (problem_prefix ^ (if overlord then "" else serial_string ()) ^
         suffix_of_mode mode ^ "_" ^ string_of_int subgoal)
+      |> Path.ext "p"
     val prob_path =
       if dest_dir = "" then
         File.tmp_path problem_file_name
@@ -342,8 +343,16 @@ fun run_atp mode name
        the proof file too. *)
     fun clean_up () = if dest_dir = "" then (try File.rm prob_path; ()) else ()
     fun export (_, (output, _, _, _, _), _) =
-      if dest_dir = "" then ()
-      else File.write (Path.explode (Path.implode prob_path ^ "_proof")) output
+      let
+        val make_export_path =
+          Path.split_ext
+          #> apfst (Path.explode o suffix "_proof" o Path.implode)
+          #> swap
+          #> uncurry Path.ext
+      in
+        if dest_dir = "" then ()
+        else File.write (make_export_path prob_path) output
+      end
 
     val ((_, (_, pool, lifted, sym_tab)), (output, run_time, used_from, atp_proof, outcome),
          SOME (format, type_enc)) =
