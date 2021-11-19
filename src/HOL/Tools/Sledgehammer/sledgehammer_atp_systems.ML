@@ -72,7 +72,7 @@ val TF1 = TFF (Polymorphic, Without_FOOL)
 val TX0 = TFF (Monomorphic, With_FOOL {with_ite = true, with_let = true})
 val TX1 = TFF (Polymorphic, With_FOOL {with_ite = true, with_let = true})
 val TH0 = THF (Monomorphic, {with_ite = true, with_let = true}, THF_With_Choice)
-val TH1 = THF (Monomorphic, {with_ite = true, with_let = true}, THF_With_Choice)
+val TH1 = THF (Polymorphic, {with_ite = true, with_let = true}, THF_With_Choice)
 
 val default_max_mono_iters = 3 (* FUDGE *)
 val default_max_new_mono_instances = 100 (* FUDGE *)
@@ -680,7 +680,7 @@ val dummy_thf =
 
 val dummy_thf_reduced =
   let
-    val format = THF (Monomorphic, {with_ite = false, with_let = false}, THF_Without_Choice)
+    val format = THF (Polymorphic, {with_ite = false, with_let = false}, THF_Without_Choice)
     val config = dummy_config Hypothesis format "poly_native_higher" false
   in (dummy_thfN ^ "_reduced", fn () => config) end
 
