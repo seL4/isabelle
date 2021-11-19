@@ -300,7 +300,7 @@ val e_config : atp_config =
        val heuristic = Config.get ctxt e_selection_heuristic
        val (format, enc, main_lam_trans) =
          if string_ord (getenv "E_VERSION", "2.7") <> LESS then
-           (THF (Monomorphic, {with_ite = true, with_let = false}, THF_Without_Choice), "mono_native_higher_ite", keep_lamsN)
+           (THF (Monomorphic, {with_ite = true, with_let = false}, THF_Without_Choice), "mono_native_higher", keep_lamsN)
          else if string_ord (getenv "E_VERSION", "2.6") <> LESS then
            (THF (Monomorphic, {with_ite = true, with_let = false}, THF_Without_Choice), "mono_native_higher", keep_lamsN)
          else
@@ -384,7 +384,7 @@ val leo3_config : atp_config =
    prem_role = Hypothesis,
    best_slices =
      (* FUDGE *)
-     K [(1.0, (((150, ""), THF (Polymorphic, {with_ite = true, with_let = true}, THF_Without_Choice), "mono_native_higher_ite_let", keep_lamsN, false), ""))],
+     K [(1.0, (((150, ""), THF (Polymorphic, {with_ite = true, with_let = true}, THF_Without_Choice), "mono_native_higher", keep_lamsN, false), ""))],
    best_max_mono_iters = default_max_mono_iters - 1 (* FUDGE *),
    best_max_new_mono_instances = default_max_new_mono_instances}
 
@@ -490,9 +490,9 @@ val vampire_config : atp_config =
    prem_role = Hypothesis,
    best_slices = fn ctxt =>
      (* FUDGE *)
-     [(0.333, (((500, meshN), TX1, "mono_native_fool_ite_let", combs_or_liftingN, false), sosN)),
-      (0.333, (((150, meshN), TX1, "poly_native_fool_ite_let", combs_or_liftingN, false), sosN)),
-      (0.334, (((50, meshN), TX1, "mono_native_fool_ite_let", combs_or_liftingN, false), no_sosN))]
+     [(0.333, (((500, meshN), TX1, "mono_native_fool", combs_or_liftingN, false), sosN)),
+      (0.333, (((150, meshN), TX1, "poly_native_fool", combs_or_liftingN, false), sosN)),
+      (0.334, (((50, meshN), TX1, "mono_native_fool", combs_or_liftingN, false), no_sosN))]
      |> Config.get ctxt force_sos ? (hd #> apfst (K 1.0) #> single),
    best_max_mono_iters = default_max_mono_iters,
    best_max_new_mono_instances = 2 * default_max_new_mono_instances (* FUDGE *)}
@@ -527,7 +527,7 @@ val zipperposition_config : atp_config =
   let
     val format =
       THF (Polymorphic, {with_ite = true, with_let = false}, THF_Without_Choice)
-    val enc = ((512, "meshN"), format, "mono_native_higher_fool_ite", keep_lamsN, false)
+    val enc = ((512, "meshN"), format, "mono_native_higher_fool", keep_lamsN, false)
   in
     {exec = (["ZIPPERPOSITION_HOME"], ["zipperposition"]),
      arguments = fn _ => fn _ => fn extra_options => fn timeout => fn problem => fn _ =>
@@ -663,18 +663,26 @@ fun dummy_config prem_role format type_enc uncurried_aliases : atp_config =
    best_max_mono_iters = default_max_mono_iters,
    best_max_new_mono_instances = default_max_new_mono_instances}
 
+val dummy_fof =
+  let
+    val config = dummy_config Hypothesis FOF "mono_guards??" false
+  in (dummy_fofN, fn () => config) end
 
-val dummy_fof_format = FOF
-val dummy_fof_config = dummy_config Hypothesis dummy_fof_format "mono_guards??" false
-val dummy_fof = (dummy_fofN, fn () => dummy_fof_config)
+val dummy_tfx =
+  let
+    val config = dummy_config Hypothesis TX1 "poly_native_fool" false
+  in (dummy_tfxN, fn () => config) end
 
-val dummy_tfx_config = dummy_config Hypothesis TX1 "mono_native_fool_ite_let" false
-val dummy_tfx = (dummy_tfxN, fn () => dummy_tfx_config)
+val dummy_thf =
+  let
+    val config = dummy_config Hypothesis TH1 "poly_native_higher" false
+  in (dummy_thfN, fn () => config) end
 
-val dummy_thf_config =
-  dummy_config Hypothesis TH1 "mono_native_higher_ite_let" false
-val dummy_thf = (dummy_thfN, fn () => dummy_thf_config)
-
+val dummy_thf_reduced =
+  let
+    val format = THF (Monomorphic, {with_ite = false, with_let = false}, THF_Without_Choice)
+    val config = dummy_config Hypothesis format "poly_native_higher" false
+  in (dummy_thfN ^ "_reduced", fn () => config) end
 
 (* Setup *)
 
@@ -711,7 +719,7 @@ fun effective_term_order ctxt atp =
 val atps =
   [agsyhol, alt_ergo, e, iprover, leo2, leo3, satallax, spass, vampire, z3_tptp, zipperposition,
    remote_agsyhol, remote_alt_ergo, remote_e, remote_iprover, remote_leo2, remote_leo3,
-   remote_waldmeister, remote_zipperposition, dummy_fof, dummy_tfx, dummy_thf]
+   remote_waldmeister, remote_zipperposition, dummy_fof, dummy_tfx, dummy_thf, dummy_thf_reduced]
 
 val _ = Theory.setup (fold add_atp atps)
 

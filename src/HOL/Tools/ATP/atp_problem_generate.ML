@@ -685,26 +685,11 @@ fun type_enc_of_string strictness s =
           (case try (unsuffix "_arith") s of
             SOME s => (true, s)
           | NONE => (false, s))
-        val (with_let, s) =
-          (case try (unsuffix "_let") s of
-            SOME s => (true, s)
-          | NONE => (false, s))
-        val (with_ite, s) =
-          (case try (unsuffix "_ite") s of
-            SOME s => (true, s)
-          | NONE => (false, s))
-        val syntax = {with_ite = with_ite, with_let = with_let}
+        val syntax = {with_ite = true, with_let = true}
         val (fool, core) =
           (case try (unsuffix "_fool") s of
             SOME s => (With_FOOL syntax, s)
           | NONE => (Without_FOOL, s))
-
-        fun validate_syntax (type_enc as Native (_, Without_FOOL, _, _)) =
-            if with_ite orelse with_let then
-              error "\"ite\" and \"let\" options require \"native_fool\" or \"native_higher\"."
-            else
-              type_enc
-          | validate_syntax type_enc = type_enc
       in
         (case (core, poly) of
           ("native", SOME poly) =>
@@ -728,7 +713,6 @@ fun type_enc_of_string strictness s =
            | (poly as Raw_Polymorphic _, All_Types) =>
              Native (Higher_Order THF_With_Choice, With_FOOL syntax, poly, All_Types)
            | _ => raise Same.SAME))
-        |> validate_syntax
       end
 
     fun nonnative_of_string core =
