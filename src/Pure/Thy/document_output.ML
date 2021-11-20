@@ -200,11 +200,10 @@ fun present_token ctxt tok =
   (case tok of
     Ignore => []
   | Token tok => output_token ctxt tok
-  | Heading (cmd, source) =>
-      XML.enclose ("%\n\\isamarkup" ^ cmd ^ "{") "%\n}\n"
-        (output_document ctxt {markdown = false} source)
-  | Body (cmd, source) =>
-      Latex.environment_text ("isamarkup" ^ cmd) (output_document ctxt {markdown = true} source)
+  | Heading (kind, source) =>
+      [XML.Elem (Markup.latex_heading kind, output_document ctxt {markdown = false} source)]
+  | Body (kind, source) =>
+      [XML.Elem (Markup.latex_body kind, output_document ctxt {markdown = true} source)]
   | Raw source =>
       Latex.string "%\n" @ output_document ctxt {markdown = true} source @ Latex.string "\n");
 

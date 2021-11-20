@@ -86,6 +86,12 @@ object Latex
     def latex_environment(name: String, body: Text): Text =
       XML.enclose("%\n\\begin{" + name + "}%\n", "%\n\\end{" + name + "}", body)
 
+    def latex_heading(kind: String, body: Text): Text =
+      XML.enclose("%\n\\isamarkup" + kind + "{", "%\n}\n", body)
+
+    def latex_body(kind: String, body: Text): Text =
+      latex_environment("isamarkup" + kind, body)
+
     def index_item(item: Index_Item.Value): String =
     {
       val like = if (item.like.isEmpty) "" else index_escape(item.like) + "@"
@@ -129,6 +135,10 @@ object Latex
             traverse(latex_macro(name, body))
           case XML.Elem(Markup.Latex_Environment(name), body) =>
             traverse(latex_environment(name, body))
+          case XML.Elem(Markup.Latex_Heading(kind), body) =>
+            traverse(latex_heading(kind, body))
+          case XML.Elem(Markup.Latex_Body(kind), body) =>
+            traverse(latex_body(kind, body))
           case Index_Entry(entry) =>
             traverse(index_entry(entry))
           case t: XML.Tree =>
