@@ -201,7 +201,7 @@ fun symbols_output syms =
 val begin_delim = enclose_name "%\n\\isadelim" "\n";
 val end_delim = enclose_name "%\n\\endisadelim" "\n";
 val begin_tag = enclose_name "%\n\\isatag" "\n";
-fun end_tag tg = enclose_name "%\n\\endisatag" "\n" tg ^ enclose "{\\isafold" "}%\n" tg;
+fun end_tag tg = enclose_name "%\n\\endisatag" "\n" tg ^ enclose_name "{\\isafold" "}%\n" tg;
 
 
 (* theory presentation *)
