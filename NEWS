@@ -564,11 +564,11 @@ ISABELLE_PLATFORM64 (generic Posix) or ISABELLE_WINDOWS_PLATFORM64
 (native Windows) or ISABELLE_APPLE_PLATFORM64 (Apple Silicon).
 
 * Timeouts for Isabelle/ML tools are subject to system option
-"timeout_scale" --- this already used for the overall session build
-process before, and allows to adapt to slow machines. The underlying
-Timeout.apply in Isabelle/ML treats an original timeout specification 0
-as no timeout; before it meant immediate timeout. Rare INCOMPATIBILITY
-in boundary cases.
+"timeout_scale", to support adjustments to slow machines. Before,
+timeout_scale was only used for the overall session build process, now
+it affects the underlying Timeout.apply in Isabelle/ML as well. It
+treats a timeout specification 0 as "no timeout", instead of "immediate
+timeout". Rare INCOMPATIBILITY in boundary cases.
 
 
 
