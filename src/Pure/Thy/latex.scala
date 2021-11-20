@@ -73,7 +73,7 @@ object Latex
     if (file_pos.isEmpty) Nil
     else List("\\endinput\n", position(Markup.FILE, file_pos))
 
-  class Output
+  class Output(options: Options)
   {
     def latex_output(latex_text: Text): String = apply(latex_text)
 
@@ -87,7 +87,7 @@ object Latex
       XML.enclose("%\n\\begin{" + name + "}%\n", "%\n\\end{" + name + "}", body)
 
     def latex_heading(kind: String, body: Text): Text =
-      XML.enclose("%\n\\isamarkup" + kind + "{", "%\n}\n", body)
+      XML.enclose("%\n\\" + options.string("document_heading_prefix") + kind + "{", "%\n}\n", body)
 
     def latex_body(kind: String, body: Text): Text =
       latex_environment("isamarkup" + kind, body)

@@ -21,6 +21,8 @@ option document_build : string = "lualatex"
   -- "document build engine (e.g. lualatex, pdflatex, build)"
 option document_logo : string = ""
   -- "generate named instance of Isabelle logo (underscore means unnamed variant)"
+option document_heading_prefix : string = "isamarkup"
+  -- "prefix for LaTeX macros generated from 'chapter', 'section' etc."
 
 option thy_output_display : bool = false
   -- "indicate output as multi-line display-style material"

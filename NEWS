@@ -114,6 +114,11 @@ adjust session ROOT options.
 * Option "document_echo" informs about document file names during
 session presentation.
 
+* Option "document_heading_prefix" specifies a prefix for the LaTeX
+macro names generated from document heading commands like 'chapter',
+'section' etc. The default is "isamarkup", so 'section' becomes
+"\isamarkupsection" for example.
+
 * The command-line tool "isabelle latex" has been discontinued,
 INCOMPATIBILITY for old document build scripts.
 

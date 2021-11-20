@@ -335,7 +335,7 @@ object Document_Build
   abstract class Bash_Engine(name: String) extends Engine(name)
   {
     def prepare_directory(context: Context, dir: Path, doc: Document_Variant): Directory =
-      context.prepare_directory(dir, doc, new Latex.Output)
+      context.prepare_directory(dir, doc, new Latex.Output(context.options))
 
     def use_pdflatex: Boolean = false
     def latex_script(context: Context, directory: Directory): String =
