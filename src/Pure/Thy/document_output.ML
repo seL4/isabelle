@@ -241,10 +241,15 @@ fun edge which f (x: string option, y) =
   if x = y then I
   else (case which (x, y) of NONE => I | SOME txt => fold cons (Latex.string (f txt)));
 
-val begin_tag = edge #2 Latex.begin_tag;
-val end_tag = edge #1 Latex.end_tag;
-fun open_delim delim e = edge #2 Latex.begin_delim e #> delim #> edge #2 Latex.end_delim e;
-fun close_delim delim e = edge #1 Latex.begin_delim e #> delim #> edge #1 Latex.end_delim e;
+val markup_tag = YXML.output_markup o Markup.latex_tag;
+val markup_delim = YXML.output_markup o Markup.latex_delim;
+val bg_delim = #1 o markup_delim;
+val en_delim = #2 o markup_delim;
+
+val begin_tag = edge #2 (#1 o markup_tag);
+val end_tag = edge #1 (#2 o markup_tag);
+fun open_delim delim e = edge #2 bg_delim e #> delim #> edge #2 en_delim e;
+fun close_delim delim e = edge #1 bg_delim e #> delim #> edge #1 en_delim e;
 
 fun document_tag cmd_pos state state' tagging_stack =
   let

@@ -377,6 +377,9 @@ object Markup
   val Latex_Environment = new Markup_String("latex_environment", NAME)
   val Latex_Heading = new Markup_String("latex_heading", KIND)
   val Latex_Body = new Markup_String("latex_body", KIND)
+  val Latex_Delim = new Markup_String("latex_delim", NAME)
+  val Latex_Tag = new Markup_String("latex_tag", NAME)
+
   val Latex_Index_Item = new Markup_Elem("latex_index_item")
   val Latex_Index_Entry = new Markup_String("latex_index_entry", KIND)
 

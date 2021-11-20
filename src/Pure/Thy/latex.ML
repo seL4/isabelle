@@ -22,10 +22,6 @@ sig
   val output_syms: string -> string
   val symbols: Symbol_Pos.T list -> text
   val symbols_output: Symbol_Pos.T list -> text
-  val begin_delim: string -> string
-  val end_delim: string -> string
-  val begin_tag: string -> string
-  val end_tag: string -> string
   val environment_text: string -> text -> text
   val isabelle_body: string -> text -> text
   val theory_entry: string -> string
@@ -194,14 +190,6 @@ end;
 fun symbols syms = text (Symbol_Pos.content syms, #1 (Symbol_Pos.range syms));
 fun symbols_output syms =
   text (output_symbols (map Symbol_Pos.symbol syms), #1 (Symbol_Pos.range syms));
-
-
-(* tags *)
-
-val begin_delim = enclose_name "%\n\\isadelim" "\n";
-val end_delim = enclose_name "%\n\\endisadelim" "\n";
-val begin_tag = enclose_name "%\n\\isatag" "\n";
-fun end_tag tg = enclose_name "%\n\\endisatag" "\n" tg ^ enclose_name "{\\isafold" "}%\n" tg;
 
 
 (* theory presentation *)

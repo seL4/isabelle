@@ -16,6 +16,36 @@ import scala.util.matching.Regex
 
 object Latex
 {
+  /* output name for LaTeX macros */
+
+  private val output_name_map: Map[Char, String] =
+    Map('_' -> "UNDERSCORE",
+      '\'' -> "PRIME",
+      '0' -> "ZERO",
+      '1' -> "ONE",
+      '2' -> "TWO",
+      '3' -> "THREE",
+      '4' -> "FOUR",
+      '5' -> "FIVE",
+      '6' -> "SIX",
+      '7' -> "SEVEN",
+      '8' -> "EIGHT",
+      '9' -> "NINE")
+
+  def output_name(name: String): String =
+    if (name.exists(output_name_map.keySet)) {
+      val res = new StringBuilder
+      for (c <- name) {
+        output_name_map.get(c) match {
+          case None => res += c
+          case Some(s) => res ++= s
+        }
+      }
+      res.toString
+    }
+    else name
+
+
   /* index entries */
 
   def index_escape(str: String): String =
@@ -92,6 +122,18 @@ object Latex
     def latex_body(kind: String, body: Text): Text =
       latex_environment("isamarkup" + kind, body)
 
+    def latex_delim(name: String, body: Text): Text =
+    {
+      val s = output_name(name)
+      XML.enclose("%\n\\isadelim" + s + "\n", "%\n\\endisadelim" + s + "\n", body)
+    }
+
+    def latex_tag(name: String, body: Text): Text =
+    {
+      val s = output_name(name)
+      XML.enclose("%\n\\isatag" + s + "\n", "%\n\\endisatag" + s + "\n{\\isafold" + s + "}%\n", body)
+    }
+
     def index_item(item: Index_Item.Value): String =
     {
       val like = if (item.like.isEmpty) "" else index_escape(item.like) + "@"
@@ -139,6 +181,10 @@ object Latex
             traverse(latex_heading(kind, body))
           case XML.Elem(Markup.Latex_Body(kind), body) =>
             traverse(latex_body(kind, body))
+          case XML.Elem(Markup.Latex_Delim(name), body) =>
+            traverse(latex_delim(name, body))
+          case XML.Elem(Markup.Latex_Tag(name), body) =>
+            traverse(latex_tag(name, body))
           case Index_Entry(entry) =>
             traverse(index_entry(entry))
           case t: XML.Tree =>
