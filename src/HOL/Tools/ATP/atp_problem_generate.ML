@@ -171,6 +171,8 @@ fun is_type_enc_fool (Native (_, With_FOOL _, _, _)) = true
 fun is_type_enc_higher_order (Native (Higher_Order _, _, _, _)) = true
   | is_type_enc_higher_order _ = false
 
+fun has_type_enc_choice (Native (Higher_Order THF_With_Choice, _, _, _)) = true
+  | has_type_enc_choice _ = false
 fun has_type_enc_ite (Native (_, With_FOOL {with_ite, ...}, _, _)) = with_ite
   | has_type_enc_ite _ = false
 fun has_type_enc_let (Native (_, With_FOOL {with_let, ...}, _, _)) = with_let
@@ -331,7 +333,8 @@ val proxy_table =
    ("c_implies", (\<^const_name>\<open>implies\<close>, (@{thm fimplies_def}, ("fimplies", \<^const_name>\<open>fimplies\<close>)))),
    ("equal", (\<^const_name>\<open>HOL.eq\<close>, (@{thm fequal_def}, ("fequal", \<^const_name>\<open>fequal\<close>)))),
    ("c_All", (\<^const_name>\<open>All\<close>, (@{thm fAll_def}, ("fAll", \<^const_name>\<open>fAll\<close>)))),
-   ("c_Ex", (\<^const_name>\<open>Ex\<close>, (@{thm fEx_def}, ("fEx", \<^const_name>\<open>fEx\<close>))))]
+   ("c_Ex", (\<^const_name>\<open>Ex\<close>, (@{thm fEx_def}, ("fEx", \<^const_name>\<open>fEx\<close>)))),
+   ("c_Choice", (\<^const_name>\<open>Hilbert_Choice.Eps\<close>, (@{thm fChoice_def}, ("fChoice", \<^const_name>\<open>fChoice\<close>))))]
 
 val proxify_const = AList.lookup (op =) proxy_table #> Option.map (snd o snd)
 
@@ -350,6 +353,7 @@ val const_trans_table =
    (\<^const_name>\<open>If\<close>, "If"),
    (\<^const_name>\<open>Set.member\<close>, "member"),
    (\<^const_name>\<open>HOL.Let\<close>, "Let"),
+   (\<^const_name>\<open>Hilbert_Choice.Eps\<close>, "Choice"),
    (\<^const_name>\<open>Meson.COMBI\<close>, combinator_prefix ^ "I"),
    (\<^const_name>\<open>Meson.COMBK\<close>, combinator_prefix ^ "K"),
    (\<^const_name>\<open>Meson.COMBB\<close>, combinator_prefix ^ "B"),
@@ -387,15 +391,8 @@ fun make_tfree s = tfree_prefix ^ ascii_of (unquote_tvar s)
 fun tvar_name ((x as (s, _)), _) = (make_tvar x, s)
 
 (* "HOL.eq" and choice are mapped to the ATP's equivalents *)
-local
-  val choice_const = (fst o dest_Const o HOLogic.choice_const) dummyT
-  fun default c = const_prefix ^ lookup_const c
-in
-  fun make_fixed_const _ \<^const_name>\<open>HOL.eq\<close> = tptp_old_equal
-    | make_fixed_const (SOME (Native (Higher_Order THF_With_Choice, _, _, _))) c =
-      if c = choice_const then tptp_choice else default c
-    | make_fixed_const _ c = default c
-end
+fun make_fixed_const _ \<^const_name>\<open>HOL.eq\<close> = tptp_old_equal
+  | make_fixed_const _ c = const_prefix ^ lookup_const c
 
 fun make_fixed_type_const c = type_const_prefix ^ lookup_const c
 
@@ -1221,6 +1218,7 @@ fun introduce_builtins_and_proxies_in_iterm type_enc =
     val is_fool = is_type_enc_fool type_enc
     val has_ite = has_type_enc_ite type_enc
     val has_let = has_type_enc_let type_enc
+    val has_choice = has_type_enc_choice type_enc
     fun tweak_ho_quant ho_quant (T as Type (_, [p_T as Type (_, [x_T, _]), _])) [] =
         (* Eta-expand "!!" and "??", to work around LEO-II, Leo-III, and Satallax parser
            limitations. This works in conjunction with special code in "ATP_Problem" that uses the
@@ -1264,7 +1262,7 @@ fun introduce_builtins_and_proxies_in_iterm type_enc =
               else
                 tm2'
             | IConst ((s, _), _, _) =>
-              if s = tptp_ho_forall orelse s = tptp_ho_exists then
+              if s = tptp_ho_forall orelse s = tptp_ho_exists orelse s = tptp_choice then
                 eta_expand_quantifier_body tm2'
               else
                 tm2'
@@ -1285,6 +1283,7 @@ fun introduce_builtins_and_proxies_in_iterm type_enc =
                 fun plain_const () = IConst (name, T, [])
                 fun proxy_const () = IConst (proxy_base |>> prefix const_prefix, T, T_args)
                 fun handle_fool card x = if card = argc then x else proxy_const ()
+                fun handle_min_card card x = if argc < card then proxy_const () else x
               in
                 if top_level then
                   (case s of
@@ -1301,6 +1300,11 @@ fun introduce_builtins_and_proxies_in_iterm type_enc =
                   | "c_implies" => IConst (`I tptp_implies, T, [])
                   | "c_All" => tweak_ho_quant tptp_ho_forall T args
                   | "c_Ex" => tweak_ho_quant tptp_ho_exists T args
+                  | "c_Choice" =>
+                    if has_choice then
+                      handle_min_card 1 (IConst (`I tptp_choice, T, []))
+                    else
+                      proxy_const ()
                   | s =>
                     if is_tptp_equal s then
                       tweak_ho_equal T argc
@@ -1856,7 +1860,8 @@ fun helper_table with_combs =
    (* Partial characterization of "fAll" and "fEx". A complete characterization
       would require the axiom of choice for replay with Metis. *)
    (("fAll", false), [(General, @{lemma "\<not> fAll P \<or> P x" by (auto simp: fAll_def)})]),
-   (("fEx", false), [(General, @{lemma "\<not> P x \<or> fEx P" by (auto simp: fEx_def)})])]
+   (("fEx", false), [(General, @{lemma "\<not> P x \<or> fEx P" by (auto simp: fEx_def)})]),
+   (("fChoice", false), [(General, @{thm fChoice_iff_fEx})])]
   |> map (apsnd (map (apsnd zero_var_indexes)))
 
 fun completish_helper_table with_combs =

@@ -7,7 +7,7 @@
 section \<open>Automatic Theorem Provers (ATPs)\<close>
 
 theory ATP
-  imports Meson
+  imports Meson Hilbert_Choice
 begin
 
 subsection \<open>ATP problems and proofs\<close>
@@ -49,6 +49,9 @@ definition fEx :: "('a \<Rightarrow> bool) \<Rightarrow> bool" where
 
 definition fequal :: "'a \<Rightarrow> 'a \<Rightarrow> bool" where
 "fequal x y \<longleftrightarrow> (x = y)"
+
+definition fChoice :: "('a \<Rightarrow> bool) \<Rightarrow> 'a" where
+  "fChoice \<equiv> Hilbert_Choice.Eps"
 
 lemma fTrue_ne_fFalse: "fFalse \<noteq> fTrue"
 unfolding fFalse_def fTrue_def by simp
@@ -130,6 +133,9 @@ lemma fequal_laws:
 "fequal x y = fFalse \<or> fequal (f x) (f y) = fTrue"
 unfolding fFalse_def fTrue_def fequal_def by auto
 
+lemma fChoice_iff_fEx: "P (fChoice P) \<longleftrightarrow> fEx P"
+  unfolding fChoice_def fEx_def
+  by (fact some_eq_ex)
 
 subsection \<open>Basic connection between ATPs and HOL\<close>
 

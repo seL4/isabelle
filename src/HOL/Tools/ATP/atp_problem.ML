@@ -393,6 +393,10 @@ fun is_nontrivial_predicate_atype (AType _) = false
 
 fun is_format_higher_order (THF _) = true
   | is_format_higher_order _ = false
+
+fun is_format_higher_order_with_choice (THF (_, _, THF_With_Choice)) = true
+  | is_format_higher_order_with_choice _ = false
+
 fun is_format_typed (TFF _) = true
   | is_format_typed (THF _) = true
   | is_format_typed (DFG _) = true
@@ -519,7 +523,7 @@ fun tptp_string_of_term _ (ATerm ((s, []), [])) = s |> Symtab.defined tptp_built
             if ts = [] orelse is_format_higher_order format then
               app0 (s ^ "(" ^ declaration ^ ", " ^ definition ^ ", " ^ usage ^ ")") [] ts
             else
-              error (tptp_let ^ " is special syntax and more than three arguments is only \
+              error (tptp_let ^ " is special syntax and more than two arguments is only \
                 \supported in higher order")
           end
         | _ => error (tptp_let ^ " is special syntax and must have at least two arguments"))
@@ -529,19 +533,21 @@ fun tptp_string_of_term _ (ATerm ((s, []), [])) = s |> Symtab.defined tptp_built
           if ts = [] orelse is_format_higher_order format then
             app0 (s ^ "(" ^ of_term t1 ^ ", " ^ of_term t2 ^ ", " ^ of_term t3 ^ ")") [] ts
           else
-            error (tptp_ite ^" is special syntax and more than three arguments is only supported \
+            error (tptp_ite ^ " is special syntax and more than three arguments is only supported \
               \in higher order")
-        | _ => error "$ite is special syntax and must have at least three arguments")
+        | _ => error (tptp_ite ^ " is special syntax and must have at least three arguments"))
       else if s = tptp_choice then
         (case ts of
-          [AAbs (((s', ty), tm), args)] =>
+          (AAbs (((s', ty), tm), args) :: ts) =>
           (* There is code in "ATP_Problem_Generate" to ensure that "Eps" is always applied to an
              abstraction. *)
-          tptp_string_of_app format
-              (tptp_choice ^ "[" ^ s' ^ " : " ^ of_type ty ^
-               "]: " ^ of_term tm ^ ""
-               |> parens) (map of_term args)
-        | _ => app ())
+          if ts = [] orelse is_format_higher_order_with_choice format then
+            let val declaration = s' ^ " : " ^ of_type ty in
+              app0 ("(" ^ tptp_choice ^ "[" ^ declaration ^ "]: " ^ of_term tm ^ ")") [] (args @ ts)
+            end
+          else
+            error (tptp_choice ^ " is only supported in higher order")
+        | _ => error (tptp_choice ^ " must be followed by a lambda abstraction"))
       else
         (case (Symtab.lookup tptp_builtins s, ts) of
           (SOME {arity = 1, is_predicate = true}, [t]) =>
