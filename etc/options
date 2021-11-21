@@ -5,9 +5,9 @@ section "Document Preparation"
 option browser_info : bool = false
   -- "generate theory browser information"
 
-option document : string = ""
+option document : string = "" (standard "true")
   -- "build PDF document (enabled for \"pdf\" or \"true\", disabled for \"\" or \"false\")"
-option document_output : string = ""
+option document_output : string = "" (standard "output")
   -- "document output directory"
 option document_echo : bool = false
   -- "inform about document file names during session presentation"
@@ -17,11 +17,11 @@ option document_tags : string = ""
   -- "default command tags (separated by commas)"
 option document_bibliography : bool = false
   -- "explicitly enable use of bibtex (default: according to presence of root.bib)"
-option document_build : string = "lualatex"
-  -- "document build engine (e.g. lualatex, pdflatex, build)"
+option document_build : string = "lualatex" (standard "build")
+  -- "document build engine (e.g. build, lualatex, pdflatex)"
 option document_logo : string = ""
   -- "generate named instance of Isabelle logo (underscore means unnamed variant)"
-option document_heading_prefix : string = "isamarkup"
+option document_heading_prefix : string = "isamarkup" (standard)
   -- "prefix for LaTeX macros generated from 'chapter', 'section' etc."
 
 option thy_output_display : bool = false
@@ -130,11 +130,11 @@ option process_output_limit : int = 100
 option process_output_tail : int = 40
   -- "build process output tail shown to user (in lines, 0 = unlimited)"
 
-option profiling : string = ""
+option profiling : string = "" (standard "time")
   -- "ML profiling (possible values: time, allocations)"
 
-option system_log : string = ""
-  -- "output for system messages (log file or \"true\" for console progress)"
+option system_log : string = "" (standard "-")
+  -- "output for system messages (log file or \"-\" for console progress)"
 
 option system_heaps : bool = false
   -- "store session heaps in $ISABELLE_HEAPS_SYSTEM, not $ISABELLE_HEAPS"
