@@ -34,9 +34,10 @@ object Presentation
     def files_path(name: Document.Node.Name, path: Path): Path =
       theory_path(name).dir + Path.explode("files") + path.squash.html
 
-    def theory_exports: Map[String, Export_Theory.Theory] = Map.empty
-    def theory_export(name: String): Export_Theory.Theory =
-      theory_exports.getOrElse(name, Export_Theory.no_theory)
+    type Theory_Exports = Map[String, Entity_Context.Theory_Export]
+    def theory_exports: Theory_Exports = Map.empty
+    def theory_export(name: String): Entity_Context.Theory_Export =
+      theory_exports.getOrElse(name, Entity_Context.no_theory_export)
 
 
     /* HTML content */
@@ -94,6 +95,13 @@ object Presentation
 
   object Entity_Context
   {
+    sealed case class Theory_Export(
+      entity_by_range: Map[Symbol.Range, List[Export_Theory.Entity[Export_Theory.No_Content]]],
+      entity_by_kind_name: Map[(String, String), Export_Theory.Entity[Export_Theory.No_Content]],
+      others: List[String])
+
+    val no_theory_export: Theory_Export = Theory_Export(Map.empty, Map.empty, Nil)
+
     object Theory_Ref
     {
       def unapply(props: Properties.T): Option[Document.Node.Name] =
@@ -471,7 +479,7 @@ object Presentation
   def read_exports(
     sessions: List[String],
     deps: Sessions.Deps,
-    db_context: Sessions.Database_Context): Map[String, Export_Theory.Theory] =
+    db_context: Sessions.Database_Context): Map[String, Entity_Context.Theory_Export] =
   {
     type Batch = (String, List[String])
     val batches =
@@ -480,7 +488,7 @@ object Presentation
             val thys = deps(session).loaded_theories.keys.filterNot(seen)
             (seen ++ thys, (session, thys) :: batches)
         })._2
-    Par_List.map[Batch, List[(String, Export_Theory.Theory)]](
+    Par_List.map[Batch, List[(String, Entity_Context.Theory_Export)]](
       { case (session, thys) =>
           for (thy_name <- thys) yield {
             val theory =
@@ -492,9 +500,14 @@ object Presentation
                 }
                 else Export_Theory.no_theory
               }
-            thy_name -> theory
+            val entity_by_range =
+              theory.entity_iterator.toList.groupBy(_.range)
+            val entity_by_kind_name =
+              theory.entity_iterator.map(entity => ((entity.kind, entity.name), entity)).toMap
+            val others = theory.others.keySet.toList
+            thy_name -> Entity_Context.Theory_Export(entity_by_range, entity_by_kind_name, others)
           }
-      }, batches).iterator.flatten.toMap
+      }, batches).flatten.toMap
   }
 
   def session_html(
@@ -578,7 +591,7 @@ object Presentation
 
         val thy_elements =
           session_elements.copy(entity =
-            html_context.theory_export(name.theory).others.keySet
+            html_context.theory_export(name.theory).others
               .foldLeft(session_elements.entity)(_ + _))
 
         val files_html =
