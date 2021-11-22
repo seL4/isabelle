@@ -116,10 +116,10 @@ object Latex
     def latex_environment(name: String, body: Text): Text =
       XML.enclose("%\n\\begin{" + name + "}%\n", "%\n\\end{" + name + "}", body)
 
-    def latex_heading(kind: String, body: Text): Text =
+    def latex_heading(kind: String, pos: Position.T, body: Text): Text =
       XML.enclose("%\n\\" + options.string("document_heading_prefix") + kind + "{", "%\n}\n", body)
 
-    def latex_body(kind: String, body: Text): Text =
+    def latex_body(kind: String, pos: Position.T, body: Text): Text =
       latex_environment("isamarkup" + kind, body)
 
     def latex_delim(name: String, body: Text): Text =
@@ -177,10 +177,10 @@ object Latex
             traverse(latex_macro(name, body))
           case XML.Elem(Markup.Latex_Environment(name), body) =>
             traverse(latex_environment(name, body))
-          case XML.Elem(Markup.Latex_Heading(kind), body) =>
-            traverse(latex_heading(kind, body))
-          case XML.Elem(Markup.Latex_Body(kind), body) =>
-            traverse(latex_body(kind, body))
+          case XML.Elem(markup @ Markup.Latex_Heading(kind), body) =>
+            traverse(latex_heading(kind, markup.position_properties, body))
+          case XML.Elem(markup @ Markup.Latex_Body(kind), body) =>
+            traverse(latex_body(kind, markup.position_properties, body))
           case XML.Elem(Markup.Latex_Delim(name), body) =>
             traverse(latex_delim(name, body))
           case XML.Elem(Markup.Latex_Tag(name), body) =>

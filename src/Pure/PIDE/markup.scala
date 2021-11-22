@@ -778,6 +778,8 @@ sealed case class Markup(name: String, properties: Properties.T)
 {
   def is_empty: Boolean = name.isEmpty
 
+  def position_properties: Position.T = properties.filter(Markup.position_property)
+
   def markup(s: String): String =
     YXML.string_of_tree(XML.Elem(this, List(XML.Text(s))))
 

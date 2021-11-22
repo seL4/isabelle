@@ -184,8 +184,8 @@ end;
 datatype token =
     Ignore
   | Token of Token.T
-  | Heading of string * Input.source
-  | Body of string * Input.source
+  | Heading of Markup.T * Input.source
+  | Body of Markup.T * Input.source
   | Raw of Input.source;
 
 fun token_with pred (Token tok) = pred tok
@@ -200,12 +200,16 @@ fun present_token ctxt tok =
   (case tok of
     Ignore => []
   | Token tok => output_token ctxt tok
-  | Heading (kind, source) =>
-      [XML.Elem (Markup.latex_heading kind, output_document ctxt {markdown = false} source)]
-  | Body (kind, source) =>
-      [XML.Elem (Markup.latex_body kind, output_document ctxt {markdown = true} source)]
+  | Heading (markup, source) => [XML.Elem (markup, output_document ctxt {markdown = false} source)]
+  | Body (markup, source) => [XML.Elem (markup, output_document ctxt {markdown = true} source)]
   | Raw source =>
       Latex.string "%\n" @ output_document ctxt {markdown = true} source @ Latex.string "\n");
+
+fun mk_heading (kind, pos) source =
+  Heading (Markup.latex_heading kind |> Position.markup pos, source);
+
+fun mk_body (kind, pos) source =
+  Body (Markup.latex_body kind |> Position.markup pos, source);
 
 
 (* command spans *)
@@ -384,14 +388,15 @@ fun present_thy options thy (segments: segment list) =
 
     fun markup pred mk flag = Scan.peek (fn d =>
       Document_Source.improper |--
-        Parse.position (Scan.one (fn tok =>
-          Token.is_command tok andalso pred keywords (Token.content_of tok))) --
+        Scan.one (fn tok => Token.is_command tok andalso pred keywords (Token.content_of tok)) --
       (Document_Source.annotation |--
         Parse.!!!! ((Document_Source.improper -- locale -- Document_Source.improper) |--
           Parse.document_source --| Document_Source.improper_end))
-            >> (fn ((tok, pos'), source) =>
-              let val name = Token.content_of tok
-              in (SOME (name, pos'), (mk (name, source), (flag, d))) end));
+            >> (fn (tok, source) =>
+              let
+                val kind = Token.content_of tok;
+                val pos' = Token.pos_of tok;
+              in (SOME (kind, pos'), (mk (kind, pos') source, (flag, d))) end));
 
     val command = Scan.peek (fn d =>
       Scan.optional (Scan.one Token.is_command_modifier ::: Document_Source.improper) [] --
@@ -409,9 +414,9 @@ fun present_thy options thy (segments: segment list) =
 
     val tokens =
       (ignored ||
-        markup Keyword.is_document_heading Heading markup_true ||
-        markup Keyword.is_document_body Body markup_true ||
-        markup Keyword.is_document_raw (Raw o #2) "") >> single ||
+        markup Keyword.is_document_heading mk_heading markup_true ||
+        markup Keyword.is_document_body mk_body markup_true ||
+        markup Keyword.is_document_raw (K Raw) "") >> single ||
       command ||
       (cmt || other) >> single;
 
