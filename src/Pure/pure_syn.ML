@@ -13,43 +13,39 @@ end;
 structure Pure_Syn: PURE_SYN =
 struct
 
-val semi = Scan.option (Parse.$$$ ";");
+fun markup_pos markup pos body = [XML.Elem (markup |> Position.markup pos, body)];
+
+fun document_heading (name, pos) =
+  Outer_Syntax.command (name, pos) (name ^ " heading")
+    (Parse.opt_target -- Parse.document_source --| Scan.option (Parse.$$$ ";") >>
+      Document_Output.document_output
+        {markdown = false, markup = markup_pos (Markup.latex_heading name)});
+
+fun document_body ((name, pos), description) =
+  Outer_Syntax.command (name, pos) description
+    (Parse.opt_target -- Parse.document_source >>
+      Document_Output.document_output
+        {markdown = true, markup = markup_pos (Markup.latex_body name)});
 
 val _ =
-  Outer_Syntax.command ("chapter", \<^here>) "chapter heading"
-    (Parse.opt_target -- Parse.document_source --| semi >> Document_Output.document_output);
+  List.app document_heading
+   [("chapter", \<^here>),
+    ("section", \<^here>),
+    ("subsection", \<^here>),
+    ("subsubsection", \<^here>),
+    ("paragraph", \<^here>),
+    ("subparagraph", \<^here>)];
 
 val _ =
-  Outer_Syntax.command ("section", \<^here>) "section heading"
-    (Parse.opt_target -- Parse.document_source --| semi >> Document_Output.document_output);
-
-val _ =
-  Outer_Syntax.command ("subsection", \<^here>) "subsection heading"
-    (Parse.opt_target -- Parse.document_source --| semi >> Document_Output.document_output);
-
-val _ =
-  Outer_Syntax.command ("subsubsection", \<^here>) "subsubsection heading"
-    (Parse.opt_target -- Parse.document_source --| semi >> Document_Output.document_output);
-
-val _ =
-  Outer_Syntax.command ("paragraph", \<^here>) "paragraph heading"
-    (Parse.opt_target -- Parse.document_source --| semi >> Document_Output.document_output);
-
-val _ =
-  Outer_Syntax.command ("subparagraph", \<^here>) "subparagraph heading"
-    (Parse.opt_target -- Parse.document_source --| semi >> Document_Output.document_output);
-
-val _ =
-  Outer_Syntax.command ("text", \<^here>) "formal comment (primary style)"
-    (Parse.opt_target -- Parse.document_source >> Document_Output.document_output_markdown);
-
-val _ =
-  Outer_Syntax.command ("txt", \<^here>) "formal comment (secondary style)"
-    (Parse.opt_target -- Parse.document_source >> Document_Output.document_output_markdown);
+  List.app document_body
+   [(("text", \<^here>), "formal comment (primary style)"),
+    (("txt", \<^here>), "formal comment (secondary style)")];
 
 val _ =
   Outer_Syntax.command ("text_raw", \<^here>) "LaTeX text (without surrounding environment)"
-    (Parse.opt_target -- Parse.document_source >> Document_Output.document_output_markdown);
+    (Parse.opt_target -- Parse.document_source >>
+      Document_Output.document_output
+        {markdown = true, markup = fn _ => Latex.enclose_text "%\n" "\n"});
 
 val _ =
   Outer_Syntax.command ("theory", \<^here>) "begin theory"
