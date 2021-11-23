@@ -31,7 +31,8 @@ sig
     Fact of string option * thm list |
     Attribute of morphism -> attribute |
     Declaration of declaration |
-    Files of file Exn.result list
+    Files of file Exn.result list |
+    Output of XML.body option
   val pos_of: T -> Position.T
   val adjust_offsets: (int -> int option) -> T -> T
   val eof: T
@@ -73,6 +74,8 @@ sig
   val file_source: file -> Input.source
   val get_files: T -> file Exn.result list
   val put_files: file Exn.result list -> T -> T
+  val get_output: T -> XML.body option
+  val put_output: XML.body -> T -> T
   val get_value: T -> value option
   val reports_of_value: T -> Position.report list
   val name_value: name_value -> value
@@ -197,7 +200,8 @@ and value =
   Fact of string option * thm list |  (*optional name for dynamic fact, i.e. fact "variable"*)
   Attribute of morphism -> attribute |
   Declaration of declaration |
-  Files of file Exn.result list;
+  Files of file Exn.result list |
+  Output of XML.body option;
 
 type src = T list;
 
@@ -411,6 +415,15 @@ fun put_files [] tok = tok
   | put_files _ tok = raise Fail ("Cannot put inlined files here" ^ Position.here (pos_of tok));
 
 
+(* document output *)
+
+fun get_output (Token (_, _, Value (SOME (Output output)))) = output
+  | get_output _ = NONE;
+
+fun put_output output (Token (x, y, Slot)) = Token (x, y, Value (SOME (Output (SOME output))))
+  | put_output _ tok = raise Fail ("Cannot put document output here" ^ Position.here (pos_of tok));
+
+
 (* access values *)
 
 fun get_value (Token (_, _, Value v)) = v
@@ -491,7 +504,8 @@ fun transform phi =
     | Fact (a, ths) => Fact (a, Morphism.fact phi ths)
     | Attribute att => Attribute (Morphism.transform phi att)
     | Declaration decl => Declaration (Morphism.transform phi decl)
-    | Files _ => v));
+    | Files _ => v
+    | Output _ => v));
 
 
 (* static binding *)

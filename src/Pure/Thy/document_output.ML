@@ -207,9 +207,8 @@ end;
 datatype token =
     Ignore
   | Token of Token.T
-  | Heading of Markup.T * Input.source
-  | Body of Markup.T * Input.source
-  | Raw of Input.source;
+  | Markup of Markup.T * Latex.text
+  | Raw of Latex.text;
 
 fun token_with pred (Token tok) = pred tok
   | token_with _ _ = false;
@@ -223,16 +222,14 @@ fun present_token ctxt tok =
   (case tok of
     Ignore => []
   | Token tok => output_token ctxt tok
-  | Heading (markup, source) => [XML.Elem (markup, output_document ctxt {markdown = false} source)]
-  | Body (markup, source) => [XML.Elem (markup, output_document ctxt {markdown = true} source)]
-  | Raw source =>
-      Latex.string "%\n" @ output_document ctxt {markdown = true} source @ Latex.string "\n");
+  | Markup (markup, output) => [XML.Elem (markup, output)]
+  | Raw output => Latex.enclose_text "%\n" "\n" output);
 
 fun mk_heading (kind, pos) source =
-  Heading (Markup.latex_heading kind |> Position.markup pos, source);
+  Markup (Markup.latex_heading kind |> Position.markup pos, source);
 
 fun mk_body (kind, pos) source =
-  Body (Markup.latex_body kind |> Position.markup pos, source);
+  Markup (Markup.latex_body kind |> Position.markup pos, source);
 
 
 (* command spans *)
@@ -374,7 +371,29 @@ end;
 
 (* present_thy *)
 
+type segment =
+  {span: Command_Span.span, command: Toplevel.transition,
+   prev_state: Toplevel.state, state: Toplevel.state};
+
 local
+
+fun command_output output tok =
+  if Token.is_command tok then SOME (Token.put_output output tok) else NONE;
+
+fun segment_content (segment: segment) =
+  let val toks = Command_Span.content (#span segment) in
+    (case Toplevel.output_of (#state segment) of
+      NONE => toks
+    | SOME output => map_filter (command_output output) toks)
+  end;
+
+fun output_command is_kind =
+  Scan.some (fn tok =>
+    let val kind = Token.content_of tok in
+      if Token.is_command tok andalso is_kind kind andalso is_some (Token.get_output tok)
+      then SOME ((kind, Token.pos_of tok), the (Token.get_output tok))
+      else NONE
+    end);
 
 val markup_true = "\\isamarkuptrue%\n";
 val markup_false = "\\isamarkupfalse%\n";
@@ -395,10 +414,6 @@ val locale =
 
 in
 
-type segment =
-  {span: Command_Span.span, command: Toplevel.transition,
-   prev_state: Toplevel.state, state: Toplevel.state};
-
 fun present_thy options thy (segments: segment list) =
   let
     val keywords = Thy_Header.get_keywords thy;
@@ -410,16 +425,8 @@ fun present_thy options thy (segments: segment list) =
       >> (fn d => (NONE, (Ignore, ("", d))));
 
     fun markup pred mk flag = Scan.peek (fn d =>
-      Document_Source.improper |--
-        Scan.one (fn tok => Token.is_command tok andalso pred keywords (Token.content_of tok)) --
-      (Document_Source.annotation |--
-        Parse.!!!! ((Document_Source.improper -- locale -- Document_Source.improper) |--
-          Parse.document_source --| Document_Source.improper_end))
-            >> (fn (tok, source) =>
-              let
-                val kind = Token.content_of tok;
-                val pos' = Token.pos_of tok;
-              in (SOME (kind, pos'), (mk (kind, pos') source, (flag, d))) end));
+      Document_Source.improper |-- output_command (pred keywords) --| Document_Source.improper_end
+        >> (fn (kind, body) => (SOME kind, (mk kind body, (flag, d)))));
 
     val command = Scan.peek (fn d =>
       Scan.optional (Scan.one Token.is_command_modifier ::: Document_Source.improper) [] --
@@ -468,7 +475,7 @@ fun present_thy options thy (segments: segment list) =
           make_span (the cmd) (toks1 @ (tok2 :: (toks3 @ the_default [] tok4))));
 
     val spans = segments
-      |> maps (Command_Span.content o #span)
+      |> maps segment_content
       |> drop_suffix Token.is_space
       |> Source.of_list
       |> Source.source' 0 Token.stopper (Scan.error (Scan.bulk tokens >> flat))

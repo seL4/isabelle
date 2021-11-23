@@ -17,6 +17,7 @@ sig
   val is_skipped_proof: state -> bool
   val level: state -> int
   val previous_theory_of: state -> theory option
+  val output_of: state -> Latex.text option
   val context_of: state -> Proof.context
   val generic_theory_of: state -> generic_theory
   val theory_of: state -> theory
@@ -139,20 +140,20 @@ fun init_presentation () =
 fun node_presentation node =
   (node, cases_node init_presentation Context.proof_of Proof.context_of node);
 
-
 datatype state =
-  State of node_presentation * theory option;
-    (*current node with presentation context, previous theory*)
+  State of node_presentation * (theory option * Latex.text option);
+    (*current node with presentation context, previous theory, document output*)
 
 fun node_of (State ((node, _), _)) = node;
-fun previous_theory_of (State (_, prev_thy)) = prev_thy;
+fun previous_theory_of (State (_, (prev_thy, _))) = prev_thy;
+fun output_of (State (_, (_, output))) = output;
 
-fun init_toplevel () = State (node_presentation Toplevel, NONE);
-fun theory_toplevel thy = State (node_presentation (Theory (Context.Theory thy)), NONE);
+fun init_toplevel () = State (node_presentation Toplevel, (NONE, NONE));
+fun theory_toplevel thy = State (node_presentation (Theory (Context.Theory thy)), (NONE, NONE));
 
 val prev_theory = Config.declare_int ("prev_theory", Position.none) (K 0);
 fun get_prev_theory thy = Config.get_global thy prev_theory;
-fun set_prev_theory (State (_, SOME prev_thy)) (Theory gthy) =
+fun set_prev_theory (State (_, (SOME prev_thy, _))) (Theory gthy) =
       let
         val put = Config.put_global prev_theory (Context.theory_identifier prev_thy);
         val gthy' = gthy |> Context.mapping put (Local_Theory.raw_theory put);
@@ -204,10 +205,10 @@ fun proof_position_of state =
     Proof (prf, _) => Proof_Node.position prf
   | _ => ~1);
 
-fun is_end_theory (State ((Toplevel, _), SOME _)) = true
+fun is_end_theory (State ((Toplevel, _), (SOME _, _))) = true
   | is_end_theory _ = false;
 
-fun end_theory _ (State ((Toplevel, _), SOME thy)) = thy
+fun end_theory _ (State ((Toplevel, _), (SOME thy, _))) = thy
   | end_theory pos _ = error ("Malformed theory" ^ Position.here pos);
 
 
@@ -223,11 +224,11 @@ fun presentation_context0 (State ((_, pr_ctxt), _)) = pr_ctxt;
 
 fun presentation_context (state as State (current, _)) =
   presentation_context0 state
-  |> Presentation_State.put (SOME (State (current, NONE)));
+  |> Presentation_State.put (SOME (State (current, (NONE, NONE))));
 
 fun presentation_state ctxt =
   (case Presentation_State.get ctxt of
-    NONE => State (node_presentation (Theory (Context.Proof ctxt)), NONE)
+    NONE => State (node_presentation (Theory (Context.Proof ctxt)), (NONE, NONE))
   | SOME state => state);
 
 
@@ -286,28 +287,29 @@ local
 
 exception FAILURE of state * exn;
 
+fun apply_presentation g (st as State (node, (prev_thy, _))) =
+  State (node, (prev_thy, g st));
+
 fun apply f g node =
   let
     val node_pr = node_presentation node;
     val context = cases_proper_node I (Context.Proof o Proof.context_of) node;
-    fun state_error e node_pr' = (State (node_pr', get_theory node), e);
+    fun make_state node_pr' = State (node_pr', (get_theory node, NONE));
 
-    val (result, err) =
-      node
-      |> Runtime.controlled_execution (SOME context) f
-      |> state_error NONE
-      handle exn => state_error (SOME exn) node_pr;
+    val (st', err) =
+      (Runtime.controlled_execution (SOME context) (f #> make_state #> apply_presentation g) node,
+        NONE) handle exn => (make_state node_pr, SOME exn);
   in
     (case err of
-      NONE => tap g result
-    | SOME exn => raise FAILURE (result, exn))
+      NONE => st'
+    | SOME exn => raise FAILURE (st', exn))
   end;
 
 fun apply_tr int trans state =
   (case (trans, node_of state) of
     (Init f, Toplevel) =>
       Runtime.controlled_execution NONE (fn () =>
-        State (node_presentation (Theory (Context.Theory (f ()))), NONE)) ()
+        State (node_presentation (Theory (Context.Theory (f ()))), (NONE, NONE))) ()
   | (Exit, node as Theory (Context.Theory thy)) =>
       let
         val State ((node', pr_ctxt), _) =
@@ -315,11 +317,15 @@ fun apply_tr int trans state =
             (fn _ =>
               node_presentation
                 (Theory (Context.Theory (tap Thm.expose_theory (Theory.end_theory thy)))))
-            (K ());
-      in State ((Toplevel, pr_ctxt), get_theory node') end
+            no_presentation;
+      in State ((Toplevel, pr_ctxt), (get_theory node', NONE)) end
   | (Keep f, node) =>
       Runtime.controlled_execution (try generic_theory_of state)
-        (fn () => (f int state; State (node_presentation node, previous_theory_of state))) ()
+        (fn () =>
+          let
+            val prev_thy = previous_theory_of state;
+            val state' = State (node_presentation node, (prev_thy, NONE));
+          in apply_presentation (fn st => f int st) state' end) ()
   | (Transaction _, Toplevel) => raise UNDEF
   | (Transaction (f, g), node) => apply (fn x => f int x) g (set_prev_theory state node)
   | _ => raise UNDEF);
