@@ -5,10 +5,8 @@
 section \<open>Some examples with text cartouches\<close>
 
 theory Cartouche_Examples
-imports Main
-keywords
-  "cartouche" :: diag and
-  "text_cartouche" :: thy_decl
+  imports Main
+  keywords "cartouche" :: diag
 begin
 
 subsection \<open>Regular outer syntax\<close>
@@ -135,14 +133,7 @@ text \<open>
 
 subsubsection \<open>Uniform nesting of sub-languages: document source, ML, term, string literals\<close>
 
-ML \<open>
-  Outer_Syntax.command
-    \<^command_keyword>\<open>text_cartouche\<close> ""
-    (Parse.opt_target -- Parse.input Parse.cartouche
-      >> Document_Output.document_output_markdown)
-\<close>
-
-text_cartouche
+text
 \<open>
   \<^ML>\<open>
       (
