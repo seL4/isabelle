@@ -139,7 +139,7 @@ ML \<open>
   Outer_Syntax.command
     \<^command_keyword>\<open>text_cartouche\<close> ""
     (Parse.opt_target -- Parse.input Parse.cartouche
-      >> Pure_Syn.document_command {markdown = true})
+      >> Document_Output.document_output_markdown)
 \<close>
 
 text_cartouche
