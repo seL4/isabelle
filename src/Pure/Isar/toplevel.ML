@@ -30,6 +30,7 @@ sig
   val pretty_state: state -> Pretty.T list
   val string_of_state: state -> string
   val pretty_abstract: state -> Pretty.T
+  type presentation = state -> Latex.text option
   type transition
   val empty: transition
   val name_of: transition -> string
@@ -44,6 +45,7 @@ sig
   val is_init: transition -> bool
   val modify_init: (unit -> theory) -> transition -> transition
   val exit: transition -> transition
+  val present: (state -> Latex.text) -> transition -> transition
   val keep: (state -> unit) -> transition -> transition
   val keep': (bool -> state -> unit) -> transition -> transition
   val keep_proof: (state -> unit) -> transition -> transition
@@ -62,7 +64,7 @@ sig
     (bool -> local_theory -> local_theory) -> transition -> transition
   val local_theory: (bool * Position.T) option -> (xstring * Position.T) option ->
     (local_theory -> local_theory) -> transition -> transition
-  val present_local_theory: (xstring * Position.T) option -> (state -> unit) ->
+  val present_local_theory: (xstring * Position.T) option -> (state -> Latex.text) ->
     transition -> transition
   val local_theory_to_proof': (bool * Position.T) option -> (xstring * Position.T) option ->
     (bool -> local_theory -> Proof.state) -> transition -> transition
@@ -261,6 +263,13 @@ val _ = ML_system_pp (fn _ => fn _ => Pretty.to_polyml o pretty_abstract);
 
 (** toplevel transitions **)
 
+(* presentation *)
+
+type presentation = state -> Latex.text option;
+val no_presentation: presentation = K NONE;
+fun presentation g : presentation = SOME o g;
+
+
 (* primitive transitions *)
 
 datatype trans =
@@ -269,9 +278,9 @@ datatype trans =
   (*formal exit of theory*)
   Exit |
   (*peek at state*)
-  Keep of bool -> state -> unit |
+  Keep of bool -> presentation |
   (*node transaction and presentation*)
-  Transaction of (bool -> node -> node_presentation) * (state -> unit);
+  Transaction of (bool -> node -> node_presentation) * presentation;
 
 local
 
@@ -403,13 +412,14 @@ fun is_init (Transition {trans = [Init _], ...}) = true
 fun modify_init f tr = if is_init tr then init_theory f (reset_trans tr) else tr;
 
 val exit = add_trans Exit;
-val keep' = add_trans o Keep;
 
 fun present_transaction f g = add_trans (Transaction (f, g));
-fun transaction f = present_transaction f (K ());
-fun transaction0 f = present_transaction (node_presentation oo f) (K ());
+fun transaction f = present_transaction f no_presentation;
+fun transaction0 f = present_transaction (node_presentation oo f) no_presentation;
 
-fun keep f = add_trans (Keep (fn _ => f));
+fun present f = add_trans (Keep (K (presentation f)));
+fun keep f = add_trans (Keep (fn _ => fn st => let val () = f st in NONE end));
+fun keep' f = add_trans (Keep (fn int => fn st => let val () = f int st in NONE end));
 
 fun keep_proof f =
   keep (fn st =>
@@ -495,15 +505,16 @@ fun local_theory' restricted target f = present_transaction (fn int =>
             |> Local_Theory.reset_group;
         in (Theory (finish lthy'), lthy') end
     | _ => raise UNDEF))
-  (K ());
+  no_presentation;
 
 fun local_theory restricted target f = local_theory' restricted target (K f);
 
-fun present_local_theory target = present_transaction (fn _ =>
+fun present_local_theory target g = present_transaction (fn _ =>
   (fn Theory gthy =>
         let val (finish, lthy) = Target_Context.switch_named_cmd target gthy;
         in (Theory (finish lthy), lthy) end
-    | _ => raise UNDEF));
+    | _ => raise UNDEF))
+  (presentation g);
 
 
 (* proof transitions *)

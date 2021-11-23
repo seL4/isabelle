@@ -24,13 +24,13 @@ fun output_document state markdown txt =
   in Document_Output.output_document ctxt markdown txt end;
 
 fun document_command markdown (loc, txt) =
-  Toplevel.keep (fn state =>
+  Toplevel.present (fn state =>
     (case loc of
-      NONE => ignore (output_document state markdown txt)
+      NONE => output_document state markdown txt
     | SOME (_, pos) =>
         error ("Illegal target specification -- not a theory context" ^ Position.here pos))) o
   Toplevel.present_local_theory loc (fn state =>
-    ignore (output_document state markdown txt));
+    output_document state markdown txt);
 
 val _ =
   Outer_Syntax.command ("chapter", \<^here>) "chapter heading"
