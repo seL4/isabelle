@@ -8,6 +8,10 @@ signature DOCUMENT_OUTPUT =
 sig
   val document_reports: Input.source -> Position.report list
   val output_document: Proof.context -> {markdown: bool} -> Input.source -> Latex.text
+  val document_output: (xstring * Position.T) option * Input.source ->
+    Toplevel.transition -> Toplevel.transition
+  val document_output_markdown: (xstring * Position.T) option * Input.source ->
+    Toplevel.transition -> Toplevel.transition
   val check_comments: Proof.context -> Symbol_Pos.T list -> unit
   val output_token: Proof.context -> Token.T -> Latex.text
   val output_source: Proof.context -> string -> Latex.text
@@ -110,6 +114,25 @@ and output_document ctxt {markdown} source =
         val _ = Context_Position.reports ctxt (reports @ Markdown.text_reports ants);
       in output_antiquotes ants end
   end;
+
+fun document_output' markdown (loc, txt) =
+  let
+    fun output st =
+      let
+        val ctxt = Toplevel.presentation_context st;
+        val _ = Context_Position.reports ctxt (document_reports txt);
+      in output_document ctxt markdown txt end;
+  in
+    Toplevel.present (fn st =>
+      (case loc of
+        NONE => output st
+      | SOME (_, pos) =>
+          error ("Illegal target specification -- not a theory context" ^ Position.here pos))) o
+    Toplevel.present_local_theory loc output
+  end;
+
+val document_output = document_output' {markdown = false};
+val document_output_markdown = document_output' {markdown = true};
 
 
 (* output tokens with formal comments *)

@@ -7,8 +7,6 @@ regular theory context.
 
 signature PURE_SYN =
 sig
-  val document_command: {markdown: bool} -> (xstring * Position.T) option * Input.source ->
-    Toplevel.transition -> Toplevel.transition
   val bootstrap_thy: theory
 end;
 
@@ -17,56 +15,41 @@ struct
 
 val semi = Scan.option (Parse.$$$ ";");
 
-fun output_document state markdown txt =
-  let
-    val ctxt = Toplevel.presentation_context state;
-    val _ = Context_Position.reports ctxt (Document_Output.document_reports txt);
-  in Document_Output.output_document ctxt markdown txt end;
-
-fun document_command markdown (loc, txt) =
-  Toplevel.present (fn state =>
-    (case loc of
-      NONE => output_document state markdown txt
-    | SOME (_, pos) =>
-        error ("Illegal target specification -- not a theory context" ^ Position.here pos))) o
-  Toplevel.present_local_theory loc (fn state =>
-    output_document state markdown txt);
-
 val _ =
   Outer_Syntax.command ("chapter", \<^here>) "chapter heading"
-    (Parse.opt_target -- Parse.document_source --| semi >> document_command {markdown = false});
+    (Parse.opt_target -- Parse.document_source --| semi >> Document_Output.document_output);
 
 val _ =
   Outer_Syntax.command ("section", \<^here>) "section heading"
-    (Parse.opt_target -- Parse.document_source --| semi >> document_command {markdown = false});
+    (Parse.opt_target -- Parse.document_source --| semi >> Document_Output.document_output);
 
 val _ =
   Outer_Syntax.command ("subsection", \<^here>) "subsection heading"
-    (Parse.opt_target -- Parse.document_source --| semi >> document_command {markdown = false});
+    (Parse.opt_target -- Parse.document_source --| semi >> Document_Output.document_output);
 
 val _ =
   Outer_Syntax.command ("subsubsection", \<^here>) "subsubsection heading"
-    (Parse.opt_target -- Parse.document_source --| semi >> document_command {markdown = false});
+    (Parse.opt_target -- Parse.document_source --| semi >> Document_Output.document_output);
 
 val _ =
   Outer_Syntax.command ("paragraph", \<^here>) "paragraph heading"
-    (Parse.opt_target -- Parse.document_source --| semi >> document_command {markdown = false});
+    (Parse.opt_target -- Parse.document_source --| semi >> Document_Output.document_output);
 
 val _ =
   Outer_Syntax.command ("subparagraph", \<^here>) "subparagraph heading"
-    (Parse.opt_target -- Parse.document_source --| semi >> document_command {markdown = false});
+    (Parse.opt_target -- Parse.document_source --| semi >> Document_Output.document_output);
 
 val _ =
   Outer_Syntax.command ("text", \<^here>) "formal comment (primary style)"
-    (Parse.opt_target -- Parse.document_source >> document_command {markdown = true});
+    (Parse.opt_target -- Parse.document_source >> Document_Output.document_output_markdown);
 
 val _ =
   Outer_Syntax.command ("txt", \<^here>) "formal comment (secondary style)"
-    (Parse.opt_target -- Parse.document_source >> document_command {markdown = true});
+    (Parse.opt_target -- Parse.document_source >> Document_Output.document_output_markdown);
 
 val _ =
   Outer_Syntax.command ("text_raw", \<^here>) "LaTeX text (without surrounding environment)"
-    (Parse.opt_target -- Parse.document_source >> document_command {markdown = true});
+    (Parse.opt_target -- Parse.document_source >> Document_Output.document_output_markdown);
 
 val _ =
   Outer_Syntax.command ("theory", \<^here>) "begin theory"
