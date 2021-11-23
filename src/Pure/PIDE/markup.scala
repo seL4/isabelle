@@ -383,6 +383,8 @@ object Markup
   val Latex_Index_Item = new Markup_Elem("latex_index_item")
   val Latex_Index_Entry = new Markup_String("latex_index_entry", KIND)
 
+  val Optional_Argument = new Properties.String("optional_argument")
+
 
   /* Markdown document structure */
 

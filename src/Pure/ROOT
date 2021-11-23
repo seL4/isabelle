@@ -26,11 +26,16 @@ session "Pure-ex" in ex = Pure +
   description "
     Miscellaneous examples and experiments for Isabelle/Pure.
   "
+  options [document_heading_prefix = ""]
   sessions
     "Pure-Examples"
-  theories
+  theories [document = false]
     Def
     Def_Examples
     Guess
     Guess_Examples
-
+  theories
+    Alternative_Headings
+    Alternative_Headings_Examples
+  document_files
+    "root.tex"

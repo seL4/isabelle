@@ -159,6 +159,7 @@ sig
   val latex_index_entryN: string val latex_index_entry: string -> T
   val latex_delimN: string val latex_delim: string -> T
   val latex_tagN: string val latex_tag: string -> T
+  val optional_argumentN: string val optional_argument: string -> T -> T
   val markdown_paragraphN: string val markdown_paragraph: T
   val markdown_itemN: string val markdown_item: T
   val markdown_bulletN: string val markdown_bullet: int -> T
@@ -594,6 +595,9 @@ val (latex_index_itemN, latex_index_item) = markup_elem "latex_index_item";
 val (latex_index_entryN, latex_index_entry) = markup_string "latex_index_entry" kindN;
 val (latex_delimN, latex_delim) = markup_string "latex_delim" nameN;
 val (latex_tagN, latex_tag) = markup_string "latex_tag" nameN;
+
+val optional_argumentN = "optional_argument";
+fun optional_argument arg = properties [(optional_argumentN, arg)];
 
 
 (* Markdown document structure *)
