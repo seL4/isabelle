@@ -11,6 +11,7 @@ import java.io.{File => JFile}
 
 import scala.annotation.tailrec
 import scala.collection.mutable
+import scala.collection.immutable.TreeMap
 import scala.util.matching.Regex
 
 
@@ -90,6 +91,65 @@ object Latex
           if (items.forall(_.isDefined)) Some(Value(items.map(_.get), kind)) else None
         case _ => None
       }
+  }
+
+
+  /* tags */
+
+  object Tags
+  {
+    object Op extends Enumeration
+    {
+      val fold, drop, keep = Value
+    }
+
+    val standard = "document,theory,proof,ML,visible,-invisible,important,unimportant"
+
+    private def explode(spec: String): List[String] =
+      Library.space_explode(',', spec)
+
+    def apply(spec: String): Tags =
+      new Tags(spec,
+        (explode(standard) ::: explode(spec)).foldLeft(TreeMap.empty[String, Op.Value]) {
+          case (m, tag) =>
+            tag.toList match {
+              case '/' :: cs => m + (cs.mkString -> Op.fold)
+              case '-' :: cs => m + (cs.mkString -> Op.drop)
+              case '+' :: cs => m + (cs.mkString -> Op.keep)
+              case cs => m + (cs.mkString -> Op.keep)
+            }
+        })
+
+    val empty: Tags = apply("")
+  }
+
+  class Tags private(spec: String, map: TreeMap[String, Tags.Op.Value])
+  {
+    override def toString: String = spec
+
+    def get(name: String): Option[Tags.Op.Value] = map.get(name)
+
+    def sty: File.Content =
+    {
+      val path = Path.explode("isabelletags.sty")
+      val tags =
+        (for ((name, op) <- map.iterator)
+          yield "\\isa" + op + "tag{" + name + "}").toList
+      File.Content(path, """
+%plain TeX version of comment package -- much faster!
+\let\isafmtname\fmtname\def\fmtname{plain}
+\usepackage{comment}
+\let\fmtname\isafmtname
+
+\newcommand{\isakeeptag}[1]%
+{\includecomment{isadelim#1}\includecomment{isatag#1}\csarg\def{isafold#1}{}}
+\newcommand{\isadroptag}[1]%
+{\excludecomment{isadelim#1}\excludecomment{isatag#1}\csarg\def{isafold#1}{}}
+\newcommand{\isafoldtag}[1]%
+{\includecomment{isadelim#1}\excludecomment{isatag#1}\csarg\def{isafold#1}{\isafold{#1}}}
+
+""" + Library.terminate_lines(tags))
+    }
   }
 
 

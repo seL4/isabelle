@@ -21,36 +21,17 @@ object Document_Build
 
   object Document_Variant
   {
-    def parse(name: String, tags: String): Document_Variant =
-      Document_Variant(name, Library.space_explode(',', tags))
-
     def parse(opt: String): Document_Variant =
       Library.space_explode('=', opt) match {
-        case List(name) => Document_Variant(name, Nil)
-        case List(name, tags) => parse(name, tags)
+        case List(name) => Document_Variant(name, Latex.Tags.empty)
+        case List(name, tags) => Document_Variant(name, Latex.Tags(tags))
         case _ => error("Malformed document variant: " + quote(opt))
       }
   }
 
-  sealed case class Document_Variant(name: String, tags: List[String]) extends Document_Name
+  sealed case class Document_Variant(name: String, tags: Latex.Tags) extends Document_Name
   {
-    def print_tags: String = tags.mkString(",")
-    def print: String = if (tags.isEmpty) name else name + "=" + print_tags
-
-    def isabelletags: File.Content =
-    {
-      val path = Path.explode("isabelletags.sty")
-      val content =
-        Library.terminate_lines(
-          tags.map(tag =>
-            tag.toList match {
-              case '/' :: cs => "\\isafoldtag{" + cs.mkString + "}"
-              case '-' :: cs => "\\isadroptag{" + cs.mkString + "}"
-              case '+' :: cs => "\\isakeeptag{" + cs.mkString + "}"
-              case cs => "\\isakeeptag{" + cs.mkString + "}"
-            }))
-      File.Content(path, content)
-    }
+    def print: String = if (tags.toString.isEmpty) name else name + "=" + tags.toString
   }
 
   sealed case class Document_Input(name: String, sources: SHA1.Digest)
@@ -240,7 +221,7 @@ object Document_Build
       /* actual sources: with SHA1 digest */
 
       isabelle_styles.foreach(Isabelle_System.copy_file(_, doc_dir))
-      doc.isabelletags.write(doc_dir)
+      doc.tags.sty.write(doc_dir)
 
       for ((base_dir, src) <- info.document_files) {
         Isabelle_System.copy_file_base(info.dir + base_dir, src, doc_dir)
