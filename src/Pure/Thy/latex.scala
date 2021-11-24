@@ -107,25 +107,24 @@ object Latex
   {
     def latex_output(latex_text: Text): String = apply(latex_text)
 
-    def latex_macro0(name: String): Text =
-      XML.string("\\" + name)
+    def latex_macro0(name: String, optional_argument: String = ""): Text =
+      XML.string("\\" + name + optional_argument)
 
-    def latex_macro(name: String, body: Text): Text =
-      XML.enclose("\\" + name + "{", "}", body)
+    def latex_macro(name: String, body: Text, optional_argument: String = ""): Text =
+      XML.enclose("\\" + name + optional_argument + "{", "}", body)
 
-    def latex_environment(name: String, body: Text): Text =
-      XML.enclose("%\n\\begin{" + name + "}%\n", "%\n\\end{" + name + "}", body)
+    def latex_environment(name: String, body: Text, optional_argument: String = ""): Text =
+      XML.enclose(
+        "%\n\\begin{" + name + "}" + optional_argument + "%\n",
+        "%\n\\end{" + name + "}", body)
 
-    def latex_heading(kind: String, props: Properties.T, body: Text): Text =
-    {
-      val prefix =
-        "%\n\\" + options.string("document_heading_prefix") + kind +
-        Markup.Optional_Argument.get(props)
-      XML.enclose(prefix + "{", "%\n}\n", body)
-    }
+    def latex_heading(kind: String, body: Text, optional_argument: String = ""): Text =
+      XML.enclose(
+        "%\n\\" + options.string("document_heading_prefix") + kind + optional_argument + "{",
+        "%\n}\n", body)
 
-    def latex_body(kind: String, props: Properties.T, body: Text): Text =
-      latex_environment("isamarkup" + kind, body)
+    def latex_body(kind: String, body: Text, optional_argument: String = ""): Text =
+      latex_environment("isamarkup" + kind, body, optional_argument)
 
     def latex_delim(name: String, body: Text): Text =
     {
@@ -156,46 +155,50 @@ object Latex
 
     /* standard output of text with per-line positions */
 
+    def unknown_elem(elem: XML.Elem, pos: Position.T): XML.Body =
+      error("Unknown latex markup element " + quote(elem.name) + Position.here(pos) +
+        ":\n" + XML.string_of_tree(elem))
+
     def apply(latex_text: Text, file_pos: String = ""): String =
     {
       var line = 1
       val result = new mutable.ListBuffer[String]
       val positions = new mutable.ListBuffer[String] ++= init_position(file_pos)
 
-      def traverse(body: XML.Body): Unit =
+      val file_position = if (file_pos.isEmpty) Position.none else Position.File(file_pos)
+
+      def traverse(xml: XML.Body): Unit =
       {
-        body.foreach {
+        xml.foreach {
           case XML.Text(s) =>
             line += s.count(_ == '\n')
             result += s
-          case XML.Elem(Markup.Document_Latex(props), body) =>
-            for { l <- Position.Line.unapply(props) if positions.nonEmpty } {
-              val s = position(Value.Int(line), Value.Int(l))
-              if (positions.last != s) positions += s
+          case elem @ XML.Elem(markup, body) =>
+            val a = Markup.Optional_Argument.get(markup.properties)
+            traverse {
+              markup match {
+                case Markup.Document_Latex(props) =>
+                  for (l <- Position.Line.unapply(props) if positions.nonEmpty) {
+                    val s = position(Value.Int(line), Value.Int(l))
+                    if (positions.last != s) positions += s
+                  }
+                  body
+                case Markup.Latex_Output(_) => XML.string(latex_output(body))
+                case Markup.Latex_Macro0(name) if body.isEmpty => latex_macro0(name, a)
+                case Markup.Latex_Macro(name) => latex_macro(name, body, a)
+                case Markup.Latex_Environment(name) => latex_environment(name, body, a)
+                case Markup.Latex_Heading(kind) => latex_heading(kind, body, a)
+                case Markup.Latex_Body(kind) => latex_body(kind, body, a)
+                case Markup.Latex_Delim(name) => latex_delim(name, body)
+                case Markup.Latex_Tag(name) => latex_tag(name, body)
+                case Markup.Latex_Index_Entry(_) =>
+                  elem match {
+                    case Index_Entry(entry) => index_entry(entry)
+                    case _ => unknown_elem(elem, file_position)
+                  }
+                case _ => unknown_elem(elem, file_position)
+              }
             }
-            traverse(body)
-          case XML.Elem(Markup.Latex_Output(_), body) =>
-            traverse(XML.string(latex_output(body)))
-          case XML.Elem(Markup.Latex_Macro0(name), Nil) =>
-            traverse(latex_macro0(name))
-          case XML.Elem(Markup.Latex_Macro(name), body) =>
-            traverse(latex_macro(name, body))
-          case XML.Elem(Markup.Latex_Environment(name), body) =>
-            traverse(latex_environment(name, body))
-          case XML.Elem(markup @ Markup.Latex_Heading(kind), body) =>
-            traverse(latex_heading(kind, markup.properties, body))
-          case XML.Elem(markup @ Markup.Latex_Body(kind), body) =>
-            traverse(latex_body(kind, markup.properties, body))
-          case XML.Elem(Markup.Latex_Delim(name), body) =>
-            traverse(latex_delim(name, body))
-          case XML.Elem(Markup.Latex_Tag(name), body) =>
-            traverse(latex_tag(name, body))
-          case Index_Entry(entry) =>
-            traverse(index_entry(entry))
-          case t: XML.Tree =>
-            error("Bad latex markup" +
-              (if (file_pos.isEmpty) "" else Position.here(Position.File(file_pos))) + ":\n" +
-              XML.string_of_tree(t))
         }
       }
       traverse(latex_text)

@@ -8,7 +8,7 @@ signature DOCUMENT_OUTPUT =
 sig
   val document_reports: Input.source -> Position.report list
   val output_document: Proof.context -> {markdown: bool} -> Input.source -> Latex.text
-  val document_output: {markdown: bool, markup: Position.T -> Latex.text -> Latex.text} ->
+  val document_output: {markdown: bool, markup: Latex.text -> Latex.text} ->
     (xstring * Position.T) option * Input.source -> Toplevel.transition -> Toplevel.transition
   val check_comments: Proof.context -> Symbol_Pos.T list -> unit
   val output_token: Proof.context -> Token.T -> Latex.text
@@ -119,7 +119,7 @@ fun document_output {markdown, markup} (loc, txt) =
       let
         val ctxt = Toplevel.presentation_context st;
         val _ = Context_Position.reports ctxt (document_reports txt);
-      in txt |> output_document ctxt {markdown = markdown} |> markup (Position.thread_data ()) end;
+      in txt |> output_document ctxt {markdown = markdown} |> markup end;
   in
     Toplevel.present (fn st =>
       (case loc of

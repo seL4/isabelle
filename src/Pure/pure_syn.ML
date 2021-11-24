@@ -13,19 +13,17 @@ end;
 structure Pure_Syn: PURE_SYN =
 struct
 
-fun markup_pos markup pos body = [XML.Elem (markup |> Position.markup pos, body)];
-
 fun document_heading (name, pos) =
   Outer_Syntax.command (name, pos) (name ^ " heading")
     (Parse.opt_target -- Parse.document_source --| Scan.option (Parse.$$$ ";") >>
       Document_Output.document_output
-        {markdown = false, markup = markup_pos (Markup.latex_heading name)});
+        {markdown = false, markup = fn body => [XML.Elem (Markup.latex_heading name, body)]});
 
 fun document_body ((name, pos), description) =
   Outer_Syntax.command (name, pos) description
     (Parse.opt_target -- Parse.document_source >>
       Document_Output.document_output
-        {markdown = true, markup = markup_pos (Markup.latex_body name)});
+        {markdown = true, markup = fn body => [XML.Elem (Markup.latex_body name, body)]});
 
 val _ =
   List.app document_heading
@@ -45,7 +43,7 @@ val _ =
   Outer_Syntax.command ("text_raw", \<^here>) "LaTeX text (without surrounding environment)"
     (Parse.opt_target -- Parse.document_source >>
       Document_Output.document_output
-        {markdown = true, markup = fn _ => Latex.enclose_text "%\n" "\n"});
+        {markdown = true, markup = Latex.enclose_text "%\n" "\n"});
 
 val _ =
   Outer_Syntax.command ("theory", \<^here>) "begin theory"

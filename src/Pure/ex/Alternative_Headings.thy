@@ -13,9 +13,8 @@ begin
 ML \<open>
 local
 
-fun alternative_heading name pos body =
-  let val markup = Markup.latex_heading (unsuffix "*" name) |> Markup.optional_argument "*";
-  in [XML.Elem (markup |> Position.markup pos, body)] end;
+fun alternative_heading name body =
+  [XML.Elem (Markup.latex_heading (unsuffix "*" name) |> Markup.optional_argument "*", body)];
 
 fun document_heading (name, pos) =
   Outer_Syntax.command (name, pos) (name ^ " heading")
