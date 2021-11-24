@@ -118,9 +118,11 @@ object Document_Build
 
   /* context */
 
+  val texinputs: Path = Path.explode("~~/lib/texinputs")
+
   val isabelle_styles: List[Path] =
-    List("comment.sty", "isabelle.sty", "isabellesym.sty", "pdfsetup.sty", "railsetup.sty").
-      map(name => Path.explode("~~/lib/texinputs") + Path.basic(name))
+    List("isabelle.sty", "isabellesym.sty", "pdfsetup.sty", "railsetup.sty").
+      map(name => texinputs + Path.basic(name))
 
   def context(
     session: String,
@@ -221,7 +223,12 @@ object Document_Build
       /* actual sources: with SHA1 digest */
 
       isabelle_styles.foreach(Isabelle_System.copy_file(_, doc_dir))
-      doc.tags.sty.write(doc_dir)
+
+      val comment_latex = options.bool("document_comment_latex")
+      if (!comment_latex) {
+        Isabelle_System.copy_file(texinputs + Path.basic("comment.sty"), doc_dir)
+      }
+      doc.tags.sty(comment_latex).write(doc_dir)
 
       for ((base_dir, src) <- info.document_files) {
         Isabelle_System.copy_file_base(info.dir + base_dir, src, doc_dir)

@@ -111,6 +111,10 @@ The presence of a "build" command within the document output directory
 explicitly requires document_build=build. Minor INCOMPATIBILITY, need to
 adjust session ROOT options.
 
+* Option "document_comment_latex" enables regular LaTeX comment.sty,
+instead of the historic version for plain TeX (default). The latter is
+much faster, but in conflict with LaTeX classes like Dagstuhl LIPIcs.
+
 * Option "document_echo" informs about document file names during
 session presentation.
 

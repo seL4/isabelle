@@ -129,17 +129,19 @@ object Latex
 
     def get(name: String): Option[Tags.Op.Value] = map.get(name)
 
-    def sty: File.Content =
+    def sty(comment_latex: Boolean): File.Content =
     {
       val path = Path.explode("isabelletags.sty")
+      val comment =
+        if (comment_latex) """\usepackage{comment}"""
+        else """%plain TeX version of comment package -- much faster!
+\let\isafmtname\fmtname\def\fmtname{plain}
+\usepackage{comment}
+\let\fmtname\isafmtname"""
       val tags =
         (for ((name, op) <- map.iterator)
           yield "\\isa" + op + "tag{" + name + "}").toList
-      File.Content(path, """
-%plain TeX version of comment package -- much faster!
-\let\isafmtname\fmtname\def\fmtname{plain}
-\usepackage{comment}
-\let\fmtname\isafmtname
+      File.Content(path, comment + """
 
 \newcommand{\isakeeptag}[1]%
 {\includecomment{isadelim#1}\includecomment{isatag#1}\csarg\def{isafold#1}{}}
@@ -186,16 +188,21 @@ object Latex
     def latex_body(kind: String, body: Text, optional_argument: String = ""): Text =
       latex_environment("isamarkup" + kind, body, optional_argument)
 
-    def latex_delim(name: String, body: Text): Text =
+    def latex_tag(name: String, body: Text, delim: Boolean = false): Text =
     {
       val s = output_name(name)
-      XML.enclose("%\n\\isadelim" + s + "\n", "%\n\\endisadelim" + s + "\n", body)
-    }
-
-    def latex_tag(name: String, body: Text): Text =
-    {
-      val s = output_name(name)
-      XML.enclose("%\n\\isatag" + s + "\n", "%\n\\endisatag" + s + "\n{\\isafold" + s + "}%\n", body)
+      val kind = if (delim) "delim" else "tag"
+      val end = if (delim) "" else "{\\isafold" + s + "}%\n"
+      if (options.bool("document_comment_latex")) {
+        XML.enclose(
+          "%\n\\begin{isa" + kind + s + "}\n",
+          "%\n\\end{isa" + kind + s + "}\n" + end, body)
+      }
+      else {
+        XML.enclose(
+          "%\n\\isa" + kind + s + "\n",
+          "%\n\\endisa" + kind + s + "\n" + end, body)
+      }
     }
 
     def index_item(item: Index_Item.Value): String =
@@ -249,7 +256,7 @@ object Latex
                 case Markup.Latex_Environment(name) => latex_environment(name, body, a)
                 case Markup.Latex_Heading(kind) => latex_heading(kind, body, a)
                 case Markup.Latex_Body(kind) => latex_body(kind, body, a)
-                case Markup.Latex_Delim(name) => latex_delim(name, body)
+                case Markup.Latex_Delim(name) => latex_tag(name, body, delim = true)
                 case Markup.Latex_Tag(name) => latex_tag(name, body)
                 case Markup.Latex_Index_Entry(_) =>
                   elem match {
