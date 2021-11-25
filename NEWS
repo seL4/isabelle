@@ -18,6 +18,9 @@ New in this Isabelle version
     multeqp_code_iff ~> multeqp_code_iff_reflcl_mult
   Minor INCOMPATIBILITY.
 
+* Theory "HOL-Library.Multiset": move mult1_lessE out of preorder type
+class and add explicit assumption. Minor INCOMPATIBILITY.
+
 
 New in Isabelle2021-1 (December 2021)
 -------------------------------------

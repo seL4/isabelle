@@ -3116,14 +3116,15 @@ qed
 
 subsubsection \<open>Partial-order properties\<close>
 
-lemma (in preorder) mult1_lessE:
-  assumes "(N, M) \<in> mult1 {(a, b). a < b}"
+lemma mult1_lessE:
+  assumes "(N, M) \<in> mult1 {(a, b). r a b}" and "asymp r"
   obtains a M0 K where "M = add_mset a M0" "N = M0 + K"
-    "a \<notin># K" "\<And>b. b \<in># K \<Longrightarrow> b < a"
+    "a \<notin># K" "\<And>b. b \<in># K \<Longrightarrow> r b a"
 proof -
   from assms obtain a M0 K where "M = add_mset a M0" "N = M0 + K" and
-    *: "b \<in># K \<Longrightarrow> b < a" for b by (blast elim: mult1E)
-  moreover from * [of a] have "a \<notin># K" by auto
+    *: "b \<in># K \<Longrightarrow> r b a" for b by (blast elim: mult1E)
+  moreover from * [of a] have "a \<notin># K"
+    using \<open>asymp r\<close> by (meson asymp.cases)
   ultimately show thesis by (auto intro: that)
 qed
 

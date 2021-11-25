@@ -70,7 +70,7 @@ next
     by (simp_all add: less_multiset\<^sub>H\<^sub>O_def)
   from step(2) obtain M0 a K where
     *: "P = add_mset a M0" "N = M0 + K" "a \<notin># K" "\<And>b. b \<in># K \<Longrightarrow> b < a"
-    by (blast elim: mult1_lessE)
+    by (auto elim: mult1_lessE)
   from \<open>M \<noteq> N\<close> ** *(1,2,3) have "M \<noteq> P" by (force dest: *(4) elim!: less_asym split: if_splits )
   moreover
   { assume "count P a \<le> count M a"

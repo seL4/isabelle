@@ -259,6 +259,17 @@ lemma asymD: "\<lbrakk>asym R; (x,y) \<in> R\<rbrakk> \<Longrightarrow> (y,x) \<
 lemma asym_iff: "asym R \<longleftrightarrow> (\<forall>x y. (x,y) \<in> R \<longrightarrow> (y,x) \<notin> R)"
   by (blast intro: asymI dest: asymD)
 
+context preorder begin
+
+lemma asymp_less[simp]: "asymp (<)"
+  by (auto intro: asympI dual_order.asym)
+
+lemma asymp_greater[simp]: "asymp (>)"
+  by (auto intro: asympI dual_order.asym)
+
+end
+
+
 subsubsection \<open>Symmetry\<close>
 
 definition sym :: "'a rel \<Rightarrow> bool"
