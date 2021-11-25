@@ -11,6 +11,6 @@ theory Tests_Nits
 imports Main
 begin
 
-ML \<open>() |> getenv "KODKODI" <> "" ? Nitpick_Tests.run_all_tests\<close>
+ML \<open>if getenv "KODKODI" = "" then () else Nitpick_Tests.run_all_tests \<^context>\<close>
 
 end

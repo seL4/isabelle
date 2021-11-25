@@ -166,7 +166,8 @@ sig
   val is_problem_trivially_false : problem -> bool
   val problems_equivalent : problem * problem -> bool
   val solve_any_problem :
-    bool -> bool -> Time.time -> int -> int -> problem list -> outcome
+    bool -> bool -> bool -> Time.time -> int -> int -> problem list -> outcome
+  val kodkod_scala : bool Config.T
 end;
 
 structure Kodkod : KODKOD =
@@ -958,7 +959,7 @@ fun serial_string_and_temporary_dir overlord =
    is partly due to the JVM and partly due to the ML "bash" function. *)
 val fudge_ms = 250
 
-fun uncached_solve_any_problem overlord deadline max_threads0 max_solutions problems =
+fun uncached_solve_any_problem kodkod_scala overlord deadline max_threads0 max_solutions problems =
   let
     val j = find_index (curry (op =) True o #formula) problems
     val indexed_problems = if j >= 0 then
@@ -975,8 +976,7 @@ fun uncached_solve_any_problem overlord deadline max_threads0 max_solutions prob
       then Options.default_int \<^system_option>\<open>kodkod_max_threads\<close>
       else max_threads0
 
-    val external_process =
-      not (Options.default_bool \<^system_option>\<open>kodkod_scala\<close>) orelse overlord
+    val external_process = not kodkod_scala orelse overlord
     val timeout0 = Time.toMilliseconds (deadline - Time.now ())
     val timeout = if external_process then timeout0 - fudge_ms else timeout0
 
@@ -1058,11 +1058,11 @@ val cached_outcome =
   Synchronized.var "Kodkod.cached_outcome"
                    (NONE : ((int * problem list) * outcome) option)
 
-fun solve_any_problem debug overlord deadline max_threads max_solutions
+fun solve_any_problem kodkod_scala debug overlord deadline max_threads max_solutions
                       problems =
   let
     fun do_solve () =
-      uncached_solve_any_problem overlord deadline max_threads max_solutions
+      uncached_solve_any_problem kodkod_scala overlord deadline max_threads max_solutions
                                  problems
   in
     if debug orelse overlord then
@@ -1084,5 +1084,7 @@ fun solve_any_problem debug overlord deadline max_threads max_solutions
           outcome
         end
   end
+
+val kodkod_scala = Attrib.setup_option_bool (\<^system_option>\<open>kodkod_scala\<close>, \<^here>)
 
 end;
