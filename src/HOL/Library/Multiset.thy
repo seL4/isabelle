@@ -4,6 +4,7 @@
     Author:     Jasmin Blanchette, Inria, LORIA, MPII
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Mathias Fleury, MPII
+    Author:     Martin Desharnais, MPI-INF Saarbruecken
 *)
 
 section \<open>(Finite) Multisets\<close>
@@ -3063,22 +3064,22 @@ text \<open>
   Predicate variants of \<open>mult\<close> and the reflexive closure of \<open>mult\<close>, which are
   executable whenever the given predicate \<open>P\<close> is. Together with the standard
   code equations for \<open>(\<inter>#\<close>) and \<open>(-\<close>) this should yield quadratic
-  (with respect to calls to \<open>P\<close>) implementations of \<open>multp\<close> and \<open>multeqp\<close>.
+  (with respect to calls to \<open>P\<close>) implementations of \<open>multp_code\<close> and \<open>multeqp_code\<close>.
 \<close>
 
-definition multp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" where
-  "multp P N M =
+definition multp_code :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" where
+  "multp_code P N M =
     (let Z = M \<inter># N; X = M - Z in
     X \<noteq> {#} \<and> (let Y = N - Z in (\<forall>y \<in> set_mset Y. \<exists>x \<in> set_mset X. P y x)))"
 
-definition multeqp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" where
-  "multeqp P N M =
+definition multeqp_code :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" where
+  "multeqp_code P N M =
     (let Z = M \<inter># N; X = M - Z; Y = N - Z in
     (\<forall>y \<in> set_mset Y. \<exists>x \<in> set_mset X. P y x))"
 
-lemma multp_iff:
+lemma multp_code_iff:
   assumes "irrefl R" and "trans R" and [simp]: "\<And>x y. P x y \<longleftrightarrow> (x, y) \<in> R"
-  shows "multp P N M \<longleftrightarrow> (N, M) \<in> mult R" (is "?L \<longleftrightarrow> ?R")
+  shows "multp_code P N M \<longleftrightarrow> (N, M) \<in> mult R" (is "?L \<longleftrightarrow> ?R")
 proof -
   have *: "M \<inter># N + (N - M \<inter># N) = N" "M \<inter># N + (M - M \<inter># N) = M"
     "(M - M \<inter># N) \<inter># (N - M \<inter># N) = {#}" by (auto simp flip: count_inject)
@@ -3086,29 +3087,29 @@ proof -
   proof
     assume ?L thus ?R
       using one_step_implies_mult[of "M - M \<inter># N" "N - M \<inter># N" R "M \<inter># N"] *
-      by (auto simp: multp_def Let_def)
+      by (auto simp: multp_code_def Let_def)
   next
     { fix I J K :: "'a multiset" assume "(I + J) \<inter># (I + K) = {#}"
       then have "I = {#}" by (metis inter_union_distrib_right union_eq_empty)
     } note [dest!] = this
     assume ?R thus ?L
       using mult_implies_one_step[OF assms(2), of "N - M \<inter># N" "M - M \<inter># N"]
-        mult_cancel_max[OF assms(2,1), of "N" "M"] * by (auto simp: multp_def)
+        mult_cancel_max[OF assms(2,1), of "N" "M"] * by (auto simp: multp_code_def)
   qed
 qed
 
-lemma multeqp_iff:
+lemma multeqp_code_iff:
   assumes "irrefl R" and "trans R" and "\<And>x y. P x y \<longleftrightarrow> (x, y) \<in> R"
-  shows "multeqp P N M \<longleftrightarrow> (N, M) \<in> (mult R)\<^sup>="
+  shows "multeqp_code P N M \<longleftrightarrow> (N, M) \<in> (mult R)\<^sup>="
 proof -
   { assume "N \<noteq> M" "M - M \<inter># N = {#}"
     then obtain y where "count N y \<noteq> count M y" by (auto simp flip: count_inject)
     then have "\<exists>y. count M y < count N y" using \<open>M - M \<inter># N = {#}\<close>
       by (auto simp flip: count_inject dest!: le_neq_implies_less fun_cong[of _ _ y])
   }
-  then have "multeqp P N M \<longleftrightarrow> multp P N M \<or> N = M"
-    by (auto simp: multeqp_def multp_def Let_def in_diff_count)
-  thus ?thesis using multp_iff[OF assms] by simp
+  then have "multeqp_code P N M \<longleftrightarrow> multp_code P N M \<or> N = M"
+    by (auto simp: multeqp_code_def multp_code_def Let_def in_diff_count)
+  thus ?thesis using multp_code_iff[OF assms] by simp
 qed
 
 

@@ -7,6 +7,12 @@ Isabelle NEWS -- history of user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** HOL ***
+
+* Theory "HOL-Library.Multiset": consolidated operation and fact namesd
+    multp ~> multp_code
+    multeqp ~> multeqp_code
+  Minor INCOMPATIBILITY.
 
 
 New in Isabelle2021-1 (December 2021)
