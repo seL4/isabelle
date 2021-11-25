@@ -208,6 +208,15 @@ INCOMPATIBILITY.
 min.absorb4, max.absorb1, max.absorb2, max.absorb3, max.absorb4. Minor
 INCOMPATIBILITY.
 
+* Nitpick/Kodkod: default is back to external Java process (option
+kodkod_scala = false), both for PIDE and batch builds. This reduces
+confusion and increases robustness of timeouts, despite substantial
+overhead to run an external JVM. For more fine-grained control, the
+kodkod_scala option can be modified within the formal theory context
+like this:
+
+  declare [[kodkod_scala = false]]
+
 * Sledgehammer:
   - Update of bundled provers:
       . E 2.6
@@ -743,10 +752,7 @@ defect and two incompleteness defects. Very slight INCOMPATIBILITY.
 Isabelle/Scala session (instead of an external Java process): this
 improves reactivity and saves resources. This experimental feature is
 guarded by system option "kodkod_scala" (default: true in PIDE
-interaction, false in batch builds) or configuration option within the
-theory context; it may be changed locally like this:
-
-  declare [[kodkod_scala = false]]
+interaction, false in batch builds).
 
 * Simproc "defined_all" and rewrite rule "subst_all" perform more
 aggressive substitution with variables from assumptions.
