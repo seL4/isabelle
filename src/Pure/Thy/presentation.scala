@@ -182,7 +182,7 @@ object Presentation
             case Theory_Ref(node_name) =>
               node_relative(deps, session, node_name).map(html_dir =>
                 HTML.link(html_dir + html_name(node_name), body))
-            case Entity_Ref(file_path, def_theory, kind, name) =>
+            case Entity_Ref(file_path, def_theory, kind, name) if file_path.get_ext == "thy" =>
               for {
                 thy_name <-
                   def_theory orElse (if (File.eq(node.path, file_path)) Some(node.theory) else None)
@@ -604,7 +604,7 @@ object Presentation
             if (verbose) progress.echo("Presenting file " + src_path)
 
             (src_path, html_context.source(
-              make_html(entity_context(name), thy_elements, xml)))
+              make_html(Entity_Context.empty, thy_elements, xml)))
           }
 
         val thy_html =
