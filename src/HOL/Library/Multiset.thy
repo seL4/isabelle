@@ -3049,13 +3049,15 @@ qed
 lemmas mult_cancel_add_mset =
   mult_cancel[of _ _ "{#_#}", unfolded union_mset_add_mset_right add.comm_neutral]
 
-lemma mult_cancel_max:
+lemma mult_cancel_max0:
   assumes "trans s" and "irrefl s"
   shows "(X, Y) \<in> mult s \<longleftrightarrow> (X - X \<inter># Y, Y - X \<inter># Y) \<in> mult s" (is "?L \<longleftrightarrow> ?R")
 proof -
   have "X - X \<inter># Y + X \<inter># Y = X" "Y - X \<inter># Y + X \<inter># Y = Y" by (auto simp flip: count_inject)
   thus ?thesis using mult_cancel[OF assms, of "X - X \<inter># Y"  "X \<inter># Y" "Y - X \<inter># Y"] by auto
 qed
+
+lemmas mult_cancel_max = mult_cancel_max0[simplified]
 
 
 subsection \<open>Quasi-executable version of the multiset extension\<close>
