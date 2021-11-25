@@ -14,6 +14,8 @@ New in this Isabelle version
     multeqp ~> multeqp_code
     multp_cancel_add_mset ~> multp_cancel_add_mset0
     multp_cancel_add_mset0[simplified] ~> multp_cancel_add_mset
+    multp_code_iff ~> multp_code_iff_mult
+    multeqp_code_iff ~> multeqp_code_iff_reflcl_mult
   Minor INCOMPATIBILITY.
 
 

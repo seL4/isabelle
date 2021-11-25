@@ -3079,7 +3079,7 @@ definition multeqp_code :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarro
     (let Z = M \<inter># N; X = M - Z; Y = N - Z in
     (\<forall>y \<in> set_mset Y. \<exists>x \<in> set_mset X. P y x))"
 
-lemma multp_code_iff:
+lemma multp_code_iff_mult:
   assumes "irrefl R" and "trans R" and [simp]: "\<And>x y. P x y \<longleftrightarrow> (x, y) \<in> R"
   shows "multp_code P N M \<longleftrightarrow> (N, M) \<in> mult R" (is "?L \<longleftrightarrow> ?R")
 proof -
@@ -3100,7 +3100,7 @@ proof -
   qed
 qed
 
-lemma multeqp_code_iff:
+lemma multeqp_code_iff_reflcl_mult:
   assumes "irrefl R" and "trans R" and "\<And>x y. P x y \<longleftrightarrow> (x, y) \<in> R"
   shows "multeqp_code P N M \<longleftrightarrow> (N, M) \<in> (mult R)\<^sup>="
 proof -
@@ -3111,9 +3111,8 @@ proof -
   }
   then have "multeqp_code P N M \<longleftrightarrow> multp_code P N M \<or> N = M"
     by (auto simp: multeqp_code_def multp_code_def Let_def in_diff_count)
-  thus ?thesis using multp_code_iff[OF assms] by simp
+  thus ?thesis using multp_code_iff_mult[OF assms] by simp
 qed
-
 
 subsubsection \<open>Partial-order properties\<close>
 
