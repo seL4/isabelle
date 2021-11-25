@@ -515,6 +515,9 @@ Isabelle2021:
 
 *** System ***
 
+* Almost complete support for arm64-linux platform. The reference
+platform is Raspberry Pi 4 with 8 GB RAM running Pi OS (64 bit).
+
 * Update to OpenJDK 17: the current long-term support version of Java.
 
 * Update to Poly/ML 5.9 with improved support for ARM on Linux. On
@@ -956,8 +959,8 @@ existing server installations should remove libphutil from
 /usr/local/bin/isabelle-phabricator-upgrade and each installation root
 directory (e.g. /var/www/phabricator-vcs/libphutil).
 
-* Almost complete support for arm64-linux platform. The reference
-platform is Raspberry Pi 4 with 8 GB RAM running Pi OS (64 bit).
+* Experimental support for arm64-linux platform. The reference platform
+is Raspberry Pi 4 with 8 GB RAM running Pi OS (64 bit).
 
 * Support for Apple Silicon, using mostly x86_64-darwin runtime
 translation via Rosetta 2 (e.g. Poly/ML and external provers), but also
