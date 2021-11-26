@@ -395,11 +395,12 @@ fun kodkod_problem_from_term ctxt total raw_card raw_infinite t =
 fun solve_any_kodkod_problem thy problems =
   let
     val {debug, overlord, timeout, ...} = Nitpick_Commands.default_params thy []
+    val kodkod_scala = Config.get_global thy Kodkod.kodkod_scala
     val deadline = Timeout.end_time timeout
     val max_threads = 1
     val max_solutions = 1
   in
-    case solve_any_problem debug overlord deadline max_threads max_solutions
+    case solve_any_problem kodkod_scala debug overlord deadline max_threads max_solutions
                            problems of
       Normal ([], _, _) => "none"
     | Normal _ => "genuine"

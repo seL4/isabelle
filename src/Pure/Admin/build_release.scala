@@ -823,9 +823,6 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
             val other_isabelle = context.other_isabelle(tmp_dir)
 
-            Isabelle_System.make_directory(other_isabelle.etc)
-            File.write(other_isabelle.etc_preferences, "ML_system_64 = true\n")
-
             other_isabelle.bash("bin/isabelle build -f -j " + parallel_jobs +
               " -o browser_info -o document=pdf -o document_variants=document:outline=/proof,/ML" +
               " -o system_heaps -c -a -d '~~/src/Benchmarks'", echo = true).check

@@ -33,14 +33,21 @@ object Options
     typ: Type,
     value: String,
     default_value: String,
+    standard_value: Option[String],
     description: String,
     section: String)
   {
+    private def print_value(x: String): String = if (typ == Options.String) quote(x) else x
+    private def print_standard: String =
+      standard_value match {
+        case None => ""
+        case Some(s) if s == default_value => " (standard)"
+        case Some(s) => " (standard " + print_value(s) + ")"
+      }
     private def print(default: Boolean): String =
     {
       val x = if (default) default_value else value
-      "option " + name + " : " + typ.print + " = " +
-        (if (typ == Options.String) quote(x) else x) +
+      "option " + name + " : " + typ.print + " = " + print_value(x) + print_standard +
         (if (description == "") "" else "\n  -- " + quote(description))
     }
 
@@ -67,14 +74,17 @@ object Options
   private val SECTION = "section"
   private val PUBLIC = "public"
   private val OPTION = "option"
+  private val STANDARD = "standard"
   private val OPTIONS = Path.explode("etc/options")
   private val PREFS = Path.explode("$ISABELLE_HOME_USER/etc/preferences")
 
   val options_syntax: Outer_Syntax =
-    Outer_Syntax.empty + ":" + "=" + "--" + Symbol.comment + Symbol.comment_decoded +
+    Outer_Syntax.empty + ":" + "=" + "--" + "(" + ")" +
+      Symbol.comment + Symbol.comment_decoded +
       (SECTION, Keyword.DOCUMENT_HEADING) +
       (PUBLIC, Keyword.BEFORE_COMMAND) +
-      (OPTION, Keyword.THY_DECL)
+      (OPTION, Keyword.THY_DECL) +
+      STANDARD
 
   val prefs_syntax: Outer_Syntax = Outer_Syntax.empty + "="
 
@@ -86,6 +96,8 @@ object Options
       opt(token("-", tok => tok.is_sym_ident && tok.content == "-")) ~ atom("nat", _.is_nat) ^^
         { case s ~ n => if (s.isDefined) "-" + n else n } |
       atom("option value", tok => tok.is_name || tok.is_float)
+    val option_standard: Parser[Option[String]] =
+      $$$("(") ~! $$$(STANDARD) ~ opt(option_value) ~ $$$(")") ^^ { case _ ~ _ ~ a ~ _ => a }
   }
 
   private object Parser extends Parser
@@ -98,9 +110,10 @@ object Options
       command(SECTION) ~! text ^^
         { case _ ~ a => (options: Options) => options.set_section(a) } |
       opt($$$(PUBLIC)) ~ command(OPTION) ~! (position(option_name) ~ $$$(":") ~ option_type ~
-      $$$("=") ~ option_value ~ (comment_marker ~! text ^^ { case _ ~ x => x } | success(""))) ^^
-        { case a ~ _ ~ ((b, pos) ~ _ ~ c ~ _ ~ d ~ e) =>
-            (options: Options) => options.declare(a.isDefined, pos, b, c, d, e) }
+      $$$("=") ~ option_value ~ opt(option_standard) ~
+        (comment_marker ~! text ^^ { case _ ~ x => x } | success(""))) ^^
+        { case a ~ _ ~ ((b, pos) ~ _ ~ c ~ _ ~ d ~ e ~ f) =>
+            (options: Options) => options.declare(a.isDefined, pos, b, c, d, e, f) }
     }
 
     val prefs_entry: Parser[Options => Options] =
@@ -302,6 +315,7 @@ final class Options private(
     name: String,
     typ_name: String,
     value: String,
+    standard: Option[Option[String]],
     description: String): Options =
   {
     options.get(name) match {
@@ -319,7 +333,16 @@ final class Options private(
               error("Unknown type for option " + quote(name) + " : " + quote(typ_name) +
                 Position.here(pos))
           }
-        val opt = Options.Opt(public, pos, name, typ, value, value, description, section)
+        val standard_value =
+          standard match {
+            case None => None
+            case Some(_) if typ == Options.Bool =>
+              error("Illegal standard value for option " + quote(name) + " : " + typ_name +
+                Position.here)
+            case Some(s) => Some(s.getOrElse(value))
+          }
+        val opt =
+          Options.Opt(public, pos, name, typ, value, value, standard_value, description, section)
         (new Options(options + (name -> opt), section)).check_value(name)
     }
   }
@@ -328,7 +351,7 @@ final class Options private(
   {
     if (options.isDefinedAt(name)) this + (name, value)
     else {
-      val opt = Options.Opt(false, Position.none, name, Options.Unknown, value, value, "", "")
+      val opt = Options.Opt(false, Position.none, name, Options.Unknown, value, value, None, "", "")
       new Options(options + (name -> opt), section)
     }
   }
@@ -342,9 +365,9 @@ final class Options private(
   def + (name: String, opt_value: Option[String]): Options =
   {
     val opt = check_name(name)
-    opt_value match {
+    opt_value orElse opt.standard_value match {
       case Some(value) => this + (name, value)
-      case None if opt.typ == Options.Bool | opt.typ == Options.String => this + (name, "true")
+      case None if opt.typ == Options.Bool => this + (name, "true")
       case None => error("Missing value for option " + quote(name) + " : " + opt.typ.print)
     }
   }

@@ -153,8 +153,13 @@ sig
   val latex_macro0N: string val latex_macro0: string -> T
   val latex_macroN: string val latex_macro: string -> T
   val latex_environmentN: string val latex_environment: string -> T
+  val latex_headingN: string val latex_heading: string -> T
+  val latex_bodyN: string val latex_body: string -> T
   val latex_index_itemN: string val latex_index_item: T
   val latex_index_entryN: string val latex_index_entry: string -> T
+  val latex_delimN: string val latex_delim: string -> T
+  val latex_tagN: string val latex_tag: string -> T
+  val optional_argumentN: string val optional_argument: string -> T -> T
   val markdown_paragraphN: string val markdown_paragraph: T
   val markdown_itemN: string val markdown_item: T
   val markdown_bulletN: string val markdown_bullet: int -> T
@@ -584,8 +589,15 @@ val (latex_outputN, latex_output) = markup_elem "latex_output";
 val (latex_macro0N, latex_macro0) = markup_string "latex_macro0" nameN;
 val (latex_macroN, latex_macro) = markup_string "latex_macro" nameN;
 val (latex_environmentN, latex_environment) = markup_string "latex_environment" nameN;
+val (latex_headingN, latex_heading) = markup_string "latex_heading" kindN;
+val (latex_bodyN, latex_body) = markup_string "latex_body" kindN;
 val (latex_index_itemN, latex_index_item) = markup_elem "latex_index_item";
 val (latex_index_entryN, latex_index_entry) = markup_string "latex_index_entry" kindN;
+val (latex_delimN, latex_delim) = markup_string "latex_delim" nameN;
+val (latex_tagN, latex_tag) = markup_string "latex_tag" nameN;
+
+val optional_argumentN = "optional_argument";
+fun optional_argument arg = properties [(optional_argumentN, arg)];
 
 
 (* Markdown document structure *)

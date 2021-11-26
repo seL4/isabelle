@@ -11,11 +11,42 @@ import java.io.{File => JFile}
 
 import scala.annotation.tailrec
 import scala.collection.mutable
+import scala.collection.immutable.TreeMap
 import scala.util.matching.Regex
 
 
 object Latex
 {
+  /* output name for LaTeX macros */
+
+  private val output_name_map: Map[Char, String] =
+    Map('_' -> "UNDERSCORE",
+      '\'' -> "PRIME",
+      '0' -> "ZERO",
+      '1' -> "ONE",
+      '2' -> "TWO",
+      '3' -> "THREE",
+      '4' -> "FOUR",
+      '5' -> "FIVE",
+      '6' -> "SIX",
+      '7' -> "SEVEN",
+      '8' -> "EIGHT",
+      '9' -> "NINE")
+
+  def output_name(name: String): String =
+    if (name.exists(output_name_map.keySet)) {
+      val res = new StringBuilder
+      for (c <- name) {
+        output_name_map.get(c) match {
+          case None => res += c
+          case Some(s) => res ++= s
+        }
+      }
+      res.toString
+    }
+    else name
+
+
   /* index entries */
 
   def index_escape(str: String): String =
@@ -63,6 +94,67 @@ object Latex
   }
 
 
+  /* tags */
+
+  object Tags
+  {
+    object Op extends Enumeration
+    {
+      val fold, drop, keep = Value
+    }
+
+    val standard = "document,theory,proof,ML,visible,-invisible,important,unimportant"
+
+    private def explode(spec: String): List[String] =
+      Library.space_explode(',', spec)
+
+    def apply(spec: String): Tags =
+      new Tags(spec,
+        (explode(standard) ::: explode(spec)).foldLeft(TreeMap.empty[String, Op.Value]) {
+          case (m, tag) =>
+            tag.toList match {
+              case '/' :: cs => m + (cs.mkString -> Op.fold)
+              case '-' :: cs => m + (cs.mkString -> Op.drop)
+              case '+' :: cs => m + (cs.mkString -> Op.keep)
+              case cs => m + (cs.mkString -> Op.keep)
+            }
+        })
+
+    val empty: Tags = apply("")
+  }
+
+  class Tags private(spec: String, map: TreeMap[String, Tags.Op.Value])
+  {
+    override def toString: String = spec
+
+    def get(name: String): Option[Tags.Op.Value] = map.get(name)
+
+    def sty(comment_latex: Boolean): File.Content =
+    {
+      val path = Path.explode("isabelletags.sty")
+      val comment =
+        if (comment_latex) """\usepackage{comment}"""
+        else """%plain TeX version of comment package -- much faster!
+\let\isafmtname\fmtname\def\fmtname{plain}
+\usepackage{comment}
+\let\fmtname\isafmtname"""
+      val tags =
+        (for ((name, op) <- map.iterator)
+          yield "\\isa" + op + "tag{" + name + "}").toList
+      File.Content(path, comment + """
+
+\newcommand{\isakeeptag}[1]%
+{\includecomment{isadelim#1}\includecomment{isatag#1}\csarg\def{isafold#1}{}}
+\newcommand{\isadroptag}[1]%
+{\excludecomment{isadelim#1}\excludecomment{isatag#1}\csarg\def{isafold#1}{}}
+\newcommand{\isafoldtag}[1]%
+{\includecomment{isadelim#1}\excludecomment{isatag#1}\csarg\def{isafold#1}{\isafold{#1}}}
+
+""" + Library.terminate_lines(tags))
+    }
+  }
+
+
   /* output text and positions */
 
   type Text = XML.Body
@@ -73,18 +165,45 @@ object Latex
     if (file_pos.isEmpty) Nil
     else List("\\endinput\n", position(Markup.FILE, file_pos))
 
-  class Output
+  class Output(options: Options)
   {
     def latex_output(latex_text: Text): String = apply(latex_text)
 
-    def latex_macro0(name: String): Text =
-      XML.string("\\" + name)
+    def latex_macro0(name: String, optional_argument: String = ""): Text =
+      XML.string("\\" + name + optional_argument)
 
-    def latex_macro(name: String, body: Text): Text =
-      XML.enclose("\\" + name + "{", "}", body)
+    def latex_macro(name: String, body: Text, optional_argument: String = ""): Text =
+      XML.enclose("\\" + name + optional_argument + "{", "}", body)
 
-    def latex_environment(name: String, body: Text): Text =
-      XML.enclose("%\n\\begin{" + name + "}%\n", "%\n\\end{" + name + "}", body)
+    def latex_environment(name: String, body: Text, optional_argument: String = ""): Text =
+      XML.enclose(
+        "%\n\\begin{" + name + "}" + optional_argument + "%\n",
+        "%\n\\end{" + name + "}", body)
+
+    def latex_heading(kind: String, body: Text, optional_argument: String = ""): Text =
+      XML.enclose(
+        "%\n\\" + options.string("document_heading_prefix") + kind + optional_argument + "{",
+        "%\n}\n", body)
+
+    def latex_body(kind: String, body: Text, optional_argument: String = ""): Text =
+      latex_environment("isamarkup" + kind, body, optional_argument)
+
+    def latex_tag(name: String, body: Text, delim: Boolean = false): Text =
+    {
+      val s = output_name(name)
+      val kind = if (delim) "delim" else "tag"
+      val end = if (delim) "" else "{\\isafold" + s + "}%\n"
+      if (options.bool("document_comment_latex")) {
+        XML.enclose(
+          "%\n\\begin{isa" + kind + s + "}\n",
+          "%\n\\end{isa" + kind + s + "}\n" + end, body)
+      }
+      else {
+        XML.enclose(
+          "%\n\\isa" + kind + s + "\n",
+          "%\n\\endisa" + kind + s + "\n" + end, body)
+      }
+    }
 
     def index_item(item: Index_Item.Value): String =
     {
@@ -103,38 +222,50 @@ object Latex
 
     /* standard output of text with per-line positions */
 
+    def unknown_elem(elem: XML.Elem, pos: Position.T): XML.Body =
+      error("Unknown latex markup element " + quote(elem.name) + Position.here(pos) +
+        ":\n" + XML.string_of_tree(elem))
+
     def apply(latex_text: Text, file_pos: String = ""): String =
     {
       var line = 1
       val result = new mutable.ListBuffer[String]
       val positions = new mutable.ListBuffer[String] ++= init_position(file_pos)
 
-      def traverse(body: XML.Body): Unit =
+      val file_position = if (file_pos.isEmpty) Position.none else Position.File(file_pos)
+
+      def traverse(xml: XML.Body): Unit =
       {
-        body.foreach {
+        xml.foreach {
           case XML.Text(s) =>
             line += s.count(_ == '\n')
             result += s
-          case XML.Elem(Markup.Document_Latex(props), body) =>
-            for { l <- Position.Line.unapply(props) if positions.nonEmpty } {
-              val s = position(Value.Int(line), Value.Int(l))
-              if (positions.last != s) positions += s
+          case elem @ XML.Elem(markup, body) =>
+            val a = Markup.Optional_Argument.get(markup.properties)
+            traverse {
+              markup match {
+                case Markup.Document_Latex(props) =>
+                  for (l <- Position.Line.unapply(props) if positions.nonEmpty) {
+                    val s = position(Value.Int(line), Value.Int(l))
+                    if (positions.last != s) positions += s
+                  }
+                  body
+                case Markup.Latex_Output(_) => XML.string(latex_output(body))
+                case Markup.Latex_Macro0(name) if body.isEmpty => latex_macro0(name, a)
+                case Markup.Latex_Macro(name) => latex_macro(name, body, a)
+                case Markup.Latex_Environment(name) => latex_environment(name, body, a)
+                case Markup.Latex_Heading(kind) => latex_heading(kind, body, a)
+                case Markup.Latex_Body(kind) => latex_body(kind, body, a)
+                case Markup.Latex_Delim(name) => latex_tag(name, body, delim = true)
+                case Markup.Latex_Tag(name) => latex_tag(name, body)
+                case Markup.Latex_Index_Entry(_) =>
+                  elem match {
+                    case Index_Entry(entry) => index_entry(entry)
+                    case _ => unknown_elem(elem, file_position)
+                  }
+                case _ => unknown_elem(elem, file_position)
+              }
             }
-            traverse(body)
-          case XML.Elem(Markup.Latex_Output(_), body) =>
-            traverse(XML.string(latex_output(body)))
-          case XML.Elem(Markup.Latex_Macro0(name), Nil) =>
-            traverse(latex_macro0(name))
-          case XML.Elem(Markup.Latex_Macro(name), body) =>
-            traverse(latex_macro(name, body))
-          case XML.Elem(Markup.Latex_Environment(name), body) =>
-            traverse(latex_environment(name, body))
-          case Index_Entry(entry) =>
-            traverse(index_entry(entry))
-          case t: XML.Tree =>
-            error("Bad latex markup" +
-              (if (file_pos.isEmpty) "" else Position.here(Position.File(file_pos))) + ":\n" +
-              XML.string_of_tree(t))
         }
       }
       traverse(latex_text)

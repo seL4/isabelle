@@ -8,6 +8,8 @@ signature DOCUMENT_OUTPUT =
 sig
   val document_reports: Input.source -> Position.report list
   val output_document: Proof.context -> {markdown: bool} -> Input.source -> Latex.text
+  val document_output: {markdown: bool, markup: Latex.text -> Latex.text} ->
+    (xstring * Position.T) option * Input.source -> Toplevel.transition -> Toplevel.transition
   val check_comments: Proof.context -> Symbol_Pos.T list -> unit
   val output_token: Proof.context -> Token.T -> Latex.text
   val output_source: Proof.context -> string -> Latex.text
@@ -111,6 +113,22 @@ and output_document ctxt {markdown} source =
       in output_antiquotes ants end
   end;
 
+fun document_output {markdown, markup} (loc, txt) =
+  let
+    fun output st =
+      let
+        val ctxt = Toplevel.presentation_context st;
+        val _ = Context_Position.reports ctxt (document_reports txt);
+      in txt |> output_document ctxt {markdown = markdown} |> markup end;
+  in
+    Toplevel.present (fn st =>
+      (case loc of
+        NONE => output st
+      | SOME (_, pos) =>
+          error ("Illegal target specification -- not a theory context" ^ Position.here pos))) o
+    Toplevel.present_local_theory loc output
+  end;
+
 
 (* output tokens with formal comments *)
 
@@ -184,9 +202,7 @@ end;
 datatype token =
     Ignore
   | Token of Token.T
-  | Heading of string * Input.source
-  | Body of string * Input.source
-  | Raw of Input.source;
+  | Output of Latex.text;
 
 fun token_with pred (Token tok) = pred tok
   | token_with _ _ = false;
@@ -200,13 +216,7 @@ fun present_token ctxt tok =
   (case tok of
     Ignore => []
   | Token tok => output_token ctxt tok
-  | Heading (cmd, source) =>
-      XML.enclose ("%\n\\isamarkup" ^ cmd ^ "{") "%\n}\n"
-        (output_document ctxt {markdown = false} source)
-  | Body (cmd, source) =>
-      Latex.environment_text ("isamarkup" ^ cmd) (output_document ctxt {markdown = true} source)
-  | Raw source =>
-      Latex.string "%\n" @ output_document ctxt {markdown = true} source @ Latex.string "\n");
+  | Output output => output);
 
 
 (* command spans *)
@@ -242,10 +252,15 @@ fun edge which f (x: string option, y) =
   if x = y then I
   else (case which (x, y) of NONE => I | SOME txt => fold cons (Latex.string (f txt)));
 
-val begin_tag = edge #2 Latex.begin_tag;
-val end_tag = edge #1 Latex.end_tag;
-fun open_delim delim e = edge #2 Latex.begin_delim e #> delim #> edge #2 Latex.end_delim e;
-fun close_delim delim e = edge #1 Latex.begin_delim e #> delim #> edge #1 Latex.end_delim e;
+val markup_tag = YXML.output_markup o Markup.latex_tag;
+val markup_delim = YXML.output_markup o Markup.latex_delim;
+val bg_delim = #1 o markup_delim;
+val en_delim = #2 o markup_delim;
+
+val begin_tag = edge #2 (#1 o markup_tag);
+val end_tag = edge #1 (#2 o markup_tag);
+fun open_delim delim e = edge #2 bg_delim e #> delim #> edge #2 en_delim e;
+fun close_delim delim e = edge #1 bg_delim e #> delim #> edge #1 en_delim e;
 
 fun document_tag cmd_pos state state' tagging_stack =
   let
@@ -343,10 +358,38 @@ end;
 
 (* present_thy *)
 
+type segment =
+  {span: Command_Span.span, command: Toplevel.transition,
+   prev_state: Toplevel.state, state: Toplevel.state};
+
 local
 
 val markup_true = "\\isamarkuptrue%\n";
 val markup_false = "\\isamarkupfalse%\n";
+
+fun command_output output tok =
+  if Token.is_command tok then SOME (Token.put_output output tok) else NONE;
+
+fun segment_content (segment: segment) =
+  let val toks = Command_Span.content (#span segment) in
+    (case Toplevel.output_of (#state segment) of
+      NONE => toks
+    | SOME output => map_filter (command_output output) toks)
+  end;
+
+fun output_command keywords = Scan.some (fn tok =>
+  if Token.is_command tok then
+    let
+      val name = Token.content_of tok;
+      val is_document = Keyword.is_document keywords name;
+      val is_document_raw = Keyword.is_document_raw keywords name;
+      val flag = if is_document andalso not is_document_raw then markup_true else "";
+    in
+      if is_document andalso is_some (Token.get_output tok)
+      then SOME ((name, Token.pos_of tok), the (Token.get_output tok), flag)
+      else NONE
+    end
+  else NONE);
 
 val opt_newline = Scan.option (Scan.one Token.is_newline);
 
@@ -357,16 +400,7 @@ val ignore =
     (if d = 0 then Scan.fail_with (K (fn () => "Bad nesting of meta-comments")) else opt_newline)
     >> pair (d - 1));
 
-val locale =
-  Scan.option ((Parse.$$$ "(" -- Document_Source.improper -- Parse.$$$ "in") |--
-    Parse.!!!
-      (Document_Source.improper |-- Parse.name --| (Document_Source.improper -- Parse.$$$ ")")));
-
 in
-
-type segment =
-  {span: Command_Span.span, command: Toplevel.transition,
-   prev_state: Toplevel.state, state: Toplevel.state};
 
 fun present_thy options thy (segments: segment list) =
   let
@@ -376,18 +410,11 @@ fun present_thy options thy (segments: segment list) =
     (* tokens *)
 
     val ignored = Scan.state --| ignore
-      >> (fn d => (NONE, (Ignore, ("", d))));
+      >> (fn d => [(NONE, (Ignore, ("", d)))]);
 
-    fun markup pred mk flag = Scan.peek (fn d =>
-      Document_Source.improper |--
-        Parse.position (Scan.one (fn tok =>
-          Token.is_command tok andalso pred keywords (Token.content_of tok))) --
-      (Document_Source.annotation |--
-        Parse.!!!! ((Document_Source.improper -- locale -- Document_Source.improper) |--
-          Parse.document_source --| Document_Source.improper_end))
-            >> (fn ((tok, pos'), source) =>
-              let val name = Token.content_of tok
-              in (SOME (name, pos'), (mk (name, source), (flag, d))) end));
+    val output = Scan.peek (fn d =>
+      Document_Source.improper |-- output_command keywords --| Document_Source.improper_end
+        >> (fn (kind, body, flag) => [(SOME kind, (Output body, (flag, d)))]));
 
     val command = Scan.peek (fn d =>
       Scan.optional (Scan.one Token.is_command_modifier ::: Document_Source.improper) [] --
@@ -398,18 +425,12 @@ fun present_thy options thy (segments: segment list) =
             (Token cmd, (markup_false, d)))]));
 
     val cmt = Scan.peek (fn d =>
-      Scan.one Document_Source.is_black_comment >> (fn tok => (NONE, (Token tok, ("", d)))));
+      Scan.one Document_Source.is_black_comment >> (fn tok => [(NONE, (Token tok, ("", d)))]));
 
     val other = Scan.peek (fn d =>
-       Parse.not_eof >> (fn tok => (NONE, (Token tok, ("", d)))));
+       Parse.not_eof >> (fn tok => [(NONE, (Token tok, ("", d)))]));
 
-    val tokens =
-      (ignored ||
-        markup Keyword.is_document_heading Heading markup_true ||
-        markup Keyword.is_document_body Body markup_true ||
-        markup Keyword.is_document_raw (Raw o #2) "") >> single ||
-      command ||
-      (cmt || other) >> single;
+    val tokens = ignored || output || command || cmt || other;
 
 
     (* spans *)
@@ -436,7 +457,7 @@ fun present_thy options thy (segments: segment list) =
           make_span (the cmd) (toks1 @ (tok2 :: (toks3 @ the_default [] tok4))));
 
     val spans = segments
-      |> maps (Command_Span.content o #span)
+      |> maps segment_content
       |> drop_suffix Token.is_space
       |> Source.of_list
       |> Source.source' 0 Token.stopper (Scan.error (Scan.bulk tokens >> flat))

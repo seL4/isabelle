@@ -143,7 +143,7 @@ object Scala_Project
 
   def package_name(source_file: Path): Option[String] =
   {
-    val lines = split_lines(File.read(source_file))
+    val lines = Library.trim_split_lines(File.read(source_file))
     val Package = """\s*\bpackage\b\s*(?:object\b\s*)?((?:\w|\.)+)\b.*""".r
     lines.collectFirst({ case Package(name) => name })
   }

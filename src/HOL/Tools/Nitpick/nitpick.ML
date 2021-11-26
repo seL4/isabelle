@@ -692,6 +692,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
     fun solve_any_problem (found_really_genuine, max_potential, max_genuine,
                            donno) first_time problems =
       let
+        val kodkod_scala = Config.get ctxt KK.kodkod_scala
         val max_potential = Int.max (0, max_potential)
         val max_genuine = Int.max (0, max_genuine)
         fun print_and_check genuine (j, bounds) =
@@ -702,7 +703,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
         if max_solutions <= 0 then
           (found_really_genuine, 0, 0, donno)
         else
-          case KK.solve_any_problem debug overlord deadline max_threads
+          case KK.solve_any_problem kodkod_scala debug overlord deadline max_threads
                                     max_solutions (map fst problems) of
             KK.Normal ([], unsat_js, s) =>
             (update_checked_problems problems unsat_js; show_kodkod_warning s;
