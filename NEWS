@@ -208,6 +208,10 @@ INCOMPATIBILITY.
 min.absorb4, max.absorb1, max.absorb2, max.absorb3, max.absorb4. Minor
 INCOMPATIBILITY.
 
+* Nitpick: External solver "MiniSat" is available for all supported
+Isabelle platforms (including 64bit Windows and ARM); while
+"MiniSat_JNI" only works for Intel Linux and macOS.
+
 * Nitpick/Kodkod: default is back to external Java process (option
 kodkod_scala = false), both for PIDE and batch builds. This reduces
 confusion and increases robustness of timeouts, despite substantial
@@ -241,10 +245,6 @@ like this:
   - Updated the Metis prover underlying the "metis" proof method to
     version 2.4 (release 20200713). The new version fixes one
     implementation defect. Very slight INCOMPATIBILITY.
-
-* Nitpick: External solver "MiniSat" is available for all supported
-Isabelle platforms (including 64bit Windows and ARM); while
-"MiniSat_JNI" only works for Intel Linux and macOS.
 
 * Theory HOL-Library.Lattice_Syntax has been superseded by bundle
 "lattice_syntax": it can be used in a local context via 'include' or in
