@@ -208,6 +208,11 @@ INCOMPATIBILITY.
 min.absorb4, max.absorb1, max.absorb2, max.absorb3, max.absorb4. Minor
 INCOMPATIBILITY.
 
+* The Mirabelle testing tool is now part of Main HOL, and accessible via
+the command-line tool "isabelle mirabelle" (implemented in
+Isabelle/Scala). It has become more robust and supports parallelism
+within Isabelle/ML.
+
 * Nitpick: External solver "MiniSat" is available for all supported
 Isabelle platforms (including 64bit Windows and ARM); while
 "MiniSat_JNI" only works for Intel Linux and macOS.
