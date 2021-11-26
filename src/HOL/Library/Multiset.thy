@@ -2798,6 +2798,9 @@ definition mult1 :: "('a \<times> 'a) set \<Rightarrow> ('a multiset \<times> 'a
 definition mult :: "('a \<times> 'a) set \<Rightarrow> ('a multiset \<times> 'a multiset) set" where
   "mult r = (mult1 r)\<^sup>+"
 
+definition multp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" where
+  "multp r M N \<longleftrightarrow> (M, N) \<in> mult {(x, y). r x y}"
+
 lemma mult1I:
   assumes "M = add_mset a M0" and "N = M0 + K" and "\<And>b. b \<in># K \<Longrightarrow> (b, a) \<in> r"
   shows "(N, M) \<in> mult1 r"
@@ -2810,14 +2813,14 @@ lemma mult1E:
 
 lemma mono_mult1:
   assumes "r \<subseteq> r'" shows "mult1 r \<subseteq> mult1 r'"
-unfolding mult1_def using assms by blast
+  unfolding mult1_def using assms by blast
 
 lemma mono_mult:
   assumes "r \<subseteq> r'" shows "mult r \<subseteq> mult r'"
-unfolding mult_def using mono_mult1[OF assms] trancl_mono by blast
+  unfolding mult_def using mono_mult1[OF assms] trancl_mono by blast
 
 lemma not_less_empty [iff]: "(M, {#}) \<notin> mult1 r"
-by (simp add: mult1_def)
+  by (simp add: mult1_def)
 
 lemma less_add:
   assumes mult1: "(N, add_mset a M0) \<in> mult1 r"

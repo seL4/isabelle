@@ -9,17 +9,22 @@ New in this Isabelle version
 
 *** HOL ***
 
-* Theory "HOL-Library.Multiset": consolidated operation and fact names
-    multp ~> multp_code
-    multeqp ~> multeqp_code
-    multp_cancel_add_mset ~> multp_cancel_add_mset0
-    multp_cancel_add_mset0[simplified] ~> multp_cancel_add_mset
-    multp_code_iff ~> multp_code_iff_mult
-    multeqp_code_iff ~> multeqp_code_iff_reflcl_mult
-  Minor INCOMPATIBILITY.
+* Theory "HOL.Relation": Added lemmas asymp_less and asymp_greater to
+  type class preorder.
 
-* Theory "HOL-Library.Multiset": move mult1_lessE out of preorder type
-class and add explicit assumption. Minor INCOMPATIBILITY.
+* Theory "HOL-Library.Multiset":
+  - Consolidated operation and fact names.
+        multp ~> multp_code
+        multeqp ~> multeqp_code
+        multp_cancel_add_mset ~> multp_cancel_add_mset0
+        multp_cancel_add_mset0[simplified] ~> multp_cancel_add_mset
+        multp_code_iff ~> multp_code_iff_mult
+        multeqp_code_iff ~> multeqp_code_iff_reflcl_mult
+    Minor INCOMPATIBILITY.
+  - Moved mult1_lessE out of preorder type class and add explicit
+    assumption. Minor INCOMPATIBILITY.
+  - Added predicate multp equivalent to set mult. Reuse name previously
+    used for what is now called multp_code. Minor INCOMPATIBILITY.
 
 
 New in Isabelle2021-1 (December 2021)
