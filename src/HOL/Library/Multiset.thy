@@ -2789,8 +2789,6 @@ qed
 
 subsection \<open>The multiset order\<close>
 
-subsubsection \<open>Well-foundedness\<close>
-
 definition mult1 :: "('a \<times> 'a) set \<Rightarrow> ('a multiset \<times> 'a multiset) set" where
   "mult1 r = {(N, M). \<exists>a M0 K. M = add_mset a M0 \<and> N = M0 + K \<and>
       (\<forall>b. b \<in># K \<longrightarrow> (b, a) \<in> r)}"
@@ -2833,6 +2831,9 @@ qed
 
 lemma not_less_empty [iff]: "(M, {#}) \<notin> mult1 r"
   by (simp add: mult1_def)
+
+
+subsubsection \<open>Well-foundedness\<close>
 
 lemma less_add:
   assumes mult1: "(N, add_mset a M0) \<in> mult1 r"
@@ -2934,11 +2935,15 @@ proof
   qed
 qed
 
-theorem wf_mult1: "wf r \<Longrightarrow> wf (mult1 r)"
-by (rule acc_wfI) (rule all_accessible)
+lemma wf_mult1: "wf r \<Longrightarrow> wf (mult1 r)"
+  by (rule acc_wfI) (rule all_accessible)
 
-theorem wf_mult: "wf r \<Longrightarrow> wf (mult r)"
-unfolding mult_def by (rule wf_trancl) (rule wf_mult1)
+lemma wf_mult: "wf r \<Longrightarrow> wf (mult r)"
+  unfolding mult_def by (rule wf_trancl) (rule wf_mult1)
+
+lemma wfP_multp: "wfP r \<Longrightarrow> wfP (multp r)"
+  unfolding multp_def wfP_def
+  by (simp add: wf_mult)
 
 
 subsubsection \<open>Closure-free presentation\<close>
