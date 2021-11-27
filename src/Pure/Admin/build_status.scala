@@ -423,10 +423,10 @@ object Build_Status
                       entry.ml_timing.elapsed.minutes.toString,
                       entry.ml_timing.resources.minutes.toString,
                       entry.maximum_code.toString,
-                      entry.maximum_code.toString,
-                      entry.average_stack.toString,
+                      entry.average_code.toString,
                       entry.maximum_stack.toString,
-                      entry.average_heap.toString,
+                      entry.average_stack.toString,
+                      entry.maximum_heap.toString,
                       entry.average_heap.toString,
                       entry.stored_heap.toString).mkString(" "))))
 
