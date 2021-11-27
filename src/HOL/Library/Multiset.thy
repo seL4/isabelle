@@ -3039,7 +3039,7 @@ qed
 lemmas subset_implies_multp = subset_implies_mult[of _ _ "{(x, y). r x y}" for r, folded multp_def]
 
 
-subsection \<open>The multiset extension is cancellative for multiset union\<close>
+subsubsection \<open>The multiset extension is cancellative for multiset union\<close>
 
 lemma mult_cancel:
   assumes "trans s" and "irrefl s"
@@ -3074,8 +3074,16 @@ next
   thus ?L using one_step_implies_mult[of J K s "I + Z"] by (auto simp: ac_simps)
 qed
 
+lemmas multp_cancel =
+  mult_cancel[of "{(x, y). r x y}" for r,
+    folded multp_def transp_trans irreflp_irrefl_eq, simplified]
+
 lemmas mult_cancel_add_mset =
   mult_cancel[of _ _ "{#_#}", unfolded union_mset_add_mset_right add.comm_neutral]
+
+lemmas multp_cancel_add_mset =
+  mult_cancel_add_mset[of "{(x, y). r x y}" for r,
+    folded multp_def transp_trans irreflp_irrefl_eq, simplified]
 
 lemma mult_cancel_max0:
   assumes "trans s" and "irrefl s"
@@ -3086,6 +3094,10 @@ proof -
 qed
 
 lemmas mult_cancel_max = mult_cancel_max0[simplified]
+
+lemmas multp_cancel_max =
+  mult_cancel_max[of "{(x, y). r x y}" for r,
+    folded multp_def transp_trans irreflp_irrefl_eq, simplified]
 
 
 subsection \<open>Quasi-executable version of the multiset extension\<close>
