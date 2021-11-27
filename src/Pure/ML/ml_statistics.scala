@@ -260,6 +260,11 @@ final class ML_Statistics private(
   val time_start: Double,
   val duration: Double)
 {
+  override def toString: String =
+    if (content.isEmpty) "ML_Statistics.empty"
+    else "ML_Statistics(length = " + content.length + ", fields = " + fields.size + ")"
+
+
   /* content */
 
   def maximum(field: String): Double =
