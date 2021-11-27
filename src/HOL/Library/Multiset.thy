@@ -10,7 +10,7 @@
 section \<open>(Finite) Multisets\<close>
 
 theory Multiset
-imports Cancellation
+  imports Cancellation
 begin
 
 subsection \<open>The type of multisets\<close>
@@ -3114,6 +3114,44 @@ proof -
   ultimately show thesis by (auto intro: that)
 qed
 
+lemma trans_mult: "trans r \<Longrightarrow> trans (mult r)"
+  by (simp add: mult_def)
+
+lemma transp_multp: "transp r \<Longrightarrow> transp (multp r)"
+  unfolding multp_def transp_trans_eq
+  by (fact trans_mult[of "{(x, y). r x y}" for r, folded transp_trans])
+
+lemma irrefl_mult:
+  assumes "trans r" "irrefl r"
+  shows "irrefl (mult r)"
+proof (intro irreflI notI)
+  fix M
+  assume "(M, M) \<in> mult r"
+  then obtain I J K where "M = I + J" and "M = I + K"
+    and "J \<noteq> {#}" and "(\<forall>k\<in>set_mset K. \<exists>j\<in>set_mset J. (k, j) \<in> r)"
+    using mult_implies_one_step[OF \<open>trans r\<close>] by blast
+  then have *: "K \<noteq> {#}" and **: "\<forall>k\<in>set_mset K. \<exists>j\<in>set_mset K. (k, j) \<in> r" by auto
+  have "finite (set_mset K)" by simp
+  hence "set_mset K = {}"
+    using **
+  proof (induction rule: finite_induct)
+    case empty
+    thus ?case by simp
+  next
+    case (insert x F)
+    have False
+      using \<open>irrefl r\<close>[unfolded irrefl_def, rule_format]
+      using \<open>trans r\<close>[THEN transD]
+      by (metis equals0D insert.IH insert.prems insertE insertI1 insertI2)
+    thus ?case ..
+  qed
+  with * show False by simp
+qed
+
+lemmas irreflp_multp =
+  irrefl_mult[of "{(x, y). r x y}" for r,
+    folded transp_trans_eq irreflp_irrefl_eq, simplified, folded multp_def]
+
 instantiation multiset :: (preorder) order begin
 
 definition less_multiset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool"
@@ -3123,30 +3161,29 @@ definition less_eq_multiset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarr
   where "less_eq_multiset M N \<longleftrightarrow> M < N \<or> M = N"
 
 instance
-proof -
-  have irrefl: "\<not> M < M" for M :: "'a multiset"
-  proof
-    assume "M < M"
-    then have MM: "(M, M) \<in> mult {(x, y). x < y}" by (simp add: less_multiset_def multp_def)
-    have "trans {(x'::'a, x). x' < x}"
-      by (metis (mono_tags, lifting) case_prodD case_prodI less_trans mem_Collect_eq transI)
-    moreover note MM
-    ultimately have "\<exists>I J K. M = I + J \<and> M = I + K
-      \<and> J \<noteq> {#} \<and> (\<forall>k\<in>set_mset K. \<exists>j\<in>set_mset J. (k, j) \<in> {(x, y). x < y})"
-      by (rule mult_implies_one_step)
-    then obtain I J K where "M = I + J" and "M = I + K"
-      and "J \<noteq> {#}" and "(\<forall>k\<in>set_mset K. \<exists>j\<in>set_mset J. (k, j) \<in> {(x, y). x < y})" by blast
-    then have *: "K \<noteq> {#}" and **: "\<forall>k\<in>set_mset K. \<exists>j\<in>set_mset K. k < j" by auto
-    have "finite (set_mset K)" by simp
-    moreover note **
-    ultimately have "set_mset K = {}"
-      by (induct rule: finite_induct) (auto intro: order_less_trans)
-    with * show False by simp
-  qed
-  have trans: "K < M \<Longrightarrow> M < N \<Longrightarrow> K < N" for K M N :: "'a multiset"
-    unfolding less_multiset_def multp_def mult_def by (blast intro: trancl_trans)
-  show "OFCLASS('a multiset, order_class)"
-    by standard (auto simp add: less_eq_multiset_def irrefl dest: trans)
+proof intro_classes
+  fix M N :: "'a multiset"
+  show "(M < N) = (M \<le> N \<and> \<not> N \<le> M)"
+    unfolding less_eq_multiset_def less_multiset_def
+    by (metis irreflp_def irreflp_less irreflp_multp transpE transp_less transp_multp)
+next
+  fix M :: "'a multiset"
+  show "M \<le> M"
+    unfolding less_eq_multiset_def
+    by simp
+next
+  fix M1 M2 M3 :: "'a multiset"
+  show "M1 \<le> M2 \<Longrightarrow> M2 \<le> M3 \<Longrightarrow> M1 \<le> M3"
+    unfolding less_eq_multiset_def less_multiset_def
+    using transp_multp[OF transp_less, THEN transpD]
+    by blast
+next
+  fix M N :: "'a multiset"
+  show "M \<le> N \<Longrightarrow> N \<le> M \<Longrightarrow> M = N"
+    unfolding less_eq_multiset_def less_multiset_def
+    using transp_multp[OF transp_less, THEN transpD]
+    using irreflp_multp[OF transp_less irreflp_less, unfolded irreflp_def, rule_format]
+    by blast
 qed
 
 end

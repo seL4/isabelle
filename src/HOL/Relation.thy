@@ -241,6 +241,11 @@ lemma irreflpI [intro?]: "(\<And>a. \<not> R a a) \<Longrightarrow> irreflp R"
 lemma irrefl_distinct [code]: "irrefl r \<longleftrightarrow> (\<forall>(a, b) \<in> r. a \<noteq> b)"
   by (auto simp add: irrefl_def)
 
+lemma (in preorder) irreflp_less[simp]: "irreflp (<)"
+  by (simp add: irreflpI)
+
+lemma (in preorder) irreflp_greater[simp]: "irreflp (>)"
+  by (simp add: irreflpI)
 
 subsubsection \<open>Asymmetry\<close>
 
