@@ -204,7 +204,7 @@ object Build_Status
     profiles: List[Profile] = default_profiles,
     only_sessions: Set[String] = Set.empty,
     ml_statistics: Boolean = false,
-    ml_statistics_domain: String => Boolean = (key: String) => true,
+    ml_statistics_domain: String => Boolean = _ => true,
     verbose: Boolean = false): Data =
   {
     val date = Date.now()
@@ -377,7 +377,7 @@ object Build_Status
           List(HTML.description(
             List(HTML.text("status date:") -> HTML.text(data.date.toString))))),
         HTML.par(
-          List(HTML.itemize(data.entries.map({ case data_entry =>
+          List(HTML.itemize(data.entries.map(data_entry =>
             List(
               HTML.link(clean_name(data_entry.name) + "/index.html",
                 HTML.text(data_entry.name))) :::
@@ -388,7 +388,7 @@ object Build_Status
                 List(HTML.span(HTML.error_message, HTML.text("Failed sessions:"))) :::
                 List(HTML.itemize(sessions.map(s => s.head.present_errors(s.name))))
             })
-          }))))))
+          ))))))
 
     for (data_entry <- data.entries) {
       val data_name = data_entry.name
@@ -608,7 +608,7 @@ Usage: isabelle build_status [OPTIONS]
         "l:" -> (arg => options = options + ("build_log_history=" + arg)),
         "o:" -> (arg => options = options + arg),
         "s:" -> (arg =>
-          space_explode('x', arg).map(Value.Int.parse(_)) match {
+          space_explode('x', arg).map(Value.Int.parse) match {
             case List(w, h) if w > 0 && h > 0 => image_size = (w, h)
             case _ => error("Error bad PNG image size: " + quote(arg))
           }),
