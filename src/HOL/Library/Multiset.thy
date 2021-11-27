@@ -3140,6 +3140,11 @@ proof -
   qed
 qed
 
+lemma multp_code_eq_multp: "irreflp r \<Longrightarrow> transp r \<Longrightarrow> multp_code r = multp r"
+  using multp_code_iff_mult[of "{(x, y). r x y}" r for r,
+    folded irreflp_irrefl_eq transp_trans multp_def, simplified]
+  by blast
+
 lemma multeqp_code_iff_reflcl_mult:
   assumes "irrefl R" and "trans R" and "\<And>x y. P x y \<longleftrightarrow> (x, y) \<in> R"
   shows "multeqp_code P N M \<longleftrightarrow> (N, M) \<in> (mult R)\<^sup>="
@@ -3153,6 +3158,12 @@ proof -
     by (auto simp: multeqp_code_def multp_code_def Let_def in_diff_count)
   thus ?thesis using multp_code_iff_mult[OF assms] by simp
 qed
+
+lemma multeqp_code_eq_reflclp_multp: "irreflp r \<Longrightarrow> transp r \<Longrightarrow> multeqp_code r = (multp r)\<^sup>=\<^sup>="
+  using multeqp_code_iff_reflcl_mult[of "{(x, y). r x y}" r for r,
+    folded irreflp_irrefl_eq transp_trans, simplified, folded multp_def]
+  by blast
+
 
 subsubsection \<open>Partial-order properties\<close>
 
