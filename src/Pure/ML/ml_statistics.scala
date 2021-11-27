@@ -194,7 +194,7 @@ object ML_Statistics
   val empty: ML_Statistics = apply(Nil)
 
   def apply(ml_statistics0: List[Properties.T], heading: String = "",
-    domain: String => Boolean = (key: String) => true): ML_Statistics =
+    domain: String => Boolean = _ => true): ML_Statistics =
   {
     require(ml_statistics0.forall(props => Now.unapply(props).isDefined), "missing \"now\" field")
 
@@ -260,6 +260,11 @@ final class ML_Statistics private(
   val time_start: Double,
   val duration: Double)
 {
+  override def toString: String =
+    if (content.isEmpty) "ML_Statistics.empty"
+    else "ML_Statistics(length = " + content.length + ", fields = " + fields.size + ")"
+
+
   /* content */
 
   def maximum(field: String): Double =
@@ -286,7 +291,7 @@ final class ML_Statistics private(
 
   def update_data(data: XYSeriesCollection, selected_fields: List[String]): Unit =
   {
-    data.removeAllSeries
+    data.removeAllSeries()
     for (field <- selected_fields) {
       val series = new XYSeries(field)
       content.foreach(entry => series.add(entry.time, entry.get(field)))
