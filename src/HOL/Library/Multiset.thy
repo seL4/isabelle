@@ -2986,6 +2986,9 @@ next
   qed
 qed
 
+lemmas multp_implies_one_step =
+  mult_implies_one_step[of "{(x, y). r x y}" for r, folded multp_def transp_trans, simplified]
+
 lemma one_step_implies_mult:
   assumes
     "J \<noteq> {#}" and
@@ -3018,6 +3021,9 @@ next
   qed
 qed
 
+lemmas one_step_implies_multp =
+  one_step_implies_mult[of _ _ "{(x, y). r x y}" for r, folded multp_def, simplified]
+
 lemma subset_implies_mult:
   assumes sub: "A \<subset># B"
   shows "(A, B) \<in> mult r"
@@ -3029,6 +3035,8 @@ proof -
   thus ?thesis
     by (rule one_step_implies_mult[of "B - A" "{#}" _ A, unfolded ApBmA, simplified])
 qed
+
+lemmas subset_implies_multp = subset_implies_mult[of _ _ "{(x, y). r x y}" for r, folded multp_def]
 
 
 subsection \<open>The multiset extension is cancellative for multiset union\<close>
