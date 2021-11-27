@@ -2819,6 +2819,18 @@ lemma mono_mult:
   assumes "r \<subseteq> r'" shows "mult r \<subseteq> mult r'"
   unfolding mult_def using mono_mult1[OF assms] trancl_mono by blast
 
+lemma mono_multp[mono]: "r \<le> r' \<Longrightarrow> multp r \<le> multp r'"
+  unfolding le_fun_def le_bool_def
+proof (intro allI impI)
+  fix M N :: "'a multiset"
+  assume "\<forall>x xa. r x xa \<longrightarrow> r' x xa"
+  hence "{(x, y). r x y} \<subseteq> {(x, y). r' x y}"
+    by blast
+  thus "multp r M N \<Longrightarrow> multp r' M N"
+    unfolding multp_def
+    by (fact mono_mult[THEN subsetD, rotated])
+qed
+
 lemma not_less_empty [iff]: "(M, {#}) \<notin> mult1 r"
   by (simp add: mult1_def)
 
