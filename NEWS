@@ -26,6 +26,7 @@ New in this Isabelle version
   - Added predicate multp equivalent to set mult. Reuse name previously
     used for what is now called multp_code. Minor INCOMPATIBILITY.
   - Lifted multiple lemmas from mult to multp.
+  - Redefined less_multiset to be based on multp. INCOMPATIBILITY.
 
 
 New in Isabelle2021-1 (December 2021)

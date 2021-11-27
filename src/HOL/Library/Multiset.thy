@@ -3100,6 +3100,63 @@ lemmas multp_cancel_max =
     folded multp_def transp_trans irreflp_irrefl_eq, simplified]
 
 
+subsubsection \<open>Partial-order properties\<close>
+
+lemma mult1_lessE:
+  assumes "(N, M) \<in> mult1 {(a, b). r a b}" and "asymp r"
+  obtains a M0 K where "M = add_mset a M0" "N = M0 + K"
+    "a \<notin># K" "\<And>b. b \<in># K \<Longrightarrow> r b a"
+proof -
+  from assms obtain a M0 K where "M = add_mset a M0" "N = M0 + K" and
+    *: "b \<in># K \<Longrightarrow> r b a" for b by (blast elim: mult1E)
+  moreover from * [of a] have "a \<notin># K"
+    using \<open>asymp r\<close> by (meson asymp.cases)
+  ultimately show thesis by (auto intro: that)
+qed
+
+instantiation multiset :: (preorder) order begin
+
+definition less_multiset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool"
+  where "M < N \<longleftrightarrow> multp (<) M N"
+
+definition less_eq_multiset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool"
+  where "less_eq_multiset M N \<longleftrightarrow> M < N \<or> M = N"
+
+instance
+proof -
+  have irrefl: "\<not> M < M" for M :: "'a multiset"
+  proof
+    assume "M < M"
+    then have MM: "(M, M) \<in> mult {(x, y). x < y}" by (simp add: less_multiset_def multp_def)
+    have "trans {(x'::'a, x). x' < x}"
+      by (metis (mono_tags, lifting) case_prodD case_prodI less_trans mem_Collect_eq transI)
+    moreover note MM
+    ultimately have "\<exists>I J K. M = I + J \<and> M = I + K
+      \<and> J \<noteq> {#} \<and> (\<forall>k\<in>set_mset K. \<exists>j\<in>set_mset J. (k, j) \<in> {(x, y). x < y})"
+      by (rule mult_implies_one_step)
+    then obtain I J K where "M = I + J" and "M = I + K"
+      and "J \<noteq> {#}" and "(\<forall>k\<in>set_mset K. \<exists>j\<in>set_mset J. (k, j) \<in> {(x, y). x < y})" by blast
+    then have *: "K \<noteq> {#}" and **: "\<forall>k\<in>set_mset K. \<exists>j\<in>set_mset K. k < j" by auto
+    have "finite (set_mset K)" by simp
+    moreover note **
+    ultimately have "set_mset K = {}"
+      by (induct rule: finite_induct) (auto intro: order_less_trans)
+    with * show False by simp
+  qed
+  have trans: "K < M \<Longrightarrow> M < N \<Longrightarrow> K < N" for K M N :: "'a multiset"
+    unfolding less_multiset_def multp_def mult_def by (blast intro: trancl_trans)
+  show "OFCLASS('a multiset, order_class)"
+    by standard (auto simp add: less_eq_multiset_def irrefl dest: trans)
+qed
+
+end
+
+lemma mset_le_irrefl [elim!]:
+  fixes M :: "'a::preorder multiset"
+  shows "M < M \<Longrightarrow> R"
+  by simp
+
+
 subsection \<open>Quasi-executable version of the multiset extension\<close>
 
 text \<open>
@@ -3165,71 +3222,13 @@ lemma multeqp_code_eq_reflclp_multp: "irreflp r \<Longrightarrow> transp r \<Lon
   by blast
 
 
-subsubsection \<open>Partial-order properties\<close>
-
-lemma mult1_lessE:
-  assumes "(N, M) \<in> mult1 {(a, b). r a b}" and "asymp r"
-  obtains a M0 K where "M = add_mset a M0" "N = M0 + K"
-    "a \<notin># K" "\<And>b. b \<in># K \<Longrightarrow> r b a"
-proof -
-  from assms obtain a M0 K where "M = add_mset a M0" "N = M0 + K" and
-    *: "b \<in># K \<Longrightarrow> r b a" for b by (blast elim: mult1E)
-  moreover from * [of a] have "a \<notin># K"
-    using \<open>asymp r\<close> by (meson asymp.cases)
-  ultimately show thesis by (auto intro: that)
-qed
-
-instantiation multiset :: (preorder) order
-begin
-
-definition less_multiset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool"
-  where "M' < M \<longleftrightarrow> (M', M) \<in> mult {(x', x). x' < x}"
-
-definition less_eq_multiset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool"
-  where "less_eq_multiset M' M \<longleftrightarrow> M' < M \<or> M' = M"
-
-instance
-proof -
-  have irrefl: "\<not> M < M" for M :: "'a multiset"
-  proof
-    assume "M < M"
-    then have MM: "(M, M) \<in> mult {(x, y). x < y}" by (simp add: less_multiset_def)
-    have "trans {(x'::'a, x). x' < x}"
-      by (metis (mono_tags, lifting) case_prodD case_prodI less_trans mem_Collect_eq transI)
-    moreover note MM
-    ultimately have "\<exists>I J K. M = I + J \<and> M = I + K
-      \<and> J \<noteq> {#} \<and> (\<forall>k\<in>set_mset K. \<exists>j\<in>set_mset J. (k, j) \<in> {(x, y). x < y})"
-      by (rule mult_implies_one_step)
-    then obtain I J K where "M = I + J" and "M = I + K"
-      and "J \<noteq> {#}" and "(\<forall>k\<in>set_mset K. \<exists>j\<in>set_mset J. (k, j) \<in> {(x, y). x < y})" by blast
-    then have *: "K \<noteq> {#}" and **: "\<forall>k\<in>set_mset K. \<exists>j\<in>set_mset K. k < j" by auto
-    have "finite (set_mset K)" by simp
-    moreover note **
-    ultimately have "set_mset K = {}"
-      by (induct rule: finite_induct) (auto intro: order_less_trans)
-    with * show False by simp
-  qed
-  have trans: "K < M \<Longrightarrow> M < N \<Longrightarrow> K < N" for K M N :: "'a multiset"
-    unfolding less_multiset_def mult_def by (blast intro: trancl_trans)
-  show "OFCLASS('a multiset, order_class)"
-    by standard (auto simp add: less_eq_multiset_def irrefl dest: trans)
-qed
-
-end
-
-lemma mset_le_irrefl [elim!]:
-  fixes M :: "'a::preorder multiset"
-  shows "M < M \<Longrightarrow> R"
-  by simp
-
-
 subsubsection \<open>Monotonicity of multiset union\<close>
 
 lemma mult1_union: "(B, D) \<in> mult1 r \<Longrightarrow> (C + B, C + D) \<in> mult1 r"
   by (force simp: mult1_def)
 
 lemma union_le_mono2: "B < D \<Longrightarrow> C + B < C + (D::'a::preorder multiset)"
-apply (unfold less_multiset_def mult_def)
+apply (unfold less_multiset_def multp_def mult_def)
 apply (erule trancl_induct)
  apply (blast intro: mult1_union)
 apply (blast intro: mult1_union trancl_trans)
