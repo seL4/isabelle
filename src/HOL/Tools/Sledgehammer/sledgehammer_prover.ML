@@ -47,6 +47,8 @@ sig
      preplay_timeout : Time.time,
      expect : string}
 
+  val set_params_provers : params -> string list -> params
+
   type prover_problem =
     {comment : string,
      state : Proof.state,
@@ -140,6 +142,33 @@ type params =
    timeout : Time.time,
    preplay_timeout : Time.time,
    expect : string}
+
+fun set_params_provers params provers =
+  {debug = #debug params,
+   verbose = #verbose params,
+   overlord = #overlord params,
+   spy = #spy params,
+   provers = provers,
+   type_enc = #type_enc params,
+   strict = #strict params,
+   lam_trans = #lam_trans params,
+   uncurried_aliases = #uncurried_aliases params,
+   learn = #learn params,
+   fact_filter = #fact_filter params,
+   induction_rules = #induction_rules params,
+   max_facts = #max_facts params,
+   fact_thresholds = #fact_thresholds params,
+   max_mono_iters = #max_mono_iters params,
+   max_new_mono_instances = #max_new_mono_instances params,
+   isar_proofs = #isar_proofs params,
+   compress = #compress params,
+   try0 = #try0 params,
+   smt_proofs = #smt_proofs params,
+   slice = #slice params,
+   minimize = #minimize params,
+   timeout = #timeout params,
+   preplay_timeout = #preplay_timeout params,
+   expect = #expect params}
 
 type prover_problem =
   {comment : string,
