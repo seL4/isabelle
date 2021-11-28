@@ -169,24 +169,29 @@ end
 lemma less_multiset_less_multiset\<^sub>H\<^sub>O: "M < N \<longleftrightarrow> less_multiset\<^sub>H\<^sub>O M N"
   unfolding less_multiset_def multp_def mult\<^sub>H\<^sub>O less_multiset\<^sub>H\<^sub>O_def ..
 
-lemmas less_multiset\<^sub>D\<^sub>M = mult\<^sub>D\<^sub>M[folded less_multiset_def]
-lemmas less_multiset\<^sub>H\<^sub>O = mult\<^sub>H\<^sub>O[folded less_multiset_def]
+lemma less_multiset\<^sub>D\<^sub>M:
+  "M < N \<longleftrightarrow> (\<exists>X Y. X \<noteq> {#} \<and> X \<subseteq># N \<and> M = N - X + Y \<and> (\<forall>k. k \<in># Y \<longrightarrow> (\<exists>a. a \<in># X \<and> k < a)))"
+  by (rule mult\<^sub>D\<^sub>M[folded multp_def less_multiset_def])
+
+lemma less_multiset\<^sub>H\<^sub>O:
+  "M < N \<longleftrightarrow> M \<noteq> N \<and> (\<forall>y. count N y < count M y \<longrightarrow> (\<exists>x>y. count M x < count N x))"
+  by (rule mult\<^sub>H\<^sub>O[folded multp_def less_multiset_def])
 
 lemma subset_eq_imp_le_multiset:
   shows "M \<subseteq># N \<Longrightarrow> M \<le> N"
-  unfolding less_eq_multiset_def less_multiset_def multp_def less_multiset\<^sub>H\<^sub>O
+  unfolding less_eq_multiset_def less_multiset\<^sub>H\<^sub>O
   by (simp add: less_le_not_le subseteq_mset_def)
 
 (* FIXME: "le" should be "less" in this and other names *)
 lemma le_multiset_right_total: "M < add_mset x M"
-  unfolding less_eq_multiset_def less_multiset_def multp_def less_multiset\<^sub>H\<^sub>O by simp
+  unfolding less_eq_multiset_def less_multiset\<^sub>H\<^sub>O by simp
 
 lemma less_eq_multiset_empty_left[simp]:
   shows "{#} \<le> M"
   by (simp add: subset_eq_imp_le_multiset)
 
 lemma ex_gt_imp_less_multiset: "(\<exists>y. y \<in># N \<and> (\<forall>x. x \<in># M \<longrightarrow> x < y)) \<Longrightarrow> M < N"
-  unfolding less_multiset_def multp_def less_multiset\<^sub>H\<^sub>O
+  unfolding less_multiset\<^sub>H\<^sub>O
   by (metis count_eq_zero_iff count_greater_zero_iff less_le_not_le)
 
 lemma less_eq_multiset_empty_right[simp]: "M \<noteq> {#} \<Longrightarrow> \<not> M \<le> {#}"
@@ -194,7 +199,7 @@ lemma less_eq_multiset_empty_right[simp]: "M \<noteq> {#} \<Longrightarrow> \<no
 
 (* FIXME: "le" should be "less" in this and other names *)
 lemma le_multiset_empty_left[simp]: "M \<noteq> {#} \<Longrightarrow> {#} < M"
-  by (simp add: less_multiset_def multp_def less_multiset\<^sub>H\<^sub>O)
+  by (simp add: less_multiset\<^sub>H\<^sub>O)
 
 (* FIXME: "le" should be "less" in this and other names *)
 lemma le_multiset_empty_right[simp]: "\<not> M < {#}"
@@ -209,7 +214,7 @@ begin
 
 lemma less_eq_multiset\<^sub>H\<^sub>O:
   "M \<le> N \<longleftrightarrow> (\<forall>y. count N y < count M y \<longrightarrow> (\<exists>x. y < x \<and> count M x < count N x))"
-  by (auto simp: less_eq_multiset_def less_multiset_def multp_def less_multiset\<^sub>H\<^sub>O)
+  by (auto simp: less_eq_multiset_def less_multiset\<^sub>H\<^sub>O)
 
 instance by standard (auto simp: less_eq_multiset\<^sub>H\<^sub>O)
 
@@ -247,7 +252,7 @@ proof -
   obtain Y X where
     y_nemp: "Y \<noteq> {#}" and y_sub_N: "Y \<subseteq># N" and M_eq: "M = N - Y + X" and
     ex_y: "\<forall>x. x \<in># X \<longrightarrow> (\<exists>y. y \<in># Y \<and> x < y)"
-    using less[unfolded less_multiset_def multp_def less_multiset\<^sub>D\<^sub>M] by blast
+    using less[unfolded less_multiset\<^sub>D\<^sub>M] by blast
 
   have x_sub_M: "X \<subseteq># M"
     using M_eq by simp
@@ -256,7 +261,7 @@ proof -
   let ?fX = "image_mset f X"
 
   show ?thesis
-    unfolding less_multiset_def multp_def less_multiset\<^sub>D\<^sub>M
+    unfolding less_multiset\<^sub>D\<^sub>M
   proof (intro exI conjI)
     show "image_mset f M = image_mset f N - ?fY + ?fX"
       using M_eq[THEN arg_cong, of "image_mset f"] y_sub_N
@@ -360,11 +365,11 @@ subsection \<open>Additional facts and instantiations\<close>
 
 lemma ex_gt_count_imp_le_multiset:
   "(\<forall>y :: 'a :: order. y \<in># M + N \<longrightarrow> y \<le> x) \<Longrightarrow> count M x < count N x \<Longrightarrow> M < N"
-  unfolding less_multiset_def multp_def less_multiset\<^sub>H\<^sub>O
+  unfolding less_multiset\<^sub>H\<^sub>O
   by (metis count_greater_zero_iff le_imp_less_or_eq less_imp_not_less not_gr_zero union_iff)
 
 lemma mset_lt_single_iff[iff]: "{#x#} < {#y#} \<longleftrightarrow> x < y"
-  unfolding less_multiset_def multp_def less_multiset\<^sub>H\<^sub>O by simp
+  unfolding less_multiset\<^sub>H\<^sub>O by simp
 
 lemma mset_le_single_iff[iff]: "{#x#} \<le> {#y#} \<longleftrightarrow> x \<le> y" for x y :: "'a::order"
   unfolding less_eq_multiset\<^sub>H\<^sub>O by force
