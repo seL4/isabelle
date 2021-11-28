@@ -3193,6 +3193,12 @@ lemma mset_le_irrefl [elim!]:
   shows "M < M \<Longrightarrow> R"
   by simp
 
+lemma wfP_less_multiset[simp]:
+  assumes wfP_less: "wfP ((<) :: ('a :: preorder) \<Rightarrow> 'a \<Rightarrow> bool)"
+  shows "wfP ((<) :: 'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool)"
+  using wfP_multp[OF wfP_less] less_multiset_def
+  by (metis wfPUNIVI wfP_induct)
+
 
 subsection \<open>Quasi-executable version of the multiset extension\<close>
 

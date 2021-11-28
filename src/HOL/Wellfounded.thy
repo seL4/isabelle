@@ -79,6 +79,9 @@ lemma wf_wellorderI:
 lemma (in wellorder) wf: "wf {(x, y). x < y}"
   unfolding wf_def by (blast intro: less_induct)
 
+lemma (in wellorder) wfP_less[simp]: "wfP (<)"
+  by (simp add: wf wfP_def)
+
 
 subsection \<open>Basic Results\<close>
 
