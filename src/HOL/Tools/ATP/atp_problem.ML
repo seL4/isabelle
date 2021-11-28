@@ -277,7 +277,7 @@ val tptp_builtins =
     fun make_builtin arity is_predicate name = (name, {arity = arity, is_predicate = is_predicate})
   in
     map (make_builtin 0 true) [tptp_false, tptp_true] @
-    map (make_builtin 1 true) [tptp_not] @
+    map (make_builtin 1 true) [tptp_not, tptp_ho_forall, tptp_ho_exists] @
     map (make_builtin 2 true) [tptp_and, tptp_or, tptp_implies, tptp_if, tptp_iff, tptp_not_iff,
       tptp_equal, tptp_old_equal] @
     map (make_builtin 2 false) [tptp_let] @
