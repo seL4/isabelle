@@ -1320,6 +1320,7 @@ fun introduce_builtins_and_proxies_in_iterm type_enc =
                   | "c_implies" => handle_fool 2 (IConst (`I tptp_implies, T, []))
                   | "c_All" => handle_fool 1 (tweak_ho_quant tptp_ho_forall T args)
                   | "c_Ex" => handle_fool 1 (tweak_ho_quant tptp_ho_exists T args)
+                  | "c_Choice" => proxy_const ()
                   | s =>
                     if is_tptp_equal s then
                       handle_fool 2 (IConst (`I tptp_equal, T, []))
@@ -1861,8 +1862,24 @@ fun helper_table with_combs =
       would require the axiom of choice for replay with Metis. *)
    (("fAll", false), [(General, @{lemma "\<not> fAll P \<or> P x" by (auto simp: fAll_def)})]),
    (("fEx", false), [(General, @{lemma "\<not> P x \<or> fEx P" by (auto simp: fEx_def)})]),
-   (("fChoice", false), [(General, @{thm fChoice_iff_fEx})])]
+   (("fChoice", true), [(General, @{thm fChoice_iff_Ex})])]
   |> map (apsnd (map (apsnd zero_var_indexes)))
+
+val () =
+  let
+    fun is_skolemizable \<^Const_>\<open>Ex _ for \<open>Abs _\<close>\<close> = true
+      | is_skolemizable _ = false
+
+    fun check_no_skolemizable_thm thm =
+      if Term.exists_subterm is_skolemizable (Thm.full_prop_of thm) then
+        error "Theorems of the helper table cannot contain skolemizable terms because they don't \
+        \get skolimized in metis."
+      else
+        ()
+  in
+    helper_table true
+    |> List.app (fn (_, thms) => List.app (check_no_skolemizable_thm o snd) thms)
+  end
 
 fun completish_helper_table with_combs =
   helper_table with_combs @
