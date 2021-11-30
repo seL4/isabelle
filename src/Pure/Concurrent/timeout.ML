@@ -14,6 +14,7 @@ sig
   val scale_time: Time.time -> Time.time
   val end_time: Time.time -> Time.time
   val apply: Time.time -> ('a -> 'b) -> 'a -> 'b
+  val apply_physical: Time.time -> ('a -> 'b) -> 'a -> 'b
   val print: Time.time -> string
 end;
 
@@ -29,7 +30,7 @@ fun scale_time t = Time.scale (scale ()) t;
 
 fun end_time timeout = Time.now () + scale_time timeout;
 
-fun apply timeout f x =
+fun apply' {physical, timeout} f x =
   if ignored timeout then f x
   else
     Thread_Attributes.with_attributes Thread_Attributes.no_interrupts (fn orig_atts =>
@@ -38,7 +39,7 @@ fun apply timeout f x =
         val start = Time.now ();
 
         val request =
-          Event_Timer.request {physical = false} (start + scale_time timeout)
+          Event_Timer.request {physical = physical} (start + scale_time timeout)
             (fn () => Isabelle_Thread.interrupt_unsynchronized self);
         val result =
           Exn.capture (fn () => Thread_Attributes.with_attributes orig_atts (fn _ => f x)) ();
@@ -51,6 +52,9 @@ fun apply timeout f x =
         then raise TIMEOUT (stop - start)
         else (Exn.release test; Exn.release result)
       end);
+
+fun apply timeout f x = apply' {physical = false, timeout = timeout} f x;
+fun apply_physical timeout f x = apply' {physical = true, timeout = timeout} f x;
 
 fun print t = "Timeout after " ^ Value.print_time t ^ "s";
 
