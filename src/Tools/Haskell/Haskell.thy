@@ -322,7 +322,7 @@ get_index f = get_aux 0
         Just y -> Just (i, y)
 
 separate :: a -> [a] -> [a]
-separate s (x : (xs @ (_ : _))) = x : s : separate s xs
+separate s (x : xs@(_ : _)) = x : s : separate s xs
 separate _ xs = xs;
 
 
@@ -342,7 +342,7 @@ instance StringLike String where
   space_explode :: Char -> String -> [String]
   space_explode c = Split.split (Split.dropDelims (Split.whenElt (== c)))
   trim_line :: String -> String
-  trim_line s = gen_trim_line (length s) ((!!) s) take s
+  trim_line s = gen_trim_line (length s) (s !!) take s
 
 instance StringLike Text where
   space_explode :: Char -> Text -> [Text]
@@ -699,10 +699,7 @@ get :: T -> Bytes -> Maybe Bytes
 get props name = List.lookup name props
 
 get_value :: (Bytes -> Maybe a) -> T -> Bytes -> Maybe a
-get_value parse props name =
-  case get props name of
-    Nothing -> Nothing
-    Just s -> parse s
+get_value parse props name = maybe Nothing parse (get props name)
 
 put :: Entry -> T -> T
 put entry props = entry : remove (fst entry) props
@@ -2746,7 +2743,6 @@ generate_file "Isabelle/XML/Classes.hs" = \<open>
 Type classes for XML data representation.
 -}
 
-{-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleInstances #-}
 
 module Isabelle.XML.Classes
