@@ -168,6 +168,8 @@ text %mlantiq \<open>
   @{ML_antiquotation_def "type_abbrev"} & : & \<open>ML_antiquotation\<close> \\
   @{ML_antiquotation_def "nonterminal"} & : & \<open>ML_antiquotation\<close> \\
   @{ML_antiquotation_def "typ"} & : & \<open>ML_antiquotation\<close> \\
+  @{ML_antiquotation_def "Type"} & : & \<open>ML_antiquotation\<close> \\
+  @{ML_antiquotation_def "Type_fn"} & : & \<open>ML_antiquotation\<close> \\
   \end{matharray}
 
   \<^rail>\<open>
@@ -180,6 +182,8 @@ text %mlantiq \<open>
    @@{ML_antiquotation nonterminal}) embedded
   ;
   @@{ML_antiquotation typ} type
+  ;
+  (@@{ML_antiquotation Type} | @@{ML_antiquotation Type_fn}) embedded
   \<close>
 
   \<^descr> \<open>@{class c}\<close> inlines the internalized class \<open>c\<close> --- as \<^ML_type>\<open>string\<close>
@@ -199,6 +203,51 @@ text %mlantiq \<open>
 
   \<^descr> \<open>@{typ \<tau>}\<close> inlines the internalized type \<open>\<tau>\<close> --- as constructor term for
   datatype \<^ML_type>\<open>typ\<close>.
+
+  \<^descr> \<open>@{Type source}\<close> refers to embedded source text to produce a type
+  constructor with name (formally checked) and arguments (inlined ML text).
+  The embedded \<open>source\<close> follows the syntax category @{syntax type_const}
+  defined below.
+
+  \<^descr> \<open>@{Type_fn source}\<close> is similar to \<open>@{Type source}\<close>, but produces a partial
+  ML function that matches against a type constructor pattern, following
+  syntax category @{syntax type_const_fn} below.
+
+
+  \<^rail>\<open>
+    @{syntax_def type_const}: @{syntax name} (@{syntax embedded_ml}*)
+    ;
+    @{syntax_def type_const_fn}: @{syntax type_const} @'=>' @{syntax embedded}
+    ;
+    @{syntax_def embedded_ml}: @{syntax embedded} |
+      @{syntax control_symbol} @{syntax embedded} | @'_'
+  \<close>
+
+  The text provided as @{syntax embedded_ml} is treated as regular Isabelle/ML
+  source, possibly with nested antiquotations. ML text that only consists of a
+  single antiquotation in compact control-cartouche notation, can be written
+  without an extra level of nesting embedded text (see the last example
+  below).
+\<close>
+
+text %mlex \<open>
+  Here are some minimal examples for type constructor antiquotations.
+\<close>
+
+ML \<open>
+  \<comment> \<open>type constructor without arguments:\<close>
+  val natT = \<^Type>\<open>nat\<close>;
+
+  \<comment> \<open>type constructor with arguments:\<close>
+  fun mk_funT (A, B) = \<^Type>\<open>fun A B\<close>;
+
+  \<comment> \<open>type constructor decomposition as partial function:\<close>
+  val dest_funT = \<^Type_fn>\<open>fun A B => \<open>(A, B)\<close>\<close>;
+
+  \<comment> \<open>nested type constructors:\<close>
+  fun mk_relT A = \<^Type>\<open>fun A \<^Type>\<open>fun A \<^Type>\<open>bool\<close>\<close>\<close>;
+
+  \<^assert> (mk_relT natT = \<^typ>\<open>nat \<Rightarrow> nat \<Rightarrow> bool\<close>);
 \<close>
 
 
@@ -387,6 +436,9 @@ text %mlantiq \<open>
   @{ML_antiquotation_def "const"} & : & \<open>ML_antiquotation\<close> \\
   @{ML_antiquotation_def "term"} & : & \<open>ML_antiquotation\<close> \\
   @{ML_antiquotation_def "prop"} & : & \<open>ML_antiquotation\<close> \\
+  @{ML_antiquotation_def "Const"} & : & \<open>ML_antiquotation\<close> \\
+  @{ML_antiquotation_def "Const_"} & : & \<open>ML_antiquotation\<close> \\
+  @{ML_antiquotation_def "Const_fn"} & : & \<open>ML_antiquotation\<close> \\
   \end{matharray}
 
   \<^rail>\<open>
@@ -398,6 +450,9 @@ text %mlantiq \<open>
   @@{ML_antiquotation term} term
   ;
   @@{ML_antiquotation prop} prop
+  ;
+  (@@{ML_antiquotation Const} | @@{ML_antiquotation Const_} | @@{ML_antiquotation Const_fn})
+    embedded
   \<close>
 
   \<^descr> \<open>@{const_name c}\<close> inlines the internalized logical constant name \<open>c\<close> ---
@@ -414,6 +469,57 @@ text %mlantiq \<open>
 
   \<^descr> \<open>@{prop \<phi>}\<close> inlines the internalized proposition \<open>\<phi>\<close> --- as constructor
   term for datatype \<^ML_type>\<open>term\<close>.
+
+  \<^descr> \<open>@{Const source}\<close> refers to embedded source text to produce a term
+  constructor with name (formally checked), type arguments and term arguments
+  (inlined ML text). The embedded \<open>source\<close> follows the syntax category
+  @{syntax term_const} defined below, using @{syntax embedded_ml} from
+  antiquotation @{ML_antiquotation Type} (\secref{sec:types}).
+
+  \<^descr> \<open>@{Const_ source}\<close> is similar to \<open>@{Const source}\<close> for patterns instead of
+  closed values. This distinction is required due to redundant type
+  information within term constants: subtrees with duplicate ML pattern
+  variable need to be suppressed (replaced by dummy patterns). The embedded \<open>source\<close> follows
+  the syntax category @{syntax term_const} defined below.
+
+  \<^descr> \<open>@{Const_fn source}\<close> is similar to \<open>@{Const_ source}\<close>, but produces a
+  proper \<^verbatim>\<open>fn\<close> expression with function body. The embedded \<open>source\<close> follows
+  the syntax category @{syntax term_const_fn} defined below.
+
+
+  \<^rail>\<open>
+    @{syntax_def term_const}:
+      @{syntax name} (@{syntax embedded_ml}*) (@{syntax for_args})?
+    ;
+    @{syntax_def type_const_fn}: @{ syntax term_const} @'=>' @{syntax embedded}
+    ;
+    @{syntax_def for_args}: @'for' (@{syntax embedded_ml}*)
+  \<close>
+\<close>
+
+text %mlex \<open>
+  Here are some minimal examples for term constant antiquotations. Type
+  arguments for constants are analogous to type constructors
+  (\secref{sec:types}). Term arguments are different: a flexible number of
+  arguments is inserted via curried applications (\<^ML>\<open>op $\<close>).
+\<close>
+
+ML \<open>
+  \<comment> \<open>constant without type argument:\<close>
+  fun mk_conj (A, B) = \<^Const>\<open>conj for A B\<close>;
+  val dest_conj = \<^Const_fn>\<open>conj for A B => \<open>(A, B)\<close>\<close>;
+
+  \<comment> \<open>constant with type argument:\<close>
+  fun mk_eq T (t, u) = \<^Const>\<open>HOL.eq T for t u\<close>;
+  val dest_eq = \<^Const_fn>\<open>HOL.eq T for t u => \<open>(T, (t, u))\<close>\<close>;
+
+  \<comment> \<open>constant with variable number of term arguments:\<close>
+  val c = Const (\<^const_name>\<open>conj\<close>, \<^typ>\<open>bool \<Rightarrow> bool \<Rightarrow> bool\<close>);
+  val P = \<^term>\<open>P::bool\<close>;
+  val Q = \<^term>\<open>Q::bool\<close>;
+  \<^assert> (\<^Const>\<open>conj\<close> = c);
+  \<^assert> (\<^Const>\<open>conj for P\<close> = c $ P);
+  \<^assert> (\<^Const>\<open>conj for P Q\<close> = c $ P $ Q);
 \<close>
 
 
