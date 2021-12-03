@@ -212,6 +212,9 @@ text \<open>
     default configuration with output readily available to the author of the
     document.
 
+    \<^item> @{system_option_def "document_echo"} informs about document file names
+    during session presentation.
+
     \<^item> @{system_option_def "document_variants"} specifies document variants as
     a colon-separated list of \<open>name=tags\<close> entries. The default name
     \<^verbatim>\<open>document\<close>, without additional tags.
@@ -239,9 +242,20 @@ text \<open>
     is occasionally useful to control the global visibility of commands via
     session options (e.g.\ in \<^verbatim>\<open>ROOT\<close>).
 
+    \<^item> @{system_option_def "document_comment_latex"} enables regular {\LaTeX}
+    \<^verbatim>\<open>comment.sty\<close>, instead of the historic version for plain {\TeX}
+    (default). The latter is much faster, but in conflict with {\LaTeX}
+    classes like Dagstuhl
+    LIPIcs\<^footnote>\<open>\<^url>\<open>https://github.com/dagstuhl-publishing/styles\<close>\<close>.
+
     \<^item> @{system_option_def "document_bibliography"} explicitly enables the use
     of \<^verbatim>\<open>bibtex\<close>; the default is to check the presence of \<^verbatim>\<open>root.bib\<close>, but it
     could have a different name.
+
+    \<^item> @{system_option_def "document_heading_prefix"} specifies a prefix for
+    the {\LaTeX} macro names generated from Isar commands like \<^theory_text>\<open>chapter\<close>,
+    \<^theory_text>\<open>section\<close> etc. The default is \<^verbatim>\<open>isamarkup\<close>, e.g. \<^theory_text>\<open>section\<close> becomes
+    \<^verbatim>\<open>\isamarkupsection\<close>.
 
     \<^item> @{system_option_def "threads"} determines the number of worker threads
     for parallel checking of theories and proofs. The default \<open>0\<close> means that a
