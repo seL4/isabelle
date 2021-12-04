@@ -1611,7 +1611,7 @@ theorem mvt:
     and derf: "\<And>x. \<lbrakk>a < x; x < b\<rbrakk> \<Longrightarrow> (f has_derivative f' x) (at x)"
   obtains \<xi> where "a < \<xi>" "\<xi> < b" "f b - f a = (f' \<xi>) (b - a)"
 proof -
-  have "\<exists>x. a < x \<and> x < b \<and> (\<lambda>y. f' x y - (f b - f a) / (b - a) * y) = (\<lambda>v. 0)"
+  have "\<exists>\<xi>. a < \<xi> \<and> \<xi> < b \<and> (\<lambda>y. f' \<xi> y - (f b - f a) / (b - a) * y) = (\<lambda>v. 0)"
   proof (intro Rolle_deriv[OF \<open>a < b\<close>])
     fix x
     assume x: "a < x" "x < b"
@@ -1619,12 +1619,8 @@ proof -
           has_derivative (\<lambda>y. f' x y - (f b - f a) / (b - a) * y)) (at x)"
       by (intro derivative_intros derf[OF x])
   qed (use assms in \<open>auto intro!: continuous_intros simp: field_simps\<close>)
-  then obtain \<xi> where
-    "a < \<xi>" "\<xi> < b" "(\<lambda>y. f' \<xi> y - (f b - f a) / (b - a) * y) = (\<lambda>v. 0)" 
-    by metis
   then show ?thesis
-    by (metis (no_types, opaque_lifting) that add.right_neutral add_diff_cancel_left' add_diff_eq \<open>a < b\<close>
-                 less_irrefl nonzero_eq_divide_eq)
+    by (smt (verit, ccfv_SIG) pos_le_divide_eq pos_less_divide_eq that)
 qed
 
 theorem MVT:
