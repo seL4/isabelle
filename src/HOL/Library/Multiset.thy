@@ -4,12 +4,13 @@
     Author:     Jasmin Blanchette, Inria, LORIA, MPII
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Mathias Fleury, MPII
+    Author:     Martin Desharnais, MPI-INF Saarbruecken
 *)
 
 section \<open>(Finite) Multisets\<close>
 
 theory Multiset
-imports Cancellation
+  imports Cancellation
 begin
 
 subsection \<open>The type of multisets\<close>
@@ -2788,14 +2789,15 @@ qed
 
 subsection \<open>The multiset order\<close>
 
-subsubsection \<open>Well-foundedness\<close>
-
 definition mult1 :: "('a \<times> 'a) set \<Rightarrow> ('a multiset \<times> 'a multiset) set" where
   "mult1 r = {(N, M). \<exists>a M0 K. M = add_mset a M0 \<and> N = M0 + K \<and>
       (\<forall>b. b \<in># K \<longrightarrow> (b, a) \<in> r)}"
 
 definition mult :: "('a \<times> 'a) set \<Rightarrow> ('a multiset \<times> 'a multiset) set" where
   "mult r = (mult1 r)\<^sup>+"
+
+definition multp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" where
+  "multp r M N \<longleftrightarrow> (M, N) \<in> mult {(x, y). r x y}"
 
 lemma mult1I:
   assumes "M = add_mset a M0" and "N = M0 + K" and "\<And>b. b \<in># K \<Longrightarrow> (b, a) \<in> r"
@@ -2809,14 +2811,29 @@ lemma mult1E:
 
 lemma mono_mult1:
   assumes "r \<subseteq> r'" shows "mult1 r \<subseteq> mult1 r'"
-unfolding mult1_def using assms by blast
+  unfolding mult1_def using assms by blast
 
 lemma mono_mult:
   assumes "r \<subseteq> r'" shows "mult r \<subseteq> mult r'"
-unfolding mult_def using mono_mult1[OF assms] trancl_mono by blast
+  unfolding mult_def using mono_mult1[OF assms] trancl_mono by blast
+
+lemma mono_multp[mono]: "r \<le> r' \<Longrightarrow> multp r \<le> multp r'"
+  unfolding le_fun_def le_bool_def
+proof (intro allI impI)
+  fix M N :: "'a multiset"
+  assume "\<forall>x xa. r x xa \<longrightarrow> r' x xa"
+  hence "{(x, y). r x y} \<subseteq> {(x, y). r' x y}"
+    by blast
+  thus "multp r M N \<Longrightarrow> multp r' M N"
+    unfolding multp_def
+    by (fact mono_mult[THEN subsetD, rotated])
+qed
 
 lemma not_less_empty [iff]: "(M, {#}) \<notin> mult1 r"
-by (simp add: mult1_def)
+  by (simp add: mult1_def)
+
+
+subsubsection \<open>Well-foundedness\<close>
 
 lemma less_add:
   assumes mult1: "(N, add_mset a M0) \<in> mult1 r"
@@ -2918,11 +2935,15 @@ proof
   qed
 qed
 
-theorem wf_mult1: "wf r \<Longrightarrow> wf (mult1 r)"
-by (rule acc_wfI) (rule all_accessible)
+lemma wf_mult1: "wf r \<Longrightarrow> wf (mult1 r)"
+  by (rule acc_wfI) (rule all_accessible)
 
-theorem wf_mult: "wf r \<Longrightarrow> wf (mult r)"
-unfolding mult_def by (rule wf_trancl) (rule wf_mult1)
+lemma wf_mult: "wf r \<Longrightarrow> wf (mult r)"
+  unfolding mult_def by (rule wf_trancl) (rule wf_mult1)
+
+lemma wfP_multp: "wfP r \<Longrightarrow> wfP (multp r)"
+  unfolding multp_def wfP_def
+  by (simp add: wf_mult)
 
 
 subsubsection \<open>Closure-free presentation\<close>
@@ -2965,6 +2986,9 @@ next
   qed
 qed
 
+lemmas multp_implies_one_step =
+  mult_implies_one_step[of "{(x, y). r x y}" for r, folded multp_def transp_trans, simplified]
+
 lemma one_step_implies_mult:
   assumes
     "J \<noteq> {#}" and
@@ -2997,6 +3021,9 @@ next
   qed
 qed
 
+lemmas one_step_implies_multp =
+  one_step_implies_mult[of _ _ "{(x, y). r x y}" for r, folded multp_def, simplified]
+
 lemma subset_implies_mult:
   assumes sub: "A \<subset># B"
   shows "(A, B) \<in> mult r"
@@ -3009,8 +3036,10 @@ proof -
     by (rule one_step_implies_mult[of "B - A" "{#}" _ A, unfolded ApBmA, simplified])
 qed
 
+lemmas subset_implies_multp = subset_implies_mult[of _ _ "{(x, y). r x y}" for r, folded multp_def]
 
-subsection \<open>The multiset extension is cancellative for multiset union\<close>
+
+subsubsection \<open>The multiset extension is cancellative for multiset union\<close>
 
 lemma mult_cancel:
   assumes "trans s" and "irrefl s"
@@ -3045,10 +3074,18 @@ next
   thus ?L using one_step_implies_mult[of J K s "I + Z"] by (auto simp: ac_simps)
 qed
 
+lemmas multp_cancel =
+  mult_cancel[of "{(x, y). r x y}" for r,
+    folded multp_def transp_trans irreflp_irrefl_eq, simplified]
+
 lemmas mult_cancel_add_mset =
   mult_cancel[of _ _ "{#_#}", unfolded union_mset_add_mset_right add.comm_neutral]
 
-lemma mult_cancel_max:
+lemmas multp_cancel_add_mset =
+  mult_cancel_add_mset[of "{(x, y). r x y}" for r,
+    folded multp_def transp_trans irreflp_irrefl_eq, simplified]
+
+lemma mult_cancel_max0:
   assumes "trans s" and "irrefl s"
   shows "(X, Y) \<in> mult s \<longleftrightarrow> (X - X \<inter># Y, Y - X \<inter># Y) \<in> mult s" (is "?L \<longleftrightarrow> ?R")
 proof -
@@ -3056,109 +3093,97 @@ proof -
   thus ?thesis using mult_cancel[OF assms, of "X - X \<inter># Y"  "X \<inter># Y" "Y - X \<inter># Y"] by auto
 qed
 
+lemmas mult_cancel_max = mult_cancel_max0[simplified]
 
-subsection \<open>Quasi-executable version of the multiset extension\<close>
-
-text \<open>
-  Predicate variants of \<open>mult\<close> and the reflexive closure of \<open>mult\<close>, which are
-  executable whenever the given predicate \<open>P\<close> is. Together with the standard
-  code equations for \<open>(\<inter>#\<close>) and \<open>(-\<close>) this should yield quadratic
-  (with respect to calls to \<open>P\<close>) implementations of \<open>multp\<close> and \<open>multeqp\<close>.
-\<close>
-
-definition multp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" where
-  "multp P N M =
-    (let Z = M \<inter># N; X = M - Z in
-    X \<noteq> {#} \<and> (let Y = N - Z in (\<forall>y \<in> set_mset Y. \<exists>x \<in> set_mset X. P y x)))"
-
-definition multeqp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" where
-  "multeqp P N M =
-    (let Z = M \<inter># N; X = M - Z; Y = N - Z in
-    (\<forall>y \<in> set_mset Y. \<exists>x \<in> set_mset X. P y x))"
-
-lemma multp_iff:
-  assumes "irrefl R" and "trans R" and [simp]: "\<And>x y. P x y \<longleftrightarrow> (x, y) \<in> R"
-  shows "multp P N M \<longleftrightarrow> (N, M) \<in> mult R" (is "?L \<longleftrightarrow> ?R")
-proof -
-  have *: "M \<inter># N + (N - M \<inter># N) = N" "M \<inter># N + (M - M \<inter># N) = M"
-    "(M - M \<inter># N) \<inter># (N - M \<inter># N) = {#}" by (auto simp flip: count_inject)
-  show ?thesis
-  proof
-    assume ?L thus ?R
-      using one_step_implies_mult[of "M - M \<inter># N" "N - M \<inter># N" R "M \<inter># N"] *
-      by (auto simp: multp_def Let_def)
-  next
-    { fix I J K :: "'a multiset" assume "(I + J) \<inter># (I + K) = {#}"
-      then have "I = {#}" by (metis inter_union_distrib_right union_eq_empty)
-    } note [dest!] = this
-    assume ?R thus ?L
-      using mult_implies_one_step[OF assms(2), of "N - M \<inter># N" "M - M \<inter># N"]
-        mult_cancel_max[OF assms(2,1), of "N" "M"] * by (auto simp: multp_def)
-  qed
-qed
-
-lemma multeqp_iff:
-  assumes "irrefl R" and "trans R" and "\<And>x y. P x y \<longleftrightarrow> (x, y) \<in> R"
-  shows "multeqp P N M \<longleftrightarrow> (N, M) \<in> (mult R)\<^sup>="
-proof -
-  { assume "N \<noteq> M" "M - M \<inter># N = {#}"
-    then obtain y where "count N y \<noteq> count M y" by (auto simp flip: count_inject)
-    then have "\<exists>y. count M y < count N y" using \<open>M - M \<inter># N = {#}\<close>
-      by (auto simp flip: count_inject dest!: le_neq_implies_less fun_cong[of _ _ y])
-  }
-  then have "multeqp P N M \<longleftrightarrow> multp P N M \<or> N = M"
-    by (auto simp: multeqp_def multp_def Let_def in_diff_count)
-  thus ?thesis using multp_iff[OF assms] by simp
-qed
+lemmas multp_cancel_max =
+  mult_cancel_max[of "{(x, y). r x y}" for r,
+    folded multp_def transp_trans irreflp_irrefl_eq, simplified]
 
 
 subsubsection \<open>Partial-order properties\<close>
 
-lemma (in preorder) mult1_lessE:
-  assumes "(N, M) \<in> mult1 {(a, b). a < b}"
+lemma mult1_lessE:
+  assumes "(N, M) \<in> mult1 {(a, b). r a b}" and "asymp r"
   obtains a M0 K where "M = add_mset a M0" "N = M0 + K"
-    "a \<notin># K" "\<And>b. b \<in># K \<Longrightarrow> b < a"
+    "a \<notin># K" "\<And>b. b \<in># K \<Longrightarrow> r b a"
 proof -
   from assms obtain a M0 K where "M = add_mset a M0" "N = M0 + K" and
-    *: "b \<in># K \<Longrightarrow> b < a" for b by (blast elim: mult1E)
-  moreover from * [of a] have "a \<notin># K" by auto
+    *: "b \<in># K \<Longrightarrow> r b a" for b by (blast elim: mult1E)
+  moreover from * [of a] have "a \<notin># K"
+    using \<open>asymp r\<close> by (meson asymp.cases)
   ultimately show thesis by (auto intro: that)
 qed
 
-instantiation multiset :: (preorder) order
-begin
+lemma trans_mult: "trans r \<Longrightarrow> trans (mult r)"
+  by (simp add: mult_def)
+
+lemma transp_multp: "transp r \<Longrightarrow> transp (multp r)"
+  unfolding multp_def transp_trans_eq
+  by (fact trans_mult[of "{(x, y). r x y}" for r, folded transp_trans])
+
+lemma irrefl_mult:
+  assumes "trans r" "irrefl r"
+  shows "irrefl (mult r)"
+proof (intro irreflI notI)
+  fix M
+  assume "(M, M) \<in> mult r"
+  then obtain I J K where "M = I + J" and "M = I + K"
+    and "J \<noteq> {#}" and "(\<forall>k\<in>set_mset K. \<exists>j\<in>set_mset J. (k, j) \<in> r)"
+    using mult_implies_one_step[OF \<open>trans r\<close>] by blast
+  then have *: "K \<noteq> {#}" and **: "\<forall>k\<in>set_mset K. \<exists>j\<in>set_mset K. (k, j) \<in> r" by auto
+  have "finite (set_mset K)" by simp
+  hence "set_mset K = {}"
+    using **
+  proof (induction rule: finite_induct)
+    case empty
+    thus ?case by simp
+  next
+    case (insert x F)
+    have False
+      using \<open>irrefl r\<close>[unfolded irrefl_def, rule_format]
+      using \<open>trans r\<close>[THEN transD]
+      by (metis equals0D insert.IH insert.prems insertE insertI1 insertI2)
+    thus ?case ..
+  qed
+  with * show False by simp
+qed
+
+lemmas irreflp_multp =
+  irrefl_mult[of "{(x, y). r x y}" for r,
+    folded transp_trans_eq irreflp_irrefl_eq, simplified, folded multp_def]
+
+instantiation multiset :: (preorder) order begin
 
 definition less_multiset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool"
-  where "M' < M \<longleftrightarrow> (M', M) \<in> mult {(x', x). x' < x}"
+  where "M < N \<longleftrightarrow> multp (<) M N"
 
 definition less_eq_multiset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool"
-  where "less_eq_multiset M' M \<longleftrightarrow> M' < M \<or> M' = M"
+  where "less_eq_multiset M N \<longleftrightarrow> M < N \<or> M = N"
 
 instance
-proof -
-  have irrefl: "\<not> M < M" for M :: "'a multiset"
-  proof
-    assume "M < M"
-    then have MM: "(M, M) \<in> mult {(x, y). x < y}" by (simp add: less_multiset_def)
-    have "trans {(x'::'a, x). x' < x}"
-      by (metis (mono_tags, lifting) case_prodD case_prodI less_trans mem_Collect_eq transI)
-    moreover note MM
-    ultimately have "\<exists>I J K. M = I + J \<and> M = I + K
-      \<and> J \<noteq> {#} \<and> (\<forall>k\<in>set_mset K. \<exists>j\<in>set_mset J. (k, j) \<in> {(x, y). x < y})"
-      by (rule mult_implies_one_step)
-    then obtain I J K where "M = I + J" and "M = I + K"
-      and "J \<noteq> {#}" and "(\<forall>k\<in>set_mset K. \<exists>j\<in>set_mset J. (k, j) \<in> {(x, y). x < y})" by blast
-    then have *: "K \<noteq> {#}" and **: "\<forall>k\<in>set_mset K. \<exists>j\<in>set_mset K. k < j" by auto
-    have "finite (set_mset K)" by simp
-    moreover note **
-    ultimately have "set_mset K = {}"
-      by (induct rule: finite_induct) (auto intro: order_less_trans)
-    with * show False by simp
-  qed
-  have trans: "K < M \<Longrightarrow> M < N \<Longrightarrow> K < N" for K M N :: "'a multiset"
-    unfolding less_multiset_def mult_def by (blast intro: trancl_trans)
-  show "OFCLASS('a multiset, order_class)"
-    by standard (auto simp add: less_eq_multiset_def irrefl dest: trans)
+proof intro_classes
+  fix M N :: "'a multiset"
+  show "(M < N) = (M \<le> N \<and> \<not> N \<le> M)"
+    unfolding less_eq_multiset_def less_multiset_def
+    by (metis irreflp_def irreflp_less irreflp_multp transpE transp_less transp_multp)
+next
+  fix M :: "'a multiset"
+  show "M \<le> M"
+    unfolding less_eq_multiset_def
+    by simp
+next
+  fix M1 M2 M3 :: "'a multiset"
+  show "M1 \<le> M2 \<Longrightarrow> M2 \<le> M3 \<Longrightarrow> M1 \<le> M3"
+    unfolding less_eq_multiset_def less_multiset_def
+    using transp_multp[OF transp_less, THEN transpD]
+    by blast
+next
+  fix M N :: "'a multiset"
+  show "M \<le> N \<Longrightarrow> N \<le> M \<Longrightarrow> M = N"
+    unfolding less_eq_multiset_def less_multiset_def
+    using transp_multp[OF transp_less, THEN transpD]
+    using irreflp_multp[OF transp_less irreflp_less, unfolded irreflp_def, rule_format]
+    by blast
 qed
 
 end
@@ -3168,6 +3193,77 @@ lemma mset_le_irrefl [elim!]:
   shows "M < M \<Longrightarrow> R"
   by simp
 
+lemma wfP_less_multiset[simp]:
+  assumes wfP_less: "wfP ((<) :: ('a :: preorder) \<Rightarrow> 'a \<Rightarrow> bool)"
+  shows "wfP ((<) :: 'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool)"
+  using wfP_multp[OF wfP_less] less_multiset_def
+  by (metis wfPUNIVI wfP_induct)
+
+
+subsection \<open>Quasi-executable version of the multiset extension\<close>
+
+text \<open>
+  Predicate variants of \<open>mult\<close> and the reflexive closure of \<open>mult\<close>, which are
+  executable whenever the given predicate \<open>P\<close> is. Together with the standard
+  code equations for \<open>(\<inter>#\<close>) and \<open>(-\<close>) this should yield quadratic
+  (with respect to calls to \<open>P\<close>) implementations of \<open>multp_code\<close> and \<open>multeqp_code\<close>.
+\<close>
+
+definition multp_code :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" where
+  "multp_code P N M =
+    (let Z = M \<inter># N; X = M - Z in
+    X \<noteq> {#} \<and> (let Y = N - Z in (\<forall>y \<in> set_mset Y. \<exists>x \<in> set_mset X. P y x)))"
+
+definition multeqp_code :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" where
+  "multeqp_code P N M =
+    (let Z = M \<inter># N; X = M - Z; Y = N - Z in
+    (\<forall>y \<in> set_mset Y. \<exists>x \<in> set_mset X. P y x))"
+
+lemma multp_code_iff_mult:
+  assumes "irrefl R" and "trans R" and [simp]: "\<And>x y. P x y \<longleftrightarrow> (x, y) \<in> R"
+  shows "multp_code P N M \<longleftrightarrow> (N, M) \<in> mult R" (is "?L \<longleftrightarrow> ?R")
+proof -
+  have *: "M \<inter># N + (N - M \<inter># N) = N" "M \<inter># N + (M - M \<inter># N) = M"
+    "(M - M \<inter># N) \<inter># (N - M \<inter># N) = {#}" by (auto simp flip: count_inject)
+  show ?thesis
+  proof
+    assume ?L thus ?R
+      using one_step_implies_mult[of "M - M \<inter># N" "N - M \<inter># N" R "M \<inter># N"] *
+      by (auto simp: multp_code_def Let_def)
+  next
+    { fix I J K :: "'a multiset" assume "(I + J) \<inter># (I + K) = {#}"
+      then have "I = {#}" by (metis inter_union_distrib_right union_eq_empty)
+    } note [dest!] = this
+    assume ?R thus ?L
+      using mult_implies_one_step[OF assms(2), of "N - M \<inter># N" "M - M \<inter># N"]
+        mult_cancel_max[OF assms(2,1), of "N" "M"] * by (auto simp: multp_code_def)
+  qed
+qed
+
+lemma multp_code_eq_multp: "irreflp r \<Longrightarrow> transp r \<Longrightarrow> multp_code r = multp r"
+  using multp_code_iff_mult[of "{(x, y). r x y}" r for r,
+    folded irreflp_irrefl_eq transp_trans multp_def, simplified]
+  by blast
+
+lemma multeqp_code_iff_reflcl_mult:
+  assumes "irrefl R" and "trans R" and "\<And>x y. P x y \<longleftrightarrow> (x, y) \<in> R"
+  shows "multeqp_code P N M \<longleftrightarrow> (N, M) \<in> (mult R)\<^sup>="
+proof -
+  { assume "N \<noteq> M" "M - M \<inter># N = {#}"
+    then obtain y where "count N y \<noteq> count M y" by (auto simp flip: count_inject)
+    then have "\<exists>y. count M y < count N y" using \<open>M - M \<inter># N = {#}\<close>
+      by (auto simp flip: count_inject dest!: le_neq_implies_less fun_cong[of _ _ y])
+  }
+  then have "multeqp_code P N M \<longleftrightarrow> multp_code P N M \<or> N = M"
+    by (auto simp: multeqp_code_def multp_code_def Let_def in_diff_count)
+  thus ?thesis using multp_code_iff_mult[OF assms] by simp
+qed
+
+lemma multeqp_code_eq_reflclp_multp: "irreflp r \<Longrightarrow> transp r \<Longrightarrow> multeqp_code r = (multp r)\<^sup>=\<^sup>="
+  using multeqp_code_iff_reflcl_mult[of "{(x, y). r x y}" r for r,
+    folded irreflp_irrefl_eq transp_trans, simplified, folded multp_def]
+  by blast
+
 
 subsubsection \<open>Monotonicity of multiset union\<close>
 
@@ -3175,7 +3271,7 @@ lemma mult1_union: "(B, D) \<in> mult1 r \<Longrightarrow> (C + B, C + D) \<in> 
   by (force simp: mult1_def)
 
 lemma union_le_mono2: "B < D \<Longrightarrow> C + B < C + (D::'a::preorder multiset)"
-apply (unfold less_multiset_def mult_def)
+apply (unfold less_multiset_def multp_def mult_def)
 apply (erule trancl_induct)
  apply (blast intro: mult1_union)
 apply (blast intro: mult1_union trancl_trans)

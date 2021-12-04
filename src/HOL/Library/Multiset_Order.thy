@@ -11,6 +11,135 @@ begin
 
 subsection \<open>Alternative Characterizations\<close>
 
+subsubsection \<open>The Dershowitz--Manna Ordering\<close>
+
+definition multp\<^sub>D\<^sub>M where
+  "multp\<^sub>D\<^sub>M r M N \<longleftrightarrow>
+   (\<exists>X Y. X \<noteq> {#} \<and> X \<subseteq># N \<and> M = (N - X) + Y \<and> (\<forall>k. k \<in># Y \<longrightarrow> (\<exists>a. a \<in># X \<and> r k a)))"
+
+lemma multp\<^sub>D\<^sub>M_imp_multp:
+  "multp\<^sub>D\<^sub>M r M N \<Longrightarrow> multp r M N"
+proof -
+  assume "multp\<^sub>D\<^sub>M r M N"
+  then obtain X Y where
+    "X \<noteq> {#}" and "X \<subseteq># N" and "M = N - X + Y" and "\<forall>k. k \<in># Y \<longrightarrow> (\<exists>a. a \<in># X \<and> r k a)"
+    unfolding multp\<^sub>D\<^sub>M_def by blast
+  then have "multp r (N - X + Y) (N - X + X)"
+    by (intro one_step_implies_multp) (auto simp: Bex_def trans_def)
+  with \<open>M = N - X + Y\<close> \<open>X \<subseteq># N\<close> show "multp r M N"
+    by (metis subset_mset.diff_add)
+qed
+
+subsubsection \<open>The Huet--Oppen Ordering\<close>
+
+definition multp\<^sub>H\<^sub>O where
+  "multp\<^sub>H\<^sub>O r M N \<longleftrightarrow> M \<noteq> N \<and> (\<forall>y. count N y < count M y \<longrightarrow> (\<exists>x. r y x \<and> count M x < count N x))"
+
+lemma multp_imp_multp\<^sub>H\<^sub>O:
+  assumes "asymp r" and "transp r"
+  shows "multp r M N \<Longrightarrow> multp\<^sub>H\<^sub>O r M N"
+  unfolding multp_def mult_def
+proof (induction rule: trancl_induct)
+  case (base P)
+  then show ?case
+    using \<open>asymp r\<close>
+    by (auto elim!: mult1_lessE simp: count_eq_zero_iff multp\<^sub>H\<^sub>O_def split: if_splits
+        dest!: Suc_lessD)
+next
+  case (step N P)
+  from step(3) have "M \<noteq> N" and
+    **: "\<And>y. count N y < count M y \<Longrightarrow> (\<exists>x. r y x \<and> count M x < count N x)"
+    by (simp_all add: multp\<^sub>H\<^sub>O_def)
+  from step(2) obtain M0 a K where
+    *: "P = add_mset a M0" "N = M0 + K" "a \<notin># K" "\<And>b. b \<in># K \<Longrightarrow> r b a"
+    using \<open>asymp r\<close> by (auto elim: mult1_lessE)
+  from \<open>M \<noteq> N\<close> ** *(1,2,3) have "M \<noteq> P"
+    using *(4) \<open>asymp r\<close>
+    by (metis asymp.cases add_cancel_right_right add_diff_cancel_left' add_mset_add_single count_inI
+        count_union diff_diff_add_mset diff_single_trivial in_diff_count multi_member_last)
+  moreover
+  { assume "count P a \<le> count M a"
+    with \<open>a \<notin># K\<close> have "count N a < count M a" unfolding *(1,2)
+      by (auto simp add: not_in_iff)
+      with ** obtain z where z: "r a z" "count M z < count N z"
+        by blast
+      with * have "count N z \<le> count P z"
+        using \<open>asymp r\<close>
+        by (metis add_diff_cancel_left' add_mset_add_single asymp.cases diff_diff_add_mset
+            diff_single_trivial in_diff_count not_le_imp_less)
+      with z have "\<exists>z. r a z \<and> count M z < count P z" by auto
+  } note count_a = this
+  { fix y
+    assume count_y: "count P y < count M y"
+    have "\<exists>x. r y x \<and> count M x < count P x"
+    proof (cases "y = a")
+      case True
+      with count_y count_a show ?thesis by auto
+    next
+      case False
+      show ?thesis
+      proof (cases "y \<in># K")
+        case True
+        with *(4) have "r y a" by simp
+        then show ?thesis
+          by (cases "count P a \<le> count M a") (auto dest: count_a intro: \<open>transp r\<close>[THEN transpD])
+      next
+        case False
+        with \<open>y \<noteq> a\<close> have "count P y = count N y" unfolding *(1,2)
+          by (simp add: not_in_iff)
+        with count_y ** obtain z where z: "r y z" "count M z < count N z" by auto
+        show ?thesis
+        proof (cases "z \<in># K")
+          case True
+          with *(4) have "r z a" by simp
+          with z(1) show ?thesis
+            by (cases "count P a \<le> count M a") (auto dest!: count_a intro: \<open>transp r\<close>[THEN transpD])
+        next
+          case False
+          with \<open>a \<notin># K\<close> have "count N z \<le> count P z" unfolding *
+            by (auto simp add: not_in_iff)
+          with z show ?thesis by auto
+        qed
+      qed
+    qed
+  }
+  ultimately show ?case unfolding multp\<^sub>H\<^sub>O_def by blast
+qed
+
+lemma multp\<^sub>H\<^sub>O_imp_multp\<^sub>D\<^sub>M: "multp\<^sub>H\<^sub>O r M N \<Longrightarrow> multp\<^sub>D\<^sub>M r M N"
+unfolding multp\<^sub>D\<^sub>M_def
+proof (intro iffI exI conjI)
+  assume "multp\<^sub>H\<^sub>O r M N"
+  then obtain z where z: "count M z < count N z"
+    unfolding multp\<^sub>H\<^sub>O_def by (auto simp: multiset_eq_iff nat_neq_iff)
+  define X where "X = N - M"
+  define Y where "Y = M - N"
+  from z show "X \<noteq> {#}" unfolding X_def by (auto simp: multiset_eq_iff not_less_eq_eq Suc_le_eq)
+  from z show "X \<subseteq># N" unfolding X_def by auto
+  show "M = (N - X) + Y" unfolding X_def Y_def multiset_eq_iff count_union count_diff by force
+  show "\<forall>k. k \<in># Y \<longrightarrow> (\<exists>a. a \<in># X \<and> r k a)"
+  proof (intro allI impI)
+    fix k
+    assume "k \<in># Y"
+    then have "count N k < count M k" unfolding Y_def
+      by (auto simp add: in_diff_count)
+    with \<open>multp\<^sub>H\<^sub>O r M N\<close> obtain a where "r k a" and "count M a < count N a"
+      unfolding multp\<^sub>H\<^sub>O_def by blast
+    then show "\<exists>a. a \<in># X \<and> r k a" unfolding X_def
+      by (auto simp add: in_diff_count)
+  qed
+qed
+
+lemma multp_eq_multp\<^sub>D\<^sub>M: "asymp r \<Longrightarrow> transp r \<Longrightarrow> multp r = multp\<^sub>D\<^sub>M r"
+  using multp\<^sub>D\<^sub>M_imp_multp multp_imp_multp\<^sub>H\<^sub>O[THEN multp\<^sub>H\<^sub>O_imp_multp\<^sub>D\<^sub>M]
+  by blast
+
+lemma multp_eq_multp\<^sub>H\<^sub>O: "asymp r \<Longrightarrow> transp r \<Longrightarrow> multp r = multp\<^sub>H\<^sub>O r"
+  using multp\<^sub>H\<^sub>O_imp_multp\<^sub>D\<^sub>M[THEN multp\<^sub>D\<^sub>M_imp_multp] multp_imp_multp\<^sub>H\<^sub>O
+  by blast
+
+subsubsection \<open>Properties of Preorders\<close>
+
 context preorder
 begin
 
@@ -59,107 +188,29 @@ definition less_multiset\<^sub>H\<^sub>O where
 
 lemma mult_imp_less_multiset\<^sub>H\<^sub>O:
   "(M, N) \<in> mult {(x, y). x < y} \<Longrightarrow> less_multiset\<^sub>H\<^sub>O M N"
-proof (unfold mult_def, induct rule: trancl_induct)
-  case (base P)
-  then show ?case
-    by (auto elim!: mult1_lessE simp add: count_eq_zero_iff less_multiset\<^sub>H\<^sub>O_def split: if_splits dest!: Suc_lessD)
-next
-  case (step N P)
-  from step(3) have "M \<noteq> N" and
-    **: "\<And>y. count N y < count M y \<Longrightarrow> (\<exists>x>y. count M x < count N x)"
-    by (simp_all add: less_multiset\<^sub>H\<^sub>O_def)
-  from step(2) obtain M0 a K where
-    *: "P = add_mset a M0" "N = M0 + K" "a \<notin># K" "\<And>b. b \<in># K \<Longrightarrow> b < a"
-    by (blast elim: mult1_lessE)
-  from \<open>M \<noteq> N\<close> ** *(1,2,3) have "M \<noteq> P" by (force dest: *(4) elim!: less_asym split: if_splits )
-  moreover
-  { assume "count P a \<le> count M a"
-    with \<open>a \<notin># K\<close> have "count N a < count M a" unfolding *(1,2)
-      by (auto simp add: not_in_iff)
-      with ** obtain z where z: "z > a" "count M z < count N z"
-        by blast
-      with * have "count N z \<le> count P z" 
-        by (auto elim: less_asym intro: count_inI)
-      with z have "\<exists>z > a. count M z < count P z" by auto
-  } note count_a = this
-  { fix y
-    assume count_y: "count P y < count M y"
-    have "\<exists>x>y. count M x < count P x"
-    proof (cases "y = a")
-      case True
-      with count_y count_a show ?thesis by auto
-    next
-      case False
-      show ?thesis
-      proof (cases "y \<in># K")
-        case True
-        with *(4) have "y < a" by simp
-        then show ?thesis by (cases "count P a \<le> count M a") (auto dest: count_a intro: less_trans)
-      next
-        case False
-        with \<open>y \<noteq> a\<close> have "count P y = count N y" unfolding *(1,2)
-          by (simp add: not_in_iff)
-        with count_y ** obtain z where z: "z > y" "count M z < count N z" by auto
-        show ?thesis
-        proof (cases "z \<in># K")
-          case True
-          with *(4) have "z < a" by simp
-          with z(1) show ?thesis
-            by (cases "count P a \<le> count M a") (auto dest!: count_a intro: less_trans)
-        next
-          case False
-          with \<open>a \<notin># K\<close> have "count N z \<le> count P z" unfolding *
-            by (auto simp add: not_in_iff)
-          with z show ?thesis by auto
-        qed
-      qed
-    qed
-  }
-  ultimately show ?case unfolding less_multiset\<^sub>H\<^sub>O_def by blast
-qed
+  unfolding multp_def[of "(<)", symmetric]
+  using multp_imp_multp\<^sub>H\<^sub>O[of "(<)"]
+  by (simp add: less_multiset\<^sub>H\<^sub>O_def multp\<^sub>H\<^sub>O_def)
 
 lemma less_multiset\<^sub>D\<^sub>M_imp_mult:
   "less_multiset\<^sub>D\<^sub>M M N \<Longrightarrow> (M, N) \<in> mult {(x, y). x < y}"
-proof -
-  assume "less_multiset\<^sub>D\<^sub>M M N"
-  then obtain X Y where
-    "X \<noteq> {#}" and "X \<subseteq># N" and "M = N - X + Y" and "\<forall>k. k \<in># Y \<longrightarrow> (\<exists>a. a \<in># X \<and> k < a)"
-    unfolding less_multiset\<^sub>D\<^sub>M_def by blast
-  then have "(N - X + Y, N - X + X) \<in> mult {(x, y). x < y}"
-    by (intro one_step_implies_mult) (auto simp: Bex_def trans_def)
-  with \<open>M = N - X + Y\<close> \<open>X \<subseteq># N\<close> show "(M, N) \<in> mult {(x, y). x < y}"
-    by (metis subset_mset.diff_add)
-qed
+  unfolding multp_def[of "(<)", symmetric]
+  by (rule multp\<^sub>D\<^sub>M_imp_multp[of "(<)" M N]) (simp add: less_multiset\<^sub>D\<^sub>M_def multp\<^sub>D\<^sub>M_def)
 
 lemma less_multiset\<^sub>H\<^sub>O_imp_less_multiset\<^sub>D\<^sub>M: "less_multiset\<^sub>H\<^sub>O M N \<Longrightarrow> less_multiset\<^sub>D\<^sub>M M N"
-unfolding less_multiset\<^sub>D\<^sub>M_def
-proof (intro iffI exI conjI)
-  assume "less_multiset\<^sub>H\<^sub>O M N"
-  then obtain z where z: "count M z < count N z"
-    unfolding less_multiset\<^sub>H\<^sub>O_def by (auto simp: multiset_eq_iff nat_neq_iff)
-  define X where "X = N - M"
-  define Y where "Y = M - N"
-  from z show "X \<noteq> {#}" unfolding X_def by (auto simp: multiset_eq_iff not_less_eq_eq Suc_le_eq)
-  from z show "X \<subseteq># N" unfolding X_def by auto
-  show "M = (N - X) + Y" unfolding X_def Y_def multiset_eq_iff count_union count_diff by force
-  show "\<forall>k. k \<in># Y \<longrightarrow> (\<exists>a. a \<in># X \<and> k < a)"
-  proof (intro allI impI)
-    fix k
-    assume "k \<in># Y"
-    then have "count N k < count M k" unfolding Y_def
-      by (auto simp add: in_diff_count)
-    with \<open>less_multiset\<^sub>H\<^sub>O M N\<close> obtain a where "k < a" and "count M a < count N a"
-      unfolding less_multiset\<^sub>H\<^sub>O_def by blast
-    then show "\<exists>a. a \<in># X \<and> k < a" unfolding X_def
-      by (auto simp add: in_diff_count)
-  qed
-qed
+  unfolding less_multiset\<^sub>D\<^sub>M_def less_multiset\<^sub>H\<^sub>O_def
+  unfolding multp\<^sub>D\<^sub>M_def[symmetric] multp\<^sub>H\<^sub>O_def[symmetric]
+  by (rule multp\<^sub>H\<^sub>O_imp_multp\<^sub>D\<^sub>M)
 
 lemma mult_less_multiset\<^sub>D\<^sub>M: "(M, N) \<in> mult {(x, y). x < y} \<longleftrightarrow> less_multiset\<^sub>D\<^sub>M M N"
-  by (metis less_multiset\<^sub>D\<^sub>M_imp_mult less_multiset\<^sub>H\<^sub>O_imp_less_multiset\<^sub>D\<^sub>M mult_imp_less_multiset\<^sub>H\<^sub>O)
+  unfolding multp_def[of "(<)", symmetric]
+  using multp_eq_multp\<^sub>D\<^sub>M[of "(<)", simplified]
+  by (simp add: multp\<^sub>D\<^sub>M_def less_multiset\<^sub>D\<^sub>M_def)
 
 lemma mult_less_multiset\<^sub>H\<^sub>O: "(M, N) \<in> mult {(x, y). x < y} \<longleftrightarrow> less_multiset\<^sub>H\<^sub>O M N"
-  by (metis less_multiset\<^sub>D\<^sub>M_imp_mult less_multiset\<^sub>H\<^sub>O_imp_less_multiset\<^sub>D\<^sub>M mult_imp_less_multiset\<^sub>H\<^sub>O)
+  unfolding multp_def[of "(<)", symmetric]
+  using multp_eq_multp\<^sub>H\<^sub>O[of "(<)", simplified]
+  by (simp add: multp\<^sub>H\<^sub>O_def less_multiset\<^sub>H\<^sub>O_def)
 
 lemmas mult\<^sub>D\<^sub>M = mult_less_multiset\<^sub>D\<^sub>M[unfolded less_multiset\<^sub>D\<^sub>M_def]
 lemmas mult\<^sub>H\<^sub>O = mult_less_multiset\<^sub>H\<^sub>O[unfolded less_multiset\<^sub>H\<^sub>O_def]
@@ -167,10 +218,15 @@ lemmas mult\<^sub>H\<^sub>O = mult_less_multiset\<^sub>H\<^sub>O[unfolded less_m
 end
 
 lemma less_multiset_less_multiset\<^sub>H\<^sub>O: "M < N \<longleftrightarrow> less_multiset\<^sub>H\<^sub>O M N"
-  unfolding less_multiset_def mult\<^sub>H\<^sub>O less_multiset\<^sub>H\<^sub>O_def ..
+  unfolding less_multiset_def multp_def mult\<^sub>H\<^sub>O less_multiset\<^sub>H\<^sub>O_def ..
 
-lemmas less_multiset\<^sub>D\<^sub>M = mult\<^sub>D\<^sub>M[folded less_multiset_def]
-lemmas less_multiset\<^sub>H\<^sub>O = mult\<^sub>H\<^sub>O[folded less_multiset_def]
+lemma less_multiset\<^sub>D\<^sub>M:
+  "M < N \<longleftrightarrow> (\<exists>X Y. X \<noteq> {#} \<and> X \<subseteq># N \<and> M = N - X + Y \<and> (\<forall>k. k \<in># Y \<longrightarrow> (\<exists>a. a \<in># X \<and> k < a)))"
+  by (rule mult\<^sub>D\<^sub>M[folded multp_def less_multiset_def])
+
+lemma less_multiset\<^sub>H\<^sub>O:
+  "M < N \<longleftrightarrow> M \<noteq> N \<and> (\<forall>y. count N y < count M y \<longrightarrow> (\<exists>x>y. count M x < count N x))"
+  by (rule mult\<^sub>H\<^sub>O[folded multp_def less_multiset_def])
 
 lemma subset_eq_imp_le_multiset:
   shows "M \<subseteq># N \<Longrightarrow> M \<le> N"
@@ -198,7 +254,7 @@ lemma le_multiset_empty_left[simp]: "M \<noteq> {#} \<Longrightarrow> {#} < M"
 
 (* FIXME: "le" should be "less" in this and other names *)
 lemma le_multiset_empty_right[simp]: "\<not> M < {#}"
-  using subset_mset.le_zero_eq less_multiset\<^sub>D\<^sub>M by blast
+  using subset_mset.le_zero_eq less_multiset_def multp_def less_multiset\<^sub>D\<^sub>M by blast
 
 (* FIXME: "le" should be "less" in this and other names *)
 lemma union_le_diff_plus: "P \<subseteq># M \<Longrightarrow> N < P \<Longrightarrow> M - P + N < M"
@@ -381,9 +437,9 @@ instantiation multiset :: (wellorder) wellorder
 begin
 
 lemma wf_less_multiset: "wf {(M :: 'a multiset, N). M < N}"
-  unfolding less_multiset_def by (auto intro: wf_mult wf)
+  unfolding less_multiset_def multp_def by (auto intro: wf_mult wf)
 
-instance by standard (metis less_multiset_def wf wf_def wf_mult)
+instance by standard (metis less_multiset_def multp_def wf wf_def wf_mult)
 
 end
 
