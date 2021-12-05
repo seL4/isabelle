@@ -27,9 +27,7 @@ sig
   val index_entry: index_entry -> text
   val index_variants: (binding -> bool option -> 'a -> 'a) -> binding -> 'a -> 'a
   val latexN: string
-  val latex_output: string -> string * int
   val latex_markup: string * Properties.T -> Markup.output
-  val latex_indent: string -> int -> string
 end;
 
 structure Latex: LATEX =
@@ -220,22 +218,29 @@ fun index_variants setup binding =
 
 val latexN = "latex";
 
+local
+
 fun latex_output str =
   let val syms = Symbol.explode str
   in (output_symbols syms, length_symbols syms) end;
 
-fun latex_markup (s, _: Properties.T) =
-  if s = Markup.commandN orelse s = Markup.keyword1N orelse s = Markup.keyword3N
-  then ("\\isacommand{", "}")
-  else if s = Markup.keyword2N
-  then ("\\isakeyword{", "}")
-  else Markup.no_output;
+val command_markup = YXML.output_markup (Markup.latex_macro "isacommand");
+val keyword_markup = YXML.output_markup (Markup.latex_macro "isakeyword");
+val indent_markup = YXML.output_markup (Markup.latex_macro "isaindent");
 
-fun latex_indent "" _ = ""
-  | latex_indent s _ = enclose "\\isaindent{" "}" s;
+in
+
+fun latex_markup (s, _: Properties.T) =
+  if member (op =) [Markup.commandN, Markup.keyword1N, Markup.keyword3N] s then command_markup
+  else if s = Markup.keyword2N then keyword_markup
+  else Markup.no_output;
 
 val _ = Output.add_mode latexN latex_output (prefix Symbol.latex o cartouche);
 val _ = Markup.add_mode latexN latex_markup;
-val _ = Pretty.add_mode latexN latex_indent;
+
+val _ = Pretty.add_mode latexN
+  (fn s => fn _ => if s = "" then s else uncurry enclose indent_markup s);
+
+end;
 
 end;
