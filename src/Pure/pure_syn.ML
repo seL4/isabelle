@@ -43,7 +43,7 @@ val _ =
   Outer_Syntax.command ("text_raw", \<^here>) "LaTeX text (without surrounding environment)"
     (Parse.opt_target -- Parse.document_source >>
       Document_Output.document_output
-        {markdown = true, markup = Latex.enclose_text "%\n" "\n"});
+        {markdown = true, markup = XML.enclose "%\n" "\n"});
 
 val _ =
   Outer_Syntax.command ("theory", \<^here>) "begin theory"
