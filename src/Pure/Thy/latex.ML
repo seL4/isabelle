@@ -21,7 +21,6 @@ sig
   val output_syms: string -> string
   val symbols: Symbol_Pos.T list -> text
   val symbols_output: Symbol_Pos.T list -> text
-  val environment_text: string -> text -> text
   val isabelle_body: string -> text -> text
   val theory_entry: string -> string
   type index_item = {text: text, like: string}
@@ -190,11 +189,6 @@ fun symbols_output syms =
 
 
 (* theory presentation *)
-
-fun environment_text name =
-  XML.enclose
-    ("%\n\\begin{" ^ output_name name ^ "}%\n")
-    ("%\n\\end{" ^ output_name name ^ "}");
 
 fun isabelle_body name =
   XML.enclose

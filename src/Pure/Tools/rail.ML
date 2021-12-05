@@ -384,7 +384,7 @@ fun output_rules ctxt rules =
         output "" rail' @
         Latex.string "\\rail@end\n"
       end;
-  in Latex.environment_text "railoutput" (maps output_rule rules) end;
+  in Latex.environment "railoutput" (maps output_rule rules) end;
 
 val _ = Theory.setup
   (Document_Output.antiquotation_raw_embedded \<^binding>\<open>rail\<close> (Scan.lift Args.text_input)
