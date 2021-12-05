@@ -207,7 +207,7 @@ val keywords = Keyword.add_minor_keywords ["for", "=>"] Keyword.empty_keywords;
 
 val parse_name = Parse.input Parse.name;
 
-val parse_args = Scan.repeat Parse.embedded_ml_underscore;
+val parse_args = Scan.repeat Parse.embedded_ml;
 val parse_for_args = Scan.optional (Parse.$$$ "for" |-- Parse.!!! parse_args) [];
 
 fun parse_body b =

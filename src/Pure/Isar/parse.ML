@@ -120,7 +120,6 @@ sig
   val thms1: (Facts.ref * Token.src list) list parser
   val options: ((string * Position.T) * (string * Position.T)) list parser
   val embedded_ml: ML_Lex.token Antiquote.antiquote list parser
-  val embedded_ml_underscore: ML_Lex.token Antiquote.antiquote list parser
   val read_antiq: Keyword.keywords -> 'a parser -> Symbol_Pos.T list * Position.T -> 'a
   val read_embedded: Proof.context -> Keyword.keywords -> 'a parser -> Input.source -> 'a
   val read_embedded_src: Proof.context -> Keyword.keywords -> 'a parser -> Token.src -> 'a
@@ -505,11 +504,9 @@ val options = $$$ "[" |-- list1 option --| $$$ "]";
 (* embedded ML *)
 
 val embedded_ml =
+  input underscore >> ML_Lex.read_source ||
   embedded_input >> ML_Lex.read_source ||
   control >> (ML_Lex.read_symbols o Antiquote.control_symbols);
-
-val embedded_ml_underscore =
-  input underscore >> ML_Lex.read_source || embedded_ml;
 
 
 (* read embedded source, e.g. for antiquotations *)
