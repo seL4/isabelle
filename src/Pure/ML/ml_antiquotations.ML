@@ -205,14 +205,14 @@ local
 
 val keywords = Keyword.add_minor_keywords ["for", "=>"] Keyword.empty_keywords;
 
-val parse_name = Parse.input Parse.name;
+val parse_name_args =
+  Parse.input Parse.name -- Scan.repeat Parse.embedded_ml;
 
-val parse_args = Scan.repeat Parse.embedded_ml;
-val parse_for_args = Scan.optional (Parse.$$$ "for" |-- Parse.!!! parse_args) [];
+val parse_for_args =
+  Scan.optional (Parse.$$$ "for" |-- Parse.!!! (Scan.repeat1 Parse.embedded_ml)) [];
 
 fun parse_body b =
-  if b then Parse.$$$ "=>" |-- Parse.!!! Parse.embedded_input >> (ML_Lex.read_source #> single)
-  else Scan.succeed [];
+  if b then Parse.$$$ "=>" |-- Parse.!!! (Parse.embedded_ml >> single) else Scan.succeed [];
 
 fun is_dummy [Antiquote.Text tok] = ML_Lex.content_of tok = "_"
   | is_dummy _ = false;
@@ -233,7 +233,7 @@ fun type_antiquotation binding {function} =
     (fn range => fn src => fn ctxt =>
       let
         val ((s, type_args), fn_body) = src
-          |> Parse.read_embedded_src ctxt keywords (parse_name -- parse_args -- parse_body function);
+          |> Parse.read_embedded_src ctxt keywords (parse_name_args -- parse_body function);
         val pos = Input.pos_of s;
 
         val Type (c, Ts) =
@@ -269,7 +269,7 @@ fun const_antiquotation binding {pattern, function} =
       let
         val (((s, type_args), term_args), fn_body) = src
           |> Parse.read_embedded_src ctxt keywords
-              (parse_name -- parse_args -- parse_for_args -- parse_body function);
+              (parse_name_args -- parse_for_args -- parse_body function);
 
         val Const (c, T) =
           Proof_Context.read_const {proper = true, strict = true} ctxt
