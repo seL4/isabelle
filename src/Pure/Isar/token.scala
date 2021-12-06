@@ -32,7 +32,6 @@ object Token
     /*delimited content*/
     val STRING = Value("string")
     val ALT_STRING = Value("back-quoted string")
-    val VERBATIM = Value("verbatim text")
     val CARTOUCHE = Value("text cartouche")
     val CONTROL = Value("control cartouche")
     val INFORMAL_COMMENT = Value("informal comment")
@@ -53,13 +52,12 @@ object Token
     {
       val string = quoted("\"") ^^ (x => Token(Token.Kind.STRING, x))
       val alt_string = quoted("`") ^^ (x => Token(Token.Kind.ALT_STRING, x))
-      val verb = verbatim ^^ (x => Token(Token.Kind.VERBATIM, x))
       val cmt = comment ^^ (x => Token(Token.Kind.INFORMAL_COMMENT, x))
       val formal_cmt = comment_cartouche ^^ (x => Token(Token.Kind.FORMAL_COMMENT, x))
       val cart = cartouche ^^ (x => Token(Token.Kind.CARTOUCHE, x))
       val ctrl = control_cartouche ^^ (x => Token(Token.Kind.CONTROL, x))
 
-      string | (alt_string | (verb | (cmt | (formal_cmt | (cart | ctrl)))))
+      string | (alt_string | (cmt | (formal_cmt | (cart | ctrl))))
     }
 
     private def other_token(keywords: Keyword.Keywords): Parser[Token] =
@@ -99,8 +97,7 @@ object Token
       val recover_delimited =
         (recover_quoted("\"") |
           (recover_quoted("`") |
-            (recover_verbatim |
-              (recover_cartouche | recover_comment)))) ^^ (x => Token(Token.Kind.ERROR, x))
+            (recover_cartouche | recover_comment))) ^^ (x => Token(Token.Kind.ERROR, x))
 
       val bad = one(_ => true) ^^ (x => Token(Token.Kind.ERROR, x))
 
@@ -119,14 +116,13 @@ object Token
         quoted_line("\"", ctxt) ^^ { case (x, c) => (Token(Token.Kind.STRING, x), c) }
       val alt_string =
         quoted_line("`", ctxt) ^^ { case (x, c) => (Token(Token.Kind.ALT_STRING, x), c) }
-      val verb = verbatim_line(ctxt) ^^ { case (x, c) => (Token(Token.Kind.VERBATIM, x), c) }
       val cart = cartouche_line(ctxt) ^^ { case (x, c) => (Token(Token.Kind.CARTOUCHE, x), c) }
       val cmt = comment_line(ctxt) ^^ { case (x, c) => (Token(Token.Kind.INFORMAL_COMMENT, x), c) }
       val formal_cmt =
         comment_cartouche_line(ctxt) ^^ { case (x, c) => (Token(Token.Kind.FORMAL_COMMENT, x), c) }
       val other = other_token(keywords) ^^ { case x => (x, Scan.Finished) }
 
-      string | (alt_string | (verb | (cart | (cmt | (formal_cmt | other)))))
+      string | (alt_string | (cart | (cmt | (formal_cmt | other))))
     }
   }
 
@@ -286,7 +282,6 @@ sealed case class Token(kind: Token.Kind.Value, source: String)
     kind == Token.Kind.VAR ||
     kind == Token.Kind.TYPE_IDENT ||
     kind == Token.Kind.TYPE_VAR
-  def is_text: Boolean = is_embedded || kind == Token.Kind.VERBATIM
   def is_space: Boolean = kind == Token.Kind.SPACE
   def is_informal_comment: Boolean = kind == Token.Kind.INFORMAL_COMMENT
   def is_formal_comment: Boolean = kind == Token.Kind.FORMAL_COMMENT
@@ -302,7 +297,6 @@ sealed case class Token(kind: Token.Kind.Value, source: String)
   def is_unfinished: Boolean = is_error &&
    (source.startsWith("\"") ||
     source.startsWith("`") ||
-    source.startsWith("{*") ||
     source.startsWith("(*") ||
     source.startsWith(Symbol.open) ||
     source.startsWith(Symbol.open_decoded))
@@ -319,7 +313,6 @@ sealed case class Token(kind: Token.Kind.Value, source: String)
   def content: String =
     if (kind == Token.Kind.STRING) Scan.Parsers.quoted_content("\"", source)
     else if (kind == Token.Kind.ALT_STRING) Scan.Parsers.quoted_content("`", source)
-    else if (kind == Token.Kind.VERBATIM) Scan.Parsers.verbatim_content(source)
     else if (kind == Token.Kind.CARTOUCHE) Scan.Parsers.cartouche_content(source)
     else if (kind == Token.Kind.INFORMAL_COMMENT) Scan.Parsers.comment_content(source)
     else if (kind == Token.Kind.FORMAL_COMMENT) Comment.content(source)

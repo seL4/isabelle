@@ -11,7 +11,7 @@ sig
     Command | Keyword | Ident | Long_Ident | Sym_Ident | Var | Type_Ident | Type_Var | Nat |
     Float | Space |
     (*delimited content*)
-    String | Alt_String | Verbatim | Cartouche |
+    String | Alt_String | Cartouche |
     Control of Antiquote.control |
     Comment of Comment.kind option |
     (*special content*)
@@ -123,7 +123,7 @@ datatype kind =
   Command | Keyword | Ident | Long_Ident | Sym_Ident | Var | Type_Ident | Type_Var | Nat |
   Float | Space |
   (*delimited content*)
-  String | Alt_String | Verbatim | Cartouche |
+  String | Alt_String | Cartouche |
   Control of Antiquote.control |
   Comment of Comment.kind option |
   (*special content*)
@@ -151,7 +151,6 @@ val str_of_kind =
   | Space => "white space"
   | String => "quoted string"
   | Alt_String => "back-quoted string"
-  | Verbatim => "verbatim text"
   | Cartouche => "text cartouche"
   | Control _ => "control cartouche"
   | Comment NONE => "informal comment"
@@ -166,7 +165,6 @@ val immediate_kinds =
 val delimited_kind =
   (fn String => true
     | Alt_String => true
-    | Verbatim => true
     | Cartouche => true
     | Control _ => true
     | Comment _ => true
@@ -323,7 +321,6 @@ val token_kind_markup =
   | Type_Var => (Markup.tvar, "")
   | String => (Markup.string, "")
   | Alt_String => (Markup.alt_string, "")
-  | Verbatim => (Markup.verbatim, "")
   | Cartouche => (Markup.cartouche, "")
   | Control _ => (Markup.cartouche, "")
   | Comment _ => (Markup.comment, "")
@@ -374,7 +371,6 @@ fun unparse (Token (_, (kind, x), _)) =
   (case kind of
     String => Symbol_Pos.quote_string_qq x
   | Alt_String => Symbol_Pos.quote_string_bq x
-  | Verbatim => enclose "{*" "*}" x
   | Cartouche => cartouche x
   | Control control => Symbol_Pos.content (Antiquote.control_symbols control)
   | Comment NONE => enclose "(*" "*)" x
@@ -624,22 +620,6 @@ fun ident_or_symbolic "begin" = false
   | ident_or_symbolic s = Symbol_Pos.is_identifier s orelse is_symid s;
 
 
-(* scan verbatim text *)
-
-val scan_verb =
-  $$$ "*" --| Scan.ahead (~$$ "}") ||
-  Scan.one (fn (s, _) => s <> "*" andalso Symbol.not_eof s) >> single;
-
-val scan_verbatim =
-  Scan.ahead ($$ "{" -- $$ "*") |--
-    !!! "unclosed verbatim text"
-      ((Symbol_Pos.scan_pos --| $$ "{" --| $$ "*") --
-        (Scan.repeats scan_verb -- ($$ "*" |-- $$ "}" |-- Symbol_Pos.scan_pos)));
-
-val recover_verbatim =
-  $$$ "{" @@@ $$$ "*" @@@ Scan.repeats scan_verb;
-
-
 (* scan cartouche *)
 
 val scan_cartouche =
@@ -678,7 +658,6 @@ fun token_range k (pos1, (ss, pos2)) =
 fun scan_token keywords = !!! "bad input"
   (Symbol_Pos.scan_string_qq err_prefix >> token_range String ||
     Symbol_Pos.scan_string_bq err_prefix >> token_range Alt_String ||
-    scan_verbatim >> token_range Verbatim ||
     scan_comment >> token_range (Comment NONE) ||
     Comment.scan_outer >> (fn (k, ss) => token (Comment (SOME k)) ss) ||
     scan_cartouche >> token_range Cartouche ||
@@ -701,7 +680,6 @@ fun scan_token keywords = !!! "bad input"
 fun recover msg =
   (Symbol_Pos.recover_string_qq ||
     Symbol_Pos.recover_string_bq ||
-    recover_verbatim ||
     Symbol_Pos.recover_cartouche ||
     Symbol_Pos.recover_comment ||
     Scan.one (Symbol.not_eof o Symbol_Pos.symbol) >> single)

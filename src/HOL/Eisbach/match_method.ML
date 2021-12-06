@@ -95,7 +95,7 @@ fun parse_named_pats match_kind =
         else
           let val b = #1 (the opt_dyn)
           in error ("Cannot bind fact name in term match" ^ Position.here (pos_of b)) end)) --
-  Scan.lift (for_fixes -- (\<^keyword>\<open>\<Rightarrow>\<close> |-- Parse.token Parse.text))
+  Scan.lift (for_fixes -- (\<^keyword>\<open>\<Rightarrow>\<close> |-- Parse.token Parse.embedded))
   >> (fn ((ctxt, ts), (fixes, body)) =>
     (case Token.get_value body of
       SOME (Token.Source src) =>

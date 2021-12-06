@@ -7,6 +7,12 @@ Isabelle NEWS -- history of user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** General ***
+
+* Old-style {* verbatim *} tokens have been discontinued (legacy feature
+since Isabelle2019). INCOMPATIBILITY, use \<open>cartouche\<close> syntax instead.
+
+
 *** HOL ***
 
 * Theory "HOL.Relation": Added lemmas asymp_less and asymp_greater to

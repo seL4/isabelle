@@ -110,7 +110,7 @@ datatype unop =  UPlus    \<comment> \<open>{\tt +} unary plus\<close>
                | UNot     \<comment> \<open>{\tt !} logical complement\<close>
 
 \<comment> \<open>function codes for binary operations\<close>
-datatype binop = Mul     \<comment> \<open>{\tt * }   multiplication\<close>
+datatype binop = Mul     \<comment> \<open>{\tt *}   multiplication\<close>
                | Div     \<comment> \<open>{\tt /}   division\<close>
                | Mod     \<comment> \<open>{\tt \%}   remainder\<close>
                | Plus    \<comment> \<open>{\tt +}   addition\<close>

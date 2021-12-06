@@ -30,7 +30,6 @@ sig
   val string: string parser
   val string_position: (string * Position.T) parser
   val alt_string: string parser
-  val verbatim: string parser
   val cartouche: string parser
   val control: Antiquote.control parser
   val eof: string parser
@@ -70,7 +69,6 @@ sig
   val embedded_inner_syntax: string parser
   val embedded_input: Input.source parser
   val embedded_position: (string * Position.T) parser
-  val text: string parser
   val path_input: Input.source parser
   val path: string parser
   val path_binding: (string * Position.T) parser
@@ -199,7 +197,6 @@ val number = kind Token.Nat;
 val float_number = kind Token.Float;
 val string = kind Token.String;
 val alt_string = kind Token.Alt_String;
-val verbatim = kind Token.Verbatim;
 val cartouche = kind Token.Cartouche;
 val control = token (kind Token.control_kind) >> (the o Token.get_control);
 val eof = kind Token.EOF;
@@ -287,8 +284,6 @@ val embedded =
 val embedded_inner_syntax = inner_syntax embedded;
 val embedded_input = input embedded;
 val embedded_position = embedded_input >> Input.source_content;
-
-val text = group (fn () => "text") (embedded || verbatim);
 
 val path_input = group (fn () => "file name/path specification") embedded_input;
 val path = path_input >> Input.string_of;
@@ -399,8 +394,8 @@ val for_fixes = Scan.optional ($$$ "for" |-- !!! vars) [];
 
 (* embedded source text *)
 
-val ML_source = input (group (fn () => "ML source") text);
-val document_source = input (group (fn () => "document source") text);
+val ML_source = input (group (fn () => "ML source") embedded);
+val document_source = input (group (fn () => "document source") embedded);
 
 val document_marker =
   group (fn () => "document marker")
@@ -440,7 +435,7 @@ local
 
 val argument_kinds =
  [Token.Ident, Token.Long_Ident, Token.Sym_Ident, Token.Var, Token.Type_Ident, Token.Type_Var,
-  Token.Nat, Token.Float, Token.String, Token.Alt_String, Token.Cartouche, Token.Verbatim];
+  Token.Nat, Token.Float, Token.String, Token.Alt_String, Token.Cartouche];
 
 fun arguments is_symid =
   let

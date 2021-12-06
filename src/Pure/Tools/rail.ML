@@ -387,7 +387,7 @@ fun output_rules ctxt rules =
   in Latex.environment "railoutput" (maps output_rule rules) end;
 
 val _ = Theory.setup
-  (Document_Output.antiquotation_raw_embedded \<^binding>\<open>rail\<close> (Scan.lift Args.text_input)
+  (Document_Output.antiquotation_raw_embedded \<^binding>\<open>rail\<close> (Scan.lift Parse.embedded_input)
     (fn ctxt => output_rules ctxt o read ctxt));
 
 end;

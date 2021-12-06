@@ -172,7 +172,6 @@ fun output_token ctxt tok =
         else output false "" ""
     | Token.String => output false "{\\isachardoublequoteopen}" "{\\isachardoublequoteclose}"
     | Token.Alt_String => output false "{\\isacharbackquoteopen}" "{\\isacharbackquoteclose}"
-    | Token.Verbatim => output true "{\\isacharverbatimopen}" "{\\isacharverbatimclose}"
     | Token.Cartouche => output false "{\\isacartoucheopen}" "{\\isacartoucheclose}"
     | Token.Control control => output_body ctxt false "" "" (Antiquote.control_symbols control)
     | _ => output false "" "")

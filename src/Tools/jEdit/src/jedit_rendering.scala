@@ -70,7 +70,6 @@ object JEdit_Rendering
       Token.Kind.SPACE -> NULL,
       Token.Kind.STRING -> LITERAL1,
       Token.Kind.ALT_STRING -> LITERAL2,
-      Token.Kind.VERBATIM -> COMMENT3,
       Token.Kind.CARTOUCHE -> COMMENT3,
       Token.Kind.CONTROL -> COMMENT3,
       Token.Kind.INFORMAL_COMMENT -> COMMENT1,

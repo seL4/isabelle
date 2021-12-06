@@ -14,8 +14,6 @@ object Update_Cartouches
 {
   /* update cartouches */
 
-  private val Verbatim_Body = """(?s)[ \t]*(.*?)[ \t]*""".r
-
   val Text_Antiq: Regex = """(?s)@\{\s*text\b\s*(.+)\}""".r
 
   def update_text(content: String): String =
@@ -46,12 +44,6 @@ object Update_Cartouches
       (for (tok <- Token.explode(Keyword.Keywords.empty, text0).iterator)
         yield {
           if (tok.kind == Token.Kind.ALT_STRING) Symbol.cartouche(tok.content)
-          else if (tok.kind == Token.Kind.VERBATIM) {
-            tok.content match {
-              case Verbatim_Body(s) => Symbol.cartouche(s)
-              case s => tok.source
-            }
-          }
           else tok.source
         }
       ).mkString
@@ -96,7 +88,7 @@ Usage: isabelle update_cartouches [FILES|DIRS...]
     -t           replace @{text} antiquotations within text tokens
 
   Recursively find .thy or ROOT files and update theory syntax to use
-  cartouches instead of old-style {* verbatim *} or `alt_string` tokens.
+  cartouches instead of `alt_string` tokens.
 
   Old versions of files are preserved by appending "~~".
 """,

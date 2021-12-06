@@ -23,7 +23,7 @@ object Update_Comments
         case tok :: rest
         if tok.source == "--" || tok.source == Symbol.comment =>
           rest.dropWhile(_.is_space) match {
-            case tok1 :: rest1 if tok1.is_text =>
+            case tok1 :: rest1 if tok1.is_embedded =>
               update(rest1, make_comment(tok1) :: result)
             case _ => update(rest, tok.source :: result)
           }

@@ -27,9 +27,6 @@ sig
   val name_position: (string * Position.T) parser
   val cartouche_inner_syntax: string parser
   val cartouche_input: Input.source parser
-  val text_token: Token.T parser
-  val text_input: Input.source parser
-  val text: string parser
   val binding: binding parser
   val alt_name: string parser
   val liberal_name: string parser
@@ -47,8 +44,7 @@ sig
   val named_fact: (string -> string option * thm list) -> thm list parser
   val named_attribute: (string * Position.T -> morphism -> attribute) ->
     (morphism -> attribute) parser
-  val text_declaration: (Input.source -> declaration) -> declaration parser
-  val cartouche_declaration: (Input.source -> declaration) -> declaration parser
+  val embedded_declaration: (Input.source -> declaration) -> declaration parser
   val typ_abbrev: typ context_parser
   val typ: typ context_parser
   val term: term context_parser
@@ -110,10 +106,6 @@ val cartouche = Parse.token Parse.cartouche;
 val cartouche_inner_syntax = cartouche >> Token.inner_syntax_of;
 val cartouche_input = cartouche >> Token.input_of;
 
-val text_token = Parse.token (Parse.embedded || Parse.verbatim);
-val text_input = text_token >> Token.input_of;
-val text = text_token >> Token.content_of;
-
 val binding = Parse.input name >> (Binding.make o Input.source_content);
 val alt_name = alt_string >> Token.content_of;
 val liberal_name = (symbolic >> Token.content_of) || name;
@@ -157,11 +149,9 @@ fun named_attribute att =
   name_token >>
     Token.evaluate Token.Attribute (fn tok => att (Token.content_of tok, Token.pos_of tok));
 
-fun text_declaration read =
-  internal_declaration || text_token >> Token.evaluate Token.Declaration (read o Token.input_of);
-
-fun cartouche_declaration read =
-  internal_declaration || cartouche >> Token.evaluate Token.Declaration (read o Token.input_of);
+fun embedded_declaration read =
+  internal_declaration ||
+  Parse.token Parse.embedded >> Token.evaluate Token.Declaration (read o Token.input_of);
 
 
 (* terms and types *)
