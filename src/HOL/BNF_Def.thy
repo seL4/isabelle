@@ -139,7 +139,7 @@ definition "pick_middlep P Q a c = (SOME b. P a b \<and> Q b c)"
 
 lemma pick_middlep:
   "(P OO Q) a c \<Longrightarrow> P a (pick_middlep P Q a c) \<and> Q (pick_middlep P Q a c) c"
-  unfolding pick_middlep_def apply(rule someI_ex) by auto
+  unfolding pick_middlep_def by (rule someI_ex) auto
 
 definition fstOp where
   "fstOp P Q ac = (fst ac, pick_middlep P Q (fst ac) (snd ac))"
