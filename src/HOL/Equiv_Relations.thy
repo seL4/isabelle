@@ -368,7 +368,7 @@ proof -
   have eqv: "equiv S ?r"
     unfolding relation_of_def by (auto intro: comp_equivI)
   have finite: "C \<in> S//?r \<Longrightarrow> finite C" for C
-    by (fact finite_equiv_class[OF `finite S` equiv_type[OF `equiv S ?r`]])
+    by (fact finite_equiv_class[OF \<open>finite S\<close> equiv_type[OF \<open>equiv S ?r\<close>]])
   have disjoint: "A \<in> S//?r \<Longrightarrow> B \<in> S//?r \<Longrightarrow> A \<noteq> B \<Longrightarrow> A \<inter> B = {}" for A B
     using eqv quotient_disj by blast
 
