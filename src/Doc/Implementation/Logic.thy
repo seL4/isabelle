@@ -491,7 +491,7 @@ text %mlantiq \<open>
     @{syntax_def term_const}:
       @{syntax name} (@{syntax embedded_ml}*) (@{syntax for_args})?
     ;
-    @{syntax_def type_const_fn}: @{ syntax term_const} @'=>' @{syntax embedded}
+    @{syntax_def term_const_fn}: @{ syntax term_const} @'=>' @{syntax embedded}
     ;
     @{syntax_def for_args}: @'for' (@{syntax embedded_ml}*)
   \<close>
