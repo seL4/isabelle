@@ -321,15 +321,25 @@ section \<open>Registered Isabelle/Scala functions \label{sec:scala-functions}\<
 subsection \<open>Defining functions in Isabelle/Scala\<close>
 
 text \<open>
-  A Scala functions of type \<^scala_type>\<open>String => String\<close> may be wrapped as
-  \<^scala_type>\<open>isabelle.Scala.Fun\<close> and collected via an instance of the
-  class \<^scala_type>\<open>isabelle.Scala.Functions\<close>. A system component can then
-  register that class via \<^verbatim>\<open>services\<close> in \<^path>\<open>etc/build.props\<close>
-  (\secref{sec:scala-build}). An example is the predefined collection of
-  \<^scala_type>\<open>isabelle.Scala.Functions\<close> in \<^file>\<open>$ISABELLE_HOME/etc/build.props\<close>.
+  The service class \<^scala_type>\<open>isabelle.Scala.Functions\<close> collects Scala
+  functions of type \<^scala_type>\<open>isabelle.Scala.Fun\<close>: by registering
+  instances via \<^verbatim>\<open>services\<close> in \<^path>\<open>etc/build.props\<close>
+  (\secref{sec:scala-build}), it is becomes possible to invoke Isabelle/Scala
+  from Isabelle/ML (see below).
 
-  The overall list of registered functions is accessible in Isabelle/Scala as
+  An example is the predefined collection of
+  \<^scala_type>\<open>isabelle.Scala.Functions\<close> in
+  \<^file>\<open>$ISABELLE_HOME/etc/build.props\<close>. The overall list of registered functions
+  is accessible in Isabelle/Scala as
   \<^scala_object>\<open>isabelle.Scala.functions\<close>.
+
+  The general class \<^scala_type>\<open>isabelle.Scala.Fun\<close> expects a multi-argument
+  / multi-result function
+  \<^scala_type>\<open>List[isabelle.Bytes] => List[isabelle.Bytes]\<close>; more common are
+  instances of \<^scala_type>\<open>isabelle.Scala.Fun_Strings\<close> for type
+  \<^scala_type>\<open>List[String] => List[String]\<close>, or
+  \<^scala_type>\<open>isabelle.Scala.Fun_String\<close> for type
+  \<^scala_type>\<open>String => String\<close>.
 \<close>
 
 
