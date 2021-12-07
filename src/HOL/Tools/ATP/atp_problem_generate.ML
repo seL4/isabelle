@@ -1621,7 +1621,8 @@ fun add_iterm_syms_to_sym_table ctxt app_op_level conj_fact =
     fun consider_var_ary const_T var_T max_ary =
       let
         fun iter ary T =
-          if ary = max_ary orelse type_instance thy var_T T orelse type_instance thy T var_T then
+          if ary = max_ary orelse type_instance thy var_T T orelse type_instance thy T var_T orelse
+             not (can dest_funT T) then
             ary
           else
             iter (ary + 1) (range_type T)
