@@ -268,7 +268,7 @@ ML \<open>
   val th = Rewrite.rewrite_conv ctxt (pat, to) @{thms add.commute} ct
 \<close>
 
-section \<open>Regression tests\<close>
+text \<open>Some regression tests\<close>
 
 ML \<open>
   val ct = \<^cterm>\<open>(\<lambda>b :: int. (\<lambda>a. b + a))\<close>
