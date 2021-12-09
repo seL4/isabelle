@@ -4,11 +4,12 @@ begin
 
 section \<open>The rewrite Proof Method by Example\<close>
 
-(* This file is intended to give an overview over
-   the features of the pattern-based rewrite proof method.
+text\<open>
+This theory gives an overview over the features of the pattern-based rewrite proof method.
 
-   See also https://www21.in.tum.de/~noschinl/Pattern-2014/
-*)
+Documentation: @{url "https://arxiv.org/abs/2111.04082"}
+\<close>
+
 lemma
   fixes a::int and b::int and c::int
   assumes "P (b + a)"

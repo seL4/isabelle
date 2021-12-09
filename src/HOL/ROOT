@@ -36,6 +36,7 @@ session "HOL-Examples" in Examples = HOL +
     "ML"
     Peirce
     Records
+    Rewrite_Examples
     Seq
     Sqrt
   document_files
@@ -695,7 +696,6 @@ session "HOL-ex" (timing) in ex = "HOL-Number_Theory" +
     Reflection_Examples
     Refute_Examples
     Residue_Ring
-    Rewrite_Examples
     SOS
     SOS_Cert
     Serbian

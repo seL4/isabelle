@@ -2,6 +2,8 @@
     Author:     Christoph Traut, Lars Noschinski, TU Muenchen
 
 Proof method "rewrite" with support for subterm-selection based on patterns.
+
+Documentation: https://arxiv.org/abs/2111.04082
 *)
 
 theory Rewrite
