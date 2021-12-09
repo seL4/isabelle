@@ -1189,10 +1189,10 @@ fun unmangled_const s =
 
 val unmangled_invert_const = invert_const o hd o unmangled_const_name
 
-fun vars_of_iterm vars (IConst ((s, _), _, _)) = insert (op =) s vars
-  | vars_of_iterm vars (IVar ((s, _), _)) = insert (op =) s vars
-  | vars_of_iterm vars (IApp (tm1, tm2)) = union (op =) (vars_of_iterm vars tm1) (vars_of_iterm vars tm2)
-  | vars_of_iterm vars (IAbs (_, tm)) = vars_of_iterm vars tm
+fun vars_of_iterm (IConst ((s, _), _, _)) = [s]
+  | vars_of_iterm (IVar ((s, _), _)) = [s]
+  | vars_of_iterm (IApp (tm1, tm2)) = union (op =) (vars_of_iterm tm1) (vars_of_iterm tm2)
+  | vars_of_iterm (IAbs (((s, _), _), tm)) = insert (op =) s (vars_of_iterm tm)
 
 fun generate_unique_name gen unique n =
   let val x = gen n in
@@ -1203,7 +1203,7 @@ fun eta_expand_quantifier_body (tm as IAbs _) = tm
   | eta_expand_quantifier_body tm =
     let
       (* We accumulate all variables because E 2.5 does not support variable shadowing. *)
-      val vars = vars_of_iterm [] tm
+      val vars = vars_of_iterm tm
       val x = generate_unique_name
         (fn n => "X" ^ (if n = 0 then "" else string_of_int n))
         (fn name => not (exists (equal name) vars)) 0
