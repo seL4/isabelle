@@ -458,8 +458,7 @@ fun normalize_classes cls = if member (op =) cls class_of_types then [] else cls
 fun make_axiom_tcon_clause (s, name, (cl, args)) =
   let
     val args = args |> map normalize_classes
-    val tvars =
-      1 upto length args |> map (fn j => TVar ((tvar_a_str, j), \<^sort>\<open>type\<close>))
+    val tvars = args |> map_index (fn (j, _) => TVar ((tvar_a_str, j + 1), \<^sort>\<open>type\<close>))
   in (name, args ~~ tvars, (cl, Type (s, tvars))) end
 
 (* Generate all pairs (tycon, class, sorts) such that tycon belongs to class in
@@ -857,12 +856,9 @@ fun do_cheaply_conceal_lambdas Ts (t1 $ t2) =
   | do_cheaply_conceal_lambdas _ t = t
 
 fun concealed_bound_name j = atp_weak_prefix ^ string_of_int j
-fun conceal_bounds Ts t =
-  subst_bounds (map (Free o apfst concealed_bound_name)
-                    (0 upto length Ts - 1 ~~ Ts), t)
+fun conceal_bounds Ts t = subst_bounds (map_index (Free o apfst concealed_bound_name) Ts, t)
 fun reveal_bounds Ts =
-  subst_atomic (map (fn (j, T) => (Free (concealed_bound_name j, T), Bound j))
-                    (0 upto length Ts - 1 ~~ Ts))
+  subst_atomic (map_index (fn (j, T) => (Free (concealed_bound_name j, T), Bound j)) Ts)
 
 fun do_introduce_combinators ctxt Ts t =
   (t |> conceal_bounds Ts
@@ -917,7 +913,7 @@ fun intentionalize_def (Const (\<^const_name>\<open>All\<close>, _) $ Abs (_, _,
       val head_T = fastype_of head
       val n = length args
       val arg_Ts = head_T |> binder_types |> take n |> rev
-      val u = u |> subst_atomic (args ~~ map Bound (0 upto n - 1))
+      val u = u |> subst_atomic (map_index (swap o apfst Bound) args)
     in HOLogic.eq_const head_T $ head $ fold lam arg_Ts u end
   | intentionalize_def t = t
 
@@ -1429,11 +1425,9 @@ fun preprocess_abstractions_in_terms trans_lams facts =
     val (facts, lambda_ts) =
       facts |> map (snd o snd) |> trans_lams
             |>> map2 (fn (name, (role, _)) => fn t => (name, (role, t))) facts
-    val lam_facts =
-      map2 (fn t => fn j =>
-               ((lam_fact_prefix ^ Int.toString j,
-                 (Global, Non_Rec_Def)), (Axiom, t)))
-           lambda_ts (1 upto length lambda_ts)
+    val lam_facts = lambda_ts
+      |> map_index (fn (j, t) =>
+         ((lam_fact_prefix ^ Int.toString (j + 1), (Global, Non_Rec_Def)), (Axiom, t)))
   in (facts, lam_facts) end
 
 (* Metis's use of "resolve_tac" freezes the schematic variables. We simulate this in Sledgehammer to
@@ -1525,7 +1519,7 @@ fun type_arg_cover thy pos s ary =
       if forall null footprint then
         []
       else
-        0 upto length footprint - 1 ~~ footprint
+        map_index I footprint
         |> sort (rev_order o list_ord Term_Ord.indexname_ord o apply2 snd)
         |> cover []
     end
@@ -2094,7 +2088,7 @@ fun translate_formulas simp_options ctxt prem_role format type_enc lam_trans pre
     val facts = facts |> map (apsnd (pair Axiom))
     val conjs =
       map (pair prem_role) hyp_ts @ [(Conjecture, s_not_prop concl_t)]
-      |> map2 (pair o rpair (Local, General) o string_of_int) (0 upto length hyp_ts)
+      |> map_index (apfst (rpair (Local, General) o string_of_int))
     val ((conjs, facts), lam_facts) =
       (conjs, facts)
       |> presimp ? apply2 (map (apsnd (apsnd (presimp_prop simp_options ctxt type_enc))))
@@ -2145,8 +2139,7 @@ fun is_var_undercover_in_term thy name pos tm accum =
           val ary = length tms
           val cover = type_arg_cover thy pos s ary
         in
-          exists (fn (j, tm) => tm = var andalso member (op =) cover j)
-                 (0 upto ary - 1 ~~ tms) orelse
+          exists (fn (j, tm) => tm = var andalso member (op =) cover j) (map_index I tms) orelse
           exists is_undercover tms
         end
       | is_undercover _ = true
@@ -2199,7 +2192,7 @@ and atp_term_of_iterm ctxt mono type_enc pos =
               val ary = length args
               fun arg_site j = if is_tptp_equal s then Eq_Arg pos else Arg (s, j, ary)
             in
-              map2 (fn j => term (arg_site j)) (0 upto ary - 1) args
+              map_index (fn (j, arg) => term (arg_site j) arg) args
               |> mk_aterm type_enc name T_args
             end
           | IVar (name, _) =>
@@ -2313,7 +2306,7 @@ fun lines_of_free_types type_enc (facts : ifact list) =
   if is_type_enc_polymorphic type_enc then
     let
       val type_classes = (polymorphism_of_type_enc type_enc = Type_Class_Polymorphic)
-      fun line j (cl, T) =
+      fun line (j, (cl, T)) =
         if type_classes then
           Class_Memb (class_memb_prefix ^ string_of_int j, [],
             native_atp_type_of_typ type_enc false 0 T, `make_class cl)
@@ -2324,7 +2317,7 @@ fun lines_of_free_types type_enc (facts : ifact list) =
         fold (union (op =)) (map #atomic_types facts) []
         |> class_membs_of_types type_enc add_sorts_on_tfree
     in
-      map2 line (0 upto length membs - 1) membs
+      map_index line membs
     end
   else
     []
@@ -2543,14 +2536,13 @@ fun line_of_guards_sym_decl ctxt generate_info mono type_enc n s j
     val (role, maybe_negate) = honor_conj_sym_role in_conj
     val (arg_Ts, res_T) = chop_fun ary T
     val bound_names = 1 upto ary |> map (`I o make_bound_var o string_of_int)
-    val bounds =
-      bound_names ~~ arg_Ts |> map (fn (name, T) => IConst (name, T, []))
+    val bounds = map2 (fn name => fn T => IConst (name, T, [])) bound_names arg_Ts
     val bound_Ts =
       (case level_of_type_enc type_enc of
         All_Types => if null T_args then replicate ary NONE else map SOME arg_Ts
       | Undercover_Types =>
         let val cover = type_arg_cover thy NONE s ary in
-          map2 (fn j => if member (op =) cover j then SOME else K NONE) (0 upto ary - 1) arg_Ts
+          map_index (fn (j, arg_T) => if member (op =) cover j then SOME arg_T else NONE) arg_Ts
         end
       | _ => replicate ary NONE)
   in
@@ -2594,7 +2586,7 @@ fun lines_of_tags_sym_decl ctxt generate_info mono type_enc n s
       let
         val cover = type_arg_cover thy NONE s ary
         fun maybe_tag (j, arg_T) = member (op =) cover j ? tag_with arg_T
-        val bounds = bounds |> map2 maybe_tag (0 upto ary - 1 ~~ arg_Ts)
+        val bounds = bounds |> map2 maybe_tag (map_index I arg_Ts)
       in formula (cst bounds) end
     else
       formula (cst bounds)
@@ -2621,15 +2613,14 @@ fun lines_of_sym_decls ctxt generate_info mono type_enc (s, decls) =
       val n = length decls
       val decls = decls |> filter (should_encode_type ctxt mono level o result_type_of_decl)
     in
-      (0 upto length decls - 1, decls)
-      |-> map2 (line_of_guards_sym_decl ctxt generate_info mono type_enc n s)
+      map_index (uncurry (line_of_guards_sym_decl ctxt generate_info mono type_enc n s)) decls
     end
   | Tags (_, level) =>
     if is_type_level_uniform level then
       []
     else
       let val n = length decls in
-        (0 upto n - 1 ~~ decls)
+        map_index I decls
         |> maps (lines_of_tags_sym_decl ctxt generate_info mono type_enc n s)
       end)
 
@@ -2883,15 +2874,15 @@ fun generate_atp_problem ctxt generate_info format prem_role type_enc mode lam_t
     val freshen = mode <> Exporter andalso mode <> Translator
     val pos = mode <> Exporter
     val rank_of = rank_of_fact_num num_facts
-    val fact_lines =
-      map (line_of_fact ctxt generate_info fact_prefix ascii_of I freshen pos mono type_enc rank_of)
-        (0 upto num_facts - 1 ~~ facts)
+    val fact_lines = facts
+      |> map_index (line_of_fact ctxt generate_info fact_prefix ascii_of I freshen pos mono type_enc
+         rank_of)
+
     val subclass_lines = maps (lines_of_subclass_pair generate_info type_enc) subclass_pairs
     val tcon_lines = map (line_of_tcon_clause generate_info type_enc) tcon_clauses
-    val helper_lines =
-      0 upto length helpers - 1 ~~ helpers
-      |> map (line_of_fact ctxt generate_info helper_prefix I (K "") false true mono type_enc
-        (K default_rank))
+    val helper_lines = helpers
+      |> map_index (line_of_fact ctxt generate_info helper_prefix I (K "") false true mono type_enc
+         (K default_rank))
     val free_type_lines = lines_of_free_types type_enc (facts @ conjs)
     val conj_lines = map (line_of_conjecture ctxt mono type_enc) conjs
     (* Reordering these might confuse the proof reconstruction code. *)
@@ -2948,7 +2939,7 @@ fun atp_problem_selection_weights problem =
           fact_min_weight + (fact_max_weight - fact_min_weight) * Real.fromInt j
                             / Real.fromInt num_facts
       in
-        map weight_of (0 upto num_facts - 1) ~~ facts
+        map_index (apfst weight_of) facts
         |> fold (uncurry add_line_weights)
       end
     val get = these o AList.lookup (op =) problem
