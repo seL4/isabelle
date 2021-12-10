@@ -246,8 +246,6 @@ fun auto_etc_tac lthy timeout assms i =
   ORELSE SOLVE_TIMEOUT (timeout div 10) "meson" (Meson.meson_tac lthy [] i)
   ORELSE SOLVE_TIMEOUT (timeout div 10) "fastforce" (fast_force_tac lthy i)
 
-fun problem_const_prefix thy = Context.theory_name thy ^ Long_Name.separator
-
 fun make_conj (defs, nondefs) conjs =
   Logic.list_implies (rev defs @ rev nondefs, case conjs of conj :: _ => conj | [] => \<^prop>\<open>False\<close>)
 
@@ -298,9 +296,9 @@ fun translate_tptp_file thy format_str file_name =
     val (format, type_enc, lam_trans) =
       (case format_str of
         "FOF" => (FOF, "mono_guards??", liftingN)
-      | "TF0" => (TFF (Without_FOOL, Monomorphic), "mono_native", liftingN)
-      | "TH0" => (THF (Without_FOOL, Monomorphic, THF_Without_Choice), "mono_native_higher",
-        keep_lamsN)
+      | "TF0" => (TFF (Monomorphic, Without_FOOL), "mono_native", liftingN)
+      | "TH0" => (THF (Monomorphic, {with_ite = false, with_let = false}, THF_Without_Choice),
+        "mono_native_higher", keep_lamsN)
       | "DFG" => (DFG Monomorphic, "mono_native", liftingN)
       | _ => error ("Unknown format " ^ quote format_str ^
         " (expected \"FOF\", \"TF0\", \"TH0\", or \"DFG\")"))

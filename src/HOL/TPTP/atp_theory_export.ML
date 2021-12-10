@@ -36,11 +36,11 @@ datatype inference_policy =
 val prefix = Library.prefix
 val fact_name_of = prefix fact_prefix o ascii_of
 
-fun atp_of_format (THF (_, Polymorphic, _)) = leo3N
-  | atp_of_format (THF (_, Monomorphic, _)) = satallaxN
+fun atp_of_format (THF (Polymorphic, _, _)) = leo3N
+  | atp_of_format (THF (Monomorphic, _, _)) = satallaxN
   | atp_of_format (DFG Monomorphic) = spassN
-  | atp_of_format (TFF (_, Polymorphic)) = alt_ergoN
-  | atp_of_format (TFF (_, Monomorphic)) = vampireN
+  | atp_of_format (TFF (Polymorphic, _)) = alt_ergoN
+  | atp_of_format (TFF (Monomorphic, _)) = vampireN
   | atp_of_format FOF = eN (* FIXME? *)
   | atp_of_format CNF_UEQ = waldmeisterN
   | atp_of_format CNF = eN (* FIXME? *)
