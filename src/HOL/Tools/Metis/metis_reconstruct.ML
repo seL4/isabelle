@@ -682,10 +682,10 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
           SOME ((ax_no, cluster_no),
             clusters_in_term true t |> cluster_no > 1 ? cons (ax_no, cluster_no - 1))
         | _ => raise TERM ("discharge_skolem_premises: Expected Var", [var]))
-
       val prems = Logic.strip_imp_prems (Thm.prop_of prems_imp_false)
-      val substs = prems |> map2 subst_info_of_prem (1 upto length prems)
-                         |> sort (int_ord o apply2 fst)
+      val substs =
+        map_index (fn (i, prem) => subst_info_of_prem (i + 1) prem) prems
+        |> sort (int_ord o apply2 fst)
       val depss = maps (map_filter deps_of_term_subst o snd o snd o snd) substs
       val clusters = maps (op ::) depss
       val ordered_clusters =
@@ -702,7 +702,7 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
                                                   (Integer.add 1)) substs
         |> Int_Tysubst_Table.dest
       val needed_axiom_props =
-        0 upto length axioms - 1 ~~ axioms
+        map_index I axioms
         |> map_filter (fn (_, NONE) => NONE
                         | (ax_no, SOME (_, t)) =>
                           if exists (fn ((ax_no', _), n) =>
