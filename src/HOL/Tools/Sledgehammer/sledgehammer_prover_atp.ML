@@ -99,8 +99,7 @@ fun is_dangerous_prop ctxt =
   transform_elim_prop
   #> (has_bound_or_var_of_type (is_type_surely_finite ctxt) orf is_exhaustive_finite)
 
-fun get_slices slice slices =
-  (0 upto length slices - 1) ~~ slices |> not slice ? (List.last #> single)
+fun get_slices slice slices = map_index I slices |> not slice ? (List.last #> single)
 
 fun get_facts_of_filter _ [(_, facts)] = facts
   | get_facts_of_filter fact_filter factss =

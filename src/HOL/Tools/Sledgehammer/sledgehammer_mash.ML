@@ -195,8 +195,8 @@ fun mesh_facts maybe_distinct _ max_facts [(_, (sels, unks))] =
 fun smooth_weight_of_fact rank = Math.pow (1.3, 15.5 - 0.2 * Real.fromInt rank) + 15.0 (* FUDGE *)
 fun steep_weight_of_fact rank = Math.pow (0.62, log2 (Real.fromInt (rank + 1))) (* FUDGE *)
 
-fun weight_facts_smoothly facts = facts ~~ map smooth_weight_of_fact (0 upto length facts - 1)
-fun weight_facts_steeply facts = facts ~~ map steep_weight_of_fact (0 upto length facts - 1)
+fun weight_facts_smoothly facts = map_index (swap o apfst smooth_weight_of_fact) facts
+fun weight_facts_steeply facts = map_index (swap o apfst steep_weight_of_fact) facts
 
 fun sort_array_suffix cmp needed a =
   let
