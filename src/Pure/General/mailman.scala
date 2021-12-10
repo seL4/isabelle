@@ -81,6 +81,10 @@ object Mailman
 
     def download_msg(target_dir: Path, progress: Progress = new Progress): List[Path] =
       hrefs_msg.flatMap(get(target_dir, _, progress = progress))
+
+    def download(target_dir: Path, progress: Progress = new Progress): List[Path] =
+      download_text(target_dir, progress = progress) :::
+      download_msg(target_dir, progress = progress)
   }
 
 
