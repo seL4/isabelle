@@ -11,24 +11,6 @@ object Document_Build
 {
   /* document variants */
 
-  object Content
-  {
-    def apply(path: Path, content: Bytes): Content = new Content_Bytes(path, content)
-    def apply(path: Path, content: String): Content = new Content_String(path, content)
-  }
-  trait Content
-  {
-    def write(dir: Path): Unit
-  }
-  final class Content_Bytes private[Document_Build](path: Path, content: Bytes) extends Content
-  {
-    def write(dir: Path): Unit = Bytes.write(dir + path, content)
-  }
-  final class Content_String private[Document_Build](path: Path, content: String) extends Content
-  {
-    def write(dir: Path): Unit = File.write(dir + path, content)
-  }
-
   abstract class Document_Name
   {
     def name: String
@@ -39,36 +21,17 @@ object Document_Build
 
   object Document_Variant
   {
-    def parse(name: String, tags: String): Document_Variant =
-      Document_Variant(name, Library.space_explode(',', tags))
-
     def parse(opt: String): Document_Variant =
       Library.space_explode('=', opt) match {
-        case List(name) => Document_Variant(name, Nil)
-        case List(name, tags) => parse(name, tags)
+        case List(name) => Document_Variant(name, Latex.Tags.empty)
+        case List(name, tags) => Document_Variant(name, Latex.Tags(tags))
         case _ => error("Malformed document variant: " + quote(opt))
       }
   }
 
-  sealed case class Document_Variant(name: String, tags: List[String]) extends Document_Name
+  sealed case class Document_Variant(name: String, tags: Latex.Tags) extends Document_Name
   {
-    def print_tags: String = tags.mkString(",")
-    def print: String = if (tags.isEmpty) name else name + "=" + print_tags
-
-    def isabelletags: Content =
-    {
-      val path = Path.explode("isabelletags.sty")
-      val content =
-        Library.terminate_lines(
-          tags.map(tag =>
-            tag.toList match {
-              case '/' :: cs => "\\isafoldtag{" + cs.mkString + "}"
-              case '-' :: cs => "\\isadroptag{" + cs.mkString + "}"
-              case '+' :: cs => "\\isakeeptag{" + cs.mkString + "}"
-              case cs => "\\isakeeptag{" + cs.mkString + "}"
-            }))
-      Content(path, content)
-    }
+    def print: String = if (tags.toString.isEmpty) name else name + "=" + tags.toString
   }
 
   sealed case class Document_Input(name: String, sources: SHA1.Digest)
@@ -155,9 +118,11 @@ object Document_Build
 
   /* context */
 
+  val texinputs: Path = Path.explode("~~/lib/texinputs")
+
   val isabelle_styles: List[Path] =
-    List("comment.sty", "isabelle.sty", "isabellesym.sty", "pdfsetup.sty", "railsetup.sty").
-      map(name => Path.explode("~~/lib/texinputs") + Path.basic(name))
+    List("isabelle.sty", "isabellesym.sty", "pdfsetup.sty", "railsetup.sty").
+      map(name => texinputs + Path.basic(name))
 
   def context(
     session: String,
@@ -167,7 +132,7 @@ object Document_Build
   {
     val info = deps.sessions_structure(session)
     val base = deps(session)
-    val hierarchy = deps.sessions_structure.hierarchy(session)
+    val hierarchy = deps.sessions_structure.build_hierarchy(session)
     new Context(info, base, hierarchy, db_context, progress)
   }
 
@@ -211,32 +176,31 @@ object Document_Build
     def session_theories: List[Document.Node.Name] = base.session_theories
     def document_theories: List[Document.Node.Name] = session_theories ::: base.document_theories
 
-    lazy val tex_files: List[Content] =
+    lazy val document_latex: List[File.Content_XML] =
       for (name <- document_theories)
       yield {
         val path = Path.basic(tex_name(name))
-        val xml = YXML.parse_body(get_export(name.theory, Export.DOCUMENT_LATEX).text)
-        val content = Latex.output(xml, file_pos = name.path.implode_symbolic)
-        Content(path, content)
+        val content = YXML.parse_body(get_export(name.theory, Export.DOCUMENT_LATEX).text)
+        File.Content(path, content)
       }
 
-    lazy val session_graph: Content =
+    lazy val session_graph: File.Content =
     {
       val path = Presentation.session_graph_path
       val content = graphview.Graph_File.make_pdf(options, base.session_graph_display)
-      Content(path, content)
+      File.Content(path, content)
     }
 
-    lazy val session_tex: Content =
+    lazy val session_tex: File.Content =
     {
       val path = Path.basic("session.tex")
       val content =
         Library.terminate_lines(
           base.session_theories.map(name => "\\input{" + tex_name(name) + "}"))
-      Content(path, content)
+      File.Content(path, content)
     }
 
-    lazy val isabelle_logo: Option[Content] =
+    lazy val isabelle_logo: Option[File.Content] =
     {
       document_logo.map(logo_name =>
         Isabelle_System.with_tmp_file("logo", ext = "pdf")(tmp_path =>
@@ -244,14 +208,14 @@ object Document_Build
           Logo.create_logo(logo_name, output_file = tmp_path, quiet = true)
           val path = Path.basic("isabelle_logo.pdf")
           val content = Bytes.read(tmp_path)
-          Content(path, content)
+          File.Content(path, content)
         }))
     }
 
 
     /* document directory */
 
-    def prepare_directory(dir: Path, doc: Document_Variant): Directory =
+    def prepare_directory(dir: Path, doc: Document_Variant, latex_output: Latex.Output): Directory =
     {
       val doc_dir = Isabelle_System.make_directory(dir + Path.basic(doc.name))
 
@@ -259,14 +223,23 @@ object Document_Build
       /* actual sources: with SHA1 digest */
 
       isabelle_styles.foreach(Isabelle_System.copy_file(_, doc_dir))
-      doc.isabelletags.write(doc_dir)
+
+      val comment_latex = options.bool("document_comment_latex")
+      if (!comment_latex) {
+        Isabelle_System.copy_file(texinputs + Path.basic("comment.sty"), doc_dir)
+      }
+      doc.tags.sty(comment_latex).write(doc_dir)
 
       for ((base_dir, src) <- info.document_files) {
         Isabelle_System.copy_file_base(info.dir + base_dir, src, doc_dir)
       }
 
       session_tex.write(doc_dir)
-      tex_files.foreach(_.write(doc_dir))
+
+      for (content <- document_latex) {
+        content.output(latex_output(_, file_pos = content.path.implode_symbolic))
+          .write(doc_dir)
+      }
 
       val root_name1 = "root_" + doc.name
       val root_name = if ((doc_dir + Path.explode(root_name1).tex).is_file) root_name1 else "root"
@@ -350,7 +323,7 @@ object Document_Build
   abstract class Bash_Engine(name: String) extends Engine(name)
   {
     def prepare_directory(context: Context, dir: Path, doc: Document_Variant): Directory =
-      context.prepare_directory(dir, doc)
+      context.prepare_directory(dir, doc, new Latex.Output(context.options))
 
     def use_pdflatex: Boolean = false
     def latex_script(context: Context, directory: Directory): String =

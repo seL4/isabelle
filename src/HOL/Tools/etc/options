@@ -38,7 +38,7 @@ public option SystemOnTPTP : string = "http://www.tptp.org/cgi-bin/SystemOnTPTPF
 public option MaSh : string = "sml"
   -- "machine learning algorithm to use by Sledgehammer (nb_knn, nb, knn, none)"
 
-public option kodkod_scala : bool = true
+public option kodkod_scala : bool = false
   -- "invoke Nitpick/Kodkod via Isabelle/Scala (instead of external process)"
 
 public option kodkod_max_threads : int = 0

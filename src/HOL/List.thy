@@ -4238,6 +4238,8 @@ next
   case (Cons x xs) thus ?case by (fastforce split: if_splits)
 qed
 
+lemmas find_None_iff2 = find_None_iff[THEN eq_iff_swap]
+
 lemma find_Some_iff:
   "List.find P xs = Some x \<longleftrightarrow>
   (\<exists>i<length xs. P (xs!i) \<and> x = xs!i \<and> (\<forall>j<i. \<not> P (xs!j)))"
@@ -4248,6 +4250,8 @@ next
     apply(auto simp: nth_Cons' split: if_splits)
     using diff_Suc_1[unfolded One_nat_def] less_Suc_eq_0_disj by fastforce
 qed
+
+lemmas find_Some_iff2 = find_Some_iff[THEN eq_iff_swap]
 
 lemma find_cong[fundef_cong]:
   assumes "xs = ys" and "\<And>x. x \<in> set ys \<Longrightarrow> P x = Q x"

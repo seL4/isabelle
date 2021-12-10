@@ -140,8 +140,6 @@
 \chardef\isacharbar=`\|%
 \chardef\isacharbraceright=`\}%
 \chardef\isachartilde=`\~%
-\def\isacharverbatimopen{\isacharbraceleft\isacharasterisk}%
-\def\isacharverbatimclose{\isacharasterisk\isacharbraceright}%
 \def\isacartoucheopen{\isatext{\guilsinglleft}}%
 \def\isacartoucheclose{\isatext{\guilsinglright}}%
 }
@@ -275,29 +273,8 @@
 \newcommand{\isamarkupcancel}[1]{\isa{\xout{#1}}}
 
 
-% tagged regions
-
-%plain TeX version of comment package -- much faster!
-\let\isafmtname\fmtname\def\fmtname{plain}
-\usepackage{comment}
-\let\fmtname\isafmtname
+% tags
 
 \newcommand{\isafold}[1]{\emph{$\langle\mathord{\mathit{#1}}\rangle$}}
-
-\newcommand{\isakeeptag}[1]%
-{\includecomment{isadelim#1}\includecomment{isatag#1}\csarg\def{isafold#1}{}}
-\newcommand{\isadroptag}[1]%
-{\excludecomment{isadelim#1}\excludecomment{isatag#1}\csarg\def{isafold#1}{}}
-\newcommand{\isafoldtag}[1]%
-{\includecomment{isadelim#1}\excludecomment{isatag#1}\csarg\def{isafold#1}{\isafold{#1}}}
-
-\isakeeptag{document}
-\isakeeptag{theory}
-\isakeeptag{proof}
-\isakeeptag{ML}
-\isakeeptag{visible}
-\isadroptag{invisible}
-\isakeeptag{important}
-\isakeeptag{unimportant}
 
 \IfFileExists{isabelletags.sty}{\usepackage{isabelletags}}{}

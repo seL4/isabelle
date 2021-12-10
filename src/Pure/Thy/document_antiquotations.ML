@@ -131,17 +131,17 @@ val _ =
 
 local
 
-fun nested_antiquotation name s1 s2 =
+fun nested_antiquotation name macro =
   Document_Output.antiquotation_raw_embedded name (Scan.lift Args.cartouche_input)
     (fn ctxt => fn txt =>
       (Context_Position.reports ctxt (Document_Output.document_reports txt);
-        Latex.enclose_text s1 s2 (Document_Output.output_document ctxt {markdown = false} txt)));
+        Latex.macro macro (Document_Output.output_document ctxt {markdown = false} txt)));
 
 val _ =
   Theory.setup
-   (nested_antiquotation \<^binding>\<open>footnote\<close> "\\footnote{" "}" #>
-    nested_antiquotation \<^binding>\<open>emph\<close> "\\emph{" "}" #>
-    nested_antiquotation \<^binding>\<open>bold\<close> "\\textbf{" "}");
+   (nested_antiquotation \<^binding>\<open>footnote\<close> "footnote" #>
+    nested_antiquotation \<^binding>\<open>emph\<close> "emph" #>
+    nested_antiquotation \<^binding>\<open>bold\<close> "textbf");
 
 in end;
 
@@ -195,7 +195,7 @@ fun prepare_text ctxt =
   Input.source_content #> #1 #> Document_Antiquotation.prepare_lines ctxt;
 
 fun text_antiquotation name =
-  Document_Output.antiquotation_raw_embedded name (Scan.lift Args.text_input)
+  Document_Output.antiquotation_raw_embedded name (Scan.lift Parse.embedded_input)
     (fn ctxt => fn text =>
       let
         val _ = report_text ctxt text;
@@ -206,7 +206,7 @@ fun text_antiquotation name =
       end);
 
 val theory_text_antiquotation =
-  Document_Output.antiquotation_raw_embedded \<^binding>\<open>theory_text\<close> (Scan.lift Args.text_input)
+  Document_Output.antiquotation_raw_embedded \<^binding>\<open>theory_text\<close> (Scan.lift Parse.embedded_input)
     (fn ctxt => fn text =>
       let
         val keywords = Thy_Header.get_keywords' ctxt;
@@ -273,7 +273,7 @@ val _ = Theory.setup
 (* verbatim text *)
 
 val _ = Theory.setup
-  (Document_Output.antiquotation_verbatim_embedded \<^binding>\<open>verbatim\<close> (Scan.lift Args.text_input)
+  (Document_Output.antiquotation_verbatim_embedded \<^binding>\<open>verbatim\<close> (Scan.lift Parse.embedded_input)
     (fn ctxt => fn text =>
       let
         val pos = Input.pos_of text;
@@ -327,17 +327,17 @@ fun test_functor (Antiquote.Text tok :: _, _) =
       ML_Lex.read (ML_Syntax.print_string (ML_Lex.content_of tok))
   | test_functor _ = raise Fail "Bad ML functor specification";
 
-val parse_ml0 = Args.text_input >> (fn source => ("", (source, Input.empty)));
+val parse_ml0 = Parse.embedded_input >> (fn source => ("", (source, Input.empty)));
 
 val parse_ml =
-  Args.text_input -- Scan.optional (Args.colon |-- Args.text_input) Input.empty >> pair "";
+  Parse.embedded_input -- Scan.optional (Args.colon |-- Parse.embedded_input) Input.empty >> pair "";
 
 val parse_exn =
-  Args.text_input -- Scan.optional (Args.$$$ "of" |-- Args.text_input) Input.empty >> pair "";
+  Parse.embedded_input -- Scan.optional (Args.$$$ "of" |-- Parse.embedded_input) Input.empty >> pair "";
 
 val parse_type =
   (Parse.type_args >> (fn [] => "" | [a] => a ^ " " | bs => enclose "(" ") " (commas bs))) --
-    (Args.text_input -- Scan.optional (Args.$$$ "=" |-- Args.text_input) Input.empty);
+    (Parse.embedded_input -- Scan.optional (Args.$$$ "=" |-- Parse.embedded_input) Input.empty);
 
 fun eval ctxt pos ml =
   ML_Context.eval_in (SOME ctxt) ML_Compiler.flags pos ml
@@ -423,24 +423,24 @@ val _ = Theory.setup
         val _ =
           Context_Position.reports ctxt
             [(pos, Markup.language_url delimited), (pos, Markup.url url)];
-      in Latex.enclose_text "\\url{" "}" (Latex.string (escape_url url)) end));
+      in Latex.macro "url" (Latex.string (escape_url url)) end));
 
 
 (* formal entities *)
 
 local
 
-fun entity_antiquotation name check bg en =
+fun entity_antiquotation name check macro =
   Document_Output.antiquotation_raw name (Scan.lift Args.name_position)
     (fn ctxt => fn (name, pos) =>
       let val _ = check ctxt (name, pos)
-      in Latex.enclose_text bg en (Latex.string (Output.output name)) end);
+      in Latex.macro macro (Latex.string (Output.output name)) end);
 
 val _ =
   Theory.setup
-   (entity_antiquotation \<^binding>\<open>command\<close> Outer_Syntax.check_command "\\isacommand{" "}" #>
-    entity_antiquotation \<^binding>\<open>method\<close> Method.check_name "\\isa{" "}" #>
-    entity_antiquotation \<^binding>\<open>attribute\<close> Attrib.check_name "\\isa{" "}");
+   (entity_antiquotation \<^binding>\<open>command\<close> Outer_Syntax.check_command "isacommand" #>
+    entity_antiquotation \<^binding>\<open>method\<close> Method.check_name "isa" #>
+    entity_antiquotation \<^binding>\<open>attribute\<close> Attrib.check_name "isa");
 
 in end;
 

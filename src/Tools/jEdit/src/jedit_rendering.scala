@@ -70,7 +70,6 @@ object JEdit_Rendering
       Token.Kind.SPACE -> NULL,
       Token.Kind.STRING -> LITERAL1,
       Token.Kind.ALT_STRING -> LITERAL2,
-      Token.Kind.VERBATIM -> COMMENT3,
       Token.Kind.CARTOUCHE -> COMMENT3,
       Token.Kind.CONTROL -> COMMENT3,
       Token.Kind.INFORMAL_COMMENT -> COMMENT1,
@@ -228,8 +227,8 @@ class JEdit_Rendering(snapshot: Document.Snapshot, model: Document_Model, option
   def entity_ref(range: Text.Range, focus: Rendering.Focus): List[Text.Info[Color]] =
     snapshot.select(range, Rendering.entity_elements, _ =>
       {
-        case Text.Info(_, XML.Elem(Markup(Markup.ENTITY, Markup.Ref(i)), _))
-        if focus(i) => Some(entity_ref_color)
+        case Text.Info(_, XML.Elem(Markup.Entity.Ref(i), _)) if focus(i) =>
+          Some(entity_ref_color)
         case _ => None
       })
 

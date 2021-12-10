@@ -37,6 +37,8 @@ sig
   val blob: string list -> body
   val is_empty: tree -> bool
   val is_empty_body: body -> bool
+  val string: string -> body
+  val enclose: string -> string -> body -> body
   val xml_elemN: string
   val xml_nameN: string
   val xml_bodyN: string
@@ -84,6 +86,11 @@ fun is_empty (Text "") = true
 
 val is_empty_body = forall is_empty;
 
+fun string "" = []
+  | string s = [Text s];
+
+fun enclose bg en body = string bg @ body @ string en;
+
 
 (* wrapped elements *)
 
@@ -118,9 +125,7 @@ val content_of = Buffer.build_content o fold add_content;
 fun trim_blanks trees =
   trees |> maps
     (fn Elem (markup, body) => [Elem (markup, trim_blanks body)]
-      | Text s =>
-          let val s' = s |> raw_explode |> trim Symbol.is_blank |> implode;
-          in if s' = "" then [] else [Text s'] end);
+      | Text s => s |> raw_explode |> trim Symbol.is_blank |> implode |> string);
 
 
 
@@ -155,13 +160,13 @@ fun elem name atts =
 
 fun element name atts body =
   let val b = implode body in
-    if b = "" then enclose "<" "/>" (elem name atts)
-    else enclose "<" ">" (elem name atts) ^ b ^ enclose "</" ">" name
+    if b = "" then Library.enclose "<" "/>" (elem name atts)
+    else Library.enclose "<" ">" (elem name atts) ^ b ^ Library.enclose "</" ">" name
   end;
 
 fun output_markup (markup as (name, atts)) =
   if Markup.is_empty markup then Markup.no_output
-  else (enclose "<" ">" (elem name atts), enclose "</" ">" name);
+  else (Library.enclose "<" ">" (elem name atts), Library.enclose "</" ">" name);
 
 
 (* output content *)

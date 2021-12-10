@@ -174,7 +174,8 @@ fun all_veriT_stgies context =
     map fst strategies
   end
 
-fun verit_tac ctxt = SMT_Solver.smt_tac (Context.proof_map (SMT_Config.select_solver "verit") ctxt)
+val select_verit = SMT_Config.select_solver "verit"
+fun verit_tac ctxt = SMT_Solver.smt_tac (Config.put SMT_Config.native_bv false ((Context.proof_map select_verit ctxt)))
 fun verit_tac_stgy stgy ctxt = verit_tac (Context.proof_of (select_veriT_stgy stgy (Context.Proof ctxt)))
 
 datatype raw_veriT_node = Raw_VeriT_Node of {

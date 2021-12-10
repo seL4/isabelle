@@ -19,14 +19,17 @@ open Word_Lib
 
 (* "QF_AUFBV" is too restrictive for Isabelle's problems, which contain aritmetic and quantifiers.
    Better set the logic to "" and make at least Z3 happy. *)
-fun smtlib_logic ts =
-  if exists (Term.exists_type (Term.exists_subtype is_wordT)) ts then SOME "" else NONE
+fun smtlib_logic "z3" ts =
+    if exists (Term.exists_type (Term.exists_subtype is_wordT)) ts then SOME "" else NONE
+  | smtlib_logic "verit" _ = NONE
+  | smtlib_logic _ ts =
+    if exists (Term.exists_type (Term.exists_subtype is_wordT)) ts then SOME "AUFBVLIRA" else NONE
 
 
 (* SMT-LIB builtins *)
 
 local
-  val smtlibC = SMTLIB_Interface.smtlibC
+  val smtlibC = SMTLIB_Interface.smtlibC @ SMTLIB_Interface.bvsmlibC
 
   val wordT = \<^typ>\<open>'a::len word\<close>
 

@@ -94,15 +94,6 @@ object Export_Theory
       locale_dependencies.iterator.map(_.no_content) ++
       (for { (_, xs) <- others; x <- xs.iterator } yield x.no_content)
 
-    lazy val entity_by_range: Map[Symbol.Range, List[Entity[No_Content]]] =
-      entity_iterator.toList.groupBy(_.range)
-
-    lazy val entity_by_kind_name: Map[(String, String), Entity[No_Content]] =
-      entity_iterator.map(entity => ((entity.kind, entity.name), entity)).toMap
-
-    lazy val entity_kinds: Set[String] =
-      entity_iterator.map(_.kind).toSet
-
     def cache(cache: Term.Cache): Theory =
       Theory(cache.string(name),
         parents.map(cache.string),

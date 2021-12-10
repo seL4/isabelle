@@ -60,7 +60,7 @@ fun build_theories qualifier (options, thys) =
       else
        (Output.physical_stderr ("Skipping theories " ^ commas_quote (map #1 thys) ^
           " (undefined " ^ commas conds ^ ")\n"); [])
-  in apply_hooks qualifier loaded_theories end;
+  in loaded_theories end;
 
 
 (* build session *)
@@ -81,11 +81,16 @@ val _ =
 
           fun build () =
             let
-              val res1 =
+              val res =
                 theories |>
-                  (List.app (build_theories session_name)
+                  (map (build_theories session_name)
                     |> session_timing
                     |> Exn.capture);
+              val res1 =
+                (case res of
+                  Exn.Res loaded_theories =>
+                    Exn.capture (apply_hooks session_name) (flat loaded_theories)
+                | Exn.Exn exn => Exn.Exn exn);
               val res2 = Exn.capture Session.finish ();
 
               val _ = Resources.finish_session_base ();

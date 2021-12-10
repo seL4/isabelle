@@ -77,6 +77,8 @@ local
     else
       if Config.get ctxt SMT_Config.higher_order then
         SMTLIB_Interface.hosmtlibC
+      else if Config.get ctxt SMT_Config.native_bv then
+        SMTLIB_Interface.bvsmlibC
       else
         SMTLIB_Interface.smtlibC
 in
@@ -147,7 +149,9 @@ local
     ["-smt2"]
 
   fun select_class ctxt =
-    if Config.get ctxt z3_extensions then Z3_Interface.smtlib_z3C else SMTLIB_Interface.smtlibC
+    if Config.get ctxt z3_extensions then Z3_Interface.smtlib_z3C
+    else if Config.get ctxt SMT_Config.native_bv then SMTLIB_Interface.bvsmlibC
+    else SMTLIB_Interface.smtlibC
 in
 
 val z3: SMT_Solver.solver_config = {

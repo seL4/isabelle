@@ -26,7 +26,7 @@ struct
 
 val z3C = ["z3"]
 
-val smtlib_z3C = SMTLIB_Interface.smtlibC @ z3C
+val smtlib_z3C = SMTLIB_Interface.smtlibC @ SMTLIB_Interface.bvsmlibC @ z3C
 
 
 (* interface *)
@@ -34,7 +34,7 @@ val smtlib_z3C = SMTLIB_Interface.smtlibC @ z3C
 local
   fun translate_config ctxt =
     {order = SMT_Util.First_Order,
-     logic = K "",
+     logic = K (K ""),
      fp_kinds = [BNF_Util.Least_FP],
      serialize = #serialize (SMTLIB_Interface.translate_config SMT_Util.First_Order ctxt)}
 

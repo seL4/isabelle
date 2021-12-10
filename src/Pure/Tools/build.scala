@@ -161,7 +161,7 @@ object Build
   {
     val props = build_log.session_timing
     val threads = Markup.Session_Timing.Threads.unapply(props) getOrElse 1
-    val timing = Markup.Timing_Properties.parse(props)
+    val timing = Markup.Timing_Properties.get(props)
     "Timing " + session_name + " (" + threads + " threads, " + timing.message_factor + ")"
   }
 
@@ -191,7 +191,6 @@ object Build
       options +
         "completion_limit=0" +
         "editor_tracing_messages=0" +
-        "kodkod_scala=false" +
         ("pide_reports=" + options.bool("build_pide_reports"))
 
     val store = Sessions.store(build_options)
@@ -205,6 +204,7 @@ object Build
       Sessions.load_structure(build_options, dirs = dirs, select_dirs = select_dirs, infos = infos)
 
     val full_sessions_selection = full_sessions.imports_selection(selection)
+    val full_sessions_selected = full_sessions_selection.toSet
 
     def sources_stamp(deps: Sessions.Deps, session_name: String): String =
     {
@@ -240,6 +240,13 @@ object Build
       }
       else deps0
     }
+
+    val presentation_sessions =
+      (for {
+        session_name <- deps.sessions_structure.build_topological_order.iterator
+        info <- deps.sessions_structure.get(session_name)
+        if full_sessions_selected(session_name) && presentation.enabled(info) }
+      yield info).toList
 
 
     /* check unknown files */
@@ -297,7 +304,7 @@ object Build
     val log =
       build_options.string("system_log") match {
         case "" => No_Logger
-        case "true" => Logger.make(progress)
+        case "-" => Logger.make(progress)
         case log_file => Logger.make(Some(Path.explode(log_file)))
       }
 
@@ -488,14 +495,6 @@ object Build
     /* PDF/HTML presentation */
 
     if (!no_build && !progress.stopped && results.ok) {
-      val selected = full_sessions_selection.toSet
-      val presentation_sessions =
-        (for {
-          session_name <- deps.sessions_structure.imports_topological_order.iterator
-          info <- results.get_info(session_name)
-          if selected(session_name) && presentation.enabled(info) && results(session_name).ok }
-        yield info).toList
-
       if (presentation_sessions.nonEmpty) {
         val presentation_dir = presentation.dir(store)
         progress.echo("Presentation in " + presentation_dir.absolute)
@@ -507,22 +506,28 @@ object Build
         }
 
         using(store.open_database_context())(db_context =>
-          for (session <- presentation_sessions.map(_.name)) {
+        {
+          val exports =
+            Presentation.read_exports(presentation_sessions.map(_.name), deps, db_context)
+
+          Par_List.map((session: String) =>
+          {
             progress.expose_interrupt()
             progress.echo("Presenting " + session + " ...")
 
             val html_context =
               new Presentation.HTML_Context {
-                override val cache: Term.Cache = store.cache
                 override def root_dir: Path = presentation_dir
                 override def theory_session(name: Document.Node.Name): Sessions.Info =
                   deps.sessions_structure(deps(session).theory_qualifier(name))
+                override def theory_exports: Theory_Exports = exports
               }
             Presentation.session_html(
               session, deps, db_context, progress = progress,
               verbose = verbose, html_context = html_context,
               Presentation.elements1)
-          })
+          }, presentation_sessions.map(_.name))
+        })
       }
     }
 

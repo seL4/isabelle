@@ -7,7 +7,7 @@ Unit tests for Nitpick.
 
 signature NITPICK_TESTS =
 sig
-  val run_all_tests : unit -> unit
+  val run_all_tests : Proof.context -> unit
 end;
 
 structure Nitpick_Tests : NITPICK_TESTS =
@@ -208,15 +208,17 @@ fun problem_for_nut ctxt (name, u) =
      formula = formula}
   end
 
-fun run_all_tests () =
+fun run_all_tests ctxt =
   let
-    val {debug, overlord, timeout, ...} = Nitpick_Commands.default_params \<^theory> []
+    val thy = Proof_Context.theory_of ctxt
+    val {debug, overlord, timeout, ...} = Nitpick_Commands.default_params thy []
+    val kodkod_scala = Config.get ctxt Kodkod.kodkod_scala
     val deadline = Timeout.end_time timeout
     val max_threads = 1
     val max_solutions = 1
   in
-    case Kodkod.solve_any_problem debug overlord deadline max_threads max_solutions
-                                  (map (problem_for_nut \<^context>) tests) of
+    case Kodkod.solve_any_problem kodkod_scala debug overlord deadline max_threads max_solutions
+                                  (map (problem_for_nut ctxt) tests) of
       Kodkod.Normal ([], _, _) => ()
     | _ => error "Tests failed"
   end

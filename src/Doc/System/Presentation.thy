@@ -161,17 +161,33 @@ text \<open>
   \<^medskip> Isabelle is usually smart enough to create the PDF from the given
   \<^verbatim>\<open>root.tex\<close> and optional \<^verbatim>\<open>root.bib\<close> (bibliography) and \<^verbatim>\<open>root.idx\<close> (index)
   using standard {\LaTeX} tools. Actual command-lines are given by settings
-  @{setting_ref ISABELLE_PDFLATEX}, @{setting_ref ISABELLE_LUALATEX},
+  @{setting_ref ISABELLE_LUALATEX} (or @{setting_ref ISABELLE_PDFLATEX}),
   @{setting_ref ISABELLE_BIBTEX}, @{setting_ref ISABELLE_MAKEINDEX}: these
   variables are used without quoting in shell scripts, and thus may contain
   additional options.
 
-  Alternatively, the session \<^verbatim>\<open>ROOT\<close> may include an option
-  \<^verbatim>\<open>document_build=build\<close> together with an executable \<^verbatim>\<open>build\<close> script in
-  \isakeyword{document\_files}: it is invoked with command-line arguments for
-  the document format (\<^verbatim>\<open>pdf\<close>) and the document variant name. The script needs
-  to produce corresponding output files, e.g.\ \<^verbatim>\<open>root.pdf\<close> for default
-  document variants.
+  The system option @{system_option_def "document_build"} specifies an
+  alternative build engine, e.g. within the session \<^verbatim>\<open>ROOT\<close> file as
+  ``\<^verbatim>\<open>options [document_build = pdflatex]\<close>''. The following standard engines
+  are available:
+
+    \<^item> \<^verbatim>\<open>lualatex\<close> (default) uses the shell command \<^verbatim>\<open>$ISABELLE_LUALATEX\<close> on
+    the main \<^verbatim>\<open>root.tex\<close> file, with further runs of \<^verbatim>\<open>$ISABELLE_BIBTEX\<close> and
+    \<^verbatim>\<open>$ISABELLE_MAKEINDEX\<close> as required.
+
+    \<^item> \<^verbatim>\<open>pdflatex\<close> uses \<^verbatim>\<open>$ISABELLE_PDFLATEX\<close> instead of \<^verbatim>\<open>$ISABELLE_LUALATEX\<close>,
+    and the other tools as above.
+
+    \<^item> \<^verbatim>\<open>build\<close> invokes an executable script of the same name in a private
+    directory containing all \isakeyword{document\_files} and other generated
+    document sources. The script is invoked as ``\<^verbatim>\<open>./build pdf\<close>~\<open>name\<close>'' for
+    the document variant name; it needs to produce a corresponding
+    \<open>name\<close>\<^verbatim>\<open>.pdf\<close> file by arbitrary means on its own.
+
+  Further engines can be defined by add-on components in Isabelle/Scala
+  (\secref{sec:scala-build}), providing a service class derived from
+  \<^scala_type>\<open>isabelle.Document_Build.Engine\<close>. Available classes are listed
+  in \<^scala>\<open>isabelle.Document_Build.engines\<close>.
 \<close>
 
 

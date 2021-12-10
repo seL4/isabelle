@@ -52,6 +52,7 @@ object Build_Doc
       {
         case (doc, session) =>
           try {
+            progress.expose_interrupt()
             progress.echo("Documentation " + quote(doc) + " ...")
 
             using(store.open_database_context())(db_context =>

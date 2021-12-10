@@ -8,6 +8,8 @@ signature DOCUMENT_OUTPUT =
 sig
   val document_reports: Input.source -> Position.report list
   val output_document: Proof.context -> {markdown: bool} -> Input.source -> Latex.text
+  val document_output: {markdown: bool, markup: Latex.text -> Latex.text} ->
+    (xstring * Position.T) option * Input.source -> Toplevel.transition -> Toplevel.transition
   val check_comments: Proof.context -> Symbol_Pos.T list -> unit
   val output_token: Proof.context -> Token.T -> Latex.text
   val output_source: Proof.context -> string -> Latex.text
@@ -62,11 +64,11 @@ fun output_comment ctxt (kind, syms) =
       Input.cartouche_content syms
       |> output_document (ctxt |> Config.put Document_Antiquotation.thy_output_display false)
           {markdown = false}
-      |> Latex.enclose_text "%\n\\isamarkupcmt{" "%\n}"
+      |> XML.enclose "%\n\\isamarkupcmt{" "%\n}"
   | Comment.Cancel =>
       Symbol_Pos.cartouche_content syms
       |> Latex.symbols_output
-      |> Latex.enclose_text "%\n\\isamarkupcancel{" "}"
+      |> XML.enclose "%\n\\isamarkupcancel{" "}"
   | Comment.Latex => Latex.symbols (Symbol_Pos.cartouche_content syms)
   | Comment.Marker => [])
 and output_comment_document ctxt (comment, syms) =
@@ -90,7 +92,7 @@ and output_document ctxt {markdown} source =
     fun output_block (Markdown.Par lines) =
           separate (XML.Text "\n") (map (Latex.block o output_line) lines)
       | output_block (Markdown.List {kind, body, ...}) =
-          Latex.environment_text (Markdown.print_kind kind) (output_blocks body)
+          Latex.environment (Markdown.print_kind kind) (output_blocks body)
     and output_blocks blocks =
       separate (XML.Text "\n\n") (map (Latex.block o output_block) blocks);
   in
@@ -111,6 +113,22 @@ and output_document ctxt {markdown} source =
       in output_antiquotes ants end
   end;
 
+fun document_output {markdown, markup} (loc, txt) =
+  let
+    fun output st =
+      let
+        val ctxt = Toplevel.presentation_context st;
+        val _ = Context_Position.reports ctxt (document_reports txt);
+      in txt |> output_document ctxt {markdown = markdown} |> markup end;
+  in
+    Toplevel.present (fn st =>
+      (case loc of
+        NONE => output st
+      | SOME (_, pos) =>
+          error ("Illegal target specification -- not a theory context" ^ Position.here pos))) o
+    Toplevel.present_local_theory loc output
+  end;
+
 
 (* output tokens with formal comments *)
 
@@ -122,7 +140,7 @@ val output_symbols_antiq =
         Latex.string (Latex.output_symbols [Symbol.encode (Symbol.Control name)]) @
           Latex.symbols_output body
     | Antiquote.Antiq {body, ...} =>
-        Latex.enclose_text "%\n\\isaantiq\n" "{}%\n\\endisaantiq\n" (Latex.symbols_output body));
+        XML.enclose "%\n\\isaantiq\n" "{}%\n\\endisaantiq\n" (Latex.symbols_output body));
 
 fun output_comment_symbols ctxt {antiq} (comment, syms) =
   (case (comment, antiq) of
@@ -135,7 +153,7 @@ fun output_comment_symbols ctxt {antiq} (comment, syms) =
 fun output_body ctxt antiq bg en syms =
   Comment.read_body syms
   |> maps (output_comment_symbols ctxt {antiq = antiq})
-  |> Latex.enclose_text bg en;
+  |> XML.enclose bg en;
 
 in
 
@@ -154,7 +172,6 @@ fun output_token ctxt tok =
         else output false "" ""
     | Token.String => output false "{\\isachardoublequoteopen}" "{\\isachardoublequoteclose}"
     | Token.Alt_String => output false "{\\isacharbackquoteopen}" "{\\isacharbackquoteclose}"
-    | Token.Verbatim => output true "{\\isacharverbatimopen}" "{\\isacharverbatimclose}"
     | Token.Cartouche => output false "{\\isacartoucheopen}" "{\\isacartoucheclose}"
     | Token.Control control => output_body ctxt false "" "" (Antiquote.control_symbols control)
     | _ => output false "" "")
@@ -184,9 +201,7 @@ end;
 datatype token =
     Ignore
   | Token of Token.T
-  | Heading of string * Input.source
-  | Body of string * Input.source
-  | Raw of Input.source;
+  | Output of Latex.text;
 
 fun token_with pred (Token tok) = pred tok
   | token_with _ _ = false;
@@ -200,19 +215,13 @@ fun present_token ctxt tok =
   (case tok of
     Ignore => []
   | Token tok => output_token ctxt tok
-  | Heading (cmd, source) =>
-      Latex.enclose_text ("%\n\\isamarkup" ^ cmd ^ "{") "%\n}\n"
-        (output_document ctxt {markdown = false} source)
-  | Body (cmd, source) =>
-      Latex.environment_text ("isamarkup" ^ cmd) (output_document ctxt {markdown = true} source)
-  | Raw source =>
-      Latex.string "%\n" @ output_document ctxt {markdown = true} source @ Latex.string "\n");
+  | Output output => output);
 
 
 (* command spans *)
 
-type command = string * Position.T;   (*name, position*)
-type source = (token * (string * int)) list;        (*token, markup flag, meta-comment depth*)
+type command = string * Position.T;  (*name, position*)
+type source = (token * (string * int)) list;  (*token, markup flag, meta-comment depth*)
 
 datatype span = Span of command * (source * source * source * source) * bool;
 
@@ -242,10 +251,15 @@ fun edge which f (x: string option, y) =
   if x = y then I
   else (case which (x, y) of NONE => I | SOME txt => fold cons (Latex.string (f txt)));
 
-val begin_tag = edge #2 Latex.begin_tag;
-val end_tag = edge #1 Latex.end_tag;
-fun open_delim delim e = edge #2 Latex.begin_delim e #> delim #> edge #2 Latex.end_delim e;
-fun close_delim delim e = edge #1 Latex.begin_delim e #> delim #> edge #1 Latex.end_delim e;
+val markup_tag = YXML.output_markup o Markup.latex_tag;
+val markup_delim = YXML.output_markup o Markup.latex_delim;
+val bg_delim = #1 o markup_delim;
+val en_delim = #2 o markup_delim;
+
+val begin_tag = edge #2 (#1 o markup_tag);
+val end_tag = edge #1 (#2 o markup_tag);
+fun open_delim delim e = edge #2 bg_delim e #> delim #> edge #2 en_delim e;
+fun close_delim delim e = edge #1 bg_delim e #> delim #> edge #1 en_delim e;
 
 fun document_tag cmd_pos state state' tagging_stack =
   let
@@ -343,10 +357,38 @@ end;
 
 (* present_thy *)
 
+type segment =
+  {span: Command_Span.span, command: Toplevel.transition,
+   prev_state: Toplevel.state, state: Toplevel.state};
+
 local
 
 val markup_true = "\\isamarkuptrue%\n";
 val markup_false = "\\isamarkupfalse%\n";
+
+fun command_output output tok =
+  if Token.is_command tok then SOME (Token.put_output output tok) else NONE;
+
+fun segment_content (segment: segment) =
+  let val toks = Command_Span.content (#span segment) in
+    (case Toplevel.output_of (#state segment) of
+      NONE => toks
+    | SOME output => map_filter (command_output output) toks)
+  end;
+
+fun output_command keywords = Scan.some (fn tok =>
+  if Token.is_command tok then
+    let
+      val name = Token.content_of tok;
+      val is_document = Keyword.is_document keywords name;
+      val is_document_raw = Keyword.is_document_raw keywords name;
+      val flag = if is_document andalso not is_document_raw then markup_true else "";
+    in
+      if is_document andalso is_some (Token.get_output tok)
+      then SOME ((name, Token.pos_of tok), the (Token.get_output tok), flag)
+      else NONE
+    end
+  else NONE);
 
 val opt_newline = Scan.option (Scan.one Token.is_newline);
 
@@ -357,16 +399,7 @@ val ignore =
     (if d = 0 then Scan.fail_with (K (fn () => "Bad nesting of meta-comments")) else opt_newline)
     >> pair (d - 1));
 
-val locale =
-  Scan.option ((Parse.$$$ "(" -- Document_Source.improper -- Parse.$$$ "in") |--
-    Parse.!!!
-      (Document_Source.improper |-- Parse.name --| (Document_Source.improper -- Parse.$$$ ")")));
-
 in
-
-type segment =
-  {span: Command_Span.span, command: Toplevel.transition,
-   prev_state: Toplevel.state, state: Toplevel.state};
 
 fun present_thy options thy (segments: segment list) =
   let
@@ -376,18 +409,11 @@ fun present_thy options thy (segments: segment list) =
     (* tokens *)
 
     val ignored = Scan.state --| ignore
-      >> (fn d => (NONE, (Ignore, ("", d))));
+      >> (fn d => [(NONE, (Ignore, ("", d)))]);
 
-    fun markup pred mk flag = Scan.peek (fn d =>
-      Document_Source.improper |--
-        Parse.position (Scan.one (fn tok =>
-          Token.is_command tok andalso pred keywords (Token.content_of tok))) --
-      (Document_Source.annotation |--
-        Parse.!!!! ((Document_Source.improper -- locale -- Document_Source.improper) |--
-          Parse.document_source --| Document_Source.improper_end))
-            >> (fn ((tok, pos'), source) =>
-              let val name = Token.content_of tok
-              in (SOME (name, pos'), (mk (name, source), (flag, d))) end));
+    val output = Scan.peek (fn d =>
+      Document_Source.improper |-- output_command keywords --| Document_Source.improper_end
+        >> (fn (kind, body, flag) => [(SOME kind, (Output body, (flag, d)))]));
 
     val command = Scan.peek (fn d =>
       Scan.optional (Scan.one Token.is_command_modifier ::: Document_Source.improper) [] --
@@ -398,18 +424,12 @@ fun present_thy options thy (segments: segment list) =
             (Token cmd, (markup_false, d)))]));
 
     val cmt = Scan.peek (fn d =>
-      Scan.one Document_Source.is_black_comment >> (fn tok => (NONE, (Token tok, ("", d)))));
+      Scan.one Document_Source.is_black_comment >> (fn tok => [(NONE, (Token tok, ("", d)))]));
 
     val other = Scan.peek (fn d =>
-       Parse.not_eof >> (fn tok => (NONE, (Token tok, ("", d)))));
+       Parse.not_eof >> (fn tok => [(NONE, (Token tok, ("", d)))]));
 
-    val tokens =
-      (ignored ||
-        markup Keyword.is_document_heading Heading markup_true ||
-        markup Keyword.is_document_body Body markup_true ||
-        markup Keyword.is_document_raw (Raw o #2) "") >> single ||
-      command ||
-      (cmt || other) >> single;
+    val tokens = ignored || output || command || cmt || other;
 
 
     (* spans *)
@@ -436,7 +456,7 @@ fun present_thy options thy (segments: segment list) =
           make_span (the cmd) (toks1 @ (tok2 :: (toks3 @ the_default [] tok4))));
 
     val spans = segments
-      |> maps (Command_Span.content o #span)
+      |> maps segment_content
       |> drop_suffix Token.is_space
       |> Source.of_list
       |> Source.source' 0 Token.stopper (Scan.error (Scan.bulk tokens >> flat))
@@ -484,13 +504,13 @@ fun pretty_thm ctxt = pretty_term ctxt o Thm.full_prop_of;
 
 fun isabelle ctxt body =
   if Config.get ctxt Document_Antiquotation.thy_output_display
-  then Latex.environment_text "isabelle" body
-  else Latex.enclose_text "\\isa{" "}" body;
+  then Latex.environment "isabelle" body
+  else Latex.macro "isa" body;
 
 fun isabelle_typewriter ctxt body =
   if Config.get ctxt Document_Antiquotation.thy_output_display
-  then Latex.environment_text "isabellett" body
-  else Latex.enclose_text "\\isatt{" "}" body;
+  then Latex.environment "isabellett" body
+  else Latex.macro "isatt" body;
 
 fun typewriter ctxt s =
   isabelle_typewriter ctxt (Latex.string (Latex.output_ascii s));

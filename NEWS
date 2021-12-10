@@ -7,6 +7,32 @@ Isabelle NEWS -- history of user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** General ***
+
+* Old-style {* verbatim *} tokens have been discontinued (legacy feature
+since Isabelle2019). INCOMPATIBILITY, use \<open>cartouche\<close> syntax instead.
+
+
+*** HOL ***
+
+* Theory "HOL.Relation": Added lemmas asymp_less and asymp_greater to
+  type class preorder.
+
+* Theory "HOL-Library.Multiset":
+  - Consolidated operation and fact names.
+        multp ~> multp_code
+        multeqp ~> multeqp_code
+        multp_cancel_add_mset ~> multp_cancel_add_mset0
+        multp_cancel_add_mset0[simplified] ~> multp_cancel_add_mset
+        multp_code_iff ~> multp_code_iff_mult
+        multeqp_code_iff ~> multeqp_code_iff_reflcl_mult
+    Minor INCOMPATIBILITY.
+  - Moved mult1_lessE out of preorder type class and add explicit
+    assumption. Minor INCOMPATIBILITY.
+  - Added predicate multp equivalent to set mult. Reuse name previously
+    used for what is now called multp_code. Minor INCOMPATIBILITY.
+  - Lifted multiple lemmas from mult to multp.
+  - Redefined less_multiset to be based on multp. INCOMPATIBILITY.
 
 
 New in Isabelle2021-1 (December 2021)
@@ -116,8 +142,17 @@ The presence of a "build" command within the document output directory
 explicitly requires document_build=build. Minor INCOMPATIBILITY, need to
 adjust session ROOT options.
 
+* Option "document_comment_latex" enables regular LaTeX comment.sty,
+instead of the historic version for plain TeX (default). The latter is
+much faster, but in conflict with LaTeX classes like Dagstuhl LIPIcs.
+
 * Option "document_echo" informs about document file names during
 session presentation.
+
+* Option "document_heading_prefix" specifies a prefix for the LaTeX
+macro names generated from document heading commands like 'chapter',
+'section' etc. The default is "isamarkup", so 'section' becomes
+"\isamarkupsection" for example.
 
 * The command-line tool "isabelle latex" has been discontinued,
 INCOMPATIBILITY for old document build scripts.
@@ -204,12 +239,32 @@ INCOMPATIBILITY.
 min.absorb4, max.absorb1, max.absorb2, max.absorb3, max.absorb4. Minor
 INCOMPATIBILITY.
 
+* The Mirabelle testing tool is now part of Main HOL, and accessible via
+the command-line tool "isabelle mirabelle" (implemented in
+Isabelle/Scala). It has become more robust and supports parallelism
+within Isabelle/ML.
+
+* Nitpick: External solver "MiniSat" is available for all supported
+Isabelle platforms (including 64bit Windows and ARM); while
+"MiniSat_JNI" only works for Intel Linux and macOS.
+
+* Nitpick/Kodkod: default is back to external Java process (option
+kodkod_scala = false), both for PIDE and batch builds. This reduces
+confusion and increases robustness of timeouts, despite substantial
+overhead to run an external JVM. For more fine-grained control, the
+kodkod_scala option can be modified within the formal theory context
+like this:
+
+  declare [[kodkod_scala = false]]
+
 * Sledgehammer:
   - Update of bundled provers:
-      E 2.6
-      Vampire 4.6 (with Open Source license)
-      veriT 2021.06-rmx
-      Zipperposition 2.1
+      . E 2.6
+      . Vampire 4.6 (with Open Source license)
+      . veriT 2021.06.1-rmx
+      . Zipperposition 2.1
+      . Z3 4.4.1 for arm64-linux, which approximates Z3 4.4.0pre,
+        but sometimes fails or crashes
   - Adjusted default provers:
       cvc4 vampire verit e spass z3 zipperposition
   - Adjusted Zipperposition's slicing.
@@ -226,10 +281,6 @@ INCOMPATIBILITY.
   - Updated the Metis prover underlying the "metis" proof method to
     version 2.4 (release 20200713). The new version fixes one
     implementation defect. Very slight INCOMPATIBILITY.
-
-* Nitpick: External solver "MiniSat" is available for all supported
-Isabelle platforms (including Windows and ARM); while "MiniSat_JNI" only
-works for Intel Linux and macOS.
 
 * Theory HOL-Library.Lattice_Syntax has been superseded by bundle
 "lattice_syntax": it can be used in a local context via 'include' or in
@@ -393,11 +444,11 @@ operations to accumulate items from types and terms, using a fast
 syntactic order. The original order of occurrences may be recovered as
 well, e.g. via TFrees.list_set.
 
-* Thm.instantiate, Thm.generalize and related operations require
-scalable datastructures from structure TVars, Vars, Names etc.
-INCOMPATIBILITY: e.g. use TVars.empty and TVars.make for immediate
-adoption; better use TVars.add, TVars.add_tfrees etc. for scalable
-accumulation of items.
+* Thm.instantiate, Thm.generalize and related operations (e.g.
+Variable.import) now use scalable data structures from structure TVars,
+Vars, Names etc. INCOMPATIBILITY: e.g. use TVars.empty and TVars.make
+for immediate adoption; better use TVars.add, TVars.add_tfrees etc. for
+scalable accumulation of items.
 
 * Thm.instantiate_beta applies newly emerging abstractions to their
 arguments in the term, but leaves other beta-redexes unchanged --- in
@@ -509,6 +560,9 @@ Isabelle2021:
 
 *** System ***
 
+* Almost complete support for arm64-linux platform. The reference
+platform is Raspberry Pi 4 with 8 GB RAM running Pi OS (64 bit).
+
 * Update to OpenJDK 17: the current long-term support version of Java.
 
 * Update to Poly/ML 5.9 with improved support for ARM on Linux. On
@@ -546,16 +600,20 @@ libwww-perl has been eliminated (notably on Linux). Rare
 INCOMPATIBILITY: HTTP proxy configuration now works via JVM properties
 https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/net/doc-files/net-properties.html
 
+* System options may declare an implicit standard value, which is used
+when the option is activated without providing an explicit value, e.g.
+"isabelle build -o document -o document_output" instead of
+"isabelle build -o document=true -o document_output=output". For options
+of type "bool", the standard is always "true" and cannot be specified
+differently.
+
+* System option "document=true" is an alias for "document=pdf", and
+"document=false" is an alias for "document=" (empty string).
+
 * System option "system_log" specifies an optional log file for internal
-messages produced by Output.system_message in Isabelle/ML; the value
-"true" refers to console progress of the build job. This works for
+messages produced by Output.system_message in Isabelle/ML; the standard
+value "-" refers to console progress of the build job. This works for
 "isabelle build" or any derivative of it.
-
-* System options of type string may be set to "true" using the short
-notation of type bool. E.g. "isabelle build -o system_log".
-
-* System option "document=true" is an alias for "document=pdf" and thus
-can be used in the short form. E.g. "isabelle build -o document".
 
 * Command-line tool "isabelle version" supports repository archives
 (without full .hg directory). It also provides more options.
@@ -567,11 +625,11 @@ ISABELLE_PLATFORM64 (generic Posix) or ISABELLE_WINDOWS_PLATFORM64
 (native Windows) or ISABELLE_APPLE_PLATFORM64 (Apple Silicon).
 
 * Timeouts for Isabelle/ML tools are subject to system option
-"timeout_scale" --- this already used for the overall session build
-process before, and allows to adapt to slow machines. The underlying
-Timeout.apply in Isabelle/ML treats an original timeout specification 0
-as no timeout; before it meant immediate timeout. Rare INCOMPATIBILITY
-in boundary cases.
+"timeout_scale", to support adjustments to slow machines. Before,
+timeout_scale was only used for the overall session build process, now
+it affects the underlying Timeout.apply in Isabelle/ML as well. It
+treats a timeout specification 0 as "no timeout", instead of "immediate
+timeout". Rare INCOMPATIBILITY in boundary cases.
 
 
 

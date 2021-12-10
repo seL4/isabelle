@@ -89,7 +89,7 @@ fun print_function ({name, weight, auto_option, body}: tool) =
               val auto_time_limit = Options.default_real \<^system_option>\<open>auto_time_limit\<close>
             in
               if auto_time_limit > 0.0 then
-                (case Timeout.apply (seconds auto_time_limit) (fn () => body true state) () of
+                (case Timeout.apply_physical (seconds auto_time_limit) (fn () => body true state) () of
                   (true, (_, outcome)) => List.app Output.information outcome
                 | _ => ())
               else ()

@@ -10,33 +10,24 @@ sig
   val text: string * Position.T -> text
   val string: string -> text
   val block: text -> XML.tree
-  val enclose_text: string -> string -> text -> text
-  val latex_text: text -> text
-  val output_text: text -> string
-  val output_name: string -> string
+  val output: text -> text
+  val macro0: string -> text
+  val macro: string -> text -> text
+  val environment: string -> text -> text
   val output_ascii: string -> string
   val output_ascii_breakable: string -> string -> string
   val output_symbols: Symbol.symbol list -> string
   val output_syms: string -> string
   val symbols: Symbol_Pos.T list -> text
   val symbols_output: Symbol_Pos.T list -> text
-  val begin_delim: string -> string
-  val end_delim: string -> string
-  val begin_tag: string -> string
-  val end_tag: string -> string
-  val environment_text: string -> text -> text
-  val environment: string -> string -> string
   val isabelle_body: string -> text -> text
   val theory_entry: string -> string
-  val index_escape: string -> string
   type index_item = {text: text, like: string}
   type index_entry = {items: index_item list, def: bool}
   val index_entry: index_entry -> text
   val index_variants: (binding -> bool option -> 'a -> 'a) -> binding -> 'a -> 'a
   val latexN: string
-  val latex_output: string -> string * int
   val latex_markup: string * Properties.T -> Markup.output
-  val latex_indent: string -> int -> string
 end;
 
 structure Latex: LATEX =
@@ -46,22 +37,20 @@ struct
 
 type text = XML.body;
 
-fun text ("", _) = []
-  | text (s, pos) = [XML.Elem (Position.markup pos Markup.document_latex, [XML.Text s])];
+fun text (s, pos) =
+  if s = "" then []
+  else if pos = Position.none then [XML.Text s]
+  else [XML.Elem (Position.markup pos Markup.document_latex, [XML.Text s])];
 
 fun string s = text (s, Position.none);
 
 fun block body = XML.Elem (Markup.document_latex, body);
 
-fun latex_text text =
-  text |> maps
-    (fn XML.Elem ((name, _), body) =>
-          if name = Markup.document_latexN then latex_text body else []
-      | t => [t]);
+fun output body = [XML.Elem (Markup.latex_output, body)];
 
-val output_text = XML.content_of o latex_text;
-
-fun enclose_text bg en body = string bg @ body @ string en;
+fun macro0 name = [XML.Elem (Markup.latex_macro0 name, [])];
+fun macro name body = [XML.Elem (Markup.latex_macro name, body)];
+fun environment name body = [XML.Elem (Markup.latex_environment name, body)];
 
 
 (* output name for LaTeX macros *)
@@ -196,25 +185,10 @@ fun symbols_output syms =
   text (output_symbols (map Symbol_Pos.symbol syms), #1 (Symbol_Pos.range syms));
 
 
-(* tags *)
-
-val begin_delim = enclose_name "%\n\\isadelim" "\n";
-val end_delim = enclose_name "%\n\\endisadelim" "\n";
-val begin_tag = enclose_name "%\n\\isatag" "\n";
-fun end_tag tg = enclose_name "%\n\\endisatag" "\n" tg ^ enclose "{\\isafold" "}%\n" tg;
-
-
 (* theory presentation *)
 
-fun environment_delim name =
- ("%\n\\begin{" ^ output_name name ^ "}%\n",
-  "%\n\\end{" ^ output_name name ^ "}");
-
-fun environment_text name = environment_delim name |-> enclose_text;
-fun environment name = environment_delim name |-> enclose;
-
 fun isabelle_body name =
-  enclose_text
+  XML.enclose
    ("%\n\\begin{isabellebody}%\n\\setisabellecontext{" ^ output_syms name ^ "}%\n")
    "%\n\\end{isabellebody}%\n";
 
@@ -226,24 +200,12 @@ fun theory_entry name = "\\input{" ^ name ^ ".tex}\n\n";
 type index_item = {text: text, like: string};
 type index_entry = {items: index_item list, def: bool};
 
-val index_escape =
-  translate_string (fn s =>
-    if member_string "!\"@|" s then "\\char" ^ string_of_int (ord s)
-    else if member_string "\\{}#" s then "\"" ^ s else s);
-
 fun index_item (item: index_item) =
-  let
-    val like_text =
-      if #like item = "" then ""
-      else index_escape (#like item) ^ "@";
-    val item_text = index_escape (output_text (#text item));
-  in like_text ^ item_text end;
+  XML.wrap_elem ((Markup.latex_index_item, #text item), XML.string (#like item));
 
 fun index_entry (entry: index_entry) =
-  (space_implode "!" (map index_item (#items entry)) ^
-    "|" ^ index_escape (if #def entry then "isaindexdef" else "isaindexref"))
-  |> enclose "\\index{" "}"
-  |> string;
+  [XML.Elem (Markup.latex_index_entry (if #def entry then "isaindexdef" else "isaindexref"),
+    map index_item (#items entry))];
 
 fun index_binding NONE = I
   | index_binding (SOME def) = Binding.map_name (suffix (if def then "_def" else "_ref"));
@@ -256,22 +218,29 @@ fun index_variants setup binding =
 
 val latexN = "latex";
 
+local
+
 fun latex_output str =
   let val syms = Symbol.explode str
   in (output_symbols syms, length_symbols syms) end;
 
-fun latex_markup (s, _: Properties.T) =
-  if s = Markup.commandN orelse s = Markup.keyword1N orelse s = Markup.keyword3N
-  then ("\\isacommand{", "}")
-  else if s = Markup.keyword2N
-  then ("\\isakeyword{", "}")
-  else Markup.no_output;
+val command_markup = YXML.output_markup (Markup.latex_macro "isacommand");
+val keyword_markup = YXML.output_markup (Markup.latex_macro "isakeyword");
+val indent_markup = YXML.output_markup (Markup.latex_macro "isaindent");
 
-fun latex_indent "" _ = ""
-  | latex_indent s _ = enclose "\\isaindent{" "}" s;
+in
+
+fun latex_markup (s, _: Properties.T) =
+  if member (op =) [Markup.commandN, Markup.keyword1N, Markup.keyword3N] s then command_markup
+  else if s = Markup.keyword2N then keyword_markup
+  else Markup.no_output;
 
 val _ = Output.add_mode latexN latex_output (prefix Symbol.latex o cartouche);
 val _ = Markup.add_mode latexN latex_markup;
-val _ = Pretty.add_mode latexN latex_indent;
+
+val _ = Pretty.add_mode latexN
+  (fn s => fn _ => if s = "" then s else uncurry enclose indent_markup s);
+
+end;
 
 end;

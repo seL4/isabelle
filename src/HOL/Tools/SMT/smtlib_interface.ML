@@ -9,7 +9,9 @@ signature SMTLIB_INTERFACE =
 sig
   val smtlibC: SMT_Util.class
   val hosmtlibC: SMT_Util.class
-  val add_logic: int * (term list -> string option) -> Context.generic -> Context.generic
+  val bvsmlibC: SMT_Util.class
+  val add_logic: int * (string -> term list -> string option) -> Context.generic -> Context.generic
+  val del_logic: int * (string -> term list -> string option) -> Context.generic -> Context.generic
   val translate_config: SMT_Util.order -> Proof.context -> SMT_Translate.config
   val assert_name_of_index: int -> string
   val assert_index_of_name: string -> int
@@ -23,7 +25,7 @@ val hoC = ["ho"]
 
 val smtlibC = ["smtlib"]   (* SMT-LIB 2 *)
 val hosmtlibC = smtlibC @ hoC   (* possibly SMT-LIB 3 *)
-
+val bvsmlibC = smtlibC @ ["BV"] (* if BV are supported *)
 
 (* builtins *)
 
@@ -73,17 +75,18 @@ fun fst_int_ord ((i1, _), (i2, _)) = int_ord (i1, i2)
 
 structure Logics = Generic_Data
 (
-  type T = (int * (term list -> string option)) list
+  type T = (int * (string -> term list -> string option)) list
   val empty = []
   fun merge data = Ord_List.merge fst_int_ord data
 )
 
 fun add_logic pf = Logics.map (Ord_List.insert fst_int_ord pf)
+fun del_logic pf = Logics.map (Ord_List.remove fst_int_ord pf)
 
-fun choose_logic ctxt ts =
+fun choose_logic ctxt prover ts =
   let
     fun choose [] = "AUFLIA"
-      | choose ((_, f) :: fs) = (case f ts of SOME s => s | NONE => choose fs)
+      | choose ((_, f) :: fs) = (case f prover ts of SOME s => s | NONE => choose fs)
   in
     (case choose (Logics.get (Context.Proof ctxt)) of
       "" => "" (* for default Z3 logic, a subset of everything *)

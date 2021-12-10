@@ -301,13 +301,13 @@ val _ =
 val _ =
   Outer_Syntax.local_theory \<^command_keyword>\<open>attribute_setup\<close> "define attribute in ML"
     (Parse.name_position --
-        Parse.!!! (\<^keyword>\<open>=\<close> |-- Parse.ML_source -- Scan.optional Parse.text "")
+        Parse.!!! (\<^keyword>\<open>=\<close> |-- Parse.ML_source -- Scan.optional Parse.embedded "")
       >> (fn (name, (txt, cmt)) => Attrib.attribute_setup name txt cmt));
 
 val _ =
   Outer_Syntax.local_theory \<^command_keyword>\<open>method_setup\<close> "define proof method in ML"
     (Parse.name_position --
-        Parse.!!! (\<^keyword>\<open>=\<close> |-- Parse.ML_source -- Scan.optional Parse.text "")
+        Parse.!!! (\<^keyword>\<open>=\<close> |-- Parse.ML_source -- Scan.optional Parse.embedded "")
       >> (fn (name, (txt, cmt)) => Method.method_setup name txt cmt));
 
 val _ =
@@ -572,7 +572,7 @@ val _ =
 val _ =
   Outer_Syntax.local_theory \<^command_keyword>\<open>named_theorems\<close>
     "declare named collection of theorems"
-    (Parse.and_list1 (Parse.binding -- Scan.optional Parse.text "") >>
+    (Parse.and_list1 (Parse.binding -- Scan.optional Parse.embedded "") >>
       fold (fn (b, descr) => snd o Named_Theorems.declare b descr));
 
 in end\<close>

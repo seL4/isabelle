@@ -204,7 +204,7 @@ object Build_Status
     profiles: List[Profile] = default_profiles,
     only_sessions: Set[String] = Set.empty,
     ml_statistics: Boolean = false,
-    ml_statistics_domain: String => Boolean = (key: String) => true,
+    ml_statistics_domain: String => Boolean = _ => true,
     verbose: Boolean = false): Data =
   {
     val date = Date.now()
@@ -270,9 +270,11 @@ object Build_Status
               threads1 max threads2
             }
             val ml_platform = res.string(Build_Log.Settings.ML_PLATFORM)
+            val ml_platform_64 =
+              ml_platform.startsWith("x86_64-") || ml_platform.startsWith("arm64-")
             val data_name =
               profile.description +
-                (if (ml_platform.startsWith("x86_64-")) ", 64bit" else "") +
+                (if (ml_platform_64) ", 64bit" else "") +
                 (if (threads == 1) "" else ", " + threads + " threads")
 
             res.get_string(Build_Log.Prop.build_host).foreach(host =>
@@ -375,7 +377,7 @@ object Build_Status
           List(HTML.description(
             List(HTML.text("status date:") -> HTML.text(data.date.toString))))),
         HTML.par(
-          List(HTML.itemize(data.entries.map({ case data_entry =>
+          List(HTML.itemize(data.entries.map(data_entry =>
             List(
               HTML.link(clean_name(data_entry.name) + "/index.html",
                 HTML.text(data_entry.name))) :::
@@ -386,7 +388,7 @@ object Build_Status
                 List(HTML.span(HTML.error_message, HTML.text("Failed sessions:"))) :::
                 List(HTML.itemize(sessions.map(s => s.head.present_errors(s.name))))
             })
-          }))))))
+          ))))))
 
     for (data_entry <- data.entries) {
       val data_name = data_entry.name
@@ -421,10 +423,10 @@ object Build_Status
                       entry.ml_timing.elapsed.minutes.toString,
                       entry.ml_timing.resources.minutes.toString,
                       entry.maximum_code.toString,
-                      entry.maximum_code.toString,
-                      entry.average_stack.toString,
+                      entry.average_code.toString,
                       entry.maximum_stack.toString,
-                      entry.average_heap.toString,
+                      entry.average_stack.toString,
+                      entry.maximum_heap.toString,
                       entry.average_heap.toString,
                       entry.stored_heap.toString).mkString(" "))))
 
@@ -606,7 +608,7 @@ Usage: isabelle build_status [OPTIONS]
         "l:" -> (arg => options = options + ("build_log_history=" + arg)),
         "o:" -> (arg => options = options + arg),
         "s:" -> (arg =>
-          space_explode('x', arg).map(Value.Int.parse(_)) match {
+          space_explode('x', arg).map(Value.Int.parse) match {
             case List(w, h) if w > 0 && h > 0 => image_size = (w, h)
             case _ => error("Error bad PNG image size: " + quote(arg))
           }),

@@ -667,6 +667,10 @@ lemma ran_map_upd [simp]:  "m a = None \<Longrightarrow> ran(m(a\<mapsto>b)) = i
 lemma fun_upd_None_if_notin_dom[simp]: "k \<notin> dom m \<Longrightarrow> m(k := None) = m"
   by auto
 
+lemma ran_map_upd_Some:
+  "\<lbrakk> m x = Some y; inj_on m (dom m); z \<notin> ran m \<rbrakk> \<Longrightarrow> ran(m(x := Some z)) = ran m - {y} \<union> {z}"
+by(force simp add: ran_def domI inj_onD)
+
 lemma ran_map_add:
   assumes "dom m1 \<inter> dom m2 = {}"
   shows "ran (m1 ++ m2) = ran m1 \<union> ran m2"

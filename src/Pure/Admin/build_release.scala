@@ -17,6 +17,9 @@ object Build_Release
   private def execute_tar(dir: Path, args: String, strip: Int = 0): Unit =
     Isabelle_System.gnutar(args, dir = dir, strip = strip).check
 
+  private def bash_java_opens(args: String*): String =
+    Bash.strings(args.toList.flatMap(arg => List("--add-opens", arg + "=ALL-UNNAMED")))
+
   object Release_Context
   {
     def apply(
@@ -490,7 +493,6 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
     context: Release_Context,
     afp_rev: String = "",
     platform_families: List[Platform.Family.Value] = default_platform_families,
-    java_home: Path = default_java_home,
     more_components: List[Path] = Nil,
     website: Option[Path] = None,
     build_sessions: List[String] = Nil,
@@ -703,9 +705,21 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
                     "    <cp>%EXEDIR%\\" + File.platform_path(cp).replace('/', '\\') + "</cp>")))
                 .replace("\\jdk\\", "\\" + jdk_component + "\\"))
 
+            val java_opts =
+              bash_java_opens(
+                "java.base/java.io",
+                "java.base/java.lang",
+                "java.base/java.lang.reflect",
+                "java.base/java.text",
+                "java.base/java.util",
+                "java.desktop/java.awt.font")
+            val launch4j_jar =
+              Path.explode("windows_app/launch4j-" + Platform.family + "/launch4j.jar")
+
             execute(tmp_dir,
-              "env JAVA_HOME=" + File.bash_platform_path(java_home) +
-              " \"windows_app/launch4j-${ISABELLE_PLATFORM_FAMILY}/launch4j\" isabelle.xml")
+              cat_lines(List(
+                "export LAUNCH4J=" + File.bash_platform_path(launch4j_jar),
+                "isabelle java " + java_opts + " -jar \"$LAUNCH4J\" isabelle.xml")))
 
             Isabelle_System.copy_file(app_template + Path.explode("manifest.xml"),
               isabelle_target + isabelle_exe.ext("manifest"))
@@ -824,7 +838,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
             val other_isabelle = context.other_isabelle(tmp_dir)
 
             Isabelle_System.make_directory(other_isabelle.etc)
-            File.write(other_isabelle.etc_preferences, "ML_system_64 = true\n")
+            File.write(other_isabelle.etc_settings, "ML_OPTIONS=\"--minheap 1000 --maxheap 4000\"\n")
 
             other_isabelle.bash("bin/isabelle build -f -j " + parallel_jobs +
               " -o browser_info -o document=pdf -o document_variants=document:outline=/proof,/ML" +
@@ -844,15 +858,12 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
   /** command line entry point **/
 
-  def default_java_home: Path = Path.explode("$JAVA_HOME").expand
-
   def main(args: Array[String]): Unit =
   {
     Command_Line.tool {
       var afp_rev = ""
       var components_base: Path = Components.default_components_base
       var target_dir = Path.current
-      var java_home = default_java_home
       var release_name = ""
       var source_archive = ""
       var website: Option[Path] = None
@@ -872,7 +883,6 @@ Usage: Admin/build_release [OPTIONS]
     -C DIR       base directory for Isabelle components (default: """ +
         Components.default_components_base + """)
     -D DIR       target directory (default ".")
-    -J JAVA_HOME Java version for running launch4j (e.g. version 11)
     -R RELEASE   explicit release name
     -S ARCHIVE   use existing source archive (file or URL)
     -W WEBSITE   produce minimal website in given directory
@@ -889,7 +899,6 @@ Usage: Admin/build_release [OPTIONS]
         "A:" -> (arg => afp_rev = arg),
         "C:" -> (arg => components_base = Path.explode(arg)),
         "D:" -> (arg => target_dir = Path.explode(arg)),
-        "J:" -> (arg => java_home = Path.explode(arg)),
         "R:" -> (arg => release_name = arg),
         "S:" -> (arg => source_archive = arg),
         "W:" -> (arg => website = Some(Path.explode(arg))),
@@ -936,7 +945,7 @@ Usage: Admin/build_release [OPTIONS]
         }
 
       build_release(options, context, afp_rev = afp_rev, platform_families = platform_families,
-        java_home = java_home, more_components = more_components, build_sessions = build_sessions,
+        more_components = more_components, build_sessions = build_sessions,
         build_library = build_library, parallel_jobs = parallel_jobs, website = website)
     }
   }

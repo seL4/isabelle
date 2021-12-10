@@ -267,9 +267,9 @@ object Sessions
               info.document_theories.flatMap(
               {
                 case (thy, pos) =>
-                  val parent_sessions =
+                  val build_hierarchy =
                     if (sessions_structure.build_graph.defined(session_name)) {
-                      sessions_structure.build_requirements(List(session_name))
+                      sessions_structure.build_hierarchy(session_name)
                     }
                     else Nil
 
@@ -283,7 +283,7 @@ object Sessions
                       if (session_theories.contains(name)) {
                         err("Redundant document theory from this session:")
                       }
-                      else if (parent_sessions.contains(qualifier)) None
+                      else if (build_hierarchy.contains(qualifier)) None
                       else if (dependencies.theories.contains(name)) None
                       else err("Document theory from other session not imported properly:")
                   }
@@ -781,8 +781,7 @@ object Sessions
         else {
           (for {
             (name, (info, _)) <- graph.iterator
-            if info.dir_selected || select_session(name) ||
-              graph.get_node(name).groups.exists(select_group)
+            if info.dir_selected || select_session(name) || info.groups.exists(select_group)
           } yield name).toList
         }
 
@@ -837,17 +836,17 @@ object Sessions
       deps
     }
 
-    def hierarchy(session: String): List[String] = build_graph.all_preds(List(session))
-
     def build_selection(sel: Selection): List[String] = selected(build_graph, sel)
     def build_descendants(ss: List[String]): List[String] = build_graph.all_succs(ss)
     def build_requirements(ss: List[String]): List[String] = build_graph.all_preds_rev(ss)
     def build_topological_order: List[String] = build_graph.topological_order
+    def build_hierarchy(session: String): List[String] = build_graph.all_preds(List(session))
 
     def imports_selection(sel: Selection): List[String] = selected(imports_graph, sel)
     def imports_descendants(ss: List[String]): List[String] = imports_graph.all_succs(ss)
     def imports_requirements(ss: List[String]): List[String] = imports_graph.all_preds_rev(ss)
     def imports_topological_order: List[String] = imports_graph.topological_order
+    def imports_hierarchy(session: String): List[String] = imports_graph.all_preds(List(session))
 
     def bibtex_entries: List[(String, List[String])] =
       build_topological_order.flatMap(name =>

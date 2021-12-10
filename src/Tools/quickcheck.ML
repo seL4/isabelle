@@ -281,7 +281,7 @@ type compile_generator =
 
 fun limit timeout (limit_time, is_interactive) f exc () =
   if limit_time then
-    Timeout.apply timeout f ()
+    Timeout.apply_physical timeout f ()
       handle timeout_exn as Timeout.TIMEOUT _ =>
         if is_interactive then exc () else Exn.reraise timeout_exn
   else f ();
