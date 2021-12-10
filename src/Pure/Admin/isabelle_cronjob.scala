@@ -75,8 +75,8 @@ object Isabelle_Cronjob
   val mailman_archives: Logger_Task =
     Logger_Task("mailman_archives", logger =>
       {
-        Mailman.isabelle_users.download(mailman_archives_dir)
-        Mailman.isabelle_dev.download(mailman_archives_dir)
+        Mailman.isabelle_users.download_text(mailman_archives_dir)
+        Mailman.isabelle_dev.download_text(mailman_archives_dir)
       })
 
 
