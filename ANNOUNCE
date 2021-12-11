@@ -38,8 +38,9 @@ instantiation of types, terms, facts.
 
 * System: improved document preparation using Isabelle/Scala.
 
-* System: update to current OpenJDK 17 (LTS) and Poly/ML 5.9 (with preliminary
-support for arm64).
+* System: update to current Java 17 LTS.
+
+* System: update to Poly/ML 5.9 with improved support for ARM64 on Linux.
 
 
 You may get Isabelle2021-1 from the following mirror sites:
