@@ -195,7 +195,7 @@ fun prepare_text ctxt =
   Input.source_content #> #1 #> Document_Antiquotation.prepare_lines ctxt;
 
 fun text_antiquotation name =
-  Document_Output.antiquotation_raw_embedded name (Scan.lift Args.text_input)
+  Document_Output.antiquotation_raw_embedded name (Scan.lift Parse.embedded_input)
     (fn ctxt => fn text =>
       let
         val _ = report_text ctxt text;
@@ -206,7 +206,7 @@ fun text_antiquotation name =
       end);
 
 val theory_text_antiquotation =
-  Document_Output.antiquotation_raw_embedded \<^binding>\<open>theory_text\<close> (Scan.lift Args.text_input)
+  Document_Output.antiquotation_raw_embedded \<^binding>\<open>theory_text\<close> (Scan.lift Parse.embedded_input)
     (fn ctxt => fn text =>
       let
         val keywords = Thy_Header.get_keywords' ctxt;
@@ -273,7 +273,7 @@ val _ = Theory.setup
 (* verbatim text *)
 
 val _ = Theory.setup
-  (Document_Output.antiquotation_verbatim_embedded \<^binding>\<open>verbatim\<close> (Scan.lift Args.text_input)
+  (Document_Output.antiquotation_verbatim_embedded \<^binding>\<open>verbatim\<close> (Scan.lift Parse.embedded_input)
     (fn ctxt => fn text =>
       let
         val pos = Input.pos_of text;
@@ -327,17 +327,17 @@ fun test_functor (Antiquote.Text tok :: _, _) =
       ML_Lex.read (ML_Syntax.print_string (ML_Lex.content_of tok))
   | test_functor _ = raise Fail "Bad ML functor specification";
 
-val parse_ml0 = Args.text_input >> (fn source => ("", (source, Input.empty)));
+val parse_ml0 = Parse.embedded_input >> (fn source => ("", (source, Input.empty)));
 
 val parse_ml =
-  Args.text_input -- Scan.optional (Args.colon |-- Args.text_input) Input.empty >> pair "";
+  Parse.embedded_input -- Scan.optional (Args.colon |-- Parse.embedded_input) Input.empty >> pair "";
 
 val parse_exn =
-  Args.text_input -- Scan.optional (Args.$$$ "of" |-- Args.text_input) Input.empty >> pair "";
+  Parse.embedded_input -- Scan.optional (Args.$$$ "of" |-- Parse.embedded_input) Input.empty >> pair "";
 
 val parse_type =
   (Parse.type_args >> (fn [] => "" | [a] => a ^ " " | bs => enclose "(" ") " (commas bs))) --
-    (Args.text_input -- Scan.optional (Args.$$$ "=" |-- Args.text_input) Input.empty);
+    (Parse.embedded_input -- Scan.optional (Args.$$$ "=" |-- Parse.embedded_input) Input.empty);
 
 fun eval ctxt pos ml =
   ML_Context.eval_in (SOME ctxt) ML_Compiler.flags pos ml

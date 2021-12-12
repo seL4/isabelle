@@ -26,7 +26,8 @@ ML \<open>
 if do_it then
   "/tmp/isa_filter"
   |> generate_casc_lbt_isa_files_for_theory ctxt thy
-      (THF (Without_FOOL, Polymorphic, THF_Without_Choice)) infer_policy "poly_native_higher"
+     (THF (Polymorphic, {with_ite = false, with_let = false}, THF_Without_Choice)) infer_policy
+     "poly_native_higher"
 else
   ()
 \<close>

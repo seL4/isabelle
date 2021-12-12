@@ -206,12 +206,9 @@ fun generate_metis_problem ctxt type_enc lam_trans conj_clauses fact_clauses =
         |> Monomorph.monomorph atp_schematic_consts_of ctxt
         |> chop (length conj_clauses)
         |> apply2 (maps (map (zero_var_indexes o snd)))
-    val num_conjs = length conj_clauses
     (* Pretend every clause is a "simp" rule, to guide the term ordering. *)
     val clauses =
-      map2 (fn j => pair (Int.toString j, (Local, Simp))) (0 upto num_conjs - 1) conj_clauses @
-      map2 (fn j => pair (Int.toString (num_conjs + j), (Local, Simp)))
-        (0 upto length fact_clauses - 1) fact_clauses
+      map_index (apfst (fn j => (Int.toString j, (Local, Simp)))) (conj_clauses @ fact_clauses)
     val (old_skolems, props) =
       fold_rev (fn (name, th) => fn (old_skolems, props) =>
            th |> Thm.prop_of |> Logic.strip_imp_concl

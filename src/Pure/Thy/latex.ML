@@ -14,15 +14,12 @@ sig
   val macro0: string -> text
   val macro: string -> text -> text
   val environment: string -> text -> text
-  val enclose_text: string -> string -> text -> text
-  val output_name: string -> string
   val output_ascii: string -> string
   val output_ascii_breakable: string -> string -> string
   val output_symbols: Symbol.symbol list -> string
   val output_syms: string -> string
   val symbols: Symbol_Pos.T list -> text
   val symbols_output: Symbol_Pos.T list -> text
-  val environment_text: string -> text -> text
   val isabelle_body: string -> text -> text
   val theory_entry: string -> string
   type index_item = {text: text, like: string}
@@ -30,9 +27,7 @@ sig
   val index_entry: index_entry -> text
   val index_variants: (binding -> bool option -> 'a -> 'a) -> binding -> 'a -> 'a
   val latexN: string
-  val latex_output: string -> string * int
   val latex_markup: string * Properties.T -> Markup.output
-  val latex_indent: string -> int -> string
 end;
 
 structure Latex: LATEX =
@@ -56,8 +51,6 @@ fun output body = [XML.Elem (Markup.latex_output, body)];
 fun macro0 name = [XML.Elem (Markup.latex_macro0 name, [])];
 fun macro name body = [XML.Elem (Markup.latex_macro name, body)];
 fun environment name body = [XML.Elem (Markup.latex_environment name, body)];
-
-fun enclose_text bg en body = string bg @ body @ string en;
 
 
 (* output name for LaTeX macros *)
@@ -194,13 +187,8 @@ fun symbols_output syms =
 
 (* theory presentation *)
 
-fun environment_text name =
-  enclose_text
-    ("%\n\\begin{" ^ output_name name ^ "}%\n")
-    ("%\n\\end{" ^ output_name name ^ "}");
-
 fun isabelle_body name =
-  enclose_text
+  XML.enclose
    ("%\n\\begin{isabellebody}%\n\\setisabellecontext{" ^ output_syms name ^ "}%\n")
    "%\n\\end{isabellebody}%\n";
 
@@ -230,22 +218,29 @@ fun index_variants setup binding =
 
 val latexN = "latex";
 
+local
+
 fun latex_output str =
   let val syms = Symbol.explode str
   in (output_symbols syms, length_symbols syms) end;
 
-fun latex_markup (s, _: Properties.T) =
-  if s = Markup.commandN orelse s = Markup.keyword1N orelse s = Markup.keyword3N
-  then ("\\isacommand{", "}")
-  else if s = Markup.keyword2N
-  then ("\\isakeyword{", "}")
-  else Markup.no_output;
+val command_markup = YXML.output_markup (Markup.latex_macro "isacommand");
+val keyword_markup = YXML.output_markup (Markup.latex_macro "isakeyword");
+val indent_markup = YXML.output_markup (Markup.latex_macro "isaindent");
 
-fun latex_indent "" _ = ""
-  | latex_indent s _ = enclose "\\isaindent{" "}" s;
+in
+
+fun latex_markup (s, _: Properties.T) =
+  if member (op =) [Markup.commandN, Markup.keyword1N, Markup.keyword3N] s then command_markup
+  else if s = Markup.keyword2N then keyword_markup
+  else Markup.no_output;
 
 val _ = Output.add_mode latexN latex_output (prefix Symbol.latex o cartouche);
 val _ = Markup.add_mode latexN latex_markup;
-val _ = Pretty.add_mode latexN latex_indent;
+
+val _ = Pretty.add_mode latexN
+  (fn s => fn _ => if s = "" then s else uncurry enclose indent_markup s);
+
+end;
 
 end;

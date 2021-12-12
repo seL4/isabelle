@@ -151,14 +151,14 @@ fun FOL_SOLVE unused type_encs lam_trans ctxt cls ths0 =
     val new_skolem = Config.get ctxt new_skolem orelse null (Meson.choice_theorems thy)
     val do_lams = lam_trans = liftingN ? introduce_lam_wrappers ctxt
     val th_cls_pairs =
-      map2 (fn j => fn th =>
+      map_index (fn (j, th) =>
         (Thm.get_name_hint th,
           th
           |> Drule.eta_contraction_rule
           |> Meson_Clausify.cnf_axiom Meson.simp_options_all_true ctxt new_skolem
                (lam_trans = combsN) j
           ||> map do_lams))
-        (0 upto length ths0 - 1) ths0
+        ths0
     val ths = maps (snd o snd) th_cls_pairs
     val dischargers = map (fst o snd) th_cls_pairs
     val cls = cls |> map (Drule.eta_contraction_rule #> do_lams)

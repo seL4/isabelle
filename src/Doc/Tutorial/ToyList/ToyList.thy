@@ -107,7 +107,7 @@ dropped, unless the identifier happens to be a keyword, for example
 When Isabelle prints a syntax error message, it refers to the HOL syntax as
 the \textbf{inner syntax} and the enclosing theory language as the \textbf{outer syntax}.
 
-Comments\index{comment} must be in enclosed in \texttt{(* }and\texttt{ *)}.
+Comments\index{comment} must be in enclosed in \texttt{(*}and\texttt{*)}.
 
 \section{Evaluation}
 \index{evaluation}

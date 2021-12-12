@@ -234,12 +234,11 @@ subsection \<open>Document text\<close>
 
 text \<open>
   A chunk of document @{syntax text} is usually given as @{syntax cartouche}
-  \<open>\<open>\<dots>\<close>\<close> or @{syntax verbatim}, i.e.\ enclosed in \<^verbatim>\<open>{*\<close>~\<open>\<dots>\<close>~\<^verbatim>\<open>*}\<close>. For
-  convenience, any of the smaller text unit that conforms to @{syntax name} is
-  admitted as well.
+  \<open>\<open>\<dots>\<close>\<close>. For convenience, any of the smaller text unit that conforms to
+  @{syntax name} is admitted as well.
 
   \<^rail>\<open>
-    @{syntax_def text}: @{syntax embedded} | @{syntax verbatim}
+    @{syntax_def text}: @{syntax embedded}
   \<close>
 
   Typical uses are document markup commands, like \<^theory_text>\<open>chapter\<close>, \<^theory_text>\<open>section\<close> etc.

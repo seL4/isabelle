@@ -52,7 +52,7 @@ val command_parser =
   Scan.optional (Parse.$$$ "in" |-- Parse.!!! Parse.path_input) (Input.string ".") --
   (Parse.$$$ "=" |--
     Parse.!!! (Scan.option (Parse.session_name --| Parse.!!! (Parse.$$$ "+")) --
-      Scan.optional (Parse.$$$ "description" |-- Parse.!!! (Parse.input Parse.text)) Input.empty --
+      Scan.optional (Parse.$$$ "description" |-- Parse.!!! (Parse.input Parse.embedded)) Input.empty --
       Scan.optional (Parse.$$$ "options" |-- Parse.!!! Parse.options) [] --
       Scan.optional (Parse.$$$ "sessions" |--
         Parse.!!! (Scan.repeat1 Parse.session_name)) [] --

@@ -327,7 +327,7 @@ fun the_tactic context =
 
 val parse_tactic =
   Scan.state :|-- (fn context =>
-    Scan.lift (Args.text_declaration (fn source =>
+    Scan.lift (Args.embedded_declaration (fn source =>
       let
         val tac =
           context
@@ -749,7 +749,7 @@ fun read_closure_input ctxt =
   in Parse.read_embedded ctxt keywords (Scan.many Token.not_eof) #> read_closure ctxt end;
 
 val text_closure =
-  Args.context -- Scan.lift (Parse.token Parse.text) >> (fn (ctxt, tok) =>
+  Args.context -- Scan.lift (Parse.token Parse.embedded) >> (fn (ctxt, tok) =>
     (case Token.get_value tok of
       SOME (Token.Source src) => read ctxt src
     | _ =>

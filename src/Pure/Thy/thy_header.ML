@@ -147,7 +147,7 @@ val keyword_decl =
 
 val abbrevs =
   Parse.and_list1
-    (Scan.repeat1 Parse.text -- (Parse.$$$ "=" |-- Parse.!!! (Scan.repeat1 Parse.text))
+    (Scan.repeat1 Parse.embedded -- (Parse.$$$ "=" |-- Parse.!!! (Scan.repeat1 Parse.embedded))
       >> uncurry (map_product pair)) >> flat;
 
 val keyword_decls = Parse.and_list1 keyword_decl >> flat;

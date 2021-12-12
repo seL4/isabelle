@@ -433,7 +433,6 @@ object Markup
   val OPERATOR = "operator"
   val STRING = "string"
   val ALT_STRING = "alt_string"
-  val VERBATIM = "verbatim"
   val CARTOUCHE = "cartouche"
   val COMMENT = "comment"
 

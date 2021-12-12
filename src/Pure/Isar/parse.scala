@@ -65,9 +65,9 @@ object Parse
     def nat: Parser[Int] = atom("natural number", _.is_nat) ^^ (s => Integer.parseInt(s))
     def name: Parser[String] = atom("name", _.is_name)
     def embedded: Parser[String] = atom("embedded content", _.is_embedded)
-    def text: Parser[String] = atom("text", _.is_text)
-    def ML_source: Parser[String] = atom("ML source", _.is_text)
-    def document_source: Parser[String] = atom("document source", _.is_text)
+    def text: Parser[String] = atom("text", _.is_embedded)
+    def ML_source: Parser[String] = atom("ML source", _.is_embedded)
+    def document_source: Parser[String] = atom("document source", _.is_embedded)
 
     def opt_keyword(s: String): Parser[Boolean] =
       ($$$("(") ~! $$$(s) ~ $$$(")")) ^^ { case _ => true } | success(false)

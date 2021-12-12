@@ -1581,7 +1581,7 @@ proof (rule classical)
   assume "finite S" and "\<not> Suc (Max S) \<ge> card S"
   then have "Suc (Max S) < card S"
     by simp
-  with `finite S` have "S \<subseteq> {0..Max S}"
+  with \<open>finite S\<close> have "S \<subseteq> {0..Max S}"
     by auto
   hence "card S \<le> card {0..Max S}"
     by (intro card_mono; auto)
@@ -2110,14 +2110,14 @@ proof (cases "finite S")
     let ?S' = "S - {Max S}"
     from Suc have "Max S \<in> S" by (auto intro: Max_in)
     hence cards: "card S = Suc (card ?S')"
-      using `finite S` by (intro card.remove; auto)
+      using \<open>finite S\<close> by (intro card.remove; auto)
     hence "\<Sum> {0..<card ?S'} \<le> \<Sum> ?S'"
       using Suc by (intro Suc; auto)
 
     hence "\<Sum> {0..<card ?S'} + x \<le> \<Sum> ?S' + Max S"
-      using `Max S \<ge> x` by simp
+      using \<open>Max S \<ge> x\<close> by simp
     also have "... = \<Sum> S"
-      using sum.remove[OF `finite S` `Max S \<in> S`, where g="\<lambda>x. x"]
+      using sum.remove[OF \<open>finite S\<close> \<open>Max S \<in> S\<close>, where g="\<lambda>x. x"]
       by simp
     finally show ?case
       using cards Suc by auto

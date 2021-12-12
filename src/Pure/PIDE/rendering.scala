@@ -117,7 +117,6 @@ object Rendering
     Markup.OPERATOR -> Color.operator,
     Markup.STRING -> Color.main,
     Markup.ALT_STRING -> Color.main,
-    Markup.VERBATIM -> Color.main,
     Markup.CARTOUCHE -> Color.main,
     Markup.LITERAL -> Color.keyword1,
     Markup.DELIMITER -> Color.main,
@@ -151,7 +150,6 @@ object Rendering
     Map(
       Markup.STRING -> Color.quoted,
       Markup.ALT_STRING -> Color.quoted,
-      Markup.VERBATIM -> Color.quoted,
       Markup.CARTOUCHE -> Color.quoted,
       Markup.ANTIQUOTED -> Color.antiquoted)
 
@@ -209,7 +207,7 @@ object Rendering
     Markup.Elements(Markup.COMPLETION, Markup.NO_COMPLETION)
 
   val language_context_elements =
-    Markup.Elements(Markup.STRING, Markup.ALT_STRING, Markup.VERBATIM,
+    Markup.Elements(Markup.STRING, Markup.ALT_STRING,
       Markup.CARTOUCHE, Markup.COMMENT, Markup.LANGUAGE,
       Markup.ML_STRING, Markup.ML_COMMENT)
 

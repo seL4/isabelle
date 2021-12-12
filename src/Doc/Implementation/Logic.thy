@@ -217,10 +217,10 @@ text %mlantiq \<open>
   \<^rail>\<open>
     @{syntax_def type_const}: @{syntax name} (@{syntax embedded_ml}*)
     ;
-    @{syntax_def type_const_fn}: @{syntax type_const} @'=>' @{syntax embedded}
+    @{syntax_def type_const_fn}: @{syntax type_const} @'=>' @{syntax embedded_ml}
     ;
-    @{syntax_def embedded_ml}: @{syntax embedded} |
-      @{syntax control_symbol} @{syntax embedded} | @'_'
+    @{syntax_def embedded_ml}:
+      @'_' | @{syntax embedded} | @{syntax control_symbol} @{syntax embedded}
   \<close>
 
   The text provided as @{syntax embedded_ml} is treated as regular Isabelle/ML
@@ -491,9 +491,10 @@ text %mlantiq \<open>
     @{syntax_def term_const}:
       @{syntax name} (@{syntax embedded_ml}*) (@{syntax for_args})?
     ;
-    @{syntax_def term_const_fn}: @{ syntax term_const} @'=>' @{syntax embedded}
+    @{syntax_def term_const_fn}:
+      @{syntax term_const} @'=>' @{syntax embedded_ml}
     ;
-    @{syntax_def for_args}: @'for' (@{syntax embedded_ml}*)
+    @{syntax_def for_args}: @'for' (@{syntax embedded_ml}+)
   \<close>
 \<close>
 

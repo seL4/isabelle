@@ -24,7 +24,6 @@ object Scan
   abstract class Line_Context
   case object Finished extends Line_Context
   case class Quoted(quote: String) extends Line_Context
-  case object Verbatim extends Line_Context
   case class Cartouche(depth: Int) extends Line_Context
   case class Comment_Prefix(symbol: Symbol.Symbol) extends Line_Context
   case class Cartouche_Comment(depth: Int) extends Line_Context
@@ -134,41 +133,6 @@ object Scan
 
     def recover_quoted(quote: Symbol.Symbol): Parser[String] =
       quote ~ quoted_body(quote) ^^ { case x ~ y => x + y }
-
-
-    /* verbatim text */
-
-    private def verbatim_body: Parser[String] =
-      rep(many1(sym => sym != "*") | """\*(?!\})""".r) ^^ (_.mkString)
-
-    def verbatim: Parser[String] =
-    {
-      "{*" ~ verbatim_body ~ "*}" ^^ { case x ~ y ~ z => x + y + z }
-    }.named("verbatim")
-
-    def verbatim_content(source: String): String =
-    {
-      require(parseAll(verbatim, source).successful, "no verbatim text")
-      source.substring(2, source.length - 2)
-    }
-
-    def verbatim_line(ctxt: Line_Context): Parser[(String, Line_Context)] =
-    {
-      ctxt match {
-        case Finished =>
-          "{*" ~ verbatim_body ~ opt_term("*}") ^^
-            { case x ~ y ~ Some(z) => (x + y + z, Finished)
-              case x ~ y ~ None => (x + y, Verbatim) }
-        case Verbatim =>
-          verbatim_body ~ opt_term("*}") ^^
-            { case x ~ Some(y) => (x + y, Finished)
-              case x ~ None => (x, Verbatim) }
-        case _ => failure("")
-      }
-    }.named("verbatim_line")
-
-    val recover_verbatim: Parser[String] =
-      "{*" ~ verbatim_body ^^ { case x ~ y => x + y }
 
 
     /* nested text cartouches */

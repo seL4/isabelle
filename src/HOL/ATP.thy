@@ -7,7 +7,7 @@
 section \<open>Automatic Theorem Provers (ATPs)\<close>
 
 theory ATP
-  imports Meson
+  imports Meson Hilbert_Choice
 begin
 
 subsection \<open>ATP problems and proofs\<close>
@@ -49,6 +49,9 @@ definition fEx :: "('a \<Rightarrow> bool) \<Rightarrow> bool" where
 
 definition fequal :: "'a \<Rightarrow> 'a \<Rightarrow> bool" where
 "fequal x y \<longleftrightarrow> (x = y)"
+
+definition fChoice :: "('a \<Rightarrow> bool) \<Rightarrow> 'a" where
+  "fChoice \<equiv> Hilbert_Choice.Eps"
 
 lemma fTrue_ne_fFalse: "fFalse \<noteq> fTrue"
 unfolding fFalse_def fTrue_def by simp
@@ -130,6 +133,16 @@ lemma fequal_laws:
 "fequal x y = fFalse \<or> fequal (f x) (f y) = fTrue"
 unfolding fFalse_def fTrue_def fequal_def by auto
 
+lemma fChoice_iff_Ex: "P (fChoice P) \<longleftrightarrow> HOL.Ex P"
+  unfolding fChoice_def
+  by (fact some_eq_ex)
+
+text \<open>
+We use the @{const HOL.Ex} constant on the right-hand side of @{thm [source] fChoice_iff_Ex} because
+we want to use the TPTP-native version if fChoice is introduced in a logic that supports FOOL.
+In logics that don't support it, it gets replaced by fEx during processing.
+Notice that we cannot use @{term "\<exists>x. P x"}, as existentials are not skolimized by the metis proof
+method but @{term "Ex P"} is eta-expanded if FOOL is supported.\<close>
 
 subsection \<open>Basic connection between ATPs and HOL\<close>
 

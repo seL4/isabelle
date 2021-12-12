@@ -92,7 +92,7 @@ and output_document ctxt {markdown} source =
     fun output_block (Markdown.Par lines) =
           separate (XML.Text "\n") (map (Latex.block o output_line) lines)
       | output_block (Markdown.List {kind, body, ...}) =
-          Latex.environment_text (Markdown.print_kind kind) (output_blocks body)
+          Latex.environment (Markdown.print_kind kind) (output_blocks body)
     and output_blocks blocks =
       separate (XML.Text "\n\n") (map (Latex.block o output_block) blocks);
   in
@@ -172,7 +172,6 @@ fun output_token ctxt tok =
         else output false "" ""
     | Token.String => output false "{\\isachardoublequoteopen}" "{\\isachardoublequoteclose}"
     | Token.Alt_String => output false "{\\isacharbackquoteopen}" "{\\isacharbackquoteclose}"
-    | Token.Verbatim => output true "{\\isacharverbatimopen}" "{\\isacharverbatimclose}"
     | Token.Cartouche => output false "{\\isacartoucheopen}" "{\\isacartoucheclose}"
     | Token.Control control => output_body ctxt false "" "" (Antiquote.control_symbols control)
     | _ => output false "" "")

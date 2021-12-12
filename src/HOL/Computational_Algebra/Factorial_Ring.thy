@@ -920,7 +920,7 @@ lemma infinite_unit_divisor_powers:
  assumes "is_unit x"
  shows "infinite {n. x^n dvd y}"
 proof -
- from `is_unit x` have "is_unit (x^n)" for n
+ from \<open>is_unit x\<close> have "is_unit (x^n)" for n
    using is_unit_power_iff by auto
  hence "x^n dvd y" for n
    by auto
@@ -2181,7 +2181,7 @@ proof (cases "is_unit p")
    using is_unit_power_iff by simp
  hence "p^k dvd x"
    by auto
- moreover from `is_unit p` have "p^k dvd p^multiplicity p x"
+ moreover from \<open>is_unit p\<close> have "p^k dvd p^multiplicity p x"
    using multiplicity_unit_left is_unit_power_iff by simp
  ultimately show ?thesis by simp
 next
@@ -2194,16 +2194,16 @@ next
    moreover have "p^k dvd x \<Longrightarrow> k = 0"
    proof (rule ccontr)
      assume "p^k dvd x" and "k \<noteq> 0"
-     with `p = 0` have "p^k = 0" by auto
-     with `p^k dvd x` have "0 dvd x" by auto
+     with \<open>p = 0\<close> have "p^k = 0" by auto
+     with \<open>p^k dvd x\<close> have "0 dvd x" by auto
      hence "x = 0" by auto
-     with `x \<noteq> 0` show False by auto
+     with \<open>x \<noteq> 0\<close> show False by auto
    qed
    ultimately show ?thesis
-     by (auto simp add: is_unit_power_iff `\<not> is_unit p`)
+     by (auto simp add: is_unit_power_iff \<open>\<not> is_unit p\<close>)
  next
    case False
-   with `x \<noteq> 0` `\<not> is_unit p` show ?thesis
+   with \<open>x \<noteq> 0\<close> \<open>\<not> is_unit p\<close> show ?thesis
      by (simp add: power_dvd_iff_le_multiplicity dvd_power_iff multiplicity_same_power)
  qed
 qed
