@@ -6,7 +6,7 @@ HOST=$(hostname)
 
 case ${HOST} in
   sunbroy* | atbroy* | macbroy* | lxbroy* | lxcisa*)
-    DEST=/home/html/isabelle/html-data
+    DEST=/p/home/isabelle/html-data/html-data
     ;;
   *.cl.cam.ac.uk)
     USER=paulson
