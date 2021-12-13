@@ -27,26 +27,41 @@ object Mailman
     body: String)
   {
     def print: String =
-      name + "\n" + date + "\n" + quote(author_name) + "\n" + "<" + author_address + ">"
+      name + "\n" + date + "\n" + title + "\n" +
+      quote(author_name) + "\n" + "<" + author_address + ">\n"
   }
 
   def message_match(lines: List[String], re: Regex): Option[Match] =
     lines.flatMap(re.findFirstMatchIn(_)).headOption
 
-  class Message_Chunk(bg: String, en: String = "")
+  class Message_Chunk(bg: String = "", en: String = "")
   {
     def unapply(lines: List[String]): Option[List[String]] =
-      lines.dropWhile(_ != bg) match {
-        case Nil => None
-        case _ :: rest =>
-          if (en.isEmpty) Some(rest)
-          else {
-            val res = rest.takeWhile(_ != en)
-            if (rest.drop(res.length).isEmpty) None else Some(res)
+    {
+      val res1 =
+        if (bg.isEmpty) Some(lines)
+        else {
+          lines.dropWhile(_ != bg) match {
+            case Nil => None
+            case _ :: rest => Some(rest)
           }
+        }
+      if (en.isEmpty) res1
+      else {
+        res1 match {
+          case None => None
+          case Some(lines1) =>
+            val lines2 = lines1.takeWhile(_ != en)
+            if (lines1.drop(lines2.length).isEmpty) None else Some(lines2)
+        }
       }
+    }
+
     def get(lines: List[String]): List[String] =
-      unapply(lines) getOrElse error("Missing " + bg + (if (en.nonEmpty) " " + en else ""))
+      unapply(lines) getOrElse
+        error("Missing delimiters:" +
+          (if (bg.nonEmpty) " " else "") + bg +
+          (if (en.nonEmpty) " " else "") + en)
   }
 
   object Address
@@ -86,33 +101,6 @@ object Mailman
         case Adr2(a) => Some(("", trim(a)))
         case _ => None
       }
-  }
-
-  object Date_Format
-  {
-    private val Trim1 = """\w+,\s*(.*)""".r
-    private val Trim2 = """(.*?)\s*\(.*\)""".r
-    private val Format =
-      Date.Format(
-        "d MMM uuuu H:m:s Z",
-        "d MMM uuuu H:m:s z",
-        "d MMM yy H:m:s Z",
-        "d MMM yy H:m:s z")
-    def unapply(s: String): Option[Date] =
-    {
-      val s0 = s.replaceAll("""\s+""", " ")
-      val s1 =
-         s0 match {
-          case Trim1(s1) => s1
-          case _ => s0
-        }
-      val s2 =
-        s1 match {
-          case Trim2(s2) => s2
-          case _ => s1
-        }
-      Format.unapply(s2)
-    }
   }
 
 
@@ -226,10 +214,37 @@ object Mailman
     override def message_regex: Regex = """<li><a name="\d+" href="(msg\d+\.html)">""".r
 
     private object Head extends
-      Message_Chunk("<!--X-Head-of-Message-->", "<!--X-Head-of-Message-End-->")
+      Message_Chunk(bg = "<!--X-Head-of-Message-->", en = "<!--X-Head-of-Message-End-->")
 
     private object Body extends
-      Message_Chunk("<!--X-Body-of-Message-->", "<!--X-Body-of-Message-End-->")
+      Message_Chunk(bg = "<!--X-Body-of-Message-->", en = "<!--X-Body-of-Message-End-->")
+
+    private object Date_Format
+    {
+      private val Trim1 = """\w+,\s*(.*)""".r
+      private val Trim2 = """(.*?)\s*\(.*\)""".r
+      private val Format =
+        Date.Format(
+          "d MMM uuuu H:m:s Z",
+          "d MMM uuuu H:m:s z",
+          "d MMM yy H:m:s Z",
+          "d MMM yy H:m:s z")
+      def unapply(s: String): Option[Date] =
+      {
+        val s0 = s.replaceAll("""\s+""", " ")
+        val s1 =
+          s0 match {
+            case Trim1(s1) => s1
+            case _ => s0
+          }
+        val s2 =
+          s1 match {
+            case Trim2(s2) => s2
+            case _ => s1
+          }
+        Format.unapply(s2)
+      }
+    }
 
     override def trim_name(str: String): String =
     {
@@ -280,6 +295,50 @@ object Mailman
   {
     override def message_regex: Regex = """<LI><A HREF="(\d+\.html)">""".r
 
-    override def message_content(href: String, lines: List[String]): Message = ???
+    private object Head extends Message_Chunk(en = "<!--beginarticle-->")
+    private object Body extends Message_Chunk(bg = "<!--beginarticle-->", en = "<!--endarticle-->")
+
+    private object Date_Format
+    {
+      val Format = Date.Format("E MMM d H:m:s z uuuu")
+      def unapply(s: String): Option[Date] = Format.unapply(s.replaceAll("""\s+""", " "))
+    }
+
+    override def message_content(href: String, lines: List[String]): Message =
+    {
+      def err(msg: String = ""): Nothing =
+        error("Malformed message: " + href + (if (msg.isEmpty) "" else "\n" + msg))
+
+      val (head, body) =
+        try { (Head.get(lines), Body.get(lines)) }
+        catch { case ERROR(msg) => err(msg) }
+
+      val date =
+        message_match(head, """\s*<I>(.*)</I>""".r).map(m => HTML.input(m.group(1))) match {
+          case Some(Date_Format(d)) => d
+          case Some(s) => err("Malformed Date: " + quote(s))
+          case None => err("Missing Date")
+        }
+
+      val (title, author_address) =
+      {
+        message_match(head, """TITLE="([^"]+)">(.*)""".r) match {
+          case Some(m) => (HTML.input(m.group(1)), Address.trim(HTML.input(m.group(2))))
+          case None => err("Missing TITLE")
+        }
+      }
+
+      val author_name =
+        message_match(head, """\s*<B>(.*)</B>""".r) match {
+          case None => err("Missing author")
+          case Some(m) => HTML.input(m.group(1))
+        }
+
+      Message(
+        href, date, trim_title(title),
+        trim_name(proper_string(author_name) getOrElse author_address),
+        author_address,
+        cat_lines(body))
+    }
   }
 }
