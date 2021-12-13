@@ -13,6 +13,7 @@ import java.time.format.{DateTimeFormatter, DateTimeParseException}
 import java.time.temporal.TemporalAccessor
 
 import scala.annotation.tailrec
+import scala.math.Ordering
 
 
 object Date
@@ -71,6 +72,21 @@ object Date
           catch { case exn: DateTimeParseException => try_variants(rest, str, Some(exn)) }
       }
     }
+  }
+
+
+  /* ordering */
+
+  object Ordering extends scala.math.Ordering[Date]
+  {
+    def compare(date1: Date, date2: Date): Int =
+      date1.instant.compareTo(date2.instant)
+  }
+
+  object Rev_Ordering extends scala.math.Ordering[Date]
+  {
+    def compare(date1: Date, date2: Date): Int =
+      date2.instant.compareTo(date1.instant)
   }
 
 

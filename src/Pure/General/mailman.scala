@@ -26,6 +26,7 @@ object Mailman
     author_address: String,
     body: String)
   {
+    override def toString: String = name
     def print: String =
       name + "\n" + date + "\n" + title + "\n" +
       quote(author_name) + "\n" + "<" + author_address + ">\n"
@@ -59,6 +60,44 @@ object Mailman
         error("Missing delimiters:" +
           (if (bg.nonEmpty) " " else "") + bg +
           (if (en.nonEmpty) " " else "") + en)
+  }
+
+
+  /* integrity check */
+
+  def check_messages(msgs: List[Message]): Unit =
+  {
+    val msgs_sorted = msgs.sortBy(_.date)(Date.Ordering)
+    val msgs_proper =
+      msgs_sorted.filter(msg => msg.author_name.nonEmpty && msg.author_address.nonEmpty)
+
+    val address_name = Multi_Map.from(msgs_proper.map(msg => (msg.author_address, msg.author_name)))
+    val name_address = Multi_Map.from(msgs_proper.map(msg => (msg.author_name, msg.author_address)))
+
+    def print_dup(a: String, bs: List[String]): String =
+      "  * " + a + bs.mkString("\n      ", "\n      ", "")
+
+    def print_dups(title: String, m: Multi_Map[String, String]): Unit =
+    {
+      val dups = m.iterator_list.filter(p => p._2.length > 1).toList
+      if (dups.nonEmpty) {
+        Output.writeln(cat_lines(title :: dups.map(p => print_dup(p._1, p._2))))
+      }
+    }
+
+    print_dups("duplicate names:", address_name)
+    print_dups("duplicate addresses:", name_address)
+
+    def get_name(msg: Message): Option[String] =
+      proper_string(msg.author_name) orElse address_name.get(msg.author_address)
+
+    val unnamed =
+      msgs_sorted.flatMap(msg => if (get_name(msg).isEmpty) Some(msg.author_address) else None)
+        .toSet.toList.sorted
+
+    if (unnamed.nonEmpty) {
+      Output.writeln(("unnamed:" :: unnamed).mkString("\n", "\n  ", ""))
+    }
   }
 
 
@@ -227,6 +266,12 @@ object Mailman
       }
     }
 
+    override def make_address(str: String): String =
+    {
+      val s = super.make_address(make_name(str))
+      if (s == "cl-isabelle-users@lists.cam.ac.uk") "" else s
+    }
+
     object Address
     {
       private def anchor(s: String): String = """<a href="[^"]*">""" + s + """</a>"""
@@ -290,7 +335,9 @@ object Mailman
       val (author_name, author_address) =
         message_match(head, """<li><em>From</em>:\s*(.*?)\s*</li>""".r) match {
           case None => err("Missing From")
-          case Some(m) => Address.unapply(m.group(1)) getOrElse err("Malformed From")
+          case Some(m) =>
+            val (a, b) = Address.unapply(m.group(1)) getOrElse err("Malformed From")
+            (if (a == b) "" else a, b)
         }
 
       Message(name, date, title, author_name, author_address, body)
