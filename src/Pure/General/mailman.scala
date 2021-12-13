@@ -112,7 +112,7 @@ object Mailman
     tag: String = "")
   {
     def message_regex: Regex
-    def message_content(href: String, lines: List[String]): Message
+    def message_content(name: String, lines: List[String]): Message
 
     private val main_url: URL =
       Url(Library.take_suffix[Char](_ == '/', Url.trim_index(url).toString.toList)._1.mkString + "/")
@@ -126,6 +126,8 @@ object Mailman
       (proper_string(name) orElse title).getOrElse(error("Failed to determine mailing list name"))
     }
     override def toString: String = list_name
+
+    def full_name(href: String): String = list_name + "/" + href
 
     def list_tag: String = proper_string(tag).getOrElse(list_name)
 
@@ -200,7 +202,11 @@ object Mailman
       for {
         file <- File.find_files(dir.file, file => file.getName.endsWith(".html"))
         rel_path <- File.relative_path(dir, File.path(file))
-      } yield message_content(rel_path.implode, split_lines(File.read(file)))
+      }
+      yield {
+        val name = full_name(rel_path.implode)
+        message_content(name, split_lines(File.read(file)))
+      }
     }
   }
 
@@ -255,10 +261,10 @@ object Mailman
       }
     }
 
-    override def message_content(href: String, lines: List[String]): Message =
+    override def message_content(name: String, lines: List[String]): Message =
     {
       def err(msg: String = ""): Nothing =
-        error("Malformed message: " + href + (if (msg.isEmpty) "" else "\n" + msg))
+        error("Malformed message: " + name + (if (msg.isEmpty) "" else "\n" + msg))
 
       val (head, body) =
         try { (Head.get(lines), Body.get(lines)) }
@@ -284,7 +290,7 @@ object Mailman
         }
 
       Message(
-        href, date, trim_title(title),
+        name, date, trim_title(title),
         trim_name(proper_string(author_name) getOrElse author_address),
         author_address,
         cat_lines(body))
@@ -304,10 +310,10 @@ object Mailman
       def unapply(s: String): Option[Date] = Format.unapply(s.replaceAll("""\s+""", " "))
     }
 
-    override def message_content(href: String, lines: List[String]): Message =
+    override def message_content(name: String, lines: List[String]): Message =
     {
       def err(msg: String = ""): Nothing =
-        error("Malformed message: " + href + (if (msg.isEmpty) "" else "\n" + msg))
+        error("Malformed message: " + name + (if (msg.isEmpty) "" else "\n" + msg))
 
       val (head, body) =
         try { (Head.get(lines), Body.get(lines)) }
@@ -335,7 +341,7 @@ object Mailman
         }
 
       Message(
-        href, date, trim_title(title),
+        name, date, trim_title(title),
         trim_name(proper_string(author_name) getOrElse author_address),
         author_address,
         cat_lines(body))
