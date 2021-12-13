@@ -2939,8 +2939,7 @@ fun atp_problem_selection_weights problem =
           fact_min_weight + (fact_max_weight - fact_min_weight) * Real.fromInt j
                             / Real.fromInt num_facts
       in
-        map_index (apfst weight_of) facts
-        |> fold (uncurry add_line_weights)
+        fold_index (fn (i, fact) => add_line_weights (weight_of i) fact) facts
       end
     val get = these o AList.lookup (op =) problem
   in
