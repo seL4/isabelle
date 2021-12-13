@@ -31,10 +31,7 @@ object Mailman
       quote(author_name) + "\n" + "<" + author_address + ">\n"
   }
 
-  def message_match(lines: List[String], re: Regex): Option[Match] =
-    lines.flatMap(re.findFirstMatchIn(_)).headOption
-
-  class Message_Chunk(bg: String = "", en: String = "")
+  private class Message_Chunk(bg: String = "", en: String = "")
   {
     def unapply(lines: List[String]): Option[List[String]] =
     {
@@ -64,45 +61,6 @@ object Mailman
           (if (en.nonEmpty) " " else "") + en)
   }
 
-  object Address
-  {
-    def anchor(s: String): String = """<a href="[^"]*">""" + s + """</a>"""
-    def angl(s: String): String = """&lt;""" + s + """&gt;"""
-    def quot(s: String): String = """&quot;""" + s + """&quot;"""
-    def paren(s: String): String = """\(""" + s + """\)"""
-    val adr = """([^<>]*? at [^<>]*?)"""
-    val any = """([^<>]*?)"""
-    val spc = """\s*"""
-
-    val Name1 = quot(anchor(any)).r
-    val Name2 = quot(any).r
-    val Name_Adr1 = (quot(anchor(any)) + spc + angl(anchor(adr))).r
-    val Name_Adr2 = (quot(any) + spc + angl(anchor(adr))).r
-    val Name_Adr3 = (anchor(any) + spc + angl(anchor(adr))).r
-    val Name_Adr4 = (any + spc + angl(anchor(adr))).r
-    val Adr_Name1 = (angl(anchor(adr)) + spc + paren(any)).r
-    val Adr_Name2 = (anchor(adr) + spc + paren(any)).r
-    val Adr1 = angl(anchor(adr)).r
-    val Adr2 = anchor(adr).r
-
-    def trim(s: String): String = HTML.input(s).replace(" at ", "@")
-
-    def unapply(s: String): Option[(String, String)] =
-      s match {
-        case Name1(a) => Some((trim(a), ""))
-        case Name2(a) => Some((trim(a), ""))
-        case Name_Adr1(a, b) => Some((trim(a), trim(b)))
-        case Name_Adr2(a, b) => Some((trim(a), trim(b)))
-        case Name_Adr3(a, b) => Some((trim(a), trim(b)))
-        case Name_Adr4(a, b) => Some((trim(a), trim(b)))
-        case Adr_Name1(b, a) => Some((trim(a), trim(b)))
-        case Adr_Name2(b, a) => Some((trim(a), trim(b)))
-        case Adr1(a) => Some(("", trim(a)))
-        case Adr2(a) => Some(("", trim(a)))
-        case _ => None
-      }
-  }
-
 
   /* mailing list archives */
 
@@ -113,6 +71,16 @@ object Mailman
   {
     def message_regex: Regex
     def message_content(name: String, lines: List[String]): Message
+
+    def message_match(lines: List[String], re: Regex): Option[Match] =
+      lines.flatMap(re.findFirstMatchIn(_)).headOption
+
+    def make_name(str: String): String = str.replaceAll("""\s+""", " ")
+
+    def make_address(s: String): String = HTML.input(s).replace(" at ", "@")
+
+    def make_body(lines: List[String]): String =
+      cat_lines(Library.take_suffix[String](_.isEmpty, lines)._1)
 
     private val main_url: URL =
       Url(Library.take_suffix[Char](_ == '/', Url.trim_index(url).toString.toList)._1.mkString + "/")
@@ -177,7 +145,7 @@ object Mailman
       download_text(target_dir, progress = progress) :::
       download_msg(target_dir, progress = progress)
 
-    def trim_title(str: String): String =
+    def make_title(str: String): String =
     {
       val Trim1 = ("""\s*\Q[""" + list_tag + """]\E\s*(.*)""").r
       val Trim2 = """(?i:(?:re|fw|fwd)\s*:\s*)(.*)""".r
@@ -191,8 +159,6 @@ object Mailman
         }
       trim(str)
     }
-
-    def trim_name(str: String): String = str.replaceAll("""\s+""", " ")
 
     def get_messages(): List[Message] =
       for (href <- hrefs_msg) yield message_content(href, split_lines(read_text(href)))
@@ -252,13 +218,50 @@ object Mailman
       }
     }
 
-    override def trim_name(str: String): String =
+    override def make_name(str: String): String =
     {
       val Trim = """(.*?)\s*via\s+Cl-isabelle-users""".r
-      super.trim_name(str) match {
+      super.make_name(str) match {
         case Trim(s) => s
         case s => s
       }
+    }
+
+    object Address
+    {
+      private def anchor(s: String): String = """<a href="[^"]*">""" + s + """</a>"""
+      private def angl(s: String): String = """&lt;""" + s + """&gt;"""
+      private def quot(s: String): String = """&quot;""" + s + """&quot;"""
+      private def paren(s: String): String = """\(""" + s + """\)"""
+      private val adr = """([^<>]*? at [^<>]*?)"""
+      private val any = """([^<>]*?)"""
+      private val spc = """\s*"""
+
+      private val Name1 = quot(anchor(any)).r
+      private val Name2 = quot(any).r
+      private val Name_Adr1 = (quot(anchor(any)) + spc + angl(anchor(adr))).r
+      private val Name_Adr2 = (quot(any) + spc + angl(anchor(adr))).r
+      private val Name_Adr3 = (anchor(any) + spc + angl(anchor(adr))).r
+      private val Name_Adr4 = (any + spc + angl(anchor(adr))).r
+      private val Adr_Name1 = (angl(anchor(adr)) + spc + paren(any)).r
+      private val Adr_Name2 = (anchor(adr) + spc + paren(any)).r
+      private val Adr1 = angl(anchor(adr)).r
+      private val Adr2 = anchor(adr).r
+
+      def unapply(s: String): Option[(String, String)] =
+        s match {
+          case Name1(a) => Some((make_address(a), ""))
+          case Name2(a) => Some((make_address(a), ""))
+          case Name_Adr1(a, b) => Some((make_address(a), make_address(b)))
+          case Name_Adr2(a, b) => Some((make_address(a), make_address(b)))
+          case Name_Adr3(a, b) => Some((make_address(a), make_address(b)))
+          case Name_Adr4(a, b) => Some((make_address(a), make_address(b)))
+          case Adr_Name1(b, a) => Some((make_address(a), make_address(b)))
+          case Adr_Name2(b, a) => Some((make_address(a), make_address(b)))
+          case Adr1(a) => Some(("", make_address(a)))
+          case Adr2(a) => Some(("", make_address(a)))
+          case _ => None
+        }
     }
 
     override def message_content(name: String, lines: List[String]): Message =
@@ -267,7 +270,7 @@ object Mailman
         error("Malformed message: " + name + (if (msg.isEmpty) "" else "\n" + msg))
 
       val (head, body) =
-        try { (Head.get(lines), Body.get(lines)) }
+        try { (Head.get(lines), make_body(Body.get(lines))) }
         catch { case ERROR(msg) => err(msg) }
 
       val date =
@@ -280,8 +283,9 @@ object Mailman
         }
 
       val title =
-        HTML.input(message_match(head, """<li><em>Subject</em>:\s*(.*)</li>""".r)
-          .getOrElse(err("Missing Subject")).group(1))
+        make_title(
+          HTML.input(message_match(head, """<li><em>Subject</em>:\s*(.*)</li>""".r)
+            .getOrElse(err("Missing Subject")).group(1)))
 
       val (author_name, author_address) =
         message_match(head, """<li><em>From</em>:\s*(.*?)\s*</li>""".r) match {
@@ -289,11 +293,7 @@ object Mailman
           case Some(m) => Address.unapply(m.group(1)) getOrElse err("Malformed From")
         }
 
-      Message(
-        name, date, trim_title(title),
-        trim_name(proper_string(author_name) getOrElse author_address),
-        author_address,
-        cat_lines(body))
+      Message(name, date, title, author_name, author_address, body)
     }
   }
 
@@ -316,7 +316,7 @@ object Mailman
         error("Malformed message: " + name + (if (msg.isEmpty) "" else "\n" + msg))
 
       val (head, body) =
-        try { (Head.get(lines), Body.get(lines)) }
+        try { (Head.get(lines), make_body(Body.get(lines))) }
         catch { case ERROR(msg) => err(msg) }
 
       val date =
@@ -329,7 +329,7 @@ object Mailman
       val (title, author_address) =
       {
         message_match(head, """TITLE="([^"]+)">(.*)""".r) match {
-          case Some(m) => (HTML.input(m.group(1)), Address.trim(HTML.input(m.group(2))))
+          case Some(m) => (make_title(HTML.input(m.group(1))), make_address(HTML.input(m.group(2))))
           case None => err("Missing TITLE")
         }
       }
@@ -337,14 +337,10 @@ object Mailman
       val author_name =
         message_match(head, """\s*<B>(.*)</B>""".r) match {
           case None => err("Missing author")
-          case Some(m) => HTML.input(m.group(1))
+          case Some(m) => make_name(HTML.input(m.group(1)))
         }
 
-      Message(
-        name, date, trim_title(title),
-        trim_name(proper_string(author_name) getOrElse author_address),
-        author_address,
-        cat_lines(body))
+      Message(name, date, title, author_name, author_address, body)
     }
   }
 }
