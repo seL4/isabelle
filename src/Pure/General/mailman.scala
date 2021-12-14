@@ -18,85 +18,216 @@ object Mailman
 {
   /* mailing list messages */
 
+  def is_address(s: String): Boolean =
+    s.contains('@') && s.contains('.') && !s.contains(' ')
+
+  private val standard_name: Map[String, String] =
+    Map(
+      "Aman Pohjola, Johannes (Data61, Kensington NSW)" -> "Johannes Aman Pohjola",
+      "Andrei de AraÃjo Formiga" -> "Andrei de Araujo Formiga",
+      "Benedikt.AHRENS@unice.fr" -> "benedikt.ahrens@gmail.com",
+      "Berger U." -> "Ulrich Berger",
+      "Bisping, Benjamin" -> "Benjamin Bisping",
+      "Blanchette, J.C." -> "Jasmin Christian Blanchette",
+      "Buday Gergely István" -> "Gergely Buday",
+      "CALaF1UJ9Uy0vGCu4WkBmbfuPDxG7nFm8hfeCMP+O3g7_5CQ0Bw@mail.gmail.com" -> "",
+      "CRACIUN F." -> "Florin Craciun",
+      "Carsten Schuermann" -> "Carsten Schürmann",
+      "Christoph Lueth" -> "Christoph Lüth",
+      "Claude Marche" -> "Claude Marché",
+      "Daniel StÃwe" -> "Daniel Stüwe",
+      "Daniel.Matichuk@nicta.com.au" -> "Daniel.Matichuk@data61.csiro.au",
+      "David MENTRE" -> "David MENTRÉ",
+      "Dr. Brendan Patrick Mahony" -> "Brendan Mahony",
+      "Farn" -> "Farn Wang",
+      "Farquhar, Colin I" -> "Colin Farquhar",
+      "Filip Maric" -> "Filip Marić",
+      "Filip MariÄ" -> "Filip Marić",
+      "Fleury Mathias" -> "Mathias Fleury",
+      "Francisco Jose Chaves Alonso" -> "Francisco Jose CHAVES ALONSO",
+      "George K." -> "George Karabotsos",
+      "Gidon ERNST" -> "Gidon Ernst",
+      "Hans-JÃrg Schurr" -> "Hans-Jörg Schurr",
+      "Henri DEBRAT" -> "Henri Debrat",
+      "Hitoshi Ohsaki (RTA publicity chair)" -> "Hitoshi Ohsaki",
+      "Isabelle" -> "",
+      "Jackson, Vincent (Data61, Kensington NSW)" -> "Vincent Jackson",
+      "Janney, Mark-P26816" -> "Mark Janney",
+      "Jean François Molderez" -> "Jean-Francois Molderez",
+      "Jose DivasÃn" -> "Jose Divasón",
+      "Julian" -> "",
+      "Julien" -> "",
+      "Klein, Gerwin (Data61, Kensington NSW)" -> "Gerwin Klein",
+      "Kobayashi, Hidetsune" -> "Hidetsune Kobayashi",
+      "Laurent Thery" -> "Laurent Théry",
+      "Lochbihler Andreas" -> "Andreas Lochbihler",
+      "Lutz Schroeder" -> "Lutz Schröder",
+      "Lutz SchrÃder" -> "Lutz Schröder",
+      "Makarius" -> "Makarius Wenzel",
+      "Marco" -> "",
+      "Mark" -> "",
+      "Markus" -> "",
+      "Martin Klebermass" -> "Martin Klebermaß",
+      "Matthews, John R" -> "John Matthews",
+      "Michael FÃrber" -> "Michael Färber",
+      "Moscato, Mariano M. \\(LARC-D320\\)\\[NATIONAL INSTITUTE OF AEROSPACE\\]" -> "Moscato, Mariano M.",
+      "Norrish, Michael (Data61, Acton)" -> "Michael Norrish",
+      "Omar Montano Rivas" -> "Omar Montaño Rivas",
+      "Omar MontaÃo Rivas" -> "Omar Montaño Rivas",
+      "OndÅej KunÄar" -> "Ondřej Kunčar",
+      "PAQUI LUCIO" -> "Paqui Lucio",
+      "Peter Vincent Homeier" -> "Peter V. Homeier",
+      "Peter" -> "",
+      "Philipp Ruemmer" -> "Philipp Rümmer",
+      "Philipp RÃmmer" -> "Philipp Rümmer",
+      "Raamsdonk, F. van" -> "Femke van Raamsdonk",
+      "Raul Gutierrez" -> "Raúl Gutiérrez",
+      "RenÃ Thiemann" -> "René Thiemann",
+      "Roggenbach M." -> "Markus Roggenbach",
+      "Rozman, Mihaela" -> "Mihaela Rozman",
+      "Serguei A. Mokhov on behalf of PST-11" -> "Serguei A. Mokhov",
+      "Silvio.Ranise@loria.fr" -> "ranise@dsi.unimi.it",
+      "Stüber, Sebastian" -> "Sebastian Stüber",
+      "Thiemann, Rene" -> "René Thiemann",
+      "Thiemann, René" -> "René Thiemann",
+      "Thomas Goethel" -> "Thomas Göthel",
+      "Thomas.Sewell@data61.csiro.au" -> "tals4@cam.ac.uk",
+      "Toby.Murray@data61.csiro.au" -> "toby.murray@unimelb.edu.au",
+      "Urban, Christian" -> "Christian Urban",
+      "Viktor Kuncak" -> "Viktor Kunčak",
+      "Viorel Preoteasaa" -> "Viorel Preoteasa",
+      "Yakoub.Nemouchi@lri.fr" -> "y.nemouchi@ensbiotech.edu.dz",
+      "YliÃs Falcone" -> "Yliès Falcone",
+      "daniel.matichuk@nicta.com.au" -> "Daniel.Matichuk@data61.csiro.au",
+      "fredegar@haftmann-online.de" -> "florian@haftmann-online.de",
+      "gallais @ ensl.org" -> "Guillaume Allais",
+      "haftmann@in.tum.de" -> "Florian Haftmann",
+      "hkb" -> "Hidetsune Kobayashi",
+      "julien@RadboudUniversity" -> "",
+      "mantel" -> "Heiko Mantel",
+      "merz@loria.fr" -> "stephan.merz@loria.fr",
+      "nemouchi" -> "Yakoub Nemouchi",
+      "popescu2@illinois.edu" -> "Andrei Popescu",
+      "urban@math.lmu.de" -> "Christian Urban",
+      "veronique.cortier@loria.fr" -> "Veronique.Cortier@loria.fr",
+      "wenzelm@in.tum.de" -> "makarius@sketis.net",
+      "ÐÑÐÐÐÑÐÐÐ ÐÐÐÐÐÐÐÑÐÐÐÑ ÐÐÐÑÐÐÐ" -> "",
+      "∀X.Xπ - Tutorials about Proofs" -> "Bruno Woltzenlogel Paleo",
+    ).withDefault(identity)
+
+  def standard_author_info(author_info: List[String]): List[String] =
+    author_info.map(standard_name).filter(_.nonEmpty).distinct
+
   sealed case class Message(
     name: String,
     date: Date,
     title: String,
-    author_name: String,
-    author_address: String,
-    body: String)
+    author_info: List[String],
+    body: String,
+    tags: List[String])
   {
-    override def toString: String = name
-    def print: String =
-      name + "\n" + date + "\n" + title + "\n" +
-      quote(author_name) + "\n" + "<" + author_address + ">\n"
-  }
+    if (author_info.isEmpty || author_info.exists(_.isEmpty)) {
+      error("Bad author information in " + quote(name))
+    }
 
-  private class Message_Chunk(bg: String = "", en: String = "")
+    override def toString: String = name
+   }
+
+  object Messages
   {
-    def unapply(lines: List[String]): Option[List[String]] =
+    type Graph = isabelle.Graph[String, Message]
+
+    def apply(msgs: List[Message]): Messages =
     {
-      val res1 =
-        if (bg.isEmpty) Some(lines)
-        else {
-          lines.dropWhile(_ != bg) match {
-            case Nil => None
-            case _ :: rest => Some(rest)
+      def make_node(g: Graph, node: String, msg: Message): Graph =
+        if (g.defined(node) && Date.Ordering.compare(g.get_node(node).date, msg.date) >= 0) g
+        else g.default_node(node, msg)
+
+      def connect_nodes(g: Graph, nodes: List[String]): Graph =
+        nodes match {
+          case Nil => g
+          case a :: bs => bs.foldLeft(g)({ case (g1, b) => g1.add_edge(a, b).add_edge(b, a) })
+        }
+
+      new Messages(msgs.sortBy(_.date)(Date.Ordering),
+        msgs.foldLeft[Graph](Graph.string)(
+          { case (graph, msg) =>
+              val nodes = msg.author_info
+              connect_nodes(nodes.foldLeft(graph)(make_node(_, _, msg)), nodes)
+          }))
+    }
+
+    def find(dir: Path): Messages =
+    {
+      val msgs =
+        for {
+          archive <- List(Isabelle_Users, Isabelle_Dev)
+          msg <- archive.find_messages(dir + Path.basic(archive.list_name))
+        } yield msg
+      Messages(msgs)
+    }
+
+    sealed case class Cluster(author_info: List[String])
+    {
+      val (addresses, names) = author_info.partition(is_address)
+
+      val name: String =
+        names.headOption getOrElse {
+          addresses match {
+            case a :: _ => a.substring(0, a.indexOf('@')).replace('.', ' ')
+            case Nil => error("Empty cluster")
           }
         }
-      if (en.isEmpty) res1
-      else {
-        res1 match {
-          case None => None
-          case Some(lines1) =>
-            val lines2 = lines1.takeWhile(_ != en)
-            if (lines1.drop(lines2.length).isEmpty) None else Some(lines2)
-        }
+
+      def get_address: Option[String] = addresses.headOption
+
+      def unique: Boolean = names.length == 1 && addresses.length == 1
+      def multi: Boolean = names.length > 1 || addresses.length > 1
+
+      def print: String =
+      {
+        val entries = names ::: (if (addresses.isEmpty) Nil else List("")) ::: addresses
+        entries.mkString("\n  * ", "\n    ", "")
       }
     }
-
-    def get(lines: List[String]): List[String] =
-      unapply(lines) getOrElse
-        error("Missing delimiters:" +
-          (if (bg.nonEmpty) " " else "") + bg +
-          (if (en.nonEmpty) " " else "") + en)
   }
 
-
-  /* integrity check */
-
-  def check_messages(msgs: List[Message]): Unit =
+  class Messages private(val sorted: List[Message], val graph: Messages.Graph)
   {
-    val msgs_sorted = msgs.sortBy(_.date)(Date.Ordering)
-    val msgs_proper =
-      msgs_sorted.filter(msg => msg.author_name.nonEmpty && msg.author_address.nonEmpty)
+    override def toString: String = "Messages(" + sorted.size + ")"
 
-    val address_name = Multi_Map.from(msgs_proper.map(msg => (msg.author_address, msg.author_name)))
-    val name_address = Multi_Map.from(msgs_proper.map(msg => (msg.author_name, msg.author_address)))
-
-    def print_dup(a: String, bs: List[String]): String =
-      "  * " + a + bs.mkString("\n      ", "\n      ", "")
-
-    def print_dups(title: String, m: Multi_Map[String, String]): Unit =
+    object Node_Ordering extends scala.math.Ordering[String]
     {
-      val dups = m.iterator_list.filter(p => p._2.length > 1).toList
-      if (dups.nonEmpty) {
-        Output.writeln(cat_lines(title :: dups.map(p => print_dup(p._1, p._2))))
-      }
+      override def compare(a: String, b: String): Int =
+        Date.Rev_Ordering.compare(graph.get_node(a).date, graph.get_node(b).date)
     }
 
-    print_dups("duplicate names:", address_name)
-    print_dups("duplicate addresses:", name_address)
+    def get_cluster(msg: Message): Messages.Cluster =
+      Messages.Cluster(graph.all_succs(msg.author_info).sorted.sorted(Node_Ordering))
 
-    def get_name(msg: Message): Option[String] =
-      proper_string(msg.author_name) orElse address_name.get(msg.author_address)
+    def get_name(msg: Message): String = get_cluster(msg).name
 
-    val unnamed =
-      msgs_sorted.flatMap(msg => if (get_name(msg).isEmpty) Some(msg.author_address) else None)
-        .toSet.toList.sorted
+    def get_address(msg: Message): String =
+      get_cluster(msg).get_address getOrElse error("No author address for " + quote(msg.name))
 
-    if (unnamed.nonEmpty) {
-      Output.writeln(("unnamed:" :: unnamed).mkString("\n", "\n  ", ""))
+    def check(check_all: Boolean, check_multi: Boolean = false): Unit =
+    {
+      val clusters = sorted.map(get_cluster).distinct.sortBy(_.name)
+
+      if (check_all) {
+        Output.writeln(cat_lines("clusters:" :: clusters.map(_.print)))
+      }
+      else {
+        val multi = if (check_multi) clusters.filter(_.multi) else Nil
+        if (multi.nonEmpty) {
+          Output.writeln(cat_lines("ambiguous clusters:" :: multi.map(_.print)))
+        }
+      }
+
+      val unknown = clusters.filter(cluster => cluster.get_address.isEmpty)
+      if (unknown.nonEmpty) {
+        Output.writeln(cat_lines("\nunknown mail:" :: unknown.map(_.print)))
+      }
     }
   }
 
@@ -114,9 +245,14 @@ object Mailman
     def message_match(lines: List[String], re: Regex): Option[Match] =
       lines.flatMap(re.findFirstMatchIn(_)).headOption
 
-    def make_name(str: String): String = str.replaceAll("""\s+""", " ")
-
-    def make_address(s: String): String = HTML.input(s).replace(" at ", "@")
+    def make_name(str: String): String =
+    {
+      val s =
+        str.trim.replaceAll("""\s+""", " ").replaceAll(" at ", "@")
+          .replace("mailbroy.informatik.tu-muenchen.de", "in.tum.de")
+          .replace("informatik.tu-muenchen.de", "in.tum.de")
+      if (s.startsWith("=") && s.endsWith("=")) "" else s
+    }
 
     def make_body(lines: List[String]): String =
       cat_lines(Library.take_suffix[String](_.isEmpty, lines)._1)
@@ -215,8 +351,38 @@ object Mailman
     }
   }
 
+  private class Message_Chunk(bg: String = "", en: String = "")
+  {
+    def unapply(lines: List[String]): Option[List[String]] =
+    {
+      val res1 =
+        if (bg.isEmpty) Some(lines)
+        else {
+          lines.dropWhile(_ != bg) match {
+            case Nil => None
+            case _ :: rest => Some(rest)
+          }
+        }
+      if (en.isEmpty) res1
+      else {
+        res1 match {
+          case None => None
+          case Some(lines1) =>
+            val lines2 = lines1.takeWhile(_ != en)
+            if (lines1.drop(lines2.length).isEmpty) None else Some(lines2)
+        }
+      }
+    }
 
-  /* Isabelle mailing lists */
+    def get(lines: List[String]): List[String] =
+      unapply(lines) getOrElse
+        error("Missing delimiters:" +
+          (if (bg.nonEmpty) " " else "") + bg +
+          (if (en.nonEmpty) " " else "") + en)
+  }
+
+
+  /* isabelle-users mailing list */
 
   object Isabelle_Users extends Archive(
     Url("https://lists.cam.ac.uk/pipermail/cl-isabelle-users"),
@@ -259,16 +425,7 @@ object Mailman
 
     override def make_name(str: String): String =
     {
-      val Trim = """(.*?)\s*via\s+Cl-isabelle-users""".r
-      super.make_name(str) match {
-        case Trim(s) => s
-        case s => s
-      }
-    }
-
-    override def make_address(str: String): String =
-    {
-      val s = super.make_address(make_name(str))
+      val s = Library.perhaps_unsuffix(" via Cl-isabelle-users", super.make_name(str))
       if (s == "cl-isabelle-users@lists.cam.ac.uk") "" else s
     }
 
@@ -293,19 +450,19 @@ object Mailman
       private val Adr1 = angl(anchor(adr)).r
       private val Adr2 = anchor(adr).r
 
-      def unapply(s: String): Option[(String, String)] =
+      def parse(s: String): List[String] =
         s match {
-          case Name1(a) => Some((make_address(a), ""))
-          case Name2(a) => Some((make_address(a), ""))
-          case Name_Adr1(a, b) => Some((make_address(a), make_address(b)))
-          case Name_Adr2(a, b) => Some((make_address(a), make_address(b)))
-          case Name_Adr3(a, b) => Some((make_address(a), make_address(b)))
-          case Name_Adr4(a, b) => Some((make_address(a), make_address(b)))
-          case Adr_Name1(b, a) => Some((make_address(a), make_address(b)))
-          case Adr_Name2(b, a) => Some((make_address(a), make_address(b)))
-          case Adr1(a) => Some(("", make_address(a)))
-          case Adr2(a) => Some(("", make_address(a)))
-          case _ => None
+          case Name1(a) => List(a)
+          case Name2(a) => List(a)
+          case Name_Adr1(a, b) => List(a, b)
+          case Name_Adr2(a, b) => List(a, b)
+          case Name_Adr3(a, b) => List(a, b)
+          case Name_Adr4(a, b) => List(a, b)
+          case Adr_Name1(b, a) => List(a, b)
+          case Adr_Name2(b, a) => List(a, b)
+          case Adr1(a) => List(a)
+          case Adr2(a) => List(a)
+          case _ => Nil
         }
     }
 
@@ -332,17 +489,27 @@ object Mailman
           HTML.input(message_match(head, """<li><em>Subject</em>:\s*(.*)</li>""".r)
             .getOrElse(err("Missing Subject")).group(1)))
 
-      val (author_name, author_address) =
-        message_match(head, """<li><em>From</em>:\s*(.*?)\s*</li>""".r) match {
-          case None => err("Missing From")
-          case Some(m) =>
-            val (a, b) = Address.unapply(m.group(1)) getOrElse err("Malformed From")
-            (if (a == b) "" else a, b)
+      def parse_author_info(re: Regex): List[String] =
+        message_match(head, re) match {
+          case None => Nil
+          case Some(m) => Address.parse(m.group(1)).map(a => HTML.input(make_name(a)))
         }
 
-      Message(name, date, title, author_name, author_address, body)
+      val author_info =
+        (parse_author_info("""<li><em>From</em>:\s*(.*?)\s*</li>""".r) :::
+          parse_author_info("""<li><em>Reply-to</em>:\s*(.*?)\s*</li>""".r))
+        .distinct.filter(_.nonEmpty)
+
+      if (author_info.isEmpty) err("Malformed author information")
+
+      val tags = List(list_name)
+
+      Message(name, date, title, standard_author_info(author_info), body, tags)
     }
   }
+
+
+  /* isabelle-dev mailing list */
 
   object Isabelle_Dev extends Archive(Url("https://mailmanbroy.in.tum.de/pipermail/isabelle-dev"))
   {
@@ -376,7 +543,7 @@ object Mailman
       val (title, author_address) =
       {
         message_match(head, """TITLE="([^"]+)">(.*)""".r) match {
-          case Some(m) => (make_title(HTML.input(m.group(1))), make_address(HTML.input(m.group(2))))
+          case Some(m) => (make_title(HTML.input(m.group(1))), make_name(HTML.input(m.group(2))))
           case None => err("Missing TITLE")
         }
       }
@@ -384,10 +551,15 @@ object Mailman
       val author_name =
         message_match(head, """\s*<B>(.*)</B>""".r) match {
           case None => err("Missing author")
-          case Some(m) => make_name(HTML.input(m.group(1)))
+          case Some(m) =>
+            val a = make_name(HTML.input(m.group(1)))
+            if (a == author_address) "" else a
         }
 
-      Message(name, date, title, author_name, author_address, body)
+      val author_info = List(author_name, author_address)
+      val tags = List(list_name)
+
+      Message(name, date, title, standard_author_info(author_info), body, tags)
     }
   }
 }
