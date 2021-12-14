@@ -34,37 +34,6 @@ object Mailman
     def normal_address: String = Word.lowercase(author_address)
   }
 
-  private class Message_Chunk(bg: String = "", en: String = "")
-  {
-    def unapply(lines: List[String]): Option[List[String]] =
-    {
-      val res1 =
-        if (bg.isEmpty) Some(lines)
-        else {
-          lines.dropWhile(_ != bg) match {
-            case Nil => None
-            case _ :: rest => Some(rest)
-          }
-        }
-      if (en.isEmpty) res1
-      else {
-        res1 match {
-          case None => None
-          case Some(lines1) =>
-            val lines2 = lines1.takeWhile(_ != en)
-            if (lines1.drop(lines2.length).isEmpty) None else Some(lines2)
-        }
-      }
-    }
-
-    def get(lines: List[String]): List[String] =
-      unapply(lines) getOrElse
-        error("Missing delimiters:" +
-          (if (bg.nonEmpty) " " else "") + bg +
-          (if (en.nonEmpty) " " else "") + en)
-  }
-
-
   /* integrity check */
 
   def check_messages(msgs: List[Message]): Unit =
@@ -226,6 +195,36 @@ object Mailman
         message_content(name, split_lines(File.read(file)))
       }
     }
+  }
+
+  private class Message_Chunk(bg: String = "", en: String = "")
+  {
+    def unapply(lines: List[String]): Option[List[String]] =
+    {
+      val res1 =
+        if (bg.isEmpty) Some(lines)
+        else {
+          lines.dropWhile(_ != bg) match {
+            case Nil => None
+            case _ :: rest => Some(rest)
+          }
+        }
+      if (en.isEmpty) res1
+      else {
+        res1 match {
+          case None => None
+          case Some(lines1) =>
+            val lines2 = lines1.takeWhile(_ != en)
+            if (lines1.drop(lines2.length).isEmpty) None else Some(lines2)
+        }
+      }
+    }
+
+    def get(lines: List[String]): List[String] =
+      unapply(lines) getOrElse
+        error("Missing delimiters:" +
+          (if (bg.nonEmpty) " " else "") + bg +
+          (if (en.nonEmpty) " " else "") + en)
   }
 
 
