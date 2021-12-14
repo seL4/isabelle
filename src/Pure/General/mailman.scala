@@ -21,7 +21,7 @@ object Mailman
   def is_address(s: String): Boolean =
     s.contains('@') && s.contains('.') && !s.contains(' ')
 
-  val standard_name: Map[String, String] =
+  private val standard_name: Map[String, String] =
     Map(
       "Blanchette, J.C." -> "Jasmin Christian Blanchette",
       "Buday Gergely István" -> "Gergely Buday",
@@ -38,33 +38,22 @@ object Mailman
       "Moscato, Mariano M. \\(LARC-D320\\)\\[NATIONAL INSTITUTE OF AEROSPACE\\]" -> "Moscato, Mariano M. (LARC-D320)",
     ).withDefault(identity)
 
+  def standard_author_info(author_info: List[String]): List[String] =
+    author_info.map(standard_name).filter(_.nonEmpty).distinct
+
   sealed case class Message(
     name: String,
     date: Date,
     title: String,
-    author_name: String,
-    author_address: String,
+    author_info: List[String],
     body: String,
     tags: List[String])
   {
-    if (author_name.nonEmpty && is_address(author_name)) {
-      Output.warning("Bad author name, looks like mail address: " +
-        quote(author_name) + " in " + quote(name))
-    }
-
-    if (author_address.nonEmpty && !is_address(author_address)) {
-      error("Bad mail address: " + quote(author_address) + " in " + quote(name))
+    if (author_info.isEmpty || author_info.exists(_.isEmpty)) {
+      error("Bad author information in " + quote(name))
     }
 
     override def toString: String = name
-
-    def nodes: List[String] =
-      proper_string(author_name).toList :::
-      proper_string(author_address).toList
-
-    def print: String =
-      name + "\n" + date + "\n" + title + "\n" +
-      quote(author_name) + "\n" + "<" + author_address + ">\n"
    }
 
   object Messages
@@ -73,19 +62,21 @@ object Mailman
 
     def apply(msgs: List[Message]): Messages =
     {
-      def update_node(g: Graph, node: String, msg: Message): Graph =
-        if (node.isEmpty ||
-            g.defined(node) && Date.Ordering.compare(g.get_node(node).date, msg.date) >= 0) g
+      def make_node(g: Graph, node: String, msg: Message): Graph =
+        if (g.defined(node) && Date.Ordering.compare(g.get_node(node).date, msg.date) >= 0) g
         else g.default_node(node, msg)
+
+      def connect_nodes(g: Graph, nodes: List[String]): Graph =
+        nodes match {
+          case Nil => g
+          case a :: bs => bs.foldLeft(g)({ case (g1, b) => g1.add_edge(a, b).add_edge(b, a) })
+        }
 
       new Messages(msgs.sortBy(_.date)(Date.Ordering),
         msgs.foldLeft[Graph](Graph.string)(
-          { case (g, msg) =>
-              val a = msg.author_name
-              val b = msg.author_address
-              val g1 = update_node(update_node(g, a, msg), b, msg)
-              if (a.nonEmpty && b.nonEmpty) g1.add_edge(a, b).add_edge(b, a)
-              else g1
+          { case (graph, msg) =>
+              val nodes = msg.author_info
+              connect_nodes(nodes.foldLeft(graph)(make_node(_, _, msg)), nodes)
           }))
     }
 
@@ -99,8 +90,10 @@ object Mailman
       Messages(msgs)
     }
 
-    sealed case class Cluster(names: List[String], addresses: List[String])
+    sealed case class Cluster(author_info: List[String])
     {
+      val (addresses, names) = author_info.partition(is_address)
+
       val name: String =
         names.headOption getOrElse {
           addresses match {
@@ -132,14 +125,8 @@ object Mailman
         Date.Rev_Ordering.compare(graph.get_node(a).date, graph.get_node(b).date)
     }
 
-    def get_nodes(msg: Message): List[String] =
-      graph.all_succs(msg.nodes).sorted(Node_Ordering)
-
     def get_cluster(msg: Message): Messages.Cluster =
-    {
-      val (addresses, names) = get_nodes(msg).partition(is_address)
-      Messages.Cluster(names, addresses)
-    }
+      Messages.Cluster(graph.all_succs(msg.author_info).sorted.sorted(Node_Ordering))
 
     def get_name(msg: Message): String = get_cluster(msg).name
 
@@ -378,19 +365,19 @@ object Mailman
       private val Adr1 = angl(anchor(adr)).r
       private val Adr2 = anchor(adr).r
 
-      def unapply(s: String): Option[(String, String)] =
+      def parse(s: String): List[String] =
         s match {
-          case Name1(a) => Some((make_name(a), ""))
-          case Name2(a) => Some((make_name(a), ""))
-          case Name_Adr1(a, b) => Some((make_name(a), make_name(b)))
-          case Name_Adr2(a, b) => Some((make_name(a), make_name(b)))
-          case Name_Adr3(a, b) => Some((make_name(a), make_name(b)))
-          case Name_Adr4(a, b) => Some((make_name(a), make_name(b)))
-          case Adr_Name1(b, a) => Some((make_name(a), make_name(b)))
-          case Adr_Name2(b, a) => Some((make_name(a), make_name(b)))
-          case Adr1(a) => Some(("", make_name(a)))
-          case Adr2(a) => Some(("", make_name(a)))
-          case _ => None
+          case Name1(a) => List(a)
+          case Name2(a) => List(a)
+          case Name_Adr1(a, b) => List(a, b)
+          case Name_Adr2(a, b) => List(a, b)
+          case Name_Adr3(a, b) => List(a, b)
+          case Name_Adr4(a, b) => List(a, b)
+          case Adr_Name1(b, a) => List(a, b)
+          case Adr_Name2(b, a) => List(a, b)
+          case Adr1(a) => List(a)
+          case Adr2(a) => List(a)
+          case _ => Nil
         }
     }
 
@@ -417,19 +404,19 @@ object Mailman
           HTML.input(message_match(head, """<li><em>Subject</em>:\s*(.*)</li>""".r)
             .getOrElse(err("Missing Subject")).group(1)))
 
-      val (author_name, author_address) =
+      val author_info =
         message_match(head, """<li><em>From</em>:\s*(.*?)\s*</li>""".r) match {
           case None => err("Missing From")
           case Some(m) =>
-            val (a0, b0) = Address.unapply(m.group(1)) getOrElse err("Malformed From")
-            val a = HTML.input(a0)
-            val b = HTML.input(b0)
-            (if (a == b) "" else a, b)
+            val res =
+              Address.parse(m.group(1)).map(a => HTML.input(make_name(a)))
+                .distinct.filter(_.nonEmpty)
+            if (res.nonEmpty) res else err("Malformed author information")
         }
 
       val tags = List(list_name)
 
-      Message(name, date, title, standard_name(author_name), author_address, body, tags)
+      Message(name, date, title, standard_author_info(author_info), body, tags)
     }
   }
 
@@ -487,9 +474,10 @@ object Mailman
             if (a == author_address) "" else a
         }
 
+      val author_info = List(author_name, author_address)
       val tags = List(list_name)
 
-      Message(name, date, title, standard_name(author_name), author_address, body, tags)
+      Message(name, date, title, standard_author_info(author_info), body, tags)
     }
   }
 }
