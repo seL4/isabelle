@@ -23,19 +23,95 @@ object Mailman
 
   private val standard_name: Map[String, String] =
     Map(
+      "Aman Pohjola, Johannes (Data61, Kensington NSW)" -> "Johannes Aman Pohjola",
+      "Andrei de AraÃjo Formiga" -> "Andrei de Araujo Formiga",
+      "Benedikt.AHRENS@unice.fr" -> "benedikt.ahrens@gmail.com",
+      "Berger U." -> "Ulrich Berger",
+      "Bisping, Benjamin" -> "Benjamin Bisping",
       "Blanchette, J.C." -> "Jasmin Christian Blanchette",
       "Buday Gergely István" -> "Gergely Buday",
-      "Carsten Schuermann" -> "Carsten Schürman",
+      "CRACIUN F." -> "Florin Craciun",
+      "Carsten Schuermann" -> "Carsten Schürmann",
       "Christoph Lueth" -> "Christoph Lüth",
       "Claude Marche" -> "Claude Marché",
-      "Farquhar, Colin I" -> "Colin Farquhar",
-      "George K." -> "George Karabotsos",
-      "Filip MariÄ" -> "Filip Marić",
-      "Hitoshi Ohsaki (RTA publicity chair)" -> "Hitoshi Ohsaki",
+      "Daniel StÃwe" -> "Daniel Stüwe",
+      "Daniel.Matichuk@nicta.com.au" -> "Daniel.Matichuk@data61.csiro.au",
+      "David MENTRE" -> "David MENTRÉ",
+      "Dr. Brendan Patrick Mahony" -> "Brendan Mahony",
       "Farn" -> "Farn Wang",
+      "Farquhar, Colin I" -> "Colin Farquhar",
+      "Filip Maric" -> "Filip Marić",
+      "Filip MariÄ" -> "Filip Marić",
       "Fleury Mathias" -> "Mathias Fleury",
+      "George K." -> "George Karabotsos",
+      "Gidon ERNST" -> "Gidon Ernst",
+      "Hans-JÃrg Schurr" -> "Hans-Jörg Schurr",
+      "Henri DEBRAT" -> "Henri Debrat",
+      "Hitoshi Ohsaki (RTA publicity chair)" -> "Hitoshi Ohsaki",
+      "Isabelle" -> "",
+      "Jackson, Vincent (Data61, Kensington NSW)" -> "Vincent Jackson",
+      "Janney, Mark-P26816" -> "Mark Janney",
+      "Jean François Molderez" -> "Jean-Francois Molderez",
+      "Jose DivasÃn" -> "Jose Divasón",
+      "Julian" -> "",
+      "Julien" -> "",
+      "Klein, Gerwin (Data61, Kensington NSW)" -> "Gerwin Klein",
+      "Kobayashi, Hidetsune" -> "Hidetsune Kobayashi",
+      "Laurent Thery" -> "Laurent Théry",
+      "Lochbihler Andreas" -> "Andreas Lochbihler",
+      "Lutz Schroeder" -> "Lutz Schröder",
+      "Lutz SchrÃder" -> "Lutz Schröder",
+      "Makarius" -> "Makarius Wenzel",
+      "Marco" -> "",
+      "Mark" -> "",
+      "Markus" -> "",
+      "Martin Klebermass" -> "Martin Klebermaß",
+      "Matthews, John R" -> "John Matthews",
+      "Michael FÃrber" -> "Michael Färber",
+      "Moscato, Mariano M. \\(LARC-D320\\)\\[NATIONAL INSTITUTE OF AEROSPACE\\]" -> "Moscato, Mariano M.",
+      "Norrish, Michael (Data61, Acton)" -> "Michael Norrish",
+      "Omar Montano Rivas" -> "Omar Montaño Rivas",
+      "Omar MontaÃo Rivas" -> "Omar Montaño Rivas",
+      "OndÅej KunÄar" -> "Ondřej Kunčar",
+      "PAQUI LUCIO" -> "Paqui Lucio",
+      "Peter Vincent Homeier" -> "Peter V. Homeier",
+      "Peter" -> "",
+      "Philipp Ruemmer" -> "Philipp Rümmer",
+      "Philipp RÃmmer" -> "Philipp Rümmer",
+      "Raamsdonk, F. van" -> "Femke van Raamsdonk",
+      "Raul Gutierrez" -> "Raúl Gutiérrez",
+      "RenÃ Thiemann" -> "René Thiemann",
+      "Roggenbach M." -> "Markus Roggenbach",
+      "Rozman, Mihaela" -> "Mihaela Rozman",
+      "Serguei A. Mokhov on behalf of PST-11" -> "Serguei A. Mokhov",
+      "Silvio.Ranise@loria.fr" -> "ranise@dsi.unimi.it",
+      "Stüber, Sebastian" -> "Sebastian Stüber",
+      "Thiemann, Rene" -> "René Thiemann",
+      "Thiemann, René" -> "René Thiemann",
+      "Thiemann, René" -> "René Thiemann",
+      "Thomas Goethel" -> "Thomas Göthel",
+      "Thomas.Sewell@data61.csiro.au" -> "tals4@cam.ac.uk",
+      "Toby.Murray@data61.csiro.au" -> "toby.murray@unimelb.edu.au",
       "Urban, Christian" -> "Christian Urban",
-      "Moscato, Mariano M. \\(LARC-D320\\)\\[NATIONAL INSTITUTE OF AEROSPACE\\]" -> "Moscato, Mariano M. (LARC-D320)",
+      "Viktor Kuncak" -> "Viktor Kunčak",
+      "Viorel Preoteasaa" -> "Viorel Preoteasa",
+      "Yakoub.Nemouchi@lri.fr" -> "y.nemouchi@ensbiotech.edu.dz",
+      "YliÃs Falcone" -> "Yliès Falcone",
+      "daniel.matichuk@nicta.com.au" -> "Daniel.Matichuk@data61.csiro.au",
+      "fredegar@haftmann-online.de" -> "florian@haftmann-online.de",
+      "gallais @ ensl.org" -> "Guillaume Allais",
+      "haftmann@in.tum.de" -> "Florian Haftmann",
+      "hkb" -> "Hidetsune Kobayashi",
+      "julien@RadboudUniversity" -> "",
+      "mantel" -> "Heiko Mantel",
+      "merz@loria.fr" -> "stephan.merz@loria.fr",
+      "nemouchi" -> "Yakoub Nemouchi",
+      "popescu2@illinois.edu" -> "Andrei Popescu",
+      "urban@math.lmu.de" -> "Christian Urban",
+      "veronique.cortier@loria.fr" -> "Veronique.Cortier@loria.fr",
+      "wenzelm@in.tum.de" -> "makarius@sketis.net",
+      "ÐÑÐÐÐÑÐÐÐ ÐÐÐÐÐÐÐÑÐÐÐÑ ÐÐÐÑÐÐÐ" -> "",
+      "∀X.Xπ - Tutorials about Proofs" -> "Bruno Woltzenlogel Paleo",
     ).withDefault(identity)
 
   def standard_author_info(author_info: List[String]): List[String] =
@@ -133,18 +209,23 @@ object Mailman
     def get_address(msg: Message): String =
       get_cluster(msg).get_address getOrElse error("No author address for " + quote(msg.name))
 
-    def check(check_multi: Boolean = false): Unit =
+    def check(check_all: Boolean, check_multi: Boolean = false): Unit =
     {
       val clusters = sorted.map(get_cluster).distinct.sortBy(_.name)
 
-      val multi = if (check_multi) clusters.filter(_.multi) else Nil
-      if (multi.nonEmpty) {
-        Output.writeln(cat_lines("ambiguous:" :: multi.map(_.print)))
+      if (check_all) {
+        Output.writeln(cat_lines("clusters:" :: clusters.map(_.print)))
+      }
+      else {
+        val multi = if (check_multi) clusters.filter(_.multi) else Nil
+        if (multi.nonEmpty) {
+          Output.writeln(cat_lines("ambiguous clusters:" :: multi.map(_.print)))
+        }
       }
 
       val unknown = clusters.filter(cluster => cluster.get_address.isEmpty)
       if (unknown.nonEmpty) {
-        Output.writeln(cat_lines("unknown mail:" :: unknown.map(_.print)))
+        Output.writeln(cat_lines("\nunknown mail:" :: unknown.map(_.print)))
       }
     }
   }
@@ -165,7 +246,10 @@ object Mailman
 
     def make_name(str: String): String =
     {
-      val s = str.trim.replaceAll("""\s+""", " ").replaceAll(" at ", "@")
+      val s =
+        str.trim.replaceAll("""\s+""", " ").replaceAll(" at ", "@")
+          .replace("mailbroy.informatik.tu-muenchen.de", "in.tum.de")
+          .replace("informatik.tu-muenchen.de", "in.tum.de")
       if (s.startsWith("=") && s.endsWith("=")) "" else s
     }
 
