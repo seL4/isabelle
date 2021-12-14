@@ -239,6 +239,12 @@ object HTML
     output(List(tree), hidden, structural)
 
 
+  /* input text */
+
+  def input(text: String): String =
+    org.apache.commons.text.StringEscapeUtils.unescapeHtml4(text)
+
+
   /* messages */
 
   // background
