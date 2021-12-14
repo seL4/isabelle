@@ -216,7 +216,7 @@ object Mailman
   }
 
 
-  /* Isabelle mailing lists */
+  /* isabelle-users mailing list */
 
   object Isabelle_Users extends Archive(
     Url("https://lists.cam.ac.uk/pipermail/cl-isabelle-users"),
@@ -343,6 +343,9 @@ object Mailman
       Message(name, date, title, author_name, author_address, body)
     }
   }
+
+
+  /* isabelle-dev mailing list */
 
   object Isabelle_Dev extends Archive(Url("https://mailmanbroy.in.tum.de/pipermail/isabelle-dev"))
   {
