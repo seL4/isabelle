@@ -24,7 +24,8 @@ object Mailman
     title: String,
     author_name: String,
     author_address: String,
-    body: String)
+    body: String,
+    tags: List[String])
   {
     override def toString: String = name
     def print: String =
@@ -38,6 +39,16 @@ object Mailman
   {
     def apply(msgs: List[Message]): Messages =
       new Messages(msgs.sortBy(_.date)(Date.Ordering))
+
+    def find(dir: Path): Messages =
+    {
+      val msgs =
+        for {
+          archive <- List(Isabelle_Users, Isabelle_Dev)
+          msg <- archive.find_messages(dir + Path.basic(archive.list_name))
+        } yield msg
+      Messages(msgs)
+    }
   }
 
   class Messages private(val sorted: List[Message])
@@ -349,7 +360,9 @@ object Mailman
             (if (a == b) "" else a, b)
         }
 
-      Message(name, date, title, author_name, author_address, body)
+      val tags = List(list_name)
+
+      Message(name, date, title, author_name, author_address, body, tags)
     }
   }
 
@@ -407,7 +420,9 @@ object Mailman
             if (a == author_address) "" else a
         }
 
-      Message(name, date, title, author_name, author_address, body)
+      val tags = List(list_name)
+
+      Message(name, date, title, author_name, author_address, body, tags)
     }
   }
 }
