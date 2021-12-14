@@ -30,6 +30,8 @@ object Mailman
     def print: String =
       name + "\n" + date + "\n" + title + "\n" +
       quote(author_name) + "\n" + "<" + author_address + ">\n"
+
+    def normal_address: String = Word.lowercase(author_address)
   }
 
   private class Message_Chunk(bg: String = "", en: String = "")
@@ -71,8 +73,10 @@ object Mailman
     val msgs_proper =
       msgs_sorted.filter(msg => msg.author_name.nonEmpty && msg.author_address.nonEmpty)
 
-    val address_name = Multi_Map.from(msgs_proper.map(msg => (msg.author_address, msg.author_name)))
-    val name_address = Multi_Map.from(msgs_proper.map(msg => (msg.author_name, msg.author_address)))
+    val address_name =
+      Multi_Map.from(msgs_proper.map(msg => (msg.normal_address, msg.author_name)))
+    val name_address =
+      Multi_Map.from(msgs_proper.map(msg => (msg.author_name, msg.normal_address)))
 
     def print_dup(a: String, bs: List[String]): String =
       "  * " + a + bs.mkString("\n      ", "\n      ", "")
@@ -85,18 +89,28 @@ object Mailman
       }
     }
 
-    print_dups("duplicate names:", address_name)
-    print_dups("duplicate addresses:", name_address)
+    print_dups("\nduplicate names:", address_name)
+    print_dups("\nduplicate addresses:", name_address)
 
     def get_name(msg: Message): Option[String] =
       proper_string(msg.author_name) orElse address_name.get(msg.author_address)
 
-    val unnamed =
-      msgs_sorted.flatMap(msg => if (get_name(msg).isEmpty) Some(msg.author_address) else None)
-        .toSet.toList.sorted
+    val missing_name =
+      msgs_sorted.flatMap(msg =>
+        if (get_name(msg).isEmpty) Some(proper_string(msg.author_address).getOrElse(msg.name))
+        else None).toSet.toList.sorted
 
-    if (unnamed.nonEmpty) {
-      Output.writeln(("unnamed:" :: unnamed).mkString("\n", "\n  ", ""))
+    val missing_address =
+      msgs_sorted.flatMap(msg =>
+        if (msg.author_address.isEmpty) Some(proper_string(msg.author_name).getOrElse(msg.name))
+        else None).toSet.toList.sorted
+
+    if (missing_name.nonEmpty) {
+      Output.writeln(("missing name:" :: missing_name).mkString("\n", "\n  ", ""))
+    }
+
+    if (missing_address.nonEmpty) {
+      Output.writeln(("missing address:" :: missing_address).mkString("\n", "\n  ", ""))
     }
   }
 
@@ -114,9 +128,8 @@ object Mailman
     def message_match(lines: List[String], re: Regex): Option[Match] =
       lines.flatMap(re.findFirstMatchIn(_)).headOption
 
-    def make_name(str: String): String = str.replaceAll("""\s+""", " ")
-
-    def make_address(s: String): String = HTML.input(s).replace(" at ", "@")
+    def make_name(str: String): String =
+      str.replaceAll("""\s+""", " ").replaceAll(" at ", "@")
 
     def make_body(lines: List[String]): String =
       cat_lines(Library.take_suffix[String](_.isEmpty, lines)._1)
@@ -259,16 +272,7 @@ object Mailman
 
     override def make_name(str: String): String =
     {
-      val Trim = """(.*?)\s*via\s+Cl-isabelle-users""".r
-      super.make_name(str) match {
-        case Trim(s) => s
-        case s => s
-      }
-    }
-
-    override def make_address(str: String): String =
-    {
-      val s = super.make_address(make_name(str))
+      val s = Library.perhaps_unsuffix("via Cl-isabelle-users", super.make_name(str))
       if (s == "cl-isabelle-users@lists.cam.ac.uk") "" else s
     }
 
@@ -295,16 +299,16 @@ object Mailman
 
       def unapply(s: String): Option[(String, String)] =
         s match {
-          case Name1(a) => Some((make_address(a), ""))
-          case Name2(a) => Some((make_address(a), ""))
-          case Name_Adr1(a, b) => Some((make_address(a), make_address(b)))
-          case Name_Adr2(a, b) => Some((make_address(a), make_address(b)))
-          case Name_Adr3(a, b) => Some((make_address(a), make_address(b)))
-          case Name_Adr4(a, b) => Some((make_address(a), make_address(b)))
-          case Adr_Name1(b, a) => Some((make_address(a), make_address(b)))
-          case Adr_Name2(b, a) => Some((make_address(a), make_address(b)))
-          case Adr1(a) => Some(("", make_address(a)))
-          case Adr2(a) => Some(("", make_address(a)))
+          case Name1(a) => Some((make_name(a), ""))
+          case Name2(a) => Some((make_name(a), ""))
+          case Name_Adr1(a, b) => Some((make_name(a), make_name(b)))
+          case Name_Adr2(a, b) => Some((make_name(a), make_name(b)))
+          case Name_Adr3(a, b) => Some((make_name(a), make_name(b)))
+          case Name_Adr4(a, b) => Some((make_name(a), make_name(b)))
+          case Adr_Name1(b, a) => Some((make_name(a), make_name(b)))
+          case Adr_Name2(b, a) => Some((make_name(a), make_name(b)))
+          case Adr1(a) => Some(("", make_name(a)))
+          case Adr2(a) => Some(("", make_name(a)))
           case _ => None
         }
     }
@@ -336,7 +340,9 @@ object Mailman
         message_match(head, """<li><em>From</em>:\s*(.*?)\s*</li>""".r) match {
           case None => err("Missing From")
           case Some(m) =>
-            val (a, b) = Address.unapply(m.group(1)) getOrElse err("Malformed From")
+            val (a0, b0) = Address.unapply(m.group(1)) getOrElse err("Malformed From")
+            val a = HTML.input(a0)
+            val b = HTML.input(b0)
             (if (a == b) "" else a, b)
         }
 
@@ -360,6 +366,12 @@ object Mailman
       def unapply(s: String): Option[Date] = Format.unapply(s.replaceAll("""\s+""", " "))
     }
 
+    override def make_name(str: String): String =
+    {
+      val s = Library.perhaps_unsuffix("via RT", super.make_name(str))
+      if (s == "sys-admin@cl.cam.ac.uk") "" else s
+    }
+
     override def message_content(name: String, lines: List[String]): Message =
     {
       def err(msg: String = ""): Nothing =
@@ -379,7 +391,7 @@ object Mailman
       val (title, author_address) =
       {
         message_match(head, """TITLE="([^"]+)">(.*)""".r) match {
-          case Some(m) => (make_title(HTML.input(m.group(1))), make_address(HTML.input(m.group(2))))
+          case Some(m) => (make_title(HTML.input(m.group(1))), make_name(HTML.input(m.group(2))))
           case None => err("Missing TITLE")
         }
       }
@@ -387,7 +399,9 @@ object Mailman
       val author_name =
         message_match(head, """\s*<B>(.*)</B>""".r) match {
           case None => err("Missing author")
-          case Some(m) => make_name(HTML.input(m.group(1)))
+          case Some(m) =>
+            val a = make_name(HTML.input(m.group(1)))
+            if (a == author_address) "" else a
         }
 
       Message(name, date, title, author_name, author_address, body)
