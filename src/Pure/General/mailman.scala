@@ -18,6 +18,26 @@ object Mailman
 {
   /* mailing list messages */
 
+  def is_address(s: String): Boolean =
+    s.contains('@') && s.contains('.') && !s.contains(' ')
+
+  val standard_name: Map[String, String] =
+    Map(
+      "Blanchette, J.C." -> "Jasmin Christian Blanchette",
+      "Buday Gergely István" -> "Gergely Buday",
+      "Carsten Schuermann" -> "Carsten Schürman",
+      "Christoph Lueth" -> "Christoph Lüth",
+      "Claude Marche" -> "Claude Marché",
+      "Farquhar, Colin I" -> "Colin Farquhar",
+      "George K." -> "George Karabotsos",
+      "Filip MariÄ" -> "Filip Marić",
+      "Hitoshi Ohsaki (RTA publicity chair)" -> "Hitoshi Ohsaki",
+      "Farn" -> "Farn Wang",
+      "Fleury Mathias" -> "Mathias Fleury",
+      "Urban, Christian" -> "Christian Urban",
+      "Moscato, Mariano M. \\(LARC-D320\\)\\[NATIONAL INSTITUTE OF AEROSPACE\\]" -> "Moscato, Mariano M. (LARC-D320)",
+    ).withDefault(identity)
+
   sealed case class Message(
     name: String,
     date: Date,
@@ -27,18 +47,47 @@ object Mailman
     body: String,
     tags: List[String])
   {
+    if (author_name.nonEmpty && is_address(author_name)) {
+      Output.warning("Bad author name, looks like mail address: " +
+        quote(author_name) + " in " + quote(name))
+    }
+
+    if (author_address.nonEmpty && !is_address(author_address)) {
+      error("Bad mail address: " + quote(author_address) + " in " + quote(name))
+    }
+
     override def toString: String = name
+
+    def nodes: List[String] =
+      proper_string(author_name).toList :::
+      proper_string(author_address).toList
+
     def print: String =
       name + "\n" + date + "\n" + title + "\n" +
       quote(author_name) + "\n" + "<" + author_address + ">\n"
-
-    def normal_address: String = Word.lowercase(author_address)
-  }
+   }
 
   object Messages
   {
+    type Graph = isabelle.Graph[String, Message]
+
     def apply(msgs: List[Message]): Messages =
-      new Messages(msgs.sortBy(_.date)(Date.Ordering))
+    {
+      def update_node(g: Graph, node: String, msg: Message): Graph =
+        if (node.isEmpty ||
+            g.defined(node) && Date.Ordering.compare(g.get_node(node).date, msg.date) >= 0) g
+        else g.default_node(node, msg)
+
+      new Messages(msgs.sortBy(_.date)(Date.Ordering),
+        msgs.foldLeft[Graph](Graph.string)(
+          { case (g, msg) =>
+              val a = msg.author_name
+              val b = msg.author_address
+              val g1 = update_node(update_node(g, a, msg), b, msg)
+              if (a.nonEmpty && b.nonEmpty) g1.add_edge(a, b).add_edge(b, a)
+              else g1
+          }))
+    }
 
     def find(dir: Path): Messages =
     {
@@ -49,51 +98,66 @@ object Mailman
         } yield msg
       Messages(msgs)
     }
+
+    sealed case class Cluster(names: List[String], addresses: List[String])
+    {
+      val name: String =
+        names.headOption getOrElse {
+          addresses match {
+            case a :: _ => a.substring(0, a.indexOf('@')).replace('.', ' ')
+            case Nil => error("Empty cluster")
+          }
+        }
+
+      def get_address: Option[String] = addresses.headOption
+
+      def unique: Boolean = names.length == 1 && addresses.length == 1
+      def multi: Boolean = names.length > 1 || addresses.length > 1
+
+      def print: String =
+      {
+        val entries = names ::: (if (addresses.isEmpty) Nil else List("")) ::: addresses
+        entries.mkString("\n  * ", "\n    ", "")
+      }
+    }
   }
 
-  class Messages private(val sorted: List[Message])
+  class Messages private(val sorted: List[Message], val graph: Messages.Graph)
   {
-    override def toString: String = "Messages(" + sorted.length + ")"
+    override def toString: String = "Messages(" + sorted.size + ")"
 
-    def check(): Unit =
+    object Node_Ordering extends scala.math.Ordering[String]
     {
-      val proper = sorted.filter(msg => msg.author_name.nonEmpty && msg.author_address.nonEmpty)
-      val address_name = Multi_Map.from(proper.map(msg => (msg.normal_address, msg.author_name)))
-      val name_address = Multi_Map.from(proper.map(msg => (msg.author_name, msg.normal_address)))
+      override def compare(a: String, b: String): Int =
+        Date.Rev_Ordering.compare(graph.get_node(a).date, graph.get_node(b).date)
+    }
 
-      def print_dup(a: String, bs: List[String]): String =
-        "  * " + a + bs.mkString("\n      ", "\n      ", "")
+    def get_nodes(msg: Message): List[String] =
+      graph.all_succs(msg.nodes).sorted(Node_Ordering)
 
-      def print_dups(title: String, m: Multi_Map[String, String]): Unit =
-      {
-        val dups = m.iterator_list.filter(p => p._2.length > 1).toList
-        if (dups.nonEmpty) {
-          Output.writeln(cat_lines(title :: dups.map(p => print_dup(p._1, p._2))))
-        }
+    def get_cluster(msg: Message): Messages.Cluster =
+    {
+      val (addresses, names) = get_nodes(msg).partition(is_address)
+      Messages.Cluster(names, addresses)
+    }
+
+    def get_name(msg: Message): String = get_cluster(msg).name
+
+    def get_address(msg: Message): String =
+      get_cluster(msg).get_address getOrElse error("No author address for " + quote(msg.name))
+
+    def check(check_multi: Boolean = false): Unit =
+    {
+      val clusters = sorted.map(get_cluster).distinct.sortBy(_.name)
+
+      val multi = if (check_multi) clusters.filter(_.multi) else Nil
+      if (multi.nonEmpty) {
+        Output.writeln(cat_lines("ambiguous:" :: multi.map(_.print)))
       }
 
-      print_dups("\nduplicate names:", address_name)
-      print_dups("\nduplicate addresses:", name_address)
-
-      def get_name(msg: Message): Option[String] =
-        proper_string(msg.author_name) orElse address_name.get(msg.author_address)
-
-      val missing_name =
-        sorted.flatMap(msg =>
-          if (get_name(msg).isEmpty) Some(proper_string(msg.author_address).getOrElse(msg.name))
-          else None).toSet.toList.sorted
-
-      val missing_address =
-        sorted.flatMap(msg =>
-          if (msg.author_address.isEmpty) Some(proper_string(msg.author_name).getOrElse(msg.name))
-          else None).toSet.toList.sorted
-
-      if (missing_name.nonEmpty) {
-        Output.writeln(("missing name:" :: missing_name).mkString("\n", "\n  ", ""))
-      }
-
-      if (missing_address.nonEmpty) {
-        Output.writeln(("missing address:" :: missing_address).mkString("\n", "\n  ", ""))
+      val unknown = clusters.filter(cluster => cluster.get_address.isEmpty)
+      if (unknown.nonEmpty) {
+        Output.writeln(cat_lines("unknown mail:" :: unknown.map(_.print)))
       }
     }
   }
@@ -113,7 +177,10 @@ object Mailman
       lines.flatMap(re.findFirstMatchIn(_)).headOption
 
     def make_name(str: String): String =
-      str.replaceAll("""\s+""", " ").replaceAll(" at ", "@")
+    {
+      val s = str.trim.replaceAll("""\s+""", " ").replaceAll(" at ", "@")
+      if (s.startsWith("=") && s.endsWith("=")) "" else s
+    }
 
     def make_body(lines: List[String]): String =
       cat_lines(Library.take_suffix[String](_.isEmpty, lines)._1)
@@ -286,7 +353,7 @@ object Mailman
 
     override def make_name(str: String): String =
     {
-      val s = Library.perhaps_unsuffix("via Cl-isabelle-users", super.make_name(str))
+      val s = Library.perhaps_unsuffix(" via Cl-isabelle-users", super.make_name(str))
       if (s == "cl-isabelle-users@lists.cam.ac.uk") "" else s
     }
 
@@ -362,7 +429,7 @@ object Mailman
 
       val tags = List(list_name)
 
-      Message(name, date, title, author_name, author_address, body, tags)
+      Message(name, date, title, standard_name(author_name), author_address, body, tags)
     }
   }
 
@@ -384,7 +451,7 @@ object Mailman
 
     override def make_name(str: String): String =
     {
-      val s = Library.perhaps_unsuffix("via RT", super.make_name(str))
+      val s = Library.perhaps_unsuffix(" via RT", super.make_name(str))
       if (s == "sys-admin@cl.cam.ac.uk") "" else s
     }
 
@@ -422,7 +489,7 @@ object Mailman
 
       val tags = List(list_name)
 
-      Message(name, date, title, author_name, author_address, body, tags)
+      Message(name, date, title, standard_name(author_name), author_address, body, tags)
     }
   }
 }
