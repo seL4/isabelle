@@ -30,6 +30,7 @@ object Mailman
       "Bisping, Benjamin" -> "Benjamin Bisping",
       "Blanchette, J.C." -> "Jasmin Christian Blanchette",
       "Buday Gergely István" -> "Gergely Buday",
+      "CALaF1UJ9Uy0vGCu4WkBmbfuPDxG7nFm8hfeCMP+O3g7_5CQ0Bw@mail.gmail.com" -> "",
       "CRACIUN F." -> "Florin Craciun",
       "Carsten Schuermann" -> "Carsten Schürmann",
       "Christoph Lueth" -> "Christoph Lüth",
@@ -43,6 +44,7 @@ object Mailman
       "Filip Maric" -> "Filip Marić",
       "Filip MariÄ" -> "Filip Marić",
       "Fleury Mathias" -> "Mathias Fleury",
+      "Francisco Jose Chaves Alonso" -> "Francisco Jose CHAVES ALONSO",
       "George K." -> "George Karabotsos",
       "Gidon ERNST" -> "Gidon Ernst",
       "Hans-JÃrg Schurr" -> "Hans-Jörg Schurr",
@@ -87,7 +89,6 @@ object Mailman
       "Silvio.Ranise@loria.fr" -> "ranise@dsi.unimi.it",
       "Stüber, Sebastian" -> "Sebastian Stüber",
       "Thiemann, Rene" -> "René Thiemann",
-      "Thiemann, René" -> "René Thiemann",
       "Thiemann, René" -> "René Thiemann",
       "Thomas Goethel" -> "Thomas Göthel",
       "Thomas.Sewell@data61.csiro.au" -> "tals4@cam.ac.uk",
@@ -488,15 +489,18 @@ object Mailman
           HTML.input(message_match(head, """<li><em>Subject</em>:\s*(.*)</li>""".r)
             .getOrElse(err("Missing Subject")).group(1)))
 
-      val author_info =
-        message_match(head, """<li><em>From</em>:\s*(.*?)\s*</li>""".r) match {
-          case None => err("Missing From")
-          case Some(m) =>
-            val res =
-              Address.parse(m.group(1)).map(a => HTML.input(make_name(a)))
-                .distinct.filter(_.nonEmpty)
-            if (res.nonEmpty) res else err("Malformed author information")
+      def parse_author_info(re: Regex): List[String] =
+        message_match(head, re) match {
+          case None => Nil
+          case Some(m) => Address.parse(m.group(1)).map(a => HTML.input(make_name(a)))
         }
+
+      val author_info =
+        (parse_author_info("""<li><em>From</em>:\s*(.*?)\s*</li>""".r) :::
+          parse_author_info("""<li><em>Reply-to</em>:\s*(.*?)\s*</li>""".r))
+        .distinct.filter(_.nonEmpty)
+
+      if (author_info.isEmpty) err("Malformed author information")
 
       val tags = List(list_name)
 
@@ -518,12 +522,6 @@ object Mailman
     {
       val Format = Date.Format("E MMM d H:m:s z uuuu")
       def unapply(s: String): Option[Date] = Format.unapply(s.replaceAll("""\s+""", " "))
-    }
-
-    override def make_name(str: String): String =
-    {
-      val s = Library.perhaps_unsuffix(" via RT", super.make_name(str))
-      if (s == "sys-admin@cl.cam.ac.uk") "" else s
     }
 
     override def message_content(name: String, lines: List[String]): Message =
