@@ -34,52 +34,56 @@ object Mailman
     def normal_address: String = Word.lowercase(author_address)
   }
 
-  /* integrity check */
-
-  def check_messages(msgs: List[Message]): Unit =
+  object Messages
   {
-    val msgs_sorted = msgs.sortBy(_.date)(Date.Ordering)
-    val msgs_proper =
-      msgs_sorted.filter(msg => msg.author_name.nonEmpty && msg.author_address.nonEmpty)
+    def apply(msgs: List[Message]): Messages =
+      new Messages(msgs.sortBy(_.date)(Date.Ordering))
+  }
 
-    val address_name =
-      Multi_Map.from(msgs_proper.map(msg => (msg.normal_address, msg.author_name)))
-    val name_address =
-      Multi_Map.from(msgs_proper.map(msg => (msg.author_name, msg.normal_address)))
+  class Messages private(val sorted: List[Message])
+  {
+    override def toString: String = "Messages(" + sorted.length + ")"
 
-    def print_dup(a: String, bs: List[String]): String =
-      "  * " + a + bs.mkString("\n      ", "\n      ", "")
-
-    def print_dups(title: String, m: Multi_Map[String, String]): Unit =
+    def check(): Unit =
     {
-      val dups = m.iterator_list.filter(p => p._2.length > 1).toList
-      if (dups.nonEmpty) {
-        Output.writeln(cat_lines(title :: dups.map(p => print_dup(p._1, p._2))))
+      val proper = sorted.filter(msg => msg.author_name.nonEmpty && msg.author_address.nonEmpty)
+      val address_name = Multi_Map.from(proper.map(msg => (msg.normal_address, msg.author_name)))
+      val name_address = Multi_Map.from(proper.map(msg => (msg.author_name, msg.normal_address)))
+
+      def print_dup(a: String, bs: List[String]): String =
+        "  * " + a + bs.mkString("\n      ", "\n      ", "")
+
+      def print_dups(title: String, m: Multi_Map[String, String]): Unit =
+      {
+        val dups = m.iterator_list.filter(p => p._2.length > 1).toList
+        if (dups.nonEmpty) {
+          Output.writeln(cat_lines(title :: dups.map(p => print_dup(p._1, p._2))))
+        }
       }
-    }
 
-    print_dups("\nduplicate names:", address_name)
-    print_dups("\nduplicate addresses:", name_address)
+      print_dups("\nduplicate names:", address_name)
+      print_dups("\nduplicate addresses:", name_address)
 
-    def get_name(msg: Message): Option[String] =
-      proper_string(msg.author_name) orElse address_name.get(msg.author_address)
+      def get_name(msg: Message): Option[String] =
+        proper_string(msg.author_name) orElse address_name.get(msg.author_address)
 
-    val missing_name =
-      msgs_sorted.flatMap(msg =>
-        if (get_name(msg).isEmpty) Some(proper_string(msg.author_address).getOrElse(msg.name))
-        else None).toSet.toList.sorted
+      val missing_name =
+        sorted.flatMap(msg =>
+          if (get_name(msg).isEmpty) Some(proper_string(msg.author_address).getOrElse(msg.name))
+          else None).toSet.toList.sorted
 
-    val missing_address =
-      msgs_sorted.flatMap(msg =>
-        if (msg.author_address.isEmpty) Some(proper_string(msg.author_name).getOrElse(msg.name))
-        else None).toSet.toList.sorted
+      val missing_address =
+        sorted.flatMap(msg =>
+          if (msg.author_address.isEmpty) Some(proper_string(msg.author_name).getOrElse(msg.name))
+          else None).toSet.toList.sorted
 
-    if (missing_name.nonEmpty) {
-      Output.writeln(("missing name:" :: missing_name).mkString("\n", "\n  ", ""))
-    }
+      if (missing_name.nonEmpty) {
+        Output.writeln(("missing name:" :: missing_name).mkString("\n", "\n  ", ""))
+      }
 
-    if (missing_address.nonEmpty) {
-      Output.writeln(("missing address:" :: missing_address).mkString("\n", "\n  ", ""))
+      if (missing_address.nonEmpty) {
+        Output.writeln(("missing address:" :: missing_address).mkString("\n", "\n  ", ""))
+      }
     }
   }
 
