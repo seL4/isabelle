@@ -8,12 +8,11 @@ package isabelle
 
 
 import java.util.Locale
-import java.time.{Instant, ZonedDateTime, LocalTime, ZoneId, OffsetDateTime}
+import java.time.{Instant, ZonedDateTime, LocalTime, ZoneId}
 import java.time.format.{DateTimeFormatter, DateTimeParseException}
 import java.time.temporal.TemporalAccessor
 
 import scala.annotation.tailrec
-import scala.math.Ordering
 
 
 object Date
