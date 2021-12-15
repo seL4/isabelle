@@ -1,7 +1,7 @@
 /*  Title:      Pure/General/mailman.scala
     Author:     Makarius
 
-Support for Mailman list servers.
+Support for Mailman list servers, notably isabelle-users and isabelle-dev.
 */
 
 package isabelle
