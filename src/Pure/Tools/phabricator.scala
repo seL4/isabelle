@@ -876,7 +876,7 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
       val hg, git, svn = Value
       def read(s: String): Value =
         try { withName(s) }
-        catch { case _: java.util.NoSuchElementException  => error("Unknown vcs type " + quote(s)) }
+        catch { case _: java.util.NoSuchElementException => error("Unknown vcs type " + quote(s)) }
     }
 
     def edits(typ: String, value: JSON.T): List[JSON.Object.T] =
