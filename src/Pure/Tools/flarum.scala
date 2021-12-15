@@ -22,8 +22,11 @@ object Flarum
     override def toString: String = url.toString
 
     def get(route: String): HTTP.Content =
-      HTTP.Client.get(new URL(url, route))
+      HTTP.Client.get(if (route.isEmpty) url else new URL(url, route))
 
-    val api: JSON.T = get("api").json
+    def get_api(route: String = ""): JSON_API.Root =
+      JSON_API.Root(get("api" + (if (route.isEmpty) "" else "/" + route)).json)
+
+    val api: JSON_API.Root = get_api()
   }
 }

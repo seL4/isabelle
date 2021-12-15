@@ -67,6 +67,7 @@ sources = \
   src/Pure/General/graphics_file.scala \
   src/Pure/General/http.scala \
   src/Pure/General/json.scala \
+  src/Pure/General/json_api.scala \
   src/Pure/General/linear_set.scala \
   src/Pure/General/logger.scala \
   src/Pure/General/long_name.scala \
