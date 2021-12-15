@@ -170,6 +170,7 @@ sources = \
   src/Pure/Tools/debugger.scala \
   src/Pure/Tools/doc.scala \
   src/Pure/Tools/dump.scala \
+  src/Pure/Tools/flarum.scala \
   src/Pure/Tools/fontforge.scala \
   src/Pure/Tools/java_monitor.scala \
   src/Pure/Tools/logo.scala \

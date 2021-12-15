@@ -31,6 +31,7 @@ object HTTP
     elapsed_time: Time = Time.zero)
   {
     def text: String = new String(bytes.array, encoding)
+    def json: JSON.T = JSON.parse(text)
   }
 
   def read_content(file: JFile): Content =
