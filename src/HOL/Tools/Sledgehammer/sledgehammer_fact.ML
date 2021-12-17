@@ -522,7 +522,7 @@ fun all_facts ctxt generous keywords add_ths chained css =
           end)
   in
     (* Names like "xxx" are preferred to "xxx.yyy", which are preferred to "xxx(666)" and the like.
-       "Preferred" means put to the front of  the list. *)
+       "Preferred" means "put to the front of the list". *)
     ([], ([], []))
     |> add_facts false fold local_facts (unnamed_locals @ named_locals)
     |> add_facts true Facts.fold_static global_facts global_facts
