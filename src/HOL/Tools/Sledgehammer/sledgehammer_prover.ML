@@ -47,6 +47,7 @@ sig
      preplay_timeout : Time.time,
      expect : string}
 
+  val string_of_params : params -> string
   val set_params_provers : params -> string list -> params
 
   type prover_problem =
@@ -142,6 +143,9 @@ type params =
    timeout : Time.time,
    preplay_timeout : Time.time,
    expect : string}
+
+fun string_of_params (params : params) =
+  YXML.content_of (ML_Pretty.string_of_polyml (ML_system_pretty (params, 100)))
 
 fun set_params_provers params provers =
   {debug = #debug params,

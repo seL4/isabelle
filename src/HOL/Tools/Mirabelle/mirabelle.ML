@@ -14,7 +14,7 @@ sig
   type command =
     {theory_index: int, name: string, pos: Position.T, pre: Proof.state, post: Toplevel.state}
   type action = {run_action: command -> string, finalize: unit -> string}
-  val register_action: string -> (action_context -> action) -> unit
+  val register_action: string -> (action_context -> string * action) -> unit
 
   (*utility functions*)
   val print_exn: exn -> string
@@ -71,7 +71,7 @@ type action = {run_action: command -> string, finalize: unit -> string};
 
 local
   val actions = Synchronized.var "Mirabelle.actions"
-    (Symtab.empty : (action_context -> action) Symtab.table);
+    (Symtab.empty : (action_context -> string * action) Symtab.table);
 in
 
 fun register_action name make_action =
@@ -99,6 +99,21 @@ fun run_action_function f =
 
 fun make_action_path ({index, label, name, ...} : action_context) =
   Path.basic (if label = "" then string_of_int index ^ "." ^ name else label);
+
+fun initialize_action (make_action : action_context -> string * action) context =
+  let
+    val (s, action) = make_action context
+    val action_path = make_action_path context;
+    val export_name =
+      Path.binding0 (Path.basic "mirabelle" + action_path + Path.basic "initialize");
+    val () =
+      if s <> "" then
+        Export.export \<^theory> export_name [XML.Text s]
+      else
+        ()
+  in
+    action
+  end
 
 fun finalize_action ({finalize, ...} : action) context =
   let
@@ -232,7 +247,7 @@ val _ =
                 {index = n, label = label, name = name, arguments = args,
                  timeout = mirabelle_timeout, output_dir = output_dir};
             in
-              (make_action context, context)
+              (initialize_action make_action context, context)
             end);
         in
           (* run actions on all relevant goals *)

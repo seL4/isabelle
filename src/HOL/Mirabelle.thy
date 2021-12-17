@@ -13,7 +13,7 @@ ML_file \<open>Tools/Mirabelle/mirabelle.ML\<close>
 
 ML \<open>
 signature MIRABELLE_ACTION = sig
-  val make_action : Mirabelle.action_context -> Mirabelle.action
+  val make_action : Mirabelle.action_context -> string * Mirabelle.action
 end
 \<close>
 

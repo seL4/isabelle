@@ -19,7 +19,7 @@ fun make_action ({arguments, timeout, ...} : Mirabelle.action_context) =
       (case Timeout.apply timeout quickcheck pre of
         NONE => "no counterexample"
       | SOME _ => "counterexample found")
-  in {run_action = run_action, finalize = K ""} end
+  in ("", {run_action = run_action, finalize = K ""}) end
 
 val () = Mirabelle.register_action "quickcheck" make_action
 

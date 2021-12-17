@@ -18,7 +18,7 @@ fun make_action ({timeout, ...} : Mirabelle.action_context) =
         "succeeded"
       else
         ""
-  in {run_action = run_action, finalize = K ""} end
+  in ("", {run_action = run_action, finalize = K ""}) end
 
 val () = Mirabelle.register_action "try0" make_action
 

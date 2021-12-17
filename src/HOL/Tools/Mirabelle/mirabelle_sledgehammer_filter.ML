@@ -179,7 +179,7 @@ fun make_action ({arguments, ...} : Mirabelle.action_context) =
             (Synchronized.value num_lost_facts) ^ "%"
       else
         ""
-  in {run_action = run_action, finalize = finalize} end
+  in ("", {run_action = run_action, finalize = finalize}) end
 
 val () = Mirabelle.register_action "sledgehammer_filter" make_action
 

@@ -85,7 +85,8 @@ object Mirabelle
                   val lines = Pretty.string_of(yxml).trim()
                   val prefix =
                     Export.explode_name(args.name) match {
-                      case List("mirabelle", action, "finalize") => action + " finalize  "
+                      case List("mirabelle", action, "initialize") => action + " initialize "
+                      case List("mirabelle", action, "finalize") => action + " finalize   "
                       case List("mirabelle", action, "goal", goal_name, line, offset) =>
                         action + " goal." + String.format("%-5s", goal_name) + " " + args.theory_name + " " +
                           line + ":" + offset + "  "

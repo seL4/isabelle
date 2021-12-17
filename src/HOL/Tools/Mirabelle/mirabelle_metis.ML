@@ -21,7 +21,7 @@ fun make_action ({timeout, ...} : Mirabelle.action_context) =
         (if Mirabelle.can_apply timeout metis pre then "succeeded" else "failed")
         |> not (null names) ? suffix (":\n" ^ commas names)
       end
-  in {run_action = run_action, finalize = K ""} end
+  in ("", {run_action = run_action, finalize = K ""}) end
 
 val () = Mirabelle.register_action "metis" make_action
 
