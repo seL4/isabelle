@@ -37,6 +37,8 @@ sig
     status Termtab.table -> lazy_fact list
   val nearly_all_facts : Proof.context -> bool -> fact_override -> Keyword.keywords ->
     status Termtab.table -> thm list -> term list -> term -> lazy_fact list
+  val nearly_all_facts_of_context : Proof.context -> bool -> fact_override -> thm list ->
+    term list -> term -> lazy_fact list
   val drop_duplicate_facts : lazy_fact list -> lazy_fact list
 end;
 
@@ -553,6 +555,14 @@ fun nearly_all_facts ctxt inst_inducts {add, del, only} keywords css chained hyp
          end)
       |> inst_inducts ? instantiate_inducts ctxt hyp_ts concl_t
     end
+
+fun nearly_all_facts_of_context ctxt inst_inducts fact_override =
+  let
+    val keywords = Thy_Header.get_keywords' ctxt
+    val css = clasimpset_rule_table_of ctxt
+  in
+    nearly_all_facts ctxt inst_inducts fact_override keywords css
+  end
 
 fun drop_duplicate_facts facts =
   let val num_facts = length facts in

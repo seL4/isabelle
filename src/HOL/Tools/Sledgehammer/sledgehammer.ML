@@ -268,13 +268,11 @@ fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_fac
             I
 
         val ctxt = Proof.context_of state
-        val keywords = Thy_Header.get_keywords' ctxt
-        val {facts = chained, goal, ...} = Proof.goal state
-        val (_, hyp_ts, concl_t) = strip_subgoal goal i ctxt
         val inst_inducts = induction_rules = SOME Instantiate
-        val css = clasimpset_rule_table_of ctxt
+        val {facts = chained_thms, goal, ...} = Proof.goal state
+        val (_, hyp_ts, concl_t) = strip_subgoal goal i ctxt
         val all_facts =
-          nearly_all_facts ctxt inst_inducts fact_override keywords css chained hyp_ts concl_t
+          nearly_all_facts_of_context ctxt inst_inducts fact_override chained_thms hyp_ts concl_t
         val _ =
           (case find_first (not o is_prover_supported ctxt) provers of
             SOME name => error ("No such prover: " ^ name)
@@ -319,7 +317,7 @@ fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_fac
                   if outcome_code = someN then accum else launch problem prover)
                 provers
             else
-              (learn chained;
+              (learn chained_thms;
                provers
                |> Par_List.map (launch problem #> fst)
                |> max_outcome_code |> rpair [])

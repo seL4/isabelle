@@ -304,11 +304,9 @@ datatype sh_result =
   SH_FAIL of int * int |
   SH_ERROR
 
-fun run_sh (params as {max_facts, minimize, preplay_timeout, ...}) prover_name e_selection_heuristic
-    term_order force_sos hard_timeout dir pos st =
+fun run_sh (params as {max_facts, minimize, preplay_timeout, induction_rules, ...}) prover_name
+    e_selection_heuristic term_order force_sos hard_timeout dir pos state =
   let
-    val thy = Proof.theory_of st
-    val {context = ctxt, facts = chained_ths, goal} = Proof.goal st
     val i = 1
     fun set_file_name (SOME dir) =
         let
@@ -321,8 +319,8 @@ fun run_sh (params as {max_facts, minimize, preplay_timeout, ...}) prover_name e
           #> Config.put SMT_Config.debug_files (dir ^ "/" ^ filename ^ "__" ^ serial_string ())
         end
       | set_file_name NONE = I
-    val st' =
-      st
+    val state' =
+      state
       |> Proof.map_context
            (set_file_name dir
             #> (Option.map (Config.put Sledgehammer_ATP_Systems.e_selection_heuristic)
@@ -331,9 +329,6 @@ fun run_sh (params as {max_facts, minimize, preplay_timeout, ...}) prover_name e
                   term_order |> the_default I)
             #> (Option.map (Config.put Sledgehammer_ATP_Systems.force_sos)
                   force_sos |> the_default I))
-    val default_max_facts =
-      Sledgehammer_Prover_Minimize.default_max_facts_of_prover ctxt prover_name
-    val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal goal i ctxt
     val time_limit =
       (case hard_timeout of
         NONE => I
@@ -346,32 +341,30 @@ fun run_sh (params as {max_facts, minimize, preplay_timeout, ...}) prover_name e
          : Sledgehammer_Prover.prover_result,
          time_isa) = time_limit (Mirabelle.cpu_time (fn () =>
       let
-        val ho_atp = Sledgehammer_Prover_ATP.is_ho_atp ctxt prover_name
-        val keywords = Thy_Header.get_keywords' ctxt
-        val css_table = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
-        val facts =
-          Sledgehammer_Fact.nearly_all_facts ctxt ho_atp
-              Sledgehammer_Fact.no_fact_override keywords css_table chained_ths
-              hyp_ts concl_t
+        val ctxt = Proof.context_of state
+        val inst_inducts = induction_rules = SOME Sledgehammer_Prover.Instantiate
+        val fact_override = Sledgehammer_Fact.no_fact_override
+        val {facts = chained_thms, goal, ...} = Proof.goal state
+        val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal goal i ctxt
+        val facts = Sledgehammer_Fact.nearly_all_facts_of_context ctxt inst_inducts fact_override
+          chained_thms hyp_ts concl_t
+        val default_max_facts =
+          Sledgehammer_Prover_Minimize.default_max_facts_of_prover ctxt prover_name
         val factss =
           facts
           |> Sledgehammer_MaSh.relevant_facts ctxt params prover_name
                  (the_default default_max_facts max_facts)
                  Sledgehammer_Fact.no_fact_override hyp_ts concl_t
-          |> tap (fn factss =>
-                     "Line " ^ str0 (Position.line_of pos) ^ ": " ^
-                     Sledgehammer.string_of_factss factss
-                     |> writeln)
         val prover = get_prover ctxt prover_name params goal
         val problem =
-          {comment = "", state = st', goal = goal, subgoal = i,
-           subgoal_count = Sledgehammer_Util.subgoal_count st, factss = factss, found_proof = I}
+          {comment = "", state = state', goal = goal, subgoal = i,
+           subgoal_count = Sledgehammer_Util.subgoal_count state, factss = factss, found_proof = I}
       in prover params problem end)) ()
       handle Timeout.TIMEOUT _ => failed ATP_Proof.TimedOut
            | Fail "inappropriate" => failed ATP_Proof.Inappropriate
     val time_prover = run_time |> Time.toMilliseconds
     val msg = message (fn () => Sledgehammer.play_one_line_proof minimize preplay_timeout used_facts
-      st' i preferred_methss)
+      state' i preferred_methss)
   in
     (case outcome of
       NONE => (msg, SH_OK (time_isa, time_prover, used_facts))
