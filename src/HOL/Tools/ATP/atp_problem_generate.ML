@@ -429,8 +429,7 @@ fun add_schematic_const (x as (_, T)) =
   Monomorph.typ_has_tvars T ? Symtab.insert_list (op =) x
 val add_schematic_consts_of =
   Term.fold_aterms (fn Const (x as (s, _)) =>
-                       not (member (op =) atp_widely_irrelevant_consts s)
-                       ? add_schematic_const x
+                       not (is_widely_irrelevant_const s) ? add_schematic_const x
                       | _ => I)
 fun atp_schematic_consts_of t = add_schematic_consts_of t Symtab.empty
 
