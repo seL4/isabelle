@@ -384,7 +384,7 @@ val leo3_config : atp_config =
    prem_role = Hypothesis,
    best_slices =
      (* FUDGE *)
-     K [(1.0, (((150, ""), THF (Polymorphic, {with_ite = true, with_let = true}, THF_Without_Choice), "mono_native_higher", keep_lamsN, false), ""))],
+     K [(1.0, (((512, ""), TH1, "mono_native_higher", keep_lamsN, false), ""))],
    best_max_mono_iters = default_max_mono_iters - 1 (* FUDGE *),
    best_max_new_mono_instances = default_max_new_mono_instances}
 
