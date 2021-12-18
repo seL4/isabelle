@@ -24,7 +24,6 @@ val e_selection_heuristicK = "e_selection_heuristic" (*=STRING: E clause selecti
 val force_sosK = "force_sos" (*=BOOL: use set-of-support (in Vampire)*)
 val keepK = "keep" (*=BOOL: keep temporary files created by sledgehammer*)
 val proof_methodK = "proof_method" (*=STRING: how to reconstruct proofs (e.g. using metis)*)
-val proverK = "prover" (*=STRING: name of the external prover to call*)
 val term_orderK = "term_order" (*=STRING: term order (in E)*)
 
 (*defaults used in this Mirabelle action*)
@@ -39,8 +38,7 @@ datatype sh_data = ShData of {
   lemmas: int,
   max_lems: int,
   time_isa: int,
-  time_prover: int,
-  time_prover_fail: int}
+  time_prover: int}
 
 datatype re_data = ReData of {
   calls: int,
@@ -56,11 +54,10 @@ datatype re_data = ReData of {
 
 fun make_sh_data
       (calls,success,nontriv_calls,nontriv_success,lemmas,max_lems,time_isa,
-       time_prover,time_prover_fail) =
+       time_prover) =
   ShData{calls=calls, success=success, nontriv_calls=nontriv_calls,
          nontriv_success=nontriv_success, lemmas=lemmas, max_lems=max_lems,
-         time_isa=time_isa, time_prover=time_prover,
-         time_prover_fail=time_prover_fail}
+         time_isa=time_isa, time_prover=time_prover}
 
 fun make_re_data (calls,success,nontriv_calls,nontriv_success,proofs,time,
                   timeout,lemmas,posns) =
@@ -68,13 +65,12 @@ fun make_re_data (calls,success,nontriv_calls,nontriv_success,proofs,time,
          nontriv_success=nontriv_success, proofs=proofs, time=time,
          timeout=timeout, lemmas=lemmas, posns=posns}
 
-val empty_sh_data = make_sh_data (0, 0, 0, 0, 0, 0, 0, 0, 0)
+val empty_sh_data = make_sh_data (0, 0, 0, 0, 0, 0, 0, 0)
 val empty_re_data = make_re_data (0, 0, 0, 0, 0, 0, 0, (0,0,0), [])
 
-fun tuple_of_sh_data (ShData {calls, success, nontriv_calls, nontriv_success,
-                              lemmas, max_lems, time_isa,
-  time_prover, time_prover_fail}) = (calls, success, nontriv_calls,
-  nontriv_success, lemmas, max_lems, time_isa, time_prover, time_prover_fail)
+fun tuple_of_sh_data (ShData {calls, success, nontriv_calls, nontriv_success, lemmas, max_lems,
+    time_isa, time_prover}) =
+  (calls, success, nontriv_calls, nontriv_success, lemmas, max_lems, time_isa, time_prover)
 
 fun tuple_of_re_data (ReData {calls, success, nontriv_calls, nontriv_success,
   proofs, time, timeout, lemmas, posns}) = (calls, success, nontriv_calls,
@@ -104,40 +100,37 @@ fun map_re_data f (Data {sh, re_u}) =
 fun inc_max (n:int) (s,sos,m) = (s+n, sos + n*n, Int.max(m,n));
 
 val inc_sh_calls =  map_sh_data
-  (fn (calls, success, nontriv_calls, nontriv_success, lemmas,max_lems, time_isa, time_prover, time_prover_fail)
-    => (calls + 1, success, nontriv_calls, nontriv_success, lemmas, max_lems, time_isa, time_prover, time_prover_fail))
+  (fn (calls, success, nontriv_calls, nontriv_success, lemmas,max_lems, time_isa, time_prover) =>
+    (calls + 1, success, nontriv_calls, nontriv_success, lemmas, max_lems, time_isa, time_prover))
 
 val inc_sh_success = map_sh_data
-  (fn (calls, success, nontriv_calls, nontriv_success, lemmas,max_lems, time_isa, time_prover, time_prover_fail)
-    => (calls, success + 1, nontriv_calls, nontriv_success, lemmas,max_lems, time_isa, time_prover, time_prover_fail))
+  (fn (calls, success, nontriv_calls, nontriv_success, lemmas,max_lems, time_isa, time_prover) =>
+    (calls, success + 1, nontriv_calls, nontriv_success, lemmas,max_lems, time_isa, time_prover))
 
 val inc_sh_nontriv_calls =  map_sh_data
-  (fn (calls, success, nontriv_calls, nontriv_success, lemmas,max_lems, time_isa, time_prover, time_prover_fail)
-    => (calls, success, nontriv_calls + 1, nontriv_success, lemmas, max_lems, time_isa, time_prover, time_prover_fail))
+  (fn (calls, success, nontriv_calls, nontriv_success, lemmas,max_lems, time_isa, time_prover) =>
+    (calls, success, nontriv_calls + 1, nontriv_success, lemmas, max_lems, time_isa, time_prover))
 
 val inc_sh_nontriv_success = map_sh_data
-  (fn (calls, success, nontriv_calls, nontriv_success, lemmas,max_lems, time_isa, time_prover, time_prover_fail)
-    => (calls, success, nontriv_calls, nontriv_success + 1, lemmas,max_lems, time_isa, time_prover, time_prover_fail))
+  (fn (calls, success, nontriv_calls, nontriv_success, lemmas,max_lems, time_isa, time_prover) =>
+    (calls, success, nontriv_calls, nontriv_success + 1, lemmas,max_lems, time_isa, time_prover))
 
 fun inc_sh_lemmas n = map_sh_data
-  (fn (calls,success,nontriv_calls, nontriv_success, lemmas,max_lems,time_isa,time_prover,time_prover_fail)
-    => (calls,success,nontriv_calls, nontriv_success, lemmas+n,max_lems,time_isa,time_prover,time_prover_fail))
+  (fn (calls, success, nontriv_calls, nontriv_success, lemmas, max_lems, time_isa, time_prover) =>
+    (calls, success, nontriv_calls, nontriv_success, lemmas+n, max_lems, time_isa, time_prover))
 
 fun inc_sh_max_lems n = map_sh_data
-  (fn (calls,success,nontriv_calls, nontriv_success, lemmas,max_lems,time_isa,time_prover,time_prover_fail)
-    => (calls,success,nontriv_calls, nontriv_success, lemmas,Int.max(max_lems,n),time_isa,time_prover,time_prover_fail))
+  (fn (calls, success, nontriv_calls, nontriv_success, lemmas, max_lems, time_isa, time_prover) =>
+    (calls, success,nontriv_calls, nontriv_success, lemmas, Int.max (max_lems, n), time_isa,
+     time_prover))
 
 fun inc_sh_time_isa t = map_sh_data
-  (fn (calls,success,nontriv_calls, nontriv_success, lemmas,max_lems,time_isa,time_prover,time_prover_fail)
-    => (calls,success,nontriv_calls, nontriv_success, lemmas,max_lems,time_isa + t,time_prover,time_prover_fail))
+  (fn (calls, success, nontriv_calls, nontriv_success, lemmas, max_lems, time_isa, time_prover) =>
+    (calls, success, nontriv_calls, nontriv_success, lemmas, max_lems, time_isa + t, time_prover))
 
 fun inc_sh_time_prover t = map_sh_data
-  (fn (calls,success,nontriv_calls, nontriv_success, lemmas,max_lems,time_isa,time_prover,time_prover_fail)
-    => (calls,success,nontriv_calls, nontriv_success, lemmas,max_lems,time_isa,time_prover + t,time_prover_fail))
-
-fun inc_sh_time_prover_fail t = map_sh_data
-  (fn (calls,success,nontriv_calls, nontriv_success, lemmas,max_lems,time_isa,time_prover,time_prover_fail)
-    => (calls,success,nontriv_calls, nontriv_success, lemmas,max_lems,time_isa,time_prover,time_prover_fail + t))
+  (fn (calls, success, nontriv_calls, nontriv_success, lemmas, max_lems, time_isa, time_prover) =>
+    (calls, success, nontriv_calls, nontriv_success, lemmas, max_lems, time_isa, time_prover + t))
 
 val inc_proof_method_calls = map_re_data
   (fn (calls,success,nontriv_calls, nontriv_success, proofs,time,timeout,lemmas,posns)
@@ -187,7 +180,7 @@ fun avg_time t n =
   if n > 0 then (Real.fromInt t / 1000.0) / Real.fromInt n else 0.0
 
 fun log_sh_data (ShData {calls, success, nontriv_calls, nontriv_success, lemmas, max_lems, time_isa,
-      time_prover, time_prover_fail}) =
+      time_prover}) =
   "\nTotal number of sledgehammer calls: " ^ str calls ^
   "\nNumber of successful sledgehammer calls: " ^ str success ^
   "\nNumber of sledgehammer lemmas: " ^ str lemmas ^
@@ -197,13 +190,10 @@ fun log_sh_data (ShData {calls, success, nontriv_calls, nontriv_success, lemmas,
   "\nNumber of successful nontrivial sledgehammer calls: " ^ str nontriv_success ^
   "\nTotal time for sledgehammer calls (Isabelle): " ^ str3 (ms time_isa) ^
   "\nTotal time for successful sledgehammer calls (ATP): " ^ str3 (ms time_prover) ^
-  "\nTotal time for failed sledgehammer calls (ATP): " ^ str3 (ms time_prover_fail) ^
   "\nAverage time for sledgehammer calls (Isabelle): " ^
     str3 (avg_time time_isa calls) ^
   "\nAverage time for successful sledgehammer calls (ATP): " ^
-    str3 (avg_time time_prover success) ^
-  "\nAverage time for failed sledgehammer calls (ATP): " ^
-    str3 (avg_time time_prover_fail (calls - success))
+    str3 (avg_time time_prover success)
 
 fun log_re_data sh_calls (ReData {calls, success, nontriv_calls, nontriv_success, proofs, time,
       timeout, lemmas = (lemmas, lems_sos, lems_max), posns}) =
@@ -281,15 +271,8 @@ fun proof_method_from_msg args msg =
 
 local
 
-datatype sh_result =
-  SH_OK of int * int * (string * stature) list |
-  SH_FAIL of int * int |
-  SH_ERROR
-
-fun run_sh (params as {max_facts, minimize, preplay_timeout, induction_rules, ...}) prover_name
-    e_selection_heuristic term_order force_sos hard_timeout dir pos state =
+fun run_sh params e_selection_heuristic term_order force_sos dir pos state =
   let
-    val i = 1
     fun set_file_name (SOME dir) =
         let
           val filename = "prob_" ^
@@ -311,57 +294,20 @@ fun run_sh (params as {max_facts, minimize, preplay_timeout, induction_rules, ..
                   term_order |> the_default I)
             #> (Option.map (Config.put Sledgehammer_ATP_Systems.force_sos)
                   force_sos |> the_default I))
-    val time_limit =
-      (case hard_timeout of
-        NONE => I
-      | SOME t => Timeout.apply t)
-    fun failed failure =
-      ({outcome = SOME failure, used_facts = [], used_from = [],
-        preferred_methss = (Sledgehammer_Proof_Methods.Auto_Method, []), run_time = Time.zeroTime,
-        message = K ""}, ~1)
-    val ({outcome, used_facts, preferred_methss, run_time, message, ...}
-         : Sledgehammer_Prover.prover_result,
-         time_isa) = time_limit (Mirabelle.cpu_time (fn () =>
-      let
-        val ctxt = Proof.context_of state
-        val induction_rules =
-          Sledgehammer.induction_rules_for_prover ctxt prover_name induction_rules
-        val inst_inducts = induction_rules = Sledgehammer_Prover.Instantiate
-        val fact_override as {only, ...} = Sledgehammer_Fact.no_fact_override
-        val {facts = chained_thms, goal, ...} = Proof.goal state
-        val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal goal i ctxt
-        val facts = Sledgehammer_Fact.nearly_all_facts_of_context ctxt inst_inducts fact_override
-          chained_thms hyp_ts concl_t
-        val default_max_facts =
-          Sledgehammer_Prover_Minimize.default_max_facts_of_prover ctxt prover_name
-        val max_facts = the_default default_max_facts max_facts
-        val factss =
-          facts
-          |> Sledgehammer_MaSh.relevant_facts ctxt params prover_name max_facts fact_override
-             hyp_ts concl_t
-        val problem =
-          {comment = "", state = state', goal = goal, subgoal = i,
-           subgoal_count = Sledgehammer_Util.subgoal_count state, factss = factss, found_proof = I}
 
-        val learn = Sledgehammer_MaSh.mash_learn_proof ctxt params (Thm.prop_of goal)
-      in
-        Sledgehammer.launch_prover params Sledgehammer_Prover.Normal only learn problem prover_name
-      end)) ()
-      handle Timeout.TIMEOUT _ => failed ATP_Proof.TimedOut
-           | Fail "inappropriate" => failed ATP_Proof.Inappropriate
-    val time_prover = run_time |> Time.toMilliseconds
-    val msg = message (fn () => Sledgehammer.play_one_line_proof minimize preplay_timeout used_facts
-      state' i preferred_methss)
+    val ((_, (sledgehammer_outcome, msg)), cpu_time) = Mirabelle.cpu_time (fn () =>
+      Sledgehammer.run_sledgehammer params Sledgehammer_Prover.Normal NONE 1
+        Sledgehammer_Fact.no_fact_override state') ()
   in
-    (case outcome of
-      NONE => (msg, SH_OK (time_isa, time_prover, used_facts))
-    | SOME _ => (msg, SH_FAIL (time_isa, time_prover)))
+    (sledgehammer_outcome, msg, cpu_time)
   end
-  handle ERROR msg => ("error: " ^ msg, SH_ERROR)
+  handle
+    ERROR msg => (Sledgehammer.SH_Unknown, " error: " ^ msg, 0)
+  | _ => (Sledgehammer.SH_Unknown, " error: unexpected error", 0)
 
 in
 
-fun run_sledgehammer change_data (params as {provers, timeout, ...}) output_dir
+fun run_sledgehammer change_data (params as {provers, ...}) output_dir
   e_selection_heuristic term_order force_sos keep proof_method_from_msg thy_index trivial
   proof_method named_thms pos st =
   let
@@ -380,17 +326,15 @@ fun run_sledgehammer change_data (params as {provers, timeout, ...}) output_dir
         end
       else
         NONE
-    (* always use a hard timeout, but give some slack so that the automatic
-       minimizer has a chance to do its magic *)
-    val hard_timeout = SOME (Time.scale 4.0 timeout)
     val prover_name = hd provers
-    val (msg, result) =
-      run_sh params prover_name e_selection_heuristic term_order force_sos hard_timeout keep_dir pos
-        st
-  in
-    (case result of
-      SH_OK (time_isa, time_prover, names) =>
+    val (sledgehamer_outcome, msg, cpu_time) =
+      run_sh params e_selection_heuristic term_order force_sos keep_dir pos st
+    val outcome_msg =
+      (case sledgehamer_outcome of
+        Sledgehammer.SH_Some {used_facts, run_time, ...} =>
         let
+          val num_used_facts = length used_facts
+          val time_prover = Time.toMilliseconds run_time
           fun get_thms (name, stature) =
             try (Sledgehammer_Util.thms_of_name (Proof.context_of st))
               name
@@ -398,21 +342,19 @@ fun run_sledgehammer change_data (params as {provers, timeout, ...}) output_dir
         in
           change_data inc_sh_success;
           if trivial then () else change_data inc_sh_nontriv_success;
-          change_data (inc_sh_lemmas (length names));
-          change_data (inc_sh_max_lems (length names));
-          change_data (inc_sh_time_isa time_isa);
+          change_data (inc_sh_lemmas num_used_facts);
+          change_data (inc_sh_max_lems num_used_facts);
           change_data (inc_sh_time_prover time_prover);
           proof_method := proof_method_from_msg msg;
-          named_thms := SOME (map_filter get_thms names);
-          triv_str ^ "succeeded (" ^ string_of_int time_isa ^ "+" ^
-            string_of_int time_prover ^ ") [" ^ prover_name ^ "]:\n" ^ msg
+          named_thms := SOME (map_filter get_thms used_facts);
+          " (" ^ string_of_int cpu_time ^ "+" ^ string_of_int time_prover ^ ")" ^
+          " [" ^ prover_name ^ "]:\n"
         end
-    | SH_FAIL (time_isa, time_prover) =>
-        let
-          val _ = change_data (inc_sh_time_isa time_isa)
-          val _ = change_data (inc_sh_time_prover_fail time_prover)
-        in triv_str ^ "failed: " ^ msg end
-    | SH_ERROR => "failed: " ^ msg)
+      | _ => "")
+  in
+    change_data (inc_sh_time_isa cpu_time);
+    Sledgehammer.short_string_of_sledgehammer_outcome sledgehamer_outcome ^ " " ^
+      triv_str ^ outcome_msg ^ msg
   end
 
 end
@@ -511,7 +453,7 @@ fun make_action ({arguments, timeout, output_dir, ...} : Mirabelle.action_contex
       |> (fn (params as {provers, ...}) =>
             (case provers of
               prover :: _ => Sledgehammer_Prover.set_params_provers params [prover]
-            | _ => error "sledgehammer action requires one prover"))
+            | _ => error "sledgehammer action requires one and only one prover"))
 
     val data = Synchronized.var "Mirabelle_Sledgehammer.data" empty_data
     val change_data = Synchronized.change data

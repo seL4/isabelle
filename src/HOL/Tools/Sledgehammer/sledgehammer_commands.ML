@@ -394,6 +394,7 @@ val _ =
         val i = 1
       in
         run_sledgehammer (get_params mode thy []) mode NONE i no_fact_override (silence_state state)
+        |> apsnd (map_prod short_string_of_sledgehammer_outcome single)
       end}
 
 val _ =

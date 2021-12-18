@@ -19,20 +19,17 @@ sig
   type prover_problem = Sledgehammer_Prover.prover_problem
   type prover_result = Sledgehammer_Prover.prover_result
 
-  val someN : string
-  val noneN : string
-  val timeoutN : string
-  val unknownN : string
+  datatype sledgehammer_outcome = SH_Some of prover_result | SH_Unknown | SH_Timeout | SH_None
+
+  val short_string_of_sledgehammer_outcome : sledgehammer_outcome -> string
 
   val induction_rules_for_prover : Proof.context -> string -> induction_rules option ->
     induction_rules
   val play_one_line_proof : bool -> Time.time -> (string * stature) list -> Proof.state -> int ->
     proof_method * proof_method list list -> (string * stature) list * (proof_method * play_outcome)
-  val launch_prover : params -> mode -> bool -> (thm list -> unit) -> prover_problem -> string ->
-    prover_result
   val string_of_factss : (string * fact list) list -> string
   val run_sledgehammer : params -> mode -> (string -> unit) option -> int -> fact_override ->
-    Proof.state -> bool * (string * string list)
+    Proof.state -> bool * (sledgehammer_outcome * string)
 end;
 
 structure Sledgehammer : SLEDGEHAMMER =
@@ -52,23 +49,37 @@ open Sledgehammer_Prover_ATP
 open Sledgehammer_Prover_Minimize
 open Sledgehammer_MaSh
 
-val someN = "some"
-val noneN = "none"
-val timeoutN = "timeout"
-val unknownN = "unknown"
+datatype sledgehammer_outcome = SH_Some of prover_result | SH_Unknown | SH_Timeout | SH_None
+
+fun is_sledgehammer_outcome_some (SH_Some _) = true
+  | is_sledgehammer_outcome_some _ = false
+
+fun short_string_of_sledgehammer_outcome (SH_Some _) = "some"
+  | short_string_of_sledgehammer_outcome SH_Unknown = "unknown"
+  | short_string_of_sledgehammer_outcome SH_Timeout = "timeout"
+  | short_string_of_sledgehammer_outcome SH_None = "none"
+
+fun alternative f (SOME x) (SOME y) = SOME (f (x, y))
+  | alternative _ (x as SOME _) NONE = x
+  | alternative _ NONE (y as SOME _) = y
+  | alternative _ NONE NONE = NONE
+
+fun max_outcome outcomes =
+  let
+    val some = find_first (fn (SH_Some _, _) => true | _ => false) outcomes
+    val unknown = find_first (fn (SH_Unknown, _) => true | _ => false) outcomes
+    val timeout = find_first (fn (SH_Timeout, _) => true | _ => false) outcomes
+    val none = find_first (fn (SH_None, _) => true | _ => false) outcomes
+  in
+    some
+    |> alternative snd unknown
+    |> alternative snd timeout
+    |> alternative snd none
+    |> the_default (SH_Unknown, "")
+  end
 
 fun induction_rules_for_prover ctxt prover_name induction_rules =
   the_default (if is_ho_atp ctxt prover_name then Include else Exclude) induction_rules
-
-val ordered_outcome_codes = [someN, unknownN, timeoutN, noneN]
-
-fun max_outcome_code codes =
-  NONE
-  |> fold (fn candidate =>
-      fn accum as SOME _ => accum
-       | NONE => if member (op =) codes candidate then SOME candidate else NONE)
-    ordered_outcome_codes
-  |> the_default unknownN
 
 fun is_metis_method (Metis_Method _) = true
   | is_metis_method _ = false
@@ -197,68 +208,67 @@ fun launch_prover (params as {verbose, spy, max_facts, induction_rules, ...}) mo
  end
 
 fun preplay_prover_result ({ minimize, preplay_timeout, ...} : params) state subgoal
-    ({outcome, used_facts, preferred_methss, message, ...} : prover_result) =
+    (result as {outcome, used_facts, preferred_methss, message, ...} : prover_result) =
   let
     val output =
       if outcome = SOME ATP_Proof.TimedOut then
-        timeoutN
+        SH_Timeout
       else if is_some outcome then
-        noneN
+        SH_None
       else
-        someN
+        SH_Some result
     fun output_message () = message (fn () =>
       play_one_line_proof minimize preplay_timeout used_facts state subgoal preferred_methss)
   in
     (output, output_message)
   end
 
+fun check_expected_outcome ctxt prover_name expect outcome =
+  let
+    val outcome_code = short_string_of_sledgehammer_outcome outcome
+  in
+    (* The "expect" argument is deliberately ignored if the prover is
+       missing so that the "Metis_Examples" can be processed on any
+       machine. *)
+    if expect = "" orelse outcome_code = expect orelse
+       not (is_prover_installed ctxt prover_name) then
+      ()
+    else
+      error ("Unexpected outcome: " ^ quote outcome_code)
+  end
+
 fun launch_prover_and_preplay (params as {debug, timeout, expect, ...}) mode writeln_result only
-    learn (problem as {state, subgoal, ...}) name =
+    learn (problem as {state, subgoal, ...}) prover_name =
   let
     val ctxt = Proof.context_of state
     val hard_timeout = Time.scale 5.0 timeout
 
     fun really_go () =
-      launch_prover params mode only learn problem name
+      launch_prover params mode only learn problem prover_name
       |> preplay_prover_result params state subgoal
 
     fun go () =
-      let
-        val (outcome_code, message) =
-          if debug then
-            really_go ()
-          else
-            (really_go ()
-             handle
-               ERROR msg => (unknownN, fn () => "Error: " ^ msg ^ "\n")
-             | exn =>
-               if Exn.is_interrupt exn then Exn.reraise exn
-               else (unknownN, fn () => "Internal error:\n" ^ Runtime.exn_message exn ^ "\n"))
+      if debug then
+        really_go ()
+      else
+        (really_go ()
+         handle
+           ERROR msg => (SH_Unknown, fn () => "Error: " ^ msg ^ "\n")
+         | exn =>
+           if Exn.is_interrupt exn then Exn.reraise exn
+           else (SH_Unknown, fn () => "Internal error:\n" ^ Runtime.exn_message exn ^ "\n"))
 
-        val _ =
-          (* The "expect" argument is deliberately ignored if the prover is
-             missing so that the "Metis_Examples" can be processed on any
-             machine. *)
-          if expect = "" orelse outcome_code = expect orelse
-             not (is_prover_installed ctxt name) then
-            ()
-          else
-            error ("Unexpected outcome: " ^ quote outcome_code)
-      in (outcome_code, message) end
+    val (outcome, message) = Timeout.apply hard_timeout go ()
+    val () = check_expected_outcome ctxt prover_name expect outcome
+
+    val message = message ()
+    val () =
+      if mode <> Auto_Try andalso is_sledgehammer_outcome_some outcome orelse mode = Normal then
+        the_default writeln writeln_result (quote prover_name ^ ": " ^ message)
+      else
+        ()
   in
-    if mode = Auto_Try then
-      let val (outcome_code, message) = Timeout.apply timeout go () in
-        (outcome_code, if outcome_code = someN then [message ()] else [])
-      end
-    else
-      let
-        val (outcome_code, message) = Timeout.apply hard_timeout go ()
-        val outcome =
-          if outcome_code = someN orelse mode = Normal then quote name ^ ": " ^ message () else ""
-        val _ =
-          if outcome <> "" andalso is_some writeln_result then the writeln_result outcome
-          else writeln outcome
-      in (outcome_code, []) end
+    (outcome, message)
   end
 
 val auto_try_max_facts_divisor = 2 (* FUDGE *)
@@ -280,7 +290,7 @@ fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_fac
     error "No prover is set"
   else
     (case subgoal_count state of
-      0 => (error "No subgoal!"; (false, (noneN, [])))
+      0 => (error "No subgoal!"; (false, (SH_None, "")))
     | n =>
       let
         val _ = Proof.assert_backward state
@@ -341,21 +351,20 @@ fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_fac
             val launch = launch_prover_and_preplay params mode writeln_result only learn
           in
             if mode = Auto_Try then
-              (unknownN, [])
-              |> fold (fn prover => fn accum as (outcome_code, _) =>
-                  if outcome_code = someN then accum else launch problem prover)
+              (SH_Unknown, "")
+              |> fold (fn prover => fn accum as (SH_Some _, _) => accum | _ => launch problem prover)
                 provers
             else
               (learn chained_thms;
                provers
-               |> Par_List.map (launch problem #> fst)
-               |> max_outcome_code |> rpair [])
+               |> Par_List.map (launch problem)
+               |> max_outcome)
           end
       in
         launch_provers ()
         handle Timeout.TIMEOUT _ =>
-          (print "Sledgehammer ran out of time"; (unknownN, []))
+          (print "Sledgehammer ran out of time"; (SH_Timeout, ""))
       end
-      |> `(fn (outcome_code, _) => outcome_code = someN))
+      |> `(fn (outcome, _) => is_sledgehammer_outcome_some outcome))
 
 end;
