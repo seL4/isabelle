@@ -342,7 +342,9 @@ fun run_sh (params as {max_facts, minimize, preplay_timeout, induction_rules, ..
          time_isa) = time_limit (Mirabelle.cpu_time (fn () =>
       let
         val ctxt = Proof.context_of state
-        val inst_inducts = induction_rules = SOME Sledgehammer_Prover.Instantiate
+        val induction_rules =
+          Sledgehammer.induction_rules_for_prover ctxt prover_name induction_rules
+        val inst_inducts = induction_rules = Sledgehammer_Prover.Instantiate
         val fact_override = Sledgehammer_Fact.no_fact_override
         val {facts = chained_thms, goal, ...} = Proof.goal state
         val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal goal i ctxt
@@ -350,11 +352,12 @@ fun run_sh (params as {max_facts, minimize, preplay_timeout, induction_rules, ..
           chained_thms hyp_ts concl_t
         val default_max_facts =
           Sledgehammer_Prover_Minimize.default_max_facts_of_prover ctxt prover_name
+        val max_facts = the_default default_max_facts max_facts
         val factss =
           facts
-          |> Sledgehammer_MaSh.relevant_facts ctxt params prover_name
-                 (the_default default_max_facts max_facts)
-                 Sledgehammer_Fact.no_fact_override hyp_ts concl_t
+          |> Sledgehammer_MaSh.relevant_facts ctxt params prover_name max_facts fact_override
+             hyp_ts concl_t
+          |> map (apsnd (Sledgehammer_Prover.maybe_filter_out_induction_rules induction_rules))
         val prover = get_prover ctxt prover_name params goal
         val problem =
           {comment = "", state = state', goal = goal, subgoal = i,

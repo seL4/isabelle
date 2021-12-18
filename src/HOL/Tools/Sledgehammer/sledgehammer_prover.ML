@@ -19,6 +19,7 @@ sig
 
   datatype induction_rules = Include | Exclude | Instantiate
   val induction_rules_of_string : string -> induction_rules option
+  val maybe_filter_out_induction_rules : induction_rules -> fact list -> fact list
 
   type params =
     {debug : bool,
@@ -146,6 +147,10 @@ type params =
 
 fun string_of_params (params : params) =
   YXML.content_of (ML_Pretty.string_of_polyml (ML_system_pretty (params, 100)))
+
+fun maybe_filter_out_induction_rules induction_rules : fact list -> fact list =
+    induction_rules = Exclude ?
+      filter_out (fn ((_, (_, ATP_Problem_Generate.Induction)), _) => true | _ => false)
 
 fun set_params_provers params provers =
   {debug = #debug params,

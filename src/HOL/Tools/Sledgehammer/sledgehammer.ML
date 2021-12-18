@@ -15,12 +15,15 @@ sig
   type play_outcome = Sledgehammer_Proof_Methods.play_outcome
   type mode = Sledgehammer_Prover.mode
   type params = Sledgehammer_Prover.params
+  type induction_rules = Sledgehammer_Prover.induction_rules
 
   val someN : string
   val noneN : string
   val timeoutN : string
   val unknownN : string
 
+  val induction_rules_for_prover : Proof.context -> string -> induction_rules option ->
+    induction_rules
   val play_one_line_proof : bool -> Time.time -> (string * stature) list -> Proof.state -> int ->
     proof_method * proof_method list list -> (string * stature) list * (proof_method * play_outcome)
   val string_of_factss : (string * fact list) list -> string
@@ -49,6 +52,9 @@ val someN = "some"
 val noneN = "none"
 val timeoutN = "timeout"
 val unknownN = "unknown"
+
+fun induction_rules_for_prover ctxt prover_name induction_rules =
+  the_default (if is_ho_atp ctxt prover_name then Include else Exclude) induction_rules
 
 val ordered_outcome_codes = [someN, unknownN, timeoutN, noneN]
 
@@ -125,16 +131,14 @@ fun launch_prover (params as {debug, verbose, spy, max_facts, minimize, timeout,
     val _ = spying spy (fn () => (state, subgoal, name, "Launched"))
     val max_facts = max_facts |> the_default (default_max_facts_of_prover ctxt name)
     val num_facts = length facts |> not only ? Integer.min max_facts
-    val induction_rules =
-      the_default (if is_ho_atp ctxt name then Include else Exclude) induction_rules
+    val induction_rules = induction_rules_for_prover ctxt name induction_rules
 
     val problem =
       {comment = comment, state = state, goal = goal, subgoal = subgoal,
        subgoal_count = subgoal_count,
        factss = factss
-       |> map (apsnd ((induction_rules = Exclude
-           ? filter_out (fn ((_, (_, Induction)), _) => true | _ => false))
-         #> take num_facts)),
+         (* We take num_facts because factss contain facts for the maximum of all called provers. *)
+         |> map (apsnd (take num_facts o maybe_filter_out_induction_rules induction_rules)),
        found_proof = found_proof}
 
     fun print_used_facts used_facts used_from =
