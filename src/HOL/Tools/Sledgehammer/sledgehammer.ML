@@ -16,6 +16,8 @@ sig
   type mode = Sledgehammer_Prover.mode
   type params = Sledgehammer_Prover.params
   type induction_rules = Sledgehammer_Prover.induction_rules
+  type prover_problem = Sledgehammer_Prover.prover_problem
+  type prover_result = Sledgehammer_Prover.prover_result
 
   val someN : string
   val noneN : string
@@ -26,6 +28,8 @@ sig
     induction_rules
   val play_one_line_proof : bool -> Time.time -> (string * stature) list -> Proof.state -> int ->
     proof_method * proof_method list list -> (string * stature) list * (proof_method * play_outcome)
+  val launch_prover : params -> mode -> bool -> (thm list -> unit) -> prover_problem -> string ->
+    prover_result
   val string_of_factss : (string * fact list) list -> string
   val run_sledgehammer : params -> mode -> (string -> unit) option -> int -> fact_override ->
     Proof.state -> bool * (string * string list)
@@ -121,23 +125,24 @@ fun play_one_line_proof minimize timeout used_facts state i (preferred_meth, met
   |> (fn (used_facts, (meth, play)) =>
         (used_facts |> filter_out (fn (_, (sc, _)) => sc = Chained), (meth, play)))
 
-fun launch_prover (params as {debug, verbose, spy, max_facts, minimize, timeout, preplay_timeout,
-      expect, induction_rules, ...}) mode writeln_result only learn
-    {comment, state, goal, subgoal, subgoal_count, factss as (_, facts) :: _, found_proof} name =
+fun launch_prover (params as {verbose, spy, max_facts, induction_rules, ...}) mode only learn
+    ({comment, state, goal, subgoal, subgoal_count, factss, found_proof} : prover_problem) name =
   let
     val ctxt = Proof.context_of state
 
-    val hard_timeout = Time.scale 5.0 timeout
     val _ = spying spy (fn () => (state, subgoal, name, "Launched"))
     val max_facts = max_facts |> the_default (default_max_facts_of_prover ctxt name)
-    val num_facts = length facts |> not only ? Integer.min max_facts
+    val num_facts =
+      (case factss of
+        (_, facts) :: _ => length facts |> not only ? Integer.min max_facts
+      | _ => 0)
     val induction_rules = induction_rules_for_prover ctxt name induction_rules
 
     val problem =
       {comment = comment, state = state, goal = goal, subgoal = subgoal,
        subgoal_count = subgoal_count,
        factss = factss
-         (* We take num_facts because factss contain facts for the maximum of all called provers. *)
+         (* We take num_facts because factss contains the maximum of all called provers. *)
          |> map (apsnd (take num_facts o maybe_filter_out_induction_rules induction_rules)),
        found_proof = found_proof}
 
@@ -147,8 +152,8 @@ fun launch_prover (params as {debug, verbose, spy, max_facts, minimize, timeout,
       |> filter_used_facts false used_facts
       |> map (fn ((name, _), j) => name ^ "@" ^ string_of_int j)
       |> commas
-      |> prefix ("Fact" ^ plural_s (length facts) ^ " in " ^ quote name ^
-        " proof (of " ^ string_of_int (length facts) ^ "): ")
+      |> prefix ("Fact" ^ plural_s num_facts ^ " in " ^ quote name ^
+        " proof (of " ^ string_of_int num_facts ^ "): ")
       |> writeln
 
     fun spying_str_of_res ({outcome = NONE, used_facts, used_from, ...} : prover_result) =
@@ -182,20 +187,40 @@ fun launch_prover (params as {debug, verbose, spy, max_facts, minimize, timeout,
         end
       | spying_str_of_res {outcome = SOME failure, ...} =
         "Failure: " ^ string_of_atp_failure failure
+ in
+  problem
+  |> get_minimizing_prover ctxt mode learn name params
+  |> verbose ? tap (fn {outcome = NONE, used_facts as _ :: _, used_from, ...} =>
+      print_used_facts used_facts used_from
+    | _ => ())
+  |> spy ? tap (fn res => spying spy (fn () => (state, subgoal, name, spying_str_of_res res)))
+ end
+
+fun preplay_prover_result ({ minimize, preplay_timeout, ...} : params) state subgoal
+    ({outcome, used_facts, preferred_methss, message, ...} : prover_result) =
+  let
+    val output =
+      if outcome = SOME ATP_Proof.TimedOut then
+        timeoutN
+      else if is_some outcome then
+        noneN
+      else
+        someN
+    fun output_message () = message (fn () =>
+      play_one_line_proof minimize preplay_timeout used_facts state subgoal preferred_methss)
+  in
+    (output, output_message)
+  end
+
+fun launch_prover_and_preplay (params as {debug, timeout, expect, ...}) mode writeln_result only
+    learn (problem as {state, subgoal, ...}) name =
+  let
+    val ctxt = Proof.context_of state
+    val hard_timeout = Time.scale 5.0 timeout
 
     fun really_go () =
-      problem
-      |> get_minimizing_prover ctxt mode learn name params
-      |> verbose ? tap (fn {outcome = NONE, used_facts as _ :: _, used_from, ...} =>
-          print_used_facts used_facts used_from
-        | _ => ())
-      |> spy ? tap (fn res => spying spy (fn () => (state, subgoal, name, spying_str_of_res res)))
-      |> (fn {outcome, used_facts, preferred_methss, message, ...} =>
-        (if outcome = SOME ATP_Proof.TimedOut then timeoutN
-         else if is_some outcome then noneN
-         else someN,
-         fn () => message (fn () => play_one_line_proof minimize preplay_timeout used_facts state
-           subgoal preferred_methss)))
+      launch_prover params mode only learn problem name
+      |> preplay_prover_result params state subgoal
 
     fun go () =
       let
@@ -313,7 +338,7 @@ fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_fac
               {comment = "", state = state, goal = goal, subgoal = i, subgoal_count = n,
                factss = factss, found_proof = found_proof}
             val learn = mash_learn_proof ctxt params (Thm.prop_of goal)
-            val launch = launch_prover params mode writeln_result only learn
+            val launch = launch_prover_and_preplay params mode writeln_result only learn
           in
             if mode = Auto_Try then
               (unknownN, [])

@@ -246,24 +246,6 @@ fun log_data (Data {sh, re_u}) =
 
 end
 
-fun get_prover_name thy args =
-  let
-    fun default_prover_name () =
-      hd (#provers (Sledgehammer_Commands.default_params thy []))
-      handle List.Empty => error "No ATP available"
-  in
-    (case AList.lookup (op =) args proverK of
-      SOME name => name
-    | NONE => default_prover_name ())
-  end
-
-fun get_prover ctxt name params goal =
-  let
-    val learn = Sledgehammer_MaSh.mash_learn_proof ctxt params (Thm.prop_of goal)
-  in
-    Sledgehammer_Prover_Minimize.get_minimizing_prover ctxt Sledgehammer_Prover.Normal learn name
-  end
-
 type stature = ATP_Problem_Generate.stature
 
 fun is_good_line s =
@@ -345,7 +327,7 @@ fun run_sh (params as {max_facts, minimize, preplay_timeout, induction_rules, ..
         val induction_rules =
           Sledgehammer.induction_rules_for_prover ctxt prover_name induction_rules
         val inst_inducts = induction_rules = Sledgehammer_Prover.Instantiate
-        val fact_override = Sledgehammer_Fact.no_fact_override
+        val fact_override as {only, ...} = Sledgehammer_Fact.no_fact_override
         val {facts = chained_thms, goal, ...} = Proof.goal state
         val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal goal i ctxt
         val facts = Sledgehammer_Fact.nearly_all_facts_of_context ctxt inst_inducts fact_override
@@ -357,12 +339,14 @@ fun run_sh (params as {max_facts, minimize, preplay_timeout, induction_rules, ..
           facts
           |> Sledgehammer_MaSh.relevant_facts ctxt params prover_name max_facts fact_override
              hyp_ts concl_t
-          |> map (apsnd (Sledgehammer_Prover.maybe_filter_out_induction_rules induction_rules))
-        val prover = get_prover ctxt prover_name params goal
         val problem =
           {comment = "", state = state', goal = goal, subgoal = i,
            subgoal_count = Sledgehammer_Util.subgoal_count state, factss = factss, found_proof = I}
-      in prover params problem end)) ()
+
+        val learn = Sledgehammer_MaSh.mash_learn_proof ctxt params (Thm.prop_of goal)
+      in
+        Sledgehammer.launch_prover params Sledgehammer_Prover.Normal only learn problem prover_name
+      end)) ()
       handle Timeout.TIMEOUT _ => failed ATP_Proof.TimedOut
            | Fail "inappropriate" => failed ATP_Proof.Inappropriate
     val time_prover = run_time |> Time.toMilliseconds
