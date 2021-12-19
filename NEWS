@@ -34,6 +34,16 @@ since Isabelle2019). INCOMPATIBILITY, use \<open>cartouche\<close> syntax instea
   - Lifted multiple lemmas from mult to multp.
   - Redefined less_multiset to be based on multp. INCOMPATIBILITY.
 
+* Sledgehammer:
+  - Introduced sledgehammer_outcome data type and changed return type of ML
+    function Sledgehammer.run_sledgehammer from "bool * (string * string list)"
+    to "bool * (sledgehammer_outcome * string)". The former value can be
+    recomputed with "apsnd (ATP_Util.map_prod
+    Sledgehammer.short_string_of_sledgehammer_outcome single)".
+    INCOMPATIBILITY.
+  - Added support for TX0 and TX1 TPTP formats and $ite/$let expressions
+    in TH0 and TH1.
+
 
 New in Isabelle2021-1 (December 2021)
 -------------------------------------
