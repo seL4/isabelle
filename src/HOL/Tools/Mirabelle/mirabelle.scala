@@ -170,7 +170,7 @@ Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
 
   Available actions are:""" + action_names().mkString("\n    ", "\n    ", "") + """
 
-  For the ACTION "sledgehammer", the following OPTIONs are available:""" +
+  For the ACTION "sledgehammer", the usual sledgehammer as well as the following mirabelle-specific OPTIONs are available:""" +
       sledgehammer_options().mkString("\n    ", "\n    ", "\n"),
       "A:" -> (arg => actions = actions ::: List(arg)),
       "B:" -> (arg => base_sessions = base_sessions ::: List(arg)),
