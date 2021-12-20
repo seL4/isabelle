@@ -1293,18 +1293,18 @@ defined and points to a release of the Archive of Formal Proofs.
 
 \begin{verbatim}
 isabelle mirabelle -d $AFP -O output \
-  -A "sledgehammer[prover=e, prover_timeout=30]" \
+  -A "sledgehammer[provers = e, timeout = 30]" \
   VeriComp
 \end{verbatim}
 
 This command specifies to run the Sledgehammer action, using the E prover with
-a timeout of 10 seconds, on all subgoals emerging from all theory in the AFP
+a timeout of 30 seconds, on all subgoals emerging from all theory in the AFP
 session VeriComp. The results are written to \texttt{output/mirabelle.log}.
 
 \begin{verbatim}
 isabelle mirabelle -d $AFP -O output \
   -T Semantics -T Compiler \
-  -A "sledgehammer[prover=e, prover_timeout=30]" \
+  -A "sledgehammer[provers = e, timeout = 30]" \
   VeriComp
 \end{verbatim}
 
@@ -1328,7 +1328,7 @@ written to \texttt{output/mirabelle.log}.
 
 \begin{verbatim}
 isabelle mirabelle -d $AFP -O output \
-  -A "sledgehammer[prover=e, prover_timeout=5, keep=true]" \
+  -A "sledgehammer[provers = e, timeout = 5, keep = true]" \
   VeriComp
 \end{verbatim}
 
