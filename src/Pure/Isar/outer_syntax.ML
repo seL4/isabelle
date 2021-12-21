@@ -162,7 +162,9 @@ fun local_theory_command trans command_keyword comment parse =
     (Restricted_Parser (fn restricted =>
       Parse.opt_target -- parse >> (fn (target, f) => trans restricted target f)));
 
-val local_theory' = local_theory_command Toplevel.local_theory';
+val local_theory' =
+  local_theory_command
+    (fn a => fn b => fn c => Toplevel.local_theory' a b c Toplevel.no_presentation);
 val local_theory = local_theory_command Toplevel.local_theory;
 val local_theory_to_proof' = local_theory_command Toplevel.local_theory_to_proof';
 val local_theory_to_proof = local_theory_command Toplevel.local_theory_to_proof;
