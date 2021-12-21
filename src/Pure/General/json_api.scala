@@ -48,6 +48,25 @@ object JSON_API
     def check_resource: Resource = check_data.resource
     def check_resources: List[Resource] = check_data.resources
 
+    def iterator: Iterator[Root] =
+    {
+      val init = Some(this)
+      new Iterator[Root] {
+        private var state: Option[Root] = init
+        def hasNext: Boolean = state.nonEmpty
+        def next(): Root =
+          state match {
+            case None => Iterator.empty.next()
+            case Some(res) =>
+              state = res.get_next.map(_.get_root())
+              res
+          }
+      }
+    }
+    def iterator_data: Iterator[Data] = iterator.map(_.check_data)
+    def iterator_resource: Iterator[Resource] = iterator.map(_.check_resource)
+    def iterator_resources: Iterator[Resource] = iterator.flatMap(_.check_resources)
+
     override def toString: String = "Root(" + (if (ok) "ok" else "errors") + ")"
   }
 
