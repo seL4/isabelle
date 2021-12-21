@@ -17,16 +17,14 @@ object Flarum
 
   def server(url: URL): Server = new Server(url)
 
-  class Server private[Flarum](url: URL)
+  class Server private[Flarum](url: URL) extends JSON_API.Service(url)
   {
-    override def toString: String = url.toString
+    def get_api(route: String): JSON_API.Root =
+      get_root("api" + (if (route.isEmpty) "" else "/" + route))
 
-    def get(route: String): HTTP.Content =
-      HTTP.Client.get(if (route.isEmpty) url else new URL(url, route))
-
-    def get_api(route: String = ""): JSON_API.Root =
-      JSON_API.Root(get("api" + (if (route.isEmpty) "" else "/" + route)).json)
-
-    val root: JSON_API.Root = get_api()
+    val root: JSON_API.Root = get_api("")
+    def users: JSON_API.Root = get_api("users")
+    def groups: JSON_API.Root = get_api("groups")
+    def discussions: JSON_API.Root = get_api("discussions")
   }
 }
