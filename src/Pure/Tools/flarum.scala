@@ -13,7 +13,7 @@ import java.net.URL
 object Flarum
 {
   // see RFC3339 in https://www.php.net/manual/en/class.datetimeinterface.php
-  val Date_Format = Date.Format("uuuu-MM-dd'T'HH:mm:ssxxx")
+  val Date_Format: Date.Format = Date.Format("uuuu-MM-dd'T'HH:mm:ssxxx")
 
   def server(url: URL): Server = new Server(url)
 
@@ -27,6 +27,6 @@ object Flarum
     def get_api(route: String = ""): JSON_API.Root =
       JSON_API.Root(get("api" + (if (route.isEmpty) "" else "/" + route)).json)
 
-    val api: JSON_API.Root = get_api()
+    val root: JSON_API.Root = get_api()
   }
 }
