@@ -45,6 +45,15 @@ since Isabelle2019). INCOMPATIBILITY, use \<open>cartouche\<close> syntax instea
     in TH0 and TH1.
 
 
+*** System ***
+
+* Command-line tool "isabelle scala_project" supports Gradle as
+alternative to Maven: either option -G or -M needs to be specified
+explicitly. This increases the chances that the Java/Scala IDE project
+works properly.
+
+
+
 New in Isabelle2021-1 (December 2021)
 -------------------------------------
 

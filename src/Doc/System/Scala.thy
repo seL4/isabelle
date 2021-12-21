@@ -266,7 +266,7 @@ subsection \<open>Project setup for common Scala IDEs \label{sec:tool-scala-proj
 
 text \<open>
   The @{tool_def scala_project} tool creates a project configuration for all
-  Isabelle/Scala/Java modules specified in components via
+  Isabelle/Java/Scala modules specified in components via
   \<^path>\<open>etc/build.props\<close>, together with additional source files given on
   the command-line:
 
@@ -275,20 +275,30 @@ text \<open>
 
   Options are:
     -D DIR       project directory (default: "$ISABELLE_HOME_USER/scala_project")
+    -G           use Gradle as build tool
     -L           make symlinks to original source files
+    -M           use Maven as build tool
     -f           force update of existing directory
 
-  Setup Maven project for Isabelle/Scala/jEdit --- to support common IDEs
-  such as IntelliJ IDEA.\<close>}
+  Setup project for Isabelle/Scala/jEdit --- to support common IDEs such
+  as IntelliJ IDEA. Either option -G or -M is mandatory to specify the
+  build tool.\<close>}
 
-  The generated configuration is for Maven\<^footnote>\<open>\<^url>\<open>https://maven.apache.org\<close>\<close>, but
-  the main purpose is to import it into common IDEs, such as IntelliJ
-  IDEA\<^footnote>\<open>\<^url>\<open>https://www.jetbrains.com/idea\<close>\<close>. This allows to explore the
-  sources with static analysis and other hints in real-time.
+  The generated configuration is for Gradle\<^footnote>\<open>\<^url>\<open>https://gradle.org\<close>\<close> or
+  Maven\<^footnote>\<open>\<^url>\<open>https://maven.apache.org\<close>\<close>, but the main purpose is to import it
+  into common IDEs like IntelliJ IDEA\<^footnote>\<open>\<^url>\<open>https://www.jetbrains.com/idea\<close>\<close>.
+  This allows to explore the sources with static analysis and other hints in
+  real-time.
 
   The generated files refer to physical file-system locations, using the path
   notation of the underlying OS platform. Thus the project needs to be
   recreated whenever the Isabelle installation is changed or moved.
+
+  \<^medskip>
+  Option \<^verbatim>\<open>-G\<close> selects Gradle and \<^verbatim>\<open>-M\<close> selects Maven as Java/Scala build
+  tool: either one needs to be specified explicitly. These tools have a
+  tendency to break down unexpectedly, so supporting both increases the
+  chances that the generated IDE project works properly.
 
   \<^medskip>
   Option \<^verbatim>\<open>-L\<close> produces \<^emph>\<open>symlinks\<close> to the original files: this allows to
