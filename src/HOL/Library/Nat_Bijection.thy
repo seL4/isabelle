@@ -87,10 +87,10 @@ lemma bij_prod_encode: "bij prod_encode"
 lemma bij_prod_decode: "bij prod_decode"
   by (rule bijI [OF inj_prod_decode surj_prod_decode])
 
-lemma prod_encode_eq: "prod_encode x = prod_encode y \<longleftrightarrow> x = y"
+lemma prod_encode_eq [simp]: "prod_encode x = prod_encode y \<longleftrightarrow> x = y"
   by (rule inj_prod_encode [THEN inj_eq])
 
-lemma prod_decode_eq: "prod_decode x = prod_decode y \<longleftrightarrow> x = y"
+lemma prod_decode_eq [simp]: "prod_decode x = prod_decode y \<longleftrightarrow> x = y"
   by (rule inj_prod_decode [THEN inj_eq])
 
 
