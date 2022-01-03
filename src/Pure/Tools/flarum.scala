@@ -13,20 +13,18 @@ import java.net.URL
 object Flarum
 {
   // see RFC3339 in https://www.php.net/manual/en/class.datetimeinterface.php
-  val Date_Format = Date.Format("uuuu-MM-dd'T'HH:mm:ssxxx")
+  val Date_Format: Date.Format = Date.Format("uuuu-MM-dd'T'HH:mm:ssxxx")
 
   def server(url: URL): Server = new Server(url)
 
-  class Server private[Flarum](url: URL)
+  class Server private[Flarum](url: URL) extends JSON_API.Service(url)
   {
-    override def toString: String = url.toString
+    def get_api(route: String): JSON_API.Root =
+      get_root("api" + (if (route.isEmpty) "" else "/" + route))
 
-    def get(route: String): HTTP.Content =
-      HTTP.Client.get(if (route.isEmpty) url else new URL(url, route))
-
-    def get_api(route: String = ""): JSON_API.Root =
-      JSON_API.Root(get("api" + (if (route.isEmpty) "" else "/" + route)).json)
-
-    val api: JSON_API.Root = get_api()
+    val root: JSON_API.Root = get_api("")
+    def users: JSON_API.Root = get_api("users")
+    def groups: JSON_API.Root = get_api("groups")
+    def discussions: JSON_API.Root = get_api("discussions")
   }
 }

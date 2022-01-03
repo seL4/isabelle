@@ -1637,6 +1637,26 @@ lemma Lcm_coprime':
 
 end
 
+text \<open>And some consequences: cancellation modulo @{term m}\<close>
+lemma mult_mod_cancel_right:
+  fixes m :: "'a::{euclidean_ring_cancel,semiring_gcd}"
+  assumes eq: "(a * n) mod m = (b * n) mod m" and "coprime m n" 
+  shows "a mod m = b mod m"
+proof -
+  have "m dvd (a*n - b*n)" 
+    using eq mod_eq_dvd_iff by blast
+  then have "m dvd a-b"
+    by (metis \<open>coprime m n\<close> coprime_dvd_mult_left_iff left_diff_distrib')
+  then show ?thesis
+    using mod_eq_dvd_iff by blast
+qed
+
+lemma mult_mod_cancel_left:
+  fixes m :: "'a::{euclidean_ring_cancel,semiring_gcd}"
+  assumes "(n * a) mod m = (n * b) mod m" and "coprime m n" 
+  shows "a mod m = b mod m"
+  by (metis assms mult.commute mult_mod_cancel_right)
+
 
 subsection \<open>GCD and LCM for multiplicative normalisation functions\<close>
 

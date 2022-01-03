@@ -32,6 +32,8 @@ sig
   val string_of_state: state -> string
   val pretty_abstract: state -> Pretty.T
   type presentation = state -> Latex.text option
+  val presentation: (state -> Latex.text) -> presentation
+  val no_presentation: presentation
   type transition
   val empty: transition
   val name_of: transition -> string
@@ -55,14 +57,14 @@ sig
   val ignored: Position.T -> transition
   val malformed: Position.T -> string -> transition
   val generic_theory: (generic_theory -> generic_theory) -> transition -> transition
-  val theory': (bool -> theory -> theory) -> transition -> transition
+  val theory': (bool -> theory -> theory) -> presentation -> transition -> transition
   val theory: (theory -> theory) -> transition -> transition
   val begin_main_target: bool -> (theory -> local_theory) -> transition -> transition
   val end_main_target: transition -> transition
   val begin_nested_target: (Context.generic -> local_theory) -> transition -> transition
   val end_nested_target: transition -> transition
   val local_theory': (bool * Position.T) option -> (xstring * Position.T) option ->
-    (bool -> local_theory -> local_theory) -> transition -> transition
+    (bool -> local_theory -> local_theory) -> presentation -> transition -> transition
   val local_theory: (bool * Position.T) option -> (xstring * Position.T) option ->
     (local_theory -> local_theory) -> transition -> transition
   val present_local_theory: (xstring * Position.T) option -> (state -> Latex.text) ->
@@ -267,8 +269,8 @@ val _ = ML_system_pp (fn _ => fn _ => Pretty.to_polyml o pretty_abstract);
 (* presentation *)
 
 type presentation = state -> Latex.text option;
-val no_presentation: presentation = K NONE;
 fun presentation g : presentation = SOME o g;
+val no_presentation: presentation = K NONE;
 
 
 (* primitive transitions *)
@@ -452,7 +454,7 @@ fun generic_theory f = transaction (fn _ =>
   (fn Theory gthy => node_presentation (Theory (f gthy))
     | _ => raise UNDEF));
 
-fun theory' f = transaction (fn int =>
+fun theory' f = present_transaction (fn int =>
   (fn Theory (Context.Theory thy) =>
       let val thy' = thy
         |> Sign.new_group
@@ -461,7 +463,7 @@ fun theory' f = transaction (fn int =>
       in node_presentation (Theory (Context.Theory thy')) end
     | _ => raise UNDEF));
 
-fun theory f = theory' (K f);
+fun theory f = theory' (K f) no_presentation;
 
 fun begin_main_target begin f = transaction (fn _ =>
   (fn Theory (Context.Theory thy) =>
@@ -510,10 +512,10 @@ fun local_theory' restricted target f = present_transaction (fn int =>
             |> f int
             |> Local_Theory.reset_group;
         in (Theory (finish lthy'), lthy') end
-    | _ => raise UNDEF))
-  no_presentation;
+    | _ => raise UNDEF));
 
-fun local_theory restricted target f = local_theory' restricted target (K f);
+fun local_theory restricted target f =
+  local_theory' restricted target (K f) no_presentation;
 
 fun present_local_theory target g = present_transaction (fn _ =>
   (fn Theory gthy =>

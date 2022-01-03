@@ -1,8 +1,8 @@
 /*  Title:      Pure/Tools/scala_project.scala
     Author:     Makarius
 
-Manage Isabelle/Scala/Java project sources, with output to Maven for
-IntelliJ IDEA.
+Manage Isabelle/Scala/Java project sources, with output to Gradle or
+Maven for IntelliJ IDEA.
 */
 
 package isabelle
@@ -10,17 +10,95 @@ package isabelle
 
 object Scala_Project
 {
-  /* Maven project */
+  /** build tools **/
 
   def java_version: String = "15"
   def scala_version: String = scala.util.Properties.versionNumberString
 
-  def maven_project(jars: List[Path]): String =
+  abstract class Build_Tool
   {
-    def dependency(jar: Path): String =
+    def project_root: Path
+    def init_project(dir: Path, jars: List[Path]): Unit
+
+    val java_src_dir: Path = Path.explode("src/main/java")
+    val scala_src_dir: Path = Path.explode("src/main/scala")
+
+    def detect_project(dir: Path): Boolean =
+      (dir + project_root).is_file &&
+      (dir + scala_src_dir).is_dir
+
+    def package_dir(source_file: Path): Path =
     {
-      val name = jar.expand.drop_ext.base.implode
-      val system_path = File.platform_path(jar.absolute)
+      val is_java = source_file.is_java
+      val dir =
+        package_name(source_file) match {
+          case Some(name) =>
+            if (is_java) Path.explode(space_explode('.', name).mkString("/"))
+            else Path.basic(name)
+          case None => error("Failed to guess package from " + source_file)
+        }
+      (if (is_java) java_src_dir else scala_src_dir) + dir
+    }
+  }
+
+  def build_tools: List[Build_Tool] = List(Gradle, Maven)
+
+
+  /* Gradle */
+
+  object Gradle extends Build_Tool
+  {
+    override def toString: String = "Gradle"
+
+    val project_settings: Path = Path.explode("settings.gradle")
+    override val project_root: Path = Path.explode("build.gradle")
+
+    private def groovy_string(s: String): String =
+    {
+      s.map(c =>
+        c match {
+          case '\t' | '\b' | '\n' | '\r' | '\f' | '\\' | '\'' | '"' => "\\" + c
+          case _ => c.toString
+        }).mkString("'", "", "'")
+    }
+
+    override def init_project(dir: Path, jars: List[Path]): Unit =
+    {
+      File.write(dir + project_settings, "rootProject.name = 'Isabelle'\n")
+      File.write(dir + project_root,
+"""plugins {
+  id 'scala'
+}
+
+repositories {
+  mavenCentral()
+}
+
+dependencies {
+  implementation 'org.scala-lang:scala-library:""" + scala_version + """'
+  compileOnly files(
+    """ + jars.map(jar => groovy_string(File.platform_path(jar))).mkString("", ",\n    ", ")") +
+"""
+}
+""")
+    }
+  }
+
+
+  /* Maven */
+
+  object Maven extends Build_Tool
+  {
+    override def toString: String = "Maven"
+
+    override val project_root: Path = Path.explode("pom.xml")
+
+    override def init_project(dir: Path, jars: List[Path]): Unit =
+    {
+      def dependency(jar: Path): String =
+      {
+        val name = jar.expand.drop_ext.base.implode
+        val system_path = File.platform_path(jar.absolute)
       """  <dependency>
     <groupId>classpath</groupId>
     <artifactId>""" + XML.text(name) + """</artifactId>
@@ -28,9 +106,9 @@ object Scala_Project
     <scope>system</scope>
     <systemPath>""" + XML.text(system_path) + """</systemPath>
   </dependency>"""
-    }
+      }
 
-    """<?xml version="1.0" encoding="UTF-8"?>
+      val project = """<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
@@ -60,6 +138,9 @@ object Scala_Project
 
   <dependencies>""" + jars.map(dependency).mkString("\n", "\n", "\n") + """</dependencies>
 </project>"""
+
+      File.write(dir + project_root, project)
+    }
   }
 
 
@@ -148,17 +229,8 @@ object Scala_Project
     lines.collectFirst({ case Package(name) => name })
   }
 
-  def the_package_dir(source_file: Path): Path =
-  {
-    package_name(source_file) match {
-      case Some(name) =>
-        if (source_file.is_java) Path.explode(space_explode('.', name).mkString("/"))
-        else Path.basic(name)
-      case None => error("Failed to guess package from " + source_file)
-    }
-  }
-
   def scala_project(
+    build_tool: Build_Tool,
     project_dir: Path = default_project_dir,
     more_sources: List[Path] = Nil,
     symlinks: Boolean = false,
@@ -166,10 +238,7 @@ object Scala_Project
     progress: Progress = new Progress): Unit =
   {
     if (project_dir.file.exists) {
-      val detect =
-        project_dir.is_dir &&
-        (project_dir + Path.explode("pom.xml")).is_file &&
-        (project_dir + Path.explode("src/main/scala")).is_dir
+      val detect = project_dir.is_dir && build_tools.exists(_.detect_project(project_dir))
 
       if (force && detect) {
         progress.echo("Purging existing project directory: " + project_dir.absolute)
@@ -178,19 +247,19 @@ object Scala_Project
       else error("Project directory already exists: " + project_dir.absolute)
     }
 
-    progress.echo("Creating project directory: " + project_dir.absolute)
+    progress.echo("Creating " + build_tool + " project directory: " + project_dir.absolute)
     Isabelle_System.make_directory(project_dir)
 
-    val java_src_dir = Isabelle_System.make_directory(Path.explode("src/main/java"))
-    val scala_src_dir = Isabelle_System.make_directory(Path.explode("src/main/scala"))
+    val java_src_dir = Isabelle_System.make_directory(project_dir + build_tool.java_src_dir)
+    val scala_src_dir = Isabelle_System.make_directory(project_dir + build_tool.scala_src_dir)
 
     val (jars, sources) = isabelle_files
     isabelle_scala_files
 
-    File.write(project_dir + Path.explode("pom.xml"), maven_project(jars))
+    build_tool.init_project(project_dir, jars)
 
     for (source <- sources ::: more_sources) {
-      val dir = (if (source.is_java) java_src_dir else scala_src_dir) + the_package_dir(source)
+      val dir = build_tool.package_dir(source)
       val target_dir = project_dir + dir
       if (!target_dir.is_dir) {
         progress.echo("  Creating package directory: " + dir)
@@ -205,9 +274,10 @@ object Scala_Project
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("scala_project", "setup Maven project for Isabelle/Scala/jEdit",
+    Isabelle_Tool("scala_project", "setup IDE project for Isabelle/Java/Scala sources",
       Scala_Project.here, args =>
     {
+      var build_tool: Option[Build_Tool] = None
       var project_dir = default_project_dir
       var symlinks = false
       var force = false
@@ -217,14 +287,19 @@ Usage: isabelle scala_project [OPTIONS] [MORE_SOURCES ...]
 
   Options are:
     -D DIR       project directory (default: """ + default_project_dir + """)
+    -G           use Gradle as build tool
     -L           make symlinks to original source files
+    -M           use Maven as build tool
     -f           force update of existing directory
 
-  Setup Maven project for Isabelle/Scala/jEdit --- to support common IDEs
-  such as IntelliJ IDEA.
+  Setup project for Isabelle/Scala/jEdit --- to support common IDEs such
+  as IntelliJ IDEA. Either option -G or -M is mandatory to specify the
+  build tool.
 """,
         "D:" -> (arg => project_dir = Path.explode(arg)),
+        "G" -> (_ => build_tool = Some(Gradle)),
         "L" -> (_ => symlinks = true),
+        "M" -> (_ => build_tool = Some(Maven)),
         "f" -> (_ => force = true))
 
       val more_args = getopts(args)
@@ -232,7 +307,11 @@ Usage: isabelle scala_project [OPTIONS] [MORE_SOURCES ...]
       val more_sources = more_args.map(Path.explode)
       val progress = new Console_Progress
 
-      scala_project(project_dir = project_dir, more_sources = more_sources,
+      if (build_tool.isEmpty) {
+        error("Unspecified build tool: need to provide option -G or -M")
+      }
+
+      scala_project(build_tool.get, project_dir = project_dir, more_sources = more_sources,
         symlinks = symlinks, force = force, progress = progress)
     })
 }

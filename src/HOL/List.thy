@@ -1244,6 +1244,9 @@ qed simp
 lemma rev_eq_Cons_iff[iff]: "(rev xs = y#ys) = (xs = rev ys @ [y])"
 by(rule rev_cases[of xs]) auto
 
+lemma length_Suc_conv_rev: "(length xs = Suc n) = (\<exists>y ys. xs = ys @ [y] \<and> length ys = n)"
+by (induct xs rule: rev_induct) auto
+
 
 subsubsection \<open>\<^const>\<open>set\<close>\<close>
 

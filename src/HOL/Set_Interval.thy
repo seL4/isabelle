@@ -22,6 +22,9 @@ lemma card_2_iff: "card S = 2 \<longleftrightarrow> (\<exists>x y. S = {x,y} \<a
 lemma card_2_iff': "card S = 2 \<longleftrightarrow> (\<exists>x\<in>S. \<exists>y\<in>S. x \<noteq> y \<and> (\<forall>z\<in>S. z = x \<or> z = y))"
   by (auto simp: card_Suc_eq numeral_eq_Suc)
 
+lemma card_3_iff: "card S = 3 \<longleftrightarrow> (\<exists>x y z. S = {x,y,z} \<and> x \<noteq> y \<and> y \<noteq> z \<and> x \<noteq> z)"
+  by (fastforce simp: card_Suc_eq numeral_eq_Suc)
+
 context ord
 begin
 
