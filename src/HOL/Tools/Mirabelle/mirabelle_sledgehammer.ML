@@ -353,8 +353,7 @@ fun run_sledgehammer change_data (params as {provers, ...}) output_dir
       | _ => "")
   in
     change_data (inc_sh_time_isa cpu_time);
-    Sledgehammer.short_string_of_sledgehammer_outcome sledgehamer_outcome ^ " " ^
-      triv_str ^ outcome_msg ^ msg
+    (sledgehamer_outcome, triv_str ^ outcome_msg ^ msg)
   end
 
 end
@@ -472,7 +471,7 @@ fun make_action ({arguments, timeout, output_dir, ...} : Mirabelle.action_contex
             val trivial =
               check_trivial andalso Try0.try0 (SOME try_timeout) ([], [], [], []) pre
               handle Timeout.TIMEOUT _ => false
-            val log1 =
+            val (outcome, log1) =
               run_sledgehammer change_data params output_dir e_selection_heuristic term_order
                 force_sos keep proof_method_from_msg theory_index trivial meth named_thms pos pre
             val log2 =
@@ -481,7 +480,11 @@ fun make_action ({arguments, timeout, output_dir, ...} : Mirabelle.action_contex
                 !meth ^ " (sledgehammer): " ^ run_proof_method change_data trivial false name meth
                   thms timeout pos pre
               | NONE => "")
-          in log1 ^ "\n" ^ log2 end
+          in
+            log1 ^ "\n" ^ log2
+            |> Symbol.trim_blanks
+            |> prefix_lines (Sledgehammer.short_string_of_sledgehammer_outcome outcome ^ " ")
+          end
       end
 
     fun finalize () = log_data (Synchronized.value data)
