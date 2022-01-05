@@ -302,7 +302,7 @@ val e_config : atp_config =
          if string_ord (getenv "E_VERSION", "2.7") <> LESS then
            (THF (Monomorphic, {with_ite = true, with_let = false}, THF_Without_Choice), "mono_native_higher", keep_lamsN)
          else if string_ord (getenv "E_VERSION", "2.6") <> LESS then
-           (THF (Monomorphic, {with_ite = true, with_let = false}, THF_Without_Choice), "mono_native_higher", keep_lamsN)
+           (THF (Monomorphic, {with_ite = false, with_let = false}, THF_Without_Choice), "mono_native_higher", keep_lamsN)
          else
            (THF (Monomorphic, {with_ite = false, with_let = false}, THF_Lambda_Free), "mono_native_higher", combsN)
      in
