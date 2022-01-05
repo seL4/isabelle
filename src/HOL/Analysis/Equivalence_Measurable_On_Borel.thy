@@ -1582,6 +1582,91 @@ next
     using measurable_on_UNIV by blast
 qed
 
+subsection \<open>Monotonic functions are Lebesgue integrable\<close>
+
+(*Can these be generalised from type real?*)
+lemma integrable_mono_on_nonneg:
+  fixes f :: "real \<Rightarrow> real"
+  assumes mon: "mono_on f {a..b}" and 0: "\<And>x. 0 \<le> f x"
+  shows "integrable (lebesgue_on {a..b}) f" 
+proof -
+  have "space lborel = space lebesgue" "sets borel \<subseteq> sets lebesgue"
+    by force+
+  then have fborel: "f \<in> borel_measurable (lebesgue_on {a..b})"
+    by (metis mon borel_measurable_mono_on_fnc borel_measurable_subalgebra mono_restrict_space space_lborel space_restrict_space)
+  then obtain g where g: "incseq g" and simple: "\<And>i. simple_function (lebesgue_on {a..b}) (g i)" 
+                and bdd: " (\<forall>x. bdd_above (range (\<lambda>i. g i x)))" and nonneg: "\<forall>i x. 0 \<le> g i x"
+                and fsup: "f = (SUP i. g i)"
+    by (metis borel_measurable_implies_simple_function_sequence_real 0)
+  have "f ` {a..b} \<subseteq> {f a..f b}" 
+    using assms by (auto simp: mono_on_def)
+  have g_le_f: "g i x \<le> f x" for i x
+  proof -
+    have "bdd_above ((\<lambda>h. h x) ` range g)"
+      using bdd cSUP_lessD linorder_not_less by fastforce
+    then show ?thesis
+      by (metis SUP_apply UNIV_I bdd cSUP_upper fsup)
+  qed
+  then have gfb: "g i x \<le> f b" if "x \<in> {a..b}" for i x
+    by (smt (verit, best) mon atLeastAtMost_iff mono_on_def that)
+  have g_le: "g i x \<le> g j x" if "i\<le>j"  for i j x
+    using g by (simp add: incseq_def le_funD that)
+  show "integrable (lebesgue_on {a..b}) ( f)"
+  proof (rule integrable_dominated_convergence)
+    show "f \<in> borel_measurable (lebesgue_on {a..b})"
+      using fborel by blast
+    have "\<And>x. (\<lambda>i. g i x) \<longlonglongrightarrow> (SUP h \<in> range g. h  x)"
+    proof (rule order_tendstoI)
+      show "\<forall>\<^sub>F i in sequentially. y < g i x"
+        if "y < (SUP h\<in>range g. h x)" for x y
+      proof -
+        from that obtain h where h: "h \<in> range g" "y < h x"
+          using g_le_f by (subst (asm)less_cSUP_iff) fastforce+
+        then show ?thesis
+          by (smt (verit, ccfv_SIG) eventually_sequentially g_le imageE)
+      qed
+      show "\<forall>\<^sub>F i in sequentially. g i x < y"
+        if "(SUP h\<in>range g. h x) < y" for x y
+        by (smt (verit, best) that Sup_apply g_le_f always_eventually fsup image_cong)
+    qed
+    then show "AE x in lebesgue_on {a..b}. (\<lambda>i. g i x) \<longlonglongrightarrow> f x"
+      by (simp add: fsup)
+    fix i
+    show "g i \<in> borel_measurable (lebesgue_on {a..b})"
+      using borel_measurable_simple_function simple by blast
+    show "AE x in lebesgue_on {a..b}. norm (g i x) \<le> f b"
+      by (simp add: gfb nonneg Measure_Space.AE_I' [of "{}"])
+  qed auto
+qed
+
+lemma integrable_mono_on:
+  fixes f :: "real \<Rightarrow> real"
+  assumes "mono_on f {a..b}" 
+  shows "integrable (lebesgue_on {a..b}) f" 
+proof -
+  define f' where "f' \<equiv> \<lambda>x. if x \<in> {a..b} then f x - f a else 0"
+  have "mono_on f' {a..b}"
+    by (smt (verit, best) assms f'_def mono_on_def)
+  moreover have 0: "\<And>x. 0 \<le> f' x"
+    by (smt (verit, best) assms atLeastAtMost_iff f'_def mono_on_def)
+  ultimately have "integrable (lebesgue_on {a..b}) f'"
+    using integrable_mono_on_nonneg by presburger
+  then have "integrable (lebesgue_on {a..b}) (\<lambda>x. f' x + f a)"
+    by force
+  moreover have "space lborel = space lebesgue" "sets borel \<subseteq> sets lebesgue"
+    by force+
+  then have fborel: "f \<in> borel_measurable (lebesgue_on {a..b})"
+    by (metis assms borel_measurable_mono_on_fnc borel_measurable_subalgebra mono_restrict_space space_lborel space_restrict_space)
+  ultimately show ?thesis
+    by (rule integrable_cong_AE_imp) (auto simp add: f'_def)
+qed
+
+lemma integrable_on_mono_on:
+  fixes f :: "real \<Rightarrow> real"
+  assumes "mono_on f {a..b}" 
+  shows "f integrable_on {a..b}"
+  by (simp add: assms integrable_mono_on integrable_on_lebesgue_on) 
+
 subsection \<open>Measurability on generalisations of the binary product\<close>
 
 lemma measurable_on_bilinear:
