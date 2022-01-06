@@ -56,6 +56,12 @@ lemma wf_asym:
   obtains "(x, a) \<notin> r"
   by (drule wf_not_sym[OF assms])
 
+lemma wf_imp_asym: "wf r \<Longrightarrow> asym r"
+  by (auto intro: asymI elim: wf_asym)
+
+lemma wfP_imp_asymp: "wfP r \<Longrightarrow> asymp r"
+  by (rule wf_imp_asym[to_pred])
+
 lemma wf_not_refl [simp]: "wf r \<Longrightarrow> (a, a) \<notin> r"
   by (blast elim: wf_asym)
 
@@ -67,6 +73,9 @@ lemma wf_irrefl:
 lemma wf_imp_irrefl:
   assumes "wf r" shows "irrefl r" 
   using wf_irrefl [OF assms] by (auto simp add: irrefl_def)
+
+lemma wfP_imp_irreflp: "wfP r \<Longrightarrow> irreflp r"
+  by (rule wf_imp_irrefl[to_pred])
 
 lemma wf_wellorderI:
   assumes wf: "wf {(x::'a::ord, y). x < y}"
