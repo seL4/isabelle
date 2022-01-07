@@ -1775,6 +1775,14 @@ lemma atLeast_Suc_atMost_Suc_shift:
   using atLeastAtMost_shift_bounds [of _ _ 1]
   by (simp add: plus_1_eq_Suc)
 
+lemma atLeast_atMost_pred_shift:
+  "F (g \<circ> (\<lambda>n. n - Suc 0)) {Suc m..Suc n} = F g {m..n}"
+  unfolding atLeast_Suc_atMost_Suc_shift by simp
+
+lemma atLeast_lessThan_pred_shift:
+  "F (g \<circ> (\<lambda>n. n - Suc 0)) {Suc m..<Suc n} = F g {m..<n}"
+  unfolding atLeast_Suc_lessThan_Suc_shift by simp
+
 lemma atLeast_int_lessThan_int_shift:
   "F g {int m..<int n} = F (g \<circ> int) {m..<n}"
   by (rule atLeastLessThan_reindex)

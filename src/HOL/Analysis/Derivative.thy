@@ -2354,6 +2354,10 @@ lemma deriv_add [simp]:
   unfolding DERIV_deriv_iff_field_differentiable[symmetric]
   by (auto intro!: DERIV_imp_deriv derivative_intros)
 
+lemma deriv_minus [simp]:
+  "f field_differentiable at z \<Longrightarrow> deriv (\<lambda>w. - f w) z = - deriv f z"
+  by (simp add: DERIV_deriv_iff_field_differentiable DERIV_imp_deriv Deriv.field_differentiable_minus)
+
 lemma deriv_diff [simp]:
   "\<lbrakk>f field_differentiable at z; g field_differentiable at z\<rbrakk>
    \<Longrightarrow> deriv (\<lambda>w. f w - g w) z = deriv f z - deriv g z"
@@ -2389,6 +2393,17 @@ lemma deriv_divide [simp]:
 lemma deriv_cdivide_right:
   "f field_differentiable at z \<Longrightarrow> deriv (\<lambda>w. f w / c) z = deriv f z / c"
   by (simp add: field_class.field_divide_inverse)
+
+lemma deriv_pow: "\<lbrakk>f field_differentiable at z\<rbrakk>
+   \<Longrightarrow> deriv (\<lambda>w. f w ^ n) z = (if n=0 then 0 else n * deriv f z * f z ^ (n - Suc 0))"
+  unfolding DERIV_deriv_iff_field_differentiable[symmetric]
+  by (auto intro!: DERIV_imp_deriv derivative_eq_intros)
+
+lemma deriv_sum [simp]:
+  "\<lbrakk>\<And>i. f i field_differentiable at z\<rbrakk>
+   \<Longrightarrow> deriv (\<lambda>w. sum (\<lambda>i. f i w) S) z = sum (\<lambda>i. deriv (f i) z) S"
+  unfolding DERIV_deriv_iff_field_differentiable[symmetric]
+  by (auto intro!: DERIV_imp_deriv derivative_intros)
 
 lemma deriv_compose_linear:
   "f field_differentiable at (c * z) \<Longrightarrow> deriv (\<lambda>w. f (c * w)) z = c * deriv f (c * z)"

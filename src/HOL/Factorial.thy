@@ -138,30 +138,16 @@ lemma fact_dvd: "n \<le> m \<Longrightarrow> fact n dvd (fact m :: 'a::linordere
 lemma fact_mod: "m \<le> n \<Longrightarrow> fact n mod (fact m :: 'a::{semidom_modulo, linordered_semidom}) = 0"
   by (simp add: mod_eq_0_iff_dvd fact_dvd)
 
+lemma fact_eq_fact_times:
+  assumes "m \<ge> n"
+  shows "fact m = fact n * \<Prod>{Suc n..m}"
+  unfolding fact_prod
+  by (metis add.commute assms le_add1 le_add_diff_inverse of_nat_id plus_1_eq_Suc prod.ub_add_nat)
+
 lemma fact_div_fact:
   assumes "m \<ge> n"
   shows "fact m div fact n = \<Prod>{n + 1..m}"
-proof -
-  obtain d where "d = m - n"
-    by auto
-  with assms have "m = n + d"
-    by auto
-  have "fact (n + d) div (fact n) = \<Prod>{n + 1..n + d}"
-  proof (induct d)
-    case 0
-    show ?case by simp
-  next
-    case (Suc d')
-    have "fact (n + Suc d') div fact n = Suc (n + d') * fact (n + d') div fact n"
-      by simp
-    also from Suc.hyps have "\<dots> = Suc (n + d') * \<Prod>{n + 1..n + d'}"
-      unfolding div_mult1_eq[of _ "fact (n + d')"] by (simp add: fact_mod)
-    also have "\<dots> = \<Prod>{n + 1..n + Suc d'}"
-      by (simp add: atLeastAtMostSuc_conv)
-    finally show ?case .
-  qed
-  with \<open>m = n + d\<close> show ?thesis by simp
-qed
+  by (simp add: fact_eq_fact_times [OF assms])
 
 lemma fact_num_eq_if: "fact m = (if m = 0 then 1 else of_nat m * fact (m - 1))"
   by (cases m) auto
