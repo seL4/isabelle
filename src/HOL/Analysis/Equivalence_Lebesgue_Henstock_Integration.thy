@@ -4038,6 +4038,8 @@ proof -
     by simp
 qed
 
+subsection \<open>A non-negative continuous function whose integral is zero must be zero\<close>
+
 lemma has_integral_0_closure_imp_0:
   fixes f :: "'a::euclidean_space \<Rightarrow> real"
   assumes f: "continuous_on (closure S) f"
@@ -4092,9 +4094,8 @@ qed
 
 lemma has_integral_0_cbox_imp_0:
   fixes f :: "'a::euclidean_space \<Rightarrow> real"
-  assumes f: "continuous_on (cbox a b) f"
-    and nonneg_interior: "\<And>x. x \<in> box a b \<Longrightarrow> 0 \<le> f x"
-  assumes int: "(f has_integral 0) (cbox a b)"
+  assumes "continuous_on (cbox a b) f" and "\<And>x. x \<in> box a b \<Longrightarrow> 0 \<le> f x"
+  assumes "(f has_integral 0) (cbox a b)"
   assumes ne: "box a b \<noteq> {}"
   assumes x: "x \<in> cbox a b"
   shows "f x = 0"
@@ -4106,6 +4107,36 @@ proof -
     by (intro has_integral_0_closure_imp_0[of "box a b" f x])
       (auto simp: emeasure_lborel_box_eq emeasure_lborel_cbox_eq algebra_simps mem_box)
 qed
+
+corollary integral_cbox_eq_0_iff:
+  fixes f :: "'a::euclidean_space \<Rightarrow> real"
+  assumes "continuous_on (cbox a b) f" and "box a b \<noteq> {}"
+    and "\<And>x. x \<in> (cbox a b) \<Longrightarrow> f x \<ge> 0"
+  shows "integral (cbox a b) f = 0 \<longleftrightarrow> (\<forall>x \<in> (cbox a b). f x = 0)" (is "?lhs = ?rhs")
+proof
+  assume int0: ?lhs
+  show ?rhs
+    using has_integral_0_cbox_imp_0 [of a b f] assms
+    by (metis box_subset_cbox eq_integralD int0 integrable_continuous subsetD) 
+next
+  assume ?rhs then show ?lhs
+    by (meson has_integral_is_0_cbox integral_unique)
+qed
+
+lemma integral_eq_0_iff:
+  fixes f :: "real \<Rightarrow> real"
+  assumes "continuous_on {a..b} f" and "a < b"
+    and "\<And>x. x \<in> {a..b} \<Longrightarrow> f x \<ge> 0"
+  shows "integral {a..b} f = 0 \<longleftrightarrow> (\<forall>x \<in> {a..b}. f x = 0)" 
+  using integral_cbox_eq_0_iff [of a b f] assms by simp
+
+lemma integralL_eq_0_iff:
+  fixes f :: "real \<Rightarrow> real"
+  assumes contf: "continuous_on {a..b} f" and "a < b"
+    and "\<And>x. x \<in> {a..b} \<Longrightarrow> f x \<ge> 0"
+  shows "integral\<^sup>L (lebesgue_on {a..b}) f = 0 \<longleftrightarrow> (\<forall>x \<in> {a..b}. f x = 0)" 
+  using integral_eq_0_iff [OF assms]
+  by (simp add: contf continuous_imp_integrable_real lebesgue_integral_eq_integral)
 
 subsection\<open>Various common equivalent forms of function measurability\<close>
 
