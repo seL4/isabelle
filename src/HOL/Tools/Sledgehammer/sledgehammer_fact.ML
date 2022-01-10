@@ -392,7 +392,7 @@ val instantiate_induct_timeout = seconds 0.01
 fun instantiate_induct_rule ctxt concl_prop p_name ((name, stature), th) ind_x =
   let
     fun varify_noninducts (t as Free (s, T)) =
-        if (s, T) = ind_x orelse can dest_funT T then t else Var ((s, 0), T)
+        if (s, T) = ind_x then t else Var ((s, 0), T)
       | varify_noninducts t = t
 
     val p_inst = concl_prop
