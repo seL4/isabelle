@@ -261,18 +261,17 @@ lemma asymp_asym_eq [pred_set_conv]: "asymp (\<lambda>a b. (a, b) \<in> R) \<lon
 lemma asymD: "\<lbrakk>asym R; (x,y) \<in> R\<rbrakk> \<Longrightarrow> (y,x) \<notin> R"
   by (simp add: asym.simps)
 
+lemma asympD: "asymp R \<Longrightarrow> R x y \<Longrightarrow> \<not> R y x"
+  by (rule asymD[to_pred])
+
 lemma asym_iff: "asym R \<longleftrightarrow> (\<forall>x y. (x,y) \<in> R \<longrightarrow> (y,x) \<notin> R)"
   by (blast intro: asymI dest: asymD)
 
-context preorder begin
-
-lemma asymp_less[simp]: "asymp (<)"
+lemma (in preorder) asymp_less[simp]: "asymp (<)"
   by (auto intro: asympI dual_order.asym)
 
-lemma asymp_greater[simp]: "asymp (>)"
+lemma (in preorder) asymp_greater[simp]: "asymp (>)"
   by (auto intro: asympI dual_order.asym)
-
-end
 
 
 subsubsection \<open>Symmetry\<close>
