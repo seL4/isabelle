@@ -239,6 +239,15 @@ theorem while_rule:
   apply blast
   done
 
+text \<open>Combine invariant preservation and variant decrease in one goal:\<close>
+theorem while_rule2:
+  "[| P s;
+      !!s. [| P s; b s  |] ==> P (c s) \<and> (c s, s) \<in> r;
+      !!s. [| P s; \<not> b s  |] ==> Q s;
+      wf r |] ==>
+   Q (while b c s)"
+using while_rule[of P] by metis
+
 text\<open>Proving termination:\<close>
 
 theorem wf_while_option_Some:
