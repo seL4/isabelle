@@ -106,7 +106,7 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name file_names report_
               let
                 val prob_prefix = "goal_" ^ string_of_int j ^ "__" ^ encode_str name ^ "__" ^ method
               in
-                Config.put atp_dest_dir dir
+                Config.put atp_problem_dest_dir dir
                 #> Config.put atp_problem_prefix (prob_prefix ^ "__")
                 #> Config.put SMT_Config.debug_files (dir ^ "/" ^ prob_prefix)
               end

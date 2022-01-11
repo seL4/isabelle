@@ -11,7 +11,8 @@ sig
   type mode = Sledgehammer_Prover.mode
   type prover = Sledgehammer_Prover.prover
 
-  val atp_dest_dir : string Config.T
+  val atp_problem_dest_dir : string Config.T
+  val atp_proof_dest_dir : string Config.T
   val atp_problem_prefix : string Config.T
   val atp_completish : int Config.T
   val atp_full_names : bool Config.T
@@ -36,7 +37,10 @@ open Sledgehammer_ATP_Systems
 open Sledgehammer_Prover
 
 (* Empty string means create files in Isabelle's temporary files directory. *)
-val atp_dest_dir = Attrib.setup_config_string \<^binding>\<open>sledgehammer_atp_dest_dir\<close> (K "")
+val atp_problem_dest_dir =
+  Attrib.setup_config_string \<^binding>\<open>sledgehammer_atp_problem_dest_dir\<close> (K "")
+val atp_proof_dest_dir =
+  Attrib.setup_config_string \<^binding>\<open>sledgehammer_atp_proof_dest_dir\<close> (K "")
 val atp_problem_prefix =
   Attrib.setup_config_string \<^binding>\<open>sledgehammer_atp_problem_prefix\<close> (K "prob")
 val atp_completish = Attrib.setup_config_int \<^binding>\<open>sledgehammer_atp_completish\<close> (K 0)
@@ -144,20 +148,25 @@ fun run_atp mode name
     val completish = Config.get ctxt atp_completish
     val atp_mode = if completish > 0 then Sledgehammer_Completish completish else Sledgehammer
     val (_, hyp_ts, concl_t) = strip_subgoal goal subgoal ctxt
-    val (dest_dir, problem_prefix) =
-      if overlord then overlord_file_location_of_prover name
-      else (Config.get ctxt atp_dest_dir, Config.get ctxt atp_problem_prefix)
+    val (problem_dest_dir, proof_dest_dir, problem_prefix) =
+      if overlord then
+        overlord_file_location_of_prover name
+        |> (fn (dir, prefix) => (dir, dir, prefix))
+      else
+        (Config.get ctxt atp_problem_dest_dir,
+         Config.get ctxt atp_proof_dest_dir,
+         Config.get ctxt atp_problem_prefix)
     val problem_file_name =
       Path.basic (problem_prefix ^ (if overlord then "" else serial_string ()) ^
         suffix_of_mode mode ^ "_" ^ string_of_int subgoal)
       |> Path.ext "p"
     val prob_path =
-      if dest_dir = "" then
+      if problem_dest_dir = "" then
         File.tmp_path problem_file_name
-      else if File.exists (Path.explode dest_dir) then
-        Path.explode dest_dir + problem_file_name
+      else if File.exists (Path.explode problem_dest_dir) then
+        Path.explode problem_dest_dir + problem_file_name
       else
-        error ("No such directory: " ^ quote dest_dir)
+        error ("No such directory: " ^ quote problem_dest_dir)
     val executable =
       (case find_first (fn var => getenv var <> "") (fst exec) of
         SOME var =>
@@ -340,17 +349,21 @@ fun run_atp mode name
 
     (* If the problem file has not been exported, remove it; otherwise, export
        the proof file too. *)
-    fun clean_up () = if dest_dir = "" then (try File.rm prob_path; ()) else ()
+    fun clean_up () = if problem_dest_dir = "" then (try File.rm prob_path; ()) else ()
     fun export (_, (output, _, _, _, _), _) =
       let
-        val make_export_path =
+        val proof_dest_dir_path = Path.explode proof_dest_dir
+        val make_export_file_name =
           Path.split_ext
           #> apfst (Path.explode o suffix "_proof" o Path.implode)
           #> swap
           #> uncurry Path.ext
       in
-        if dest_dir = "" then ()
-        else File.write (make_export_path prob_path) output
+        if proof_dest_dir = "" then Output.system_message "don't export proof"
+        else if File.exists proof_dest_dir_path then
+          File.write (proof_dest_dir_path + make_export_file_name problem_file_name) output
+        else
+          error ("No such directory: " ^ quote proof_dest_dir)
       end
 
     val ((_, (_, pool, lifted, sym_tab)), (output, run_time, used_from, atp_proof, outcome),
