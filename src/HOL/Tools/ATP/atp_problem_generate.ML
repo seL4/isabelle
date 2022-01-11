@@ -2377,13 +2377,14 @@ fun sym_decl_table_of_facts thy type_enc sym_tab (conjs, facts, extra_tms) =
       else fold (ifact_lift add_formula_var_types) (conjs @ facts) []
     fun add_undefined_const T =
       let
-        (* FIXME: make sure type arguments are filtered / clean up code *)
-        val (s, s') =
-          `(make_fixed_const NONE) \<^const_name>\<open>undefined\<close>
-          |> (is_type_enc_mangling type_enc ? mangled_const_name type_enc [T])
+        val name = `(make_fixed_const NONE) \<^const_name>\<open>undefined\<close>
+        val ((s, s'), Ts) =
+          if is_type_enc_mangling type_enc then
+            (mangled_const_name type_enc [T] name, [])
+          else
+            (name, [T])
       in
-        Symtab.map_default (s, [])
-                           (insert_type thy #3 (s', [T], T, false, 0, false))
+        Symtab.map_default (s, []) (insert_type thy #3 (s', Ts, T, false, 0, false))
       end
     fun add_TYPE_const () =
       let val (s, s') = TYPE_name in
@@ -2400,7 +2401,9 @@ fun sym_decl_table_of_facts thy type_enc sym_tab (conjs, facts, extra_tms) =
                 Native (_, _, Raw_Polymorphic phantoms, _) =>
                 phantoms = Without_Phantom_Type_Vars ? add_TYPE_const ()
               | Native _ => I
-              | _ => fold add_undefined_const (var_types ())))
+              | _ =>
+                (* Add constants "undefined" as witnesses that the types are inhabited. *)
+                fold add_undefined_const (var_types ())))
   end
 
 (* We add "bool" in case the helper "True_or_False" is included later. *)
