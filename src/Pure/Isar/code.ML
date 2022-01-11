@@ -1112,12 +1112,7 @@ fun eqn_conv conv ct =
 fun rewrite_eqn conv ctxt =
   singleton (Variable.trade (K (map (Conv.fconv_rule (conv (Simplifier.rewrite ctxt))))) ctxt)
 
-fun preprocess conv ctxt =
-  Thm.transfer' ctxt
-  #> rewrite_eqn conv ctxt
-  #> Axclass.unoverload ctxt;
-
-fun cert_of_eqns_preprocess ctxt functrans c =
+fun apply_functrans ctxt functrans =
   let
     fun trace_eqns s eqns = (Pretty.writeln o Pretty.chunks)
       (Pretty.str s :: map (Thm.pretty_thm ctxt o fst) eqns);
@@ -1126,19 +1121,25 @@ fun cert_of_eqns_preprocess ctxt functrans c =
     tap (tracing "before function transformation")
     #> (perhaps o perhaps_loop o perhaps_apply) functrans
     #> tap (tracing "after function transformation")
-    #> (map o apfst) (preprocess eqn_conv ctxt)
-    #> cert_of_eqns ctxt c
   end;
+
+fun preprocess conv ctxt =
+  rewrite_eqn conv ctxt
+  #> Axclass.unoverload ctxt;
 
 fun get_cert ctxt functrans c =
   case lookup_proper_fun_spec (specs_of (Proof_Context.theory_of ctxt)) c of
     NONE => nothing_cert ctxt c
   | SOME (Eqns (_, eqns)) => eqns
-      |> cert_of_eqns_preprocess ctxt functrans c
+      |> (map o apfst) (Thm.transfer' ctxt)
+      |> apply_functrans ctxt functrans
+      |> (map o apfst) (preprocess eqn_conv ctxt)
+      |> cert_of_eqns ctxt c
   | SOME (Proj (_, (tyco, _))) => cert_of_proj ctxt c tyco
   | SOME (Abstr (abs_thm, (tyco, _))) => abs_thm
-     |> preprocess Conv.arg_conv ctxt
-     |> cert_of_abs ctxt tyco c;
+      |> Thm.transfer' ctxt
+      |> preprocess Conv.arg_conv ctxt
+      |> cert_of_abs ctxt tyco c;
 
 
 (* case certificates *)
