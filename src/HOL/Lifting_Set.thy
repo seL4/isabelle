@@ -5,7 +5,7 @@
 section \<open>Setup for Lifting/Transfer for the set type\<close>
 
 theory Lifting_Set
-imports Lifting
+imports Lifting Groups_Big
 begin
 
 subsection \<open>Relator and predicator properties\<close>
