@@ -6,7 +6,7 @@
 section \<open>The Integers as Equivalence Classes over Pairs of Natural Numbers\<close>
 
 theory Int
-  imports Equiv_Relations Power Quotient Fun_Def
+  imports Quotient Groups_Big Fun_Def
 begin
 
 subsection \<open>Definition of integers as a quotient type\<close>

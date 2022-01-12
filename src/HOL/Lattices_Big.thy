@@ -6,7 +6,7 @@
 section \<open>Big infimum (minimum) and supremum (maximum) over finite (non-empty) sets\<close>
 
 theory Lattices_Big
-  imports Option
+  imports Groups_Big Option
 begin
 
 subsection \<open>Generic lattice operations over a set\<close>
