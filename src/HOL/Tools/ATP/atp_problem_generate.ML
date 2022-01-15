@@ -2375,17 +2375,21 @@ fun sym_decl_table_of_facts thy type_enc sym_tab (conjs, facts, extra_tms) =
     fun var_types () =
       if is_type_enc_polymorphic type_enc then [tvar_a]
       else fold (ifact_lift add_formula_var_types) (conjs @ facts) []
-    fun add_undefined_const T =
-      let
-        val name = `(make_fixed_const NONE) \<^const_name>\<open>undefined\<close>
-        val ((s, s'), Ts) =
-          if is_type_enc_mangling type_enc then
-            (mangled_const_name type_enc [T] name, [])
-          else
-            (name, [T])
-      in
-        Symtab.map_default (s, []) (insert_type thy #3 (s', Ts, T, false, 0, false))
-      end
+    (* Don't add declaration for undefined_bool as bool already has fTrue and fFalse als witnesses
+       and this declaration causes problems in FOF if undefined_bool occurs without predicator pp.
+     *)
+    fun add_undefined_const \<^Type>\<open>bool\<close> = I
+      | add_undefined_const T =
+        let
+          val name = `(make_fixed_const NONE) \<^const_name>\<open>undefined\<close>
+          val ((s, s'), Ts) =
+            if is_type_enc_mangling type_enc then
+              (mangled_const_name type_enc [T] name, [])
+            else
+              (name, [T])
+        in
+          Symtab.map_default (s, []) (insert_type thy #3 (s', Ts, T, false, 0, false))
+        end
     fun add_TYPE_const () =
       let val (s, s') = TYPE_name in
         Symtab.map_default (s, [])
