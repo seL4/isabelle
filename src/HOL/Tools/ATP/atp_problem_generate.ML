@@ -1643,7 +1643,7 @@ fun add_iterm_syms_to_sym_table ctxt app_op_level conj_fact =
       let val (head, args) = strip_iterm_comb tm in
         (case head of
           IConst ((s, _), T, _) =>
-          if is_maybe_universal_name s then
+          if is_maybe_universal_name s orelse String.isPrefix let_bound_var_prefix s then
             add_universal_var T accum
           else if String.isPrefix exist_bound_var_prefix s then
             accum
