@@ -2165,10 +2165,17 @@ lemma bij_betw_finite: "bij_betw f A B \<Longrightarrow> finite A \<longleftrigh
 lemma inj_on_finite: "inj_on f A \<Longrightarrow> f ` A \<le> B \<Longrightarrow> finite B \<Longrightarrow> finite A"
   using finite_imageD finite_subset by blast
 
+lemma card_vimage_inj_on_le:
+  assumes "inj_on f D" "finite A"
+  shows "card (f-`A \<inter> D) \<le> card A"
+proof (rule card_inj_on_le)
+  show "inj_on f (f -` A \<inter> D)"
+    by (blast intro: assms inj_on_subset)
+qed (use assms in auto)
+
 lemma card_vimage_inj: "inj f \<Longrightarrow> A \<subseteq> range f \<Longrightarrow> card (f -` A) = card A"
   by (auto 4 3 simp: subset_image_iff inj_vimage_image_eq
       intro: card_image[symmetric, OF subset_inj_on])
-
 
 subsubsection \<open>Pigeonhole Principles\<close>
 
