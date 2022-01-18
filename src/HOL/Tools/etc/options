@@ -56,6 +56,9 @@ option mirabelle_stride : int = 1
 option mirabelle_max_calls : int = 0
   -- "max. no. of calls to each action (0: unbounded)"
 
+option mirabelle_randomize : int = 0
+  -- "seed to randomize the goals before selection (0: no randomization)"
+
 option mirabelle_output_dir : string = "mirabelle"
   -- "output directory for log files and generated artefacts"
 

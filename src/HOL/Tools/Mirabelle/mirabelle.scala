@@ -119,6 +119,7 @@ object Mirabelle
 
     var options = Options.init(opts = build_options)
     val mirabelle_max_calls = options.check_name("mirabelle_max_calls")
+    val mirabelle_randomize = options.check_name("mirabelle_randomize")
     val mirabelle_stride = options.check_name("mirabelle_stride")
     val mirabelle_timeout = options.check_name("mirabelle_timeout")
     val mirabelle_output_dir = options.check_name("mirabelle_output_dir")
@@ -154,6 +155,7 @@ Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
     -j INT       maximum number of parallel jobs (default 1)
     -m INT       """ + mirabelle_max_calls.description + " (default " + mirabelle_max_calls.default_value + """)
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
+    -r INT       """ + mirabelle_randomize.description + " (default " + mirabelle_randomize.default_value + """)
     -s INT       """ + mirabelle_stride.description + " (default " + mirabelle_stride.default_value + """)
     -t SECONDS   """ + mirabelle_timeout.description + " (default " + mirabelle_timeout.default_value + """)
     -v           verbose
@@ -185,6 +187,7 @@ Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
       "j:" -> (arg => max_jobs = Value.Int.parse(arg)),
       "m:" -> (arg => options = options + ("mirabelle_max_calls=" + arg)),
       "o:" -> (arg => options = options + arg),
+      "r:" -> (arg => options = options + ("mirabelle_randomize=" + arg)),
       "s:" -> (arg => options = options + ("mirabelle_stride=" + arg)),
       "t:" -> (arg => options = options + ("mirabelle_timeout=" + arg)),
       "v" -> (_ => verbose = true),

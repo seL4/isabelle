@@ -9,6 +9,7 @@ theory Mirabelle
   imports Sledgehammer Predicate_Compile Presburger
 begin
 
+ML_file \<open>Tools/Mirabelle/mirabelle_util.ML\<close>
 ML_file \<open>Tools/Mirabelle/mirabelle.ML\<close>
 
 ML \<open>

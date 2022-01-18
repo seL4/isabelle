@@ -206,6 +206,7 @@ val _ =
           val mirabelle_timeout = Options.default_seconds \<^system_option>\<open>mirabelle_timeout\<close>;
           val mirabelle_stride = Options.default_int \<^system_option>\<open>mirabelle_stride\<close>;
           val mirabelle_max_calls = Options.default_int \<^system_option>\<open>mirabelle_max_calls\<close>;
+          val mirabelle_randomize = Options.default_int \<^system_option>\<open>mirabelle_randomize\<close>;
           val mirabelle_theories = Options.default_string \<^system_option>\<open>mirabelle_theories\<close>;
           val mirabelle_output_dir = Options.default_string \<^system_option>\<open>mirabelle_output_dir\<close>;
           val check_theory = check_theories (space_explode "," mirabelle_theories);
@@ -254,6 +255,10 @@ val _ =
           loaded_theories
           |> map_index I
           |> maps make_commands
+          |> (if mirabelle_randomize <= 0 then
+                I
+              else
+                fst o MLCG.shuffle (MLCG.initialize mirabelle_randomize))
           |> (fn xs => fold_map (fn x => fn i => ((i, x), i + 1)) xs 0)
           |> (fn (indexed_commands, commands_length) =>
             let
