@@ -135,10 +135,10 @@ fun apply_action ({run_action, ...} : action) context (command as {pos, pre, ...
     val goal_name_path = Path.basic (#name command)
     val line_path = Path.basic (string_of_int (the (Position.line_of pos)));
     val offset_path = Path.basic (string_of_int (the (Position.offset_of pos)));
+    val ({cpu, ...}, s) = Timing.timing run_action_function (fn () => run_action command);
     val export_name =
       Path.binding0 (Path.basic "mirabelle" + action_path + Path.basic "goal" + goal_name_path +
-        line_path + offset_path);
-    val s = run_action_function (fn () => run_action command);
+        line_path + offset_path + Path.basic (string_of_int (Time.toMilliseconds cpu)));
   in
     if s <> "" then
       Export.export thy export_name [XML.Text s]

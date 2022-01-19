@@ -87,9 +87,9 @@ object Mirabelle
                     Export.explode_name(args.name) match {
                       case List("mirabelle", action, "initialize") => action + " initialize "
                       case List("mirabelle", action, "finalize") => action + " finalize   "
-                      case List("mirabelle", action, "goal", goal_name, line, offset) =>
-                        action + " goal." + String.format("%-5s", goal_name) + " " + args.theory_name + " " +
-                          line + ":" + offset + "  "
+                      case List("mirabelle", action, "goal", goal_name, line, offset, cpu_ms) =>
+                        action + " goal." + String.format("%-5s", goal_name) + " " + String.format("%5sms", cpu_ms) + " " +
+                          args.theory_name + " " + line + ":" + offset + "  "
                       case _ => ""
                     }
                   val body = Library.prefix_lines(prefix, lines) + "\n"
