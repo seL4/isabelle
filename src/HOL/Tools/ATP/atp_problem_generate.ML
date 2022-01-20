@@ -532,14 +532,14 @@ fun alpha_rename from to =
           val tm1' = traverse tm1
           val tm2' = traverse tm2
         in
-          if tm1 = tm1' andalso tm2 = tm2' then tm else IApp (tm1', tm2')
+          if pointer_eq (tm1, tm1') andalso pointer_eq (tm2, tm2') then tm else IApp (tm1', tm2')
         end
       | traverse (tm as IAbs (binding as (name, _), tm1)) =
         if name = from then
           tm
         else
           let val tm1' = traverse tm1 in
-            if tm1 = tm1' then tm else IAbs (binding, tm1')
+            if pointer_eq (tm1, tm1') then tm else IAbs (binding, tm1')
           end
   in
     traverse
