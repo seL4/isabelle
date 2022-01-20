@@ -69,6 +69,8 @@ type action_context =
    output_dir: Path.T};
 type action = {run_action: command -> string, finalize: unit -> string};
 
+val dry_run_action : action = {run_action = K "", finalize = K ""}
+
 local
   val actions = Synchronized.var "Mirabelle.actions"
     (Symtab.empty : (action_context -> string * action) Symtab.table);
@@ -140,10 +142,7 @@ fun apply_action ({run_action, ...} : action) context (command as {pos, pre, ...
       Path.binding0 (Path.basic "mirabelle" + action_path + Path.basic "goal" + goal_name_path +
         line_path + offset_path + Path.basic (string_of_int (Time.toMilliseconds cpu)));
   in
-    if s <> "" then
-      Export.export thy export_name [XML.Text s]
-    else
-      ()
+    Export.export thy export_name [XML.Text s]
   end;
 
 
@@ -203,6 +202,7 @@ val _ =
         ()
       else
         let
+          val mirabelle_dry_run = Options.default_bool \<^system_option>\<open>mirabelle_dry_run\<close>;
           val mirabelle_timeout = Options.default_seconds \<^system_option>\<open>mirabelle_timeout\<close>;
           val mirabelle_stride = Options.default_int \<^system_option>\<open>mirabelle_stride\<close>;
           val mirabelle_max_calls = Options.default_int \<^system_option>\<open>mirabelle_max_calls\<close>;
@@ -276,7 +276,9 @@ val _ =
                   []
               end) indexed_commands
             end)
-          |> Par_List.map (fn ((action, context), command) => apply_action action context command);
+          (* Don't use multithreading for a dry run because of the high per-thread overhead. *)
+          |> (if mirabelle_dry_run then map else Par_List.map) (fn ((action, context), command) =>
+              apply_action (if mirabelle_dry_run then dry_run_action else action) context command);
 
           (* finalize actions *)
           List.app (uncurry finalize_action) contexts

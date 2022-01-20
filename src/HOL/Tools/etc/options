@@ -47,6 +47,9 @@ public option kodkod_max_threads : int = 0
 
 section "Mirabelle"
 
+option mirabelle_dry_run : bool = false
+  -- "initialize the actions, print on which goals they would be run, and finalize the actions"
+
 option mirabelle_timeout : real = 30
   -- "timeout in seconds for each action"
 

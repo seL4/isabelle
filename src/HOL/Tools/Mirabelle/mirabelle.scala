@@ -92,7 +92,7 @@ object Mirabelle
                           args.theory_name + " " + line + ":" + offset + "  "
                       case _ => ""
                     }
-                  val body = Library.prefix_lines(prefix, lines) + "\n"
+                  val body = (if (lines == "") prefix else Library.prefix_lines(prefix, lines)) + "\n"
                   val log_file = output_dir + Path.basic("mirabelle.log")
                   File.append(log_file, body)
                 case _ =>
@@ -118,6 +118,7 @@ object Mirabelle
     val build_options = Word.explode(Isabelle_System.getenv("ISABELLE_BUILD_OPTIONS"))
 
     var options = Options.init(opts = build_options)
+    val mirabelle_dry_run = options.check_name("mirabelle_dry_run")
     val mirabelle_max_calls = options.check_name("mirabelle_max_calls")
     val mirabelle_randomize = options.check_name("mirabelle_randomize")
     val mirabelle_stride = options.check_name("mirabelle_stride")
@@ -160,6 +161,7 @@ Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
     -t SECONDS   """ + mirabelle_timeout.description + " (default " + mirabelle_timeout.default_value + """)
     -v           verbose
     -x NAME      exclude session NAME and all descendants
+    -y           """ + mirabelle_dry_run.description + " (default " + mirabelle_dry_run.default_value + """)
 
   Apply the given ACTIONs at all theories and proof steps of the
   specified sessions.
@@ -191,7 +193,8 @@ Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
       "s:" -> (arg => options = options + ("mirabelle_stride=" + arg)),
       "t:" -> (arg => options = options + ("mirabelle_timeout=" + arg)),
       "v" -> (_ => verbose = true),
-      "x:" -> (arg => exclude_sessions = exclude_sessions ::: List(arg)))
+      "x:" -> (arg => exclude_sessions = exclude_sessions ::: List(arg)),
+      "y" -> (arg => options = options + ("mirabelle_dry_run=true")))
 
     val sessions = getopts(args)
     if (actions.isEmpty) getopts.usage()
