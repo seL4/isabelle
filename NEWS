@@ -51,6 +51,9 @@ since Isabelle2019). INCOMPATIBILITY, use \<open>cartouche\<close> syntax instea
   - Replaced sledgehammer option "keep" by
     "keep_probs", for problems files, and
     "keep_proofs" for proof files. Minor INCOMPATIBILITY.
+  - Added option "-r INT" to randomize the goals with a given seed before
+    selection.
+  - Added option "-y" for a dry run.
 
 
 
