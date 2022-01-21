@@ -137,10 +137,10 @@ fun apply_action ({run_action, ...} : action) context (command as {pos, pre, ...
     val goal_name_path = Path.basic (#name command)
     val line_path = Path.basic (string_of_int (the (Position.line_of pos)));
     val offset_path = Path.basic (string_of_int (the (Position.offset_of pos)));
-    val ({cpu, ...}, s) = Timing.timing run_action_function (fn () => run_action command);
+    val ({elapsed, ...}, s) = Timing.timing run_action_function (fn () => run_action command);
     val export_name =
       Path.binding0 (Path.basic "mirabelle" + action_path + Path.basic "goal" + goal_name_path +
-        line_path + offset_path + Path.basic (string_of_int (Time.toMilliseconds cpu)));
+        line_path + offset_path + Path.basic (string_of_int (Time.toMilliseconds elapsed)));
   in
     Export.export thy export_name [XML.Text s]
   end;
@@ -349,7 +349,8 @@ fun get_bool_argument arguments (key, default) =
   | NONE => default);
 
 fun cpu_time f x =
-  let val ({cpu, ...}, y) = Timing.timing f x
-  in (y, Time.toMilliseconds cpu) end;
+  (* CPU time is problematics with multithreading as it refers to the per-process CPU time. *)
+  let val ({elapsed, ...}, y) = Timing.timing f x
+  in (y, Time.toMilliseconds elapsed) end;
 
 end
