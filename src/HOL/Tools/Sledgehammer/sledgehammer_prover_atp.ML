@@ -133,7 +133,7 @@ val atp_important_message_keep_quotient = 25
 fun run_atp mode name
     ({debug, verbose, overlord, type_enc, strict, lam_trans, uncurried_aliases, fact_filter,
      max_facts, max_mono_iters, max_new_mono_instances, isar_proofs, compress, try0, smt_proofs,
-     slice, minimize, timeout, preplay_timeout, ...} : params)
+     slice, minimize, timeout, preplay_timeout, spy, ...} : params)
     ({comment, state, goal, subgoal, subgoal_count, factss, found_proof, ...} : prover_problem) =
   let
     val thy = Proof.theory_of state
@@ -254,7 +254,7 @@ fun run_atp mode name
                 |> writeln
               else
                 ()
-            val value as (atp_problem, _, _, _) =
+            val ({elapsed, ...}, value as (atp_problem, _, _, _)) = Timing.timing (fn () =>
               if cache_key = SOME key then
                 cache_value
               else
@@ -272,7 +272,11 @@ fun run_atp mode name
                   |> map (apsnd Thm.prop_of)
                   |> generate_atp_problem ctxt generate_info format prem_role type_enc atp_mode
                     lam_trans uncurried_aliases readable_names true hyp_ts concl_t
-                end
+                end) ()
+
+            val () = spying spy (fn () =>
+              (state, subgoal, name, "Slice #" ^ string_of_int (slice + 1) ^
+               " generating ATP problem in " ^ string_of_int (Time.toMilliseconds elapsed) ^ " ms"))
 
             fun sel_weights () = atp_problem_selection_weights atp_problem
             fun ord_info () = atp_problem_term_order_info atp_problem
@@ -309,6 +313,10 @@ fun run_atp mode name
                  handle UNRECOGNIZED_ATP_PROOF () => ([], SOME ProofUnparsable)))
               handle Timeout.TIMEOUT _ => (("", slice_timeout), ([], SOME TimedOut))
                 | ERROR msg => (("", Time.zeroTime), ([], SOME (UnknownError msg)))
+
+            val () = spying spy (fn () =>
+              (state, subgoal, name, "Slice #" ^ string_of_int (slice + 1) ^
+               " running command in " ^ string_of_int (Time.toMilliseconds run_time) ^ " ms"))
 
             val outcome =
               (case outcome of
