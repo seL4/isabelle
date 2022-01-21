@@ -330,15 +330,18 @@ fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_fac
               | NONE =>
                 0 |> fold (Integer.max o default_max_facts_of_prover ctxt) provers
                   |> mode = Auto_Try ? (fn n => n div auto_try_max_facts_divisor))
-            val _ = spying spy (fn () => (state, i, "All",
-              "Filtering " ^ string_of_int (length all_facts) ^ " facts (MaSh algorithm: " ^
+            val ({elapsed, ...}, factss) = Timing.timing
+              (relevant_facts ctxt params (hd provers) max_max_facts fact_override hyp_ts concl_t)
+              all_facts
+            val () = spying spy (fn () => (state, i, "All",
+              "Filtering " ^ string_of_int (length all_facts) ^ " facts in " ^
+              string_of_int (Time.toMilliseconds elapsed) ^ " ms (MaSh algorithm: " ^
               str_of_mash_algorithm (the_mash_algorithm ()) ^ ")"));
+            val () = if verbose then print (string_of_factss factss) else ()
+            val () = spying spy (fn () =>
+              (state, i, "All", "Selected facts: " ^ spying_str_of_factss factss))
           in
-            all_facts
-            |> relevant_facts ctxt params (hd provers) max_max_facts fact_override hyp_ts concl_t
-            |> tap (fn factss => if verbose then print (string_of_factss factss) else ())
-            |> spy ? tap (fn factss => spying spy (fn () =>
-              (state, i, "All", "Selected facts: " ^ spying_str_of_factss factss)))
+            factss
           end
 
         fun launch_provers () =
