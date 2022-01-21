@@ -311,8 +311,7 @@ fun run_sh params e_selection_heuristic term_order force_sos keep pos state =
 in
 
 fun run_sledgehammer (params as {provers, ...}) output_dir e_selection_heuristic term_order
-  force_sos keep_probs keep_proofs proof_method_from_msg thy_index trivial proof_method named_thms
-  pos st =
+  force_sos keep_probs keep_proofs proof_method_from_msg thy_index trivial pos st =
   let
     val thy = Proof.theory_of st
     val thy_name = Context.theory_name thy
@@ -330,7 +329,7 @@ fun run_sledgehammer (params as {provers, ...}) output_dir e_selection_heuristic
     val prover_name = hd provers
     val (sledgehamer_outcome, msg, cpu_time) =
       run_sh params e_selection_heuristic term_order force_sos keep pos st
-    val (outcome_msg, change_data) =
+    val (outcome_msg, change_data, proof_method_and_used_thms) =
       (case sledgehamer_outcome of
         Sledgehammer.SH_Some {used_facts, run_time, ...} =>
         let
@@ -350,13 +349,13 @@ fun run_sledgehammer (params as {provers, ...}) output_dir e_selection_heuristic
             #> inc_sh_max_lems num_used_facts
             #> inc_sh_time_prover time_prover
         in
-          proof_method := proof_method_from_msg msg;
-          named_thms := SOME (map_filter get_thms used_facts);
-          (outcome_msg, change_data)
+          (outcome_msg, change_data,
+           SOME (proof_method_from_msg msg, map_filter get_thms used_facts))
         end
-      | _ => ("", I))
+      | _ => ("", I, NONE))
   in
-    (sledgehamer_outcome, triv_str ^ outcome_msg ^ msg, change_data #> inc_sh_time_isa cpu_time)
+    (sledgehamer_outcome, triv_str ^ outcome_msg ^ msg, change_data #> inc_sh_time_isa cpu_time,
+     proof_method_and_used_thms)
   end
 
 end
@@ -385,35 +384,35 @@ fun run_proof_method trivial full name meth named_thms timeout pos st =
           Sledgehammer_Tactics.sledgehammer_as_oracle_tac ctxt
             (override_params prover type_enc (my_timeout time_slice)) fact_override []
       in
-        if !meth = "sledgehammer_tac" then
+        if meth = "sledgehammer_tac" then
           sledge_tac 0.2 ATP_Proof.vampireN "mono_native"
           ORELSE' sledge_tac 0.2 ATP_Proof.eN "poly_guards??"
           ORELSE' sledge_tac 0.2 ATP_Proof.spassN "mono_native"
           ORELSE' sledge_tac 0.2 ATP_Proof.z3_tptpN "poly_tags??"
           ORELSE' SMT_Solver.smt_tac ctxt thms
-        else if !meth = "smt" then
+        else if meth = "smt" then
           SMT_Solver.smt_tac ctxt thms
         else if full then
           Metis_Tactic.metis_tac [ATP_Proof_Reconstruct.full_typesN]
             ATP_Proof_Reconstruct.default_metis_lam_trans ctxt thms
-        else if String.isPrefix "metis (" (!meth) then
+        else if String.isPrefix "metis (" meth then
           let
             val (type_encs, lam_trans) =
-              !meth
+              meth
               |> Token.explode (Thy_Header.get_keywords' ctxt) Position.start
               |> filter Token.is_proper |> tl
               |> Metis_Tactic.parse_metis_options |> fst
               |>> the_default [ATP_Proof_Reconstruct.partial_typesN]
               ||> the_default ATP_Proof_Reconstruct.default_metis_lam_trans
           in Metis_Tactic.metis_tac type_encs lam_trans ctxt thms end
-        else if !meth = "metis" then
+        else if meth = "metis" then
           Metis_Tactic.metis_tac [] ATP_Proof_Reconstruct.default_metis_lam_trans ctxt thms
-        else if !meth = "none" then
+        else if meth = "none" then
           K all_tac
-        else if !meth = "fail" then
+        else if meth = "fail" then
           K no_tac
         else
-          (warning ("Unknown method " ^ quote (!meth)); K no_tac)
+          (warning ("Unknown method " ^ quote meth); K no_tac)
       end
     fun apply_method named_thms =
       Mirabelle.can_apply timeout (do_method named_thms) st
@@ -470,21 +469,17 @@ fun make_action ({arguments, timeout, output_dir, ...} : Mirabelle.action_contex
           ""
         else
           let
-            val meth = Unsynchronized.ref ""
-            val named_thms =
-              Unsynchronized.ref (NONE : ((string * stature) * thm list) list option)
             val trivial =
               check_trivial andalso Try0.try0 (SOME try_timeout) ([], [], [], []) pre
               handle Timeout.TIMEOUT _ => false
-            val (outcome, log1, change_data1) =
+            val (outcome, log1, change_data1, proof_method_and_used_thms) =
               run_sledgehammer params output_dir e_selection_heuristic term_order
-                force_sos keep_probs keep_proofs proof_method_from_msg theory_index trivial meth
-                named_thms pos pre
+                force_sos keep_probs keep_proofs proof_method_from_msg theory_index trivial pos pre
             val (log2, change_data2) =
-              (case !named_thms of
-                SOME thms =>
-                run_proof_method trivial false name meth thms timeout pos pre
-                |> apfst (prefix (!meth ^ " (sledgehammer): "))
+              (case proof_method_and_used_thms of
+                SOME (proof_method, used_thms) =>
+                run_proof_method trivial false name proof_method used_thms timeout pos pre
+                |> apfst (prefix (proof_method ^ " (sledgehammer): "))
               | NONE => ("", I))
             val () = Synchronized.change data
               (change_data1 #> change_data2 #> inc_sh_calls #> not trivial ? inc_sh_nontriv_calls)
