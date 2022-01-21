@@ -276,6 +276,9 @@ JEDIT_JARS=(
   "$ISABELLE_JEDIT_BUILD_HOME/contrib/jsr305-2.0.0.jar"
 )
 
+# Isabelle 2021-1 introduces a different scheme for the plugin jars, which
+# breaks Isabelle 2021 jedit runs. Clean those up, so 2021 can run again:
+rm -rf ~/.isabelle/jedit/jars/isabelle_jedit_*.jar
 
 # target
 
