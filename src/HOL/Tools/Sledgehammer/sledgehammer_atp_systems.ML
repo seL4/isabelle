@@ -657,7 +657,7 @@ fun dummy_config prem_role format type_enc uncurried_aliases : atp_config =
    known_failures = known_szs_status_failures,
    prem_role = prem_role,
    best_slices =
-     K [(1.0, (((200, ""), format, type_enc,
+     K [(1.0, (((200, "mepo"), format, type_enc,
                 if is_format_higher_order format then keep_lamsN
                 else combsN, uncurried_aliases), ""))],
    best_max_mono_iters = default_max_mono_iters,
