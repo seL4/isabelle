@@ -438,7 +438,7 @@ fun run_proof_method trivial full name meth named_thms timeout pos st =
       #> not trivial ? inc_proof_method_nontriv_calls)
   end
 
-val try_timeout = seconds 5.0
+val try0 = Try0.try0 (SOME (Time.fromSeconds 5)) ([], [], [], [])
 
 fun make_action ({arguments, timeout, output_dir, ...} : Mirabelle.action_context) =
   let
@@ -470,9 +470,7 @@ fun make_action ({arguments, timeout, output_dir, ...} : Mirabelle.action_contex
           ""
         else
           let
-            val trivial =
-              check_trivial andalso Try0.try0 (SOME try_timeout) ([], [], [], []) pre
-              handle Timeout.TIMEOUT _ => false
+            val trivial = check_trivial andalso try0 pre handle Timeout.TIMEOUT _ => false
             val (outcome, log1, change_data1, proof_method_and_used_thms) =
               run_sledgehammer params output_dir e_selection_heuristic term_order
                 force_sos keep_probs keep_proofs proof_method_from_msg theory_index trivial pos pre
