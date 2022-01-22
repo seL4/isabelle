@@ -329,7 +329,7 @@ fun run_sledgehammer (params as {provers, ...}) output_dir e_selection_heuristic
     val prover_name = hd provers
     val (sledgehamer_outcome, msg, cpu_time) =
       run_sh params e_selection_heuristic term_order force_sos keep pos st
-    val (outcome_msg, change_data, proof_method_and_used_thms) =
+    val (time_prover, change_data, proof_method_and_used_thms) =
       (case sledgehamer_outcome of
         Sledgehammer.SH_Some {used_facts, run_time, ...} =>
         let
@@ -339,9 +339,6 @@ fun run_sledgehammer (params as {provers, ...}) output_dir e_selection_heuristic
             try (Sledgehammer_Util.thms_of_name (Proof.context_of st))
               name
             |> Option.map (pair (name, stature))
-          val outcome_msg =
-            " (" ^ string_of_int cpu_time ^ "+" ^ string_of_int time_prover ^ ")" ^
-            " [" ^ prover_name ^ "]:\n"
           val change_data =
             inc_sh_success
             #> not trivial ? inc_sh_nontriv_success
@@ -349,10 +346,14 @@ fun run_sledgehammer (params as {provers, ...}) output_dir e_selection_heuristic
             #> inc_sh_max_lems num_used_facts
             #> inc_sh_time_prover time_prover
         in
-          (outcome_msg, change_data,
+          (SOME time_prover, change_data,
            SOME (proof_method_from_msg msg, map_filter get_thms used_facts))
         end
-      | _ => ("", I, NONE))
+      | _ => (NONE, I, NONE))
+    val outcome_msg =
+      "(SH " ^ string_of_int cpu_time ^ "ms" ^
+      (case time_prover of NONE => "" | SOME ms => ", ATP " ^ string_of_int ms ^ "ms") ^
+      ") [" ^ prover_name ^ "]: "
   in
     (sledgehamer_outcome, triv_str ^ outcome_msg ^ msg, change_data #> inc_sh_time_isa cpu_time,
      proof_method_and_used_thms)
