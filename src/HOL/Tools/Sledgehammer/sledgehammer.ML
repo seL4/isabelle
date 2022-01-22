@@ -310,14 +310,17 @@ fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_fac
         val inst_inducts = induction_rules = SOME Instantiate
         val {facts = chained_thms, goal, ...} = Proof.goal state
         val (_, hyp_ts, concl_t) = strip_subgoal goal i ctxt
-        val all_facts =
-          nearly_all_facts_of_context ctxt inst_inducts fact_override chained_thms hyp_ts concl_t
         val _ =
           (case find_first (not o is_prover_supported ctxt) provers of
             SOME name => error ("No such prover: " ^ name)
           | NONE => ())
         val _ = print "Sledgehammering..."
         val _ = spying spy (fn () => (state, i, "***", "Starting " ^ str_of_mode mode ^ " mode"))
+        val ({elapsed, ...}, all_facts) = Timing.timing
+          (nearly_all_facts_of_context ctxt inst_inducts fact_override chained_thms hyp_ts) concl_t
+        val _ = spying spy (fn () => (state, i, "All",
+          "Extracting " ^ string_of_int (length all_facts) ^ " facts from background theory in " ^
+          string_of_int (Time.toMilliseconds elapsed) ^ " ms"))
 
         val spying_str_of_factss =
           commas o map (fn (filter, facts) => filter ^ ": " ^ string_of_int (length facts))
@@ -334,9 +337,8 @@ fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_fac
               (relevant_facts ctxt params (hd provers) max_max_facts fact_override hyp_ts concl_t)
               all_facts
             val () = spying spy (fn () => (state, i, "All",
-              "Filtering " ^ string_of_int (length all_facts) ^ " facts in " ^
-              string_of_int (Time.toMilliseconds elapsed) ^ " ms (MaSh algorithm: " ^
-              str_of_mash_algorithm (the_mash_algorithm ()) ^ ")"));
+              "Filtering facts in " ^ string_of_int (Time.toMilliseconds elapsed) ^
+              " ms (MaSh algorithm: " ^ str_of_mash_algorithm (the_mash_algorithm ()) ^ ")"));
             val () = if verbose then print (string_of_factss factss) else ()
             val () = spying spy (fn () =>
               (state, i, "All", "Selected facts: " ^ spying_str_of_factss factss))

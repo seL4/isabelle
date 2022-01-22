@@ -531,8 +531,7 @@ fun all_facts ctxt generous keywords add_ths chained css =
     ||> op @ |> op @
   end
 
-fun nearly_all_facts ctxt inst_inducts {add, del, only} keywords css chained hyp_ts
-    concl_t =
+fun nearly_all_facts ctxt inst_inducts {add, del, only} keywords css chained hyp_ts concl_t =
   if only andalso null add then
     []
   else
