@@ -2083,14 +2083,14 @@ fun translate_formulas simp_options ctxt prem_role format type_enc lam_trans pre
 
     val hyp_ts = map freeze_term hyp_ts;
     val concl_t = freeze_term concl_t;
+    val maybe_presimp_prop = presimp ? presimp_prop simp_options ctxt type_enc
 
-    val facts = facts |> map (apsnd (pair Axiom))
+    val facts = facts |> map (apsnd (pair Axiom o maybe_presimp_prop))
     val conjs =
       map (pair prem_role) hyp_ts @ [(Conjecture, s_not_prop concl_t)]
-      |> map_index (apfst (rpair (Local, General) o string_of_int))
+      |> map_index (map_prod (rpair (Local, General) o string_of_int) (apsnd maybe_presimp_prop))
     val ((conjs, facts), lam_facts) =
       (conjs, facts)
-      |> presimp ? apply2 (map (apsnd (apsnd (presimp_prop simp_options ctxt type_enc))))
       |> (if lam_trans = no_lamsN then
             rpair []
           else
