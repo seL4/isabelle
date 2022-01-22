@@ -2834,7 +2834,8 @@ fun generate_atp_problem ctxt generate_info format prem_role type_enc mode lam_t
     val app_op_level =
       if completish > 0 then
         Full_App_Op_And_Predicator
-      else if length facts + length hyp_ts >= app_op_and_predicator_threshold then
+      else if is_greater_equal
+        (compare_length_with facts (app_op_and_predicator_threshold - length hyp_ts)) then
         if is_type_enc_polymorphic type_enc then Min_App_Op else Sufficient_App_Op
       else
         Sufficient_App_Op_And_Predicator

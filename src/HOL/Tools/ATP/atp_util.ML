@@ -49,6 +49,7 @@ sig
   val extract_lambda_def : (term -> string * typ) -> term -> string * term
   val short_thm_name : Proof.context -> thm -> string
   val map_prod : ('a -> 'b) -> ('c -> 'd) -> 'a * 'c -> 'b * 'd
+  val compare_length_with : 'a list -> int -> order
 end;
 
 structure ATP_Util : ATP_UTIL =
@@ -412,6 +413,11 @@ fun short_thm_name ctxt th =
     else long
   end
 
-  val map_prod = Ctr_Sugar_Util.map_prod
+val map_prod = Ctr_Sugar_Util.map_prod
+
+(* Compare the length of a list with an integer n while traversing at most n elements of the list.
+*)
+fun compare_length_with [] n = if n < 0 then GREATER else if n = 0 then EQUAL else LESS
+  | compare_length_with (_ :: xs) n = if n <= 0 then GREATER else compare_length_with xs (n - 1)
 
 end;
