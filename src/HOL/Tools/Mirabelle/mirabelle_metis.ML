@@ -11,7 +11,7 @@ struct
 
 fun make_action ({timeout, ...} : Mirabelle.action_context) =
   let
-    fun run_action ({pre, post, ...} : Mirabelle.command) =
+    fun run ({pre, post, ...} : Mirabelle.command) =
       let
         val thms = Mirabelle.theorems_of_sucessful_proof post;
         val names = map Thm.get_name_hint thms;
@@ -21,7 +21,7 @@ fun make_action ({timeout, ...} : Mirabelle.action_context) =
         (if Mirabelle.can_apply timeout metis pre then "succeeded" else "failed")
         |> not (null names) ? suffix (":\n" ^ commas names)
       end
-  in ("", {run_action = run_action, finalize = K ""}) end
+  in ("", {run = run, finalize = K ""}) end
 
 val () = Mirabelle.register_action "metis" make_action
 

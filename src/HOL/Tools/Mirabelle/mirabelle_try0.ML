@@ -13,12 +13,12 @@ fun make_action ({timeout, ...} : Mirabelle.action_context) =
   let
     val generous_timeout = Time.scale 10.0 timeout
 
-    fun run_action ({pre, ...} : Mirabelle.command) =
+    fun run ({pre, ...} : Mirabelle.command) =
       if Timeout.apply generous_timeout (Try0.try0 (SOME timeout) ([], [], [], [])) pre then
         "succeeded"
       else
         ""
-  in ("", {run_action = run_action, finalize = K ""}) end
+  in ("", {run = run, finalize = K ""}) end
 
 val () = Mirabelle.register_action "try0" make_action
 

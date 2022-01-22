@@ -54,6 +54,7 @@ since Isabelle2019). INCOMPATIBILITY, use \<open>cartouche\<close> syntax instea
   - Added option "-r INT" to randomize the goals with a given seed before
     selection.
   - Added option "-y" for a dry run.
+  - Renamed run_action to run in Mirabelle.action record. Minor INCOMPATIBILITY.
 
 
 

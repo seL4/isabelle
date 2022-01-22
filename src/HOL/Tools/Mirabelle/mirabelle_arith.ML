@@ -12,11 +12,11 @@ struct
 
 fun make_action ({timeout, ...} : Mirabelle.action_context) =
   let
-    fun run_action ({pre, ...} : Mirabelle.command) =
+    fun run ({pre, ...} : Mirabelle.command) =
       (case Timing.timing (Mirabelle.can_apply timeout Arith_Data.arith_tac) pre of
         ({cpu, ...}, true) => "succeeded (" ^ Time.toString cpu ^ " s)"
       | (_, false) => "failed")
-  in ("", {run_action = run_action, finalize = K ""}) end
+  in ("", {run = run, finalize = K ""}) end
 
 val () = Mirabelle.register_action "arith" make_action
 

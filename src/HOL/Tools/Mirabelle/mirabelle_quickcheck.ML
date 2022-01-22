@@ -15,11 +15,11 @@ fun make_action ({arguments, timeout, ...} : Mirabelle.action_context) =
     val quickcheck =
       Quickcheck.quickcheck (map (apsnd single) (filter has_valid_key arguments)) 1
 
-    fun run_action ({pre, ...} : Mirabelle.command) =
+    fun run ({pre, ...} : Mirabelle.command) =
       (case Timeout.apply timeout quickcheck pre of
         NONE => "no counterexample"
       | SOME _ => "counterexample found")
-  in ("", {run_action = run_action, finalize = K ""}) end
+  in ("", {run = run, finalize = K ""}) end
 
 val () = Mirabelle.register_action "quickcheck" make_action
 

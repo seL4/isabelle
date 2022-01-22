@@ -83,7 +83,7 @@ fun make_action ({arguments, ...} : Mirabelle.action_context) =
     val num_found_facts = Synchronized.var "num_found_facts" 0
     val num_lost_facts = Synchronized.var "num_lost_facts" 0
 
-    fun run_action ({pos, pre, ...} : Mirabelle.command) =
+    fun run ({pos, pre, ...} : Mirabelle.command) =
       let
         val results =
           (case (Position.line_of pos, Position.offset_of pos) of
@@ -179,7 +179,7 @@ fun make_action ({arguments, ...} : Mirabelle.action_context) =
             (Synchronized.value num_lost_facts) ^ "%"
       else
         ""
-  in ("", {run_action = run_action, finalize = finalize}) end
+  in ("", {run = run, finalize = finalize}) end
 
 val () = Mirabelle.register_action "sledgehammer_filter" make_action
 

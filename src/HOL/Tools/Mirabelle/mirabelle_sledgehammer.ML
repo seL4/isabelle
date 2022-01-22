@@ -464,7 +464,7 @@ fun make_action ({arguments, timeout, output_dir, ...} : Mirabelle.action_contex
 
     val init_msg = "Params for sledgehammer: " ^ Sledgehammer_Prover.string_of_params params
 
-    fun run_action ({theory_index, name, pos, pre, ...} : Mirabelle.command) =
+    fun run ({theory_index, name, pos, pre, ...} : Mirabelle.command) =
       let val goal = Thm.major_prem_of (#goal (Proof.goal pre)) in
         if can Logic.dest_conjunction goal orelse can Logic.dest_equals goal then
           ""
@@ -492,7 +492,7 @@ fun make_action ({arguments, timeout, output_dir, ...} : Mirabelle.action_contex
       end
 
     fun finalize () = log_data (Synchronized.value data)
-  in (init_msg, {run_action = run_action, finalize = finalize}) end
+  in (init_msg, {run = run, finalize = finalize}) end
 
 val () = Mirabelle.register_action "sledgehammer" make_action
 

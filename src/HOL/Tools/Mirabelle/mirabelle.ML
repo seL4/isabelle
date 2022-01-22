@@ -13,7 +13,7 @@ sig
      output_dir: Path.T}
   type command =
     {theory_index: int, name: string, pos: Position.T, pre: Proof.state, post: Toplevel.state}
-  type action = {run_action: command -> string, finalize: unit -> string}
+  type action = {run: command -> string, finalize: unit -> string}
   val register_action: string -> (action_context -> string * action) -> unit
 
   (*utility functions*)
@@ -67,9 +67,9 @@ type command =
 type action_context =
   {index: int, label: string, name: string, arguments: Properties.T, timeout: Time.time,
    output_dir: Path.T};
-type action = {run_action: command -> string, finalize: unit -> string};
+type action = {run: command -> string, finalize: unit -> string};
 
-val dry_run_action : action = {run_action = K "", finalize = K ""}
+val dry_run_action : action = {run = K "", finalize = K ""}
 
 local
   val actions = Synchronized.var "Mirabelle.actions"
@@ -130,14 +130,14 @@ fun finalize_action ({finalize, ...} : action) context =
       ()
   end
 
-fun apply_action ({run_action, ...} : action) context (command as {pos, pre, ...} : command) =
+fun apply_action ({run, ...} : action) context (command as {pos, pre, ...} : command) =
   let
     val thy = Proof.theory_of pre;
     val action_path = make_action_path context;
     val goal_name_path = Path.basic (#name command)
     val line_path = Path.basic (string_of_int (the (Position.line_of pos)));
     val offset_path = Path.basic (string_of_int (the (Position.offset_of pos)));
-    val ({elapsed, ...}, s) = Timing.timing run_action_function (fn () => run_action command);
+    val ({elapsed, ...}, s) = Timing.timing run_action_function (fn () => run command);
     val export_name =
       Path.binding0 (Path.basic "mirabelle" + action_path + Path.basic "goal" + goal_name_path +
         line_path + offset_path + Path.basic (string_of_int (Time.toMilliseconds elapsed)));
