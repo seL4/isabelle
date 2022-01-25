@@ -5472,45 +5472,57 @@ lemma integrable_Un':
   shows   "f integrable_on C"
   using integrable_Un[of A B f] assms by simp
 
-lemma has_integral_Union:
+lemma has_integral_UN:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
-  assumes \<T>: "finite \<T>"
-    and int: "\<And>S. S \<in> \<T> \<Longrightarrow> (f has_integral (i S)) S"
-    and neg: "pairwise (\<lambda>S S'. negligible (S \<inter> S')) \<T>"
-  shows "(f has_integral (sum i \<T>)) (\<Union>\<T>)"
+  assumes "finite I"
+    and int: "\<And>i. i \<in> I \<Longrightarrow> (f has_integral (g i)) (\<T> i)"
+    and neg: "pairwise (\<lambda>i i'. negligible (\<T> i \<inter> \<T> i')) I"
+  shows "(f has_integral (sum g I)) (\<Union>i\<in>I. \<T> i)"
 proof -
-  let ?\<U> = "((\<lambda>(a,b). a \<inter> b) ` {(a,b). a \<in> \<T> \<and> b \<in> {y. y \<in> \<T> \<and> a \<noteq> y}})"
-  have "((\<lambda>x. if x \<in> \<Union>\<T> then f x else 0) has_integral sum i \<T>) UNIV"
+  let ?\<U> = "((\<lambda>(a,b). \<T> a \<inter> \<T> b) ` {(a,b). a \<in> I \<and> b \<in> I-{a}})"
+  have "((\<lambda>x. if x \<in> (\<Union>i\<in>I. \<T> i) then f x else 0) has_integral sum g I) UNIV"
   proof (rule has_integral_spike)
     show "negligible (\<Union>?\<U>)"
     proof (rule negligible_Union)
-      have "finite (\<T> \<times> \<T>)"
-        by (simp add: \<T>)
-      moreover have "{(a, b). a \<in> \<T> \<and> b \<in> {y \<in> \<T>. a \<noteq> y}} \<subseteq> \<T> \<times> \<T>"
+      have "finite (I \<times> I)"
+        by (simp add: \<open>finite I\<close>)
+      moreover have "{(a,b). a \<in> I \<and> b \<in> I-{a}} \<subseteq> I \<times> I"
         by auto
       ultimately show "finite ?\<U>"
-        by (blast intro: finite_subset[of _ "\<T> \<times> \<T>"])
+        by (simp add: finite_subset)
       show "\<And>t. t \<in> ?\<U> \<Longrightarrow> negligible t"
         using neg unfolding pairwise_def by auto
     qed
   next
-    show "(if x \<in> \<Union>\<T> then f x else 0) = (\<Sum>A\<in>\<T>. if x \<in> A then f x else 0)"
+    show "(if x \<in> (\<Union>i\<in>I. \<T> i) then f x else 0) = (\<Sum>i\<in>I. if x \<in> \<T> i then f x else 0)"
       if "x \<in> UNIV - (\<Union>?\<U>)" for x
     proof clarsimp
-      fix S assume "S \<in> \<T>" "x \<in> S"
-      moreover then have "\<forall>b\<in>\<T>. x \<in> b \<longleftrightarrow> b = S"
+      fix i assume i: "i \<in> I" "x \<in> \<T> i"
+      then have "\<forall>j\<in>I. x \<in> \<T> j \<longleftrightarrow> j = i"
         using that by blast
-      ultimately show "f x = (\<Sum>A\<in>\<T>. if x \<in> A then f x else 0)"
-        by (simp add: sum.delta[OF \<T>])
+      with i show "f x = (\<Sum>i\<in>I. if x \<in> \<T> i then f x else 0)"
+        by (simp add: sum.delta[OF \<open>finite I\<close>])
     qed
   next
-    show "((\<lambda>x. \<Sum>A\<in>\<T>. if x \<in> A then f x else 0) has_integral (\<Sum>A\<in>\<T>. i A)) UNIV"
-      using int by (simp add: has_integral_restrict_UNIV has_integral_sum [OF \<T>])
+    show "((\<lambda>x. (\<Sum>i\<in>I. if x \<in> \<T> i then f x else 0)) has_integral sum g I) UNIV"
+      using int by (simp add: has_integral_restrict_UNIV has_integral_sum [OF \<open>finite I\<close>])
   qed
   then show ?thesis
     using has_integral_restrict_UNIV by blast
 qed
 
+lemma has_integral_Union:
+  fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
+  assumes "finite \<T>"
+    and "\<And>S. S \<in> \<T> \<Longrightarrow> (f has_integral (i S)) S"
+    and "pairwise (\<lambda>S S'. negligible (S \<inter> S')) \<T>"
+  shows "(f has_integral (sum i \<T>)) (\<Union>\<T>)"
+proof -
+  have "(f has_integral (sum i \<T>)) (\<Union>S\<in>\<T>. S)"
+    by (intro has_integral_UN assms)
+  then show ?thesis
+    by force
+qed
 
 text \<open>In particular adding integrals over a division, maybe not of an interval.\<close>
 
