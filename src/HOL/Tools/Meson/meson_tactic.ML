@@ -20,10 +20,20 @@ fun meson_general_tac ctxt ths =
       false true 0) ths)
   end
 
+(* This is part of a workaround to avoid freezing schematic variables in \<^text>\<open>using\<close> facts. See
+   \<^file>\<open>~~/src/HOL/Tools/Metis/metis_tactic.ML\<close> for details. *)
+val has_tvar = exists_type (exists_subtype (fn TVar _ => true | _ => false)) o Thm.prop_of
+
 val _ =
   Theory.setup
-    (Method.setup \<^binding>\<open>meson\<close> (Attrib.thms >> (fn ths => fn ctxt =>
-      SIMPLE_METHOD' (CHANGED_PROP o meson_general_tac ctxt ths)))
+    (Method.setup \<^binding>\<open>meson\<close> (Attrib.thms >> (fn ths => fn ctxt0 =>
+      CONTEXT_METHOD (fn facts => fn (ctxt, st) =>
+        let val (schem_facts, nonschem_facts) = List.partition has_tvar facts in
+          st
+          |> HEADGOAL (Method.insert_tac ctxt nonschem_facts THEN'
+            CHANGED_PROP o meson_general_tac ctxt0 (schem_facts @ ths))
+          |> TACTIC_CONTEXT ctxt
+        end)))
       "MESON resolution proof procedure")
 
 end;
