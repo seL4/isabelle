@@ -391,8 +391,8 @@ fun make_tfree s = tfree_prefix ^ ascii_of (unquote_tvar s)
 fun tvar_name ((x as (s, _)), _) = (make_tvar x, s)
 
 (* "HOL.eq" and choice are mapped to the ATP's equivalents *)
-fun make_fixed_const _ \<^const_name>\<open>HOL.eq\<close> = tptp_old_equal
-  | make_fixed_const _ c = const_prefix ^ lookup_const c
+fun make_fixed_const \<^const_name>\<open>HOL.eq\<close> = tptp_old_equal
+  | make_fixed_const c = const_prefix ^ lookup_const c
 
 fun make_fixed_type_const c = type_const_prefix ^ lookup_const c
 
@@ -438,7 +438,7 @@ val tvar_a_z = ((tvar_a_str, 0), \<^sort>\<open>type\<close>)
 val tvar_a = TVar tvar_a_z
 val tvar_a_name = tvar_name tvar_a_z
 val itself_name = `make_fixed_type_const \<^type_name>\<open>itself\<close>
-val TYPE_name = `(make_fixed_const NONE) \<^const_name>\<open>Pure.type\<close>
+val TYPE_name = `make_fixed_const \<^const_name>\<open>Pure.type\<close>
 val tvar_a_atype = AType ((tvar_a_name, []), [])
 val a_itself_atype = AType ((itself_name, []), [tvar_a_atype])
 
@@ -613,7 +613,7 @@ fun iterm_of_term thy type_enc =
           val (Q', Q_atomics_Ts) = iot fool bs Q
         in (IApp (P', Q'), union (op =) P_atomics_Ts Q_atomics_Ts) end
       | iot _ _ (Const (c, T)) =
-        (IConst (`(make_fixed_const (SOME type_enc)) c, T, robust_const_type_args thy (c, T)),
+        (IConst (`make_fixed_const c, T, robust_const_type_args thy (c, T)),
          atomic_types_of T)
       | iot _ _ (Free (s, T)) = (IConst (`make_fixed_var s, T, []), atomic_types_of T)
       | iot _ _ (Var (v as (s, _), T)) =
@@ -621,7 +621,7 @@ fun iterm_of_term thy type_enc =
            let
              val Ts = T |> strip_type |> swap |> op ::
              val s' = new_skolem_const_name s (length Ts)
-           in IConst (`(make_fixed_const (SOME type_enc)) s', T, Ts) end
+           in IConst (`make_fixed_const s', T, Ts) end
          else
            IVar ((make_schematic_var v, s), T), atomic_types_of T)
       | iot _ bs (Bound j) =
@@ -1595,7 +1595,7 @@ fun default_sym_tab_entries type_enc =
     fun mk_sym_info pred n =
       {pred_sym = pred, min_ary = n, max_ary = n, types = [], in_conj = false}
   in
-    (make_fixed_const NONE \<^const_name>\<open>undefined\<close>, mk_sym_info false 0) ::
+    (make_fixed_const \<^const_name>\<open>undefined\<close>, mk_sym_info false 0) ::
     (map (apsnd (fn {arity, is_predicate} => mk_sym_info is_predicate arity))
       (Symtab.dest tptp_builtins))
     |> not (is_type_enc_fool type_enc orelse is_type_enc_full_higher_order type_enc)
@@ -1732,7 +1732,7 @@ fun is_pred_sym sym_tab s =
   | NONE => false)
 
 val fTrue_iconst = IConst ((const_prefix ^ "fTrue", \<^const_name>\<open>fTrue\<close>), \<^typ>\<open>bool\<close>, [])
-val predicator_iconst = IConst (`(make_fixed_const NONE) predicator_name, \<^typ>\<open>bool => bool\<close>, [])
+val predicator_iconst = IConst (`make_fixed_const predicator_name, \<^typ>\<open>bool => bool\<close>, [])
 
 fun predicatify completish tm =
   if completish > 1 then
@@ -1740,7 +1740,7 @@ fun predicatify completish tm =
   else
     IApp (predicator_iconst, tm)
 
-val app_op = `(make_fixed_const NONE) app_op_name
+val app_op = `make_fixed_const app_op_name
 
 fun list_app head args = fold (curry (IApp o swap)) args head
 
@@ -1923,7 +1923,7 @@ val max_rank = 4 * min_rank
 
 fun rank_of_fact_num n j = min_rank + (max_rank - min_rank) * j div n
 
-val type_tag = `(make_fixed_const NONE) type_tag_name
+val type_tag = `make_fixed_const type_tag_name
 
 fun could_specialize_helpers type_enc =
   not (is_type_enc_polymorphic type_enc) andalso level_of_type_enc type_enc <> No_Types
@@ -2117,7 +2117,7 @@ fun translate_formulas simp_options ctxt prem_role format type_enc lam_trans pre
     (union (op =) subs supers, conjs, facts @ lam_facts, subclass_pairs, tcon_clauses, lifted)
   end
 
-val type_guard = `(make_fixed_const NONE) type_guard_name
+val type_guard = `make_fixed_const type_guard_name
 
 fun type_guard_iterm type_enc T tm =
   IApp (IConst (type_guard, T --> \<^typ>\<open>bool\<close>, [T])
@@ -2381,7 +2381,7 @@ fun sym_decl_table_of_facts thy type_enc sym_tab (conjs, facts, extra_tms) =
     fun add_undefined_const \<^Type>\<open>bool\<close> = I
       | add_undefined_const T =
         let
-          val name = `(make_fixed_const NONE) \<^const_name>\<open>undefined\<close>
+          val name = `make_fixed_const \<^const_name>\<open>undefined\<close>
           val ((s, s'), Ts) =
             if is_type_enc_mangling type_enc then
               (mangled_const_name type_enc [T] name, [])
@@ -2645,7 +2645,7 @@ fun datatypes_of_sym_table ctxt ctrss (DFG Polymorphic) (type_enc as Native _) u
 
         fun do_ctr (s, T) =
           let
-            val s' = make_fixed_const (SOME type_enc) s
+            val s' = make_fixed_const s
             val ary = ary_of T
             fun mk name = SOME (mk_aterm type_enc name (robust_const_type_args thy (s, T)) [])
           in
@@ -2688,7 +2688,7 @@ fun do_uncurried_alias_lines_of_sym ctxt generate_info ctrss mono type_enc sym_t
       let
         val thy = Proof_Context.theory_of ctxt
         val (role, maybe_negate) = honor_conj_sym_role in_conj
-        val base_name = base_s0 |> `(make_fixed_const (SOME type_enc))
+        val base_name = base_s0 |> `make_fixed_const
         val T = (case types of [T] => T | _ => robust_const_type thy base_s0)
         val T_args = robust_const_type_args thy (base_s0, T)
         val (base_name as (base_s, _), T_args) =
