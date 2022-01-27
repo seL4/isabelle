@@ -4111,8 +4111,8 @@ qed
 corollary integral_cbox_eq_0_iff:
   fixes f :: "'a::euclidean_space \<Rightarrow> real"
   assumes "continuous_on (cbox a b) f" and "box a b \<noteq> {}"
-    and "\<And>x. x \<in> (cbox a b) \<Longrightarrow> f x \<ge> 0"
-  shows "integral (cbox a b) f = 0 \<longleftrightarrow> (\<forall>x \<in> (cbox a b). f x = 0)" (is "?lhs = ?rhs")
+    and "\<And>x. x \<in> cbox a b \<Longrightarrow> f x \<ge> 0"
+  shows "integral (cbox a b) f = 0 \<longleftrightarrow> (\<forall>x \<in> cbox a b. f x = 0)" (is "?lhs = ?rhs")
 proof
   assume int0: ?lhs
   show ?rhs
@@ -4137,6 +4137,38 @@ lemma integralL_eq_0_iff:
   shows "integral\<^sup>L (lebesgue_on {a..b}) f = 0 \<longleftrightarrow> (\<forall>x \<in> {a..b}. f x = 0)" 
   using integral_eq_0_iff [OF assms]
   by (simp add: contf continuous_imp_integrable_real lebesgue_integral_eq_integral)
+
+text \<open>In fact, strict inequality is required only at a single point within the box.\<close>
+lemma integral_less:
+  fixes f :: "'n::euclidean_space \<Rightarrow> real"
+  assumes cont: "continuous_on (cbox a b) f" "continuous_on (cbox a b) g" and "box a b \<noteq> {}"
+    and fg: "\<And>x. x \<in> box a b \<Longrightarrow> f x < g x"
+  shows "integral (cbox a b) f < integral (cbox a b) g"
+proof -
+  obtain int: "f integrable_on (cbox a b)" "g integrable_on (cbox a b)"
+    using cont integrable_continuous by blast
+  then have "integral (cbox a b) f \<le> integral (cbox a b) g"
+    by (metis fg integrable_on_open_interval integral_le integral_open_interval less_eq_real_def)
+  moreover have "integral (cbox a b) f \<noteq> integral (cbox a b) g"
+  proof (rule ccontr)
+    assume "\<not> integral (cbox a b) f \<noteq> integral (cbox a b) g"
+    then have 0: "((\<lambda>x. g x - f x) has_integral 0) (cbox a b)"
+      by (metis (full_types) cancel_comm_monoid_add_class.diff_cancel has_integral_diff int integrable_integral)
+    have cgf: "continuous_on (cbox a b) (\<lambda>x. g x - f x)"
+      using cont continuous_on_diff by blast
+    show False
+      using has_integral_0_cbox_imp_0 [OF cgf _ 0] assms(3) box_subset_cbox fg less_eq_real_def by fastforce
+  qed
+  ultimately show ?thesis
+    by linarith
+qed
+
+lemma integral_less_real:
+  fixes f :: "real \<Rightarrow> real"
+  assumes "continuous_on {a..b} f" "continuous_on {a..b} g" and "{a<..<b} \<noteq> {}"
+    and "\<And>x. x \<in> {a<..<b} \<Longrightarrow> f x < g x"
+  shows "integral {a..b} f < integral {a..b} g"
+  by (metis assms box_real integral_less)
 
 subsection\<open>Various common equivalent forms of function measurability\<close>
 
