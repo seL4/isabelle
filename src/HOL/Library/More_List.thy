@@ -91,11 +91,11 @@ definition no_leading :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Righta
 where
   "no_leading P xs \<longleftrightarrow> (xs \<noteq> [] \<longrightarrow> \<not> P (hd xs))"
 
-lemma no_leading_Nil [simp, intro!]:
+lemma no_leading_Nil [iff]:
   "no_leading P []"
   by (simp add: no_leading_def)
 
-lemma no_leading_Cons [simp, intro!]:
+lemma no_leading_Cons [iff]:
   "no_leading P (x # xs) \<longleftrightarrow> \<not> P x"
   by (simp add: no_leading_def)
 
@@ -148,7 +148,7 @@ lemma no_trailing_unfold:
   "no_trailing P xs \<longleftrightarrow> (xs \<noteq> [] \<longrightarrow> \<not> P (last xs))"
   by (induct xs) simp_all
 
-lemma no_trailing_Nil [simp, intro!]:
+lemma no_trailing_Nil [iff]:
   "no_trailing P []"
   by simp
 
