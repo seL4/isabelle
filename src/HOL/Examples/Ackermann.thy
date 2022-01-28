@@ -61,9 +61,6 @@ lemma ackloop_dom_longer:
   "ackloop_dom (ack m n # l) \<Longrightarrow> ackloop_dom (n # m # l)"
   by (induction m n arbitrary: l rule: ack.induct) auto
 
-lemma "ackloop_dom (ack m n # l) \<Longrightarrow> ackloop_dom (n # m # l)"
-  by (induction m n arbitrary: l rule: ack.induct) auto
-
 text\<open>This function codifies what @{term ackloop} is designed to do.
 Proving the two functions equivalent also shows that @{term ackloop} can be used
 to compute Ackermann's function.\<close>
