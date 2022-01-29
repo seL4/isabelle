@@ -94,6 +94,16 @@ text \<open>PROPERTY A 9.  The unary \<open>1\<close> and \<open>2\<close> in \<
 lemma ack_2 [simp]: "ack (Suc (Suc 0)) j = 2 * j + 3"
   by (induct j) simp_all
 
+text \<open>Added in 2022 just for fun\<close>
+lemma ack_3: "ack (Suc (Suc (Suc 0))) j = 2 ^ (j+3) - 3"
+proof (induct j)
+  case 0
+  then show ?case by simp
+next
+  case (Suc j)
+  with less_le_trans show ?case
+    by (fastforce simp add: power_add algebra_simps)
+qed
 
 text \<open>PROPERTY A 7, monotonicity for \<open><\<close> [not clear why
   @{thm [source] ack_1} is now needed first!]\<close>
