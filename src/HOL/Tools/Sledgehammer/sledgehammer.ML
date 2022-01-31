@@ -135,11 +135,19 @@ fun play_one_line_proof minimize timeout used_facts state i (preferred_meth, met
         (used_facts |> filter_out (fn (_, (sc, _)) => sc = Chained), (meth, play)))
 
 fun launch_prover (params as {verbose, spy, ...}) mode learn
-    (problem as {state, subgoal, factss, ...} : prover_problem) slice name =
+    (problem as {state, subgoal, factss, ...} : prover_problem)
+    (slice as ((num_facts, fact_filter), _)) name =
   let
     val ctxt = Proof.context_of state
 
     val _ = spying spy (fn () => (state, subgoal, name, "Launched"))
+
+    val _ =
+      if verbose then
+        writeln (name ^ " with " ^ string_of_int num_facts ^ " " ^ fact_filter ^ " fact" ^
+          plural_s num_facts ^ "...")
+      else
+        ()
 
     fun print_used_facts used_facts used_from =
       tag_list 1 used_from
@@ -164,7 +172,7 @@ fun launch_prover (params as {verbose, spy, ...}) mode learn
           fun filter_info (fact_filter, facts) =
             let
               val indices = find_indices facts
-              (* "Int.max" is there for robustness -- it shouldn't be necessary *)
+              (* "Int.max" is there for robustness *)
               val unknowns = replicate (Int.max (0, num_used_facts - length indices)) "?"
             in
               (commas (indices @ unknowns), fact_filter)
@@ -182,11 +190,11 @@ fun launch_prover (params as {verbose, spy, ...}) mode learn
       | spying_str_of_res {outcome = SOME failure, ...} =
         "Failure: " ^ string_of_atp_failure failure
  in
-  get_minimizing_prover ctxt mode learn name params problem slice
-  |> verbose ? tap (fn {outcome = NONE, used_facts as _ :: _, used_from, ...} =>
-      print_used_facts used_facts used_from
-    | _ => ())
-  |> spy ? tap (fn res => spying spy (fn () => (state, subgoal, name, spying_str_of_res res)))
+   get_minimizing_prover ctxt mode learn name params problem slice
+   |> verbose ? tap (fn {outcome = NONE, used_facts as _ :: _, used_from, ...} =>
+       print_used_facts used_facts used_from
+     | _ => ())
+   |> spy ? tap (fn res => spying spy (fn () => (state, subgoal, name, spying_str_of_res res)))
  end
 
 fun preplay_prover_result ({ minimize, preplay_timeout, ...} : params) state subgoal
@@ -245,8 +253,7 @@ fun launch_prover_and_preplay (params as {debug, timeout, expect, ...}) mode wri
     val message = message ()
     val () =
       (case outcome of
-        SH_Some _ =>
-        the_default writeln writeln_result (prover_name ^ ": " ^ message)
+        SH_Some _ => the_default writeln writeln_result (prover_name ^ ": " ^ message)
       | _ => ())
   in
     (outcome, message)

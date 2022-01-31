@@ -73,7 +73,6 @@ fun smt_filter name ({debug, overlord, max_mono_iters, max_new_mono_instances,
       | NONE => (false, false))
     fun repair_context ctxt = ctxt
       |> Context.proof_map (SMT_Config.select_solver name)
-      |> Config.put SMT_Config.verbose debug
       |> Config.put SMT_Config.higher_order higher_order
       |> Config.put SMT_Config.nat_as_int nat_as_int
       |> (if overlord then
