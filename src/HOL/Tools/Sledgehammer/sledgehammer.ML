@@ -423,6 +423,12 @@ fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_fac
               if mode = Auto_Try then provers
               else schedule_of_provers provers slices
             val prover_slices = prover_slices_of_schedule ctxt params schedule
+
+            val _ =
+              if verbose then
+                writeln ("Running " ^ commas (map fst prover_slices) ^ "...")
+              else
+                ()
           in
             if mode = Auto_Try then
               (SH_Unknown, "")
