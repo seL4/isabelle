@@ -299,8 +299,8 @@ val e_config : atp_config =
        (* FUDGE *)
        K [((512, meshN), (format, type_enc, lam_trans, false, e_fun_weightN)),
         ((1024, meshN), (format, type_enc, lam_trans, false, e_sym_offset_weightN)),
-        ((91, mepoN), (format, type_enc, lam_trans, false, e_autoN)),
-        ((1000, meshN), (format, "poly_guards??", lam_trans, false, e_sym_offset_weightN)),
+        ((128, mepoN), (format, type_enc, lam_trans, false, e_autoN)),
+        ((724, meshN), (format, "poly_guards??", lam_trans, false, e_sym_offset_weightN)),
         ((256, mepoN), (format, type_enc, liftingN, false, e_fun_weightN)),
         ((64, mashN), (format, type_enc, combsN, false, e_fun_weightN))]
      end,

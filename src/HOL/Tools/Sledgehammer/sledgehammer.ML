@@ -259,16 +259,15 @@ fun launch_prover_and_preplay (params as {debug, timeout, expect, ...}) mode wri
     (outcome, message)
   end
 
-fun string_of_facts facts =
-  "Including " ^ string_of_int (length facts) ^ " relevant fact" ^ plural_s (length facts) ^ ": " ^
-  (facts |> map (fst o fst) |> space_implode " ")
+fun string_of_facts filter facts =
+  "Selected " ^ string_of_int (length facts) ^ " " ^ (if filter = "" then "" else filter ^ " ") ^
+  "fact" ^ plural_s (length facts) ^ ": " ^ (space_implode " " (map (fst o fst) facts))
 
 fun string_of_factss factss =
   if forall (null o snd) factss then
     "Found no relevant facts"
   else
-    cat_lines (map (fn (filter, facts) =>
-      (if filter = "" then "" else filter ^ ": ") ^ string_of_facts facts) factss)
+    cat_lines (map (fn (filter, facts) => string_of_facts filter facts) factss)
 
 val default_slice_schedule =
   (* FUDGE (based on Seventeen evaluation) *)
@@ -278,9 +277,11 @@ val default_slice_schedule =
 
 fun schedule_of_provers provers num_slices =
   let
-    val num_default_slices = length default_slice_schedule
     val (known_provers, unknown_provers) =
       List.partition (member (op =) default_slice_schedule) provers
+
+    val default_slice_schedule = filter (member (op =) known_provers) default_slice_schedule
+    val num_default_slices = length default_slice_schedule
 
     fun round_robin _ [] = []
       | round_robin 0 _ = []
@@ -293,7 +294,7 @@ fun schedule_of_provers provers num_slices =
       @ round_robin (num_slices - num_default_slices) (unknown_provers @ known_provers)
   end
 
-fun prover_slices_of_schedule ctxt schedule =
+fun prover_slices_of_schedule ctxt ({max_facts, fact_filter, ...} : params) schedule =
   let
     fun triplicate_slices original =
       let
@@ -309,9 +310,21 @@ fun prover_slices_of_schedule ctxt schedule =
         original @ shifted_once @ shifted_twice
       end
 
+    fun adjust_extra XXX = XXX (* ### FIXME *)
+
+    fun adjust_slice ((num_facts0, fact_filter0), extra) =
+      ((case max_facts of
+         NONE => num_facts0
+       | SOME max_facts => Int.min (num_facts0, max_facts),
+        the_default fact_filter0 fact_filter),
+       Option.map adjust_extra extra)
+
     val provers = distinct (op =) schedule
     val prover_slices =
-      map (fn prover => (prover, triplicate_slices (get_slices ctxt prover))) provers
+      map (fn prover => (prover,
+          (is_none fact_filter ? triplicate_slices)
+            (map adjust_slice (get_slices ctxt prover))))
+        provers
 
     fun translate _ [] = []
       | translate prover_slices (prover :: schedule) =
@@ -323,6 +336,7 @@ fun prover_slices_of_schedule ctxt schedule =
         | _ => translate prover_slices schedule)
   in
     translate prover_slices schedule
+    |> distinct (op =)
   end
 
 fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_facts, max_proofs,
@@ -375,6 +389,7 @@ fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_fac
                 fold (fn prover =>
                     fold (fn ((n, _), _) => Integer.max n) (get_slices ctxt prover))
                   provers 0)
+              * 51 div 50  (* some slack to account for filtering of induction facts below *)
 
             val ({elapsed, ...}, factss) = Timing.timing
               (relevant_facts ctxt params (hd provers) max_max_facts fact_override hyp_ts concl_t)
@@ -406,7 +421,7 @@ fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_fac
                 provers
               else
                 schedule_of_provers provers slices
-            val prover_slices = prover_slices_of_schedule ctxt schedule
+            val prover_slices = prover_slices_of_schedule ctxt params schedule
           in
             if mode = Auto_Try then
               (SH_Unknown, "")

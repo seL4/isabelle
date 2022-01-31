@@ -160,8 +160,12 @@ fun maybe_filter_out_induction_rules induction_rules : fact list -> fact list =
       filter_out (fn ((_, (_, ATP_Problem_Generate.Induction)), _) => true | _ => false)
 
 fun slice_timeout slices timeout =
-  Time.toReal timeout * Real.fromInt (Multithreading.max_threads ()) / Real.fromInt slices
-  |> seconds
+  let
+    val max_threads = Multithreading.max_threads ()
+    val batches = (slices + max_threads - 1) div max_threads
+  in
+    seconds (Time.toReal timeout / Real.fromInt batches)
+  end
 
 type prover_problem =
   {comment : string,
@@ -188,9 +192,9 @@ fun overlord_file_location_of_prover prover = (getenv "ISABELLE_HOME_USER", "pro
 
 fun proof_banner mode prover_name =
   (case mode of
-    Auto_Try => "Auto Sledgehammer (" ^ prover_name ^ ") found a proof"
-  | Try => "Sledgehammer (" ^ prover_name ^ ") found a proof"
-  | _ => "Try this")
+    Auto_Try => "Auto Sledgehammer (" ^ prover_name ^ ") found a proof: "
+  | Try => "Sledgehammer (" ^ prover_name ^ ") found a proof: "
+  | _ => "")
 
 fun bunches_of_proof_methods ctxt try0 smt_proofs needs_full_types desperate_lam_trans =
   let

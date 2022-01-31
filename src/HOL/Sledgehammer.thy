@@ -36,9 +36,6 @@ ML_file \<open>Tools/Sledgehammer/sledgehammer_commands.ML\<close>
 ML_file \<open>Tools/Sledgehammer/sledgehammer_tactics.ML\<close>
 
 (*
-lemma "1 + 1 = 3"
-  sledgehammer[verbose]
-
 lemma "1 + 1 = 2"
   sledgehammer [slices = 40, max_proofs = 40]
 
