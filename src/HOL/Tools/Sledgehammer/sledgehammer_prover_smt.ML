@@ -101,7 +101,7 @@ fun smt_filter_loop name ({debug, overlord, max_mono_iters, max_new_mono_instanc
 
     val state = Proof.map_context (repair_context) state
     val ctxt = Proof.context_of state
-    val max_slices = if slice then Config.get ctxt smt_max_slices else 1
+    val max_slices = if slice = Time.zeroTime then 1 else Config.get ctxt smt_max_slices
 
     fun do_slice timeout slice outcome0 time_so_far (factss as (fact_filter, facts) :: _) =
       let

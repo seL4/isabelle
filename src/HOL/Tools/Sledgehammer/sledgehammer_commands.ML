@@ -71,14 +71,15 @@ val default_default_params =
    ("compress", "smart"),
    ("try0", "true"),
    ("smt_proofs", "true"),
-   ("slice", "true"),
    ("minimize", "true"),
+   ("slice", "5"),
    ("preplay_timeout", "1")]
 
 val alias_params =
   [("prover", ("provers", [])), (* undocumented *)
    ("dont_preplay", ("preplay_timeout", ["0"])),
    ("dont_compress", ("compress", ["1"])),
+   ("dont_slice", ("slice", ["0"])),
    ("isar_proof", ("isar_proofs", [])) (* legacy *)]
 val negated_alias_params =
   [("no_debug", "debug"),
@@ -89,7 +90,6 @@ val negated_alias_params =
    ("no_uncurried_aliases", "uncurried_aliases"),
    ("dont_learn", "learn"),
    ("no_isar_proofs", "isar_proofs"),
-   ("dont_slice", "slice"),
    ("dont_minimize", "minimize"),
    ("dont_try0", "try0"),
    ("no_smt_proofs", "smt_proofs")]
@@ -175,11 +175,9 @@ fun remotify_prover_if_not_installed ctxt name =
   else remotify_prover_if_supported_and_not_already_remote ctxt name
 
 (* The first ATP of the list is used by Auto Sledgehammer. *)
-fun default_provers_param_value mode ctxt =
+fun default_provers_param_value ctxt =
   [cvc4N, vampireN, veritN, eN, spassN, z3N, zipperpositionN] \<comment> \<open>see also \<^system_option>\<open>sledgehammer_provers\<close>\<close>
   |> map_filter (remotify_prover_if_not_installed ctxt)
-  (* In "try" mode, leave at least one thread to another slow tool (e.g. Nitpick) *)
-  |> take (Multithreading.max_threads () - (if mode = Try then 1 else 0))
   |> implode_param
 
 fun set_default_raw_param param thy =
@@ -187,15 +185,15 @@ fun set_default_raw_param param thy =
     thy |> Data.map (AList.update (op =) (normalize_raw_param ctxt param))
   end
 
-fun default_raw_params mode thy =
+fun default_raw_params thy =
   let val ctxt = Proof_Context.init_global thy in
     Data.get thy
     |> fold (AList.default (op =))
-         [("provers", [(case !provers of "" => default_provers_param_value mode ctxt | s => s)]),
-          ("timeout",
-           let val timeout = Options.default_int \<^system_option>\<open>sledgehammer_timeout\<close> in
-             [if timeout <= 0 then "none" else string_of_int timeout]
-           end)]
+       [("provers", [(case !provers of "" => default_provers_param_value ctxt | s => s)]),
+        ("timeout",
+         let val timeout = Options.default_int \<^system_option>\<open>sledgehammer_timeout\<close> in
+           [if timeout <= 0 then "none" else string_of_int timeout]
+         end)]
   end
 
 fun extract_params mode default_params override_params =
@@ -269,8 +267,8 @@ fun extract_params mode default_params override_params =
     val compress = Option.map (curry Real.max 1.0) (lookup_option lookup_real "compress")
     val try0 = lookup_bool "try0"
     val smt_proofs = lookup_bool "smt_proofs"
-    val slice = mode <> Auto_Try andalso lookup_bool "slice"
     val minimize = lookup_bool "minimize"
+    val slice = if mode = Auto_Try then Time.zeroTime else lookup_time "slice"
     val timeout = lookup_time "timeout"
     val preplay_timeout = lookup_time "preplay_timeout"
     val expect = lookup_string "expect"
@@ -281,11 +279,11 @@ fun extract_params mode default_params override_params =
      induction_rules = induction_rules, max_facts = max_facts, fact_thresholds = fact_thresholds,
      max_mono_iters = max_mono_iters, max_new_mono_instances = max_new_mono_instances,
      isar_proofs = isar_proofs, compress = compress, try0 = try0, smt_proofs = smt_proofs,
-     slice = slice, minimize = minimize, timeout = timeout, preplay_timeout = preplay_timeout,
+     minimize = minimize, slice = slice, timeout = timeout, preplay_timeout = preplay_timeout,
      expect = expect}
   end
 
-fun get_params mode = extract_params mode o default_raw_params mode
+fun get_params mode = extract_params mode o default_raw_params
 fun default_params thy = get_params Normal thy o map (apsnd single)
 
 val silence_state =
@@ -301,8 +299,7 @@ fun hammer_away override_params writeln_result subcommand opt_i fact_override st
        give it a proper name, which is useful for a variety of reasons (minimization, Isar proofs,
        verbose output, machine learning). However, if the fact is available by no other means (not
        even backticks), as "f" would be in "using f unfolding f'" after unfolding, we have no choice
-       but to insert it into the state as an additional hypothesis.
-    *)
+       but to insert it into the state as an additional hypothesis. *)
     val {facts = chained0, ...} = Proof.goal state0
     val (inserts, keep_chained) =
       if null chained0 orelse #only fact_override then
@@ -380,7 +377,7 @@ val _ =
     (parse_raw_params >> (fn params =>
       Toplevel.theory (fold set_default_raw_param params #> tap (fn thy =>
         writeln ("Default parameters for Sledgehammer:\n" ^
-          (case rev (default_raw_params Normal thy) of
+          (case rev (default_raw_params thy) of
             [] => "none"
           | params => params |> map string_of_raw_param |> sort_strings |> cat_lines))))))
 

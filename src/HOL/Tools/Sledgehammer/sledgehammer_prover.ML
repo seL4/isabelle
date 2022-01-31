@@ -42,8 +42,8 @@ sig
      compress : real option,
      try0 : bool,
      smt_proofs : bool,
-     slice : bool,
      minimize : bool,
+     slice : Time.time,
      timeout : Time.time,
      preplay_timeout : Time.time,
      expect : string}
@@ -139,8 +139,8 @@ type params =
    compress : real option,
    try0 : bool,
    smt_proofs : bool,
-   slice : bool,
    minimize : bool,
+   slice : Time.time,
    timeout : Time.time,
    preplay_timeout : Time.time,
    expect : string}
@@ -173,8 +173,8 @@ fun set_params_provers params provers =
    compress = #compress params,
    try0 = #try0 params,
    smt_proofs = #smt_proofs params,
-   slice = #slice params,
    minimize = #minimize params,
+   slice = #slice params,
    timeout = #timeout params,
    preplay_timeout = #preplay_timeout params,
    expect = #expect params}

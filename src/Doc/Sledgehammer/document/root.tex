@@ -578,8 +578,7 @@ If you use Isabelle/jEdit, Sledgehammer also provides an automatic mode that can
 be enabled via the ``Auto Sledgehammer'' option under ``Plugins > Plugin Options
 > Isabelle > General.'' For automatic runs, only the first prover set using
 \textit{provers} (\S\ref{mode-of-operation}) is considered (typically E),
-\textit{slice} (\S\ref{mode-of-operation}) is disabled,
-fewer facts are
+\textit{slice} (\S\ref{timeouts}) is set to 0, fewer facts are
 passed to the prover, \textit{fact\_filter} (\S\ref{relevance-filter}) is set to
 \textit{mepo}, \textit{strict} (\S\ref{problem-encoding}) is enabled,
 \textit{verbose} (\S\ref{output-format}) and \textit{debug}
@@ -805,20 +804,6 @@ generally desirable to run several provers in parallel.
 
 \opnodefault{prover}{string}
 Alias for \textit{provers}.
-
-\optrue{slice}{dont\_slice}
-Specifies whether the time allocated to a prover should be sliced into several
-segments, each of which has its own set of possibly prover-dependent options.
-For SPASS and Vampire, the first slice tries the fast but incomplete
-set-of-support (SOS) strategy, whereas the second slice runs without it. For E,
-up to three slices are tried, with different weighted search strategies and
-number of facts. For SMT solvers, several slices are tried with the same options
-each time but fewer and fewer facts. According to benchmarks with a timeout of
-30 seconds, slicing is a valuable optimization, and you should probably leave it
-enabled unless you are conducting experiments.
-
-\nopagebreak
-{\small See also \textit{verbose} (\S\ref{output-format}).}
 
 \optrue{minimize}{dont\_minimize}
 Specifies whether the proof minimization tool should be invoked automatically
@@ -1215,6 +1200,20 @@ useful for regression testing.
 Specifies the maximum number of seconds that the automatic provers should spend
 searching for a proof. This excludes problem preparation and is a soft limit.
 
+\opdefault{slice}{float}{\upshape 5}
+Specifies the size of the time slices for each invocation of a prover. Each time
+slice has its own set of options. For example, for SPASS, the first slice might
+try the fast but incomplete set-of-support strategy, whereas other slices might
+run without it. Slicing can be disable by setting \textit{slice} to 0. However,
+slicing is a valuable optimization, and you should probably leave it enabled
+unless you are conducting experiments.
+
+\nopagebreak
+{\small See also \textit{verbose} (\S\ref{output-format}).}
+
+\optrueonly{dont\_slice}
+Alias for ``\textit{slice} = 0''.
+
 \opdefault{preplay\_timeout}{float}{\upshape 1}
 Specifies the maximum number of seconds that \textit{metis} or other proof
 methods should spend trying to ``preplay'' the found proof. If this option
@@ -1289,10 +1288,11 @@ usage by entering \texttt{isabelle mirabelle -?} on the command line.
 The following subsections assume that the environment variable \texttt{AFP} is
 defined and points to a release of the Archive of Formal Proofs.
 
+
 \subsection{Example of Benchmarking Sledgehammer}
 
 \begin{verbatim}
-isabelle mirabelle -d $AFP -O output \
+isabelle mirabelle -d '$AFP' -O output \
   -A "sledgehammer[provers = e, timeout = 30]" \
   VeriComp
 \end{verbatim}
@@ -1302,7 +1302,7 @@ a timeout of 30 seconds, on all subgoals emerging from all theory in the AFP
 session VeriComp. The results are written to \texttt{output/mirabelle.log}.
 
 \begin{verbatim}
-isabelle mirabelle -d $AFP -O output \
+isabelle mirabelle -d '$AFP' -O output \
   -T Semantics -T Compiler \
   -A "sledgehammer[provers = e, timeout = 30]" \
   VeriComp
@@ -1315,7 +1315,7 @@ on subgoals emerging from theories Semantics or Compiler.
 \subsection{Example of Benchmarking Multiple Tools}
 
 \begin{verbatim}
-isabelle mirabelle -d $AFP -O output -t 10 \
+isabelle mirabelle -d '$AFP' -O output -t 10 \
   -A "try0" -A "metis" \
   VeriComp
 \end{verbatim}
@@ -1324,10 +1324,11 @@ This command specifies two actions running the \textbf{try0} and \textbf{metis}
 commands, respectively, each with a timeout of 10 seconds. The results are
 written to \texttt{output/mirabelle.log}.
 
+
 \subsection{Example of Generating TPTP Files}
 
 \begin{verbatim}
-isabelle mirabelle -d $AFP -O output \
+isabelle mirabelle -d '$AFP' -O output \
   -A "sledgehammer[provers = e, timeout = 5, keep_probs = true]" \
   VeriComp
 \end{verbatim}
