@@ -47,10 +47,9 @@ val atp_completish = Attrib.setup_config_int \<^binding>\<open>sledgehammer_atp_
    names are enabled by default. *)
 val atp_full_names = Attrib.setup_config_bool \<^binding>\<open>sledgehammer_atp_full_names\<close> (K false)
 
-fun choose_type_enc strictness best_type_enc format =
-  the_default best_type_enc
-  #> type_enc_of_string strictness
-  #> adjust_type_enc format
+fun choose_type_enc strictness format good_type_enc =
+  type_enc_of_string strictness good_type_enc
+  |> adjust_type_enc format
 
 fun has_bound_or_var_of_type pred =
   exists_subterm (fn Var (_, T as Type _) => pred T
@@ -103,9 +102,9 @@ fun suffix_of_mode Auto_Try = "_try"
 val atp_important_message_keep_quotient = 25
 
 fun run_atp mode name
-    ({debug, verbose, overlord, type_enc, strict, lam_trans, uncurried_aliases, fact_filter,
-      max_facts, max_mono_iters, max_new_mono_instances, isar_proofs, compress, try0, smt_proofs,
-      minimize, slices, timeout, preplay_timeout, spy, ...} : params)
+    ({debug, verbose, overlord, strict, fact_filter, max_facts, max_mono_iters,
+      max_new_mono_instances, isar_proofs, compress, try0, smt_proofs, minimize, slices, timeout,
+      preplay_timeout, spy, ...} : params)
     ({comment, state, goal, subgoal, subgoal_count, factss, found_proof} : prover_problem)
     slice =
   let
@@ -191,7 +190,7 @@ fun run_atp mode name
           | SOME max_facts => max_facts)
           |> Integer.min (length facts)
         val strictness = if strict then Strict else Non_Strict
-        val type_enc = type_enc |> choose_type_enc strictness good_type_enc good_format
+        val type_enc = choose_type_enc strictness good_format good_type_enc
         val run_timeout = slice_timeout slices timeout
         val generous_run_timeout = if mode = MaSh then one_day else run_timeout
         val ({elapsed, ...}, atp_problem_data as (atp_problem, _, _, _)) = Timing.timing (fn () =>
@@ -199,8 +198,6 @@ fun run_atp mode name
             val sound = is_type_enc_sound type_enc
             val generate_info = (case good_format of DFG _ => true | _ => false)
             val readable_names = not (Config.get ctxt atp_full_names)
-            val lam_trans = lam_trans |> the_default good_lam_trans
-            val uncurried_aliases = uncurried_aliases |> the_default good_uncurried_aliases
           in
             facts
             |> not sound ? filter_out (is_dangerous_prop ctxt o Thm.prop_of o snd)
@@ -208,7 +205,7 @@ fun run_atp mode name
             |> not (is_type_enc_polymorphic type_enc) ? monomorphize_facts
             |> map (apsnd Thm.prop_of)
             |> generate_atp_problem ctxt generate_info good_format prem_role type_enc atp_mode
-              lam_trans uncurried_aliases readable_names true hyp_ts concl_t
+              good_lam_trans good_uncurried_aliases readable_names true hyp_ts concl_t
           end) ()
 
         val () = spying spy (fn () =>

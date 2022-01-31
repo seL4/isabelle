@@ -134,7 +134,7 @@ fun play_one_line_proof minimize timeout used_facts state i (preferred_meth, met
   |> (fn (used_facts, (meth, play)) =>
         (used_facts |> filter_out (fn (_, (sc, _)) => sc = Chained), (meth, play)))
 
-fun launch_prover (params as {verbose, spy, ...}) mode learn
+fun launch_prover (params as {verbose, spy, slices, timeout, ...}) mode learn
     (problem as {state, subgoal, factss, ...} : prover_problem)
     (slice as ((num_facts, fact_filter), _)) name =
   let
@@ -145,7 +145,7 @@ fun launch_prover (params as {verbose, spy, ...}) mode learn
     val _ =
       if verbose then
         writeln (name ^ " with " ^ string_of_int num_facts ^ " " ^ fact_filter ^ " fact" ^
-          plural_s num_facts ^ "...")
+          plural_s num_facts ^ " for " ^ string_of_time (slice_timeout slices timeout)  ^ "...")
       else
         ()
 
@@ -294,7 +294,8 @@ fun schedule_of_provers provers num_slices =
       @ round_robin (num_slices - num_default_slices) (unknown_provers @ known_provers)
   end
 
-fun prover_slices_of_schedule ctxt ({max_facts, fact_filter, ...} : params) schedule =
+fun prover_slices_of_schedule ctxt
+    ({max_facts, fact_filter, type_enc, lam_trans, uncurried_aliases, ...} : params) schedule =
   let
     fun triplicate_slices original =
       let
@@ -310,7 +311,9 @@ fun prover_slices_of_schedule ctxt ({max_facts, fact_filter, ...} : params) sche
         original @ shifted_once @ shifted_twice
       end
 
-    fun adjust_extra XXX = XXX (* ### FIXME *)
+    fun adjust_extra (format0, type_enc0, lam_trans0, uncurried_aliases0, extra_extra0) =
+      (format0, the_default type_enc0 type_enc, the_default lam_trans0 lam_trans,
+       the_default uncurried_aliases0 uncurried_aliases, extra_extra0)
 
     fun adjust_slice ((num_facts0, fact_filter0), extra) =
       ((case max_facts of
