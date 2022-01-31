@@ -272,7 +272,8 @@ val default_slice_schedule =
 fun schedule_of_provers provers num_slices =
   let
     val num_default_slices = length default_slice_schedule
-    val unknown_provers = filter_out (member (op =) default_slice_schedule) provers
+    val (known_provers, unknown_provers) =
+      List.partition (member (op =) default_slice_schedule) provers
 
     fun round_robin _ [] = []
       | round_robin 0 _ = []
@@ -281,7 +282,8 @@ fun schedule_of_provers provers num_slices =
     if num_slices <= num_default_slices then
       take num_slices default_slice_schedule
     else
-      default_slice_schedule @ round_robin (num_slices - num_default_slices) unknown_provers
+      default_slice_schedule
+      @ round_robin (num_slices - num_default_slices) (unknown_provers @ known_provers)
   end
 
 fun prover_slices_of_schedule ctxt schedule =

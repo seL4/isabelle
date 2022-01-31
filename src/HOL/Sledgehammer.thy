@@ -36,6 +36,15 @@ ML_file \<open>Tools/Sledgehammer/sledgehammer_commands.ML\<close>
 ML_file \<open>Tools/Sledgehammer/sledgehammer_tactics.ML\<close>
 
 (*
+lemma "1 + 1 = 2"
+  sledgehammer [slices = 40, max_proofs = 40]
+
+lemma "1 + 1 = 2"
+  sledgehammer [verbose, slices = 4]
+  oops
+*)
+
+(*
 lemma "1 + 1 = 2 \<and> 0 + (x::nat) = x"
   sledgehammer [max_proofs = 3]
   oops
