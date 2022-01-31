@@ -36,7 +36,7 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name file_names report_
 
     fun print s = File.append report_path (s ^ "\n")
 
-    val {provers, max_facts, slice, type_enc, lam_trans, timeout, induction_rules, ...} =
+    val {provers, max_facts, slices, type_enc, lam_trans, timeout, induction_rules, ...} =
       default_params thy []
     val prover = hd provers
     val max_suggs = generous_max_suggestions (the max_facts)
@@ -146,7 +146,7 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name file_names report_
     val options =
       ["prover = " ^ prover,
        "max_facts = " ^ string_of_int (the max_facts),
-       "slice" |> not slice ? prefix "dont_",
+       "slices = " ^ string_of_int slices,
        "type_enc = " ^ the_default "smart" type_enc,
        "lam_trans = " ^ the_default "smart" lam_trans,
        "timeout = " ^ ATP_Util.string_of_time timeout,

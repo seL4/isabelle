@@ -168,7 +168,7 @@ fun generate_isar_dependencies ctxt =
 fun generate_prover_dependencies ctxt params =
   generate_isar_or_prover_dependencies ctxt (SOME params)
 
-fun is_bad_query ctxt ho_atp step j th isar_deps =
+fun is_bad_query ctxt step j th isar_deps =
   j mod step <> 0 orelse
   Thm.legacy_get_kind th = "" orelse
   null (the_list isar_deps) orelse
@@ -176,7 +176,6 @@ fun is_bad_query ctxt ho_atp step j th isar_deps =
 
 fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys max_suggs file_name =
   let
-    val ho_atp = is_ho_atp ctxt prover
     val path = Path.explode file_name
     val facts = all_facts ctxt
     val (new_facts, old_facts) = facts |> List.partition (has_thys thys o snd)
@@ -187,7 +186,7 @@ fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys m
         let
           val _ = tracing ("Fact " ^ string_of_int j ^ ": " ^ name)
           val isar_deps = isar_dependencies_of name_tabs th
-          val do_query = not (is_bad_query ctxt ho_atp step j th isar_deps)
+          val do_query = not (is_bad_query ctxt step j th isar_deps)
           val goal_feats = features_of ctxt (Thm.theory_name th) stature [Thm.prop_of th]
           val access_facts = filter_accessible_from th new_facts @ old_facts
           val (marker, deps) =
@@ -241,7 +240,6 @@ fun generate_prover_commands ctxt (params as {provers = prover :: _, ...}) =
 fun generate_mepo_or_mash_suggestions mepo_or_mash_suggested_facts ctxt
     (params as {provers = prover :: _, ...}) (range, step) thys max_suggs file_name =
   let
-    val ho_atp = is_ho_atp ctxt prover
     val path = Path.explode file_name
     val facts = all_facts ctxt
     val (new_facts, old_facts) = facts |> List.partition (has_thys thys o snd)
@@ -256,7 +254,7 @@ fun generate_mepo_or_mash_suggestions mepo_or_mash_suggested_facts ctxt
           val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal goal 1 ctxt
           val isar_deps = isar_dependencies_of name_tabs th
         in
-          if is_bad_query ctxt ho_atp step j th isar_deps then
+          if is_bad_query ctxt step j th isar_deps then
             ""
           else
             let
