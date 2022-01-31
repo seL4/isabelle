@@ -54,7 +54,6 @@ sig
   val veritN : string
   val waldmeisterN : string
   val z3N : string
-  val z3_tptpN : string
   val zipperpositionN : string
   val remote_prefix : string
   val dummy_fofN : string
@@ -65,7 +64,6 @@ sig
   val spass_input_rule : string
   val spass_pre_skolemize_rule : string
   val spass_skolemize_rule : string
-  val z3_tptp_core_rule : string
 
   val short_output : bool -> string -> string
   val string_of_atp_failure : atp_failure -> string
@@ -121,7 +119,6 @@ val vampireN = "vampire"
 val veritN = "verit"
 val waldmeisterN = "waldmeister"
 val z3N = "z3"
-val z3_tptpN = "z3_tptp"
 val zipperpositionN = "zipperposition"
 val remote_prefix = "remote_"
 
@@ -133,7 +130,6 @@ val agsyhol_core_rule = "__agsyhol_core" (* arbitrary *)
 val spass_input_rule = "Inp"
 val spass_pre_skolemize_rule = "__Sko0" (* arbitrary *)
 val spass_skolemize_rule = "__Sko" (* arbitrary *)
-val z3_tptp_core_rule = "__z3_tptp_core" (* arbitrary *)
 
 exception UNRECOGNIZED_ATP_PROOF of unit
 
@@ -262,7 +258,7 @@ type 'a atp_proof = (('a, 'a, ('a, 'a atp_type) atp_term, 'a) atp_formula, strin
 (**** PARSING OF TSTP FORMAT ****)
 
 (* Strings enclosed in single quotes (e.g., file names), identifiers possibly starting
-   with "$" and possibly with "!" in them (for "z3_tptp"). *)
+   with "$" and possibly with "!" in them. *)
 val scan_general_id =
   $$ "'" |-- Scan.repeat (~$$ "'") --| $$ "'" >> implode
   || (Scan.repeat ($$ "$") -- Scan.many1 Symbol.is_letdig >> (op ^ o apply2 implode))
@@ -645,15 +641,9 @@ fun parse_spass_line x =
 
 fun core_inference inf fact = ((fact, [fact]), Unknown, dummy_phi, inf, [])
 
-(* Syntax: SZS core <name> ... <name> *)
-fun parse_z3_tptp_core_line x =
-  (Scan.this_string "SZS core" |-- Scan.repeat ($$ " " |-- scan_general_id)
-   >> map (core_inference z3_tptp_core_rule)) x
-
 fun parse_line local_name problem =
   (* Satallax is handled separately, in "atp_satallax.ML". *)
   if local_name = spassN then parse_spass_line
-  else if local_name = z3_tptpN then parse_z3_tptp_core_line
   else parse_tstp_line problem
 
 fun core_of_agsyhol_proof s =

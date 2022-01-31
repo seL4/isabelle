@@ -498,27 +498,6 @@ val vampire_config : atp_config =
 val vampire = (vampireN, fn () => vampire_config)
 
 
-(* Z3 with TPTP syntax (half experimental, half legacy) *)
-
-val z3_tptp_config : atp_config =
-  {exec = (["Z3_TPTP_HOME"], ["z3_tptp"]),
-   arguments = fn _ => fn _ => fn _ => fn timeout => fn problem => fn _ =>
-     ["-proof -t:" ^ string_of_int (to_secs 1 timeout) ^ " -file:" ^ File.bash_path problem],
-   proof_delims = [("SZS status Theorem", "")],
-   known_failures = known_szs_status_failures,
-   prem_role = Hypothesis,
-   good_slices =
-     (* FUDGE *)
-     K [((250, meshN), (TF0, "mono_native", combsN, false, "")),
-      ((125, mepoN), (TF0, "mono_native", combsN, false, "")),
-      ((62, mashN), (TF0, "mono_native", combsN, false, "")),
-      ((31, meshN), (TF0, "mono_native", combsN, false, ""))],
-   good_max_mono_iters = default_max_mono_iters,
-   good_max_new_mono_instances = 2 * default_max_new_mono_instances (* FUDGE *)}
-
-val z3_tptp = (z3_tptpN, fn () => z3_tptp_config)
-
-
 (* Zipperposition *)
 
 val zipperposition_config : atp_config =
@@ -704,7 +683,7 @@ fun effective_term_order ctxt atp =
   end
 
 val local_atps =
-  [agsyhol, alt_ergo, e, iprover, leo2, leo3, satallax, spass, vampire, z3_tptp, zipperposition]
+  [agsyhol, alt_ergo, e, iprover, leo2, leo3, satallax, spass, vampire, zipperposition]
 val remote_atps =
   [remote_agsyhol, remote_alt_ergo, remote_e, remote_iprover, remote_leo2, remote_leo3,
    remote_waldmeister, remote_zipperposition, dummy_fof, dummy_tfx, dummy_thf, dummy_thf_reduced]

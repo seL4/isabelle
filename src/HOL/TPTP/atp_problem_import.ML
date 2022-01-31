@@ -214,7 +214,6 @@ fun sledgehammer_tac demo lthy timeout assms i =
     slice 2 0 ATP_Proof.spassN
     ORELSE slice 2 0 ATP_Proof.vampireN
     ORELSE slice 2 0 ATP_Proof.eN
-    ORELSE slice 2 0 ATP_Proof.z3_tptpN
     ORELSE slice 1 1 ATP_Proof.spassN
     ORELSE slice 1 2 ATP_Proof.eN
     ORELSE slice 1 1 ATP_Proof.vampireN
