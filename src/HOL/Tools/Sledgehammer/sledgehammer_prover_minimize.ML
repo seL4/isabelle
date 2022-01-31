@@ -54,7 +54,7 @@ fun is_prover_installed ctxt =
 fun default_max_facts_of_prover ctxt name =
   let val thy = Proof_Context.theory_of ctxt in
     if is_atp thy name then
-      fold (Integer.max o fst o #1 o fst o snd) (#best_slices (get_atp thy name ()) ctxt) 0
+      fold (Integer.max o fst o #1) (#best_slices (get_atp thy name ()) ctxt) 0
     else if is_smt_prover ctxt name then
       SMT_Solver.default_max_relevant ctxt name
     else

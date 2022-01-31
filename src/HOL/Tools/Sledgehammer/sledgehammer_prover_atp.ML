@@ -105,7 +105,7 @@ val atp_important_message_keep_quotient = 25
 fun run_atp mode name
     ({debug, verbose, overlord, type_enc, strict, lam_trans, uncurried_aliases, max_facts,
       max_mono_iters, max_new_mono_instances, isar_proofs, compress, try0, smt_proofs, minimize,
-      slice, timeout, preplay_timeout, spy, ...} : params)
+      slices, timeout, preplay_timeout, spy, ...} : params)
     ({comment, state, goal, subgoal, subgoal_count, facts, found_proof} : prover_problem) =
   let
     val thy = Proof.theory_of state
@@ -158,8 +158,8 @@ fun run_atp mode name
 
     fun run () =
       let
-        val (_, (((best_max_facts, _), format, best_type_enc, best_lam_trans,
-            best_uncurried_aliases), extra)) =
+        val ((best_max_facts, _), format, best_type_enc, best_lam_trans, best_uncurried_aliases,
+            extra) =
           List.last (best_slices ctxt)
 
         fun monomorphize_facts facts =
@@ -191,7 +191,7 @@ fun run_atp mode name
           |> Integer.min (length facts)
         val strictness = if strict then Strict else Non_Strict
         val type_enc = type_enc |> choose_type_enc strictness best_type_enc format
-        val run_timeout = if slice = Time.zeroTime then timeout else slice
+        val run_timeout = slice_timeout slices timeout
         val generous_run_timeout = if mode = MaSh then one_day else run_timeout
         val ({elapsed, ...}, atp_problem_data as (atp_problem, _, _, _)) = Timing.timing (fn () =>
           let

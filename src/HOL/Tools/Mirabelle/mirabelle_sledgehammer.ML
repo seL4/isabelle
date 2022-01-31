@@ -21,7 +21,6 @@ struct
 
 val check_trivialK = "check_trivial" (*=BOOL: check if goals are "trivial"*)
 val e_selection_heuristicK = "e_selection_heuristic" (*=STRING: E clause selection heuristic*)
-val force_sosK = "force_sos" (*=BOOL: use set-of-support (in Vampire)*)
 val keep_probsK = "keep_probs" (*=BOOL: keep temporary problem files created by sledgehammer*)
 val keep_proofsK = "keep_proofs" (*=BOOL: keep temporary proof files created by ATPs*)
 val proof_methodK = "proof_method" (*=STRING: how to reconstruct proofs (e.g. using metis)*)
@@ -273,7 +272,7 @@ fun proof_method_from_msg args msg =
 
 local
 
-fun run_sh params e_selection_heuristic term_order force_sos keep pos state =
+fun run_sh params e_selection_heuristic term_order keep pos state =
   let
     fun set_file_name (SOME (dir, keep_probs, keep_proofs)) =
         let
@@ -294,9 +293,7 @@ fun run_sh params e_selection_heuristic term_order force_sos keep pos state =
             #> (Option.map (Config.put Sledgehammer_ATP_Systems.e_selection_heuristic)
                   e_selection_heuristic |> the_default I)
             #> (Option.map (Config.put Sledgehammer_ATP_Systems.term_order)
-                  term_order |> the_default I)
-            #> (Option.map (Config.put Sledgehammer_ATP_Systems.force_sos)
-                  force_sos |> the_default I))
+                  term_order |> the_default I))
 
     val ((_, (sledgehammer_outcome, msg)), cpu_time) = Mirabelle.cpu_time (fn () =>
       Sledgehammer.run_sledgehammer params Sledgehammer_Prover.Normal NONE 1
@@ -311,7 +308,7 @@ fun run_sh params e_selection_heuristic term_order force_sos keep pos state =
 in
 
 fun run_sledgehammer (params as {provers, ...}) output_dir e_selection_heuristic term_order
-  force_sos keep_probs keep_proofs proof_method_from_msg thy_index trivial pos st =
+  keep_probs keep_proofs proof_method_from_msg thy_index trivial pos st =
   let
     val thy = Proof.theory_of st
     val thy_name = Context.theory_name thy
@@ -328,7 +325,7 @@ fun run_sledgehammer (params as {provers, ...}) output_dir e_selection_heuristic
         NONE
     val prover_name = hd provers
     val (sledgehamer_outcome, msg, cpu_time) =
-      run_sh params e_selection_heuristic term_order force_sos keep pos st
+      run_sh params e_selection_heuristic term_order keep pos st
     val (time_prover, change_data, proof_method_and_used_thms) =
       (case sledgehamer_outcome of
         Sledgehammer.SH_Some {used_facts, run_time, ...} =>
@@ -449,8 +446,6 @@ fun make_action ({arguments, timeout, output_dir, ...} : Mirabelle.action_contex
     val keep_proofs = Mirabelle.get_bool_argument arguments (keep_proofsK, keep_proofs_default)
     val e_selection_heuristic = AList.lookup (op =) arguments e_selection_heuristicK
     val term_order = AList.lookup (op =) arguments term_orderK
-    val force_sos = AList.lookup (op =) arguments force_sosK
-      |> Option.map (curry (op <>) "false")
     val proof_method_from_msg = proof_method_from_msg arguments
 
     (* Parse Sledgehammer parameters *)
@@ -473,7 +468,7 @@ fun make_action ({arguments, timeout, output_dir, ...} : Mirabelle.action_contex
             val trivial = check_trivial andalso try0 pre handle Timeout.TIMEOUT _ => false
             val (outcome, log1, change_data1, proof_method_and_used_thms) =
               run_sledgehammer params output_dir e_selection_heuristic term_order
-                force_sos keep_probs keep_proofs proof_method_from_msg theory_index trivial pos pre
+                keep_probs keep_proofs proof_method_from_msg theory_index trivial pos pre
             val (log2, change_data2) =
               (case proof_method_and_used_thms of
                 SOME (proof_method, used_thms) =>
