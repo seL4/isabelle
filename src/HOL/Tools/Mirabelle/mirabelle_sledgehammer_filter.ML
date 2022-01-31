@@ -95,17 +95,15 @@ fun make_action ({arguments, ...} : Mirabelle.action_context) =
                     val {context = ctxt, facts = chained_ths, goal} = Proof.goal pre
                     val prover = AList.lookup (op =) args "prover" |> the_default default_prover
                     val params as {max_facts, ...} = Sledgehammer_Commands.default_params thy args
-                    val default_max_facts =
-                      Sledgehammer_Prover_Minimize.default_max_facts_of_prover ctxt prover
+                    val default_max_facts = 256 (* FUDGE *)
                     val relevance_fudge =
                       extract_relevance_fudge args Sledgehammer_MePo.default_relevance_fudge
                     val subgoal = 1
                     val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal goal subgoal ctxt
-                    val ho_atp = Sledgehammer_Prover_ATP.is_ho_atp ctxt prover
                     val keywords = Thy_Header.get_keywords' ctxt
                     val css_table = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
                     val facts =
-                      Sledgehammer_Fact.nearly_all_facts ctxt ho_atp
+                      Sledgehammer_Fact.nearly_all_facts ctxt false
                         Sledgehammer_Fact.no_fact_override keywords css_table chained_ths
                         hyp_ts concl_t
                       |> Sledgehammer_Fact.drop_duplicate_facts
