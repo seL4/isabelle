@@ -43,13 +43,14 @@ sig
      try0 : bool,
      smt_proofs : bool,
      minimize : bool,
-     slice : Time.time,
+     slices : int,
      timeout : Time.time,
      preplay_timeout : Time.time,
      expect : string}
 
   val string_of_params : params -> string
   val set_params_provers : params -> string list -> params
+  val slice_timeout : int -> Time.time -> Time.time
 
   type prover_problem =
     {comment : string,
@@ -140,7 +141,7 @@ type params =
    try0 : bool,
    smt_proofs : bool,
    minimize : bool,
-   slice : Time.time,
+   slices : int,
    timeout : Time.time,
    preplay_timeout : Time.time,
    expect : string}
@@ -174,10 +175,14 @@ fun set_params_provers params provers =
    try0 = #try0 params,
    smt_proofs = #smt_proofs params,
    minimize = #minimize params,
-   slice = #slice params,
+   slices = #slices params,
    timeout = #timeout params,
    preplay_timeout = #preplay_timeout params,
    expect = #expect params}
+
+fun slice_timeout slices timeout =
+  Time.toReal timeout * Real.fromInt (Multithreading.max_threads ()) / Real.fromInt slices
+  |> seconds
 
 type prover_problem =
   {comment : string,

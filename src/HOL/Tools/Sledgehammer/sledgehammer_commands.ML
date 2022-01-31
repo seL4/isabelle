@@ -72,14 +72,14 @@ val default_default_params =
    ("try0", "true"),
    ("smt_proofs", "true"),
    ("minimize", "true"),
-   ("slice", "5"),
+   ("slices", string_of_int (6 * Multithreading.max_threads ())),
    ("preplay_timeout", "1")]
 
 val alias_params =
   [("prover", ("provers", [])), (* undocumented *)
    ("dont_preplay", ("preplay_timeout", ["0"])),
    ("dont_compress", ("compress", ["1"])),
-   ("dont_slice", ("slice", ["0"])),
+   ("dont_slice", ("slices", ["1"])),
    ("isar_proof", ("isar_proofs", [])) (* legacy *)]
 val negated_alias_params =
   [("no_debug", "debug"),
@@ -268,7 +268,7 @@ fun extract_params mode default_params override_params =
     val try0 = lookup_bool "try0"
     val smt_proofs = lookup_bool "smt_proofs"
     val minimize = lookup_bool "minimize"
-    val slice = if mode = Auto_Try then Time.zeroTime else lookup_time "slice"
+    val slices = if mode = Auto_Try then 1 else Int.max (1, lookup_int "slices")
     val timeout = lookup_time "timeout"
     val preplay_timeout = lookup_time "preplay_timeout"
     val expect = lookup_string "expect"
@@ -279,7 +279,7 @@ fun extract_params mode default_params override_params =
      induction_rules = induction_rules, max_facts = max_facts, fact_thresholds = fact_thresholds,
      max_mono_iters = max_mono_iters, max_new_mono_instances = max_new_mono_instances,
      isar_proofs = isar_proofs, compress = compress, try0 = try0, smt_proofs = smt_proofs,
-     minimize = minimize, slice = slice, timeout = timeout, preplay_timeout = preplay_timeout,
+     minimize = minimize, slices = slices, timeout = timeout, preplay_timeout = preplay_timeout,
      expect = expect}
   end
 

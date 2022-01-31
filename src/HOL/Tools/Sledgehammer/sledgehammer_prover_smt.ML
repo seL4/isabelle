@@ -64,9 +64,9 @@ val is_boring_builtin_typ =
   not o exists_subtype (member (op =) [\<^typ>\<open>nat\<close>, \<^typ>\<open>int\<close>, HOLogic.realT])
 
 fun smt_filter name ({debug, overlord, max_mono_iters, max_new_mono_instances,
-    type_enc, slice, timeout, ...} : params) state goal i facts =
+    type_enc, slices, timeout, ...} : params) state goal i facts =
   let
-    val run_timeout = if slice = Time.zeroTime then timeout else slice
+    val run_timeout = slice_timeout slices timeout
     val (higher_order, nat_as_int) =
       (case type_enc of
         SOME s =>  (String.isSubstring "native_higher" s, String.isSubstring "arith" s)
