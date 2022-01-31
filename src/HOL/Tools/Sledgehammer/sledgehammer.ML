@@ -420,10 +420,8 @@ fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_fac
             val launch = launch_prover_and_preplay params mode writeln_result learn
 
             val schedule =
-              if mode = Auto_Try then
-                provers
-              else
-                schedule_of_provers provers slices
+              if mode = Auto_Try then provers
+              else schedule_of_provers provers slices
             val prover_slices = prover_slices_of_schedule ctxt params schedule
           in
             if mode = Auto_Try then

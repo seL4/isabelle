@@ -24,6 +24,7 @@ open Sledgehammer_Util
 open Sledgehammer_Fact
 open Sledgehammer_ATP_Systems
 open Sledgehammer_Prover
+open Sledgehammer_Prover_SMT
 open Sledgehammer_Prover_Minimize
 open Sledgehammer_MaSh
 open Sledgehammer
@@ -167,14 +168,9 @@ fun remotify_prover_if_supported_and_not_already_remote ctxt name =
       if is_prover_supported ctxt remote_name then SOME remote_name else NONE
     end
 
-fun remotify_prover_if_not_installed ctxt name =
-  if is_prover_supported ctxt name andalso is_prover_installed ctxt name then SOME name
-  else remotify_prover_if_supported_and_not_already_remote ctxt name
-
 (* The first ATP of the list is used by Auto Sledgehammer. *)
 fun default_provers_param_value ctxt =
-  [cvc4N, vampireN, veritN, eN, spassN, z3N, zipperpositionN] \<comment> \<open>see also \<^system_option>\<open>sledgehammer_provers\<close>\<close>
-  |> map_filter (remotify_prover_if_not_installed ctxt)
+  filter (is_prover_installed ctxt) (atps @ smts ctxt) \<comment> \<open>see also \<^system_option>\<open>sledgehammer_provers\<close>\<close>
   |> implode_param
 
 fun set_default_raw_param param thy =

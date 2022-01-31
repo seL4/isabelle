@@ -45,23 +45,24 @@ open Sledgehammer_Prover_ATP
 open Sledgehammer_Prover_SMT
 
 fun is_prover_supported ctxt =
-  let val thy = Proof_Context.theory_of ctxt in
-    is_atp thy orf is_smt_prover ctxt
-  end
+  is_atp orf is_smt_prover ctxt
 
-fun is_prover_installed ctxt =
-  is_smt_prover ctxt orf is_atp_installed (Proof_Context.theory_of ctxt)
+fun is_prover_installed ctxt prover_name =
+  if is_atp prover_name then
+    let val thy = Proof_Context.theory_of ctxt in
+      is_atp_installed thy prover_name
+    end
+  else
+    is_smt_prover_installed ctxt prover_name
 
 fun get_prover ctxt mode name =
-  let val thy = Proof_Context.theory_of ctxt in
-    if is_atp thy name then run_atp mode name
-    else if is_smt_prover ctxt name then run_smt_solver mode name
-    else error ("No such prover: " ^ name)
-  end
+  if is_atp name then run_atp mode name
+  else if is_smt_prover ctxt name then run_smt_solver mode name
+  else error ("No such prover: " ^ name)
 
 fun get_slices ctxt name =
   let val thy = Proof_Context.theory_of ctxt in
-    if is_atp thy name then
+    if is_atp name then
       map (apsnd SOME) (#good_slices (get_atp thy name ()) ctxt)
     else if is_smt_prover ctxt name then
       map (rpair NONE) (SMT_Solver.good_slices ctxt name)

@@ -50,10 +50,12 @@ sig
     string * (unit -> atp_config)
   val add_atp : string * (unit -> atp_config) -> theory -> theory
   val get_atp : theory -> string -> (unit -> atp_config)
-  val supported_atps : theory -> string list
   val is_atp_installed : theory -> string -> bool
   val refresh_systems_on_tptp : unit -> unit
   val effective_term_order : Proof.context -> string -> term_order
+  val local_atps : string list
+  val remote_atps : string list
+  val atps : string list
 end;
 
 structure Sledgehammer_ATP_Systems : SLEDGEHAMMER_ATP_SYSTEMS =
@@ -681,8 +683,6 @@ fun get_atp thy name =
   fst (the (Symtab.lookup (Data.get thy) name))
   handle Option.Option => error ("Unknown ATP: " ^ name)
 
-val supported_atps = Symtab.keys o Data.get
-
 fun is_atp_installed thy name =
   let val {exec, ...} = get_atp thy name () in
     exists (fn var => getenv var <> "") (fst exec)
@@ -703,11 +703,17 @@ fun effective_term_order ctxt atp =
       end
   end
 
-val atps =
-  [agsyhol, alt_ergo, e, iprover, leo2, leo3, satallax, spass, vampire, z3_tptp, zipperposition,
-   remote_agsyhol, remote_alt_ergo, remote_e, remote_iprover, remote_leo2, remote_leo3,
+val local_atps =
+  [agsyhol, alt_ergo, e, iprover, leo2, leo3, satallax, spass, vampire, z3_tptp, zipperposition]
+val remote_atps =
+  [remote_agsyhol, remote_alt_ergo, remote_e, remote_iprover, remote_leo2, remote_leo3,
    remote_waldmeister, remote_zipperposition, dummy_fof, dummy_tfx, dummy_thf, dummy_thf_reduced]
+val atps = local_atps @ remote_atps
 
 val _ = Theory.setup (fold add_atp atps)
+
+val local_atps = map fst local_atps
+val remote_atps = map fst remote_atps
+val atps = map fst atps
 
 end;

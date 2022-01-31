@@ -79,7 +79,7 @@ sig
   val str_of_mode : mode -> string
   val overlord_file_location_of_prover : string -> string * string
   val proof_banner : mode -> string -> string
-  val is_atp : theory -> string -> bool
+  val is_atp : string -> bool
   val bunches_of_proof_methods : Proof.context -> bool -> bool -> bool -> string ->
     proof_method list list
   val get_facts_of_filter : string -> (string * fact list) list -> fact list
@@ -122,7 +122,7 @@ fun induction_rules_of_string "include" = SOME Include
   | induction_rules_of_string "instantiate" = SOME Instantiate
   | induction_rules_of_string _ = NONE
 
-val is_atp = member (op =) o supported_atps
+val is_atp = member (op =) atps
 
 type params =
   {debug : bool,
@@ -246,10 +246,8 @@ fun repair_monomorph_context max_iters best_max_iters max_new_instances best_max
 
 fun supported_provers ctxt =
   let
-    val thy = Proof_Context.theory_of ctxt
-    val (remote_provers, local_provers) =
-      sort_strings (supported_atps thy) @ sort_strings (SMT_Config.available_solvers_of ctxt)
-      |> List.partition (String.isPrefix remote_prefix)
+    val local_provers = sort_strings (local_atps @ SMT_Config.available_solvers_of ctxt)
+    val remote_provers = sort_strings remote_atps
   in
     writeln ("Supported provers: " ^ commas (local_provers @ remote_provers))
   end
