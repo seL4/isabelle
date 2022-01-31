@@ -106,12 +106,6 @@ fun is_dangerous_prop ctxt =
 fun get_slices slice slices =
   map_index I slices |> slice = Time.zeroTime ? (List.last #> single)
 
-fun get_facts_of_filter _ [(_, facts)] = facts
-  | get_facts_of_filter fact_filter factss =
-    (case AList.lookup (op =) factss fact_filter of
-      SOME facts => facts
-    | NONE => snd (hd factss))
-
 (* For low values of "max_facts", this fudge value ensures that most slices are invoked with a
    nontrivial amount of facts. *)
 val max_fact_factor_fudge = 5
@@ -124,18 +118,17 @@ fun suffix_of_mode Auto_Try = "_try"
   | suffix_of_mode MaSh = ""
   | suffix_of_mode Minimize = "_min"
 
-(* Give the ATPs some slack before interrupting them the hard way. "z3_tptp" on Linux appears to be
-   the only ATP that does not honor its time limit. *)
+(* Give the ATPs some slack before interrupting them the hard way. *)
 val atp_timeout_slack = seconds 1.0
 
 (* Important messages are important but not so important that users want to see them each time. *)
 val atp_important_message_keep_quotient = 25
 
 fun run_atp mode name
-    ({debug, verbose, overlord, type_enc, strict, lam_trans, uncurried_aliases, fact_filter,
-     max_facts, max_mono_iters, max_new_mono_instances, isar_proofs, compress, try0, smt_proofs,
-     slice, minimize, timeout, preplay_timeout, spy, ...} : params)
-    ({comment, state, goal, subgoal, subgoal_count, factss, found_proof, ...} : prover_problem) =
+    ({debug, verbose, overlord, type_enc, strict, lam_trans, uncurried_aliases, max_facts,
+      max_mono_iters, max_new_mono_instances, isar_proofs, compress, try0, smt_proofs, slice,
+      minimize, timeout, preplay_timeout, spy, ...} : params)
+    ({comment, state, goal, subgoal, subgoal_count, facts, found_proof, ...} : prover_problem) =
   let
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
@@ -226,12 +219,11 @@ fun run_atp mode name
         val slices_timeout_ms = real (Time.toMilliseconds timeout - slices_overhead_ms)
 
         fun run_slice time_left (cache_key, cache_value) (slice, (time_frac,
-            (key as ((best_max_facts, best_fact_filter), format, best_type_enc, best_lam_trans,
-               best_uncurried_aliases),
+            (key as ((best_max_facts, _ (* best_fact_filter *)), format, best_type_enc,
+               best_lam_trans, best_uncurried_aliases),
              extra))) =
           let
-            val effective_fact_filter = fact_filter |> the_default best_fact_filter
-            val facts = get_facts_of_filter effective_fact_filter factss
+            val facts = snd facts
             val num_facts =
               Real.ceil (max_fact_factor * Real.fromInt best_max_facts) + max_fact_factor_fudge
               |> Integer.min (length facts)

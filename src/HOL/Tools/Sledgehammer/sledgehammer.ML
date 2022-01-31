@@ -137,24 +137,21 @@ fun play_one_line_proof minimize timeout used_facts state i (preferred_meth, met
         (used_facts |> filter_out (fn (_, (sc, _)) => sc = Chained), (meth, play)))
 
 fun launch_prover (params as {verbose, spy, max_facts, induction_rules, ...}) mode only learn
-    ({comment, state, goal, subgoal, subgoal_count, factss, found_proof} : prover_problem) name =
+    ({comment, state, goal, subgoal, subgoal_count, facts, found_proof} : prover_problem) name =
   let
     val ctxt = Proof.context_of state
 
     val _ = spying spy (fn () => (state, subgoal, name, "Launched"))
     val max_facts = max_facts |> the_default (default_max_facts_of_prover ctxt name)
-    val num_facts =
-      (case factss of
-        (_, facts) :: _ => length facts |> not only ? Integer.min max_facts
-      | _ => 0)
+    val num_facts = length (snd facts) |> not only ? Integer.min max_facts
     val induction_rules = induction_rules_for_prover ctxt name induction_rules
 
     val problem =
       {comment = comment, state = state, goal = goal, subgoal = subgoal,
        subgoal_count = subgoal_count,
-       factss = factss
-         (* We take num_facts because factss contains the maximum of all called provers. *)
-         |> map (apsnd (take num_facts o maybe_filter_out_induction_rules induction_rules)),
+       facts = facts
+         (* We take "num_facts" because "facts" contains the maximum of all called provers. *)
+         |> apsnd (take num_facts o maybe_filter_out_induction_rules induction_rules),
        found_proof = found_proof}
 
     fun print_used_facts used_facts used_from =
@@ -188,7 +185,7 @@ fun launch_prover (params as {verbose, spy, max_facts, induction_rules, ...}) mo
             end
 
           val filter_infos =
-            map filter_info (("actual", used_from) :: factss)
+            map filter_info [("actual", used_from), facts]
             |> AList.group (op =)
             |> map (fn (indices, fact_filters) => commas fact_filters ^ ": " ^ indices)
         in
@@ -348,10 +345,10 @@ fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_fac
 
         fun launch_provers () =
           let
-            val factss = get_factss provers
+            val facts = hd (get_factss provers) (* temporary *)
             val problem =
               {comment = "", state = state, goal = goal, subgoal = i, subgoal_count = n,
-               factss = factss, found_proof = found_proof}
+               facts = facts, found_proof = found_proof}
             val learn = mash_learn_proof ctxt params (Thm.prop_of goal)
             val launch = launch_prover_and_preplay params mode writeln_result only learn
           in

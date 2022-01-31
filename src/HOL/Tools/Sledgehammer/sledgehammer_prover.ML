@@ -57,7 +57,7 @@ sig
      goal : thm,
      subgoal : int,
      subgoal_count : int,
-     factss : (string * fact list) list,
+     facts : string * fact list,
      found_proof : unit -> unit}
 
   type prover_result =
@@ -185,7 +185,7 @@ type prover_problem =
    goal : thm,
    subgoal : int,
    subgoal_count : int,
-   factss : (string * fact list) list,
+   facts : string * fact list,
    found_proof : unit -> unit}
 
 type prover_result =

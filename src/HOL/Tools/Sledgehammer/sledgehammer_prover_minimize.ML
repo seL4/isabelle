@@ -98,7 +98,7 @@ fun test_facts ({debug, verbose, overlord, spy, provers, max_mono_iters, max_new
        slice = Time.zeroTime, timeout = timeout, preplay_timeout = preplay_timeout, expect = ""}
     val problem =
       {comment = "", state = state, goal = goal, subgoal = i, subgoal_count = n,
-       factss = [("", facts)], found_proof = I}
+       facts = ("", facts), found_proof = I}
     val result0 as {outcome = outcome0, used_facts, used_from, preferred_methss, run_time,
         message} =
       prover params problem
