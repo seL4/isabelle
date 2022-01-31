@@ -316,7 +316,8 @@ fun prover_slices_of_schedule ctxt schedule =
     translate prover_slices schedule
   end
 
-fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_facts, slices, ...})
+fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_facts, max_proofs,
+      slices, ...})
     mode writeln_result i (fact_override as {only, ...}) state =
   if null provers then
     error "No prover is set"
@@ -328,12 +329,12 @@ fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_fac
         val _ = Proof.assert_backward state
         val print = if mode = Normal andalso is_none writeln_result then writeln else K ()
 
-        val proof_found = Synchronized.var "proof_found" false
+        val found_proofs = Synchronized.var "found_proofs" 0
 
         fun found_proof prover_name =
           if mode = Normal then
-(* ### Synchronized.change_result proof_found (rpair true) *)
-            (writeln_result |> the_default writeln) (prover_name ^ " found a proof...")
+            (Synchronized.change found_proofs (fn n => n + 1);
+             (writeln_result |> the_default writeln) (prover_name ^ " found a proof..."))
           else
             ()
 
@@ -406,7 +407,12 @@ fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_fac
                 prover_slices
             else
               (learn chained_thms;
-               Par_List.map (fn (prover, slice) => launch problem slice prover) prover_slices
+               Par_List.map (fn (prover, slice) =>
+                   if Synchronized.value found_proofs < max_proofs then
+                     launch problem slice prover
+                   else
+                     (SH_Unknown, ""))
+                 prover_slices
                |> max_outcome)
           end
       in

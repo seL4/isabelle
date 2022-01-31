@@ -443,12 +443,7 @@ fun make_action ({arguments, timeout, output_dir, ...} : Mirabelle.action_contex
     val term_order = AList.lookup (op =) arguments term_orderK
     val proof_method_from_msg = proof_method_from_msg arguments
 
-    (* Parse Sledgehammer parameters *)
     val params = Sledgehammer_Commands.default_params \<^theory> arguments
-      |> (fn (params as {provers, ...}) =>
-            (case provers of
-              prover :: _ => Sledgehammer_Prover.set_params_provers params [prover]
-            | _ => error "sledgehammer action requires one and only one prover"))
 
     val data = Synchronized.var "Mirabelle_Sledgehammer.data" empty_data
 

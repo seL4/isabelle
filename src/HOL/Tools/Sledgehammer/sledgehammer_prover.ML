@@ -40,6 +40,7 @@ sig
      fact_thresholds : real * real,
      max_mono_iters : int option,
      max_new_mono_instances : int option,
+     max_proofs : int,
      isar_proofs : bool option,
      compress : real option,
      try0 : bool,
@@ -51,7 +52,6 @@ sig
      expect : string}
 
   val string_of_params : params -> string
-  val set_params_provers : params -> string list -> params
   val slice_timeout : int -> Time.time -> Time.time
 
   type prover_problem =
@@ -141,6 +141,7 @@ type params =
    fact_thresholds : real * real,
    max_mono_iters : int option,
    max_new_mono_instances : int option,
+   max_proofs : int,
    isar_proofs : bool option,
    compress : real option,
    try0 : bool,
@@ -157,33 +158,6 @@ fun string_of_params (params : params) =
 fun maybe_filter_out_induction_rules induction_rules : fact list -> fact list =
     induction_rules = Exclude ?
       filter_out (fn ((_, (_, ATP_Problem_Generate.Induction)), _) => true | _ => false)
-
-fun set_params_provers params provers =
-  {debug = #debug params,
-   verbose = #verbose params,
-   overlord = #overlord params,
-   spy = #spy params,
-   provers = provers,
-   type_enc = #type_enc params,
-   strict = #strict params,
-   lam_trans = #lam_trans params,
-   uncurried_aliases = #uncurried_aliases params,
-   learn = #learn params,
-   fact_filter = #fact_filter params,
-   induction_rules = #induction_rules params,
-   max_facts = #max_facts params,
-   fact_thresholds = #fact_thresholds params,
-   max_mono_iters = #max_mono_iters params,
-   max_new_mono_instances = #max_new_mono_instances params,
-   isar_proofs = #isar_proofs params,
-   compress = #compress params,
-   try0 = #try0 params,
-   smt_proofs = #smt_proofs params,
-   minimize = #minimize params,
-   slices = #slices params,
-   timeout = #timeout params,
-   preplay_timeout = #preplay_timeout params,
-   expect = #expect params}
 
 fun slice_timeout slices timeout =
   Time.toReal timeout * Real.fromInt (Multithreading.max_threads ()) / Real.fromInt slices
