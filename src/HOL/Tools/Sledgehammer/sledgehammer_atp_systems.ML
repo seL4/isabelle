@@ -32,7 +32,6 @@ sig
   val e_autoN : string
   val e_fun_weightN : string
   val e_sym_offset_weightN : string
-  val e_selection_heuristic : string Config.T
   val e_default_fun_weight : real Config.T
   val e_fun_weight_base : real Config.T
   val e_fun_weight_span : real Config.T
@@ -208,8 +207,6 @@ val e_autoN = "auto"
 val e_fun_weightN = "fun_weight"
 val e_sym_offset_weightN = "sym_offset_weight"
 
-val e_selection_heuristic =
-  Attrib.setup_config_string \<^binding>\<open>atp_e_selection_heuristic\<close> (K e_smartN)
 (* FUDGE *)
 val e_default_fun_weight =
   Attrib.setup_config_real \<^binding>\<open>atp_e_default_fun_weight\<close> (K 20.0)
@@ -291,7 +288,6 @@ val e_config : atp_config =
    prem_role = Conjecture,
    good_slices = fn ctxt =>
      let
-       val heuristic = Config.get ctxt e_selection_heuristic
        val (format, enc, main_lam_trans) =
          if string_ord (getenv "E_VERSION", "2.7") <> LESS then
            (THF (Monomorphic, {with_ite = true, with_let = false}, THF_Without_Choice), "mono_native_higher", keep_lamsN)
@@ -301,15 +297,12 @@ val e_config : atp_config =
            (THF (Monomorphic, {with_ite = false, with_let = false}, THF_Lambda_Free), "mono_native_higher", combsN)
      in
        (* FUDGE *)
-       if heuristic = e_smartN then
-         [((128, meshN), (format, enc, main_lam_trans, false, e_fun_weightN)),
-          ((128, mashN), (format, enc, main_lam_trans, false, e_sym_offset_weightN)),
-          ((91, mepoN), (format, enc, main_lam_trans, false, e_autoN)),
-          ((1000, meshN), (format, "poly_guards??", main_lam_trans, false, e_sym_offset_weightN)),
-          ((256, mepoN), (format, enc, liftingN, false, e_fun_weightN)),
-          ((64, mashN), (format, enc, combsN, false, e_fun_weightN))]
-       else
-         [((500, meshN), (format, enc, combsN, false, heuristic))]
+       [((128, meshN), (format, enc, main_lam_trans, false, e_fun_weightN)),
+        ((128, mashN), (format, enc, main_lam_trans, false, e_sym_offset_weightN)),
+        ((91, mepoN), (format, enc, main_lam_trans, false, e_autoN)),
+        ((1000, meshN), (format, "poly_guards??", main_lam_trans, false, e_sym_offset_weightN)),
+        ((256, mepoN), (format, enc, liftingN, false, e_fun_weightN)),
+        ((64, mashN), (format, enc, combsN, false, e_fun_weightN))]
      end,
    good_max_mono_iters = default_max_mono_iters,
    good_max_new_mono_instances = default_max_new_mono_instances}
