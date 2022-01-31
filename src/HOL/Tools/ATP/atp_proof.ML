@@ -43,6 +43,7 @@ sig
 
   val agsyholN : string
   val alt_ergoN : string
+  val cvc4N : string
   val eN : string
   val iproverN : string
   val leo2N : string
@@ -50,7 +51,9 @@ sig
   val satallaxN : string
   val spassN : string
   val vampireN : string
+  val veritN : string
   val waldmeisterN : string
+  val z3N : string
   val z3_tptpN : string
   val zipperpositionN : string
   val remote_prefix : string
@@ -107,6 +110,7 @@ open ATP_Problem
 
 val agsyholN = "agsyhol"
 val alt_ergoN = "alt_ergo"
+val cvc4N = "cvc4"
 val eN = "e"
 val iproverN = "iprover"
 val leo2N = "leo2"
@@ -114,10 +118,13 @@ val leo3N = "leo3"
 val satallaxN = "satallax"
 val spassN = "spass"
 val vampireN = "vampire"
+val veritN = "verit"
 val waldmeisterN = "waldmeister"
+val z3N = "z3"
 val z3_tptpN = "z3_tptp"
 val zipperpositionN = "zipperposition"
 val remote_prefix = "remote_"
+
 val dummy_fofN = "dummy_fof"
 val dummy_tfxN = "dummy_tfx"
 val dummy_thfN = "dummy_thf"

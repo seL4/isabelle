@@ -38,6 +38,7 @@ structure Sledgehammer : SLEDGEHAMMER =
 struct
 
 open ATP_Util
+open ATP_Problem
 open ATP_Proof
 open ATP_Problem_Generate
 open Sledgehammer_Util
@@ -46,6 +47,7 @@ open Sledgehammer_Proof_Methods
 open Sledgehammer_Isar_Proof
 open Sledgehammer_Isar_Preplay
 open Sledgehammer_Isar_Minimize
+open Sledgehammer_ATP_Systems
 open Sledgehammer_Prover
 open Sledgehammer_Prover_ATP
 open Sledgehammer_Prover_Minimize
@@ -81,9 +83,6 @@ fun max_outcome outcomes =
     |> the_default (SH_Unknown, "")
   end
 
-fun is_metis_method (Metis_Method _) = true
-  | is_metis_method _ = false
-
 fun play_one_line_proof minimize timeout used_facts state i (preferred_meth, methss) =
   (if timeout = Time.zeroTime then
      (used_facts, (preferred_meth, Play_Timed_Out Time.zeroTime))
@@ -116,8 +115,7 @@ fun play_one_line_proof minimize timeout used_facts state i (preferred_meth, met
            in
              (case preplay_isar_step ctxt chained timeout [] (mk_step fact_names meths) of
                (res as (meth, Played time)) :: _ =>
-               (* if a fact is needed by an ATP, it will be needed by "metis" *)
-               if not minimize orelse is_metis_method meth then
+               if not minimize then
                  (used_facts, res)
                else
                  let
@@ -265,6 +263,59 @@ fun string_of_factss factss =
     cat_lines (map (fn (filter, facts) =>
       (if filter = "" then "" else filter ^ ": ") ^ string_of_facts facts) factss)
 
+val default_slice_schedule =
+  (* FUDGE (based on Seventeen evaluation) *)
+  [cvc4N, zipperpositionN, vampireN, veritN, eN, cvc4N, zipperpositionN, cvc4N, vampireN, cvc4N,
+   cvc4N, vampireN, cvc4N, eN, iproverN, zipperpositionN, vampireN, eN, vampireN, zipperpositionN,
+   z3N, cvc4N, vampireN, iproverN, vampireN, zipperpositionN, z3N, z3N, cvc4N, cvc4N]
+
+fun schedule_of_provers provers num_slices =
+  let
+    val num_default_slices = length default_slice_schedule
+    val unknown_provers = filter_out (member (op =) default_slice_schedule) provers
+
+    fun round_robin _ [] = []
+      | round_robin 0 _ = []
+      | round_robin n (prover :: provers) = prover :: round_robin (n - 1) (provers @ [prover])
+  in
+    if num_slices <= num_default_slices then
+      take num_slices default_slice_schedule
+    else
+      default_slice_schedule @ round_robin (num_slices - num_default_slices) unknown_provers
+  end
+
+fun prover_slices_of_schedule ctxt schedule =
+  let
+    fun triplicate_slices original =
+      let
+        val shift =
+          map (apfst (apsnd (fn fact_filter =>
+            if fact_filter = mashN then mepoN
+            else if fact_filter = mepoN then meshN
+            else mashN)))
+
+        val shifted_once = shift original
+        val shifted_twice = shift shifted_once
+      in
+        original @ shifted_once @ shifted_twice
+      end
+
+    val provers = distinct (op =) schedule
+    val prover_slices =
+      map (fn prover => (prover, triplicate_slices (get_slices ctxt prover))) provers
+
+    fun translate _ [] = []
+      | translate prover_slices (prover :: schedule) =
+        (case AList.lookup (op =) prover_slices prover of
+          SOME (slice :: slices) =>
+          let val prover_slices' = AList.update (op =) (prover, slices) prover_slices in
+            (prover, slice) :: translate prover_slices' schedule
+          end
+        | _ => translate prover_slices schedule)
+  in
+    translate prover_slices schedule
+  end
+
 fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_facts, ...}) mode
     writeln_result i (fact_override as {only, ...}) state =
   if null provers then
@@ -309,8 +360,9 @@ fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_fac
               (case max_facts of
                 SOME n => n
               | NONE =>
-                fold (fn prover => Integer.max (fst (fst (get_default_slice ctxt prover)))) provers
-                  0)
+                fold (fn prover =>
+                    fold (fn ((n, _), _) => Integer.max n) (get_slices ctxt prover))
+                  provers 0)
 
             val ({elapsed, ...}, factss) = Timing.timing
               (relevant_facts ctxt params (hd provers) max_max_facts fact_override hyp_ts concl_t)
@@ -336,17 +388,25 @@ fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_fac
                factss = get_factss provers, found_proof = found_proof}
             val learn = mash_learn_proof ctxt params (Thm.prop_of goal)
             val launch = launch_prover_and_preplay params mode writeln_result learn
+
+            val schedule =
+              if mode = Auto_Try then
+                provers
+              else
+                let val num_slices = 50 (* FIXME *) in
+                  schedule_of_provers provers num_slices
+                end
+            val prover_slices = prover_slices_of_schedule ctxt schedule
           in
             if mode = Auto_Try then
               (SH_Unknown, "")
-              |> fold (fn prover =>
+              |> fold (fn (prover, slice) =>
                   fn accum as (SH_Some _, _) => accum
-                    | _ => launch problem (get_default_slice ctxt prover) prover)
-                provers
+                    | _ => launch problem slice prover)
+                prover_slices
             else
               (learn chained_thms;
-               provers
-               |> Par_List.map (fn prover => launch problem (get_default_slice ctxt prover) prover)
+               Par_List.map (fn (prover, slice) => launch problem slice prover) prover_slices
                |> max_outcome)
           end
       in

@@ -21,7 +21,7 @@ sig
      command: unit -> string list,
      options: Proof.context -> string list,
      smt_options: (string * string) list,
-     default_max_relevant: int,
+     good_slices: (int * string) list,
      outcome: string -> string list -> outcome * string list,
      parse_proof: (Proof.context -> SMT_Translate.replay_data ->
        ((string * ATP_Problem_Generate.stature) * thm) list -> term list -> term -> string list ->
@@ -30,7 +30,7 @@ sig
 
   (*registry*)
   val add_solver: solver_config -> theory -> theory
-  val default_max_relevant: Proof.context -> string -> int
+  val good_slices: Proof.context -> string -> (int * string) list
 
   (*filter*)
   val smt_filter: Proof.context -> thm -> ((string * ATP_Problem_Generate.stature) * thm) list ->
@@ -155,7 +155,7 @@ type solver_config =
    command: unit -> string list,
    options: Proof.context -> string list,
    smt_options: (string * string) list,
-   default_max_relevant: int,
+   good_slices: (int * string) list,
    outcome: string -> string list -> outcome * string list,
    parse_proof: (Proof.context -> SMT_Translate.replay_data ->
      ((string * ATP_Problem_Generate.stature) * thm) list -> term list -> term -> string list ->
@@ -180,7 +180,7 @@ fun check_topsort ctxt thm =
 type solver_info = {
   command: unit -> string list,
   smt_options: (string * string) list,
-  default_max_relevant: int,
+  good_slices: (int * string) list,
   parse_proof: Proof.context -> SMT_Translate.replay_data ->
     ((string * ATP_Problem_Generate.stature) * thm) list -> term list -> term -> string list ->
     parsed_proof,
@@ -220,13 +220,13 @@ local
   val cfalse = Thm.cterm_of \<^context> \<^prop>\<open>False\<close>
 in
 
-fun add_solver ({name, class, avail, command, options, smt_options, default_max_relevant, outcome,
+fun add_solver ({name, class, avail, command, options, smt_options, good_slices, outcome,
     parse_proof = parse_proof0, replay = replay0} : solver_config) =
   let
     fun solver oracle = {
       command = command,
       smt_options = smt_options,
-      default_max_relevant = default_max_relevant,
+      good_slices = good_slices,
       parse_proof = parse_proof (outcome name) parse_proof0,
       replay = replay (outcome name) replay0 oracle}
 
@@ -245,7 +245,7 @@ fun name_and_info_of ctxt =
   let val name = SMT_Config.solver_of ctxt
   in (name, get_info ctxt name) end
 
-val default_max_relevant = #default_max_relevant oo get_info
+val good_slices = #good_slices oo get_info
 
 fun apply_solver_and_replay ctxt thms0 =
   let

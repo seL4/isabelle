@@ -13,6 +13,10 @@ end;
 structure SMT_Systems: SMT_SYSTEMS =
 struct
 
+val mashN = "mash"
+val mepoN = "mepo"
+val meshN = "mesh"
+
 (* helper functions *)
 
 fun check_tool var () =
@@ -90,7 +94,14 @@ val cvc4: SMT_Solver.solver_config = {
   command = make_command "CVC4",
   options = cvc4_options,
   smt_options = [(":produce-unsat-cores", "true")],
-  default_max_relevant = 400 (* FUDGE *),
+  good_slices =
+    (* FUDGE *)
+    [(512, meshN),
+     (64, meshN),
+     (1024, meshN),
+     (256, mepoN),
+     (32, meshN),
+     (128, meshN)],
   outcome = on_first_line (outcome_of "unsat" "sat" "unknown" "timeout"),
   parse_proof = SOME (K CVC4_Proof_Parse.parse_proof),
   replay = NONE }
@@ -127,7 +138,14 @@ val veriT: SMT_Solver.solver_config = {
   command = the o check_tool "ISABELLE_VERIT",
   options = veriT_options,
   smt_options = [(":produce-proofs", "true")],
-  default_max_relevant = 200 (* FUDGE *),
+  good_slices =
+    (* FUDGE *)
+    [(1024, meshN),
+     (512, mashN),
+     (64, meshN),
+     (128, meshN),
+     (256, mepoN),
+     (32, meshN)],
   outcome = on_first_non_unsupported_line (outcome_of "unsat" "sat" "unknown" "Time limit exceeded"),
   parse_proof = SOME (K VeriT_Proof_Parse.parse_proof),
   replay = SOME Verit_Replay.replay }
@@ -161,7 +179,14 @@ val z3: SMT_Solver.solver_config = {
   command = make_command "Z3",
   options = z3_options,
   smt_options = [(":produce-proofs", "true")],
-  default_max_relevant = 350 (* FUDGE *),
+  good_slices =
+    (* FUDGE *)
+    [(1024, meshN),
+     (512, mepoN),
+     (64, meshN),
+     (256, meshN),
+     (128, mashN),
+     (32, meshN)],
   outcome = on_first_line (outcome_of "unsat" "sat" "unknown" "timeout"),
   parse_proof = SOME Z3_Replay.parse_proof,
   replay = SOME Z3_Replay.replay }

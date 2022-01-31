@@ -18,7 +18,7 @@ sig
   val is_prover_supported : Proof.context -> string -> bool
   val is_prover_installed : Proof.context -> string -> bool
   val get_prover : Proof.context -> mode -> string -> prover
-  val get_default_slice : Proof.context -> string -> prover_slice
+  val get_slices : Proof.context -> string -> prover_slice list
 
   val binary_min_facts : int Config.T
   val minimize_facts : (thm list -> unit) -> string -> params -> bool -> int -> int ->
@@ -59,12 +59,12 @@ fun get_prover ctxt mode name =
     else error ("No such prover: " ^ name)
   end
 
-fun get_default_slice ctxt name =
+fun get_slices ctxt name =
   let val thy = Proof_Context.theory_of ctxt in
     if is_atp thy name then
-      apsnd SOME (List.last (#good_slices (get_atp thy name ()) ctxt))
+      map (apsnd SOME) (#good_slices (get_atp thy name ()) ctxt)
     else if is_smt_prover ctxt name then
-      ((SMT_Solver.default_max_relevant ctxt name, ""), NONE)
+      map (rpair NONE) (SMT_Solver.good_slices ctxt name)
     else
       error ("No such prover: " ^ name)
   end
@@ -202,7 +202,7 @@ fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) silent
   let
     val ctxt = Proof.context_of state
     val prover = get_prover ctxt Minimize prover_name
-    val slice = get_default_slice ctxt prover_name
+    val slice = hd (get_slices ctxt prover_name)
     val (chained, non_chained) = List.partition is_fact_chained facts
 
     fun test timeout non_chained =

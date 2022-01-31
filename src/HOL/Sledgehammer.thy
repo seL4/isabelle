@@ -35,4 +35,22 @@ ML_file \<open>Tools/Sledgehammer/sledgehammer.ML\<close>
 ML_file \<open>Tools/Sledgehammer/sledgehammer_commands.ML\<close>
 ML_file \<open>Tools/Sledgehammer/sledgehammer_tactics.ML\<close>
 
+(*
+lemma "1 + 1 = 2 \<and> 0 + (x::nat) = x"
+  sledgehammer
+*)
+
+(*
+declare nat_induct[no_atp]
+declare nat_induct_non_zero[no_atp]
+
+lemma "P 0 \<Longrightarrow> (\<And>n. P n \<Longrightarrow> P (Suc n)) \<Longrightarrow> P n"
+  sledgehammer [cvc4] (add: nat.induct)
+*)
+
+(*
+lemma "1 + 1 = 2 \<and> 0 + (x::nat) = x"
+  sledgehammer [verbose, e, dont_preplay, max_facts = 2] (add_0_left one_add_one)
+*)
+
 end

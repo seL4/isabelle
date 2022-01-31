@@ -28,10 +28,6 @@ open Sledgehammer_Prover_Minimize
 open Sledgehammer_MaSh
 open Sledgehammer
 
-val cvc4N = "cvc4"
-val veritN = "verit"
-val z3N = "z3"
-
 val runN = "run"
 val supported_proversN = "supported_provers"
 val refresh_tptpN = "refresh_tptp"
