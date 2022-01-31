@@ -14,6 +14,7 @@ sig
   type fact = Sledgehammer_Fact.fact
   type proof_method = Sledgehammer_Proof_Methods.proof_method
   type play_outcome = Sledgehammer_Proof_Methods.play_outcome
+  type base_slice = Sledgehammer_ATP_Systems.base_slice
   type atp_slice = Sledgehammer_ATP_Systems.atp_slice
 
   datatype mode = Auto_Try | Try | Normal | Minimize | MaSh
@@ -62,9 +63,7 @@ sig
      factss : (string * fact list) list,
      found_proof : string -> unit}
 
-  datatype prover_slice =
-    ATP_Slice of atp_slice
-  | SMT_Slice of int * string
+  type prover_slice = base_slice * atp_slice option
 
   type prover_result =
     {outcome : atp_failure option,
@@ -199,9 +198,7 @@ type prover_problem =
    factss : (string * fact list) list,
    found_proof : string -> unit}
 
-datatype prover_slice =
-  ATP_Slice of atp_slice
-| SMT_Slice of int * string
+type prover_slice = base_slice * atp_slice option
 
 type prover_result =
   {outcome : atp_failure option,

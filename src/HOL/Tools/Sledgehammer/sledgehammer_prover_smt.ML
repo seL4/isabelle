@@ -116,10 +116,10 @@ fun run_smt_solver mode name (params as {debug, verbose, fact_filter, isar_proof
   let
     val ctxt = Proof.context_of state
 
-    val SMT_Slice (best_max_facts, best_fact_filter) = slice
+    val ((best_max_facts, best_fact_filter), _) = slice
 
     val effective_fact_filter = fact_filter |> the_default best_fact_filter
-    val facts = get_facts_of_filter effective_fact_filter factss
+    val facts = take best_max_facts (get_facts_of_filter effective_fact_filter factss)
 
     val {outcome, filter_result = {fact_ids, atp_proof, ...}, used_from, run_time} =
       smt_filter name params state goal subgoal facts

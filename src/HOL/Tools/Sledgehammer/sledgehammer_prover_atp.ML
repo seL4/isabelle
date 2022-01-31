@@ -112,11 +112,11 @@ fun run_atp mode name
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
 
-    val ATP_Slice ((best_max_facts, best_fact_filter), format, best_type_enc, best_lam_trans,
-      best_uncurried_aliases, extra) = slice
+    val ((good_max_facts, good_fact_filter), SOME (good_format, good_type_enc, good_lam_trans,
+      good_uncurried_aliases, extra)) = slice
 
-    val {exec, arguments, proof_delims, known_failures, prem_role, best_max_mono_iters,
-      best_max_new_mono_instances, ...} = get_atp thy name ()
+    val {exec, arguments, proof_delims, known_failures, prem_role, good_max_mono_iters,
+      good_max_new_mono_instances, ...} = get_atp thy name ()
 
     val full_proofs = isar_proofs |> the_default (mode = Minimize)
     val local_name = perhaps (try (unprefix remote_prefix)) name
@@ -166,8 +166,8 @@ fun run_atp mode name
           let
             val ctxt =
               ctxt
-              |> repair_monomorph_context max_mono_iters best_max_mono_iters max_new_mono_instances
-                   best_max_new_mono_instances
+              |> repair_monomorph_context max_mono_iters good_max_mono_iters max_new_mono_instances
+                   good_max_new_mono_instances
             (* pseudo-theorem involving the same constants as the subgoal *)
             val subgoal_th =
               Logic.list_implies (hyp_ts, concl_t) |> Skip_Proof.make_thm thy
@@ -183,31 +183,31 @@ fun run_atp mode name
             |> maps (fn (name, rths) => map (pair name o zero_var_indexes o snd) rths)
           end
 
-        val effective_fact_filter = fact_filter |> the_default best_fact_filter
+        val effective_fact_filter = fact_filter |> the_default good_fact_filter
         val facts = get_facts_of_filter effective_fact_filter factss
         val num_facts =
           (case max_facts of
-            NONE => best_max_facts
+            NONE => good_max_facts
           | SOME max_facts => max_facts)
           |> Integer.min (length facts)
         val strictness = if strict then Strict else Non_Strict
-        val type_enc = type_enc |> choose_type_enc strictness best_type_enc format
+        val type_enc = type_enc |> choose_type_enc strictness good_type_enc good_format
         val run_timeout = slice_timeout slices timeout
         val generous_run_timeout = if mode = MaSh then one_day else run_timeout
         val ({elapsed, ...}, atp_problem_data as (atp_problem, _, _, _)) = Timing.timing (fn () =>
           let
             val sound = is_type_enc_sound type_enc
-            val generate_info = (case format of DFG _ => true | _ => false)
+            val generate_info = (case good_format of DFG _ => true | _ => false)
             val readable_names = not (Config.get ctxt atp_full_names)
-            val lam_trans = lam_trans |> the_default best_lam_trans
-            val uncurried_aliases = uncurried_aliases |> the_default best_uncurried_aliases
+            val lam_trans = lam_trans |> the_default good_lam_trans
+            val uncurried_aliases = uncurried_aliases |> the_default good_uncurried_aliases
           in
             facts
             |> not sound ? filter_out (is_dangerous_prop ctxt o Thm.prop_of o snd)
             |> take num_facts
             |> not (is_type_enc_polymorphic type_enc) ? monomorphize_facts
             |> map (apsnd Thm.prop_of)
-            |> generate_atp_problem ctxt generate_info format prem_role type_enc atp_mode
+            |> generate_atp_problem ctxt generate_info good_format prem_role type_enc atp_mode
               lam_trans uncurried_aliases readable_names true hyp_ts concl_t
           end) ()
 
@@ -233,7 +233,7 @@ fun run_atp mode name
 
         val _ =
           atp_problem
-          |> lines_of_atp_problem format ord ord_info
+          |> lines_of_atp_problem good_format ord ord_info
           |> (exec <> isabelle_scala_function) ?
             cons ("% " ^ command ^ "\n" ^ (if comment = "" then "" else "% " ^ comment ^ "\n"))
           |> File.write_list prob_path
@@ -268,7 +268,7 @@ fun run_atp mode name
             | NONE => (found_proof name; NONE))
           | _ => outcome)
       in
-        (atp_problem_data, (output, run_time, facts, atp_proof, outcome), (format, type_enc))
+        (atp_problem_data, (output, run_time, facts, atp_proof, outcome), (good_format, type_enc))
       end
 
     (* If the problem file has not been exported, remove it; otherwise, export

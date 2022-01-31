@@ -313,7 +313,8 @@ fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_fac
               (case max_facts of
                 SOME n => n
               | NONE =>
-                0 |> fold (Integer.max o default_max_facts_of_prover ctxt) provers
+                0 |> fold (fn prover => Integer.max (fst (fst (get_default_slice ctxt prover))))
+                    provers
                   |> mode = Auto_Try ? (fn n => n div auto_try_max_facts_divisor))
             val ({elapsed, ...}, factss) = Timing.timing
               (relevant_facts ctxt params (hd provers) max_max_facts fact_override hyp_ts concl_t)

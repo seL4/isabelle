@@ -17,7 +17,6 @@ sig
 
   val is_prover_supported : Proof.context -> string -> bool
   val is_prover_installed : Proof.context -> string -> bool
-  val default_max_facts_of_prover : Proof.context -> string -> int
   val get_prover : Proof.context -> mode -> string -> prover
   val get_default_slice : Proof.context -> string -> prover_slice
 
@@ -53,16 +52,6 @@ fun is_prover_supported ctxt =
 fun is_prover_installed ctxt =
   is_smt_prover ctxt orf is_atp_installed (Proof_Context.theory_of ctxt)
 
-fun default_max_facts_of_prover ctxt name =
-  let val thy = Proof_Context.theory_of ctxt in
-    if is_atp thy name then
-      fold (Integer.max o fst o #1) (#best_slices (get_atp thy name ()) ctxt) 0
-    else if is_smt_prover ctxt name then
-      SMT_Solver.default_max_relevant ctxt name
-    else
-      error ("No such prover: " ^ name)
-  end
-
 fun get_prover ctxt mode name =
   let val thy = Proof_Context.theory_of ctxt in
     if is_atp thy name then run_atp mode name
@@ -73,9 +62,9 @@ fun get_prover ctxt mode name =
 fun get_default_slice ctxt name =
   let val thy = Proof_Context.theory_of ctxt in
     if is_atp thy name then
-      ATP_Slice (List.last (#best_slices (get_atp thy name ()) ctxt))
+      apsnd SOME (List.last (#good_slices (get_atp thy name ()) ctxt))
     else if is_smt_prover ctxt name then
-      SMT_Slice (SMT_Solver.default_max_relevant ctxt name, "")
+      ((SMT_Solver.default_max_relevant ctxt name, ""), NONE)
     else
       error ("No such prover: " ^ name)
   end
