@@ -23,8 +23,6 @@ sig
 
   val short_string_of_sledgehammer_outcome : sledgehammer_outcome -> string
 
-  val induction_rules_for_prover : Proof.context -> string -> induction_rules option ->
-    induction_rules
   val play_one_line_proof : bool -> Time.time -> (string * stature) list -> Proof.state -> int ->
     proof_method * proof_method list list -> (string * stature) list * (proof_method * play_outcome)
   val string_of_factss : (string * fact list) list -> string
@@ -78,8 +76,6 @@ fun max_outcome outcomes =
     |> the_default (SH_Unknown, "")
   end
 
-fun induction_rules_for_prover ctxt prover_name induction_rules =
-  the_default (if is_ho_atp ctxt prover_name then Include else Exclude) induction_rules
 
 fun is_metis_method (Metis_Method _) = true
   | is_metis_method _ = false
@@ -144,7 +140,7 @@ fun launch_prover (params as {verbose, spy, max_facts, induction_rules, ...}) mo
     val _ = spying spy (fn () => (state, subgoal, name, "Launched"))
     val max_facts = max_facts |> the_default (default_max_facts_of_prover ctxt name)
     val num_facts = length (snd facts) |> not only ? Integer.min max_facts
-    val induction_rules = induction_rules_for_prover ctxt name induction_rules
+    val induction_rules = the_default Exclude induction_rules
 
     val problem =
       {comment = comment, state = state, goal = goal, subgoal = subgoal,

@@ -341,9 +341,9 @@ called \emph{relevance filter} (\S\ref{relevance-filter}).
 The traditional relevance filter, \emph{MePo}
 (\underline{Me}ng--\underline{Pau}lson), assigns a score to every available
 fact (lemma, theorem, definition, or axiom) based upon how many constants that
-fact shares with the conjecture. This process iterates to include facts
+fact shares with the goal. This process iterates to include facts
 relevant to those just accepted. The constants are weighted to give unusual
-ones greater significance. MePo copes best when the conjecture contains some
+ones greater significance. MePo copes best when the goal contains some
 unusual constants; if all the constants are common, it is unable to
 discriminate among the hundreds of facts that are picked up. The filter is also
 memoryless: It has no information about how many times a particular fact has
@@ -922,23 +922,19 @@ For most provers, this value is 3.
 \nopagebreak
 {\small See also \textit{type\_enc} (\S\ref{problem-encoding}).}
 
-\opdefault{induction\_rules}{string}{smart}
+\opdefault{induction\_rules}{string}{exclude}
 Specifies whether induction rules should be considered as relevant facts.
 The following behaviors are available:
 \begin{enum}
-\item[\labelitemi] \textbf{\textit{include}:}
-Induction rules are considered by the relevance filter.
-
 \item[\labelitemi] \textbf{\textit{exclude}:}
 Induction rules are ignored by the relevance filter.
 
 \item[\labelitemi] \textbf{\textit{instantiate}:}
-Induction rules are instantiated based on the conjecture and then
+Induction rules are instantiated based on the goal and then
 considered by the relevance filter.
 
-\item[\labelitemi] \textbf{\textit{smart}:}
-Same as \textit{include} if the prover supports higher-order logic;
-same as \textit{exclude} otherwise.
+\item[\labelitemi] \textbf{\textit{include}:}
+Induction rules are considered by the relevance filter.
 \end{enum}
 \end{enum}
 

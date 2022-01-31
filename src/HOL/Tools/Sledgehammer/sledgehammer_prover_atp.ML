@@ -17,8 +17,6 @@ sig
   val atp_completish : int Config.T
   val atp_full_names : bool Config.T
 
-  val is_ho_atp : Proof.context -> string -> bool
-
   val run_atp : mode -> string -> prover
 end;
 
@@ -48,16 +46,6 @@ val atp_completish = Attrib.setup_config_int \<^binding>\<open>sledgehammer_atp_
    are mangled in names. This makes a difference for some provers (e.g., E). For these reason, short
    names are enabled by default. *)
 val atp_full_names = Attrib.setup_config_bool \<^binding>\<open>sledgehammer_atp_full_names\<close> (K false)
-
-fun is_atp_of_format is_format ctxt name =
-  let val thy = Proof_Context.theory_of ctxt in
-    (case try (get_atp thy) name of
-      SOME config =>
-      exists (fn (_, ((_, format, _, _, _), _)) => is_format format) (#best_slices (config ()) ctxt)
-    | NONE => false)
-  end
-
-val is_ho_atp = is_atp_of_format is_format_higher_order
 
 fun choose_type_enc strictness best_type_enc format =
   the_default best_type_enc
