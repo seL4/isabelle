@@ -38,7 +38,8 @@ since Isabelle2019). INCOMPATIBILITY, use \<open>cartouche\<close> syntax instea
   - Redesigned multithreading to provide more fine grained prover scheduled.
     The binary option 'slice' has been replaced by a numeric value 'slices'
     indicating the number of desired slices. Stronger provers can now be run by
-    more than one thread simultaneously. INCOMPATIBILITY.
+    more than one thread simultaneously. The new parameter 'max_proofs' controls
+    the number of proofs shown. INCOMPATIBILITY.
   - Introduced sledgehammer_outcome data type and changed return type of ML
     function Sledgehammer.run_sledgehammer from "bool * (string * string list)"
     to "bool * (sledgehammer_outcome * string)". The former value can be
