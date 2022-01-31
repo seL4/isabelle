@@ -37,7 +37,8 @@ ML_file \<open>Tools/Sledgehammer/sledgehammer_tactics.ML\<close>
 
 (*
 lemma "1 + 1 = 2 \<and> 0 + (x::nat) = x"
-  sledgehammer
+  sledgehammer [slices = 4]
+  oops
 *)
 
 (*

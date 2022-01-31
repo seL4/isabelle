@@ -316,8 +316,8 @@ fun prover_slices_of_schedule ctxt schedule =
     translate prover_slices schedule
   end
 
-fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_facts, ...}) mode
-    writeln_result i (fact_override as {only, ...}) state =
+fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_facts, slices, ...})
+    mode writeln_result i (fact_override as {only, ...}) state =
   if null provers then
     error "No prover is set"
   else
@@ -328,12 +328,14 @@ fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_fac
         val _ = Proof.assert_backward state
         val print = if mode = Normal andalso is_none writeln_result then writeln else K ()
 
-        val found_proof =
-          fn prover_name =>
-            if mode = Normal then
-              (writeln_result |> the_default writeln) (prover_name ^ " found a proof...")
-            else
-              ()
+        val proof_found = Synchronized.var "proof_found" false
+
+        fun found_proof prover_name =
+          if mode = Normal then
+(* ### Synchronized.change_result proof_found (rpair true) *)
+            (writeln_result |> the_default writeln) (prover_name ^ " found a proof...")
+          else
+            ()
 
         val ctxt = Proof.context_of state
         val inst_inducts = induction_rules = SOME Instantiate
@@ -393,9 +395,7 @@ fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_fac
               if mode = Auto_Try then
                 provers
               else
-                let val num_slices = 50 (* FIXME *) in
-                  schedule_of_provers provers num_slices
-                end
+                schedule_of_provers provers slices
             val prover_slices = prover_slices_of_schedule ctxt schedule
           in
             if mode = Auto_Try then
@@ -415,8 +415,7 @@ fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_fac
         |> `(fn (outcome, _) =>
           (case outcome of
             SH_Some _ => (print "QED"; true)
-          | SH_Timeout => (print "Timed out"; false)
-          | _ => (print "Done"; false)))
+          | _ => (print "Sorry"; false)))
       end)
 
 end;
