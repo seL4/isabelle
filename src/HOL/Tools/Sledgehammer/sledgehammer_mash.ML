@@ -1538,7 +1538,7 @@ fun relevant_facts ctxt (params as {verbose, learn, fact_filter, timeout, ...}) 
   if not (subset (op =) (the_list fact_filter, fact_filters)) then
     error ("Unknown fact filter: " ^ quote (the fact_filter))
   else if only then
-    [("", map fact_of_lazy_fact facts)]
+    [("", map fact_of_lazy_fact (take max_facts facts))]
   else if max_facts <= 0 orelse null facts then
     [("", [])]
   else

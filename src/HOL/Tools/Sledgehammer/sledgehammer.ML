@@ -136,13 +136,12 @@ fun play_one_line_proof minimize timeout used_facts state i (preferred_meth, met
   |> (fn (used_facts, (meth, play)) =>
         (used_facts |> filter_out (fn (_, (sc, _)) => sc = Chained), (meth, play)))
 
-fun launch_prover (params as {verbose, spy, max_facts, induction_rules, ...}) mode only learn
+fun launch_prover (params as {verbose, spy, ...}) mode learn
     (problem as {state, subgoal, factss, ...} : prover_problem) slice name =
   let
     val ctxt = Proof.context_of state
 
     val _ = spying spy (fn () => (state, subgoal, name, "Launched"))
-    val induction_rules = the_default Exclude induction_rules
 
     fun print_used_facts used_facts used_from =
       tag_list 1 used_from
@@ -212,9 +211,8 @@ fun check_expected_outcome ctxt prover_name expect outcome =
   let
     val outcome_code = short_string_of_sledgehammer_outcome outcome
   in
-    (* The "expect" argument is deliberately ignored if the prover is
-       missing so that the "Metis_Examples" can be processed on any
-       machine. *)
+    (* The "expect" argument is deliberately ignored if the prover is missing so that
+       "Metis_Examples" can be processed on any machine. *)
     if expect = "" orelse outcome_code = expect orelse
        not (is_prover_installed ctxt prover_name) then
       ()
@@ -222,14 +220,14 @@ fun check_expected_outcome ctxt prover_name expect outcome =
       error ("Unexpected outcome: " ^ quote outcome_code)
   end
 
-fun launch_prover_and_preplay (params as {debug, timeout, expect, ...}) mode writeln_result only
-    learn (problem as {state, subgoal, ...}) slice prover_name =
+fun launch_prover_and_preplay (params as {debug, timeout, expect, ...}) mode writeln_result learn
+    (problem as {state, subgoal, ...}) slice prover_name =
   let
     val ctxt = Proof.context_of state
     val hard_timeout = Time.scale 5.0 timeout
 
     fun really_go () =
-      launch_prover params mode only learn problem slice prover_name
+      launch_prover params mode learn problem slice prover_name
       |> preplay_prover_result params state subgoal
 
     fun go () =
@@ -255,8 +253,6 @@ fun launch_prover_and_preplay (params as {debug, timeout, expect, ...}) mode wri
   in
     (outcome, message)
   end
-
-val auto_try_max_facts_divisor = 2 (* FUDGE *)
 
 fun string_of_facts facts =
   "Including " ^ string_of_int (length facts) ^ " relevant fact" ^ plural_s (length facts) ^ ": " ^
@@ -313,12 +309,16 @@ fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_fac
               (case max_facts of
                 SOME n => n
               | NONE =>
-                0 |> fold (fn prover => Integer.max (fst (fst (get_default_slice ctxt prover))))
-                    provers
-                  |> mode = Auto_Try ? (fn n => n div auto_try_max_facts_divisor))
+                fold (fn prover => Integer.max (fst (fst (get_default_slice ctxt prover)))) provers
+                  0)
+
             val ({elapsed, ...}, factss) = Timing.timing
               (relevant_facts ctxt params (hd provers) max_max_facts fact_override hyp_ts concl_t)
               all_facts
+
+            val induction_rules = the_default (if only then Include else Exclude) induction_rules
+            val factss = map (apsnd (maybe_filter_out_induction_rules induction_rules)) factss
+
             val () = spying spy (fn () => (state, i, "All",
               "Filtering facts in " ^ string_of_int (Time.toMilliseconds elapsed) ^
               " ms (MaSh algorithm: " ^ str_of_mash_algorithm (the_mash_algorithm ()) ^ ")"));
@@ -335,7 +335,7 @@ fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_fac
               {comment = "", state = state, goal = goal, subgoal = i, subgoal_count = n,
                factss = get_factss provers, found_proof = found_proof}
             val learn = mash_learn_proof ctxt params (Thm.prop_of goal)
-            val launch = launch_prover_and_preplay params mode writeln_result only learn
+            val launch = launch_prover_and_preplay params mode writeln_result learn
           in
             if mode = Auto_Try then
               (SH_Unknown, "")
