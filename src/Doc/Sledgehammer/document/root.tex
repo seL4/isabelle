@@ -131,7 +131,7 @@ every newly entered theorem for a few seconds.
 \setbox\boxA=\hbox{\texttt{NOSPAM}}
 
 \newcommand\authoremail{\texttt{jasmin.blan{\color{white}NOSPAM}\kern-\wd\boxA{}chette@\allowbreak
-google.\allowbreak com}}
+gmail.\allowbreak com}}
 
 To run Sledgehammer, you must make sure that the theory \textit{Sledgehammer} is
 imported---this is rarely a problem in practice since it is part of
@@ -159,12 +159,12 @@ There are three main ways to install automatic provers on your machine:
 \begin{enum}
 \item[\labelitemi] If you installed an official Isabelle package, it should
 already include properly set up executables for CVC4, E, SPASS, Vampire, veriT,
-and Z3, ready to use.
+Z3, and Zipperposition ready to use.
 
 \item[\labelitemi] Alternatively, you can download the Isabelle-aware CVC4, E,
-SPASS, Vampire, veriT, and Z3 binary packages from \download. Extract the
-archives, then add a line to your \texttt{\$ISABELLE\_HOME\_USER\slash
-etc\slash components}%
+SPASS, Vampire, veriT, Z3, and Zipperposition binary packages from \download.
+Extract the archives, then add a line to your
+\texttt{\$ISABELLE\_HOME\_USER\slash etc\slash components}%
 \footnote{The variable \texttt{\$ISABELLE\_HOME\_USER} is set by Isabelle at
 startup. Its value can be retrieved by executing \texttt{isabelle}
 \texttt{getenv} \texttt{ISABELLE\_HOME\_USER} on the command line.}
@@ -179,17 +179,17 @@ file with the absolute path to the prover. For example, if the
 in it.
 
 \item[\labelitemi] If you prefer to build agsyHOL, Alt-Ergo, E, LEO-II,
-Leo-III, or Satallax manually, set the environment variable
+Leo-III, Satallax, or Zipperposition manually, set the environment variable
 \texttt{AGSYHOL\_HOME}, \texttt{E\_HOME}, \texttt{LEO2\_HOME},
-\texttt{LEO3\_HOME}, or \texttt{SATALLAX\_HOME}
+\texttt{LEO3\_HOME}, \texttt{SATALLAX\_HOME}, or \texttt{ZIPPERPOSITION\_HOME}
 to the directory that contains the \texttt{agsyHOL},
-\texttt{eprover} (and/or \texttt{eproof} or \texttt{eproof\_ram}),
-\texttt{leo}, \texttt{leo3}, or \texttt{satallax} executable;
-for Alt-Ergo, set the environment variable \texttt{WHY3\_HOME} to the
+\texttt{eprover} (or \texttt{eprover-ho}),
+\texttt{leo}, \texttt{leo3}, \texttt{satallax}, or \texttt{zipperposition}
+executable; for Alt-Ergo, set the environment variable \texttt{WHY3\_HOME} to the
 directory that contains the \texttt{why3} executable. Ideally, you
 should also set \texttt{E\_VERSION}, \texttt{LEO2\_VERSION},
-\texttt{LEO3\_VERSION}, or \texttt{SATALLAX\_VERSION} to the prover's version
-number (e.g., ``3.6'').
+\texttt{LEO3\_VERSION}, \texttt{SATALLAX\_VERSION}, or
+\texttt{ZIPPERPOSITION\_VERSION} to the prover's version number (e.g., ``3.6'').
 
 Similarly, if you want to install CVC4, veriT, or Z3, set the environment
 variable \texttt{CVC4\_\allowbreak SOLVER}, \texttt{ISABELLE\_\allowbreak VERIT},
@@ -215,7 +215,7 @@ attempt to prove a simple lemma:
 
 \prew
 \textbf{theory}~\textit{Scratch} \\
-\textbf{imports}~\textit{Main} \\
+\noindent\hbox{}\quad \textbf{imports}~\textit{Main} \\
 \textbf{begin} \\[2\smallskipamount]
 %
 \textbf{lemma} ``$[a] = [b] \,\Longrightarrow\, a = b$'' \\
@@ -228,20 +228,20 @@ the following output after a few seconds:
 
 \prew
 \slshape
-Proof found\ldots \\
-``\textit{e\/}'': Try this: \textbf{by} \textit{simp} (0.3 ms) \\
-%
-``\textit{cvc4\/}'': Try this: \textbf{by} \textit{simp} (0.4 ms) \\
-%
-``\textit{z3\/}'': Try this: \textbf{by} \textit{simp} (0.5 ms) \\
-%
-``\textit{vampire\/}'': Try this: \textbf{by} \textit{simp} (0.3 ms)
-%
+e found a proof\ldots \\
+cvc4 found a proof\ldots \\
+z3 found a proof\ldots \\
+vampire found a proof\ldots \\
+e: Try this: \textbf{by} \textit{simp} (0.3 ms) \\
+cvc4: Try this: \textbf{by} \textit{simp} (0.4 ms) \\
+z3: Try this: \textbf{by} \textit{simp} (0.5 ms) \\
+vampire: Try this: \textbf{by} \textit{simp} (0.3 ms) \\
+QED
 \postw
 
-Sledgehammer ran CVC4, E, Vampire, and Z3 in parallel. This list may vary
-depending on which provers are installed and how many processor cores are
-available.
+Sledgehammer ran CVC4, E, Vampire, Z3, and possibly other provers in parallel.
+The list may vary depending on which provers are installed and how many
+processor cores are available.
 
 For each successful prover, Sledgehammer gives a one-line Isabelle proof. Rough
 timings are shown in parentheses, indicating how fast the call is. You can
@@ -267,7 +267,7 @@ Sledgehammer. Frequently asked questions are answered in
 \S\ref{frequently-asked-questions}.
 
 %\newcommand\point[1]{\medskip\par{\sl\bfseries#1}\par\nopagebreak}
-\newcommand\point[1]{\subsection{\emph{#1}}}
+\newcommand\point[1]{\subsection{\slshape #1}}
 
 
 \point{Presimplify the goal}
@@ -279,8 +279,7 @@ Sledgehammer does not use it yet). Apart from Waldmeister, they are not
 particularly good at heavy rewriting, but because they regard equations as
 undirected, they often prove theorems that require the reverse orientation of a
 \textit{simp} rule. Higher-order problems can be tackled, but the success rate
-is better for first-order problems. Hence, you may get better results if you
-first simplify the problem to remove higher-order features.
+is better for first-order problems.
 
 
 \point{Familiarize yourself with the main options}
@@ -292,10 +291,8 @@ familiarize themselves with the following options:
 \begin{enum}
 \item[\labelitemi] \textbf{\textit{provers}} (\S\ref{mode-of-operation}) specifies
 the automatic provers (ATPs and SMT solvers) that should be run whenever
-Sledgehammer is invoked (e.g., ``\textit{provers}~= \textit{cvc4 e spass
-vampire\/}''). For convenience, you can omit ``\textit{provers}~=''
-and simply write the prover names as a space-separated list (e.g., ``\textit{cvc4 e
-spass vampire\/}'').
+Sledgehammer is invoked (e.g., ``\textit{provers}~= \textit{cvc4 e
+vampire zipperposition\/}'').
 
 \item[\labelitemi] \textbf{\textit{max\_facts}} (\S\ref{relevance-filter})
 specifies the maximum number of facts that should be passed to the provers. By
@@ -304,9 +301,9 @@ the provers time out, you can try lowering this value to, say, 25 or 50 and see
 if that helps.
 
 \item[\labelitemi] \textbf{\textit{isar\_proofs}} (\S\ref{output-format}) specifies
-that Isar proofs should be generated, in addition to one-line \textit{metis} or
-\textit{smt} proofs. The length of the Isar proofs can be controlled by setting
-\textit{compress} (\S\ref{output-format}).
+that Isar proofs should be generated, in addition to one-line proofs. The length
+of the Isar proofs can be controlled by setting \textit{compress}
+(\S\ref{output-format}).
 
 \item[\labelitemi] \textbf{\textit{timeout}} (\S\ref{timeouts}) controls the
 provers' time limit. It is set to 30 seconds by default.
@@ -326,15 +323,14 @@ chained into the goal).
 
 This sections answers frequently (and infrequently) asked questions about
 Sledgehammer. It is a good idea to skim over it now even if you do not have any
-questions at this stage. And if you have any further questions not listed here,
-send them to the author at \authoremail.
+questions at this stage.
 
 
 \point{Which facts are passed to the automatic provers?}
 
-Sledgehammer heuristically selects a few hundred relevant lemmas from the
-currently loaded libraries. The component that performs this selection is
-called \emph{relevance filter} (\S\ref{relevance-filter}).
+Sledgehammer heuristically selects a subset of lemmas from the currently loaded
+libraries. The component that performs this selection is called \emph{relevance
+filter} (\S\ref{relevance-filter}).
 
 \begin{enum}
 \item[\labelitemi]
@@ -370,7 +366,7 @@ number of facts, by setting the \textit{max\_facts} option
 
 You can also influence which facts are actually selected in a number of ways. If
 you simply want to ensure that a fact is included, you can specify it using the
-``$(\textit{add}{:}~\textit{my\_facts})$'' syntax. For example:
+syntax ``$(\textit{add}{:}~\textit{my\_facts})$''. For example:
 %
 \prew
 \textbf{sledgehammer} (\textit{add}: \textit{hd.simps} \textit{tl.simps})
@@ -387,14 +383,8 @@ the facts via \textbf{using}:
 \postw
 %
 The facts are then more likely to be selected than otherwise, and if they are
-selected at iteration $j$ they also influence which facts are selected at
-iterations $j + 1$, $j + 2$, etc. To give them even more weight, try
-%
-\prew
-\textbf{using} \textit{hd.simps} \textit{tl.simps} \\
-\textbf{apply}~\textbf{--} \\
-\textbf{sledgehammer}
-\postw
+selected at a given iteration of MePo, they also influence which facts are
+selected at subsequent iterations.
 
 
 \point{Why does Metis fail to reconstruct the proof?}
@@ -402,18 +392,13 @@ iterations $j + 1$, $j + 2$, etc. To give them even more weight, try
 There are many reasons. If Metis runs seemingly forever, that is a sign that the
 proof is too difficult for it. Metis's search is complete for first-order logic
 with equality, so if the proof was found by a superposition-based ATP such as
-E, SPASS, or Vampire, Metis should eventually find it, but that is little
-consolation.
+E, SPASS, or Vampire, Metis should \emph{eventually} find it---in principle.
 
 In some rare cases, \textit{metis} fails fairly quickly, and you get the error
 message ``One-line proof reconstruction failed.'' This indicates that
 Sledgehammer determined that the goal is provable, but the proof is, for
 technical reasons, beyond \textit{metis}'s power. You can then try again with
 the \textit{strict} option (\S\ref{problem-encoding}).
-
-If the goal is actually unprovable and you did not specify an unsound encoding
-using \textit{type\_enc} (\S\ref{problem-encoding}), this is a bug, and you are
-strongly encouraged to report this to the author at \authoremail.
 
 
 \point{What are the \textit{full\_types}, \textit{no\_types}, and \\
@@ -424,7 +409,7 @@ and its cousin \textit{metis}~(\textit{mono\_tags}) are fully-typed
 versions of Metis. It is somewhat slower than \textit{metis}, but the proof
 search is fully typed, and it also includes more powerful rules such as the
 axiom ``$x = \const{True} \mathrel{\lor} x = \const{False}$'' for reasoning in
-higher-order places (e.g., in set comprehensions). The method is tried as a
+higher-order positions (e.g., in set comprehensions). The method is tried as a
 fallback when \textit{metis} fails, and it is sometimes generated by
 Sledgehammer instead of \textit{metis} if the proof obviously requires type
 information or if \textit{metis} failed when Sledgehammer preplayed the proof.
@@ -454,8 +439,7 @@ Orthogonally to the encoding of types, it is important to choose an appropriate
 translation of $\lambda$-abstractions. Metis supports three translation
 schemes, in decreasing order of power: Curry combinators (the default),
 $\lambda$-lifting, and a ``hiding'' scheme that disables all reasoning under
-$\lambda$-abstractions. The more powerful schemes also give the automatic
-provers more rope to hang themselves. See the \textit{lam\_trans} option
+$\lambda$-abstractions. See the \textit{lam\_trans} option
 (\S\ref{problem-encoding}) for details.
 
 
@@ -465,7 +449,7 @@ Automatic provers frequently use many more facts than are necessary.
 Sledgehammer includes a proof minimization tool that takes a set of facts returned by
 a given prover and repeatedly calls a prover or proof method with subsets of
 those facts to find a minimal set. Reducing the number of facts typically helps
-reconstruction, while decluttering the proof scripts.
+reconstruction and declutters the proof documents.
 
 
 \point{A strange error occurred---what should I do?}
@@ -712,8 +696,8 @@ the environment variable \texttt{LEO2\_HOME} to the directory that contains the
 \texttt{leo} executable.
 
 \item[\labelitemi] \textbf{\textit{leo3}:} Leo-III is an automatic
-higher-order prover developed by Alexander Steen, Max Wisniewski, Christoph
-Benzm\"uller et al.\ \cite{leo3},
+higher-order prover developed by Alexander Steen, Christoph Benzm\"uller,
+et al.\ \cite{leo3},
 with support for the TPTP typed higher-order syntax (TH0). To use Leo-III, set
 the environment variable \texttt{LEO3\_HOME} to the directory that contains the
 \texttt{leo3} executable.
@@ -1238,10 +1222,14 @@ Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
 
   Options are:
     -A ACTION    add to list of actions
-    -O DIR       output directory for log files (default: "mirabelle")
-    -T THEORY    theory restriction: NAME or NAME[FIRST_LINE:LAST_LINE]
-    -m INT       max. no. of calls to each action (0: unbounded) (default 0)
-    -s INT       run actions on every nth goal (0: uniform distribution) (default 1)
+    -O DIR       output directory for log files (default:
+      "mirabelle")
+    -T THEORY    theory restriction: NAME or
+      NAME[FIRST_LINE:LAST_LINE]
+    -m INT       max. no. of calls to each action (0: unbounded)
+      (default 0)
+    -s INT       run actions on every nth goal (0: uniform
+      distribution) (default 1)
     -t SECONDS   timeout in seconds for each action (default 30)
     ...
 
@@ -1272,7 +1260,7 @@ Option \texttt{-m INT} specifies a maximum number of goals on which the action
 are run.
 
 Option \texttt{-s INT} specifies a stride, effectively running the actions on
-every n$^{th}$ goal.
+every $n$th goal.
 
 Option \texttt{-t SECONDS} specifies a generic timeout that the actions may
 interpret differently.
