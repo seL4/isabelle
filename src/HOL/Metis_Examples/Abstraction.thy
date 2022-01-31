@@ -8,14 +8,14 @@ Example featuring Metis's support for lambda-abstractions.
 section \<open>Example Featuring Metis's Support for Lambda-Abstractions\<close>
 
 theory Abstraction
-imports "HOL-Library.FuncSet"
+  imports "HOL-Library.FuncSet"
 begin
 
 (* For Christoph Benzmüller *)
 lemma "x < 1 \<and> ((=) = (=)) \<Longrightarrow> ((=) = (=)) \<and> x < (2::nat)"
 by (metis nat_1_add_1 trans_less_add2)
 
-lemma "((=) ) = (\<lambda>x y. y = x)"
+lemma "(=) = (\<lambda>x y. y = x)"
 by metis
 
 consts

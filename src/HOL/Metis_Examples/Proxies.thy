@@ -14,8 +14,8 @@ theory Proxies
 imports Type_Encodings
 begin
 
-sledgehammer_params [prover = spass, fact_filter = mepo, timeout = 30, preplay_timeout = 0,
-  dont_minimize]
+sledgehammer_params [prover = spass, fact_filter = mepo, slices = 1, timeout = 30,
+  preplay_timeout = 0, dont_minimize]
 
 text \<open>Extensionality and set constants\<close>
 
