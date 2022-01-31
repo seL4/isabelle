@@ -103,13 +103,6 @@ fun is_dangerous_prop ctxt =
   transform_elim_prop
   #> (has_bound_or_var_of_type (is_type_surely_finite ctxt) orf is_exhaustive_finite)
 
-fun get_slices slice slices =
-  map_index I slices |> slice = Time.zeroTime ? (List.last #> single)
-
-(* For low values of "max_facts", this fudge value ensures that most slices are invoked with a
-   nontrivial amount of facts. *)
-val max_fact_factor_fudge = 5
-
 val mono_max_privileged_facts = 10
 
 fun suffix_of_mode Auto_Try = "_try"
@@ -118,16 +111,13 @@ fun suffix_of_mode Auto_Try = "_try"
   | suffix_of_mode MaSh = ""
   | suffix_of_mode Minimize = "_min"
 
-(* Give the ATPs some slack before interrupting them the hard way. *)
-val atp_timeout_slack = seconds 1.0
-
 (* Important messages are important but not so important that users want to see them each time. *)
 val atp_important_message_keep_quotient = 25
 
 fun run_atp mode name
     ({debug, verbose, overlord, type_enc, strict, lam_trans, uncurried_aliases, max_facts,
-      max_mono_iters, max_new_mono_instances, isar_proofs, compress, try0, smt_proofs, slice,
-      minimize, timeout, preplay_timeout, spy, ...} : params)
+      max_mono_iters, max_new_mono_instances, isar_proofs, compress, try0, smt_proofs, minimize,
+      slice, timeout, preplay_timeout, spy, ...} : params)
     ({comment, state, goal, subgoal, subgoal_count, facts, found_proof, ...} : prover_problem) =
   let
     val thy = Proof.theory_of state
@@ -180,17 +170,9 @@ fun run_atp mode name
 
     fun run () =
       let
-        (* If slicing is disabled, we expand the last slice to fill the entire time available. *)
-        val all_slices = best_slices ctxt
-        val actual_slices = get_slices slice all_slices
-
-        fun max_facts_of_slices (slices : (real * (slice_spec * string)) list) =
-          fold (Integer.max o fst o #1 o fst o snd) slices 0
-
-        val num_actual_slices = length actual_slices
-        val max_fact_factor =
-          Real.fromInt (case max_facts of NONE => max_facts_of_slices all_slices | SOME max => max)
-          / Real.fromInt (max_facts_of_slices (map snd actual_slices))
+        val (_, (((best_max_facts, _), format, best_type_enc, best_lam_trans,
+            best_uncurried_aliases), extra)) =
+          List.last (best_slices ctxt)
 
         fun monomorphize_facts facts =
           let
@@ -213,139 +195,91 @@ fun run_atp mode name
             |> maps (fn (name, rths) => map (pair name o zero_var_indexes o snd) rths)
           end
 
-        val real_ms = Real.fromInt o Time.toMilliseconds
-        (* TODO: replace this seems-to-work per-slice overhead with actually-measured value *)
-        val slices_overhead_ms = Int.max (0, num_actual_slices * 25)
-        val slices_timeout_ms = real (Time.toMilliseconds timeout - slices_overhead_ms)
-
-        fun run_slice time_left (cache_key, cache_value) (slice, (time_frac,
-            (key as ((best_max_facts, _ (* best_fact_filter *)), format, best_type_enc,
-               best_lam_trans, best_uncurried_aliases),
-             extra))) =
+        val facts = snd facts
+        val num_facts =
+          (case max_facts of
+            NONE => best_max_facts
+          | SOME max_facts => max_facts)
+          |> Integer.min (length facts)
+        val strictness = if strict then Strict else Non_Strict
+        val type_enc = type_enc |> choose_type_enc strictness best_type_enc format
+        val run_timeout = if slice = Time.zeroTime then timeout else slice
+        val generous_run_timeout = if mode = MaSh then one_day else run_timeout
+        val ({elapsed, ...}, atp_problem_data as (atp_problem, _, _, _)) = Timing.timing (fn () =>
           let
-            val facts = snd facts
-            val num_facts =
-              Real.ceil (max_fact_factor * Real.fromInt best_max_facts) + max_fact_factor_fudge
-              |> Integer.min (length facts)
-            val strictness = if strict then Strict else Non_Strict
-            val type_enc = type_enc |> choose_type_enc strictness best_type_enc format
-            val slice_timeout =
-              (real_ms time_left
-               |> (if slice < num_actual_slices - 1 then
-                     curry Real.min (time_frac * slices_timeout_ms)
-                   else
-                     I))
-              * 0.001
-              |> seconds
-            val generous_slice_timeout =
-              if mode = MaSh then one_day else slice_timeout + atp_timeout_slack
-            val _ =
-              if debug then
-                quote name ^ " slice #" ^ string_of_int (slice + 1) ^
-                " with " ^ string_of_int num_facts ^ " fact" ^
-                plural_s num_facts ^ " for " ^ string_of_time slice_timeout ^ "..."
-                |> writeln
-              else
-                ()
-            val ({elapsed, ...}, value as (atp_problem, _, _, _)) = Timing.timing (fn () =>
-              if cache_key = SOME key then
-                cache_value
-              else
-                let
-                  val sound = is_type_enc_sound type_enc
-                  val generate_info = (case format of DFG _ => true | _ => false)
-                  val readable_names = not (Config.get ctxt atp_full_names)
-                  val lam_trans = lam_trans |> the_default best_lam_trans
-                  val uncurried_aliases = uncurried_aliases |> the_default best_uncurried_aliases
-                in
-                  facts
-                  |> not sound ? filter_out (is_dangerous_prop ctxt o Thm.prop_of o snd)
-                  |> take num_facts
-                  |> not (is_type_enc_polymorphic type_enc) ? monomorphize_facts
-                  |> map (apsnd Thm.prop_of)
-                  |> generate_atp_problem ctxt generate_info format prem_role type_enc atp_mode
-                    lam_trans uncurried_aliases readable_names true hyp_ts concl_t
-                end) ()
-
-            val () = spying spy (fn () =>
-              (state, subgoal, name, "Slice #" ^ string_of_int (slice + 1) ^
-               " generating ATP problem in " ^ string_of_int (Time.toMilliseconds elapsed) ^ " ms"))
-
-            fun sel_weights () = atp_problem_selection_weights atp_problem
-            fun ord_info () = atp_problem_term_order_info atp_problem
-
-            val ord = effective_term_order ctxt name
-            val args =
-              arguments ctxt full_proofs extra slice_timeout prob_path (ord, ord_info, sel_weights)
-            val command = space_implode " " (File.bash_path executable :: args)
-
-            fun run_command () =
-              if exec = isabelle_scala_function then
-                let val {output, timing} = SystemOnTPTP.run_system_encoded args
-                in (output, timing) end
-              else
-                let val res = Isabelle_System.bash_process (Bash.script command |> Bash.redirect)
-                in (Process_Result.out res, Process_Result.timing_elapsed res) end
-
-            val _ =
-              atp_problem
-              |> lines_of_atp_problem format ord ord_info
-              |> (exec <> isabelle_scala_function) ?
-                cons ("% " ^ command ^ "\n" ^ (if comment = "" then "" else "% " ^ comment ^ "\n"))
-              |> File.write_list prob_path
-
-            val ((output, run_time), (atp_proof, outcome)) =
-              Timeout.apply generous_slice_timeout run_command ()
-              |>> overlord ?
-                (fn output => prefix ("% " ^ command ^ "\n% " ^ timestamp () ^ "\n") output)
-              |> (fn accum as (output, _) =>
-                (accum,
-                 extract_tstplike_proof_and_outcome verbose proof_delims known_failures output
-                 |>> atp_proof_of_tstplike_proof (perhaps (try (unprefix remote_prefix)) name)
-                   atp_problem
-                 handle UNRECOGNIZED_ATP_PROOF () => ([], SOME ProofUnparsable)))
-              handle Timeout.TIMEOUT _ => (("", slice_timeout), ([], SOME TimedOut))
-                | ERROR msg => (("", Time.zeroTime), ([], SOME (UnknownError msg)))
-
-            val () = spying spy (fn () =>
-              (state, subgoal, name, "Slice #" ^ string_of_int (slice + 1) ^
-               " running command in " ^ string_of_int (Time.toMilliseconds run_time) ^ " ms"))
-
-            val outcome =
-              (case outcome of
-                NONE =>
-                (case used_facts_in_unsound_atp_proof ctxt (map fst facts) atp_proof of
-                  SOME facts =>
-                  let
-                    val failure = UnsoundProof (is_type_enc_sound type_enc, sort string_ord facts)
-                  in
-                    if debug then (warning (string_of_atp_failure failure); NONE) else SOME failure
-                  end
-                | NONE => (found_proof (); NONE))
-              | _ => outcome)
+            val sound = is_type_enc_sound type_enc
+            val generate_info = (case format of DFG _ => true | _ => false)
+            val readable_names = not (Config.get ctxt atp_full_names)
+            val lam_trans = lam_trans |> the_default best_lam_trans
+            val uncurried_aliases = uncurried_aliases |> the_default best_uncurried_aliases
           in
-            ((SOME key, value), (output, run_time, facts, atp_proof, outcome),
-              SOME (format, type_enc))
-          end
+            facts
+            |> not sound ? filter_out (is_dangerous_prop ctxt o Thm.prop_of o snd)
+            |> take num_facts
+            |> not (is_type_enc_polymorphic type_enc) ? monomorphize_facts
+            |> map (apsnd Thm.prop_of)
+            |> generate_atp_problem ctxt generate_info format prem_role type_enc atp_mode
+              lam_trans uncurried_aliases readable_names true hyp_ts concl_t
+          end) ()
 
-        val timer = Timer.startRealTimer ()
+        val () = spying spy (fn () =>
+          (state, subgoal, name, "Generating ATP problem in " ^
+             string_of_int (Time.toMilliseconds elapsed) ^ " ms"))
 
-        fun maybe_run_slice slice (result as (cache, (_, run_time0, _, _, SOME _), _)) =
-            let val time_left = timeout - Timer.checkRealTimer timer in
-              if time_left <= Time.zeroTime then
-                result
-              else
-                run_slice time_left cache slice
-                |> (fn (cache, (output, run_time, used_from, atp_proof, outcome),
-                        format_type_enc) =>
-                  (cache, (output, run_time0 + run_time, used_from, atp_proof, outcome),
-                   format_type_enc))
-            end
-          | maybe_run_slice _ result = result
+        fun sel_weights () = atp_problem_selection_weights atp_problem
+        fun ord_info () = atp_problem_term_order_info atp_problem
+
+        val ord = effective_term_order ctxt name
+        val args = arguments ctxt full_proofs extra run_timeout prob_path
+          (ord, ord_info, sel_weights)
+        val command = space_implode " " (File.bash_path executable :: args)
+
+        fun run_command () =
+          if exec = isabelle_scala_function then
+            let val {output, timing} = SystemOnTPTP.run_system_encoded args
+            in (output, timing) end
+          else
+            let val res = Isabelle_System.bash_process (Bash.script command |> Bash.redirect)
+            in (Process_Result.out res, Process_Result.timing_elapsed res) end
+
+        val _ =
+          atp_problem
+          |> lines_of_atp_problem format ord ord_info
+          |> (exec <> isabelle_scala_function) ?
+            cons ("% " ^ command ^ "\n" ^ (if comment = "" then "" else "% " ^ comment ^ "\n"))
+          |> File.write_list prob_path
+
+        val ((output, run_time), (atp_proof, outcome)) =
+          Timeout.apply generous_run_timeout run_command ()
+          |>> overlord ?
+            (fn output => prefix ("% " ^ command ^ "\n% " ^ timestamp () ^ "\n") output)
+          |> (fn accum as (output, _) =>
+            (accum,
+             extract_tstplike_proof_and_outcome verbose proof_delims known_failures output
+             |>> atp_proof_of_tstplike_proof (perhaps (try (unprefix remote_prefix)) name)
+               atp_problem
+             handle UNRECOGNIZED_ATP_PROOF () => ([], SOME ProofUnparsable)))
+          handle Timeout.TIMEOUT _ => (("", run_timeout), ([], SOME TimedOut))
+            | ERROR msg => (("", Time.zeroTime), ([], SOME (UnknownError msg)))
+
+        val () = spying spy (fn () =>
+          (state, subgoal, name, "Running command in " ^
+             string_of_int (Time.toMilliseconds run_time) ^ " ms"))
+
+        val outcome =
+          (case outcome of
+            NONE =>
+            (case used_facts_in_unsound_atp_proof ctxt (map fst facts) atp_proof of
+              SOME facts =>
+              let
+                val failure = UnsoundProof (is_type_enc_sound type_enc, sort string_ord facts)
+              in
+                if debug then (warning (string_of_atp_failure failure); NONE) else SOME failure
+              end
+            | NONE => (found_proof (); NONE))
+          | _ => outcome)
       in
-        ((NONE, ([], Symtab.empty, [], Symtab.empty)),
-         ("", Time.zeroTime, [], [], SOME InternalError), NONE)
-        |> fold maybe_run_slice actual_slices
+        (atp_problem_data, (output, run_time, facts, atp_proof, outcome), (format, type_enc))
       end
 
     (* If the problem file has not been exported, remove it; otherwise, export
@@ -367,8 +301,8 @@ fun run_atp mode name
           error ("No such directory: " ^ quote proof_dest_dir)
       end
 
-    val ((_, (_, pool, lifted, sym_tab)), (output, run_time, used_from, atp_proof, outcome),
-         SOME (format, type_enc)) =
+    val ((_, pool, lifted, sym_tab), (output, run_time, used_from, atp_proof, outcome),
+         (format, type_enc)) =
       with_cleanup clean_up run () |> tap export
 
     val important_message =
