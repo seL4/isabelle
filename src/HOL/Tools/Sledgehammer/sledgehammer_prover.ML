@@ -194,7 +194,7 @@ fun proof_banner mode prover_name =
   (case mode of
     Auto_Try => "Auto Sledgehammer (" ^ prover_name ^ ") found a proof: "
   | Try => "Sledgehammer (" ^ prover_name ^ ") found a proof: "
-  | _ => "")
+  | _ => "Try this: ")
 
 fun bunches_of_proof_methods ctxt try0 smt_proofs needs_full_types desperate_lam_trans =
   let

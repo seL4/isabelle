@@ -38,7 +38,7 @@ open Sledgehammer_Prover
 val smt_builtins = Attrib.setup_config_bool \<^binding>\<open>sledgehammer_smt_builtins\<close> (K true)
 val smt_triggers = Attrib.setup_config_bool \<^binding>\<open>sledgehammer_smt_triggers\<close> (K true)
 
-val smts = SMT_Config.all_solvers_of
+val smts = sort_strings o SMT_Config.all_solvers_of
 
 val is_smt_prover = member (op =) o smts
 val is_smt_prover_installed = member (op =) o SMT_Config.available_solvers_of

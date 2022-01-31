@@ -252,9 +252,12 @@ fun launch_prover_and_preplay (params as {debug, timeout, expect, ...}) mode wri
 
     val message = message ()
     val () =
-      (case outcome of
-        SH_Some _ => the_default writeln writeln_result (prover_name ^ ": " ^ message)
-      | _ => ())
+      if mode = Auto_Try then
+        ()
+      else
+        (case outcome of
+          SH_Some _ => the_default writeln writeln_result (prover_name ^ ": " ^ message)
+        | _ => ())
   in
     (outcome, message)
   end
@@ -452,7 +455,7 @@ fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_fac
         |> `(fn (outcome, _) =>
           (case outcome of
             SH_Some _ => (print "QED"; true)
-          | _ => (print "Sorry"; false)))
+          | _ => (print "No proof found"; false)))
       end)
 
 end;

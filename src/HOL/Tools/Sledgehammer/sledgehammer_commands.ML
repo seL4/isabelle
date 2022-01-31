@@ -170,7 +170,7 @@ fun remotify_prover_if_supported_and_not_already_remote ctxt name =
 
 (* The first ATP of the list is used by Auto Sledgehammer. *)
 fun default_provers_param_value ctxt =
-  filter (is_prover_installed ctxt) (atps @ smts ctxt) \<comment> \<open>see also \<^system_option>\<open>sledgehammer_provers\<close>\<close>
+  filter (is_prover_installed ctxt) (smts ctxt @ atps) \<comment> \<open>see also \<^system_option>\<open>sledgehammer_provers\<close>\<close>
   |> implode_param
 
 fun set_default_raw_param param thy =
@@ -261,7 +261,7 @@ fun extract_params mode default_params override_params =
     val compress = Option.map (curry Real.max 1.0) (lookup_option lookup_real "compress")
     val try0 = lookup_bool "try0"
     val smt_proofs = lookup_bool "smt_proofs"
-    val minimize = lookup_bool "minimize"
+    val minimize = mode <> Auto_Try andalso lookup_bool "minimize"
     val slices = if mode = Auto_Try then 1 else Int.max (1, lookup_int "slices")
     val timeout = lookup_time "timeout"
     val preplay_timeout = lookup_time "preplay_timeout"
