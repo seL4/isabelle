@@ -58,7 +58,7 @@ sig
      subgoal : int,
      subgoal_count : int,
      facts : string * fact list,
-     found_proof : unit -> unit}
+     found_proof : string -> unit}
 
   type prover_result =
     {outcome : atp_failure option,
@@ -186,7 +186,7 @@ type prover_problem =
    subgoal : int,
    subgoal_count : int,
    facts : string * fact list,
-   found_proof : unit -> unit}
+   found_proof : string -> unit}
 
 type prover_result =
   {outcome : atp_failure option,
@@ -200,10 +200,10 @@ type prover = params -> prover_problem -> prover_result
 
 fun overlord_file_location_of_prover prover = (getenv "ISABELLE_HOME_USER", "prob_" ^ prover)
 
-fun proof_banner mode name =
+fun proof_banner mode prover_name =
   (case mode of
-    Auto_Try => "Auto Sledgehammer (" ^ quote name ^ ") found a proof"
-  | Try => "Sledgehammer (" ^ quote name ^ ") found a proof"
+    Auto_Try => "Auto Sledgehammer (" ^ prover_name ^ ") found a proof"
+  | Try => "Sledgehammer (" ^ prover_name ^ ") found a proof"
   | _ => "Try this")
 
 fun bunches_of_proof_methods ctxt try0 smt_proofs needs_full_types desperate_lam_trans =

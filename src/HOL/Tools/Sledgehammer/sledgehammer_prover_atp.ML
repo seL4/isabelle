@@ -106,7 +106,7 @@ fun run_atp mode name
     ({debug, verbose, overlord, type_enc, strict, lam_trans, uncurried_aliases, max_facts,
       max_mono_iters, max_new_mono_instances, isar_proofs, compress, try0, smt_proofs, minimize,
       slice, timeout, preplay_timeout, spy, ...} : params)
-    ({comment, state, goal, subgoal, subgoal_count, facts, found_proof, ...} : prover_problem) =
+    ({comment, state, goal, subgoal, subgoal_count, facts, found_proof} : prover_problem) =
   let
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
@@ -264,7 +264,7 @@ fun run_atp mode name
               in
                 if debug then (warning (string_of_atp_failure failure); NONE) else SOME failure
               end
-            | NONE => (found_proof (); NONE))
+            | NONE => (found_proof name; NONE))
           | _ => outcome)
       in
         (atp_problem_data, (output, run_time, facts, atp_proof, outcome), (format, type_enc))

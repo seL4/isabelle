@@ -129,7 +129,7 @@ fun run_smt_solver mode name (params as {debug, verbose, isar_proofs, compress, 
       (case outcome of
         NONE =>
         let
-          val _ = found_proof ();
+          val _ = found_proof name;
           val preferred =
             if smt_proofs then
               SMT_Method (if name = "verit" then SMT_Verit "default" else SMT_Z3)

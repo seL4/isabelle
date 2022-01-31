@@ -19,7 +19,11 @@ sig
   type prover_problem = Sledgehammer_Prover.prover_problem
   type prover_result = Sledgehammer_Prover.prover_result
 
-  datatype sledgehammer_outcome = SH_Some of prover_result | SH_Unknown | SH_Timeout | SH_None
+  datatype sledgehammer_outcome =
+    SH_Some of prover_result
+  | SH_Unknown
+  | SH_Timeout
+  | SH_None
 
   val short_string_of_sledgehammer_outcome : sledgehammer_outcome -> string
 
@@ -47,10 +51,11 @@ open Sledgehammer_Prover_ATP
 open Sledgehammer_Prover_Minimize
 open Sledgehammer_MaSh
 
-datatype sledgehammer_outcome = SH_Some of prover_result | SH_Unknown | SH_Timeout | SH_None
-
-fun is_sledgehammer_outcome_some (SH_Some _) = true
-  | is_sledgehammer_outcome_some _ = false
+datatype sledgehammer_outcome =
+  SH_Some of prover_result
+| SH_Unknown
+| SH_Timeout
+| SH_None
 
 fun short_string_of_sledgehammer_outcome (SH_Some _) = "some"
   | short_string_of_sledgehammer_outcome SH_Unknown = "unknown"
@@ -64,18 +69,17 @@ fun alternative f (SOME x) (SOME y) = SOME (f (x, y))
 
 fun max_outcome outcomes =
   let
-    val some = find_first (fn (SH_Some _, _) => true | _ => false) outcomes
+    val result = find_first (fn (SH_Some _, _) => true | _ => false) outcomes
     val unknown = find_first (fn (SH_Unknown, _) => true | _ => false) outcomes
     val timeout = find_first (fn (SH_Timeout, _) => true | _ => false) outcomes
     val none = find_first (fn (SH_None, _) => true | _ => false) outcomes
   in
-    some
+    result
     |> alternative snd unknown
     |> alternative snd timeout
     |> alternative snd none
     |> the_default (SH_Unknown, "")
   end
-
 
 fun is_metis_method (Metis_Method _) = true
   | is_metis_method _ = false
@@ -156,7 +160,7 @@ fun launch_prover (params as {verbose, spy, max_facts, induction_rules, ...}) mo
       |> filter_used_facts false used_facts
       |> map (fn ((name, _), j) => name ^ "@" ^ string_of_int j)
       |> commas
-      |> prefix ("Fact" ^ plural_s num_facts ^ " in " ^ quote name ^
+      |> prefix ("Fact" ^ plural_s num_facts ^ " in " ^ name ^
         " proof (of " ^ string_of_int num_facts ^ "): ")
       |> writeln
 
@@ -256,10 +260,10 @@ fun launch_prover_and_preplay (params as {debug, timeout, expect, ...}) mode wri
 
     val message = message ()
     val () =
-      if mode <> Auto_Try andalso is_sledgehammer_outcome_some outcome orelse mode = Normal then
-        the_default writeln writeln_result (quote prover_name ^ ": " ^ message)
-      else
-        ()
+      (case outcome of
+        SH_Some _ =>
+        the_default writeln writeln_result (prover_name ^ ": " ^ message)
+      | _ => ())
   in
     (outcome, message)
   end
@@ -275,7 +279,7 @@ fun string_of_factss factss =
     "Found no relevant facts"
   else
     cat_lines (map (fn (filter, facts) =>
-      (if filter = "" then "" else quote filter ^ ": ") ^ string_of_facts facts) factss)
+      (if filter = "" then "" else filter ^ ": ") ^ string_of_facts facts) factss)
 
 fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_facts, ...}) mode
     writeln_result i (fact_override as {only, ...}) state =
@@ -290,14 +294,11 @@ fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_fac
         val print = if mode = Normal andalso is_none writeln_result then writeln else K ()
 
         val found_proof =
-          if mode = Normal then
-            let val proof_found = Synchronized.var "proof_found" false in
-              fn () =>
-                if Synchronized.change_result proof_found (rpair true) then ()
-                else (writeln_result |> the_default writeln) "Proof found..."
-            end
-          else
-            I
+          fn prover_name =>
+            if mode = Normal then
+              (writeln_result |> the_default writeln) (prover_name ^ " found a proof...")
+            else
+              ()
 
         val ctxt = Proof.context_of state
         val inst_inducts = induction_rules = SOME Instantiate
@@ -350,7 +351,9 @@ fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_fac
           in
             if mode = Auto_Try then
               (SH_Unknown, "")
-              |> fold (fn prover => fn accum as (SH_Some _, _) => accum | _ => launch problem prover)
+              |> fold (fn prover =>
+                fn accum as (SH_Some _, _) => accum
+                 | _ => launch problem prover)
                 provers
             else
               (learn chained_thms;
@@ -359,10 +362,13 @@ fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_fac
                |> max_outcome)
           end
       in
-        launch_provers ()
-        handle Timeout.TIMEOUT _ =>
-          (print "Sledgehammer ran out of time"; (SH_Timeout, ""))
-      end
-      |> `(fn (outcome, _) => is_sledgehammer_outcome_some outcome))
+        (launch_provers ()
+         handle Timeout.TIMEOUT _ => (SH_Timeout, ""))
+        |> `(fn (outcome, _) =>
+          (case outcome of
+            SH_Some _ => (print "QED"; true)
+          | SH_Timeout => (print "Timed out"; false)
+          | _ => (print "Done"; false)))
+      end)
 
 end;

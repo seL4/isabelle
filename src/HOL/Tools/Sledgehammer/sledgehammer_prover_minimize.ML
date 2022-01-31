@@ -98,7 +98,7 @@ fun test_facts ({debug, verbose, overlord, spy, provers, max_mono_iters, max_new
        slice = Time.zeroTime, timeout = timeout, preplay_timeout = preplay_timeout, expect = ""}
     val problem =
       {comment = "", state = state, goal = goal, subgoal = i, subgoal_count = n,
-       facts = ("", facts), found_proof = I}
+       facts = ("", facts), found_proof = K ()}
     val result0 as {outcome = outcome0, used_facts, used_from, preferred_methss, run_time,
         message} =
       prover params problem
@@ -206,7 +206,7 @@ fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) silent
     fun test timeout non_chained =
       test_facts params silent prover timeout i n state goal (chained @ non_chained)
   in
-    (print silent (fn () => "Sledgehammer minimizer: " ^ quote prover_name);
+    (print silent (fn () => "Sledgehammer minimizer: " ^ prover_name);
      (case test timeout non_chained of
        result as {outcome = NONE, used_facts, run_time, ...} =>
        let

@@ -45,7 +45,7 @@ fun run_prover override_params fact_override chained i n ctxt goal =
       |> hd |> snd
     val problem =
       {comment = "", state = Proof.init ctxt, goal = goal, subgoal = i, subgoal_count = n,
-       facts = ("", facts), found_proof = I}
+       facts = ("", facts), found_proof = K ()}
   in
     (case prover params problem of
       {outcome = NONE, used_facts, ...} => used_facts |> map fst |> SOME
