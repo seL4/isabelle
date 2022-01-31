@@ -12,7 +12,7 @@ sig
   type atp_formula_role = ATP_Problem.atp_formula_role
   type atp_failure = ATP_Proof.atp_failure
 
-  type atp_slice_spec = (int * string) * atp_format * string * string * bool * string
+  type atp_slice = (int * string) * atp_format * string * string * bool * string
   type atp_config =
     {exec : string list * string list,
      arguments : Proof.context -> bool -> string -> Time.time -> Path.T ->
@@ -20,7 +20,7 @@ sig
      proof_delims : (string * string) list,
      known_failures : (atp_failure * string) list,
      prem_role : atp_formula_role,
-     best_slices : Proof.context -> atp_slice_spec list,
+     best_slices : Proof.context -> atp_slice list,
      best_max_mono_iters : int,
      best_max_new_mono_instances : int}
 
@@ -46,7 +46,7 @@ sig
   val spass_H2SOS : string
   val isabelle_scala_function: string list * string list
   val remote_atp : string -> string -> string list -> (string * string) list ->
-    (atp_failure * string) list -> atp_formula_role -> (Proof.context -> atp_slice_spec) ->
+    (atp_failure * string) list -> atp_formula_role -> (Proof.context -> atp_slice) ->
     string * (unit -> atp_config)
   val add_atp : string * (unit -> atp_config) -> theory -> theory
   val get_atp : theory -> string -> (unit -> atp_config)
@@ -76,7 +76,7 @@ val TH1 = THF (Polymorphic, {with_ite = true, with_let = true}, THF_With_Choice)
 val default_max_mono_iters = 3 (* FUDGE *)
 val default_max_new_mono_instances = 100 (* FUDGE *)
 
-type atp_slice_spec = (int * string) * atp_format * string * string * bool * string
+type atp_slice = (int * string) * atp_format * string * string * bool * string
 
 type atp_config =
   {exec : string list * string list,
@@ -85,7 +85,7 @@ type atp_config =
    proof_delims : (string * string) list,
    known_failures : (atp_failure * string) list,
    prem_role : atp_formula_role,
-   best_slices : Proof.context -> atp_slice_spec list,
+   best_slices : Proof.context -> atp_slice list,
    best_max_mono_iters : int,
    best_max_new_mono_instances : int}
 

@@ -13,11 +13,13 @@ sig
   type mode = Sledgehammer_Prover.mode
   type params = Sledgehammer_Prover.params
   type prover = Sledgehammer_Prover.prover
+  type prover_slice = Sledgehammer_Prover.prover_slice
 
   val is_prover_supported : Proof.context -> string -> bool
   val is_prover_installed : Proof.context -> string -> bool
   val default_max_facts_of_prover : Proof.context -> string -> int
   val get_prover : Proof.context -> mode -> string -> prover
+  val get_default_slice : Proof.context -> string -> prover_slice
 
   val binary_min_facts : int Config.T
   val minimize_facts : (thm list -> unit) -> string -> params -> bool -> int -> int ->
@@ -68,6 +70,16 @@ fun get_prover ctxt mode name =
     else error ("No such prover: " ^ name)
   end
 
+fun get_default_slice ctxt name =
+  let val thy = Proof_Context.theory_of ctxt in
+    if is_atp thy name then
+      ATP_Slice (List.last (#best_slices (get_atp thy name ()) ctxt))
+    else if is_smt_prover ctxt name then
+      SMT_Slice (SMT_Solver.default_max_relevant ctxt name, "")
+    else
+      error ("No such prover: " ^ name)
+  end
+
 (* wrapper for calling external prover *)
 
 fun n_facts names =
@@ -81,7 +93,7 @@ fun print silent f = if silent then () else writeln (f ())
 fun test_facts ({debug, verbose, overlord, spy, provers, max_mono_iters, max_new_mono_instances,
       type_enc, strict, lam_trans, uncurried_aliases, isar_proofs, compress, try0, smt_proofs,
       minimize, preplay_timeout, induction_rules, ...} : params)
-    silent (prover : prover) timeout i n state goal facts =
+    slice silent (prover : prover) timeout i n state goal facts =
   let
     val _ = print silent (fn () => "Testing " ^ n_facts (map fst facts) ^
       (if verbose then " (timeout: " ^ string_of_time timeout ^ ")" else "") ^ "...")
@@ -98,10 +110,10 @@ fun test_facts ({debug, verbose, overlord, spy, provers, max_mono_iters, max_new
        slices = 1, timeout = timeout, preplay_timeout = preplay_timeout, expect = ""}
     val problem =
       {comment = "", state = state, goal = goal, subgoal = i, subgoal_count = n,
-       facts = ("", facts), found_proof = K ()}
+       factss = [("", facts)], found_proof = K ()}
     val result0 as {outcome = outcome0, used_facts, used_from, preferred_methss, run_time,
         message} =
-      prover params problem
+      prover params problem slice
     val result as {outcome, ...} =
       if is_none outcome0 andalso
          forall (member (fn ((s, _), ((s', _), _)) => s = s') used_from) used_facts then
@@ -201,10 +213,11 @@ fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) silent
   let
     val ctxt = Proof.context_of state
     val prover = get_prover ctxt Minimize prover_name
+    val slice = get_default_slice ctxt prover_name
     val (chained, non_chained) = List.partition is_fact_chained facts
 
     fun test timeout non_chained =
-      test_facts params silent prover timeout i n state goal (chained @ non_chained)
+      test_facts params slice silent prover timeout i n state goal (chained @ non_chained)
   in
     (print silent (fn () => "Sledgehammer minimizer: " ^ prover_name);
      (case test timeout non_chained of
@@ -258,8 +271,8 @@ fun maybe_minimize mode do_learn name (params as {verbose, minimize, ...})
       | NONE => result)
     end
 
-fun get_minimizing_prover ctxt mode do_learn name params problem =
-  get_prover ctxt mode name params problem
+fun get_minimizing_prover ctxt mode do_learn name params problem slice =
+  get_prover ctxt mode name params problem slice
   |> maybe_minimize mode do_learn name params problem
 
 end;

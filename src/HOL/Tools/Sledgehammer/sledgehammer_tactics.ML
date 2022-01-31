@@ -45,9 +45,10 @@ fun run_prover override_params fact_override chained i n ctxt goal =
       |> hd |> snd
     val problem =
       {comment = "", state = Proof.init ctxt, goal = goal, subgoal = i, subgoal_count = n,
-       facts = ("", facts), found_proof = K ()}
+       factss = [("", facts)], found_proof = K ()}
+    val slice = get_default_slice ctxt name
   in
-    (case prover params problem of
+    (case prover params problem slice of
       {outcome = NONE, used_facts, ...} => used_facts |> map fst |> SOME
     | _ => NONE)
     handle ERROR message => (warning ("Error: " ^ message ^ "\n"); NONE)

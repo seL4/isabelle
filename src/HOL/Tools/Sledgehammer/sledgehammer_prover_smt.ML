@@ -109,13 +109,17 @@ fun smt_filter name ({debug, overlord, max_mono_iters, max_new_mono_instances,
     {outcome = outcome, filter_result = filter_result, used_from = facts, run_time = run_time}
   end
 
-fun run_smt_solver mode name (params as {debug, verbose, isar_proofs, compress, try0,
+fun run_smt_solver mode name (params as {debug, verbose, fact_filter, isar_proofs, compress, try0,
       smt_proofs, minimize, preplay_timeout, ...})
-    ({state, goal, subgoal, subgoal_count, facts, found_proof, ...} : prover_problem) =
+    ({state, goal, subgoal, subgoal_count, factss, found_proof, ...} : prover_problem)
+    slice =
   let
     val ctxt = Proof.context_of state
 
-    val facts = snd facts
+    val SMT_Slice (best_max_facts, best_fact_filter) = slice
+
+    val effective_fact_filter = fact_filter |> the_default best_fact_filter
+    val facts = get_facts_of_filter effective_fact_filter factss
 
     val {outcome, filter_result = {fact_ids, atp_proof, ...}, used_from, run_time} =
       smt_filter name params state goal subgoal facts

@@ -14,6 +14,7 @@ sig
   type fact = Sledgehammer_Fact.fact
   type proof_method = Sledgehammer_Proof_Methods.proof_method
   type play_outcome = Sledgehammer_Proof_Methods.play_outcome
+  type atp_slice = Sledgehammer_ATP_Systems.atp_slice
 
   datatype mode = Auto_Try | Try | Normal | Minimize | MaSh
 
@@ -58,8 +59,12 @@ sig
      goal : thm,
      subgoal : int,
      subgoal_count : int,
-     facts : string * fact list,
+     factss : (string * fact list) list,
      found_proof : string -> unit}
+
+  datatype prover_slice =
+    ATP_Slice of atp_slice
+  | SMT_Slice of int * string
 
   type prover_result =
     {outcome : atp_failure option,
@@ -69,7 +74,7 @@ sig
      run_time : Time.time,
      message : (unit -> (string * stature) list * (proof_method * play_outcome)) -> string}
 
-  type prover = params -> prover_problem -> prover_result
+  type prover = params -> prover_problem -> prover_slice -> prover_result
 
   val SledgehammerN : string
   val str_of_mode : mode -> string
@@ -78,6 +83,7 @@ sig
   val is_atp : theory -> string -> bool
   val bunches_of_proof_methods : Proof.context -> bool -> bool -> bool -> string ->
     proof_method list list
+  val get_facts_of_filter : string -> (string * fact list) list -> fact list
   val is_fact_chained : (('a * stature) * 'b) -> bool
   val filter_used_facts : bool -> (''a * stature) list -> ((''a * stature) * 'b) list ->
     ((''a * stature) * 'b) list
@@ -190,8 +196,12 @@ type prover_problem =
    goal : thm,
    subgoal : int,
    subgoal_count : int,
-   facts : string * fact list,
+   factss : (string * fact list) list,
    found_proof : string -> unit}
+
+datatype prover_slice =
+  ATP_Slice of atp_slice
+| SMT_Slice of int * string
 
 type prover_result =
   {outcome : atp_failure option,
@@ -201,7 +211,7 @@ type prover_result =
    run_time : Time.time,
    message : (unit -> (string * stature) list * (proof_method * play_outcome)) -> string}
 
-type prover = params -> prover_problem -> prover_result
+type prover = params -> prover_problem -> prover_slice -> prover_result
 
 fun overlord_file_location_of_prover prover = (getenv "ISABELLE_HOME_USER", "prob_" ^ prover)
 
@@ -239,6 +249,11 @@ fun bunches_of_proof_methods ctxt try0 smt_proofs needs_full_types desperate_lam
   in
     try0_methodss @ [metis_methods] @ smt_methodss
   end
+
+fun get_facts_of_filter fact_filter factss =
+  (case AList.lookup (op =) factss fact_filter of
+    SOME facts => facts
+  | NONE => snd (hd factss))
 
 fun is_fact_chained ((_, (sc, _)), _) = sc = Chained
 

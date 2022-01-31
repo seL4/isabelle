@@ -868,9 +868,10 @@ fun run_prover_for_mash ctxt params prover goal_name facts goal =
   let
     val problem =
       {comment = "Goal: " ^ goal_name, state = Proof.init ctxt, goal = goal, subgoal = 1,
-       subgoal_count = 1, facts = ("", facts), found_proof = K ()}
+       subgoal_count = 1, factss = [("", facts)], found_proof = K ()}
+    val slice = get_default_slice ctxt prover
   in
-    get_minimizing_prover ctxt MaSh (K ()) prover params problem
+    get_minimizing_prover ctxt MaSh (K ()) prover params problem slice
   end
 
 val bad_types = [\<^type_name>\<open>prop\<close>, \<^type_name>\<open>bool\<close>, \<^type_name>\<open>fun\<close>]

@@ -103,15 +103,19 @@ fun suffix_of_mode Auto_Try = "_try"
 val atp_important_message_keep_quotient = 25
 
 fun run_atp mode name
-    ({debug, verbose, overlord, type_enc, strict, lam_trans, uncurried_aliases, max_facts,
-      max_mono_iters, max_new_mono_instances, isar_proofs, compress, try0, smt_proofs, minimize,
-      slices, timeout, preplay_timeout, spy, ...} : params)
-    ({comment, state, goal, subgoal, subgoal_count, facts, found_proof} : prover_problem) =
+    ({debug, verbose, overlord, type_enc, strict, lam_trans, uncurried_aliases, fact_filter,
+      max_facts, max_mono_iters, max_new_mono_instances, isar_proofs, compress, try0, smt_proofs,
+      minimize, slices, timeout, preplay_timeout, spy, ...} : params)
+    ({comment, state, goal, subgoal, subgoal_count, factss, found_proof} : prover_problem)
+    slice =
   let
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
 
-    val {exec, arguments, proof_delims, known_failures, prem_role, best_slices, best_max_mono_iters,
+    val ATP_Slice ((best_max_facts, best_fact_filter), format, best_type_enc, best_lam_trans,
+      best_uncurried_aliases, extra) = slice
+
+    val {exec, arguments, proof_delims, known_failures, prem_role, best_max_mono_iters,
       best_max_new_mono_instances, ...} = get_atp thy name ()
 
     val full_proofs = isar_proofs |> the_default (mode = Minimize)
@@ -158,10 +162,6 @@ fun run_atp mode name
 
     fun run () =
       let
-        val ((best_max_facts, _), format, best_type_enc, best_lam_trans, best_uncurried_aliases,
-            extra) =
-          List.last (best_slices ctxt)
-
         fun monomorphize_facts facts =
           let
             val ctxt =
@@ -183,7 +183,8 @@ fun run_atp mode name
             |> maps (fn (name, rths) => map (pair name o zero_var_indexes o snd) rths)
           end
 
-        val facts = snd facts
+        val effective_fact_filter = fact_filter |> the_default best_fact_filter
+        val facts = get_facts_of_filter effective_fact_filter factss
         val num_facts =
           (case max_facts of
             NONE => best_max_facts
