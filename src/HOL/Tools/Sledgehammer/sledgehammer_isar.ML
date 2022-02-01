@@ -480,7 +480,7 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
                      end)
                  else
                    one_line_params) ^
-              (if isar_proofs = SOME true then "\n(No Isar proof available.)" else "")
+              (if isar_proofs = SOME true then "\n(No Isar proof available)" else "")
             | (_, num_steps) =>
               let
                 val msg =
