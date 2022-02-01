@@ -445,7 +445,7 @@ fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_fac
                    if Synchronized.value found_proofs < max_proofs then
                      launch problem slice prover
                    else
-                     (SH_Unknown, ""))
+                     (SH_None, ""))
                  prover_slices
                |> max_outcome)
           end
