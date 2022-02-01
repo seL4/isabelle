@@ -475,15 +475,19 @@ fun role_of_tptp_string "axiom" = Axiom
   | role_of_tptp_string "type" = Type_Role
   | role_of_tptp_string _ = Unknown
 
-val tptp_binary_ops =
-  [tptp_and, tptp_or, tptp_implies, tptp_iff, tptp_if, tptp_equal, tptp_not_equal, tptp_not_and,
-   tptp_not_or, tptp_not_iff]
-
 fun parse_one_in_list xs =
   foldl1 (op ||) (map Scan.this_string xs)
 
-fun parse_binary_op x =
-  (parse_one_in_list tptp_binary_ops
+val tptp_literal_binary_ops = [tptp_equal, tptp_not_equal]
+val tptp_nonliteral_binary_ops =
+  [tptp_and, tptp_or, tptp_implies, tptp_iff, tptp_if, tptp_not_and, tptp_not_or, tptp_not_iff]
+
+fun parse_literal_binary_op x =
+  (parse_one_in_list tptp_literal_binary_ops
+   >> (fn c => if c = tptp_equal then "equal" else c)) x
+
+fun parse_nonliteral_binary_op x =
+  (parse_one_in_list tptp_nonliteral_binary_ops
    >> (fn c => if c = tptp_equal then "equal" else c)) x
 
 val parse_fol_quantifier =
@@ -521,21 +525,26 @@ fun parse_simple_hol_term x =
             (fn (var, ty) => fn r =>
                 AAbs (((var, the_default dummy_atype ty), r), [])
                 |> (if tptp_lambda <> q then
-                      mk_app (q |> mk_ho_of_fo_quant
-                                |> mk_simple_aterm)
-                    else I))
+                      mk_app (q |> mk_ho_of_fo_quant |> mk_simple_aterm)
+                    else
+                      I))
             ys t)
   || Scan.this_string tptp_not |-- parse_hol_term >> mk_app (mk_simple_aterm tptp_not)
   || scan_general_id -- Scan.option ($$ tptp_has_type |-- parse_type)
     >> (fn (var, typ_opt) => ATerm ((var, the_list typ_opt), []))
   || parse_hol_quantifier >> mk_simple_aterm
   || $$ "(" |-- parse_hol_term --| $$ ")"
-  || parse_binary_op >> mk_simple_aterm) x
+  || parse_literal_binary_op >> mk_simple_aterm
+  || parse_nonliteral_binary_op >> mk_simple_aterm) x
 and parse_applied_hol_term x =
   (parse_simple_hol_term -- Scan.repeat (Scan.this_string tptp_app |-- parse_simple_hol_term)
     >> (fn (t1, tis) => fold (fn ti => fn left => mk_app left ti) tis t1)) x
+and parse_literal_hol_term x =
+  (parse_applied_hol_term -- Scan.repeat (parse_literal_binary_op -- parse_applied_hol_term)
+    >> (fn (t1, c_ti_s) =>
+          fold (fn (c, ti) => fn left => mk_apps (mk_simple_aterm c) [left, ti]) c_ti_s t1)) x
 and parse_hol_term x =
-  (parse_applied_hol_term -- Scan.repeat (parse_binary_op -- parse_applied_hol_term)
+  (parse_literal_hol_term -- Scan.repeat (parse_nonliteral_binary_op -- parse_literal_hol_term)
     >> (fn (t1, c_ti_s) =>
           fold (fn (c, ti) => fn left => mk_apps (mk_simple_aterm c) [left, ti]) c_ti_s t1)) x
 
