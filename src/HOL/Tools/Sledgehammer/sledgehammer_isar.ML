@@ -188,7 +188,8 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
 
             val atp_proof = atp_proof0
               |> trace ? tap (tracing o prefix "atp_proof0 = " o string_of_atp_steps)
-              |> (fn x => fold_rev add_line_pass1 x [])
+              |> distinct (op =)  (* Zipperposition generates duplicate lines *)
+              |> (fn lines => fold_rev add_line_pass1 lines [])
               |> add_lines_pass2 []
               |> trace ? tap (tracing o prefix "atp_proof = " o string_of_atp_steps)
 
