@@ -275,6 +275,9 @@ fun term_of_atp_ho ctxt sym_tab =
         else if s = tptp_equal then
           list_comb (Const (\<^const_name>\<open>HOL.eq\<close>, Type_Infer.anyT \<^sort>\<open>type\<close>),
             map (do_term NONE) us)
+        else if s = tptp_not_equal then
+          \<^const>\<open>HOL.Not\<close> $ list_comb (Const (\<^const_name>\<open>HOL.eq\<close>, Type_Infer.anyT \<^sort>\<open>type\<close>),
+            map (do_term NONE) us)
         else if not (null us) then
           let
             val args = map (do_term NONE) us
@@ -285,7 +288,7 @@ fun term_of_atp_ho ctxt sym_tab =
         else if s = tptp_and then HOLogic.conj
         else if s = tptp_implies then HOLogic.imp
         else if s = tptp_iff orelse s = tptp_equal then HOLogic.eq_const dummyT
-        else if s = tptp_not_iff orelse s = tptp_not_equal then \<^term>\<open>\<lambda>P Q. Q \<noteq> P\<close>
+        else if s = tptp_not_iff then \<^term>\<open>\<lambda>x y. x \<noteq> y\<close>
         else if s = tptp_if then \<^term>\<open>\<lambda>P Q. Q \<longrightarrow> P\<close>
         else if s = tptp_not_and then \<^term>\<open>\<lambda>P Q. \<not> (P \<and> Q)\<close>
         else if s = tptp_not_or then \<^term>\<open>\<lambda>P Q. \<not> (P \<or> Q)\<close>
@@ -568,7 +571,6 @@ fun set_var_index j = map_aterms (fn Var ((s, 0), T) => Var ((s, j), T) | t => t
 fun infer_formulas_types ctxt =
   map_index (uncurry (fn j => set_var_index j #> Type.constraint HOLogic.boolT))
   #> Syntax.check_terms (Proof_Context.set_mode Proof_Context.mode_schematic ctxt)
-  #> map (set_var_index 0)
 
 val combinator_table =
   [(\<^const_name>\<open>Meson.COMBI\<close>, @{thm Meson.COMBI_def [abs_def]}),
