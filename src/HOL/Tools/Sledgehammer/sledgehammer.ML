@@ -71,12 +71,12 @@ fun alternative f (SOME x) (SOME y) = SOME (f (x, y))
 
 fun max_outcome outcomes =
   let
-    val result = find_first (fn (SH_Some _, _) => true | _ => false) outcomes
+    val some = find_first (fn (SH_Some _, _) => true | _ => false) outcomes
     val unknown = find_first (fn (SH_Unknown, _) => true | _ => false) outcomes
     val timeout = find_first (fn (SH_Timeout, _) => true | _ => false) outcomes
     val none = find_first (fn (SH_None, _) => true | _ => false) outcomes
   in
-    result
+    some
     |> alternative snd unknown
     |> alternative snd timeout
     |> alternative snd none
