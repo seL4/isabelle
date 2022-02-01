@@ -450,7 +450,7 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
               |> compress_isar_proof ctxt compress preplay_timeout preplay_data
               |> tap (trace_isar_proof "Compressed")
               |> postprocess_isar_proof_remove_unreferenced_steps
-                   (keep_fastest_method_of_isar_step (!preplay_data)
+                   (do_preplay ? keep_fastest_method_of_isar_step (!preplay_data)
                     #> minimize ? minimize_isar_step_dependencies ctxt preplay_data)
               |> tap (trace_isar_proof "Minimized")
               |> `(preplay_outcome_of_isar_proof (!preplay_data))
