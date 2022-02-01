@@ -28,8 +28,7 @@ sig
   val default_max_mono_iters : int
   val default_max_new_mono_instances : int
   val term_order : string Config.T
-  val e_smartN : string
-  val e_autoN : string
+  val e_autoscheduleN : string
   val e_fun_weightN : string
   val e_sym_offset_weightN : string
   val e_default_fun_weight : real Config.T
@@ -204,8 +203,7 @@ val alt_ergo = (alt_ergoN, fn () => alt_ergo_config)
 
 (* E *)
 
-val e_smartN = "smart"
-val e_autoN = "auto"
+val e_autoscheduleN = "auto"
 val e_fun_weightN = "fun_weight"
 val e_sym_offset_weightN = "sym_offset_weight"
 
@@ -256,7 +254,7 @@ fun e_selection_weight_arguments ctxt heuristic sel_weights =
     \1.5,1.5,1),1*Clauseweight(PreferProcessed,1,1,1),1*\
     \FIFOWeight(PreferProcessed))' "
   else
-    "-xAuto "
+    "--auto-schedule "
 
 val e_ord_weights = map (fn (s, w) => s ^ ":" ^ string_of_int w) #> space_implode ","
 fun e_ord_precedence [_] = ""
@@ -273,7 +271,7 @@ val e_config : atp_config =
   {exec = (["E_HOME"], ["eprover-ho", "eprover"]),
    arguments = fn ctxt => fn _ => fn heuristic => fn timeout => fn problem =>
      fn ({is_lpo, gen_weights, gen_prec, ...}, ord_info, sel_weights) =>
-       ["--auto-schedule --tstp-in --tstp-out --silent " ^
+       ["--tstp-in --tstp-out --silent " ^
         e_selection_weight_arguments ctxt heuristic sel_weights ^
         e_term_order_info_arguments gen_weights gen_prec ord_info ^
         "--term-ordering=" ^ (if is_lpo then "LPO4" else "KBO6") ^ " " ^
@@ -301,7 +299,7 @@ val e_config : atp_config =
        (* FUDGE *)
        K [((512, meshN), (format, type_enc, lam_trans, false, e_fun_weightN)),
         ((1024, meshN), (format, type_enc, lam_trans, false, e_sym_offset_weightN)),
-        ((128, mepoN), (format, type_enc, lam_trans, false, e_autoN)),
+        ((128, mepoN), (format, type_enc, lam_trans, false, e_autoscheduleN)),
         ((724, meshN), (format, "poly_guards??", lam_trans, false, e_sym_offset_weightN)),
         ((256, mepoN), (format, type_enc, liftingN, false, e_fun_weightN)),
         ((64, mashN), (format, type_enc, combsN, false, e_fun_weightN))]
