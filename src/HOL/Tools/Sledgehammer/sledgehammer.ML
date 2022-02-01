@@ -452,9 +452,10 @@ fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_fac
       in
         (launch_provers ()
          handle Timeout.TIMEOUT _ => (SH_Timeout, ""))
-        |> `(fn (outcome, _) =>
+        |> `(fn (outcome, message) =>
           (case outcome of
             SH_Some _ => (print "QED"; true)
+          | SH_Unknown => (print message; false)
           | _ => (print "No proof found"; false)))
       end)
 
