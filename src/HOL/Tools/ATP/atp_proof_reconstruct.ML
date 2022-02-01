@@ -275,7 +275,7 @@ fun term_of_atp_ho ctxt sym_tab =
         else if s = tptp_equal then
           list_comb (Const (\<^const_name>\<open>HOL.eq\<close>, Type_Infer.anyT \<^sort>\<open>type\<close>),
             map (do_term NONE) us)
-        else if s = tptp_not_equal then
+        else if s = tptp_not_equal andalso length us = 2 then
           \<^const>\<open>HOL.Not\<close> $ list_comb (Const (\<^const_name>\<open>HOL.eq\<close>, Type_Infer.anyT \<^sort>\<open>type\<close>),
             map (do_term NONE) us)
         else if not (null us) then
@@ -288,7 +288,7 @@ fun term_of_atp_ho ctxt sym_tab =
         else if s = tptp_and then HOLogic.conj
         else if s = tptp_implies then HOLogic.imp
         else if s = tptp_iff orelse s = tptp_equal then HOLogic.eq_const dummyT
-        else if s = tptp_not_iff then \<^term>\<open>\<lambda>x y. x \<noteq> y\<close>
+        else if s = tptp_not_iff orelse s = tptp_not_equal then \<^term>\<open>\<lambda>x y. x \<noteq> y\<close>
         else if s = tptp_if then \<^term>\<open>\<lambda>P Q. Q \<longrightarrow> P\<close>
         else if s = tptp_not_and then \<^term>\<open>\<lambda>P Q. \<not> (P \<and> Q)\<close>
         else if s = tptp_not_or then \<^term>\<open>\<lambda>P Q. \<not> (P \<or> Q)\<close>
