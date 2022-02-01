@@ -254,8 +254,8 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
               exists (is_referenced_in_step l) steps
 
             fun insert_lemma_in_step lem
-                  (step as Prove {qualifiers, obtains, label, goal, subproofs, facts = (ls, gs),
-                  proof_methods, comment}) =
+                (step as Prove {qualifiers, obtains, label, goal, subproofs, facts = (ls, gs),
+                 proof_methods, comment}) =
               let val l' = the (label_of_isar_step lem) in
                 if member (op =) ls l' then
                   [lem, step]
@@ -352,7 +352,7 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
                   if is_clause_tainted c then
                     (case gamma of
                       [g] =>
-                      if skolem andalso is_clause_tainted g then
+                      if skolem andalso is_clause_tainted g andalso not (null accum) then
                         let
                           val skos = skolems_of ctxt (prop_of_clause g)
                           val subproof = Proof {fixes = skos, assumptions = [], steps = rev accum}
@@ -466,7 +466,7 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
                 (if is_less (play_outcome_ord (play_outcome, one_line_play)) then
                    (case isar_proof of
                      Proof {steps = [Prove {facts = (_, gfs), proof_methods = meth :: _, ...}],
-                     ...} =>
+                       ...} =>
                      let
                        val used_facts' =
                          map_filter (fn s =>

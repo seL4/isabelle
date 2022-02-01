@@ -352,7 +352,7 @@ fun rationalize_obtains_in_isar_proofs ctxt =
         val assumptions' = map (apsnd (subst_atomic subst')) assumptions
         val steps' = fst (fold_map rationalize_step steps subst_ctxt')
       in
-        Proof { fixes = fixes', assumptions = assumptions', steps = steps'}
+        Proof {fixes = fixes', assumptions = assumptions', steps = steps'}
       end
   in
     rationalize_proof true ([], ctxt)
@@ -441,7 +441,7 @@ fun string_of_isar_proof ctxt0 i n proof =
         val suffix = " }"
       in
         replicate_string (ind * indent_size - size prefix) " " ^ prefix ^
-        String.extract (s, ind * indent_size, SOME (size s - ind * indent_size - 1)) ^
+        String.substring (s, ind * indent_size, size s - ind * indent_size - 1) ^
         suffix ^ "\n"
       end
     and of_subproofs _ _ _ [] = ""
@@ -475,6 +475,7 @@ fun string_of_isar_proof ctxt0 i n proof =
       |> fold (add_assm ind) assumptions
       |> add_steps ind steps
       |> fst
+      |> (fn s => if s = "" then of_indent ind ^ "\n" else s)  (* robustness *)
   in
     (if i <> 1 then "prefer " ^ string_of_int i ^ "\n" else "") ^
     of_indent 0 ^ "proof -\n" ^ of_proof 1 ctxt proof ^
