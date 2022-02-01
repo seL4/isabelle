@@ -477,7 +477,7 @@ fun role_of_tptp_string "axiom" = Axiom
 
 val tptp_binary_ops =
   [tptp_and, tptp_or, tptp_implies, tptp_iff, tptp_if, tptp_equal, tptp_not_equal, tptp_not_and,
-   tptp_not_or, tptp_not_iff, tptp_app]
+   tptp_not_or, tptp_not_iff]
 
 fun parse_one_in_list xs =
   foldl1 (op ||) (map Scan.this_string xs)
@@ -531,12 +531,13 @@ fun parse_simple_hol_term x =
   || parse_hol_quantifier >> mk_simple_aterm
   || $$ "(" |-- parse_hol_term --| $$ ")"
   || parse_binary_op >> mk_simple_aterm) x
+and parse_applied_hol_term x =
+  (parse_simple_hol_term -- Scan.repeat (Scan.this_string tptp_app |-- parse_simple_hol_term)
+    >> (fn (t1, tis) => fold (fn ti => fn left => mk_app left ti) tis t1)) x
 and parse_hol_term x =
-  (parse_simple_hol_term -- Scan.repeat (parse_binary_op -- parse_simple_hol_term)
+  (parse_applied_hol_term -- Scan.repeat (parse_binary_op -- parse_applied_hol_term)
     >> (fn (t1, c_ti_s) =>
-        fold (fn (c, ti) => fn left =>
-            if c = tptp_app then mk_app left ti else mk_apps (mk_simple_aterm c) [left, ti])
-          c_ti_s t1)) x
+          fold (fn (c, ti) => fn left => mk_apps (mk_simple_aterm c) [left, ti]) c_ti_s t1)) x
 
 fun parse_hol_formula x = (parse_hol_term #>> remove_hol_app #>> AAtom) x
 
