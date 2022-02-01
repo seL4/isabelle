@@ -245,10 +245,13 @@ val vampire_fact_prefix = "f"
 
 fun vampire_step_name_ord p =
   let val q = apply2 fst p in
-    (* The "unprefix" part is to cope with Vampire's output. *)
+    (* The "unprefix" part is to cope with Vampire's output, which puts facts with names of the
+       form "fN" where N is an integer in reverse order. *)
     (case apply2 (Int.fromString o perhaps (try (unprefix vampire_fact_prefix))) q of
       (SOME i, SOME j) => int_ord (i, j)
-    | _ => raise Fail "not Vampire")
+    | (SOME _, NONE) => LESS
+    | (NONE, SOME _) => GREATER
+    | (NONE, NONE) => string_ord q)
   end
 
 type ('a, 'b) atp_step = atp_step_name * atp_formula_role * 'a * 'b * atp_step_name list
