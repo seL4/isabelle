@@ -82,7 +82,7 @@ sig
   val is_atp : string -> bool
   val bunches_of_proof_methods : Proof.context -> bool -> bool -> bool -> string ->
     proof_method list list
-  val get_facts_of_filter : string -> (string * fact list) list -> fact list
+  val facts_of_filter : string -> (string * fact list) list -> fact list
   val is_fact_chained : (('a * stature) * 'b) -> bool
   val filter_used_facts : bool -> (''a * stature) list -> ((''a * stature) * 'b) list ->
     ((''a * stature) * 'b) list
@@ -225,7 +225,7 @@ fun bunches_of_proof_methods ctxt try0 smt_proofs needs_full_types desperate_lam
     try0_methodss @ [metis_methods] @ smt_methodss
   end
 
-fun get_facts_of_filter fact_filter factss =
+fun facts_of_filter fact_filter factss =
   (case AList.lookup (op =) factss fact_filter of
     SOME facts => facts
   | NONE => snd (hd factss))

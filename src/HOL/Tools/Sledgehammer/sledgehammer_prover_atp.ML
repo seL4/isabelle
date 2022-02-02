@@ -183,7 +183,7 @@ fun run_atp mode name
           end
 
         val effective_fact_filter = fact_filter |> the_default good_fact_filter
-        val facts = get_facts_of_filter effective_fact_filter factss
+        val facts = facts_of_filter effective_fact_filter factss
         val num_facts =
           (case max_facts of
             NONE => good_max_facts

@@ -297,7 +297,7 @@ fun schedule_of_provers provers num_slices =
       @ round_robin (num_slices - num_default_slices) (unknown_provers @ known_provers)
   end
 
-fun prover_slices_of_schedule ctxt
+fun prover_slices_of_schedule ctxt factss
     ({max_facts, fact_filter, type_enc, lam_trans, uncurried_aliases, ...} : params) schedule =
   let
     fun triplicate_slices original =
@@ -319,11 +319,13 @@ fun prover_slices_of_schedule ctxt
        the_default uncurried_aliases0 uncurried_aliases, extra_extra0)
 
     fun adjust_slice ((num_facts0, fact_filter0), extra) =
-      ((case max_facts of
-         NONE => num_facts0
-       | SOME max_facts => Int.min (num_facts0, max_facts),
-        the_default fact_filter0 fact_filter),
-       Option.map adjust_extra extra)
+      let
+        val fact_filter = fact_filter |> the_default fact_filter0
+        val max_facts = max_facts |> the_default num_facts0
+        val num_facts = Int.min (max_facts, length (facts_of_filter fact_filter factss))
+      in
+        ((num_facts, fact_filter), Option.map adjust_extra extra)
+      end
 
     val provers = distinct (op =) schedule
     val prover_slices =
@@ -416,16 +418,17 @@ fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_fac
 
         fun launch_provers () =
           let
+            val factss = get_factss provers
             val problem =
               {comment = "", state = state, goal = goal, subgoal = i, subgoal_count = n,
-               factss = get_factss provers, found_proof = found_proof}
+               factss = factss, found_proof = found_proof}
             val learn = mash_learn_proof ctxt params (Thm.prop_of goal)
             val launch = launch_prover_and_preplay params mode writeln_result learn
 
             val schedule =
               if mode = Auto_Try then provers
               else schedule_of_provers provers slices
-            val prover_slices = prover_slices_of_schedule ctxt params schedule
+            val prover_slices = prover_slices_of_schedule ctxt factss params schedule
 
             val _ =
               if verbose then
