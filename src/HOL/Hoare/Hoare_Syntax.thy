@@ -13,7 +13,7 @@ syntax
   "_assign" :: "idt \<Rightarrow> 'b \<Rightarrow> 'com"  ("(2_ :=/ _)" [70, 65] 61)
   "_Seq" :: "'com \<Rightarrow> 'com \<Rightarrow> 'com"  ("(_;/ _)" [61,60] 60)
   "_Cond" :: "'bexp \<Rightarrow> 'com \<Rightarrow> 'com \<Rightarrow> 'com"  ("(1IF _/ THEN _ / ELSE _/ FI)" [0,0,0] 61)
-  "_While" :: "'bexp \<Rightarrow> 'assn \<Rightarrow> 'var \<Rightarrow> 'com \<Rightarrow> 'com"  ("(1WHILE _/ INV {_} / VAR {_} //DO _ /OD)" [0,0,0,0] 61)
+  "_While" :: "'bexp \<Rightarrow> 'assn \<Rightarrow> 'var \<Rightarrow> 'com \<Rightarrow> 'com"  ("(1WHILE _/ INV {(_)} / VAR {(_)} //DO _ /OD)" [0,0,0,0] 61)
 
 text \<open>The \<open>VAR {_}\<close> syntax supports two variants:
 \<^item> \<open>VAR {x = t}\<close> where \<open>t::nat\<close> is the decreasing expression,
