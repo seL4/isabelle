@@ -32,8 +32,8 @@ syntax
  "_hoare_vars" :: "[idts, 'assn,'com, 'assn] \<Rightarrow> bool"  ("VARS _// {_} // _ // {_}" [0,0,55,0] 50)
  "_hoare_vars_tc" :: "[idts, 'assn, 'com, 'assn] \<Rightarrow> bool"  ("VARS _// [_] // _ // [_]" [0,0,55,0] 50)
 syntax (output)
- "_hoare" :: "['assn, 'com, 'assn] \<Rightarrow> bool"  ("{_} // _ // {_}" [0,55,0] 50)
- "_hoare_tc" :: "['assn, 'com, 'assn] \<Rightarrow> bool"  ("[_] // _ // [_]" [0,55,0] 50)
+ "_hoare" :: "['assn, 'com, 'assn] \<Rightarrow> bool"  ("({_} // _ // {_})" [0,55,0] 50)
+ "_hoare_tc" :: "['assn, 'com, 'assn] \<Rightarrow> bool"  ("([_] // _ // [_])" [0,55,0] 50)
 
 text \<open>Completeness requires(?) the ability to refer to an outer variant in an inner invariant.
 Thus we need to abstract over a variable equated with the variant, the \<open>x\<close> in \<open>VAR {x = t}\<close>.
