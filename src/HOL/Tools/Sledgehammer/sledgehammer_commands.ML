@@ -160,14 +160,6 @@ structure Data = Theory_Data
   fun merge data : T = AList.merge (op =) (K true) data
 )
 
-fun remotify_prover_if_supported_and_not_already_remote ctxt name =
-  if String.isPrefix remote_prefix name then
-    SOME name
-  else
-    let val remote_name = remote_prefix ^ name in
-      if is_prover_supported ctxt remote_name then SOME remote_name else NONE
-    end
-
 (* The first ATP of the list is used by Auto Sledgehammer. *)
 fun default_provers_param_value ctxt =
   filter (is_prover_installed ctxt) (smts ctxt @ atps) \<comment> \<open>see also \<^system_option>\<open>sledgehammer_provers\<close>\<close>

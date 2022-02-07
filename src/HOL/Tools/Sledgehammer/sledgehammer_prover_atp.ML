@@ -235,18 +235,18 @@ fun run_atp mode name
             cons ("% " ^ command ^ "\n" ^ (if comment = "" then "" else "% " ^ comment ^ "\n"))
           |> File.write_list prob_path
 
-        val ((output, run_time), (atp_proof, outcome)) =
+        val ((output, run_time), ((atp_proof, tstplike_proof), outcome)) =
           Timeout.apply generous_run_timeout run_command ()
           |>> overlord ?
             (fn output => prefix ("% " ^ command ^ "\n% " ^ timestamp () ^ "\n") output)
           |> (fn accum as (output, _) =>
             (accum,
              extract_tstplike_proof_and_outcome verbose proof_delims known_failures output
-             |>> atp_proof_of_tstplike_proof (perhaps (try (unprefix remote_prefix)) name)
-               atp_problem
-             handle UNRECOGNIZED_ATP_PROOF () => ([], SOME ProofUnparsable)))
-          handle Timeout.TIMEOUT _ => (("", run_timeout), ([], SOME TimedOut))
-            | ERROR msg => (("", Time.zeroTime), ([], SOME (UnknownError msg)))
+             |>> `(atp_proof_of_tstplike_proof false (perhaps (try (unprefix remote_prefix)) name)
+               atp_problem)
+             handle UNRECOGNIZED_ATP_PROOF () => (([], ""), SOME ProofUnparsable)))
+          handle Timeout.TIMEOUT _ => (("", run_timeout), (([], ""), SOME TimedOut))
+            | ERROR msg => (("", Time.zeroTime), (([], ""), SOME (UnknownError msg)))
 
         val () = spying spy (fn () =>
           (state, subgoal, name, "Running command in " ^
@@ -265,13 +265,15 @@ fun run_atp mode name
             | NONE => (found_proof name; NONE))
           | _ => outcome)
       in
-        (atp_problem_data, (output, run_time, facts, atp_proof, outcome), (good_format, type_enc))
+        (atp_problem_data,
+         (output, run_time, facts, atp_problem, tstplike_proof, atp_proof, outcome),
+         (good_format, type_enc))
       end
 
     (* If the problem file has not been exported, remove it; otherwise, export
        the proof file too. *)
     fun clean_up () = if problem_dest_dir = "" then (try File.rm prob_path; ()) else ()
-    fun export (_, (output, _, _, _, _), _) =
+    fun export (_, (output, _, _, _, _, _, _), _) =
       let
         val proof_dest_dir_path = Path.explode proof_dest_dir
         val make_export_file_name =
@@ -287,7 +289,8 @@ fun run_atp mode name
           error ("No such directory: " ^ quote proof_dest_dir)
       end
 
-    val ((_, pool, lifted, sym_tab), (output, run_time, used_from, atp_proof, outcome),
+    val ((_, pool, lifted, sym_tab),
+         (output, run_time, used_from, atp_problem, tstplike_proof, atp_proof, outcome),
          (format, type_enc)) =
       with_cleanup clean_up run () |> tap export
 
@@ -305,7 +308,7 @@ fun run_atp mode name
           val preferred_methss =
             (Metis_Method (NONE, NONE),
              bunches_of_proof_methods ctxt try0 smt_proofs needs_full_types
-              (if atp_proof_prefers_lifting atp_proof then liftingN else opaque_liftingN))
+               (if atp_proof_prefers_lifting atp_proof then liftingN else opaque_liftingN))
         in
           (used_facts, preferred_methss,
            fn preplay =>
@@ -314,18 +317,24 @@ fun run_atp mode name
 
                 fun isar_params () =
                   let
+                    val full_atp_proof =
+                      atp_proof_of_tstplike_proof true (perhaps (try (unprefix remote_prefix)) name)
+                        atp_problem tstplike_proof
                     val metis_type_enc =
-                      if is_typed_helper_used_in_atp_proof atp_proof then SOME full_typesN else NONE
+                      if is_typed_helper_used_in_atp_proof full_atp_proof then
+                        SOME full_typesN
+                      else
+                        NONE
                     val metis_lam_trans =
-                      if atp_proof_prefers_lifting atp_proof then SOME liftingN else NONE
-                    val atp_proof =
-                      atp_proof
+                      if atp_proof_prefers_lifting full_atp_proof then SOME liftingN else NONE
+                    val full_atp_proof =
+                      full_atp_proof
                       |> termify_atp_proof ctxt name format type_enc pool lifted sym_tab
                       |> local_name = spassN ? introduce_spass_skolems
                       |> factify_atp_proof (map fst used_from) hyp_ts concl_t
                   in
                     (verbose, (metis_type_enc, metis_lam_trans), preplay_timeout, compress, try0,
-                     minimize, atp_proof, goal)
+                     minimize, full_atp_proof, goal)
                   end
 
                 val one_line_params = (preplay (), proof_banner mode name, subgoal, subgoal_count)

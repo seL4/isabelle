@@ -86,7 +86,7 @@ sig
     string list
   val dummy_atype : string ATP_Problem.atp_type
   val role_of_tptp_string : string -> ATP_Problem.atp_formula_role
-  val parse_line : string -> ('a * string ATP_Problem.atp_problem_line list) list ->
+  val parse_line : bool -> string -> ('a * string ATP_Problem.atp_problem_line list) list ->
     string list -> ((string * string list) * ATP_Problem.atp_formula_role *
     (string, 'b, (string, string ATP_Problem.atp_type) ATP_Problem.atp_term,
       'c) ATP_Problem.atp_formula
@@ -97,7 +97,8 @@ sig
   val core_of_agsyhol_proof :  string -> string list option
   val string_of_atp_step : ('a -> string) -> ('b -> string) -> ('a, 'b) atp_step -> string
 
-  val atp_proof_of_tstplike_proof : string -> string atp_problem -> string -> string atp_proof
+  val atp_proof_of_tstplike_proof : bool -> string -> string atp_problem -> string ->
+    string atp_proof
 end;
 
 structure ATP_Proof : ATP_PROOF =
@@ -553,9 +554,10 @@ and parse_hol_term x =
 
 fun parse_hol_formula x = (parse_hol_term #>> remove_hol_app #>> AAtom) x
 
-fun parse_tstp_hol_line problem =
+fun parse_tstp_hol_line full problem =
   (Scan.this_string tptp_thf -- $$ "(") |-- scan_general_id --| $$ ","
-  -- Symbol.scan_ascii_id --| $$ "," -- (parse_hol_formula || skip_term >> K dummy_phi)
+  -- Symbol.scan_ascii_id --| $$ "," --
+     (if full then parse_hol_formula || skip_term >> K dummy_phi else skip_term >> K dummy_phi)
      -- parse_tstp_extra_arguments --| $$ ")"
   --| $$ "."
   >> (fn (((num, role), phi), src) =>
@@ -575,11 +577,11 @@ fun parse_tstp_hol_line problem =
         [(name, role', phi, rule, map (rpair []) deps)]
       end)
 
-fun parse_tstp_fol_line problem =
+fun parse_tstp_fol_line full problem =
   ((Scan.this_string tptp_cnf || Scan.this_string tptp_fof || Scan.this_string tptp_tff) -- $$ "(")
     |-- scan_general_id --| $$ "," -- Symbol.scan_ascii_id --| $$ ","
-    -- (parse_fol_formula || skip_term >> K dummy_phi) -- parse_tstp_extra_arguments
-    --| $$ ")" --| $$ "."
+    -- (if full then parse_fol_formula || skip_term >> K dummy_phi else skip_term >> K dummy_phi)
+    -- parse_tstp_extra_arguments --| $$ ")" --| $$ "."
    >> (fn (((num, role0), phi), src) =>
           let
             val role = role_of_tptp_string role0
@@ -616,7 +618,9 @@ fun parse_tstp_fol_line problem =
              | _ => mk_step ())]
           end)
 
-fun parse_tstp_line problem = parse_tstp_fol_line problem || parse_tstp_hol_line problem
+fun parse_tstp_line full problem =
+  parse_tstp_fol_line full problem
+  || parse_tstp_hol_line full problem
 
 (**** PARSING OF SPASS OUTPUT ****)
 
@@ -654,10 +658,10 @@ fun parse_spass_line x =
 
 fun core_inference inf fact = ((fact, [fact]), Unknown, dummy_phi, inf, [])
 
-fun parse_line local_name problem =
+fun parse_line full local_name problem =
   (* Satallax is handled separately, in "atp_satallax.ML". *)
   if local_name = spassN then parse_spass_line
-  else parse_tstp_line problem
+  else parse_tstp_line full problem
 
 fun core_of_agsyhol_proof s =
   (case split_lines s of
@@ -711,20 +715,20 @@ fun string_of_atp_step f g (name, role, x, y, names) =
     "(" ^ name' ^ ", " ^ role' ^ ", " ^ x' ^ ", " ^ y' ^ ", " ^ names' ^ ")"
   end
 
-fun parse_proof local_name problem =
+fun parse_proof full local_name problem =
   strip_spaces_except_between_idents
   #> raw_explode
   #> Scan.error (!! (fn _ => raise UNRECOGNIZED_ATP_PROOF ())
-       (Scan.finite Symbol.stopper (Scan.repeats1 (parse_line local_name problem))))
-  #> fst
+       (Scan.finite Symbol.stopper (Scan.repeats1 (parse_line full local_name problem))))
+  #> (fn (proof, ss) => if null ss then proof else raise UNRECOGNIZED_ATP_PROOF ())
 
-fun atp_proof_of_tstplike_proof _ _ "" = []
-  | atp_proof_of_tstplike_proof local_prover problem tstp =
+fun atp_proof_of_tstplike_proof _ _ _ "" = []
+  | atp_proof_of_tstplike_proof full local_prover problem tstp =
     (case core_of_agsyhol_proof tstp of
       SOME facts => facts |> map (core_inference agsyhol_core_rule)
     | NONE =>
-      tstp ^ "$" (* the $ sign acts as a sentinel (FIXME: needed?) *)
-      |> parse_proof local_prover problem
+      tstp
+      |> parse_proof full local_prover problem
       |> local_prover = vampireN ? perhaps (try (sort (vampire_step_name_ord o apply2 #1))))
 
 end;
