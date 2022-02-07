@@ -96,12 +96,13 @@ val cvc4: SMT_Solver.solver_config = {
   smt_options = [(":produce-unsat-cores", "true")],
   good_slices =
     (* FUDGE *)
-    [(512, meshN),
-     (64, meshN),
-     (1024, meshN),
-     (256, mepoN),
-     (32, meshN),
-     (128, meshN)],
+    [((512, meshN), ["--full-saturate-quant", "--inst-when=full-last-call", "--inst-no-entail", "--term-db-mode=relevant", "--multi-trigger-linear"]),
+     ((64, meshN), ["--decision=internal", "--simplification=none", "--full-saturate-quant"]),
+     ((1024, meshN), ["--relevant-triggers", "--full-saturate-quant"]),
+     ((256, mepoN), ["--trigger-sel=max", "--full-saturate-quant"]),
+     ((32, meshN), ["--term-db-mode=relevant", "--full-saturate-quant"]),
+     ((128, meshN), ["--no-e-matching", "--full-saturate-quant"]),
+     ((256, meshN), ["--finite-model-find", "--fmf-inst-engine"])],
   outcome = on_first_line (outcome_of "unsat" "sat" "unknown" "timeout"),
   parse_proof = SOME (K CVC4_Proof_Parse.parse_proof),
   replay = NONE }
@@ -140,12 +141,12 @@ val veriT: SMT_Solver.solver_config = {
   smt_options = [(":produce-proofs", "true")],
   good_slices =
     (* FUDGE *)
-    [(1024, meshN),
-     (512, mashN),
-     (64, meshN),
-     (128, meshN),
-     (256, mepoN),
-     (32, meshN)],
+    [((1024, meshN), []),
+     ((512, mashN), []),
+     ((64, meshN), []),
+     ((128, meshN), []),
+     ((256, mepoN), []),
+     ((32, meshN), [])],
   outcome = on_first_non_unsupported_line (outcome_of "unsat" "sat" "unknown" "Time limit exceeded"),
   parse_proof = SOME (K VeriT_Proof_Parse.parse_proof),
   replay = SOME Verit_Replay.replay }
@@ -181,12 +182,12 @@ val z3: SMT_Solver.solver_config = {
   smt_options = [(":produce-proofs", "true")],
   good_slices =
     (* FUDGE *)
-    [(1024, meshN),
-     (512, mepoN),
-     (64, meshN),
-     (256, meshN),
-     (128, mashN),
-     (32, meshN)],
+    [((1024, meshN), []),
+     ((512, mepoN), []),
+     ((64, meshN), []),
+     ((256, meshN), []),
+     ((128, mashN), []),
+     ((32, meshN), [])],
   outcome = on_first_line (outcome_of "unsat" "sat" "unknown" "timeout"),
   parse_proof = SOME Z3_Replay.parse_proof,
   replay = SOME Z3_Replay.replay }

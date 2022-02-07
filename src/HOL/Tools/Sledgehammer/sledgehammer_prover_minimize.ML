@@ -63,9 +63,9 @@ fun get_prover ctxt mode name =
 fun get_slices ctxt name =
   let val thy = Proof_Context.theory_of ctxt in
     if is_atp name then
-      map (apsnd SOME) (#good_slices (get_atp thy name ()) ctxt)
+      map (apsnd ATP_Slice) (#good_slices (get_atp thy name ()) ctxt)
     else if is_smt_prover ctxt name then
-      map (rpair NONE) (SMT_Solver.good_slices ctxt name)
+      map (apsnd SMT_Slice) (SMT_Solver.good_slices ctxt name)
     else
       error ("No such prover: " ^ name)
   end

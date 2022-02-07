@@ -70,7 +70,7 @@ val is_boring_builtin_typ =
   not o exists_subtype (member (op =) [\<^typ>\<open>nat\<close>, \<^typ>\<open>int\<close>, HOLogic.realT])
 
 fun smt_filter name ({debug, overlord, max_mono_iters, max_new_mono_instances,
-    type_enc, slices, timeout, ...} : params) state goal i facts =
+    type_enc, slices, timeout, ...} : params) state goal i facts options =
   let
     val run_timeout = slice_timeout slices timeout
     val (higher_order, nat_as_int) =
@@ -100,7 +100,7 @@ fun smt_filter name ({debug, overlord, max_mono_iters, max_new_mono_instances,
     val birth = Timer.checkRealTimer timer
 
     val filter_result as {outcome, ...} =
-      SMT_Solver.smt_filter ctxt goal facts i run_timeout
+      SMT_Solver.smt_filter ctxt goal facts i run_timeout options
       handle exn =>
       if Exn.is_interrupt exn orelse debug then
         Exn.reraise exn
@@ -121,13 +121,13 @@ fun run_smt_solver mode name (params as {debug, verbose, fact_filter, isar_proof
   let
     val ctxt = Proof.context_of state
 
-    val ((best_max_facts, best_fact_filter), _) = slice
+    val ((best_max_facts, best_fact_filter), SMT_Slice options) = slice
 
     val effective_fact_filter = fact_filter |> the_default best_fact_filter
     val facts = take best_max_facts (facts_of_filter effective_fact_filter factss)
 
     val {outcome, filter_result = {fact_ids, atp_proof, ...}, used_from, run_time} =
-      smt_filter name params state goal subgoal facts
+      smt_filter name params state goal subgoal facts options
     val used_facts =
       (case fact_ids of
         NONE => map fst used_from

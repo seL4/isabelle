@@ -111,7 +111,7 @@ fun run_atp mode name
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
 
-    val ((good_max_facts, good_fact_filter), SOME (good_format, good_type_enc, good_lam_trans,
+    val ((good_max_facts, good_fact_filter), ATP_Slice (good_format, good_type_enc, good_lam_trans,
       good_uncurried_aliases, extra)) = slice
 
     val {exec, arguments, proof_delims, known_failures, prem_role, good_max_mono_iters,

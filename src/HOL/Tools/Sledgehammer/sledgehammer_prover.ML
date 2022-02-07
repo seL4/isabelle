@@ -63,7 +63,11 @@ sig
      factss : (string * fact list) list,
      found_proof : string -> unit}
 
-  type prover_slice = base_slice * atp_slice option
+  datatype prover_slice_extra =
+    ATP_Slice of atp_slice
+  | SMT_Slice of string list
+
+  type prover_slice = base_slice * prover_slice_extra
 
   type prover_result =
     {outcome : atp_failure option,
@@ -176,7 +180,11 @@ type prover_problem =
    factss : (string * fact list) list,
    found_proof : string -> unit}
 
-type prover_slice = base_slice * atp_slice option
+datatype prover_slice_extra =
+  ATP_Slice of atp_slice
+| SMT_Slice of string list
+
+type prover_slice = base_slice * prover_slice_extra
 
 type prover_result =
   {outcome : atp_failure option,

@@ -676,18 +676,19 @@ text \<open>
 In general, the binding to SMT solvers runs as an oracle, i.e, the SMT
 solvers are fully trusted without additional checks. The following
 option can cause the SMT solver to run in proof-producing mode, giving
-a checkable certificate. This is currently only implemented for Z3.
+a checkable certificate. This is currently implemented only for veriT and
+Z3.
 \<close>
 
 declare [[smt_oracle = false]]
 
 text \<open>
-Each SMT solver provides several commandline options to tweak its
+Each SMT solver provides several command-line options to tweak its
 behaviour. They can be passed to the solver by setting the following
 options.
 \<close>
 
-declare [[cvc4_options = "--full-saturate-quant --inst-when=full-last-call --inst-no-entail --term-db-mode=relevant --multi-trigger-linear"]]
+declare [[cvc4_options = ""]]
 declare [[verit_options = ""]]
 declare [[z3_options = ""]]
 

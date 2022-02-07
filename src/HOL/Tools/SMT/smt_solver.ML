@@ -21,7 +21,7 @@ sig
      command: unit -> string list,
      options: Proof.context -> string list,
      smt_options: (string * string) list,
-     good_slices: (int * string) list,
+     good_slices: ((int * string) * string list) list,
      outcome: string -> string list -> outcome * string list,
      parse_proof: (Proof.context -> SMT_Translate.replay_data ->
        ((string * ATP_Problem_Generate.stature) * thm) list -> term list -> term -> string list ->
@@ -30,11 +30,11 @@ sig
 
   (*registry*)
   val add_solver: solver_config -> theory -> theory
-  val good_slices: Proof.context -> string -> (int * string) list
+  val good_slices: Proof.context -> string -> ((int * string) * string list) list
 
   (*filter*)
   val smt_filter: Proof.context -> thm -> ((string * ATP_Problem_Generate.stature) * thm) list ->
-    int -> Time.time -> parsed_proof
+    int -> Time.time -> string list -> parsed_proof
 
   (*tactic*)
   val smt_tac: Proof.context -> thm list -> int -> tactic
@@ -124,9 +124,9 @@ fun trace_replay_data ({context = ctxt, typs, terms, ...} : SMT_Translate.replay
 
 in
 
-fun invoke name command smt_options ithms ctxt =
+fun invoke name command options smt_options ithms ctxt =
   let
-    val options = SMT_Config.solver_options_of ctxt
+    val options = options @ SMT_Config.solver_options_of ctxt
     val comments = [space_implode " " options]
 
     val (str, replay_data as {context = ctxt', ...}) =
@@ -155,7 +155,7 @@ type solver_config =
    command: unit -> string list,
    options: Proof.context -> string list,
    smt_options: (string * string) list,
-   good_slices: (int * string) list,
+   good_slices: ((int * string) * string list) list,
    outcome: string -> string list -> outcome * string list,
    parse_proof: (Proof.context -> SMT_Translate.replay_data ->
      ((string * ATP_Problem_Generate.stature) * thm) list -> term list -> term -> string list ->
@@ -180,7 +180,7 @@ fun check_topsort ctxt thm =
 type solver_info = {
   command: unit -> string list,
   smt_options: (string * string) list,
-  good_slices: (int * string) list,
+  good_slices: ((int * string) * string list) list,
   parse_proof: Proof.context -> SMT_Translate.replay_data ->
     ((string * ATP_Problem_Generate.stature) * thm) list -> term list -> term -> string list ->
     parsed_proof,
@@ -252,13 +252,13 @@ fun apply_solver_and_replay ctxt thms0 =
     val thms = map (check_topsort ctxt) thms0
     val (name, {command, smt_options, replay, ...}) = name_and_info_of ctxt
     val (output, replay_data) =
-      invoke name command smt_options (SMT_Normalize.normalize ctxt thms) ctxt
+      invoke name command [] smt_options (SMT_Normalize.normalize ctxt thms) ctxt
   in replay ctxt replay_data output end
 
 
 (* filter (for Sledgehammer) *)
 
-fun smt_filter ctxt0 goal xfacts i time_limit =
+fun smt_filter ctxt0 goal xfacts i time_limit options =
   let
     val ctxt = ctxt0 |> Config.put SMT_Config.timeout (Time.toReal time_limit)
 
@@ -276,7 +276,7 @@ fun smt_filter ctxt0 goal xfacts i time_limit =
 
     val (name, {command, smt_options, parse_proof, ...}) = name_and_info_of ctxt
     val (output, replay_data) =
-      invoke name command smt_options (SMT_Normalize.normalize ctxt thms') ctxt
+      invoke name command options smt_options (SMT_Normalize.normalize ctxt thms') ctxt
   in
     parse_proof ctxt replay_data xfacts (map Thm.prop_of prems) (Thm.term_of concl) output
   end

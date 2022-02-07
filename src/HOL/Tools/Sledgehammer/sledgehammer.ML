@@ -314,9 +314,11 @@ fun prover_slices_of_schedule ctxt factss
         original @ shifted_once @ shifted_twice
       end
 
-    fun adjust_extra (format0, type_enc0, lam_trans0, uncurried_aliases0, extra_extra0) =
-      (format0, the_default type_enc0 type_enc, the_default lam_trans0 lam_trans,
-       the_default uncurried_aliases0 uncurried_aliases, extra_extra0)
+    fun adjust_extra (ATP_Slice (format0, type_enc0, lam_trans0, uncurried_aliases0,
+        extra_extra0)) =
+        ATP_Slice (format0, the_default type_enc0 type_enc, the_default lam_trans0 lam_trans,
+          the_default uncurried_aliases0 uncurried_aliases, extra_extra0)
+      | adjust_extra (extra as SMT_Slice _) = extra
 
     fun adjust_slice ((num_facts0, fact_filter0), extra) =
       let
@@ -324,7 +326,7 @@ fun prover_slices_of_schedule ctxt factss
         val max_facts = max_facts |> the_default num_facts0
         val num_facts = Int.min (max_facts, length (facts_of_filter fact_filter factss))
       in
-        ((num_facts, fact_filter), Option.map adjust_extra extra)
+        ((num_facts, fact_filter), adjust_extra extra)
       end
 
     val provers = distinct (op =) schedule
