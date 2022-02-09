@@ -66,7 +66,7 @@ object Mirabelle
           ("mirabelle_output_dir=" + output_dir.implode)
 
 
-      progress.echo("Running Mirabelle ...")
+      progress.echo("Running Mirabelle on " + Isabelle_System.identification() + "...")
 
       val store = Sessions.store(build_options)
 
