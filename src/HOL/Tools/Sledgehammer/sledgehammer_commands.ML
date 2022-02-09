@@ -343,7 +343,9 @@ val parse_params = parse_raw_params >> map (apsnd implode_param)
 val parse_fact_refs = Scan.repeat1 (Scan.unless (Parse.name -- Args.colon) Parse.thm)
 val parse_fact_override_chunk =
   (Args.add |-- Args.colon |-- parse_fact_refs >> add_fact_override)
+  || (Args.add |-- Args.colon |-- Scan.succeed [] >> add_fact_override)
   || (Args.del |-- Args.colon |-- parse_fact_refs >> del_fact_override)
+  || (Args.del |-- Args.colon |-- Scan.succeed [] >> del_fact_override)
   || (parse_fact_refs >> only_fact_override)
 val parse_fact_override =
   Scan.optional (Args.parens (Scan.repeat parse_fact_override_chunk >> merge_fact_overrides))
