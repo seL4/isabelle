@@ -102,9 +102,8 @@ fun suffix_of_mode Auto_Try = "_try"
 val atp_important_message_keep_quotient = 25
 
 fun run_atp mode name
-    ({debug, verbose, overlord, strict, fact_filter, max_facts, max_mono_iters,
-      max_new_mono_instances, isar_proofs, compress, try0, smt_proofs, minimize, slices, timeout,
-      preplay_timeout, spy, ...} : params)
+    ({debug, verbose, overlord, strict, max_mono_iters, max_new_mono_instances, isar_proofs,
+      compress, try0, smt_proofs, minimize, slices, timeout, preplay_timeout, spy, ...} : params)
     ({comment, state, goal, subgoal, subgoal_count, factss, found_proof} : prover_problem)
     slice =
   let
@@ -182,26 +181,20 @@ fun run_atp mode name
             |> maps (fn (name, rths) => map (pair name o zero_var_indexes o snd) rths)
           end
 
-        val effective_fact_filter = fact_filter |> the_default good_fact_filter
-        val facts = facts_of_filter effective_fact_filter factss
-        val num_facts =
-          (case max_facts of
-            NONE => good_max_facts
-          | SOME max_facts => max_facts)
-          |> Integer.min (length facts)
         val strictness = if strict then Strict else Non_Strict
         val type_enc = choose_type_enc strictness good_format good_type_enc
         val run_timeout = slice_timeout slices timeout
         val generous_run_timeout = if mode = MaSh then one_day else run_timeout
+        val facts = facts_of_filter good_fact_filter factss
+          |> not (is_type_enc_sound type_enc) ?
+               filter_out (is_dangerous_prop ctxt o Thm.prop_of o snd)
+          |> take good_max_facts
         val ({elapsed, ...}, atp_problem_data as (atp_problem, _, _, _)) = Timing.timing (fn () =>
           let
-            val sound = is_type_enc_sound type_enc
             val generate_info = (case good_format of DFG _ => true | _ => false)
             val readable_names = not (Config.get ctxt atp_full_names)
           in
             facts
-            |> not sound ? filter_out (is_dangerous_prop ctxt o Thm.prop_of o snd)
-            |> take num_facts
             |> not (is_type_enc_polymorphic type_enc) ? monomorphize_facts
             |> map (apsnd Thm.prop_of)
             |> generate_atp_problem ctxt generate_info good_format prem_role type_enc atp_mode
