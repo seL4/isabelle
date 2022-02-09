@@ -87,6 +87,7 @@ sig
   val bunches_of_proof_methods : Proof.context -> bool -> bool -> bool -> string ->
     proof_method list list
   val facts_of_filter : string -> (string * fact list) list -> fact list
+  val facts_of_basic_slice : base_slice -> (string * fact list) list -> fact list
   val is_fact_chained : (('a * stature) * 'b) -> bool
   val filter_used_facts : bool -> (''a * stature) list -> ((''a * stature) * 'b) list ->
     ((''a * stature) * 'b) list
@@ -237,6 +238,10 @@ fun facts_of_filter fact_filter factss =
   (case AList.lookup (op =) factss fact_filter of
     SOME facts => facts
   | NONE => snd (hd factss))
+
+fun facts_of_basic_slice (num_facts, fact_filter) factss =
+  facts_of_filter fact_filter factss
+  |> take num_facts
 
 fun is_fact_chained ((_, (sc, _)), _) = sc = Chained
 

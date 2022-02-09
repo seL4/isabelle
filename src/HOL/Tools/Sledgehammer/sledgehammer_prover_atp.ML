@@ -107,11 +107,11 @@ fun run_atp mode name
     ({comment, state, goal, subgoal, subgoal_count, factss, found_proof} : prover_problem)
     slice =
   let
+    val (basic_slice, ATP_Slice (good_format, good_type_enc, good_lam_trans, good_uncurried_aliases, extra)) =
+      slice
+    val facts = facts_of_basic_slice basic_slice factss
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
-
-    val ((good_max_facts, good_fact_filter), ATP_Slice (good_format, good_type_enc, good_lam_trans,
-      good_uncurried_aliases, extra)) = slice
 
     val {exec, arguments, proof_delims, known_failures, prem_role, good_max_mono_iters,
       good_max_new_mono_instances, ...} = get_atp thy name ()
@@ -185,16 +185,14 @@ fun run_atp mode name
         val type_enc = choose_type_enc strictness good_format good_type_enc
         val run_timeout = slice_timeout slices timeout
         val generous_run_timeout = if mode = MaSh then one_day else run_timeout
-        val facts = facts_of_filter good_fact_filter factss
-          |> not (is_type_enc_sound type_enc) ?
-               filter_out (is_dangerous_prop ctxt o Thm.prop_of o snd)
-          |> take good_max_facts
         val ({elapsed, ...}, atp_problem_data as (atp_problem, _, _, _)) = Timing.timing (fn () =>
           let
             val generate_info = (case good_format of DFG _ => true | _ => false)
             val readable_names = not (Config.get ctxt atp_full_names)
           in
             facts
+            |> not (is_type_enc_sound type_enc) ?
+              filter_out (is_dangerous_prop ctxt o Thm.prop_of o snd)
             |> not (is_type_enc_polymorphic type_enc) ? monomorphize_facts
             |> map (apsnd Thm.prop_of)
             |> generate_atp_problem ctxt generate_info good_format prem_role type_enc atp_mode

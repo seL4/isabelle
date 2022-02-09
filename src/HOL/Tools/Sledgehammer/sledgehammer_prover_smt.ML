@@ -119,12 +119,9 @@ fun run_smt_solver mode name (params as {debug, verbose, isar_proofs, compress, 
     ({state, goal, subgoal, subgoal_count, factss, found_proof, ...} : prover_problem)
     slice =
   let
+    val (basic_slice, SMT_Slice options) = slice
+    val facts = facts_of_basic_slice basic_slice factss
     val ctxt = Proof.context_of state
-
-    val ((good_max_facts, good_fact_filter), SMT_Slice options) = slice
-
-    val facts = facts_of_filter good_fact_filter factss
-      |> take good_max_facts
 
     val {outcome, filter_result = {fact_ids, atp_proof, ...}, used_from, run_time} =
       smt_filter name params state goal subgoal facts options
