@@ -3334,8 +3334,15 @@ import Isabelle.Library
 
 newtype Time = Time Int
 
-instance Eq Time where Time ms1 == Time ms2 = ms1 == ms2
-instance Ord Time where compare (Time ms1) (Time ms2) = compare ms1 ms2
+instance Eq Time where Time a == Time b = a == b
+instance Ord Time where compare (Time a) (Time b) = compare a b
+instance Num Time where
+  fromInteger = Time . fromInteger
+  Time a + Time b = Time (a + b)
+  Time a - Time b = Time (a - b)
+  Time a * Time b = Time (a * b)
+  abs (Time a) = Time (abs a)
+  signum (Time a) = Time (signum a)
 
 seconds :: Double -> Time
 seconds s = Time (round (s * 1000.0))
