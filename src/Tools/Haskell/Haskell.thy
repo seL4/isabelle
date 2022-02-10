@@ -3863,7 +3863,6 @@ module Isabelle.Cache (
 where
 
 import Prelude hiding (init)
-import Control.Exception (evaluate)
 import Data.IORef
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
