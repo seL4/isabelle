@@ -3890,15 +3890,15 @@ commit (Cache ref) x e = do
           _ -> e
     in (Map.insert x entry entries, _value entry))
 
-apply :: Ord k => T k v -> (k -> v) -> k -> IO v
-apply cache@(Cache ref) f x = do
+apply :: Ord k => T k v -> k -> IO v -> IO v
+apply cache@(Cache ref) x body = do
   start <- Time.now
   entries <- readIORef ref
   case Map.lookup x entries of
     Just entry -> do
       commit cache x (entry {_access = start})
     Nothing -> do
-      y <- evaluate $ f x
+      y <- body
       stop <- Time.now
       commit cache x (Entry y start (stop - start))
 
