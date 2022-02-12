@@ -40,7 +40,7 @@ text \<open>
   For technical reasons it is sometimes necessary to separate
   generation and compilation of code which is supposed to be used in
   the system runtime.  For this @{command code_reflect} with an
-  optional \<^theory_text>\<open>file\<close> argument can be used:
+  optional \<^theory_text>\<open>file_prefix\<close> argument can be used:
 \<close>
 
 code_reflect %quote Rat
@@ -51,8 +51,8 @@ code_reflect %quote Rat
   file_prefix rat
 
 text \<open>
-  \noindent This merely generates the referenced code to the given
-  file which can be included into the system runtime later on.
+  \noindent This generates the referenced code as logical files within the theory context,
+  similar to @{command export_code}.
 \<close>
 
 subsection \<open>Specialities of the \<open>Scala\<close> target language \label{sec:scala}\<close>
