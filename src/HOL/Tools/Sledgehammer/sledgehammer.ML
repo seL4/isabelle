@@ -367,7 +367,7 @@ fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_fac
         fun found_proof prover_name =
           if mode = Normal then
             (Synchronized.change found_proofs (fn n => n + 1);
-             (writeln_result |> the_default writeln) (prover_name ^ " found a proof..."))
+             (the_default writeln writeln_result) (prover_name ^ " found a proof..."))
           else
             ()
 
@@ -459,10 +459,11 @@ fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_fac
          handle Timeout.TIMEOUT _ => (SH_Timeout, ""))
         |> `(fn (outcome, message) =>
           (case outcome of
-            SH_Some _ => (print "QED"; true)
-          | SH_Unknown => (print message; false)
-          | SH_Timeout => (print "No proof found"; false)
-          | SH_None => (print (if message = "" then "No proof found" else "Error: " ^ message);
+            SH_Some _ => (the_default writeln writeln_result "QED"; true)
+          | SH_Unknown => (the_default writeln writeln_result message; false)
+          | SH_Timeout => (the_default writeln writeln_result "No proof found"; false)
+          | SH_None => (the_default writeln writeln_result
+                (if message = "" then "No proof found" else "Error: " ^ message);
               false)))
       end)
 
