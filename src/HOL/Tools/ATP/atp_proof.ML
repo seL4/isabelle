@@ -164,12 +164,9 @@ fun from_lemmas [] = ""
 fun string_of_atp_failure MaybeUnprovable = "Problem maybe unprovable"
   | string_of_atp_failure Unprovable = "Unprovable problem"
   | string_of_atp_failure GaveUp = "Gave up"
-  | string_of_atp_failure ProofMissing =
-    "Claims the conjecture is a theorem but did not provide a proof"
-  | string_of_atp_failure ProofIncomplete =
-    "Claims the conjecture is a theorem but provided an incomplete proof"
-  | string_of_atp_failure ProofUnparsable =
-    "Claims the conjecture is a theorem but provided an unparsable proof"
+  | string_of_atp_failure ProofMissing = "Proof missing"
+  | string_of_atp_failure ProofIncomplete = "Proof incomplete"
+  | string_of_atp_failure ProofUnparsable = "Proof unparsable"
   | string_of_atp_failure (UnsoundProof (false, ss)) =
     "Derived the lemma \"False\"" ^ from_lemmas ss ^
     ", probably due to the use of an unsound type encoding"
@@ -178,7 +175,7 @@ fun string_of_atp_failure MaybeUnprovable = "Problem maybe unprovable"
     ", which could be due to a bug in Sledgehammer or to inconsistent axioms (including \"sorry\"s)"
   | string_of_atp_failure TimedOut = "Timed out"
   | string_of_atp_failure Inappropriate = "Problem outside the prover's scope"
-  | string_of_atp_failure OutOfResources = "Ran out of resources"
+  | string_of_atp_failure OutOfResources = "Out of resources"
   | string_of_atp_failure MalformedInput = "Malformed problem"
   | string_of_atp_failure MalformedOutput = "Malformed output"
   | string_of_atp_failure Interrupted = "Interrupted"

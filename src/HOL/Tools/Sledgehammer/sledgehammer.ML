@@ -461,7 +461,9 @@ fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_fac
           (case outcome of
             SH_Some _ => (print "QED"; true)
           | SH_Unknown => (print message; false)
-          | _ => (print "No proof found"; false)))
+          | SH_Timeout => (print "No proof found"; false)
+          | SH_None => (print (if message = "" then "No proof found" else "Error: " ^ message);
+              false)))
       end)
 
 end;
