@@ -1729,6 +1729,14 @@ inductive\<^marker>\<open>tag important\<close> fsigma :: "'a::topological_space
 inductive\<^marker>\<open>tag important\<close> gdelta :: "'a::topological_space set \<Rightarrow> bool" where
   "(\<And>n::nat. open (F n)) \<Longrightarrow> gdelta (\<Inter>(F ` UNIV))"
 
+lemma fsigma_UNIV [iff]: "fsigma (UNIV :: 'a::real_inner set)"
+proof -
+  have "(UNIV ::'a set) = (\<Union>i. cball 0 (of_nat i))"
+    by (auto simp: real_arch_simple)
+  then show ?thesis
+    by (metis closed_cball fsigma.intros)
+qed
+
 lemma fsigma_Union_compact:
   fixes S :: "'a::{real_normed_vector,heine_borel} set"
   shows "fsigma S \<longleftrightarrow> (\<exists>F::nat \<Rightarrow> 'a set. range F \<subseteq> Collect compact \<and> S = \<Union>(F ` UNIV))"
