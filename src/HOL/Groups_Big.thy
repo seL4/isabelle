@@ -1226,7 +1226,7 @@ next
     using assms card_eq_0_iff finite_UnionD by fastforce
 qed
 
-lemma card_Union_le_sum_card:
+lemma card_Union_le_sum_card_weak:
   fixes U :: "'a set set"
   assumes "\<forall>u \<in> U. finite u"
   shows "card (\<Union>U) \<le> sum card U"
@@ -1248,6 +1248,11 @@ next
     finally show ?case .
   qed
 qed
+
+lemma card_Union_le_sum_card:
+  fixes U :: "'a set set"
+  shows "card (\<Union>U) \<le> sum card U"
+  by (metis Union_upper card.infinite card_Union_le_sum_card_weak finite_subset zero_le)
 
 lemma card_UN_le:
   assumes "finite I"

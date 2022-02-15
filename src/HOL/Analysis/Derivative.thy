@@ -2058,8 +2058,11 @@ lemma field_differentiable_id [simp,derivative_intros]: "id field_differentiable
 
 lemma field_differentiable_minus [derivative_intros]:
   "f field_differentiable F \<Longrightarrow> (\<lambda>z. - (f z)) field_differentiable F"
-  unfolding field_differentiable_def
-  by (metis field_differentiable_minus)
+  unfolding field_differentiable_def by (metis field_differentiable_minus)
+
+lemma field_differentiable_diff_const [simp,derivative_intros]:
+  "(-)c field_differentiable F"
+  unfolding field_differentiable_def by (rule derivative_eq_intros exI | force)+
 
 lemma field_differentiable_add [derivative_intros]:
   assumes "f field_differentiable F" "g field_differentiable F"

@@ -190,8 +190,11 @@ lemma restrict_ext: "(\<And>x. x \<in> A \<Longrightarrow> f x = g x) \<Longrigh
 lemma restrict_UNIV: "restrict f UNIV = f"
   by (simp add: restrict_def)
 
-lemma inj_on_restrict_eq [simp]: "inj_on (restrict f A) A = inj_on f A"
+lemma inj_on_restrict_eq [simp]: "inj_on (restrict f A) A \<longleftrightarrow> inj_on f A"
   by (simp add: inj_on_def restrict_def)
+
+lemma inj_on_restrict_iff: "A \<subseteq> B \<Longrightarrow> inj_on (restrict f B) A \<longleftrightarrow> inj_on f A"
+  by (metis inj_on_cong restrict_def subset_iff)
 
 lemma Id_compose: "f \<in> A \<rightarrow> B \<Longrightarrow> f \<in> extensional A \<Longrightarrow> compose A (\<lambda>y\<in>B. y) f = f"
   by (auto simp add: fun_eq_iff compose_def extensional_def Pi_def)

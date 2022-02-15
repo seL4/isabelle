@@ -175,11 +175,17 @@ proof (rule onorm_le)
   finally show "norm (A *v x) \<le> CARD('m) * real (CARD('n)) * B * norm x" .
 qed
 
-
 lemma rational_approximation:
   assumes "e > 0"
   obtains r::real where "r \<in> \<rat>" "\<bar>r - x\<bar> < e"
   using Rats_dense_in_real [of "x - e/2" "x + e/2"] assms by auto
+
+lemma Rats_closure_real: "closure \<rat> = (UNIV::real set)"
+proof -
+  have "\<And>x::real. x \<in> closure \<rat>"
+    by (metis closure_approachable dist_real_def rational_approximation)
+  then show ?thesis by auto
+qed
 
 proposition matrix_rational_approximation:
   fixes A :: "real^'n^'m"

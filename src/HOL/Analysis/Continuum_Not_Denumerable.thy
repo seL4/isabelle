@@ -97,6 +97,12 @@ qed
 lemma uncountable_UNIV_real: "uncountable (UNIV :: real set)"
   using real_non_denum unfolding uncountable_def by auto
 
+corollary complex_non_denum: "\<nexists>f :: nat \<Rightarrow> complex. surj f"
+  by (metis (full_types) Re_complex_of_real comp_surj real_non_denum surj_def)
+
+lemma uncountable_UNIV_complex: "uncountable (UNIV :: complex set)"
+  using complex_non_denum unfolding uncountable_def by auto
+
 lemma bij_betw_open_intervals:
   fixes a b c d :: real
   assumes "a < b" "c < d"
