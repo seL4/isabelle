@@ -88,7 +88,7 @@ object Mirabelle
                       case List("mirabelle", action, "initialize") => action + " initialize "
                       case List("mirabelle", action, "finalize") => action + " finalize   "
                       case List("mirabelle", action, "goal", goal_name, line, offset, cpu_ms) =>
-                        action + " goal." + String.format("%-5s", goal_name) + " " + String.format("%5sms", cpu_ms) + " " +
+                        action + " goal." + String.format("%-9s", goal_name) + " " + String.format("%5sms", cpu_ms) + " " +
                           args.theory_name + " " + line + ":" + offset + "  "
                       case _ => ""
                     }

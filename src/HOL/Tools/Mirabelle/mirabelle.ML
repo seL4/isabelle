@@ -187,7 +187,7 @@ fun check_theories strs =
 
 (* presentation hook *)
 
-val whitelist = ["apply", "by", "proof"];
+val whitelist = ["apply", "by", "proof", "unfolding", "using"];
 
 val _ =
   Build.add_hook (fn qualifier => fn loaded_theories =>
