@@ -29,15 +29,12 @@ object Scala_Project
 
     def package_dir(source_file: Path): Path =
     {
-      val is_java = source_file.is_java
       val dir =
         package_name(source_file) match {
-          case Some(name) =>
-            if (is_java) Path.explode(space_explode('.', name).mkString("/"))
-            else Path.basic(name)
+          case Some(name) => Path.explode(space_explode('.', name).mkString("/"))
           case None => error("Failed to guess package from " + source_file)
         }
-      (if (is_java) java_src_dir else scala_src_dir) + dir
+      (if (source_file.is_java) java_src_dir else scala_src_dir) + dir
     }
   }
 
