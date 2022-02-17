@@ -44,6 +44,11 @@ object Platform
       else if (platform == macos) "x86_64-darwin"
       else if (platform == windows) "x86_64-cygwin"
       else error("Bad platform family: " + quote(platform.toString))
+
+    def native(platform: Value): String =
+      if (platform == macos) "arm64-darwin"
+      else if (platform == windows) "x86_64-windows"
+      else standard(platform)
   }
 
 
