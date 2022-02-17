@@ -2645,6 +2645,10 @@ class unique_euclidean_semiring_with_bit_operations =
   unique_euclidean_semiring_with_nat + semiring_bit_operations
 begin
 
+lemma possible_bit [simp]:
+  \<open>possible_bit TYPE('a) n\<close>
+  by (simp add: possible_bit_def)
+
 lemma take_bit_of_exp [simp]:
   \<open>take_bit m (2 ^ n) = of_bool (n < m) * 2 ^ n\<close>
   by (simp add: take_bit_eq_mod exp_mod_exp)
@@ -2715,6 +2719,10 @@ proof -
   finally show ?thesis
     by (simp add: bit_iff_odd semiring_bits_class.bit_iff_odd)
 qed
+
+lemma drop_bit_mask_eq:
+  \<open>drop_bit m (mask n) = mask (n - m)\<close>
+  by (rule bit_eqI) (auto simp add: bit_simps possible_bit_def)
 
 lemma drop_bit_of_nat:
   "drop_bit n (of_nat m) = of_nat (drop_bit n m)"
