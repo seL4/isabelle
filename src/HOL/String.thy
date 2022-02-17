@@ -42,7 +42,7 @@ context unique_euclidean_semiring_with_bit_operations
 begin
 
 definition char_of :: \<open>'a \<Rightarrow> char\<close>
-  where \<open>char_of n = Char (odd n) (bit n 1) (bit n 2) (bit n 3) (bit n 4) (bit n 5) (bit n 6) (bit n 7)\<close>
+  where \<open>char_of n = Char (bit n 0) (bit n 1) (bit n 2) (bit n 3) (bit n 4) (bit n 5) (bit n 6) (bit n 7)\<close>
 
 lemma char_of_take_bit_eq:
   \<open>char_of (take_bit n m) = char_of m\<close> if \<open>n \<ge> 8\<close>
@@ -80,7 +80,7 @@ lemma of_char_of [simp]:
 proof -
   have \<open>[0..<8] = [0, Suc 0, 2, 3, 4, 5, 6, 7 :: nat]\<close>
     by (simp add: upt_eq_Cons_conv)
-  then have \<open>[odd a, bit a 1, bit a 2, bit a 3, bit a 4, bit a 5, bit a 6, bit a 7] = map (bit a) [0..<8]\<close>
+  then have \<open>[bit a 0, bit a 1, bit a 2, bit a 3, bit a 4, bit a 5, bit a 6, bit a 7] = map (bit a) [0..<8]\<close>
     by simp
   then have \<open>of_char (char_of a) = take_bit 8 a\<close>
     by (simp only: char_of_def of_char_def char.sel horner_sum_bit_eq_take_bit)

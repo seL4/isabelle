@@ -1850,7 +1850,7 @@ next
   moreover from Suc.prems have \<open>even k \<longleftrightarrow> even l\<close>
     by (auto simp add: take_bit_Suc elim!: evenE oddE) arith+
   ultimately show ?case
-    by (simp only: map_Suc_upt upt_conv_Cons flip: list.map_comp) simp
+    by (simp only: map_Suc_upt upt_conv_Cons flip: list.map_comp) (simp add: bit_0)
 qed
 
 lemma

@@ -15,6 +15,9 @@ since Isabelle2019). INCOMPATIBILITY, use \<open>cartouche\<close> syntax instea
 
 *** HOL ***
 
+* Theory "HOL.Bit_Operations": rule bit_0 is not default [simp] any
+longer. INCOMPATIBILITY.
+
 * Theory "HOL.Relation": Added lemmas asymp_less and asymp_greater to
   type class preorder.
 
