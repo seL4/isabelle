@@ -208,6 +208,6 @@ text \<open>
 lemma indicator_UN_disjoint:
   "finite A \<Longrightarrow> disjoint_family_on f A \<Longrightarrow> indicator (\<Union>(f ` A)) x = (\<Sum>y\<in>A. indicator (f y) x)"
   by (induct A rule: finite_induct)
-    (auto simp: disjoint_family_on_def indicator_def split: if_splits)
+    (auto simp: disjoint_family_on_def indicator_def split: if_splits split_of_bool_asm)
 
 end

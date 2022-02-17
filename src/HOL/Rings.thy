@@ -114,7 +114,7 @@ lemma of_bool_eq_iff: "of_bool p = of_bool q \<longleftrightarrow> p = q"
 lemma split_of_bool [split]: "P (of_bool p) \<longleftrightarrow> (p \<longrightarrow> P 1) \<and> (\<not> p \<longrightarrow> P 0)"
   by (cases p) simp_all
 
-lemma split_of_bool_asm [split]: "P (of_bool p) \<longleftrightarrow> \<not> (p \<and> \<not> P 1 \<or> \<not> p \<and> \<not> P 0)"
+lemma split_of_bool_asm: "P (of_bool p) \<longleftrightarrow> \<not> (p \<and> \<not> P 1 \<or> \<not> p \<and> \<not> P 0)"
   by (cases p) simp_all
 
 lemma of_bool_eq_0_iff [simp]:

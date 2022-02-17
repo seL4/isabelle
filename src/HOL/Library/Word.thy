@@ -1581,7 +1581,7 @@ qed
 
 lemma mod_word_one [simp]:
   \<open>1 mod w = 1 - w * of_bool (w = 1)\<close> for w :: \<open>'a::len word\<close>
-  using div_mult_mod_eq [of 1 w] by simp
+  using div_mult_mod_eq [of 1 w] by auto
 
 lemma div_word_by_minus_1_eq [simp]:
   \<open>w div - 1 = of_bool (w = - 1)\<close> for w :: \<open>'a::len word\<close>
@@ -1589,9 +1589,17 @@ lemma div_word_by_minus_1_eq [simp]:
 
 lemma mod_word_by_minus_1_eq [simp]:
   \<open>w mod - 1 = w * of_bool (w < - 1)\<close> for w :: \<open>'a::len word\<close>
-  apply (cases \<open>w = - 1\<close>)
-   apply (auto simp add: word_order.not_eq_extremum)
-  using div_mult_mod_eq [of w \<open>- 1\<close>] by simp
+proof (cases \<open>w = - 1\<close>)
+  case True
+  then show ?thesis
+    by simp
+next
+  case False
+  moreover have \<open>w < - 1\<close>
+    using False by (simp add: word_order.not_eq_extremum)
+  ultimately show ?thesis
+    by (simp add: mod_word_less)
+qed
 
 text \<open>Legacy theorems:\<close>
 

@@ -15,6 +15,9 @@ since Isabelle2019). INCOMPATIBILITY, use \<open>cartouche\<close> syntax instea
 
 *** HOL ***
 
+* Rule split_of_bool_asm is not split any longer, analogously to
+split_if_asm.  INCOMPATIBILITY.
+
 * Theory "HOL.Bit_Operations": rule bit_0 is not default [simp] any
 longer. INCOMPATIBILITY.
 
