@@ -68,7 +68,7 @@ exit $?
     download_url: String = default_download_url,
     version: String = vscode_version,
     platform: Platform.Family.Value = default_platform,
-    verbose: Boolean = false,
+    quiet: Boolean = false,
     progress: Progress = new Progress): Unit =
   {
     val (install_ok, install_dir) = vscode_installation(version, platform)
@@ -95,8 +95,8 @@ exit $?
       Isabelle_System.with_tmp_file("download")(download =>
         {
           Isabelle_System.download_file(download_url + "/" + version + "/" + name, download,
-            progress = if (verbose) progress else new Progress)
-          if (verbose) progress.echo("Installing " + install_dir.expand)
+            progress = if (quiet) new Progress else progress)
+          if (!quiet) progress.echo("Installing " + install_dir.expand)
           if (is_zip) {
             Isabelle_System.bash("unzip -x " + File.bash_path(download),
               cwd = install_dir.file).check
@@ -133,7 +133,7 @@ exit $?
       var download_url = default_download_url
       var version = vscode_version
       var platforms = List(default_platform)
-      var verbose = false
+      var quiet = false
 
       val getopts = Getopts("""
 Usage: vscode_setup [OPTIONS]
@@ -146,7 +146,7 @@ Usage: vscode_setup [OPTIONS]
     -p NAMES     platform families: comma-separated names
                  (""" + commas_quote(Platform.Family.list.map(_.toString)) + """, default: """ +
         quote(default_platform.toString) + """)
-    -v           verbose mode
+    -q           quiet mode
 
   Maintain local installation of VSCode, see also https://vscodium.com
 
@@ -157,7 +157,7 @@ Usage: vscode_setup [OPTIONS]
         "U:" -> (arg => download_url = arg),
         "V:" -> (arg => version = arg),
         "p:" -> (arg => platforms = Library.space_explode(',', arg).map(Platform.Family.parse)),
-        "v" -> (_ => verbose = true))
+        "q" -> (_ => quiet = true))
 
       val more_args = getopts(args)
       if (more_args.nonEmpty) getopts.usage()
@@ -165,7 +165,7 @@ Usage: vscode_setup [OPTIONS]
       val progress = new Console_Progress()
       for (platform <- platforms) {
         vscode_setup(check = check, download_url = download_url, version = version,
-          platform = platform, verbose = verbose, progress = progress)
+          platform = platform, quiet = quiet, progress = progress)
       }
     })
 }
