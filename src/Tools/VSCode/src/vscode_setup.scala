@@ -18,6 +18,8 @@ object VSCode_Setup
   def vscode_settings: Path = Path.variable("ISABELLE_VSCODE_SETTINGS")
   def vscode_version: String = Isabelle_System.getenv_strict("ISABELLE_VSCODE_VERSION")
 
+  def exe_path(dir: Path): Path = dir + Path.explode("bin/codium")
+
   def vscode_installation(version: String, platform: Platform.Family.Value): (Boolean, Path) =
     {
       val platform_name =
@@ -26,7 +28,7 @@ object VSCode_Setup
       val install_dir =
         vscode_settings + Path.basic("installation") +
           Path.basic(version) + Path.basic(platform_name)
-      val install_ok = (install_dir + Path.explode("bin/codium")).is_file
+      val install_ok = exe_path(install_dir).is_file
       (install_ok, install_dir)
     }
 
@@ -35,6 +37,18 @@ object VSCode_Setup
 
   val default_download_url: String = "https://github.com/VSCodium/vscodium/releases/download"
   def default_platform: Platform.Family.Value = Platform.family
+
+  private def macos_exe: String =
+"""#!/usr/bin/env bash
+
+unset CDPATH
+VSCODE_PATH="$(cd "$(dirname "$0")"/../VSCodium.app/Contents; pwd)"
+
+ELECTRON="$VSCODE_PATH/MacOS/Electron"
+CLI="$VSCODE_PATH/Resources/app/out/cli.js"
+ELECTRON_RUN_AS_NODE=1 "$ELECTRON" "$CLI" --ms-enable-electron-run-as-node "$@"
+exit $?
+"""
 
   def download_name(version: String, platform: Platform.Family.Value): String =
   {
@@ -76,6 +90,8 @@ object VSCode_Setup
       if (is_zip) Isabelle_System.require_command("unzip", test = "-h")
 
       Isabelle_System.make_directory(install_dir)
+      val exe = exe_path(install_dir)
+
       Isabelle_System.with_tmp_file("download")(download =>
         {
           Isabelle_System.download_file(download_url + "/" + version + "/" + name, download,
@@ -89,12 +105,18 @@ object VSCode_Setup
             Isabelle_System.gnutar("-xzf " + File.bash_path(download),
               dir = install_dir).check
           }
-          if (platform == Platform.Family.windows) {
-            val files1 = File.find_files((install_dir + Path.explode("bin")).file)
-            val files2 =
-              File.find_files(install_dir.file,
-                pred = file => file.getName.endsWith(".exe") || file.getName.endsWith(".dll"))
-            for (file <- files1 ::: files2) File.set_executable(File.path(file), true)
+          platform match {
+            case Platform.Family.macos =>
+              Isabelle_System.make_directory(exe.dir)
+              File.write(exe, macos_exe)
+              File.set_executable(exe, true)
+            case Platform.Family.windows =>
+              val files1 = File.find_files(exe.dir.file)
+              val files2 =
+                File.find_files(install_dir.file,
+                  pred = file => file.getName.endsWith(".exe") || file.getName.endsWith(".dll"))
+              for (file <- files1 ::: files2) File.set_executable(File.path(file), true)
+            case _ =>
           }
         })
     }
