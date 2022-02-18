@@ -1,8 +1,7 @@
 'use strict';
 
-import { ExtensionContext, Uri, workspace,
-  window, commands, ViewColumn, WebviewPanel } from 'vscode'
-import { LanguageClient } from 'vscode-languageclient';
+import { ExtensionContext, Uri, window, ViewColumn, WebviewPanel } from 'vscode'
+import { LanguageClient } from 'vscode-languageclient'
 import * as library from './library'
 import * as protocol from './protocol'
 
@@ -30,7 +29,7 @@ class Panel
       window.createWebviewPanel("isabelle-preview", "Preview", column,
         {
           enableScripts: true
-        });
+        })
     this.webview_panel.onDidDispose(() => { panel = null })
   }
 }
