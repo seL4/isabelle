@@ -13,6 +13,13 @@ New in this Isabelle version
 since Isabelle2019). INCOMPATIBILITY, use \<open>cartouche\<close> syntax instead.
 
 
+*** Isabelle/VSCode Prover IDE ***
+
+* Command-line tools "isabelle vscode_setup" and "isabelle vscode"
+provide convenient access to a well-defined version of VSCodium
+(open-source distribution of VSCode without MS telemetry).
+
+
 *** HOL ***
 
 * Rule split_of_bool_asm is not split any longer, analogously to
