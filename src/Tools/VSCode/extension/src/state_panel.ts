@@ -19,7 +19,7 @@ class Panel
   private webview_panel: WebviewPanel
 
   public get_id(): number { return this.state_id }
-  public check_id(id: number): boolean { return this.state_id == id }
+  public check_id(id: number): boolean { return this.state_id === id }
 
   public set_content(id: number, body: string)
   {
