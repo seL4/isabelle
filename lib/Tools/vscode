@@ -6,6 +6,6 @@
 
 DIR="$(isabelle vscode_setup -C)" || exit "$?"
 exec "$DIR/bin/codium" \
-  --user-data-dir "$(platform_path "$ISABELLE_VSCODE_SETTINGS")" \
+  --user-data-dir "$(platform_path "$ISABELLE_VSCODE_SETTINGS"/user-data)" \
   --extensions-dir "$(platform_path "$ISABELLE_VSCODE_SETTINGS"/extensions)" \
   "$@"
