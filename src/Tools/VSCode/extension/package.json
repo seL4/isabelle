@@ -23,9 +23,12 @@
         "Programming Languages"
     ],
     "activationEvents": [
+        "workspaceContains:ROOT",
+        "workspaceContains:ROOTS",
         "onLanguage:isabelle",
         "onLanguage:isabelle-ml",
         "onLanguage:bibtex",
+        "onCommand:isabelle.state",
         "onCommand:isabelle.preview",
         "onCommand:isabelle.preview-split"
     ],
