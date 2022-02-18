@@ -196,15 +196,15 @@ object Keymap_Merge
     table.setFillsViewportHeight(true)
     table.getTableHeader.setReorderingAllowed(false)
 
-		table.getColumnModel.getColumn(0).setPreferredWidth(30)
-		table.getColumnModel.getColumn(0).setMinWidth(30)
-		table.getColumnModel.getColumn(0).setMaxWidth(30)
-		table.getColumnModel.getColumn(0).setResizable(false)
-		table.getColumnModel.getColumn(1).setPreferredWidth(table_size.width - 30)
+    table.getColumnModel.getColumn(0).setPreferredWidth(30)
+    table.getColumnModel.getColumn(0).setMinWidth(30)
+    table.getColumnModel.getColumn(0).setMaxWidth(30)
+    table.getColumnModel.getColumn(0).setResizable(false)
+    table.getColumnModel.getColumn(1).setPreferredWidth(table_size.width - 30)
 
     val scroller = new JScrollPane(table)
-		scroller.getViewport.setBackground(table.getBackground)
-		scroller.setPreferredSize(table_size)
+    scroller.getViewport.setBackground(table.getBackground)
+    scroller.setPreferredSize(table_size)
 
     add(scroller, BorderLayout.CENTER)
   }
