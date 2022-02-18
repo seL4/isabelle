@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+#
+# Author: Makarius
+#
+# DESCRIPTION: run Isabelle/VSCode using local VSCodium installation
+
+DIR="$(isabelle vscode_setup -C)" || exit "$?"
+exec "$DIR/bin/codium" \
+  --user-data-dir "$(platform_path "$ISABELLE_VSCODE_SETTINGS")" \
+  --extensions-dir "$(platform_path "$ISABELLE_VSCODE_SETTINGS"/extensions)" \
+  "$@"
