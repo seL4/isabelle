@@ -69,6 +69,7 @@ exit $?
     version: String = vscode_version,
     platform: Platform.Family.Value = default_platform,
     quiet: Boolean = false,
+    fresh: Boolean = false,
     progress: Progress = new Progress): Unit =
   {
     val (install_ok, install_dir) = vscode_installation(version, platform)
@@ -84,15 +85,15 @@ exit $?
       if (install_ok) {
         progress.echo_warning("Isabelle/VSCode installation already present: " + install_dir.expand)
       }
+      if (!install_ok || fresh) {
+        val name = download_name(version, platform)
+        val is_zip = name.endsWith(".zip")
+        if (is_zip) Isabelle_System.require_command("unzip", test = "-h")
 
-      val name = download_name(version, platform)
-      val is_zip = name.endsWith(".zip")
-      if (is_zip) Isabelle_System.require_command("unzip", test = "-h")
+        Isabelle_System.make_directory(install_dir)
+        val exe = exe_path(install_dir)
 
-      Isabelle_System.make_directory(install_dir)
-      val exe = exe_path(install_dir)
-
-      Isabelle_System.with_tmp_file("download")(download =>
+        Isabelle_System.with_tmp_file("download")(download =>
         {
           Isabelle_System.download_file(download_url + "/" + version + "/" + name, download,
             progress = if (quiet) new Progress else progress)
@@ -119,6 +120,7 @@ exit $?
             case _ =>
           }
         })
+      }
     }
   }
 
@@ -132,6 +134,7 @@ exit $?
       var check = false
       var download_url = default_download_url
       var version = vscode_version
+      var fresh = false
       var platforms = List(default_platform)
       var quiet = false
 
@@ -143,6 +146,7 @@ Usage: vscode_setup [OPTIONS]
     -U URL       download URL
                  (default: """" + default_download_url + """")
     -V VERSION   version (default: """" + vscode_version + """")
+    -f           force fresh installation
     -p NAMES     platform families: comma-separated names
                  (""" + commas_quote(Platform.Family.list.map(_.toString)) + """, default: """ +
         quote(default_platform.toString) + """)
@@ -156,6 +160,7 @@ Usage: vscode_setup [OPTIONS]
         "C" -> (_ => check = true),
         "U:" -> (arg => download_url = arg),
         "V:" -> (arg => version = arg),
+        "f" -> (_ => fresh = true),
         "p:" -> (arg => platforms = Library.space_explode(',', arg).map(Platform.Family.parse)),
         "q" -> (_ => quiet = true))
 
@@ -165,7 +170,7 @@ Usage: vscode_setup [OPTIONS]
       val progress = new Console_Progress()
       for (platform <- platforms) {
         vscode_setup(check = check, download_url = download_url, version = version,
-          platform = platform, quiet = quiet, progress = progress)
+          platform = platform, quiet = quiet, fresh = fresh, progress = progress)
       }
     })
 }
