@@ -1728,6 +1728,9 @@ lemma bij_betw_of_nat [simp]:
   "bij_betw of_nat N A \<longleftrightarrow> of_nat ` N = A"
   by (simp add: bij_betw_def)
 
+lemma Nats_infinite: "infinite (\<nat> :: 'a set)"
+  by (metis Nats_def finite_imageD infinite_UNIV_char_0 inj_on_of_nat)
+
 end
 
 context comm_monoid_set
