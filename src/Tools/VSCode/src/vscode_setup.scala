@@ -77,7 +77,7 @@ exit $?
       if (install_ok) progress.echo(install_dir.expand.implode)
       else {
         error("Bad Isabelle/VSCode installation: " + install_dir.expand +
-          "\n(use \"isabelle vscode_setup\" to download it)")
+          "\n(use \"isabelle vscode_setup\" for download and installation)")
       }
     }
     else {
