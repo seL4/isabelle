@@ -8,6 +8,7 @@ package isabelle
 
 
 import java.io.{File => JFile}
+import java.nio.file.Files
 import java.net.{InetSocketAddress, URI, URL, URLConnection, HttpURLConnection}
 import com.sun.net.httpserver.{HttpExchange, HttpHandler, HttpServer}
 
@@ -38,8 +39,7 @@ object HTTP
   {
     val bytes = Bytes.read(file)
     val file_name = file.getName
-    val mime_type =
-      Option(URLConnection.guessContentTypeFromName(file_name)).getOrElse(default_mime_type)
+    val mime_type = Option(Files.probeContentType(file.toPath)).getOrElse(default_mime_type)
     Content(bytes, file_name = file_name, mime_type = mime_type)
   }
 
