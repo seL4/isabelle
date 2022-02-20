@@ -429,7 +429,8 @@ class Main_Plugin extends EBPlugin
 
   val http_root: String = "/" + UUID.random().toString
 
-  val http_server: HTTP.Server = HTTP.server(Document_Model.http_handlers(http_root))
+  val http_server: HTTP.Server =
+    HTTP.server(services = Document_Model.preview_service :: HTTP.isabelle_services)
 
 
   /* start and stop */

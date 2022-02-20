@@ -303,45 +303,36 @@ object Document_Model
       case Some(model) =>
         val name = model.node_name
         val url =
-          PIDE.plugin.http_server.url + PIDE.plugin.http_root + "/preview?" +
+          PIDE.plugin.http_server.url + "/preview?" +
             (if (plain_text) plain_text_prefix else "") + Url.encode(name.node)
         PIDE.editor.hyperlink_url(url).follow(view)
       case _ =>
     }
   }
 
-  def http_handlers(http_root: String): List[HTTP.Handler] =
-  {
-    val fonts_root = http_root + "/fonts"
-    val pdfjs_root = http_root + "/pdfjs"
-    val preview_root = http_root + "/preview"
-
-    val html =
-      HTTP.Handler.get(preview_root, arg =>
-        for {
-          query <- Library.try_unprefix(preview_root + "?", arg.uri.toString).map(Url.decode)
-          name = Library.perhaps_unprefix(plain_text_prefix, query)
-          model <- get(PIDE.resources.node_name(name))
-        }
-        yield {
-          val snapshot = model.await_stable_snapshot()
-          val html_context =
-            new Presentation.HTML_Context {
-              override def root_dir: Path = Path.current
-              override def theory_session(name: Document.Node.Name): Sessions.Info =
-                PIDE.resources.sessions_structure(
-                  PIDE.resources.session_base.theory_qualifier(name))
-            }
-          val document =
-            Presentation.html_document(
-              snapshot, html_context, Presentation.elements2,
-              plain_text = query.startsWith(plain_text_prefix),
-              fonts_css = HTML.fonts_css_dir(http_root))
-          HTTP.Response.html(document.content)
-        })
-
-    List(HTTP.welcome(http_root), HTTP.fonts(fonts_root), HTTP.pdfjs(pdfjs_root), html)
-  }
+  def preview_service: HTTP.Service =
+    HTTP.Service.get("preview", request =>
+      for {
+        query <- Library.try_unprefix(request.query, request.uri_name).map(Url.decode)
+        name = Library.perhaps_unprefix(plain_text_prefix, query)
+        model <- get(PIDE.resources.node_name(name))
+      }
+      yield {
+        val snapshot = model.await_stable_snapshot()
+        val html_context =
+          new Presentation.HTML_Context {
+            override def root_dir: Path = Path.current
+            override def theory_session(name: Document.Node.Name): Sessions.Info =
+              PIDE.resources.sessions_structure(
+                PIDE.resources.session_base.theory_qualifier(name))
+          }
+        val document =
+          Presentation.html_document(
+            snapshot, html_context, Presentation.elements2,
+            plain_text = query.startsWith(plain_text_prefix),
+            fonts_css = HTML.fonts_css_dir(Library.perhaps_unsuffix("/preview", request.home)))
+        HTTP.Response.html(document.content)
+      })
 }
 
 sealed abstract class Document_Model extends Document.Model

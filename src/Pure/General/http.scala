@@ -9,7 +9,7 @@ package isabelle
 
 import java.io.{File => JFile}
 import java.nio.file.Files
-import java.net.{InetSocketAddress, URI, URL, URLConnection, HttpURLConnection}
+import java.net.{InetSocketAddress, URI, URL, HttpURLConnection}
 import com.sun.net.httpserver.{HttpExchange, HttpHandler, HttpServer}
 
 
@@ -168,6 +168,33 @@ object HTTP
 
   /** server **/
 
+  /* request */
+
+  class Request private[HTTP](val home: String, val uri: URI, val input: Bytes)
+  {
+    def root: String = home + "/"
+    def query: String = home + "?"
+
+    def uri_name: String = uri.toString
+
+    def uri_path: Option[Path] =
+      for {
+        s1 <- Option(uri.getPath)
+        s2 <- Library.try_unprefix(root, s1)
+        if Path.is_wellformed(s2)
+        p = Path.explode(s2)
+        if p.all_basic
+      } yield p
+
+    def decode_properties: Properties.T =
+      space_explode('&', input.text).map(
+        {
+          case Properties.Eq(a, b) => Url.decode(a) -> Url.decode(b)
+          case s => error("Malformed key-value pair in HTTP/POST: " + quote(s))
+        })
+  }
+
+
   /* response */
 
   object Response
@@ -186,115 +213,105 @@ object HTTP
     def read(path: Path): Response = content(Content.read(path))
   }
 
-  class Response private[HTTP](val bytes: Bytes, val content_type: String)
+  class Response private[HTTP](val output: Bytes, val content_type: String)
   {
-    override def toString: String = bytes.toString
-  }
+    override def toString: String = output.toString
 
-
-  /* exchange */
-
-  class Exchange private[HTTP](val http_exchange: HttpExchange)
-  {
-    def request_method: String = http_exchange.getRequestMethod
-    def request_uri: URI = http_exchange.getRequestURI
-
-    def read_request(): Bytes =
-      using(http_exchange.getRequestBody)(Bytes.read_stream(_))
-
-    def write_response(code: Int, response: Response): Unit =
+    def write(http: HttpExchange, code: Int): Unit =
     {
-      http_exchange.getResponseHeaders.set("Content-Type", response.content_type)
-      http_exchange.sendResponseHeaders(code, response.bytes.length.toLong)
-      using(http_exchange.getResponseBody)(response.bytes.write_stream)
+      http.getResponseHeaders.set("Content-Type", content_type)
+      http.sendResponseHeaders(code, output.length.toLong)
+      using(http.getResponseBody)(output.write_stream)
     }
   }
 
 
-  /* handler for request method */
+  /* service */
 
-  sealed case class Arg(method: String, uri: URI, request: Bytes)
+  type Exchange = Request => Option[Response]
+
+  object Service
   {
-    def decode_properties: Properties.T =
-      space_explode('&', request.text).map(
+    def apply(method: String, name: String, body: Exchange): Service =
+      new Service(name: String) {
+        def handler(server: String): HttpHandler = (http: HttpExchange) =>
         {
-          case Properties.Eq(a, b) => Url.decode(a) -> Url.decode(b)
-          case s => error("Malformed key-value pair in HTTP/POST: " + quote(s))
-        })
-  }
-
-  object Handler
-  {
-    def apply(root: String, body: Exchange => Unit): Handler =
-      new Handler(root, (x: HttpExchange) => body(new Exchange(x)))
-
-    def method(name: String, root: String, body: Arg => Option[Response]): Handler =
-      apply(root, http =>
-        {
-          val request = http.read_request()
-          if (http.request_method == name) {
-            val arg = Arg(name, http.request_uri, request)
-            Exn.capture(body(arg)) match {
+          val uri = http.getRequestURI
+          val input = using(http.getRequestBody)(Bytes.read_stream(_))
+          if (http.getRequestMethod == method) {
+            val request = new Request(home(server), uri, input)
+            Exn.capture(body(request)) match {
               case Exn.Res(Some(response)) =>
-                http.write_response(200, response)
+                response.write(http, 200)
               case Exn.Res(None) =>
-                http.write_response(404, Response.empty)
+                Response.empty.write(http, 404)
               case Exn.Exn(ERROR(msg)) =>
-                http.write_response(500, Response.text(Output.error_message_text(msg)))
+                Response.text(Output.error_message_text(msg)).write(http, 500)
               case Exn.Exn(exn) => throw exn
             }
           }
-          else http.write_response(400, Response.empty)
-        })
+          else Response.empty.write(http, 400)
+        }
+    }
 
-    def get(root: String, body: Arg => Option[Response]): Handler = method("GET", root, body)
-    def post(root: String, body: Arg => Option[Response]): Handler = method("POST", root, body)
+    def get(name: String, body: Exchange): Service = apply("GET", name, body)
+    def post(name: String, body: Exchange): Service = apply("POST", name, body)
   }
 
-  class Handler private(val root: String, val handler: HttpHandler)
+  abstract class Service private[HTTP](val name: String)
   {
-    override def toString: String = root
+    override def toString: String = name
+    def home(server: String): String =
+      (if (server.isEmpty) "" else "" + "/" + server) + "/" + name
+    def handler(server: String): HttpHandler
   }
 
 
   /* server */
 
-  class Server private[HTTP](val http_server: HttpServer)
+  class Server private[HTTP](val name: String, val http_server: HttpServer)
   {
-    def += (handler: Handler): Unit = http_server.createContext(handler.root, handler.handler)
-    def -= (handler: Handler): Unit = http_server.removeContext(handler.root)
+    def += (service: Service): Unit =
+      http_server.createContext(service.home(name), service.handler(name))
+    def -= (service: Service): Unit =
+      http_server.removeContext(service.home(name))
 
     def start(): Unit = http_server.start()
     def stop(): Unit = http_server.stop(0)
 
     def address: InetSocketAddress = http_server.getAddress
-    def url: String = "http://" + address.getHostName + ":" + address.getPort
+
+    def url: String =
+      "http://" + address.getHostName + ":" + address.getPort +
+        (if (name.isEmpty) "" else "/" + name)
+
     override def toString: String = url
   }
 
-  def server(handlers: List[Handler] = isabelle_resources): Server =
+  def server(
+    name: String = UUID.random().toString,
+    services: List[Service] = isabelle_services): Server =
   {
     val http_server = HttpServer.create(new InetSocketAddress(isabelle.Server.localhost, 0), 0)
     http_server.setExecutor(null)
 
-    val server = new Server(http_server)
-    for (handler <- handlers) server += handler
+    val server = new Server(name, http_server)
+    for (service <- services) server += service
     server
   }
 
 
 
-  /** Isabelle resources **/
+  /** Isabelle services **/
 
-  lazy val isabelle_resources: List[Handler] =
-    List(welcome(), fonts(), pdfjs())
+  def isabelle_services: List[Service] = List(welcome(), fonts(), pdfjs())
 
 
   /* welcome */
 
-  def welcome(root: String = "/"): Handler =
-    Handler.get(root, arg =>
-      if (arg.uri.toString == root) {
+  def welcome(name: String = "welcome"): Service =
+    Service.get(name, request =>
+      if (request.uri_name == request.home) {
         Some(Response.text("Welcome to " + Isabelle_System.identification()))
       }
       else None)
@@ -305,30 +322,28 @@ object HTTP
   private lazy val html_fonts: List[Isabelle_Fonts.Entry] =
     Isabelle_Fonts.fonts(hidden = true)
 
-  def fonts(root: String = "/fonts"): Handler =
-    Handler.get(root, arg =>
+  def fonts(name: String = "fonts"): Service =
+    Service.get(name, request =>
       {
-        val uri_name = arg.uri.toString
-        if (uri_name == root) {
+        if (request.uri_name == request.home) {
           Some(Response.text(cat_lines(html_fonts.map(entry => entry.path.file_name))))
         }
         else {
-          html_fonts.collectFirst(
-            { case entry if uri_name == root + "/" + entry.path.file_name => Response(entry.bytes) })
+          request.uri_path.flatMap(path =>
+            html_fonts.collectFirst(
+              { case entry if path == entry.path.base => Response(entry.bytes) }
+            ))
         }
       })
 
 
   /* pdfjs */
 
-  def pdfjs(root: String = "/pdfjs"): Handler =
-    Handler.get(root, arg =>
-    {
+  def pdfjs(name: String = "pdfjs"): Service =
+    Service.get(name, request =>
       for {
-        name <- Library.try_unprefix(root, arg.uri.getPath).map(_.dropWhile(_ == '/'))
-        if Path.is_valid(name)
-        path = Path.explode("$ISABELLE_PDFJS_HOME") + Path.explode(name)
+        p <- request.uri_path
+        path = Path.explode("$ISABELLE_PDFJS_HOME") + p
         if path.is_file
-      } yield Response.read(path)
-    })
+      } yield Response.read(path))
 }
