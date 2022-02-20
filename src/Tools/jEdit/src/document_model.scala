@@ -313,6 +313,7 @@ object Document_Model
   def http_handlers(http_root: String): List[HTTP.Handler] =
   {
     val fonts_root = http_root + "/fonts"
+    val pdfjs_root = http_root + "/pdfjs"
     val preview_root = http_root + "/preview"
 
     val html =
@@ -339,7 +340,7 @@ object Document_Model
           HTTP.Response.html(document.content)
         })
 
-    List(HTTP.welcome(http_root), HTTP.fonts(fonts_root), html)
+    List(HTTP.welcome(http_root), HTTP.fonts(fonts_root), HTTP.pdfjs(pdfjs_root), html)
   }
 }
 

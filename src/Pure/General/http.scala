@@ -169,6 +169,10 @@ object HTTP
     val empty: Response = apply()
     def text(s: String): Response = apply(Bytes(s), mime_type_text)
     def html(s: String): Response = apply(Bytes(s), mime_type_html)
+
+    def content(content: Content): Response = apply(content.bytes, content.mime_type)
+    def read(file: JFile): Response = content(read_content(file))
+    def read(path: Path): Response = content(read_content(path))
   }
 
   class Response private[HTTP](val bytes: Bytes, val content_type: String)
@@ -272,7 +276,7 @@ object HTTP
   /** Isabelle resources **/
 
   lazy val isabelle_resources: List[Handler] =
-    List(welcome(), fonts())
+    List(welcome(), fonts(), pdfjs())
 
 
   /* welcome */
@@ -302,4 +306,18 @@ object HTTP
             { case entry if uri_name == root + "/" + entry.path.file_name => Response(entry.bytes) })
         }
       })
+
+
+  /* pdfjs */
+
+  def pdfjs(root: String = "/pdfjs"): Handler =
+    Handler.get(root, arg =>
+    {
+      for {
+        name <- Library.try_unprefix(root, arg.uri.getPath).map(_.dropWhile(_ == '/'))
+        if Path.is_valid(name)
+        path = Path.explode("$ISABELLE_PDFJS_HOME") + Path.explode(name)
+        if path.is_file
+      } yield Response.read(path)
+    })
 }
