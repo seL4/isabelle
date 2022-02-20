@@ -17,33 +17,44 @@ object HTTP
 {
   /** content **/
 
-  val mime_type_bytes: String = "application/octet-stream"
-  val mime_type_text: String = "text/plain; charset=utf-8"
-  val mime_type_html: String = "text/html; charset=utf-8"
+  object Content
+  {
+    val mime_type_bytes: String = "application/octet-stream"
+    val mime_type_text: String = "text/plain; charset=utf-8"
+    val mime_type_html: String = "text/html; charset=utf-8"
 
-  val default_mime_type: String = mime_type_bytes
-  val default_encoding: String = UTF8.charset_name
+    val default_mime_type: String = mime_type_bytes
+    val default_encoding: String = UTF8.charset_name
 
-  sealed case class Content(
-    bytes: Bytes,
-    file_name: String = "",
-    mime_type: String = default_mime_type,
-    encoding: String = default_encoding,
-    elapsed_time: Time = Time.zero)
+    def apply(
+        bytes: Bytes,
+        file_name: String = "",
+        mime_type: String = default_mime_type,
+        encoding: String = default_encoding,
+        elapsed_time: Time = Time.zero): Content =
+      new Content(bytes, file_name, mime_type, encoding, elapsed_time)
+
+    def read(file: JFile): Content =
+    {
+      val bytes = Bytes.read(file)
+      val file_name = file.getName
+      val mime_type = Option(Files.probeContentType(file.toPath)).getOrElse(default_mime_type)
+      apply(bytes, file_name = file_name, mime_type = mime_type)
+    }
+
+    def read(path: Path): Content = read(path.file)
+  }
+
+  class Content private(
+    val bytes: Bytes,
+    val file_name: String,
+    val mime_type: String,
+    val encoding: String,
+    val elapsed_time: Time)
   {
     def text: String = new String(bytes.array, encoding)
     def json: JSON.T = JSON.parse(text)
   }
-
-  def read_content(file: JFile): Content =
-  {
-    val bytes = Bytes.read(file)
-    val file_name = file.getName
-    val mime_type = Option(Files.probeContentType(file.toPath)).getOrElse(default_mime_type)
-    Content(bytes, file_name = file_name, mime_type = mime_type)
-  }
-
-  def read_content(path: Path): Content = read_content(path.file)
 
 
 
@@ -83,12 +94,12 @@ object HTTP
         val stop = Time.now()
 
         val file_name = Url.file_name(connection.getURL)
-        val mime_type = Option(connection.getContentType).getOrElse(default_mime_type)
+        val mime_type = Option(connection.getContentType).getOrElse(Content.default_mime_type)
         val encoding =
           (connection.getContentEncoding, mime_type) match {
             case (enc, _) if enc != null => enc
             case (_, Charset(enc)) => enc
-            case _ => default_encoding
+            case _ => Content.default_encoding
           }
         Content(bytes, file_name = file_name, mime_type = mime_type,
           encoding = encoding, elapsed_time = stop - start)
@@ -139,8 +150,8 @@ object HTTP
           output_name(name)
           value match {
             case content: Content => output_content(content)
-            case file: JFile => output_content(read_content(file))
-            case path: Path => output_content(read_content(path))
+            case file: JFile => output_content(Content.read(file))
+            case path: Path => output_content(Content.read(path))
             case _ => output_value(value)
           }
           output_newline()
@@ -163,16 +174,16 @@ object HTTP
   {
     def apply(
         bytes: Bytes = Bytes.empty,
-        content_type: String = mime_type_bytes): Response =
+        content_type: String = Content.mime_type_bytes): Response =
       new Response(bytes, content_type)
 
     val empty: Response = apply()
-    def text(s: String): Response = apply(Bytes(s), mime_type_text)
-    def html(s: String): Response = apply(Bytes(s), mime_type_html)
+    def text(s: String): Response = apply(Bytes(s), Content.mime_type_text)
+    def html(s: String): Response = apply(Bytes(s), Content.mime_type_html)
 
     def content(content: Content): Response = apply(content.bytes, content.mime_type)
-    def read(file: JFile): Response = content(read_content(file))
-    def read(path: Path): Response = content(read_content(path))
+    def read(file: JFile): Response = content(Content.read(file))
+    def read(path: Path): Response = content(Content.read(path))
   }
 
   class Response private[HTTP](val bytes: Bytes, val content_type: String)
