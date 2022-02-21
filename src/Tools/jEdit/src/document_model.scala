@@ -330,7 +330,7 @@ object Document_Model
           Presentation.html_document(
             snapshot, html_context, Presentation.elements2,
             plain_text = query.startsWith(plain_text_prefix),
-            fonts_css = HTML.fonts_css_dir(Library.perhaps_unsuffix("/preview", request.home)))
+            fonts_css = HTML.fonts_css_dir(HTTP.url_path(request.server)))
         HTTP.Response.html(document.content)
       })
 }

@@ -170,8 +170,16 @@ object HTTP
 
   /* request */
 
-  class Request private[HTTP](val home: String, val uri: URI, val input: Bytes)
+  def url_path(names: String*): String =
+    names.iterator.flatMap(a => if (a.isEmpty) None else Some("/" + a)).mkString
+
+  class Request private[HTTP](
+    val server: String,
+    val service: String,
+    val uri: URI,
+    val input: Bytes)
   {
+    def home: String = url_path(server, service)
     def root: String = home + "/"
     def query: String = home + "?"
 
@@ -239,7 +247,7 @@ object HTTP
           val uri = http.getRequestURI
           val input = using(http.getRequestBody)(Bytes.read_stream(_))
           if (http.getRequestMethod == method) {
-            val request = new Request(home(server), uri, input)
+            val request = new Request(server, name, uri, input)
             Exn.capture(body(request)) match {
               case Exn.Res(Some(response)) =>
                 response.write(http, 200)
@@ -261,8 +269,7 @@ object HTTP
   abstract class Service private[HTTP](val name: String)
   {
     override def toString: String = name
-    def home(server: String): String =
-      (if (server.isEmpty) "" else "" + "/" + server) + "/" + name
+    def context(server: String): String = proper_string(url_path(server, name)).getOrElse("/")
     def handler(server: String): HttpHandler
   }
 
@@ -272,19 +279,16 @@ object HTTP
   class Server private[HTTP](val name: String, val http_server: HttpServer)
   {
     def += (service: Service): Unit =
-      http_server.createContext(service.home(name), service.handler(name))
+      http_server.createContext(service.context(name), service.handler(name))
     def -= (service: Service): Unit =
-      http_server.removeContext(service.home(name))
+      http_server.removeContext(service.context(name))
 
     def start(): Unit = http_server.start()
     def stop(): Unit = http_server.stop(0)
 
     def address: InetSocketAddress = http_server.getAddress
 
-    def url: String =
-      "http://" + address.getHostName + ":" + address.getPort +
-        (if (name.isEmpty) "" else "/" + name)
-
+    def url: String = "http://" + address.getHostName + ":" + address.getPort + url_path(name)
     override def toString: String = url
   }
 
