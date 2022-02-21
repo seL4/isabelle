@@ -28,8 +28,26 @@ object Doc
       line <- Library.trim_split_lines(File.read(catalog))
     } yield (dir, line)
 
+  object Contents
+  {
+    def apply(sections: List[Section]): Contents = new Contents(sections)
+
+    def section(title: String, important: Boolean, entries: List[Entry]): Contents =
+      apply(List(Section(title, important, entries)))
+  }
+  class Contents private(val sections: List[Section])
+  {
+    def ++ (other: Contents): Contents = new Contents(sections ::: other.sections)
+    def entries: List[Entry] = sections.flatMap(_.entries)
+    def docs: List[Doc] = entries.collect({ case doc: Doc => doc })
+  }
+
   case class Section(title: String, important: Boolean, entries: List[Entry])
   sealed abstract class Entry
+  {
+    def name: String
+    def path: Path
+  }
   case class Doc(name: String, title: String, path: Path) extends Entry
   case class Text_File(name: String, path: Path) extends Entry
 
@@ -41,19 +59,19 @@ object Doc
     }
     else None
 
-  def release_notes(): Section =
-    Section("Release Notes", true,
+  def release_notes(): Contents =
+    Contents.section("Release Notes", true,
       Path.split(Isabelle_System.getenv_strict("ISABELLE_DOCS_RELEASE_NOTES")).flatMap(text_file))
 
-  def examples(): Section =
-    Section("Examples", true,
+  def examples(): Contents =
+    Contents.section("Examples", true,
       Path.split(Isabelle_System.getenv_strict("ISABELLE_DOCS_EXAMPLES")).map(file =>
         text_file(file) match {
           case Some(entry) => entry
           case None => error("Bad entry in ISABELLE_DOCS_EXAMPLES: " + file)
         }))
 
-  def main_contents(): List[Section] =
+  def main_contents(): Contents =
   {
     val result = new mutable.ListBuffer[Section]
     val entries = new mutable.ListBuffer[Entry]
@@ -89,23 +107,20 @@ object Doc
     }
 
     flush()
-    result.toList
+    Contents(result.toList)
   }
 
-  def contents(): List[Section] =
+  def contents(): Contents =
   {
-    examples() :: release_notes() :: main_contents()
+    examples() ++ release_notes() ++ main_contents()
   }
-
-  def doc_entries(sections: List[Section]): List[Doc] =
-    sections.flatMap(_.entries).collect({ case doc: Doc => doc })
 
   object Doc_Names extends Scala.Fun_String("doc_names")
   {
     val here = Scala_Project.here
     def apply(arg: String): String =
       if (arg.nonEmpty) error("Bad argument: " + quote(arg))
-      else cat_lines((for (doc <- doc_entries(contents())) yield doc.name).sorted)
+      else cat_lines((for (doc <- contents().docs) yield doc.name).sorted)
   }
 
 
@@ -134,11 +149,10 @@ Usage: isabelle doc [DOC ...]
 """)
     val docs = getopts(args)
 
-    val sections = contents()
     if (docs.isEmpty) Output.writeln(cat_lines(contents_lines().map(_._2)), stdout = true)
     else {
       docs.foreach(name =>
-        doc_entries(sections).find(_.name == name) match {
+        contents().docs.find(_.name == name) match {
           case Some(doc) => view(doc.path)
           case None => error("No Isabelle documentation entry: " + quote(name))
         }

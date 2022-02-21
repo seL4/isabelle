@@ -19,7 +19,7 @@ import org.gjt.sp.jedit.{View, OperatingSystem}
 
 class Documentation_Dockable(view: View, position: String) extends Dockable(view, position)
 {
-  private val sections = Doc.contents()
+  private val doc_contents = Doc.contents()
 
   private case class Documentation(name: String, title: String, path: Path)
   {
@@ -33,7 +33,7 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
   }
 
   private val root = new DefaultMutableTreeNode
-  for (section <- sections) {
+  for (section <- doc_contents.sections) {
     root.add(new DefaultMutableTreeNode(section.title))
     section.entries.foreach(
       {
@@ -97,7 +97,7 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
     var visible = 0
     var row = 0
     def make_visible(): Unit = { visible += 1; tree.expandRow(row) }
-    for (section <- sections) {
+    for (section <- doc_contents.sections) {
       expand = section.important
       make_visible()
       row += 1
