@@ -356,10 +356,11 @@ object HTTP
   {
     private val doc_contents = isabelle.Doc.main_contents()
 
+    // example: .../docs/web/viewer.html?file=system.pdf
     def doc_request(request: Request): Option[Response] =
       for {
         p <- request.uri_path if p.is_pdf
-        s = p.implode if s.startsWith("pdf/")
+        s = p.implode if s.startsWith("web/")
         name = p.base.split_ext._1.implode
         doc <- doc_contents.docs.find(_.name == name)
       } yield Response.read(doc.path)
