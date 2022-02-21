@@ -34,7 +34,7 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
 
   private val root = new DefaultMutableTreeNode
   docs foreach {
-    case Doc.Section(text, _) =>
+    case Doc.Heading(text, _) =>
       root.add(new DefaultMutableTreeNode(text))
     case Doc.Doc(name, title, path) =>
       root.getLastChild.asInstanceOf[DefaultMutableTreeNode]
@@ -96,7 +96,7 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
     def make_visible(row: Int): Unit = { visible += 1; tree.expandRow(row) }
     for ((entry, row) <- docs.zipWithIndex) {
       entry match {
-        case Doc.Section(_, important) =>
+        case Doc.Heading(_, important) =>
           expand = important
           make_visible(row)
         case _ =>

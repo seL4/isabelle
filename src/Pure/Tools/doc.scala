@@ -26,7 +26,7 @@ object Doc
     } yield (dir, line)
 
   sealed abstract class Entry
-  case class Section(text: String, important: Boolean) extends Entry
+  case class Heading(title: String, important: Boolean) extends Entry
   case class Doc(name: String, title: String, path: Path) extends Entry
   case class Text_File(name: String, path: Path) extends Entry
 
@@ -42,35 +42,35 @@ object Doc
   private val Doc_Entry = """^\s+(\S+)\s+(.+)\s*$""".r
 
   private def release_notes(): List[Entry] =
-    Section("Release Notes", true) ::
+    Heading("Release Notes", true) ::
       Path.split(Isabelle_System.getenv_strict("ISABELLE_DOCS_RELEASE_NOTES")).flatMap(text_file)
 
   private def examples(): List[Entry] =
-    Section("Examples", true) ::
+    Heading("Examples", true) ::
       Path.split(Isabelle_System.getenv_strict("ISABELLE_DOCS_EXAMPLES")).map(file =>
         text_file(file) match {
           case Some(entry) => entry
           case None => error("Bad entry in ISABELLE_DOCS_EXAMPLES: " + file)
         })
 
+  def main_contents(): List[Entry] =
+    for {
+      (dir, line) <- contents_lines()
+      entry <-
+        line match {
+          case Section_Entry(text) =>
+            Library.try_unsuffix("!", text) match {
+              case None => Some(Heading(text, false))
+              case Some(txt) => Some(Heading(txt, true))
+            }
+          case Doc_Entry(name, title) => Some(Doc(name, title, dir + Path.basic(name)))
+          case _ => None
+        }
+    } yield entry
+
   def contents(): List[Entry] =
   {
-    val main_contents =
-      for {
-        (dir, line) <- contents_lines()
-        entry <-
-          line match {
-            case Section_Entry(text) =>
-              Library.try_unsuffix("!", text) match {
-                case None => Some(Section(text, false))
-                case Some(txt) => Some(Section(txt, true))
-              }
-            case Doc_Entry(name, title) => Some(Doc(name, title, dir + Path.basic(name)))
-            case _ => None
-          }
-      } yield entry
-
-    examples() ::: release_notes() ::: main_contents
+    examples() ::: release_notes() ::: main_contents()
   }
 
   object Doc_Names extends Scala.Fun_String("doc_names")
