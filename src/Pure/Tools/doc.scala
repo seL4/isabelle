@@ -124,13 +124,13 @@ object Doc
 
   /* Isabelle tool wrapper */
 
-  val isabelle_tool = Isabelle_Tool("doc", "view Isabelle documentation",
+  val isabelle_tool = Isabelle_Tool("doc", "view Isabelle PDF documentation",
     Scala_Project.here, args =>
   {
     val getopts = Getopts("""
 Usage: isabelle doc [DOC ...]
 
-  View Isabelle documentation.
+  View Isabelle PDF documentation.
 """)
     val docs = getopts(args)
 
