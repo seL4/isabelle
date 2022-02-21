@@ -303,15 +303,16 @@ object Document_Model
       case Some(model) =>
         val name = model.node_name
         val url =
-          PIDE.plugin.http_server.url + "/preview?" +
-            (if (plain_text) plain_text_prefix else "") + Url.encode(name.node)
+          PIDE.plugin.http_server.url + "/" + Preview.service + "?" +
+              (if (plain_text) plain_text_prefix else "") + Url.encode(name.node)
         PIDE.editor.hyperlink_url(url).follow(view)
       case _ =>
     }
   }
 
-  def preview_service: HTTP.Service =
-    HTTP.Service.get("preview", request =>
+  object Preview extends HTTP.Service("preview")
+  {
+    def apply(request: HTTP.Request): Option[HTTP.Response] =
       for {
         query <- request.decode_query
         name = Library.perhaps_unprefix(plain_text_prefix, query)
@@ -322,6 +323,7 @@ object Document_Model
         val html_context =
           new Presentation.HTML_Context {
             override def root_dir: Path = Path.current
+
             override def theory_session(name: Document.Node.Name): Sessions.Info =
               PIDE.resources.sessions_structure(
                 PIDE.resources.session_base.theory_qualifier(name))
@@ -332,7 +334,8 @@ object Document_Model
             plain_text = query.startsWith(plain_text_prefix),
             fonts_css = HTML.fonts_css_dir(HTTP.url_path(request.server)))
         HTTP.Response.html(document.content)
-      })
+      }
+  }
 }
 
 sealed abstract class Document_Model extends Document.Model

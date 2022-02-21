@@ -239,41 +239,31 @@ object HTTP
 
   /* service */
 
-  type Exchange = Request => Option[Response]
-
-  object Service
+  abstract class Service(val service: String, method: String = "GET")
   {
-    def apply(method: String, name: String, body: Exchange): Service =
-      new Service(name: String) {
-        def handler(server: String): HttpHandler = (http: HttpExchange) =>
-        {
-          val uri = http.getRequestURI
-          val input = using(http.getRequestBody)(Bytes.read_stream(_))
-          if (http.getRequestMethod == method) {
-            val request = new Request(server, name, uri, input)
-            Exn.capture(body(request)) match {
-              case Exn.Res(Some(response)) =>
-                response.write(http, 200)
-              case Exn.Res(None) =>
-                Response.empty.write(http, 404)
-              case Exn.Exn(ERROR(msg)) =>
-                Response.text(Output.error_message_text(msg)).write(http, 500)
-              case Exn.Exn(exn) => throw exn
-            }
-          }
-          else Response.empty.write(http, 400)
+    override def toString: String = service
+
+    def apply(request: Request): Option[Response]
+
+    def context(server: String): String = proper_string(url_path(server, service)).getOrElse("/")
+
+    def handler(server: String): HttpHandler = (http: HttpExchange) => {
+      val uri = http.getRequestURI
+      val input = using(http.getRequestBody)(Bytes.read_stream(_))
+      if (http.getRequestMethod == method) {
+        val request = new Request(server, service, uri, input)
+        Exn.capture(apply(request)) match {
+          case Exn.Res(Some(response)) =>
+            response.write(http, 200)
+          case Exn.Res(None) =>
+            Response.empty.write(http, 404)
+          case Exn.Exn(ERROR(msg)) =>
+            Response.text(Output.error_message_text(msg)).write(http, 500)
+          case Exn.Exn(exn) => throw exn
         }
+      }
+      else Response.empty.write(http, 400)
     }
-
-    def get(name: String, body: Exchange): Service = apply("GET", name, body)
-    def post(name: String, body: Exchange): Service = apply("POST", name, body)
-  }
-
-  abstract class Service private[HTTP](val name: String)
-  {
-    override def toString: String = name
-    def context(server: String): String = proper_string(url_path(server, name)).getOrElse("/")
-    def handler(server: String): HttpHandler
   }
 
 
@@ -311,48 +301,51 @@ object HTTP
 
   /** Isabelle services **/
 
-  def isabelle_services: List[Service] = List(welcome(), fonts(), pdfjs())
+  def isabelle_services: List[Service] =
+    List(new Welcome(), new Fonts(), new PDFjs())
 
 
   /* welcome */
 
-  def welcome(name: String = ""): Service =
-    Service.get(name, request =>
-      {
-        if (request.toplevel) {
-          Some(Response.text("Welcome to " + Isabelle_System.identification()))
-        }
-        else None
-      })
+  class Welcome(name: String = "") extends Service(name)
+  {
+    def apply(request: Request): Option[Response] =
+      if (request.toplevel) {
+        Some(Response.text("Welcome to " + Isabelle_System.identification()))
+      }
+      else None
+  }
 
 
   /* fonts */
 
-  private lazy val html_fonts: List[Isabelle_Fonts.Entry] =
-    Isabelle_Fonts.fonts(hidden = true)
+  class Fonts(name: String = "fonts") extends Service(name)
+  {
+    private lazy val html_fonts: List[Isabelle_Fonts.Entry] =
+      Isabelle_Fonts.fonts(hidden = true)
 
-  def fonts(name: String = "fonts"): Service =
-    Service.get(name, request =>
-      {
-        if (request.toplevel) {
-          Some(Response.text(cat_lines(html_fonts.map(entry => entry.path.file_name))))
-        }
-        else {
-          request.uri_path.flatMap(path =>
-            html_fonts.collectFirst(
-              { case entry if path == entry.path.base => Response(entry.bytes) }
-            ))
-        }
-      })
+    def apply(request: Request): Option[Response] =
+      if (request.toplevel) {
+        Some(Response.text(cat_lines(html_fonts.map(entry => entry.path.file_name))))
+      }
+      else {
+        request.uri_path.flatMap(path =>
+          html_fonts.collectFirst(
+            { case entry if path == entry.path.base => Response(entry.bytes) }
+          ))
+      }
+  }
 
 
   /* pdfjs */
 
-  def pdfjs(name: String = "pdfjs"): Service =
-    Service.get(name, request =>
+  class PDFjs(name: String = "pdfjs") extends Service(name)
+  {
+    def apply(request: Request): Option[Response] =
       for {
         p <- request.uri_path
         path = Path.explode("$ISABELLE_PDFJS_HOME") + p
         if path.is_file
-      } yield Response.read(path))
+      } yield Response.read(path)
+  }
 }
