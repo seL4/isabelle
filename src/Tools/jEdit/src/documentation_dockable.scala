@@ -21,15 +21,9 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
 {
   private val doc_contents = Doc.contents()
 
-  private case class Documentation(name: String, title: String, path: Path)
+  private case class Node(string: String, entry: Doc.Entry)
   {
-    override def toString: String =
-      "<html><b>" + HTML.output(name) + "</b>:  " + HTML.output(title) + "</html>"
-  }
-
-  private case class Text_File(name: String, path: Path)
-  {
-    override def toString: String = name
+    override def toString: String = string
   }
 
   private val root = new DefaultMutableTreeNode
@@ -37,12 +31,13 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
     root.add(new DefaultMutableTreeNode(section.title))
     section.entries.foreach(
       {
-        case Doc.Doc(name, title, path) =>
+        case entry @ Doc.Doc(name, title, _) =>
+          val string = "<html><b>" + HTML.output(name) + "</b>:  " + HTML.output(title) + "</html>"
           root.getLastChild.asInstanceOf[DefaultMutableTreeNode]
-            .add(new DefaultMutableTreeNode(Documentation(name, title, path)))
-        case Doc.Text_File(name: String, path: Path) =>
+            .add(new DefaultMutableTreeNode(Node(string, entry)))
+        case entry @ Doc.Text_File(name: String, _) =>
           root.getLastChild.asInstanceOf[DefaultMutableTreeNode]
-            .add(new DefaultMutableTreeNode(Text_File(name, path.expand)))
+            .add(new DefaultMutableTreeNode(Node(name, entry)))
       })
   }
 
@@ -55,10 +50,10 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
   private def action(node: DefaultMutableTreeNode): Unit =
   {
     node.getUserObject match {
-      case Text_File(_, path) =>
-        PIDE.editor.goto_file(true, view, File.platform_path(path))
-      case Documentation(_, _, path) =>
+      case Node(_, Doc.Doc(_, _, path)) =>
         PIDE.editor.goto_doc(view, path)
+      case Node(_, Doc.Text_File(_, path)) =>
+        PIDE.editor.goto_file(true, view, File.platform_path(path))
       case _ =>
     }
   }

@@ -362,7 +362,7 @@ object HTTP
         s = p.implode if s.startsWith("pdf/")
         name = p.base.split_ext._1.implode
         doc <- doc_contents.docs.find(_.name == name)
-      } yield Response.read(doc.path.pdf)
+      } yield Response.read(doc.path)
 
     override def apply(request: Request): Option[Response] =
       doc_request(request) orElse super.apply(request)

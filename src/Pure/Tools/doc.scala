@@ -101,7 +101,7 @@ object Doc
             case Some(txt) => begin(Section(txt, true, Nil))
           }
         case Doc_(name, title) =>
-          entries += Doc(name, title, dir + Path.basic(name))
+          entries += Doc(name, title, dir + Path.basic(name).pdf)
         case _ =>
       }
     }
@@ -128,12 +128,9 @@ object Doc
 
   def view(path: Path): Unit =
   {
-    if (path.is_file) Output.writeln(Library.trim_line(File.read(path)), stdout = true)
-    else {
-      val pdf = path.ext("pdf")
-      if (pdf.is_file) Isabelle_System.pdf_viewer(pdf)
-      else error("Bad Isabelle documentation file: " + pdf)
-    }
+    if (!path.is_file) error("Bad Isabelle documentation file: " + path)
+    else if (path.is_pdf) Isabelle_System.pdf_viewer(path)
+    else Output.writeln(Library.trim_line(File.read(path)), stdout = true)
   }
 
 

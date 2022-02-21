@@ -178,20 +178,8 @@ class JEdit_Editor extends Editor[View]
 
   def goto_doc(view: View, path: Path): Unit =
   {
-    if (path.is_file)
-      goto_file(true, view, File.platform_path(path))
-    else {
-      Isabelle_Thread.fork(name = "documentation") {
-        try { Doc.view(path) }
-        catch {
-          case exn: Throwable =>
-            GUI_Thread.later {
-              GUI.error_dialog(view,
-                "Documentation error", GUI.scrollable_text(Exn.message(exn)))
-            }
-        }
-      }
-    }
+    if (path.is_pdf) Doc.view(path)
+    else goto_file(true, view, File.platform_path(path))
   }
 
 
