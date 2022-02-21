@@ -198,7 +198,7 @@ class JEdit_Editor extends Editor[View]
   /* hyperlinks */
 
   def hyperlink_doc(name: String): Option[Hyperlink] =
-    Doc.contents().collectFirst({
+    Doc.contents().iterator.flatMap(_.entries.iterator).collectFirst({
       case doc: Doc.Text_File if doc.name == name => doc.path
       case doc: Doc.Doc if doc.name == name => doc.path}).map(path =>
         new Hyperlink {

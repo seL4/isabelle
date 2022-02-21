@@ -19,7 +19,7 @@ import org.gjt.sp.jedit.{View, OperatingSystem}
 
 class Documentation_Dockable(view: View, position: String) extends Dockable(view, position)
 {
-  private val docs = Doc.contents()
+  private val sections = Doc.contents()
 
   private case class Documentation(name: String, title: String, path: Path)
   {
@@ -33,15 +33,17 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
   }
 
   private val root = new DefaultMutableTreeNode
-  docs foreach {
-    case Doc.Heading(text, _) =>
-      root.add(new DefaultMutableTreeNode(text))
-    case Doc.Doc(name, title, path) =>
-      root.getLastChild.asInstanceOf[DefaultMutableTreeNode]
-        .add(new DefaultMutableTreeNode(Documentation(name, title, path)))
-    case Doc.Text_File(name: String, path: Path) =>
-      root.getLastChild.asInstanceOf[DefaultMutableTreeNode]
-        .add(new DefaultMutableTreeNode(Text_File(name, path.expand)))
+  for (section <- sections) {
+    root.add(new DefaultMutableTreeNode(section.title))
+    section.entries.foreach(
+      {
+        case Doc.Doc(name, title, path) =>
+          root.getLastChild.asInstanceOf[DefaultMutableTreeNode]
+            .add(new DefaultMutableTreeNode(Documentation(name, title, path)))
+        case Doc.Text_File(name: String, path: Path) =>
+          root.getLastChild.asInstanceOf[DefaultMutableTreeNode]
+            .add(new DefaultMutableTreeNode(Text_File(name, path.expand)))
+      })
   }
 
   private val tree = new JTree(root)
@@ -93,14 +95,15 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
   {
     var expand = true
     var visible = 0
-    def make_visible(row: Int): Unit = { visible += 1; tree.expandRow(row) }
-    for ((entry, row) <- docs.zipWithIndex) {
-      entry match {
-        case Doc.Heading(_, important) =>
-          expand = important
-          make_visible(row)
-        case _ =>
-          if (expand) make_visible(row)
+    var row = 0
+    def make_visible(): Unit = { visible += 1; tree.expandRow(row) }
+    for (section <- sections) {
+      expand = section.important
+      make_visible()
+      row += 1
+      for (_ <- section.entries) {
+        if (expand) make_visible()
+        row += 1
       }
     }
     tree.setRootVisible(false)

@@ -7,6 +7,9 @@ Access to Isabelle documentation.
 package isabelle
 
 
+import scala.collection.mutable
+
+
 object Doc
 {
   /* dirs */
@@ -25,8 +28,8 @@ object Doc
       line <- Library.trim_split_lines(File.read(catalog))
     } yield (dir, line)
 
+  case class Section(title: String, important: Boolean, entries: List[Entry])
   sealed abstract class Entry
-  case class Heading(title: String, important: Boolean) extends Entry
   case class Doc(name: String, title: String, path: Path) extends Entry
   case class Text_File(name: String, path: Path) extends Entry
 
@@ -38,47 +41,71 @@ object Doc
     }
     else None
 
-  private val Section_Entry = """^(\S.*)\s*$""".r
-  private val Doc_Entry = """^\s+(\S+)\s+(.+)\s*$""".r
+  def release_notes(): Section =
+    Section("Release Notes", true,
+      Path.split(Isabelle_System.getenv_strict("ISABELLE_DOCS_RELEASE_NOTES")).flatMap(text_file))
 
-  private def release_notes(): List[Entry] =
-    Heading("Release Notes", true) ::
-      Path.split(Isabelle_System.getenv_strict("ISABELLE_DOCS_RELEASE_NOTES")).flatMap(text_file)
-
-  private def examples(): List[Entry] =
-    Heading("Examples", true) ::
+  def examples(): Section =
+    Section("Examples", true,
       Path.split(Isabelle_System.getenv_strict("ISABELLE_DOCS_EXAMPLES")).map(file =>
         text_file(file) match {
           case Some(entry) => entry
           case None => error("Bad entry in ISABELLE_DOCS_EXAMPLES: " + file)
-        })
+        }))
 
-  def main_contents(): List[Entry] =
-    for {
-      (dir, line) <- contents_lines()
-      entry <-
-        line match {
-          case Section_Entry(text) =>
-            Library.try_unsuffix("!", text) match {
-              case None => Some(Heading(text, false))
-              case Some(txt) => Some(Heading(txt, true))
-            }
-          case Doc_Entry(name, title) => Some(Doc(name, title, dir + Path.basic(name)))
-          case _ => None
-        }
-    } yield entry
-
-  def contents(): List[Entry] =
+  def main_contents(): List[Section] =
   {
-    examples() ::: release_notes() ::: main_contents()
+    val result = new mutable.ListBuffer[Section]
+    val entries = new mutable.ListBuffer[Entry]
+    var section: Option[Section] = None
+
+    def flush(): Unit =
+      if (section.nonEmpty) {
+        result += section.get.copy(entries = entries.toList)
+        entries.clear()
+        section = None
+      }
+
+    def begin(s: Section): Unit =
+    {
+      flush()
+      section = Some(s)
+    }
+
+    val Section_ = """^(\S.*)\s*$""".r
+    val Doc_ = """^\s+(\S+)\s+(.+)\s*$""".r
+
+    for ((dir, line) <- contents_lines()) {
+      line match {
+        case Section_(text) =>
+          Library.try_unsuffix("!", text) match {
+            case None => begin(Section(text, false, Nil))
+            case Some(txt) => begin(Section(txt, true, Nil))
+          }
+        case Doc_(name, title) =>
+          entries += Doc(name, title, dir + Path.basic(name))
+        case _ =>
+      }
+    }
+
+    flush()
+    result.toList
   }
+
+  def contents(): List[Section] =
+  {
+    examples() :: release_notes() :: main_contents()
+  }
+
+  def doc_entries(sections: List[Section]): List[Doc] =
+    sections.flatMap(_.entries).collect({ case doc: Doc => doc })
 
   object Doc_Names extends Scala.Fun_String("doc_names")
   {
     val here = Scala_Project.here
     def apply(arg: String): String =
       if (arg.nonEmpty) error("Bad argument: " + quote(arg))
-      else cat_lines((for (Doc(name, _, _) <- contents()) yield name).sorted)
+      else cat_lines((for (doc <- doc_entries(contents())) yield doc.name).sorted)
   }
 
 
@@ -107,13 +134,13 @@ Usage: isabelle doc [DOC ...]
 """)
     val docs = getopts(args)
 
-    val entries = contents()
+    val sections = contents()
     if (docs.isEmpty) Output.writeln(cat_lines(contents_lines().map(_._2)), stdout = true)
     else {
-      docs.foreach(doc =>
-        entries.collectFirst { case Doc(name, _, path) if doc == name => path } match {
-          case Some(path) => view(path)
-          case None => error("No Isabelle documentation entry: " + quote(doc))
+      docs.foreach(name =>
+        doc_entries(sections).find(_.name == name) match {
+          case Some(doc) => view(doc.path)
+          case None => error("No Isabelle documentation entry: " + quote(name))
         }
       )
     }
