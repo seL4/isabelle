@@ -189,11 +189,9 @@ object HTTP
 
     def uri_path: Option[Path] =
       for {
-        s1 <- Option(uri.getPath)
-        s2 <- Library.try_unprefix(root, s1)
-        if Path.is_wellformed(s2)
-        p = Path.explode(s2)
-        if p.all_basic
+        s <- Option(uri.getPath).flatMap(Library.try_unprefix(root, _))
+        if Path.is_wellformed(s)
+        p = Path.explode(s) if p.all_basic
       } yield p
 
     def decode_properties: Properties.T =
