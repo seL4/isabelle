@@ -215,6 +215,7 @@ final class Path private(protected val elems: List[Path.Elem]) // reversed eleme
     }
   def is_java: Boolean = ends_with(".java")
   def is_scala: Boolean = ends_with(".scala")
+  def is_pdf: Boolean = ends_with(".pdf")
 
   def ext(e: String): Path =
     if (e == "") this

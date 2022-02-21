@@ -302,7 +302,7 @@ object HTTP
   /** Isabelle services **/
 
   def isabelle_services: List[Service] =
-    List(new Welcome(), new Fonts(), new PDFjs())
+    List(new Welcome(), new Fonts(), new PDFjs(), new Docs())
 
 
   /* welcome */
@@ -347,5 +347,24 @@ object HTTP
         path = Path.explode("$ISABELLE_PDFJS_HOME") + p if path.is_file
         s = p.implode if s.startsWith("build/") || s.startsWith("web/")
       } yield Response.read(path)
+  }
+
+
+  /* docs */
+
+  class Docs(name: String = "docs") extends PDFjs(name)
+  {
+    private val doc_contents = isabelle.Doc.main_contents()
+
+    def doc_request(request: Request): Option[Response] =
+      for {
+        p <- request.uri_path if p.is_pdf
+        s = p.implode if s.startsWith("pdf/")
+        name = p.base.split_ext._1.implode
+        doc <- doc_contents.docs.find(_.name == name)
+      } yield Response.read(doc.path.pdf)
+
+    override def apply(request: Request): Option[Response] =
+      doc_request(request) orElse super.apply(request)
   }
 }
