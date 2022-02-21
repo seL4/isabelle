@@ -315,7 +315,7 @@ object HTTP
 
   /* welcome */
 
-  def welcome(name: String = "welcome"): Service =
+  def welcome(name: String = ""): Service =
     Service.get(name, request =>
       {
         if (request.toplevel) {
