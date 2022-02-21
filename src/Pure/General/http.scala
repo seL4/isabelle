@@ -194,6 +194,9 @@ object HTTP
         p = Path.explode(s) if p.all_basic
       } yield p
 
+    def decode_query: Option[String] =
+      Library.try_unprefix(query, uri_name).map(Url.decode)
+
     def decode_properties: Properties.T =
       space_explode('&', input.text).map(
         {

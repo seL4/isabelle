@@ -313,7 +313,7 @@ object Document_Model
   def preview_service: HTTP.Service =
     HTTP.Service.get("preview", request =>
       for {
-        query <- Library.try_unprefix(request.query, request.uri_name).map(Url.decode)
+        query <- request.decode_query
         name = Library.perhaps_unprefix(plain_text_prefix, query)
         model <- get(PIDE.resources.node_name(name))
       }
