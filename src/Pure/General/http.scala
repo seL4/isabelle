@@ -344,8 +344,8 @@ object HTTP
     def apply(request: Request): Option[Response] =
       for {
         p <- request.uri_path
-        path = Path.explode("$ISABELLE_PDFJS_HOME") + p
-        if path.is_file
+        path = Path.explode("$ISABELLE_PDFJS_HOME") + p if path.is_file
+        s = p.implode if s.startsWith("build/") || s.startsWith("web/")
       } yield Response.read(path)
   }
 }
