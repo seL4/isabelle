@@ -183,7 +183,9 @@ object HTTP
     def root: String = home + "/"
     def query: String = home + "?"
 
-    def uri_name: String = uri.toString
+    def toplevel: Boolean = uri_name == home || uri_name == root
+
+    val uri_name: String = uri.toString
 
     def uri_path: Option[Path] =
       for {
@@ -315,10 +317,12 @@ object HTTP
 
   def welcome(name: String = "welcome"): Service =
     Service.get(name, request =>
-      if (request.uri_name == request.home) {
-        Some(Response.text("Welcome to " + Isabelle_System.identification()))
-      }
-      else None)
+      {
+        if (request.toplevel) {
+          Some(Response.text("Welcome to " + Isabelle_System.identification()))
+        }
+        else None
+      })
 
 
   /* fonts */
@@ -329,7 +333,7 @@ object HTTP
   def fonts(name: String = "fonts"): Service =
     Service.get(name, request =>
       {
-        if (request.uri_name == request.home) {
+        if (request.toplevel) {
           Some(Response.text(cat_lines(html_fonts.map(entry => entry.path.file_name))))
         }
         else {
