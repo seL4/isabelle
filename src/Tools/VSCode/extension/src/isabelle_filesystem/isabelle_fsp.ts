@@ -74,6 +74,7 @@ export class Isabelle_FSP implements FileSystemProvider
   private static instance: Isabelle_FSP
   private static state: Workspace_State
   private static readonly draft_session = 'Draft'
+  private static readonly session_dir = 'Isabelle Sessions'
 
   //#region public static API
 
@@ -82,7 +83,7 @@ export class Isabelle_FSP implements FileSystemProvider
   public static readonly theory_extension = '.thy'
   public static readonly theory_files_glob = '**/*.thy'
 
-  public static register(context: ExtensionContext): Promise<string>
+  public static register(context: ExtensionContext): Promise<string|undefined>
   {
     this.instance = new Isabelle_FSP()
     this.state = new Workspace_State(context)
@@ -215,26 +216,26 @@ export class Isabelle_FSP implements FileSystemProvider
 
   //#region initialization
 
-  private async setup_workspace(): Promise<string>
+  private async setup_workspace(): Promise<string|undefined>
   {
     const { state } = Isabelle_FSP
     let { sessions, workspace_dir, symbol_entries } = state.get_setup_data()
-    const main_folder_uri = Isabelle_FSP.get_dir_uri('')
 
-    if (workspace.workspaceFolders[0].uri.toString() !== main_folder_uri.toString()) {
+    const workspace_folders = workspace.workspaceFolders || []
+    const isabelle_folder = workspace_folders.find(folder =>
+       folder.name === Isabelle_FSP.session_dir && folder.uri.scheme === Isabelle_FSP.scheme)
+
+    if (isabelle_folder === undefined) {
       workspace.updateWorkspaceFolders(0, 0,
-        {
-          uri: main_folder_uri,
-          name: 'Isabelle Sessions'
-        }
-      )
+        { uri: Isabelle_FSP.get_dir_uri(''), name: Isabelle_FSP.session_dir })
     }
 
     if (sessions && workspace_dir && symbol_entries) {
       await Isabelle_FSP.update_symbol_encoder(symbol_entries)
       await this.init_filesystem(sessions)
     } else {
-      workspace_dir = workspace.workspaceFolders[1].uri.fsPath
+      const default_folder = workspace_folders.find(folder => folder.uri.scheme !== Isabelle_FSP.scheme)
+      if (default_folder !== undefined) workspace_dir = default_folder.uri.fsPath
     }
 
     await state.set(State_Key.workspace_dir, workspace_dir)
@@ -423,6 +424,7 @@ export class Isabelle_FSP implements FileSystemProvider
 
   private async load_theory(file_uri: Uri, isabelle_uri: Uri)
   {
+    if (!this.symbol_encoder) return
     const data = await workspace.fs.readFile(file_uri)
     const encoded_data = this.symbol_encoder.encode(data)
     await this.writeFile(isabelle_uri, encoded_data, { create: true, overwrite: true })
@@ -453,6 +455,7 @@ export class Isabelle_FSP implements FileSystemProvider
 
   private async open_theory_dialogue(file_uri: Uri)
   {
+    if (!this.symbol_encoder) return
     const always_open = library.get_configuration<boolean>('always_open_thys')
     if (!always_open) {
       const answer = await window.showInformationMessage(
@@ -473,6 +476,7 @@ export class Isabelle_FSP implements FileSystemProvider
 
   private async reload_theory(file_uri: Uri, isabelle_uri: Uri)
   {
+    if (!this.symbol_encoder) return
     const data = await workspace.fs.readFile(file_uri)
     const encoded_data = this.symbol_encoder.encode(data)
     await this.writeFile(isabelle_uri, encoded_data, { create: false, overwrite: true })
@@ -562,6 +566,7 @@ export class Isabelle_FSP implements FileSystemProvider
 
   private async sync_original(uri: Uri, content: Uint8Array)
   {
+    if (!this.symbol_encoder) return
     const origin_uri = this.file_to_isabelle.get_from(uri)
     const decoded_content = this.symbol_encoder.decode(content)
     workspace.fs.writeFile(origin_uri, decoded_content)

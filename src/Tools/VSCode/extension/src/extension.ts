@@ -30,10 +30,10 @@ export async function activate(context: ExtensionContext)
     window.showErrorMessage("Missing user settings: isabelle.home")
   else {
     const workspace_dir = await Isabelle_FSP.register(context)
-    const roots = await workspace.findFiles("{ROOT,ROOTS}")
+    const roots = workspace.workspaceFile === undefined ? await workspace.findFiles("{ROOT,ROOTS}") : []
     const isabelle_tool = isabelle_home + "/bin/isabelle"
     const standard_args = ["-o", "vscode_unicode_symbols", "-o", "vscode_pide_extensions"]
-    const session_args = roots.length > 0 ? ["-D", workspace_dir] : []
+    const session_args = roots.length > 0 && workspace_dir !== undefined ? ["-D", workspace_dir] : []
 
     const server_options: ServerOptions =
       library.platform_is_windows() ?
