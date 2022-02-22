@@ -59,15 +59,15 @@ val z3_skolemize_rule = Z3_Proof.string_of_rule Z3_Proof.Skolemize
 val z3_th_lemma_rule_prefix = Z3_Proof.string_of_rule (Z3_Proof.Th_Lemma "")
 val zipperposition_cnf_rule = "cnf"
 
-val skolemize_rules =
+val symbol_introduction_rules =
   [e_definition_rule, e_skolemize_rule, leo2_extcnf_forall_neg_rule, satallax_skolemize_rule,
    spass_skolemize_rule, vampire_skolemisation_rule, z3_skolemize_rule,
-   zipperposition_cnf_rule] @ veriT_skolemize_rules
+   zipperposition_cnf_rule, zipperposition_define_rule] @ veriT_skolemize_rules
 
 fun is_ext_rule rule = (rule = leo2_extcnf_equal_neg_rule)
 val is_maybe_ext_rule = is_ext_rule orf String.isPrefix satallax_tab_rule_prefix
 
-val is_skolemize_rule = member (op =) skolemize_rules
+val is_symbol_introduction_rule = member (op =) symbol_introduction_rules
 fun is_arith_rule rule =
   String.isPrefix z3_th_lemma_rule_prefix rule orelse rule = veriT_simp_arith_rule orelse
   rule = veriT_la_generic_rule
@@ -114,15 +114,16 @@ fun add_lines_pass2 res [] = rev res
 
       fun looks_boring () = t aconv \<^prop>\<open>False\<close> orelse length deps < 2
 
-      fun is_skolemizing_line (_, _, _, rule', deps') =
-        is_skolemize_rule rule' andalso member (op =) deps' name
+      fun is_symbol_introduction_line (_, _, _, rule', deps') =
+        is_symbol_introduction_rule rule' andalso member (op =) deps' name
 
-      fun is_before_skolemize_rule () = exists is_skolemizing_line lines
+      fun is_before_symbol_introduction_rule () = exists is_symbol_introduction_line lines
     in
       if is_duplicate orelse
-          (role = Plain andalso not (is_skolemize_rule rule) andalso
+          (role = Plain andalso not (is_symbol_introduction_rule rule) andalso
            not (is_ext_rule rule) andalso not (is_arith_rule rule) andalso
-           not (null lines) andalso looks_boring () andalso not (is_before_skolemize_rule ())) then
+           not (null lines) andalso looks_boring () andalso
+           not (is_before_symbol_introduction_rule ())) then
         add_lines_pass2 res (map (replace_dependencies_in_line (name, deps)) lines)
       else
         add_lines_pass2 (line :: res) lines
@@ -175,7 +176,8 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
               | SOME n => n)
 
             fun is_fixed ctxt = Variable.is_declared ctxt orf Name.is_skolem
-            fun skolems_of ctxt t = Term.add_frees t [] |> filter_out (is_fixed ctxt o fst) |> rev
+            fun introduced_symbols_of ctxt t =
+              Term.add_frees t [] |> filter_out (is_fixed ctxt o fst) |> rev
 
             fun get_role keep_role ((num, _), role, t, rule, _) =
               if keep_role role then SOME ((raw_label_of_num num, t), rule) else NONE
@@ -202,14 +204,14 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
 
             fun add_lemma ((label, goal), rule) ctxt =
               let
-                val (skos, proof_methods) =
-                  (if is_skolemize_rule rule then (skolems_of ctxt goal, skolem_methods)
+                val (obtains, proof_methods) =
+                  (if is_symbol_introduction_rule rule then (introduced_symbols_of ctxt goal, skolem_methods)
                    else if is_arith_rule rule then ([], arith_methods)
                    else ([], rewrite_methods))
                   ||> massage_methods
                 val prove = Prove {
                   qualifiers = [],
-                  obtains = skos,
+                  obtains = obtains,
                   label = label,
                   goal = goal,
                   subproofs = [],
@@ -217,7 +219,7 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
                   proof_methods = proof_methods,
                   comment = ""}
               in
-                (prove, ctxt |> not (null skos) ? (Variable.add_fixes (map fst skos) #> snd))
+                (prove, ctxt |> not (null obtains) ? (Variable.add_fixes (map fst obtains) #> snd))
               end
 
             val (lems, _) =
@@ -328,14 +330,14 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
                   val l = label_of_clause c
                   val t = prop_of_clause c
                   val rule = rule_of_clause_id id
-                  val skolem = is_skolemize_rule rule
+                  val introduces_symbols = is_symbol_introduction_rule rule
 
                   val deps = ([], [])
                     |> fold add_fact_of_dependency gamma
                     |> is_maybe_ext_rule rule ? add_global_fact [short_thm_name ctxt ext]
                     |> sort_facts
                   val meths =
-                    (if skolem then skolem_methods
+                    (if introduces_symbols then skolem_methods
                      else if is_arith_rule rule then arith_methods
                      else systematic_methods')
                     |> massage_methods
@@ -354,10 +356,10 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
                   if is_clause_tainted c then
                     (case gamma of
                       [g] =>
-                      if skolem andalso is_clause_tainted g andalso not (null accum) then
+                      if introduces_symbols andalso is_clause_tainted g andalso not (null accum) then
                         let
-                          val skos = skolems_of ctxt (prop_of_clause g)
-                          val subproof = Proof {fixes = skos, assumptions = [], steps = rev accum}
+                          val fixes = introduced_symbols_of ctxt (prop_of_clause g)
+                          val subproof = Proof {fixes = fixes, assumptions = [], steps = rev accum}
                         in
                           isar_steps outer (SOME l) [prove [subproof] ([], [])] infs
                         end
@@ -366,8 +368,8 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
                     | _ => steps_of_rest (prove [] deps))
                   else
                     steps_of_rest
-                      (if skolem then
-                         (case skolems_of ctxt t of
+                      (if introduces_symbols then
+                         (case introduced_symbols_of ctxt t of
                            [] => prove [] deps
                          | skos => Prove {
                              qualifiers = [],
