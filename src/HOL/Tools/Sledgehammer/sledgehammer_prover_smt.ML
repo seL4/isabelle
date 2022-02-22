@@ -75,12 +75,16 @@ fun smt_filter name ({debug, overlord, max_mono_iters, max_new_mono_instances,
     val run_timeout = slice_timeout slices timeout
     val (higher_order, nat_as_int) =
       (case type_enc of
-        SOME s =>  (String.isSubstring "native_higher" s, String.isSubstring "arith" s)
-      | NONE => (false, false))
+        SOME s => (SOME (String.isSubstring "native_higher" s), SOME (String.isSubstring "arith" s))
+      | NONE => (NONE, NONE))
     fun repair_context ctxt = ctxt
       |> Context.proof_map (SMT_Config.select_solver name)
-      |> Config.put SMT_Config.higher_order higher_order
-      |> Config.put SMT_Config.nat_as_int nat_as_int
+      |> (case higher_order of
+           SOME higher_order => Config.put SMT_Config.higher_order higher_order
+         | NONE => I)
+      |> (case nat_as_int of
+           SOME nat_as_int => Config.put SMT_Config.nat_as_int nat_as_int
+         | NONE => I)
       |> (if overlord then
             Config.put SMT_Config.debug_files
               (overlord_file_location_of_prover name |> (fn (path, name) => path ^ "/" ^ name))

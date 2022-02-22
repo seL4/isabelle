@@ -409,8 +409,9 @@ fun short_thm_name ctxt th =
     val long = Thm.get_name_hint th
     val short = Long_Name.base_name long
   in
-    if Thm.eq_thm_prop (th, singleton (Attrib.eval_thms ctxt) (Facts.named short, [])) then short
-    else long
+    (case try (singleton (Attrib.eval_thms ctxt)) (Facts.named short, []) of
+      SOME th' => if Thm.eq_thm_prop (th, th') then short else long
+    | _ => long)
   end
 
 val map_prod = Ctr_Sugar_Util.map_prod
