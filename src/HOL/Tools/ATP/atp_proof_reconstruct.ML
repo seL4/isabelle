@@ -782,7 +782,7 @@ fun factify_atp_proof facts hyp_ts concl_t atp_proof =
             else ([], Hypothesis, close_form (nth hyp_ts j))
           | _ =>
             (case resolve_facts facts (num :: ss) of
-              [] => (ss, if role = Lemma then Lemma else Plain, t)
+              [] => (ss, if member (op =) [Definition, Lemma] role then role else Plain, t)
             | facts => (map fst facts, Axiom, t)))
       in
         ((num, ss'), role', t', rule, deps)

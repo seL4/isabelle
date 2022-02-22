@@ -166,8 +166,12 @@ fun raw_preplay_step_for_method ctxt chained timeout meth
     play_outcome
   end
 
-fun preplay_isar_step_for_method ctxt chained timeout meth =
-  try (raw_preplay_step_for_method ctxt chained timeout meth) #> the_default Play_Failed
+fun preplay_isar_step_for_method ctxt chained timeout meth step =
+  if timeout = Time.zeroTime then
+    Play_Timed_Out Time.zeroTime
+  else
+    try (raw_preplay_step_for_method ctxt chained timeout meth) step
+    |> the_default Play_Failed
 
 val min_preplay_timeout = seconds 0.002
 

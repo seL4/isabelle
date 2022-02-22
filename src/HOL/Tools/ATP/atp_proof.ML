@@ -563,20 +563,20 @@ fun parse_tstp_hol_line full problem =
      (if full then parse_hol_formula || skip_term >> K dummy_phi else skip_term >> K dummy_phi)
      -- parse_tstp_extra_arguments --| $$ ")"
   --| $$ "."
-  >> (fn (((num, role), phi), src) =>
+  >> (fn (((num, role0), phi), src) =>
       let
-        val role' = role_of_tptp_string role
-        val ((name, phi), rule, deps) =
+        val role = role_of_tptp_string role0
+        val (name, phi, role', rule, deps) =
           (case src of
             SOME (File_Source (_, SOME s)) =>
-            if role' = Definition then
-              (((num, map fst (find_formula_in_problem phi problem)), phi), "", [])
+            if role = Definition then
+              ((num, map fst (find_formula_in_problem phi problem)), phi, role, "", [])
             else
-              (((num, [s]), phi), "", [])
-          | SOME (Inference_Source (rule, deps)) => (((num, []), phi), rule, deps)
-          | SOME (Introduced_Source rule) => (((num, []), phi), rule, [])
-          | SOME Define_Source => (((num, []), phi), zipperposition_define_rule, [])
-          | _ => (((num, [num]), phi), "", []))
+              ((num, [s]), phi, role, "", [])
+          | SOME (Inference_Source (rule, deps)) => ((num, []), phi, role, rule, deps)
+          | SOME (Introduced_Source rule) => ((num, []), phi, Definition, rule, [])
+          | SOME Define_Source => ((num, []), phi, Definition, zipperposition_define_rule, [])
+          | _ => ((num, [num]), phi, role, "", []))
       in
         [(name, role', phi, rule, map (rpair []) deps)]
       end)
@@ -607,8 +607,8 @@ fun parse_tstp_fol_line full problem =
               | SOME (File_Source _) =>
                 (((num, map fst (find_formula_in_problem phi problem)), phi), role, "", [])
               | SOME (Inference_Source (rule, deps)) => (((num, []), phi), role, rule, deps)
-              | SOME (Introduced_Source rule) => (((num, []), phi), Lemma, rule, [])
-              | SOME Define_Source => (((num, []), phi), Lemma, zipperposition_define_rule, [])
+              | SOME (Introduced_Source rule) => (((num, []), phi), Definition, rule, [])
+              | SOME Define_Source => (((num, []), phi), Definition, zipperposition_define_rule, [])
               | _ => (((num, [num]), phi), role, "", []))
 
             fun mk_step () = (name, role', phi, rule, map (rpair []) deps)

@@ -89,7 +89,8 @@ fun add_line_pass1 (line as (name, role, t, rule, [])) lines =
       line :: lines
     else if t aconv \<^prop>\<open>True\<close> then
       map (replace_dependencies_in_line (name, [])) lines
-    else if role = Lemma orelse role = Hypothesis orelse is_arith_rule rule then
+    else if role = Definition orelse role = Lemma orelse role = Hypothesis
+        orelse is_arith_rule rule then
       line :: lines
     else if role = Axiom then
       lines (* axioms (facts) need no proof lines *)
@@ -220,7 +221,8 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
               end
 
             val (lems, _) =
-              fold_map add_lemma (map_filter (get_role (curry (op =) Lemma)) atp_proof) ctxt
+              fold_map add_lemma (map_filter (get_role (member (op =) [Definition, Lemma]))
+                atp_proof) ctxt
 
             val bot = #1 (List.last atp_proof)
 
@@ -453,7 +455,8 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
                    (do_preplay ? keep_fastest_method_of_isar_step (!preplay_data)
                     #> minimize ? minimize_isar_step_dependencies ctxt preplay_data)
               |> tap (trace_isar_proof "Minimized")
-              |> `(preplay_outcome_of_isar_proof (!preplay_data))
+              |> `(if do_preplay then preplay_outcome_of_isar_proof (!preplay_data)
+                   else K (Play_Timed_Out Time.zeroTime))
               ||> (comment_isar_proof comment_of
                    #> chain_isar_proof
                    #> kill_useless_labels_in_isar_proof
