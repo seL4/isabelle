@@ -64,6 +64,7 @@ sig
   val spass_input_rule : string
   val spass_pre_skolemize_rule : string
   val spass_skolemize_rule : string
+  val zipperposition_define_rule : string
 
   val short_output : bool -> string -> string
   val string_of_atp_failure : atp_failure -> string
@@ -131,6 +132,7 @@ val agsyhol_core_rule = "__agsyhol_core" (* arbitrary *)
 val spass_input_rule = "Inp"
 val spass_pre_skolemize_rule = "__Sko0" (* arbitrary *)
 val spass_skolemize_rule = "__Sko" (* arbitrary *)
+val zipperposition_define_rule = "define" (* arbitrary *)
 
 exception UNRECOGNIZED_ATP_PROOF of unit
 
@@ -284,9 +286,10 @@ fun skip_term x =
 and skip_terms x = (skip_term ::: Scan.repeat ($$ "," |-- skip_term)) x
 
 datatype source =
-  File_Source of string * string option |
-  Inference_Source of string * string list |
-  Introduced_Source of string
+  File_Source of string * string option
+| Inference_Source of string * string list
+| Introduced_Source of string
+| Define_Source
 
 val dummy_phi = AAtom (ATerm (("", []), []))
 val dummy_atype = AType (("", []), [])
@@ -309,10 +312,13 @@ and parse_inference_source x =
 and parse_introduced_source x =
   (Scan.this_string "introduced" |-- $$ "(" |-- scan_general_id
    --| Scan.option ($$ "," |-- skip_term) --| $$ ")") x
+and parse_define_source x =
+  (Scan.this_string "define" |-- $$ "(" |-- skip_term --| $$ ")") x
 and parse_source x =
   (parse_file_source >> File_Source >> SOME
    || parse_inference_source >> Inference_Source >> SOME
    || parse_introduced_source >> Introduced_Source >> SOME
+   || parse_define_source >> K Define_Source >> SOME
    || scan_general_id >> (fn s => SOME (Inference_Source ("", [s]))) (* for E *)
    || skip_term >> K NONE) x
 
@@ -569,6 +575,7 @@ fun parse_tstp_hol_line full problem =
               (((num, [s]), phi), "", [])
           | SOME (Inference_Source (rule, deps)) => (((num, []), phi), rule, deps)
           | SOME (Introduced_Source rule) => (((num, []), phi), rule, [])
+          | SOME Define_Source => (((num, []), phi), zipperposition_define_rule, [])
           | _ => (((num, [num]), phi), "", []))
       in
         [(name, role', phi, rule, map (rpair []) deps)]
@@ -601,6 +608,7 @@ fun parse_tstp_fol_line full problem =
                 (((num, map fst (find_formula_in_problem phi problem)), phi), role, "", [])
               | SOME (Inference_Source (rule, deps)) => (((num, []), phi), role, rule, deps)
               | SOME (Introduced_Source rule) => (((num, []), phi), Lemma, rule, [])
+              | SOME Define_Source => (((num, []), phi), Lemma, zipperposition_define_rule, [])
               | _ => (((num, [num]), phi), role, "", []))
 
             fun mk_step () = (name, role', phi, rule, map (rpair []) deps)
