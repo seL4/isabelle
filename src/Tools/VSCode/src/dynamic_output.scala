@@ -35,8 +35,25 @@ object Dynamic_Output
             else this
         }
       if (st1.output != output) {
-        channel.write(LSP.Dynamic_Output(
-          resources.output_pretty_message(Pretty.separate(st1.output))))
+        val elements = Presentation.Elements(
+          html = Presentation.elements2.html,
+          language = Presentation.elements2.language,
+          entity = Markup.Elements.full)
+
+        def entity_link(props: Properties.T, body: XML.Body): Option[XML.Tree] =
+          for {
+            thy_file <- Position.Def_File.unapply(props)
+            def_line <- Position.Def_Line.unapply(props)
+            source <- resources.source_file(thy_file)
+            uri = Path.explode(source).absolute_file.toURI
+          } yield HTML.link(uri.toString + "#" + def_line, body)
+
+        val htmlBody = Presentation.make_html(
+          Presentation.Entity_Context.empty,  // FIXME
+          elements,
+          Pretty.separate(st1.output))
+
+        channel.write(LSP.Dynamic_Output(HTML.source(htmlBody).toString))
       }
       st1
     }

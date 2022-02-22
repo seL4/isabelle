@@ -40,7 +40,8 @@ export interface Entry
 {
   symbol: Symbol,
   name: string,
-  code: number
+  code: number,
+  abbrevs: string[]
 }
 
 let symbol_entries: [Entry]
@@ -71,77 +72,5 @@ function update_entries(entries: [Entry])
   for (const entry of entries) {
     names.set(entry.symbol, entry.name)
     codes.set(entry.symbol, entry.code)
-  }
-}
-
-
-/* prettify symbols mode */
-
-interface PrettyStyleProperties
-{
-  border?: string
-  textDecoration?: string
-  color?: string
-  backgroundColor?: string
-}
-
-interface PrettyStyle extends PrettyStyleProperties
-{
-  dark?: PrettyStyleProperties
-  light?: PrettyStyleProperties
-}
-
-interface Substitution
-{
-  ugly: string
-  pretty: string
-  pre?: string
-  post?: string
-  style?: PrettyStyle
-}
-
-interface LanguageEntry
-{
-  language: DocumentSelector
-  substitutions: Substitution[]
-}
-
-interface PrettifySymbolsMode
-{
-  onDidEnabledChange: (handler: (enabled: boolean) => void) => Disposable
-  isEnabled: () => boolean,
-  registerSubstitutions: (substitutions: LanguageEntry) => Disposable
-}
-
-export function setup(context: ExtensionContext, entries: [Entry])
-{
-  update_entries(entries)
-
-  const prettify_symbols_mode =
-    extensions.getExtension<PrettifySymbolsMode>("siegebell.prettify-symbols-mode")
-  if (prettify_symbols_mode) {
-    prettify_symbols_mode.activate().then(() =>
-    {
-      const substitutions: Substitution[] = []
-      for (const entry of names) {
-        const sym = entry[0]
-        substitutions.push(
-          {
-            ugly: library.escape_regex(sym),
-            pretty: library.escape_regex(get_unicode(sym))
-          })
-      }
-      for (const language of ["isabelle", "isabelle-ml", "isabelle-output"]) {
-        context.subscriptions.push(
-          prettify_symbols_mode.exports.registerSubstitutions(
-            {
-              language: language,
-              substitutions: substitutions
-            }))
-      }
-    })
-  }
-  else {
-    window.showWarningMessage("Please install extension \"Prettify Symbols Model\" and restart!")
   }
 }

@@ -158,7 +158,11 @@ object LSP
     val json: JSON.T =
       JSON.Object(
         "textDocumentSync" -> 2,
-        "completionProvider" -> JSON.Object("resolveProvider" -> false, "triggerCharacters" -> Nil),
+        "completionProvider" -> JSON.Object(
+          "resolveProvider" -> false,
+          "triggerCharacters" ->
+            Symbol.abbrevs.values.flatMap(_.iterator).map(_.toString).toList.distinct
+        ),
         "hoverProvider" -> true,
         "definitionProvider" -> true,
         "documentHighlightProvider" -> true)
@@ -212,6 +216,7 @@ object LSP
     def unapply(json: JSON.T): Option[Line.Node_Range] =
       for {
         uri <- JSON.string(json, "uri")
+        if Url.is_wellformed_file(uri)
         range_json <- JSON.value(json, "range")
         range <- Range.unapply(range_json)
       } yield Line.Node_Range(Url.absolute_file_name(uri), range)
@@ -223,6 +228,7 @@ object LSP
       for {
         doc <- JSON.value(json, "textDocument")
         uri <- JSON.string(doc, "uri")
+        if Url.is_wellformed_file(uri)
         pos_json <- JSON.value(json, "position")
         pos <- Position.unapply(pos_json)
       } yield Line.Node_Position(Url.absolute_file_name(uri), pos)
@@ -284,6 +290,7 @@ object LSP
           for {
             doc <- JSON.value(params, "textDocument")
             uri <- JSON.string(doc, "uri")
+            if Url.is_wellformed_file(uri)
             lang <- JSON.string(doc, "languageId")
             version <- JSON.long(doc, "version")
             text <- JSON.string(doc, "text")
@@ -307,6 +314,7 @@ object LSP
           for {
             doc <- JSON.value(params, "textDocument")
             uri <- JSON.string(doc, "uri")
+            if Url.is_wellformed_file(uri)
             version <- JSON.long(doc, "version")
             changes <- JSON.list(params, "contentChanges", unapply_change _)
           } yield (Url.absolute_file(uri), version, changes)
@@ -322,6 +330,7 @@ object LSP
           for {
             doc <- JSON.value(params, "textDocument")
             uri <- JSON.string(doc, "uri")
+            if Url.is_wellformed_file(uri)
           } yield Url.absolute_file(uri)
         case _ => None
       }
@@ -501,11 +510,17 @@ object LSP
       JSON.optional("hover_message" -> MarkedStrings.json(hover_message))
   }
 
-  sealed case class Decoration(typ: String, content: List[DecorationOpts])
+  sealed case class Decoration(decorations: List[(String, List[DecorationOpts])])
   {
     def json(file: JFile): JSON.T =
       Notification("PIDE/decoration",
-        JSON.Object("uri" -> Url.print_file(file), "type" -> typ, "content" -> content.map(_.json)))
+        JSON.Object(
+          "uri" -> Url.print_file(file),
+          "entries" -> decorations.map(decoration => JSON.Object(
+            "type" -> decoration._1,
+            "content" -> decoration._2.map(_.json))
+          ))
+      )
   }
 
 
@@ -549,8 +564,8 @@ object LSP
 
   object State_Output
   {
-    def apply(id: Counter.ID, content: String): JSON.T =
-      Notification("PIDE/state_output", JSON.Object("id" -> id, "content" -> content))
+    def apply(id: Counter.ID, content: String, auto_update: Boolean): JSON.T =
+      Notification("PIDE/state_output", JSON.Object("id" -> id, "content" -> content, "auto_update" -> auto_update))
   }
 
   class State_Id_Notification(name: String)
@@ -619,8 +634,27 @@ object LSP
     {
       val entries =
         for ((sym, code) <- Symbol.codes)
-        yield JSON.Object("symbol" -> sym, "name" -> Symbol.names(sym)._1, "code" -> code)
+        yield JSON.Object(
+          "symbol" -> sym,
+          "name" -> Symbol.names(sym)._1,
+          "code" -> code,
+          "abbrevs" -> Symbol.abbrevs.get_list(sym)
+        )
       Notification("PIDE/symbols", JSON.Object("entries" -> entries))
+    }
+  }
+
+  /* Session structure */
+
+  object Session_Theories_Request extends Notification0("PIDE/session_theories_request")
+
+  object Session_Theories {
+    def apply(session_theories: Map[String, List[JFile]]): JSON.T = {
+      val entries = session_theories.map { case(session_name, theories) => JSON.Object(
+        "session_name" -> session_name,
+        "theories" -> theories.map(Url.print_file)
+      )}
+      Notification("PIDE/session_theories", JSON.Object("entries" -> entries))
     }
   }
 }

@@ -86,10 +86,11 @@ class VSCode_Rendering(snapshot: Document.Snapshot, val model: VSCode_Model)
 
   /* completion */
 
-  def completion(caret_pos: Line.Position, caret: Text.Offset): List[LSP.CompletionItem] =
+  def completion(node_pos: Line.Node_Position, caret: Text.Offset): List[LSP.CompletionItem] =
   {
     val doc = model.content.doc
-    val line = caret_pos.line
+    val line = node_pos.pos.line
+    val unicode = node_pos.name.endsWith(".thy")
     doc.offset(Line.Position(line)) match {
       case None => Nil
       case Some(line_start) =>
@@ -98,13 +99,13 @@ class VSCode_Rendering(snapshot: Document.Snapshot, val model: VSCode_Model)
 
         val syntax = model.syntax()
         val syntax_completion =
-          syntax.complete(history, unicode = false, explicit = true,
+          syntax.complete(history, unicode, explicit = false,
             line_start, doc.lines(line).text, caret - line_start,
             language_context(caret_range) getOrElse syntax.language_context)
 
         val (no_completion, semantic_completion) =
           rendering.semantic_completion_result(
-            history, false, syntax_completion.map(_.range), caret_range)
+            history, unicode, syntax_completion.map(_.range), caret_range)
 
         if (no_completion) Nil
         else {
@@ -121,8 +122,8 @@ class VSCode_Rendering(snapshot: Document.Snapshot, val model: VSCode_Model)
               case Some(result) =>
                 result.items.map(item =>
                   LSP.CompletionItem(
-                    label = item.replacement,
-                    detail = Some(item.description.mkString(" ")),
+                    label = item.description.mkString(" "),
+                    text = Some(item.replacement),
                     range = Some(doc.range(item.range))))
             }
           items ::: VSCode_Spell_Checker.menu_items(rendering, caret)
@@ -234,16 +235,21 @@ class VSCode_Rendering(snapshot: Document.Snapshot, val model: VSCode_Model)
             dotted(model.content.text_range)))).flatten :::
     List(VSCode_Spell_Checker.decoration(rendering))
 
-  def decoration_output(decoration: VSCode_Model.Decoration): LSP.Decoration =
+  def decoration_output(decoration: List[VSCode_Model.Decoration]): LSP.Decoration =
   {
-    val content =
-      for (Text.Info(text_range, msgs) <- decoration.content)
+    val entries =
+      for (deco <- decoration)
       yield {
-        val range = model.content.doc.range(text_range)
-        LSP.DecorationOpts(range,
-          msgs.map(msg => LSP.MarkedString(resources.output_pretty_tooltip(msg))))
+        val decopts = for(Text.Info(text_range, msgs) <- deco.content)
+          yield {
+            val range = model.content.doc.range(text_range)
+            LSP.DecorationOpts(range,
+              msgs.map(msg => LSP.MarkedString(resources.output_pretty_tooltip(msg))))
+          }
+        (deco.typ, decopts)
       }
-    LSP.Decoration(decoration.typ, content)
+
+    LSP.Decoration(entries)
   }
 
 
