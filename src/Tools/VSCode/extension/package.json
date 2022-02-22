@@ -174,11 +174,6 @@
         "configuration": {
             "title": "Isabelle",
             "properties": {
-                "isabelle.home": {
-                    "type": "string",
-                    "default": "",
-                    "description": "Main Isabelle directory (ISABELLE_HOME)."
-                },
                 "isabelle.args": {
                     "type": "array",
                     "items": {
@@ -186,11 +181,6 @@
                     },
                     "default": [],
                     "description": "Command-line arguments for isabelle vscode_server process."
-                },
-                "isabelle.cygwin_root": {
-                    "type": "string",
-                    "default": "",
-                    "description": "Cygwin installation on Windows (only relevant when running directly from the Isabelle repository)."
                 },
                 "isabelle.replacement": {
                     "type": "string",

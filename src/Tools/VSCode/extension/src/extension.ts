@@ -19,30 +19,26 @@ let last_caret_update: protocol.Caret_Update = {}
 
 export async function activate(context: ExtensionContext)
 {
-  const isabelle_home = library.get_configuration<string>("home")
-  const isabelle_args = library.get_configuration<Array<string>>("args")
-  const cygwin_root = library.get_configuration<string>("cygwin_root")
-
-
   /* server */
 
-  if (isabelle_home === "")
-    window.showErrorMessage("Missing user settings: isabelle.home")
-  else {
+  try {
+    const isabelle_home = library.getenv_strict("ISABELLE_HOME")
+
     const workspace_dir = await Isabelle_FSP.register(context)
     const roots = workspace.workspaceFile === undefined ? await workspace.findFiles("{ROOT,ROOTS}") : []
+
     const isabelle_tool = isabelle_home + "/bin/isabelle"
-    const standard_args = ["-o", "vscode_unicode_symbols", "-o", "vscode_pide_extensions"]
-    const session_args = roots.length > 0 && workspace_dir !== undefined ? ["-D", workspace_dir] : []
+    const isabelle_args =
+      ["-o", "vscode_unicode_symbols", "-o", "vscode_pide_extensions"]
+        .concat(library.get_configuration<Array<string>>("args"))
+        .concat(roots.length > 0 && workspace_dir !== undefined ? ["-D", workspace_dir] : [])
 
     const server_options: ServerOptions =
       library.platform_is_windows() ?
-        { command:
-            (cygwin_root === "" ? path.join(isabelle_home, "contrib", "cygwin") : cygwin_root) +
-            "/bin/bash",
-          args: ["-l", isabelle_tool, "vscode_server"].concat(standard_args, isabelle_args) } :
+        { command: library.getenv_strict("CYGWIN_ROOT") + "\\bin\\bash",
+          args: ["-l", isabelle_tool, "vscode_server"].concat(isabelle_args) } :
         { command: isabelle_tool,
-          args: ["vscode_server"].concat(standard_args, isabelle_args, session_args) }
+          args: ["vscode_server"].concat(isabelle_args) }
 
     const language_client_options: LanguageClientOptions = {
       documentSelector: [
@@ -213,6 +209,9 @@ export async function activate(context: ExtensionContext)
     /* start server */
 
     context.subscriptions.push(language_client.start())
+  }
+  catch (exn) {
+    window.showErrorMessage(exn)
   }
 }
 
