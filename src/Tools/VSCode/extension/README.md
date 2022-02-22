@@ -75,72 +75,13 @@ See also:
       + *bibtexLanguage* (optional): it gives `.bib` a formal status, thus
         `@{cite}` antiquotations become active for completion and hyperlinks.
 
-  * Open the dialog *Preferences / User settings* and provide the following
-    entries in the second window, where local user additions are stored:
-
-      + On all platforms: `isabelle.home` needs to point to the main Isabelle
-      directory (`$ISABELLE_HOME`).
-
-      + On Windows: use drive-letter and backslashes for `isabelle.home` above.
-      When running from a bare repository clone (not a development snapshot),
-      `isabelle.cygwin_home` needs to point to a suitable Cygwin installation.
-
-    Examples:
-
-      + Linux:
-        ```
-        "isabelle.home": "/home/makarius/Isabelle"
-        ```
-
-      + Mac OS X:
-        ```
-        "isabelle.home": "/Users/makarius/Isabelle.app/Isabelle"
-        ```
-
-      + Windows:
-        ```
-        "isabelle.home": "C:\\Users\\makarius\\Isabelle"
-        ```
-
   * Restart the VSCode application to ensure that all extensions are properly
   initialized and user settings are updated. Afterwards VSCode should know about
   `.thy` files (Isabelle theories) and `.ML` files (Isabelle/ML modules).
 
   The Isabelle extension is initialized when the first Isabelle file is opened.
   It requires a few seconds to start up: a small popup window eventually says
-  *"Welcome to Isabelle ..."*. If that fails, there might be something wrong
-  with `isabelle.home` from above, or the Isabelle distribution does not fit to
-  the version of the VSCode extension from the Marketplace.
-
-
-### Support for Isabelle symbols
-
-Isabelle symbols like `\<forall>` are rendered using the extension *Prettify
-Symbols Mode*, which needs to be installed separately.
-
-In addition, the following user settings should be changed in the *Preferences /
-User settings* dialog of VSCode:
-
-```
-"prettifySymbolsMode.substitutions": [
-  {
-    "language": "isabelle",
-    "revealOn": "none",
-    "adjustCursorMovement": true,
-    "prettyCursor": "none",
-    "substitutions": []
-  },
-  {
-    "language": "isabelle-ml",
-    "revealOn": "none",
-    "adjustCursorMovement": true,
-    "prettyCursor": "none",
-    "substitutions": []
-  }]
-```
-
-Actual symbol replacement tables are provided by the prover process on startup,
-based on the usual `etc/symbols` specifications of the Isabelle installation.
+  *"Welcome to Isabelle ..."*.
 
 
 ### Further Preferences

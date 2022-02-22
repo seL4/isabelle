@@ -276,7 +276,7 @@ class VSCode_Resources(
             file <- st.pending_input.iterator
             model <- st.models.get(file)
             (edits, model1) <-
-              model.flush_edits(unicode_symbols, st.document_blobs, file, st.get_caret(file))
+              model.flush_edits(false, st.document_blobs, file, st.get_caret(file))
           } yield (edits, (file, model1))).toList
 
         for { ((workspace_edits, _), _) <- changed_models if workspace_edits.nonEmpty }
@@ -320,8 +320,8 @@ class VSCode_Resources(
             for (diags <- changed_diags)
               channel.write(LSP.PublishDiagnostics(file, rendering.diagnostics_output(diags)))
             if (pide_extensions) {
-              for (decos <- changed_decos; deco <- decos)
-                channel.write(rendering.decoration_output(deco).json(file))
+              for (decos <- changed_decos)
+                channel.write(rendering.decoration_output(decos).json(file))
             }
             (file, model1)
           }

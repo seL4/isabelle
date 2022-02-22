@@ -1,11 +1,12 @@
 'use strict';
 
 import * as timers from 'timers'
-import { window, OverviewRulerLane } from 'vscode'
-import { Position, Range, MarkedString, DecorationOptions, DecorationRenderOptions,
-  TextDocument, TextEditor, TextEditorDecorationType, ExtensionContext, Uri } from 'vscode'
-import { Decoration } from './protocol'
+import {window, OverviewRulerLane, Uri} from 'vscode';
+import { Range, DecorationOptions, DecorationRenderOptions,
+  TextDocument, TextEditor, TextEditorDecorationType, ExtensionContext } from 'vscode'
+import { Document_Decorations } from './protocol'
 import * as library from './library'
+import { Isabelle_FSP } from './isabelle_filesystem/isabelle_fsp'
 
 
 /* known decoration types */
@@ -35,7 +36,7 @@ const dotted_colors = [
   "warning"
 ]
 
-const text_colors = [
+export const text_colors = [
   "main",
   "keyword1",
   "keyword2",
@@ -159,34 +160,37 @@ export function setup(context: ExtensionContext)
 /* decoration for document node */
 
 type Content = Range[] | DecorationOptions[]
-const document_decorations = new Map<string, Map<string, Content>>()
+const document_decorations = new Map<Uri, Map<string, Content>>()
 
 export function close_document(document: TextDocument)
 {
-  document_decorations.delete(document.uri.toString())
+  document_decorations.delete(document.uri)
 }
 
-export function apply_decoration(decoration: Decoration)
+export function apply_decoration(decorations: Document_Decorations)
 {
-  const typ = types.get(decoration.type)
-  if (typ) {
-    const uri = Uri.parse(decoration.uri).toString()
-    const content: DecorationOptions[] = decoration.content.map(opt =>
-      {
-        const r = opt.range
-        return {
-          range: new Range(new Position(r[0], r[1]), new Position(r[2], r[3])),
-          hoverMessage: opt.hover_message
+  const uri = Isabelle_FSP.get_isabelle(Uri.parse(decorations.uri))
+
+  for (const decoration of decorations.entries) {
+    const typ = types.get(decoration.type)
+    if (typ) {
+      const content: DecorationOptions[] = decoration.content.map(opt =>
+        {
+          const r = opt.range
+          return {
+            range: new Range(r[0], r[1], r[2], r[3]),
+            hoverMessage: opt.hover_message
+          }
+        })
+
+      const document = document_decorations.get(uri) || new Map<string, Content>()
+      document.set(decoration.type, content)
+      document_decorations.set(uri, document)
+
+      for (const editor of window.visibleTextEditors) {
+        if (uri.toString === editor.document.uri.toString) {
+          editor.setDecorations(typ, content)
         }
-      })
-
-    const document = document_decorations.get(uri) || new Map<string, Content>()
-    document.set(decoration.type, content)
-    document_decorations.set(uri, document)
-
-    for (const editor of window.visibleTextEditors) {
-      if (uri === editor.document.uri.toString()) {
-        editor.setDecorations(typ, content)
       }
     }
   }
@@ -195,7 +199,7 @@ export function apply_decoration(decoration: Decoration)
 export function update_editor(editor: TextEditor)
 {
   if (editor) {
-    const decorations = document_decorations.get(editor.document.uri.toString())
+    const decorations = document_decorations.get(editor.document.uri)
     if (decorations) {
       for (const [typ, content] of decorations) {
         editor.setDecorations(types.get(typ), content)
@@ -218,7 +222,7 @@ function update_touched_documents()
       touched_editors.push(editor)
     }
   }
-  touched_documents.clear
+  touched_documents.clear()
   touched_editors.forEach(update_editor)
 }
 

@@ -1,26 +1,29 @@
 'use strict';
 
-import { Position, Range, MarkedString, DecorationOptions, DecorationRenderOptions } from 'vscode'
-import { NotificationType } from 'vscode-languageclient';
+import { MarkdownString } from 'vscode'
+import { NotificationType } from 'vscode-languageclient'
 import * as symbol from './symbol'
-
 
 /* decorations */
 
-export interface DecorationOpts {
+export interface Decoration_Options {
   range: number[],
-  hover_message?: MarkedString | MarkedString[]
+  hover_message?: MarkdownString | MarkdownString[]
 }
 
 export interface Decoration
 {
-  uri: string,
-  "type": string,
-  content: DecorationOpts[]
+  "type": string
+  content: Decoration_Options[]
+}
+
+export interface Document_Decorations {
+  uri: string
+  entries: Decoration[]
 }
 
 export const decoration_type =
-  new NotificationType<Decoration, void>("PIDE/decoration")
+  new NotificationType<Document_Decorations, void>("PIDE/decoration")
 
 
 /* caret handling */
@@ -54,6 +57,7 @@ export interface State_Output
 {
   id: number
   content: string
+  auto_update: boolean
 }
 
 export const state_output_type =
@@ -114,6 +118,22 @@ export const symbols_type =
 export const symbols_request_type =
   new NotificationType<void, void>("PIDE/symbols_request")
 
+export interface Entries<T>
+{
+  entries: T[]
+}
+
+export interface Session_Theories
+{
+  session_name: string
+  theories: string[]
+}
+
+export const session_theories_type =
+  new NotificationType<Entries<Session_Theories>, void>("PIDE/session_theories")
+
+export const session_theories_request_type =
+  new NotificationType<void, void>("PIDE/session_theories_request")
 
 /* spell checker */
 
