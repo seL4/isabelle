@@ -2,7 +2,7 @@
 
 import * as library from './library'
 import * as protocol from './protocol'
-import {LanguageClient} from 'vscode-languageclient'
+import {LanguageClient} from 'vscode-languageclient/node'
 import {ExtensionContext, Uri, ViewColumn, WebviewPanel, window} from 'vscode'
 import {get_webview_html, open_webview_link} from './output_view'
 

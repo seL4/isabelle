@@ -1,7 +1,7 @@
 'use strict';
 
 import { ExtensionContext, Uri, window, ViewColumn, WebviewPanel } from 'vscode'
-import { LanguageClient } from 'vscode-languageclient'
+import { LanguageClient } from 'vscode-languageclient/node'
 import * as library from './library'
 import * as protocol from './protocol'
 

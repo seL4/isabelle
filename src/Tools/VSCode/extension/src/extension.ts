@@ -8,7 +8,7 @@ import * as protocol from './protocol'
 import * as state_panel from './state_panel'
 import { Uri, TextEditor, ViewColumn, Selection, Position, ExtensionContext, workspace, window,
   commands, ProgressLocation } from 'vscode'
-import { LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-languageclient'
+import { LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-languageclient/node'
 import { register_abbreviations } from './abbreviations'
 import { Isabelle_FSP } from './isabelle_filesystem/isabelle_fsp'
 import { Output_View_Provider } from './output_view'

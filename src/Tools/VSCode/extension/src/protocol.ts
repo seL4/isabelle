@@ -23,7 +23,7 @@ export interface Document_Decorations {
 }
 
 export const decoration_type =
-  new NotificationType<Document_Decorations, void>("PIDE/decoration")
+  new NotificationType<Document_Decorations>("PIDE/decoration")
 
 
 /* caret handling */
@@ -37,7 +37,7 @@ export interface Caret_Update
 }
 
 export const caret_update_type =
-  new NotificationType<Caret_Update, void>("PIDE/caret_update")
+  new NotificationType<Caret_Update>("PIDE/caret_update")
 
 
 /* dynamic output */
@@ -48,7 +48,7 @@ export interface Dynamic_Output
 }
 
 export const dynamic_output_type =
-  new NotificationType<Dynamic_Output, void>("PIDE/dynamic_output")
+  new NotificationType<Dynamic_Output>("PIDE/dynamic_output")
 
 
 /* state */
@@ -61,7 +61,7 @@ export interface State_Output
 }
 
 export const state_output_type =
-  new NotificationType<State_Output, void>("PIDE/state_output")
+  new NotificationType<State_Output>("PIDE/state_output")
 
 export interface State_Id
 {
@@ -74,12 +74,12 @@ export interface Auto_Update
   enabled: boolean
 }
 
-export const state_init_type = new NotificationType<void, void>("PIDE/state_init")
-export const state_exit_type = new NotificationType<State_Id, void>("PIDE/state_exit")
-export const state_locate_type = new NotificationType<State_Id, void>("PIDE/state_locate")
-export const state_update_type = new NotificationType<State_Id, void>("PIDE/state_update")
+export const state_init_type = new NotificationType<void>("PIDE/state_init")
+export const state_exit_type = new NotificationType<State_Id>("PIDE/state_exit")
+export const state_locate_type = new NotificationType<State_Id>("PIDE/state_locate")
+export const state_update_type = new NotificationType<State_Id>("PIDE/state_update")
 export const state_auto_update_type =
-  new NotificationType<Auto_Update, void>("PIDE/state_auto_update")
+  new NotificationType<Auto_Update>("PIDE/state_auto_update")
 
 
 /* preview */
@@ -99,10 +99,10 @@ export interface Preview_Response
 }
 
 export const preview_request_type =
-  new NotificationType<Preview_Request, void>("PIDE/preview_request")
+  new NotificationType<Preview_Request>("PIDE/preview_request")
 
 export const preview_response_type =
-  new NotificationType<Preview_Response, void>("PIDE/preview_response")
+  new NotificationType<Preview_Response>("PIDE/preview_response")
 
 
 /* Isabelle symbols */
@@ -113,10 +113,10 @@ export interface Symbols
 }
 
 export const symbols_type =
-  new NotificationType<Symbols, void>("PIDE/symbols")
+  new NotificationType<Symbols>("PIDE/symbols")
 
 export const symbols_request_type =
-  new NotificationType<void, void>("PIDE/symbols_request")
+  new NotificationType<void>("PIDE/symbols_request")
 
 export interface Entries<T>
 {
@@ -130,24 +130,24 @@ export interface Session_Theories
 }
 
 export const session_theories_type =
-  new NotificationType<Entries<Session_Theories>, void>("PIDE/session_theories")
+  new NotificationType<Entries<Session_Theories>>("PIDE/session_theories")
 
 export const session_theories_request_type =
-  new NotificationType<void, void>("PIDE/session_theories_request")
+  new NotificationType<void>("PIDE/session_theories_request")
 
 /* spell checker */
 
 export const include_word_type =
-  new NotificationType<void, void>("PIDE/include_word")
+  new NotificationType<void>("PIDE/include_word")
 
 export const include_word_permanently_type =
-  new NotificationType<void, void>("PIDE/include_word_permanently")
+  new NotificationType<void>("PIDE/include_word_permanently")
 
 export const exclude_word_type =
-  new NotificationType<void, void>("PIDE/exclude_word")
+  new NotificationType<void>("PIDE/exclude_word")
 
 export const exclude_word_permanently_type =
-  new NotificationType<void, void>("PIDE/exclude_word_permanently")
+  new NotificationType<void>("PIDE/exclude_word_permanently")
 
 export const reset_words_type =
-  new NotificationType<void, void>("PIDE/reset_words")
+  new NotificationType<void>("PIDE/reset_words")
