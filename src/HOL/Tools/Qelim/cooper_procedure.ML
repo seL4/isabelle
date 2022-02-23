@@ -1026,15 +1026,19 @@ fun equal_fm (Closed x18) (NClosed x19) = false
 fun djf f p q =
   (if equal_fm q T then T
     else (if equal_fm q F then f p
-           else (case f p of T => T | F => q | Lt _ => Or (f p, q)
-                  | Le _ => Or (f p, q) | Gt _ => Or (f p, q)
-                  | Ge _ => Or (f p, q) | Eq _ => Or (f p, q)
-                  | NEq _ => Or (f p, q) | Dvd (_, _) => Or (f p, q)
-                  | NDvd (_, _) => Or (f p, q) | Not _ => Or (f p, q)
-                  | And (_, _) => Or (f p, q) | Or (_, _) => Or (f p, q)
-                  | Imp (_, _) => Or (f p, q) | Iff (_, _) => Or (f p, q)
-                  | E _ => Or (f p, q) | A _ => Or (f p, q)
-                  | Closed _ => Or (f p, q) | NClosed _ => Or (f p, q))));
+           else let
+                  val fp = f p;
+                in
+                  (case fp of T => T | F => q | Lt _ => Or (fp, q)
+                    | Le _ => Or (fp, q) | Gt _ => Or (fp, q)
+                    | Ge _ => Or (fp, q) | Eq _ => Or (fp, q)
+                    | NEq _ => Or (fp, q) | Dvd (_, _) => Or (fp, q)
+                    | NDvd (_, _) => Or (fp, q) | Not _ => Or (fp, q)
+                    | And (_, _) => Or (fp, q) | Or (_, _) => Or (fp, q)
+                    | Imp (_, _) => Or (fp, q) | Iff (_, _) => Or (fp, q)
+                    | E _ => Or (fp, q) | A _ => Or (fp, q)
+                    | Closed _ => Or (fp, q) | NClosed _ => Or (fp, q))
+                end));
 
 fun evaldjf f ps = foldr (djf f) ps F;
 
