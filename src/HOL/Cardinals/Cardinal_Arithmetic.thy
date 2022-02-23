@@ -81,41 +81,13 @@ lemma Pow_cexp_ctwo:
 unfolding ctwo_def cexp_def Field_card_of by (rule card_of_Pow_Func)
 
 lemma Cnotzero_cexp:
-  assumes "Cnotzero q" "Card_order r"
+  assumes "Cnotzero q" 
   shows "Cnotzero (q ^c r)"
-proof (cases "r =o czero")
-  case False thus ?thesis
-    apply -
-    apply (rule Cnotzero_mono)
-    apply (rule assms(1))
-    apply (rule Card_order_cexp)
-    apply (rule ordLeq_cexp1)
-    apply (rule conjI)
-    apply (rule notI)
-    apply (erule notE)
-    apply (rule ordIso_transitive)
-    apply assumption
-    apply (rule czero_ordIso)
-    apply (rule assms(2))
-    apply (rule conjunct2)
-    apply (rule assms(1))
-  done
-next
-  case True thus ?thesis
-    apply -
-    apply (rule Cnotzero_mono)
-    apply (rule cone_Cnotzero)
-    apply (rule Card_order_cexp)
-    apply (rule ordIso_imp_ordLeq)
-    apply (rule ordIso_symmetric)
-    apply (rule ordIso_transitive)
-    apply (rule cexp_cong2)
-    apply assumption
-    apply (rule conjunct2)
-    apply (rule assms(1))
-    apply (rule assms(2))
-    apply (rule cexp_czero)
-  done
+proof -
+  have "Field q \<noteq> {}"
+    by (metis Card_order_iff_ordIso_card_of assms(1) czero_def)
+  then show ?thesis
+    by (simp add: card_of_ordIso_czero_iff_empty cexp_def)
 qed
 
 lemma Cinfinite_ctwo_cexp:
@@ -156,31 +128,10 @@ qed
 
 lemma csum_cexp: "\<lbrakk>Cinfinite r1; Cinfinite r2; Card_order q; ctwo \<le>o q\<rbrakk> \<Longrightarrow>
   q ^c r1 +c q ^c r2 \<le>o q ^c (r1 +c r2)"
-apply (rule csum_cinfinite_bound)
-apply (rule cexp_mono2)
-apply (rule ordLeq_csum1)
-apply (erule conjunct2)
-apply assumption
-apply (rule notE)
-apply (rule cinfinite_not_czero[of r1])
-apply (erule conjunct1)
-apply assumption
-apply (erule conjunct2)
-apply (rule cexp_mono2)
-apply (rule ordLeq_csum2)
-apply (erule conjunct2)
-apply assumption
-apply (rule notE)
-apply (rule cinfinite_not_czero[of r2])
-apply (erule conjunct1)
-apply assumption
-apply (erule conjunct2)
-apply (rule Card_order_cexp)
-apply (rule Card_order_cexp)
-apply (rule Cinfinite_cexp)
-apply assumption
-apply (rule Cinfinite_csum)
-by (rule disjI1)
+  apply (rule csum_cinfinite_bound)
+  apply (metis cexp_mono2' cinfinite_def finite.emptyI ordLeq_csum1)
+  apply (metis cexp_mono2' cinfinite_def finite.emptyI ordLeq_csum2)
+  by (simp_all add: Card_order_cexp Cinfinite_csum1 Cinfinite_cexp cinfinite_cexp)
 
 lemma csum_cexp': "\<lbrakk>Cinfinite r; Card_order q; ctwo \<le>o q\<rbrakk> \<Longrightarrow> q +c r \<le>o q ^c r"
 apply (rule csum_cinfinite_bound)
