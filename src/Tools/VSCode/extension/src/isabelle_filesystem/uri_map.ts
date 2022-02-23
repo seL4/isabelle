@@ -12,6 +12,11 @@ export class Uri_Map
     return Uri.parse(uri.toString())
   }
 
+  public keys(): Uri[]
+  {
+    return [...this.rev_map.values()]
+  }
+
   public add(from: Uri, to: Uri)
   {
     const norm_from = Uri_Map.normalize(from)
