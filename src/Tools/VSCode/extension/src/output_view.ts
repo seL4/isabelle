@@ -5,7 +5,7 @@ import { WebviewViewProvider, WebviewView, Uri, WebviewViewResolveContext,
 import { text_colors } from './decorations'
 import * as library from './library'
 import * as path from 'path'
-import { Isabelle_FSP } from './isabelle_filesystem/isabelle_fsp'
+import { Isabelle_Workspace } from './isabelle_filesystem/isabelle_workspace'
 
 class Output_View_Provider implements WebviewViewProvider
 {
@@ -64,7 +64,7 @@ function open_webview_link(link: string)
   const line = Number(uri.fragment) || 0
   const pos = new Position(line, 0)
   const uri_no_fragment = uri.with({ fragment: '' })
-  const isabelle_uri = Isabelle_FSP.get_isabelle(uri_no_fragment)
+  const isabelle_uri = Isabelle_Workspace.get_isabelle(uri_no_fragment)
   window.showTextDocument(isabelle_uri, {
     preserveFocus: false,
     selection: new Selection(pos, pos)

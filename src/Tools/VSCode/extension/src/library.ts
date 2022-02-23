@@ -2,7 +2,7 @@
 
 import * as os from 'os'
 import {TextEditor, Uri, ViewColumn, window, workspace} from 'vscode'
-import {Isabelle_FSP} from './isabelle_filesystem/isabelle_fsp'
+import {Isabelle_Workspace} from './isabelle_filesystem/isabelle_workspace'
 
 
 /* regular expressions */
@@ -58,7 +58,7 @@ export function platform_is_windows(): boolean
 
 export function is_file(uri: Uri): boolean
 {
-  return uri.scheme === "file" || uri.scheme === Isabelle_FSP.scheme
+  return uri.scheme === "file" || uri.scheme === Isabelle_Workspace.scheme
 }
 
 export function find_file_editor(uri: Uri): TextEditor | undefined

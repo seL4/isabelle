@@ -10,7 +10,7 @@ import { Uri, TextEditor, ViewColumn, Selection, Position, ExtensionContext, wor
   commands, ProgressLocation } from 'vscode'
 import { LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-languageclient/node'
 import { register_abbreviations } from './abbreviations'
-import { Isabelle_FSP } from './isabelle_filesystem/isabelle_fsp'
+import { Isabelle_Workspace } from './isabelle_filesystem/isabelle_workspace'
 import { Output_View_Provider } from './output_view'
 import { register_script_decorations } from './script_decorations'
 
@@ -24,7 +24,7 @@ export async function activate(context: ExtensionContext)
   try {
     const isabelle_home = library.getenv_strict("ISABELLE_HOME")
 
-    const workspace_dir = await Isabelle_FSP.register(context)
+    const workspace_dir = await Isabelle_Workspace.register(context)
     const roots = workspace.workspaceFile === undefined ? await workspace.findFiles("{ROOT,ROOTS}") : []
 
     const isabelle_tool = isabelle_home + "/bin/isabelle"
@@ -42,13 +42,13 @@ export async function activate(context: ExtensionContext)
 
     const language_client_options: LanguageClientOptions = {
       documentSelector: [
-        { language: "isabelle", scheme: Isabelle_FSP.scheme },
+        { language: "isabelle", scheme: Isabelle_Workspace.scheme },
         { language: "isabelle-ml", scheme: "file" },
         { language: "bibtex", scheme: "file" }
       ],
       uriConverters: {
-        code2Protocol: uri => Isabelle_FSP.get_file(uri).toString(),
-        protocol2Code: value => Isabelle_FSP.get_isabelle(Uri.parse(value))
+        code2Protocol: uri => Isabelle_Workspace.get_file(uri).toString(),
+        protocol2Code: value => Isabelle_Workspace.get_isabelle(Uri.parse(value))
       }
     }
 
@@ -98,7 +98,7 @@ export async function activate(context: ExtensionContext)
       }
       if (last_caret_update !== caret_update) {
         if (caret_update.uri) {
-          caret_update.uri = Isabelle_FSP.get_file(Uri.parse(caret_update.uri)).toString()
+          caret_update.uri = Isabelle_Workspace.get_file(Uri.parse(caret_update.uri)).toString()
           language_client.sendNotification(protocol.caret_update_type, caret_update)
         }
         last_caret_update = caret_update
@@ -114,7 +114,7 @@ export async function activate(context: ExtensionContext)
       }
 
       if (caret_update.uri) {
-        caret_update.uri = Isabelle_FSP.get_isabelle(Uri.parse(caret_update.uri)).toString()
+        caret_update.uri = Isabelle_Workspace.get_isabelle(Uri.parse(caret_update.uri)).toString()
         workspace.openTextDocument(Uri.parse(caret_update.uri)).then(document =>
         {
           const editor = library.find_file_editor(document.uri)
@@ -170,13 +170,13 @@ export async function activate(context: ExtensionContext)
     language_client.onReady().then(() =>
     {
       language_client.onNotification(protocol.session_theories_type,
-        async ({entries}) => await Isabelle_FSP.init_workspace(entries))
+        async ({entries}) => await Isabelle_Workspace.init_workspace(entries))
 
       language_client.onNotification(protocol.symbols_type,
         params =>
           {
             //register_abbreviations(params.entries, context)
-            Isabelle_FSP.update_symbol_encoder(params.entries)
+            Isabelle_Workspace.update_symbol_encoder(params.entries)
 
             // request theories to load in isabelle file system
             // after a valid symbol encoder is loaded
