@@ -73,9 +73,10 @@ export class Isabelle_Workspace
     await this.state.set(State_Key.symbol_entries, entries)
   }
 
-  public static async init_workspace(sessions: Session_Theories[])
+  public static async update_sessions(sessions: Session_Theories[])
   {
-    await this.instance.init_filesystem(sessions)
+    await Isabelle_Workspace.state.set(State_Key.sessions, sessions)
+    await this.instance.load_tree_state(sessions)
     for (const doc of workspace.textDocuments) {
       await this.instance.open_workspace_document(doc)
     }
@@ -86,12 +87,12 @@ export class Isabelle_Workspace
 
   public static get_isabelle(file_uri: Uri): Uri
   {
-    return this.instance.fs.file_to_entry.get_to(file_uri) || file_uri
+    return this.instance.fs.get_entry(file_uri) || file_uri
   }
 
   public static get_file(isabelle_uri: Uri): Uri
   {
-    return this.instance.fs.file_to_entry.get_from(isabelle_uri) || isabelle_uri
+    return this.instance.fs.get_file(isabelle_uri) || isabelle_uri
   }
 
   public async open_workspace_document(doc: TextDocument)
@@ -102,11 +103,11 @@ export class Isabelle_Workspace
       }
     } else {
       if (doc.languageId === Isabelle_Workspace.isabelle_lang_id) {
-        const isabelle_uri = this.fs.file_to_entry.get_to(doc.uri)
+        const isabelle_uri = this.fs.get_entry(doc.uri)
         if (!isabelle_uri) {
           await this.create_mapping_load_theory(doc.uri)
         } else if (!this.is_open_theory(isabelle_uri)) {
-          await this.fs.load(doc.uri, isabelle_uri)
+          await this.fs.reload(doc.uri, isabelle_uri)
         }
       }
     }
@@ -119,7 +120,7 @@ export class Isabelle_Workspace
         Isabelle_Workspace.warn_not_synchronized(doc.fileName)
       }
     } else if (doc.fileName.endsWith(Isabelle_Workspace.theory_extension)) {
-      const isabelle_uri = this.fs.file_to_entry.get_to(doc.uri)
+      const isabelle_uri = this.fs.get_entry(doc.uri)
       if (!isabelle_uri || !this.is_open_theory(isabelle_uri)) {
         await this.open_theory_dialogue(doc.uri)
       }
@@ -129,7 +130,7 @@ export class Isabelle_Workspace
   public async reload(doc: Uri)
   {
     if (doc.scheme === Isabelle_Workspace.scheme) {
-      const file_uri = this.fs.file_to_entry.get_from(doc)
+      const file_uri = this.fs.get_file(doc)
       await this.fs.reload(file_uri, doc)
     }
   }
@@ -145,40 +146,28 @@ export class Isabelle_Workspace
 
     if (isabelle_folder === undefined) {
       workspace.updateWorkspaceFolders(0, 0,
-        { uri: Isabelle_Workspace.instance.fs.get_dir_uri(''), name: Isabelle_Workspace.session_dir })
+        { uri: Isabelle_Workspace.instance.get_dir_uri(''), name: Isabelle_Workspace.session_dir })
     }
 
     if (sessions && workspace_dir && symbol_entries) {
       await Isabelle_Workspace.update_symbol_encoder(symbol_entries)
-      await this.init_filesystem(sessions)
+      await this.load_tree_state(sessions)
     } else {
       const default_folder = workspace_folders.find(folder => folder.uri.scheme !== Isabelle_Workspace.scheme)
       if (default_folder !== undefined) workspace_dir = default_folder.uri.fsPath
     }
 
     await state.set(State_Key.workspace_dir, workspace_dir)
-    await this.save_tree_state()
-    this.fs.onDidChangeFile(events => {
-      for (const e of events) {
-        if (e.type === FileChangeType.Changed) continue
-
-        this.save_tree_state()
-        return
-      }
-    })
     return workspace_dir
   }
 
-  private async init_filesystem(sessions: Session_Theories[])
+  private async load_tree_state(sessions: Session_Theories[])
   {
-    const all_theory_uris = sessions
-      .map(s => s.theories)
-      .reduce((acc,x) => acc.concat(x), [])
+    const root_entries = this.fs.list_dirs(this.get_dir_uri(''))
+    for (const key of root_entries) {
+      this.fs.remove(this.get_dir_uri(key))
+    }
 
-    // clean old files
-    this.fs.clear(all_theory_uris)
-
-    // create new
     for (const { session_name, theories: theories_uri } of sessions) {
       if (!session_name) continue
       if (session_name !== Isabelle_Workspace.draft_session) {
@@ -188,7 +177,7 @@ export class Isabelle_Workspace
         })
       }
 
-      this.fs.make_dir(session_name)
+      this.fs.make_dir(this.get_dir_uri(session_name))
 
       for (const theory_uri of theories_uri) {
         await this.create_mapping_load_theory(Uri.parse(theory_uri))
@@ -206,15 +195,13 @@ export class Isabelle_Workspace
   {
     const session = this.get_session(file_uri)
     const isabelle_uri = this.create_new_uri(file_uri, session)
-    this.fs.file_to_entry.add(file_uri, isabelle_uri)
-
     await this.fs.load(file_uri, isabelle_uri)
     return isabelle_uri
   }
 
   private async is_workspace_theory(isabelle_uri: Uri): Promise<boolean>
   {
-    const file_uri = this.fs.file_to_entry.get_from(isabelle_uri)
+    const file_uri = this.fs.get_file(isabelle_uri)
     const files = await workspace.findFiles(Isabelle_Workspace.theory_files_glob)
     return !!(files.find(uri => uri.toString() === file_uri.toString()))
   }
@@ -250,7 +237,7 @@ export class Isabelle_Workspace
   {
     let session = this.session_theories.find((s) => s.theories.includes(file_uri.toString()))
     if (!session) {
-      this.fs.make_dir(Isabelle_Workspace.draft_session)
+      this.fs.make_dir(this.get_dir_uri(Isabelle_Workspace.draft_session))
       return Isabelle_Workspace.draft_session
     }
 
@@ -265,9 +252,9 @@ export class Isabelle_Workspace
     let fs_path = file_uri.fsPath
     while (true) {
       const discriminator = extra ? ` (${extra})` : ''
-      new_uri = this.fs.get_uri(session_name, file_name + discriminator)
+      new_uri = this.get_uri(session_name, file_name + discriminator)
 
-      const old_uri = this.fs.file_to_entry.get_from(new_uri)
+      const old_uri = this.fs.get_file(new_uri)
       if (!old_uri || old_uri.toString() === file_uri.toString()) {
         return new_uri
       }
@@ -279,10 +266,5 @@ export class Isabelle_Workspace
       fs_path = path.posix.dirname(fs_path)
       extra = path.posix.join(path.posix.basename(fs_path), extra)
     }
-  }
-
-  private async save_tree_state()
-  {
-    await Isabelle_Workspace.state.set(State_Key.sessions, this.fs.get_tree_state())
   }
 }

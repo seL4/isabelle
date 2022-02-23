@@ -170,7 +170,7 @@ export async function activate(context: ExtensionContext)
     language_client.onReady().then(() =>
     {
       language_client.onNotification(protocol.session_theories_type,
-        async ({entries}) => await Isabelle_Workspace.init_workspace(entries))
+        async ({entries}) => await Isabelle_Workspace.update_sessions(entries))
 
       language_client.onNotification(protocol.symbols_type,
         params =>

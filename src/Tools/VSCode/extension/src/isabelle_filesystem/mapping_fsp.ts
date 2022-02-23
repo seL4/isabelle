@@ -65,16 +65,19 @@ export type Entry = File | Directory
 export class Mapping_FSP implements FileSystemProvider
 {
   private root = new Directory('')
-  file_to_entry = new Uri_Map()
+  private file_to_entry = new Uri_Map()
   private symbol_encoder: Symbol_Encoder
   private readonly scheme: string
   private readonly glob: GlobPattern
 
+  
   constructor(glob: GlobPattern, scheme: string, encoder: Symbol_Encoder) 
   {
+    this.glob = glob
     this.scheme = scheme
     this.symbol_encoder = encoder
   }
+
 
   public update_symbol_encoder(encoder: Symbol_Encoder)
   {
@@ -88,61 +91,119 @@ export class Mapping_FSP implements FileSystemProvider
       const entry = this.file_to_entry.get_to(file)
       if (entry) this.reload(file, entry)
     })
-    watcher.onDidDelete(file => this._delete(this.file_to_entry.get_to(file)))
+    watcher.onDidDelete(file => this.remove(this.file_to_entry.get_to(file), true))
     return watcher
   }
 
-  private async sync_original(uri: Uri, content: Uint8Array)
+
+  public get_entry(file: Uri): Uri | undefined
   {
-    const origin_uri = this.file_to_entry.get_from(uri)
-    const decoded_content = this.symbol_encoder.decode(content)
-    workspace.fs.writeFile(origin_uri, decoded_content)
+    return this.file_to_entry.get_to(file)
   }
 
-  public get_dir_uri(session: string): Uri
+  public get_file(entry: Uri): Uri | undefined
   {
-    return Uri.parse(`${this.scheme}:/${session}`)
+    return this.file_to_entry.get_from(entry)
   }
 
-  public get_uri(session: string, rel_path: String): Uri
-  {
-    return Uri.parse(`${this.scheme}:/${session}/${rel_path}`)
-  }
-  
 
-  // #region create
-  
-  private _create_directory(uri: Uri): void
+  private get_parent_data(uri: Uri): [Directory, Uri]
+  {
+    const parent_uri = uri.with({ path: path.posix.dirname(uri.path) })
+    const parent = this.lookup_directory(parent_uri, false)
+
+    return [parent, parent_uri]
+  }
+
+  private lookup(uri: Uri, silent: false): Entry
+  private lookup(uri: Uri, silent: boolean): Entry | undefined
+  private lookup(uri: Uri, silent: boolean): Entry | undefined {
+    const parts = uri.path.split('/')
+    let entry: Entry = this.root
+    for (const part of parts) {
+      if (!part) {
+        continue
+      }
+      let child: Entry | undefined
+      if (entry instanceof Directory) {
+        child = entry.entries.get(part)
+      }
+      if (!child) {
+        if (!silent) {
+          throw FileSystemError.FileNotFound(uri)
+        } else {
+          return undefined
+        }
+      }
+      entry = child
+    }
+    return entry
+  }
+
+  private lookup_directory(uri: Uri, silent: boolean): Directory
+  {
+    const entry = this.lookup(uri, silent)
+    if (entry instanceof Directory) {
+      return entry
+    }
+    throw FileSystemError.FileNotADirectory(uri)
+  }
+
+  private lookup_file(uri: Uri, silent: boolean): File
+  {
+    const entry = this.lookup(uri, silent)
+    if (entry instanceof File) {
+      return entry
+    }
+    throw FileSystemError.FileIsADirectory(uri)
+  }
+
+  public list_dirs(uri: Uri): string[]
+  {
+    const res: string[] = []
+    for (const [name, dir] of this.lookup_directory(uri, false).entries) {
+      if (dir instanceof Directory) {
+        res.push(dir.name)
+      }
+    }
+    
+    return res
+  }
+
+  public list_files(uri: Uri): string[]
+  {
+    const res: string[] = []
+    for (const [name, dir] of this.lookup_directory(uri, false).entries) {
+      if (dir instanceof File) {
+        res.push(dir.name)
+      }
+    }
+    
+    return res
+  }
+
+
+  public make_dir(uri: Uri): void
   {
     const basename = path.posix.basename(uri.path)
-    const [parent, parent_uri] = this._get_parent_data(uri)
+    const [parent, parent_uri] = this.get_parent_data(uri)
 
-    const entry = new Directory(basename)
-    parent.entries.set(entry.name, entry)
-    parent.mtime = Date.now()
-    parent.size += 1
-    this._fire_soon(
-      { type: FileChangeType.Changed, uri: parent_uri },
-      { type: FileChangeType.Created, uri }
-    )
-  }
-
-  public make_dir(name: string)
-  {
-    const root_entries = Array.from(this.root.entries.keys())
-
-    if (!root_entries.includes(name)) {
-      this._create_directory(this.get_dir_uri(name))
+    if (!parent.entries.has(basename)) {
+      const entry = new Directory(basename)
+      parent.entries.set(entry.name, entry)
+      parent.mtime = Date.now()
+      parent.size += 1
+      this.fire_soon(
+        { type: FileChangeType.Changed, uri: parent_uri },
+        { type: FileChangeType.Created, uri }
+      )
     }
   }
 
-  // #endregion
-
-
-  // #region read
 
   public async load(file_uri: Uri, isabelle_uri: Uri)
   {
+    this.file_to_entry.add(file_uri, isabelle_uri)
     const data = await workspace.fs.readFile(file_uri)
     const encoded_data = this.symbol_encoder.encode(data)
     await this.writeFile(isabelle_uri, encoded_data, { create: true, overwrite: true })
@@ -155,16 +216,19 @@ export class Mapping_FSP implements FileSystemProvider
     await this.writeFile(isabelle_uri, encoded_data, { create: false, overwrite: true })
   }
 
-  // #endregion
+  private async sync_original(uri: Uri, content: Uint8Array)
+  {
+    const origin_uri = this.file_to_entry.get_from(uri)
+    const decoded_content = this.symbol_encoder.decode(content)
+    workspace.fs.writeFile(origin_uri, decoded_content)
+  }
 
 
-  // #region delete
-
-  _delete(uri: Uri, silent: boolean = false): void
+  remove(uri: Uri, silent: boolean = false): void
   {
     const dirname = uri.with({ path: path.posix.dirname(uri.path) })
     const basename = path.posix.basename(uri.path)
-    const parent = this._lookup_directory(dirname, silent)
+    const parent = this.lookup_directory(dirname, silent)
 
     if (!parent) return
     if (!parent.entries.has(basename)) {
@@ -179,12 +243,12 @@ export class Mapping_FSP implements FileSystemProvider
     parent.mtime = Date.now()
     parent.size -= 1
 
-    this._fire_soon({ type: FileChangeType.Changed, uri: dirname }, { uri, type: FileChangeType.Deleted })
+    this.fire_soon({ type: FileChangeType.Changed, uri: dirname }, { uri, type: FileChangeType.Deleted })
   }
 
   private sync_deletion(isabelle_uri: Uri, silent: boolean)
   {
-    const dir = this._lookup(isabelle_uri, silent)
+    const dir = this.lookup(isabelle_uri, silent)
     if (!dir) {
       if (silent)
         return
@@ -209,128 +273,30 @@ export class Mapping_FSP implements FileSystemProvider
     }
   }
 
-  public clear(all_theory_uris: string[])
+
+  private buffered_events: FileChangeEvent[] = []
+  private fire_soon_handle?: NodeJS.Timer
+
+  private fire_soon(...events: FileChangeEvent[]): void
   {
-    const root_entries = Array.from(this.root.entries.keys())
+    this.buffered_events.push(...events)
 
-    for (const key of root_entries) {
-      if (key === 'Draft') {
-        const draft = this.root.entries.get(key)
-
-        if (draft instanceof Directory) {
-          for (const draft_thy of draft.entries.keys()) {
-            const isabelle_uri = this.get_uri('Draft', draft_thy)
-            const file_uri = this.file_to_entry.get_from(isabelle_uri)
-
-            if (file_uri && all_theory_uris.includes(file_uri.toString())) {
-              this._delete(isabelle_uri)
-            }
-          }
-        }
-      } else {
-        this._delete(this.get_dir_uri(key), true)
-      }
-    }
-  }
-
-  // #endregion
-
-  private _get_parent_data(uri: Uri): [Directory, Uri]
-  {
-    const parent_uri = uri.with({ path: path.posix.dirname(uri.path) })
-    const parent = this._lookup_directory(parent_uri, false)
-
-    return [parent, parent_uri]
-  }
-
-  private _lookup(uri: Uri, silent: false): Entry
-  private _lookup(uri: Uri, silent: boolean): Entry | undefined
-  private _lookup(uri: Uri, silent: boolean): Entry | undefined {
-    const parts = uri.path.split('/')
-    let entry: Entry = this.root
-    for (const part of parts) {
-      if (!part) {
-        continue
-      }
-      let child: Entry | undefined
-      if (entry instanceof Directory) {
-        child = entry.entries.get(part)
-      }
-      if (!child) {
-        if (!silent) {
-          throw FileSystemError.FileNotFound(uri)
-        } else {
-          return undefined
-        }
-      }
-      entry = child
-    }
-    return entry
-  }
-
-  private _lookup_directory(uri: Uri, silent: boolean): Directory
-  {
-    const entry = this._lookup(uri, silent)
-    if (entry instanceof Directory) {
-      return entry
-    }
-    throw FileSystemError.FileNotADirectory(uri)
-  }
-
-  private _lookup_file(uri: Uri, silent: boolean): File
-  {
-    const entry = this._lookup(uri, silent)
-    if (entry instanceof File) {
-      return entry
-    }
-    throw FileSystemError.FileIsADirectory(uri)
-  }
-
-  public get_tree_state(): Session_Theories[]
-  {
-    const sessions: Session_Theories[] = []
-    for (const [session_name, val] of this.root.entries) {
-      if (!(val instanceof Directory)) return
-      const theories: string[] = []
-
-      for (const fileName of val.entries.keys()) {
-        const file = this.file_to_entry.get_from(this.get_uri(session_name, fileName))
-        theories.push(file.toString())
-      }
-
-      sessions.push({session_name, theories})
-    }
-    return sessions
-  }
-
-
-  //#region events
-
-  private _buffered_events: FileChangeEvent[] = []
-  private _fire_soon_handle?: NodeJS.Timer
-
-  private _fire_soon(...events: FileChangeEvent[]): void
-  {
-    this._buffered_events.push(...events)
-
-    if (this._fire_soon_handle) {
-      clearTimeout(this._fire_soon_handle)
+    if (this.fire_soon_handle) {
+      clearTimeout(this.fire_soon_handle)
     }
 
-    this._fire_soon_handle = setTimeout(() => {
-      this._emitter.fire(this._buffered_events)
-      this._buffered_events.length = 0
+    this.fire_soon_handle = setTimeout(() => {
+      this.emitter.fire(this.buffered_events)
+      this.buffered_events.length = 0
     }, 5)
   }
 
-  private _emitter = new EventEmitter<FileChangeEvent[]>()
-
-  //#endregion
+  private emitter = new EventEmitter<FileChangeEvent[]>()
 
 
   //#region fsp implementation
 
-  readonly onDidChangeFile: Event<FileChangeEvent[]> = this._emitter.event
+  readonly onDidChangeFile: Event<FileChangeEvent[]> = this.emitter.event
 
   watch(_resource: Uri): Disposable
   {
@@ -339,12 +305,12 @@ export class Mapping_FSP implements FileSystemProvider
 
   stat(uri: Uri): FileStat
   {
-    return this._lookup(uri, false)
+    return this.lookup(uri, false)
   }
 
   readDirectory(uri: Uri): [string, FileType][]
   {
-    const entry = this._lookup_directory(uri, false)
+    const entry = this.lookup_directory(uri, false)
     const result: [string, FileType][] = []
     for (const [name, child] of entry.entries) {
       result.push([name, child.type])
@@ -359,7 +325,7 @@ export class Mapping_FSP implements FileSystemProvider
 
   readFile(uri: Uri): Uint8Array
   {
-    const data = this._lookup_file(uri, false).data
+    const data = this.lookup_file(uri, false).data
     if (data) {
       return data
     }
@@ -373,7 +339,7 @@ export class Mapping_FSP implements FileSystemProvider
     }
 
     const basename = path.posix.basename(isabelle_uri.path)
-    const [parent, parent_uri] = this._get_parent_data(isabelle_uri)
+    const [parent, parent_uri] = this.get_parent_data(isabelle_uri)
     let entry = parent.entries.get(basename)
     if (entry instanceof Directory) {
       throw FileSystemError.FileIsADirectory(isabelle_uri)
@@ -394,7 +360,7 @@ export class Mapping_FSP implements FileSystemProvider
       entry.size = content.byteLength
       entry.data = content
 
-      this._fire_soon({ type: FileChangeType.Changed, uri: isabelle_uri })
+      this.fire_soon({ type: FileChangeType.Changed, uri: isabelle_uri })
       return
     }
 
@@ -406,7 +372,7 @@ export class Mapping_FSP implements FileSystemProvider
     parent.entries.set(basename, entry)
     parent.mtime = Date.now()
     parent.size++
-    this._fire_soon(
+    this.fire_soon(
       { type: FileChangeType.Changed, uri: parent_uri },
       { type: FileChangeType.Created, uri: isabelle_uri }
     )
@@ -414,14 +380,14 @@ export class Mapping_FSP implements FileSystemProvider
 
   delete(uri: Uri): void
   {
-    const [parent, parent_uri] = this._get_parent_data(uri)
+    const [parent, parent_uri] = this.get_parent_data(uri)
     if (parent && parent.name === 'Draft') {
       if (parent.size === 1) {
-        this._delete(parent_uri)
+        this.remove(parent_uri)
         return
       }
 
-      this._delete(uri)
+      this.remove(uri)
       return
     }
 
