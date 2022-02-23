@@ -34,6 +34,24 @@
     ],
     "main": "./out/src/extension",
     "contributes": {
+        "viewsContainers": {
+            "panel": [
+                {
+                    "id": "isabelle",
+                    "title": "Isabelle",
+                    "icon": "isabelle.png"
+                }
+            ]
+        },
+        "views": {
+            "isabelle": [
+                {
+                    "type": "webview",
+                    "id": "isabelle-output",
+                    "name": "Output"
+                }
+            ]
+        },
         "commands": [
             {
                 "command": "isabelle.state",
