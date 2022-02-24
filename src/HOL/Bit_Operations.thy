@@ -2792,12 +2792,8 @@ lemma take_bit_numeral_minus_bit1:
 
 subsection \<open>Symbolic computations on numeral expressions\<close>
 
-context unique_euclidean_semiring_with_bit_operations
+context semiring_bits
 begin
-
-lemma bit_numeral_iff:
-  \<open>bit (numeral m) n \<longleftrightarrow> bit (numeral m :: nat) n\<close>
-  using bit_of_nat_iff_bit [of \<open>numeral m\<close> n] by simp
 
 lemma not_bit_numeral_Bit0_0 [simp]:
   \<open>\<not> bit (numeral (Num.Bit0 m)) 0\<close>
@@ -2806,6 +2802,28 @@ lemma not_bit_numeral_Bit0_0 [simp]:
 lemma bit_numeral_Bit1_0 [simp]:
   \<open>bit (numeral (Num.Bit1 m)) 0\<close>
   by (simp add: bit_0)
+
+end
+
+context ring_bit_operations
+begin
+
+lemma not_bit_minus_numeral_Bit0_0 [simp]:
+  \<open>\<not> bit (- numeral (Num.Bit0 m)) 0\<close>
+  by (simp add: bit_0)
+
+lemma bit_minus_numeral_Bit1_0 [simp]:
+  \<open>bit (- numeral (Num.Bit1 m)) 0\<close>
+  by (simp add: bit_0)
+
+end
+
+context unique_euclidean_semiring_with_bit_operations
+begin
+
+lemma bit_numeral_iff:
+  \<open>bit (numeral m) n \<longleftrightarrow> bit (numeral m :: nat) n\<close>
+  using bit_of_nat_iff_bit [of \<open>numeral m\<close> n] by simp
 
 lemma bit_numeral_Bit0_Suc_iff [simp]:
   \<open>bit (numeral (Num.Bit0 m)) (Suc n) \<longleftrightarrow> bit (numeral m) n\<close>
