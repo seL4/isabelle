@@ -1,7 +1,7 @@
 {
-    "name": "Isabelle",
-    "displayName": "Isabelle",
-    "description": "Isabelle Prover IDE",
+    "name": "isabelle-vscode",
+    "displayName": "Isabelle/VSCode",
+    "description": "Isabelle/VSCode Prover IDE",
     "keywords": [
         "theorem prover",
         "formalized mathematics",
@@ -11,7 +11,7 @@
     ],
     "icon": "isabelle.png",
     "version": "2.0.0",
-    "publisher": "makarius",
+    "publisher": "isabelle",
     "license": "MIT",
     "repository": {
         "url": "https://isabelle-dev.sketis.net"

@@ -19,7 +19,7 @@
 
 * Shell commands within $ISABELLE_HOME directory:
 
-    isabelle vscode --uninstall-extension makarius.Isabelle
+    isabelle build_vscode -U
     isabelle vscode src/Tools/VSCode/extension
 
 * VSCode commands:
