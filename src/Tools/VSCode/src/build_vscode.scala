@@ -31,7 +31,7 @@ object Build_VSCode
   /* extension */
 
   def uninstall_extension(progress: Progress = new Progress): Unit =
-    progress.bash("isabelle vscode --uninstall-extension isabelle.isabelle").check
+    progress.bash("isabelle vscode --uninstall-extension Isabelle.isabelle").check
 
   def install_extension(vsix_path: Path, progress: Progress = new Progress): Unit =
     progress.bash("isabelle vscode --install-extension " +
