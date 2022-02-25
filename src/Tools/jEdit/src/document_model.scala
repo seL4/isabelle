@@ -295,16 +295,11 @@ object Document_Model
 
   /* HTTP preview */
 
-  private val plain_text_prefix = "plain_text="
-
   def open_preview(view: View, plain_text: Boolean): Unit =
   {
     Document_Model.get(view.getBuffer) match {
       case Some(model) =>
-        val name = model.node_name
-        val url =
-          PIDE.plugin.http_server.url + "/" + Preview_Service.name + "?" +
-              (if (plain_text) plain_text_prefix else "") + Url.encode(name.node)
+        val url = Preview_Service.server_url(plain_text, model.node_name)
         PIDE.editor.hyperlink_url(url).follow(view)
       case _ =>
     }
@@ -312,6 +307,14 @@ object Document_Model
 
   object Preview_Service extends HTTP.Service("preview")
   {
+    service =>
+
+    private val plain_text_prefix = "plain_text="
+
+    def server_url(plain_text: Boolean, node_name: Document.Node.Name): String =
+      PIDE.plugin.http_server.url + "/" + service.name + "?" +
+        (if (plain_text) plain_text_prefix else "") + Url.encode(node_name.node)
+
     def apply(request: HTTP.Request): Option[HTTP.Response] =
       for {
         query <- request.decode_query
