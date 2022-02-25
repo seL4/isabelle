@@ -1,19 +1,35 @@
-# Isabelle/PIDE for Visual Studio Code editor #
+# Isabelle/VSCode development #
 
-## Debug ##
+## System setup ##
 
-* shell> `code src/Tools/VSCode/extension`
+* install default node.js (e.g. via Ubuntu package)
 
-* Preferences / User settings / edit settings.json: e.g.
-    `"isabelle.home": "/home/makarius/isabelle/repos"`
+* update to recent stable version:
 
-* View / Debug / Launch Extension
+    sudo npm cache clean -f
+    sudo npm install -g n
+    sudo n stable
 
-* File / Open Folder: e.g. `src/HOL/Examples/` then open .thy files
+* install vsce:
+
+    sudo npm install -g vsce
 
 
-## Build ##
+## Edit and debug ##
 
-* shell> `isabelle build_vscode`
+* Shell commands within $ISABELLE_HOME directory:
 
-* Extensions / ... / Install from VSIX: `src/Tools/VSCode/extension/isabelle-X.Y.Z.vsix`
+    isabelle vscode --uninstall-extension makarius.Isabelle
+    isabelle vscode src/Tools/VSCode/extension
+
+* VSCode commands:
+    Run / Start Debugging (F5)
+    File / Open Folder: e.g. `src/HOL/Examples/` then open .thy files
+
+
+## Build and install ##
+
+* Shell commands within $ISABELLE_HOME directory:
+
+    isabelle build_vscode
+    isabelle vscode --install-extension src/Tools/VSCode/extension/isabelle-1.2.2.vsix
