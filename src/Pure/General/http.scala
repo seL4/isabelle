@@ -174,12 +174,12 @@ object HTTP
     names.iterator.flatMap(a => if (a.isEmpty) None else Some("/" + a)).mkString
 
   class Request private[HTTP](
-    val server: String,
-    val service: String,
+    val server_name: String,
+    val service_name: String,
     val uri: URI,
     val input: Bytes)
   {
-    def home: String = url_path(server, service)
+    def home: String = url_path(server_name, service_name)
     def root: String = home + "/"
     def query: String = home + "?"
 
@@ -239,19 +239,20 @@ object HTTP
 
   /* service */
 
-  abstract class Service(val service: String, method: String = "GET")
+  abstract class Service(val name: String, method: String = "GET")
   {
-    override def toString: String = service
+    override def toString: String = name
 
     def apply(request: Request): Option[Response]
 
-    def context(server: String): String = proper_string(url_path(server, service)).getOrElse("/")
+    def context(server_name: String): String =
+      proper_string(url_path(server_name, name)).getOrElse("/")
 
-    def handler(server: String): HttpHandler = (http: HttpExchange) => {
+    def handler(server_name: String): HttpHandler = (http: HttpExchange) => {
       val uri = http.getRequestURI
       val input = using(http.getRequestBody)(Bytes.read_stream(_))
       if (http.getRequestMethod == method) {
-        val request = new Request(server, service, uri, input)
+        val request = new Request(server_name, name, uri, input)
         Exn.capture(apply(request)) match {
           case Exn.Res(Some(response)) =>
             response.write(http, 200)

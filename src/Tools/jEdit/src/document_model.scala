@@ -303,7 +303,7 @@ object Document_Model
       case Some(model) =>
         val name = model.node_name
         val url =
-          PIDE.plugin.http_server.url + "/" + Preview_Service.service + "?" +
+          PIDE.plugin.http_server.url + "/" + Preview_Service.name + "?" +
               (if (plain_text) plain_text_prefix else "") + Url.encode(name.node)
         PIDE.editor.hyperlink_url(url).follow(view)
       case _ =>
@@ -332,7 +332,7 @@ object Document_Model
           Presentation.html_document(
             snapshot, html_context, Presentation.elements2,
             plain_text = query.startsWith(plain_text_prefix),
-            fonts_css = HTML.fonts_css_dir(HTTP.url_path(request.server)))
+            fonts_css = HTML.fonts_css_dir(HTTP.url_path(request.server_name)))
         HTTP.Response.html(document.content)
       }
   }
