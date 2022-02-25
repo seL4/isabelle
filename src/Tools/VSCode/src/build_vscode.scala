@@ -12,7 +12,7 @@ import isabelle._
 
 object Build_VSCode
 {
-  val extension_dir = Path.explode("~~/src/Tools/VSCode/extension")
+  val extension_dir = Path.explode("$ISABELLE_VSCODE_HOME/extension")
 
 
   /* grammar */
@@ -23,7 +23,7 @@ object Build_VSCode
     val keywords = Sessions.base_info(options, logic).check.base.overall_syntax.keywords
 
     val output_path = extension_dir + Path.explode(TextMate_Grammar.default_output(logic))
-    progress.echo(output_path.implode)
+    progress.echo(output_path.expand.implode)
     File.write_backup(output_path, TextMate_Grammar.generate(keywords))
   }
 
@@ -42,7 +42,7 @@ object Build_VSCode
     val output_path = extension_dir + Path.explode("out")
     Isabelle_System.rm_tree(output_path)
     Isabelle_System.make_directory(output_path)
-    progress.echo(output_path.implode)
+    progress.echo(output_path.expand.implode)
 
     val result =
       progress.bash("npm install && npm update --dev && vsce package",
