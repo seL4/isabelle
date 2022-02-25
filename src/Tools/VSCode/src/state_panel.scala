@@ -63,25 +63,19 @@ class State_Panel private(val server: Language_Server)
     new Query_Operation(server.editor, (), "print_state", _ => (),
       (_, _, body) =>
         if (output_active.value && body.nonEmpty){
-          val elements = Presentation.Elements(
-            html = Presentation.elements2.html,
-            language = Presentation.elements2.language,
-            entity = Markup.Elements.full)
-
-          def entity_link(props: Properties.T, body: XML.Body): Option[XML.Tree] =
-            for {
-              thy_file <- Position.Def_File.unapply(props)
-              def_line <- Position.Def_Line.unapply(props)
-              source <- server.resources.source_file(thy_file)
-              uri = Path.explode(source).absolute_file.toURI
-            } yield HTML.link(uri.toString + "#" + def_line, body)
-
-          val htmlBody = Presentation.make_html(
-            Presentation.Entity_Context.empty,  // FIXME
-            elements,
-            Pretty.separate(body))
-
-          output(HTML.source(htmlBody).toString)
+          val context =
+            new Presentation.Entity_Context {
+              override def make_ref(props: Properties.T, body: XML.Body): Option[XML.Elem] =
+                for {
+                  thy_file <- Position.Def_File.unapply(props)
+                  def_line <- Position.Def_Line.unapply(props)
+                  source <- server.resources.source_file(thy_file)
+                  uri = Path.explode(source).absolute_file.toURI
+                } yield HTML.link(uri.toString + "#" + def_line, body)
+            }
+          val elements = Presentation.elements2.copy(entity = Markup.Elements.full)
+          val html = Presentation.make_html(context, elements, Pretty.separate(body))
+          output(HTML.source(html).toString)
         })
 
   def locate(): Unit = print_state.locate_query()
