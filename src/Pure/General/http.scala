@@ -302,10 +302,12 @@ object HTTP
   /** Isabelle services **/
 
   def isabelle_services: List[Service] =
-    List(new Welcome(), new Fonts(), new PDFjs(), new Docs())
+    List(Welcome_Service, Fonts_Service, PDFjs_Service, Docs_Service)
 
 
   /* welcome */
+
+  object Welcome_Service extends Welcome()
 
   class Welcome(name: String = "") extends Service(name)
   {
@@ -318,6 +320,8 @@ object HTTP
 
 
   /* fonts */
+
+  object Fonts_Service extends Fonts()
 
   class Fonts(name: String = "fonts") extends Service(name)
   {
@@ -339,6 +343,8 @@ object HTTP
 
   /* pdfjs */
 
+  object PDFjs_Service extends PDFjs()
+
   class PDFjs(name: String = "pdfjs") extends Service(name)
   {
     def apply(request: Request): Option[Response] =
@@ -351,6 +357,8 @@ object HTTP
 
 
   /* docs */
+
+  object Docs_Service extends Docs()
 
   class Docs(name: String = "docs") extends PDFjs(name)
   {

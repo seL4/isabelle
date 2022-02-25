@@ -303,14 +303,14 @@ object Document_Model
       case Some(model) =>
         val name = model.node_name
         val url =
-          PIDE.plugin.http_server.url + "/" + Preview.service + "?" +
+          PIDE.plugin.http_server.url + "/" + Preview_Service.service + "?" +
               (if (plain_text) plain_text_prefix else "") + Url.encode(name.node)
         PIDE.editor.hyperlink_url(url).follow(view)
       case _ =>
     }
   }
 
-  object Preview extends HTTP.Service("preview")
+  object Preview_Service extends HTTP.Service("preview")
   {
     def apply(request: HTTP.Request): Option[HTTP.Response] =
       for {
