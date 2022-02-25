@@ -30,7 +30,14 @@ object Build_VSCode
 
   /* extension */
 
-  def build_extension(progress: Progress = new Progress, install: Boolean = false): Unit =
+  def uninstall_extension(progress: Progress = new Progress): Unit =
+    progress.bash("isabelle vscode --uninstall-extension makarius.Isabelle").check
+
+  def install_extension(vsix_path: Path, progress: Progress = new Progress): Unit =
+    progress.bash("isabelle vscode --install-extension " +
+      File.bash_platform_path(vsix_path))
+
+  def build_extension(progress: Progress = new Progress): Path =
   {
     val output_path = extension_dir + Path.explode("out")
     Isabelle_System.rm_tree(output_path)
@@ -41,14 +48,10 @@ object Build_VSCode
       progress.bash("npm install && npm update --dev && vsce package",
         cwd = extension_dir.file, echo = true).check
 
-    if (install) {
-      val Pattern = """.*Packaged:.*(Isabelle-.*\.vsix).*""".r
-      val vsix_name =
-        result.out_lines.collectFirst({ case Pattern(name) => name }) getOrElse
-          error("Cannot install extension: failed to guess resulting .vsix file name")
-      progress.bash("isabelle vscode --install-extension " +
-        File.bash_platform_path(extension_dir + Path.basic(vsix_name)))
-    }
+    val Pattern = """.*Packaged:.*(Isabelle-.*\.vsix).*""".r
+    result.out_lines.collectFirst(
+      { case Pattern(vsix_name) => extension_dir + Path.basic(vsix_name) })
+      .getOrElse(error("Failed to guess resulting .vsix file name"))
   }
 
 
@@ -59,19 +62,22 @@ object Build_VSCode
       Scala_Project.here, args =>
     {
       var install = false
+      var uninstall = false
 
       val getopts = Getopts("""
 Usage: isabelle build_vscode
 
   Options are:
     -I           install resulting extension
+    -U           uninstall extension (no build)
 
 Build Isabelle/VSCode extension module in directory
 """ + extension_dir.expand + """
 
 This requires node.js/npm and the vsce build tool.
 """,
-        "I" -> (_ => install = true))
+        "I" -> (_ => install = true),
+        "U" -> (_ => uninstall = true))
 
       val more_args = getopts(args)
       if (more_args.nonEmpty) getopts.usage()
@@ -79,7 +85,13 @@ This requires node.js/npm and the vsce build tool.
       val options = Options.init()
       val progress = new Console_Progress()
 
-      build_grammar(options, progress)
-      build_extension(progress, install = install)
+      if (uninstall) {
+        uninstall_extension(progress = progress)
+      }
+      else {
+        build_grammar(options, progress = progress)
+        val path = build_extension(progress = progress)
+        if (install) install_extension(path, progress = progress)
+      }
     })
 }
