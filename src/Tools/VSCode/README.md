@@ -32,4 +32,4 @@
 * Shell commands within $ISABELLE_HOME directory:
 
     isabelle build_vscode
-    isabelle vscode --install-extension src/Tools/VSCode/extension/isabelle-1.2.2.vsix
+    isabelle vscode --install-extension src/Tools/VSCode/extension/isabelle-2.0.0.vsix
