@@ -70,8 +70,6 @@ See also:
 
       + *Isabelle* (needs to fit to the underlying Isabelle release).
 
-      + *Prettify Symbols Mode* (important for display of Isabelle symbols).
-
       + *bibtexLanguage* (optional): it gives `.bib` a formal status, thus
         `@{cite}` antiquotations become active for completion and hyperlinks.
 
@@ -109,9 +107,6 @@ See also:
 
     **Note:** As the Isabelle fonts continue to evolve, installed versions need
     to be updated according to each new Isabelle version.
-
-  * Isabelle symbols are merely an optical illusion: it would be better to make
-    them a first-class Unicode charset as in Isabelle/jEdit.
 
   * Isabelle symbol abbreviations like "-->" are not accepted by VSCode.
 
