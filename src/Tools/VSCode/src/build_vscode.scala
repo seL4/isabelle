@@ -31,7 +31,7 @@ object Build_VSCode
   /* extension */
 
   def uninstall_extension(progress: Progress = new Progress): Unit =
-    progress.bash("isabelle vscode --uninstall-extension isabelle.isabelle-vscode").check
+    progress.bash("isabelle vscode --uninstall-extension isabelle.isabelle").check
 
   def install_extension(vsix_path: Path, progress: Progress = new Progress): Unit =
     progress.bash("isabelle vscode --install-extension " +
@@ -48,7 +48,7 @@ object Build_VSCode
       progress.bash("npm install && npm update --dev && vsce package",
         cwd = extension_dir.file, echo = true).check
 
-    val Pattern = """.*Packaged:.*(isabelle-vscode-.*\.vsix).*""".r
+    val Pattern = """.*Packaged:.*(isabelle-.*\.vsix).*""".r
     result.out_lines.collectFirst(
       { case Pattern(vsix_name) => extension_dir + Path.basic(vsix_name) })
       .getOrElse(error("Failed to guess resulting .vsix file name"))
