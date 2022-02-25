@@ -30,14 +30,25 @@ object Build_VSCode
 
   /* extension */
 
-  def build_extension(progress: Progress = new Progress, publish: Boolean = false): Unit =
+  def build_extension(progress: Progress = new Progress, install: Boolean = false): Unit =
   {
     val output_path = extension_dir + Path.explode("out")
+    Isabelle_System.rm_tree(output_path)
+    Isabelle_System.make_directory(output_path)
     progress.echo(output_path.implode)
 
-    progress.bash(
-      "npm install && npm update --dev && vsce package" + (if (publish) " && vsce publish" else ""),
-      cwd = extension_dir.file, echo = true).check
+    val result =
+      progress.bash("npm install && npm update --dev && vsce package",
+        cwd = extension_dir.file, echo = true).check
+
+    if (install) {
+      val Pattern = """.*Packaged:.*(Isabelle-.*\.vsix).*""".r
+      val vsix_name =
+        result.out_lines.collectFirst({ case Pattern(name) => name }) getOrElse
+          error("Cannot install extension: failed to guess resulting .vsix file name")
+      progress.bash("isabelle vscode --install-extension " +
+        File.bash_platform_path(extension_dir + Path.basic(vsix_name)))
+    }
   }
 
 
@@ -47,21 +58,20 @@ object Build_VSCode
     Isabelle_Tool("build_vscode", "build Isabelle/VSCode extension module",
       Scala_Project.here, args =>
     {
-      var publish = false
+      var install = false
 
       val getopts = Getopts("""
 Usage: isabelle build_vscode
 
   Options are:
-    -P           publish the package
+    -I           install resulting extension
 
 Build Isabelle/VSCode extension module in directory
 """ + extension_dir.expand + """
 
-This requires npm and the vsce build and publishing tool, see also
-https://code.visualstudio.com/docs/tools/vscecli
+This requires node.js/npm and the vsce build tool.
 """,
-        "P" -> (_ => publish = true))
+        "I" -> (_ => install = true))
 
       val more_args = getopts(args)
       if (more_args.nonEmpty) getopts.usage()
@@ -70,6 +80,6 @@ https://code.visualstudio.com/docs/tools/vscecli
       val progress = new Console_Progress()
 
       build_grammar(options, progress)
-      build_extension(progress, publish = publish)
+      build_extension(progress, install = install)
     })
 }
