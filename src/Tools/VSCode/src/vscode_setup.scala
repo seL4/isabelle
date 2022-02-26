@@ -19,6 +19,7 @@ object VSCode_Setup
 
   def vscode_home: Path = Path.variable("ISABELLE_VSCODE_HOME")
   def vscode_settings: Path = Path.variable("ISABELLE_VSCODE_SETTINGS")
+  def vscode_settings_user: Path = vscode_settings + Path.explode("user-data/User/settings.json")
   def vscode_version: String = Isabelle_System.getenv_strict("ISABELLE_VSCODE_VERSION")
 
   def exe_path(dir: Path): Path = dir + Path.explode("bin/codium")
@@ -33,6 +34,22 @@ object VSCode_Setup
         Path.basic(version) + Path.basic(platform_name)
     val install_ok = exe_path(install_dir).is_file
     (install_ok, install_dir)
+  }
+
+  def init_settings(): Unit =
+  {
+    if (!vscode_settings_user.is_file) {
+      Isabelle_System.make_directory(vscode_settings_user.dir)
+      File.write(vscode_settings_user, """
+{
+  "editor.fontFamily": "'Isabelle DejaVu Sans Mono'",
+  "editor.fontSize": 18,
+  "editor.lineNumbers": "off",
+  "editor.renderIndentGuides": false,
+  "editor.rulers": [80, 100]
+}
+""".stripMargin)
+    }
   }
 
 
@@ -109,6 +126,8 @@ exit $?
     progress: Progress = new Progress): Unit =
   {
     val (install_ok, install_dir) = vscode_installation(version, platform)
+
+    init_settings()
 
     if (check) {
       if (install_ok) progress.echo(install_dir.expand.implode)
