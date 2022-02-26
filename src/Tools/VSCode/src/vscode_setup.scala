@@ -24,16 +24,16 @@ object VSCode_Setup
   def exe_path(dir: Path): Path = dir + Path.explode("bin/codium")
 
   def vscode_installation(version: String, platform: Platform.Family.Value): (Boolean, Path) =
-    {
-      val platform_name =
-        if (platform == Platform.Family.windows) Platform.Family.native(platform)
-        else Platform.Family.standard(platform)
-      val install_dir =
-        vscode_settings + Path.basic("installation") +
-          Path.basic(version) + Path.basic(platform_name)
-      val install_ok = exe_path(install_dir).is_file
-      (install_ok, install_dir)
-    }
+  {
+    val platform_name =
+      if (platform == Platform.Family.windows) Platform.Family.native(platform)
+      else Platform.Family.standard(platform)
+    val install_dir =
+      vscode_settings + Path.basic("installation") +
+        Path.basic(version) + Path.basic(platform_name)
+    val install_ok = exe_path(install_dir).is_file
+    (install_ok, install_dir)
+  }
 
 
   /* patch resources */
