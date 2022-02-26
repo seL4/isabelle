@@ -93,20 +93,10 @@ See also:
 
     ```
     "editor.acceptSuggestionOnEnter": "off",
-    "editor.lineNumbers": "off",
-    "editor.renderIndentGuides": false,
-    "editor.rulers": [80, 100],
     "editor.wordBasedSuggestions": true,
     ```
 
 ## Known Limitations of Isabelle/VSCode
-
-  * Lack of specific support for the Isabelle fonts: these need to be
-  manually installed on the system and configured for VSCode (see also
-  `$ISABELLE_FONTS` within the Isabelle environment).
-
-    **Note:** As the Isabelle fonts continue to evolve, installed versions need
-    to be updated according to each new Isabelle version.
 
   * Isabelle symbol abbreviations like "-->" are not accepted by VSCode.
 
