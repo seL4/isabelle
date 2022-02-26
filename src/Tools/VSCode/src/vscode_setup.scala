@@ -48,7 +48,7 @@ object VSCode_Setup
   "editor.renderIndentGuides": false,
   "editor.rulers": [80, 100]
 }
-""".stripMargin)
+""")
     }
   }
 
