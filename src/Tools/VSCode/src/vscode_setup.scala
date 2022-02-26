@@ -9,6 +9,9 @@ package isabelle.vscode
 
 import isabelle._
 
+import java.security.MessageDigest
+import java.util.Base64
+
 
 object VSCode_Setup
 {
@@ -31,6 +34,39 @@ object VSCode_Setup
       val install_ok = exe_path(install_dir).is_file
       (install_ok, install_dir)
     }
+
+
+  /* patch resources */
+
+  // see https://github.com/microsoft/vscode/blob/main/build/gulpfile.vscode.js
+  // function computeChecksum(filename)
+
+  def file_checksum(path: Path): String =
+  {
+    val digest = MessageDigest.getInstance("MD5")
+    digest.update(Bytes.read(path).array)
+    Bytes(Base64.getEncoder.encode(digest.digest()))
+      .text.replaceAll("=", "")
+  }
+
+  def patch_resources(dir: Path): Unit =
+  {
+    HTML.init_fonts(dir + Path.explode("app/out/vs/base/browser/ui"))
+
+    val workbench_css = dir + Path.explode("app/out/vs/workbench/workbench.desktop.main.css")
+    val checksum1 = file_checksum(workbench_css)
+    File.append(workbench_css, "\n\n" + HTML.fonts_css_dir(prefix = "../base/browser/ui"))
+    val checksum2 = file_checksum(workbench_css)
+
+    val file_name = workbench_css.file_name
+    File.change(dir + Path.explode("app/product.json"), text =>
+      cat_lines(split_lines(text).map(line =>
+        if (line.containsSlice(file_name) && line.contains(checksum1)) {
+          line.replace(checksum1, checksum2)
+        }
+        else line
+      )))
+  }
 
 
   /* vscode setup */
@@ -106,6 +142,7 @@ exit $?
             Isabelle_System.gnutar("-xzf " + File.bash_path(download),
               dir = install_dir).check
           }
+
           platform match {
             case Platform.Family.macos =>
               Isabelle_System.make_directory(exe.dir)
@@ -119,6 +156,12 @@ exit $?
               for (file <- files1 ::: files2) File.set_executable(File.path(file), true)
             case _ =>
           }
+
+          patch_resources(
+            if (platform == Platform.Family.macos) {
+              install_dir + Path.explode("VSCodium.app/Contents/Resources")
+            }
+            else install_dir + Path.explode("resources"))
         })
       }
     }
