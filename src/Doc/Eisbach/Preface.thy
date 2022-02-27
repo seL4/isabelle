@@ -22,18 +22,20 @@ text \<open>
   written. For example, the @{method catch} method, which provides basic
   try-catch functionality, only requires a few lines of ML.
 
-  Eisbach is meant to allow users to write automation using only Isar syntax.
-  Traditionally proof methods have been written in Isabelle/ML, which poses a
-  high barrier-to-entry for many users.
+  Eisbach enables users to implement automated proof tools conveniently via
+  Isabelle/Isar syntax. This is in contrast to the traditional approach to use
+  Isabelle/ML (via @{command_ref method_setup}), which poses a higher
+  barrier-to-entry for casual users.
 
   \<^medskip>
-  This manual is written for users familiar with Isabelle/Isar, but not
+  This manual is written for readers familiar with Isabelle/Isar, but not
   necessarily Isabelle/ML. It covers the usage of the @{command method} as
   well as the @{method match} method, as well as discussing their integration
   with existing Isar concepts such as @{command named_theorems}.
 
   These commands are provided by theory \<^theory>\<open>HOL-Eisbach.Eisbach\<close>: it
-  needs to be imported by all Eisbach applications. Theory theory \<^theory>\<open>HOL-Eisbach.Eisbach_Tools\<close> provides additional proof methods and
+  needs to be imported by all Eisbach applications. Theory
+  \<^theory>\<open>HOL-Eisbach.Eisbach_Tools\<close> provides additional proof methods and
   attributes that are occasionally useful.
 \<close>
 

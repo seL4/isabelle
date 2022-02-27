@@ -101,9 +101,9 @@ subsection \<open>Named theorems\<close>
 text \<open>
   A \<^emph>\<open>named theorem\<close> is a fact whose contents are produced dynamically within
   the current proof context. The Isar command @{command_ref "named_theorems"}
-  provides simple access to this concept: it declares a dynamic fact with
-  corresponding \<^emph>\<open>attribute\<close> for managing this particular data slot in the
-  context.
+  declares a dynamic fact with a corresponding \<^emph>\<open>attribute\<close> of the same
+  name. This allows to maintain a collection of facts in the context as
+  follows:
 \<close>
 
     named_theorems intros
@@ -171,8 +171,8 @@ section \<open>Higher-order methods\<close>
 
 text \<open>
   The \<^emph>\<open>structured concatenation\<close> combinator ``\<open>method\<^sub>1 ; method\<^sub>2\<close>'' was
-  introduced in Isabelle2015, motivated by development of Eisbach. It is
-  similar to ``\<open>method\<^sub>1, method\<^sub>2\<close>'', but \<open>method\<^sub>2\<close> is invoked on on \<^emph>\<open>all\<close>
+  introduced in Isabelle2015, motivated by the development of Eisbach. It is
+  similar to ``\<open>method\<^sub>1, method\<^sub>2\<close>'', but \<open>method\<^sub>2\<close> is invoked on \<^emph>\<open>all\<close>
   subgoals that have newly emerged from \<open>method\<^sub>1\<close>. This is useful to handle
   cases where the number of subgoals produced by a method is determined
   dynamically at run-time.
@@ -493,7 +493,7 @@ section \<open>Attributes\<close>
 
 text \<open>
   Attributes may throw errors when applied to a given fact. For example, rule
-  instantiation will fail of there is a type mismatch or if a given variable
+  instantiation will fail if there is a type mismatch or if a given variable
   doesn't exist. Within a match or a method definition, it isn't generally
   possible to guarantee that applied attributes won't fail. For example, in
   the following method there is no guarantee that the two provided facts will
@@ -933,7 +933,7 @@ text \<open>
   function of the same name into an attribute. When applied to a case
   distinction over a datatype, it retrieves its corresponding split rule.
 
-  We can then integrate this intro a method that applies the split rule, first
+  We can then integrate this into a method that applies the split rule, first
   matching to ensure that fetching the rule was successful.
 \<close>
 (*<*)declare TrueI [intros](*>*)
