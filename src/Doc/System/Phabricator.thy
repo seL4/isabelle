@@ -160,7 +160,7 @@ text \<open>
 
   @{verbatim [display] \<open>  isabelle phabricator_setup_mail\<close>}
 
-  \<^noindent> This generates a JSON template file for the the mail account details.
+  \<^noindent> This generates a JSON template file for the mail account details.
   After editing that, the subsequent command will add and test it with
   Phabricator:
 

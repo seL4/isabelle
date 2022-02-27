@@ -43,8 +43,8 @@ text \<open>
   @{tool build} with suitable options:
   @{verbatim [display] \<open>isabelle build -o browser_info -v -c FOL\<close>}
 
-  The presentation output will appear in \<^verbatim>\<open>$ISABELLE_BROWSER_INFO/FOL/FOL\<close> as
-  reported by the above verbose invocation of the build process.
+  The presentation output will appear in a sub-directory
+  \<^path>\<open>$ISABELLE_BROWSER_INFO\<close>, according to the chapter and session name.
 
   Many Isabelle sessions (such as \<^session>\<open>HOL-Library\<close> in
   \<^dir>\<open>~~/src/HOL/Library\<close>) also provide theory documents in PDF. These are
@@ -57,11 +57,11 @@ text \<open>
   \secref{sec:tool-document} for further details.
 
   \<^bigskip>
-  The theory browsing information is stored in a sub-directory directory
-  determined by the @{setting_ref ISABELLE_BROWSER_INFO} setting plus a prefix
-  corresponding to the session chapter and identifier. In order to present
-  Isabelle applications on the web, the corresponding subdirectory from
-  @{setting ISABELLE_BROWSER_INFO} can be put on a WWW server.
+  The theory browsing information is stored in the directory determined by the
+  @{setting_ref ISABELLE_BROWSER_INFO} setting, with sub-directory structure
+  according to the chapter and session name. In order to present Isabelle
+  applications on the web, the corresponding subdirectory from @{setting
+  ISABELLE_BROWSER_INFO} can be put on a WWW server.
 \<close>
 
 

@@ -16,9 +16,9 @@ text \<open>
 
   In contrast, the Isabelle server exposes Isabelle/Scala as a
   ``terminate-stay-resident'' application that manages multiple logic
-  \<^emph>\<open>sessions\<close> and concurrent tasks to use \<^emph>\<open>theories\<close>. This provides an
-  analogous to \<^ML>\<open>Thy_Info.use_theories\<close> in Isabelle/ML, but with full
-  concurrency and Isabelle/PIDE markup.
+  \<^emph>\<open>sessions\<close> and concurrent tasks to use \<^emph>\<open>theories\<close>. This is analogous to
+  \<^ML>\<open>Thy_Info.use_theories\<close> in Isabelle/ML, with proper support for
+  concurrent invocations.
 
   The client/server arrangement via TCP sockets also opens possibilities for
   remote Isabelle services that are accessed by local applications, e.g.\ via
@@ -197,7 +197,7 @@ text \<open>
     arbitrary bytes excluding CR (13) and LF (10), and terminated by CR-LF or
     just LF.
 
-    \<^item> A \<^emph>\<open>long message\<close> starts with a single that consists only of decimal
+    \<^item> A \<^emph>\<open>long message\<close> starts with a single line consisting of decimal
     digits: these are interpreted as length of the subsequent block of
     arbitrary bytes. A final line-terminator (as above) may be included here,
     but is not required.
@@ -227,9 +227,8 @@ text \<open>
 subsection \<open>Input and output messages \label{sec:input-output-messages}\<close>
 
 text \<open>
-  Server input and output messages have a uniform format as follows:
-
-    \<^item> \<open>name argument\<close> such that:
+  The uniform format for server input and output messages is \<open>name argument\<close>,
+  such that:
 
     \<^item> \<open>name\<close> is the longest prefix consisting of ASCII letters, digits,
     ``\<^verbatim>\<open>_\<close>'', ``\<^verbatim>\<open>.\<close>'',
@@ -262,7 +261,7 @@ text \<open>
     \<^item> JSON value (Scala type \<^verbatim>\<open>JSON.T\<close>)
 
   JSON values may consist of objects (records), arrays (lists), strings,
-  numbers, bools, null.\<^footnote>\<open>See also the official specification
+  numbers, bools, or null.\<^footnote>\<open>See also the official specification
   \<^url>\<open>https://www.json.org\<close> and unofficial explorations ``Parsing JSON is a
   Minefield'' \<^url>\<open>http://seriot.ch/parsing_json.php\<close>.\<close> Since JSON requires
   explicit quotes and backslash-escapes to represent arbitrary text, the YXML
@@ -820,7 +819,7 @@ subsubsection \<open>Results\<close>
 
 text \<open>
   The \<open>session_id\<close> provides the internal identification of the session object
-  within the sever process. It can remain active as long as the server is
+  within the server process. It can remain active as long as the server is
   running, independently of the current client connection.
 
   \<^medskip>

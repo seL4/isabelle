@@ -92,7 +92,7 @@ Usage: isabelle update [OPTIONS] [SESSIONS ...]
     -d DIR       include session directory
     -g NAME      select session group NAME
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
-    -u OPT       overide update option: shortcut for "-o update_OPT"
+    -u OPT       override "update" option: shortcut for "-o update_OPT"
     -v           verbose
     -x NAME      exclude session NAME and all descendants
 

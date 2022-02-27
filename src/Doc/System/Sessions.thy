@@ -170,9 +170,9 @@ text \<open>
   \<open>target_dir\<close> specification is relative to the session root directory; its
   default is \<^verbatim>\<open>export\<close>. Exports are selected via \<open>patterns\<close> as in @{tool_ref
   export} (\secref{sec:tool-export}). The number given in brackets (default:
-  0) specifies elements that should be pruned from each name: it allows to
-  reduce the resulting directory hierarchy at the danger of overwriting files
-  due to loss of uniqueness.
+  0) specifies the prefix of elements that should be removed from each name:
+  it allows to reduce the resulting directory hierarchy at the danger of
+  overwriting files due to loss of uniqueness.
 \<close>
 
 
@@ -216,7 +216,7 @@ text \<open>
     during session presentation.
 
     \<^item> @{system_option_def "document_variants"} specifies document variants as
-    a colon-separated list of \<open>name=tags\<close> entries. The default name
+    a colon-separated list of \<open>name=tags\<close> entries. The default name is
     \<^verbatim>\<open>document\<close>, without additional tags.
 
     Tags are specified as a comma separated list of modifier/name pairs and
@@ -260,7 +260,7 @@ text \<open>
     \<^item> @{system_option_def "threads"} determines the number of worker threads
     for parallel checking of theories and proofs. The default \<open>0\<close> means that a
     sensible maximum value is determined by the underlying hardware. For
-    machines with many cores or with hyperthreading, this is often requires
+    machines with many cores or with hyperthreading, this sometimes requires
     manual adjustment (on the command-line or within personal settings or
     preferences, not within a session \<^verbatim>\<open>ROOT\<close>).
 
@@ -431,7 +431,7 @@ text \<open>
   Option \<^verbatim>\<open>-P\<close> enables PDF/HTML presentation in the given directory, where
   ``\<^verbatim>\<open>-P:\<close>'' refers to the default @{setting_ref ISABELLE_BROWSER_INFO} (or
   @{setting_ref ISABELLE_BROWSER_INFO_SYSTEM}). This applies only to
-  explicitly selected sessions; note that option \<open>-R\<close> allows to select all
+  explicitly selected sessions; note that option \<^verbatim>\<open>-R\<close> allows to select all
   requirements separately.
 
   \<^medskip>
@@ -471,14 +471,16 @@ text \<open>
   performance tuning on Linux servers with separate CPU/memory modules.
 
   \<^medskip>
-  Option \<^verbatim>\<open>-v\<close> increases the general level of verbosity. Option \<^verbatim>\<open>-l\<close> lists
-  the source files that contribute to a session.
+  Option \<^verbatim>\<open>-v\<close> increases the general level of verbosity.
 
   \<^medskip>
-  Option \<^verbatim>\<open>-k\<close> specifies a newly proposed keyword for outer syntax (multiple
-  uses allowed). The theory sources are checked for conflicts wrt.\ this
-  hypothetical change of syntax, e.g.\ to reveal occurrences of identifiers
-  that need to be quoted.
+  Option \<^verbatim>\<open>-l\<close> lists the source files that contribute to a session.
+
+  \<^medskip>
+  Option \<^verbatim>\<open>-k\<close> specifies a newly proposed keyword for outer syntax. It is
+  possible to use option \<^verbatim>\<open>-k\<close> repeatedly to check multiple keywords. The
+  theory sources are checked for conflicts wrt.\ this hypothetical change of
+  syntax, e.g.\ to reveal occurrences of identifiers that need to be quoted.
 \<close>
 
 
@@ -569,7 +571,7 @@ text \<open>
 
   \<^medskip> Option \<^verbatim>\<open>-T\<close> restricts output to given theories: multiple entries are
   possible by repeating this option on the command-line. The default is to
-  refer to \<^emph>\<open>all\<close> theories that were used in original session build process.
+  refer to \<^emph>\<open>all\<close> theories used in the original session build process.
 
   \<^medskip> Options \<^verbatim>\<open>-m\<close> and \<^verbatim>\<open>-U\<close> modify pretty printing and output of Isabelle
   symbols. The default is for an old-fashioned ASCII terminal at 80 characters
@@ -602,7 +604,7 @@ text \<open>
     -n           no build of session
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -p NUM       prune path of exported files by NUM elements
-    -x PATTERN   extract files matching pattern (e.g.\ "*:**" for all)
+    -x PATTERN   extract files matching pattern (e.g. "*:**" for all)
 
   List or export theory exports for SESSION: named blobs produced by
   isabelle build. Option -l or -x is required; option -x may be repeated.
@@ -735,7 +737,7 @@ text \<open>
     -d DIR       include session directory
     -g NAME      select session group NAME
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
-    -u OPT       overide update option: shortcut for "-o update_OPT"
+    -u OPT       override "update" option: shortcut for "-o update_OPT"
     -v           verbose
     -x NAME      exclude session NAME and all descendants
 
@@ -756,7 +758,7 @@ text \<open>
   options, by relying on naming convention: ``\<^verbatim>\<open>-u\<close>~\<open>OPT\<close>'' is a shortcut for
   ``\<^verbatim>\<open>-o\<close>~\<^verbatim>\<open>update_\<close>\<open>OPT\<close>''.
 
-  \<^medskip> The following update options are supported:
+  \<^medskip> The following \<^verbatim>\<open>update\<close> options are supported:
 
     \<^item> @{system_option update_inner_syntax_cartouches} to update inner syntax
     (types, terms, etc.)~to use cartouches, instead of double-quoted strings
@@ -798,7 +800,7 @@ text \<open>
   @{verbatim [display] \<open>isabelle update -u mixfix_cartouches HOL-Analysis\<close>}
 
   \<^smallskip> Update the same for all application sessions based on \<^verbatim>\<open>HOL-Analysis\<close> ---
-  using its image is taken starting point (for reduced resource requirements):
+  using its image as starting point (for reduced resource requirements):
 
   @{verbatim [display] \<open>isabelle update -u mixfix_cartouches -b HOL-Analysis -B HOL-Analysis\<close>}
 

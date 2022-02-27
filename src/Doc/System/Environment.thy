@@ -23,8 +23,8 @@ text \<open>
   process environment. This is a statically scoped collection of environment
   variables, such as @{setting ISABELLE_HOME}, @{setting ML_SYSTEM}, @{setting
   ML_HOME}. These variables are \<^emph>\<open>not\<close> intended to be set directly from the
-  shell, but are provided by Isabelle \<^emph>\<open>components\<close> their \<^emph>\<open>settings files\<close> as
-  explained below.
+  shell, but are provided by Isabelle \<^emph>\<open>components\<close> within their \<^emph>\<open>settings
+  files\<close>, as explained below.
 \<close>
 
 
@@ -286,7 +286,7 @@ Available tools:
     ISABELLE_TOOLS} settings variable (colon-separated list in standard POSIX
     notation).
 
-      \<^enum> If a file ``\<open>tool\<close>\<^verbatim>\<open>.scala\<close>'' is found, the source needs to define
+      \<^enum> If a file ``\<open>tool\<close>\<^verbatim>\<open>.scala\<close>'' is found, the content needs to define
       some object that extends the class \<^verbatim>\<open>Isabelle_Tool.Body\<close>. The Scala
       compiler is invoked on the spot (which may take some time), and the body
       function is run with the command-line arguments as \<^verbatim>\<open>List[String]\<close>.
@@ -347,7 +347,7 @@ text \<open>
   Options \<^verbatim>\<open>-e\<close> and \<^verbatim>\<open>-f\<close> allow to evaluate ML code, before the ML process is
   started. The source is either given literally or taken from a file. Multiple
   \<^verbatim>\<open>-e\<close> and \<^verbatim>\<open>-f\<close> options are evaluated in the given order. Errors lead to
-  premature exit of the ML process with return code 1.
+  a premature exit of the ML process with return code 1.
 
   \<^medskip>
   Option \<^verbatim>\<open>-T\<close> loads a specified theory file. This is a wrapper for \<^verbatim>\<open>-e\<close> with

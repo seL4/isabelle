@@ -151,7 +151,7 @@ text \<open>
   also possible to invoke @{tool scala_build} explicitly, with extra options.
 
   \<^medskip>
-  The syntax of in \<^path>\<open>etc/build.props\<close> follows a regular Java properties
+  The syntax of \<^path>\<open>etc/build.props\<close> follows a regular Java properties
   file\<^footnote>\<open>\<^url>\<open>https://docs.oracle.com/en/java/javase/15/docs/api/java.base/java/util/Properties.html#load(java.io.Reader)\<close>\<close>,
   but the encoding is \<^verbatim>\<open>UTF-8\<close>, instead of historic \<^verbatim>\<open>ISO 8859-1\<close> from the API
   documentation.
@@ -193,7 +193,7 @@ text \<open>
     \<^file>\<open>$ISABELLE_HOME/lib/classes/isabelle.jar\<close> (especially relevant for
     add-on modules).
 
-    A \<^emph>\<open>special entry\<close> is of of the form \<^verbatim>\<open>env:\<close>\<open>variable\<close> and refers to a
+    A \<^emph>\<open>special entry\<close> is of the form \<^verbatim>\<open>env:\<close>\<open>variable\<close> and refers to a
     settings variable from the Isabelle environment: its value may consist of
     multiple \<^verbatim>\<open>jar\<close> entries (separated by colons). Environment variables are
     not expanded recursively.
@@ -334,7 +334,7 @@ text \<open>
   The service class \<^scala_type>\<open>isabelle.Scala.Functions\<close> collects Scala
   functions of type \<^scala_type>\<open>isabelle.Scala.Fun\<close>: by registering
   instances via \<^verbatim>\<open>services\<close> in \<^path>\<open>etc/build.props\<close>
-  (\secref{sec:scala-build}), it is becomes possible to invoke Isabelle/Scala
+  (\secref{sec:scala-build}), it becomes possible to invoke Isabelle/Scala
   from Isabelle/ML (see below).
 
   An example is the predefined collection of
@@ -382,7 +382,7 @@ text \<open>
   interrupts within the ML runtime environment as usual. A \<^scala>\<open>null\<close>
   result in Scala raises an exception \<^ML>\<open>Scala.Null\<close> in ML. The execution
   of \<open>@{scala}\<close> works via a Scala future on a bounded thread farm, while
-  \<open>@{scala_thread}\<close> always forks a separate Java thread.
+  \<open>@{scala_thread}\<close> always forks a separate Java/VM thread.
 
   The standard approach of representing datatypes via strings works via XML in
   YXML transfer syntax. See Isabelle/ML operations and modules @{ML

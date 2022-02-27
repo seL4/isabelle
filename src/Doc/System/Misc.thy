@@ -170,7 +170,7 @@ text \<open>
 
   \<^medskip>
   Options \<^verbatim>\<open>-u\<close> and \<^verbatim>\<open>-x\<close> operate on user components listed in
-  \<^path>\<open>$ISABELLE_HOME_USER/etc/components\<close>: this avoid manual editing if
+  \<^path>\<open>$ISABELLE_HOME_USER/etc/components\<close>: this avoids manual editing of
   Isabelle configuration files.
 \<close>
 
@@ -281,7 +281,7 @@ text \<open>
 
   The local \<^verbatim>\<open>.hg/hgrc\<close> file is changed to refer to the remote repository,
   usually via the symbolic path name ``\<^verbatim>\<open>default\<close>''; option \<^verbatim>\<open>-p\<close> allows to
-  provided a different name.
+  provide a different name.
 \<close>
 
 subsubsection \<open>Examples\<close>
