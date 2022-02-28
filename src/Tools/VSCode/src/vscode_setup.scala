@@ -42,7 +42,9 @@ object VSCode_Setup
   "editor.lineNumbers": "off",
   "editor.renderIndentGuides": false,
   "editor.rulers": [80, 100],
-  "update.mode": "none"
+  "update.mode": "none",
+  "extensions.autoCheckUpdates": false,
+  "extensions.autoUpdate": false
 }
 """
 
