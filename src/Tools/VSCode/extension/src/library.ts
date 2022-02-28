@@ -1,6 +1,5 @@
 'use strict';
 
-import * as os from 'os'
 import {TextEditor, Uri, ViewColumn, window, workspace} from 'vscode'
 import {Isabelle_Workspace} from './isabelle_filesystem/isabelle_workspace'
 
@@ -43,14 +42,6 @@ export function getenv_strict(name: string): string
   const s = getenv(name)
   if (s) return s
   else throw new Error("Undefined Isabelle environment variable: " + quote(name))
-}
-
-
-/* platform information */
-
-export function platform_is_windows(): boolean
-{
-  return os.type().startsWith("Windows")
 }
 
 
