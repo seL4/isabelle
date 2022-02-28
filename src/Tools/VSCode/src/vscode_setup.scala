@@ -46,7 +46,8 @@ object VSCode_Setup
   "editor.fontSize": 18,
   "editor.lineNumbers": "off",
   "editor.renderIndentGuides": false,
-  "editor.rulers": [80, 100]
+  "editor.rulers": [80, 100],
+  "update.mode": "none"
 }
 """)
     }
