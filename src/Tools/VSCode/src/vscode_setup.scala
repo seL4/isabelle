@@ -36,16 +36,16 @@ object VSCode_Setup
     (install_ok, install_dir)
   }
 
-  val init_settings = """{
-  "editor.fontFamily": "'Isabelle DejaVu Sans Mono'",
-  "editor.fontSize": 18,
-  "editor.lineNumbers": "off",
-  "editor.renderIndentGuides": false,
-  "editor.rulers": [80, 100],
-  "update.mode": "none",
-  "extensions.autoCheckUpdates": false,
-  "extensions.autoUpdate": false
-}
+  val init_settings = """  {
+    "editor.fontFamily": "'Isabelle DejaVu Sans Mono'",
+    "editor.fontSize": 18,
+    "editor.lineNumbers": "off",
+    "editor.renderIndentGuides": false,
+    "editor.rulers": [80, 100],
+    "update.mode": "none",
+    "extensions.autoCheckUpdates": false,
+    "extensions.autoUpdate": false
+  }
 """
 
 
@@ -219,7 +219,7 @@ Usage: vscode_setup [OPTIONS]
   prints its directory location.
 
   The following initial settings are provided for a fresh installation:
-""" + cat_lines(split_lines(init_settings).map(s => "  " + s)) + "\n",
+""" + init_settings,
         "C" -> (_ => check = true),
         "U:" -> (arg => download_url = arg),
         "V:" -> (arg => version = arg),
