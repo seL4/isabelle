@@ -81,6 +81,7 @@ object VSCode_Setup
     "editor.lineNumbers": "off",
     "editor.renderIndentGuides": false,
     "editor.rulers": [80, 100],
+    "editor.unicodeHighlight.ambiguousCharacters": false,
     "extensions.autoCheckUpdates": false,
     "extensions.autoUpdate": false,
     "update.mode": "none"
