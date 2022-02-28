@@ -36,18 +36,6 @@ object VSCode_Setup
     (install_ok, install_dir)
   }
 
-  val init_settings = """  {
-    "editor.fontFamily": "'Isabelle DejaVu Sans Mono'",
-    "editor.fontSize": 18,
-    "editor.lineNumbers": "off",
-    "editor.renderIndentGuides": false,
-    "editor.rulers": [80, 100],
-    "update.mode": "none",
-    "extensions.autoCheckUpdates": false,
-    "extensions.autoUpdate": false
-  }
-"""
-
 
   /* patch resources */
 
@@ -87,6 +75,18 @@ object VSCode_Setup
   val default_download_url: String = "https://github.com/VSCodium/vscodium/releases/download"
   def default_platform: Platform.Family.Value = Platform.family
 
+  private val init_settings = """  {
+    "editor.fontFamily": "'Isabelle DejaVu Sans Mono'",
+    "editor.fontSize": 18,
+    "editor.lineNumbers": "off",
+    "editor.renderIndentGuides": false,
+    "editor.rulers": [80, 100],
+    "update.mode": "none",
+    "extensions.autoCheckUpdates": false,
+    "extensions.autoUpdate": false
+  }
+"""
+
   private def macos_exe: String =
 """#!/usr/bin/env bash
 
@@ -98,19 +98,6 @@ CLI="$VSCODE_PATH/Resources/app/out/cli.js"
 ELECTRON_RUN_AS_NODE=1 "$ELECTRON" "$CLI" --ms-enable-electron-run-as-node "$@"
 exit $?
 """
-
-  def download_name(version: String, platform: Platform.Family.Value): String =
-  {
-    val a = "VSCodium"
-    val (b, c) =
-      platform match {
-        case Platform.Family.linux_arm => ("linux-arm64", "tar.gz")
-        case Platform.Family.linux => ("linux-x64", "tar.gz")
-        case Platform.Family.macos => ("darwin-x64", "zip")
-        case Platform.Family.windows => ("win32-x64", "zip")
-      }
-    a + "-" + b + "-" + version + "." + c
-  }
 
   def vscode_setup(
     check: Boolean = false,
@@ -140,8 +127,19 @@ exit $?
         progress.echo_warning("Isabelle/VSCode installation already present: " + install_dir.expand)
       }
       if (!install_ok || fresh) {
-        val name = download_name(version, platform)
-        val is_zip = name.endsWith(".zip")
+        val download_name =
+        {
+          val a = "VSCodium"
+          val (b, c) =
+            platform match {
+              case Platform.Family.linux_arm => ("linux-arm64", "tar.gz")
+              case Platform.Family.linux => ("linux-x64", "tar.gz")
+              case Platform.Family.macos => ("darwin-x64", "zip")
+              case Platform.Family.windows => ("win32-x64", "zip")
+            }
+          a + "-" + b + "-" + version + "." + c
+        }
+        val is_zip = download_name.endsWith(".zip")
         if (is_zip) Isabelle_System.require_command("unzip", test = "-h")
 
         Isabelle_System.make_directory(install_dir)
@@ -149,8 +147,8 @@ exit $?
 
         Isabelle_System.with_tmp_file("download")(download =>
         {
-          Isabelle_System.download_file(download_url + "/" + version + "/" + name, download,
-            progress = if (quiet) new Progress else progress)
+          Isabelle_System.download_file(download_url + "/" + version + "/" + download_name,
+            download, progress = if (quiet) new Progress else progress)
           if (!quiet) progress.echo("Installing " + install_dir.expand)
           if (is_zip) {
             Isabelle_System.bash("unzip -x " + File.bash_path(download),
