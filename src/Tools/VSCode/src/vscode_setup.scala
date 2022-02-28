@@ -36,12 +36,7 @@ object VSCode_Setup
     (install_ok, install_dir)
   }
 
-  def init_settings(): Unit =
-  {
-    if (!vscode_settings_user.is_file) {
-      Isabelle_System.make_directory(vscode_settings_user.dir)
-      File.write(vscode_settings_user, """
-{
+  val init_settings = """{
   "editor.fontFamily": "'Isabelle DejaVu Sans Mono'",
   "editor.fontSize": 18,
   "editor.lineNumbers": "off",
@@ -49,9 +44,7 @@ object VSCode_Setup
   "editor.rulers": [80, 100],
   "update.mode": "none"
 }
-""")
-    }
-  }
+"""
 
 
   /* patch resources */
@@ -128,7 +121,10 @@ exit $?
   {
     val (install_ok, install_dir) = vscode_installation(version, platform)
 
-    init_settings()
+    if (!vscode_settings_user.is_file) {
+      Isabelle_System.make_directory(vscode_settings_user.dir)
+      File.write(vscode_settings_user, init_settings)
+    }
 
     if (check) {
       if (install_ok) progress.echo(install_dir.expand.implode)
@@ -219,7 +215,9 @@ Usage: vscode_setup [OPTIONS]
 
   Option -C checks the existing installation (without download), and
   prints its directory location.
-""",
+
+  The following initial settings are provided for a fresh installation:
+""" + cat_lines(split_lines(init_settings).map(s => "  " + s)) + "\n",
         "C" -> (_ => check = true),
         "U:" -> (arg => download_url = arg),
         "V:" -> (arg => version = arg),
