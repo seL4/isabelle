@@ -114,6 +114,45 @@ proof (rule ccontr)
     by blast
 qed
 
+lemma holomorphic_countable_zeros:
+  assumes S: "f holomorphic_on S" "open S" "connected S" and "fsigma S"
+      and "\<not> f constant_on S"
+    shows "countable {z\<in>S. f z = 0}"
+proof -
+  obtain F::"nat \<Rightarrow> complex set" 
+      where F: "range F \<subseteq> Collect compact" and Seq: "S = (\<Union>i. F i)"
+    using \<open>fsigma S\<close> by (meson fsigma_Union_compact)
+  have fin: "finite {z \<in> F i. f z = 0}" for i
+    using holomorphic_compact_finite_zeros assms F Seq Union_iff by blast
+  have "{z \<in> S. f z = 0} = (\<Union>i. {z \<in> F i. f z = 0})"
+    using Seq by auto
+  with fin show ?thesis
+    by (simp add: countable_finite)
+qed
+
+lemma holomorphic_countable_equal:
+  assumes "f holomorphic_on S" "g holomorphic_on S" "open S" "connected S" and "fsigma S"
+    and eq: "uncountable {z\<in>S. f z = g z}"
+  shows "S \<subseteq> {z\<in>S. f z = g z}"
+proof -
+  obtain z where z: "z\<in>S" "f z = g z"
+    using eq not_finite_existsD uncountable_infinite by blast
+  have "(\<lambda>x. f x - g x) holomorphic_on S"
+    by (simp add: assms holomorphic_on_diff)
+  then have "(\<lambda>x. f x - g x) constant_on S"
+    using holomorphic_countable_zeros assms by force
+  with z have "\<And>x. x\<in>S \<Longrightarrow> f x - g x = 0"
+    unfolding constant_on_def by force
+  then show ?thesis
+    by auto
+qed
+
+lemma holomorphic_countable_equal_UNIV:
+  assumes fg: "f holomorphic_on UNIV" "g holomorphic_on UNIV"
+    and eq: "uncountable {z. f z = g z}"
+  shows "f=g"
+  using holomorphic_countable_equal [OF fg] eq by fastforce
+
 subsection\<open>Open mapping theorem\<close>
 
 lemma holomorphic_contract_to_zero:

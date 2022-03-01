@@ -532,6 +532,10 @@ lemma analytic_on_sum [analytic_intros]:
   "(\<And>i. i \<in> I \<Longrightarrow> (f i) analytic_on S) \<Longrightarrow> (\<lambda>x. sum (\<lambda>i. f i x) I) analytic_on S"
   by (induct I rule: infinite_finite_induct) (auto simp: analytic_on_add)
 
+lemma analytic_on_prod [analytic_intros]:
+  "(\<And>i. i \<in> I \<Longrightarrow> (f i) analytic_on S) \<Longrightarrow> (\<lambda>x. prod (\<lambda>i. f i x) I) analytic_on S"
+  by (induct I rule: infinite_finite_induct) (auto simp: analytic_on_mult)
+
 lemma deriv_left_inverse:
   assumes "f holomorphic_on S" and "g holomorphic_on T"
       and "open S" and "open T"
