@@ -1,3 +1,8 @@
+/*  Author:     Makarius
+
+Basic library (see Pure/library.scala).
+*/
+
 'use strict';
 
 import * as platform from './platform'
