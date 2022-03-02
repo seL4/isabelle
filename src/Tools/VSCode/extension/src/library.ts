@@ -8,7 +8,7 @@ import {Isabelle_Workspace} from './isabelle_filesystem/isabelle_workspace'
 
 export function escape_regex(s: string): string
 {
-  return s.replace(/[|\\{}()[\]^$+*?.]/g, "\\$&")
+  return s.replace(/[|\\{}()[\]^$+*?.]/g, "\\$&").replace(/-/g, '\\x2d')
 }
 
 /* strings */
