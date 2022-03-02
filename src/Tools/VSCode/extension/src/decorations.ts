@@ -5,7 +5,6 @@ import {window, OverviewRulerLane, Uri} from 'vscode';
 import { Range, DecorationOptions, DecorationRenderOptions,
   TextDocument, TextEditor, TextEditorDecorationType, ExtensionContext } from 'vscode'
 import { Document_Decorations } from './protocol'
-import * as library from './library'
 import * as vscode_lib from './vscode_lib'
 import { Isabelle_Workspace } from './isabelle_filesystem/isabelle_workspace'
 

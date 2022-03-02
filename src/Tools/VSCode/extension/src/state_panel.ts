@@ -1,6 +1,5 @@
 'use strict';
 
-import * as library from './library'
 import * as vscode_lib from './vscode_lib'
 import * as protocol from './protocol'
 import {LanguageClient} from 'vscode-languageclient/node'

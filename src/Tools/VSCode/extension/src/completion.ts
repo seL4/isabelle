@@ -1,6 +1,5 @@
 'use strict';
 
-import * as symbol from './symbol'
 import { CompletionItemProvider, CompletionItem, TextDocument, Range, Position,
   CancellationToken, CompletionList } from 'vscode'
 

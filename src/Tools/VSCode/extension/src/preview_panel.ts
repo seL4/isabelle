@@ -2,7 +2,6 @@
 
 import { ExtensionContext, Uri, window, ViewColumn, WebviewPanel } from 'vscode'
 import { LanguageClient } from 'vscode-languageclient/node'
-import * as library from './library'
 import * as vscode_lib from './vscode_lib'
 import * as protocol from './protocol'
 

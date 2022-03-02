@@ -10,7 +10,6 @@ import * as state_panel from './state_panel'
 import { Uri, TextEditor, ViewColumn, Selection, Position, ExtensionContext, workspace, window,
   commands, ProgressLocation } from 'vscode'
 import { LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-languageclient/node'
-import { register_abbreviations } from './abbreviations'
 import { Isabelle_Workspace } from './isabelle_filesystem/isabelle_workspace'
 import { Output_View_Provider } from './output_view'
 import { register_script_decorations } from './script_decorations'

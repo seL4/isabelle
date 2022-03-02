@@ -16,7 +16,6 @@ import {
   FileSystemProvider,
   FileType, GlobPattern, Uri, workspace
 } from 'vscode';
-import { Session_Theories } from '../protocol';
 import { Symbol_Encoder } from './symbol_encoder';
 import { Uri_Map } from './uri_map';
 

@@ -8,13 +8,11 @@ Handling of theory files in VSCode workspace.
 import * as path from 'path';
 import {
   commands,
-  Disposable, ExtensionContext, FileChangeType, FileSystemError, languages,
-  TextDocument,
+  ExtensionContext, FileSystemError, languages, TextDocument,
   Uri, ViewColumn,
   window,
   workspace
 } from 'vscode';
-import * as library from '../library';
 import * as vscode_lib from '../vscode_lib';
 import { Session_Theories } from '../protocol';
 import * as symbol from '../symbol';
