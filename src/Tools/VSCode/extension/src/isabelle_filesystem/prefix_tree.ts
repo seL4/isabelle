@@ -1,3 +1,8 @@
+/*  Author:     Denis Paluca, TU Muenchen
+
+Prefix tree for symbol autocompletion.
+*/
+
 'use strict';
 
 class Tree_Node

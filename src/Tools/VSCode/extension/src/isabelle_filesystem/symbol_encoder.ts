@@ -1,3 +1,8 @@
+/*  Author:     Denis Paluca, TU Muenchen
+
+Encoding of Isabelle symbols.
+*/
+
 'use strict';
 
 import { TextEncoder } from 'util'

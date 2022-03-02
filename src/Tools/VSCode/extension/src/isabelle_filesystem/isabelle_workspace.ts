@@ -1,3 +1,8 @@
+/*  Author:     Denis Paluca and Fabian Huch, TU Muenchen
+
+Handling of theory files in VSCode workspace.
+*/
+
 'use strict';
 
 import * as path from 'path';

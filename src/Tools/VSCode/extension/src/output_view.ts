@@ -1,3 +1,8 @@
+/*  Author:     Denis Paluca, TU Muenchen
+
+Isabelle output panel as web view.
+*/
+
 'use strict';
 
 import { WebviewViewProvider, WebviewView, Uri, WebviewViewResolveContext,

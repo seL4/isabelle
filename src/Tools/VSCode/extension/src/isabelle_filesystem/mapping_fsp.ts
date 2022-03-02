@@ -1,3 +1,8 @@
+/*  Author:     Denis Paluca and Fabian Huch, TU Muenchen
+
+Memory-mapped virtual filesystem with symbol encoding.
+*/
+
 'use strict';
 
 import * as path from 'path';

@@ -1,3 +1,8 @@
+/*  Author:     Fabian Huch, TU Muenchen
+
+Bidirectional mapping between uris.
+*/
+
 'use strict';
 
 import {Uri} from 'vscode';

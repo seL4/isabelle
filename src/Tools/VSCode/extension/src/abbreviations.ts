@@ -1,3 +1,8 @@
+/*  Author:     Denis Paluca, TU Muenchen
+
+Input abbreviation and autocompletion of Isabelle symbols.
+*/
+
 'use strict';
 
 import { ExtensionContext, Range, TextDocumentContentChangeEvent, workspace, WorkspaceEdit } from 'vscode'

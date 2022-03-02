@@ -1,3 +1,8 @@
+/*  Author:     Denis Paluca and Fabian Huch, TU Muenchen
+
+Persistent workspace state.
+*/
+
 'use strict';
 
 import { ExtensionContext } from 'vscode'

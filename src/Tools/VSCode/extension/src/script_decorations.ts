@@ -1,3 +1,8 @@
+/*  Author:     Denis Paluca, TU Muenchen
+
+Non-unicode Isabelle symbols as text decorations.
+*/
+
 'use strict';
 
 import { DecorationRangeBehavior, ExtensionContext, Range,
