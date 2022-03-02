@@ -32,7 +32,7 @@ export async function activate(context: ExtensionContext)
     const isabelle_args =
       ["-o", "vscode_unicode_symbols", "-o", "vscode_pide_extensions"]
         .concat(vscode_lib.get_configuration<Array<string>>("args"))
-        .concat(roots.length > 0 && workspace_dir !== undefined ? ["-D", workspace_dir] : [])
+        .concat(roots.length > 0 && workspace_dir ? ["-D", library.standard_path(workspace_dir)] : [])
 
     const server_options: ServerOptions =
       platform.is_windows() ?
