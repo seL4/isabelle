@@ -6,6 +6,7 @@ import { Range, DecorationOptions, DecorationRenderOptions,
   TextDocument, TextEditor, TextEditorDecorationType, ExtensionContext } from 'vscode'
 import { Document_Decorations } from './protocol'
 import * as library from './library'
+import * as vscode_lib from './vscode_lib'
 import { Isabelle_Workspace } from './isabelle_filesystem/isabelle_workspace'
 
 
@@ -87,31 +88,31 @@ export function setup(context: ExtensionContext)
   function background(color: string): TextEditorDecorationType
   {
     return decoration(
-      { light: { backgroundColor: library.get_color(color, true) },
-        dark: { backgroundColor: library.get_color(color, false) } })
+      { light: { backgroundColor: vscode_lib.get_color(color, true) },
+        dark: { backgroundColor: vscode_lib.get_color(color, false) } })
   }
 
   function text_color(color: string): TextEditorDecorationType
   {
     return decoration(
-      { light: { color: library.get_color(color, true) },
-        dark: { color: library.get_color(color, false) } })
+      { light: { color: vscode_lib.get_color(color, true) },
+        dark: { color: vscode_lib.get_color(color, false) } })
   }
 
   function text_overview_color(color: string): TextEditorDecorationType
   {
     return decoration(
       { overviewRulerLane: OverviewRulerLane.Right,
-        light: { overviewRulerColor: library.get_color(color, true) },
-        dark: { overviewRulerColor: library.get_color(color, false) } })
+        light: { overviewRulerColor: vscode_lib.get_color(color, true) },
+        dark: { overviewRulerColor: vscode_lib.get_color(color, false) } })
   }
 
   function bottom_border(width: string, style: string, color: string): TextEditorDecorationType
   {
     const border = `${width} none; border-bottom-style: ${style}; border-color: `
     return decoration(
-      { light: { border: border + library.get_color(color, true) },
-        dark: { border: border + library.get_color(color, false) } })
+      { light: { border: border + vscode_lib.get_color(color, true) },
+        dark: { border: border + vscode_lib.get_color(color, false) } })
   }
 
 

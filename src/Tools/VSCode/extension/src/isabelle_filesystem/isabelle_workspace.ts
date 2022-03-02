@@ -15,6 +15,7 @@ import {
   workspace
 } from 'vscode';
 import * as library from '../library';
+import * as vscode_lib from '../vscode_lib';
 import { Session_Theories } from '../protocol';
 import * as symbol from '../symbol';
 import { Mapping_FSP } from './mapping_fsp';
@@ -219,7 +220,7 @@ export class Isabelle_Workspace
 
   private async open_theory_dialogue(file_uri: Uri)
   {
-    const always_open = library.get_configuration<boolean>('always_open_thys')
+    const always_open = vscode_lib.get_configuration<boolean>('always_open_thys')
     if (!always_open) {
       const answer = await window.showInformationMessage(
         'Would you like to open the Isabelle theory associated with this file?',
@@ -227,7 +228,7 @@ export class Isabelle_Workspace
         'Always yes'
       )
       if (answer === 'Always yes') {
-        library.set_configuration('always_open_thys', true)
+        vscode_lib.set_configuration('always_open_thys', true)
       } else if (answer !== 'Yes') {
         return
       }

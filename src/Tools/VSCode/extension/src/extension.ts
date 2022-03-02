@@ -2,6 +2,7 @@
 
 import * as platform from './platform'
 import * as library from './library'
+import * as vscode_lib from './vscode_lib'
 import * as decorations from './decorations'
 import * as preview_panel from './preview_panel'
 import * as protocol from './protocol'
@@ -30,7 +31,7 @@ export async function activate(context: ExtensionContext)
     const isabelle_tool = isabelle_home + "/bin/isabelle"
     const isabelle_args =
       ["-o", "vscode_unicode_symbols", "-o", "vscode_pide_extensions"]
-        .concat(library.get_configuration<Array<string>>("args"))
+        .concat(vscode_lib.get_configuration<Array<string>>("args"))
         .concat(roots.length > 0 && workspace_dir !== undefined ? ["-D", workspace_dir] : [])
 
     const server_options: ServerOptions =
@@ -60,7 +61,7 @@ export async function activate(context: ExtensionContext)
       async (progress) =>
         {
           progress.report({
-            message: "Waiting for Isabelle server..."
+            message: "Waiting for Isabelle language server..."
           })
           await language_client.onReady()
         })
@@ -93,7 +94,7 @@ export async function activate(context: ExtensionContext)
       if (editor) {
         const uri = editor.document.uri
         const cursor = editor.selection.active
-        if (library.is_file(uri) && cursor)
+        if (vscode_lib.is_file(uri) && cursor)
           caret_update = { uri: uri.toString(), line: cursor.line, character: cursor.character }
       }
       if (last_caret_update !== caret_update) {
@@ -117,7 +118,7 @@ export async function activate(context: ExtensionContext)
         caret_update.uri = Isabelle_Workspace.get_isabelle(Uri.parse(caret_update.uri)).toString()
         workspace.openTextDocument(Uri.parse(caret_update.uri)).then(document =>
         {
-          const editor = library.find_file_editor(document.uri)
+          const editor = vscode_lib.find_file_editor(document.uri)
           const column = editor ? editor.viewColumn : ViewColumn.One
           window.showTextDocument(document, column, !caret_update.focus).then(move_cursor)
         })

@@ -1,3 +1,8 @@
+/*  Author:     Makarius
+
+Isabelle text symbols (see Pure/General/symbol.scala).
+*/
+
 'use strict';
 
 import * as library from './library'

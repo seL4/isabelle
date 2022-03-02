@@ -1,3 +1,8 @@
+/*  Author:     Makarius
+
+System platform identification (see Pure/System/platform.scala).
+*/
+
 'use strict';
 
 import * as os from 'os'
