@@ -2,6 +2,7 @@
 
 import * as platform from './platform'
 import * as library from './library'
+import * as file from './file'
 import * as vscode_lib from './vscode_lib'
 import * as decorations from './decorations'
 import * as preview_panel from './preview_panel'
@@ -31,11 +32,11 @@ export async function activate(context: ExtensionContext)
     const isabelle_args =
       ["-o", "vscode_unicode_symbols", "-o", "vscode_pide_extensions"]
         .concat(vscode_lib.get_configuration<Array<string>>("args"))
-        .concat(roots.length > 0 && workspace_dir ? ["-D", library.standard_path(workspace_dir)] : [])
+        .concat(roots.length > 0 && workspace_dir ? ["-D", file.standard_path(workspace_dir)] : [])
 
     const server_options: ServerOptions =
       platform.is_windows() ?
-        { command: library.cygwin_bash(),
+        { command: file.cygwin_bash(),
           args: ["-l", isabelle_tool, "vscode_server"].concat(isabelle_args) } :
         { command: isabelle_tool,
           args: ["vscode_server"].concat(isabelle_args) }
