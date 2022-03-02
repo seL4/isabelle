@@ -1,0 +1,43 @@
+{
+    "name": "Isabelle",
+    "displayName": "Isabelle",
+    "description": "Isabelle Prover IDE",
+    "keywords": [
+        "theorem prover",
+        "formalized mathematics",
+        "mathematical logic",
+        "functional programming",
+        "document preparation"
+    ],
+    "icon": "isabelle.png",
+    "version": "2.0.0",
+    "publisher": "makarius",
+    "license": "MIT",
+    "repository": {
+        "url": "https://isabelle-dev.sketis.net"
+    },
+    "engines": {
+        "vscode": "^1.34.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "activationEvents": [],
+    "main": "./out/src/extension",
+    "scripts": {
+        "vscode:prepublish": "tsc -p ./",
+        "compile": "tsc -watch -p ./",
+        "postinstall": "node ./node_modules/vscode/bin/install"
+    },
+    "devDependencies": {
+        "@types/mocha": "^2.2.48",
+        "@types/node": "^10.11.0",
+        "mocha": "^3.5.3",
+        "typescript": "^3.9.9",
+        "vscode": "^1.1.36"
+    },
+    "dependencies": {
+        "vscode-languageclient": "~5.2.1",
+        "vscode-languageserver-types": "~3.16.0"
+    }
+}

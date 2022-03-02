@@ -34,9 +34,6 @@ Checklist for official releases
 - check versions:
     src/Tools/jEdit/jedit_base/plugin.props
     src/Tools/jEdit/jedit_main/plugin.props
-
-- check Isabelle version:
-    src/Tools/VSCode/extension/README.md
     src/Tools/VSCode/extension/package.json
 
 - check funny base directory, e.g. "Test 中国";
