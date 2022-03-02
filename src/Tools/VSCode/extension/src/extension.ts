@@ -35,7 +35,7 @@ export async function activate(context: ExtensionContext)
 
     const server_options: ServerOptions =
       platform.is_windows() ?
-        { command: library.getenv_strict("CYGWIN_ROOT") + "\\bin\\bash",
+        { command: library.cygwin_root() + "\\bin\\bash",
           args: ["-l", isabelle_tool, "vscode_server"].concat(isabelle_args) } :
         { command: isabelle_tool,
           args: ["vscode_server"].concat(isabelle_args) }
