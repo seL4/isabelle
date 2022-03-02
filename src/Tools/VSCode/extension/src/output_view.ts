@@ -4,6 +4,7 @@ import { WebviewViewProvider, WebviewView, Uri, WebviewViewResolveContext,
    CancellationToken, window, Position, Selection, Webview} from 'vscode'
 import { text_colors } from './decorations'
 import * as library from './library'
+import * as vscode_lib from './vscode_lib'
 import * as path from 'path'
 import { Isabelle_Workspace } from './isabelle_filesystem/isabelle_workspace'
 
@@ -98,8 +99,8 @@ function _get_decorations(): string
 {
   let style: string = ''
   for (const key of text_colors) {
-  style += `body.vscode-light .${key} { color: ${library.get_color(key, true)} }\n`
-  style += `body.vscode-dark .${key} { color: ${library.get_color(key, false)} }\n`
+  style += `body.vscode-light .${key} { color: ${vscode_lib.get_color(key, true)} }\n`
+  style += `body.vscode-dark .${key} { color: ${vscode_lib.get_color(key, false)} }\n`
   }
 
   return style

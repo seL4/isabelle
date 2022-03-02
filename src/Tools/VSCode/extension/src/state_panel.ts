@@ -1,6 +1,7 @@
 'use strict';
 
 import * as library from './library'
+import * as vscode_lib from './vscode_lib'
 import * as protocol from './protocol'
 import {LanguageClient} from 'vscode-languageclient/node'
 import {ExtensionContext, Uri, ViewColumn, WebviewPanel, window} from 'vscode'
@@ -11,7 +12,7 @@ let language_client: LanguageClient
 
 function panel_column(): ViewColumn
 {
-  return library.adjacent_editor_column(window.activeTextEditor, true)
+  return vscode_lib.adjacent_editor_column(window.activeTextEditor, true)
 }
 
 class Panel

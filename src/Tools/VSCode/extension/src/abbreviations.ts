@@ -3,6 +3,7 @@
 import { ExtensionContext, Range, TextDocumentContentChangeEvent, workspace, WorkspaceEdit } from 'vscode'
 import { Prefix_Tree } from './isabelle_filesystem/prefix_tree'
 import * as library from './library'
+import * as vscode_lib from './vscode_lib'
 import * as symbol from './symbol'
 
 const entries: Record<string, string> = {}
@@ -16,7 +17,7 @@ function register_abbreviations(data: symbol.Entry[], context: ExtensionContext)
     workspace.onDidChangeTextDocument(e =>
     {
       const doc = e.document
-      const mode = library.get_replacement_mode()
+      const mode = vscode_lib.get_replacement_mode()
       if (
         mode === 'none' ||
         doc.languageId !== 'isabelle' ||

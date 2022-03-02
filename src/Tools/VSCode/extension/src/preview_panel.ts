@@ -3,6 +3,7 @@
 import { ExtensionContext, Uri, window, ViewColumn, WebviewPanel } from 'vscode'
 import { LanguageClient } from 'vscode-languageclient/node'
 import * as library from './library'
+import * as vscode_lib from './vscode_lib'
 import * as protocol from './protocol'
 
 
@@ -53,6 +54,6 @@ export function request(uri?: Uri, split: boolean = false)
   if (language_client) {
     language_client.sendNotification(protocol.preview_request_type,
       { uri: document_uri.toString(),
-        column: library.adjacent_editor_column(window.activeTextEditor, split) })
+        column: vscode_lib.adjacent_editor_column(window.activeTextEditor, split) })
   }
 }
