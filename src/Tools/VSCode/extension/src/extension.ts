@@ -1,6 +1,6 @@
 'use strict';
 
-import * as path from 'path'
+import * as platform from './platform'
 import * as library from './library'
 import * as decorations from './decorations'
 import * as preview_panel from './preview_panel'
@@ -34,8 +34,8 @@ export async function activate(context: ExtensionContext)
         .concat(roots.length > 0 && workspace_dir !== undefined ? ["-D", workspace_dir] : [])
 
     const server_options: ServerOptions =
-      library.platform_is_windows() ?
-        { command: library.getenv_strict("CYGWIN_ROOT") + "\\bin\\bash",
+      platform.is_windows() ?
+        { command: library.cygwin_root() + "\\bin\\bash",
           args: ["-l", isabelle_tool, "vscode_server"].concat(isabelle_args) } :
         { command: isabelle_tool,
           args: ["vscode_server"].concat(isabelle_args) }
