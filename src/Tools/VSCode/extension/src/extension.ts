@@ -61,7 +61,7 @@ export async function activate(context: ExtensionContext)
       async (progress) =>
         {
           progress.report({
-            message: "Waiting for Isabelle server..."
+            message: "Waiting for Isabelle language server..."
           })
           await language_client.onReady()
         })
