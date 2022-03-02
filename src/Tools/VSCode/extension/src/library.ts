@@ -51,7 +51,7 @@ export function getenv_strict(name: string): string
 }
 
 
-/* system path representations */
+/* Windows/Cygwin */
 
 export function cygwin_root(): string
 {
@@ -60,6 +60,14 @@ export function cygwin_root(): string
   }
   else { return "" }
 }
+
+export function cygwin_bash(): string
+{
+  return cygwin_root() + "\\bin\\bash"
+}
+
+
+/* system path representations */
 
 function slashes(s: string): string
 {
