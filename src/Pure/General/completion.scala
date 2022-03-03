@@ -370,8 +370,8 @@ final class Completion private(
       Symbol.names.toList.flatMap({ case (sym, (name, argument)) =>
         val word = "\\" + name
         val seps =
-          if (argument == Symbol.ARGUMENT_CARTOUCHE) List("")
-          else if (argument == Symbol.ARGUMENT_SPACE_CARTOUCHE) List(" ")
+          if (argument == Symbol.Argument.cartouche) List("")
+          else if (argument == Symbol.Argument.space_cartouche) List(" ")
           else Nil
         List(sym -> sym, word -> sym) :::
           seps.map(sep => word -> (sym + sep + "\\<open>\u0007\\<close>"))

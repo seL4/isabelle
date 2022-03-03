@@ -295,16 +295,24 @@ object Symbol
 
 
 
-  /** symbol interpretation **/
+  /** defined symbols **/
 
-  val ARGUMENT_CARTOUCHE = "cartouche"
-  val ARGUMENT_SPACE_CARTOUCHE = "space_cartouche"
-
-  private lazy val symbols: Interpretation = Interpretation.init()
-
-  private object Interpretation
+  object Argument extends Enumeration
   {
-    def init(): Interpretation =
+    val none, cartouche, space_cartouche = Value
+
+    def unapply(s: String): Option[Value] =
+      try { Some(withName(s)) }
+      catch { case _: NoSuchElementException => None}
+
+    val Prop = new Properties.String("argument")
+  }
+
+  private lazy val symbols: Symbols = Symbols.init()
+
+  private object Symbols
+  {
+    def init(): Symbols =
     {
       val contents =
         for (path <- Path.split(Isabelle_System.getenv("ISABELLE_SYMBOLS")) if path.is_file)
@@ -312,7 +320,7 @@ object Symbol
       make(cat_lines(contents))
     }
 
-    def make(symbols_spec: String): Interpretation =
+    def make(symbols_spec: String): Symbols =
     {
       val No_Decl = new Regex("""(?xs) ^\s* (?: \#.* )? $ """)
       val Key = new Regex("""(?xs) (.+): """)
@@ -347,26 +355,25 @@ object Symbol
               else ((sym, props) :: list, known + sym)
           }._1
 
-      new Interpretation(symbols)
+      new Symbols(symbols)
     }
   }
 
-  private class Interpretation(symbols: List[(Symbol, Properties.T)])
+  private class Symbols(symbols: List[(Symbol, Properties.T)])
   {
     /* basic properties */
 
     val properties: Map[Symbol, Properties.T] = symbols.toMap
 
-    val names: Map[Symbol, (String, String)] =
+    val names: Map[Symbol, (String, Argument.Value)] =
     {
       val Name = new Regex("""\\<\^?([A-Za-z][A-Za-z0-9_']*)>""")
-      val Argument = new Properties.String("argument")
-      def argument(sym: Symbol, props: Properties.T): String =
+      def argument(sym: Symbol, props: Properties.T): Argument.Value =
         props match {
-          case Argument(arg) =>
-            if (arg == ARGUMENT_CARTOUCHE || arg == ARGUMENT_SPACE_CARTOUCHE) arg
-            else error("Bad argument: " + quote(arg) + " for symbol " + quote(sym))
-          case _ => ""
+          case Argument.Prop(arg) =>
+            Argument.unapply(arg) getOrElse
+              error("Bad argument: " + quote(arg) + " for symbol " + quote(sym))
+          case _ => Argument.none
         }
       (for ((sym @ Name(a), props) <- symbols.iterator)
         yield sym -> (a, argument(sym, props))).toMap
@@ -513,7 +520,7 @@ object Symbol
   /* tables */
 
   def properties: Map[Symbol, Properties.T] = symbols.properties
-  def names: Map[Symbol, (String, String)] = symbols.names
+  def names: Map[Symbol, (String, Argument.Value)] = symbols.names
   def groups: List[(String, List[Symbol])] = symbols.groups
   def abbrevs: Multi_Map[Symbol, String] = symbols.abbrevs
   def codes: List[(Symbol, Int)] = symbols.codes
