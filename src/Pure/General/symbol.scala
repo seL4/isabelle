@@ -57,7 +57,7 @@ object Symbol
     is_ascii_letter(c) || is_ascii_digit(c) || is_ascii_quasi(c)
 
   def is_ascii_identifier(s: String): Boolean =
-    s.length > 0 && is_ascii_letter(s(0)) && s.forall(is_ascii_letdig)
+    s.nonEmpty && is_ascii_letter(s(0)) && s.forall(is_ascii_letdig)
 
   def ascii(c: Char): Symbol =
   {
@@ -300,11 +300,11 @@ object Symbol
   val ARGUMENT_CARTOUCHE = "cartouche"
   val ARGUMENT_SPACE_CARTOUCHE = "space_cartouche"
 
-  private lazy val symbols =
+  private lazy val symbols: Interpretation =
   {
     val contents =
       for (path <- Path.split(Isabelle_System.getenv("ISABELLE_SYMBOLS")) if path.is_file)
-        yield (File.read(path))
+        yield File.read(path)
     new Interpretation(cat_lines(contents))
   }
 
@@ -348,7 +348,7 @@ object Symbol
 
     /* basic properties */
 
-    val properties: Map[Symbol, Properties.T] = Map(symbols: _*)
+    val properties: Map[Symbol, Properties.T] = symbols.toMap
 
     val names: Map[Symbol, (String, String)] =
     {
@@ -361,7 +361,8 @@ object Symbol
             else error("Bad argument: " + quote(arg) + " for symbol " + quote(sym))
           case _ => ""
         }
-      Map((for ((sym @ Name(a), props) <- symbols) yield sym -> (a, argument(sym, props))): _*)
+      (for ((sym @ Name(a), props) <- symbols.iterator)
+        yield sym -> (a, argument(sym, props))).toMap
     }
 
     val groups: List[(String, List[Symbol])] =
@@ -412,13 +413,13 @@ object Symbol
     private def recode_set(elems: String*): Set[String] =
     {
       val content = elems.toList
-      Set((content ::: content.map(decode)): _*)
+      (content ::: content.map(decode)).toSet
     }
 
     private def recode_map[A](elems: (String, A)*): Map[String, A] =
     {
       val content = elems.toList
-      Map((content ::: content.map({ case (sym, a) => (decode(sym), a) })): _*)
+      (content ::: content.map({ case (sym, a) => (decode(sym), a) })).toMap
     }
 
 
@@ -428,8 +429,8 @@ object Symbol
     val fonts: Map[Symbol, String] =
       recode_map((for ((sym, Font(font)) <- symbols) yield sym -> font): _*)
 
-    val font_names: List[String] = Set(fonts.toList.map(_._2): _*).toList
-    val font_index: Map[String, Int] = Map((font_names zip font_names.indices.toList): _*)
+    val font_names: List[String] = fonts.iterator.map(_._2).toSet.toList
+    val font_index: Map[String, Int] = (font_names zip font_names.indices.toList).toMap
 
 
     /* classification */
@@ -477,28 +478,28 @@ object Symbol
 
     /* misc symbols */
 
-    val newline_decoded = decode(newline)
-    val comment_decoded = decode(comment)
-    val cancel_decoded = decode(cancel)
-    val latex_decoded = decode(latex)
-    val marker_decoded = decode(marker)
-    val open_decoded = decode(open)
-    val close_decoded = decode(close)
+    val newline_decoded: Symbol = decode(newline)
+    val comment_decoded: Symbol = decode(comment)
+    val cancel_decoded: Symbol = decode(cancel)
+    val latex_decoded: Symbol = decode(latex)
+    val marker_decoded: Symbol = decode(marker)
+    val open_decoded: Symbol = decode(open)
+    val close_decoded: Symbol = decode(close)
 
 
     /* control symbols */
 
     val control_decoded: Set[Symbol] =
-      Set((for ((sym, _) <- symbols if sym.startsWith("\\<^")) yield decode(sym)): _*)
+      (for ((sym, _) <- symbols.iterator if sym.startsWith("\\<^")) yield decode(sym)).toSet
 
-    val sub_decoded = decode(sub)
-    val sup_decoded = decode(sup)
-    val bold_decoded = decode(bold)
-    val emph_decoded = decode(emph)
-    val bsub_decoded = decode(bsub)
-    val esub_decoded = decode(esub)
-    val bsup_decoded = decode(bsup)
-    val esup_decoded = decode(esup)
+    val sub_decoded: Symbol = decode(sub)
+    val sup_decoded: Symbol = decode(sup)
+    val bold_decoded: Symbol = decode(bold)
+    val emph_decoded: Symbol = decode(emph)
+    val bsub_decoded: Symbol = decode(bsub)
+    val esub_decoded: Symbol = decode(esub)
+    val bsup_decoded: Symbol = decode(bsup)
+    val esup_decoded: Symbol = decode(esup)
   }
 
 
