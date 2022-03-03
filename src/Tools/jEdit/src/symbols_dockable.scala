@@ -27,12 +27,12 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
   private val abbrevs_panel = new Abbrevs_Panel
 
   private val abbrevs_refresh_delay =
-    Delay.last(PIDE.options.seconds("editor_update_delay"), gui = true) { abbrevs_panel.refresh }
+    Delay.last(PIDE.options.seconds("editor_update_delay"), gui = true) { abbrevs_panel.refresh() }
 
   private class Abbrev_Component(txt: String, abbrs: List[String]) extends Button
   {
-    def update_font: Unit = { font = GUI.font(size = font_size) }
-    update_font
+    def update_font(): Unit = { font = GUI.font(size = font_size) }
+    update_font()
 
     text = "<html>" + HTML.output(Symbol.decode(txt)) + "</html>"
     action =
@@ -51,7 +51,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
   {
     private var abbrevs: Thy_Header.Abbrevs = Nil
 
-    def refresh: Unit = GUI_Thread.require {
+    def refresh(): Unit = GUI_Thread.require {
       val abbrevs1 = Isabelle.buffer_syntax(view.getBuffer).getOrElse(Outer_Syntax.empty).abbrevs
 
       if (abbrevs != abbrevs1) {
@@ -75,7 +75,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
       }
     }
 
-    refresh
+    refresh()
   }
 
 
@@ -83,7 +83,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
 
   private class Symbol_Component(val symbol: String, is_control: Boolean) extends Button
   {
-    def update_font: Unit =
+    def update_font(): Unit =
     {
       font =
         Symbol.symbols.fonts.get(symbol) match {
@@ -91,7 +91,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
           case Some(font_family) => GUI.font(family = font_family, size = font_size)
         }
     }
-    update_font
+    update_font()
 
     action =
       Action(Symbol.decode(symbol)) {
@@ -122,14 +122,14 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
 
   private class Search_Panel extends BorderPanel {
     val search_field = new TextField(10)
-    val results_panel = Wrap_Panel(Nil, Wrap_Panel.Alignment.Center)
+    val results_panel: Wrap_Panel = Wrap_Panel(Nil, Wrap_Panel.Alignment.Center)
     layout(search_field) = BorderPanel.Position.North
     layout(new ScrollPane(results_panel)) = BorderPanel.Position.Center
 
-    val search_space =
+    private val search_space =
       for (entry <- Symbol.symbols.entries if entry.code.isDefined)
         yield entry.symbol -> Word.lowercase(entry.symbol)
-    val search_delay =
+    val search_delay: Delay =
       Delay.last(PIDE.options.seconds("editor_input_delay"), gui = true) {
         val search_words = Word.explode(Word.lowercase(search_field.text))
         val search_limit = PIDE.options.int("jedit_symbols_search_limit") max 0
@@ -184,7 +184,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
   /* main */
 
   private val edit_bus_handler: EBComponent =
-    new EBComponent { def handleMessage(msg: EBMessage): Unit = abbrevs_refresh_delay.invoke() }
+    (_: EBMessage) => abbrevs_refresh_delay.invoke()
 
   private val main =
     Session.Consumer[Any](getClass.getName) {
@@ -195,8 +195,8 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
             {
               case c0: javax.swing.JComponent =>
                 Component.wrap(c0) match {
-                  case c: Abbrev_Component => c.update_font
-                  case c: Symbol_Component => c.update_font
+                  case c: Abbrev_Component => c.update_font()
+                  case c: Symbol_Component => c.update_font()
                   case _ =>
                 }
               case _ =>
