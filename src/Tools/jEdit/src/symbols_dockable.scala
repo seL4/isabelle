@@ -104,7 +104,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
       }
     tooltip =
       GUI.tooltip_lines(
-        cat_lines(symbol :: Symbol.symbols.abbrevs.get_list(symbol).map(a => "abbrev: " + a)))
+        cat_lines(symbol :: Symbol.symbols.get_abbrevs(symbol).map(a => "abbrev: " + a)))
   }
 
   private class Reset_Component extends Button

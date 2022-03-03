@@ -439,8 +439,8 @@ object Symbol
       } yield entry.symbol -> group)
         .toList.groupBy(_._2).toList.map({ case (g, list) => (g, list.map(_._1)) }).sortBy(_._1)
 
-    val abbrevs: Multi_Map[Symbol, String] =
-      Multi_Map.from(for (entry <- entries; a <- entry.abbrevs.reverse) yield entry.symbol -> a)
+    def get_abbrevs(sym: Symbol): List[String] =
+      get(sym) match { case Some(entry) => entry.abbrevs case _ => Nil }
 
 
     /* recoding */

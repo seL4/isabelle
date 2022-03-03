@@ -320,7 +320,8 @@ object Completion
   /* abbreviations */
 
   private def symbol_abbrevs: Thy_Header.Abbrevs =
-    for ((sym, abbr) <- Symbol.symbols.abbrevs.toList) yield (abbr, sym)
+    for (entry <- Symbol.symbols.entries; abbrev <- entry.abbrevs)
+      yield (abbrev, entry.symbol)
 
   private val antiquote = "@{"
 
