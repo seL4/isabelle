@@ -16,7 +16,7 @@ import * as library from './library'
 
 export function cygwin_root(): string
 {
-  if (platform.is_windows) {
+  if (platform.is_windows()) {
     return library.getenv_strict("CYGWIN_ROOT")
   }
   else { return "" }
@@ -82,7 +82,7 @@ export function platform_path(standard_path: string): string
   var rest = standard_path
   const is_root = standard_path.startsWith("/")
 
-  if (platform.is_windows) {
+  if (platform.is_windows()) {
     const cygdrive_pattern = new RegExp("/cygdrive/([a-zA-Z])($|/.*)")
     const cygdrive_match = standard_path.match(cygdrive_pattern)
 
