@@ -6,8 +6,6 @@ Unicode codepoints vs. Unicode string encoding.
 
 package isabelle
 
-import isabelle.Text.Offset
-
 
 object Codepoint
 {
