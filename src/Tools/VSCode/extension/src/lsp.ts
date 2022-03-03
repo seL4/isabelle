@@ -112,18 +112,7 @@ export const preview_response_type =
   new NotificationType<Preview_Response>("PIDE/preview_response")
 
 
-/* Isabelle symbols */
-
-export interface Symbols
-{
-  entries: [symbol.Entry]
-}
-
-export const symbols_type =
-  new NotificationType<Symbols>("PIDE/symbols")
-
-export const symbols_request_type =
-  new NotificationType<void>("PIDE/symbols_request")
+/* session theories */
 
 export interface Entries<T>
 {
@@ -141,6 +130,7 @@ export const session_theories_type =
 
 export const session_theories_request_type =
   new NotificationType<void>("PIDE/session_theories_request")
+
 
 /* spell checker */
 

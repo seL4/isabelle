@@ -35,11 +35,11 @@ export class Isabelle_Workspace
   public static readonly theory_extension = '.thy'
   public static readonly theory_files_glob = '**/*.thy'
 
-  public static register(context: ExtensionContext): Promise<string|undefined>
+  public static register(context: ExtensionContext, symbols: symbol.Symbols): Promise<string|undefined>
   {
     this.state = new Workspace_State(context)
     
-    const encoder = new Symbol_Encoder(this.state.get(State_Key.symbol_entries) || [])
+    const encoder = new Symbol_Encoder(symbols.entries)
     this.instance = new Isabelle_Workspace()
     this.instance.fs = new Mapping_FSP(Isabelle_Workspace.theory_files_glob, Isabelle_Workspace.scheme, encoder)
 
@@ -69,12 +69,6 @@ export class Isabelle_Workspace
   public get_uri(session: string, rel_path: String): Uri
   {
     return Uri.parse(`${Isabelle_Workspace.scheme}:/${session}/${rel_path}`)
-  }
-
-  public static async update_symbol_encoder(entries: symbol.Entry[])
-  {
-    this.instance.fs.update_symbol_encoder(new Symbol_Encoder(entries))
-    await this.state.set(State_Key.symbol_entries, entries)
   }
 
   public static async update_sessions(sessions: Session_Theories[])
@@ -142,7 +136,7 @@ export class Isabelle_Workspace
   private async setup_workspace(): Promise<string|undefined>
   {
     const { state } = Isabelle_Workspace
-    let { sessions, workspace_dir, symbol_entries } = state.get_setup_data()
+    let { sessions, workspace_dir } = state.get_setup_data()
 
     const workspace_folders = workspace.workspaceFolders || []
     const isabelle_folder = workspace_folders.find(folder =>
@@ -153,10 +147,10 @@ export class Isabelle_Workspace
         { uri: Isabelle_Workspace.instance.get_dir_uri(''), name: Isabelle_Workspace.session_dir })
     }
 
-    if (sessions && workspace_dir && symbol_entries) {
-      await Isabelle_Workspace.update_symbol_encoder(symbol_entries)
+    if (sessions && workspace_dir) {
       await this.load_tree_state(sessions)
-    } else {
+    }
+    else {
       const default_folder = workspace_folders.find(folder => folder.uri.scheme !== Isabelle_Workspace.scheme)
       if (default_folder !== undefined) workspace_dir = default_folder.uri.fsPath
     }

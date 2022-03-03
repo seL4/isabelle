@@ -83,13 +83,6 @@ export class Mapping_FSP implements FileSystemProvider
   }
 
 
-  public async update_symbol_encoder(encoder: Symbol_Encoder): Promise<void>
-  {
-    this.symbol_encoder = encoder
-    await Promise.all(this.file_to_entry.keys().map(file =>
-       this.reload(file, this.file_to_entry.get_to(file))))
-  }
-
   public sync_subscription(): Disposable
   {
     const watcher = workspace.createFileSystemWatcher(this.glob)

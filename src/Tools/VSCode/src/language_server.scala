@@ -485,7 +485,6 @@ class Language_Server(
           case LSP.State_Update(id) => State_Panel.update(id)
           case LSP.State_Auto_Update(id, enabled) => State_Panel.auto_update(id, enabled)
           case LSP.Preview_Request(file, column) => request_preview(file, column)
-          case LSP.Symbols_Request(()) => channel.write(LSP.Symbols())
           case LSP.Session_Theories_Request(()) =>
             channel.write(LSP.Session_Theories(session_theories))
           case _ => if (!LSP.ResponseMessage.is_empty(json)) log("### IGNORED")

@@ -21,6 +21,7 @@ object VSCode_Setup
   def vscode_settings: Path = Path.variable("ISABELLE_VSCODE_SETTINGS")
   def vscode_settings_user: Path = vscode_settings + Path.explode("user-data/User/settings.json")
   def vscode_version: String = Isabelle_System.getenv_strict("ISABELLE_VSCODE_VERSION")
+  def vscode_workspace: Path = Path.variable("ISABELLE_VSCODE_WORKSPACE")
 
   def exe_path(dir: Path): Path = dir + Path.explode("bin/codium")
 
@@ -65,6 +66,27 @@ object VSCode_Setup
         line.replace(checksum1, checksum2)
       }
       else line)
+    }
+  }
+
+
+  /* workspace */
+
+  def init_workspace(dir: Path): Unit =
+  {
+    Isabelle_System.make_directory(dir)
+    Isabelle_System.chmod("700", dir)
+
+    File.change(dir + Path.explode("symbols.json"), init = true) { _ =>
+      JSON.Format(
+        for (entry <- Symbol.symbols.entries; code <- entry.code)
+          yield JSON.Object(
+            "symbol" -> entry.symbol,
+            "name" -> entry.name,
+            "code" -> code,
+            "abbrevs" -> entry.abbrevs
+          )
+      )
     }
   }
 
@@ -117,7 +139,10 @@ exit $?
     }
 
     if (check) {
-      if (install_ok) progress.echo(install_dir.expand.implode)
+      if (install_ok) {
+        init_workspace(vscode_workspace)
+        progress.echo(install_dir.expand.implode)
+      }
       else {
         error("Bad Isabelle/VSCode installation: " + install_dir.expand +
           "\n(use \"isabelle vscode_setup\" for download and installation)")

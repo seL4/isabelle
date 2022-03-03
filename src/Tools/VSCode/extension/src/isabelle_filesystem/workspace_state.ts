@@ -13,14 +13,12 @@ interface Setup_Data
 {
   workspace_dir: string
   sessions: Session_Theories[]
-  symbol_entries: symbol.Entry[]
 }
 
 enum State_Key
 {
   workspace_dir = 'workspace_dir',
-  sessions = 'sessions',
-  symbol_entries = 'symbol_entries'
+  sessions = 'sessions'
 }
 
 class Workspace_State
@@ -31,8 +29,7 @@ class Workspace_State
   {
     return {
       workspace_dir: this.get(State_Key.workspace_dir),
-      sessions: this.get<Session_Theories[]>(State_Key.sessions),
-      symbol_entries: this.get<symbol.Entry[]>(State_Key.symbol_entries)
+      sessions: this.get<Session_Theories[]>(State_Key.sessions)
     }
   }
 

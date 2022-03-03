@@ -6,7 +6,7 @@ Isabelle text symbols (see Pure/General/symbol.scala).
 'use strict';
 
 import * as library from './library'
-import { Disposable, DocumentSelector, ExtensionContext, extensions, window } from 'vscode'
+import * as file from './file'
 
 
 /* ASCII characters */
@@ -39,7 +39,7 @@ export function is_ascii_identifier(s: Symbol): boolean
 }
 
 
-/* named symbols */
+/* defined symbols */
 
 export interface Entry
 {
@@ -49,33 +49,40 @@ export interface Entry
   abbrevs: string[]
 }
 
-let symbol_entries: [Entry]
-const names = new Map<Symbol, string>()
-const codes = new Map<Symbol, number>()
-
-export function get_name(sym: Symbol): string | undefined
+export class Symbols
 {
-  return names.get(sym)
-}
+  entries: [Entry]
+  private entries_map: Map<Symbol, Entry>
 
-export function get_code(sym: Symbol): number | undefined
-{
-  return codes.get(sym)
-}
-
-export function get_unicode(sym: Symbol): string
-{
-  const code = get_code(sym)
-  return code ? String.fromCharCode(code) : ""
-}
-
-function update_entries(entries: [Entry])
-{
-  symbol_entries = entries
-  names.clear
-  codes.clear
-  for (const entry of entries) {
-    names.set(entry.symbol, entry.name)
-    codes.set(entry.symbol, entry.code)
+  constructor(entries: [Entry])
+  {
+    this.entries = entries
+    this.entries_map = new Map<Symbol, Entry>()
+    for (const entry of entries) {
+      this.entries_map.set(entry.symbol, entry)
+    }
   }
+
+  public get(sym: Symbol): Entry | undefined
+  {
+    return this.entries_map.get(sym)
+  }
+
+  public defined(sym: Symbol): boolean
+  {
+    return this.entries_map.has(sym)
+  }
+
+  public decode(sym: Symbol): string | undefined
+  {
+    const entry = this.get(sym)
+    const code = entry ? entry.code : undefined
+    return code ? String.fromCharCode(code) : undefined
+  }
+}
+
+export async function load_symbols(path: string): Promise<Symbols>
+{
+  const entries = await file.read_json<[Entry]>(file.platform_path(path))
+  return new Symbols(entries)
 }

@@ -3,6 +3,7 @@
 import * as platform from './platform'
 import * as library from './library'
 import * as file from './file'
+import * as symbol from './symbol'
 import * as vscode_lib from './vscode_lib'
 import * as decorations from './decorations'
 import * as preview_panel from './preview_panel'
@@ -25,7 +26,8 @@ export async function activate(context: ExtensionContext)
   try {
     const isabelle_home = library.getenv_strict("ISABELLE_HOME")
 
-    const workspace_dir = await Isabelle_Workspace.register(context)
+    const symbols = await symbol.load_symbols(library.workspace_path("symbols.json"))
+    const workspace_dir = await Isabelle_Workspace.register(context, symbols)
     const roots = workspace.workspaceFile === undefined ? await workspace.findFiles("{ROOT,ROOTS}") : []
 
     const isabelle_tool = isabelle_home + "/bin/isabelle"
@@ -173,19 +175,7 @@ export async function activate(context: ExtensionContext)
       language_client.onNotification(lsp.session_theories_type,
         async ({entries}) => await Isabelle_Workspace.update_sessions(entries))
 
-      language_client.onNotification(lsp.symbols_type,
-        params =>
-          {
-            //register_abbreviations(params.entries, context)
-            Isabelle_Workspace.update_symbol_encoder(params.entries)
-
-            // request theories to load in isabelle file system
-            // after a valid symbol encoder is loaded
-            language_client.sendNotification(lsp.session_theories_request_type)
-          })
-
-      language_client.sendNotification(lsp.symbols_request_type)
-
+      language_client.sendNotification(lsp.session_theories_request_type)
     })
 
 

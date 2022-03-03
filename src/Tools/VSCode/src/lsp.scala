@@ -624,26 +624,6 @@ object LSP
   }
 
 
-  /* Isabelle symbols */
-
-  object Symbols_Request extends Notification0("PIDE/symbols_request")
-
-  object Symbols
-  {
-    def apply(): JSON.T =
-    {
-      val entries =
-        for (entry <- Symbol.symbols.entries; code <- entry.code)
-        yield JSON.Object(
-          "symbol" -> entry.symbol,
-          "name" -> entry.name,
-          "code" -> code,
-          "abbrevs" -> entry.abbrevs
-        )
-      Notification("PIDE/symbols", JSON.Object("entries" -> entries))
-    }
-  }
-
   /* Session structure */
 
   object Session_Theories_Request extends Notification0("PIDE/session_theories_request")
