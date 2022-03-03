@@ -126,7 +126,9 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
     layout(search_field) = BorderPanel.Position.North
     layout(new ScrollPane(results_panel)) = BorderPanel.Position.Center
 
-    val search_space = for ((sym, _) <- Symbol.symbols.codes) yield (sym, Word.lowercase(sym))
+    val search_space =
+      for (entry <- Symbol.symbols.entries if entry.code.isDefined)
+        yield entry.symbol -> Word.lowercase(entry.symbol)
     val search_delay =
       Delay.last(PIDE.options.seconds("editor_input_delay"), gui = true) {
         val search_words = Word.explode(Word.lowercase(search_field.text))

@@ -633,12 +633,12 @@ object LSP
     def apply(): JSON.T =
     {
       val entries =
-        for ((sym, code) <- Symbol.symbols.codes)
+        for (entry <- Symbol.symbols.entries; code <- entry.code)
         yield JSON.Object(
-          "symbol" -> sym,
-          "name" -> Symbol.symbols.names(sym)._1,
+          "symbol" -> entry.symbol,
+          "name" -> entry.name,
           "code" -> code,
-          "abbrevs" -> Symbol.symbols.abbrevs.get_list(sym)
+          "abbrevs" -> entry.abbrevs
         )
       Notification("PIDE/symbols", JSON.Object("entries" -> entries))
     }

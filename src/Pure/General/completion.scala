@@ -346,7 +346,7 @@ final class Completion private(
 {
   /* keywords */
 
-  private def is_symbol(name: String): Boolean = Symbol.symbols.names.isDefinedAt(name)
+  private def is_symbol(name: String): Boolean = Symbol.symbols.defined(name)
   private def is_keyword(name: String): Boolean = !is_symbol(name) && keywords(name)
   private def is_keyword_template(name: String, template: Boolean): Boolean =
     is_keyword(name) && (words_map.getOrElse(name, name) != name) == template
@@ -367,12 +367,16 @@ final class Completion private(
   def add_symbols: Completion =
   {
     val words =
-      Symbol.symbols.names.toList.flatMap({ case (sym, (name, argument)) =>
-        val word = "\\" + name
+      Symbol.symbols.entries.flatMap(entry =>
+      {
+        val sym = entry.symbol
+        val word = "\\" + entry.name
         val seps =
-          if (argument == Symbol.Argument.cartouche) List("")
-          else if (argument == Symbol.Argument.space_cartouche) List(" ")
-          else Nil
+          entry.argument match {
+            case Symbol.Argument.none => Nil
+            case Symbol.Argument.cartouche => List("")
+            case Symbol.Argument.space_cartouche => List(" ")
+          }
         List(sym -> sym, word -> sym) :::
           seps.map(sep => word -> (sym + sep + "\\<open>\u0007\\<close>"))
       })

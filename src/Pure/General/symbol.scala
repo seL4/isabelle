@@ -304,8 +304,64 @@ object Symbol
     def unapply(s: String): Option[Value] =
       try { Some(withName(s)) }
       catch { case _: NoSuchElementException => None}
+  }
 
-    val Prop = new Properties.String("argument")
+  object Entry
+  {
+    private val Name = new Regex("""\\<\^?([A-Za-z][A-Za-z0-9_']*)>""")
+    private val Argument = new Properties.String("argument")
+    private val Abbrev = new Properties.String("abbrev")
+    private val Code = new Properties.String("code")
+    private val Font = new Properties.String("font")
+    private val Group = new Properties.String("group")
+
+    def apply(symbol: Symbol, props: Properties.T): Entry =
+    {
+      def err(msg: String): Nothing = error(msg + " for symbol " + quote(symbol))
+
+      val name =
+        symbol match { case Name(a) => a case _ => err("Cannot determine name") }
+
+      val argument =
+        props match {
+          case Argument(arg) =>
+            Symbol.Argument.unapply(arg) getOrElse
+              error("Bad argument: " + quote(arg) + " for symbol " + quote(symbol))
+          case _ => Symbol.Argument.none
+        }
+
+      val code =
+        props match {
+          case Code(s) =>
+            try {
+              val code = Integer.decode(s).intValue
+              if (code >= 128) Some(code) else err("Illegal ASCII code")
+            }
+            catch { case _: NumberFormatException => err("Bad code") }
+          case _ => None
+        }
+
+      val groups = proper_list(for ((Group.name, a) <- props) yield a).getOrElse(List("unsorted"))
+
+      val abbrevs = for ((Abbrev.name, a) <- props) yield a
+
+      new Entry(symbol, name, argument, code, Font.unapply(props), groups, abbrevs)
+    }
+  }
+
+  class Entry private(
+    val symbol: Symbol,
+    val name: String,
+    val argument: Symbol.Argument.Value,
+    val code: Option[Int],
+    val font: Option[String],
+    val groups: List[String],
+    val abbrevs: List[String])
+  {
+    override def toString: String = symbol
+
+    val decode: Option[String] =
+      code.map(c => new String(Character.toChars(c)))
   }
 
   lazy val symbols: Symbols = Symbols.load()
@@ -345,82 +401,46 @@ object Symbol
         }
       }
 
-      val symbols: List[(Symbol, Properties.T)] =
+      new Symbols(
         split_lines(symbols_spec).reverse.
-          foldLeft((List.empty[(Symbol, Properties.T)], Set.empty[Symbol])) {
+          foldLeft((List.empty[Entry], Set.empty[Symbol])) {
             case (res, No_Decl()) => res
             case ((list, known), decl) =>
               val (sym, props) = read_decl(decl)
               if (known(sym)) (list, known)
-              else ((sym, props) :: list, known + sym)
-          }._1
-
-      new Symbols(symbols)
+              else (Entry(sym, props) :: list, known + sym)
+          }._1)
     }
   }
 
-  class Symbols(symbols: List[(Symbol, Properties.T)])
+  class Symbols(val entries: List[Entry])
   {
+    override def toString: String = entries.mkString("Symbols(", ", ", ")")
+
+
     /* basic properties */
 
-    val properties: Map[Symbol, Properties.T] = symbols.toMap
+    private val entries_map: Map[Symbol, Entry] =
+      (for (entry <- entries.iterator) yield entry.symbol -> entry).toMap
 
-    val names: Map[Symbol, (String, Argument.Value)] =
-    {
-      val Name = new Regex("""\\<\^?([A-Za-z][A-Za-z0-9_']*)>""")
-      def argument(sym: Symbol, props: Properties.T): Argument.Value =
-        props match {
-          case Argument.Prop(arg) =>
-            Argument.unapply(arg) getOrElse
-              error("Bad argument: " + quote(arg) + " for symbol " + quote(sym))
-          case _ => Argument.none
-        }
-      (for ((sym @ Name(a), props) <- symbols.iterator)
-        yield sym -> (a, argument(sym, props))).toMap
-    }
+    def get(sym: Symbol): Option[Entry] = entries_map.get(sym)
+    def defined(sym: Symbol): Boolean = entries_map.isDefinedAt(sym)
 
-    val groups: List[(String, List[Symbol])] =
-      symbols.flatMap({ case (sym, props) =>
-        val gs = for (("group", g) <- props) yield g
-        if (gs.isEmpty) List(sym -> "unsorted") else gs.map(sym -> _)
-      }).groupBy(_._2).toList.map({ case (group, list) => (group, list.map(_._1)) })
-        .sortBy(_._1)
+    def defined_code(sym: Symbol): Boolean =
+      get(sym) match { case Some(entry) => entry.code.isDefined case _ => false }
 
-    def groups_code: List[(String, List[Symbol])] =
-    {
-      val has_code = codes.iterator.map(_._1).toSet
-      groups.flatMap({ case (group, symbols) =>
-        val symbols1 = symbols.filter(has_code)
-        if (symbols1.isEmpty) None else Some((group, symbols1))
-      })
-    }
+    val code_defined: Int => Boolean =
+      (for (entry <- entries.iterator; code <- entry.code) yield code).toSet
+
+    val groups_code: List[(String, List[Symbol])] =
+      (for {
+        entry <- entries.iterator if entry.code.isDefined
+        group <- entry.groups.iterator
+      } yield entry.symbol -> group)
+        .toList.groupBy(_._2).toList.map({ case (g, list) => (g, list.map(_._1)) }).sortBy(_._1)
 
     val abbrevs: Multi_Map[Symbol, String] =
-      Multi_Map((
-        for {
-          (sym, props) <- symbols
-          ("abbrev", a) <- props.reverse
-        } yield sym -> a): _*)
-
-    val codes: List[(Symbol, Int)] =
-    {
-      val Code = new Properties.String("code")
-      for {
-        (sym, props) <- symbols
-        code <-
-          props match {
-            case Code(s) =>
-              try { Some(Integer.decode(s).intValue) }
-              catch { case _: NumberFormatException => error("Bad code for symbol " + sym) }
-            case _ => None
-          }
-      } yield {
-        if (code < 128) error("Illegal ASCII code for symbol " + sym)
-        else (sym, code)
-      }
-    }
-
-    lazy val is_code: Int => Boolean = codes.map(_._2).toSet
+      Multi_Map((for (entry <- entries; a <- entry.abbrevs.reverse) yield entry.symbol -> a): _*)
 
 
     /* recoding */
@@ -428,7 +448,7 @@ object Symbol
     private val (decoder, encoder) =
     {
       val mapping =
-        for ((sym, code) <- codes) yield (sym, new String(Character.toChars(code)))
+        for (entry <- entries; s <- entry.decode) yield entry.symbol -> s
       (new Recoder(mapping), new Recoder(for ((x, y) <- mapping) yield (y, x)))
     }
 
@@ -450,9 +470,8 @@ object Symbol
 
     /* user fonts */
 
-    private val Font = new Properties.String("font")
     val fonts: Map[Symbol, String] =
-      recode_map((for ((sym, Font(font)) <- symbols) yield sym -> font): _*)
+      recode_map((for (entry <- entries; font <- entry.font) yield entry.symbol -> font): _*)
 
     val font_names: List[String] = fonts.iterator.map(_._2).toSet.toList
     val font_index: Map[String, Int] = (font_names zip font_names.indices.toList).toMap
@@ -500,7 +519,8 @@ object Symbol
     val sym_chars =
       Set("!", "#", "$", "%", "&", "*", "+", "-", "/", "<", "=", ">", "?", "@", "^", "_", "|", "~")
 
-    val symbolic: Set[String] = recode_set((for {(sym, _) <- symbols; if raw_symbolic(sym)} yield sym): _*)
+    val symbolic: Set[String] =
+      recode_set((for (entry <- entries if raw_symbolic(entry.symbol)) yield entry.symbol): _*)
 
 
     /* misc symbols */
@@ -517,7 +537,8 @@ object Symbol
     /* control symbols */
 
     val control_decoded: Set[Symbol] =
-      (for ((sym, _) <- symbols.iterator if sym.startsWith("\\<^")) yield decode(sym)).toSet
+      (for (entry <- entries.iterator if entry.symbol.startsWith("\\<^"); s <- entry.decode)
+        yield s).toSet
 
     val sub_decoded: Symbol = decode(sub)
     val sup_decoded: Symbol = decode(sup)
