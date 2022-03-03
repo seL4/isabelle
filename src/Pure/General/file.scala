@@ -247,7 +247,7 @@ object File
 
   def change(path: Path, init: Boolean = false)(f: String => String): Unit =
   {
-    if (init) append(path, "")
+    if (!path.is_file && init) write(path, "")
     val x = read(path)
     val y = f(x)
     if (x != y) write(path, y)
