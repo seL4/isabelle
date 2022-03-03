@@ -128,19 +128,17 @@ object Build_PolyML
     /* polyc: directory prefix */
 
     val Header = "#! */bin/sh".r
-    File.change(platform_dir + Path.explode("polyc")) { text =>
-      split_lines(text) match {
-        case Header() :: lines =>
-          val lines1 =
-            lines.map(line =>
-              if (line.startsWith("prefix=")) "prefix=\"$(cd \"$(dirname \"$0\")\"; pwd)\""
-              else if (line.startsWith("BINDIR=")) "BINDIR=\"$prefix\""
-              else if (line.startsWith("LIBDIR=")) "LIBDIR=\"$prefix\""
-              else line)
-          cat_lines("#!/usr/bin/env bash" :: lines1)
-        case lines =>
-          error(cat_lines("Cannot patch polyc -- undetected header:" :: lines.take(3)))
-      }
+    File.change_lines(platform_dir + Path.explode("polyc")) {
+      case Header() :: lines =>
+        val lines1 =
+          lines.map(line =>
+            if (line.startsWith("prefix=")) "prefix=\"$(cd \"$(dirname \"$0\")\"; pwd)\""
+            else if (line.startsWith("BINDIR=")) "BINDIR=\"$prefix\""
+            else if (line.startsWith("LIBDIR=")) "LIBDIR=\"$prefix\""
+            else line)
+        "#!/usr/bin/env bash" :: lines1
+      case lines =>
+        error(cat_lines("Cannot patch polyc -- undetected header:" :: lines.take(3)))
     }
   }
 

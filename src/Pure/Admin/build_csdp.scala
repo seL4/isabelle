@@ -30,9 +30,7 @@ object Build_CSDP
     {
       def change_line(line: String, p: (String, String)): String =
         line.replaceAll(p._1 + "=.*", Properties.Eq(p))
-      File.change(path) { s =>
-        split_lines(s).map(line => changed.foldLeft(line)(change_line)).mkString("\n")
-      }
+      File.change_lines(path) { _.map(line => changed.foldLeft(line)(change_line)) }
     }
   }
 

@@ -60,13 +60,11 @@ object VSCode_Setup
     val checksum2 = file_checksum(workbench_css)
 
     val file_name = workbench_css.file_name
-    File.change(dir + Path.explode("app/product.json")) { text =>
-      cat_lines(split_lines(text).map(line =>
-        if (line.containsSlice(file_name) && line.contains(checksum1)) {
-          line.replace(checksum1, checksum2)
-        }
-        else line
-      ))
+    File.change_lines(dir + Path.explode("app/product.json")) { _.map(line =>
+      if (line.containsSlice(file_name) && line.contains(checksum1)) {
+        line.replace(checksum1, checksum2)
+      }
+      else line)
     }
   }
 
