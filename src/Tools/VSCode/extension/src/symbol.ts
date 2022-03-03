@@ -83,6 +83,6 @@ export class Symbols
 
 export async function load_symbols(path: string): Promise<Symbols>
 {
-  const entries = await file.read_json<[Entry]>(file.platform_path(path))
+  const entries = await file.read_json<[Entry]>(path)
   return new Symbols(entries)
 }

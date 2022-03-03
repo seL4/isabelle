@@ -61,6 +61,8 @@ export function standard_path(platform_path: string): string
 }
 
 
+/* platform path (Windows or Posix) */
+
 export function platform_path(standard_path: string): string
 {
   var _result = []
@@ -133,7 +135,7 @@ export function platform_path(standard_path: string): string
 
 export async function read_bytes(path: string): Promise<Buffer>
 {
-    return fs.readFile(path)
+    return fs.readFile(platform_path(path))
 }
 
 export async function read(path: string): Promise<string>
