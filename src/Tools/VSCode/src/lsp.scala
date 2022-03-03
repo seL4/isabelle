@@ -306,7 +306,7 @@ object LSP
   {
     def unapply_change(json: JSON.T): Option[TextDocumentChange] =
       for { text <- JSON.string(json, "text") }
-      yield TextDocumentChange(JSON.value(json, "range", Range.unapply _), text)
+      yield TextDocumentChange(JSON.value(json, "range", Range.unapply), text)
 
     def unapply(json: JSON.T): Option[(JFile, Long, List[TextDocumentChange])] =
       json match {
@@ -316,7 +316,7 @@ object LSP
             uri <- JSON.string(doc, "uri")
             if Url.is_wellformed_file(uri)
             version <- JSON.long(doc, "version")
-            changes <- JSON.list(params, "contentChanges", unapply_change _)
+            changes <- JSON.list(params, "contentChanges", unapply_change)
           } yield (Url.absolute_file(uri), version, changes)
         case _ => None
       }
@@ -444,7 +444,7 @@ object LSP
   object GotoDefinition extends RequestTextDocumentPosition("textDocument/definition")
   {
     def reply(id: Id, result: List[Line.Node_Range]): JSON.T =
-      ResponseMessage(id, Some(result.map(Location.apply(_))))
+      ResponseMessage(id, Some(result.map(Location.apply)))
   }
 
 
