@@ -300,52 +300,59 @@ object Symbol
   val ARGUMENT_CARTOUCHE = "cartouche"
   val ARGUMENT_SPACE_CARTOUCHE = "space_cartouche"
 
-  private lazy val symbols: Interpretation =
+  private lazy val symbols: Interpretation = Interpretation.init()
+
+  private object Interpretation
   {
-    val contents =
-      for (path <- Path.split(Isabelle_System.getenv("ISABELLE_SYMBOLS")) if path.is_file)
-        yield File.read(path)
-    new Interpretation(cat_lines(contents))
-  }
-
-  private class Interpretation(symbols_spec: String)
-  {
-    /* read symbols */
-
-    private val No_Decl = new Regex("""(?xs) ^\s* (?: \#.* )? $ """)
-    private val Key = new Regex("""(?xs) (.+): """)
-
-    private def read_decl(decl: String): (Symbol, Properties.T) =
+    def init(): Interpretation =
     {
-      def err() = error("Bad symbol declaration: " + decl)
+      val contents =
+        for (path <- Path.split(Isabelle_System.getenv("ISABELLE_SYMBOLS")) if path.is_file)
+          yield File.read(path)
+      make(cat_lines(contents))
+    }
 
-      def read_props(props: List[String]): Properties.T =
+    def make(symbols_spec: String): Interpretation =
+    {
+      val No_Decl = new Regex("""(?xs) ^\s* (?: \#.* )? $ """)
+      val Key = new Regex("""(?xs) (.+): """)
+
+      def read_decl(decl: String): (Symbol, Properties.T) =
       {
-        props match {
-          case Nil => Nil
-          case _ :: Nil => err()
-          case Key(x) :: y :: rest => (x -> y.replace('\u2423', ' ')) :: read_props(rest)
+        def err() = error("Bad symbol declaration: " + decl)
+
+        def read_props(props: List[String]): Properties.T =
+        {
+          props match {
+            case Nil => Nil
+            case _ :: Nil => err()
+            case Key(x) :: y :: rest => (x -> y.replace('\u2423', ' ')) :: read_props(rest)
+            case _ => err()
+          }
+        }
+        decl.split("\\s+").toList match {
+          case sym :: props if sym.length > 1 && !is_malformed(sym) =>
+            (sym, read_props(props))
           case _ => err()
         }
       }
-      decl.split("\\s+").toList match {
-        case sym :: props if sym.length > 1 && !is_malformed(sym) =>
-          (sym, read_props(props))
-        case _ => err()
-      }
+
+      val symbols: List[(Symbol, Properties.T)] =
+        split_lines(symbols_spec).reverse.
+          foldLeft((List.empty[(Symbol, Properties.T)], Set.empty[Symbol])) {
+            case (res, No_Decl()) => res
+            case ((list, known), decl) =>
+              val (sym, props) = read_decl(decl)
+              if (known(sym)) (list, known)
+              else ((sym, props) :: list, known + sym)
+          }._1
+
+      new Interpretation(symbols)
     }
+  }
 
-    private val symbols: List[(Symbol, Properties.T)] =
-      split_lines(symbols_spec).reverse.
-        foldLeft((List.empty[(Symbol, Properties.T)], Set.empty[Symbol])) {
-          case (res, No_Decl()) => res
-          case ((list, known), decl) =>
-            val (sym, props) = read_decl(decl)
-            if (known(sym)) (list, known)
-            else ((sym, props) :: list, known + sym)
-        }._1
-
-
+  private class Interpretation(symbols: List[(Symbol, Properties.T)])
+  {
     /* basic properties */
 
     val properties: Map[Symbol, Properties.T] = symbols.toMap
