@@ -77,8 +77,9 @@ object Build_Minisat
       Isabelle_System.copy_file(build_dir + Path.explode("LICENSE"), component_dir)
 
       if (Platform.is_macos) {
-        File.change(build_dir + Path.explode("Makefile"),
-          _.replaceAll("--static", "").replaceAll("-Wl,-soname\\S+", ""))
+        File.change(build_dir + Path.explode("Makefile")) {
+          _.replaceAll("--static", "").replaceAll("-Wl,-soname\\S+", "")
+        }
       }
       progress.bash("make r", build_dir.file, echo = verbose).check
 

@@ -612,16 +612,18 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
         platform match {
           case Platform.Family.linux_arm | Platform.Family.linux =>
-            File.change(isabelle_target + jedit_options,
-              _.replaceAll("jedit_reset_font_size : int =.*", "jedit_reset_font_size : int = 24"))
+            File.change(isabelle_target + jedit_options) {
+              _.replaceAll("jedit_reset_font_size : int =.*", "jedit_reset_font_size : int = 24")
+            }
 
-            File.change(isabelle_target + jedit_props,
+            File.change(isabelle_target + jedit_props) {
               _.replaceAll("console.fontsize=.*", "console.fontsize=18")
                .replaceAll("helpviewer.fontsize=.*", "helpviewer.fontsize=18")
                .replaceAll("metal.primary.fontsize=.*", "metal.primary.fontsize=18")
                .replaceAll("metal.secondary.fontsize=.*", "metal.secondary.fontsize=18")
                .replaceAll("view.fontsize=.*", "view.fontsize=24")
-               .replaceAll("view.gutter.fontsize=.*", "view.gutter.fontsize=16"))
+               .replaceAll("view.gutter.fontsize=.*", "view.gutter.fontsize=16")
+            }
 
             make_isabelle_options(
               isabelle_target + Path.explode("Isabelle.options"), java_options)
@@ -635,9 +637,10 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
 
           case Platform.Family.macos =>
-            File.change(isabelle_target + jedit_props,
+            File.change(isabelle_target + jedit_props) {
               _.replaceAll("delete-line.shortcut=.*", "delete-line.shortcut=C+d")
-               .replaceAll("delete.shortcut2=.*", "delete.shortcut2=A+d"))
+               .replaceAll("delete.shortcut2=.*", "delete.shortcut2=A+d")
+            }
 
 
             // macOS application bundle
@@ -675,8 +678,9 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
 
           case Platform.Family.windows =>
-            File.change(isabelle_target + jedit_props,
-              _.replaceAll("foldPainter=.*", "foldPainter=Square"))
+            File.change(isabelle_target + jedit_props) {
+              _.replaceAll("foldPainter=.*", "foldPainter=Square")
+            }
 
 
             // application launcher

@@ -425,32 +425,32 @@ xml-insert-closing-tag.shortcut=
 
     Mode.list.foreach(_.write(modes_dir))
 
-    File.change_lines(modes_dir + Path.basic("catalog"),
-      _.flatMap(line =>
-          if (line.containsSlice("FILE=\"ml.xml\"") ||
-            line.containsSlice("FILE_NAME_GLOB=\"*.{sml,ml}\"") ||
-            line.containsSlice("FILE_NAME_GLOB=\"*.ftl\"")) Nil
-          else if (line.containsSlice("NAME=\"jamon\"")) {
-            List(
-              """<MODE NAME="isabelle" FILE="isabelle.xml" FILE_NAME_GLOB="{*.thy,ROOT0.ML,ROOT.ML}"/>""",
-              "",
-              """<MODE NAME="isabelle-ml" FILE="isabelle-ml.xml" FILE_NAME_GLOB="*.ML"/>""",
-              "",
-              """<MODE NAME="isabelle-news" FILE="isabelle-news.xml"/>""",
-              "",
-              """<MODE NAME="isabelle-options" FILE="isabelle-options.xml"/>""",
-              "",
-              """<MODE NAME="isabelle-root" FILE="isabelle-root.xml" FILE_NAME_GLOB="ROOT"/>""",
-              "",
-              line)
-          }
-          else if (line.containsSlice("NAME=\"sqr\"")) {
-            List(
-              """<MODE NAME="sml" FILE="sml.xml" FILE_NAME_GLOB="*.{sml,sig}"/>""",
-              "",
-              line)
-          }
-          else List(line)))
+    File.change_lines(modes_dir + Path.basic("catalog")) { _.flatMap(line =>
+      if (line.containsSlice("FILE=\"ml.xml\"") ||
+        line.containsSlice("FILE_NAME_GLOB=\"*.{sml,ml}\"") ||
+        line.containsSlice("FILE_NAME_GLOB=\"*.ftl\"")) Nil
+      else if (line.containsSlice("NAME=\"jamon\"")) {
+        List(
+          """<MODE NAME="isabelle" FILE="isabelle.xml" FILE_NAME_GLOB="{*.thy,ROOT0.ML,ROOT.ML}"/>""",
+          "",
+          """<MODE NAME="isabelle-ml" FILE="isabelle-ml.xml" FILE_NAME_GLOB="*.ML"/>""",
+          "",
+          """<MODE NAME="isabelle-news" FILE="isabelle-news.xml"/>""",
+          "",
+          """<MODE NAME="isabelle-options" FILE="isabelle-options.xml"/>""",
+          "",
+          """<MODE NAME="isabelle-root" FILE="isabelle-root.xml" FILE_NAME_GLOB="ROOT"/>""",
+          "",
+          line)
+      }
+      else if (line.containsSlice("NAME=\"sqr\"")) {
+        List(
+          """<MODE NAME="sml" FILE="sml.xml" FILE_NAME_GLOB="*.{sml,sig}"/>""",
+          "",
+          line)
+      }
+      else List(line))
+    }
 
 
     /* doc */

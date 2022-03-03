@@ -82,9 +82,10 @@ object Build_SPASS
       val build_dir = tmp_dir + Path.basic(archive_base_name)
 
       if (Platform.is_windows) {
-        File.change(build_dir + Path.basic("misc.c"),
+        File.change(build_dir + Path.basic("misc.c")) {
           _.replace("""#include "execinfo.h" """, "")
-           .replaceAll("""void misc_DumpCore\(void\)[^}]+}""", "void misc_DumpCore(void) { abort(); }"))
+           .replaceAll("""void misc_DumpCore\(void\)[^}]+}""", "void misc_DumpCore(void) { abort(); }")
+        }
       }
 
       Isabelle_System.bash("make",
