@@ -234,24 +234,6 @@ object File
   }
 
 
-  /* change */
-
-  def change(file: JFile)(f: String => String): Unit =
-  {
-    val x = read(file)
-    val y = f(x)
-    if (x != y) write(file, y)
-  }
-
-  def change(path: Path)(f: String => String): Unit = change(path.file)(f)
-
-  def change_lines(file: JFile)(f: List[String] => List[String]): Unit =
-    change(file)(text => cat_lines(f(split_lines(text))))
-
-  def change_lines(path: Path)(f: List[String] => List[String]): Unit =
-    change_lines(path.file)(f)
-
-
   /* append */
 
   def append(file: JFile, text: String): Unit =
@@ -259,6 +241,20 @@ object File
       StandardOpenOption.APPEND, StandardOpenOption.CREATE)
 
   def append(path: Path, text: String): Unit = append(path.file, text)
+
+
+  /* change */
+
+  def change(path: Path, init: Boolean = false)(f: String => String): Unit =
+  {
+    if (init) append(path, "")
+    val x = read(path)
+    val y = f(x)
+    if (x != y) write(path, y)
+  }
+
+  def change_lines(path: Path, init: Boolean = false)(f: List[String] => List[String]): Unit =
+    change(path, init = init)(text => cat_lines(f(split_lines(text))))
 
 
   /* eq */
