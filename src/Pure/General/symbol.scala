@@ -308,11 +308,11 @@ object Symbol
     val Prop = new Properties.String("argument")
   }
 
-  private lazy val symbols: Symbols = Symbols.init()
+  lazy val symbols: Symbols = Symbols.load()
 
-  private object Symbols
+  object Symbols
   {
-    def init(): Symbols =
+    def load(): Symbols =
     {
       val contents =
         for (path <- Path.split(Isabelle_System.getenv("ISABELLE_SYMBOLS")) if path.is_file)
@@ -359,7 +359,7 @@ object Symbol
     }
   }
 
-  private class Symbols(symbols: List[(Symbol, Properties.T)])
+  class Symbols(symbols: List[(Symbol, Properties.T)])
   {
     /* basic properties */
 
@@ -386,6 +386,15 @@ object Symbol
       }).groupBy(_._2).toList.map({ case (group, list) => (group, list.map(_._1)) })
         .sortBy(_._1)
 
+    def groups_code: List[(String, List[Symbol])] =
+    {
+      val has_code = codes.iterator.map(_._1).toSet
+      groups.flatMap({ case (group, symbols) =>
+        val symbols1 = symbols.filter(has_code)
+        if (symbols1.isEmpty) None else Some((group, symbols1))
+      })
+    }
+
     val abbrevs: Multi_Map[Symbol, String] =
       Multi_Map((
         for {
@@ -410,6 +419,8 @@ object Symbol
         else (sym, code)
       }
     }
+
+    lazy val is_code: Int => Boolean = codes.map(_._2).toSet
 
 
     /* recoding */
@@ -445,6 +456,8 @@ object Symbol
 
     val font_names: List[String] = fonts.iterator.map(_._2).toSet.toList
     val font_index: Map[String, Int] = (font_names zip font_names.indices.toList).toMap
+
+    def lookup_font(sym: Symbol): Option[Int] = fonts.get(sym).map(font_index(_))
 
 
     /* classification */
@@ -519,21 +532,6 @@ object Symbol
 
   /* tables */
 
-  def properties: Map[Symbol, Properties.T] = symbols.properties
-  def names: Map[Symbol, (String, Argument.Value)] = symbols.names
-  def groups: List[(String, List[Symbol])] = symbols.groups
-  def abbrevs: Multi_Map[Symbol, String] = symbols.abbrevs
-  def codes: List[(Symbol, Int)] = symbols.codes
-  def groups_code: List[(String, List[Symbol])] =
-  {
-    val has_code = codes.iterator.map(_._1).toSet
-    groups.flatMap({ case (group, symbols) =>
-      val symbols1 = symbols.filter(has_code)
-      if (symbols1.isEmpty) None else Some((group, symbols1))
-    })
-  }
-
-  lazy val is_code: Int => Boolean = codes.map(_._2).toSet
   def decode(text: String): String = symbols.decode(text)
   def encode(text: String): String = symbols.encode(text)
 
@@ -559,11 +557,6 @@ object Symbol
 
   def output(unicode_symbols: Boolean, text: String): String =
     if (unicode_symbols) Symbol.decode(text) else Symbol.encode(text)
-
-  def fonts: Map[Symbol, String] = symbols.fonts
-  def font_names: List[String] = symbols.font_names
-  def font_index: Map[String, Int] = symbols.font_index
-  def lookup_font(sym: Symbol): Option[Int] = symbols.fonts.get(sym).map(font_index(_))
 
 
   /* classification */

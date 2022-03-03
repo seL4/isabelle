@@ -86,7 +86,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
     def update_font: Unit =
     {
       font =
-        Symbol.fonts.get(symbol) match {
+        Symbol.symbols.fonts.get(symbol) match {
           case None => GUI.font(size = font_size)
           case Some(font_family) => GUI.font(family = font_family, size = font_size)
         }
@@ -104,7 +104,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
       }
     tooltip =
       GUI.tooltip_lines(
-        cat_lines(symbol :: Symbol.abbrevs.get_list(symbol).map(a => "abbrev: " + a)))
+        cat_lines(symbol :: Symbol.symbols.abbrevs.get_list(symbol).map(a => "abbrev: " + a)))
   }
 
   private class Reset_Component extends Button
@@ -126,7 +126,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
     layout(search_field) = BorderPanel.Position.North
     layout(new ScrollPane(results_panel)) = BorderPanel.Position.Center
 
-    val search_space = for ((sym, _) <- Symbol.codes) yield (sym, Word.lowercase(sym))
+    val search_space = for ((sym, _) <- Symbol.symbols.codes) yield (sym, Word.lowercase(sym))
     val search_delay =
       Delay.last(PIDE.options.seconds("editor_input_delay"), gui = true) {
         val search_words = Word.explode(Word.lowercase(search_field.text))
@@ -153,7 +153,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
     pages += new TabbedPane.Page("abbrevs", abbrevs_panel)
 
     pages ++=
-      Symbol.groups_code.map({ case (group, symbols) =>
+      Symbol.symbols.groups_code.map({ case (group, symbols) =>
         val control = group == "control"
         new TabbedPane.Page(group,
           new ScrollPane(Wrap_Panel(

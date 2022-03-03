@@ -320,7 +320,7 @@ object Completion
   /* abbreviations */
 
   private def symbol_abbrevs: Thy_Header.Abbrevs =
-    for ((sym, abbr) <- Symbol.abbrevs.toList) yield (abbr, sym)
+    for ((sym, abbr) <- Symbol.symbols.abbrevs.toList) yield (abbr, sym)
 
   private val antiquote = "@{"
 
@@ -346,7 +346,7 @@ final class Completion private(
 {
   /* keywords */
 
-  private def is_symbol(name: String): Boolean = Symbol.names.isDefinedAt(name)
+  private def is_symbol(name: String): Boolean = Symbol.symbols.names.isDefinedAt(name)
   private def is_keyword(name: String): Boolean = !is_symbol(name) && keywords(name)
   private def is_keyword_template(name: String, template: Boolean): Boolean =
     is_keyword(name) && (words_map.getOrElse(name, name) != name) == template
@@ -367,7 +367,7 @@ final class Completion private(
   def add_symbols: Completion =
   {
     val words =
-      Symbol.names.toList.flatMap({ case (sym, (name, argument)) =>
+      Symbol.symbols.names.toList.flatMap({ case (sym, (name, argument)) =>
         val word = "\\" + name
         val seps =
           if (argument == Symbol.Argument.cartouche) List("")

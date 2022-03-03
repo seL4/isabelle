@@ -161,7 +161,7 @@ object LSP
         "completionProvider" -> JSON.Object(
           "resolveProvider" -> false,
           "triggerCharacters" ->
-            Symbol.abbrevs.values.flatMap(_.iterator).map(_.toString).toList.distinct
+            Symbol.symbols.abbrevs.values.flatMap(_.iterator).map(_.toString).toList.distinct
         ),
         "hoverProvider" -> true,
         "definitionProvider" -> true,
@@ -633,12 +633,12 @@ object LSP
     def apply(): JSON.T =
     {
       val entries =
-        for ((sym, code) <- Symbol.codes)
+        for ((sym, code) <- Symbol.symbols.codes)
         yield JSON.Object(
           "symbol" -> sym,
-          "name" -> Symbol.names(sym)._1,
+          "name" -> Symbol.symbols.names(sym)._1,
           "code" -> code,
-          "abbrevs" -> Symbol.abbrevs.get_list(sym)
+          "abbrevs" -> Symbol.symbols.abbrevs.get_list(sym)
         )
       Notification("PIDE/symbols", JSON.Object("entries" -> entries))
     }

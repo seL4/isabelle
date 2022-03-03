@@ -36,7 +36,7 @@ class Isabelle_Encoding extends Encoding
   {
     val source = (new BufferedSource(in)(codec)).mkString
 
-    if (strict && Codepoint.iterator(source).exists(Symbol.is_code))
+    if (strict && Codepoint.iterator(source).exists(Symbol.symbols.is_code))
       throw new CharacterCodingException()
 
     new CharArrayReader(Symbol.decode(source).toArray)
