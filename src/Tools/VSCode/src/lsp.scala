@@ -1,8 +1,8 @@
 /*  Title:      Tools/VSCode/src/lsp.scala
     Author:     Makarius
 
-Message formats for Language Server Protocol 3.0, see
-https://github.com/Microsoft/language-server-protocol/blob/master/protocol.md
+Message formats for Language Server Protocol, with adhoc PIDE extensions.
+See https://github.com/Microsoft/language-server-protocol/blob/master/protocol.md
 */
 
 package isabelle.vscode

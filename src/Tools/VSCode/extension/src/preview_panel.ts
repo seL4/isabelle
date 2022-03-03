@@ -3,7 +3,7 @@
 import { ExtensionContext, Uri, window, ViewColumn, WebviewPanel } from 'vscode'
 import { LanguageClient } from 'vscode-languageclient/node'
 import * as vscode_lib from './vscode_lib'
-import * as protocol from './protocol'
+import * as lsp from './lsp'
 
 
 let language_client: LanguageClient
@@ -39,7 +39,7 @@ let panel: Panel
 export function setup(context: ExtensionContext, client: LanguageClient)
 {
   language_client = client
-  language_client.onNotification(protocol.preview_response_type, params =>
+  language_client.onNotification(lsp.preview_response_type, params =>
     {
       if (!panel) { panel = new Panel(params.column) }
       else panel.reveal(params.column)
@@ -51,7 +51,7 @@ export function request(uri?: Uri, split: boolean = false)
 {
   const document_uri = uri || window.activeTextEditor.document.uri
   if (language_client) {
-    language_client.sendNotification(protocol.preview_request_type,
+    language_client.sendNotification(lsp.preview_request_type,
       { uri: document_uri.toString(),
         column: vscode_lib.adjacent_editor_column(window.activeTextEditor, split) })
   }

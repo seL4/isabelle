@@ -14,7 +14,7 @@ import {
   workspace
 } from 'vscode';
 import * as vscode_lib from '../vscode_lib';
-import { Session_Theories } from '../protocol';
+import { Session_Theories } from '../lsp';
 import * as symbol from '../symbol';
 import { Mapping_FSP } from './mapping_fsp';
 import { Symbol_Encoder } from './symbol_encoder';

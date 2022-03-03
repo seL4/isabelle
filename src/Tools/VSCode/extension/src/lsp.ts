@@ -1,8 +1,15 @@
+/*  Author:     Makarius
+
+Message formats for Language Server Protocol, with adhoc PIDE extensions
+(see Tools/VSCode/src/lsp.scala).
+*/
+
 'use strict';
 
 import { MarkdownString } from 'vscode'
 import { NotificationType } from 'vscode-languageclient'
 import * as symbol from './symbol'
+
 
 /* decorations */
 

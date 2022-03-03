@@ -6,7 +6,7 @@ Persistent workspace state.
 'use strict';
 
 import { ExtensionContext } from 'vscode'
-import { Session_Theories } from '../protocol'
+import { Session_Theories } from '../lsp'
 import * as symbol from '../symbol'
 
 interface Setup_Data

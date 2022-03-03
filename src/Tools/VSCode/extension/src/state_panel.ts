@@ -1,7 +1,7 @@
 'use strict';
 
 import * as vscode_lib from './vscode_lib'
-import * as protocol from './protocol'
+import * as lsp from './lsp'
 import {LanguageClient} from 'vscode-languageclient/node'
 import {ExtensionContext, Uri, ViewColumn, WebviewPanel, window} from 'vscode'
 import {get_webview_html, open_webview_link} from './output_view'
@@ -23,7 +23,7 @@ class Panel
   public get_id(): number { return this.state_id }
   public check_id(id: number): boolean { return this.state_id === id }
 
-  public set_content(state: protocol.State_Output)
+  public set_content(state: lsp.State_Output)
   {
     this.state_id = state.id
     this.webview_panel.webview.html = this._get_html(state.content, state.auto_update)
@@ -45,13 +45,13 @@ class Panel
       switch (message.command) {
         case "auto_update":
           language_client.sendNotification(
-            protocol.state_auto_update_type, { id: this.state_id, enabled: message.enabled })
+            lsp.state_auto_update_type, { id: this.state_id, enabled: message.enabled })
           break
         case "update":
-          language_client.sendNotification(protocol.state_update_type, { id: this.state_id })
+          language_client.sendNotification(lsp.state_update_type, { id: this.state_id })
           break
         case "locate":
-          language_client.sendNotification(protocol.state_locate_type, { id: this.state_id })
+          language_client.sendNotification(lsp.state_locate_type, { id: this.state_id })
           break
         case "open":
           open_webview_link(message.link)
@@ -83,7 +83,7 @@ let panel: Panel
 function exit_panel()
 {
   if (panel) {
-    language_client.sendNotification(protocol.state_exit_type, { id: panel.get_id() })
+    language_client.sendNotification(lsp.state_exit_type, { id: panel.get_id() })
     panel = null
   }
 }
@@ -92,14 +92,14 @@ export function init(uri: Uri)
 {
   if (language_client) {
     if (panel) panel.reveal()
-    else language_client.sendNotification(protocol.state_init_type)
+    else language_client.sendNotification(lsp.state_init_type)
   }
 }
 
 export function setup(context: ExtensionContext, client: LanguageClient)
 {
   language_client = client
-  language_client.onNotification(protocol.state_output_type, params =>
+  language_client.onNotification(lsp.state_output_type, params =>
     {
       if (!panel) {
         panel = new Panel(context.extensionPath)

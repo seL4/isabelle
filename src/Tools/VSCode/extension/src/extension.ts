@@ -6,7 +6,7 @@ import * as file from './file'
 import * as vscode_lib from './vscode_lib'
 import * as decorations from './decorations'
 import * as preview_panel from './preview_panel'
-import * as protocol from './protocol'
+import * as lsp from './lsp'
 import * as state_panel from './state_panel'
 import { Uri, TextEditor, ViewColumn, Selection, Position, ExtensionContext, workspace, window,
   commands, ProgressLocation } from 'vscode'
@@ -16,7 +16,7 @@ import { Output_View_Provider } from './output_view'
 import { register_script_decorations } from './script_decorations'
 
 
-let last_caret_update: protocol.Caret_Update = {}
+let last_caret_update: lsp.Caret_Update = {}
 
 export async function activate(context: ExtensionContext)
 {
@@ -77,7 +77,7 @@ export async function activate(context: ExtensionContext)
       workspace.onDidCloseTextDocument(decorations.close_document))
 
     language_client.onReady().then(() =>
-      language_client.onNotification(protocol.decoration_type, decorations.apply_decoration))
+      language_client.onNotification(lsp.decoration_type, decorations.apply_decoration))
 
 
     /* super-/subscript decorations */
@@ -90,7 +90,7 @@ export async function activate(context: ExtensionContext)
     function update_caret()
     {
       const editor = window.activeTextEditor
-      let caret_update: protocol.Caret_Update = {}
+      let caret_update: lsp.Caret_Update = {}
       if (editor) {
         const uri = editor.document.uri
         const cursor = editor.selection.active
@@ -100,13 +100,13 @@ export async function activate(context: ExtensionContext)
       if (last_caret_update !== caret_update) {
         if (caret_update.uri) {
           caret_update.uri = Isabelle_Workspace.get_file(Uri.parse(caret_update.uri)).toString()
-          language_client.sendNotification(protocol.caret_update_type, caret_update)
+          language_client.sendNotification(lsp.caret_update_type, caret_update)
         }
         last_caret_update = caret_update
       }
     }
 
-    function goto_file(caret_update: protocol.Caret_Update)
+    function goto_file(caret_update: lsp.Caret_Update)
     {
       function move_cursor(editor: TextEditor)
       {
@@ -132,7 +132,7 @@ export async function activate(context: ExtensionContext)
         window.onDidChangeTextEditorSelection(_ => update_caret()))
       update_caret()
 
-      language_client.onNotification(protocol.caret_update_type, goto_file)
+      language_client.onNotification(lsp.caret_update_type, goto_file)
     })
 
 
@@ -144,7 +144,7 @@ export async function activate(context: ExtensionContext)
 
     language_client.onReady().then(() =>
     {
-      language_client.onNotification(protocol.dynamic_output_type,
+      language_client.onNotification(lsp.dynamic_output_type,
         params => provider.update_content(params.content))
     })
 
@@ -170,10 +170,10 @@ export async function activate(context: ExtensionContext)
 
     language_client.onReady().then(() =>
     {
-      language_client.onNotification(protocol.session_theories_type,
+      language_client.onNotification(lsp.session_theories_type,
         async ({entries}) => await Isabelle_Workspace.update_sessions(entries))
 
-      language_client.onNotification(protocol.symbols_type,
+      language_client.onNotification(lsp.symbols_type,
         params =>
           {
             //register_abbreviations(params.entries, context)
@@ -181,10 +181,10 @@ export async function activate(context: ExtensionContext)
 
             // request theories to load in isabelle file system
             // after a valid symbol encoder is loaded
-            language_client.sendNotification(protocol.session_theories_request_type)
+            language_client.sendNotification(lsp.session_theories_request_type)
           })
 
-      language_client.sendNotification(protocol.symbols_request_type)
+      language_client.sendNotification(lsp.symbols_request_type)
 
     })
 
@@ -195,15 +195,15 @@ export async function activate(context: ExtensionContext)
     {
       context.subscriptions.push(
         commands.registerCommand("isabelle.include-word", uri =>
-          language_client.sendNotification(protocol.include_word_type)),
+          language_client.sendNotification(lsp.include_word_type)),
         commands.registerCommand("isabelle.include-word-permanently", uri =>
-          language_client.sendNotification(protocol.include_word_permanently_type)),
+          language_client.sendNotification(lsp.include_word_permanently_type)),
         commands.registerCommand("isabelle.exclude-word", uri =>
-          language_client.sendNotification(protocol.exclude_word_type)),
+          language_client.sendNotification(lsp.exclude_word_type)),
         commands.registerCommand("isabelle.exclude-word-permanently", uri =>
-          language_client.sendNotification(protocol.exclude_word_permanently_type)),
+          language_client.sendNotification(lsp.exclude_word_permanently_type)),
         commands.registerCommand("isabelle.reset-words", uri =>
-          language_client.sendNotification(protocol.reset_words_type)))
+          language_client.sendNotification(lsp.reset_words_type)))
     })
 
 
