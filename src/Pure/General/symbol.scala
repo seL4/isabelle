@@ -440,7 +440,7 @@ object Symbol
         .toList.groupBy(_._2).toList.map({ case (g, list) => (g, list.map(_._1)) }).sortBy(_._1)
 
     val abbrevs: Multi_Map[Symbol, String] =
-      Multi_Map((for (entry <- entries; a <- entry.abbrevs.reverse) yield entry.symbol -> a): _*)
+      Multi_Map.from(for (entry <- entries; a <- entry.abbrevs.reverse) yield entry.symbol -> a)
 
 
     /* recoding */
@@ -455,23 +455,17 @@ object Symbol
     def decode(text: String): String = decoder.recode(text)
     def encode(text: String): String = encoder.recode(text)
 
-    private def recode_set(elems: String*): Set[String] =
-    {
-      val content = elems.toList
-      (content ::: content.map(decode)).toSet
-    }
+    private def recode_set(elems: Iterable[String]): Set[String] =
+      (elems.iterator ++ elems.iterator.map(decode)).toSet
 
-    private def recode_map[A](elems: (String, A)*): Map[String, A] =
-    {
-      val content = elems.toList
-      (content ::: content.map({ case (sym, a) => (decode(sym), a) })).toMap
-    }
+    private def recode_map[A](elems: Iterable[(String, A)]): Map[String, A] =
+      (elems.iterator ++ elems.iterator.map({ case (sym, a) => (decode(sym), a) })).toMap
 
 
     /* user fonts */
 
     val fonts: Map[Symbol, String] =
-      recode_map((for (entry <- entries; font <- entry.font) yield entry.symbol -> font): _*)
+      recode_map(for (entry <- entries; font <- entry.font) yield entry.symbol -> font)
 
     val font_names: List[String] = fonts.iterator.map(_._2).toSet.toList
     val font_index: Map[String, Int] = (font_names zip font_names.indices.toList).toMap
@@ -481,7 +475,7 @@ object Symbol
 
     /* classification */
 
-    val letters: Set[String] = recode_set(
+    val letters: Set[String] = recode_set(List(
       "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
       "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
       "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m",
@@ -512,15 +506,15 @@ object Symbol
       "\\<tau>", "\\<upsilon>", "\\<phi>", "\\<chi>", "\\<psi>",
       "\\<omega>", "\\<Gamma>", "\\<Delta>", "\\<Theta>", "\\<Lambda>",
       "\\<Xi>", "\\<Pi>", "\\<Sigma>", "\\<Upsilon>", "\\<Phi>",
-      "\\<Psi>", "\\<Omega>")
+      "\\<Psi>", "\\<Omega>"))
 
-    val blanks: Set[String] = recode_set(space, "\t", "\n", "\u000B", "\f", "\r", "\r\n")
+    val blanks: Set[String] = recode_set(List(space, "\t", "\n", "\u000B", "\f", "\r", "\r\n"))
 
     val sym_chars =
       Set("!", "#", "$", "%", "&", "*", "+", "-", "/", "<", "=", ">", "?", "@", "^", "_", "|", "~")
 
     val symbolic: Set[String] =
-      recode_set((for (entry <- entries if raw_symbolic(entry.symbol)) yield entry.symbol): _*)
+      recode_set(for (entry <- entries if raw_symbolic(entry.symbol)) yield entry.symbol)
 
 
     /* misc symbols */
