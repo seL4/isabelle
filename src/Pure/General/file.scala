@@ -245,16 +245,18 @@ object File
 
   /* change */
 
-  def change(path: Path, init: Boolean = false)(f: String => String): Unit =
+  def change(path: Path, init: Boolean = false, strict: Boolean = false)(f: String => String): Unit =
   {
     if (!path.is_file && init) write(path, "")
     val x = read(path)
     val y = f(x)
     if (x != y) write(path, y)
+    else if (strict) error("Unchanged file: " + path)
   }
 
-  def change_lines(path: Path, init: Boolean = false)(f: List[String] => List[String]): Unit =
-    change(path, init = init)(text => cat_lines(f(split_lines(text))))
+  def change_lines(path: Path, init: Boolean = false, strict: Boolean = false)(
+      f: List[String] => List[String]): Unit =
+    change(path, init = init, strict = strict)(text => cat_lines(f(split_lines(text))))
 
 
   /* eq */
