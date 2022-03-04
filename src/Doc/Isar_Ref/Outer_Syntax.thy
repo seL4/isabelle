@@ -107,7 +107,7 @@ text \<open>
     @{syntax_def type_var} & = & \<^verbatim>\<open>?\<close>\<open>type_ident  |\<close>~~\<^verbatim>\<open>?\<close>\<open>type_ident\<close>\<^verbatim>\<open>.\<close>\<open>nat\<close> \\
     @{syntax_def string} & = & \<^verbatim>\<open>"\<close> \<open>\<dots>\<close> \<^verbatim>\<open>"\<close> \\
     @{syntax_def altstring} & = & \<^verbatim>\<open>`\<close> \<open>\<dots>\<close> \<^verbatim>\<open>`\<close> \\
-    @{syntax_def cartouche} & = & \<^verbatim>\<open>\<open>\<close> \<open>\<dots>\<close> \<^verbatim>\<open>\<close>\<close> \\
+    @{syntax_def cartouche} & = & @{verbatim "\<open>"} \<open>\<dots>\<close> @{verbatim "\<close>"} \\
     @{syntax_def verbatim} & = & \<^verbatim>\<open>{*\<close> \<open>\<dots>\<close> \<^verbatim>\<open>*}\<close> \\[1ex]
 
     \<open>letter\<close> & = & \<open>latin  |\<close>~~\<^verbatim>\<open>\\<close>\<^verbatim>\<open><\<close>\<open>latin\<close>\<^verbatim>\<open>>\<close>~~\<open>|\<close>~~\<^verbatim>\<open>\\<close>\<^verbatim>\<open><\<close>\<open>latin latin\<close>\<^verbatim>\<open>>\<close>~~\<open>|  greek  |\<close> \\

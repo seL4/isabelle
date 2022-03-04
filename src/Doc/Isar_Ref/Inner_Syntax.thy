@@ -566,7 +566,7 @@ text \<open>
     @{syntax_def (inner) float_token} & = & @{syntax_ref nat}\<^verbatim>\<open>.\<close>@{syntax_ref nat} \\
     @{syntax_def (inner) str_token} & = & \<^verbatim>\<open>''\<close> \<open>\<dots>\<close> \<^verbatim>\<open>''\<close> \\
     @{syntax_def (inner) string_token} & = & \<^verbatim>\<open>"\<close> \<open>\<dots>\<close> \<^verbatim>\<open>"\<close> \\
-    @{syntax_def (inner) cartouche} & = & \<^verbatim>\<open>\<open>\<close> \<open>\<dots>\<close> \<^verbatim>\<open>\<close>\<close> \\
+    @{syntax_def (inner) cartouche} & = & @{verbatim "\<open>"} \<open>\<dots>\<close> @{verbatim "\<close>"} \\
   \end{supertabular}
   \end{center}
 
