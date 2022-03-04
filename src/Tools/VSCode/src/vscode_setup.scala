@@ -24,6 +24,9 @@ object VSCode_Setup
   def vscode_workspace: Path = Path.variable("ISABELLE_VSCODE_WORKSPACE")
 
   def vscodium_home: Path = Path.variable("ISABELLE_VSCODIUM_HOME")
+  def vscodium_home_ok(): Boolean =
+    try { vscodium_home.is_dir }
+    catch { case ERROR(_) => false }
 
   def exe_path(dir: Path): Path = dir + Path.explode("bin/codium")
 
@@ -141,7 +144,7 @@ exit $?
     }
 
     if (check) {
-      if (vscodium_home.is_dir) {
+      if (vscodium_home_ok()) {
         init_workspace(vscode_workspace)
         progress.echo(vscodium_home.expand.implode)
       }
