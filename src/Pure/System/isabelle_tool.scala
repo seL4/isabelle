@@ -231,6 +231,7 @@ class Admin_Tools extends Isabelle_Scala_Tools(
   Build_Status.isabelle_tool,
   Build_Vampire.isabelle_tool,
   Build_VeriT.isabelle_tool,
+  Build_VSCodium.isabelle_tool,
   Build_Zipperposition.isabelle_tool,
   Check_Sources.isabelle_tool,
   Components.isabelle_tool,

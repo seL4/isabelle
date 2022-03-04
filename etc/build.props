@@ -30,6 +30,7 @@ sources = \
   src/Pure/Admin/build_status.scala \
   src/Pure/Admin/build_vampire.scala \
   src/Pure/Admin/build_verit.scala \
+  src/Pure/Admin/build_vscodium.scala \
   src/Pure/Admin/build_zipperposition.scala \
   src/Pure/Admin/check_sources.scala \
   src/Pure/Admin/ci_profile.scala \

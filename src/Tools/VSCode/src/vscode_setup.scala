@@ -23,6 +23,8 @@ object VSCode_Setup
   def vscode_version: String = Isabelle_System.getenv_strict("ISABELLE_VSCODE_VERSION")
   def vscode_workspace: Path = Path.variable("ISABELLE_VSCODE_WORKSPACE")
 
+  def vscodium_home: Path = Path.variable("ISABELLE_VSCODIUM_HOME")
+
   def exe_path(dir: Path): Path = dir + Path.explode("bin/codium")
 
   def vscode_installation(version: String, platform: Platform.Family.Value): (Boolean, Path) =
@@ -139,7 +141,11 @@ exit $?
     }
 
     if (check) {
-      if (install_ok) {
+      if (vscodium_home.is_dir) {
+        init_workspace(vscode_workspace)
+        progress.echo(vscodium_home.expand.implode)
+      }
+      else if (install_ok) {
         init_workspace(vscode_workspace)
         progress.echo(install_dir.expand.implode)
       }
