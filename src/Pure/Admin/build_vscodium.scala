@@ -42,7 +42,7 @@ object Build_VSCodium
         Isabelle_System.download_file(vscodium_download + "/" + version + "/" + download_name,
           download_file, progress = progress)
 
-        progress.echo("Unpacking " + dir.expand)
+        progress.echo("Unpacking ...")
         if (download_zip) {
           Isabelle_System.bash("unzip -x " + File.bash_path(download_file), cwd = dir.file).check
         }
