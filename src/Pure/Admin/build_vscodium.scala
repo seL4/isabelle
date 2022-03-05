@@ -13,6 +13,12 @@ import java.util.Base64
 
 object Build_VSCodium
 {
+  /* global parameters */
+
+  lazy val version: String = Isabelle_System.getenv_strict("ISABELLE_VSCODE_VERSION")
+  val vscodium_repository = "https://github.com/VSCodium/vscodium.git"
+
+
   /* patch resources */
 
   // see https://github.com/microsoft/vscode/blob/main/build/gulpfile.vscode.js
@@ -68,7 +74,7 @@ object Build_VSCodium
 
     def build_dir(dir: Path): Path = dir + Path.explode(build_name)
 
-    def environment(version: String): String =
+    def environment: String =
       (("MS_TAG=" + Bash.string(version)) :: "SHOULD_BUILD=yes" :: "VSCODE_ARCH=x64" :: env)
         .map(s => "export " + s + "\n").mkString
   }
@@ -93,8 +99,6 @@ object Build_VSCodium
 
   /* build vscodium */
 
-  val default_repository_url = "https://github.com/VSCodium/vscodium.git"
-  val default_version = "1.64.2"
   def default_platforms: List[Platform.Family.Value] = Platform.Family.list
 
   private def vscodium_exe(dir: Path): Path = dir + Path.explode("bin/codium")
@@ -113,8 +117,6 @@ exit $?
 
   def build_vscodium(
     target_dir: Path = Path.current,
-    repository_url: String = default_repository_url,
-    version: String = default_version,
     platforms: List[Platform.Family.Value] = default_platforms,
     verbose: Boolean = false,
     progress: Progress = new Progress): Unit =
@@ -152,11 +154,11 @@ exit $?
       Isabelle_System.with_tmp_dir("vscodium")(vscodium_dir =>
       {
         def execute(lines: String*): Unit =
-          progress.bash(("set -e" :: info.environment(version) :: lines.toList).mkString("\n"),
+          progress.bash(("set -e" :: info.environment :: lines.toList).mkString("\n"),
             cwd = vscodium_dir.file, echo = verbose).check
 
         execute(
-          "git clone -n " + Bash.string(repository_url) + " .",
+          "git clone -n " + Bash.string(vscodium_repository) + " .",
           "git checkout -q " + Bash.string(version),
           "./get_repo.sh")
 
@@ -220,7 +222,7 @@ esac
     /* README */
 
     File.write(component_dir + Path.basic("README"),
-      "This is VSCodium " + version + " from " + repository_url +
+      "This is VSCodium " + version + " from " + vscodium_repository +
 """
 
 It has been built from sources using "isabelle build_vscodium": this applies
@@ -239,8 +241,6 @@ a few changes required for Isabelle/VSCode.
       Scala_Project.here, args =>
     {
       var target_dir = Path.current
-      var repository_url = default_repository_url
-      var version = default_version
       var platforms = default_platforms
       var verbose = false
 
@@ -249,11 +249,7 @@ Usage: vscode_setup [OPTIONS]
 
   Options are:
     -D DIR       target directory (default ".")
-    -U URL       repository URL
-                 (default: """" + default_repository_url + """")
-    -V VERSION   version (default: """" + default_version + """")
-    -p NAMES     platform families
-                 (default: """ + quote(platforms.mkString(",")) + """)
+    -p NAMES     platform families (default: """ + quote(platforms.mkString(",")) + """)
     -v           verbose
 
   Build VSCodium from sources and turn it into an Isabelle component.
@@ -262,8 +258,6 @@ Usage: vscode_setup [OPTIONS]
   for targeting Windows.
 """,
         "D:" -> (arg => target_dir = Path.explode(arg)),
-        "U:" -> (arg => repository_url = arg),
-        "V:" -> (arg => version = arg),
         "p:" -> (arg => platforms = Library.space_explode(',', arg).map(Platform.Family.parse)),
         "v" -> (_ => verbose = true))
 
@@ -272,7 +266,7 @@ Usage: vscode_setup [OPTIONS]
 
       val progress = new Console_Progress()
 
-      build_vscodium(target_dir = target_dir, repository_url = repository_url,
-        version = version, platforms = platforms, verbose = verbose, progress = progress)
+      build_vscodium(target_dir = target_dir, platforms = platforms,
+        verbose = verbose, progress = progress)
     })
 }
