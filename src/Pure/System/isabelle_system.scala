@@ -18,7 +18,7 @@ import scala.jdk.CollectionConverters._
 
 object Isabelle_System
 {
-  /* settings */
+  /* settings environment */
 
   def settings(putenv: List[(String, String)] = Nil): JMap[String, String] =
   {
@@ -128,6 +128,10 @@ object Isabelle_System
       }
       else ""
     }
+
+  def export_isabelle_identifier(isabelle_identifier: String): String =
+    if (isabelle_identifier == "") ""
+    else "export ISABELLE_IDENTIFIER=" + Bash.string(isabelle_identifier) + "\n"
 
   def isabelle_identifier(): Option[String] = proper_string(getenv("ISABELLE_IDENTIFIER"))
 
@@ -405,6 +409,14 @@ object Isabelle_System
         watchdog = watchdog, strict = strict)
   }
 
+
+  /* command-line tools */
+
+  def require_command(cmd: String, test: String = "--version"): Unit =
+  {
+    if (!bash(Bash.string(cmd) + " " + test).ok) error("Missing system command: " + quote(cmd))
+  }
+
   private lazy val gnutar_check: Boolean =
     try { bash("tar --version").check.out.containsSlice("GNU tar") || error("") }
     catch { case ERROR(_) => false }
@@ -423,11 +435,6 @@ object Isabelle_System
 
     if (gnutar_check) bash("tar " + options + args, redirect = redirect)
     else error("Expected to find GNU tar executable")
-  }
-
-  def require_command(cmd: String, test: String = "--version"): Unit =
-  {
-    if (!bash(Bash.string(cmd) + " " + test).ok) error("Missing system command: " + quote(cmd))
   }
 
   def hostname(): String = bash("hostname -s").check.out
@@ -451,9 +458,6 @@ object Isabelle_System
     external
   }
 
-  def export_isabelle_identifier(isabelle_identifier: String): String =
-    if (isabelle_identifier == "") ""
-    else "export ISABELLE_IDENTIFIER=" + Bash.string(isabelle_identifier) + "\n"
 
 
   /** Isabelle resources **/
