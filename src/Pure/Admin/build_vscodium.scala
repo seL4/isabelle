@@ -94,6 +94,19 @@ object Build_VSCodium
       }
     }
 
+    def node_binaries(dir: Path, progress: Progress): Unit =
+    {
+      Isabelle_System.with_tmp_dir("download")(download_dir =>
+      {
+        download(download_dir, progress = progress)
+        for (name <- Seq("app/node_modules.asar", "app/node_modules.asar.unpacked")) {
+          val rel_path = resources_dir(Path.current) + Path.explode(name)
+          Isabelle_System.rm_tree(dir + rel_path)
+          Isabelle_System.copy_dir(download_dir + rel_path, dir + rel_path)
+        }
+      })
+    }
+
     def setup_executables(dir: Path): Unit =
     {
       val exe = vscodium_exe(dir)
@@ -232,6 +245,7 @@ exit $?
 
         val platform_dir = platform_info.platform_dir(component_dir)
         Isabelle_System.copy_dir(platform_info.build_dir(vscodium_dir), platform_dir)
+        platform_info.node_binaries(platform_dir, progress)
         platform_info.patch_resources(platform_dir)
         platform_info.setup_executables(platform_dir)
       })
