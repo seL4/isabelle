@@ -472,10 +472,7 @@ xml-insert-closing-tag.shortcut=
 
     /* diff */
 
-    Isabelle_System.bash(
-      "diff -ru " + Bash.string(jedit) + " " + Bash.string(jedit_patched) +
-        " > " + Bash.string(jedit + ".patch"),
-      cwd = component_dir.file).check_rc(_ <= 1)
+    Isabelle_System.make_patch(component_dir, Path.basic(jedit), Path.basic(jedit_patched))
 
     if (!original) Isabelle_System.rm_tree(jedit_dir)
 
