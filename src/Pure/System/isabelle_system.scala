@@ -306,7 +306,7 @@ object Isabelle_System
   {
     val suffix = if (ext == "") "" else "." + ext
     val file = Files.createTempFile(base_dir.toPath, name, suffix).toFile
-    file.deleteOnExit
+    file.deleteOnExit()
     file
   }
 
@@ -357,7 +357,7 @@ object Isabelle_System
   def tmp_dir(name: String, base_dir: JFile = isabelle_tmp_prefix()): JFile =
   {
     val dir = Files.createTempDirectory(base_dir.toPath, name).toFile
-    dir.deleteOnExit
+    dir.deleteOnExit()
     dir
   }
 
