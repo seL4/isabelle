@@ -191,13 +191,13 @@ isabelle_java java -Duser.home=""" + File.bash_platform_path(tmp_dir) +
           file <- File.find_files(org_source_dir.file, file => file.getName.endsWith(".java"))
           package_name <- Scala_Project.package_name(File.path(file))
           if !exclude_package(package_name)
-        } yield File.path(component_dir.java_path.relativize(file.toPath).toFile)
+        } yield File.path(component_dir.java_path.relativize(file.toPath).toFile).implode
 
       File.write(etc_dir + Path.explode("build.props"),
         "module = " + jedit_patched + "/jedit.jar\n" +
         "no_build = true\n" +
         "requirements = env:JEDIT_JARS\n" +
-        ("sources =" :: java_sources.map(p => "  " + p.implode)).mkString("", " \\\n", "\n"))
+        ("sources =" :: java_sources.sorted.map("  " + _)).mkString("", " \\\n", "\n"))
     })
 
 
