@@ -9,7 +9,6 @@ package isabelle
 
 import java.security.MessageDigest
 import java.util.Base64
-import java.io.{File => JFile}
 
 
 object Build_VSCodium
