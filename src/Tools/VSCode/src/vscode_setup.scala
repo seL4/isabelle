@@ -115,18 +115,6 @@ object VSCode_Setup
   }
 """
 
-  private def macos_exe: String =
-"""#!/usr/bin/env bash
-
-unset CDPATH
-VSCODE_PATH="$(cd "$(dirname "$0")"/../VSCodium.app/Contents; pwd)"
-
-ELECTRON="$VSCODE_PATH/MacOS/Electron"
-CLI="$VSCODE_PATH/Resources/app/out/cli.js"
-ELECTRON_RUN_AS_NODE=1 "$ELECTRON" "$CLI" --ms-enable-electron-run-as-node "$@"
-exit $?
-"""
-
   def vscode_setup(
     check: Boolean = false,
     download_url: String = default_download_url,
@@ -197,13 +185,11 @@ exit $?
           platform match {
             case Platform.Family.macos =>
               Isabelle_System.make_directory(exe.dir)
-              File.write(exe, macos_exe)
+              File.write(exe, Build_VSCodium.macos_exe)
               File.set_executable(exe, true)
             case Platform.Family.windows =>
               val files1 = File.find_files(exe.dir.file)
-              val files2 =
-                File.find_files(install_dir.file,
-                  pred = file => file.getName.endsWith(".exe") || file.getName.endsWith(".dll"))
+              val files2 = File.find_files(install_dir.file, pred = Build_VSCodium.is_windows_exe)
               for (file <- files1 ::: files2) File.set_executable(File.path(file), true)
             case _ =>
           }

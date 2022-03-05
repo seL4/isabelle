@@ -9,6 +9,7 @@ package isabelle
 
 import java.security.MessageDigest
 import java.util.Base64
+import java.io.{File => JFile}
 
 
 object Build_VSCodium
@@ -114,7 +115,7 @@ object Build_VSCodium
 
   private def vscodium_exe(dir: Path): Path = dir + Path.explode("bin/codium")
 
-  private def macos_exe: String =
+  def macos_exe: String =
 """#!/usr/bin/env bash
 
 unset CDPATH
@@ -125,6 +126,12 @@ CLI="$VSCODE_PATH/Resources/app/out/cli.js"
 ELECTRON_RUN_AS_NODE=1 "$ELECTRON" "$CLI" --ms-enable-electron-run-as-node "$@"
 exit $?
 """
+
+  def is_windows_exe(file: JFile): Boolean =
+  {
+    val name = file.getName
+    name.endsWith(".dll") || name.endsWith(".exe") || name.endsWith(".node")
+  }
 
   def build_vscodium(
     target_dir: Path = Path.current,
@@ -185,9 +192,7 @@ exit $?
             File.set_executable(exe, true)
           case Platform.Family.windows =>
             val files1 = File.find_files(exe.dir.file)
-            val files2 =
-              File.find_files(platform_dir.file,
-                pred = file => file.getName.endsWith(".exe") || file.getName.endsWith(".dll"))
+            val files2 = File.find_files(platform_dir.file, pred = is_windows_exe)
             for (file <- files1 ::: files2) File.set_executable(File.path(file), true)
             Isabelle_System.bash("chmod -R o-w " + File.bash_path(platform_dir))
           case _ =>
