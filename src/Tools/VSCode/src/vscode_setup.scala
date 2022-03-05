@@ -20,25 +20,19 @@ object VSCode_Setup
   def vscode_home: Path = Path.variable("ISABELLE_VSCODE_HOME")
   def vscode_settings: Path = Path.variable("ISABELLE_VSCODE_SETTINGS")
   def vscode_settings_user: Path = vscode_settings + Path.explode("user-data/User/settings.json")
-  def vscode_version: String = Isabelle_System.getenv_strict("ISABELLE_VSCODE_VERSION")
   def vscode_workspace: Path = Path.variable("ISABELLE_VSCODE_WORKSPACE")
+  def version: String = Build_VSCodium.version
 
   def vscodium_home: Path = Path.variable("ISABELLE_VSCODIUM_HOME")
   def vscodium_home_ok(): Boolean =
     try { vscodium_home.is_dir }
     catch { case ERROR(_) => false }
 
-  def exe_path(dir: Path): Path = dir + Path.explode("bin/codium")
-
-  def vscode_installation(version: String, platform: Platform.Family.Value): (Boolean, Path) =
+  def vscode_installation(info: Build_VSCodium.Platform_Info): (Boolean, Path) =
   {
-    val platform_name =
-      if (platform == Platform.Family.windows) Platform.Family.native(platform)
-      else Platform.Family.standard(platform)
     val install_dir =
-      vscode_settings + Path.basic("installation") +
-        Path.basic(version) + Path.basic(platform_name)
-    val install_ok = exe_path(install_dir).is_file
+      info.platform_dir(vscode_settings + Path.basic("installation") + Path.basic(version))
+    val install_ok = Build_VSCodium.vscodium_exe(install_dir).is_file
     (install_ok, install_dir)
   }
 
@@ -98,7 +92,6 @@ object VSCode_Setup
 
   /* vscode setup */
 
-  val default_download_url: String = "https://github.com/VSCodium/vscodium/releases/download"
   def default_platform: Platform.Family.Value = Platform.family
 
   private val init_settings = """  {
@@ -117,14 +110,13 @@ object VSCode_Setup
 
   def vscode_setup(
     check: Boolean = false,
-    download_url: String = default_download_url,
-    version: String = vscode_version,
     platform: Platform.Family.Value = default_platform,
     quiet: Boolean = false,
     fresh: Boolean = false,
     progress: Progress = new Progress): Unit =
   {
-    val (install_ok, install_dir) = vscode_installation(version, platform)
+    val platform_info = Build_VSCodium.the_platform_info(platform)
+    val (install_ok, install_dir) = vscode_installation(platform_info)
 
     if (!vscode_settings_user.is_file) {
       Isabelle_System.make_directory(vscode_settings_user.dir)
@@ -150,56 +142,10 @@ object VSCode_Setup
         progress.echo_warning("Isabelle/VSCode installation already present: " + install_dir.expand)
       }
       if (!install_ok || fresh) {
-        val download_name =
-        {
-          val a = "VSCodium"
-          val (b, c) =
-            platform match {
-              case Platform.Family.linux_arm => ("linux-arm64", "tar.gz")
-              case Platform.Family.linux => ("linux-x64", "tar.gz")
-              case Platform.Family.macos => ("darwin-x64", "zip")
-              case Platform.Family.windows => ("win32-x64", "zip")
-            }
-          a + "-" + b + "-" + version + "." + c
-        }
-        val is_zip = download_name.endsWith(".zip")
-        if (is_zip) Isabelle_System.require_command("unzip", test = "-h")
-
         Isabelle_System.make_directory(install_dir)
-        val exe = exe_path(install_dir)
-
-        Isabelle_System.with_tmp_file("download")(download =>
-        {
-          Isabelle_System.download_file(download_url + "/" + version + "/" + download_name,
-            download, progress = if (quiet) new Progress else progress)
-          if (!quiet) progress.echo("Installing " + install_dir.expand)
-          if (is_zip) {
-            Isabelle_System.bash("unzip -x " + File.bash_path(download),
-              cwd = install_dir.file).check
-          }
-          else {
-            Isabelle_System.gnutar("-xzf " + File.bash_path(download),
-              dir = install_dir).check
-          }
-
-          platform match {
-            case Platform.Family.macos =>
-              Isabelle_System.make_directory(exe.dir)
-              File.write(exe, Build_VSCodium.macos_exe)
-              File.set_executable(exe, true)
-            case Platform.Family.windows =>
-              val files1 = File.find_files(exe.dir.file)
-              val files2 = File.find_files(install_dir.file, pred = Build_VSCodium.is_windows_exe)
-              for (file <- files1 ::: files2) File.set_executable(File.path(file), true)
-            case _ =>
-          }
-
-          patch_resources(
-            if (platform == Platform.Family.macos) {
-              install_dir + Path.explode("VSCodium.app/Contents/Resources")
-            }
-            else install_dir + Path.explode("resources"))
-        })
+        platform_info.download(install_dir, progress = if (quiet) new Progress else progress)
+        platform_info.patch_resources(install_dir)
+        platform_info.setup_executables(install_dir)
       }
     }
   }
@@ -212,8 +158,6 @@ object VSCode_Setup
       Scala_Project.here, args =>
     {
       var check = false
-      var download_url = default_download_url
-      var version = vscode_version
       var fresh = false
       var platforms = List(default_platform)
       var quiet = false
@@ -223,9 +167,6 @@ Usage: vscode_setup [OPTIONS]
 
   Options are:
     -C           check and print installation directory
-    -U URL       download URL
-                 (default: """" + default_download_url + """")
-    -V VERSION   version (default: """" + vscode_version + """")
     -f           force fresh installation
     -p NAMES     platform families: comma-separated names
                  (""" + commas_quote(Platform.Family.list.map(_.toString)) + """, default: """ +
@@ -240,8 +181,6 @@ Usage: vscode_setup [OPTIONS]
   The following initial settings are provided for a fresh installation:
 """ + init_settings,
         "C" -> (_ => check = true),
-        "U:" -> (arg => download_url = arg),
-        "V:" -> (arg => version = arg),
         "f" -> (_ => fresh = true),
         "p:" -> (arg => platforms = Library.space_explode(',', arg).map(Platform.Family.parse)),
         "q" -> (_ => quiet = true))
@@ -251,8 +190,7 @@ Usage: vscode_setup [OPTIONS]
 
       val progress = new Console_Progress()
       for (platform <- platforms) {
-        vscode_setup(check = check, download_url = download_url, version = version,
-          platform = platform, quiet = quiet, fresh = fresh, progress = progress)
+        vscode_setup(check = check, platform = platform, quiet = quiet, fresh = fresh, progress = progress)
       }
     })
 }
