@@ -74,9 +74,9 @@ object Build_VSCodium
       dir + Path.explode(resources)
     }
 
-    def patch_resources(dir0: Path): Unit =
+    def patch_resources(base_dir: Path): Unit =
     {
-      val dir = resources_dir(dir0)
+      val dir = resources_dir(base_dir)
 
       HTML.init_fonts(dir + Path.explode("app/out/vs/base/browser/ui"))
 
