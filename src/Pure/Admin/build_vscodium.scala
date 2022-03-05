@@ -19,38 +19,6 @@ object Build_VSCodium
   val vscodium_repository = "https://github.com/VSCodium/vscodium.git"
 
 
-  /* patch resources */
-
-  // see https://github.com/microsoft/vscode/blob/main/build/gulpfile.vscode.js
-  // function computeChecksum(filename)
-
-  def file_checksum(path: Path): String =
-  {
-    val digest = MessageDigest.getInstance("MD5")
-    digest.update(Bytes.read(path).array)
-    Bytes(Base64.getEncoder.encode(digest.digest()))
-      .text.replaceAll("=", "")
-  }
-
-  def patch_resources(dir: Path): Unit =
-  {
-    HTML.init_fonts(dir + Path.explode("app/out/vs/base/browser/ui"))
-
-    val workbench_css = dir + Path.explode("app/out/vs/workbench/workbench.desktop.main.css")
-    val checksum1 = file_checksum(workbench_css)
-    File.append(workbench_css, "\n\n" + HTML.fonts_css_dir(prefix = "../base/browser/ui"))
-    val checksum2 = file_checksum(workbench_css)
-
-    val file_name = workbench_css.file_name
-    File.change_lines(dir + Path.explode("app/product.json")) { _.map(line =>
-      if (line.containsSlice(file_name) && line.contains(checksum1)) {
-        line.replace(checksum1, checksum2)
-      }
-      else line)
-    }
-  }
-
-
   /* platform info */
 
   sealed case class Platform_Info(
@@ -64,19 +32,44 @@ object Build_VSCodium
       dir + Path.explode(platform_name)
     }
 
-    def resources_dir(dir: Path): Path =
-    {
-      val resources =
-        if (platform == Platform.Family.macos) "VSCodium.app/Contents/Resources"
-        else "resources"
-      dir + Path.explode(resources)
-    }
-
     def build_dir(dir: Path): Path = dir + Path.explode(build_name)
 
     def environment: String =
       (("MS_TAG=" + Bash.string(version)) :: "SHOULD_BUILD=yes" :: "VSCODE_ARCH=x64" :: env)
         .map(s => "export " + s + "\n").mkString
+
+    def patch_resources(base_dir: Path): Unit =
+    {
+      val resources =
+        if (platform == Platform.Family.macos) "VSCodium.app/Contents/Resources"
+        else "resources"
+      val dir = platform_dir(base_dir) + Path.explode(resources)
+
+      HTML.init_fonts(dir + Path.explode("app/out/vs/base/browser/ui"))
+
+      val workbench_css = dir + Path.explode("app/out/vs/workbench/workbench.desktop.main.css")
+      val checksum1 = file_checksum(workbench_css)
+      File.append(workbench_css, "\n\n" + HTML.fonts_css_dir(prefix = "../base/browser/ui"))
+      val checksum2 = file_checksum(workbench_css)
+
+      val file_name = workbench_css.file_name
+      File.change_lines(dir + Path.explode("app/product.json")) { _.map(line =>
+        if (line.containsSlice(file_name) && line.contains(checksum1)) {
+          line.replace(checksum1, checksum2)
+        }
+        else line)
+      }
+    }
+  }
+
+  // see https://github.com/microsoft/vscode/blob/main/build/gulpfile.vscode.js
+  // function computeChecksum(filename)
+  private def file_checksum(path: Path): String =
+  {
+    val digest = MessageDigest.getInstance("MD5")
+    digest.update(Bytes.read(path).array)
+    Bytes(Base64.getEncoder.encode(digest.digest()))
+      .text.replaceAll("=", "")
   }
 
   private val platform_info: Map[Platform.Family.Value, Platform_Info] =
@@ -95,6 +88,24 @@ object Build_VSCodium
           "SHOULD_BUILD_MSI=no",
           "SHOULD_BUILD_MSI_NOUP=no")))
       .map(info => info.platform -> info).toMap
+
+
+  /* check system */
+
+  def check_system(platforms: List[Platform.Family.Value]): Unit =
+  {
+    Linux.check_system()
+
+    Isabelle_System.require_command("git")
+    if (platforms.nonEmpty) {
+      Isabelle_System.require_command("node")
+      Isabelle_System.require_command("yarn")
+      Isabelle_System.require_command("jq")
+    }
+    if (platforms.contains(Platform.Family.windows)) {
+      Isabelle_System.require_command("wine")
+    }
+  }
 
 
   /* build vscodium */
@@ -121,19 +132,7 @@ exit $?
     verbose: Boolean = false,
     progress: Progress = new Progress): Unit =
   {
-    /* prerequisites */
-
-    Linux.check_system()
-
-    Isabelle_System.require_command("git")
-    if (platforms.nonEmpty) {
-      Isabelle_System.require_command("node")
-      Isabelle_System.require_command("yarn")
-      Isabelle_System.require_command("jq")
-    }
-    if (platforms.contains(Platform.Family.windows)) {
-      Isabelle_System.require_command("wine")
-    }
+    check_system(platforms)
 
 
     /* component */
@@ -175,7 +174,7 @@ exit $?
         Isabelle_System.copy_dir(info.build_dir(vscodium_dir), platform_dir)
         Isabelle_System.copy_file(vscodium_dir + Path.explode("LICENSE"), component_dir)
 
-        patch_resources(info.resources_dir(platform_dir))
+        info.patch_resources(component_dir)
 
         val exe = vscodium_exe(platform_dir)
         Isabelle_System.make_directory(exe.dir)
