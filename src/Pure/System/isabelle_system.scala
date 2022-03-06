@@ -437,13 +437,15 @@ object Isabelle_System
     else error("Expected to find GNU tar executable")
   }
 
-  def make_patch(base_dir: Path, src: Path, dst: Path, target_dir: Path = Path.current): Path =
+  def make_patch(base_dir: Path, src: Path, dst: Path): String =
   {
-    val target = target_dir + src.base.patch
-    Isabelle_System.bash(
-      "diff -ru " + File.bash_path(src) + " " + File.bash_path(dst) + " > " + File.bash_path(target),
-      cwd = base_dir.file).check_rc(_ <= 1)
-    (base_dir + target).expand
+    with_tmp_file("patch")(patch =>
+    {
+      Isabelle_System.bash(
+        "diff -ru " + File.bash_path(src) + " " + File.bash_path(dst) + " > " + File.bash_path(patch),
+        cwd = base_dir.file).check_rc(_ <= 1)
+      File.read(patch)
+    })
   }
 
   def hostname(): String = bash("hostname -s").check.out

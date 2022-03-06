@@ -470,9 +470,10 @@ xml-insert-closing-tag.shortcut=
 """)
 
 
-    /* diff */
+    /* make patch */
 
-    Isabelle_System.make_patch(component_dir, Path.basic(jedit), Path.basic(jedit_patched))
+    File.write(component_dir + Path.basic(jedit).patch,
+      Isabelle_System.make_patch(component_dir, Path.basic(jedit), Path.basic(jedit_patched)))
 
     if (!original) Isabelle_System.rm_tree(jedit_dir)
 
