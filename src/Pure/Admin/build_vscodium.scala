@@ -65,7 +65,7 @@ object Build_VSCodium
           "git checkout -q " + Bash.string(version)
         ).mkString("\n"), cwd = vscodium_dir.file).check
 
-      progress.echo("Getting VSCode repository version ...")
+      progress.echo("Getting VSCode repository ...")
       Isabelle_System.bash(environment + "\n" + "./get_repo.sh", cwd = vscodium_dir.file).check
     }
 
