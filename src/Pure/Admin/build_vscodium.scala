@@ -7,6 +7,7 @@ Build component for VSCodium (cross-compiled from sources for all platforms).
 package isabelle
 
 
+import java.util.{Map => JMap}
 import java.security.MessageDigest
 import java.util.Base64
 
@@ -30,6 +31,8 @@ object Build_VSCodium
     build_name: String,
     env: List[String])
   {
+    def is_linux: Boolean = platform == Platform.Family.linux
+
     def download_name: String = "VSCodium-" + download_template.replace("{VERSION}", version)
     def download_zip: Boolean = download_name.endsWith(".zip")
 
@@ -42,7 +45,7 @@ object Build_VSCodium
         Isabelle_System.download_file(vscodium_download + "/" + version + "/" + download_name,
           download_file, progress = progress)
 
-        progress.echo("Unpacking ...")
+        progress.echo("Extract ...")
         if (download_zip) {
           Isabelle_System.bash("unzip -x " + File.bash_path(download_file), cwd = dir.file).check
         }
@@ -50,6 +53,20 @@ object Build_VSCodium
           Isabelle_System.gnutar("-xzf " + File.bash_path(download_file), dir = dir).check
         }
       })
+    }
+
+    def get_vscodium_repository(vscodium_dir: Path, progress: Progress = new Progress): Unit =
+    {
+      progress.echo("Getting VSCodium repository ...")
+      Isabelle_System.bash(
+        List(
+          "set -e",
+          "git clone -n " + Bash.string(vscodium_repository) + " .",
+          "git checkout -q " + Bash.string(version)
+        ).mkString("\n"), cwd = vscodium_dir.file).check
+
+      progress.echo("Getting VSCode repository version ...")
+      Isabelle_System.bash(environment + "\n" + "./get_repo.sh", cwd = vscodium_dir.file).check
     }
 
     def platform_dir(dir: Path): Path =
@@ -62,7 +79,7 @@ object Build_VSCodium
 
     def build_dir(dir: Path): Path = dir + Path.explode(build_name)
 
-    def build_environment: String =
+    def environment: String =
       (("MS_TAG=" + Bash.string(version)) :: "SHOULD_BUILD=yes" :: "VSCODE_ARCH=x64" :: env)
         .map(s => "export " + s + "\n").mkString
 
@@ -74,23 +91,40 @@ object Build_VSCodium
       dir + Path.explode(resources)
     }
 
-    def patch_resources(base_dir: Path): Unit =
+    def patch_sources(base_dir: Path): String =
+    {
+      val dir = base_dir + Path.explode("vscode")
+      Isabelle_System.with_copy_dir(dir, dir.orig) {
+        for (name <- Seq("build/lib/electron.js", "build/lib/electron.ts")) {
+          File.change(dir + Path.explode(name), strict = true) {
+            _.replace("""'resources/darwin/' + icon + '.icns'""",
+              """'resources/darwin/' + icon.toLowerCase() + '.icns'""")
+          }
+        }
+        Isabelle_System.make_patch(base_dir, dir.base.orig, dir.base)
+      }
+    }
+
+    def patch_resources(base_dir: Path): String =
     {
       val dir = resources_dir(base_dir)
+      Isabelle_System.with_copy_dir(dir, dir.orig) {
+        HTML.init_fonts(dir + Path.explode("app/out/vs/base/browser/ui"))
 
-      HTML.init_fonts(dir + Path.explode("app/out/vs/base/browser/ui"))
+        val workbench_css = dir + Path.explode("app/out/vs/workbench/workbench.desktop.main.css")
+        val checksum1 = file_checksum(workbench_css)
+        File.append(workbench_css, "\n\n" + HTML.fonts_css_dir(prefix = "../base/browser/ui"))
+        val checksum2 = file_checksum(workbench_css)
 
-      val workbench_css = dir + Path.explode("app/out/vs/workbench/workbench.desktop.main.css")
-      val checksum1 = file_checksum(workbench_css)
-      File.append(workbench_css, "\n\n" + HTML.fonts_css_dir(prefix = "../base/browser/ui"))
-      val checksum2 = file_checksum(workbench_css)
-
-      val file_name = workbench_css.file_name
-      File.change_lines(dir + Path.explode("app/product.json")) { _.map(line =>
-        if (line.containsSlice(file_name) && line.contains(checksum1)) {
-          line.replace(checksum1, checksum2)
+        val file_name = workbench_css.file_name
+        File.change_lines(dir + Path.explode("app/product.json")) { _.map(line =>
+          if (line.containsSlice(file_name) && line.contains(checksum1)) {
+            line.replace(checksum1, checksum2)
+          }
+          else line)
         }
-        else line)
+
+        Isabelle_System.make_patch(dir.dir, dir.orig.base, dir.base)
       }
     }
 
@@ -124,7 +158,7 @@ object Build_VSCodium
               name.endsWith(".dll") || name.endsWith(".exe") || name.endsWith(".node")
             })
           for (file <- files1 ::: files2) File.set_executable(File.path(file), true)
-          Isabelle_System.bash("chmod -R o-w " + File.bash_path(dir))
+          Isabelle_System.bash("chmod -R o-w " + File.bash_path(dir)).check
         case _ =>
       }
     }
@@ -160,25 +194,56 @@ object Build_VSCodium
   def the_platform_info(platform: Platform.Family.Value): Platform_Info =
     platform_infos.getOrElse(platform, error("No platform info for " + quote(platform.toString)))
 
+  def linux_platform_info: Platform_Info =
+    the_platform_info(Platform.Family.linux)
+
 
   /* check system */
 
   def check_system(platforms: List[Platform.Family.Value]): Unit =
   {
-    Linux.check_system()
+    if (Platform.family != Platform.Family.linux) error("Not a Linux/x86_64 system")
 
     Isabelle_System.require_command("git")
-    if (platforms.nonEmpty) {
-      Isabelle_System.require_command("node")
-      Isabelle_System.require_command("yarn")
-      Isabelle_System.require_command("jq")
-    }
+    Isabelle_System.require_command("node")
+    Isabelle_System.require_command("yarn")
+    Isabelle_System.require_command("jq")
+
     if (platforms.contains(Platform.Family.windows)) {
       Isabelle_System.require_command("wine")
     }
+
     if (platforms.exists(platform => the_platform_info(platform).download_zip)) {
       Isabelle_System.require_command("unzip", test = "-h")
     }
+  }
+
+
+  /* original repository clones and patches */
+
+  def vscodium_patch(verbose: Boolean = false, progress: Progress = new Progress): String =
+  {
+    val platform_info = linux_platform_info
+    check_system(List(platform_info.platform))
+
+    Isabelle_System.with_tmp_dir("vscodium")(vscodium_dir =>
+    {
+      platform_info.get_vscodium_repository(vscodium_dir, progress = progress)
+      val vscode_dir = vscodium_dir + Path.basic("vscode")
+      progress.echo("Prepare VSCodium ...")
+      Isabelle_System.with_copy_dir(vscode_dir, vscode_dir.orig) {
+        progress.bash(
+          List(
+            "set -e",
+            platform_info.environment,
+            "./prepare_vscode.sh",
+            // enforce binary diff of code.xpm
+            "cp vscode/resources/linux/code.png vscode/resources/linux/rpm/code.xpm"
+          ).mkString("\n"), cwd = vscodium_dir.file, echo = verbose).check
+        Isabelle_System.make_patch(vscodium_dir, vscode_dir.orig.base, vscode_dir.base,
+          diff_options = "--exclude=.git --exclude=node_modules")
+      }
+    })
   }
 
 
@@ -214,39 +279,47 @@ exit $?
     progress.echo("Component " + component_dir)
 
 
+    /* patches */
+
+    progress.echo("Building patches:")
+
+    val patches_dir = Isabelle_System.new_directory(component_dir + Path.basic("patches"))
+
+    def write_patch(name: String, patch: String): Unit =
+      File.write(patches_dir + Path.explode(name).patch, patch)
+
+    write_patch("01-vscodium", vscodium_patch(verbose = verbose, progress = progress))
+
+
     /* build */
 
-    for (platform <- platforms) {
+    for (platform <- platforms) yield {
       val platform_info = the_platform_info(platform)
-
-      progress.echo("Building " + platform + " ...")
 
       Isabelle_System.with_tmp_dir("vscodium")(vscodium_dir =>
       {
-        def execute(lines: String*): Unit =
-          progress.bash(("set -e" :: platform_info.build_environment :: lines.toList).mkString("\n"),
-            cwd = vscodium_dir.file, echo = verbose).check
+        progress.echo("Building " + platform + ":")
 
-        execute(
-          "git clone -n " + Bash.string(vscodium_repository) + " .",
-          "git checkout -q " + Bash.string(version),
-          "./get_repo.sh")
+        platform_info.get_vscodium_repository(vscodium_dir, progress = progress)
 
-        for (name <- Seq("vscode/build/lib/electron.js", "vscode/build/lib/electron.ts")) {
-          File.change(vscodium_dir + Path.explode(name), strict = true) {
-            _.replace("""'resources/darwin/' + icon + '.icns'""",
-              """'resources/darwin/' + icon.toLowerCase() + '.icns'""")
-          }
+        val sources_patch = platform_info.patch_sources(vscodium_dir)
+        if (platform_info.is_linux) write_patch("02-isabelle_sources", sources_patch)
+
+        progress.echo("Build VSCodium ...")
+        progress.bash(platform_info.environment + "\n" + "./build.sh",
+          cwd = vscodium_dir.file, echo = verbose).check
+
+        if (platform_info.is_linux) {
+          Isabelle_System.copy_file(vscodium_dir + Path.explode("LICENSE"), component_dir)
         }
-
-        execute("./build.sh")
-
-        Isabelle_System.copy_file(vscodium_dir + Path.explode("LICENSE"), component_dir)
 
         val platform_dir = platform_info.platform_dir(component_dir)
         Isabelle_System.copy_dir(platform_info.build_dir(vscodium_dir), platform_dir)
         platform_info.node_binaries(platform_dir, progress)
-        platform_info.patch_resources(platform_dir)
+
+        val resources_patch = platform_info.patch_resources(platform_dir)
+        if (platform_info.is_linux) write_patch("03-isabelle_resources", resources_patch)
+
         platform_info.setup_executables(platform_dir)
       })
     }
@@ -280,8 +353,9 @@ esac
       "This is VSCodium " + version + " from " + vscodium_repository +
 """
 
-It has been built from sources using "isabelle build_vscodium": this applies
-a few changes required for Isabelle/VSCode.
+It has been built from sources using "isabelle build_vscodium". This applies
+a few changes required for Isabelle/VSCode, see "patches" directory for a
+formal record.
 
 
         Makarius

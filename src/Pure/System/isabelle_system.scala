@@ -196,6 +196,15 @@ object Isabelle_System
     }
   }
 
+  def with_copy_dir[A](dir1: Path, dir2: Path)(body: => A): A =
+  {
+    if (dir2.is_file || dir2.is_dir) error("Directory already exists: " + dir2.absolute)
+    else {
+      try { copy_dir(dir1, dir2); body }
+      finally { rm_tree(dir2 ) }
+    }
+  }
+
 
   object Make_Directory extends Scala.Fun_Strings("make_directory")
   {
@@ -437,12 +446,13 @@ object Isabelle_System
     else error("Expected to find GNU tar executable")
   }
 
-  def make_patch(base_dir: Path, src: Path, dst: Path): String =
+  def make_patch(base_dir: Path, src: Path, dst: Path, diff_options: String = ""): String =
   {
     with_tmp_file("patch")(patch =>
     {
       Isabelle_System.bash(
-        "diff -ru " + File.bash_path(src) + " " + File.bash_path(dst) + " > " + File.bash_path(patch),
+        "diff -ru " + diff_options + " -- " + File.bash_path(src) + " " + File.bash_path(dst) +
+          " > " + File.bash_path(patch),
         cwd = base_dir.file).check_rc(_ <= 1)
       File.read(patch)
     })
