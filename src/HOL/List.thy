@@ -4277,11 +4277,21 @@ by (induct xs) simp_all
 
 subsubsection \<open>\<^const>\<open>count_list\<close>\<close>
 
+lemma count_list_append[simp]: "count_list (xs @ ys) x = count_list xs x + count_list ys x"
+by (induction xs) simp_all
+
+lemma count_list_0_iff: "count_list xs x = 0 \<longleftrightarrow> x \<notin> set xs"
+by (induction xs) simp_all
+
 lemma count_notin[simp]: "x \<notin> set xs \<Longrightarrow> count_list xs x = 0"
-by (induction xs) auto
+by(simp add: count_list_0_iff)
 
 lemma count_le_length: "count_list xs x \<le> length xs"
 by (induction xs) auto
+
+lemma count_list_inj_map:
+  "\<lbrakk> inj_on f (set xs); x \<in> set xs \<rbrakk> \<Longrightarrow> count_list (map f xs) (f x) = count_list xs x"
+by (induction xs) (simp, fastforce)
 
 lemma sum_count_set:
   "set xs \<subseteq> X \<Longrightarrow> finite X \<Longrightarrow> sum (count_list xs) X = length xs"
