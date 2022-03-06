@@ -324,6 +324,8 @@ exit $?
       })
     }
 
+    Isabelle_System.bash("gzip *.patch", cwd = patches_dir.file).check
+
 
     /* settings */
 
