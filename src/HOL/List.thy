@@ -4277,6 +4277,8 @@ by (induct xs) simp_all
 
 subsubsection \<open>\<^const>\<open>count_list\<close>\<close>
 
+text \<open>This library is intentionally minimal. See the remark about multisets at the point above where @{const count_list} is defined.\<close>
+
 lemma count_list_append[simp]: "count_list (xs @ ys) x = count_list xs x + count_list ys x"
 by (induction xs) simp_all
 
@@ -4289,9 +4291,15 @@ by(simp add: count_list_0_iff)
 lemma count_le_length: "count_list xs x \<le> length xs"
 by (induction xs) auto
 
+lemma count_list_map_ge: "count_list xs x \<le> count_list (map f xs) (f x)"
+by (induction xs) auto
+
 lemma count_list_inj_map:
   "\<lbrakk> inj_on f (set xs); x \<in> set xs \<rbrakk> \<Longrightarrow> count_list (map f xs) (f x) = count_list xs x"
 by (induction xs) (simp, fastforce)
+
+lemma count_list_rev[simp]: "count_list (rev xs) x = count_list xs x"
+by (induction xs) auto
 
 lemma sum_count_set:
   "set xs \<subseteq> X \<Longrightarrow> finite X \<Longrightarrow> sum (count_list xs) X = length xs"
