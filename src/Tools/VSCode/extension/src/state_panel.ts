@@ -1,3 +1,8 @@
+/*  Author:     Makarius
+
+State panel via HTML webview inside VSCode.
+*/
+
 'use strict';
 
 import * as vscode_lib from './vscode_lib'

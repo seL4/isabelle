@@ -1,3 +1,8 @@
+/*  Author:     Makarius
+
+Preview panel via HTML webview inside VSCode.
+*/
+
 'use strict';
 
 import { ExtensionContext, Uri, window, ViewColumn, WebviewPanel } from 'vscode'

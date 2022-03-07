@@ -1,3 +1,8 @@
+/*  Author:     Makarius
+
+PIDE document decorations.
+*/
+
 'use strict';
 
 import * as timers from 'timers'

@@ -1,3 +1,10 @@
+/*  Author:     Makarius
+    Author:     Denis Paluca, TU Muenchen
+    Author:     Fabian Huch, TU Muenchen
+
+Isabelle/VSCode extension.
+*/
+
 'use strict';
 
 import * as platform from './platform'

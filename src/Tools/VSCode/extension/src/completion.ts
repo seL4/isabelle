@@ -1,3 +1,8 @@
+/*  Author:     Makarius
+
+Support for PIDE completion information.
+*/
+
 'use strict';
 
 import { CompletionItemProvider, CompletionItem, TextDocument, Range, Position,
