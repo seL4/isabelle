@@ -1,11 +1,14 @@
 /*  Author:     Makarius
 
-Isabelle text symbols (see Pure/General/symbol.scala).
+Isabelle text symbols versus UTF-8/Unicode encoding. See also:
+
+  - Pure/General/symbol.scala
+  - Pure/General/utf8.scala
+  - https://encoding.spec.whatwg.org
 */
 
 'use strict';
 
-import * as library from './library'
 import * as file from './file'
 
 
