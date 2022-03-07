@@ -10,6 +10,7 @@ Isabelle text symbols versus UTF-8/Unicode encoding. See also:
 'use strict';
 
 import * as file from './file'
+import * as isabelle_encoding from './isabelle_encoding'
 
 
 /* ASCII characters */
@@ -44,13 +45,7 @@ export function is_ascii_identifier(s: Symbol): boolean
 
 /* defined symbols */
 
-export interface Entry
-{
-  symbol: Symbol,
-  name: string,
-  code: number,
-  abbrevs: string[]
-}
+export type Entry = isabelle_encoding.Symbol_Entry
 
 export class Symbols
 {
@@ -75,17 +70,6 @@ export class Symbols
   {
     return this.entries_map.has(sym)
   }
-
-  public decode(sym: Symbol): string | undefined
-  {
-    const entry = this.get(sym)
-    const code = entry ? entry.code : undefined
-    return code ? String.fromCharCode(code) : undefined
-  }
 }
 
-export async function load_symbols(path: string): Promise<Symbols>
-{
-  const entries = await file.read_json<[Entry]>(path)
-  return new Symbols(entries)
-}
+export const symbols: Symbols = new Symbols(isabelle_encoding.symbols)

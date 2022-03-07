@@ -33,8 +33,7 @@ export async function activate(context: ExtensionContext)
   try {
     const isabelle_home = library.getenv_strict("ISABELLE_HOME")
 
-    const symbols = await symbol.load_symbols(library.workspace_path("symbols.json"))
-    const workspace_dir = await Isabelle_Workspace.register(context, symbols)
+    const workspace_dir = await Isabelle_Workspace.register(context, symbol.symbols)
     const roots = workspace.workspaceFile === undefined ? await workspace.findFiles("{ROOT,ROOTS}") : []
 
     const isabelle_tool = isabelle_home + "/bin/isabelle"
