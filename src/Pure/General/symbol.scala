@@ -36,6 +36,16 @@ object Symbol
   }
 
 
+  /* char symbols */
+
+  private val char_symbols: Array[Symbol] =
+    (0 until 0x500).iterator.map(i => new String(Array(i.toChar))).toArray
+
+  def char_symbol(c: Char): String =
+    if (c < char_symbols.length) char_symbols(c)
+    else c.toString
+
+
   /* ASCII characters */
 
   def is_ascii_printable(c: Char): Boolean = space_char <= c && c <= '~'
@@ -62,7 +72,7 @@ object Symbol
   def ascii(c: Char): Symbol =
   {
     if (c > 127) error("Non-ASCII character: " + quote(c.toString))
-    else char_symbols(c.toInt)
+    else char_symbol(c)
   }
 
   def is_ascii(s: Symbol): Boolean = s.length == 1 && s(0) < 128
@@ -110,20 +120,13 @@ object Symbol
     def match_symbol(i: Int): String =
       match_length(i) match {
         case 0 => ""
-        case 1 =>
-          val c = text.charAt(i)
-          if (c < char_symbols.length) char_symbols(c)
-          else c.toString
-        case n =>
-          text.subSequence(i, i + n).toString
+        case 1 => char_symbol(text.charAt(i))
+        case n => text.subSequence(i, i + n).toString
       }
   }
 
 
   /* iterator */
-
-  private val char_symbols: Array[Symbol] =
-    (0 until 256).iterator.map(i => new String(Array(i.toChar))).toArray
 
   def iterator(text: CharSequence): Iterator[Symbol] =
     new Iterator[Symbol]
