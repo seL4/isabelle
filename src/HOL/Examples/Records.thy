@@ -1,6 +1,7 @@
 (*  Title:      HOL/Examples/Records.thy
     Author:     Wolfgang Naraschewski, TU Muenchen
     Author:     Norbert Schirmer, TU Muenchen
+    Author:     Norbert Schirmer, Apple, 2022
     Author:     Markus Wenzel, TU Muenchen
 *)
 
@@ -294,8 +295,72 @@ text \<open>
   by the following lemma.\<close>
 
 lemma "\<exists>r. xpos r = x"
-  by (tactic \<open>simp_tac (put_simpset HOL_basic_ss \<^context>
-    addsimprocs [Record.ex_sel_eq_simproc]) 1\<close>)
+  supply [[simproc add: Record.ex_sel_eq]]
+  apply (simp)
+  done
+
+subsection \<open>Simprocs for update and equality\<close>
+
+record alph1 =
+a::nat
+b::nat
+
+record alph2 = alph1 +
+c::nat
+d::nat
+
+record alph3 = alph2 + 
+  e::nat
+  f::nat
+
+text \<open>The simprocs that are activated by default are:
+\<^item> @{ML [source] Record.simproc}: field selection of (nested) record updates.
+\<^item> @{ML [source] Record.upd_simproc}: nested record updates.
+\<^item> @{ML [source] Record.eq_simproc}: (componentwise) equality of records.
+\<close>
+
+
+text \<open>By default record updates are not ordered by simplification.\<close>
+schematic_goal "r\<lparr>b := x, a:= y\<rparr> = ?X"
+  by simp
+
+text \<open>Normalisation towards an update ordering (string ordering of update function names) can
+be configured as follows.\<close>
+schematic_goal "r\<lparr>b := y, a := x\<rparr> = ?X"
+  supply [[record_sort_updates = true]]
+  by simp
+
+text \<open>Note the interplay between update ordering and record equality. Without update ordering
+the following equality is handled by @{ML [source] Record.eq_simproc}. Record equality is thus
+solved by componentwise comparison of all the fields of the records which can be expensive 
+in the presence of many fields.\<close>
+
+lemma "r\<lparr>f := x1, a:= x2\<rparr> = r\<lparr>a := x2, f:= x1\<rparr>"
+  by simp
+
+lemma "r\<lparr>f := x1, a:= x2\<rparr> = r\<lparr>a := x2, f:= x1\<rparr>"
+  supply [[simproc del: Record.eq]]
+  apply (simp?)
+  oops
+
+text \<open>With update ordering the equality is already established after update normalisation. There
+is no need for componentwise comparison.\<close>
+
+lemma "r\<lparr>f := x1, a:= x2\<rparr> = r\<lparr>a := x2, f:= x1\<rparr>"
+  supply [[record_sort_updates = true, simproc del: Record.eq]]
+  apply simp
+  done
+
+schematic_goal "r\<lparr>f := x1, e := x2, d:= x3, c:= x4, b:=x5, a:= x6\<rparr> = ?X"
+  supply [[record_sort_updates = true]]
+  by simp
+
+schematic_goal "r\<lparr>f := x1, e := x2, d:= x3, c:= x4, e:=x5, a:= x6\<rparr> = ?X"
+  supply [[record_sort_updates = true]]
+  by simp
+
+schematic_goal "r\<lparr>f := x1, e := x2, d:= x3, c:= x4, e:=x5, a:= x6\<rparr> = ?X"
+  by simp
 
 
 subsection \<open>A more complex record expression\<close>
@@ -324,6 +389,24 @@ record not_so_large_record =
   bar520 :: nat
   bar521 :: "nat \<times> nat"
 
+
+setup \<open>
+let
+ val N = 300
+in
+  Record.add_record {overloaded=false} ([], \<^binding>\<open>large_record\<close>) NONE 
+    (map (fn i => (Binding.make ("fld_" ^ string_of_int i, \<^here>), @{typ nat}, Mixfix.NoSyn)) 
+      (1 upto N))
+end
+\<close>
+
 declare [[record_codegen = true]]
+
+schematic_goal \<open>fld_1 (r\<lparr>fld_300 := x300, fld_20 := x20, fld_200 := x200\<rparr>) = ?X\<close>
+  by simp
+
+schematic_goal \<open>r\<lparr>fld_300 := x300, fld_20 := x20, fld_200 := x200\<rparr> = ?X\<close>
+  supply [[record_sort_updates]]
+  by simp
 
 end
