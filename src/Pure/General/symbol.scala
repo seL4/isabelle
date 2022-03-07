@@ -70,13 +70,6 @@ object Symbol
 
   /* symbol matching */
 
-  private val symbol_total =
-    new Regex("(?xs) [\ud800-\udbff][\udc00-\udfff] " +
-      """ | \r\n | \\ < \^? ([A-Za-z][A-Za-z0-9_']*)? >? | .""")
-
-  private def is_plain(c: Char): Boolean =
-    !(c == '\r' || c == '\\' || Character.isHighSurrogate(c))
-
   def is_malformed(s: Symbol): Boolean =
     s.length match {
       case 1 =>
@@ -94,16 +87,36 @@ object Symbol
 
   class Matcher(text: CharSequence)
   {
-    private val matcher = symbol_total.pattern.matcher(text)
-    def apply(start: Int, end: Int): Int =
+    private def ok(i: Int): Boolean = 0 <= i && i < text.length
+    private def char(i: Int): Char = if (ok(i)) text.charAt(i) else 0
+    private def maybe_char(c: Char, i: Int): Int = if (char(i) == c) i + 1 else i
+
+    @tailrec private def many_ascii_letdig(i: Int): Int =
+      if (is_ascii_letdig(char(i))) many_ascii_letdig(i + 1) else i
+    private def maybe_ascii_id(i: Int): Int =
+      if (is_ascii_letter(char(i))) many_ascii_letdig(i + 1) else i
+
+    def match_length(i: Int): Int =
     {
-      require(0 <= start && start < end && end <= text.length, "bad matcher range")
-      if (is_plain(text.charAt(start))) 1
-      else {
-        matcher.region(start, end).lookingAt
-        matcher.group.length
-      }
+      val a = char(i)
+      val b = char(i + 1)
+
+      if (Character.isHighSurrogate(a) && Character.isLowSurrogate(b) || a == '\r' && b == '\n') 2
+      else if (a == '\\' && b == '<') maybe_char('>', maybe_ascii_id(maybe_char('^', i + 2))) - i
+      else if (ok(i)) 1
+      else 0
     }
+
+    def match_symbol(i: Int): String =
+      match_length(i) match {
+        case 0 => ""
+        case 1 =>
+          val c = text.charAt(i)
+          if (c < char_symbols.length) char_symbols(c)
+          else c.toString
+        case n =>
+          text.subSequence(i, i + n).toString
+      }
   }
 
 
@@ -120,16 +133,8 @@ object Symbol
       def hasNext: Boolean = i < text.length
       def next(): Symbol =
       {
-        val n = matcher(i, text.length)
-        val s =
-          if (n == 0) ""
-          else if (n == 1) {
-            val c = text.charAt(i)
-            if (c < char_symbols.length) char_symbols(c)
-            else text.subSequence(i, i + n).toString
-          }
-          else text.subSequence(i, i + n).toString
-        i += n
+        val s = matcher.match_symbol(i)
+        i += s.length
         s
       }
     }
@@ -163,7 +168,7 @@ object Symbol
       var chr = 0
       var sym = 0
       while (chr < text.length) {
-        val n = matcher(chr, text.length)
+        val n = matcher.match_length(chr)
         chr += n
         sym += 1
         if (n > 1) buf += Entry(chr, sym)
@@ -276,16 +281,15 @@ object Symbol
     def recode(text: String): String =
     {
       val len = text.length
-      val matcher = symbol_total.pattern.matcher(text)
+      val matcher = new Symbol.Matcher(text)
       val result = new StringBuilder(len)
       var i = 0
       while (i < len) {
         val c = text(i)
         if (min <= c && c <= max) {
-          matcher.region(i, len).lookingAt
-          val x = matcher.group
-          result.append(table.getOrElse(x, x))
-          i = matcher.end
+          val s = matcher.match_symbol(i)
+          result.append(table.getOrElse(s, s))
+          i += s.length
         }
         else { result.append(c); i += 1 }
       }
