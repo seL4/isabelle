@@ -1,6 +1,6 @@
 /*  Author:     Makarius
 
-UTF-8-Isabelle symbol encoding: minimal dependencies, for use inside VSCode.
+UTF-8-Isabelle symbol encoding: for use inside VSCode.
 */
 
 'use strict';
@@ -33,7 +33,8 @@ export const symbols_encode: Map<string, string> =
 
 /* encoding */
 
-export const UTF8_Isabelle = 'utf8-isabelle';
+export const ENCODING = 'utf8isabelle';
+export const LABEL = 'UTF-8-Isabelle';
 
 export interface Options {
   stripBOM?: boolean;
@@ -51,7 +52,7 @@ export interface IDecoderStream {
   end(): string | undefined;
 }
 
-export async function getEncoder(encoding: string, options?: Options): Promise<IEncoderStream> {
+export function getEncoder(): IEncoderStream {
   const utf8_encoder = new TextEncoder();
   return {
     write(input: string): Uint8Array {
@@ -63,7 +64,7 @@ export async function getEncoder(encoding: string, options?: Options): Promise<I
   };
 }
 
-export async function getDecoder(encoding: string, options?: Options): Promise<IDecoderStream> {
+export function getDecoder(): IDecoderStream {
   const utf8TextDecoder = new TextDecoder();
   return {
     write(input: Uint8Array): string {
