@@ -7,6 +7,7 @@ UTF-8-Isabelle symbol encoding: for use inside VSCode.
 
 import { TextEncoder, TextDecoder } from 'util'   // VSCODE: REMOVE
 
+const process = require('process');
 const fs = require('fs');
 
 
