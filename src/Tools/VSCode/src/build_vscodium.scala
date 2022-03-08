@@ -1,11 +1,13 @@
-/*  Title:      Pure/Admin/build_vscodium.scala
+/*  Title:      Tools/VSCode/src/build_vscodium.scala
     Author:     Makarius
 
 Build component for VSCodium (cross-compiled from sources for all platforms).
 */
 
-package isabelle
+package isabelle.vscode
 
+
+import isabelle._
 
 import java.util.{Map => JMap}
 import java.security.MessageDigest
