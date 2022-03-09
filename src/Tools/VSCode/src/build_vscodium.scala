@@ -10,7 +10,6 @@ package isabelle.vscode
 
 import isabelle._
 
-import java.util.{Map => JMap}
 import java.security.MessageDigest
 import java.util.Base64
 
@@ -156,9 +155,6 @@ object Build_VSCodium
     def patch_resources(base_dir: Path): String =
     {
       val dir = base_dir + Path.explode("resources")
-      if (platform == Platform.Family.macos) {
-        Isabelle_System.symlink(base_dir + Path.explode("VSCodium.app/Contents/Resources"), dir)
-      }
       Isabelle_System.with_copy_dir(dir, dir.orig) {
         val fonts_dir = dir + Path.explode("app/out/vs/base/browser/ui/fonts")
         HTML.init_fonts(fonts_dir.dir)
@@ -181,17 +177,26 @@ object Build_VSCodium
       }
     }
 
-    def node_binaries(dir: Path, progress: Progress): Unit =
+    def init_resources(base_dir: Path): Path =
+    {
+      val resources_dir = base_dir + Path.explode("resources")
+      if (platform == Platform.Family.macos) {
+        Isabelle_System.symlink(Path.explode("VSCodium.app/Contents/Resources"), resources_dir)
+      }
+      resources_dir
+    }
+
+    def node_binaries(target_dir: Path, progress: Progress): Unit =
     {
       Isabelle_System.with_tmp_dir("download")(download_dir =>
       {
         download(download_dir, progress = progress)
-        for {
-          name <- Seq("resources/app/node_modules.asar", "resources/app/node_modules.asar.unpacked")
-        } {
+        val dir1 = init_resources(download_dir)
+        val dir2 = init_resources(target_dir)
+        for (name <- Seq("app/node_modules.asar", "app/node_modules.asar.unpacked")) {
           val path = Path.explode(name)
-          Isabelle_System.rm_tree(dir + path)
-          Isabelle_System.copy_dir(download_dir + path, dir + path)
+          Isabelle_System.rm_tree(dir2 + path)
+          Isabelle_System.copy_dir(dir1 + path, dir2 + path)
         }
       })
     }
