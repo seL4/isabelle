@@ -1,7 +1,8 @@
 /*  Title:      Tools/VSCode/src/build_vscodium.scala
     Author:     Makarius
 
-Build component for VSCodium (cross-compiled from sources for all platforms).
+Build the Isabelle system component for VSCodium: cross-compilation for all
+platforms.
 */
 
 package isabelle.vscode
@@ -259,7 +260,7 @@ object Build_VSCodium
     {
       platform_info.get_vscodium_repository(vscodium_dir, progress = progress)
       val vscode_dir = vscodium_dir + Path.basic("vscode")
-      progress.echo("Prepare VSCodium ...")
+      progress.echo("Prepare ...")
       Isabelle_System.with_copy_dir(vscode_dir, vscode_dir.orig) {
         progress.bash(
           List(
@@ -310,7 +311,7 @@ exit $?
 
     /* patches */
 
-    progress.echo("Building patches:")
+    progress.echo("* Building patches:")
 
     val patches_dir = Isabelle_System.new_directory(component_dir + Path.basic("patches"))
 
@@ -327,14 +328,14 @@ exit $?
 
       Isabelle_System.with_tmp_dir("vscodium")(vscodium_dir =>
       {
-        progress.echo("Building " + platform + ":")
+        progress.echo("* Building " + platform + ":")
 
         platform_info.get_vscodium_repository(vscodium_dir, progress = progress)
 
         val sources_patch = platform_info.patch_sources(vscodium_dir)
         if (platform_info.is_linux) write_patch("02-isabelle_sources", sources_patch)
 
-        progress.echo("Build VSCodium ...")
+        progress.echo("Build ...")
         progress.bash(platform_info.environment + "\n" + "./build.sh",
           cwd = vscodium_dir.file, echo = verbose).check
 
