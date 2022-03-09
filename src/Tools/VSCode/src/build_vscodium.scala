@@ -342,7 +342,7 @@ exit $?
 
     /* patches */
 
-    progress.echo("* Building patches:")
+    progress.echo("\n* Building patches:")
 
     val patches_dir = Isabelle_System.new_directory(component_dir + Path.basic("patches"))
 
@@ -359,7 +359,7 @@ exit $?
 
       Isabelle_System.with_tmp_dir("vscodium")(vscodium_dir =>
       {
-        progress.echo("* Building " + platform + ":")
+        progress.echo("\n* Building " + platform + ":")
 
         platform_info.get_vscodium_repository(vscodium_dir, progress = progress)
 
