@@ -26,6 +26,25 @@ object Build_VSCodium
   def vscodium_exe(dir: Path): Path = dir + Path.explode("bin/codium")
 
 
+  /* Isabelle symbols (static subset) */
+
+  val symbols_json: Path = Path.explode("symbols.json")
+
+  def write_symbols(dir: Path, json: List[JSON.T]): Unit =
+    File.write(Isabelle_System.make_directory(dir) + symbols_json, JSON.Format.apply_lines(json))
+
+  def load_symbols_static(): List[JSON.T] =
+  {
+    val symbols = Symbol.Symbols.load(static = true)
+    for (entry <- symbols.entries; code <- entry.code)
+      yield JSON.Object(
+        "symbol" -> entry.symbol,
+        "name" -> entry.name,
+        "code" -> code,
+        "abbrevs" -> entry.abbrevs)
+  }
+
+
   /* platform info */
 
   sealed case class Platform_Info(
@@ -86,14 +105,6 @@ object Build_VSCodium
       (("MS_TAG=" + Bash.string(version)) :: "SHOULD_BUILD=yes" :: "VSCODE_ARCH=x64" :: env)
         .map(s => "export " + s + "\n").mkString
 
-    def resources_dir(dir: Path): Path =
-    {
-      val resources =
-        if (platform == Platform.Family.macos) "VSCodium.app/Contents/Resources"
-        else "resources"
-      dir + Path.explode(resources)
-    }
-
     def patch_sources(base_dir: Path): String =
     {
       val dir = base_dir + Path.explode("vscode")
@@ -112,12 +123,16 @@ object Build_VSCodium
             Path.explode("$ISABELLE_VSCODE_HOME/extension/src/isabelle_encoding.ts")
           val common_dir = dir + Path.explode("src/vs/workbench/services/textfile/common")
 
+          val inline_symbols = JSON.Format.apply_lines(load_symbols_static())
+
           val header =
             split_lines(File.read(common_dir + Path.explode("encoding.ts")))
               .takeWhile(_.trim.nonEmpty)
           val body =
-            split_lines(File.read(isabelle_encodings))
-              .filterNot(_.containsSlice("// VSCODE: REMOVE"))
+            for {
+              line <- split_lines(File.read(isabelle_encodings))
+              if !line.containsSlice("// VSCODE: REMOVE")
+            } yield line.replace("[/*symbols*/]", inline_symbols)
 
           File.write(common_dir + isabelle_encodings.base, cat_lines(header ::: body))
         }
@@ -137,9 +152,14 @@ object Build_VSCodium
 
     def patch_resources(base_dir: Path): String =
     {
-      val dir = resources_dir(base_dir)
+      val dir = base_dir + Path.explode("resources")
+      if (platform == Platform.Family.macos) {
+        Isabelle_System.symlink(base_dir + Path.explode("VSCodium.app/Contents/Resources"), dir)
+      }
       Isabelle_System.with_copy_dir(dir, dir.orig) {
-        HTML.init_fonts(dir + Path.explode("app/out/vs/base/browser/ui"))
+        val fonts_dir = dir + Path.explode("app/out/vs/base/browser/ui/fonts")
+        HTML.init_fonts(fonts_dir.dir)
+        write_symbols(fonts_dir, load_symbols_static())
 
         val workbench_css = dir + Path.explode("app/out/vs/workbench/workbench.desktop.main.css")
         val checksum1 = file_checksum(workbench_css)
@@ -163,10 +183,12 @@ object Build_VSCodium
       Isabelle_System.with_tmp_dir("download")(download_dir =>
       {
         download(download_dir, progress = progress)
-        for (name <- Seq("app/node_modules.asar", "app/node_modules.asar.unpacked")) {
-          val rel_path = resources_dir(Path.current) + Path.explode(name)
-          Isabelle_System.rm_tree(dir + rel_path)
-          Isabelle_System.copy_dir(download_dir + rel_path, dir + rel_path)
+        for {
+          name <- Seq("resources/app/node_modules.asar", "resources/app/node_modules.asar.unpacked")
+        } {
+          val path = Path.explode(name)
+          Isabelle_System.rm_tree(dir + path)
+          Isabelle_System.copy_dir(download_dir + path, dir + path)
         }
       })
     }
@@ -193,6 +215,7 @@ object Build_VSCodium
       }
     }
   }
+
 
   // see https://github.com/microsoft/vscode/blob/main/build/gulpfile.vscode.js
   // function computeChecksum(filename)

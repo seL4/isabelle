@@ -20,7 +20,6 @@ object VSCode_Setup
   def vscode_home: Path = Path.variable("ISABELLE_VSCODE_HOME")
   def vscode_settings: Path = Path.variable("ISABELLE_VSCODE_SETTINGS")
   def vscode_settings_user: Path = vscode_settings + Path.explode("user-data/User/settings.json")
-  def vscode_workspace: Path = Path.variable("ISABELLE_VSCODE_WORKSPACE")
   def version: String = Build_VSCodium.version
 
   def vscodium_home: Path = Path.variable("ISABELLE_VSCODIUM_HOME")
@@ -69,27 +68,6 @@ object VSCode_Setup
   }
 
 
-  /* workspace */
-
-  def init_workspace(dir: Path): Unit =
-  {
-    Isabelle_System.make_directory(dir)
-    Isabelle_System.chmod("700", dir)
-
-    File.change(dir + Path.explode("symbols.json"), init = true) { _ =>
-      JSON.Format(
-        for (entry <- Symbol.symbols.entries; code <- entry.code)
-          yield JSON.Object(
-            "symbol" -> entry.symbol,
-            "name" -> entry.name,
-            "code" -> code,
-            "abbrevs" -> entry.abbrevs
-          )
-      )
-    }
-  }
-
-
   /* vscode setup */
 
   def default_platform: Platform.Family.Value = Platform.family
@@ -125,11 +103,9 @@ object VSCode_Setup
 
     if (check) {
       if (vscodium_home_ok()) {
-        init_workspace(vscode_workspace)
         progress.echo(vscodium_home.expand.implode)
       }
       else if (install_ok) {
-        init_workspace(vscode_workspace)
         progress.echo(install_dir.expand.implode)
       }
       else {

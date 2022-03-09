@@ -7,9 +7,6 @@ UTF-8-Isabelle symbol encoding: for use inside VSCode.
 
 import { TextEncoder, TextDecoder } from 'util'   // VSCODE: REMOVE
 
-const process = require('process');
-const fs = require('fs');
-
 
 /* defined symbols */
 
@@ -20,16 +17,13 @@ export interface Symbol_Entry {
   abbrevs: string[];
 }
 
-const symbols_file = process.env['ISABELLE_VSCODE_SYMBOLS'];
-
-export const symbols: [Symbol_Entry] =
-  symbols_file ? JSON.parse(fs.readFileSync(symbols_file).toString()) : [];
+export const static_symbols: Symbol_Entry[] = [/*symbols*/];
 
 export const symbols_decode: Map<string, string> =
-  new Map(symbols.map((s: Symbol_Entry) => [s.symbol, String.fromCharCode(s.code)]));
+  new Map(static_symbols.map((s: Symbol_Entry) => [s.symbol, String.fromCharCode(s.code)]));
 
 export const symbols_encode: Map<string, string> =
-  new Map(symbols.map((s: Symbol_Entry) => [String.fromCharCode(s.code), s.symbol]));
+  new Map(static_symbols.map((s: Symbol_Entry) => [String.fromCharCode(s.code), s.symbol]));
 
 
 /* encoding */

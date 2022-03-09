@@ -4,8 +4,6 @@
 #
 # DESCRIPTION: run Isabelle/VSCode using local VSCodium installation
 
-export ISABELLE_VSCODE_SYMBOLS="$(platform_path "$ISABELLE_VSCODE_WORKSPACE/symbols.json")"
-
 DIR="$(isabelle vscode_setup -C)" || exit "$?"
 exec "$DIR/bin/codium" \
   --locale en-US \

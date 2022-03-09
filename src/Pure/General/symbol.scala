@@ -375,12 +375,12 @@ object Symbol
 
   object Symbols
   {
-    def load(): Symbols =
+    def load(static: Boolean = false): Symbols =
     {
-      val contents =
-        for (path <- Path.split(Isabelle_System.getenv("ISABELLE_SYMBOLS")) if path.is_file)
-          yield File.read(path)
-      make(cat_lines(contents))
+      val paths =
+        if (static) List(Path.explode("~~/etc/symbols"))
+        else Path.split(Isabelle_System.getenv("ISABELLE_SYMBOLS"))
+      make(cat_lines(for (path <- paths if path.is_file) yield File.read(path)))
     }
 
     def make(symbols_spec: String): Symbols =
