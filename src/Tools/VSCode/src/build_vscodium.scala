@@ -26,22 +26,36 @@ object Build_VSCodium
   def vscodium_exe(dir: Path): Path = dir + Path.explode("bin/codium")
 
 
-  /* Isabelle symbols (static subset) */
+  /* Isabelle symbols (static subset only) */
 
-  val symbols_json: Path = Path.explode("symbols.json")
-
-  def write_symbols(dir: Path, json: List[JSON.T]): Unit =
-    File.write(Isabelle_System.make_directory(dir) + symbols_json, JSON.Format.apply_lines(json))
-
-  def load_symbols_static(): List[JSON.T] =
+  def make_symbols(): File.Content =
   {
     val symbols = Symbol.Symbols.load(static = true)
-    for (entry <- symbols.entries; code <- entry.code)
-      yield JSON.Object(
-        "symbol" -> entry.symbol,
-        "name" -> entry.name,
-        "code" -> code,
-        "abbrevs" -> entry.abbrevs)
+    val symbols_js =
+      JSON.Format.apply_lines(
+        for (entry <- symbols.entries) yield
+          JSON.Object(
+            "symbol" -> entry.symbol,
+            "name" -> entry.name,
+            "abbrevs" -> entry.abbrevs) ++
+          JSON.optional("code", entry.code))
+
+    File.Content(Path.explode("symbols.json"), symbols_js)
+  }
+
+  def make_isabelle_encoding(header: String): File.Content =
+  {
+    val symbols = Symbol.Symbols.load(static = true)
+    val symbols_js =
+      JSON.Format.apply_lines(
+        for (entry <- symbols.entries; code <- entry.code)
+          yield JSON.Object("symbol" -> entry.symbol, "code" -> code))
+
+    val path = Path.explode("isabelle_encoding.ts")
+    val body =
+      File.read(Path.explode("$ISABELLE_VSCODE_HOME/patches") + path)
+        .replace("[/*symbols*/]", symbols_js)
+    File.Content(path, header + "\n" + body)
   }
 
 
@@ -119,22 +133,11 @@ object Build_VSCodium
 
         // isabelle_encoding.ts
         {
-          val isabelle_encodings =
-            Path.explode("$ISABELLE_VSCODE_HOME/extension/src/isabelle_encoding.ts")
           val common_dir = dir + Path.explode("src/vs/workbench/services/textfile/common")
-
-          val inline_symbols = JSON.Format.apply_lines(load_symbols_static())
-
           val header =
             split_lines(File.read(common_dir + Path.explode("encoding.ts")))
               .takeWhile(_.trim.nonEmpty)
-          val body =
-            for {
-              line <- split_lines(File.read(isabelle_encodings))
-              if !line.containsSlice("// VSCODE: REMOVE")
-            } yield line.replace("[/*symbols*/]", inline_symbols)
-
-          File.write(common_dir + isabelle_encodings.base, cat_lines(header ::: body))
+          make_isabelle_encoding(cat_lines(header)).write(common_dir)
         }
 
         // explicit patches
@@ -159,7 +162,7 @@ object Build_VSCodium
       Isabelle_System.with_copy_dir(dir, dir.orig) {
         val fonts_dir = dir + Path.explode("app/out/vs/base/browser/ui/fonts")
         HTML.init_fonts(fonts_dir.dir)
-        write_symbols(fonts_dir, load_symbols_static())
+        make_symbols().write(fonts_dir)
 
         val workbench_css = dir + Path.explode("app/out/vs/workbench/workbench.desktop.main.css")
         val checksum1 = file_checksum(workbench_css)

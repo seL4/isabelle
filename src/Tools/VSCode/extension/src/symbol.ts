@@ -11,7 +11,6 @@ Isabelle text symbols versus UTF-8/Unicode encoding. See also:
 
 import * as file from './file'
 import * as library from './library'
-import * as isabelle_encoding from './isabelle_encoding'
 
 
 /* ASCII characters */
@@ -46,7 +45,12 @@ export function is_ascii_identifier(s: Symbol): boolean
 
 /* defined symbols */
 
-export type Entry = isabelle_encoding.Symbol_Entry
+export interface Entry {
+  symbol: string;
+  name: string;
+  abbrevs: string[];
+  code?: number;
+}
 
 export class Symbols
 {

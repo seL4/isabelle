@@ -5,25 +5,21 @@ UTF-8-Isabelle symbol encoding: for use inside VSCode.
 
 'use strict';
 
-import { TextEncoder, TextDecoder } from 'util'   // VSCODE: REMOVE
-
 
 /* defined symbols */
 
-export interface Symbol_Entry {
+export interface Symbol_Code {
   symbol: string;
-  name: string;
   code: number;
-  abbrevs: string[];
 }
 
-export const static_symbols: Symbol_Entry[] = [/*symbols*/];
+export const static_symbols: Symbol_Code[] = [/*symbols*/];
 
 export const symbols_decode: Map<string, string> =
-  new Map(static_symbols.map((s: Symbol_Entry) => [s.symbol, String.fromCharCode(s.code)]));
+  new Map(static_symbols.map((s: Symbol_Code) => [s.symbol, String.fromCharCode(s.code)]));
 
 export const symbols_encode: Map<string, string> =
-  new Map(static_symbols.map((s: Symbol_Entry) => [String.fromCharCode(s.code), s.symbol]));
+  new Map(static_symbols.map((s: Symbol_Code) => [String.fromCharCode(s.code), s.symbol]));
 
 
 /* encoding */
