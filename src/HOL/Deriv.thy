@@ -803,9 +803,7 @@ lemma has_field_derivative_iff:
 proof -
   have "((\<lambda>y. norm (f y - f x - D * (y - x)) / norm (y - x)) \<longlongrightarrow> 0) (at x within S) 
       = ((\<lambda>y. (f y - f x) / (y - x) - D) \<longlongrightarrow> 0) (at x within S)"
-    apply (subst tendsto_norm_zero_iff[symmetric], rule filterlim_cong)
-      apply (simp_all add: eventually_at_filter field_simps nonzero_norm_divide)
-    done
+    by (smt (verit, best) Lim_cong_within divide_diff_eq_iff norm_divide right_minus_eq tendsto_norm_zero_iff)
   then show ?thesis
     by (simp add: has_field_derivative_def has_derivative_iff_norm bounded_linear_mult_right LIM_zero_iff)
 qed
@@ -813,36 +811,19 @@ qed
 lemma DERIV_def: "DERIV f x :> D \<longleftrightarrow> (\<lambda>h. (f (x + h) - f x) / h) \<midarrow>0\<rightarrow> D"
   unfolding field_has_derivative_at has_field_derivative_def has_field_derivative_iff ..
 
+text \<open>due to Christian Pardillo Laursen, replacing a proper epsilon-delta horror\<close>
 lemma field_derivative_lim_unique:
   assumes f: "(f has_field_derivative df) (at z)"
-      and s: "s \<longlonglongrightarrow> 0"  "\<And>n. s n \<noteq> 0" 
-      and a: "(\<lambda>n. (f (z + s n) - f z) / s n) \<longlonglongrightarrow> a"
-    shows "df = a"
-proof (rule ccontr)
-  assume "df \<noteq> a"
-  obtain q where qpos: "\<And>\<epsilon>. \<epsilon> > 0 \<Longrightarrow> q \<epsilon> > 0" 
-             and q: "\<And>\<epsilon> y. \<lbrakk>\<epsilon> > 0; y \<noteq> z; dist y z < q \<epsilon>\<rbrakk> \<Longrightarrow> dist ((f y - f z) / (y - z)) df < \<epsilon>"
-    using f unfolding LIM_def has_field_derivative_iff by metis
-  obtain NA where NA: "\<And>\<epsilon> n. \<lbrakk>\<epsilon> > 0; n \<ge> NA \<epsilon>\<rbrakk> \<Longrightarrow> dist ((f (z + s n) - f z) / s n) a < \<epsilon>" 
-    using a unfolding LIMSEQ_def by metis
-  obtain NB where NB: "\<And>\<epsilon> n. \<lbrakk>\<epsilon> > 0; n \<ge> NB \<epsilon>\<rbrakk> \<Longrightarrow> norm (s n) < \<epsilon>" 
-    using s unfolding LIMSEQ_def by (metis norm_conv_dist)
-  have df: "\<And>\<epsilon> n. \<epsilon> > 0 \<Longrightarrow> \<lbrakk>0 < \<epsilon>; norm (s n) < q \<epsilon>\<rbrakk> \<Longrightarrow> dist ((f (z + s n) - f z) / s n) df < \<epsilon>"
-    using add_cancel_left_right add_diff_cancel_left' q s
-    by (metis add_diff_cancel_right' dist_diff(1))
-  define \<delta> where "\<delta> \<equiv> dist df a / 2"
-  with \<open>df \<noteq> a\<close> have "\<delta> > 0" and \<delta>: "\<delta>+\<delta> \<le> dist df a"
-    by auto
-  define N where "N \<equiv> max (NA \<delta>) (NB (q \<delta>))"
-  then have "norm (s N) < q \<delta>"
-    by (simp add: NB \<open>\<delta> > 0\<close> qpos)
-  then have "dist ((f (z + s N) - f z) / s N) df < \<delta>"
-    by (simp add: \<open>0 < \<delta>\<close> df)
-  moreover have "dist ((f (z + s N) - f z) / s N) a < \<delta>"
-    using NA N_def \<open>0 < \<delta>\<close> by force
-  ultimately have "dist df a < dist df a"
-    by (smt (verit, ccfv_SIG) \<delta> dist_commute dist_triangle)
-  then show False ..
+    and s: "s \<longlonglongrightarrow> 0"  "\<And>n. s n \<noteq> 0" 
+    and a: "(\<lambda>n. (f (z + s n) - f z) / s n) \<longlonglongrightarrow> a"
+  shows "df = a"
+proof -
+  have "((\<lambda>k. (f (z + k) - f z) / k) \<longlongrightarrow> df) (at 0)"
+    using f by (simp add: DERIV_def)
+  with s have "((\<lambda>n. (f (z + s n) - f z) / s n) \<longlonglongrightarrow> df)"
+    by (simp flip: LIMSEQ_SEQ_conv)
+  then show ?thesis
+    using a by (rule LIMSEQ_unique)
 qed
 
 lemma mult_commute_abs: "(\<lambda>x. x * c) = (*) c"

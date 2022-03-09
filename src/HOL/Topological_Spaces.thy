@@ -1802,21 +1802,16 @@ lemma (in first_countable_topology) sequentially_imp_eventually_at:
   "(\<forall>f. (\<forall>n. f n \<noteq> a) \<and> f \<longlonglongrightarrow> a \<longrightarrow> eventually (\<lambda>n. P (f n)) sequentially) \<Longrightarrow> eventually P (at a)"
   using sequentially_imp_eventually_within [where s=UNIV] by simp
 
-lemma LIMSEQ_SEQ_conv1:
-  fixes f :: "'a::topological_space \<Rightarrow> 'b::topological_space"
-  assumes f: "f \<midarrow>a\<rightarrow> l"
-  shows "\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S \<longlonglongrightarrow> a \<longrightarrow> (\<lambda>n. f (S n)) \<longlonglongrightarrow> l"
-  using tendsto_compose_eventually [OF f, where F=sequentially] by simp
-
-lemma LIMSEQ_SEQ_conv2:
-  fixes f :: "'a::first_countable_topology \<Rightarrow> 'b::topological_space"
-  assumes "\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S \<longlonglongrightarrow> a \<longrightarrow> (\<lambda>n. f (S n)) \<longlonglongrightarrow> l"
-  shows "f \<midarrow>a\<rightarrow> l"
-  using assms unfolding tendsto_def [where l=l] by (simp add: sequentially_imp_eventually_at)
-
-lemma LIMSEQ_SEQ_conv: "(\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S \<longlonglongrightarrow> a \<longrightarrow> (\<lambda>n. X (S n)) \<longlonglongrightarrow> L) \<longleftrightarrow> X \<midarrow>a\<rightarrow> L"
+lemma LIMSEQ_SEQ_conv:
+  "(\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S \<longlonglongrightarrow> a \<longrightarrow> (\<lambda>n. X (S n)) \<longlonglongrightarrow> L)  \<longleftrightarrow>  X \<midarrow>a\<rightarrow> L"  (is "?lhs=?rhs")
   for a :: "'a::first_countable_topology" and L :: "'b::topological_space"
-  using LIMSEQ_SEQ_conv2 LIMSEQ_SEQ_conv1 ..
+proof
+  assume ?lhs then show ?rhs
+    by (simp add: sequentially_imp_eventually_within tendsto_def) 
+next
+  assume ?rhs then show ?lhs
+    using tendsto_compose_eventually eventuallyI by blast
+qed    
 
 lemma sequentially_imp_eventually_at_left:
   fixes a :: "'a::{linorder_topology,first_countable_topology}"
