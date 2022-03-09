@@ -235,5 +235,6 @@ class Admin_Tools extends Isabelle_Scala_Tools(
   Check_Sources.isabelle_tool,
   Components.isabelle_tool,
   isabelle.vscode.Build_VSCode.isabelle_tool,
-  isabelle.vscode.Build_VSCodium.isabelle_tool,
+  isabelle.vscode.Build_VSCodium.isabelle_tool1,
+  isabelle.vscode.Build_VSCodium.isabelle_tool2,
   isabelle.vscode.VSCode_Setup.isabelle_tool)

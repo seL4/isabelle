@@ -97,12 +97,39 @@ object Build_VSCodium
     {
       val dir = base_dir + Path.explode("vscode")
       Isabelle_System.with_copy_dir(dir, dir.orig) {
+        // macos icns
         for (name <- Seq("build/lib/electron.js", "build/lib/electron.ts")) {
           File.change(dir + Path.explode(name), strict = true) {
             _.replace("""'resources/darwin/' + icon + '.icns'""",
               """'resources/darwin/' + icon.toLowerCase() + '.icns'""")
           }
         }
+
+        // isabelle_encoding.ts
+        {
+          val isabelle_encodings =
+            Path.explode("$ISABELLE_VSCODE_HOME/extension/src/isabelle_encoding.ts")
+          val common_dir = dir + Path.explode("src/vs/workbench/services/textfile/common")
+
+          val header =
+            split_lines(File.read(common_dir + Path.explode("encoding.ts")))
+              .takeWhile(_.trim.nonEmpty)
+          val body =
+            split_lines(File.read(isabelle_encodings))
+              .filterNot(_.containsSlice("// VSCODE: REMOVE"))
+
+          File.write(common_dir + isabelle_encodings.base, cat_lines(header ::: body))
+        }
+
+        // explicit patches
+        {
+          val patches_dir = Path.explode("$ISABELLE_VSCODE_HOME/patches")
+          for (name <- Seq("isabelle_encoding")) {
+            val path = patches_dir + Path.basic(name).patch
+            Isabelle_System.bash("patch -p1 < " + File.bash_path(path), cwd = dir.file).check
+          }
+        }
+
         Isabelle_System.make_patch(base_dir, dir.base.orig, dir.base)
       }
     }
@@ -367,9 +394,9 @@ formal record.
   }
 
 
-  /* Isabelle tool wrapper */
+  /* Isabelle tool wrappers */
 
-  val isabelle_tool =
+  val isabelle_tool1 =
     Isabelle_Tool("build_vscodium", "build component for VSCodium",
       Scala_Project.here, args =>
     {
@@ -378,7 +405,7 @@ formal record.
       var verbose = false
 
       val getopts = Getopts("""
-Usage: vscode_setup [OPTIONS]
+Usage: build_vscodium [OPTIONS]
 
   Options are:
     -D DIR       target directory (default ".")
@@ -401,5 +428,28 @@ Usage: vscode_setup [OPTIONS]
 
       build_vscodium(target_dir = target_dir, platforms = platforms,
         verbose = verbose, progress = progress)
+    })
+
+  val isabelle_tool2 =
+    Isabelle_Tool("vscode_patch", "patch VSCode source tree",
+      Scala_Project.here, args =>
+    {
+      var base_dir = Path.current
+
+      val getopts = Getopts("""
+Usage: vscode_patch [OPTIONS]
+
+  Options are:
+    -D DIR       base directory (default ".")
+
+  Patch original VSCode source tree for use with Isabelle/VSCode.
+""",
+        "D:" -> (arg => base_dir = Path.explode(arg)))
+
+      val more_args = getopts(args)
+      if (more_args.nonEmpty) getopts.usage()
+
+      val platform_info = the_platform_info(Platform.family)
+      platform_info.patch_sources(base_dir)
     })
 }
