@@ -1,4 +1,4 @@
-/*  Title:      Tools/VSCode/src/build_vscode.scala
+/*  Title:      Tools/VSCode/src/build_vscode_extension.scala
     Author:     Makarius
 
 Build the Isabelle/VSCode extension.
@@ -58,14 +58,14 @@ object Build_VSCode
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("build_vscode", "build Isabelle/VSCode extension module",
+    Isabelle_Tool("build_vscode_extension", "build Isabelle/VSCode extension module",
       Scala_Project.here, args =>
     {
       var install = false
       var uninstall = false
 
       val getopts = Getopts("""
-Usage: isabelle build_vscode
+Usage: isabelle build_vscode_extension
 
   Options are:
     -I           install resulting extension

@@ -211,7 +211,7 @@ sources = \
   src/Tools/Graphview/popups.scala \
   src/Tools/Graphview/shapes.scala \
   src/Tools/Graphview/tree_panel.scala \
-  src/Tools/VSCode/src/build_vscode.scala \
+  src/Tools/VSCode/src/build_vscode_extension.scala \
   src/Tools/VSCode/src/build_vscodium.scala \
   src/Tools/VSCode/src/channel.scala \
   src/Tools/VSCode/src/dynamic_output.scala \
