@@ -1,6 +1,6 @@
 # Isabelle/VSCode development #
 
-## System setup ##
+## System requirements ##
 
 * install default node.js (e.g. via Ubuntu package)
 
@@ -10,16 +10,16 @@
     sudo npm install -g n
     sudo n stable
 
-* install vsce:
+* install add-on tools:
 
-    sudo npm install -g vsce
+    sudo npm install -g yarn vsce
 
 
 ## Edit and debug ##
 
 * Shell commands within $ISABELLE_HOME directory:
 
-    isabelle build_vscode -U
+    isabelle build_vscode_extension -U
     isabelle vscode src/Tools/VSCode/extension
 
 * VSCode commands:
@@ -29,4 +29,4 @@
 
 ## Build and install ##
 
-    isabelle build_vscode -I
+    isabelle build_vscode_extension -I

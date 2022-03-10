@@ -1,7 +1,7 @@
-/*  Title:      Tools/VSCode/src/build_vscode.scala
+/*  Title:      Tools/VSCode/src/build_vscode_extension.scala
     Author:     Makarius
 
-Build VSCode configuration and extension module for Isabelle.
+Build the Isabelle/VSCode extension.
 */
 
 package isabelle.vscode
@@ -39,14 +39,17 @@ object Build_VSCode
 
   def build_extension(progress: Progress = new Progress): Path =
   {
+    Isabelle_System.require_command("node")
+    Isabelle_System.require_command("yarn")
+    Isabelle_System.require_command("vsce")
+
     val output_path = extension_dir + Path.explode("out")
     Isabelle_System.rm_tree(output_path)
     Isabelle_System.make_directory(output_path)
     progress.echo(output_path.expand.implode)
 
     val result =
-      progress.bash("npm install && npm update --dev && vsce package",
-        cwd = extension_dir.file, echo = true).check
+      progress.bash("yarn && vsce package", cwd = extension_dir.file, echo = true).check
 
     val Pattern = """.*Packaged:.*(isabelle-.*\.vsix).*""".r
     result.out_lines.collectFirst(
@@ -58,14 +61,14 @@ object Build_VSCode
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("build_vscode", "build Isabelle/VSCode extension module",
+    Isabelle_Tool("build_vscode_extension", "build Isabelle/VSCode extension module",
       Scala_Project.here, args =>
     {
       var install = false
       var uninstall = false
 
       val getopts = Getopts("""
-Usage: isabelle build_vscode
+Usage: isabelle build_vscode_extension
 
   Options are:
     -I           install resulting extension
@@ -73,8 +76,6 @@ Usage: isabelle build_vscode
 
 Build Isabelle/VSCode extension module in directory
 """ + extension_dir.expand + """
-
-This requires node.js/npm and the vsce build tool.
 """,
         "I" -> (_ => install = true),
         "U" -> (_ => uninstall = true))

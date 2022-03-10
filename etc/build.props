@@ -30,7 +30,6 @@ sources = \
   src/Pure/Admin/build_status.scala \
   src/Pure/Admin/build_vampire.scala \
   src/Pure/Admin/build_verit.scala \
-  src/Pure/Admin/build_vscodium.scala \
   src/Pure/Admin/build_zipperposition.scala \
   src/Pure/Admin/check_sources.scala \
   src/Pure/Admin/ci_profile.scala \
@@ -212,7 +211,8 @@ sources = \
   src/Tools/Graphview/popups.scala \
   src/Tools/Graphview/shapes.scala \
   src/Tools/Graphview/tree_panel.scala \
-  src/Tools/VSCode/src/build_vscode.scala \
+  src/Tools/VSCode/src/build_vscode_extension.scala \
+  src/Tools/VSCode/src/build_vscodium.scala \
   src/Tools/VSCode/src/channel.scala \
   src/Tools/VSCode/src/dynamic_output.scala \
   src/Tools/VSCode/src/language_server.scala \

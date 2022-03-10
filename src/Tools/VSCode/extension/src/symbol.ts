@@ -10,7 +10,7 @@ Isabelle text symbols versus UTF-8/Unicode encoding. See also:
 'use strict';
 
 import * as file from './file'
-import * as isabelle_encoding from './isabelle_encoding'
+import * as library from './library'
 
 
 /* ASCII characters */
@@ -45,14 +45,19 @@ export function is_ascii_identifier(s: Symbol): boolean
 
 /* defined symbols */
 
-export type Entry = isabelle_encoding.Symbol_Entry
+export interface Entry {
+  symbol: string;
+  name: string;
+  abbrevs: string[];
+  code?: number;
+}
 
 export class Symbols
 {
-  entries: [Entry]
+  entries: Entry[]
   private entries_map: Map<Symbol, Entry>
 
-  constructor(entries: [Entry])
+  constructor(entries: Entry[])
   {
     this.entries = entries
     this.entries_map = new Map<Symbol, Entry>()
@@ -72,4 +77,14 @@ export class Symbols
   }
 }
 
-export const symbols: Symbols = new Symbols(isabelle_encoding.symbols)
+function load_symbols(): Entry[]
+{
+  const vscodium_home = library.getenv("ISABELLE_VSCODIUM_HOME")
+  if (vscodium_home) {
+    const path = vscodium_home + "/resources/app/out/vs/base/browser/ui/fonts/symbols.json"
+    return file.read_json_sync(file.platform_path(path))
+  }
+  else { return [] }
+}
+
+export const symbols: Symbols = new Symbols(load_symbols())

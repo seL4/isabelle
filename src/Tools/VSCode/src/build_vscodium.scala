@@ -1,13 +1,15 @@
-/*  Title:      Pure/Admin/build_vscodium.scala
+/*  Title:      Tools/VSCode/src/build_vscodium.scala
     Author:     Makarius
 
-Build component for VSCodium (cross-compiled from sources for all platforms).
+Build the Isabelle system component for VSCodium: cross-compilation for all
+platforms.
 */
 
-package isabelle
+package isabelle.vscode
 
 
-import java.util.{Map => JMap}
+import isabelle._
+
 import java.security.MessageDigest
 import java.util.Base64
 
@@ -21,6 +23,39 @@ object Build_VSCodium
   val vscodium_download = "https://github.com/VSCodium/vscodium/releases/download"
 
   def vscodium_exe(dir: Path): Path = dir + Path.explode("bin/codium")
+
+
+  /* Isabelle symbols (static subset only) */
+
+  def make_symbols(): File.Content =
+  {
+    val symbols = Symbol.Symbols.load(static = true)
+    val symbols_js =
+      JSON.Format.apply_lines(
+        for (entry <- symbols.entries) yield
+          JSON.Object(
+            "symbol" -> entry.symbol,
+            "name" -> entry.name,
+            "abbrevs" -> entry.abbrevs) ++
+          JSON.optional("code", entry.code))
+
+    File.Content(Path.explode("symbols.json"), symbols_js)
+  }
+
+  def make_isabelle_encoding(header: String): File.Content =
+  {
+    val symbols = Symbol.Symbols.load(static = true)
+    val symbols_js =
+      JSON.Format.apply_lines(
+        for (entry <- symbols.entries; code <- entry.code)
+          yield JSON.Object("symbol" -> entry.symbol, "code" -> code))
+
+    val path = Path.explode("isabelle_encoding.ts")
+    val body =
+      File.read(Path.explode("$ISABELLE_VSCODE_HOME/patches") + path)
+        .replace("[/*symbols*/]", symbols_js)
+    File.Content(path, header + "\n" + body)
+  }
 
 
   /* platform info */
@@ -83,33 +118,47 @@ object Build_VSCodium
       (("MS_TAG=" + Bash.string(version)) :: "SHOULD_BUILD=yes" :: "VSCODE_ARCH=x64" :: env)
         .map(s => "export " + s + "\n").mkString
 
-    def resources_dir(dir: Path): Path =
-    {
-      val resources =
-        if (platform == Platform.Family.macos) "VSCodium.app/Contents/Resources"
-        else "resources"
-      dir + Path.explode(resources)
-    }
-
     def patch_sources(base_dir: Path): String =
     {
       val dir = base_dir + Path.explode("vscode")
       Isabelle_System.with_copy_dir(dir, dir.orig) {
+        // macos icns
         for (name <- Seq("build/lib/electron.js", "build/lib/electron.ts")) {
           File.change(dir + Path.explode(name), strict = true) {
             _.replace("""'resources/darwin/' + icon + '.icns'""",
               """'resources/darwin/' + icon.toLowerCase() + '.icns'""")
           }
         }
+
+        // isabelle_encoding.ts
+        {
+          val common_dir = dir + Path.explode("src/vs/workbench/services/textfile/common")
+          val header =
+            split_lines(File.read(common_dir + Path.explode("encoding.ts")))
+              .takeWhile(_.trim.nonEmpty)
+          make_isabelle_encoding(cat_lines(header)).write(common_dir)
+        }
+
+        // explicit patches
+        {
+          val patches_dir = Path.explode("$ISABELLE_VSCODE_HOME/patches")
+          for (name <- Seq("isabelle_encoding")) {
+            val path = patches_dir + Path.basic(name).patch
+            Isabelle_System.bash("patch -p1 < " + File.bash_path(path), cwd = dir.file).check
+          }
+        }
+
         Isabelle_System.make_patch(base_dir, dir.base.orig, dir.base)
       }
     }
 
     def patch_resources(base_dir: Path): String =
     {
-      val dir = resources_dir(base_dir)
+      val dir = base_dir + Path.explode("resources")
       Isabelle_System.with_copy_dir(dir, dir.orig) {
-        HTML.init_fonts(dir + Path.explode("app/out/vs/base/browser/ui"))
+        val fonts_dir = dir + Path.explode("app/out/vs/base/browser/ui/fonts")
+        HTML.init_fonts(fonts_dir.dir)
+        make_symbols().write(fonts_dir)
 
         val workbench_css = dir + Path.explode("app/out/vs/workbench/workbench.desktop.main.css")
         val checksum1 = file_checksum(workbench_css)
@@ -128,15 +177,26 @@ object Build_VSCodium
       }
     }
 
-    def node_binaries(dir: Path, progress: Progress): Unit =
+    def init_resources(base_dir: Path): Path =
+    {
+      val resources_dir = base_dir + Path.explode("resources")
+      if (platform == Platform.Family.macos) {
+        Isabelle_System.symlink(Path.explode("VSCodium.app/Contents/Resources"), resources_dir)
+      }
+      resources_dir
+    }
+
+    def node_binaries(target_dir: Path, progress: Progress): Unit =
     {
       Isabelle_System.with_tmp_dir("download")(download_dir =>
       {
         download(download_dir, progress = progress)
+        val dir1 = init_resources(download_dir)
+        val dir2 = init_resources(target_dir)
         for (name <- Seq("app/node_modules.asar", "app/node_modules.asar.unpacked")) {
-          val rel_path = resources_dir(Path.current) + Path.explode(name)
-          Isabelle_System.rm_tree(dir + rel_path)
-          Isabelle_System.copy_dir(download_dir + rel_path, dir + rel_path)
+          val path = Path.explode(name)
+          Isabelle_System.rm_tree(dir2 + path)
+          Isabelle_System.copy_dir(dir1 + path, dir2 + path)
         }
       })
     }
@@ -163,6 +223,7 @@ object Build_VSCodium
       }
     }
   }
+
 
   // see https://github.com/microsoft/vscode/blob/main/build/gulpfile.vscode.js
   // function computeChecksum(filename)
@@ -230,7 +291,7 @@ object Build_VSCodium
     {
       platform_info.get_vscodium_repository(vscodium_dir, progress = progress)
       val vscode_dir = vscodium_dir + Path.basic("vscode")
-      progress.echo("Prepare VSCodium ...")
+      progress.echo("Prepare ...")
       Isabelle_System.with_copy_dir(vscode_dir, vscode_dir.orig) {
         progress.bash(
           List(
@@ -281,7 +342,7 @@ exit $?
 
     /* patches */
 
-    progress.echo("Building patches:")
+    progress.echo("\n* Building patches:")
 
     val patches_dir = Isabelle_System.new_directory(component_dir + Path.basic("patches"))
 
@@ -298,14 +359,14 @@ exit $?
 
       Isabelle_System.with_tmp_dir("vscodium")(vscodium_dir =>
       {
-        progress.echo("Building " + platform + ":")
+        progress.echo("\n* Building " + platform + ":")
 
         platform_info.get_vscodium_repository(vscodium_dir, progress = progress)
 
         val sources_patch = platform_info.patch_sources(vscodium_dir)
         if (platform_info.is_linux) write_patch("02-isabelle_sources", sources_patch)
 
-        progress.echo("Build VSCodium ...")
+        progress.echo("Build ...")
         progress.bash(platform_info.environment + "\n" + "./build.sh",
           cwd = vscodium_dir.file, echo = verbose).check
 
@@ -365,9 +426,9 @@ formal record.
   }
 
 
-  /* Isabelle tool wrapper */
+  /* Isabelle tool wrappers */
 
-  val isabelle_tool =
+  val isabelle_tool1 =
     Isabelle_Tool("build_vscodium", "build component for VSCodium",
       Scala_Project.here, args =>
     {
@@ -376,7 +437,7 @@ formal record.
       var verbose = false
 
       val getopts = Getopts("""
-Usage: vscode_setup [OPTIONS]
+Usage: build_vscodium [OPTIONS]
 
   Options are:
     -D DIR       target directory (default ".")
@@ -399,5 +460,28 @@ Usage: vscode_setup [OPTIONS]
 
       build_vscodium(target_dir = target_dir, platforms = platforms,
         verbose = verbose, progress = progress)
+    })
+
+  val isabelle_tool2 =
+    Isabelle_Tool("vscode_patch", "patch VSCode source tree",
+      Scala_Project.here, args =>
+    {
+      var base_dir = Path.current
+
+      val getopts = Getopts("""
+Usage: vscode_patch [OPTIONS]
+
+  Options are:
+    -D DIR       base directory (default ".")
+
+  Patch original VSCode source tree for use with Isabelle/VSCode.
+""",
+        "D:" -> (arg => base_dir = Path.explode(arg)))
+
+      val more_args = getopts(args)
+      if (more_args.nonEmpty) getopts.usage()
+
+      val platform_info = the_platform_info(Platform.family)
+      platform_info.patch_sources(base_dir)
     })
 }

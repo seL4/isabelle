@@ -6,7 +6,8 @@ File-system operations (see Pure/General/file.scala)
 'use strict';
 
 import * as path from 'path'
-import * as fs from 'fs/promises'
+import { readFile } from 'fs/promises'
+import { readFileSync } from 'fs'
 import { Buffer } from 'buffer'
 import * as platform from './platform'
 import * as library from './library'
@@ -135,7 +136,7 @@ export function platform_path(standard_path: string): string
 
 export async function read_bytes(path: string): Promise<Buffer>
 {
-    return fs.readFile(platform_path(path))
+    return readFile(platform_path(path))
 }
 
 export async function read(path: string): Promise<string>
@@ -146,4 +147,19 @@ export async function read(path: string): Promise<string>
 export async function read_json<T>(path: string): Promise<T>
 {
     return read(path).then(JSON.parse) as Promise<T>
+}
+
+export function read_bytes_sync(path: string): Buffer
+{
+  return readFileSync(platform_path(path))
+}
+
+export function read_sync(path: string): string
+{
+    return read_bytes_sync(path).toString()
+}
+
+export function read_json_sync<T>(path: string): T
+{
+    return JSON.parse(read_sync(path))
 }

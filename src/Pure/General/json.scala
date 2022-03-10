@@ -172,6 +172,8 @@ object JSON
       try { Some(parse(s, strict = false)) }
       catch { case ERROR(_) => None }
 
+    def apply_lines(json: List[T]): S = json.map(apply).mkString("[", ",\n", "]")
+
     def apply(json: T): S =
     {
       val result = new StringBuilder

@@ -6,6 +6,7 @@ syntax: glob
 *.marks
 *.orig
 *.rej
+*.vsix
 .DS_Store
 .swp
 
@@ -16,6 +17,6 @@ syntax: regexp
 ^heaps/
 ^browser_info/
 ^doc/.*\.pdf
-^src/Tools/VSCode/out/
+^src/Tools/VSCode/extension/out/
 ^src/Tools/VSCode/extension/node_modules/
 ^Admin/jenkins/ci-extras/target/
