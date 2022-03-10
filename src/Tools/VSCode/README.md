@@ -1,6 +1,6 @@
 # Isabelle/VSCode development #
 
-## System setup ##
+## System requirements ##
 
 * install default node.js (e.g. via Ubuntu package)
 
@@ -10,9 +10,9 @@
     sudo npm install -g n
     sudo n stable
 
-* install vsce:
+* install add-on tools:
 
-    sudo npm install -g vsce
+    sudo npm install -g yarn vsce
 
 
 ## Edit and debug ##
