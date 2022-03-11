@@ -6,7 +6,7 @@ Input abbreviation and autocompletion of Isabelle symbols.
 'use strict';
 
 import { ExtensionContext, Range, TextDocumentContentChangeEvent, workspace, WorkspaceEdit } from 'vscode'
-import { Prefix_Tree } from './isabelle_filesystem/prefix_tree'
+import { Prefix_Tree } from './prefix_tree'
 import * as library from './library'
 import * as vscode_lib from './vscode_lib'
 import * as symbol from './symbol'

@@ -112,26 +112,6 @@ export const preview_response_type =
   new NotificationType<Preview_Response>("PIDE/preview_response")
 
 
-/* session theories */
-
-export interface Entries<T>
-{
-  entries: T[]
-}
-
-export interface Session_Theories
-{
-  session_name: string
-  theories: string[]
-}
-
-export const session_theories_type =
-  new NotificationType<Entries<Session_Theories>>("PIDE/session_theories")
-
-export const session_theories_request_type =
-  new NotificationType<void>("PIDE/session_theories_request")
-
-
 /* spell checker */
 
 export const include_word_type =

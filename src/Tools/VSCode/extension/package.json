@@ -208,11 +208,6 @@
                     ],
                     "description": "Symbol replacement mode."
                 },
-                "isabelle.always_open_thys": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Always open '.thy' files as Isabelle theories."
-                },
                 "isabelle.text_color": {
                     "type": "object",
                     "additionalProperties": {

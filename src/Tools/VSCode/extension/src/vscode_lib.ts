@@ -3,7 +3,6 @@
 Misc library functions for VSCode.
 */
 
-import {Isabelle_Workspace} from './isabelle_filesystem/isabelle_workspace'
 import {TextEditor, Uri, ViewColumn, window, workspace} from 'vscode'
 
 
@@ -11,7 +10,7 @@ import {TextEditor, Uri, ViewColumn, window, workspace} from 'vscode'
 
 export function is_file(uri: Uri): boolean
 {
-  return uri.scheme === "file" || uri.scheme === Isabelle_Workspace.scheme
+  return uri.scheme === "file"
 }
 
 export function find_file_editor(uri: Uri): TextEditor | undefined

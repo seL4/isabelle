@@ -10,7 +10,7 @@ import { WebviewViewProvider, WebviewView, Uri, WebviewViewResolveContext,
 import { text_colors } from './decorations'
 import * as vscode_lib from './vscode_lib'
 import * as path from 'path'
-import { Isabelle_Workspace } from './isabelle_filesystem/isabelle_workspace'
+
 
 class Output_View_Provider implements WebviewViewProvider
 {
@@ -68,9 +68,7 @@ function open_webview_link(link: string)
   const uri = Uri.parse(link)
   const line = Number(uri.fragment) || 0
   const pos = new Position(line, 0)
-  const uri_no_fragment = uri.with({ fragment: '' })
-  const isabelle_uri = Isabelle_Workspace.get_isabelle(uri_no_fragment)
-  window.showTextDocument(isabelle_uri, {
+  window.showTextDocument(uri.with({ fragment: '' }), {
     preserveFocus: false,
     selection: new Selection(pos, pos)
   })

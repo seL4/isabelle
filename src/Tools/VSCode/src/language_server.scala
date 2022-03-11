@@ -36,7 +36,6 @@ object Language_Server
         var log_file: Option[Path] = None
         var logic_requirements = false
         var dirs: List[Path] = Nil
-        var select_dirs: List[Path] = Nil
         var include_sessions: List[String] = Nil
         var logic = default_logic
         var modes: List[String] = Nil
@@ -51,7 +50,6 @@ Usage: isabelle vscode_server [OPTIONS]
     -L FILE      logging on FILE
     -R NAME      build image with requirements from other sessions
     -d DIR       include session directory
-    -D DIR       include session directory and select its sessions (without build)
     -i NAME      include session in name-space of theories
     -l NAME      logic session name (default ISABELLE_LOGIC=""" + quote(default_logic) + """)
     -m MODE      add print mode for output
@@ -64,7 +62,6 @@ Usage: isabelle vscode_server [OPTIONS]
           "L:" -> (arg => log_file = Some(Path.explode(File.standard_path(arg)))),
           "R:" -> (arg => { logic = arg; logic_requirements = true }),
           "d:" -> (arg => dirs = dirs ::: List(Path.explode(File.standard_path(arg)))),
-          "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(File.standard_path(arg)))),
           "i:" -> (arg => include_sessions = include_sessions ::: List(arg)),
           "l:" -> (arg => logic = arg),
           "m:" -> (arg => modes = arg :: modes),
@@ -78,9 +75,8 @@ Usage: isabelle vscode_server [OPTIONS]
         val channel = new Channel(System.in, System.out, log, verbose)
         val server =
           new Language_Server(channel, options, session_name = logic, session_dirs = dirs,
-            select_dirs = select_dirs, include_sessions = include_sessions,
-            session_ancestor = logic_ancestor, session_requirements = logic_requirements,
-            modes = modes, log = log)
+            include_sessions = include_sessions, session_ancestor = logic_ancestor,
+            session_requirements = logic_requirements, modes = modes, log = log)
 
         // prevent spurious garbage on the main protocol channel
         val orig_out = System.out
@@ -105,7 +101,6 @@ class Language_Server(
   session_name: String = Language_Server.default_logic,
   include_sessions: List[String] = Nil,
   session_dirs: List[Path] = Nil,
-  select_dirs: List[Path] = Nil,
   session_ancestor: Option[String] = None,
   session_requirements: Boolean = false,
   modes: List[String] = Nil,
@@ -218,20 +213,6 @@ class Language_Server(
   }
 
 
-  /* session structure */
-
-  def session_theories: Map[String, List[JFile]] =
-  {
-    val selection = Sessions.Selection.session(session_name)
-    val structure =
-      Sessions.load_structure(options, session_dirs, select_dirs).selection(selection)
-    for {
-      (name, base) <- Sessions.deps(structure).session_bases
-      sources = base.session_theories.map(_.path.file)
-    } yield (name, sources)
-  }
-
-
   /* output to client */
 
   private val delay_output: Delay =
@@ -284,7 +265,7 @@ class Language_Server(
       try {
         val base_info =
           Sessions.base_info(
-            options, session_name, dirs = session_dirs ++ select_dirs,
+            options, session_name, dirs = session_dirs,
             include_sessions = include_sessions, session_ancestor = session_ancestor,
             session_requirements = session_requirements).check
 
@@ -485,8 +466,6 @@ class Language_Server(
           case LSP.State_Update(id) => State_Panel.update(id)
           case LSP.State_Auto_Update(id, enabled) => State_Panel.auto_update(id, enabled)
           case LSP.Preview_Request(file, column) => request_preview(file, column)
-          case LSP.Session_Theories_Request(()) =>
-            channel.write(LSP.Session_Theories(session_theories))
           case _ => if (!LSP.ResponseMessage.is_empty(json)) log("### IGNORED")
         }
       }

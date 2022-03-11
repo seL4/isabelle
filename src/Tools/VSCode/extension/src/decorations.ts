@@ -11,7 +11,6 @@ import { Range, DecorationOptions, DecorationRenderOptions,
   TextDocument, TextEditor, TextEditorDecorationType, ExtensionContext } from 'vscode'
 import { Document_Decorations } from './lsp'
 import * as vscode_lib from './vscode_lib'
-import { Isabelle_Workspace } from './isabelle_filesystem/isabelle_workspace'
 
 
 /* known decoration types */
@@ -174,7 +173,7 @@ export function close_document(document: TextDocument)
 
 export function apply_decoration(decorations: Document_Decorations)
 {
-  const uri = Isabelle_Workspace.get_isabelle(Uri.parse(decorations.uri))
+  const uri = Uri.parse(decorations.uri)
 
   for (const decoration of decorations.entries) {
     const typ = types.get(decoration.type)

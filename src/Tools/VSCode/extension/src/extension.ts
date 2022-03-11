@@ -19,7 +19,6 @@ import * as state_panel from './state_panel'
 import { Uri, TextEditor, ViewColumn, Selection, Position, ExtensionContext, workspace, window,
   commands, ProgressLocation } from 'vscode'
 import { LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-languageclient/node'
-import { Isabelle_Workspace } from './isabelle_filesystem/isabelle_workspace'
 import { Output_View_Provider } from './output_view'
 import { register_script_decorations } from './script_decorations'
 
@@ -32,15 +31,10 @@ export async function activate(context: ExtensionContext)
 
   try {
     const isabelle_home = library.getenv_strict("ISABELLE_HOME")
-
-    const workspace_dir = await Isabelle_Workspace.register(context, symbol.symbols)
-    const roots = workspace.workspaceFile === undefined ? await workspace.findFiles("{ROOT,ROOTS}") : []
-
     const isabelle_tool = isabelle_home + "/bin/isabelle"
     const isabelle_args =
       ["-o", "vscode_unicode_symbols", "-o", "vscode_pide_extensions"]
         .concat(vscode_lib.get_configuration<Array<string>>("args"))
-        .concat(roots.length > 0 && workspace_dir ? ["-D", file.standard_path(workspace_dir)] : [])
 
     const server_options: ServerOptions =
       platform.is_windows() ?
@@ -51,14 +45,10 @@ export async function activate(context: ExtensionContext)
 
     const language_client_options: LanguageClientOptions = {
       documentSelector: [
-        { language: "isabelle", scheme: Isabelle_Workspace.scheme },
+        { language: "isabelle", scheme: "file" },
         { language: "isabelle-ml", scheme: "file" },
         { language: "bibtex", scheme: "file" }
-      ],
-      uriConverters: {
-        code2Protocol: uri => Isabelle_Workspace.get_file(uri).toString(),
-        protocol2Code: value => Isabelle_Workspace.get_isabelle(Uri.parse(value))
-      }
+      ]
     }
 
     const language_client =
@@ -107,7 +97,6 @@ export async function activate(context: ExtensionContext)
       }
       if (last_caret_update !== caret_update) {
         if (caret_update.uri) {
-          caret_update.uri = Isabelle_Workspace.get_file(Uri.parse(caret_update.uri)).toString()
           language_client.sendNotification(lsp.caret_update_type, caret_update)
         }
         last_caret_update = caret_update
@@ -123,7 +112,6 @@ export async function activate(context: ExtensionContext)
       }
 
       if (caret_update.uri) {
-        caret_update.uri = Isabelle_Workspace.get_isabelle(Uri.parse(caret_update.uri)).toString()
         workspace.openTextDocument(Uri.parse(caret_update.uri)).then(document =>
         {
           const editor = vscode_lib.find_file_editor(document.uri)
@@ -172,17 +160,6 @@ export async function activate(context: ExtensionContext)
       commands.registerCommand("isabelle.preview-split", uri => preview_panel.request(uri, true)))
 
     language_client.onReady().then(() => preview_panel.setup(context, language_client))
-
-
-    /* Isabelle symbols and abbreviations */
-
-    language_client.onReady().then(() =>
-    {
-      language_client.onNotification(lsp.session_theories_type,
-        async ({entries}) => await Isabelle_Workspace.update_sessions(entries))
-
-      language_client.sendNotification(lsp.session_theories_request_type)
-    })
 
 
     /* spell checker */
