@@ -142,7 +142,7 @@ object Build_VSCodium
         // explicit patches
         {
           val patches_dir = Path.explode("$ISABELLE_VSCODE_HOME/patches")
-          for (name <- Seq("isabelle_encoding")) {
+          for (name <- Seq("isabelle_encoding", "no_ocaml_icons")) {
             val path = patches_dir + Path.basic(name).patch
             Isabelle_System.bash("patch -p1 < " + File.bash_path(path), cwd = dir.file).check
           }
