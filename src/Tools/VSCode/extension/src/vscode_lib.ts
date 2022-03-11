@@ -8,9 +8,11 @@ import {TextEditor, Uri, ViewColumn, window, workspace} from 'vscode'
 
 /* files */
 
+export const file_scheme: string = "file"
+
 export function is_file(uri: Uri): boolean
 {
-  return uri.scheme === "file"
+  return uri.scheme === file_scheme
 }
 
 export function find_file_editor(uri: Uri): TextEditor | undefined

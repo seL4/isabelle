@@ -45,9 +45,9 @@ export async function activate(context: ExtensionContext)
 
     const language_client_options: LanguageClientOptions = {
       documentSelector: [
-        { language: "isabelle", scheme: "file" },
-        { language: "isabelle-ml", scheme: "file" },
-        { language: "bibtex", scheme: "file" }
+        { language: "isabelle", scheme: vscode_lib.file_scheme },
+        { language: "isabelle-ml", scheme: vscode_lib.file_scheme },
+        { language: "bibtex", scheme: vscode_lib.file_scheme }
       ]
     }
 
