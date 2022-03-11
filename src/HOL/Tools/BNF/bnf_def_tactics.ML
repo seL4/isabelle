@@ -16,6 +16,7 @@ sig
   val mk_inj_map_tac: Proof.context -> int -> thm -> thm -> thm -> thm -> tactic
   val mk_map_id: thm -> thm
   val mk_map_ident: Proof.context -> thm -> thm
+  val mk_map_ident_strong: Proof.context -> thm -> thm -> thm
   val mk_map_comp: thm -> thm
   val mk_map_cong_tac: Proof.context -> thm -> tactic
   val mk_set_map: thm -> thm
@@ -56,6 +57,9 @@ val conversep_shift = @{thm conversep_le_swap} RS iffD1;
 
 fun mk_map_id id = mk_trans (fun_cong OF [id]) @{thm id_apply};
 fun mk_map_ident ctxt = unfold_thms ctxt @{thms id_def};
+fun mk_map_ident_strong ctxt map_cong0 map_id =
+  (trans OF [map_cong0, map_id])
+  |> unfold_thms ctxt @{thms id_apply}
 fun mk_map_comp comp = @{thm comp_eq_dest_lhs} OF [mk_sym comp];
 fun mk_map_cong_tac ctxt cong0 =
   (hyp_subst_tac ctxt THEN' rtac ctxt cong0 THEN'

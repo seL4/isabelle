@@ -79,6 +79,8 @@ longer. INCOMPATIBILITY.
 * Meson
   - Added support for polymorphic "using" facts. Minor INCOMPATIBILITY.
 
+* (Co)datatype package:
+  - Lemma map_ident_strong is now generated for all BNFs.
 
 
 *** System ***
