@@ -243,7 +243,7 @@ class VSCode_Rendering(snapshot: Document.Snapshot, val model: VSCode_Model)
         val decopts = for(Text.Info(text_range, msgs) <- deco.content)
           yield {
             val range = model.content.doc.range(text_range)
-            LSP.DecorationOpts(range,
+            LSP.Decoration_Options(range,
               msgs.map(msg => LSP.MarkedString(resources.output_pretty_tooltip(msg))))
           }
         (deco.typ, decopts)

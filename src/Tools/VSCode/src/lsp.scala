@@ -503,14 +503,14 @@ object LSP
 
   /* decorations */
 
-  sealed case class DecorationOpts(range: Line.Range, hover_message: List[MarkedString])
+  sealed case class Decoration_Options(range: Line.Range, hover_message: List[MarkedString])
   {
     def json: JSON.T =
       JSON.Object("range" -> Range.compact(range)) ++
       JSON.optional("hover_message" -> MarkedStrings.json(hover_message))
   }
 
-  sealed case class Decoration(decorations: List[(String, List[DecorationOpts])])
+  sealed case class Decoration(decorations: List[(String, List[Decoration_Options])])
   {
     def json(file: JFile): JSON.T =
       Notification("PIDE/decoration",
