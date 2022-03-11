@@ -170,6 +170,14 @@
                 "configuration": "./isabelle-ml-language.json"
             }
         ],
+        "configurationDefaults": {
+          "[isabelle]": {
+            "files.encoding": "utf8isabelle"
+          },
+          "[isabelle-ml]": {
+            "files.encoding": "utf8isabelle"
+          }
+        },
         "grammars": [
             {
                 "language": "isabelle",
