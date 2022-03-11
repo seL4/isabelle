@@ -26,6 +26,7 @@ object VSCode_Setup
     "editor.unicodeHighlight.ambiguousCharacters": false,
     "extensions.autoCheckUpdates": false,
     "extensions.autoUpdate": false,
+    "files.encoding": "utf8isabelle",
     "terminal.integrated.fontFamily": "monospace",
     "update.mode": "none"
   }
