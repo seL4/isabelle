@@ -99,13 +99,12 @@ function get_webview_html(content: string, webview: Webview, extension_path: str
 
 function _get_decorations(): string
 {
-  let style: string = ''
+  let style: string[] = []
   for (const key of text_colors) {
-  style += `body.vscode-light .${key} { color: ${vscode_lib.get_color(key, true)} }\n`
-  style += `body.vscode-dark .${key} { color: ${vscode_lib.get_color(key, false)} }\n`
+    style.push(`body.vscode-light .${key} { color: ${vscode_lib.get_color(key, true)} }\n`)
+    style.push(`body.vscode-dark .${key} { color: ${vscode_lib.get_color(key, false)} }\n`)
   }
-
-  return style
+  return style.join("")
 }
 
 export { Output_View_Provider, get_webview_html, open_webview_link }
