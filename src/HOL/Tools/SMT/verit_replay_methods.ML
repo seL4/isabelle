@@ -901,6 +901,7 @@ local
         f $ arg =>
           (Conv.fun_conv (eq_pred_conv rews f ctxt) then_conv
              Conv.arg_conv (eq_pred_conv rews arg ctxt)) ctrm
+      | Abs (_, _, f) => Conv.abs_conv (eq_pred_conv rews f o snd) ctxt ctrm
       | _ => Conv.all_conv ctrm))
 
   fun eq_pred_rewrite_tac ({context = ctxt, prems, concl, ...}: Subgoal.focus) =
@@ -917,6 +918,7 @@ local
         | Const(_, _) $ t1 $ (Const(\<^const_name>\<open>HOL.Not\<close>, _) $ _) => (t1, conv_left_neg)
         | Const(_, _) $ t1 $ _ => (t1, conv_left)
         | t1 => (t1, conv_left))
+
     fun throwing_CONVERSION cv i st = Seq.single (Conv.gconv_rule cv i st)
     in
       throwing_CONVERSION (conv_term (eq_pred_conv rews t1 ctxt))

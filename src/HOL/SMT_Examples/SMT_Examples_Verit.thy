@@ -649,32 +649,32 @@ lemma
     fun_evaluate_match :: \<open>'astate \<Rightarrow> 'vsemv_env \<Rightarrow> _ \<Rightarrow> ('pat \<times> 'exp0) list \<Rightarrow> _ \<Rightarrow>
       'astate*((('v)list),('v))result\<close>
   assumes
-         " fix_clock (st::'astate) (fun_evaluate st (env::'vsemv_env) [e::'exp0]) =
-       (st'::'astate, r::('v list, 'v) result)"
-      " clock (fst (fun_evaluate (st::'astate) (env::'vsemv_env) [e::'exp0])) \<le> clock st"
-       "\<forall>(b::nat) (a::nat) c::nat. b \<le> a \<and> c \<le> b \<longrightarrow> c \<le> a"
-       "\<forall>(a::'astate) p::'astate \<times> ('v list, 'v) result. (a = fst p) = (\<exists>b::('v list, 'v) result. p = (a, b))"
-       "\<forall>y::'v error_result. (\<forall>x1::'v. y = Rraise x1 \<longrightarrow> False) \<and> (\<forall>x2::abort. y = Rabort x2 \<longrightarrow> False) \<longrightarrow> False"
-       "\<forall>(f1::'v \<Rightarrow> 'astate \<times> ('v list, 'v) result) (f2::abort \<Rightarrow> 'astate \<times> ('v list, 'v) result) x1::'v.
-          (case Rraise x1 of Rraise (x::'v) \<Rightarrow> f1 x | Rabort (x::abort) \<Rightarrow> f2 x) = f1 x1"
-      " \<forall>(f1::'v \<Rightarrow> 'astate \<times> ('v list, 'v) result) (f2::abort \<Rightarrow> 'astate \<times> ('v list, 'v) result) x2::abort.
-          (case Rabort x2 of Rraise (x::'v) \<Rightarrow> f1 x | Rabort (x::abort) \<Rightarrow> f2 x) = f2 x2"
-       "\<forall>(s1::'astate) (s2::'astate) (x::('v list, 'v) result) s::'astate.
-          fix_clock s1 (s2, x) = (s, x) \<longrightarrow> clock s \<le> clock s2"
-       "\<forall>(s::'astate) (s'::'astate) res::('v list, 'v) result.
-          fix_clock s (s', res) =
-          (update_clock (\<lambda>_::nat. if clock s' \<le> clock s then clock s' else clock s) s', res)"
-       "\<forall>(x2::'v error_result) x1::'v.
-          (r::('v list, 'v) result) = Rerr x2 \<and> x2 = Rraise x1 \<longrightarrow>
-          clock (fst (fun_evaluate_match (st'::'astate) (env::'vsemv_env) x1 (pes::('pat \<times> 'exp0) list) x1))
-          \<le> clock st'"
-     shows "((r::('v list, 'v) result) = Rerr (x2::'v error_result) \<longrightarrow>
+    "fix_clock (st::'astate) (fun_evaluate st (env::'vsemv_env) [e::'exp0]) =
+    (st'::'astate, r::('v list, 'v) result)"
+    "clock (fst (fun_evaluate (st::'astate) (env::'vsemv_env) [e::'exp0])) \<le> clock st"
+    "\<forall>(b::nat) (a::nat) c::nat. b \<le> a \<and> c \<le> b \<longrightarrow> c \<le> a"
+    "\<forall>(a::'astate) p::'astate \<times> ('v list, 'v) result. (a = fst p) = (\<exists>b::('v list, 'v) result. p = (a, b))"
+    "\<forall>y::'v error_result. (\<forall>x1::'v. y = Rraise x1 \<longrightarrow> False) \<and> (\<forall>x2::abort. y = Rabort x2 \<longrightarrow> False) \<longrightarrow> False"
+    "\<forall>(f1::'v \<Rightarrow> 'astate \<times> ('v list, 'v) result) (f2::abort \<Rightarrow> 'astate \<times> ('v list, 'v) result) x1::'v.
+       (case Rraise x1 of Rraise (x::'v) \<Rightarrow> f1 x | Rabort (x::abort) \<Rightarrow> f2 x) = f1 x1"
+    "\<forall>(f1::'v \<Rightarrow> 'astate \<times> ('v list, 'v) result) (f2::abort \<Rightarrow> 'astate \<times> ('v list, 'v) result) x2::abort.
+       (case Rabort x2 of Rraise (x::'v) \<Rightarrow> f1 x | Rabort (x::abort) \<Rightarrow> f2 x) = f2 x2"
+    "\<forall>(s1::'astate) (s2::'astate) (x::('v list, 'v) result) s::'astate.
+       fix_clock s1 (s2, x) = (s, x) \<longrightarrow> clock s \<le> clock s2"
+    "\<forall>(s::'astate) (s'::'astate) res::('v list, 'v) result.
+       fix_clock s (s', res) =
+       (update_clock (\<lambda>_::nat. if clock s' \<le> clock s then clock s' else clock s) s', res)"
+    "\<forall>(x2::'v error_result) x1::'v.
+       (r::('v list, 'v) result) = Rerr x2 \<and> x2 = Rraise x1 \<longrightarrow>
+       clock (fst (fun_evaluate_match (st'::'astate) (env::'vsemv_env) x1 (pes::('pat \<times> 'exp0) list) x1))
+       \<le> clock st'"
+  shows "((r::('v list, 'v) result) = Rerr (x2::'v error_result) \<longrightarrow>
            clock
             (fst (case x2 of
                   Rraise (v2::'v) \<Rightarrow>
                     fun_evaluate_match (st'::'astate) (env::'vsemv_env) v2 (pes::('pat \<times> 'exp0) list) v2
                   | Rabort (abort::abort) \<Rightarrow> (st', Rerr (Rabort abort))))
-           \<le> clock (st::'astate)) "
+           \<le> clock (st::'astate))"
   using assms by (smt (verit))
 end
 
