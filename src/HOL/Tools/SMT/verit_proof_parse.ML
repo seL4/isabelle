@@ -24,7 +24,7 @@ open VeriT_Isar
 open Verit_Proof
 
 fun add_used_asserts_in_step (Verit_Proof.VeriT_Step {prems, ...}) =
-  union (op =) (map_filter (try SMTLIB_Interface.assert_index_of_name) prems)
+  union (op =) (map_filter (try (snd o SMTLIB_Interface.role_and_index_of_assert_name)) prems)
 
 fun parse_proof
     ({context = ctxt, typs, terms, ll_defs, rewrite_rules, assms} : SMT_Translate.replay_data)
@@ -36,7 +36,8 @@ fun parse_proof
     val index_of_id = Integer.add (~ num_ll_defs)
 
     fun step_of_assume j (_, th) =
-      Verit_Proof.VeriT_Step {id = SMTLIB_Interface.assert_name_of_index (id_of_index j),
+      Verit_Proof.VeriT_Step
+        {id = SMTLIB_Interface.assert_name_of_role_and_index SMT_Util.Axiom (id_of_index j),
         rule = input_rule, prems = [], proof_ctxt = [], concl = Thm.prop_of th, fixes = []}
 
     val (actual_steps, _) = Verit_Proof.parse typs terms output ctxt

@@ -483,13 +483,13 @@ fun extract_assumptions_from_subproof subproof =
   end
 
 fun normalized_rule_name id rule =
-  (case (rule = input_rule, can (unprefix SMTLIB_Interface.assert_prefix) id) of
+  (case (rule = input_rule, can SMTLIB_Interface.role_and_index_of_assert_name id) of
     (true, true) => normalized_input_rule
   | (true, _) => local_input_rule
   | _ => rule)
 
 fun is_assm_repetition id rule =
-  rule = input_rule andalso can (unprefix SMTLIB_Interface.assert_prefix) id
+  rule = input_rule andalso can SMTLIB_Interface.role_and_index_of_assert_name id
 
 fun extract_skolem ([SMTLIB.Sym var, typ, choice]) = (var, typ, choice)
   | extract_skolem t = raise Fail ("fail to parse type" ^ @{make_string} t)

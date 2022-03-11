@@ -34,7 +34,7 @@ fun atp_proof_of_veriT_proof ctxt ll_defs rewrite_rules hyp_ts concl_t fact_help
       in
         if rule = input_rule then
           let
-            val id_num = the (Int.fromString (unprefix assert_prefix id))
+            val id_num = snd (SMTLIB_Interface.role_and_index_of_assert_name id)
             val ss = the_list (AList.lookup (op =) fact_helper_ids id_num)
           in
             (case distinguish_conjecture_and_hypothesis ss id_num conjecture_id prem_ids

@@ -24,7 +24,8 @@ sig
     order: SMT_Util.order,
     logic: string -> term list -> string,
     fp_kinds: BNF_Util.fp_kind list,
-    serialize: (string * string) list -> string list -> sign -> sterm list -> string }
+    serialize: (string * string) list -> string list -> sign -> (SMT_Util.role * sterm) list ->
+      string }
   type replay_data = {
     context: Proof.context,
     typs: typ Symtab.table,
@@ -35,7 +36,8 @@ sig
 
   (*translation*)
   val add_config: SMT_Util.class * (Proof.context -> config) -> Context.generic -> Context.generic
-  val translate: Proof.context -> string -> (string * string) list -> string list -> (int * thm) list ->
+  val translate: Proof.context -> string -> (string * string) list -> string list ->
+    ((int * SMT_Util.role) * thm) list ->
     string * replay_data
 end;
 
@@ -68,7 +70,8 @@ type config = {
   order: SMT_Util.order,
   logic: string -> term list -> string,
   fp_kinds: BNF_Util.fp_kind list,
-  serialize: (string * string) list -> string list -> sign -> sterm list -> string }
+  serialize: (string * string) list -> string list -> sign -> (SMT_Util.role * sterm) list ->
+    string }
 
 type replay_data = {
   context: Proof.context,
@@ -130,7 +133,7 @@ fun replay_data_of ctxt ll_defs rules assms (_, typs, terms) =
     val terms' = Termtab.fold add_fun terms Symtab.empty
   in
     {context = ctxt, typs = typs', terms = terms', ll_defs = ll_defs, rewrite_rules = rules,
-     assms = assms}
+     assms = map (apfst fst) assms}
   end
 
 
@@ -142,7 +145,7 @@ fun collect_co_datatypes fp_kinds (tr_context, ctxt) ts =
   let
     val (fp_decls, ctxt') =
       ([], ctxt)
-      |> fold (Term.fold_types (SMT_Datatypes.add_decls fp_kinds)) ts
+      |> fold (Term.fold_types (SMT_Datatypes.add_decls fp_kinds) o snd) ts
       |>> flat
 
     fun is_decl_typ T = exists (equal T o fst o snd) fp_decls
@@ -228,7 +231,7 @@ fun eta_expand ctxt funcs =
 
     and abs_expand (n, T, t) = Abs (n, T, expand t)
 
-  in map expand end
+  in map (apsnd expand) end
 
 end
 
@@ -277,7 +280,7 @@ fun intro_explicit_application ctxt funcs ts =
       | n => error ("Illegal value for " ^ quote (Config.name_of SMT_Config.explicit_application) ^
           ": " ^ string_of_int n))
 
-    val (arities, types) = fold get_arities ts (Termtab.empty, Typtab.empty)
+    val (arities, types) = fold (get_arities o snd) ts (Termtab.empty, Typtab.empty)
     val arities' = arities |> explicit_application = 1 ? Termtab.map (take_vars_into_account types)
 
     fun app_func t T ts =
@@ -314,7 +317,7 @@ fun intro_explicit_application ctxt funcs ts =
       | in_pat Ts ((p as \<^Const_>\<open>nopat _\<close>) $ t) = p $ traverse Ts t
       | in_pat _ t = raise TERM ("bad pattern", [t])
     and traverses Ts t ts = Term.list_comb (t, map (traverse Ts) ts)
-  in map (traverse []) ts end
+  in map (apsnd (traverse [])) ts end
 
 val fun_app_eq = mk_meta_eq @{thm fun_app_def}
 
@@ -381,7 +384,7 @@ fun folify ctxt =
               | NONE => in_term false t))
       | _ => in_term false t)
   in
-    map in_form #>
+    map (apsnd in_form) #>
     pair (fol_rules, I)
   end
 
@@ -463,7 +466,7 @@ fun intermediate logic dtyps builtin ctxt ts trx =
           add_fun t (SOME Up) ##>> fold_map trans ts #>> SConst)
       end
 
-    val (us, trx') = fold_map trans ts trx
+    val (us, trx') = fold_map (fn (role, t) => apfst (pair role) o trans t) ts trx
   in ((sign_of (logic ts) dtyps trx', us), trx') end
 
 
@@ -487,14 +490,14 @@ fun get_config ctxt =
         "for solver class " ^ quote (SMT_Util.string_of_class cs)))
   end
 
-fun translate ctxt prover smt_options comments ithms =
+fun translate ctxt prover smt_options comments (ithms : ((int * SMT_Util.role) * thm) list) =
   let
     val {order, logic, fp_kinds, serialize} = get_config ctxt
 
     fun no_dtyps (tr_context, ctxt) ts =
       ((Termtab.empty, [], tr_context, ctxt), ts)
 
-    val ts1 = map (Envir.beta_eta_contract o SMT_Util.prop_of o snd) ithms
+    val ts1 = map (SMT_Util.map_prod snd (Envir.beta_eta_contract o SMT_Util.prop_of)) ithms
 
     val ((funcs, dtyps, tr_context, ctxt1), ts2) =
       ((empty_tr_context, ctxt), ts1)
@@ -517,10 +520,10 @@ fun translate ctxt prover smt_options comments ithms =
       ts2
       |> eta_expand ctxt1 funcs
       |> rpair ctxt1
-      |-> Lambda_Lifting.lift_lambdas NONE is_binder
+      |-> Lambda_Lifting.lift_lambdas' NONE is_binder
       |-> (fn (ts', ll_defs) => fn ctxt' =>
         let
-          val ts'' = map mk_trigger ll_defs @ ts'
+          val ts'' = map (pair SMT_Util.Axiom o mk_trigger) ll_defs @ ts'
             |> order = SMT_Util.First_Order ? intro_explicit_application ctxt' funcs
         in
           (ctxt', (ts'', ll_defs))
@@ -529,7 +532,7 @@ fun translate ctxt prover smt_options comments ithms =
       |>> order = SMT_Util.First_Order ? apfst (cons fun_app_eq)
   in
     (ts4, tr_context)
-    |-> intermediate (logic prover) dtyps (builtin SMT_Builtin.dest_builtin) ctxt2
+    |-> intermediate (logic prover o map snd) dtyps (builtin SMT_Builtin.dest_builtin) ctxt2
     |>> uncurry (serialize smt_options comments)
     ||> replay_data_of ctxt2 ll_defs rewrite_rules ithms
   end

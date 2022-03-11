@@ -79,12 +79,12 @@ fun replay_thm method_for rewrite_rules ll_defs ctxt assumed unchanged_prems pre
 
 fun add_used_asserts_in_step (Verit_Proof.VeriT_Replay_Node {prems,
     subproof = (_, _, _, subproof), ...}) =
-  union (op =) (map_filter (try SMTLIB_Interface.assert_index_of_name) prems @
+  union (op =) (map_filter (try (snd o SMTLIB_Interface.role_and_index_of_assert_name)) prems @
      flat (map (fn x => add_used_asserts_in_step x []) subproof))
 
 fun remove_rewrite_rules_from_rules n =
   (fn (step as Verit_Proof.VeriT_Replay_Node {id, ...}) =>
-    (case try SMTLIB_Interface.assert_index_of_name id of
+    (case try (snd o SMTLIB_Interface.role_and_index_of_assert_name) id of
       NONE => SOME step
     | SOME a => if a < n then NONE else SOME step))
 
@@ -245,7 +245,7 @@ fun replay outer_ctxt
 
     fun step_of_assume (j, (_, th)) =
       Verit_Proof.VeriT_Replay_Node {
-        id = SMTLIB_Interface.assert_name_of_index (id_of_index j),
+        id = SMTLIB_Interface.assert_name_of_role_and_index SMT_Util.Axiom (id_of_index j),
         rule = Verit_Proof.input_rule,
         args = [],
         prems = [],
@@ -280,10 +280,13 @@ fun replay outer_ctxt
           then SOME (id, normalize_tac ctxt (nth ll_defs id)) else NONE end)
         used_assert_ids
     val (assumed, stats) = fold (fn ((id, thm)) => fn (assumed, stats) =>
-           let val (thm, stats) = replay_assumed assms ll_defs rewrite_rules stats ctxt thm
-           in (Symtab.update (SMTLIB_Interface.assert_name_of_index id, ([], thm)) assumed, stats)
-           end)
-         used_rew_js (assumed, Symtab.cons_list ("parsing", parsing_time) Symtab.empty)
+      let
+        val (thm, stats) = replay_assumed assms ll_defs rewrite_rules stats ctxt thm
+        val name = SMTLIB_Interface.assert_name_of_role_and_index SMT_Util.Axiom id
+      in
+        (Symtab.update (name, ([], thm)) assumed, stats)
+      end)
+      used_rew_js (assumed, Symtab.cons_list ("parsing", parsing_time) Symtab.empty)
 
     val ctxt4 =
       ctxt3

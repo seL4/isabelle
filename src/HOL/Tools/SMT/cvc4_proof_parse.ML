@@ -24,7 +24,8 @@ fun parse_proof ({ll_defs, assms, ...} : SMT_Translate.replay_data) xfacts prems
       val id_of_index = Integer.add num_ll_defs
       val index_of_id = Integer.add (~ num_ll_defs)
 
-      val used_assert_ids = map_filter (try SMTLIB_Interface.assert_index_of_name) output
+      val used_assert_ids =
+        map_filter (try (snd o SMTLIB_Interface.role_and_index_of_assert_name)) output
       val used_assm_js =
         map_filter (fn id => let val i = index_of_id id in if i >= 0 then SOME i else NONE end)
           used_assert_ids

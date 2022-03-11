@@ -15,7 +15,7 @@ sig
 
   type extra_norm = Proof.context -> thm list * thm list -> thm list * thm list
   val add_extra_norm: SMT_Util.class * extra_norm -> Context.generic -> Context.generic
-  val normalize: Proof.context -> thm list -> (int * thm) list
+  val normalize: Proof.context -> (SMT_Util.role * thm) list -> ((int * SMT_Util.role) * thm) list
 end;
 
 structure SMT_Normalize: SMT_NORMALIZE =
@@ -448,7 +448,7 @@ fun burrow_ids f ithms =
   let
     val (is, thms) = split_list ithms
     val (thms', extra_thms) = f thms
-  in (is ~~ thms') @ map (pair ~1) extra_thms end
+  in (is ~~ thms') @ map (pair (~1, SMT_Util.Axiom)) extra_thms end
 
 fun unfold_conv ctxt =
   rewrite_case_bool_conv ctxt then_conv
@@ -515,7 +515,7 @@ end
 
 fun normalize ctxt wthms =
   wthms
-  |> map_index I
+  |> map_index (fn (n, (role, thm)) => ((n, role), thm))
   |> gen_normalize ctxt
   |> unfold_polymorph ctxt
   |> monomorph ctxt

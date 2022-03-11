@@ -249,7 +249,7 @@ val good_slices = #good_slices oo get_info
 
 fun apply_solver_and_replay ctxt thms0 =
   let
-    val thms = map (check_topsort ctxt) thms0
+    val thms = map (pair SMT_Util.Axiom o check_topsort ctxt) thms0
     val (name, {command, smt_options, replay, ...}) = name_and_info_of ctxt
     val (output, replay_data) =
       invoke name command [] smt_options (SMT_Normalize.normalize ctxt thms) ctxt
@@ -270,13 +270,15 @@ fun smt_filter ctxt0 goal xfacts i time_limit options =
       | NONE => raise SMT_Failure.SMT (SMT_Failure.Other_Failure "cannot atomize goal"))
 
     val conjecture = Thm.assume cprop
-    val facts = map snd xfacts
-    val thms = conjecture :: prems @ facts
-    val thms' = map (check_topsort ctxt) thms
+    val thms =
+      (SMT_Util.Conjecture, conjecture) ::
+      map (pair SMT_Util.Hypothesis) prems @
+      map (pair SMT_Util.Axiom o snd) xfacts
+      |> map (apsnd (check_topsort ctxt))
 
     val (name, {command, smt_options, parse_proof, ...}) = name_and_info_of ctxt
     val (output, replay_data) =
-      invoke name command options smt_options (SMT_Normalize.normalize ctxt thms') ctxt
+      invoke name command options smt_options (SMT_Normalize.normalize ctxt thms) ctxt
   in
     parse_proof ctxt replay_data xfacts (map Thm.prop_of prems) (Thm.term_of concl) output
   end

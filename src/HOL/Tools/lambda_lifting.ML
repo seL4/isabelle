@@ -16,6 +16,8 @@ sig
   val finish: context -> term list * Proof.context
   val lift_lambdas: string option -> (term -> bool) -> term list ->
     Proof.context -> (term list * term list) * Proof.context
+  val lift_lambdas': string option -> (term -> bool) -> ('a * term) list ->
+    Proof.context -> (('a * term) list * term list) * Proof.context
 end
 
 structure Lambda_Lifting: LAMBDA_LIFTING =
@@ -85,6 +87,11 @@ fun finish (defs, ctxt) = (Termtab.fold (cons o snd o snd) defs [], ctxt)
 fun lift_lambdas basename is_binder ts ctxt =
   init ctxt
   |> fold_map (lift_lambdas1 is_binder basename) ts
+  |-> (fn ts' => finish #>> pair ts')
+
+fun lift_lambdas' basename is_binder ts ctxt =
+  init ctxt
+  |> fold_map (fn (x, t) => apfst (pair x) o lift_lambdas1 is_binder basename t) ts
   |-> (fn ts' => finish #>> pair ts')
 
 end

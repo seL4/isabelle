@@ -9,8 +9,10 @@ sig
   (*basic combinators*)
   val repeat: ('a -> 'a option) -> 'a -> 'a
   val repeat_yield: ('a -> 'b -> ('a * 'b) option) -> 'a -> 'b -> 'a * 'b
+  val map_prod: ('a -> 'b) -> ('c -> 'd) -> 'a * 'c -> ('b * 'd)
 
   datatype order = First_Order | Higher_Order
+  datatype role = Conjecture | Hypothesis | Axiom
 
   (*class dictionaries*)
   type class = string list
@@ -78,10 +80,17 @@ fun repeat_yield f =
   let fun rep x y = (case f x y of SOME (x', y') => rep x' y' | NONE => (x, y))
   in rep end
 
+val map_prod = Ctr_Sugar_Util.map_prod
+
 
 (* order *)
 
 datatype order = First_Order | Higher_Order
+
+
+(* role *)
+
+ datatype role = Conjecture | Hypothesis | Axiom
 
 
 (* class dictionaries *)

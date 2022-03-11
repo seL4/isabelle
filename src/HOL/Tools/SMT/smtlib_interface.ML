@@ -13,9 +13,8 @@ sig
   val add_logic: int * (string -> term list -> string option) -> Context.generic -> Context.generic
   val del_logic: int * (string -> term list -> string option) -> Context.generic -> Context.generic
   val translate_config: SMT_Util.order -> Proof.context -> SMT_Translate.config
-  val assert_name_of_index: int -> string
-  val assert_index_of_name: string -> int
-  val assert_prefix : string
+  val assert_name_of_role_and_index: SMT_Util.role -> int -> string
+  val role_and_index_of_assert_name: string -> SMT_Util.role * int
 end;
 
 structure SMTLIB_Interface: SMTLIB_INTERFACE =
@@ -137,10 +136,24 @@ fun string_of_fun (f, (ss, s)) = f ^ " (" ^ space_implode " " ss ^ ") " ^ s
 
 fun named_sterm s t = SMTLIB.S [SMTLIB.Sym "!", t, SMTLIB.Key "named", SMTLIB.Sym s]
 
-val assert_prefix = "a"
+val conjecture_prefix = "conjecture" (* FUDGE *)
+val hypothesis_prefix = "hypothesis" (* FUDGE *)
+val axiom_prefix = "axiom" (* FUDGE *)
 
-fun assert_name_of_index i = assert_prefix ^ string_of_int i
-fun assert_index_of_name s = the_default ~1 (Int.fromString (unprefix assert_prefix s))
+fun assert_prefix_of_role SMT_Util.Conjecture = conjecture_prefix
+  | assert_prefix_of_role SMT_Util.Hypothesis = hypothesis_prefix
+  | assert_prefix_of_role SMT_Util.Axiom = axiom_prefix
+
+fun assert_name_of_role_and_index role i = assert_prefix_of_role role ^ string_of_int i
+
+fun unprefix_axiom s =
+  try (pair SMT_Util.Conjecture o unprefix conjecture_prefix) s
+  |> curry merge_options (try (pair SMT_Util.Conjecture o unprefix hypothesis_prefix) s)
+  |> curry merge_options (try (pair SMT_Util.Conjecture o unprefix axiom_prefix) s)
+  |> the
+
+fun role_and_index_of_assert_name s =
+  apsnd (the_default ~1 o Int.fromString) (unprefix_axiom s)
 
 fun sdtyp (fp, dtyps) =
   Buffer.add (enclose ("(declare-" ^ BNF_FP_Util.co_prefix fp ^ "datatypes () (") "))\n"
@@ -158,8 +171,9 @@ fun serialize smt_options comments {logic, sorts, dtyps, funcs} ts =
     |> fold sdtyp (AList.coalesce (op =) dtyps)
     |> fold (Buffer.add o enclose "(declare-fun " ")\n" o string_of_fun)
         (sort (fast_string_ord o apply2 fst) funcs)
-    |> fold (fn (i, t) => Buffer.add (enclose "(assert " ")\n"
-        (SMTLIB.str_of (named_sterm (assert_name_of_index i) (tree_of_sterm 0 t))))) (map_index I ts)
+    |> fold (fn (i, (role, t)) => Buffer.add (enclose "(assert " ")\n"
+        (SMTLIB.str_of (named_sterm (assert_name_of_role_and_index role i) (tree_of_sterm 0 t)))))
+        (map_index I ts)
     |> Buffer.add "(check-sat)\n"
     |> Buffer.add (if unsat_core then "(get-unsat-core)\n" else "(get-proof)\n")
     |> Buffer.content
