@@ -90,7 +90,7 @@ object Build_VSCodium
       })
     }
 
-    def get_vscodium_repository(vscodium_dir: Path, progress: Progress = new Progress): Unit =
+    def get_vscodium_repository(build_dir: Path, progress: Progress = new Progress): Unit =
     {
       progress.echo("Getting VSCodium repository ...")
       Isabelle_System.bash(
@@ -98,10 +98,10 @@ object Build_VSCodium
           "set -e",
           "git clone -n " + Bash.string(vscodium_repository) + " .",
           "git checkout -q " + Bash.string(version)
-        ).mkString("\n"), cwd = vscodium_dir.file).check
+        ).mkString("\n"), cwd = build_dir.file).check
 
       progress.echo("Getting VSCode repository ...")
-      Isabelle_System.bash(environment + "\n" + "./get_repo.sh", cwd = vscodium_dir.file).check
+      Isabelle_System.bash(environment + "\n" + "./get_repo.sh", cwd = build_dir.file).check
     }
 
     def platform_dir(dir: Path): Path =
@@ -287,10 +287,10 @@ object Build_VSCodium
     val platform_info = linux_platform_info
     check_system(List(platform_info.platform))
 
-    Isabelle_System.with_tmp_dir("vscodium")(vscodium_dir =>
+    Isabelle_System.with_tmp_dir("build")(build_dir =>
     {
-      platform_info.get_vscodium_repository(vscodium_dir, progress = progress)
-      val vscode_dir = vscodium_dir + Path.explode("vscode")
+      platform_info.get_vscodium_repository(build_dir, progress = progress)
+      val vscode_dir = build_dir + Path.explode("vscode")
       progress.echo("Prepare ...")
       Isabelle_System.with_copy_dir(vscode_dir, vscode_dir.orig) {
         progress.bash(
@@ -300,8 +300,8 @@ object Build_VSCodium
             "./prepare_vscode.sh",
             // enforce binary diff of code.xpm
             "cp vscode/resources/linux/code.png vscode/resources/linux/rpm/code.xpm"
-          ).mkString("\n"), cwd = vscodium_dir.file, echo = verbose).check
-        Isabelle_System.make_patch(vscodium_dir, vscode_dir.orig.base, vscode_dir.base,
+          ).mkString("\n"), cwd = build_dir.file, echo = verbose).check
+        Isabelle_System.make_patch(build_dir, vscode_dir.orig.base, vscode_dir.base,
           diff_options = "--exclude=.git --exclude=node_modules")
       }
     })
@@ -357,25 +357,25 @@ exit $?
     for (platform <- platforms) yield {
       val platform_info = the_platform_info(platform)
 
-      Isabelle_System.with_tmp_dir("vscodium")(vscodium_dir =>
+      Isabelle_System.with_tmp_dir("vscodium")(build_dir =>
       {
         progress.echo("\n* Building " + platform + ":")
 
-        platform_info.get_vscodium_repository(vscodium_dir, progress = progress)
+        platform_info.get_vscodium_repository(build_dir, progress = progress)
 
-        val sources_patch = platform_info.patch_sources(vscodium_dir)
+        val sources_patch = platform_info.patch_sources(build_dir)
         if (platform_info.is_linux) write_patch("02-isabelle_sources", sources_patch)
 
         progress.echo("Build ...")
         progress.bash(platform_info.environment + "\n" + "./build.sh",
-          cwd = vscodium_dir.file, echo = verbose).check
+          cwd = build_dir.file, echo = verbose).check
 
         if (platform_info.is_linux) {
-          Isabelle_System.copy_file(vscodium_dir + Path.explode("LICENSE"), component_dir)
+          Isabelle_System.copy_file(build_dir + Path.explode("LICENSE"), component_dir)
         }
 
         val platform_dir = platform_info.platform_dir(component_dir)
-        Isabelle_System.copy_dir(platform_info.build_dir(vscodium_dir), platform_dir)
+        Isabelle_System.copy_dir(platform_info.build_dir(build_dir), platform_dir)
         platform_info.node_binaries(platform_dir, progress)
 
         val resources_patch = platform_info.patch_resources(platform_dir)
