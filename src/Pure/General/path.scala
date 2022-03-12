@@ -248,8 +248,8 @@ final class Path private(protected val elems: List[Path.Elem]) // reversed eleme
     prfx + Path.basic(s + "~~")
   }
 
-  def platform_exe: Path =
-    if (Platform.is_windows) ext("exe") else this
+  def exe: Path = ext("exe")
+  def platform_exe: Path = if (Platform.is_windows) exe else this
 
   private val Ext = new Regex("(.*)\\.([^.]*)")
 

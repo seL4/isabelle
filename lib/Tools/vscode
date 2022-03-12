@@ -6,7 +6,7 @@
 
 isabelle vscode_setup || exit "$?"
 
-exec "$ISABELLE_VSCODIUM_HOME/bin/codium" \
+exec "$ISABELLE_VSCODIUM_HOME/vscodium" \
   --locale en-US \
   --user-data-dir "$(platform_path "$ISABELLE_VSCODE_SETTINGS"/user-data)" \
   --extensions-dir "$(platform_path "$ISABELLE_VSCODE_SETTINGS"/extensions)" \

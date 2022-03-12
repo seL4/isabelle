@@ -22,8 +22,6 @@ object Build_VSCodium
   val vscodium_repository = "https://github.com/VSCodium/vscodium.git"
   val vscodium_download = "https://github.com/VSCodium/vscodium/releases/download"
 
-  def vscodium_exe(dir: Path): Path = dir + Path.explode("bin/codium")
-
 
   /* Isabelle symbols (static subset only) */
 
@@ -186,7 +184,7 @@ object Build_VSCodium
       resources_dir
     }
 
-    def node_binaries(target_dir: Path, progress: Progress): Unit =
+    def setup_node(target_dir: Path, progress: Progress): Unit =
     {
       Isabelle_System.with_tmp_dir("download")(download_dir =>
       {
@@ -201,25 +199,45 @@ object Build_VSCodium
       })
     }
 
+    def setup_electron(dir: Path): Unit =
+    {
+      val electron = Path.explode("electron")
+      platform match {
+        case Platform.Family.linux | Platform.Family.linux_arm =>
+          Isabelle_System.move_file(dir + Path.explode("codium"), dir + electron)
+        case Platform.Family.macos =>
+          Isabelle_System.symlink(Path.explode("VSCodium.app/Contents/MacOS/Electron"), dir + electron)
+        case Platform.Family.windows =>
+          Isabelle_System.move_file(dir + Path.explode("VSCodium.exe"), dir + electron.exe)
+          Isabelle_System.move_file(
+            dir + Path.explode("VSCodium.VisualElementsManifest.xml"),
+            dir + Path.explode("electron.VisualElementsManifest.xml"))
+      }
+    }
+
     def setup_executables(dir: Path): Unit =
     {
-      val exe = vscodium_exe(dir)
-      Isabelle_System.make_directory(exe.dir)
+      Isabelle_System.rm_tree(dir + Path.explode("bin"))
 
-      platform match {
-        case Platform.Family.macos =>
-          File.write(exe, macos_exe)
-          File.set_executable(exe, true)
-        case Platform.Family.windows =>
-          val files1 = File.find_files(exe.dir.file)
-          val files2 = File.find_files(dir.file, pred = file =>
+      val exe = dir + Path.explode("vscodium")
+      File.write(exe, """#!/usr/bin/env bash
+
+unset CDPATH
+THIS="$(cd "$(dirname "$0")"; pwd -P)"
+
+ELECTRON_RUN_AS_NODE=1 "$THIS/electron" "$THIS/resources/app/out/cli.js" --ms-enable-electron-run-as-node "$@"
+""")
+      File.set_executable(exe, true)
+
+      if (platform == Platform.Family.windows) {
+        val files =
+          File.find_files(dir.file, pred = file =>
             {
               val name = file.getName
               name.endsWith(".dll") || name.endsWith(".exe") || name.endsWith(".node")
             })
-          for (file <- files1 ::: files2) File.set_executable(File.path(file), true)
-          Isabelle_System.bash("chmod -R o-w " + File.bash_path(dir)).check
-        case _ =>
+        files.foreach(file => File.set_executable(File.path(file), true))
+        Isabelle_System.bash("chmod -R o-w " + File.bash_path(dir)).check
       }
     }
   }
@@ -312,18 +330,6 @@ object Build_VSCodium
 
   def default_platforms: List[Platform.Family.Value] = Platform.Family.list
 
-  def macos_exe: String =
-"""#!/usr/bin/env bash
-
-unset CDPATH
-VSCODE_PATH="$(cd "$(dirname "$0")"/../VSCodium.app/Contents; pwd)"
-
-ELECTRON="$VSCODE_PATH/MacOS/Electron"
-CLI="$VSCODE_PATH/Resources/app/out/cli.js"
-ELECTRON_RUN_AS_NODE=1 "$ELECTRON" "$CLI" --ms-enable-electron-run-as-node "$@"
-exit $?
-"""
-
   def build_vscodium(
     target_dir: Path = Path.current,
     platforms: List[Platform.Family.Value] = default_platforms,
@@ -357,7 +363,7 @@ exit $?
     for (platform <- platforms) yield {
       val platform_info = the_platform_info(platform)
 
-      Isabelle_System.with_tmp_dir("vscodium")(build_dir =>
+      Isabelle_System.with_tmp_dir("build")(build_dir =>
       {
         progress.echo("\n* Building " + platform + ":")
 
@@ -376,7 +382,8 @@ exit $?
 
         val platform_dir = platform_info.platform_dir(component_dir)
         Isabelle_System.copy_dir(platform_info.build_dir(build_dir), platform_dir)
-        platform_info.node_binaries(platform_dir, progress)
+        platform_info.setup_node(platform_dir, progress)
+        platform_info.setup_electron(platform_dir)
 
         val resources_patch = platform_info.patch_resources(platform_dir)
         if (platform_info.is_linux) write_patch("03-isabelle_resources", resources_patch)
@@ -395,18 +402,6 @@ exit $?
       """# -*- shell-script -*- :mode=shellscript:
 
 ISABELLE_VSCODIUM_HOME="$COMPONENT/${ISABELLE_WINDOWS_PLATFORM64:-$ISABELLE_PLATFORM64}"
-
-case "$ISABELLE_PLATFORM_FAMILY" in
-  linux)
-    ISABELLE_ELECTRON="$ISABELLE_VSCODIUM_HOME/codium"
-    ;;
-  macos)
-    ISABELLE_ELECTRON="$ISABELLE_VSCODIUM_HOME/VSCodium.app/Contents/MacOS/Electron"
-    ;;
-  windows)
-    ISABELLE_ELECTRON="$ISABELLE_VSCODIUM_HOME/VSCodium.exe"
-    ;;
-esac
 """)
 
 
