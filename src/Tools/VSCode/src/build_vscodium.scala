@@ -143,7 +143,7 @@ object Build_VSCodium
         {
           val patches_dir = Path.explode("$ISABELLE_VSCODE_HOME/patches")
           for (name <- Seq("isabelle_encoding", "no_ocaml_icons")) {
-            val path = patches_dir + Path.basic(name).patch
+            val path = patches_dir + Path.explode(name).patch
             Isabelle_System.bash("patch -p1 < " + File.bash_path(path), cwd = dir.file).check
           }
         }
@@ -290,7 +290,7 @@ object Build_VSCodium
     Isabelle_System.with_tmp_dir("vscodium")(vscodium_dir =>
     {
       platform_info.get_vscodium_repository(vscodium_dir, progress = progress)
-      val vscode_dir = vscodium_dir + Path.basic("vscode")
+      val vscode_dir = vscodium_dir + Path.explode("vscode")
       progress.echo("Prepare ...")
       Isabelle_System.with_copy_dir(vscode_dir, vscode_dir.orig) {
         progress.bash(
@@ -336,7 +336,7 @@ exit $?
     /* component */
 
     val component_name = "vscodium-" + version
-    val component_dir = Isabelle_System.new_directory(target_dir + Path.basic(component_name))
+    val component_dir = Isabelle_System.new_directory(target_dir + Path.explode(component_name))
     progress.echo("Component " + component_dir)
 
 
@@ -344,7 +344,7 @@ exit $?
 
     progress.echo("\n* Building patches:")
 
-    val patches_dir = Isabelle_System.new_directory(component_dir + Path.basic("patches"))
+    val patches_dir = Isabelle_System.new_directory(component_dir + Path.explode("patches"))
 
     def write_patch(name: String, patch: String): Unit =
       File.write(patches_dir + Path.explode(name).patch, patch)
@@ -391,7 +391,7 @@ exit $?
     /* settings */
 
     val etc_dir = Isabelle_System.make_directory(component_dir + Path.explode("etc"))
-    File.write(etc_dir + Path.basic("settings"),
+    File.write(etc_dir + Path.explode("settings"),
       """# -*- shell-script -*- :mode=shellscript:
 
 ISABELLE_VSCODIUM_HOME="$COMPONENT/${ISABELLE_WINDOWS_PLATFORM64:-$ISABELLE_PLATFORM64}"
@@ -412,7 +412,7 @@ esac
 
     /* README */
 
-    File.write(component_dir + Path.basic("README"),
+    File.write(component_dir + Path.explode("README"),
       "This is VSCodium " + version + " from " + vscodium_repository +
 """
 
