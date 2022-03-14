@@ -148,7 +148,7 @@ val veriT: SMT_Solver.solver_config = {
      ((256, mepoN), []),
      ((32, meshN), [])],
   outcome = on_first_non_unsupported_line (outcome_of "unsat" "sat" "unknown" "Time limit exceeded"),
-  parse_proof = SOME (K VeriT_Proof_Parse.parse_proof),
+  parse_proof = SOME (K Lethe_Proof_Parse.parse_proof),
   replay = SOME Verit_Replay.replay }
 
 end
