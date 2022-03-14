@@ -140,7 +140,7 @@ object Build_VSCodium
         // explicit patches
         {
           val patches_dir = Path.explode("$ISABELLE_VSCODE_HOME/patches")
-          for (name <- Seq("isabelle_encoding", "no_ocaml_icons")) {
+          for (name <- Seq("cli", "isabelle_encoding", "no_ocaml_icons")) {
             val path = patches_dir + Path.explode(name).patch
             Isabelle_System.bash("patch -p1 < " + File.bash_path(path), cwd = dir.file).check
           }
@@ -152,27 +152,40 @@ object Build_VSCodium
 
     def patch_resources(base_dir: Path): String =
     {
-      val dir = base_dir + Path.explode("resources")
-      Isabelle_System.with_copy_dir(dir, dir.orig) {
-        val fonts_dir = dir + Path.explode("app/out/vs/base/browser/ui/fonts")
-        HTML.init_fonts(fonts_dir.dir)
-        make_symbols().write(fonts_dir)
+      val resources = Path.explode("resources")
+      val dir = base_dir + resources
+      val patch =
+        Isabelle_System.with_copy_dir(dir, dir.orig) {
+          val fonts_dir = dir + Path.explode("app/out/vs/base/browser/ui/fonts")
+          HTML.init_fonts(fonts_dir.dir)
+          make_symbols().write(fonts_dir)
 
-        val workbench_css = dir + Path.explode("app/out/vs/workbench/workbench.desktop.main.css")
-        val checksum1 = file_checksum(workbench_css)
-        File.append(workbench_css, "\n\n" + HTML.fonts_css_dir(prefix = "../base/browser/ui"))
-        val checksum2 = file_checksum(workbench_css)
+          val workbench_css = dir + Path.explode("app/out/vs/workbench/workbench.desktop.main.css")
+          val checksum1 = file_checksum(workbench_css)
+          File.append(workbench_css, "\n\n" + HTML.fonts_css_dir(prefix = "../base/browser/ui"))
+          val checksum2 = file_checksum(workbench_css)
 
-        val file_name = workbench_css.file_name
-        File.change_lines(dir + Path.explode("app/product.json")) { _.map(line =>
-          if (line.containsSlice(file_name) && line.contains(checksum1)) {
-            line.replace(checksum1, checksum2)
+          val file_name = workbench_css.file_name
+          File.change_lines(dir + Path.explode("app/product.json")) { _.map(line =>
+            if (line.containsSlice(file_name) && line.contains(checksum1)) {
+              line.replace(checksum1, checksum2)
+            }
+            else line)
           }
-          else line)
+
+          Isabelle_System.make_patch(dir.dir, dir.orig.base, dir.base)
         }
 
-        Isabelle_System.make_patch(dir.dir, dir.orig.base, dir.base)
+      val app_dir = dir + Path.explode("app")
+      val vscodium_app_dir = dir + Path.explode("vscodium")
+      Isabelle_System.move_file(app_dir, vscodium_app_dir)
+
+      Isabelle_System.make_directory(app_dir)
+      if ((vscodium_app_dir + resources).is_dir) {
+        Isabelle_System.copy_dir(vscodium_app_dir + resources, app_dir)
       }
+
+      patch
     }
 
     def init_resources(base_dir: Path): Path =
@@ -218,16 +231,6 @@ object Build_VSCodium
     def setup_executables(dir: Path): Unit =
     {
       Isabelle_System.rm_tree(dir + Path.explode("bin"))
-
-      val exe = dir + Path.explode("vscodium")
-      File.write(exe, """#!/usr/bin/env bash
-
-unset CDPATH
-THIS="$(cd "$(dirname "$0")"; pwd -P)"
-
-ELECTRON_RUN_AS_NODE=1 "$THIS/electron" "$THIS/resources/app/out/cli.js" --ms-enable-electron-run-as-node "$@"
-""")
-      File.set_executable(exe, true)
 
       if (platform == Platform.Family.windows) {
         val files =
@@ -387,6 +390,10 @@ ELECTRON_RUN_AS_NODE=1 "$THIS/electron" "$THIS/resources/app/out/cli.js" --ms-en
 
         val resources_patch = platform_info.patch_resources(platform_dir)
         if (platform_info.is_linux) write_patch("03-isabelle_resources", resources_patch)
+
+        Isabelle_System.copy_file(
+          build_dir + Path.explode("vscode/node_modules/electron/dist/resources/default_app.asar"),
+          platform_dir + Path.explode("resources"))
 
         platform_info.setup_executables(platform_dir)
       })
