@@ -4,4 +4,4 @@
 #
 # DESCRIPTION: run the Electron framework (with its own command-line arguments)
 
-exec "$ISABELLE_VSCODIUM_HOME/electron" "$@"
+exec "$ISABELLE_VSCODIUM_ELECTRON" "$@"

@@ -219,13 +219,12 @@ object Build_VSCodium
       platform match {
         case Platform.Family.linux | Platform.Family.linux_arm =>
           Isabelle_System.move_file(dir + Path.explode("codium"), dir + electron)
-        case Platform.Family.macos =>
-          Isabelle_System.symlink(Path.explode("VSCodium.app/Contents/MacOS/Electron"), dir + electron)
         case Platform.Family.windows =>
           Isabelle_System.move_file(dir + Path.explode("VSCodium.exe"), dir + electron.exe)
           Isabelle_System.move_file(
             dir + Path.explode("VSCodium.VisualElementsManifest.xml"),
             dir + Path.explode("electron.VisualElementsManifest.xml"))
+        case Platform.Family.macos =>
       }
     }
 
@@ -410,6 +409,14 @@ object Build_VSCodium
       """# -*- shell-script -*- :mode=shellscript:
 
 ISABELLE_VSCODIUM_HOME="$COMPONENT/${ISABELLE_WINDOWS_PLATFORM64:-$ISABELLE_PLATFORM64}"
+
+if [ "$ISABELLE_PLATFORM_FAMILY" = "macos" ]; then
+  ISABELLE_VSCODIUM_ELECTRON="$ISABELLE_VSCODIUM_HOME/VSCodium.app/Contents/MacOS/Electron"
+  ISABELLE_VSCODIUM_RESOURCES="$ISABELLE_VSCODIUM_HOME/VSCodium.app/Contents/Resources"
+else
+  ISABELLE_VSCODIUM_ELECTRON="$ISABELLE_VSCODIUM_HOME/electron"
+  ISABELLE_VSCODIUM_RESOURCES="$ISABELLE_VSCODIUM_HOME/resources"
+fi
 """)
 
 

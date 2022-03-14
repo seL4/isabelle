@@ -1,19 +1,11 @@
 diff --git a/src/vs/code/node/cli.ts b/src/vs/code/node/cli.ts
 --- a/src/vs/code/node/cli.ts
 +++ b/src/vs/code/node/cli.ts
-@@ -24,6 +24,7 @@ import product from 'vs/platform/product/common/product';
- import { CancellationTokenSource } from 'vs/base/common/cancellation';
- import { randomPath } from 'vs/base/common/extpath';
- import { Utils } from 'vs/platform/profiling/common/profiling';
-+import * as path from 'path';
- 
- function shouldSpawnCliProcess(argv: NativeParsedArgs): boolean {
- 	return !!argv['install-source']
-@@ -363,9 +364,11 @@ export async function main(argv: string[]): Promise<any> {
+@@ -363,9 +363,11 @@ export async function main(argv: string[]): Promise<any> {
  		}
  
  		let child: ChildProcess;
-+		const app_arg = '--app=' + path.join(path.dirname(process.execPath), 'resources', 'vscodium');
++		const app_arg = '--app=' + process.env['ISABELLE_VSCODIUM_APP'];
 +		const electron_args = [app_arg].concat(argv.slice(2));
  		if (!isMacOSBigSurOrNewer) {
  			// We spawn process.execPath directly
@@ -22,7 +14,7 @@ diff --git a/src/vs/code/node/cli.ts b/src/vs/code/node/cli.ts
  		} else {
  			// On Big Sur, we spawn using the open command to obtain behavior
  			// similar to if the app was launched from the dock
-@@ -425,7 +428,7 @@ export async function main(argv: string[]): Promise<any> {
+@@ -425,7 +427,7 @@ export async function main(argv: string[]): Promise<any> {
  				}
  			}
  

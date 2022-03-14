@@ -79,9 +79,9 @@ export class Symbols
 
 function load_symbols(): Entry[]
 {
-  const vscodium_home = library.getenv("ISABELLE_VSCODIUM_HOME")
-  if (vscodium_home) {
-    const path = vscodium_home + "/resources/vscodium/out/vs/base/browser/ui/fonts/symbols.json"
+  const vscodium_resources = library.getenv("ISABELLE_VSCODIUM_RESOURCES")
+  if (vscodium_resources) {
+    const path = vscodium_resources + "/vscodium/out/vs/base/browser/ui/fonts/symbols.json"
     return file.read_json_sync(file.platform_path(path))
   }
   else { return [] }
