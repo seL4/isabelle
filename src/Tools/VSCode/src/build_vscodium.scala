@@ -22,6 +22,8 @@ object Build_VSCodium
   val vscodium_repository = "https://github.com/VSCodium/vscodium.git"
   val vscodium_download = "https://github.com/VSCodium/vscodium/releases/download"
 
+  private val resources = Path.explode("resources")
+
 
   /* Isabelle symbols (static subset only) */
 
@@ -152,7 +154,6 @@ object Build_VSCodium
 
     def patch_resources(base_dir: Path): String =
     {
-      val resources = Path.explode("resources")
       val dir = base_dir + resources
       val patch =
         Isabelle_System.with_copy_dir(dir, dir.orig) {
@@ -190,11 +191,11 @@ object Build_VSCodium
 
     def init_resources(base_dir: Path): Path =
     {
-      val resources_dir = base_dir + Path.explode("resources")
+      val dir = base_dir + resources
       if (platform == Platform.Family.macos) {
-        Isabelle_System.symlink(Path.explode("VSCodium.app/Contents/Resources"), resources_dir)
+        Isabelle_System.symlink(Path.explode("VSCodium.app/Contents/Resources"), dir)
       }
-      resources_dir
+      dir
     }
 
     def setup_node(target_dir: Path, progress: Progress): Unit =
@@ -393,7 +394,7 @@ object Build_VSCodium
 
         Isabelle_System.copy_file(
           build_dir + Path.explode("vscode/node_modules/electron/dist/resources/default_app.asar"),
-          platform_dir + Path.explode("resources"))
+          platform_dir + resources)
 
         platform_info.setup_executables(platform_dir)
       })
