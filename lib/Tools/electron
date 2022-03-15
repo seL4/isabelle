@@ -2,7 +2,7 @@
 #
 # Author: Makarius
 #
-# DESCRIPTION: run the Electron framework within the Isabelle environment
+# DESCRIPTION: run the Electron.js framework within the Isabelle environment
 
 if [ -z "$ISABELLE_VSCODIUM_ELECTRON" ]; then
   echo '*** Undefined $ISABELLE_VSCODIUM_ELECTRON: missing "vscodium" component'
