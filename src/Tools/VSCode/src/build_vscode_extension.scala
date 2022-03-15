@@ -35,7 +35,7 @@ object Build_VSCode
 
   def install_extension(vsix_path: Path, progress: Progress = new Progress): Unit =
     progress.bash("isabelle vscode --install-extension " +
-      File.bash_platform_path(vsix_path))
+      File.bash_platform_path(vsix_path)).check
 
   def build_extension(progress: Progress = new Progress): Path =
   {
