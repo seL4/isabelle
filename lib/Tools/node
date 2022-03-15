@@ -4,5 +4,10 @@
 #
 # DESCRIPTION: run the Node.js framework within the Isabelle environment
 
-export ELECTRON_RUN_AS_NODE=1
-exec "$ISABELLE_VSCODIUM_ELECTRON" "$@"
+if [ -z "$ISABELLE_VSCODIUM_ELECTRON" ]; then
+  echo '*** Undefined $ISABELLE_VSCODIUM_ELECTRON: missing "vscodium" component'
+  exit 2
+else
+  export ELECTRON_RUN_AS_NODE=1
+  exec "$ISABELLE_VSCODIUM_ELECTRON" "$@"
+fi

@@ -33,8 +33,8 @@ object VSCode_Setup
 
   def vscode_setup(): Unit =
   {
-    if (Isabelle_System.getenv("ISABELLE_VSCODIUM_HOME").isEmpty) {
-      error("""Missing $ISABELLE_VSCODIUM_HOME: proper vscodium-X.YY.Z component required""")
+    if (Isabelle_System.getenv("ISABELLE_VSCODIUM_ELECTRON").isEmpty) {
+      error("""Undefined $ISABELLE_VSCODIUM_ELECTRON: missing "vscodium" component""")
     }
 
     if (!vscode_settings_user.is_file) {
