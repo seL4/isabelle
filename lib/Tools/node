@@ -2,7 +2,7 @@
 #
 # Author: Makarius
 #
-# DESCRIPTION: run the Node.js framework (with its own command-line arguments)
+# DESCRIPTION: run the Node.js framework within the Isabelle environment
 
 export ELECTRON_RUN_AS_NODE=1
 exec "$ISABELLE_VSCODIUM_ELECTRON" "$@"

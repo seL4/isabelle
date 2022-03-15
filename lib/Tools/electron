@@ -2,6 +2,6 @@
 #
 # Author: Makarius
 #
-# DESCRIPTION: run the Electron framework (with its own command-line arguments)
+# DESCRIPTION: run the Electron framework within the Isabelle environment
 
 exec "$ISABELLE_VSCODIUM_ELECTRON" "$@"
