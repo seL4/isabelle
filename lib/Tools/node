@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+#
+# Author: Makarius
+#
+# DESCRIPTION: run the Node.js framework (with its own command-line arguments)
+
+export ELECTRON_RUN_AS_NODE=1
+exec "$ISABELLE_VSCODIUM_ELECTRON" "$@"
