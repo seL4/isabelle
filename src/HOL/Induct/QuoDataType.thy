@@ -5,6 +5,11 @@
 
 section\<open>Defining an Initial Algebra by Quotienting a Free Algebra\<close>
 
+text \<open>For Lawrence Paulson's paper ``Defining functions on equivalence classes''
+\emph{ACM Transactions on Computational Logic} \textbf{7}:40 (2006), 658--675,
+illustrating bare-bones quotient constructions. Any comparison using lifting and transfer
+should be done in a separate theory.\<close>
+
 theory QuoDataType imports Main begin
 
 subsection\<open>Defining the Free Algebra\<close>
@@ -163,9 +168,7 @@ lemma [simp]: "msgrel``{U} \<in> Msg"
 by (auto simp add: Msg_def quotient_def intro: msgrel_refl)
 
 lemma inj_on_Abs_Msg: "inj_on Abs_Msg Msg"
-apply (rule inj_on_inverseI)
-apply (erule Abs_Msg_inverse)
-done
+  by (meson Abs_Msg_inject inj_onI)
 
 text\<open>Reduces equality on abstractions to equality on representatives\<close>
 declare inj_on_Abs_Msg [THEN inj_on_eq_iff, simp]
@@ -203,11 +206,8 @@ qed
 
 text\<open>Case analysis on the representation of a msg as an equivalence class.\<close>
 lemma eq_Abs_Msg [case_names Abs_Msg, cases type: msg]:
-     "(!!U. z = Abs_Msg(msgrel``{U}) ==> P) ==> P"
-apply (rule Rep_Msg [of z, unfolded Msg_def, THEN quotientE])
-apply (drule arg_cong [where f=Abs_Msg])
-apply (auto simp add: Rep_Msg_inverse intro: msgrel_refl)
-done
+     "(\<And>U. z = Abs_Msg (msgrel `` {U}) \<Longrightarrow> P) \<Longrightarrow> P"
+  by (metis Abs_Msg_cases Msg_def quotientE)
 
 text\<open>Establishing these two equations is the point of the whole exercise\<close>
 theorem CD_eq [simp]: "Crypt K (Decrypt K X) = X"
@@ -234,32 +234,40 @@ by (simp add: nonces_def Nonce_def
               UN_equiv_class [OF equiv_msgrel nonces_congruent]) 
  
 lemma nonces_MPair [simp]: "nonces (MPair X Y) = nonces X \<union> nonces Y"
-apply (cases X, cases Y) 
-apply (simp add: nonces_def MPair 
-                 UN_equiv_class [OF equiv_msgrel nonces_congruent]) 
-done
+proof -
+  have "\<And>U V. \<lbrakk>X = Abs_Msg (msgrel `` {U}); Y = Abs_Msg (msgrel `` {V})\<rbrakk>
+             \<Longrightarrow> nonces (MPair X Y) = nonces X \<union> nonces Y"
+    by (simp add: nonces_def MPair 
+        UN_equiv_class [OF equiv_msgrel nonces_congruent]) 
+  then show ?thesis
+    by (meson eq_Abs_Msg)
+qed
 
 lemma nonces_Crypt [simp]: "nonces (Crypt K X) = nonces X"
-apply (cases X) 
-apply (simp add: nonces_def Crypt
-                 UN_equiv_class [OF equiv_msgrel nonces_congruent]) 
-done
+proof -
+  have "\<And>U. X = Abs_Msg (msgrel `` {U}) \<Longrightarrow> nonces (Crypt K X) = nonces X"
+    by (simp add: nonces_def Crypt UN_equiv_class [OF equiv_msgrel nonces_congruent]) 
+  then show ?thesis
+    by (meson eq_Abs_Msg)
+qed
 
 lemma nonces_Decrypt [simp]: "nonces (Decrypt K X) = nonces X"
-apply (cases X) 
-apply (simp add: nonces_def Decrypt
-                 UN_equiv_class [OF equiv_msgrel nonces_congruent]) 
-done
+proof -
+  have "\<And>U. X = Abs_Msg (msgrel `` {U}) \<Longrightarrow> nonces (Decrypt K X) = nonces X"
+    by (simp add: nonces_def Decrypt UN_equiv_class [OF equiv_msgrel nonces_congruent]) 
+  then show ?thesis
+    by (meson eq_Abs_Msg)
+qed
 
 
 subsection\<open>The Abstract Function to Return the Left Part\<close>
 
 definition
-  left :: "msg \<Rightarrow> msg" where
-   "left X = Abs_Msg (\<Union>U \<in> Rep_Msg X. msgrel``{freeleft U})"
+  left :: "msg \<Rightarrow> msg" 
+    where "left X = Abs_Msg (\<Union>U \<in> Rep_Msg X. msgrel``{freeleft U})"
 
 lemma left_congruent: "(\<lambda>U. msgrel `` {freeleft U}) respects msgrel"
-by (auto simp add: congruent_def msgrel_imp_eqv_freeleft) 
+  by (auto simp add: congruent_def msgrel_imp_eqv_freeleft) 
 
 text\<open>Now prove the four equations for \<^term>\<open>left\<close>\<close>
 
@@ -268,69 +276,51 @@ by (simp add: left_def Nonce_def
               UN_equiv_class [OF equiv_msgrel left_congruent]) 
 
 lemma left_MPair [simp]: "left (MPair X Y) = X"
-apply (cases X, cases Y) 
-apply (simp add: left_def MPair 
-                 UN_equiv_class [OF equiv_msgrel left_congruent]) 
-done
+  by (cases X, cases Y) (simp add: left_def MPair UN_equiv_class [OF equiv_msgrel left_congruent]) 
 
 lemma left_Crypt [simp]: "left (Crypt K X) = left X"
-apply (cases X) 
-apply (simp add: left_def Crypt
-                 UN_equiv_class [OF equiv_msgrel left_congruent]) 
-done
+  by (cases X) (simp add: left_def Crypt UN_equiv_class [OF equiv_msgrel left_congruent]) 
 
 lemma left_Decrypt [simp]: "left (Decrypt K X) = left X"
-apply (cases X) 
-apply (simp add: left_def Decrypt
-                 UN_equiv_class [OF equiv_msgrel left_congruent]) 
-done
+  by (metis CD_eq left_Crypt)
 
 
 subsection\<open>The Abstract Function to Return the Right Part\<close>
 
 definition
-  right :: "msg \<Rightarrow> msg" where
-   "right X = Abs_Msg (\<Union>U \<in> Rep_Msg X. msgrel``{freeright U})"
+  right :: "msg \<Rightarrow> msg" 
+    where "right X = Abs_Msg (\<Union>U \<in> Rep_Msg X. msgrel``{freeright U})"
 
 lemma right_congruent: "(\<lambda>U. msgrel `` {freeright U}) respects msgrel"
-by (auto simp add: congruent_def msgrel_imp_eqv_freeright) 
+  by (auto simp add: congruent_def msgrel_imp_eqv_freeright) 
 
 text\<open>Now prove the four equations for \<^term>\<open>right\<close>\<close>
 
 lemma right_Nonce [simp]: "right (Nonce N) = Nonce N"
-by (simp add: right_def Nonce_def 
-              UN_equiv_class [OF equiv_msgrel right_congruent]) 
+  by (simp add: right_def Nonce_def 
+      UN_equiv_class [OF equiv_msgrel right_congruent]) 
 
 lemma right_MPair [simp]: "right (MPair X Y) = Y"
-apply (cases X, cases Y) 
-apply (simp add: right_def MPair 
-                 UN_equiv_class [OF equiv_msgrel right_congruent]) 
-done
+  by (cases X, cases Y) (simp add: right_def MPair UN_equiv_class [OF equiv_msgrel right_congruent]) 
 
 lemma right_Crypt [simp]: "right (Crypt K X) = right X"
-apply (cases X) 
-apply (simp add: right_def Crypt
-                 UN_equiv_class [OF equiv_msgrel right_congruent]) 
-done
+  by (cases X) (simp add: right_def Crypt UN_equiv_class [OF equiv_msgrel right_congruent]) 
 
 lemma right_Decrypt [simp]: "right (Decrypt K X) = right X"
-apply (cases X) 
-apply (simp add: right_def Decrypt
-                 UN_equiv_class [OF equiv_msgrel right_congruent]) 
-done
+  by (metis CD_eq right_Crypt)
 
 
 subsection\<open>Injectivity Properties of Some Constructors\<close>
 
 lemma NONCE_imp_eq: "NONCE m \<sim> NONCE n \<Longrightarrow> m = n"
-by (drule msgrel_imp_eq_freenonces, simp)
+  by (drule msgrel_imp_eq_freenonces, simp)
 
 text\<open>Can also be proved using the function \<^term>\<open>nonces\<close>\<close>
 lemma Nonce_Nonce_eq [iff]: "(Nonce m = Nonce n) = (m = n)"
-by (auto simp add: Nonce_def msgrel_refl dest: NONCE_imp_eq)
+  by (auto simp add: Nonce_def msgrel_refl dest: NONCE_imp_eq)
 
 lemma MPAIR_imp_eqv_left: "MPAIR X Y \<sim> MPAIR X' Y' \<Longrightarrow> X \<sim> X'"
-by (drule msgrel_imp_eqv_freeleft, simp)
+  by (drule msgrel_imp_eqv_freeleft, simp)
 
 lemma MPair_imp_eq_left: 
   assumes eq: "MPair X Y = MPair X' Y'" shows "X = X'"
@@ -341,33 +331,27 @@ proof -
 qed
 
 lemma MPAIR_imp_eqv_right: "MPAIR X Y \<sim> MPAIR X' Y' \<Longrightarrow> Y \<sim> Y'"
-by (drule msgrel_imp_eqv_freeright, simp)
+  by (drule msgrel_imp_eqv_freeright, simp)
 
-lemma MPair_imp_eq_right: "MPair X Y = MPair X' Y' \<Longrightarrow> Y = Y'" 
-apply (cases X, cases X', cases Y, cases Y') 
-apply (simp add: MPair)
-apply (erule MPAIR_imp_eqv_right)  
-done
+lemma MPair_imp_eq_right: "MPair X Y = MPair X' Y' \<Longrightarrow> Y = Y'"
+  by (metis right_MPair) 
 
 theorem MPair_MPair_eq [iff]: "(MPair X Y = MPair X' Y') = (X=X' & Y=Y')" 
-by (blast dest: MPair_imp_eq_left MPair_imp_eq_right)
+  by (blast dest: MPair_imp_eq_left MPair_imp_eq_right)
 
 lemma NONCE_neqv_MPAIR: "NONCE m \<sim> MPAIR X Y \<Longrightarrow> False"
-by (drule msgrel_imp_eq_freediscrim, simp)
+  by (drule msgrel_imp_eq_freediscrim, simp)
 
 theorem Nonce_neq_MPair [iff]: "Nonce N \<noteq> MPair X Y"
-apply (cases X, cases Y) 
-apply (simp add: Nonce_def MPair) 
-apply (blast dest: NONCE_neqv_MPAIR) 
-done
+  by (cases X, cases Y) (use MPair NONCE_neqv_MPAIR Nonce_def in fastforce)
 
 text\<open>Example suggested by a referee\<close>
 theorem Crypt_Nonce_neq_Nonce: "Crypt K (Nonce M) \<noteq> Nonce N" 
-by (auto simp add: Nonce_def Crypt dest: msgrel_imp_eq_freediscrim)  
+  by (auto simp add: Nonce_def Crypt dest: msgrel_imp_eq_freediscrim)  
 
 text\<open>...and many similar results\<close>
 theorem Crypt2_Nonce_neq_Nonce: "Crypt K (Crypt K' (Nonce M)) \<noteq> Nonce N" 
-by (auto simp add: Nonce_def Crypt dest: msgrel_imp_eq_freediscrim)  
+  by (auto simp add: Nonce_def Crypt dest: msgrel_imp_eq_freediscrim)  
 
 theorem Crypt_Crypt_eq [iff]: "(Crypt K X = Crypt K X') = (X=X')" 
 proof
@@ -428,32 +412,27 @@ definition
    "discrim X = the_elem (\<Union>U \<in> Rep_Msg X. {freediscrim U})"
 
 lemma discrim_congruent: "(\<lambda>U. {freediscrim U}) respects msgrel"
-by (auto simp add: congruent_def msgrel_imp_eq_freediscrim) 
+  by (auto simp add: congruent_def msgrel_imp_eq_freediscrim) 
 
 text\<open>Now prove the four equations for \<^term>\<open>discrim\<close>\<close>
 
 lemma discrim_Nonce [simp]: "discrim (Nonce N) = 0"
-by (simp add: discrim_def Nonce_def 
-              UN_equiv_class [OF equiv_msgrel discrim_congruent]) 
+  by (simp add: discrim_def Nonce_def 
+      UN_equiv_class [OF equiv_msgrel discrim_congruent]) 
 
 lemma discrim_MPair [simp]: "discrim (MPair X Y) = 1"
-apply (cases X, cases Y) 
-apply (simp add: discrim_def MPair 
-                 UN_equiv_class [OF equiv_msgrel discrim_congruent]) 
-done
+proof -
+  have "\<And>U V. discrim (MPair (Abs_Msg (msgrel `` {U})) (Abs_Msg (msgrel `` {V}))) = 1"
+    by (simp add: discrim_def MPair  UN_equiv_class [OF equiv_msgrel discrim_congruent]) 
+  then show ?thesis
+    by (metis eq_Abs_Msg)
+qed
 
 lemma discrim_Crypt [simp]: "discrim (Crypt K X) = discrim X + 2"
-apply (cases X) 
-apply (simp add: discrim_def Crypt
-                 UN_equiv_class [OF equiv_msgrel discrim_congruent]) 
-done
+  by (cases X) (use Crypt UN_equiv_class discrim_congruent discrim_def equiv_msgrel in fastforce)
 
 lemma discrim_Decrypt [simp]: "discrim (Decrypt K X) = discrim X - 2"
-apply (cases X) 
-apply (simp add: discrim_def Decrypt
-                 UN_equiv_class [OF equiv_msgrel discrim_congruent]) 
-done
-
+  by (cases X) (use Decrypt UN_equiv_class discrim_congruent discrim_def equiv_msgrel in fastforce)
 
 end
 
