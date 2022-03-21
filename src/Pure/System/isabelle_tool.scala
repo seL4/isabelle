@@ -210,7 +210,6 @@ class Tools extends Isabelle_Scala_Tools(
   Update_Then.isabelle_tool,
   Update_Theorems.isabelle_tool,
   isabelle.mirabelle.Mirabelle.isabelle_tool,
-  isabelle.vscode.TextMate_Grammar.isabelle_tool,
   isabelle.vscode.Language_Server.isabelle_tool)
 
 class Admin_Tools extends Isabelle_Scala_Tools(
