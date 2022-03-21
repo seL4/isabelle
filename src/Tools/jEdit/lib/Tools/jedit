@@ -164,5 +164,5 @@ then
     JEDIT_INCLUDE_SESSIONS JEDIT_PRINT_MODE JEDIT_NO_BUILD JEDIT_BUILD_MODE
   export JEDIT_ML_PROCESS_POLICY="$ML_PROCESS_POLICY"
   exec isabelle java -splash:"$(platform_path "$ISABELLE_HOME/lib/logo/isabelle.gif")" \
-    "${JAVA_ARGS[@]}" isabelle.jedit.Main "${ARGS[@]}"
+    "${JAVA_ARGS[@]}" isabelle.jedit.JEdit_Main "${ARGS[@]}"
 fi

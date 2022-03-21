@@ -1,7 +1,7 @@
-/*  Title:      src/Tools/jEdit/src/main.scala
+/*  Title:      src/Tools/jEdit/src/jedit_main.scala
     Author:     Makarius
 
-Main Isabelle application entry point.
+Main application entry point for Isabelle/jEdit.
 */
 
 package isabelle.jedit
@@ -12,7 +12,7 @@ import isabelle._
 import org.gjt.sp.jedit.{MiscUtilities, jEdit}
 
 
-object Main
+object JEdit_Main
 {
   /* main entry point */
 
