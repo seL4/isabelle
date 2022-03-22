@@ -106,6 +106,7 @@ function getoptions()
         ;;
       l)
         JEDIT_LOGIC="$OPTARG"
+        JEDIT_LOGIC_REQUIREMENTS="false"
         ;;
       m)
         if [ -z "$JEDIT_PRINT_MODE" ]; then

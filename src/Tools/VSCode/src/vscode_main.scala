@@ -142,7 +142,7 @@ Usage: isabelle vscode [OPTIONS] [-- VSCODE_OPTIONS ...]
         "R:" -> (arg => { logic = arg; logic_requirements = true }),
         "d:" -> (arg => session_dirs = session_dirs ::: List(Path.explode(arg))),
         "i:" -> (arg => include_sessions = include_sessions ::: List(arg)),
-        "l:" -> (arg => logic = arg),
+        "l:" -> (arg => { logic = arg; logic_requirements = false }),
         "m:" -> (arg => modes = modes ::: List(arg)),
         "n" -> (_ => no_build = true),
         "o:" -> add_option,
