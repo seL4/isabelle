@@ -193,14 +193,6 @@
         "configuration": {
             "title": "Isabelle",
             "properties": {
-                "isabelle.args": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    },
-                    "default": [],
-                    "description": "Command-line arguments for isabelle vscode_server process."
-                },
                 "isabelle.replacement": {
                     "type": "string",
                     "default": "non-alphanumeric",

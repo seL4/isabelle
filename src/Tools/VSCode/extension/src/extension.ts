@@ -25,6 +25,63 @@ import { register_script_decorations } from './script_decorations'
 
 let last_caret_update: lsp.Caret_Update = {}
 
+
+/* command-line arguments from "isabelle vscode" */
+
+interface Args
+{
+  options?: string[],
+  logic?: string,
+  logic_ancestor?: string,
+  logic_requirements?: boolean,
+  sesion_dirs?: string[],
+  include_sessions?: string[],
+  modes?: string[],
+  log_file?: string,
+  verbose?: boolean
+}
+
+function print_value(x: any): string
+{
+  return typeof(x) === "string" ? x : JSON.stringify(x)
+}
+
+function isabelle_options(args: Args): string[]
+{
+  var result: string[] = []
+  function add(s: string) { result.push(s) }
+  function add_value(opt: string, slot: string)
+  {
+    const x = args[slot]
+    if (x) { add(opt); add(print_value(x)) }
+  }
+  function add_values(opt: string, slot: string)
+  {
+    const xs: any[] = args[slot]
+    if (xs) {
+      for (const x of xs) { add(opt); add(print_value(x)) }
+    }
+  }
+
+  add("-o"); add("vscode_unicode_symbols")
+  add("-o"); add("vscode_pide_extensions")
+  add_values("-o", "options")
+
+  add_value("-A", "logic_ancestor")
+  if (args.logic) { add_value(args.logic_requirements ? "-R" : "-l", "logic") }
+
+  add_values("-d", "session_dirs")
+  add_values("-i", "include_sessions")
+  add_values("-m", "modes")
+  add_value("-L", "log_file")
+  if (args.verbose) { add("-v") }
+
+  return result
+}
+
+
+/* activate extension */
+
 export async function activate(context: ExtensionContext)
 {
   /* server */
@@ -32,16 +89,15 @@ export async function activate(context: ExtensionContext)
   try {
     const isabelle_home = library.getenv_strict("ISABELLE_HOME")
     const isabelle_tool = isabelle_home + "/bin/isabelle"
-    const isabelle_args =
-      ["-o", "vscode_unicode_symbols", "-o", "vscode_pide_extensions"]
-        .concat(vscode_lib.get_configuration<Array<string>>("args"))
+    const args = JSON.parse(library.getenv("ISABELLE_VSCODIUM_ARGS") || "{}")
 
+    const server_opts = isabelle_options(args)
     const server_options: ServerOptions =
       platform.is_windows() ?
         { command: file.cygwin_bash(),
-          args: ["-l", isabelle_tool, "vscode_server"].concat(isabelle_args) } :
+          args: ["-l", isabelle_tool, "vscode_server"].concat(server_opts) } :
         { command: isabelle_tool,
-          args: ["vscode_server"].concat(isabelle_args) }
+          args: ["vscode_server"].concat(server_opts) }
 
     const language_client_options: LanguageClientOptions = {
       documentSelector: [
