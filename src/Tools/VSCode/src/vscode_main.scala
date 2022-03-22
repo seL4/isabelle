@@ -71,6 +71,22 @@ object VSCode_Main
   }
 
 
+  /* extensions */
+
+  def uninstall_extension(progress: Progress = new Progress): Unit =
+    run_vscodium(List("--uninstall-extension", "Isabelle.isabelle"), progress = progress).check
+
+  def install_extension(vsix: File.Content, progress: Progress = new Progress): Unit =
+  {
+    Isabelle_System.with_tmp_dir("tmp")(tmp_dir =>
+    {
+      vsix.write(tmp_dir)
+      run_vscodium(List("--install-extension", File.platform_path(tmp_dir + vsix.path)),
+        progress = progress).check
+    })
+  }
+
+
   /* settings */
 
   def settings_path: Path =
