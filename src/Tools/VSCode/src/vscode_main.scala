@@ -16,6 +16,9 @@ object VSCode_Main
 
   private def platform_path(s: String): String = File.platform_path(Path.explode(s))
 
+  def server_log_path: Path =
+    Path.explode("$ISABELLE_VSCODE_SETTINGS/server.log").expand
+
   def run_cli(args: List[String],
     environment: Iterable[(String, String)] = Nil,
     options: List[String] = Nil,
@@ -26,7 +29,7 @@ object VSCode_Main
     include_sessions: List[String] = Nil,
     modes: List[String] = Nil,
     no_build: Boolean = false,
-    log_file: Option[Path] = None,
+    server_log: Boolean = false,
     verbose: Boolean = false,
     background: Boolean = false,
     progress: Progress = new Progress): Process_Result =
@@ -41,7 +44,8 @@ object VSCode_Main
       JSON.optional("include_sessions" -> proper_list(include_sessions)) ++
       JSON.optional("modes" -> proper_list(modes)) ++
       JSON.optional("no_build" -> proper_bool(no_build)) ++
-      JSON.optional("log_file" -> log_file.map(_.absolute.implode)) ++
+      JSON.optional("log_file" ->
+        (if (server_log) Some(server_log_path.absolute.implode) else None)) ++
       JSON.optional("verbose" -> proper_bool(verbose))
 
     val env = new java.util.HashMap(Isabelle_System.settings())
@@ -102,7 +106,7 @@ object VSCode_Main
     {
       var logic_ancestor = ""
       var console = false
-      var log_file: Option[Path] = None
+      var server_log = false
       var logic_requirements = false
       var session_dirs = List.empty[Path]
       var include_sessions = List.empty[String]
@@ -119,7 +123,8 @@ Usage: isabelle vscode [OPTIONS] [-- VSCODE_OPTIONS ...]
 
     -A NAME      ancestor session for option -R (default: parent)
     -C           run as foreground process, with console output
-    -L FILE      logging on FILE
+    -L           enable language server log to file:
+                 """ + server_log_path.implode + """
     -R NAME      build image with requirements from other sessions
     -d DIR       include session directory
     -i NAME      include session in name-space of theories
@@ -139,7 +144,7 @@ Usage: isabelle vscode [OPTIONS] [-- VSCODE_OPTIONS ...]
 """ + default_settings,
         "A:" -> (arg => logic_ancestor = arg),
         "C" -> (_ => console = true),
-        "L:" -> (arg => log_file = Some(Path.explode(arg))),
+        "L" -> (_ => server_log = true),
         "R:" -> (arg => { logic = arg; logic_requirements = true }),
         "d:" -> (arg => session_dirs = session_dirs ::: List(Path.explode(arg))),
         "i:" -> (arg => include_sessions = include_sessions ::: List(arg)),
@@ -163,6 +168,7 @@ Usage: isabelle vscode [OPTIONS] [-- VSCODE_OPTIONS ...]
       run_cli(more_args, options = options, logic = logic, logic_ancestor = logic_ancestor,
         logic_requirements = logic_requirements, session_dirs = session_dirs,
         include_sessions = include_sessions, modes = modes, no_build = no_build,
-        log_file = log_file, verbose = verbose, background = background, progress = progress).check
+        server_log = server_log, verbose = verbose, background = background,
+        progress = progress).check
     })
 }
