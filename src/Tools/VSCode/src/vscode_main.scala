@@ -36,7 +36,8 @@ object VSCode_Main
       JSON.optional("logic" -> proper_string(logic)) ++
       JSON.optional("logic_ancestor" -> proper_string(logic_ancestor)) ++
       JSON.optional("logic_requirements" -> proper_bool(logic_requirements)) ++
-      JSON.optional("session_dirs" -> proper_list(session_dirs.map(_.absolute.implode))) ++
+      JSON.optional("session_dirs" ->
+        proper_list(session_dirs.map(dir => Sessions.check_session_dir(dir).absolute.implode))) ++
       JSON.optional("include_sessions" -> proper_list(include_sessions)) ++
       JSON.optional("modes" -> proper_list(modes)) ++
       JSON.optional("no_build" -> proper_bool(no_build)) ++

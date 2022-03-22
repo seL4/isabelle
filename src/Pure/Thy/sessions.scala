@@ -1013,7 +1013,7 @@ object Sessions
   def is_session_dir(dir: Path): Boolean =
     (dir + ROOT).is_file || (dir + ROOTS).is_file
 
-  private def check_session_dir(dir: Path): Path =
+  def check_session_dir(dir: Path): Path =
     if (is_session_dir(dir)) File.pwd() + dir.expand
     else error("Bad session root directory (missing ROOT or ROOTS): " + dir.expand.toString)
 
