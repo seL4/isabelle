@@ -137,7 +137,11 @@ object Build_VSCode
 
   /* extension */
 
-  lazy val extension_dir = Path.explode("$ISABELLE_VSCODE_HOME/extension")
+  def extension_dir: Path = Path.explode("$ISABELLE_VSCODE_HOME/extension")
+  def extension_manifest: Path = extension_dir + Path.explode("MANIFEST")
+  def manifest_entries(): List[Path] =
+    for (line <- split_lines(File.read(extension_manifest)) if line.nonEmpty)
+      yield Path.explode(line)
 
   def build_extension(options: Options,
     logic: String = default_logic,
@@ -150,11 +154,7 @@ object Build_VSCode
 
     Isabelle_System.with_tmp_dir("build")(build_dir =>
     {
-      for {
-        line <- split_lines(File.read(extension_dir + Path.explode("MANIFEST")))
-        if line.nonEmpty
-      } {
-        val path = Path.explode(line)
+      for (path <- manifest_entries()) {
         Isabelle_System.copy_file(extension_dir + path,
           Isabelle_System.make_directory(build_dir + path.dir))
       }
