@@ -39,7 +39,7 @@ object VSCode_Main
       Bash.strings(electron :: args0 ::: args) +
         (if (background) " > /dev/null 2> /dev/null &" else "")
 
-    Isabelle_System.bash(script, env = env)
+    progress.bash(script, env = env, echo = true)
   }
 
 
@@ -76,21 +76,30 @@ object VSCode_Main
   val isabelle_tool =
     Isabelle_Tool("vscode", "Isabelle/VSCode interface wrapper", Scala_Project.here, args =>
     {
+      var console = false
+
       val getopts = Getopts("""
-Usage: isabelle vscode -- VSCODE_OPTIONS
+Usage: isabelle vscode [OPTIONS] [-- VSCODE_OPTIONS ...]
+
+    -C           run as foreground process, with console output
 
   Start Isabelle/VSCode application, with automatic configuration of
   user settings.
 
   The following initial settings are provided for a fresh installation:
-""" + default_settings)
+""" + default_settings,
+        "C" -> (_ => console = true))
 
       val more_args = getopts(args)
 
-      val progress = new Console_Progress()
-
       init_settings()
-      run_cli(List("--version")).check
-      run_cli(more_args, background = true, progress = progress).check
+
+      if (console) {
+        run_cli(more_args, progress = new Console_Progress()).check
+      }
+      else {
+        run_cli(List("--version")).check
+        run_cli(more_args, background = true).check
+      }
     })
 }
