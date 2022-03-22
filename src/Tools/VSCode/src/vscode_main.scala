@@ -19,7 +19,7 @@ object VSCode_Main
   def server_log_path: Path =
     Path.explode("$ISABELLE_VSCODE_SETTINGS/server.log").expand
 
-  def run_cli(args: List[String],
+  def run_vscodium(args: List[String],
     environment: Iterable[(String, String)] = Nil,
     options: List[String] = Nil,
     logic: String = "",
@@ -163,9 +163,9 @@ Usage: isabelle vscode [OPTIONS] [-- VSCODE_OPTIONS ...]
 
       val (background, progress) =
         if (console) (false, new Console_Progress)
-        else { run_cli(List("--version")).check; (true, new Progress) }
+        else { run_vscodium(List("--version")).check; (true, new Progress) }
 
-      run_cli(more_args, options = options, logic = logic, logic_ancestor = logic_ancestor,
+      run_vscodium(more_args, options = options, logic = logic, logic_ancestor = logic_ancestor,
         logic_requirements = logic_requirements, session_dirs = session_dirs,
         include_sessions = include_sessions, modes = modes, no_build = no_build,
         server_log = server_log, verbose = verbose, background = background,

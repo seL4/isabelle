@@ -140,7 +140,7 @@ object Build_VSCode
   lazy val extension_dir = Path.explode("$ISABELLE_VSCODE_HOME/extension")
 
   def uninstall_extension(progress: Progress = new Progress): Unit =
-    VSCode_Main.run_cli(
+    VSCode_Main.run_vscodium(
       List("--uninstall-extension", "Isabelle.isabelle"), progress = progress).check
 
   def install_extension(vsix: File.Content, progress: Progress = new Progress): Unit =
@@ -148,7 +148,7 @@ object Build_VSCode
     Isabelle_System.with_tmp_dir("tmp")(tmp_dir =>
     {
       vsix.write(tmp_dir)
-      VSCode_Main.run_cli(
+      VSCode_Main.run_vscodium(
         List("--install-extension", File.platform_path(tmp_dir + vsix.path)), progress = progress).check
     })
   }
