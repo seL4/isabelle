@@ -9,6 +9,8 @@ package isabelle
 
 import java.io.{File => JFile, FileInputStream}
 import java.security.MessageDigest
+import java.util.Locale
+import java.math.BigInteger
 
 
 object SHA1
@@ -24,16 +26,8 @@ object SHA1
     override def toString: String = rep
   }
 
-  private def make_result(digest: MessageDigest): Digest =
-  {
-    val result = new StringBuilder
-    for (b <- digest.digest()) {
-      val i = b.asInstanceOf[Int] & 0xFF
-      if (i < 16) result += '0'
-      result ++= Integer.toHexString(i)
-    }
-    new Digest(result.toString)
-  }
+  private def sha1_digest(sha: MessageDigest): Digest =
+    new Digest(String.format(Locale.ROOT, "%040x", new BigInteger(1, sha.digest())))
 
   def fake(rep: String): Digest = new Digest(rep)
 
@@ -51,7 +45,7 @@ object SHA1
       } while (m != -1)
     })
 
-    make_result(digest)
+    sha1_digest(digest)
   }
 
   def digest(path: Path): Digest = digest(path.file)
@@ -61,7 +55,7 @@ object SHA1
     val digest = MessageDigest.getInstance("SHA")
     digest.update(bytes)
 
-    make_result(digest)
+    sha1_digest(digest)
   }
 
   def digest(bytes: Bytes): Digest = bytes.sha1_digest
