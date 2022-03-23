@@ -9,6 +9,8 @@ package isabelle.vscode
 
 import isabelle._
 
+import java.util.zip.ZipFile
+
 
 object VSCode_Main
 {
@@ -90,6 +92,20 @@ object VSCode_Main
         for (entry <- entries)
           yield SHA1.digest(extension_dir + Path.explode(entry)).toString + " " + entry
       terminate_lines(a :: bs)
+    }
+
+    def check_vsix(path: Path): Boolean =
+    {
+      path.is_file && {
+        using(new ZipFile(path.file))(zip_file =>
+        {
+          val entry = zip_file.getEntry("extension/MANIFEST.shasum")
+          entry != null && {
+            val stream = zip_file.getInputStream(entry)
+            stream != null && File.read_stream(stream) == extension_manifest().shasum
+          }
+        })
+      }
     }
 
     def check_dir(dir: Path): Boolean =
