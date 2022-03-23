@@ -280,6 +280,9 @@ object Library
 
   /* proper values */
 
+  def proper_bool(b: Boolean): Option[Boolean] =
+    if (!b) None else Some(b)
+
   def proper_string(s: String): Option[String] =
     if (s == null || s == "") None else Some(s)
 
