@@ -235,6 +235,7 @@ final class Path private(protected val elems: List[Path.Elem]) // reversed eleme
   def log: Path = ext("log")
   def orig: Path = ext("orig")
   def patch: Path = ext("patch")
+  def shasum: Path = ext("shasum")
 
   def backup: Path =
   {

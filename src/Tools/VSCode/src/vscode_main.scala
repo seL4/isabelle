@@ -71,7 +71,42 @@ object VSCode_Main
   }
 
 
-  /* extensions */
+  /* extension */
+
+  def extension_dir: Path = Path.explode("$ISABELLE_VSCODE_HOME/extension")
+  def extension_manifest(): Manifest = new Manifest
+
+  final class Manifest private[VSCode_Main]
+  {
+    private val MANIFEST: Path = Path.explode("MANIFEST")
+    private val text = File.read(extension_dir + MANIFEST)
+    private def entries: List[String] = split_lines(text).filter(_.nonEmpty)
+
+    val shasum: String =
+    {
+      val a = SHA1.digest(text).toString + " <MANIFEST>"
+      val bs =
+        for (entry <- entries)
+          yield SHA1.digest(extension_dir + Path.explode(entry)).toString + " " + entry
+      terminate_lines(a :: bs)
+    }
+
+    def check(dir: Path): Boolean =
+    {
+      val path = dir + MANIFEST.shasum
+      path.is_file && File.read(path) == shasum
+    }
+
+    def write(dir: Path): Unit =
+    {
+      for (entry <- entries) {
+        val path = Path.explode(entry)
+        Isabelle_System.copy_file(extension_dir + path,
+          Isabelle_System.make_directory(dir + path.dir))
+      }
+      File.write(dir + MANIFEST.shasum, shasum)
+    }
+  }
 
   def uninstall_extension(progress: Progress = new Progress): Unit =
     run_vscodium(List("--uninstall-extension", "Isabelle.isabelle"), progress = progress).check
