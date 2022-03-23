@@ -75,6 +75,7 @@ object VSCode_Main
 
   def extension_dir: Path = Path.explode("$ISABELLE_VSCODE_HOME/extension")
   def extension_manifest(): Manifest = new Manifest
+  val extension_name: String = "isabelle.isabelle"
 
   final class Manifest private[VSCode_Main]
   {
@@ -108,16 +109,33 @@ object VSCode_Main
     }
   }
 
+  def locate_extension(): Option[Path] =
+  {
+    val out = run_vscodium(List("--locate-extension", extension_name)).check.out
+    if (out.nonEmpty) Some(Path.explode(File.standard_path(out))) else None
+  }
+
   def uninstall_extension(progress: Progress = new Progress): Unit =
-    run_vscodium(List("--uninstall-extension", "Isabelle.isabelle"), progress = progress).check
+    locate_extension() match {
+      case None => progress.echo_warning("No extension " + quote(extension_name) + " to uninstall")
+      case Some(dir) =>
+        run_vscodium(List("--uninstall-extension", extension_name)).check
+        progress.echo("Uninstalled extension " + quote(extension_name) +
+          " from directory:\n  " + dir)
+    }
 
   def install_extension(vsix: File.Content, progress: Progress = new Progress): Unit =
   {
     Isabelle_System.with_tmp_dir("tmp")(tmp_dir =>
     {
       vsix.write(tmp_dir)
-      run_vscodium(List("--install-extension", File.platform_path(tmp_dir + vsix.path)),
-        progress = progress).check
+      run_vscodium(List("--install-extension", File.platform_path(tmp_dir + vsix.path))).check
+      locate_extension() match {
+        case None => error("No extension " + extension_name + " after installation")
+        case Some(dir) =>
+          progress.echo("Installed extension " + quote(extension_name) +
+            " into directory:\n  " + dir)
+      }
     })
   }
 
