@@ -1172,7 +1172,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
   def write_heap_digest(heap: Path): String =
     read_heap_digest(heap) match {
       case None =>
-        val s = SHA1.digest(heap).rep
+        val s = SHA1.digest(heap).toString
         File.append(heap, sha1_prefix + s)
         s
       case Some(s) => s

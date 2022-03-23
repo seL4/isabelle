@@ -15,15 +15,15 @@ import isabelle.setup.{Build => Setup_Build}
 
 object SHA1
 {
-  final class Digest private[SHA1](val rep: String)
+  final class Digest private[SHA1](rep: String)
   {
+    override def toString: String = rep
     override def hashCode: Int = rep.hashCode
     override def equals(that: Any): Boolean =
       that match {
-        case other: Digest => rep == other.rep
+        case other: Digest => rep == other.toString
         case _ => false
       }
-    override def toString: String = rep
   }
 
   def fake_digest(rep: String): Digest = new Digest(rep)
@@ -52,5 +52,5 @@ object SHA1
   def digest_set(digests: List[Digest]): Digest =
     digest(cat_lines(digests.map(_.toString).sorted))
 
-  val digest_length: Int = digest("").rep.length
+  val digest_length: Int = digest("").toString.length
 }

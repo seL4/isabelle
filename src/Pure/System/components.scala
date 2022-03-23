@@ -303,8 +303,7 @@ object Components
         yield {
           val file_name = archive.file_name
           progress.echo("Digesting local " + file_name)
-          val sha1 = SHA1.digest(archive).rep
-          SHA1_Digest(sha1, file_name)
+          SHA1_Digest(SHA1.digest(archive).toString, file_name)
         }
       val new_names = new_entries.map(_.file_name).toSet
 
