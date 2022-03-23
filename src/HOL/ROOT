@@ -689,7 +689,6 @@ session "HOL-ex" (timing) in ex = "HOL-Number_Theory" +
     Peano_Axioms
     Perm_Fragments
     PresburgerEx
-    Primrec
     Pythagoras
     Quicksort
     Radix_Sort
