@@ -135,23 +135,7 @@ object Build_VSCode
   }
 
 
-  /* extension */
-
-  lazy val extension_dir = Path.explode("$ISABELLE_VSCODE_HOME/extension")
-
-  def uninstall_extension(progress: Progress = new Progress): Unit =
-    VSCode_Main.run_cli(
-      List("--uninstall-extension", "Isabelle.isabelle"), progress = progress).check
-
-  def install_extension(vsix: File.Content, progress: Progress = new Progress): Unit =
-  {
-    Isabelle_System.with_tmp_dir("tmp")(tmp_dir =>
-    {
-      vsix.write(tmp_dir)
-      VSCode_Main.run_cli(
-        List("--install-extension", File.platform_path(tmp_dir + vsix.path)), progress = progress).check
-    })
-  }
+  /* build extension */
 
   def build_extension(options: Options,
     logic: String = default_logic,
@@ -164,14 +148,7 @@ object Build_VSCode
 
     Isabelle_System.with_tmp_dir("build")(build_dir =>
     {
-      for {
-        line <- split_lines(File.read(extension_dir + Path.explode("MANIFEST")))
-        if line.nonEmpty
-      } {
-        val path = Path.explode(line)
-        Isabelle_System.copy_file(extension_dir + path,
-          Isabelle_System.make_directory(build_dir + path.dir))
-      }
+      VSCode_Main.extension_manifest().prepare_dir(build_dir)
 
       build_grammar(options, build_dir, logic = logic, dirs = dirs, progress = progress)
 
@@ -219,11 +196,11 @@ Build Isabelle/VSCode extension module (vsix).
       val options = Options.init()
       val progress = new Console_Progress()
 
-      if (uninstall) uninstall_extension(progress = progress)
+      if (uninstall) VSCode_Main.uninstall_extension(progress = progress)
       else {
         val vsix = build_extension(options, logic = logic, dirs = dirs, progress = progress)
-        vsix.write(extension_dir)
-        if (install) install_extension(vsix, progress = progress)
+        vsix.write(VSCode_Main.extension_dir)
+        if (install) VSCode_Main.install_extension(vsix, progress = progress)
       }
     })
 }

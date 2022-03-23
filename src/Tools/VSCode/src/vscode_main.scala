@@ -9,17 +9,17 @@ package isabelle.vscode
 
 import isabelle._
 
+import java.util.zip.ZipFile
+
 
 object VSCode_Main
 {
   /* vscodium command-line interface */
 
-  private def platform_path(s: String): String = File.platform_path(Path.explode(s))
-
   def server_log_path: Path =
     Path.explode("$ISABELLE_VSCODE_SETTINGS/server.log").expand
 
-  def run_cli(args: List[String],
+  def run_vscodium(args: List[String],
     environment: Iterable[(String, String)] = Nil,
     options: List[String] = Nil,
     logic: String = "",
@@ -34,6 +34,8 @@ object VSCode_Main
     background: Boolean = false,
     progress: Progress = new Progress): Process_Result =
   {
+    def platform_path(s: String): String = File.platform_path(Path.explode(s))
+
     val args_json =
       JSON.optional("options" -> proper_list(options)) ++
       JSON.optional("logic" -> proper_string(logic)) ++
@@ -68,6 +70,89 @@ object VSCode_Main
         (if (background) " > /dev/null 2> /dev/null &" else "")
 
     progress.bash(script, env = env, echo = true)
+  }
+
+
+  /* extension */
+
+  def extension_dir: Path = Path.explode("$ISABELLE_VSCODE_HOME/extension")
+  def extension_manifest(): Manifest = new Manifest
+  val extension_name: String = "isabelle.isabelle"
+
+  final class Manifest private[VSCode_Main]
+  {
+    private val MANIFEST: Path = Path.explode("MANIFEST")
+    private val text = File.read(extension_dir + MANIFEST)
+    private def entries: List[String] = split_lines(text).filter(_.nonEmpty)
+
+    val shasum: String =
+    {
+      val a = SHA1.digest(text).toString + " <MANIFEST>"
+      val bs =
+        for (entry <- entries)
+          yield SHA1.digest(extension_dir + Path.explode(entry)).toString + " " + entry
+      terminate_lines(a :: bs)
+    }
+
+    def check_vsix(path: Path): Boolean =
+    {
+      path.is_file && {
+        using(new ZipFile(path.file))(zip_file =>
+        {
+          val entry = zip_file.getEntry("extension/MANIFEST.shasum")
+          entry != null && {
+            val stream = zip_file.getInputStream(entry)
+            stream != null && File.read_stream(stream) == extension_manifest().shasum
+          }
+        })
+      }
+    }
+
+    def check_dir(dir: Path): Boolean =
+    {
+      val path = dir + MANIFEST.shasum
+      path.is_file && File.read(path) == shasum
+    }
+
+    def prepare_dir(dir: Path): Unit =
+    {
+      for (entry <- entries) {
+        val path = Path.explode(entry)
+        Isabelle_System.copy_file(extension_dir + path,
+          Isabelle_System.make_directory(dir + path.dir))
+      }
+      File.write(dir + MANIFEST.shasum, shasum)
+    }
+  }
+
+  def locate_extension(): Option[Path] =
+  {
+    val out = run_vscodium(List("--locate-extension", extension_name)).check.out
+    if (out.nonEmpty) Some(Path.explode(File.standard_path(out))) else None
+  }
+
+  def uninstall_extension(progress: Progress = new Progress): Unit =
+    locate_extension() match {
+      case None => progress.echo_warning("No extension " + quote(extension_name) + " to uninstall")
+      case Some(dir) =>
+        run_vscodium(List("--uninstall-extension", extension_name)).check
+        progress.echo("Uninstalled extension " + quote(extension_name) +
+          " from directory:\n  " + dir)
+    }
+
+  def install_extension(vsix: File.Content, progress: Progress = new Progress): Unit =
+  {
+    Isabelle_System.with_tmp_dir("tmp")(tmp_dir =>
+    {
+      vsix.write(tmp_dir)
+      run_vscodium(List("--install-extension", File.platform_path(tmp_dir + vsix.path))).check
+      locate_extension() match {
+        case None => error("No extension " + extension_name + " after installation")
+        case Some(dir) =>
+          progress.echo("Installed extension " + quote(extension_name) +
+            " into directory:\n  " + dir)
+      }
+    })
   }
 
 
@@ -119,7 +204,7 @@ object VSCode_Main
       def add_option(opt: String): Unit = options = options ::: List(opt)
 
       val getopts = Getopts("""
-Usage: isabelle vscode [OPTIONS] [-- VSCODE_OPTIONS ...]
+Usage: isabelle vscode [OPTIONS] [ARGUMENTS] [-- VSCODE_OPTIONS]
 
     -A NAME      ancestor session for option -R (default: parent)
     -C           run as foreground process, with console output
@@ -163,9 +248,9 @@ Usage: isabelle vscode [OPTIONS] [-- VSCODE_OPTIONS ...]
 
       val (background, progress) =
         if (console) (false, new Console_Progress)
-        else { run_cli(List("--version")).check; (true, new Progress) }
+        else { run_vscodium(List("--version")).check; (true, new Progress) }
 
-      run_cli(more_args, options = options, logic = logic, logic_ancestor = logic_ancestor,
+      run_vscodium(more_args, options = options, logic = logic, logic_ancestor = logic_ancestor,
         logic_requirements = logic_requirements, session_dirs = session_dirs,
         include_sessions = include_sessions, modes = modes, no_build = no_build,
         server_log = server_log, verbose = verbose, background = background,

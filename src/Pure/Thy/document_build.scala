@@ -81,7 +81,7 @@ object Document_Build
       {
         val name = res.string(Data.name)
         val sources = res.string(Data.sources)
-        Document_Input(name, SHA1.fake(sources))
+        Document_Input(name, SHA1.fake_digest(sources))
       }).toList)
   }
 
@@ -96,7 +96,7 @@ object Document_Build
         val sources = res.string(Data.sources)
         val log_xz = res.bytes(Data.log_xz)
         val pdf = res.bytes(Data.pdf)
-        Some(Document_Output(name, SHA1.fake(sources), log_xz, pdf))
+        Some(Document_Output(name, SHA1.fake_digest(sources), log_xz, pdf))
       }
       else None
     })

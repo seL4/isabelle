@@ -11,7 +11,7 @@
     ],
     "icon": "isabelle.png",
     "version": "2.0.0",
-    "publisher": "Isabelle",
+    "publisher": "isabelle",
     "license": "MIT",
     "repository": {
         "url": "https://isabelle-dev.sketis.net"
