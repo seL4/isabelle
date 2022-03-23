@@ -14,8 +14,6 @@ object VSCode_Main
 {
   /* vscodium command-line interface */
 
-  private def platform_path(s: String): String = File.platform_path(Path.explode(s))
-
   def server_log_path: Path =
     Path.explode("$ISABELLE_VSCODE_SETTINGS/server.log").expand
 
@@ -34,6 +32,8 @@ object VSCode_Main
     background: Boolean = false,
     progress: Progress = new Progress): Process_Result =
   {
+    def platform_path(s: String): String = File.platform_path(Path.explode(s))
+
     val args_json =
       JSON.optional("options" -> proper_list(options)) ++
       JSON.optional("logic" -> proper_string(logic)) ++
