@@ -148,7 +148,7 @@ object Build_VSCode
 
     Isabelle_System.with_tmp_dir("build")(build_dir =>
     {
-      VSCode_Main.extension_manifest().write(build_dir)
+      VSCode_Main.extension_manifest().prepare_dir(build_dir)
 
       build_grammar(options, build_dir, logic = logic, dirs = dirs, progress = progress)
 

@@ -92,13 +92,13 @@ object VSCode_Main
       terminate_lines(a :: bs)
     }
 
-    def check(dir: Path): Boolean =
+    def check_dir(dir: Path): Boolean =
     {
       val path = dir + MANIFEST.shasum
       path.is_file && File.read(path) == shasum
     }
 
-    def write(dir: Path): Unit =
+    def prepare_dir(dir: Path): Unit =
     {
       for (entry <- entries) {
         val path = Path.explode(entry)
