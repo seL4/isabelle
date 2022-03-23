@@ -204,7 +204,7 @@ object VSCode_Main
       def add_option(opt: String): Unit = options = options ::: List(opt)
 
       val getopts = Getopts("""
-Usage: isabelle vscode [OPTIONS] [-- VSCODE_OPTIONS ...]
+Usage: isabelle vscode [OPTIONS] [ARGUMENTS] [-- VSCODE_OPTIONS]
 
     -A NAME      ancestor session for option -R (default: parent)
     -C           run as foreground process, with console output
