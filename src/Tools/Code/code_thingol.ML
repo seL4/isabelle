@@ -673,17 +673,15 @@ and translate_app_const ctxt algbr eqngr permissive some_thm ((c_ty, ts), some_a
   translate_const ctxt algbr eqngr permissive some_thm (c_ty, some_abs)
   ##>> fold_map (translate_term ctxt algbr eqngr permissive some_thm o rpair NONE) ts
   #>> (fn (t, ts) => t `$$ ts)
-and translate_case ctxt algbr eqngr permissive some_thm (num_args, (t_pos, case_pats)) (c_ty, ts) =
+and translate_case ctxt algbr eqngr permissive some_thm (t_pos, case_pats) (c_ty, ts) =
   let
     val thy = Proof_Context.theory_of ctxt;
-    fun arg_types num_args ty = fst (chop num_args (binder_types ty));
-    val tys = arg_types num_args (snd c_ty);
-    val ty = nth tys t_pos;
-    fun mk_constr NONE t = NONE
+    val ty = nth (binder_types (snd c_ty)) t_pos;
+    fun mk_constr NONE _ = NONE
       | mk_constr (SOME c) t =
           let
             val n = Code.args_number thy c;
-          in SOME ((c, arg_types n (fastype_of (untag_term t)) ---> ty), n) end;
+          in SOME ((c, (take n o binder_types o fastype_of o untag_term) t ---> ty), n) end;
     val constrs =
       if null case_pats then []
       else map_filter I (map2 mk_constr case_pats (nth_drop t_pos ts));
@@ -740,7 +738,7 @@ and translate_case ctxt algbr eqngr permissive some_thm (num_args, (t_pos, case_
     #>> (fn (((t, constrs), ty), ts) =>
       casify constrs ty t ts)
   end
-and translate_app_case ctxt algbr eqngr permissive some_thm (case_schema as (num_args, _)) ((c, ty), ts) =
+and translate_app_case ctxt algbr eqngr permissive some_thm (num_args, pattern_schema) ((c, ty), ts) =
   if length ts < num_args then
     let
       val k = length ts;
@@ -749,15 +747,15 @@ and translate_app_case ctxt algbr eqngr permissive some_thm (case_schema as (num
       val vs = Name.invent_names names "a" tys;
     in
       fold_map (translate_typ ctxt algbr eqngr permissive) tys
-      ##>> translate_case ctxt algbr eqngr permissive some_thm case_schema ((c, ty), ts @ map Free vs)
+      ##>> translate_case ctxt algbr eqngr permissive some_thm pattern_schema ((c, ty), ts @ map Free vs)
       #>> (fn (tys, t) => map2 (fn (v, _) => pair (SOME v)) vs tys `|==> t)
     end
   else if length ts > num_args then
-    translate_case ctxt algbr eqngr permissive some_thm case_schema ((c, ty), take num_args ts)
+    translate_case ctxt algbr eqngr permissive some_thm pattern_schema ((c, ty), take num_args ts)
     ##>> fold_map (translate_term ctxt algbr eqngr permissive some_thm o rpair NONE) (drop num_args ts)
     #>> (fn (t, ts) => t `$$ ts)
   else
-    translate_case ctxt algbr eqngr permissive some_thm case_schema ((c, ty), ts)
+    translate_case ctxt algbr eqngr permissive some_thm pattern_schema ((c, ty), ts)
 and translate_app ctxt algbr eqngr permissive some_thm (c_ty_ts as ((c, _), _), some_abs) =
   case Code.get_case_schema (Proof_Context.theory_of ctxt) c
    of SOME case_schema => translate_app_case ctxt algbr eqngr permissive some_thm case_schema c_ty_ts
