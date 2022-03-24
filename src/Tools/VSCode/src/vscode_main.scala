@@ -75,13 +75,40 @@ object VSCode_Main
 
   /* extension */
 
+  def default_vsix_path: Path = Path.explode("$ISABELLE_VSCODE_VSIX")
+
   def extension_dir: Path = Path.explode("$ISABELLE_VSCODE_HOME/extension")
   def extension_manifest(): Manifest = new Manifest
   val extension_name: String = "isabelle.isabelle"
 
+  private val MANIFEST: Path = Path.explode("MANIFEST")
+
+  private def shasum_vsix(vsix_path: Path): String =
+  {
+    val name = "extension/MANIFEST.shasum"
+    def err(): Nothing = error("Cannot retrieve " + quote(name) + " from " + vsix_path)
+    if (vsix_path.is_file) {
+      using(new ZipFile(vsix_path.file))(zip_file =>
+      {
+        val entry = zip_file.getEntry(name)
+        if (entry == null) err()
+        else {
+          val stream = zip_file.getInputStream(entry)
+          if (stream == null) err() else File.read_stream(stream)
+        }
+      })
+    }
+    else err()
+  }
+
+  private def shasum_dir(dir: Path): Option[String] =
+  {
+    val path = dir + MANIFEST.shasum
+    if (path.is_file) Some(File.read(path)) else None
+  }
+
   final class Manifest private[VSCode_Main]
   {
-    private val MANIFEST: Path = Path.explode("MANIFEST")
     private val text = File.read(extension_dir + MANIFEST)
     private def entries: List[String] = split_lines(text).filter(_.nonEmpty)
 
@@ -92,26 +119,6 @@ object VSCode_Main
         for (entry <- entries)
           yield SHA1.digest(extension_dir + Path.explode(entry)).toString + " " + entry
       terminate_lines(a :: bs)
-    }
-
-    def check_vsix(path: Path): Boolean =
-    {
-      path.is_file && {
-        using(new ZipFile(path.file))(zip_file =>
-        {
-          val entry = zip_file.getEntry("extension/MANIFEST.shasum")
-          entry != null && {
-            val stream = zip_file.getInputStream(entry)
-            stream != null && File.read_stream(stream) == extension_manifest().shasum
-          }
-        })
-      }
-    }
-
-    def check_dir(dir: Path): Boolean =
-    {
-      val path = dir + MANIFEST.shasum
-      path.is_file && File.read(path) == shasum
     }
 
     def prepare_dir(dir: Path): Unit =
@@ -136,21 +143,32 @@ object VSCode_Main
       case None => progress.echo_warning("No Isabelle/VSCode extension to uninstall")
       case Some(dir) =>
         run_vscodium(List("--uninstall-extension", extension_name)).check
-        progress.echo("Uninstalled Isabelle/VSCode extension from directory:\n  " + dir)
+        progress.echo("Uninstalled Isabelle/VSCode extension from directory:\n" + dir)
     }
 
-  def install_extension(vsix: File.Content, progress: Progress = new Progress): Unit =
+  def install_extension(
+    vsix_path: Path = default_vsix_path,
+    progress: Progress = new Progress): Unit =
   {
-    Isabelle_System.with_tmp_dir("tmp")(tmp_dir =>
-    {
-      vsix.write(tmp_dir)
-      run_vscodium(List("--install-extension", File.platform_path(tmp_dir + vsix.path))).check
+    val new_shasum = shasum_vsix(vsix_path)
+    val old_shasum = locate_extension().flatMap(shasum_dir)
+    val current = old_shasum.isDefined && old_shasum.get == new_shasum
+
+    if (!current) {
+      run_vscodium(List("--install-extension", File.bash_platform_path(vsix_path))).check
       locate_extension() match {
-        case None => error("Missing extension Isabelle/VSCode after installation")
+        case None => error("Missing Isabelle/VSCode extension after installation")
         case Some(dir) =>
-          progress.echo("Installed Isabelle/VSCode extension into directory:\n  " + dir)
+          progress.echo("Installed Isabelle/VSCode extension " + vsix_path.expand +
+            "\ninto directory: " + dir)
       }
-    })
+      val manifest = extension_manifest()
+      if (manifest.shasum != new_shasum) {
+        progress.echo_warning(
+          "Isabelle/VSCode extension " + vsix_path.expand +
+            "\ndisagrees with project sources" + extension_dir.expand)
+      }
+    }
   }
 
 
@@ -189,10 +207,11 @@ object VSCode_Main
     {
       var logic_ancestor = ""
       var console = false
-      var edit_extension = true
+      var edit_extension = false
       var server_log = false
       var logic_requirements = false
       var uninstall = false
+      var vsix_path = default_vsix_path
       var session_dirs = List.empty[Path]
       var include_sessions = List.empty[String]
       var logic = ""
@@ -213,6 +232,8 @@ Usage: isabelle vscode [OPTIONS] [ARGUMENTS] [-- VSCODE_OPTIONS]
                  """ + server_log_path.implode + """
     -R NAME      build image with requirements from other sessions
     -U           uninstall Isabelle/VSCode extension
+    -V FILE      specify VSIX file for Isabelle/VSCode extension
+                 (default: """ + default_vsix_path + """)
     -d DIR       include session directory
     -i NAME      include session in name-space of theories
     -l NAME      logic session name
@@ -235,6 +256,7 @@ Usage: isabelle vscode [OPTIONS] [ARGUMENTS] [-- VSCODE_OPTIONS]
         "L" -> (_ => server_log = true),
         "R:" -> (arg => { logic = arg; logic_requirements = true }),
         "U" -> (_ => uninstall = true),
+        "V" -> (arg => vsix_path = Path.explode(arg)),
         "d:" -> (arg => session_dirs = session_dirs ::: List(Path.explode(arg))),
         "i:" -> (arg => include_sessions = include_sessions ::: List(arg)),
         "l:" -> (arg => { logic = arg; logic_requirements = false }),
@@ -253,6 +275,7 @@ Usage: isabelle vscode [OPTIONS] [ARGUMENTS] [-- VSCODE_OPTIONS]
       val console_progress = new Console_Progress
 
       if (uninstall) uninstall_extension(progress = console_progress)
+      else install_extension(vsix_path = vsix_path, progress = console_progress)
 
       val (background, app_progress) =
         if (console) (false, console_progress)
