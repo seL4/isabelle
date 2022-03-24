@@ -473,6 +473,31 @@ fun annotate_eqns ctxt algbr eqngr (c, ty) eqns =
       (annotate ctxt' algbr eqngr (c, ty) args rhs, some_abs)))) eqns
   end;
 
+
+(* preprocessing pattern schemas *)
+
+fun preprocess_pattern_schema ctxt (t_pos, case_pats) (c_ty, ts) =
+  let
+    val thy = Proof_Context.theory_of ctxt;
+    val ty = nth (binder_types (snd c_ty)) t_pos;
+    fun select_clauses xs =
+      xs
+      |> nth_drop t_pos
+      |> curry (op ~~) case_pats
+      |> map_filter (fn (NONE, _) => NONE | (SOME _, x) => SOME x);
+    fun mk_constr c t =
+      let
+        val n = Code.args_number thy c;
+      in ((c, (take n o binder_types o fastype_of o untag_term) t ---> ty), n) end;
+    val constrs =
+      if null case_pats then []
+      else map2 mk_constr (case_pats |> map_filter I) (select_clauses ts);
+    val split_clauses =
+      if null case_pats then (fn ts => (nth ts t_pos, nth_drop t_pos ts))
+        else (fn ts => (nth ts t_pos, select_clauses ts));
+  in (ty, constrs, split_clauses) end;
+
+
 (* abstract dictionary construction *)
 
 datatype typarg_witness =
@@ -675,24 +700,8 @@ and translate_app_const ctxt algbr eqngr permissive some_thm ((c_ty, ts), some_a
   #>> (fn (t, ts) => t `$$ ts)
 and translate_case ctxt algbr eqngr permissive some_thm (t_pos, case_pats) (c_ty, ts) =
   let
+    val (ty, constrs, split_clauses) = preprocess_pattern_schema ctxt (t_pos, case_pats) (c_ty, ts);
     val thy = Proof_Context.theory_of ctxt;
-    val ty = nth (binder_types (snd c_ty)) t_pos;
-    val is_let = null case_pats;
-    fun select_clauses xs =
-      xs
-      |> nth_drop t_pos
-      |> curry (op ~~) case_pats
-      |> map_filter (fn (NONE, _) => NONE | (SOME _, x) => SOME x);
-    fun mk_constr c t =
-      let
-        val n = Code.args_number thy c;
-      in ((c, (take n o binder_types o fastype_of o untag_term) t ---> ty), n) end;
-    val constrs =
-      if is_let then []
-      else map2 mk_constr (case_pats |> map_filter I) (select_clauses ts);
-    val split_clauses =
-      if is_let then (fn ts => (nth ts t_pos, nth_drop t_pos ts))
-        else (fn ts => (nth ts t_pos, select_clauses ts));
     fun disjunctive_varnames ts =
       let
         val vs = (fold o fold_varnames) (insert (op =)) ts [];
@@ -729,7 +738,7 @@ and translate_case ctxt algbr eqngr permissive some_thm (t_pos, case_pats) (c_ty
     fun casify constrs ty t_app ts =
       let
         val (t, ts_clause) = split_clauses ts;
-        val clauses = if null case_pats
+        val clauses = if null constrs
           then map (fn ([t], body) => (t, body)) (mk_clause [ty] (the_single ts_clause))
           else maps (fn ((constr as IConst { dom = tys, ... }, n), t) =>
             map (fn (ts, body) => (constr `$$ ts, body)) (mk_clause (take n tys) t))
