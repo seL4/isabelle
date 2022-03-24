@@ -721,13 +721,13 @@ and translate_case ctxt algbr eqngr permissive some_thm (t_pos, case_pats) (c_ty
     fun casify constrs ty t_app ts =
       let
         val t = nth ts t_pos;
-        val ts_clause = nth_drop t_pos ts;
+        val ts_clause = ts |> nth_drop t_pos |> curry (op ~~) case_pats
+          |> map_filter (fn (NONE, _) => NONE | (SOME _, t) => SOME t);
         val clauses = if null case_pats
           then mk_clause (fn ([t], body) => (t, body)) [ty] (the_single ts_clause)
           else maps (fn ((constr as IConst { dom = tys, ... }, n), t) =>
             mk_clause (fn (ts, body) => (constr `$$ ts, body)) (take n tys) t)
-              (constrs ~~ (map_filter (fn (NONE, _) => NONE | (SOME _, t) => SOME t)
-                (case_pats ~~ ts_clause)));
+              (constrs ~~ ts_clause);
       in ICase { term = t, typ = ty, clauses = clauses, primitive = t_app `$$ ts } end;
   in
     translate_const ctxt algbr eqngr permissive some_thm (c_ty, NONE)
