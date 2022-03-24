@@ -729,29 +729,29 @@ and translate_app_const ctxt algbr eqngr permissive some_thm ((c_ty, ts), some_a
   #>> (fn (t, ts) => t `$$ ts)
 and translate_case ctxt algbr eqngr permissive some_thm (t_pos, case_pats) (c_ty, ts) =
   let
-    val (ty, constrs, split_clauses) = preprocess_pattern_schema ctxt (t_pos, case_pats) (c_ty, ts);
-    fun mk_clause tys t =
+    val (ty, constrs, split_clauses) =
+      preprocess_pattern_schema ctxt (t_pos, case_pats) (c_ty, ts);
+    fun distill_clause tys t =
       let
         val (vs, body) = unfold_abs_eta tys t;
         val vs_map = fold_index (fn (i, (SOME v, _)) => cons (v, i) | _ => I) vs [];
         val ts = map (IVar o fst) vs;
       in adjungate_clause ctxt vs_map ts body end;
-    fun casify constrs ty t_app ts =
-      let
-        val (t, ts_clause) = split_clauses ts;
-        val clauses = if null constrs
-          then map (fn ([t], body) => (t, body)) (mk_clause [ty] (the_single ts_clause))
-          else maps (fn ((constr as IConst { dom = tys, ... }, n), t) =>
-            map (fn (ts, body) => (constr `$$ ts, body)) (mk_clause (take n tys) t))
-              (constrs ~~ ts_clause);
-      in ICase { term = t, typ = ty, clauses = clauses, primitive = t_app `$$ ts } end;
+    fun mk_clauses [] ty (t, ts_clause) =
+          (t, map (fn ([t], body) => (t, body)) (distill_clause [ty] (the_single ts_clause)))
+      | mk_clauses constrs ty (t, ts_clause) =
+          (t, maps (fn ((constr as IConst { dom = tys, ... }, n), t) =>
+            map (fn (ts, body) => (constr `$$ ts, body)) (distill_clause (take n tys) t))
+              (constrs ~~ ts_clause));
   in
     translate_const ctxt algbr eqngr permissive some_thm (c_ty, NONE)
     ##>> fold_map (fn (constr, n) => translate_const ctxt algbr eqngr permissive some_thm (constr, NONE)
       #>> rpair n) constrs
     ##>> translate_typ ctxt algbr eqngr permissive ty
     ##>> fold_map (translate_term ctxt algbr eqngr permissive some_thm o rpair NONE) ts
-    #>> (fn (((t_app, constrs), ty), ts) => casify constrs ty t_app ts)
+    #>> (fn (((t_app, constrs), ty), ts) =>
+      case mk_clauses constrs ty (split_clauses ts) of (t, clauses) =>
+        ICase { term = t, typ = ty, clauses = clauses, primitive = t_app `$$ ts })
   end
 and translate_app_case ctxt algbr eqngr permissive some_thm (num_args, pattern_schema) ((c, ty), ts) =
   if length ts < num_args then
