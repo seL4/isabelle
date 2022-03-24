@@ -78,34 +78,10 @@ object VSCode_Main
   def default_vsix_path: Path = Path.explode("$ISABELLE_VSCODE_VSIX")
 
   def extension_dir: Path = Path.explode("$ISABELLE_VSCODE_HOME/extension")
-  def extension_manifest(): Manifest = new Manifest
   val extension_name: String = "isabelle.isabelle"
+  def extension_manifest(): Manifest = new Manifest
 
   private val MANIFEST: Path = Path.explode("MANIFEST")
-
-  private def shasum_vsix(vsix_path: Path): String =
-  {
-    val name = "extension/MANIFEST.shasum"
-    def err(): Nothing = error("Cannot retrieve " + quote(name) + " from " + vsix_path)
-    if (vsix_path.is_file) {
-      using(new ZipFile(vsix_path.file))(zip_file =>
-      {
-        val entry = zip_file.getEntry(name)
-        if (entry == null) err()
-        else {
-          val stream = zip_file.getInputStream(entry)
-          if (stream == null) err() else File.read_stream(stream)
-        }
-      })
-    }
-    else err()
-  }
-
-  private def shasum_dir(dir: Path): Option[String] =
-  {
-    val path = dir + MANIFEST.shasum
-    if (path.is_file) Some(File.read(path)) else None
-  }
 
   final class Manifest private[VSCode_Main]
   {
@@ -130,6 +106,30 @@ object VSCode_Main
       }
       File.write(dir + MANIFEST.shasum, shasum)
     }
+  }
+
+  private def shasum_vsix(vsix_path: Path): String =
+  {
+    val name = "extension/MANIFEST.shasum"
+    def err(): Nothing = error("Cannot retrieve " + quote(name) + " from " + vsix_path)
+    if (vsix_path.is_file) {
+      using(new ZipFile(vsix_path.file))(zip_file =>
+        zip_file.getEntry(name) match {
+          case null => err()
+          case entry =>
+            zip_file.getInputStream(entry) match {
+              case null => err()
+              case stream => File.read_stream(stream)
+            }
+        })
+    }
+    else err()
+  }
+
+  private def shasum_dir(dir: Path): Option[String] =
+  {
+    val path = dir + MANIFEST.shasum
+    if (path.is_file) Some(File.read(path)) else None
   }
 
   def locate_extension(): Option[Path] =
