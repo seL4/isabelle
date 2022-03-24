@@ -677,14 +677,19 @@ and translate_case ctxt algbr eqngr permissive some_thm (t_pos, case_pats) (c_ty
   let
     val thy = Proof_Context.theory_of ctxt;
     val ty = nth (binder_types (snd c_ty)) t_pos;
+    val is_let = null case_pats;
     fun mk_constr NONE _ = NONE
       | mk_constr (SOME c) t =
           let
             val n = Code.args_number thy c;
           in SOME ((c, (take n o binder_types o fastype_of o untag_term) t ---> ty), n) end;
     val constrs =
-      if null case_pats then []
+      if is_let then []
       else map_filter I (map2 mk_constr case_pats (nth_drop t_pos ts));
+    val split_clauses =
+      if is_let then (fn ts => (nth ts t_pos, nth_drop t_pos ts))
+        else (fn ts => (nth ts t_pos, ts |> nth_drop t_pos |> curry (op ~~) case_pats
+          |> map_filter (fn (NONE, _) => NONE | (SOME _, t) => SOME t)));
     fun disjunctive_varnames ts =
       let
         val vs = (fold o fold_varnames) (insert (op =)) ts [];
@@ -720,9 +725,7 @@ and translate_case ctxt algbr eqngr permissive some_thm (t_pos, case_pats) (c_ty
       in collapse_clause vs_map ts body end;
     fun casify constrs ty t_app ts =
       let
-        val t = nth ts t_pos;
-        val ts_clause = ts |> nth_drop t_pos |> curry (op ~~) case_pats
-          |> map_filter (fn (NONE, _) => NONE | (SOME _, t) => SOME t);
+        val (t, ts_clause) = split_clauses ts;
         val clauses = if null case_pats
           then map (fn ([t], body) => (t, body)) (mk_clause [ty] (the_single ts_clause))
           else maps (fn ((constr as IConst { dom = tys, ... }, n), t) =>
