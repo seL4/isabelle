@@ -172,21 +172,18 @@ object Build_VSCode
       var dirs: List[Path] = Nil
       var logic = default_logic
       var install = false
-      var uninstall = false
 
       val getopts = Getopts("""
 Usage: isabelle build_vscode_extension
 
   Options are:
     -I           install resulting extension
-    -U           uninstall extension (no build)
     -d DIR       include session directory
     -l NAME      logic session name (default ISABELLE_LOGIC=""" + quote(default_logic) + """)
 
 Build Isabelle/VSCode extension module (vsix).
 """,
         "I" -> (_ => install = true),
-        "U" -> (_ => uninstall = true),
         "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
         "l:" -> (arg => logic = arg))
 
@@ -196,11 +193,8 @@ Build Isabelle/VSCode extension module (vsix).
       val options = Options.init()
       val progress = new Console_Progress()
 
-      if (uninstall) VSCode_Main.uninstall_extension(progress = progress)
-      else {
-        val vsix = build_extension(options, logic = logic, dirs = dirs, progress = progress)
-        vsix.write(VSCode_Main.extension_dir)
-        if (install) VSCode_Main.install_extension(vsix, progress = progress)
-      }
+      val vsix = build_extension(options, logic = logic, dirs = dirs, progress = progress)
+      vsix.write(VSCode_Main.extension_dir)
+      if (install) VSCode_Main.install_extension(vsix, progress = progress)
     })
 }

@@ -133,11 +133,10 @@ object VSCode_Main
 
   def uninstall_extension(progress: Progress = new Progress): Unit =
     locate_extension() match {
-      case None => progress.echo_warning("No extension " + quote(extension_name) + " to uninstall")
+      case None => progress.echo_warning("No Isabelle/VSCode extension to uninstall")
       case Some(dir) =>
         run_vscodium(List("--uninstall-extension", extension_name)).check
-        progress.echo("Uninstalled extension " + quote(extension_name) +
-          " from directory:\n  " + dir)
+        progress.echo("Uninstalled Isabelle/VSCode extension from directory:\n  " + dir)
     }
 
   def install_extension(vsix: File.Content, progress: Progress = new Progress): Unit =
@@ -147,10 +146,9 @@ object VSCode_Main
       vsix.write(tmp_dir)
       run_vscodium(List("--install-extension", File.platform_path(tmp_dir + vsix.path))).check
       locate_extension() match {
-        case None => error("No extension " + extension_name + " after installation")
+        case None => error("Missing extension Isabelle/VSCode after installation")
         case Some(dir) =>
-          progress.echo("Installed extension " + quote(extension_name) +
-            " into directory:\n  " + dir)
+          progress.echo("Installed Isabelle/VSCode extension into directory:\n  " + dir)
       }
     })
   }
@@ -191,8 +189,10 @@ object VSCode_Main
     {
       var logic_ancestor = ""
       var console = false
+      var edit_extension = true
       var server_log = false
       var logic_requirements = false
+      var uninstall = false
       var session_dirs = List.empty[Path]
       var include_sessions = List.empty[String]
       var logic = ""
@@ -208,9 +208,11 @@ Usage: isabelle vscode [OPTIONS] [ARGUMENTS] [-- VSCODE_OPTIONS]
 
     -A NAME      ancestor session for option -R (default: parent)
     -C           run as foreground process, with console output
+    -E           edit Isabelle/VSCode extension project sources
     -L           enable language server log to file:
                  """ + server_log_path.implode + """
     -R NAME      build image with requirements from other sessions
+    -U           uninstall Isabelle/VSCode extension
     -d DIR       include session directory
     -i NAME      include session in name-space of theories
     -l NAME      logic session name
@@ -229,8 +231,10 @@ Usage: isabelle vscode [OPTIONS] [ARGUMENTS] [-- VSCODE_OPTIONS]
 """ + default_settings,
         "A:" -> (arg => logic_ancestor = arg),
         "C" -> (_ => console = true),
+        "E" -> (_ => edit_extension = true),
         "L" -> (_ => server_log = true),
         "R:" -> (arg => { logic = arg; logic_requirements = true }),
+        "U" -> (_ => uninstall = true),
         "d:" -> (arg => session_dirs = session_dirs ::: List(Path.explode(arg))),
         "i:" -> (arg => include_sessions = include_sessions ::: List(arg)),
         "l:" -> (arg => { logic = arg; logic_requirements = false }),
@@ -246,14 +250,20 @@ Usage: isabelle vscode [OPTIONS] [ARGUMENTS] [-- VSCODE_OPTIONS]
 
       init_settings()
 
-      val (background, progress) =
-        if (console) (false, new Console_Progress)
+      val console_progress = new Console_Progress
+
+      if (uninstall) uninstall_extension(progress = console_progress)
+
+      val (background, app_progress) =
+        if (console) (false, console_progress)
         else { run_vscodium(List("--version")).check; (true, new Progress) }
 
-      run_vscodium(more_args, options = options, logic = logic, logic_ancestor = logic_ancestor,
+      run_vscodium(
+        more_args ::: (if (edit_extension) List(File.platform_path(extension_dir)) else Nil),
+        options = options, logic = logic, logic_ancestor = logic_ancestor,
         logic_requirements = logic_requirements, session_dirs = session_dirs,
         include_sessions = include_sessions, modes = modes, no_build = no_build,
         server_log = server_log, verbose = verbose, background = background,
-        progress = progress).check
+        progress = app_progress).check
     })
 }
