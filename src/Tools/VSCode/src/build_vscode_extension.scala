@@ -1,7 +1,7 @@
 /*  Title:      Tools/VSCode/src/build_vscode_extension.scala
     Author:     Makarius
 
-Build the Isabelle/VSCode extension.
+Build the Isabelle/VSCode extension as component.
 */
 
 package isabelle.vscode
@@ -138,28 +138,63 @@ object Build_VSCode
   /* build extension */
 
   def build_extension(options: Options,
+    target_dir: Path = Path.current,
     logic: String = default_logic,
     dirs: List[Path] = Nil,
-    progress: Progress = new Progress): File.Content =
+    progress: Progress = new Progress): Unit =
   {
     Isabelle_System.require_command("node")
     Isabelle_System.require_command("yarn")
     Isabelle_System.require_command("vsce")
 
-    Isabelle_System.with_tmp_dir("build")(build_dir =>
-    {
-      VSCode_Main.extension_manifest().prepare_dir(build_dir)
 
-      build_grammar(options, build_dir, logic = logic, dirs = dirs, progress = progress)
+    /* component */
 
-      val result =
-        progress.bash("yarn && vsce package", cwd = build_dir.file, echo = true).check
-      val Pattern = """.*Packaged:.*(isabelle-.*\.vsix).*""".r
-      val path =
-        result.out_lines.collectFirst({ case Pattern(name) => Path.explode(name) })
-          .getOrElse(error("Failed to guess resulting .vsix file name"))
-      File.Content(path, Bytes.read(build_dir + path))
-    })
+    val component_name = "vscode_extension-" + Date.Format.alt_date(Date.now())
+    val component_dir = Isabelle_System.new_directory(target_dir + Path.basic(component_name))
+    progress.echo("Component " + component_dir)
+
+
+    /* build */
+
+    val vsix_name =
+      Isabelle_System.with_tmp_dir("build")(build_dir =>
+      {
+        VSCode_Main.extension_manifest().prepare_dir(build_dir)
+
+        build_grammar(options, build_dir, logic = logic, dirs = dirs, progress = progress)
+
+        val result =
+          progress.bash("yarn && vsce package", cwd = build_dir.file, echo = true).check
+        val Pattern = """.*Packaged:.*(isabelle-.*\.vsix).*""".r
+        val vsix_name =
+          result.out_lines.collectFirst({ case Pattern(name) => name })
+            .getOrElse(error("Failed to guess resulting .vsix file name"))
+
+        Isabelle_System.copy_file(build_dir + Path.basic(vsix_name), component_dir)
+        vsix_name
+      })
+
+
+    /* settings */
+
+    val etc_dir = Isabelle_System.make_directory(component_dir + Path.basic("etc"))
+    File.write(etc_dir + Path.basic("settings"),
+      """# -*- shell-script -*- :mode=shellscript:
+
+ISABELLE_VSCODE_VSIX="$COMPONENT/""" + vsix_name + "\"\n")
+
+
+    /* README */
+
+    File.write(component_dir + Path.basic("README"),
+      """This the Isabelle/VSCode extension as VSIX package
+
+It has been produced from the sources in $ISABELLE_HOME/src/Tools/extension/.
+
+
+        Makarius
+        """ + Date.Format.date(Date.now()) + "\n")
   }
 
 
@@ -169,24 +204,22 @@ object Build_VSCode
     Isabelle_Tool("build_vscode_extension", "build Isabelle/VSCode extension module",
       Scala_Project.here, args =>
     {
+      var target_dir = Path.current
       var dirs: List[Path] = Nil
       var logic = default_logic
-      var install = false
-      var uninstall = false
 
       val getopts = Getopts("""
 Usage: isabelle build_vscode_extension
 
   Options are:
-    -I           install resulting extension
-    -U           uninstall extension (no build)
+    -D DIR       target directory (default ".")
     -d DIR       include session directory
     -l NAME      logic session name (default ISABELLE_LOGIC=""" + quote(default_logic) + """)
 
-Build Isabelle/VSCode extension module (vsix).
+Build the Isabelle/VSCode extension as component, for inclusion into the
+local VSCodium configuration.
 """,
-        "I" -> (_ => install = true),
-        "U" -> (_ => uninstall = true),
+        "D:" -> (arg => target_dir = Path.explode(arg)),
         "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
         "l:" -> (arg => logic = arg))
 
@@ -196,11 +229,7 @@ Build Isabelle/VSCode extension module (vsix).
       val options = Options.init()
       val progress = new Console_Progress()
 
-      if (uninstall) VSCode_Main.uninstall_extension(progress = progress)
-      else {
-        val vsix = build_extension(options, logic = logic, dirs = dirs, progress = progress)
-        vsix.write(VSCode_Main.extension_dir)
-        if (install) VSCode_Main.install_extension(vsix, progress = progress)
-      }
+      build_extension(options, target_dir = target_dir, logic = logic, dirs = dirs,
+        progress = progress)
     })
 }
