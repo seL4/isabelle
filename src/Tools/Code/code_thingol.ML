@@ -53,6 +53,7 @@ sig
   val split_pat_abs: iterm -> ((iterm * itype) * iterm) option
   val unfold_pat_abs: iterm -> (iterm * itype) list * iterm
   val unfold_const_app: iterm -> (const * iterm list) option
+  val map_terms_bottom_up: (iterm -> iterm) -> iterm -> iterm
   val is_IVar: iterm -> bool
   val is_IAbs: iterm -> bool
   val eta_expand: int -> const * iterm list -> iterm
@@ -78,7 +79,6 @@ sig
   type program = stmt Code_Symbol.Graph.T
   val unimplemented: program -> string list
   val implemented_deps: program -> string list
-  val map_terms_bottom_up: (iterm -> iterm) -> iterm -> iterm
   val map_terms_stmt: (iterm -> iterm) -> stmt -> stmt
   val is_constr: program -> Code_Symbol.T -> bool
   val is_case: stmt -> bool
@@ -268,6 +268,17 @@ fun eta_expand k (const as { dom = tys, ... }, ts) =
       (Name.invent_names vars "a" ((take l o drop j) tys));
   in vs_tys `|==> IConst const `$$ ts @ map (IVar o fst) vs_tys end;
 
+fun map_terms_bottom_up f (t as IConst _) = f t
+  | map_terms_bottom_up f (t as IVar _) = f t
+  | map_terms_bottom_up f (t1 `$ t2) = f
+      (map_terms_bottom_up f t1 `$ map_terms_bottom_up f t2)
+  | map_terms_bottom_up f ((v, ty) `|=> t) = f
+      ((v, ty) `|=> map_terms_bottom_up f t)
+  | map_terms_bottom_up f (ICase { term = t, typ = ty, clauses = clauses, primitive = t0 }) = f
+      (ICase { term = map_terms_bottom_up f t, typ = ty,
+        clauses = (map o apply2) (map_terms_bottom_up f) clauses,
+        primitive = map_terms_bottom_up f t0 });
+
 fun exists_dict_var f (Dict (_, d)) = exists_plain_dict_var_pred f d
 and exists_plain_dict_var_pred f (Dict_Const (_, dss)) = exists_dictss_var f dss
   | exists_plain_dict_var_pred f (Dict_Var x) = f x
@@ -307,17 +318,6 @@ fun implemented_deps program =
   Code_Symbol.Graph.keys program
   |> subtract (op =) (Code_Symbol.Graph.all_preds program (map Constant (unimplemented program)))
   |> map_filter (fn Constant c => SOME c | _ => NONE);
-
-fun map_terms_bottom_up f (t as IConst _) = f t
-  | map_terms_bottom_up f (t as IVar _) = f t
-  | map_terms_bottom_up f (t1 `$ t2) = f
-      (map_terms_bottom_up f t1 `$ map_terms_bottom_up f t2)
-  | map_terms_bottom_up f ((v, ty) `|=> t) = f
-      ((v, ty) `|=> map_terms_bottom_up f t)
-  | map_terms_bottom_up f (ICase { term = t, typ = ty, clauses = clauses, primitive = t0 }) = f
-      (ICase { term = map_terms_bottom_up f t, typ = ty,
-        clauses = (map o apply2) (map_terms_bottom_up f) clauses,
-        primitive = map_terms_bottom_up f t0 });
 
 fun map_classparam_instances_as_term f =
   (map o apfst o apsnd o apfst) (fn const => case f (IConst const) of IConst const' => const')
