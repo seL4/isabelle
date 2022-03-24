@@ -279,6 +279,35 @@ fun map_terms_bottom_up f (t as IConst _) = f t
         clauses = (map o apply2) (map_terms_bottom_up f) clauses,
         primitive = map_terms_bottom_up f t0 });
 
+fun adjungate_clause ctxt vs_map ts (body as IConst { sym = Constant c, ... }) =
+      if Code.is_undefined (Proof_Context.theory_of ctxt) c
+      then []
+      else [(ts, body)]
+  | adjungate_clause ctxt vs_map ts (body as ICase { term = IVar (SOME v), clauses = clauses, ... }) =
+      let
+        val vs = (fold o fold_varnames) (insert (op =)) ts [];
+        fun varnames_disjunctive pat =
+          null (inter (op =) vs (fold_varnames (insert (op =)) pat []));
+        fun purge_unused_vars_in t =
+          let
+            val vs = fold_varnames (insert (op =)) t [];
+          in
+            map_terms_bottom_up (fn IVar (SOME v) =>
+              IVar (if member (op =) vs v then SOME v else NONE) | t => t)
+          end;
+      in
+        if forall (fn (pat', body') => exists_var pat' v
+          orelse not (exists_var body' v)) clauses
+          andalso forall (varnames_disjunctive o fst) clauses
+        then case AList.lookup (op =) vs_map v
+         of SOME i => maps (fn (pat', body') =>
+              adjungate_clause ctxt (AList.delete (op =) v vs_map)
+                (nth_map i (K pat') ts |> map (purge_unused_vars_in body')) body') clauses
+          | NONE => [(ts, body)]
+        else [(ts, body)]
+      end
+  | adjungate_clause ctxt vs_map ts body = [(ts, body)];
+
 fun exists_dict_var f (Dict (_, d)) = exists_plain_dict_var_pred f d
 and exists_plain_dict_var_pred f (Dict_Const (_, dss)) = exists_dictss_var f dss
   | exists_plain_dict_var_pred f (Dict_Var x) = f x
@@ -701,40 +730,12 @@ and translate_app_const ctxt algbr eqngr permissive some_thm ((c_ty, ts), some_a
 and translate_case ctxt algbr eqngr permissive some_thm (t_pos, case_pats) (c_ty, ts) =
   let
     val (ty, constrs, split_clauses) = preprocess_pattern_schema ctxt (t_pos, case_pats) (c_ty, ts);
-    val thy = Proof_Context.theory_of ctxt;
-    fun disjunctive_varnames ts =
-      let
-        val vs = (fold o fold_varnames) (insert (op =)) ts [];
-      in fn pat => null (inter (op =) vs (fold_varnames (insert (op =)) pat [])) end;
-    fun purge_unused_vars_in t =
-      let
-        val vs = fold_varnames (insert (op =)) t [];
-      in
-        map_terms_bottom_up (fn IVar (SOME v) =>
-          IVar (if member (op =) vs v then SOME v else NONE) | t => t)
-      end;
-    fun collapse_clause vs_map ts body =
-      case body
-       of IConst { sym = Constant c, ... } => if Code.is_undefined thy c
-            then []
-            else [(ts, body)]
-        | ICase { term = IVar (SOME v), clauses = clauses, ... } =>
-            if forall (fn (pat', body') => exists_var pat' v
-              orelse not (exists_var body' v)) clauses
-              andalso forall (disjunctive_varnames ts o fst) clauses
-            then case AList.lookup (op =) vs_map v
-             of SOME i => maps (fn (pat', body') =>
-                  collapse_clause (AList.delete (op =) v vs_map)
-                    (nth_map i (K pat') ts |> map (purge_unused_vars_in body')) body') clauses
-              | NONE => [(ts, body)]
-            else [(ts, body)]
-        | _ => [(ts, body)];
     fun mk_clause tys t =
       let
         val (vs, body) = unfold_abs_eta tys t;
         val vs_map = fold_index (fn (i, (SOME v, _)) => cons (v, i) | _ => I) vs [];
         val ts = map (IVar o fst) vs;
-      in collapse_clause vs_map ts body end;
+      in adjungate_clause ctxt vs_map ts body end;
     fun casify constrs ty t_app ts =
       let
         val (t, ts_clause) = split_clauses ts;
@@ -750,8 +751,7 @@ and translate_case ctxt algbr eqngr permissive some_thm (t_pos, case_pats) (c_ty
       #>> rpair n) constrs
     ##>> translate_typ ctxt algbr eqngr permissive ty
     ##>> fold_map (translate_term ctxt algbr eqngr permissive some_thm o rpair NONE) ts
-    #>> (fn (((t, constrs), ty), ts) =>
-      casify constrs ty t ts)
+    #>> (fn (((t_app, constrs), ty), ts) => casify constrs ty t_app ts)
   end
 and translate_app_case ctxt algbr eqngr permissive some_thm (num_args, pattern_schema) ((c, ty), ts) =
   if length ts < num_args then
