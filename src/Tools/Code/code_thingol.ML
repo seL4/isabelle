@@ -678,18 +678,21 @@ and translate_case ctxt algbr eqngr permissive some_thm (t_pos, case_pats) (c_ty
     val thy = Proof_Context.theory_of ctxt;
     val ty = nth (binder_types (snd c_ty)) t_pos;
     val is_let = null case_pats;
-    fun mk_constr NONE _ = NONE
-      | mk_constr (SOME c) t =
-          let
-            val n = Code.args_number thy c;
-          in SOME ((c, (take n o binder_types o fastype_of o untag_term) t ---> ty), n) end;
+    fun select_clauses xs =
+      xs
+      |> nth_drop t_pos
+      |> curry (op ~~) case_pats
+      |> map_filter (fn (NONE, _) => NONE | (SOME _, x) => SOME x);
+    fun mk_constr c t =
+      let
+        val n = Code.args_number thy c;
+      in ((c, (take n o binder_types o fastype_of o untag_term) t ---> ty), n) end;
     val constrs =
       if is_let then []
-      else map_filter I (map2 mk_constr case_pats (nth_drop t_pos ts));
+      else map2 mk_constr (case_pats |> map_filter I) (select_clauses ts);
     val split_clauses =
       if is_let then (fn ts => (nth ts t_pos, nth_drop t_pos ts))
-        else (fn ts => (nth ts t_pos, ts |> nth_drop t_pos |> curry (op ~~) case_pats
-          |> map_filter (fn (NONE, _) => NONE | (SOME _, t) => SOME t)));
+        else (fn ts => (nth ts t_pos, select_clauses ts));
     fun disjunctive_varnames ts =
       let
         val vs = (fold o fold_varnames) (insert (op =)) ts [];
