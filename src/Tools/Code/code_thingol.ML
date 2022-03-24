@@ -712,21 +712,21 @@ and translate_case ctxt algbr eqngr permissive some_thm (t_pos, case_pats) (c_ty
               | NONE => [(ts, body)]
             else [(ts, body)]
         | _ => [(ts, body)];
-    fun mk_clause mk tys t =
+    fun mk_clause tys t =
       let
         val (vs, body) = unfold_abs_eta tys t;
         val vs_map = fold_index (fn (i, (SOME v, _)) => cons (v, i) | _ => I) vs [];
         val ts = map (IVar o fst) vs;
-      in map mk (collapse_clause vs_map ts body) end;
+      in collapse_clause vs_map ts body end;
     fun casify constrs ty t_app ts =
       let
         val t = nth ts t_pos;
         val ts_clause = ts |> nth_drop t_pos |> curry (op ~~) case_pats
           |> map_filter (fn (NONE, _) => NONE | (SOME _, t) => SOME t);
         val clauses = if null case_pats
-          then mk_clause (fn ([t], body) => (t, body)) [ty] (the_single ts_clause)
+          then map (fn ([t], body) => (t, body)) (mk_clause [ty] (the_single ts_clause))
           else maps (fn ((constr as IConst { dom = tys, ... }, n), t) =>
-            mk_clause (fn (ts, body) => (constr `$$ ts, body)) (take n tys) t)
+            map (fn (ts, body) => (constr `$$ ts, body)) (mk_clause (take n tys) t))
               (constrs ~~ ts_clause);
       in ICase { term = t, typ = ty, clauses = clauses, primitive = t_app `$$ ts } end;
   in
