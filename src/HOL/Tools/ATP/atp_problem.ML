@@ -583,8 +583,7 @@ and tptp_string_of_formula format (ATyQuant (q, xs, phi)) =
     |> is_format_higher_order format ? parens
   | tptp_string_of_formula format (AConn (c, [phi])) =
     tptp_string_of_connective c ^ " " ^
-    (tptp_string_of_formula format phi
-     |> is_format_higher_order format ? parens)
+    (tptp_string_of_formula format phi |> parens)
     |> parens
   | tptp_string_of_formula format (AConn (c, phis)) =
     space_implode (" " ^ tptp_string_of_connective c ^ " ")
