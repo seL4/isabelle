@@ -19,7 +19,7 @@ since Isabelle2019). INCOMPATIBILITY, use \<open>cartouche\<close> syntax instea
 has been bundled with Isabelle as add-on component. The command-line
 tool "isabelle vscode" automatically configures it as Isabelle/VSCode
 and starts the application. This includes special support for the
-UTF8-Isabelle encoding and the corresponding Isabelle fonts.
+UTF-8-Isabelle encoding and the corresponding Isabelle fonts.
 
 * Command-line tools "isabelle electron" and "isabelle node" provide
 access to the underlying technologies of VSCodium, for use in other

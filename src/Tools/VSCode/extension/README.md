@@ -10,7 +10,7 @@ settings.
 The implementation is centered around the VSCode Language Server
 Protocol (LSP), but there are many add-ons that are specific to
 Isabelle/PIDE. Moreover, there are important patches to the VSCodium
-code-base itself, e.g. to support the UTF8-Isabelle encoding for
+code-base itself, e.g. to support the UTF-8-Isabelle encoding for
 mathematical symbols and to incorporate the corresponding Isabelle
 fonts. It is unlikely that this extension will with regular VSCode nor
 with any other LSP-based editor.
