@@ -12,7 +12,7 @@ sig
   type atp_formula_role = ATP_Problem.atp_formula_role
   type atp_failure = ATP_Proof.atp_failure
 
-  type base_slice = int * string
+  type base_slice = int * int * string
   type atp_slice = atp_format * string * string * bool * string
   type atp_config =
     {exec : string list * string list,
@@ -77,7 +77,11 @@ val TH1 = THF (Polymorphic, {with_ite = true, with_let = true}, THF_With_Choice)
 val default_max_mono_iters = 3 (* FUDGE *)
 val default_max_new_mono_instances = 100 (* FUDGE *)
 
-type base_slice = int * string
+(* desired slice size, desired number of facts, fact filter *)
+type base_slice = int * int * string
+
+(* problem file format, type encoding, lambda translation scheme, uncurried aliases?, extra
+   arguments to prover *)
 type atp_slice = atp_format * string * string * bool * string
 
 type atp_config =
@@ -91,22 +95,8 @@ type atp_config =
    good_max_mono_iters : int,
    good_max_new_mono_instances : int}
 
-(* "good_slices" must be found empirically, taking a holistic approach since the
-   ATPs are run in parallel. Each slice has the format
-
-     (time_frac, ((max_facts, fact_filter), format, type_enc,
-                  lam_trans, uncurried_aliases), extra)
-
-   where
-
-     time_frac = faction of the time available given to the slice (which should
-       add up to 1.0)
-
-     extra = extra information to the prover (e.g., SOS or no SOS).
-
-   The last slice should be the most "normal" one, because it will get all the
-   time available if the other slices fail early and also because it is used if
-   slicing is disabled (e.g., by the minimizer). *)
+(* "good_slices" must be found empirically, ideally taking a holistic approach since the ATPs are
+   run in parallel. *)
 
 val mepoN = "mepo"
 val mashN = "mash"
@@ -172,7 +162,7 @@ val agsyhol_config : atp_config =
    prem_role = Hypothesis,
    good_slices =
      (* FUDGE *)
-     K [((60, meshN), (THF (Monomorphic, {with_ite = false, with_let = false}, THF_Without_Choice), "mono_native_higher", keep_lamsN, false, ""))],
+     K [((1, 60, meshN), (THF (Monomorphic, {with_ite = false, with_let = false}, THF_Without_Choice), "mono_native_higher", keep_lamsN, false, ""))],
    good_max_mono_iters = default_max_mono_iters - 1 (* FUDGE *),
    good_max_new_mono_instances = default_max_new_mono_instances}
 
@@ -194,7 +184,7 @@ val alt_ergo_config : atp_config =
    prem_role = Hypothesis,
    good_slices =
      (* FUDGE *)
-     K [((100, meshN), (TF1, "poly_native", liftingN, false, ""))],
+     K [((1000 (* infinity *), 100, meshN), (TF1, "poly_native", liftingN, false, ""))],
    good_max_mono_iters = default_max_mono_iters,
    good_max_new_mono_instances = default_max_new_mono_instances}
 
@@ -297,12 +287,12 @@ val e_config : atp_config =
            (THF (Monomorphic, {with_ite = false, with_let = false}, THF_Lambda_Free), "mono_native_higher", combsN)
      in
        (* FUDGE *)
-       K [((512, meshN), (format, type_enc, lam_trans, false, e_fun_weightN)),
-        ((1024, meshN), (format, type_enc, lam_trans, false, e_sym_offset_weightN)),
-        ((128, mepoN), (format, type_enc, lam_trans, false, e_autoscheduleN)),
-        ((724, meshN), (format, "poly_guards??", lam_trans, false, e_sym_offset_weightN)),
-        ((256, mepoN), (format, type_enc, liftingN, false, e_fun_weightN)),
-        ((64, mashN), (format, type_enc, combsN, false, e_fun_weightN))]
+       K [((1, 512, meshN), (format, type_enc, lam_trans, false, e_fun_weightN)),
+        ((1, 1024, meshN), (format, type_enc, lam_trans, false, e_sym_offset_weightN)),
+        ((1, 128, mepoN), (format, type_enc, lam_trans, false, e_autoscheduleN)),
+        ((1, 724, meshN), (format, "poly_guards??", lam_trans, false, e_sym_offset_weightN)),
+        ((1, 256, mepoN), (format, type_enc, liftingN, false, e_fun_weightN)),
+        ((1, 64, mashN), (format, type_enc, combsN, false, e_fun_weightN))]
      end,
    good_max_mono_iters = default_max_mono_iters,
    good_max_new_mono_instances = default_max_new_mono_instances}
@@ -325,11 +315,11 @@ val iprover_config : atp_config =
    prem_role = Hypothesis,
    good_slices =
      (* FUDGE *)
-     K [((32, meshN), (TF0, "mono_native", liftingN, false, "")),
-       ((512, meshN), (TX0, "mono_native", liftingN, false, "")),
-       ((128, mashN), (TF0, "mono_native", combsN, false, "")),
-       ((1024, meshN), (TF0, "mono_native", liftingN, false, "")),
-       ((256, mepoN), (TF0, "mono_native", combsN, false, ""))],
+     K [((1, 32, meshN), (TF0, "mono_native", liftingN, false, "")),
+       ((1, 512, meshN), (TX0, "mono_native", liftingN, false, "")),
+       ((1, 128, mashN), (TF0, "mono_native", combsN, false, "")),
+       ((1, 1024, meshN), (TF0, "mono_native", liftingN, false, "")),
+       ((1, 256, mepoN), (TF0, "mono_native", combsN, false, ""))],
    good_max_mono_iters = default_max_mono_iters,
    good_max_new_mono_instances = default_max_new_mono_instances}
 
@@ -354,7 +344,7 @@ val leo2_config : atp_config =
    prem_role = Hypothesis,
    good_slices =
      (* FUDGE *)
-     K [((40, meshN), (THF (Monomorphic, {with_ite = false, with_let = false}, THF_Without_Choice), "mono_native_higher", keep_lamsN, false, ""))],
+     K [((1, 40, meshN), (THF (Monomorphic, {with_ite = false, with_let = false}, THF_Without_Choice), "mono_native_higher", keep_lamsN, false, ""))],
    good_max_mono_iters = default_max_mono_iters - 1 (* FUDGE *),
    good_max_new_mono_instances = default_max_new_mono_instances}
 
@@ -375,8 +365,8 @@ val leo3_config : atp_config =
    prem_role = Hypothesis,
    good_slices =
      (* FUDGE *)
-     K [((512, meshN), (TH0, "mono_native_higher", keep_lamsN, false, "")),
-       ((512, meshN), (TF0, "mono_native", liftingN, false, ""))],
+     K [((3, 512, meshN), (TH0, "mono_native_higher", keep_lamsN, false, "")),
+       ((3, 512, meshN), (TF0, "mono_native", liftingN, false, ""))],
    good_max_mono_iters = default_max_mono_iters - 1 (* FUDGE *),
    good_max_new_mono_instances = default_max_new_mono_instances}
 
@@ -399,7 +389,7 @@ val satallax_config : atp_config =
    prem_role = Hypothesis,
    good_slices =
      (* FUDGE *)
-     K [((256, meshN), (THF (Monomorphic, {with_ite = false, with_let = false}, THF_Without_Choice), "mono_native_higher", keep_lamsN, false, ""))],
+     K [((6, 256, meshN), (THF (Monomorphic, {with_ite = false, with_let = false}, THF_Without_Choice), "mono_native_higher", keep_lamsN, false, ""))],
    good_max_mono_iters = default_max_mono_iters - 1 (* FUDGE *),
    good_max_new_mono_instances = default_max_new_mono_instances}
 
@@ -436,14 +426,14 @@ val spass_config : atp_config =
      prem_role = Conjecture,
      good_slices =
        (* FUDGE *)
-       K [((150, meshN), (format, "mono_native", combsN, true, "")),
-        ((500, meshN), (format, "mono_native", liftingN, true, spass_H2SOS)),
-        ((50, meshN), (format,  "mono_native", liftingN, true, spass_H2LR0LT0)),
-        ((250, meshN), (format, "mono_native", combsN, true, spass_H2NuVS0)),
-        ((1000, mepoN), (format, "mono_native", liftingN, true, spass_H1SOS)),
-        ((150, meshN), (format, "poly_guards??", liftingN, false, spass_H2NuVS0Red2)),
-        ((300, meshN), (format, "mono_native", combsN, true, spass_H2SOS)),
-        ((100, meshN), (format, "mono_native", combs_and_liftingN, true, spass_H2))],
+       K [((1, 150, meshN), (format, "mono_native", combsN, true, "")),
+        ((1, 500, meshN), (format, "mono_native", liftingN, true, spass_H2SOS)),
+        ((1, 50, meshN), (format,  "mono_native", liftingN, true, spass_H2LR0LT0)),
+        ((1, 250, meshN), (format, "mono_native", combsN, true, spass_H2NuVS0)),
+        ((1, 1000, mepoN), (format, "mono_native", liftingN, true, spass_H1SOS)),
+        ((1, 150, meshN), (format, "poly_guards??", liftingN, false, spass_H2NuVS0Red2)),
+        ((1, 300, meshN), (format, "mono_native", combsN, true, spass_H2SOS)),
+        ((1, 100, meshN), (format, "mono_native", combs_and_liftingN, true, spass_H2))],
      good_max_mono_iters = default_max_mono_iters,
      good_max_new_mono_instances = default_max_new_mono_instances}
   end
@@ -482,14 +472,14 @@ val vampire_config : atp_config =
    prem_role = Hypothesis,
    good_slices =
      (* FUDGE *)
-     K [((512, meshN), (TX1, "mono_native_fool", combsN, false, sosN)),
-      ((1024, meshN), (TX1, "mono_native_fool", liftingN, false, sosN)),
-      ((256, mashN), (TX1, "mono_native_fool", liftingN, false, no_sosN)),
-      ((512, mepoN), (TF1, "poly_native", liftingN, false, no_sosN)),
-      ((16, meshN), (TX1, "mono_native_fool", liftingN, false, no_sosN)),
-      ((32, meshN), (TX1, "mono_native_fool", combsN, false, no_sosN)),
-      ((64, meshN), (TX1, "mono_native_fool", combs_or_liftingN, false, no_sosN)),
-      ((128, meshN), (TX1, "mono_native_fool", liftingN, false, no_sosN))],
+     K [((1, 512, meshN), (TX1, "mono_native_fool", combsN, false, sosN)),
+      ((1, 1024, meshN), (TX1, "mono_native_fool", liftingN, false, sosN)),
+      ((1, 256, mashN), (TX1, "mono_native_fool", liftingN, false, no_sosN)),
+      ((1, 512, mepoN), (TF1, "poly_native", liftingN, false, no_sosN)),
+      ((1, 16, meshN), (TX1, "mono_native_fool", liftingN, false, no_sosN)),
+      ((1, 32, meshN), (TX1, "mono_native_fool", combsN, false, no_sosN)),
+      ((1, 64, meshN), (TX1, "mono_native_fool", combs_or_liftingN, false, no_sosN)),
+      ((1, 128, meshN), (TX1, "mono_native_fool", liftingN, false, no_sosN))],
    good_max_mono_iters = default_max_mono_iters,
    good_max_new_mono_instances = 2 * default_max_new_mono_instances (* FUDGE *)}
 
@@ -513,12 +503,12 @@ val zipperposition_config : atp_config =
        known_szs_status_failures,
      prem_role = Hypothesis,
      good_slices =
-       K [((1024, meshN), (format, "mono_native_higher_fool", keep_lamsN, false, "--mode=ho-pragmatic --tptp-def-as-rewrite --rewrite-before-cnf=true --max-inferences=1 --ho-unif-max-depth=1 --ho-max-elims=0 --ho-max-app-projections=0 --ho-max-rigid-imitations=1 --ho-max-identifications=0 --boolean-reasoning=bool-hoist --bool-hoist-simpl=true --bool-select=LI --recognize-injectivity=true --ext-rules=ext-family --ext-rules-max-depth=1 --ho-choice-inst=true --ho-prim-enum=none --ho-elim-leibniz=0 --interpret-bool-funs=true --try-e=\"$E_HOME/eprover\" --tmp-dir=\"$ISABELLE_TMP_PREFIX\" --ho-unif-level=pragmatic-framework --select=bb+e-selection2 --post-cnf-lambda-lifting=true -q \"4|prefer-sos|pnrefined(2,1,1,1,2,2,2)\" -q \"6|prefer-processed|conjecture-relative-struct(1.5,3.5,2,3)\" -q \"1|const|fifo\" -q \"4|prefer-ground|orient-lmax(2,1,2,1,1)\" -q \"4|defer-sos|conjecture-relative-struct(1,5,2,3)\" --avatar=off --recognize-injectivity=true --ho-neg-ext=true --e-timeout=2 --ho-pattern-decider=true --ho-fixpoint-decider=true --e-max-derived=50 --ignore-orphans=true --e-auto=true --presaturate=true --e-call-point=0.1")),
-         ((128, mepoN), (format, "mono_native_higher_fool", keep_lamsN, false, "-nc --tptp-def-as-rewrite --rewrite-before-cnf=true --mode=ho-competitive --boolean-reasoning=simpl-only --ext-rules=off --ho-prim-enum=full --ho-prim-max=1 --avatar=off --recognize-injectivity=true --ho-elim-leibniz=4 --ho-unif-level=full-framework --no-max-vars -q \"2|prefer-goals|conjecture-relative-e(0.5,1,100,100,100,100,1.5,1.5,1)\" -q \"4|const|conjecture-relative-e(0.1,1,100,100,100,100,1.5,1.5,1.5)\" -q \"1|prefer-processed|fifo\" -q \"1|prefer-non-goals|conjecture-relative-e(0.5,1,100,100,100,100,1.5,1.5,1.5)\" -q \"4|prefer-sos|pnrefined(1,1,1,1,2,1.5,2)\" --select=ho-selection5 --ho-choice-inst=true --try-e=\"$E_HOME/eprover\" --tmp-dir=\"$ISABELLE_TMP_PREFIX\" --e-timeout=5 --e-call-point=0.25 --e-auto=true --sine=50 --sine-tolerance=2 --sine-depth-max=4 --sine-depth-min=1 --e-max-derived=96 --e-encode-lambdas=lift --scan-clause-ac=false --kbo-weight-fun=arity0 --prec-gen-fun=invfreq_conj")),
-         ((512, mashN), (format, "mono_native_higher_fool", keep_lamsN, false, "--mode=ho-pragmatic --tptp-def-as-rewrite --rewrite-before-cnf=true --mode=ho-competitive --boolean-reasoning=simpl-only --ext-rules=ext-family --ext-rules-max-depth=1 --ho-prim-enum=none --avatar=off --recognize-injectivity=true --ho-elim-leibniz=1 --ho-unif-level=pragmatic-framework --no-max-vars --max-inferences=2 --ho-unif-max-depth=1 -q \"6|prefer-sos|pnrefined(1,1,1,2,2,2,0.5)\" -q \"6|const|conjecture-relative-var(1.02,l,f)\" -q \"1|prefer-processed|fifo\" -q \"1|prefer-non-goals|conjecture-relative-var(1,l,f)\" -q \"4|prefer-easy-ho|conjecture-relative-var(1.01,s,f)\" --select=e-selection16 --ho-choice-inst=true --try-e=\"$E_HOME/eprover\" --tmp-dir=\"$ISABELLE_TMP_PREFIX\" --e-timeout=3 --e-auto=true --sine=50 --sine-tolerance=1.0 --sine-depth-max=3 --sine-depth-min=1 --sine-trim-implications=true --ho-unif-level=pragmatic-framework --e-encode-lambdas=lift --scan-clause-ac=false --kbo-weight-fun=lambda-def-invfreqrank --e-call-point=0.1")),
-         ((32, meshN), (format, "mono_native_higher_fool", keep_lamsN, false, "--mode=ho-pragmatic -nc --tptp-def-as-rewrite --rewrite-before-cnf=true --mode=ho-competitive --boolean-reasoning=simpl-only --ext-rules=ext-family --ext-rules-max-depth=1 --ho-prim-enum=none --avatar=off --recognize-injectivity=true --ho-elim-leibniz=1 --ho-unif-level=pragmatic-framework --no-max-vars --max-inferences=4 --ho-max-app-projections=1 --ho-max-elims=0 --ho-max-rigid-imitations=2 --ho-max-identifications=0 --ho-unif-max-depth=3 -q \"6|prefer-sos|pnrefined(1,1,1,2,2,2,0.5)\" -q \"6|const|conjecture-relative-var(1.02,l,f)\" -q \"1|prefer-processed|fifo\" -q \"1|prefer-non-goals|conjecture-relative-var(1,l,f)\" -q \"4|prefer-easy-ho|conjecture-relative-var(1.01,s,f)\" --select=e-selection7 --ho-choice-inst=true --try-e=\"$E_HOME/eprover\" --tmp-dir=\"$ISABELLE_TMP_PREFIX\" --e-timeout=7 --sine=50 --sine-tolerance=1 --sine-depth-max=2 --sine-depth-min=1 --e-max-derived=64 --sine-ignore-k-most-common-syms=2 --sine-trim-implications=true --e-encode-lambdas=lift --scan-clause-ac=false --lambdasup=0 --kbo-weight-fun=lambda-def-invfreqrank --demod-in-var-args=true --bool-demod=true --lambda-demod=true --e-call-point=0.1 --lazy-cnf-kind=simp")),
-         ((64, meshN), (format, "mono_native_higher_fool", keep_lamsN, false, "--mode=ho-comb-complete --boolean-reasoning=simpl-only --ext-rules=off --kbo-weight-fun=lambda-def-sqarity --ho-prim-enum=none --tptp-def-as-rewrite -q \"4|prefer-sos|orient-lmax(2,1,2,1,1)\" -q \"4|defer-sos|conjecture-relative-var(1,s,f)\" -q \"3|const|default\" -q \"1|prefer-processed|fifo\" --ho-elim-leibniz=1 --select=NoSelection --solve-formulas=true --lazy-cnf=true --lazy-cnf-kind=simp --lazy-cnf-renaming-threshold=8 --sine=60 --sine-tolerance=2 --sine-depth-max=5 --sine-depth-min=1 --try-e=\"$E_HOME/eprover\" --tmp-dir=\"$ISABELLE_TMP_PREFIX\" --e-timeout=3 --e-auto=true --e-max-derived=50 --e-encode-lambdas=ignore --scan-clause-ac=false --presaturate=true --comb-b-penalty=3 --comb-c-penalty=3 --comb-k-penalty=1 --comb-s-penalty=5 --subvarsup=false --e-call-point=0.15 --lazy-cnf-kind=simp --trigger-bool-ind=1")),
-         ((256, meshN), (format, "mono_native_higher_fool", keep_lamsN, false, "--mode=ho-pragmatic --boolean-reasoning=simpl-only --ho-unif-max-depth=0 --ho-prim-enum=none -q \"2|prefer-ho-steps|conjecture-relative-e(0.1,0.5,100,100,100,100,1.5,1.5,1.5)\" -q \"1|prefer-sos|pnrefined(1,1,1,2,2,2,0.5)\" -q \"2|prefer-ground|default\" -q \"2|prefer-empty-trail|conjecture-relative-e(0.1,0.5,100,100,100,100,1.5,1.5,1.5)\" -q \"1|prefer-processed|fifo\" --select=bb+e-selection7 --ho-pattern-decider=false --ho-fixpoint-decider=true --ho-solid-decider=false --sine=150 --sine-tolerance=2 --sine-depth-max=3 --sine-depth-min=1 --prec-gen-fun=invfreqhack --lazy-cnf=true --lazy-cnf-kind=simp --lazy-cnf-renaming-threshold=2 --fluid-log-hoist=false --tptp-def-as-rewrite --rewrite-before-cnf=true --ho-prim-enum=eq --ho-prim-enum-add-var=true --ho-prim-max=1 --ho-prim-enum-early-bird=true -o tptp --avatar=eager --split-only-ground=true"))],
+       K [((1, 1024, meshN), (format, "mono_native_higher_fool", keep_lamsN, false, "--mode=ho-pragmatic --tptp-def-as-rewrite --rewrite-before-cnf=true --max-inferences=1 --ho-unif-max-depth=1 --ho-max-elims=0 --ho-max-app-projections=0 --ho-max-rigid-imitations=1 --ho-max-identifications=0 --boolean-reasoning=bool-hoist --bool-hoist-simpl=true --bool-select=LI --recognize-injectivity=true --ext-rules=ext-family --ext-rules-max-depth=1 --ho-choice-inst=true --ho-prim-enum=none --ho-elim-leibniz=0 --interpret-bool-funs=true --try-e=\"$E_HOME/eprover\" --tmp-dir=\"$ISABELLE_TMP_PREFIX\" --ho-unif-level=pragmatic-framework --select=bb+e-selection2 --post-cnf-lambda-lifting=true -q \"4|prefer-sos|pnrefined(2,1,1,1,2,2,2)\" -q \"6|prefer-processed|conjecture-relative-struct(1.5,3.5,2,3)\" -q \"1|const|fifo\" -q \"4|prefer-ground|orient-lmax(2,1,2,1,1)\" -q \"4|defer-sos|conjecture-relative-struct(1,5,2,3)\" --avatar=off --recognize-injectivity=true --ho-neg-ext=true --e-timeout=2 --ho-pattern-decider=true --ho-fixpoint-decider=true --e-max-derived=50 --ignore-orphans=true --e-auto=true --presaturate=true --e-call-point=0.1")),
+         ((1, 128, mepoN), (format, "mono_native_higher_fool", keep_lamsN, false, "-nc --tptp-def-as-rewrite --rewrite-before-cnf=true --mode=ho-competitive --boolean-reasoning=simpl-only --ext-rules=off --ho-prim-enum=full --ho-prim-max=1 --avatar=off --recognize-injectivity=true --ho-elim-leibniz=4 --ho-unif-level=full-framework --no-max-vars -q \"2|prefer-goals|conjecture-relative-e(0.5,1,100,100,100,100,1.5,1.5,1)\" -q \"4|const|conjecture-relative-e(0.1,1,100,100,100,100,1.5,1.5,1.5)\" -q \"1|prefer-processed|fifo\" -q \"1|prefer-non-goals|conjecture-relative-e(0.5,1,100,100,100,100,1.5,1.5,1.5)\" -q \"4|prefer-sos|pnrefined(1,1,1,1,2,1.5,2)\" --select=ho-selection5 --ho-choice-inst=true --try-e=\"$E_HOME/eprover\" --tmp-dir=\"$ISABELLE_TMP_PREFIX\" --e-timeout=5 --e-call-point=0.25 --e-auto=true --sine=50 --sine-tolerance=2 --sine-depth-max=4 --sine-depth-min=1 --e-max-derived=96 --e-encode-lambdas=lift --scan-clause-ac=false --kbo-weight-fun=arity0 --prec-gen-fun=invfreq_conj")),
+         ((1, 512, mashN), (format, "mono_native_higher_fool", keep_lamsN, false, "--mode=ho-pragmatic --tptp-def-as-rewrite --rewrite-before-cnf=true --mode=ho-competitive --boolean-reasoning=simpl-only --ext-rules=ext-family --ext-rules-max-depth=1 --ho-prim-enum=none --avatar=off --recognize-injectivity=true --ho-elim-leibniz=1 --ho-unif-level=pragmatic-framework --no-max-vars --max-inferences=2 --ho-unif-max-depth=1 -q \"6|prefer-sos|pnrefined(1,1,1,2,2,2,0.5)\" -q \"6|const|conjecture-relative-var(1.02,l,f)\" -q \"1|prefer-processed|fifo\" -q \"1|prefer-non-goals|conjecture-relative-var(1,l,f)\" -q \"4|prefer-easy-ho|conjecture-relative-var(1.01,s,f)\" --select=e-selection16 --ho-choice-inst=true --try-e=\"$E_HOME/eprover\" --tmp-dir=\"$ISABELLE_TMP_PREFIX\" --e-timeout=3 --e-auto=true --sine=50 --sine-tolerance=1.0 --sine-depth-max=3 --sine-depth-min=1 --sine-trim-implications=true --ho-unif-level=pragmatic-framework --e-encode-lambdas=lift --scan-clause-ac=false --kbo-weight-fun=lambda-def-invfreqrank --e-call-point=0.1")),
+         ((1, 32, meshN), (format, "mono_native_higher_fool", keep_lamsN, false, "--mode=ho-pragmatic -nc --tptp-def-as-rewrite --rewrite-before-cnf=true --mode=ho-competitive --boolean-reasoning=simpl-only --ext-rules=ext-family --ext-rules-max-depth=1 --ho-prim-enum=none --avatar=off --recognize-injectivity=true --ho-elim-leibniz=1 --ho-unif-level=pragmatic-framework --no-max-vars --max-inferences=4 --ho-max-app-projections=1 --ho-max-elims=0 --ho-max-rigid-imitations=2 --ho-max-identifications=0 --ho-unif-max-depth=3 -q \"6|prefer-sos|pnrefined(1,1,1,2,2,2,0.5)\" -q \"6|const|conjecture-relative-var(1.02,l,f)\" -q \"1|prefer-processed|fifo\" -q \"1|prefer-non-goals|conjecture-relative-var(1,l,f)\" -q \"4|prefer-easy-ho|conjecture-relative-var(1.01,s,f)\" --select=e-selection7 --ho-choice-inst=true --try-e=\"$E_HOME/eprover\" --tmp-dir=\"$ISABELLE_TMP_PREFIX\" --e-timeout=7 --sine=50 --sine-tolerance=1 --sine-depth-max=2 --sine-depth-min=1 --e-max-derived=64 --sine-ignore-k-most-common-syms=2 --sine-trim-implications=true --e-encode-lambdas=lift --scan-clause-ac=false --lambdasup=0 --kbo-weight-fun=lambda-def-invfreqrank --demod-in-var-args=true --bool-demod=true --lambda-demod=true --e-call-point=0.1 --lazy-cnf-kind=simp")),
+         ((1, 64, meshN), (format, "mono_native_higher_fool", keep_lamsN, false, "--mode=ho-comb-complete --boolean-reasoning=simpl-only --ext-rules=off --kbo-weight-fun=lambda-def-sqarity --ho-prim-enum=none --tptp-def-as-rewrite -q \"4|prefer-sos|orient-lmax(2,1,2,1,1)\" -q \"4|defer-sos|conjecture-relative-var(1,s,f)\" -q \"3|const|default\" -q \"1|prefer-processed|fifo\" --ho-elim-leibniz=1 --select=NoSelection --solve-formulas=true --lazy-cnf=true --lazy-cnf-kind=simp --lazy-cnf-renaming-threshold=8 --sine=60 --sine-tolerance=2 --sine-depth-max=5 --sine-depth-min=1 --try-e=\"$E_HOME/eprover\" --tmp-dir=\"$ISABELLE_TMP_PREFIX\" --e-timeout=3 --e-auto=true --e-max-derived=50 --e-encode-lambdas=ignore --scan-clause-ac=false --presaturate=true --comb-b-penalty=3 --comb-c-penalty=3 --comb-k-penalty=1 --comb-s-penalty=5 --subvarsup=false --e-call-point=0.15 --lazy-cnf-kind=simp --trigger-bool-ind=1")),
+         ((1, 256, meshN), (format, "mono_native_higher_fool", keep_lamsN, false, "--mode=ho-pragmatic --boolean-reasoning=simpl-only --ho-unif-max-depth=0 --ho-prim-enum=none -q \"2|prefer-ho-steps|conjecture-relative-e(0.1,0.5,100,100,100,100,1.5,1.5,1.5)\" -q \"1|prefer-sos|pnrefined(1,1,1,2,2,2,0.5)\" -q \"2|prefer-ground|default\" -q \"2|prefer-empty-trail|conjecture-relative-e(0.1,0.5,100,100,100,100,1.5,1.5,1.5)\" -q \"1|prefer-processed|fifo\" --select=bb+e-selection7 --ho-pattern-decider=false --ho-fixpoint-decider=true --ho-solid-decider=false --sine=150 --sine-tolerance=2 --sine-depth-max=3 --sine-depth-min=1 --prec-gen-fun=invfreqhack --lazy-cnf=true --lazy-cnf-kind=simp --lazy-cnf-renaming-threshold=2 --fluid-log-hoist=false --tptp-def-as-rewrite --rewrite-before-cnf=true --ho-prim-enum=eq --ho-prim-enum-add-var=true --ho-prim-max=1 --ho-prim-enum-early-bird=true -o tptp --avatar=eager --split-only-ground=true"))],
      good_max_mono_iters = default_max_mono_iters,
      good_max_new_mono_instances = default_max_new_mono_instances}
   end
@@ -595,30 +585,30 @@ fun gen_remote_waldmeister name type_enc =
       (Crashed, "Unrecoverable Segmentation Fault")]
      @ known_szs_status_failures)
     Hypothesis
-    (K ((50, meshN), (CNF_UEQ, type_enc, combsN, false, "")) (* FUDGE *))
+    (K ((1000 (* infinity *), 50, meshN), (CNF_UEQ, type_enc, combsN, false, "")) (* FUDGE *))
 
 val remote_agsyhol =
   remotify_atp agsyhol "agsyHOL" ["1.0", "1"]
-    (K ((60, meshN), (THF (Monomorphic, {with_ite = false, with_let = false}, THF_Without_Choice), "mono_native_higher", keep_lamsN, false, "")) (* FUDGE *))
+    (K ((1000 (* infinity *), 60, meshN), (THF (Monomorphic, {with_ite = false, with_let = false}, THF_Without_Choice), "mono_native_higher", keep_lamsN, false, "")) (* FUDGE *))
 val remote_alt_ergo =
   remotify_atp alt_ergo "Alt-Ergo" ["0.95.2"]
-    (K ((250, meshN), (TF1, "poly_native", keep_lamsN, false, "")) (* FUDGE *))
+    (K ((1000 (* infinity *), 250, meshN), (TF1, "poly_native", keep_lamsN, false, "")) (* FUDGE *))
 val remote_e =
   remotify_atp e "E" ["2.0", "1.9.1", "1.8"]
-    (K ((750, meshN), (TF0, "mono_native", combsN, false, "")) (* FUDGE *))
+    (K ((1000 (* infinity *), 750, meshN), (TF0, "mono_native", combsN, false, "")) (* FUDGE *))
 val remote_iprover =
   remotify_atp iprover "iProver" ["0.99"]
-    (K ((150, meshN), (FOF, "mono_guards??", liftingN, false, "")) (* FUDGE *))
+    (K ((1000 (* infinity *), 150, meshN), (FOF, "mono_guards??", liftingN, false, "")) (* FUDGE *))
 val remote_leo2 =
   remotify_atp leo2 "LEO-II" ["1.5.0", "1.4", "1.3", "1.2", "1"]
-    (K ((40, meshN), (THF (Monomorphic, {with_ite = false, with_let = false}, THF_Without_Choice), "mono_native_higher", liftingN, false, "")) (* FUDGE *))
+    (K ((1000 (* infinity *), 40, meshN), (THF (Monomorphic, {with_ite = false, with_let = false}, THF_Without_Choice), "mono_native_higher", liftingN, false, "")) (* FUDGE *))
 val remote_leo3 =
   remotify_atp leo3 "Leo-III" ["1.1"]
-    (K ((150, meshN), (THF (Polymorphic, {with_ite = false, with_let = false}, THF_Without_Choice), "poly_native_higher", keep_lamsN, false, "")) (* FUDGE *))
+    (K ((1000 (* infinity *), 150, meshN), (THF (Polymorphic, {with_ite = false, with_let = false}, THF_Without_Choice), "poly_native_higher", keep_lamsN, false, "")) (* FUDGE *))
 val remote_waldmeister = gen_remote_waldmeister waldmeisterN "raw_mono_tags??"
 val remote_zipperposition =
   remotify_atp zipperposition "Zipperpin" ["2.1", "2.0"]
-    (K ((512, meshN), (THF (Monomorphic, {with_ite = false, with_let = false}, THF_Without_Choice), "mono_native_higher", keep_lamsN, false, "")) (* FUDGE *))
+    (K ((1000 (* infinity *), 512, meshN), (THF (Monomorphic, {with_ite = false, with_let = false}, THF_Without_Choice), "mono_native_higher", keep_lamsN, false, "")) (* FUDGE *))
 
 
 (* Dummy prover *)
@@ -630,7 +620,7 @@ fun dummy_config prem_role format type_enc uncurried_aliases : atp_config =
    known_failures = known_szs_status_failures,
    prem_role = prem_role,
    good_slices =
-     K [((200, "mepo"), (format, type_enc,
+     K [((1, 256, "mepo"), (format, type_enc,
       if is_format_higher_order format then keep_lamsN else combsN, uncurried_aliases, ""))],
    good_max_mono_iters = default_max_mono_iters,
    good_max_new_mono_instances = default_max_new_mono_instances}

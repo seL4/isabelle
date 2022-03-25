@@ -107,7 +107,8 @@ fun run_atp mode name
     ({comment, state, goal, subgoal, subgoal_count, factss, found_proof} : prover_problem)
     slice =
   let
-    val (basic_slice, ATP_Slice (good_format, good_type_enc, good_lam_trans, good_uncurried_aliases, extra)) =
+    val (basic_slice, ATP_Slice (good_format, good_type_enc, good_lam_trans,
+        good_uncurried_aliases, extra)) =
       slice
     val facts = facts_of_basic_slice basic_slice factss
     val thy = Proof.theory_of state

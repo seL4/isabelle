@@ -239,7 +239,7 @@ fun facts_of_filter fact_filter factss =
     SOME facts => facts
   | NONE => snd (hd factss))
 
-fun facts_of_basic_slice (num_facts, fact_filter) factss =
+fun facts_of_basic_slice (desired_slices, num_facts, fact_filter) factss =
   facts_of_filter fact_filter factss
   |> take num_facts
 

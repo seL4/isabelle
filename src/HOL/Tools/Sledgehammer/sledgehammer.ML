@@ -136,7 +136,7 @@ fun play_one_line_proof minimize timeout used_facts state i (preferred_meth, met
 
 fun launch_prover (params as {verbose, spy, slices, timeout, ...}) mode learn
     (problem as {state, subgoal, factss, ...} : prover_problem)
-    (slice as ((num_facts, fact_filter), _)) name =
+    (slice as ((_, num_facts, fact_filter), _)) name =
   let
     val ctxt = Proof.context_of state
 
@@ -273,10 +273,10 @@ fun string_of_factss factss =
     cat_lines (map (fn (filter, facts) => string_of_facts filter facts) factss)
 
 val default_slice_schedule =
-  (* FUDGE (based on Seventeen evaluation) *)
-  [cvc4N, zipperpositionN, vampireN, veritN, eN, cvc4N, zipperpositionN, cvc4N, vampireN, cvc4N,
-   cvc4N, vampireN, cvc4N, eN, iproverN, zipperpositionN, vampireN, eN, vampireN, zipperpositionN,
-   z3N, cvc4N, vampireN, iproverN, vampireN, zipperpositionN, z3N, z3N, cvc4N, cvc4N]
+  (* FUDGE (inspired by Seventeen evaluation) *)
+  [cvc4N, zipperpositionN, vampireN, eN, veritN, cvc4N, zipperpositionN, cvc4N, vampireN, cvc4N,
+   cvc4N, vampireN, cvc4N, iproverN, zipperpositionN, vampireN, vampireN, zipperpositionN, z3N,
+   cvc4N, vampireN, iproverN, vampireN, zipperpositionN, z3N, z3N, cvc4N, cvc4N]
 
 fun schedule_of_provers provers num_slices =
   let
@@ -303,10 +303,11 @@ fun prover_slices_of_schedule ctxt factss
     fun triplicate_slices original =
       let
         val shift =
-          map (apfst (apsnd (fn fact_filter =>
-            if fact_filter = mashN then mepoN
-            else if fact_filter = mepoN then meshN
-            else mashN)))
+          map (apfst (fn (slice_size, num_facts, fact_filter) =>
+            (slice_size, num_facts,
+             if fact_filter = mashN then mepoN
+             else if fact_filter = mepoN then meshN
+             else mashN)))
 
         val shifted_once = shift original
         val shifted_twice = shift shifted_once
@@ -320,13 +321,13 @@ fun prover_slices_of_schedule ctxt factss
           the_default uncurried_aliases0 uncurried_aliases, extra_extra0)
       | adjust_extra (extra as SMT_Slice _) = extra
 
-    fun adjust_slice ((num_facts0, fact_filter0), extra) =
+    fun adjust_slice ((slice_size0, num_facts0, fact_filter0), extra) =
       let
         val fact_filter = fact_filter |> the_default fact_filter0
         val max_facts = max_facts |> the_default num_facts0
         val num_facts = Int.min (max_facts, length (facts_of_filter fact_filter factss))
       in
-        ((num_facts, fact_filter), adjust_extra extra)
+        ((slice_size0, num_facts, fact_filter), adjust_extra extra)
       end
 
     val provers = distinct (op =) schedule
@@ -397,7 +398,7 @@ fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_fac
                 SOME n => n
               | NONE =>
                 fold (fn prover =>
-                    fold (fn ((n, _), _) => Integer.max n) (get_slices ctxt prover))
+                    fold (fn ((_, n, _), _) => Integer.max n) (get_slices ctxt prover))
                   provers 0)
               * 51 div 50  (* some slack to account for filtering of induction facts below *)
 
