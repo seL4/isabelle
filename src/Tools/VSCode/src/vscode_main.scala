@@ -79,34 +79,8 @@ object VSCode_Main
 
   def extension_dir: Path = Path.explode("$ISABELLE_VSCODE_HOME/extension")
   val extension_name: String = "isabelle.isabelle"
-  def extension_manifest(): Manifest = new Manifest
 
-  private val MANIFEST: Path = Path.explode("MANIFEST")
-
-  final class Manifest private[VSCode_Main]
-  {
-    private val text = File.read(extension_dir + MANIFEST)
-    private def entries: List[String] = split_lines(text).filter(_.nonEmpty)
-
-    val shasum: String =
-    {
-      val a = SHA1.digest(text).toString + " <MANIFEST>"
-      val bs =
-        for (entry <- entries)
-          yield SHA1.digest(extension_dir + Path.explode(entry)).toString + " " + entry
-      terminate_lines(a :: bs)
-    }
-
-    def prepare_dir(dir: Path): Unit =
-    {
-      for (entry <- entries) {
-        val path = Path.explode(entry)
-        Isabelle_System.copy_file(extension_dir + path,
-          Isabelle_System.make_directory(dir + path.dir))
-      }
-      File.write(dir + MANIFEST.shasum, shasum)
-    }
-  }
+  val MANIFEST: Path = Path.explode("MANIFEST")
 
   private def shasum_vsix(vsix_path: Path): String =
   {

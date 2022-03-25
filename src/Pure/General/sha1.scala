@@ -24,6 +24,7 @@ object SHA1
         case other: Digest => rep == other.toString
         case _ => false
       }
+    def shasum(name: String): String = rep + " " + name
   }
 
   def fake_digest(rep: String): Digest = new Digest(rep)
