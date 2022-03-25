@@ -80,8 +80,8 @@ val default_max_new_mono_instances = 100 (* FUDGE *)
 (* desired slice size, desired number of facts, fact filter *)
 type base_slice = int * int * string
 
-(* problem file format, type encoding, lambda translation scheme, uncurried aliases?, extra
-   arguments to prover *)
+(* problem file format, type encoding, lambda translation scheme, uncurried aliases?,
+   prover-specific extra information *)
 type atp_slice = atp_format * string * string * bool * string
 
 type atp_config =
@@ -287,12 +287,12 @@ val e_config : atp_config =
            (THF (Monomorphic, {with_ite = false, with_let = false}, THF_Lambda_Free), "mono_native_higher", combsN)
      in
        (* FUDGE *)
-       K [((1, 512, meshN), (format, type_enc, lam_trans, false, e_fun_weightN)),
-        ((1, 1024, meshN), (format, type_enc, lam_trans, false, e_sym_offset_weightN)),
-        ((1, 128, mepoN), (format, type_enc, lam_trans, false, e_autoscheduleN)),
-        ((1, 724, meshN), (format, "poly_guards??", lam_trans, false, e_sym_offset_weightN)),
-        ((1, 256, mepoN), (format, type_enc, liftingN, false, e_fun_weightN)),
-        ((1, 64, mashN), (format, type_enc, combsN, false, e_fun_weightN))]
+       K [((1000 (* infinity *), 1024, meshN), (format, type_enc, lam_trans, false, e_autoscheduleN)),
+         ((1, 512, meshN), (format, type_enc, lam_trans, false, e_sym_offset_weightN)),
+         ((1, 128, mepoN), (format, type_enc, lam_trans, false, e_fun_weightN)),
+         ((1, 724, meshN), (format, "poly_guards??", lam_trans, false, e_sym_offset_weightN)),
+         ((1, 256, mepoN), (format, type_enc, liftingN, false, e_fun_weightN)),
+         ((1, 64, mashN), (format, type_enc, combsN, false, e_fun_weightN))]
      end,
    good_max_mono_iters = default_max_mono_iters,
    good_max_new_mono_instances = default_max_new_mono_instances}

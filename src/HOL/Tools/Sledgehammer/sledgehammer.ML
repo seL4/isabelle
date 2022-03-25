@@ -136,7 +136,7 @@ fun play_one_line_proof minimize timeout used_facts state i (preferred_meth, met
 
 fun launch_prover (params as {verbose, spy, slices, timeout, ...}) mode learn
     (problem as {state, subgoal, factss, ...} : prover_problem)
-    (slice as ((_, num_facts, fact_filter), _)) name =
+    (slice as ((slice_size, num_facts, fact_filter), _)) name =
   let
     val ctxt = Proof.context_of state
 
@@ -145,7 +145,8 @@ fun launch_prover (params as {verbose, spy, slices, timeout, ...}) mode learn
     val _ =
       if verbose then
         writeln (name ^ " with " ^ string_of_int num_facts ^ " " ^ fact_filter ^ " fact" ^
-          plural_s num_facts ^ " for " ^ string_of_time (slice_timeout slices timeout)  ^ "...")
+          plural_s num_facts ^ " for " ^ string_of_time (slice_timeout slice_size slices timeout) ^
+          "...")
       else
         ()
 
@@ -274,7 +275,7 @@ fun string_of_factss factss =
 
 val default_slice_schedule =
   (* FUDGE (inspired by Seventeen evaluation) *)
-  [cvc4N, zipperpositionN, vampireN, eN, veritN, cvc4N, zipperpositionN, cvc4N, vampireN, cvc4N,
+  [cvc4N, zipperpositionN, vampireN, veritN, eN, cvc4N, zipperpositionN, cvc4N, vampireN, cvc4N,
    cvc4N, vampireN, cvc4N, iproverN, zipperpositionN, vampireN, vampireN, zipperpositionN, z3N,
    cvc4N, vampireN, iproverN, vampireN, zipperpositionN, z3N, z3N, cvc4N, cvc4N]
 
@@ -321,33 +322,41 @@ fun prover_slices_of_schedule ctxt factss
           the_default uncurried_aliases0 uncurried_aliases, extra_extra0)
       | adjust_extra (extra as SMT_Slice _) = extra
 
-    fun adjust_slice ((slice_size0, num_facts0, fact_filter0), extra) =
+    fun adjust_slice max_slice_size ((slice_size0, num_facts0, fact_filter0), extra) =
       let
+        val slice_size = Int.min (max_slice_size, slice_size0)
         val fact_filter = fact_filter |> the_default fact_filter0
         val max_facts = max_facts |> the_default num_facts0
         val num_facts = Int.min (max_facts, length (facts_of_filter fact_filter factss))
       in
-        ((slice_size0, num_facts, fact_filter), adjust_extra extra)
+        ((slice_size, num_facts, fact_filter), adjust_extra extra)
       end
 
     val provers = distinct (op =) schedule
     val prover_slices =
       map (fn prover => (prover,
-          (is_none fact_filter ? triplicate_slices)
-            (map adjust_slice (get_slices ctxt prover))))
+          (is_none fact_filter ? triplicate_slices) (get_slices ctxt prover)))
         provers
 
-    fun translate _ [] = []
-      | translate prover_slices (prover :: schedule) =
+    val max_threads = Multithreading.max_threads ()
+
+    fun translate_schedule _ 0 _ = []
+      | translate_schedule _ _ [] = []
+      | translate_schedule prover_slices slices_left (prover :: schedule) =
         (case AList.lookup (op =) prover_slices prover of
-          SOME (slice :: slices) =>
-          let val prover_slices' = AList.update (op =) (prover, slices) prover_slices in
-            (prover, slice) :: translate prover_slices' schedule
+          SOME (slice0 :: slices) =>
+          let
+            val prover_slices' = AList.update (op =) (prover, slices) prover_slices
+            val slice as ((slice_size, _, _), _) =
+              adjust_slice ((slices_left + max_threads - 1) div max_threads) slice0
+          in
+            (prover, slice) :: translate_schedule prover_slices' (slices_left - slice_size) schedule
           end
-        | _ => translate prover_slices schedule)
+        | _ => translate_schedule prover_slices slices_left schedule)
   in
-    translate prover_slices schedule
+    translate_schedule prover_slices (length schedule) schedule
     |> distinct (op =)
+    |> @{print} (*###*)
   end
 
 fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_facts, max_proofs,

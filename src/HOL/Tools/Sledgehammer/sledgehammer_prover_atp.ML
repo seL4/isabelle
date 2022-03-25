@@ -107,8 +107,8 @@ fun run_atp mode name
     ({comment, state, goal, subgoal, subgoal_count, factss, found_proof} : prover_problem)
     slice =
   let
-    val (basic_slice, ATP_Slice (good_format, good_type_enc, good_lam_trans,
-        good_uncurried_aliases, extra)) =
+    val (basic_slice as (slice_size, _, _),
+        ATP_Slice (good_format, good_type_enc, good_lam_trans, good_uncurried_aliases, extra)) =
       slice
     val facts = facts_of_basic_slice basic_slice factss
     val thy = Proof.theory_of state
@@ -184,7 +184,7 @@ fun run_atp mode name
 
         val strictness = if strict then Strict else Non_Strict
         val type_enc = choose_type_enc strictness good_format good_type_enc
-        val run_timeout = slice_timeout slices timeout
+        val run_timeout = slice_timeout slice_size slices timeout
         val generous_run_timeout = if mode = MaSh then one_day else run_timeout
         val ({elapsed, ...}, atp_problem_data as (atp_problem, _, _, _)) = Timing.timing (fn () =>
           let

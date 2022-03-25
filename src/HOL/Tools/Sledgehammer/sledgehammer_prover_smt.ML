@@ -69,10 +69,10 @@ fun failure_of_smt_failure (SMT_Failure.Counterexample genuine) =
 val is_boring_builtin_typ =
   not o exists_subtype (member (op =) [\<^typ>\<open>nat\<close>, \<^typ>\<open>int\<close>, HOLogic.realT])
 
-fun smt_filter name ({debug, overlord, max_mono_iters, max_new_mono_instances,
-    type_enc, slices, timeout, ...} : params) state goal i facts options =
+fun smt_filter name ({debug, overlord, max_mono_iters, max_new_mono_instances, type_enc, slices,
+    timeout, ...} : params) state goal i slice_size facts options =
   let
-    val run_timeout = slice_timeout slices timeout
+    val run_timeout = slice_timeout slice_size slices timeout
     val (higher_order, nat_as_int) =
       (case type_enc of
         SOME s => (SOME (String.isSubstring "native_higher" s), SOME (String.isSubstring "arith" s))
@@ -123,12 +123,12 @@ fun run_smt_solver mode name (params as {debug, verbose, isar_proofs, compress, 
     ({state, goal, subgoal, subgoal_count, factss, found_proof, ...} : prover_problem)
     slice =
   let
-    val (basic_slice, SMT_Slice options) = slice
+    val (basic_slice as (slice_size, _, _), SMT_Slice options) = slice
     val facts = facts_of_basic_slice basic_slice factss
     val ctxt = Proof.context_of state
 
     val {outcome, filter_result = {fact_ids, atp_proof, ...}, used_from, run_time} =
-      smt_filter name params state goal subgoal facts options
+      smt_filter name params state goal subgoal slice_size facts options
     val used_facts =
       (case fact_ids of
         NONE => map fst used_from

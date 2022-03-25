@@ -52,7 +52,7 @@ sig
      expect : string}
 
   val string_of_params : params -> string
-  val slice_timeout : int -> Time.time -> Time.time
+  val slice_timeout : int -> int -> Time.time -> Time.time
 
   type prover_problem =
     {comment : string,
@@ -164,12 +164,12 @@ fun maybe_filter_out_induction_rules induction_rules : fact list -> fact list =
     induction_rules = Exclude ?
       filter_out (fn ((_, (_, ATP_Problem_Generate.Induction)), _) => true | _ => false)
 
-fun slice_timeout slices timeout =
+fun slice_timeout slice_size slices timeout =
   let
     val max_threads = Multithreading.max_threads ()
     val batches = (slices + max_threads - 1) div max_threads
   in
-    seconds (Time.toReal timeout / Real.fromInt batches)
+    seconds (Real.fromInt slice_size * Time.toReal timeout / Real.fromInt batches)
   end
 
 type prover_problem =
@@ -239,7 +239,7 @@ fun facts_of_filter fact_filter factss =
     SOME facts => facts
   | NONE => snd (hd factss))
 
-fun facts_of_basic_slice (desired_slices, num_facts, fact_filter) factss =
+fun facts_of_basic_slice (_, num_facts, fact_filter) factss =
   facts_of_filter fact_filter factss
   |> take num_facts
 
