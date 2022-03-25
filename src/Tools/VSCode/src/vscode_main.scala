@@ -224,7 +224,7 @@ Usage: isabelle vscode [OPTIONS] [ARGUMENTS] [-- VSCODE_OPTIONS]
         "L" -> (_ => server_log = true),
         "R:" -> (arg => { logic = arg; logic_requirements = true }),
         "U" -> (_ => uninstall = true),
-        "V" -> (arg => vsix_path = Path.explode(arg)),
+        "V:" -> (arg => vsix_path = Path.explode(arg)),
         "d:" -> (arg => session_dirs = session_dirs ::: List(Path.explode(arg))),
         "i:" -> (arg => include_sessions = include_sessions ::: List(arg)),
         "l:" -> (arg => { logic = arg; logic_requirements = false }),
