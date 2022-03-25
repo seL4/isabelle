@@ -356,7 +356,6 @@ fun prover_slices_of_schedule ctxt factss
   in
     translate_schedule prover_slices (length schedule) schedule
     |> distinct (op =)
-    |> @{print} (*###*)
   end
 
 fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_facts, max_proofs,

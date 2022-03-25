@@ -170,8 +170,8 @@ val alt_ergo = (alt_ergoN, fn () => alt_ergo_config)
 
 val e_config : atp_config =
   {exec = (["E_HOME"], ["eprover-ho", "eprover"]),
-   arguments = fn _ => fn _ => fn _ => fn timeout => fn problem =>
-     ["--tstp-in --tstp-out --silent --auto-schedule --cpu-limit=" ^
+   arguments = fn _ => fn _ => fn extra_options => fn timeout => fn problem =>
+     ["--tstp-in --tstp-out --silent " ^ extra_options ^ " --cpu-limit=" ^
       string_of_int (to_secs 2 timeout) ^ " --proof-object=1 " ^ File.bash_path problem],
    proof_delims =
      [("# SZS output start CNFRefutation", "# SZS output end CNFRefutation")] @
@@ -183,21 +183,21 @@ val e_config : atp_config =
    prem_role = Conjecture,
    good_slices =
      let
-       val (format, type_enc, lam_trans) =
+       val (format, type_enc, lam_trans, extra_options) =
          if string_ord (getenv "E_VERSION", "2.7") <> LESS then
-           (THF (Monomorphic, {with_ite = true, with_let = false}, THF_Without_Choice), "mono_native_higher", keep_lamsN)
+           (THF (Monomorphic, {with_ite = true, with_let = false}, THF_Without_Choice), "mono_native_higher", keep_lamsN, "--auto-schedule=4 --serialize-schedule=true")
          else if string_ord (getenv "E_VERSION", "2.6") <> LESS then
-           (THF (Monomorphic, {with_ite = false, with_let = false}, THF_Without_Choice), "mono_native_higher", keep_lamsN)
+           (THF (Monomorphic, {with_ite = false, with_let = false}, THF_Without_Choice), "mono_native_higher", keep_lamsN, "--auto-schedule")
          else
-           (THF (Monomorphic, {with_ite = false, with_let = false}, THF_Lambda_Free), "mono_native_higher", combsN)
+           (THF (Monomorphic, {with_ite = false, with_let = false}, THF_Lambda_Free), "mono_native_higher", combsN, "--auto-schedule")
      in
        (* FUDGE *)
-       K [((1000 (* infinity *), 1024, meshN), (format, type_enc, lam_trans, false, "")),
-         ((1, 512, meshN), (format, type_enc, lam_trans, false, "")),
-         ((1, 128, mepoN), (format, type_enc, lam_trans, false, "")),
-         ((1, 724, meshN), (format, "poly_guards??", lam_trans, false, "")),
-         ((1, 256, mepoN), (format, type_enc, liftingN, false, "")),
-         ((1, 64, mashN), (format, type_enc, combsN, false, ""))]
+       K [((1000 (* infinity *), 1024, meshN), (format, type_enc, lam_trans, false, extra_options)),
+         ((1000 (* infinity *), 512, meshN), (format, type_enc, lam_trans, false, extra_options)),
+         ((1000 (* infinity *), 128, mepoN), (format, type_enc, lam_trans, false, extra_options)),
+         ((1000 (* infinity *), 724, meshN), (TF0, "poly_guards??", lam_trans, false, extra_options)),
+         ((1000 (* infinity *), 256, mepoN), (format, type_enc, liftingN, false, extra_options)),
+         ((1000 (* infinity *), 64, mashN), (format, type_enc, combsN, false, extra_options))]
      end,
    good_max_mono_iters = default_max_mono_iters,
    good_max_new_mono_instances = default_max_new_mono_instances}
