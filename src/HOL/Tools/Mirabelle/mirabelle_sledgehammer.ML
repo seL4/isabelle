@@ -23,7 +23,6 @@ val check_trivialK = "check_trivial" (*=BOOL: check if goals are "trivial"*)
 val keep_probsK = "keep_probs" (*=BOOL: keep temporary problem files created by sledgehammer*)
 val keep_proofsK = "keep_proofs" (*=BOOL: keep temporary proof files created by ATPs*)
 val proof_methodK = "proof_method" (*=STRING: how to reconstruct proofs (e.g. using metis)*)
-val term_orderK = "term_order" (*=STRING: term order (in E)*)
 
 (*defaults used in this Mirabelle action*)
 val check_trivial_default = false
@@ -271,7 +270,7 @@ fun proof_method_from_msg args msg =
 
 local
 
-fun run_sh params term_order keep pos state =
+fun run_sh params keep pos state =
   let
     fun set_file_name (SOME (dir, keep_probs, keep_proofs)) =
         let
@@ -285,12 +284,8 @@ fun run_sh params term_order keep pos state =
           #> Config.put SMT_Config.debug_files (dir ^ "/" ^ filename ^ "__" ^ serial_string ())
         end
       | set_file_name NONE = I
-    val state' =
-      state
-      |> Proof.map_context
-           (set_file_name keep
-            #> (Option.map (Config.put Sledgehammer_ATP_Systems.term_order)
-                  term_order |> the_default I))
+    val state' = state
+      |> Proof.map_context (set_file_name keep)
 
     val ((_, (sledgehammer_outcome, msg)), cpu_time) = Mirabelle.cpu_time (fn () =>
       Sledgehammer.run_sledgehammer params Sledgehammer_Prover.Normal NONE 1
@@ -304,8 +299,8 @@ fun run_sh params term_order keep pos state =
 
 in
 
-fun run_sledgehammer (params as {provers, ...}) output_dir term_order
-  keep_probs keep_proofs proof_method_from_msg thy_index trivial pos st =
+fun run_sledgehammer (params as {provers, ...}) output_dir keep_probs keep_proofs
+    proof_method_from_msg thy_index trivial pos st =
   let
     val thy = Proof.theory_of st
     val thy_name = Context.theory_name thy
@@ -321,7 +316,7 @@ fun run_sledgehammer (params as {provers, ...}) output_dir term_order
       else
         NONE
     val prover_name = hd provers
-    val (sledgehamer_outcome, msg, cpu_time) = run_sh params term_order keep pos st
+    val (sledgehamer_outcome, msg, cpu_time) = run_sh params keep pos st
     val (time_prover, change_data, proof_method_and_used_thms) =
       (case sledgehamer_outcome of
         Sledgehammer.SH_Some {used_facts, run_time, ...} =>
@@ -439,7 +434,6 @@ fun make_action ({arguments, timeout, output_dir, ...} : Mirabelle.action_contex
       Mirabelle.get_bool_argument arguments (check_trivialK, check_trivial_default)
     val keep_probs = Mirabelle.get_bool_argument arguments (keep_probsK, keep_probs_default)
     val keep_proofs = Mirabelle.get_bool_argument arguments (keep_proofsK, keep_proofs_default)
-    val term_order = AList.lookup (op =) arguments term_orderK
     val proof_method_from_msg = proof_method_from_msg arguments
 
     val params = Sledgehammer_Commands.default_params \<^theory> arguments
@@ -456,8 +450,8 @@ fun make_action ({arguments, timeout, output_dir, ...} : Mirabelle.action_contex
           let
             val trivial = check_trivial andalso try0 pre handle Timeout.TIMEOUT _ => false
             val (outcome, log1, change_data1, proof_method_and_used_thms) =
-              run_sledgehammer params output_dir term_order keep_probs keep_proofs
-                proof_method_from_msg theory_index trivial pos pre
+              run_sledgehammer params output_dir keep_probs keep_proofs proof_method_from_msg
+                theory_index trivial pos pre
             val (log2, change_data2) =
               (case proof_method_and_used_thms of
                 SOME (proof_method, used_thms) =>
