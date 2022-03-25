@@ -162,12 +162,6 @@ object VSCode_Main
           progress.echo("Installed Isabelle/VSCode extension " + vsix_path.expand +
             "\ninto directory: " + dir)
       }
-      val manifest = extension_manifest()
-      if (manifest.shasum != new_shasum) {
-        progress.echo_warning(
-          "Isabelle/VSCode extension " + vsix_path.expand +
-            "\ndisagrees with project sources" + extension_dir.expand)
-      }
     }
   }
 
