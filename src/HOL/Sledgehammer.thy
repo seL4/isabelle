@@ -35,7 +35,4 @@ ML_file \<open>Tools/Sledgehammer/sledgehammer.ML\<close>
 ML_file \<open>Tools/Sledgehammer/sledgehammer_commands.ML\<close>
 ML_file \<open>Tools/Sledgehammer/sledgehammer_tactics.ML\<close>
 
-lemma "2 + 2 = 5"
-  sledgehammer[verbose, mepo, overlord]
-
 end

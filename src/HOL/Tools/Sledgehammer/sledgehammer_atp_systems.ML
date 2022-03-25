@@ -7,7 +7,6 @@ Setup for supported ATPs.
 
 signature SLEDGEHAMMER_ATP_SYSTEMS =
 sig
-  type term_order = ATP_Problem.term_order
   type atp_format = ATP_Problem.atp_format
   type atp_formula_role = ATP_Problem.atp_formula_role
   type atp_failure = ATP_Proof.atp_failure
@@ -16,8 +15,7 @@ sig
   type atp_slice = atp_format * string * string * bool * string
   type atp_config =
     {exec : string list * string list,
-     arguments : Proof.context -> bool -> string -> Time.time -> Path.T ->
-       term_order * (unit -> (string * int) list) * (unit -> (string * real) list) -> string list,
+     arguments : Proof.context -> bool -> string -> Time.time -> Path.T -> string list,
      proof_delims : (string * string) list,
      known_failures : (atp_failure * string) list,
      prem_role : atp_formula_role,
@@ -27,16 +25,6 @@ sig
 
   val default_max_mono_iters : int
   val default_max_new_mono_instances : int
-  val term_order : string Config.T
-  val e_autoscheduleN : string
-  val e_fun_weightN : string
-  val e_sym_offset_weightN : string
-  val e_default_fun_weight : real Config.T
-  val e_fun_weight_base : real Config.T
-  val e_fun_weight_span : real Config.T
-  val e_default_sym_offs_weight : real Config.T
-  val e_sym_offs_weight_base : real Config.T
-  val e_sym_offs_weight_span : real Config.T
   val spass_H1SOS : string
   val spass_H2 : string
   val spass_H2LR0LT0 : string
@@ -51,7 +39,6 @@ sig
   val get_atp : theory -> string -> (unit -> atp_config)
   val is_atp_installed : theory -> string -> bool
   val refresh_systems_on_tptp : unit -> unit
-  val effective_term_order : Proof.context -> string -> term_order
   val local_atps : string list
   val remote_atps : string list
   val atps : string list
@@ -86,8 +73,7 @@ type atp_slice = atp_format * string * string * bool * string
 
 type atp_config =
   {exec : string list * string list,
-   arguments : Proof.context -> bool -> string -> Time.time -> Path.T ->
-     term_order * (unit -> (string * int) list) * (unit -> (string * real) list) -> string list,
+   arguments : Proof.context -> bool -> string -> Time.time -> Path.T -> string list,
    proof_delims : (string * string) list,
    known_failures : (atp_failure * string) list,
    prem_role : atp_formula_role,
@@ -139,23 +125,12 @@ fun to_secs min time = Int.max (min, (Time.toMilliseconds time + 999) div 1000)
 val sosN = "sos"
 val no_sosN = "no_sos"
 
-val smartN = "smart"
-(* val kboN = "kbo" *)
-val lpoN = "lpo"
-val xweightsN = "_weights"
-val xprecN = "_prec"
-val xsimpN = "_simp" (* SPASS-specific *)
-
-(* Possible values for "atp_term_order":
-   "smart", "(kbo|lpo)(_weights)?(_prec|_simp)?" *)
-val term_order =
-  Attrib.setup_config_string \<^binding>\<open>atp_term_order\<close> (K smartN)
 
 (* agsyHOL *)
 
 val agsyhol_config : atp_config =
   {exec = (["AGSYHOL_HOME"], ["agsyHOL"]),
-   arguments = fn _ => fn _ => fn _ => fn timeout => fn problem => fn _ =>
+   arguments = fn _ => fn _ => fn _ => fn timeout => fn problem =>
      ["--proof --time-out " ^ string_of_int (to_secs 1 timeout) ^ " " ^ File.bash_path problem],
    proof_delims = tstp_proof_delims,
    known_failures = known_szs_status_failures,
@@ -173,7 +148,7 @@ val agsyhol = (agsyholN, fn () => agsyhol_config)
 
 val alt_ergo_config : atp_config =
   {exec = (["WHY3_HOME"], ["why3"]),
-   arguments = fn _ => fn _ => fn _ => fn timeout => fn problem => fn _ =>
+   arguments = fn _ => fn _ => fn _ => fn timeout => fn problem =>
      ["--format tptp --prover 'Alt-Ergo,0.95.2,' --timelimit " ^ string_of_int (to_secs 1 timeout) ^
       " " ^ File.bash_path problem],
    proof_delims = [],
@@ -193,81 +168,11 @@ val alt_ergo = (alt_ergoN, fn () => alt_ergo_config)
 
 (* E *)
 
-val e_autoscheduleN = "auto"
-val e_fun_weightN = "fun_weight"
-val e_sym_offset_weightN = "sym_offset_weight"
-
-(* FUDGE *)
-val e_default_fun_weight =
-  Attrib.setup_config_real \<^binding>\<open>atp_e_default_fun_weight\<close> (K 20.0)
-val e_fun_weight_base =
-  Attrib.setup_config_real \<^binding>\<open>atp_e_fun_weight_base\<close> (K 0.0)
-val e_fun_weight_span =
-  Attrib.setup_config_real \<^binding>\<open>atp_e_fun_weight_span\<close> (K 40.0)
-val e_default_sym_offs_weight =
-  Attrib.setup_config_real \<^binding>\<open>atp_e_default_sym_offs_weight\<close> (K 1.0)
-val e_sym_offs_weight_base =
-  Attrib.setup_config_real \<^binding>\<open>atp_e_sym_offs_weight_base\<close> (K ~20.0)
-val e_sym_offs_weight_span =
-  Attrib.setup_config_real \<^binding>\<open>atp_e_sym_offs_weight_span\<close> (K 60.0)
-
-fun e_selection_heuristic_case heuristic fw sow =
-  if heuristic = e_fun_weightN then fw
-  else if heuristic = e_sym_offset_weightN then sow
-  else raise Fail ("unexpected " ^ quote heuristic)
-
-fun scaled_e_selection_weight ctxt heuristic w =
-  w * Config.get ctxt (e_selection_heuristic_case heuristic
-                           e_fun_weight_span e_sym_offs_weight_span)
-  + Config.get ctxt (e_selection_heuristic_case heuristic
-                         e_fun_weight_base e_sym_offs_weight_base)
-  |> Real.ceil |> signed_string_of_int
-
-fun e_selection_weight_arguments ctxt heuristic sel_weights =
-  if heuristic = e_fun_weightN orelse heuristic = e_sym_offset_weightN then
-    (* supplied by Stephan Schulz *)
-    "--split-clauses=4 --split-reuse-defs --simul-paramod --forward-context-sr \
-    \--destructive-er-aggressive --destructive-er --presat-simplify \
-    \--prefer-initial-clauses -winvfreqrank -c1 -Ginvfreqconjmax -F1 \
-    \--delete-bad-limit=150000000 -WSelectMaxLComplexAvoidPosPred -H'(4*" ^
-    e_selection_heuristic_case heuristic "FunWeight" "SymOffsetWeight" ^
-    "(SimulateSOS," ^
-    (e_selection_heuristic_case heuristic
-         e_default_fun_weight e_default_sym_offs_weight
-     |> Config.get ctxt |> Real.ceil |> signed_string_of_int) ^
-    ",20,1.5,1.5,1" ^
-    (sel_weights ()
-     |> map (fn (s, w) => "," ^ s ^ ":" ^
-                          scaled_e_selection_weight ctxt heuristic w)
-     |> implode) ^
-    "),3*ConjectureGeneralSymbolWeight(PreferNonGoals,200,100,200,50,50,1,100,\
-    \1.5,1.5,1),1*Clauseweight(PreferProcessed,1,1,1),1*\
-    \FIFOWeight(PreferProcessed))' "
-  else
-    "--auto-schedule "
-
-val e_ord_weights = map (fn (s, w) => s ^ ":" ^ string_of_int w) #> space_implode ","
-fun e_ord_precedence [_] = ""
-  | e_ord_precedence info = info |> map fst |> space_implode "<"
-
-fun e_term_order_info_arguments false false _ = ""
-  | e_term_order_info_arguments gen_weights gen_prec ord_info =
-    let val ord_info = ord_info () in
-      (if gen_weights then "--order-weights='" ^ e_ord_weights ord_info ^ "' " else "") ^
-      (if gen_prec then "--precedence='" ^ e_ord_precedence ord_info ^ "' " else "")
-    end
-
 val e_config : atp_config =
   {exec = (["E_HOME"], ["eprover-ho", "eprover"]),
-   arguments = fn ctxt => fn _ => fn heuristic => fn timeout => fn problem =>
-     fn ({is_lpo, gen_weights, gen_prec, ...}, ord_info, sel_weights) =>
-       ["--tstp-in --tstp-out --silent " ^
-        e_selection_weight_arguments ctxt heuristic sel_weights ^
-        e_term_order_info_arguments gen_weights gen_prec ord_info ^
-        "--term-ordering=" ^ (if is_lpo then "LPO4" else "KBO6") ^ " " ^
-        "--cpu-limit=" ^ string_of_int (to_secs 2 timeout) ^
-        " --proof-object=1 " ^
-        File.bash_path problem],
+   arguments = fn _ => fn _ => fn _ => fn timeout => fn problem =>
+     ["--tstp-in --tstp-out --silent --auto-schedule --cpu-limit=" ^
+      string_of_int (to_secs 2 timeout) ^ " --proof-object=1 " ^ File.bash_path problem],
    proof_delims =
      [("# SZS output start CNFRefutation", "# SZS output end CNFRefutation")] @
      tstp_proof_delims,
@@ -287,12 +192,12 @@ val e_config : atp_config =
            (THF (Monomorphic, {with_ite = false, with_let = false}, THF_Lambda_Free), "mono_native_higher", combsN)
      in
        (* FUDGE *)
-       K [((1000 (* infinity *), 1024, meshN), (format, type_enc, lam_trans, false, e_autoscheduleN)),
-         ((1, 512, meshN), (format, type_enc, lam_trans, false, e_sym_offset_weightN)),
-         ((1, 128, mepoN), (format, type_enc, lam_trans, false, e_fun_weightN)),
-         ((1, 724, meshN), (format, "poly_guards??", lam_trans, false, e_sym_offset_weightN)),
-         ((1, 256, mepoN), (format, type_enc, liftingN, false, e_fun_weightN)),
-         ((1, 64, mashN), (format, type_enc, combsN, false, e_fun_weightN))]
+       K [((1000 (* infinity *), 1024, meshN), (format, type_enc, lam_trans, false, "")),
+         ((1, 512, meshN), (format, type_enc, lam_trans, false, "")),
+         ((1, 128, mepoN), (format, type_enc, lam_trans, false, "")),
+         ((1, 724, meshN), (format, "poly_guards??", lam_trans, false, "")),
+         ((1, 256, mepoN), (format, type_enc, liftingN, false, "")),
+         ((1, 64, mashN), (format, type_enc, combsN, false, ""))]
      end,
    good_max_mono_iters = default_max_mono_iters,
    good_max_new_mono_instances = default_max_new_mono_instances}
@@ -304,7 +209,7 @@ val e = (eN, fn () => e_config)
 
 val iprover_config : atp_config =
   {exec = (["IPROVER_HOME"], ["iproveropt", "iprover"]),
-   arguments = fn _ => fn _ => fn _ => fn timeout => fn problem => fn _ =>
+   arguments = fn _ => fn _ => fn _ => fn timeout => fn problem =>
      ["--clausifier \"$VAMPIRE_HOME\"/vampire " ^
       "--clausifier_options \"--mode clausify\" " ^
       "--time_out_real " ^ string_of_real (Time.toReal timeout) ^ " " ^ File.bash_path problem],
@@ -330,7 +235,7 @@ val iprover = (iproverN, fn () => iprover_config)
 
 val leo2_config : atp_config =
   {exec = (["LEO2_HOME"], ["leo.opt", "leo"]),
-   arguments = fn _ => fn full_proofs => fn _ => fn timeout => fn problem => fn _ =>
+   arguments = fn _ => fn full_proofs => fn _ => fn timeout => fn problem =>
      ["--foatp e --atp e=\"$E_HOME\"/eprover \
       \--atp epclextract=\"$E_HOME\"/epclextract \
       \--proofoutput 1 --timeout " ^ string_of_int (to_secs 1 timeout) ^ " " ^
@@ -356,7 +261,7 @@ val leo2 = (leo2N, fn () => leo2_config)
 (* Include choice? Disabled now since it's disabled for Satallax as well. *)
 val leo3_config : atp_config =
   {exec = (["LEO3_HOME"], ["leo3"]),
-   arguments = fn _ => fn full_proofs => fn _ => fn timeout => fn problem => fn _ =>
+   arguments = fn _ => fn full_proofs => fn _ => fn timeout => fn problem =>
      [File.bash_path problem ^ " " ^ "--atp cvc=\"$CVC4_SOLVER\" --atp e=\"$E_HOME\"/eprover \
       \-p -t " ^ string_of_int (to_secs 1 timeout) ^ " " ^
       (if full_proofs then "--nleq --naeq " else "")],
@@ -378,7 +283,7 @@ val leo3 = (leo3N, fn () => leo3_config)
 (* Choice is disabled until there is proper reconstruction for it. *)
 val satallax_config : atp_config =
   {exec = (["SATALLAX_HOME"], ["satallax.opt", "satallax"]),
-   arguments = fn _ => fn _ => fn _ => fn timeout => fn problem => fn _ =>
+   arguments = fn _ => fn _ => fn _ => fn timeout => fn problem =>
      [(case getenv "E_HOME" of
         "" => ""
       | home => "-E " ^ home ^ "/eprover ") ^
@@ -410,7 +315,7 @@ val spass_config : atp_config =
     val format = DFG Monomorphic
   in
     {exec = (["SPASS_HOME"], ["SPASS"]),
-     arguments = fn _ => fn full_proofs => fn extra_options => fn timeout => fn problem => fn _ =>
+     arguments = fn _ => fn full_proofs => fn extra_options => fn timeout => fn problem =>
        ["-Isabelle=1 " ^ (if full_proofs then "-CNFRenaming=0 -Splits=0 " else "") ^
         "-TimeLimit=" ^ string_of_int (to_secs 1 timeout) ^ " " ^ File.bash_path problem
         |> extra_options <> "" ? prefix (extra_options ^ " ")],
@@ -454,7 +359,7 @@ val vampire_full_proof_options =
 
 val vampire_config : atp_config =
   {exec = (["VAMPIRE_HOME"], ["vampire"]),
-   arguments = fn _ => fn full_proofs => fn sos => fn timeout => fn problem => fn _ =>
+   arguments = fn _ => fn full_proofs => fn sos => fn timeout => fn problem =>
      [vampire_basic_options ^ (if full_proofs then " " ^ vampire_full_proof_options else "") ^
        " -t " ^ string_of_int (to_secs 1 timeout) ^ " --input_file " ^ File.bash_path problem
        |> sos = sosN ? prefix "--sos on "],
@@ -494,7 +399,7 @@ val zipperposition_config : atp_config =
       THF (Polymorphic, {with_ite = true, with_let = false}, THF_Without_Choice)
   in
     {exec = (["ZIPPERPOSITION_HOME"], ["zipperposition"]),
-     arguments = fn _ => fn _ => fn extra_options => fn timeout => fn problem => fn _ =>
+     arguments = fn _ => fn _ => fn extra_options => fn timeout => fn problem =>
        ["--input tptp", "--output tptp", "--timeout " ^ Time.toString timeout, extra_options,
         File.bash_path problem],
      proof_delims = tstp_proof_delims,
@@ -557,7 +462,7 @@ val isabelle_scala_function = (["SCALA_HOME"], ["bin/scala"])
 
 fun remote_config system_name system_versions proof_delims known_failures prem_role good_slice =
   {exec = isabelle_scala_function,
-   arguments = fn _ => fn _ => fn command => fn timeout => fn problem => fn _ =>
+   arguments = fn _ => fn _ => fn command => fn timeout => fn problem =>
      [the_remote_system system_name system_versions,
       Isabelle_System.absolute_path problem,
       command, string_of_int (Int.min (max_remote_secs, to_secs 1 timeout) * 1000)],
@@ -615,7 +520,7 @@ val remote_zipperposition =
 
 fun dummy_config prem_role format type_enc uncurried_aliases : atp_config =
   {exec = (["ISABELLE_ATP"], ["scripts/dummy_atp"]),
-   arguments = K (K (K (K (K (K []))))),
+   arguments = K (K (K (K (K [])))),
    proof_delims = [],
    known_failures = known_szs_status_failures,
    prem_role = prem_role,
@@ -657,18 +562,6 @@ fun is_atp_installed thy name =
 
 fun refresh_systems_on_tptp () =
   Synchronized.change remote_systems (fn _ => get_remote_systems ())
-
-fun effective_term_order ctxt atp =
-  let val ord = Config.get ctxt term_order in
-    if ord = smartN then
-      {is_lpo = false, gen_weights = (atp = spassN), gen_prec = (atp = spassN),
-       gen_simp = false}
-    else
-      let val is_lpo = String.isSubstring lpoN ord in
-        {is_lpo = is_lpo, gen_weights = not is_lpo andalso String.isSubstring xweightsN ord,
-         gen_prec = String.isSubstring xprecN ord, gen_simp = String.isSubstring xsimpN ord}
-      end
-  end
 
 val local_atps =
   [agsyhol, alt_ergo, e, iprover, leo2, leo3, satallax, spass, vampire, zipperposition]

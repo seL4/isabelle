@@ -117,7 +117,6 @@ sig
     mode -> string -> bool -> bool -> bool -> term list -> term ->
     ((string * stature) * term) list -> string atp_problem * string Symtab.table
     * (string * term) list * int Symtab.table
-  val atp_problem_selection_weights : string atp_problem -> (string * real) list
   val atp_problem_term_order_info : string atp_problem -> (string * int) list
 end;
 
@@ -2922,42 +2921,6 @@ val hyp_weight = 0.1
 val fact_min_weight = 0.2
 val fact_max_weight = 1.0
 val type_info_default_weight = 0.8
-
-(* Weights are from 0.0 (most important) to 1.0 (least important). *)
-fun atp_problem_selection_weights problem =
-  let
-    fun add_term_weights weight (ATerm ((s, _), tms)) =
-        is_tptp_user_symbol s ? Symtab.default (s, weight) #> fold (add_term_weights weight) tms
-      | add_term_weights weight (AAbs ((_, tm), args)) =
-        add_term_weights weight tm #> fold (add_term_weights weight) args
-    fun add_line_weights weight (Formula (_, _, phi, _, _)) =
-        formula_fold NONE (K (add_term_weights weight)) phi
-      | add_line_weights _ _ = I
-    fun add_conjectures_weights [] = I
-      | add_conjectures_weights conjs =
-        let val (hyps, conj) = split_last conjs in
-          add_line_weights conj_weight conj
-          #> fold (add_line_weights hyp_weight) hyps
-        end
-    fun add_facts_weights facts =
-      let
-        val num_facts = length facts
-        fun weight_of j =
-          fact_min_weight + (fact_max_weight - fact_min_weight) * Real.fromInt j
-                            / Real.fromInt num_facts
-      in
-        fold_index (fn (i, fact) => add_line_weights (weight_of i) fact) facts
-      end
-    val get = these o AList.lookup (op =) problem
-  in
-    Symtab.empty
-    |> add_conjectures_weights (get free_typesN @ get conjsN)
-    |> add_facts_weights (get factsN)
-    |> fold (fold (add_line_weights type_info_default_weight) o get)
-            [explicit_declsN, subclassesN, tconsN]
-    |> Symtab.dest
-    |> sort (prod_ord Real.compare string_ord o apply2 swap)
-  end
 
 (* Ugly hack: may make innocent victims (collateral damage) *)
 fun may_be_app s args = String.isPrefix app_op_name s andalso length args = 2

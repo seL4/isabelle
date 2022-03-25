@@ -204,12 +204,7 @@ fun run_atp mode name
           (state, subgoal, name, "Generating ATP problem in " ^
              string_of_int (Time.toMilliseconds elapsed) ^ " ms"))
 
-        fun sel_weights () = atp_problem_selection_weights atp_problem
-        fun ord_info () = atp_problem_term_order_info atp_problem
-
-        val ord = effective_term_order ctxt name
         val args = arguments ctxt full_proofs extra run_timeout prob_path
-          (ord, ord_info, sel_weights)
         val command = space_implode " " (File.bash_path executable :: args)
 
         fun run_command () =
@@ -220,9 +215,8 @@ fun run_atp mode name
             let val res = Isabelle_System.bash_process (Bash.script command |> Bash.redirect)
             in (Process_Result.out res, Process_Result.timing_elapsed res) end
 
-        val _ =
-          atp_problem
-          |> lines_of_atp_problem good_format ord ord_info
+        val _ = atp_problem
+          |> lines_of_atp_problem good_format (fn () => atp_problem_term_order_info atp_problem)
           |> (exec <> isabelle_scala_function) ?
             cons ("% " ^ command ^ "\n" ^ (if comment = "" then "" else "% " ^ comment ^ "\n"))
           |> File.write_list prob_path
