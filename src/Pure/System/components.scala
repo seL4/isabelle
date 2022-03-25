@@ -126,7 +126,7 @@ object Components
 
   sealed case class SHA1_Digest(digest: SHA1.Digest, name: String)
   {
-    override def toString: String = digest.toString + "  " + name
+    override def toString: String = digest.shasum(name)
   }
 
   def read_components_sha1(lines: List[String] = Nil): List[SHA1_Digest] =
