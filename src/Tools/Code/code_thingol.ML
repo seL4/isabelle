@@ -279,11 +279,13 @@ fun map_terms_bottom_up f (t as IConst _) = f t
         clauses = (map o apply2) (map_terms_bottom_up f) clauses,
         primitive = map_terms_bottom_up f t0 });
 
-fun adjungate_clause ctxt vs_map ts (body as IConst { sym = Constant c, ... }) =
+fun adjungate_clause ctxt vs_map ts
+    (body as IConst { sym = Constant c, ... }) =
       if Code.is_undefined (Proof_Context.theory_of ctxt) c
       then []
       else [(ts, body)]
-  | adjungate_clause ctxt vs_map ts (body as ICase { term = IVar (SOME v), clauses = clauses, ... }) =
+  | adjungate_clause ctxt vs_map ts
+    (body as ICase { term = IVar (SOME v), clauses = clauses, ... }) =
       let
         val vs = (fold o fold_varnames) (insert (op =)) ts [];
         fun varnames_disjunctive pat =
@@ -300,9 +302,9 @@ fun adjungate_clause ctxt vs_map ts (body as IConst { sym = Constant c, ... }) =
           orelse not (exists_var body' v)) clauses
           andalso forall (varnames_disjunctive o fst) clauses
         then case AList.lookup (op =) vs_map v
-         of SOME i => maps (fn (pat', body') =>
+         of SOME i => clauses |> maps (fn (pat', body') =>
               adjungate_clause ctxt (AList.delete (op =) v vs_map)
-                (nth_map i (K pat') ts |> map (purge_unused_vars_in body')) body') clauses
+                (nth_map i (K pat') ts |> map (purge_unused_vars_in body')) body')
           | NONE => [(ts, body)]
         else [(ts, body)]
       end
@@ -734,14 +736,17 @@ and translate_case ctxt algbr eqngr permissive some_thm (t_pos, case_pats) (c_ty
     fun distill_clause tys t =
       let
         val (vs, body) = unfold_abs_eta tys t;
-        val vs_map = fold_index (fn (i, (SOME v, _)) => cons (v, i) | _ => I) vs [];
+        val vs_map =
+          fold_index (fn (i, (SOME v, _)) => cons (v, i) | _ => I) vs [];
         val ts = map (IVar o fst) vs;
       in adjungate_clause ctxt vs_map ts body end;
     fun mk_clauses [] ty (t, ts_clause) =
-          (t, map (fn ([t], body) => (t, body)) (distill_clause [ty] (the_single ts_clause)))
+          (t, map (fn ([t], body) => (t, body))
+            (distill_clause [ty] (the_single ts_clause)))
       | mk_clauses constrs ty (t, ts_clause) =
           (t, maps (fn ((constr as IConst { dom = tys, ... }, n), t) =>
-            map (fn (ts, body) => (constr `$$ ts, body)) (distill_clause (take n tys) t))
+            map (fn (ts, body) => (constr `$$ ts, body))
+              (distill_clause (take n tys) t))
               (constrs ~~ ts_clause));
   in
     translate_const ctxt algbr eqngr permissive some_thm (c_ty, NONE)
