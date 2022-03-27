@@ -113,7 +113,7 @@ fun args_number thy = length o binder_types o const_typ thy;
 
 fun devarify ty =
   let
-    val tys = fold_atyps (fn TVar vi_sort => AList.update (op =) vi_sort) ty [];
+    val tys = build (fold_atyps (fn TVar vi_sort => AList.update (op =) vi_sort) ty);
     val vs = Name.invent Name.context Name.aT (length tys);
     val mapping = map2 (fn v => fn (vi, sort) => (vi, TFree (v, sort))) vs tys;
   in Term.typ_subst_TVars mapping ty end;
@@ -795,7 +795,7 @@ fun mk_desymbolization pre post mk vs =
 
 fun desymbolize_tvars thy thms =
   let
-    val tvs = fold (Term.add_tvars o Thm.prop_of) thms [];
+    val tvs = build (fold (Term.add_tvars o Thm.prop_of) thms);
     val instT =
       mk_desymbolization (unprefix "'") (prefix "'") (Thm.global_ctyp_of thy o TVar) tvs;
   in map (Thm.instantiate (TVars.make instT, Vars.empty)) thms end;
@@ -963,8 +963,8 @@ fun cert_of_eqns ctxt c [] = Equations (dummy_thm ctxt c, [])
             ^ string_of_const thy c ^ "\n" ^ Thm.string_of_thm_global thy thm)) thms;
         val tvars_of = build_rev o Term.add_tvarsT;
         val vss = map (tvars_of o snd o head_eqn) thms;
-        fun inter_sorts vs =
-          fold (curry (Sorts.inter_sort (Sign.classes_of thy)) o snd) vs [];
+        val inter_sorts =
+          build o fold (curry (Sorts.inter_sort (Sign.classes_of thy)) o snd);
         val sorts = map_transpose inter_sorts vss;
         val vts = Name.invent_names Name.context Name.aT sorts;
         fun instantiate vs =
@@ -1046,7 +1046,7 @@ fun typargs_deps_of_cert thy (Nothing cert_thm) =
         val equations = if null propers then [] else
           Thm.prop_of cert_thm
           |> Logic.dest_conjunction_balanced (length propers);
-      in (vs, fold (add_rhss_of_eqn thy) equations []) end
+      in (vs, build (fold (add_rhss_of_eqn thy) equations)) end
   | typargs_deps_of_cert thy (Projection (t, _)) =
       (fst (typscheme_projection thy t), add_rhss_of_eqn thy t [])
   | typargs_deps_of_cert thy (Abstract (abs_thm, tyco)) =
@@ -1168,7 +1168,7 @@ fun raw_case_cert thm =
       in (param, co) end;
     fun analyze_cases cases =
       let
-        val co_list = fold (AList.update (op =) o dest_case) cases [];
+        val co_list = build (fold (AList.update (op =) o dest_case) cases);
       in map (AList.lookup (op =) co_list) params end;
     fun analyze_let t =
       let

@@ -211,8 +211,8 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
           end
       | print_def const (vs, ty) eqs =
           let
-            val tycos = fold (fn ((ts, t), _) =>
-              fold Code_Thingol.add_tyconames (t :: ts)) eqs [];
+            val tycos = build (fold (fn ((ts, t), _) =>
+              fold Code_Thingol.add_tyconames (t :: ts)) eqs);
             val tyvars = reserved
               |> intro_base_names
                    (is_none o tyco_syntax) deresolve_tyco tycos

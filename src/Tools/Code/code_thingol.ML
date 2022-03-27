@@ -287,12 +287,12 @@ fun adjungate_clause ctxt vs_map ts
   | adjungate_clause ctxt vs_map ts
     (body as ICase { term = IVar (SOME v), clauses = clauses, ... }) =
       let
-        val vs = (fold o fold_varnames) (insert (op =)) ts [];
+        val vs = build ((fold o fold_varnames) (insert (op =)) ts);
         fun varnames_disjunctive pat =
-          null (inter (op =) vs (fold_varnames (insert (op =)) pat []));
+          null (inter (op =) vs (build (fold_varnames (insert (op =)) pat)));
         fun purge_unused_vars_in t =
           let
-            val vs = fold_varnames (insert (op =)) t [];
+            val vs = build (fold_varnames (insert (op =)) t);
           in
             map_terms_bottom_up (fn IVar (SOME v) =>
               IVar (if member (op =) vs v then SOME v else NONE) | t => t)
@@ -342,8 +342,8 @@ datatype stmt =
 
 type program = stmt Code_Symbol.Graph.T;
 
-fun unimplemented program =
-  Code_Symbol.Graph.fold (fn (Constant c, (NoStmt, _)) => cons c | _ => I) program [];
+val unimplemented =
+  build o Code_Symbol.Graph.fold (fn (Constant c, (NoStmt, _)) => cons c | _ => I);
 
 fun implemented_deps program =
   Code_Symbol.Graph.keys program
@@ -737,7 +737,7 @@ and translate_case ctxt algbr eqngr permissive some_thm (t_pos, case_pats) (c_ty
       let
         val (vs, body) = unfold_abs_eta tys t;
         val vs_map =
-          fold_index (fn (i, (SOME v, _)) => cons (v, i) | _ => I) vs [];
+          build (fold_index (fn (i, (SOME v, _)) => cons (v, i) | _ => I) vs);
         val ts = map (IVar o fst) vs;
       in adjungate_clause ctxt vs_map ts body end;
     fun mk_clauses [] ty (t, ts_clause) =
