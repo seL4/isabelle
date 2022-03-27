@@ -279,15 +279,15 @@ fun map_terms_bottom_up f (t as IConst _) = f t
         clauses = (map o apply2) (map_terms_bottom_up f) clauses,
         primitive = map_terms_bottom_up f t0 });
 
-fun adjungate_clause ctxt vs_map ts
+fun distill_minimized_clause' ctxt vs_map pat_args
     (body as IConst { sym = Constant c, ... }) =
       if Code.is_undefined (Proof_Context.theory_of ctxt) c
       then []
-      else [(ts, body)]
-  | adjungate_clause ctxt vs_map ts
+      else [(pat_args, body)]
+  | distill_minimized_clause' ctxt vs_map pat_args
     (body as ICase { term = IVar (SOME v), clauses = clauses, ... }) =
       let
-        val vs = build ((fold o fold_varnames) (insert (op =)) ts);
+        val vs = build ((fold o fold_varnames) (insert (op =)) pat_args);
         fun varnames_disjunctive pat =
           null (inter (op =) vs (build (fold_varnames (insert (op =)) pat)));
         fun purge_unused_vars_in t =
@@ -303,12 +303,12 @@ fun adjungate_clause ctxt vs_map ts
           andalso forall (varnames_disjunctive o fst) clauses
         then case AList.lookup (op =) vs_map v
          of SOME i => clauses |> maps (fn (pat', body') =>
-              adjungate_clause ctxt (AList.delete (op =) v vs_map)
-                (nth_map i (K pat') ts |> map (purge_unused_vars_in body')) body')
-          | NONE => [(ts, body)]
-        else [(ts, body)]
+              distill_minimized_clause' ctxt (AList.delete (op =) v vs_map)
+                (nth_map i (K pat') pat_args |> map (purge_unused_vars_in body')) body')
+          | NONE => [(pat_args, body)]
+        else [(pat_args, body)]
       end
-  | adjungate_clause ctxt vs_map ts body = [(ts, body)];
+  | distill_minimized_clause' ctxt vs_map pat_args body = [(pat_args, body)];
 
 fun exists_dict_var f (Dict (_, d)) = exists_plain_dict_var_pred f d
 and exists_plain_dict_var_pred f (Dict_Const (_, dss)) = exists_dictss_var f dss
@@ -733,20 +733,20 @@ and translate_case ctxt algbr eqngr permissive some_thm (t_pos, case_pats) (c_ty
   let
     val (ty, constrs, split_clauses) =
       preprocess_pattern_schema ctxt (t_pos, case_pats) (c_ty, ts);
-    fun distill_clause tys t =
+    fun distill_minimized_clause tys t =
       let
         val (vs, body) = unfold_abs_eta tys t;
         val vs_map =
           build (fold_index (fn (i, (SOME v, _)) => cons (v, i) | _ => I) vs);
-        val ts = map (IVar o fst) vs;
-      in adjungate_clause ctxt vs_map ts body end;
+        val pat_args = map (IVar o fst) vs;
+      in distill_minimized_clause' ctxt vs_map pat_args body end;
     fun mk_clauses [] ty (t, ts_clause) =
-          (t, map (fn ([t], body) => (t, body))
-            (distill_clause [ty] (the_single ts_clause)))
+          (t, map (fn ([pat], body) => (pat, body))
+            (distill_minimized_clause [ty] (the_single ts_clause)))
       | mk_clauses constrs ty (t, ts_clause) =
           (t, maps (fn ((constr as IConst { dom = tys, ... }, n), t) =>
-            map (fn (ts, body) => (constr `$$ ts, body))
-              (distill_clause (take n tys) t))
+            map (fn (pat_args, body) => (constr `$$ pat_args, body))
+              (distill_minimized_clause (take n tys) t))
               (constrs ~~ ts_clause));
   in
     translate_const ctxt algbr eqngr permissive some_thm (c_ty, NONE)
