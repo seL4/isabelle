@@ -284,14 +284,9 @@ fun map_terms_bottom_up f (t as IConst _) = f t
         clauses = (map o apply2) (map_terms_bottom_up f) clauses,
         primitive = map_terms_bottom_up f t0 });
 
-fun distill_minimized_clause ctxt tys t =
+fun distill_minimized_clause tys t =
   let
     fun distill vs_map pat_args
-        (body as IConst { sym = Constant c, ... }) =
-          if Code.is_undefined (Proof_Context.theory_of ctxt) c
-          then []
-          else [(pat_args, body)]
-      | distill vs_map pat_args
         (body as ICase { term = IVar (SOME v), clauses = clauses, ... }) =
           let
             val vs = build (fold add_varnames pat_args);
@@ -745,14 +740,21 @@ and translate_case ctxt algbr eqngr permissive some_thm pattern_schema (c_ty, ts
   let
     val (ty, constrs, split_clauses) =
       preprocess_pattern_schema ctxt pattern_schema (c_ty, ts);
-    fun mk_clauses [] ty (t, ts_clause) =
-          (t, map (fn ([pat], body) => (pat, body))
-            (distill_minimized_clause ctxt [ty] (the_single ts_clause)))
-      | mk_clauses constrs ty (t, ts_clause) =
-          (t, maps (fn ((constr as IConst { dom = tys, ... }, n), t) =>
+    fun is_undefined_clause (_, IConst { sym = Constant c, ... }) =
+          Code.is_undefined (Proof_Context.theory_of ctxt) c
+      | is_undefined_clause _ =
+          false;
+    fun distill_clauses constrs ty ts =
+      let
+        val (t, ts_clause) = split_clauses ts;
+        val clauses = if null constrs
+          then map (fn ([pat], body) => (pat, body))
+            (distill_minimized_clause [ty] (the_single ts_clause))
+          else maps (fn ((constr as IConst { dom = tys, ... }, n), t) =>
             map (fn (pat_args, body) => (constr `$$ pat_args, body))
-              (distill_minimized_clause ctxt (take n tys) t))
-              (constrs ~~ ts_clause));
+              (distill_minimized_clause (take n tys) t))
+              (constrs ~~ ts_clause);
+      in (t, filter_out is_undefined_clause clauses) end;
   in
     translate_const ctxt algbr eqngr permissive some_thm (c_ty, NONE)
     ##>> fold_map (fn (constr, n) => translate_const ctxt algbr eqngr permissive some_thm (constr, NONE)
@@ -760,7 +762,7 @@ and translate_case ctxt algbr eqngr permissive some_thm pattern_schema (c_ty, ts
     ##>> translate_typ ctxt algbr eqngr permissive ty
     ##>> fold_map (translate_term ctxt algbr eqngr permissive some_thm o rpair NONE) ts
     #>> (fn (((t_app, constrs), ty), ts) =>
-      case mk_clauses constrs ty (split_clauses ts) of (t, clauses) =>
+      case distill_clauses constrs ty ts of (t, clauses) =>
         ICase { term = t, typ = ty, clauses = clauses, primitive = t_app `$$ ts })
   end
 and translate_app_case ctxt algbr eqngr permissive some_thm (num_args, pattern_schema) ((c, ty), ts) =
