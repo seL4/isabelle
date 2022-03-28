@@ -35,9 +35,9 @@ fun parse_proof
     val id_of_index = Integer.add num_ll_defs
     val index_of_id = Integer.add (~ num_ll_defs)
 
-    fun step_of_assume j (_, th) =
+    fun step_of_assume j ((_, role), th) =
       Verit_Proof.VeriT_Step
-        {id = SMTLIB_Interface.assert_name_of_role_and_index SMT_Util.Axiom (id_of_index j),
+        {id = SMTLIB_Interface.assert_name_of_role_and_index role (id_of_index j),
         rule = input_rule, prems = [], proof_ctxt = [], concl = Thm.prop_of th, fixes = []}
 
     val (actual_steps, _) = Verit_Proof.parse typs terms output ctxt
@@ -60,10 +60,11 @@ fun parse_proof
     val prem_ids = map id_of_index (prems_i upto prems_i + num_prems - 1)
     val fact_ids' =
       map_filter (fn j =>
-        let val (i, _) = nth assms j in
+        let val ((i, _), _) = nth assms j in
           try (apsnd (nth xfacts)) (id_of_index j, i - facts_i)
         end) used_assm_js
-    val helper_ids' = filter (fn (i, _) => i >= helpers_i) used_assms
+    val helper_ids' =
+      map_filter (fn ((i, _), thm) => if i >= helpers_i then SOME (i, thm) else NONE) used_assms
 
     val fact_helper_ts =
       map (fn (_, th) => (ATP_Util.short_thm_name ctxt th, Thm.prop_of th)) helper_ids' @

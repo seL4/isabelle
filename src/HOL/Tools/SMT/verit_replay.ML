@@ -272,7 +272,7 @@ fun replay outer_ctxt
     fun cond rule = rule = Verit_Proof.input_rule
     val add_asssert = SMT_Replay.add_asserted Symtab.update Symtab.empty extract cond
     val ((_, _), (ctxt3, assumed)) =
-      add_asssert outer_ctxt rewrite_rules assms
+      add_asssert outer_ctxt rewrite_rules (map (apfst fst) assms)
         (map_filter (remove_rewrite_rules_from_rules num_ll_defs) assm_steps) ctxt2
 
     val used_rew_js =
