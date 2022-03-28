@@ -741,10 +741,10 @@ and translate_app_const ctxt algbr eqngr permissive some_thm ((c_ty, ts), some_a
   translate_const ctxt algbr eqngr permissive some_thm (c_ty, some_abs)
   ##>> fold_map (translate_term ctxt algbr eqngr permissive some_thm o rpair NONE) ts
   #>> (fn (t, ts) => t `$$ ts)
-and translate_case ctxt algbr eqngr permissive some_thm (t_pos, case_pats) (c_ty, ts) =
+and translate_case ctxt algbr eqngr permissive some_thm pattern_schema (c_ty, ts) =
   let
     val (ty, constrs, split_clauses) =
-      preprocess_pattern_schema ctxt (t_pos, case_pats) (c_ty, ts);
+      preprocess_pattern_schema ctxt pattern_schema (c_ty, ts);
     fun mk_clauses [] ty (t, ts_clause) =
           (t, map (fn ([pat], body) => (pat, body))
             (distill_minimized_clause ctxt [ty] (the_single ts_clause)))
