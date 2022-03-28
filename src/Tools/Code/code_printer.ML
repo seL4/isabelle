@@ -341,7 +341,7 @@ fun gen_print_app print_app_expr print_term const_syntax some_thm vars fxy
 
 fun gen_print_bind print_term thm (fxy : fixity) pat vars =
   let
-    val vs = build (Code_Thingol.fold_varnames (insert (op =)) pat);
+    val vs = build (Code_Thingol.add_varnames pat);
     val vars' = intro_vars vs vars;
   in (print_term thm vars' fxy pat, vars') end;
 

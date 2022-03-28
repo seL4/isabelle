@@ -62,6 +62,7 @@ sig
   val add_constsyms: iterm -> Code_Symbol.T list -> Code_Symbol.T list
   val add_tyconames: iterm -> string list -> string list
   val fold_varnames: (string -> 'a -> 'a) -> iterm -> 'a -> 'a
+  val add_varnames: iterm -> string list -> string list
 
   datatype stmt =
       NoStmt
@@ -233,6 +234,10 @@ fun fold_varnames f =
     fun add_vars t = fold_aux add_vars (insert (op =)) t;
   in fold_aux add_vars f end;
 
+val add_varnames = fold_varnames (insert (op =));
+
+val declare_varnames = fold_varnames Name.declare;
+
 fun exists_var t v = fold_varnames (fn w => fn b => v = w orelse b) t false;
 
 fun split_pat_abs ((NONE, ty) `|=> t) = SOME ((IVar NONE, ty), t)
@@ -253,7 +258,7 @@ fun unfold_abs_eta [] t = ([], t)
       in (v_ty :: vs_tys, t') end
   | unfold_abs_eta tys t =
       let
-        val ctxt = fold_varnames Name.declare t Name.context;
+        val ctxt = Name.build_context (declare_varnames t);
         val vs_tys = (map o apfst) SOME (Name.invent_names ctxt "a" tys);
       in (vs_tys, t `$$ map (IVar o fst) vs_tys) end;
 
@@ -263,7 +268,7 @@ fun eta_expand k (const as { dom = tys, ... }, ts) =
     val l = k - j;
     val _ = if l > length tys
       then error "Impossible eta-expansion" else ();
-    val vars = (fold o fold_varnames) Name.declare ts Name.context;
+    val vars = Name.build_context (fold declare_varnames ts);
     val vs_tys = (map o apfst) SOME
       (Name.invent_names vars "a" ((take l o drop j) tys));
   in vs_tys `|==> IConst const `$$ ts @ map (IVar o fst) vs_tys end;
@@ -289,12 +294,12 @@ fun distill_minimized_clause ctxt tys t =
       | distill vs_map pat_args
         (body as ICase { term = IVar (SOME v), clauses = clauses, ... }) =
           let
-            val vs = build ((fold o fold_varnames) (insert (op =)) pat_args);
+            val vs = build (fold add_varnames pat_args);
             fun varnames_disjunctive pat =
-              null (inter (op =) vs (build (fold_varnames (insert (op =)) pat)));
+              null (inter (op =) vs (build (add_varnames pat)));
             fun purge_unused_vars_in t =
               let
-                val vs = build (fold_varnames (insert (op =)) t);
+                val vs = build (add_varnames t);
               in
                 map_terms_bottom_up (fn IVar (SOME v) =>
                   IVar (if member (op =) vs v then SOME v else NONE) | t => t)
