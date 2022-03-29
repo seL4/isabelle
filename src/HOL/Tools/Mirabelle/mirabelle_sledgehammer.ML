@@ -20,12 +20,14 @@ struct
 (* NOTE: Do not forget to update the Sledgehammer documentation to reflect changes here. *)
 
 val check_trivialK = "check_trivial" (*=BOOL: check if goals are "trivial"*)
+val exhaustive_preplayK = "exhaustive_preplay" (*=BOOL: show exhaustive preplay data*)
 val keep_probsK = "keep_probs" (*=BOOL: keep temporary problem files created by sledgehammer*)
 val keep_proofsK = "keep_proofs" (*=BOOL: keep temporary proof files created by ATPs*)
 val proof_methodK = "proof_method" (*=STRING: how to reconstruct proofs (e.g. using metis)*)
 
 (*defaults used in this Mirabelle action*)
 val check_trivial_default = false
+val exhaustive_preplay_default = false
 val keep_probs_default = false
 val keep_proofs_default = false
 
@@ -300,7 +302,7 @@ fun run_sh params keep pos state =
 in
 
 fun run_sledgehammer (params as {provers, ...}) output_dir keep_probs keep_proofs
-    proof_method_from_msg thy_index trivial pos st =
+    exhaustive_preplay proof_method_from_msg thy_index trivial pos st =
   let
     val thy = Proof.theory_of st
     val thy_name = Context.theory_name thy
@@ -317,9 +319,9 @@ fun run_sledgehammer (params as {provers, ...}) output_dir keep_probs keep_proof
         NONE
     val prover_name = hd provers
     val (sledgehamer_outcome, msg, cpu_time) = run_sh params keep pos st
-    val (time_prover, change_data, proof_method_and_used_thms) =
+    val (time_prover, change_data, proof_method_and_used_thms, exhaustive_preplay_msg) =
       (case sledgehamer_outcome of
-        Sledgehammer.SH_Some {used_facts, run_time, ...} =>
+        Sledgehammer.SH_Some ({used_facts, run_time, ...}, preplay_results) =>
         let
           val num_used_facts = length used_facts
           val time_prover = Time.toMilliseconds run_time
@@ -333,17 +335,32 @@ fun run_sledgehammer (params as {provers, ...}) output_dir keep_probs keep_proof
             #> inc_sh_lemmas num_used_facts
             #> inc_sh_max_lems num_used_facts
             #> inc_sh_time_prover time_prover
+
+          val exhaustive_preplay_msg =
+            if exhaustive_preplay then
+              preplay_results
+              |> map
+                (fn (meth, play_outcome, used_facts) =>
+                    "Preplay: " ^
+                    Sledgehammer_Proof_Methods.string_of_proof_method (map fst used_facts) meth ^
+                    " (" ^ Sledgehammer_Proof_Methods.string_of_play_outcome play_outcome ^ ")")
+              |> cat_lines
+            else
+              ""
         in
           (SOME time_prover, change_data,
-           SOME (proof_method_from_msg msg, map_filter get_thms used_facts))
+           SOME (proof_method_from_msg msg, map_filter get_thms used_facts),
+           exhaustive_preplay_msg)
         end
-      | _ => (NONE, I, NONE))
+      | _ => (NONE, I, NONE, ""))
     val outcome_msg =
       "(SH " ^ string_of_int cpu_time ^ "ms" ^
       (case time_prover of NONE => "" | SOME ms => ", ATP " ^ string_of_int ms ^ "ms") ^
       ") [" ^ prover_name ^ "]: "
   in
-    (sledgehamer_outcome, triv_str ^ outcome_msg ^ msg, change_data #> inc_sh_time_isa cpu_time,
+    (sledgehamer_outcome, triv_str ^ outcome_msg ^ msg ^
+       (if exhaustive_preplay_msg = "" then "" else ("\n" ^ exhaustive_preplay_msg)),
+     change_data #> inc_sh_time_isa cpu_time,
      proof_method_and_used_thms)
   end
 
@@ -434,6 +451,8 @@ fun make_action ({arguments, timeout, output_dir, ...} : Mirabelle.action_contex
       Mirabelle.get_bool_argument arguments (check_trivialK, check_trivial_default)
     val keep_probs = Mirabelle.get_bool_argument arguments (keep_probsK, keep_probs_default)
     val keep_proofs = Mirabelle.get_bool_argument arguments (keep_proofsK, keep_proofs_default)
+    val exhaustive_preplay =
+      Mirabelle.get_bool_argument arguments (exhaustive_preplayK, exhaustive_preplay_default)
     val proof_method_from_msg = proof_method_from_msg arguments
 
     val params = Sledgehammer_Commands.default_params \<^theory> arguments
@@ -450,8 +469,8 @@ fun make_action ({arguments, timeout, output_dir, ...} : Mirabelle.action_contex
           let
             val trivial = check_trivial andalso try0 pre handle Timeout.TIMEOUT _ => false
             val (outcome, log1, change_data1, proof_method_and_used_thms) =
-              run_sledgehammer params output_dir keep_probs keep_proofs proof_method_from_msg
-                theory_index trivial pos pre
+              run_sledgehammer params output_dir keep_probs keep_proofs exhaustive_preplay
+                proof_method_from_msg theory_index trivial pos pre
             val (log2, change_data2) =
               (case proof_method_and_used_thms of
                 SOME (proof_method, used_thms) =>
