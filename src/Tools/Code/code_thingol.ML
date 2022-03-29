@@ -286,30 +286,35 @@ fun map_terms_bottom_up f (t as IConst _) = f t
 
 fun distill_minimized_clause tys t =
   let
-    fun distill vs_map pat_args
+    fun restrict_vars_to vs =
+      map_terms_bottom_up (fn IVar (SOME v) =>
+        IVar (if member (op =) vs v then SOME v else NONE) | t => t);
+    fun purge_unused_vars_in t =
+      restrict_vars_to (build (add_varnames t));
+    fun distill' vs_map pat_args v i clauses =
+      let
+        val vs = build (fold add_varnames pat_args);
+        fun varnames_disjunctive pat =
+          null (inter (op =) vs (build (add_varnames pat)));
+      in
+        if forall (fn (pat', body') => varnames_disjunctive pat'
+            (*prevent mingled scopes resulting in duplicated variables in pattern arguments*)
+          andalso (exists_var pat' v (*reducible if shadowed by pattern*)
+          orelse not (exists_var body' v))) clauses (*reducible if absent in body*)
+        then clauses
+          |> maps (fn (pat', body') =>
+               distill vs_map
+                 (nth_map i (K pat') pat_args |> map (purge_unused_vars_in body'))
+                 body')
+          |> SOME
+        else NONE
+      end
+    and distill vs_map pat_args
         (body as ICase { term = IVar (SOME v), clauses = clauses, ... }) =
-          let
-            val vs = build (fold add_varnames pat_args);
-            fun varnames_disjunctive pat =
-              null (inter (op =) vs (build (add_varnames pat)));
-            fun purge_unused_vars_in t =
-              let
-                val vs = build (add_varnames t);
-              in
-                map_terms_bottom_up (fn IVar (SOME v) =>
-                  IVar (if member (op =) vs v then SOME v else NONE) | t => t)
-              end;
-          in
-            if forall (fn (pat', body') => exists_var pat' v (*prevent mingling scopes*)
-              orelse not (exists_var body' v)) clauses (*reducible if shadowed by pattern*)
-              andalso forall (varnames_disjunctive o fst) clauses (*reducible if absent in body*)
-            then case AList.lookup (op =) vs_map v
-             of SOME i => clauses |> maps (fn (pat', body') =>
-                  distill (AList.delete (op =) v vs_map)
-                    (nth_map i (K pat') pat_args |> map (purge_unused_vars_in body')) body')
-              | NONE => [(pat_args, body)]
-            else [(pat_args, body)]
-          end
+          (case AList.lookup (op =) vs_map v
+           of SOME i => distill' (AList.delete (op =) v vs_map) pat_args v i clauses
+                |> the_default [(pat_args, body)]
+            | NONE => [(pat_args, body)])
       | distill vs_map pat_args body = [(pat_args, body)];
     val (vTs, body) = unfold_abs_eta tys t;
     val vs = map fst vTs;
