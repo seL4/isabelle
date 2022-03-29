@@ -1815,39 +1815,32 @@ fun zsplit0 (C c) = (zero_inta, C c)
       else (zero_inta, Bound n))
   | zsplit0 (CN (n, i, a)) =
     let
-      val aa = zsplit0 a;
-      val (ia, ab) = aa;
+      val (ia, aa) = zsplit0 a;
     in
-      (if equal_nat n zero_nat then (plus_inta i ia, ab)
-        else (ia, CN (n, i, ab)))
+      (if equal_nat n zero_nat then (plus_inta i ia, aa)
+        else (ia, CN (n, i, aa)))
     end
   | zsplit0 (Neg a) = let
-                        val aa = zsplit0 a;
-                        val (i, ab) = aa;
+                        val (i, aa) = zsplit0 a;
                       in
-                        (uminus_int i, Neg ab)
+                        (uminus_int i, Neg aa)
                       end
   | zsplit0 (Add (a, b)) = let
-                             val aa = zsplit0 a;
-                             val (ia, ab) = aa;
-                             val ba = zsplit0 b;
-                             val (ib, bb) = ba;
+                             val (ia, aa) = zsplit0 a;
+                             val (ib, ba) = zsplit0 b;
                            in
-                             (plus_inta ia ib, Add (ab, bb))
+                             (plus_inta ia ib, Add (aa, ba))
                            end
   | zsplit0 (Sub (a, b)) = let
-                             val aa = zsplit0 a;
-                             val (ia, ab) = aa;
-                             val ba = zsplit0 b;
-                             val (ib, bb) = ba;
+                             val (ia, aa) = zsplit0 a;
+                             val (ib, ba) = zsplit0 b;
                            in
-                             (minus_inta ia ib, Sub (ab, bb))
+                             (minus_inta ia ib, Sub (aa, ba))
                            end
   | zsplit0 (Mul (i, a)) = let
-                             val aa = zsplit0 a;
-                             val (ia, ab) = aa;
+                             val (ia, aa) = zsplit0 a;
                            in
-                             (times_inta i ia, Mul (i, ab))
+                             (times_inta i ia, Mul (i, aa))
                            end;
 
 fun zlfm (And (p, q)) = And (zlfm p, zlfm q)
