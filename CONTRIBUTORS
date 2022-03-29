@@ -9,6 +9,9 @@ Contributions to this Isabelle version
 * April - August 2021: Denis Paluca and Fabian Huch, TU München
   Various improvements to Isabelle/VSCode.
 
+* March 2021: Florian Haftmann, TU München
+  More ambitious minimazation of case expressions in generated code.
+
 
 Contributions to Isabelle2021-1
 -------------------------------
