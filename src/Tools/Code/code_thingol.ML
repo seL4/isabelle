@@ -293,7 +293,7 @@ fun distill_minimized_clause tys t =
       restrict_vars_to (build (add_varnames t));
     fun distill' vs_map pat_args v i clauses =
       let
-        val vs = build (fold add_varnames pat_args);
+        val vs = build (fold add_varnames (nth_drop i pat_args));
         fun varnames_disjunctive pat =
           null (inter (op =) vs (build (add_varnames pat)));
       in
