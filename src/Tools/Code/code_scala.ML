@@ -211,8 +211,8 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
           end
       | print_def const (vs, ty) eqs =
           let
-            val tycos = fold (fn ((ts, t), _) =>
-              fold Code_Thingol.add_tyconames (t :: ts)) eqs [];
+            val tycos = build (fold (fn ((ts, t), _) =>
+              fold Code_Thingol.add_tyconames (t :: ts)) eqs);
             val tyvars = reserved
               |> intro_base_names
                    (is_none o tyco_syntax) deresolve_tyco tycos
@@ -234,8 +234,8 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
               print_term tyvars false some_thm vars' NOBR t;
             fun print_clause (eq as ((ts, _), (some_thm, _))) =
               let
-                val vars' = intro_vars ((fold o Code_Thingol.fold_varnames)
-                  (insert (op =)) ts []) vars1;
+                val vars' =
+                  intro_vars (build (fold Code_Thingol.add_varnames ts)) vars1;
               in
                 concat [str "case",
                   tuplify (map (print_term tyvars true some_thm vars' NOBR) ts),

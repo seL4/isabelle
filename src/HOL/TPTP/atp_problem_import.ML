@@ -313,9 +313,7 @@ fun translate_tptp_file thy format_str file_name =
         Translator
         lam_trans uncurried_aliases readable_names presimp [] conj facts
 
-    val ord = Sledgehammer_ATP_Systems.effective_term_order lthy spassN
-    val ord_info = K []
-    val lines = lines_of_atp_problem format ord ord_info atp_problem
+    val lines = lines_of_atp_problem format (K []) atp_problem
   in
     List.app Output.physical_stdout lines
   end

@@ -11,13 +11,13 @@
     ],
     "icon": "isabelle.png",
     "version": "2.0.0",
-    "publisher": "Isabelle",
+    "publisher": "isabelle",
     "license": "MIT",
     "repository": {
         "url": "https://isabelle-dev.sketis.net"
     },
     "engines": {
-        "vscode": "1.65.0"
+        "vscode": "1.65.2"
     },
     "categories": [
         "Programming Languages"
@@ -193,14 +193,6 @@
         "configuration": {
             "title": "Isabelle",
             "properties": {
-                "isabelle.args": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    },
-                    "default": [],
-                    "description": "Command-line arguments for isabelle vscode_server process."
-                },
                 "isabelle.replacement": {
                     "type": "string",
                     "default": "non-alphanumeric",
@@ -321,7 +313,7 @@
     "devDependencies": {
         "@types/mocha": "^9.1.0",
         "@types/node": "^17.0.19",
-        "@types/vscode": "1.65.0",
+        "@types/vscode": "^1.65.0",
         "mocha": "^9.2.1",
         "typescript": "^4.5.5"
     },

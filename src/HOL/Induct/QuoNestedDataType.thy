@@ -5,6 +5,11 @@
 
 section\<open>Quotienting a Free Algebra Involving Nested Recursion\<close>
 
+text \<open>This is the development promised in Lawrence Paulson's paper ``Defining functions on equivalence classes''
+\emph{ACM Transactions on Computational Logic} \textbf{7}:40 (2006), 658--675,
+illustrating bare-bones quotient constructions. Any comparison using lifting and transfer
+should be done in a separate theory.\<close>
+
 theory QuoNestedDataType imports Main begin
 
 subsection\<open>Defining the Free Algebra\<close>
@@ -26,7 +31,7 @@ inductive_set
   exprel :: "(freeExp * freeExp) set"
   and exp_rel :: "[freeExp, freeExp] => bool"  (infixl "\<sim>" 50)
   where
-    "X \<sim> Y == (X,Y) \<in> exprel"
+    "X \<sim> Y \<equiv> (X,Y) \<in> exprel"
   | ASSOC: "PLUS X (PLUS Y Z) \<sim> PLUS (PLUS X Y) Z"
   | VAR: "VAR N \<sim> VAR N"
   | PLUS: "\<lbrakk>X \<sim> X'; Y \<sim> Y'\<rbrakk> \<Longrightarrow> PLUS X Y \<sim> PLUS X' Y'"
@@ -54,17 +59,9 @@ qed
 theorem equiv_list_exprel: "equiv UNIV (listrel exprel)"
   using equiv_listrel [OF equiv_exprel] by simp
 
-
-lemma FNCALL_Nil: "FNCALL F [] \<sim> FNCALL F []"
-apply (rule exprel.intros) 
-apply (rule listrel.intros) 
-done
-
 lemma FNCALL_Cons:
-     "\<lbrakk>X \<sim> X'; (Xs,Xs') \<in> listrel(exprel)\<rbrakk>
-      \<Longrightarrow> FNCALL F (X#Xs) \<sim> FNCALL F (X'#Xs')"
-by (blast intro: exprel.intros listrel.intros) 
-
+  "\<lbrakk>X \<sim> X'; (Xs,Xs') \<in> listrel(exprel)\<rbrakk> \<Longrightarrow> FNCALL F (X#Xs) \<sim> FNCALL F (X'#Xs')"
+  by (blast intro: exprel.intros listrel.intros) 
 
 
 subsection\<open>Some Functions on the Free Algebra\<close>
@@ -75,8 +72,8 @@ text\<open>A function to return the set of variables present in a message.  It w
 be lifted to the initial algebra, to serve as an example of that process.
 Note that the "free" refers to the free datatype rather than to the concept
 of a free variable.\<close>
-primrec freevars :: "freeExp \<Rightarrow> nat set" 
-  and freevars_list :: "freeExp list \<Rightarrow> nat set" where
+primrec freevars :: "freeExp \<Rightarrow> nat set" and freevars_list :: "freeExp list \<Rightarrow> nat set"
+  where
   "freevars (VAR N) = {N}"
 | "freevars (PLUS X Y) = freevars X \<union> freevars Y"
 | "freevars (FNCALL F Xs) = freevars_list Xs"
@@ -88,11 +85,11 @@ text\<open>This theorem lets us prove that the vars function respects the
 equivalence relation.  It also helps us prove that Variable
   (the abstract constructor) is injective\<close>
 theorem exprel_imp_eq_freevars: "U \<sim> V \<Longrightarrow> freevars U = freevars V"
-apply (induct set: exprel) 
-apply (erule_tac [4] listrel.induct) 
-apply (simp_all add: Un_assoc)
-done
-
+proof (induct set: exprel)
+  case (FNCALL Xs Xs' F)
+  then show ?case
+    by (induct rule: listrel.induct) auto
+qed (simp_all add: Un_assoc)
 
 
 subsubsection\<open>Functions for Freeness\<close>
@@ -127,20 +124,24 @@ primrec freeargs :: "freeExp \<Rightarrow> freeExp list" where
 | "freeargs (PLUS X Y) = []"
 | "freeargs (FNCALL F Xs) = Xs"
 
+
 theorem exprel_imp_eqv_freeargs:
   assumes "U \<sim> V"
   shows "(freeargs U, freeargs V) \<in> listrel exprel"
-proof -
-  from equiv_list_exprel have sym: "sym (listrel exprel)" by (rule equivE)
-  from equiv_list_exprel have trans: "trans (listrel exprel)" by (rule equivE)
-  from assms show ?thesis
-    apply induct
-    apply (erule_tac [4] listrel.induct) 
-    apply (simp_all add: listrel.intros)
-    apply (blast intro: symD [OF sym])
-    apply (blast intro: transD [OF trans])
-    done
-qed
+  using assms
+proof induction
+  case (FNCALL Xs Xs' F)
+  then show ?case
+    by (simp add: listrel_iff_nth)
+next
+  case (SYM X Y)
+  then show ?case
+    by (meson equivE equiv_list_exprel symD)
+next
+  case (TRANS X Y Z)
+  then show ?case
+    by (meson equivE equiv_list_exprel transD)
+qed (use listrel.simps in auto)
 
 
 subsection\<open>The Initial Algebra: A Quotiented Message Type\<close>
@@ -165,24 +166,22 @@ definition
 definition
   FnCall :: "[nat, exp list] \<Rightarrow> exp" where
    "FnCall F Xs =
-       Abs_Exp (\<Union>Us \<in> listset (map Rep_Exp Xs). exprel `` {FNCALL F Us})"
+       Abs_Exp (\<Union>Us \<in> listset (map Rep_Exp Xs). exprel``{FNCALL F Us})"
 
 
 text\<open>Reduces equality of equivalence classes to the \<^term>\<open>exprel\<close> relation:
-  \<^term>\<open>(exprel `` {x} = exprel `` {y}) = ((x,y) \<in> exprel)\<close>\<close>
+  \<^term>\<open>(exprel``{x} = exprel``{y}) = ((x,y) \<in> exprel)\<close>\<close>
 lemmas equiv_exprel_iff = eq_equiv_class_iff [OF equiv_exprel UNIV_I UNIV_I]
 
 declare equiv_exprel_iff [simp]
 
 
 text\<open>All equivalence classes belong to set of representatives\<close>
-lemma [simp]: "exprel``{U} \<in> Exp"
-by (auto simp add: Exp_def quotient_def intro: exprel_refl)
+lemma exprel_in_Exp [simp]: "exprel``{U} \<in> Exp"
+  by (simp add: Exp_def quotientI)
 
 lemma inj_on_Abs_Exp: "inj_on Abs_Exp Exp"
-apply (rule inj_on_inverseI)
-apply (erule Abs_Exp_inverse)
-done
+  by (meson Abs_Exp_inject inj_onI)
 
 text\<open>Reduces equality on abstractions to equality on representatives\<close>
 declare inj_on_Abs_Exp [THEN inj_on_eq_iff, simp]
@@ -192,11 +191,8 @@ declare Abs_Exp_inverse [simp]
 
 text\<open>Case analysis on the representation of a exp as an equivalence class.\<close>
 lemma eq_Abs_Exp [case_names Abs_Exp, cases type: exp]:
-     "(!!U. z = Abs_Exp(exprel``{U}) ==> P) ==> P"
-apply (rule Rep_Exp [of z, unfolded Exp_def, THEN quotientE])
-apply (drule arg_cong [where f=Abs_Exp])
-apply (auto simp add: Rep_Exp_inverse intro: exprel_refl)
-done
+     "(\<And>U. z = Abs_Exp (exprel``{U}) \<Longrightarrow> P) \<Longrightarrow> P"
+  by (metis Abs_Exp_cases Exp_def quotientE)
 
 
 subsection\<open>Every list of abstract expressions can be expressed in terms of a
@@ -204,25 +200,17 @@ subsection\<open>Every list of abstract expressions can be expressed in terms of
 
 definition
   Abs_ExpList :: "freeExp list => exp list" where
-  "Abs_ExpList Xs = map (%U. Abs_Exp(exprel``{U})) Xs"
+  "Abs_ExpList Xs \<equiv> map (\<lambda>U. Abs_Exp(exprel``{U})) Xs"
 
-lemma Abs_ExpList_Nil [simp]: "Abs_ExpList [] == []"
-by (simp add: Abs_ExpList_def)
+lemma Abs_ExpList_Nil [simp]: "Abs_ExpList [] = []"
+  by (simp add: Abs_ExpList_def)
 
 lemma Abs_ExpList_Cons [simp]:
-     "Abs_ExpList (X#Xs) == Abs_Exp (exprel``{X}) # Abs_ExpList Xs"
-by (simp add: Abs_ExpList_def)
+  "Abs_ExpList (X#Xs) = Abs_Exp (exprel``{X}) # Abs_ExpList Xs"
+  by (simp add: Abs_ExpList_def)
 
 lemma ExpList_rep: "\<exists>Us. z = Abs_ExpList Us"
-apply (induct z)
-apply (rename_tac [2] a b)
-apply (rule_tac [2] z=a in eq_Abs_Exp)
-apply (auto simp add: Abs_ExpList_def Cons_eq_map_conv intro: exprel_refl)
-done
-
-lemma eq_Abs_ExpList [case_names Abs_ExpList]:
-     "(!!Us. z = Abs_ExpList Us ==> P) ==> P"
-by (rule exE [OF ExpList_rep], blast) 
+  by (smt (verit, del_insts) Abs_ExpList_def eq_Abs_Exp ex_map_conv)
 
 
 subsubsection\<open>Characteristic Equations for the Abstract Constructors\<close>
@@ -230,7 +218,7 @@ subsubsection\<open>Characteristic Equations for the Abstract Constructors\<clos
 lemma Plus: "Plus (Abs_Exp(exprel``{U})) (Abs_Exp(exprel``{V})) = 
              Abs_Exp (exprel``{PLUS U V})"
 proof -
-  have "(\<lambda>U V. exprel `` {PLUS U V}) respects2 exprel"
+  have "(\<lambda>U V. exprel``{PLUS U V}) respects2 exprel"
     by (auto simp add: congruent2_def exprel.PLUS)
   thus ?thesis
     by (simp add: Plus_def UN_equiv_class2 [OF equiv_exprel equiv_exprel])
@@ -246,26 +234,26 @@ lemma FnCall_Nil: "FnCall F [] = Abs_Exp (exprel``{FNCALL F []})"
   by (simp add: FnCall_def)
 
 lemma FnCall_respects: 
-     "(\<lambda>Us. exprel `` {FNCALL F Us}) respects (listrel exprel)"
+     "(\<lambda>Us. exprel``{FNCALL F Us}) respects (listrel exprel)"
   by (auto simp add: congruent_def exprel.FNCALL)
 
 lemma FnCall_sing:
      "FnCall F [Abs_Exp(exprel``{U})] = Abs_Exp (exprel``{FNCALL F [U]})"
 proof -
-  have "(\<lambda>U. exprel `` {FNCALL F [U]}) respects exprel"
+  have "(\<lambda>U. exprel``{FNCALL F [U]}) respects exprel"
     by (auto simp add: congruent_def FNCALL_Cons listrel.intros)
   thus ?thesis
     by (simp add: FnCall_def UN_equiv_class [OF equiv_exprel])
 qed
 
 lemma listset_Rep_Exp_Abs_Exp:
-     "listset (map Rep_Exp (Abs_ExpList Us)) = listrel exprel `` {Us}"
+     "listset (map Rep_Exp (Abs_ExpList Us)) = listrel exprel``{Us}"
   by (induct Us) (simp_all add: listrel_Cons Abs_ExpList_def)
 
 lemma FnCall:
      "FnCall F (Abs_ExpList Us) = Abs_Exp (exprel``{FNCALL F Us})"
 proof -
-  have "(\<lambda>Us. exprel `` {FNCALL F Us}) respects (listrel exprel)"
+  have "(\<lambda>Us. exprel``{FNCALL F Us}) respects (listrel exprel)"
     by (auto simp add: congruent_def exprel.FNCALL)
   thus ?thesis
     by (simp add: FnCall_def UN_equiv_class [OF equiv_list_exprel]
@@ -275,15 +263,14 @@ qed
 
 text\<open>Establishing this equation is the point of the whole exercise\<close>
 theorem Plus_assoc: "Plus X (Plus Y Z) = Plus (Plus X Y) Z"
-by (cases X, cases Y, cases Z, simp add: Plus exprel.ASSOC)
+  by (cases X, cases Y, cases Z, simp add: Plus exprel.ASSOC)
 
 
 
 subsection\<open>The Abstract Function to Return the Set of Variables\<close>
 
 definition
-  vars :: "exp \<Rightarrow> nat set" where
-  "vars X = (\<Union>U \<in> Rep_Exp X. freevars U)"
+  vars :: "exp \<Rightarrow> nat set" where "vars X \<equiv> (\<Union>U \<in> Rep_Exp X. freevars U)"
 
 lemma vars_respects: "freevars respects exprel"
 by (auto simp add: congruent_def exprel_imp_eq_freevars) 
@@ -301,62 +288,73 @@ by (simp add: vars_def Var_def
               UN_equiv_class [OF equiv_exprel vars_respects]) 
  
 lemma vars_Plus [simp]: "vars (Plus X Y) = vars X \<union> vars Y"
-apply (cases X, cases Y) 
-apply (simp add: vars_def Plus 
-                 UN_equiv_class [OF equiv_exprel vars_respects]) 
-done
+proof -
+  have "\<And>U V. \<lbrakk>X = Abs_Exp (exprel``{U}); Y = Abs_Exp (exprel``{V})\<rbrakk>
+               \<Longrightarrow> vars (Plus X Y) = vars X \<union> vars Y"
+    by (simp add: vars_def Plus UN_equiv_class [OF equiv_exprel vars_respects]) 
+  then show ?thesis
+    by (meson eq_Abs_Exp)
+qed
 
 lemma vars_FnCall [simp]: "vars (FnCall F Xs) = vars_list Xs"
-apply (cases Xs rule: eq_Abs_ExpList) 
-apply (simp add: FnCall)
-apply (induct_tac Us)
-apply (simp_all add: vars_def UN_equiv_class [OF equiv_exprel vars_respects])
-done
+proof -
+  have "vars (Abs_Exp (exprel``{FNCALL F Us})) = vars_list (Abs_ExpList Us)" for Us
+    by (induct Us) (auto simp: vars_def UN_equiv_class [OF equiv_exprel vars_respects])
+  then show ?thesis
+    by (metis ExpList_rep FnCall)
+qed
 
 lemma vars_FnCall_Nil: "vars (FnCall F Nil) = {}" 
-by simp
+  by simp
 
 lemma vars_FnCall_Cons: "vars (FnCall F (X#Xs)) = vars X \<union> vars_list Xs"
-by simp
+  by simp
 
 
 subsection\<open>Injectivity Properties of Some Constructors\<close>
 
 lemma VAR_imp_eq: "VAR m \<sim> VAR n \<Longrightarrow> m = n"
-by (drule exprel_imp_eq_freevars, simp)
+  by (drule exprel_imp_eq_freevars, simp)
 
 text\<open>Can also be proved using the function \<^term>\<open>vars\<close>\<close>
 lemma Var_Var_eq [iff]: "(Var m = Var n) = (m = n)"
-by (auto simp add: Var_def exprel_refl dest: VAR_imp_eq)
+  by (auto simp add: Var_def exprel_refl dest: VAR_imp_eq)
 
 lemma VAR_neqv_PLUS: "VAR m \<sim> PLUS X Y \<Longrightarrow> False"
-by (drule exprel_imp_eq_freediscrim, simp)
+  using exprel_imp_eq_freediscrim by force
 
 theorem Var_neq_Plus [iff]: "Var N \<noteq> Plus X Y"
-apply (cases X, cases Y) 
-apply (simp add: Var_def Plus) 
-apply (blast dest: VAR_neqv_PLUS) 
-done
+proof -
+  have "\<And>U V. \<lbrakk>X = Abs_Exp (exprel``{U}); Y = Abs_Exp (exprel``{V})\<rbrakk> \<Longrightarrow> Var N \<noteq> Plus X Y"
+    using Plus VAR_neqv_PLUS Var_def by force
+  then show ?thesis
+    by (meson eq_Abs_Exp)
+qed
 
 theorem Var_neq_FnCall [iff]: "Var N \<noteq> FnCall F Xs"
-apply (cases Xs rule: eq_Abs_ExpList) 
-apply (auto simp add: FnCall Var_def)
-apply (drule exprel_imp_eq_freediscrim, simp)
-done
+proof -
+  have "\<And>Us. Var N \<noteq> FnCall F (Abs_ExpList Us)"
+    using FnCall Var_def exprel_imp_eq_freediscrim by fastforce
+  then show ?thesis
+    by (metis ExpList_rep)
+qed
 
 subsection\<open>Injectivity of \<^term>\<open>FnCall\<close>\<close>
 
 definition
-  "fun" :: "exp \<Rightarrow> nat" where
-  "fun X = the_elem (\<Union>U \<in> Rep_Exp X. {freefun U})"
+  "fun" :: "exp \<Rightarrow> nat"
+  where "fun X \<equiv> the_elem (\<Union>U \<in> Rep_Exp X. {freefun U})"
 
-lemma fun_respects: "(%U. {freefun U}) respects exprel"
-by (auto simp add: congruent_def exprel_imp_eq_freefun) 
+lemma fun_respects: "(\<lambda>U. {freefun U}) respects exprel"
+  by (auto simp add: congruent_def exprel_imp_eq_freefun) 
 
 lemma fun_FnCall [simp]: "fun (FnCall F Xs) = F"
-apply (cases Xs rule: eq_Abs_ExpList) 
-apply (simp add: FnCall fun_def UN_equiv_class [OF equiv_exprel fun_respects])
-done
+proof -
+  have "\<And>Us. fun (FnCall F (Abs_ExpList Us)) = F"
+    using FnCall UN_equiv_class [OF equiv_exprel] fun_def fun_respects by fastforce
+  then show ?thesis
+    by (metis ExpList_rep)
+qed
 
 definition
   args :: "exp \<Rightarrow> exp list" where
@@ -368,25 +366,19 @@ lemma Abs_ExpList_eq:
      "(y, z) \<in> listrel exprel \<Longrightarrow> Abs_ExpList (y) = Abs_ExpList (z)"
   by (induct set: listrel) simp_all
 
-lemma args_respects: "(%U. {Abs_ExpList (freeargs U)}) respects exprel"
-by (auto simp add: congruent_def Abs_ExpList_eq exprel_imp_eqv_freeargs) 
+lemma args_respects: "(\<lambda>U. {Abs_ExpList (freeargs U)}) respects exprel"
+  by (auto simp add: congruent_def Abs_ExpList_eq exprel_imp_eqv_freeargs) 
 
 lemma args_FnCall [simp]: "args (FnCall F Xs) = Xs"
-apply (cases Xs rule: eq_Abs_ExpList) 
-apply (simp add: FnCall args_def UN_equiv_class [OF equiv_exprel args_respects])
-done
-
-
-lemma FnCall_FnCall_eq [iff]:
-     "(FnCall F Xs = FnCall F' Xs') = (F=F' & Xs=Xs')" 
-proof
-  assume "FnCall F Xs = FnCall F' Xs'"
-  hence "fun (FnCall F Xs) = fun (FnCall F' Xs')" 
-    and "args (FnCall F Xs) = args (FnCall F' Xs')" by auto
-  thus "F=F' & Xs=Xs'" by simp
-next
-  assume "F=F' & Xs=Xs'" thus "FnCall F Xs = FnCall F' Xs'" by simp
+proof -
+  have "\<And>Us. Xs = Abs_ExpList Us \<Longrightarrow> args (FnCall F Xs) = Xs"
+    by (simp add: FnCall args_def UN_equiv_class [OF equiv_exprel args_respects])
+  then show ?thesis
+    by (metis ExpList_rep)
 qed
+
+lemma FnCall_FnCall_eq [iff]: "(FnCall F Xs = FnCall F' Xs') \<longleftrightarrow> (F=F' \<and> Xs=Xs')"
+  by (metis args_FnCall fun_FnCall) 
 
 
 subsection\<open>The Abstract Discriminator\<close>
@@ -403,21 +395,23 @@ by (auto simp add: congruent_def exprel_imp_eq_freediscrim)
 text\<open>Now prove the four equations for \<^term>\<open>discrim\<close>\<close>
 
 lemma discrim_Var [simp]: "discrim (Var N) = 0"
-by (simp add: discrim_def Var_def 
-              UN_equiv_class [OF equiv_exprel discrim_respects]) 
+  by (simp add: discrim_def Var_def UN_equiv_class [OF equiv_exprel discrim_respects]) 
 
 lemma discrim_Plus [simp]: "discrim (Plus X Y) = 1"
-apply (cases X, cases Y) 
-apply (simp add: discrim_def Plus 
-                 UN_equiv_class [OF equiv_exprel discrim_respects]) 
-done
+proof -
+  have "\<And>U V. \<lbrakk>X = Abs_Exp (exprel``{U}); Y = Abs_Exp (exprel``{V})\<rbrakk> \<Longrightarrow> discrim (Plus X Y) = 1"
+    by (simp add: discrim_def Plus  UN_equiv_class [OF equiv_exprel discrim_respects]) 
+  then show ?thesis
+    by (meson eq_Abs_Exp)
+qed
 
 lemma discrim_FnCall [simp]: "discrim (FnCall F Xs) = 2"
-apply (rule_tac z=Xs in eq_Abs_ExpList) 
-apply (simp add: discrim_def FnCall
-                 UN_equiv_class [OF equiv_exprel discrim_respects]) 
-done
-
+proof -
+  have "discrim (FnCall F (Abs_ExpList Us)) = 2" for Us
+    by (simp add: discrim_def FnCall UN_equiv_class [OF equiv_exprel discrim_respects]) 
+  then show ?thesis
+    by (metis ExpList_rep)
+qed
 
 text\<open>The structural induction rule for the abstract type\<close>
 theorem exp_inducts:
@@ -428,15 +422,15 @@ theorem exp_inducts:
       and Cons: "\<And>exp list. \<lbrakk>P1 exp; P2 list\<rbrakk> \<Longrightarrow> P2 (exp # list)"
   shows "P1 exp" and "P2 list"
 proof -
-  obtain U where exp: "exp = (Abs_Exp (exprel `` {U}))" by (cases exp)
-  obtain Us where list: "list = Abs_ExpList Us" by (rule eq_Abs_ExpList)
-  have "P1 (Abs_Exp (exprel `` {U}))" and "P2 (Abs_ExpList Us)"
+  obtain U where exp: "exp = (Abs_Exp (exprel``{U}))" by (cases exp)
+  obtain Us where list: "list = Abs_ExpList Us" by (metis ExpList_rep)
+  have "P1 (Abs_Exp (exprel``{U}))" and "P2 (Abs_ExpList Us)"
   proof (induct U and Us rule: compat_freeExp.induct compat_freeExp_list.induct)
     case (VAR nat)
     with V show ?case by (simp add: Var_def) 
   next
     case (PLUS X Y)
-    with P [of "Abs_Exp (exprel `` {X})" "Abs_Exp (exprel `` {Y})"]
+    with P [of "Abs_Exp (exprel``{X})" "Abs_Exp (exprel``{Y})"]
     show ?case by (simp add: Plus) 
   next
     case (FNCALL nat list)

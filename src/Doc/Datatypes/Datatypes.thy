@@ -982,6 +982,9 @@ the map function, the predicator, and the relator:
 \item[\<open>t.\<close>\hthm{map_ident}\rm:] ~ \\
 @{thm list.map_ident[no_vars]}
 
+\item[\<open>t.\<close>\hthm{map_ident_strong}\rm:] ~ \\
+@{thm list.map_ident_strong[no_vars]}
+
 \item[\<open>t.\<close>\hthm{map_transfer} \<open>[transfer_rule]\<close>\rm:] ~ \\
 @{thm list.map_transfer[no_vars]} \\
 The \<open>[transfer_rule]\<close> attribute is set by the \<open>transfer\<close> plugin

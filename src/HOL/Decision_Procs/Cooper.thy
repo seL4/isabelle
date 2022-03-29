@@ -316,7 +316,7 @@ where
     else if q = F then f p
     else
       let fp = f p
-      in case fp of T \<Rightarrow> T | F \<Rightarrow> q | _ \<Rightarrow> Or (f p) q)"
+      in case fp of T \<Rightarrow> T | F \<Rightarrow> q | _ \<Rightarrow> Or fp q)"
 
 definition evaldjf :: "('a \<Rightarrow> fm) \<Rightarrow> 'a list \<Rightarrow> fm"
   where "evaldjf f ps = foldr (djf f) ps F"

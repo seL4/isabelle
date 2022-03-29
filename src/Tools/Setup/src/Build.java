@@ -8,7 +8,6 @@ package isabelle.setup;
 
 
 import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.CharArrayWriter;
 import java.io.File;
 import java.io.IOException;
@@ -44,6 +43,30 @@ import scala.tools.nsc.MainClass;
 
 public class Build
 {
+    /** SHA1 digest **/
+
+    @FunctionalInterface
+    public interface Digest_Body
+    {
+      void apply(MessageDigest sha) throws IOException, InterruptedException;
+    }
+
+    public static String make_digest(Digest_Body body)
+      throws NoSuchAlgorithmException, IOException, InterruptedException
+    {
+        MessageDigest sha = MessageDigest.getInstance("SHA");
+        body.apply(sha);
+        return String.format(Locale.ROOT, "%040x", new BigInteger(1, sha.digest()));
+    }
+
+    public static String make_shasum(String name, Digest_Body body)
+      throws NoSuchAlgorithmException, IOException, InterruptedException
+    {
+        return make_digest(body) + " " + name + "\n";
+    }
+
+
+
     /** context **/
 
     public static String BUILD_PROPS = "build.props";
@@ -75,12 +98,6 @@ public class Build
             }
         }
         return List.copyOf(result);
-    }
-
-    private static String sha_digest(MessageDigest sha, String name)
-    {
-        String digest = String.format(Locale.ROOT, "%040x", new BigInteger(1, sha.digest()));
-        return digest + " " + name + "\n";
     }
 
     public static class Context
@@ -181,37 +198,37 @@ public class Build
         }
 
         public String shasum(String name, List<Path> paths)
-            throws IOException, NoSuchAlgorithmException
+            throws NoSuchAlgorithmException, IOException, InterruptedException
         {
-            MessageDigest sha = MessageDigest.getInstance("SHA");
-            for (Path file : paths) {
-                if (Files.isRegularFile(file)) {
-                    sha.update(Files.readAllBytes(file));
-                }
-                else {
-                    throw new RuntimeException(
-                        error_message("Bad input file " + Library.quote(file.toString())));
-                }
-            }
-            return sha_digest(sha, name);
+            return make_shasum(name, sha ->
+                {
+                    for (Path file : paths) {
+                        if (Files.isRegularFile(file)) {
+                            sha.update(Files.readAllBytes(file));
+                        }
+                        else {
+                            throw new RuntimeException(
+                                error_message("Bad input file " + Library.quote(file.toString())));
+                        }
+                    }
+                });
         }
 
         public String shasum(String file)
-            throws IOException, NoSuchAlgorithmException, InterruptedException
+            throws NoSuchAlgorithmException, IOException, InterruptedException
         {
             return shasum(file, List.of(path(file)));
         }
 
         public String shasum_props()
-            throws NoSuchAlgorithmException
+            throws NoSuchAlgorithmException, IOException, InterruptedException
         {
             TreeMap<String,Object> sorted = new TreeMap<String,Object>();
             for (Object x : _props.entrySet()) {
                 sorted.put(x.toString(), _props.get(x));
             }
-            MessageDigest sha = MessageDigest.getInstance("SHA");
-            sha.update(sorted.toString().getBytes(StandardCharsets.UTF_8));
-            return sha_digest(sha, "<props>");
+            return make_shasum("<props>",
+                    sha -> sha.update(sorted.toString().getBytes(StandardCharsets.UTF_8)));
         }
     }
 
@@ -423,7 +440,7 @@ public class Build
     /** build **/
 
     public static void build(PrintStream output, Context context, boolean fresh)
-        throws IOException, InterruptedException, NoSuchAlgorithmException
+        throws NoSuchAlgorithmException, IOException, InterruptedException
     {
         String module = context.module_result();
         if (!module.isEmpty()) {
@@ -532,7 +549,7 @@ public class Build
     }
 
     public static void build_components(PrintStream output, boolean fresh)
-        throws IOException, InterruptedException, NoSuchAlgorithmException
+        throws NoSuchAlgorithmException, IOException, InterruptedException
     {
         for (Context context : component_contexts()) {
             build(output, context, fresh);

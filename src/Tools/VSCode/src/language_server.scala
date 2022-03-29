@@ -39,6 +39,7 @@ object Language_Server
         var include_sessions: List[String] = Nil
         var logic = default_logic
         var modes: List[String] = Nil
+        var no_build = false
         var options = Options.init()
         var verbose = false
 
@@ -53,6 +54,7 @@ Usage: isabelle vscode_server [OPTIONS]
     -i NAME      include session in name-space of theories
     -l NAME      logic session name (default ISABELLE_LOGIC=""" + quote(default_logic) + """)
     -m MODE      add print mode for output
+    -n           no build of session image on startup
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -v           verbose logging
 
@@ -65,6 +67,7 @@ Usage: isabelle vscode_server [OPTIONS]
           "i:" -> (arg => include_sessions = include_sessions ::: List(arg)),
           "l:" -> (arg => logic = arg),
           "m:" -> (arg => modes = arg :: modes),
+          "n" -> (_ => no_build = true),
           "o:" -> (arg => options = options + arg),
           "v" -> (_ => verbose = true))
 
@@ -76,7 +79,8 @@ Usage: isabelle vscode_server [OPTIONS]
         val server =
           new Language_Server(channel, options, session_name = logic, session_dirs = dirs,
             include_sessions = include_sessions, session_ancestor = logic_ancestor,
-            session_requirements = logic_requirements, modes = modes, log = log)
+            session_requirements = logic_requirements, session_no_build = no_build,
+            modes = modes, log = log)
 
         // prevent spurious garbage on the main protocol channel
         val orig_out = System.out
@@ -103,6 +107,7 @@ class Language_Server(
   session_dirs: List[Path] = Nil,
   session_ancestor: Option[String] = None,
   session_requirements: Boolean = false,
+  session_no_build: Boolean = false,
   modes: List[String] = Nil,
   log: Logger = No_Logger)
 {
@@ -274,7 +279,7 @@ class Language_Server(
             selection = Sessions.Selection.session(base_info.session), build_heap = true,
             no_build = no_build, dirs = session_dirs, infos = base_info.infos)
 
-        if (!build(no_build = true).ok) {
+        if (!session_no_build && !build(no_build = true).ok) {
           val start_msg = "Build started for Isabelle/" + base_info.session + " ..."
           val fail_msg = "Session build failed -- prover process remains inactive!"
 

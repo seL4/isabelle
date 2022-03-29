@@ -201,7 +201,7 @@ fun normalized_tfrees_sandwich ctxt ct =
   let
     val t = Thm.term_of ct;
     val vs_original =
-      fold_term_types (K (fold_atyps (insert (eq_fst op =) o dest_TFree))) t [];
+      build (fold_term_types (K (fold_atyps (insert (eq_fst op =) o dest_TFree))) t);
     val vs_normalized = Name.invent_names Name.context Name.aT (map snd vs_original);
     val normalize =
       map_type_tfree (TFree o the o AList.lookup (op =) (vs_original ~~ vs_normalized));

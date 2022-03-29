@@ -15,9 +15,16 @@ since Isabelle2019). INCOMPATIBILITY, use \<open>cartouche\<close> syntax instea
 
 *** Isabelle/VSCode Prover IDE ***
 
-* Command-line tools "isabelle vscode_setup" and "isabelle vscode"
-provide convenient access to a well-defined version of VSCodium
-(open-source distribution of VSCode without MS telemetry).
+* VSCodium, an open-source distribution of VSCode without MS telemetry,
+has been bundled with Isabelle as add-on component. The command-line
+tool "isabelle vscode" automatically configures it as Isabelle/VSCode
+and starts the application. This includes special support for the
+UTF-8-Isabelle encoding and the corresponding Isabelle fonts.
+
+* Command-line tools "isabelle electron" and "isabelle node" provide
+access to the underlying technologies of VSCodium, for use in other
+applications. This essentially provides a freely programmable Chromium
+browser engine that works uniformly on all platforms.
 
 
 *** HOL ***
@@ -79,6 +86,8 @@ longer. INCOMPATIBILITY.
 * Meson
   - Added support for polymorphic "using" facts. Minor INCOMPATIBILITY.
 
+* (Co)datatype package:
+  - Lemma map_ident_strong is now generated for all BNFs.
 
 
 *** System ***

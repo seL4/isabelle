@@ -1013,7 +1013,7 @@ object Sessions
   def is_session_dir(dir: Path): Boolean =
     (dir + ROOT).is_file || (dir + ROOTS).is_file
 
-  private def check_session_dir(dir: Path): Path =
+  def check_session_dir(dir: Path): Path =
     if (is_session_dir(dir)) File.pwd() + dir.expand
     else error("Bad session root directory (missing ROOT or ROOTS): " + dir.expand.toString)
 
@@ -1172,7 +1172,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
   def write_heap_digest(heap: Path): String =
     read_heap_digest(heap) match {
       case None =>
-        val s = SHA1.digest(heap).rep
+        val s = SHA1.digest(heap).toString
         File.append(heap, sha1_prefix + s)
         s
       case Some(s) => s

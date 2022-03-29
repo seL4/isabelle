@@ -378,23 +378,40 @@ lemma
 lemma times_0_eqpoll: "{} \<times> A \<approx> {}"
   by (simp add: eqpoll_iff_bijections)
 
+lemma Sigma_inj_lepoll_mono:
+  assumes h: "inj_on h A" "h ` A \<subseteq> C" and "\<And>x. x \<in> A \<Longrightarrow> B x \<lesssim> D (h x)" 
+  shows "Sigma A B \<lesssim> Sigma C D"
+proof -
+  have "\<And>x. x \<in> A \<Longrightarrow> \<exists>f. inj_on f (B x) \<and> f ` (B x) \<subseteq> D (h x)"
+    by (meson assms lepoll_def)
+  then obtain f where  "\<And>x. x \<in> A \<Longrightarrow> inj_on (f x) (B x) \<and> f x ` B x \<subseteq> D (h x)"
+    by metis
+  with h show ?thesis
+    unfolding lepoll_def inj_on_def
+    by (rule_tac x="\<lambda>(x,y). (h x, f x y)" in exI) force
+qed
+
 lemma Sigma_lepoll_mono:
   assumes "A \<subseteq> C" "\<And>x. x \<in> A \<Longrightarrow> B x \<lesssim> D x" shows "Sigma A B \<lesssim> Sigma C D"
-proof -
-  have "\<And>x. x \<in> A \<Longrightarrow> \<exists>f. inj_on f (B x) \<and> f ` (B x) \<subseteq> D x"
-    by (meson assms lepoll_def)
-  then obtain f where  "\<And>x. x \<in> A \<Longrightarrow> inj_on (f x) (B x) \<and> f x ` B x \<subseteq> D x"
-    by metis
-  with \<open>A \<subseteq> C\<close> show ?thesis
-    unfolding lepoll_def inj_on_def
-    by (rule_tac x="\<lambda>(x,y). (x, f x y)" in exI) force
-qed
+  using Sigma_inj_lepoll_mono [of id] assms by auto
 
 lemma sum_times_distrib_eqpoll: "(A <+> B) \<times> C \<approx> (A \<times> C) <+> (B \<times> C)"
   unfolding eqpoll_def
 proof
   show "bij_betw (\<lambda>(x,z). case_sum(\<lambda>y. Inl(y,z)) (\<lambda>y. Inr(y,z)) x) ((A <+> B) \<times> C) (A \<times> C <+> B \<times> C)"
     by (rule bij_betw_byWitness [where f' = "case_sum (\<lambda>(x,z). (Inl x, z)) (\<lambda>(y,z). (Inr y, z))"]) auto
+qed
+
+lemma Sigma_eqpoll_cong:
+  assumes h: "bij_betw h A C"  and BD: "\<And>x. x \<in> A \<Longrightarrow> B x \<approx> D (h x)" 
+  shows "Sigma A B \<approx> Sigma C D"
+proof (intro lepoll_antisym)
+  show "Sigma A B \<lesssim> Sigma C D"
+    by (metis Sigma_inj_lepoll_mono bij_betw_def eqpoll_imp_lepoll subset_refl assms)
+  have "inj_on (inv_into A h) C \<and> inv_into A h ` C \<subseteq> A"
+    by (metis bij_betw_def bij_betw_inv_into h set_eq_subset)
+  then show "Sigma C D \<lesssim> Sigma A B"
+    by (smt (verit, best) BD Sigma_inj_lepoll_mono bij_betw_inv_into_right eqpoll_sym h image_subset_iff lepoll_refl lepoll_trans2)
 qed
 
 lemma prod_insert_eqpoll:

@@ -302,7 +302,7 @@ fun print_computation_code ctxt compiled_value [] requested_Ts =
               Ts
               |> cons T
               |> fold (fold add_typ o snd) typ_signs;
-        val required_Ts = fold add_typ requested_Ts [];
+        val required_Ts = build (fold add_typ requested_Ts);
         val of_term_for_typ' = of_term_for_typ required_Ts;
         val eval_for_const' = eval_for_const ctxt proper_cTs;
         val eval_for_const'' = the_default "_" o Option.map eval_for_const';

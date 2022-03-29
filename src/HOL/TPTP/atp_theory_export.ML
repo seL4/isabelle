@@ -51,14 +51,13 @@ fun run_atp ctxt format problem =
     val prob_file = File.tmp_path (Path.explode "prob")
     val atp = atp_of_format format
     val {exec, arguments, proof_delims, known_failures, ...} = get_atp thy atp ()
-    val ord = effective_term_order ctxt atp
     val _ = problem
-      |> lines_of_atp_problem format ord (K [])
+      |> lines_of_atp_problem format (K [])
       |> File.write_list prob_file
     val path = getenv (List.last (fst exec)) ^ "/" ^ List.last (snd exec)
     val command =
       space_implode " " (File.bash_path (Path.explode path) ::
-        arguments ctxt false "" atp_timeout prob_file (ord, K [], K []))
+        arguments ctxt false "" atp_timeout prob_file)
     val outcome =
       Timeout.apply atp_timeout Isabelle_System.bash_output command
       |> fst
@@ -208,9 +207,6 @@ fun problem_of_theory ctxt thy format infer_policy type_enc =
      |> order_problem_facts name_ord)
   end
 
-fun lines_of_problem ctxt format =
-  lines_of_atp_problem format (effective_term_order ctxt eN (* dummy *)) (K [])
-
 fun write_lines path ss =
   let
     val _ = File.write path ""
@@ -220,7 +216,7 @@ fun write_lines path ss =
 fun generate_atp_inference_file_for_theory ctxt thy format infer_policy type_enc file_name =
   let
     val (_, problem) = problem_of_theory ctxt thy format infer_policy type_enc
-    val ss = lines_of_problem ctxt format problem
+    val ss = lines_of_atp_problem format (K []) problem
   in write_lines (Path.explode file_name) ss end
 
 fun ap dir = Path.append dir o Path.explode
@@ -302,7 +298,7 @@ fun generate_casc_lbt_isa_files_for_theory ctxt thy format infer_policy type_enc
     val fact_tab = Symtab.make (map (fn fact as (_, th) => (Thm.get_name_hint th, fact)) facts)
 
     fun write_prelude () =
-      let val ss = lines_of_problem ctxt format prelude in
+      let val ss = lines_of_atp_problem format (K []) prelude in
         File.append file_order_path (prelude_base_name ^ "\n");
         write_lines (ap include_dir prelude_name) ss
       end
@@ -310,7 +306,7 @@ fun generate_casc_lbt_isa_files_for_theory ctxt thy format infer_policy type_enc
     fun write_include_file (base_name, fact_lines) =
       let
         val name = base_name ^ include_suffix
-        val ss = lines_of_problem ctxt format [(factsN, fact_lines)]
+        val ss = lines_of_atp_problem format (K []) [(factsN, fact_lines)]
       in
         File.append file_order_path (base_name ^ "\n");
         write_lines (ap include_dir name) ss

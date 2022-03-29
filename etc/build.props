@@ -1,6 +1,6 @@
 title = Isabelle/Scala
 module = $ISABELLE_HOME/lib/classes/isabelle.jar
-main = isabelle.jedit.Main
+main = isabelle.jedit.JEdit_Main
 resources = \
   lib/services/java.nio.charset.spi.CharsetProvider:META-INF/services/ \
   lib/logo/isabelle_transparent-32.gif:isabelle/ \
@@ -219,11 +219,10 @@ sources = \
   src/Tools/VSCode/src/lsp.scala \
   src/Tools/VSCode/src/preview_panel.scala \
   src/Tools/VSCode/src/state_panel.scala \
-  src/Tools/VSCode/src/textmate_grammar.scala \
+  src/Tools/VSCode/src/vscode_main.scala \
   src/Tools/VSCode/src/vscode_model.scala \
   src/Tools/VSCode/src/vscode_rendering.scala \
   src/Tools/VSCode/src/vscode_resources.scala \
-  src/Tools/VSCode/src/vscode_setup.scala \
   src/Tools/VSCode/src/vscode_spell_checker.scala \
   src/Tools/jEdit/src/active.scala \
   src/Tools/jEdit/src/base_plugin.scala \
@@ -247,6 +246,7 @@ sources = \
   src/Tools/jEdit/src/jedit_bibtex.scala \
   src/Tools/jEdit/src/jedit_editor.scala \
   src/Tools/jEdit/src/jedit_lib.scala \
+  src/Tools/jEdit/src/jedit_main.scala \
   src/Tools/jEdit/src/jedit_options.scala \
   src/Tools/jEdit/src/jedit_plugins.scala \
   src/Tools/jEdit/src/jedit_rendering.scala \
@@ -254,7 +254,6 @@ sources = \
   src/Tools/jEdit/src/jedit_sessions.scala \
   src/Tools/jEdit/src/jedit_spell_checker.scala \
   src/Tools/jEdit/src/keymap_merge.scala \
-  src/Tools/jEdit/src/main.scala \
   src/Tools/jEdit/src/main_plugin.scala \
   src/Tools/jEdit/src/monitor_dockable.scala \
   src/Tools/jEdit/src/output_dockable.scala \

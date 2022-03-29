@@ -181,7 +181,7 @@ fun module_fragments { module_name, identifiers, reserved } =
 
 fun build_module_namespace ctxt enforce_upper { module_prefix, module_name, identifiers, reserved } program =
   let
-    val module_names = Code_Symbol.Graph.fold (insert (op =) o Code_Symbol.default_prefix ctxt o fst) program [];
+    val module_names = build (Code_Symbol.Graph.fold (insert (op =) o Code_Symbol.default_prefix ctxt o fst) program);
     val module_fragments' = module_fragments
       { module_name = module_name, identifiers = identifiers, reserved = reserved };
     val adjust_case = if enforce_upper then map (Name.enforce_case true) else I;

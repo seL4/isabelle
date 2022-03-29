@@ -663,7 +663,6 @@ session "HOL-ex" (timing) in ex = "HOL-Number_Theory" +
     Conditional_Parametricity_Examples
     Cubic_Quartic
     Datatype_Record_Examples
-    Dedekind_Real
     Erdoes_Szekeres
     Eval_Examples
     Executable_Relation
@@ -689,7 +688,6 @@ session "HOL-ex" (timing) in ex = "HOL-Number_Theory" +
     Peano_Axioms
     Perm_Fragments
     PresburgerEx
-    Primrec
     Pythagoras
     Quicksort
     Radix_Sort

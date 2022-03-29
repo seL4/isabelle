@@ -124,26 +124,26 @@ object Components
 
   val components_sha1: Path = Path.explode("~~/Admin/components/components.sha1")
 
-  sealed case class SHA1_Digest(sha1: String, file_name: String)
+  sealed case class SHA1_Digest(digest: SHA1.Digest, name: String)
   {
-    override def toString: String = sha1 + "  " + file_name
+    override def toString: String = digest.shasum(name)
   }
 
   def read_components_sha1(lines: List[String] = Nil): List[SHA1_Digest] =
     (proper_list(lines) getOrElse split_lines(File.read(components_sha1))).flatMap(line =>
       Word.explode(line) match {
         case Nil => None
-        case List(sha1, name) => Some(SHA1_Digest(sha1, name))
+        case List(sha1, name) => Some(SHA1_Digest(SHA1.fake_digest(sha1), name))
         case _ => error("Bad components.sha1 entry: " + quote(line))
       })
 
   def write_components_sha1(entries: List[SHA1_Digest]): Unit =
-    File.write(components_sha1, entries.sortBy(_.file_name).mkString("", "\n", "\n"))
+    File.write(components_sha1, entries.sortBy(_.name).mkString("", "\n", "\n"))
 
 
   /** manage user components **/
 
-  val components_path = Path.explode("$ISABELLE_HOME_USER/etc/components")
+  val components_path: Path = Path.explode("$ISABELLE_HOME_USER/etc/components")
 
   def read_components(): List[String] =
     if (components_path.is_file) Library.trim_split_lines(File.read(components_path))
@@ -301,16 +301,15 @@ object Components
       val new_entries =
         for (archive <- archives)
         yield {
-          val file_name = archive.file_name
-          progress.echo("Digesting local " + file_name)
-          val sha1 = SHA1.digest(archive).rep
-          SHA1_Digest(sha1, file_name)
+          val name = archive.file_name
+          progress.echo("Digesting local " + name)
+          SHA1_Digest(SHA1.digest(archive), name)
         }
-      val new_names = new_entries.map(_.file_name).toSet
+      val new_names = new_entries.map(_.name).toSet
 
       write_components_sha1(
         new_entries :::
-        read_components_sha1().filterNot(entry => new_names.contains(entry.file_name)))
+        read_components_sha1().filterNot(entry => new_names.contains(entry.name)))
     }
   }
 

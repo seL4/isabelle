@@ -53,6 +53,7 @@ sig
   val split_pat_abs: iterm -> ((iterm * itype) * iterm) option
   val unfold_pat_abs: iterm -> (iterm * itype) list * iterm
   val unfold_const_app: iterm -> (const * iterm list) option
+  val map_terms_bottom_up: (iterm -> iterm) -> iterm -> iterm
   val is_IVar: iterm -> bool
   val is_IAbs: iterm -> bool
   val eta_expand: int -> const * iterm list -> iterm
@@ -61,6 +62,7 @@ sig
   val add_constsyms: iterm -> Code_Symbol.T list -> Code_Symbol.T list
   val add_tyconames: iterm -> string list -> string list
   val fold_varnames: (string -> 'a -> 'a) -> iterm -> 'a -> 'a
+  val add_varnames: iterm -> string list -> string list
 
   datatype stmt =
       NoStmt
@@ -78,7 +80,6 @@ sig
   type program = stmt Code_Symbol.Graph.T
   val unimplemented: program -> string list
   val implemented_deps: program -> string list
-  val map_terms_bottom_up: (iterm -> iterm) -> iterm -> iterm
   val map_terms_stmt: (iterm -> iterm) -> stmt -> stmt
   val is_constr: program -> Code_Symbol.T -> bool
   val is_case: stmt -> bool
@@ -233,6 +234,10 @@ fun fold_varnames f =
     fun add_vars t = fold_aux add_vars (insert (op =)) t;
   in fold_aux add_vars f end;
 
+val add_varnames = fold_varnames (insert (op =));
+
+val declare_varnames = fold_varnames Name.declare;
+
 fun exists_var t v = fold_varnames (fn w => fn b => v = w orelse b) t false;
 
 fun split_pat_abs ((NONE, ty) `|=> t) = SOME ((IVar NONE, ty), t)
@@ -253,7 +258,7 @@ fun unfold_abs_eta [] t = ([], t)
       in (v_ty :: vs_tys, t') end
   | unfold_abs_eta tys t =
       let
-        val ctxt = fold_varnames Name.declare t Name.context;
+        val ctxt = Name.build_context (declare_varnames t);
         val vs_tys = (map o apfst) SOME (Name.invent_names ctxt "a" tys);
       in (vs_tys, t `$$ map (IVar o fst) vs_tys) end;
 
@@ -263,10 +268,59 @@ fun eta_expand k (const as { dom = tys, ... }, ts) =
     val l = k - j;
     val _ = if l > length tys
       then error "Impossible eta-expansion" else ();
-    val vars = (fold o fold_varnames) Name.declare ts Name.context;
+    val vars = Name.build_context (fold declare_varnames ts);
     val vs_tys = (map o apfst) SOME
       (Name.invent_names vars "a" ((take l o drop j) tys));
   in vs_tys `|==> IConst const `$$ ts @ map (IVar o fst) vs_tys end;
+
+fun map_terms_bottom_up f (t as IConst _) = f t
+  | map_terms_bottom_up f (t as IVar _) = f t
+  | map_terms_bottom_up f (t1 `$ t2) = f
+      (map_terms_bottom_up f t1 `$ map_terms_bottom_up f t2)
+  | map_terms_bottom_up f ((v, ty) `|=> t) = f
+      ((v, ty) `|=> map_terms_bottom_up f t)
+  | map_terms_bottom_up f (ICase { term = t, typ = ty, clauses = clauses, primitive = t0 }) = f
+      (ICase { term = map_terms_bottom_up f t, typ = ty,
+        clauses = (map o apply2) (map_terms_bottom_up f) clauses,
+        primitive = map_terms_bottom_up f t0 });
+
+fun distill_minimized_clause tys t =
+  let
+    fun restrict_vars_to vs =
+      map_terms_bottom_up (fn IVar (SOME v) =>
+        IVar (if member (op =) vs v then SOME v else NONE) | t => t);
+    fun purge_unused_vars_in t =
+      restrict_vars_to (build (add_varnames t));
+    fun distill' vs_map pat_args v i clauses =
+      let
+        val vs = build (fold add_varnames (nth_drop i pat_args));
+        fun varnames_disjunctive pat =
+          null (inter (op =) vs (build (add_varnames pat)));
+      in
+        if forall (fn (pat', body') => varnames_disjunctive pat'
+            (*prevent mingled scopes resulting in duplicated variables in pattern arguments*)
+          andalso (exists_var pat' v (*reducible if shadowed by pattern*)
+          orelse not (exists_var body' v))) clauses (*reducible if absent in body*)
+        then clauses
+          |> maps (fn (pat', body') =>
+               distill vs_map
+                 (nth_map i (K pat') pat_args |> map (purge_unused_vars_in body'))
+                 body')
+          |> SOME
+        else NONE
+      end
+    and distill vs_map pat_args
+        (body as ICase { term = IVar (SOME v), clauses = clauses, ... }) =
+          (case AList.lookup (op =) vs_map v
+           of SOME i => distill' (AList.delete (op =) v vs_map) pat_args v i clauses
+                |> the_default [(pat_args, body)]
+            | NONE => [(pat_args, body)])
+      | distill vs_map pat_args body = [(pat_args, body)];
+    val (vTs, body) = unfold_abs_eta tys t;
+    val vs = map fst vTs;
+    val vs_map =
+      build (fold_index (fn (i, SOME v) => cons (v, i) | _ => I) vs);
+  in distill vs_map (map IVar vs) body end;
 
 fun exists_dict_var f (Dict (_, d)) = exists_plain_dict_var_pred f d
 and exists_plain_dict_var_pred f (Dict_Const (_, dss)) = exists_dictss_var f dss
@@ -300,24 +354,13 @@ datatype stmt =
 
 type program = stmt Code_Symbol.Graph.T;
 
-fun unimplemented program =
-  Code_Symbol.Graph.fold (fn (Constant c, (NoStmt, _)) => cons c | _ => I) program [];
+val unimplemented =
+  build o Code_Symbol.Graph.fold (fn (Constant c, (NoStmt, _)) => cons c | _ => I);
 
 fun implemented_deps program =
   Code_Symbol.Graph.keys program
   |> subtract (op =) (Code_Symbol.Graph.all_preds program (map Constant (unimplemented program)))
   |> map_filter (fn Constant c => SOME c | _ => NONE);
-
-fun map_terms_bottom_up f (t as IConst _) = f t
-  | map_terms_bottom_up f (t as IVar _) = f t
-  | map_terms_bottom_up f (t1 `$ t2) = f
-      (map_terms_bottom_up f t1 `$ map_terms_bottom_up f t2)
-  | map_terms_bottom_up f ((v, ty) `|=> t) = f
-      ((v, ty) `|=> map_terms_bottom_up f t)
-  | map_terms_bottom_up f (ICase { term = t, typ = ty, clauses = clauses, primitive = t0 }) = f
-      (ICase { term = map_terms_bottom_up f t, typ = ty,
-        clauses = (map o apply2) (map_terms_bottom_up f) clauses,
-        primitive = map_terms_bottom_up f t0 });
 
 fun map_classparam_instances_as_term f =
   (map o apfst o apsnd o apfst) (fn const => case f (IConst const) of IConst const' => const')
@@ -472,6 +515,31 @@ fun annotate_eqns ctxt algbr eqngr (c, ty) eqns =
     map (apfst (fn (args, (rhs, some_abs)) => (args,
       (annotate ctxt' algbr eqngr (c, ty) args rhs, some_abs)))) eqns
   end;
+
+
+(* preprocessing pattern schemas *)
+
+fun preprocess_pattern_schema ctxt (t_pos, case_pats) (c_ty, ts) =
+  let
+    val thy = Proof_Context.theory_of ctxt;
+    val ty = nth (binder_types (snd c_ty)) t_pos;
+    fun select_clauses xs =
+      xs
+      |> nth_drop t_pos
+      |> curry (op ~~) case_pats
+      |> map_filter (fn (NONE, _) => NONE | (SOME _, x) => SOME x);
+    fun mk_constr c t =
+      let
+        val n = Code.args_number thy c;
+      in ((c, (take n o binder_types o fastype_of o untag_term) t ---> ty), n) end;
+    val constrs =
+      if null case_pats then []
+      else map2 mk_constr (case_pats |> map_filter I) (select_clauses ts);
+    val split_clauses =
+      if null case_pats then (fn ts => (nth ts t_pos, nth_drop t_pos ts))
+        else (fn ts => (nth ts t_pos, select_clauses ts));
+  in (ty, constrs, split_clauses) end;
+
 
 (* abstract dictionary construction *)
 
@@ -673,74 +741,36 @@ and translate_app_const ctxt algbr eqngr permissive some_thm ((c_ty, ts), some_a
   translate_const ctxt algbr eqngr permissive some_thm (c_ty, some_abs)
   ##>> fold_map (translate_term ctxt algbr eqngr permissive some_thm o rpair NONE) ts
   #>> (fn (t, ts) => t `$$ ts)
-and translate_case ctxt algbr eqngr permissive some_thm (num_args, (t_pos, case_pats)) (c_ty, ts) =
+and translate_case ctxt algbr eqngr permissive some_thm pattern_schema (c_ty, ts) =
   let
-    val thy = Proof_Context.theory_of ctxt;
-    fun arg_types num_args ty = fst (chop num_args (binder_types ty));
-    val tys = arg_types num_args (snd c_ty);
-    val ty = nth tys t_pos;
-    fun mk_constr NONE t = NONE
-      | mk_constr (SOME c) t =
-          let
-            val n = Code.args_number thy c;
-          in SOME ((c, arg_types n (fastype_of (untag_term t)) ---> ty), n) end;
-    val constrs =
-      if null case_pats then []
-      else map_filter I (map2 mk_constr case_pats (nth_drop t_pos ts));
-    fun disjunctive_varnames ts =
+    val (ty, constrs, split_clauses) =
+      preprocess_pattern_schema ctxt pattern_schema (c_ty, ts);
+    fun is_undefined_clause (_, IConst { sym = Constant c, ... }) =
+          Code.is_undefined (Proof_Context.theory_of ctxt) c
+      | is_undefined_clause _ =
+          false;
+    fun distill_clauses constrs ty ts =
       let
-        val vs = (fold o fold_varnames) (insert (op =)) ts [];
-      in fn pat => null (inter (op =) vs (fold_varnames (insert (op =)) pat [])) end;
-    fun purge_unused_vars_in t =
-      let
-        val vs = fold_varnames (insert (op =)) t [];
-      in
-        map_terms_bottom_up (fn IVar (SOME v) =>
-          IVar (if member (op =) vs v then SOME v else NONE) | t => t)
-      end;
-    fun collapse_clause vs_map ts body =
-      case body
-       of IConst { sym = Constant c, ... } => if Code.is_undefined thy c
-            then []
-            else [(ts, body)]
-        | ICase { term = IVar (SOME v), clauses = clauses, ... } =>
-            if forall (fn (pat', body') => exists_var pat' v
-              orelse not (exists_var body' v)) clauses
-              andalso forall (disjunctive_varnames ts o fst) clauses
-            then case AList.lookup (op =) vs_map v
-             of SOME i => maps (fn (pat', body') =>
-                  collapse_clause (AList.delete (op =) v vs_map)
-                    (nth_map i (K pat') ts |> map (purge_unused_vars_in body')) body') clauses
-              | NONE => [(ts, body)]
-            else [(ts, body)]
-        | _ => [(ts, body)];
-    fun mk_clause mk tys t =
-      let
-        val (vs, body) = unfold_abs_eta tys t;
-        val vs_map = fold_index (fn (i, (SOME v, _)) => cons (v, i) | _ => I) vs [];
-        val ts = map (IVar o fst) vs;
-      in map mk (collapse_clause vs_map ts body) end;
-    fun casify constrs ty t_app ts =
-      let
-        val t = nth ts t_pos;
-        val ts_clause = nth_drop t_pos ts;
-        val clauses = if null case_pats
-          then mk_clause (fn ([t], body) => (t, body)) [ty] (the_single ts_clause)
+        val (t, ts_clause) = split_clauses ts;
+        val clauses = if null constrs
+          then map (fn ([pat], body) => (pat, body))
+            (distill_minimized_clause [ty] (the_single ts_clause))
           else maps (fn ((constr as IConst { dom = tys, ... }, n), t) =>
-            mk_clause (fn (ts, body) => (constr `$$ ts, body)) (take n tys) t)
-              (constrs ~~ (map_filter (fn (NONE, _) => NONE | (SOME _, t) => SOME t)
-                (case_pats ~~ ts_clause)));
-      in ICase { term = t, typ = ty, clauses = clauses, primitive = t_app `$$ ts } end;
+            map (fn (pat_args, body) => (constr `$$ pat_args, body))
+              (distill_minimized_clause (take n tys) t))
+              (constrs ~~ ts_clause);
+      in (t, filter_out is_undefined_clause clauses) end;
   in
     translate_const ctxt algbr eqngr permissive some_thm (c_ty, NONE)
     ##>> fold_map (fn (constr, n) => translate_const ctxt algbr eqngr permissive some_thm (constr, NONE)
       #>> rpair n) constrs
     ##>> translate_typ ctxt algbr eqngr permissive ty
     ##>> fold_map (translate_term ctxt algbr eqngr permissive some_thm o rpair NONE) ts
-    #>> (fn (((t, constrs), ty), ts) =>
-      casify constrs ty t ts)
+    #>> (fn (((t_app, constrs), ty), ts) =>
+      case distill_clauses constrs ty ts of (t, clauses) =>
+        ICase { term = t, typ = ty, clauses = clauses, primitive = t_app `$$ ts })
   end
-and translate_app_case ctxt algbr eqngr permissive some_thm (case_schema as (num_args, _)) ((c, ty), ts) =
+and translate_app_case ctxt algbr eqngr permissive some_thm (num_args, pattern_schema) ((c, ty), ts) =
   if length ts < num_args then
     let
       val k = length ts;
@@ -749,15 +779,15 @@ and translate_app_case ctxt algbr eqngr permissive some_thm (case_schema as (num
       val vs = Name.invent_names names "a" tys;
     in
       fold_map (translate_typ ctxt algbr eqngr permissive) tys
-      ##>> translate_case ctxt algbr eqngr permissive some_thm case_schema ((c, ty), ts @ map Free vs)
+      ##>> translate_case ctxt algbr eqngr permissive some_thm pattern_schema ((c, ty), ts @ map Free vs)
       #>> (fn (tys, t) => map2 (fn (v, _) => pair (SOME v)) vs tys `|==> t)
     end
   else if length ts > num_args then
-    translate_case ctxt algbr eqngr permissive some_thm case_schema ((c, ty), take num_args ts)
+    translate_case ctxt algbr eqngr permissive some_thm pattern_schema ((c, ty), take num_args ts)
     ##>> fold_map (translate_term ctxt algbr eqngr permissive some_thm o rpair NONE) (drop num_args ts)
     #>> (fn (t, ts) => t `$$ ts)
   else
-    translate_case ctxt algbr eqngr permissive some_thm case_schema ((c, ty), ts)
+    translate_case ctxt algbr eqngr permissive some_thm pattern_schema ((c, ty), ts)
 and translate_app ctxt algbr eqngr permissive some_thm (c_ty_ts as ((c, _), _), some_abs) =
   case Code.get_case_schema (Proof_Context.theory_of ctxt) c
    of SOME case_schema => translate_app_case ctxt algbr eqngr permissive some_thm case_schema c_ty_ts

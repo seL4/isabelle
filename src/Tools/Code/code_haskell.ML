@@ -146,8 +146,7 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
                 val vars = reserved
                   |> intro_base_names_for (is_none o const_syntax)
                       deresolve (t :: ts)
-                  |> intro_vars ((fold o Code_Thingol.fold_varnames)
-                      (insert (op =)) ts []);
+                  |> intro_vars (build (fold Code_Thingol.add_varnames ts));
               in
                 semicolon (
                   (str o deresolve_const) const

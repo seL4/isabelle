@@ -263,7 +263,7 @@ text \<open>
   session \<^verbatim>\<open>ROOT\<close> entry in the editor to facilitate editing of the main
   session. The \<^verbatim>\<open>-A\<close> option specifies and alternative ancestor session for
   option \<^verbatim>\<open>-R\<close>: this allows to restructure the hierarchy of session images on
-  the spot.
+  the spot. Options \<^verbatim>\<open>-R\<close> and \<^verbatim>\<open>-l\<close> are mutually exclusive.
 
   The \<^verbatim>\<open>-i\<close> option includes additional sessions into the name-space of
   theories: multiple occurrences are possible.

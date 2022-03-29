@@ -21,7 +21,7 @@ sig
      command: unit -> string list,
      options: Proof.context -> string list,
      smt_options: (string * string) list,
-     good_slices: ((int * string) * string list) list,
+     good_slices: ((int * int * string) * string list) list,
      outcome: string -> string list -> outcome * string list,
      parse_proof: (Proof.context -> SMT_Translate.replay_data ->
        ((string * ATP_Problem_Generate.stature) * thm) list -> term list -> term -> string list ->
@@ -30,7 +30,7 @@ sig
 
   (*registry*)
   val add_solver: solver_config -> theory -> theory
-  val good_slices: Proof.context -> string -> ((int * string) * string list) list
+  val good_slices: Proof.context -> string -> ((int * int * string) * string list) list
 
   (*filter*)
   val smt_filter: Proof.context -> thm -> ((string * ATP_Problem_Generate.stature) * thm) list ->
@@ -155,7 +155,7 @@ type solver_config =
    command: unit -> string list,
    options: Proof.context -> string list,
    smt_options: (string * string) list,
-   good_slices: ((int * string) * string list) list,
+   good_slices: ((int * int * string) * string list) list,
    outcome: string -> string list -> outcome * string list,
    parse_proof: (Proof.context -> SMT_Translate.replay_data ->
      ((string * ATP_Problem_Generate.stature) * thm) list -> term list -> term -> string list ->
@@ -180,7 +180,7 @@ fun check_topsort ctxt thm =
 type solver_info = {
   command: unit -> string list,
   smt_options: (string * string) list,
-  good_slices: ((int * string) * string list) list,
+  good_slices: ((int * int * string) * string list) list,
   parse_proof: Proof.context -> SMT_Translate.replay_data ->
     ((string * ATP_Problem_Generate.stature) * thm) list -> term list -> term -> string list ->
     parsed_proof,

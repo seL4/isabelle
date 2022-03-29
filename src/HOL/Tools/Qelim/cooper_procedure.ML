@@ -1026,15 +1026,19 @@ fun equal_fm (Closed x18) (NClosed x19) = false
 fun djf f p q =
   (if equal_fm q T then T
     else (if equal_fm q F then f p
-           else (case f p of T => T | F => q | Lt _ => Or (f p, q)
-                  | Le _ => Or (f p, q) | Gt _ => Or (f p, q)
-                  | Ge _ => Or (f p, q) | Eq _ => Or (f p, q)
-                  | NEq _ => Or (f p, q) | Dvd (_, _) => Or (f p, q)
-                  | NDvd (_, _) => Or (f p, q) | Not _ => Or (f p, q)
-                  | And (_, _) => Or (f p, q) | Or (_, _) => Or (f p, q)
-                  | Imp (_, _) => Or (f p, q) | Iff (_, _) => Or (f p, q)
-                  | E _ => Or (f p, q) | A _ => Or (f p, q)
-                  | Closed _ => Or (f p, q) | NClosed _ => Or (f p, q))));
+           else let
+                  val fp = f p;
+                in
+                  (case fp of T => T | F => q | Lt _ => Or (fp, q)
+                    | Le _ => Or (fp, q) | Gt _ => Or (fp, q)
+                    | Ge _ => Or (fp, q) | Eq _ => Or (fp, q)
+                    | NEq _ => Or (fp, q) | Dvd (_, _) => Or (fp, q)
+                    | NDvd (_, _) => Or (fp, q) | Not _ => Or (fp, q)
+                    | And (_, _) => Or (fp, q) | Or (_, _) => Or (fp, q)
+                    | Imp (_, _) => Or (fp, q) | Iff (_, _) => Or (fp, q)
+                    | E _ => Or (fp, q) | A _ => Or (fp, q)
+                    | Closed _ => Or (fp, q) | NClosed _ => Or (fp, q))
+                end));
 
 fun evaldjf f ps = foldr (djf f) ps F;
 
@@ -1811,39 +1815,32 @@ fun zsplit0 (C c) = (zero_inta, C c)
       else (zero_inta, Bound n))
   | zsplit0 (CN (n, i, a)) =
     let
-      val aa = zsplit0 a;
-      val (ia, ab) = aa;
+      val (ia, aa) = zsplit0 a;
     in
-      (if equal_nat n zero_nat then (plus_inta i ia, ab)
-        else (ia, CN (n, i, ab)))
+      (if equal_nat n zero_nat then (plus_inta i ia, aa)
+        else (ia, CN (n, i, aa)))
     end
   | zsplit0 (Neg a) = let
-                        val aa = zsplit0 a;
-                        val (i, ab) = aa;
+                        val (i, aa) = zsplit0 a;
                       in
-                        (uminus_int i, Neg ab)
+                        (uminus_int i, Neg aa)
                       end
   | zsplit0 (Add (a, b)) = let
-                             val aa = zsplit0 a;
-                             val (ia, ab) = aa;
-                             val ba = zsplit0 b;
-                             val (ib, bb) = ba;
+                             val (ia, aa) = zsplit0 a;
+                             val (ib, ba) = zsplit0 b;
                            in
-                             (plus_inta ia ib, Add (ab, bb))
+                             (plus_inta ia ib, Add (aa, ba))
                            end
   | zsplit0 (Sub (a, b)) = let
-                             val aa = zsplit0 a;
-                             val (ia, ab) = aa;
-                             val ba = zsplit0 b;
-                             val (ib, bb) = ba;
+                             val (ia, aa) = zsplit0 a;
+                             val (ib, ba) = zsplit0 b;
                            in
-                             (minus_inta ia ib, Sub (ab, bb))
+                             (minus_inta ia ib, Sub (aa, ba))
                            end
   | zsplit0 (Mul (i, a)) = let
-                             val aa = zsplit0 a;
-                             val (ia, ab) = aa;
+                             val (ia, aa) = zsplit0 a;
                            in
-                             (times_inta i ia, Mul (i, ab))
+                             (times_inta i ia, Mul (i, aa))
                            end;
 
 fun zlfm (And (p, q)) = And (zlfm p, zlfm q)
