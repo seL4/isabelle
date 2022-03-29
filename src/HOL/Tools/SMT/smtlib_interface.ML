@@ -148,8 +148,8 @@ fun assert_name_of_role_and_index role i = assert_prefix_of_role role ^ string_o
 
 fun unprefix_axiom s =
   try (pair SMT_Util.Conjecture o unprefix conjecture_prefix) s
-  |> curry merge_options (try (pair SMT_Util.Conjecture o unprefix hypothesis_prefix) s)
-  |> curry merge_options (try (pair SMT_Util.Conjecture o unprefix axiom_prefix) s)
+  |> curry merge_options (try (pair SMT_Util.Hypothesis o unprefix hypothesis_prefix) s)
+  |> curry merge_options (try (pair SMT_Util.Axiom o unprefix axiom_prefix) s)
   |> the
 
 fun role_and_index_of_assert_name s =

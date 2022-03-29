@@ -32,7 +32,7 @@ sig
     terms: term Symtab.table,
     ll_defs: term list,
     rewrite_rules: thm list,
-    assms: (int * thm) list }
+    assms: ((int * SMT_Util.role) * thm) list }
 
   (*translation*)
   val add_config: SMT_Util.class * (Proof.context -> config) -> Context.generic -> Context.generic
@@ -79,7 +79,7 @@ type replay_data = {
   terms: term Symtab.table,
   ll_defs: term list,
   rewrite_rules: thm list,
-  assms: (int * thm) list }
+  assms: ((int * SMT_Util.role) * thm) list }
 
 
 (* translation context *)
@@ -133,7 +133,7 @@ fun replay_data_of ctxt ll_defs rules assms (_, typs, terms) =
     val terms' = Termtab.fold add_fun terms Symtab.empty
   in
     {context = ctxt, typs = typs', terms = terms', ll_defs = ll_defs, rewrite_rules = rules,
-     assms = map (apfst fst) assms}
+     assms = assms}
   end
 
 

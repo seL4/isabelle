@@ -123,7 +123,7 @@ fun parse_proof outer_ctxt
     xfacts prems concl output =
   let
     val (steps, ctxt2) = Z3_Proof.parse typs terms output ctxt
-    val ((iidths, _), _) = add_asserted outer_ctxt rewrite_rules assms steps ctxt2
+    val ((iidths, _), _) = add_asserted outer_ctxt rewrite_rules (map (apfst fst) assms) steps ctxt2
 
     fun id_of_index i = the_default ~1 (Option.map fst (AList.lookup (op =) iidths i))
 
@@ -153,7 +153,7 @@ fun replay outer_ctxt
   let
     val (steps, ctxt2) = Z3_Proof.parse typs terms output ctxt
     val ((_, rules), (ctxt3, assumed)) =
-      add_asserted outer_ctxt rewrite_rules assms steps ctxt2
+      add_asserted outer_ctxt rewrite_rules (map (apfst fst) assms) steps ctxt2
     val ctxt4 =
       ctxt3
       |> put_simpset (SMT_Replay.make_simpset ctxt3 [])

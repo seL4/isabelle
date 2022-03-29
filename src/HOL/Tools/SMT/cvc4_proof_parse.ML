@@ -37,7 +37,7 @@ fun parse_proof ({ll_defs, assms, ...} : SMT_Translate.replay_data) xfacts prems
 
       val fact_ids' =
         map_filter (fn j =>
-          let val (i, _) = nth assms j in
+          let val ((i, _), _) = nth assms j in
             try (apsnd (nth xfacts)) (id_of_index j, i - facts_i)
           end) used_assm_js
     in
