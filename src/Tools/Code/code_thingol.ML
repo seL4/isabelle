@@ -300,9 +300,9 @@ fun distill_minimized_clause tys t =
                   IVar (if member (op =) vs v then SOME v else NONE) | t => t)
               end;
           in
-            if forall (fn (pat', body') => exists_var pat' v
-              orelse not (exists_var body' v)) clauses
-              andalso forall (varnames_disjunctive o fst) clauses
+            if forall (fn (pat', body') => exists_var pat' v (*prevent mingling scopes*)
+              orelse not (exists_var body' v)) clauses (*reducible if shadowed by pattern*)
+              andalso forall (varnames_disjunctive o fst) clauses (*reducible if absent in body*)
             then case AList.lookup (op =) vs_map v
              of SOME i => clauses |> maps (fn (pat', body') =>
                   distill (AList.delete (op =) v vs_map)
@@ -311,11 +311,11 @@ fun distill_minimized_clause tys t =
             else [(pat_args, body)]
           end
       | distill vs_map pat_args body = [(pat_args, body)];
-    val (vs, body) = unfold_abs_eta tys t;
+    val (vTs, body) = unfold_abs_eta tys t;
+    val vs = map fst vTs;
     val vs_map =
-      build (fold_index (fn (i, (SOME v, _)) => cons (v, i) | _ => I) vs);
-    val pat_args = map (IVar o fst) vs;
-  in distill vs_map pat_args body end;
+      build (fold_index (fn (i, SOME v) => cons (v, i) | _ => I) vs);
+  in distill vs_map (map IVar vs) body end;
 
 fun exists_dict_var f (Dict (_, d)) = exists_plain_dict_var_pred f d
 and exists_plain_dict_var_pred f (Dict_Const (_, dss)) = exists_dictss_var f dss
