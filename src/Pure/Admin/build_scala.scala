@@ -91,7 +91,7 @@ object Build_Scala
 
     /* classpath */
 
-    val classpath =
+    val classpath: List[String] =
     {
       def no_function(name: String): String = "function " + name + "() {\n:\n}"
       val script =
@@ -110,6 +110,10 @@ object Build_Scala
       main_classpath ::: lib_classpath
     }
 
+    val interfaces =
+      classpath.find(_.startsWith("scala3-interfaces"))
+        .getOrElse(error("Missing jar for scala3-interfaces"))
+
 
     /* settings */
 
@@ -118,6 +122,7 @@ object Build_Scala
       """# -*- shell-script -*- :mode=shellscript:
 
 SCALA_HOME="$COMPONENT"
+SCALA_INTERFACES="$SCALA_HOME/lib/""" + interfaces + """"
 """ + terminate_lines(classpath.map(jar => "classpath \"$SCALA_HOME/lib/" + jar + "\"")))
 
 
