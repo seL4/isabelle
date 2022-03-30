@@ -246,11 +246,20 @@ fun check_expected_outcome ctxt prover_name expect outcome =
   in
     (* The "expect" argument is deliberately ignored if the prover is missing so that
        "Metis_Examples" can be processed on any machine. *)
-    if expect = "" orelse outcome_code = expect orelse
-       not (is_prover_installed ctxt prover_name) then
+    if expect = "" orelse not (is_prover_installed ctxt prover_name) then
       ()
     else
-      error ("Unexpected outcome: " ^ quote outcome_code)
+      (case (expect, outcome) of
+        ("some", SH_Some _) => ()
+      | ("some_preplayed", SH_Some (_, preplay_results)) =>
+          if exists (fn (_, Played _, _) => true | _ => false) preplay_results then
+            ()
+          else
+            error ("Unexpected outcome: the external prover found a some proof but preplay failed")
+      | ("unknown", SH_Unknown) => ()
+      | ("timeout", SH_Timeout) => ()
+      | ("none", SH_None) => ()
+      | _ => error ("Unexpected outcome: " ^ quote outcome_code))
   end
 
 fun launch_prover_and_preplay (params as {debug, timeout, expect, ...}) mode writeln_result learn
