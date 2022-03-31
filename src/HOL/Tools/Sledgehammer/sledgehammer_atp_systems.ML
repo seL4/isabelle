@@ -185,15 +185,15 @@ val e_config : atp_config =
      let
        val (format, type_enc, lam_trans, extra_options) =
          if string_ord (getenv "E_VERSION", "2.7") <> LESS then
-           (THF (Monomorphic, {with_ite = true, with_let = false}, THF_Without_Choice), "mono_native_higher", keep_lamsN, "--auto-schedule=4 --serialize-schedule=true")
+           (THF (Monomorphic, {with_ite = true, with_let = false}, THF_Without_Choice), "mono_native_higher", keep_lamsN, "--auto-schedule=1 --serialize-schedule=true")
          else if string_ord (getenv "E_VERSION", "2.6") <> LESS then
            (THF (Monomorphic, {with_ite = false, with_let = false}, THF_Without_Choice), "mono_native_higher", keep_lamsN, "--auto-schedule")
          else
            (THF (Monomorphic, {with_ite = false, with_let = false}, THF_Lambda_Free), "mono_native_higher", combsN, "--auto-schedule")
      in
        (* FUDGE *)
-       K [((1000 (* infinity *), 1024, meshN), (format, type_enc, lam_trans, false, extra_options)),
-         ((1000 (* infinity *), 512, meshN), (format, type_enc, lam_trans, false, extra_options)),
+       K [((1000 (* infinity *), 512, meshN), (format, type_enc, lam_trans, false, extra_options)),
+         ((1000 (* infinity *), 1024, meshN), (format, type_enc, lam_trans, false, extra_options)),
          ((1000 (* infinity *), 128, mepoN), (format, type_enc, lam_trans, false, extra_options)),
          ((1000 (* infinity *), 724, meshN), (TF0, "poly_guards??", lam_trans, false, extra_options)),
          ((1000 (* infinity *), 256, mepoN), (format, type_enc, liftingN, false, extra_options)),
