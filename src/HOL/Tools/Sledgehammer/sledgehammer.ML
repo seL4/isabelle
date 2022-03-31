@@ -134,23 +134,11 @@ fun play_one_line_proofs minimize timeout used_facts state i methss =
 
 fun select_one_line_proof used_facts preferred_meth preplay_results =
   (case preplay_results of
-    [] => (used_facts, (preferred_meth, Play_Timed_Out Time.zeroTime))
-  | (best_meth, best_outcome, best_used_facts) :: results' =>
-    let
-      val (prefered_outcome, prefered_used_facts) =
-        (case find_first (fn (meth, _, _) => meth = preferred_meth) preplay_results of
-          NONE => (Play_Timed_Out Time.zeroTime, used_facts)
-        | SOME (_, prefered_outcome, prefered_used_facts) =>
-          (prefered_outcome, prefered_used_facts))
-    in
-      (case (prefered_outcome, best_outcome) of
-        (* If prefered_meth succeeded, use it irrespective of other preplay results *)
-        (Played _, _) => (prefered_used_facts, (preferred_meth, prefered_outcome))
-        (* If prefered_meth did not succeed but best method did, use best method *)
-      | (_, Played _) => (best_used_facts, (best_meth, best_outcome))
-        (* If neither succeeded, use preferred_meth *)
-      | (_, _) => (prefered_used_facts, (preferred_meth, prefered_outcome)))
-    end)
+    (* Select best method if preplay succeeded *)
+    (best_meth, best_outcome as Played _, best_used_facts) :: _ =>
+    (best_used_facts, (best_meth, best_outcome))
+    (* Otherwise select preferred method with dummy timeout *)
+  | _ => (used_facts, (preferred_meth, Play_Timed_Out Time.zeroTime)))
   |> apfst (filter_out (fn (_, (sc, _)) => sc = Chained))
 
 fun launch_prover (params as {verbose, spy, slices, timeout, ...}) mode learn
