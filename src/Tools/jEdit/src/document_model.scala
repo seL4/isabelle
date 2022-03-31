@@ -606,8 +606,7 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
         else Nil
       }
 
-    def edit(edits: List[Text.Edit]): Unit = synchronized
-    {
+    def edit(edits: List[Text.Edit]): Unit = synchronized {
       GUI_Thread.require {}
 
       reset_blob()
