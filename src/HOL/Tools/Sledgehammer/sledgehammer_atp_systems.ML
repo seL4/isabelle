@@ -185,7 +185,7 @@ val e_config : atp_config =
      let
        val (format, type_enc, lam_trans, extra_options) =
          if string_ord (getenv "E_VERSION", "2.7") <> LESS then
-           (THF (Monomorphic, {with_ite = true, with_let = false}, THF_Without_Choice), "mono_native_higher", keep_lamsN, "--auto-schedule=1 --serialize-schedule=true")
+           (THF (Monomorphic, {with_ite = true, with_let = false}, THF_Without_Choice), "mono_native_higher", keep_lamsN, "--auto-schedule=4 --serialize-schedule=true")
          else if string_ord (getenv "E_VERSION", "2.6") <> LESS then
            (THF (Monomorphic, {with_ite = false, with_let = false}, THF_Without_Choice), "mono_native_higher", keep_lamsN, "--auto-schedule")
          else
