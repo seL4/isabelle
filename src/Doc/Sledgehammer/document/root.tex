@@ -1167,6 +1167,10 @@ problem.
 Sledgehammer emits an error if the actual outcome differs from the expected outcome. This option is
 useful for regression testing.
 
+The expected outcomes are not mutually exclusive. More specifically, \textit{some} is accepted
+whenever \textit{some\_preplayed} is accepted as the former has strictly fewer requirements
+than the later.
+
 \nopagebreak
 {\small See also \textit{timeout} (\S\ref{timeouts}).}
 \end{enum}
