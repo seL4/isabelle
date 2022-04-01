@@ -862,7 +862,7 @@ object Build_Log {
       Isabelle_System.make_directory(sqlite_database.dir)
       sqlite_database.file.delete
 
-      using(SQLite.open_database(sqlite_database))(db2 => {
+      using(SQLite.open_database(sqlite_database)) { db2 =>
         db.transaction {
           db2.transaction {
             // main content
@@ -892,9 +892,9 @@ object Build_Log {
               val afp_rev = if (afp) Some("") else None
               val table = Data.pull_date_table(afp)
               db2.create_table(table)
-              db2.using_statement(table.insert())(stmt2 => {
+              db2.using_statement(table.insert()) { stmt2 =>
                 db.using_statement(
-                  Data.recent_pull_date_table(days, afp_rev = afp_rev).query)(stmt => {
+                  Data.recent_pull_date_table(days, afp_rev = afp_rev).query) { stmt =>
                   val res = stmt.execute_query()
                   while (res.next()) {
                     for ((c, i) <- table.columns.zipWithIndex) {
@@ -902,8 +902,8 @@ object Build_Log {
                     }
                     stmt2.execute()
                   }
-                })
-              })
+                }
+              }
             }
 
             // full view
@@ -911,7 +911,7 @@ object Build_Log {
           }
         }
         db2.rebuild
-      })
+      }
     }
 
     def domain(db: SQL.Database, table: SQL.Table, column: SQL.Column): Set[String] =
@@ -920,7 +920,7 @@ object Build_Log {
 
     def update_meta_info(db: SQL.Database, log_name: String, meta_info: Meta_Info): Unit = {
       val table = Data.meta_info_table
-      db.using_statement(db.insert_permissive(table))(stmt => {
+      db.using_statement(db.insert_permissive(table)) { stmt =>
         stmt.string(1) = log_name
         for ((c, i) <- table.columns.tail.zipWithIndex) {
           if (c.T == SQL.Type.Date)
@@ -929,12 +929,12 @@ object Build_Log {
             stmt.string(i + 2) = meta_info.get(c)
         }
         stmt.execute()
-      })
+      }
     }
 
     def update_sessions(db: SQL.Database, log_name: String, build_info: Build_Info): Unit = {
       val table = Data.sessions_table
-      db.using_statement(db.insert_permissive(table))(stmt => {
+      db.using_statement(db.insert_permissive(table)) { stmt =>
         val sessions =
           if (build_info.sessions.isEmpty) Build_Info.sessions_dummy
           else build_info.sessions
@@ -958,12 +958,12 @@ object Build_Log {
           stmt.string(17) = session.sources
           stmt.execute()
         }
-      })
+      }
     }
 
     def update_theories(db: SQL.Database, log_name: String, build_info: Build_Info): Unit = {
       val table = Data.theories_table
-      db.using_statement(db.insert_permissive(table))(stmt => {
+      db.using_statement(db.insert_permissive(table)) { stmt =>
         val sessions =
           if (build_info.sessions.forall({ case (_, session) => session.theory_timings.isEmpty }))
             Build_Info.sessions_dummy
@@ -980,12 +980,12 @@ object Build_Log {
           stmt.long(6) = timing.gc.ms
           stmt.execute()
         }
-      })
+      }
     }
 
     def update_ml_statistics(db: SQL.Database, log_name: String, build_info: Build_Info): Unit = {
       val table = Data.ml_statistics_table
-      db.using_statement(db.insert_permissive(table))(stmt => {
+      db.using_statement(db.insert_permissive(table)) { stmt =>
         val ml_stats: List[(String, Option[Bytes])] =
           Par_List.map[(String, Session_Entry), (String, Option[Bytes])](
             { case (a, b) => (a, Properties.compress(b.ml_statistics, cache = cache.xz).proper) },
@@ -997,7 +997,7 @@ object Build_Log {
           stmt.bytes(3) = ml_statistics
           stmt.execute()
         }
-      })
+      }
     }
 
     def write_info(db: SQL.Database, files: List[JFile], ml_statistics: Boolean = false): Unit = {
@@ -1048,7 +1048,7 @@ object Build_Log {
     def read_meta_info(db: SQL.Database, log_name: String): Option[Meta_Info] = {
       val table = Data.meta_info_table
       val columns = table.columns.tail
-      db.using_statement(table.select(columns, Data.log_name.where_equal(log_name)))(stmt => {
+      db.using_statement(table.select(columns, Data.log_name.where_equal(log_name))) { stmt =>
         val res = stmt.execute_query()
         if (!res.next()) None
         else {
@@ -1063,7 +1063,7 @@ object Build_Log {
           val settings = for ((x, Some(y)) <- results.drop(n)) yield (x, y)
           Some(Meta_Info(props, settings))
         }
-      })
+      }
     }
 
     def read_build_info(
@@ -1094,8 +1094,8 @@ object Build_Log {
         else (columns1, table1.ident)
 
       val sessions =
-        db.using_statement(SQL.select(columns) + from + " " + where)(stmt => {
-          stmt.execute_query().iterator(res => {
+        db.using_statement(SQL.select(columns) + from + " " + where) { stmt =>
+          stmt.execute_query().iterator({ res =>
             val session_name = res.string(Data.session_name)
             val session_entry =
               Session_Entry(
@@ -1116,7 +1116,7 @@ object Build_Log {
                   else Nil)
             session_name -> session_entry
           }).toMap
-        })
+        }
       Build_Info(sessions)
     }
   }

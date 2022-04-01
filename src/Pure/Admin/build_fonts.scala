@@ -238,7 +238,7 @@ object Build_Fonts {
 
         val target_names = source_names.update(prefix = target_prefix, version = target_version)
 
-        Isabelle_System.with_tmp_file("font", "ttf")(tmp_file => {
+        Isabelle_System.with_tmp_file("font", "ttf") { tmp_file =>
           for (hinted <- hinting) {
             val target_file = target_dir + hinted_path(hinted) + target_names.ttf
             progress.echo("Font " + target_file.toString + " ...")
@@ -265,7 +265,7 @@ object Build_Fonts {
                 Fontforge.close)
             ).check
           }
-        })
+        }
 
         (target_names.ttf, index)
       }
@@ -336,10 +336,11 @@ isabelle_fonts_hidden "$COMPONENT/""" + hinted_path(false).file_name + """/Vacuo
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("build_fonts", "construct Isabelle fonts", Scala_Project.here, args => {
-      var source_dirs: List[Path] = Nil
+    Isabelle_Tool("build_fonts", "construct Isabelle fonts", Scala_Project.here,
+      { args =>
+        var source_dirs: List[Path] = Nil
 
-      val getopts = Getopts("""
+        val getopts = Getopts("""
 Usage: isabelle build_fonts [OPTIONS]
 
   Options are:
@@ -347,17 +348,17 @@ Usage: isabelle build_fonts [OPTIONS]
 
   Construct Isabelle fonts from DejaVu font families and Isabelle symbols.
 """,
-        "d:" -> (arg => source_dirs = source_dirs ::: List(Path.explode(arg))))
+          "d:" -> (arg => source_dirs = source_dirs ::: List(Path.explode(arg))))
 
-      val more_args = getopts(args)
-      if (more_args.nonEmpty) getopts.usage()
+        val more_args = getopts(args)
+        if (more_args.nonEmpty) getopts.usage()
 
-      val target_version = Date.Format.alt_date(Date.now())
-      val target_dir = Path.explode("isabelle_fonts-" + target_version)
+        val target_version = Date.Format.alt_date(Date.now())
+        val target_dir = Path.explode("isabelle_fonts-" + target_version)
 
-      val progress = new Console_Progress
+        val progress = new Console_Progress
 
-      build_fonts(source_dirs = source_dirs, target_dir = target_dir,
-        target_version = target_version, progress = progress)
-    })
+        build_fonts(source_dirs = source_dirs, target_dir = target_dir,
+          target_version = target_version, progress = progress)
+      })
 }

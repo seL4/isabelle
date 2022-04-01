@@ -33,16 +33,17 @@ object Isabelle_Devel {
   /* release snapshot */
 
   def release_snapshot(options: Options, rev: String, afp_rev: String): Unit = {
-    Isabelle_System.with_tmp_dir("isadist")(target_dir => {
-        Isabelle_System.update_directory(root + Path.explode(RELEASE_SNAPSHOT),
-          website_dir => {
+    Isabelle_System.with_tmp_dir("isadist") { target_dir =>
+      Isabelle_System.update_directory(root + Path.explode(RELEASE_SNAPSHOT),
+        { website_dir =>
           val context = Build_Release.Release_Context(target_dir)
           Build_Release.build_release_archive(context, rev)
           Build_Release.build_release(options, context, afp_rev = afp_rev,
             build_sessions = List(Isabelle_System.getenv("ISABELLE_LOGIC")),
             website = Some(website_dir))
-        })
-      })
+        }
+      )
+    }
   }
 
 
@@ -50,11 +51,11 @@ object Isabelle_Devel {
 
   def build_log_database(options: Options, log_dirs: List[Path]): Unit = {
     val store = Build_Log.store(options)
-    using(store.open_database())(db => {
+    using(store.open_database()) { db =>
       store.update_database(db, log_dirs)
       store.update_database(db, log_dirs, ml_statistics = true)
       store.snapshot_database(db, root + Path.explode(BUILD_LOG_DB))
-    })
+    }
   }
 
 

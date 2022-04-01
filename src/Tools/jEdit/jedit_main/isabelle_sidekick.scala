@@ -187,7 +187,7 @@ class Isabelle_Sidekick_Markup extends Isabelle_Sidekick("isabelle-markup") {
               snapshot.version, command, Command.Markup_Index.markup,
                 command.range, Markup.Elements.full)
           Isabelle_Sidekick.swing_markup_tree(markup, data.root,
-            (info: Text.Info[List[XML.Elem]]) => {
+            { (info: Text.Info[List[XML.Elem]]) =>
               val range = info.range + command_start
               val content = command.source(info.range).replace('\n', ' ')
               val info_text = Pretty.formatted(Pretty.fbreaks(info.info), margin = 40.0).mkString

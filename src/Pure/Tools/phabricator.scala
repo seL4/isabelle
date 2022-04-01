@@ -133,12 +133,11 @@ object Phabricator {
   val isabelle_tool1 =
     Isabelle_Tool("phabricator", "invoke command-line tool within Phabricator home directory",
       Scala_Project.here,
-      args => {
-      var list = false
-      var name = default_name
+      { args =>
+        var list = false
+        var name = default_name
 
-      val getopts =
-        Getopts("""
+        val getopts = Getopts("""
 Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
 
   Options are:
@@ -151,22 +150,22 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
           "l" -> (_ => list = true),
           "n:" -> (arg => name = arg))
 
-      val more_args = getopts(args)
-      if (more_args.isEmpty && !list) getopts.usage()
+        val more_args = getopts(args)
+        if (more_args.isEmpty && !list) getopts.usage()
 
-      val progress = new Console_Progress
+        val progress = new Console_Progress
 
-      if (list) {
-        for (config <- read_config()) {
-          progress.echo("phabricator " + quote(config.name) + " root " + config.root)
+        if (list) {
+          for (config <- read_config()) {
+            progress.echo("phabricator " + quote(config.name) + " root " + config.root)
+          }
         }
-      }
-      else {
-        val config = get_config(name)
-        val result = progress.bash(Bash.strings(more_args), cwd = config.home.file, echo = true)
-        if (!result.ok) error(result.print_return_code)
-      }
-    })
+        else {
+          val config = get_config(name)
+          val result = progress.bash(Bash.strings(more_args), cwd = config.home.file, echo = true)
+          if (!result.ok) error(result.print_return_code)
+        }
+      })
 
 
 
@@ -196,7 +195,7 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
 
   def mercurial_setup(mercurial_source: String, progress: Progress = new Progress): Unit = {
     progress.echo("\nMercurial installation from source " + quote(mercurial_source) + " ...")
-    Isabelle_System.with_tmp_dir("mercurial")(tmp_dir => {
+    Isabelle_System.with_tmp_dir("mercurial") { tmp_dir =>
       val archive =
         if (Url.is_wellformed(mercurial_source)) {
           val archive = tmp_dir + Path.basic("mercurial.tar.gz")
@@ -209,7 +208,7 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
       val build_dir = tmp_dir + Path.basic(File.get_dir(tmp_dir))
 
       progress.bash("make all && make install", cwd = build_dir.file, echo = true).check
-    })
+    }
   }
 
   def phabricator_setup(
@@ -519,16 +518,15 @@ WantedBy=multi-user.target
   val isabelle_tool2 =
     Isabelle_Tool("phabricator_setup", "setup Phabricator server on Ubuntu Linux",
       Scala_Project.here,
-      args => {
-      var mercurial_source = ""
-      var repo = ""
-      var package_update = false
-      var name = default_name
-      var options = Options.init()
-      var root = ""
+      { args =>
+        var mercurial_source = ""
+        var repo = ""
+        var package_update = false
+        var name = default_name
+        var options = Options.init()
+        var root = ""
 
-      val getopts =
-        Getopts("""
+        val getopts = Getopts("""
 Usage: isabelle phabricator_setup [OPTIONS]
 
   Options are:
@@ -552,14 +550,14 @@ Usage: isabelle phabricator_setup [OPTIONS]
           "o:" -> (arg => options = options + arg),
           "r:" -> (arg => root = arg))
 
-      val more_args = getopts(args)
-      if (more_args.nonEmpty) getopts.usage()
+        val more_args = getopts(args)
+        if (more_args.nonEmpty) getopts.usage()
 
-      val progress = new Console_Progress
+        val progress = new Console_Progress
 
-      phabricator_setup(options, name = name, root = root, repo = repo,
-        package_update = package_update, mercurial_source = mercurial_source, progress = progress)
-    })
+        phabricator_setup(options, name = name, root = root, repo = repo,
+          package_update = package_update, mercurial_source = mercurial_source, progress = progress)
+      })
 
 
 
@@ -626,13 +624,12 @@ Usage: isabelle phabricator_setup [OPTIONS]
   val isabelle_tool3 =
     Isabelle_Tool("phabricator_setup_mail", "setup mail for one Phabricator installation",
       Scala_Project.here,
-      args => {
-      var test_user = ""
-      var name = default_name
-      var config_file: Option[Path] = None
+      { args =>
+        var test_user = ""
+        var name = default_name
+        var config_file: Option[Path] = None
 
-      val getopts =
-        Getopts("""
+        val getopts = Getopts("""
 Usage: isabelle phabricator_setup_mail [OPTIONS]
 
   Options are:
@@ -646,14 +643,14 @@ Usage: isabelle phabricator_setup_mail [OPTIONS]
           "f:" -> (arg => config_file = Some(Path.explode(arg))),
           "n:" -> (arg => name = arg))
 
-      val more_args = getopts(args)
-      if (more_args.nonEmpty) getopts.usage()
+        val more_args = getopts(args)
+        if (more_args.nonEmpty) getopts.usage()
 
-      val progress = new Console_Progress
+        val progress = new Console_Progress
 
-      phabricator_setup_mail(name = name, config_file = config_file,
-        test_user = test_user, progress = progress)
-    })
+        phabricator_setup_mail(name = name, config_file = config_file,
+          test_user = test_user, progress = progress)
+      })
 
 
 
@@ -787,12 +784,11 @@ Alias=""" + ssh_name + """.service
   val isabelle_tool4 =
     Isabelle_Tool("phabricator_setup_ssh", "setup ssh service for all Phabricator installations",
       Scala_Project.here,
-      args => {
-      var server_port = default_server_port
-      var system_port = default_system_port
+      { args =>
+        var server_port = default_server_port
+        var system_port = default_system_port
 
-      val getopts =
-        Getopts("""
+        val getopts = Getopts("""
 Usage: isabelle phabricator_setup_ssh [OPTIONS]
 
   Options are:
@@ -810,14 +806,14 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
           "p:" -> (arg => server_port = Value.Int.parse(arg)),
           "q:" -> (arg => system_port = Value.Int.parse(arg)))
 
-      val more_args = getopts(args)
-      if (more_args.nonEmpty) getopts.usage()
+        val more_args = getopts(args)
+        if (more_args.nonEmpty) getopts.usage()
 
-      val progress = new Console_Progress
+        val progress = new Console_Progress
 
-      phabricator_setup_ssh(
-        server_port = server_port, system_port = system_port, progress = progress)
-    })
+        phabricator_setup_ssh(
+          server_port = server_port, system_port = system_port, progress = progress)
+      })
 
 
 
@@ -912,14 +908,14 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
     /* execute methods */
 
     def execute_raw(method: String, params: JSON.T = JSON.Object.empty): JSON.T = {
-      Isabelle_System.with_tmp_file("params", "json")(params_file => {
+      Isabelle_System.with_tmp_file("params", "json") { params_file =>
         File.write(params_file, JSON.Format(JSON.Object("params" -> JSON.Format(params))))
         val result =
           Isabelle_System.bash(
             "ssh -p " + ssh_port + " " + Bash.string(ssh_user_prefix + ssh_host) +
             " conduit " + Bash.string(method) + " < " + File.bash_path(params_file)).check
         JSON.parse(result.out, strict = false)
-      })
+      }
     }
 
     def execute(method: String, params: JSON.T = JSON.Object.empty): API.Result =

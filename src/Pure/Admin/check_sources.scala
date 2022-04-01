@@ -59,16 +59,17 @@ object Check_Sources {
 
   val isabelle_tool =
     Isabelle_Tool("check_sources", "some sanity checks for Isabelle sources",
-      Scala_Project.here, args => {
-      val getopts = Getopts("""
+      Scala_Project.here,
+      { args =>
+        val getopts = Getopts("""
 Usage: isabelle check_sources [ROOT_DIRS...]
 
   Check .thy, .ML, ROOT against known files of Mercurial ROOT_DIRS.
 """)
 
-      val specs = getopts(args)
-      if (specs.isEmpty) getopts.usage()
+        val specs = getopts(args)
+        if (specs.isEmpty) getopts.usage()
 
-      for (root <- specs) check_hg(Path.explode(root))
-    })
+        for (root <- specs) check_hg(Path.explode(root))
+      })
 }

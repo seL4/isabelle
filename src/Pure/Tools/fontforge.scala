@@ -67,11 +67,11 @@ object Fontforge {
   /** execute fontforge program **/
 
   def execute(script: Script, args: String = "", cwd: JFile = null): Process_Result =
-    Isabelle_System.with_tmp_file("fontforge")(script_file => {
+    Isabelle_System.with_tmp_file("fontforge") { script_file =>
       File.write(script_file, script)
       Isabelle_System.bash(File.bash_path(Path.explode("$ISABELLE_FONTFORGE")) +
         " -lang=ff -script " + File.bash_path(script_file) + " " + args)
-    })
+    }
 
   def font_domain(path: Path, strict: Boolean = false): List[Int] = {
     val script =

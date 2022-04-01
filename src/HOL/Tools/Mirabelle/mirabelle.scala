@@ -109,32 +109,33 @@ object Mirabelle {
   /* Isabelle tool wrapper */
 
   val isabelle_tool = Isabelle_Tool("mirabelle", "testing tool for automated proof tools",
-    Scala_Project.here, args => {
-    val build_options = Word.explode(Isabelle_System.getenv("ISABELLE_BUILD_OPTIONS"))
+    Scala_Project.here,
+    { args =>
+      val build_options = Word.explode(Isabelle_System.getenv("ISABELLE_BUILD_OPTIONS"))
 
-    var options = Options.init(opts = build_options)
-    val mirabelle_dry_run = options.check_name("mirabelle_dry_run")
-    val mirabelle_max_calls = options.check_name("mirabelle_max_calls")
-    val mirabelle_randomize = options.check_name("mirabelle_randomize")
-    val mirabelle_stride = options.check_name("mirabelle_stride")
-    val mirabelle_timeout = options.check_name("mirabelle_timeout")
-    val mirabelle_output_dir = options.check_name("mirabelle_output_dir")
+      var options = Options.init(opts = build_options)
+      val mirabelle_dry_run = options.check_name("mirabelle_dry_run")
+      val mirabelle_max_calls = options.check_name("mirabelle_max_calls")
+      val mirabelle_randomize = options.check_name("mirabelle_randomize")
+      val mirabelle_stride = options.check_name("mirabelle_stride")
+      val mirabelle_timeout = options.check_name("mirabelle_timeout")
+      val mirabelle_output_dir = options.check_name("mirabelle_output_dir")
 
-    var actions: List[String] = Nil
-    var base_sessions: List[String] = Nil
-    var select_dirs: List[Path] = Nil
-    var numa_shuffling = false
-    var output_dir = Path.explode(mirabelle_output_dir.default_value)
-    var theories: List[String] = Nil
-    var exclude_session_groups: List[String] = Nil
-    var all_sessions = false
-    var dirs: List[Path] = Nil
-    var session_groups: List[String] = Nil
-    var max_jobs = 1
-    var verbose = false
-    var exclude_sessions: List[String] = Nil
+      var actions: List[String] = Nil
+      var base_sessions: List[String] = Nil
+      var select_dirs: List[Path] = Nil
+      var numa_shuffling = false
+      var output_dir = Path.explode(mirabelle_output_dir.default_value)
+      var theories: List[String] = Nil
+      var exclude_session_groups: List[String] = Nil
+      var all_sessions = false
+      var dirs: List[Path] = Nil
+      var session_groups: List[String] = Nil
+      var max_jobs = 1
+      var verbose = false
+      var exclude_sessions: List[String] = Nil
 
-    val getopts = Getopts("""
+      val getopts = Getopts("""
 Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
 
   Options are:
@@ -170,69 +171,69 @@ Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
   Available actions are:""" + action_names().mkString("\n    ", "\n    ", "") + """
 
   For the ACTION "sledgehammer", the usual sledgehammer as well as the following mirabelle-specific OPTIONs are available:""" +
-      sledgehammer_options().mkString("\n    ", "\n    ", "\n"),
-      "A:" -> (arg => actions = actions ::: List(arg)),
-      "B:" -> (arg => base_sessions = base_sessions ::: List(arg)),
-      "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
-      "N" -> (_ => numa_shuffling = true),
-      "O:" -> (arg => output_dir = Path.explode(arg)),
-      "T:" -> (arg => theories = theories ::: List(arg)),
-      "X:" -> (arg => exclude_session_groups = exclude_session_groups ::: List(arg)),
-      "a" -> (_ => all_sessions = true),
-      "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
-      "g:" -> (arg => session_groups = session_groups ::: List(arg)),
-      "j:" -> (arg => max_jobs = Value.Int.parse(arg)),
-      "m:" -> (arg => options = options + ("mirabelle_max_calls=" + arg)),
-      "o:" -> (arg => options = options + arg),
-      "r:" -> (arg => options = options + ("mirabelle_randomize=" + arg)),
-      "s:" -> (arg => options = options + ("mirabelle_stride=" + arg)),
-      "t:" -> (arg => options = options + ("mirabelle_timeout=" + arg)),
-      "v" -> (_ => verbose = true),
-      "x:" -> (arg => exclude_sessions = exclude_sessions ::: List(arg)),
-      "y" -> (arg => options = options + ("mirabelle_dry_run=true")))
+        sledgehammer_options().mkString("\n    ", "\n    ", "\n"),
+        "A:" -> (arg => actions = actions ::: List(arg)),
+        "B:" -> (arg => base_sessions = base_sessions ::: List(arg)),
+        "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
+        "N" -> (_ => numa_shuffling = true),
+        "O:" -> (arg => output_dir = Path.explode(arg)),
+        "T:" -> (arg => theories = theories ::: List(arg)),
+        "X:" -> (arg => exclude_session_groups = exclude_session_groups ::: List(arg)),
+        "a" -> (_ => all_sessions = true),
+        "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
+        "g:" -> (arg => session_groups = session_groups ::: List(arg)),
+        "j:" -> (arg => max_jobs = Value.Int.parse(arg)),
+        "m:" -> (arg => options = options + ("mirabelle_max_calls=" + arg)),
+        "o:" -> (arg => options = options + arg),
+        "r:" -> (arg => options = options + ("mirabelle_randomize=" + arg)),
+        "s:" -> (arg => options = options + ("mirabelle_stride=" + arg)),
+        "t:" -> (arg => options = options + ("mirabelle_timeout=" + arg)),
+        "v" -> (_ => verbose = true),
+        "x:" -> (arg => exclude_sessions = exclude_sessions ::: List(arg)),
+        "y" -> (arg => options = options + ("mirabelle_dry_run=true")))
 
-    val sessions = getopts(args)
-    if (actions.isEmpty) getopts.usage()
+      val sessions = getopts(args)
+      if (actions.isEmpty) getopts.usage()
 
-    val progress = new Console_Progress(verbose = verbose)
+      val progress = new Console_Progress(verbose = verbose)
 
-    val start_date = Date.now()
+      val start_date = Date.now()
 
-    if (verbose) {
-      progress.echo("Started at " + Build_Log.print_date(start_date))
-    }
-
-    val results =
-      progress.interrupt_handler {
-        mirabelle(options, actions, output_dir.absolute,
-          theories = theories,
-          selection = Sessions.Selection(
-            all_sessions = all_sessions,
-            base_sessions = base_sessions,
-            exclude_session_groups = exclude_session_groups,
-            exclude_sessions = exclude_sessions,
-            session_groups = session_groups,
-            sessions = sessions),
-          progress = progress,
-          dirs = dirs,
-          select_dirs = select_dirs,
-          numa_shuffling = NUMA.enabled_warning(progress, numa_shuffling),
-          max_jobs = max_jobs,
-          verbose = verbose)
+      if (verbose) {
+        progress.echo("Started at " + Build_Log.print_date(start_date))
       }
 
-    val end_date = Date.now()
-    val elapsed_time = end_date.time - start_date.time
+      val results =
+        progress.interrupt_handler {
+          mirabelle(options, actions, output_dir.absolute,
+            theories = theories,
+            selection = Sessions.Selection(
+              all_sessions = all_sessions,
+              base_sessions = base_sessions,
+              exclude_session_groups = exclude_session_groups,
+              exclude_sessions = exclude_sessions,
+              session_groups = session_groups,
+              sessions = sessions),
+            progress = progress,
+            dirs = dirs,
+            select_dirs = select_dirs,
+            numa_shuffling = NUMA.enabled_warning(progress, numa_shuffling),
+            max_jobs = max_jobs,
+            verbose = verbose)
+        }
 
-    if (verbose) {
-      progress.echo("\nFinished at " + Build_Log.print_date(end_date))
-    }
+      val end_date = Date.now()
+      val elapsed_time = end_date.time - start_date.time
 
-    val total_timing =
-      results.sessions.iterator.map(a => results(a).timing).foldLeft(Timing.zero)(_ + _).
-        copy(elapsed = elapsed_time)
-    progress.echo(total_timing.message_resources)
+      if (verbose) {
+        progress.echo("\nFinished at " + Build_Log.print_date(end_date))
+      }
 
-    sys.exit(results.rc)
-  })
+      val total_timing =
+        results.sessions.iterator.map(a => results(a).timing).foldLeft(Timing.zero)(_ + _).
+          copy(elapsed = elapsed_time)
+      progress.echo(total_timing.message_resources)
+
+      sys.exit(results.rc)
+    })
 }

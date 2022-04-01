@@ -340,13 +340,13 @@ object Server {
 
     def active: Boolean =
       try {
-        using(connection())(connection => {
+        using(connection()) { connection =>
           connection.set_timeout(Time.seconds(2.0))
           connection.read_line_message() match {
             case Some(Reply(Reply.OK, _)) => true
             case _ => false
           }
-        })
+        }
       }
       catch {
         case _: IOException => false
@@ -389,36 +389,36 @@ object Server {
     existing_server: Boolean = false,
     log: Logger = No_Logger
   ): (Info, Option[Server]) = {
-    using(SQLite.open_database(Data.database))(db => {
-        db.transaction {
-          Isabelle_System.chmod("600", Data.database)
-          db.create_table(Data.table)
-          list(db).filterNot(_.active).foreach(server_info =>
-            db.using_statement(Data.table.delete(Data.name.where_equal(server_info.name)))(
-              _.execute()))
+    using(SQLite.open_database(Data.database)) { db =>
+      db.transaction {
+        Isabelle_System.chmod("600", Data.database)
+        db.create_table(Data.table)
+        list(db).filterNot(_.active).foreach(server_info =>
+          db.using_statement(Data.table.delete(Data.name.where_equal(server_info.name)))(
+            _.execute()))
+      }
+      db.transaction {
+        find(db, name) match {
+          case Some(server_info) => (server_info, None)
+          case None =>
+            if (existing_server) error("Isabelle server " + quote(name) + " not running")
+
+            val server = new Server(port, log)
+            val server_info = Info(name, server.port, server.password)
+
+            db.using_statement(Data.table.delete(Data.name.where_equal(name)))(_.execute())
+            db.using_statement(Data.table.insert()) { stmt =>
+              stmt.string(1) = server_info.name
+              stmt.int(2) = server_info.port
+              stmt.string(3) = server_info.password
+              stmt.execute()
+            }
+
+            server.start()
+            (server_info, Some(server))
         }
-        db.transaction {
-          find(db, name) match {
-            case Some(server_info) => (server_info, None)
-            case None =>
-              if (existing_server) error("Isabelle server " + quote(name) + " not running")
-
-              val server = new Server(port, log)
-              val server_info = Info(name, server.port, server.password)
-
-              db.using_statement(Data.table.delete(Data.name.where_equal(name)))(_.execute())
-              db.using_statement(Data.table.insert())(stmt => {
-                stmt.string(1) = server_info.name
-                stmt.int(2) = server_info.port
-                stmt.string(3) = server_info.password
-                stmt.execute()
-              })
-
-              server.start()
-              (server_info, Some(server))
-          }
-        }
-      })
+      }
+    }
   }
 
   def exit(name: String = default_name): Boolean = {
@@ -439,17 +439,16 @@ object Server {
 
   val isabelle_tool =
     Isabelle_Tool("server", "manage resident Isabelle servers", Scala_Project.here,
-      args => {
-      var console = false
-      var log_file: Option[Path] = None
-      var operation_list = false
-      var operation_exit = false
-      var name = default_name
-      var port = 0
-      var existing_server = false
+      { args =>
+        var console = false
+        var log_file: Option[Path] = None
+        var operation_list = false
+        var operation_exit = false
+        var name = default_name
+        var port = 0
+        var existing_server = false
 
-      val getopts =
-        Getopts("""
+        val getopts = Getopts("""
 Usage: isabelle server [OPTIONS]
 
   Options are:
@@ -471,30 +470,30 @@ Usage: isabelle server [OPTIONS]
           "s" -> (_ => existing_server = true),
           "x" -> (_ => operation_exit = true))
 
-      val more_args = getopts(args)
-      if (more_args.nonEmpty) getopts.usage()
+        val more_args = getopts(args)
+        if (more_args.nonEmpty) getopts.usage()
 
-      if (operation_list) {
-        for {
-          server_info <- using(SQLite.open_database(Data.database))(list)
-          if server_info.active
-        } Output.writeln(server_info.toString, stdout = true)
-      }
-      else if (operation_exit) {
-        val ok = Server.exit(name)
-        sys.exit(if (ok) Process_Result.RC.ok else Process_Result.RC.failure)
-      }
-      else {
-        val log = Logger.make(log_file)
-        val (server_info, server) =
-          init(name, port = port, existing_server = existing_server, log = log)
-        Output.writeln(server_info.toString, stdout = true)
-        if (console) {
-          using(server_info.connection())(connection => connection.tty_loop().join())
+        if (operation_list) {
+          for {
+            server_info <- using(SQLite.open_database(Data.database))(list)
+            if server_info.active
+          } Output.writeln(server_info.toString, stdout = true)
         }
-        server.foreach(_.join())
-      }
-    })
+        else if (operation_exit) {
+          val ok = Server.exit(name)
+          sys.exit(if (ok) Process_Result.RC.ok else Process_Result.RC.failure)
+        }
+        else {
+          val log = Logger.make(log_file)
+          val (server_info, server) =
+            init(name, port = port, existing_server = existing_server, log = log)
+          Output.writeln(server_info.toString, stdout = true)
+          if (console) {
+            using(server_info.connection())(connection => connection.tty_loop().join())
+          }
+          server.foreach(_.join())
+        }
+      })
 }
 
 class Server private(port0: Int, val log: Logger) extends Server.Handler(port0) {
@@ -528,7 +527,7 @@ class Server private(port0: Int, val log: Logger) extends Server.Handler(port0) 
   override def join(): Unit = { super.join(); shutdown() }
 
   override def handle(connection: Server.Connection): Unit = {
-    using(new Server.Context(server, connection))(context => {
+    using(new Server.Context(server, connection)) { context =>
       connection.reply_ok(
         JSON.Object(
           "isabelle_id" -> Isabelle_System.isabelle_id(),
@@ -570,6 +569,6 @@ class Server private(port0: Int, val log: Logger) extends Server.Handler(port0) 
             }
         }
       }
-    })
+    }
   }
 }

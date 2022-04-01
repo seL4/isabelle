@@ -33,16 +33,16 @@ object SHA1 {
   }
 
   def digest(file: JFile): Digest =
-    make_digest(sha => using(new FileInputStream(file))(stream => {
-        val buf = new Array[Byte](65536)
-        var m = 0
-        var cont = true
-        while (cont) {
-          m = stream.read(buf, 0, buf.length)
-          if (m != -1) sha.update(buf, 0, m)
-          cont = (m != -1)
-        }
-      }))
+    make_digest(sha => using(new FileInputStream(file)) { stream =>
+      val buf = new Array[Byte](65536)
+      var m = 0
+      var cont = true
+      while (cont) {
+        m = stream.read(buf, 0, buf.length)
+        if (m != -1) sha.update(buf, 0, m)
+        cont = (m != -1)
+      }
+    })
 
   def digest(path: Path): Digest = digest(path.file)
   def digest(bytes: Array[Byte]): Digest = make_digest(_.update(bytes))

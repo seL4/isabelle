@@ -128,22 +128,23 @@ object Doc {
   /* Isabelle tool wrapper */
 
   val isabelle_tool = Isabelle_Tool("doc", "view Isabelle PDF documentation",
-    Scala_Project.here, args => {
-    val getopts = Getopts("""
+    Scala_Project.here,
+    { args =>
+      val getopts = Getopts("""
 Usage: isabelle doc [DOC ...]
 
   View Isabelle PDF documentation.
 """)
-    val docs = getopts(args)
+      val docs = getopts(args)
 
-    if (docs.isEmpty) Output.writeln(cat_lines(contents_lines().map(_._2)), stdout = true)
-    else {
-      docs.foreach(name =>
-        contents().docs.find(_.name == name) match {
-          case Some(doc) => view(doc.path)
-          case None => error("No Isabelle documentation entry: " + quote(name))
-        }
-      )
-    }
-  })
+      if (docs.isEmpty) Output.writeln(cat_lines(contents_lines().map(_._2)), stdout = true)
+      else {
+        docs.foreach(name =>
+          contents().docs.find(_.name == name) match {
+            case Some(doc) => view(doc.path)
+            case None => error("No Isabelle documentation entry: " + quote(name))
+          }
+        )
+      }
+    })
 }

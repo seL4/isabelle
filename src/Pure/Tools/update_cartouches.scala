@@ -75,10 +75,10 @@ object Update_Cartouches {
   val isabelle_tool =
     Isabelle_Tool("update_cartouches", "update theory syntax to use cartouches",
       Scala_Project.here,
-      args => {
-      var replace_text = false
+      { args =>
+        var replace_text = false
 
-      val getopts = Getopts("""
+        val getopts = Getopts("""
 Usage: isabelle update_cartouches [FILES|DIRS...]
 
   Options are:
@@ -89,15 +89,15 @@ Usage: isabelle update_cartouches [FILES|DIRS...]
 
   Old versions of files are preserved by appending "~~".
 """,
-        "t" -> (_ => replace_text = true))
+          "t" -> (_ => replace_text = true))
 
-      val specs = getopts(args)
-      if (specs.isEmpty) getopts.usage()
+        val specs = getopts(args)
+        if (specs.isEmpty) getopts.usage()
 
-      for {
-        spec <- specs
-        file <- File.find_files(Path.explode(spec).file,
-          file => file.getName.endsWith(".thy") || file.getName == "ROOT")
-      } update_cartouches(replace_text, File.path(file))
-    })
+        for {
+          spec <- specs
+          file <- File.find_files(Path.explode(spec).file,
+            file => file.getName.endsWith(".thy") || file.getName == "ROOT")
+        } update_cartouches(replace_text, File.path(file))
+      })
 }

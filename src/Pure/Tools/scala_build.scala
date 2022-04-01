@@ -99,13 +99,13 @@ object Scala_Build {
   }
 
   def build_result(dir: Path, component: Boolean = false): Result = {
-    Isabelle_System.with_tmp_file("result", "jar")(tmp_file => {
+    Isabelle_System.with_tmp_file("result", "jar") { tmp_file =>
       val output =
         build(dir, component = component, no_title = true, do_build = true, module = Some(tmp_file))
       val jar_bytes = Bytes.read(tmp_file)
       val jar_path = context(dir, component = component).module_result
       Result(output, jar_bytes, jar_path)
-    })
+    }
   }
 
   def component_contexts(): List[Context] =

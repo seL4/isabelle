@@ -19,7 +19,7 @@ class Preview_Panel(resources: VSCode_Resources) {
     pending.change(map => map + (file -> column))
 
   def flush(channel: Channel): Boolean = {
-    pending.change_result(map => {
+    pending.change_result { map =>
       val map1 =
         map.iterator.foldLeft(map) {
           case (m, (file, column)) =>
@@ -43,6 +43,6 @@ class Preview_Panel(resources: VSCode_Resources) {
             }
         }
       (map1.nonEmpty, map1)
-    })
+    }
   }
 }

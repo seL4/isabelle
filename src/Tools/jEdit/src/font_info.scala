@@ -54,7 +54,7 @@ object Font_Info {
     // owned by GUI thread
     private var steps = 0
     private val delay = Delay.last(PIDE.options.seconds("editor_input_delay"), gui = true) {
-      change_size(size => {
+      change_size { size =>
         var i = size.round
         while (steps != 0 && i > 0) {
           if (steps > 0) { i += (i / 10) max 1; steps -= 1 }
@@ -62,7 +62,7 @@ object Font_Info {
         }
         steps = 0
         i.toFloat
-      })
+      }
     }
 
     def step(i: Int): Unit = {

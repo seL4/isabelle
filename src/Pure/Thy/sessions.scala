@@ -1057,17 +1057,18 @@ object Sessions {
   /* Isabelle tool wrapper */
 
   val isabelle_tool = Isabelle_Tool("sessions", "explore structure of Isabelle sessions",
-    Scala_Project.here, args => {
-    var base_sessions: List[String] = Nil
-    var select_dirs: List[Path] = Nil
-    var requirements = false
-    var exclude_session_groups: List[String] = Nil
-    var all_sessions = false
-    var dirs: List[Path] = Nil
-    var session_groups: List[String] = Nil
-    var exclude_sessions: List[String] = Nil
+    Scala_Project.here,
+    { args =>
+      var base_sessions: List[String] = Nil
+      var select_dirs: List[Path] = Nil
+      var requirements = false
+      var exclude_session_groups: List[String] = Nil
+      var all_sessions = false
+      var dirs: List[Path] = Nil
+      var session_groups: List[String] = Nil
+      var exclude_sessions: List[String] = Nil
 
-    val getopts = Getopts("""
+      val getopts = Getopts("""
 Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
   Options are:
@@ -1083,30 +1084,30 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
   Explore the structure of Isabelle sessions and print result names in
   topological order (on stdout).
 """,
-      "B:" -> (arg => base_sessions = base_sessions ::: List(arg)),
-      "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
-      "R" -> (_ => requirements = true),
-      "X:" -> (arg => exclude_session_groups = exclude_session_groups ::: List(arg)),
-      "a" -> (_ => all_sessions = true),
-      "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
-      "g:" -> (arg => session_groups = session_groups ::: List(arg)),
-      "x:" -> (arg => exclude_sessions = exclude_sessions ::: List(arg)))
+        "B:" -> (arg => base_sessions = base_sessions ::: List(arg)),
+        "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
+        "R" -> (_ => requirements = true),
+        "X:" -> (arg => exclude_session_groups = exclude_session_groups ::: List(arg)),
+        "a" -> (_ => all_sessions = true),
+        "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
+        "g:" -> (arg => session_groups = session_groups ::: List(arg)),
+        "x:" -> (arg => exclude_sessions = exclude_sessions ::: List(arg)))
 
-    val sessions = getopts(args)
+      val sessions = getopts(args)
 
-    val options = Options.init()
+      val options = Options.init()
 
-    val selection =
-      Selection(requirements = requirements, all_sessions = all_sessions, base_sessions = base_sessions,
-        exclude_session_groups = exclude_session_groups, exclude_sessions = exclude_sessions,
-        session_groups = session_groups, sessions = sessions)
-    val sessions_structure =
-      load_structure(options, dirs = dirs, select_dirs = select_dirs).selection(selection)
+      val selection =
+        Selection(requirements = requirements, all_sessions = all_sessions, base_sessions = base_sessions,
+          exclude_session_groups = exclude_session_groups, exclude_sessions = exclude_sessions,
+          session_groups = session_groups, sessions = sessions)
+      val sessions_structure =
+        load_structure(options, dirs = dirs, select_dirs = select_dirs).selection(selection)
 
-    for (name <- sessions_structure.imports_topological_order) {
-      Output.writeln(name, stdout = true)
-    }
-  })
+      for (name <- sessions_structure.imports_topological_order) {
+        Output.writeln(name, stdout = true)
+      }
+    })
 
 
 
@@ -1116,7 +1117,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
   def read_heap_digest(heap: Path): Option[String] = {
     if (heap.is_file) {
-      using(FileChannel.open(heap.java_path, StandardOpenOption.READ))(file => {
+      using(FileChannel.open(heap.java_path, StandardOpenOption.READ)) { file =>
         val len = file.size
         val n = sha1_prefix.length + SHA1.digest_length
         if (len >= n) {
@@ -1140,7 +1141,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
           else None
         }
         else None
-      })
+      }
     }
     else None
   }
@@ -1374,10 +1375,10 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
     def read_bytes(db: SQL.Database, name: String, column: SQL.Column): Bytes =
       db.using_statement(Session_Info.table.select(List(column),
-        Session_Info.session_name.where_equal(name)))(stmt => {
+        Session_Info.session_name.where_equal(name))) { stmt =>
         val res = stmt.execute_query()
         if (!res.next()) Bytes.empty else res.bytes(column)
-      })
+      }
 
     def read_properties(db: SQL.Database, name: String, column: SQL.Column): List[Properties.T] =
       Properties.uncompress(read_bytes(db, name, column), cache = cache)
@@ -1424,7 +1425,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
       build: Build.Session_Info
     ): Unit = {
       db.transaction {
-        db.using_statement(Session_Info.table.insert())(stmt => {
+        db.using_statement(Session_Info.table.insert()) { stmt =>
           stmt.string(1) = name
           stmt.bytes(2) = Properties.encode(build_log.session_timing)
           stmt.bytes(3) = Properties.compress(build_log.command_timings, cache = cache.xz)
@@ -1437,7 +1438,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
           stmt.string(10) = build.output_heap getOrElse ""
           stmt.int(11) = build.return_code
           stmt.execute()
-        })
+        }
       }
     }
 
@@ -1465,7 +1466,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     def read_build(db: SQL.Database, name: String): Option[Build.Session_Info] = {
       if (db.tables.contains(Session_Info.table.name)) {
         db.using_statement(Session_Info.table.select(Session_Info.build_columns,
-          Session_Info.session_name.where_equal(name)))(stmt => {
+          Session_Info.session_name.where_equal(name))) { stmt =>
           val res = stmt.execute_query()
           if (!res.next()) None
           else {
@@ -1476,7 +1477,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
                 res.string(Session_Info.output_heap) match { case "" => None case s => Some(s) },
                 res.int(Session_Info.return_code)))
           }
-        })
+        }
       }
       else None
     }

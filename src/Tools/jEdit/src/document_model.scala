@@ -114,7 +114,7 @@ object Document_Model {
   /* sync external files */
 
   def sync_files(changed_files: Set[JFile]): Boolean = {
-    state.change_result(st => {
+    state.change_result { st =>
       val changed_models =
         (for {
           (node_name, model) <- st.file_models_iterator
@@ -128,7 +128,7 @@ object Document_Model {
         }).toList
       if (changed_models.isEmpty) (false, st)
       else (true, st.copy(models = changed_models.foldLeft(st.models)(_ + _)))
-    })
+    }
   }
 
 
@@ -225,7 +225,7 @@ object Document_Model {
   def flush_edits(hidden: Boolean, purge: Boolean): (Document.Blobs, List[Document.Edit_Text]) = {
     GUI_Thread.require {}
 
-    state.change_result(st => {
+    state.change_result { st =>
       val doc_blobs = st.document_blobs
 
       val buffer_edits =
@@ -270,7 +270,7 @@ object Document_Model {
         } yield file.getParentFile).toSet)
 
       ((doc_blobs, model_edits ::: purge_edits), st1)
-    })
+    }
   }
 
 

@@ -228,7 +228,7 @@ object Build_Status {
 
     val store = Build_Log.store(options)
 
-    using(store.open_database())(db => {
+    using(store.open_database()) { db =>
       for (profile <- profiles.sortBy(_.description)) {
         progress.echo("input " + quote(profile.description))
 
@@ -262,7 +262,7 @@ object Build_Status {
         val sql = profile.select(options, columns, only_sessions)
         progress.echo_if(verbose, sql)
 
-        db.using_statement(sql)(stmt => {
+        db.using_statement(sql) { stmt =>
           val res = stmt.execute_query()
           while (res.next()) {
             val session_name = res.string(Build_Log.Data.session_name)
@@ -349,9 +349,9 @@ object Build_Status {
               data_entries += (data_name -> (sessions + (session_name -> session)))
             }
           }
-        })
+        }
       }
-    })
+    }
 
     val sorted_entries =
       (for {
@@ -582,15 +582,16 @@ plot [] """ + range + " " +
 
   val isabelle_tool =
     Isabelle_Tool("build_status", "present recent build status information from database",
-      Scala_Project.here, args => {
-      var target_dir = default_target_dir
-      var ml_statistics = false
-      var only_sessions = Set.empty[String]
-      var options = Options.init()
-      var image_size = default_image_size
-      var verbose = false
+      Scala_Project.here,
+      { args =>
+        var target_dir = default_target_dir
+        var ml_statistics = false
+        var only_sessions = Set.empty[String]
+        var options = Options.init()
+        var image_size = default_image_size
+        var verbose = false
 
-      val getopts = Getopts("""
+        val getopts = Getopts("""
 Usage: isabelle build_status [OPTIONS]
 
   Options are:
@@ -606,24 +607,24 @@ Usage: isabelle build_status [OPTIONS]
   via system options build_log_database_host, build_log_database_user,
   build_log_history etc.
 """,
-        "D:" -> (arg => target_dir = Path.explode(arg)),
-        "M" -> (_ => ml_statistics = true),
-        "S:" -> (arg => only_sessions = space_explode(',', arg).toSet),
-        "l:" -> (arg => options = options + ("build_log_history=" + arg)),
-        "o:" -> (arg => options = options + arg),
-        "s:" -> (arg =>
-          space_explode('x', arg).map(Value.Int.parse) match {
-            case List(w, h) if w > 0 && h > 0 => image_size = (w, h)
-            case _ => error("Error bad PNG image size: " + quote(arg))
-          }),
-        "v" -> (_ => verbose = true))
+          "D:" -> (arg => target_dir = Path.explode(arg)),
+          "M" -> (_ => ml_statistics = true),
+          "S:" -> (arg => only_sessions = space_explode(',', arg).toSet),
+          "l:" -> (arg => options = options + ("build_log_history=" + arg)),
+          "o:" -> (arg => options = options + arg),
+          "s:" -> (arg =>
+            space_explode('x', arg).map(Value.Int.parse) match {
+              case List(w, h) if w > 0 && h > 0 => image_size = (w, h)
+              case _ => error("Error bad PNG image size: " + quote(arg))
+            }),
+          "v" -> (_ => verbose = true))
 
-      val more_args = getopts(args)
-      if (more_args.nonEmpty) getopts.usage()
+        val more_args = getopts(args)
+        if (more_args.nonEmpty) getopts.usage()
 
-      val progress = new Console_Progress
+        val progress = new Console_Progress
 
-      build_status(options, progress = progress, only_sessions = only_sessions, verbose = verbose,
-        target_dir = target_dir, ml_statistics = ml_statistics, image_size = image_size)
-    })
+        build_status(options, progress = progress, only_sessions = only_sessions, verbose = verbose,
+          target_dir = target_dir, ml_statistics = ml_statistics, image_size = image_size)
+      })
 }

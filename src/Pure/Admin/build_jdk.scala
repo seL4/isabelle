@@ -152,56 +152,56 @@ esac
   ): Unit = {
     if (Platform.is_windows) error("Cannot build jdk on Windows")
 
-    Isabelle_System.with_tmp_dir("jdk")(dir => {
-        progress.echo("Extracting ...")
-        val platforms = archives.map(extract_archive(dir, _))
+    Isabelle_System.with_tmp_dir("jdk") { dir =>
+      progress.echo("Extracting ...")
+      val platforms = archives.map(extract_archive(dir, _))
 
-        val jdk_version =
-          platforms.map(_.jdk_version).distinct match {
-            case List(version) => version
-            case Nil => error("No archives")
-            case versions =>
-              error("Archives contain multiple JDK versions: " + commas_quote(versions))
-          }
-
-        templates.filterNot(p1 => platforms.exists(p2 => p1.platform_name == p2.platform_name))
-        match {
-          case Nil =>
-          case missing => error("Missing platforms: " + commas_quote(missing.map(_.platform_name)))
+      val jdk_version =
+        platforms.map(_.jdk_version).distinct match {
+          case List(version) => version
+          case Nil => error("No archives")
+          case versions =>
+            error("Archives contain multiple JDK versions: " + commas_quote(versions))
         }
 
-        val jdk_name = "jdk-" + jdk_version
-        val jdk_path = Path.explode(jdk_name)
-        val component_dir = dir + jdk_path
+      templates.filterNot(p1 => platforms.exists(p2 => p1.platform_name == p2.platform_name))
+      match {
+        case Nil =>
+        case missing => error("Missing platforms: " + commas_quote(missing.map(_.platform_name)))
+      }
 
-        Isabelle_System.make_directory(component_dir + Path.explode("etc"))
-        File.write(Components.settings(component_dir), settings)
-        File.write(component_dir + Path.explode("README"), readme(jdk_version))
+      val jdk_name = "jdk-" + jdk_version
+      val jdk_path = Path.explode(jdk_name)
+      val component_dir = dir + jdk_path
 
-        for (platform <- platforms) {
-          Isabelle_System.move_file(dir + platform.platform_path, component_dir)
-        }
+      Isabelle_System.make_directory(component_dir + Path.explode("etc"))
+      File.write(Components.settings(component_dir), settings)
+      File.write(component_dir + Path.explode("README"), readme(jdk_version))
 
-        for (file <- File.find_files(component_dir.file, include_dirs = true)) {
-          val path = file.toPath
-          val perms = Files.getPosixFilePermissions(path)
-          perms.add(PosixFilePermission.OWNER_READ)
-          perms.add(PosixFilePermission.GROUP_READ)
-          perms.add(PosixFilePermission.OTHERS_READ)
+      for (platform <- platforms) {
+        Isabelle_System.move_file(dir + platform.platform_path, component_dir)
+      }
+
+      for (file <- File.find_files(component_dir.file, include_dirs = true)) {
+        val path = file.toPath
+        val perms = Files.getPosixFilePermissions(path)
+        perms.add(PosixFilePermission.OWNER_READ)
+        perms.add(PosixFilePermission.GROUP_READ)
+        perms.add(PosixFilePermission.OTHERS_READ)
+        perms.add(PosixFilePermission.OWNER_WRITE)
+        if (file.isDirectory) {
           perms.add(PosixFilePermission.OWNER_WRITE)
-          if (file.isDirectory) {
-            perms.add(PosixFilePermission.OWNER_WRITE)
-            perms.add(PosixFilePermission.OWNER_EXECUTE)
-            perms.add(PosixFilePermission.GROUP_EXECUTE)
-            perms.add(PosixFilePermission.OTHERS_EXECUTE)
-          }
-          Files.setPosixFilePermissions(path, perms)
+          perms.add(PosixFilePermission.OWNER_EXECUTE)
+          perms.add(PosixFilePermission.GROUP_EXECUTE)
+          perms.add(PosixFilePermission.OTHERS_EXECUTE)
         }
+        Files.setPosixFilePermissions(path, perms)
+      }
 
-        progress.echo("Archiving ...")
-        Isabelle_System.gnutar(
-          "-czf " + File.bash_path(target_dir + jdk_path.tar.gz) + " " + jdk_name, dir = dir).check
-      })
+      progress.echo("Archiving ...")
+      Isabelle_System.gnutar(
+        "-czf " + File.bash_path(target_dir + jdk_path.tar.gz) + " " + jdk_name, dir = dir).check
+    }
   }
 
 
@@ -209,10 +209,11 @@ esac
 
   val isabelle_tool =
     Isabelle_Tool("build_jdk", "build Isabelle jdk component from original archives",
-      Scala_Project.here, args => {
-      var target_dir = Path.current
+      Scala_Project.here,
+      { args =>
+        var target_dir = Path.current
 
-      val getopts = Getopts("""
+        val getopts = Getopts("""
 Usage: isabelle build_jdk [OPTIONS] ARCHIVES...
 
   Options are:
@@ -221,14 +222,14 @@ Usage: isabelle build_jdk [OPTIONS] ARCHIVES...
   Build jdk component from tar.gz archives, with original jdk archives
   for Linux, Windows, and macOS.
 """,
-        "D:" -> (arg => target_dir = Path.explode(arg)))
+          "D:" -> (arg => target_dir = Path.explode(arg)))
 
-      val more_args = getopts(args)
-      if (more_args.isEmpty) getopts.usage()
+        val more_args = getopts(args)
+        if (more_args.isEmpty) getopts.usage()
 
-      val archives = more_args.map(Path.explode)
-      val progress = new Console_Progress()
+        val archives = more_args.map(Path.explode)
+        val progress = new Console_Progress()
 
-      build_jdk(archives = archives, progress = progress, target_dir = target_dir)
-    })
+        build_jdk(archives = archives, progress = progress, target_dir = target_dir)
+      })
 }

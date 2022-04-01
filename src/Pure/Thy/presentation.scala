@@ -580,7 +580,7 @@ object Presentation {
     def present_theory(name: Document.Node.Name): Option[XML.Body] = {
       progress.expose_interrupt()
 
-      Build_Job.read_theory(db_context, hierarchy, name.theory).flatMap(command => {
+      Build_Job.read_theory(db_context, hierarchy, name.theory).flatMap { command =>
         if (verbose) progress.echo("Presenting theory " + name)
         val snapshot = Document.State.init.snippet(command)
 
@@ -641,7 +641,7 @@ object Presentation {
                 (if (files.isEmpty) Nil else List(HTML.itemize(files))))))
         }
         else None
-      })
+      }
     }
 
     val theories = base.session_theories.flatMap(present_theory)

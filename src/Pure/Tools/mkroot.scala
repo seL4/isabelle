@@ -178,13 +178,13 @@ Now use the following command line to build the session:
 
   val isabelle_tool = Isabelle_Tool("mkroot", "prepare session root directory",
     Scala_Project.here,
-    args => {
-    var author = ""
-    var init_repos = false
-    var title = ""
-    var session_name = ""
+    { args =>
+      var author = ""
+      var init_repos = false
+      var title = ""
+      var session_name = ""
 
-    val getopts = Getopts("""
+      val getopts = Getopts("""
 Usage: isabelle mkroot [OPTIONS] [DIRECTORY]
 
   Options are:
@@ -195,21 +195,21 @@ Usage: isabelle mkroot [OPTIONS] [DIRECTORY]
 
   Prepare session root directory (default: current directory).
 """,
-      "A:" -> (arg => author = arg),
-      "I" -> (arg => init_repos = true),
-      "T:" -> (arg => title = arg),
-      "n:" -> (arg => session_name = arg))
+        "A:" -> (arg => author = arg),
+        "I" -> (arg => init_repos = true),
+        "T:" -> (arg => title = arg),
+        "n:" -> (arg => session_name = arg))
 
-    val more_args = getopts(args)
+      val more_args = getopts(args)
 
-    val session_dir =
-      more_args match {
-        case Nil => Path.current
-        case List(dir) => Path.explode(dir)
-        case _ => getopts.usage()
-      }
+      val session_dir =
+        more_args match {
+          case Nil => Path.current
+          case List(dir) => Path.explode(dir)
+          case _ => getopts.usage()
+        }
 
-    mkroot(session_name = session_name, session_dir = session_dir, init_repos = init_repos,
-      author = author, title = title, progress = new Console_Progress)
-  })
+      mkroot(session_name = session_name, session_dir = session_dir, init_repos = init_repos,
+        author = author, title = title, progress = new Console_Progress)
+    })
 }

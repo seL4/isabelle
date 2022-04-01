@@ -201,12 +201,13 @@ not affect the running ML session. *)
   /** Isabelle tool wrappers **/
 
   val isabelle_tool1 =
-    Isabelle_Tool("build_polyml", "build Poly/ML from sources", Scala_Project.here, args => {
-      var mingw = MinGW.none
-      var arch_64 = false
-      var sha1_root: Option[Path] = None
+    Isabelle_Tool("build_polyml", "build Poly/ML from sources", Scala_Project.here,
+      { args =>
+        var mingw = MinGW.none
+        var arch_64 = false
+        var sha1_root: Option[Path] = None
 
-      val getopts = Getopts("""
+        val getopts = Getopts("""
 Usage: isabelle build_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
 
   Options are:
@@ -218,31 +219,32 @@ Usage: isabelle build_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
   Build Poly/ML in the ROOT directory of its sources, with additional
   CONFIGURE_OPTIONS (e.g. --without-gmp).
 """,
-        "M:" -> (arg => mingw = MinGW(Path.explode(arg))),
-        "m:" ->
-          {
-            case "32" => arch_64 = false
-            case "64" => arch_64 = true
-            case bad => error("Bad processor architecture: " + quote(bad))
-          },
-        "s:" -> (arg => sha1_root = Some(Path.explode(arg))))
+          "M:" -> (arg => mingw = MinGW(Path.explode(arg))),
+          "m:" ->
+            {
+              case "32" => arch_64 = false
+              case "64" => arch_64 = true
+              case bad => error("Bad processor architecture: " + quote(bad))
+            },
+          "s:" -> (arg => sha1_root = Some(Path.explode(arg))))
 
-      val more_args = getopts(args)
-      val (root, options) =
-        more_args match {
-          case root :: options => (Path.explode(root), options)
-          case Nil => getopts.usage()
-        }
-      build_polyml(root, sha1_root = sha1_root, progress = new Console_Progress,
-        arch_64 = arch_64, options = options, mingw = mingw)
-    })
+        val more_args = getopts(args)
+        val (root, options) =
+          more_args match {
+            case root :: options => (Path.explode(root), options)
+            case Nil => getopts.usage()
+          }
+        build_polyml(root, sha1_root = sha1_root, progress = new Console_Progress,
+          arch_64 = arch_64, options = options, mingw = mingw)
+      })
 
   val isabelle_tool2 =
     Isabelle_Tool("build_polyml_component", "make skeleton for Poly/ML component",
-      Scala_Project.here, args => {
-      var sha1_root: Option[Path] = None
-
-      val getopts = Getopts("""
+      Scala_Project.here,
+      { args =>
+        var sha1_root: Option[Path] = None
+  
+        val getopts = Getopts("""
 Usage: isabelle build_polyml_component [OPTIONS] SOURCE_ARCHIVE COMPONENT_DIR
 
   Options are:
@@ -251,15 +253,15 @@ Usage: isabelle build_polyml_component [OPTIONS] SOURCE_ARCHIVE COMPONENT_DIR
   Make skeleton for Poly/ML component, based on official source archive
   (zip or tar.gz).
 """,
-        "s:" -> (arg => sha1_root = Some(Path.explode(arg))))
+          "s:" -> (arg => sha1_root = Some(Path.explode(arg))))
 
-      val more_args = getopts(args)
+        val more_args = getopts(args)
 
-      val (source_archive, component_dir) =
-        more_args match {
-          case List(archive, dir) => (Path.explode(archive), Path.explode(dir))
-          case _ => getopts.usage()
-        }
-      build_polyml_component(source_archive, component_dir, sha1_root = sha1_root)
-    })
+        val (source_archive, component_dir) =
+          more_args match {
+            case List(archive, dir) => (Path.explode(archive), Path.explode(dir))
+            case _ => getopts.usage()
+          }
+        build_polyml_component(source_archive, component_dir, sha1_root = sha1_root)
+      })
 }

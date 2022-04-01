@@ -42,7 +42,8 @@ object Isabelle_Cronjob {
   def get_afp_rev(): String = Mercurial.repository(afp_repos).id()
 
   val init: Logger_Task =
-    Logger_Task("init", logger => {
+    Logger_Task("init",
+      { logger =>
         Isabelle_Devel.make_index()
 
         Mercurial.setup_repository(Isabelle_System.isabelle_repository.root, isabelle_repos)
@@ -60,7 +61,8 @@ object Isabelle_Cronjob {
       })
 
   val exit: Logger_Task =
-    Logger_Task("exit", logger => {
+    Logger_Task("exit",
+      { logger =>
         Isabelle_System.bash(
           "rsync -a " + File.bash_path(main_dir) + "/log/." + " " + Bash.string(backup) + "/log/.")
             .check
@@ -70,7 +72,8 @@ object Isabelle_Cronjob {
   /* Mailman archives */
 
   val mailman_archives: Logger_Task =
-    Logger_Task("mailman_archives", logger => {
+    Logger_Task("mailman_archives",
+      { logger =>
         Mailman.Isabelle_Users.download(mailman_archives_dir)
         Mailman.Isabelle_Dev.download(mailman_archives_dir)
       })
@@ -79,9 +82,8 @@ object Isabelle_Cronjob {
   /* build release */
 
   val build_release: Logger_Task =
-    Logger_Task("build_release", logger => {
-        Isabelle_Devel.release_snapshot(logger.options, get_rev(), get_afp_rev())
-      })
+    Logger_Task("build_release",
+      { logger => Isabelle_Devel.release_snapshot(logger.options, get_rev(), get_afp_rev()) })
 
 
   /* remote build_history */
@@ -113,7 +115,7 @@ object Isabelle_Cronjob {
         days = days, rev = rev, afp_rev = afp_rev, sql = "WHERE " + sql)
 
     db.using_statement(select)(stmt =>
-      stmt.execute_query().iterator(res => {
+      stmt.execute_query().iterator({ res =>
         val known = res.bool(Build_Log.Data.known)
         val isabelle_version = res.string(Build_Log.Prop.isabelle_version)
         val afp_version = if (afp) proper_string(res.string(Build_Log.Prop.afp_version)) else None
@@ -170,7 +172,7 @@ object Isabelle_Cronjob {
       val afp_rev = if (afp) Some(get_afp_rev()) else None
 
       val store = Build_Log.store(options)
-      using(store.open_database())(db => {
+      using(store.open_database()) { db =>
         def pick_days(days: Int, gap: Int): Option[(String, Option[String])] = {
           val items = recent_items(db, days, rev, afp_rev, sql).filter(filter)
           def runs = unknown_runs(items).filter(run => run.length >= gap)
@@ -190,7 +192,7 @@ object Isabelle_Cronjob {
         pick_days(options.int("build_log_history") max history, 2) orElse
         pick_days(200, 5) orElse
         pick_days(2000, 1)
-      })
+      }
     }
 
     def build_history_options: String =
@@ -401,28 +403,29 @@ object Isabelle_Cronjob {
     r: Remote_Build
   ) : Logger_Task = {
     val task_name = "build_history-" + r.host
-    Logger_Task(task_name, logger => {
-        using(r.ssh_session(logger.ssh_context))(ssh => {
-            val results =
-              Build_History.remote_build_history(ssh,
-                isabelle_repos,
-                isabelle_repos.ext(r.host),
-                isabelle_identifier = "cronjob_build_history",
-                self_update = r.self_update,
-                rev = rev,
-                afp_rev = afp_rev,
-                options =
-                  " -N " + Bash.string(task_name) + (if (i < 0) "" else "_" + (i + 1).toString) +
-                  " -R " + Bash.string(Components.default_component_repository) +
-                  " -C '$USER_HOME/.isabelle/contrib' -f " +
-                  r.build_history_options,
-                args = "-o timeout=10800 " + r.args)
+    Logger_Task(task_name,
+      { logger =>
+        using(r.ssh_session(logger.ssh_context)) { ssh =>
+          val results =
+            Build_History.remote_build_history(ssh,
+              isabelle_repos,
+              isabelle_repos.ext(r.host),
+              isabelle_identifier = "cronjob_build_history",
+              self_update = r.self_update,
+              rev = rev,
+              afp_rev = afp_rev,
+              options =
+                " -N " + Bash.string(task_name) + (if (i < 0) "" else "_" + (i + 1).toString) +
+                " -R " + Bash.string(Components.default_component_repository) +
+                " -C '$USER_HOME/.isabelle/contrib' -f " +
+                r.build_history_options,
+              args = "-o timeout=10800 " + r.args)
 
-            for ((log_name, bytes) <- results) {
-              logger.log(Date.now(), log_name)
-              Bytes.write(logger.log_dir + Path.explode(log_name), bytes)
-            }
-          })
+          for ((log_name, bytes) <- results) {
+            logger.log(Date.now(), log_name)
+            Bytes.write(logger.log_dir + Path.explode(log_name), bytes)
+          }
+        }
       })
   }
 
@@ -443,7 +446,8 @@ object Isabelle_Cronjob {
 
     private val thread: Consumer_Thread[String] =
       Consumer_Thread.fork("cronjob: logger", daemon = true)(
-        consume = (text: String) => {
+        consume =
+          { (text: String) =>
             // critical
             File.append(current_log, text + "\n")
             File.append(cumulative_log, text + "\n")
@@ -544,20 +548,22 @@ object Isabelle_Cronjob {
       for (task <- tasks.iterator if !exclude_task(task.name) || task.name == "")
         run_now(task))
 
-    def PAR(tasks: List[Logger_Task]): Logger_Task = Logger_Task(body = _ => {
-        @tailrec def join(running: List[Task]): Unit = {
-          running.partition(_.is_finished) match {
-            case (Nil, Nil) =>
-            case (Nil, _ :: _) => Time.seconds(0.5).sleep(); join(running)
-            case (_ :: _, remaining) => join(remaining)
+    def PAR(tasks: List[Logger_Task]): Logger_Task =
+      Logger_Task(body =
+        { _ =>
+          @tailrec def join(running: List[Task]): Unit = {
+            running.partition(_.is_finished) match {
+              case (Nil, Nil) =>
+              case (Nil, _ :: _) => Time.seconds(0.5).sleep(); join(running)
+              case (_ :: _, remaining) => join(remaining)
+            }
           }
-        }
-        val start_date = Date.now()
-        val running =
-          for (task <- tasks if !exclude_task(task.name))
-            yield log_service.fork_task(start_date, task)
-        join(running)
-      })
+          val start_date = Date.now()
+          val running =
+            for (task <- tasks if !exclude_task(task.name))
+              yield log_service.fork_task(start_date, task)
+          join(running)
+        })
 
 
     /* repository structure */

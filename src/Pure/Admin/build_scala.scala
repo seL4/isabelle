@@ -29,12 +29,12 @@ object Build_Scala {
       Isabelle_System.download_file(proper_url, path, progress = progress)
 
     def get_unpacked(dir: Path, strip: Int = 0, progress: Progress = new Progress): Unit =
-      Isabelle_System.with_tmp_file("archive")(archive_path => {
+      Isabelle_System.with_tmp_file("archive"){ archive_path =>
         get(archive_path, progress = progress)
         progress.echo("Unpacking " + artifact)
-        Isabelle_System.gnutar("-xzf " + File.bash_path(archive_path),
-          dir = dir, strip = strip).check
-      })
+        Isabelle_System.gnutar(
+          "-xzf " + File.bash_path(archive_path), dir = dir, strip = strip).check
+      }
 
     def print: String =
       "  * " + name + " " + version +
@@ -139,10 +139,11 @@ SCALA_INTERFACES="$SCALA_HOME/lib/""" + interfaces + """"
 
   val isabelle_tool =
     Isabelle_Tool("build_scala", "build Isabelle Scala component from official downloads",
-      Scala_Project.here, args => {
-      var target_dir = Path.current
+      Scala_Project.here,
+      { args =>
+        var target_dir = Path.current
 
-      val getopts = Getopts("""
+        val getopts = Getopts("""
 Usage: isabelle build_scala [OPTIONS]
 
   Options are:
@@ -150,13 +151,13 @@ Usage: isabelle build_scala [OPTIONS]
 
   Build Isabelle Scala component from official downloads.
 """,
-        "D:" -> (arg => target_dir = Path.explode(arg)))
+          "D:" -> (arg => target_dir = Path.explode(arg)))
 
-      val more_args = getopts(args)
-      if (more_args.nonEmpty) getopts.usage()
+        val more_args = getopts(args)
+        if (more_args.nonEmpty) getopts.usage()
 
-      val progress = new Console_Progress()
+        val progress = new Console_Progress()
 
-      build_scala(target_dir = target_dir, progress = progress)
-    })
+        build_scala(target_dir = target_dir, progress = progress)
+      })
 }

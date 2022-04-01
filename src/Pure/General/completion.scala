@@ -347,7 +347,7 @@ final class Completion private(
 
   def add_symbols: Completion = {
     val words =
-      Symbol.symbols.entries.flatMap(entry => {
+      Symbol.symbols.entries.flatMap { entry =>
         val sym = entry.symbol
         val word = "\\" + entry.name
         val seps =
@@ -358,7 +358,7 @@ final class Completion private(
           }
         List(sym -> sym, word -> sym) :::
           seps.map(sep => word -> (sym + sep + "\\<open>\u0007\\<close>"))
-      })
+      }
 
     new Completion(
       keywords,

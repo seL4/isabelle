@@ -156,12 +156,12 @@ extends Resources(session_base_info.sessions_structure, session_base_info.check.
     text: String,
     range: Option[Line.Range] = None
   ): Unit = {
-    state.change(st => {
+    state.change { st =>
       val model = st.models.getOrElse(file, VSCode_Model.init(session, editor, node_name(file)))
       val model1 =
         (model.change_text(text, range) getOrElse model).set_version(version).external(false)
       st.update_models(Some(file -> model1))
-    })
+    }
   }
 
   def close_model(file: JFile): Boolean =
@@ -172,7 +172,7 @@ extends Resources(session_base_info.sessions_structure, session_base_info.check.
       })
 
   def sync_models(changed_files: Set[JFile]): Unit =
-    state.change(st => {
+    state.change { st =>
       val changed_models =
         (for {
           (file, model) <- st.models.iterator
@@ -181,7 +181,7 @@ extends Resources(session_base_info.sessions_structure, session_base_info.check.
           model1 <- model.change_text(text)
         } yield (file, model1)).toList
       st.update_models(changed_models)
-    })
+    }
 
 
   /* overlays */
@@ -203,7 +203,7 @@ extends Resources(session_base_info.sessions_structure, session_base_info.check.
     editor: Language_Server.Editor,
     file_watcher: File_Watcher
   ): (Boolean, Boolean) = {
-    state.change_result(st => {
+    state.change_result { st =>
       /* theory files */
 
       val thys =
@@ -252,14 +252,14 @@ extends Resources(session_base_info.sessions_structure, session_base_info.check.
       val invoke_load = stable_tip_version.isEmpty
 
       ((invoke_input, invoke_load), st.update_models(loaded_models))
-    })
+    }
   }
 
 
   /* pending input */
 
   def flush_input(session: Session, channel: Channel): Unit = {
-    state.change(st => {
+    state.change { st =>
       val changed_models =
         (for {
           file <- st.pending_input.iterator
@@ -276,7 +276,7 @@ extends Resources(session_base_info.sessions_structure, session_base_info.check.
       st.copy(
         models = st.models ++ changed_models.iterator.map(_._2),
         pending_input = Set.empty)
-    })
+    }
   }
 
 
@@ -290,7 +290,7 @@ extends Resources(session_base_info.sessions_structure, session_base_info.check.
       (for ((file, model) <- st.models.iterator if model.node_visible) yield file)))
 
   def flush_output(channel: Channel): Boolean = {
-    state.change_result(st => {
+    state.change_result { st =>
       val (postponed, flushed) =
         (for {
           file <- st.pending_output.iterator
@@ -317,7 +317,7 @@ extends Resources(session_base_info.sessions_structure, session_base_info.check.
         st.copy(
           models = st.models ++ changed_iterator,
           pending_output = postponed.map(_._1).toSet))
-    })
+    }
   }
 
 

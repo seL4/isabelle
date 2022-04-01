@@ -103,7 +103,7 @@ directory individually.
   object Release_Archive {
     def make(bytes: Bytes, rename: String = ""): Release_Archive = {
       Isabelle_System.with_tmp_dir("tmp")(dir =>
-        Isabelle_System.with_tmp_file("archive", ext = "tar.gz")(archive_path => {
+        Isabelle_System.with_tmp_file("archive", ext = "tar.gz") { archive_path =>
           val isabelle_dir = Isabelle_System.make_directory(dir + ISABELLE)
 
           Bytes.write(archive_path, bytes)
@@ -122,7 +122,7 @@ directory individually.
               (Bytes.read(archive_path), rename)
             }
           new Release_Archive(bytes1, id, tags, identifier1)
-        })
+        }
       )
     }
 
@@ -235,9 +235,9 @@ directory individually.
         case s => error("Malformed option " + server_option + ": " + quote(s))
       }
     try {
-      Isabelle_System.with_tmp_file("tmp", ext = "tar")(local_tmp_tar => {
+      Isabelle_System.with_tmp_file("tmp", ext = "tar") { local_tmp_tar =>
         execute_tar(local_dir, "-cf " + File.bash_path(local_tmp_tar) + " .")
-        ssh.with_tmp_dir(remote_dir => {
+        ssh.with_tmp_dir { remote_dir =>
           val remote_tmp_tar = remote_dir + Path.basic("tmp.tar")
           ssh.write_file(remote_tmp_tar, local_tmp_tar)
           val remote_commands =
@@ -248,9 +248,9 @@ directory individually.
               "tar -cf tmp.tar heaps")
           ssh.execute(remote_commands.mkString(" && "), settings = false).check
           ssh.read_file(remote_tmp_tar, local_tmp_tar)
-        })
+        }
         execute_tar(local_dir, "-xf " + File.bash_path(local_tmp_tar))
-      })
+      }
     }
     finally { ssh.close() }
   }
@@ -496,14 +496,14 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
       Isabelle_System.rm_tree(context.dist_dir + path)
     }
 
-    Isabelle_System.with_tmp_file("archive", ext = "tar.gz")(archive_path => {
+    Isabelle_System.with_tmp_file("archive", ext = "tar.gz") { archive_path =>
       Bytes.write(archive_path, archive.bytes)
       val extract =
         List("README", "NEWS", "ANNOUNCE", "COPYRIGHT", "CONTRIBUTORS", "doc").
           map(name => context.dist_name + "/" + name)
       execute_tar(context.dist_dir,
         "-xzf " + File.bash_path(archive_path) + " " + Bash.strings(extract))
-    })
+    }
 
     Isabelle_System.symlink(Path.explode(context.dist_name), context.dist_dir + ISABELLE)
 
@@ -518,7 +518,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
       progress.echo("\nApplication bundle for " + platform)
 
-      Isabelle_System.with_tmp_dir("build_release")(tmp_dir => {
+      Isabelle_System.with_tmp_dir("build_release") { tmp_dir =>
         // release archive
 
         execute_tar(tmp_dir, "-xzf " + File.bash_path(context.isabelle_archive))
@@ -566,13 +566,13 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
           val base = isabelle_target.absolute
           val classpath1 = Path.split(other_isabelle.getenv("ISABELLE_CLASSPATH"))
           val classpath2 = Path.split(other_isabelle.getenv("ISABELLE_SETUP_CLASSPATH"))
-          (classpath1 ::: classpath2).map(path => {
+          (classpath1 ::: classpath2).map { path =>
             val abs_path = path.absolute
             File.relative_path(base, abs_path) match {
               case Some(rel_path) => rel_path
               case None => error("Bad classpath element: " + abs_path)
             }
-          })
+          }
         }
 
         val jedit_options = Path.explode("src/Tools/jEdit/etc/options")
@@ -766,7 +766,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
               Bytes.read(sfx_exe) + Bytes(sfx_txt) + Bytes.read(exe_archive))
             File.set_executable(context.dist_dir + isabelle_exe, true)
         }
-      })
+      }
       progress.echo("DONE")
     }
 
@@ -815,26 +815,26 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
         progress.echo_warning("Library archive already exists: " + context.isabelle_library_archive)
       }
       else {
-        Isabelle_System.with_tmp_dir("build_release")(tmp_dir => {
-            val bundle =
-              context.dist_dir + Path.explode(context.dist_name + "_" + Platform.family + ".tar.gz")
-            execute_tar(tmp_dir, "-xzf " + File.bash_path(bundle))
+        Isabelle_System.with_tmp_dir("build_release") { tmp_dir =>
+          val bundle =
+            context.dist_dir + Path.explode(context.dist_name + "_" + Platform.family + ".tar.gz")
+          execute_tar(tmp_dir, "-xzf " + File.bash_path(bundle))
 
-            val other_isabelle = context.other_isabelle(tmp_dir)
+          val other_isabelle = context.other_isabelle(tmp_dir)
 
-            Isabelle_System.make_directory(other_isabelle.etc)
-            File.write(other_isabelle.etc_settings, "ML_OPTIONS=\"--minheap 1000 --maxheap 4000\"\n")
+          Isabelle_System.make_directory(other_isabelle.etc)
+          File.write(other_isabelle.etc_settings, "ML_OPTIONS=\"--minheap 1000 --maxheap 4000\"\n")
 
-            other_isabelle.bash("bin/isabelle build -f -j " + parallel_jobs +
-              " -o browser_info -o document=pdf -o document_variants=document:outline=/proof,/ML" +
-              " -o system_heaps -c -a -d '~~/src/Benchmarks'", echo = true).check
-            other_isabelle.isabelle_home_user.file.delete
+          other_isabelle.bash("bin/isabelle build -f -j " + parallel_jobs +
+            " -o browser_info -o document=pdf -o document_variants=document:outline=/proof,/ML" +
+            " -o system_heaps -c -a -d '~~/src/Benchmarks'", echo = true).check
+          other_isabelle.isabelle_home_user.file.delete
 
-            execute(tmp_dir, "chmod -R a+r " + Bash.string(context.dist_name))
-            execute(tmp_dir, "chmod -R g=o " + Bash.string(context.dist_name))
-            execute_tar(tmp_dir, "-czf " + File.bash_path(context.isabelle_library_archive) +
-              " " + Bash.string(context.dist_name + "/browser_info"))
-          })
+          execute(tmp_dir, "chmod -R a+r " + Bash.string(context.dist_name))
+          execute(tmp_dir, "chmod -R g=o " + Bash.string(context.dist_name))
+          execute_tar(tmp_dir, "-czf " + File.bash_path(context.isabelle_library_archive) +
+            " " + Bash.string(context.dist_name + "/browser_info"))
+        }
       }
     }
   }

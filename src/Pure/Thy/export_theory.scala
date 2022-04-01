@@ -32,7 +32,7 @@ object Export_Theory {
     cache: Term.Cache = Term.Cache.make()): Session = {
     val thys =
       sessions_structure.build_requirements(List(session_name)).flatMap(session =>
-        using(store.open_database(session))(db => {
+        using(store.open_database(session)) { db =>
           db.transaction {
             for (theory <- Export.read_theory_names(db, session))
             yield {
@@ -41,7 +41,7 @@ object Export_Theory {
               read_theory(provider, session, theory, cache = cache)
             }
           }
-        }))
+        })
 
     val graph0 =
       thys.foldLeft(Graph.string[Option[Theory]]) {
@@ -152,12 +152,12 @@ object Export_Theory {
     val session_name = Thy_Header.PURE
     val theory_name = Thy_Header.PURE
 
-    using(store.open_database(session_name))(db => {
+    using(store.open_database(session_name)) { db =>
       db.transaction {
         val provider = Export.Provider.database(db, store.cache, session_name, theory_name)
         read(provider, session_name, theory_name)
       }
-    })
+    }
   }
 
   def read_pure_theory(store: Sessions.Store, cache: Term.Cache = Term.Cache.none): Theory =
@@ -285,7 +285,7 @@ object Export_Theory {
 
   def read_types(provider: Export.Provider): List[Entity[Type]] =
     read_entities(provider, Export.THEORY_PREFIX + "types", Markup.TYPE_NAME,
-      body => {
+      { body =>
         import XML.Decode._
         val (syntax, args, abbrev) =
           triple(decode_syntax, list(string), option(Term_XML.Decode.typ))(body)
@@ -313,7 +313,7 @@ object Export_Theory {
 
   def read_consts(provider: Export.Provider): List[Entity[Const]] =
     read_entities(provider, Export.THEORY_PREFIX + "consts", Markup.CONSTANT,
-      body => {
+      { body =>
         import XML.Decode._
         val (syntax, (typargs, (typ, (abbrev, propositional)))) =
           pair(decode_syntax,
@@ -376,7 +376,7 @@ object Export_Theory {
 
   def read_thms(provider: Export.Provider): List[Entity[Thm]] =
     read_entities(provider, Export.THEORY_PREFIX + "thms", Kind.THM,
-      body => {
+      { body =>
         import XML.Decode._
         import Term_XML.Decode._
         val (prop, deps, prf) = triple(decode_prop, list(string), proof)(body)
@@ -477,7 +477,7 @@ object Export_Theory {
 
   def read_classes(provider: Export.Provider): List[Entity[Class]] =
     read_entities(provider, Export.THEORY_PREFIX + "classes", Markup.CLASS,
-      body => {
+      { body =>
         import XML.Decode._
         import Term_XML.Decode._
         val (params, axioms) = pair(list(pair(string, typ)), list(decode_prop))(body)
@@ -501,7 +501,7 @@ object Export_Theory {
 
   def read_locales(provider: Export.Provider): List[Entity[Locale]] =
     read_entities(provider, Export.THEORY_PREFIX + "locales", Markup.LOCALE,
-      body => {
+      { body =>
         import XML.Decode._
         import Term_XML.Decode._
         val (typargs, args, axioms) =
@@ -534,7 +534,7 @@ object Export_Theory {
 
   def read_locale_dependencies(provider: Export.Provider): List[Entity[Locale_Dependency]] =
     read_entities(provider, Export.THEORY_PREFIX + "locale_dependencies", Kind.LOCALE_DEPENDENCY,
-      body => {
+      { body =>
         import XML.Decode._
         import Term_XML.Decode._
         val (source, (target, (prefix, (subst_types, subst_terms)))) =

@@ -30,8 +30,9 @@ object Update_Then {
 
   val isabelle_tool =
     Isabelle_Tool("update_then", "expand old Isar command conflations 'hence' and 'thus'",
-      Scala_Project.here, args => {
-      val getopts = Getopts("""
+      Scala_Project.here,
+      { args =>
+        val getopts = Getopts("""
 Usage: isabelle update_then [FILES|DIRS...]
 
   Recursively find .thy files and expand old Isar command conflations:
@@ -42,12 +43,12 @@ Usage: isabelle update_then [FILES|DIRS...]
   Old versions of files are preserved by appending "~~".
 """)
 
-      val specs = getopts(args)
-      if (specs.isEmpty) getopts.usage()
-
-      for {
-        spec <- specs
-        file <- File.find_files(Path.explode(spec).file, file => file.getName.endsWith(".thy"))
-      } update_then(File.path(file))
-    })
+        val specs = getopts(args)
+        if (specs.isEmpty) getopts.usage()
+  
+        for {
+          spec <- specs
+          file <- File.find_files(Path.explode(spec).file, file => file.getName.endsWith(".thy"))
+        } update_then(File.path(file))
+      })
 }

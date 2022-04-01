@@ -195,7 +195,7 @@ object Layout {
     levels: List[Level]
   ): List[Level] = {
     def resort(parent: Level, child: Level, top_down: Boolean): Level =
-      child.map(v => {
+      child.map({ v =>
         val ps = if (top_down) graph.imm_preds(v) else graph.imm_succs(v)
         val weight =
           ps.foldLeft(0.0) { case (w, p) => w + (0 max parent.indexOf(p)) } / (ps.size max 1)

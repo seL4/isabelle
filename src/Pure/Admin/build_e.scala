@@ -20,7 +20,7 @@ object Build_E {
     progress: Progress = new Progress,
     target_dir: Path = Path.current
   ): Unit = {
-    Isabelle_System.with_tmp_dir("build")(tmp_dir => {
+    Isabelle_System.with_tmp_dir("build") { tmp_dir =>
       /* component */
 
       val component_name = "e-" + version
@@ -100,20 +100,20 @@ Isabelle component directory: x86_64-linux etc.
 
         Makarius
         """ + Date.Format.date(Date.now()) + "\n")
-    })
+    }
 }
 
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
     Isabelle_Tool("build_e", "build prover component from source distribution", Scala_Project.here,
-    args => {
-      var target_dir = Path.current
-      var version = default_version
-      var download_url = default_download_url
-      var verbose = false
+      { args =>
+        var target_dir = Path.current
+        var version = default_version
+        var download_url = default_download_url
+        var verbose = false
 
-      val getopts = Getopts("""
+        val getopts = Getopts("""
 Usage: isabelle build_e [OPTIONS]
 
   Options are:
@@ -125,17 +125,17 @@ Usage: isabelle build_e [OPTIONS]
 
   Build prover component from the specified source distribution.
 """,
-        "D:" -> (arg => target_dir = Path.explode(arg)),
-        "U:" -> (arg => download_url = arg),
-        "V:" -> (arg => version = arg),
-        "v" -> (_ => verbose = true))
+          "D:" -> (arg => target_dir = Path.explode(arg)),
+          "U:" -> (arg => download_url = arg),
+          "V:" -> (arg => version = arg),
+          "v" -> (_ => verbose = true))
 
-      val more_args = getopts(args)
-      if (more_args.nonEmpty) getopts.usage()
+        val more_args = getopts(args)
+        if (more_args.nonEmpty) getopts.usage()
 
-      val progress = new Console_Progress()
+        val progress = new Console_Progress()
 
-      build_e(version = version, download_url = download_url,
-        verbose = verbose, progress = progress, target_dir = target_dir)
-    })
+        build_e(version = version, download_url = download_url,
+          verbose = verbose, progress = progress, target_dir = target_dir)
+      })
 }

@@ -594,7 +594,7 @@ class Completion_Popup private(
 
   val inner_key_listener: KeyListener =
     JEdit_Lib.key_listener(
-      key_pressed = (e: KeyEvent) => {
+      key_pressed = { (e: KeyEvent) =>
         if (!e.isConsumed) {
           e.getKeyCode match {
             case KeyEvent.VK_ENTER if PIDE.options.bool("jedit_completion_select_enter") =>

@@ -17,7 +17,7 @@ object Profiling_Report {
   ): Unit = {
     val store = Sessions.store(options)
 
-    using(store.open_database_context())(db_context => {
+    using(store.open_database_context()) { db_context =>
       val result =
         db_context.input_database(session)((db, name) => Some(store.read_theories(db, name)))
       result match {
@@ -38,7 +38,7 @@ object Profiling_Report {
 
           for (report <- ML_Profiling.account(reports)) progress.echo(report.print)
       }
-    })
+    }
   }
 
 
@@ -47,13 +47,12 @@ object Profiling_Report {
   val isabelle_tool =
     Isabelle_Tool("profiling_report", "report Poly/ML profiling information from log files",
       Scala_Project.here,
-      args => {
-      var theories: List[String] = Nil
-      var clean_name = false
-      var options = Options.init()
+      { args =>
+        var theories: List[String] = Nil
+        var clean_name = false
+        var options = Options.init()
 
-      val getopts =
-        Getopts("""
+        val getopts = Getopts("""
 Usage: isabelle profiling_report [OPTIONS] SESSION
 
   Options are:
@@ -68,16 +67,16 @@ Usage: isabelle profiling_report [OPTIONS] SESSION
           "c" -> (_ => clean_name = true),
           "o:" -> (arg => options = options + arg))
 
-      val more_args = getopts(args)
-      val session_name =
-        more_args match {
-          case List(session_name) => session_name
-          case _ => getopts.usage()
-        }
+        val more_args = getopts(args)
+        val session_name =
+          more_args match {
+            case List(session_name) => session_name
+            case _ => getopts.usage()
+          }
 
-      val progress = new Console_Progress()
+        val progress = new Console_Progress()
 
-      profiling_report(options, session_name, theories = theories,
-        clean_name = clean_name, progress = progress)
-    })
+        profiling_report(options, session_name, theories = theories,
+          clean_name = clean_name, progress = progress)
+      })
 }

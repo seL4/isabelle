@@ -679,7 +679,7 @@ object Document {
     def command_results(range: Text.Range): Command.Results =
       Command.State.merge_results(
         select[List[Command.State]](range, Markup.Elements.full,
-          command_states => { case _ => Some(command_states) }).flatMap(_.info))
+          command_states => _ => Some(command_states)).flatMap(_.info))
 
     def command_results(command: Command): Command.Results =
       state.command_results(version, command)

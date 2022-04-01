@@ -19,7 +19,7 @@ object Build_Cygwin {
   ): Unit = {
     require(Platform.is_windows, "Windows platform expected")
 
-    Isabelle_System.with_tmp_dir("cygwin")(tmp_dir => {
+    Isabelle_System.with_tmp_dir("cygwin") { tmp_dir =>
         val cygwin = tmp_dir + Path.explode("cygwin")
         val cygwin_etc = cygwin + Path.explode("etc")
         val cygwin_isabelle = Isabelle_System.make_directory(cygwin + Path.explode("isabelle"))
@@ -52,7 +52,7 @@ object Build_Cygwin {
 
         val archive = "cygwin-" + Date.Format.alt_date(Date.now()) + ".tar.gz"
         Isabelle_System.gnutar("-czf " + Bash.string(archive) + " cygwin", dir = tmp_dir).check
-      })
+      }
   }
 
 
@@ -60,12 +60,13 @@ object Build_Cygwin {
 
   val isabelle_tool =
     Isabelle_Tool("build_cygwin", "produce pre-canned Cygwin distribution for Isabelle",
-      Scala_Project.here, args => {
-      var mirror = default_mirror
-      var more_packages: List[String] = Nil
+      Scala_Project.here,
+      { args =>
+        var mirror = default_mirror
+        var more_packages: List[String] = Nil
 
-      val getopts =
-        Getopts("""
+        val getopts =
+          Getopts("""
 Usage: isabelle build_cygwin [OPTIONS]
 
   Options are:
@@ -75,12 +76,12 @@ Usage: isabelle build_cygwin [OPTIONS]
   Produce pre-canned Cygwin distribution for Isabelle: this requires
   Windows administrator mode.
 """,
-          "R:" -> (arg => mirror = arg),
-          "p:" -> (arg => more_packages ::= arg))
+            "R:" -> (arg => mirror = arg),
+            "p:" -> (arg => more_packages ::= arg))
 
-      val more_args = getopts(args)
-      if (more_args.nonEmpty) getopts.usage()
+        val more_args = getopts(args)
+        if (more_args.nonEmpty) getopts.usage()
 
-      build_cygwin(new Console_Progress(), mirror = mirror, more_packages = more_packages)
-    })
+        build_cygwin(new Console_Progress(), mirror = mirror, more_packages = more_packages)
+      })
 }

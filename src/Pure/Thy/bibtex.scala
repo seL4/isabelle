@@ -105,7 +105,7 @@ object Bibtex {
       }
     }
 
-    Isabelle_System.with_tmp_dir("bibtex")(tmp_dir => {
+    Isabelle_System.with_tmp_dir("bibtex") { tmp_dir =>
       File.write(tmp_dir + Path.explode("root.bib"),
         tokens.iterator.map(p => p._1.source).mkString("", "\n", "\n"))
       File.write(tmp_dir + Path.explode("root.aux"),
@@ -138,7 +138,7 @@ object Bibtex {
           ).partition(_._1)
         }
       (errors.map(_._2), warnings.map(_._2))
-    })
+    }
   }
 
   object Check_Database extends Scala.Fun_String("bibtex_check_database") {
@@ -629,7 +629,7 @@ object Bibtex {
     style: String = "",
     chronological: Boolean = false
   ): String = {
-    Isabelle_System.with_tmp_dir("bibtex")(tmp_dir => {
+    Isabelle_System.with_tmp_dir("bibtex") { tmp_dir =>
       /* database files */
 
       val bib_files = bib.map(_.drop_ext)
@@ -682,6 +682,6 @@ object Bibtex {
             dropWhile(line => !line.startsWith("<!-- END BIBLIOGRAPHY")).reverse)
       }
       else html
-    })
+    }
   }
 }

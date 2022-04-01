@@ -69,7 +69,7 @@ object Document_Build {
   def read_documents(db: SQL.Database, session_name: String): List[Document_Input] = {
     val select = Data.table.select(List(Data.name, Data.sources), Data.where_equal(session_name))
     db.using_statement(select)(stmt =>
-      stmt.execute_query().iterator(res => {
+      stmt.execute_query().iterator({ res =>
         val name = res.string(Data.name)
         val sources = res.string(Data.sources)
         Document_Input(name, SHA1.fake_digest(sources))
@@ -82,7 +82,7 @@ object Document_Build {
     name: String
   ): Option[Document_Output] = {
     val select = Data.table.select(sql = Data.where_equal(session_name, name))
-    db.using_statement(select)(stmt => {
+    db.using_statement(select)({ stmt =>
       val res = stmt.execute_query()
       if (res.next()) {
         val name = res.string(Data.name)
@@ -96,14 +96,14 @@ object Document_Build {
   }
 
   def write_document(db: SQL.Database, session_name: String, doc: Document_Output): Unit = {
-    db.using_statement(Data.table.insert())(stmt => {
+    db.using_statement(Data.table.insert()){ stmt =>
       stmt.string(1) = session_name
       stmt.string(2) = doc.name
       stmt.string(3) = doc.sources.toString
       stmt.bytes(4) = doc.log_xz
       stmt.bytes(5) = doc.pdf
       stmt.execute()
-    })
+    }
   }
 
 
@@ -190,12 +190,12 @@ object Document_Build {
 
     lazy val isabelle_logo: Option[File.Content] = {
       document_logo.map(logo_name =>
-        Isabelle_System.with_tmp_file("logo", ext = "pdf")(tmp_path => {
+        Isabelle_System.with_tmp_file("logo", ext = "pdf") { tmp_path =>
           Logo.create_logo(logo_name, output_file = tmp_path, quiet = true)
           val path = Path.basic("isabelle_logo.pdf")
           val content = Bytes.read(tmp_path)
           File.Content(path, content)
-        }))
+        })
     }
 
 
@@ -388,7 +388,7 @@ object Document_Build {
     val documents =
       for (doc <- context.documents)
       yield {
-        Isabelle_System.with_tmp_dir("document")(tmp_dir => {
+        Isabelle_System.with_tmp_dir("document") { tmp_dir =>
           progress.echo("Preparing " + context.session + "/" + doc.name + " ...")
           val start = Time.now()
 
@@ -406,7 +406,7 @@ object Document_Build {
             " (" + timing.message_hms + " elapsed time)")
 
           document
-        })
+        }
       }
 
     for (dir <- output_pdf; doc <- documents) {
@@ -421,16 +421,16 @@ object Document_Build {
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("document", "prepare session theory document", Scala_Project.here, args => {
-      var output_sources: Option[Path] = None
-      var output_pdf: Option[Path] = None
-      var verbose_latex = false
-      var dirs: List[Path] = Nil
-      var options = Options.init()
-      var verbose_build = false
+    Isabelle_Tool("document", "prepare session theory document", Scala_Project.here,
+      { args =>
+        var output_sources: Option[Path] = None
+        var output_pdf: Option[Path] = None
+        var verbose_latex = false
+        var dirs: List[Path] = Nil
+        var options = Options.init()
+        var verbose_build = false
 
-      val getopts = Getopts(
-        """
+        val getopts = Getopts("""
 Usage: isabelle document [OPTIONS] SESSION
 
   Options are:
@@ -444,48 +444,48 @@ Usage: isabelle document [OPTIONS] SESSION
 
   Prepare the theory document of a session.
 """,
-        "O:" -> (arg =>
-          {
-            val dir = Path.explode(arg)
-            output_sources = Some(dir)
-            output_pdf = Some(dir)
-          }),
-        "P:" -> (arg => { output_pdf = Some(Path.explode(arg)) }),
-        "S:" -> (arg => { output_sources = Some(Path.explode(arg)) }),
-        "V" -> (_ => verbose_latex = true),
-        "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
-        "o:" -> (arg => options = options + arg),
-        "v" -> (_ => verbose_build = true))
+          "O:" -> (arg =>
+            {
+              val dir = Path.explode(arg)
+              output_sources = Some(dir)
+              output_pdf = Some(dir)
+            }),
+          "P:" -> (arg => { output_pdf = Some(Path.explode(arg)) }),
+          "S:" -> (arg => { output_sources = Some(Path.explode(arg)) }),
+          "V" -> (_ => verbose_latex = true),
+          "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
+          "o:" -> (arg => options = options + arg),
+          "v" -> (_ => verbose_build = true))
 
-      val more_args = getopts(args)
-      val session =
-        more_args match {
-          case List(a) => a
-          case _ => getopts.usage()
+        val more_args = getopts(args)
+        val session =
+          more_args match {
+            case List(a) => a
+            case _ => getopts.usage()
+          }
+
+        val progress = new Console_Progress(verbose = verbose_build)
+        val store = Sessions.store(options)
+
+        progress.interrupt_handler {
+          val res =
+            Build.build(options, selection = Sessions.Selection.session(session),
+              dirs = dirs, progress = progress, verbose = verbose_build)
+          if (!res.ok) error("Failed to build session " + quote(session))
+
+          val deps =
+            Sessions.load_structure(options + "document=pdf", dirs = dirs).
+              selection_deps(Sessions.Selection.session(session))
+
+          if (output_sources.isEmpty && output_pdf.isEmpty) {
+            progress.echo_warning("No output directory")
+          }
+
+          using(store.open_database_context()) { db_context =>
+            build_documents(context(session, deps, db_context, progress = progress),
+              output_sources = output_sources, output_pdf = output_pdf,
+              verbose = verbose_latex)
+          }
         }
-
-      val progress = new Console_Progress(verbose = verbose_build)
-      val store = Sessions.store(options)
-
-      progress.interrupt_handler {
-        val res =
-          Build.build(options, selection = Sessions.Selection.session(session),
-            dirs = dirs, progress = progress, verbose = verbose_build)
-        if (!res.ok) error("Failed to build session " + quote(session))
-
-        val deps =
-          Sessions.load_structure(options + "document=pdf", dirs = dirs).
-            selection_deps(Sessions.Selection.session(session))
-
-        if (output_sources.isEmpty && output_pdf.isEmpty) {
-          progress.echo_warning("No output directory")
-        }
-
-        using(store.open_database_context())(db_context => {
-          build_documents(context(session, deps, db_context, progress = progress),
-            output_sources = output_sources, output_pdf = output_pdf,
-            verbose = verbose_latex)
-        })
-      }
-    })
+      })
 }

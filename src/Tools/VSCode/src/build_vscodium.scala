@@ -71,7 +71,7 @@ object Build_VSCodium {
     def download(dir: Path, progress: Progress = new Progress): Unit = {
       if (download_zip) Isabelle_System.require_command("unzip", test = "-h")
 
-      Isabelle_System.with_tmp_file("download")(download_file => {
+      Isabelle_System.with_tmp_file("download") { download_file =>
         Isabelle_System.download_file(vscodium_download + "/" + version + "/" + download_name,
           download_file, progress = progress)
 
@@ -82,7 +82,7 @@ object Build_VSCodium {
         else {
           Isabelle_System.gnutar("-xzf " + File.bash_path(download_file), dir = dir).check
         }
-      })
+      }
     }
 
     def get_vscodium_repository(build_dir: Path, progress: Progress = new Progress): Unit = {
@@ -189,7 +189,7 @@ object Build_VSCodium {
     }
 
     def setup_node(target_dir: Path, progress: Progress): Unit = {
-      Isabelle_System.with_tmp_dir("download")(download_dir => {
+      Isabelle_System.with_tmp_dir("download") { download_dir =>
         download(download_dir, progress = progress)
         val dir1 = init_resources(download_dir)
         val dir2 = init_resources(target_dir)
@@ -198,7 +198,7 @@ object Build_VSCodium {
           Isabelle_System.rm_tree(dir2 + path)
           Isabelle_System.copy_dir(dir1 + path, dir2 + path)
         }
-      })
+      }
     }
 
     def setup_electron(dir: Path): Unit = {
@@ -220,11 +220,10 @@ object Build_VSCodium {
 
       if (platform == Platform.Family.windows) {
         val files =
-          File.find_files(dir.file, pred = file =>
-            {
-              val name = file.getName
-              name.endsWith(".dll") || name.endsWith(".exe") || name.endsWith(".node")
-            })
+          File.find_files(dir.file, pred = { file =>
+            val name = file.getName
+            name.endsWith(".dll") || name.endsWith(".exe") || name.endsWith(".node")
+          })
         files.foreach(file => File.set_executable(File.path(file), true))
         Isabelle_System.bash("chmod -R o-w " + File.bash_path(dir)).check
       }
@@ -291,7 +290,7 @@ object Build_VSCodium {
     val platform_info = linux_platform_info
     check_system(List(platform_info.platform))
 
-    Isabelle_System.with_tmp_dir("build")(build_dir => {
+    Isabelle_System.with_tmp_dir("build") { build_dir =>
       platform_info.get_vscodium_repository(build_dir, progress = progress)
       val vscode_dir = build_dir + Path.explode("vscode")
       progress.echo("Prepare ...")
@@ -307,7 +306,7 @@ object Build_VSCodium {
         Isabelle_System.make_patch(build_dir, vscode_dir.orig.base, vscode_dir.base,
           diff_options = "--exclude=.git --exclude=node_modules")
       }
-    })
+    }
   }
 
 
@@ -348,7 +347,7 @@ object Build_VSCodium {
     for (platform <- platforms) yield {
       val platform_info = the_platform_info(platform)
 
-      Isabelle_System.with_tmp_dir("build")(build_dir => {
+      Isabelle_System.with_tmp_dir("build") { build_dir =>
         progress.echo("\n* Building " + platform + ":")
 
         platform_info.get_vscodium_repository(build_dir, progress = progress)
@@ -377,7 +376,7 @@ object Build_VSCodium {
           platform_dir + resources)
 
         platform_info.setup_executables(platform_dir)
-      })
+      }
     }
 
     Isabelle_System.bash("gzip *.patch", cwd = patches_dir.file).check
@@ -422,12 +421,12 @@ formal record.
   val isabelle_tool1 =
     Isabelle_Tool("build_vscodium", "build component for VSCodium",
       Scala_Project.here,
-      args => {
-      var target_dir = Path.current
-      var platforms = default_platforms
-      var verbose = false
+      { args =>
+        var target_dir = Path.current
+        var platforms = default_platforms
+        var verbose = false
 
-      val getopts = Getopts("""
+        val getopts = Getopts("""
 Usage: build_vscodium [OPTIONS]
 
   Options are:
@@ -440,26 +439,26 @@ Usage: build_vscodium [OPTIONS]
   The build platform needs to be Linux with nodejs/yarn, jq, and wine
   for targeting Windows.
 """,
-        "D:" -> (arg => target_dir = Path.explode(arg)),
-        "p:" -> (arg => platforms = Library.space_explode(',', arg).map(Platform.Family.parse)),
-        "v" -> (_ => verbose = true))
+          "D:" -> (arg => target_dir = Path.explode(arg)),
+          "p:" -> (arg => platforms = Library.space_explode(',', arg).map(Platform.Family.parse)),
+          "v" -> (_ => verbose = true))
 
-      val more_args = getopts(args)
-      if (more_args.nonEmpty) getopts.usage()
+        val more_args = getopts(args)
+        if (more_args.nonEmpty) getopts.usage()
 
-      val progress = new Console_Progress()
+        val progress = new Console_Progress()
 
-      build_vscodium(target_dir = target_dir, platforms = platforms,
-        verbose = verbose, progress = progress)
-    })
+        build_vscodium(target_dir = target_dir, platforms = platforms,
+          verbose = verbose, progress = progress)
+      })
 
   val isabelle_tool2 =
     Isabelle_Tool("vscode_patch", "patch VSCode source tree",
       Scala_Project.here,
-      args => {
-      var base_dir = Path.current
+      { args =>
+        var base_dir = Path.current
 
-      val getopts = Getopts("""
+        val getopts = Getopts("""
 Usage: vscode_patch [OPTIONS]
 
   Options are:
@@ -467,12 +466,12 @@ Usage: vscode_patch [OPTIONS]
 
   Patch original VSCode source tree for use with Isabelle/VSCode.
 """,
-        "D:" -> (arg => base_dir = Path.explode(arg)))
+          "D:" -> (arg => base_dir = Path.explode(arg)))
 
-      val more_args = getopts(args)
-      if (more_args.nonEmpty) getopts.usage()
+        val more_args = getopts(args)
+        if (more_args.nonEmpty) getopts.usage()
 
-      val platform_info = the_platform_info(Platform.family)
-      platform_info.patch_sources(base_dir)
-    })
+        val platform_info = the_platform_info(Platform.family)
+        platform_info.patch_sources(base_dir)
+      })
 }

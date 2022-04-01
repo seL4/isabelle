@@ -29,20 +29,20 @@ object Language_Server {
 
   val isabelle_tool =
     Isabelle_Tool("vscode_server", "VSCode Language Server for PIDE", Scala_Project.here,
-      args => {
-      try {
-        var logic_ancestor: Option[String] = None
-        var log_file: Option[Path] = None
-        var logic_requirements = false
-        var dirs: List[Path] = Nil
-        var include_sessions: List[String] = Nil
-        var logic = default_logic
-        var modes: List[String] = Nil
-        var no_build = false
-        var options = Options.init()
-        var verbose = false
+      { args =>
+        try {
+          var logic_ancestor: Option[String] = None
+          var log_file: Option[Path] = None
+          var logic_requirements = false
+          var dirs: List[Path] = Nil
+          var include_sessions: List[String] = Nil
+          var logic = default_logic
+          var modes: List[String] = Nil
+          var no_build = false
+          var options = Options.init()
+          var verbose = false
 
-        val getopts = Getopts("""
+          val getopts = Getopts("""
 Usage: isabelle vscode_server [OPTIONS]
 
   Options are:
@@ -59,43 +59,43 @@ Usage: isabelle vscode_server [OPTIONS]
 
   Run the VSCode Language Server protocol (JSON RPC) over stdin/stdout.
 """,
-          "A:" -> (arg => logic_ancestor = Some(arg)),
-          "L:" -> (arg => log_file = Some(Path.explode(File.standard_path(arg)))),
-          "R:" -> (arg => { logic = arg; logic_requirements = true }),
-          "d:" -> (arg => dirs = dirs ::: List(Path.explode(File.standard_path(arg)))),
-          "i:" -> (arg => include_sessions = include_sessions ::: List(arg)),
-          "l:" -> (arg => logic = arg),
-          "m:" -> (arg => modes = arg :: modes),
-          "n" -> (_ => no_build = true),
-          "o:" -> (arg => options = options + arg),
-          "v" -> (_ => verbose = true))
+            "A:" -> (arg => logic_ancestor = Some(arg)),
+            "L:" -> (arg => log_file = Some(Path.explode(File.standard_path(arg)))),
+            "R:" -> (arg => { logic = arg; logic_requirements = true }),
+            "d:" -> (arg => dirs = dirs ::: List(Path.explode(File.standard_path(arg)))),
+            "i:" -> (arg => include_sessions = include_sessions ::: List(arg)),
+            "l:" -> (arg => logic = arg),
+            "m:" -> (arg => modes = arg :: modes),
+            "n" -> (_ => no_build = true),
+            "o:" -> (arg => options = options + arg),
+            "v" -> (_ => verbose = true))
 
-        val more_args = getopts(args)
-        if (more_args.nonEmpty) getopts.usage()
+          val more_args = getopts(args)
+          if (more_args.nonEmpty) getopts.usage()
 
-        val log = Logger.make(log_file)
-        val channel = new Channel(System.in, System.out, log, verbose)
-        val server =
-          new Language_Server(channel, options, session_name = logic, session_dirs = dirs,
-            include_sessions = include_sessions, session_ancestor = logic_ancestor,
-            session_requirements = logic_requirements, session_no_build = no_build,
-            modes = modes, log = log)
+          val log = Logger.make(log_file)
+          val channel = new Channel(System.in, System.out, log, verbose)
+          val server =
+            new Language_Server(channel, options, session_name = logic, session_dirs = dirs,
+              include_sessions = include_sessions, session_ancestor = logic_ancestor,
+              session_requirements = logic_requirements, session_no_build = no_build,
+              modes = modes, log = log)
 
-        // prevent spurious garbage on the main protocol channel
-        val orig_out = System.out
-        try {
-          System.setOut(new PrintStream(new OutputStream { def write(n: Int): Unit = {} }))
-          server.start()
+          // prevent spurious garbage on the main protocol channel
+          val orig_out = System.out
+          try {
+            System.setOut(new PrintStream(new OutputStream { def write(n: Int): Unit = {} }))
+            server.start()
+          }
+          finally { System.setOut(orig_out) }
         }
-        finally { System.setOut(orig_out) }
-      }
-      catch {
-        case exn: Throwable =>
-          val channel = new Channel(System.in, System.out, No_Logger)
-          channel.error_message(Exn.message(exn))
-          throw(exn)
-      }
-    })
+        catch {
+          case exn: Throwable =>
+            val channel = new Channel(System.in, System.out, No_Logger)
+            channel.error_message(Exn.message(exn))
+            throw(exn)
+        }
+      })
 }
 
 class Language_Server(

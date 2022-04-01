@@ -39,21 +39,20 @@ object Syntax_Style {
     new SyntaxStyle(style.getForegroundColor, style.getBackgroundColor, f(style.getFont))
 
   private def script_style(style: SyntaxStyle, i: Int): SyntaxStyle = {
-    font_style(style, font0 =>
-      {
-        val font1 = font0.deriveFont(JMap.of(TextAttribute.SUPERSCRIPT, java.lang.Integer.valueOf(i)))
+    font_style(style, { font0 =>
+      val font1 = font0.deriveFont(JMap.of(TextAttribute.SUPERSCRIPT, java.lang.Integer.valueOf(i)))
 
-        def shift(y: Float): Font =
-          GUI.transform_font(font1, AffineTransform.getTranslateInstance(0.0, y.toDouble))
+      def shift(y: Float): Font =
+        GUI.transform_font(font1, AffineTransform.getTranslateInstance(0.0, y.toDouble))
 
-        val m0 = GUI.line_metrics(font0)
-        val m1 = GUI.line_metrics(font1)
-        val a = m1.getAscent - m0.getAscent
-        val b = (m1.getDescent + m1.getLeading) - (m0.getDescent + m0.getLeading)
-        if (a > 0.0f) shift(a)
-        else if (b > 0.0f) shift(- b)
-        else font1
-      })
+      val m0 = GUI.line_metrics(font0)
+      val m1 = GUI.line_metrics(font1)
+      val a = m1.getAscent - m0.getAscent
+      val b = (m1.getDescent + m1.getLeading) - (m0.getDescent + m0.getLeading)
+      if (a > 0.0f) shift(a)
+      else if (b > 0.0f) shift(- b)
+      else font1
+    })
   }
 
   private def bold_style(style: SyntaxStyle): SyntaxStyle =
@@ -176,14 +175,14 @@ object Syntax_Style {
       result.toString
     }
 
-    text_area.getSelection.foreach(sel => {
+    text_area.getSelection.foreach { sel =>
       val before = JEdit_Lib.point_range(buffer, sel.getStart - 1)
       JEdit_Lib.get_text(buffer, before) match {
         case Some(s) if HTML.is_control(s) =>
           text_area.extendSelection(before.start, before.stop)
         case _ =>
       }
-    })
+    }
 
     text_area.getSelection.toList match {
       case Nil =>

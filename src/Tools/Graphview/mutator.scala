@@ -152,7 +152,7 @@ object Mutator {
     extends Graph_Mutator(
       "Add transitive closure",
       "Adds all family members of all current nodes.",
-      (full_graph, graph) => {
+      { (full_graph, graph) =>
         val withparents =
           if (parents) add_node_group(full_graph, graph, full_graph.all_preds(graph.keys))
           else graph

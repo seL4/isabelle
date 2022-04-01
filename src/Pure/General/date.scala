@@ -50,10 +50,10 @@ object Date {
     def pattern(pat: String): DateTimeFormatter = DateTimeFormatter.ofPattern(pat)
 
     def variants(pats: List[String], locs: List[Locale] = Nil): List[DateTimeFormatter] =
-      pats.flatMap(pat => {
+      pats.flatMap { pat =>
         val fmt = pattern(pat)
         if (locs.isEmpty) List(fmt) else locs.map(fmt.withLocale)
-      })
+      }
 
     @tailrec def try_variants(
       fmts: List[DateTimeFormatter],

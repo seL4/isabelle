@@ -84,7 +84,7 @@ object HTTP {
       val Charset = """.*\bcharset="?([\S^"]+)"?.*""".r
 
       val start = Time.now()
-      using(connection.getInputStream)(stream => {
+      using(connection.getInputStream) { stream =>
         val bytes = Bytes.read_stream(stream, hint = connection.getContentLength)
         val stop = Time.now()
 
@@ -98,7 +98,7 @@ object HTTP {
           }
         Content(bytes, file_name = file_name, mime_type = mime_type,
           encoding = encoding, elapsed_time = stop - start)
-      })
+      }
     }
 
     def get(url: URL, timeout: Time = default_timeout, user_agent: String = ""): Content =
@@ -118,7 +118,7 @@ object HTTP {
       connection.setRequestProperty(
         "Content-Type", "multipart/form-data; boundary=" + quote(boundary))
 
-      using(connection.getOutputStream)(out => {
+      using(connection.getOutputStream) { out =>
         def output(s: String): Unit = out.write(UTF8.bytes(s))
         def output_newline(n: Int = 1): Unit = (1 to n).foreach(_ => output(NEWLINE))
         def output_boundary(end: Boolean = false): Unit =
@@ -152,7 +152,7 @@ object HTTP {
         }
         output_boundary(end = true)
         out.flush()
-      })
+      }
 
       get_content(connection)
     }
@@ -238,7 +238,7 @@ object HTTP {
     def context(server_name: String): String =
       proper_string(url_path(server_name, name)).getOrElse("/")
 
-    def handler(server_name: String): HttpHandler = (http: HttpExchange) => {
+    def handler(server_name: String): HttpHandler = { (http: HttpExchange) =>
       val uri = http.getRequestURI
       val input = using(http.getRequestBody)(Bytes.read_stream(_))
       if (http.getRequestMethod == method) {

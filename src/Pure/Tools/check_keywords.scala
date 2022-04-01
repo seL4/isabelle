@@ -38,7 +38,7 @@ object Check_Keywords {
     val parallel_args = paths.map(path => (File.read(path), Token.Pos.file(path.expand.implode)))
 
     val bad =
-      Par_List.map((arg: (String, Token.Pos)) => {
+      Par_List.map({ (arg: (String, Token.Pos)) =>
         progress.expose_interrupt()
         conflicts(keywords, check, arg._1, arg._2)
       }, parallel_args).flatten

@@ -357,9 +357,9 @@ trait Protocol {
         toks_yxml :: toks_sources)
   }
 
-  def define_commands(resources: Resources, commands: List[Command]): Unit = {
+  def define_commands(resources: Resources, commands: List[Command]): Unit =
     protocol_command_args("Document.define_commands",
-      commands.map(command => {
+      commands.map { command =>
         import XML.Encode._
         val (command_id, name, parents_yxml, blobs_yxml, toks_yxml, toks_sources) =
           encode_command(resources, command)
@@ -367,8 +367,7 @@ trait Protocol {
           pair(string, pair(string, pair(string, pair(string, pair(string, list(string))))))(
             command_id, (name, (parents_yxml, (blobs_yxml, (toks_yxml, toks_sources)))))
         YXML.string_of_body(body)
-      }))
-  }
+      })
 
   def define_commands_bulk(resources: Resources, commands: List[Command]): Unit = {
     val (irregular, regular) = commands.partition(command => YXML.detect(command.source))

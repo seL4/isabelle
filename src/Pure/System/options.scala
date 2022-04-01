@@ -151,13 +151,14 @@ object Options {
   /* Isabelle tool wrapper */
 
   val isabelle_tool = Isabelle_Tool("options", "print Isabelle system options",
-    Scala_Project.here, args => {
-    var build_options = false
-    var get_option = ""
-    var list_options = false
-    var export_file = ""
+    Scala_Project.here,
+    { args =>
+      var build_options = false
+      var get_option = ""
+      var list_options = false
+      var export_file = ""
 
-    val getopts = Getopts("""
+      val getopts = Getopts("""
 Usage: isabelle options [OPTIONS] [MORE_OPTIONS ...]
 
   Options are:
@@ -169,32 +170,32 @@ Usage: isabelle options [OPTIONS] [MORE_OPTIONS ...]
   Report Isabelle system options, augmented by MORE_OPTIONS given as
   arguments NAME=VAL or NAME.
 """,
-      "b" -> (_ => build_options = true),
-      "g:" -> (arg => get_option = arg),
-      "l" -> (_ => list_options = true),
-      "x:" -> (arg => export_file = arg))
+        "b" -> (_ => build_options = true),
+        "g:" -> (arg => get_option = arg),
+        "l" -> (_ => list_options = true),
+        "x:" -> (arg => export_file = arg))
 
-    val more_options = getopts(args)
-    if (get_option == "" && !list_options && export_file == "") getopts.usage()
+      val more_options = getopts(args)
+      if (get_option == "" && !list_options && export_file == "") getopts.usage()
 
-    val options = {
-      val options0 = Options.init()
-      val options1 =
-        if (build_options)
-          Word.explode(Isabelle_System.getenv("ISABELLE_BUILD_OPTIONS")).foldLeft(options0)(_ + _)
-        else options0
-      more_options.foldLeft(options1)(_ + _)
-    }
+      val options = {
+        val options0 = Options.init()
+        val options1 =
+          if (build_options)
+            Word.explode(Isabelle_System.getenv("ISABELLE_BUILD_OPTIONS")).foldLeft(options0)(_ + _)
+          else options0
+        more_options.foldLeft(options1)(_ + _)
+      }
 
-    if (get_option != "")
-      Output.writeln(options.check_name(get_option).value, stdout = true)
+      if (get_option != "")
+        Output.writeln(options.check_name(get_option).value, stdout = true)
 
-    if (export_file != "")
-      File.write(Path.explode(export_file), YXML.string_of_body(options.encode))
+      if (export_file != "")
+        File.write(Path.explode(export_file), YXML.string_of_body(options.encode))
 
-    if (get_option == "" && export_file == "")
-      Output.writeln(options.print, stdout = true)
-  })
+      if (get_option == "" && export_file == "")
+        Output.writeln(options.print, stdout = true)
+    })
 }
 
 

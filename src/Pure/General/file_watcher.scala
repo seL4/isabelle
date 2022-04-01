@@ -91,25 +91,25 @@ object File_Watcher {
         while (true) {
           val key = watcher.take
           val has_changed =
-            state.change_result(st => {
-                val (remove, changed) =
-                  st.dirs.collectFirst({ case (dir, key1) if key == key1 => dir }) match {
-                    case Some(dir) =>
-                      val events: Iterable[WatchEvent[JPath]] =
-                        key.pollEvents.asInstanceOf[JList[WatchEvent[JPath]]].asScala
-                      val remove = if (key.reset) None else Some(dir)
-                      val changed =
-                        events.iterator.foldLeft(Set.empty[JFile]) {
-                          case (set, event) => set + dir.toPath.resolve(event.context).toFile
-                        }
-                      (remove, changed)
-                    case None =>
-                      key.pollEvents
-                      key.reset
-                      (None, Set.empty[JFile])
-                  }
-                (changed.nonEmpty, st.copy(dirs = st.dirs -- remove, changed = st.changed ++ changed))
-              })
+            state.change_result { st =>
+              val (remove, changed) =
+                st.dirs.collectFirst({ case (dir, key1) if key == key1 => dir }) match {
+                  case Some(dir) =>
+                    val events: Iterable[WatchEvent[JPath]] =
+                      key.pollEvents.asInstanceOf[JList[WatchEvent[JPath]]].asScala
+                    val remove = if (key.reset) None else Some(dir)
+                    val changed =
+                      events.iterator.foldLeft(Set.empty[JFile]) {
+                        case (set, event) => set + dir.toPath.resolve(event.context).toFile
+                      }
+                    (remove, changed)
+                  case None =>
+                    key.pollEvents
+                    key.reset
+                    (None, Set.empty[JFile])
+                }
+              (changed.nonEmpty, st.copy(dirs = st.dirs -- remove, changed = st.changed ++ changed))
+            }
           if (has_changed) delay_changed.invoke()
         }
       }

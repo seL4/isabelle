@@ -52,14 +52,14 @@ object Graph {
   /* XML data representation */
 
   def encode[Key, A](key: XML.Encode.T[Key], info: XML.Encode.T[A]): XML.Encode.T[Graph[Key, A]] =
-    (graph: Graph[Key, A]) => {
+    { (graph: Graph[Key, A]) =>
       import XML.Encode._
       list(pair(pair(key, info), list(key)))(graph.dest)
     }
 
   def decode[Key, A](key: XML.Decode.T[Key], info: XML.Decode.T[A])(
     implicit ord: Ordering[Key]): XML.Decode.T[Graph[Key, A]] =
-    (body: XML.Body) => {
+    { (body: XML.Body) =>
       import XML.Decode._
       make(list(pair(pair(key, info), list(key)))(body))(ord)
     }

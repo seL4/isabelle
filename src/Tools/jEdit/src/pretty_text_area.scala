@@ -75,7 +75,7 @@ class Pretty_Text_Area(
 
     getGutter.setForeground(jEdit.getColorProperty("view.gutter.fgColor"))
     getGutter.setBackground(jEdit.getColorProperty("view.gutter.bgColor"))
-    get_background().foreach(bg => { getPainter.setBackground(bg); getGutter.setBackground(bg) })
+    get_background().foreach { bg => getPainter.setBackground(bg); getGutter.setBackground(bg) }
     getGutter.setHighlightedForeground(jEdit.getColorProperty("view.gutter.highlightColor"))
     getGutter.setFoldColor(jEdit.getColorProperty("view.gutter.foldColor"))
     getGutter.setFont(jEdit.getFontProperty("view.gutter.font"))
@@ -200,7 +200,7 @@ class Pretty_Text_Area(
     })
 
   addKeyListener(JEdit_Lib.key_listener(
-    key_pressed = (evt: KeyEvent) => {
+    key_pressed = { (evt: KeyEvent) =>
       val strict_control =
         JEdit_Lib.command_modifier(evt) && !JEdit_Lib.shift_modifier(evt)
 
@@ -222,7 +222,7 @@ class Pretty_Text_Area(
       }
       if (propagate_keys) JEdit_Lib.propagate_key(view, evt)
     },
-    key_typed = (evt: KeyEvent) => {
+    key_typed = { (evt: KeyEvent) =>
       if (propagate_keys) JEdit_Lib.propagate_key(view, evt)
     })
   )

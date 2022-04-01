@@ -223,7 +223,7 @@ object Components {
     if ((publish && archives.nonEmpty) || update_components_sha1) {
       options.string("isabelle_components_server") match {
         case SSH.Target(user, host) =>
-          using(SSH.open_session(options, host = host, user = user))(ssh => {
+          using(SSH.open_session(options, host = host, user = user)) { ssh =>
             val components_dir = Path.explode(options.string("isabelle_components_dir"))
             val contrib_dir = Path.explode(options.string("isabelle_components_contrib_dir"))
 
@@ -247,10 +247,10 @@ object Components {
 
                 // contrib directory
                 val is_standard_component =
-                  Isabelle_System.with_tmp_dir("component")(tmp_dir => {
+                  Isabelle_System.with_tmp_dir("component") { tmp_dir =>
                     Isabelle_System.gnutar("-xzf " + File.bash_path(archive), dir = tmp_dir).check
                     check_dir(tmp_dir + Path.explode(name))
-                  })
+                  }
                 if (is_standard_component) {
                   if (ssh.is_dir(remote_contrib)) {
                     if (force) ssh.rm_tree(remote_contrib)
@@ -280,7 +280,7 @@ object Components {
                 }
               write_components_sha1(read_components_sha1(lines))
             }
-          })
+          }
         case s => error("Bad isabelle_components_server: " + quote(s))
       }
     }
@@ -310,16 +310,17 @@ object Components {
 
   val isabelle_tool =
     Isabelle_Tool("build_components", "build and publish Isabelle components",
-      Scala_Project.here, args => {
-      var publish = false
-      var update_components_sha1 = false
-      var force = false
-      var options = Options.init()
+      Scala_Project.here,
+      { args =>
+        var publish = false
+        var update_components_sha1 = false
+        var force = false
+        var options = Options.init()
 
-      def show_options: String =
-        cat_lines(relevant_options.map(name => options.options(name).print))
+        def show_options: String =
+          cat_lines(relevant_options.map(name => options.options(name).print))
 
-      val getopts = Getopts("""
+        val getopts = Getopts("""
 Usage: isabelle build_components [OPTIONS] ARCHIVES... DIRS...
 
   Options are:
@@ -332,17 +333,17 @@ Usage: isabelle build_components [OPTIONS] ARCHIVES... DIRS...
   depending on system options:
 
 """ + Library.indent_lines(2, show_options) + "\n",
-        "P" -> (_ => publish = true),
-        "f" -> (_ => force = true),
-        "o:" -> (arg => options = options + arg),
-        "u" -> (_ => update_components_sha1 = true))
+          "P" -> (_ => publish = true),
+          "f" -> (_ => force = true),
+          "o:" -> (arg => options = options + arg),
+          "u" -> (_ => update_components_sha1 = true))
 
-      val more_args = getopts(args)
-      if (more_args.isEmpty && !update_components_sha1) getopts.usage()
+        val more_args = getopts(args)
+        if (more_args.isEmpty && !update_components_sha1) getopts.usage()
 
-      val progress = new Console_Progress
+        val progress = new Console_Progress
 
-      build_components(options, more_args.map(Path.explode), progress = progress,
-        publish = publish, force = force, update_components_sha1 = update_components_sha1)
-    })
+        build_components(options, more_args.map(Path.explode), progress = progress,
+          publish = publish, force = force, update_components_sha1 = update_components_sha1)
+      })
 }

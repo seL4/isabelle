@@ -175,9 +175,10 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea) {
 
   private val key_listener =
     JEdit_Lib.key_listener(
-      key_pressed = (evt: KeyEvent) => {
-        if (evt.getKeyCode == KeyEvent.VK_ESCAPE && Isabelle.dismissed_popups(text_area.getView))
+      key_pressed = { (evt: KeyEvent) =>
+        if (evt.getKeyCode == KeyEvent.VK_ESCAPE && Isabelle.dismissed_popups(text_area.getView)) {
           evt.consume
+        }
       }
     )
 

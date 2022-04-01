@@ -89,7 +89,7 @@ class Scala_Console extends Shell("Scala") {
 
   private class Interpreter {
     private val running = Synchronized[Option[Thread]](None)
-    def interrupt(): Unit = running.change(opt => { opt.foreach(_.interrupt()); opt })
+    def interrupt(): Unit = running.change({ opt => opt.foreach(_.interrupt()); opt })
 
     private val interp =
       Scala.Compiler.context(error = report_error, jar_dirs = JEdit_Lib.directories).

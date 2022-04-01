@@ -79,13 +79,13 @@ class Rich_Text_Area(
 
   private val key_listener =
     JEdit_Lib.key_listener(
-      key_pressed = (evt: KeyEvent) => {
+      key_pressed = { (evt: KeyEvent) =>
         val mod = PIDE.options.string("jedit_focus_modifier")
         val old = caret_focus_modifier
         caret_focus_modifier = (mod.nonEmpty && mod == JEdit_Lib.modifier_string(evt))
         if (caret_focus_modifier != old) caret_update()
       },
-      key_released = _ => {
+      key_released = { _ =>
         if (caret_focus_modifier) {
           caret_focus_modifier = false
           caret_update()

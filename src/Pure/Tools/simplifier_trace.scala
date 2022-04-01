@@ -162,7 +162,7 @@ object Simplifier_Trace {
     }
 
     Consumer_Thread.fork[Any]("Simplifier_Trace.manager", daemon = true)(
-      consume = (arg: Any) => {
+      consume = { (arg: Any) =>
         arg match {
           case Handle_Results(session, id, results, slot) =>
             var new_context = contexts.getOrElse(id, Context())

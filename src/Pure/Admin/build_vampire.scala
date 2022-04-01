@@ -27,7 +27,7 @@ object Build_Vampire {
   ): Unit = {
     Isabelle_System.require_command("cmake")
 
-    Isabelle_System.with_tmp_dir("build")(tmp_dir => {
+    Isabelle_System.with_tmp_dir("build") { tmp_dir =>
       /* component */
 
       val Archive_Name = """^.*?([^/]+)$""".r
@@ -118,7 +118,7 @@ The executables have been built via "cmake . && make"
 
         Makarius
         """ + Date.Format.date(Date.now()) + "\n")
-    })
+    }
   }
 
 
@@ -126,7 +126,8 @@ The executables have been built via "cmake . && make"
 
   val isabelle_tool =
     Isabelle_Tool("build_vampire", "build prover component from official download",
-    Scala_Project.here, args => {
+    Scala_Project.here,
+    { args =>
       var target_dir = Path.current
       var download_url = default_download_url
       var jobs = default_jobs

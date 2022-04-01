@@ -29,10 +29,10 @@ object Update_Header {
   val isabelle_tool =
     Isabelle_Tool("update_header", "replace obsolete theory header command",
       Scala_Project.here,
-      args => {
-      var section = "section"
+      { args =>
+        var section = "section"
 
-      val getopts = Getopts("""
+        val getopts = Getopts("""
 Usage: isabelle update_header [FILES|DIRS...]
 
   Options are:
@@ -44,17 +44,17 @@ Usage: isabelle update_header [FILES|DIRS...]
 
   Old versions of files are preserved by appending "~~".
 """,
-        "s:" -> (arg => section = arg))
+          "s:" -> (arg => section = arg))
 
-      val specs = getopts(args)
-      if (specs.isEmpty) getopts.usage()
+        val specs = getopts(args)
+        if (specs.isEmpty) getopts.usage()
 
-      if (!headings.contains(section))
-        error("Bad heading command: " + quote(section))
+        if (!headings.contains(section))
+          error("Bad heading command: " + quote(section))
 
-      for {
-        spec <- specs
-        file <- File.find_files(Path.explode(spec).file, file => file.getName.endsWith(".thy"))
-      } update_header(section, File.path(file))
-    })
+        for {
+          spec <- specs
+          file <- File.find_files(Path.explode(spec).file, file => file.getName.endsWith(".thy"))
+        } update_header(section, File.path(file))
+      })
 }

@@ -258,13 +258,13 @@ dependencies {
   val isabelle_tool =
     Isabelle_Tool("scala_project", "setup IDE project for Isabelle/Java/Scala sources",
       Scala_Project.here,
-      args => {
-      var build_tool: Option[Build_Tool] = None
-      var project_dir = default_project_dir
-      var symlinks = false
-      var force = false
+      { args =>
+        var build_tool: Option[Build_Tool] = None
+        var project_dir = default_project_dir
+        var symlinks = false
+        var force = false
 
-      val getopts = Getopts("""
+        val getopts = Getopts("""
 Usage: isabelle scala_project [OPTIONS] [MORE_SOURCES ...]
 
   Options are:
@@ -278,22 +278,22 @@ Usage: isabelle scala_project [OPTIONS] [MORE_SOURCES ...]
   as IntelliJ IDEA. Either option -G or -M is mandatory to specify the
   build tool.
 """,
-        "D:" -> (arg => project_dir = Path.explode(arg)),
-        "G" -> (_ => build_tool = Some(Gradle)),
-        "L" -> (_ => symlinks = true),
-        "M" -> (_ => build_tool = Some(Maven)),
-        "f" -> (_ => force = true))
+          "D:" -> (arg => project_dir = Path.explode(arg)),
+          "G" -> (_ => build_tool = Some(Gradle)),
+          "L" -> (_ => symlinks = true),
+          "M" -> (_ => build_tool = Some(Maven)),
+          "f" -> (_ => force = true))
 
-      val more_args = getopts(args)
+        val more_args = getopts(args)
 
-      val more_sources = more_args.map(Path.explode)
-      val progress = new Console_Progress
+        val more_sources = more_args.map(Path.explode)
+        val progress = new Console_Progress
 
-      if (build_tool.isEmpty) {
-        error("Unspecified build tool: need to provide option -G or -M")
-      }
+        if (build_tool.isEmpty) {
+          error("Unspecified build tool: need to provide option -G or -M")
+        }
 
-      scala_project(build_tool.get, project_dir = project_dir, more_sources = more_sources,
-        symlinks = symlinks, force = force, progress = progress)
-    })
+        scala_project(build_tool.get, project_dir = project_dir, more_sources = more_sources,
+          symlinks = symlinks, force = force, progress = progress)
+      })
 }

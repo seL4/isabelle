@@ -73,14 +73,15 @@ object Build_Doc {
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("build_doc", "build Isabelle documentation", Scala_Project.here, args => {
-      var all_docs = false
-      var max_jobs = 1
-      var sequential = false
-      var options = Options.init()
+    Isabelle_Tool("build_doc", "build Isabelle documentation", Scala_Project.here,
+      { args =>
+        var all_docs = false
+        var max_jobs = 1
+        var sequential = false
+        var options = Options.init()
 
-      val getopts =
-        Getopts("""
+        val getopts =
+          Getopts("""
 Usage: isabelle build_doc [OPTIONS] [DOCS ...]
 
   Options are:
@@ -92,20 +93,20 @@ Usage: isabelle build_doc [OPTIONS] [DOCS ...]
   Build Isabelle documentation from documentation sessions with
   suitable document_variants entry.
 """,
-          "a" -> (_ => all_docs = true),
-          "j:" -> (arg => max_jobs = Value.Int.parse(arg)),
-          "o:" -> (arg => options = options + arg),
-          "s" -> (_ => sequential = true))
+            "a" -> (_ => all_docs = true),
+            "j:" -> (arg => max_jobs = Value.Int.parse(arg)),
+            "o:" -> (arg => options = options + arg),
+            "s" -> (_ => sequential = true))
 
-      val docs = getopts(args)
+        val docs = getopts(args)
 
-      if (!all_docs && docs.isEmpty) getopts.usage()
+        if (!all_docs && docs.isEmpty) getopts.usage()
 
-      val progress = new Console_Progress()
+        val progress = new Console_Progress()
 
-      progress.interrupt_handler {
-        build_doc(options, progress = progress, all_docs = all_docs, max_jobs = max_jobs,
-          sequential = sequential, docs = docs)
-      }
-    })
+        progress.interrupt_handler {
+          build_doc(options, progress = progress, all_docs = all_docs, max_jobs = max_jobs,
+            sequential = sequential, docs = docs)
+        }
+      })
 }

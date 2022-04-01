@@ -298,37 +298,37 @@ object Dump {
         private val consumer_bad_theories = Synchronized(List.empty[Bad_Theory])
 
         private val consumer =
-          Consumer_Thread.fork(name = "dump")(
-            consume = (args: (Document.Snapshot, Document_Status.Node_Status)) => {
-                val (snapshot, status) = args
-                val name = snapshot.node_name
-                if (status.ok) {
-                  try {
-                    if (context.process_theory(name.theory)) {
-                      process_theory(Args(session, snapshot, status))
-                    }
-                  }
-                  catch {
-                    case exn: Throwable if !Exn.is_interrupt(exn) =>
-                      val msg = Exn.message(exn)
-                      progress.echo("FAILED to process theory " + name)
-                      progress.echo_error_message(msg)
-                      consumer_bad_theories.change(Bad_Theory(name, status, List(msg)) :: _)
+          Consumer_Thread.fork(name = "dump")(consume =
+            { (args: (Document.Snapshot, Document_Status.Node_Status)) =>
+              val (snapshot, status) = args
+              val name = snapshot.node_name
+              if (status.ok) {
+                try {
+                  if (context.process_theory(name.theory)) {
+                    process_theory(Args(session, snapshot, status))
                   }
                 }
-                else {
-                  val msgs =
-                    for ((elem, pos) <- snapshot.messages if Protocol.is_error(elem))
-                    yield {
-                      "Error" + Position.here(pos) + ":\n" +
-                        XML.content(Pretty.formatted(List(elem)))
-                    }
-                  progress.echo("FAILED to process theory " + name)
-                  msgs.foreach(progress.echo_error_message)
-                  consumer_bad_theories.change(Bad_Theory(name, status, msgs) :: _)
+                catch {
+                  case exn: Throwable if !Exn.is_interrupt(exn) =>
+                    val msg = Exn.message(exn)
+                    progress.echo("FAILED to process theory " + name)
+                    progress.echo_error_message(msg)
+                    consumer_bad_theories.change(Bad_Theory(name, status, List(msg)) :: _)
                 }
-                true
-              })
+              }
+              else {
+                val msgs =
+                  for ((elem, pos) <- snapshot.messages if Protocol.is_error(elem))
+                  yield {
+                    "Error" + Position.here(pos) + ":\n" +
+                      XML.content(Pretty.formatted(List(elem)))
+                  }
+                progress.echo("FAILED to process theory " + name)
+                msgs.foreach(progress.echo_error_message)
+                consumer_bad_theories.change(Bad_Theory(name, status, msgs) :: _)
+              }
+              true
+            })
 
         def apply(snapshot: Document.Snapshot, status: Document_Status.Node_Status): Unit =
           consumer.send((snapshot, status))
@@ -393,13 +393,13 @@ object Dump {
     context.build_logic(logic)
 
     for (session <- context.sessions(logic = logic, log = log)) {
-      session.process((args: Args) => {
-          progress.echo("Processing theory " + args.print_node + " ...")
-          val aspect_args =
-            Aspect_Args(session.options, context.deps, progress, output_dir,
-              args.snapshot, args.status)
-          aspects.foreach(_.operation(aspect_args))
-        })
+      session.process({ (args: Args) =>
+        progress.echo("Processing theory " + args.print_node + " ...")
+        val aspect_args =
+          Aspect_Args(session.options, context.deps, progress, output_dir,
+            args.snapshot, args.status)
+        aspects.foreach(_.operation(aspect_args))
+      })
     }
 
     context.check_errors
@@ -410,22 +410,22 @@ object Dump {
 
   val isabelle_tool =
     Isabelle_Tool("dump", "dump cumulative PIDE session database", Scala_Project.here,
-      args => {
-      var aspects: List[Aspect] = known_aspects
-      var base_sessions: List[String] = Nil
-      var select_dirs: List[Path] = Nil
-      var output_dir = default_output_dir
-      var requirements = false
-      var exclude_session_groups: List[String] = Nil
-      var all_sessions = false
-      var logic = default_logic
-      var dirs: List[Path] = Nil
-      var session_groups: List[String] = Nil
-      var options = Options.init()
-      var verbose = false
-      var exclude_sessions: List[String] = Nil
+      { args =>
+        var aspects: List[Aspect] = known_aspects
+        var base_sessions: List[String] = Nil
+        var select_dirs: List[Path] = Nil
+        var output_dir = default_output_dir
+        var requirements = false
+        var exclude_session_groups: List[String] = Nil
+        var all_sessions = false
+        var logic = default_logic
+        var dirs: List[Path] = Nil
+        var session_groups: List[String] = Nil
+        var options = Options.init()
+        var verbose = false
+        var exclude_sessions: List[String] = Nil
 
-      val getopts = Getopts("""
+        val getopts = Getopts("""
 Usage: isabelle dump [OPTIONS] [SESSIONS ...]
 
   Options are:
@@ -446,49 +446,49 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
   Dump cumulative PIDE session database, with the following aspects:
 
 """ + Library.indent_lines(4, show_aspects) + "\n",
-      "A:" -> (arg => aspects = Library.distinct(space_explode(',', arg)).map(the_aspect)),
-      "B:" -> (arg => base_sessions = base_sessions ::: List(arg)),
-      "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
-      "O:" -> (arg => output_dir = Path.explode(arg)),
-      "R" -> (_ => requirements = true),
-      "X:" -> (arg => exclude_session_groups = exclude_session_groups ::: List(arg)),
-      "a" -> (_ => all_sessions = true),
-      "b:" -> (arg => logic = arg),
-      "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
-      "g:" -> (arg => session_groups = session_groups ::: List(arg)),
-      "o:" -> (arg => options = options + arg),
-      "v" -> (_ => verbose = true),
-      "x:" -> (arg => exclude_sessions = exclude_sessions ::: List(arg)))
+        "A:" -> (arg => aspects = Library.distinct(space_explode(',', arg)).map(the_aspect)),
+        "B:" -> (arg => base_sessions = base_sessions ::: List(arg)),
+        "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
+        "O:" -> (arg => output_dir = Path.explode(arg)),
+        "R" -> (_ => requirements = true),
+        "X:" -> (arg => exclude_session_groups = exclude_session_groups ::: List(arg)),
+        "a" -> (_ => all_sessions = true),
+        "b:" -> (arg => logic = arg),
+        "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
+        "g:" -> (arg => session_groups = session_groups ::: List(arg)),
+        "o:" -> (arg => options = options + arg),
+        "v" -> (_ => verbose = true),
+        "x:" -> (arg => exclude_sessions = exclude_sessions ::: List(arg)))
 
-      val sessions = getopts(args)
+        val sessions = getopts(args)
 
-      val progress = new Console_Progress(verbose = verbose)
+        val progress = new Console_Progress(verbose = verbose)
 
-      val start_date = Date.now()
+        val start_date = Date.now()
 
-      progress.echo_if(verbose, "Started at " + Build_Log.print_date(start_date))
+        progress.echo_if(verbose, "Started at " + Build_Log.print_date(start_date))
 
-      progress.interrupt_handler {
-        dump(options, logic,
-          aspects = aspects,
-          progress = progress,
-          dirs = dirs,
-          select_dirs = select_dirs,
-          output_dir = output_dir,
-          selection = Sessions.Selection(
-            requirements = requirements,
-            all_sessions = all_sessions,
-            base_sessions = base_sessions,
-            exclude_session_groups = exclude_session_groups,
-            exclude_sessions = exclude_sessions,
-            session_groups = session_groups,
-            sessions = sessions))
-      }
+        progress.interrupt_handler {
+          dump(options, logic,
+            aspects = aspects,
+            progress = progress,
+            dirs = dirs,
+            select_dirs = select_dirs,
+            output_dir = output_dir,
+            selection = Sessions.Selection(
+              requirements = requirements,
+              all_sessions = all_sessions,
+              base_sessions = base_sessions,
+              exclude_session_groups = exclude_session_groups,
+              exclude_sessions = exclude_sessions,
+              session_groups = session_groups,
+              sessions = sessions))
+        }
 
-      val end_date = Date.now()
-      val timing = end_date.time - start_date.time
+        val end_date = Date.now()
+        val timing = end_date.time - start_date.time
 
-      progress.echo_if(verbose, "\nFinished at " + Build_Log.print_date(end_date))
-      progress.echo(timing.message_hms + " elapsed time")
-    })
+        progress.echo_if(verbose, "\nFinished at " + Build_Log.print_date(end_date))
+        progress.echo(timing.message_hms + " elapsed time")
+      })
 }

@@ -171,28 +171,28 @@ class Debugger private(session: Session) {
   }
 
   def init(): Unit =
-    state.change(st => {
+    state.change { st =>
       val st1 = st.inc_active
       if (session.is_ready && !st.is_active && st1.is_active)
         session.protocol_command("Debugger.init")
       st1
-    })
+    }
 
   def exit(): Unit =
-    state.change(st => {
+    state.change { st =>
       val st1 = st.dec_active
       if (session.is_ready && st.is_active && !st1.is_active)
         session.protocol_command("Debugger.exit")
       st1
-    })
+    }
 
   def is_break(): Boolean = state.value.break
   def set_break(b: Boolean): Unit = {
-    state.change(st => {
+    state.change { st =>
       val st1 = st.set_break(b)
       session.protocol_command("Debugger.break", b.toString)
       st1
-    })
+    }
     delay_update.invoke()
   }
 
@@ -205,7 +205,7 @@ class Debugger private(session: Session) {
     state.value.active_breakpoints(breakpoint)
 
   def toggle_breakpoint(command: Command, breakpoint: Long): Unit = {
-    state.change(st => {
+    state.change { st =>
       val (breakpoint_state, st1) = st.toggle_breakpoint(breakpoint)
       session.protocol_command(
         "Debugger.breakpoint",
@@ -214,7 +214,7 @@ class Debugger private(session: Session) {
         Value.Long(breakpoint),
         Value.Boolean(breakpoint_state))
       st1
-    })
+    }
   }
 
   def status(focus: Option[Debugger.Context]): (Debugger.Threads, List[XML.Tree]) = {
@@ -252,22 +252,22 @@ class Debugger private(session: Session) {
   }
 
   def eval(c: Debugger.Context, SML: Boolean, context: String, expression: String): Unit = {
-    state.change(st => {
+    state.change { st =>
       input(c.thread_name, "eval", c.debug_index.getOrElse(0).toString,
         SML.toString, Symbol.encode(context), Symbol.encode(expression))
       st.clear_output(c.thread_name)
-    })
+    }
     delay_update.invoke()
   }
 
   def print_vals(c: Debugger.Context, SML: Boolean, context: String): Unit = {
     require(c.debug_index.isDefined)
 
-    state.change(st => {
+    state.change { st =>
       input(c.thread_name, "print_vals", c.debug_index.getOrElse(0).toString,
         SML.toString, Symbol.encode(context))
       st.clear_output(c.thread_name)
-    })
+    }
     delay_update.invoke()
   }
 }

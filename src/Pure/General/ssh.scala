@@ -152,7 +152,7 @@ object SSH {
           connect_session(host = fw.local_host, port = fw.local_port,
             host_key_permissive = permissive,
             nominal_host = host, nominal_user = user, user = user,
-            on_close = () => { fw.close(); proxy.close() })
+            on_close = { () => fw.close(); proxy.close() })
         }
         catch { case exn: Throwable => fw.close(); proxy.close(); throw exn }
       }

@@ -88,7 +88,7 @@ object Server_Commands {
           "ok" -> results.ok,
           "return_code" -> results.rc,
           "sessions" ->
-            results.sessions.toList.sortBy(sessions_order).map(session => {
+            results.sessions.toList.sortBy(sessions_order).map { session =>
               val result = results(session)
               JSON.Object(
                 "session" -> session,
@@ -96,7 +96,7 @@ object Server_Commands {
                 "return_code" -> result.rc,
                 "timeout" -> result.timeout,
                 "timing" -> result.timing.json)
-            }))
+            })
 
       if (results.ok) (results_json, results, options, base_info)
       else {
@@ -147,12 +147,12 @@ object Server_Commands {
 
     override val command_body: Server.Command_Body =
       { case (context, Session_Start(args)) =>
-          context.make_task(task => {
+          context.make_task { task =>
             val (res, entry) =
               Session_Start.command(args, progress = task.progress, log = context.server.log)
             context.server.add_session(entry)
             res
-          })
+          }
       }
   }
 
@@ -277,10 +277,10 @@ object Server_Commands {
 
     override val command_body: Server.Command_Body =
       { case (context, Use_Theories(args)) =>
-        context.make_task(task => {
-          val session = context.server.the_session(args.session_id)
-          Use_Theories.command(args, session, id = task.id, progress = task.progress)._1
-        })
+          context.make_task { task =>
+            val session = context.server.the_session(args.session_id)
+            Use_Theories.command(args, session, id = task.id, progress = task.progress)._1
+          }
       }
   }
 

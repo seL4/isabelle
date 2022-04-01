@@ -88,10 +88,10 @@ class Mutator_Dialog(
   def paint_panels(): Unit = {
     Focus_Traveral_Policy.clear()
     filter_panel.contents.clear()
-    panels.map(x => {
-        filter_panel.contents += x
-        Focus_Traveral_Policy.addAll(x.focusList)
-      })
+    panels.map { x =>
+      filter_panel.contents += x
+      Focus_Traveral_Policy.addAll(x.focusList)
+    }
     filter_panel.contents += Swing.VGlue
 
     Focus_Traveral_Policy.add(mutator_box.peer.asInstanceOf[java.awt.Component])

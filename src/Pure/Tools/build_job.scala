@@ -39,12 +39,12 @@ object Build_Job {
               yield i -> elem)
 
         val blobs =
-          blobs_files.map(file => {
+          blobs_files.map { file =>
             val path = Path.explode(file)
             val name = Resources.file_node(path)
             val src_path = File.relative_path(node_name.master_dir_path, path).getOrElse(path)
             Command.Blob(name, src_path, None)
-          })
+          }
         val blobs_xml =
           for (i <- (1 to blobs.length).toList)
             yield read_xml(Export.MARKUP + i)
@@ -94,13 +94,13 @@ object Build_Job {
     val store = Sessions.store(options)
     val session = new Session(options, Resources.empty)
 
-    using(store.open_database_context())(db_context => {
+    using(store.open_database_context()) { db_context =>
       val result =
-        db_context.input_database(session_name)((db, _) => {
+        db_context.input_database(session_name) { (db, _) =>
           val theories = store.read_theories(db, session_name)
           val errors = store.read_errors(db, session_name)
           store.read_build(db, session_name).map(info => (theories, errors, info.return_code))
-        })
+        }
       result match {
         case None => error("Missing build database for session " + quote(session_name))
         case Some((used_theories, errors, rc)) =>
@@ -143,23 +143,24 @@ object Build_Job {
             progress.echo("\n" + Process_Result.RC.print_long(rc))
           }
       }
-    })
+    }
   }
 
 
   /* Isabelle tool wrapper */
 
   val isabelle_tool = Isabelle_Tool("log", "print messages from build database",
-    Scala_Project.here, args => {
-    /* arguments */
+    Scala_Project.here,
+    { args =>
+      /* arguments */
 
-    var unicode_symbols = false
-    var theories: List[String] = Nil
-    var margin = Pretty.default_margin
-    var options = Options.init()
-    var verbose = false
+      var unicode_symbols = false
+      var theories: List[String] = Nil
+      var margin = Pretty.default_margin
+      var options = Options.init()
+      var verbose = false
 
-    val getopts = Getopts("""
+      val getopts = Getopts("""
 Usage: isabelle log [OPTIONS] SESSION
 
   Options are:
@@ -173,24 +174,24 @@ Usage: isabelle log [OPTIONS] SESSION
   checks against current sources: results from a failed build can be
   printed as well.
 """,
-      "T:" -> (arg => theories = theories ::: List(arg)),
-      "U" -> (_ => unicode_symbols = true),
-      "m:" -> (arg => margin = Value.Double.parse(arg)),
-      "o:" -> (arg => options = options + arg),
-      "v" -> (_ => verbose = true))
+        "T:" -> (arg => theories = theories ::: List(arg)),
+        "U" -> (_ => unicode_symbols = true),
+        "m:" -> (arg => margin = Value.Double.parse(arg)),
+        "o:" -> (arg => options = options + arg),
+        "v" -> (_ => verbose = true))
 
-    val more_args = getopts(args)
-    val session_name =
-      more_args match {
-        case List(session_name) => session_name
-        case _ => getopts.usage()
-      }
+      val more_args = getopts(args)
+      val session_name =
+        more_args match {
+          case List(session_name) => session_name
+          case _ => getopts.usage()
+        }
 
-    val progress = new Console_Progress()
+      val progress = new Console_Progress()
 
-    print_log(options, session_name, theories = theories, verbose = verbose, margin = margin,
-      progress = progress, unicode_symbols = unicode_symbols)
-  })
+      print_log(options, session_name, theories = theories, verbose = verbose, margin = margin,
+        progress = progress, unicode_symbols = unicode_symbols)
+    })
 }
 
 class Build_Job(progress: Progress,
@@ -442,16 +443,16 @@ class Build_Job(progress: Progress,
       val (document_output, document_errors) =
         try {
           if (build_errors.isInstanceOf[Exn.Res[_]] && process_result.ok && info.documents.nonEmpty) {
-            using(store.open_database_context())(db_context => {
-                val documents =
-                  Document_Build.build_documents(
-                    Document_Build.context(session_name, deps, db_context, progress = progress),
-                    output_sources = info.document_output,
-                    output_pdf = info.document_output)
-                db_context.output_database(session_name)(db =>
-                  documents.foreach(_.write(db, session_name)))
-                (documents.flatMap(_.log_lines), Nil)
-              })
+            using(store.open_database_context()) { db_context =>
+              val documents =
+                Document_Build.build_documents(
+                  Document_Build.context(session_name, deps, db_context, progress = progress),
+                  output_sources = info.document_output,
+                  output_pdf = info.document_output)
+              db_context.output_database(session_name)(db =>
+                documents.foreach(_.write(db, session_name)))
+              (documents.flatMap(_.log_lines), Nil)
+            }
           }
           else (Nil, Nil)
         }

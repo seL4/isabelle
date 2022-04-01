@@ -118,7 +118,7 @@ object Export {
 
     def write(db: SQL.Database): Unit = {
       val (compressed, bytes) = body.join
-      db.using_statement(Data.table.insert())(stmt => {
+      db.using_statement(Data.table.insert()) { stmt =>
         stmt.string(1) = session_name
         stmt.string(2) = theory_name
         stmt.string(3) = name
@@ -126,7 +126,7 @@ object Export {
         stmt.bool(5) = compressed
         stmt.bytes(6) = bytes
         stmt.execute()
-      })
+      }
     }
   }
 
@@ -175,7 +175,7 @@ object Export {
     val select =
       Data.table.select(List(Data.executable, Data.compressed, Data.body),
         Data.where_equal(session_name, theory_name, name))
-    db.using_statement(select)(stmt => {
+    db.using_statement(select) { stmt =>
       val res = stmt.execute_query()
       if (res.next()) {
         val executable = res.bool(Data.executable)
@@ -185,7 +185,7 @@ object Export {
         Some(Entry(session_name, theory_name, name, executable, body, cache))
       }
       else None
-    })
+    }
   }
 
   def read_entry(
@@ -218,7 +218,7 @@ object Export {
       Consumer_Thread.fork_bulk[(Entry, Boolean)](name = "export")(
         bulk = { case (entry, _) => entry.body.is_finished },
         consume =
-          (args: List[(Entry, Boolean)]) => {
+          { (args: List[(Entry, Boolean)]) =>
             val results =
               db.transaction {
                 for ((entry, strict) <- args)
@@ -356,7 +356,7 @@ object Export {
     export_list: Boolean = false,
     export_patterns: List[String] = Nil
   ): Unit = {
-    using(store.open_database(session_name))(db => {
+    using(store.open_database(session_name)) { db =>
       db.transaction {
         val export_names = read_theory_exports(db, session_name)
 
@@ -394,7 +394,7 @@ object Export {
           }
         }
       }
-    })
+    }
   }
 
 
@@ -402,19 +402,20 @@ object Export {
 
   val default_export_dir: Path = Path.explode("export")
 
-  val isabelle_tool = Isabelle_Tool("export", "retrieve theory exports",
-    Scala_Project.here, args => {
-    /* arguments */
+  val isabelle_tool =
+    Isabelle_Tool("export", "retrieve theory exports", Scala_Project.here,
+      { args =>
+        /* arguments */
 
-    var export_dir = default_export_dir
-    var dirs: List[Path] = Nil
-    var export_list = false
-    var no_build = false
-    var options = Options.init()
-    var export_prune = 0
-    var export_patterns: List[String] = Nil
+        var export_dir = default_export_dir
+        var dirs: List[Path] = Nil
+        var export_list = false
+        var no_build = false
+        var options = Options.init()
+        var export_prune = 0
+        var export_patterns: List[String] = Nil
 
-    val getopts = Getopts("""
+        val getopts = Getopts("""
 Usage: isabelle export [OPTIONS] SESSION
 
   Options are:
@@ -433,39 +434,39 @@ Usage: isabelle export [OPTIONS] SESSION
   (both excluding ":" and "/"), ** (excluding ":"), and [abc] or [^abc],
   and variants {pattern1,pattern2,pattern3}.
 """,
-      "O:" -> (arg => export_dir = Path.explode(arg)),
-      "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
-      "l" -> (_ => export_list = true),
-      "n" -> (_ => no_build = true),
-      "o:" -> (arg => options = options + arg),
-      "p:" -> (arg => export_prune = Value.Int.parse(arg)),
-      "x:" -> (arg => export_patterns ::= arg))
+          "O:" -> (arg => export_dir = Path.explode(arg)),
+          "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
+          "l" -> (_ => export_list = true),
+          "n" -> (_ => no_build = true),
+          "o:" -> (arg => options = options + arg),
+          "p:" -> (arg => export_prune = Value.Int.parse(arg)),
+          "x:" -> (arg => export_patterns ::= arg))
 
-    val more_args = getopts(args)
-    val session_name =
-      more_args match {
-        case List(session_name) if export_list || export_patterns.nonEmpty => session_name
-        case _ => getopts.usage()
-      }
+        val more_args = getopts(args)
+        val session_name =
+          more_args match {
+            case List(session_name) if export_list || export_patterns.nonEmpty => session_name
+            case _ => getopts.usage()
+          }
 
-    val progress = new Console_Progress()
+        val progress = new Console_Progress()
 
 
-    /* build */
+        /* build */
 
-    if (!no_build) {
-      val rc =
-        progress.interrupt_handler {
-          Build.build_logic(options, session_name, progress = progress, dirs = dirs)
+        if (!no_build) {
+          val rc =
+            progress.interrupt_handler {
+              Build.build_logic(options, session_name, progress = progress, dirs = dirs)
+            }
+          if (rc != Process_Result.RC.ok) sys.exit(rc)
         }
-      if (rc != Process_Result.RC.ok) sys.exit(rc)
-    }
 
 
-    /* export files */
+        /* export files */
 
-    val store = Sessions.store(options)
-    export_files(store, session_name, export_dir, progress = progress, export_prune = export_prune,
-      export_list = export_list, export_patterns = export_patterns)
-  })
+        val store = Sessions.store(options)
+        export_files(store, session_name, export_dir, progress = progress, export_prune = export_prune,
+          export_list = export_list, export_patterns = export_patterns)
+      })
 }

@@ -398,18 +398,18 @@ object Scan {
 
   private def make_byte_reader(stream: InputStream, stream_length: Int): Byte_Reader = {
     val buffered_stream = new BufferedInputStream(stream)
-    val seq = new PagedSeq(
-      (buf: Array[Char], offset: Int, length: Int) => {
-          var i = 0
-          var c = 0
-          var eof = false
-          while (!eof && i < length) {
-            c = buffered_stream.read
-            if (c == -1) eof = true
-            else { buf(offset + i) = c.toChar; i += 1 }
-          }
-          if (i > 0) i else -1
-        })
+    val seq =
+      new PagedSeq({ (buf: Array[Char], offset: Int, length: Int) =>
+        var i = 0
+        var c = 0
+        var eof = false
+        while (!eof && i < length) {
+          c = buffered_stream.read
+          if (c == -1) eof = true
+          else { buf(offset + i) = c.toChar; i += 1 }
+        }
+        if (i > 0) i else -1
+      })
     val restricted_seq = new Restricted_Seq(seq, 0, stream_length)
 
     class Paged_Reader(override val offset: Int) extends Byte_Reader {

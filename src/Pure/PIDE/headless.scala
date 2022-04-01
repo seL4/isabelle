@@ -321,7 +321,7 @@ object Headless {
               val version = snapshot.version
 
               val theory_progress =
-                use_theories_state.change_result(st => {
+                use_theories_state.change_result { st =>
                   val domain =
                     if (st.nodes_status.is_empty) dep_theories_set
                     else changed.nodes.iterator.filter(dep_theories_set).toSet
@@ -343,7 +343,7 @@ object Headless {
                     } yield Progress.Theory(name.theory, percentage = Some(p1))).toList
 
                   (theory_progress, st.update(nodes_status1))
-                })
+                }
 
               theory_progress.foreach(progress.theory)
 
@@ -451,7 +451,7 @@ object Headless {
 
       def update_blobs(names: List[Document.Node.Name]): (Document.Blobs, State) = {
         val new_blobs =
-          names.flatMap(name => {
+          names.flatMap { name =>
             val bytes = Bytes.read(name.path)
             def new_blob: Document.Blob = {
               val text = bytes.text
@@ -461,7 +461,7 @@ object Headless {
               case Some(blob) => if (blob.bytes == bytes) None else Some(name -> new_blob)
               case None => Some(name -> new_blob)
             }
-          })
+          }
         val blobs1 = new_blobs.foldLeft(blobs)(_ + _)
         val blobs2 = new_blobs.foldLeft(blobs) { case (map, (a, b)) => map + (a -> b.unchanged) }
         (Document.Blobs(blobs1), copy(blobs = blobs2))
@@ -601,7 +601,7 @@ object Headless {
       val loaded = loaded_theories.length
       if (loaded > 1) progress.echo("Loading " + loaded + " theories ...")
 
-      state.change(st => {
+      state.change { st =>
         val (doc_blobs1, st1) = st.insert_required(id, theories).update_blobs(files)
         val theory_edits =
           for (theory <- loaded_theories)
@@ -617,34 +617,34 @@ object Headless {
 
         session.update(doc_blobs1, theory_edits.flatMap(_._1) ::: file_edits.flatten)
         st1.update_theories(theory_edits.map(_._2))
-      })
+      }
     }
 
     def unload_theories(session: Session, id: UUID.T, theories: List[Document.Node.Name]): Unit = {
-      state.change(st => {
+      state.change { st =>
         val (edits, st1) = st.unload_theories(session, id, theories)
         session.update(st.doc_blobs, edits)
         st1
-      })
+      }
     }
 
     def clean_theories(session: Session, id: UUID.T, theories: List[Document.Node.Name]): Unit = {
-      state.change(st => {
+      state.change { st =>
         val (edits1, st1) = st.unload_theories(session, id, theories)
         val ((_, _, edits2), st2) = st1.purge_theories(session, None)
         session.update(st.doc_blobs, edits1 ::: edits2)
         st2
-      })
+      }
     }
 
     def purge_theories(
       session: Session,
       nodes: Option[List[Document.Node.Name]]
     ) : (List[Document.Node.Name], List[Document.Node.Name]) = {
-      state.change_result(st => {
+      state.change_result { st =>
         val ((purged, retained, _), st1) = st.purge_theories(session, nodes)
         ((purged, retained), st1)
-      })
+      }
     }
   }
 }

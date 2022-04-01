@@ -68,13 +68,13 @@ object Mercurial {
 
     def download_dir(dir: Path, rev: String = "tip", progress: Progress = new Progress): Unit = {
       Isabelle_System.new_directory(dir)
-      Isabelle_System.with_tmp_file("rev", ext = ".tar.gz")(archive_path => {
+      Isabelle_System.with_tmp_file("rev", ext = ".tar.gz") { archive_path =>
         val content = download_archive(rev = rev, progress = progress)
         Bytes.write(archive_path, content.bytes)
         progress.echo("Unpacking " + rev + ".tar.gz")
         Isabelle_System.gnutar("-xzf " + File.bash_path(archive_path),
           dir = dir, original_owner = true, strip = 1).check
-      })
+      }
     }
   }
 
@@ -397,12 +397,13 @@ object Mercurial {
 
   val isabelle_tool =
     Isabelle_Tool("hg_setup", "setup remote vs. local Mercurial repository",
-      Scala_Project.here, args => {
-      var remote_name = ""
-      var path_name = default_path_name
-      var remote_exists = false
+      Scala_Project.here,
+      { args =>
+        var remote_name = ""
+        var path_name = default_path_name
+        var remote_exists = false
 
-      val getopts = Getopts("""
+        val getopts = Getopts("""
 Usage: isabelle hg_setup [OPTIONS] REMOTE LOCAL_DIR
 
   Options are:
@@ -413,21 +414,21 @@ Usage: isabelle hg_setup [OPTIONS] REMOTE LOCAL_DIR
   Setup a remote vs. local Mercurial repository: REMOTE either refers to a
   Phabricator server "user@host" or SSH file server "ssh://user@host/path".
 """,
-        "n:" -> (arg => remote_name = arg),
-        "p:" -> (arg => path_name = arg),
-        "r" -> (_ => remote_exists = true))
+          "n:" -> (arg => remote_name = arg),
+          "p:" -> (arg => path_name = arg),
+          "r" -> (_ => remote_exists = true))
 
-      val more_args = getopts(args)
+        val more_args = getopts(args)
 
-      val (remote, local_path) =
-        more_args match {
-          case List(arg1, arg2) => (arg1, Path.explode(arg2))
-          case _ => getopts.usage()
-        }
+        val (remote, local_path) =
+          more_args match {
+            case List(arg1, arg2) => (arg1, Path.explode(arg2))
+            case _ => getopts.usage()
+          }
 
-      val progress = new Console_Progress
+        val progress = new Console_Progress
 
-      hg_setup(remote, local_path, remote_name = remote_name, path_name = path_name,
-        remote_exists = remote_exists, progress = progress)
-    })
+        hg_setup(remote, local_path, remote_name = remote_name, path_name = path_name,
+          remote_exists = remote_exists, progress = progress)
+      })
 }

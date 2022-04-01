@@ -67,16 +67,17 @@ object Isabelle_Tool {
   }
 
   private def find_external(name: String): Option[List[String] => Unit] =
-    dirs().collectFirst({
-      case dir if is_external(dir, name + ".scala") =>
-        compile(dir + Path.explode(name + ".scala"))
-      case dir if is_external(dir, name) =>
-        (args: List[String]) => {
-          val tool = dir + Path.explode(name)
-          val result = Isabelle_System.bash(File.bash_path(tool) + " " + Bash.strings(args))
-          sys.exit(result.print_stdout.rc)
-        }
-    })
+    dirs().collectFirst(
+      {
+        case dir if is_external(dir, name + ".scala") =>
+          compile(dir + Path.explode(name + ".scala"))
+        case dir if is_external(dir, name) =>
+          { (args: List[String]) =>
+            val tool = dir + Path.explode(name)
+            val result = Isabelle_System.bash(File.bash_path(tool) + " " + Bash.strings(args))
+            sys.exit(result.print_stdout.rc)
+          }
+      })
 
 
   /* internal tools */

@@ -38,12 +38,12 @@ object Build_PDFjs {
     /* download */
 
     val download_url = base_url + "/v" + version
-    Isabelle_System.with_tmp_file("archive", ext = "zip")(archive_file => {
+    Isabelle_System.with_tmp_file("archive", ext = "zip") { archive_file =>
       Isabelle_System.download_file(download_url + "/pdfjs-" + version + "-dist.zip",
         archive_file, progress = progress)
       Isabelle_System.bash("unzip -x " + File.bash_path(archive_file),
         cwd = component_dir.file).check
-    })
+    }
 
 
     /* settings */
@@ -72,12 +72,13 @@ ISABELLE_PDFJS_HOME="$COMPONENT"
 
   val isabelle_tool =
     Isabelle_Tool("build_pdfjs", "build component for Mozilla PDF.js",
-      Scala_Project.here, args => {
-      var target_dir = Path.current
-      var base_url = default_url
-      var version = default_version
+      Scala_Project.here,
+      { args =>
+        var target_dir = Path.current
+        var base_url = default_url
+        var version = default_version
 
-      val getopts = Getopts("""
+        val getopts = Getopts("""
 Usage: isabelle build_pdfjs [OPTIONS]
 
   Options are:
@@ -87,16 +88,16 @@ Usage: isabelle build_pdfjs [OPTIONS]
 
   Build component for PDF.js.
 """,
-        "D:" -> (arg => target_dir = Path.explode(arg)),
-        "U:" -> (arg => base_url = arg),
-        "V:" -> (arg => version = arg))
+          "D:" -> (arg => target_dir = Path.explode(arg)),
+          "U:" -> (arg => base_url = arg),
+          "V:" -> (arg => version = arg))
 
-      val more_args = getopts(args)
-      if (more_args.nonEmpty) getopts.usage()
+        val more_args = getopts(args)
+        if (more_args.nonEmpty) getopts.usage()
 
-      val progress = new Console_Progress()
+        val progress = new Console_Progress()
 
-      build_pdfjs(base_url = base_url, version = version, target_dir = target_dir,
-        progress = progress)
-    })
+        build_pdfjs(base_url = base_url, version = version, target_dir = target_dir,
+          progress = progress)
+      })
 }

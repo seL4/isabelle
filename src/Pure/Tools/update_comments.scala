@@ -46,8 +46,8 @@ object Update_Comments {
   val isabelle_tool =
     Isabelle_Tool("update_comments", "update formal comments in outer syntax",
       Scala_Project.here,
-      args => {
-      val getopts = Getopts("""
+      { args =>
+        val getopts = Getopts("""
 Usage: isabelle update_comments [FILES|DIRS...]
 
   Recursively find .thy files and update formal comments in outer syntax.
@@ -55,12 +55,12 @@ Usage: isabelle update_comments [FILES|DIRS...]
   Old versions of files are preserved by appending "~~".
 """)
 
-      val specs = getopts(args)
-      if (specs.isEmpty) getopts.usage()
+        val specs = getopts(args)
+        if (specs.isEmpty) getopts.usage()
 
-      for {
-        spec <- specs
-        file <- File.find_files(Path.explode(spec).file, file => file.getName.endsWith(".thy"))
-      } update_comments(File.path(file))
-    })
+        for {
+          spec <- specs
+          file <- File.find_files(Path.explode(spec).file, file => file.getName.endsWith(".thy"))
+        } update_comments(File.path(file))
+      })
 }

@@ -60,7 +60,7 @@ object Graphics_File {
   def write_pdf(file: JFile, paint: Graphics2D => Unit, width: Int, height: Int): Unit = {
     import com.lowagie.text.{Document, Rectangle}
 
-    using(new BufferedOutputStream(new FileOutputStream(file)))(out => {
+    using(new BufferedOutputStream(new FileOutputStream(file))) { out =>
       val document = new Document()
       try {
         document.setPageSize(new Rectangle(width.toFloat, height.toFloat))
@@ -77,7 +77,7 @@ object Graphics_File {
         cb.addTemplate(tp, 1, 0, 0, 1, 0, 0)
       }
       finally { document.close() }
-    })
+    }
   }
 
 

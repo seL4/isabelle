@@ -136,7 +136,7 @@ object Build_JEdit {
       path
     }
 
-    Isabelle_System.with_tmp_dir("tmp")(tmp_dir => {
+    Isabelle_System.with_tmp_dir("tmp") { tmp_dir =>
       /* original version */
 
       val install_path = download_jedit(tmp_dir, "install.jar")
@@ -191,7 +191,7 @@ isabelle_java java -Duser.home=""" + File.bash_platform_path(tmp_dir) +
         "no_build = true\n" +
         "requirements = env:JEDIT_JARS\n" +
         ("sources =" :: java_sources.sorted.map("  " + _)).mkString("", " \\\n", "\n"))
-    })
+    }
 
 
     /* jars */
@@ -203,13 +203,13 @@ isabelle_java java -Duser.home=""" + File.bash_platform_path(tmp_dir) +
     }
 
     for { (name, vers) <- download_plugins } {
-      Isabelle_System.with_tmp_file("tmp", ext = "zip")(zip_path => {
+      Isabelle_System.with_tmp_file("tmp", ext = "zip") { zip_path =>
         val url =
           "https://sourceforge.net/projects/jedit-plugins/files/" + name + "/" + vers + "/" +
             name + "-" + vers + "-bin.zip/download"
         Isabelle_System.download_file(url, zip_path, progress = progress)
         Isabelle_System.bash("unzip -x " + File.bash_path(zip_path), cwd = jars_dir.file).check
-      })
+      }
     }
 
 
@@ -511,13 +511,14 @@ https://sourceforge.net/projects/jedit-plugins/files
 
   val isabelle_tool =
     Isabelle_Tool("build_jedit", "build Isabelle component from the jEdit text-editor",
-      Scala_Project.here, args => {
-      var target_dir = Path.current
-      var java_home = default_java_home
-      var original = false
-      var version = default_version
+      Scala_Project.here,
+      { args =>
+        var target_dir = Path.current
+        var java_home = default_java_home
+        var original = false
+        var version = default_version
 
-      val getopts = Getopts("""
+        val getopts = Getopts("""
 Usage: isabelle build_jedit [OPTIONS]
 
   Options are:
@@ -528,18 +529,18 @@ Usage: isabelle build_jedit [OPTIONS]
 
   Build auxiliary jEdit component from original sources, with some patches.
 """,
-        "D:" -> (arg => target_dir = Path.explode(arg)),
-        "J:" -> (arg => java_home = Path.explode(arg)),
-        "O" -> (_ => original = true),
-        "V:" -> (arg => version = arg))
+          "D:" -> (arg => target_dir = Path.explode(arg)),
+          "J:" -> (arg => java_home = Path.explode(arg)),
+          "O" -> (_ => original = true),
+          "V:" -> (arg => version = arg))
 
-      val more_args = getopts(args)
-      if (more_args.nonEmpty) getopts.usage()
+        val more_args = getopts(args)
+        if (more_args.nonEmpty) getopts.usage()
 
-      val component_dir = target_dir + Path.basic("jedit-" + Date.Format.alt_date(Date.now()))
-      val progress = new Console_Progress()
+        val component_dir = target_dir + Path.basic("jedit-" + Date.Format.alt_date(Date.now()))
+        val progress = new Console_Progress()
 
-      build_jedit(component_dir, version, original = original,
-        java_home = java_home, progress = progress)
-    })
+        build_jedit(component_dir, version, original = original,
+          java_home = java_home, progress = progress)
+      })
 }
