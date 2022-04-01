@@ -192,8 +192,8 @@ val e_config : atp_config =
            (THF (Monomorphic, {with_ite = false, with_let = false}, THF_Lambda_Free), "mono_native_higher", combsN, "--auto-schedule")
      in
        (* FUDGE *)
-       K [((1000 (* infinity *), 1024, meshN), (format, type_enc, lam_trans, false, extra_options)),
-         ((1000 (* infinity *), 512, meshN), (format, type_enc, lam_trans, false, extra_options)),
+       K [((1000 (* infinity *), 512, meshN), (format, type_enc, lam_trans, false, extra_options)),
+         ((1000 (* infinity *), 1024, meshN), (format, type_enc, lam_trans, false, extra_options)),
          ((1000 (* infinity *), 128, mepoN), (format, type_enc, lam_trans, false, extra_options)),
          ((1000 (* infinity *), 724, meshN), (TF0, "poly_guards??", lam_trans, false, extra_options)),
          ((1000 (* infinity *), 256, mepoN), (format, type_enc, liftingN, false, extra_options)),
