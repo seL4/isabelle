@@ -293,9 +293,9 @@ fun distill_minimized_clause tys t =
       restrict_vars_to (build (add_varnames t));
     fun distill' vs_map pat_args v i clauses =
       let
-        val vs = build (fold add_varnames (nth_drop i pat_args));
+        val pat_vs = build (fold add_varnames (nth_drop i pat_args));
         fun varnames_disjunctive pat =
-          null (inter (op =) vs (build (add_varnames pat)));
+          null (inter (op =) pat_vs (build (add_varnames pat)));
       in
         if forall (fn (pat', body') => varnames_disjunctive pat'
             (*prevent mingled scopes resulting in duplicated variables in pattern arguments*)
@@ -519,12 +519,12 @@ fun annotate_eqns ctxt algbr eqngr (c, ty) eqns =
 
 (* preprocessing pattern schemas *)
 
-fun preprocess_pattern_schema ctxt (t_pos, case_pats) (c_ty, ts) =
+fun preprocess_pattern_schema ctxt (t_pos, case_pats) (ty, ts) =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val ty = nth (binder_types (snd c_ty)) t_pos;
-    fun select_clauses xs =
-      xs
+    val ty = nth (binder_types ty) t_pos;
+    fun select_clauses ts =
+      ts
       |> nth_drop t_pos
       |> curry (op ~~) case_pats
       |> map_filter (fn (NONE, _) => NONE | (SOME _, x) => SOME x);
@@ -744,7 +744,7 @@ and translate_app_const ctxt algbr eqngr permissive some_thm ((c_ty, ts), some_a
 and translate_case ctxt algbr eqngr permissive some_thm pattern_schema (c_ty, ts) =
   let
     val (ty, constrs, split_clauses) =
-      preprocess_pattern_schema ctxt pattern_schema (c_ty, ts);
+      preprocess_pattern_schema ctxt pattern_schema (snd c_ty, ts);
     fun is_undefined_clause (_, IConst { sym = Constant c, ... }) =
           Code.is_undefined (Proof_Context.theory_of ctxt) c
       | is_undefined_clause _ =
