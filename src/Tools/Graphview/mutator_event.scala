@@ -11,16 +11,14 @@ package isabelle.graphview
 import isabelle._
 
 
-object Mutator_Event
-{
+object Mutator_Event {
   sealed abstract class Message
   case class Add(m: Mutator.Info) extends Message
   case class New_List(m: List[Mutator.Info]) extends Message
 
   type Receiver = PartialFunction[Message, Unit]
 
-  class Bus
-  {
+  class Bus {
     private val receivers = Synchronized[List[Receiver]](Nil)
 
     def += (r: Receiver): Unit = receivers.change(Library.insert(r))

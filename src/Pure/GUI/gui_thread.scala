@@ -10,18 +10,15 @@ package isabelle
 import javax.swing.SwingUtilities
 
 
-object GUI_Thread
-{
+object GUI_Thread {
   /* context check */
 
-  def assert[A](body: => A): A =
-  {
+  def assert[A](body: => A): A = {
     Predef.assert(SwingUtilities.isEventDispatchThread)
     body
   }
 
-  def require[A](body: => A): A =
-  {
+  def require[A](body: => A): A = {
     Predef.require(SwingUtilities.isEventDispatchThread, "GUI thread expected")
     body
   }
@@ -29,8 +26,7 @@ object GUI_Thread
 
   /* event dispatch queue */
 
-  def now[A](body: => A): A =
-  {
+  def now[A](body: => A): A = {
     if (SwingUtilities.isEventDispatchThread) body
     else {
       lazy val result = assert { Exn.capture(body) }
@@ -39,14 +35,12 @@ object GUI_Thread
     }
   }
 
-  def later(body: => Unit): Unit =
-  {
+  def later(body: => Unit): Unit = {
     if (SwingUtilities.isEventDispatchThread) body
     else SwingUtilities.invokeLater(() => body)
   }
 
-  def future[A](body: => A): Future[A] =
-  {
+  def future[A](body: => A): Future[A] = {
     if (SwingUtilities.isEventDispatchThread) Future.value(body)
     else {
       val promise = Future.promise[A]

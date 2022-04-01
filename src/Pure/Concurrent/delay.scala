@@ -7,8 +7,7 @@ Delayed events.
 package isabelle
 
 
-object Delay
-{
+object Delay {
   // delayed event after first invocation
   def first(delay: => Time, log: Logger = No_Logger, gui: Boolean = false)(event: => Unit): Delay =
     new Delay(true, delay, log, if (gui) GUI_Thread.later { event } else event )
@@ -18,12 +17,10 @@ object Delay
     new Delay(false, delay, log, if (gui) GUI_Thread.later { event } else event )
 }
 
-final class Delay private(first: Boolean, delay: => Time, log: Logger, event: => Unit)
-{
+final class Delay private(first: Boolean, delay: => Time, log: Logger, event: => Unit) {
   private var running: Option[Event_Timer.Request] = None
 
-  private def run: Unit =
-  {
+  private def run: Unit = {
     val do_run = synchronized {
       if (running.isDefined) { running = None; true } else false
     }

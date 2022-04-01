@@ -14,8 +14,7 @@ import scala.swing.ComboBox
 import scala.swing.event.SelectionChanged
 
 
-object JEdit_Sessions
-{
+object JEdit_Sessions {
   /* session options */
 
   def session_dirs: List[Path] =
@@ -24,8 +23,7 @@ object JEdit_Sessions
   def session_no_build: Boolean =
     Isabelle_System.getenv("JEDIT_NO_BUILD") == "true"
 
-  def session_options(options: Options): Options =
-  {
+  def session_options(options: Options): Options = {
     val options1 =
       Isabelle_System.getenv("JEDIT_BUILD_MODE") match {
         case "default" => options
@@ -70,17 +68,14 @@ object JEdit_Sessions
 
   /* logic selector */
 
-  private class Logic_Entry(val name: String, val description: String)
-  {
+  private class Logic_Entry(val name: String, val description: String) {
     override def toString: String = description
   }
 
-  def logic_selector(options: Options_Variable, autosave: Boolean): Option_Component =
-  {
+  def logic_selector(options: Options_Variable, autosave: Boolean): Option_Component = {
     GUI_Thread.require {}
 
-    val session_list =
-    {
+    val session_list = {
       val sessions = sessions_structure(options.value)
       val (main_sessions, other_sessions) =
         sessions.imports_topological_order.partition(name => sessions(name).groups.contains("main"))
@@ -94,8 +89,7 @@ object JEdit_Sessions
     val component = new ComboBox(entries) with Option_Component {
       name = jedit_logic_option
       val title = "Logic"
-      def load(): Unit =
-      {
+      def load(): Unit = {
         val logic = options.string(jedit_logic_option)
         entries.find(_.name == logic) match {
           case Some(entry) => selection.item = entry
@@ -126,16 +120,17 @@ object JEdit_Sessions
       session_requirements = logic_requirements)
 
   def session_build(
-    options: Options, progress: Progress = new Progress, no_build: Boolean = false): Int =
-  {
+    options: Options,
+    progress: Progress = new Progress,
+    no_build: Boolean = false
+  ): Int = {
     Build.build(session_options(options),
       selection = Sessions.Selection.session(PIDE.resources.session_name),
       progress = progress, build_heap = true, no_build = no_build, dirs = session_dirs,
       infos = PIDE.resources.session_base_info.infos).rc
   }
 
-  def session_start(options0: Options): Unit =
-  {
+  def session_start(options0: Options): Unit = {
     val session = PIDE.session
     val options = session_options(options0)
     val sessions_structure = PIDE.resources.session_base_info.sessions_structure

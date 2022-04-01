@@ -12,18 +12,15 @@ import isabelle._
 import org.gjt.sp.jedit.{MiscUtilities, jEdit}
 
 
-object JEdit_Main
-{
+object JEdit_Main {
   /* main entry point */
 
-  def main(args: Array[String]): Unit =
-  {
+  def main(args: Array[String]): Unit = {
     if (args.nonEmpty && args(0) == "-init") {
       Isabelle_System.init()
     }
     else {
-      val start =
-      {
+      val start = {
         try {
           Isabelle_System.init()
           Isabelle_Fonts.init()
@@ -99,8 +96,7 @@ object JEdit_Main
           val jedit_options =
             Isabelle_System.getenv_strict("JEDIT_OPTIONS").split(" +")
 
-          val more_args =
-          {
+          val more_args = {
             args.toList.dropWhile(arg => arg.startsWith("-") && arg != "--") match {
               case Nil | List("--") =>
                 args ++ Array(File.platform_path(Path.explode("$USER_HOME/Scratch.thy")))

@@ -19,12 +19,11 @@ import scala.util.matching.Regex
 import scala.swing.{Component, ScrollPane, BorderPanel, Label, TextField, Button, CheckBox, Action}
 
 
-class Tree_Panel(val graphview: Graphview, graph_panel: Graph_Panel) extends BorderPanel
-{
+class Tree_Panel(val graphview: Graphview, graph_panel: Graph_Panel)
+extends BorderPanel {
   /* main actions */
 
-  private def selection_action(): Unit =
-  {
+  private def selection_action(): Unit = {
     if (tree != null) {
       graphview.current_node = None
       graphview.Selection.clear()
@@ -45,8 +44,7 @@ class Tree_Panel(val graphview: Graphview, graph_panel: Graph_Panel) extends Bor
     }
   }
 
-  private def point_action(path: TreePath): Unit =
-  {
+  private def point_action(path: TreePath): Unit = {
     if (tree_pane != null && path != null) {
       val action_node =
         path.getLastPathComponent match {
@@ -149,8 +147,7 @@ class Tree_Panel(val graphview: Graphview, graph_panel: Graph_Panel) extends Bor
 
   /* main layout */
 
-  def refresh(): Unit =
-  {
+  def refresh(): Unit = {
     val new_nodes = graphview.visible_graph.topological_order
     if (new_nodes != nodes) {
       tree.clearSelection

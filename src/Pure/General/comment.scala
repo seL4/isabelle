@@ -7,10 +7,8 @@ Formal comments.
 package isabelle
 
 
-object Comment
-{
-  object Kind extends Enumeration
-  {
+object Comment {
+  object Kind extends Enumeration {
     val COMMENT = Value("formal comment")
     val CANCEL = Value("canceled text")
     val LATEX = Value("embedded LaTeX")
@@ -26,8 +24,7 @@ object Comment
   lazy val symbols_blanks: Set[Symbol.Symbol] =
     Set(Symbol.comment, Symbol.comment_decoded)
 
-  def content(source: String): String =
-  {
+  def content(source: String): String = {
     def err(): Nothing = error("Malformed formal comment: " + quote(source))
 
     Symbol.explode(source) match {
@@ -39,8 +36,7 @@ object Comment
     }
   }
 
-  trait Parsers extends Scan.Parsers
-  {
+  trait Parsers extends Scan.Parsers {
    def comment_prefix: Parser[String] =
      one(symbols_blanks) ~ many(Symbol.is_blank) ^^ { case a ~ b => a + b.mkString } |
      one(symbols)
@@ -48,8 +44,7 @@ object Comment
    def comment_cartouche: Parser[String] =
       comment_prefix ~ cartouche ^^ { case a ~ b => a + b }
 
-    def comment_cartouche_line(ctxt: Scan.Line_Context): Parser[(String, Scan.Line_Context)] =
-    {
+    def comment_cartouche_line(ctxt: Scan.Line_Context): Parser[(String, Scan.Line_Context)] = {
       def cartouche_context(d: Int): Scan.Line_Context =
         if (d == 0) Scan.Finished else Scan.Cartouche_Comment(d)
 

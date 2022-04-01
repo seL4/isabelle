@@ -7,8 +7,7 @@ Build Isabelle Minisat from sources.
 package isabelle
 
 
-object Build_Minisat
-{
+object Build_Minisat {
   val default_download_url = "https://github.com/stp/minisat/archive/releases/2.2.1.tar.gz"
 
   def make_component_name(version: String): String = "minisat-" + version
@@ -21,10 +20,9 @@ object Build_Minisat
     component_name: String = "",
     verbose: Boolean = false,
     progress: Progress = new Progress,
-    target_dir: Path = Path.current): Unit =
-  {
-    Isabelle_System.with_tmp_dir("build")(tmp_dir =>
-    {
+    target_dir: Path = Path.current
+  ): Unit = {
+    Isabelle_System.with_tmp_dir("build") { tmp_dir =>
       /* component */
 
       val Archive_Name = """^.*?([^/]+)$""".r
@@ -115,7 +113,7 @@ remove options "--static" and "-Wl,-soname,..." from the Makefile.
 
         Makarius
         """ + Date.Format.date(Date.now()) + "\n")
-    })
+    }
   }
 
 
@@ -123,14 +121,13 @@ remove options "--static" and "-Wl,-soname,..." from the Makefile.
 
   val isabelle_tool =
     Isabelle_Tool("build_minisat", "build prover component from sources", Scala_Project.here,
-    args =>
-    {
-      var target_dir = Path.current
-      var download_url = default_download_url
-      var component_name = ""
-      var verbose = false
+      { args =>
+        var target_dir = Path.current
+        var download_url = default_download_url
+        var component_name = ""
+        var verbose = false
 
-      val getopts = Getopts("""
+        val getopts = Getopts("""
 Usage: isabelle build_minisat [OPTIONS]
 
   Options are:
@@ -142,17 +139,17 @@ Usage: isabelle build_minisat [OPTIONS]
 
   Build prover component from official download.
 """,
-        "D:" -> (arg => target_dir = Path.explode(arg)),
-        "U:" -> (arg => download_url = arg),
-        "n:" -> (arg => component_name = arg),
-        "v" -> (_ => verbose = true))
+          "D:" -> (arg => target_dir = Path.explode(arg)),
+          "U:" -> (arg => download_url = arg),
+          "n:" -> (arg => component_name = arg),
+          "v" -> (_ => verbose = true))
 
-      val more_args = getopts(args)
-      if (more_args.nonEmpty) getopts.usage()
+        val more_args = getopts(args)
+        if (more_args.nonEmpty) getopts.usage()
 
-      val progress = new Console_Progress()
+        val progress = new Console_Progress()
 
-      build_minisat(download_url = download_url, component_name = component_name,
-        verbose = verbose, progress = progress, target_dir = target_dir)
-    })
+        build_minisat(download_url = download_url, component_name = component_name,
+          verbose = verbose, progress = progress, target_dir = target_dir)
+      })
 }

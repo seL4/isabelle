@@ -10,15 +10,14 @@ package isabelle
 import java.util.Locale
 
 
-object Timing
-{
+object Timing {
   val zero: Timing = Timing(Time.zero, Time.zero, Time.zero)
 
   def timeit[A](
     message: String = "",
     enabled: Boolean = true,
-    output: String => Unit = Output.warning(_))(e: => A): A =
-  {
+    output: String => Unit = Output.warning(_)
+  )(e: => A): A = {
     if (enabled) {
       val start = Time.now()
       val result = Exn.capture(e)
@@ -40,15 +39,13 @@ object Timing
     String.format(Locale.ROOT, ", factor %.2f", java.lang.Double.valueOf(f))
 }
 
-sealed case class Timing(elapsed: Time, cpu: Time, gc: Time)
-{
+sealed case class Timing(elapsed: Time, cpu: Time, gc: Time) {
   def is_zero: Boolean = elapsed.is_zero && cpu.is_zero && gc.is_zero
   def is_relevant: Boolean = elapsed.is_relevant || cpu.is_relevant || gc.is_relevant
 
   def resources: Time = cpu + gc
 
-  def factor: Option[Double] =
-  {
+  def factor: Option[Double] = {
     val t1 = elapsed.seconds
     val t2 = resources.seconds
     if (t1 >= 3.0 && t2 >= 3.0) Some(t2 / t1) else None
@@ -63,8 +60,7 @@ sealed case class Timing(elapsed: Time, cpu: Time, gc: Time)
     elapsed.message + " elapsed time, " + cpu.message + " cpu time, " + gc.message + " GC time" +
       Timing.factor_format(cpu.seconds / elapsed.seconds)
 
-  def message_resources: String =
-  {
+  def message_resources: String = {
     val factor_text =
       factor match {
         case Some(f) => Timing.factor_format(f)

@@ -17,14 +17,12 @@ import org.gjt.sp.jedit.{View, jEdit}
 import org.gjt.sp.jedit.gui.statusbar.{StatusWidgetFactory, Widget}
 
 
-object Status_Widget
-{
+object Status_Widget {
   /** generic GUI **/
 
   private val template = "ABC: 99999/99999MB"
 
-  abstract class GUI(view: View) extends JComponent
-  {
+  abstract class GUI(view: View) extends JComponent {
     /* init */
 
     setFont(new JLabel().getFont)
@@ -50,8 +48,7 @@ object Status_Widget
 
     def get_status: (String, Double)
 
-    override def paintComponent(gfx: Graphics): Unit =
-    {
+    override def paintComponent(gfx: Graphics): Unit = {
       super.paintComponent(gfx)
 
       val insets = new Insets(0, 0, 0, 0)
@@ -89,8 +86,7 @@ object Status_Widget
     def action: String
 
     addMouseListener(new MouseAdapter {
-      override def mouseClicked(evt: MouseEvent): Unit =
-      {
+      override def mouseClicked(evt: MouseEvent): Unit = {
         if (evt.getClickCount == 2) {
           view.getInputHandler.invokeAction(action)
         }
@@ -102,20 +98,17 @@ object Status_Widget
 
   /** Java **/
 
-  class Java_GUI(view: View) extends GUI(view)
-  {
+  class Java_GUI(view: View) extends GUI(view) {
     /* component state -- owned by GUI thread */
 
     private var status = Java_Statistics.memory_status()
 
-    def get_status: (String, Double) =
-    {
+    def get_status: (String, Double) = {
       ("JVM: " + (status.heap_used / 1024 / 1024) + "/" + (status.heap_size / 1024 / 1024) + "MB",
         status.heap_used_fraction)
     }
 
-    private def update_status(new_status: Java_Statistics.Memory_Status): Unit =
-    {
+    private def update_status(new_status: Java_Statistics.Memory_Status): Unit = {
       if (status != new_status) {
         status = new_status
         repaint()
@@ -131,14 +124,12 @@ object Status_Widget
           update_status(Java_Statistics.memory_status())
       })
 
-    override def addNotify(): Unit =
-    {
+    override def addNotify(): Unit = {
       super.addNotify()
       timer.start()
     }
 
-    override def removeNotify(): Unit =
-    {
+    override def removeNotify(): Unit = {
       super.removeNotify()
       timer.stop()
     }
@@ -151,8 +142,7 @@ object Status_Widget
     override def action: String = "isabelle.java-monitor"
   }
 
-  class Java_Factory extends StatusWidgetFactory
-  {
+  class Java_Factory extends StatusWidgetFactory {
     override def getWidget(view: View): Widget =
       new Widget { override def getComponent: JComponent = new Java_GUI(view) }
   }
@@ -161,8 +151,7 @@ object Status_Widget
 
   /** ML **/
 
-  class ML_GUI(view: View) extends GUI(view)
-  {
+  class ML_GUI(view: View) extends GUI(view) {
     /* component state -- owned by GUI thread */
 
     private var status = ML_Statistics.memory_status(Nil)
@@ -175,8 +164,7 @@ object Status_Widget
             status.heap_used_fraction)
       }
 
-    private def update_status(new_status: ML_Statistics.Memory_Status): Unit =
-    {
+    private def update_status(new_status: ML_Statistics.Memory_Status): Unit = {
       if (status != new_status) {
         status = new_status
         repaint()
@@ -193,14 +181,12 @@ object Status_Widget
           GUI_Thread.later { update_status(status) }
       }
 
-    override def addNotify(): Unit =
-    {
+    override def addNotify(): Unit = {
       super.addNotify()
       PIDE.session.runtime_statistics += main
     }
 
-    override def removeNotify(): Unit =
-    {
+    override def removeNotify(): Unit = {
       super.removeNotify()
       PIDE.session.runtime_statistics -= main
     }
@@ -213,8 +199,7 @@ object Status_Widget
     override def action: String = "isabelle-monitor-float"
   }
 
-  class ML_Factory extends StatusWidgetFactory
-  {
+  class ML_Factory extends StatusWidgetFactory {
     override def getWidget(view: View): Widget =
       new Widget { override def getComponent: JComponent = new ML_GUI(view) }
   }

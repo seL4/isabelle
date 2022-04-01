@@ -13,12 +13,10 @@ import java.net.{InetSocketAddress, URI, URL, HttpURLConnection}
 import com.sun.net.httpserver.{HttpExchange, HttpHandler, HttpServer}
 
 
-object HTTP
-{
+object HTTP {
   /** content **/
 
-  object Content
-  {
+  object Content {
     val mime_type_bytes: String = "application/octet-stream"
     val mime_type_text: String = "text/plain; charset=utf-8"
     val mime_type_html: String = "text/html; charset=utf-8"
@@ -34,8 +32,7 @@ object HTTP
         elapsed_time: Time = Time.zero): Content =
       new Content(bytes, file_name, mime_type, encoding, elapsed_time)
 
-    def read(file: JFile): Content =
-    {
+    def read(file: JFile): Content = {
       val bytes = Bytes.read(file)
       val file_name = file.getName
       val mime_type = Option(Files.probeContentType(file.toPath)).getOrElse(default_mime_type)
@@ -50,8 +47,8 @@ object HTTP
     val file_name: String,
     val mime_type: String,
     val encoding: String,
-    val elapsed_time: Time)
-  {
+    val elapsed_time: Time
+  ) {
     def text: String = new String(bytes.array, encoding)
     def json: JSON.T = JSON.parse(text)
   }
@@ -62,14 +59,14 @@ object HTTP
 
   val NEWLINE: String = "\r\n"
 
-  object Client
-  {
+  object Client {
     val default_timeout: Time = Time.seconds(180)
 
-    def open_connection(url: URL,
+    def open_connection(
+      url: URL,
       timeout: Time = default_timeout,
-      user_agent: String = ""): HttpURLConnection =
-    {
+      user_agent: String = ""
+    ): HttpURLConnection = {
       url.openConnection match {
         case connection: HttpURLConnection =>
           if (0 < timeout.ms && timeout.ms <= Integer.MAX_VALUE) {
@@ -83,13 +80,11 @@ object HTTP
       }
     }
 
-    def get_content(connection: HttpURLConnection): Content =
-    {
+    def get_content(connection: HttpURLConnection): Content = {
       val Charset = """.*\bcharset="?([\S^"]+)"?.*""".r
 
       val start = Time.now()
-      using(connection.getInputStream)(stream =>
-      {
+      using(connection.getInputStream) { stream =>
         val bytes = Bytes.read_stream(stream, hint = connection.getContentLength)
         val stop = Time.now()
 
@@ -103,16 +98,18 @@ object HTTP
           }
         Content(bytes, file_name = file_name, mime_type = mime_type,
           encoding = encoding, elapsed_time = stop - start)
-      })
+      }
     }
 
     def get(url: URL, timeout: Time = default_timeout, user_agent: String = ""): Content =
       get_content(open_connection(url, timeout = timeout, user_agent = user_agent))
 
-    def post(url: URL, parameters: List[(String, Any)],
+    def post(
+      url: URL,
+      parameters: List[(String, Any)],
       timeout: Time = default_timeout,
-      user_agent: String = ""): Content =
-    {
+      user_agent: String = ""
+    ): Content = {
       val connection = open_connection(url, timeout = timeout, user_agent = user_agent)
       connection.setRequestMethod("POST")
       connection.setDoOutput(true)
@@ -121,21 +118,18 @@ object HTTP
       connection.setRequestProperty(
         "Content-Type", "multipart/form-data; boundary=" + quote(boundary))
 
-      using(connection.getOutputStream)(out =>
-      {
+      using(connection.getOutputStream) { out =>
         def output(s: String): Unit = out.write(UTF8.bytes(s))
         def output_newline(n: Int = 1): Unit = (1 to n).foreach(_ => output(NEWLINE))
         def output_boundary(end: Boolean = false): Unit =
           output("--" + boundary + (if (end) "--" else "") + NEWLINE)
         def output_name(name: String): Unit =
           output("Content-Disposition: form-data; name=" + quote(name))
-        def output_value(value: Any): Unit =
-        {
+        def output_value(value: Any): Unit = {
           output_newline(2)
           output(value.toString)
         }
-        def output_content(content: Content): Unit =
-        {
+        def output_content(content: Content): Unit = {
           proper_string(content.file_name).foreach(s => output("; filename=" + quote(s)))
           output_newline()
           proper_string(content.mime_type).foreach(s => output("Content-Type: " + s))
@@ -158,7 +152,7 @@ object HTTP
         }
         output_boundary(end = true)
         out.flush()
-      })
+      }
 
       get_content(connection)
     }
@@ -177,8 +171,8 @@ object HTTP
     val server_name: String,
     val service_name: String,
     val uri: URI,
-    val input: Bytes)
-  {
+    val input: Bytes
+  ) {
     def home: String = url_path(server_name, service_name)
     def root: String = home + "/"
     def query: String = home + "?"
@@ -208,8 +202,7 @@ object HTTP
 
   /* response */
 
-  object Response
-  {
+  object Response {
     def apply(
         bytes: Bytes = Bytes.empty,
         content_type: String = Content.mime_type_bytes): Response =
@@ -224,12 +217,10 @@ object HTTP
     def read(path: Path): Response = content(Content.read(path))
   }
 
-  class Response private[HTTP](val output: Bytes, val content_type: String)
-  {
+  class Response private[HTTP](val output: Bytes, val content_type: String) {
     override def toString: String = output.toString
 
-    def write(http: HttpExchange, code: Int): Unit =
-    {
+    def write(http: HttpExchange, code: Int): Unit = {
       http.getResponseHeaders.set("Content-Type", content_type)
       http.sendResponseHeaders(code, output.length.toLong)
       using(http.getResponseBody)(output.write_stream)
@@ -239,8 +230,7 @@ object HTTP
 
   /* service */
 
-  abstract class Service(val name: String, method: String = "GET")
-  {
+  abstract class Service(val name: String, method: String = "GET") {
     override def toString: String = name
 
     def apply(request: Request): Option[Response]
@@ -248,7 +238,7 @@ object HTTP
     def context(server_name: String): String =
       proper_string(url_path(server_name, name)).getOrElse("/")
 
-    def handler(server_name: String): HttpHandler = (http: HttpExchange) => {
+    def handler(server_name: String): HttpHandler = { (http: HttpExchange) =>
       val uri = http.getRequestURI
       val input = using(http.getRequestBody)(Bytes.read_stream(_))
       if (http.getRequestMethod == method) {
@@ -270,8 +260,7 @@ object HTTP
 
   /* server */
 
-  class Server private[HTTP](val name: String, val http_server: HttpServer)
-  {
+  class Server private[HTTP](val name: String, val http_server: HttpServer) {
     def += (service: Service): Unit =
       http_server.createContext(service.context(name), service.handler(name))
     def -= (service: Service): Unit =
@@ -288,8 +277,8 @@ object HTTP
 
   def server(
     name: String = UUID.random().toString,
-    services: List[Service] = isabelle_services): Server =
-  {
+    services: List[Service] = isabelle_services
+  ): Server = {
     val http_server = HttpServer.create(new InetSocketAddress(isabelle.Server.localhost, 0), 0)
     http_server.setExecutor(null)
 
@@ -310,8 +299,7 @@ object HTTP
 
   object Welcome_Service extends Welcome()
 
-  class Welcome(name: String = "") extends Service(name)
-  {
+  class Welcome(name: String = "") extends Service(name) {
     def apply(request: Request): Option[Response] =
       if (request.toplevel) {
         Some(Response.text("Welcome to " + Isabelle_System.identification()))
@@ -324,8 +312,7 @@ object HTTP
 
   object Fonts_Service extends Fonts()
 
-  class Fonts(name: String = "fonts") extends Service(name)
-  {
+  class Fonts(name: String = "fonts") extends Service(name) {
     private lazy val html_fonts: List[Isabelle_Fonts.Entry] =
       Isabelle_Fonts.fonts(hidden = true)
 
@@ -346,8 +333,7 @@ object HTTP
 
   object PDFjs_Service extends PDFjs()
 
-  class PDFjs(name: String = "pdfjs") extends Service(name)
-  {
+  class PDFjs(name: String = "pdfjs") extends Service(name) {
     def apply(request: Request): Option[Response] =
       for {
         p <- request.uri_path
@@ -361,8 +347,7 @@ object HTTP
 
   object Docs_Service extends Docs()
 
-  class Docs(name: String = "docs") extends PDFjs(name)
-  {
+  class Docs(name: String = "docs") extends PDFjs(name) {
     private val doc_contents = isabelle.Doc.main_contents()
 
     // example: .../docs/web/viewer.html?file=system.pdf

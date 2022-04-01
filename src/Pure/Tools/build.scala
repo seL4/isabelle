@@ -12,8 +12,7 @@ import scala.collection.immutable.SortedSet
 import scala.annotation.tailrec
 
 
-object Build
-{
+object Build {
   /** auxiliary **/
 
   /* persistent build info */
@@ -22,27 +21,24 @@ object Build
     sources: String,
     input_heaps: List[String],
     output_heap: Option[String],
-    return_code: Int)
-  {
+    return_code: Int
+  ) {
     def ok: Boolean = return_code == 0
   }
 
 
   /* queue with scheduling information */
 
-  private object Queue
-  {
+  private object Queue {
     type Timings = (List[Properties.T], Double)
 
-    def load_timings(progress: Progress, store: Sessions.Store, session_name: String): Timings =
-    {
+    def load_timings(progress: Progress, store: Sessions.Store, session_name: String): Timings = {
       val no_timings: Timings = (Nil, 0.0)
 
       store.try_open_database(session_name) match {
         case None => no_timings
         case Some(db) =>
-          def ignore_error(msg: String) =
-          {
+          def ignore_error(msg: String) = {
             progress.echo_warning("Ignoring bad database " + db + (if (msg == "") "" else "\n" + msg))
             no_timings
           }
@@ -64,29 +60,31 @@ object Build
       }
     }
 
-    def make_session_timing(sessions_structure: Sessions.Structure, timing: Map[String, Double])
-      : Map[String, Double] =
-    {
+    def make_session_timing(
+      sessions_structure: Sessions.Structure,
+      timing: Map[String, Double]
+    ) : Map[String, Double] = {
       val maximals = sessions_structure.build_graph.maximals.toSet
-      def desc_timing(session_name: String): Double =
-      {
+      def desc_timing(session_name: String): Double = {
         if (maximals.contains(session_name)) timing(session_name)
         else {
           val descendants = sessions_structure.build_descendants(List(session_name)).toSet
           val g = sessions_structure.build_graph.restrict(descendants)
-          (0.0 :: g.maximals.flatMap(desc => {
+          (0.0 :: g.maximals.flatMap { desc =>
             val ps = g.all_preds(List(desc))
             if (ps.exists(p => !timing.isDefinedAt(p))) None
             else Some(ps.map(timing(_)).sum)
-          })).max
+          }).max
         }
       }
       timing.keySet.iterator.map(name => (name -> desc_timing(name))).toMap.withDefaultValue(0.0)
     }
 
-    def apply(progress: Progress, sessions_structure: Sessions.Structure, store: Sessions.Store)
-      : Queue =
-    {
+    def apply(
+      progress: Progress,
+      sessions_structure: Sessions.Structure,
+      store: Sessions.Store
+    ) : Queue = {
       val graph = sessions_structure.build_graph
       val names = graph.keys
 
@@ -97,8 +95,7 @@ object Build
         make_session_timing(sessions_structure,
           timings.map({ case (name, (_, t)) => (name, t) }).toMap)
 
-      object Ordering extends scala.math.Ordering[String]
-      {
+      object Ordering extends scala.math.Ordering[String] {
         def compare(name1: String, name2: String): Int =
           session_timing(name2) compare session_timing(name1) match {
             case 0 =>
@@ -117,8 +114,8 @@ object Build
   private class Queue(
     graph: Graph[String, Sessions.Info],
     order: SortedSet[String],
-    val command_timings: String => List[Properties.T])
-  {
+    val command_timings: String => List[Properties.T]
+  ) {
     def is_inner(name: String): Boolean = !graph.is_maximal(name)
 
     def is_empty: Boolean = graph.is_empty
@@ -126,8 +123,7 @@ object Build
     def - (name: String): Queue =
       new Queue(graph.del_node(name), order - name, command_timings)
 
-    def dequeue(skip: String => Boolean): Option[(String, Sessions.Info)] =
-    {
+    def dequeue(skip: String => Boolean): Option[(String, Sessions.Info)] = {
       val it = order.iterator.dropWhile(name => skip(name) || !graph.is_minimal(name))
       if (it.hasNext) { val name = it.next(); Some((name, graph.get_node(name))) }
       else None
@@ -138,8 +134,7 @@ object Build
 
   /** build with results **/
 
-  class Results private[Build](results: Map[String, (Option[Process_Result], Sessions.Info)])
-  {
+  class Results private[Build](results: Map[String, (Option[Process_Result], Sessions.Info)]) {
     def sessions: Set[String] = results.keySet
     def infos: List[Sessions.Info] = results.values.map(_._2).toList
     def cancelled(name: String): Boolean = results(name)._1.isEmpty
@@ -157,8 +152,7 @@ object Build
   def session_finished(session_name: String, process_result: Process_Result): String =
     "Finished " + session_name + " (" + process_result.timing.message_resources + ")"
 
-  def session_timing(session_name: String, build_log: Build_Log.Session_Info): String =
-  {
+  def session_timing(session_name: String, build_log: Build_Log.Session_Info): String = {
     val props = build_log.session_timing
     val threads = Markup.Session_Timing.Threads.unapply(props) getOrElse 1
     val timing = Markup.Timing_Properties.get(props)
@@ -185,8 +179,8 @@ object Build
     soft_build: Boolean = false,
     verbose: Boolean = false,
     export_files: Boolean = false,
-    session_setup: (String, Session) => Unit = (_, _) => ()): Results =
-  {
+    session_setup: (String, Session) => Unit = (_, _) => ()
+  ): Results = {
     val build_options =
       options +
         "completion_limit=0" +
@@ -206,8 +200,7 @@ object Build
     val full_sessions_selection = full_sessions.imports_selection(selection)
     val full_sessions_selected = full_sessions_selection.toSet
 
-    def sources_stamp(deps: Sessions.Deps, session_name: String): String =
-    {
+    def sources_stamp(deps: Sessions.Deps, session_name: String): String = {
       val digests =
         full_sessions(session_name).meta_digest ::
         deps.sources(session_name) :::
@@ -215,8 +208,7 @@ object Build
       SHA1.digest_set(digests).toString
     }
 
-    val deps =
-    {
+    val deps = {
       val deps0 =
         Sessions.deps(full_sessions.selection(selection),
           progress = progress, inlined_files = true, verbose = verbose,
@@ -289,8 +281,8 @@ object Build
       current: Boolean,
       heap_digest: Option[String],
       process: Option[Process_Result],
-      info: Sessions.Info)
-    {
+      info: Sessions.Info
+    ) {
       def ok: Boolean =
         process match {
           case None => false
@@ -313,8 +305,8 @@ object Build
     @tailrec def loop(
       pending: Queue,
       running: Map[String, (List[String], Build_Job)],
-      results: Map[String, Result]): Map[String, Result] =
-    {
+      results: Map[String, Result]
+    ): Map[String, Result] = {
       def used_node(i: Int): Boolean =
         running.iterator.exists(
           { case (_, (_, job)) => job.numa_node.isDefined && job.numa_node.get == i })
@@ -332,8 +324,7 @@ object Build
             val (process_result, heap_digest) = job.join
 
             val log_lines = process_result.out_lines.filterNot(Protocol_Message.Marker.test)
-            val process_result_tail =
-            {
+            val process_result_tail = {
               val tail = job.info.options.int("process_output_tail")
               process_result.copy(
                 out_lines =
@@ -392,8 +383,7 @@ object Build
                 val do_store =
                   build_heap || Sessions.is_pure(session_name) || queue.is_inner(session_name)
 
-                val (current, heap_digest) =
-                {
+                val (current, heap_digest) = {
                   store.try_open_database(session_name) match {
                     case Some(db) =>
                       using(db)(store.read_build(_, session_name)) match {
@@ -453,8 +443,7 @@ object Build
 
     /* build results */
 
-    val results =
-    {
+    val results = {
       val results0 =
         if (deps.is_empty) {
           progress.echo_warning("Nothing to build")
@@ -505,13 +494,11 @@ object Build
           Presentation.update_chapter(presentation_dir, chapter, entries)
         }
 
-        using(store.open_database_context())(db_context =>
-        {
+        using(store.open_database_context()) { db_context =>
           val exports =
             Presentation.read_exports(presentation_sessions.map(_.name), deps, db_context)
 
-          Par_List.map((session: String) =>
-          {
+          Par_List.map({ (session: String) =>
             progress.expose_interrupt()
             progress.echo("Presenting " + session + " ...")
 
@@ -527,7 +514,7 @@ object Build
               verbose = verbose, html_context = html_context,
               Presentation.elements1)
           }, presentation_sessions.map(_.name))
-        })
+        }
       }
     }
 
@@ -538,33 +525,33 @@ object Build
   /* Isabelle tool wrapper */
 
   val isabelle_tool = Isabelle_Tool("build", "build and manage Isabelle sessions",
-    Scala_Project.here, args =>
-  {
-    val build_options = Word.explode(Isabelle_System.getenv("ISABELLE_BUILD_OPTIONS"))
+    Scala_Project.here,
+    { args =>
+      val build_options = Word.explode(Isabelle_System.getenv("ISABELLE_BUILD_OPTIONS"))
 
-    var base_sessions: List[String] = Nil
-    var select_dirs: List[Path] = Nil
-    var numa_shuffling = false
-    var presentation = Presentation.Context.none
-    var requirements = false
-    var soft_build = false
-    var exclude_session_groups: List[String] = Nil
-    var all_sessions = false
-    var build_heap = false
-    var clean_build = false
-    var dirs: List[Path] = Nil
-    var export_files = false
-    var fresh_build = false
-    var session_groups: List[String] = Nil
-    var max_jobs = 1
-    var check_keywords: Set[String] = Set.empty
-    var list_files = false
-    var no_build = false
-    var options = Options.init(opts = build_options)
-    var verbose = false
-    var exclude_sessions: List[String] = Nil
+      var base_sessions: List[String] = Nil
+      var select_dirs: List[Path] = Nil
+      var numa_shuffling = false
+      var presentation = Presentation.Context.none
+      var requirements = false
+      var soft_build = false
+      var exclude_session_groups: List[String] = Nil
+      var all_sessions = false
+      var build_heap = false
+      var clean_build = false
+      var dirs: List[Path] = Nil
+      var export_files = false
+      var fresh_build = false
+      var session_groups: List[String] = Nil
+      var max_jobs = 1
+      var check_keywords: Set[String] = Set.empty
+      var list_files = false
+      var no_build = false
+      var options = Options.init(opts = build_options)
+      var verbose = false
+      var exclude_sessions: List[String] = Nil
 
-    val getopts = Getopts("""
+      val getopts = Getopts("""
 Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
   Options are:
@@ -593,83 +580,83 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
   Build and manage Isabelle sessions, depending on implicit settings:
 
 """ + Library.indent_lines(2,  Build_Log.Settings.show()) + "\n",
-      "B:" -> (arg => base_sessions = base_sessions ::: List(arg)),
-      "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
-      "N" -> (_ => numa_shuffling = true),
-      "P:" -> (arg => presentation = Presentation.Context.make(arg)),
-      "R" -> (_ => requirements = true),
-      "S" -> (_ => soft_build = true),
-      "X:" -> (arg => exclude_session_groups = exclude_session_groups ::: List(arg)),
-      "a" -> (_ => all_sessions = true),
-      "b" -> (_ => build_heap = true),
-      "c" -> (_ => clean_build = true),
-      "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
-      "e" -> (_ => export_files = true),
-      "f" -> (_ => fresh_build = true),
-      "g:" -> (arg => session_groups = session_groups ::: List(arg)),
-      "j:" -> (arg => max_jobs = Value.Int.parse(arg)),
-      "k:" -> (arg => check_keywords = check_keywords + arg),
-      "l" -> (_ => list_files = true),
-      "n" -> (_ => no_build = true),
-      "o:" -> (arg => options = options + arg),
-      "v" -> (_ => verbose = true),
-      "x:" -> (arg => exclude_sessions = exclude_sessions ::: List(arg)))
+        "B:" -> (arg => base_sessions = base_sessions ::: List(arg)),
+        "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
+        "N" -> (_ => numa_shuffling = true),
+        "P:" -> (arg => presentation = Presentation.Context.make(arg)),
+        "R" -> (_ => requirements = true),
+        "S" -> (_ => soft_build = true),
+        "X:" -> (arg => exclude_session_groups = exclude_session_groups ::: List(arg)),
+        "a" -> (_ => all_sessions = true),
+        "b" -> (_ => build_heap = true),
+        "c" -> (_ => clean_build = true),
+        "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
+        "e" -> (_ => export_files = true),
+        "f" -> (_ => fresh_build = true),
+        "g:" -> (arg => session_groups = session_groups ::: List(arg)),
+        "j:" -> (arg => max_jobs = Value.Int.parse(arg)),
+        "k:" -> (arg => check_keywords = check_keywords + arg),
+        "l" -> (_ => list_files = true),
+        "n" -> (_ => no_build = true),
+        "o:" -> (arg => options = options + arg),
+        "v" -> (_ => verbose = true),
+        "x:" -> (arg => exclude_sessions = exclude_sessions ::: List(arg)))
 
-    val sessions = getopts(args)
+      val sessions = getopts(args)
 
-    val progress = new Console_Progress(verbose = verbose)
+      val progress = new Console_Progress(verbose = verbose)
 
-    val start_date = Date.now()
+      val start_date = Date.now()
 
-    if (verbose) {
-      progress.echo(
-        "Started at " + Build_Log.print_date(start_date) +
-          " (" + Isabelle_System.getenv("ML_IDENTIFIER") + " on " + Isabelle_System.hostname() +")")
-      progress.echo(Build_Log.Settings.show() + "\n")
-    }
-
-    val results =
-      progress.interrupt_handler {
-        build(options,
-          selection = Sessions.Selection(
-            requirements = requirements,
-            all_sessions = all_sessions,
-            base_sessions = base_sessions,
-            exclude_session_groups = exclude_session_groups,
-            exclude_sessions = exclude_sessions,
-            session_groups = session_groups,
-            sessions = sessions),
-          presentation = presentation,
-          progress = progress,
-          check_unknown_files = Mercurial.is_repository(Path.ISABELLE_HOME),
-          build_heap = build_heap,
-          clean_build = clean_build,
-          dirs = dirs,
-          select_dirs = select_dirs,
-          numa_shuffling = NUMA.enabled_warning(progress, numa_shuffling),
-          max_jobs = max_jobs,
-          list_files = list_files,
-          check_keywords = check_keywords,
-          fresh_build = fresh_build,
-          no_build = no_build,
-          soft_build = soft_build,
-          verbose = verbose,
-          export_files = export_files)
+      if (verbose) {
+        progress.echo(
+          "Started at " + Build_Log.print_date(start_date) +
+            " (" + Isabelle_System.getenv("ML_IDENTIFIER") + " on " + Isabelle_System.hostname() +")")
+        progress.echo(Build_Log.Settings.show() + "\n")
       }
-    val end_date = Date.now()
-    val elapsed_time = end_date.time - start_date.time
 
-    if (verbose) {
-      progress.echo("\nFinished at " + Build_Log.print_date(end_date))
-    }
+      val results =
+        progress.interrupt_handler {
+          build(options,
+            selection = Sessions.Selection(
+              requirements = requirements,
+              all_sessions = all_sessions,
+              base_sessions = base_sessions,
+              exclude_session_groups = exclude_session_groups,
+              exclude_sessions = exclude_sessions,
+              session_groups = session_groups,
+              sessions = sessions),
+            presentation = presentation,
+            progress = progress,
+            check_unknown_files = Mercurial.is_repository(Path.ISABELLE_HOME),
+            build_heap = build_heap,
+            clean_build = clean_build,
+            dirs = dirs,
+            select_dirs = select_dirs,
+            numa_shuffling = NUMA.enabled_warning(progress, numa_shuffling),
+            max_jobs = max_jobs,
+            list_files = list_files,
+            check_keywords = check_keywords,
+            fresh_build = fresh_build,
+            no_build = no_build,
+            soft_build = soft_build,
+            verbose = verbose,
+            export_files = export_files)
+        }
+      val end_date = Date.now()
+      val elapsed_time = end_date.time - start_date.time
 
-    val total_timing =
-      results.sessions.iterator.map(a => results(a).timing).foldLeft(Timing.zero)(_ + _).
-        copy(elapsed = elapsed_time)
-    progress.echo(total_timing.message_resources)
+      if (verbose) {
+        progress.echo("\nFinished at " + Build_Log.print_date(end_date))
+      }
 
-    sys.exit(results.rc)
-  })
+      val total_timing =
+        results.sessions.iterator.map(a => results(a).timing).foldLeft(Timing.zero)(_ + _).
+          copy(elapsed = elapsed_time)
+      progress.echo(total_timing.message_resources)
+
+      sys.exit(results.rc)
+    })
 
 
   /* build logic image */
@@ -679,8 +666,8 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
     build_heap: Boolean = false,
     dirs: List[Path] = Nil,
     fresh: Boolean = false,
-    strict: Boolean = false): Int =
-  {
+    strict: Boolean = false
+  ): Int = {
     val selection = Sessions.Selection.session(logic)
     val rc =
       if (!fresh && build(options, selection = selection,

@@ -7,12 +7,10 @@ Document status based on markup information.
 package isabelle
 
 
-object Document_Status
-{
+object Document_Status {
   /* command status */
 
-  object Command_Status
-  {
+  object Command_Status {
     val proper_elements: Markup.Elements =
       Markup.Elements(Markup.ACCEPTED, Markup.FORKED, Markup.JOINED, Markup.RUNNING,
         Markup.FINISHED, Markup.FAILED, Markup.CANCELED)
@@ -20,8 +18,7 @@ object Document_Status
     val liberal_elements: Markup.Elements =
       proper_elements + Markup.WARNING + Markup.LEGACY + Markup.ERROR
 
-    def make(markup_iterator: Iterator[Markup]): Command_Status =
-    {
+    def make(markup_iterator: Iterator[Markup]): Command_Status = {
       var touched = false
       var accepted = false
       var warned = false
@@ -73,8 +70,8 @@ object Document_Status
     private val canceled: Boolean,
     private val finalized: Boolean,
     forks: Int,
-    runs: Int)
-  {
+    runs: Int
+  ) {
     def + (that: Command_Status): Command_Status =
       Command_Status(
         touched = touched || that.touched,
@@ -99,13 +96,11 @@ object Document_Status
 
   /* node status */
 
-  object Node_Status
-  {
+  object Node_Status {
     def make(
       state: Document.State,
       version: Document.Version,
-      name: Document.Node.Name): Node_Status =
-    {
+      name: Document.Node.Name): Node_Status = {
       val node = version.nodes(name)
 
       var unprocessed = 0
@@ -159,8 +154,8 @@ object Document_Status
     terminated: Boolean,
     initialized: Boolean,
     finalized: Boolean,
-    consolidated: Boolean)
-  {
+    consolidated: Boolean
+  ) {
     def ok: Boolean = failed == 0
     def total: Int = unprocessed + running + warned + failed + finished
 
@@ -181,16 +176,15 @@ object Document_Status
 
   /* overall timing */
 
-  object Overall_Timing
-  {
+  object Overall_Timing {
     val empty: Overall_Timing = Overall_Timing(0.0, Map.empty)
 
     def make(
       state: Document.State,
       version: Document.Version,
       commands: Iterable[Command],
-      threshold: Double = 0.0): Overall_Timing =
-    {
+      threshold: Double = 0.0
+    ): Overall_Timing = {
       var total = 0.0
       var command_timings = Map.empty[Command, Double]
       for {
@@ -211,8 +205,7 @@ object Document_Status
     }
   }
 
-  sealed case class Overall_Timing(total: Double, command_timings: Map[Command, Double])
-  {
+  sealed case class Overall_Timing(total: Double, command_timings: Map[Command, Double]) {
     def command_timing(command: Command): Double =
       command_timings.getOrElse(command, 0.0)
   }
@@ -220,20 +213,18 @@ object Document_Status
 
   /* nodes status */
 
-  object Overall_Node_Status extends Enumeration
-  {
+  object Overall_Node_Status extends Enumeration {
     val ok, failed, pending = Value
   }
 
-  object Nodes_Status
-  {
+  object Nodes_Status {
     val empty: Nodes_Status = new Nodes_Status(Map.empty, Document.Nodes.empty)
   }
 
   final class Nodes_Status private(
     private val rep: Map[Document.Node.Name, Node_Status],
-    nodes: Document.Nodes)
-  {
+    nodes: Document.Nodes
+  ) {
     def is_empty: Boolean = rep.isEmpty
     def apply(name: Document.Node.Name): Node_Status = rep(name)
     def get(name: Document.Node.Name): Option[Node_Status] = rep.get(name)
@@ -262,8 +253,8 @@ object Document_Status
       state: Document.State,
       version: Document.Version,
       domain: Option[Set[Document.Node.Name]] = None,
-      trim: Boolean = false): (Boolean, Nodes_Status) =
-    {
+      trim: Boolean = false
+    ): (Boolean, Nodes_Status) = {
       val nodes1 = version.nodes
       val update_iterator =
         for {
@@ -285,8 +276,7 @@ object Document_Status
         case _ => false
       }
 
-    override def toString: String =
-    {
+    override def toString: String = {
       var ok = 0
       var failed = 0
       var pending = 0

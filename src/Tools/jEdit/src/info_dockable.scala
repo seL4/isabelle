@@ -15,8 +15,7 @@ import java.awt.event.{ComponentEvent, ComponentAdapter, WindowFocusListener, Wi
 import org.gjt.sp.jedit.View
 
 
-object Info_Dockable
-{
+object Info_Dockable {
   /* implicit arguments -- owned by GUI thread */
 
   private var implicit_snapshot = Document.Snapshot.init
@@ -24,8 +23,10 @@ object Info_Dockable
   private var implicit_info: XML.Body = Nil
 
   private def set_implicit(
-    snapshot: Document.Snapshot, results: Command.Results, info: XML.Body): Unit =
-  {
+    snapshot: Document.Snapshot,
+    results: Command.Results,
+    info: XML.Body
+  ): Unit = {
     GUI_Thread.require {}
 
     implicit_snapshot = snapshot
@@ -37,16 +38,18 @@ object Info_Dockable
     set_implicit(Document.Snapshot.init, Command.Results.empty, Nil)
 
   def apply(
-    view: View, snapshot: Document.Snapshot, results: Command.Results, info: XML.Body): Unit =
-  {
+    view: View,
+    snapshot: Document.Snapshot,
+    results: Command.Results,
+    info: XML.Body
+  ): Unit = {
     set_implicit(snapshot, results, info)
     view.getDockableWindowManager.floatDockableWindow("isabelle-info")
   }
 }
 
 
-class Info_Dockable(view: View, position: String) extends Dockable(view, position)
-{
+class Info_Dockable(view: View, position: String) extends Dockable(view, position) {
   /* component state -- owned by GUI thread */
 
   private val snapshot = Info_Dockable.implicit_snapshot
@@ -71,8 +74,7 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
 
   private val zoom = new Font_Info.Zoom_Box { def changed = handle_resize() }
 
-  private def handle_resize(): Unit =
-  {
+  private def handle_resize(): Unit = {
     GUI_Thread.require {}
 
     pretty_text_area.resize(
@@ -103,15 +105,13 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
       case _: Session.Global_Options => GUI_Thread.later { handle_resize() }
     }
 
-  override def init(): Unit =
-  {
+  override def init(): Unit = {
     GUI.parent_window(this).map(_.addWindowFocusListener(window_focus_listener))
     PIDE.session.global_options += main
     handle_resize()
   }
 
-  override def exit(): Unit =
-  {
+  override def exit(): Unit = {
     GUI.parent_window(this).map(_.removeWindowFocusListener(window_focus_listener))
     PIDE.session.global_options -= main
     delay_resize.revoke()

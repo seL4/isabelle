@@ -17,13 +17,14 @@ import org.gjt.sp.jedit.jEdit
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea}
 
 
-object JEdit_Spell_Checker
-{
+object JEdit_Spell_Checker {
   /* completion */
 
   def completion(
-    rendering: JEdit_Rendering, explicit: Boolean, caret: Text.Offset): Option[Completion.Result] =
-  {
+    rendering: JEdit_Rendering,
+    explicit: Boolean,
+    caret: Text.Offset
+  ): Option[Completion.Result] = {
     PIDE.plugin.spell_checker.get match {
       case Some(spell_checker) if explicit =>
         spell_checker.completion(rendering, caret)
@@ -34,8 +35,7 @@ object JEdit_Spell_Checker
 
   /* context menu */
 
-  def context_menu(text_area: JEditTextArea, offset: Text.Offset): List[JMenuItem] =
-  {
+  def context_menu(text_area: JEditTextArea, offset: Text.Offset): List[JMenuItem] = {
     val result =
       for {
         spell_checker <- PIDE.plugin.spell_checker.get
@@ -80,8 +80,7 @@ object JEdit_Spell_Checker
 
   /* dictionaries */
 
-  def dictionaries_selector(): Option_Component =
-  {
+  def dictionaries_selector(): Option_Component = {
     GUI_Thread.require {}
 
     val option_name = "spell_checker_dictionary"
@@ -91,8 +90,7 @@ object JEdit_Spell_Checker
     val component = new ComboBox(entries) with Option_Component {
       name = option_name
       val title = opt.title()
-      def load(): Unit =
-      {
+      def load(): Unit = {
         val lang = PIDE.options.string(option_name)
         entries.find(_.lang == lang) match {
           case Some(entry) => selection.item = entry

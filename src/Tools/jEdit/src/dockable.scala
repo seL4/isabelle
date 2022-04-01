@@ -17,8 +17,7 @@ import org.gjt.sp.jedit.gui.{DefaultFocusComponent, DockableWindowManager}
 
 
 class Dockable(view: View, position: String)
-  extends JPanel(new BorderLayout) with DefaultFocusComponent
-{
+extends JPanel(new BorderLayout) with DefaultFocusComponent {
   if (position == DockableWindowManager.FLOATING)
     setPreferredSize(new Dimension(500, 250))
 
@@ -32,14 +31,12 @@ class Dockable(view: View, position: String)
   protected def init(): Unit = {}
   protected def exit(): Unit = {}
 
-  override def addNotify(): Unit =
-  {
+  override def addNotify(): Unit = {
     super.addNotify()
     init()
   }
 
-  override def removeNotify(): Unit =
-  {
+  override def removeNotify(): Unit = {
     exit()
     super.removeNotify()
   }

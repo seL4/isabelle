@@ -19,8 +19,7 @@ import scala.annotation.tailrec
 import scala.collection.mutable
 
 
-object Language_Server
-{
+object Language_Server {
   type Editor = isabelle.Editor[Unit]
 
 
@@ -29,21 +28,21 @@ object Language_Server
   private lazy val default_logic = Isabelle_System.getenv("ISABELLE_LOGIC")
 
   val isabelle_tool =
-    Isabelle_Tool("vscode_server", "VSCode Language Server for PIDE", Scala_Project.here, args =>
-    {
-      try {
-        var logic_ancestor: Option[String] = None
-        var log_file: Option[Path] = None
-        var logic_requirements = false
-        var dirs: List[Path] = Nil
-        var include_sessions: List[String] = Nil
-        var logic = default_logic
-        var modes: List[String] = Nil
-        var no_build = false
-        var options = Options.init()
-        var verbose = false
+    Isabelle_Tool("vscode_server", "VSCode Language Server for PIDE", Scala_Project.here,
+      { args =>
+        try {
+          var logic_ancestor: Option[String] = None
+          var log_file: Option[Path] = None
+          var logic_requirements = false
+          var dirs: List[Path] = Nil
+          var include_sessions: List[String] = Nil
+          var logic = default_logic
+          var modes: List[String] = Nil
+          var no_build = false
+          var options = Options.init()
+          var verbose = false
 
-        val getopts = Getopts("""
+          val getopts = Getopts("""
 Usage: isabelle vscode_server [OPTIONS]
 
   Options are:
@@ -60,43 +59,43 @@ Usage: isabelle vscode_server [OPTIONS]
 
   Run the VSCode Language Server protocol (JSON RPC) over stdin/stdout.
 """,
-          "A:" -> (arg => logic_ancestor = Some(arg)),
-          "L:" -> (arg => log_file = Some(Path.explode(File.standard_path(arg)))),
-          "R:" -> (arg => { logic = arg; logic_requirements = true }),
-          "d:" -> (arg => dirs = dirs ::: List(Path.explode(File.standard_path(arg)))),
-          "i:" -> (arg => include_sessions = include_sessions ::: List(arg)),
-          "l:" -> (arg => logic = arg),
-          "m:" -> (arg => modes = arg :: modes),
-          "n" -> (_ => no_build = true),
-          "o:" -> (arg => options = options + arg),
-          "v" -> (_ => verbose = true))
+            "A:" -> (arg => logic_ancestor = Some(arg)),
+            "L:" -> (arg => log_file = Some(Path.explode(File.standard_path(arg)))),
+            "R:" -> (arg => { logic = arg; logic_requirements = true }),
+            "d:" -> (arg => dirs = dirs ::: List(Path.explode(File.standard_path(arg)))),
+            "i:" -> (arg => include_sessions = include_sessions ::: List(arg)),
+            "l:" -> (arg => logic = arg),
+            "m:" -> (arg => modes = arg :: modes),
+            "n" -> (_ => no_build = true),
+            "o:" -> (arg => options = options + arg),
+            "v" -> (_ => verbose = true))
 
-        val more_args = getopts(args)
-        if (more_args.nonEmpty) getopts.usage()
+          val more_args = getopts(args)
+          if (more_args.nonEmpty) getopts.usage()
 
-        val log = Logger.make(log_file)
-        val channel = new Channel(System.in, System.out, log, verbose)
-        val server =
-          new Language_Server(channel, options, session_name = logic, session_dirs = dirs,
-            include_sessions = include_sessions, session_ancestor = logic_ancestor,
-            session_requirements = logic_requirements, session_no_build = no_build,
-            modes = modes, log = log)
+          val log = Logger.make(log_file)
+          val channel = new Channel(System.in, System.out, log, verbose)
+          val server =
+            new Language_Server(channel, options, session_name = logic, session_dirs = dirs,
+              include_sessions = include_sessions, session_ancestor = logic_ancestor,
+              session_requirements = logic_requirements, session_no_build = no_build,
+              modes = modes, log = log)
 
-        // prevent spurious garbage on the main protocol channel
-        val orig_out = System.out
-        try {
-          System.setOut(new PrintStream(new OutputStream { def write(n: Int): Unit = {} }))
-          server.start()
+          // prevent spurious garbage on the main protocol channel
+          val orig_out = System.out
+          try {
+            System.setOut(new PrintStream(new OutputStream { def write(n: Int): Unit = {} }))
+            server.start()
+          }
+          finally { System.setOut(orig_out) }
         }
-        finally { System.setOut(orig_out) }
-      }
-      catch {
-        case exn: Throwable =>
-          val channel = new Channel(System.in, System.out, No_Logger)
-          channel.error_message(Exn.message(exn))
-          throw(exn)
-      }
-    })
+        catch {
+          case exn: Throwable =>
+            val channel = new Channel(System.in, System.out, No_Logger)
+            channel.error_message(Exn.message(exn))
+            throw(exn)
+        }
+      })
 }
 
 class Language_Server(
@@ -109,8 +108,8 @@ class Language_Server(
   session_requirements: Boolean = false,
   session_no_build: Boolean = false,
   modes: List[String] = Nil,
-  log: Logger = No_Logger)
-{
+  log: Logger = No_Logger
+) {
   server =>
 
 
@@ -136,8 +135,9 @@ class Language_Server(
     File_Watcher(sync_documents, options.seconds("vscode_load_delay"))
 
   private val delay_input: Delay =
-    Delay.last(options.seconds("vscode_input_delay"), channel.Error_Logger)
-    { resources.flush_input(session, channel) }
+    Delay.last(options.seconds("vscode_input_delay"), channel.Error_Logger) {
+      resources.flush_input(session, channel)
+    }
 
   private val delay_load: Delay =
     Delay.last(options.seconds("vscode_load_delay"), channel.Error_Logger) {
@@ -147,8 +147,7 @@ class Language_Server(
       if (invoke_load) delay_load.invoke()
     }
 
-  private def close_document(file: JFile): Unit =
-  {
+  private def close_document(file: JFile): Unit = {
     if (resources.close_model(file)) {
       file_watcher.register_parent(file)
       sync_documents(Set(file))
@@ -157,19 +156,19 @@ class Language_Server(
     }
   }
 
-  private def sync_documents(changed: Set[JFile]): Unit =
-  {
+  private def sync_documents(changed: Set[JFile]): Unit = {
     resources.sync_models(changed)
     delay_input.invoke()
     delay_output.invoke()
   }
 
   private def change_document(
-    file: JFile, version: Long, changes: List[LSP.TextDocumentChange]): Unit =
-  {
+    file: JFile,
+    version: Long,
+    changes: List[LSP.TextDocumentChange]
+  ): Unit = {
     val norm_changes = new mutable.ListBuffer[LSP.TextDocumentChange]
-    @tailrec def norm(chs: List[LSP.TextDocumentChange]): Unit =
-    {
+    @tailrec def norm(chs: List[LSP.TextDocumentChange]): Unit = {
       if (chs.nonEmpty) {
         val (full_texts, rest1) = chs.span(_.range.isEmpty)
         val (edits, rest2) = rest1.span(_.range.nonEmpty)
@@ -190,11 +189,11 @@ class Language_Server(
   /* caret handling */
 
   private val delay_caret_update: Delay =
-    Delay.last(options.seconds("vscode_input_delay"), channel.Error_Logger)
-    { session.caret_focus.post(Session.Caret_Focus) }
+    Delay.last(options.seconds("vscode_input_delay"), channel.Error_Logger) {
+      session.caret_focus.post(Session.Caret_Focus)
+    }
 
-  private def update_caret(caret: Option[(JFile, Line.Position)]): Unit =
-  {
+  private def update_caret(caret: Option[(JFile, Line.Position)]): Unit = {
     resources.update_caret(caret)
     delay_caret_update.invoke()
     delay_input.invoke()
@@ -206,13 +205,11 @@ class Language_Server(
   private lazy val preview_panel = new Preview_Panel(resources)
 
   private lazy val delay_preview: Delay =
-    Delay.last(options.seconds("vscode_output_delay"), channel.Error_Logger)
-    {
+    Delay.last(options.seconds("vscode_output_delay"), channel.Error_Logger) {
       if (preview_panel.flush(channel)) delay_preview.invoke()
     }
 
-  private def request_preview(file: JFile, column: Int): Unit =
-  {
+  private def request_preview(file: JFile, column: Int): Unit = {
     preview_panel.request(file, column)
     delay_preview.invoke()
   }
@@ -221,19 +218,16 @@ class Language_Server(
   /* output to client */
 
   private val delay_output: Delay =
-    Delay.last(options.seconds("vscode_output_delay"), channel.Error_Logger)
-    {
+    Delay.last(options.seconds("vscode_output_delay"), channel.Error_Logger) {
       if (resources.flush_output(channel)) delay_output.invoke()
     }
 
-  def update_output(changed_nodes: Iterable[JFile]): Unit =
-  {
+  def update_output(changed_nodes: Iterable[JFile]): Unit = {
     resources.update_output(changed_nodes)
     delay_output.invoke()
   }
 
-  def update_output_visible(): Unit =
-  {
+  def update_output_visible(): Unit = {
     resources.update_output_visible()
     delay_output.invoke()
   }
@@ -252,16 +246,13 @@ class Language_Server(
 
   /* init and exit */
 
-  def init(id: LSP.Id): Unit =
-  {
-    def reply_ok(msg: String): Unit =
-    {
+  def init(id: LSP.Id): Unit = {
+    def reply_ok(msg: String): Unit = {
       channel.write(LSP.Initialize.reply(id, ""))
       channel.writeln(msg)
     }
 
-    def reply_error(msg: String): Unit =
-    {
+    def reply_error(msg: String): Unit = {
       channel.write(LSP.Initialize.reply(id, msg))
       channel.error_message(msg)
     }
@@ -289,8 +280,8 @@ class Language_Server(
           if (!build().ok) { progress.echo(fail_msg); error(fail_msg) }
         }
 
-        val resources = new VSCode_Resources(options, base_info, log)
-          {
+        val resources =
+          new VSCode_Resources(options, base_info, log) {
             override def commit(change: Session.Change): Unit =
               if (change.deps_changed || undefined_blobs(change.version.nodes).nonEmpty)
                 delay_load.invoke()
@@ -320,8 +311,7 @@ class Language_Server(
     }
   }
 
-  def shutdown(id: LSP.Id): Unit =
-  {
+  def shutdown(id: LSP.Id): Unit = {
     def reply(err: String): Unit = channel.write(LSP.Shutdown.reply(id, err))
 
     session_.change({
@@ -348,8 +338,7 @@ class Language_Server(
     })
   }
 
-  def exit(): Unit =
-  {
+  def exit(): Unit = {
     log("\n")
     sys.exit(if (session_.value.isEmpty) Process_Result.RC.ok else Process_Result.RC.failure)
   }
@@ -357,8 +346,7 @@ class Language_Server(
 
   /* completion */
 
-  def completion(id: LSP.Id, node_pos: Line.Node_Position): Unit =
-  {
+  def completion(id: LSP.Id, node_pos: Line.Node_Position): Unit = {
     val result =
       (for ((rendering, offset) <- rendering_offset(node_pos))
         yield rendering.completion(node_pos, offset)) getOrElse Nil
@@ -368,8 +356,7 @@ class Language_Server(
 
   /* spell-checker dictionary */
 
-  def update_dictionary(include: Boolean, permanent: Boolean): Unit =
-  {
+  def update_dictionary(include: Boolean, permanent: Boolean): Unit = {
     for {
       spell_checker <- resources.spell_checker.get
       caret <- resources.get_caret()
@@ -382,10 +369,8 @@ class Language_Server(
     }
   }
 
-  def reset_dictionary(): Unit =
-  {
-    for (spell_checker <- resources.spell_checker.get)
-    {
+  def reset_dictionary(): Unit = {
+    for (spell_checker <- resources.spell_checker.get) {
       spell_checker.reset()
       update_output_visible()
     }
@@ -394,8 +379,7 @@ class Language_Server(
 
   /* hover */
 
-  def hover(id: LSP.Id, node_pos: Line.Node_Position): Unit =
-  {
+  def hover(id: LSP.Id, node_pos: Line.Node_Position): Unit = {
     val result =
       for {
         (rendering, offset) <- rendering_offset(node_pos)
@@ -411,8 +395,7 @@ class Language_Server(
 
   /* goto definition */
 
-  def goto_definition(id: LSP.Id, node_pos: Line.Node_Position): Unit =
-  {
+  def goto_definition(id: LSP.Id, node_pos: Line.Node_Position): Unit = {
     val result =
       (for ((rendering, offset) <- rendering_offset(node_pos))
         yield rendering.hyperlinks(Text.Range(offset, offset + 1))) getOrElse Nil
@@ -422,8 +405,7 @@ class Language_Server(
 
   /* document highlights */
 
-  def document_highlights(id: LSP.Id, node_pos: Line.Node_Position): Unit =
-  {
+  def document_highlights(id: LSP.Id, node_pos: Line.Node_Position): Unit = {
     val result =
       (for ((rendering, offset) <- rendering_offset(node_pos))
         yield {
@@ -437,12 +419,10 @@ class Language_Server(
 
   /* main loop */
 
-  def start(): Unit =
-  {
+  def start(): Unit = {
     log("Server started " + Date.now())
 
-    def handle(json: JSON.T): Unit =
-    {
+    def handle(json: JSON.T): Unit = {
       try {
         json match {
           case LSP.Initialize(id) => init(id)
@@ -477,8 +457,7 @@ class Language_Server(
       catch { case exn: Throwable => channel.log_error_message(Exn.message(exn)) }
     }
 
-    @tailrec def loop(): Unit =
-    {
+    @tailrec def loop(): Unit = {
       channel.read() match {
         case Some(json) =>
           json match {
@@ -495,8 +474,7 @@ class Language_Server(
 
   /* abstract editor operations */
 
-  object editor extends Language_Server.Editor
-  {
+  object editor extends Language_Server.Editor {
     /* session */
 
     override def session: Session = server.session
@@ -511,16 +489,14 @@ class Language_Server(
     override def current_node_snapshot(context: Unit): Option[Document.Snapshot] =
       resources.get_caret().map(_.model.snapshot())
 
-    override def node_snapshot(name: Document.Node.Name): Document.Snapshot =
-    {
+    override def node_snapshot(name: Document.Node.Name): Document.Snapshot = {
       resources.get_model(name) match {
         case Some(model) => model.snapshot()
         case None => session.snapshot(name)
       }
     }
 
-    def current_command(snapshot: Document.Snapshot): Option[Command] =
-    {
+    def current_command(snapshot: Document.Snapshot): Option[Command] = {
       resources.get_caret() match {
         case Some(caret) => snapshot.current_command(caret.node_name, caret.offset)
         case None => None
@@ -545,9 +521,11 @@ class Language_Server(
     /* hyperlinks */
 
     override def hyperlink_command(
-      focus: Boolean, snapshot: Document.Snapshot, id: Document_ID.Generic,
-      offset: Symbol.Offset = 0): Option[Hyperlink] =
-    {
+      focus: Boolean,
+      snapshot: Document.Snapshot,
+      id: Document_ID.Generic,
+      offset: Symbol.Offset = 0
+    ): Option[Hyperlink] = {
       if (snapshot.is_outdated) None
       else
         snapshot.find_command_position(id, offset).map(node_pos =>

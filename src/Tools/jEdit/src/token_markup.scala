@@ -20,15 +20,13 @@ import org.gjt.sp.jedit.indent.IndentRule
 import org.gjt.sp.jedit.buffer.JEditBuffer
 
 
-object Token_Markup
-{
+object Token_Markup {
   /* line context */
 
   def mode_rule_set(mode: String): ParserRuleSet =
     new ParserRuleSet(mode, "MAIN")
 
-  object Line_Context
-  {
+  object Line_Context {
     def init(mode: String): Line_Context =
       new Line_Context(mode, Some(Scan.Finished), Line_Structure.init)
 
@@ -39,8 +37,7 @@ object Token_Markup
       if (line == 0) init(JEdit_Lib.buffer_mode(buffer))
       else after(buffer, line - 1)
 
-    def after(buffer: JEditBuffer, line: Int): Line_Context =
-    {
+    def after(buffer: JEditBuffer, line: Int): Line_Context = {
       val line_mgr = JEdit_Lib.buffer_line_manager(buffer)
       def context =
         line_mgr.getLineContext(line) match {
@@ -56,11 +53,10 @@ object Token_Markup
   }
 
   class Line_Context(
-      val mode: String,
-      val context: Option[Scan.Line_Context],
-      val structure: Line_Structure)
-    extends TokenMarker.LineContext(mode_rule_set(mode), null)
-  {
+    val mode: String,
+    val context: Option[Scan.Line_Context],
+    val structure: Line_Structure)
+  extends TokenMarker.LineContext(mode_rule_set(mode), null) {
     def get_context: Scan.Line_Context = context.getOrElse(Scan.Finished)
 
     override def hashCode: Int = (mode, context, structure).hashCode
@@ -75,9 +71,11 @@ object Token_Markup
 
   /* tokens from line (inclusive) */
 
-  private def try_line_tokens(syntax: Outer_Syntax, buffer: JEditBuffer, line: Int)
-    : Option[List[Token]] =
-  {
+  private def try_line_tokens(
+    syntax: Outer_Syntax,
+    buffer: JEditBuffer,
+    line: Int
+  ): Option[List[Token]] = {
     val line_context = Line_Context.before(buffer, line)
     for {
       ctxt <- line_context.context
@@ -133,9 +131,11 @@ object Token_Markup
 
   /* command spans */
 
-  def command_span(syntax: Outer_Syntax, buffer: JEditBuffer, offset: Text.Offset)
-    : Option[Text.Info[Command_Span.Span]] =
-  {
+  def command_span(
+    syntax: Outer_Syntax,
+    buffer: JEditBuffer,
+    offset: Text.Offset
+  ): Option[Text.Info[Command_Span.Span]] = {
     val keywords = syntax.keywords
 
     def maybe_command_start(i: Text.Offset): Option[Text.Info[Token]] =
@@ -147,8 +147,7 @@ object Token_Markup
         find(info => keywords.is_before_command(info.info) || info.info.is_command)
 
     if (JEdit_Lib.buffer_range(buffer).contains(offset)) {
-      val start_info =
-      {
+      val start_info = {
         val info1 = maybe_command_start(offset)
         info1 match {
           case Some(Text.Info(range1, tok1)) if tok1.is_command =>
@@ -167,8 +166,7 @@ object Token_Markup
           case None => (false, 0, 0)
         }
 
-      val stop_info =
-      {
+      val stop_info = {
         val info1 = maybe_command_stop(start_next)
         info1 match {
           case Some(Text.Info(range1, tok1)) if tok1.is_command && start_before_command =>
@@ -193,21 +191,21 @@ object Token_Markup
   }
 
   private def _command_span_iterator(
-      syntax: Outer_Syntax,
-      buffer: JEditBuffer,
-      offset: Text.Offset,
-      next_offset: Text.Range => Text.Offset): Iterator[Text.Info[Command_Span.Span]] =
-    new Iterator[Text.Info[Command_Span.Span]]
-    {
+    syntax: Outer_Syntax,
+    buffer: JEditBuffer,
+    offset: Text.Offset,
+    next_offset: Text.Range => Text.Offset
+  ): Iterator[Text.Info[Command_Span.Span]] = {
+    new Iterator[Text.Info[Command_Span.Span]] {
       private var next_span = command_span(syntax, buffer, offset)
       def hasNext: Boolean = next_span.isDefined
-      def next(): Text.Info[Command_Span.Span] =
-      {
+      def next(): Text.Info[Command_Span.Span] = {
         val span = next_span.getOrElse(Iterator.empty.next())
         next_span = command_span(syntax, buffer, next_offset(span.range))
         span
       }
     }
+  }
 
   def command_span_iterator(syntax: Outer_Syntax, buffer: JEditBuffer, offset: Text.Offset)
       : Iterator[Text.Info[Command_Span.Span]] =
@@ -223,8 +221,8 @@ object Token_Markup
 
   class Marker(
     protected val mode: String,
-    protected val opt_buffer: Option[Buffer]) extends TokenMarker
-  {
+    protected val opt_buffer: Option[Buffer]
+  ) extends TokenMarker {
     addRuleSet(mode_rule_set(mode))
 
     override def hashCode: Int = (mode, opt_buffer).hashCode
@@ -240,16 +238,17 @@ object Token_Markup
         case Some(buffer) => "Marker(" + mode + "," + JEdit_Lib.buffer_name(buffer) + ")"
       }
 
-    override def markTokens(context: TokenMarker.LineContext,
-        handler: TokenHandler, raw_line: Segment): TokenMarker.LineContext =
-    {
+    override def markTokens(
+      context: TokenMarker.LineContext,
+      handler: TokenHandler,
+      raw_line: Segment
+    ): TokenMarker.LineContext = {
       val line = if (raw_line == null) new Segment else raw_line
       val line_context =
         context match { case c: Line_Context => c case _ => Line_Context.init(mode) }
       val structure = line_context.structure
 
-      val context1 =
-      {
+      val context1 = {
         val opt_syntax =
           opt_buffer match {
             case Some(buffer) => Isabelle.buffer_syntax(buffer)
@@ -307,12 +306,10 @@ object Token_Markup
 
   /* mode provider */
 
-  class Mode_Provider(orig_provider: ModeProvider) extends ModeProvider
-  {
+  class Mode_Provider(orig_provider: ModeProvider) extends ModeProvider {
     for (mode <- orig_provider.getModes) addMode(mode)
 
-    override def loadMode(mode: Mode, xmh: XModeHandler): Unit =
-    {
+    override def loadMode(mode: Mode, xmh: XModeHandler): Unit = {
       super.loadMode(mode, xmh)
       Isabelle.mode_token_marker(mode.getName).foreach(mode.setTokenMarker)
       Isabelle.indent_rule(mode.getName).foreach(indent_rule =>

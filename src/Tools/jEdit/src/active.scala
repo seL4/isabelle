@@ -11,10 +11,8 @@ import isabelle._
 import org.gjt.sp.jedit.{ServiceManager, View}
 
 
-object Active
-{
-  abstract class Handler
-  {
+object Active {
+  abstract class Handler {
     def handle(
       view: View, text: String, elem: XML.Elem,
       doc_view: Document_View, snapshot: Document.Snapshot): Boolean
@@ -24,8 +22,7 @@ object Active
     ServiceManager.getServiceNames(classOf[Handler]).toList
       .map(ServiceManager.getService(classOf[Handler], _))
 
-  def action(view: View, text: String, elem: XML.Elem): Unit =
-  {
+  def action(view: View, text: String, elem: XML.Elem): Unit = {
     GUI_Thread.require {}
 
     Document_View.get(view.getTextArea) match {
@@ -40,12 +37,11 @@ object Active
     }
   }
 
-  class Misc_Handler extends Active.Handler
-  {
+  class Misc_Handler extends Active.Handler {
     override def handle(
       view: View, text: String, elem: XML.Elem,
-      doc_view: Document_View, snapshot: Document.Snapshot): Boolean =
-    {
+      doc_view: Document_View, snapshot: Document.Snapshot
+    ): Boolean = {
       val text_area = doc_view.text_area
       val model = doc_view.model
       val buffer = model.buffer

@@ -18,8 +18,7 @@ import java.awt.event.{ComponentEvent, ComponentAdapter}
 import org.gjt.sp.jedit.View
 
 
-class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(view, position)
-{
+class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(view, position) {
   GUI_Thread.require {}
 
 
@@ -35,8 +34,7 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
   private val text_area = new Pretty_Text_Area(view)
   set_content(text_area)
 
-  private def update_contents(): Unit =
-  {
+  private def update_contents(): Unit = {
     val snapshot = current_snapshot
     val context = Simplifier_Trace.handle_results(PIDE.session, current_id, current_results)
 
@@ -61,14 +59,12 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
     do_paint()
   }
 
-  private def show_trace(): Unit =
-  {
+  private def show_trace(): Unit = {
     val trace = Simplifier_Trace.generate_trace(PIDE.session, current_results)
     new Simplifier_Trace_Window(view, current_snapshot, trace)
   }
 
-  private def do_paint(): Unit =
-  {
+  private def do_paint(): Unit = {
     GUI_Thread.later {
       text_area.resize(Font_Info.main(PIDE.options.real("jedit_font_scale")))
     }
@@ -76,8 +72,7 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
 
   private def handle_resize(): Unit = do_paint()
 
-  private def handle_update(follow: Boolean): Unit =
-  {
+  private def handle_update(follow: Boolean): Unit = {
     val (new_snapshot, new_command, new_results, new_id) =
       PIDE.editor.current_node_snapshot(view) match {
         case Some(snapshot) =>
@@ -118,8 +113,7 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
         GUI_Thread.later { handle_update(do_update) }
     }
 
-  override def init(): Unit =
-  {
+  override def init(): Unit = {
     PIDE.session.global_options += main
     PIDE.session.commands_changed += main
     PIDE.session.caret_focus += main
@@ -127,8 +121,7 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
     handle_update(true)
   }
 
-  override def exit(): Unit =
-  {
+  override def exit(): Unit = {
     PIDE.session.global_options -= main
     PIDE.session.commands_changed -= main
     PIDE.session.caret_focus -= main

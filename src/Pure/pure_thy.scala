@@ -7,8 +7,7 @@ Pure theory content.
 package isabelle
 
 
-object Pure_Thy
-{
+object Pure_Thy {
   /* Pure logic */
 
   val DUMMY: String = "dummy"

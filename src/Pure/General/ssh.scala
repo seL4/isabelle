@@ -18,12 +18,10 @@ import com.jcraft.jsch.{JSch, Logger => JSch_Logger, Session => JSch_Session, Sf
   JSchException}
 
 
-object SSH
-{
+object SSH {
   /* target machine: user@host syntax */
 
-  object Target
-  {
+  object Target {
     val User_Host: Regex = "^([^@]+)@(.+)$".r
 
     def parse(s: String): (String, String) =
@@ -63,8 +61,7 @@ object SSH
 
   /* init context */
 
-  def init_context(options: Options): Context =
-  {
+  def init_context(options: Options): Context = {
     val config_dir = Path.explode(options.string("ssh_config_dir"))
     if (!config_dir.is_dir) error("Bad ssh config directory: " + config_dir)
 
@@ -100,16 +97,18 @@ object SSH
       proxy_host = proxy_host, proxy_user = proxy_user, proxy_port = proxy_port,
       permissive = permissive)
 
-  class Context private[SSH](val options: Options, val jsch: JSch)
-  {
+  class Context private[SSH](val options: Options, val jsch: JSch) {
     def update_options(new_options: Options): Context = new Context(new_options, jsch)
 
-    private def connect_session(host: String, user: String = "", port: Int = 0,
+    private def connect_session(
+      host: String,
+      user: String = "",
+      port: Int = 0,
       host_key_permissive: Boolean = false,
       nominal_host: String = "",
       nominal_user: String = "",
-      on_close: () => Unit = () => ()): Session =
-    {
+      on_close: () => Unit = () => ()
+    ): Session = {
       val session = jsch.getSession(proper_string(user).orNull, host, make_port(port))
 
       session.setUserInfo(No_User_Info)
@@ -131,10 +130,15 @@ object SSH
     }
 
     def open_session(
-      host: String, user: String = "", port: Int = 0, actual_host: String = "",
-      proxy_host: String = "", proxy_user: String = "", proxy_port: Int = 0,
-      permissive: Boolean = false): Session =
-    {
+      host: String,
+      user: String = "",
+      port: Int = 0,
+      actual_host: String = "",
+      proxy_host: String = "",
+      proxy_user: String = "",
+      proxy_port: Int = 0,
+      permissive: Boolean = false
+    ): Session = {
       val connect_host = proper_string(actual_host) getOrElse host
       if (proxy_host == "") connect_session(host = connect_host, user = user, port = port)
       else {
@@ -148,7 +152,7 @@ object SSH
           connect_session(host = fw.local_host, port = fw.local_port,
             host_key_permissive = permissive,
             nominal_host = host, nominal_user = user, user = user,
-            on_close = () => { fw.close(); proxy.close() })
+            on_close = { () => fw.close(); proxy.close() })
         }
         catch { case exn: Throwable => fw.close(); proxy.close(); throw exn }
       }
@@ -158,17 +162,14 @@ object SSH
 
   /* logging */
 
-  def logging(verbose: Boolean = true, debug: Boolean = false): Unit =
-  {
+  def logging(verbose: Boolean = true, debug: Boolean = false): Unit = {
     JSch.setLogger(if (verbose) new Logger(debug) else null)
   }
 
-  private class Logger(debug: Boolean) extends JSch_Logger
-  {
+  private class Logger(debug: Boolean) extends JSch_Logger {
     def isEnabled(level: Int): Boolean = level != JSch_Logger.DEBUG || debug
 
-    def log(level: Int, msg: String): Unit =
-    {
+    def log(level: Int, msg: String): Unit = {
       level match {
         case JSch_Logger.ERROR | JSch_Logger.FATAL => Output.error_message(msg)
         case JSch_Logger.WARN => Output.warning(msg)
@@ -180,8 +181,7 @@ object SSH
 
   /* user info */
 
-  object No_User_Info extends UserInfo
-  {
+  object No_User_Info extends UserInfo {
     def getPassphrase: String = null
     def getPassword: String = null
     def promptPassword(msg: String): Boolean = false
@@ -193,11 +193,15 @@ object SSH
 
   /* port forwarding */
 
-  object Port_Forwarding
-  {
-    def open(ssh: Session, ssh_close: Boolean,
-      local_host: String, local_port: Int, remote_host: String, remote_port: Int): Port_Forwarding =
-    {
+  object Port_Forwarding {
+    def open(
+      ssh: Session,
+      ssh_close: Boolean,
+      local_host: String,
+      local_port: Int,
+      remote_host: String,
+      remote_port: Int
+    ): Port_Forwarding = {
       val port = ssh.session.setPortForwardingL(local_host, local_port, remote_host, remote_port)
       new Port_Forwarding(ssh, ssh_close, local_host, port, remote_host, remote_port)
     }
@@ -209,13 +213,12 @@ object SSH
     val local_host: String,
     val local_port: Int,
     val remote_host: String,
-    val remote_port: Int) extends AutoCloseable
-  {
+    val remote_port: Int
+  ) extends AutoCloseable {
     override def toString: String =
       local_host + ":" + local_port + ":" + remote_host + ":" + remote_port
 
-    def close(): Unit =
-    {
+    def close(): Unit = {
       ssh.session.delPortForwardingL(local_host, local_port)
       if (ssh_close) ssh.close()
     }
@@ -226,8 +229,7 @@ object SSH
 
   type Attrs = SftpATTRS
 
-  sealed case class Dir_Entry(name: String, is_dir: Boolean)
-  {
+  sealed case class Dir_Entry(name: String, is_dir: Boolean) {
     def is_file: Boolean = !is_dir
   }
 
@@ -236,8 +238,7 @@ object SSH
 
   private val exec_wait_delay = Time.seconds(0.3)
 
-  class Exec private[SSH](session: Session, channel: ChannelExec) extends AutoCloseable
-  {
+  class Exec private[SSH](session: Session, channel: ChannelExec) extends AutoCloseable {
     override def toString: String = "exec " + session.toString
 
     def close(): Unit = channel.disconnect
@@ -258,16 +259,14 @@ object SSH
     def result(
       progress_stdout: String => Unit = (_: String) => (),
       progress_stderr: String => Unit = (_: String) => (),
-      strict: Boolean = true): Process_Result =
-    {
+      strict: Boolean = true
+    ): Process_Result = {
       stdin.close()
 
-      def read_lines(stream: InputStream, progress: String => Unit): List[String] =
-      {
+      def read_lines(stream: InputStream, progress: String => Unit): List[String] = {
         val result = new mutable.ListBuffer[String]
         val line_buffer = new ByteArrayOutputStream(100)
-        def line_flush(): Unit =
-        {
+        def line_flush(): Unit = {
           val line = Library.trim_line(line_buffer.toString(UTF8.charset_name))
           progress(line)
           result += line
@@ -292,8 +291,7 @@ object SSH
       val out_lines = Future.thread("ssh_stdout") { read_lines(stdout, progress_stdout) }
       val err_lines = Future.thread("ssh_stderr") { read_lines(stderr, progress_stderr) }
 
-      def terminate(): Unit =
-      {
+      def terminate(): Unit = {
         close()
         out_lines.join
         err_lines.join
@@ -319,8 +317,8 @@ object SSH
     val session: JSch_Session,
     on_close: () => Unit,
     val nominal_host: String,
-    val nominal_user: String) extends System
-  {
+    val nominal_user: String
+  ) extends System {
     def update_options(new_options: Options): Session =
       new Session(new_options, session, on_close, nominal_host, nominal_user)
 
@@ -350,8 +348,7 @@ object SSH
 
     override def close(): Unit = { sftp.disconnect; session.disconnect; on_close() }
 
-    val settings: JMap[String, String] =
-    {
+    val settings: JMap[String, String] = {
       val home = sftp.getHome
       JMap.of("HOME", home, "USER_HOME", home)
     }
@@ -379,8 +376,7 @@ object SSH
       try { sftp.lstat(remote_path(path)).isLink }
       catch { case _: SftpException => false }
 
-    override def make_directory(path: Path): Path =
-    {
+    override def make_directory(path: Path): Path = {
       if (!is_dir(path)) {
         execute(
           "perl -e \"use File::Path make_path; make_path('" + remote_path(path) + "');\"")
@@ -389,8 +385,7 @@ object SSH
       path
     }
 
-    def read_dir(path: Path): List[Dir_Entry] =
-    {
+    def read_dir(path: Path): List[Dir_Entry] = {
       if (!is_dir(path)) error("No such directory: " + path.toString)
 
       val dir_name = remote_path(path)
@@ -416,13 +411,12 @@ object SSH
       start: Path,
       pred: Path => Boolean = _ => true,
       include_dirs: Boolean = false,
-      follow_links: Boolean = false): List[Path] =
-    {
+      follow_links: Boolean = false
+    ): List[Path] = {
       val result = new mutable.ListBuffer[Path]
       def check(path: Path): Unit = { if (pred(path)) result += path }
 
-      def find(dir: Path): Unit =
-      {
+      def find(dir: Path): Unit = {
         if (include_dirs) check(dir)
         if (follow_links || !is_link(dir)) {
           for (entry <- read_dir(dir)) {
@@ -454,8 +448,7 @@ object SSH
 
     /* exec channel */
 
-    def exec(command: String): Exec =
-    {
+    def exec(command: String): Exec = {
       val channel = session.openChannel("exec").asInstanceOf[ChannelExec]
       channel.setCommand("export USER_HOME=\"$HOME\"\n" + command)
       new Exec(this, channel)
@@ -481,8 +474,7 @@ object SSH
     def tmp_dir(): String =
       execute("mktemp -d -t tmp.XXXXXXXXXX").check.out
 
-    override def with_tmp_dir[A](body: Path => A): A =
-    {
+    override def with_tmp_dir[A](body: Path => A): A = {
       val remote_dir = tmp_dir()
       try { body(Path.explode(remote_dir)) } finally { rm_tree(remote_dir) }
     }
@@ -491,8 +483,7 @@ object SSH
 
   /* system operations */
 
-  trait System extends AutoCloseable
-  {
+  trait System extends AutoCloseable {
     def close(): Unit = ()
 
     def hg_url: String = ""

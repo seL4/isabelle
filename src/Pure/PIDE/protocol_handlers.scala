@@ -7,20 +7,18 @@ Management of add-on protocol handlers for PIDE session.
 package isabelle
 
 
-object Protocol_Handlers
-{
+object Protocol_Handlers {
   private def err_handler(exn: Throwable, name: String): Nothing =
     error("Failed to initialize protocol handler: " + quote(name) + "\n" + Exn.message(exn))
 
   sealed case class State(
     session: Session,
     handlers: Map[String, Session.Protocol_Handler] = Map.empty,
-    functions: Map[String, Session.Protocol_Function] = Map.empty)
-  {
+    functions: Map[String, Session.Protocol_Function] = Map.empty
+  ) {
     def get(name: String): Option[Session.Protocol_Handler] = handlers.get(name)
 
-    def init(handler: Session.Protocol_Handler): State =
-    {
+    def init(handler: Session.Protocol_Handler): State = {
       val name = handler.getClass.getName
       try {
         if (handlers.isDefinedAt(name)) error("Duplicate protocol handler: " + name)
@@ -34,8 +32,7 @@ object Protocol_Handlers
       catch { case exn: Throwable => err_handler(exn, name) }
     }
 
-    def init(name: String): State =
-    {
+    def init(name: String): State = {
       val handler =
         try {
           Class.forName(name).getDeclaredConstructor().newInstance()
@@ -58,8 +55,7 @@ object Protocol_Handlers
         case _ => false
       }
 
-    def exit(): State =
-    {
+    def exit(): State = {
       for ((_, handler) <- handlers) handler.exit()
       copy(handlers = Map.empty, functions = Map.empty)
     }
@@ -69,8 +65,7 @@ object Protocol_Handlers
     new Protocol_Handlers(session)
 }
 
-class Protocol_Handlers private(session: Session)
-{
+class Protocol_Handlers private(session: Session) {
   private val state = Synchronized(Protocol_Handlers.State(session))
 
   def prover_options(options: Options): Options =

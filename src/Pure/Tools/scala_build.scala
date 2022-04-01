@@ -14,20 +14,16 @@ import java.nio.file.Files
 import scala.jdk.CollectionConverters._
 
 
-object Scala_Build
-{
-  class Context private[Scala_Build](java_context: isabelle.setup.Build.Context)
-  {
+object Scala_Build {
+  class Context private[Scala_Build](java_context: isabelle.setup.Build.Context) {
     override def toString: String = java_context.toString
 
-    def is_module(path: Path): Boolean =
-    {
+    def is_module(path: Path): Boolean = {
       val module_name = java_context.module_name()
       module_name.nonEmpty && File.eq(java_context.path(module_name).toFile, path.file)
     }
 
-    def module_result: Option[Path] =
-    {
+    def module_result: Option[Path] = {
       java_context.module_result() match {
         case "" => None
         case module => Some(File.path(java_context.path(module).toFile))
@@ -43,12 +39,10 @@ object Scala_Build
         p <- java_context.requirement_paths(s).asScala.iterator
       } yield (File.path(p.toFile))).toList
 
-    def build(fresh: Boolean = false): String =
-    {
+    def build(fresh: Boolean = false): String = {
       val output0 = new ByteArrayOutputStream
       val output = new PrintStream(output0)
-      def get_output(): String =
-      {
+      def get_output(): String = {
         output.flush()
         Library.trim_line(output0.toString(UTF8.charset))
       }
@@ -68,8 +62,8 @@ object Scala_Build
     component: Boolean = false,
     no_title: Boolean = false,
     do_build: Boolean = false,
-    module: Option[Path] = None): Context =
-  {
+    module: Option[Path] = None
+  ): Context = {
     val props_name =
       if (component) isabelle.setup.Build.COMPONENT_BUILD_PROPS
       else isabelle.setup.Build.BUILD_PROPS
@@ -89,16 +83,14 @@ object Scala_Build
     component: Boolean = false,
     no_title: Boolean = false,
     do_build: Boolean = false,
-    module: Option[Path] = None): String =
-  {
+    module: Option[Path] = None
+  ): String = {
     context(dir, component = component, no_title = no_title, do_build = do_build, module = module)
       .build(fresh = fresh)
   }
 
-  sealed case class Result(output: String, jar_bytes: Bytes, jar_path: Option[Path])
-  {
-    def write(): Unit =
-    {
+  sealed case class Result(output: String, jar_bytes: Bytes, jar_path: Option[Path]) {
+    def write(): Unit = {
       if (jar_path.isDefined) {
         Isabelle_System.make_directory(jar_path.get.dir)
         Bytes.write(jar_path.get, jar_bytes)
@@ -106,16 +98,14 @@ object Scala_Build
     }
   }
 
-  def build_result(dir: Path, component: Boolean = false): Result =
-  {
-    Isabelle_System.with_tmp_file("result", "jar")(tmp_file =>
-    {
+  def build_result(dir: Path, component: Boolean = false): Result = {
+    Isabelle_System.with_tmp_file("result", "jar") { tmp_file =>
       val output =
         build(dir, component = component, no_title = true, do_build = true, module = Some(tmp_file))
       val jar_bytes = Bytes.read(tmp_file)
       val jar_path = context(dir, component = component).module_result
       Result(output, jar_bytes, jar_path)
-    })
+    }
   }
 
   def component_contexts(): List[Context] =

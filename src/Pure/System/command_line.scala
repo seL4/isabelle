@@ -7,10 +7,8 @@ Support for Isabelle/Scala command line tools.
 package isabelle
 
 
-object Command_Line
-{
-  object Chunks
-  {
+object Command_Line {
+  object Chunks {
     private def chunks(list: List[String]): List[List[String]] =
       list.indexWhere(_ == "\n") match {
         case -1 => List(list)
@@ -21,8 +19,7 @@ object Command_Line
     def unapplySeq(list: List[String]): Option[List[List[String]]] = Some(chunks(list))
   }
 
-  def tool(body: => Unit): Unit =
-  {
+  def tool(body: => Unit): Unit = {
     val thread =
       Isabelle_Thread.fork(name = "command_line", inherit_locals = true) {
         val rc =

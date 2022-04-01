@@ -7,8 +7,7 @@ Build full Isabelle distribution from repository.
 package isabelle
 
 
-object Build_Release
-{
+object Build_Release {
   /** release context **/
 
   private def execute(dir: Path, script: String): Unit =
@@ -20,14 +19,13 @@ object Build_Release
   private def bash_java_opens(args: String*): String =
     Bash.strings(args.toList.flatMap(arg => List("--add-opens", arg + "=ALL-UNNAMED")))
 
-  object Release_Context
-  {
+  object Release_Context {
     def apply(
       target_dir: Path,
       release_name: String = "",
       components_base: Path = Components.default_components_base,
-      progress: Progress = new Progress): Release_Context =
-    {
+      progress: Progress = new Progress
+    ): Release_Context = {
       val date = Date.now()
       val dist_name = proper_string(release_name) getOrElse ("Isabelle_" + Date.Format.date(date))
       val dist_dir = (target_dir + Path.explode("dist-" + dist_name)).absolute
@@ -40,8 +38,8 @@ object Build_Release
     val dist_name: String,
     val dist_dir: Path,
     val components_base: Path,
-    val progress: Progress)
-  {
+    val progress: Progress
+  ) {
     override def toString: String = dist_name
 
     val isabelle: Path = Path.explode(dist_name)
@@ -54,8 +52,7 @@ object Build_Release
         isabelle_identifier = dist_name + "-build",
         progress = progress)
 
-    def make_announce(id: String): Unit =
-    {
+    def make_announce(id: String): Unit = {
       if (release_name.isEmpty) {
         File.write(isabelle_dir + Path.explode("ANNOUNCE"),
           """
@@ -67,8 +64,7 @@ This is a snapshot of Isabelle/""" + id + """ from the repository.
       }
     }
 
-    def make_contrib(): Unit =
-    {
+    def make_contrib(): Unit = {
       Isabelle_System.make_directory(Components.contrib(isabelle_dir))
       File.write(Components.contrib(isabelle_dir, name = "README"),
         """This directory contains add-on components that contribute to the main
@@ -90,8 +86,8 @@ directory individually.
   sealed case class Bundle_Info(
     platform: Platform.Family.Value,
     platform_description: String,
-    name: String)
-  {
+    name: String
+  ) {
     def path: Path = Path.explode(name)
   }
 
@@ -104,13 +100,10 @@ directory individually.
   val ISABELLE_TAGS: Path = Path.explode("etc/ISABELLE_TAGS")
   val ISABELLE_IDENTIFIER: Path = Path.explode("etc/ISABELLE_IDENTIFIER")
 
-  object Release_Archive
-  {
-    def make(bytes: Bytes, rename: String = ""): Release_Archive =
-    {
+  object Release_Archive {
+    def make(bytes: Bytes, rename: String = ""): Release_Archive = {
       Isabelle_System.with_tmp_dir("tmp")(dir =>
-        Isabelle_System.with_tmp_file("archive", ext = "tar.gz")(archive_path =>
-        {
+        Isabelle_System.with_tmp_file("archive", ext = "tar.gz") { archive_path =>
           val isabelle_dir = Isabelle_System.make_directory(dir + ISABELLE)
 
           Bytes.write(archive_path, bytes)
@@ -129,15 +122,18 @@ directory individually.
               (Bytes.read(archive_path), rename)
             }
           new Release_Archive(bytes1, id, tags, identifier1)
-        })
+        }
       )
     }
 
     def read(path: Path, rename: String = ""): Release_Archive =
       make(Bytes.read(path), rename = rename)
 
-    def get(url: String, rename: String = "", progress: Progress = new Progress): Release_Archive =
-    {
+    def get(
+      url: String,
+      rename: String = "",
+      progress: Progress = new Progress
+    ): Release_Archive = {
       val bytes =
         if (Path.is_wellformed(url)) Bytes.read(Path.explode(url))
         else Isabelle_System.download(url, progress = progress).bytes
@@ -146,8 +142,7 @@ directory individually.
   }
 
   case class Release_Archive private[Build_Release](
-    bytes: Bytes, id: String, tags: String, identifier: String)
-  {
+    bytes: Bytes, id: String, tags: String, identifier: String) {
     override def toString: String = identifier
   }
 
@@ -157,8 +152,7 @@ directory individually.
 
   /* bundled components */
 
-  class Bundled(platform: Option[Platform.Family.Value] = None)
-  {
+  class Bundled(platform: Option[Platform.Family.Value] = None) {
     def detect(s: String): Boolean =
       s.startsWith("#bundled") && !s.startsWith("#bundled ")
 
@@ -176,8 +170,7 @@ directory individually.
       }
   }
 
-  def record_bundled_components(dir: Path): Unit =
-  {
+  def record_bundled_components(dir: Path): Unit = {
     val catalogs =
       List("main", "bundled").map((_, new Bundled())) :::
       Platform.Family.list.flatMap(platform =>
@@ -195,8 +188,7 @@ directory individually.
         } yield bundled(line)).toList))
   }
 
-  def get_bundled_components(dir: Path, platform: Platform.Family.Value): (List[String], String) =
-  {
+  def get_bundled_components(dir: Path, platform: Platform.Family.Value): (List[String], String) = {
     val Bundled = new Bundled(platform = Some(platform))
     val components =
       for { Bundled(name) <- Components.read_components(dir) } yield name
@@ -206,8 +198,7 @@ directory individually.
   }
 
   def activate_components(
-    dir: Path, platform: Platform.Family.Value, more_names: List[String]): Unit =
-  {
+    dir: Path, platform: Platform.Family.Value, more_names: List[String]): Unit = {
     def contrib_name(name: String): String =
       Components.contrib(name = name).implode
 
@@ -231,8 +222,8 @@ directory individually.
     options: Options,
     platform: Platform.Family.Value,
     build_sessions: List[String],
-    local_dir: Path): Unit =
-  {
+    local_dir: Path
+  ): Unit = {
     val server_option = "build_host_" + platform.toString
     val ssh =
       options.string(server_option) match {
@@ -244,11 +235,9 @@ directory individually.
         case s => error("Malformed option " + server_option + ": " + quote(s))
       }
     try {
-      Isabelle_System.with_tmp_file("tmp", ext = "tar")(local_tmp_tar =>
-      {
+      Isabelle_System.with_tmp_file("tmp", ext = "tar") { local_tmp_tar =>
         execute_tar(local_dir, "-cf " + File.bash_path(local_tmp_tar) + " .")
-        ssh.with_tmp_dir(remote_dir =>
-        {
+        ssh.with_tmp_dir { remote_dir =>
           val remote_tmp_tar = remote_dir + Path.basic("tmp.tar")
           ssh.write_file(remote_tmp_tar, local_tmp_tar)
           val remote_commands =
@@ -259,9 +248,9 @@ directory individually.
               "tar -cf tmp.tar heaps")
           ssh.execute(remote_commands.mkString(" && "), settings = false).check
           ssh.read_file(remote_tmp_tar, local_tmp_tar)
-        })
+        }
         execute_tar(local_dir, "-xf " + File.bash_path(local_tmp_tar))
-      })
+      }
     }
     finally { ssh.close() }
   }
@@ -269,8 +258,7 @@ directory individually.
 
   /* Isabelle application */
 
-  def make_isabelle_options(path: Path, options: List[String], line_ending: String = "\n"): Unit =
-  {
+  def make_isabelle_options(path: Path, options: List[String], line_ending: String = "\n"): Unit = {
     val title = "# Java runtime options"
     File.write(path, (title :: options).map(_ + line_ending).mkString)
   }
@@ -281,8 +269,7 @@ directory individually.
     isabelle_name: String,
     jdk_component: String,
     classpath: List[Path],
-    dock_icon: Boolean = false): Unit =
-  {
+    dock_icon: Boolean = false): Unit = {
     val script = """#!/usr/bin/env bash
 #
 # Author: Makarius
@@ -330,8 +317,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
   }
 
 
-  def make_isabelle_plist(path: Path, isabelle_name: String, isabelle_rev: String): Unit =
-  {
+  def make_isabelle_plist(path: Path, isabelle_name: String, isabelle_rev: String): Unit = {
     File.write(path, """<?xml version="1.0" ?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -394,8 +380,8 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
   def use_release_archive(
     context: Release_Context,
     archive: Release_Archive,
-    id: String = ""): Unit =
-  {
+    id: String = ""
+  ): Unit = {
     if (id.nonEmpty && id != archive.id) {
       error("Mismatch of release identification " + id + " vs. archive " + archive.id)
     }
@@ -408,8 +394,8 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
   def build_release_archive(
     context: Release_Context,
     version: String,
-    parallel_jobs: Int = 1): Unit =
-  {
+    parallel_jobs: Int = 1
+  ): Unit = {
     val progress = context.progress
 
     val hg = Mercurial.repository(Path.ISABELLE_HOME)
@@ -497,8 +483,8 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
     website: Option[Path] = None,
     build_sessions: List[String] = Nil,
     build_library: Boolean = false,
-    parallel_jobs: Int = 1): Unit =
-  {
+    parallel_jobs: Int = 1
+  ): Unit = {
     val progress = context.progress
 
 
@@ -510,15 +496,14 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
       Isabelle_System.rm_tree(context.dist_dir + path)
     }
 
-    Isabelle_System.with_tmp_file("archive", ext = "tar.gz")(archive_path =>
-    {
+    Isabelle_System.with_tmp_file("archive", ext = "tar.gz") { archive_path =>
       Bytes.write(archive_path, archive.bytes)
       val extract =
         List("README", "NEWS", "ANNOUNCE", "COPYRIGHT", "CONTRIBUTORS", "doc").
           map(name => context.dist_name + "/" + name)
       execute_tar(context.dist_dir,
         "-xzf " + File.bash_path(archive_path) + " " + Bash.strings(extract))
-    })
+    }
 
     Isabelle_System.symlink(Path.explode(context.dist_name), context.dist_dir + ISABELLE)
 
@@ -533,8 +518,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
       progress.echo("\nApplication bundle for " + platform)
 
-      Isabelle_System.with_tmp_dir("build_release")(tmp_dir =>
-      {
+      Isabelle_System.with_tmp_dir("build_release") { tmp_dir =>
         // release archive
 
         execute_tar(tmp_dir, "-xzf " + File.bash_path(context.isabelle_archive))
@@ -578,19 +562,17 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
             if (opt.startsWith(s)) s + isabelle_name else opt
           }) ::: List("-Disabelle.jedit_server=" + isabelle_name)
 
-        val classpath: List[Path] =
-        {
+        val classpath: List[Path] = {
           val base = isabelle_target.absolute
           val classpath1 = Path.split(other_isabelle.getenv("ISABELLE_CLASSPATH"))
           val classpath2 = Path.split(other_isabelle.getenv("ISABELLE_SETUP_CLASSPATH"))
-          (classpath1 ::: classpath2).map(path =>
-          {
+          (classpath1 ::: classpath2).map { path =>
             val abs_path = path.absolute
             File.relative_path(base, abs_path) match {
               case Some(rel_path) => rel_path
               case None => error("Bad classpath element: " + abs_path)
             }
-          })
+          }
         }
 
         val jedit_options = Path.explode("src/Tools/jEdit/etc/options")
@@ -784,7 +766,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
               Bytes.read(sfx_exe) + Bytes(sfx_txt) + Bytes.read(exe_archive))
             File.set_executable(context.dist_dir + isabelle_exe, true)
         }
-      })
+      }
       progress.echo("DONE")
     }
 
@@ -833,27 +815,26 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
         progress.echo_warning("Library archive already exists: " + context.isabelle_library_archive)
       }
       else {
-        Isabelle_System.with_tmp_dir("build_release")(tmp_dir =>
-          {
-            val bundle =
-              context.dist_dir + Path.explode(context.dist_name + "_" + Platform.family + ".tar.gz")
-            execute_tar(tmp_dir, "-xzf " + File.bash_path(bundle))
+        Isabelle_System.with_tmp_dir("build_release") { tmp_dir =>
+          val bundle =
+            context.dist_dir + Path.explode(context.dist_name + "_" + Platform.family + ".tar.gz")
+          execute_tar(tmp_dir, "-xzf " + File.bash_path(bundle))
 
-            val other_isabelle = context.other_isabelle(tmp_dir)
+          val other_isabelle = context.other_isabelle(tmp_dir)
 
-            Isabelle_System.make_directory(other_isabelle.etc)
-            File.write(other_isabelle.etc_settings, "ML_OPTIONS=\"--minheap 1000 --maxheap 4000\"\n")
+          Isabelle_System.make_directory(other_isabelle.etc)
+          File.write(other_isabelle.etc_settings, "ML_OPTIONS=\"--minheap 1000 --maxheap 4000\"\n")
 
-            other_isabelle.bash("bin/isabelle build -f -j " + parallel_jobs +
-              " -o browser_info -o document=pdf -o document_variants=document:outline=/proof,/ML" +
-              " -o system_heaps -c -a -d '~~/src/Benchmarks'", echo = true).check
-            other_isabelle.isabelle_home_user.file.delete
+          other_isabelle.bash("bin/isabelle build -f -j " + parallel_jobs +
+            " -o browser_info -o document=pdf -o document_variants=document:outline=/proof,/ML" +
+            " -o system_heaps -c -a -d '~~/src/Benchmarks'", echo = true).check
+          other_isabelle.isabelle_home_user.file.delete
 
-            execute(tmp_dir, "chmod -R a+r " + Bash.string(context.dist_name))
-            execute(tmp_dir, "chmod -R g=o " + Bash.string(context.dist_name))
-            execute_tar(tmp_dir, "-czf " + File.bash_path(context.isabelle_library_archive) +
-              " " + Bash.string(context.dist_name + "/browser_info"))
-          })
+          execute(tmp_dir, "chmod -R a+r " + Bash.string(context.dist_name))
+          execute(tmp_dir, "chmod -R g=o " + Bash.string(context.dist_name))
+          execute_tar(tmp_dir, "-czf " + File.bash_path(context.isabelle_library_archive) +
+            " " + Bash.string(context.dist_name + "/browser_info"))
+        }
       }
     }
   }
@@ -862,8 +843,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
   /** command line entry point **/
 
-  def main(args: Array[String]): Unit =
-  {
+  def main(args: Array[String]): Unit = {
     Command_Line.tool {
       var afp_rev = ""
       var components_base: Path = Components.default_components_base

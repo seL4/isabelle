@@ -11,8 +11,7 @@ import java.util.{Map => JMap, HashMap}
 import java.io.{File => JFile}
 
 
-object ML_Process
-{
+object ML_Process {
   def apply(options: Options,
     sessions_structure: Sessions.Structure,
     store: Sessions.Store,
@@ -26,8 +25,8 @@ object ML_Process
     env: JMap[String, String] = Isabelle_System.settings(),
     redirect: Boolean = false,
     cleanup: () => Unit = () => (),
-    session_base: Option[Sessions.Base] = None): Bash.Process =
-  {
+    session_base: Option[Sessions.Base] = None
+  ): Bash.Process = {
     val logic_name = Isabelle_System.default_logic(logic)
 
     val heaps: List[String] =
@@ -101,8 +100,7 @@ object ML_Process
     // ISABELLE_TMP
     val isabelle_tmp = Isabelle_System.tmp_dir("process")
 
-    val ml_runtime_options =
-    {
+    val ml_runtime_options = {
       val ml_options = Word.explode(Isabelle_System.getenv("ML_OPTIONS"))
       val ml_options1 =
         if (ml_options.exists(_.containsSlice("gcthreads"))) ml_options
@@ -131,28 +129,27 @@ object ML_Process
       cwd = cwd,
       env = bash_env,
       redirect = redirect,
-      cleanup = () =>
-        {
-          isabelle_process_options.delete
-          init_session.delete
-          Isabelle_System.rm_tree(isabelle_tmp)
-          cleanup()
-        })
+      cleanup = { () =>
+        isabelle_process_options.delete
+        init_session.delete
+        Isabelle_System.rm_tree(isabelle_tmp)
+        cleanup()
+      })
   }
 
 
   /* Isabelle tool wrapper */
 
   val isabelle_tool = Isabelle_Tool("process", "raw ML process (batch mode)",
-    Scala_Project.here, args =>
-  {
-    var dirs: List[Path] = Nil
-    var eval_args: List[String] = Nil
-    var logic = Isabelle_System.getenv("ISABELLE_LOGIC")
-    var modes: List[String] = Nil
-    var options = Options.init()
+    Scala_Project.here,
+    { args =>
+      var dirs: List[Path] = Nil
+      var eval_args: List[String] = Nil
+      var logic = Isabelle_System.getenv("ISABELLE_LOGIC")
+      var modes: List[String] = Nil
+      var options = Options.init()
 
-    val getopts = Getopts("""
+      val getopts = Getopts("""
 Usage: isabelle process [OPTIONS]
 
   Options are:
@@ -166,27 +163,26 @@ Usage: isabelle process [OPTIONS]
 
   Run the raw Isabelle ML process in batch mode.
 """,
-      "T:" -> (arg =>
-        eval_args = eval_args ::: List("--eval", "use_thy " + ML_Syntax.print_string_bytes(arg))),
-      "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
-      "e:" -> (arg => eval_args = eval_args ::: List("--eval", arg)),
-      "f:" -> (arg => eval_args = eval_args ::: List("--use", arg)),
-      "l:" -> (arg => logic = arg),
-      "m:" -> (arg => modes = arg :: modes),
-      "o:" -> (arg => options = options + arg))
+        "T:" -> (arg =>
+          eval_args = eval_args ::: List("--eval", "use_thy " + ML_Syntax.print_string_bytes(arg))),
+        "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
+        "e:" -> (arg => eval_args = eval_args ::: List("--eval", arg)),
+        "f:" -> (arg => eval_args = eval_args ::: List("--use", arg)),
+        "l:" -> (arg => logic = arg),
+        "m:" -> (arg => modes = arg :: modes),
+        "o:" -> (arg => options = options + arg))
 
-    val more_args = getopts(args)
-    if (args.isEmpty || more_args.nonEmpty) getopts.usage()
+      val more_args = getopts(args)
+      if (args.isEmpty || more_args.nonEmpty) getopts.usage()
 
-    val base_info = Sessions.base_info(options, logic, dirs = dirs).check
-    val store = Sessions.store(options)
-    val result =
-      ML_Process(options, base_info.sessions_structure, store, logic = logic, args = eval_args,
-        modes = modes, session_base = Some(base_info.base))
-        .result(
-          progress_stdout = Output.writeln(_, stdout = true),
-          progress_stderr = Output.writeln(_))
+      val base_info = Sessions.base_info(options, logic, dirs = dirs).check
+      val store = Sessions.store(options)
+      val result =
+        ML_Process(options, base_info.sessions_structure, store, logic = logic, args = eval_args,
+          modes = modes, session_base = Some(base_info.base)).result(
+            progress_stdout = Output.writeln(_, stdout = true),
+            progress_stderr = Output.writeln(_))
 
-    sys.exit(result.rc)
-  })
+      sys.exit(result.rc)
+    })
 }

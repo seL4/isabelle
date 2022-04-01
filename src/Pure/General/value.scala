@@ -7,10 +7,8 @@ Plain values, represented as string.
 package isabelle
 
 
-object Value
-{
-  object Boolean
-  {
+object Value {
+  object Boolean {
     def apply(x: scala.Boolean): java.lang.String = x.toString
     def unapply(s: java.lang.String): Option[scala.Boolean] =
       s match {
@@ -22,8 +20,7 @@ object Value
       unapply(s) getOrElse error("Bad boolean: " + quote(s))
   }
 
-  object Nat
-  {
+  object Nat {
     def unapply(s: java.lang.String): Option[scala.Int] =
       s match {
         case Int(n) if n >= 0 => Some(n)
@@ -33,8 +30,7 @@ object Value
       unapply(s) getOrElse error("Bad natural number: " + quote(s))
   }
 
-  object Int
-  {
+  object Int {
     def apply(x: scala.Int): java.lang.String = Library.signed_string_of_int(x)
     def unapply(s: java.lang.String): Option[scala.Int] =
       try { Some(Integer.parseInt(s)) }
@@ -43,8 +39,7 @@ object Value
       unapply(s) getOrElse error("Bad integer: " + quote(s))
   }
 
-  object Long
-  {
+  object Long {
     def apply(x: scala.Long): java.lang.String = Library.signed_string_of_long(x)
     def unapply(s: java.lang.String): Option[scala.Long] =
       try { Some(java.lang.Long.parseLong(s)) }
@@ -53,8 +48,7 @@ object Value
       unapply(s) getOrElse error("Bad integer: " + quote(s))
   }
 
-  object Double
-  {
+  object Double {
     def apply(x: scala.Double): java.lang.String = x.toString
     def unapply(s: java.lang.String): Option[scala.Double] =
       try { Some(java.lang.Double.parseDouble(s)) }
@@ -63,10 +57,8 @@ object Value
       unapply(s) getOrElse error("Bad real: " + quote(s))
   }
 
-  object Seconds
-  {
-    def apply(t: Time): java.lang.String =
-    {
+  object Seconds {
+    def apply(t: Time): java.lang.String = {
       val s = t.seconds
       if (s.toInt.toDouble == s) s.toInt.toString else t.toString
     }

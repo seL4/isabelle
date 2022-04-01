@@ -10,13 +10,13 @@ package isabelle.vscode
 import isabelle._
 
 
-object Dynamic_Output
-{
-  sealed case class State(do_update: Boolean = true, output: List[XML.Tree] = Nil)
-  {
+object Dynamic_Output {
+  sealed case class State(do_update: Boolean = true, output: List[XML.Tree] = Nil) {
     def handle_update(
-      resources: VSCode_Resources, channel: Channel, restriction: Option[Set[Command]]): State =
-    {
+      resources: VSCode_Resources,
+      channel: Channel,
+      restriction: Option[Set[Command]]
+    ): State = {
       val st1 =
         resources.get_caret() match {
           case None => copy(output = Nil)
@@ -57,8 +57,7 @@ object Dynamic_Output
 }
 
 
-class Dynamic_Output private(server: Language_Server)
-{
+class Dynamic_Output private(server: Language_Server) {
   private val state = Synchronized(Dynamic_Output.State())
 
   private def handle_update(restriction: Option[Set[Command]]): Unit =
@@ -76,15 +75,13 @@ class Dynamic_Output private(server: Language_Server)
         handle_update(None)
     }
 
-  def init(): Unit =
-  {
+  def init(): Unit = {
     server.session.commands_changed += main
     server.session.caret_focus += main
     handle_update(None)
   }
 
-  def exit(): Unit =
-  {
+  def exit(): Unit = {
     server.session.commands_changed -= main
     server.session.caret_focus -= main
   }

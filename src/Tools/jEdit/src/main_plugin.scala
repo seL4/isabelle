@@ -22,18 +22,15 @@ import org.gjt.sp.util.SyntaxUtilities
 import org.gjt.sp.util.Log
 
 
-object PIDE
-{
+object PIDE {
   /* semantic document content */
 
-  def maybe_snapshot(view: View = null): Option[Document.Snapshot] = GUI_Thread.now
-  {
+  def maybe_snapshot(view: View = null): Option[Document.Snapshot] = GUI_Thread.now {
     val buffer = JEdit_Lib.jedit_view(view).getBuffer
     Document_Model.get(buffer).map(_.snapshot())
   }
 
-  def maybe_rendering(view: View = null): Option[JEdit_Rendering] = GUI_Thread.now
-  {
+  def maybe_rendering(view: View = null): Option[JEdit_Rendering] = GUI_Thread.now {
     val text_area = JEdit_Lib.jedit_view(view).getTextArea
     Document_View.get(text_area).map(_.get_rendering())
   }
@@ -60,8 +57,7 @@ object PIDE
   object editor extends JEdit_Editor
 }
 
-class Main_Plugin extends EBPlugin
-{
+class Main_Plugin extends EBPlugin {
   /* options */
 
   private var _options: JEdit_Options = null
@@ -92,14 +88,12 @@ class Main_Plugin extends EBPlugin
 
   /* global changes */
 
-  def options_changed(): Unit =
-  {
+  def options_changed(): Unit = {
     session.global_options.post(Session.Global_Options(options.value))
     delay_load.invoke()
   }
 
-  def deps_changed(): Unit =
-  {
+  def deps_changed(): Unit = {
     delay_load.invoke()
   }
 
@@ -107,23 +101,19 @@ class Main_Plugin extends EBPlugin
   /* theory files */
 
   lazy val delay_init: Delay =
-    Delay.last(options.seconds("editor_load_delay"), gui = true)
-    {
+    Delay.last(options.seconds("editor_load_delay"), gui = true) {
       init_models()
     }
 
   private val delay_load_active = Synchronized(false)
   private def delay_load_activated(): Boolean =
     delay_load_active.guarded_access(a => Some((!a, true)))
-  private def delay_load_action(): Unit =
-  {
+  private def delay_load_action(): Unit = {
     if (Isabelle.continuous_checking && delay_load_activated() &&
-        PerspectiveManager.isPerspectiveEnabled)
-    {
+        PerspectiveManager.isPerspectiveEnabled) {
       if (JEdit_Lib.jedit_buffers().exists(_.isLoading)) delay_load.invoke()
       else {
-        val required_files =
-        {
+        val required_files = {
           val models = Document_Model.get_models()
 
           val thys =
@@ -189,8 +179,7 @@ class Main_Plugin extends EBPlugin
 
   /* session phase */
 
-  val session_phase_changed: Session.Consumer[Session.Phase] = Session.Consumer("Isabelle/jEdit")
-  {
+  val session_phase_changed: Session.Consumer[Session.Phase] = Session.Consumer("Isabelle/jEdit") {
     case Session.Terminated(result) if !result.ok =>
       GUI_Thread.later {
         GUI.error_dialog(jEdit.getActiveView, "Prover process terminated with error",
@@ -229,8 +218,7 @@ class Main_Plugin extends EBPlugin
 
   /* document model and view */
 
-  def exit_models(buffers: List[Buffer]): Unit =
-  {
+  def exit_models(buffers: List[Buffer]): Unit = {
     GUI_Thread.now {
       buffers.foreach(buffer =>
         JEdit_Lib.buffer_lock(buffer) {
@@ -240,8 +228,7 @@ class Main_Plugin extends EBPlugin
       }
   }
 
-  def init_models(): Unit =
-  {
+  def init_models(): Unit = {
     GUI_Thread.now {
       PIDE.editor.flush()
 
@@ -289,14 +276,12 @@ class Main_Plugin extends EBPlugin
   @volatile private var startup_failure: Option[Throwable] = None
   @volatile private var startup_notified = false
 
-  private def init_editor(view: View): Unit =
-  {
+  private def init_editor(view: View): Unit = {
     Keymap_Merge.check_dialog(view)
     Session_Build.check_dialog(view)
   }
 
-  private def init_title(view: View): Unit =
-  {
+  private def init_title(view: View): Unit = {
     val title =
       proper_string(Isabelle_System.getenv("ISABELLE_IDENTIFIER")).getOrElse("Isabelle") +
         "/" + PIDE.resources.session_name
@@ -308,8 +293,7 @@ class Main_Plugin extends EBPlugin
     }
   }
 
-  override def handleMessage(message: EBMessage): Unit =
-  {
+  override def handleMessage(message: EBMessage): Unit = {
     GUI_Thread.assert {}
 
     if (startup_failure.isDefined && !startup_notified) {
@@ -409,8 +393,7 @@ class Main_Plugin extends EBPlugin
   private var orig_mode_provider: ModeProvider = null
   private var pide_mode_provider: ModeProvider = null
 
-  def init_mode_provider(): Unit =
-  {
+  def init_mode_provider(): Unit = {
     orig_mode_provider = ModeProvider.instance
     if (orig_mode_provider.isInstanceOf[ModeProvider]) {
       pide_mode_provider = new Token_Markup.Mode_Provider(orig_mode_provider)
@@ -418,8 +401,7 @@ class Main_Plugin extends EBPlugin
     }
   }
 
-  def exit_mode_provider(): Unit =
-  {
+  def exit_mode_provider(): Unit = {
     if (ModeProvider.instance == pide_mode_provider)
       ModeProvider.instance = orig_mode_provider
   }
@@ -437,8 +419,7 @@ class Main_Plugin extends EBPlugin
 
   private val shutting_down = Synchronized(false)
 
-  override def start(): Unit =
-  {
+  override def start(): Unit = {
     /* strict initialization */
 
     init_options()
@@ -476,8 +457,7 @@ class Main_Plugin extends EBPlugin
     if (view != null) init_editor(view)
   }
 
-  override def stop(): Unit =
-  {
+  override def stop(): Unit = {
     http_server.stop()
 
     Syntax_Style.set_extender(Syntax_Style.Base_Extender)

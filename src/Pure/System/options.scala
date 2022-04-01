@@ -7,8 +7,7 @@ System options with external string representation.
 package isabelle
 
 
-object Options
-{
+object Options {
   type Spec = (String, Option[String])
 
   val empty: Options = new Options()
@@ -16,8 +15,7 @@ object Options
 
   /* representation */
 
-  sealed abstract class Type
-  {
+  sealed abstract class Type {
     def print: String = Word.lowercase(toString)
   }
   case object Bool extends Type
@@ -35,8 +33,8 @@ object Options
     default_value: String,
     standard_value: Option[String],
     description: String,
-    section: String)
-  {
+    section: String
+  ) {
     private def print_value(x: String): String = if (typ == Options.String) quote(x) else x
     private def print_standard: String =
       standard_value match {
@@ -44,8 +42,7 @@ object Options
         case Some(s) if s == default_value => " (standard)"
         case Some(s) => " (standard " + print_value(s) + ")"
       }
-    private def print(default: Boolean): String =
-    {
+    private def print(default: Boolean): String = {
       val x = if (default) default_value else value
       "option " + name + " : " + typ.print + " = " + print_value(x) + print_standard +
         (if (description == "") "" else "\n  -- " + quote(description))
@@ -54,8 +51,7 @@ object Options
     def print: String = print(false)
     def print_default: String = print(true)
 
-    def title(strip: String = ""): String =
-    {
+    def title(strip: String = ""): String = {
       val words = Word.explode('_', name)
       val words1 =
         words match {
@@ -88,8 +84,7 @@ object Options
 
   val prefs_syntax: Outer_Syntax = Outer_Syntax.empty + "="
 
-  trait Parser extends Parse.Parser
-  {
+  trait Parser extends Parse.Parser {
     val option_name: Parser[String] = atom("option name", _.is_name)
     val option_type: Parser[String] = atom("option type", _.is_name)
     val option_value: Parser[String] =
@@ -100,13 +95,11 @@ object Options
       $$$("(") ~! $$$(STANDARD) ~ opt(option_value) ~ $$$(")") ^^ { case _ ~ _ ~ a ~ _ => a }
   }
 
-  private object Parser extends Parser
-  {
+  private object Parser extends Parser {
     def comment_marker: Parser[String] =
       $$$("--") | $$$(Symbol.comment) | $$$(Symbol.comment_decoded)
 
-    val option_entry: Parser[Options => Options] =
-    {
+    val option_entry: Parser[Options => Options] = {
       command(SECTION) ~! text ^^
         { case _ ~ a => (options: Options) => options.set_section(a) } |
       opt($$$(PUBLIC)) ~ command(OPTION) ~! (position(option_name) ~ $$$(":") ~ option_type ~
@@ -116,16 +109,18 @@ object Options
             (options: Options) => options.declare(a.isDefined, pos, b, c, d, e, f) }
     }
 
-    val prefs_entry: Parser[Options => Options] =
-    {
+    val prefs_entry: Parser[Options => Options] = {
       option_name ~ ($$$("=") ~! option_value) ^^
       { case a ~ (_ ~ b) => (options: Options) => options.add_permissive(a, b) }
     }
 
-    def parse_file(options: Options, file_name: String, content: String,
+    def parse_file(
+      options: Options,
+      file_name: String,
+      content: String,
       syntax: Outer_Syntax = options_syntax,
-      parser: Parser[Options => Options] = option_entry): Options =
-    {
+      parser: Parser[Options => Options] = option_entry
+    ): Options = {
       val toks = Token.explode(syntax.keywords, content)
       val ops =
         parse_all(rep(parser), Token.reader(toks, Token.Pos.file(file_name))) match {
@@ -143,8 +138,7 @@ object Options
   def read_prefs(file: Path = PREFS): String =
     if (file.is_file) File.read(file) else ""
 
-  def init(prefs: String = read_prefs(PREFS), opts: List[String] = Nil): Options =
-  {
+  def init(prefs: String = read_prefs(PREFS), opts: List[String] = Nil): Options = {
     var options = empty
     for {
       dir <- Components.directories()
@@ -157,14 +151,14 @@ object Options
   /* Isabelle tool wrapper */
 
   val isabelle_tool = Isabelle_Tool("options", "print Isabelle system options",
-    Scala_Project.here, args =>
-  {
-    var build_options = false
-    var get_option = ""
-    var list_options = false
-    var export_file = ""
+    Scala_Project.here,
+    { args =>
+      var build_options = false
+      var get_option = ""
+      var list_options = false
+      var export_file = ""
 
-    val getopts = Getopts("""
+      val getopts = Getopts("""
 Usage: isabelle options [OPTIONS] [MORE_OPTIONS ...]
 
   Options are:
@@ -176,40 +170,39 @@ Usage: isabelle options [OPTIONS] [MORE_OPTIONS ...]
   Report Isabelle system options, augmented by MORE_OPTIONS given as
   arguments NAME=VAL or NAME.
 """,
-      "b" -> (_ => build_options = true),
-      "g:" -> (arg => get_option = arg),
-      "l" -> (_ => list_options = true),
-      "x:" -> (arg => export_file = arg))
+        "b" -> (_ => build_options = true),
+        "g:" -> (arg => get_option = arg),
+        "l" -> (_ => list_options = true),
+        "x:" -> (arg => export_file = arg))
 
-    val more_options = getopts(args)
-    if (get_option == "" && !list_options && export_file == "") getopts.usage()
+      val more_options = getopts(args)
+      if (get_option == "" && !list_options && export_file == "") getopts.usage()
 
-    val options =
-    {
-      val options0 = Options.init()
-      val options1 =
-        if (build_options)
-          Word.explode(Isabelle_System.getenv("ISABELLE_BUILD_OPTIONS")).foldLeft(options0)(_ + _)
-        else options0
-      more_options.foldLeft(options1)(_ + _)
-    }
+      val options = {
+        val options0 = Options.init()
+        val options1 =
+          if (build_options)
+            Word.explode(Isabelle_System.getenv("ISABELLE_BUILD_OPTIONS")).foldLeft(options0)(_ + _)
+          else options0
+        more_options.foldLeft(options1)(_ + _)
+      }
 
-    if (get_option != "")
-      Output.writeln(options.check_name(get_option).value, stdout = true)
+      if (get_option != "")
+        Output.writeln(options.check_name(get_option).value, stdout = true)
 
-    if (export_file != "")
-      File.write(Path.explode(export_file), YXML.string_of_body(options.encode))
+      if (export_file != "")
+        File.write(Path.explode(export_file), YXML.string_of_body(options.encode))
 
-    if (get_option == "" && export_file == "")
-      Output.writeln(options.print, stdout = true)
-  })
+      if (get_option == "" && export_file == "")
+        Output.writeln(options.print, stdout = true)
+    })
 }
 
 
 final class Options private(
   val options: Map[String, Options.Opt] = Map.empty,
-  val section: String = "")
-{
+  val section: String = ""
+) {
   override def toString: String = options.iterator.mkString("Options(", ",", ")")
 
   private def print_opt(opt: Options.Opt): String =
@@ -228,8 +221,7 @@ final class Options private(
       case _ => error("Unknown option " + quote(name))
     }
 
-  private def check_type(name: String, typ: Options.Type): Options.Opt =
-  {
+  private def check_type(name: String, typ: Options.Type): Options.Opt = {
     val opt = check_name(name)
     if (opt.typ == typ) opt
     else error("Ill-typed option " + quote(name) + " : " + opt.typ.print + " vs. " + typ.print)
@@ -238,14 +230,12 @@ final class Options private(
 
   /* basic operations */
 
-  private def put[A](name: String, typ: Options.Type, value: String): Options =
-  {
+  private def put[A](name: String, typ: Options.Type, value: String): Options = {
     val opt = check_type(name, typ)
     new Options(options + (name -> opt.copy(value = value)), section)
   }
 
-  private def get[A](name: String, typ: Options.Type, parse: String => Option[A]): A =
-  {
+  private def get[A](name: String, typ: Options.Type, parse: String => Option[A]): A = {
     val opt = check_type(name, typ)
     parse(opt.value) match {
       case Some(x) => x
@@ -258,32 +248,28 @@ final class Options private(
 
   /* internal lookup and update */
 
-  class Bool_Access
-  {
+  class Bool_Access {
     def apply(name: String): Boolean = get(name, Options.Bool, Value.Boolean.unapply)
     def update(name: String, x: Boolean): Options =
       put(name, Options.Bool, Value.Boolean(x))
   }
   val bool = new Bool_Access
 
-  class Int_Access
-  {
+  class Int_Access {
     def apply(name: String): Int = get(name, Options.Int, Value.Int.unapply)
     def update(name: String, x: Int): Options =
       put(name, Options.Int, Value.Int(x))
   }
   val int = new Int_Access
 
-  class Real_Access
-  {
+  class Real_Access {
     def apply(name: String): Double = get(name, Options.Real, Value.Double.unapply)
     def update(name: String, x: Double): Options =
       put(name, Options.Real, Value.Double(x))
   }
   val real = new Real_Access
 
-  class String_Access
-  {
+  class String_Access {
     def apply(name: String): String = get(name, Options.String, s => Some(s))
     def update(name: String, x: String): Options = put(name, Options.String, x)
   }
@@ -297,8 +283,7 @@ final class Options private(
 
   /* external updates */
 
-  private def check_value(name: String): Options =
-  {
+  private def check_value(name: String): Options = {
     val opt = check_name(name)
     opt.typ match {
       case Options.Bool => bool(name); this
@@ -316,8 +301,8 @@ final class Options private(
     typ_name: String,
     value: String,
     standard: Option[Option[String]],
-    description: String): Options =
-  {
+    description: String
+  ): Options = {
     options.get(name) match {
       case Some(other) =>
         error("Duplicate declaration of option " + quote(name) + Position.here(pos) +
@@ -347,8 +332,7 @@ final class Options private(
     }
   }
 
-  def add_permissive(name: String, value: String): Options =
-  {
+  def add_permissive(name: String, value: String): Options = {
     if (options.isDefinedAt(name)) this + (name, value)
     else {
       val opt = Options.Opt(false, Position.none, name, Options.Unknown, value, value, None, "", "")
@@ -356,14 +340,12 @@ final class Options private(
     }
   }
 
-  def + (name: String, value: String): Options =
-  {
+  def + (name: String, value: String): Options = {
     val opt = check_name(name)
     (new Options(options + (name -> opt.copy(value = value)), section)).check_value(name)
   }
 
-  def + (name: String, opt_value: Option[String]): Options =
-  {
+  def + (name: String, opt_value: Option[String]): Options = {
     val opt = check_name(name)
     opt_value orElse opt.standard_value match {
       case Some(value) => this + (name, value)
@@ -393,8 +375,7 @@ final class Options private(
 
   /* encode */
 
-  def encode: XML.Body =
-  {
+  def encode: XML.Body = {
     val opts =
       for ((_, opt) <- options.toList; if !opt.unknown)
         yield (opt.pos, (opt.name, (opt.typ.print, opt.value)))
@@ -406,8 +387,7 @@ final class Options private(
 
   /* save preferences */
 
-  def save_prefs(file: Path = Options.PREFS): Unit =
-  {
+  def save_prefs(file: Path = Options.PREFS): Unit = {
     val defaults: Options = Options.init(prefs = "")
     val changed =
       (for {
@@ -426,8 +406,7 @@ final class Options private(
 }
 
 
-class Options_Variable(init_options: Options)
-{
+class Options_Variable(init_options: Options) {
   private var options = init_options
 
   def value: Options = synchronized { options }
@@ -435,29 +414,25 @@ class Options_Variable(init_options: Options)
   private def upd(f: Options => Options): Unit = synchronized { options = f(options) }
   def += (name: String, x: String): Unit = upd(opts => opts + (name, x))
 
-  class Bool_Access
-  {
+  class Bool_Access {
     def apply(name: String): Boolean = value.bool(name)
     def update(name: String, x: Boolean): Unit = upd(opts => opts.bool.update(name, x))
   }
   val bool = new Bool_Access
 
-  class Int_Access
-  {
+  class Int_Access {
     def apply(name: String): Int = value.int(name)
     def update(name: String, x: Int): Unit = upd(opts => opts.int.update(name, x))
   }
   val int = new Int_Access
 
-  class Real_Access
-  {
+  class Real_Access {
     def apply(name: String): Double = value.real(name)
     def update(name: String, x: Double): Unit = upd(opts => opts.real.update(name, x))
   }
   val real = new Real_Access
 
-  class String_Access
-  {
+  class String_Access {
     def apply(name: String): String = value.string(name)
     def update(name: String, x: String): Unit = upd(opts => opts.string.update(name, x))
   }

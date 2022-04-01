@@ -18,8 +18,7 @@ import org.gjt.sp.jedit.gui.DynamicContextMenuService
 import org.gjt.sp.jedit.textarea.JEditTextArea
 
 
-class Context_Menu extends DynamicContextMenuService
-{
+class Context_Menu extends DynamicContextMenuService {
   def createMenu(text_area: JEditTextArea, evt: MouseEvent): Array[JMenuItem] =
     if (evt == null) null
     else {

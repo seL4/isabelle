@@ -11,8 +11,7 @@ package isabelle
 import scala.collection.mutable
 
 
-object YXML
-{
+object YXML {
   /* chunk markers */
 
   val X = '\u0005'
@@ -32,8 +31,7 @@ object YXML
 
   /* string representation */
 
-  def traversal(string: String => Unit, body: XML.Body): Unit =
-  {
+  def traversal(string: String => Unit, body: XML.Body): Unit = {
     def tree(t: XML.Tree): Unit =
       t match {
         case XML.Elem(markup @ Markup(name, atts), ts) =>
@@ -51,8 +49,7 @@ object YXML
     body.foreach(tree)
   }
 
-  def string_of_body(body: XML.Body): String =
-  {
+  def string_of_body(body: XML.Body): String = {
     val s = new StringBuilder
     traversal(str => s ++= str, body)
     s.toString
@@ -74,8 +71,7 @@ object YXML
     Properties.Eq.unapply(source.toString) getOrElse err_attribute()
 
 
-  def parse_body(source: CharSequence, cache: XML.Cache = XML.Cache.none): XML.Body =
-  {
+  def parse_body(source: CharSequence, cache: XML.Cache = XML.Cache.none): XML.Body = {
     /* stack operations */
 
     def buffer(): mutable.ListBuffer[XML.Tree] = new mutable.ListBuffer[XML.Tree]
@@ -134,14 +130,12 @@ object YXML
   private def markup_broken(source: CharSequence) =
     XML.Elem(Markup.Broken, List(XML.Text(source.toString)))
 
-  def parse_body_failsafe(source: CharSequence, cache: XML.Cache = XML.Cache.none): XML.Body =
-  {
+  def parse_body_failsafe(source: CharSequence, cache: XML.Cache = XML.Cache.none): XML.Body = {
     try { parse_body(source, cache = cache) }
     catch { case ERROR(_) => List(markup_broken(source)) }
   }
 
-  def parse_failsafe(source: CharSequence, cache: XML.Cache = XML.Cache.none): XML.Tree =
-  {
+  def parse_failsafe(source: CharSequence, cache: XML.Cache = XML.Cache.none): XML.Tree = {
     try { parse(source, cache = cache) }
     catch { case ERROR(_) => markup_broken(source) }
   }

@@ -10,8 +10,7 @@ package isabelle
 import scala.collection.mutable
 
 
-object Outer_Syntax
-{
+object Outer_Syntax {
   /* syntax */
 
   val empty: Outer_Syntax = new Outer_Syntax()
@@ -21,8 +20,7 @@ object Outer_Syntax
 
   /* string literals */
 
-  def quote_string(str: String): String =
-  {
+  def quote_string(str: String): String = {
     val result = new StringBuilder(str.length + 10)
     result += '"'
     for (s <- Symbol.iterator(str)) {
@@ -47,8 +45,8 @@ final class Outer_Syntax private(
   val keywords: Keyword.Keywords = Keyword.Keywords.empty,
   val rev_abbrevs: Thy_Header.Abbrevs = Nil,
   val language_context: Completion.Language_Context = Completion.Language_Context.outer,
-  val has_tokens: Boolean = true)
-{
+  val has_tokens: Boolean = true
+) {
   /** syntax content **/
 
   override def toString: String = keywords.toString
@@ -83,8 +81,7 @@ final class Outer_Syntax private(
 
   /* completion */
 
-  private lazy val completion: Completion =
-  {
+  private lazy val completion: Completion = {
     val completion_keywords = (keywords.minor.iterator ++ keywords.major.iterator).toList
     val completion_abbrevs =
       completion_keywords.flatMap(name =>
@@ -109,8 +106,8 @@ final class Outer_Syntax private(
     start: Text.Offset,
     text: CharSequence,
     caret: Int,
-    context: Completion.Language_Context): Option[Completion.Result] =
-  {
+    context: Completion.Language_Context
+  ): Option[Completion.Result] = {
     completion.complete(history, unicode, explicit, start, text, caret, context)
   }
 
@@ -145,8 +142,7 @@ final class Outer_Syntax private(
   def set_language_context(context: Completion.Language_Context): Outer_Syntax =
     new Outer_Syntax(keywords, rev_abbrevs, context, has_tokens)
 
-  def no_tokens: Outer_Syntax =
-  {
+  def no_tokens: Outer_Syntax = {
     require(keywords.is_empty, "bad syntax keywords")
     new Outer_Syntax(
       rev_abbrevs = rev_abbrevs,
@@ -160,14 +156,12 @@ final class Outer_Syntax private(
 
   /* command spans */
 
-  def parse_spans(toks: List[Token]): List[Command_Span.Span] =
-  {
+  def parse_spans(toks: List[Token]): List[Command_Span.Span] = {
     val result = new mutable.ListBuffer[Command_Span.Span]
     val content = new mutable.ListBuffer[Token]
     val ignored = new mutable.ListBuffer[Token]
 
-    def ship(content: List[Token]): Unit =
-    {
+    def ship(content: List[Token]): Unit = {
       val kind =
         if (content.forall(_.is_ignored)) Command_Span.Ignored_Span
         else if (content.exists(_.is_error)) Command_Span.Malformed_Span
@@ -187,8 +181,7 @@ final class Outer_Syntax private(
       result += Command_Span.Span(kind, content)
     }
 
-    def flush(): Unit =
-    {
+    def flush(): Unit = {
       if (content.nonEmpty) { ship(content.toList); content.clear() }
       if (ignored.nonEmpty) { ship(ignored.toList); ignored.clear() }
     }
@@ -197,8 +190,9 @@ final class Outer_Syntax private(
       if (tok.is_ignored) ignored += tok
       else if (keywords.is_before_command(tok) ||
         tok.is_command &&
-          (!content.exists(keywords.is_before_command) || content.exists(_.is_command)))
-      { flush(); content += tok }
+          (!content.exists(keywords.is_before_command) || content.exists(_.is_command))) {
+        flush(); content += tok
+      }
       else { content ++= ignored; ignored.clear(); content += tok }
     }
     flush()

@@ -15,8 +15,7 @@ import scala.collection.mutable
 import scala.util.matching.Regex
 
 
-object Phabricator
-{
+object Phabricator {
   /** defaults **/
 
   /* required packages */
@@ -32,8 +31,7 @@ object Phabricator
       // mercurial build packages
       "make", "gcc", "python", "python2-dev", "python-docutils", "python-openssl")
 
-  def packages: List[String] =
-  {
+  def packages: List[String] = {
     val release = Linux.Release()
     if (release.is_ubuntu_20_04) packages_ubuntu_20_04
     else error("Bad Linux version: expected Ubuntu 20.04 LTS")
@@ -81,8 +79,7 @@ object Phabricator
   def global_config_script(
     init: String = "",
     body: String = "",
-    exit: String = ""): String =
-  {
+    exit: String = ""): String = {
 """#!/bin/bash
 """ + (if (init.nonEmpty) "\n" + init else "") + """
 {
@@ -98,16 +95,14 @@ object Phabricator
     (if (exit.nonEmpty) "\n" + exit + "\n" else "")
   }
 
-  sealed case class Config(name: String, root: Path)
-  {
+  sealed case class Config(name: String, root: Path) {
     def home: Path = root + Path.explode(phabricator_name())
 
     def execute(command: String): Process_Result =
       Isabelle_System.bash("bin/" + command, cwd = home.file, redirect = true).check
   }
 
-  def read_config(): List[Config] =
-  {
+  def read_config(): List[Config] = {
     if (global_config.is_file) {
       for (entry <- Library.trim_split_lines(File.read(global_config)) if entry.nonEmpty)
       yield {
@@ -120,8 +115,7 @@ object Phabricator
     else Nil
   }
 
-  def write_config(configs: List[Config]): Unit =
-  {
+  def write_config(configs: List[Config]): Unit = {
     File.write(global_config,
       configs.map(config => config.name + ":" + config.root.implode).mkString("", "\n", "\n"))
   }
@@ -138,13 +132,12 @@ object Phabricator
 
   val isabelle_tool1 =
     Isabelle_Tool("phabricator", "invoke command-line tool within Phabricator home directory",
-      Scala_Project.here, args =>
-    {
-      var list = false
-      var name = default_name
+      Scala_Project.here,
+      { args =>
+        var list = false
+        var name = default_name
 
-      val getopts =
-        Getopts("""
+        val getopts = Getopts("""
 Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
 
   Options are:
@@ -157,29 +150,28 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
           "l" -> (_ => list = true),
           "n:" -> (arg => name = arg))
 
-      val more_args = getopts(args)
-      if (more_args.isEmpty && !list) getopts.usage()
+        val more_args = getopts(args)
+        if (more_args.isEmpty && !list) getopts.usage()
 
-      val progress = new Console_Progress
+        val progress = new Console_Progress
 
-      if (list) {
-        for (config <- read_config()) {
-          progress.echo("phabricator " + quote(config.name) + " root " + config.root)
+        if (list) {
+          for (config <- read_config()) {
+            progress.echo("phabricator " + quote(config.name) + " root " + config.root)
+          }
         }
-      }
-      else {
-        val config = get_config(name)
-        val result = progress.bash(Bash.strings(more_args), cwd = config.home.file, echo = true)
-        if (!result.ok) error(result.print_return_code)
-      }
-    })
+        else {
+          val config = get_config(name)
+          val result = progress.bash(Bash.strings(more_args), cwd = config.home.file, echo = true)
+          if (!result.ok) error(result.print_return_code)
+        }
+      })
 
 
 
   /** setup **/
 
-  def user_setup(name: String, description: String, ssh_setup: Boolean = false): Unit =
-  {
+  def user_setup(name: String, description: String, ssh_setup: Boolean = false): Unit = {
     if (!Linux.user_exists(name)) {
       Linux.user_add(name, description = description, system = true, ssh_setup = ssh_setup)
     }
@@ -192,8 +184,8 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
   def command_setup(name: String,
     init: String = "",
     body: String = "",
-    exit: String = ""): Path =
-  {
+    exit: String = ""
+  ): Path = {
     val command = Path.explode("/usr/local/bin") + Path.basic(name)
     File.write(command, global_config_script(init = init, body = body, exit = exit))
     Isabelle_System.chmod("755", command)
@@ -201,11 +193,9 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
     command
   }
 
-  def mercurial_setup(mercurial_source: String, progress: Progress = new Progress): Unit =
-  {
+  def mercurial_setup(mercurial_source: String, progress: Progress = new Progress): Unit = {
     progress.echo("\nMercurial installation from source " + quote(mercurial_source) + " ...")
-    Isabelle_System.with_tmp_dir("mercurial")(tmp_dir =>
-    {
+    Isabelle_System.with_tmp_dir("mercurial") { tmp_dir =>
       val archive =
         if (Url.is_wellformed(mercurial_source)) {
           val archive = tmp_dir + Path.basic("mercurial.tar.gz")
@@ -218,7 +208,7 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
       val build_dir = tmp_dir + Path.basic(File.get_dir(tmp_dir))
 
       progress.bash("make all && make install", cwd = build_dir.file, echo = true).check
-    })
+    }
   }
 
   def phabricator_setup(
@@ -228,8 +218,8 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
     repo: String = "",
     package_update: Boolean = false,
     mercurial_source: String = "",
-    progress: Progress = new Progress): Unit =
-  {
+    progress: Progress = new Progress
+  ): Unit = {
     /* system environment */
 
     Linux.check_system_root()
@@ -345,8 +335,7 @@ local_infile = 0
     Linux.service_restart("mysql")
 
 
-    def mysql_conf(R: Regex, which: String): String =
-    {
+    def mysql_conf(R: Regex, which: String): String = {
       val conf = Path.explode("/etc/mysql/debian.cnf")
       split_lines(File.read(conf)).collectFirst({ case R(a) => a }) match {
         case Some(res) => res
@@ -528,17 +517,16 @@ WantedBy=multi-user.target
 
   val isabelle_tool2 =
     Isabelle_Tool("phabricator_setup", "setup Phabricator server on Ubuntu Linux",
-      Scala_Project.here, args =>
-    {
-      var mercurial_source = ""
-      var repo = ""
-      var package_update = false
-      var name = default_name
-      var options = Options.init()
-      var root = ""
+      Scala_Project.here,
+      { args =>
+        var mercurial_source = ""
+        var repo = ""
+        var package_update = false
+        var name = default_name
+        var options = Options.init()
+        var root = ""
 
-      val getopts =
-        Getopts("""
+        val getopts = Getopts("""
 Usage: isabelle phabricator_setup [OPTIONS]
 
   Options are:
@@ -562,14 +550,14 @@ Usage: isabelle phabricator_setup [OPTIONS]
           "o:" -> (arg => options = options + arg),
           "r:" -> (arg => root = arg))
 
-      val more_args = getopts(args)
-      if (more_args.nonEmpty) getopts.usage()
+        val more_args = getopts(args)
+        if (more_args.nonEmpty) getopts.usage()
 
-      val progress = new Console_Progress
+        val progress = new Console_Progress
 
-      phabricator_setup(options, name = name, root = root, repo = repo,
-        package_update = package_update, mercurial_source = mercurial_source, progress = progress)
-    })
+        phabricator_setup(options, name = name, root = root, repo = repo,
+          package_update = package_update, mercurial_source = mercurial_source, progress = progress)
+      })
 
 
 
@@ -595,8 +583,8 @@ Usage: isabelle phabricator_setup [OPTIONS]
     name: String = default_name,
     config_file: Option[Path] = None,
     test_user: String = "",
-    progress: Progress = new Progress): Unit =
-  {
+    progress: Progress = new Progress
+  ): Unit = {
     Linux.check_system_root()
 
     val config = get_config(name)
@@ -604,8 +592,7 @@ Usage: isabelle phabricator_setup [OPTIONS]
 
     val mail_config = config_file getOrElse default_config_file
 
-    def setup_mail: Unit =
-    {
+    def setup_mail: Unit = {
       progress.echo("Using mail configuration from " + mail_config)
       config.execute("config set cluster.mailers --stdin < " + File.bash_path(mail_config))
 
@@ -636,14 +623,13 @@ Usage: isabelle phabricator_setup [OPTIONS]
 
   val isabelle_tool3 =
     Isabelle_Tool("phabricator_setup_mail", "setup mail for one Phabricator installation",
-      Scala_Project.here, args =>
-    {
-      var test_user = ""
-      var name = default_name
-      var config_file: Option[Path] = None
+      Scala_Project.here,
+      { args =>
+        var test_user = ""
+        var name = default_name
+        var config_file: Option[Path] = None
 
-      val getopts =
-        Getopts("""
+        val getopts = Getopts("""
 Usage: isabelle phabricator_setup_mail [OPTIONS]
 
   Options are:
@@ -657,14 +643,14 @@ Usage: isabelle phabricator_setup_mail [OPTIONS]
           "f:" -> (arg => config_file = Some(Path.explode(arg))),
           "n:" -> (arg => name = arg))
 
-      val more_args = getopts(args)
-      if (more_args.nonEmpty) getopts.usage()
+        val more_args = getopts(args)
+        if (more_args.nonEmpty) getopts.usage()
 
-      val progress = new Console_Progress
+        val progress = new Console_Progress
 
-      phabricator_setup_mail(name = name, config_file = config_file,
-        test_user = test_user, progress = progress)
-    })
+        phabricator_setup_mail(name = name, config_file = config_file,
+          test_user = test_user, progress = progress)
+      })
 
 
 
@@ -679,8 +665,7 @@ Usage: isabelle phabricator_setup_mail [OPTIONS]
   def conf_ssh_port(port: Int): String =
     if (port == SSH.default_port) "#Port " + SSH.default_port else "Port " + port
 
-  def read_ssh_port(conf: Path): Int =
-  {
+  def read_ssh_port(conf: Path): Int = {
     val lines = split_lines(File.read(conf))
     val ports =
       lines.flatMap({
@@ -695,8 +680,7 @@ Usage: isabelle phabricator_setup_mail [OPTIONS]
     }
   }
 
-  def write_ssh_port(conf: Path, port: Int): Boolean =
-  {
+  def write_ssh_port(conf: Path, port: Int): Boolean = {
     val old_port = read_ssh_port(conf)
     if (old_port == port) false
     else {
@@ -713,8 +697,8 @@ Usage: isabelle phabricator_setup_mail [OPTIONS]
   def phabricator_setup_ssh(
     server_port: Int = default_server_port,
     system_port: Int = default_system_port,
-    progress: Progress = new Progress): Unit =
-  {
+    progress: Progress = new Progress
+  ): Unit = {
     Linux.check_system_root()
 
     val configs = read_config()
@@ -799,13 +783,12 @@ Alias=""" + ssh_name + """.service
 
   val isabelle_tool4 =
     Isabelle_Tool("phabricator_setup_ssh", "setup ssh service for all Phabricator installations",
-      Scala_Project.here, args =>
-    {
-      var server_port = default_server_port
-      var system_port = default_system_port
+      Scala_Project.here,
+      { args =>
+        var server_port = default_server_port
+        var system_port = default_system_port
 
-      val getopts =
-        Getopts("""
+        val getopts = Getopts("""
 Usage: isabelle phabricator_setup_ssh [OPTIONS]
 
   Options are:
@@ -823,21 +806,20 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
           "p:" -> (arg => server_port = Value.Int.parse(arg)),
           "q:" -> (arg => system_port = Value.Int.parse(arg)))
 
-      val more_args = getopts(args)
-      if (more_args.nonEmpty) getopts.usage()
+        val more_args = getopts(args)
+        if (more_args.nonEmpty) getopts.usage()
 
-      val progress = new Console_Progress
+        val progress = new Console_Progress
 
-      phabricator_setup_ssh(
-        server_port = server_port, system_port = system_port, progress = progress)
-    })
+        phabricator_setup_ssh(
+          server_port = server_port, system_port = system_port, progress = progress)
+      })
 
 
 
   /** conduit API **/
 
-  object API
-  {
+  object API {
     /* user information */
 
     sealed case class User(
@@ -845,8 +827,8 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
       phid: String,
       name: String,
       real_name: String,
-      roles: List[String])
-    {
+      roles: List[String]
+    ) {
       def is_valid: Boolean =
         roles.contains("verified") &&
         roles.contains("approved") &&
@@ -866,13 +848,12 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
       callsign: String,
       short_name: String,
       importing: Boolean,
-      ssh_url: String)
-    {
+      ssh_url: String
+    ) {
       def is_hg: Boolean = vcs == VCS.hg
     }
 
-    object VCS extends Enumeration
-    {
+    object VCS extends Enumeration {
       val hg, git, svn = Value
       def read(s: String): Value =
         try { withName(s) }
@@ -888,8 +869,7 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
 
     /* result with optional error */
 
-    sealed case class Result(result: JSON.T, error: Option[String])
-    {
+    sealed case class Result(result: JSON.T, error: Option[String]) {
       def ok: Boolean = error.isEmpty
       def get: JSON.T = if (ok) result else Exn.error(error.get)
 
@@ -899,8 +879,7 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
       def get_string: String = get_value(JSON.Value.String.unapply)
     }
 
-    def make_result(json: JSON.T): Result =
-    {
+    def make_result(json: JSON.T): Result = {
       val result = JSON.value(json, "result").getOrElse(JSON.Object.empty)
       val error_info = JSON.string(json, "error_info")
       val error_code = JSON.string(json, "error_code")
@@ -914,8 +893,7 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
       new API(user, host, port)
   }
 
-  final class API private(ssh_user: String, ssh_host: String, ssh_port: Int)
-  {
+  final class API private(ssh_user: String, ssh_host: String, ssh_port: Int) {
     /* connection */
 
     require(ssh_host.nonEmpty && ssh_port >= 0, "bad ssh host or port")
@@ -929,25 +907,25 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
 
     /* execute methods */
 
-    def execute_raw(method: String, params: JSON.T = JSON.Object.empty): JSON.T =
-    {
-      Isabelle_System.with_tmp_file("params", "json")(params_file =>
-      {
+    def execute_raw(method: String, params: JSON.T = JSON.Object.empty): JSON.T = {
+      Isabelle_System.with_tmp_file("params", "json") { params_file =>
         File.write(params_file, JSON.Format(JSON.Object("params" -> JSON.Format(params))))
         val result =
           Isabelle_System.bash(
             "ssh -p " + ssh_port + " " + Bash.string(ssh_user_prefix + ssh_host) +
             " conduit " + Bash.string(method) + " < " + File.bash_path(params_file)).check
         JSON.parse(result.out, strict = false)
-      })
+      }
     }
 
     def execute(method: String, params: JSON.T = JSON.Object.empty): API.Result =
       API.make_result(execute_raw(method, params = params))
 
     def execute_search[A](
-      method: String, params: JSON.Object.T, unapply: JSON.T => Option[A]): List[A] =
-    {
+      method: String,
+      params: JSON.Object.T,
+      unapply: JSON.T => Option[A]
+    ): List[A] = {
       val results = new mutable.ListBuffer[A]
       var after = ""
 
@@ -974,8 +952,8 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
     def get_users(
       all: Boolean = false,
       phid: String = "",
-      name: String = ""): List[API.User] =
-    {
+      name: String = ""
+    ): List[API.User] = {
       val constraints: JSON.Object.T =
         (for { (key, value) <- List("phids" -> phid, "usernames" -> name) if value.nonEmpty }
           yield (key, List(value))).toMap
@@ -1005,8 +983,8 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
       all: Boolean = false,
       phid: String = "",
       callsign: String = "",
-      short_name: String = ""): List[API.Repository] =
-    {
+      short_name: String = ""
+    ): List[API.Repository] = {
       val constraints: JSON.Object.T =
         (for {
           (key, value) <- List("phids" -> phid, "callsigns" -> callsign, "shortNames" -> short_name)
@@ -1051,8 +1029,8 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
       short_name: String = "",  // unique name
       description: String = "",
       public: Boolean = false,
-      vcs: API.VCS.Value = API.VCS.hg): API.Repository =
-    {
+      vcs: API.VCS.Value = API.VCS.hg
+    ): API.Repository = {
       require(name.nonEmpty, "bad repository name")
 
       val transactions =

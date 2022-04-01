@@ -7,8 +7,7 @@ Build docker image from Isabelle application bundle for Linux.
 package isabelle
 
 
-object Build_Docker
-{
+object Build_Docker {
   private val default_base = "ubuntu"
   private lazy val default_logic = Isabelle_System.getenv("ISABELLE_LOGIC")
 
@@ -31,8 +30,8 @@ object Build_Docker
     output: Option[Path] = None,
     more_packages: List[String] = Nil,
     tag: String = "",
-    verbose: Boolean = false): Unit =
-  {
+    verbose: Boolean = false
+  ): Unit = {
     val isabelle_name =
       app_archive match {
         case Isabelle_Name(name) => name
@@ -78,22 +77,21 @@ ENTRYPOINT ["Isabelle/bin/isabelle"]
     output.foreach(File.write(_, dockerfile))
 
     if (!no_build) {
-      Isabelle_System.with_tmp_dir("docker")(tmp_dir =>
-        {
-          File.write(tmp_dir + Path.explode("Dockerfile"), dockerfile)
+      Isabelle_System.with_tmp_dir("docker") { tmp_dir =>
+        File.write(tmp_dir + Path.explode("Dockerfile"), dockerfile)
 
-          if (is_remote) {
-            if (!Url.is_readable(app_archive))
-              error("Cannot access remote archive " + app_archive)
-          }
-          else Isabelle_System.copy_file(Path.explode(app_archive),
-            tmp_dir + Path.explode("Isabelle.tar.gz"))
+        if (is_remote) {
+          if (!Url.is_readable(app_archive))
+            error("Cannot access remote archive " + app_archive)
+        }
+        else Isabelle_System.copy_file(Path.explode(app_archive),
+          tmp_dir + Path.explode("Isabelle.tar.gz"))
 
-          val quiet_option = if (verbose) "" else " -q"
-          val tag_option = if (tag == "") "" else " -t " + Bash.string(tag)
-          progress.bash("docker build" + quiet_option + tag_option + " " + File.bash_path(tmp_dir),
-            echo = true).check
-        })
+        val quiet_option = if (verbose) "" else " -q"
+        val tag_option = if (tag == "") "" else " -t " + Bash.string(tag)
+        progress.bash("docker build" + quiet_option + tag_option + " " + File.bash_path(tmp_dir),
+          echo = true).check
+      }
     }
   }
 
@@ -102,19 +100,18 @@ ENTRYPOINT ["Isabelle/bin/isabelle"]
 
   val isabelle_tool =
     Isabelle_Tool("build_docker", "build Isabelle docker image",
-      Scala_Project.here, args =>
-    {
-      var base = default_base
-      var entrypoint = false
-      var logic = default_logic
-      var no_build = false
-      var output: Option[Path] = None
-      var more_packages: List[String] = Nil
-      var verbose = false
-      var tag = ""
+      Scala_Project.here,
+      { args =>
+        var base = default_base
+        var entrypoint = false
+        var logic = default_logic
+        var no_build = false
+        var output: Option[Path] = None
+        var more_packages: List[String] = Nil
+        var verbose = false
+        var tag = ""
 
-      val getopts =
-        Getopts("""
+        val getopts = Getopts("""
 Usage: isabelle build_docker [OPTIONS] APP_ARCHIVE
 
   Options are:
@@ -146,15 +143,15 @@ Usage: isabelle build_docker [OPTIONS] APP_ARCHIVE
           "t:" -> (arg => tag = arg),
           "v" -> (_ => verbose = true))
 
-      val more_args = getopts(args)
-      val app_archive =
-        more_args match {
-          case List(arg) => arg
-          case _ => getopts.usage()
-        }
+        val more_args = getopts(args)
+        val app_archive =
+          more_args match {
+            case List(arg) => arg
+            case _ => getopts.usage()
+          }
 
-      build_docker(new Console_Progress(), app_archive, base = base, logic = logic,
-        no_build = no_build, entrypoint = entrypoint, output = output,
-        more_packages = more_packages, tag = tag, verbose = verbose)
-    })
+        build_docker(new Console_Progress(), app_archive, base = base, logic = logic,
+          no_build = no_build, entrypoint = entrypoint, output = output,
+          more_packages = more_packages, tag = tag, verbose = verbose)
+      })
 }

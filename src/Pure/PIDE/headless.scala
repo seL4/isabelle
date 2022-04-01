@@ -13,13 +13,14 @@ import scala.annotation.tailrec
 import scala.collection.mutable
 
 
-object Headless
-{
+object Headless {
   /** session **/
 
   private def stable_snapshot(
-    state: Document.State, version: Document.Version, name: Document.Node.Name): Document.Snapshot =
-  {
+    state: Document.State,
+    version: Document.Version,
+    name: Document.Node.Name
+  ): Document.Snapshot = {
     val snapshot = state.snapshot(name)
     assert(version.id == snapshot.version.id)
     snapshot
@@ -29,10 +30,9 @@ object Headless
     val state: Document.State,
     val version: Document.Version,
     val nodes: List[(Document.Node.Name, Document_Status.Node_Status)],
-    val nodes_committed: List[(Document.Node.Name, Document_Status.Node_Status)])
-  {
-    def nodes_pending: List[(Document.Node.Name, Document_Status.Node_Status)] =
-    {
+    val nodes_committed: List[(Document.Node.Name, Document_Status.Node_Status)]
+  ) {
+    def nodes_pending: List[(Document.Node.Name, Document_Status.Node_Status)] = {
       val committed = nodes_committed.iterator.map(_._1).toSet
       nodes.filter(p => !committed(p._1))
     }
@@ -47,8 +47,8 @@ object Headless
   class Session private[Headless](
     session_name: String,
     _session_options: => Options,
-    override val resources: Resources) extends isabelle.Session(_session_options, resources)
-  {
+    override val resources: Resources)
+  extends isabelle.Session(_session_options, resources) {
     session =>
 
 
@@ -78,8 +78,7 @@ object Headless
 
     override def toString: String = session_name
 
-    override def stop(): Process_Result =
-    {
+    override def stop(): Process_Result = {
       try { super.stop() }
       finally { Isabelle_System.rm_tree(tmp_dir) }
     }
@@ -87,8 +86,7 @@ object Headless
 
     /* theories */
 
-    private object Load_State
-    {
+    private object Load_State {
       def finished: Load_State = Load_State(Nil, Nil, 0)
 
       def count_file(name: Document.Node.Name): Long =
@@ -96,15 +94,18 @@ object Headless
     }
 
     private case class Load_State(
-      pending: List[Document.Node.Name], rest: List[Document.Node.Name], load_limit: Long)
-    {
+      pending: List[Document.Node.Name],
+      rest: List[Document.Node.Name],
+      load_limit: Long
+    ) {
       def next(
         dep_graph: Document.Node.Name.Graph[Unit],
-        finished: Document.Node.Name => Boolean): (List[Document.Node.Name], Load_State) =
-      {
-        def load_requirements(pending1: List[Document.Node.Name], rest1: List[Document.Node.Name])
-          : (List[Document.Node.Name], Load_State) =
-        {
+        finished: Document.Node.Name => Boolean
+      ): (List[Document.Node.Name], Load_State) = {
+        def load_requirements(
+          pending1: List[Document.Node.Name],
+          rest1: List[Document.Node.Name]
+        ) : (List[Document.Node.Name], Load_State) = {
           val load_theories = dep_graph.all_preds_rev(pending1).filterNot(finished)
           (load_theories, Load_State(pending1, rest1, load_limit))
         }
@@ -129,8 +130,8 @@ object Headless
       last_update: Time = Time.now(),
       nodes_status: Document_Status.Nodes_Status = Document_Status.Nodes_Status.empty,
       already_committed: Map[Document.Node.Name, Document_Status.Node_Status] = Map.empty,
-      result: Option[Exn.Result[Use_Theories_Result]] = None)
-    {
+      result: Option[Exn.Result[Use_Theories_Result]] = None
+    ) {
       def update(new_nodes_status: Document_Status.Nodes_Status): Use_Theories_State =
         copy(last_update = Time.now(), nodes_status = new_nodes_status)
 
@@ -145,11 +146,11 @@ object Headless
       def cancel_result: Use_Theories_State =
         if (finished_result) this else copy(result = Some(Exn.Exn(Exn.Interrupt())))
 
-      def clean_theories: (List[Document.Node.Name], Use_Theories_State) =
-      {
-        @tailrec def frontier(base: List[Document.Node.Name], front: Set[Document.Node.Name])
-          : Set[Document.Node.Name] =
-        {
+      def clean_theories: (List[Document.Node.Name], Use_Theories_State) = {
+        @tailrec def frontier(
+          base: List[Document.Node.Name],
+          front: Set[Document.Node.Name]
+        ) : Set[Document.Node.Name] = {
           val add = base.filter(name => dep_graph.imm_succs(name).forall(front))
           if (add.isEmpty) front
           else {
@@ -176,9 +177,11 @@ object Headless
         }
       }
 
-      def check(state: Document.State, version: Document.Version, beyond_limit: Boolean)
-        : (List[Document.Node.Name], Use_Theories_State) =
-      {
+      def check(
+        state: Document.State,
+        version: Document.Version,
+        beyond_limit: Boolean
+      ) : (List[Document.Node.Name], Use_Theories_State) = {
         val already_committed1 =
           commit match {
             case None => already_committed
@@ -189,8 +192,7 @@ object Headless
                     version.nodes(name).header.imports.forall(parent =>
                       loaded_theory(parent) || committed.isDefinedAt(parent))
                   if (!committed.isDefinedAt(name) && parents_committed &&
-                      state.node_consolidated(version, name))
-                  {
+                      state.node_consolidated(version, name)) {
                     val snapshot = stable_snapshot(state, version, name)
                     val status = Document_Status.Node_Status.make(state, version, name)
                     commit_fn(snapshot, status)
@@ -209,8 +211,7 @@ object Headless
           if (!finished_result &&
             (beyond_limit || watchdog ||
               dep_graph.keys_iterator.forall(name =>
-                finished_theory(name) || nodes_status.quasi_consolidated(name))))
-          {
+                finished_theory(name) || nodes_status.quasi_consolidated(name)))) {
             val nodes =
               (for {
                 name <- dep_graph.keys_iterator
@@ -245,10 +246,9 @@ object Headless
       // commit: must not block, must not fail
       commit: Option[(Document.Snapshot, Document_Status.Node_Status) => Unit] = None,
       commit_cleanup_delay: Time = default_commit_cleanup_delay,
-      progress: Progress = new Progress): Use_Theories_Result =
-    {
-      val dependencies =
-      {
+      progress: Progress = new Progress
+    ): Use_Theories_Result = {
+      val dependencies = {
         val import_names =
           theories.map(thy =>
             resources.import_name(qualifier, master_directory(master_dir), thy) -> Position.none)
@@ -260,8 +260,7 @@ object Headless
         for (path <- dependencies.loaded_files)
           yield Document.Node.Name(resources.append("", path))
 
-      val use_theories_state =
-      {
+      val use_theories_state = {
         val dep_graph = dependencies.theory_graph
 
         val maximals = dep_graph.maximals
@@ -279,8 +278,7 @@ object Headless
         Synchronized(Use_Theories_State(dep_graph, load_state, watchdog_timeout, commit))
       }
 
-      def check_state(beyond_limit: Boolean = false): Unit =
-      {
+      def check_state(beyond_limit: Boolean = false): Unit = {
         val state = session.get_state()
         for {
           version <- state.stable_tip_version
@@ -289,21 +287,18 @@ object Headless
         } resources.load_theories(session, id, load_theories, dep_files, unicode_symbols, progress)
       }
 
-      val check_progress =
-      {
+      val check_progress = {
         var check_count = 0
-        Event_Timer.request(Time.now(), repeat = Some(check_delay))
-          {
-            if (progress.stopped) use_theories_state.change(_.cancel_result)
-            else {
-              check_count += 1
-              check_state(check_limit > 0 && check_count > check_limit)
-            }
+        Event_Timer.request(Time.now(), repeat = Some(check_delay)) {
+          if (progress.stopped) use_theories_state.change(_.cancel_result)
+          else {
+            check_count += 1
+            check_state(check_limit > 0 && check_count > check_limit)
           }
+        }
       }
 
-      val consumer =
-      {
+      val consumer = {
         val delay_nodes_status =
           Delay.first(nodes_status_delay max Time.zero) {
             progress.nodes_status(use_theories_state.value.nodes_status)
@@ -326,30 +321,29 @@ object Headless
               val version = snapshot.version
 
               val theory_progress =
-                use_theories_state.change_result(st =>
-                  {
-                    val domain =
-                      if (st.nodes_status.is_empty) dep_theories_set
-                      else changed.nodes.iterator.filter(dep_theories_set).toSet
+                use_theories_state.change_result { st =>
+                  val domain =
+                    if (st.nodes_status.is_empty) dep_theories_set
+                    else changed.nodes.iterator.filter(dep_theories_set).toSet
 
-                    val (nodes_status_changed, nodes_status1) =
-                      st.nodes_status.update(resources, state, version,
-                        domain = Some(domain), trim = changed.assignment)
+                  val (nodes_status_changed, nodes_status1) =
+                    st.nodes_status.update(resources, state, version,
+                      domain = Some(domain), trim = changed.assignment)
 
-                    if (nodes_status_delay >= Time.zero && nodes_status_changed) {
-                      delay_nodes_status.invoke()
-                    }
+                  if (nodes_status_delay >= Time.zero && nodes_status_changed) {
+                    delay_nodes_status.invoke()
+                  }
 
-                    val theory_progress =
-                      (for {
-                        (name, node_status) <- nodes_status1.present.iterator
-                        if changed.nodes.contains(name) && !st.already_committed.isDefinedAt(name)
-                        p1 = node_status.percentage
-                        if p1 > 0 && Some(p1) != st.nodes_status.get(name).map(_.percentage)
-                      } yield Progress.Theory(name.theory, percentage = Some(p1))).toList
+                  val theory_progress =
+                    (for {
+                      (name, node_status) <- nodes_status1.present.iterator
+                      if changed.nodes.contains(name) && !st.already_committed.isDefinedAt(name)
+                      p1 = node_status.percentage
+                      if p1 > 0 && Some(p1) != st.nodes_status.get(name).map(_.percentage)
+                    } yield Progress.Theory(name.theory, percentage = Some(p1))).toList
 
-                    (theory_progress, st.update(nodes_status1))
-                  })
+                  (theory_progress, st.update(nodes_status1))
+                }
 
               theory_progress.foreach(progress.theory)
 
@@ -382,8 +376,8 @@ object Headless
       theories: List[String],
       qualifier: String = Sessions.DRAFT,
       master_dir: String = "",
-      all: Boolean = false): (List[Document.Node.Name], List[Document.Node.Name]) =
-    {
+      all: Boolean = false
+    ): (List[Document.Node.Name], List[Document.Node.Name]) = {
       val nodes =
         if (all) None
         else Some(theories.map(resources.import_name(qualifier, master_directory(master_dir), _)))
@@ -395,8 +389,7 @@ object Headless
 
   /** resources **/
 
-  object Resources
-  {
+  object Resources {
     def apply(options: Options, base_info: Sessions.Base_Info, log: Logger = No_Logger): Resources =
       new Resources(options, base_info, log = log)
 
@@ -406,8 +399,8 @@ object Headless
       session_dirs: List[Path] = Nil,
       include_sessions: List[String] = Nil,
       progress: Progress = new Progress,
-      log: Logger = No_Logger): Resources =
-    {
+      log: Logger = No_Logger
+    ): Resources = {
       val base_info =
         Sessions.base_info(options, session_name, dirs = session_dirs,
           include_sessions = include_sessions, progress = progress)
@@ -418,8 +411,8 @@ object Headless
       val node_name: Document.Node.Name,
       val node_header: Document.Node.Header,
       val text: String,
-      val node_required: Boolean)
-    {
+      val node_required: Boolean
+    ) {
       override def toString: String = node_name.toString
 
       def node_perspective: Document.Node.Perspective_Text =
@@ -430,8 +423,7 @@ object Headless
           node_name -> Document.Node.Edits(text_edits),
           node_name -> node_perspective)
 
-      def node_edits(old: Option[Theory]): List[Document.Edit_Text] =
-      {
+      def node_edits(old: Option[Theory]): List[Document.Edit_Text] = {
         val (text_edits, old_required) =
           if (old.isEmpty) (Text.Edit.inserts(0, text), false)
           else (Text.Edit.replace(0, old.get.text, text), old.get.node_required)
@@ -451,20 +443,17 @@ object Headless
     sealed case class State(
       blobs: Map[Document.Node.Name, Document.Blob] = Map.empty,
       theories: Map[Document.Node.Name, Theory] = Map.empty,
-      required: Multi_Map[Document.Node.Name, UUID.T] = Multi_Map.empty)
-    {
+      required: Multi_Map[Document.Node.Name, UUID.T] = Multi_Map.empty
+    ) {
       /* blobs */
 
       def doc_blobs: Document.Blobs = Document.Blobs(blobs)
 
-      def update_blobs(names: List[Document.Node.Name]): (Document.Blobs, State) =
-      {
+      def update_blobs(names: List[Document.Node.Name]): (Document.Blobs, State) = {
         val new_blobs =
-          names.flatMap(name =>
-          {
+          names.flatMap { name =>
             val bytes = Bytes.read(name.path)
-            def new_blob: Document.Blob =
-            {
+            def new_blob: Document.Blob = {
               val text = bytes.text
               Document.Blob(bytes, text, Symbol.Text_Chunk(text), changed = true)
             }
@@ -472,15 +461,16 @@ object Headless
               case Some(blob) => if (blob.bytes == bytes) None else Some(name -> new_blob)
               case None => Some(name -> new_blob)
             }
-          })
+          }
         val blobs1 = new_blobs.foldLeft(blobs)(_ + _)
         val blobs2 = new_blobs.foldLeft(blobs) { case (map, (a, b)) => map + (a -> b.unchanged) }
         (Document.Blobs(blobs1), copy(blobs = blobs2))
       }
 
-      def blob_edits(name: Document.Node.Name, old_blob: Option[Document.Blob])
-        : List[Document.Edit_Text] =
-      {
+      def blob_edits(
+        name: Document.Node.Name,
+        old_blob: Option[Document.Blob]
+      ) : List[Document.Edit_Text] = {
         val blob = blobs.getOrElse(name, error("Missing blob " + quote(name.toString)))
         val text_edits =
           old_blob match {
@@ -517,15 +507,16 @@ object Headless
               }
           })
 
-      def remove_theories(remove: List[Document.Node.Name]): State =
-      {
+      def remove_theories(remove: List[Document.Node.Name]): State = {
         require(remove.forall(name => !is_required(name)), "attempt to remove required nodes")
         copy(theories = theories -- remove)
       }
 
-      def unload_theories(session: Session, id: UUID.T, theories: List[Document.Node.Name])
-        : (List[Document.Edit_Text], State) =
-      {
+      def unload_theories(
+        session: Session,
+        id: UUID.T,
+        theories: List[Document.Node.Name]
+      ) : (List[Document.Edit_Text], State) = {
         val st1 = remove_required(id, theories)
         val theory_edits =
           for {
@@ -540,9 +531,10 @@ object Headless
         (theory_edits.flatMap(_._1), st1.update_theories(theory_edits.map(_._2)))
       }
 
-      def purge_theories(session: Session, nodes: Option[List[Document.Node.Name]])
-        : ((List[Document.Node.Name], List[Document.Node.Name], List[Document.Edit_Text]), State) =
-      {
+      def purge_theories(
+        session: Session,
+        nodes: Option[List[Document.Node.Name]]
+      ) : ((List[Document.Node.Name], List[Document.Node.Name], List[Document.Edit_Text]), State) = {
         val all_nodes = theory_graph.topological_order
         val purge = nodes.getOrElse(all_nodes).filterNot(is_required).toSet
 
@@ -559,9 +551,7 @@ object Headless
       val options: Options,
       val session_base_info: Sessions.Base_Info,
       log: Logger = No_Logger)
-    extends isabelle.Resources(
-      session_base_info.sessions_structure, session_base_info.check.base, log = log)
-  {
+  extends isabelle.Resources(session_base_info.sessions_structure, session_base_info.check.base, log = log) {
     resources =>
 
     val store: Sessions.Store = Sessions.store(options)
@@ -569,8 +559,10 @@ object Headless
 
     /* session */
 
-    def start_session(print_mode: List[String] = Nil, progress: Progress = new Progress): Session =
-    {
+    def start_session(
+      print_mode: List[String] = Nil,
+      progress: Progress = new Progress
+    ): Session = {
       val session = new Session(session_base_info.session, options, resources)
 
       progress.echo("Starting session " + session_base_info.session + " ...")
@@ -591,8 +583,8 @@ object Headless
       theories: List[Document.Node.Name],
       files: List[Document.Node.Name],
       unicode_symbols: Boolean,
-      progress: Progress): Unit =
-    {
+      progress: Progress
+    ): Unit = {
       val loaded_theories =
         for (node_name <- theories)
         yield {
@@ -609,55 +601,50 @@ object Headless
       val loaded = loaded_theories.length
       if (loaded > 1) progress.echo("Loading " + loaded + " theories ...")
 
-      state.change(st =>
-        {
-          val (doc_blobs1, st1) = st.insert_required(id, theories).update_blobs(files)
-          val theory_edits =
-            for (theory <- loaded_theories)
-            yield {
-              val node_name = theory.node_name
-              val theory1 = theory.required(st1.is_required(node_name))
-              val edits = theory1.node_edits(st1.theories.get(node_name))
-              (edits, (node_name, theory1))
-            }
-          val file_edits =
-            for { node_name <- files if doc_blobs1.changed(node_name) }
-            yield st1.blob_edits(node_name, st.blobs.get(node_name))
+      state.change { st =>
+        val (doc_blobs1, st1) = st.insert_required(id, theories).update_blobs(files)
+        val theory_edits =
+          for (theory <- loaded_theories)
+          yield {
+            val node_name = theory.node_name
+            val theory1 = theory.required(st1.is_required(node_name))
+            val edits = theory1.node_edits(st1.theories.get(node_name))
+            (edits, (node_name, theory1))
+          }
+        val file_edits =
+          for { node_name <- files if doc_blobs1.changed(node_name) }
+          yield st1.blob_edits(node_name, st.blobs.get(node_name))
 
-          session.update(doc_blobs1, theory_edits.flatMap(_._1) ::: file_edits.flatten)
-          st1.update_theories(theory_edits.map(_._2))
-        })
+        session.update(doc_blobs1, theory_edits.flatMap(_._1) ::: file_edits.flatten)
+        st1.update_theories(theory_edits.map(_._2))
+      }
     }
 
-    def unload_theories(session: Session, id: UUID.T, theories: List[Document.Node.Name]): Unit =
-    {
-      state.change(st =>
-      {
+    def unload_theories(session: Session, id: UUID.T, theories: List[Document.Node.Name]): Unit = {
+      state.change { st =>
         val (edits, st1) = st.unload_theories(session, id, theories)
         session.update(st.doc_blobs, edits)
         st1
-      })
+      }
     }
 
-    def clean_theories(session: Session, id: UUID.T, theories: List[Document.Node.Name]): Unit =
-    {
-      state.change(st =>
-      {
+    def clean_theories(session: Session, id: UUID.T, theories: List[Document.Node.Name]): Unit = {
+      state.change { st =>
         val (edits1, st1) = st.unload_theories(session, id, theories)
         val ((_, _, edits2), st2) = st1.purge_theories(session, None)
         session.update(st.doc_blobs, edits1 ::: edits2)
         st2
-      })
+      }
     }
 
-    def purge_theories(session: Session, nodes: Option[List[Document.Node.Name]])
-      : (List[Document.Node.Name], List[Document.Node.Name]) =
-    {
-      state.change_result(st =>
-      {
+    def purge_theories(
+      session: Session,
+      nodes: Option[List[Document.Node.Name]]
+    ) : (List[Document.Node.Name], List[Document.Node.Name]) = {
+      state.change_result { st =>
         val ((purged, retained, _), st1) = st.purge_theories(session, nodes)
         ((purged, retained), st1)
-      })
+      }
     }
   }
 }

@@ -14,8 +14,7 @@ import java.io.{File => JFile}
 import scala.util.parsing.input.Reader
 
 
-object VSCode_Resources
-{
+object VSCode_Resources {
   /* internal state */
 
   sealed case class State(
@@ -23,8 +22,8 @@ object VSCode_Resources
     caret: Option[(JFile, Line.Position)] = None,
     overlays: Document.Overlays = Document.Overlays.empty,
     pending_input: Set[JFile] = Set.empty,
-    pending_output: Set[JFile] = Set.empty)
-  {
+    pending_output: Set[JFile] = Set.empty
+  ) {
     def update_models(changed: Iterable[(JFile, VSCode_Model)]): State =
       copy(
         models = models ++ changed,
@@ -63,18 +62,16 @@ object VSCode_Resources
 
   /* caret */
 
-  sealed case class Caret(file: JFile, model: VSCode_Model, offset: Text.Offset)
-  {
+  sealed case class Caret(file: JFile, model: VSCode_Model, offset: Text.Offset) {
     def node_name: Document.Node.Name = model.node_name
   }
 }
 
 class VSCode_Resources(
-    val options: Options,
-    session_base_info: Sessions.Base_Info,
-    log: Logger = No_Logger)
-  extends Resources(session_base_info.sessions_structure, session_base_info.check.base, log = log)
-{
+  val options: Options,
+  session_base_info: Sessions.Base_Info,
+  log: Logger = No_Logger)
+extends Resources(session_base_info.sessions_structure, session_base_info.check.base, log = log) {
   resources =>
 
   private val state = Synchronized(VSCode_Resources.State())
@@ -103,8 +100,7 @@ class VSCode_Resources(
       }
     }
 
-  override def append(dir: String, source_path: Path): String =
-  {
+  override def append(dir: String, source_path: Path): String = {
     val path = source_path.expand
     if (dir == "" || path.is_absolute) File.platform_path(path)
     else if (path.is_current) dir
@@ -121,8 +117,7 @@ class VSCode_Resources(
 
   /* file content */
 
-  def read_file_content(name: Document.Node.Name): Option[String] =
-  {
+  def read_file_content(name: Document.Node.Name): Option[String] = {
     make_theory_content(name) orElse {
       try { Some(Line.normalize(File.read(node_file(name)))) }
       catch { case ERROR(_) => None }
@@ -135,8 +130,7 @@ class VSCode_Resources(
       case None => read_file_content(name)
     }
 
-  override def with_thy_reader[A](name: Document.Node.Name, f: Reader[Char] => A): A =
-  {
+  override def with_thy_reader[A](name: Document.Node.Name, f: Reader[Char] => A): A = {
     val file = node_file(name)
     get_model(file) match {
       case Some(model) => f(Scan.char_reader(model.content.text))
@@ -160,15 +154,14 @@ class VSCode_Resources(
     file: JFile,
     version: Long,
     text: String,
-    range: Option[Line.Range] = None): Unit =
-  {
-    state.change(st =>
-      {
-        val model = st.models.getOrElse(file, VSCode_Model.init(session, editor, node_name(file)))
-        val model1 =
-          (model.change_text(text, range) getOrElse model).set_version(version).external(false)
-        st.update_models(Some(file -> model1))
-      })
+    range: Option[Line.Range] = None
+  ): Unit = {
+    state.change { st =>
+      val model = st.models.getOrElse(file, VSCode_Model.init(session, editor, node_name(file)))
+      val model1 =
+        (model.change_text(text, range) getOrElse model).set_version(version).external(false)
+      st.update_models(Some(file -> model1))
+    }
   }
 
   def close_model(file: JFile): Boolean =
@@ -179,17 +172,16 @@ class VSCode_Resources(
       })
 
   def sync_models(changed_files: Set[JFile]): Unit =
-    state.change(st =>
-      {
-        val changed_models =
-          (for {
-            (file, model) <- st.models.iterator
-            if changed_files(file) && model.external_file
-            text <- read_file_content(model.node_name)
-            model1 <- model.change_text(text)
-          } yield (file, model1)).toList
-        st.update_models(changed_models)
-      })
+    state.change { st =>
+      val changed_models =
+        (for {
+          (file, model) <- st.models.iterator
+          if changed_files(file) && model.external_file
+          text <- read_file_content(model.node_name)
+          model1 <- model.change_text(text)
+        } yield (file, model1)).toList
+      st.update_models(changed_models)
+    }
 
 
   /* overlays */
@@ -209,85 +201,82 @@ class VSCode_Resources(
   def resolve_dependencies(
     session: Session,
     editor: Language_Server.Editor,
-    file_watcher: File_Watcher): (Boolean, Boolean) =
-  {
-    state.change_result(st =>
-      {
-        /* theory files */
+    file_watcher: File_Watcher
+  ): (Boolean, Boolean) = {
+    state.change_result { st =>
+      /* theory files */
 
-        val thys =
-          (for ((_, model) <- st.models.iterator if model.is_theory)
-           yield (model.node_name, Position.none)).toList
+      val thys =
+        (for ((_, model) <- st.models.iterator if model.is_theory)
+         yield (model.node_name, Position.none)).toList
 
-        val thy_files1 = resources.dependencies(thys).theories
+      val thy_files1 = resources.dependencies(thys).theories
 
-        val thy_files2 =
-          (for {
-            (_, model) <- st.models.iterator
-            thy_name <- resources.make_theory_name(model.node_name)
-          } yield thy_name).toList
-
-
-        /* auxiliary files */
-
-        val stable_tip_version =
-          if (st.models.forall(entry => entry._2.is_stable))
-            session.get_state().stable_tip_version
-          else None
-
-        val aux_files =
-          stable_tip_version match {
-            case Some(version) => undefined_blobs(version.nodes)
-            case None => Nil
-          }
+      val thy_files2 =
+        (for {
+          (_, model) <- st.models.iterator
+          thy_name <- resources.make_theory_name(model.node_name)
+        } yield thy_name).toList
 
 
-        /* loaded models */
+      /* auxiliary files */
 
-        val loaded_models =
-          (for {
-            node_name <- thy_files1.iterator ++ thy_files2.iterator ++ aux_files.iterator
-            file = node_file(node_name)
-            if !st.models.isDefinedAt(file)
-            text <- { file_watcher.register_parent(file); read_file_content(node_name) }
-          }
-          yield {
-            val model = VSCode_Model.init(session, editor, node_name)
-            val model1 = (model.change_text(text) getOrElse model).external(true)
-            (file, model1)
-          }).toList
+      val stable_tip_version =
+        if (st.models.forall(entry => entry._2.is_stable))
+          session.get_state().stable_tip_version
+        else None
 
-        val invoke_input = loaded_models.nonEmpty
-        val invoke_load = stable_tip_version.isEmpty
+      val aux_files =
+        stable_tip_version match {
+          case Some(version) => undefined_blobs(version.nodes)
+          case None => Nil
+        }
 
-        ((invoke_input, invoke_load), st.update_models(loaded_models))
-      })
+
+      /* loaded models */
+
+      val loaded_models =
+        (for {
+          node_name <- thy_files1.iterator ++ thy_files2.iterator ++ aux_files.iterator
+          file = node_file(node_name)
+          if !st.models.isDefinedAt(file)
+          text <- { file_watcher.register_parent(file); read_file_content(node_name) }
+        }
+        yield {
+          val model = VSCode_Model.init(session, editor, node_name)
+          val model1 = (model.change_text(text) getOrElse model).external(true)
+          (file, model1)
+        }).toList
+
+      val invoke_input = loaded_models.nonEmpty
+      val invoke_load = stable_tip_version.isEmpty
+
+      ((invoke_input, invoke_load), st.update_models(loaded_models))
+    }
   }
 
 
   /* pending input */
 
-  def flush_input(session: Session, channel: Channel): Unit =
-  {
-    state.change(st =>
-      {
-        val changed_models =
-          (for {
-            file <- st.pending_input.iterator
-            model <- st.models.get(file)
-            (edits, model1) <-
-              model.flush_edits(false, st.document_blobs, file, st.get_caret(file))
-          } yield (edits, (file, model1))).toList
+  def flush_input(session: Session, channel: Channel): Unit = {
+    state.change { st =>
+      val changed_models =
+        (for {
+          file <- st.pending_input.iterator
+          model <- st.models.get(file)
+          (edits, model1) <-
+            model.flush_edits(false, st.document_blobs, file, st.get_caret(file))
+        } yield (edits, (file, model1))).toList
 
-        for { ((workspace_edits, _), _) <- changed_models if workspace_edits.nonEmpty }
-          channel.write(LSP.WorkspaceEdit(workspace_edits))
+      for { ((workspace_edits, _), _) <- changed_models if workspace_edits.nonEmpty }
+        channel.write(LSP.WorkspaceEdit(workspace_edits))
 
-        session.update(st.document_blobs, changed_models.flatMap(res => res._1._2))
+      session.update(st.document_blobs, changed_models.flatMap(res => res._1._2))
 
-        st.copy(
-          models = st.models ++ changed_models.iterator.map(_._2),
-          pending_input = Set.empty)
-      })
+      st.copy(
+        models = st.models ++ changed_models.iterator.map(_._2),
+        pending_input = Set.empty)
+    }
   }
 
 
@@ -300,38 +289,35 @@ class VSCode_Resources(
     state.change(st => st.copy(pending_output = st.pending_output ++
       (for ((file, model) <- st.models.iterator if model.node_visible) yield file)))
 
-  def flush_output(channel: Channel): Boolean =
-  {
-    state.change_result(st =>
-      {
-        val (postponed, flushed) =
-          (for {
-            file <- st.pending_output.iterator
-            model <- st.models.get(file)
-          } yield (file, model, model.rendering())).toList.partition(_._3.snapshot.is_outdated)
+  def flush_output(channel: Channel): Boolean = {
+    state.change_result { st =>
+      val (postponed, flushed) =
+        (for {
+          file <- st.pending_output.iterator
+          model <- st.models.get(file)
+        } yield (file, model, model.rendering())).toList.partition(_._3.snapshot.is_outdated)
 
-        val changed_iterator =
-          for {
-            (file, model, rendering) <- flushed.iterator
-            (changed_diags, changed_decos, model1) = model.publish(rendering)
-            if changed_diags.isDefined || changed_decos.isDefined
+      val changed_iterator =
+        for {
+          (file, model, rendering) <- flushed.iterator
+          (changed_diags, changed_decos, model1) = model.publish(rendering)
+          if changed_diags.isDefined || changed_decos.isDefined
+        }
+        yield {
+          for (diags <- changed_diags)
+            channel.write(LSP.PublishDiagnostics(file, rendering.diagnostics_output(diags)))
+          if (pide_extensions) {
+            for (decos <- changed_decos)
+              channel.write(rendering.decoration_output(decos).json(file))
           }
-          yield {
-            for (diags <- changed_diags)
-              channel.write(LSP.PublishDiagnostics(file, rendering.diagnostics_output(diags)))
-            if (pide_extensions) {
-              for (decos <- changed_decos)
-                channel.write(rendering.decoration_output(decos).json(file))
-            }
-            (file, model1)
-          }
+          (file, model1)
+        }
 
-        (postponed.nonEmpty,
-          st.copy(
-            models = st.models ++ changed_iterator,
-            pending_output = postponed.map(_._1).toSet))
-      }
-    )
+      (postponed.nonEmpty,
+        st.copy(
+          models = st.models ++ changed_iterator,
+          pending_output = postponed.map(_._1).toSet))
+    }
   }
 
 
@@ -354,8 +340,7 @@ class VSCode_Resources(
   def update_caret(caret: Option[(JFile, Line.Position)]): Unit =
     state.change(_.update_caret(caret))
 
-  def get_caret(): Option[VSCode_Resources.Caret] =
-  {
+  def get_caret(): Option[VSCode_Resources.Caret] = {
     val st = state.value
     for {
       (file, pos) <- st.caret

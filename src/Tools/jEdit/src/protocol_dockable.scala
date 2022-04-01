@@ -16,8 +16,7 @@ import scala.swing.{TextArea, ScrollPane}
 import org.gjt.sp.jedit.View
 
 
-class Protocol_Dockable(view: View, position: String) extends Dockable(view, position)
-{
+class Protocol_Dockable(view: View, position: String) extends Dockable(view, position) {
   /* text area */
 
   private val text_area = new TextArea
@@ -39,13 +38,11 @@ class Protocol_Dockable(view: View, position: String) extends Dockable(view, pos
         GUI_Thread.later { text_area.append(output.message.toString + "\n\n") }
     }
 
-  override def init(): Unit =
-  {
+  override def init(): Unit = {
     PIDE.session.all_messages += main
   }
 
-  override def exit(): Unit =
-  {
+  override def exit(): Unit = {
     PIDE.session.all_messages -= main
   }
 }

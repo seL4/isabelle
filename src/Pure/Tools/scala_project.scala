@@ -8,15 +8,13 @@ Maven for IntelliJ IDEA.
 package isabelle
 
 
-object Scala_Project
-{
+object Scala_Project {
   /** build tools **/
 
   def java_version: String = "15"
   def scala_version: String = scala.util.Properties.versionNumberString
 
-  abstract class Build_Tool
-  {
+  abstract class Build_Tool {
     def project_root: Path
     def init_project(dir: Path, jars: List[Path]): Unit
 
@@ -27,8 +25,7 @@ object Scala_Project
       (dir + project_root).is_file &&
       (dir + scala_src_dir).is_dir
 
-    def package_dir(source_file: Path): Path =
-    {
+    def package_dir(source_file: Path): Path = {
       val dir =
         package_name(source_file) match {
           case Some(name) => Path.explode(space_explode('.', name).mkString("/"))
@@ -43,15 +40,13 @@ object Scala_Project
 
   /* Gradle */
 
-  object Gradle extends Build_Tool
-  {
+  object Gradle extends Build_Tool {
     override def toString: String = "Gradle"
 
     val project_settings: Path = Path.explode("settings.gradle")
     override val project_root: Path = Path.explode("build.gradle")
 
-    private def groovy_string(s: String): String =
-    {
+    private def groovy_string(s: String): String = {
       s.map(c =>
         c match {
           case '\t' | '\b' | '\n' | '\r' | '\f' | '\\' | '\'' | '"' => "\\" + c
@@ -59,8 +54,7 @@ object Scala_Project
         }).mkString("'", "", "'")
     }
 
-    override def init_project(dir: Path, jars: List[Path]): Unit =
-    {
+    override def init_project(dir: Path, jars: List[Path]): Unit = {
       File.write(dir + project_settings, "rootProject.name = 'Isabelle'\n")
       File.write(dir + project_root,
 """plugins {
@@ -84,16 +78,13 @@ dependencies {
 
   /* Maven */
 
-  object Maven extends Build_Tool
-  {
+  object Maven extends Build_Tool {
     override def toString: String = "Maven"
 
     override val project_root: Path = Path.explode("pom.xml")
 
-    override def init_project(dir: Path, jars: List[Path]): Unit =
-    {
-      def dependency(jar: Path): String =
-      {
+    override def init_project(dir: Path, jars: List[Path]): Unit = {
+      def dependency(jar: Path): String = {
         val name = jar.expand.drop_ext.base.implode
         val system_path = File.platform_path(jar.absolute)
       """  <dependency>
@@ -143,8 +134,7 @@ dependencies {
 
   /* plugins: modules with dynamic build */
 
-  class Plugin(dir: Path) extends Isabelle_System.Service
-  {
+  class Plugin(dir: Path) extends Isabelle_System.Service {
     def context(): Scala_Build.Context = Scala_Build.context(dir)
   }
 
@@ -153,8 +143,7 @@ dependencies {
 
   /* file and directories */
 
-  lazy val isabelle_files: (List[Path], List[Path]) =
-  {
+  lazy val isabelle_files: (List[Path], List[Path]) = {
     val contexts = Scala_Build.component_contexts() ::: plugins.map(_.context())
 
     val jars1 = Path.split(Isabelle_System.getenv("ISABELLE_CLASSPATH"))
@@ -173,8 +162,7 @@ dependencies {
     (jars, sources)
   }
 
-  lazy val isabelle_scala_files: Map[String, Path] =
-  {
+  lazy val isabelle_scala_files: Map[String, Path] = {
     val context = Scala_Build.context(Path.ISABELLE_HOME, component = true)
     context.sources.iterator.foldLeft(Map.empty[String, Path]) {
       case (map, path) =>
@@ -192,8 +180,7 @@ dependencies {
 
   /* compile-time position */
 
-  def here: Here =
-  {
+  def here: Here = {
     val exn = new Exception
     exn.getStackTrace.toList match {
       case _ :: caller :: _ =>
@@ -204,8 +191,7 @@ dependencies {
     }
   }
 
-  class Here private[Scala_Project](name: String, line: Int)
-  {
+  class Here private[Scala_Project](name: String, line: Int) {
     override def toString: String = name + ":" + line
     def position: Position.T =
       isabelle_scala_files.get(name) match {
@@ -219,8 +205,7 @@ dependencies {
 
   val default_project_dir = Path.explode("$ISABELLE_HOME_USER/scala_project")
 
-  def package_name(source_file: Path): Option[String] =
-  {
+  def package_name(source_file: Path): Option[String] = {
     val lines = Library.trim_split_lines(File.read(source_file))
     val Package = """\s*\bpackage\b\s*(?:object\b\s*)?((?:\w|\.)+)\b.*""".r
     lines.collectFirst({ case Package(name) => name })
@@ -232,8 +217,8 @@ dependencies {
     more_sources: List[Path] = Nil,
     symlinks: Boolean = false,
     force: Boolean = false,
-    progress: Progress = new Progress): Unit =
-  {
+    progress: Progress = new Progress
+  ): Unit = {
     if (project_dir.file.exists) {
       val detect = project_dir.is_dir && build_tools.exists(_.detect_project(project_dir))
 
@@ -272,14 +257,14 @@ dependencies {
 
   val isabelle_tool =
     Isabelle_Tool("scala_project", "setup IDE project for Isabelle/Java/Scala sources",
-      Scala_Project.here, args =>
-    {
-      var build_tool: Option[Build_Tool] = None
-      var project_dir = default_project_dir
-      var symlinks = false
-      var force = false
+      Scala_Project.here,
+      { args =>
+        var build_tool: Option[Build_Tool] = None
+        var project_dir = default_project_dir
+        var symlinks = false
+        var force = false
 
-      val getopts = Getopts("""
+        val getopts = Getopts("""
 Usage: isabelle scala_project [OPTIONS] [MORE_SOURCES ...]
 
   Options are:
@@ -293,22 +278,22 @@ Usage: isabelle scala_project [OPTIONS] [MORE_SOURCES ...]
   as IntelliJ IDEA. Either option -G or -M is mandatory to specify the
   build tool.
 """,
-        "D:" -> (arg => project_dir = Path.explode(arg)),
-        "G" -> (_ => build_tool = Some(Gradle)),
-        "L" -> (_ => symlinks = true),
-        "M" -> (_ => build_tool = Some(Maven)),
-        "f" -> (_ => force = true))
+          "D:" -> (arg => project_dir = Path.explode(arg)),
+          "G" -> (_ => build_tool = Some(Gradle)),
+          "L" -> (_ => symlinks = true),
+          "M" -> (_ => build_tool = Some(Maven)),
+          "f" -> (_ => force = true))
 
-      val more_args = getopts(args)
+        val more_args = getopts(args)
 
-      val more_sources = more_args.map(Path.explode)
-      val progress = new Console_Progress
+        val more_sources = more_args.map(Path.explode)
+        val progress = new Console_Progress
 
-      if (build_tool.isEmpty) {
-        error("Unspecified build tool: need to provide option -G or -M")
-      }
+        if (build_tool.isEmpty) {
+          error("Unspecified build tool: need to provide option -G or -M")
+        }
 
-      scala_project(build_tool.get, project_dir = project_dir, more_sources = more_sources,
-        symlinks = symlinks, force = force, progress = progress)
-    })
+        scala_project(build_tool.get, project_dir = project_dir, more_sources = more_sources,
+          symlinks = symlinks, force = force, progress = progress)
+      })
 }

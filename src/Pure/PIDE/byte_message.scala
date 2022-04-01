@@ -9,8 +9,7 @@ package isabelle
 import java.io.{ByteArrayOutputStream, OutputStream, InputStream, IOException}
 
 
-object Byte_Message
-{
+object Byte_Message {
   /* output operations */
 
   def write(stream: OutputStream, bytes: List[Bytes]): Unit =
@@ -20,8 +19,7 @@ object Byte_Message
     try { stream.flush() }
     catch { case _: IOException => }
 
-  def write_line(stream: OutputStream, bytes: Bytes): Unit =
-  {
+  def write_line(stream: OutputStream, bytes: Bytes): Unit = {
     write(stream, List(bytes, Bytes.newline))
     flush(stream)
   }
@@ -32,15 +30,13 @@ object Byte_Message
   def read(stream: InputStream, n: Int): Bytes =
     Bytes.read_stream(stream, limit = n)
 
-  def read_block(stream: InputStream, n: Int): (Option[Bytes], Int) =
-  {
+  def read_block(stream: InputStream, n: Int): (Option[Bytes], Int) = {
     val msg = read(stream, n)
     val len = msg.length
     (if (len == n) Some(msg) else None, len)
   }
 
-  def read_line(stream: InputStream): Option[Bytes] =
-  {
+  def read_line(stream: InputStream): Option[Bytes] = {
     val line = new ByteArrayOutputStream(100)
     var c = 0
     while ({ c = stream.read; c != -1 && c != 10 }) line.write(c)
@@ -60,8 +56,7 @@ object Byte_Message
   private def make_header(ns: List[Int]): List[Bytes] =
     List(Bytes(ns.mkString(",")), Bytes.newline)
 
-  def write_message(stream: OutputStream, chunks: List[Bytes]): Unit =
-  {
+  def write_message(stream: OutputStream, chunks: List[Bytes]): Unit = {
     write(stream, make_header(chunks.map(_.length)) ::: chunks)
     flush(stream)
   }
@@ -86,14 +81,12 @@ object Byte_Message
   private def is_length(msg: Bytes): Boolean =
     !msg.is_empty && msg.iterator.forall(b => Symbol.is_ascii_digit(b.toChar))
 
-  private def is_terminated(msg: Bytes): Boolean =
-  {
+  private def is_terminated(msg: Bytes): Boolean = {
     val len = msg.length
     len > 0 && Symbol.is_ascii_line_terminator(msg.charAt(len - 1))
   }
 
-  def write_line_message(stream: OutputStream, msg: Bytes): Unit =
-  {
+  def write_line_message(stream: OutputStream, msg: Bytes): Unit = {
     if (is_length(msg) || is_terminated(msg))
       error ("Bad content for line message:\n" ++ msg.text.take(100))
 

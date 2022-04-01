@@ -14,13 +14,12 @@ import javax.swing.JPopupMenu
 import scala.swing.{Action, Menu, MenuItem, Separator}
 
 
-object Popups
-{
+object Popups {
   def apply(
     graph_panel: Graph_Panel,
     mouse_node: Option[Graph_Display.Node],
-    selected_nodes: List[Graph_Display.Node]): JPopupMenu =
-  {
+    selected_nodes: List[Graph_Display.Node]
+  ): JPopupMenu = {
     val graphview = graph_panel.graphview
 
     val add_mutator = graphview.model.Mutators.add _

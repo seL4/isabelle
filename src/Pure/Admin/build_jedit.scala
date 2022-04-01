@@ -12,12 +12,10 @@ import java.nio.charset.Charset
 import scala.jdk.CollectionConverters._
 
 
-object Build_JEdit
-{
+object Build_JEdit {
   /* modes */
 
-  object Mode
-  {
+  object Mode {
     val empty: Mode = new Mode("", "", Nil)
 
     val init: Mode =
@@ -28,8 +26,7 @@ object Build_JEdit
         ("tabSize" -> "2") +
         ("indentSize" -> "2")
 
-    val list: List[Mode] =
-    {
+    val list: List[Mode] = {
       val isabelle_news: Mode = init.define("isabelle-news", "Isabelle NEWS")
 
       val isabelle: Mode =
@@ -53,8 +50,7 @@ object Build_JEdit
     }
   }
 
-  final case class Mode private(name: String, description: String, rev_props: Properties.T)
-  {
+  final case class Mode private(name: String, description: String, rev_props: Properties.T) {
     override def toString: String = name
 
     def define(a: String, b: String): Mode = new Mode(a, b, rev_props)
@@ -62,8 +58,7 @@ object Build_JEdit
     def + (entry: Properties.Entry): Mode =
       new Mode(name, description, Properties.put(rev_props, entry))
 
-    def write(dir: Path): Unit =
-    {
+    def write(dir: Path): Unit = {
       require(name.nonEmpty && description.nonEmpty, "Bad Isabelle/jEdit mode content")
 
       val properties =
@@ -112,8 +107,8 @@ object Build_JEdit
     version: String,
     original: Boolean = false,
     java_home: Path = default_java_home,
-    progress: Progress = new Progress): Unit =
-  {
+    progress: Progress = new Progress
+  ): Unit = {
     Isabelle_System.require_command("ant", test = "-version")
     Isabelle_System.require_command("patch")
     Isabelle_System.require_command("unzip", test = "-h")
@@ -131,8 +126,7 @@ object Build_JEdit
     val jedit_dir = Isabelle_System.make_directory(component_dir + Path.basic(jedit))
     val jedit_patched_dir = component_dir + Path.basic(jedit_patched)
 
-    def download_jedit(dir: Path, name: String, target_name: String = ""): Path =
-    {
+    def download_jedit(dir: Path, name: String, target_name: String = ""): Path = {
       val jedit_name = jedit + name
       val url =
         "https://sourceforge.net/projects/jedit/files/jedit/" +
@@ -142,8 +136,7 @@ object Build_JEdit
       path
     }
 
-    Isabelle_System.with_tmp_dir("tmp")(tmp_dir =>
-    {
+    Isabelle_System.with_tmp_dir("tmp") { tmp_dir =>
       /* original version */
 
       val install_path = download_jedit(tmp_dir, "install.jar")
@@ -198,7 +191,7 @@ isabelle_java java -Duser.home=""" + File.bash_platform_path(tmp_dir) +
         "no_build = true\n" +
         "requirements = env:JEDIT_JARS\n" +
         ("sources =" :: java_sources.sorted.map("  " + _)).mkString("", " \\\n", "\n"))
-    })
+    }
 
 
     /* jars */
@@ -210,14 +203,13 @@ isabelle_java java -Duser.home=""" + File.bash_platform_path(tmp_dir) +
     }
 
     for { (name, vers) <- download_plugins } {
-      Isabelle_System.with_tmp_file("tmp", ext = "zip")(zip_path =>
-      {
+      Isabelle_System.with_tmp_file("tmp", ext = "zip") { zip_path =>
         val url =
           "https://sourceforge.net/projects/jedit-plugins/files/" + name + "/" + vers + "/" +
             name + "-" + vers + "-bin.zip/download"
         Isabelle_System.download_file(url, zip_path, progress = progress)
         Isabelle_System.bash("unzip -x " + File.bash_path(zip_path), cwd = jars_dir.file).check
-      })
+      }
     }
 
 
@@ -519,14 +511,14 @@ https://sourceforge.net/projects/jedit-plugins/files
 
   val isabelle_tool =
     Isabelle_Tool("build_jedit", "build Isabelle component from the jEdit text-editor",
-      Scala_Project.here, args =>
-    {
-      var target_dir = Path.current
-      var java_home = default_java_home
-      var original = false
-      var version = default_version
+      Scala_Project.here,
+      { args =>
+        var target_dir = Path.current
+        var java_home = default_java_home
+        var original = false
+        var version = default_version
 
-      val getopts = Getopts("""
+        val getopts = Getopts("""
 Usage: isabelle build_jedit [OPTIONS]
 
   Options are:
@@ -537,18 +529,18 @@ Usage: isabelle build_jedit [OPTIONS]
 
   Build auxiliary jEdit component from original sources, with some patches.
 """,
-        "D:" -> (arg => target_dir = Path.explode(arg)),
-        "J:" -> (arg => java_home = Path.explode(arg)),
-        "O" -> (_ => original = true),
-        "V:" -> (arg => version = arg))
+          "D:" -> (arg => target_dir = Path.explode(arg)),
+          "J:" -> (arg => java_home = Path.explode(arg)),
+          "O" -> (_ => original = true),
+          "V:" -> (arg => version = arg))
 
-      val more_args = getopts(args)
-      if (more_args.nonEmpty) getopts.usage()
+        val more_args = getopts(args)
+        if (more_args.nonEmpty) getopts.usage()
 
-      val component_dir = target_dir + Path.basic("jedit-" + Date.Format.alt_date(Date.now()))
-      val progress = new Console_Progress()
+        val component_dir = target_dir + Path.basic("jedit-" + Date.Format.alt_date(Date.now()))
+        val progress = new Console_Progress()
 
-      build_jedit(component_dir, version, original = original,
-        java_home = java_home, progress = progress)
-    })
+        build_jedit(component_dir, version, original = original,
+          java_home = java_home, progress = progress)
+      })
 }

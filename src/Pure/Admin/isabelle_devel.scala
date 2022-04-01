@@ -7,8 +7,7 @@ Website for Isabelle development resources.
 package isabelle
 
 
-object Isabelle_Devel
-{
+object Isabelle_Devel {
   val RELEASE_SNAPSHOT = "release_snapshot"
   val BUILD_LOG_DB = "build_log.db"
   val BUILD_STATUS = "build_status"
@@ -20,8 +19,7 @@ object Isabelle_Devel
 
   /* index */
 
-  def make_index(): Unit =
-  {
+  def make_index(): Unit = {
     val redirect = "https://isabelle-dev.sketis.net/home/menu/view/20"
 
     HTML.write_document(root, "index.html",
@@ -34,41 +32,36 @@ object Isabelle_Devel
 
   /* release snapshot */
 
-  def release_snapshot(options: Options, rev: String, afp_rev: String): Unit =
-  {
-    Isabelle_System.with_tmp_dir("isadist")(target_dir =>
-      {
-        Isabelle_System.update_directory(root + Path.explode(RELEASE_SNAPSHOT),
-          website_dir =>
-        {
+  def release_snapshot(options: Options, rev: String, afp_rev: String): Unit = {
+    Isabelle_System.with_tmp_dir("isadist") { target_dir =>
+      Isabelle_System.update_directory(root + Path.explode(RELEASE_SNAPSHOT),
+        { website_dir =>
           val context = Build_Release.Release_Context(target_dir)
           Build_Release.build_release_archive(context, rev)
           Build_Release.build_release(options, context, afp_rev = afp_rev,
             build_sessions = List(Isabelle_System.getenv("ISABELLE_LOGIC")),
             website = Some(website_dir))
-        })
-      })
+        }
+      )
+    }
   }
 
 
   /* maintain build_log database */
 
-  def build_log_database(options: Options, log_dirs: List[Path]): Unit =
-  {
+  def build_log_database(options: Options, log_dirs: List[Path]): Unit = {
     val store = Build_Log.store(options)
-    using(store.open_database())(db =>
-    {
+    using(store.open_database()) { db =>
       store.update_database(db, log_dirs)
       store.update_database(db, log_dirs, ml_statistics = true)
       store.snapshot_database(db, root + Path.explode(BUILD_LOG_DB))
-    })
+    }
   }
 
 
   /* present build status */
 
-  def build_status(options: Options): Unit =
-  {
+  def build_status(options: Options): Unit = {
     Isabelle_System.update_directory(root + Path.explode(BUILD_STATUS),
       dir => Build_Status.build_status(options, target_dir = dir, ml_statistics = true))
   }

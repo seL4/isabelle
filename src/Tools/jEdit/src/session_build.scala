@@ -19,10 +19,8 @@ import scala.swing.event.ButtonClicked
 import org.gjt.sp.jedit.View
 
 
-object Session_Build
-{
-  def check_dialog(view: View): Unit =
-  {
+object Session_Build {
+  def check_dialog(view: View): Unit = {
     val options = PIDE.options.value
     Isabelle_Thread.fork() {
       try {
@@ -38,8 +36,7 @@ object Session_Build
     }
   }
 
-  private class Dialog(view: View) extends JDialog(view)
-  {
+  private class Dialog(view: View) extends JDialog(view) {
     val options: Options = PIDE.options.value
 
 
@@ -78,8 +75,7 @@ object Session_Build
 
     setContentPane(layout_panel.peer)
 
-    private def set_actions(cs: Component*): Unit =
-    {
+    private def set_actions(cs: Component*): Unit = {
       action_panel.contents.clear()
       action_panel.contents ++= cs
       layout_panel.revalidate()
@@ -98,8 +94,7 @@ object Session_Build
       }
 
     private val delay_exit =
-      Delay.first(Time.seconds(1.0), gui = true)
-      {
+      Delay.first(Time.seconds(1.0), gui = true) {
         if (can_auto_close) conclude()
         else {
           val button = new Button("Close") { reactions += { case ButtonClicked(_) => conclude() } }
@@ -108,8 +103,7 @@ object Session_Build
         }
       }
 
-    private def conclude(): Unit =
-    {
+    private def conclude(): Unit = {
       setVisible(false)
       dispose()
     }
@@ -120,15 +114,13 @@ object Session_Build
     setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE)
 
     addWindowListener(new WindowAdapter {
-      override def windowClosing(e: WindowEvent): Unit =
-      {
+      override def windowClosing(e: WindowEvent): Unit = {
         if (_return_code.isDefined) conclude()
         else stopping()
       }
     })
 
-    private def stopping(): Unit =
-    {
+    private def stopping(): Unit = {
       progress.stop()
       set_actions(new Label("Stopping ..."))
     }

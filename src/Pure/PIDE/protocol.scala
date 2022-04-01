@@ -7,8 +7,7 @@ Protocol message formats for interactive proof documents.
 package isabelle
 
 
-object Protocol
-{
+object Protocol {
   /* markers for inlined messages */
 
   val Loading_Theory_Marker = Protocol_Message.Marker("loading_theory")
@@ -23,8 +22,7 @@ object Protocol
 
   /* batch build */
 
-  object Loading_Theory
-  {
+  object Loading_Theory {
     def unapply(props: Properties.T): Option[(Document.Node.Name, Document_ID.Exec)] =
       (props, props, props) match {
         case (Markup.Name(name), Position.File(file), Position.Id(id))
@@ -38,8 +36,7 @@ object Protocol
 
   /* document editing */
 
-  object Commands_Accepted
-  {
+  object Commands_Accepted {
     def unapply(text: String): Option[List[Document_ID.Command]] =
       try { Some(space_explode(',', text).map(Value.Long.parse)) }
       catch { case ERROR(_) => None }
@@ -47,11 +44,10 @@ object Protocol
     val message: XML.Elem = XML.elem(Markup.STATUS, List(XML.elem(Markup.ACCEPTED)))
   }
 
-  object Assign_Update
-  {
-    def unapply(text: String)
-      : Option[(Document_ID.Version, List[String], Document.Assign_Update)] =
-    {
+  object Assign_Update {
+    def unapply(
+      text: String
+    ) : Option[(Document_ID.Version, List[String], Document.Assign_Update)] = {
       try {
         import XML.Decode._
         def decode_upd(body: XML.Body): (Long, List[Long]) =
@@ -68,8 +64,7 @@ object Protocol
     }
   }
 
-  object Removed
-  {
+  object Removed {
     def unapply(text: String): Option[List[Document_ID.Version]] =
       try {
         import XML.Decode._
@@ -84,8 +79,7 @@ object Protocol
 
   /* command timing */
 
-  object Command_Timing
-  {
+  object Command_Timing {
     def unapply(props: Properties.T): Option[(Properties.T, Document_ID.Generic, isabelle.Timing)] =
       props match {
         case Markup.Command_Timing(args) =>
@@ -100,8 +94,7 @@ object Protocol
 
   /* theory timing */
 
-  object Theory_Timing
-  {
+  object Theory_Timing {
     def unapply(props: Properties.T): Option[(String, isabelle.Timing)] =
       props match {
         case Markup.Theory_Timing(args) =>
@@ -182,8 +175,8 @@ object Protocol
     pos: Position.T = Position.none,
     margin: Double = Pretty.default_margin,
     breakgain: Double = Pretty.default_breakgain,
-    metric: Pretty.Metric = Pretty.Default_Metric): String =
-  {
+    metric: Pretty.Metric = Pretty.Default_Metric
+  ): String = {
     val text1 =
       if (heading) {
         val h =
@@ -212,8 +205,7 @@ object Protocol
 
   /* ML profiling */
 
-  object ML_Profiling
-  {
+  object ML_Profiling {
     def unapply(msg: XML.Tree): Option[isabelle.ML_Profiling.Report] =
       msg match {
         case XML.Elem(_, List(tree)) if is_tracing(msg) =>
@@ -225,8 +217,7 @@ object Protocol
 
   /* export */
 
-  object Export
-  {
+  object Export {
     sealed case class Args(
       id: Option[String] = None,
       serial: Long = 0L,
@@ -234,8 +225,8 @@ object Protocol
       name: String,
       executable: Boolean = false,
       compress: Boolean = true,
-      strict: Boolean = true)
-    {
+      strict: Boolean = true
+    ) {
       def compound_name: String = isabelle.Export.compound_name(theory_name, name)
     }
 
@@ -259,8 +250,7 @@ object Protocol
 
   /* breakpoints */
 
-  object ML_Breakpoint
-  {
+  object ML_Breakpoint {
     def unapply(tree: XML.Tree): Option[Long] =
     tree match {
       case XML.Elem(Markup(Markup.ML_BREAKPOINT, Markup.Serial(breakpoint)), _) => Some(breakpoint)
@@ -271,8 +261,7 @@ object Protocol
 
   /* dialogs */
 
-  object Dialog_Args
-  {
+  object Dialog_Args {
     def unapply(props: Properties.T): Option[(Document_ID.Generic, Long, String)] =
       (props, props, props) match {
         case (Position.Id(id), Markup.Serial(serial), Markup.Result(result)) =>
@@ -281,8 +270,7 @@ object Protocol
       }
   }
 
-  object Dialog
-  {
+  object Dialog {
     def unapply(tree: XML.Tree): Option[(Document_ID.Generic, Long, String)] =
       tree match {
         case XML.Elem(Markup(Markup.DIALOG, Dialog_Args(id, serial, result)), _) =>
@@ -291,10 +279,8 @@ object Protocol
       }
   }
 
-  object Dialog_Result
-  {
-    def apply(id: Document_ID.Generic, serial: Long, result: String): XML.Elem =
-    {
+  object Dialog_Result {
+    def apply(id: Document_ID.Generic, serial: Long, result: String): XML.Elem = {
       val props = Position.Id(id) ::: Markup.Serial(serial)
       XML.Elem(Markup(Markup.RESULT, props), List(XML.Text(result)))
     }
@@ -308,8 +294,7 @@ object Protocol
 }
 
 
-trait Protocol
-{
+trait Protocol {
   /* protocol commands */
 
   def protocol_command_raw(name: String, args: List[Bytes]): Unit
@@ -334,16 +319,16 @@ trait Protocol
   def define_blob(digest: SHA1.Digest, bytes: Bytes): Unit =
     protocol_command_raw("Document.define_blob", List(Bytes(digest.toString), bytes))
 
-  private def encode_command(resources: Resources, command: Command)
-    : (String, String, String, String, String, List[String]) =
-  {
+  private def encode_command(
+    resources: Resources,
+    command: Command
+  ) : (String, String, String, String, String, List[String]) = {
     import XML.Encode._
 
     val parents = command.theory_parents(resources).map(name => File.standard_url(name.node))
     val parents_yxml = Symbol.encode_yxml(list(string)(parents))
 
-    val blobs_yxml =
-    {
+    val blobs_yxml = {
       val encode_blob: T[Exn.Result[Command.Blob]] =
         variant(List(
           { case Exn.Res(Command.Blob(a, b, c)) =>
@@ -354,8 +339,7 @@ trait Protocol
       Symbol.encode_yxml(pair(list(encode_blob), int)(command.blobs, command.blobs_index))
     }
 
-    val toks_yxml =
-    {
+    val toks_yxml = {
       val encode_tok: T[Token] = (tok => pair(int, int)((tok.kind.id, Symbol.length(tok.source))))
       Symbol.encode_yxml(list(encode_tok)(command.span.content))
     }
@@ -365,8 +349,7 @@ trait Protocol
       blobs_yxml, toks_yxml, toks_sources)
   }
 
-  def define_command(resources: Resources, command: Command): Unit =
-  {
+  def define_command(resources: Resources, command: Command): Unit = {
     val (command_id, name, parents_yxml, blobs_yxml, toks_yxml, toks_sources) =
       encode_command(resources, command)
     protocol_command_args(
@@ -375,10 +358,8 @@ trait Protocol
   }
 
   def define_commands(resources: Resources, commands: List[Command]): Unit =
-  {
     protocol_command_args("Document.define_commands",
-      commands.map(command =>
-      {
+      commands.map { command =>
         import XML.Encode._
         val (command_id, name, parents_yxml, blobs_yxml, toks_yxml, toks_sources) =
           encode_command(resources, command)
@@ -386,11 +367,9 @@ trait Protocol
           pair(string, pair(string, pair(string, pair(string, pair(string, list(string))))))(
             command_id, (name, (parents_yxml, (blobs_yxml, (toks_yxml, toks_sources)))))
         YXML.string_of_body(body)
-      }))
-  }
+      })
 
-  def define_commands_bulk(resources: Resources, commands: List[Command]): Unit =
-  {
+  def define_commands_bulk(resources: Resources, commands: List[Command]): Unit = {
     val (irregular, regular) = commands.partition(command => YXML.detect(command.source))
     irregular.foreach(define_command(resources, _))
     regular match {
@@ -412,16 +391,17 @@ trait Protocol
 
   /* document versions */
 
-  def update(old_id: Document_ID.Version, new_id: Document_ID.Version,
-    edits: List[Document.Edit_Command], consolidate: List[Document.Node.Name]): Unit =
-  {
-    val consolidate_yxml =
-    {
+  def update(
+    old_id: Document_ID.Version,
+    new_id: Document_ID.Version,
+    edits: List[Document.Edit_Command],
+    consolidate: List[Document.Node.Name]
+  ): Unit = {
+    val consolidate_yxml = {
       import XML.Encode._
       Symbol.encode_yxml(list(string)(consolidate.map(_.node)))
     }
-    val edits_yxml =
-    {
+    val edits_yxml = {
       import XML.Encode._
       def id: T[Command] = (cmd => long(cmd.id))
       def encode_edit(name: Document.Node.Name)
@@ -446,8 +426,7 @@ trait Protocol
       Document_ID(old_id) :: Document_ID(new_id) :: consolidate_yxml :: edits_yxml)
   }
 
-  def remove_versions(versions: List[Document.Version]): Unit =
-  {
+  def remove_versions(versions: List[Document.Version]): Unit = {
     val versions_yxml =
     { import XML.Encode._
       Symbol.encode_yxml(list(long)(versions.map(_.id))) }

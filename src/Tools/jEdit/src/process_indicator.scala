@@ -15,8 +15,7 @@ import javax.swing.{ImageIcon, Timer}
 import scala.swing.{Label, Component}
 
 
-class Process_Indicator
-{
+class Process_Indicator {
   private val label = new Label
 
   private val passive_icon =
@@ -25,13 +24,11 @@ class Process_Indicator
     space_explode(':', PIDE.options.string("process_active_icons")).map(name =>
       JEdit_Lib.load_image_icon(name).getImage)
 
-  private class Animation extends ImageIcon(passive_icon)
-  {
+  private class Animation extends ImageIcon(passive_icon) {
     private var current_frame = 0
     private val timer =
       new Timer(0, new ActionListener {
-        override def actionPerformed(e: ActionEvent): Unit =
-        {
+        override def actionPerformed(e: ActionEvent): Unit = {
           current_frame = (current_frame + 1) % active_icons.length
           setImage(active_icons(current_frame))
           label.repaint()
@@ -39,8 +36,7 @@ class Process_Indicator
       })
     timer.setRepeats(true)
 
-    def update(rate: Int): Unit =
-    {
+    def update(rate: Int): Unit = {
       if (rate == 0) {
         setImage(passive_icon)
         timer.stop
@@ -60,8 +56,7 @@ class Process_Indicator
 
   def component: Component = label
 
-  def update(tip: String, rate: Int): Unit =
-  {
+  def update(tip: String, rate: Int): Unit = {
     label.tooltip = tip
     animation.update(rate)
   }

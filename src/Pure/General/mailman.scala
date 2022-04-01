@@ -14,8 +14,7 @@ import scala.util.matching.Regex
 import scala.util.matching.Regex.Match
 
 
-object Mailman
-{
+object Mailman {
   /* mailing list messages */
 
   def is_address(s: String): Boolean =
@@ -215,8 +214,8 @@ object Mailman
     title: String,
     author_info: List[String],
     body: String,
-    tags: List[String])
-  {
+    tags: List[String]
+  ) {
     if (author_info.isEmpty || author_info.exists(_.isEmpty)) {
       error("Bad author information in " + quote(name))
     }
@@ -224,12 +223,10 @@ object Mailman
     override def toString: String = name
    }
 
-  object Messages
-  {
+  object Messages {
     type Graph = isabelle.Graph[String, Message]
 
-    def apply(msgs: List[Message]): Messages =
-    {
+    def apply(msgs: List[Message]): Messages = {
       def make_node(g: Graph, node: String, msg: Message): Graph =
         if (g.defined(node) && Date.Ordering.compare(g.get_node(node).date, msg.date) >= 0) g
         else g.default_node(node, msg)
@@ -248,8 +245,7 @@ object Mailman
           }))
     }
 
-    def find(dir: Path): Messages =
-    {
+    def find(dir: Path): Messages = {
       val msgs =
         for {
           archive <- List(Isabelle_Users, Isabelle_Dev)
@@ -258,8 +254,7 @@ object Mailman
       Messages(msgs)
     }
 
-    sealed case class Cluster(author_info: List[String])
-    {
+    sealed case class Cluster(author_info: List[String]) {
       val (addresses, names) = author_info.partition(is_address)
 
       val name: String =
@@ -277,20 +272,17 @@ object Mailman
       def unique: Boolean = names.length == 1 && addresses.length == 1
       def multi: Boolean = names.length > 1 || addresses.length > 1
 
-      def print: String =
-      {
+      def print: String = {
         val entries = names ::: (if (addresses.isEmpty) Nil else List("")) ::: addresses
         entries.mkString("\n  * ", "\n    ", "")
       }
     }
   }
 
-  class Messages private(val sorted: List[Message], val graph: Messages.Graph)
-  {
+  class Messages private(val sorted: List[Message], val graph: Messages.Graph) {
     override def toString: String = "Messages(" + sorted.size + ")"
 
-    object Node_Ordering extends scala.math.Ordering[String]
-    {
+    object Node_Ordering extends scala.math.Ordering[String] {
       override def compare(a: String, b: String): Int =
         Date.Rev_Ordering.compare(graph.get_node(a).date, graph.get_node(b).date)
     }
@@ -303,8 +295,7 @@ object Mailman
     def get_address(msg: Message): String =
       get_cluster(msg).get_address getOrElse error("No author address for " + quote(msg.name))
 
-    def check(check_all: Boolean, check_multi: Boolean = false): Unit =
-    {
+    def check(check_all: Boolean, check_multi: Boolean = false): Unit = {
       val clusters = sorted.map(get_cluster).distinct.sortBy(_.name_lowercase)
 
       if (check_all) {
@@ -330,16 +321,15 @@ object Mailman
   abstract class Archive(
     url: URL,
     name: String = "",
-    tag: String = "")
-  {
+    tag: String = ""
+  ) {
     def message_regex: Regex
     def message_content(name: String, lines: List[String]): Message
 
     def message_match(lines: List[String], re: Regex): Option[Match] =
       lines.flatMap(re.findFirstMatchIn(_)).headOption
 
-    def make_name(str: String): String =
-    {
+    def make_name(str: String): String = {
       val s =
         str.trim.replaceAll("""\s+""", " ").replaceAll(" at ", "@")
           .replace("mailbroy.informatik.tu-muenchen.de", "in.tum.de")
@@ -355,8 +345,7 @@ object Mailman
 
     private val main_html = Url.read(main_url)
 
-    val list_name: String =
-    {
+    val list_name: String = {
       val title =
         """<title>The ([^</>]*) Archives</title>""".r.findFirstMatchIn(main_html).map(_.group(1))
       (proper_string(name) orElse title).getOrElse(error("Failed to determine mailing list name"))
@@ -379,8 +368,7 @@ object Mailman
         msg <- message_regex.findAllMatchIn(html).map(_.group(1))
       } yield href + "/" + msg).toList
 
-    def get(target_dir: Path, href: String, progress: Progress = new Progress): Option[Path] =
-    {
+    def get(target_dir: Path, href: String, progress: Progress = new Progress): Option[Path] = {
       val dir = target_dir + Path.basic(list_name)
       val path = dir + Path.explode(href)
       val url = new URL(main_url, href)
@@ -413,8 +401,7 @@ object Mailman
       download_text(target_dir, progress = progress) :::
       download_msg(target_dir, progress = progress)
 
-    def make_title(str: String): String =
-    {
+    def make_title(str: String): String = {
       val Trim1 = ("""\s*\Q[""" + list_tag + """]\E\s*(.*)""").r
       val Trim2 = """(?i:(?:re|fw|fwd)\s*:\s*)(.*)""".r
       val Trim3 = """\[\s*(.*?)\s*\]""".r
@@ -431,8 +418,7 @@ object Mailman
     def get_messages(): List[Message] =
       for (href <- hrefs_msg) yield message_content(href, split_lines(read_text(href)))
 
-    def find_messages(dir: Path): List[Message] =
-    {
+    def find_messages(dir: Path): List[Message] = {
       for {
         file <- File.find_files(dir.file, file => file.getName.endsWith(".html"))
         rel_path <- File.relative_path(dir, File.path(file))
@@ -444,10 +430,8 @@ object Mailman
     }
   }
 
-  private class Message_Chunk(bg: String = "", en: String = "")
-  {
-    def unapply(lines: List[String]): Option[List[String]] =
-    {
+  private class Message_Chunk(bg: String = "", en: String = "") {
+    def unapply(lines: List[String]): Option[List[String]] = {
       val res1 =
         if (bg.isEmpty) Some(lines)
         else {
@@ -479,8 +463,8 @@ object Mailman
 
   object Isabelle_Users extends Archive(
     Url("https://lists.cam.ac.uk/pipermail/cl-isabelle-users"),
-    name = "isabelle-users", tag = "isabelle")
-  {
+    name = "isabelle-users", tag = "isabelle"
+  ) {
     override def message_regex: Regex = """<li><a name="\d+" href="(msg\d+\.html)">""".r
 
     private object Head extends
@@ -489,8 +473,7 @@ object Mailman
     private object Body extends
       Message_Chunk(bg = "<!--X-Body-of-Message-->", en = "<!--X-Body-of-Message-End-->")
 
-    private object Date_Format
-    {
+    private object Date_Format {
       private val Trim1 = """\w+,\s*(.*)""".r
       private val Trim2 = """(.*?)\s*\(.*\)""".r
       private val Format =
@@ -499,8 +482,7 @@ object Mailman
           "d MMM uuuu H:m:s z",
           "d MMM yy H:m:s Z",
           "d MMM yy H:m:s z")
-      def unapply(s: String): Option[Date] =
-      {
+      def unapply(s: String): Option[Date] = {
         val s0 = s.replaceAll("""\s+""", " ")
         val s1 =
           s0 match {
@@ -516,14 +498,12 @@ object Mailman
       }
     }
 
-    override def make_name(str: String): String =
-    {
+    override def make_name(str: String): String = {
       val s = Library.perhaps_unsuffix(" via Cl-isabelle-users", super.make_name(str))
       if (s == "cl-isabelle-users@lists.cam.ac.uk") "" else s
     }
 
-    object Address
-    {
+    object Address {
       private def anchor(s: String): String = """<a href="[^"]*">""" + s + """</a>"""
       private def angl(s: String): String = """&lt;""" + s + """&gt;"""
       private def quot(s: String): String = """&quot;""" + s + """&quot;"""
@@ -559,8 +539,7 @@ object Mailman
         }
     }
 
-    override def message_content(name: String, lines: List[String]): Message =
-    {
+    override def message_content(name: String, lines: List[String]): Message = {
       def err(msg: String = ""): Nothing =
         error("Malformed message: " + name + (if (msg.isEmpty) "" else "\n" + msg))
 
@@ -604,21 +583,18 @@ object Mailman
 
   /* isabelle-dev mailing list */
 
-  object Isabelle_Dev extends Archive(Url("https://mailmanbroy.in.tum.de/pipermail/isabelle-dev"))
-  {
+  object Isabelle_Dev extends Archive(Url("https://mailmanbroy.in.tum.de/pipermail/isabelle-dev")) {
     override def message_regex: Regex = """<LI><A HREF="(\d+\.html)">""".r
 
     private object Head extends Message_Chunk(en = "<!--beginarticle-->")
     private object Body extends Message_Chunk(bg = "<!--beginarticle-->", en = "<!--endarticle-->")
 
-    private object Date_Format
-    {
+    private object Date_Format {
       val Format = Date.Format("E MMM d H:m:s z uuuu")
       def unapply(s: String): Option[Date] = Format.unapply(s.replaceAll("""\s+""", " "))
     }
 
-    override def message_content(name: String, lines: List[String]): Message =
-    {
+    override def message_content(name: String, lines: List[String]): Message = {
       def err(msg: String = ""): Nothing =
         error("Malformed message: " + name + (if (msg.isEmpty) "" else "\n" + msg))
 
@@ -633,8 +609,7 @@ object Mailman
           case None => err("Missing Date")
         }
 
-      val (title, author_address) =
-      {
+      val (title, author_address) = {
         message_match(head, """TITLE="([^"]+)">(.*)""".r) match {
           case Some(m) => (make_title(HTML.input(m.group(1))), make_name(HTML.input(m.group(2))))
           case None => err("Missing TITLE")

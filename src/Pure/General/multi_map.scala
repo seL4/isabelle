@@ -11,8 +11,7 @@ import scala.collection.{IterableFactory, MapFactory, MapFactoryDefaults}
 import scala.collection.immutable.{Iterable, MapOps}
 
 
-object Multi_Map extends MapFactory[Multi_Map]
-{
+object Multi_Map extends MapFactory[Multi_Map] {
   private val empty_val: Multi_Map[Any, Nothing] = new Multi_Map[Any, Nothing](Map.empty)
   def empty[A, B]: Multi_Map[A, B] = empty_val.asInstanceOf[Multi_Map[A, B]]
 
@@ -20,8 +19,7 @@ object Multi_Map extends MapFactory[Multi_Map]
     entries.iterator.foldLeft(empty[A, B]) { case (m, (a, b)) => m.insert(a, b) }
 
   override def newBuilder[A, B]: mutable.Builder[(A, B), Multi_Map[A, B]] = new Builder[A, B]
-  private class Builder[A, B] extends mutable.Builder[(A, B), Multi_Map[A, B]]
-  {
+  private class Builder[A, B] extends mutable.Builder[(A, B), Multi_Map[A, B]] {
     private var res = empty[A, B]
     override def clear(): Unit = { res = empty[A, B] }
     override def addOne(p: (A, B)): this.type = { res = res.insert(p._1, p._2); this }
@@ -32,23 +30,20 @@ object Multi_Map extends MapFactory[Multi_Map]
 final class Multi_Map[A, +B] private(protected val rep: Map[A, List[B]])
   extends Iterable[(A, B)]
     with MapOps[A, B, Multi_Map, Multi_Map[A, B]]
-    with MapFactoryDefaults[A, B, Multi_Map, Iterable]
-{
+    with MapFactoryDefaults[A, B, Multi_Map, Iterable] {
   /* Multi_Map operations */
 
   def iterator_list: Iterator[(A, List[B])] = rep.iterator
 
   def get_list(a: A): List[B] = rep.getOrElse(a, Nil)
 
-  def insert[B1 >: B](a: A, b: B1): Multi_Map[A, B1] =
-  {
+  def insert[B1 >: B](a: A, b: B1): Multi_Map[A, B1] = {
     val bs = get_list(a)
     if (bs.contains(b)) this
     else new Multi_Map(rep + (a -> (b :: bs)))
   }
 
-  def remove[B1 >: B](a: A, b: B1): Multi_Map[A, B1] =
-  {
+  def remove[B1 >: B](a: A, b: B1): Multi_Map[A, B1] = {
     val bs = get_list(a)
     if (bs.contains(b)) {
       bs.filterNot(_ == b) match {

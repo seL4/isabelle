@@ -7,8 +7,7 @@ Build Isabelle SPASS component from unofficial download.
 package isabelle
 
 
-object Build_SPASS
-{
+object Build_SPASS {
   /* build SPASS */
 
   val default_download_url = "https://www.cs.vu.nl/~jbe248/spass-3.8ds-src.tar.gz"
@@ -18,10 +17,8 @@ object Build_SPASS
     download_url: String = default_download_url,
     verbose: Boolean = false,
     progress: Progress = new Progress,
-    target_dir: Path = Path.current): Unit =
-  {
-    Isabelle_System.with_tmp_dir("build")(tmp_dir =>
-    {
+    target_dir: Path = Path.current): Unit = {
+    Isabelle_System.with_tmp_dir("build") { tmp_dir =>
       Isabelle_System.require_command("bison")
       Isabelle_System.require_command("flex")
 
@@ -143,20 +140,20 @@ Viel SPASS!
 
         Makarius
         """ + Date.Format.date(Date.now()) + "\n")
-    })
+    }
 }
 
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
     Isabelle_Tool("build_spass", "build prover component from source distribution",
-      Scala_Project.here, args =>
-    {
-      var target_dir = Path.current
-      var download_url = default_download_url
-      var verbose = false
+      Scala_Project.here,
+      { args =>
+        var target_dir = Path.current
+        var download_url = default_download_url
+        var verbose = false
 
-      val getopts = Getopts("""
+        val getopts = Getopts("""
 Usage: isabelle build_spass [OPTIONS]
 
   Options are:
@@ -167,16 +164,16 @@ Usage: isabelle build_spass [OPTIONS]
 
   Build prover component from the specified source distribution.
 """,
-        "D:" -> (arg => target_dir = Path.explode(arg)),
-        "U:" -> (arg => download_url = arg),
-        "v" -> (_ => verbose = true))
+          "D:" -> (arg => target_dir = Path.explode(arg)),
+          "U:" -> (arg => download_url = arg),
+          "v" -> (_ => verbose = true))
 
-      val more_args = getopts(args)
-      if (more_args.nonEmpty) getopts.usage()
+        val more_args = getopts(args)
+        if (more_args.nonEmpty) getopts.usage()
 
-      val progress = new Console_Progress()
+        val progress = new Console_Progress()
 
-      build_spass(download_url = download_url, verbose = verbose, progress = progress,
-        target_dir = target_dir)
-    })
+        build_spass(download_url = download_url, verbose = verbose, progress = progress,
+          target_dir = target_dir)
+      })
 }

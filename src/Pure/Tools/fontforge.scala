@@ -12,8 +12,7 @@ import java.io.{File => JFile}
 import java.util.Locale
 
 
-object Fontforge
-{
+object Fontforge {
   /** scripting language **/
 
   type Script = String
@@ -21,16 +20,14 @@ object Fontforge
 
   /* concrete syntax */
 
-  def string(s: String): Script =
-  {
+  def string(s: String): Script = {
     def err(c: Char): Nothing =
       error("Bad character \\u" + String.format(Locale.ROOT, "%04x", Integer.valueOf(c)) +
         " in fontforge string " + quote(s))
 
     val q = if (s.contains('"')) '\'' else '"'
 
-    def escape(c: Char): String =
-    {
+    def escape(c: Char): String = {
       if (c == '\u0000' || c == '\r' || c == q) err(c)
       else if (c == '\n') "\\n"
       else if (c == '\\') "\\\\"
@@ -70,15 +67,13 @@ object Fontforge
   /** execute fontforge program **/
 
   def execute(script: Script, args: String = "", cwd: JFile = null): Process_Result =
-    Isabelle_System.with_tmp_file("fontforge")(script_file =>
-    {
+    Isabelle_System.with_tmp_file("fontforge") { script_file =>
       File.write(script_file, script)
       Isabelle_System.bash(File.bash_path(Path.explode("$ISABELLE_FONTFORGE")) +
         " -lang=ff -script " + File.bash_path(script_file) + " " + args)
-    })
+    }
 
-  def font_domain(path: Path, strict: Boolean = false): List[Int] =
-  {
+  def font_domain(path: Path, strict: Boolean = false): List[Int] = {
     val script =
       commands(
         open(path),
@@ -100,14 +95,13 @@ object Fontforge
     fullname: String = "",
     weight: String = "",
     copyright: String = "",
-    fontversion: String = "")
-  {
+    fontversion: String = ""
+  ) {
     override def toString: String = fontname
 
     def ttf: Path = Path.explode(fontname).ext("ttf")
 
-    def update(prefix: String = "", version: String = ""): Font_Names =
-    {
+    def update(prefix: String = "", version: String = ""): Font_Names = {
       val fontversion1 = proper_string(version) getOrElse fontversion
       if (prefix == "") copy(fontversion = fontversion1)
       else {
@@ -125,8 +119,7 @@ object Fontforge
         mkString("SetFontNames(", ",", ")")
   }
 
-  def font_names(path: Path): Font_Names =
-  {
+  def font_names(path: Path): Font_Names = {
     val script =
       commands(
         open(path),

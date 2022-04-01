@@ -7,15 +7,14 @@ Build Isabelle sqlite-jdbc component from official download.
 package isabelle
 
 
-object Build_SQLite
-{
+object Build_SQLite {
   /* build sqlite */
 
   def build_sqlite(
     download_url: String,
     progress: Progress = new Progress,
-    target_dir: Path = Path.current): Unit =
-  {
+    target_dir: Path = Path.current
+  ): Unit = {
     val Download_Name = """^.*/([^/]+)\.jar""".r
     val download_name =
       download_url match {
@@ -55,8 +54,7 @@ classpath "$ISABELLE_SQLITE_HOME/""" + download_name + """.jar"
     val jar = component_dir + Path.basic(download_name).ext("jar")
     Isabelle_System.download_file(download_url, jar, progress = progress)
 
-    Isabelle_System.with_tmp_dir("sqlite")(jar_dir =>
-    {
+    Isabelle_System.with_tmp_dir("sqlite") { jar_dir =>
       progress.echo("Unpacking " + jar)
       Isabelle_System.bash("isabelle_jdk jar xf " + File.bash_path(jar.absolute),
         cwd = jar_dir.file).check
@@ -77,7 +75,7 @@ classpath "$ISABELLE_SQLITE_HOME/""" + download_name + """.jar"
       }
 
       File.set_executable(component_dir + Path.explode("x86_64-windows/sqlitejdbc.dll"), true)
-    })
+    }
   }
 
 
@@ -85,11 +83,11 @@ classpath "$ISABELLE_SQLITE_HOME/""" + download_name + """.jar"
 
   val isabelle_tool =
     Isabelle_Tool("build_sqlite", "build Isabelle sqlite-jdbc component from official download",
-      Scala_Project.here, args =>
-    {
-      var target_dir = Path.current
+      Scala_Project.here,
+      { args =>
+        var target_dir = Path.current
 
-      val getopts = Getopts("""
+        val getopts = Getopts("""
 Usage: isabelle build_sqlite [OPTIONS] DOWNLOAD
 
   Options are:
@@ -99,17 +97,17 @@ Usage: isabelle build_sqlite [OPTIONS] DOWNLOAD
   https://github.com/xerial/sqlite-jdbc and
   https://oss.sonatype.org/content/repositories/releases/org/xerial/sqlite-jdbc
 """,
-        "D:" -> (arg => target_dir = Path.explode(arg)))
+          "D:" -> (arg => target_dir = Path.explode(arg)))
 
-      val more_args = getopts(args)
-      val download_url =
-        more_args match {
-          case List(download_url) => download_url
-          case _ => getopts.usage()
-        }
+        val more_args = getopts(args)
+        val download_url =
+          more_args match {
+            case List(download_url) => download_url
+            case _ => getopts.usage()
+          }
 
-      val progress = new Console_Progress()
+        val progress = new Console_Progress()
 
-      build_sqlite(download_url, progress = progress, target_dir = target_dir)
-    })
+        build_sqlite(download_url, progress = progress, target_dir = target_dir)
+      })
 }

@@ -7,10 +7,8 @@ Some sanity checks for Isabelle sources.
 package isabelle
 
 
-object Check_Sources
-{
-  def check_file(path: Path): Unit =
-  {
+object Check_Sources {
+  def check_file(path: Path): Unit = {
     val file_name = path.implode
     val file_pos = path.position
     def line_pos(i: Int) = Position.Line_File(i + 1, file_name)
@@ -25,13 +23,11 @@ object Check_Sources
       Output.warning("Bad UTF8 encoding" + Position.here(file_pos))
     }
 
-    for { (line, i) <- split_lines(content).iterator.zipWithIndex }
-    {
+    for { (line, i) <- split_lines(content).iterator.zipWithIndex } {
       try {
         Symbol.decode_strict(line)
 
-        for { c <- Codepoint.iterator(line); if c > 128 && !Character.isAlphabetic(c) }
-        {
+        for { c <- Codepoint.iterator(line); if c > 128 && !Character.isAlphabetic(c) } {
           Output.warning("Suspicious Unicode character " + quote(Codepoint.string(c)) +
             Position.here(line_pos(i)))
         }
@@ -49,8 +45,7 @@ object Check_Sources
       Output.warning("Bidirectional Unicode text" + Position.here(file_pos))
   }
 
-  def check_hg(root: Path): Unit =
-  {
+  def check_hg(root: Path): Unit = {
     Output.writeln("Checking " + root + " ...")
     val hg = Mercurial.repository(root)
     for {
@@ -64,17 +59,17 @@ object Check_Sources
 
   val isabelle_tool =
     Isabelle_Tool("check_sources", "some sanity checks for Isabelle sources",
-      Scala_Project.here, args =>
-    {
-      val getopts = Getopts("""
+      Scala_Project.here,
+      { args =>
+        val getopts = Getopts("""
 Usage: isabelle check_sources [ROOT_DIRS...]
 
   Check .thy, .ML, ROOT against known files of Mercurial ROOT_DIRS.
 """)
 
-      val specs = getopts(args)
-      if (specs.isEmpty) getopts.usage()
+        val specs = getopts(args)
+        if (specs.isEmpty) getopts.usage()
 
-      for (root <- specs) check_hg(Path.explode(root))
-    })
+        for (root <- specs) check_hg(Path.explode(root))
+      })
 }

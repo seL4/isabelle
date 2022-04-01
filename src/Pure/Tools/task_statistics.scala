@@ -15,20 +15,19 @@ import org.jfree.chart.plot.{XYPlot, PlotOrientation}
 import org.jfree.chart.renderer.xy.{XYBarRenderer, StandardXYBarPainter}
 
 
-object Task_Statistics
-{
+object Task_Statistics {
   def apply(session_name: String, task_statistics: List[Properties.T]): Task_Statistics =
     new Task_Statistics(session_name, task_statistics)
 }
 
 final class Task_Statistics private(
-  val session_name: String, val task_statistics: List[Properties.T])
-{
+  val session_name: String,
+  val task_statistics: List[Properties.T]
+) {
   private val Task_Name = new Properties.String("task_name")
   private val Run = new Properties.Int("run")
 
-  def chart(bins: Int = 100): JFreeChart =
-  {
+  def chart(bins: Int = 100): JFreeChart = {
     val values = new Array[Double](task_statistics.length)
     for ((Run(x), i) <- task_statistics.iterator.zipWithIndex)
       values(i) = java.lang.Math.log10((x max 1).toDouble / 1000000)

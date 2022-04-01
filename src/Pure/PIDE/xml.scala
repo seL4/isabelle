@@ -7,8 +7,7 @@ Untyped XML trees and basic data representation.
 package isabelle
 
 
-object XML
-{
+object XML {
   /** XML trees **/
 
   /* datatype representation */
@@ -18,8 +17,7 @@ object XML
 
   sealed abstract class Tree { override def toString: String = string_of_tree(this) }
   type Body = List[Tree]
-  case class Elem(markup: Markup, body: Body) extends Tree
-  {
+  case class Elem(markup: Markup, body: Body) extends Tree {
     private lazy val hash: Int = (markup, body).hashCode()
     override def hashCode(): Int = hash
 
@@ -31,8 +29,7 @@ object XML
 
     def + (att: Attribute): Elem = Elem(markup + att, body)
   }
-  case class Text(content: String) extends Tree
-  {
+  case class Text(content: String) extends Tree {
     private lazy val hash: Int = content.hashCode()
     override def hashCode(): Int = hash
   }
@@ -52,14 +49,12 @@ object XML
 
   /* name space */
 
-  object Namespace
-  {
+  object Namespace {
     def apply(prefix: String, target: String): Namespace =
       new Namespace(prefix, target)
   }
 
-  final class Namespace private(prefix: String, target: String)
-  {
+  final class Namespace private(prefix: String, target: String) {
     def apply(name: String): String = prefix + ":" + name
     val attribute: XML.Attribute = ("xmlns:" + prefix, target)
 
@@ -73,8 +68,7 @@ object XML
   val XML_NAME = "xml_name"
   val XML_BODY = "xml_body"
 
-  object Wrapped_Elem
-  {
+  object Wrapped_Elem {
     def apply(markup: Markup, body1: Body, body2: Body): XML.Elem =
       XML.Elem(Markup(XML_ELEM, (XML_NAME, markup.name) :: markup.properties),
         XML.Elem(Markup(XML_BODY, Nil), body1) :: body2)
@@ -89,8 +83,7 @@ object XML
       }
   }
 
-  object Root_Elem
-  {
+  object Root_Elem {
     def apply(body: Body): XML.Elem = XML.Elem(Markup(XML_ELEM, Nil), body)
     def unapply(tree: Tree): Option[Body] =
       tree match {
@@ -102,8 +95,7 @@ object XML
 
   /* traverse text */
 
-  def traverse_text[A](body: Body)(a: A)(op: (A, String) => A): A =
-  {
+  def traverse_text[A](body: Body)(a: A)(op: (A, String) => A): A = {
     def traverse(x: A, t: Tree): A =
       t match {
         case XML.Wrapped_Elem(_, _, ts) => ts.foldLeft(x)(traverse)
@@ -119,8 +111,7 @@ object XML
 
   /* text content */
 
-  def content(body: Body): String =
-  {
+  def content(body: Body): String = {
     val text = new StringBuilder(text_length(body))
     traverse_text(body)(()) { case (_, s) => text.append(s) }
     text.toString
@@ -134,8 +125,7 @@ object XML
 
   val header: String = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
 
-  def output_char(s: StringBuilder, c: Char, permissive: Boolean = false): Unit =
-  {
+  def output_char(s: StringBuilder, c: Char, permissive: Boolean = false): Unit = {
     c match {
       case '<' => s ++= "&lt;"
       case '>' => s ++= "&gt;"
@@ -146,14 +136,12 @@ object XML
     }
   }
 
-  def output_string(s: StringBuilder, str: String, permissive: Boolean = false): Unit =
-  {
+  def output_string(s: StringBuilder, str: String, permissive: Boolean = false): Unit = {
     if (str == null) s ++= str
     else str.iterator.foreach(output_char(s, _, permissive = permissive))
   }
 
-  def output_elem(s: StringBuilder, markup: Markup, end: Boolean = false): Unit =
-  {
+  def output_elem(s: StringBuilder, markup: Markup, end: Boolean = false): Unit = {
     s += '<'
     s ++= markup.name
     for ((a, b) <- markup.properties) {
@@ -168,16 +156,14 @@ object XML
     s += '>'
   }
 
-  def output_elem_end(s: StringBuilder, name: String): Unit =
-  {
+  def output_elem_end(s: StringBuilder, name: String): Unit = {
     s += '<'
     s += '/'
     s ++= name
     s += '>'
   }
 
-  def string_of_body(body: Body): String =
-  {
+  def string_of_body(body: Body): String = {
     val s = new StringBuilder
 
     def tree(t: Tree): Unit =
@@ -201,8 +187,7 @@ object XML
 
   /** cache **/
 
-  object Cache
-  {
+  object Cache {
     def make(
         xz: XZ.Cache = XZ.Cache.make(),
         max_string: Int = isabelle.Cache.default_max_string,
@@ -213,10 +198,8 @@ object XML
   }
 
   class Cache(val xz: XZ.Cache, max_string: Int, initial_size: Int)
-    extends isabelle.Cache(max_string, initial_size)
-  {
-    protected def cache_props(x: Properties.T): Properties.T =
-    {
+  extends isabelle.Cache(max_string, initial_size) {
+    protected def cache_props(x: Properties.T): Properties.T = {
       if (x.isEmpty) x
       else
         lookup(x) match {
@@ -225,8 +208,7 @@ object XML
         }
     }
 
-    protected def cache_markup(x: Markup): Markup =
-    {
+    protected def cache_markup(x: Markup): Markup = {
       lookup(x) match {
         case Some(y) => y
         case None =>
@@ -237,8 +219,7 @@ object XML
       }
     }
 
-    protected def cache_tree(x: XML.Tree): XML.Tree =
-    {
+    protected def cache_tree(x: XML.Tree): XML.Tree = {
       lookup(x) match {
         case Some(y) => y
         case None =>
@@ -250,8 +231,7 @@ object XML
       }
     }
 
-    protected def cache_body(x: XML.Body): XML.Body =
-    {
+    protected def cache_body(x: XML.Body): XML.Body = {
       if (x.isEmpty) x
       else
         lookup(x) match {
@@ -285,8 +265,7 @@ object XML
   class XML_Atom(s: String) extends Error(s)
   class XML_Body(body: XML.Body) extends Error("")
 
-  object Encode
-  {
+  object Encode {
     type T[A] = A => XML.Body
     type V[A] = PartialFunction[A, (List[String], XML.Body)]
     type P[A] = PartialFunction[A, List[String]]
@@ -340,22 +319,19 @@ object XML
     def list[A](f: T[A]): T[List[A]] =
       (xs => xs.map((x: A) => node(f(x))))
 
-    def option[A](f: T[A]): T[Option[A]] =
-    {
+    def option[A](f: T[A]): T[Option[A]] = {
       case None => Nil
       case Some(x) => List(node(f(x)))
     }
 
-    def variant[A](fs: List[V[A]]): T[A] =
-    {
+    def variant[A](fs: List[V[A]]): T[A] = {
       case x =>
         val (f, tag) = fs.iterator.zipWithIndex.find(p => p._1.isDefinedAt(x)).get
         List(tagged(tag, f(x)))
     }
   }
 
-  object Decode
-  {
+  object Decode {
     type T[A] = XML.Body => A
     type V[A] = (List[String], XML.Body) => A
     type P[A] = PartialFunction[List[String], A]
@@ -401,20 +377,17 @@ object XML
 
     /* representation of standard types */
 
-    val tree: T[XML.Tree] =
-    {
+    val tree: T[XML.Tree] = {
       case List(t) => t
       case ts => throw new XML_Body(ts)
     }
 
-    val properties: T[Properties.T] =
-    {
+    val properties: T[Properties.T] = {
       case List(XML.Elem(Markup(":", props), Nil)) => props
       case ts => throw new XML_Body(ts)
     }
 
-    val string: T[String] =
-    {
+    val string: T[String] = {
       case Nil => ""
       case List(XML.Text(s)) => s
       case ts => throw new XML_Body(ts)
@@ -428,14 +401,12 @@ object XML
 
     val unit: T[Unit] = (x => unit_atom(string(x)))
 
-    def pair[A, B](f: T[A], g: T[B]): T[(A, B)] =
-    {
+    def pair[A, B](f: T[A], g: T[B]): T[(A, B)] = {
       case List(t1, t2) => (f(node(t1)), g(node(t2)))
       case ts => throw new XML_Body(ts)
     }
 
-    def triple[A, B, C](f: T[A], g: T[B], h: T[C]): T[(A, B, C)] =
-    {
+    def triple[A, B, C](f: T[A], g: T[B], h: T[C]): T[(A, B, C)] = {
       case List(t1, t2, t3) => (f(node(t1)), g(node(t2)), h(node(t3)))
       case ts => throw new XML_Body(ts)
     }
@@ -443,15 +414,13 @@ object XML
     def list[A](f: T[A]): T[List[A]] =
       (ts => ts.map(t => f(node(t))))
 
-    def option[A](f: T[A]): T[Option[A]] =
-    {
+    def option[A](f: T[A]): T[Option[A]] = {
       case Nil => None
       case List(t) => Some(f(node(t)))
       case ts => throw new XML_Body(ts)
     }
 
-    def variant[A](fs: List[V[A]]): T[A] =
-    {
+    def variant[A](fs: List[V[A]]): T[A] = {
       case List(t) =>
         val (tag, (xs, ts)) = tagged(t)
         val f =

@@ -7,8 +7,7 @@ Isar keyword classification.
 package isabelle
 
 
-object Keyword
-{
+object Keyword {
   /** keyword classification **/
 
   /* kinds */
@@ -111,8 +110,8 @@ object Keyword
     kind_pos: Position.T = Position.none,
     load_command: String = "",
     load_command_pos: Position.T = Position.none,
-    tags: List[String] = Nil)
-  {
+    tags: List[String] = Nil
+  ) {
     override def toString: String =
       kind +
         (if (load_command.isEmpty) "" else " (" + quote(load_command) + ")") +
@@ -122,17 +121,15 @@ object Keyword
       copy(kind = f(kind), load_command = f(load_command), tags = tags.map(f))
   }
 
-  object Keywords
-  {
+  object Keywords {
     def empty: Keywords = new Keywords()
   }
 
   class Keywords private(
     val kinds: Map[String, String] = Map.empty,
-    val load_commands: Map[String, String] = Map.empty)
-  {
-    override def toString: String =
-    {
+    val load_commands: Map[String, String] = Map.empty
+  ) {
+    override def toString: String = {
       val entries =
         for ((name, kind) <- kinds.toList.sortBy(_._1)) yield {
           val load_decl =
@@ -175,8 +172,7 @@ object Keyword
 
     /* add keywords */
 
-    def + (name: String, kind: String = "", load_command: String = ""): Keywords =
-    {
+    def + (name: String, kind: String = "", load_command: String = ""): Keywords = {
       val kinds1 = kinds + (name -> kind)
       val load_commands1 =
         if (kind == THY_LOAD) {

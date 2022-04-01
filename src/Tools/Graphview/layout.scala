@@ -17,14 +17,11 @@ package isabelle.graphview
 import isabelle._
 
 
-object Layout
-{
+object Layout {
   /* graph structure */
 
-  object Vertex
-  {
-    object Ordering extends scala.math.Ordering[Vertex]
-    {
+  object Vertex {
+    object Ordering extends scala.math.Ordering[Vertex] {
       def compare(v1: Vertex, v2: Vertex): Int =
         (v1, v2) match {
           case (Node(a), Node(b)) => Graph_Display.Node.Ordering.compare(a, b)
@@ -56,8 +53,12 @@ object Layout
   case class Dummy(node1: Graph_Display.Node, node2: Graph_Display.Node, index: Int) extends Vertex
 
   sealed case class Info(
-    x: Double, y: Double, width2: Double, height2: Double, lines: List[String])
-  {
+    x: Double,
+    y: Double,
+    width2: Double,
+    height2: Double,
+    lines: List[String]
+  ) {
     def left: Double = x - width2
     def right: Double = x + width2
     def width: Double = 2 * width2
@@ -89,10 +90,12 @@ object Layout
   private type Levels = Map[Vertex, Int]
   private val empty_levels: Levels = Map.empty
 
-  def make(options: Options, metrics: Metrics,
+  def make(
+    options: Options,
+    metrics: Metrics,
     node_text: (Graph_Display.Node, XML.Body) => String,
-    input_graph: Graph_Display.Graph): Layout =
-  {
+    input_graph: Graph_Display.Graph
+  ): Layout = {
     if (input_graph.is_empty) empty
     else {
       /* initial graph */
@@ -187,11 +190,12 @@ object Layout
   private type Level = List[Vertex]
 
   private def minimize_crossings(
-    options: Options, graph: Graph, levels: List[Level]): List[Level] =
-  {
+    options: Options,
+    graph: Graph,
+    levels: List[Level]
+  ): List[Level] = {
     def resort(parent: Level, child: Level, top_down: Boolean): Level =
-      child.map(v =>
-      {
+      child.map({ v =>
         val ps = if (top_down) graph.imm_preds(v) else graph.imm_succs(v)
         val weight =
           ps.foldLeft(0.0) { case (w, p) => w + (0 max parent.indexOf(p)) } / (ps.size max 1)
@@ -222,8 +226,7 @@ object Layout
       }._1
   }
 
-  private def level_list(levels: Levels): List[Level] =
-  {
+  private def level_list(levels: Levels): List[Level] = {
     val max_lev = levels.foldLeft(-1) { case (m, (_, l)) => m max l }
     val buckets = new Array[Level](max_lev + 1)
     for (l <- 0 to max_lev) { buckets(l) = Nil }
@@ -251,8 +254,7 @@ object Layout
   /*This is an auxiliary class which is used by the layout algorithm when
     calculating coordinates with the "pendulum method". A "region" is a
     group of vertices which "stick together".*/
-  private class Region(val content: List[Vertex])
-  {
+  private class Region(val content: List[Vertex]) {
     def distance(metrics: Metrics, graph: Graph, that: Region): Double =
       vertex_left(graph, that.content.head) -
       vertex_right(graph, this.content.last) -
@@ -272,8 +274,11 @@ object Layout
   }
 
   private def pendulum(
-    options: Options, metrics: Metrics, levels: List[Level], levels_graph: Graph): Graph =
-  {
+    options: Options,
+    metrics: Metrics,
+    levels: List[Level],
+    levels_graph: Graph
+  ): Graph = {
     def combine_regions(graph: Graph, top_down: Boolean, level: List[Region]): List[Region] =
       level match {
         case r1 :: rest =>
@@ -293,8 +298,7 @@ object Layout
         case _ => level
       }
 
-    def deflect(level: List[Region], top_down: Boolean, graph: Graph): (Graph, Boolean) =
-    {
+    def deflect(level: List[Region], top_down: Boolean, graph: Graph): (Graph, Boolean) = {
       level.indices.foldLeft((graph, false)) {
         case ((graph, moved), i) =>
           val r = level(i)
@@ -336,8 +340,7 @@ object Layout
 
   /** rubberband method **/
 
-  private def force_weight(graph: Graph, v: Vertex): Double =
-  {
+  private def force_weight(graph: Graph, v: Vertex): Double = {
     val preds = graph.imm_preds(v)
     val succs = graph.imm_succs(v)
     val n = preds.size + succs.size
@@ -349,8 +352,11 @@ object Layout
   }
 
   private def rubberband(
-    options: Options, metrics: Metrics, levels: List[Level], graph: Graph): Graph =
-  {
+    options: Options,
+    metrics: Metrics,
+    levels: List[Level],
+    graph: Graph
+  ): Graph = {
     val gap = metrics.gap
 
     (1 to (2 * options.int("graphview_iterations_rubberband"))).foldLeft(graph) {
@@ -373,12 +379,11 @@ object Layout
 final class Layout private(
   val metrics: Metrics,
   val input_graph: Graph_Display.Graph,
-  val output_graph: Layout.Graph)
-{
+  val output_graph: Layout.Graph
+) {
   /* vertex coordinates */
 
-  def translate_vertex(v: Layout.Vertex, dx: Double, dy: Double): Layout =
-  {
+  def translate_vertex(v: Layout.Vertex, dx: Double, dy: Double): Layout = {
     if ((dx == 0.0 && dy == 0.0) || !output_graph.defined(v)) this
     else {
       val output_graph1 =
@@ -406,8 +411,7 @@ final class Layout private(
     new Iterator[Layout.Info] {
       private var index = 0
       def hasNext: Boolean = output_graph.defined(Layout.Dummy(edge._1, edge._2, index))
-      def next(): Layout.Info =
-      {
+      def next(): Layout.Info = {
         val info = output_graph.get_node(Layout.Dummy(edge._1, edge._2, index))
         index += 1
         info

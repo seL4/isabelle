@@ -11,8 +11,7 @@ import java.util.Locale
 import java.time.Instant
 
 
-object Time
-{
+object Time {
   def seconds(s: Double): Time = new Time((s * 1000.0).round)
   def minutes(m: Double): Time = new Time((m * 60000.0).round)
   def ms(ms: Long): Time = new Time(ms)
@@ -28,8 +27,7 @@ object Time
   def instant(t: Instant): Time = ms(t.getEpochSecond * 1000L + t.getNano / 1000000L)
 }
 
-final class Time private(val ms: Long) extends AnyVal
-{
+final class Time private(val ms: Long) extends AnyVal {
   def proper_ms: Option[Long] = if (ms == 0) None else Some(ms)
 
   def seconds: Double = ms / 1000.0
@@ -54,8 +52,7 @@ final class Time private(val ms: Long) extends AnyVal
 
   def message: String = toString + "s"
 
-  def message_hms: String =
-  {
+  def message_hms: String = {
     val s = ms / 1000
     String.format(Locale.ROOT, "%d:%02d:%02d",
       java.lang.Long.valueOf(s / 3600),

@@ -8,11 +8,12 @@ Parallel list combinators.
 package isabelle
 
 
-object Par_List
-{
-  def managed_results[A, B](f: A => B, xs: List[A], sequential: Boolean = false)
-      : List[Exn.Result[B]] =
-  {
+object Par_List {
+  def managed_results[A, B](
+    f: A => B,
+    xs: List[A],
+    sequential: Boolean = false
+  ) : List[Exn.Result[B]] = {
     if (sequential || xs.isEmpty || xs.tail.isEmpty) xs.map(x => Exn.capture { f(x) })
     else {
       val state = Synchronized[(List[Future[B]], Boolean)]((Nil, false))
@@ -46,8 +47,7 @@ object Par_List
   def map[A, B](f: A => B, xs: List[A], sequential: Boolean = false): List[B] =
     Exn.release_first(managed_results(f, xs, sequential = sequential))
 
-  def get_some[A, B](f: A => Option[B], xs: List[A]): Option[B] =
-  {
+  def get_some[A, B](f: A => Option[B], xs: List[A]): Option[B] = {
     class Found(val res: B) extends Exception
     val results =
       managed_results(

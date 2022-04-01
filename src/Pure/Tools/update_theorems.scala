@@ -7,10 +7,8 @@ Update toplevel theorem keywords.
 package isabelle
 
 
-object Update_Theorems
-{
-  def update_theorems(path: Path): Unit =
-  {
+object Update_Theorems {
+  def update_theorems(path: Path): Unit = {
     val text0 = File.read(path)
     val text1 =
       (for (tok <- Token.explode(Keyword.Keywords.empty, text0).iterator)
@@ -32,9 +30,9 @@ object Update_Theorems
   /* Isabelle tool wrapper */
 
   val isabelle_tool = Isabelle_Tool("update_theorems", "update toplevel theorem keywords",
-    Scala_Project.here, args =>
-  {
-    val getopts = Getopts("""
+    Scala_Project.here,
+    { args =>
+      val getopts = Getopts("""
 Usage: isabelle update_theorems [FILES|DIRS...]
 
   Recursively find .thy files and update toplevel theorem keywords:
@@ -47,12 +45,12 @@ Usage: isabelle update_theorems [FILES|DIRS...]
   Old versions of files are preserved by appending "~~".
 """)
 
-    val specs = getopts(args)
-    if (specs.isEmpty) getopts.usage()
+      val specs = getopts(args)
+      if (specs.isEmpty) getopts.usage()
 
-    for {
-      spec <- specs
-      file <- File.find_files(Path.explode(spec).file, file => file.getName.endsWith(".thy"))
-    } update_theorems(File.path(file))
-  })
+      for {
+        spec <- specs
+        file <- File.find_files(Path.explode(spec).file, file => file.getName.endsWith(".thy"))
+      } update_theorems(File.path(file))
+    })
 }

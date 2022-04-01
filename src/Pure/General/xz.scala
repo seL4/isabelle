@@ -10,14 +10,12 @@ package isabelle
 import org.tukaani.xz.{LZMA2Options, ArrayCache, BasicArrayCache}
 
 
-object XZ
-{
+object XZ {
   /* options */
 
   type Options = LZMA2Options
 
-  def options(preset: Int = 3): Options =
-  {
+  def options(preset: Int = 3): Options = {
     val opts = new LZMA2Options
     opts.setPreset(preset)
     opts
@@ -28,8 +26,7 @@ object XZ
 
   type Cache = ArrayCache
 
-  object Cache
-  {
+  object Cache {
     def none: ArrayCache = ArrayCache.getDummyCache()
     def apply(): ArrayCache = ArrayCache.getDefaultCache()
     def make(): ArrayCache = new BasicArrayCache

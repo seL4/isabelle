@@ -10,8 +10,7 @@ package isabelle
 import java.util.concurrent.{ThreadPoolExecutor, TimeUnit, LinkedBlockingQueue}
 
 
-object Isabelle_Thread
-{
+object Isabelle_Thread {
   /* self-thread */
 
   def self: Isabelle_Thread =
@@ -28,8 +27,7 @@ object Isabelle_Thread
 
   private val counter = Counter.make()
 
-  def make_name(name: String = "", base: String = "thread"): String =
-  {
+  def make_name(name: String = "", base: String = "thread"): String = {
     val prefix = "Isabelle."
     val suffix = if (name.nonEmpty) name else base + counter()
     if (suffix.startsWith(prefix)) suffix else prefix + suffix
@@ -46,8 +44,8 @@ object Isabelle_Thread
     group: ThreadGroup = current_thread_group,
     pri: Int = Thread.NORM_PRIORITY,
     daemon: Boolean = false,
-    inherit_locals: Boolean = false): Isabelle_Thread =
-  {
+    inherit_locals: Boolean = false
+  ): Isabelle_Thread = {
     new Isabelle_Thread(main, name = make_name(name = name), group = group,
       pri = pri, daemon = daemon, inherit_locals = inherit_locals)
   }
@@ -58,8 +56,9 @@ object Isabelle_Thread
     pri: Int = Thread.NORM_PRIORITY,
     daemon: Boolean = false,
     inherit_locals: Boolean = false,
-    uninterruptible: Boolean = false)(body: => Unit): Isabelle_Thread =
-  {
+    uninterruptible: Boolean = false)(
+    body: => Unit
+  ): Isabelle_Thread = {
     val main: Runnable =
       if (uninterruptible) { () => Isabelle_Thread.uninterruptible { body } }
       else { () => body }
@@ -73,14 +72,12 @@ object Isabelle_Thread
 
   /* thread pool */
 
-  def max_threads(): Int =
-  {
+  def max_threads(): Int = {
     val m = Value.Int.unapply(System.getProperty("isabelle.threads", "0")) getOrElse 0
     if (m > 0) m else (Runtime.getRuntime.availableProcessors max 1) min 8
   }
 
-  lazy val pool: ThreadPoolExecutor =
-  {
+  lazy val pool: ThreadPoolExecutor = {
     val n = max_threads()
     val executor =
       new ThreadPoolExecutor(n, n, 2500L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue[Runnable])
@@ -92,8 +89,7 @@ object Isabelle_Thread
 
   /* interrupt handlers */
 
-  object Interrupt_Handler
-  {
+  object Interrupt_Handler {
     def apply(handle: Isabelle_Thread => Unit, name: String = "handler"): Interrupt_Handler =
       new Interrupt_Handler(handle, name)
 
@@ -105,8 +101,7 @@ object Isabelle_Thread
   }
 
   class Interrupt_Handler private(handle: Isabelle_Thread => Unit, name: String)
-    extends Function[Isabelle_Thread, Unit]
-  {
+    extends Function[Isabelle_Thread, Unit] {
     def apply(thread: Isabelle_Thread): Unit = handle(thread)
     override def toString: String = name
   }
@@ -131,8 +126,7 @@ object Isabelle_Thread
 
 class Isabelle_Thread private(main: Runnable, name: String, group: ThreadGroup,
     pri: Int, daemon: Boolean, inherit_locals: Boolean)
-  extends Thread(group, null, name, 0L, inherit_locals)
-{
+  extends Thread(group, null, name, 0L, inherit_locals) {
   thread =>
 
   thread.setPriority(pri)

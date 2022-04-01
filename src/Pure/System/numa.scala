@@ -7,12 +7,10 @@ Support for Non-Uniform Memory Access of separate CPU nodes.
 package isabelle
 
 
-object NUMA
-{
+object NUMA {
   /* available nodes */
 
-  def nodes(): List[Int] =
-  {
+  def nodes(): List[Int] = {
     val numa_nodes_linux = Path.explode("/sys/devices/system/node/online")
 
     val Single = """^(\d+)$""".r
@@ -52,8 +50,7 @@ object NUMA
     try { nodes().length >= 2 && numactl_available }
     catch { case ERROR(_) => false }
 
-  def enabled_warning(progress: Progress, enabled: Boolean): Boolean =
-  {
+  def enabled_warning(progress: Progress, enabled: Boolean): Boolean = {
     def warning =
       if (nodes().length < 2) Some("no NUMA nodes available")
       else if (!numactl_available) Some("bad numactl tool")
@@ -66,8 +63,7 @@ object NUMA
       })
   }
 
-  class Nodes(enabled: Boolean = true)
-  {
+  class Nodes(enabled: Boolean = true) {
     private val available = nodes().zipWithIndex
     private var next_index = 0
 

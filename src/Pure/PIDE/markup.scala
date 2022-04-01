@@ -7,25 +7,21 @@ Quasi-abstract markup elements.
 package isabelle
 
 
-object Markup
-{
+object Markup {
   /* elements */
 
-  object Elements
-  {
+  object Elements {
     def apply(elems: Set[String]): Elements = new Elements(elems)
     def apply(elems: String*): Elements = apply(Set(elems: _*))
     val empty: Elements = apply()
     val full: Elements =
-      new Elements(Set.empty)
-      {
+      new Elements(Set.empty) {
         override def apply(elem: String): Boolean = true
         override def toString: String = "Elements.full"
       }
   }
 
-  sealed class Elements private[Markup](private val rep: Set[String])
-  {
+  sealed class Elements private[Markup](private val rep: Set[String]) {
     def apply(elem: String): Boolean = rep.contains(elem)
     def + (elem: String): Elements = new Elements(rep + elem)
     def ++ (elems: Elements): Elements = new Elements(rep ++ elems.rep)
@@ -61,15 +57,13 @@ object Markup
   val Empty: Markup = Markup("", Nil)
   val Broken: Markup = Markup("broken", Nil)
 
-  class Markup_Elem(val name: String)
-  {
+  class Markup_Elem(val name: String) {
     def apply(props: Properties.T = Nil): Markup = Markup(name, props)
     def unapply(markup: Markup): Option[Properties.T] =
       if (markup.name == name) Some(markup.properties) else None
   }
 
-  class Markup_String(val name: String, prop: String)
-  {
+  class Markup_String(val name: String, prop: String) {
     val Prop: Properties.String = new Properties.String(prop)
 
     def apply(s: String): Markup = Markup(name, Prop(s))
@@ -78,8 +72,7 @@ object Markup
     def get(markup: Markup): String = unapply(markup).getOrElse("")
   }
 
-  class Markup_Int(val name: String, prop: String)
-  {
+  class Markup_Int(val name: String, prop: String) {
     val Prop: Properties.Int = new Properties.Int(prop)
 
     def apply(i: Int): Markup = Markup(name, Prop(i))
@@ -88,8 +81,7 @@ object Markup
     def get(markup: Markup): Int = unapply(markup).getOrElse(0)
   }
 
-  class Markup_Long(val name: String, prop: String)
-  {
+  class Markup_Long(val name: String, prop: String) {
     val Prop: Properties.Long = new Properties.Long(prop)
 
     def apply(i: Long): Markup = Markup(name, Prop(i))
@@ -114,13 +106,11 @@ object Markup
   val BINDING = "binding"
   val ENTITY = "entity"
 
-  object Entity
-  {
+  object Entity {
     val Def = new Markup_Long(ENTITY, "def")
     val Ref = new Markup_Long(ENTITY, "ref")
 
-    object Occ
-    {
+    object Occ {
       def unapply(markup: Markup): Option[Long] =
         Def.unapply(markup) orElse Ref.unapply(markup)
     }
@@ -176,8 +166,7 @@ object Markup
   /* expression */
 
   val EXPRESSION = "expression"
-  object Expression
-  {
+  object Expression {
     def unapply(markup: Markup): Option[String] =
       markup match {
         case Markup(EXPRESSION, props) => Some(Kind.get(props))
@@ -199,8 +188,7 @@ object Markup
   val Delimited = new Properties.Boolean("delimited")
 
   val LANGUAGE = "language"
-  object Language
-  {
+  object Language {
     val DOCUMENT = "document"
     val ML = "ML"
     val SML = "SML"
@@ -218,8 +206,7 @@ object Markup
         case _ => None
       }
 
-    object Path
-    {
+    object Path {
       def unapply(markup: Markup): Option[Boolean] =
         markup match {
           case Language(PATH, _, _, delimited) => Some(delimited)
@@ -250,8 +237,7 @@ object Markup
   val Indent = new Properties.Int("indent")
   val Width = new Properties.Int("width")
 
-  object Block
-  {
+  object Block {
     val name = "block"
     def apply(c: Boolean, i: Int): Markup =
       Markup(name,
@@ -266,8 +252,7 @@ object Markup
       else None
   }
 
-  object Break
-  {
+  object Break {
     val name = "break"
     def apply(w: Int, i: Int): Markup =
       Markup(name,
@@ -360,8 +345,7 @@ object Markup
   val PARAGRAPH = "paragraph"
   val TEXT_FOLD = "text_fold"
 
-  object Document_Tag extends Markup_String("document_tag", NAME)
-  {
+  object Document_Tag extends Markup_String("document_tag", NAME) {
     val IMPORTANT = "important"
     val UNIMPORTANT = "unimportant"
   }
@@ -452,8 +436,7 @@ object Markup
   val CPU = new Properties.Double("cpu")
   val GC = new Properties.Double("gc")
 
-  object Timing_Properties
-  {
+  object Timing_Properties {
     def apply(timing: isabelle.Timing): Properties.T =
       Elapsed(timing.elapsed.seconds) ::: CPU(timing.cpu.seconds) ::: GC(timing.gc.seconds)
 
@@ -470,8 +453,7 @@ object Markup
 
   val TIMING = "timing"
 
-  object Timing
-  {
+  object Timing {
     def apply(timing: isabelle.Timing): Markup = Markup(TIMING, Timing_Properties(timing))
 
     def unapply(markup: Markup): Option[isabelle.Timing] =
@@ -486,8 +468,7 @@ object Markup
 
   val Return_Code = new Properties.Int("return_code")
 
-  object Process_Result
-  {
+  object Process_Result {
     def apply(result: Process_Result): Properties.T =
       Return_Code(result.rc) :::
         (if (result.timing.is_zero) Nil else Timing_Properties(result.timing))
@@ -594,8 +575,7 @@ object Markup
   val ML_PROFILING_ENTRY = "ML_profiling_entry"
   val ML_PROFILING = "ML_profiling"
 
-  object ML_Profiling
-  {
+  object ML_Profiling {
     def unapply_entry(tree: XML.Tree): Option[isabelle.ML_Profiling.Entry] =
       tree match {
         case XML.Elem(Markup(ML_PROFILING_ENTRY, List((NAME, name), (COUNT, Value.Long(count)))), _) =>
@@ -633,13 +613,11 @@ object Markup
 
   val FUNCTION = "function"
 
-  class Function(val name: String)
-  {
+  class Function(val name: String) {
     val PROPERTY: Properties.Entry = (FUNCTION, name)
   }
 
-  class Properties_Function(name: String) extends Function(name)
-  {
+  class Properties_Function(name: String) extends Function(name) {
     def unapply(props: Properties.T): Option[Properties.T] =
       props match {
         case PROPERTY :: args => Some(args)
@@ -647,8 +625,7 @@ object Markup
       }
   }
 
-  class Name_Function(name: String) extends Function(name)
-  {
+  class Name_Function(name: String) extends Function(name) {
     def unapply(props: Properties.T): Option[String] =
       props match {
         case List(PROPERTY, (NAME, a)) => Some(a)
@@ -656,8 +633,7 @@ object Markup
       }
   }
 
-  object ML_Statistics extends Function("ML_statistics")
-  {
+  object ML_Statistics extends Function("ML_statistics") {
     def unapply(props: Properties.T): Option[(Long, String)] =
       props match {
         case List(PROPERTY, ("pid", Value.Long(pid)), ("stats_dir", stats_dir)) =>
@@ -671,8 +647,7 @@ object Markup
 
   object Command_Timing extends Properties_Function("command_timing")
   object Theory_Timing extends Properties_Function("theory_timing")
-  object Session_Timing extends Properties_Function("session_timing")
-  {
+  object Session_Timing extends Properties_Function("session_timing") {
     val Threads = new Properties.Int("threads")
   }
   object Task_Statistics extends Properties_Function("task_statistics")
@@ -684,8 +659,7 @@ object Markup
   object Assign_Update extends Function("assign_update")
   object Removed_Versions extends Function("removed_versions")
 
-  object Invoke_Scala extends Function("invoke_scala")
-  {
+  object Invoke_Scala extends Function("invoke_scala") {
     def unapply(props: Properties.T): Option[(String, String)] =
       props match {
         case List(PROPERTY, (NAME, name), (ID, id)) => Some((name, id))
@@ -693,8 +667,7 @@ object Markup
       }
   }
 
-  object Cancel_Scala extends Function("cancel_scala")
-  {
+  object Cancel_Scala extends Function("cancel_scala") {
     def unapply(props: Properties.T): Option[String] =
       props match {
         case List(PROPERTY, (ID, id)) => Some(id)
@@ -717,8 +690,7 @@ object Markup
   /* debugger output */
 
   val DEBUGGER_STATE = "debugger_state"
-  object Debugger_State
-  {
+  object Debugger_State {
     def unapply(props: Properties.T): Option[String] =
       props match {
         case List((FUNCTION, DEBUGGER_STATE), (NAME, name)) => Some(name)
@@ -727,8 +699,7 @@ object Markup
   }
 
   val DEBUGGER_OUTPUT = "debugger_output"
-  object Debugger_Output
-  {
+  object Debugger_Output {
     def unapply(props: Properties.T): Option[String] =
       props match {
         case List((FUNCTION, DEBUGGER_OUTPUT), (NAME, name)) => Some(name)
@@ -748,8 +719,7 @@ object Markup
   val SIMP_TRACE_IGNORE = "simp_trace_ignore"
 
   val SIMP_TRACE_CANCEL = "simp_trace_cancel"
-  object Simp_Trace_Cancel
-  {
+  object Simp_Trace_Cancel {
     def unapply(props: Properties.T): Option[Long] =
       props match {
         case (FUNCTION, SIMP_TRACE_CANCEL) :: Serial(i) => Some(i)
@@ -760,14 +730,12 @@ object Markup
 
   /* XML data representation */
 
-  def encode: XML.Encode.T[Markup] = (markup: Markup) =>
-  {
+  def encode: XML.Encode.T[Markup] = { (markup: Markup) =>
     import XML.Encode._
     pair(string, properties)((markup.name, markup.properties))
   }
 
-  def decode: XML.Decode.T[Markup] = (body: XML.Body) =>
-  {
+  def decode: XML.Decode.T[Markup] = { (body: XML.Body) =>
     import XML.Decode._
     val (name, props) = pair(string, properties)(body)
     Markup(name, props)
@@ -775,8 +743,7 @@ object Markup
 }
 
 
-sealed case class Markup(name: String, properties: Properties.T)
-{
+sealed case class Markup(name: String, properties: Properties.T) {
   def is_empty: Boolean = name.isEmpty
 
   def position_properties: Position.T = properties.filter(Markup.position_property)

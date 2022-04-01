@@ -24,8 +24,7 @@ import org.gjt.sp.jedit.buffer.{JEditBuffer, LineManager}
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, TextAreaPainter}
 
 
-object JEdit_Lib
-{
+object JEdit_Lib {
   /* jEdit directories */
 
   def directories: List[JFile] =
@@ -36,14 +35,12 @@ object JEdit_Lib
 
   private lazy val dummy_window = new JWindow
 
-  final case class Window_Geometry(width: Int, height: Int, inner_width: Int, inner_height: Int)
-  {
+  final case class Window_Geometry(width: Int, height: Int, inner_width: Int, inner_height: Int) {
     def deco_width: Int = width - inner_width
     def deco_height: Int = height - inner_height
   }
 
-  def window_geometry(outer: Container, inner: Component): Window_Geometry =
-  {
+  def window_geometry(outer: Container, inner: Component): Window_Geometry = {
     GUI_Thread.require {}
 
     val old_content = dummy_window.getContentPane
@@ -79,8 +76,7 @@ object JEdit_Lib
   def buffer_reader(buffer: JEditBuffer): CharSequenceReader =
     Scan.char_reader(buffer.getSegment(0, buffer.getLength))
 
-  def buffer_mode(buffer: JEditBuffer): String =
-  {
+  def buffer_mode(buffer: JEditBuffer): String = {
     val mode = buffer.getMode
     if (mode == null) ""
     else {
@@ -96,8 +92,7 @@ object JEdit_Lib
 
   def buffer_file(buffer: Buffer): Option[JFile] = check_file(buffer_name(buffer))
 
-  def buffer_undo_in_progress[A](buffer: JEditBuffer, body: => A): A =
-  {
+  def buffer_undo_in_progress[A](buffer: JEditBuffer, body: => A): A = {
     val undo_in_progress = buffer.isUndoInProgress
     def set(b: Boolean): Unit = Untyped.set[Boolean](buffer, "undoInProgress", b)
     try { set(true); body } finally { set(undo_in_progress) }
@@ -135,14 +130,12 @@ object JEdit_Lib
   def jedit_text_areas(buffer: JEditBuffer): Iterator[JEditTextArea] =
     jedit_text_areas().filter(_.getBuffer == buffer)
 
-  def buffer_lock[A](buffer: JEditBuffer)(body: => A): A =
-  {
+  def buffer_lock[A](buffer: JEditBuffer)(body: => A): A = {
     try { buffer.readLock(); body }
     finally { buffer.readUnlock() }
   }
 
-  def buffer_edit[A](buffer: JEditBuffer)(body: => A): A =
-  {
+  def buffer_edit[A](buffer: JEditBuffer)(body: => A): A = {
     try { buffer.beginCompoundEdit(); body }
     finally { buffer.endCompoundEdit() }
   }
@@ -186,8 +179,7 @@ object JEdit_Lib
   def caret_range(text_area: TextArea): Text.Range =
     point_range(text_area.getBuffer, text_area.getCaretPosition)
 
-  def visible_range(text_area: TextArea): Option[Text.Range] =
-  {
+  def visible_range(text_area: TextArea): Option[Text.Range] = {
     val buffer = text_area.getBuffer
     val n = text_area.getVisibleLines
     if (n > 0) {
@@ -199,8 +191,7 @@ object JEdit_Lib
     else None
   }
 
-  def invalidate_range(text_area: TextArea, range: Text.Range): Unit =
-  {
+  def invalidate_range(text_area: TextArea, range: Text.Range): Unit = {
     val buffer = text_area.getBuffer
     buffer_range(buffer).try_restrict(range) match {
       case Some(range1) if !range1.is_singularity =>
@@ -214,8 +205,7 @@ object JEdit_Lib
     }
   }
 
-  def invalidate(text_area: TextArea): Unit =
-  {
+  def invalidate(text_area: TextArea): Unit = {
     val visible_lines = text_area.getVisibleLines
     if (visible_lines > 0) text_area.invalidateScreenLineRange(0, visible_lines)
   }
@@ -227,8 +217,7 @@ object JEdit_Lib
 
   // NB: jEdit always normalizes \r\n and \r to \n
   // NB: last line lacks \n
-  def gfx_range(text_area: TextArea, range: Text.Range): Option[Gfx_Range] =
-  {
+  def gfx_range(text_area: TextArea, range: Text.Range): Option[Gfx_Range] = {
     val metric = pretty_metric(text_area.getPainter)
     val char_width = (metric.unit * metric.average).round.toInt
 
@@ -258,8 +247,7 @@ object JEdit_Lib
 
   /* pixel range */
 
-  def pixel_range(text_area: TextArea, x: Int, y: Int): Option[Text.Range] =
-  {
+  def pixel_range(text_area: TextArea, x: Int, y: Int): Option[Text.Range] = {
     // coordinates wrt. inner painter component
     val painter = text_area.getPainter
     if (0 <= x && x < painter.getWidth && 0 <= y && y < painter.getHeight) {
@@ -279,8 +267,7 @@ object JEdit_Lib
 
   /* pretty text metric */
 
-  abstract class Pretty_Metric extends Pretty.Metric
-  {
+  abstract class Pretty_Metric extends Pretty.Metric {
     def average: Double
   }
 
@@ -297,8 +284,7 @@ object JEdit_Lib
 
   /* icons */
 
-  def load_icon(name: String): Icon =
-  {
+  def load_icon(name: String): Icon = {
     val name1 =
       if (name.startsWith("idea-icons/")) {
         val file = Path.explode("$ISABELLE_IDEA_ICONS").file.toURI.toASCIIString
@@ -319,8 +305,7 @@ object JEdit_Lib
 
   /* key event handling */
 
-  def request_focus_view(alt_view: View = null): Unit =
-  {
+  def request_focus_view(alt_view: View = null): Unit = {
     val view = if (alt_view != null) alt_view else jEdit.getActiveView()
     if (view != null) {
       val text_area = view.getTextArea
@@ -328,8 +313,7 @@ object JEdit_Lib
     }
   }
 
-  def propagate_key(view: View, evt: KeyEvent): Unit =
-  {
+  def propagate_key(view: View, evt: KeyEvent): Unit = {
     if (view != null && !evt.isConsumed)
       view.getInputHandler().processKeyEvent(evt, View.ACTION_BAR, false)
   }
@@ -337,24 +321,21 @@ object JEdit_Lib
   def key_listener(
     key_typed: KeyEvent => Unit = _ => (),
     key_pressed: KeyEvent => Unit = _ => (),
-    key_released: KeyEvent => Unit = _ => ()): KeyListener =
-  {
-    def process_key_event(evt0: KeyEvent, handle: KeyEvent => Unit): Unit =
-    {
+    key_released: KeyEvent => Unit = _ => ()
+  ): KeyListener = {
+    def process_key_event(evt0: KeyEvent, handle: KeyEvent => Unit): Unit = {
       val evt = KeyEventWorkaround.processKeyEvent(evt0)
       if (evt != null) handle(evt)
     }
 
-    new KeyListener
-    {
+    new KeyListener {
       def keyTyped(evt: KeyEvent): Unit = process_key_event(evt, key_typed)
       def keyPressed(evt: KeyEvent): Unit = process_key_event(evt, key_pressed)
       def keyReleased(evt: KeyEvent): Unit = process_key_event(evt, key_released)
     }
   }
 
-  def special_key(evt: KeyEvent): Boolean =
-  {
+  def special_key(evt: KeyEvent): Boolean = {
     // cf. 5.2.0/jEdit/org/gjt/sp/jedit/gui/KeyEventWorkaround.java
     val mod = evt.getModifiersEx
     (mod & InputEvent.CTRL_DOWN_MASK) != 0 && (mod & InputEvent.ALT_DOWN_MASK) == 0 ||

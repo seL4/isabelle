@@ -7,8 +7,7 @@ Position properties.
 package isabelle
 
 
-object Position
-{
+object Position {
   type T = Properties.T
 
   val none: T = Nil
@@ -28,8 +27,7 @@ object Position
 
   val Def_Theory = new Properties.String(Markup.DEF_THEORY)
 
-  object Line_File
-  {
+  object Line_File {
     def apply(line: Int, file: String): T =
       (if (line > 0) Line(line) else Nil) :::
       (if (file != "") File(file) else Nil)
@@ -42,8 +40,7 @@ object Position
       }
   }
 
-  object Def_Line_File
-  {
+  object Def_Line_File {
     def unapply(pos: T): Option[(Int, String)] =
       (pos, pos) match {
         case (Def_Line(i), Def_File(name)) => Some((i, name))
@@ -52,8 +49,7 @@ object Position
       }
   }
 
-  object Range
-  {
+  object Range {
     def apply(range: Symbol.Range): T = Offset(range.start) ::: End_Offset(range.stop)
     def unapply(pos: T): Option[Symbol.Range] =
       (pos, pos) match {
@@ -63,8 +59,7 @@ object Position
       }
   }
 
-  object Def_Range
-  {
+  object Def_Range {
     def apply(range: Symbol.Range): T = Def_Offset(range.start) ::: Def_End_Offset(range.stop)
     def unapply(pos: T): Option[Symbol.Range] =
       (pos, pos) match {
@@ -74,8 +69,7 @@ object Position
       }
   }
 
-  object Item_Id
-  {
+  object Item_Id {
     def unapply(pos: T): Option[(Long, Symbol.Range)] =
       pos match {
         case Id(id) =>
@@ -86,8 +80,7 @@ object Position
       }
   }
 
-  object Item_Def_Id
-  {
+  object Item_Def_Id {
     def unapply(pos: T): Option[(Long, Symbol.Range)] =
       pos match {
         case Def_Id(id) =>
@@ -98,8 +91,7 @@ object Position
       }
   }
 
-  object Item_File
-  {
+  object Item_File {
     def unapply(pos: T): Option[(String, Int, Symbol.Range)] =
       pos match {
         case Line_File(line, name) =>
@@ -110,8 +102,7 @@ object Position
       }
   }
 
-  object Item_Def_File
-  {
+  object Item_Def_File {
     def unapply(pos: T): Option[(String, Int, Symbol.Range)] =
       pos match {
         case Def_Line_File(line, name) =>
@@ -125,8 +116,7 @@ object Position
 
   /* here: user output */
 
-  def here(props: T, delimited: Boolean = true): String =
-  {
+  def here(props: T, delimited: Boolean = true): String = {
     val pos = props.filter(Markup.position_property)
     if (pos.isEmpty) ""
     else {
@@ -145,8 +135,7 @@ object Position
 
   /* JSON representation */
 
-  object JSON
-  {
+  object JSON {
     def apply(pos: T): isabelle.JSON.Object.T =
       isabelle.JSON.Object.empty ++
         Line.unapply(pos).map(Line.name -> _) ++

@@ -22,8 +22,7 @@ import org.tukaani.xz.{XZInputStream, XZOutputStream}
 import scala.collection.mutable
 
 
-object File
-{
+object File {
   /* standard path (Cygwin or Posix) */
 
   def standard_path(path: Path): String = path.expand.implode
@@ -66,8 +65,7 @@ object File
 
   /* relative paths */
 
-  def relative_path(base: Path, other: Path): Option[Path] =
-  {
+  def relative_path(base: Path, other: Path): Option[Path] = {
     val base_path = base.java_path
     val other_path = other.java_path
     if (other_path.startsWith(base_path))
@@ -95,8 +93,7 @@ object File
 
   /* directory content */
 
-  def read_dir(dir: Path): List[String] =
-  {
+  def read_dir(dir: Path): List[String] = {
     if (!dir.is_dir) error("No such directory: " + dir.toString)
     val files = dir.file.listFiles
     if (files == null) Nil
@@ -114,8 +111,8 @@ object File
     start: JFile,
     pred: JFile => Boolean = _ => true,
     include_dirs: Boolean = false,
-    follow_links: Boolean = false): List[JFile] =
-  {
+    follow_links: Boolean = false
+  ): List[JFile] = {
     val result = new mutable.ListBuffer[JFile]
     def check(file: JFile): Unit = if (pred(file)) result += file
 
@@ -126,13 +123,17 @@ object File
         else EnumSet.noneOf(classOf[FileVisitOption])
       Files.walkFileTree(start.toPath, options, Integer.MAX_VALUE,
         new SimpleFileVisitor[JPath] {
-          override def preVisitDirectory(path: JPath, attrs: BasicFileAttributes): FileVisitResult =
-          {
+          override def preVisitDirectory(
+            path: JPath,
+            attrs: BasicFileAttributes
+          ): FileVisitResult = {
             if (include_dirs) check(path.toFile)
             FileVisitResult.CONTINUE
           }
-          override def visitFile(path: JPath, attrs: BasicFileAttributes): FileVisitResult =
-          {
+          override def visitFile(
+            path: JPath,
+            attrs: BasicFileAttributes
+          ): FileVisitResult = {
             val file = path.toFile
             if (include_dirs || !file.isDirectory) check(file)
             FileVisitResult.CONTINUE
@@ -151,8 +152,7 @@ object File
   def read(path: Path): String = read(path.file)
 
 
-  def read_stream(reader: BufferedReader): String =
-  {
+  def read_stream(reader: BufferedReader): String = {
     val output = new StringBuilder(100)
     var c = -1
     while ({ c = reader.read; c != -1 }) output += c.toChar
@@ -174,16 +174,14 @@ object File
 
   /* read lines */
 
-  def read_line(reader: BufferedReader): Option[String] =
-  {
+  def read_line(reader: BufferedReader): Option[String] = {
     val line =
       try { reader.readLine}
       catch { case _: IOException => null }
     Option(line).map(Library.trim_line)
   }
 
-  def read_lines(reader: BufferedReader, progress: String => Unit): List[String] =
-  {
+  def read_lines(reader: BufferedReader, progress: String => Unit): List[String] = {
     val result = new mutable.ListBuffer[String]
     var line: Option[String] = None
     while ({ line = read_line(reader); line.isDefined }) {
@@ -201,8 +199,10 @@ object File
     new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), UTF8.charset))
 
   def write_file(
-    file: JFile, text: String, make_stream: OutputStream => OutputStream): Unit =
-  {
+    file: JFile,
+    text: String,
+    make_stream: OutputStream => OutputStream
+  ): Unit = {
     val stream = make_stream(new FileOutputStream(file))
     using(new BufferedWriter(new OutputStreamWriter(stream, UTF8.charset)))(_.append(text))
   }
@@ -221,14 +221,12 @@ object File
     write_xz(path.file, text, options)
   def write_xz(path: Path, text: String): Unit = write_xz(path, text, XZ.options())
 
-  def write_backup(path: Path, text: String): Unit =
-  {
+  def write_backup(path: Path, text: String): Unit = {
     if (path.is_file) Isabelle_System.move_file(path, path.backup)
     write(path, text)
   }
 
-  def write_backup2(path: Path, text: String): Unit =
-  {
+  def write_backup2(path: Path, text: String): Unit = {
     if (path.is_file) Isabelle_System.move_file(path, path.backup2)
     write(path, text)
   }
@@ -245,8 +243,11 @@ object File
 
   /* change */
 
-  def change(path: Path, init: Boolean = false, strict: Boolean = false)(f: String => String): Unit =
-  {
+  def change(
+    path: Path,
+    init: Boolean = false,
+    strict: Boolean = false
+  )(f: String => String): Unit = {
     if (!path.is_file && init) write(path, "")
     val x = read(path)
     val y = f(x)
@@ -280,14 +281,12 @@ object File
 
   /* permissions */
 
-  def is_executable(path: Path): Boolean =
-  {
+  def is_executable(path: Path): Boolean = {
     if (Platform.is_windows) Isabelle_System.bash("test -x " + bash_path(path)).check.ok
     else path.file.canExecute
   }
 
-  def set_executable(path: Path, flag: Boolean): Unit =
-  {
+  def set_executable(path: Path, flag: Boolean): Unit = {
     if (Platform.is_windows && flag) Isabelle_System.chmod("a+x", path)
     else if (Platform.is_windows) Isabelle_System.chmod("a-x", path)
     else path.file.setExecutable(flag, false)
@@ -296,31 +295,26 @@ object File
 
   /* content */
 
-  object Content
-  {
+  object Content {
     def apply(path: Path, content: Bytes): Content = new Content_Bytes(path, content)
     def apply(path: Path, content: String): Content = new Content_String(path, content)
     def apply(path: Path, content: XML.Body): Content_XML = new Content_XML(path, content)
   }
 
-  trait Content
-  {
+  trait Content {
     def path: Path
     def write(dir: Path): Unit
   }
 
-  final class Content_Bytes private[File](val path: Path, content: Bytes) extends Content
-  {
+  final class Content_Bytes private[File](val path: Path, content: Bytes) extends Content {
     def write(dir: Path): Unit = Bytes.write(dir + path, content)
   }
 
-  final class Content_String private[File](val path: Path, content: String) extends Content
-  {
+  final class Content_String private[File](val path: Path, content: String) extends Content {
     def write(dir: Path): Unit = File.write(dir + path, content)
   }
 
-  final class Content_XML private[File](val path: Path, content: XML.Body)
-  {
+  final class Content_XML private[File](val path: Path, content: XML.Body) {
     def output(out: XML.Body => String): Content_String =
       new Content_String(path, out(content))
   }

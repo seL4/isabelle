@@ -26,12 +26,10 @@ import org.gjt.sp.jedit.menu.EnhancedMenuItem
 import org.gjt.sp.jedit.textarea.JEditTextArea
 
 
-object Debugger_Dockable
-{
+object Debugger_Dockable {
   /* breakpoints */
 
-  def get_breakpoint(text_area: JEditTextArea, offset: Text.Offset): Option[(Command, Long)] =
-  {
+  def get_breakpoint(text_area: JEditTextArea, offset: Text.Offset): Option[(Command, Long)] = {
     GUI_Thread.require {}
 
     Document_View.get(text_area) match {
@@ -55,8 +53,7 @@ object Debugger_Dockable
     else Nil
 }
 
-class Debugger_Dockable(view: View, position: String) extends Dockable(view, position)
-{
+class Debugger_Dockable(view: View, position: String) extends Dockable(view, position) {
   GUI_Thread.require {}
 
   private val debugger = PIDE.session.debugger
@@ -75,16 +72,14 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
   override def detach_operation: Option[() => Unit] = pretty_text_area.detach_operation
 
-  private def handle_resize(): Unit =
-  {
+  private def handle_resize(): Unit = {
     GUI_Thread.require {}
 
     pretty_text_area.resize(
       Font_Info.main(PIDE.options.real("jedit_font_scale") * zoom.factor / 100))
   }
 
-  private def handle_update(): Unit =
-  {
+  private def handle_update(): Unit = {
     GUI_Thread.require {}
 
     val new_snapshot = PIDE.editor.current_node_snapshot(view).getOrElse(current_snapshot)
@@ -122,8 +117,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
   def thread_selection(): Option[String] = tree_selection().map(_.thread_name)
 
-  private def update_tree(threads: Debugger.Threads): Unit =
-  {
+  private def update_tree(threads: Debugger.Threads): Unit = {
     val thread_contexts =
       (for ((a, b) <- threads.iterator)
         yield Debugger.Context(a, b)).toList
@@ -163,8 +157,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     tree.revalidate()
   }
 
-  def update_vals(): Unit =
-  {
+  def update_vals(): Unit = {
     tree_selection() match {
       case Some(c) if c.stack_state.isDefined =>
         debugger.print_vals(c, sml_button.selected, context_field.getText)
@@ -176,16 +169,14 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
   tree.addTreeSelectionListener(
     new TreeSelectionListener {
-      override def valueChanged(e: TreeSelectionEvent): Unit =
-      {
+      override def valueChanged(e: TreeSelectionEvent): Unit = {
         update_focus()
         update_vals()
       }
     })
   tree.addMouseListener(
     new MouseAdapter {
-      override def mouseClicked(e: MouseEvent): Unit =
-      {
+      override def mouseClicked(e: MouseEvent): Unit = {
         val click = tree.getPathForLocation(e.getX, e.getY)
         if (click != null && e.getClickCount == 1)
           update_focus()
@@ -230,10 +221,8 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     tooltip = "Isabelle/ML context: type theory, Proof.context, Context.generic"
   }
   private val context_field =
-    new Completion_Popup.History_Text_Field("isabelle-debugger-context")
-    {
-      override def processKeyEvent(evt: KeyEvent): Unit =
-      {
+    new Completion_Popup.History_Text_Field("isabelle-debugger-context") {
+      override def processKeyEvent(evt: KeyEvent): Unit = {
         if (evt.getID == KeyEvent.KEY_PRESSED && evt.getKeyCode == KeyEvent.VK_ENTER)
           eval_expression()
         super.processKeyEvent(evt)
@@ -247,10 +236,8 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     tooltip = "Isabelle/ML or Standard ML expression"
   }
   private val expression_field =
-    new Completion_Popup.History_Text_Field("isabelle-debugger-expression")
-    {
-      override def processKeyEvent(evt: KeyEvent): Unit =
-      {
+    new Completion_Popup.History_Text_Field("isabelle-debugger-expression") {
+      override def processKeyEvent(evt: KeyEvent): Unit = {
         if (evt.getID == KeyEvent.KEY_PRESSED && evt.getKeyCode == KeyEvent.VK_ENTER)
           eval_expression()
         super.processKeyEvent(evt)
@@ -266,8 +253,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
       reactions += { case ButtonClicked(_) => eval_expression() }
     }
 
-  private def eval_expression(): Unit =
-  {
+  private def eval_expression(): Unit = {
     context_field.addCurrentToHistory()
     expression_field.addCurrentToHistory()
     tree_selection() match {
@@ -303,8 +289,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     override def focusGained(e: FocusEvent): Unit = update_focus()
   })
 
-  private def update_focus(): Unit =
-  {
+  private def update_focus(): Unit = {
     for (c <- tree_selection()) {
       debugger.set_focus(c)
       for {
@@ -340,8 +325,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
         }
     }
 
-  override def init(): Unit =
-  {
+  override def init(): Unit = {
     PIDE.session.global_options += main
     PIDE.session.debugger_updates += main
     debugger.init()
@@ -349,8 +333,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     jEdit.propertiesChanged()
   }
 
-  override def exit(): Unit =
-  {
+  override def exit(): Unit = {
     PIDE.session.global_options -= main
     PIDE.session.debugger_updates -= main
     delay_resize.revoke()

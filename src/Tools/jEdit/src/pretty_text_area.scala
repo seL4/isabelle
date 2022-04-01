@@ -30,8 +30,8 @@ import org.gjt.sp.util.{SyntaxUtilities, Log}
 class Pretty_Text_Area(
   view: View,
   close_action: () => Unit = () => (),
-  propagate_keys: Boolean = false) extends JEditEmbeddedTextArea
-{
+  propagate_keys: Boolean = false
+) extends JEditEmbeddedTextArea {
   text_area =>
 
   GUI_Thread.require {}
@@ -53,8 +53,7 @@ class Pretty_Text_Area(
 
   def get_background(): Option[Color] = None
 
-  def refresh(): Unit =
-  {
+  def refresh(): Unit = {
     GUI_Thread.require {}
 
     val font = current_font_info.font
@@ -76,7 +75,7 @@ class Pretty_Text_Area(
 
     getGutter.setForeground(jEdit.getColorProperty("view.gutter.fgColor"))
     getGutter.setBackground(jEdit.getColorProperty("view.gutter.bgColor"))
-    get_background().foreach(bg => { getPainter.setBackground(bg); getGutter.setBackground(bg) })
+    get_background().foreach { bg => getPainter.setBackground(bg); getGutter.setBackground(bg) }
     getGutter.setHighlightedForeground(jEdit.getColorProperty("view.gutter.highlightColor"))
     getGutter.setFoldColor(jEdit.getColorProperty("view.gutter.foldColor"))
     getGutter.setFont(jEdit.getFontProperty("view.gutter.font"))
@@ -116,8 +115,7 @@ class Pretty_Text_Area(
     }
   }
 
-  def resize(font_info: Font_Info): Unit =
-  {
+  def resize(font_info: Font_Info): Unit = {
     GUI_Thread.require {}
 
     current_font_info = font_info
@@ -125,8 +123,10 @@ class Pretty_Text_Area(
   }
 
   def update(
-    base_snapshot: Document.Snapshot, base_results: Command.Results, body: XML.Body): Unit =
-  {
+    base_snapshot: Document.Snapshot,
+    base_results: Command.Results,
+    body: XML.Body
+  ): Unit = {
     GUI_Thread.require {}
     require(!base_snapshot.is_outdated, "document snapshot outdated")
 
@@ -136,8 +136,7 @@ class Pretty_Text_Area(
     refresh()
   }
 
-  def detach: Unit =
-  {
+  def detach: Unit = {
     GUI_Thread.require {}
     Info_Dockable(view, current_base_snapshot, current_base_results, current_body)
   }
@@ -153,26 +152,24 @@ class Pretty_Text_Area(
   }
 
   val search_field: Component =
-    Component.wrap(new Completion_Popup.History_Text_Field("isabelle-search")
-      {
-        private val input_delay =
-          Delay.last(PIDE.options.seconds("editor_input_delay"), gui = true) {
-            search_action(this)
-          }
-        getDocument.addDocumentListener(new DocumentListener {
-          def changedUpdate(e: DocumentEvent): Unit = input_delay.invoke()
-          def insertUpdate(e: DocumentEvent): Unit = input_delay.invoke()
-          def removeUpdate(e: DocumentEvent): Unit = input_delay.invoke()
-        })
-        setColumns(20)
-        setToolTipText(search_label.tooltip)
-        setFont(GUI.imitate_font(getFont, scale = 1.2))
+    Component.wrap(new Completion_Popup.History_Text_Field("isabelle-search") {
+      private val input_delay =
+        Delay.last(PIDE.options.seconds("editor_input_delay"), gui = true) {
+          search_action(this)
+        }
+      getDocument.addDocumentListener(new DocumentListener {
+        def changedUpdate(e: DocumentEvent): Unit = input_delay.invoke()
+        def insertUpdate(e: DocumentEvent): Unit = input_delay.invoke()
+        def removeUpdate(e: DocumentEvent): Unit = input_delay.invoke()
       })
+      setColumns(20)
+      setToolTipText(search_label.tooltip)
+      setFont(GUI.imitate_font(getFont, scale = 1.2))
+    })
 
   private val search_field_foreground = search_field.foreground
 
-  private def search_action(text_field: JTextField): Unit =
-  {
+  private def search_action(text_field: JTextField): Unit = {
     val (pattern, ok) =
       text_field.getText match {
         case null | "" => (None, true)
@@ -203,34 +200,31 @@ class Pretty_Text_Area(
     })
 
   addKeyListener(JEdit_Lib.key_listener(
-    key_pressed = (evt: KeyEvent) =>
-      {
-        val strict_control =
-          JEdit_Lib.command_modifier(evt) && !JEdit_Lib.shift_modifier(evt)
+    key_pressed = { (evt: KeyEvent) =>
+      val strict_control =
+        JEdit_Lib.command_modifier(evt) && !JEdit_Lib.shift_modifier(evt)
 
-        evt.getKeyCode match {
-          case KeyEvent.VK_C | KeyEvent.VK_INSERT
-          if strict_control && text_area.getSelectionCount != 0 =>
-            Registers.copy(text_area, '$')
-            evt.consume
+      evt.getKeyCode match {
+        case KeyEvent.VK_C | KeyEvent.VK_INSERT
+        if strict_control && text_area.getSelectionCount != 0 =>
+          Registers.copy(text_area, '$')
+          evt.consume
 
-          case KeyEvent.VK_A
-          if strict_control =>
-            text_area.selectAll
-            evt.consume
+        case KeyEvent.VK_A
+        if strict_control =>
+          text_area.selectAll
+          evt.consume
 
-          case KeyEvent.VK_ESCAPE =>
-            if (Isabelle.dismissed_popups(view)) evt.consume
+        case KeyEvent.VK_ESCAPE =>
+          if (Isabelle.dismissed_popups(view)) evt.consume
 
-          case _ =>
-        }
-        if (propagate_keys) JEdit_Lib.propagate_key(view, evt)
-      },
-    key_typed = (evt: KeyEvent) =>
-      {
-        if (propagate_keys) JEdit_Lib.propagate_key(view, evt)
+        case _ =>
       }
-    )
+      if (propagate_keys) JEdit_Lib.propagate_key(view, evt)
+    },
+    key_typed = { (evt: KeyEvent) =>
+      if (propagate_keys) JEdit_Lib.propagate_key(view, evt)
+    })
   )
 
 

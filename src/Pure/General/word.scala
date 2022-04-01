@@ -10,8 +10,7 @@ import java.text.Bidi
 import java.util.Locale
 
 
-object Word
-{
+object Word {
   /* directionality */
 
   def bidi_detect(str: String): Boolean =
@@ -43,8 +42,7 @@ object Word
   case object Uppercase extends Case
   case object Capitalized extends Case
 
-  object Case
-  {
+  object Case {
     def apply(c: Case, str: String): String =
       c match {
         case Lowercase => lowercase(str)

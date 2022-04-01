@@ -7,17 +7,13 @@ Unicode codepoints vs. Unicode string encoding.
 package isabelle
 
 
-object Codepoint
-{
+object Codepoint {
   def string(c: Int): String = new String(Array(c), 0, 1)
 
-  private class Iterator_Offset[A](s: String, result: (Int, Text.Offset) => A)
-    extends Iterator[A]
-  {
+  private class Iterator_Offset[A](s: String, result: (Int, Text.Offset) => A) extends Iterator[A] {
     var offset = 0
     def hasNext: Boolean = offset < s.length
-    def next(): A =
-    {
+    def next(): A = {
       val c = s.codePointAt(offset)
       val i = offset
       offset += Character.charCount(c)

@@ -12,15 +12,13 @@ import java.net.URL
 import scala.util.matching.Regex
 
 
-object Jenkins
-{
+object Jenkins {
   /* server API */
 
   def root(): String =
     Isabelle_System.getenv_strict("ISABELLE_JENKINS_ROOT")
 
-  def invoke(url: String, args: String*): Any =
-  {
+  def invoke(url: String, args: String*): Any = {
     val req = url + "/api/json?" + args.mkString("&")
     val result = Url.read(req)
     try { JSON.parse(result) }
@@ -40,8 +38,11 @@ object Jenkins
 
 
   def download_logs(
-    options: Options, job_names: List[String], dir: Path, progress: Progress = new Progress): Unit =
-  {
+    options: Options,
+    job_names: List[String],
+    dir: Path,
+    progress: Progress = new Progress
+  ): Unit = {
     val store = Sessions.store(options)
     val infos = job_names.flatMap(build_job_infos)
     Par_List.map((info: Job_Info) => info.download_log(store, dir, progress), infos)
@@ -68,15 +69,14 @@ object Jenkins
     job_name: String,
     timestamp: Long,
     main_log: URL,
-    session_logs: List[(String, String, URL)])
-  {
+    session_logs: List[(String, String, URL)]
+  ) {
     val date: Date = Date(Time.ms(timestamp), Date.timezone_berlin)
 
     def log_filename: Path =
       Build_Log.log_filename(Build_Log.Jenkins.engine, date, List(job_name))
 
-    def read_ml_statistics(store: Sessions.Store, session_name: String): List[Properties.T] =
-    {
+    def read_ml_statistics(store: Sessions.Store, session_name: String): List[Properties.T] = {
       def get_log(ext: String): Option[URL] =
         session_logs.collectFirst({ case (a, b, url) if a == session_name && b == ext => url })
 
@@ -96,8 +96,7 @@ object Jenkins
       }
     }
 
-    def download_log(store: Sessions.Store, dir: Path, progress: Progress = new Progress): Unit =
-    {
+    def download_log(store: Sessions.Store, dir: Path, progress: Progress = new Progress): Unit = {
       val log_dir = dir + Build_Log.log_subdir(date)
       val log_path = log_dir + log_filename.xz
 
@@ -118,8 +117,7 @@ object Jenkins
     }
   }
 
-  def build_job_infos(job_name: String): List[Job_Info] =
-  {
+  def build_job_infos(job_name: String): List[Job_Info] = {
     val Session_Log = new Regex("""^.*/log/([^/]+)\.(db|gz)$""")
 
     val infos =

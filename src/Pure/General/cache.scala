@@ -11,8 +11,7 @@ import java.util.{Collections, WeakHashMap, Map => JMap}
 import java.lang.ref.WeakReference
 
 
-object Cache
-{
+object Cache {
   val default_max_string = 100
   val default_initial_size = 131071
 
@@ -24,8 +23,7 @@ object Cache
   val none: Cache = make(max_string = 0)
 }
 
-class Cache(max_string: Int, initial_size: Int)
-{
+class Cache(max_string: Int, initial_size: Int) {
   val no_cache: Boolean = max_string == 0
 
   private val table: JMap[Any, WeakReference[Any]] =
@@ -35,8 +33,7 @@ class Cache(max_string: Int, initial_size: Int)
   override def toString: String =
     if (no_cache) "Cache.none" else "Cache(size = " + table.size + ")"
 
-  protected def lookup[A](x: A): Option[A] =
-  {
+  protected def lookup[A](x: A): Option[A] = {
     if (table == null) None
     else {
       val ref = table.get(x)
@@ -45,8 +42,7 @@ class Cache(max_string: Int, initial_size: Int)
     }
   }
 
-  protected def store[A](x: A): A =
-  {
+  protected def store[A](x: A): A = {
     if (table == null || x == null) x
     else {
       table.put(x, new WeakReference[Any](x))
@@ -54,8 +50,7 @@ class Cache(max_string: Int, initial_size: Int)
     }
   }
 
-  protected def cache_string(x: String): String =
-  {
+  protected def cache_string(x: String): String = {
     if (x == null) null
     else if (x == "") ""
     else if (x == "true") "true"

@@ -19,29 +19,23 @@ import javax.swing.border.{BevelBorder, SoftBevelBorder}
 import org.gjt.sp.jedit.{View, jEdit}
 
 
-class Timing_Dockable(view: View, position: String) extends Dockable(view, position)
-{
+class Timing_Dockable(view: View, position: String) extends Dockable(view, position) {
   /* entry */
 
-  private object Entry
-  {
-    object Ordering extends scala.math.Ordering[Entry]
-    {
+  private object Entry {
+    object Ordering extends scala.math.Ordering[Entry] {
       def compare(entry1: Entry, entry2: Entry): Int =
         entry2.timing compare entry1.timing
     }
 
-    object Renderer_Component extends Label
-    {
+    object Renderer_Component extends Label {
       opaque = false
       xAlignment = Alignment.Leading
       border = BorderFactory.createEmptyBorder(2, 2, 2, 2)
 
       var entry: Entry = null
-      override def paintComponent(gfx: Graphics2D): Unit =
-      {
-        def paint_rectangle(color: Color): Unit =
-        {
+      override def paintComponent(gfx: Graphics2D): Unit = {
+        def paint_rectangle(color: Color): Unit = {
           val size = peer.getSize()
           val insets = border.getBorderInsets(peer)
           val x = insets.left
@@ -63,11 +57,13 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
       }
     }
 
-    class Renderer extends ListView.Renderer[Entry]
-    {
-      def componentFor(list: ListView[_ <: Timing_Dockable.this.Entry],
-        isSelected: Boolean, focused: Boolean, entry: Entry, index: Int): Component =
-      {
+    class Renderer extends ListView.Renderer[Entry] {
+      def componentFor(
+        list: ListView[_ <: Timing_Dockable.this.Entry],
+        isSelected: Boolean,
+        focused: Boolean,
+        entry: Entry, index: Int
+      ): Component = {
         val component = Renderer_Component
         component.entry = entry
         component.text = entry.print
@@ -76,24 +72,22 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
     }
   }
 
-  private abstract class Entry
-  {
+  private abstract class Entry {
     def timing: Double
     def print: String
     def follow(snapshot: Document.Snapshot): Unit
   }
 
   private case class Theory_Entry(name: Document.Node.Name, timing: Double, current: Boolean)
-    extends Entry
-  {
+  extends Entry {
     def print: String =
       Time.print_seconds(timing) + "s theory " + quote(name.theory)
     def follow(snapshot: Document.Snapshot): Unit =
       PIDE.editor.goto_file(true, view, name.node)
   }
 
-  private case class Command_Entry(command: Command, timing: Double) extends Entry
-  {
+  private case class Command_Entry(command: Command, timing: Double)
+  extends Entry {
     def print: String =
       "  " + Time.print_seconds(timing) + "s command " + quote(command.span.name)
     def follow(snapshot: Document.Snapshot): Unit =
@@ -152,8 +146,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
 
   private var nodes_timing = Map.empty[Document.Node.Name, Document_Status.Overall_Timing]
 
-  private def make_entries(): List[Entry] =
-  {
+  private def make_entries(): List[Entry] = {
     GUI_Thread.require {}
 
     val name =
@@ -175,8 +168,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
       else List(entry))
   }
 
-  private def handle_update(restriction: Option[Set[Document.Node.Name]] = None): Unit =
-  {
+  private def handle_update(restriction: Option[Set[Document.Node.Name]] = None): Unit = {
     GUI_Thread.require {}
 
     val snapshot = PIDE.session.snapshot()
@@ -210,14 +202,12 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
         GUI_Thread.later { handle_update(Some(changed.nodes)) }
     }
 
-  override def init(): Unit =
-  {
+  override def init(): Unit = {
     PIDE.session.commands_changed += main
     handle_update()
   }
 
-  override def exit(): Unit =
-  {
+  override def exit(): Unit = {
     PIDE.session.commands_changed -= main
   }
 }

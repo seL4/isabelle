@@ -7,20 +7,17 @@ Auxiliary operations on protocol messages.
 package isabelle
 
 
-object Protocol_Message
-{
+object Protocol_Message {
   /* message markers */
 
-  object Marker
-  {
+  object Marker {
     def apply(a: String): Marker =
       new Marker { override def name: String = a }
 
     def test(line: String): Boolean = line.startsWith("\f")
   }
 
-  abstract class Marker private
-  {
+  abstract class Marker private {
     def name: String
     val prefix: String = "\f" + name + " = "
 

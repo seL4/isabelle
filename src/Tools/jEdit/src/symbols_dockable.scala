@@ -16,8 +16,7 @@ import scala.swing.{Component, Action, Button, TabbedPane, TextField, BorderPane
 import org.gjt.sp.jedit.{EditBus, EBComponent, EBMessage, View}
 
 
-class Symbols_Dockable(view: View, position: String) extends Dockable(view, position)
-{
+class Symbols_Dockable(view: View, position: String) extends Dockable(view, position) {
   private def font_size: Int =
     Font_Info.main_size(PIDE.options.real("jedit_font_scale")).round
 
@@ -29,8 +28,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
   private val abbrevs_refresh_delay =
     Delay.last(PIDE.options.seconds("editor_update_delay"), gui = true) { abbrevs_panel.refresh() }
 
-  private class Abbrev_Component(txt: String, abbrs: List[String]) extends Button
-  {
+  private class Abbrev_Component(txt: String, abbrs: List[String]) extends Button {
     def update_font(): Unit = { font = GUI.font(size = font_size) }
     update_font()
 
@@ -47,8 +45,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
     tooltip = GUI.tooltip_lines(cat_lines(txt :: abbrs.map(a => "abbrev: " + a)))
   }
 
-  private class Abbrevs_Panel extends Wrap_Panel(Nil, Wrap_Panel.Alignment.Center)
-  {
+  private class Abbrevs_Panel extends Wrap_Panel(Nil, Wrap_Panel.Alignment.Center) {
     private var abbrevs: Thy_Header.Abbrevs = Nil
 
     def refresh(): Unit = GUI_Thread.require {
@@ -81,10 +78,8 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
 
   /* symbols */
 
-  private class Symbol_Component(val symbol: String, is_control: Boolean) extends Button
-  {
-    def update_font(): Unit =
-    {
+  private class Symbol_Component(val symbol: String, is_control: Boolean) extends Button {
+    def update_font(): Unit = {
       font =
         Symbol.symbols.fonts.get(symbol) match {
           case None => GUI.font(size = font_size)
@@ -107,8 +102,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
         cat_lines(symbol :: Symbol.symbols.get_abbrevs(symbol).map(a => "abbrev: " + a)))
   }
 
-  private class Reset_Component extends Button
-  {
+  private class Reset_Component extends Button {
     action = Action("Reset") {
       val text_area = view.getTextArea
       Syntax_Style.edit_control_style(text_area, "")
@@ -207,15 +201,13 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
       case _: Session.Commands_Changed => abbrevs_refresh_delay.invoke()
     }
 
-  override def init(): Unit =
-  {
+  override def init(): Unit = {
     EditBus.addToBus(edit_bus_handler)
     PIDE.session.global_options += main
     PIDE.session.commands_changed += main
   }
 
-  override def exit(): Unit =
-  {
+  override def exit(): Unit = {
     EditBus.removeFromBus(edit_bus_handler)
     PIDE.session.global_options -= main
     PIDE.session.commands_changed -= main

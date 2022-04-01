@@ -7,8 +7,7 @@ Support for user-defined file formats, associated with active session.
 package isabelle
 
 
-object File_Format
-{
+object File_Format {
   sealed case class Theory_Context(name: Document.Node.Name, content: String)
 
 
@@ -17,8 +16,7 @@ object File_Format
   lazy val registry: Registry =
     new Registry(Isabelle_System.make_services(classOf[File_Format]))
 
-  final class Registry private [File_Format](file_formats: List[File_Format])
-  {
+  final class Registry private [File_Format](file_formats: List[File_Format]) {
     override def toString: String = file_formats.mkString("File_Format.Environment(", ",", ")")
 
     def get(name: String): Option[File_Format] = file_formats.find(_.detect(name))
@@ -33,8 +31,7 @@ object File_Format
 
   /* session */
 
-  final class Session private[File_Format](agents: List[Agent])
-  {
+  final class Session private[File_Format](agents: List[Agent]) {
     override def toString: String =
       agents.mkString("File_Format.Session(", ", ", ")")
 
@@ -44,8 +41,7 @@ object File_Format
     def stop_session: Unit = agents.foreach(_.stop())
   }
 
-  trait Agent
-  {
+  trait Agent {
     def prover_options(options: Options): Options = options
     def stop(): Unit = {}
   }
@@ -53,8 +49,7 @@ object File_Format
   object No_Agent extends Agent
 }
 
-abstract class File_Format extends Isabelle_System.Service
-{
+abstract class File_Format extends Isabelle_System.Service {
   def format_name: String
   override def toString: String = "File_Format(" + format_name + ")"
 
@@ -67,8 +62,10 @@ abstract class File_Format extends Isabelle_System.Service
   def theory_suffix: String = ""
   def theory_content(name: String): String = ""
 
-  def make_theory_name(resources: Resources, name: Document.Node.Name): Option[Document.Node.Name] =
-  {
+  def make_theory_name(
+    resources: Resources,
+    name: Document.Node.Name
+  ): Option[Document.Node.Name] = {
     for {
       (_, thy) <- Thy_Header.split_file_name(name.node)
       if detect(name.node) && theory_suffix.nonEmpty
@@ -79,8 +76,7 @@ abstract class File_Format extends Isabelle_System.Service
     }
   }
 
-  def make_theory_content(resources: Resources, thy_name: Document.Node.Name): Option[String] =
-  {
+  def make_theory_content(resources: Resources, thy_name: Document.Node.Name): Option[String] = {
     for {
       (prefix, suffix) <- Thy_Header.split_file_name(thy_name.node)
       if detect(prefix) && suffix == theory_suffix

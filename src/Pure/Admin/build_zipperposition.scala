@@ -7,8 +7,7 @@ Build Isabelle Zipperposition component from OPAM repository.
 package isabelle
 
 
-object Build_Zipperposition
-{
+object Build_Zipperposition {
   val default_version = "2.1"
 
 
@@ -18,10 +17,9 @@ object Build_Zipperposition
     version: String = default_version,
     verbose: Boolean = false,
     progress: Progress = new Progress,
-    target_dir: Path = Path.current): Unit =
-  {
-    Isabelle_System.with_tmp_dir("build")(build_dir =>
-    {
+    target_dir: Path = Path.current
+  ): Unit = {
+    Isabelle_System.with_tmp_dir("build") { build_dir =>
       if (Platform.is_linux) Isabelle_System.require_command("patchelf")
 
 
@@ -85,7 +83,7 @@ ZIPPERPOSITION_HOME="$COMPONENT/$ISABELLE_PLATFORM64"
 
         Makarius
         """ + Date.Format.date(Date.now()) + "\n")
-    })
+    }
 }
 
 
@@ -93,13 +91,13 @@ ZIPPERPOSITION_HOME="$COMPONENT/$ISABELLE_PLATFORM64"
 
   val isabelle_tool =
     Isabelle_Tool("build_zipperposition", "build prover component from OPAM repository",
-      Scala_Project.here, args =>
-    {
-      var target_dir = Path.current
-      var version = default_version
-      var verbose = false
+      Scala_Project.here,
+      { args =>
+        var target_dir = Path.current
+        var version = default_version
+        var verbose = false
 
-      val getopts = Getopts("""
+        val getopts = Getopts("""
 Usage: isabelle build_zipperposition [OPTIONS]
 
   Options are:
@@ -109,16 +107,16 @@ Usage: isabelle build_zipperposition [OPTIONS]
 
   Build prover component from OPAM repository.
 """,
-        "D:" -> (arg => target_dir = Path.explode(arg)),
-        "V:" -> (arg => version = arg),
-        "v" -> (_ => verbose = true))
+          "D:" -> (arg => target_dir = Path.explode(arg)),
+          "V:" -> (arg => version = arg),
+          "v" -> (_ => verbose = true))
 
-      val more_args = getopts(args)
-      if (more_args.nonEmpty) getopts.usage()
+        val more_args = getopts(args)
+        if (more_args.nonEmpty) getopts.usage()
 
-      val progress = new Console_Progress()
+        val progress = new Console_Progress()
 
-      build_zipperposition(version = version, verbose = verbose, progress = progress,
-        target_dir = target_dir)
-    })
+        build_zipperposition(version = version, verbose = verbose, progress = progress,
+          target_dir = target_dir)
+      })
 }

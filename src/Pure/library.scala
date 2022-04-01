@@ -12,12 +12,10 @@ import scala.collection.mutable
 import scala.util.matching.Regex
 
 
-object Library
-{
+object Library {
   /* resource management */
 
-  def using[A <: AutoCloseable, B](a: A)(f: A => B): B =
-  {
+  def using[A <: AutoCloseable, B](a: A)(f: A => B): B = {
     try { f(a) }
     finally { if (a != null) a.close() }
   }
@@ -26,15 +24,13 @@ object Library
   /* integers */
 
   private val small_int = 10000
-  private lazy val small_int_table =
-  {
+  private lazy val small_int_table = {
     val array = new Array[String](small_int)
     for (i <- 0 until small_int) array(i) = i.toString
     array
   }
 
-  def is_small_int(s: String): Boolean =
-  {
+  def is_small_int(s: String): Boolean = {
     val len = s.length
     1 <= len && len <= 4 &&
     s.forall(c => '0' <= c && c <= '9') &&
@@ -52,8 +48,7 @@ object Library
 
   /* separated chunks */
 
-  def separate[A](s: A, list: List[A]): List[A] =
-  {
+  def separate[A](s: A, list: List[A]): List[A] = {
     val result = new mutable.ListBuffer[A]
     var first = true
     for (x <- list) {
@@ -72,8 +67,7 @@ object Library
   def separated_chunks(sep: Char => Boolean, source: CharSequence): Iterator[CharSequence] =
     new Iterator[CharSequence] {
       private val end = source.length
-      private def next_chunk(i: Int): Option[(CharSequence, Int)] =
-      {
+      private def next_chunk(i: Int): Option[(CharSequence, Int)] = {
         if (i < end) {
           var j = i
           var cont = true
@@ -115,8 +109,7 @@ object Library
   def indent_lines(n: Int, str: String): String =
     prefix_lines(Symbol.spaces(n), str)
 
-  def first_line(source: CharSequence): String =
-  {
+  def first_line(source: CharSequence): String = {
     val lines = separated_chunks(_ == '\n', source)
     if (lines.hasNext) lines.next().toString
     else ""
@@ -134,8 +127,7 @@ object Library
 
   /* strings */
 
-  def make_string(f: StringBuilder => Unit, capacity: Int = 16): String =
-  {
+  def make_string(f: StringBuilder => Unit, capacity: Int = 16): String = {
     val s = new StringBuilder(capacity)
     f(s)
     s.toString
@@ -174,8 +166,7 @@ object Library
 
   /* CharSequence */
 
-  class Reverse(text: CharSequence, start: Int, end: Int) extends CharSequence
-  {
+  class Reverse(text: CharSequence, start: Int, end: Int) extends CharSequence {
     require(0 <= start && start <= end && end <= text.length, "bad reverse range")
 
     def this(text: CharSequence) = this(text, 0, text.length)
@@ -187,8 +178,7 @@ object Library
       if (0 <= i && i <= j && j <= length) new Reverse(text, end - j, end - i)
       else throw new IndexOutOfBoundsException
 
-    override def toString: String =
-    {
+    override def toString: String = {
       val buf = new StringBuilder(length)
       for (i <- 0 until length)
         buf.append(charAt(i))
@@ -196,8 +186,7 @@ object Library
     }
   }
 
-  class Line_Termination(text: CharSequence) extends CharSequence
-  {
+  class Line_Termination(text: CharSequence) extends CharSequence {
     def length: Int = text.length + 1
     def charAt(i: Int): Char = if (i == text.length) '\n' else text.charAt(i)
     def subSequence(i: Int, j: Int): CharSequence =
@@ -227,8 +216,7 @@ object Library
   def take_prefix[A](pred: A => Boolean, xs: List[A]): (List[A], List[A]) =
     (xs.takeWhile(pred), xs.dropWhile(pred))
 
-  def take_suffix[A](pred: A => Boolean, xs: List[A]): (List[A], List[A]) =
-  {
+  def take_suffix[A](pred: A => Boolean, xs: List[A]): (List[A], List[A]) = {
     val rev_xs = xs.reverse
     (rev_xs.dropWhile(pred).reverse, rev_xs.takeWhile(pred).reverse)
   }
@@ -246,15 +234,13 @@ object Library
     else if (xs.isEmpty) ys
     else ys.foldRight(xs)(Library.insert(_)(_))
 
-  def distinct[A](xs: List[A], eq: (A, A) => Boolean = (x: A, y: A) => x == y): List[A] =
-  {
+  def distinct[A](xs: List[A], eq: (A, A) => Boolean = (x: A, y: A) => x == y): List[A] = {
     val result = new mutable.ListBuffer[A]
     xs.foreach(x => if (!result.exists(y => eq(x, y))) result += x)
     result.toList
   }
 
-  def duplicates[A](lst: List[A], eq: (A, A) => Boolean = (x: A, y: A) => x == y): List[A] =
-  {
+  def duplicates[A](lst: List[A], eq: (A, A) => Boolean = (x: A, y: A) => x == y): List[A] = {
     val result = new mutable.ListBuffer[A]
     @tailrec def dups(rest: List[A]): Unit =
       rest match {
@@ -297,16 +283,10 @@ object Library
 
   /* reflection */
 
-  def is_subclass[A, B](a: Class[A], b: Class[B]): Boolean =
-  {
+  def is_subclass[A, B](a: Class[A], b: Class[B]): Boolean = {
     import scala.language.existentials
-    @tailrec def subclass(c: Class[_]): Boolean =
-    {
-      c == b ||
-        {
-          val d = c.getSuperclass
-          d != null && subclass(d)
-        }
+    @tailrec def subclass(c: Class[_]): Boolean = {
+      c == b || { val d = c.getSuperclass; d != null && subclass(d) }
     }
     subclass(a)
   }

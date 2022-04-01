@@ -13,8 +13,7 @@ import scala.collection.immutable.SetOps
 import scala.collection.{IterableFactory, IterableFactoryDefaults}
 
 
-object Linear_Set extends IterableFactory[Linear_Set]
-{
+object Linear_Set extends IterableFactory[Linear_Set] {
   private val empty_val: Linear_Set[Nothing] = new Linear_Set[Nothing](None, None, Map(), Map())
   override def empty[A]: Linear_Set[A] = empty_val.asInstanceOf[Linear_Set[A]]
 
@@ -22,8 +21,7 @@ object Linear_Set extends IterableFactory[Linear_Set]
     entries.iterator.foldLeft(empty[A])(_.incl(_))
 
   override def newBuilder[A]: mutable.Builder[A, Linear_Set[A]] = new Builder[A]
-  private class Builder[A] extends mutable.Builder[A, Linear_Set[A]]
-  {
+  private class Builder[A] extends mutable.Builder[A, Linear_Set[A]] {
     private var res = empty[A]
     override def clear(): Unit = { res = empty[A] }
     override def addOne(elem: A): this.type = { res = res.incl(elem); this }
@@ -37,11 +35,12 @@ object Linear_Set extends IterableFactory[Linear_Set]
 
 
 final class Linear_Set[A] private(
-    start: Option[A], end: Option[A], val nexts: Map[A, A], prevs: Map[A, A])
+    start: Option[A],
+    end: Option[A],
+    val nexts: Map[A, A], prevs: Map[A, A])
   extends Iterable[A]
     with SetOps[A, Linear_Set, Linear_Set[A]]
-    with IterableFactoryDefaults[A, Linear_Set]
-{
+    with IterableFactoryDefaults[A, Linear_Set] {
   /* relative addressing */
 
   def next(elem: A): Option[A] =

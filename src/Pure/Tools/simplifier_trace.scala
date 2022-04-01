@@ -11,8 +11,7 @@ import scala.annotation.tailrec
 import scala.collection.immutable.SortedMap
 
 
-object Simplifier_Trace
-{
+object Simplifier_Trace {
   /* trace items from the prover */
 
   val TEXT = "text"
@@ -27,12 +26,11 @@ object Simplifier_Trace
   val MEMORY = "memory"
   val Memory = new Properties.Boolean(MEMORY)
 
-  object Item
-  {
+  object Item {
     case class Data(
       serial: Long, markup: String, text: String,
-      parent: Long, props: Properties.T, content: XML.Body)
-    {
+      parent: Long, props: Properties.T, content: XML.Body
+    ) {
       def memory: Boolean = Memory.unapply(props) getOrElse true
     }
 
@@ -55,10 +53,8 @@ object Simplifier_Trace
 
   case class Answer private[Simplifier_Trace](val name: String, val string: String)
 
-  object Answer
-  {
-    object step
-    {
+  object Answer {
+    object step {
       val skip = Answer("skip", "Skip")
       val continue = Answer("continue", "Continue")
       val continue_trace = Answer("continue_trace", "Continue (with full trace)")
@@ -68,8 +64,7 @@ object Simplifier_Trace
       val all = List(continue, continue_trace, continue_passive, continue_disable, skip)
     }
 
-    object hint_fail
-    {
+    object hint_fail {
       val exit = Answer("exit", "Exit")
       val redo = Answer("redo", "Redo")
 
@@ -98,8 +93,8 @@ object Simplifier_Trace
 
   case class Context(
     last_serial: Long = 0L,
-    questions: SortedMap[Long, Question] = SortedMap.empty)
-  {
+    questions: SortedMap[Long, Question] = SortedMap.empty
+  ) {
     def +(q: Question): Context =
       copy(questions = questions + ((q.data.serial, q)))
 
@@ -114,21 +109,22 @@ object Simplifier_Trace
 
   case class Index(text: String, content: XML.Body)
 
-  object Index
-  {
+  object Index {
     def of_data(data: Item.Data): Index =
       Index(data.text, data.content)
   }
 
-  def handle_results(session: Session, id: Document_ID.Command, results: Command.Results): Context =
-  {
+  def handle_results(
+    session: Session,
+    id: Document_ID.Command,
+    results: Command.Results
+  ): Context = {
     val slot = Future.promise[Context]
     the_manager(session).send(Handle_Results(session, id, results, slot))
     slot.join
   }
 
-  def generate_trace(session: Session, results: Command.Results): Trace =
-  {
+  def generate_trace(session: Session, results: Command.Results): Trace = {
     val slot = Future.promise[Trace]
     the_manager(session).send(Generate_Trace(results, slot))
     slot.join
@@ -140,8 +136,7 @@ object Simplifier_Trace
   def send_reply(session: Session, serial: Long, answer: Answer): Unit =
     the_manager(session).send(Reply(session, serial, answer))
 
-  def make_manager: Consumer_Thread[Any] =
-  {
+  def make_manager: Consumer_Thread[Any] = {
     var contexts = Map.empty[Document_ID.Command, Context]
 
     var memory_children = Map.empty[Long, Set[Long]]
@@ -153,8 +148,7 @@ object Simplifier_Trace
           (id, context.questions(serial))
       }
 
-    def do_cancel(serial: Long, id: Document_ID.Command): Unit =
-    {
+    def do_cancel(serial: Long, id: Document_ID.Command): Unit = {
       // To save memory, we could try to remove empty contexts at this point.
       // However, if a new serial gets attached to the same command_id after we deleted
       // its context, its last_serial counter will start at 0 again, and we'll think the
@@ -162,22 +156,19 @@ object Simplifier_Trace
       contexts += (id -> (contexts(id) - serial))
     }
 
-    def do_reply(session: Session, serial: Long, answer: Answer): Unit =
-    {
+    def do_reply(session: Session, serial: Long, answer: Answer): Unit = {
       session.protocol_command(
         "Simplifier_Trace.reply", Value.Long(serial), answer.name)
     }
 
     Consumer_Thread.fork[Any]("Simplifier_Trace.manager", daemon = true)(
-      consume = (arg: Any) =>
-      {
+      consume = { (arg: Any) =>
         arg match {
           case Handle_Results(session, id, results, slot) =>
             var new_context = contexts.getOrElse(id, Context())
             var new_serial = new_context.last_serial
 
-            for ((serial, result) <- results.iterator if serial > new_context.last_serial)
-            {
+            for ((serial, result) <- results.iterator if serial > new_context.last_serial) {
               result match {
                 case Item(markup, data) =>
                   memory_children +=
@@ -264,8 +255,7 @@ object Simplifier_Trace
           case Reply(session, serial, answer) =>
             find_question(serial) match {
               case Some((id, Question(data, _))) =>
-                if (data.markup == Markup.SIMP_TRACE_STEP && data.memory)
-                {
+                if (data.markup == Markup.SIMP_TRACE_STEP && data.memory) {
                   val index = Index.of_data(data)
                   memory += (index -> answer)
                 }
@@ -294,19 +284,16 @@ object Simplifier_Trace
 
   /* protocol handler */
 
-  class Handler extends Session.Protocol_Handler
-  {
+  class Handler extends Session.Protocol_Handler {
     private var the_session: Session = null
 
-    override def init(session: Session): Unit =
-    {
+    override def init(session: Session): Unit = {
       try { the_manager(session) }
       catch { case ERROR(_) => managers.change(map => map + (session -> make_manager)) }
       the_session = session
     }
 
-    override def exit(): Unit =
-    {
+    override def exit(): Unit = {
       val session = the_session
       if (session != null) {
         val manager = the_manager(session)

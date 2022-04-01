@@ -19,14 +19,12 @@ import org.gjt.sp.jedit.options.GutterOptionPane
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, TextAreaExtension, TextAreaPainter}
 
 
-object Document_View
-{
+object Document_View {
   /* document view of text area */
 
   private val key = new Object
 
-  def get(text_area: TextArea): Option[Document_View] =
-  {
+  def get(text_area: TextArea): Option[Document_View] = {
     GUI_Thread.require {}
     text_area.getClientProperty(key) match {
       case doc_view: Document_View => Some(doc_view)
@@ -34,8 +32,7 @@ object Document_View
     }
   }
 
-  def exit(text_area: JEditTextArea): Unit =
-  {
+  def exit(text_area: JEditTextArea): Unit = {
     GUI_Thread.require {}
     get(text_area) match {
       case None =>
@@ -45,8 +42,7 @@ object Document_View
     }
   }
 
-  def init(model: Buffer_Model, text_area: JEditTextArea): Document_View =
-  {
+  def init(model: Buffer_Model, text_area: JEditTextArea): Document_View = {
     exit(text_area)
     val doc_view = new Document_View(model, text_area)
     text_area.putClientProperty(key, doc_view)
@@ -56,8 +52,7 @@ object Document_View
 }
 
 
-class Document_View(val model: Buffer_Model, val text_area: JEditTextArea)
-{
+class Document_View(val model: Buffer_Model, val text_area: JEditTextArea) {
   private val session = model.session
 
   def get_rendering(): JEdit_Rendering =
@@ -70,12 +65,10 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea)
 
   /* perspective */
 
-  def perspective(snapshot: Document.Snapshot): Text.Perspective =
-  {
+  def perspective(snapshot: Document.Snapshot): Text.Perspective = {
     GUI_Thread.require {}
 
-    val active_command =
-    {
+    val active_command = {
       val view = text_area.getView
       if (view != null && view.getTextArea == text_area) {
         PIDE.editor.current_command(view, snapshot) match {
@@ -105,12 +98,17 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea)
     Text.Perspective(active_command ::: visible_lines)
   }
 
-  private def update_view = new TextAreaExtension
-  {
-    override def paintScreenLineRange(gfx: Graphics2D,
-      first_line: Int, last_line: Int, physical_lines: Array[Int],
-      start: Array[Int], end: Array[Int], y: Int, line_height: Int): Unit =
-    {
+  private def update_view = new TextAreaExtension {
+    override def paintScreenLineRange(
+      gfx: Graphics2D,
+      first_line: Int,
+      last_line: Int,
+      physical_lines: Array[Int],
+      start: Array[Int],
+      end: Array[Int],
+      y: Int,
+      line_height: Int
+    ): Unit = {
       // no robust_body
       PIDE.editor.invoke_generated()
     }
@@ -119,12 +117,17 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea)
 
   /* gutter */
 
-  private val gutter_painter = new TextAreaExtension
-  {
-    override def paintScreenLineRange(gfx: Graphics2D,
-      first_line: Int, last_line: Int, physical_lines: Array[Int],
-      start: Array[Int], end: Array[Int], y: Int, line_height: Int): Unit =
-    {
+  private val gutter_painter = new TextAreaExtension {
+    override def paintScreenLineRange(
+      gfx: Graphics2D,
+      first_line: Int,
+      last_line: Int,
+      physical_lines: Array[Int],
+      start: Array[Int],
+      end: Array[Int],
+      y: Int,
+      line_height: Int
+    ): Unit = {
       rich_text_area.robust_body(()) {
         GUI_Thread.assert {}
 
@@ -145,8 +148,7 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea)
                 case Some((icon, color)) =>
                   // icons within selection area
                   if (!gutter.isExpanded &&
-                      gutter.isSelectionAreaEnabled && sel_width >= 12 && line_height >= 12)
-                  {
+                      gutter.isSelectionAreaEnabled && sel_width >= 12 && line_height >= 12) {
                     val x0 =
                       (FOLD_MARKER_SIZE + sel_width - border_width - icon.getIconWidth) max 10
                     val y0 =
@@ -173,11 +175,11 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea)
 
   private val key_listener =
     JEdit_Lib.key_listener(
-      key_pressed = (evt: KeyEvent) =>
-        {
-          if (evt.getKeyCode == KeyEvent.VK_ESCAPE && Isabelle.dismissed_popups(text_area.getView))
-            evt.consume
+      key_pressed = { (evt: KeyEvent) =>
+        if (evt.getKeyCode == KeyEvent.VK_ESCAPE && Isabelle.dismissed_popups(text_area.getView)) {
+          evt.consume
         }
+      }
     )
 
 
@@ -228,8 +230,7 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea)
 
   /* activation */
 
-  private def activate(): Unit =
-  {
+  private def activate(): Unit = {
     val painter = text_area.getPainter
 
     painter.addExtension(TextAreaPainter.LOWEST_LAYER, update_view)
@@ -246,8 +247,7 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea)
     session.commands_changed += main
   }
 
-  private def deactivate(): Unit =
-  {
+  private def deactivate(): Unit = {
     val painter = text_area.getPainter
 
     session.raw_edits -= main

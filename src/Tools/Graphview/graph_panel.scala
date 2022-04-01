@@ -20,8 +20,7 @@ import scala.swing.{BorderPanel, Button, CheckBox, Action, FileChooser, Panel, S
 import scala.swing.event.{Event, Key, MousePressed, MouseDragged, MouseClicked, MouseEvent}
 
 
-class Graph_Panel(val graphview: Graphview) extends BorderPanel
-{
+class Graph_Panel(val graphview: Graphview) extends BorderPanel {
   graph_panel =>
 
 
@@ -30,10 +29,8 @@ class Graph_Panel(val graphview: Graphview) extends BorderPanel
 
   /* painter */
 
-  private val painter = new Panel
-  {
-    override def paint(gfx: Graphics2D): Unit =
-    {
+  private val painter = new Panel {
+    override def paint(gfx: Graphics2D): Unit = {
       super.paintComponent(gfx)
 
       gfx.setColor(graphview.background_color)
@@ -44,24 +41,21 @@ class Graph_Panel(val graphview: Graphview) extends BorderPanel
     }
   }
 
-  def set_preferred_size(): Unit =
-  {
+  def set_preferred_size(): Unit = {
     val box = graphview.bounding_box()
     val s = Transform.scale_discrete
     painter.preferredSize = new Dimension((box.width * s).ceil.toInt, (box.height * s).ceil.toInt)
     painter.revalidate()
   }
 
-  def refresh(): Unit =
-  {
+  def refresh(): Unit = {
     if (painter != null) {
       set_preferred_size()
       painter.repaint()
     }
   }
 
-  def scroll_to_node(node: Graph_Display.Node): Unit =
-  {
+  def scroll_to_node(node: Graph_Display.Node): Unit = {
     val gap = graphview.metrics.gap
     val info = graphview.layout.get_node(node)
 
@@ -101,17 +95,17 @@ class Graph_Panel(val graphview: Graphview) extends BorderPanel
     listenTo(mouse.moves)
     listenTo(mouse.clicks)
     reactions +=
-    {
-      case MousePressed(_, p, _, _, _) =>
-        Mouse_Interaction.pressed(p)
-        painter.repaint()
-      case MouseDragged(_, to, _) =>
-        Mouse_Interaction.dragged(to)
-        painter.repaint()
-      case e @ MouseClicked(_, p, m, n, _) =>
-        Mouse_Interaction.clicked(p, m, n, SwingUtilities.isRightMouseButton(e.peer))
-        painter.repaint()
-    }
+      {
+        case MousePressed(_, p, _, _, _) =>
+          Mouse_Interaction.pressed(p)
+          painter.repaint()
+        case MouseDragged(_, to, _) =>
+          Mouse_Interaction.dragged(to)
+          painter.repaint()
+        case e @ MouseClicked(_, p, m, n, _) =>
+          Mouse_Interaction.clicked(p, m, n, SwingUtilities.isRightMouseButton(e.peer))
+          painter.repaint()
+      }
 
     contents = painter
   }
@@ -120,44 +114,37 @@ class Graph_Panel(val graphview: Graphview) extends BorderPanel
 
   /* transform */
 
-  def rescale(s: Double): Unit =
-  {
+  def rescale(s: Double): Unit = {
     Transform.scale = s
     if (zoom != null) zoom.set_item((Transform.scale_discrete * 100).floor.toInt)
     refresh()
   }
 
-  def fit_to_window(): Unit =
-  {
+  def fit_to_window(): Unit = {
     Transform.fit_to_window()
     refresh()
   }
 
-  private object Transform
-  {
+  private object Transform {
     private var _scale: Double = 1.0
     def scale: Double = _scale
-    def scale_=(s: Double): Unit =
-    {
+    def scale_=(s: Double): Unit = {
       _scale = (s min 10.0) max 0.1
     }
 
-    def scale_discrete: Double =
-    {
+    def scale_discrete: Double = {
       val font_height = GUI.line_metrics(graphview.metrics.font).getHeight.toInt
       (scale * font_height).floor / font_height
     }
 
-    def apply(): AffineTransform =
-    {
+    def apply(): AffineTransform = {
       val box = graphview.bounding_box()
       val t = AffineTransform.getScaleInstance(scale_discrete, scale_discrete)
       t.translate(- box.x, - box.y)
       t
     }
 
-    def fit_to_window(): Unit =
-    {
+    def fit_to_window(): Unit = {
       if (graphview.visible_graph.is_empty)
         rescale(1.0)
       else {
@@ -166,8 +153,7 @@ class Graph_Panel(val graphview: Graphview) extends BorderPanel
       }
     }
 
-    def pane_to_graph_coordinates(at: Point2D): Point2D =
-    {
+    def pane_to_graph_coordinates(at: Point2D): Point2D = {
       val s = Transform.scale_discrete
       val p = Transform().inverseTransform(graph_pane.peer.getViewport.getViewPosition, null)
 
@@ -182,13 +168,11 @@ class Graph_Panel(val graphview: Graphview) extends BorderPanel
   graphview.model.Colors.events += { case _ => painter.repaint() }
   graphview.model.Mutators.events += { case _ => painter.repaint() }
 
-  private object Mouse_Interaction
-  {
+  private object Mouse_Interaction {
     private var draginfo: (Point, List[Graph_Display.Node], List[Layout.Dummy]) =
       (new Point(0, 0), Nil, Nil)
 
-    def pressed(at: Point): Unit =
-    {
+    def pressed(at: Point): Unit = {
       val c = Transform.pane_to_graph_coordinates(at)
       val l =
         graphview.find_node(c) match {
@@ -205,8 +189,7 @@ class Graph_Panel(val graphview: Graphview) extends BorderPanel
       draginfo = (at, l, d)
     }
 
-    def dragged(to: Point): Unit =
-    {
+    def dragged(to: Point): Unit = {
       val (from, p, d) = draginfo
 
       val s = Transform.scale_discrete
@@ -229,8 +212,7 @@ class Graph_Panel(val graphview: Graphview) extends BorderPanel
       draginfo = (to, p, d)
     }
 
-    def clicked(at: Point, m: Key.Modifiers, clicks: Int, right_click: Boolean): Unit =
-    {
+    def clicked(at: Point, m: Key.Modifiers, clicks: Int, right_click: Boolean): Unit = {
       val c = Transform.pane_to_graph_coordinates(at)
 
       if (clicks < 2) {

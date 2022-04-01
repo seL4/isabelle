@@ -20,13 +20,11 @@ import javax.swing.border.{BevelBorder, SoftBevelBorder}
 import org.gjt.sp.jedit.{View, jEdit}
 
 
-class Theories_Dockable(view: View, position: String) extends Dockable(view, position)
-{
+class Theories_Dockable(view: View, position: String) extends Dockable(view, position) {
   /* status */
 
   private val status = new ListView(List.empty[Document.Node.Name]) {
-    background =
-    {
+    background = {
       // enforce default value
       val c = UIManager.getDefaults.getColor("Panel.background")
       new Color(c.getRed, c.getGreen, c.getBlue, c.getAlpha)
@@ -72,8 +70,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
   session_phase.border = new SoftBevelBorder(BevelBorder.LOWERED)
   session_phase.tooltip = "Status of prover session"
 
-  private def handle_phase(phase: Session.Phase): Unit =
-  {
+  private def handle_phase(phase: Session.Phase): Unit = {
     GUI_Thread.require {}
     session_phase.text = " " + phase_text(phase) + " "
   }
@@ -114,8 +111,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
     Node_Renderer_Component != null && in(Node_Renderer_Component.label_geometry, loc0, p)
 
 
-  private object Node_Renderer_Component extends BorderPanel
-  {
+  private object Node_Renderer_Component extends BorderPanel {
     opaque = true
     border = BorderFactory.createEmptyBorder(2, 2, 2, 2)
 
@@ -124,8 +120,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
     var checkbox_geometry: Option[(Point, Dimension)] = None
     val checkbox = new CheckBox {
       opaque = false
-      override def paintComponent(gfx: Graphics2D): Unit =
-      {
+      override def paintComponent(gfx: Graphics2D): Unit = {
         super.paintComponent(gfx)
         if (location != null && size != null)
           checkbox_geometry = Some((location, size))
@@ -139,10 +134,8 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
       opaque = false
       xAlignment = Alignment.Leading
 
-      override def paintComponent(gfx: Graphics2D): Unit =
-      {
-        def paint_segment(x: Int, w: Int, color: Color): Unit =
-        {
+      override def paintComponent(gfx: Graphics2D): Unit = {
+        def paint_segment(x: Int, w: Int, color: Color): Unit = {
           gfx.setColor(color)
           gfx.fillRect(x, 0, w, size.height)
         }
@@ -175,8 +168,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
       }
     }
 
-    def label_border(name: Document.Node.Name): Unit =
-    {
+    def label_border(name: Document.Node.Name): Unit = {
       val st = nodes_status.overall_node_status(name)
       val color =
         st match {
@@ -199,11 +191,14 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
     layout(label) = BorderPanel.Position.Center
   }
 
-  private class Node_Renderer extends ListView.Renderer[Document.Node.Name]
-  {
-    def componentFor(list: ListView[_ <: isabelle.Document.Node.Name], isSelected: Boolean,
-      focused: Boolean, name: Document.Node.Name, index: Int): Component =
-    {
+  private class Node_Renderer extends ListView.Renderer[Document.Node.Name] {
+    def componentFor(
+      list: ListView[_ <: isabelle.Document.Node.Name],
+      isSelected: Boolean,
+      focused: Boolean,
+      name: Document.Node.Name,
+      index: Int
+    ): Component = {
       val component = Node_Renderer_Component
       component.node_name = name
       component.checkbox.selected = nodes_required.contains(name)
@@ -215,8 +210,9 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
   status.renderer = new Node_Renderer
 
   private def handle_update(
-    domain: Option[Set[Document.Node.Name]] = None, trim: Boolean = false): Unit =
-  {
+    domain: Option[Set[Document.Node.Name]] = None,
+    trim: Boolean = false
+  ): Unit = {
     GUI_Thread.require {}
 
     val snapshot = PIDE.session.snapshot()
@@ -255,8 +251,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
         GUI_Thread.later { handle_update(domain = Some(changed.nodes), trim = changed.assignment) }
     }
 
-  override def init(): Unit =
-  {
+  override def init(): Unit = {
     PIDE.session.phase_changed += main
     PIDE.session.global_options += main
     PIDE.session.commands_changed += main
@@ -265,8 +260,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
     handle_update()
   }
 
-  override def exit(): Unit =
-  {
+  override def exit(): Unit = {
     PIDE.session.phase_changed -= main
     PIDE.session.global_options -= main
     PIDE.session.commands_changed -= main

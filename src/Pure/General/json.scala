@@ -15,13 +15,11 @@ import scala.util.parsing.combinator.lexical.Scanners
 import scala.util.parsing.input.CharArrayReader.EofCh
 
 
-object JSON
-{
+object JSON {
   type T = Any
   type S = String
 
-  object Object
-  {
+  object Object {
     type Entry = (String, JSON.T)
 
     type T = Map[String, JSON.T]
@@ -40,13 +38,11 @@ object JSON
 
   /* lexer */
 
-  object Kind extends Enumeration
-  {
+  object Kind extends Enumeration {
     val KEYWORD, STRING, NUMBER, ERROR = Value
   }
 
-  sealed case class Token(kind: Kind.Value, text: String)
-  {
+  sealed case class Token(kind: Kind.Value, text: String) {
     def is_keyword: Boolean = kind == Kind.KEYWORD
     def is_keyword(name: String): Boolean = kind == Kind.KEYWORD && text == name
     def is_string: Boolean = kind == Kind.STRING
@@ -54,8 +50,7 @@ object JSON
     def is_error: Boolean = kind == Kind.ERROR
   }
 
-  object Lexer extends Scanners with Scan.Parsers
-  {
+  object Lexer extends Scanners with Scan.Parsers {
     override type Elem = Char
     type Token = JSON.Token
 
@@ -129,8 +124,7 @@ object JSON
 
   /* parser */
 
-  trait Parser extends Parsers
-  {
+  trait Parser extends Parsers {
     type Elem = Token
 
     def $$$(name: String): Parser[Token] = elem(name, _.is_keyword(name))
@@ -149,8 +143,7 @@ object JSON
       json_object | (json_array | (number | (string |
         ($$$("true") ^^^ true | ($$$("false") ^^^ false | ($$$("null") ^^^ null))))))
 
-    def parse(input: CharSequence, strict: Boolean): T =
-    {
+    def parse(input: CharSequence, strict: Boolean): T = {
       val scanner = new Lexer.Scanner(Scan.char_reader(input))
       phrase(if (strict) json_object | json_array else json_value)(scanner) match {
         case Success(json, _) => json
@@ -166,20 +159,17 @@ object JSON
 
   def parse(s: S, strict: Boolean = true): T = Parser.parse(s, strict)
 
-  object Format
-  {
+  object Format {
     def unapply(s: S): Option[T] =
       try { Some(parse(s, strict = false)) }
       catch { case ERROR(_) => None }
 
     def apply_lines(json: List[T]): S = json.map(apply).mkString("[", ",\n", "]")
 
-    def apply(json: T): S =
-    {
+    def apply(json: T): S = {
       val result = new StringBuilder
 
-      def string(s: String): Unit =
-      {
+      def string(s: String): Unit = {
         result += '"'
         result ++=
           s.iterator.map {
@@ -197,8 +187,7 @@ object JSON
         result += '"'
       }
 
-      def array(list: List[T]): Unit =
-      {
+      def array(list: List[T]): Unit = {
         result += '['
         Library.separate(None, list.map(Some(_))).foreach({
           case None => result += ','
@@ -207,8 +196,7 @@ object JSON
         result += ']'
       }
 
-      def object_(obj: Object.T): Unit =
-      {
+      def object_(obj: Object.T): Unit = {
         result += '{'
         Library.separate(None, obj.toList.map(Some(_))).foreach({
           case None => result += ','
@@ -220,8 +208,7 @@ object JSON
         result += '}'
       }
 
-      def json_format(x: T): Unit =
-      {
+      def json_format(x: T): Unit = {
         x match {
           case null => result ++= "null"
           case _: Int | _: Long | _: Boolean => result ++= x.toString
@@ -243,10 +230,8 @@ object JSON
 
   /* typed values */
 
-  object Value
-  {
-    object UUID
-    {
+  object Value {
+    object UUID {
       def unapply(json: T): Option[isabelle.UUID.T] =
         json match {
           case x: java.lang.String => isabelle.UUID.unapply(x)
@@ -254,8 +239,7 @@ object JSON
         }
     }
 
-    object String
-    {
+    object String {
       def unapply(json: T): Option[java.lang.String] =
         json match {
           case x: java.lang.String => Some(x)
@@ -263,8 +247,7 @@ object JSON
         }
     }
 
-    object String0
-    {
+    object String0 {
       def unapply(json: T): Option[java.lang.String] =
         json match {
           case null => Some("")
@@ -273,8 +256,7 @@ object JSON
         }
     }
 
-    object Double
-    {
+    object Double {
       def unapply(json: T): Option[scala.Double] =
         json match {
           case x: scala.Double => Some(x)
@@ -284,8 +266,7 @@ object JSON
         }
     }
 
-    object Long
-    {
+    object Long {
       def unapply(json: T): Option[scala.Long] =
         json match {
           case x: scala.Double if x.toLong.toDouble == x => Some(x.toLong)
@@ -295,8 +276,7 @@ object JSON
         }
     }
 
-    object Int
-    {
+    object Int {
       def unapply(json: T): Option[scala.Int] =
         json match {
           case x: scala.Double if x.toInt.toDouble == x => Some(x.toInt)
@@ -306,8 +286,7 @@ object JSON
         }
     }
 
-    object Boolean
-    {
+    object Boolean {
       def unapply(json: T): Option[scala.Boolean] =
         json match {
           case x: scala.Boolean => Some(x)
@@ -315,8 +294,7 @@ object JSON
         }
     }
 
-    object List
-    {
+    object List {
       def unapply[A](json: T, unapply: T => Option[A]): Option[List[A]] =
         json match {
           case xs: List[T] =>
@@ -326,8 +304,7 @@ object JSON
         }
     }
 
-    object Seconds
-    {
+    object Seconds {
       def unapply(json: T): Option[Time] =
         Double.unapply(json).map(Time.seconds)
     }

@@ -16,8 +16,7 @@ import java.awt.event.{MouseAdapter, MouseEvent}
 import javax.swing.{JPanel, ToolTipManager}
 
 
-class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
-{
+class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout) {
   /* GUI components */
 
   private val text_area = doc_view.text_area
@@ -33,22 +32,19 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
   setRequestFocusEnabled(false)
 
   addMouseListener(new MouseAdapter {
-    override def mousePressed(event: MouseEvent): Unit =
-    {
+    override def mousePressed(event: MouseEvent): Unit = {
       val line = (event.getY * lines()) / getHeight
       if (line >= 0 && line < text_area.getLineCount)
         text_area.setCaretPosition(text_area.getLineStartOffset(line))
     }
   })
 
-  override def addNotify(): Unit =
-  {
+  override def addNotify(): Unit = {
     super.addNotify()
     ToolTipManager.sharedInstance.registerComponent(this)
   }
 
-  override def removeNotify(): Unit =
-  {
+  override def removeNotify(): Unit = {
     ToolTipManager.sharedInstance.unregisterComponent(this)
     super.removeNotify
   }
@@ -80,8 +76,7 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
   private val delay_repaint =
     Delay.first(PIDE.options.seconds("editor_update_delay"), gui = true) { repaint() }
 
-  override def paintComponent(gfx: Graphics): Unit =
-  {
+  override def paintComponent(gfx: Graphics): Unit = {
     super.paintComponent(gfx)
     GUI_Thread.assert {}
 
@@ -116,7 +111,7 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
   private def is_running(): Boolean = !future_refresh.value.is_finished
 
   def invoke(): Unit = delay_refresh.invoke()
-  def revoke(): Unit = { delay_refresh.revoke(); future_refresh.change(x => { x.cancel(); x }) }
+  def revoke(): Unit = { delay_refresh.revoke(); future_refresh.change { x => x.cancel(); x } }
 
   private val delay_refresh =
     Delay.first(PIDE.options.seconds("editor_update_delay"), gui = true) {
@@ -128,8 +123,7 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
 
           if (rendering.snapshot.is_outdated || is_running()) invoke()
           else {
-            val line_offsets =
-            {
+            val line_offsets = {
               val line_manager = JEdit_Lib.buffer_line_manager(buffer)
               val a = new Array[Int](line_manager.getLineCount)
               for (i <- 1 until a.length) a(i) = line_manager.getLineEndOffset(i - 1)
@@ -143,9 +137,13 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
                 val L = overview.L
                 val H = overview.H
 
-                @tailrec def loop(l: Int, h: Int, p: Int, q: Int, colors: List[Color_Info])
-                  : List[Color_Info] =
-                {
+                @tailrec def loop(
+                  l: Int,
+                  h: Int,
+                  p: Int,
+                  q: Int,
+                  colors: List[Color_Info]
+                ): List[Color_Info] = {
                   Exn.Interrupt.expose()
 
                   if (l < line_count && h < H) {

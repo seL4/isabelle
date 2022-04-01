@@ -9,8 +9,7 @@ NB: ML ticks forwards > 0, JVM ticks backwards < 0.
 package isabelle
 
 
-object Document_ID
-{
+object Document_ID {
   type Generic = Long
   type Version = Generic
   type Command = Generic

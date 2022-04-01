@@ -17,12 +17,10 @@ import javax.swing.tree.{DefaultMutableTreeNode, TreeSelectionModel}
 import org.gjt.sp.jedit.{View, OperatingSystem}
 
 
-class Documentation_Dockable(view: View, position: String) extends Dockable(view, position)
-{
+class Documentation_Dockable(view: View, position: String) extends Dockable(view, position) {
   private val doc_contents = Doc.contents()
 
-  private case class Node(string: String, entry: Doc.Entry)
-  {
+  private case class Node(string: String, entry: Doc.Entry) {
     override def toString: String = string
   }
 
@@ -47,8 +45,7 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
 
   override def focusOnDefaultComponent(): Unit = tree.requestFocusInWindow
 
-  private def action(node: DefaultMutableTreeNode): Unit =
-  {
+  private def action(node: DefaultMutableTreeNode): Unit = {
     node.getUserObject match {
       case Node(_, Doc.Doc(_, _, path)) =>
         PIDE.editor.goto_doc(view, path)
@@ -59,8 +56,7 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
   }
 
   tree.addKeyListener(new KeyAdapter {
-    override def keyPressed(e: KeyEvent): Unit =
-    {
+    override def keyPressed(e: KeyEvent): Unit = {
       if (e.getKeyCode == KeyEvent.VK_ENTER) {
         e.consume
         val path = tree.getSelectionPath
@@ -74,8 +70,7 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
     }
   })
   tree.addMouseListener(new MouseAdapter {
-    override def mouseClicked(e: MouseEvent): Unit =
-    {
+    override def mouseClicked(e: MouseEvent): Unit = {
       val click = tree.getPathForLocation(e.getX, e.getY)
       if (click != null && e.getClickCount == 1) {
         (click.getLastPathComponent, tree.getLastSelectedPathComponent) match {

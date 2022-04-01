@@ -15,10 +15,9 @@ class Popup(
   layered: JLayeredPane,
   component: JComponent,
   location: Point,
-  size: Dimension)
-{
-  def show: Unit =
-  {
+  size: Dimension
+) {
+  def show: Unit = {
     component.setLocation(location)
     component.setSize(size)
     component.setPreferredSize(size)
@@ -28,8 +27,7 @@ class Popup(
     layered.repaint(component.getBounds())
   }
 
-  def hide: Unit =
-  {
+  def hide: Unit = {
     val bounds = component.getBounds()
     layered.remove(component)
     layered.repaint(bounds)

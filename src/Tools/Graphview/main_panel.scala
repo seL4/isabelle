@@ -13,8 +13,7 @@ import isabelle._
 import scala.swing.{SplitPane, Orientation}
 
 
-class Main_Panel(graphview: Graphview) extends SplitPane(Orientation.Vertical)
-{
+class Main_Panel(graphview: Graphview) extends SplitPane(Orientation.Vertical) {
   oneTouchExpandable = true
 
   val graph_panel = new Graph_Panel(graphview)
@@ -23,8 +22,7 @@ class Main_Panel(graphview: Graphview) extends SplitPane(Orientation.Vertical)
   leftComponent = tree_panel
   rightComponent = graph_panel
 
-  def update_layout(): Unit =
-  {
+  def update_layout(): Unit = {
     graphview.update_layout()
     tree_panel.refresh()
     graph_panel.refresh()

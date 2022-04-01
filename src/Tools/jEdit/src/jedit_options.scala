@@ -19,19 +19,16 @@ import scala.swing.event.ButtonClicked
 import org.gjt.sp.jedit.gui.ColorWellButton
 
 
-trait Option_Component extends Component
-{
+trait Option_Component extends Component {
   val title: String
   def load(): Unit
   def save(): Unit
 }
 
-object JEdit_Options
-{
+object JEdit_Options {
   val RENDERING_SECTION = "Rendering of Document Content"
 
-  class Check_Box(name: String, label: String, description: String) extends CheckBox(label)
-  {
+  class Check_Box(name: String, label: String, description: String) extends CheckBox(label) {
     tooltip = description
     reactions += { case ButtonClicked(_) => update(selected) }
 
@@ -49,12 +46,10 @@ object JEdit_Options
   }
 }
 
-class JEdit_Options(init_options: Options) extends Options_Variable(init_options)
-{
+class JEdit_Options(init_options: Options) extends Options_Variable(init_options) {
   def color_value(s: String): Color = Color_Value(string(s))
 
-  def make_color_component(opt: Options.Opt): Option_Component =
-  {
+  def make_color_component(opt: Options.Opt): Option_Component = {
     GUI_Thread.require {}
 
     val opt_name = opt.name
@@ -72,8 +67,7 @@ class JEdit_Options(init_options: Options) extends Options_Variable(init_options
     component
   }
 
-  def make_component(opt: Options.Opt): Option_Component =
-  {
+  def make_component(opt: Options.Opt): Option_Component = {
     GUI_Thread.require {}
 
     val opt_name = opt.name
@@ -120,9 +114,10 @@ class JEdit_Options(init_options: Options) extends Options_Variable(init_options
     component
   }
 
-  def make_components(predefined: List[Option_Component], filter: String => Boolean)
-    : List[(String, List[Option_Component])] =
-  {
+  def make_components(
+    predefined: List[Option_Component],
+    filter: String => Boolean
+  ) : List[(String, List[Option_Component])] = {
     def mk_component(opt: Options.Opt): List[Option_Component] =
       predefined.find(opt.name == _.name) match {
         case Some(c) => List(c)

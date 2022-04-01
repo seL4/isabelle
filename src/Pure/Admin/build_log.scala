@@ -16,14 +16,12 @@ import scala.collection.mutable
 import scala.util.matching.Regex
 
 
-object Build_Log
-{
+object Build_Log {
   /** content **/
 
   /* properties */
 
-  object Prop
-  {
+  object Prop {
     val build_tags = SQL.Column.string("build_tags")  // lines
     val build_args = SQL.Column.string("build_args")  // lines
     val build_group_id = SQL.Column.string("build_group_id")
@@ -43,8 +41,7 @@ object Build_Log
 
   /* settings */
 
-  object Settings
-  {
+  object Settings {
     val ISABELLE_BUILD_OPTIONS = SQL.Column.string("ISABELLE_BUILD_OPTIONS")
     val ML_PLATFORM = SQL.Column.string("ML_PLATFORM")
     val ML_HOME = SQL.Column.string("ML_HOME")
@@ -57,8 +54,7 @@ object Build_Log
     type Entry = (String, String)
     type T = List[Entry]
 
-    object Entry
-    {
+    object Entry {
       def unapply(s: String): Option[Entry] =
         for { (a, b) <- Properties.Eq.unapply(s) }
         yield (a, Library.perhaps_unquote(b))
@@ -93,12 +89,10 @@ object Build_Log
 
   def print_date(date: Date): String = Log_File.Date_Format(date)
 
-  object Log_File
-  {
+  object Log_File {
     /* log file */
 
-    def plain_name(name: String): String =
-    {
+    def plain_name(name: String): String = {
       List(".log", ".log.gz", ".log.xz", ".gz", ".xz").find(name.endsWith) match {
         case Some(s) => Library.try_unsuffix(s, name).get
         case None => name
@@ -111,8 +105,7 @@ object Build_Log
     def apply(name: String, text: String): Log_File =
       new Log_File(plain_name(name), Library.trim_split_lines(text))
 
-    def apply(file: JFile): Log_File =
-    {
+    def apply(file: JFile): Log_File = {
       val name = file.getName
       val text =
         if (name.endsWith(".gz")) File.read_gzip(file)
@@ -130,8 +123,8 @@ object Build_Log
       prefixes: List[String] =
         List(Build_History.log_prefix, Identify.log_prefix, Identify.log_prefix2,
           Isatest.log_prefix, AFP_Test.log_prefix, Jenkins.log_prefix),
-      suffixes: List[String] = List(".log", ".log.gz", ".log.xz")): Boolean =
-    {
+      suffixes: List[String] = List(".log", ".log.gz", ".log.xz")
+    ): Boolean = {
       val name = file.getName
 
       prefixes.exists(name.startsWith) &&
@@ -144,8 +137,7 @@ object Build_Log
 
     /* date format */
 
-    val Date_Format =
-    {
+    val Date_Format = {
       val fmts =
         Date.Formatter.variants(
           List("EEE MMM d HH:mm:ss O yyyy", "EEE MMM d HH:mm:ss VV yyyy"),
@@ -185,8 +177,7 @@ object Build_Log
     }
   }
 
-  class Log_File private(val name: String, val lines: List[String])
-  {
+  class Log_File private(val name: String, val lines: List[String]) {
     log_file =>
 
     override def toString: String = name
@@ -199,8 +190,7 @@ object Build_Log
 
     /* date format */
 
-    object Strict_Date
-    {
+    object Strict_Date {
       def unapply(s: String): Some[Date] =
         try { Some(Log_File.Date_Format.parse(s)) }
         catch { case exn: DateTimeParseException => log_file.err(exn.getMessage) }
@@ -269,13 +259,11 @@ object Build_Log
 
   /** digested meta info: produced by Admin/build_history in log.xz file **/
 
-  object Meta_Info
-  {
+  object Meta_Info {
     val empty: Meta_Info = Meta_Info(Nil, Nil)
   }
 
-  sealed case class Meta_Info(props: Properties.T, settings: Settings.T)
-  {
+  sealed case class Meta_Info(props: Properties.T, settings: Settings.T) {
     def is_empty: Boolean = props.isEmpty && settings.isEmpty
 
     def get(c: SQL.Column): Option[String] =
@@ -286,8 +274,7 @@ object Build_Log
       get(c).map(Log_File.Date_Format.parse)
   }
 
-  object Identify
-  {
+  object Identify {
     val log_prefix = "isabelle_identify_"
     val log_prefix2 = "plain_identify_"
 
@@ -308,8 +295,7 @@ object Build_Log
     val AFP_Version = List(new Regex("""^AFP version: (\S+)$"""))
   }
 
-  object Isatest
-  {
+  object Isatest {
     val log_prefix = "isatest-makeall-"
     val engine = "isatest"
     val Start = new Regex("""^------------------- starting test --- (.+) --- (.+)$""")
@@ -317,8 +303,7 @@ object Build_Log
     val Isabelle_Version = List(new Regex("""^Isabelle version: (\S+)$"""))
   }
 
-  object AFP_Test
-  {
+  object AFP_Test {
     val log_prefix = "afp-test-devel-"
     val engine = "afp-test"
     val Start = new Regex("""^Start test(?: for .+)? at ([^,]+), (.*)$""")
@@ -329,8 +314,7 @@ object Build_Log
     val Bad_Init = new Regex("""^cp:.*: Disc quota exceeded$""")
   }
 
-  object Jenkins
-  {
+  object Jenkins {
     val log_prefix = "jenkins_"
     val engine = "jenkins"
     val Host = new Regex("""^Building remotely on (\S+) \((\S+)\).*$""")
@@ -348,13 +332,11 @@ object Build_Log
     val BUILD = "=== BUILD ==="
   }
 
-  private def parse_meta_info(log_file: Log_File): Meta_Info =
-  {
+  private def parse_meta_info(log_file: Log_File): Meta_Info = {
     def parse(engine: String, host: String, start: Date,
-      End: Regex, Isabelle_Version: List[Regex], AFP_Version: List[Regex]): Meta_Info =
-    {
-      val build_id =
-      {
+      End: Regex, Isabelle_Version: List[Regex], AFP_Version: List[Regex]
+    ): Meta_Info = {
+      val build_id = {
         val prefix = proper_string(host) orElse proper_string(engine) getOrElse "build"
         prefix + ":" + start.time.ms
       }
@@ -426,8 +408,7 @@ object Build_Log
 
   val SESSION_NAME = "session_name"
 
-  object Session_Status extends Enumeration
-  {
+  object Session_Status extends Enumeration {
     val existing, finished, failed, cancelled = Value
   }
 
@@ -442,29 +423,25 @@ object Build_Log
     status: Option[Session_Status.Value] = None,
     errors: List[String] = Nil,
     theory_timings: Map[String, Timing] = Map.empty,
-    ml_statistics: List[Properties.T] = Nil)
-  {
+    ml_statistics: List[Properties.T] = Nil
+  ) {
     def proper_groups: Option[String] = if (groups.isEmpty) None else Some(cat_lines(groups))
     def finished: Boolean = status == Some(Session_Status.finished)
     def failed: Boolean = status == Some(Session_Status.failed)
   }
 
-  object Build_Info
-  {
+  object Build_Info {
     val sessions_dummy: Map[String, Session_Entry] =
       Map("" -> Session_Entry(theory_timings = Map("" -> Timing.zero)))
   }
 
-  sealed case class Build_Info(sessions: Map[String, Session_Entry])
-  {
+  sealed case class Build_Info(sessions: Map[String, Session_Entry]) {
     def finished_sessions: List[String] = for ((a, b) <- sessions.toList if b.finished) yield a
     def failed_sessions: List[String] = for ((a, b) <- sessions.toList if b.failed) yield a
   }
 
-  private def parse_build_info(log_file: Log_File, parse_ml_statistics: Boolean): Build_Info =
-  {
-    object Chapter_Name
-    {
+  private def parse_build_info(log_file: Log_File, parse_ml_statistics: Boolean): Build_Info = {
+    object Chapter_Name {
       def unapply(s: String): Some[(String, String)] =
         space_explode('/', s) match {
           case List(chapter, name) => Some((chapter, name))
@@ -484,8 +461,7 @@ object Build_Log
     val Sources = new Regex("""^Sources (\S+) (\S{""" + SHA1.digest_length + """})$""")
     val Heap = new Regex("""^Heap (\S+) \((\d+) bytes\)$""")
 
-    object Theory_Timing
-    {
+    object Theory_Timing {
       def unapply(line: String): Option[(String, (String, Timing))] =
         Protocol.Theory_Timing_Marker.unapply(line.replace('~', '-')).map(log_file.parse_props)
         match {
@@ -614,8 +590,8 @@ object Build_Log
     theory_timings: List[Properties.T],
     ml_statistics: List[Properties.T],
     task_statistics: List[Properties.T],
-    errors: List[String])
-  {
+    errors: List[String]
+  ) {
     def error(s: String): Session_Info =
       copy(errors = errors ::: List(s))
   }
@@ -625,8 +601,8 @@ object Build_Log
     command_timings: Boolean,
     theory_timings: Boolean,
     ml_statistics: Boolean,
-    task_statistics: Boolean): Session_Info =
-  {
+    task_statistics: Boolean
+  ): Session_Info = {
     Session_Info(
       session_timing = log_file.find_props(Protocol.Session_Timing_Marker) getOrElse Nil,
       command_timings =
@@ -660,8 +636,7 @@ object Build_Log
 
   /* SQL data model */
 
-  object Data
-  {
+  object Data {
     def build_log_table(name: String, columns: List[SQL.Column], body: String = ""): SQL.Table =
       SQL.Table("isabelle_build_log_" + name, columns, body)
 
@@ -712,8 +687,7 @@ object Build_Log
 
     /* AFP versions */
 
-    val isabelle_afp_versions_table: SQL.Table =
-    {
+    val isabelle_afp_versions_table: SQL.Table = {
       val version1 = Prop.isabelle_version
       val version2 = Prop.afp_version
       build_log_table("isabelle_afp_versions", List(version1.make_primary_key, version2),
@@ -728,8 +702,7 @@ object Build_Log
       if (afp) SQL.Column.date("afp_pull_date")
       else SQL.Column.date("pull_date")
 
-    def pull_date_table(afp: Boolean = false): SQL.Table =
-    {
+    def pull_date_table(afp: Boolean = false): SQL.Table = {
       val (name, versions) =
         if (afp) ("afp_pull_date", List(Prop.isabelle_version, Prop.afp_version))
         else ("pull_date", List(Prop.isabelle_version))
@@ -749,8 +722,10 @@ object Build_Log
       "now() - INTERVAL '" + days.max(0) + " days'"
 
     def recent_pull_date_table(
-      days: Int, rev: String = "", afp_rev: Option[String] = None): SQL.Table =
-    {
+      days: Int,
+      rev: String = "",
+      afp_rev: Option[String] = None
+    ): SQL.Table = {
       val afp = afp_rev.isDefined
       val rev2 = afp_rev.getOrElse("")
       val table = pull_date_table(afp)
@@ -769,17 +744,19 @@ object Build_Log
            else "")))
     }
 
-    def select_recent_log_names(days: Int): SQL.Source =
-    {
+    def select_recent_log_names(days: Int): SQL.Source = {
       val table1 = meta_info_table
       val table2 = recent_pull_date_table(days)
       table1.select(List(log_name), distinct = true) + SQL.join_inner + table2.query_named +
         " ON " + Prop.isabelle_version(table1) + " = " + Prop.isabelle_version(table2)
     }
 
-    def select_recent_versions(days: Int,
-      rev: String = "", afp_rev: Option[String] = None, sql: SQL.Source = ""): SQL.Source =
-    {
+    def select_recent_versions(
+      days: Int,
+      rev: String = "",
+      afp_rev: Option[String] = None,
+      sql: SQL.Source = ""
+    ): SQL.Source = {
       val afp = afp_rev.isDefined
       val version = Prop.isabelle_version
       val table1 = recent_pull_date_table(days, rev = rev, afp_rev = afp_rev)
@@ -798,8 +775,7 @@ object Build_Log
 
     /* universal view on main data */
 
-    val universal_table: SQL.Table =
-    {
+    val universal_table: SQL.Table = {
       val afp_pull_date = pull_date(afp = true)
       val version1 = Prop.isabelle_version
       val version2 = Prop.afp_version
@@ -846,8 +822,7 @@ object Build_Log
   def store(options: Options, cache: XML.Cache = XML.Cache.make()): Store =
     new Store(options, cache)
 
-  class Store private[Build_Log](options: Options, val cache: XML.Cache)
-  {
+  class Store private[Build_Log](options: Options, val cache: XML.Cache) {
     def open_database(
       user: String = options.string("build_log_database_user"),
       password: String = options.string("build_log_database_password"),
@@ -856,8 +831,8 @@ object Build_Log
       port: Int = options.int("build_log_database_port"),
       ssh_host: String = options.string("build_log_ssh_host"),
       ssh_user: String = options.string("build_log_ssh_user"),
-      ssh_port: Int = options.int("build_log_ssh_port")): PostgreSQL.Database =
-    {
+      ssh_port: Int = options.int("build_log_ssh_port")
+    ): PostgreSQL.Database = {
       PostgreSQL.open_database(
         user = user, password = password, database = database, host = host, port = port,
         ssh =
@@ -867,8 +842,7 @@ object Build_Log
     }
 
     def update_database(
-      db: PostgreSQL.Database, dirs: List[Path], ml_statistics: Boolean = false): Unit =
-    {
+      db: PostgreSQL.Database, dirs: List[Path], ml_statistics: Boolean = false): Unit = {
       val log_files =
         dirs.flatMap(dir =>
           File.find_files(dir.file, pred = Log_File.is_log(_), follow_links = true))
@@ -879,14 +853,16 @@ object Build_Log
       db.create_view(Data.universal_table)
     }
 
-    def snapshot_database(db: PostgreSQL.Database, sqlite_database: Path,
-      days: Int = 100, ml_statistics: Boolean = false): Unit =
-    {
+    def snapshot_database(
+      db: PostgreSQL.Database,
+      sqlite_database: Path,
+      days: Int = 100,
+      ml_statistics: Boolean = false
+    ): Unit = {
       Isabelle_System.make_directory(sqlite_database.dir)
       sqlite_database.file.delete
 
-      using(SQLite.open_database(sqlite_database))(db2 =>
-      {
+      using(SQLite.open_database(sqlite_database)) { db2 =>
         db.transaction {
           db2.transaction {
             // main content
@@ -912,16 +888,13 @@ object Build_Log
             }
 
             // pull_date
-            for (afp <- List(false, true))
-            {
+            for (afp <- List(false, true)) {
               val afp_rev = if (afp) Some("") else None
               val table = Data.pull_date_table(afp)
               db2.create_table(table)
-              db2.using_statement(table.insert())(stmt2 =>
-              {
+              db2.using_statement(table.insert()) { stmt2 =>
                 db.using_statement(
-                  Data.recent_pull_date_table(days, afp_rev = afp_rev).query)(stmt =>
-                {
+                  Data.recent_pull_date_table(days, afp_rev = afp_rev).query) { stmt =>
                   val res = stmt.execute_query()
                   while (res.next()) {
                     for ((c, i) <- table.columns.zipWithIndex) {
@@ -929,8 +902,8 @@ object Build_Log
                     }
                     stmt2.execute()
                   }
-                })
-              })
+                }
+              }
             }
 
             // full view
@@ -938,18 +911,16 @@ object Build_Log
           }
         }
         db2.rebuild
-      })
+      }
     }
 
     def domain(db: SQL.Database, table: SQL.Table, column: SQL.Column): Set[String] =
       db.using_statement(table.select(List(column), distinct = true))(stmt =>
         stmt.execute_query().iterator(_.string(column)).toSet)
 
-    def update_meta_info(db: SQL.Database, log_name: String, meta_info: Meta_Info): Unit =
-    {
+    def update_meta_info(db: SQL.Database, log_name: String, meta_info: Meta_Info): Unit = {
       val table = Data.meta_info_table
-      db.using_statement(db.insert_permissive(table))(stmt =>
-      {
+      db.using_statement(db.insert_permissive(table)) { stmt =>
         stmt.string(1) = log_name
         for ((c, i) <- table.columns.tail.zipWithIndex) {
           if (c.T == SQL.Type.Date)
@@ -958,14 +929,12 @@ object Build_Log
             stmt.string(i + 2) = meta_info.get(c)
         }
         stmt.execute()
-      })
+      }
     }
 
-    def update_sessions(db: SQL.Database, log_name: String, build_info: Build_Info): Unit =
-    {
+    def update_sessions(db: SQL.Database, log_name: String, build_info: Build_Info): Unit = {
       val table = Data.sessions_table
-      db.using_statement(db.insert_permissive(table))(stmt =>
-      {
+      db.using_statement(db.insert_permissive(table)) { stmt =>
         val sessions =
           if (build_info.sessions.isEmpty) Build_Info.sessions_dummy
           else build_info.sessions
@@ -989,14 +958,12 @@ object Build_Log
           stmt.string(17) = session.sources
           stmt.execute()
         }
-      })
+      }
     }
 
-    def update_theories(db: SQL.Database, log_name: String, build_info: Build_Info): Unit =
-    {
+    def update_theories(db: SQL.Database, log_name: String, build_info: Build_Info): Unit = {
       val table = Data.theories_table
-      db.using_statement(db.insert_permissive(table))(stmt =>
-      {
+      db.using_statement(db.insert_permissive(table)) { stmt =>
         val sessions =
           if (build_info.sessions.forall({ case (_, session) => session.theory_timings.isEmpty }))
             Build_Info.sessions_dummy
@@ -1013,14 +980,12 @@ object Build_Log
           stmt.long(6) = timing.gc.ms
           stmt.execute()
         }
-      })
+      }
     }
 
-    def update_ml_statistics(db: SQL.Database, log_name: String, build_info: Build_Info): Unit =
-    {
+    def update_ml_statistics(db: SQL.Database, log_name: String, build_info: Build_Info): Unit = {
       val table = Data.ml_statistics_table
-      db.using_statement(db.insert_permissive(table))(stmt =>
-      {
+      db.using_statement(db.insert_permissive(table)) { stmt =>
         val ml_stats: List[(String, Option[Bytes])] =
           Par_List.map[(String, Session_Entry), (String, Option[Bytes])](
             { case (a, b) => (a, Properties.compress(b.ml_statistics, cache = cache.xz).proper) },
@@ -1032,21 +997,18 @@ object Build_Log
           stmt.bytes(3) = ml_statistics
           stmt.execute()
         }
-      })
+      }
     }
 
-    def write_info(db: SQL.Database, files: List[JFile], ml_statistics: Boolean = false): Unit =
-    {
-      abstract class Table_Status(table: SQL.Table)
-      {
+    def write_info(db: SQL.Database, files: List[JFile], ml_statistics: Boolean = false): Unit = {
+      abstract class Table_Status(table: SQL.Table) {
         db.create_table(table)
         private var known: Set[String] = domain(db, table, Data.log_name)
 
         def required(file: JFile): Boolean = !known(Log_File.plain_name(file.getName))
 
         def update_db(db: SQL.Database, log_file: Log_File): Unit
-        def update(log_file: Log_File): Unit =
-        {
+        def update(log_file: Log_File): Unit = {
           if (!known(log_file.name)) {
             update_db(db, log_file)
             known += log_file.name
@@ -1077,19 +1039,16 @@ object Build_Log
 
       for (file_group <-
             files.filter(file => status.exists(_.required(file))).
-              grouped(options.int("build_log_transaction_size") max 1))
-      {
+              grouped(options.int("build_log_transaction_size") max 1)) {
         val log_files = Par_List.map[JFile, Log_File](Log_File.apply, file_group)
         db.transaction { log_files.foreach(log_file => status.foreach(_.update(log_file))) }
       }
     }
 
-    def read_meta_info(db: SQL.Database, log_name: String): Option[Meta_Info] =
-    {
+    def read_meta_info(db: SQL.Database, log_name: String): Option[Meta_Info] = {
       val table = Data.meta_info_table
       val columns = table.columns.tail
-      db.using_statement(table.select(columns, Data.log_name.where_equal(log_name)))(stmt =>
-      {
+      db.using_statement(table.select(columns, Data.log_name.where_equal(log_name))) { stmt =>
         val res = stmt.execute_query()
         if (!res.next()) None
         else {
@@ -1104,15 +1063,14 @@ object Build_Log
           val settings = for ((x, Some(y)) <- results.drop(n)) yield (x, y)
           Some(Meta_Info(props, settings))
         }
-      })
+      }
     }
 
     def read_build_info(
       db: SQL.Database,
       log_name: String,
       session_names: List[String] = Nil,
-      ml_statistics: Boolean = false): Build_Info =
-    {
+      ml_statistics: Boolean = false): Build_Info = {
       val table1 = Data.sessions_table
       val table2 = Data.ml_statistics_table
 
@@ -1136,10 +1094,8 @@ object Build_Log
         else (columns1, table1.ident)
 
       val sessions =
-        db.using_statement(SQL.select(columns) + from + " " + where)(stmt =>
-        {
-          stmt.execute_query().iterator(res =>
-          {
+        db.using_statement(SQL.select(columns) + from + " " + where) { stmt =>
+          stmt.execute_query().iterator({ res =>
             val session_name = res.string(Data.session_name)
             val session_entry =
               Session_Entry(
@@ -1160,7 +1116,7 @@ object Build_Log
                   else Nil)
             session_name -> session_entry
           }).toMap
-        })
+        }
       Build_Info(sessions)
     }
   }

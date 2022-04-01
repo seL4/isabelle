@@ -15,8 +15,7 @@ import scala.collection.immutable.TreeMap
 import scala.util.matching.Regex
 
 
-object Latex
-{
+object Latex {
   /* output name for LaTeX macros */
 
   private val output_name_map: Map[Char, String] =
@@ -49,8 +48,7 @@ object Latex
 
   /* index entries */
 
-  def index_escape(str: String): String =
-  {
+  def index_escape(str: String): String = {
     val special1 = "!\"@|"
     val special2 = "\\{}#"
     if (str.exists(c => special1.contains(c) || special2.contains(c))) {
@@ -70,8 +68,7 @@ object Latex
     else str
   }
 
-  object Index_Item
-  {
+  object Index_Item {
     sealed case class Value(text: Text, like: String)
     def unapply(tree: XML.Tree): Option[Value] =
       tree match {
@@ -81,8 +78,7 @@ object Latex
       }
   }
 
-  object Index_Entry
-  {
+  object Index_Entry {
     sealed case class Value(items: List[Index_Item.Value], kind: String)
     def unapply(tree: XML.Tree): Option[Value] =
       tree match {
@@ -96,10 +92,8 @@ object Latex
 
   /* tags */
 
-  object Tags
-  {
-    object Op extends Enumeration
-    {
+  object Tags {
+    object Op extends Enumeration {
       val fold, drop, keep = Value
     }
 
@@ -123,14 +117,12 @@ object Latex
     val empty: Tags = apply("")
   }
 
-  class Tags private(spec: String, map: TreeMap[String, Tags.Op.Value])
-  {
+  class Tags private(spec: String, map: TreeMap[String, Tags.Op.Value]) {
     override def toString: String = spec
 
     def get(name: String): Option[Tags.Op.Value] = map.get(name)
 
-    def sty(comment_latex: Boolean): File.Content =
-    {
+    def sty(comment_latex: Boolean): File.Content = {
       val path = Path.explode("isabelletags.sty")
       val comment =
         if (comment_latex) """\usepackage{comment}"""
@@ -165,8 +157,7 @@ object Latex
     if (file_pos.isEmpty) Nil
     else List("\\endinput\n", position(Markup.FILE, file_pos))
 
-  class Output(options: Options)
-  {
+  class Output(options: Options) {
     def latex_output(latex_text: Text): String = apply(latex_text)
 
     def latex_macro0(name: String, optional_argument: String = ""): Text =
@@ -188,8 +179,7 @@ object Latex
     def latex_body(kind: String, body: Text, optional_argument: String = ""): Text =
       latex_environment("isamarkup" + kind, body, optional_argument)
 
-    def latex_tag(name: String, body: Text, delim: Boolean = false): Text =
-    {
+    def latex_tag(name: String, body: Text, delim: Boolean = false): Text = {
       val s = output_name(name)
       val kind = if (delim) "delim" else "tag"
       val end = if (delim) "" else "{\\isafold" + s + "}%\n"
@@ -205,15 +195,13 @@ object Latex
       }
     }
 
-    def index_item(item: Index_Item.Value): String =
-    {
+    def index_item(item: Index_Item.Value): String = {
       val like = if (item.like.isEmpty) "" else index_escape(item.like) + "@"
       val text = index_escape(latex_output(item.text))
       like + text
     }
 
-    def index_entry(entry: Index_Entry.Value): Text =
-    {
+    def index_entry(entry: Index_Entry.Value): Text = {
       val items = entry.items.map(index_item).mkString("!")
       val kind = if (entry.kind.isEmpty) "" else "|" + index_escape(entry.kind)
       latex_macro("index", XML.string(items + kind))
@@ -226,16 +214,14 @@ object Latex
       error("Unknown latex markup element " + quote(elem.name) + Position.here(pos) +
         ":\n" + XML.string_of_tree(elem))
 
-    def apply(latex_text: Text, file_pos: String = ""): String =
-    {
+    def apply(latex_text: Text, file_pos: String = ""): String = {
       var line = 1
       val result = new mutable.ListBuffer[String]
       val positions = new mutable.ListBuffer[String] ++= init_position(file_pos)
 
       val file_position = if (file_pos.isEmpty) Position.none else Position.File(file_pos)
 
-      def traverse(xml: XML.Body): Unit =
-      {
+      def traverse(xml: XML.Body): Unit = {
         xml.foreach {
           case XML.Text(s) =>
             line += s.count(_ == '\n')
@@ -281,8 +267,7 @@ object Latex
   private val File_Pattern = """^%:%file=(.+)%:%$""".r
   private val Line_Pattern = """^*%:%(\d+)=(\d+)%:%$""".r
 
-  def read_tex_file(tex_file: Path): Tex_File =
-  {
+  def read_tex_file(tex_file: Path): Tex_File = {
     val positions =
       Line.logical_lines(File.read(tex_file)).reverse.
         takeWhile(_ != "\\endinput").reverse
@@ -306,8 +291,10 @@ object Latex
   }
 
   final class Tex_File private[Latex](
-    tex_file: Path, source_file: Option[String], source_lines: List[(Int, Int)])
-  {
+    tex_file: Path,
+    source_file: Option[String],
+    source_lines: List[(Int, Int)]
+  ) {
     override def toString: String = tex_file.toString
 
     def source_position(l: Int): Option[Position.T] =
@@ -327,8 +314,7 @@ object Latex
 
   /* latex log */
 
-  def latex_errors(dir: Path, root_name: String): List[String] =
-  {
+  def latex_errors(dir: Path, root_name: String): List[String] = {
     val root_log_path = dir + Path.explode(root_name).ext("log")
     if (root_log_path.is_file) {
       for { (msg, pos) <- filter_errors(dir, File.read(root_log_path)) }
@@ -337,8 +323,7 @@ object Latex
     else Nil
   }
 
-  def filter_errors(dir: Path, root_log: String): List[(String, Position.T)] =
-  {
+  def filter_errors(dir: Path, root_log: String): List[(String, Position.T)] = {
     val seen_files = Synchronized(Map.empty[JFile, Tex_File])
 
     def check_tex_file(path: Path): Option[Tex_File] =
@@ -359,8 +344,7 @@ object Latex
         case None => Position.Line_File(line, path.implode)
       }
 
-    object File_Line_Error
-    {
+    object File_Line_Error {
       val Pattern: Regex = """^(.*?\.\w\w\w):(\d+): (.*)$""".r
       def unapply(line: String): Option[(Path, Int, String)] =
         line match {
@@ -404,8 +388,7 @@ object Latex
         "See the LaTeX manual or LaTeX Companion for explanation.",
         "Type  H <return>  for immediate help.")
 
-    def error_suffix1(lines: List[String]): Option[String] =
-    {
+    def error_suffix1(lines: List[String]): Option[String] = {
       val lines1 =
         lines.take(20).takeWhile({ case File_Line_Error((_, _, _)) => false case _ => true })
       lines1.zipWithIndex.collectFirst({
@@ -418,9 +401,10 @@ object Latex
         case _ => None
       }
 
-    @tailrec def filter(lines: List[String], result: List[(String, Position.T)])
-      : List[(String, Position.T)] =
-    {
+    @tailrec def filter(
+      lines: List[String],
+      result: List[(String, Position.T)]
+    ) : List[(String, Position.T)] = {
       lines match {
         case File_Line_Error((file, line, msg1)) :: rest1 =>
           val pos = tex_file_position(file, line)

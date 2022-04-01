@@ -16,12 +16,10 @@ import java.nio.file.attribute.BasicFileAttributes
 import scala.jdk.CollectionConverters._
 
 
-object Isabelle_System
-{
+object Isabelle_System {
   /* settings environment */
 
-  def settings(putenv: List[(String, String)] = Nil): JMap[String, String] =
-  {
+  def settings(putenv: List[(String, String)] = Nil): JMap[String, String] = {
     val env0 = isabelle.setup.Environment.settings()
     if (putenv.isEmpty) env0
     else {
@@ -45,8 +43,7 @@ object Isabelle_System
 
   @volatile private var _services: Option[List[Class[Service]]] = None
 
-  def services(): List[Class[Service]] =
-  {
+  def services(): List[Class[Service]] = {
     if (_services.isEmpty) init()  // unsynchronized check
     _services.get
   }
@@ -58,10 +55,8 @@ object Isabelle_System
 
   /* init settings + services */
 
-  def make_services(): List[Class[Service]] =
-  {
-    def make(where: String, names: List[String]): List[Class[Service]] =
-    {
+  def make_services(): List[Class[Service]] = {
+    def make(where: String, names: List[String]): List[Class[Service]] = {
       for (name <- names) yield {
         def err(msg: String): Nothing =
           error("Bad Isabelle/Scala service " + quote(name) + " in " + where + "\n" + msg)
@@ -83,8 +78,7 @@ object Isabelle_System
     from_env("ISABELLE_SCALA_SERVICES") ::: Scala.class_path().flatMap(from_jar)
   }
 
-  def init(isabelle_root: String = "", cygwin_root: String = ""): Unit =
-  {
+  def init(isabelle_root: String = "", cygwin_root: String = ""): Unit = {
     isabelle.setup.Environment.init(isabelle_root, cygwin_root)
     synchronized { if (_services.isEmpty) { _services = Some(make_services()) } }
   }
@@ -92,8 +86,7 @@ object Isabelle_System
 
   /* getetc -- static distribution parameters */
 
-  def getetc(name: String, root: Path = Path.ISABELLE_HOME): Option[String] =
-  {
+  def getetc(name: String, root: Path = Path.ISABELLE_HOME): Option[String] = {
     val path = root + Path.basic("etc") + Path.basic(name)
     if (path.is_file) {
       Library.trim_split_lines(File.read(path)) match {
@@ -114,8 +107,7 @@ object Isabelle_System
       else error("Failed to identify Isabelle distribution " + root.expand)
     }
 
-  object Isabelle_Id extends Scala.Fun_String("isabelle_id")
-  {
+  object Isabelle_Id extends Scala.Fun_String("isabelle_id") {
     val here = Scala_Project.here
     def apply(arg: String): String = isabelle_id()
   }
@@ -151,8 +143,10 @@ object Isabelle_System
 
   /* scala functions */
 
-  private def apply_paths(args: List[String], fun: List[Path] => Unit): List[String] =
-    { fun(args.map(Path.explode)); Nil }
+  private def apply_paths(args: List[String], fun: List[Path] => Unit): List[String] = {
+    fun(args.map(Path.explode))
+    Nil
+  }
 
   private def apply_paths1(args: List[String], fun: Path => Unit): List[String] =
     apply_paths(args, { case List(path) => fun(path) })
@@ -175,8 +169,7 @@ object Isabelle_System
 
   /* directories */
 
-  def make_directory(path: Path): Path =
-  {
+  def make_directory(path: Path): Path = {
     if (!path.is_dir) {
       try { Files.createDirectories(path.java_path) }
       catch { case ERROR(_) => error("Failed to create directory: " + path.absolute) }
@@ -188,16 +181,14 @@ object Isabelle_System
     if (path.is_dir) error("Directory already exists: " + path.absolute)
     else make_directory(path)
 
-  def copy_dir(dir1: Path, dir2: Path): Unit =
-  {
+  def copy_dir(dir1: Path, dir2: Path): Unit = {
     val res = bash("cp -a " + File.bash_path(dir1) + " " + File.bash_path(dir2))
     if (!res.ok) {
       cat_error("Failed to copy directory " + dir1.absolute + " to " + dir2.absolute, res.err)
     }
   }
 
-  def with_copy_dir[A](dir1: Path, dir2: Path)(body: => A): A =
-  {
+  def with_copy_dir[A](dir1: Path, dir2: Path)(body: => A): A = {
     if (dir2.is_file || dir2.is_dir) error("Directory already exists: " + dir2.absolute)
     else {
       try { copy_dir(dir1, dir2); body }
@@ -206,14 +197,12 @@ object Isabelle_System
   }
 
 
-  object Make_Directory extends Scala.Fun_Strings("make_directory")
-  {
+  object Make_Directory extends Scala.Fun_Strings("make_directory") {
     val here = Scala_Project.here
     def apply(args: List[String]): List[String] = apply_paths1(args, make_directory)
   }
 
-  object Copy_Dir extends Scala.Fun_Strings("copy_dir")
-  {
+  object Copy_Dir extends Scala.Fun_Strings("copy_dir") {
     val here = Scala_Project.here
     def apply(args: List[String]): List[String] = apply_paths2(args, copy_dir)
   }
@@ -221,8 +210,7 @@ object Isabelle_System
 
   /* copy files */
 
-  def copy_file(src: JFile, dst: JFile): Unit =
-  {
+  def copy_file(src: JFile, dst: JFile): Unit = {
     val target = if (dst.isDirectory) new JFile(dst, src.getName) else dst
     if (!File.eq(src, target)) {
       try {
@@ -240,8 +228,7 @@ object Isabelle_System
 
   def copy_file(src: Path, dst: Path): Unit = copy_file(src.file, dst.file)
 
-  def copy_file_base(base_dir: Path, src: Path, target_dir: Path): Unit =
-  {
+  def copy_file_base(base_dir: Path, src: Path, target_dir: Path): Unit = {
     val src1 = src.expand
     val src1_dir = src1.dir
     if (!src1.starts_basic) error("Illegal path specification " + src1 + " beyond base directory")
@@ -249,14 +236,12 @@ object Isabelle_System
   }
 
 
-  object Copy_File extends Scala.Fun_Strings("copy_file")
-  {
+  object Copy_File extends Scala.Fun_Strings("copy_file") {
     val here = Scala_Project.here
     def apply(args: List[String]): List[String] = apply_paths2(args, copy_file)
   }
 
-  object Copy_File_Base extends Scala.Fun_Strings("copy_file_base")
-  {
+  object Copy_File_Base extends Scala.Fun_Strings("copy_file_base") {
     val here = Scala_Project.here
     def apply(args: List[String]): List[String] = apply_paths3(args, copy_file_base)
   }
@@ -264,8 +249,7 @@ object Isabelle_System
 
   /* move files */
 
-  def move_file(src: JFile, dst: JFile): Unit =
-  {
+  def move_file(src: JFile, dst: JFile): Unit = {
     val target = if (dst.isDirectory) new JFile(dst, src.getName) else dst
     if (!File.eq(src, target))
       Files.move(src.toPath, target.toPath, StandardCopyOption.REPLACE_EXISTING)
@@ -276,16 +260,14 @@ object Isabelle_System
 
   /* symbolic link */
 
-  def symlink(src: Path, dst: Path, force: Boolean = false, native: Boolean = false): Unit =
-  {
+  def symlink(src: Path, dst: Path, force: Boolean = false, native: Boolean = false): Unit = {
     val src_file = src.file
     val dst_file = dst.file
     val target = if (dst_file.isDirectory) new JFile(dst_file, src_file.getName) else dst_file
 
     if (force) target.delete
 
-    def cygwin_link(): Unit =
-    {
+    def cygwin_link(): Unit = {
       if (native) {
         error("Failed to create native symlink on Windows: " + quote(src_file.toString) +
           "\n(but it could work as Administrator)")
@@ -304,23 +286,20 @@ object Isabelle_System
 
   /* tmp files */
 
-  def isabelle_tmp_prefix(): JFile =
-  {
+  def isabelle_tmp_prefix(): JFile = {
     val path = Path.explode("$ISABELLE_TMP_PREFIX")
     path.file.mkdirs  // low-level mkdirs to avoid recursion via Isabelle environment
     File.platform_file(path)
   }
 
-  def tmp_file(name: String, ext: String = "", base_dir: JFile = isabelle_tmp_prefix()): JFile =
-  {
+  def tmp_file(name: String, ext: String = "", base_dir: JFile = isabelle_tmp_prefix()): JFile = {
     val suffix = if (ext == "") "" else "." + ext
     val file = Files.createTempFile(base_dir.toPath, name, suffix).toFile
     file.deleteOnExit()
     file
   }
 
-  def with_tmp_file[A](name: String, ext: String = "")(body: Path => A): A =
-  {
+  def with_tmp_file[A](name: String, ext: String = "")(body: Path => A): A = {
     val file = tmp_file(name, ext)
     try { body(File.path(file)) } finally { file.delete }
   }
@@ -328,21 +307,18 @@ object Isabelle_System
 
   /* tmp dirs */
 
-  def rm_tree(root: JFile): Unit =
-  {
+  def rm_tree(root: JFile): Unit = {
     root.delete
     if (root.isDirectory) {
       Files.walkFileTree(root.toPath,
         new SimpleFileVisitor[JPath] {
-          override def visitFile(file: JPath, attrs: BasicFileAttributes): FileVisitResult =
-          {
+          override def visitFile(file: JPath, attrs: BasicFileAttributes): FileVisitResult = {
             try { Files.deleteIfExists(file) }
             catch { case _: IOException => }
             FileVisitResult.CONTINUE
           }
 
-          override def postVisitDirectory(dir: JPath, e: IOException): FileVisitResult =
-          {
+          override def postVisitDirectory(dir: JPath, e: IOException): FileVisitResult = {
             if (e == null) {
               try { Files.deleteIfExists(dir) }
               catch { case _: IOException => }
@@ -357,21 +333,18 @@ object Isabelle_System
 
   def rm_tree(root: Path): Unit = rm_tree(root.file)
 
-  object Rm_Tree extends Scala.Fun_Strings("rm_tree")
-  {
+  object Rm_Tree extends Scala.Fun_Strings("rm_tree") {
     val here = Scala_Project.here
     def apply(args: List[String]): List[String] = apply_paths1(args, rm_tree)
   }
 
-  def tmp_dir(name: String, base_dir: JFile = isabelle_tmp_prefix()): JFile =
-  {
+  def tmp_dir(name: String, base_dir: JFile = isabelle_tmp_prefix()): JFile = {
     val dir = Files.createTempDirectory(base_dir.toPath, name).toFile
     dir.deleteOnExit()
     dir
   }
 
-  def with_tmp_dir[A](name: String)(body: Path => A): A =
-  {
+  def with_tmp_dir[A](name: String)(body: Path => A): A = {
     val dir = tmp_dir(name)
     try { body(File.path(dir)) } finally { rm_tree(dir) }
   }
@@ -379,8 +352,7 @@ object Isabelle_System
 
   /* quasi-atomic update of directory */
 
-  def update_directory(dir: Path, f: Path => Unit): Unit =
-  {
+  def update_directory(dir: Path, f: Path => Unit): Unit = {
     val new_dir = dir.ext("new")
     val old_dir = dir.ext("old")
 
@@ -410,8 +382,8 @@ object Isabelle_System
     progress_stderr: String => Unit = (_: String) => (),
     watchdog: Option[Bash.Watchdog] = None,
     strict: Boolean = true,
-    cleanup: () => Unit = () => ()): Process_Result =
-  {
+    cleanup: () => Unit = () => ()
+  ): Process_Result = {
     Bash.process(script,
       description = description, cwd = cwd, env = env, redirect = redirect, cleanup = cleanup).
       result(input = input, progress_stdout = progress_stdout, progress_stderr = progress_stderr,
@@ -421,8 +393,7 @@ object Isabelle_System
 
   /* command-line tools */
 
-  def require_command(cmd: String, test: String = "--version"): Unit =
-  {
+  def require_command(cmd: String, test: String = "--version"): Unit = {
     if (!bash(Bash.string(cmd) + " " + test).ok) error("Missing system command: " + quote(cmd))
   }
 
@@ -435,8 +406,8 @@ object Isabelle_System
     dir: Path = Path.current,
     original_owner: Boolean = false,
     strip: Int = 0,
-    redirect: Boolean = false): Process_Result =
-  {
+    redirect: Boolean = false
+  ): Process_Result = {
     val options =
       (if (dir.is_current) "" else "-C " + File.bash_path(dir) + " ") +
       (if (original_owner) "" else "--owner=root --group=staff ") +
@@ -446,16 +417,14 @@ object Isabelle_System
     else error("Expected to find GNU tar executable")
   }
 
-  def make_patch(base_dir: Path, src: Path, dst: Path, diff_options: String = ""): String =
-  {
-    with_tmp_file("patch")(patch =>
-    {
+  def make_patch(base_dir: Path, src: Path, dst: Path, diff_options: String = ""): String = {
+    with_tmp_file("patch") { patch =>
       Isabelle_System.bash(
         "diff -ru " + diff_options + " -- " + File.bash_path(src) + " " + File.bash_path(dst) +
           " > " + File.bash_path(patch),
         cwd = base_dir.file).check_rc(_ <= 1)
       File.read(patch)
-    })
+    }
   }
 
   def hostname(): String = bash("hostname -s").check.out
@@ -466,8 +435,7 @@ object Isabelle_System
   def pdf_viewer(arg: Path): Unit =
     bash("exec \"$PDF_VIEWER\" " + File.bash_path(arg) + " >/dev/null 2>/dev/null &")
 
-  def open_external_file(name: String): Boolean =
-  {
+  def open_external_file(name: String): Boolean = {
     val ext = Library.take_suffix((c: Char) => c != '.', name.toList)._2.mkString
     val external =
       ext.nonEmpty &&
@@ -490,8 +458,7 @@ object Isabelle_System
 
   /* default logic */
 
-  def default_logic(args: String*): String =
-  {
+  def default_logic(args: String*): String = {
     args.find(_ != "") match {
       case Some(logic) => logic
       case None => getenv_strict("ISABELLE_LOGIC")
@@ -501,8 +468,7 @@ object Isabelle_System
 
   /* download file */
 
-  def download(url_name: String, progress: Progress = new Progress): HTTP.Content =
-  {
+  def download(url_name: String, progress: Progress = new Progress): HTTP.Content = {
     val url = Url(url_name)
     progress.echo("Getting " + quote(url_name))
     try { HTTP.Client.get(url) }
@@ -512,8 +478,7 @@ object Isabelle_System
   def download_file(url_name: String, file: Path, progress: Progress = new Progress): Unit =
     Bytes.write(file, download(url_name, progress = progress).bytes)
 
-  object Download extends Scala.Fun("download", thread = true)
-  {
+  object Download extends Scala.Fun("download", thread = true) {
     val here = Scala_Project.here
     override def invoke(args: List[Bytes]): List[Bytes] =
       args match { case List(url) => List(download(url.text).bytes) }

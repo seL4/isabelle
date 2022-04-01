@@ -21,15 +21,13 @@ import org.gjt.sp.jedit.{jEdit, View, Buffer}
 import org.gjt.sp.jedit.bufferio.BufferIORequest
 
 
-object JEdit_Resources
-{
+object JEdit_Resources {
   def apply(options: Options): JEdit_Resources =
     new JEdit_Resources(JEdit_Sessions.session_base_info(options))
 }
 
 class JEdit_Resources private(val session_base_info: Sessions.Base_Info)
-  extends Resources(session_base_info.sessions_structure, session_base_info.base)
-{
+extends Resources(session_base_info.sessions_structure, session_base_info.base) {
   def session_name: String = session_base_info.session
   def session_errors: List[String] = session_base_info.errors
 
@@ -51,14 +49,12 @@ class JEdit_Resources private(val session_base_info: Sessions.Base_Info)
   def node_name(buffer: Buffer): Document.Node.Name =
     node_name(JEdit_Lib.buffer_name(buffer))
 
-  def theory_node_name(buffer: Buffer): Option[Document.Node.Name] =
-  {
+  def theory_node_name(buffer: Buffer): Option[Document.Node.Name] = {
     val name = node_name(buffer)
     if (name.is_theory) Some(name) else None
   }
 
-  override def append(dir: String, source_path: Path): String =
-  {
+  override def append(dir: String, source_path: Path): String = {
     val path = source_path.expand
     if (dir == "" || path.is_absolute)
       MiscUtilities.resolveSymlinks(File.platform_path(path))
@@ -75,8 +71,7 @@ class JEdit_Resources private(val session_base_info: Sessions.Base_Info)
 
   /* file content */
 
-  def read_file_content(node_name: Document.Node.Name): Option[String] =
-  {
+  def read_file_content(node_name: Document.Node.Name): Option[String] = {
     make_theory_content(node_name) orElse {
       val name = node_name.node
       try {
@@ -96,8 +91,7 @@ class JEdit_Resources private(val session_base_info: Sessions.Base_Info)
       case None => read_file_content(node_name)
     }
 
-  override def with_thy_reader[A](name: Document.Node.Name, f: Reader[Char] => A): A =
-  {
+  override def with_thy_reader[A](name: Document.Node.Name, f: Reader[Char] => A): A = {
     GUI_Thread.now {
       Document_Model.get(name) match {
         case Some(model: Buffer_Model) =>
@@ -116,18 +110,15 @@ class JEdit_Resources private(val session_base_info: Sessions.Base_Info)
   }
 
 
-  private class File_Content_Output(buffer: Buffer) extends
-    ByteArrayOutputStream(buffer.getLength + 1)
-  {
+  private class File_Content_Output(buffer: Buffer)
+  extends ByteArrayOutputStream(buffer.getLength + 1) {
     def content(): Bytes = Bytes(this.buf, 0, this.count)
   }
 
-  private class File_Content(buffer: Buffer) extends
-    BufferIORequest(null, buffer, null, VFSManager.getVFSForPath(buffer.getPath), buffer.getPath)
-  {
+  private class File_Content(buffer: Buffer)
+  extends BufferIORequest(null, buffer, null, VFSManager.getVFSForPath(buffer.getPath), buffer.getPath) {
     def _run(): Unit = {}
-    def content(): Bytes =
-    {
+    def content(): Bytes = {
       val out = new File_Content_Output(buffer)
       write(buffer, out)
       out.content()
@@ -139,8 +130,7 @@ class JEdit_Resources private(val session_base_info: Sessions.Base_Info)
 
   /* theory text edits */
 
-  override def commit(change: Session.Change): Unit =
-  {
+  override def commit(change: Session.Change): Unit = {
     if (change.syntax_changed.nonEmpty)
       GUI_Thread.later { Document_Model.syntax_changed(change.syntax_changed) }
     if (change.deps_changed ||

@@ -15,12 +15,10 @@ import scala.collection.immutable.SortedMap
 
 
 
-object Rendering
-{
+object Rendering {
   /* color */
 
-  object Color extends Enumeration
-  {
+  object Color extends Enumeration {
     // background
     val unprocessed1, running1, canceled, bad, intensify, entity, active, active_result,
       markdown_bullet1, markdown_bullet2, markdown_bullet3, markdown_bullet4 = Value
@@ -97,8 +95,7 @@ object Rendering
     legacy_pri -> Color.legacy_message,
     error_pri -> Color.error_message)
 
-  def output_messages(results: Command.Results): List[XML.Elem] =
-  {
+  def output_messages(results: Command.Results): List[XML.Elem] = {
     val (states, other) =
       results.iterator.map(_._2).filterNot(Protocol.is_result).toList
         .partition(Protocol.is_state)
@@ -170,23 +167,20 @@ object Rendering
 
   /* entity focus */
 
-  object Focus
-  {
+  object Focus {
     def apply(ids: Set[Long]): Focus = new Focus(ids)
     val empty: Focus = apply(Set.empty)
     def make(args: List[Text.Info[Focus]]): Focus =
       args.foldLeft(empty) { case (focus1, Text.Info(_, focus2)) => focus1 ++ focus2 }
 
     val full: Focus =
-      new Focus(Set.empty)
-      {
+      new Focus(Set.empty) {
         override def apply(id: Long): Boolean = true
         override def toString: String = "Focus.full"
       }
   }
 
-  sealed class Focus private[Rendering](protected val rep: Set[Long])
-  {
+  sealed class Focus private[Rendering](protected val rep: Set[Long]) {
     def defined: Boolean = rep.nonEmpty
     def apply(id: Long): Boolean = rep.contains(id)
     def + (id: Long): Focus = if (rep.contains(id)) this else new Focus(rep + id)
@@ -265,8 +259,8 @@ object Rendering
 class Rendering(
   val snapshot: Document.Snapshot,
   val options: Options,
-  val session: Session)
-{
+  val session: Session
+) {
   override def toString: String = "Rendering(" + snapshot.toString + ")"
 
   def get_text(range: Text.Range): Option[String] = None
@@ -274,8 +268,7 @@ class Rendering(
 
   /* caret */
 
-  def before_caret_range(caret: Text.Offset): Text.Range =
-  {
+  def before_caret_range(caret: Text.Offset): Text.Range = {
     val former_caret = snapshot.revert(caret)
     snapshot.convert(Text.Range(former_caret - 1, former_caret))
   }
@@ -302,8 +295,8 @@ class Rendering(
     history: Completion.History,
     unicode: Boolean,
     completed_range: Option[Text.Range],
-    caret_range: Text.Range): (Boolean, Option[Completion.Result]) =
-  {
+    caret_range: Text.Range
+  ): (Boolean, Option[Completion.Result]) = {
     semantic_completion(completed_range, caret_range) match {
       case Some(Text.Info(_, Completion.No_Completion)) => (true, None)
       case Some(Text.Info(range, names: Completion.Names)) =>
@@ -347,10 +340,8 @@ class Rendering(
         case _ => None
       }).headOption.map({ case Text.Info(_, (delimited, range)) => Text.Info(range, delimited) })
 
-  def path_completion(caret: Text.Offset): Option[Completion.Result] =
-  {
-    def complete(text: String): List[(String, List[String])] =
-    {
+  def path_completion(caret: Text.Offset): Option[Completion.Result] = {
+    def complete(text: String): List[(String, List[String])] = {
       try {
         val path = Path.explode(text)
         val (dir, base_name) =
@@ -414,8 +405,7 @@ class Rendering(
     spell_checker_include ++
       Markup.Elements(space_explode(',', options.string("spell_checker_exclude")): _*)
 
-  def spell_checker(range: Text.Range): List[Text.Info[Text.Range]] =
-  {
+  def spell_checker(range: Text.Range): List[Text.Info[Text.Range]] = {
     val result =
       snapshot.select(range, spell_checker_elements, _ =>
         {
@@ -435,9 +425,11 @@ class Rendering(
 
   /* text background */
 
-  def background(elements: Markup.Elements, range: Text.Range, focus: Rendering.Focus)
-    : List[Text.Info[Rendering.Color.Value]] =
-  {
+  def background(
+    elements: Markup.Elements,
+    range: Text.Range,
+    focus: Rendering.Focus
+  ) : List[Text.Info[Rendering.Color.Value]] = {
     for {
       Text.Info(r, result) <-
         snapshot.cumulate[(List[Markup], Option[Rendering.Color.Value])](
@@ -521,8 +513,7 @@ class Rendering(
 
   /* caret focus */
 
-  def caret_focus(caret_range: Text.Range, defs_range: Text.Range): Rendering.Focus =
-  {
+  def caret_focus(caret_range: Text.Range, defs_range: Text.Range): Rendering.Focus = {
     val focus = entity_focus_defs(caret_range)
     if (focus.defined) focus
     else if (defs_range == Text.Range.offside) Rendering.Focus.empty
@@ -534,8 +525,7 @@ class Rendering(
     }
   }
 
-  def caret_focus_ranges(caret_range: Text.Range, defs_range: Text.Range): List[Text.Range] =
-  {
+  def caret_focus_ranges(caret_range: Text.Range, defs_range: Text.Range): List[Text.Range] = {
     val focus = caret_focus(caret_range, defs_range)
     if (focus.defined) {
       snapshot.cumulate[Boolean](defs_range, false, Rendering.entity_elements, _ =>
@@ -550,9 +540,10 @@ class Rendering(
 
   /* messages */
 
-  def message_underline_color(elements: Markup.Elements, range: Text.Range)
-    : List[Text.Info[Rendering.Color.Value]] =
-  {
+  def message_underline_color(
+    elements: Markup.Elements,
+    range: Text.Range
+  ) : List[Text.Info[Rendering.Color.Value]] = {
     val results =
       snapshot.cumulate[Int](range, 0, elements, _ =>
         {
@@ -564,8 +555,7 @@ class Rendering(
     } yield Text.Info(r, color)
   }
 
-  def text_messages(range: Text.Range): List[Text.Info[XML.Elem]] =
-  {
+  def text_messages(range: Text.Range): List[Text.Info[XML.Elem]] = {
     val results =
       snapshot.cumulate[Vector[Command.Results.Entry]](
         range, Vector.empty, Rendering.message_elements, command_states =>
@@ -577,8 +567,7 @@ class Rendering(
           })
 
     var seen_serials = Set.empty[Long]
-    def seen(i: Long): Boolean =
-    {
+    def seen(i: Long): Boolean = {
       val b = seen_serials(i)
       seen_serials += i
       b
@@ -598,17 +587,15 @@ class Rendering(
     range: Text.Range,
     timing: Timing = Timing.zero,
     messages: List[(Long, XML.Tree)] = Nil,
-    rev_infos: List[(Boolean, XML.Tree)] = Nil)
-  {
+    rev_infos: List[(Boolean, XML.Tree)] = Nil
+  ) {
     def + (t: Timing): Tooltip_Info = copy(timing = timing + t)
-    def + (r0: Text.Range, serial: Long, tree: XML.Tree): Tooltip_Info =
-    {
+    def + (r0: Text.Range, serial: Long, tree: XML.Tree): Tooltip_Info = {
       val r = snapshot.convert(r0)
       if (range == r) copy(messages = (serial -> tree) :: messages)
       else copy(range = r, messages = List(serial -> tree))
     }
-    def + (r0: Text.Range, important: Boolean, tree: XML.Tree): Tooltip_Info =
-    {
+    def + (r0: Text.Range, important: Boolean, tree: XML.Tree): Tooltip_Info = {
       val r = snapshot.convert(r0)
       if (range == r) copy(rev_infos = (important -> tree) :: rev_infos)
       else copy (range = r, rev_infos = List(important -> tree))
@@ -630,8 +617,7 @@ class Rendering(
   def perhaps_append_file(node_name: Document.Node.Name, name: String): String =
     if (Path.is_valid(name)) session.resources.append(node_name, Path.explode(name)) else name
 
-  def tooltips(elements: Markup.Elements, range: Text.Range): Option[Text.Info[List[XML.Tree]]] =
-  {
+  def tooltips(elements: Markup.Elements, range: Text.Range): Option[Text.Info[List[XML.Tree]]] = {
     val results =
       snapshot.cumulate[Tooltip_Info](range, Tooltip_Info(range), elements, command_states =>
         {
@@ -727,8 +713,7 @@ class Rendering(
 
   /* command status overview */
 
-  def overview_color(range: Text.Range): Option[Rendering.Color.Value] =
-  {
+  def overview_color(range: Text.Range): Option[Rendering.Color.Value] = {
     if (snapshot.is_outdated) None
     else {
       val results =
@@ -762,8 +747,7 @@ class Rendering(
 
   /* meta data */
 
-  def meta_data(range: Text.Range): Properties.T =
-  {
+  def meta_data(range: Text.Range): Properties.T = {
     val results =
       snapshot.cumulate[Properties.T](range, Nil, Rendering.meta_data_elements, _ =>
         {
@@ -777,8 +761,7 @@ class Rendering(
 
   /* document tags */
 
-  def document_tags(range: Text.Range): List[String] =
-  {
+  def document_tags(range: Text.Range): List[String] = {
     val results =
       snapshot.cumulate[List[String]](range, Nil, Rendering.document_tag_elements, _ =>
         {

@@ -15,16 +15,14 @@ import java.awt.geom.{AffineTransform, GeneralPath, Path2D, Rectangle2D,
   RoundRectangle2D, PathIterator}
 
 
-object Shapes
-{
+object Shapes {
   private val default_stroke =
     new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND)
 
   def shape(info: Layout.Info): Rectangle2D.Double =
     new Rectangle2D.Double(info.x - info.width2, info.y - info.height2, info.width, info.height)
 
-  def highlight_node(gfx: Graphics2D, graphview: Graphview, node: Graph_Display.Node): Unit =
-  {
+  def highlight_node(gfx: Graphics2D, graphview: Graphview, node: Graph_Display.Node): Unit = {
     val metrics = graphview.metrics
     val extra = metrics.char_width
     val info = graphview.layout.get_node(node)
@@ -37,8 +35,7 @@ object Shapes
       info.height + 2 * extra))
   }
 
-  def paint_node(gfx: Graphics2D, graphview: Graphview, node: Graph_Display.Node): Unit =
-  {
+  def paint_node(gfx: Graphics2D, graphview: Graphview, node: Graph_Display.Node): Unit = {
     val metrics = graphview.metrics
     val info = graphview.layout.get_node(node)
     val c = graphview.node_color(node)
@@ -66,21 +63,17 @@ object Shapes
     }
   }
 
-  def paint_dummy(gfx: Graphics2D, graphview: Graphview, info: Layout.Info): Unit =
-  {
+  def paint_dummy(gfx: Graphics2D, graphview: Graphview, info: Layout.Info): Unit = {
     gfx.setStroke(default_stroke)
     gfx.setColor(graphview.dummy_color)
     gfx.draw(shape(info))
   }
 
-  object Straight_Edge
-  {
-    def paint(gfx: Graphics2D, graphview: Graphview, edge: Graph_Display.Edge): Unit =
-    {
+  object Straight_Edge {
+    def paint(gfx: Graphics2D, graphview: Graphview, edge: Graph_Display.Edge): Unit = {
       val p = graphview.layout.get_node(edge._1)
       val q = graphview.layout.get_node(edge._2)
-      val ds =
-      {
+      val ds = {
         val a = p.y min q.y
         val b = p.y max q.y
         graphview.layout.dummies_iterator(edge).filter(d => a < d.y && d.y < b).toList
@@ -101,16 +94,13 @@ object Shapes
     }
   }
 
-  object Cardinal_Spline_Edge
-  {
+  object Cardinal_Spline_Edge {
     private val slack = 0.1
 
-    def paint(gfx: Graphics2D, graphview: Graphview, edge: Graph_Display.Edge): Unit =
-    {
+    def paint(gfx: Graphics2D, graphview: Graphview, edge: Graph_Display.Edge): Unit = {
       val p = graphview.layout.get_node(edge._1)
       val q = graphview.layout.get_node(edge._2)
-      val ds =
-      {
+      val ds = {
         val a = p.y min q.y
         val b = p.y max q.y
         graphview.layout.dummies_iterator(edge).filter(d => a < d.y && d.y < b).toList
@@ -154,14 +144,11 @@ object Shapes
     }
   }
 
-  object Arrow_Head
-  {
+  object Arrow_Head {
     type Point = (Double, Double)
 
-    private def position(path: GeneralPath, shape: Shape): Option[AffineTransform] =
-    {
-      def intersecting_line(path: GeneralPath, shape: Shape): Option[(Point, Point)] =
-      {
+    private def position(path: GeneralPath, shape: Shape): Option[AffineTransform] = {
+      def intersecting_line(path: GeneralPath, shape: Shape): Option[(Point, Point)] = {
         val i = path.getPathIterator(null, 1.0)
         val seg = Array[Double](0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
         var p1 = (0.0, 0.0)
@@ -182,8 +169,7 @@ object Shapes
         None
       }
 
-      def binary_search(line: (Point, Point), shape: Shape): Option[AffineTransform] =
-      {
+      def binary_search(line: (Point, Point), shape: Shape): Option[AffineTransform] = {
         val ((fx, fy), (tx, ty)) = line
         if (shape.contains(fx, fy) == shape.contains(tx, ty))
           None
@@ -210,8 +196,7 @@ object Shapes
       }
     }
 
-    def paint(gfx: Graphics2D, path: GeneralPath, shape: Shape): Unit =
-    {
+    def paint(gfx: Graphics2D, path: GeneralPath, shape: Shape): Unit = {
       position(path, shape) match {
         case None =>
         case Some(at) =>

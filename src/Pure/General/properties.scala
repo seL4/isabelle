@@ -7,20 +7,17 @@ Property lists.
 package isabelle
 
 
-object Properties
-{
+object Properties {
   /* entries */
 
   type Entry = (java.lang.String, java.lang.String)
   type T = List[Entry]
 
-  object Eq
-  {
+  object Eq {
     def apply(a: java.lang.String, b: java.lang.String): java.lang.String = a + "=" + b
     def apply(entry: Entry): java.lang.String = apply(entry._1, entry._2)
 
-    def unapply(str: java.lang.String): Option[Entry] =
-    {
+    def unapply(str: java.lang.String): Option[Entry] = {
       val i = str.indexOf('=')
       if (i <= 0) None else Some((str.substring(0, i), str.substring(i + 1)))
     }
@@ -32,8 +29,7 @@ object Properties
   def get(props: T, name: java.lang.String): Option[java.lang.String] =
     props.collectFirst({ case (x, y) if x == name => y })
 
-  def put(props: T, entry: Entry): T =
-  {
+  def put(props: T, entry: Entry): T = {
     val (x, y) = entry
     def update(ps: T): T =
       ps match {
@@ -54,8 +50,8 @@ object Properties
 
   def compress(ps: List[T],
     options: XZ.Options = XZ.options(),
-    cache: XZ.Cache = XZ.Cache()): Bytes =
-  {
+    cache: XZ.Cache = XZ.Cache()
+  ): Bytes = {
     if (ps.isEmpty) Bytes.empty
     else {
       Bytes(YXML.string_of_body(XML.Encode.list(XML.Encode.properties)(ps))).
@@ -63,8 +59,7 @@ object Properties
     }
   }
 
-  def uncompress(bs: Bytes, cache: XML.Cache = XML.Cache.none): List[T] =
-  {
+  def uncompress(bs: Bytes, cache: XML.Cache = XML.Cache.none): List[T] = {
     if (bs.is_empty) Nil
     else {
       val ps =
@@ -86,16 +81,14 @@ object Properties
 
   /* entry types */
 
-  class String(val name: java.lang.String)
-  {
+  class String(val name: java.lang.String) {
     def apply(value: java.lang.String): T = List((name, value))
     def unapply(props: T): Option[java.lang.String] =
       props.find(_._1 == name).map(_._2)
     def get(props: T): java.lang.String = unapply(props).getOrElse("")
   }
 
-  class Boolean(val name: java.lang.String)
-  {
+  class Boolean(val name: java.lang.String) {
     def apply(value: scala.Boolean): T = List((name, Value.Boolean(value)))
     def unapply(props: T): Option[scala.Boolean] =
       props.find(_._1 == name) match {
@@ -105,8 +98,7 @@ object Properties
     def get(props: T): scala.Boolean = unapply(props).getOrElse(false)
   }
 
-  class Int(val name: java.lang.String)
-  {
+  class Int(val name: java.lang.String) {
     def apply(value: scala.Int): T = List((name, Value.Int(value)))
     def unapply(props: T): Option[scala.Int] =
       props.find(_._1 == name) match {
@@ -116,8 +108,7 @@ object Properties
     def get(props: T): scala.Int = unapply(props).getOrElse(0)
   }
 
-  class Long(val name: java.lang.String)
-  {
+  class Long(val name: java.lang.String) {
     def apply(value: scala.Long): T = List((name, Value.Long(value)))
     def unapply(props: T): Option[scala.Long] =
       props.find(_._1 == name) match {
@@ -127,8 +118,7 @@ object Properties
     def get(props: T): scala.Long = unapply(props).getOrElse(0)
   }
 
-  class Double(val name: java.lang.String)
-  {
+  class Double(val name: java.lang.String) {
     def apply(value: scala.Double): T = List((name, Value.Double(value)))
     def unapply(props: T): Option[scala.Double] =
       props.find(_._1 == name) match {

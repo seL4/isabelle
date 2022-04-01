@@ -23,12 +23,10 @@ import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea}
 import org.gjt.sp.jedit.syntax.{Token => JEditToken, TokenMarker, TokenHandler}
 
 
-object JEdit_Bibtex
-{
+object JEdit_Bibtex {
   /** context menu **/
 
-  def context_menu(text_area0: JEditTextArea): List[JMenuItem] =
-  {
+  def context_menu(text_area0: JEditTextArea): List[JMenuItem] = {
     text_area0 match {
       case text_area: TextArea =>
         text_area.getBuffer match {
@@ -83,8 +81,7 @@ object JEdit_Bibtex
   private val mode_rule_set = Token_Markup.mode_rule_set("bibtex")
 
   private class Line_Context(val context: Option[Bibtex.Line_Context])
-    extends TokenMarker.LineContext(mode_rule_set, null)
-  {
+  extends TokenMarker.LineContext(mode_rule_set, null) {
     override def hashCode: Int = context.hashCode
     override def equals(that: Any): Boolean =
       that match {
@@ -96,13 +93,14 @@ object JEdit_Bibtex
 
   /* token marker */
 
-  class Token_Marker extends TokenMarker
-  {
+  class Token_Marker extends TokenMarker {
     addRuleSet(mode_rule_set)
 
-    override def markTokens(context: TokenMarker.LineContext,
-        handler: TokenHandler, raw_line: Segment): TokenMarker.LineContext =
-    {
+    override def markTokens(
+      context: TokenMarker.LineContext,
+      handler: TokenHandler,
+      raw_line: Segment
+    ): TokenMarker.LineContext = {
       val line_ctxt =
         context match {
           case c: Line_Context => c.context
@@ -110,14 +108,12 @@ object JEdit_Bibtex
         }
       val line = if (raw_line == null) new Segment else raw_line
 
-      def no_markup =
-      {
+      def no_markup = {
         val styled_token = (JEditToken.NULL, line.subSequence(0, line.count).toString)
         (List(styled_token), new Line_Context(None))
       }
 
-      val context1 =
-      {
+      val context1 = {
         val (styled_tokens, context1) =
           line_ctxt match {
             case Some(ctxt) =>

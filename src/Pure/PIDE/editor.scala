@@ -7,8 +7,7 @@ General editor operations.
 package isabelle
 
 
-abstract class Editor[Context]
-{
+abstract class Editor[Context] {
   /* session */
 
   def session: Session
@@ -33,8 +32,7 @@ abstract class Editor[Context]
 
   /* hyperlinks */
 
-  abstract class Hyperlink
-  {
+  abstract class Hyperlink {
     def external: Boolean = false
     def follow(context: Context): Unit
   }

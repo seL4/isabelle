@@ -13,26 +13,22 @@ import scala.collection.mutable
 import scala.annotation.tailrec
 
 
-object Session
-{
+object Session {
   /* outlets */
 
-  object Consumer
-  {
+  object Consumer {
     def apply[A](name: String)(consume: A => Unit): Consumer[A] =
       new Consumer[A](name, consume)
   }
   final class Consumer[-A] private(val name: String, val consume: A => Unit)
 
-  class Outlet[A](dispatcher: Consumer_Thread[() => Unit])
-  {
+  class Outlet[A](dispatcher: Consumer_Thread[() => Unit]) {
     private val consumers = Synchronized[List[Consumer[A]]](Nil)
 
     def += (c: Consumer[A]): Unit = consumers.change(Library.update(c))
     def -= (c: Consumer[A]): Unit = consumers.change(Library.remove(c))
 
-    def post(a: A): Unit =
-    {
+    def post(a: A): Unit = {
       for (c <- consumers.value.iterator) {
         dispatcher.send(() =>
           try { c.consume(a) }
@@ -73,8 +69,7 @@ object Session
   case class Commands_Changed(
     assignment: Boolean, nodes: Set[Document.Node.Name], commands: Set[Command])
 
-  sealed abstract class Phase
-  {
+  sealed abstract class Phase {
     def print: String =
       this match {
         case Terminated(result) => if (result.ok) "finished" else "failed"
@@ -91,8 +86,7 @@ object Session
 
   /* syslog */
 
-  private[Session] class Syslog(limit: Int)
-  {
+  private[Session] class Syslog(limit: Int) {
     private var queue = Queue.empty[XML.Elem]
     private var length = 0
 
@@ -113,8 +107,7 @@ object Session
 
   type Protocol_Function = Prover.Protocol_Output => Boolean
 
-  abstract class Protocol_Handler extends Isabelle_System.Service
-  {
+  abstract class Protocol_Handler extends Isabelle_System.Service {
     def init(session: Session): Unit = {}
     def exit(): Unit = {}
     def functions: List[(String, Protocol_Function)] = Nil
@@ -123,8 +116,7 @@ object Session
 }
 
 
-class Session(_session_options: => Options, val resources: Resources) extends Document.Session
-{
+class Session(_session_options: => Options, val resources: Resources) extends Document.Session {
   session =>
 
   val cache: Term.Cache = Term.Cache.make()
@@ -156,26 +148,22 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
   private val dispatcher =
     Consumer_Thread.fork[() => Unit]("Session.dispatcher", daemon = true) { case e => e(); true }
 
-  def assert_dispatcher[A](body: => A): A =
-  {
+  def assert_dispatcher[A](body: => A): A = {
     assert(dispatcher.check_thread())
     body
   }
 
-  def require_dispatcher[A](body: => A): A =
-  {
+  def require_dispatcher[A](body: => A): A = {
     require(dispatcher.check_thread(), "not on dispatcher thread")
     body
   }
 
-  def send_dispatcher(body: => Unit): Unit =
-  {
+  def send_dispatcher(body: => Unit): Unit = {
     if (dispatcher.check_thread()) body
     else dispatcher.send(() => body)
   }
 
-  def send_wait_dispatcher(body: => Unit): Unit =
-  {
+  def send_wait_dispatcher(body: => Unit): Unit = {
     if (dispatcher.check_thread()) body
     else dispatcher.send_wait(() => body)
   }
@@ -218,8 +206,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
 
   /* phase */
 
-  private def post_phase(new_phase: Session.Phase): Session.Phase =
-  {
+  private def post_phase(new_phase: Session.Phase): Session.Phase = {
     phase_changed.post(new_phase)
     new_phase
   }
@@ -245,8 +232,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
     consolidate: List[Document.Node.Name],
     version_result: Promise[Document.Version])
 
-  private val change_parser = Consumer_Thread.fork[Text_Edits]("change_parser", daemon = true)
-  {
+  private val change_parser = Consumer_Thread.fork[Text_Edits]("change_parser", daemon = true) {
     case Text_Edits(previous, doc_blobs, text_edits, consolidate, version_result) =>
       val prev = previous.get_finished
       val change =
@@ -261,8 +247,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
 
   /* buffered changes */
 
-  private object change_buffer
-  {
+  private object change_buffer {
     private var assignment: Boolean = false
     private var nodes: Set[Document.Node.Name] = Set.empty
     private var commands: Set[Command] = Set.empty
@@ -291,8 +276,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
         delay_flush.invoke()
       }
 
-    def shutdown(): Unit =
-    {
+    def shutdown(): Unit = {
       delay_flush.revoke()
       flush()
     }
@@ -301,8 +285,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
 
   /* postponed changes */
 
-  private object postponed_changes
-  {
+  private object postponed_changes {
     private var postponed: List[Session.Change] = Nil
 
     def store(change: Session.Change): Unit = synchronized { postponed ::= change }
@@ -317,22 +300,19 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
 
   /* node consolidation */
 
-  private object consolidation
-  {
+  private object consolidation {
     private val delay =
       Delay.first(consolidate_delay) { manager.send(Consolidate_Execution) }
 
     private val init_state: Option[Set[Document.Node.Name]] = Some(Set.empty)
     private val state = Synchronized(init_state)
 
-    def exit(): Unit =
-    {
+    def exit(): Unit = {
       delay.revoke()
       state.change(_ => None)
     }
 
-    def update(new_nodes: Set[Document.Node.Name] = Set.empty): Unit =
-    {
+    def update(new_nodes: Set[Document.Node.Name] = Set.empty): Unit = {
       val active =
         state.change_result(st =>
           (st.isDefined, st.map(nodes => if (nodes.isEmpty) new_nodes else nodes ++ new_nodes)))
@@ -346,8 +326,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
 
   /* prover process */
 
-  private object prover
-  {
+  private object prover {
     private val variable = Synchronized[Option[Prover]](None)
 
     def defined: Boolean = variable.value.isDefined
@@ -391,8 +370,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
   private val delay_prune =
     Delay.first(prune_delay) { manager.send(Prune_History) }
 
-  private val manager: Consumer_Thread[Any] =
-  {
+  private val manager: Consumer_Thread[Any] = {
     /* global state */
     val global_state = Synchronized(Document.State.init)
 
@@ -402,9 +380,8 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
     def handle_raw_edits(
       doc_blobs: Document.Blobs = Document.Blobs.empty,
       edits: List[Document.Edit_Text] = Nil,
-      consolidate: List[Document.Node.Name] = Nil): Unit =
+      consolidate: List[Document.Node.Name] = Nil): Unit = {
     //{{{
-    {
       require(prover.defined, "prover process not defined (handle_raw_edits)")
 
       if (edits.nonEmpty) prover.get.discontinue_execution()
@@ -415,22 +392,20 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
 
       raw_edits.post(Session.Raw_Edits(doc_blobs, edits))
       change_parser.send(Text_Edits(previous, doc_blobs, edits, consolidate, version))
-    }
     //}}}
+    }
 
 
     /* resulting changes */
 
-    def handle_change(change: Session.Change): Unit =
+    def handle_change(change: Session.Change): Unit = {
     //{{{
-    {
       require(prover.defined, "prover process not defined (handle_change)")
 
       // define commands
       {
         val id_commands = new mutable.ListBuffer[Command]
-        def id_command(command: Command): Unit =
-        {
+        def id_command(command: Command): Unit = {
           for {
             (name, digest) <- command.blobs_defined
             if !global_state.value.defined_blob(digest)
@@ -462,23 +437,20 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
 
       prover.get.update(change.previous.id, change.version.id, change.doc_edits, change.consolidate)
       resources.commit(change)
-    }
     //}}}
+    }
 
 
     /* prover output */
 
-    def handle_output(output: Prover.Output): Unit =
+    def handle_output(output: Prover.Output): Unit = {
     //{{{
-    {
-      def bad_output(): Unit =
-      {
+      def bad_output(): Unit = {
         if (verbose)
           Output.warning("Ignoring bad prover output: " + output.message.toString)
       }
 
-      def change_command(f: Document.State => (Command.State, Document.State)): Unit =
-      {
+      def change_command(f: Document.State => (Command.State, Document.State)): Unit = {
         try {
           val st = global_state.change_result(f)
           if (!st.command.span.is_theory) {
@@ -591,14 +563,13 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
               raw_output_messages.post(output)
           }
         }
-    }
     //}}}
+    }
 
 
     /* main thread */
 
-    Consumer_Thread.fork[Any]("Session.manager", daemon = true)
-    {
+    Consumer_Thread.fork[Any]("Session.manager", daemon = true) {
       case arg: Any =>
         //{{{
         arg match {
@@ -697,8 +668,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
 
   /* main operations */
 
-  def get_state(): Document.State =
-  {
+  def get_state(): Document.State = {
     if (manager.is_active()) {
       val promise = Future.promise[Document.State]
       manager.send_wait(Get_State(promise))
@@ -715,8 +685,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
     get_state().recent_finished.version.get_finished.nodes(name).syntax getOrElse
     resources.session_base.overall_syntax
 
-  @tailrec final def await_stable_snapshot(): Document.Snapshot =
-  {
+  @tailrec final def await_stable_snapshot(): Document.Snapshot = {
     val snapshot = this.snapshot()
     if (snapshot.is_outdated) {
       output_delay.sleep()
@@ -725,8 +694,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
     else snapshot
   }
 
-  def start(start_prover: Prover.Receiver => Prover): Unit =
-  {
+  def start(start_prover: Prover.Receiver => Prover): Unit = {
     file_formats
     _phase.change(
       {
@@ -737,8 +705,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
       })
   }
 
-  def stop(): Process_Result =
-  {
+  def stop(): Process_Result = {
     val was_ready =
       _phase.guarded_access(
         {

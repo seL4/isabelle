@@ -15,10 +15,8 @@ import java.awt.font.FontRenderContext
 import java.awt.geom.Rectangle2D
 
 
-object Metrics
-{
-  val rendering_hints: RenderingHints =
-  {
+object Metrics {
+  val rendering_hints: RenderingHints = {
     val hints = new HashMap[RenderingHints.Key, AnyRef]
     hints.put(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
     hints.put(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON)
@@ -33,8 +31,7 @@ object Metrics
   val default: Metrics = apply(new Font("Helvetica", Font.PLAIN, 12))
 }
 
-class Metrics private(val font: Font)
-{
+class Metrics private(val font: Font) {
   def string_bounds(s: String): Rectangle2D = font.getStringBounds(s, Metrics.font_render_context)
   private val mix = string_bounds("mix")
   val space_width: Double = string_bounds(" ").getWidth
@@ -56,8 +53,7 @@ class Metrics private(val font: Font)
   def level_height2(num_lines: Int, num_edges: Int): Double =
     (node_height2(num_lines) + gap) max (node_height2(1) * (num_edges max 5))
 
-  object Pretty_Metric extends Pretty.Metric
-  {
+  object Pretty_Metric extends Pretty.Metric {
     val unit: Double = space_width max 1.0
     def apply(s: String): Double = if (s == "\n") 1.0 else string_bounds(s).getWidth / unit
   }

@@ -18,8 +18,7 @@ import org.gjt.sp.jedit.View
 import scala.swing.TextArea
 
 
-object Graphview_Dockable
-{
+object Graphview_Dockable {
   /* implicit arguments -- owned by GUI thread */
 
   private var implicit_snapshot = Document.Snapshot.init
@@ -28,8 +27,9 @@ object Graphview_Dockable
   private var implicit_graph = no_graph
 
   private def set_implicit(
-    snapshot: Document.Snapshot, graph: Exn.Result[Graph_Display.Graph]): Unit =
-  {
+    snapshot: Document.Snapshot,
+    graph: Exn.Result[Graph_Display.Graph]
+  ): Unit = {
     GUI_Thread.require {}
 
     implicit_snapshot = snapshot
@@ -39,12 +39,14 @@ object Graphview_Dockable
   private def reset_implicit(): Unit =
     set_implicit(Document.Snapshot.init, no_graph)
 
-  class Handler extends Active.Handler
-  {
+  class Handler extends Active.Handler {
     override def handle(
-      view: View, text: String, elem: XML.Elem,
-      doc_view: Document_View, snapshot: Document.Snapshot): Boolean =
-    {
+      view: View,
+      text: String,
+      elem: XML.Elem,
+      doc_view: Document_View,
+      snapshot: Document.Snapshot
+    ): Boolean = {
       elem match {
         case XML.Elem(Markup(Markup.GRAPHVIEW, _), body) =>
           Isabelle_Thread.fork(name = "graphview") {
@@ -64,8 +66,7 @@ object Graphview_Dockable
   }
 }
 
-class Graphview_Dockable(view: View, position: String) extends Dockable(view, position)
-{
+class Graphview_Dockable(view: View, position: String) extends Dockable(view, position) {
   private val snapshot = Graphview_Dockable.implicit_snapshot
   private val graph_result = Graphview_Dockable.implicit_graph
 
@@ -83,8 +84,7 @@ class Graphview_Dockable(view: View, position: String) extends Dockable(view, po
         val graphview = new isabelle.graphview.Graphview(graph) {
           def options: Options = PIDE.options.value
 
-          override def make_tooltip(parent: JComponent, x: Int, y: Int, body: XML.Body): String =
-          {
+          override def make_tooltip(parent: JComponent, x: Int, y: Int, body: XML.Body): String = {
             Pretty_Tooltip.invoke(() =>
               {
                 val model = File_Model.empty(PIDE.session)
@@ -128,8 +128,7 @@ class Graphview_Dockable(view: View, position: String) extends Dockable(view, po
   set_content(graphview)
 
 
-  override def focusOnDefaultComponent(): Unit =
-  {
+  override def focusOnDefaultComponent(): Unit = {
     graphview match {
       case main_panel: isabelle.graphview.Main_Panel =>
         main_panel.tree_panel.tree.requestFocusInWindow
@@ -152,14 +151,12 @@ class Graphview_Dockable(view: View, position: String) extends Dockable(view, po
         }
     }
 
-  override def init(): Unit =
-  {
+  override def init(): Unit = {
     GUI.parent_window(this).foreach(_.addWindowFocusListener(window_focus_listener))
     PIDE.session.global_options += main
   }
 
-  override def exit(): Unit =
-  {
+  override def exit(): Unit = {
     GUI.parent_window(this).foreach(_.removeWindowFocusListener(window_focus_listener))
     PIDE.session.global_options -= main
   }

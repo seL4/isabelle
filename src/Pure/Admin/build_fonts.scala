@@ -7,12 +7,10 @@ Build standard Isabelle fonts: DejaVu base + Isabelle symbols.
 package isabelle
 
 
-object Build_Fonts
-{
+object Build_Fonts {
   /* relevant codepoint ranges */
 
-  object Range
-  {
+  object Range {
     def base_font: Seq[Int] =
       (0x0020 to 0x007e) ++  // ASCII
       (0x00a0 to 0x024f) ++  // Latin Extended-A/B
@@ -137,8 +135,8 @@ object Build_Fonts
     plain: String = "",
     bold: String = "",
     italic: String = "",
-    bold_italic: String = "")
-  {
+    bold_italic: String = ""
+  ) {
     val fonts: List[String] =
       proper_string(plain).toList :::
       proper_string(bold).toList :::
@@ -148,8 +146,7 @@ object Build_Fonts
     def get(index: Int): String = fonts(index % fonts.length)
   }
 
-  object Family
-  {
+  object Family {
     def isabelle_symbols: Family =
       Family(
         plain = "IsabelleSymbols.sfd",
@@ -183,8 +180,7 @@ object Build_Fonts
   /* hinting */
 
   // see https://www.freetype.org/ttfautohint/doc/ttfautohint.html
-  private def auto_hint(source: Path, target: Path): Unit =
-  {
+  private def auto_hint(source: Path, target: Path): Unit = {
     Isabelle_System.bash("ttfautohint -i " +
       File.bash_path(source) + " " + File.bash_path(target)).check
   }
@@ -197,8 +193,7 @@ object Build_Fonts
 
   /* build fonts */
 
-  private def find_file(dirs: List[Path], name: String): Path =
-  {
+  private def find_file(dirs: List[Path], name: String): Path = {
     val path = Path.explode(name)
     dirs.collectFirst({ case dir if (dir + path).is_file => dir + path }) match {
       case Some(file) => file
@@ -220,8 +215,8 @@ object Build_Fonts
     target_prefix: String = "Isabelle",
     target_version: String = "",
     target_dir: Path = default_target_dir,
-    progress: Progress = new Progress): Unit =
-  {
+    progress: Progress = new Progress
+  ): Unit = {
     Isabelle_System.require_command("ttfautohint")
 
     progress.echo("Directory " + target_dir)
@@ -243,8 +238,7 @@ object Build_Fonts
 
         val target_names = source_names.update(prefix = target_prefix, version = target_version)
 
-        Isabelle_System.with_tmp_file("font", "ttf")(tmp_file =>
-        {
+        Isabelle_System.with_tmp_file("font", "ttf") { tmp_file =>
           for (hinted <- hinting) {
             val target_file = target_dir + hinted_path(hinted) + target_names.ttf
             progress.echo("Font " + target_file.toString + " ...")
@@ -271,7 +265,7 @@ object Build_Fonts
                 Fontforge.close)
             ).check
           }
-        })
+        }
 
         (target_names.ttf, index)
       }
@@ -342,11 +336,11 @@ isabelle_fonts_hidden "$COMPONENT/""" + hinted_path(false).file_name + """/Vacuo
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("build_fonts", "construct Isabelle fonts", Scala_Project.here, args =>
-    {
-      var source_dirs: List[Path] = Nil
+    Isabelle_Tool("build_fonts", "construct Isabelle fonts", Scala_Project.here,
+      { args =>
+        var source_dirs: List[Path] = Nil
 
-      val getopts = Getopts("""
+        val getopts = Getopts("""
 Usage: isabelle build_fonts [OPTIONS]
 
   Options are:
@@ -354,17 +348,17 @@ Usage: isabelle build_fonts [OPTIONS]
 
   Construct Isabelle fonts from DejaVu font families and Isabelle symbols.
 """,
-        "d:" -> (arg => source_dirs = source_dirs ::: List(Path.explode(arg))))
+          "d:" -> (arg => source_dirs = source_dirs ::: List(Path.explode(arg))))
 
-      val more_args = getopts(args)
-      if (more_args.nonEmpty) getopts.usage()
+        val more_args = getopts(args)
+        if (more_args.nonEmpty) getopts.usage()
 
-      val target_version = Date.Format.alt_date(Date.now())
-      val target_dir = Path.explode("isabelle_fonts-" + target_version)
+        val target_version = Date.Format.alt_date(Date.now())
+        val target_dir = Path.explode("isabelle_fonts-" + target_version)
 
-      val progress = new Console_Progress
+        val progress = new Console_Progress
 
-      build_fonts(source_dirs = source_dirs, target_dir = target_dir,
-        target_version = target_version, progress = progress)
-    })
+        build_fonts(source_dirs = source_dirs, target_dir = target_dir,
+          target_version = target_version, progress = progress)
+      })
 }

@@ -17,8 +17,7 @@ import org.gjt.sp.jedit.browser.VFSBrowser
 import org.gjt.sp.jedit.io.{VFSManager, VFSFile}
 
 
-class JEdit_Editor extends Editor[View]
-{
+class JEdit_Editor extends Editor[View] {
   /* session */
 
   override def session: Session = PIDE.session
@@ -62,8 +61,7 @@ class JEdit_Editor extends Editor[View]
   override def current_node_snapshot(view: View): Option[Document.Snapshot] =
     GUI_Thread.require { Document_Model.get(view.getBuffer).map(_.snapshot()) }
 
-  override def node_snapshot(name: Document.Node.Name): Document.Snapshot =
-  {
+  override def node_snapshot(name: Document.Node.Name): Document.Snapshot = {
     GUI_Thread.require {}
     Document_Model.get(name) match {
       case Some(model) => model.snapshot()
@@ -71,8 +69,7 @@ class JEdit_Editor extends Editor[View]
     }
   }
 
-  override def current_command(view: View, snapshot: Document.Snapshot): Option[Command] =
-  {
+  override def current_command(view: View, snapshot: Document.Snapshot): Option[Command] = {
     GUI_Thread.require {}
 
     val text_area = view.getTextArea
@@ -105,8 +102,7 @@ class JEdit_Editor extends Editor[View]
 
   /* navigation */
 
-  def push_position(view: View): Unit =
-  {
+  def push_position(view: View): Unit = {
     val navigator = jEdit.getPlugin("ise.plugin.nav.NavigatorPlugin")
     if (navigator != null) {
       try { Untyped.method(navigator.getClass, "pushPosition", view.getClass).invoke(null, view) }
@@ -114,8 +110,7 @@ class JEdit_Editor extends Editor[View]
     }
   }
 
-  def goto_buffer(focus: Boolean, view: View, buffer: Buffer, offset: Text.Offset): Unit =
-  {
+  def goto_buffer(focus: Boolean, view: View, buffer: Buffer, offset: Text.Offset): Unit = {
     GUI_Thread.require {}
 
     push_position(view)
@@ -131,8 +126,7 @@ class JEdit_Editor extends Editor[View]
   def goto_file(focus: Boolean, view: View, name: String): Unit =
     goto_file(focus, view, Line.Node_Position.offside(name))
 
-  def goto_file(focus: Boolean, view: View, pos: Line.Node_Position): Unit =
-  {
+  def goto_file(focus: Boolean, view: View, pos: Line.Node_Position): Unit = {
     GUI_Thread.require {}
 
     push_position(view)
@@ -176,8 +170,7 @@ class JEdit_Editor extends Editor[View]
     }
   }
 
-  def goto_doc(view: View, path: Path): Unit =
-  {
+  def goto_doc(view: View, path: Path): Unit = {
     if (path.is_pdf) Doc.view(path)
     else goto_file(true, view, File.platform_path(path))
   }
@@ -234,9 +227,12 @@ class JEdit_Editor extends Editor[View]
         }
     }
 
-  def hyperlink_source_file(focus: Boolean, source_name: String, line1: Int, offset: Symbol.Offset)
-    : Option[Hyperlink] =
-  {
+  def hyperlink_source_file(
+    focus: Boolean,
+    source_name: String,
+    line1: Int,
+    offset: Symbol.Offset
+  ) : Option[Hyperlink] = {
     for (name <- PIDE.resources.source_file(source_name)) yield {
       def hyperlink(pos: Line.Position) =
         hyperlink_file(focus, Line.Node_Position(name, pos))
@@ -256,16 +252,20 @@ class JEdit_Editor extends Editor[View]
   }
 
   override def hyperlink_command(
-    focus: Boolean, snapshot: Document.Snapshot, id: Document_ID.Generic, offset: Symbol.Offset = 0)
-      : Option[Hyperlink] =
-  {
+    focus: Boolean,
+    snapshot: Document.Snapshot,
+    id: Document_ID.Generic,
+    offset: Symbol.Offset = 0
+  ) : Option[Hyperlink] = {
     if (snapshot.is_outdated) None
     else snapshot.find_command_position(id, offset).map(hyperlink_file(focus, _))
   }
 
-  def is_hyperlink_position(snapshot: Document.Snapshot,
-    text_offset: Text.Offset, pos: Position.T): Boolean =
-  {
+  def is_hyperlink_position(
+    snapshot: Document.Snapshot,
+    text_offset: Text.Offset,
+    pos: Position.T
+  ): Boolean = {
     pos match {
       case Position.Item_Id(id, range) if range.start > 0 =>
         snapshot.find_command(id) match {

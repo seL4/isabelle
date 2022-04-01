@@ -11,8 +11,7 @@ See also:
 package isabelle
 
 
-object Build_JCEF
-{
+object Build_JCEF {
   /* platform information */
 
   sealed case class JCEF_Platform(
@@ -48,8 +47,8 @@ object Build_JCEF
     base_url: String = default_url,
     version: String = default_version,
     target_dir: Path = Path.current,
-    progress: Progress = new Progress): Unit =
-  {
+    progress: Progress = new Progress
+  ): Unit = {
     /* component name */
 
     val component = "jcef-" + version
@@ -61,8 +60,7 @@ object Build_JCEF
 
     val platform_settings: List[String] =
       for (platform <- platforms) yield {
-        Isabelle_System.with_tmp_file("archive", ext = "tar.gz")(archive_file =>
-        {
+        Isabelle_System.with_tmp_file("archive", ext = "tar.gz") { archive_file =>
           val url = base_url + "/" + version + "/" + platform.archive
           Isabelle_System.download_file(url, archive_file, progress = progress)
 
@@ -87,7 +85,7 @@ object Build_JCEF
           "      " + "ISABELLE_JCEF_LIB=\"$ISABELLE_JCEF_HOME/" + platform.lib + "\"\n" +
           "      " + platform.library + "\n" +
           "      " + ";;"
-        })
+        }
       }
 
 
@@ -144,13 +142,13 @@ Examples invocations:
 
   val isabelle_tool =
     Isabelle_Tool("build_jcef", "build component for Java Chromium Embedded Framework",
-      Scala_Project.here, args =>
-    {
-      var target_dir = Path.current
-      var base_url = default_url
-      var version = default_version
+      Scala_Project.here,
+      { args =>
+        var target_dir = Path.current
+        var base_url = default_url
+        var version = default_version
 
-      val getopts = Getopts("""
+        val getopts = Getopts("""
 Usage: isabelle build_jcef [OPTIONS]
 
   Options are:
@@ -160,16 +158,16 @@ Usage: isabelle build_jcef [OPTIONS]
 
   Build component for Java Chromium Embedded Framework.
 """,
-        "D:" -> (arg => target_dir = Path.explode(arg)),
-        "U:" -> (arg => base_url = arg),
-        "V:" -> (arg => version = arg))
+          "D:" -> (arg => target_dir = Path.explode(arg)),
+          "U:" -> (arg => base_url = arg),
+          "V:" -> (arg => version = arg))
 
-      val more_args = getopts(args)
-      if (more_args.nonEmpty) getopts.usage()
+        val more_args = getopts(args)
+        if (more_args.nonEmpty) getopts.usage()
 
-      val progress = new Console_Progress()
+        val progress = new Console_Progress()
 
-      build_jcef(base_url = base_url, version = version, target_dir = target_dir,
-        progress = progress)
-    })
+        build_jcef(base_url = base_url, version = version, target_dir = target_dir,
+          progress = progress)
+      })
 }

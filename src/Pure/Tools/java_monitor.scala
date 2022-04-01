@@ -13,8 +13,7 @@ import sun.tools.jconsole.{JConsole, LocalVirtualMachine, VMPanel, ProxyClient,
   Messages, Resources => JConsoleResources}
 
 
-object Java_Monitor
-{
+object Java_Monitor {
   /* default arguments */
 
   def default_pid: Long = ProcessHandle.current().pid
@@ -26,8 +25,8 @@ object Java_Monitor
   def java_monitor_internal(
     pid: Long = default_pid,
     look_and_feel: String = "",
-    update_interval: Time = default_update_interval): Unit =
-  {
+    update_interval: Time = default_update_interval
+  ): Unit = {
     val vm =
       if (pid.toInt.toLong == pid) LocalVirtualMachine.getLocalVirtualMachine(pid.toInt)
       else null
@@ -102,8 +101,8 @@ object Java_Monitor
     parent: Component,
     pid: Long = default_pid,
     look_and_feel: String = "",
-    update_interval: Time = default_update_interval): Unit =
-  {
+    update_interval: Time = default_update_interval
+  ): Unit = {
     Future.thread(name = "java_monitor", daemon = true) {
       try {
         Isabelle_System.bash(
@@ -124,8 +123,7 @@ object Java_Monitor
 
   /* command line entry point */
 
-  def main(args: Array[String]): Unit =
-  {
+  def main(args: Array[String]): Unit = {
     Command_Line.tool {
       var look_and_feel = ""
       var pid = 0L

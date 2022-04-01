@@ -13,8 +13,7 @@ import scala.collection.mutable
 import scala.annotation.tailrec
 
 
-object Markup_Tree
-{
+object Markup_Tree {
   /* construct trees */
 
   val empty: Markup_Tree = new Markup_Tree(Branches.empty)
@@ -40,8 +39,7 @@ object Markup_Tree
 
   /* tree building blocks */
 
-  object Entry
-  {
+  object Entry {
     def apply(markup: Text.Markup, subtree: Markup_Tree): Entry =
       Entry(markup.range, List(markup.info), subtree)
   }
@@ -49,12 +47,11 @@ object Markup_Tree
   sealed case class Entry(
     range: Text.Range,
     rev_markup: List[XML.Elem],
-    subtree: Markup_Tree)
-  {
+    subtree: Markup_Tree
+  ) {
     def markup: List[XML.Elem] = rev_markup.reverse
 
-    def filter_markup(elements: Markup.Elements): List[XML.Elem] =
-    {
+    def filter_markup(elements: Markup.Elements): List[XML.Elem] = {
       var result: List[XML.Elem] = Nil
       for (elem <- rev_markup if elements(elem.name))
         result ::= elem
@@ -65,8 +62,7 @@ object Markup_Tree
     def \ (markup: Text.Markup): Entry = copy(subtree = subtree + markup)
   }
 
-  object Branches
-  {
+  object Branches {
     type T = SortedMap[Text.Range, Entry]
     val empty: T = SortedMap.empty(Text.Range.Ordering)
   }
@@ -84,33 +80,34 @@ object Markup_Tree
       case _ => (elems, body)
     }
 
-  private def make_trees(acc: (Int, List[Markup_Tree]), tree: XML.Tree): (Int, List[Markup_Tree]) =
-    {
-      val (offset, markup_trees) = acc
+  private def make_trees(
+    acc: (Int, List[Markup_Tree]),
+    tree: XML.Tree
+  ): (Int, List[Markup_Tree]) = {
+    val (offset, markup_trees) = acc
 
-      strip_elems(Nil, List(tree)) match {
-        case (Nil, body) =>
-          (offset + XML.text_length(body), markup_trees)
+    strip_elems(Nil, List(tree)) match {
+      case (Nil, body) =>
+        (offset + XML.text_length(body), markup_trees)
 
-        case (elems, body) =>
-          val (end_offset, subtrees) =
-             body.foldLeft((offset, List.empty[Markup_Tree]))(make_trees)
-          if (offset == end_offset) acc
-          else {
-            val range = Text.Range(offset, end_offset)
-            val entry = Entry(range, elems, merge_disjoint(subtrees))
-            (end_offset, new Markup_Tree(Branches.empty, entry) :: markup_trees)
-          }
-      }
+      case (elems, body) =>
+        val (end_offset, subtrees) =
+           body.foldLeft((offset, List.empty[Markup_Tree]))(make_trees)
+        if (offset == end_offset) acc
+        else {
+          val range = Text.Range(offset, end_offset)
+          val entry = Entry(range, elems, merge_disjoint(subtrees))
+          (end_offset, new Markup_Tree(Branches.empty, entry) :: markup_trees)
+        }
     }
+  }
 
   def from_XML(body: XML.Body): Markup_Tree =
     merge_disjoint(body.foldLeft((0, List.empty[Markup_Tree]))(make_trees)._2)
 }
 
 
-final class Markup_Tree private(val branches: Markup_Tree.Branches.T)
-{
+final class Markup_Tree private(val branches: Markup_Tree.Branches.T) {
   import Markup_Tree._
 
   private def this(branches: Markup_Tree.Branches.T, entry: Markup_Tree.Entry) =
@@ -135,8 +132,7 @@ final class Markup_Tree private(val branches: Markup_Tree.Branches.T)
 
   def is_empty: Boolean = branches.isEmpty
 
-  def + (new_markup: Text.Markup): Markup_Tree =
-  {
+  def + (new_markup: Text.Markup): Markup_Tree = {
     val new_range = new_markup.range
 
     branches.get(new_range) match {
@@ -161,8 +157,7 @@ final class Markup_Tree private(val branches: Markup_Tree.Branches.T)
     }
   }
 
-  def merge(other: Markup_Tree, root_range: Text.Range, elements: Markup.Elements): Markup_Tree =
-  {
+  def merge(other: Markup_Tree, root_range: Text.Range, elements: Markup.Elements): Markup_Tree = {
     def merge_trees(tree1: Markup_Tree, tree2: Markup_Tree): Markup_Tree =
       tree2.branches.foldLeft(tree1) {
         case (tree, (range, entry)) =>
@@ -183,11 +178,13 @@ final class Markup_Tree private(val branches: Markup_Tree.Branches.T)
     }
   }
 
-  def cumulate[A](root_range: Text.Range, root_info: A, elements: Markup.Elements,
-    result: (A, Text.Markup) => Option[A]): List[Text.Info[A]] =
-  {
-    def results(x: A, entry: Entry): Option[A] =
-    {
+  def cumulate[A](
+    root_range: Text.Range,
+    root_info: A,
+    elements: Markup.Elements,
+    result: (A, Text.Markup) => Option[A]
+  ): List[Text.Info[A]] = {
+    def results(x: A, entry: Entry): Option[A] = {
       var y = x
       var changed = false
       for {
@@ -199,8 +196,8 @@ final class Markup_Tree private(val branches: Markup_Tree.Branches.T)
 
     def traverse(
       last: Text.Offset,
-      stack: List[(Text.Info[A], List[(Text.Range, Entry)])]): List[Text.Info[A]] =
-    {
+      stack: List[(Text.Info[A], List[(Text.Range, Entry)])]
+    ): List[Text.Info[A]] = {
       stack match {
         case (parent, (range, entry) :: more) :: rest =>
           val subrange = range.restrict(root_range)
@@ -232,8 +229,7 @@ final class Markup_Tree private(val branches: Markup_Tree.Branches.T)
       List((Text.Info(root_range, root_info), overlapping(root_range).toList)))
   }
 
-  def to_XML(root_range: Text.Range, text: CharSequence, elements: Markup.Elements): XML.Body =
-  {
+  def to_XML(root_range: Text.Range, text: CharSequence, elements: Markup.Elements): XML.Body = {
     def make_text(start: Text.Offset, stop: Text.Offset): XML.Body =
       if (start == stop) Nil
       else List(XML.Text(text.subSequence(start, stop).toString))
@@ -246,9 +242,11 @@ final class Markup_Tree private(val branches: Markup_Tree.Branches.T)
           else List(XML.Wrapped_Elem(elem.markup, elem.body, b))
       }
 
-    def make_body(elem_range: Text.Range, elem_markup: List[XML.Elem], entries: Branches.T)
-      : XML.Body =
-    {
+    def make_body(
+      elem_range: Text.Range,
+      elem_markup: List[XML.Elem],
+      entries: Branches.T
+    ) : XML.Body = {
       val body = new mutable.ListBuffer[XML.Tree]
       var last = elem_range.start
       for ((range, entry) <- entries) {

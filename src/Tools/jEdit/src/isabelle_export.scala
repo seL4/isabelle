@@ -17,17 +17,24 @@ import org.gjt.sp.jedit.io.VFSFile
 import org.gjt.sp.jedit.browser.VFSBrowser
 
 
-object Isabelle_Export
-{
+object Isabelle_Export {
   /* virtual file-system */
 
   val vfs_prefix = "isabelle-export:"
 
-  class VFS extends Isabelle_VFS(vfs_prefix,
-    read = true, browse = true, low_latency = true, non_awt_session = true)
-  {
-    override def _listFiles(vfs_session: AnyRef, url: String, component: Component): Array[VFSFile] =
-    {
+  class VFS
+  extends Isabelle_VFS(
+    vfs_prefix,
+    read = true,
+    browse = true,
+    low_latency = true,
+    non_awt_session = true
+  ) {
+    override def _listFiles(
+      vfs_session: AnyRef,
+      url: String,
+      component: Component
+    ): Array[VFSFile] = {
       explode_url(url, component = component) match {
         case None => null
         case Some(elems) =>
@@ -63,8 +70,11 @@ object Isabelle_Export
     }
 
     override def _createInputStream(
-      vfs_session: AnyRef, url: String, ignore_errors: Boolean, component: Component): InputStream =
-    {
+      vfs_session: AnyRef,
+      url: String,
+      ignore_errors: Boolean,
+      component: Component
+    ): InputStream = {
       explode_url(url, component = if (ignore_errors) null else component) match {
         case None | Some(Nil) => Bytes.empty.stream()
         case Some(theory :: name_elems) =>
@@ -86,8 +96,7 @@ object Isabelle_Export
 
   /* open browser */
 
-  def open_browser(view: View): Unit =
-  {
+  def open_browser(view: View): Unit = {
     val path =
       PIDE.maybe_snapshot(view) match {
         case None => ""

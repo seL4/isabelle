@@ -17,22 +17,18 @@ import org.gjt.sp.jedit.buffer.JEditBuffer
 import org.gjt.sp.jedit.Buffer
 
 
-object Text_Structure
-{
+object Text_Structure {
   /* token navigator */
 
-  class Navigator(syntax: Outer_Syntax, buffer: JEditBuffer, comments: Boolean)
-  {
+  class Navigator(syntax: Outer_Syntax, buffer: JEditBuffer, comments: Boolean) {
     val limit: Int = PIDE.options.value.int("jedit_structure_limit") max 0
 
-    def iterator(line: Int, lim: Int = limit): Iterator[Text.Info[Token]] =
-    {
+    def iterator(line: Int, lim: Int = limit): Iterator[Text.Info[Token]] = {
       val it = Token_Markup.line_token_iterator(syntax, buffer, line, line + lim)
       if (comments) it.filterNot(_.info.is_space) else it.filter(_.info.is_proper)
     }
 
-    def reverse_iterator(line: Int, lim: Int = limit): Iterator[Text.Info[Token]] =
-    {
+    def reverse_iterator(line: Int, lim: Int = limit): Iterator[Text.Info[Token]] = {
       val it = Token_Markup.line_token_reverse_iterator(syntax, buffer, line, line - lim)
       if (comments) it.filterNot(_.info.is_space) else it.filter(_.info.is_proper)
     }
@@ -41,14 +37,17 @@ object Text_Structure
 
   /* indentation */
 
-  object Indent_Rule extends IndentRule
-  {
+  object Indent_Rule extends IndentRule {
     private val keyword_open = Keyword.theory_goal ++ Keyword.proof_open
     private val keyword_close = Keyword.proof_close
 
-    def apply(buffer: JEditBuffer, current_line: Int, prev_line0: Int, prev_prev_line0: Int,
-      actions: JList[IndentAction]): Unit =
-    {
+    def apply(
+      buffer: JEditBuffer,
+      current_line: Int,
+      prev_line0: Int,
+      prev_prev_line0: Int,
+      actions: JList[IndentAction]
+    ): Unit = {
       Isabelle.buffer_syntax(buffer) match {
         case Some(syntax) =>
           val keywords = syntax.keywords
@@ -87,8 +86,7 @@ object Text_Structure
             nav.reverse_iterator(prev_line).map(_.info).takeWhile(tok => !tok.is_begin_or_command)
 
 
-          val script_indent: Text.Info[Token] => Int =
-          {
+          val script_indent: Text.Info[Token] => Int = {
             val opt_rendering: Option[JEdit_Rendering] =
               if (PIDE.options.value.bool("jedit_indent_script"))
                 GUI_Thread.now {
@@ -193,18 +191,24 @@ object Text_Structure
     }
   }
 
-  def line_content(buffer: JEditBuffer, keywords: Keyword.Keywords,
-    range: Text.Range, ctxt: Scan.Line_Context): (List[Token], Scan.Line_Context) =
-  {
+  def line_content(
+    buffer: JEditBuffer,
+    keywords: Keyword.Keywords,
+    range: Text.Range,
+    ctxt: Scan.Line_Context
+  ): (List[Token], Scan.Line_Context) = {
     val text = JEdit_Lib.get_text(buffer, range).getOrElse("")
     val (toks, ctxt1) = Token.explode_line(keywords, text, ctxt)
     val toks1 = toks.filterNot(_.is_space)
     (toks1, ctxt1)
   }
 
-  def split_line_content(buffer: JEditBuffer, keywords: Keyword.Keywords, line: Int, caret: Int)
-    : (List[Token], List[Token]) =
-  {
+  def split_line_content(
+    buffer: JEditBuffer,
+    keywords: Keyword.Keywords,
+    line: Int,
+    caret: Int
+  ): (List[Token], List[Token]) = {
     val line_range = JEdit_Lib.line_range(buffer, line)
     val ctxt0 = Token_Markup.Line_Context.before(buffer, line).get_context
     val (toks1, ctxt1) = line_content(buffer, keywords, Text.Range(line_range.start, caret), ctxt0)
@@ -215,15 +219,14 @@ object Text_Structure
 
   /* structure matching */
 
-  object Matcher extends StructureMatcher
-  {
+  object Matcher extends StructureMatcher {
     private def find_block(
       open: Token => Boolean,
       close: Token => Boolean,
       reset: Token => Boolean,
       restrict: Token => Boolean,
-      it: Iterator[Text.Info[Token]]): Option[(Text.Range, Text.Range)] =
-    {
+      it: Iterator[Text.Info[Token]]
+    ): Option[(Text.Range, Text.Range)] = {
       val range1 = it.next().range
       it.takeWhile(info => !info.info.is_command || restrict(info.info)).
         scanLeft((range1, 1))(
@@ -235,8 +238,7 @@ object Text_Structure
         ).collectFirst({ case (range2, 0) => (range1, range2) })
     }
 
-    private def find_pair(text_area: TextArea): Option[(Text.Range, Text.Range)] =
-    {
+    private def find_pair(text_area: TextArea): Option[(Text.Range, Text.Range)] = {
       val buffer = text_area.getBuffer
       val caret_line = text_area.getCaretLine
       val caret = text_area.getCaretPosition
@@ -330,8 +332,7 @@ object Text_Structure
         case None => null
       }
 
-    def selectMatch(text_area: TextArea): Unit =
-    {
+    def selectMatch(text_area: TextArea): Unit = {
       def get_span(offset: Text.Offset): Option[Text.Range] =
         for {
           syntax <- Isabelle.buffer_syntax(text_area.getBuffer)

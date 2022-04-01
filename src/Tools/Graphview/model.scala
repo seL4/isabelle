@@ -13,28 +13,24 @@ import isabelle._
 import java.awt.Color
 
 
-class Mutator_Container(val available: List[Mutator])
-{
+class Mutator_Container(val available: List[Mutator]) {
   val events = new Mutator_Event.Bus
 
   private var _mutators : List[Mutator.Info] = Nil
   def apply(): List[Mutator.Info] = _mutators
-  def apply(mutators: List[Mutator.Info]): Unit =
-  {
+  def apply(mutators: List[Mutator.Info]): Unit = {
     _mutators = mutators
     events.event(Mutator_Event.New_List(mutators))
   }
 
-  def add(mutator: Mutator.Info): Unit =
-  {
+  def add(mutator: Mutator.Info): Unit = {
     _mutators = _mutators ::: List(mutator)
     events.event(Mutator_Event.Add(mutator))
   }
 }
 
 
-class Model(val full_graph: Graph_Display.Graph)
-{
+class Model(val full_graph: Graph_Display.Graph) {
   val Mutators =
     new Mutator_Container(
       List(
@@ -61,8 +57,7 @@ class Model(val full_graph: Graph_Display.Graph)
   private var _colors = Map.empty[Graph_Display.Node, Color]
   def colors = _colors
 
-  private def build_colors(): Unit =
-  {
+  private def build_colors(): Unit = {
     _colors =
       Colors().foldLeft(Map.empty[Graph_Display.Node, Color]) {
         case (colors, m) =>

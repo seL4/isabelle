@@ -12,10 +12,8 @@ import java.util.Locale
 import scala.collection.immutable.SortedMap
 
 
-object ML_Profiling
-{
-  sealed case class Entry(name: String, count: Long)
-  {
+object ML_Profiling {
+  sealed case class Entry(name: String, count: Long) {
     def clean_name: Entry = copy(name = """-?\(\d+\).*$""".r.replaceAllIn(name, ""))
 
     def print: String =
@@ -23,8 +21,7 @@ object ML_Profiling
         count.asInstanceOf[AnyRef], name.asInstanceOf[AnyRef])
   }
 
-  sealed case class Report(kind: String, entries: List[Entry])
-  {
+  sealed case class Report(kind: String, entries: List[Entry]) {
     def clean_name: Report = copy(entries = entries.map(_.clean_name))
 
     def total: Entry = Entry("TOTAL", entries.iterator.map(_.count).sum)
@@ -33,8 +30,7 @@ object ML_Profiling
       ("profile_" + kind + ":\n") + cat_lines((entries ::: List(total)).map(_.print))
   }
 
-  def account(reports: List[Report]): List[Report] =
-  {
+  def account(reports: List[Report]): List[Report] = {
     val empty = SortedMap.empty[String, Long].withDefaultValue(0L)
     var results = SortedMap.empty[String, SortedMap[String, Long]].withDefaultValue(empty)
     for (report <- reports) {

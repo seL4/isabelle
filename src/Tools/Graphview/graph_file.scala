@@ -13,16 +13,13 @@ import java.io.{File => JFile}
 import java.awt.{Color, Graphics2D}
 
 
-object Graph_File
-{
-  def write(file: JFile, graphview: Graphview): Unit =
-  {
+object Graph_File {
+  def write(file: JFile, graphview: Graphview): Unit = {
     val box = graphview.bounding_box()
     val w = box.width.ceil.toInt
     val h = box.height.ceil.toInt
 
-    def paint(gfx: Graphics2D): Unit =
-    {
+    def paint(gfx: Graphics2D): Unit = {
       gfx.setColor(graphview.background_color)
       gfx.fillRect(0, 0, w, h)
       gfx.translate(- box.x, - box.y)
@@ -35,8 +32,7 @@ object Graph_File
     else error("Bad type of file: " + quote(name) + " (.png or .pdf expected)")
   }
 
-  def write(options: Options, file: JFile, graph: Graph_Display.Graph): Unit =
-  {
+  def write(options: Options, file: JFile, graph: Graph_Display.Graph): Unit = {
     val the_options = options
     val graphview =
       new Graphview(graph.transitive_reduction_acyclic) { def options = the_options }
@@ -46,9 +42,8 @@ object Graph_File
   }
 
   def make_pdf(options: Options, graph: Graph_Display.Graph): Bytes =
-    Isabelle_System.with_tmp_file("graph", ext = "pdf")(graph_file =>
-    {
+    Isabelle_System.with_tmp_file("graph", ext = "pdf") { graph_file =>
       write(options, graph_file.file, graph)
       Bytes.read(graph_file)
-    })
+    }
 }

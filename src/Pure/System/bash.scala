@@ -15,12 +15,10 @@ import scala.annotation.tailrec
 import scala.jdk.OptionConverters._
 
 
-object Bash
-{
+object Bash {
   /* concrete syntax */
 
-  private def bash_chr(c: Byte): String =
-  {
+  private def bash_chr(c: Byte): String = {
     val ch = c.toChar
     ch match {
       case '\t' => "$'\\t'"
@@ -61,13 +59,13 @@ object Bash
     new Process(script, description, cwd, env, redirect, cleanup)
 
   class Process private[Bash](
-      script: String,
-      description: String,
-      cwd: JFile,
-      env: JMap[String, String],
-      redirect: Boolean,
-      cleanup: () => Unit)
-  {
+    script: String,
+    description: String,
+    cwd: JFile,
+    env: JMap[String, String],
+    redirect: Boolean,
+    cleanup: () => Unit
+  ) {
     override def toString: String = make_description(description)
 
     private val timing_file = Isabelle_System.tmp_file("bash_timing")
@@ -123,10 +121,8 @@ object Bash
           file.exists() && process_alive(Library.trim_line(File.read(file)))
       }
 
-    @tailrec private def signal(s: String, count: Int = 1): Boolean =
-    {
-      count <= 0 ||
-      {
+    @tailrec private def signal(s: String, count: Int = 1): Boolean = {
+      count <= 0 || {
         isabelle.setup.Environment.kill_process(group_pid, s)
         val running =
           root_process_alive() ||
@@ -139,15 +135,13 @@ object Bash
       }
     }
 
-    def terminate(): Unit = Isabelle_Thread.try_uninterruptible
-    {
+    def terminate(): Unit = Isabelle_Thread.try_uninterruptible {
       signal("INT", count = 7) && signal("TERM", count = 3) && signal("KILL")
       proc.destroy()
       do_cleanup()
     }
 
-    def interrupt(): Unit = Isabelle_Thread.try_uninterruptible
-    {
+    def interrupt(): Unit = Isabelle_Thread.try_uninterruptible {
       isabelle.setup.Environment.kill_process(group_pid, "INT")
     }
 
@@ -162,8 +156,7 @@ object Bash
 
     // cleanup
 
-    private def do_cleanup(): Unit =
-    {
+    private def do_cleanup(): Unit = {
       try { Runtime.getRuntime.removeShutdownHook(shutdown_hook) }
       catch { case _: IllegalStateException => }
 
@@ -192,8 +185,7 @@ object Bash
 
     // join
 
-    def join(): Int =
-    {
+    def join(): Int = {
       val rc = proc.waitFor()
       do_cleanup()
       rc
@@ -207,8 +199,8 @@ object Bash
       progress_stdout: String => Unit = (_: String) => (),
       progress_stderr: String => Unit = (_: String) => (),
       watchdog: Option[Watchdog] = None,
-      strict: Boolean = true): Process_Result =
-    {
+      strict: Boolean = true
+    ): Process_Result = {
       val in =
         if (input.isEmpty) Future.value(stdin.close())
         else Future.thread("bash_stdin") { stdin.write(input); stdin.flush(); stdin.close(); }
@@ -247,8 +239,7 @@ object Bash
 
   /* server */
 
-  object Server
-  {
+  object Server {
     // input messages
     private val RUN = "run"
     private val KILL = "kill"
@@ -259,8 +250,7 @@ object Bash
     private val FAILURE = "failure"
     private val RESULT = "result"
 
-    def start(port: Int = 0, debugging: => Boolean = false): Server =
-    {
+    def start(port: Int = 0, debugging: => Boolean = false): Server = {
       val server = new Server(port, debugging)
       server.start()
       server
@@ -268,20 +258,17 @@ object Bash
   }
 
   class Server private(port: Int, debugging: => Boolean)
-    extends isabelle.Server.Handler(port)
-  {
+  extends isabelle.Server.Handler(port) {
     server =>
 
     private val _processes = Synchronized(Map.empty[UUID.T, Bash.Process])
 
-    override def stop(): Unit =
-    {
+    override def stop(): Unit = {
       for ((_, process) <- _processes.value) process.terminate()
       super.stop()
     }
 
-    override def handle(connection: isabelle.Server.Connection): Unit =
-    {
+    override def handle(connection: isabelle.Server.Connection): Unit = {
       def reply(chunks: List[String]): Unit =
         try { connection.write_byte_message(chunks.map(Bytes.apply)) }
         catch { case _: IOException => }
@@ -366,26 +353,22 @@ object Bash
     }
   }
 
-  class Handler extends Session.Protocol_Handler
-  {
+  class Handler extends Session.Protocol_Handler {
     private var server: Server = null
 
-    override def init(session: Session): Unit =
-    {
+    override def init(session: Session): Unit = {
       exit()
       server = Server.start(debugging = session.session_options.bool("bash_process_debugging"))
     }
 
-    override def exit(): Unit =
-    {
+    override def exit(): Unit = {
       if (server != null) {
         server.stop()
         server = null
       }
     }
 
-    override def prover_options(options: Options): Options =
-    {
+    override def prover_options(options: Options): Options = {
       val address = if (server == null) "" else server.address
       val password = if (server == null) "" else server.password
       options +

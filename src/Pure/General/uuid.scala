@@ -7,8 +7,7 @@ Universally unique identifiers.
 package isabelle
 
 
-object UUID
-{
+object UUID {
   type T = java.util.UUID
 
   def random(): T = java.util.UUID.randomUUID()

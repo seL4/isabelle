@@ -4,8 +4,7 @@
 Root of isabelle package.
 */
 
-package object isabelle
-{
+package object isabelle {
   val ERROR = Exn.ERROR
   val error = Exn.error _
   def cat_error(msgs: String*): Nothing = Exn.cat_error(msgs:_*)

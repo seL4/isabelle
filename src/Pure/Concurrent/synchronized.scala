@@ -10,14 +10,12 @@ package isabelle
 import scala.annotation.tailrec
 
 
-object Synchronized
-{
+object Synchronized {
   def apply[A](init: A): Synchronized[A] = new Synchronized(init)
 }
 
 
-final class Synchronized[A] private(init: A)
-{
+final class Synchronized[A] private(init: A) {
   /* state variable */
 
   private var state: A = init
@@ -38,8 +36,7 @@ final class Synchronized[A] private(init: A)
             notifyAll()
             Some(y)
         }
-      @tailrec def try_change(): Option[B] =
-      {
+      @tailrec def try_change(): Option[B] = {
         val x = state
         check(x) match {
           case None =>

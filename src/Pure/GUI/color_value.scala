@@ -11,12 +11,10 @@ import java.awt.Color
 import java.util.Locale
 
 
-object Color_Value
-{
+object Color_Value {
   private var cache = Map.empty[String, Color]
 
-  def parse(s: String): Color =
-  {
+  def parse(s: String): Color = {
     val i = java.lang.Long.parseLong(s, 16)
     val r = ((i >> 24) & 0xFF).toInt
     val g = ((i >> 16) & 0xFF).toInt
@@ -25,8 +23,7 @@ object Color_Value
     new Color(r, g, b, a)
   }
 
-  def print(c: Color): String =
-  {
+  def print(c: Color): String = {
     val r = java.lang.Integer.valueOf(c.getRed)
     val g = java.lang.Integer.valueOf(c.getGreen)
     val b = java.lang.Integer.valueOf(c.getBlue)

@@ -7,8 +7,7 @@ System platform identification.
 package isabelle
 
 
-object Platform
-{
+object Platform {
   /* platform family */
 
   val is_windows: Boolean = isabelle.setup.Environment.is_windows()
@@ -25,8 +24,7 @@ object Platform
     else if (is_windows) Family.windows
     else error("Failed to determine current platform family")
 
-  object Family extends Enumeration
-  {
+  object Family extends Enumeration {
     val linux_arm, linux, macos, windows = Value
     val list0: List[Value] = List(linux, windows, macos)
     val list: List[Value] = List(linux, linux_arm, windows, macos)

@@ -7,8 +7,7 @@ Manage other Isabelle distributions.
 package isabelle
 
 
-object Other_Isabelle
-{
+object Other_Isabelle {
   def apply(isabelle_home: Path,
       isabelle_identifier: String = "",
       user_home: Path = Path.USER_HOME,
@@ -20,8 +19,8 @@ class Other_Isabelle(
   val isabelle_home: Path,
   val isabelle_identifier: String,
   user_home: Path,
-  progress: Progress)
-{
+  progress: Progress
+) {
   other_isabelle =>
 
   override def toString: String = isabelle_home.toString
@@ -66,8 +65,7 @@ class Other_Isabelle(
 
   /* NEWS */
 
-  def make_news(): Unit =
-  {
+  def make_news(): Unit = {
     val doc_dir = isabelle_home + Path.explode("doc")
     val fonts_dir = Isabelle_System.make_directory(doc_dir + Path.explode("fonts"))
 
@@ -88,8 +86,8 @@ class Other_Isabelle(
     component_repository: String = Components.default_component_repository,
     components_base: Path = Components.default_components_base,
     catalogs: List[String] = Nil,
-    components: List[String] = Nil): List[String] =
-  {
+    components: List[String] = Nil
+  ): List[String] = {
     val dir = Components.admin(isabelle_home)
 
     ("ISABELLE_COMPONENT_REPOSITORY=" + Bash.string(component_repository)) ::
@@ -110,8 +108,7 @@ class Other_Isabelle(
     }
     else false
 
-  def init_settings(settings: List[String]): Unit =
-  {
+  def init_settings(settings: List[String]): Unit = {
     if (!clean_settings())
       error("Cannot proceed with existing user settings file: " + etc_settings)
 
@@ -125,8 +122,7 @@ class Other_Isabelle(
 
   /* cleanup */
 
-  def cleanup(): Unit =
-  {
+  def cleanup(): Unit = {
     clean_settings()
     etc.file.delete
     isabelle_home_user.file.delete

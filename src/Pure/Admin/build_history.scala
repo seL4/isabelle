@@ -7,8 +7,7 @@ Build other history versions.
 package isabelle
 
 
-object Build_History
-{
+object Build_History {
   /* log files */
 
   val engine = "build_history"
@@ -23,10 +22,9 @@ object Build_History
     arch_64: Boolean,
     heap: Int,
     max_heap: Option[Int],
-    more_settings: List[String]): String =
-  {
-    val (ml_platform, ml_settings) =
-    {
+    more_settings: List[String]
+  ): String = {
+    val (ml_platform, ml_settings) = {
       val cygwin_32 = "x86-cygwin"
       val windows_32 = "x86-windows"
       val windows_64 = "x86_64-windows"
@@ -123,8 +121,8 @@ object Build_History
     more_preferences: List[String] = Nil,
     verbose: Boolean = false,
     build_tags: List[String] = Nil,
-    build_args: List[String] = Nil): List[(Process_Result, Path)] =
-  {
+    build_args: List[String] = Nil
+  ): List[(Process_Result, Path)] = {
     /* sanity checks */
 
     if (File.eq(Path.ISABELLE_HOME, root))
@@ -148,8 +146,7 @@ object Build_History
 
     /* checkout Isabelle + AFP repository */
 
-    def checkout(dir: Path, version: String): String =
-    {
+    def checkout(dir: Path, version: String): String = {
       val hg = Mercurial.repository(dir)
       hg.update(rev = version, clean = true)
       progress.echo_if(verbose, hg.log(version, options = "-l1"))
@@ -188,8 +185,7 @@ object Build_History
     val build_group_id = build_host + ":" + build_history_date.time.ms
 
     var first_build = true
-    for ((threads, processes) <- multicore_list) yield
-    {
+    for ((threads, processes) <- multicore_list) yield {
       /* init settings */
 
       val component_settings =
@@ -285,86 +281,81 @@ object Build_History
 
       build_out_progress.echo("Reading session build info ...")
       val session_build_info =
-        build_info.finished_sessions.flatMap(session_name =>
-          {
-            val database = isabelle_output + store.database(session_name)
+        build_info.finished_sessions.flatMap { session_name =>
+          val database = isabelle_output + store.database(session_name)
 
-            if (database.is_file) {
-              using(SQLite.open_database(database))(db =>
-              {
-                val theory_timings =
-                  try {
-                    store.read_theory_timings(db, session_name).map(ps =>
-                      Protocol.Theory_Timing_Marker((Build_Log.SESSION_NAME, session_name) :: ps))
-                  }
-                  catch { case ERROR(_) => Nil }
+          if (database.is_file) {
+            using(SQLite.open_database(database)) { db =>
+              val theory_timings =
+                try {
+                  store.read_theory_timings(db, session_name).map(ps =>
+                    Protocol.Theory_Timing_Marker((Build_Log.SESSION_NAME, session_name) :: ps))
+                }
+                catch { case ERROR(_) => Nil }
 
-                val session_sources =
-                  store.read_build(db, session_name).map(_.sources) match {
-                    case Some(sources) if sources.length == SHA1.digest_length =>
-                      List("Sources " + session_name + " " + sources)
-                    case _ => Nil
-                  }
+              val session_sources =
+                store.read_build(db, session_name).map(_.sources) match {
+                  case Some(sources) if sources.length == SHA1.digest_length =>
+                    List("Sources " + session_name + " " + sources)
+                  case _ => Nil
+                }
 
-                theory_timings ::: session_sources
-              })
+              theory_timings ::: session_sources
             }
-            else Nil
-          })
+          }
+          else Nil
+        }
 
       build_out_progress.echo("Reading ML statistics ...")
       val ml_statistics =
-        build_info.finished_sessions.flatMap(session_name =>
-          {
-            val database = isabelle_output + store.database(session_name)
-            val log_gz = isabelle_output + store.log_gz(session_name)
+        build_info.finished_sessions.flatMap { session_name =>
+          val database = isabelle_output + store.database(session_name)
+          val log_gz = isabelle_output + store.log_gz(session_name)
 
-            val properties =
-              if (database.is_file) {
-                using(SQLite.open_database(database))(db =>
-                  store.read_ml_statistics(db, session_name))
-              }
-              else if (log_gz.is_file) {
-                Build_Log.Log_File(log_gz).parse_session_info(ml_statistics = true).ml_statistics
-              }
-              else Nil
+          val properties =
+            if (database.is_file) {
+              using(SQLite.open_database(database))(db =>
+                store.read_ml_statistics(db, session_name))
+            }
+            else if (log_gz.is_file) {
+              Build_Log.Log_File(log_gz).parse_session_info(ml_statistics = true).ml_statistics
+            }
+            else Nil
 
-            val trimmed_properties =
-              if (ml_statistics_step <= 0) Nil
-              else if (ml_statistics_step == 1) properties
-              else {
-                (for { (ps, i) <- properties.iterator.zipWithIndex if i % ml_statistics_step == 0 }
-                 yield ps).toList
-              }
+          val trimmed_properties =
+            if (ml_statistics_step <= 0) Nil
+            else if (ml_statistics_step == 1) properties
+            else {
+              (for { (ps, i) <- properties.iterator.zipWithIndex if i % ml_statistics_step == 0 }
+               yield ps).toList
+            }
 
-            trimmed_properties.map(ps => (Build_Log.SESSION_NAME -> session_name) :: ps)
-          })
+          trimmed_properties.map(ps => (Build_Log.SESSION_NAME -> session_name) :: ps)
+        }
 
       build_out_progress.echo("Reading error messages ...")
       val session_errors =
-        build_info.failed_sessions.flatMap(session_name =>
-          {
-            val database = isabelle_output + store.database(session_name)
-            val errors =
-              if (database.is_file) {
-                try {
-                  using(SQLite.open_database(database))(db => store.read_errors(db, session_name))
-                } // column "errors" could be missing
-                catch { case _: java.sql.SQLException => Nil }
-              }
-              else Nil
-            errors.map(msg => List(Build_Log.SESSION_NAME -> session_name, Markup.CONTENT -> msg))
-          })
+        build_info.failed_sessions.flatMap { session_name =>
+          val database = isabelle_output + store.database(session_name)
+          val errors =
+            if (database.is_file) {
+              try {
+                using(SQLite.open_database(database))(db => store.read_errors(db, session_name))
+              } // column "errors" could be missing
+              catch { case _: java.sql.SQLException => Nil }
+            }
+            else Nil
+          errors.map(msg => List(Build_Log.SESSION_NAME -> session_name, Markup.CONTENT -> msg))
+        }
 
       build_out_progress.echo("Reading heap sizes ...")
       val heap_sizes =
-        build_info.finished_sessions.flatMap(session_name =>
-          {
-            val heap = isabelle_output + Path.explode(session_name)
-            if (heap.is_file)
-              Some("Heap " + session_name + " (" + Value.Long(heap.file.length) + " bytes)")
-            else None
-          })
+        build_info.finished_sessions.flatMap { session_name =>
+          val heap = isabelle_output + Path.explode(session_name)
+          if (heap.is_file)
+            Some("Heap " + session_name + " (" + Value.Long(heap.file.length) + " bytes)")
+          else None
+        }
 
       build_out_progress.echo("Writing log file " + log_path.xz + " ...")
       File.write_xz(log_path.xz,
@@ -392,8 +383,7 @@ object Build_History
 
   /* command line entry point */
 
-  private object Multicore
-  {
+  private object Multicore {
     private val Pat1 = """^(\d+)$""".r
     private val Pat2 = """^(\d+)x(\d+)$""".r
 
@@ -405,8 +395,7 @@ object Build_History
       }
   }
 
-  def main(args: Array[String]): Unit =
-  {
+  def main(args: Array[String]): Unit = {
     Command_Line.tool {
       var afp_rev: Option[String] = None
       var multicore_base = false
@@ -546,8 +535,8 @@ Usage: Admin/build_history [OPTIONS] REPOSITORY [ARGS ...]
     rev: String = "",
     afp_rev: Option[String] = None,
     options: String = "",
-    args: String = ""): List[(String, Bytes)] =
-  {
+    args: String = ""
+  ): List[(String, Bytes)] = {
     /* Isabelle self repository */
 
     val self_hg =
@@ -594,8 +583,7 @@ Usage: Admin/build_history [OPTIONS] REPOSITORY [ARGS ...]
 
     /* Admin/build_history */
 
-    ssh.with_tmp_dir(tmp_dir =>
-    {
+    ssh.with_tmp_dir { tmp_dir =>
       val output_file = tmp_dir + Path.explode("output")
 
       val rev_options = if (rev == "") "" else " -r " + Bash.string(rev_id)
@@ -619,6 +607,6 @@ Usage: Admin/build_history [OPTIONS] REPOSITORY [ARGS ...]
         ssh.rm(log)
         (log.file_name, bytes)
       }
-    })
+    }
   }
 }

@@ -12,8 +12,7 @@ import scala.collection.mutable
 import scala.util.Sorting
 
 
-object Text
-{
+object Text {
   /* offset */
 
   type Offset = Int
@@ -21,21 +20,18 @@ object Text
 
   /* range -- with total quasi-ordering */
 
-  object Range
-  {
+  object Range {
     def apply(start: Offset): Range = Range(start, start)
 
     val full: Range = apply(0, Integer.MAX_VALUE / 2)
     val offside: Range = apply(-1)
 
-    object Ordering extends scala.math.Ordering[Range]
-    {
+    object Ordering extends scala.math.Ordering[Range] {
       def compare(r1: Range, r2: Range): Int = r1 compare r2
     }
   }
 
-  sealed case class Range(start: Offset, stop: Offset)
-  {
+  sealed case class Range(start: Offset, stop: Offset) {
     // denotation: {start} Un {i. start < i & i < stop}
     if (start > stop)
       error("Bad range: [" + start.toString + ".." + stop.toString + "]")
@@ -82,20 +78,17 @@ object Text
 
   /* perspective */
 
-  object Perspective
-  {
+  object Perspective {
     val empty: Perspective = Perspective(Nil)
 
     def full: Perspective = Perspective(List(Range.full))
 
-    def apply(ranges: List[Range]): Perspective =
-    {
+    def apply(ranges: List[Range]): Perspective = {
       val result = new mutable.ListBuffer[Range]
       var last: Option[Range] = None
       def ship(next: Option[Range]): Unit = { result ++= last; last = next }
 
-      for (range <- ranges.sortBy(_.start))
-      {
+      for (range <- ranges.sortBy(_.start)) {
         last match {
           case None => ship(Some(range))
           case Some(last_range) =>
@@ -111,8 +104,8 @@ object Text
   }
 
   final class Perspective private(
-    val ranges: List[Range]) // visible text partitioning in canonical order
-  {
+    val ranges: List[Range]  // visible text partitioning in canonical order
+  ) {
     def is_empty: Boolean = ranges.isEmpty
     def range: Range =
       if (is_empty) Range(0)
@@ -130,8 +123,7 @@ object Text
 
   /* information associated with text range */
 
-  sealed case class Info[A](range: Range, info: A)
-  {
+  sealed case class Info[A](range: Range, info: A) {
     def restrict(r: Range): Info[A] = Info(range.restrict(r), info)
     def try_restrict(r: Range): Option[Info[A]] = range.try_restrict(r).map(Info(_, info))
 
@@ -143,8 +135,7 @@ object Text
 
   /* editing */
 
-  object Edit
-  {
+  object Edit {
     def insert(start: Offset, text: String): Edit = new Edit(true, start, text)
     def remove(start: Offset, text: String): Edit = new Edit(false, start, text)
     def inserts(start: Offset, text: String): List[Edit] =
@@ -156,8 +147,7 @@ object Text
       else removes(start, old_text) ::: inserts(start, new_text)
   }
 
-  final class Edit private(val is_insert: Boolean, val start: Offset, val text: String)
-  {
+  final class Edit private(val is_insert: Boolean, val start: Offset, val text: String) {
     override def toString: String =
       (if (is_insert) "Insert(" else "Remove(") + (start, text).toString + ")"
 

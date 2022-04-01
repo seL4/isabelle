@@ -11,24 +11,20 @@ package isabelle
 import scala.collection.mutable
 
 
-object Document
-{
+object Document {
   /** document structure **/
 
   /* overlays -- print functions with arguments */
 
-  object Overlays
-  {
+  object Overlays {
     val empty = new Overlays(Map.empty)
   }
 
-  final class Overlays private(rep: Map[Node.Name, Node.Overlays])
-  {
+  final class Overlays private(rep: Map[Node.Name, Node.Overlays]) {
     def apply(name: Node.Name): Node.Overlays =
       rep.getOrElse(name, Node.Overlays.empty)
 
-    private def update(name: Node.Name, f: Node.Overlays => Node.Overlays): Overlays =
-    {
+    private def update(name: Node.Name, f: Node.Overlays => Node.Overlays): Overlays = {
       val node_overlays = f(apply(name))
       new Overlays(if (node_overlays.is_empty) rep - name else rep + (name -> node_overlays))
     }
@@ -45,19 +41,16 @@ object Document
 
   /* document blobs: auxiliary files */
 
-  sealed case class Blob(bytes: Bytes, source: String, chunk: Symbol.Text_Chunk, changed: Boolean)
-  {
+  sealed case class Blob(bytes: Bytes, source: String, chunk: Symbol.Text_Chunk, changed: Boolean) {
     def unchanged: Blob = copy(changed = false)
   }
 
-  object Blobs
-  {
+  object Blobs {
     def apply(blobs: Map[Node.Name, Blob]): Blobs = new Blobs(blobs)
     val empty: Blobs = apply(Map.empty)
   }
 
-  final class Blobs private(blobs: Map[Node.Name, Blob])
-  {
+  final class Blobs private(blobs: Map[Node.Name, Blob]) {
     def get(name: Node.Name): Option[Blob] = blobs.get(name)
 
     def changed(name: Node.Name): Boolean =
@@ -76,16 +69,15 @@ object Document
   type Edit_Text = Edit[Text.Edit, Text.Perspective]
   type Edit_Command = Edit[Command.Edit, Command.Perspective]
 
-  object Node
-  {
+  object Node {
     /* header and name */
 
     sealed case class Header(
       imports_pos: List[(Name, Position.T)] = Nil,
       keywords: Thy_Header.Keywords = Nil,
       abbrevs: Thy_Header.Abbrevs = Nil,
-      errors: List[String] = Nil)
-    {
+      errors: List[String] = Nil
+    ) {
       def imports_offset: Map[Int, Name] =
         (for { (name, Position.Offset(i)) <- imports_pos } yield i -> name).toMap
 
@@ -101,12 +93,10 @@ object Document
     val no_header: Header = Header()
     def bad_header(msg: String): Header = Header(errors = List(msg))
 
-    object Name
-    {
+    object Name {
       val empty: Name = Name("")
 
-      object Ordering extends scala.math.Ordering[Name]
-      {
+      object Ordering extends scala.math.Ordering[Name] {
         def compare(name1: Name, name2: Name): Int = name1.node compare name2.node
       }
 
@@ -116,8 +106,7 @@ object Document
         Graph.make(entries, symmetric = true)(Ordering)
     }
 
-    sealed case class Name(node: String, master_dir: String = "", theory: String = "")
-    {
+    sealed case class Name(node: String, master_dir: String = "", theory: String = "") {
       override def hashCode: Int = node.hashCode
       override def equals(that: Any): Boolean =
         that match {
@@ -146,8 +135,7 @@ object Document
         JSON.Object("node_name" -> node, "theory_name" -> theory)
     }
 
-    sealed case class Entry(name: Node.Name, header: Node.Header)
-    {
+    sealed case class Entry(name: Node.Name, header: Node.Header) {
       def map(f: String => String): Entry = copy(name = name.map(f))
 
       override def toString: String = name.toString
@@ -156,13 +144,11 @@ object Document
 
     /* node overlays */
 
-    object Overlays
-    {
+    object Overlays {
       val empty = new Overlays(Multi_Map.empty)
     }
 
-    final class Overlays private(rep: Multi_Map[Command, (String, List[String])])
-    {
+    final class Overlays private(rep: Multi_Map[Command, (String, List[String])]) {
       def commands: Set[Command] = rep.keySet
       def is_empty: Boolean = rep.isEmpty
       def dest: List[(Command, (String, List[String]))] = rep.iterator.toList
@@ -177,10 +163,8 @@ object Document
 
     /* edits */
 
-    sealed abstract class Edit[A, B]
-    {
-      def foreach(f: A => Unit): Unit =
-      {
+    sealed abstract class Edit[A, B] {
+      def foreach(f: A => Unit): Unit = {
         this match {
           case Edits(es) => es.foreach(f)
           case _ =>
@@ -224,14 +208,14 @@ object Document
 
     /* commands */
 
-    object Commands
-    {
+    object Commands {
       def apply(commands: Linear_Set[Command]): Commands = new Commands(commands)
       val empty: Commands = apply(Linear_Set.empty)
 
-      def starts(commands: Iterator[Command], offset: Text.Offset = 0)
-        : Iterator[(Command, Text.Offset)] =
-      {
+      def starts(
+        commands: Iterator[Command],
+        offset: Text.Offset = 0
+      ) : Iterator[(Command, Text.Offset)] = {
         var i = offset
         for (command <- commands) yield {
           val start = i
@@ -240,9 +224,10 @@ object Document
         }
       }
 
-      def starts_pos(commands: Iterator[Command], pos: Token.Pos = Token.Pos.start)
-        : Iterator[(Command, Token.Pos)] =
-      {
+      def starts_pos(
+        commands: Iterator[Command],
+        pos: Token.Pos = Token.Pos.start
+      ) : Iterator[(Command, Token.Pos)] = {
         var p = pos
         for (command <- commands) yield {
           val start = p
@@ -254,13 +239,11 @@ object Document
       private val block_size = 256
     }
 
-    final class Commands private(val commands: Linear_Set[Command])
-    {
+    final class Commands private(val commands: Linear_Set[Command]) {
       lazy val load_commands: List[Command] =
         commands.iterator.filter(cmd => cmd.blobs.nonEmpty).toList
 
-      private lazy val full_index: (Array[(Command, Text.Offset)], Text.Range) =
-      {
+      private lazy val full_index: (Array[(Command, Text.Offset)], Text.Range) = {
         val blocks = new mutable.ListBuffer[(Command, Text.Offset)]
         var next_block = 0
         var last_stop = 0
@@ -276,8 +259,7 @@ object Document
 
       private def full_range: Text.Range = full_index._2
 
-      def iterator(i: Text.Offset = 0): Iterator[(Command, Text.Offset)] =
-      {
+      def iterator(i: Text.Offset = 0): Iterator[(Command, Text.Offset)] = {
         if (commands.nonEmpty && full_range.contains(i)) {
           val (cmd0, start0) = full_index._1(i / Commands.block_size)
           Node.Commands.starts(commands.iterator(cmd0), start0) dropWhile {
@@ -296,8 +278,8 @@ object Document
     val syntax: Option[Outer_Syntax] = None,
     val text_perspective: Text.Perspective = Text.Perspective.empty,
     val perspective: Node.Perspective_Command = Node.no_perspective_command,
-    _commands: Node.Commands = Node.Commands.empty)
-  {
+    _commands: Node.Commands = Node.Commands.empty
+  ) {
     def is_empty: Boolean =
       get_blob.isEmpty &&
       header == Node.no_header &&
@@ -366,18 +348,15 @@ object Document
 
   /* development graph */
 
-  object Nodes
-  {
+  object Nodes {
     val empty: Nodes = new Nodes(Graph.empty(Node.Name.Ordering))
   }
 
-  final class Nodes private(graph: Graph[Node.Name, Node])
-  {
+  final class Nodes private(graph: Graph[Node.Name, Node]) {
     def apply(name: Node.Name): Node =
       graph.default_node(name, Node.empty).get_node(name)
 
-    def is_suppressed(name: Node.Name): Boolean =
-    {
+    def is_suppressed(name: Node.Name): Boolean = {
       val graph1 = graph.default_node(name, Node.empty)
       graph1.is_maximal(name) && graph1.get_node(name).is_empty
     }
@@ -388,8 +367,7 @@ object Document
         case del => Some(new Nodes(del.foldLeft(graph)(_.del_node(_))))
       }
 
-    def + (entry: (Node.Name, Node)): Nodes =
-    {
+    def + (entry: (Node.Name, Node)): Nodes = {
       val (name, node) = entry
       val imports = node.header.imports
       val graph1 =
@@ -431,14 +409,14 @@ object Document
 
   /* particular document versions */
 
-  object Version
-  {
+  object Version {
     val init: Version = new Version()
     def make(nodes: Nodes): Version = new Version(Document_ID.make(), nodes)
 
-    def purge_future(versions: Map[Document_ID.Version, Version], future: Future[Version])
-      : Future[Version] =
-    {
+    def purge_future(
+      versions: Map[Document_ID.Version, Version],
+      future: Future[Version]
+    ) : Future[Version] = {
       if (future.is_finished) {
         val version = future.join
         versions.get(version.id) match {
@@ -450,8 +428,8 @@ object Document
     }
 
     def purge_suppressed(
-      versions: Map[Document_ID.Version, Version]): Map[Document_ID.Version, Version] =
-    {
+      versions: Map[Document_ID.Version, Version]
+    ): Map[Document_ID.Version, Version] = {
       (for ((id, v) <- versions.iterator; v1 <- v.purge_suppressed) yield (id, v1)).
         foldLeft(versions)(_ + _)
     }
@@ -459,8 +437,8 @@ object Document
 
   final class Version private(
     val id: Document_ID.Version = Document_ID.none,
-    val nodes: Nodes = Nodes.empty)
-  {
+    val nodes: Nodes = Nodes.empty
+  ) {
     override def toString: String = "Version(" + id + ")"
 
     def purge_suppressed: Option[Version] =
@@ -470,8 +448,7 @@ object Document
 
   /* changes of plain text, eventually resulting in document edits */
 
-  object Change
-  {
+  object Change {
     val init: Change = new Change()
 
     def make(previous: Future[Version], edits: List[Edit_Text], version: Future[Version]): Change =
@@ -481,16 +458,15 @@ object Document
   final class Change private(
     val previous: Option[Future[Version]] = Some(Future.value(Version.init)),
     val rev_edits: List[Edit_Text] = Nil,
-    val version: Future[Version] = Future.value(Version.init))
-  {
+    val version: Future[Version] = Future.value(Version.init)
+  ) {
     def is_finished: Boolean =
       (previous match { case None => true case Some(future) => future.is_finished }) &&
       version.is_finished
 
     def truncate: Change = new Change(None, Nil, version)
 
-    def purge(versions: Map[Document_ID.Version, Version]): Option[Change] =
-    {
+    def purge(versions: Map[Document_ID.Version, Version]): Option[Change] = {
       val previous1 = previous.map(Version.purge_future(versions, _))
       val version1 = Version.purge_future(versions, version)
       if ((previous eq previous1) && (version eq version1)) None
@@ -501,21 +477,19 @@ object Document
 
   /* history navigation */
 
-  object History
-  {
+  object History {
     val init: History = new History()
   }
 
   final class History private(
-    val undo_list: List[Change] = List(Change.init))  // non-empty list
-  {
+    val undo_list: List[Change] = List(Change.init)  // non-empty list
+  ) {
     override def toString: String = "History(" + undo_list.length + ")"
 
     def tip: Change = undo_list.head
     def + (change: Change): History = new History(change :: undo_list)
 
-    def prune(check: Change => Boolean, retain: Int): Option[(List[Change], History)] =
-    {
+    def prune(check: Change => Boolean, retain: Int): Option[(List[Change], History)] = {
       val n = undo_list.iterator.zipWithIndex.find(p => check(p._1)).get._2 + 1
       val (retained, dropped) = undo_list.splitAt(n max retain)
 
@@ -525,8 +499,7 @@ object Document
       }
     }
 
-    def purge(versions: Map[Document_ID.Version, Version]): History =
-    {
+    def purge(versions: Map[Document_ID.Version, Version]): History = {
       val undo_list1 = undo_list.map(_.purge(versions))
       if (undo_list1.forall(_.isEmpty)) this
       else new History(for ((a, b) <- undo_list1 zip undo_list) yield a.getOrElse(b))
@@ -536,8 +509,7 @@ object Document
 
   /* snapshot: persistent user-view of document state */
 
-  object Snapshot
-  {
+  object Snapshot {
     val init: Snapshot = State.init.snapshot()
   }
 
@@ -546,8 +518,8 @@ object Document
     val version: Version,
     val node_name: Node.Name,
     edits: List[Text.Edit],
-    val snippet_command: Option[Command])
-  {
+    val snippet_command: Option[Command]
+  ) {
     override def toString: String =
       "Snapshot(node = " + node_name.node + ", version = " + version.id +
         (if (is_outdated) ", outdated" else "") + ")"
@@ -595,8 +567,7 @@ object Document
 
     /* command as add-on snippet */
 
-    def snippet(command: Command): Snapshot =
-    {
+    def snippet(command: Command): Snapshot = {
       val node_name = command.node_name
 
       val nodes0 = version.nodes
@@ -623,9 +594,9 @@ object Document
         elements: Markup.Elements = Markup.Elements.full): XML.Body =
       state.xml_markup(version, node_name, range = range, elements = elements)
 
-    def xml_markup_blobs(elements: Markup.Elements = Markup.Elements.full)
-      : List[(Path, XML.Body)] =
-    {
+    def xml_markup_blobs(
+      elements: Markup.Elements = Markup.Elements.full
+    ) : List[(Path, XML.Body)] = {
       snippet_command match {
         case None => Nil
         case Some(command) =>
@@ -707,8 +678,8 @@ object Document
 
     def command_results(range: Text.Range): Command.Results =
       Command.State.merge_results(
-        select[List[Command.State]](range, Markup.Elements.full, command_states =>
-          { case _ => Some(command_states) }).flatMap(_.info))
+        select[List[Command.State]](range, Markup.Elements.full,
+          command_states => _ => Some(command_states)).flatMap(_.info))
 
     def command_results(command: Command): Command.Results =
       state.command_results(version, command)
@@ -727,8 +698,8 @@ object Document
       info: A,
       elements: Markup.Elements,
       result: List[Command.State] => (A, Text.Markup) => Option[A],
-      status: Boolean = false): List[Text.Info[A]] =
-    {
+      status: Boolean = false
+    ): List[Text.Info[A]] = {
       val former_range = revert(range).inflate_singularity
       val (chunk_name, command_iterator) =
         commands_loading.headOption match {
@@ -755,10 +726,9 @@ object Document
       range: Text.Range,
       elements: Markup.Elements,
       result: List[Command.State] => Text.Markup => Option[A],
-      status: Boolean = false): List[Text.Info[A]] =
-    {
-      def result1(states: List[Command.State]): (Option[A], Text.Markup) => Option[Option[A]] =
-      {
+      status: Boolean = false
+    ): List[Text.Info[A]] = {
+      def result1(states: List[Command.State]): (Option[A], Text.Markup) => Option[Option[A]] = {
         val res = result(states)
         (_: Option[A], x: Text.Markup) =>
           res(x) match {
@@ -774,13 +744,11 @@ object Document
 
   /* model */
 
-  trait Session
-  {
+  trait Session {
     def resources: Resources
   }
 
-  trait Model
-  {
+  trait Model {
     def session: Session
     def is_stable: Boolean
     def snapshot(): Snapshot
@@ -798,8 +766,8 @@ object Document
     def node_edits(
       node_header: Node.Header,
       text_edits: List[Text.Edit],
-      perspective: Node.Perspective_Text): List[Edit_Text] =
-    {
+      perspective: Node.Perspective_Text
+    ): List[Edit_Text] = {
       val edits: List[Node.Edit[Text.Edit, Text.Perspective]] =
         get_blob match {
           case None =>
@@ -823,26 +791,23 @@ object Document
   type Assign_Update =
     List[(Document_ID.Command, List[Document_ID.Exec])]  // update of exec state assignment
 
-  object State
-  {
+  object State {
     class Fail(state: State) extends Exception
 
-    object Assignment
-    {
+    object Assignment {
       val init: Assignment = new Assignment()
     }
 
     final class Assignment private(
       val command_execs: Map[Document_ID.Command, List[Document_ID.Exec]] = Map.empty,
-      val is_finished: Boolean = false)
-    {
+      val is_finished: Boolean = false
+    ) {
       override def toString: String = "Assignment(" + command_execs.size + "," + is_finished + ")"
 
       def check_finished: Assignment = { require(is_finished, "assignment not finished"); this }
       def unfinished: Assignment = new Assignment(command_execs, false)
 
-      def assign(update: Assign_Update): Assignment =
-      {
+      def assign(update: Assign_Update): Assignment = {
         require(!is_finished, "assignment already finished")
         val command_execs1 =
           update.foldLeft(command_execs) {
@@ -876,8 +841,8 @@ object Document
     /*explicit (linear) history*/
     history: History = History.init,
     /*intermediate state between remove_versions/removed_versions*/
-    removing_versions: Boolean = false)
-  {
+    removing_versions: Boolean = false
+  ) {
     override def toString: String =
       "State(versions = " + versions.size +
       ", blobs = " + blobs.size +
@@ -890,8 +855,7 @@ object Document
 
     private def fail[A]: A = throw new State.Fail(this)
 
-    def define_version(version: Version, assignment: State.Assignment): State =
-    {
+    def define_version(version: Version, assignment: State.Assignment): State = {
       val id = version.id
       copy(versions = versions + (id -> version),
         assignments = assignments + (id -> assignment.unfinished))
@@ -900,8 +864,7 @@ object Document
     def define_blob(digest: SHA1.Digest): State = copy(blobs = blobs + digest)
     def defined_blob(digest: SHA1.Digest): Boolean = blobs.contains(digest)
 
-    def define_command(command: Command): State =
-    {
+    def define_command(command: Command): State = {
       val id = command.id
       if (commands.isDefinedAt(id)) fail
       else copy(commands = commands + (id -> command.init_state))
@@ -921,9 +884,10 @@ object Document
       id == st.command.id ||
       (execs.get(id) match { case Some(st1) => st1.command.id == st.command.id case None => false })
 
-    private def other_id(node_name: Node.Name, id: Document_ID.Generic)
-      : Option[(Symbol.Text_Chunk.Id, Symbol.Text_Chunk)] =
-    {
+    private def other_id(
+      node_name: Node.Name,
+      id: Document_ID.Generic
+    ) : Option[(Symbol.Text_Chunk.Id, Symbol.Text_Chunk)] = {
       for {
         st <- lookup_id(id)
         if st.command.node_name == node_name
@@ -936,11 +900,12 @@ object Document
           graph.default_node(id, ()).default_node(st.command.id, ()).add_edge(id, st.command.id)
       }
 
-    def accumulate(id: Document_ID.Generic, message: XML.Elem, cache: XML.Cache)
-      : (Command.State, State) =
-    {
-      def update(st: Command.State): (Command.State, State) =
-      {
+    def accumulate(
+      id: Document_ID.Generic,
+      message: XML.Elem,
+      cache: XML.Cache
+    ) : (Command.State, State) = {
+      def update(st: Command.State): (Command.State, State) = {
         val st1 = st.accumulate(self_id(st), other_id, message, cache)
         (st1, copy(commands_redirection = redirection(st1)))
       }
@@ -958,8 +923,10 @@ object Document
       }
     }
 
-    def add_export(id: Document_ID.Generic, entry: Command.Exports.Entry): (Command.State, State) =
-    {
+    def add_export(
+      id: Document_ID.Generic,
+      entry: Command.Exports.Entry
+    ): (Command.State, State) = {
       execs.get(id) match {
         case Some(st) =>
           st.add_export(entry) match {
@@ -989,8 +956,8 @@ object Document
       node_name: Node.Name,
       id: Document_ID.Exec,
       source: String,
-      blobs_info: Command.Blobs_Info): State =
-    {
+      blobs_info: Command.Blobs_Info
+    ): State = {
       if (theories.isDefinedAt(id)) fail
       else {
         val command =
@@ -1013,9 +980,11 @@ object Document
           (state1.snippet(command1), state1)
       }
 
-    def assign(id: Document_ID.Version, edited: List[String], update: Assign_Update)
-      : ((List[Node.Name], List[Command]), State) =
-    {
+    def assign(
+      id: Document_ID.Version,
+      edited: List[String],
+      update: Assign_Update
+    ) : ((List[Node.Name], List[Command]), State) = {
       val version = the_version(id)
 
       val edited_set = edited.toSet
@@ -1064,14 +1033,13 @@ object Document
     def continue_history(
       previous: Future[Version],
       edits: List[Edit_Text],
-      version: Future[Version]): State =
-    {
+      version: Future[Version]
+    ): State = {
       val change = Change.make(previous, edits, version)
       copy(history = history + change)
     }
 
-    def remove_versions(retain: Int = 0): (List[Version], State) =
-    {
+    def remove_versions(retain: Int = 0): (List[Version], State) = {
       history.prune(is_stable, retain) match {
         case Some((dropped, history1)) =>
           val old_versions = dropped.map(change => change.version.get_finished)
@@ -1082,8 +1050,7 @@ object Document
       }
     }
 
-    def removed_versions(removed: List[Document_ID.Version]): State =
-    {
+    def removed_versions(removed: List[Document_ID.Version]): State = {
       val versions1 = Version.purge_suppressed(versions -- removed)
 
       val assignments1 = assignments -- removed
@@ -1122,9 +1089,10 @@ object Document
         removing_versions = false)
     }
 
-    def command_id_map(version: Version, commands: Iterable[Command])
-      : Map[Document_ID.Generic, Command] =
-    {
+    def command_id_map(
+      version: Version,
+      commands: Iterable[Command]
+    ) : Map[Document_ID.Generic, Command] = {
       require(is_assigned(version), "version not assigned (command_id_map)")
       val assignment = the_assignment(version).check_finished
       (for {
@@ -1133,8 +1101,7 @@ object Document
       } yield (id -> command)).toMap
     }
 
-    def command_maybe_consolidated(version: Version, command: Command): Boolean =
-    {
+    def command_maybe_consolidated(version: Version, command: Command): Boolean = {
       require(is_assigned(version), "version not assigned (command_maybe_consolidated)")
       try {
         the_assignment(version).check_finished.command_execs.getOrElse(command.id, Nil) match {
@@ -1147,9 +1114,10 @@ object Document
       catch { case _: State.Fail => false }
     }
 
-    private def command_states_self(version: Version, command: Command)
-      : List[(Document_ID.Generic, Command.State)] =
-    {
+    private def command_states_self(
+      version: Version,
+      command: Command
+    ) : List[(Document_ID.Generic, Command.State)] = {
       require(is_assigned(version), "version not assigned (command_states_self)")
       try {
         the_assignment(version).check_finished.command_execs.getOrElse(command.id, Nil)
@@ -1165,8 +1133,7 @@ object Document
       }
     }
 
-    def command_states(version: Version, command: Command): List[Command.State] =
-    {
+    def command_states(version: Version, command: Command): List[Command.State] = {
       val self = command_states_self(version, command)
       val others =
         if (commands_redirection.defined(command.id)) {
@@ -1191,8 +1158,8 @@ object Document
       version: Version,
       node_name: Node.Name,
       range: Text.Range = Text.Range.full,
-      elements: Markup.Elements = Markup.Elements.full): XML.Body =
-    {
+      elements: Markup.Elements = Markup.Elements.full
+    ): XML.Body = {
       val node = version.nodes(node_name)
       if (node_name.is_theory) {
         val markup_index = Command.Markup_Index.markup
@@ -1233,8 +1200,7 @@ object Document
       version.nodes(name).commands.reverse.iterator.forall(command_maybe_consolidated(version, _))
 
     def node_consolidated(version: Version, name: Node.Name): Boolean =
-      !name.is_theory ||
-      {
+      !name.is_theory || {
         val it = version.nodes(name).commands.reverse.iterator
         it.hasNext && command_states(version, it.next()).exists(_.consolidated)
       }
@@ -1242,8 +1208,8 @@ object Document
     def snapshot(
       node_name: Node.Name = Node.Name.empty,
       pending_edits: List[Text.Edit] = Nil,
-      snippet_command: Option[Command] = None): Snapshot =
-    {
+      snippet_command: Option[Command] = None
+    ): Snapshot = {
       val stable = recent_stable
       val version = stable.version.get_finished
 

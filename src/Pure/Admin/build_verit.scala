@@ -7,8 +7,7 @@ Build Isabelle veriT component from official download.
 package isabelle
 
 
-object Build_VeriT
-{
+object Build_VeriT {
   val default_download_url = "https://verit.loria.fr/rmx/2021.06.2/verit-2021.06.2-rmx.tar.gz"
 
 
@@ -19,12 +18,11 @@ object Build_VeriT
     verbose: Boolean = false,
     progress: Progress = new Progress,
     target_dir: Path = Path.current,
-    mingw: MinGW = MinGW.none): Unit =
-  {
+    mingw: MinGW = MinGW.none
+  ): Unit = {
     mingw.check
 
-    Isabelle_System.with_tmp_dir("build")(tmp_dir =>
-    {
+    Isabelle_System.with_tmp_dir("build") { tmp_dir =>
       /* component */
 
       val Archive_Name = """^.*?([^/]+)$""".r
@@ -116,7 +114,7 @@ It has been built from sources like this:
 
         Makarius
         """ + Date.Format.date(Date.now()) + "\n")
-    })
+    }
 }
 
 
@@ -124,14 +122,14 @@ It has been built from sources like this:
 
   val isabelle_tool =
     Isabelle_Tool("build_verit", "build prover component from official download",
-      Scala_Project.here, args =>
-    {
-      var target_dir = Path.current
-      var mingw = MinGW.none
-      var download_url = default_download_url
-      var verbose = false
+      Scala_Project.here,
+      { args =>
+        var target_dir = Path.current
+        var mingw = MinGW.none
+        var download_url = default_download_url
+        var verbose = false
 
-      val getopts = Getopts("""
+        val getopts = Getopts("""
 Usage: isabelle build_verit [OPTIONS]
 
   Options are:
@@ -143,17 +141,17 @@ Usage: isabelle build_verit [OPTIONS]
 
   Build prover component from official download.
 """,
-        "D:" -> (arg => target_dir = Path.explode(arg)),
-        "M:" -> (arg => mingw = MinGW(Path.explode(arg))),
-        "U:" -> (arg => download_url = arg),
-        "v" -> (_ => verbose = true))
+          "D:" -> (arg => target_dir = Path.explode(arg)),
+          "M:" -> (arg => mingw = MinGW(Path.explode(arg))),
+          "U:" -> (arg => download_url = arg),
+          "v" -> (_ => verbose = true))
 
-      val more_args = getopts(args)
-      if (more_args.nonEmpty) getopts.usage()
+        val more_args = getopts(args)
+        if (more_args.nonEmpty) getopts.usage()
 
-      val progress = new Console_Progress()
+        val progress = new Console_Progress()
 
-      build_verit(download_url = download_url, verbose = verbose, progress = progress,
-        target_dir = target_dir, mingw = mingw)
-    })
+        build_verit(download_url = download_url, verbose = verbose, progress = progress,
+          target_dir = target_dir, mingw = mingw)
+      })
 }

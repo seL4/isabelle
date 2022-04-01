@@ -13,10 +13,8 @@ import java.security.MessageDigest
 import isabelle.setup.{Build => Setup_Build}
 
 
-object SHA1
-{
-  final class Digest private[SHA1](rep: String)
-  {
+object SHA1 {
+  final class Digest private[SHA1](rep: String) {
     override def toString: String = rep
     override def hashCode: Int = rep.hashCode
     override def equals(that: Any): Boolean =
@@ -29,24 +27,22 @@ object SHA1
 
   def fake_digest(rep: String): Digest = new Digest(rep)
 
-  def make_digest(body: MessageDigest => Unit): Digest =
-  {
+  def make_digest(body: MessageDigest => Unit): Digest = {
     val digest_body = new Setup_Build.Digest_Body { def apply(sha: MessageDigest): Unit = body(sha)}
     new Digest(Setup_Build.make_digest(digest_body))
   }
 
   def digest(file: JFile): Digest =
-    make_digest(sha => using(new FileInputStream(file))(stream =>
-      {
-        val buf = new Array[Byte](65536)
-        var m = 0
-        var cont = true
-        while (cont) {
-          m = stream.read(buf, 0, buf.length)
-          if (m != -1) sha.update(buf, 0, m)
-          cont = (m != -1)
-        }
-      }))
+    make_digest(sha => using(new FileInputStream(file)) { stream =>
+      val buf = new Array[Byte](65536)
+      var m = 0
+      var cont = true
+      while (cont) {
+        m = stream.read(buf, 0, buf.length)
+        if (m != -1) sha.update(buf, 0, m)
+        cont = (m != -1)
+      }
+    })
 
   def digest(path: Path): Digest = digest(path.file)
   def digest(bytes: Array[Byte]): Digest = make_digest(_.update(bytes))

@@ -24,27 +24,24 @@ class Mutator_Dialog(
     container: Mutator_Container,
     caption: String,
     reverse_caption: String = "Inverse",
-    show_color_chooser: Boolean = true)
-  extends Dialog
-{
+    show_color_chooser: Boolean = true
+) extends Dialog {
   title = caption
 
   private var _panels: List[Mutator_Panel] = Nil
   private def panels = _panels
-  private def panels_=(panels: List[Mutator_Panel]): Unit =
-  {
+  private def panels_=(panels: List[Mutator_Panel]): Unit = {
     _panels = panels
     paint_panels()
   }
 
   container.events +=
-  {
-    case Mutator_Event.Add(m) => add_panel(new Mutator_Panel(m))
-    case Mutator_Event.New_List(ms) => panels = get_panels(ms)
-  }
+    {
+      case Mutator_Event.Add(m) => add_panel(new Mutator_Panel(m))
+      case Mutator_Event.New_List(ms) => panels = get_panels(ms)
+    }
 
-  override def open(): Unit =
-  {
+  override def open(): Unit = {
     if (!visible) panels = get_panels(container())
     super.open()
   }
@@ -60,8 +57,7 @@ class Mutator_Dialog(
   private def get_mutators(panels: List[Mutator_Panel]): List[Mutator.Info] =
     panels.map(panel => panel.get_mutator)
 
-  private def movePanelUp(m: Mutator_Panel) =
-  {
+  private def movePanelUp(m: Mutator_Panel) = {
     def moveUp(l: List[Mutator_Panel]): List[Mutator_Panel] =
       l match {
         case x :: y :: xs => if (y == m) y :: x :: xs else x :: moveUp(y :: xs)
@@ -71,8 +67,7 @@ class Mutator_Dialog(
     panels = moveUp(panels)
   }
 
-  private def movePanelDown(m: Mutator_Panel) =
-  {
+  private def movePanelDown(m: Mutator_Panel) = {
     def moveDown(l: List[Mutator_Panel]): List[Mutator_Panel] =
       l match {
         case x :: y :: xs => if (x == m) y :: x :: xs else x :: moveDown(y :: xs)
@@ -82,24 +77,21 @@ class Mutator_Dialog(
     panels = moveDown(panels)
   }
 
-  private def removePanel(m: Mutator_Panel): Unit =
-  {
+  private def removePanel(m: Mutator_Panel): Unit = {
     panels = panels.filter(_ != m).toList
   }
 
-  private def add_panel(m: Mutator_Panel): Unit =
-  {
+  private def add_panel(m: Mutator_Panel): Unit = {
     panels = panels ::: List(m)
   }
 
-  def paint_panels(): Unit =
-  {
+  def paint_panels(): Unit = {
     Focus_Traveral_Policy.clear()
     filter_panel.contents.clear()
-    panels.map(x => {
-        filter_panel.contents += x
-        Focus_Traveral_Policy.addAll(x.focusList)
-      })
+    panels.map { x =>
+      filter_panel.contents += x
+      Focus_Traveral_Policy.addAll(x.focusList)
+    }
     filter_panel.contents += Swing.VGlue
 
     Focus_Traveral_Policy.add(mutator_box.peer.asInstanceOf[java.awt.Component])
@@ -160,8 +152,7 @@ class Mutator_Dialog(
   }
 
   private class Mutator_Panel(initials: Mutator.Info)
-    extends BoxPanel(Orientation.Horizontal)
-  {
+  extends BoxPanel(Orientation.Horizontal) {
     private val inputs: List[(String, Input)] = get_inputs()
     var focusList = List.empty[java.awt.Component]
     private val enabledBox = new Check_Box_Input("Enabled", initials.enabled)
@@ -243,8 +234,7 @@ class Mutator_Dialog(
 
     focusList = focusList.reverse
 
-    def get_mutator: Mutator.Info =
-    {
+    def get_mutator: Mutator.Info = {
       val model = graphview.model
       val m =
         initials.mutator match {
@@ -317,53 +307,48 @@ class Mutator_Dialog(
       }
   }
 
-  private trait Input
-  {
+  private trait Input {
     def string: String
     def bool: Boolean
   }
 
   private class Text_Field_Input(txt: String, check: String => Boolean = (_: String) => true)
-    extends TextField(txt) with Input
-  {
+  extends TextField(txt) with Input {
     preferredSize = new Dimension(125, 18)
 
     private val default_foreground = foreground
     reactions +=
-    {
-      case ValueChanged(_) =>
-        foreground = if (check(text)) default_foreground else graphview.error_color
-    }
+      {
+        case ValueChanged(_) =>
+          foreground = if (check(text)) default_foreground else graphview.error_color
+      }
 
     def string = text
     def bool = true
   }
 
-  private class Check_Box_Input(txt: String, s: Boolean) extends CheckBox(txt) with Input
-  {
+  private class Check_Box_Input(txt: String, s: Boolean)
+  extends CheckBox(txt) with Input {
     selected = s
 
     def string = ""
     def bool = selected
   }
 
-  private object Focus_Traveral_Policy extends FocusTraversalPolicy
-  {
+  private object Focus_Traveral_Policy extends FocusTraversalPolicy {
     private var items = Vector.empty[java.awt.Component]
 
     def add(c: java.awt.Component): Unit = { items = items :+ c }
     def addAll(cs: IterableOnce[java.awt.Component]): Unit = { items = items ++ cs }
     def clear(): Unit = { items = Vector.empty }
 
-    def getComponentAfter(root: java.awt.Container, c: java.awt.Component): java.awt.Component =
-    {
+    def getComponentAfter(root: java.awt.Container, c: java.awt.Component): java.awt.Component = {
       val i = items.indexOf(c)
       if (i < 0) getDefaultComponent(root)
       else items((i + 1) % items.length)
     }
 
-    def getComponentBefore(root: java.awt.Container, c: java.awt.Component): java.awt.Component =
-    {
+    def getComponentBefore(root: java.awt.Container, c: java.awt.Component): java.awt.Component = {
       val i = items.indexOf(c)
       if (i < 0) getDefaultComponent(root)
       else items((i - 1) % items.length)

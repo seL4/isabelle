@@ -17,8 +17,7 @@ import scala.swing.{ComboBox, ScrollPane, TextArea}
 import scala.swing.event.SelectionChanged
 
 
-object GUI
-{
+object GUI {
   /* Swing look-and-feel */
 
   def init_laf(): Unit = com.formdev.flatlaf.FlatLightLaf.setup()
@@ -28,8 +27,7 @@ object GUI
   def is_macos_laf: Boolean =
     Platform.is_macos && UIManager.getSystemLookAndFeelClassName() == current_laf
 
-  class Look_And_Feel(laf: LookAndFeel) extends Isabelle_System.Service
-  {
+  class Look_And_Feel(laf: LookAndFeel) extends Isabelle_System.Service {
     def info: UIManager.LookAndFeelInfo =
       new UIManager.LookAndFeelInfo(laf.getName, laf.getClass.getName)
   }
@@ -37,8 +35,7 @@ object GUI
   lazy val look_and_feels: List[Look_And_Feel] =
     Isabelle_System.make_services(classOf[Look_And_Feel])
 
-  def init_lafs(): Unit =
-  {
+  def init_lafs(): Unit = {
     val old_lafs =
       Set(
         "com.sun.java.swing.plaf.motif.MotifLookAndFeel",
@@ -55,8 +52,7 @@ object GUI
 
   /* plain focus traversal, notably for text fields */
 
-  def plain_focus_traversal(component: Component): Unit =
-  {
+  def plain_focus_traversal(component: Component): Unit = {
     val dummy_button = new JButton
     def apply(id: Int): Unit =
       component.setFocusTraversalKeys(id, dummy_button.getFocusTraversalKeys(id))
@@ -67,9 +63,12 @@ object GUI
 
   /* simple dialogs */
 
-  def scrollable_text(raw_txt: String, width: Int = 60, height: Int = 20, editable: Boolean = false)
-    : ScrollPane =
-  {
+  def scrollable_text(
+    raw_txt: String,
+    width: Int = 60,
+    height: Int = 20,
+    editable: Boolean = false
+  ) : ScrollPane = {
     val txt = Output.clean_yxml(raw_txt)
     val text = new TextArea(txt)
     if (width > 0) text.columns = width
@@ -78,9 +77,13 @@ object GUI
     new ScrollPane(text)
   }
 
-  private def simple_dialog(kind: Int, default_title: String,
-    parent: Component, title: String, message: Iterable[Any]): Unit =
-  {
+  private def simple_dialog(
+    kind: Int,
+    default_title: String,
+    parent: Component,
+    title: String,
+    message: Iterable[Any]
+  ): Unit = {
     GUI_Thread.now {
       val java_message =
         message.iterator.map({ case x: scala.swing.Component => x.peer case x => x }).
@@ -113,8 +116,8 @@ object GUI
   private val Zoom_Factor = "([0-9]+)%?".r
 
   abstract class Zoom_Box extends ComboBox[String](
-    List("50%", "70%", "85%", "100%", "125%", "150%", "175%", "200%", "300%", "400%"))
-  {
+    List("50%", "70%", "85%", "100%", "125%", "150%", "175%", "200%", "300%", "400%")
+  ) {
     def changed: Unit
     def factor: Int = parse(selection.item)
 
@@ -128,8 +131,7 @@ object GUI
 
     private def print(i: Int): String = i.toString + "%"
 
-    def set_item(i: Int): Unit =
-    {
+    def set_item(i: Int): Unit = {
       peer.getEditor match {
         case null =>
         case editor => editor.setItem(print(i))
@@ -170,10 +172,8 @@ object GUI
 
   /* location within multi-screen environment */
 
-  final case class Screen_Location(point: Point, bounds: Rectangle)
-  {
-    def relative(parent: Component, size: Dimension): Point =
-    {
+  final case class Screen_Location(point: Point, bounds: Rectangle) {
+    def relative(parent: Component, size: Dimension): Point = {
       val w = size.width
       val h = size.height
 
@@ -190,8 +190,7 @@ object GUI
     }
   }
 
-  def screen_location(component: Component, point: Point): Screen_Location =
-  {
+  def screen_location(component: Component, point: Point): Screen_Location = {
     val screen_point = new Point(point.x, point.y)
     if (component != null) SwingUtilities.convertPointToScreen(screen_point, component)
 
@@ -212,8 +211,7 @@ object GUI
 
   /* screen size */
 
-  sealed case class Screen_Size(bounds: Rectangle, insets: Insets)
-  {
+  sealed case class Screen_Size(bounds: Rectangle, insets: Insets) {
     def full_screen_bounds: Rectangle =
       if (Platform.is_linux) {
         // avoid menu bar and docking areas
@@ -234,8 +232,7 @@ object GUI
       else bounds
   }
 
-  def screen_size(component: Component): Screen_Size =
-  {
+  def screen_size(component: Component): Screen_Size = {
     val config = component.getGraphicsConfiguration
     val bounds = config.getBounds
     val insets = Toolkit.getDefaultToolkit.getScreenInsets(config)
@@ -274,10 +271,8 @@ object GUI
       case _ => None
     }
 
-  def traverse_components(component: Component, apply: Component => Unit): Unit =
-  {
-    def traverse(comp: Component): Unit =
-    {
+  def traverse_components(component: Component, apply: Component => Unit): Unit = {
+    def traverse(comp: Component): Unit = {
       apply(comp)
       comp match {
         case cont: Container =>
@@ -310,43 +305,44 @@ object GUI
 
   /* Isabelle fonts */
 
-  def imitate_font(font: Font,
+  def imitate_font(
+    font: Font,
     family: String = Isabelle_Fonts.sans,
-    scale: Double = 1.0): Font =
-  {
+    scale: Double = 1.0
+  ): Font = {
     val font1 = new Font(family, font.getStyle, font.getSize)
     val rel_size = line_metrics(font).getHeight.toDouble / line_metrics(font1).getHeight
     new Font(family, font.getStyle, (scale * rel_size * font.getSize).toInt)
   }
 
-  def imitate_font_css(font: Font,
+  def imitate_font_css(
+    font: Font,
     family: String = Isabelle_Fonts.sans,
-    scale: Double = 1.0): String =
-  {
+    scale: Double = 1.0
+  ): String = {
     val font1 = new Font(family, font.getStyle, font.getSize)
     val rel_size = line_metrics(font).getHeight.toDouble / line_metrics(font1).getHeight
     "font-family: " + family + "; font-size: " + (scale * rel_size * 100).toInt + "%;"
   }
 
-  def use_isabelle_fonts(): Unit =
-  {
+  def use_isabelle_fonts(): Unit = {
     val default_font = label_font()
     val ui = UIManager.getDefaults
-    for (prop <- List(
-      "ToggleButton.font",
-      "CheckBoxMenuItem.font",
-      "Label.font",
-      "Menu.font",
-      "MenuItem.font",
-      "PopupMenu.font",
-      "Table.font",
-      "TableHeader.font",
-      "TextArea.font",
-      "TextField.font",
-      "TextPane.font",
-      "ToolTip.font",
-      "Tree.font"))
-    {
+    for (prop <-
+      List(
+        "ToggleButton.font",
+        "CheckBoxMenuItem.font",
+        "Label.font",
+        "Menu.font",
+        "MenuItem.font",
+        "PopupMenu.font",
+        "Table.font",
+        "TableHeader.font",
+        "TextArea.font",
+        "TextField.font",
+        "TextPane.font",
+        "ToolTip.font",
+        "Tree.font")) {
       val font = ui.get(prop) match { case font: Font => font case _ => default_font }
       ui.put(prop, GUI.imitate_font(font))
     }

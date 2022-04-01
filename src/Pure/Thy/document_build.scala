@@ -7,20 +7,17 @@ Build theory document (PDF) from session database.
 package isabelle
 
 
-object Document_Build
-{
+object Document_Build {
   /* document variants */
 
-  abstract class Document_Name
-  {
+  abstract class Document_Name {
     def name: String
     def path: Path = Path.basic(name)
 
     override def toString: String = name
   }
 
-  object Document_Variant
-  {
+  object Document_Variant {
     def parse(opt: String): Document_Variant =
       Library.space_explode('=', opt) match {
         case List(name) => Document_Variant(name, Latex.Tags.empty)
@@ -29,25 +26,22 @@ object Document_Build
       }
   }
 
-  sealed case class Document_Variant(name: String, tags: Latex.Tags) extends Document_Name
-  {
+  sealed case class Document_Variant(name: String, tags: Latex.Tags) extends Document_Name {
     def print: String = if (tags.toString.isEmpty) name else name + "=" + tags.toString
   }
 
   sealed case class Document_Input(name: String, sources: SHA1.Digest)
-    extends Document_Name
+  extends Document_Name
 
   sealed case class Document_Output(name: String, sources: SHA1.Digest, log_xz: Bytes, pdf: Bytes)
-    extends Document_Name
-  {
+  extends Document_Name {
     def log: String = log_xz.uncompress().text
     def log_lines: List[String] = split_lines(log)
 
     def write(db: SQL.Database, session_name: String): Unit =
       write_document(db, session_name, this)
 
-    def write(dir: Path): Path =
-    {
+    def write(dir: Path): Path = {
       val path = dir + Path.basic(name).pdf
       Isabelle_System.make_directory(path.expand.dir)
       Bytes.write(path, pdf)
@@ -58,8 +52,7 @@ object Document_Build
 
   /* SQL data model */
 
-  object Data
-  {
+  object Data {
     val session_name = SQL.Column.string("session_name").make_primary_key
     val name = SQL.Column.string("name").make_primary_key
     val sources = SQL.Column.string("sources")
@@ -73,23 +66,23 @@ object Document_Build
         (if (name == "") "" else " AND " + Data.name.equal(name))
   }
 
-  def read_documents(db: SQL.Database, session_name: String): List[Document_Input] =
-  {
+  def read_documents(db: SQL.Database, session_name: String): List[Document_Input] = {
     val select = Data.table.select(List(Data.name, Data.sources), Data.where_equal(session_name))
     db.using_statement(select)(stmt =>
-      stmt.execute_query().iterator(res =>
-      {
+      stmt.execute_query().iterator({ res =>
         val name = res.string(Data.name)
         val sources = res.string(Data.sources)
         Document_Input(name, SHA1.fake_digest(sources))
       }).toList)
   }
 
-  def read_document(db: SQL.Database, session_name: String, name: String): Option[Document_Output] =
-  {
+  def read_document(
+    db: SQL.Database,
+    session_name: String,
+    name: String
+  ): Option[Document_Output] = {
     val select = Data.table.select(sql = Data.where_equal(session_name, name))
-    db.using_statement(select)(stmt =>
-    {
+    db.using_statement(select)({ stmt =>
       val res = stmt.execute_query()
       if (res.next()) {
         val name = res.string(Data.name)
@@ -102,17 +95,15 @@ object Document_Build
     })
   }
 
-  def write_document(db: SQL.Database, session_name: String, doc: Document_Output): Unit =
-  {
-    db.using_statement(Data.table.insert())(stmt =>
-    {
+  def write_document(db: SQL.Database, session_name: String, doc: Document_Output): Unit = {
+    db.using_statement(Data.table.insert()){ stmt =>
       stmt.string(1) = session_name
       stmt.string(2) = doc.name
       stmt.string(3) = doc.sources.toString
       stmt.bytes(4) = doc.log_xz
       stmt.bytes(5) = doc.pdf
       stmt.execute()
-    })
+    }
   }
 
 
@@ -128,8 +119,8 @@ object Document_Build
     session: String,
     deps: Sessions.Deps,
     db_context: Sessions.Database_Context,
-    progress: Progress = new Progress): Context =
-  {
+    progress: Progress = new Progress
+  ): Context = {
     val info = deps.sessions_structure(session)
     val base = deps(session)
     val hierarchy = deps.sessions_structure.build_hierarchy(session)
@@ -141,8 +132,8 @@ object Document_Build
     base: Sessions.Base,
     hierarchy: List[String],
     db_context: Sessions.Database_Context,
-    val progress: Progress = new Progress)
-  {
+    val progress: Progress = new Progress
+  ) {
     /* session info */
 
     def session: String = info.name
@@ -159,8 +150,7 @@ object Document_Build
 
     def document_build: String = options.string("document_build")
 
-    def get_engine(): Engine =
-    {
+    def get_engine(): Engine = {
       val name = document_build
       engines.find(_.name == name).getOrElse(error("Bad document_build engine " + quote(name)))
     }
@@ -184,15 +174,13 @@ object Document_Build
         File.Content(path, content)
       }
 
-    lazy val session_graph: File.Content =
-    {
+    lazy val session_graph: File.Content = {
       val path = Presentation.session_graph_path
       val content = graphview.Graph_File.make_pdf(options, base.session_graph_display)
       File.Content(path, content)
     }
 
-    lazy val session_tex: File.Content =
-    {
+    lazy val session_tex: File.Content = {
       val path = Path.basic("session.tex")
       val content =
         Library.terminate_lines(
@@ -200,23 +188,24 @@ object Document_Build
       File.Content(path, content)
     }
 
-    lazy val isabelle_logo: Option[File.Content] =
-    {
+    lazy val isabelle_logo: Option[File.Content] = {
       document_logo.map(logo_name =>
-        Isabelle_System.with_tmp_file("logo", ext = "pdf")(tmp_path =>
-        {
+        Isabelle_System.with_tmp_file("logo", ext = "pdf") { tmp_path =>
           Logo.create_logo(logo_name, output_file = tmp_path, quiet = true)
           val path = Path.basic("isabelle_logo.pdf")
           val content = Bytes.read(tmp_path)
           File.Content(path, content)
-        }))
+        })
     }
 
 
     /* document directory */
 
-    def prepare_directory(dir: Path, doc: Document_Variant, latex_output: Latex.Output): Directory =
-    {
+    def prepare_directory(
+      dir: Path,
+      doc: Document_Variant,
+      latex_output: Latex.Output
+    ): Directory = {
       val doc_dir = Isabelle_System.make_directory(dir + Path.basic(doc.name))
 
 
@@ -270,8 +259,8 @@ object Document_Build
     doc_dir: Path,
     doc: Document_Variant,
     root_name: String,
-    sources: SHA1.Digest)
-  {
+    sources: SHA1.Digest
+  ) {
     def root_name_script(ext: String = ""): String =
       Bash.string(if (ext.isEmpty) root_name else root_name + "." + ext)
 
@@ -286,8 +275,7 @@ object Document_Build
       Latex.latex_errors(doc_dir, root_name) :::
       Bibtex.bibtex_errors(doc_dir, root_name)
 
-    def make_document(log: List[String], errors: List[String]): Document_Output =
-    {
+    def make_document(log: List[String], errors: List[String]): Document_Output = {
       val root_pdf = Path.basic(root_name).pdf
       val result_pdf = doc_dir + root_pdf
 
@@ -312,16 +300,14 @@ object Document_Build
 
   lazy val engines: List[Engine] = Isabelle_System.make_services(classOf[Engine])
 
-  abstract class Engine(val name: String) extends Isabelle_System.Service
-  {
+  abstract class Engine(val name: String) extends Isabelle_System.Service {
     override def toString: String = name
 
     def prepare_directory(context: Context, dir: Path, doc: Document_Variant): Directory
     def build_document(context: Context, directory: Directory, verbose: Boolean): Document_Output
   }
 
-  abstract class Bash_Engine(name: String) extends Engine(name)
-  {
+  abstract class Bash_Engine(name: String) extends Engine(name) {
     def prepare_directory(context: Context, dir: Path, doc: Document_Variant): Directory =
       context.prepare_directory(dir, doc, new Latex.Output(context.options))
 
@@ -330,8 +316,7 @@ object Document_Build
       (if (use_pdflatex) "$ISABELLE_PDFLATEX" else "$ISABELLE_LUALATEX") +
         " " + directory.root_name_script() + "\n"
 
-    def bibtex_script(context: Context, directory: Directory, latex: Boolean = false): String =
-    {
+    def bibtex_script(context: Context, directory: Directory, latex: Boolean = false): String = {
       val ext = if (context.document_bibliography) "aux" else "bib"
       directory.conditional_script(ext, "$ISABELLE_BIBTEX",
         after = if (latex) latex_script(context, directory) else "")
@@ -342,8 +327,7 @@ object Document_Build
         after = if (latex) latex_script(context, directory) else "")
 
     def use_build_script: Boolean = false
-    def build_script(context: Context, directory: Directory): String =
-    {
+    def build_script(context: Context, directory: Directory): String = {
       val has_build_script = (directory.doc_dir + Path.explode("build")).is_file
 
       if (!use_build_script && has_build_script) {
@@ -362,8 +346,11 @@ object Document_Build
       }
     }
 
-    def build_document(context: Context, directory: Directory, verbose: Boolean): Document_Output =
-    {
+    def build_document(
+      context: Context,
+      directory: Directory,
+      verbose: Boolean
+    ): Document_Output = {
       val result =
         context.progress.bash(
           build_script(context, directory),
@@ -393,16 +380,15 @@ object Document_Build
     context: Context,
     output_sources: Option[Path] = None,
     output_pdf: Option[Path] = None,
-    verbose: Boolean = false): List[Document_Output] =
-  {
+    verbose: Boolean = false
+  ): List[Document_Output] = {
     val progress = context.progress
     val engine = context.get_engine()
 
     val documents =
       for (doc <- context.documents)
       yield {
-        Isabelle_System.with_tmp_dir("document")(tmp_dir =>
-        {
+        Isabelle_System.with_tmp_dir("document") { tmp_dir =>
           progress.echo("Preparing " + context.session + "/" + doc.name + " ...")
           val start = Time.now()
 
@@ -420,7 +406,7 @@ object Document_Build
             " (" + timing.message_hms + " elapsed time)")
 
           document
-        })
+        }
       }
 
     for (dir <- output_pdf; doc <- documents) {
@@ -435,17 +421,16 @@ object Document_Build
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("document", "prepare session theory document", Scala_Project.here, args =>
-    {
-      var output_sources: Option[Path] = None
-      var output_pdf: Option[Path] = None
-      var verbose_latex = false
-      var dirs: List[Path] = Nil
-      var options = Options.init()
-      var verbose_build = false
+    Isabelle_Tool("document", "prepare session theory document", Scala_Project.here,
+      { args =>
+        var output_sources: Option[Path] = None
+        var output_pdf: Option[Path] = None
+        var verbose_latex = false
+        var dirs: List[Path] = Nil
+        var options = Options.init()
+        var verbose_build = false
 
-      val getopts = Getopts(
-        """
+        val getopts = Getopts("""
 Usage: isabelle document [OPTIONS] SESSION
 
   Options are:
@@ -459,49 +444,48 @@ Usage: isabelle document [OPTIONS] SESSION
 
   Prepare the theory document of a session.
 """,
-        "O:" -> (arg =>
-          {
-            val dir = Path.explode(arg)
-            output_sources = Some(dir)
-            output_pdf = Some(dir)
-          }),
-        "P:" -> (arg => { output_pdf = Some(Path.explode(arg)) }),
-        "S:" -> (arg => { output_sources = Some(Path.explode(arg)) }),
-        "V" -> (_ => verbose_latex = true),
-        "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
-        "o:" -> (arg => options = options + arg),
-        "v" -> (_ => verbose_build = true))
+          "O:" -> (arg =>
+            {
+              val dir = Path.explode(arg)
+              output_sources = Some(dir)
+              output_pdf = Some(dir)
+            }),
+          "P:" -> (arg => { output_pdf = Some(Path.explode(arg)) }),
+          "S:" -> (arg => { output_sources = Some(Path.explode(arg)) }),
+          "V" -> (_ => verbose_latex = true),
+          "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
+          "o:" -> (arg => options = options + arg),
+          "v" -> (_ => verbose_build = true))
 
-      val more_args = getopts(args)
-      val session =
-        more_args match {
-          case List(a) => a
-          case _ => getopts.usage()
+        val more_args = getopts(args)
+        val session =
+          more_args match {
+            case List(a) => a
+            case _ => getopts.usage()
+          }
+
+        val progress = new Console_Progress(verbose = verbose_build)
+        val store = Sessions.store(options)
+
+        progress.interrupt_handler {
+          val res =
+            Build.build(options, selection = Sessions.Selection.session(session),
+              dirs = dirs, progress = progress, verbose = verbose_build)
+          if (!res.ok) error("Failed to build session " + quote(session))
+
+          val deps =
+            Sessions.load_structure(options + "document=pdf", dirs = dirs).
+              selection_deps(Sessions.Selection.session(session))
+
+          if (output_sources.isEmpty && output_pdf.isEmpty) {
+            progress.echo_warning("No output directory")
+          }
+
+          using(store.open_database_context()) { db_context =>
+            build_documents(context(session, deps, db_context, progress = progress),
+              output_sources = output_sources, output_pdf = output_pdf,
+              verbose = verbose_latex)
+          }
         }
-
-      val progress = new Console_Progress(verbose = verbose_build)
-      val store = Sessions.store(options)
-
-      progress.interrupt_handler {
-        val res =
-          Build.build(options, selection = Sessions.Selection.session(session),
-            dirs = dirs, progress = progress, verbose = verbose_build)
-        if (!res.ok) error("Failed to build session " + quote(session))
-
-        val deps =
-          Sessions.load_structure(options + "document=pdf", dirs = dirs).
-            selection_deps(Sessions.Selection.session(session))
-
-        if (output_sources.isEmpty && output_pdf.isEmpty) {
-          progress.echo_warning("No output directory")
-        }
-
-        using(store.open_database_context())(db_context =>
-        {
-          build_documents(context(session, deps, db_context, progress = progress),
-            output_sources = output_sources, output_pdf = output_pdf,
-            verbose = verbose_latex)
-        })
-      }
-    })
+      })
 }

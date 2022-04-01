@@ -13,8 +13,7 @@ import java.sql.{DriverManager, Connection, PreparedStatement, ResultSet}
 import scala.collection.mutable
 
 
-object SQL
-{
+object SQL {
   /** SQL language **/
 
   type Source = String
@@ -59,8 +58,7 @@ object SQL
 
   /* types */
 
-  object Type extends Enumeration
-  {
+  object Type extends Enumeration {
     val Boolean = Value("BOOLEAN")
     val Int = Value("INTEGER")
     val Long = Value("BIGINT")
@@ -84,8 +82,7 @@ object SQL
 
   /* columns */
 
-  object Column
-  {
+  object Column {
     def bool(name: String, strict: Boolean = false, primary_key: Boolean = false): Column =
       Column(name, Type.Boolean, strict, primary_key)
     def int(name: String, strict: Boolean = false, primary_key: Boolean = false): Column =
@@ -103,9 +100,12 @@ object SQL
   }
 
   sealed case class Column(
-    name: String, T: Type.Value, strict: Boolean = false, primary_key: Boolean = false,
-    expr: SQL.Source = "")
-  {
+    name: String,
+    T: Type.Value,
+    strict: Boolean = false,
+    primary_key: Boolean = false,
+    expr: SQL.Source = ""
+  ) {
     def make_primary_key: Column = copy(primary_key = true)
 
     def apply(table: Table): Column =
@@ -130,8 +130,7 @@ object SQL
 
   /* tables */
 
-  sealed case class Table(name: String, columns: List[Column], body: Source = "")
-  {
+  sealed case class Table(name: String, columns: List[Column], body: Source = "") {
     private val columns_index: Map[String, Int] =
       columns.iterator.map(_.name).zipWithIndex.toMap
 
@@ -148,8 +147,7 @@ object SQL
 
     def query_named: Source = query + " AS " + SQL.ident(name)
 
-    def create(strict: Boolean = false, sql_type: Type.Value => Source): Source =
-    {
+    def create(strict: Boolean = false, sql_type: Type.Value => Source): Source = {
       val primary_key =
         columns.filter(_.primary_key).map(_.name) match {
           case Nil => Nil
@@ -189,63 +187,49 @@ object SQL
 
   /* statements */
 
-  class Statement private[SQL](val db: Database, val rep: PreparedStatement)
-    extends AutoCloseable
-  {
+  class Statement private[SQL](val db: Database, val rep: PreparedStatement) extends AutoCloseable {
     stmt =>
 
-    object bool
-    {
+    object bool {
       def update(i: Int, x: Boolean): Unit = rep.setBoolean(i, x)
-      def update(i: Int, x: Option[Boolean]): Unit =
-      {
+      def update(i: Int, x: Option[Boolean]): Unit = {
         if (x.isDefined) update(i, x.get)
         else rep.setNull(i, java.sql.Types.BOOLEAN)
       }
     }
-    object int
-    {
+    object int {
       def update(i: Int, x: Int): Unit = rep.setInt(i, x)
-      def update(i: Int, x: Option[Int]): Unit =
-      {
+      def update(i: Int, x: Option[Int]): Unit = {
         if (x.isDefined) update(i, x.get)
         else rep.setNull(i, java.sql.Types.INTEGER)
       }
     }
-    object long
-    {
+    object long {
       def update(i: Int, x: Long): Unit = rep.setLong(i, x)
-      def update(i: Int, x: Option[Long]): Unit =
-      {
+      def update(i: Int, x: Option[Long]): Unit = {
         if (x.isDefined) update(i, x.get)
         else rep.setNull(i, java.sql.Types.BIGINT)
       }
     }
-    object double
-    {
+    object double {
       def update(i: Int, x: Double): Unit = rep.setDouble(i, x)
-      def update(i: Int, x: Option[Double]): Unit =
-      {
+      def update(i: Int, x: Option[Double]): Unit = {
         if (x.isDefined) update(i, x.get)
         else rep.setNull(i, java.sql.Types.DOUBLE)
       }
     }
-    object string
-    {
+    object string {
       def update(i: Int, x: String): Unit = rep.setString(i, x)
       def update(i: Int, x: Option[String]): Unit = update(i, x.orNull)
     }
-    object bytes
-    {
-      def update(i: Int, bytes: Bytes): Unit =
-      {
+    object bytes {
+      def update(i: Int, bytes: Bytes): Unit = {
         if (bytes == null) rep.setBytes(i, null)
         else rep.setBinaryStream(i, bytes.stream(), bytes.length)
       }
       def update(i: Int, bytes: Option[Bytes]): Unit = update(i, bytes.orNull)
     }
-    object date
-    {
+    object date {
       def update(i: Int, date: Date): Unit = db.update_date(stmt, i, date)
       def update(i: Int, date: Option[Date]): Unit = update(i, date.orNull)
     }
@@ -259,14 +243,12 @@ object SQL
 
   /* results */
 
-  class Result private[SQL](val stmt: Statement, val rep: ResultSet)
-  {
+  class Result private[SQL](val stmt: Statement, val rep: ResultSet) {
     res =>
 
     def next(): Boolean = rep.next()
 
-    def iterator[A](get: Result => A): Iterator[A] = new Iterator[A]
-    {
+    def iterator[A](get: Result => A): Iterator[A] = new Iterator[A] {
       private var _next: Boolean = res.next()
       def hasNext: Boolean = _next
       def next(): A = { val x = get(res); _next = res.next(); x }
@@ -276,13 +258,11 @@ object SQL
     def int(column: Column): Int = rep.getInt(column.name)
     def long(column: Column): Long = rep.getLong(column.name)
     def double(column: Column): Double = rep.getDouble(column.name)
-    def string(column: Column): String =
-    {
+    def string(column: Column): String = {
       val s = rep.getString(column.name)
       if (s == null) "" else s
     }
-    def bytes(column: Column): Bytes =
-    {
+    def bytes(column: Column): Bytes = {
       val bs = rep.getBytes(column.name)
       if (bs == null) Bytes.empty else Bytes(bs)
     }
@@ -291,8 +271,7 @@ object SQL
     def timing(c1: Column, c2: Column, c3: Column): Timing =
       Timing(Time.ms(long(c1)), Time.ms(long(c2)), Time.ms(long(c3)))
 
-    def get[A](column: Column, f: Column => A): Option[A] =
-    {
+    def get[A](column: Column, f: Column => A): Option[A] = {
       val x = f(column)
       if (rep.wasNull) None else Some(x)
     }
@@ -308,8 +287,7 @@ object SQL
 
   /* database */
 
-  trait Database extends AutoCloseable
-  {
+  trait Database extends AutoCloseable {
     db =>
 
 
@@ -324,8 +302,7 @@ object SQL
 
     def close(): Unit = connection.close()
 
-    def transaction[A](body: => A): A =
-    {
+    def transaction[A](body: => A): A = {
       val auto_commit = connection.getAutoCommit
       try {
         connection.setAutoCommit(false)
@@ -357,8 +334,7 @@ object SQL
 
     /* tables and views */
 
-    def tables: List[String] =
-    {
+    def tables: List[String] = {
       val result = new mutable.ListBuffer[String]
       val rs = connection.getMetaData.getTables(null, null, "%", null)
       while (rs.next) { result += rs.getString(3) }
@@ -373,8 +349,7 @@ object SQL
         strict: Boolean = false, unique: Boolean = false): Unit =
       using_statement(table.create_index(name, columns, strict, unique))(_.execute())
 
-    def create_view(table: Table, strict: Boolean = false): Unit =
-    {
+    def create_view(table: Table, strict: Boolean = false): Unit = {
       if (strict || !tables.contains(table.name)) {
         val sql = "CREATE VIEW " + table + " AS " + { table.query; table.body }
         using_statement(sql)(_.execute())
@@ -387,13 +362,11 @@ object SQL
 
 /** SQLite **/
 
-object SQLite
-{
+object SQLite {
   // see https://www.sqlite.org/lang_datefunc.html
   val date_format: Date.Format = Date.Format("uuuu-MM-dd HH:mm:ss.SSS x")
 
-  lazy val init_jdbc: Unit =
-  {
+  lazy val init_jdbc: Unit = {
     val lib_path = Path.explode("$ISABELLE_SQLITE_HOME/" + Platform.jvm_platform)
     val lib_name =
       File.find_files(lib_path.file) match {
@@ -406,8 +379,7 @@ object SQLite
     Class.forName("org.sqlite.JDBC")
   }
 
-  def open_database(path: Path): Database =
-  {
+  def open_database(path: Path): Database = {
     init_jdbc
     val path0 = path.expand
     val s0 = File.platform_path(path0)
@@ -416,8 +388,7 @@ object SQLite
     new Database(path0.toString, connection)
   }
 
-  class Database private[SQLite](name: String, val connection: Connection) extends SQL.Database
-  {
+  class Database private[SQLite](name: String, val connection: Connection) extends SQL.Database {
     override def toString: String = name
 
     def sql_type(T: SQL.Type.Value): SQL.Source = SQL.sql_type_sqlite(T)
@@ -440,8 +411,7 @@ object SQLite
 
 /** PostgreSQL **/
 
-object PostgreSQL
-{
+object PostgreSQL {
   val default_port = 5432
 
   lazy val init_jdbc: Unit = Class.forName("org.postgresql.Driver")
@@ -453,8 +423,8 @@ object PostgreSQL
     host: String = "",
     port: Int = 0,
     ssh: Option[SSH.Session] = None,
-    ssh_close: Boolean = false): Database =
-  {
+    ssh_close: Boolean = false
+  ): Database = {
     init_jdbc
 
     if (user == "") error("Undefined database user")
@@ -487,9 +457,10 @@ object PostgreSQL
   }
 
   class Database private[PostgreSQL](
-      name: String, val connection: Connection, port_forwarding: Option[SSH.Port_Forwarding])
-    extends SQL.Database
-  {
+    name: String,
+    val connection: Connection,
+    port_forwarding: Option[SSH.Port_Forwarding]
+  ) extends SQL.Database {
     override def toString: String = name
 
     def sql_type(T: SQL.Type.Value): SQL.Source = SQL.sql_type_postgresql(T)
@@ -499,8 +470,7 @@ object PostgreSQL
       if (date == null) stmt.rep.setObject(i, null)
       else stmt.rep.setObject(i, OffsetDateTime.from(date.to(Date.timezone_utc).rep))
 
-    def date(res: SQL.Result, column: SQL.Column): Date =
-    {
+    def date(res: SQL.Result, column: SQL.Column): Date = {
       val obj = res.rep.getObject(column.name, classOf[OffsetDateTime])
       if (obj == null) null else Date.instant(obj.toInstant)
     }

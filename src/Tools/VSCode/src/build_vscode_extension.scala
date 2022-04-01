@@ -10,8 +10,7 @@ package isabelle.vscode
 import isabelle._
 
 
-object Build_VSCode
-{
+object Build_VSCode {
   /* build grammar */
 
   def default_logic: String = Isabelle_System.getenv("ISABELLE_LOGIC")
@@ -19,8 +18,8 @@ object Build_VSCode
   def build_grammar(options: Options, build_dir: Path,
     logic: String = default_logic,
     dirs: List[Path] = Nil,
-    progress: Progress = new Progress): Unit =
-  {
+    progress: Progress = new Progress
+  ): Unit = {
     val keywords =
       Sessions.base_info(options, logic, dirs = dirs).check.base.overall_syntax.keywords
 
@@ -141,8 +140,8 @@ object Build_VSCode
     target_dir: Path = Path.current,
     logic: String = default_logic,
     dirs: List[Path] = Nil,
-    progress: Progress = new Progress): Unit =
-  {
+    progress: Progress = new Progress
+  ): Unit = {
     Isabelle_System.require_command("node")
     Isabelle_System.require_command("yarn")
     Isabelle_System.require_command("vsce")
@@ -158,12 +157,10 @@ object Build_VSCode
     /* build */
 
     val vsix_name =
-      Isabelle_System.with_tmp_dir("build")(build_dir =>
-      {
+      Isabelle_System.with_tmp_dir("build") { build_dir =>
         val manifest_text = File.read(VSCode_Main.extension_dir + VSCode_Main.MANIFEST)
         val manifest_entries = split_lines(manifest_text).filter(_.nonEmpty)
-        val manifest_shasum: String =
-        {
+        val manifest_shasum: String = {
           val a = SHA1.digest(manifest_text).shasum("<MANIFEST>")
           val bs =
             for (entry <- manifest_entries)
@@ -188,7 +185,7 @@ object Build_VSCode
 
         Isabelle_System.copy_file(build_dir + Path.basic(vsix_name), component_dir)
         vsix_name
-      })
+      }
 
 
     /* settings */
@@ -217,13 +214,13 @@ It has been produced from the sources in $ISABELLE_HOME/src/Tools/extension/.
 
   val isabelle_tool =
     Isabelle_Tool("build_vscode_extension", "build Isabelle/VSCode extension module",
-      Scala_Project.here, args =>
-    {
-      var target_dir = Path.current
-      var dirs: List[Path] = Nil
-      var logic = default_logic
+      Scala_Project.here,
+      { args =>
+        var target_dir = Path.current
+        var dirs: List[Path] = Nil
+        var logic = default_logic
 
-      val getopts = Getopts("""
+        val getopts = Getopts("""
 Usage: isabelle build_vscode_extension
 
   Options are:
@@ -234,17 +231,17 @@ Usage: isabelle build_vscode_extension
 Build the Isabelle/VSCode extension as component, for inclusion into the
 local VSCodium configuration.
 """,
-        "D:" -> (arg => target_dir = Path.explode(arg)),
-        "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
-        "l:" -> (arg => logic = arg))
+          "D:" -> (arg => target_dir = Path.explode(arg)),
+          "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
+          "l:" -> (arg => logic = arg))
 
-      val more_args = getopts(args)
-      if (more_args.nonEmpty) getopts.usage()
+        val more_args = getopts(args)
+        if (more_args.nonEmpty) getopts.usage()
 
-      val options = Options.init()
-      val progress = new Console_Progress()
+        val options = Options.init()
+        val progress = new Console_Progress()
 
-      build_extension(options, target_dir = target_dir, logic = logic, dirs = dirs,
-        progress = progress)
-    })
+        build_extension(options, target_dir = target_dir, logic = logic, dirs = dirs,
+          progress = progress)
+      })
 }

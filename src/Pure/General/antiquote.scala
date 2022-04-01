@@ -7,8 +7,7 @@ Antiquotations within plain text.
 package isabelle
 
 
-object Antiquote
-{
+object Antiquote {
   sealed abstract class Antiquote { def source: String }
   case class Text(source: String) extends Antiquote
   case class Control(source: String) extends Antiquote
@@ -19,8 +18,7 @@ object Antiquote
 
   object Parsers extends Parsers
 
-  trait Parsers extends Scan.Parsers
-  {
+  trait Parsers extends Scan.Parsers {
     private val txt: Parser[String] =
       rep1(many1(s => !Symbol.is_control(s) && !Symbol.is_open(s) && s != "@") |
         "@" <~ guard(opt_term(one(s => s != "{")))) ^^ (x => x.mkString)
@@ -45,8 +43,7 @@ object Antiquote
 
   /* read */
 
-  def read(input: CharSequence): List[Antiquote] =
-  {
+  def read(input: CharSequence): List[Antiquote] = {
     Parsers.parseAll(Parsers.rep(Parsers.antiquote), Scan.char_reader(input)) match {
       case Parsers.Success(xs, _) => xs
       case Parsers.NoSuccess(_, next) =>
@@ -55,8 +52,7 @@ object Antiquote
     }
   }
 
-  def read_antiq_body(input: CharSequence): Option[String] =
-  {
+  def read_antiq_body(input: CharSequence): Option[String] = {
     read(input) match {
       case List(Antiq(source)) => Some(source.substring(2, source.length - 1))
       case _ => None

@@ -23,10 +23,8 @@ import javax.swing.SwingUtilities
 import org.gjt.sp.jedit.View
 
 
-private object Simplifier_Trace_Window
-{
-  sealed trait Trace_Tree
-  {
+private object Simplifier_Trace_Window {
+  sealed trait Trace_Tree {
     // FIXME replace with immutable tree builder
     var children: SortedMap[Long, Either[Simplifier_Trace.Item.Data, Elem_Tree]] = SortedMap.empty
     val serial: Long
@@ -39,8 +37,7 @@ private object Simplifier_Trace_Window
     }
   }
 
-  final class Root_Tree(val serial: Long) extends Trace_Tree
-  {
+  final class Root_Tree(val serial: Long) extends Trace_Tree {
     val parent = None
     val interesting = true
     val markup = ""
@@ -50,8 +47,7 @@ private object Simplifier_Trace_Window
   }
 
   final class Elem_Tree(data: Simplifier_Trace.Item.Data, val parent: Option[Trace_Tree])
-    extends Trace_Tree
-  {
+  extends Trace_Tree {
     val serial = data.serial
     val markup = data.markup
 
@@ -63,8 +59,7 @@ private object Simplifier_Trace_Window
     private def body_contains(regex: Regex, body: XML.Body): Boolean =
       body.exists(tree => regex.findFirstIn(XML.content(tree)).isDefined)
 
-    def format: Option[XML.Tree] =
-    {
+    def format: Option[XML.Tree] = {
       def format_hint(data: Simplifier_Trace.Item.Data): XML.Tree =
         Pretty.block(Pretty.separate(XML.Text(data.text) :: data.content))
 
@@ -94,8 +89,7 @@ private object Simplifier_Trace_Window
       case head :: tail =>
         lookup.get(head.parent) match {
           case Some(parent) =>
-            if (head.markup == Markup.SIMP_TRACE_HINT)
-            {
+            if (head.markup == Markup.SIMP_TRACE_HINT) {
               head.props match {
                 case Simplifier_Trace.Success(x)
                   if x ||
@@ -107,8 +101,7 @@ private object Simplifier_Trace_Window
               }
               walk_trace(tail, lookup)
             }
-            else if (head.markup == Markup.SIMP_TRACE_IGNORE)
-            {
+            else if (head.markup == Markup.SIMP_TRACE_IGNORE) {
               parent.parent match {
                 case None =>
                   Output.error_message(
@@ -118,8 +111,7 @@ private object Simplifier_Trace_Window
                   walk_trace(tail, lookup)
               }
             }
-            else
-            {
+            else {
               val entry = new Elem_Tree(head, Some(parent))
               parent.children += ((head.serial, Right(entry)))
               walk_trace(tail, lookup + (head.serial -> entry))
@@ -134,8 +126,10 @@ private object Simplifier_Trace_Window
 
 
 class Simplifier_Trace_Window(
-  view: View, snapshot: Document.Snapshot, trace: Simplifier_Trace.Trace) extends Frame
-{
+  view: View,
+  snapshot: Document.Snapshot,
+  trace: Simplifier_Trace.Trace
+) extends Frame {
   GUI_Thread.require {}
 
   private val pretty_text_area = new Pretty_Text_Area(view)
@@ -159,14 +153,12 @@ class Simplifier_Trace_Window(
   open()
   do_paint()
 
-  def do_update(): Unit =
-  {
+  def do_update(): Unit = {
     val xml = tree.format
     pretty_text_area.update(snapshot, Command.Results.empty, xml)
   }
 
-  def do_paint(): Unit =
-  {
+  def do_paint(): Unit = {
     GUI_Thread.later {
       pretty_text_area.resize(
         Font_Info.main(PIDE.options.real("jedit_font_scale") * zoom.factor / 100))

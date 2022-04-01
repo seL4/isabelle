@@ -7,8 +7,7 @@ Build Isabelle Scala component from official downloads.
 package isabelle
 
 
-object Build_Scala
-{
+object Build_Scala {
   /* downloads */
 
   sealed case class Download(
@@ -16,8 +15,8 @@ object Build_Scala
     version: String,
     url: String,
     physical_url: String = "",
-    base_version: String = "3")
-  {
+    base_version: String = "3"
+  ) {
     def make_url(template: String): String =
       template.replace("{V}", version).replace("{B}", base_version)
 
@@ -30,13 +29,12 @@ object Build_Scala
       Isabelle_System.download_file(proper_url, path, progress = progress)
 
     def get_unpacked(dir: Path, strip: Int = 0, progress: Progress = new Progress): Unit =
-      Isabelle_System.with_tmp_file("archive")(archive_path =>
-      {
+      Isabelle_System.with_tmp_file("archive"){ archive_path =>
         get(archive_path, progress = progress)
         progress.echo("Unpacking " + artifact)
-        Isabelle_System.gnutar("-xzf " + File.bash_path(archive_path),
-          dir = dir, strip = strip).check
-      })
+        Isabelle_System.gnutar(
+          "-xzf " + File.bash_path(archive_path), dir = dir, strip = strip).check
+      }
 
     def print: String =
       "  * " + name + " " + version +
@@ -68,8 +66,8 @@ object Build_Scala
 
   def build_scala(
     target_dir: Path = Path.current,
-    progress: Progress = new Progress): Unit =
-  {
+    progress: Progress = new Progress
+  ): Unit = {
     /* component */
 
     val component_name = main_download.name + "-" + main_download.version
@@ -91,8 +89,7 @@ object Build_Scala
 
     /* classpath */
 
-    val classpath: List[String] =
-    {
+    val classpath: List[String] = {
       def no_function(name: String): String = "function " + name + "() {\n:\n}"
       val script =
         cat_lines(List(
@@ -142,11 +139,11 @@ SCALA_INTERFACES="$SCALA_HOME/lib/""" + interfaces + """"
 
   val isabelle_tool =
     Isabelle_Tool("build_scala", "build Isabelle Scala component from official downloads",
-      Scala_Project.here, args =>
-    {
-      var target_dir = Path.current
+      Scala_Project.here,
+      { args =>
+        var target_dir = Path.current
 
-      val getopts = Getopts("""
+        val getopts = Getopts("""
 Usage: isabelle build_scala [OPTIONS]
 
   Options are:
@@ -154,13 +151,13 @@ Usage: isabelle build_scala [OPTIONS]
 
   Build Isabelle Scala component from official downloads.
 """,
-        "D:" -> (arg => target_dir = Path.explode(arg)))
+          "D:" -> (arg => target_dir = Path.explode(arg)))
 
-      val more_args = getopts(args)
-      if (more_args.nonEmpty) getopts.usage()
+        val more_args = getopts(args)
+        if (more_args.nonEmpty) getopts.usage()
 
-      val progress = new Console_Progress()
+        val progress = new Console_Progress()
 
-      build_scala(target_dir = target_dir, progress = progress)
-    })
+        build_scala(target_dir = target_dir, progress = progress)
+      })
 }

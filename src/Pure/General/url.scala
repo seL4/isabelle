@@ -14,8 +14,7 @@ import java.util.Locale
 import java.util.zip.GZIPInputStream
 
 
-object Url
-{
+object Url {
   /* special characters */
 
   def escape_special(c: Char): String =
@@ -32,8 +31,7 @@ object Url
 
   /* make and check URLs */
 
-  def apply(name: String): URL =
-  {
+  def apply(name: String): URL = {
     try { new URL(name) }
     catch { case _: MalformedURLException => error("Malformed URL " + quote(name)) }
   }
@@ -52,8 +50,7 @@ object Url
   def file_name(url: URL): String =
     Library.take_suffix[Char](c => c != '/' && c != '\\', url.getFile.toString.toList)._2.mkString
 
-  def trim_index(url: URL): URL =
-  {
+  def trim_index(url: URL): URL = {
     Library.try_unprefix("/index.html", url.toString) match {
       case Some(u) => Url(u)
       case None =>

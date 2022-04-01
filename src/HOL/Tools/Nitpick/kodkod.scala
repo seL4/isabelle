@@ -14,18 +14,15 @@ import org.antlr.runtime.{ANTLRInputStream, RecognitionException}
 import isabelle.kodkodi.{Context, KodkodiLexer, KodkodiParser}
 
 
-object Kodkod
-{
+object Kodkod {
   /** result **/
 
-  sealed case class Result(rc: Int, out: String, err: String)
-  {
+  sealed case class Result(rc: Int, out: String, err: String) {
     def ok: Boolean = rc == Process_Result.RC.ok
     def check: String =
       if (ok) out else error(if (err.isEmpty) "Error" else err)
 
-    def encode: XML.Body =
-    {
+    def encode: XML.Body = {
       import XML.Encode._
       triple(int, string, string)((rc, out, err))
     }
@@ -41,8 +38,8 @@ object Kodkod
     max_solutions: Int = Integer.MAX_VALUE,
     cleanup_inst: Boolean = false,
     timeout: Time = Time.zero,
-    max_threads: Int = 0): Result =
-  {
+    max_threads: Int = 0
+  ): Result = {
     /* executor */
 
     val pool_size = if (max_threads == 0) Isabelle_Thread.max_threads() else max_threads
@@ -60,8 +57,7 @@ object Kodkod
 
     class Exit extends Exception("EXIT")
 
-    class Exec_Context extends Context
-    {
+    class Exec_Context extends Context {
       private var rc = Process_Result.RC.ok
       private val out = new StringBuilder
       private val err = new StringBuilder
@@ -145,8 +141,7 @@ object Kodkod
       "solver: \"MiniSat\"\n" +
       File.read(Path.explode("$KODKODI/examples/weber3.kki"))).check
 
-  class Handler extends Session.Protocol_Handler
-  {
+  class Handler extends Session.Protocol_Handler {
     override def init(session: Session): Unit = warmup()
   }
 
@@ -154,13 +149,10 @@ object Kodkod
 
   /** scala function **/
 
-  object Fun extends Scala.Fun_String("kodkod", thread = true)
-  {
+  object Fun extends Scala.Fun_String("kodkod", thread = true) {
     val here = Scala_Project.here
-    def apply(args: String): String =
-    {
-      val (timeout, (solve_all, (max_solutions, (max_threads, kki)))) =
-      {
+    def apply(args: String): String = {
+      val (timeout, (solve_all, (max_solutions, (max_threads, kki)))) = {
         import XML.Decode._
         pair(int, pair(bool, pair(int, pair(int, string))))(YXML.parse_body(args))
       }

@@ -9,15 +9,13 @@ package isabelle
 import java.net.URL
 
 
-object JSON_API
-{
+object JSON_API {
   val mime_type = "application/vnd.api+json"
 
   def api_error(msg: String): Nothing = error("JSON API error: " + msg)
   def api_errors(msgs: List[String]): Nothing = error(("JSON API errors:" :: msgs).mkString("\n  "))
 
-  class Service(val url: URL)
-  {
+  class Service(val url: URL) {
     override def toString: String = url.toString
 
     def get(route: String): HTTP.Content =
@@ -27,8 +25,7 @@ object JSON_API
       Root(get(if (route.isEmpty) "" else "/" + route).json)
   }
 
-  sealed case class Root(json: JSON.T)
-  {
+  sealed case class Root(json: JSON.T) {
     def get_links: Option[Links] = JSON.value(json, "links").map(Links)
     def get_next: Option[Service] = get_links.flatMap(_.get_next)
 
@@ -48,8 +45,7 @@ object JSON_API
     def check_resource: Resource = check_data.resource
     def check_resources: List[Resource] = check_data.resources
 
-    def iterator: Iterator[Root] =
-    {
+    def iterator: Iterator[Root] = {
       val init = Some(this)
       new Iterator[Root] {
         private var state: Option[Root] = init
@@ -70,8 +66,7 @@ object JSON_API
     override def toString: String = "Root(" + (if (ok) "ok" else "errors") + ")"
   }
 
-  sealed case class Links(json: JSON.T)
-  {
+  sealed case class Links(json: JSON.T) {
     def get_next: Option[Service] =
       for {
         JSON.Value.String(next) <- JSON.value(json, "next")
@@ -82,8 +77,7 @@ object JSON_API
       if (get_next.isEmpty) "Links()" else "Links(next)"
   }
 
-  sealed case class Data(data: JSON.T, included: List[Resource])
-  {
+  sealed case class Data(data: JSON.T, included: List[Resource]) {
     def is_multi: Boolean = JSON.Value.List.unapply(data, Some(_)).nonEmpty
 
     def resource: Resource =
@@ -98,13 +92,11 @@ object JSON_API
       if (is_multi) "Data(resources)" else "Data(resource)"
   }
 
-  object Resource
-  {
+  object Resource {
     def some(json: JSON.T): Some[Resource] = Some(Resource(json))
   }
 
-  sealed case class Resource(json: JSON.T)
-  {
+  sealed case class Resource(json: JSON.T) {
     val id: JSON.T = JSON.value(json, "id") getOrElse api_error("missing id")
     val type_ : JSON.T = JSON.value(json, "type") getOrElse api_error("missing type")
     val fields: JSON.Object.T =
