@@ -72,6 +72,12 @@ longer. INCOMPATIBILITY.
     "sledgehammer_atp_problem_dest_dir", for problem files, and
     "sledgehammer_atp_proof_dest_dir", for proof files. Minor INCOMPATIBILITY.
   - Removed support for experimental prover 'z3_tptp'.
+  - The fastest successfully preplayed proof is always suggested.
+  - All SMT solvers but Z3 now resort to suggest (smt (verit)) when no proof
+    could be preplayed.
+  - Added new "some_preplayed" value to "expect" option to specify that some
+    successfully preplayed proof is expected. This is in contrast to the "some"
+    value which doesn't specify whether preplay succeeds or not.
 
 * Mirabelle:
   - Replaced sledgehammer option "keep" by
