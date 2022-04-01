@@ -10,8 +10,7 @@ package isabelle
 import scala.util.matching.Regex
 
 
-object Build_PolyML
-{
+object Build_PolyML {
   /** platform-specific build **/
 
   sealed case class Platform_Info(
@@ -42,8 +41,8 @@ object Build_PolyML
     progress: Progress = new Progress,
     arch_64: Boolean = false,
     options: List[String] = Nil,
-    mingw: MinGW = MinGW.none): Unit =
-  {
+    mingw: MinGW = MinGW.none
+  ): Unit = {
     if (!((root + Path.explode("configure")).is_file && (root + Path.explode("PolyML")).is_dir))
       error("Bad Poly/ML root directory: " + root)
 
@@ -65,8 +64,8 @@ object Build_PolyML
     def bash(
       cwd: Path, script: String,
       redirect: Boolean = false,
-      echo: Boolean = false): Process_Result =
-    {
+      echo: Boolean = false
+    ): Process_Result = {
       val script1 =
         if (platform.is_arm && platform.is_macos) {
           "arch -arch arm64 bash -c " + Bash.string(script)
@@ -146,8 +145,7 @@ object Build_PolyML
 
   /** skeleton for component **/
 
-  private def extract_sources(source_archive: Path, component_dir: Path): Unit =
-  {
+  private def extract_sources(source_archive: Path, component_dir: Path): Unit = {
     if (source_archive.get_ext == "zip") {
       Isabelle_System.bash(
         "unzip -x " + File.bash_path(source_archive.absolute), cwd = component_dir.file).check
@@ -181,8 +179,8 @@ not affect the running ML session. *)
   def build_polyml_component(
     source_archive: Path,
     component_dir: Path,
-    sha1_root: Option[Path] = None): Unit =
-  {
+    sha1_root: Option[Path] = None
+  ): Unit = {
     Isabelle_System.new_directory(component_dir)
     extract_sources(source_archive, component_dir)
 
@@ -203,8 +201,7 @@ not affect the running ML session. *)
   /** Isabelle tool wrappers **/
 
   val isabelle_tool1 =
-    Isabelle_Tool("build_polyml", "build Poly/ML from sources", Scala_Project.here, args =>
-    {
+    Isabelle_Tool("build_polyml", "build Poly/ML from sources", Scala_Project.here, args => {
       var mingw = MinGW.none
       var arch_64 = false
       var sha1_root: Option[Path] = None
@@ -242,8 +239,7 @@ Usage: isabelle build_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
 
   val isabelle_tool2 =
     Isabelle_Tool("build_polyml_component", "make skeleton for Poly/ML component",
-      Scala_Project.here, args =>
-    {
+      Scala_Project.here, args => {
       var sha1_root: Option[Path] = None
 
       val getopts = Getopts("""

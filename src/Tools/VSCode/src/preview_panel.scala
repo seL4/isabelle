@@ -12,17 +12,14 @@ import isabelle._
 import java.io.{File => JFile}
 
 
-class Preview_Panel(resources: VSCode_Resources)
-{
+class Preview_Panel(resources: VSCode_Resources) {
   private val pending = Synchronized(Map.empty[JFile, Int])
 
   def request(file: JFile, column: Int): Unit =
     pending.change(map => map + (file -> column))
 
-  def flush(channel: Channel): Boolean =
-  {
-    pending.change_result(map =>
-    {
+  def flush(channel: Channel): Boolean = {
+    pending.change_result(map => {
       val map1 =
         map.iterator.foldLeft(map) {
           case (m, (file, column)) =>

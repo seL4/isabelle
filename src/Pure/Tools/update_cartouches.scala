@@ -10,14 +10,12 @@ package isabelle
 import scala.util.matching.Regex
 
 
-object Update_Cartouches
-{
+object Update_Cartouches {
   /* update cartouches */
 
   val Text_Antiq: Regex = """(?s)@\{\s*text\b\s*(.+)\}""".r
 
-  def update_text(content: String): String =
-  {
+  def update_text(content: String): String = {
     (try { Some(Antiquote.read(content)) } catch { case ERROR(_) => None }) match {
       case Some(ants) =>
         val ants1: List[Antiquote.Antiquote] =
@@ -35,8 +33,7 @@ object Update_Cartouches
     }
   }
 
-  def update_cartouches(replace_text: Boolean, path: Path): Unit =
-  {
+  def update_cartouches(replace_text: Boolean, path: Path): Unit = {
     val text0 = File.read(path)
 
     // outer syntax cartouches
@@ -77,8 +74,8 @@ object Update_Cartouches
 
   val isabelle_tool =
     Isabelle_Tool("update_cartouches", "update theory syntax to use cartouches",
-      Scala_Project.here, args =>
-    {
+      Scala_Project.here,
+      args => {
       var replace_text = false
 
       val getopts = Getopts("""

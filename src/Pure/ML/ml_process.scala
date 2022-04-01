@@ -11,8 +11,7 @@ import java.util.{Map => JMap, HashMap}
 import java.io.{File => JFile}
 
 
-object ML_Process
-{
+object ML_Process {
   def apply(options: Options,
     sessions_structure: Sessions.Structure,
     store: Sessions.Store,
@@ -26,8 +25,8 @@ object ML_Process
     env: JMap[String, String] = Isabelle_System.settings(),
     redirect: Boolean = false,
     cleanup: () => Unit = () => (),
-    session_base: Option[Sessions.Base] = None): Bash.Process =
-  {
+    session_base: Option[Sessions.Base] = None
+  ): Bash.Process = {
     val logic_name = Isabelle_System.default_logic(logic)
 
     val heaps: List[String] =
@@ -101,8 +100,7 @@ object ML_Process
     // ISABELLE_TMP
     val isabelle_tmp = Isabelle_System.tmp_dir("process")
 
-    val ml_runtime_options =
-    {
+    val ml_runtime_options = {
       val ml_options = Word.explode(Isabelle_System.getenv("ML_OPTIONS"))
       val ml_options1 =
         if (ml_options.exists(_.containsSlice("gcthreads"))) ml_options
@@ -131,8 +129,7 @@ object ML_Process
       cwd = cwd,
       env = bash_env,
       redirect = redirect,
-      cleanup = () =>
-        {
+      cleanup = () => {
           isabelle_process_options.delete
           init_session.delete
           Isabelle_System.rm_tree(isabelle_tmp)
@@ -144,8 +141,7 @@ object ML_Process
   /* Isabelle tool wrapper */
 
   val isabelle_tool = Isabelle_Tool("process", "raw ML process (batch mode)",
-    Scala_Project.here, args =>
-  {
+    Scala_Project.here, args => {
     var dirs: List[Path] = Nil
     var eval_args: List[String] = Nil
     var logic = Isabelle_System.getenv("ISABELLE_LOGIC")

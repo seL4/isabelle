@@ -12,16 +12,15 @@ import java.util.HashMap
 import scala.collection.mutable
 
 
-object Build_Job
-{
+object Build_Job {
   /* theory markup/messages from database */
 
   def read_theory(
     db_context: Sessions.Database_Context,
     session_hierarchy: List[String],
     theory: String,
-    unicode_symbols: Boolean = false): Option[Command] =
-  {
+    unicode_symbols: Boolean = false
+  ): Option[Command] = {
     def read(name: String): Export.Entry =
       db_context.get_export(session_hierarchy, theory, name)
 
@@ -40,8 +39,7 @@ object Build_Job
               yield i -> elem)
 
         val blobs =
-          blobs_files.map(file =>
-          {
+          blobs_files.map(file => {
             val path = Path.explode(file)
             val name = Resources.file_node(path)
             val src_path = File.relative_path(node_name.master_dir_path, path).getOrElse(path)
@@ -91,16 +89,14 @@ object Build_Job
     margin: Double = Pretty.default_margin,
     breakgain: Double = Pretty.default_breakgain,
     metric: Pretty.Metric = Symbol.Metric,
-    unicode_symbols: Boolean = false): Unit =
-  {
+    unicode_symbols: Boolean = false
+  ): Unit = {
     val store = Sessions.store(options)
     val session = new Session(options, Resources.empty)
 
-    using(store.open_database_context())(db_context =>
-    {
+    using(store.open_database_context())(db_context => {
       val result =
-        db_context.input_database(session_name)((db, _) =>
-        {
+        db_context.input_database(session_name)((db, _) => {
           val theories = store.read_theories(db, session_name)
           val errors = store.read_errors(db, session_name)
           store.read_build(db, session_name).map(info => (theories, errors, info.return_code))
@@ -154,8 +150,7 @@ object Build_Job
   /* Isabelle tool wrapper */
 
   val isabelle_tool = Isabelle_Tool("log", "print messages from build database",
-    Scala_Project.here, args =>
-  {
+    Scala_Project.here, args => {
     /* arguments */
 
     var unicode_symbols = false
@@ -207,8 +202,8 @@ class Build_Job(progress: Progress,
   log: Logger,
   session_setup: (String, Session) => Unit,
   val numa_node: Option[Int],
-  command_timings0: List[Properties.T])
-{
+  command_timings0: List[Properties.T]
+) {
   val options: Options = NUMA.policy_options(info.options, numa_node)
 
   private val sessions_structure = deps.sessions_structure
@@ -240,8 +235,7 @@ class Build_Job(progress: Progress,
         new Session(options, resources) {
           override val cache: Term.Cache = store.cache
 
-          override def build_blobs_info(name: Document.Node.Name): Command.Blobs_Info =
-          {
+          override def build_blobs_info(name: Document.Node.Name): Command.Blobs_Info = {
             result_base.load_commands.get(name.expand) match {
               case Some(spans) =>
                 val syntax = result_base.theory_syntax(name)
@@ -251,14 +245,12 @@ class Build_Job(progress: Progress,
           }
         }
 
-      object Build_Session_Errors
-      {
+      object Build_Session_Errors {
         private val promise: Promise[List[String]] = Future.promise
 
         def result: Exn.Result[List[String]] = promise.join_result
         def cancel(): Unit = promise.cancel()
-        def apply(errs: List[String]): Unit =
-        {
+        def apply(errs: List[String]): Unit = {
           try { promise.fulfill(errs) }
           catch { case _: IllegalStateException => }
         }
@@ -279,8 +271,8 @@ class Build_Job(progress: Progress,
       def fun(
         name: String,
         acc: mutable.ListBuffer[Properties.T],
-        unapply: Properties.T => Option[Properties.T]): (String, Session.Protocol_Function) =
-      {
+        unapply: Properties.T => Option[Properties.T]
+      ): (String, Session.Protocol_Function) = {
         name -> ((msg: Prover.Protocol_Output) =>
           unapply(msg.properties) match {
             case Some(props) => acc += props; true
@@ -288,16 +280,13 @@ class Build_Job(progress: Progress,
           })
       }
 
-      session.init_protocol_handler(new Session.Protocol_Handler
-        {
+      session.init_protocol_handler(new Session.Protocol_Handler {
           override def exit(): Unit = Build_Session_Errors.cancel()
 
-          private def build_session_finished(msg: Prover.Protocol_Output): Boolean =
-          {
+          private def build_session_finished(msg: Prover.Protocol_Output): Boolean = {
             val (rc, errors) =
               try {
-                val (rc, errs) =
-                {
+                val (rc, errs) = {
                   import XML.Decode._
                   pair(int, list(x => x))(Symbol.decode_yxml(msg.text))
                 }
@@ -341,81 +330,76 @@ class Build_Job(progress: Progress,
               fun(Markup.Task_Statistics.name, task_statistics, Markup.Task_Statistics.unapply))
         })
 
-      session.command_timings += Session.Consumer("command_timings")
-        {
-          case Session.Command_Timing(props) =>
-            for {
-              elapsed <- Markup.Elapsed.unapply(props)
-              elapsed_time = Time.seconds(elapsed)
-              if elapsed_time.is_relevant && elapsed_time >= options.seconds("command_timing_threshold")
-            } command_timings += props.filter(Markup.command_timing_property)
-        }
+      session.command_timings += Session.Consumer("command_timings") {
+        case Session.Command_Timing(props) =>
+          for {
+            elapsed <- Markup.Elapsed.unapply(props)
+            elapsed_time = Time.seconds(elapsed)
+            if elapsed_time.is_relevant && elapsed_time >= options.seconds("command_timing_threshold")
+          } command_timings += props.filter(Markup.command_timing_property)
+      }
 
-      session.runtime_statistics += Session.Consumer("ML_statistics")
-        {
-          case Session.Runtime_Statistics(props) => runtime_statistics += props
-        }
+      session.runtime_statistics += Session.Consumer("ML_statistics") {
+        case Session.Runtime_Statistics(props) => runtime_statistics += props
+      }
 
-      session.finished_theories += Session.Consumer[Document.Snapshot]("finished_theories")
-        {
-          case snapshot =>
-            if (!progress.stopped) {
-              val rendering = new Rendering(snapshot, options, session)
+      session.finished_theories += Session.Consumer[Document.Snapshot]("finished_theories") {
+        case snapshot =>
+          if (!progress.stopped) {
+            val rendering = new Rendering(snapshot, options, session)
 
-              def export_(name: String, xml: XML.Body, compress: Boolean = true): Unit =
-              {
-                if (!progress.stopped) {
-                  val theory_name = snapshot.node_name.theory
-                  val args =
-                    Protocol.Export.Args(theory_name = theory_name, name = name, compress = compress)
-                  val bytes = Bytes(Symbol.encode(YXML.string_of_body(xml)))
-                  if (!bytes.is_empty) export_consumer(session_name, args, bytes)
-                }
+            def export_(name: String, xml: XML.Body, compress: Boolean = true): Unit = {
+              if (!progress.stopped) {
+                val theory_name = snapshot.node_name.theory
+                val args =
+                  Protocol.Export.Args(theory_name = theory_name, name = name, compress = compress)
+                val bytes = Bytes(Symbol.encode(YXML.string_of_body(xml)))
+                if (!bytes.is_empty) export_consumer(session_name, args, bytes)
               }
-              def export_text(name: String, text: String, compress: Boolean = true): Unit =
-                export_(name, List(XML.Text(text)), compress = compress)
-
-              for (command <- snapshot.snippet_command) {
-                export_text(Export.DOCUMENT_ID, command.id.toString, compress = false)
-              }
-
-              export_text(Export.FILES,
-                cat_lines(snapshot.node_files.map(_.symbolic.node)), compress = false)
-
-              for (((_, xml), i) <- snapshot.xml_markup_blobs().zipWithIndex) {
-                export_(Export.MARKUP + (i + 1), xml)
-              }
-              export_(Export.MARKUP, snapshot.xml_markup())
-              export_(Export.MESSAGES, snapshot.messages.map(_._1))
-
-              val citations = Library.distinct(rendering.citations(Text.Range.full).map(_.info))
-              export_text(Export.DOCUMENT_CITATIONS, cat_lines(citations))
             }
-        }
+            def export_text(name: String, text: String, compress: Boolean = true): Unit =
+              export_(name, List(XML.Text(text)), compress = compress)
 
-      session.all_messages += Session.Consumer[Any]("build_session_output")
-        {
-          case msg: Prover.Output =>
-            val message = msg.message
-            if (msg.is_system) resources.log(Protocol.message_text(message))
+            for (command <- snapshot.snippet_command) {
+              export_text(Export.DOCUMENT_ID, command.id.toString, compress = false)
+            }
 
-            if (msg.is_stdout) {
-              stdout ++= Symbol.encode(XML.content(message))
+            export_text(Export.FILES,
+              cat_lines(snapshot.node_files.map(_.symbolic.node)), compress = false)
+
+            for (((_, xml), i) <- snapshot.xml_markup_blobs().zipWithIndex) {
+              export_(Export.MARKUP + (i + 1), xml)
             }
-            else if (msg.is_stderr) {
-              stderr ++= Symbol.encode(XML.content(message))
-            }
-            else if (msg.is_exit) {
-              val err =
-                "Prover terminated" +
-                  (msg.properties match {
-                    case Markup.Process_Result(result) => ": " + result.print_rc
-                    case _ => ""
-                  })
-              Build_Session_Errors(List(err))
-            }
-          case _ =>
-        }
+            export_(Export.MARKUP, snapshot.xml_markup())
+            export_(Export.MESSAGES, snapshot.messages.map(_._1))
+
+            val citations = Library.distinct(rendering.citations(Text.Range.full).map(_.info))
+            export_text(Export.DOCUMENT_CITATIONS, cat_lines(citations))
+          }
+      }
+
+      session.all_messages += Session.Consumer[Any]("build_session_output") {
+        case msg: Prover.Output =>
+          val message = msg.message
+          if (msg.is_system) resources.log(Protocol.message_text(message))
+
+          if (msg.is_stdout) {
+            stdout ++= Symbol.encode(XML.content(message))
+          }
+          else if (msg.is_stderr) {
+            stderr ++= Symbol.encode(XML.content(message))
+          }
+          else if (msg.is_exit) {
+            val err =
+              "Prover terminated" +
+                (msg.properties match {
+                  case Markup.Process_Result(result) => ": " + result.print_rc
+                  case _ => ""
+                })
+            Build_Session_Errors(List(err))
+          }
+        case _ =>
+      }
 
       session_setup(session_name, session)
 
@@ -458,8 +442,7 @@ class Build_Job(progress: Progress,
       val (document_output, document_errors) =
         try {
           if (build_errors.isInstanceOf[Exn.Res[_]] && process_result.ok && info.documents.nonEmpty) {
-            using(store.open_database_context())(db_context =>
-              {
+            using(store.open_database_context())(db_context => {
                 val documents =
                   Document_Build.build_documents(
                     Document_Build.context(session_name, deps, db_context, progress = progress),
@@ -477,11 +460,9 @@ class Build_Job(progress: Progress,
           case Exn.Interrupt.ERROR(msg) => (Nil, List(msg))
         }
 
-      val result =
-      {
+      val result = {
         val theory_timing =
-          theory_timings.iterator.map(
-            { case props @ Markup.Name(name) => name -> props }).toMap
+          theory_timings.iterator.map({ case props @ Markup.Name(name) => name -> props }).toMap
         val used_theory_timings =
           for { (name, _) <- deps(session_name).used_theories }
             yield theory_timing.getOrElse(name.theory, Markup.Name(name.theory))
@@ -520,14 +501,12 @@ class Build_Job(progress: Progress,
   def terminate(): Unit = future_result.cancel()
   def is_finished: Boolean = future_result.is_finished
 
-  private val timeout_request: Option[Event_Timer.Request] =
-  {
+  private val timeout_request: Option[Event_Timer.Request] = {
     if (info.timeout_ignored) None
     else Some(Event_Timer.request(Time.now() + info.timeout) { terminate() })
   }
 
-  def join: (Process_Result, Option[String]) =
-  {
+  def join: (Process_Result, Option[String]) = {
     val result1 = future_result.join
 
     val was_timeout =

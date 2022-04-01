@@ -12,17 +12,14 @@ import java.time.format.DateTimeFormatter
 import java.util.{Properties => JProperties, Map => JMap}
 
 
-abstract class CI_Profile extends Isabelle_Tool.Body
-{
+abstract class CI_Profile extends Isabelle_Tool.Body {
   case class Result(rc: Int)
-  case object Result
-  {
+  case object Result {
     def ok: Result = Result(Process_Result.RC.ok)
     def error: Result = Result(Process_Result.RC.error)
   }
 
-  private def build(options: Options): (Build.Results, Time) =
-  {
+  private def build(options: Options): (Build.Results, Time) = {
     val progress = new Console_Progress(verbose = true)
     val start_time = Time.now()
     val results = progress.interrupt_handler {
@@ -41,13 +38,11 @@ abstract class CI_Profile extends Isabelle_Tool.Body
     (results, end_time - start_time)
   }
 
-  private def load_properties(): JProperties =
-  {
+  private def load_properties(): JProperties = {
     val props = new JProperties()
     val file_name = Isabelle_System.getenv("ISABELLE_CI_PROPERTIES")
 
-    if (file_name != "")
-    {
+    if (file_name != "") {
       val file = Path.explode(file_name).file
       if (file.exists())
         props.load(new java.io.FileReader(file))
@@ -57,8 +52,7 @@ abstract class CI_Profile extends Isabelle_Tool.Body
       props
   }
 
-  private def compute_timing(results: Build.Results, group: Option[String]): Timing =
-  {
+  private def compute_timing(results: Build.Results, group: Option[String]): Timing = {
     val timings = results.sessions.collect {
       case session if group.forall(results.info(session).groups.contains(_)) =>
         results(session).timing
@@ -66,8 +60,7 @@ abstract class CI_Profile extends Isabelle_Tool.Body
     timings.foldLeft(Timing.zero)(_ + _)
   }
 
-  private def with_documents(options: Options): Options =
-  {
+  private def with_documents(options: Options): Options = {
     if (documents)
       options
         .bool.update("browser_info", true)
@@ -90,8 +83,7 @@ abstract class CI_Profile extends Isabelle_Tool.Body
   final val start_time = Instant.now().atZone(ZoneId.systemDefault).format(DateTimeFormatter.RFC_1123_DATE_TIME)
 
 
-  override final def apply(args: List[String]): Unit =
-  {
+  override final def apply(args: List[String]): Unit = {
     print_section("CONFIGURATION")
     println(Build_Log.Settings.show())
     val props = load_properties()

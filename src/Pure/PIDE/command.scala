@@ -11,14 +11,11 @@ package isabelle
 import scala.collection.immutable.SortedMap
 
 
-object Command
-{
+object Command {
   /* blobs */
 
-  object Blob
-  {
-    def read_file(name: Document.Node.Name, src_path: Path): Blob =
-    {
+  object Blob {
+    def read_file(name: Document.Node.Name, src_path: Path): Blob = {
       val bytes = Bytes.read(name.path)
       val chunk = Symbol.Text_Chunk(bytes.text)
       Blob(name, src_path, Some((bytes.sha1_digest, chunk)))
@@ -28,16 +25,15 @@ object Command
   sealed case class Blob(
     name: Document.Node.Name,
     src_path: Path,
-    content: Option[(SHA1.Digest, Symbol.Text_Chunk)])
-  {
+    content: Option[(SHA1.Digest, Symbol.Text_Chunk)]
+  ) {
     def read_file: Bytes = Bytes.read(name.path)
 
     def chunk_file: Symbol.Text_Chunk.File =
       Symbol.Text_Chunk.File(name.node)
   }
 
-  object Blobs_Info
-  {
+  object Blobs_Info {
     val none: Blobs_Info = Blobs_Info(Nil)
 
     def errors(msgs: List[String]): Blobs_Info =
@@ -52,8 +48,7 @@ object Command
 
   /* results */
 
-  object Results
-  {
+  object Results {
     type Entry = (Long, XML.Elem)
     val empty: Results = new Results(SortedMap.empty)
     def make(args: IterableOnce[Results.Entry]): Results =
@@ -62,8 +57,7 @@ object Command
       args.iterator.foldLeft(empty)(_ ++ _)
   }
 
-  final class Results private(private val rep: SortedMap[Long, XML.Elem])
-  {
+  final class Results private(private val rep: SortedMap[Long, XML.Elem]) {
     def is_empty: Boolean = rep.isEmpty
     def defined(serial: Long): Boolean = rep.isDefinedAt(serial)
     def get(serial: Long): Option[XML.Elem] = rep.get(serial)
@@ -90,16 +84,14 @@ object Command
 
   /* exports */
 
-  object Exports
-  {
+  object Exports {
     type Entry = (Long, Export.Entry)
     val empty: Exports = new Exports(SortedMap.empty)
     def merge(args: IterableOnce[Exports]): Exports =
       args.iterator.foldLeft(empty)(_ ++ _)
   }
 
-  final class Exports private(private val rep: SortedMap[Long, Export.Entry])
-  {
+  final class Exports private(private val rep: SortedMap[Long, Export.Entry]) {
     def is_empty: Boolean = rep.isEmpty
     def iterator: Iterator[Exports.Entry] = rep.iterator
 
@@ -124,16 +116,14 @@ object Command
 
   /* markups */
 
-  object Markup_Index
-  {
+  object Markup_Index {
     val markup: Markup_Index = Markup_Index(false, Symbol.Text_Chunk.Default)
     def blob(blob: Blob): Markup_Index = Markup_Index(false, blob.chunk_file)
   }
 
   sealed case class Markup_Index(status: Boolean, chunk_name: Symbol.Text_Chunk.Name)
 
-  object Markups
-  {
+  object Markups {
     type Entry = (Markup_Index, Markup_Tree)
     val empty: Markups = new Markups(Map.empty)
     def init(markup: Markup_Tree): Markups = new Markups(Map(Markup_Index.markup -> markup))
@@ -143,8 +133,7 @@ object Command
       args.iterator.foldLeft(empty)(_ ++ _)
   }
 
-  final class Markups private(private val rep: Map[Markup_Index, Markup_Tree])
-  {
+  final class Markups private(private val rep: Map[Markup_Index, Markup_Tree]) {
     def is_empty: Boolean = rep.isEmpty
 
     def apply(index: Markup_Index): Markup_Tree =
@@ -153,8 +142,7 @@ object Command
     def add(index: Markup_Index, markup: Text.Markup): Markups =
       new Markups(rep + (index -> (this(index) + markup)))
 
-    def + (entry: Markups.Entry): Markups =
-    {
+    def + (entry: Markups.Entry): Markups = {
       val (index, tree) = entry
       new Markups(rep + (index -> (this(index).merge(tree, Text.Range.full, Markup.Elements.full))))
     }
@@ -168,8 +156,7 @@ object Command
       for (Markup_Index(_, Symbol.Text_Chunk.Id(id)) <- rep.keysIterator)
         yield id
 
-    def redirect(other_id: Document_ID.Generic): Markups =
-    {
+    def redirect(other_id: Document_ID.Generic): Markups = {
       val rep1 =
         (for {
           (Markup_Index(status, Symbol.Text_Chunk.Id(id)), markup) <- rep.iterator
@@ -190,8 +177,7 @@ object Command
 
   /* state */
 
-  object State
-  {
+  object State {
     def get_result(states: List[State], serial: Long): Option[XML.Elem] =
       states.find(st => st.results.defined(serial)).map(st => st.results.get(serial).get)
 
@@ -225,14 +211,13 @@ object Command
     status: List[Markup] = Nil,
     results: Results = Results.empty,
     exports: Exports = Exports.empty,
-    markups: Markups = Markups.empty)
-  {
+    markups: Markups = Markups.empty
+  ) {
     def initialized: Boolean = status.exists(markup => markup.name == Markup.INITIALIZED)
     def consolidating: Boolean = status.exists(markup => markup.name == Markup.CONSOLIDATING)
     def consolidated: Boolean = status.exists(markup => markup.name == Markup.CONSOLIDATED)
 
-    lazy val maybe_consolidated: Boolean =
-    {
+    lazy val maybe_consolidated: Boolean = {
       var touched = false
       var forks = 0
       var runs = 0
@@ -248,8 +233,7 @@ object Command
       touched && forks == 0 && runs == 0
     }
 
-    lazy val document_status: Document_Status.Command_Status =
-    {
+    lazy val document_status: Document_Status.Command_Status = {
       val warnings =
         if (results.iterator.exists(p => Protocol.is_warning(p._2) || Protocol.is_legacy(p._2)))
           List(Markup(Markup.WARNING, Nil))
@@ -263,8 +247,7 @@ object Command
 
     def markup(index: Markup_Index): Markup_Tree = markups(index)
 
-    def redirect(other_command: Command): Option[State] =
-    {
+    def redirect(other_command: Command): Option[State] = {
       val markups1 = markups.redirect(other_command.id)
       if (markups1.is_empty) None
       else Some(new State(other_command, markups = markups1))
@@ -281,8 +264,10 @@ object Command
       else None
 
     private def add_markup(
-      status: Boolean, chunk_name: Symbol.Text_Chunk.Name, m: Text.Markup): State =
-    {
+      status: Boolean,
+      chunk_name: Symbol.Text_Chunk.Name,
+      m: Text.Markup
+    ): State = {
       val markups1 =
         if (status || Document_Status.Command_Status.liberal_elements(m.info.name))
           markups.add(Markup_Index(true, chunk_name), m)
@@ -385,8 +370,8 @@ object Command
     id: Document_ID.Command,
     node_name: Document.Node.Name,
     blobs_info: Blobs_Info,
-    span: Command_Span.Span): Command =
-  {
+    span: Command_Span.Span
+  ): Command = {
     val (source, span1) = span.compact_source
     new Command(id, node_name, blobs_info, span1, source, Results.empty, Markups.empty)
   }
@@ -401,8 +386,8 @@ object Command
     node_name: Document.Node.Name = Document.Node.Name.empty,
     blobs_info: Blobs_Info = Blobs_Info.none,
     results: Results = Results.empty,
-    markups: Markups = Markups.empty): Command =
-  {
+    markups: Markups = Markups.empty
+  ): Command = {
     val (source1, span1) = Command_Span.unparsed(source, theory).compact_source
     new Command(id, node_name, blobs_info, span1, source1, results, markups)
   }
@@ -418,17 +403,16 @@ object Command
 
   type Edit = (Option[Command], Option[Command])
 
-  object Perspective
-  {
+  object Perspective {
     val empty: Perspective = Perspective(Nil)
   }
 
-  sealed case class Perspective(commands: List[Command])  // visible commands in canonical order
-  {
+  sealed case class Perspective(
+    commands: List[Command]  // visible commands in canonical order
+  ) {
     def is_empty: Boolean = commands.isEmpty
 
-    def same(that: Perspective): Boolean =
-    {
+    def same(that: Perspective): Boolean = {
       val cmds1 = this.commands
       val cmds2 = that.commands
       require(!cmds1.exists(_.is_undefined), "cmds1 not defined")
@@ -447,8 +431,8 @@ object Command
     get_blob: Document.Node.Name => Option[Document.Blob],
     can_import: Document.Node.Name => Boolean,
     node_name: Document.Node.Name,
-    span: Command_Span.Span): Blobs_Info =
-  {
+    span: Command_Span.Span
+  ): Blobs_Info = {
     span.name match {
       // inlined errors
       case Thy_Header.THEORY =>
@@ -491,8 +475,8 @@ object Command
   def build_blobs_info(
     syntax: Outer_Syntax,
     node_name: Document.Node.Name,
-    load_commands: List[Command_Span.Span]): Blobs_Info =
-  {
+    load_commands: List[Command_Span.Span]
+  ): Blobs_Info = {
     val blobs =
       for {
         span <- load_commands
@@ -511,14 +495,14 @@ object Command
 
 
 final class Command private(
-    val id: Document_ID.Command,
-    val node_name: Document.Node.Name,
-    val blobs_info: Command.Blobs_Info,
-    val span: Command_Span.Span,
-    val source: String,
-    val init_results: Command.Results,
-    val init_markups: Command.Markups)
-{
+  val id: Document_ID.Command,
+  val node_name: Document.Node.Name,
+  val blobs_info: Command.Blobs_Info,
+  val span: Command_Span.Span,
+  val source: String,
+  val init_results: Command.Results,
+  val init_markups: Command.Markups
+) {
   override def toString: String = id.toString + "/" + span.kind.toString
 
 
@@ -593,9 +577,9 @@ final class Command private(
 
   /* reported positions */
 
-  def reported_position(pos: Position.T)
-    : Option[(Document_ID.Generic, Symbol.Text_Chunk.Name, Option[Symbol.Range])] =
-  {
+  def reported_position(
+    pos: Position.T
+  ) : Option[(Document_ID.Generic, Symbol.Text_Chunk.Name, Option[Symbol.Range])] = {
     pos match {
       case Position.Id(id) =>
         val chunk_name =
@@ -613,8 +597,8 @@ final class Command private(
     self_id: Document_ID.Generic => Boolean,
     chunk_name: Symbol.Text_Chunk.Name,
     chunk: Symbol.Text_Chunk,
-    message: XML.Elem): Set[Text.Range] =
-  {
+    message: XML.Elem
+  ): Set[Text.Range] = {
     def elem(props: Properties.T, set: Set[Text.Range]): Set[Text.Range] =
       reported_position(props) match {
         case Some((id, name, reported_range)) if self_id(id) && name == chunk_name =>

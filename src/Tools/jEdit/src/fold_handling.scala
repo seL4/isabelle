@@ -18,12 +18,10 @@ import scala.jdk.CollectionConverters._
 import org.gjt.sp.jedit.buffer.{JEditBuffer, FoldHandler}
 
 
-object Fold_Handling
-{
+object Fold_Handling {
   /* input: dynamic line context  */
 
-  class Fold_Handler extends FoldHandler("isabelle")
-  {
+  class Fold_Handler extends FoldHandler("isabelle") {
     override def equals(other: Any): Boolean =
       other match {
         case that: Fold_Handler => true
@@ -34,8 +32,10 @@ object Fold_Handling
       Token_Markup.Line_Context.after(buffer, line).structure.depth max 0
 
     override def getPrecedingFoldLevels(
-      buffer: JEditBuffer, line: Int, seg: Segment, level: Int): JList[Integer] =
-    {
+      buffer: JEditBuffer,
+      line: Int,
+      seg: Segment, level: Int
+    ): JList[Integer] = {
       val structure = Token_Markup.Line_Context.after(buffer, line).structure
       val result =
         if (line > 0 && structure.command)
@@ -52,16 +52,14 @@ object Fold_Handling
   /* output: static document rendering */
 
   class Document_Fold_Handler(private val rendering: JEdit_Rendering)
-    extends FoldHandler("isabelle-document")
-  {
+  extends FoldHandler("isabelle-document") {
     override def equals(other: Any): Boolean =
       other match {
         case that: Document_Fold_Handler => this.rendering == that.rendering
         case _ => false
       }
 
-    override def getFoldLevel(buffer: JEditBuffer, line: Int, seg: Segment): Int =
-    {
+    override def getFoldLevel(buffer: JEditBuffer, line: Int, seg: Segment): Int = {
       def depth(i: Text.Offset): Int =
         if (i < 0) 0
         else {

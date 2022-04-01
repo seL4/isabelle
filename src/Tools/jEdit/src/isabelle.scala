@@ -24,8 +24,7 @@ import org.gjt.sp.jedit.gui.{DockableWindowManager, CompleteWord}
 import org.jedit.options.CombinedOptions
 
 
-object Isabelle
-{
+object Isabelle {
   /* editor modes */
 
   val modes =
@@ -79,8 +78,7 @@ object Isabelle
 
   def mode_token_marker(mode: String): Option[TokenMarker] = mode_markers.get(mode)
 
-  def buffer_token_marker(buffer: Buffer): Option[TokenMarker] =
-  {
+  def buffer_token_marker(buffer: Buffer): Option[TokenMarker] = {
     val mode = JEdit_Lib.buffer_mode(buffer)
     if (mode == "isabelle") Some(new Token_Markup.Marker(mode, Some(buffer)))
     else mode_token_marker(mode)
@@ -207,8 +205,7 @@ object Isabelle
   def reset_continuous_checking(): Unit = { continuous_checking = false }
   def toggle_continuous_checking(): Unit = { continuous_checking = !continuous_checking }
 
-  class Continuous_Checking extends CheckBox("Continuous checking")
-  {
+  class Continuous_Checking extends CheckBox("Continuous checking") {
     tooltip = "Continuous checking of proof document (visible and required parts)"
     reactions += { case ButtonClicked(_) => continuous_checking = selected }
     def load(): Unit = { selected = continuous_checking }
@@ -232,8 +229,7 @@ object Isabelle
   /* full screen */
 
   // see toggleFullScreen() method in jEdit/org/gjt/sp/jedit/View.java
-  def toggle_full_screen(view: View): Unit =
-  {
+  def toggle_full_screen(view: View): Unit = {
     if (PIDE.options.bool("jedit_toggle_full_screen") ||
         Untyped.get[Boolean](view, "fullScreenMode")) view.toggleFullScreen()
     else {
@@ -271,8 +267,7 @@ object Isabelle
     buffer.getStringProperty("autoIndent") == "full" &&
     PIDE.options.bool(option)
 
-  def indent_input(text_area: TextArea): Unit =
-  {
+  def indent_input(text_area: TextArea): Unit = {
     val buffer = text_area.getBuffer
     val line = text_area.getCaretLine
     val caret = text_area.getCaretPosition
@@ -292,8 +287,7 @@ object Isabelle
     }
   }
 
-  def newline(text_area: TextArea): Unit =
-  {
+  def newline(text_area: TextArea): Unit = {
     if (!text_area.isEditable()) text_area.getToolkit().beep()
     else {
       val buffer = text_area.getBuffer
@@ -324,8 +318,7 @@ object Isabelle
     }
   }
 
-  def insert_line_padding(text_area: JEditTextArea, text: String): Unit =
-  {
+  def insert_line_padding(text_area: JEditTextArea, text: String): Unit = {
     val buffer = text_area.getBuffer
     JEdit_Lib.buffer_edit(buffer) {
       val text1 =
@@ -347,8 +340,8 @@ object Isabelle
     text_area: TextArea,
     padding: Boolean,
     id: Document_ID.Generic,
-    text: String): Unit =
-  {
+    text: String
+  ): Unit = {
     val buffer = text_area.getBuffer
     if (!snapshot.is_outdated && text != "") {
       (snapshot.find_command(id), Document_Model.get(buffer)) match {
@@ -385,8 +378,7 @@ object Isabelle
 
   /* formal entities */
 
-  def goto_entity(view: View): Unit =
-  {
+  def goto_entity(view: View): Unit = {
     val text_area = view.getTextArea
     for {
       doc_view <- Document_View.get(text_area)
@@ -396,8 +388,7 @@ object Isabelle
     } link.info.follow(view)
   }
 
-  def select_entity(text_area: JEditTextArea): Unit =
-  {
+  def select_entity(text_area: JEditTextArea): Unit = {
     for (doc_view <- Document_View.get(text_area)) {
       val rendering = doc_view.get_rendering()
       val caret_range = JEdit_Lib.caret_range(text_area)
@@ -438,8 +429,7 @@ object Isabelle
 
   /* block styles */
 
-  private def enclose_input(text_area: JEditTextArea, s1: String, s2: String): Unit =
-  {
+  private def enclose_input(text_area: JEditTextArea, s1: String, s2: String): Unit = {
     s1.foreach(text_area.userInput)
     s2.foreach(text_area.userInput)
     s2.foreach(_ => text_area.goToPrevCharacter(false))
@@ -454,8 +444,7 @@ object Isabelle
 
   /* antiquoted cartouche */
 
-  def antiquoted_cartouche(text_area: TextArea): Unit =
-  {
+  def antiquoted_cartouche(text_area: TextArea): Unit = {
     val buffer = text_area.getBuffer
     for {
       doc_view <- Document_View.get(text_area)
@@ -485,8 +474,7 @@ object Isabelle
 
   /* spell-checker dictionary */
 
-  def update_dictionary(text_area: JEditTextArea, include: Boolean, permanent: Boolean): Unit =
-  {
+  def update_dictionary(text_area: JEditTextArea, include: Boolean, permanent: Boolean): Unit = {
     for {
       spell_checker <- PIDE.plugin.spell_checker.get
       doc_view <- Document_View.get(text_area)
@@ -499,10 +487,8 @@ object Isabelle
     }
   }
 
-  def reset_dictionary(): Unit =
-  {
-    for (spell_checker <- PIDE.plugin.spell_checker.get)
-    {
+  def reset_dictionary(): Unit = {
+    for (spell_checker <- PIDE.plugin.spell_checker.get) {
       spell_checker.reset()
       JEdit_Lib.jedit_views().foreach(_.repaint())
     }
@@ -511,8 +497,7 @@ object Isabelle
 
   /* debugger */
 
-  def toggle_breakpoint(text_area: JEditTextArea): Unit =
-  {
+  def toggle_breakpoint(text_area: JEditTextArea): Unit = {
     GUI_Thread.require {}
 
     if (PIDE.session.debugger.is_active()) {
@@ -528,8 +513,7 @@ object Isabelle
 
   /* plugin options */
 
-  def plugin_options(frame: Frame): Unit =
-  {
+  def plugin_options(frame: Frame): Unit = {
     GUI_Thread.require {}
     jEdit.setProperty("Plugin Options.last", "isabelle-general")
     new CombinedOptions(frame, 1)
@@ -538,8 +522,7 @@ object Isabelle
 
   /* popups */
 
-  def dismissed_popups(view: View): Boolean =
-  {
+  def dismissed_popups(view: View): Boolean = {
     var dismissed = false
 
     JEdit_Lib.jedit_text_areas(view).foreach(text_area =>
@@ -553,8 +536,7 @@ object Isabelle
 
   /* tooltips */
 
-  def show_tooltip(view: View, control: Boolean): Unit =
-  {
+  def show_tooltip(view: View, control: Boolean): Unit = {
     GUI_Thread.require {}
 
     val text_area = view.getTextArea
@@ -579,8 +561,9 @@ object Isabelle
     view: View,
     range: Text.Range,
     avoid_range: Text.Range = Text.Range.offside,
-    which: String = "")(get: List[Text.Markup] => Option[Text.Markup]): Unit =
-  {
+    which: String = "")(
+    get: List[Text.Markup] => Option[Text.Markup]
+  ): Unit = {
     GUI_Thread.require {}
 
     val text_area = view.getTextArea
@@ -602,15 +585,13 @@ object Isabelle
   def goto_last_error(view: View): Unit =
     goto_error(view, JEdit_Lib.buffer_range(view.getBuffer))(_.lastOption)
 
-  def goto_prev_error(view: View): Unit =
-  {
+  def goto_prev_error(view: View): Unit = {
     val caret_range = JEdit_Lib.caret_range(view.getTextArea)
     val range = Text.Range(0, caret_range.stop)
     goto_error(view, range, avoid_range = caret_range, which = "previous ")(_.lastOption)
   }
 
-  def goto_next_error(view: View): Unit =
-  {
+  def goto_next_error(view: View): Unit = {
     val caret_range = JEdit_Lib.caret_range(view.getTextArea)
     val range = Text.Range(caret_range.start, view.getBuffer.getLength)
     goto_error(view, range, avoid_range = caret_range, which = "next ")(_.headOption)

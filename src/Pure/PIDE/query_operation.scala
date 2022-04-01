@@ -8,17 +8,14 @@ document overlays.
 package isabelle
 
 
-object Query_Operation
-{
-  object Status extends Enumeration
-  {
+object Query_Operation {
+  object Status extends Enumeration {
     val WAITING = Value("waiting")
     val RUNNING = Value("running")
     val FINISHED = Value("finished")
   }
 
-  object State
-  {
+  object State {
     val empty: State = State()
 
     def make(command: Command, query: List[String]): State =
@@ -43,8 +40,8 @@ class Query_Operation[Editor_Context](
   editor_context: Editor_Context,
   operation_name: String,
   consume_status: Query_Operation.Status.Value => Unit,
-  consume_output: (Document.Snapshot, Command.Results, XML.Body) => Unit)
-{
+  consume_output: (Document.Snapshot, Command.Results, XML.Body) => Unit
+) {
   private val print_function = operation_name + "_query"
 
 
@@ -54,8 +51,7 @@ class Query_Operation[Editor_Context](
 
   def get_location: Option[Command] = current_state.value.location
 
-  private def remove_overlay(): Unit =
-  {
+  private def remove_overlay(): Unit = {
     val state = current_state.value
     for (command <- state.location) {
       editor.remove_overlay(command, print_function, state.instance :: state.query)
@@ -65,8 +61,7 @@ class Query_Operation[Editor_Context](
 
   /* content update */
 
-  private def content_update(): Unit =
-  {
+  private def content_update(): Unit = {
     editor.require_dispatcher {}
 
 
@@ -94,8 +89,7 @@ class Query_Operation[Editor_Context](
 
     /* resolve sendback: static command id */
 
-    def resolve_sendback(body: XML.Body): XML.Body =
-    {
+    def resolve_sendback(body: XML.Body): XML.Body = {
       state0.location match {
         case None => body
         case Some(command) =>
@@ -176,8 +170,7 @@ class Query_Operation[Editor_Context](
   def cancel_query(): Unit =
     editor.require_dispatcher { editor.session.cancel_exec(current_state.value.exec_id) }
 
-  def apply_query(query: List[String]): Unit =
-  {
+  def apply_query(query: List[String]): Unit = {
     editor.require_dispatcher {}
 
     editor.current_node_snapshot(editor_context) match {
@@ -200,8 +193,7 @@ class Query_Operation[Editor_Context](
     }
   }
 
-  def locate_query(): Unit =
-  {
+  def locate_query(): Unit = {
     editor.require_dispatcher {}
 
     val state = current_state.value
@@ -229,13 +221,11 @@ class Query_Operation[Editor_Context](
         }
     }
 
-  def activate(): Unit =
-  {
+  def activate(): Unit = {
     editor.session.commands_changed += main
   }
 
-  def deactivate(): Unit =
-  {
+  def deactivate(): Unit = {
     editor.session.commands_changed -= main
     remove_overlay()
     current_state.change(_ => Query_Operation.State.empty)

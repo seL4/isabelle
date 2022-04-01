@@ -12,8 +12,7 @@ import isabelle._
 import java.util.zip.ZipFile
 
 
-object VSCode_Main
-{
+object VSCode_Main {
   /* vscodium command-line interface */
 
   def server_log_path: Path =
@@ -32,8 +31,8 @@ object VSCode_Main
     server_log: Boolean = false,
     verbose: Boolean = false,
     background: Boolean = false,
-    progress: Progress = new Progress): Process_Result =
-  {
+    progress: Progress = new Progress
+): Process_Result = {
     def platform_path(s: String): String = File.platform_path(Path.explode(s))
 
     val args_json =
@@ -82,8 +81,7 @@ object VSCode_Main
 
   val MANIFEST: Path = Path.explode("MANIFEST")
 
-  private def shasum_vsix(vsix_path: Path): String =
-  {
+  private def shasum_vsix(vsix_path: Path): String = {
     val name = "extension/MANIFEST.shasum"
     def err(): Nothing = error("Cannot retrieve " + quote(name) + " from " + vsix_path)
     if (vsix_path.is_file) {
@@ -100,14 +98,12 @@ object VSCode_Main
     else err()
   }
 
-  private def shasum_dir(dir: Path): Option[String] =
-  {
+  private def shasum_dir(dir: Path): Option[String] = {
     val path = dir + MANIFEST.shasum
     if (path.is_file) Some(File.read(path)) else None
   }
 
-  def locate_extension(): Option[Path] =
-  {
+  def locate_extension(): Option[Path] = {
     val out = run_vscodium(List("--locate-extension", extension_name)).check.out
     if (out.nonEmpty) Some(Path.explode(File.standard_path(out))) else None
   }
@@ -122,8 +118,8 @@ object VSCode_Main
 
   def install_extension(
     vsix_path: Path = default_vsix_path,
-    progress: Progress = new Progress): Unit =
-  {
+    progress: Progress = new Progress
+  ): Unit = {
     val new_shasum = shasum_vsix(vsix_path)
     val old_shasum = locate_extension().flatMap(shasum_dir)
     val current = old_shasum.isDefined && old_shasum.get == new_shasum
@@ -159,8 +155,7 @@ object VSCode_Main
   }
 """
 
-  def init_settings(): Unit =
-  {
+  def init_settings(): Unit = {
     if (!settings_path.is_file) {
       Isabelle_System.make_directory(settings_path.dir)
       File.write(settings_path, default_settings)
@@ -171,8 +166,8 @@ object VSCode_Main
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("vscode", "Isabelle/VSCode interface wrapper", Scala_Project.here, args =>
-    {
+    Isabelle_Tool("vscode", "Isabelle/VSCode interface wrapper", Scala_Project.here,
+      args => {
       var logic_ancestor = ""
       var console = false
       var edit_extension = false

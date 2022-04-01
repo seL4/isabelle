@@ -12,19 +12,16 @@ import scala.annotation.tailrec
 import scala.collection.mutable
 
 
-object Mercurial
-{
+object Mercurial {
   type Graph = isabelle.Graph[String, Unit]
 
 
   /* HTTP server */
 
-  object Server
-  {
+  object Server {
     def apply(root: String): Server = new Server(root)
 
-    def start(root: Path): Server =
-    {
+    def start(root: Path): Server = {
       val hg = repository(root)
 
       val server_process = Future.promise[Bash.Process]
@@ -46,8 +43,7 @@ object Mercurial
     }
   }
 
-  class Server private(val root: String) extends AutoCloseable
-  {
+  class Server private(val root: String) extends AutoCloseable {
     override def toString: String = root
 
     def close(): Unit = ()
@@ -70,11 +66,9 @@ object Mercurial
     def download_archive(rev: String = "tip", progress: Progress = new Progress): HTTP.Content =
       Isabelle_System.download(archive(rev = rev), progress = progress)
 
-    def download_dir(dir: Path, rev: String = "tip", progress: Progress = new Progress): Unit =
-    {
+    def download_dir(dir: Path, rev: String = "tip", progress: Progress = new Progress): Unit = {
       Isabelle_System.new_directory(dir)
-      Isabelle_System.with_tmp_file("rev", ext = ".tar.gz")(archive_path =>
-      {
+      Isabelle_System.with_tmp_file("rev", ext = ".tar.gz")(archive_path => {
         val content = download_archive(rev = rev, progress = progress)
         Bytes.write(archive_path, content.bytes)
         progress.echo("Unpacking " + rev + ".tar.gz")
@@ -100,14 +94,12 @@ object Mercurial
   private val Archive_Node = """^node: (\S{12}).*$""".r
   private val Archive_Tag = """^tag: (\S+).*$""".r
 
-  sealed case class Archive_Info(lines: List[String])
-  {
+  sealed case class Archive_Info(lines: List[String]) {
     def id: Option[String] = lines.collectFirst({ case Archive_Node(a) => a })
     def tags: List[String] = for (Archive_Tag(tag) <- lines if tag != "tip") yield tag
   }
 
-  def archive_info(root: Path): Option[Archive_Info] =
-  {
+  def archive_info(root: Path): Option[Archive_Info] = {
     val path = root + Path.explode(".hg_archival.txt")
     if (path.is_file) Some(Archive_Info(Library.trim_split_lines(File.read(path)))) else None
   }
@@ -125,15 +117,13 @@ object Mercurial
     ssh.is_dir(root + Path.explode(".hg")) &&
     new Repository(root, ssh).command("root").ok
 
-  def repository(root: Path, ssh: SSH.System = SSH.Local): Repository =
-  {
+  def repository(root: Path, ssh: SSH.System = SSH.Local): Repository = {
     val hg = new Repository(root, ssh)
     hg.command("root").check
     hg
   }
 
-  def find_repository(start: Path, ssh: SSH.System = SSH.Local): Option[Repository] =
-  {
+  def find_repository(start: Path, ssh: SSH.System = SSH.Local): Option[Repository] = {
     @tailrec def find(root: Path): Option[Repository] =
       if (is_repository(root, ssh)) Some(repository(root, ssh = ssh))
       else if (root.is_root) None
@@ -142,9 +132,12 @@ object Mercurial
     find(ssh.expand_path(start))
   }
 
-  private def make_repository(root: Path, cmd: String, args: String, ssh: SSH.System = SSH.Local)
-    : Repository =
-  {
+  private def make_repository(
+    root: Path,
+    cmd: String,
+    args: String,
+    ssh: SSH.System = SSH.Local
+  ) : Repository = {
     val hg = new Repository(root, ssh)
     ssh.make_directory(hg.root.dir)
     hg.command(cmd, args, repository = false).check
@@ -159,14 +152,12 @@ object Mercurial
     make_repository(root, "clone",
       options + " " + Bash.string(source) + " " + ssh.bash_path(root) + opt_rev(rev), ssh = ssh)
 
-  def setup_repository(source: String, root: Path, ssh: SSH.System = SSH.Local): Repository =
-  {
+  def setup_repository(source: String, root: Path, ssh: SSH.System = SSH.Local): Repository = {
     if (ssh.is_dir(root)) { val hg = repository(root, ssh = ssh); hg.pull(remote = source); hg }
     else clone_repository(source, root, options = "--noupdate", ssh = ssh)
   }
 
-  class Repository private[Mercurial](root_path: Path, ssh: SSH.System = SSH.Local)
-  {
+  class Repository private[Mercurial](root_path: Path, ssh: SSH.System = SSH.Local) {
     hg =>
 
     val root: Path = ssh.expand_path(root_path)
@@ -174,18 +165,23 @@ object Mercurial
 
     override def toString: String = ssh.hg_url + root.implode
 
-    def command_line(name: String, args: String = "", options: String = "",
-      repository: Boolean = true): String =
-    {
+    def command_line(
+      name: String,
+      args: String = "",
+      options: String = "",
+      repository: Boolean = true
+    ): String = {
       "export LANG=C HGPLAIN=\n\"${HG:-hg}\" --config " + Bash.string("defaults." + name + "=") +
         (if (repository) " --repository " + ssh.bash_path(root) else "") +
         " --noninteractive " + name + " " + options + " " + args
     }
 
     def command(
-      name: String, args: String = "", options: String = "",
-      repository: Boolean = true):  Process_Result =
-    {
+      name: String,
+      args: String = "",
+      options: String = "",
+      repository: Boolean = true
+    ): Process_Result = {
       ssh.execute(command_line(name, args = args, options = options, repository = repository))
     }
 
@@ -203,8 +199,7 @@ object Mercurial
 
     def id(rev: String = "tip"): String = identify(rev, options = "-i")
 
-    def tags(rev: String = "tip"): String =
-    {
+    def tags(rev: String = "tip"): String = {
       val result = identify(rev, options = "-t")
       Library.space_explode(' ', result).filterNot(_ == "tip").mkString(" ")
     }
@@ -221,8 +216,11 @@ object Mercurial
     def parent(): String = log(rev = "p1()", template = "{node|short}")
 
     def push(
-      remote: String = "", rev: String = "", force: Boolean = false, options: String = ""): Unit =
-    {
+      remote: String = "",
+      rev: String = "",
+      force: Boolean = false,
+      options: String = ""
+    ): Unit = {
       hg.command("push", opt_rev(rev) + opt_flag("--force", force) + optional(remote), options).
         check_rc(rc => rc == 0 | rc == 1)
     }
@@ -231,8 +229,11 @@ object Mercurial
       hg.command("pull", opt_rev(rev) + optional(remote), options).check
 
     def update(
-      rev: String = "", clean: Boolean = false, check: Boolean = false, options: String = ""): Unit =
-    {
+      rev: String = "",
+      clean: Boolean = false,
+      check: Boolean = false,
+      options: String = ""
+    ): Unit = {
       hg.command("update",
         opt_rev(rev) + opt_flag("--clean", clean) + opt_flag("--check", check), options).check
     }
@@ -240,8 +241,7 @@ object Mercurial
     def known_files(): List[String] =
       hg.command("status", options = "--modified --added --clean --no-status").check.out_lines
 
-    def graph(): Graph =
-    {
+    def graph(): Graph = {
       val Node = """^node: (\w{12}) (\w{12}) (\w{12})""".r
       val log_result =
         log(template = """node: {node|short} {p1node|short} {p2node|short}\n""")
@@ -258,13 +258,11 @@ object Mercurial
 
   /* check files */
 
-  def check_files(files: List[Path], ssh: SSH.System = SSH.Local): (List[Path], List[Path]) =
-  {
+  def check_files(files: List[Path], ssh: SSH.System = SSH.Local): (List[Path], List[Path]) = {
     val outside = new mutable.ListBuffer[Path]
     val unknown = new mutable.ListBuffer[Path]
 
-    @tailrec def check(paths: List[Path]): Unit =
-    {
+    @tailrec def check(paths: List[Path]): Unit = {
       paths match {
         case path :: rest =>
           find_repository(path, ssh) match {
@@ -287,15 +285,13 @@ object Mercurial
 
   /* setup remote vs. local repository */
 
-  private def edit_hgrc(local_hg: Repository, path_name: String, source: String): Unit =
-  {
+  private def edit_hgrc(local_hg: Repository, path_name: String, source: String): Unit = {
     val hgrc = local_hg.root + Path.explode(".hg/hgrc")
     def header(line: String): Boolean = line.startsWith("[paths]")
     val Entry = """^(\S+)\s*=\s*(.*)$""".r
     val new_entry = path_name + " = " + source
 
-    def commit(lines: List[String]): Boolean =
-    {
+    def commit(lines: List[String]): Boolean = {
       File.write(hgrc, cat_lines(lines))
       true
     }
@@ -332,8 +328,8 @@ object Mercurial
     remote_name: String = "",
     path_name: String = default_path_name,
     remote_exists: Boolean = false,
-    progress: Progress = new Progress): Unit =
-  {
+    progress: Progress = new Progress
+  ): Unit = {
     /* local repository */
 
     Isabelle_System.make_directory(local_path)
@@ -401,8 +397,7 @@ object Mercurial
 
   val isabelle_tool =
     Isabelle_Tool("hg_setup", "setup remote vs. local Mercurial repository",
-      Scala_Project.here, args =>
-    {
+      Scala_Project.here, args => {
       var remote_name = ""
       var path_name = default_path_name
       var remote_exists = false

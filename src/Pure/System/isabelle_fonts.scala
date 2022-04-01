@@ -11,8 +11,7 @@ package isabelle
 import java.awt.{Font, GraphicsEnvironment}
 
 
-object Isabelle_Fonts
-{
+object Isabelle_Fonts {
   /* standard names */
 
   val mono: String = "Isabelle DejaVu Sans Mono"
@@ -22,10 +21,8 @@ object Isabelle_Fonts
 
   /* environment entries */
 
-  object Entry
-  {
-    object Ordering extends scala.math.Ordering[Entry]
-    {
+  object Entry {
+    object Ordering extends scala.math.Ordering[Entry] {
       def compare(entry1: Entry, entry2: Entry): Int =
         entry1.family compare entry2.family match {
           case 0 => entry1.style compare entry2.style
@@ -34,8 +31,7 @@ object Isabelle_Fonts
     }
   }
 
-  sealed case class Entry(path: Path, hidden: Boolean = false)
-  {
+  sealed case class Entry(path: Path, hidden: Boolean = false) {
     lazy val bytes: Bytes = Bytes.read(path)
     lazy val font: Font = Font.createFont(Font.TRUETYPE_FONT, path.file)
 
@@ -56,8 +52,8 @@ object Isabelle_Fonts
 
   def make_entries(
     getenv: String => String = Isabelle_System.getenv_strict(_),
-    hidden: Boolean = false): List[Entry] =
-  {
+    hidden: Boolean = false
+  ): List[Entry] = {
     Path.split(getenv("ISABELLE_FONTS")).map(Entry(_)) :::
     (if (hidden) Path.split(getenv("ISABELLE_FONTS_HIDDEN")).map(Entry(_, hidden = true)) else Nil)
   }
@@ -71,8 +67,7 @@ object Isabelle_Fonts
 
   /* system init */
 
-  def init(): Unit =
-  {
+  def init(): Unit = {
     val ge = GraphicsEnvironment.getLocalGraphicsEnvironment()
     for (entry <- fonts()) ge.registerFont(entry.font)
   }

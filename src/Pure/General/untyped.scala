@@ -10,17 +10,14 @@ package isabelle
 import java.lang.reflect.{Constructor, Method, Field}
 
 
-object Untyped
-{
-  def constructor[C](c: Class[C], arg_types: Class[_]*): Constructor[C] =
-  {
+object Untyped {
+  def constructor[C](c: Class[C], arg_types: Class[_]*): Constructor[C] = {
     val con = c.getDeclaredConstructor(arg_types: _*)
     con.setAccessible(true)
     con
   }
 
-  def method(c: Class[_], name: String, arg_types: Class[_]*): Method =
-  {
+  def method(c: Class[_], name: String, arg_types: Class[_]*): Method = {
     val m = c.getDeclaredMethod(name, arg_types: _*)
     m.setAccessible(true)
     m
@@ -36,8 +33,7 @@ object Untyped
     }
   }
 
-  def field(obj: AnyRef, x: String): Field =
-  {
+  def field(obj: AnyRef, x: String): Field = {
     val iterator =
       for {
         c <- classes(obj)

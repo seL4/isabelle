@@ -18,8 +18,7 @@ import java.awt.event.{ComponentEvent, ComponentAdapter}
 import org.gjt.sp.jedit.View
 
 
-class Output_Dockable(view: View, position: String) extends Dockable(view, position)
-{
+class Output_Dockable(view: View, position: String) extends Dockable(view, position) {
   /* component state -- owned by GUI thread */
 
   private var do_update = true
@@ -34,16 +33,14 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   override def detach_operation: Option[() => Unit] = pretty_text_area.detach_operation
 
 
-  private def handle_resize(): Unit =
-  {
+  private def handle_resize(): Unit = {
     GUI_Thread.require {}
 
     pretty_text_area.resize(
       Font_Info.main(PIDE.options.real("jedit_font_scale") * zoom.factor / 100))
   }
 
-  private def handle_update(follow: Boolean, restriction: Option[Set[Command]]): Unit =
-  {
+  private def handle_update(follow: Boolean, restriction: Option[Set[Command]]): Unit = {
     GUI_Thread.require {}
 
     for {
@@ -72,8 +69,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   /* controls */
 
   private def output_state: Boolean = PIDE.options.bool("editor_output_state")
-  private def output_state_=(b: Boolean): Unit =
-  {
+  private def output_state_=(b: Boolean): Unit = {
     if (output_state != b) {
       PIDE.options.bool("editor_output_state") = b
       PIDE.session.update_options(PIDE.options.value)
@@ -82,8 +78,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
     }
   }
 
-  private val output_state_button = new CheckBox("Proof state")
-  {
+  private val output_state_button = new CheckBox("Proof state") {
     tooltip = "Output of proof state (normally shown on State panel)"
     reactions += { case ButtonClicked(_) => output_state = selected }
     selected = output_state
@@ -130,16 +125,14 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
         GUI_Thread.later { handle_update(do_update, None) }
     }
 
-  override def init(): Unit =
-  {
+  override def init(): Unit = {
     PIDE.session.global_options += main
     PIDE.session.commands_changed += main
     PIDE.session.caret_focus += main
     handle_update(true, None)
   }
 
-  override def exit(): Unit =
-  {
+  override def exit(): Unit = {
     PIDE.session.global_options -= main
     PIDE.session.commands_changed -= main
     PIDE.session.caret_focus -= main

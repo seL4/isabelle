@@ -11,8 +11,7 @@ import scala.util.parsing.input.Reader
 import scala.util.matching.Regex
 
 
-object Thy_Header
-{
+object Thy_Header {
   /* bootstrap keywords */
 
   type Keywords = List[(String, Keyword.Spec)]
@@ -114,8 +113,7 @@ object Thy_Header
   def bootstrap_name(theory: String): String =
     bootstrap_thys.collectFirst({ case (a, b) if a == theory => b }).getOrElse(theory)
 
-  def try_read_dir(dir: Path): List[String] =
-  {
+  def try_read_dir(dir: Path): List[String] = {
     val files =
       try { File.read_dir(dir) }
       catch { case ERROR(_) => Nil }
@@ -125,10 +123,8 @@ object Thy_Header
 
   /* parser */
 
-  trait Parser extends Parse.Parser
-  {
-    val header: Parser[Thy_Header] =
-    {
+  trait Parser extends Parse.Parser {
+    val header: Parser[Thy_Header] = {
       val load_command =
         ($$$("(") ~! (position(name) <~ $$$(")")) ^^ { case _ ~ x => x }) |
           success(("", Position.none))
@@ -183,8 +179,7 @@ object Thy_Header
 
   /* read -- lazy scanning */
 
-  private def read_tokens(reader: Reader[Char], strict: Boolean): (List[Token], List[Token]) =
-  {
+  private def read_tokens(reader: Reader[Char], strict: Boolean): (List[Token], List[Token]) = {
     val token = Token.Parsers.token(bootstrap_keywords)
     def make_tokens(in: Reader[Char]): LazyList[Token] =
       token(in) match {
@@ -204,8 +199,7 @@ object Thy_Header
     (drop_tokens, tokens1 ::: tokens2)
   }
 
-  private object Parser extends Parser
-  {
+  private object Parser extends Parser {
     def parse_header(tokens: List[Token], pos: Token.Pos): Thy_Header =
       parse(commit(header), Token.reader(tokens, pos)) match {
         case Success(result, _) => result
@@ -215,8 +209,8 @@ object Thy_Header
 
   def read(node_name: Document.Node.Name, reader: Reader[Char],
     command: Boolean = true,
-    strict: Boolean = true): Thy_Header =
-  {
+    strict: Boolean = true
+  ): Thy_Header = {
     val (_, tokens0) = read_tokens(reader, true)
     val text = Scan.reader_decode_utf8(reader, Token.implode(tokens0))
 
@@ -234,16 +228,15 @@ sealed case class Thy_Header(
   pos: Position.T,
   imports: List[(String, Position.T)],
   keywords: Thy_Header.Keywords,
-  abbrevs: Thy_Header.Abbrevs)
-{
+  abbrevs: Thy_Header.Abbrevs
+) {
   def map(f: String => String): Thy_Header =
     Thy_Header(f(name), pos,
       imports.map({ case (a, b) => (f(a), b) }),
       keywords.map({ case (a, spec) => (f(a), spec.map(f)) }),
       abbrevs.map({ case (a, b) => (f(a), f(b)) }))
 
-  def check(node_name: Document.Node.Name): Thy_Header =
-  {
+  def check(node_name: Document.Node.Name): Thy_Header = {
     val base_name = node_name.theory_base_name
     if (Long_Name.is_qualified(name)) {
       error("Bad theory name " + quote(name) + " with qualification" + Position.here(pos))

@@ -7,15 +7,14 @@ Update theory sources based on PIDE markup.
 package isabelle
 
 
-object Update
-{
+object Update {
   def update(options: Options, logic: String,
     progress: Progress = new Progress,
     log: Logger = No_Logger,
     dirs: List[Path] = Nil,
     select_dirs: List[Path] = Nil,
-    selection: Sessions.Selection = Sessions.Selection.empty): Unit =
-  {
+    selection: Sessions.Selection = Sessions.Selection.empty
+  ): Unit = {
     val context =
       Dump.Context(options, progress = progress, dirs = dirs, select_dirs = select_dirs,
         selection = selection, skip_base = true)
@@ -38,24 +37,23 @@ object Update
         case t => List(t)
       }
 
-    context.sessions(logic, log = log).foreach(_.process((args: Dump.Args) =>
-      {
-        progress.echo("Processing theory " + args.print_node + " ...")
+    context.sessions(logic, log = log).foreach(_.process((args: Dump.Args) => {
+      progress.echo("Processing theory " + args.print_node + " ...")
 
-        val snapshot = args.snapshot
-        for (node_name <- snapshot.node_files) {
-          val node = snapshot.get_node(node_name)
-          val xml =
-            snapshot.state.xml_markup(snapshot.version, node_name,
-              elements = Markup.Elements(Markup.UPDATE, Markup.LANGUAGE))
+      val snapshot = args.snapshot
+      for (node_name <- snapshot.node_files) {
+        val node = snapshot.get_node(node_name)
+        val xml =
+          snapshot.state.xml_markup(snapshot.version, node_name,
+            elements = Markup.Elements(Markup.UPDATE, Markup.LANGUAGE))
 
-          val source1 = Symbol.encode(XML.content(update_xml(xml)))
-          if (source1 != Symbol.encode(node.source)) {
-            progress.echo("Updating " + node_name.path)
-            File.write(node_name.path, source1)
-          }
+        val source1 = Symbol.encode(XML.content(update_xml(xml)))
+        if (source1 != Symbol.encode(node.source)) {
+          progress.echo("Updating " + node_name.path)
+          File.write(node_name.path, source1)
         }
-      }))
+      }
+    }))
 
     context.check_errors
   }
@@ -65,8 +63,7 @@ object Update
 
   val isabelle_tool =
     Isabelle_Tool("update", "update theory sources based on PIDE markup", Scala_Project.here,
-      args =>
-    {
+      args => {
       var base_sessions: List[String] = Nil
       var select_dirs: List[Path] = Nil
       var requirements = false

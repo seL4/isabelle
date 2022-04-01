@@ -19,8 +19,7 @@ import java.io.{InputStream, OutputStream, Reader, Writer, InputStreamReader, Ou
 import scala.io.{Codec, BufferedSource}
 
 
-object Isabelle_Encoding
-{
+object Isabelle_Encoding {
   def is_active(buffer: JEditBuffer): Boolean =
     buffer.getStringProperty(JEditBuffer.ENCODING).asInstanceOf[String] == "UTF-8-Isabelle"
 
@@ -28,12 +27,10 @@ object Isabelle_Encoding
     if (is_active(buffer)) Symbol.decode(s) else s
 }
 
-class Isabelle_Encoding extends Encoding
-{
+class Isabelle_Encoding extends Encoding {
   private val BUFSIZE = 32768
 
-  private def text_reader(in: InputStream, codec: Codec, strict: Boolean): Reader =
-  {
+  private def text_reader(in: InputStream, codec: Codec, strict: Boolean): Reader = {
     val source = (new BufferedSource(in)(codec)).mkString
 
     if (strict && Codepoint.iterator(source).exists(Symbol.symbols.code_defined))
@@ -45,19 +42,16 @@ class Isabelle_Encoding extends Encoding
   override def getTextReader(in: InputStream): Reader =
     text_reader(in, UTF8.codec(), true)
 
-  override def getPermissiveTextReader(in: InputStream): Reader =
-  {
+  override def getPermissiveTextReader(in: InputStream): Reader = {
     val codec = UTF8.codec()
     codec.onMalformedInput(CodingErrorAction.REPLACE)
     codec.onUnmappableCharacter(CodingErrorAction.REPLACE)
     text_reader(in, codec, false)
   }
 
-  override def getTextWriter(out: OutputStream): Writer =
-  {
+  override def getTextWriter(out: OutputStream): Writer = {
     val buffer = new ByteArrayOutputStream(BUFSIZE) {
-      override def flush(): Unit =
-      {
+      override def flush(): Unit = {
         val text = Symbol.encode(toString(UTF8.charset_name))
         out.write(UTF8.bytes(text))
         out.flush()

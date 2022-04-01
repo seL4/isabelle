@@ -7,12 +7,10 @@ Support for exceptions (arbitrary throwables).
 package isabelle
 
 
-object Exn
-{
+object Exn {
   /* user errors */
 
-  class User_Error(message: String) extends RuntimeException(message)
-  {
+  class User_Error(message: String) extends RuntimeException(message) {
     override def equals(that: Any): Boolean =
       that match {
         case other: User_Error => message == other.getMessage
@@ -23,8 +21,7 @@ object Exn
     override def toString: String = "\n" + Output.error_message_text(message)
   }
 
-  object ERROR
-  {
+  object ERROR {
     def apply(message: String): User_Error = new User_Error(message)
     def unapply(exn: Throwable): Option[String] = user_message(exn)
   }
@@ -40,8 +37,7 @@ object Exn
 
   /* exceptions as values */
 
-  sealed abstract class Result[A]
-  {
+  sealed abstract class Result[A] {
     def user_error: Result[A] =
       this match {
         case Exn(ERROR(msg)) => Exn(ERROR(msg))
@@ -86,10 +82,8 @@ object Exn
     try { Res(e) }
     catch { case exn: Throwable if !is_interrupt(exn) => Exn[A](exn) }
 
-  object Interrupt
-  {
-    object ERROR
-    {
+  object Interrupt {
+    object ERROR {
       def unapply(exn: Throwable): Option[String] =
         if (is_interrupt(exn)) Some(message(exn)) else user_message(exn)
     }
@@ -106,16 +100,13 @@ object Exn
   /* message */
 
   def user_message(exn: Throwable): Option[String] =
-    if (exn.isInstanceOf[User_Error] || exn.getClass == classOf[RuntimeException])
-    {
+    if (exn.isInstanceOf[User_Error] || exn.getClass == classOf[RuntimeException]) {
       Some(proper_string(exn.getMessage) getOrElse "Error")
     }
-    else if (exn.isInstanceOf[java.sql.SQLException])
-    {
+    else if (exn.isInstanceOf[java.sql.SQLException]) {
       Some(proper_string(exn.getMessage) getOrElse "SQL error")
     }
-    else if (exn.isInstanceOf[java.io.IOException])
-    {
+    else if (exn.isInstanceOf[java.io.IOException]) {
       val msg = exn.getMessage
       Some(if (msg == null || msg == "") "I/O error" else "I/O error: " + msg)
     }

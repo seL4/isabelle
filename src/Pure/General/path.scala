@@ -15,8 +15,7 @@ import java.nio.file.{Path => JPath}
 import scala.util.matching.Regex
 
 
-object Path
-{
+object Path {
   /* path elements */
 
   sealed abstract class Elem
@@ -95,8 +94,7 @@ object Path
 
   /* explode */
 
-  def explode(str: String): Path =
-  {
+  def explode(str: String): Path = {
     def explode_elem(s: String): Elem =
       try {
         if (s == "..") Parent
@@ -148,8 +146,7 @@ object Path
 
   /* case-insensitive names */
 
-  def check_case_insensitive(paths: List[Path]): Unit =
-  {
+  def check_case_insensitive(paths: List[Path]): Unit = {
     val table =
       paths.foldLeft(Multi_Map.empty[String, String]) { case (tab, path) =>
         val name = path.expand.implode
@@ -164,8 +161,9 @@ object Path
 }
 
 
-final class Path private(protected val elems: List[Path.Elem]) // reversed elements
-{
+final class Path private(
+  protected val elems: List[Path.Elem]  // reversed elements
+) {
   override def hashCode: Int = elems.hashCode
   override def equals(that: Any): Boolean =
     that match {
@@ -237,14 +235,12 @@ final class Path private(protected val elems: List[Path.Elem]) // reversed eleme
   def patch: Path = ext("patch")
   def shasum: Path = ext("shasum")
 
-  def backup: Path =
-  {
+  def backup: Path = {
     val (prfx, s) = split_path
     prfx + Path.basic(s + "~")
   }
 
-  def backup2: Path =
-  {
+  def backup2: Path = {
     val (prfx, s) = split_path
     prfx + Path.basic(s + "~~")
   }
@@ -254,8 +250,7 @@ final class Path private(protected val elems: List[Path.Elem]) // reversed eleme
 
   private val Ext = new Regex("(.*)\\.([^.]*)")
 
-  def split_ext: (Path, String) =
-  {
+  def split_ext: (Path, String) = {
     val (prefix, base) = split_path
     base match {
       case Ext(b, e) => (prefix + Path.basic(b), e)
@@ -271,8 +266,7 @@ final class Path private(protected val elems: List[Path.Elem]) // reversed eleme
 
   /* expand */
 
-  def expand_env(env: JMap[String, String]): Path =
-  {
+  def expand_env(env: JMap[String, String]): Path = {
     def eval(elem: Path.Elem): List[Path.Elem] =
       elem match {
         case Path.Variable(s) =>
@@ -293,8 +287,7 @@ final class Path private(protected val elems: List[Path.Elem]) // reversed eleme
 
   /* implode wrt. given directories */
 
-  def implode_symbolic: String =
-  {
+  def implode_symbolic: String = {
     val directories =
       Library.space_explode(':', Isabelle_System.getenv("ISABELLE_DIRECTORIES")).reverse
     val full_name = expand.implode

@@ -12,12 +12,10 @@ import isabelle._
 import org.gjt.sp.jedit.{jEdit, AbstractOptionPane}
 
 
-abstract class Isabelle_Options(name: String) extends AbstractOptionPane(name)
-{
+abstract class Isabelle_Options(name: String) extends AbstractOptionPane(name) {
   protected val components: List[(String, List[Option_Component])]
 
-  override def _init(): Unit =
-  {
+  override def _init(): Unit = {
     val dummy_property = "options.isabelle.dummy"
 
     for ((s, cs) <- components) {
@@ -30,15 +28,13 @@ abstract class Isabelle_Options(name: String) extends AbstractOptionPane(name)
     }
   }
 
-  override def _save(): Unit =
-  {
+  override def _save(): Unit = {
     for ((_, cs) <- components) cs.foreach(_.save())
   }
 }
 
 
-class Isabelle_Options1 extends Isabelle_Options("isabelle-general")
-{
+class Isabelle_Options1 extends Isabelle_Options("isabelle-general") {
   val options: JEdit_Options = PIDE.options
 
   private val predefined =
@@ -51,8 +47,7 @@ class Isabelle_Options1 extends Isabelle_Options("isabelle-general")
 }
 
 
-class Isabelle_Options2 extends Isabelle_Options("isabelle-rendering")
-{
+class Isabelle_Options2 extends Isabelle_Options("isabelle-rendering") {
   private val predefined =
     (for {
       (name, opt) <- PIDE.options.value.options.toList

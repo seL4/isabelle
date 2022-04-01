@@ -17,8 +17,7 @@ import java.io.{File => JFile, BufferedInputStream, FileInputStream, InputStream
 import java.net.URL
 
 
-object Scan
-{
+object Scan {
   /** context of partial line-oriented scans **/
 
   abstract class Line_Context
@@ -35,8 +34,7 @@ object Scan
 
   object Parsers extends Parsers
 
-  trait Parsers extends RegexParsers
-  {
+  trait Parsers extends RegexParsers {
     override val whiteSpace: Regex = "".r
 
 
@@ -49,10 +47,8 @@ object Scan
     /* repeated symbols */
 
     def repeated(pred: Symbol.Symbol => Boolean, min_count: Int, max_count: Int): Parser[String] =
-      new Parser[String]
-      {
-        def apply(in: Input) =
-        {
+      new Parser[String] {
+        def apply(in: Input) = {
           val start = in.offset
           val end = in.source.length
           val matcher = new Symbol.Matcher(in.source)
@@ -91,19 +87,16 @@ object Scan
 
     /* quoted strings */
 
-    private def quoted_body(quote: Symbol.Symbol): Parser[String] =
-    {
+    private def quoted_body(quote: Symbol.Symbol): Parser[String] = {
       rep(many1(sym => sym != quote && sym != "\\") | "\\" + quote | "\\\\" |
         ("""\\\d\d\d""".r ^? { case x if x.substring(1, 4).toInt <= 255 => x })) ^^ (_.mkString)
     }
 
-    def quoted(quote: Symbol.Symbol): Parser[String] =
-    {
+    def quoted(quote: Symbol.Symbol): Parser[String] = {
       quote ~ quoted_body(quote) ~ quote ^^ { case x ~ y ~ z => x + y + z }
     }.named("quoted")
 
-    def quoted_content(quote: Symbol.Symbol, source: String): String =
-    {
+    def quoted_content(quote: Symbol.Symbol, source: String): String = {
       require(parseAll(quoted(quote), source).successful, "no quoted text")
       val body = source.substring(1, source.length - 1)
       if (body.exists(_ == '\\')) {
@@ -115,8 +108,7 @@ object Scan
       else body
     }
 
-    def quoted_line(quote: Symbol.Symbol, ctxt: Line_Context): Parser[(String, Line_Context)] =
-    {
+    def quoted_line(quote: Symbol.Symbol, ctxt: Line_Context): Parser[(String, Line_Context)] = {
       ctxt match {
         case Finished =>
           quote ~ quoted_body(quote) ~ opt_term(quote) ^^
@@ -136,12 +128,10 @@ object Scan
 
     /* nested text cartouches */
 
-    def cartouche_depth(depth: Int): Parser[(String, Int)] = new Parser[(String, Int)]
-    {
+    def cartouche_depth(depth: Int): Parser[(String, Int)] = new Parser[(String, Int)] {
       require(depth >= 0, "bad cartouche depth")
 
-      def apply(in: Input) =
-      {
+      def apply(in: Input) = {
         val start = in.offset
         val end = in.source.length
         val matcher = new Symbol.Matcher(in.source)
@@ -165,8 +155,7 @@ object Scan
     def cartouche: Parser[String] =
       cartouche_depth(0) ^? { case (x, d) if d == 0 => x }
 
-    def cartouche_line(ctxt: Line_Context): Parser[(String, Line_Context)] =
-    {
+    def cartouche_line(ctxt: Line_Context): Parser[(String, Line_Context)] = {
       def cartouche_context(d: Int): Line_Context =
         if (d == 0) Finished else Cartouche(d)
 
@@ -182,8 +171,7 @@ object Scan
     val recover_cartouche: Parser[String] =
       cartouche_depth(0) ^^ (_._1)
 
-    def cartouche_content(source: String): String =
-    {
+    def cartouche_content(source: String): String = {
       def err(): Nothing = error("Malformed text cartouche: " + quote(source))
       val source1 =
         Library.try_unprefix(Symbol.open_decoded, source) orElse
@@ -195,18 +183,15 @@ object Scan
 
     /* nested comments */
 
-    private def comment_depth(depth: Int): Parser[(String, Int)] = new Parser[(String, Int)]
-    {
+    private def comment_depth(depth: Int): Parser[(String, Int)] = new Parser[(String, Int)] {
       require(depth >= 0, "bad comment depth")
 
       val comment_text: Parser[List[String]] =
         rep1(many1(sym => sym != "*" && sym != "(") | """\*(?!\))|\((?!\*)""".r)
 
-      def apply(in: Input) =
-      {
+      def apply(in: Input) = {
         var rest = in
-        def try_parse[A](p: Parser[A]): Boolean =
-        {
+        def try_parse[A](p: Parser[A]): Boolean = {
           parse(p ^^^ (()), rest) match {
             case Success(_, next) => { rest = next; true }
             case _ => false
@@ -228,8 +213,7 @@ object Scan
     def comment: Parser[String] =
       comment_depth(0) ^? { case (x, d) if d == 0 => x }
 
-    def comment_line(ctxt: Line_Context): Parser[(String, Line_Context)] =
-    {
+    def comment_line(ctxt: Line_Context): Parser[(String, Line_Context)] = {
       val depth =
         ctxt match {
           case Finished => 0
@@ -246,8 +230,7 @@ object Scan
     val recover_comment: Parser[String] =
       comment_depth(0) ^^ (_._1)
 
-    def comment_content(source: String): String =
-    {
+    def comment_content(source: String): String = {
       require(parseAll(comment, source).successful, "no comment")
       source.substring(2, source.length - 2)
     }
@@ -262,10 +245,8 @@ object Scan
 
     /* keyword */
 
-    def literal(lexicon: Lexicon): Parser[String] = new Parser[String]
-    {
-      def apply(in: Input) =
-      {
+    def literal(lexicon: Lexicon): Parser[String] = new Parser[String] {
+      def apply(in: Input) = {
         val result = lexicon.scan(in)
         if (result.isEmpty) Failure("keyword expected", in)
         else Success(result, in.drop(result.length))
@@ -277,8 +258,7 @@ object Scan
 
   /** Lexicon -- position tree **/
 
-  object Lexicon
-  {
+  object Lexicon {
     /* representation */
 
     private sealed case class Tree(branches: Map[Char, (String, Tree)])
@@ -288,8 +268,7 @@ object Scan
     def apply(elems: String*): Lexicon = empty ++ elems
   }
 
-  final class Lexicon private(rep: Lexicon.Tree)
-  {
+  final class Lexicon private(rep: Lexicon.Tree) {
     /* auxiliary operations */
 
     private def dest(tree: Lexicon.Tree, result: List[String]): List[String] =
@@ -297,11 +276,10 @@ object Scan
         case (res, (_, (s, tr))) => if (s.isEmpty) dest(tr, res) else dest(tr, s :: res)
       }
 
-    private def lookup(str: CharSequence): Option[(Boolean, Lexicon.Tree)] =
-    {
+    private def lookup(str: CharSequence): Option[(Boolean, Lexicon.Tree)] = {
       val len = str.length
-      @tailrec def look(tree: Lexicon.Tree, tip: Boolean, i: Int): Option[(Boolean, Lexicon.Tree)] =
-      {
+      @tailrec
+      def look(tree: Lexicon.Tree, tip: Boolean, i: Int): Option[(Boolean, Lexicon.Tree)] = {
         if (i < len) {
           tree.branches.get(str.charAt(i)) match {
             case Some((s, tr)) => look(tr, s.nonEmpty, i + 1)
@@ -376,14 +354,12 @@ object Scan
 
     /* scan */
 
-    def scan(in: Reader[Char]): String =
-    {
+    def scan(in: Reader[Char]): String = {
       val source = in.source
       val offset = in.offset
       val len = source.length - offset
 
-      @tailrec def scan_tree(tree: Lexicon.Tree, result: String, i: Int): String =
-      {
+      @tailrec def scan_tree(tree: Lexicon.Tree, result: String, i: Int): String = {
         if (i < len) {
           tree.branches.get(source.charAt(offset + i)) match {
             case Some((s, tr)) => scan_tree(tr, if (s.isEmpty) result else s, i + 1)
@@ -400,9 +376,7 @@ object Scan
 
   /** read stream without decoding: efficient length operation **/
 
-  private class Restricted_Seq(seq: IndexedSeq[Char], start: Int, end: Int)
-    extends CharSequence
-  {
+  private class Restricted_Seq(seq: IndexedSeq[Char], start: Int, end: Int) extends CharSequence {
     def charAt(i: Int): Char =
       if (0 <= i && i < length) seq(start + i)
       else throw new IndexOutOfBoundsException
@@ -413,8 +387,7 @@ object Scan
       if (0 <= i && i <= j && j <= length) new Restricted_Seq(seq, start + i, start + j)
       else throw new IndexOutOfBoundsException
 
-    override def toString: String =
-    {
+    override def toString: String = {
       val buf = new StringBuilder(length)
       for (offset <- start until end) buf.append(seq(offset))
       buf.toString
@@ -423,12 +396,10 @@ object Scan
 
   abstract class Byte_Reader extends Reader[Char] with AutoCloseable
 
-  private def make_byte_reader(stream: InputStream, stream_length: Int): Byte_Reader =
-  {
+  private def make_byte_reader(stream: InputStream, stream_length: Int): Byte_Reader = {
     val buffered_stream = new BufferedInputStream(stream)
     val seq = new PagedSeq(
-      (buf: Array[Char], offset: Int, length: Int) =>
-        {
+      (buf: Array[Char], offset: Int, length: Int) => {
           var i = 0
           var c = 0
           var eof = false
@@ -441,8 +412,7 @@ object Scan
         })
     val restricted_seq = new Restricted_Seq(seq, 0, stream_length)
 
-    class Paged_Reader(override val offset: Int) extends Byte_Reader
-    {
+    class Paged_Reader(override val offset: Int) extends Byte_Reader {
       override lazy val source: CharSequence = restricted_seq
       def first: Char = if (seq.isDefinedAt(offset)) seq(offset) else '\u001a'
       def rest: Paged_Reader = if (seq.isDefinedAt(offset)) new Paged_Reader(offset + 1) else this
@@ -457,8 +427,7 @@ object Scan
   def byte_reader(file: JFile): Byte_Reader =
     make_byte_reader(new FileInputStream(file), file.length.toInt)
 
-  def byte_reader(url: URL): Byte_Reader =
-  {
+  def byte_reader(url: URL): Byte_Reader = {
     val connection = url.openConnection
     val stream = connection.getInputStream
     val stream_length = connection.getContentLength

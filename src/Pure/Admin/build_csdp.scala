@@ -7,16 +7,14 @@ Build Isabelle CSDP component from official download.
 package isabelle
 
 
-object Build_CSDP
-{
+object Build_CSDP {
   // Note: version 6.2.0 does not quite work for the "sos" proof method
   val default_download_url = "https://github.com/coin-or/Csdp/archive/releases/6.1.1.tar.gz"
 
 
   /* flags */
 
-  sealed case class Flags(platform: String, CFLAGS: String = "", LIBS: String = "")
-  {
+  sealed case class Flags(platform: String, CFLAGS: String = "", LIBS: String = "") {
     val changed: List[(String, String)] =
       List("CFLAGS" -> CFLAGS, "LIBS" -> LIBS).filter(p => p._2.nonEmpty)
 
@@ -26,8 +24,7 @@ object Build_CSDP
         Some("  * " + platform + ":\n" + changed.map(p => "    " + Properties.Eq(p))
           .mkString("\n"))
 
-    def change(path: Path): Unit =
-    {
+    def change(path: Path): Unit = {
       def change_line(line: String, p: (String, String)): String =
         line.replaceAll(p._1 + "=.*", Properties.Eq(p))
       File.change_lines(path) { _.map(line => changed.foldLeft(line)(change_line)) }
@@ -55,12 +52,11 @@ object Build_CSDP
     verbose: Boolean = false,
     progress: Progress = new Progress,
     target_dir: Path = Path.current,
-    mingw: MinGW = MinGW.none): Unit =
-  {
+    mingw: MinGW = MinGW.none
+  ): Unit = {
     mingw.check
 
-    Isabelle_System.with_tmp_dir("build")(tmp_dir =>
-    {
+    Isabelle_System.with_tmp_dir("build")(tmp_dir => {
       /* component */
 
       val Archive_Name = """^.*?([^/]+)$""".r
@@ -171,8 +167,7 @@ Only the bare "solver/csdp" program is used for Isabelle.
 
   val isabelle_tool =
     Isabelle_Tool("build_csdp", "build prover component from official download", Scala_Project.here,
-    args =>
-    {
+    args => {
       var target_dir = Path.current
       var mingw = MinGW.none
       var download_url = default_download_url

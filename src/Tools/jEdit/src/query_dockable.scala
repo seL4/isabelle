@@ -19,10 +19,8 @@ import scala.swing.event.{SelectionChanged, ButtonClicked, Key, KeyPressed}
 import org.gjt.sp.jedit.View
 
 
-object Query_Dockable
-{
-  private abstract class Operation(view: View)
-  {
+object Query_Dockable {
+  private abstract class Operation(view: View) {
     val pretty_text_area = new Pretty_Text_Area(view)
     def query_operation: Query_Operation[View]
     def query: JComponent
@@ -31,18 +29,18 @@ object Query_Dockable
   }
 }
 
-class Query_Dockable(view: View, position: String) extends Dockable(view, position)
-{
+class Query_Dockable(view: View, position: String) extends Dockable(view, position) {
   /* common GUI components */
 
   private val zoom = new Font_Info.Zoom_Box { def changed = handle_resize() }
 
-  private def make_query(property: String, tooltip: String, apply_query: () => Unit)
-      : Completion_Popup.History_Text_Field =
-    new Completion_Popup.History_Text_Field(property)
-    {
-      override def processKeyEvent(evt: KeyEvent): Unit =
-      {
+  private def make_query(
+    property: String,
+    tooltip: String,
+    apply_query: () => Unit
+  ): Completion_Popup.History_Text_Field = {
+    new Completion_Popup.History_Text_Field(property) {
+      override def processKeyEvent(evt: KeyEvent): Unit = {
         if (evt.getID == KeyEvent.KEY_PRESSED && evt.getKeyCode == KeyEvent.VK_ENTER) apply_query()
         super.processKeyEvent(evt)
       }
@@ -51,13 +49,15 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
       setToolTipText(tooltip)
       setFont(GUI.imitate_font(getFont, scale = 1.2))
     }
+  }
 
 
   /* consume status */
 
   def consume_status(
-    process_indicator: Process_Indicator, status: Query_Operation.Status.Value): Unit =
-  {
+    process_indicator: Process_Indicator,
+    status: Query_Operation.Status.Value
+  ): Unit = {
     status match {
       case Query_Operation.Status.WAITING =>
         process_indicator.update("Waiting for evaluation of context ...", 5)
@@ -71,8 +71,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
 
   /* find theorems */
 
-  private val find_theorems = new Query_Dockable.Operation(view)
-  {
+  private val find_theorems = new Query_Dockable.Operation(view) {
     /* query */
 
     private val process_indicator = new Process_Indicator
@@ -83,8 +82,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
         (snapshot, results, body) =>
           pretty_text_area.update(snapshot, results, Pretty.separate(body)))
 
-    private def apply_query(): Unit =
-    {
+    private def apply_query(): Unit = {
       query.addCurrentToHistory()
       query_operation.apply_query(List(limit.text, allow_dups.selected.toString, query.getText))
     }
@@ -137,8 +135,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
 
   /* find consts */
 
-  private val find_consts = new Query_Dockable.Operation(view)
-  {
+  private val find_consts = new Query_Dockable.Operation(view) {
     /* query */
 
     private val process_indicator = new Process_Indicator
@@ -149,8 +146,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
         (snapshot, results, body) =>
           pretty_text_area.update(snapshot, results, Pretty.separate(body)))
 
-    private def apply_query(): Unit =
-    {
+    private def apply_query(): Unit = {
       query.addCurrentToHistory()
       query_operation.apply_query(List(query.getText))
     }
@@ -187,12 +183,10 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
 
   /* print operation */
 
-  private val print_operation = new Query_Dockable.Operation(view)
-  {
+  private val print_operation = new Query_Dockable.Operation(view) {
     /* items */
 
-    private class Item(val name: String, description: String, sel: Boolean)
-    {
+    private class Item(val name: String, description: String, sel: Boolean) {
       val checkbox = new CheckBox(name) {
         tooltip = "Print " + description
         selected = sel
@@ -205,8 +199,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
     private def selected_items(): List[String] =
       for (item <- _items if item.checkbox.selected) yield item.name
 
-    private def update_items(): List[Item] =
-    {
+    private def update_items(): List[Item] = {
       val old_items = _items
       def was_selected(name: String): Boolean =
         old_items.find(item => item.name == name) match {
@@ -255,8 +248,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
 
     private val control_panel = Wrap_Panel()
 
-    def select: Unit =
-    {
+    def select: Unit = {
       control_panel.contents.clear()
       control_panel.contents += query_label
       update_items().foreach(item => control_panel.contents += item.checkbox)
@@ -277,8 +269,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
 
   private val operations = List(find_theorems, find_consts, print_operation)
 
-  private val operations_pane = new TabbedPane
-  {
+  private val operations_pane = new TabbedPane {
     pages ++= operations.map(_.page)
     listenTo(selection)
     reactions += { case SelectionChanged(_) => select_operation() }
@@ -288,14 +279,12 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
     try { Some(operations(operations_pane.selection.index)) }
     catch { case _: IndexOutOfBoundsException => None }
 
-  private def select_operation(): Unit =
-  {
+  private def select_operation(): Unit = {
     for (op <- get_operation()) { op.select; op.query.requestFocus() }
     operations_pane.revalidate()
   }
 
-  override def focusOnDefaultComponent(): Unit =
-  {
+  override def focusOnDefaultComponent(): Unit = {
     for (op <- get_operation()) op.query.requestFocus()
   }
 
@@ -335,15 +324,13 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
       case _: Session.Global_Options => GUI_Thread.later { handle_resize() }
     }
 
-  override def init(): Unit =
-  {
+  override def init(): Unit = {
     PIDE.session.global_options += main
     handle_resize()
     operations.foreach(op => op.query_operation.activate())
   }
 
-  override def exit(): Unit =
-  {
+  override def exit(): Unit = {
     operations.foreach(op => op.query_operation.deactivate())
     PIDE.session.global_options -= main
     delay_resize.revoke()

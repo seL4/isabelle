@@ -10,8 +10,7 @@ package isabelle
 import scala.collection.mutable
 
 
-object Doc
-{
+object Doc {
   /* dirs */
 
   def dirs(): List[Path] =
@@ -28,23 +27,20 @@ object Doc
       line <- Library.trim_split_lines(File.read(catalog))
     } yield (dir, line)
 
-  object Contents
-  {
+  object Contents {
     def apply(sections: List[Section]): Contents = new Contents(sections)
 
     def section(title: String, important: Boolean, entries: List[Entry]): Contents =
       apply(List(Section(title, important, entries)))
   }
-  class Contents private(val sections: List[Section])
-  {
+  class Contents private(val sections: List[Section]) {
     def ++ (other: Contents): Contents = new Contents(sections ::: other.sections)
     def entries: List[Entry] = sections.flatMap(_.entries)
     def docs: List[Doc] = entries.collect({ case doc: Doc => doc })
   }
 
   case class Section(title: String, important: Boolean, entries: List[Entry])
-  sealed abstract class Entry
-  {
+  sealed abstract class Entry {
     def name: String
     def path: Path
   }
@@ -71,8 +67,7 @@ object Doc
           case None => error("Bad entry in ISABELLE_DOCS_EXAMPLES: " + file)
         }))
 
-  def main_contents(): Contents =
-  {
+  def main_contents(): Contents = {
     val result = new mutable.ListBuffer[Section]
     val entries = new mutable.ListBuffer[Entry]
     var section: Option[Section] = None
@@ -84,8 +79,7 @@ object Doc
         section = None
       }
 
-    def begin(s: Section): Unit =
-    {
+    def begin(s: Section): Unit = {
       flush()
       section = Some(s)
     }
@@ -110,13 +104,11 @@ object Doc
     Contents(result.toList)
   }
 
-  def contents(): Contents =
-  {
+  def contents(): Contents = {
     examples() ++ release_notes() ++ main_contents()
   }
 
-  object Doc_Names extends Scala.Fun_String("doc_names")
-  {
+  object Doc_Names extends Scala.Fun_String("doc_names") {
     val here = Scala_Project.here
     def apply(arg: String): String =
       if (arg.nonEmpty) error("Bad argument: " + quote(arg))
@@ -126,8 +118,7 @@ object Doc
 
   /* view */
 
-  def view(path: Path): Unit =
-  {
+  def view(path: Path): Unit = {
     if (!path.is_file) error("Bad Isabelle documentation file: " + path)
     else if (path.is_pdf) Isabelle_System.pdf_viewer(path)
     else Output.writeln(Library.trim_line(File.read(path)), stdout = true)
@@ -137,8 +128,7 @@ object Doc
   /* Isabelle tool wrapper */
 
   val isabelle_tool = Isabelle_Tool("doc", "view Isabelle PDF documentation",
-    Scala_Project.here, args =>
-  {
+    Scala_Project.here, args => {
     val getopts = Getopts("""
 Usage: isabelle doc [DOC ...]
 

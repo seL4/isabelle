@@ -24,12 +24,10 @@ import org.gjt.sp.jedit.gui.{HistoryTextField, KeyEventWorkaround}
 import org.gjt.sp.util.StandardUtilities
 
 
-object Completion_Popup
-{
+object Completion_Popup {
   /** items with HTML rendering **/
 
-  private class Item(val item: Completion.Item)
-  {
+  private class Item(val item: Completion.Item) {
     private val html =
       item.description match {
         case a :: bs =>
@@ -44,12 +42,10 @@ object Completion_Popup
 
   /** jEdit text area **/
 
-  object Text_Area
-  {
+  object Text_Area {
     private val key = new Object
 
-    def apply(text_area: TextArea): Option[Completion_Popup.Text_Area] =
-    {
+    def apply(text_area: TextArea): Option[Completion_Popup.Text_Area] = {
       GUI_Thread.require {}
       text_area.getClientProperty(key) match {
         case text_area_completion: Completion_Popup.Text_Area => Some(text_area_completion)
@@ -74,8 +70,7 @@ object Completion_Popup
         case None => false
       }
 
-    def exit(text_area: JEditTextArea): Unit =
-    {
+    def exit(text_area: JEditTextArea): Unit = {
       GUI_Thread.require {}
       apply(text_area) match {
         case None =>
@@ -85,8 +80,7 @@ object Completion_Popup
       }
     }
 
-    def init(text_area: JEditTextArea): Completion_Popup.Text_Area =
-    {
+    def init(text_area: JEditTextArea): Completion_Popup.Text_Area = {
       exit(text_area)
       val text_area_completion = new Text_Area(text_area)
       text_area.putClientProperty(key, text_area_completion)
@@ -94,8 +88,7 @@ object Completion_Popup
       text_area_completion
     }
 
-    def dismissed(text_area: TextArea): Boolean =
-    {
+    def dismissed(text_area: TextArea): Boolean = {
       GUI_Thread.require {}
       apply(text_area) match {
         case Some(text_area_completion) => text_area_completion.dismissed()
@@ -104,8 +97,7 @@ object Completion_Popup
     }
   }
 
-  class Text_Area private(text_area: JEditTextArea)
-  {
+  class Text_Area private(text_area: JEditTextArea) {
     // owned by GUI thread
     private var completion_popup: Option[Completion_Popup] = None
 
@@ -118,8 +110,7 @@ object Completion_Popup
 
     /* rendering */
 
-    def rendering(rendering: JEdit_Rendering, line_range: Text.Range): Option[Text.Info[Color]] =
-    {
+    def rendering(rendering: JEdit_Rendering, line_range: Text.Range): Option[Text.Info[Color]] = {
       active_range match {
         case Some(range) => range.try_restrict(line_range)
         case None =>
@@ -151,8 +142,8 @@ object Completion_Popup
     def syntax_completion(
       history: Completion.History,
       explicit: Boolean,
-      opt_rendering: Option[JEdit_Rendering]): Option[Completion.Result] =
-    {
+      opt_rendering: Option[JEdit_Rendering]
+    ): Option[Completion.Result] = {
       val buffer = text_area.getBuffer
       val unicode = Isabelle_Encoding.is_active(buffer)
 
@@ -183,8 +174,7 @@ object Completion_Popup
 
     /* completion action: text area */
 
-    private def insert(item: Completion.Item): Unit =
-    {
+    private def insert(item: Completion.Item): Unit = {
       GUI_Thread.require {}
 
       val buffer = text_area.getBuffer
@@ -229,8 +219,8 @@ object Completion_Popup
       immediate: Boolean = false,
       explicit: Boolean = false,
       delayed: Boolean = false,
-      word_only: Boolean = false): Boolean =
-    {
+      word_only: Boolean = false
+    ): Boolean = {
       val view = text_area.getView
       val layered = view.getLayeredPane
       val buffer = text_area.getBuffer
@@ -239,8 +229,7 @@ object Completion_Popup
       val history = PIDE.plugin.completion_history.value
       val unicode = Isabelle_Encoding.is_active(buffer)
 
-      def open_popup(result: Completion.Result): Unit =
-      {
+      def open_popup(result: Completion.Result): Unit = {
         val font =
           painter.getFont.deriveFont(
             Font_Info.main_size(PIDE.options.real("jedit_popup_font_scale")))
@@ -255,15 +244,12 @@ object Completion_Popup
 
           val items = result.items.map(new Item(_))
           val completion =
-            new Completion_Popup(Some(range), layered, loc2, font, items)
-            {
-              override def complete(item: Completion.Item): Unit =
-              {
+            new Completion_Popup(Some(range), layered, loc2, font, items) {
+              override def complete(item: Completion.Item): Unit = {
                 PIDE.plugin.completion_history.update(item)
                 insert(item)
               }
-              override def propagate(evt: KeyEvent): Unit =
-              {
+              override def propagate(evt: KeyEvent): Unit = {
                 if (view.getKeyEventInterceptor == null)
                   JEdit_Lib.propagate_key(view, evt)
                 else if (view.getKeyEventInterceptor == inner_key_listener) {
@@ -277,8 +263,7 @@ object Completion_Popup
                 }
                 if (evt.getID == KeyEvent.KEY_TYPED) input(evt)
               }
-              override def shutdown(focus: Boolean): Unit =
-              {
+              override def shutdown(focus: Boolean): Unit = {
                 if (view.getKeyEventInterceptor == inner_key_listener)
                   view.setKeyEventInterceptor(null)
                 if (focus) text_area.requestFocus()
@@ -298,8 +283,7 @@ object Completion_Popup
         val caret = text_area.getCaretPosition
         val opt_rendering = Document_View.get(text_area).map(_.get_rendering())
         val result0 = syntax_completion(history, explicit, opt_rendering)
-        val (no_completion, semantic_completion) =
-        {
+        val (no_completion, semantic_completion) = {
           opt_rendering match {
             case Some(rendering) =>
               rendering.semantic_completion_result(history, unicode, result0.map(_.range),
@@ -309,8 +293,7 @@ object Completion_Popup
         }
         if (no_completion) false
         else {
-          val result =
-          {
+          val result = {
             val result1 =
               if (word_only) None
               else Completion.Result.merge(history, semantic_completion, result0)
@@ -345,8 +328,7 @@ object Completion_Popup
 
     /* input key events */
 
-    def input(evt: KeyEvent): Unit =
-    {
+    def input(evt: KeyEvent): Unit = {
       GUI_Thread.require {}
 
       if (!evt.isConsumed) {
@@ -383,8 +365,7 @@ object Completion_Popup
 
     /* dismiss popup */
 
-    def dismissed(): Boolean =
-    {
+    def dismissed(): Boolean = {
       GUI_Thread.require {}
 
       completion_popup match {
@@ -406,8 +387,7 @@ object Completion_Popup
     private def activate(): Unit =
       text_area.addKeyListener(outer_key_listener)
 
-    private def deactivate(): Unit =
-    {
+    private def deactivate(): Unit = {
       dismissed()
       text_area.removeKeyListener(outer_key_listener)
     }
@@ -422,8 +402,8 @@ object Completion_Popup
     instant_popups: Boolean = false,
     enter_adds_to_history: Boolean = true,
     syntax: Outer_Syntax = Outer_Syntax.empty) extends
-    HistoryTextField(name, instant_popups, enter_adds_to_history)
-  {
+    HistoryTextField(name, instant_popups, enter_adds_to_history
+  ) {
     text_field =>
 
     // see https://forums.oracle.com/thread/1361677
@@ -435,8 +415,7 @@ object Completion_Popup
 
     /* dismiss */
 
-    private def dismissed(): Boolean =
-    {
+    private def dismissed(): Boolean = {
       completion_popup match {
         case Some(completion) =>
           completion.hide_popup()
@@ -450,8 +429,7 @@ object Completion_Popup
 
     /* insert */
 
-    private def insert(item: Completion.Item): Unit =
-    {
+    private def insert(item: Completion.Item): Unit = {
       GUI_Thread.require {}
 
       val range = item.range
@@ -472,8 +450,7 @@ object Completion_Popup
 
     /* completion action: text field */
 
-    def action(): Unit =
-    {
+    def action(): Unit = {
       GUI.layered_pane(text_field) match {
         case Some(layered) if text_field.isEditable =>
           val history = PIDE.plugin.completion_history.value
@@ -491,10 +468,8 @@ object Completion_Popup
 
               val items = result.items.map(new Item(_))
               val completion =
-                new Completion_Popup(None, layered, loc, text_field.getFont, items)
-                {
-                  override def complete(item: Completion.Item): Unit =
-                  {
+                new Completion_Popup(None, layered, loc, text_field.getFont, items) {
+                  override def complete(item: Completion.Item): Unit = {
                     PIDE.plugin.completion_history.update(item)
                     insert(item)
                   }
@@ -516,8 +491,7 @@ object Completion_Popup
 
     /* process key event */
 
-    private def process(evt: KeyEvent): Unit =
-    {
+    private def process(evt: KeyEvent): Unit = {
       if (PIDE.options.bool("jedit_completion")) {
         dismissed()
         if (evt.getKeyChar != '\b') {
@@ -536,8 +510,7 @@ object Completion_Popup
         action()
       }
 
-    override def processKeyEvent(evt0: KeyEvent): Unit =
-    {
+    override def processKeyEvent(evt0: KeyEvent): Unit = {
       val evt = KeyEventWorkaround.processKeyEvent(evt0)
       if (evt != null) {
         evt.getID match {
@@ -564,8 +537,8 @@ class Completion_Popup private(
   layered: JLayeredPane,
   location: Point,
   font: Font,
-  items: List[Completion_Popup.Item]) extends JPanel(new BorderLayout)
-{
+  items: List[Completion_Popup.Item]
+) extends JPanel(new BorderLayout) {
   completion =>
 
   GUI_Thread.require {}
@@ -595,16 +568,14 @@ class Completion_Popup private(
       JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
       JComponent.WHEN_IN_FOCUSED_WINDOW)) list_view.peer.setInputMap(cond, null)
 
-  private def complete_selected(): Boolean =
-  {
+  private def complete_selected(): Boolean = {
     list_view.selection.items.toList match {
       case item :: _ => complete(item.item); true
       case _ => false
     }
   }
 
-  private def move_items(n: Int): Unit =
-  {
+  private def move_items(n: Int): Unit = {
     val i = list_view.peer.getSelectedIndex
     val j = ((i + n) min (items.length - 1)) max 0
     if (i != j) {
@@ -613,8 +584,7 @@ class Completion_Popup private(
     }
   }
 
-  private def move_pages(n: Int): Unit =
-  {
+  private def move_pages(n: Int): Unit = {
     val page_size = list_view.peer.getVisibleRowCount - 1
     move_items(page_size * n)
   }
@@ -624,46 +594,44 @@ class Completion_Popup private(
 
   val inner_key_listener: KeyListener =
     JEdit_Lib.key_listener(
-      key_pressed = (e: KeyEvent) =>
-        {
-          if (!e.isConsumed) {
-            e.getKeyCode match {
-              case KeyEvent.VK_ENTER if PIDE.options.bool("jedit_completion_select_enter") =>
-                if (complete_selected()) e.consume
+      key_pressed = (e: KeyEvent) => {
+        if (!e.isConsumed) {
+          e.getKeyCode match {
+            case KeyEvent.VK_ENTER if PIDE.options.bool("jedit_completion_select_enter") =>
+              if (complete_selected()) e.consume
+              hide_popup()
+            case KeyEvent.VK_TAB if PIDE.options.bool("jedit_completion_select_tab") =>
+              if (complete_selected()) e.consume
+              hide_popup()
+            case KeyEvent.VK_ESCAPE =>
+              hide_popup()
+              e.consume
+            case KeyEvent.VK_UP | KeyEvent.VK_KP_UP if multi =>
+              move_items(-1)
+              e.consume
+            case KeyEvent.VK_DOWN | KeyEvent.VK_KP_DOWN if multi =>
+              move_items(1)
+              e.consume
+            case KeyEvent.VK_PAGE_UP if multi =>
+              move_pages(-1)
+              e.consume
+            case KeyEvent.VK_PAGE_DOWN if multi =>
+              move_pages(1)
+              e.consume
+            case _ =>
+              if (e.isActionKey || e.isAltDown || e.isMetaDown || e.isControlDown)
                 hide_popup()
-              case KeyEvent.VK_TAB if PIDE.options.bool("jedit_completion_select_tab") =>
-                if (complete_selected()) e.consume
-                hide_popup()
-              case KeyEvent.VK_ESCAPE =>
-                hide_popup()
-                e.consume
-              case KeyEvent.VK_UP | KeyEvent.VK_KP_UP if multi =>
-                move_items(-1)
-                e.consume
-              case KeyEvent.VK_DOWN | KeyEvent.VK_KP_DOWN if multi =>
-                move_items(1)
-                e.consume
-              case KeyEvent.VK_PAGE_UP if multi =>
-                move_pages(-1)
-                e.consume
-              case KeyEvent.VK_PAGE_DOWN if multi =>
-                move_pages(1)
-                e.consume
-              case _ =>
-                if (e.isActionKey || e.isAltDown || e.isMetaDown || e.isControlDown)
-                  hide_popup()
-            }
           }
-          propagate(e)
-        },
+        }
+        propagate(e)
+      },
       key_typed = propagate
     )
 
   list_view.peer.addKeyListener(inner_key_listener)
 
   list_view.peer.addMouseListener(new MouseAdapter {
-    override def mouseClicked(e: MouseEvent): Unit =
-    {
+    override def mouseClicked(e: MouseEvent): Unit = {
       if (complete_selected()) e.consume
       hide_popup()
     }
@@ -686,11 +654,9 @@ class Completion_Popup private(
   def active_range: Option[Text.Range] =
     if (isDisplayable) opt_range else None
 
-  private val popup =
-  {
+  private val popup = {
     val screen = GUI.screen_location(layered, location)
-    val size =
-    {
+    val size = {
       val geometry = JEdit_Lib.window_geometry(completion, completion)
       val bounds = JEdit_Rendering.popup_bounds
       val w = geometry.width min (screen.bounds.width * bounds).toInt min layered.getWidth
@@ -700,14 +666,12 @@ class Completion_Popup private(
     new Popup(layered, completion, screen.relative(layered, size), size)
   }
 
-  private def show_popup(focus: Boolean): Unit =
-  {
+  private def show_popup(focus: Boolean): Unit = {
     popup.show
     if (focus) list_view.requestFocus()
   }
 
-  private def hide_popup(): Unit =
-  {
+  private def hide_popup(): Unit = {
     shutdown(list_view.peer.isFocusOwner)
     popup.hide
   }

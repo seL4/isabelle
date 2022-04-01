@@ -11,10 +11,8 @@ import java.util.{Map => JMap}
 import java.io.{File => JFile}
 
 
-object Progress
-{
-  sealed case class Theory(theory: String, session: String = "", percentage: Option[Int] = None)
-  {
+object Progress {
+  sealed case class Theory(theory: String, session: String = "", percentage: Option[Int] = None) {
     def message: String = print_session + print_theory + print_percentage
 
     def print_session: String = if (session == "") "" else session + ": "
@@ -24,8 +22,7 @@ object Progress
   }
 }
 
-class Progress
-{
+class Progress {
   def echo(msg: String): Unit = {}
   def echo_if(cond: Boolean, msg: String): Unit = { if (cond) echo(msg) }
   def theory(theory: Progress.Theory): Unit = {}
@@ -39,8 +36,7 @@ class Progress
 
   @volatile protected var is_stopped = false
   def stop(): Unit = { is_stopped = true }
-  def stopped: Boolean =
-  {
+  def stopped: Boolean = {
     if (Thread.interrupted()) is_stopped = true
     is_stopped
   }
@@ -55,8 +51,8 @@ class Progress
     redirect: Boolean = false,
     echo: Boolean = false,
     watchdog: Time = Time.zero,
-    strict: Boolean = true): Process_Result =
-  {
+    strict: Boolean = true
+  ): Process_Result = {
     val result =
       Isabelle_System.bash(script, cwd = cwd, env = env, redirect = redirect,
         progress_stdout = echo_if(echo, _),
@@ -67,8 +63,7 @@ class Progress
   }
 }
 
-class Console_Progress(verbose: Boolean = false, stderr: Boolean = false) extends Progress
-{
+class Console_Progress(verbose: Boolean = false, stderr: Boolean = false) extends Progress {
   override def echo(msg: String): Unit =
     Output.writeln(msg, stdout = !stderr, include_empty = true)
 
@@ -76,8 +71,7 @@ class Console_Progress(verbose: Boolean = false, stderr: Boolean = false) extend
     if (verbose) echo(theory.message)
 }
 
-class File_Progress(path: Path, verbose: Boolean = false) extends Progress
-{
+class File_Progress(path: Path, verbose: Boolean = false) extends Progress {
   override def echo(msg: String): Unit =
     File.append(path, msg + "\n")
 

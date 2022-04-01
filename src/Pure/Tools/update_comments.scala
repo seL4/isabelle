@@ -10,15 +10,12 @@ package isabelle
 import scala.annotation.tailrec
 
 
-object Update_Comments
-{
-  def update_comments(path: Path): Unit =
-  {
+object Update_Comments {
+  def update_comments(path: Path): Unit = {
     def make_comment(tok: Token): String =
       Symbol.comment + Symbol.space + Symbol.cartouche(Symbol.trim_blanks(tok.content))
 
-    @tailrec def update(toks: List[Token], result: List[String]): String =
-    {
+    @tailrec def update(toks: List[Token], result: List[String]): String = {
       toks match {
         case tok :: rest
         if tok.source == "--" || tok.source == Symbol.comment =>
@@ -48,8 +45,8 @@ object Update_Comments
 
   val isabelle_tool =
     Isabelle_Tool("update_comments", "update formal comments in outer syntax",
-      Scala_Project.here, args =>
-    {
+      Scala_Project.here,
+      args => {
       val getopts = Getopts("""
 Usage: isabelle update_comments [FILES|DIRS...]
 

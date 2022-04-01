@@ -14,8 +14,7 @@ import java.security.MessageDigest
 import java.util.Base64
 
 
-object Build_VSCodium
-{
+object Build_VSCodium {
   /* global parameters */
 
   lazy val version: String = Isabelle_System.getenv_strict("ISABELLE_VSCODE_VERSION")
@@ -27,8 +26,7 @@ object Build_VSCodium
 
   /* Isabelle symbols (static subset only) */
 
-  def make_symbols(): File.Content =
-  {
+  def make_symbols(): File.Content = {
     val symbols = Symbol.Symbols.load(static = true)
     val symbols_js =
       JSON.Format.apply_lines(
@@ -42,8 +40,7 @@ object Build_VSCodium
     File.Content(Path.explode("symbols.json"), symbols_js)
   }
 
-  def make_isabelle_encoding(header: String): File.Content =
-  {
+  def make_isabelle_encoding(header: String): File.Content = {
     val symbols = Symbol.Symbols.load(static = true)
     val symbols_js =
       JSON.Format.apply_lines(
@@ -64,19 +61,17 @@ object Build_VSCodium
     platform: Platform.Family.Value,
     download_template: String,
     build_name: String,
-    env: List[String])
-  {
+    env: List[String]
+  ) {
     def is_linux: Boolean = platform == Platform.Family.linux
 
     def download_name: String = "VSCodium-" + download_template.replace("{VERSION}", version)
     def download_zip: Boolean = download_name.endsWith(".zip")
 
-    def download(dir: Path, progress: Progress = new Progress): Unit =
-    {
+    def download(dir: Path, progress: Progress = new Progress): Unit = {
       if (download_zip) Isabelle_System.require_command("unzip", test = "-h")
 
-      Isabelle_System.with_tmp_file("download")(download_file =>
-      {
+      Isabelle_System.with_tmp_file("download")(download_file => {
         Isabelle_System.download_file(vscodium_download + "/" + version + "/" + download_name,
           download_file, progress = progress)
 
@@ -90,8 +85,7 @@ object Build_VSCodium
       })
     }
 
-    def get_vscodium_repository(build_dir: Path, progress: Progress = new Progress): Unit =
-    {
+    def get_vscodium_repository(build_dir: Path, progress: Progress = new Progress): Unit = {
       progress.echo("Getting VSCodium repository ...")
       Isabelle_System.bash(
         List(
@@ -104,8 +98,7 @@ object Build_VSCodium
       Isabelle_System.bash(environment + "\n" + "./get_repo.sh", cwd = build_dir.file).check
     }
 
-    def platform_dir(dir: Path): Path =
-    {
+    def platform_dir(dir: Path): Path = {
       val platform_name =
         if (platform == Platform.Family.windows) Platform.Family.native(platform)
         else Platform.Family.standard(platform)
@@ -118,8 +111,7 @@ object Build_VSCodium
       (("MS_TAG=" + Bash.string(version)) :: "SHOULD_BUILD=yes" :: "VSCODE_ARCH=x64" :: env)
         .map(s => "export " + s + "\n").mkString
 
-    def patch_sources(base_dir: Path): String =
-    {
+    def patch_sources(base_dir: Path): String = {
       val dir = base_dir + Path.explode("vscode")
       Isabelle_System.with_copy_dir(dir, dir.orig) {
         // macos icns
@@ -152,8 +144,7 @@ object Build_VSCodium
       }
     }
 
-    def patch_resources(base_dir: Path): String =
-    {
+    def patch_resources(base_dir: Path): String = {
       val dir = base_dir + resources
       val patch =
         Isabelle_System.with_copy_dir(dir, dir.orig) {
@@ -189,8 +180,7 @@ object Build_VSCodium
       patch
     }
 
-    def init_resources(base_dir: Path): Path =
-    {
+    def init_resources(base_dir: Path): Path = {
       val dir = base_dir + resources
       if (platform == Platform.Family.macos) {
         Isabelle_System.symlink(Path.explode("VSCodium.app/Contents/Resources"), dir)
@@ -198,10 +188,8 @@ object Build_VSCodium
       dir
     }
 
-    def setup_node(target_dir: Path, progress: Progress): Unit =
-    {
-      Isabelle_System.with_tmp_dir("download")(download_dir =>
-      {
+    def setup_node(target_dir: Path, progress: Progress): Unit = {
+      Isabelle_System.with_tmp_dir("download")(download_dir => {
         download(download_dir, progress = progress)
         val dir1 = init_resources(download_dir)
         val dir2 = init_resources(target_dir)
@@ -213,8 +201,7 @@ object Build_VSCodium
       })
     }
 
-    def setup_electron(dir: Path): Unit =
-    {
+    def setup_electron(dir: Path): Unit = {
       val electron = Path.explode("electron")
       platform match {
         case Platform.Family.linux | Platform.Family.linux_arm =>
@@ -228,8 +215,7 @@ object Build_VSCodium
       }
     }
 
-    def setup_executables(dir: Path): Unit =
-    {
+    def setup_executables(dir: Path): Unit = {
       Isabelle_System.rm_tree(dir + Path.explode("bin"))
 
       if (platform == Platform.Family.windows) {
@@ -248,8 +234,7 @@ object Build_VSCodium
 
   // see https://github.com/microsoft/vscode/blob/main/build/gulpfile.vscode.js
   // function computeChecksum(filename)
-  private def file_checksum(path: Path): String =
-  {
+  private def file_checksum(path: Path): String = {
     val digest = MessageDigest.getInstance("MD5")
     digest.update(Bytes.read(path).array)
     Bytes(Base64.getEncoder.encode(digest.digest()))
@@ -282,8 +267,7 @@ object Build_VSCodium
 
   /* check system */
 
-  def check_system(platforms: List[Platform.Family.Value]): Unit =
-  {
+  def check_system(platforms: List[Platform.Family.Value]): Unit = {
     if (Platform.family != Platform.Family.linux) error("Not a Linux/x86_64 system")
 
     Isabelle_System.require_command("git")
@@ -303,13 +287,11 @@ object Build_VSCodium
 
   /* original repository clones and patches */
 
-  def vscodium_patch(verbose: Boolean = false, progress: Progress = new Progress): String =
-  {
+  def vscodium_patch(verbose: Boolean = false, progress: Progress = new Progress): String = {
     val platform_info = linux_platform_info
     check_system(List(platform_info.platform))
 
-    Isabelle_System.with_tmp_dir("build")(build_dir =>
-    {
+    Isabelle_System.with_tmp_dir("build")(build_dir => {
       platform_info.get_vscodium_repository(build_dir, progress = progress)
       val vscode_dir = build_dir + Path.explode("vscode")
       progress.echo("Prepare ...")
@@ -337,8 +319,8 @@ object Build_VSCodium
     target_dir: Path = Path.current,
     platforms: List[Platform.Family.Value] = default_platforms,
     verbose: Boolean = false,
-    progress: Progress = new Progress): Unit =
-  {
+    progress: Progress = new Progress
+  ): Unit = {
     check_system(platforms)
 
 
@@ -366,8 +348,7 @@ object Build_VSCodium
     for (platform <- platforms) yield {
       val platform_info = the_platform_info(platform)
 
-      Isabelle_System.with_tmp_dir("build")(build_dir =>
-      {
+      Isabelle_System.with_tmp_dir("build")(build_dir => {
         progress.echo("\n* Building " + platform + ":")
 
         platform_info.get_vscodium_repository(build_dir, progress = progress)
@@ -440,8 +421,8 @@ formal record.
 
   val isabelle_tool1 =
     Isabelle_Tool("build_vscodium", "build component for VSCodium",
-      Scala_Project.here, args =>
-    {
+      Scala_Project.here,
+      args => {
       var target_dir = Path.current
       var platforms = default_platforms
       var verbose = false
@@ -474,8 +455,8 @@ Usage: build_vscodium [OPTIONS]
 
   val isabelle_tool2 =
     Isabelle_Tool("vscode_patch", "patch VSCode source tree",
-      Scala_Project.here, args =>
-    {
+      Scala_Project.here,
+      args => {
       var base_dir = Path.current
 
       val getopts = Getopts("""

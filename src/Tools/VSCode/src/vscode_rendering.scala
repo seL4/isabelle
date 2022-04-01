@@ -15,13 +15,14 @@ import java.io.{File => JFile}
 import scala.annotation.tailrec
 
 
-object VSCode_Rendering
-{
+object VSCode_Rendering {
   /* decorations */
 
-  private def color_decorations(prefix: String, types: Set[Rendering.Color.Value],
-    colors: List[Text.Info[Rendering.Color.Value]]): List[VSCode_Model.Decoration] =
-  {
+  private def color_decorations(
+    prefix: String,
+    types: Set[Rendering.Color.Value],
+    colors: List[Text.Info[Rendering.Color.Value]]
+  ): List[VSCode_Model.Decoration] = {
     val color_ranges =
       colors.foldLeft(Map.empty[Rendering.Color.Value, List[Text.Range]]) {
         case (m, Text.Info(range, c)) => m + (c -> (range :: m.getOrElse(c, Nil)))
@@ -66,8 +67,7 @@ object VSCode_Rendering
 }
 
 class VSCode_Rendering(snapshot: Document.Snapshot, val model: VSCode_Model)
-  extends Rendering(snapshot, model.resources.options, model.session)
-{
+extends Rendering(snapshot, model.resources.options, model.session) {
   rendering =>
 
   def resources: VSCode_Resources = model.resources
@@ -86,8 +86,7 @@ class VSCode_Rendering(snapshot: Document.Snapshot, val model: VSCode_Model)
 
   /* completion */
 
-  def completion(node_pos: Line.Node_Position, caret: Text.Offset): List[LSP.CompletionItem] =
-  {
+  def completion(node_pos: Line.Node_Position, caret: Text.Offset): List[LSP.CompletionItem] = {
     val doc = model.content.doc
     val line = node_pos.pos.line
     val unicode = node_pos.name.endsWith(".thy")
@@ -148,8 +147,7 @@ class VSCode_Rendering(snapshot: Document.Snapshot, val model: VSCode_Model)
             case _ => None
           }).filterNot(info => info.info.is_empty)
 
-  def diagnostics_output(results: List[Text.Info[Command.Results]]): List[LSP.Diagnostic] =
-  {
+  def diagnostics_output(results: List[Text.Info[Command.Results]]): List[LSP.Diagnostic] = {
     (for {
       Text.Info(text_range, res) <- results.iterator
       range = model.content.doc.range(text_range)
@@ -164,8 +162,7 @@ class VSCode_Rendering(snapshot: Document.Snapshot, val model: VSCode_Model)
 
   /* text color */
 
-  def text_color(range: Text.Range): List[Text.Info[Rendering.Color.Value]] =
-  {
+  def text_color(range: Text.Range): List[Text.Info[Rendering.Color.Value]] = {
     snapshot.select(range, Rendering.text_color_elements, _ =>
       {
         case Text.Info(_, XML.Elem(Markup(name, props), _)) =>
@@ -180,11 +177,13 @@ class VSCode_Rendering(snapshot: Document.Snapshot, val model: VSCode_Model)
   private sealed case class Color_Info(
     color: Rendering.Color.Value, offset: Text.Offset, end_offset: Text.Offset, end_line: Int)
 
-  def text_overview_color: List[Text.Info[Rendering.Color.Value]] =
-  {
-    @tailrec def loop(offset: Text.Offset, line: Int, lines: List[Line], colors: List[Color_Info])
-      : List[Text.Info[Rendering.Color.Value]] =
-    {
+  def text_overview_color: List[Text.Info[Rendering.Color.Value]] = {
+    @tailrec def loop(
+      offset: Text.Offset,
+      line: Int,
+      lines: List[Line],
+      colors: List[Color_Info]
+    ): List[Text.Info[Rendering.Color.Value]] = {
       if (lines.nonEmpty) {
         val end_offset = offset + lines.head.text.length
         val colors1 =
@@ -235,8 +234,7 @@ class VSCode_Rendering(snapshot: Document.Snapshot, val model: VSCode_Model)
             dotted(model.content.text_range)))).flatten :::
     List(VSCode_Spell_Checker.decoration(rendering))
 
-  def decoration_output(decoration: List[VSCode_Model.Decoration]): LSP.Decoration =
-  {
+  def decoration_output(decoration: List[VSCode_Model.Decoration]): LSP.Decoration = {
     val entries =
       for (deco <- decoration)
       yield {
@@ -260,9 +258,11 @@ class VSCode_Rendering(snapshot: Document.Snapshot, val model: VSCode_Model)
 
   /* hyperlinks */
 
-  def hyperlink_source_file(source_name: String, line1: Int, range: Symbol.Range)
-    : Option[Line.Node_Range] =
-  {
+  def hyperlink_source_file(
+    source_name: String,
+    line1: Int,
+    range: Symbol.Range
+  ): Option[Line.Node_Range] = {
     for {
       platform_path <- resources.source_file(source_name)
       file <-
@@ -285,8 +285,7 @@ class VSCode_Rendering(snapshot: Document.Snapshot, val model: VSCode_Model)
     }
   }
 
-  def hyperlink_command(id: Document_ID.Generic, range: Symbol.Range): Option[Line.Node_Range] =
-  {
+  def hyperlink_command(id: Document_ID.Generic, range: Symbol.Range): Option[Line.Node_Range] = {
     if (snapshot.is_outdated) None
     else
       for {
@@ -309,8 +308,7 @@ class VSCode_Rendering(snapshot: Document.Snapshot, val model: VSCode_Model)
       case _ => None
     }
 
-  def hyperlinks(range: Text.Range): List[Line.Node_Range] =
-  {
+  def hyperlinks(range: Text.Range): List[Line.Node_Range] = {
     snapshot.cumulate[List[Line.Node_Range]](
       range, Nil, VSCode_Rendering.hyperlink_elements, _ =>
         {

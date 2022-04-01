@@ -11,8 +11,7 @@ import scala.collection.mutable
 import scala.util.parsing.input.Reader
 
 
-object ML_Lex
-{
+object ML_Lex {
   /** keywords **/
 
   val keywords: Set[String] =
@@ -38,8 +37,7 @@ object ML_Lex
 
   /** tokens **/
 
-  object Kind extends Enumeration
-  {
+  object Kind extends Enumeration {
     val KEYWORD = Value("keyword")
     val IDENT = Value("identifier")
     val LONG_IDENT = Value("long identifier")
@@ -63,8 +61,7 @@ object ML_Lex
     val ERROR = Value("bad input")
   }
 
-  sealed case class Token(kind: Kind.Value, source: String)
-  {
+  sealed case class Token(kind: Kind.Value, source: String) {
     def is_keyword: Boolean = kind == Kind.KEYWORD
     def is_delimiter: Boolean = is_keyword && !Symbol.is_ascii_identifier(source)
     def is_space: Boolean = kind == Kind.SPACE
@@ -78,8 +75,7 @@ object ML_Lex
   case object ML_String extends Scan.Line_Context
   case class Antiq(ctxt: Scan.Line_Context) extends Scan.Line_Context
 
-  private object Parsers extends Scan.Parsers with Antiquote.Parsers with Comment.Parsers
-  {
+  private object Parsers extends Scan.Parsers with Antiquote.Parsers with Comment.Parsers {
     /* string material */
 
     private val blanks = many(character(Symbol.is_ascii_blank))
@@ -120,8 +116,7 @@ object ML_Lex
     private val ml_string: Parser[Token] =
       "\"" ~ ml_string_body ~ "\"" ^^ { case x ~ y ~ z => Token(Kind.STRING, x + y + z) }
 
-    private def ml_string_line(ctxt: Scan.Line_Context): Parser[(Token, Scan.Line_Context)] =
-    {
+    private def ml_string_line(ctxt: Scan.Line_Context): Parser[(Token, Scan.Line_Context)] = {
       def result(x: String, c: Scan.Line_Context) = (Token(Kind.STRING, x), c)
 
       ctxt match {
@@ -185,8 +180,7 @@ object ML_Lex
 
     /* token */
 
-    private def other_token: Parser[Token] =
-    {
+    private def other_token: Parser[Token] = {
       /* identifiers */
 
       val letdigs = many(character(Symbol.is_ascii_letdig))
@@ -255,8 +249,7 @@ object ML_Lex
     def token: Parser[Token] =
       ml_char | (ml_string | (ml_comment | (ml_formal_comment | other_token)))
 
-    def token_line(SML: Boolean, ctxt: Scan.Line_Context): Parser[(Token, Scan.Line_Context)] =
-    {
+    def token_line(SML: Boolean, ctxt: Scan.Line_Context): Parser[(Token, Scan.Line_Context)] = {
       val other = (ml_char | other_token) ^^ (x => (x, Scan.Finished))
 
       if (SML) ml_string_line(ctxt) | (ml_comment_line(ctxt) | other)
@@ -279,9 +272,11 @@ object ML_Lex
       case _ => error("Unexpected failure of tokenizing input:\n" + input.toString)
     }
 
-  def tokenize_line(SML: Boolean, input: CharSequence, context: Scan.Line_Context)
-    : (List[Token], Scan.Line_Context) =
-  {
+  def tokenize_line(
+    SML: Boolean,
+    input: CharSequence,
+    context: Scan.Line_Context
+  ) : (List[Token], Scan.Line_Context) = {
     var in: Reader[Char] = Scan.char_reader(input)
     val toks = new mutable.ListBuffer[Token]
     var ctxt = context

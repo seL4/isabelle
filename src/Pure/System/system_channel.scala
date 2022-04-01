@@ -11,13 +11,11 @@ import java.io.{InputStream, OutputStream}
 import java.net.{ServerSocket, InetAddress}
 
 
-object System_Channel
-{
+object System_Channel {
   def apply(): System_Channel = new System_Channel
 }
 
-class System_Channel private
-{
+class System_Channel private {
   private val server = new ServerSocket(0, 50, Server.localhost)
 
   val address: String = Server.print_address(server.getLocalPort)
@@ -27,8 +25,7 @@ class System_Channel private
 
   def shutdown(): Unit = server.close()
 
-  def rendezvous(): (OutputStream, InputStream) =
-  {
+  def rendezvous(): (OutputStream, InputStream) = {
     val socket = server.accept
     try {
       val out_stream = socket.getOutputStream

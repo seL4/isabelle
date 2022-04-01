@@ -10,8 +10,7 @@ package isabelle
 import scala.annotation.tailrec
 
 
-object Line
-{
+object Line {
   /* logical lines */
 
   def normalize(text: String): String =
@@ -23,19 +22,16 @@ object Line
 
   /* position */
 
-  object Position
-  {
+  object Position {
     val zero: Position = Position()
     val offside: Position = Position(line = -1)
 
-    object Ordering extends scala.math.Ordering[Position]
-    {
+    object Ordering extends scala.math.Ordering[Position] {
       def compare(p1: Position, p2: Position): Int = p1 compare p2
     }
   }
 
-  sealed case class Position(line: Int = 0, column: Int = 0)
-  {
+  sealed case class Position(line: Int = 0, column: Int = 0) {
     def line1: Int = line + 1
     def column1: Int = column + 1
     def print: String = line1.toString + ":" + column1.toString
@@ -59,14 +55,12 @@ object Line
 
   /* range (right-open interval) */
 
-  object Range
-  {
+  object Range {
     def apply(start: Position): Range = Range(start, start)
     val zero: Range = Range(Position.zero)
   }
 
-  sealed case class Range(start: Position, stop: Position)
-  {
+  sealed case class Range(start: Position, stop: Position) {
     if (start.compare(stop) > 0)
       error("Bad line range: " + start.print + ".." + stop.print)
 
@@ -78,21 +72,18 @@ object Line
 
   /* positions within document node */
 
-  object Node_Position
-  {
+  object Node_Position {
     def offside(name: String): Node_Position = Node_Position(name, Position.offside)
   }
 
-  sealed case class Node_Position(name: String, pos: Position = Position.zero)
-  {
+  sealed case class Node_Position(name: String, pos: Position = Position.zero) {
     def line: Int = pos.line
     def line1: Int = pos.line1
     def column: Int = pos.column
     def column1: Int = pos.column1
   }
 
-  sealed case class Node_Range(name: String, range: Range = Range.zero)
-  {
+  sealed case class Node_Range(name: String, range: Range = Range.zero) {
     def start: Position = range.start
     def stop: Position = range.stop
   }
@@ -100,8 +91,7 @@ object Line
 
   /* document with newline as separator (not terminator) */
 
-  object Document
-  {
+  object Document {
     def apply(text: String): Document =
       Document(logical_lines(text).map(s => Line(Library.isolate_substring(s))))
 
@@ -123,8 +113,7 @@ object Line
     def text(lines: List[Line]): String = lines.mkString("", "\n", "")
   }
 
-  sealed case class Document(lines: List[Line])
-  {
+  sealed case class Document(lines: List[Line]) {
     lazy val text_length: Text.Offset = Document.length(lines)
     def text_range: Text.Range = Text.Range(0, text_length)
 
@@ -142,10 +131,8 @@ object Line
       }
     override def hashCode(): Int = lines.hashCode
 
-    def position(text_offset: Text.Offset): Position =
-    {
-      @tailrec def move(i: Text.Offset, lines_count: Int, lines_rest: List[Line]): Position =
-      {
+    def position(text_offset: Text.Offset): Position = {
+      @tailrec def move(i: Text.Offset, lines_count: Int, lines_rest: List[Line]): Position = {
         lines_rest match {
           case Nil => require(i == 0, "bad Line.position.move"); Position(lines_count)
           case line :: ls =>
@@ -161,8 +148,7 @@ object Line
     def range(text_range: Text.Range): Range =
       Range(position(text_range.start), position(text_range.stop))
 
-    def offset(pos: Position): Option[Text.Offset] =
-    {
+    def offset(pos: Position): Option[Text.Offset] = {
       val l = pos.line
       val c = pos.column
       val n = lines.length
@@ -178,16 +164,14 @@ object Line
       else None
     }
 
-    def change(remove: Range, insert: String): Option[(List[Text.Edit], Document)] =
-    {
+    def change(remove: Range, insert: String): Option[(List[Text.Edit], Document)] = {
       for {
         edit_start <- offset(remove.start)
         if remove.stop == remove.start || offset(remove.stop).isDefined
         l1 = remove.start.line
         l2 = remove.stop.line
         if l1 <= l2
-        (removed_text, new_lines) <-
-        {
+        (removed_text, new_lines) <- {
           val c1 = remove.start.column
           val c2 = remove.stop.column
 
@@ -239,8 +223,7 @@ object Line
   def apply(text: String): Line = if (text == "") empty else new Line(text)
 }
 
-final class Line private(val text: String)
-{
+final class Line private(val text: String) {
   require(text.forall(c => c != '\r' && c != '\n'), "bad line text")
 
   override def equals(that: Any): Boolean =

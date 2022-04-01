@@ -16,8 +16,8 @@ import java.nio.file.StandardWatchEventKinds.{ENTRY_CREATE, ENTRY_DELETE, ENTRY_
 import scala.jdk.CollectionConverters._
 
 
-class File_Watcher private[File_Watcher]  // dummy template
-{
+class File_Watcher private[File_Watcher] {
+  // dummy template
   def register(dir: JFile): Unit = {}
   def register_parent(file: JFile): Unit = {}
   def deregister(dir: JFile): Unit = {}
@@ -25,10 +25,8 @@ class File_Watcher private[File_Watcher]  // dummy template
   def shutdown(): Unit = {}
 }
 
-object File_Watcher
-{
-  val none: File_Watcher = new File_Watcher
-  {
+object File_Watcher {
+  val none: File_Watcher = new File_Watcher {
     override def toString: String = "File_Watcher.none"
   }
 
@@ -42,8 +40,7 @@ object File_Watcher
     dirs: Map[JFile, WatchKey] = Map.empty,
     changed: Set[JFile] = Set.empty)
 
-  class Impl private[File_Watcher](handle: Set[JFile] => Unit, delay: Time) extends File_Watcher
-  {
+  class Impl private[File_Watcher](handle: Set[JFile] => Unit, delay: Time) extends File_Watcher {
     private val state = Synchronized(File_Watcher.State())
     private val watcher = FileSystems.getDefault.newWatchService()
 
@@ -62,8 +59,7 @@ object File_Watcher
             st.copy(dirs = st.dirs + (dir -> key))
         })
 
-    override def register_parent(file: JFile): Unit =
-    {
+    override def register_parent(file: JFile): Unit = {
       val dir = file.getParentFile
       if (dir != null && dir.isDirectory) register(dir)
     }
@@ -85,20 +81,17 @@ object File_Watcher
 
     /* changed directory entries */
 
-    private val delay_changed = Delay.last(delay)
-    {
+    private val delay_changed = Delay.last(delay) {
       val changed = state.change_result(st => (st.changed, st.copy(changed = Set.empty)))
       handle(changed)
     }
 
-    private val watcher_thread = Isabelle_Thread.fork(name = "file_watcher", daemon = true)
-    {
+    private val watcher_thread = Isabelle_Thread.fork(name = "file_watcher", daemon = true) {
       try {
         while (true) {
           val key = watcher.take
           val has_changed =
-            state.change_result(st =>
-              {
+            state.change_result(st => {
                 val (remove, changed) =
                   st.dirs.collectFirst({ case (dir, key1) if key == key1 => dir }) match {
                     case Some(dir) =>
@@ -126,8 +119,7 @@ object File_Watcher
 
     /* shutdown */
 
-    override def shutdown(): Unit =
-    {
+    override def shutdown(): Unit = {
       watcher_thread.interrupt()
       watcher_thread.join()
       delay_changed.revoke()

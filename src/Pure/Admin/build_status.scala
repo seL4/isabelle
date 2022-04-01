@@ -7,8 +7,7 @@ Present recent build status information from database.
 package isabelle
 
 
-object Build_Status
-{
+object Build_Status {
   /* defaults */
 
   val default_target_dir = Path.explode("build_status")
@@ -22,15 +21,22 @@ object Build_Status
   /* data profiles */
 
   sealed case class Profile(
-    description: String, history: Int = 0, afp: Boolean = false, bulky: Boolean = false, sql: String)
-  {
+    description: String,
+    history: Int = 0,
+    afp: Boolean = false,
+    bulky: Boolean = false,
+    sql: String
+  ) {
     def days(options: Options): Int = options.int("build_log_history") max history
 
     def stretch(options: Options): Double =
       (days(options) max default_history min (default_history * 5)).toDouble / default_history
 
-    def select(options: Options, columns: List[SQL.Column], only_sessions: Set[String]): SQL.Source =
-    {
+    def select(
+      options: Options,
+      columns: List[SQL.Column],
+      only_sessions: Set[String]
+    ): SQL.Source = {
       Build_Log.Data.universal_table.select(columns, distinct = true,
         sql = "WHERE " +
           Build_Log.Data.pull_date(afp) + " > " + Build_Log.Data.recent_time(days(options)) +
@@ -55,8 +61,8 @@ object Build_Status
     verbose: Boolean = false,
     target_dir: Path = default_target_dir,
     ml_statistics: Boolean = false,
-    image_size: (Int, Int) = default_image_size): Unit =
-  {
+    image_size: (Int, Int) = default_image_size
+  ): Unit = {
     val ml_statistics_domain =
       Iterator(ML_Statistics.heap_fields, ML_Statistics.program_fields, ML_Statistics.tasks_fields,
         ML_Statistics.workers_fields).flatMap(_._2).toSet
@@ -74,15 +80,21 @@ object Build_Status
 
   sealed case class Data(date: Date, entries: List[Data_Entry])
   sealed case class Data_Entry(
-    name: String, hosts: List[String], stretch: Double, sessions: List[Session])
-  {
+    name: String,
+    hosts: List[String],
+    stretch: Double,
+    sessions: List[Session]
+  ) {
     def failed_sessions: List[Session] =
       sessions.filter(_.head.failed).sortBy(_.name)
   }
   sealed case class Session(
-    name: String, threads: Int, entries: List[Entry],
-    ml_statistics: ML_Statistics, ml_statistics_date: Long)
-  {
+    name: String,
+    threads: Int,
+    entries: List[Entry],
+    ml_statistics: ML_Statistics,
+    ml_statistics_date: Long
+  ) {
     require(entries.nonEmpty, "no entries")
 
     lazy val sorted_entries: List[Entry] = entries.sortBy(entry => - entry.date)
@@ -101,8 +113,7 @@ object Build_Status
         entry.average_heap > 0 ||
         entry.stored_heap > 0)
 
-    def make_csv: CSV.File =
-    {
+    def make_csv: CSV.File = {
       val header =
         List("session_name",
           "chapter",
@@ -167,15 +178,14 @@ object Build_Status
     average_heap: Long,
     stored_heap: Long,
     status: Build_Log.Session_Status.Value,
-    errors: List[String])
-  {
+    errors: List[String]
+  ) {
     val date: Long = (afp_pull_date getOrElse pull_date).unix_epoch
 
     def finished: Boolean = status == Build_Log.Session_Status.finished
     def failed: Boolean = status == Build_Log.Session_Status.failed
 
-    def present_errors(name: String): XML.Body =
-    {
+    def present_errors(name: String): XML.Body = {
       if (errors.isEmpty)
         HTML.text(name + print_version(isabelle_version, afp_version, chapter))
       else {
@@ -185,14 +195,15 @@ object Build_Status
     }
   }
 
-  sealed case class Image(name: String, width: Int, height: Int)
-  {
+  sealed case class Image(name: String, width: Int, height: Int) {
     def path: Path = Path.basic(name)
   }
 
   def print_version(
-    isabelle_version: String, afp_version: String = "", chapter: String = AFP.chapter): String =
-  {
+    isabelle_version: String,
+    afp_version: String = "",
+    chapter: String = AFP.chapter
+  ): String = {
     val body =
       proper_string(isabelle_version).map("Isabelle/" + _).toList :::
       (if (chapter == AFP.chapter) proper_string(afp_version).map("AFP/" + _) else None).toList
@@ -205,8 +216,8 @@ object Build_Status
     only_sessions: Set[String] = Set.empty,
     ml_statistics: Boolean = false,
     ml_statistics_domain: String => Boolean = _ => true,
-    verbose: Boolean = false): Data =
-  {
+    verbose: Boolean = false
+  ): Data = {
     val date = Date.now()
     var data_hosts = Map.empty[String, Set[String]]
     var data_stretch = Map.empty[String, Double]
@@ -217,8 +228,7 @@ object Build_Status
 
     val store = Build_Log.store(options)
 
-    using(store.open_database())(db =>
-    {
+    using(store.open_database())(db => {
       for (profile <- profiles.sortBy(_.description)) {
         progress.echo("input " + quote(profile.description))
 
@@ -252,15 +262,13 @@ object Build_Status
         val sql = profile.select(options, columns, only_sessions)
         progress.echo_if(verbose, sql)
 
-        db.using_statement(sql)(stmt =>
-        {
+        db.using_statement(sql)(stmt => {
           val res = stmt.execute_query()
           while (res.next()) {
             val session_name = res.string(Build_Log.Data.session_name)
             val chapter = res.string(Build_Log.Data.chapter)
             val groups = split_lines(res.string(Build_Log.Data.groups))
-            val threads =
-            {
+            val threads = {
               val threads1 =
                 res.string(Build_Log.Settings.ISABELLE_BUILD_OPTIONS) match {
                   case Threads_Option(Value.Int(i)) => i
@@ -365,8 +373,8 @@ object Build_Status
   def present_data(data: Data,
     progress: Progress = new Progress,
     target_dir: Path = default_target_dir,
-    image_size: (Int, Int) = default_image_size): Unit =
-  {
+    image_size: (Int, Int) = default_image_size
+  ): Unit = {
     def clean_name(name: String): String =
       name.flatMap(c => if (c == ' ' || c == '/') "_" else if (c == ',') "" else c.toString)
 
@@ -440,8 +448,7 @@ object Build_Status
                 } max 0.1) * 1.1
               val timing_range = "[0:" + max_time + "]"
 
-              def gnuplot(plot_name: String, plots: List[String], range: String): Image =
-              {
+              def gnuplot(plot_name: String, plots: List[String], range: String): Image = {
                 val image = Image(plot_name, image_width_stretch, image_height)
 
                 File.write(gnuplot_file, """
@@ -463,8 +470,7 @@ plot [] """ + range + " " +
                 image
               }
 
-              val timing_plots =
-              {
+              val timing_plots = {
                 val plots1 =
                   List(
                     """ using 1:2 smooth sbezier title "elapsed time (smooth)" """,
@@ -492,8 +498,7 @@ plot [] """ + range + " " +
                   """ using 1:12 smooth sbezier title "heap stored (smooth)" """,
                   """ using 1:12 smooth csplines title "heap stored" """)
 
-              def jfreechart(plot_name: String, fields: ML_Statistics.Fields): Image =
-              {
+              def jfreechart(plot_name: String, fields: ML_Statistics.Fields): Image = {
                 val image = Image(plot_name, image_width, image_height)
                 val chart =
                   session.ml_statistics.chart(
@@ -577,8 +582,7 @@ plot [] """ + range + " " +
 
   val isabelle_tool =
     Isabelle_Tool("build_status", "present recent build status information from database",
-      Scala_Project.here, args =>
-    {
+      Scala_Project.here, args => {
       var target_dir = default_target_dir
       var ml_statistics = false
       var only_sessions = Set.empty[String]

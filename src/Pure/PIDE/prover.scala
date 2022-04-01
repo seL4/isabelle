@@ -11,23 +11,20 @@ package isabelle
 import java.io.{InputStream, OutputStream, BufferedOutputStream, IOException}
 
 
-object Prover
-{
+object Prover {
   /* messages */
 
   sealed abstract class Message
   type Receiver = Message => Unit
 
-  class Input(val name: String, val args: List[String]) extends Message
-  {
+  class Input(val name: String, val args: List[String]) extends Message {
     override def toString: String =
       XML.Elem(Markup(Markup.PROVER_COMMAND, List((Markup.NAME, name))),
         args.flatMap(s =>
           List(XML.newline, XML.elem(Markup.PROVER_ARG, YXML.parse_body(s))))).toString
   }
 
-  class Output(val message: XML.Elem) extends Message
-  {
+  class Output(val message: XML.Elem) extends Message {
     def kind: String = message.markup.name
     def properties: Properties.T = message.markup.properties
     def body: XML.Body = message.body
@@ -41,8 +38,7 @@ object Prover
     def is_report: Boolean = kind == Markup.REPORT
     def is_syslog: Boolean = is_init || is_exit || is_system || is_stderr
 
-    override def toString: String =
-    {
+    override def toString: String = {
       val res =
         if (is_status || is_report) message.body.map(_.toString).mkString
         else Pretty.string_of(message.body, metric = Symbol.Metric)
@@ -65,8 +61,7 @@ object Prover
     }
 
   class Protocol_Output(props: Properties.T, val chunks: List[Bytes])
-    extends Output(XML.Elem(Markup(Markup.PROTOCOL, props), Nil))
-  {
+  extends Output(XML.Elem(Markup(Markup.PROTOCOL, props), Nil)) {
     def chunk: Bytes = the_chunk(chunks, toString)
     lazy val text: String = chunk.text
   }
@@ -77,29 +72,25 @@ class Prover(
   receiver: Prover.Receiver,
   cache: XML.Cache,
   channel: System_Channel,
-  process: Bash.Process) extends Protocol
-{
+  process: Bash.Process
+) extends Protocol {
   /** receiver output **/
 
-  private def system_output(text: String): Unit =
-  {
+  private def system_output(text: String): Unit = {
     receiver(new Prover.Output(XML.Elem(Markup(Markup.SYSTEM, Nil), List(XML.Text(text)))))
   }
 
-  private def protocol_output(props: Properties.T, chunks: List[Bytes]): Unit =
-  {
+  private def protocol_output(props: Properties.T, chunks: List[Bytes]): Unit = {
     receiver(new Prover.Protocol_Output(props, chunks))
   }
 
-  private def output(kind: String, props: Properties.T, body: XML.Body): Unit =
-  {
+  private def output(kind: String, props: Properties.T, body: XML.Body): Unit = {
     val main = XML.Elem(Markup(kind, props), Protocol_Message.clean_reports(body))
     val reports = Protocol_Message.reports(props, body)
     for (msg <- main :: reports) receiver(new Prover.Output(cache.elem(msg)))
   }
 
-  private def exit_message(result: Process_Result): Unit =
-  {
+  private def exit_message(result: Process_Result): Unit = {
     output(Markup.EXIT, Markup.Process_Result(result),
       List(XML.Text(result.print_return_code)))
   }
@@ -115,20 +106,17 @@ class Prover(
       Process_Result(rc, timing = timing)
     }
 
-  private def terminate_process(): Unit =
-  {
+  private def terminate_process(): Unit = {
     try { process.terminate() }
     catch {
       case exn @ ERROR(_) => system_output("Failed to terminate prover process: " + exn.getMessage)
     }
   }
 
-  private val process_manager = Isabelle_Thread.fork(name = "process_manager")
-  {
+  private val process_manager = Isabelle_Thread.fork(name = "process_manager") {
     val stdout = physical_output(false)
 
-    val (startup_failed, startup_errors) =
-    {
+    val (startup_failed, startup_errors) = {
       var finished: Option[Boolean] = None
       val result = new StringBuilder(100)
       while (finished.isEmpty && (process.stderr.ready || !process_result.is_finished)) {
@@ -174,8 +162,7 @@ class Prover(
 
   def join(): Unit = process_manager.join()
 
-  def terminate(): Unit =
-  {
+  def terminate(): Unit = {
     system_output("Terminating prover process")
     command_input_close()
 
@@ -197,8 +184,7 @@ class Prover(
 
   private def command_input_close(): Unit = command_input.foreach(_.shutdown())
 
-  private def command_input_init(raw_stream: OutputStream): Unit =
-  {
+  private def command_input_init(raw_stream: OutputStream): Unit = {
     val name = "command_input"
     val stream = new BufferedOutputStream(raw_stream)
     command_input =
@@ -223,8 +209,7 @@ class Prover(
 
   /* physical output */
 
-  private def physical_output(err: Boolean): Thread =
-  {
+  private def physical_output(err: Boolean): Thread = {
     val (name, reader, markup) =
       if (err) ("standard_error", process.stderr, Markup.STDERR)
       else ("standard_output", process.stdout, Markup.STDOUT)
@@ -261,8 +246,7 @@ class Prover(
 
   /* message output */
 
-  private def message_output(stream: InputStream): Thread =
-  {
+  private def message_output(stream: InputStream): Thread = {
     def decode_chunk(chunk: Bytes): XML.Body =
       Symbol.decode_yxml_failsafe(chunk.text, cache = cache)
 
@@ -312,8 +296,7 @@ class Prover(
       case _ => error("Inactive prover input thread for command " + quote(name))
     }
 
-  def protocol_command_args(name: String, args: List[String]): Unit =
-  {
+  def protocol_command_args(name: String, args: List[String]): Unit = {
     receiver(new Prover.Input(name, args))
     protocol_command_raw(name, args.map(Bytes(_)))
   }

@@ -10,20 +10,17 @@ package isabelle.vscode
 import isabelle._
 
 
-object State_Panel
-{
+object State_Panel {
   private val make_id = Counter.make()
   private val instances = Synchronized(Map.empty[Counter.ID, State_Panel])
 
-  def init(server: Language_Server): Unit =
-  {
+  def init(server: Language_Server): Unit = {
     val instance = new State_Panel(server)
     instances.change(_ + (instance.id -> instance))
     instance.init()
   }
 
-  def exit(id: Counter.ID): Unit =
-  {
+  def exit(id: Counter.ID): Unit = {
     instances.change(map =>
       map.get(id) match {
         case None => map
@@ -45,8 +42,7 @@ object State_Panel
 }
 
 
-class State_Panel private(val server: Language_Server)
-{
+class State_Panel private(val server: Language_Server) {
   /* output */
 
   val id: Counter.ID = State_Panel.make_id()
@@ -80,8 +76,7 @@ class State_Panel private(val server: Language_Server)
 
   def locate(): Unit = print_state.locate_query()
 
-  def update(): Unit =
-  {
+  def update(): Unit = {
     server.editor.current_node_snapshot(()) match {
       case Some(snapshot) =>
         (server.editor.current_command((), snapshot), print_state.get_location) match {
@@ -97,8 +92,7 @@ class State_Panel private(val server: Language_Server)
 
   private val auto_update_enabled = Synchronized(true)
 
-  def auto_update(set: Option[Boolean] = None): Unit =
-  {
+  def auto_update(set: Option[Boolean] = None): Unit = {
     val enabled =
       auto_update_enabled.guarded_access(a =>
         set match {
@@ -121,16 +115,14 @@ class State_Panel private(val server: Language_Server)
         auto_update()
     }
 
-  def init(): Unit =
-  {
+  def init(): Unit = {
     server.session.commands_changed += main
     server.session.caret_focus += main
     server.editor.send_wait_dispatcher { print_state.activate() }
     server.editor.send_dispatcher { auto_update() }
   }
 
-  def exit(): Unit =
-  {
+  def exit(): Unit = {
     output_active.change(_ => false)
     server.session.commands_changed -= main
     server.session.caret_focus -= main

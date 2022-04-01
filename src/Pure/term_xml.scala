@@ -7,12 +7,10 @@ XML data representation of lambda terms.
 package isabelle
 
 
-object Term_XML
-{
+object Term_XML {
   import Term._
 
-  object Encode
-  {
+  object Encode {
     import XML.Encode._
 
     val indexname: P[Indexname] =
@@ -39,8 +37,7 @@ object Term_XML
         { case App(a, b) => (Nil, pair(term, term)(a, b)) }))
   }
 
-  object Decode
-  {
+  object Decode {
     import XML.Decode._
 
     val indexname: P[Indexname] =
@@ -66,8 +63,7 @@ object Term_XML
         { case (List(a), b) => val (c, d) = pair(typ, term)(b); Abs(a, c, d) },
         { case (Nil, a) => val (b, c) = pair(term, term)(a); App(b, c) }))
 
-    def term_env(env: Map[String, Typ]): T[Term] =
-    {
+    def term_env(env: Map[String, Typ]): T[Term] = {
       def env_type(x: String, t: Typ): Typ =
         if (t == dummyT && env.isDefinedAt(x)) env(x) else t
 
@@ -82,8 +78,7 @@ object Term_XML
       term
     }
 
-    def proof_env(env: Map[String, Typ]): T[Proof] =
-    {
+    def proof_env(env: Map[String, Typ]): T[Proof] = {
       val term = term_env(env)
       def proof: T[Proof] =
         variant[Proof](List(

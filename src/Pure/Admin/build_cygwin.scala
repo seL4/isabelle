@@ -7,8 +7,7 @@ Produce pre-canned Cygwin distribution for Isabelle.
 package isabelle
 
 
-object Build_Cygwin
-{
+object Build_Cygwin {
   val default_mirror: String = "https://isabelle.sketis.net/cygwin_2021-1"
 
   val packages: List[String] =
@@ -16,12 +15,11 @@ object Build_Cygwin
 
   def build_cygwin(progress: Progress,
     mirror: String = default_mirror,
-    more_packages: List[String] = Nil): Unit =
-  {
+    more_packages: List[String] = Nil
+  ): Unit = {
     require(Platform.is_windows, "Windows platform expected")
 
-    Isabelle_System.with_tmp_dir("cygwin")(tmp_dir =>
-      {
+    Isabelle_System.with_tmp_dir("cygwin")(tmp_dir => {
         val cygwin = tmp_dir + Path.explode("cygwin")
         val cygwin_etc = cygwin + Path.explode("etc")
         val cygwin_isabelle = Isabelle_System.make_directory(cygwin + Path.explode("isabelle"))
@@ -62,8 +60,7 @@ object Build_Cygwin
 
   val isabelle_tool =
     Isabelle_Tool("build_cygwin", "produce pre-canned Cygwin distribution for Isabelle",
-      Scala_Project.here, args =>
-    {
+      Scala_Project.here, args => {
       var mirror = default_mirror
       var more_packages: List[String] = Nil
 

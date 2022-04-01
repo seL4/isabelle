@@ -7,8 +7,7 @@ Long names.
 package isabelle
 
 
-object Long_Name
-{
+object Long_Name {
   val separator = "."
   val separator_char = '.'
 

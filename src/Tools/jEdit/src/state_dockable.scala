@@ -18,8 +18,7 @@ import java.awt.event.{ComponentEvent, ComponentAdapter}
 import org.gjt.sp.jedit.View
 
 
-class State_Dockable(view: View, position: String) extends Dockable(view, position)
-{
+class State_Dockable(view: View, position: String) extends Dockable(view, position) {
   GUI_Thread.require {}
 
 
@@ -46,8 +45,7 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
     override def componentShown(e: ComponentEvent): Unit = delay_resize.invoke()
   })
 
-  private def handle_resize(): Unit =
-  {
+  private def handle_resize(): Unit = {
     GUI_Thread.require {}
 
     pretty_text_area.resize(
@@ -60,8 +58,7 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
   def update_request(): Unit =
     GUI_Thread.require { print_state.apply_query(Nil) }
 
-  def update(): Unit =
-  {
+  def update(): Unit = {
     GUI_Thread.require {}
 
     PIDE.editor.current_node_snapshot(view) match {
@@ -125,8 +122,7 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
         GUI_Thread.later { auto_update() }
     }
 
-  override def init(): Unit =
-  {
+  override def init(): Unit = {
     PIDE.session.global_options += main
     PIDE.session.commands_changed += main
     PIDE.session.caret_focus += main
@@ -135,8 +131,7 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
     auto_update()
   }
 
-  override def exit(): Unit =
-  {
+  override def exit(): Unit = {
     print_state.deactivate()
     PIDE.session.caret_focus -= main
     PIDE.session.global_options -= main

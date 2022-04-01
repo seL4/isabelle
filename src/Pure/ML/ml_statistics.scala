@@ -17,8 +17,7 @@ import org.jfree.chart.{JFreeChart, ChartPanel, ChartFactory}
 import org.jfree.chart.plot.PlotOrientation
 
 
-object ML_Statistics
-{
+object ML_Statistics {
   /* properties */
 
   val Now = new Properties.Double("now")
@@ -31,8 +30,7 @@ object ML_Statistics
   val Heap_Free = new Properties.Long("size_heap_free_last_GC")
   val GC_Percent = new Properties.Int("GC_percent")
 
-  sealed case class Memory_Status(heap_size: Long, heap_free: Long, gc_percent: Int)
-  {
+  sealed case class Memory_Status(heap_size: Long, heap_free: Long, gc_percent: Int) {
     def heap_used: Long = (heap_size - heap_free) max 0
     def heap_used_fraction: Double =
       if (heap_size == 0) 0.0 else heap_used.toDouble / heap_size
@@ -40,8 +38,7 @@ object ML_Statistics
       if (1 <= gc_percent && gc_percent <= 100) Some((gc_percent - 1) * 0.01) else None
   }
 
-  def memory_status(props: Properties.T): Memory_Status =
-  {
+  def memory_status(props: Properties.T): Memory_Status = {
     val heap_size = Heap_Size.get(props)
     val heap_free = Heap_Free.get(props)
     val gc_percent = GC_Percent.get(props)
@@ -54,10 +51,9 @@ object ML_Statistics
   def monitor(pid: Long,
     stats_dir: String = "",
     delay: Time = Time.seconds(0.5),
-    consume: Properties.T => Unit = Console.println): Unit =
-  {
-    def progress_stdout(line: String): Unit =
-    {
+    consume: Properties.T => Unit = Console.println
+  ): Unit = {
+    def progress_stdout(line: String): Unit = {
       val props = Library.space_explode(',', line).flatMap(Properties.Eq.unapply)
       if (props.nonEmpty) consume(props)
     }
@@ -75,8 +71,7 @@ object ML_Statistics
 
   /* protocol handler */
 
-  class Handler extends Session.Protocol_Handler
-  {
+  class Handler extends Session.Protocol_Handler {
     private var session: Session = null
     private var monitoring: Future[Unit] = Future.value(())
 
@@ -182,16 +177,17 @@ object ML_Statistics
 
   /* content interpretation */
 
-  final case class Entry(time: Double, data: Map[String, Double])
-  {
+  final case class Entry(time: Double, data: Map[String, Double]) {
     def get(field: String): Double = data.getOrElse(field, 0.0)
   }
 
   val empty: ML_Statistics = apply(Nil)
 
-  def apply(ml_statistics0: List[Properties.T], heading: String = "",
-    domain: String => Boolean = _ => true): ML_Statistics =
-  {
+  def apply(
+    ml_statistics0: List[Properties.T],
+    heading: String = "",
+    domain: String => Boolean = _ => true
+  ): ML_Statistics = {
     require(ml_statistics0.forall(props => Now.unapply(props).isDefined), "missing \"now\" field")
 
     val ml_statistics = ml_statistics0.sortBy(now)
@@ -205,8 +201,7 @@ object ML_Statistics
           (x, _) <- props.iterator
           if x != Now.name && domain(x) } yield x)
 
-    val content =
-    {
+    val content = {
       var last_edge = Map.empty[String, (Double, Double, Double)]
       val result = new mutable.ListBuffer[ML_Statistics.Entry]
       for (props <- ml_statistics) {
@@ -254,8 +249,8 @@ final class ML_Statistics private(
   val fields: Set[String],
   val content: List[ML_Statistics.Entry],
   val time_start: Double,
-  val duration: Double)
-{
+  val duration: Double
+) {
   override def toString: String =
     if (content.isEmpty) "ML_Statistics.empty"
     else "ML_Statistics(length = " + content.length + ", fields = " + fields.size + ")"
@@ -266,8 +261,7 @@ final class ML_Statistics private(
   def maximum(field: String): Double =
     content.foldLeft(0.0) { case (m, e) => m max e.get(field) }
 
-  def average(field: String): Double =
-  {
+  def average(field: String): Double = {
     @tailrec def sum(t0: Double, list: List[ML_Statistics.Entry], acc: Double): Double =
       list match {
         case Nil => acc
@@ -285,8 +279,7 @@ final class ML_Statistics private(
 
   /* charts */
 
-  def update_data(data: XYSeriesCollection, selected_fields: List[String]): Unit =
-  {
+  def update_data(data: XYSeriesCollection, selected_fields: List[String]): Unit = {
     data.removeAllSeries()
     for (field <- selected_fields) {
       val series = new XYSeries(field)
@@ -295,8 +288,7 @@ final class ML_Statistics private(
     }
   }
 
-  def chart(title: String, selected_fields: List[String]): JFreeChart =
-  {
+  def chart(title: String, selected_fields: List[String]): JFreeChart = {
     val data = new XYSeriesCollection
     update_data(data, selected_fields)
 

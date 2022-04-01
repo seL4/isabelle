@@ -12,12 +12,10 @@ import isabelle._
 import java.io.{File => JFile}
 
 
-object VSCode_Model
-{
+object VSCode_Model {
   /* decorations */
 
-  object Decoration
-  {
+  object Decoration {
     def empty(typ: String): Decoration = Decoration(typ, Nil)
 
     def ranges(typ: String, ranges: List[Text.Range]): Decoration =
@@ -28,13 +26,11 @@ object VSCode_Model
 
   /* content */
 
-  object Content
-  {
+  object Content {
     val empty: Content = Content(Line.Document.empty)
   }
 
-  sealed case class Content(doc: Line.Document)
-  {
+  sealed case class Content(doc: Line.Document) {
     override def toString: String = doc.toString
     def text_length: Text.Offset = doc.text_length
     def text_range: Text.Range = doc.text_range
@@ -57,9 +53,11 @@ object VSCode_Model
       }).toList
   }
 
-  def init(session: Session, editor: Language_Server.Editor, node_name: Document.Node.Name)
-    : VSCode_Model =
-  {
+  def init(
+    session: Session,
+    editor: Language_Server.Editor,
+    node_name: Document.Node.Name
+  ): VSCode_Model = {
     VSCode_Model(session, editor, node_name, Content.empty,
       node_required = File_Format.registry.is_theory(node_name))
   }
@@ -76,8 +74,8 @@ sealed case class VSCode_Model(
   last_perspective: Document.Node.Perspective_Text = Document.Node.no_perspective_text,
   pending_edits: List[Text.Edit] = Nil,
   published_diagnostics: List[Text.Info[Command.Results]] = Nil,
-  published_decorations: List[VSCode_Model.Decoration] = Nil) extends Document.Model
-{
+  published_decorations: List[VSCode_Model.Decoration] = Nil
+) extends Document.Model {
   model =>
 
 
@@ -104,9 +102,10 @@ sealed case class VSCode_Model(
 
   /* perspective */
 
-  def node_perspective(doc_blobs: Document.Blobs, caret: Option[Line.Position])
-    : (Boolean, Document.Node.Perspective_Text) =
-  {
+  def node_perspective(
+    doc_blobs: Document.Blobs,
+    caret: Option[Line.Position]
+  ): (Boolean, Document.Node.Perspective_Text) = {
     if (is_theory) {
       val snapshot = model.snapshot()
 
@@ -158,8 +157,7 @@ sealed case class VSCode_Model(
 
   /* edits */
 
-  def change_text(text: String, range: Option[Line.Range] = None): Option[VSCode_Model] =
-  {
+  def change_text(text: String, range: Option[Line.Range] = None): Option[VSCode_Model] = {
     val insert = Line.normalize(text)
     range match {
       case None =>
@@ -184,9 +182,8 @@ sealed case class VSCode_Model(
       unicode_symbols: Boolean,
       doc_blobs: Document.Blobs,
       file: JFile,
-      caret: Option[Line.Position])
-    : Option[((List[LSP.TextDocumentEdit], List[Document.Edit_Text]), VSCode_Model)] =
-  {
+      caret: Option[Line.Position]
+  ): Option[((List[LSP.TextDocumentEdit], List[Document.Edit_Text]), VSCode_Model)] = {
     val workspace_edits =
       if (unicode_symbols && version.isDefined) {
         val edits = content.recode_symbols
@@ -197,8 +194,7 @@ sealed case class VSCode_Model(
 
     val (reparse, perspective) = node_perspective(doc_blobs, caret)
     if (reparse || pending_edits.nonEmpty || last_perspective != perspective ||
-        workspace_edits.nonEmpty)
-    {
+        workspace_edits.nonEmpty) {
       val prover_edits = node_edits(node_header, pending_edits, perspective)
       val edits = (workspace_edits, prover_edits)
       Some((edits, copy(pending_edits = Nil, last_perspective = perspective)))
@@ -209,9 +205,9 @@ sealed case class VSCode_Model(
 
   /* publish annotations */
 
-  def publish(rendering: VSCode_Rendering):
-    (Option[List[Text.Info[Command.Results]]], Option[List[VSCode_Model.Decoration]], VSCode_Model) =
-  {
+  def publish(
+    rendering: VSCode_Rendering
+  ): (Option[List[Text.Info[Command.Results]]], Option[List[VSCode_Model.Decoration]], VSCode_Model) = {
     val diagnostics = rendering.diagnostics
     val decorations =
       if (node_visible) rendering.decorations

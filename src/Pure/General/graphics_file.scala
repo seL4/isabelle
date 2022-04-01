@@ -18,13 +18,16 @@ import org.jfree.chart.JFreeChart
 import com.lowagie.text.pdf.{PdfWriter, BaseFont, FontMapper, DefaultFontMapper}
 
 
-object Graphics_File
-{
+object Graphics_File {
   /* PNG */
 
   def write_png(
-    file: JFile, paint: Graphics2D => Unit, width: Int, height: Int, dpi: Int = 72): Unit =
-  {
+    file: JFile,
+    paint: Graphics2D => Unit,
+    width: Int,
+    height: Int,
+    dpi: Int = 72
+  ): Unit = {
     val scale = dpi / 72.0f
     val w = (width * scale).round
     val h = (height * scale).round
@@ -42,8 +45,7 @@ object Graphics_File
 
   /* PDF */
 
-  private def font_mapper(): FontMapper =
-  {
+  private def font_mapper(): FontMapper = {
     val mapper = new DefaultFontMapper
     for (entry <- Isabelle_Fonts.fonts()) {
       val params = new DefaultFontMapper.BaseFontParameters(File.platform_path(entry.path))
@@ -55,12 +57,10 @@ object Graphics_File
     mapper
   }
 
-  def write_pdf(file: JFile, paint: Graphics2D => Unit, width: Int, height: Int): Unit =
-  {
+  def write_pdf(file: JFile, paint: Graphics2D => Unit, width: Int, height: Int): Unit = {
     import com.lowagie.text.{Document, Rectangle}
 
-    using(new BufferedOutputStream(new FileOutputStream(file)))(out =>
-    {
+    using(new BufferedOutputStream(new FileOutputStream(file)))(out => {
       val document = new Document()
       try {
         document.setPageSize(new Rectangle(width.toFloat, height.toFloat))

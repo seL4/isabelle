@@ -14,14 +14,12 @@ import scala.util.parsing.combinator.RegexParsers
 import scala.util.parsing.input.Reader
 
 
-object Bibtex
-{
+object Bibtex {
   /** file format **/
 
   def is_bibtex(name: String): Boolean = name.endsWith(".bib")
 
-  class File_Format extends isabelle.File_Format
-  {
+  class File_Format extends isabelle.File_Format {
     val format_name: String = "bibtex"
     val file_ext: String = "bib"
 
@@ -30,8 +28,7 @@ object Bibtex
       """theory "bib" imports Pure begin bibtex_file """ +
         Outer_Syntax.quote_string(name) + """ end"""
 
-    override def html_document(snapshot: Document.Snapshot): Option[Presentation.HTML_Document] =
-    {
+    override def html_document(snapshot: Document.Snapshot): Option[Presentation.HTML_Document] = {
       val name = snapshot.node_name
       if (detect(name.node)) {
         val title = "Bibliography " + quote(snapshot.node_name.path.file_name)
@@ -50,8 +47,7 @@ object Bibtex
 
   /** bibtex errors **/
 
-  def bibtex_errors(dir: Path, root_name: String): List[String] =
-  {
+  def bibtex_errors(dir: Path, root_name: String): List[String] = {
     val log_path = dir + Path.explode(root_name).ext("blg")
     if (log_path.is_file) {
       val Error1 = """^(I couldn't open database file .+)$""".r
@@ -78,8 +74,7 @@ object Bibtex
 
   /** check database **/
 
-  def check_database(database: String): (List[(String, Position.T)], List[(String, Position.T)]) =
-  {
+  def check_database(database: String): (List[(String, Position.T)], List[(String, Position.T)]) = {
     val chunks = parse(Line.normalize(database))
     var chunk_pos = Map.empty[String, Position.T]
     val tokens = new mutable.ListBuffer[(Token, Position.T)]
@@ -89,8 +84,7 @@ object Bibtex
     def make_pos(length: Int): Position.T =
       Position.Offset(offset) ::: Position.End_Offset(offset + length) ::: Position.Line(line)
 
-    def advance_pos(tok: Token): Unit =
-    {
+    def advance_pos(tok: Token): Unit = {
       for (s <- Symbol.iterator(tok.source)) {
         if (Symbol.is_newline(s)) line += 1
         offset += 1
@@ -111,8 +105,7 @@ object Bibtex
       }
     }
 
-    Isabelle_System.with_tmp_dir("bibtex")(tmp_dir =>
-    {
+    Isabelle_System.with_tmp_dir("bibtex")(tmp_dir => {
       File.write(tmp_dir + Path.explode("root.bib"),
         tokens.iterator.map(p => p._1.source).mkString("", "\n", "\n"))
       File.write(tmp_dir + Path.explode("root.aux"),
@@ -148,11 +141,9 @@ object Bibtex
     })
   }
 
-  object Check_Database extends Scala.Fun_String("bibtex_check_database")
-  {
+  object Check_Database extends Scala.Fun_String("bibtex_check_database") {
     val here = Scala_Project.here
-    def apply(database: String): String =
-    {
+    def apply(database: String): String = {
       import XML.Encode._
       YXML.string_of_body(pair(list(pair(string, properties)), list(pair(string, properties)))(
         check_database(database)))
@@ -165,8 +156,7 @@ object Bibtex
 
   /* entries */
 
-  def entries(text: String): List[Text.Info[String]] =
-  {
+  def entries(text: String): List[Text.Info[String]] = {
     val result = new mutable.ListBuffer[Text.Info[String]]
     var offset = 0
     for (chunk <- Bibtex.parse(text)) {
@@ -178,9 +168,9 @@ object Bibtex
     result.toList
   }
 
-  def entries_iterator[A, B <: Document.Model](models: Map[A, B])
-    : Iterator[Text.Info[(String, B)]] =
-  {
+  def entries_iterator[A, B <: Document.Model](
+    models: Map[A, B]
+  ): Iterator[Text.Info[(String, B)]] = {
     for {
       (_, model) <- models.iterator
       info <- model.bibtex_entries.iterator
@@ -191,9 +181,11 @@ object Bibtex
   /* completion */
 
   def completion[A, B <: Document.Model](
-    history: Completion.History, rendering: Rendering, caret: Text.Offset,
-    models: Map[A, B]): Option[Completion.Result] =
-  {
+    history: Completion.History,
+    rendering: Rendering,
+    caret: Text.Offset,
+    models: Map[A, B]
+  ): Option[Completion.Result] = {
     for {
       Text.Info(r, name) <- rendering.citations(rendering.before_caret_range(caret)).headOption
       name1 <- Completion.clean_name(name)
@@ -245,8 +237,8 @@ object Bibtex
     kind: String,
     required: List[String],
     optional_crossref: List[String],
-    optional_other: List[String])
-  {
+    optional_other: List[String]
+  ) {
     val optional_standard: List[String] = List("url", "doi", "ee")
 
     def is_required(s: String): Boolean = required.contains(s.toLowerCase)
@@ -329,10 +321,8 @@ object Bibtex
 
   /** tokens and chunks **/
 
-  object Token
-  {
-    object Kind extends Enumeration
-    {
+  object Token {
+    object Kind extends Enumeration {
       val COMMAND = Value("command")
       val ENTRY = Value("entry")
       val KEYWORD = Value("keyword")
@@ -346,8 +336,7 @@ object Bibtex
     }
   }
 
-  sealed case class Token(kind: Token.Kind.Value, source: String)
-  {
+  sealed case class Token(kind: Token.Kind.Value, source: String) {
     def is_kind: Boolean =
       kind == Token.Kind.COMMAND ||
       kind == Token.Kind.ENTRY ||
@@ -364,8 +353,7 @@ object Bibtex
       kind == Token.Kind.KEYWORD && (source == "{" || source == "(")
   }
 
-  case class Chunk(kind: String, tokens: List[Token])
-  {
+  case class Chunk(kind: String, tokens: List[Token]) {
     val source = tokens.map(_.source).mkString
 
     private val content: Option[List[Token]] =
@@ -423,8 +411,7 @@ object Bibtex
   // See also https://ctan.org/tex-archive/biblio/bibtex/base/bibtex.web
   // module @<Scan for and process a \.{.bib} command or database entry@>.
 
-  object Parsers extends RegexParsers
-  {
+  object Parsers extends RegexParsers {
     /* white space and comments */
 
     override val whiteSpace = "".r
@@ -447,13 +434,11 @@ object Bibtex
 
     // see also bibtex.web: scan_a_field_token_and_eat_white, scan_balanced_braces
     private def delimited_depth(delim: Delimited): Parser[(String, Delimited)] =
-      new Parser[(String, Delimited)]
-      {
+      new Parser[(String, Delimited)] {
         require(if (delim.quoted) delim.depth > 0 else delim.depth >= 0,
           "bad delimiter depth")
 
-        def apply(in: Input) =
-        {
+        def apply(in: Input) = {
           val start = in.offset
           val end = in.source.length
 
@@ -567,8 +552,7 @@ object Bibtex
 
     val chunk: Parser[Chunk] = ignored | (item | recover_item)
 
-    def chunk_line(ctxt: Line_Context): Parser[(Chunk, Line_Context)] =
-    {
+    def chunk_line(ctxt: Line_Context): Parser[(Chunk, Line_Context)] = {
       ctxt match {
         case Ignored =>
           ignored_line |
@@ -610,8 +594,7 @@ object Bibtex
       case _ => error("Unexpected failure to parse input:\n" + input.toString)
     }
 
-  def parse_line(input: CharSequence, context: Line_Context): (List[Chunk], Line_Context) =
-  {
+  def parse_line(input: CharSequence, context: Line_Context): (List[Chunk], Line_Context) = {
     var in: Reader[Char] = Scan.char_reader(input)
     val chunks = new mutable.ListBuffer[Chunk]
     var ctxt = context
@@ -644,15 +627,13 @@ object Bibtex
     body: Boolean = false,
     citations: List[String] = List("*"),
     style: String = "",
-    chronological: Boolean = false): String =
-  {
-    Isabelle_System.with_tmp_dir("bibtex")(tmp_dir =>
-    {
+    chronological: Boolean = false
+  ): String = {
+    Isabelle_System.with_tmp_dir("bibtex")(tmp_dir => {
       /* database files */
 
       val bib_files = bib.map(_.drop_ext)
-      val bib_names =
-      {
+      val bib_names = {
         val names0 = bib_files.map(_.file_name)
         if (Library.duplicates(names0).isEmpty) names0
         else names0.zipWithIndex.map({ case (name, i) => (i + 1).toString + "-" + name })

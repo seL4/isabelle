@@ -13,10 +13,8 @@ import org.gjt.sp.jedit.{EBMessage, Debug, EBPlugin}
 import org.gjt.sp.util.SyntaxUtilities
 
 
-class Base_Plugin extends EBPlugin
-{
-  override def start(): Unit =
-  {
+class Base_Plugin extends EBPlugin {
+  override def start(): Unit = {
     Isabelle_System.init()
 
     GUI.use_isabelle_fonts()
@@ -26,8 +24,7 @@ class Base_Plugin extends EBPlugin
     Syntax_Style.set_extender(Syntax_Style.Base_Extender)
   }
 
-  override def stop(): Unit =
-  {
+  override def stop(): Unit = {
     Syntax_Style.set_extender(new SyntaxUtilities.StyleExtender)
   }
 

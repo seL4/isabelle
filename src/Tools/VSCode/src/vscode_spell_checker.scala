@@ -10,10 +10,8 @@ package isabelle.vscode
 import isabelle._
 
 
-object VSCode_Spell_Checker
-{
-  def decoration(rendering: VSCode_Rendering): VSCode_Model.Decoration =
-  {
+object VSCode_Spell_Checker {
+  def decoration(rendering: VSCode_Rendering): VSCode_Model.Decoration = {
     val model = rendering.model
     val ranges =
       (for {
@@ -28,8 +26,7 @@ object VSCode_Spell_Checker
   def completion(rendering: VSCode_Rendering, caret: Text.Offset): Option[Completion.Result] =
     rendering.resources.spell_checker.get.flatMap(_.completion(rendering, caret))
 
-  def menu_items(rendering: VSCode_Rendering, caret: Text.Offset): List[LSP.CompletionItem] =
-  {
+  def menu_items(rendering: VSCode_Rendering, caret: Text.Offset): List[LSP.CompletionItem] = {
     val result =
       for {
         spell_checker <- rendering.resources.spell_checker.get

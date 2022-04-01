@@ -7,8 +7,7 @@ Line-oriented document structure, e.g. for fold handling.
 package isabelle
 
 
-object Line_Structure
-{
+object Line_Structure {
   val init: Line_Structure = Line_Structure()
 }
 
@@ -19,10 +18,9 @@ sealed case class Line_Structure(
   depth: Int = 0,
   span_depth: Int = 0,
   after_span_depth: Int = 0,
-  element_depth: Int = 0)
-{
-  def update(keywords: Keyword.Keywords, tokens: List[Token]): Line_Structure =
-  {
+  element_depth: Int = 0
+) {
+  def update(keywords: Keyword.Keywords, tokens: List[Token]): Line_Structure = {
     val improper1 = tokens.forall(tok => !tok.is_proper)
     val blank1 = tokens.forall(_.is_space)
     val command1 = tokens.exists(_.is_begin_or_command)

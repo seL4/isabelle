@@ -7,8 +7,7 @@ Build docker image from Isabelle application bundle for Linux.
 package isabelle
 
 
-object Build_Docker
-{
+object Build_Docker {
   private val default_base = "ubuntu"
   private lazy val default_logic = Isabelle_System.getenv("ISABELLE_LOGIC")
 
@@ -31,8 +30,8 @@ object Build_Docker
     output: Option[Path] = None,
     more_packages: List[String] = Nil,
     tag: String = "",
-    verbose: Boolean = false): Unit =
-  {
+    verbose: Boolean = false
+  ): Unit = {
     val isabelle_name =
       app_archive match {
         case Isabelle_Name(name) => name
@@ -78,8 +77,7 @@ ENTRYPOINT ["Isabelle/bin/isabelle"]
     output.foreach(File.write(_, dockerfile))
 
     if (!no_build) {
-      Isabelle_System.with_tmp_dir("docker")(tmp_dir =>
-        {
+      Isabelle_System.with_tmp_dir("docker")(tmp_dir => {
           File.write(tmp_dir + Path.explode("Dockerfile"), dockerfile)
 
           if (is_remote) {
@@ -102,8 +100,7 @@ ENTRYPOINT ["Isabelle/bin/isabelle"]
 
   val isabelle_tool =
     Isabelle_Tool("build_docker", "build Isabelle docker image",
-      Scala_Project.here, args =>
-    {
+      Scala_Project.here, args => {
       var base = default_base
       var entrypoint = false
       var logic = default_logic

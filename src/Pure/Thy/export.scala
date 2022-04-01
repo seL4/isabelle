@@ -11,8 +11,7 @@ import scala.annotation.tailrec
 import scala.util.matching.Regex
 
 
-object Export
-{
+object Export {
   /* artefact names */
 
   val DOCUMENT_ID = "PIDE/document_id"
@@ -31,8 +30,7 @@ object Export
 
   /* SQL data model */
 
-  object Data
-  {
+  object Data {
     val session_name = SQL.Column.string("session_name").make_primary_key
     val theory_name = SQL.Column.string("theory_name").make_primary_key
     val name = SQL.Column.string("name").make_primary_key
@@ -50,30 +48,31 @@ object Export
         (if (name == "") "" else " AND " + Data.name.equal(name))
   }
 
-  def read_name(db: SQL.Database, session_name: String, theory_name: String, name: String): Boolean =
-  {
+  def read_name(
+    db: SQL.Database,
+    session_name: String,
+    theory_name: String,
+    name: String
+  ): Boolean = {
     val select =
       Data.table.select(List(Data.name), Data.where_equal(session_name, theory_name, name))
     db.using_statement(select)(stmt => stmt.execute_query().next())
   }
 
-  def read_names(db: SQL.Database, session_name: String, theory_name: String): List[String] =
-  {
+  def read_names(db: SQL.Database, session_name: String, theory_name: String): List[String] = {
     val select = Data.table.select(List(Data.name), Data.where_equal(session_name, theory_name))
     db.using_statement(select)(stmt =>
       stmt.execute_query().iterator(res => res.string(Data.name)).toList)
   }
 
-  def read_theory_names(db: SQL.Database, session_name: String): List[String] =
-  {
+  def read_theory_names(db: SQL.Database, session_name: String): List[String] = {
     val select =
       Data.table.select(List(Data.theory_name), Data.where_equal(session_name), distinct = true)
     db.using_statement(select)(stmt =>
       stmt.execute_query().iterator(_.string(Data.theory_name)).toList)
   }
 
-  def read_theory_exports(db: SQL.Database, session_name: String): List[(String, String)] =
-  {
+  def read_theory_exports(db: SQL.Database, session_name: String): List[(String, String)] = {
     val select = Data.table.select(List(Data.theory_name, Data.name), Data.where_equal(session_name))
     db.using_statement(select)(stmt =>
       stmt.execute_query().iterator(res =>
@@ -95,8 +94,8 @@ object Export
     name: String,
     executable: Boolean,
     body: Future[(Boolean, Bytes)],
-    cache: XML.Cache)
-  {
+    cache: XML.Cache
+  ) {
     override def toString: String = name
 
     def compound_name: String = Export.compound_name(theory_name, name)
@@ -109,8 +108,7 @@ object Export
 
     def text: String = uncompressed.text
 
-    def uncompressed: Bytes =
-    {
+    def uncompressed: Bytes = {
       val (compressed, bytes) = body.join
       if (compressed) bytes.uncompress(cache = cache.xz) else bytes
     }
@@ -118,11 +116,9 @@ object Export
     def uncompressed_yxml: XML.Body =
       YXML.parse_body(UTF8.decode_permissive(uncompressed), cache = cache)
 
-    def write(db: SQL.Database): Unit =
-    {
+    def write(db: SQL.Database): Unit = {
       val (compressed, bytes) = body.join
-      db.using_statement(Data.table.insert())(stmt =>
-      {
+      db.using_statement(Data.table.insert())(stmt => {
         stmt.string(1) = session_name
         stmt.string(2) = theory_name
         stmt.string(3) = name
@@ -134,8 +130,7 @@ object Export
     }
   }
 
-  def make_regex(pattern: String): Regex =
-  {
+  def make_regex(pattern: String): Regex = {
     @tailrec def make(result: List[String], depth: Int, chs: List[Char]): Regex =
       chs match {
         case '*' :: '*' :: rest => make("[^:]*" :: result, depth, rest)
@@ -152,30 +147,35 @@ object Export
     make(Nil, 0, pattern.toList)
   }
 
-  def make_matcher(pattern: String): (String, String) => Boolean =
-  {
+  def make_matcher(pattern: String): (String, String) => Boolean = {
     val regex = make_regex(pattern)
     (theory_name: String, name: String) =>
       regex.pattern.matcher(compound_name(theory_name, name)).matches
   }
 
   def make_entry(
-    session_name: String, args: Protocol.Export.Args, bytes: Bytes, cache: XML.Cache): Entry =
-  {
+    session_name: String,
+    args: Protocol.Export.Args,
+    bytes: Bytes,
+    cache: XML.Cache
+  ): Entry = {
     val body =
       if (args.compress) Future.fork(bytes.maybe_compress(cache = cache.xz))
       else Future.value((false, bytes))
     Entry(session_name, args.theory_name, args.name, args.executable, body, cache)
   }
 
-  def read_entry(db: SQL.Database, cache: XML.Cache,
-    session_name: String, theory_name: String, name: String): Option[Entry] =
-  {
+  def read_entry(
+    db: SQL.Database,
+    cache: XML.Cache,
+    session_name: String,
+    theory_name: String,
+    name: String
+  ): Option[Entry] = {
     val select =
       Data.table.select(List(Data.executable, Data.compressed, Data.body),
         Data.where_equal(session_name, theory_name, name))
-    db.using_statement(select)(stmt =>
-    {
+    db.using_statement(select)(stmt => {
       val res = stmt.execute_query()
       if (res.next()) {
         val executable = res.bool(Data.executable)
@@ -188,9 +188,13 @@ object Export
     })
   }
 
-  def read_entry(dir: Path, cache: XML.Cache,
-    session_name: String, theory_name: String, name: String): Option[Entry] =
-  {
+  def read_entry(
+    dir: Path,
+    cache: XML.Cache,
+    session_name: String,
+    theory_name: String,
+    name: String
+  ): Option[Entry] = {
     val path = dir + Path.basic(theory_name) + Path.explode(name)
     if (path.is_file) {
       val executable = File.is_executable(path)
@@ -207,16 +211,14 @@ object Export
   def consumer(db: SQL.Database, cache: XML.Cache, progress: Progress = new Progress): Consumer =
     new Consumer(db, cache, progress)
 
-  class Consumer private[Export](db: SQL.Database, cache: XML.Cache, progress: Progress)
-  {
+  class Consumer private[Export](db: SQL.Database, cache: XML.Cache, progress: Progress) {
     private val errors = Synchronized[List[String]](Nil)
 
     private val consumer =
       Consumer_Thread.fork_bulk[(Entry, Boolean)](name = "export")(
         bulk = { case (entry, _) => entry.body.is_finished },
         consume =
-          (args: List[(Entry, Boolean)]) =>
-          {
+          (args: List[(Entry, Boolean)]) => {
             val results =
               db.transaction {
                 for ((entry, strict) <- args)
@@ -238,15 +240,13 @@ object Export
             (results, true)
           })
 
-    def apply(session_name: String, args: Protocol.Export.Args, body: Bytes): Unit =
-    {
+    def apply(session_name: String, args: Protocol.Export.Args, body: Bytes): Unit = {
       if (!progress.stopped) {
         consumer.send(make_entry(session_name, args, body, cache) -> args.strict)
       }
     }
 
-    def shutdown(close: Boolean = false): List[String] =
-    {
+    def shutdown(close: Boolean = false): List[String] = {
       consumer.shutdown()
       if (close) db.close()
       errors.value.reverse ::: (if (progress.stopped) List("Export stopped") else Nil)
@@ -256,8 +256,7 @@ object Export
 
   /* abstract provider */
 
-  object Provider
-  {
+  object Provider {
     def none: Provider =
       new Provider {
         def apply(export_name: String): Option[Entry] = None
@@ -279,9 +278,12 @@ object Export
         override def toString: String = context.toString
       }
 
-    def database(db: SQL.Database, cache: XML.Cache, session_name: String, theory_name: String)
-      : Provider =
-    {
+    def database(
+      db: SQL.Database,
+      cache: XML.Cache,
+      session_name: String,
+      theory_name: String
+    ) : Provider = {
       new Provider {
         def apply(export_name: String): Option[Entry] =
           read_entry(db, cache, session_name, theory_name, export_name)
@@ -311,9 +313,12 @@ object Export
         override def toString: String = snapshot.toString
       }
 
-    def directory(dir: Path, cache: XML.Cache, session_name: String, theory_name: String)
-      : Provider =
-    {
+    def directory(
+      dir: Path,
+      cache: XML.Cache,
+      session_name: String,
+      theory_name: String
+    ) : Provider = {
       new Provider {
         def apply(export_name: String): Option[Entry] =
           read_entry(dir, cache, session_name, theory_name, export_name)
@@ -327,8 +332,7 @@ object Export
     }
   }
 
-  trait Provider
-  {
+  trait Provider {
     def apply(export_name: String): Option[Entry]
 
     def uncompressed_yxml(export_name: String): XML.Body =
@@ -350,10 +354,9 @@ object Export
     progress: Progress = new Progress,
     export_prune: Int = 0,
     export_list: Boolean = false,
-    export_patterns: List[String] = Nil): Unit =
-  {
-    using(store.open_database(session_name))(db =>
-    {
+    export_patterns: List[String] = Nil
+  ): Unit = {
+    using(store.open_database(session_name))(db => {
       db.transaction {
         val export_names = read_theory_exports(db, session_name)
 
@@ -400,8 +403,7 @@ object Export
   val default_export_dir: Path = Path.explode("export")
 
   val isabelle_tool = Isabelle_Tool("export", "retrieve theory exports",
-    Scala_Project.here, args =>
-  {
+    Scala_Project.here, args => {
     /* arguments */
 
     var export_dir = default_export_dir

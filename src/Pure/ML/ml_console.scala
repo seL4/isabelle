@@ -7,12 +7,10 @@ The raw ML process in interactive mode.
 package isabelle
 
 
-object ML_Console
-{
+object ML_Console {
   /* command line entry point */
 
-  def main(args: Array[String]): Unit =
-  {
+  def main(args: Array[String]): Unit = {
     Command_Line.tool {
       var dirs: List[Path] = Nil
       var include_sessions: List[String] = Nil

@@ -9,12 +9,10 @@ Note: Isabelle/ML is the primary environment for logical operations.
 package isabelle
 
 
-object Term
-{
+object Term {
   /* types and terms */
 
-  sealed case class Indexname(name: String, index: Int = 0)
-  {
+  sealed case class Indexname(name: String, index: Int = 0) {
     private lazy val hash: Int = (name, index).hashCode()
     override def hashCode(): Int = hash
 
@@ -37,8 +35,7 @@ object Term
   type Sort = List[Class]
 
   sealed abstract class Typ
-  case class Type(name: String, args: List[Typ] = Nil) extends Typ
-  {
+  case class Type(name: String, args: List[Typ] = Nil) extends Typ {
     private lazy val hash: Int = ("Type", name, args).hashCode()
     override def hashCode(): Int = hash
 
@@ -46,16 +43,14 @@ object Term
       if (this == dummyT) "_"
       else "Type(" + name + (if (args.isEmpty) "" else "," + args) + ")"
   }
-  case class TFree(name: String, sort: Sort = Nil) extends Typ
-  {
+  case class TFree(name: String, sort: Sort = Nil) extends Typ {
     private lazy val hash: Int = ("TFree", name, sort).hashCode()
     override def hashCode(): Int = hash
 
     override def toString: String =
       "TFree(" + name + (if (sort.isEmpty) "" else "," + sort) + ")"
   }
-  case class TVar(name: Indexname, sort: Sort = Nil) extends Typ
-  {
+  case class TVar(name: Indexname, sort: Sort = Nil) extends Typ {
     private lazy val hash: Int = ("TVar", name, sort).hashCode()
     override def hashCode(): Int = hash
 
@@ -64,16 +59,14 @@ object Term
   }
   val dummyT: Type = Type("dummy")
 
-  sealed abstract class Term
-  {
+  sealed abstract class Term {
     def head: Term =
       this match {
         case App(fun, _) => fun.head
         case _ => this
       }
   }
-  case class Const(name: String, typargs: List[Typ] = Nil) extends Term
-  {
+  case class Const(name: String, typargs: List[Typ] = Nil) extends Term {
     private lazy val hash: Int = ("Const", name, typargs).hashCode()
     override def hashCode(): Int = hash
 
@@ -81,16 +74,14 @@ object Term
       if (this == dummy) "_"
       else "Const(" + name + (if (typargs.isEmpty) "" else "," + typargs) + ")"
   }
-  case class Free(name: String, typ: Typ = dummyT) extends Term
-  {
+  case class Free(name: String, typ: Typ = dummyT) extends Term {
     private lazy val hash: Int = ("Free", name, typ).hashCode()
     override def hashCode(): Int = hash
 
     override def toString: String =
       "Free(" + name + (if (typ == dummyT) "" else "," + typ) + ")"
   }
-  case class Var(name: Indexname, typ: Typ = dummyT) extends Term
-  {
+  case class Var(name: Indexname, typ: Typ = dummyT) extends Term {
     private lazy val hash: Int = ("Var", name, typ).hashCode()
     override def hashCode(): Int = hash
 
@@ -98,13 +89,11 @@ object Term
       "Var(" + name + (if (typ == dummyT) "" else "," + typ) + ")"
   }
   case class Bound(index: Int) extends Term
-  case class Abs(name: String, typ: Typ, body: Term) extends Term
-  {
+  case class Abs(name: String, typ: Typ, body: Term) extends Term {
     private lazy val hash: Int = ("Abs", name, typ, body).hashCode()
     override def hashCode(): Int = hash
   }
-  case class App(fun: Term, arg: Term) extends Term
-  {
+  case class App(fun: Term, arg: Term) extends Term {
     private lazy val hash: Int = ("App", fun, arg).hashCode()
     override def hashCode(): Int = hash
 
@@ -121,48 +110,39 @@ object Term
   sealed abstract class Proof
   case object MinProof extends Proof
   case class PBound(index: Int) extends Proof
-  case class Abst(name: String, typ: Typ, body: Proof) extends Proof
-  {
+  case class Abst(name: String, typ: Typ, body: Proof) extends Proof {
     private lazy val hash: Int = ("Abst", name, typ, body).hashCode()
     override def hashCode(): Int = hash
   }
-  case class AbsP(name: String, hyp: Term, body: Proof) extends Proof
-  {
+  case class AbsP(name: String, hyp: Term, body: Proof) extends Proof {
     private lazy val hash: Int = ("AbsP", name, hyp, body).hashCode()
     override def hashCode(): Int = hash
   }
-  case class Appt(fun: Proof, arg: Term) extends Proof
-  {
+  case class Appt(fun: Proof, arg: Term) extends Proof {
     private lazy val hash: Int = ("Appt", fun, arg).hashCode()
     override def hashCode(): Int = hash
   }
-  case class AppP(fun: Proof, arg: Proof) extends Proof
-  {
+  case class AppP(fun: Proof, arg: Proof) extends Proof {
     private lazy val hash: Int = ("AppP", fun, arg).hashCode()
     override def hashCode(): Int = hash
   }
-  case class Hyp(hyp: Term) extends Proof
-  {
+  case class Hyp(hyp: Term) extends Proof {
     private lazy val hash: Int = ("Hyp", hyp).hashCode()
     override def hashCode(): Int = hash
   }
-  case class PAxm(name: String, types: List[Typ]) extends Proof
-  {
+  case class PAxm(name: String, types: List[Typ]) extends Proof {
     private lazy val hash: Int = ("PAxm", name, types).hashCode()
     override def hashCode(): Int = hash
   }
-  case class PClass(typ: Typ, cls: Class) extends Proof
-  {
+  case class PClass(typ: Typ, cls: Class) extends Proof {
     private lazy val hash: Int = ("PClass", typ, cls).hashCode()
     override def hashCode(): Int = hash
   }
-  case class Oracle(name: String, prop: Term, types: List[Typ]) extends Proof
-  {
+  case class Oracle(name: String, prop: Term, types: List[Typ]) extends Proof {
     private lazy val hash: Int = ("Oracle", name, prop, types).hashCode()
     override def hashCode(): Int = hash
   }
-  case class PThm(serial: Long, theory_name: String, name: String, types: List[Typ]) extends Proof
-  {
+  case class PThm(serial: Long, theory_name: String, name: String, types: List[Typ]) extends Proof {
     private lazy val hash: Int = ("PThm", serial, theory_name, name, types).hashCode()
     override def hashCode(): Int = hash
   }
@@ -170,16 +150,14 @@ object Term
 
   /* type classes within the logic */
 
-  object Class_Const
-  {
+  object Class_Const {
     val suffix = "_class"
     def apply(c: Class): String = c + suffix
     def unapply(s: String): Option[Class] =
       if (s.endsWith(suffix)) Some(s.substring(0, s.length - suffix.length)) else None
   }
 
-  object OFCLASS
-  {
+  object OFCLASS {
     def apply(ty: Typ, s: Sort): List[Term] = s.map(c => apply(ty, c))
 
     def apply(ty: Typ, c: Class): Term =
@@ -197,8 +175,7 @@ object Term
 
   /** cache **/
 
-  object Cache
-  {
+  object Cache {
     def make(
         xz: XZ.Cache = XZ.Cache.make(),
         max_string: Int = isabelle.Cache.default_max_string,
@@ -209,8 +186,7 @@ object Term
   }
 
   class Cache(xz: XZ.Cache, max_string: Int, initial_size: Int)
-    extends XML.Cache(xz, max_string, initial_size)
-  {
+  extends XML.Cache(xz, max_string, initial_size) {
     protected def cache_indexname(x: Indexname): Indexname =
       lookup(x) getOrElse store(Indexname(cache_string(x.name), x.index))
 
@@ -218,8 +194,7 @@ object Term
       if (x.isEmpty) Nil
       else lookup(x) getOrElse store(x.map(cache_string))
 
-    protected def cache_typ(x: Typ): Typ =
-    {
+    protected def cache_typ(x: Typ): Typ = {
       if (x == dummyT) dummyT
       else
         lookup(x) match {
@@ -233,8 +208,7 @@ object Term
         }
     }
 
-    protected def cache_typs(x: List[Typ]): List[Typ] =
-    {
+    protected def cache_typs(x: List[Typ]): List[Typ] = {
       if (x.isEmpty) Nil
       else {
         lookup(x) match {
@@ -244,8 +218,7 @@ object Term
       }
     }
 
-    protected def cache_term(x: Term): Term =
-    {
+    protected def cache_term(x: Term): Term = {
       lookup(x) match {
         case Some(y) => y
         case None =>
@@ -261,8 +234,7 @@ object Term
       }
     }
 
-    protected def cache_proof(x: Proof): Proof =
-    {
+    protected def cache_proof(x: Proof): Proof = {
       if (x == MinProof) MinProof
       else {
         lookup(x) match {

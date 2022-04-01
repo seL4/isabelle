@@ -24,17 +24,14 @@ import java.io.{BufferedInputStream, BufferedOutputStream, InputStreamReader, Ou
 import java.net.{Socket, SocketException, SocketTimeoutException, ServerSocket, InetAddress}
 
 
-object Server
-{
+object Server {
   /* message argument */
 
-  object Argument
-  {
+  object Argument {
     def is_name_char(c: Char): Boolean =
       Symbol.is_ascii_letter(c) || Symbol.is_ascii_digit(c) || c == '_' || c == '.'
 
-    def split(msg: String): (String, String) =
-    {
+    def split(msg: String): (String, String) = {
       val name = msg.takeWhile(is_name_char)
       val argument = msg.substring(name.length).dropWhile(Symbol.is_ascii_blank)
       (name, argument)
@@ -62,14 +59,12 @@ object Server
 
   type Command_Body = PartialFunction[(Context, Any), Any]
 
-  abstract class Command(val command_name: String)
-  {
+  abstract class Command(val command_name: String) {
     def command_body: Command_Body
     override def toString: String = command_name
   }
 
-  class Commands(commands: Command*) extends Isabelle_System.Service
-  {
+  class Commands(commands: Command*) extends Isabelle_System.Service {
     def entries: List[Command] = commands.toList
   }
 
@@ -96,8 +91,7 @@ object Server
       case _ => JSON.Object.empty
     }
 
-  object Reply extends Enumeration
-  {
+  object Reply extends Enumeration {
     val OK, ERROR, FINISHED, FAILED, NOTE = Value
 
     def message(msg: String, kind: String = ""): JSON.Object.T =
@@ -106,8 +100,7 @@ object Server
     def error_message(msg: String): JSON.Object.T =
       message(msg, kind = Markup.ERROR)
 
-    def unapply(msg: String): Option[(Reply.Value, Any)] =
-    {
+    def unapply(msg: String): Option[(Reply.Value, Any)] = {
       if (msg == "") None
       else {
         val (name, argument) = Argument.split(msg)
@@ -124,8 +117,7 @@ object Server
 
   /* handler: port, password, thread */
 
-  abstract class Handler(port0: Int)
-  {
+  abstract class Handler(port0: Int) {
     val socket: ServerSocket = new ServerSocket(port0, 50, Server.localhost)
     def port: Int = socket.getLocalPort
     def address: String = print_address(port)
@@ -158,14 +150,12 @@ object Server
 
   /* socket connection */
 
-  object Connection
-  {
+  object Connection {
     def apply(socket: Socket): Connection =
       new Connection(socket)
   }
 
-  class Connection private(socket: Socket) extends AutoCloseable
-  {
+  class Connection private(socket: Socket) extends AutoCloseable {
     override def toString: String = socket.toString
 
     def close(): Unit = socket.close()
@@ -204,8 +194,7 @@ object Server
     def write_byte_message(chunks: List[Bytes]): Unit =
       out_lock.synchronized { Byte_Message.write_message(out, chunks) }
 
-    def reply(r: Reply.Value, arg: Any): Unit =
-    {
+    def reply(r: Reply.Value, arg: Any): Unit = {
       val argument = Argument.print(arg)
       write_line_message(if (argument == "") r.toString else r.toString + " " + argument)
     }
@@ -222,8 +211,7 @@ object Server
   /* context with output channels */
 
   class Context private[Server](val server: Server, connection: Connection)
-    extends AutoCloseable
-  {
+  extends AutoCloseable {
     context =>
 
     def command_list: List[String] = command_table.keys.toList.sorted
@@ -247,8 +235,7 @@ object Server
 
     private val _tasks = Synchronized(Set.empty[Task])
 
-    def make_task(body: Task => JSON.Object.T): Task =
-    {
+    def make_task(body: Task => JSON.Object.T): Task = {
       val task = new Task(context, body)
       _tasks.change(_ + task)
       task
@@ -260,30 +247,27 @@ object Server
     def cancel_task(id: UUID.T): Unit =
       _tasks.change(tasks => { tasks.find(task => task.id == id).foreach(_.cancel()); tasks })
 
-    def close(): Unit =
-    {
-      while(_tasks.change_result(tasks => { tasks.foreach(_.cancel()); (tasks.nonEmpty, tasks) }))
-      { _tasks.value.foreach(_.join()) }
+    def close(): Unit = {
+      while(_tasks.change_result(tasks => { tasks.foreach(_.cancel()); (tasks.nonEmpty, tasks) })) {
+        _tasks.value.foreach(_.join())
+      }
     }
   }
 
   class Connection_Progress private[Server](context: Context, more: JSON.Object.Entry*)
-    extends Progress
-  {
+  extends Progress {
     override def echo(msg: String): Unit = context.writeln(msg, more:_*)
     override def echo_warning(msg: String): Unit = context.warning(msg, more:_*)
     override def echo_error_message(msg: String): Unit = context.error_message(msg, more:_*)
 
-    override def theory(theory: Progress.Theory): Unit =
-    {
+    override def theory(theory: Progress.Theory): Unit = {
       val entries: List[JSON.Object.Entry] =
         List("theory" -> theory.theory, "session" -> theory.session) :::
           (theory.percentage match { case None => Nil case Some(p) => List("percentage" -> p) })
       context.writeln(theory.message, entries ::: more.toList:_*)
     }
 
-    override def nodes_status(nodes_status: Document_Status.Nodes_Status): Unit =
-    {
+    override def nodes_status(nodes_status: Document_Status.Nodes_Status): Unit = {
       val json =
         for ((name, node_status) <- nodes_status.present)
           yield name.json + ("status" -> node_status.json)
@@ -293,8 +277,7 @@ object Server
     override def toString: String = context.toString
   }
 
-  class Task private[Server](val context: Context, body: Task => JSON.Object.T)
-  {
+  class Task private[Server](val context: Context, body: Task => JSON.Object.T) {
     task =>
 
     val id: UUID.T = UUID.random()
@@ -303,8 +286,7 @@ object Server
     val progress: Connection_Progress = context.progress(ident)
     def cancel(): Unit = progress.stop()
 
-    private lazy val thread = Isabelle_Thread.fork(name = "server_task")
-    {
+    private lazy val thread = Isabelle_Thread.fork(name = "server_task") {
       Exn.capture { body(task) } match {
         case Exn.Res(res) =>
           context.reply(Reply.FINISHED, res + ident)
@@ -330,8 +312,7 @@ object Server
   def print(port: Int, password: String): String =
     print_address(port) + " (password " + quote(password) + ")"
 
-  object Info
-  {
+  object Info {
     private val Pattern =
       ("""server "([^"]*)" = \Q""" + localhost_name + """\E:(\d+) \(password "([^"]*)"\)""").r
 
@@ -345,15 +326,13 @@ object Server
       new Info(name, port, password)
   }
 
-  class Info private(val name: String, val port: Int, val password: String)
-  {
+  class Info private(val name: String, val port: Int, val password: String) {
     def address: String = print_address(port)
 
     override def toString: String =
       "server " + quote(name) + " = " + print(port, password)
 
-    def connection(): Connection =
-    {
+    def connection(): Connection = {
       val connection = Connection(new Socket(localhost, port))
       connection.write_line_message(password)
       connection
@@ -361,14 +340,13 @@ object Server
 
     def active: Boolean =
       try {
-        using(connection())(connection =>
-          {
-            connection.set_timeout(Time.seconds(2.0))
-            connection.read_line_message() match {
-              case Some(Reply(Reply.OK, _)) => true
-              case _ => false
-            }
-          })
+        using(connection())(connection => {
+          connection.set_timeout(Time.seconds(2.0))
+          connection.read_line_message() match {
+            case Some(Reply(Reply.OK, _)) => true
+            case _ => false
+          }
+        })
       }
       catch {
         case _: IOException => false
@@ -382,8 +360,7 @@ object Server
 
   val default_name = "isabelle"
 
-  object Data
-  {
+  object Data {
     val database = Path.explode("$ISABELLE_HOME_USER/servers.db")
 
     val name = SQL.Column.string("name").make_primary_key
@@ -410,10 +387,9 @@ object Server
     name: String = default_name,
     port: Int = 0,
     existing_server: Boolean = false,
-    log: Logger = No_Logger): (Info, Option[Server]) =
-  {
-    using(SQLite.open_database(Data.database))(db =>
-      {
+    log: Logger = No_Logger
+  ): (Info, Option[Server]) = {
+    using(SQLite.open_database(Data.database))(db => {
         db.transaction {
           Isabelle_System.chmod("600", Data.database)
           db.create_table(Data.table)
@@ -431,8 +407,7 @@ object Server
               val server_info = Info(name, server.port, server.password)
 
               db.using_statement(Data.table.delete(Data.name.where_equal(name)))(_.execute())
-              db.using_statement(Data.table.insert())(stmt =>
-              {
+              db.using_statement(Data.table.insert())(stmt => {
                 stmt.string(1) = server_info.name
                 stmt.int(2) = server_info.port
                 stmt.string(3) = server_info.password
@@ -446,8 +421,7 @@ object Server
       })
   }
 
-  def exit(name: String = default_name): Boolean =
-  {
+  def exit(name: String = default_name): Boolean = {
     using(SQLite.open_database(Data.database))(db =>
       db.transaction {
         find(db, name) match {
@@ -464,8 +438,8 @@ object Server
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("server", "manage resident Isabelle servers", Scala_Project.here, args =>
-    {
+    Isabelle_Tool("server", "manage resident Isabelle servers", Scala_Project.here,
+      args => {
       var console = false
       var log_file: Option[Path] = None
       var operation_list = false
@@ -523,16 +497,14 @@ Usage: isabelle server [OPTIONS]
     })
 }
 
-class Server private(port0: Int, val log: Logger) extends Server.Handler(port0)
-{
+class Server private(port0: Int, val log: Logger) extends Server.Handler(port0) {
   server =>
 
   private val _sessions = Synchronized(Map.empty[UUID.T, Headless.Session])
   def err_session(id: UUID.T): Nothing = error("No session " + Library.single_quote(id.toString))
   def the_session(id: UUID.T): Headless.Session = _sessions.value.getOrElse(id, err_session(id))
   def add_session(entry: (UUID.T, Headless.Session)): Unit = _sessions.change(_ + entry)
-  def remove_session(id: UUID.T): Headless.Session =
-  {
+  def remove_session(id: UUID.T): Headless.Session = {
     _sessions.change_result(sessions =>
       sessions.get(id) match {
         case Some(session) => (session, sessions - id)
@@ -540,8 +512,7 @@ class Server private(port0: Int, val log: Logger) extends Server.Handler(port0)
       })
   }
 
-  def shutdown(): Unit =
-  {
+  def shutdown(): Unit = {
     server.socket.close()
 
     val sessions = _sessions.change_result(sessions => (sessions, Map.empty))
@@ -556,10 +527,8 @@ class Server private(port0: Int, val log: Logger) extends Server.Handler(port0)
 
   override def join(): Unit = { super.join(); shutdown() }
 
-  override def handle(connection: Server.Connection): Unit =
-  {
-    using(new Server.Context(server, connection))(context =>
-    {
+  override def handle(connection: Server.Connection): Unit = {
+    using(new Server.Context(server, connection))(context => {
       connection.reply_ok(
         JSON.Object(
           "isabelle_id" -> Isabelle_System.isabelle_id(),

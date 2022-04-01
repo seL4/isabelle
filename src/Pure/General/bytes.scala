@@ -15,12 +15,10 @@ import java.util.Base64
 import org.tukaani.xz.{XZInputStream, XZOutputStream}
 
 
-object Bytes
-{
+object Bytes {
   val empty: Bytes = new Bytes(Array[Byte](), 0, 0)
 
-  def apply(s: CharSequence): Bytes =
-  {
+  def apply(s: CharSequence): Bytes = {
     val str = s.toString
     if (str.isEmpty) empty
     else {
@@ -44,21 +42,18 @@ object Bytes
 
   /* base64 */
 
-  def base64(s: String): Bytes =
-  {
+  def base64(s: String): Bytes = {
     val a = Base64.getDecoder.decode(s)
     new Bytes(a, 0, a.length)
   }
 
-  object Decode_Base64 extends Scala.Fun("decode_base64")
-  {
+  object Decode_Base64 extends Scala.Fun("decode_base64") {
     val here = Scala_Project.here
     def invoke(args: List[Bytes]): List[Bytes] =
       List(base64(Library.the_single(args).text))
   }
 
-  object Encode_Base64 extends Scala.Fun("encode_base64")
-  {
+  object Encode_Base64 extends Scala.Fun("encode_base64") {
     val here = Scala_Project.here
     def invoke(args: List[Bytes]): List[Bytes] =
       List(Bytes(Library.the_single(args).base64))
@@ -85,8 +80,7 @@ object Bytes
       new Bytes(out.toByteArray, 0, out.size)
     }
 
-  def read(file: JFile): Bytes =
-  {
+  def read(file: JFile): Bytes = {
     val length = file.length
     val limit = if (length < 0 || length > Integer.MAX_VALUE) Integer.MAX_VALUE else length.toInt
     using(new FileInputStream(file))(read_stream(_, limit = limit))
@@ -108,12 +102,10 @@ object Bytes
 final class Bytes private(
   protected val bytes: Array[Byte],
   protected val offset: Int,
-  val length: Int) extends CharSequence
-{
+  val length: Int) extends CharSequence {
   /* equality */
 
-  override def equals(that: Any): Boolean =
-  {
+  override def equals(that: Any): Boolean = {
     that match {
       case other: Bytes =>
         if (this eq other) true
@@ -123,8 +115,7 @@ final class Bytes private(
     }
   }
 
-  private lazy val hash: Int =
-  {
+  private lazy val hash: Int = {
     var h = 0
     for (i <- offset until offset + length) {
       val b = bytes(i).asInstanceOf[Int] & 0xFF
@@ -146,8 +137,7 @@ final class Bytes private(
     for (i <- (offset until (offset + length)).iterator)
       yield bytes(i)
 
-  def array: Array[Byte] =
-  {
+  def array: Array[Byte] = {
     val a = new Array[Byte](length)
     System.arraycopy(bytes, offset, a, 0, length)
     a
@@ -155,16 +145,14 @@ final class Bytes private(
 
   def text: String = UTF8.decode_permissive(this)
 
-  def base64: String =
-  {
+  def base64: String = {
     val b =
       if (offset == 0 && length == bytes.length) bytes
       else Bytes(bytes, offset, length).bytes
     Base64.getEncoder.encodeToString(b)
   }
 
-  def maybe_base64: (Boolean, String) =
-  {
+  def maybe_base64: (Boolean, String) = {
     val s = text
     if (this == Bytes(s)) (false, s) else (true, base64)
   }
@@ -191,8 +179,7 @@ final class Bytes private(
     if (0 <= i && i < length) (bytes(offset + i).asInstanceOf[Int] & 0xFF).asInstanceOf[Char]
     else throw new IndexOutOfBoundsException
 
-  def subSequence(i: Int, j: Int): Bytes =
-  {
+  def subSequence(i: Int, j: Int): Bytes = {
     if (0 <= i && i <= j && j <= length) new Bytes(bytes, offset + i, j - i)
     else throw new IndexOutOfBoundsException
   }
@@ -217,16 +204,16 @@ final class Bytes private(
   def uncompress(cache: XZ.Cache = XZ.Cache()): Bytes =
     using(new XZInputStream(stream(), cache))(Bytes.read_stream(_, hint = length))
 
-  def compress(options: XZ.Options = XZ.options(), cache: XZ.Cache = XZ.Cache()): Bytes =
-  {
+  def compress(options: XZ.Options = XZ.options(), cache: XZ.Cache = XZ.Cache()): Bytes = {
     val result = new ByteArrayOutputStream(length)
     using(new XZOutputStream(result, options, cache))(write_stream(_))
     new Bytes(result.toByteArray, 0, result.size)
   }
 
-  def maybe_compress(options: XZ.Options = XZ.options(), cache: XZ.Cache = XZ.Cache())
-    : (Boolean, Bytes) =
-  {
+  def maybe_compress(
+    options: XZ.Options = XZ.options(),
+    cache: XZ.Cache = XZ.Cache()
+  ) : (Boolean, Bytes) = {
     val compressed = compress(options = options, cache = cache)
     if (compressed.length < length) (true, compressed) else (false, this)
   }

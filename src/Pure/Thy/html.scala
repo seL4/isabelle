@@ -7,12 +7,10 @@ HTML presentation elements.
 package isabelle
 
 
-object HTML
-{
+object HTML {
   /* attributes */
 
-  class Attribute(val name: String, value: String)
-  {
+  class Attribute(val name: String, value: String) {
     def xml: XML.Attribute = name -> value
     def apply(elem: XML.Elem): XML.Elem = elem + xml
   }
@@ -34,15 +32,13 @@ object HTML
   val break: XML.Body = List(XML.elem("br"))
   val nl: XML.Body = List(XML.Text("\n"))
 
-  class Operator(val name: String)
-  {
+  class Operator(val name: String) {
     def apply(body: XML.Body): XML.Elem = XML.elem(name, body)
     def apply(att: Attribute, body: XML.Body): XML.Elem = att(apply(body))
     def apply(c: String, body: XML.Body): XML.Elem = apply(class_(c), body)
   }
 
-  class Heading(name: String) extends Operator(name)
-  {
+  class Heading(name: String) extends Operator(name) {
     def apply(txt: String): XML.Elem = super.apply(text(txt))
     def apply(att: Attribute, txt: String): XML.Elem = super.apply(att, text(txt))
     def apply(c: String, txt: String): XML.Elem = super.apply(c, text(txt))
@@ -120,16 +116,14 @@ object HTML
 
   def is_control_block_begin(sym: Symbol.Symbol): Boolean = control_block_begin.isDefinedAt(sym)
   def is_control_block_end(sym: Symbol.Symbol): Boolean = control_block_end.isDefinedAt(sym)
-  def is_control_block_pair(bg: Symbol.Symbol, en: Symbol.Symbol): Boolean =
-  {
+  def is_control_block_pair(bg: Symbol.Symbol, en: Symbol.Symbol): Boolean = {
     val bg_decoded = Symbol.decode(bg)
     val en_decoded = Symbol.decode(en)
     bg_decoded == Symbol.bsub_decoded && en_decoded == Symbol.esub_decoded ||
     bg_decoded == Symbol.bsup_decoded && en_decoded == Symbol.esup_decoded
   }
 
-  def check_control_blocks(body: XML.Body): Boolean =
-  {
+  def check_control_blocks(body: XML.Body): Boolean = {
     var ok = true
     var open = List.empty[Symbol.Symbol]
     for { XML.Text(text) <- body; sym <- Symbol.iterator(text) } {
@@ -144,9 +138,13 @@ object HTML
     ok && open.isEmpty
   }
 
-  def output(s: StringBuilder, text: String,
-    control_blocks: Boolean, hidden: Boolean, permissive: Boolean): Unit =
-  {
+  def output(
+    s: StringBuilder,
+    text: String,
+    control_blocks: Boolean,
+    hidden: Boolean,
+    permissive: Boolean
+  ): Unit = {
     def output_string(str: String): Unit =
       XML.output_string(s, str, permissive = permissive)
 
@@ -197,8 +195,7 @@ object HTML
     output_symbol(ctrl)
   }
 
-  def output(text: String): String =
-  {
+  def output(text: String): String = {
     val control_blocks = check_control_blocks(List(XML.Text(text)))
     Library.make_string(output(_, text,
       control_blocks = control_blocks, hidden = false, permissive = true))
@@ -211,10 +208,8 @@ object HTML
     Set("head", "body", "meta", "div", "pre", "p", "title", "h1", "h2", "h3", "h4", "h5", "h6",
       "ul", "ol", "dl", "li", "dt", "dd")
 
-  def output(s: StringBuilder, xml: XML.Body, hidden: Boolean, structural: Boolean): Unit =
-  {
-    def output_body(body: XML.Body): Unit =
-    {
+  def output(s: StringBuilder, xml: XML.Body, hidden: Boolean, structural: Boolean): Unit = {
+    def output_body(body: XML.Body): Unit = {
       val control_blocks = check_control_blocks(body)
       body foreach {
         case XML.Elem(markup, Nil) =>
@@ -269,8 +264,7 @@ object HTML
 
   /* GUI elements */
 
-  object GUI
-  {
+  object GUI {
     private def optional_value(text: String): XML.Attributes =
       proper_string(text).map(a => "value" -> a).toList
 
@@ -333,16 +327,17 @@ object HTML
 
   /* GUI layout */
 
-  object Wrap_Panel
-  {
-    object Alignment extends Enumeration
-    {
+  object Wrap_Panel {
+    object Alignment extends Enumeration {
       val left, right, center = Value
     }
 
-    def apply(contents: List[XML.Elem], name: String = "", action: String = "",
-      alignment: Alignment.Value = Alignment.right): XML.Elem =
-    {
+    def apply(
+      contents: List[XML.Elem],
+      name: String = "",
+      action: String = "",
+      alignment: Alignment.Value = Alignment.right
+    ): XML.Elem = {
       val body = Library.separate(XML.Text(" "), contents)
       GUI.form(List(div(body) + ("style" -> ("text-align: " + alignment))),
         name = name, action = action)
@@ -363,11 +358,13 @@ object HTML
     XML.Elem(Markup("meta",
       List("http-equiv" -> "Content-Type", "content" -> "text/html; charset=utf-8")), Nil)
 
-  def output_document(head: XML.Body, body: XML.Body,
+  def output_document(
+    head: XML.Body,
+    body: XML.Body,
     css: String = "isabelle.css",
     hidden: Boolean = true,
-    structural: Boolean = true): String =
-  {
+    structural: Boolean = true
+  ): String = {
     cat_lines(
       List(
         header,
@@ -384,8 +381,7 @@ object HTML
 
   val fonts_path: Path = Path.explode("fonts")
 
-  def init_fonts(dir: Path): Unit =
-  {
+  def init_fonts(dir: Path): Unit = {
     val fonts_dir = Isabelle_System.make_directory(dir + HTML.fonts_path)
     for (entry <- Isabelle_Fonts.fonts(hidden = true))
       Isabelle_System.copy_file(entry.path, fonts_dir)
@@ -397,8 +393,7 @@ object HTML
     (for (entry <- Isabelle_Fonts.fonts(hidden = true))
      yield (entry.path.file_name -> Url.print_file(entry.path.file))).toMap
 
-  def fonts_css(make_url: String => String = fonts_url()): String =
-  {
+  def fonts_css(make_url: String => String = fonts_url()): String = {
     def font_face(entry: Isabelle_Fonts.Entry): String =
       cat_lines(
         List(
@@ -413,8 +408,7 @@ object HTML
       .mkString("", "\n\n", "\n")
   }
 
-  def fonts_css_dir(prefix: String = ""): String =
-  {
+  def fonts_css_dir(prefix: String = ""): String = {
     val prefix1 = if (prefix.isEmpty || prefix.endsWith("/")) prefix else prefix + "/"
     fonts_css(fonts_dir(prefix1 + fonts_path.implode))
   }
@@ -436,8 +430,8 @@ object HTML
     base: Option[Path] = None,
     css: String = isabelle_css.file_name,
     hidden: Boolean = true,
-    structural: Boolean = true): Unit =
-  {
+    structural: Boolean = true
+  ): Unit = {
     Isabelle_System.make_directory(dir)
     val prefix = relative_prefix(dir, base)
     File.write(dir + isabelle_css.base, fonts_css_dir(prefix) + "\n\n" + File.read(isabelle_css))

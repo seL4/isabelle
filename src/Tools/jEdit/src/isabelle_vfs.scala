@@ -33,15 +33,14 @@ class Isabelle_VFS(prefix: String,
     (if (mkdir) VFS.MKDIR_CAP else 0) |
     (if (low_latency) VFS.LOW_LATENCY_CAP else 0) |
     (if (case_insensitive) VFS.CASE_INSENSITIVE_CAP else 0) |
-    (if (non_awt_session) VFS.NON_AWT_SESSION_CAP else 0))
-{
+    (if (non_awt_session) VFS.NON_AWT_SESSION_CAP else 0)
+) {
   /* URL structure */
 
   def explode_name(s: String): List[String] = space_explode(getFileSeparator, s)
   def implode_name(elems: Iterable[String]): String = elems.mkString(getFileSeparator.toString)
 
-  def explode_url(url: String, component: Component = null): Option[List[String]] =
-  {
+  def explode_url(url: String, component: Component = null): Option[List[String]] = {
     Library.try_unprefix(prefix, url) match {
       case Some(path) => Some(explode_name(path).filter(_.nonEmpty))
       case None =>
@@ -51,8 +50,7 @@ class Isabelle_VFS(prefix: String,
   }
   def implode_url(elems: Iterable[String]): String = prefix + implode_name(elems)
 
-  override def constructPath(parent: String, path: String): String =
-  {
+  override def constructPath(parent: String, path: String): String = {
     if (parent == "") path
     else if (parent(parent.length - 1) == getFileSeparator || parent == prefix) parent + path
     else parent + getFileSeparator + path
@@ -63,15 +61,13 @@ class Isabelle_VFS(prefix: String,
 
   override def isMarkersFileSupported: Boolean = false
 
-  def make_entry(path: String, is_dir: Boolean = false, size: Long = 0L): VFSFile =
-  {
+  def make_entry(path: String, is_dir: Boolean = false, size: Long = 0L): VFSFile = {
     val entry = explode_name(path).lastOption getOrElse ""
     val url = prefix + path
     new VFSFile(entry, url, url, if (is_dir) VFSFile.DIRECTORY else VFSFile.FILE, size, false)
   }
 
-  override def _getFile(vfs_session: AnyRef, url: String, component: Component): VFSFile =
-  {
+  override def _getFile(vfs_session: AnyRef, url: String, component: Component): VFSFile = {
     val parent = getParentOfPath(url)
     if (parent == prefix) new VFSFile(prefix, prefix, prefix, VFSFile.DIRECTORY, 0L, false)
     else {

@@ -9,8 +9,7 @@ package isabelle
 import java.awt.Desktop
 
 
-object Desktop_App
-{
+object Desktop_App {
   def desktop_action(action: Desktop.Action, f: Desktop => Unit): Unit =
     if (Desktop.isDesktopSupported) {
       val desktop = Desktop.getDesktop

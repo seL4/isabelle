@@ -16,21 +16,21 @@ import scala.annotation.tailrec
 import scala.collection.immutable.SortedMap
 
 
-object Spell_Checker
-{
+object Spell_Checker {
   /* words within text */
 
-  def marked_words(base: Text.Offset, text: String, mark: Text.Info[String] => Boolean)
-    : List[Text.Info[String]] =
-  {
+  def marked_words(
+    base: Text.Offset,
+    text: String,
+    mark: Text.Info[String] => Boolean
+  ) : List[Text.Info[String]] = {
     val result = new mutable.ListBuffer[Text.Info[String]]
     var offset = 0
 
     def apostrophe(c: Int): Boolean =
       c == '\'' && (offset + 1 == text.length || text(offset + 1) != '\'')
 
-    @tailrec def scan(pred: Int => Boolean): Unit =
-    {
+    @tailrec def scan(pred: Int => Boolean): Unit = {
       if (offset < text.length) {
         val c = text.codePointAt(offset)
         if (pred(c)) {
@@ -53,8 +53,7 @@ object Spell_Checker
     result.toList
   }
 
-  def current_word(rendering: Rendering, range: Text.Range): Option[Text.Info[String]] =
-  {
+  def current_word(rendering: Rendering, range: Text.Range): Option[Text.Info[String]] = {
     for {
       spell_range <- rendering.spell_checker_point(range)
       text <- rendering.get_text(spell_range)
@@ -65,20 +64,17 @@ object Spell_Checker
 
   /* dictionaries */
 
-  class Dictionary private[Spell_Checker](val path: Path)
-  {
+  class Dictionary private[Spell_Checker](val path: Path) {
     val lang: String = path.drop_ext.file_name
     val user_path: Path = Path.explode("$ISABELLE_HOME_USER/dictionaries") + Path.basic(lang)
     override def toString: String = lang
   }
 
-  private object Decl
-  {
+  private object Decl {
     def apply(name: String, include: Boolean): String =
       if (include) name else "-" + name
 
-    def unapply(decl: String): Option[(String, Boolean)] =
-    {
+    def unapply(decl: String): Option[(String, Boolean)] = {
       val decl1 = decl.trim
       if (decl1 == "" || decl1.startsWith("#")) None
       else
@@ -104,8 +100,7 @@ object Spell_Checker
 }
 
 
-class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
-{
+class Spell_Checker private(dictionary: Spell_Checker.Dictionary) {
   override def toString: String = dictionary.toString
 
 
@@ -126,8 +121,7 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
       case None => false
     }
 
-  private def load(): Unit =
-  {
+  private def load(): Unit = {
     val main_dictionary = split_lines(File.read_gzip(dictionary.path))
 
     val permanent_updates =
@@ -155,8 +149,7 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
   }
   load()
 
-  private def save(): Unit =
-  {
+  private def save(): Unit = {
     val permanent_decls =
       (for {
         (word, upd) <- updates.iterator
@@ -179,8 +172,7 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
     }
   }
 
-  def update(word: String, include: Boolean, permanent: Boolean): Unit =
-  {
+  def update(word: String, include: Boolean, permanent: Boolean): Unit = {
     updates += (word -> Spell_Checker.Update(include, permanent))
 
     if (include) {
@@ -190,8 +182,7 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
     else { save(); load() }
   }
 
-  def reset(): Unit =
-  {
+  def reset(): Unit = {
     updates = SortedMap.empty
     load()
   }
@@ -220,8 +211,7 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
 
   /* completion: suggestions for unknown words */
 
-  private def suggestions(word: String): Option[List[String]] =
-  {
+  private def suggestions(word: String): Option[List[String]] = {
     val res =
       Untyped.method(dict.getClass.getSuperclass, "searchSuggestions", classOf[String]).
         invoke(dict, word).asInstanceOf[JList[AnyRef]].toArray.toList.map(_.toString)
@@ -247,8 +237,7 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
       result.getOrElse(Nil).map(recover_case)
     }
 
-  def completion(rendering: Rendering, caret: Text.Offset): Option[Completion.Result] =
-  {
+  def completion(rendering: Rendering, caret: Text.Offset): Option[Completion.Result] = {
     val caret_range = rendering.before_caret_range(caret)
     for {
       word <- Spell_Checker.current_word(rendering, caret_range)
@@ -261,8 +250,7 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
   }
 }
 
-class Spell_Checker_Variable
-{
+class Spell_Checker_Variable {
   private val no_spell_checker: (String, Option[Spell_Checker]) = ("", None)
   private var current_spell_checker = no_spell_checker
 

@@ -12,8 +12,7 @@ import scala.collection.immutable.SortedSet
 import scala.annotation.tailrec
 
 
-object Build
-{
+object Build {
   /** auxiliary **/
 
   /* persistent build info */
@@ -22,27 +21,24 @@ object Build
     sources: String,
     input_heaps: List[String],
     output_heap: Option[String],
-    return_code: Int)
-  {
+    return_code: Int
+  ) {
     def ok: Boolean = return_code == 0
   }
 
 
   /* queue with scheduling information */
 
-  private object Queue
-  {
+  private object Queue {
     type Timings = (List[Properties.T], Double)
 
-    def load_timings(progress: Progress, store: Sessions.Store, session_name: String): Timings =
-    {
+    def load_timings(progress: Progress, store: Sessions.Store, session_name: String): Timings = {
       val no_timings: Timings = (Nil, 0.0)
 
       store.try_open_database(session_name) match {
         case None => no_timings
         case Some(db) =>
-          def ignore_error(msg: String) =
-          {
+          def ignore_error(msg: String) = {
             progress.echo_warning("Ignoring bad database " + db + (if (msg == "") "" else "\n" + msg))
             no_timings
           }
@@ -64,12 +60,12 @@ object Build
       }
     }
 
-    def make_session_timing(sessions_structure: Sessions.Structure, timing: Map[String, Double])
-      : Map[String, Double] =
-    {
+    def make_session_timing(
+      sessions_structure: Sessions.Structure,
+      timing: Map[String, Double]
+    ) : Map[String, Double] = {
       val maximals = sessions_structure.build_graph.maximals.toSet
-      def desc_timing(session_name: String): Double =
-      {
+      def desc_timing(session_name: String): Double = {
         if (maximals.contains(session_name)) timing(session_name)
         else {
           val descendants = sessions_structure.build_descendants(List(session_name)).toSet
@@ -84,9 +80,11 @@ object Build
       timing.keySet.iterator.map(name => (name -> desc_timing(name))).toMap.withDefaultValue(0.0)
     }
 
-    def apply(progress: Progress, sessions_structure: Sessions.Structure, store: Sessions.Store)
-      : Queue =
-    {
+    def apply(
+      progress: Progress,
+      sessions_structure: Sessions.Structure,
+      store: Sessions.Store
+    ) : Queue = {
       val graph = sessions_structure.build_graph
       val names = graph.keys
 
@@ -97,8 +95,7 @@ object Build
         make_session_timing(sessions_structure,
           timings.map({ case (name, (_, t)) => (name, t) }).toMap)
 
-      object Ordering extends scala.math.Ordering[String]
-      {
+      object Ordering extends scala.math.Ordering[String] {
         def compare(name1: String, name2: String): Int =
           session_timing(name2) compare session_timing(name1) match {
             case 0 =>
@@ -117,8 +114,8 @@ object Build
   private class Queue(
     graph: Graph[String, Sessions.Info],
     order: SortedSet[String],
-    val command_timings: String => List[Properties.T])
-  {
+    val command_timings: String => List[Properties.T]
+  ) {
     def is_inner(name: String): Boolean = !graph.is_maximal(name)
 
     def is_empty: Boolean = graph.is_empty
@@ -126,8 +123,7 @@ object Build
     def - (name: String): Queue =
       new Queue(graph.del_node(name), order - name, command_timings)
 
-    def dequeue(skip: String => Boolean): Option[(String, Sessions.Info)] =
-    {
+    def dequeue(skip: String => Boolean): Option[(String, Sessions.Info)] = {
       val it = order.iterator.dropWhile(name => skip(name) || !graph.is_minimal(name))
       if (it.hasNext) { val name = it.next(); Some((name, graph.get_node(name))) }
       else None
@@ -138,8 +134,7 @@ object Build
 
   /** build with results **/
 
-  class Results private[Build](results: Map[String, (Option[Process_Result], Sessions.Info)])
-  {
+  class Results private[Build](results: Map[String, (Option[Process_Result], Sessions.Info)]) {
     def sessions: Set[String] = results.keySet
     def infos: List[Sessions.Info] = results.values.map(_._2).toList
     def cancelled(name: String): Boolean = results(name)._1.isEmpty
@@ -157,8 +152,7 @@ object Build
   def session_finished(session_name: String, process_result: Process_Result): String =
     "Finished " + session_name + " (" + process_result.timing.message_resources + ")"
 
-  def session_timing(session_name: String, build_log: Build_Log.Session_Info): String =
-  {
+  def session_timing(session_name: String, build_log: Build_Log.Session_Info): String = {
     val props = build_log.session_timing
     val threads = Markup.Session_Timing.Threads.unapply(props) getOrElse 1
     val timing = Markup.Timing_Properties.get(props)
@@ -185,8 +179,8 @@ object Build
     soft_build: Boolean = false,
     verbose: Boolean = false,
     export_files: Boolean = false,
-    session_setup: (String, Session) => Unit = (_, _) => ()): Results =
-  {
+    session_setup: (String, Session) => Unit = (_, _) => ()
+  ): Results = {
     val build_options =
       options +
         "completion_limit=0" +
@@ -206,8 +200,7 @@ object Build
     val full_sessions_selection = full_sessions.imports_selection(selection)
     val full_sessions_selected = full_sessions_selection.toSet
 
-    def sources_stamp(deps: Sessions.Deps, session_name: String): String =
-    {
+    def sources_stamp(deps: Sessions.Deps, session_name: String): String = {
       val digests =
         full_sessions(session_name).meta_digest ::
         deps.sources(session_name) :::
@@ -215,8 +208,7 @@ object Build
       SHA1.digest_set(digests).toString
     }
 
-    val deps =
-    {
+    val deps = {
       val deps0 =
         Sessions.deps(full_sessions.selection(selection),
           progress = progress, inlined_files = true, verbose = verbose,
@@ -289,8 +281,8 @@ object Build
       current: Boolean,
       heap_digest: Option[String],
       process: Option[Process_Result],
-      info: Sessions.Info)
-    {
+      info: Sessions.Info
+    ) {
       def ok: Boolean =
         process match {
           case None => false
@@ -313,8 +305,8 @@ object Build
     @tailrec def loop(
       pending: Queue,
       running: Map[String, (List[String], Build_Job)],
-      results: Map[String, Result]): Map[String, Result] =
-    {
+      results: Map[String, Result]
+    ): Map[String, Result] = {
       def used_node(i: Int): Boolean =
         running.iterator.exists(
           { case (_, (_, job)) => job.numa_node.isDefined && job.numa_node.get == i })
@@ -332,8 +324,7 @@ object Build
             val (process_result, heap_digest) = job.join
 
             val log_lines = process_result.out_lines.filterNot(Protocol_Message.Marker.test)
-            val process_result_tail =
-            {
+            val process_result_tail = {
               val tail = job.info.options.int("process_output_tail")
               process_result.copy(
                 out_lines =
@@ -392,8 +383,7 @@ object Build
                 val do_store =
                   build_heap || Sessions.is_pure(session_name) || queue.is_inner(session_name)
 
-                val (current, heap_digest) =
-                {
+                val (current, heap_digest) = {
                   store.try_open_database(session_name) match {
                     case Some(db) =>
                       using(db)(store.read_build(_, session_name)) match {
@@ -453,8 +443,7 @@ object Build
 
     /* build results */
 
-    val results =
-    {
+    val results = {
       val results0 =
         if (deps.is_empty) {
           progress.echo_warning("Nothing to build")
@@ -505,13 +494,11 @@ object Build
           Presentation.update_chapter(presentation_dir, chapter, entries)
         }
 
-        using(store.open_database_context())(db_context =>
-        {
+        using(store.open_database_context())(db_context => {
           val exports =
             Presentation.read_exports(presentation_sessions.map(_.name), deps, db_context)
 
-          Par_List.map((session: String) =>
-          {
+          Par_List.map((session: String) => {
             progress.expose_interrupt()
             progress.echo("Presenting " + session + " ...")
 
@@ -538,8 +525,7 @@ object Build
   /* Isabelle tool wrapper */
 
   val isabelle_tool = Isabelle_Tool("build", "build and manage Isabelle sessions",
-    Scala_Project.here, args =>
-  {
+    Scala_Project.here, args => {
     val build_options = Word.explode(Isabelle_System.getenv("ISABELLE_BUILD_OPTIONS"))
 
     var base_sessions: List[String] = Nil
@@ -679,8 +665,8 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
     build_heap: Boolean = false,
     dirs: List[Path] = Nil,
     fresh: Boolean = false,
-    strict: Boolean = false): Int =
-  {
+    strict: Boolean = false
+  ): Int = {
     val selection = Sessions.Selection.session(logic)
     val rc =
       if (!fresh && build(options, selection = selection,

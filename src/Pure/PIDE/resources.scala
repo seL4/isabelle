@@ -12,8 +12,7 @@ import scala.util.parsing.input.Reader
 import java.io.{File => JFile}
 
 
-object Resources
-{
+object Resources {
   def empty: Resources =
     new Resources(Sessions.Structure.empty, Sessions.Structure.empty.bootstrap)
 
@@ -31,15 +30,14 @@ class Resources(
   val sessions_structure: Sessions.Structure,
   val session_base: Sessions.Base,
   val log: Logger = No_Logger,
-  command_timings: List[Properties.T] = Nil)
-{
+  command_timings: List[Properties.T] = Nil
+) {
   resources =>
 
 
   /* init session */
 
-  def init_session_yxml: String =
-  {
+  def init_session_yxml: String = {
     import XML.Encode._
 
     YXML.string_of_body(
@@ -78,8 +76,7 @@ class Resources(
   def append(node_name: Document.Node.Name, source_path: Path): String =
     append(node_name.master_dir, source_path)
 
-  def file_node(file: Path, dir: String = "", theory: String = ""): Document.Node.Name =
-  {
+  def file_node(file: Path, dir: String = "", theory: String = ""): Document.Node.Name = {
     val node = append(dir, file)
     val master_dir = append(dir, file.dir)
     Document.Node.Name(node, master_dir, theory)
@@ -91,8 +88,7 @@ class Resources(
 
   /* source files of Isabelle/ML bootstrap */
 
-  def source_file(raw_name: String): Option[String] =
-  {
+  def source_file(raw_name: String): Option[String] = {
     if (Path.is_wellformed(raw_name)) {
       if (Path.is_valid(raw_name)) {
         def check(p: Path): Option[Path] = if (p.is_file) Some(p) else None
@@ -115,9 +111,10 @@ class Resources(
 
   /* theory files */
 
-  def load_commands(syntax: Outer_Syntax, name: Document.Node.Name)
-    : () => List[Command_Span.Span] =
-  {
+  def load_commands(
+    syntax: Outer_Syntax,
+    name: Document.Node.Name
+  ) : () => List[Command_Span.Span] = {
     val (is_utf8, raw_text) =
       with_thy_reader(name, reader => (Scan.reader_is_utf8(reader), reader.source.toString))
     () =>
@@ -130,16 +127,17 @@ class Resources(
       }
   }
 
-  def loaded_files(syntax: Outer_Syntax, name: Document.Node.Name, spans: List[Command_Span.Span])
-    : List[Path] =
-  {
+  def loaded_files(
+    syntax: Outer_Syntax,
+    name: Document.Node.Name,
+    spans: List[Command_Span.Span]
+  ) : List[Path] = {
     val dir = name.master_dir_path
     for { span <- spans; file <- span.loaded_files(syntax).files }
       yield (dir + Path.explode(file)).expand
   }
 
-  def pure_files(syntax: Outer_Syntax): List[Path] =
-  {
+  def pure_files(syntax: Outer_Syntax): List[Path] = {
     val pure_dir = Path.explode("~~/src/Pure")
     for {
       (name, theory) <- Thy_Header.ml_roots
@@ -154,8 +152,7 @@ class Resources(
       theory
     else Long_Name.qualify(qualifier, theory)
 
-  def find_theory_node(theory: String): Option[Document.Node.Name] =
-  {
+  def find_theory_node(theory: String): Option[Document.Node.Name] = {
     val thy_file = Path.basic(Long_Name.base_name(theory)).thy
     val session = session_base.theory_qualifier(theory)
     val dirs =
@@ -167,8 +164,7 @@ class Resources(
       case dir if (dir + thy_file).is_file => file_node(dir + thy_file, theory = theory) })
   }
 
-  def import_name(qualifier: String, dir: String, s: String): Document.Node.Name =
-  {
+  def import_name(qualifier: String, dir: String, s: String): Document.Node.Name = {
     val theory = theory_name(qualifier, Thy_Header.import_name(s))
     def theory_node = file_node(Path.explode(s).thy, dir = dir, theory = theory)
 
@@ -188,8 +184,7 @@ class Resources(
   def import_name(info: Sessions.Info, s: String): Document.Node.Name =
     import_name(info.name, info.dir.implode, s)
 
-  def find_theory(file: JFile): Option[Document.Node.Name] =
-  {
+  def find_theory(file: JFile): Option[Document.Node.Name] = {
     for {
       qualifier <- session_base.session_directories.get(File.canonical(file).getParentFile)
       theory_base <- proper_string(Thy_Header.theory_name(file.getName))
@@ -199,8 +194,7 @@ class Resources(
     } yield theory_node
   }
 
-  def complete_import_name(context_name: Document.Node.Name, s: String): List[String] =
-  {
+  def complete_import_name(context_name: Document.Node.Name, s: String): List[String] = {
     val context_session = session_base.theory_qualifier(context_name)
     val context_dir =
       try { Some(context_name.master_dir_path) }
@@ -216,8 +210,7 @@ class Resources(
     }).toList.sorted
   }
 
-  def with_thy_reader[A](name: Document.Node.Name, f: Reader[Char] => A): A =
-  {
+  def with_thy_reader[A](name: Document.Node.Name, f: Reader[Char] => A): A = {
     val path = name.path
     if (path.is_file) using(Scan.byte_reader(path.file))(f)
     else if (name.node == name.theory)
@@ -225,9 +218,12 @@ class Resources(
     else error ("Cannot load theory file " + path)
   }
 
-  def check_thy(node_name: Document.Node.Name, reader: Reader[Char],
-    command: Boolean = true, strict: Boolean = true): Document.Node.Header =
-  {
+  def check_thy(
+    node_name: Document.Node.Name,
+    reader: Reader[Char],
+    command: Boolean = true,
+    strict: Boolean = true
+  ): Document.Node.Header = {
     if (node_name.is_theory && reader.source.length > 0) {
       try {
         val header = Thy_Header.read(node_name, reader, command = command, strict = strict)
@@ -248,8 +244,7 @@ class Resources(
 
   /* special header */
 
-  def special_header(name: Document.Node.Name): Option[Document.Node.Header] =
-  {
+  def special_header(name: Document.Node.Name): Option[Document.Node.Header] = {
     val imports =
       if (name.theory == Sessions.root_name) List(import_name(name, Sessions.theory_name))
       else if (Thy_Header.is_ml_root(name.theory)) List(import_name(name, Thy_Header.ML_BOOTSTRAP))
@@ -291,9 +286,10 @@ class Resources(
       progress: Progress = new Progress): Dependencies[Unit] =
     Dependencies.empty[Unit].require_thys((), thys, progress = progress)
 
-  def session_dependencies(info: Sessions.Info, progress: Progress = new Progress)
-    : Dependencies[Options] =
-  {
+  def session_dependencies(
+    info: Sessions.Info,
+    progress: Progress = new Progress
+  ) : Dependencies[Options] = {
     info.theories.foldLeft(Dependencies.empty[Options]) {
       case (dependencies, (options, thys)) =>
         dependencies.require_thys(options,
@@ -302,8 +298,7 @@ class Resources(
     }
   }
 
-  object Dependencies
-  {
+  object Dependencies {
     def empty[A]: Dependencies[A] = new Dependencies[A](Nil, Map.empty)
 
     private def show_path(names: List[Document.Node.Name]): String =
@@ -319,16 +314,15 @@ class Resources(
 
   final class Dependencies[A] private(
     rev_entries: List[Document.Node.Entry],
-    seen: Map[Document.Node.Name, A])
-  {
+    seen: Map[Document.Node.Name, A]
+  ) {
     private def cons(entry: Document.Node.Entry): Dependencies[A] =
       new Dependencies[A](entry :: rev_entries, seen)
 
     def require_thy(adjunct: A,
       thy: (Document.Node.Name, Position.T),
       initiators: List[Document.Node.Name] = Nil,
-      progress: Progress = new Progress): Dependencies[A] =
-    {
+      progress: Progress = new Progress): Dependencies[A] = {
       val (name, pos) = thy
 
       def message: String =
@@ -380,8 +374,7 @@ class Resources(
         case errs => error(cat_lines(errs))
       }
 
-    lazy val theory_graph: Document.Node.Name.Graph[Unit] =
-    {
+    lazy val theory_graph: Document.Node.Name.Graph[Unit] = {
       val regular = theories.toSet
       val irregular =
         (for {
@@ -420,9 +413,10 @@ class Resources(
           theories.map(name => resources.load_commands(get_syntax(name), name))))
       .filter(p => p._2.nonEmpty)
 
-    def loaded_files(name: Document.Node.Name, spans: List[Command_Span.Span])
-      : (String, List[Path]) =
-    {
+    def loaded_files(
+      name: Document.Node.Name,
+      spans: List[Command_Span.Span]
+    ) : (String, List[Path]) = {
       val theory = name.theory
       val syntax = get_syntax(name)
       val files1 = resources.loaded_files(syntax, name, spans)
@@ -436,8 +430,7 @@ class Resources(
         file <- loaded_files(name, spans)._2
       } yield file
 
-    def imported_files: List[Path] =
-    {
+    def imported_files: List[Path] = {
       val base_theories =
         loaded_theories.all_preds(theories.map(_.theory)).
           filter(session_base.loaded_theories.defined)

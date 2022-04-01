@@ -19,19 +19,17 @@ import org.gjt.sp.jedit.gui.{DockableWindowManagerProvider, DockableWindowFactor
   FloatingWindowContainer, PanelWindowContainer}
 
 
-class PIDE_Docking_Framework extends DockableWindowManagerProvider
-{
+class PIDE_Docking_Framework extends DockableWindowManagerProvider {
   override def create(
     view: View,
     instance: DockableWindowFactory,
     config: View.ViewConfig): DockableWindowManager =
-  new DockableWindowManagerImpl(view, instance, config)
-  {
+  new DockableWindowManagerImpl(view, instance, config) {
     override def createPopupMenu(
       container: DockableWindowContainer,
       dockable_name: String,
-      clone: Boolean): JPopupMenu =
-    {
+      clone: Boolean
+    ): JPopupMenu = {
       val menu = super.createPopupMenu(container, dockable_name, clone)
 
       val detach_operation: Option[() => Unit] =

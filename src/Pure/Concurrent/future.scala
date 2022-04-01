@@ -12,8 +12,7 @@ import java.util.concurrent.Callable
 
 /* futures and promises */
 
-object Future
-{
+object Future {
   def value[A](x: A): Future[A] = new Value_Future(x)
   def fork[A](body: => A): Future[A] = new Task_Future[A](body)
   def promise[A]: Promise[A] = new Promise_Future[A]
@@ -24,14 +23,14 @@ object Future
     pri: Int = Thread.NORM_PRIORITY,
     daemon: Boolean = false,
     inherit_locals: Boolean = false,
-    uninterruptible: Boolean = false)(body: => A): Future[A] =
-    {
-      new Thread_Future[A](name, group, pri, daemon, inherit_locals, uninterruptible, body)
-    }
+    uninterruptible: Boolean = false)(
+    body: => A
+  ): Future[A] = {
+    new Thread_Future[A](name, group, pri, daemon, inherit_locals, uninterruptible, body)
+  }
 }
 
-trait Future[A]
-{
+trait Future[A] {
   def peek: Option[Exn.Result[A]]
   def is_finished: Boolean = peek.isDefined
   def get_finished: A = { require(is_finished, "future not finished"); Exn.release(peek.get) }
@@ -48,8 +47,7 @@ trait Future[A]
     }
 }
 
-trait Promise[A] extends Future[A]
-{
+trait Promise[A] extends Future[A] {
   def fulfill_result(res: Exn.Result[A]): Unit
   def fulfill(x: A): Unit
 }
@@ -57,8 +55,7 @@ trait Promise[A] extends Future[A]
 
 /* value future */
 
-private class Value_Future[A](x: A) extends Future[A]
-{
+private class Value_Future[A](x: A) extends Future[A] {
   val peek: Option[Exn.Result[A]] = Some(Exn.Res(x))
   def join_result: Exn.Result[A] = peek.get
   def cancel(): Unit = {}
@@ -67,8 +64,7 @@ private class Value_Future[A](x: A) extends Future[A]
 
 /* task future via thread pool */
 
-private class Task_Future[A](body: => A) extends Future[A]
-{
+private class Task_Future[A](body: => A) extends Future[A] {
   private sealed abstract class Status
   private case object Ready extends Status
   private case class Running(thread: Thread) extends Status
@@ -83,8 +79,7 @@ private class Task_Future[A](body: => A) extends Future[A]
       case _ => None
     }
 
-  private def try_run(): Unit =
-  {
+  private def try_run(): Unit = {
     val do_run =
       status.change_result {
         case Ready => (true, Running(Thread.currentThread))
@@ -98,8 +93,7 @@ private class Task_Future[A](body: => A) extends Future[A]
   }
   private val task = Isabelle_Thread.pool.submit(new Callable[Unit] { def call = try_run() })
 
-  def join_result: Exn.Result[A] =
-  {
+  def join_result: Exn.Result[A] = {
     try_run()
     status.guarded_access {
       case st @ Finished(result) => Some((result, st))
@@ -107,8 +101,7 @@ private class Task_Future[A](body: => A) extends Future[A]
     }
   }
 
-  def cancel(): Unit =
-  {
+  def cancel(): Unit = {
     status.change {
       case Ready => task.cancel(false); Finished(Exn.Exn(Exn.Interrupt()))
       case st @ Running(thread) => thread.interrupt(); st
@@ -120,8 +113,7 @@ private class Task_Future[A](body: => A) extends Future[A]
 
 /* promise future */
 
-private class Promise_Future[A] extends Promise[A]
-{
+private class Promise_Future[A] extends Promise[A] {
   private val state = Synchronized[Option[Exn.Result[A]]](None)
   def peek: Option[Exn.Result[A]] = state.value
 
@@ -147,13 +139,12 @@ private class Thread_Future[A](
   daemon: Boolean,
   inherit_locals: Boolean,
   uninterruptible: Boolean,
-  body: => A) extends Future[A]
-{
+  body: => A) extends Future[A] {
   private val result = Future.promise[A]
   private val thread =
     Isabelle_Thread.fork(name = name, group = group, pri = pri, daemon = daemon,
-      inherit_locals = inherit_locals, uninterruptible = uninterruptible)
-    { result.fulfill_result(Exn.capture(body)) }
+      inherit_locals = inherit_locals, uninterruptible = uninterruptible) {
+      result.fulfill_result(Exn.capture(body)) }
 
   def peek: Option[Exn.Result[A]] = result.peek
   def join_result: Exn.Result[A] = result.join_result

@@ -15,14 +15,11 @@ import java.time.temporal.TemporalAccessor
 import scala.annotation.tailrec
 
 
-object Date
-{
+object Date {
   /* format */
 
-  object Format
-  {
-    def make(fmts: List[DateTimeFormatter], tune: String => String = s => s): Format =
-    {
+  object Format {
+    def make(fmts: List[DateTimeFormatter], tune: String => String = s => s): Format = {
       require(fmts.nonEmpty, "no date formats")
 
       new Format {
@@ -41,8 +38,7 @@ object Date
     val alt_date: Format = Format("uuuuMMdd")
   }
 
-  abstract class Format private
-  {
+  abstract class Format private {
     def apply(date: Date): String
     def parse(str: String): Date
 
@@ -50,8 +46,7 @@ object Date
       try { Some(parse(str)) } catch { case _: DateTimeParseException => None }
   }
 
-  object Formatter
-  {
+  object Formatter {
     def pattern(pat: String): DateTimeFormatter = DateTimeFormatter.ofPattern(pat)
 
     def variants(pats: List[String], locs: List[Locale] = Nil): List[DateTimeFormatter] =
@@ -60,9 +55,11 @@ object Date
         if (locs.isEmpty) List(fmt) else locs.map(fmt.withLocale)
       })
 
-    @tailrec def try_variants(fmts: List[DateTimeFormatter], str: String,
-      last_exn: Option[DateTimeParseException] = None): TemporalAccessor =
-    {
+    @tailrec def try_variants(
+      fmts: List[DateTimeFormatter],
+      str: String,
+      last_exn: Option[DateTimeParseException] = None
+    ): TemporalAccessor = {
       fmts match {
         case Nil =>
           throw last_exn.getOrElse(new DateTimeParseException("Failed to parse date", str, 0))
@@ -76,14 +73,12 @@ object Date
 
   /* ordering */
 
-  object Ordering extends scala.math.Ordering[Date]
-  {
+  object Ordering extends scala.math.Ordering[Date] {
     def compare(date1: Date, date2: Date): Int =
       date1.instant.compareTo(date2.instant)
   }
 
-  object Rev_Ordering extends scala.math.Ordering[Date]
-  {
+  object Rev_Ordering extends scala.math.Ordering[Date] {
     def compare(date1: Date, date2: Date): Int =
       date2.instant.compareTo(date1.instant)
   }
@@ -104,8 +99,7 @@ object Date
   def apply(t: Time, zone: ZoneId = timezone()): Date = instant(t.instant, zone)
 }
 
-sealed case class Date(rep: ZonedDateTime)
-{
+sealed case class Date(rep: ZonedDateTime) {
   def midnight: Date =
     new Date(ZonedDateTime.of(rep.toLocalDate, LocalTime.MIDNIGHT, rep.getZone))
 

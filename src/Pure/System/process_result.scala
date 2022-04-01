@@ -6,20 +6,17 @@ Result of system process.
 
 package isabelle
 
-object Process_Result
-{
+object Process_Result {
   /* return code */
 
-  object RC
-  {
+  object RC {
     val ok = 0
     val error = 1
     val failure = 2
     val interrupt = 130
     val timeout = 142
 
-    private def text(rc: Int): String =
-    {
+    private def text(rc: Int): String = {
       val txt =
         rc match {
           case `ok` => "OK"
@@ -47,8 +44,8 @@ final case class Process_Result(
   rc: Int,
   out_lines: List[String] = Nil,
   err_lines: List[String] = Nil,
-  timing: Timing = Timing.zero)
-{
+  timing: Timing = Timing.zero
+) {
   def out: String = Library.trim_line(cat_lines(out_lines))
   def err: String = Library.trim_line(cat_lines(err_lines))
 
@@ -81,15 +78,13 @@ final case class Process_Result(
   def print_return_code: String = Process_Result.RC.print_long(rc)
   def print_rc: String = Process_Result.RC.print(rc)
 
-  def print: Process_Result =
-  {
+  def print: Process_Result = {
     Output.warning(err)
     Output.writeln(out)
     copy(out_lines = Nil, err_lines = Nil)
   }
 
-  def print_stdout: Process_Result =
-  {
+  def print_stdout: Process_Result = {
     Output.warning(err, stdout = true)
     Output.writeln(out, stdout = true)
     copy(out_lines = Nil, err_lines = Nil)

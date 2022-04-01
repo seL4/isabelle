@@ -7,8 +7,7 @@ Build Isabelle Zipperposition component from OPAM repository.
 package isabelle
 
 
-object Build_Zipperposition
-{
+object Build_Zipperposition {
   val default_version = "2.1"
 
 
@@ -18,10 +17,9 @@ object Build_Zipperposition
     version: String = default_version,
     verbose: Boolean = false,
     progress: Progress = new Progress,
-    target_dir: Path = Path.current): Unit =
-  {
-    Isabelle_System.with_tmp_dir("build")(build_dir =>
-    {
+    target_dir: Path = Path.current
+  ): Unit = {
+    Isabelle_System.with_tmp_dir("build")(build_dir => {
       if (Platform.is_linux) Isabelle_System.require_command("patchelf")
 
 
@@ -93,8 +91,7 @@ ZIPPERPOSITION_HOME="$COMPONENT/$ISABELLE_PLATFORM64"
 
   val isabelle_tool =
     Isabelle_Tool("build_zipperposition", "build prover component from OPAM repository",
-      Scala_Project.here, args =>
-    {
+      Scala_Project.here, args => {
       var target_dir = Path.current
       var version = default_version
       var verbose = false

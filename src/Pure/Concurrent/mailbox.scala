@@ -8,14 +8,12 @@ unbounded buffering) and single receiver (bulk messages).
 package isabelle
 
 
-object Mailbox
-{
+object Mailbox {
   def apply[A]: Mailbox[A] = new Mailbox[A]()
 }
 
 
-class Mailbox[A] private()
-{
+class Mailbox[A] private() {
   private val mailbox = Synchronized[List[A]](Nil)
   override def toString: String = mailbox.value.reverse.mkString("Mailbox(", ",", ")")
 

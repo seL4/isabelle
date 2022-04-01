@@ -7,16 +7,14 @@ Check theory sources for conflicts with proposed keywords.
 package isabelle
 
 
-object Check_Keywords
-{
+object Check_Keywords {
   def conflicts(
     keywords: Keyword.Keywords,
     check: Set[String],
     input: CharSequence,
-    start: Token.Pos): List[(Token, Position.T)] =
-  {
-    object Parser extends Parse.Parser
-    {
+    start: Token.Pos
+  ): List[(Token, Position.T)] = {
+    object Parser extends Parse.Parser {
       private val conflict =
         position(token("token", tok => !(tok.is_command || tok.is_keyword) && check(tok.source)))
       private val other = token("token", _ => true)
@@ -35,8 +33,8 @@ object Check_Keywords
     progress: Progress,
     keywords: Keyword.Keywords,
     check: Set[String],
-    paths: List[Path]): Unit =
-  {
+    paths: List[Path]
+  ): Unit = {
     val parallel_args = paths.map(path => (File.read(path), Token.Pos.file(path.expand.implode)))
 
     val bad =

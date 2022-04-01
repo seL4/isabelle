@@ -11,8 +11,7 @@ import java.util.{Map => JMap}
 import java.io.{File => JFile}
 
 
-object Isabelle_Process
-{
+object Isabelle_Process {
   def start(
     session: Session,
     options: Options,
@@ -24,8 +23,8 @@ object Isabelle_Process
     eval_main: String = "",
     modes: List[String] = Nil,
     cwd: JFile = null,
-    env: JMap[String, String] = Isabelle_System.settings()): Isabelle_Process =
-  {
+    env: JMap[String, String] = Isabelle_System.settings()
+  ): Isabelle_Process = {
     val channel = System_Channel()
     val process =
       try {
@@ -47,8 +46,7 @@ object Isabelle_Process
   }
 }
 
-class Isabelle_Process private(session: Session, process: Bash.Process)
-{
+class Isabelle_Process private(session: Session, process: Bash.Process) {
   private val startup = Future.promise[String]
   private val terminated = Future.promise[Process_Result]
 
@@ -72,8 +70,7 @@ class Isabelle_Process private(session: Session, process: Bash.Process)
       case err => session.stop(); error(err)
     }
 
-  def await_shutdown(): Process_Result =
-  {
+  def await_shutdown(): Process_Result = {
     val result = terminated.join
     session.stop()
     result

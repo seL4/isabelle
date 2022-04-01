@@ -11,19 +11,16 @@ import scala.collection.mutable
 import scala.util.parsing.input.CharSequenceReader
 
 
-object Command_Span
-{
+object Command_Span {
   /* loaded files */
 
-  object Loaded_Files
-  {
+  object Loaded_Files {
     val none: Loaded_Files = Loaded_Files(Nil, -1)
   }
   sealed case class Loaded_Files(files: List[String], index: Int)
 
   abstract class Load_Command(val name: String, val here: Scala_Project.Here)
-    extends Isabelle_System.Service
-  {
+  extends Isabelle_System.Service {
     override def toString: String = name
 
     def position: Position.T = here.position
@@ -66,8 +63,7 @@ object Command_Span
 
   /* span */
 
-  sealed case class Span(kind: Kind, content: List[Token])
-  {
+  sealed case class Span(kind: Kind, content: List[Token]) {
     def is_theory: Boolean = kind == Theory_Span
 
     def name: String =
@@ -96,8 +92,7 @@ object Command_Span
 
     def length: Int = content.foldLeft(0)(_ + _.source.length)
 
-    def compact_source: (String, Span) =
-    {
+    def compact_source: (String, Span) = {
       val source = Token.implode(content)
       val content1 = new mutable.ListBuffer[Token]
       var i = 0
@@ -110,8 +105,7 @@ object Command_Span
       (source, Span(kind, content1.toList))
     }
 
-    def clean_arguments: List[(Token, Int)] =
-    {
+    def clean_arguments: List[(Token, Int)] = {
       if (name.nonEmpty) {
         def clean(toks: List[(Token, Int)]): List[(Token, Int)] =
           toks match {
@@ -143,8 +137,7 @@ object Command_Span
 
   val empty: Span = Span(Ignored_Span, Nil)
 
-  def unparsed(source: String, theory: Boolean): Span =
-  {
+  def unparsed(source: String, theory: Boolean): Span = {
     val kind = if (theory) Theory_Span else Malformed_Span
     Span(kind, List(Token(Token.Kind.UNPARSED, source)))
   }

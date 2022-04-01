@@ -19,8 +19,7 @@ import org.gjt.sp.jedit.View
 import org.gjt.sp.jedit.gui.HistoryTextField
 
 
-class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view, position)
-{
+class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view, position) {
   GUI_Thread.require {}
 
 
@@ -36,8 +35,7 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
 
   private val process_indicator = new Process_Indicator
 
-  private def consume_status(status: Query_Operation.Status.Value): Unit =
-  {
+  private def consume_status(status: Query_Operation.Status.Value): Unit = {
     status match {
       case Query_Operation.Status.WAITING =>
         process_indicator.update("Waiting for evaluation of context ...", 5)
@@ -64,8 +62,7 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
     override def componentShown(e: ComponentEvent): Unit = delay_resize.invoke()
   })
 
-  private def handle_resize(): Unit =
-  {
+  private def handle_resize(): Unit = {
     GUI_Thread.require {}
 
     pretty_text_area.resize(
@@ -75,8 +72,7 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
 
   /* controls */
 
-  private def clicked: Unit =
-  {
+  private def clicked: Unit = {
     provers.addCurrentToHistory()
     PIDE.options.string("sledgehammer_provers") = provers.getText
     sledgehammer.apply_query(
@@ -91,8 +87,7 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
   }
 
   private val provers = new HistoryTextField("isabelle-sledgehammer-provers") {
-    override def processKeyEvent(evt: KeyEvent): Unit =
-    {
+    override def processKeyEvent(evt: KeyEvent): Unit = {
       if (evt.getID == KeyEvent.KEY_PRESSED && evt.getKeyCode == KeyEvent.VK_ENTER) clicked
       super.processKeyEvent(evt)
     }
@@ -100,8 +95,7 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
     setColumns(30)
   }
 
-  private def update_provers(): Unit =
-  {
+  private def update_provers(): Unit = {
     val new_provers = PIDE.options.string("sledgehammer_provers")
     if (new_provers != provers.getText) {
       provers.setText(new_provers)
@@ -154,16 +148,14 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
       case _: Session.Global_Options => GUI_Thread.later { update_provers(); handle_resize() }
     }
 
-  override def init(): Unit =
-  {
+  override def init(): Unit = {
     PIDE.session.global_options += main
     update_provers()
     handle_resize()
     sledgehammer.activate()
   }
 
-  override def exit(): Unit =
-  {
+  override def exit(): Unit = {
     sledgehammer.deactivate()
     PIDE.session.global_options -= main
     delay_resize.revoke()

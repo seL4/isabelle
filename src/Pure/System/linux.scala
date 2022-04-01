@@ -10,15 +10,13 @@ package isabelle
 import scala.util.matching.Regex
 
 
-object Linux
-{
+object Linux {
   /* check system */
 
   def check_system(): Unit =
     if (!Platform.is_linux) error("Not a Linux system")
 
-  def check_system_root(): Unit =
-  {
+  def check_system_root(): Unit = {
     check_system()
     if (Isabelle_System.bash("id -u").check.out != "0") error("Not running as superuser (root)")
   }
@@ -26,22 +24,19 @@ object Linux
 
   /* release */
 
-  object Release
-  {
+  object Release {
     private val ID = """^Distributor ID:\s*(\S.*)$""".r
     private val RELEASE = """^Release:\s*(\S.*)$""".r
     private val DESCRIPTION = """^Description:\s*(\S.*)$""".r
 
-    def apply(): Release =
-    {
+    def apply(): Release = {
       val lines = Isabelle_System.bash("lsb_release -a").check.out_lines
       def find(R: Regex): String = lines.collectFirst({ case R(a) => a }).getOrElse("Unknown")
       new Release(find(ID), find(RELEASE), find(DESCRIPTION))
     }
   }
 
-  final class Release private(val id: String, val release: String, val description: String)
-  {
+  final class Release private(val id: String, val release: String, val description: String) {
     override def toString: String = description
 
     def is_ubuntu: Boolean = id == "Ubuntu"
@@ -65,8 +60,7 @@ object Linux
   def package_install(packages: List[String], progress: Progress = new Progress): Unit =
     progress.bash("apt-get install -y -- " + Bash.strings(packages), echo = true).check
 
-  def package_installed(name: String): Boolean =
-  {
+  def package_installed(name: String): Boolean = {
     val result = Isabelle_System.bash("dpkg-query -s " + Bash.string(name))
     val pattern = """^Status:.*installed.*$""".r.pattern
     result.ok && result.out_lines.exists(line => pattern.matcher(line).matches)
@@ -78,8 +72,7 @@ object Linux
   def user_exists(name: String): Boolean =
     Isabelle_System.bash("id " + Bash.string(name)).ok
 
-  def user_entry(name: String, field: Int): String =
-  {
+  def user_entry(name: String, field: Int): String = {
     val result = Isabelle_System.bash("getent passwd " + Bash.string(name)).check
     val fields = space_explode(':', result.out)
 
@@ -94,8 +87,8 @@ object Linux
   def user_add(name: String,
     description: String = "",
     system: Boolean = false,
-    ssh_setup: Boolean = false): Unit =
-  {
+    ssh_setup: Boolean = false
+  ): Unit = {
     require(!description.contains(','), "malformed description")
 
     if (user_exists(name)) error("User already exists: " + quote(name))
@@ -133,8 +126,7 @@ fi
     try { service_stop(name) }
     catch { case ERROR(_) => }
 
-  def service_install(name: String, spec: String): Unit =
-  {
+  def service_install(name: String, spec: String): Unit = {
     service_shutdown(name)
 
     val service_file = Path.explode("/lib/systemd/system") + Path.basic(name).ext("service")
@@ -148,8 +140,7 @@ fi
 
   /* passwords */
 
-  def generate_password(length: Int = 10): String =
-  {
+  def generate_password(length: Int = 10): String = {
     require(length >= 6, "password too short")
     Isabelle_System.bash("pwgen " + length + " 1").check.out
   }

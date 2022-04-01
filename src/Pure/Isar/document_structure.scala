@@ -11,13 +11,13 @@ import scala.collection.mutable
 import scala.annotation.tailrec
 
 
-object Document_Structure
-{
+object Document_Structure {
   /** general structure **/
 
   sealed abstract class Document { def length: Int }
-  case class Block(name: String, text: String, body: List[Document]) extends Document
-  { val length: Int = body.foldLeft(0)(_ + _.length) }
+  case class Block(name: String, text: String, body: List[Document]) extends Document {
+    val length: Int = body.foldLeft(0)(_ + _.length)
+  }
   case class Atom(length: Int) extends Document
 
   def is_theory_command(keywords: Keyword.Keywords, command: Command): Boolean =
@@ -55,8 +55,8 @@ object Document_Structure
   def parse_blocks(
     syntax: Outer_Syntax,
     node_name: Document.Node.Name,
-    text: CharSequence): List[Document] =
-  {
+    text: CharSequence
+  ): List[Document] = {
     def is_plain_theory(command: Command): Boolean =
       is_theory_command(syntax.keywords, command) &&
       !command.span.is_begin && !command.span.is_end
@@ -83,14 +83,12 @@ object Document_Structure
 
     def flush(): Unit = if (is_plain_theory(stack.head._1)) close()
 
-    def result(): List[Document] =
-    {
+    def result(): List[Document] = {
       while (close()) { }
       stack.head._2.toList
     }
 
-    def add(command: Command): Unit =
-    {
+    def add(command: Command): Unit = {
       if (command.span.is_begin || is_plain_theory(command)) { flush(); open(command) }
       else if (command.span.is_end) { flush(); close() }
 
@@ -109,8 +107,7 @@ object Document_Structure
 
   /** section headings **/
 
-  trait Item
-  {
+  trait Item {
     def name: String = ""
     def source: String = ""
     def heading_level: Option[Int] = None
@@ -118,15 +115,13 @@ object Document_Structure
 
   object No_Item extends Item
 
-  class Sections(keywords: Keyword.Keywords)
-  {
+  class Sections(keywords: Keyword.Keywords) {
     private def buffer(): mutable.ListBuffer[Document] = new mutable.ListBuffer[Document]
 
     private var stack: List[(Int, Item, mutable.ListBuffer[Document])] =
       List((0, No_Item, buffer()))
 
-    @tailrec private def close(level: Int => Boolean): Unit =
-    {
+    @tailrec private def close(level: Int => Boolean): Unit = {
       stack match {
         case (lev, item, body) :: (_, _, body2) :: _ if level(lev) =>
           body2 += Block(item.name, item.source, body.toList)
@@ -136,14 +131,12 @@ object Document_Structure
       }
     }
 
-    def result(): List[Document] =
-    {
+    def result(): List[Document] = {
       close(_ => true)
       stack.head._3.toList
     }
 
-    def add(item: Item): Unit =
-    {
+    def add(item: Item): Unit = {
       item.heading_level match {
         case Some(i) =>
           close(_ > i)
@@ -157,8 +150,7 @@ object Document_Structure
 
   /* outer syntax sections */
 
-  private class Command_Item(keywords: Keyword.Keywords, command: Command) extends Item
-  {
+  private class Command_Item(keywords: Keyword.Keywords, command: Command) extends Item {
     override def name: String = command.span.name
     override def source: String = command.source
     override def heading_level: Option[Int] = Document_Structure.heading_level(keywords, command)
@@ -167,8 +159,8 @@ object Document_Structure
   def parse_sections(
     syntax: Outer_Syntax,
     node_name: Document.Node.Name,
-    text: CharSequence): List[Document] =
-  {
+    text: CharSequence
+  ): List[Document] = {
     val sections = new Sections(syntax.keywords)
 
     for { span <- syntax.parse_spans(text) } {
@@ -182,14 +174,12 @@ object Document_Structure
 
   /* ML sections */
 
-  private class ML_Item(token: ML_Lex.Token, level: Option[Int]) extends Item
-  {
+  private class ML_Item(token: ML_Lex.Token, level: Option[Int]) extends Item {
     override def source: String = token.source
     override def heading_level: Option[Int] = level
   }
 
-  def parse_ml_sections(SML: Boolean, text: CharSequence): List[Document] =
-  {
+  def parse_ml_sections(SML: Boolean, text: CharSequence): List[Document] = {
     val sections = new Sections(Keyword.Keywords.empty)
     val nl = new ML_Item(ML_Lex.Token(ML_Lex.Kind.SPACE, "\n"), None)
 
@@ -200,8 +190,7 @@ object Document_Structure
         toks.filterNot(_.is_space) match {
           case List(tok) if tok.is_comment =>
             val s = tok.source
-            if (Codepoint.iterator(s).exists(c => Character.isLetter(c) || Character.isDigit(c)))
-            {
+            if (Codepoint.iterator(s).exists(c => Character.isLetter(c) || Character.isDigit(c))) {
               if (s.startsWith("(**** ") && s.endsWith(" ****)")) Some(0)
               else if (s.startsWith("(*** ") && s.endsWith(" ***)")) Some(1)
               else if (s.startsWith("(** ") && s.endsWith(" **)")) Some(2)

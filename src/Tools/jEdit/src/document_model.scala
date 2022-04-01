@@ -21,15 +21,14 @@ import org.gjt.sp.jedit.Buffer
 import org.gjt.sp.jedit.buffer.{BufferAdapter, BufferListener, JEditBuffer}
 
 
-object Document_Model
-{
+object Document_Model {
   /* document models */
 
   sealed case class State(
     models: Map[Document.Node.Name, Document_Model] = Map.empty,
     buffer_models: Map[JEditBuffer, Buffer_Model] = Map.empty,
-    overlays: Document.Overlays = Document.Overlays.empty)
-  {
+    overlays: Document.Overlays = Document.Overlays.empty
+  ) {
     def file_models_iterator: Iterator[(Document.Node.Name, File_Model)] =
       for {
         (node_name, model) <- models.iterator
@@ -43,9 +42,11 @@ object Document_Model
           blob <- model.get_blob
         } yield (node_name -> blob)).toMap)
 
-    def open_buffer(session: Session, node_name: Document.Node.Name, buffer: Buffer)
-      : (Buffer_Model, State) =
-    {
+    def open_buffer(
+      session: Session,
+      node_name: Document.Node.Name,
+      buffer: Buffer
+    ) : (Buffer_Model, State) = {
       val old_model =
         models.get(node_name) match {
           case Some(file_model: File_Model) => Some(file_model)
@@ -58,8 +59,7 @@ object Document_Model
           buffer_models = buffer_models + (buffer -> buffer_model)))
     }
 
-    def close_buffer(buffer: JEditBuffer): State =
-    {
+    def close_buffer(buffer: JEditBuffer): State = {
       buffer_models.get(buffer) match {
         case None => this
         case Some(buffer_model) =>
@@ -113,31 +113,28 @@ object Document_Model
 
   /* sync external files */
 
-  def sync_files(changed_files: Set[JFile]): Boolean =
-  {
-    state.change_result(st =>
-      {
-        val changed_models =
-          (for {
-            (node_name, model) <- st.file_models_iterator
-            file <- model.file if changed_files(file)
-            text <- PIDE.resources.read_file_content(node_name)
-            if model.content.text != text
-          } yield {
-            val content = Document_Model.File_Content(text)
-            val edits = Text.Edit.replace(0, model.content.text, text)
-            (node_name, model.copy(content = content, pending_edits = model.pending_edits ::: edits))
-          }).toList
-        if (changed_models.isEmpty) (false, st)
-        else (true, st.copy(models = changed_models.foldLeft(st.models)(_ + _)))
-      })
+  def sync_files(changed_files: Set[JFile]): Boolean = {
+    state.change_result(st => {
+      val changed_models =
+        (for {
+          (node_name, model) <- st.file_models_iterator
+          file <- model.file if changed_files(file)
+          text <- PIDE.resources.read_file_content(node_name)
+          if model.content.text != text
+        } yield {
+          val content = Document_Model.File_Content(text)
+          val edits = Text.Edit.replace(0, model.content.text, text)
+          (node_name, model.copy(content = content, pending_edits = model.pending_edits ::: edits))
+        }).toList
+      if (changed_models.isEmpty) (false, st)
+      else (true, st.copy(models = changed_models.foldLeft(st.models)(_ + _)))
+    })
   }
 
 
   /* syntax */
 
-  def syntax_changed(names: List[Document.Node.Name]): Unit =
-  {
+  def syntax_changed(names: List[Document.Node.Name]): Unit = {
     GUI_Thread.require {}
 
     val models = state.value.models
@@ -149,8 +146,7 @@ object Document_Model
 
   /* init and exit */
 
-  def init(session: Session, node_name: Document.Node.Name, buffer: Buffer): Buffer_Model =
-  {
+  def init(session: Session, node_name: Document.Node.Name, buffer: Buffer): Buffer_Model = {
     GUI_Thread.require {}
     state.change_result(st =>
       st.buffer_models.get(buffer) match {
@@ -164,8 +160,7 @@ object Document_Model
       })
   }
 
-  def exit(buffer: Buffer): Unit =
-  {
+  def exit(buffer: Buffer): Unit = {
     GUI_Thread.require {}
     state.change(st =>
       if (st.buffer_models.isDefinedAt(buffer)) {
@@ -176,8 +171,7 @@ object Document_Model
       else st)
   }
 
-  def provide_files(session: Session, files: List[(Document.Node.Name, String)]): Unit =
-  {
+  def provide_files(session: Session, files: List[(Document.Node.Name, String)]): Unit = {
     GUI_Thread.require {}
     state.change(st =>
       files.foldLeft(st) {
@@ -195,8 +189,10 @@ object Document_Model
     } yield node_name).toSet
 
   def node_required(
-    name: Document.Node.Name, toggle: Boolean = false, set: Boolean = false): Unit =
-  {
+    name: Document.Node.Name,
+    toggle: Boolean = false,
+    set: Boolean = false
+  ) : Unit = {
     GUI_Thread.require {}
 
     val changed =
@@ -226,65 +222,61 @@ object Document_Model
 
   /* flushed edits */
 
-  def flush_edits(hidden: Boolean, purge: Boolean): (Document.Blobs, List[Document.Edit_Text]) =
-  {
+  def flush_edits(hidden: Boolean, purge: Boolean): (Document.Blobs, List[Document.Edit_Text]) = {
     GUI_Thread.require {}
 
-    state.change_result(st =>
-      {
-        val doc_blobs = st.document_blobs
+    state.change_result(st => {
+      val doc_blobs = st.document_blobs
 
-        val buffer_edits =
-          (for {
-            (_, model) <- st.buffer_models.iterator
-            edit <- model.flush_edits(doc_blobs, hidden).iterator
-          } yield edit).toList
+      val buffer_edits =
+        (for {
+          (_, model) <- st.buffer_models.iterator
+          edit <- model.flush_edits(doc_blobs, hidden).iterator
+        } yield edit).toList
 
-        val file_edits =
-          (for {
-            (node_name, model) <- st.file_models_iterator
-            (edits, model1) <- model.flush_edits(doc_blobs, hidden)
-          } yield (edits, node_name -> model1)).toList
+      val file_edits =
+        (for {
+          (node_name, model) <- st.file_models_iterator
+          (edits, model1) <- model.flush_edits(doc_blobs, hidden)
+        } yield (edits, node_name -> model1)).toList
 
-        val model_edits = buffer_edits ::: file_edits.flatMap(_._1)
+      val model_edits = buffer_edits ::: file_edits.flatMap(_._1)
 
-        val purge_edits =
-          if (purge) {
-            val purged =
-              (for ((node_name, model) <- st.file_models_iterator)
-               yield (node_name -> model.purge_edits(doc_blobs))).toList
+      val purge_edits =
+        if (purge) {
+          val purged =
+            (for ((node_name, model) <- st.file_models_iterator)
+             yield (node_name -> model.purge_edits(doc_blobs))).toList
 
-            val imports =
-            {
-              val open_nodes =
-                (for ((_, model) <- st.buffer_models.iterator) yield model.node_name).toList
-              val touched_nodes = model_edits.map(_._1)
-              val pending_nodes = for ((node_name, None) <- purged) yield node_name
-              (open_nodes ::: touched_nodes ::: pending_nodes).map((_, Position.none))
-            }
-            val retain = PIDE.resources.dependencies(imports).theories.toSet
-
-            for ((node_name, Some(edits)) <- purged if !retain(node_name); edit <- edits)
-              yield edit
+          val imports = {
+            val open_nodes =
+              (for ((_, model) <- st.buffer_models.iterator) yield model.node_name).toList
+            val touched_nodes = model_edits.map(_._1)
+            val pending_nodes = for ((node_name, None) <- purged) yield node_name
+            (open_nodes ::: touched_nodes ::: pending_nodes).map((_, Position.none))
           }
-          else Nil
+          val retain = PIDE.resources.dependencies(imports).theories.toSet
 
-        val st1 = st.copy(models = st.models ++ file_edits.map(_._2) -- purge_edits.map(_._1))
-        PIDE.plugin.file_watcher.purge(
-          (for {
-            (_, model) <- st1.file_models_iterator
-            file <- model.file
-          } yield file.getParentFile).toSet)
+          for ((node_name, Some(edits)) <- purged if !retain(node_name); edit <- edits)
+            yield edit
+        }
+        else Nil
 
-        ((doc_blobs, model_edits ::: purge_edits), st1)
-      })
+      val st1 = st.copy(models = st.models ++ file_edits.map(_._2) -- purge_edits.map(_._1))
+      PIDE.plugin.file_watcher.purge(
+        (for {
+          (_, model) <- st1.file_models_iterator
+          file <- model.file
+        } yield file.getParentFile).toSet)
+
+      ((doc_blobs, model_edits ::: purge_edits), st1)
+    })
   }
 
 
   /* file content */
 
-  sealed case class File_Content(text: String)
-  {
+  sealed case class File_Content(text: String) {
     lazy val bytes: Bytes = Bytes(Symbol.encode(text))
     lazy val chunk: Symbol.Text_Chunk = Symbol.Text_Chunk(text)
     lazy val bibtex_entries: List[Text.Info[String]] =
@@ -295,8 +287,7 @@ object Document_Model
 
   /* HTTP preview */
 
-  def open_preview(view: View, plain_text: Boolean): Unit =
-  {
+  def open_preview(view: View, plain_text: Boolean): Unit = {
     Document_Model.get(view.getBuffer) match {
       case Some(model) =>
         val url = Preview_Service.server_url(plain_text, model.node_name)
@@ -305,8 +296,7 @@ object Document_Model
     }
   }
 
-  object Preview_Service extends HTTP.Service("preview")
-  {
+  object Preview_Service extends HTTP.Service("preview") {
     service =>
 
     private val plain_text_prefix = "plain_text="
@@ -341,15 +331,15 @@ object Document_Model
   }
 }
 
-sealed abstract class Document_Model extends Document.Model
-{
+sealed abstract class Document_Model extends Document.Model {
   /* perspective */
 
   def document_view_ranges(snapshot: Document.Snapshot): List[Text.Range] = Nil
 
   def node_perspective(
-    doc_blobs: Document.Blobs, hidden: Boolean): (Boolean, Document.Node.Perspective_Text) =
-  {
+    doc_blobs: Document.Blobs,
+    hidden: Boolean
+  ): (Boolean, Document.Node.Perspective_Text) = {
     GUI_Thread.require {}
 
     if (Isabelle.continuous_checking && is_theory) {
@@ -373,8 +363,7 @@ sealed abstract class Document_Model extends Document.Model
 
   /* snapshot */
 
-  @tailrec final def await_stable_snapshot(): Document.Snapshot =
-  {
+  @tailrec final def await_stable_snapshot(): Document.Snapshot = {
     val snapshot = this.snapshot()
     if (snapshot.is_outdated) {
       PIDE.options.seconds("editor_output_delay").sleep()
@@ -384,8 +373,7 @@ sealed abstract class Document_Model extends Document.Model
   }
 }
 
-object File_Model
-{
+object File_Model {
   def empty(session: Session): File_Model =
     File_Model(session, Document.Node.Name.empty, None, Document_Model.File_Content(""),
       false, Document.Node.no_perspective_text, Nil)
@@ -395,8 +383,8 @@ object File_Model
     text: String,
     node_required: Boolean = false,
     last_perspective: Document.Node.Perspective_Text = Document.Node.no_perspective_text,
-    pending_edits: List[Text.Edit] = Nil): File_Model =
-  {
+    pending_edits: List[Text.Edit] = Nil
+  ): File_Model = {
     val file = JEdit_Lib.check_file(node_name.node)
     file.foreach(PIDE.plugin.file_watcher.register_parent(_))
 
@@ -413,8 +401,8 @@ case class File_Model(
   content: Document_Model.File_Content,
   node_required: Boolean,
   last_perspective: Document.Node.Perspective_Text,
-  pending_edits: List[Text.Edit]) extends Document_Model
-{
+  pending_edits: List[Text.Edit]
+) extends Document_Model {
   /* text */
 
   def get_text(range: Text.Range): Option[String] =
@@ -453,9 +441,10 @@ case class File_Model(
         Some(copy(content = content1, pending_edits = pending_edits1))
     }
 
-  def flush_edits(doc_blobs: Document.Blobs, hidden: Boolean)
-    : Option[(List[Document.Edit_Text], File_Model)] =
-  {
+  def flush_edits(
+    doc_blobs: Document.Blobs,
+    hidden: Boolean
+  ) : Option[(List[Document.Edit_Text], File_Model)] = {
     val (reparse, perspective) = node_perspective(doc_blobs, hidden)
     if (reparse || pending_edits.nonEmpty || last_perspective != perspective) {
       val edits = node_edits(node_header, pending_edits, perspective)
@@ -481,8 +470,7 @@ case class File_Model(
 }
 
 case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer: Buffer)
-  extends Document_Model
-{
+extends Document_Model {
   /* text */
 
   def get_text(range: Text.Range): Option[String] =
@@ -491,8 +479,7 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
 
   /* header */
 
-  def node_header(): Document.Node.Header =
-  {
+  def node_header(): Document.Node.Header = {
     GUI_Thread.require {}
 
     PIDE.resources.special_header(node_name) getOrElse
@@ -515,8 +502,7 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
       doc_view <- Document_View.get(text_area)
     } yield doc_view
 
-  override def document_view_ranges(snapshot: Document.Snapshot): List[Text.Range] =
-  {
+  override def document_view_ranges(snapshot: Document.Snapshot): List[Text.Range] = {
     GUI_Thread.require {}
 
     (for {
@@ -581,8 +567,7 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
 
   /* pending edits */
 
-  private object pending_edits
-  {
+  private object pending_edits {
     private val pending = new mutable.ListBuffer[Text.Edit]
     private var last_perspective = Document.Node.no_perspective_text
 
@@ -629,17 +614,24 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
 
   /* buffer listener */
 
-  private val buffer_listener: BufferListener = new BufferAdapter
-  {
-    override def contentInserted(buffer: JEditBuffer,
-      start_line: Int, offset: Int, num_lines: Int, length: Int): Unit =
-    {
+  private val buffer_listener: BufferListener = new BufferAdapter {
+    override def contentInserted(
+      buffer: JEditBuffer,
+      start_line: Int,
+      offset: Int,
+      num_lines: Int,
+      length: Int
+    ): Unit = {
       pending_edits.edit(List(Text.Edit.insert(offset, buffer.getText(offset, length))))
     }
 
-    override def preContentRemoved(buffer: JEditBuffer,
-      start_line: Int, offset: Int, num_lines: Int, removed_length: Int): Unit =
-    {
+    override def preContentRemoved(
+      buffer: JEditBuffer,
+      start_line: Int,
+      offset: Int,
+      num_lines: Int,
+      removed_length: Int
+    ): Unit = {
       pending_edits.edit(List(Text.Edit.remove(offset, buffer.getText(offset, removed_length))))
     }
   }
@@ -647,8 +639,7 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
 
   /* syntax */
 
-  def syntax_changed(): Unit =
-  {
+  def syntax_changed(): Unit = {
     JEdit_Lib.buffer_line_manager(buffer).setFirstInvalidLineContext(0)
     for (text_area <- JEdit_Lib.jedit_text_areas(buffer))
       Untyped.method(Class.forName("org.gjt.sp.jedit.textarea.TextArea"), "foldStructureChanged").
@@ -656,8 +647,7 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
     buffer.invalidateCachedFoldLevels()
   }
 
-  def init_token_marker(): Unit =
-  {
+  def init_token_marker(): Unit = {
     Isabelle.buffer_token_marker(buffer) match {
       case Some(marker) if marker != buffer.getTokenMarker =>
         buffer.setTokenMarker(marker)
@@ -669,8 +659,7 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
 
   /* init */
 
-  def init(old_model: Option[File_Model]): Buffer_Model =
-  {
+  def init(old_model: Option[File_Model]): Buffer_Model = {
     GUI_Thread.require {}
 
     old_model match {
@@ -693,8 +682,7 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
 
   /* exit */
 
-  def exit(): File_Model =
-  {
+  def exit(): File_Model = {
     GUI_Thread.require {}
 
     buffer.removeBufferListener(buffer_listener)

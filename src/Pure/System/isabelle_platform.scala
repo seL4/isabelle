@@ -7,8 +7,7 @@ General hardware and operating system type for Isabelle system tools.
 package isabelle
 
 
-object Isabelle_Platform
-{
+object Isabelle_Platform {
   val settings: List[String] =
     List(
       "ISABELLE_PLATFORM_FAMILY",
@@ -17,8 +16,7 @@ object Isabelle_Platform
       "ISABELLE_WINDOWS_PLATFORM64",
       "ISABELLE_APPLE_PLATFORM64")
 
-  def apply(ssh: Option[SSH.Session] = None): Isabelle_Platform =
-  {
+  def apply(ssh: Option[SSH.Session] = None): Isabelle_Platform = {
     ssh match {
       case None =>
         new Isabelle_Platform(settings.map(a => (a, Isabelle_System.getenv(a))))
@@ -36,8 +34,7 @@ object Isabelle_Platform
   lazy val self: Isabelle_Platform = apply()
 }
 
-class Isabelle_Platform private(val settings: List[(String, String)])
-{
+class Isabelle_Platform private(val settings: List[(String, String)]) {
   private def get(name: String): String =
     settings.collectFirst({ case (a, b) if a == name => b }).
       getOrElse(error("Bad platform settings variable: " + quote(name)))

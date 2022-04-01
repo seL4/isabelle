@@ -7,8 +7,7 @@ Build Isabelle documentation.
 package isabelle
 
 
-object Build_Doc
-{
+object Build_Doc {
   /* build_doc */
 
   def build_doc(
@@ -17,8 +16,8 @@ object Build_Doc
     all_docs: Boolean = false,
     max_jobs: Int = 1,
     sequential: Boolean = false,
-    docs: List[String] = Nil): Unit =
-  {
+    docs: List[String] = Nil
+  ): Unit = {
     val store = Sessions.store(options)
 
     val sessions_structure = Sessions.load_structure(options)
@@ -74,8 +73,7 @@ object Build_Doc
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("build_doc", "build Isabelle documentation", Scala_Project.here, args =>
-    {
+    Isabelle_Tool("build_doc", "build Isabelle documentation", Scala_Project.here, args => {
       var all_docs = false
       var max_jobs = 1
       var sequential = false

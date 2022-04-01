@@ -7,24 +7,20 @@ Miscellaneous Isabelle server commands.
 package isabelle
 
 
-object Server_Commands
-{
+object Server_Commands {
   def default_preferences: String = Options.read_prefs()
 
-  object Help extends Server.Command("help")
-  {
+  object Help extends Server.Command("help") {
     override val command_body: Server.Command_Body =
       { case (context, ()) => context.command_list }
   }
 
-  object Echo extends Server.Command("echo")
-  {
+  object Echo extends Server.Command("echo") {
     override val command_body: Server.Command_Body =
       { case (_, t) => t }
   }
 
-  object Cancel extends Server.Command("cancel")
-  {
+  object Cancel extends Server.Command("cancel") {
     sealed case class Args(task: UUID.T)
 
     def unapply(json: JSON.T): Option[Args] =
@@ -35,14 +31,12 @@ object Server_Commands
       { case (context, Cancel(args)) => context.cancel_task(args.task) }
   }
 
-  object Shutdown extends Server.Command("shutdown")
-  {
+  object Shutdown extends Server.Command("shutdown") {
     override val command_body: Server.Command_Body =
       { case (context, ()) => context.server.shutdown() }
   }
 
-  object Session_Build extends Server.Command("session_build")
-  {
+  object Session_Build extends Server.Command("session_build") {
     sealed case class Args(
       session: String,
       preferences: String = default_preferences,
@@ -65,9 +59,10 @@ object Server_Commands
           include_sessions = include_sessions, verbose = verbose)
       }
 
-    def command(args: Args, progress: Progress = new Progress)
-      : (JSON.Object.T, Build.Results, Options, Sessions.Base_Info) =
-    {
+    def command(
+      args: Args,
+      progress: Progress = new Progress
+    ) : (JSON.Object.T, Build.Results, Options, Sessions.Base_Info) = {
       val options = Options.init(prefs = args.preferences, opts = args.options)
       val dirs = args.dirs.map(Path.explode)
 
@@ -93,16 +88,15 @@ object Server_Commands
           "ok" -> results.ok,
           "return_code" -> results.rc,
           "sessions" ->
-            results.sessions.toList.sortBy(sessions_order).map(session =>
-              {
-                val result = results(session)
-                JSON.Object(
-                  "session" -> session,
-                  "ok" -> result.ok,
-                  "return_code" -> result.rc,
-                  "timeout" -> result.timeout,
-                  "timing" -> result.timing.json)
-              }))
+            results.sessions.toList.sortBy(sessions_order).map(session => {
+              val result = results(session)
+              JSON.Object(
+                "session" -> session,
+                "ok" -> result.ok,
+                "return_code" -> result.rc,
+                "timeout" -> result.timeout,
+                "timing" -> result.timing.json)
+            }))
 
       if (results.ok) (results_json, results, options, base_info)
       else {
@@ -116,8 +110,7 @@ object Server_Commands
         context.make_task(task => Session_Build.command(args, progress = task.progress)._1) }
   }
 
-  object Session_Start extends Server.Command("session_start")
-  {
+  object Session_Start extends Server.Command("session_start") {
     sealed case class Args(
       build: Session_Build.Args,
       print_mode: List[String] = Nil)
@@ -129,9 +122,11 @@ object Server_Commands
       }
       yield Args(build = build, print_mode = print_mode)
 
-    def command(args: Args, progress: Progress = new Progress, log: Logger = No_Logger)
-      : (JSON.Object.T, (UUID.T, Headless.Session)) =
-    {
+    def command(
+      args: Args,
+      progress: Progress = new Progress,
+      log: Logger = No_Logger
+    ) : (JSON.Object.T, (UUID.T, Headless.Session)) = {
       val (_, _, options, base_info) =
         try { Session_Build.command(args.build, progress = progress) }
         catch { case exn: Server.Error => error(exn.message) }
@@ -152,8 +147,7 @@ object Server_Commands
 
     override val command_body: Server.Command_Body =
       { case (context, Session_Start(args)) =>
-          context.make_task(task =>
-          {
+          context.make_task(task => {
             val (res, entry) =
               Session_Start.command(args, progress = task.progress, log = context.server.log)
             context.server.add_session(entry)
@@ -162,13 +156,11 @@ object Server_Commands
       }
   }
 
-  object Session_Stop extends Server.Command("session_stop")
-  {
+  object Session_Stop extends Server.Command("session_stop") {
     def unapply(json: JSON.T): Option[UUID.T] =
       JSON.uuid(json, "session_id")
 
-    def command(session: Headless.Session): (JSON.Object.T, Process_Result) =
-    {
+    def command(session: Headless.Session): (JSON.Object.T, Process_Result) = {
       val result = session.stop()
       val result_json = JSON.Object("ok" -> result.ok, "return_code" -> result.rc)
 
@@ -186,8 +178,7 @@ object Server_Commands
       }
   }
 
-  object Use_Theories extends Server.Command("use_theories")
-  {
+  object Use_Theories extends Server.Command("use_theories") {
     sealed case class Args(
       session_id: UUID.T,
       theories: List[String],
@@ -225,8 +216,8 @@ object Server_Commands
     def command(args: Args,
       session: Headless.Session,
       id: UUID.T = UUID.random(),
-      progress: Progress = new Progress): (JSON.Object.T, Headless.Use_Theories_Result) =
-    {
+      progress: Progress = new Progress
+    ): (JSON.Object.T, Headless.Use_Theories_Result) = {
       val result =
         session.use_theories(args.theories, master_dir = args.master_dir,
           check_delay = args.check_delay.getOrElse(session.default_check_delay),
@@ -240,8 +231,7 @@ object Server_Commands
       def output_text(text: String): String =
         Symbol.output(args.unicode_symbols, text)
 
-      def output_message(tree: XML.Tree, pos: Position.T): JSON.Object.T =
-      {
+      def output_message(tree: XML.Tree, pos: Position.T): JSON.Object.T = {
         val position = "pos" -> Position.JSON(pos)
         tree match {
           case XML.Text(msg) => Server.Reply.message(output_text(msg)) + position
@@ -287,16 +277,14 @@ object Server_Commands
 
     override val command_body: Server.Command_Body =
       { case (context, Use_Theories(args)) =>
-        context.make_task(task =>
-        {
+        context.make_task(task => {
           val session = context.server.the_session(args.session_id)
           Use_Theories.command(args, session, id = task.id, progress = task.progress)._1
         })
       }
   }
 
-  object Purge_Theories extends Server.Command("purge_theories")
-  {
+  object Purge_Theories extends Server.Command("purge_theories") {
     sealed case class Args(
       session_id: UUID.T,
       theories: List[String] = Nil,
@@ -312,9 +300,10 @@ object Server_Commands
       }
       yield { Args(session_id, theories = theories, master_dir = master_dir, all = all) }
 
-    def command(args: Args, session: Headless.Session)
-      : (JSON.Object.T, (List[Document.Node.Name], List[Document.Node.Name])) =
-    {
+    def command(
+      args: Args,
+      session: Headless.Session
+    ) : (JSON.Object.T, (List[Document.Node.Name], List[Document.Node.Name])) = {
       val (purged, retained) =
         session.purge_theories(
           theories = args.theories, master_dir = args.master_dir, all = args.all)

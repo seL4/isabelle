@@ -13,8 +13,8 @@ import java.io.{IOException, Writer, Reader, InputStreamReader, BufferedReader}
 class TTY_Loop(
   writer: Writer,
   reader: Reader,
-  writer_lock: AnyRef = new Object)
-{
+  writer_lock: AnyRef = new Object
+) {
   private val console_output = Future.thread[Unit]("console_output", uninterruptible = true) {
     try {
       val result = new StringBuilder(100)

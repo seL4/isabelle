@@ -11,8 +11,7 @@ See also:
 package isabelle
 
 
-object Build_JCEF
-{
+object Build_JCEF {
   /* platform information */
 
   sealed case class JCEF_Platform(
@@ -48,8 +47,8 @@ object Build_JCEF
     base_url: String = default_url,
     version: String = default_version,
     target_dir: Path = Path.current,
-    progress: Progress = new Progress): Unit =
-  {
+    progress: Progress = new Progress
+  ): Unit = {
     /* component name */
 
     val component = "jcef-" + version
@@ -61,8 +60,7 @@ object Build_JCEF
 
     val platform_settings: List[String] =
       for (platform <- platforms) yield {
-        Isabelle_System.with_tmp_file("archive", ext = "tar.gz")(archive_file =>
-        {
+        Isabelle_System.with_tmp_file("archive", ext = "tar.gz")(archive_file => {
           val url = base_url + "/" + version + "/" + platform.archive
           Isabelle_System.download_file(url, archive_file, progress = progress)
 
@@ -144,8 +142,7 @@ Examples invocations:
 
   val isabelle_tool =
     Isabelle_Tool("build_jcef", "build component for Java Chromium Embedded Framework",
-      Scala_Project.here, args =>
-    {
+      Scala_Project.here, args => {
       var target_dir = Path.current
       var base_url = default_url
       var version = default_version

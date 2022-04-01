@@ -9,8 +9,7 @@ package isabelle
 import scala.annotation.tailrec
 
 
-object Pretty
-{
+object Pretty {
   /* XML constructors */
 
   val space: XML.Body = List(XML.Text(Symbol.space))
@@ -36,14 +35,12 @@ object Pretty
 
   /* text metric -- standardized to width of space */
 
-  abstract class Metric
-  {
+  abstract class Metric {
     val unit: Double
     def apply(s: String): Double
   }
 
-  object Default_Metric extends Metric
-  {
+  object Default_Metric extends Metric {
     val unit = 1.0
     def apply(s: String): Double = s.length.toDouble
   }
@@ -57,22 +54,22 @@ object Pretty
   private case class Block(
     markup: Option[(Markup, Option[XML.Body])],
     consistent: Boolean, indent: Int, body: List[Tree], length: Double) extends Tree
-  private case class Break(force: Boolean, width: Int, indent: Int) extends Tree
-  { def length: Double = width.toDouble }
+  private case class Break(force: Boolean, width: Int, indent: Int) extends Tree {
+    def length: Double = width.toDouble
+  }
   private case class Str(string: String, length: Double) extends Tree
 
   private val FBreak = Break(true, 1, 0)
 
   private def make_block(
-      markup: Option[(Markup, Option[XML.Body])],
-      consistent: Boolean,
-      indent: Int,
-      body: List[Tree]): Tree =
-  {
+    markup: Option[(Markup, Option[XML.Body])],
+    consistent: Boolean,
+    indent: Int,
+    body: List[Tree]
+  ): Tree = {
     val indent1 = force_nat(indent)
 
-    @tailrec def body_length(prts: List[Tree], len: Double): Double =
-    {
+    @tailrec def body_length(prts: List[Tree], len: Double): Double = {
       val (line, rest) =
         Library.take_prefix[Tree]({ case Break(true, _, _) => false case _ => true }, prts)
       val len1 = (line.foldLeft(0.0) { case (l, t) => l + t.length }) max len
@@ -88,8 +85,7 @@ object Pretty
 
   /* formatted output */
 
-  private sealed case class Text(tx: XML.Body = Nil, pos: Double = 0.0, nl: Int = 0)
-  {
+  private sealed case class Text(tx: XML.Body = Nil, pos: Double = 0.0, nl: Int = 0) {
     def newline: Text = copy(tx = fbrk :: tx, pos = 0.0, nl = nl + 1)
     def string(s: String, len: Double): Text =
       copy(tx = if (s == "") tx else XML.Text(s) :: tx, pos = pos + len)
@@ -121,8 +117,8 @@ object Pretty
   def formatted(input: XML.Body,
     margin: Double = default_margin,
     breakgain: Double = default_breakgain,
-    metric: Metric = Default_Metric): XML.Body =
-  {
+    metric: Metric = Default_Metric
+  ): XML.Body = {
     val emergencypos = (margin / 2).round.toInt
 
     def make_tree(inp: XML.Body): List[Tree] =

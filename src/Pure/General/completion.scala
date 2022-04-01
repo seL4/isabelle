@@ -15,8 +15,7 @@ import scala.util.matching.Regex
 import scala.math.Ordering
 
 
-object Completion
-{
+object Completion {
   /** completion result **/
 
   sealed case class Item(
@@ -28,8 +27,7 @@ object Completion
     move: Int,
     immediate: Boolean)
 
-  object Result
-  {
+  object Result {
     def empty(range: Text.Range): Result = Result(range, "", false, Nil)
     def merge(history: History, results: Option[Result]*): Option[Result] =
       results.foldLeft(None: Option[Result]) {
@@ -56,12 +54,10 @@ object Completion
 
   private val COMPLETION_HISTORY = Path.explode("$ISABELLE_HOME_USER/etc/completion_history")
 
-  object History
-  {
+  object History {
     val empty: History = new History()
 
-    def load(): History =
-    {
+    def load(): History = {
       def ignore_error(msg: String): Unit =
         Output.warning("Ignoring bad content of file " + COMPLETION_HISTORY +
           (if (msg == "") "" else "\n" + msg))
@@ -82,16 +78,14 @@ object Completion
     }
   }
 
-  final class History private(rep: SortedMap[String, Int] = SortedMap.empty)
-  {
+  final class History private(rep: SortedMap[String, Int] = SortedMap.empty) {
     override def toString: String = rep.mkString("Completion.History(", ",", ")")
 
     def frequency(name: String): Int =
       default_frequency(Symbol.encode(name)) getOrElse
       rep.getOrElse(name, 0)
 
-    def + (entry: (String, Int)): History =
-    {
+    def + (entry: (String, Int)): History = {
       val (name, freq) = entry
       if (name == "") this
       else new History(rep + (name -> (frequency(name) + freq)))
@@ -103,8 +97,7 @@ object Completion
           frequency(item2.name) compare frequency(item1.name)
       }
 
-    def save(): Unit =
-    {
+    def save(): Unit = {
       Isabelle_System.make_directory(COMPLETION_HISTORY.dir)
       File.write_backup(COMPLETION_HISTORY,
         {
@@ -114,13 +107,11 @@ object Completion
     }
   }
 
-  class History_Variable
-  {
+  class History_Variable {
     private var history = History.empty
     def value: History = synchronized { history }
 
-    def load(): Unit =
-    {
+    def load(): Unit = {
       val h = History.load()
       synchronized { history = h }
     }
@@ -155,12 +146,9 @@ object Completion
   def report_theories(pos: Position.T, thys: List[String], total: Int = 0): String =
     report_names(pos, thys.map(name => (name, (Markup.THEORY, name))), total)
 
-  object Semantic
-  {
-    object Info
-    {
-      def apply(pos: Position.T, semantic: Semantic): XML.Elem =
-      {
+  object Semantic {
+    object Info {
+      def apply(pos: Position.T, semantic: Semantic): XML.Elem = {
         val elem =
           semantic match {
             case No_Completion => XML.Elem(Markup(Markup.NO_COMPLETION, pos), Nil)
@@ -178,8 +166,7 @@ object Completion
         info.info match {
           case XML.Elem(Markup(Markup.COMPLETION, _), body) =>
             try {
-              val (total, names) =
-              {
+              val (total, names) = {
                 import XML.Decode._
                 pair(int, list(pair(string, pair(string, string))))(body)
               }
@@ -195,14 +182,13 @@ object Completion
 
   sealed abstract class Semantic
   case object No_Completion extends Semantic
-  case class Names(total: Int, names: List[(String, (String, String))]) extends Semantic
-  {
+  case class Names(total: Int, names: List[(String, (String, String))]) extends Semantic {
     def complete(
       range: Text.Range,
       history: Completion.History,
       unicode: Boolean,
-      original: String): Option[Completion.Result] =
-    {
+      original: String
+    ): Option[Completion.Result] = {
       def decode(s: String): String = if (unicode) Symbol.decode(s) else s
       val items =
         for {
@@ -238,8 +224,7 @@ object Completion
 
   /* language context */
 
-  object Language_Context
-  {
+  object Language_Context {
     val outer = Language_Context("", true, false)
     val inner = Language_Context(Markup.Language.UNKNOWN, true, false)
     val ML_outer = Language_Context(Markup.Language.ML, false, true)
@@ -247,8 +232,7 @@ object Completion
     val SML_outer = Language_Context(Markup.Language.SML, false, false)
   }
 
-  sealed case class Language_Context(language: String, symbols: Boolean, antiquotes: Boolean)
-  {
+  sealed case class Language_Context(language: String, symbols: Boolean, antiquotes: Boolean) {
     def is_outer: Boolean = language == ""
   }
 
@@ -264,8 +248,7 @@ object Completion
 
   /* word parsers */
 
-  object Word_Parsers extends RegexParsers
-  {
+  object Word_Parsers extends RegexParsers {
     override val whiteSpace = "".r
 
     private val symboloid_regex: Regex = """\\([A-Za-z0-9_']+|<\^?[A-Za-z0-9_']+>?)""".r
@@ -282,8 +265,7 @@ object Completion
     def is_word(s: CharSequence): Boolean = word_regex.pattern.matcher(s).matches
     def is_word_char(c: Char): Boolean = Symbol.is_ascii_letdig(c) || c == '.'
 
-    def read_symbol(in: CharSequence): Option[String] =
-    {
+    def read_symbol(in: CharSequence): Option[String] = {
       val reverse_in = new Library.Reverse(in)
       parse(reverse_symbol ^^ (_.reverse), reverse_in) match {
         case Success(result, _) => Some(result)
@@ -291,8 +273,7 @@ object Completion
       }
     }
 
-    def read_word(in: CharSequence): Option[(String, String)] =
-    {
+    def read_word(in: CharSequence): Option[(String, String)] = {
       val reverse_in = new Library.Reverse(in)
       val parser =
         (reverse_symbol | reverse_symb | reverse_escape) ^^ (x => (x.reverse, "")) |
@@ -343,8 +324,8 @@ final class Completion private(
   words_lex: Scan.Lexicon = Scan.Lexicon.empty,
   words_map: Multi_Map[String, String] = Multi_Map.empty,
   abbrevs_lex: Scan.Lexicon = Scan.Lexicon.empty,
-  abbrevs_map: Multi_Map[String, (String, String)] = Multi_Map.empty)
-{
+  abbrevs_map: Multi_Map[String, (String, String)] = Multi_Map.empty
+) {
   /* keywords */
 
   private def is_symbol(name: String): Boolean = Symbol.symbols.defined(name)
@@ -355,8 +336,7 @@ final class Completion private(
   def add_keyword(keyword: String): Completion =
     new Completion(keywords + keyword, words_lex, words_map, abbrevs_lex, abbrevs_map)
 
-  def add_keywords(names: List[String]): Completion =
-  {
+  def add_keywords(names: List[String]): Completion = {
     val keywords1 = names.foldLeft(keywords) { case (ks, k) => if (ks(k)) ks else ks + k }
     if (keywords eq keywords1) this
     else new Completion(keywords1, words_lex, words_map, abbrevs_lex, abbrevs_map)
@@ -365,11 +345,9 @@ final class Completion private(
 
   /* symbols and abbrevs */
 
-  def add_symbols: Completion =
-  {
+  def add_symbols: Completion = {
     val words =
-      Symbol.symbols.entries.flatMap(entry =>
-      {
+      Symbol.symbols.entries.flatMap(entry => {
         val sym = entry.symbol
         val word = "\\" + entry.name
         val seps =
@@ -423,12 +401,11 @@ final class Completion private(
     start: Text.Offset,
     text: CharSequence,
     caret: Int,
-    language_context: Completion.Language_Context): Option[Completion.Result] =
-  {
+    language_context: Completion.Language_Context
+  ): Option[Completion.Result] = {
     val length = text.length
 
-    val abbrevs_result =
-    {
+    val abbrevs_result = {
       val reverse_in = new Library.Reverse(text.subSequence(0, caret))
       Scan.Parsers.parse(Scan.Parsers.literal(abbrevs_lex), reverse_in) match {
         case Scan.Parsers.Success(reverse_abbr, _) =>

@@ -9,14 +9,12 @@ NB: ML ticks forwards, JVM ticks backwards.
 package isabelle
 
 
-object Counter
-{
+object Counter {
   type ID = Long
   def make(): Counter = new Counter
 }
 
-final class Counter private
-{
+final class Counter private {
   private var count: Counter.ID = 0
 
   def apply(): Counter.ID = synchronized {

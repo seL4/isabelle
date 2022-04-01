@@ -16,25 +16,21 @@ import javax.swing.{JComponent, JPanel, JScrollPane}
 import scala.swing.{Panel, FlowPanel, Component, SequentialContainer, ScrollPane}
 
 
-object Wrap_Panel
-{
+object Wrap_Panel {
   val Alignment = FlowPanel.Alignment
 
   class Layout(align: Int = FlowLayout.CENTER, hgap: Int = 5, vgap: Int = 5)
-    extends FlowLayout(align: Int, hgap: Int, vgap: Int)
-  {
+      extends FlowLayout(align: Int, hgap: Int, vgap: Int) {
     override def preferredLayoutSize(target: Container): Dimension =
       layout_size(target, true)
 
-    override def minimumLayoutSize(target: Container): Dimension =
-    {
+    override def minimumLayoutSize(target: Container): Dimension = {
       val minimum = layout_size(target, false)
       minimum.width -= (getHgap + 1)
       minimum
     }
 
-    private def layout_size(target: Container, preferred: Boolean): Dimension =
-    {
+    private def layout_size(target: Container, preferred: Boolean): Dimension = {
       target.getTreeLock.synchronized {
         val target_width =
           if (target.getSize.width == 0) Integer.MAX_VALUE
@@ -52,8 +48,7 @@ object Wrap_Panel
         val dim = new Dimension(0, 0)
         var row_width = 0
         var row_height = 0
-        def add_row(): Unit =
-        {
+        def add_row(): Unit = {
           dim.width = dim.width max row_width
           if (dim.height > 0) dim.height += vgap
           dim.height += row_height
@@ -64,8 +59,7 @@ object Wrap_Panel
           m = target.getComponent(i)
           if m.isVisible
           d = if (preferred) m.getPreferredSize else m.getMinimumSize()
-        }
-        {
+        } {
           if (row_width + d.width > max_width) {
             add_row()
             row_width = 0
@@ -105,10 +99,10 @@ object Wrap_Panel
     new Wrap_Panel(contents, alignment)
 }
 
-class Wrap_Panel(contents0: List[Component] = Nil,
-    alignment: Wrap_Panel.Alignment.Value = Wrap_Panel.Alignment.Right)
-  extends Panel with SequentialContainer.Wrapper
-{
+class Wrap_Panel(
+  contents0: List[Component] = Nil,
+  alignment: Wrap_Panel.Alignment.Value = Wrap_Panel.Alignment.Right)
+extends Panel with SequentialContainer.Wrapper {
   override lazy val peer: JPanel =
     new JPanel(new Wrap_Panel.Layout(alignment.id)) with SuperMixin
 

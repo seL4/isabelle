@@ -7,20 +7,16 @@ Create variants of the Isabelle logo (PDF).
 package isabelle
 
 
-object Logo
-{
+object Logo {
   /* create logo */
 
-  def make_output_file(logo_name: String): Path =
-  {
+  def make_output_file(logo_name: String): Path = {
     val name = if (logo_name.isEmpty) "isabelle" else "isabelle_" + Word.lowercase(logo_name)
     Path.explode(name).pdf
   }
 
-  def create_logo(logo_name: String, output_file: Path, quiet: Boolean = false): Unit =
-  {
-    Isabelle_System.with_tmp_file("logo", ext = "eps")(tmp_file =>
-    {
+  def create_logo(logo_name: String, output_file: Path, quiet: Boolean = false): Unit = {
+    Isabelle_System.with_tmp_file("logo", ext = "eps")(tmp_file => {
       val template = File.read(Path.explode("$ISABELLE_HOME/lib/logo/isabelle_any.eps"))
       File.write(tmp_file, template.replace("<any>", logo_name))
 
@@ -35,8 +31,8 @@ object Logo
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("logo", "create variants of the Isabelle logo (PDF)", Scala_Project.here, args =>
-    {
+    Isabelle_Tool("logo", "create variants of the Isabelle logo (PDF)", Scala_Project.here,
+      args => {
       var output: Option[Path] = None
       var quiet = false
 

@@ -11,24 +11,24 @@ import scala.collection.mutable
 import scala.annotation.tailrec
 
 
-object Thy_Syntax
-{
+object Thy_Syntax {
   /** perspective **/
 
   def command_perspective(
-      node: Document.Node,
-      perspective: Text.Perspective,
-      overlays: Document.Node.Overlays): (Command.Perspective, Command.Perspective) =
-  {
+    node: Document.Node,
+    perspective: Text.Perspective,
+    overlays: Document.Node.Overlays
+  ): (Command.Perspective, Command.Perspective) = {
     if (perspective.is_empty && overlays.is_empty)
       (Command.Perspective.empty, Command.Perspective.empty)
     else {
       val has_overlay = overlays.commands
       val visible = new mutable.ListBuffer[Command]
       val visible_overlay = new mutable.ListBuffer[Command]
-      @tailrec
-      def check_ranges(ranges: List[Text.Range], commands: LazyList[(Command, Text.Offset)]): Unit =
-      {
+      @tailrec def check_ranges(
+        ranges: List[Text.Range],
+        commands: LazyList[(Command, Text.Offset)]
+      ): Unit = {
         (ranges, commands) match {
           case (range :: more_ranges, (command, offset) #:: more_commands) =>
             val command_range = command.range + offset
@@ -68,9 +68,8 @@ object Thy_Syntax
   private def header_edits(
     resources: Resources,
     previous: Document.Version,
-    edits: List[Document.Edit_Text]):
-    (List[Document.Node.Name], Document.Nodes, List[Document.Edit_Command]) =
-  {
+    edits: List[Document.Edit_Text]
+  ): (List[Document.Node.Name], Document.Nodes, List[Document.Edit_Command]) = {
     val syntax_changed0 = new mutable.ListBuffer[Document.Node.Name]
     var nodes = previous.nodes
     val doc_edits = new mutable.ListBuffer[Document.Edit_Command]
@@ -119,8 +118,10 @@ object Thy_Syntax
 
   /* edit individual command source */
 
-  @tailrec def edit_text(eds: List[Text.Edit], commands: Linear_Set[Command]): Linear_Set[Command] =
-  {
+  @tailrec def edit_text(
+    eds: List[Text.Edit],
+    commands: Linear_Set[Command]
+  ): Linear_Set[Command] = {
     eds match {
       case e :: es =>
         def insert_text(cmd: Option[Command], text: String): Linear_Set[Command] =
@@ -151,10 +152,9 @@ object Thy_Syntax
   /* reparse range of command spans */
 
   @tailrec private def chop_common(
-      cmds: List[Command],
-      blobs_spans: List[(Command.Blobs_Info, Command_Span.Span)])
-    : (List[Command], List[(Command.Blobs_Info, Command_Span.Span)]) =
-  {
+    cmds: List[Command],
+    blobs_spans: List[(Command.Blobs_Info, Command_Span.Span)]
+  ) : (List[Command], List[(Command.Blobs_Info, Command_Span.Span)]) = {
     (cmds, blobs_spans) match {
       case (cmd :: cmds, (blobs_info, span) :: rest)
       if cmd.blobs_info == blobs_info && cmd.span == span => chop_common(cmds, rest)
@@ -169,8 +169,8 @@ object Thy_Syntax
     can_import: Document.Node.Name => Boolean,
     node_name: Document.Node.Name,
     commands: Linear_Set[Command],
-    first: Command, last: Command): Linear_Set[Command] =
-  {
+    first: Command, last: Command
+  ): Linear_Set[Command] = {
     val cmds0 = commands.iterator(first, last).toList
     val blobs_spans0 =
       syntax.parse_spans(cmds0.iterator.map(_.source).mkString).map(span =>
@@ -198,9 +198,10 @@ object Thy_Syntax
 
   /* main */
 
-  def diff_commands(old_cmds: Linear_Set[Command], new_cmds: Linear_Set[Command])
-    : List[Command.Edit] =
-  {
+  def diff_commands(
+    old_cmds: Linear_Set[Command],
+    new_cmds: Linear_Set[Command]
+  ) : List[Command.Edit] = {
     val removed = old_cmds.iterator.filter(!new_cmds.contains(_)).toList
     val inserted = new_cmds.iterator.filter(!old_cmds.contains(_)).toList
 
@@ -214,15 +215,15 @@ object Thy_Syntax
     get_blob: Document.Node.Name => Option[Document.Blob],
     can_import: Document.Node.Name => Boolean,
     reparse_limit: Int,
-    node: Document.Node, edit: Document.Edit_Text): Document.Node =
-  {
+    node: Document.Node, edit: Document.Edit_Text
+  ): Document.Node = {
     /* recover command spans after edits */
     // FIXME somewhat slow
     def recover_spans(
       name: Document.Node.Name,
       perspective: Command.Perspective,
-      commands: Linear_Set[Command]): Linear_Set[Command] =
-    {
+      commands: Linear_Set[Command]
+    ): Linear_Set[Command] = {
       val is_visible = perspective.commands.toSet
 
       def next_invisible(cmds: Linear_Set[Command], from: Command): Command =
@@ -291,13 +292,13 @@ object Thy_Syntax
   }
 
   def parse_change(
-      resources: Resources,
-      reparse_limit: Int,
-      previous: Document.Version,
-      doc_blobs: Document.Blobs,
-      edits: List[Document.Edit_Text],
-      consolidate: List[Document.Node.Name]): Session.Change =
-  {
+    resources: Resources,
+    reparse_limit: Int,
+    previous: Document.Version,
+    doc_blobs: Document.Blobs,
+    edits: List[Document.Edit_Text],
+    consolidate: List[Document.Node.Name]
+  ): Session.Change = {
     val (syntax_changed, nodes0, doc_edits0) = header_edits(resources, previous, edits)
 
     def get_blob(name: Document.Node.Name): Option[Document.Blob] =

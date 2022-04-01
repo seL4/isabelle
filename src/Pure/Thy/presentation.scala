@@ -12,16 +12,14 @@ import scala.collection.immutable.SortedMap
 import scala.collection.mutable
 
 
-object Presentation
-{
+object Presentation {
   /** HTML documents **/
 
   /* HTML context */
 
   sealed case class HTML_Document(title: String, content: String)
 
-  abstract class HTML_Context
-  {
+  abstract class HTML_Context {
     /* directory structure and resources */
 
     def root_dir: Path
@@ -47,17 +45,18 @@ object Presentation
 
     def source(body: XML.Body): XML.Tree = HTML.pre("source", body)
 
-    def contents(heading: String, items: List[XML.Body], css_class: String = "contents")
-      : List[XML.Elem] =
-    {
+    def contents(
+      heading: String,
+      items: List[XML.Body],
+      css_class: String = "contents"
+    ) : List[XML.Elem] = {
       if (items.isEmpty) Nil
       else List(HTML.div(css_class, List(HTML.section(heading), HTML.itemize(items))))
     }
 
     val isabelle_css: String = File.read(HTML.isabelle_css)
 
-    def html_document(title: String, body: XML.Body, fonts_css: String): HTML_Document =
-    {
+    def html_document(title: String, body: XML.Body, fonts_css: String): HTML_Document = {
       val content =
         HTML.output_document(
           List(
@@ -93,8 +92,7 @@ object Presentation
 
   type Entity = Export_Theory.Entity[Export_Theory.No_Content]
 
-  object Entity_Context
-  {
+  object Entity_Context {
     sealed case class Theory_Export(
       entity_by_range: Map[Symbol.Range, List[Export_Theory.Entity[Export_Theory.No_Content]]],
       entity_by_kind_name: Map[(String, String), Export_Theory.Entity[Export_Theory.No_Content]],
@@ -102,8 +100,7 @@ object Presentation
 
     val no_theory_export: Theory_Export = Theory_Export(Map.empty, Map.empty, Nil)
 
-    object Theory_Ref
-    {
+    object Theory_Ref {
       def unapply(props: Properties.T): Option[Document.Node.Name] =
         (props, props, props) match {
           case (Markup.Kind(Markup.THEORY), Markup.Name(theory), Position.Def_File(thy_file)) =>
@@ -112,8 +109,7 @@ object Presentation
         }
     }
 
-    object Entity_Ref
-    {
+    object Entity_Ref {
       def unapply(props: Properties.T): Option[(Path, Option[String], String, String)] =
         (props, props, props, props) match {
           case (Markup.Entity.Ref.Prop(_), Position.Def_File(def_file),
@@ -134,8 +130,7 @@ object Presentation
       new Entity_Context {
         private val seen_ranges: mutable.Set[Symbol.Range] = mutable.Set.empty
 
-        override def make_def(range: Symbol.Range, body: XML.Body): Option[XML.Elem] =
-        {
+        override def make_def(range: Symbol.Range, body: XML.Body): Option[XML.Elem] = {
           body match {
             case List(XML.Elem(Markup("span", List("id" -> _)), _)) => None
             case _ =>
@@ -159,8 +154,7 @@ object Presentation
         private def offset_id(range: Text.Range): String =
           "offset_" + range.start + ".." + range.stop
 
-        private def physical_ref(thy_name: String, props: Properties.T): Option[String] =
-        {
+        private def physical_ref(thy_name: String, props: Properties.T): Option[String] = {
           for {
             range <- Position.Def_Range.unapply(props)
             if thy_name == node.theory
@@ -176,8 +170,7 @@ object Presentation
             entity <- thy.entity_by_kind_name.get((kind, name))
           } yield entity.kname
 
-        override def make_ref(props: Properties.T, body: XML.Body): Option[XML.Elem] =
-        {
+        override def make_ref(props: Properties.T, body: XML.Body): Option[XML.Elem] = {
           props match {
             case Theory_Ref(node_name) =>
               node_relative(deps, session, node_name).map(html_dir =>
@@ -200,8 +193,7 @@ object Presentation
       }
   }
 
-  class Entity_Context
-  {
+  class Entity_Context {
     def make_def(range: Symbol.Range, body: XML.Body): Option[XML.Elem] = None
     def make_ref(props: Properties.T, body: XML.Body): Option[XML.Elem] = None
   }
@@ -216,8 +208,8 @@ object Presentation
   def make_html(
     entity_context: Entity_Context,
     elements: Elements,
-    xml: XML.Body): XML.Body =
-  {
+    xml: XML.Body
+  ): XML.Body = {
     def html_div(html: XML.Body): Boolean =
       html exists {
         case XML.Elem(markup, body) => div_elements.contains(markup.name) || html_div(body)
@@ -297,8 +289,8 @@ object Presentation
     html_context: HTML_Context,
     elements: Elements,
     plain_text: Boolean = false,
-    fonts_css: String = HTML.fonts_css()): HTML_Document =
-  {
+    fonts_css: String = HTML.fonts_css()
+  ): HTML_Document = {
     require(!snapshot.is_outdated, "document snapshot outdated")
 
     val name = snapshot.node_name
@@ -325,8 +317,7 @@ object Presentation
 
   /* presentation context */
 
-  object Context
-  {
+  object Context {
     val none: Context = new Context { def enabled: Boolean = false }
     val standard: Context = new Context { def enabled: Boolean = true }
 
@@ -340,8 +331,7 @@ object Presentation
       if (s == ":") standard else dir(Path.explode(s))
   }
 
-  abstract class Context private
-  {
+  abstract class Context private {
     def enabled: Boolean
     def enabled(info: Sessions.Info): Boolean = enabled || info.browser_info
     def dir(store: Sessions.Store): Path = store.presentation_dir
@@ -354,8 +344,7 @@ object Presentation
 
   private val sessions_path = Path.basic(".sessions")
 
-  private def read_sessions(dir: Path): List[(String, String)] =
-  {
+  private def read_sessions(dir: Path): List[(String, String)] = {
     val path = dir + sessions_path
     if (path.is_file) {
       import XML.Decode._
@@ -365,8 +354,10 @@ object Presentation
   }
 
   def update_chapter(
-    presentation_dir: Path, chapter: String, new_sessions: List[(String, String)]): Unit =
-  {
+    presentation_dir: Path,
+    chapter: String,
+    new_sessions: List[(String, String)]
+  ): Unit = {
     val dir = Isabelle_System.make_directory(presentation_dir + Path.basic(chapter))
 
     val sessions0 =
@@ -396,8 +387,7 @@ object Presentation
       base = Some(presentation_dir))
   }
 
-  def update_root(presentation_dir: Path): Unit =
-  {
+  def update_root(presentation_dir: Path): Unit = {
     Isabelle_System.make_directory(presentation_dir)
     HTML.init_fonts(presentation_dir)
     Isabelle_System.copy_file(Path.explode("~~/lib/logo/isabelle.gif"),
@@ -446,8 +436,11 @@ object Presentation
   private def node_file(name: Document.Node.Name): String =
     if (name.node.endsWith(".thy")) html_name(name) else files_path(name.path)
 
-  private def session_relative(deps: Sessions.Deps, session0: String, session1: String): Option[String] =
-  {
+  private def session_relative(
+    deps: Sessions.Deps,
+    session0: String,
+    session1: String
+  ): Option[String] = {
     for {
       info0 <- deps.sessions_structure.get(session0)
       info1 <- deps.sessions_structure.get(session1)
@@ -457,15 +450,19 @@ object Presentation
   def node_relative(
     deps: Sessions.Deps,
     session0: String,
-    node_name: Document.Node.Name): Option[String] =
-  {
+    node_name: Document.Node.Name
+  ): Option[String] = {
     val session1 = deps(session0).theory_qualifier(node_name)
     session_relative(deps, session0, session1)
   }
 
-  def theory_link(deps: Sessions.Deps, session0: String,
-    name: Document.Node.Name, body: XML.Body, anchor: Option[String] = None): Option[XML.Tree] =
-  {
+  def theory_link(
+    deps: Sessions.Deps,
+    session0: String,
+    name: Document.Node.Name,
+    body: XML.Body,
+    anchor: Option[String] = None
+  ): Option[XML.Tree] = {
     val session1 = deps(session0).theory_qualifier(name)
     val info0 = deps.sessions_structure.get(session0)
     val info1 = deps.sessions_structure.get(session1)
@@ -479,8 +476,8 @@ object Presentation
   def read_exports(
     sessions: List[String],
     deps: Sessions.Deps,
-    db_context: Sessions.Database_Context): Map[String, Entity_Context.Theory_Export] =
-  {
+    db_context: Sessions.Database_Context
+  ): Map[String, Entity_Context.Theory_Export] = {
     type Batch = (String, List[String])
     val batches =
       sessions.foldLeft((Set.empty[String], List.empty[Batch]))(
@@ -517,8 +514,8 @@ object Presentation
     progress: Progress = new Progress,
     verbose: Boolean = false,
     html_context: HTML_Context,
-    session_elements: Elements): Unit =
-  {
+    session_elements: Elements
+  ): Unit = {
     val info = deps.sessions_structure(session)
     val options = info.options
     val base = deps(session)
@@ -543,8 +540,7 @@ object Presentation
         doc
       }
 
-    val view_links =
-    {
+    val view_links = {
       val deps_link =
         HTML.link(session_graph_path, HTML.text("theory dependencies"))
 
@@ -568,24 +564,23 @@ object Presentation
 
 
     sealed case class Seen_File(
-      src_path: Path, thy_name: Document.Node.Name, thy_session: String)
-    {
+      src_path: Path,
+      thy_name: Document.Node.Name,
+      thy_session: String
+    ) {
       val files_path: Path = html_context.files_path(thy_name, src_path)
 
-      def check(src_path1: Path, thy_name1: Document.Node.Name, thy_session1: String): Boolean =
-      {
+      def check(src_path1: Path, thy_name1: Document.Node.Name, thy_session1: String): Boolean = {
         val files_path1 = html_context.files_path(thy_name1, src_path1)
         (src_path == src_path1 || files_path == files_path1) && thy_session == thy_session1
       }
     }
     var seen_files = List.empty[Seen_File]
 
-    def present_theory(name: Document.Node.Name): Option[XML.Body] =
-    {
+    def present_theory(name: Document.Node.Name): Option[XML.Body] = {
       progress.expose_interrupt()
 
-      Build_Job.read_theory(db_context, hierarchy, name.theory).flatMap(command =>
-      {
+      Build_Job.read_theory(db_context, hierarchy, name.theory).flatMap(command => {
         if (verbose) progress.echo("Presenting theory " + name)
         val snapshot = Document.State.init.snippet(command)
 

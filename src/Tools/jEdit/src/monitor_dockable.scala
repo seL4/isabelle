@@ -21,15 +21,13 @@ import org.jfree.data.xy.XYSeriesCollection
 import org.gjt.sp.jedit.View
 
 
-class Monitor_Dockable(view: View, position: String) extends Dockable(view, position)
-{
+class Monitor_Dockable(view: View, position: String) extends Dockable(view, position) {
   /* chart data -- owned by GUI thread */
 
   private var statistics = Queue.empty[Properties.T]
   private var statistics_length = 0
 
-  private def add_statistics(stats: Properties.T): Unit =
-  {
+  private def add_statistics(stats: Properties.T): Unit = {
     statistics = statistics.enqueue(stats)
     statistics_length += 1
     limit_data.text match {
@@ -41,8 +39,7 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
       case _ =>
     }
   }
-  private def clear_statistics(): Unit =
-  {
+  private def clear_statistics(): Unit = {
     statistics = Queue.empty
     statistics_length = 0
   }
@@ -51,8 +48,7 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
   private val chart = ML_Statistics.empty.chart(null, Nil)
   private val data = chart.getXYPlot.getDataset.asInstanceOf[XYSeriesCollection]
 
-  private def update_chart(): Unit =
-  {
+  private def update_chart(): Unit = {
     ML_Statistics.all_fields.find(_._1 == data_name) match {
       case None =>
       case Some((_, fields)) => ML_Statistics(statistics.toList).update_data(data, fields)
@@ -68,8 +64,7 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
 
   /* controls */
 
-  private val select_data = new ComboBox[String](ML_Statistics.all_fields.map(_._1))
-  {
+  private val select_data = new ComboBox[String](ML_Statistics.all_fields.map(_._1)) {
     tooltip = "Select visualized data collection"
     listenTo(selection)
     reactions += {
@@ -132,13 +127,11 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
         update_delay.invoke()
     }
 
-  override def init(): Unit =
-  {
+  override def init(): Unit = {
     PIDE.session.runtime_statistics += main
   }
 
-  override def exit(): Unit =
-  {
+  override def exit(): Unit = {
     PIDE.session.runtime_statistics -= main
   }
 }

@@ -13,8 +13,7 @@ See also:
 package isabelle
 
 
-object Build_PDFjs
-{
+object Build_PDFjs {
   /* build pdfjs component */
 
   val default_url = "https://github.com/mozilla/pdf.js/releases/download"
@@ -24,8 +23,8 @@ object Build_PDFjs
     base_url: String = default_url,
     version: String = default_version,
     target_dir: Path = Path.current,
-    progress: Progress = new Progress): Unit =
-  {
+    progress: Progress = new Progress
+  ): Unit = {
     Isabelle_System.require_command("unzip", test = "-h")
 
 
@@ -39,8 +38,7 @@ object Build_PDFjs
     /* download */
 
     val download_url = base_url + "/v" + version
-    Isabelle_System.with_tmp_file("archive", ext = "zip")(archive_file =>
-    {
+    Isabelle_System.with_tmp_file("archive", ext = "zip")(archive_file => {
       Isabelle_System.download_file(download_url + "/pdfjs-" + version + "-dist.zip",
         archive_file, progress = progress)
       Isabelle_System.bash("unzip -x " + File.bash_path(archive_file),
@@ -74,8 +72,7 @@ ISABELLE_PDFJS_HOME="$COMPONENT"
 
   val isabelle_tool =
     Isabelle_Tool("build_pdfjs", "build component for Mozilla PDF.js",
-      Scala_Project.here, args =>
-    {
+      Scala_Project.here, args => {
       var target_dir = Path.current
       var base_url = default_url
       var version = default_version

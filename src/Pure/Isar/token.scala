@@ -11,12 +11,10 @@ import scala.collection.mutable
 import scala.util.parsing.input
 
 
-object Token
-{
+object Token {
   /* tokens */
 
-  object Kind extends Enumeration
-  {
+  object Kind extends Enumeration {
     /*immediate source*/
     val COMMAND = Value("command")
     val KEYWORD = Value("keyword")
@@ -46,10 +44,8 @@ object Token
 
   object Parsers extends Parsers
 
-  trait Parsers extends Scan.Parsers with Comment.Parsers
-  {
-    private def delimited_token: Parser[Token] =
-    {
+  trait Parsers extends Scan.Parsers with Comment.Parsers {
+    private def delimited_token: Parser[Token] = {
       val string = quoted("\"") ^^ (x => Token(Token.Kind.STRING, x))
       val alt_string = quoted("`") ^^ (x => Token(Token.Kind.ALT_STRING, x))
       val cmt = comment ^^ (x => Token(Token.Kind.INFORMAL_COMMENT, x))
@@ -60,8 +56,7 @@ object Token
       string | (alt_string | (cmt | (formal_cmt | (cart | ctrl))))
     }
 
-    private def other_token(keywords: Keyword.Keywords): Parser[Token] =
-    {
+    private def other_token(keywords: Keyword.Keywords): Parser[Token] = {
       val letdigs1 = many1(Symbol.is_letdig)
       val sub = one(s => s == Symbol.sub_decoded || s == Symbol.sub)
       val id =
@@ -109,9 +104,10 @@ object Token
     def token(keywords: Keyword.Keywords): Parser[Token] =
       delimited_token | other_token(keywords)
 
-    def token_line(keywords: Keyword.Keywords, ctxt: Scan.Line_Context)
-      : Parser[(Token, Scan.Line_Context)] =
-    {
+    def token_line(
+      keywords: Keyword.Keywords,
+      ctxt: Scan.Line_Context
+    ) : Parser[(Token, Scan.Line_Context)] = {
       val string =
         quoted_line("\"", ctxt) ^^ { case (x, c) => (Token(Token.Kind.STRING, x), c) }
       val alt_string =
@@ -135,9 +131,11 @@ object Token
       case _ => error("Unexpected failure of tokenizing input:\n" + inp.toString)
     }
 
-  def explode_line(keywords: Keyword.Keywords, inp: CharSequence, context: Scan.Line_Context)
-    : (List[Token], Scan.Line_Context) =
-  {
+  def explode_line(
+    keywords: Keyword.Keywords,
+    inp: CharSequence,
+    context: Scan.Line_Context
+  ) : (List[Token], Scan.Line_Context) = {
     var in: input.Reader[Char] = Scan.char_reader(inp)
     val toks = new mutable.ListBuffer[Token]
     var ctxt = context
@@ -197,8 +195,7 @@ object Token
 
   /* token reader */
 
-  object Pos
-  {
+  object Pos {
     val none: Pos = new Pos(0, 0, "", "")
     val start: Pos = new Pos(1, 1, "", "")
     def file(file: String): Pos = new Pos(1, 1, file, "")
@@ -211,14 +208,12 @@ object Token
       val offset: Symbol.Offset,
       val file: String,
       val id: String)
-    extends input.Position
-  {
+  extends input.Position {
     def column = 0
     def lineContents = ""
 
     def advance(token: Token): Pos = advance(token.source)
-    def advance(source: String): Pos =
-    {
+    def advance(source: String): Pos = {
       var line1 = line
       var offset1 = offset
       for (s <- Symbol.iterator(source)) {
@@ -245,8 +240,7 @@ object Token
 
   abstract class Reader extends input.Reader[Token]
 
-  private class Token_Reader(tokens: List[Token], val pos: Pos) extends Reader
-  {
+  private class Token_Reader(tokens: List[Token], val pos: Pos) extends Reader {
     def first: Token = tokens.head
     def rest: Token_Reader = new Token_Reader(tokens.tail, pos.advance(first))
     def atEnd: Boolean = tokens.isEmpty
@@ -257,8 +251,7 @@ object Token
 }
 
 
-sealed case class Token(kind: Token.Kind.Value, source: String)
-{
+sealed case class Token(kind: Token.Kind.Value, source: String) {
   def is_command: Boolean = kind == Token.Kind.COMMAND
   def is_command(name: String): Boolean = kind == Token.Kind.COMMAND && source == name
   def is_keyword: Boolean = kind == Token.Kind.KEYWORD
@@ -318,8 +311,7 @@ sealed case class Token(kind: Token.Kind.Value, source: String)
     else if (kind == Token.Kind.FORMAL_COMMENT) Comment.content(source)
     else source
 
-  def is_system_name: Boolean =
-  {
+  def is_system_name: Boolean = {
     val s = content
     is_name && Path.is_wellformed(s) &&
       !s.exists(Symbol.is_ascii_blank) &&

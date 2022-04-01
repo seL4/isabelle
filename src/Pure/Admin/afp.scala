@@ -11,8 +11,7 @@ import java.time.LocalDate
 import scala.collection.immutable.SortedMap
 
 
-object AFP
-{
+object AFP {
   val groups: Map[String, String] =
     Map("large" -> "full 64-bit memory model or word arithmetic required",
       "slow" -> "CPU time much higher than 60min (on mid-range hardware)",
@@ -30,16 +29,14 @@ object AFP
 
   /* entries */
 
-  def parse_date(s: String): Date =
-  {
+  def parse_date(s: String): Date = {
     val t = Date.Formatter.pattern("uuuu-MM-dd").parse(s)
     Date(LocalDate.from(t).atStartOfDay(Date.timezone_berlin))
   }
 
   def trim_mail(s: String): String = s.replaceAll("<[^>]*>", "").trim
 
-  sealed case class Entry(name: String, metadata: Properties.T, sessions: List[String])
-  {
+  sealed case class Entry(name: String, metadata: Properties.T, sessions: List[String]) {
     def get(prop: String): Option[String] = Properties.get(metadata, prop)
     def get_string(prop: String): String = get(prop).getOrElse("")
     def get_strings(prop: String): List[String] =
@@ -66,8 +63,7 @@ object AFP
   }
 }
 
-class AFP private(options: Options, val base_dir: Path)
-{
+class AFP private(options: Options, val base_dir: Path) {
   override def toString: String = base_dir.expand.toString
 
   val main_dir: Path = base_dir + Path.explode("thys")
@@ -75,8 +71,7 @@ class AFP private(options: Options, val base_dir: Path)
 
   /* metadata */
 
-  private val entry_metadata: Map[String, Properties.T] =
-  {
+  private val entry_metadata: Map[String, Properties.T] = {
     val metadata_file = base_dir + Path.explode("metadata/metadata")
 
     var result = Map.empty[String, Properties.T]
@@ -88,15 +83,13 @@ class AFP private(options: Options, val base_dir: Path)
     val Extra_Line = """^\s+(.*)$""".r
     val Blank_Line = """^\s*$""".r
 
-    def flush(): Unit =
-    {
+    def flush(): Unit = {
       if (section != "") result += (section -> props.reverse.filter(p => p._2.nonEmpty))
       section = ""
       props = Nil
     }
 
-    for ((line, i) <- split_lines(File.read(metadata_file)).zipWithIndex)
-    {
+    for ((line, i) <- split_lines(File.read(metadata_file)).zipWithIndex) {
       def err(msg: String): Nothing =
         error(msg + Position.here(Position.Line_File(i + 1, metadata_file.expand.implode)))
 
@@ -122,8 +115,7 @@ class AFP private(options: Options, val base_dir: Path)
 
   /* entries */
 
-  val entries_map: SortedMap[String, AFP.Entry] =
-  {
+  val entries_map: SortedMap[String, AFP.Entry] = {
     val entries =
       for (name <- Sessions.parse_roots(main_dir + Sessions.ROOTS)) yield {
         val metadata =
@@ -167,8 +159,7 @@ class AFP private(options: Options, val base_dir: Path)
   private def sessions_deps(entry: AFP.Entry): List[String] =
     entry.sessions.flatMap(sessions_structure.imports_graph.imm_preds).distinct.sorted
 
-  lazy val entries_graph: Graph[String, Unit] =
-  {
+  lazy val entries_graph: Graph[String, Unit] = {
     val session_entries =
       entries.foldLeft(Map.empty[String, String]) {
         case (m1, e) => e.sessions.foldLeft(m1) { case (m2, s) => m2 + (s -> e.name) }

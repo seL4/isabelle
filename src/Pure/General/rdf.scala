@@ -9,8 +9,7 @@ Support for RDF/XML representation, see also:
 package isabelle
 
 
-object RDF
-{
+object RDF {
   /* document */
 
   val rdf: XML.Namespace = XML.Namespace("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#")
@@ -20,8 +19,8 @@ object RDF
 
   def document(body: XML.Body,
     namespaces: List[XML.Namespace] = default_namespaces,
-    attributes: XML.Attributes = Nil): XML.Elem =
-  {
+    attributes: XML.Attributes = Nil
+  ): XML.Elem = {
     XML.Elem(Markup(rdf("RDF"), namespaces.map(_.attribute) ::: attributes), body)
   }
 
@@ -29,8 +28,11 @@ object RDF
   /* multiple triples vs. compact description */
 
   sealed case class Triple(
-    subject: String, predicate: String, `object`: XML.Body = Nil, resource: String = "")
-  {
+    subject: String,
+    predicate: String,
+    `object`: XML.Body = Nil,
+    resource: String = ""
+  ) {
     require(`object`.isEmpty || resource.isEmpty)
 
     def property: XML.Elem =
@@ -79,8 +81,8 @@ object RDF
 
   /* predicates */
 
-  object Property  // binary relation with plain value
-  {
+  object Property {
+    // binary relation with plain value
     def title: String = dcterms("title")
     def creator: String = dcterms("creator")
     def contributor: String = dcterms("contributor")

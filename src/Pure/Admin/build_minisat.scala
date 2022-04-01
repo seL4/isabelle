@@ -7,8 +7,7 @@ Build Isabelle Minisat from sources.
 package isabelle
 
 
-object Build_Minisat
-{
+object Build_Minisat {
   val default_download_url = "https://github.com/stp/minisat/archive/releases/2.2.1.tar.gz"
 
   def make_component_name(version: String): String = "minisat-" + version
@@ -21,10 +20,9 @@ object Build_Minisat
     component_name: String = "",
     verbose: Boolean = false,
     progress: Progress = new Progress,
-    target_dir: Path = Path.current): Unit =
-  {
-    Isabelle_System.with_tmp_dir("build")(tmp_dir =>
-    {
+    target_dir: Path = Path.current
+  ): Unit = {
+    Isabelle_System.with_tmp_dir("build")(tmp_dir => {
       /* component */
 
       val Archive_Name = """^.*?([^/]+)$""".r
@@ -123,8 +121,7 @@ remove options "--static" and "-Wl,-soname,..." from the Makefile.
 
   val isabelle_tool =
     Isabelle_Tool("build_minisat", "build prover component from sources", Scala_Project.here,
-    args =>
-    {
+    args => {
       var target_dir = Path.current
       var download_url = default_download_url
       var component_name = ""

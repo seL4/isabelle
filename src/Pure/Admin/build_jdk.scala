@@ -14,8 +14,7 @@ import java.nio.file.attribute.PosixFilePermission
 import scala.util.matching.Regex
 
 
-object Build_JDK
-{
+object Build_JDK {
   /* platform and version information */
 
   sealed case class JDK_Platform(
@@ -23,16 +22,14 @@ object Build_JDK
     platform_regex: Regex,
     exe: String = "java",
     macos_home: Boolean = false,
-    jdk_version: String = "")
-  {
+    jdk_version: String = ""
+  ) {
     override def toString: String = platform_name
 
     def platform_path: Path = Path.explode(platform_name)
 
-    def detect(jdk_dir: Path): Option[JDK_Platform] =
-    {
-      val major_version =
-      {
+    def detect(jdk_dir: Path): Option[JDK_Platform] = {
+      val major_version = {
         val Major_Version = """.*jdk(\d+).*$""".r
         val jdk_name = jdk_dir.file.getName
         jdk_name match {
@@ -112,8 +109,7 @@ esac
 
   /* extract archive */
 
-  def extract_archive(dir: Path, archive: Path): JDK_Platform =
-  {
+  def extract_archive(dir: Path, archive: Path): JDK_Platform = {
     try {
       val tmp_dir = Isabelle_System.make_directory(dir + Path.explode("tmp"))
 
@@ -152,12 +148,11 @@ esac
   def build_jdk(
     archives: List[Path],
     progress: Progress = new Progress,
-    target_dir: Path = Path.current): Unit =
-  {
+    target_dir: Path = Path.current
+  ): Unit = {
     if (Platform.is_windows) error("Cannot build jdk on Windows")
 
-    Isabelle_System.with_tmp_dir("jdk")(dir =>
-      {
+    Isabelle_System.with_tmp_dir("jdk")(dir => {
         progress.echo("Extracting ...")
         val platforms = archives.map(extract_archive(dir, _))
 
@@ -214,8 +209,7 @@ esac
 
   val isabelle_tool =
     Isabelle_Tool("build_jdk", "build Isabelle jdk component from original archives",
-      Scala_Project.here, args =>
-    {
+      Scala_Project.here, args => {
       var target_dir = Path.current
 
       val getopts = Getopts("""

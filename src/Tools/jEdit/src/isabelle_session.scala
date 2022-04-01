@@ -17,8 +17,7 @@ import org.gjt.sp.jedit.io.{VFS => JEdit_VFS, VFSFile}
 import org.gjt.sp.jedit.browser.VFSBrowser
 
 
-object Isabelle_Session
-{
+object Isabelle_Session {
   /* sessions structure */
 
   def sessions_structure(): Sessions.Structure =
@@ -30,8 +29,7 @@ object Isabelle_Session
   val vfs_prefix = "isabelle-session:"
 
   class Session_Entry(name: String, path: String, marker: String)
-    extends VFSFile(name, path, vfs_prefix + name, VFSFile.FILE, 0L, false)
-  {
+  extends VFSFile(name, path, vfs_prefix + name, VFSFile.FILE, 0L, false) {
     override def getPathMarker: String = marker
 
     override def getExtendedAttribute(att: String): String =
@@ -39,11 +37,19 @@ object Isabelle_Session
       else super.getExtendedAttribute(att)
   }
 
-  class VFS extends Isabelle_VFS(vfs_prefix,
-    read = true, browse = true, low_latency = true, non_awt_session = true)
-  {
-    override def _listFiles(vfs_session: AnyRef, url: String, component: Component): Array[VFSFile] =
-    {
+  class VFS
+  extends Isabelle_VFS(
+    vfs_prefix,
+    read = true,
+    browse = true,
+    low_latency = true,
+    non_awt_session = true
+  ) {
+    override def _listFiles(
+      vfs_session: AnyRef,
+      url: String,
+      component: Component
+    ): Array[VFSFile] = {
       explode_url(url, component = component) match {
         case None => null
         case Some(elems) =>
@@ -55,8 +61,7 @@ object Isabelle_Session
               sessions.chapters.get(chapter) match {
                 case None => null
                 case Some(infos) =>
-                  infos.map(info =>
-                  {
+                  infos.map(info => {
                     val name = chapter + "/" + info.name
                     val path =
                       Position.File.unapply(info.pos) match {
@@ -80,8 +85,7 @@ object Isabelle_Session
 
   /* open browser */
 
-  def open_browser(view: View): Unit =
-  {
+  def open_browser(view: View): Unit = {
     val path =
       PIDE.maybe_snapshot(view) match {
         case None => ""

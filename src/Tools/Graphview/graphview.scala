@@ -15,8 +15,7 @@ import java.awt.geom.{Point2D, Rectangle2D}
 import javax.swing.JComponent
 
 
-abstract class Graphview(full_graph: Graph_Display.Graph)
-{
+abstract class Graphview(full_graph: Graph_Display.Graph) {
   graphview =>
 
 
@@ -47,8 +46,7 @@ abstract class Graphview(full_graph: Graph_Display.Graph)
       case (dummy: Layout.Dummy, (info, _)) if Shapes.shape(info).contains(at) => dummy
     })
 
-  def bounding_box(): Rectangle2D.Double =
-  {
+  def bounding_box(): Rectangle2D.Double = {
     var x0 = 0.0
     var y0 = 0.0
     var x1 = 0.0
@@ -67,8 +65,7 @@ abstract class Graphview(full_graph: Graph_Display.Graph)
     new Rectangle2D.Double(x0, y0, x1 - x0, y1 - y0)
   }
 
-  def update_layout(): Unit =
-  {
+  def update_layout(): Unit = {
     val metrics = Metrics(make_font())
     val visible_graph = model.make_visible_graph()
 
@@ -103,8 +100,7 @@ abstract class Graphview(full_graph: Graph_Display.Graph)
 
   /* font rendering information */
 
-  def make_font(): Font =
-  {
+  def make_font(): Font = {
     val family = options.string("graphview_font_family")
     val size = options.int("graphview_font_size")
     new Font(family, Font.PLAIN, size)
@@ -119,8 +115,7 @@ abstract class Graphview(full_graph: Graph_Display.Graph)
   var show_dummies = false
   var editor_style = false
 
-  object Colors
-  {
+  object Colors {
     private val filter_colors = List(
       new Color(0xD9, 0xF2, 0xE2), // blue
       new Color(0xFF, 0xE7, 0xD8), // orange
@@ -132,15 +127,13 @@ abstract class Graphview(full_graph: Graph_Display.Graph)
     )
 
     private var curr : Int = -1
-    def next(): Color =
-    {
+    def next(): Color = {
       curr = (curr + 1) % filter_colors.length
       filter_colors(curr)
     }
   }
 
-  def paint(gfx: Graphics2D): Unit =
-  {
+  def paint(gfx: Graphics2D): Unit = {
     gfx.setRenderingHints(Metrics.rendering_hints)
 
     for (node <- graphview.current_node)
@@ -155,8 +148,7 @@ abstract class Graphview(full_graph: Graph_Display.Graph)
 
   var current_node: Option[Graph_Display.Node] = None
 
-  object Selection
-  {
+  object Selection {
     private val state = Synchronized[List[Graph_Display.Node]](Nil)
 
     def get(): List[Graph_Display.Node] = state.value

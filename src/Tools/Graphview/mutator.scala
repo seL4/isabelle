@@ -14,8 +14,7 @@ import java.awt.Color
 import scala.collection.immutable.SortedSet
 
 
-object Mutator
-{
+object Mutator {
   sealed case class Info(enabled: Boolean, color: Color, mutator: Mutator)
 
   def make(graphview: Graphview, m: Mutator): Info =
@@ -24,16 +23,16 @@ object Mutator
   class Graph_Filter(
     val name: String,
     val description: String,
-    pred: Graph_Display.Graph => Graph_Display.Graph) extends Filter
-  {
+    pred: Graph_Display.Graph => Graph_Display.Graph
+  ) extends Filter {
     def filter(graph: Graph_Display.Graph): Graph_Display.Graph = pred(graph)
   }
 
   class Graph_Mutator(
     val name: String,
     val description: String,
-    pred: (Graph_Display.Graph, Graph_Display.Graph) => Graph_Display.Graph) extends Mutator
-  {
+    pred: (Graph_Display.Graph, Graph_Display.Graph) => Graph_Display.Graph
+  ) extends Mutator {
     def mutate(full_graph: Graph_Display.Graph, graph: Graph_Display.Graph): Graph_Display.Graph =
       pred(full_graph, graph)
   }
@@ -112,9 +111,11 @@ object Mutator
       "Hides specified edge.",
       (g, e) => e != edge)
 
-  private def add_node_group(from: Graph_Display.Graph, to: Graph_Display.Graph,
-    keys: List[Graph_Display.Node]) =
-  {
+  private def add_node_group(
+    from: Graph_Display.Graph,
+    to: Graph_Display.Graph,
+    keys: List[Graph_Display.Node]
+  ) = {
     // Add Nodes
     val with_nodes =
       keys.foldLeft(to) { case (graph, key) => graph.default_node(key, from.get_node(key)) }
@@ -161,8 +162,7 @@ object Mutator
       })
 }
 
-trait Mutator
-{
+trait Mutator {
   val name: String
   val description: String
   def mutate(full_graph: Graph_Display.Graph, graph: Graph_Display.Graph): Graph_Display.Graph
@@ -170,8 +170,7 @@ trait Mutator
   override def toString: String = name
 }
 
-trait Filter extends Mutator
-{
+trait Filter extends Mutator {
   def mutate(full_graph: Graph_Display.Graph, graph: Graph_Display.Graph): Graph_Display.Graph = filter(graph)
   def filter(graph: Graph_Display.Graph): Graph_Display.Graph
 }

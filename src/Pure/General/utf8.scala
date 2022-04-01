@@ -11,8 +11,7 @@ import java.nio.charset.Charset
 import scala.io.Codec
 
 
-object UTF8
-{
+object UTF8 {
   /* charset */
 
   val charset_name: String = "UTF-8"
@@ -27,14 +26,12 @@ object UTF8
   // see also https://en.wikipedia.org/wiki/UTF-8#Description
   // overlong encodings enable byte-stuffing of low-ASCII
 
-  def decode_permissive(text: CharSequence): String =
-  {
+  def decode_permissive(text: CharSequence): String = {
     val len = text.length
     val buf = new java.lang.StringBuilder(len)
     var code = -1
     var rest = 0
-    def flush(): Unit =
-    {
+    def flush(): Unit = {
       if (code != -1) {
         if (rest == 0 && Character.isValidCodePoint(code))
           buf.appendCodePoint(code)
@@ -43,14 +40,12 @@ object UTF8
         rest = 0
       }
     }
-    def init(x: Int, n: Int): Unit =
-    {
+    def init(x: Int, n: Int): Unit = {
       flush()
       code = x
       rest = n
     }
-    def push(x: Int): Unit =
-    {
+    def push(x: Int): Unit = {
       if (rest <= 0) init(x, -1)
       else {
         code <<= 6

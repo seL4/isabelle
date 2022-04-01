@@ -7,19 +7,17 @@ Support for platform-specific executables.
 package isabelle
 
 
-object Executable
-{
+object Executable {
   def libraries_closure(path: Path,
     mingw: MinGW = MinGW.none,
     filter: String => Boolean = _ => true,
-    patchelf: Boolean = false): List[String] =
-  {
+    patchelf: Boolean = false
+  ): List[String] = {
     val exe_path = path.expand
     val exe_dir = exe_path.dir
     val exe = exe_path.base
 
-    val ldd_lines =
-    {
+    val ldd_lines = {
       val ldd = if (Platform.is_macos) "otool -L" else "ldd"
       val script = mingw.bash_script(ldd + " " + File.bash_path(exe))
       Library.split_lines(Isabelle_System.bash(script, cwd = exe_dir.file).check.out)

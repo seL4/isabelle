@@ -20,8 +20,7 @@ import org.gjt.sp.jedit.syntax.{Token => JEditToken, SyntaxStyle}
 import org.gjt.sp.jedit.textarea.TextArea
 
 
-object Syntax_Style
-{
+object Syntax_Style {
   /* extended syntax styles */
 
   private val plain_range: Int = JEditToken.ID_COUNT
@@ -39,8 +38,7 @@ object Syntax_Style
   private def font_style(style: SyntaxStyle, f: Font => Font): SyntaxStyle =
     new SyntaxStyle(style.getForegroundColor, style.getBackgroundColor, f(style.getFont))
 
-  private def script_style(style: SyntaxStyle, i: Int): SyntaxStyle =
-  {
+  private def script_style(style: SyntaxStyle, i: Int): SyntaxStyle = {
     font_style(style, font0 =>
       {
         val font1 = font0.deriveFont(JMap.of(TextAttribute.SUPERSCRIPT, java.lang.Integer.valueOf(i)))
@@ -63,16 +61,13 @@ object Syntax_Style
 
   val hidden_color: Color = new Color(255, 255, 255, 0)
 
-  def set_extender(extender: SyntaxUtilities.StyleExtender): Unit =
-  {
+  def set_extender(extender: SyntaxUtilities.StyleExtender): Unit = {
     SyntaxUtilities.setStyleExtender(extender)
     GUI_Thread.later { jEdit.propertiesChanged }
   }
 
-  object Base_Extender extends SyntaxUtilities.StyleExtender
-  {
-    override def extendStyles(styles: Array[SyntaxStyle]): Array[SyntaxStyle] =
-    {
+  object Base_Extender extends SyntaxUtilities.StyleExtender {
+    override def extendStyles(styles: Array[SyntaxStyle]): Array[SyntaxStyle] = {
       val new_styles = Array.fill[SyntaxStyle](java.lang.Byte.MAX_VALUE)(styles(0))
       for (i <- 0 until full_range) {
         new_styles(i) = styles(i % plain_range)
@@ -81,15 +76,13 @@ object Syntax_Style
     }
   }
 
-  object Main_Extender extends SyntaxUtilities.StyleExtender
-  {
+  object Main_Extender extends SyntaxUtilities.StyleExtender {
     val max_user_fonts = 2
     if (Symbol.symbols.font_names.length > max_user_fonts)
       error("Too many user symbol fonts (" + max_user_fonts + " permitted): " +
         Symbol.symbols.font_names.mkString(", "))
 
-    override def extendStyles(styles: Array[SyntaxStyle]): Array[SyntaxStyle] =
-    {
+    override def extendStyles(styles: Array[SyntaxStyle]): Array[SyntaxStyle] = {
       val style0 = styles(0)
       val font0 = style0.getFont
 
@@ -125,11 +118,9 @@ object Syntax_Style
     else if (sym == Symbol.bold_decoded) Some(bold)
     else None
 
-  def extended(text: CharSequence): Map[Text.Offset, Byte => Byte] =
-  {
+  def extended(text: CharSequence): Map[Text.Offset, Byte => Byte] = {
     var result = Map[Text.Offset, Byte => Byte]()
-    def mark(start: Text.Offset, stop: Text.Offset, style: Byte => Byte): Unit =
-    {
+    def mark(start: Text.Offset, stop: Text.Offset, style: Byte => Byte): Unit = {
       for (i <- start until stop) result += (i -> style)
     }
 
@@ -169,16 +160,14 @@ object Syntax_Style
 
   /* editing support for control symbols */
 
-  def edit_control_style(text_area: TextArea, control_sym: String): Unit =
-  {
+  def edit_control_style(text_area: TextArea, control_sym: String): Unit = {
     GUI_Thread.assert {}
 
     val buffer = text_area.getBuffer
 
     val control_decoded = Isabelle_Encoding.perhaps_decode(buffer, control_sym)
 
-    def update_style(text: String): String =
-    {
+    def update_style(text: String): String = {
       val result = new StringBuilder
       for (sym <- Symbol.iterator(text) if !HTML.is_control(sym)) {
         if (Symbol.is_controllable(sym)) result ++= control_decoded

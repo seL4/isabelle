@@ -7,10 +7,8 @@ Expand old Isar command conflations 'hence' and 'thus'.
 package isabelle
 
 
-object Update_Then
-{
-  def update_then(path: Path): Unit =
-  {
+object Update_Then {
+  def update_then(path: Path): Unit = {
     val text0 = File.read(path)
     val text1 =
       (for (tok <- Token.explode(Keyword.Keywords.empty, text0).iterator)
@@ -32,8 +30,7 @@ object Update_Then
 
   val isabelle_tool =
     Isabelle_Tool("update_then", "expand old Isar command conflations 'hence' and 'thus'",
-      Scala_Project.here, args =>
-    {
+      Scala_Project.here, args => {
       val getopts = Getopts("""
 Usage: isabelle update_then [FILES|DIRS...]
 

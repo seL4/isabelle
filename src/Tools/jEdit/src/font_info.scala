@@ -15,8 +15,7 @@ import java.awt.Font
 import org.gjt.sp.jedit.{jEdit, View}
 
 
-object Font_Info
-{
+object Font_Info {
   /* size range */
 
   val min_size = 5
@@ -38,10 +37,8 @@ object Font_Info
 
   /* incremental size change */
 
-  object main_change
-  {
-    private def change_size(change: Float => Float): Unit =
-    {
+  object main_change {
+    private def change_size(change: Float => Float): Unit = {
       GUI_Thread.require {}
 
       val size0 = main_size()
@@ -56,30 +53,24 @@ object Font_Info
 
     // owned by GUI thread
     private var steps = 0
-    private val delay = Delay.last(PIDE.options.seconds("editor_input_delay"), gui = true)
-    {
-      change_size(size =>
-        {
-          var i = size.round
-          while (steps != 0 && i > 0) {
-            if (steps > 0)
-              { i += (i / 10) max 1; steps -= 1 }
-            else
-              { i -= (i / 10) max 1; steps += 1 }
-          }
-          steps = 0
-          i.toFloat
-        })
+    private val delay = Delay.last(PIDE.options.seconds("editor_input_delay"), gui = true) {
+      change_size(size => {
+        var i = size.round
+        while (steps != 0 && i > 0) {
+          if (steps > 0) { i += (i / 10) max 1; steps -= 1 }
+          else { i -= (i / 10) max 1; steps += 1 }
+        }
+        steps = 0
+        i.toFloat
+      })
     }
 
-    def step(i: Int): Unit =
-    {
+    def step(i: Int): Unit = {
       steps += i
       delay.invoke()
     }
 
-    def reset(size: Float): Unit =
-    {
+    def reset(size: Float): Unit = {
       delay.revoke()
       steps = 0
       change_size(_ => size)
@@ -92,8 +83,6 @@ object Font_Info
   abstract class Zoom_Box extends GUI.Zoom_Box { tooltip = "Zoom factor for output font size" }
 }
 
-sealed case class Font_Info(family: String, size: Float)
-{
+sealed case class Font_Info(family: String, size: Float) {
   def font: Font = new Font(family, Font.PLAIN, size.round)
 }
-

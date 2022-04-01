@@ -7,8 +7,7 @@ Build Isabelle veriT component from official download.
 package isabelle
 
 
-object Build_VeriT
-{
+object Build_VeriT {
   val default_download_url = "https://verit.loria.fr/rmx/2021.06.2/verit-2021.06.2-rmx.tar.gz"
 
 
@@ -19,12 +18,11 @@ object Build_VeriT
     verbose: Boolean = false,
     progress: Progress = new Progress,
     target_dir: Path = Path.current,
-    mingw: MinGW = MinGW.none): Unit =
-  {
+    mingw: MinGW = MinGW.none
+  ): Unit = {
     mingw.check
 
-    Isabelle_System.with_tmp_dir("build")(tmp_dir =>
-    {
+    Isabelle_System.with_tmp_dir("build")(tmp_dir => {
       /* component */
 
       val Archive_Name = """^.*?([^/]+)$""".r
@@ -124,8 +122,7 @@ It has been built from sources like this:
 
   val isabelle_tool =
     Isabelle_Tool("build_verit", "build prover component from official download",
-      Scala_Project.here, args =>
-    {
+      Scala_Project.here, args => {
       var target_dir = Path.current
       var mingw = MinGW.none
       var download_url = default_download_url

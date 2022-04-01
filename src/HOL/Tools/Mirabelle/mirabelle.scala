@@ -9,12 +9,10 @@ package isabelle.mirabelle
 import isabelle._
 
 
-object Mirabelle
-{
+object Mirabelle {
   /* actions and options */
 
-  def action_names(): List[String] =
-  {
+  def action_names(): List[String] = {
     val Pattern = """Mirabelle action: "(\w+)".*""".r
     (for {
       file <-
@@ -25,8 +23,7 @@ object Mirabelle
     } yield name).sorted
   }
 
-  def sledgehammer_options(): List[String] =
-  {
+  def sledgehammer_options(): List[String] = {
     val Pattern = """val .*K *= *"(.*)" *\(\*(.*)\*\)""".r
     split_lines(File.read(Path.explode("~~/src/HOL/Tools/Mirabelle/mirabelle_sledgehammer.ML"))).
       flatMap(line => line match { case Pattern(a, b) => Some (a + b) case _ => None })
@@ -46,8 +43,8 @@ object Mirabelle
     select_dirs: List[Path] = Nil,
     numa_shuffling: Boolean = false,
     max_jobs: Int = 1,
-    verbose: Boolean = false): Build.Results =
-  {
+    verbose: Boolean = false
+  ): Build.Results = {
     require(!selection.requirements)
     Isabelle_System.make_directory(output_dir)
 
@@ -70,8 +67,7 @@ object Mirabelle
 
       val store = Sessions.store(build_options)
 
-      def session_setup(session_name: String, session: Session): Unit =
-      {
+      def session_setup(session_name: String, session: Session): Unit = {
         session.all_messages +=
           Session.Consumer[Prover.Message]("mirabelle_export") {
             case msg: Prover.Protocol_Output =>
@@ -113,8 +109,7 @@ object Mirabelle
   /* Isabelle tool wrapper */
 
   val isabelle_tool = Isabelle_Tool("mirabelle", "testing tool for automated proof tools",
-    Scala_Project.here, args =>
-  {
+    Scala_Project.here, args => {
     val build_options = Word.explode(Isabelle_System.getenv("ISABELLE_BUILD_OPTIONS"))
 
     var options = Options.init(opts = build_options)

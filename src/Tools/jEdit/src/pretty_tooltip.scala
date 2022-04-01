@@ -21,15 +21,15 @@ import org.gjt.sp.jedit.View
 import org.gjt.sp.jedit.textarea.TextArea
 
 
-object Pretty_Tooltip
-{
+object Pretty_Tooltip {
   /* tooltip hierarchy */
 
   // owned by GUI thread
   private var stack: List[Pretty_Tooltip] = Nil
 
-  private def hierarchy(tip: Pretty_Tooltip): Option[(List[Pretty_Tooltip], List[Pretty_Tooltip])] =
-  {
+  private def hierarchy(
+    tip: Pretty_Tooltip
+  ): Option[(List[Pretty_Tooltip], List[Pretty_Tooltip])] = {
     GUI_Thread.require {}
 
     if (stack.contains(tip)) Some(stack.span(_ != tip))
@@ -45,8 +45,8 @@ object Pretty_Tooltip
     location: Point,
     rendering: JEdit_Rendering,
     results: Command.Results,
-    info: Text.Info[XML.Body]): Unit =
-  {
+    info: Text.Info[XML.Body]
+  ): Unit = {
     GUI_Thread.require {}
 
     stack match {
@@ -113,13 +113,12 @@ object Pretty_Tooltip
 
   /* dismiss */
 
-  private lazy val focus_delay = Delay.last(PIDE.options.seconds("editor_input_delay"), gui = true)
-  {
-    dismiss_unfocused()
-  }
+  private lazy val focus_delay =
+    Delay.last(PIDE.options.seconds("editor_input_delay"), gui = true) {
+      dismiss_unfocused()
+    }
 
-  def dismiss_unfocused(): Unit =
-  {
+  def dismiss_unfocused(): Unit = {
     stack.span(tip => !tip.pretty_text_area.isFocusOwner) match {
       case (Nil, _) =>
       case (unfocused, rest) =>
@@ -129,8 +128,7 @@ object Pretty_Tooltip
     }
   }
 
-  def dismiss(tip: Pretty_Tooltip): Unit =
-  {
+  def dismiss(tip: Pretty_Tooltip): Unit = {
     deactivate()
     hierarchy(tip) match {
       case Some((old, _ :: rest)) =>
@@ -148,8 +146,7 @@ object Pretty_Tooltip
   def dismiss_descendant(parent: JComponent): Unit =
     descendant(parent).foreach(dismiss)
 
-  def dismissed_all(): Boolean =
-  {
+  def dismissed_all(): Boolean = {
     deactivate()
     if (stack.isEmpty) false
     else {
@@ -169,8 +166,8 @@ class Pretty_Tooltip private(
   location: Point,
   rendering: JEdit_Rendering,
   private val results: Command.Results,
-  private val info: Text.Info[XML.Body]) extends JPanel(new BorderLayout)
-{
+  private val info: Text.Info[XML.Body]
+) extends JPanel(new BorderLayout) {
   tip =>
 
   GUI_Thread.require {}
@@ -209,13 +206,11 @@ class Pretty_Tooltip private(
     }
 
   pretty_text_area.addFocusListener(new FocusAdapter {
-    override def focusGained(e: FocusEvent): Unit =
-    {
+    override def focusGained(e: FocusEvent): Unit = {
       tip_border(true)
       Pretty_Tooltip.focus_delay.invoke()
     }
-    override def focusLost(e: FocusEvent): Unit =
-    {
+    override def focusLost(e: FocusEvent): Unit = {
       tip_border(false)
       Pretty_Tooltip.focus_delay.invoke()
     }
@@ -226,8 +221,7 @@ class Pretty_Tooltip private(
 
   /* main content */
 
-  def tip_border(has_focus: Boolean): Unit =
-  {
+  def tip_border(has_focus: Boolean): Unit = {
     tip.setBorder(new LineBorder(if (has_focus) Color.BLACK else Color.GRAY))
     tip.repaint()
   }
@@ -241,11 +235,9 @@ class Pretty_Tooltip private(
 
   /* popup */
 
-  private val popup =
-  {
+  private val popup = {
     val screen = GUI.screen_location(layered, location)
-    val size =
-    {
+    val size = {
       val bounds = JEdit_Rendering.popup_bounds
 
       val w_max = layered.getWidth min (screen.bounds.width * bounds).toInt
@@ -277,8 +269,7 @@ class Pretty_Tooltip private(
     new Popup(layered, tip, screen.relative(layered, size), size)
   }
 
-  private def show_popup: Unit =
-  {
+  private def show_popup: Unit = {
     popup.show
     pretty_text_area.requestFocus()
     pretty_text_area.update(rendering.snapshot, results, info.info)

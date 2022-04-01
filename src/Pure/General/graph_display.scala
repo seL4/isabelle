@@ -6,8 +6,7 @@ Support for graph display.
 
 package isabelle
 
-object Graph_Display
-{
+object Graph_Display {
   /* graph entries */
 
   type Entry = ((String, (String, XML.Body)), List[String])  // ident, name, content, parents
@@ -15,12 +14,10 @@ object Graph_Display
 
   /* graph structure */
 
-  object Node
-  {
+  object Node {
     val dummy: Node = Node("", "")
 
-    object Ordering extends scala.math.Ordering[Node]
-    {
+    object Ordering extends scala.math.Ordering[Node] {
       def compare(node1: Node, node2: Node): Int =
         node1.name compare node2.name match {
           case 0 => node1.ident compare node2.ident
@@ -28,8 +25,7 @@ object Graph_Display
         }
     }
   }
-  sealed case class Node(name: String, ident: String)
-  {
+  sealed case class Node(name: String, ident: String) {
     def is_dummy: Boolean = this == Node.dummy
     override def toString: String = name
   }
@@ -40,8 +36,7 @@ object Graph_Display
 
   val empty_graph: Graph = isabelle.Graph.empty(Node.Ordering)
 
-  def build_graph(entries: List[Entry]): Graph =
-  {
+  def build_graph(entries: List[Entry]): Graph = {
     val node =
       entries.foldLeft(Map.empty[String, Node]) {
         case (m, ((ident, (name, _)), _)) => m + (ident -> Node(name, ident))
@@ -65,8 +60,8 @@ object Graph_Display
   def make_graph[A](
     graph: isabelle.Graph[String, A],
     isolated: Boolean = false,
-    name: (String, A) => String = (x: String, a: A) => x): Graph =
-  {
+    name: (String, A) => String = (x: String, a: A) => x
+  ): Graph = {
     val entries =
       (for { (x, (a, (ps, _))) <- graph.iterator if isolated || !graph.is_isolated(x) }
        yield ((x, (name(x, a), Nil)), ps.toList)).toList

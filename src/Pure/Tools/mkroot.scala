@@ -7,8 +7,7 @@ Prepare session root directory.
 package isabelle
 
 
-object Mkroot
-{
+object Mkroot {
   /** mkroot **/
 
   def root_name(name: String): String =
@@ -25,8 +24,8 @@ object Mkroot
     init_repos: Boolean = false,
     title: String = "",
     author: String = "",
-    progress: Progress = new Progress): Unit =
-  {
+    progress: Progress = new Progress
+  ): Unit = {
     Isabelle_System.make_directory(session_dir)
 
     val name = proper_string(session_name) getOrElse session_dir.absolute_file.getName
@@ -178,8 +177,8 @@ Now use the following command line to build the session:
   /** Isabelle tool wrapper **/
 
   val isabelle_tool = Isabelle_Tool("mkroot", "prepare session root directory",
-    Scala_Project.here, args =>
-  {
+    Scala_Project.here,
+    args => {
     var author = ""
     var init_repos = false
     var title = ""

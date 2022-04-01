@@ -7,10 +7,8 @@ Update toplevel theorem keywords.
 package isabelle
 
 
-object Update_Theorems
-{
-  def update_theorems(path: Path): Unit =
-  {
+object Update_Theorems {
+  def update_theorems(path: Path): Unit = {
     val text0 = File.read(path)
     val text1 =
       (for (tok <- Token.explode(Keyword.Keywords.empty, text0).iterator)
@@ -32,8 +30,7 @@ object Update_Theorems
   /* Isabelle tool wrapper */
 
   val isabelle_tool = Isabelle_Tool("update_theorems", "update toplevel theorem keywords",
-    Scala_Project.here, args =>
-  {
+    Scala_Project.here, args => {
     val getopts = Getopts("""
 Usage: isabelle update_theorems [FILES|DIRS...]
 

@@ -7,10 +7,8 @@ Replace theory header command.
 package isabelle
 
 
-object Update_Header
-{
-  def update_header(section: String, path: Path): Unit =
-  {
+object Update_Header {
+  def update_header(section: String, path: Path): Unit = {
     val text0 = File.read(path)
     val text1 =
       (for (tok <- Token.explode(Keyword.Keywords.empty, text0).iterator)
@@ -30,8 +28,8 @@ object Update_Header
 
   val isabelle_tool =
     Isabelle_Tool("update_header", "replace obsolete theory header command",
-      Scala_Project.here, args =>
-    {
+      Scala_Project.here,
+      args => {
       var section = "section"
 
       val getopts = Getopts("""

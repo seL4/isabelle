@@ -19,16 +19,17 @@ import org.gjt.sp.jedit.jEdit
 import scala.collection.immutable.SortedMap
 
 
-object JEdit_Rendering
-{
+object JEdit_Rendering {
   /* make rendering */
 
   def apply(snapshot: Document.Snapshot, model: Document_Model, options: Options): JEdit_Rendering =
     new JEdit_Rendering(snapshot, model, options)
 
-  def text(snapshot: Document.Snapshot, formatted_body: XML.Body,
-    results: Command.Results = Command.Results.empty): (String, JEdit_Rendering) =
-  {
+  def text(
+    snapshot: Document.Snapshot,
+    formatted_body: XML.Body,
+    results: Command.Results = Command.Results.empty
+  ): (String, JEdit_Rendering) = {
     val command = Command.rich_text(Document_ID.make(), results, formatted_body)
     val snippet = snapshot.snippet(command)
     val model = File_Model.empty(PIDE.session)
@@ -44,8 +45,7 @@ object JEdit_Rendering
 
   /* Isabelle/Isar token markup */
 
-  private val command_style: Map[String, Byte] =
-  {
+  private val command_style: Map[String, Byte] = {
     import JEditToken._
     Map[String, Byte](
       Keyword.THY_END -> KEYWORD2,
@@ -54,8 +54,7 @@ object JEdit_Rendering
     ).withDefaultValue(KEYWORD1)
   }
 
-  private val token_style: Map[Token.Kind.Value, Byte] =
-  {
+  private val token_style: Map[Token.Kind.Value, Byte] = {
     import JEditToken._
     Map[Token.Kind.Value, Byte](
       Token.Kind.KEYWORD -> KEYWORD2,
@@ -86,8 +85,7 @@ object JEdit_Rendering
 
   /* Isabelle/ML token markup */
 
-  private val ml_token_style: Map[ML_Lex.Kind.Value, Byte] =
-  {
+  private val ml_token_style: Map[ML_Lex.Kind.Value, Byte] = {
     import JEditToken._
     Map[ML_Lex.Kind.Value, Byte](
       ML_Lex.Kind.KEYWORD -> NULL,
@@ -162,8 +160,7 @@ object JEdit_Rendering
 
 
 class JEdit_Rendering(snapshot: Document.Snapshot, model: Document_Model, options: Options)
-  extends Rendering(snapshot, options, PIDE.session)
-{
+extends Rendering(snapshot, options, PIDE.session) {
   override def get_text(range: Text.Range): Option[String] = model.get_text(range)
 
 
@@ -244,8 +241,7 @@ class JEdit_Rendering(snapshot: Document.Snapshot, model: Document_Model, option
 
   /* hyperlinks */
 
-  def hyperlink(range: Text.Range): Option[Text.Info[PIDE.editor.Hyperlink]] =
-  {
+  def hyperlink(range: Text.Range): Option[Text.Info[PIDE.editor.Hyperlink]] = {
     snapshot.cumulate[Vector[Text.Info[PIDE.editor.Hyperlink]]](
       range, Vector.empty, JEdit_Rendering.hyperlink_elements, _ =>
         {
@@ -285,8 +281,7 @@ class JEdit_Rendering(snapshot: Document.Snapshot, model: Document_Model, option
         }) match { case Text.Info(_, _ :+ info) :: _ => Some(info) case _ => None }
   }
 
-  def hyperlink_entity(range: Text.Range): Option[Text.Info[PIDE.editor.Hyperlink]] =
-  {
+  def hyperlink_entity(range: Text.Range): Option[Text.Info[PIDE.editor.Hyperlink]] = {
     snapshot.cumulate[Vector[Text.Info[PIDE.editor.Hyperlink]]](
       range, Vector.empty, Rendering.entity_elements, _ =>
         {
@@ -321,8 +316,7 @@ class JEdit_Rendering(snapshot: Document.Snapshot, model: Document_Model, option
   def tooltip_margin: Int = options.int("jedit_tooltip_margin")
   override def timing_threshold: Double = options.real("jedit_timing_threshold")
 
-  def tooltip(range: Text.Range, control: Boolean): Option[Text.Info[XML.Body]] =
-  {
+  def tooltip(range: Text.Range, control: Boolean): Option[Text.Info[XML.Body]] = {
     val elements = if (control) Rendering.tooltip_elements else Rendering.tooltip_message_elements
     tooltips(elements, range).map(info => info.map(Pretty.fbreaks))
   }
@@ -354,8 +348,7 @@ class JEdit_Rendering(snapshot: Document.Snapshot, model: Document_Model, option
       (JEdit_Lib.load_icon(options.string("gutter_error_icon")),
         color(Rendering.Color.error_message)))
 
-  def gutter_content(range: Text.Range): Option[(Icon, Color)] =
-  {
+  def gutter_content(range: Text.Range): Option[(Icon, Color)] = {
     val pris =
       snapshot.cumulate[Int](range, 0, JEdit_Rendering.gutter_elements, _ =>
         {
@@ -372,8 +365,7 @@ class JEdit_Rendering(snapshot: Document.Snapshot, model: Document_Model, option
   def squiggly_underline(range: Text.Range): List[Text.Info[Rendering.Color.Value]] =
     message_underline_color(JEdit_Rendering.squiggly_elements, range)
 
-  def line_background(range: Text.Range): Option[(Rendering.Color.Value, Boolean)] =
-  {
+  def line_background(range: Text.Range): Option[(Rendering.Color.Value, Boolean)] = {
     val results =
       snapshot.cumulate[Int](range, 0, JEdit_Rendering.line_background_elements, _ =>
         {
@@ -381,22 +373,20 @@ class JEdit_Rendering(snapshot: Document.Snapshot, model: Document_Model, option
         })
     val pri = results.foldLeft(0) { case (p1, Text.Info(_, p2)) => p1 max p2 }
 
-    Rendering.message_background_color.get(pri).map(message_color =>
-      {
-        val is_separator =
-          snapshot.cumulate[Boolean](range, false, JEdit_Rendering.separator_elements, _ =>
-            {
-              case _ => Some(true)
-            }).exists(_.info)
-        (message_color, is_separator)
-      })
+    Rendering.message_background_color.get(pri).map(message_color => {
+      val is_separator =
+        snapshot.cumulate[Boolean](range, false, JEdit_Rendering.separator_elements, _ =>
+          {
+            case _ => Some(true)
+          }).exists(_.info)
+      (message_color, is_separator)
+    })
   }
 
 
   /* text color */
 
-  def text_color(range: Text.Range, current_color: Color): List[Text.Info[Color]] =
-  {
+  def text_color(range: Text.Range, current_color: Color): List[Text.Info[Color]] = {
     if (current_color == Syntax_Style.hidden_color) List(Text.Info(range, current_color))
     else
       snapshot.cumulate(range, current_color, Rendering.text_color_elements, _ =>

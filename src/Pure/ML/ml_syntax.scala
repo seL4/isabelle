@@ -7,8 +7,7 @@ Concrete ML syntax for basic values.
 package isabelle
 
 
-object ML_Syntax
-{
+object ML_Syntax {
   /* numbers */
 
   private def signed(s: String): String =

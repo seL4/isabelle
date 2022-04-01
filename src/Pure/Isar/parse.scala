@@ -11,12 +11,10 @@ import scala.util.parsing.combinator.Parsers
 import scala.annotation.tailrec
 
 
-object Parse
-{
+object Parse {
   /* parsing tokens */
 
-  trait Parser extends Parsers
-  {
+  trait Parser extends Parsers {
     type Elem = Token
 
     def filter_proper: Boolean = true
@@ -27,8 +25,7 @@ object Parse
 
     private def proper_position: Parser[Position.T] =
       new Parser[Position.T] {
-        def apply(raw_input: Input) =
-        {
+        def apply(raw_input: Input) = {
           val in = proper(raw_input)
           val pos =
             in.pos match {
@@ -44,8 +41,7 @@ object Parse
 
     def token(s: String, pred: Elem => Boolean): Parser[Elem] =
       new Parser[Elem] {
-        def apply(raw_input: Input) =
-        {
+        def apply(raw_input: Input) = {
           val in = proper(raw_input)
           if (in.atEnd) Failure(s + " expected,\nbut end-of-input was found", in)
           else {
@@ -95,8 +91,7 @@ object Parse
 
     def parse[T](p: Parser[T], in: Token.Reader): ParseResult[T] = p(in)
 
-    def parse_all[T](p: Parser[T], in: Token.Reader): ParseResult[T] =
-    {
+    def parse_all[T](p: Parser[T], in: Token.Reader): ParseResult[T] = {
       val result = parse(p, in)
       val rest = proper(result.next)
       if (result.successful && !rest.atEnd) Error("bad input", rest)

@@ -12,8 +12,7 @@ import scala.util.matching.Regex
 import scala.annotation.tailrec
 
 
-object Symbol
-{
+object Symbol {
   type Symbol = String
 
   // counting Isabelle symbols, starting from 1
@@ -28,8 +27,7 @@ object Symbol
 
   private val static_spaces = space * 4000
 
-  def spaces(n: Int): String =
-  {
+  def spaces(n: Int): String = {
     require(n >= 0, "negative spaces")
     if (n < static_spaces.length) static_spaces.substring(0, n)
     else space * n
@@ -69,8 +67,7 @@ object Symbol
   def is_ascii_identifier(s: String): Boolean =
     s.nonEmpty && is_ascii_letter(s(0)) && s.forall(is_ascii_letdig)
 
-  def ascii(c: Char): Symbol =
-  {
+  def ascii(c: Char): Symbol = {
     if (c > 127) error("Non-ASCII character: " + quote(c.toString))
     else char_symbol(c)
   }
@@ -95,8 +92,7 @@ object Symbol
   def is_newline(s: Symbol): Boolean =
     s == "\n" || s == "\r" || s == "\r\n"
 
-  class Matcher(text: CharSequence)
-  {
+  class Matcher(text: CharSequence) {
     private def ok(i: Int): Boolean = 0 <= i && i < text.length
     private def char(i: Int): Char = if (ok(i)) text.charAt(i) else 0
     private def maybe_char(c: Char, i: Int): Int = if (char(i) == c) i + 1 else i
@@ -106,8 +102,7 @@ object Symbol
     private def maybe_ascii_id(i: Int): Int =
       if (is_ascii_letter(char(i))) many_ascii_letdig(i + 1) else i
 
-    def match_length(i: Int): Int =
-    {
+    def match_length(i: Int): Int = {
       val a = char(i)
       val b = char(i + 1)
 
@@ -129,13 +124,11 @@ object Symbol
   /* iterator */
 
   def iterator(text: CharSequence): Iterator[Symbol] =
-    new Iterator[Symbol]
-    {
+    new Iterator[Symbol] {
       private val matcher = new Matcher(text)
       private var i = 0
       def hasNext: Boolean = i < text.length
-      def next(): Symbol =
-      {
+      def next(): Symbol = {
         val s = matcher.match_symbol(i)
         i += s.length
         s
@@ -158,14 +151,12 @@ object Symbol
 
   /* decoding offsets */
 
-  object Index
-  {
+  object Index {
     private sealed case class Entry(chr: Int, sym: Int)
 
     val empty: Index = new Index(Nil)
 
-    def apply(text: CharSequence): Index =
-    {
+    def apply(text: CharSequence): Index = {
       val matcher = new Matcher(text)
       val buf = new mutable.ListBuffer[Entry]
       var chr = 0
@@ -180,17 +171,14 @@ object Symbol
     }
   }
 
-  final class Index private(entries: List[Index.Entry])
-  {
+  final class Index private(entries: List[Index.Entry]) {
     private val hash: Int = entries.hashCode
     private val index: Array[Index.Entry] = entries.toArray
 
-    def decode(symbol_offset: Offset): Text.Offset =
-    {
+    def decode(symbol_offset: Offset): Text.Offset = {
       val sym = symbol_offset - 1
       val end = index.length
-      @tailrec def bisect(a: Int, b: Int): Int =
-      {
+      @tailrec def bisect(a: Int, b: Int): Int = {
         if (a < b) {
           val c = (a + b) / 2
           if (sym < index(c).sym) bisect(a, c)
@@ -216,8 +204,7 @@ object Symbol
 
   /* symbolic text chunks -- without actual text */
 
-  object Text_Chunk
-  {
+  object Text_Chunk {
     sealed abstract class Name
     case object Default extends Name
     case class Id(id: Document_ID.Generic) extends Name
@@ -227,8 +214,7 @@ object Symbol
       new Text_Chunk(Text.Range(0, text.length), Index(text))
   }
 
-  final class Text_Chunk private(val range: Text.Range, private val index: Index)
-  {
+  final class Text_Chunk private(val range: Text.Range, private val index: Index) {
     override def hashCode: Int = (range, index).hashCode
     override def equals(that: Any): Boolean =
       that match {
@@ -242,8 +228,7 @@ object Symbol
 
     def decode(symbol_offset: Offset): Text.Offset = index.decode(symbol_offset)
     def decode(symbol_range: Range): Text.Range = index.decode(symbol_range)
-    def incorporate(symbol_range: Range): Option[Text.Range] =
-    {
+    def incorporate(symbol_range: Range): Option[Text.Range] = {
       def in(r: Range): Option[Text.Range] =
         range.try_restrict(decode(r)) match {
           case Some(r1) if !r1.is_singularity => Some(r1)
@@ -256,10 +241,8 @@ object Symbol
 
   /* recoding text */
 
-  private class Recoder(list: List[(String, String)])
-  {
-    private val (min, max) =
-    {
+  private class Recoder(list: List[(String, String)]) {
+    private val (min, max) = {
       var min = '\uffff'
       var max = '\u0000'
       for ((x, _) <- list) {
@@ -269,8 +252,7 @@ object Symbol
       }
       (min, max)
     }
-    private val table =
-    {
+    private val table = {
       var tab = Map[String, String]()
       for ((x, y) <- list) {
         tab.get(x) match {
@@ -281,8 +263,7 @@ object Symbol
       }
       tab
     }
-    def recode(text: String): String =
-    {
+    def recode(text: String): String = {
       val len = text.length
       val matcher = new Symbol.Matcher(text)
       val result = new StringBuilder(len)
@@ -304,8 +285,7 @@ object Symbol
 
   /** defined symbols **/
 
-  object Argument extends Enumeration
-  {
+  object Argument extends Enumeration {
     val none, cartouche, space_cartouche = Value
 
     def unapply(s: String): Option[Value] =
@@ -313,8 +293,7 @@ object Symbol
       catch { case _: NoSuchElementException => None}
   }
 
-  object Entry
-  {
+  object Entry {
     private val Name = new Regex("""\\<\^?([A-Za-z][A-Za-z0-9_']*)>""")
     private val Argument = new Properties.String("argument")
     private val Abbrev = new Properties.String("abbrev")
@@ -322,8 +301,7 @@ object Symbol
     private val Font = new Properties.String("font")
     private val Group = new Properties.String("group")
 
-    def apply(symbol: Symbol, props: Properties.T): Entry =
-    {
+    def apply(symbol: Symbol, props: Properties.T): Entry = {
       def err(msg: String): Nothing = error(msg + " for symbol " + quote(symbol))
 
       val name =
@@ -363,8 +341,8 @@ object Symbol
     val code: Option[Int],
     val font: Option[String],
     val groups: List[String],
-    val abbrevs: List[String])
-  {
+    val abbrevs: List[String]
+  ) {
     override def toString: String = symbol
 
     val decode: Option[String] =
@@ -373,27 +351,22 @@ object Symbol
 
   lazy val symbols: Symbols = Symbols.load()
 
-  object Symbols
-  {
-    def load(static: Boolean = false): Symbols =
-    {
+  object Symbols {
+    def load(static: Boolean = false): Symbols = {
       val paths =
         if (static) List(Path.explode("~~/etc/symbols"))
         else Path.split(Isabelle_System.getenv("ISABELLE_SYMBOLS"))
       make(cat_lines(for (path <- paths if path.is_file) yield File.read(path)))
     }
 
-    def make(symbols_spec: String): Symbols =
-    {
+    def make(symbols_spec: String): Symbols = {
       val No_Decl = new Regex("""(?xs) ^\s* (?: \#.* )? $ """)
       val Key = new Regex("""(?xs) (.+): """)
 
-      def read_decl(decl: String): (Symbol, Properties.T) =
-      {
+      def read_decl(decl: String): (Symbol, Properties.T) = {
         def err() = error("Bad symbol declaration: " + decl)
 
-        def read_props(props: List[String]): Properties.T =
-        {
+        def read_props(props: List[String]): Properties.T = {
           props match {
             case Nil => Nil
             case _ :: Nil => err()
@@ -420,8 +393,7 @@ object Symbol
     }
   }
 
-  class Symbols(val entries: List[Entry])
-  {
+  class Symbols(val entries: List[Entry]) {
     override def toString: String = entries.mkString("Symbols(", ", ", ")")
 
 
@@ -452,8 +424,7 @@ object Symbol
 
     /* recoding */
 
-    private val (decoder, encoder) =
-    {
+    private val (decoder, encoder) = {
       val mapping =
         for (entry <- entries; s <- entry.decode) yield entry.symbol -> s
       (new Recoder(mapping), new Recoder(for ((x, y) <- mapping) yield (y, x)))
@@ -565,8 +536,7 @@ object Symbol
 
   def encode_yxml(body: XML.Body): String = encode(YXML.string_of_body(body))
 
-  def decode_strict(text: String): String =
-  {
+  def decode_strict(text: String): String = {
     val decoded = decode(text)
     if (encode(decoded) == text) decoded
     else {
@@ -685,8 +655,7 @@ object Symbol
     if (is_ascii(sym)) is_ascii_printable(sym(0))
     else !is_control(sym)
 
-  object Metric extends Pretty.Metric
-  {
+  object Metric extends Pretty.Metric {
     val unit = 1.0
     def apply(str: String): Double =
       (for (s <- iterator(str)) yield {

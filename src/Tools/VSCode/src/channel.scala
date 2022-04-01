@@ -14,8 +14,12 @@ import java.io.{InputStream, OutputStream, FileOutputStream, ByteArrayOutputStre
 import scala.collection.mutable
 
 
-class Channel(in: InputStream, out: OutputStream, log: Logger = No_Logger, verbose: Boolean = false)
-{
+class Channel(
+  in: InputStream,
+  out: OutputStream,
+  log: Logger = No_Logger,
+  verbose: Boolean = false
+) {
   /* read message */
 
   private val Content_Length = """^\s*Content-Length:\s*(\d+)\s*$""".r
@@ -26,23 +30,20 @@ class Channel(in: InputStream, out: OutputStream, log: Logger = No_Logger, verbo
       case None => ""
     }
 
-  private def read_header(): List[String] =
-  {
+  private def read_header(): List[String] = {
     val header = new mutable.ListBuffer[String]
     var line = ""
     while ({ line = read_line(); line != "" }) header += line
     header.toList
   }
 
-  private def read_content(n: Int): String =
-  {
+  private def read_content(n: Int): String = {
     val bytes = Bytes.read_stream(in, limit = n)
     if (bytes.length == n) bytes.text
     else error("Bad message content (unexpected EOF after " + bytes.length + " of " + n + " bytes)")
   }
 
-  def read(): Option[JSON.T] =
-  {
+  def read(): Option[JSON.T] = {
     read_header() match {
       case Nil => None
       case Content_Length(s) :: _ =>
@@ -61,8 +62,7 @@ class Channel(in: InputStream, out: OutputStream, log: Logger = No_Logger, verbo
 
   /* write message */
 
-  def write(json: JSON.T): Unit =
-  {
+  def write(json: JSON.T): Unit = {
     val msg = JSON.Format(json)
     val content = UTF8.bytes(msg)
     val n = content.length
@@ -90,8 +90,7 @@ class Channel(in: InputStream, out: OutputStream, log: Logger = No_Logger, verbo
   def log_warning(msg: String): Unit = display_message(LSP.MessageType.Warning, msg, false)
   def log_writeln(msg: String): Unit = display_message(LSP.MessageType.Info, msg, false)
 
-  object Error_Logger extends Logger
-  {
+  object Error_Logger extends Logger {
     def apply(msg: => String): Unit = log_error_message(msg)
   }
 

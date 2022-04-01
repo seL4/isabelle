@@ -15,8 +15,7 @@ import scala.collection.immutable.{SortedSet, SortedMap}
 import scala.collection.mutable
 
 
-object Sessions
-{
+object Sessions {
   /* session and theory names */
 
   val ROOTS: Path = Path.explode("ROOTS")
@@ -40,8 +39,7 @@ object Sessions
 
   /* ROOTS file format */
 
-  class File_Format extends isabelle.File_Format
-  {
+  class File_Format extends isabelle.File_Format {
     val format_name: String = roots_name
     val file_ext = ""
 
@@ -75,8 +73,8 @@ object Sessions
     imported_sources: List[(Path, SHA1.Digest)] = Nil,
     sources: List[(Path, SHA1.Digest)] = Nil,
     session_graph_display: Graph_Display.Graph = Graph_Display.empty_graph,
-    errors: List[String] = Nil)
-  {
+    errors: List[String] = Nil
+  ) {
     override def toString: String =
       "Sessions.Base(loaded_theories = " + loaded_theories.size +
         ", used_theories = " + used_theories.length + ")"
@@ -100,8 +98,7 @@ object Sessions
       nodes(name).syntax orElse loaded_theory_syntax(name) getOrElse overall_syntax
   }
 
-  sealed case class Deps(sessions_structure: Structure, session_bases: Map[String, Base])
-  {
+  sealed case class Deps(sessions_structure: Structure, session_bases: Map[String, Base]) {
     override def toString: String = "Sessions.Deps(" + sessions_structure + ")"
 
     def is_empty: Boolean = session_bases.isEmpty
@@ -130,15 +127,14 @@ object Sessions
   }
 
   def deps(sessions_structure: Structure,
-      progress: Progress = new Progress,
-      inlined_files: Boolean = false,
-      verbose: Boolean = false,
-      list_files: Boolean = false,
-      check_keywords: Set[String] = Set.empty): Deps =
-  {
+    progress: Progress = new Progress,
+    inlined_files: Boolean = false,
+    verbose: Boolean = false,
+    list_files: Boolean = false,
+    check_keywords: Set[String] = Set.empty
+  ): Deps = {
     var cache_sources = Map.empty[JFile, SHA1.Digest]
-    def check_sources(paths: List[Path]): List[(Path, SHA1.Digest)] =
-    {
+    def check_sources(paths: List[Path]): List[(Path, SHA1.Digest)] = {
       for {
         path <- paths
         file = path.file
@@ -204,13 +200,11 @@ object Sessions
                 progress, overall_syntax.keywords, check_keywords, theory_files)
             }
 
-            val session_graph_display: Graph_Display.Graph =
-            {
+            val session_graph_display: Graph_Display.Graph = {
               def session_node(name: String): Graph_Display.Node =
                 Graph_Display.Node("[" + name + "]", "session." + name)
 
-              def node(name: Document.Node.Name): Graph_Display.Node =
-              {
+              def node(name: Document.Node.Name): Graph_Display.Node = {
                 val qualifier = deps_base.theory_qualifier(name)
                 if (qualifier == info.name)
                   Graph_Display.Node(name.theory_base_name, "theory." + name.theory)
@@ -251,8 +245,7 @@ object Sessions
 
             val known_loaded_files = deps_base.known_loaded_files ++ loaded_files
 
-            val import_errors =
-            {
+            val import_errors = {
               val known_sessions =
                 sessions_structure.imports_requirements(List(session_name)).toSet
               for {
@@ -291,8 +284,7 @@ object Sessions
             val document_theories =
               info.document_theories.map({ case (thy, _) => known_theories(thy).name })
 
-            val dir_errors =
-            {
+            val dir_errors = {
               val ok = info.dirs.map(_.canonical_file).toSet
               val bad =
                 (for {
@@ -372,8 +364,8 @@ object Sessions
     sessions_structure: Structure,
     errors: List[String],
     base: Base,
-    infos: List[Info])
-  {
+    infos: List[Info]
+  ) {
     def check: Base_Info = if (errors.isEmpty) this else error(cat_lines(errors))
   }
 
@@ -383,8 +375,8 @@ object Sessions
     dirs: List[Path] = Nil,
     include_sessions: List[String] = Nil,
     session_ancestor: Option[String] = None,
-    session_requirements: Boolean = false): Base_Info =
-  {
+    session_requirements: Boolean = false
+  ): Base_Info = {
     val full_sessions = load_structure(options, dirs = dirs)
 
     val selected_sessions =
@@ -474,8 +466,8 @@ object Sessions
     document_theories: List[(String, Position.T)],
     document_files: List[(Path, Path)],
     export_files: List[(Path, Int, List[String])],
-    meta_digest: SHA1.Digest)
-  {
+    meta_digest: SHA1.Digest
+  ) {
     def chapter_session: String = chapter + "/" + name
 
     def relative_path(info1: Info): String =
@@ -485,8 +477,7 @@ object Sessions
 
     def deps: List[String] = parent.toList ::: imports
 
-    def deps_base(session_bases: String => Base): Base =
-    {
+    def deps_base(session_bases: String => Base): Base = {
       val parent_base = session_bases(parent.getOrElse(""))
       val imports_bases = imports.map(session_bases)
       parent_base.copy(
@@ -514,8 +505,7 @@ object Sessions
         case doc => error("Bad document specification " + quote(doc))
       }
 
-    def document_variants: List[Document_Build.Document_Variant] =
-    {
+    def document_variants: List[Document_Build.Document_Variant] = {
       val variants =
         Library.space_explode(':', options.string("document_variants")).
           map(Document_Build.Document_Variant.parse)
@@ -526,8 +516,7 @@ object Sessions
       variants
     }
 
-    def documents: List[Document_Build.Document_Variant] =
-    {
+    def documents: List[Document_Build.Document_Variant] = {
       val variants = document_variants
       if (!document_enabled || document_files.isEmpty) Nil else variants
     }
@@ -553,9 +542,13 @@ object Sessions
     def is_afp_bulky: Boolean = is_afp && groups.exists(AFP.groups_bulky.contains)
   }
 
-  def make_info(options: Options, dir_selected: Boolean, dir: Path, chapter: String,
-    entry: Session_Entry): Info =
-  {
+  def make_info(
+    options: Options,
+    dir_selected: Boolean,
+    dir: Path,
+    chapter: String,
+    entry: Session_Entry
+  ): Info = {
     try {
       val name = entry.name
 
@@ -615,8 +608,7 @@ object Sessions
     }
   }
 
-  object Selection
-  {
+  object Selection {
     val empty: Selection = Selection()
     val all: Selection = Selection(all_sessions = true)
     def session(session: String): Selection = Selection(sessions = List(session))
@@ -629,8 +621,8 @@ object Sessions
     exclude_session_groups: List[String] = Nil,
     exclude_sessions: List[String] = Nil,
     session_groups: List[String] = Nil,
-    sessions: List[String] = Nil)
-  {
+    sessions: List[String] = Nil
+  ) {
     def ++ (other: Selection): Selection =
       Selection(
         requirements = requirements || other.requirements,
@@ -642,17 +634,16 @@ object Sessions
         sessions = Library.merge(sessions, other.sessions))
   }
 
-  object Structure
-  {
+  object Structure {
     val empty: Structure = make(Nil)
 
-    def make(infos: List[Info]): Structure =
-    {
-      def add_edges(graph: Graph[String, Info], kind: String, edges: Info => Iterable[String])
-        : Graph[String, Info] =
-      {
-        def add_edge(pos: Position.T, name: String, g: Graph[String, Info], parent: String) =
-        {
+    def make(infos: List[Info]): Structure = {
+      def add_edges(
+        graph: Graph[String, Info],
+        kind: String,
+        edges: Info => Iterable[String]
+      ) : Graph[String, Info] = {
+        def add_edge(pos: Position.T, name: String, g: Graph[String, Info], parent: String) = {
           if (!g.defined(parent))
             error("Bad " + kind + " session " + quote(parent) + " for " +
               quote(name) + Position.here(pos))
@@ -725,12 +716,12 @@ object Sessions
   }
 
   final class Structure private[Sessions](
-      val session_positions: List[(String, Position.T)],
-      val session_directories: Map[JFile, String],
-      val global_theories: Map[String, String],
-      val build_graph: Graph[String, Info],
-      val imports_graph: Graph[String, Info])
-  {
+    val session_positions: List[(String, Position.T)],
+    val session_directories: Map[JFile, String],
+    val global_theories: Map[String, String],
+    val build_graph: Graph[String, Info],
+    val imports_graph: Graph[String, Info]
+  ) {
     sessions_structure =>
 
     def bootstrap: Base =
@@ -759,8 +750,7 @@ object Sessions
     def theory_qualifier(name: String): String =
       global_theories.getOrElse(name, Long_Name.qualifier(name))
 
-    def check_sessions(names: List[String]): Unit =
-    {
+    def check_sessions(names: List[String]): Unit = {
       val bad_sessions = SortedSet(names.filterNot(defined): _*).toList
       if (bad_sessions.nonEmpty)
         error("Undefined session(s): " + commas_quote(bad_sessions))
@@ -769,8 +759,7 @@ object Sessions
     def check_sessions(sel: Selection): Unit =
       check_sessions(sel.base_sessions ::: sel.exclude_sessions ::: sel.sessions)
 
-    private def selected(graph: Graph[String, Info], sel: Selection): List[String] =
-    {
+    private def selected(graph: Graph[String, Info], sel: Selection): List[String] = {
       check_sessions(sel)
 
       val select_group = sel.session_groups.toSet
@@ -789,12 +778,10 @@ object Sessions
       else selected0
     }
 
-    def selection(sel: Selection): Structure =
-    {
+    def selection(sel: Selection): Structure = {
       check_sessions(sel)
 
-      val excluded =
-      {
+      val excluded = {
         val exclude_group = sel.exclude_session_groups.toSet
         val exclude_group_sessions =
           (for {
@@ -804,8 +791,7 @@ object Sessions
         imports_graph.all_succs(exclude_group_sessions ::: sel.exclude_sessions).toSet
       }
 
-      def restrict(graph: Graph[String, Info]): Graph[String, Info] =
-      {
+      def restrict(graph: Graph[String, Info]): Graph[String, Info] = {
         val sessions = graph.all_preds(selected(graph, sel)).filterNot(excluded)
         graph.restrict(graph.all_preds(sessions).toSet)
       }
@@ -822,8 +808,8 @@ object Sessions
       progress: Progress = new Progress,
       loading_sessions: Boolean = false,
       inlined_files: Boolean = false,
-      verbose: Boolean = false): Deps =
-    {
+      verbose: Boolean = false
+    ): Deps = {
       val deps =
         Sessions.deps(sessions_structure.selection(selection),
           progress = progress, inlined_files = inlined_files, verbose = verbose)
@@ -904,25 +890,22 @@ object Sessions
     theories: List[(List[Options.Spec], List[((String, Position.T), Boolean)])],
     document_theories: List[(String, Position.T)],
     document_files: List[(String, String)],
-    export_files: List[(String, Int, List[String])]) extends Entry
-  {
+    export_files: List[(String, Int, List[String])]
+  ) extends Entry {
     def theories_no_position: List[(List[Options.Spec], List[(String, Boolean)])] =
       theories.map({ case (a, b) => (a, b.map({ case ((c, _), d) => (c, d) })) })
     def document_theories_no_position: List[String] =
       document_theories.map(_._1)
   }
 
-  private object Parser extends Options.Parser
-  {
-    private val chapter: Parser[Chapter] =
-    {
+  private object Parser extends Options.Parser {
+    private val chapter: Parser[Chapter] = {
       val chapter_name = atom("chapter name", _.is_name)
 
       command(CHAPTER) ~! chapter_name ^^ { case _ ~ a => Chapter(a) }
     }
 
-    private val session_entry: Parser[Session_Entry] =
-    {
+    private val session_entry: Parser[Session_Entry] = {
       val option =
         option_name ~ opt($$$("=") ~! option_value ^^ { case _ ~ x => x }) ^^
           { case x ~ y => (x, y) }
@@ -969,8 +952,7 @@ object Sessions
             Session_Entry(pos, a, b, c, d, e, f, g, h, i, j, k, l) }
     }
 
-    def parse_root(path: Path): List[Entry] =
-    {
+    def parse_root(path: Path): List[Entry] = {
       val toks = Token.explode(root_syntax.keywords, File.read(path))
       val start = Token.Pos.file(path.implode)
 
@@ -987,8 +969,7 @@ object Sessions
     for (entry <- Parser.parse_root(path) if entry.isInstanceOf[Session_Entry])
     yield entry.asInstanceOf[Session_Entry]
 
-  def read_root(options: Options, select: Boolean, path: Path): List[Info] =
-  {
+  def read_root(options: Options, select: Boolean, path: Path): List[Info] = {
     var entry_chapter = UNSORTED
     val infos = new mutable.ListBuffer[Info]
     parse_root(path).foreach {
@@ -999,8 +980,7 @@ object Sessions
     infos.toList
   }
 
-  def parse_roots(roots: Path): List[String] =
-  {
+  def parse_roots(roots: Path): List[String] = {
     for {
       line <- split_lines(File.read(roots))
       if !(line == "" || line.startsWith("#"))
@@ -1017,29 +997,27 @@ object Sessions
     if (is_session_dir(dir)) File.pwd() + dir.expand
     else error("Bad session root directory (missing ROOT or ROOTS): " + dir.expand.toString)
 
-  def directories(dirs: List[Path], select_dirs: List[Path]): List[(Boolean, Path)] =
-  {
+  def directories(dirs: List[Path], select_dirs: List[Path]): List[(Boolean, Path)] = {
     val default_dirs = Components.directories().filter(is_session_dir)
     for { (select, dir) <- (default_dirs ::: dirs).map((false, _)) ::: select_dirs.map((true, _)) }
     yield (select, dir.canonical)
   }
 
-  def load_structure(options: Options,
+  def load_structure(
+    options: Options,
     dirs: List[Path] = Nil,
     select_dirs: List[Path] = Nil,
-    infos: List[Info] = Nil): Structure =
-  {
+    infos: List[Info] = Nil
+  ): Structure = {
     def load_dir(select: Boolean, dir: Path): List[(Boolean, Path)] =
       load_root(select, dir) ::: load_roots(select, dir)
 
-    def load_root(select: Boolean, dir: Path): List[(Boolean, Path)] =
-    {
+    def load_root(select: Boolean, dir: Path): List[(Boolean, Path)] = {
       val root = dir + ROOT
       if (root.is_file) List((select, root)) else Nil
     }
 
-    def load_roots(select: Boolean, dir: Path): List[(Boolean, Path)] =
-    {
+    def load_roots(select: Boolean, dir: Path): List[(Boolean, Path)] = {
       val roots = dir + ROOTS
       if (roots.is_file) {
         for {
@@ -1079,8 +1057,7 @@ object Sessions
   /* Isabelle tool wrapper */
 
   val isabelle_tool = Isabelle_Tool("sessions", "explore structure of Isabelle sessions",
-    Scala_Project.here, args =>
-  {
+    Scala_Project.here, args => {
     var base_sessions: List[String] = Nil
     var select_dirs: List[Path] = Nil
     var requirements = false
@@ -1137,11 +1114,9 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
   private val sha1_prefix = "SHA1:"
 
-  def read_heap_digest(heap: Path): Option[String] =
-  {
+  def read_heap_digest(heap: Path): Option[String] = {
     if (heap.is_file) {
-      using(FileChannel.open(heap.java_path, StandardOpenOption.READ))(file =>
-      {
+      using(FileChannel.open(heap.java_path, StandardOpenOption.READ))(file => {
         val len = file.size
         val n = sha1_prefix.length + SHA1.digest_length
         if (len >= n) {
@@ -1183,8 +1158,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
   /** persistent store **/
 
-  object Session_Info
-  {
+  object Session_Info {
     val session_name = SQL.Column.string("session_name").make_primary_key
 
     // Build_Log.Session_Info
@@ -1210,8 +1184,8 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
   class Database_Context private[Sessions](
     val store: Sessions.Store,
-    database_server: Option[SQL.Database]) extends AutoCloseable
-  {
+    database_server: Option[SQL.Database]
+  ) extends AutoCloseable {
     def cache: Term.Cache = store.cache
 
     def close(): Unit = database_server.foreach(_.close())
@@ -1233,8 +1207,10 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
       }
 
     def read_export(
-      sessions: List[String], theory_name: String, name: String): Option[Export.Entry] =
-    {
+      sessions: List[String],
+      theory_name: String,
+      name: String
+    ): Option[Export.Entry] = {
       val attempts =
         database_server match {
           case Some(db) =>
@@ -1256,8 +1232,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
       read_export(session_hierarchy, theory_name, name) getOrElse
         Export.empty_entry(theory_name, name)
 
-    override def toString: String =
-    {
+    override def toString: String = {
       val s =
         database_server match {
           case Some(db) => db.toString
@@ -1270,8 +1245,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
   def store(options: Options, cache: Term.Cache = Term.Cache.make()): Store =
     new Store(options, cache)
 
-  class Store private[Sessions](val options: Options, val cache: Term.Cache)
-  {
+  class Store private[Sessions](val options: Options, val cache: Term.Cache) {
     store =>
 
     override def toString: String = "Store(output_dir = " + output_dir.absolute + ")"
@@ -1347,8 +1321,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     def open_database_context(): Database_Context =
       new Database_Context(store, if (database_server) Some(open_database_server()) else None)
 
-    def try_open_database(name: String, output: Boolean = false): Option[SQL.Database] =
-    {
+    def try_open_database(name: String, output: Boolean = false): Option[SQL.Database] = {
       def check(db: SQL.Database): Option[SQL.Database] =
         if (output || session_info_exists(db)) Some(db) else { db.close(); None }
 
@@ -1367,11 +1340,9 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
       try_open_database(name, output = output) getOrElse
         error("Missing build database for session " + quote(name))
 
-    def clean_output(name: String): (Boolean, Boolean) =
-    {
+    def clean_output(name: String): (Boolean, Boolean) = {
       val relevant_db =
-        database_server &&
-        {
+        database_server && {
           try_open_database(name) match {
             case Some(db) =>
               try {
@@ -1403,8 +1374,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
     def read_bytes(db: SQL.Database, name: String, column: SQL.Column): Bytes =
       db.using_statement(Session_Info.table.select(List(column),
-        Session_Info.session_name.where_equal(name)))(stmt =>
-      {
+        Session_Info.session_name.where_equal(name)))(stmt => {
         val res = stmt.execute_query()
         if (!res.next()) Bytes.empty else res.bytes(column)
       })
@@ -1415,8 +1385,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
     /* session info */
 
-    def init_session_info(db: SQL.Database, name: String): Unit =
-    {
+    def init_session_info(db: SQL.Database, name: String): Unit = {
       db.transaction {
         db.create_table(Session_Info.table)
         db.using_statement(
@@ -1433,8 +1402,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
       }
     }
 
-    def session_info_exists(db: SQL.Database): Boolean =
-    {
+    def session_info_exists(db: SQL.Database): Boolean = {
       val tables = db.tables
       tables.contains(Session_Info.table.name) &&
       tables.contains(Export.Data.table.name)
@@ -1442,8 +1410,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
     def session_info_defined(db: SQL.Database, name: String): Boolean =
       db.transaction {
-        session_info_exists(db) &&
-        {
+        session_info_exists(db) && {
           db.using_statement(
             Session_Info.table.select(List(Session_Info.session_name),
               Session_Info.session_name.where_equal(name)))(stmt => stmt.execute_query().next())
@@ -1454,11 +1421,10 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
       db: SQL.Database,
       name: String,
       build_log: Build_Log.Session_Info,
-      build: Build.Session_Info): Unit =
-    {
+      build: Build.Session_Info
+    ): Unit = {
       db.transaction {
-        db.using_statement(Session_Info.table.insert())(stmt =>
-        {
+        db.using_statement(Session_Info.table.insert())(stmt => {
           stmt.string(1) = name
           stmt.bytes(2) = Properties.encode(build_log.session_timing)
           stmt.bytes(3) = Properties.compress(build_log.command_timings, cache = cache.xz)
@@ -1496,12 +1462,10 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     def read_errors(db: SQL.Database, name: String): List[String] =
       Build_Log.uncompress_errors(read_bytes(db, name, Session_Info.errors), cache = cache)
 
-    def read_build(db: SQL.Database, name: String): Option[Build.Session_Info] =
-    {
+    def read_build(db: SQL.Database, name: String): Option[Build.Session_Info] = {
       if (db.tables.contains(Session_Info.table.name)) {
         db.using_statement(Session_Info.table.select(Session_Info.build_columns,
-          Session_Info.session_name.where_equal(name)))(stmt =>
-        {
+          Session_Info.session_name.where_equal(name)))(stmt => {
           val res = stmt.execute_query()
           if (!res.next()) None
           else {

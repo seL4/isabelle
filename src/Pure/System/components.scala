@@ -10,20 +10,17 @@ package isabelle
 import java.io.{File => JFile}
 
 
-object Components
-{
+object Components {
   /* archive name */
 
-  object Archive
-  {
+  object Archive {
     val suffix: String = ".tar.gz"
 
     def apply(name: String): String =
       if (name == "") error("Bad component name: " + quote(name))
       else name + suffix
 
-    def unapply(archive: String): Option[String] =
-    {
+    def unapply(archive: String): Option[String] = {
       for {
         name0 <- Library.try_unsuffix(suffix, archive)
         name <- proper_string(name0)
@@ -48,8 +45,7 @@ object Components
   def contrib(dir: Path = Path.current, name: String = ""): Path =
     dir + Path.explode("contrib") + Path.explode(name)
 
-  def unpack(dir: Path, archive: Path, progress: Progress = new Progress): String =
-  {
+  def unpack(dir: Path, archive: Path, progress: Progress = new Progress): String = {
     val name = Archive.get_name(archive.file_name)
     progress.echo("Unpacking " + name)
     Isabelle_System.gnutar("-xzf " + File.bash_path(archive), dir = dir).check
@@ -59,8 +55,8 @@ object Components
   def resolve(base_dir: Path, names: List[String],
     target_dir: Option[Path] = None,
     copy_dir: Option[Path] = None,
-    progress: Progress = new Progress): Unit =
-  {
+    progress: Progress = new Progress
+  ): Unit = {
     Isabelle_System.make_directory(base_dir)
     for (name <- names) {
       val archive_name = Archive(name)
@@ -89,8 +85,7 @@ object Components
   private val platforms_all: Set[String] =
     Set("x86-linux", "x86-cygwin") ++ platforms_family.iterator.flatMap(_._2)
 
-  def purge(dir: Path, platform: Platform.Family.Value): Unit =
-  {
+  def purge(dir: Path, platform: Platform.Family.Value): Unit = {
     val purge_set = platforms_all -- platforms_family(platform)
 
     File.find_files(dir.file,
@@ -124,8 +119,7 @@ object Components
 
   val components_sha1: Path = Path.explode("~~/Admin/components/components.sha1")
 
-  sealed case class SHA1_Digest(digest: SHA1.Digest, name: String)
-  {
+  sealed case class SHA1_Digest(digest: SHA1.Digest, name: String) {
     override def toString: String = digest.shasum(name)
   }
 
@@ -149,14 +143,12 @@ object Components
     if (components_path.is_file) Library.trim_split_lines(File.read(components_path))
     else Nil
 
-  def write_components(lines: List[String]): Unit =
-  {
+  def write_components(lines: List[String]): Unit = {
     Isabelle_System.make_directory(components_path.dir)
     File.write(components_path, Library.terminate_lines(lines))
   }
 
-  def update_components(add: Boolean, path0: Path, progress: Progress = new Progress): Unit =
-  {
+  def update_components(add: Boolean, path0: Path, progress: Progress = new Progress): Unit = {
     val path = path0.expand.absolute
     if (!check_dir(path) && !Sessions.is_session_dir(path)) error("Bad component directory: " + path)
 
@@ -175,8 +167,7 @@ object Components
 
   /* main entry point */
 
-  def main(args: Array[String]): Unit =
-  {
+  def main(args: Array[String]): Unit = {
     Command_Line.tool {
       for (arg <- args) {
         val add =
@@ -198,8 +189,8 @@ object Components
     progress: Progress = new Progress,
     publish: Boolean = false,
     force: Boolean = false,
-    update_components_sha1: Boolean = false): Unit =
-  {
+    update_components_sha1: Boolean = false
+  ): Unit = {
     val archives: List[Path] =
       for (path <- components) yield {
         path.file_name match {
@@ -232,8 +223,7 @@ object Components
     if ((publish && archives.nonEmpty) || update_components_sha1) {
       options.string("isabelle_components_server") match {
         case SSH.Target(user, host) =>
-          using(SSH.open_session(options, host = host, user = user))(ssh =>
-          {
+          using(SSH.open_session(options, host = host, user = user))(ssh => {
             val components_dir = Path.explode(options.string("isabelle_components_dir"))
             val contrib_dir = Path.explode(options.string("isabelle_components_contrib_dir"))
 
@@ -257,8 +247,7 @@ object Components
 
                 // contrib directory
                 val is_standard_component =
-                  Isabelle_System.with_tmp_dir("component")(tmp_dir =>
-                  {
+                  Isabelle_System.with_tmp_dir("component")(tmp_dir => {
                     Isabelle_System.gnutar("-xzf " + File.bash_path(archive), dir = tmp_dir).check
                     check_dir(tmp_dir + Path.explode(name))
                   })
@@ -321,8 +310,7 @@ object Components
 
   val isabelle_tool =
     Isabelle_Tool("build_components", "build and publish Isabelle components",
-      Scala_Project.here, args =>
-    {
+      Scala_Project.here, args => {
       var publish = false
       var update_components_sha1 = false
       var force = false

@@ -7,8 +7,7 @@ Build Isabelle SPASS component from unofficial download.
 package isabelle
 
 
-object Build_SPASS
-{
+object Build_SPASS {
   /* build SPASS */
 
   val default_download_url = "https://www.cs.vu.nl/~jbe248/spass-3.8ds-src.tar.gz"
@@ -18,10 +17,8 @@ object Build_SPASS
     download_url: String = default_download_url,
     verbose: Boolean = false,
     progress: Progress = new Progress,
-    target_dir: Path = Path.current): Unit =
-  {
-    Isabelle_System.with_tmp_dir("build")(tmp_dir =>
-    {
+    target_dir: Path = Path.current): Unit = {
+    Isabelle_System.with_tmp_dir("build")(tmp_dir => {
       Isabelle_System.require_command("bison")
       Isabelle_System.require_command("flex")
 
@@ -150,8 +147,7 @@ Viel SPASS!
 
   val isabelle_tool =
     Isabelle_Tool("build_spass", "build prover component from source distribution",
-      Scala_Project.here, args =>
-    {
+      Scala_Project.here, args => {
       var target_dir = Path.current
       var download_url = default_download_url
       var verbose = false

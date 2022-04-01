@@ -21,16 +21,14 @@ import org.gjt.sp.util.GenericGUIUtilities
 import org.jedit.keymap.{KeymapManager, Keymap}
 
 
-object Keymap_Merge
-{
+object Keymap_Merge {
   /** shortcuts **/
 
   private def is_shortcut(property: String): Boolean =
     (property.endsWith(".shortcut") || property.endsWith(".shortcut2")) &&
     !property.startsWith("options.shortcuts.")
 
-  class Shortcut(val property: String, val binding: String)
-  {
+  class Shortcut(val property: String, val binding: String) {
     override def toString: String = Properties.Eq(property, binding)
 
     def primary: Boolean = property.endsWith(".shortcut")
@@ -79,8 +77,10 @@ object Keymap_Merge
       result.sortBy(_.property)
     }
 
-  def get_shortcut_conflicts(keymap_name: String, keymap: Keymap): List[(Shortcut, List[Shortcut])] =
-  {
+  def get_shortcut_conflicts(
+    keymap_name: String,
+    keymap: Keymap
+  ): List[(Shortcut, List[Shortcut])] = {
     val keymap_shortcuts =
       if (keymap == null) Nil
       else convert_properties(Untyped.get[JProperties](keymap, "props"))
@@ -101,8 +101,7 @@ object Keymap_Merge
   private def conflict_color: Color =
     PIDE.options.color_value("error_color")
 
-  private sealed case class Table_Entry(shortcut: Shortcut, head: Option[Int], tail: List[Int])
-  {
+  private sealed case class Table_Entry(shortcut: Shortcut, head: Option[Int], tail: List[Int]) {
     override def toString: String =
       if (head.isEmpty) "<html>" + HTML.output(shortcut.toString) + "</html>"
       else
@@ -111,8 +110,7 @@ object Keymap_Merge
         "</font></html>"
   }
 
-  private class Table_Model(entries: List[Table_Entry]) extends AbstractTableModel
-  {
+  private class Table_Model(entries: List[Table_Entry]) extends AbstractTableModel {
     private val entries_count = entries.length
     private def has_entry(row: Int): Boolean = 0 <= row && row <= entries_count
     private def get_entry(row: Int): Option[Table_Entry] =
@@ -128,8 +126,7 @@ object Keymap_Merge
     private def select(head: Int, tail: List[Int], b: Boolean): Unit =
       selected.change(set => if (b) set + head -- tail else set - head ++ tail)
 
-    def apply(keymap_name: String, keymap: Keymap): Unit =
-    {
+    def apply(keymap_name: String, keymap: Keymap): Unit = {
       GUI_Thread.require {}
 
       for ((entry, row) <- entries.iterator.zipWithIndex if entry.head.isEmpty) {
@@ -153,8 +150,7 @@ object Keymap_Merge
 
     override def getRowCount: Int = entries_count
 
-    override def getValueAt(row: Int, column: Int): AnyRef =
-    {
+    override def getValueAt(row: Int, column: Int): AnyRef = {
       get_entry(row) match {
         case Some(entry) if column == 0 => java.lang.Boolean.valueOf(is_selected(row))
         case Some(entry) if column == 1 => entry
@@ -165,8 +161,7 @@ object Keymap_Merge
     override def isCellEditable(row: Int, column: Int): Boolean =
       has_entry(row) && column == 0
 
-    override def setValueAt(value: AnyRef, row: Int, column: Int): Unit =
-    {
+    override def setValueAt(value: AnyRef, row: Int, column: Int): Unit = {
       value match {
         case obj: java.lang.Boolean if has_entry(row) && column == 0 =>
           val b = obj.booleanValue
@@ -183,8 +178,7 @@ object Keymap_Merge
     }
   }
 
-  private class Table(table_model: Table_Model) extends JPanel(new BorderLayout)
-  {
+  private class Table(table_model: Table_Model) extends JPanel(new BorderLayout) {
     private val cell_size = GenericGUIUtilities.defaultTableCellSize()
     private val table_size = new Dimension(cell_size.width * 2, cell_size.height * 15)
 
@@ -213,8 +207,7 @@ object Keymap_Merge
 
   /** check with optional dialog **/
 
-  def check_dialog(view: View): Unit =
-  {
+  def check_dialog(view: View): Unit = {
     GUI_Thread.require {}
 
     val keymap_manager = jEdit.getKeymapManager
@@ -248,8 +241,9 @@ object Keymap_Merge
           "jEdit keymap " + quote(keymap_name) + ":",
           new Table(table_model),
           "Selected shortcuts will be applied, unselected changes will be ignored.",
-          "Results are stored in $JEDIT_SETTINGS/properties and $JEDIT_SETTINGS/keymaps/.") == 0)
-    { table_model.apply(keymap_name, keymap) }
+          "Results are stored in $JEDIT_SETTINGS/properties and $JEDIT_SETTINGS/keymaps/.") == 0) {
+      table_model.apply(keymap_name, keymap)
+    }
 
     no_shortcut_conflicts.foreach(_.set(keymap))
 

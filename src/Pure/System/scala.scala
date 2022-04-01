@@ -13,12 +13,10 @@ import scala.tools.nsc.{GenericRunnerSettings, ConsoleWriter, NewLinePrintWriter
 import scala.tools.nsc.interpreter.{IMain, Results}
 import scala.tools.nsc.interpreter.shell.ReplReporterImpl
 
-object Scala
-{
+object Scala {
   /** registered functions **/
 
-  abstract class Fun(val name: String, val thread: Boolean = false)
-  {
+  abstract class Fun(val name: String, val thread: Boolean = false) {
     override def toString: String = name
     def multi: Boolean = true
     def position: Properties.T = here.position
@@ -27,16 +25,14 @@ object Scala
   }
 
   abstract class Fun_Strings(name: String, thread: Boolean = false)
-    extends Fun(name, thread = thread)
-  {
+  extends Fun(name, thread = thread) {
     override def invoke(args: List[Bytes]): List[Bytes] =
       apply(args.map(_.text)).map(Bytes.apply)
     def apply(args: List[String]): List[String]
   }
 
   abstract class Fun_String(name: String, thread: Boolean = false)
-    extends Fun_Strings(name, thread = thread)
-  {
+  extends Fun_Strings(name, thread = thread) {
     override def multi: Boolean = false
     override def apply(args: List[String]): List[String] =
       List(apply(Library.the_single(args)))
@@ -52,17 +48,14 @@ object Scala
 
   /** demo functions **/
 
-  object Echo extends Fun_String("echo")
-  {
+  object Echo extends Fun_String("echo") {
     val here = Scala_Project.here
     def apply(arg: String): String = arg
   }
 
-  object Sleep extends Fun_String("sleep")
-  {
+  object Sleep extends Fun_String("sleep") {
     val here = Scala_Project.here
-    def apply(seconds: String): String =
-    {
+    def apply(seconds: String): String = {
       val t =
         seconds match {
           case Value.Double(s) => Time.seconds(s)
@@ -86,12 +79,11 @@ object Scala
       elem <- space_explode(JFile.pathSeparatorChar, elems) if elem.nonEmpty
     } yield elem
 
-  object Compiler
-  {
+  object Compiler {
     def context(
       error: String => Unit = Exn.error,
-      jar_dirs: List[JFile] = Nil): Context =
-    {
+      jar_dirs: List[JFile] = Nil
+    ): Context = {
       def find_jars(dir: JFile): List[String] =
         File.find_files(dir, file => file.getName.endsWith(".jar")).
           map(File.absolute_name)
@@ -106,24 +98,21 @@ object Scala
     def default_print_writer: PrintWriter =
       new NewLinePrintWriter(new ConsoleWriter, true)
 
-    class Context private [Compiler](val settings: GenericRunnerSettings)
-    {
+    class Context private [Compiler](val settings: GenericRunnerSettings) {
       override def toString: String = settings.toString
 
       def interpreter(
         print_writer: PrintWriter = default_print_writer,
-        class_loader: ClassLoader = null): IMain =
-      {
-        new IMain(settings, new ReplReporterImpl(settings, print_writer))
-        {
+        class_loader: ClassLoader = null
+      ): IMain = {
+        new IMain(settings, new ReplReporterImpl(settings, print_writer)) {
           override def parentClassLoader: ClassLoader =
             if (class_loader == null) super.parentClassLoader
             else class_loader
         }
       }
 
-      def toplevel(interpret: Boolean, source: String): List[String] =
-      {
+      def toplevel(interpret: Boolean, source: String): List[String] = {
         val out = new StringWriter
         val interp = interpreter(new PrintWriter(out))
         val marker = '\u000b'
@@ -144,11 +133,9 @@ object Scala
     }
   }
 
-  object Toplevel extends Fun_String("scala_toplevel")
-  {
+  object Toplevel extends Fun_String("scala_toplevel") {
     val here = Scala_Project.here
-    def apply(arg: String): String =
-    {
+    def apply(arg: String): String = {
       val (interpret, source) =
         YXML.parse_body(arg) match {
           case Nil => (false, "")
@@ -168,8 +155,7 @@ object Scala
 
   /* invoke function */
 
-  object Tag extends Enumeration
-  {
+  object Tag extends Enumeration {
     val NULL, OK, ERROR, FAIL, INTERRUPT = Value
   }
 
@@ -194,8 +180,7 @@ object Scala
 
   /* protocol handler */
 
-  class Handler extends Session.Protocol_Handler
-  {
+  class Handler extends Session.Protocol_Handler {
     private var session: Session = null
     private var futures = Map.empty[String, Future[Unit]]
 
@@ -215,8 +200,7 @@ object Scala
         }
       }
 
-    private def cancel(id: String, future: Future[Unit]): Unit =
-    {
+    private def cancel(id: String, future: Future[Unit]): Unit = {
       future.cancel()
       result(id, Scala.Tag.INTERRUPT, Nil)
     }
@@ -224,8 +208,7 @@ object Scala
     private def invoke_scala(msg: Prover.Protocol_Output): Boolean = synchronized {
       msg.properties match {
         case Markup.Invoke_Scala(name, id) =>
-          def body: Unit =
-          {
+          def body: Unit = {
             val (tag, res) = Scala.function_body(name, msg.chunks)
             result(id, tag, res)
           }

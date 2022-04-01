@@ -10,13 +10,11 @@ import scala.util.parsing.combinator.Parsers
 import scala.util.parsing.input
 
 
-object Thy_Element
-{
+object Thy_Element {
   /* datatype element */
 
   type Proof[A] = (List[Element[A]], A)
-  sealed case class Element[A](head: A, proof: Option[Proof[A]])
-  {
+  sealed case class Element[A](head: A, proof: Option[Proof[A]]) {
     def iterator: Iterator[A] =
       Iterator(head) ++
         (for {
@@ -52,24 +50,20 @@ object Thy_Element
 
   type Element_Command = Element[Command]
 
-  def parse_elements(keywords: Keyword.Keywords, commands: List[Command]): List[Element_Command] =
-  {
-    case class Reader(in: List[Command]) extends input.Reader[Command]
-    {
+  def parse_elements(keywords: Keyword.Keywords, commands: List[Command]): List[Element_Command] = {
+    case class Reader(in: List[Command]) extends input.Reader[Command] {
       def first: Command = in.head
       def rest: Reader = Reader(in.tail)
       def pos: input.Position = input.NoPosition
       def atEnd: Boolean = in.isEmpty
     }
 
-    object Parser extends Parsers
-    {
+    object Parser extends Parsers {
       type Elem = Command
 
       def command(pred: Command => Boolean): Parser[Command] =
         new Parser[Elem] {
-          def apply(in: Input) =
-          {
+          def apply(in: Input) = {
             if (in.atEnd) Failure("end of input", in)
             else {
               val command = in.first

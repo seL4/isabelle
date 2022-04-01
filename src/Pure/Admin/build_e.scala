@@ -7,8 +7,7 @@ Build Isabelle E prover component from official downloads.
 package isabelle
 
 
-object Build_E
-{
+object Build_E {
   /* build E prover */
 
   val default_version = "2.6"
@@ -19,10 +18,9 @@ object Build_E
     download_url: String = default_download_url,
     verbose: Boolean = false,
     progress: Progress = new Progress,
-    target_dir: Path = Path.current): Unit =
-  {
-    Isabelle_System.with_tmp_dir("build")(tmp_dir =>
-    {
+    target_dir: Path = Path.current
+  ): Unit = {
+    Isabelle_System.with_tmp_dir("build")(tmp_dir => {
       /* component */
 
       val component_name = "e-" + version
@@ -51,8 +49,7 @@ object Build_E
       progress.echo("Building E prover for " + platform_name + " ...")
 
       val build_dir = tmp_dir + Path.basic("E")
-      val build_options =
-      {
+      val build_options = {
         val result = Isabelle_System.bash("./configure --help", cwd = build_dir.file)
         if (result.check.out.containsSlice("--enable-ho")) " --enable-ho" else ""
       }
@@ -110,8 +107,7 @@ Isabelle component directory: x86_64-linux etc.
 
   val isabelle_tool =
     Isabelle_Tool("build_e", "build prover component from source distribution", Scala_Project.here,
-    args =>
-    {
+    args => {
       var target_dir = Path.current
       var version = default_version
       var download_url = default_download_url
