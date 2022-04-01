@@ -249,7 +249,7 @@ object ML_Lex
           (x => Token(Kind.ERROR, x))
 
       space | (ml_control | (recover | (ml_antiq |
-        (((word | (real | (int | (long_ident | (ident | type_var))))) ||| keyword) | bad))))
+        ((keyword ||| (word | (real | (int | (long_ident | (ident | type_var)))))) | bad))))
     }
 
     def token: Parser[Token] =

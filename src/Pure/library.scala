@@ -75,7 +75,12 @@ object Library
       private def next_chunk(i: Int): Option[(CharSequence, Int)] =
       {
         if (i < end) {
-          var j = i; do j += 1 while (j < end && !sep(source.charAt(j)))
+          var j = i
+          var cont = true
+          while (cont) {
+            j += 1
+            cont = (j < end && !sep(source.charAt(j)))
+          }
           Some((source.subSequence(i + 1, j), j))
         }
         else None
