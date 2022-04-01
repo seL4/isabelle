@@ -300,7 +300,7 @@ val default_slice_schedule =
   (* FUDGE (inspired by Seventeen evaluation) *)
   [cvc4N, zipperpositionN, vampireN, veritN, eN, cvc4N, zipperpositionN, cvc4N, vampireN, cvc4N,
    cvc4N, vampireN, cvc4N, iproverN, zipperpositionN, vampireN, vampireN, zipperpositionN, z3N,
-   cvc4N, vampireN, iproverN, vampireN, zipperpositionN, z3N, z3N, cvc4N, cvc4N]
+   zipperpositionN, vampireN, iproverN, vampireN, cvc4N, z3N, z3N, cvc4N, cvc4N]
 
 fun schedule_of_provers provers num_slices =
   let
