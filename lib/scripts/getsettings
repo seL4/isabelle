@@ -130,7 +130,7 @@ else
 fi
 
 if [ -e "$ISABELLE_SETUP_JAR" ]; then
-  ISABELLE_SETUP_CLASSPATH="$(isabelle_java java -jar "$(platform_path "$ISABELLE_SETUP_JAR")" classpath)"
+  ISABELLE_SETUP_CLASSPATH="$(isabelle_jdk java -classpath "$(platform_path "$ISABELLE_SETUP_JAR")" isabelle.setup.Setup classpath)"
 fi
 
 set +o allexport

@@ -10,7 +10,7 @@ Contributions to this Isabelle version
   Various improvements to Isabelle/VSCode.
 
 * March 2021: Florian Haftmann, TU München
-  More ambitious minimazation of case expressions in generated code.
+  More ambitious minimization of case expressions in generated code.
 
 
 Contributions to Isabelle2021-1

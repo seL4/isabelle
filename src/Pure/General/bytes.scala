@@ -75,10 +75,12 @@ object Bytes
       val buf = new Array[Byte](8192)
       var m = 0
 
-      do {
+      var cont = true
+      while (cont) {
         m = stream.read(buf, 0, buf.length min (limit - out.size))
         if (m != -1) out.write(buf, 0, m)
-      } while (m != -1 && limit > out.size)
+        cont = (m != -1 && limit > out.size)
+      }
 
       new Bytes(out.toByteArray, 0, out.size)
     }

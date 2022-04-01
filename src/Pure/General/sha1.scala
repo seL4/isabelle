@@ -40,10 +40,12 @@ object SHA1
       {
         val buf = new Array[Byte](65536)
         var m = 0
-        do {
+        var cont = true
+        while (cont) {
           m = stream.read(buf, 0, buf.length)
           if (m != -1) sha.update(buf, 0, m)
-        } while (m != -1)
+          cont = (m != -1)
+        }
       }))
 
   def digest(path: Path): Digest = digest(path.file)

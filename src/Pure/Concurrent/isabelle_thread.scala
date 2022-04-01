@@ -148,22 +148,19 @@ class Isabelle_Thread private(main: Runnable, name: String, group: ThreadGroup,
   // synchronized, with concurrent changes
   private var interrupt_postponed: Boolean = false
 
-  def clear_interrupt: Boolean = synchronized
-  {
+  def clear_interrupt: Boolean = synchronized {
     val was_interrupted = isInterrupted || interrupt_postponed
     Exn.Interrupt.dispose()
     interrupt_postponed = false
     was_interrupted
   }
 
-  def raise_interrupt: Unit = synchronized
-  {
+  def raise_interrupt: Unit = synchronized {
     interrupt_postponed = false
     super.interrupt()
   }
 
-  def postpone_interrupt: Unit = synchronized
-  {
+  def postpone_interrupt: Unit = synchronized {
     interrupt_postponed = true
     Exn.Interrupt.dispose()
   }

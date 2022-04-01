@@ -80,27 +80,23 @@ object ML_Statistics
     private var session: Session = null
     private var monitoring: Future[Unit] = Future.value(())
 
-    override def init(session: Session): Unit = synchronized
-    {
+    override def init(session: Session): Unit = synchronized {
       this.session = session
     }
 
-    override def exit(): Unit = synchronized
-    {
+    override def exit(): Unit = synchronized {
       session = null
       monitoring.cancel()
     }
 
-    private def consume(props: Properties.T): Unit = synchronized
-    {
+    private def consume(props: Properties.T): Unit = synchronized {
       if (session != null) {
         val props1 = (session.cache.props(props ::: Java_Statistics.jvm_statistics()))
         session.runtime_statistics.post(Session.Runtime_Statistics(props1))
       }
     }
 
-    private def ml_statistics(msg: Prover.Protocol_Output): Boolean = synchronized
-    {
+    private def ml_statistics(msg: Prover.Protocol_Output): Boolean = synchronized {
       msg.properties match {
         case Markup.ML_Statistics(pid, stats_dir) =>
           monitoring =

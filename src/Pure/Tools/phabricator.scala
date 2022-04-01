@@ -951,12 +951,14 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
       val results = new mutable.ListBuffer[A]
       var after = ""
 
-      do {
+      var cont = true
+      while (cont) {
         val result =
           execute(method, params = params ++ JSON.optional("after" -> proper_string(after)))
         results ++= result.get_value(JSON.list(_, "data", unapply))
         after = result.get_value(JSON.value(_, "cursor", JSON.string0(_, "after")))
-      } while (after.nonEmpty)
+        cont = after.nonEmpty
+      }
 
       results.toList
     }

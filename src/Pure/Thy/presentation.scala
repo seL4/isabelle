@@ -210,7 +210,7 @@ object Presentation
   /* HTML output */
 
   private val div_elements =
-    Set(HTML.div.name, HTML.pre.name, HTML.par.name, HTML.list.name, HTML.enum.name,
+    Set(HTML.div.name, HTML.pre.name, HTML.par.name, HTML.list.name, HTML.`enum`.name,
       HTML.descr.name)
 
   def make_html(
@@ -261,7 +261,7 @@ object Presentation
           (Nil, end_offset - XML.symbol_length(text))
         case XML.Elem(Markup.Markdown_List(kind), body) =>
           val (body1, offset) = html_body(body, end_offset)
-          if (kind == Markup.ENUMERATE) (List(HTML.enum(body1)), offset)
+          if (kind == Markup.ENUMERATE) (List(HTML.`enum`(body1)), offset)
           else (List(HTML.list(body1)), offset)
         case XML.Elem(markup, body) =>
           val name = markup.name

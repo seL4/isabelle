@@ -89,8 +89,8 @@ object Token
         (x => Token(Token.Kind.SYM_IDENT, x))
 
       val keyword =
-        literal(keywords.minor) ^^ (x => Token(Token.Kind.KEYWORD, x)) |||
-        literal(keywords.major) ^^ (x => Token(Token.Kind.COMMAND, x))
+        literal(keywords.major) ^^ (x => Token(Token.Kind.COMMAND, x)) |||
+        literal(keywords.minor) ^^ (x => Token(Token.Kind.KEYWORD, x))
 
       val space = many1(Symbol.is_blank) ^^ (x => Token(Token.Kind.SPACE, x))
 
@@ -102,8 +102,8 @@ object Token
       val bad = one(_ => true) ^^ (x => Token(Token.Kind.ERROR, x))
 
       space | (recover_delimited |
-        (((ident | (var_ | (type_ident | (type_var | (float | (nat_ | sym_ident)))))) |||
-          keyword) | bad))
+        ((keyword |||
+          (ident | (var_ | (type_ident | (type_var | (float | (nat_ | sym_ident))))))) | bad))
     }
 
     def token(keywords: Keyword.Keywords): Parser[Token] =

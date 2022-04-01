@@ -95,7 +95,7 @@ longer. INCOMPATIBILITY.
 * (Co)datatype package:
   - Lemma map_ident_strong is now generated for all BNFs.
 
-* More ambitious minimazation of case expressions in generated code.
+* More ambitious minimization of case expressions in generated code.
 
 
 *** System ***

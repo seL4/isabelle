@@ -1150,11 +1150,12 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
           val buf = ByteBuffer.allocate(n)
           var i = 0
           var m = 0
-          do {
+          var cont = true
+          while (cont) {
             m = file.read(buf)
             if (m != -1) i += m
+            cont = (m != -1 && n > i)
           }
-          while (m != -1 && n > i)
 
           if (i == n) {
             val prefix = new String(buf.array(), 0, sha1_prefix.length, UTF8.charset)
