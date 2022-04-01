@@ -202,15 +202,13 @@ object Scala
     override def init(session: Session): Unit =
       synchronized { this.session = session }
 
-    override def exit(): Unit = synchronized
-    {
+    override def exit(): Unit = synchronized {
       for ((id, future) <- futures) cancel(id, future)
       futures = Map.empty
     }
 
     private def result(id: String, tag: Scala.Tag.Value, res: List[Bytes]): Unit =
-      synchronized
-      {
+      synchronized {
         if (futures.isDefinedAt(id)) {
           session.protocol_command_raw("Scala.result", Bytes(id) :: Bytes(tag.id.toString) :: res)
           futures -= id
@@ -223,8 +221,7 @@ object Scala
       result(id, Scala.Tag.INTERRUPT, Nil)
     }
 
-    private def invoke_scala(msg: Prover.Protocol_Output): Boolean = synchronized
-    {
+    private def invoke_scala(msg: Prover.Protocol_Output): Boolean = synchronized {
       msg.properties match {
         case Markup.Invoke_Scala(name, id) =>
           def body: Unit =
@@ -243,8 +240,7 @@ object Scala
       }
     }
 
-    private def cancel_scala(msg: Prover.Protocol_Output): Boolean = synchronized
-    {
+    private def cancel_scala(msg: Prover.Protocol_Output): Boolean = synchronized {
       msg.properties match {
         case Markup.Cancel_Scala(id) =>
           futures.get(id) match {

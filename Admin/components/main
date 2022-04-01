@@ -21,7 +21,7 @@ opam-2.0.7
 pdfjs-2.12.313
 polyml-test-15c840d48c9a
 postgresql-42.2.24
-scala-2.13.5
+scala-2.13.5-1
 smbc-0.4.1
 spass-3.8ds-2
 sqlite-jdbc-3.36.0.3
