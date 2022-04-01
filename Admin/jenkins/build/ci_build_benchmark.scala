@@ -1,5 +1,4 @@
-object profile extends isabelle.CI_Profile
-{
+object profile extends isabelle.CI_Profile {
 
   import isabelle._
 
