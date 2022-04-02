@@ -231,14 +231,14 @@ fun associated_abstype (Proj (_, tyco_abs)) = SOME tyco_abs
 
 (* cases *)
 
-type case_schema = int * (int * string option list);
+type case_schema = int * (int * (string * int) option list);
 
 datatype case_spec =
     No_Case
   | Case of {schema: case_schema, tycos: string list, cong: thm}
   | Undefined;
 
-fun associated_datatypes (Case {tycos, schema = (_, (_, raw_cos)), ...}) = (tycos, map_filter I raw_cos)
+fun associated_datatypes (Case {tycos, schema = (_, (_, raw_cos)), ...}) = (tycos, map fst (map_filter I raw_cos))
   | associated_datatypes _ = ([], []);
 
 
@@ -1235,7 +1235,7 @@ fun print_codesetup thy =
                       :: map (Pretty.quote o Syntax.pretty_typ_global thy) tys)) cos)
       );
     fun pretty_case_param NONE = "<ignored>"
-      | pretty_case_param (SOME c) = string_of_const thy c
+      | pretty_case_param (SOME (c, _)) = string_of_const thy c
     fun pretty_case (const, Case {schema = (_, (_, [])), ...}) =
           Pretty.str (string_of_const thy const)
       | pretty_case (const, Case {schema = (_, (_, cos)), ...}) =
@@ -1511,7 +1511,8 @@ fun declare_case_global thm thy =
         [] => ()
       | cs => error ("Non-constructor(s) in case certificate: " ^ commas_quote cs);
     val tycos = distinct (op =) (map_filter snd cos_with_tycos);
-    val schema = (1 + Int.max (1, length cos), (k, cos));
+    val schema = (1 + Int.max (1, length cos),
+      (k, (map o Option.map) (fn c => (c, args_number thy c)) cos));
     val cong = case_cong thy case_const schema;
   in
     thy

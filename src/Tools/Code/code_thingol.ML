@@ -483,7 +483,7 @@ fun mk_tagged_type (true, T) = Type ("", [T])
 fun dest_tagged_type (Type ("", [T])) = (true, T)
   | dest_tagged_type T = (false, T);
 
-val untag_term = map_types (snd o dest_tagged_type);
+val fastype_of_tagged_term = fastype_of o map_types (snd o dest_tagged_type);
 
 fun tag_term (proj_sort, _) eqngr =
   let
@@ -722,14 +722,6 @@ and translate_app_const ctxt algbr eqngr permissive some_thm ((c_ty, ts), some_a
   translate_const ctxt algbr eqngr permissive some_thm (c_ty, some_abs)
   ##>> fold_map (translate_term ctxt algbr eqngr permissive some_thm o rpair NONE) ts
   #>> (fn (t, ts) => t `$$ ts)
-and translate_constr ctxt algbr eqngr permissive some_thm ty_case (c, t) =
-  let
-    val n = Code.args_number (Proof_Context.theory_of ctxt) c;
-    val ty = (untag_term #> fastype_of #> binder_types #> take n) t ---> ty_case;
-  in
-    translate_const ctxt algbr eqngr permissive some_thm ((c, ty), NONE)
-    #>> rpair n
-  end
 and translate_case ctxt algbr eqngr permissive some_thm (t_pos, []) (c_ty, ts) =
       let
         fun project_term xs = nth xs t_pos;
@@ -755,7 +747,9 @@ and translate_case ctxt algbr eqngr permissive some_thm (t_pos, []) (c_ty, ts) =
           |> curry (op ~~) case_pats
           |> map_filter (fn (NONE, _) => NONE | (SOME _, x) => SOME x);
         val ty_case = project_term (binder_types (snd c_ty));
-        val constrs = map_filter I case_pats ~~ project_cases ts;
+        val constrs = map_filter I case_pats ~~ project_cases ts
+          |> map (fn ((c, n), t) =>
+            ((c, (take n o binder_types o fastype_of_tagged_term) t ---> ty_case), n));
         fun distill_clauses constrs ts_clause =
           maps (fn ((constr as IConst { dom = tys, ... }, n), t) =>
             map (fn (pat_args, body) => (constr `$$ pat_args, body))
@@ -765,7 +759,8 @@ and translate_case ctxt algbr eqngr permissive some_thm (t_pos, []) (c_ty, ts) =
         translate_const ctxt algbr eqngr permissive some_thm (c_ty, NONE)
         ##>> fold_map (translate_term ctxt algbr eqngr permissive some_thm o rpair NONE) ts
         ##>> translate_typ ctxt algbr eqngr permissive ty_case
-        ##>> fold_map (translate_constr ctxt algbr eqngr permissive some_thm ty_case) constrs
+        ##>> fold_map (fn (c_ty, n) =>
+          translate_const ctxt algbr eqngr permissive some_thm (c_ty, NONE) #>> rpair n) constrs
         #>> (fn (((t_app, ts), ty_case), constrs) =>
             ICase { term = project_term ts, typ = ty_case,
               clauses = (filter_out (is_undefined_clause ctxt) o distill_clauses constrs o project_cases) ts,
