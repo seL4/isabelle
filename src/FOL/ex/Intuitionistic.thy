@@ -65,6 +65,14 @@ lemma
     \<longrightarrow> (((F \<longrightarrow> A) \<longrightarrow> B) \<longrightarrow> I) \<longrightarrow> E\<close>
   by (tactic \<open>IntPr.fast_tac \<^context> 1\<close>)
 
+text \<open>Admissibility of the excluded middle for negated formulae\<close>
+lemma \<open>(P \<or> \<not>P \<longrightarrow> \<not>Q) \<longrightarrow> \<not>Q\<close>
+  by (tactic \<open>IntPr.fast_tac \<^context> 1\<close>)
+
+text \<open>The same in a more general form, no ex falso quodlibet\<close>
+lemma \<open>(P \<or> (P\<longrightarrow>R) \<longrightarrow> Q \<longrightarrow> R) \<longrightarrow> Q \<longrightarrow> R\<close>
+  by (tactic \<open>IntPr.fast_tac \<^context> 1\<close>)
+
 
 subsection \<open>Lemmas for the propositional double-negation translation\<close>
 
