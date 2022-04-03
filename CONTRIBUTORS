@@ -10,7 +10,9 @@ Contributions to this Isabelle version
   Various improvements to Isabelle/VSCode.
 
 * March 2021: Florian Haftmann, TU München
-  More ambitious minimization of case expressions in generated code.
+  More ambitious minimization of case expressions in generated code;
+  code generation: type annotations in pattern bindings are printed in a
+  way suitable for Scala 3.
 
 
 Contributions to Isabelle2021-1

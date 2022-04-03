@@ -160,8 +160,8 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
             fun print_match_val ((pat, ty), t) vars =
               vars
               |> print_bind tyvars some_thm BR pat
-              |>> (fn p => (false, concat [str "val", constraint p (print_typ tyvars NOBR ty),
-                  str "=", print_term tyvars false some_thm vars NOBR t]));
+              |>> (fn p => (false, concat [str "val", p, str "=",
+                constraint (print_term tyvars false some_thm vars NOBR t) (print_typ tyvars NOBR ty)]));
             fun print_match_seq t vars =
               ((true, print_term tyvars false some_thm vars NOBR t), vars);
             fun print_match is_first ((IVar NONE, ty), t) =
