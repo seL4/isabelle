@@ -84,7 +84,7 @@ object Options {
 
   val prefs_syntax: Outer_Syntax = Outer_Syntax.empty + "="
 
-  trait Parser extends Parse.Parser {
+  trait Parsers extends Parse.Parsers {
     val option_name: Parser[String] = atom("option name", _.is_name)
     val option_type: Parser[String] = atom("option type", _.is_name)
     val option_value: Parser[String] =
@@ -95,7 +95,7 @@ object Options {
       $$$("(") ~! $$$(STANDARD) ~ opt(option_value) ~ $$$(")") ^^ { case _ ~ _ ~ a ~ _ => a }
   }
 
-  private object Parser extends Parser {
+  private object Parsers extends Parsers {
     def comment_marker: Parser[String] =
       $$$("--") | $$$(Symbol.comment) | $$$(Symbol.comment_decoded)
 
@@ -143,8 +143,8 @@ object Options {
     for {
       dir <- Components.directories()
       file = dir + OPTIONS if file.is_file
-    } { options = Parser.parse_file(options, file.implode, File.read(file)) }
-    opts.foldLeft(Options.Parser.parse_prefs(options, prefs))(_ + _)
+    } { options = Parsers.parse_file(options, file.implode, File.read(file)) }
+    opts.foldLeft(Parsers.parse_prefs(options, prefs))(_ + _)
   }
 
 

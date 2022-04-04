@@ -123,7 +123,7 @@ object Thy_Header {
 
   /* parser */
 
-  trait Parser extends Parse.Parser {
+  trait Parsers extends Parse.Parsers {
     val header: Parser[Thy_Header] = {
       val load_command =
         ($$$("(") ~! (position(name) <~ $$$(")")) ^^ { case _ ~ x => x }) |
@@ -199,7 +199,7 @@ object Thy_Header {
     (drop_tokens, tokens1 ::: tokens2)
   }
 
-  private object Parser extends Parser {
+  private object Parsers extends Parsers {
     def parse_header(tokens: List[Token], pos: Token.Pos): Thy_Header =
       parse(commit(header), Token.reader(tokens, pos)) match {
         case Success(result, _) => result
@@ -219,7 +219,7 @@ object Thy_Header {
       if (command) Token.Pos.command
       else skip_tokens.foldLeft(Token.Pos.file(node_name.node))(_ advance _)
 
-    Parser.parse_header(tokens, pos).map(Symbol.decode).check(node_name)
+    Parsers.parse_header(tokens, pos).map(Symbol.decode).check(node_name)
   }
 }
 

@@ -6,7 +6,7 @@ Theory elements: statements with optional proof.
 
 package isabelle
 
-import scala.util.parsing.combinator.Parsers
+import scala.util.parsing.combinator
 import scala.util.parsing.input
 
 
@@ -58,7 +58,7 @@ object Thy_Element {
       def atEnd: Boolean = in.isEmpty
     }
 
-    object Parser extends Parsers {
+    object Parsers extends combinator.Parsers {
       type Elem = Command
 
       def command(pred: Command => Boolean): Parser[Command] =
@@ -92,6 +92,6 @@ object Thy_Element {
           case bad => error(bad.toString)
         }
     }
-    Parser.apply
+    Parsers.apply
   }
 }

@@ -7,14 +7,14 @@ Generic parsers for Isabelle/Isar outer syntax.
 package isabelle
 
 
-import scala.util.parsing.combinator.Parsers
+import scala.util.parsing.combinator
 import scala.annotation.tailrec
 
 
 object Parse {
   /* parsing tokens */
 
-  trait Parser extends Parsers {
+  trait Parsers extends combinator.Parsers {
     type Elem = Token
 
     def filter_proper: Boolean = true

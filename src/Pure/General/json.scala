@@ -10,7 +10,7 @@ package isabelle
 
 
 import scala.util.matching.Regex
-import scala.util.parsing.combinator.Parsers
+import scala.util.parsing.combinator
 import scala.util.parsing.combinator.lexical.Scanners
 import scala.util.parsing.input.CharArrayReader.EofCh
 
@@ -124,7 +124,7 @@ object JSON {
 
   /* parser */
 
-  trait Parser extends Parsers {
+  trait Parsers extends combinator.Parsers {
     type Elem = Token
 
     def $$$(name: String): Parser[Token] = elem(name, _.is_keyword(name))
@@ -152,12 +152,12 @@ object JSON {
     }
   }
 
-  object Parser extends Parser
+  object Parsers extends Parsers
 
 
   /* standard format */
 
-  def parse(s: S, strict: Boolean = true): T = Parser.parse(s, strict)
+  def parse(s: S, strict: Boolean = true): T = Parsers.parse(s, strict)
 
   object Format {
     def unapply(s: S): Option[T] =

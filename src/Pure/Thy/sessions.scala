@@ -898,7 +898,7 @@ object Sessions {
       document_theories.map(_._1)
   }
 
-  private object Parser extends Options.Parser {
+  private object Parsers extends Options.Parsers {
     private val chapter: Parser[Chapter] = {
       val chapter_name = atom("chapter name", _.is_name)
 
@@ -963,10 +963,10 @@ object Sessions {
     }
   }
 
-  def parse_root(path: Path): List[Entry] = Parser.parse_root(path)
+  def parse_root(path: Path): List[Entry] = Parsers.parse_root(path)
 
   def parse_root_entries(path: Path): List[Session_Entry] =
-    for (entry <- Parser.parse_root(path) if entry.isInstanceOf[Session_Entry])
+    for (entry <- Parsers.parse_root(path) if entry.isInstanceOf[Session_Entry])
     yield entry.asInstanceOf[Session_Entry]
 
   def read_root(options: Options, select: Boolean, path: Path): List[Info] = {

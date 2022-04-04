@@ -14,7 +14,7 @@ object Check_Keywords {
     input: CharSequence,
     start: Token.Pos
   ): List[(Token, Position.T)] = {
-    object Parser extends Parse.Parser {
+    object Parsers extends Parse.Parsers {
       private val conflict =
         position(token("token", tok => !(tok.is_command || tok.is_keyword) && check(tok.source)))
       private val other = token("token", _ => true)
@@ -26,7 +26,7 @@ object Check_Keywords {
           case bad => error(bad.toString)
         }
     }
-    Parser.result
+    Parsers.result
   }
 
   def check_keywords(
