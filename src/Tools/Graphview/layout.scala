@@ -107,7 +107,7 @@ object Layout {
                 val lines = split_lines(node_text(a, content))
                 val w2 = metrics.node_width2(lines)
                 val h2 = metrics.node_height2(lines.length)
-                ((Node(a), Info(0.0, 0.0, w2, h2, lines)), bs.toList.map(Node))
+                ((Node(a), Info(0.0, 0.0, w2, h2, lines)), bs.toList.map(Node.apply))
             }).toList)
 
       val initial_levels: Levels =

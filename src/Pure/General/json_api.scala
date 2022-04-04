@@ -26,7 +26,7 @@ object JSON_API {
   }
 
   sealed case class Root(json: JSON.T) {
-    def get_links: Option[Links] = JSON.value(json, "links").map(Links)
+    def get_links: Option[Links] = JSON.value(json, "links").map(Links.apply)
     def get_next: Option[Service] = get_links.flatMap(_.get_next)
 
     def get_included: List[Resource] = JSON.list(json, "included", Resource.some).getOrElse(Nil)
