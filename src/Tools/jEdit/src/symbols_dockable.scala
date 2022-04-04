@@ -139,7 +139,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
         revalidate()
         repaint()
       }
-      search_field.reactions += { case ValueChanged(_) => search_delay.invoke() }
+    search_field.reactions += { case ValueChanged(_) => search_delay.invoke() }
   }
 
 
