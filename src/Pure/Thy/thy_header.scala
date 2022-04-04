@@ -151,8 +151,8 @@ object Thy_Header {
           { case res => for ((as ~ (_ ~ bs)) <- res; a <- as; b <- bs) yield (a, b) }
 
       val args =
-        position(theory_name) ~
-        (opt($$$(IMPORTS) ~! rep1(position(theory_name))) ^^
+        position(this.theory_name) ~
+        (opt($$$(IMPORTS) ~! rep1(position(this.theory_name))) ^^
           { case None => Nil case Some(_ ~ xs) => xs }) ~
         (opt($$$(KEYWORDS) ~! keyword_decls) ^^
           { case None => Nil case Some(_ ~ xs) => xs }) ~
