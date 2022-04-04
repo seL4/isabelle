@@ -93,7 +93,8 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
           "Search criteria for find operation, e.g.\n\"_ = _\" \"(+)\" name: Group -name: monoid")
     }
 
-    val query = make_query("isabelle-find-theorems", query_label.tooltip, apply_query _)
+    val query: Completion_Popup.History_Text_Field =
+      make_query("isabelle-find-theorems", query_label.tooltip, apply_query _)
 
 
     /* GUI page */
@@ -146,16 +147,17 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
         (snapshot, results, body) =>
           pretty_text_area.update(snapshot, results, Pretty.separate(body)))
 
-    private def apply_query(): Unit = {
-      query.addCurrentToHistory()
-      query_operation.apply_query(List(query.getText))
-    }
-
     private val query_label = new Label("Find:") {
       tooltip = GUI.tooltip_lines("Name / type patterns for constants")
     }
 
-    val query = make_query("isabelle-find-consts", query_label.tooltip, apply_query _)
+    val query: Completion_Popup.History_Text_Field =
+      make_query("isabelle-find-consts", query_label.tooltip, apply_query _)
+
+    private def apply_query(): Unit = {
+      query.addCurrentToHistory()
+      query_operation.apply_query(List(query.getText))
+    }
 
 
     /* GUI page */
