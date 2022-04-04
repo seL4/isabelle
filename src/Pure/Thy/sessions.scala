@@ -23,7 +23,7 @@ object Sessions {
 
   val roots_name: String = "ROOTS"
   val root_name: String = "ROOT"
-  val theory_name: String = "Pure.Sessions"
+  val theory_import: String = "Pure.Sessions"
 
   val UNSORTED = "Unsorted"
   val DRAFT = "Draft"

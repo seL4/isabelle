@@ -313,7 +313,7 @@ object Headless {
             }
           }
 
-        Session.Consumer[Session.Commands_Changed](getClass.getName) {
+        isabelle.Session.Consumer[isabelle.Session.Commands_Changed](getClass.getName) {
           case changed =>
             if (changed.nodes.exists(dep_theories_set)) {
               val snapshot = session.snapshot()

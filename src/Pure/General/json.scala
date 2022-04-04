@@ -39,7 +39,7 @@ object JSON {
   /* lexer */
 
   object Kind extends Enumeration {
-    val KEYWORD, STRING, NUMBER, ERROR = Value
+    val KEYWORD, STRING, NUMBER, ERROR = this.Value
   }
 
   sealed case class Token(kind: Kind.Value, text: String) {
