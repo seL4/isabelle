@@ -7,17 +7,29 @@ Wrapper for the OpenJDK "jconsole" tool, with various adjustments.
 package isabelle
 
 
+import java.lang.Class
 import java.awt.Component
 import javax.swing.UIManager
-import sun.tools.jconsole.{JConsole, LocalVirtualMachine, VMPanel, ProxyClient,
-  Messages, Resources => JConsoleResources}
 
 
 object Java_Monitor {
+  /* Java classes */
+
+  object ClassOf {
+    val Component: Class[_ <: AnyRef] = Class.forName("java.awt.Component")
+    val JConsole: Class[_ <: AnyRef] = Class.forName("sun.tools.jconsole.JConsole")
+    val LocalVirtualMachine: Class[_ <: AnyRef] = Class.forName("sun.tools.jconsole.LocalVirtualMachine")
+    val Messages: Class[_ <: AnyRef] = Class.forName("sun.tools.jconsole.Messages")
+    val ProxyClient: Class[_ <: AnyRef] = Class.forName("sun.tools.jconsole.ProxyClient")
+    val Resources: Class[_ <: AnyRef] = Class.forName("sun.tools.jconsole.Resources")
+    val VMPanel: Class[_ <: AnyRef] = Class.forName("sun.tools.jconsole.VMPanel")
+  }
+
+
   /* default arguments */
 
   def default_pid: Long = ProcessHandle.current().pid
-  val default_update_interval = Time.seconds(3)
+  val default_update_interval: Time = Time.seconds(3)
 
 
   /* java monitor on this JVM: asynchronous GUI application with with system exit */
@@ -28,7 +40,10 @@ object Java_Monitor {
     update_interval: Time = default_update_interval
   ): Unit = {
     val vm =
-      if (pid.toInt.toLong == pid) LocalVirtualMachine.getLocalVirtualMachine(pid.toInt)
+      if (pid.toInt.toLong == pid) {
+        Untyped.the_method(ClassOf.LocalVirtualMachine, "getLocalVirtualMachine")
+          .invoke(null, pid.toInt)
+      }
       else null
     if (vm == null) error("Bad JVM process " + pid)
 
@@ -42,43 +57,50 @@ object Java_Monitor {
 
       Desktop_App.about_handler {
         GUI.dialog(null, "Java Monitor",
-          JConsoleResources.format(
-            Messages.JCONSOLE_VERSION, System.getProperty("java.runtime.version"))
-        )
+          Untyped.the_method(ClassOf.Resources, "format").
+            invoke(null,
+              Untyped.get_static(ClassOf.Messages, "JCONSOLE_VERSION"),
+                System.getProperty("java.runtime.version")))
       }
 
-      val jconsole = new JConsole(false)
+      val jconsole =
+        Untyped.the_constructor(ClassOf.JConsole).newInstance(false).asInstanceOf[Component]
 
       val screen = GUI.mouse_location()
       val width = (1200 max (screen.bounds.width / 2)) min screen.bounds.width
       val height = (900 max (screen.bounds.height / 2)) min screen.bounds.height
-      jconsole.setBounds(
-        screen.bounds.x + (screen.bounds.width - width) / 2,
-        screen.bounds.y + (screen.bounds.height - height) / 2,
-        width, height)
+      Untyped.method(ClassOf.Component, "setBounds", classOf[Int], classOf[Int], classOf[Int], classOf[Int])
+        .invoke(jconsole,
+          screen.bounds.x + (screen.bounds.width - width) / 2,
+          screen.bounds.y + (screen.bounds.height - height) / 2,
+          width, height)
 
-      jconsole.setVisible(true)
+      Untyped.the_method(ClassOf.Component, "setVisible").invoke(jconsole, true)
 
-      Untyped.method(classOf[JConsole], "createMDI").invoke(jconsole)
+      Untyped.the_method(ClassOf.JConsole, "createMDI").invoke(jconsole)
 
       Isabelle_Thread.fork(name = "JConsole.addVmid") {
         try {
-          val proxy_client = ProxyClient.getProxyClient(vm)
+          val proxy_client =
+            Untyped.method(ClassOf.ProxyClient, "getProxyClient", ClassOf.LocalVirtualMachine)
+              .invoke(null, vm)
 
           GUI_Thread.later {
             try {
               val vm_panel =
-                Untyped.constructor(classOf[VMPanel], classOf[ProxyClient], Integer.TYPE)
+                Untyped.constructor(ClassOf.VMPanel, ClassOf.ProxyClient, Integer.TYPE)
                   .newInstance(proxy_client, java.lang.Integer.valueOf(update_interval.ms.toInt))
 
               Untyped.field(vm_panel, "shouldUseSSL").setBoolean(vm_panel, false)
 
-              Untyped.method(classOf[JConsole], "addFrame", classOf[VMPanel])
+              Untyped.method(ClassOf.JConsole, "addFrame", ClassOf.VMPanel)
                 .invoke(jconsole, vm_panel)
 
-              GUI_Thread.later { jconsole.tileWindows() }
+              GUI_Thread.later {
+                Untyped.the_method(ClassOf.JConsole, "tileWindows").invoke(jconsole)
+              }
 
-              vm_panel.connect()
+              Untyped.the_method(ClassOf.VMPanel, "connect").invoke(vm_panel)
             }
             catch {
               case exn: Throwable =>

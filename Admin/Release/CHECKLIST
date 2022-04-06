@@ -19,6 +19,8 @@ Checklist for official releases
 
 - test "#!/usr/bin/env isabelle_scala_script";
 
+- test "isabelle java_monitor -P pid" with "isabelle jedit";
+
 - test Windows 10 subsystem for Linux:
   https://docs.microsoft.com/en-us/windows/wsl/install-win10
 
