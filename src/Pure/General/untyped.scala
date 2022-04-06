@@ -17,6 +17,16 @@ object Untyped {
     con
   }
 
+  def the_constructor[C](c:  Class[C]): Constructor[C] = {
+    c.getDeclaredConstructors().toList match {
+      case List(con) =>
+        con.setAccessible(true)
+        con.asInstanceOf[Constructor[C]]
+      case Nil => error("No constructor for " + c)
+      case _ => error("Multiple constructors for " + c)
+    }
+  }
+
   def method(c: Class[_], name: String, arg_types: Class[_]*): Method = {
     val m = c.getDeclaredMethod(name, arg_types: _*)
     m.setAccessible(true)
@@ -28,7 +38,7 @@ object Untyped {
       case List(m) =>
         m.setAccessible(true)
         m
-      case Nil => error("Missing method " + quote(name) + " for " + c)
+      case Nil => error("No method " + quote(name) + " for " + c)
       case _ => error("Multiple methods " + quote(name) + " for " + c)
     }
   }
@@ -56,6 +66,9 @@ object Untyped {
     if (iterator.hasNext) iterator.next()
     else error("No field " + quote(x) + " for " + c0)
   }
+
+  def get_static[A](c: Class[_ <: AnyRef], x: String): A =
+    class_field(c, x).get(null).asInstanceOf[A]
 
   def field(obj: AnyRef, x: String): Field = class_field(obj.getClass, x)
 
