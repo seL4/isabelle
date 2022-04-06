@@ -23,8 +23,18 @@ object Untyped {
     m
   }
 
-  def classes(obj: AnyRef): Iterator[Class[_ <: AnyRef]] = new Iterator[Class[_ <: AnyRef]] {
-    private var next_elem: Class[_ <: AnyRef] = obj.getClass
+  def the_method(c: Class[_], name: String): Method = {
+    c.getDeclaredMethods().iterator.filter(m => m.getName == name).toList match {
+      case List(m) =>
+        m.setAccessible(true)
+        m
+      case Nil => error("Missing method " + quote(name) + " for " + c)
+      case _ => error("Multiple methods " + quote(name) + " for " + c)
+    }
+  }
+
+  def classes(c0: Class[_ <: AnyRef]): Iterator[Class[_ <: AnyRef]] = new Iterator[Class[_ <: AnyRef]] {
+    private var next_elem: Class[_ <: AnyRef] = c0
     def hasNext: Boolean = next_elem != null
     def next(): Class[_ <: AnyRef] = {
       val c = next_elem
@@ -33,10 +43,10 @@ object Untyped {
     }
   }
 
-  def field(obj: AnyRef, x: String): Field = {
+  def class_field(c0: Class[_ <: AnyRef], x: String): Field = {
     val iterator =
       for {
-        c <- classes(obj)
+        c <- classes(c0)
         field <- c.getDeclaredFields.iterator
         if field.getName == x
       } yield {
@@ -44,8 +54,10 @@ object Untyped {
         field
       }
     if (iterator.hasNext) iterator.next()
-    else error("No field " + quote(x) + " for " + obj)
+    else error("No field " + quote(x) + " for " + c0)
   }
+
+  def field(obj: AnyRef, x: String): Field = class_field(obj.getClass, x)
 
   def get[A](obj: AnyRef, x: String): A =
     if (obj == null) null.asInstanceOf[A]
