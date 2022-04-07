@@ -32,7 +32,7 @@ public option sledgehammer_provers : string = "cvc4 vampire verit e spass z3 zip
 public option sledgehammer_timeout : int = 30
   -- "provers will be interrupted after this time (in seconds)"
 
-public option SystemOnTPTP : string = "http://www.tptp.org/cgi-bin/SystemOnTPTPFormReply"
+public option SystemOnTPTP : string = "https://www.tptp.org/cgi-bin/SystemOnTPTPFormReply"
   -- "URL for SystemOnTPTP service"
 
 public option MaSh : string = "sml"
