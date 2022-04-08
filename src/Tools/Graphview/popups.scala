@@ -30,25 +30,25 @@ object Popups {
       new Menu(caption) {
         contents +=
           new MenuItem(new Action("This") {
-            def apply =
+            def apply(): Unit =
               add_mutator(Mutator.make(graphview, Mutator.Node_List(nodes, reverse, false, false)))
           })
 
         contents +=
           new MenuItem(new Action("Family") {
-            def apply =
+            def apply(): Unit =
               add_mutator(Mutator.make(graphview, Mutator.Node_List(nodes, reverse, true, true)))
           })
 
         contents +=
           new MenuItem(new Action("Parents") {
-            def apply =
+            def apply(): Unit =
               add_mutator(Mutator.make(graphview, Mutator.Node_List(nodes, reverse, false, true)))
           })
 
         contents +=
           new MenuItem(new Action("Children") {
-            def apply =
+            def apply(): Unit =
               add_mutator(Mutator.make(graphview, Mutator.Node_List(nodes, reverse, true, false)))
           })
 
@@ -77,7 +77,7 @@ object Popups {
                           contents +=
                             new MenuItem(
                               new Action(quote(to.toString)) {
-                                def apply =
+                                def apply(): Unit =
                                   add_mutator(
                                     Mutator.make(graphview, Mutator.Edge_Endpoints((from, to))))
                               })
@@ -96,7 +96,7 @@ object Popups {
                           contents +=
                             new MenuItem(
                               new Action(quote(from.toString)) {
-                                def apply =
+                                def apply(): Unit =
                                   add_mutator(
                                     Mutator.make(graphview, Mutator.Edge_Endpoints((from, to))))
                               })
@@ -113,7 +113,7 @@ object Popups {
 
     popup.add(
       new MenuItem(
-        new Action("Remove all filters") { def apply = graphview.model.Mutators(Nil) }).peer)
+        new Action("Remove all filters") { def apply(): Unit = graphview.model.Mutators(Nil) }).peer)
     popup.add(new JPopupMenu.Separator)
 
     if (mouse_node.isDefined) {
@@ -138,7 +138,7 @@ object Popups {
     }
 
     popup.add(new MenuItem(new Action("Fit to window") {
-      def apply = graph_panel.fit_to_window() }).peer
+      def apply(): Unit = graph_panel.fit_to_window() }).peer
     )
 
     popup
