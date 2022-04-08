@@ -145,7 +145,8 @@ object JSON {
 
     def parse(input: CharSequence, strict: Boolean): T = {
       val scanner = new Lexer.Scanner(Scan.char_reader(input))
-      phrase(if (strict) json_object | json_array else json_value)(scanner) match {
+      val result = phrase(if (strict) json_object | json_array else json_value)(scanner)
+      (result : @unchecked) match {
         case Success(json, _) => json
         case NoSuccess(_, next) => error("Malformed JSON input at " + next.pos)
       }
