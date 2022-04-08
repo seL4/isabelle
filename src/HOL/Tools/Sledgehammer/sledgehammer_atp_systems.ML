@@ -171,8 +171,9 @@ val alt_ergo = (alt_ergoN, fn () => alt_ergo_config)
 val e_config : atp_config =
   {exec = (["E_HOME"], ["eprover-ho", "eprover"]),
    arguments = fn _ => fn _ => fn extra_options => fn timeout => fn problem =>
-     ["--tstp-in --tstp-out --silent " ^ extra_options ^ " --cpu-limit=" ^
-      string_of_int (to_secs 2 timeout) ^ " --proof-object=1 " ^ File.bash_path problem],
+     ["--tstp-in --tstp-out --silent " ^ extra_options ^
+      " --demod-under-lambda=true --cpu-limit=" ^ string_of_int (to_secs 2 timeout) ^
+      " --proof-object=1 " ^ File.bash_path problem],
    proof_delims =
      [("# SZS output start CNFRefutation", "# SZS output end CNFRefutation")] @
      tstp_proof_delims,
