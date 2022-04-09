@@ -264,13 +264,12 @@ object Export_Theory {
 
   def decode_syntax: XML.Decode.T[Syntax] =
     XML.Decode.variant(List(
-      { case (Nil, Nil) => No_Syntax case _ => ??? },
-      { case (List(delim), Nil) => Prefix(delim) case _ => ??? },
+      { case (Nil, Nil) => No_Syntax },
+      { case (List(delim), Nil) => Prefix(delim) },
       { case (Nil, body) =>
           import XML.Decode._
           val (ass, delim, pri) = triple(int, string, int)(body)
-          Infix(Assoc(ass), delim, pri)
-        case _ => ??? }))
+          Infix(Assoc(ass), delim, pri) }))
 
 
   /* types */
@@ -685,11 +684,11 @@ object Export_Theory {
   val decode_recursion: XML.Decode.T[Recursion] = {
     import XML.Decode._
     variant(List(
-      { case (Nil, a) => Primrec(list(string)(a)) case _ => ??? },
-      { case (Nil, Nil) => Recdef case _ => ??? },
-      { case (Nil, a) => Primcorec(list(string)(a)) case _ => ??? },
-      { case (Nil, Nil) => Corec case _ => ??? },
-      { case (Nil, Nil) => Unknown_Recursion case _ => ??? }))
+      { case (Nil, a) => Primrec(list(string)(a)) },
+      { case (Nil, Nil) => Recdef },
+      { case (Nil, a) => Primcorec(list(string)(a)) },
+      { case (Nil, Nil) => Corec },
+      { case (Nil, Nil) => Unknown_Recursion }))
   }
 
 
@@ -714,10 +713,10 @@ object Export_Theory {
   val decode_rough_classification: XML.Decode.T[Rough_Classification] = {
     import XML.Decode._
     variant(List(
-      { case (Nil, a) => Equational(decode_recursion(a)) case _ => ??? },
-      { case (Nil, Nil) => Inductive case _ => ??? },
-      { case (Nil, Nil) => Co_Inductive case _ => ??? },
-      { case (Nil, Nil) => Unknown case _ => ??? }))
+      { case (Nil, a) => Equational(decode_recursion(a)) },
+      { case (Nil, Nil) => Inductive },
+      { case (Nil, Nil) => Co_Inductive },
+      { case (Nil, Nil) => Unknown }))
   }
 
 
