@@ -112,11 +112,15 @@ object Scala {
         }
       }
 
-      def toplevel(source: String): List[String] = {
+      def toplevel(interpret: Boolean, source: String): List[String] = {
         val out = new StringWriter
         val interp = interpreter(new PrintWriter(out))
         val marker = '\u000b'
-        val ok = interp.withLabel(marker.toString) { (new interp.ReadEvalPrint).compile(source) }
+        val ok =
+          interp.withLabel(marker.toString) {
+            if (interpret) interp.interpret(source) == Results.Success
+            else (new interp.ReadEvalPrint).compile(source)
+          }
         out.close()
 
         val Error = """(?s)^\S* error: (.*)$""".r
@@ -131,9 +135,15 @@ object Scala {
 
   object Toplevel extends Fun_String("scala_toplevel") {
     val here = Scala_Project.here
-    def apply(source: String): String = {
+    def apply(arg: String): String = {
+      val (interpret, source) =
+        YXML.parse_body(arg) match {
+          case Nil => (false, "")
+          case List(XML.Text(source)) => (false, source)
+          case body => import XML.Decode._; pair(bool, string)(body)
+        }
       val errors =
-        try { Compiler.context().toplevel(source) }
+        try { Compiler.context().toplevel(interpret, source) }
         catch { case ERROR(msg) => List(msg) }
       locally { import XML.Encode._; YXML.string_of_body(list(string)(errors)) }
     }
