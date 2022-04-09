@@ -137,7 +137,7 @@ object Layout {
 
               val levels1 = dummies_levels.foldLeft(levels)(_ + _)
               val graph1 =
-                (v1 :: dummies ::: List(v2)).sliding(2).
+                (v1 :: dummies ::: List(v2)).sliding(2).map(_.toList).
                   foldLeft(dummies.foldLeft(graph)(_.new_node(_, dummy_info)).del_edge(v1, v2)) {
                     case (g, List(a, b)) => g.add_edge(a, b)
                   }
