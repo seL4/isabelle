@@ -116,8 +116,8 @@ object Shapes {
         val dy = coords(2).y - coords(0).y
 
         val (dx2, dy2) =
-          coords.sliding(3).map(_.toList).foldLeft((dx, dy)) {
-            case ((dx, dy), List(l, m, r)) =>
+          coords.sliding(3).foldLeft((dx, dy)) {
+            case ((dx, dy), Seq(l, m, r)) =>
               val dx2 = r.x - l.x
               val dy2 = r.y - l.y
               path.curveTo(
