@@ -21,8 +21,8 @@ sig
   val get_slices : Proof.context -> string -> prover_slice list
 
   val binary_min_facts : int Config.T
-  val minimize_facts : (thm list -> unit) -> string -> params -> bool -> int -> int ->
-    Proof.state -> thm -> ((string * stature) * thm list) list ->
+  val minimize_facts : (thm list -> unit) -> string -> params -> prover_slice -> bool -> int ->
+    int -> Proof.state -> thm -> ((string * stature) * thm list) list ->
     ((string * stature) * thm list) list option
     * ((unit -> (string * stature) list * (proof_method * play_outcome)) -> string)
   val get_minimizing_prover : Proof.context -> mode -> (thm list -> unit) -> string -> prover
@@ -199,12 +199,11 @@ fun binary_minimize test timeout result xs =
     | p => p)
   end
 
-fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) silent i n state goal
-    facts =
+fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) slice silent i n state
+    goal facts =
   let
     val ctxt = Proof.context_of state
     val prover = get_prover ctxt Minimize prover_name
-    val slice = hd (get_slices ctxt prover_name)
     val (chained, non_chained) = List.partition is_fact_chained facts
 
     fun test timeout non_chained =
@@ -239,7 +238,7 @@ fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) silent
   end
 
 fun maybe_minimize mode do_learn name (params as {verbose, minimize, ...})
-    ({state, goal, subgoal, subgoal_count, ...} : prover_problem)
+    ({state, goal, subgoal, subgoal_count, ...} : prover_problem) slice
     (result as {outcome, used_facts, used_from, preferred_methss, run_time, message}
      : prover_result) =
   if is_some outcome then
@@ -248,7 +247,7 @@ fun maybe_minimize mode do_learn name (params as {verbose, minimize, ...})
     let
       val (used_facts, message) =
         if minimize then
-          minimize_facts do_learn name params
+          minimize_facts do_learn name params slice
             (not verbose orelse (mode <> Normal andalso mode <> MaSh)) subgoal subgoal_count state
             goal (filter_used_facts true used_facts (map (apsnd single) used_from))
           |>> Option.map (map fst)
@@ -264,6 +263,6 @@ fun maybe_minimize mode do_learn name (params as {verbose, minimize, ...})
 
 fun get_minimizing_prover ctxt mode do_learn name params problem slice =
   get_prover ctxt mode name params problem slice
-  |> maybe_minimize mode do_learn name params problem
+  |> maybe_minimize mode do_learn name params problem slice
 
 end;
