@@ -143,19 +143,22 @@ object Isabelle_System {
 
   /* scala functions */
 
-  private def apply_paths(args: List[String], fun: List[Path] => Unit): List[String] = {
+  private def apply_paths(
+    args: List[String],
+    fun: PartialFunction[List[Path], Unit]
+  ): List[String] = {
     fun(args.map(Path.explode))
     Nil
   }
 
   private def apply_paths1(args: List[String], fun: Path => Unit): List[String] =
-    apply_paths(args, { case List(path) => fun(path) case _ => ??? })
+    apply_paths(args, { case List(path) => fun(path) })
 
   private def apply_paths2(args: List[String], fun: (Path, Path) => Unit): List[String] =
-    apply_paths(args, { case List(path1, path2) => fun(path1, path2) case _ => ??? })
+    apply_paths(args, { case List(path1, path2) => fun(path1, path2) })
 
   private def apply_paths3(args: List[String], fun: (Path, Path, Path) => Unit): List[String] =
-    apply_paths(args, { case List(path1, path2, path3) => fun(path1, path2, path3) case _ => ??? })
+    apply_paths(args, { case List(path1, path2, path3) => fun(path1, path2, path3) })
 
 
   /* permissions */
