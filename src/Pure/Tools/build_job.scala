@@ -463,7 +463,11 @@ class Build_Job(progress: Progress,
 
       val result = {
         val theory_timing =
-          theory_timings.iterator.map({ case props @ Markup.Name(name) => name -> props }).toMap
+          theory_timings.iterator.map(
+            {
+              case props @ Markup.Name(name) => name -> props
+              case _ => ???
+            }).toMap
         val used_theory_timings =
           for { (name, _) <- deps(session_name).used_theories }
             yield theory_timing.getOrElse(name.theory, Markup.Name(name.theory))

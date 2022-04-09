@@ -44,7 +44,8 @@ object Antiquote {
   /* read */
 
   def read(input: CharSequence): List[Antiquote] = {
-    Parsers.parseAll(Parsers.rep(Parsers.antiquote), Scan.char_reader(input)) match {
+    val result = Parsers.parseAll(Parsers.rep(Parsers.antiquote), Scan.char_reader(input))
+    (result : @unchecked) match {
       case Parsers.Success(xs, _) => xs
       case Parsers.NoSuccess(_, next) =>
         error("Malformed quotation/antiquotation source" +

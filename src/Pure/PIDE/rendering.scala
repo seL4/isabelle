@@ -563,7 +563,6 @@ class Rendering(
             case (res, Text.Info(_, elem)) =>
               Command.State.get_result_proper(command_states, elem.markup.properties)
                 .map(res :+ _)
-            case _ => None
           })
 
     var seen_serials = Set.empty[Long]

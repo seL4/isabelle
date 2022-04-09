@@ -6,7 +6,7 @@ Scala compiler operations.
 
 signature SCALA_COMPILER =
 sig
-  val toplevel: bool -> string -> unit
+  val toplevel: string -> unit
   val static_check: string * Position.T -> unit
 end;
 
@@ -15,18 +15,15 @@ struct
 
 (* check declaration *)
 
-fun toplevel interpret source =
+fun toplevel source =
   let val errors =
-    (interpret, source)
-    |> let open XML.Encode in pair bool string end
-    |> YXML.string_of_body
-    |> \<^scala>\<open>scala_toplevel\<close>
+    \<^scala>\<open>scala_toplevel\<close> source
     |> YXML.parse_body
     |> let open XML.Decode in list string end
   in if null errors then () else error (cat_lines errors) end;
 
 fun static_check (source, pos) =
-  toplevel false ("package test\nclass __Dummy__ { __dummy__ => " ^ source ^ " }")
+  toplevel ("package test\nclass __Dummy__ { __dummy__ => " ^ source ^ " }")
     handle ERROR msg => error (msg ^ Position.here pos);
 
 
