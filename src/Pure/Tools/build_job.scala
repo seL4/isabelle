@@ -463,10 +463,10 @@ class Build_Job(progress: Progress,
 
       val result = {
         val theory_timing =
-          theory_timings.iterator.map(
+          theory_timings.iterator.flatMap(
             {
-              case props @ Markup.Name(name) => name -> props
-              case _ => ???
+              case props @ Markup.Name(name) => Some(name -> props)
+              case _ => None
             }).toMap
         val used_theory_timings =
           for { (name, _) <- deps(session_name).used_theories }
