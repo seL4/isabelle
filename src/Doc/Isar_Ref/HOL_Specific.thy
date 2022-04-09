@@ -2282,7 +2282,10 @@ text \<open>
     @{command_def (HOL) "code_identifier"} & : & \<open>theory \<rightarrow> theory\<close> \\
     @{command_def (HOL) "code_monad"} & : & \<open>theory \<rightarrow> theory\<close> \\
     @{command_def (HOL) "code_reflect"} & : & \<open>theory \<rightarrow> theory\<close> \\
-    @{command_def (HOL) "code_pred"} & : & \<open>theory \<rightarrow> proof(prove)\<close>
+    @{command_def (HOL) "code_pred"} & : & \<open>theory \<rightarrow> proof(prove)\<close> \\
+    @{attribute_def (HOL) code_timing} & : & \<open>attribute\<close> \\
+    @{attribute_def (HOL) code_simp_trace} & : & \<open>attribute\<close> \\
+    @{attribute_def (HOL) code_runtime_trace} & : & \<open>attribute\<close>
   \end{matharray}
 
   \<^rail>\<open>
@@ -2501,6 +2504,15 @@ text \<open>
   a set of introduction rules. Optional mode annotations determine which
   arguments are supposed to be input or output. If alternative introduction
   rules are declared, one must prove a corresponding elimination rule.
+
+  \<^descr> @{attribute (HOL) "code_timing"} scrapes timing samples from different
+  stages of the code generator.
+
+  \<^descr> @{attribute (HOL) "code_simp_trace"} traces the simplifier when it is
+  used with code equations.
+
+  \<^descr> @{attribute (HOL) "code_runtime_trace"} traces ML code generated
+  dynamically for execution.
 \<close>
 
 end
