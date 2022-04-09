@@ -235,7 +235,7 @@ object Layout {
   }
 
   private def count_crossings(graph: Graph, levels: List[Level]): Int =
-    levels.iterator.sliding(2).map {
+    levels.iterator.sliding(2).map(_.toList).map {
       case List(top, bot) =>
         top.iterator.zipWithIndex.map {
           case (outer_parent, outer_parent_index) =>
