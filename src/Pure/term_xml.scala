@@ -50,7 +50,7 @@ object Term_XML {
       variant[Typ](List(
         { case (List(a), b) => Type(a, list(typ)(b)) case _ => ??? },
         { case (List(a), b) => TFree(a, sort(b)) case _ => ??? },
-        { case (a, b) => TVar(indexname(a), sort(b)) case _ => ??? }))
+        { case (a, b) => TVar(indexname(a), sort(b)) }))
 
     val typ_body: T[Typ] = { case Nil => dummyT case body => typ(body) }
 
@@ -58,7 +58,7 @@ object Term_XML {
       variant[Term](List(
         { case (List(a), b) => Const(a, list(typ)(b)) case _ => ??? },
         { case (List(a), b) => Free(a, typ_body(b)) case _ => ??? },
-        { case (a, b) => Var(indexname(a), typ_body(b)) case _ => ??? },
+        { case (a, b) => Var(indexname(a), typ_body(b)) },
         { case (Nil, a) => Bound(int(a)) case _ => ??? },
         { case (List(a), b) => val (c, d) = pair(typ, term)(b); Abs(a, c, d) case _ => ??? },
         { case (Nil, a) => val (b, c) = pair(term, term)(a); App(b, c) case _ => ??? }))
@@ -71,7 +71,7 @@ object Term_XML {
         variant[Term](List(
           { case (List(a), b) => Const(a, list(typ)(b)) case _ => ??? },
           { case (List(a), b) => Free(a, env_type(a, typ_body(b))) case _ => ??? },
-          { case (a, b) => Var(indexname(a), typ_body(b)) case _ => ??? },
+          { case (a, b) => Var(indexname(a), typ_body(b)) },
           { case (Nil, a) => Bound(int(a)) case _ => ??? },
           { case (List(a), b) => val (c, d) = pair(typ, term)(b); Abs(a, c, d) case _ => ??? },
           { case (Nil, a) => val (b, c) = pair(term, term)(a); App(b, c) case _ => ??? }))
