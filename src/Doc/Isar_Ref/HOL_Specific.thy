@@ -2436,9 +2436,8 @@ text \<open>
 
   Variants \<open>code drop:\<close> and \<open>code abort:\<close> take a list of constants as arguments
   and drop all code equations declared for them. In the case of \<open>abort\<close>,
-  these constants then do not require to a specification by means of
-  code equations; if needed these are implemented by program abort (exception)
-  instead.
+  these constants if needed are implemented by program abort
+  (exception).
 
   Packages declaring code equations usually provide a reasonable default
   setup.
