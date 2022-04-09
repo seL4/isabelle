@@ -48,20 +48,20 @@ object Term_XML {
 
     def typ: T[Typ] =
       variant[Typ](List(
-        { case (List(a), b) => Type(a, list(typ)(b)) },
-        { case (List(a), b) => TFree(a, sort(b)) },
-        { case (a, b) => TVar(indexname(a), sort(b)) }))
+        { case (List(a), b) => Type(a, list(typ)(b)) case _ => ??? },
+        { case (List(a), b) => TFree(a, sort(b)) case _ => ??? },
+        { case (a, b) => TVar(indexname(a), sort(b)) case _ => ??? }))
 
     val typ_body: T[Typ] = { case Nil => dummyT case body => typ(body) }
 
     def term: T[Term] =
       variant[Term](List(
-        { case (List(a), b) => Const(a, list(typ)(b)) },
-        { case (List(a), b) => Free(a, typ_body(b)) },
-        { case (a, b) => Var(indexname(a), typ_body(b)) },
-        { case (Nil, a) => Bound(int(a)) },
-        { case (List(a), b) => val (c, d) = pair(typ, term)(b); Abs(a, c, d) },
-        { case (Nil, a) => val (b, c) = pair(term, term)(a); App(b, c) }))
+        { case (List(a), b) => Const(a, list(typ)(b)) case _ => ??? },
+        { case (List(a), b) => Free(a, typ_body(b)) case _ => ??? },
+        { case (a, b) => Var(indexname(a), typ_body(b)) case _ => ??? },
+        { case (Nil, a) => Bound(int(a)) case _ => ??? },
+        { case (List(a), b) => val (c, d) = pair(typ, term)(b); Abs(a, c, d) case _ => ??? },
+        { case (Nil, a) => val (b, c) = pair(term, term)(a); App(b, c) case _ => ??? }))
 
     def term_env(env: Map[String, Typ]): T[Term] = {
       def env_type(x: String, t: Typ): Typ =
@@ -69,12 +69,12 @@ object Term_XML {
 
       def term: T[Term] =
         variant[Term](List(
-          { case (List(a), b) => Const(a, list(typ)(b)) },
-          { case (List(a), b) => Free(a, env_type(a, typ_body(b))) },
-          { case (a, b) => Var(indexname(a), typ_body(b)) },
-          { case (Nil, a) => Bound(int(a)) },
-          { case (List(a), b) => val (c, d) = pair(typ, term)(b); Abs(a, c, d) },
-          { case (Nil, a) => val (b, c) = pair(term, term)(a); App(b, c) }))
+          { case (List(a), b) => Const(a, list(typ)(b)) case _ => ??? },
+          { case (List(a), b) => Free(a, env_type(a, typ_body(b))) case _ => ??? },
+          { case (a, b) => Var(indexname(a), typ_body(b)) case _ => ??? },
+          { case (Nil, a) => Bound(int(a)) case _ => ??? },
+          { case (List(a), b) => val (c, d) = pair(typ, term)(b); Abs(a, c, d) case _ => ??? },
+          { case (Nil, a) => val (b, c) = pair(term, term)(a); App(b, c) case _ => ??? }))
       term
     }
 
@@ -82,17 +82,17 @@ object Term_XML {
       val term = term_env(env)
       def proof: T[Proof] =
         variant[Proof](List(
-          { case (Nil, Nil) => MinProof },
-          { case (Nil, a) => PBound(int(a)) },
-          { case (List(a), b) => val (c, d) = pair(typ, proof)(b); Abst(a, c, d) },
-          { case (List(a), b) => val (c, d) = pair(term, proof)(b); AbsP(a, c, d) },
-          { case (Nil, a) => val (b, c) = pair(proof, term)(a); Appt(b, c) },
-          { case (Nil, a) => val (b, c) = pair(proof, proof)(a); AppP(b, c) },
-          { case (Nil, a) => Hyp(term(a)) },
-          { case (List(a), b) => PAxm(a, list(typ)(b)) },
-          { case (List(a), b) => PClass(typ(b), a) },
-          { case (List(a), b) => val (c, d) = pair(term, list(typ))(b); Oracle(a, c, d) },
-          { case (List(a, b, c), d) => PThm(long_atom(a), b, c, list(typ)(d)) }))
+          { case (Nil, Nil) => MinProof case _ => ??? },
+          { case (Nil, a) => PBound(int(a)) case _ => ??? },
+          { case (List(a), b) => val (c, d) = pair(typ, proof)(b); Abst(a, c, d) case _ => ??? },
+          { case (List(a), b) => val (c, d) = pair(term, proof)(b); AbsP(a, c, d) case _ => ??? },
+          { case (Nil, a) => val (b, c) = pair(proof, term)(a); Appt(b, c) case _ => ??? },
+          { case (Nil, a) => val (b, c) = pair(proof, proof)(a); AppP(b, c) case _ => ??? },
+          { case (Nil, a) => Hyp(term(a)) case _ => ??? },
+          { case (List(a), b) => PAxm(a, list(typ)(b)) case _ => ??? },
+          { case (List(a), b) => PClass(typ(b), a) case _ => ??? },
+          { case (List(a), b) => val (c, d) = pair(term, list(typ))(b); Oracle(a, c, d) case _ => ??? },
+          { case (List(a, b, c), d) => PThm(long_atom(a), b, c, list(typ)(d)) case _ => ??? }))
       proof
     }
 

@@ -149,13 +149,13 @@ object Isabelle_System {
   }
 
   private def apply_paths1(args: List[String], fun: Path => Unit): List[String] =
-    apply_paths(args, { case List(path) => fun(path) })
+    apply_paths(args, { case List(path) => fun(path) case _ => ??? })
 
   private def apply_paths2(args: List[String], fun: (Path, Path) => Unit): List[String] =
-    apply_paths(args, { case List(path1, path2) => fun(path1, path2) })
+    apply_paths(args, { case List(path1, path2) => fun(path1, path2) case _ => ??? })
 
   private def apply_paths3(args: List[String], fun: (Path, Path, Path) => Unit): List[String] =
-    apply_paths(args, { case List(path1, path2, path3) => fun(path1, path2, path3) })
+    apply_paths(args, { case List(path1, path2, path3) => fun(path1, path2, path3) case _ => ??? })
 
 
   /* permissions */
@@ -481,7 +481,7 @@ object Isabelle_System {
   object Download extends Scala.Fun("download", thread = true) {
     val here = Scala_Project.here
     override def invoke(args: List[Bytes]): List[Bytes] =
-      args match { case List(url) => List(download(url.text).bytes) }
+      args match { case List(url) => List(download(url.text).bytes) case _ => ??? }
   }
 
 

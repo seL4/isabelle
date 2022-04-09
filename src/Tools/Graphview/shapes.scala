@@ -125,6 +125,7 @@ object Shapes {
                 m.x - slack * dx2, m.y - slack * dy2,
                 m.x, m.y)
               (dx2, dy2)
+            case _ => ???
           }
 
         val l = ds.last
