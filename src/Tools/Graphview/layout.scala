@@ -140,7 +140,7 @@ object Layout {
                 (v1 :: dummies ::: List(v2)).sliding(2)
                   .foldLeft(dummies.foldLeft(graph)(_.new_node(_, dummy_info)).del_edge(v1, v2)) {
                     case (g, Seq(a, b)) => g.add_edge(a, b)
-                    case _ => ???
+                    case (g, _) => g
                   }
               (graph1, levels1)
             }

@@ -484,7 +484,7 @@ object Isabelle_System {
   object Download extends Scala.Fun("download", thread = true) {
     val here = Scala_Project.here
     override def invoke(args: List[Bytes]): List[Bytes] =
-      args match { case List(url) => List(download(url.text).bytes) case _ => ??? }
+      args.map(url => download(url.text).bytes)
   }
 
 
