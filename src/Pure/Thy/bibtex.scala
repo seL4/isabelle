@@ -599,7 +599,8 @@ object Bibtex {
     val chunks = new mutable.ListBuffer[Chunk]
     var ctxt = context
     while (!in.atEnd) {
-      Parsers.parse(Parsers.chunk_line(ctxt), in) match {
+      val result = Parsers.parse(Parsers.chunk_line(ctxt), in)
+      (result : @unchecked) match {
         case Parsers.Success((x, c), rest) => chunks += x; ctxt = c; in = rest
         case Parsers.NoSuccess(_, rest) =>
           error("Unepected failure to parse input:\n" + rest.source.toString)

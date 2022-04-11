@@ -116,7 +116,7 @@ object Shapes {
         val dy = coords(2).y - coords(0).y
 
         val (dx2, dy2) =
-          coords.sliding(3).foldLeft((dx, dy)) {
+          coords.sliding(3).map(_.toList).foldLeft((dx, dy)) {
             case ((dx, dy), List(l, m, r)) =>
               val dx2 = r.x - l.x
               val dy2 = r.y - l.y
@@ -125,6 +125,7 @@ object Shapes {
                 m.x - slack * dx2, m.y - slack * dy2,
                 m.x, m.y)
               (dx2, dy2)
+            case _ => ???
           }
 
         val l = ds.last

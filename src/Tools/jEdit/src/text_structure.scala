@@ -107,7 +107,7 @@ object Text_Structure {
 
           def indent_indent(tok: Token): Int =
             if (keywords.is_command(tok, keyword_open)) indent_size
-            else if (keywords.is_command(tok, keyword_close)) - indent_size
+            else if (keywords.is_command(tok, keyword_close)) { - indent_size }
             else 0
 
           def indent_offset(tok: Token): Int =

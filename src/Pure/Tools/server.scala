@@ -348,11 +348,7 @@ object Server {
           }
         }
       }
-      catch {
-        case _: IOException => false
-        case _: SocketException => false
-        case _: SocketTimeoutException => false
-      }
+      catch { case _: IOException => false }
   }
 
 

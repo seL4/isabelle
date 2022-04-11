@@ -43,22 +43,22 @@ object Build_Scala {
   }
 
   val main_download: Download =
-    Download("scala", "3.0.2", base_version = "",
+    Download("scala", "3.1.1", base_version = "",
       url = "https://github.com/lampepfl/dotty/releases/download/{V}/scala3-{V}.tar.gz")
 
   val lib_downloads: List[Download] = List(
     Download("scala-parallel-collections", "1.0.4",
       "https://mvnrepository.com/artifact/org.scala-lang.modules/scala-parallel-collections_{B}/{V}",
       physical_url = "https://repo1.maven.org/maven2/org/scala-lang/modules/scala-parallel-collections_{B}/{V}/scala-parallel-collections_{B}-{V}.jar"),
-    Download("scala-parser-combinators", "2.1.0",
+    Download("scala-parser-combinators", "2.1.1",
       "https://mvnrepository.com/artifact/org.scala-lang.modules/scala-parser-combinators_{B}/{V}",
       physical_url = "https://repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_{B}/{V}/scala-parser-combinators_{B}-{V}.jar"),
     Download("scala-swing", "3.0.0",
       "https://mvnrepository.com/artifact/org.scala-lang.modules/scala-swing_{B}/{V}",
       physical_url = "https://repo1.maven.org/maven2/org/scala-lang/modules/scala-swing_{B}/{V}/scala-swing_{B}-{V}.jar"),
-    Download("scala-xml", "2.0.1",
+    Download("scala-xml", "2.1.0",
       "https://mvnrepository.com/artifact/org.scala-lang.modules/scala-xml_{B}/{V}",
-      physical_url = "https://repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_3/2.0.1/scala-xml_{B}-{V}.jar")
+      physical_url = "https://repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_{B}/{V}/scala-xml_{B}-{V}.jar")
   )
 
 

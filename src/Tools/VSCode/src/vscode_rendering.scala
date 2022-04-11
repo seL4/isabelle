@@ -143,8 +143,6 @@ extends Rendering(snapshot, model.resources.options, model.session) {
 
             case (res, Text.Info(_, msg)) =>
               Command.State.get_result_proper(command_states, msg.markup.properties).map(res + _)
-
-            case _ => None
           }).filterNot(info => info.info.is_empty)
 
   def diagnostics_output(results: List[Text.Info[Command.Results]]): List[LSP.Diagnostic] = {

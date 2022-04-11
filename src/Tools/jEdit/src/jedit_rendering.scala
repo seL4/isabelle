@@ -353,7 +353,6 @@ extends Rendering(snapshot, options, PIDE.session) {
       snapshot.cumulate[Int](range, 0, JEdit_Rendering.gutter_elements, _ =>
         {
           case (pri, Text.Info(_, elem)) => Some(pri max gutter_message_pri(elem))
-          case _ => None
         }).map(_.info)
 
     gutter_message_content.get(pris.foldLeft(0)(_ max _))
