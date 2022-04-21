@@ -82,7 +82,8 @@ object Scala {
   object Compiler {
     def context(
       error: String => Unit = Exn.error,
-      jar_dirs: List[JFile] = Nil
+      jar_dirs: List[JFile] = Nil,
+      class_loader: Option[ClassLoader] = None
     ): Context = {
       def find_jars(dir: JFile): List[String] =
         File.find_files(dir, file => file.getName.endsWith(".jar")).
@@ -92,23 +93,22 @@ object Scala {
       settings.classpath.value =
         (class_path() ::: jar_dirs.flatMap(find_jars)).mkString(JFile.pathSeparator)
 
-      new Context(settings)
+      new Context(settings, class_loader)
     }
 
     def default_print_writer: PrintWriter =
       new NewLinePrintWriter(new ConsoleWriter, true)
 
-    class Context private [Compiler](val settings: GenericRunnerSettings) {
+    class Context private [Compiler](
+      val settings: GenericRunnerSettings,
+      val class_loader: Option[ClassLoader]
+    ) {
       override def toString: String = settings.toString
 
-      def interpreter(
-        print_writer: PrintWriter = default_print_writer,
-        class_loader: ClassLoader = null
-      ): IMain = {
+      def interpreter(print_writer: PrintWriter = default_print_writer): IMain = {
         new IMain(settings, new ReplReporterImpl(settings, print_writer)) {
           override def parentClassLoader: ClassLoader =
-            if (class_loader == null) super.parentClassLoader
-            else class_loader
+            class_loader getOrElse super.parentClassLoader
         }
       }
 

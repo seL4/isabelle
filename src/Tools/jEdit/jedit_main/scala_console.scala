@@ -92,10 +92,11 @@ class Scala_Console extends Shell("Scala") {
     def interrupt(): Unit = running.change({ opt => opt.foreach(_.interrupt()); opt })
 
     private val interp =
-      Scala.Compiler.context(error = report_error, jar_dirs = JEdit_Lib.directories).
-        interpreter(
-          print_writer = new PrintWriter(console_writer, true),
-          class_loader = new JARClassLoader)
+      Scala.Compiler.context(
+          error = report_error,
+          jar_dirs = JEdit_Lib.directories,
+          class_loader = Some(new JARClassLoader)).
+        interpreter(new PrintWriter(console_writer, true))
 
     val thread: Consumer_Thread[Request] = Consumer_Thread.fork("Scala_Console") {
       case Start(console) =>
