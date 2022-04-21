@@ -93,10 +93,10 @@ class Scala_Console extends Shell("Scala") {
 
     private val interp =
       Scala.Compiler.context(
+          print_writer = new PrintWriter(console_writer, true),
           error = report_error,
           jar_dirs = JEdit_Lib.directories,
-          class_loader = Some(new JARClassLoader)).
-        interpreter(new PrintWriter(console_writer, true))
+          class_loader = Some(new JARClassLoader)).interp
 
     val thread: Consumer_Thread[Request] = Consumer_Thread.fork("Scala_Console") {
       case Start(console) =>

@@ -80,7 +80,11 @@ object Scala {
     } yield elem
 
   object Compiler {
+    def default_print_writer: PrintWriter =
+      new NewLinePrintWriter(new ConsoleWriter, true)
+
     def context(
+      print_writer: PrintWriter = default_print_writer,
       error: String => Unit = Exn.error,
       jar_dirs: List[JFile] = Nil,
       class_loader: Option[ClassLoader] = None
@@ -93,43 +97,40 @@ object Scala {
       settings.classpath.value =
         (class_path() ::: jar_dirs.flatMap(find_jars)).mkString(JFile.pathSeparator)
 
-      new Context(settings, class_loader)
+      new Context(settings, print_writer, class_loader)
     }
-
-    def default_print_writer: PrintWriter =
-      new NewLinePrintWriter(new ConsoleWriter, true)
 
     class Context private [Compiler](
       val settings: GenericRunnerSettings,
+      val print_writer: PrintWriter,
       val class_loader: Option[ClassLoader]
     ) {
       override def toString: String = settings.toString
 
-      def interpreter(print_writer: PrintWriter = default_print_writer): IMain = {
+      val interp: IMain =
         new IMain(settings, new ReplReporterImpl(settings, print_writer)) {
           override def parentClassLoader: ClassLoader =
             class_loader getOrElse super.parentClassLoader
         }
-      }
+    }
 
-      def toplevel(interpret: Boolean, source: String): List[String] = {
-        val out = new StringWriter
-        val interp = interpreter(new PrintWriter(out))
-        val marker = '\u000b'
-        val ok =
-          interp.withLabel(marker.toString) {
-            if (interpret) interp.interpret(source) == Results.Success
-            else (new interp.ReadEvalPrint).compile(source)
-          }
-        out.close()
+    def toplevel(interpret: Boolean, source: String): List[String] = {
+      val out = new StringWriter
+      val interp = Compiler.context(print_writer = new PrintWriter(out)).interp
+      val marker = '\u000b'
+      val ok =
+        interp.withLabel(marker.toString) {
+          if (interpret) interp.interpret(source) == Results.Success
+          else (new interp.ReadEvalPrint).compile(source)
+        }
+      out.close()
 
-        val Error = """(?s)^\S* error: (.*)$""".r
-        val errors =
-          space_explode(marker, Library.strip_ansi_color(out.toString)).
-            collect({ case Error(msg) => "Scala error: " + Library.trim_line(msg) })
+      val Error = """(?s)^\S* error: (.*)$""".r
+      val errors =
+        space_explode(marker, Library.strip_ansi_color(out.toString)).
+          collect({ case Error(msg) => "Scala error: " + Library.trim_line(msg) })
 
-        if (!ok && errors.isEmpty) List("Error") else errors
-      }
+      if (!ok && errors.isEmpty) List("Error") else errors
     }
   }
 
@@ -143,7 +144,7 @@ object Scala {
           case body => import XML.Decode._; pair(bool, string)(body)
         }
       val errors =
-        try { Compiler.context().toplevel(interpret, source) }
+        try { Compiler.toplevel(interpret, source) }
         catch { case ERROR(msg) => List(msg) }
       locally { import XML.Encode._; YXML.string_of_body(list(string)(errors)) }
     }
