@@ -235,7 +235,7 @@ object Scala {
       }
     }
 
-    override val functions =
+    override val functions: Session.Protocol_Functions =
       List(
         Markup.Invoke_Scala.name -> invoke_scala,
         Markup.Cancel_Scala.name -> cancel_scala)

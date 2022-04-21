@@ -106,11 +106,12 @@ object Session {
   /* protocol handlers */
 
   type Protocol_Function = Prover.Protocol_Output => Boolean
+  type Protocol_Functions = List[(String, Protocol_Function)]
 
   abstract class Protocol_Handler extends Isabelle_System.Service {
     def init(session: Session): Unit = {}
     def exit(): Unit = {}
-    def functions: List[(String, Protocol_Function)] = Nil
+    def functions: Protocol_Functions = Nil
     def prover_options(options: Options): Options = options
   }
 }

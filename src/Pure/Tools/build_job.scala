@@ -321,7 +321,7 @@ class Build_Job(progress: Progress,
               case _ => false
             }
 
-          override val functions =
+          override val functions: Session.Protocol_Functions =
             List(
               Markup.Build_Session_Finished.name -> build_session_finished,
               Markup.Loading_Theory.name -> loading_theory,
