@@ -65,7 +65,7 @@ object Debugger {
     def toggle_breakpoint(breakpoint: Long): (Boolean, State) = {
       val active_breakpoints1 =
         if (active_breakpoints(breakpoint)) active_breakpoints - breakpoint
-      else active_breakpoints + breakpoint
+        else active_breakpoints + breakpoint
       (active_breakpoints1(breakpoint), copy(active_breakpoints = active_breakpoints1))
     }
 
