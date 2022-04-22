@@ -313,6 +313,7 @@ object Simplifier_Trace {
           false
       }
 
-    override val functions = List(Markup.SIMP_TRACE_CANCEL -> cancel)
+    override val functions: Session.Protocol_Functions =
+      List(Markup.SIMP_TRACE_CANCEL -> cancel)
   }
 }

@@ -15,10 +15,31 @@ import org.gjt.sp.jedit.JARClassLoader
 import java.io.{OutputStream, Writer, PrintWriter}
 
 
+object Scala_Console {
+  class Interpreter(context: Scala.Compiler.Context, val console: Console)
+    extends Scala.Interpreter(context)
+
+  def console_interpreter(console: Console): Option[Interpreter] =
+    Scala.Interpreter.get { case int: Interpreter if int.console == console => int }
+
+  def running_interpreter(): Interpreter = {
+    val self = Thread.currentThread()
+    Scala.Interpreter.get { case int: Interpreter if int.running_thread(self) => int }
+      .getOrElse(error("Bad Scala interpreter thread"))
+  }
+
+  def running_console(): Console = running_interpreter().console
+
+  val init = """
+import isabelle._
+import isabelle.jedit._
+val console = isabelle.jedit_main.Scala_Console.running_console()
+val view = console.getView()
+"""
+}
+
 class Scala_Console extends Shell("Scala") {
   /* global state -- owned by GUI thread */
-
-  @volatile private var interpreters = Map.empty[Console, Interpreter]
 
   @volatile private var global_console: Console = null
   @volatile private var global_out: Output = null
@@ -80,67 +101,22 @@ class Scala_Console extends Shell("Scala") {
   }
 
 
-  /* interpreter thread */
-
-  private abstract class Request
-  private case class Start(console: Console) extends Request
-  private case class Execute(console: Console, out: Output, err: Output, command: String)
-    extends Request
-
-  private class Interpreter {
-    private val running = Synchronized[Option[Thread]](None)
-    def interrupt(): Unit = running.change({ opt => opt.foreach(_.interrupt()); opt })
-
-    private val interp =
-      Scala.Compiler.context(error = report_error, jar_dirs = JEdit_Lib.directories).
-        interpreter(
-          print_writer = new PrintWriter(console_writer, true),
-          class_loader = new JARClassLoader)
-
-    val thread: Consumer_Thread[Request] = Consumer_Thread.fork("Scala_Console") {
-      case Start(console) =>
-        interp.bind("view", "org.gjt.sp.jedit.View", console.getView)
-        interp.bind("console", "console.Console", console)
-        interp.interpret("import isabelle._; import isabelle.jedit._")
-        true
-
-      case Execute(console, out, err, command) =>
-        with_console(console, out, err) {
-          try {
-            running.change(_ => Some(Thread.currentThread()))
-            interp.interpret(command)
-          }
-          finally {
-            running.change(_ => None)
-            Exn.Interrupt.dispose()
-          }
-          GUI_Thread.later {
-            if (err != null) err.commandDone()
-            out.commandDone()
-          }
-          true
-        }
-    }
-  }
-
-
   /* jEdit console methods */
 
   override def openConsole(console: Console): Unit = {
-    val interp = new Interpreter
-    interp.thread.send(Start(console))
-    interpreters += (console -> interp)
+    val context =
+      Scala.Compiler.context(
+      print_writer = new PrintWriter(console_writer, true),
+      error = report_error,
+      jar_dirs = JEdit_Lib.directories,
+      class_loader = Some(new JARClassLoader))
+
+    val interpreter = new Scala_Console.Interpreter(context, console)
+    interpreter.execute(_.interp.interpret(Scala_Console.init))
   }
 
-  override def closeConsole(console: Console): Unit = {
-    interpreters.get(console) match {
-      case Some(interp) =>
-        interp.interrupt()
-        interp.thread.shutdown()
-        interpreters -= console
-      case None =>
-    }
-  }
+  override def closeConsole(console: Console): Unit =
+    Scala_Console.console_interpreter(console).foreach(_.shutdown())
 
   override def printInfoMessage(out: Output): Unit = {
     out.print(null,
@@ -161,11 +137,19 @@ class Scala_Console extends Shell("Scala") {
     console: Console,
     input: String,
     out: Output,
-    err: Output, command: String
+    err: Output,
+    command: String
   ): Unit = {
-    interpreters(console).thread.send(Execute(console, out, err, command))
+    Scala_Console.console_interpreter(console).foreach(interpreter =>
+      interpreter.execute { context =>
+        with_console(console, out, err) { context.interp.interpret(command) }
+        GUI_Thread.later {
+          Option(err).foreach(_.commandDone())
+          out.commandDone()
+        }
+      })
   }
 
   override def stop(console: Console): Unit =
-    interpreters.get(console).foreach(_.interrupt())
+    Scala_Console.console_interpreter(console).foreach(_.shutdown())
 }

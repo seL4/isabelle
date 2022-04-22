@@ -26,24 +26,20 @@ import org.gjt.sp.jedit.syntax.{Token => JEditToken, TokenMarker, TokenHandler}
 object JEdit_Bibtex {
   /** context menu **/
 
-  def context_menu(text_area0: JEditTextArea): List[JMenuItem] = {
-    text_area0 match {
-      case text_area: TextArea =>
-        text_area.getBuffer match {
-          case buffer: Buffer
-          if (Bibtex.is_bibtex(JEdit_Lib.buffer_name(buffer)) && buffer.isEditable) =>
-            val menu = new JMenu("BibTeX entries")
-            for (entry <- Bibtex.known_entries) {
-              val item = new JMenuItem(entry.kind)
-              item.addActionListener(new ActionListener {
-                def actionPerformed(evt: ActionEvent): Unit =
-                  Isabelle.insert_line_padding(text_area, entry.template)
-              })
-              menu.add(item)
-            }
-            List(menu)
-          case _ => Nil
+  def context_menu(text_area: JEditTextArea): List[JMenuItem] = {
+    text_area.getBuffer match {
+      case buffer: Buffer
+      if Bibtex.is_bibtex(JEdit_Lib.buffer_name(buffer)) && buffer.isEditable =>
+        val menu = new JMenu("BibTeX entries")
+        for (entry <- Bibtex.known_entries) {
+          val item = new JMenuItem(entry.kind)
+          item.addActionListener(new ActionListener {
+            def actionPerformed(evt: ActionEvent): Unit =
+              Isabelle.insert_line_padding(text_area, entry.template)
+          })
+          menu.add(item)
         }
+        List(menu)
       case _ => Nil
     }
   }

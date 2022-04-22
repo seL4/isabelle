@@ -80,9 +80,14 @@ object Scala {
     } yield elem
 
   object Compiler {
+    def default_print_writer: PrintWriter =
+      new NewLinePrintWriter(new ConsoleWriter, true)
+
     def context(
+      print_writer: PrintWriter = default_print_writer,
       error: String => Unit = Exn.error,
-      jar_dirs: List[JFile] = Nil
+      jar_dirs: List[JFile] = Nil,
+      class_loader: Option[ClassLoader] = None
     ): Context = {
       def find_jars(dir: JFile): List[String] =
         File.find_files(dir, file => file.getName.endsWith(".jar")).
@@ -92,44 +97,40 @@ object Scala {
       settings.classpath.value =
         (class_path() ::: jar_dirs.flatMap(find_jars)).mkString(JFile.pathSeparator)
 
-      new Context(settings)
+      new Context(settings, print_writer, class_loader)
     }
 
-    def default_print_writer: PrintWriter =
-      new NewLinePrintWriter(new ConsoleWriter, true)
-
-    class Context private [Compiler](val settings: GenericRunnerSettings) {
+    class Context private [Compiler](
+      val settings: GenericRunnerSettings,
+      val print_writer: PrintWriter,
+      val class_loader: Option[ClassLoader]
+    ) {
       override def toString: String = settings.toString
 
-      def interpreter(
-        print_writer: PrintWriter = default_print_writer,
-        class_loader: ClassLoader = null
-      ): IMain = {
+      val interp: IMain =
         new IMain(settings, new ReplReporterImpl(settings, print_writer)) {
           override def parentClassLoader: ClassLoader =
-            if (class_loader == null) super.parentClassLoader
-            else class_loader
+            class_loader getOrElse super.parentClassLoader
         }
-      }
+    }
 
-      def toplevel(interpret: Boolean, source: String): List[String] = {
-        val out = new StringWriter
-        val interp = interpreter(new PrintWriter(out))
-        val marker = '\u000b'
-        val ok =
-          interp.withLabel(marker.toString) {
-            if (interpret) interp.interpret(source) == Results.Success
-            else (new interp.ReadEvalPrint).compile(source)
-          }
-        out.close()
+    def toplevel(interpret: Boolean, source: String): List[String] = {
+      val out = new StringWriter
+      val interp = Compiler.context(print_writer = new PrintWriter(out)).interp
+      val marker = '\u000b'
+      val ok =
+        interp.withLabel(marker.toString) {
+          if (interpret) interp.interpret(source) == Results.Success
+          else (new interp.ReadEvalPrint).compile(source)
+        }
+      out.close()
 
-        val Error = """(?s)^\S* error: (.*)$""".r
-        val errors =
-          space_explode(marker, Library.strip_ansi_color(out.toString)).
-            collect({ case Error(msg) => "Scala error: " + Library.trim_line(msg) })
+      val Error = """(?s)^\S* error: (.*)$""".r
+      val errors =
+        space_explode(marker, Library.strip_ansi_color(out.toString)).
+          collect({ case Error(msg) => "Scala error: " + Library.trim_line(msg) })
 
-        if (!ok && errors.isEmpty) List("Error") else errors
-      }
+      if (!ok && errors.isEmpty) List("Error") else errors
     }
   }
 
@@ -143,10 +144,70 @@ object Scala {
           case body => import XML.Decode._; pair(bool, string)(body)
         }
       val errors =
-        try { Compiler.context().toplevel(interpret, source) }
+        try { Compiler.toplevel(interpret, source) }
         catch { case ERROR(msg) => List(msg) }
       locally { import XML.Encode._; YXML.string_of_body(list(string)(errors)) }
     }
+  }
+
+
+
+  /** interpreter thread **/
+
+  object Interpreter {
+    /* requests */
+
+    sealed abstract class Request
+    case class Execute(command: Compiler.Context => Unit) extends Request
+    case object Shutdown extends Request
+
+
+    /* known interpreters */
+
+    private val known = Synchronized(Set.empty[Interpreter])
+
+    def add(interpreter: Interpreter): Unit = known.change(_ + interpreter)
+    def del(interpreter: Interpreter): Unit = known.change(_ - interpreter)
+
+    def get[A](which: PartialFunction[Interpreter, A]): Option[A] =
+      known.value.collectFirst(which)
+  }
+
+  class Interpreter(context: Compiler.Context) {
+    interpreter =>
+
+    private val running = Synchronized[Option[Thread]](None)
+    def running_thread(thread: Thread): Boolean = running.value.contains(thread)
+    def interrupt_thread(): Unit = running.change({ opt => opt.foreach(_.interrupt()); opt })
+
+    private lazy val thread: Consumer_Thread[Interpreter.Request] =
+      Consumer_Thread.fork("Scala.Interpreter") {
+        case Interpreter.Execute(command) =>
+          try {
+            running.change(_ => Some(Thread.currentThread()))
+            command(context)
+          }
+          finally {
+            running.change(_ => None)
+            Exn.Interrupt.dispose()
+          }
+          true
+        case Interpreter.Shutdown =>
+          Interpreter.del(interpreter)
+          false
+      }
+
+    def shutdown(): Unit = {
+      thread.send(Interpreter.Shutdown)
+      interrupt_thread()
+      thread.shutdown()
+    }
+
+    def execute(command: Compiler.Context => Unit): Unit =
+      thread.send(Interpreter.Execute(command))
+
+    Interpreter.add(interpreter)
+    thread
   }
 
 
@@ -208,15 +269,15 @@ object Scala {
     private def invoke_scala(msg: Prover.Protocol_Output): Boolean = synchronized {
       msg.properties match {
         case Markup.Invoke_Scala(name, id) =>
-          def body: Unit = {
+          def body(): Unit = {
             val (tag, res) = Scala.function_body(name, msg.chunks)
             result(id, tag, res)
           }
           val future =
             if (Scala.function_thread(name)) {
-              Future.thread(name = Isabelle_Thread.make_name(base = "invoke_scala"))(body)
+              Future.thread(name = Isabelle_Thread.make_name(base = "invoke_scala"))(body())
             }
-            else Future.fork(body)
+            else Future.fork(body())
           futures += (id -> future)
           true
         case _ => false
@@ -235,7 +296,7 @@ object Scala {
       }
     }
 
-    override val functions =
+    override val functions: Session.Protocol_Functions =
       List(
         Markup.Invoke_Scala.name -> invoke_scala,
         Markup.Cancel_Scala.name -> cancel_scala)

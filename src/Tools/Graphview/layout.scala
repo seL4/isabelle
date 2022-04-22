@@ -137,10 +137,10 @@ object Layout {
 
               val levels1 = dummies_levels.foldLeft(levels)(_ + _)
               val graph1 =
-                (v1 :: dummies ::: List(v2)).sliding(2).map(_.toList).
-                  foldLeft(dummies.foldLeft(graph)(_.new_node(_, dummy_info)).del_edge(v1, v2)) {
-                    case (g, List(a, b)) => g.add_edge(a, b)
-                    case _ => ???
+                (v1 :: dummies ::: List(v2)).sliding(2)
+                  .foldLeft(dummies.foldLeft(graph)(_.new_node(_, dummy_info)).del_edge(v1, v2)) {
+                    case (g, Seq(a, b)) => g.add_edge(a, b)
+                    case (g, _) => g
                   }
               (graph1, levels1)
             }
@@ -236,8 +236,8 @@ object Layout {
   }
 
   private def count_crossings(graph: Graph, levels: List[Level]): Int =
-    levels.iterator.sliding(2).map(_.toList).map {
-      case List(top, bot) =>
+    levels.iterator.sliding(2).map {
+      case Seq(top, bot) =>
         top.iterator.zipWithIndex.map {
           case (outer_parent, outer_parent_index) =>
             graph.imm_succs(outer_parent).iterator.map(bot.indexOf(_)).map(outer_child =>

@@ -333,7 +333,7 @@ object XML {
 
   object Decode {
     type T[A] = XML.Body => A
-    type V[A] = (List[String], XML.Body) => A
+    type V[A] = PartialFunction[(List[String], XML.Body), A]
     type P[A] = PartialFunction[List[String], A]
 
 

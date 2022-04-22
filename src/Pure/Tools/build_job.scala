@@ -321,7 +321,7 @@ class Build_Job(progress: Progress,
               case _ => false
             }
 
-          override val functions =
+          override val functions: Session.Protocol_Functions =
             List(
               Markup.Build_Session_Finished.name -> build_session_finished,
               Markup.Loading_Theory.name -> loading_theory,
@@ -463,10 +463,10 @@ class Build_Job(progress: Progress,
 
       val result = {
         val theory_timing =
-          theory_timings.iterator.map(
+          theory_timings.iterator.flatMap(
             {
-              case props @ Markup.Name(name) => name -> props
-              case _ => ???
+              case props @ Markup.Name(name) => Some(name -> props)
+              case _ => None
             }).toMap
         val used_theory_timings =
           for { (name, _) <- deps(session_name).used_theories }

@@ -34,6 +34,7 @@ object Print_Operation {
       true
     }
 
-    override val functions = List(Markup.PRINT_OPERATIONS -> put)
+    override val functions: Session.Protocol_Functions =
+      List(Markup.PRINT_OPERATIONS -> put)
   }
 }

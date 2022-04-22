@@ -103,7 +103,8 @@ object ML_Statistics {
       }
     }
 
-    override val functions = List(Markup.ML_Statistics.name -> ml_statistics)
+    override val functions: Session.Protocol_Functions =
+      List(Markup.ML_Statistics.name -> ml_statistics)
   }
 
 
