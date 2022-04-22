@@ -152,6 +152,66 @@ object Scala {
 
 
 
+  /** interpreter thread **/
+
+  object Interpreter {
+    /* requests */
+
+    sealed abstract class Request
+    case class Execute(command: Compiler.Context => Unit) extends Request
+    case object Shutdown extends Request
+
+
+    /* known interpreters */
+
+    private val known = Synchronized(Set.empty[Interpreter])
+
+    def add(interpreter: Interpreter): Unit = known.change(_ + interpreter)
+    def del(interpreter: Interpreter): Unit = known.change(_ - interpreter)
+
+    def get[A](which: PartialFunction[Interpreter, A]): Option[A] =
+      known.value.collectFirst(which)
+  }
+
+  class Interpreter(context: Compiler.Context) {
+    interpreter =>
+
+    private val running = Synchronized[Option[Thread]](None)
+    def running_thread(thread: Thread): Boolean = running.value.contains(thread)
+    def interrupt_thread(): Unit = running.change({ opt => opt.foreach(_.interrupt()); opt })
+
+    private lazy val thread: Consumer_Thread[Interpreter.Request] =
+      Consumer_Thread.fork("Scala.Interpreter") {
+        case Interpreter.Execute(command) =>
+          try {
+            running.change(_ => Some(Thread.currentThread()))
+            command(context)
+          }
+          finally {
+            running.change(_ => None)
+            Exn.Interrupt.dispose()
+          }
+          true
+        case Interpreter.Shutdown =>
+          Interpreter.del(interpreter)
+          false
+      }
+
+    def shutdown(): Unit = {
+      thread.send(Interpreter.Shutdown)
+      interrupt_thread()
+      thread.shutdown()
+    }
+
+    def execute(command: Compiler.Context => Unit): Unit =
+      thread.send(Interpreter.Execute(command))
+
+    Interpreter.add(interpreter)
+    thread
+  }
+
+
+
   /** invoke Scala functions from ML **/
 
   /* invoke function */
