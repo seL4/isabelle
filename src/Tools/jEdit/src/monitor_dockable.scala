@@ -28,7 +28,7 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
   private var statistics_length = 0
 
   private def add_statistics(stats: Properties.T): Unit = {
-    statistics = statistics.enqueue(stats)
+    statistics = statistics.appended(stats)
     statistics_length += 1
     limit_data.text match {
       case Value.Int(limit) =>
