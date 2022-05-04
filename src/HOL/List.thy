@@ -970,6 +970,8 @@ by (simp split: list.split)
 lemma tl_append2 [simp]: "xs \<noteq> [] \<Longrightarrow> tl (xs @ ys) = tl xs @ ys"
 by (simp add: tl_append split: list.split)
 
+lemma tl_append_if: "tl (xs @ ys) = (if xs = [] then tl ys else tl xs @ ys)"
+by (simp)
 
 lemma Cons_eq_append_conv: "x#xs = ys@zs =
  (ys = [] \<and> x#xs = zs \<or> (\<exists>ys'. x#ys' = ys \<and> xs = ys'@zs))"
