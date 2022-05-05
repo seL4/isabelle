@@ -19,17 +19,17 @@ typedef\<^marker>\<open>tag important\<close> 'a topology = "{L::('a set) \<Righ
   morphisms "openin" "topology"
   unfolding istopology_def by blast
 
-lemma istopology_openin[intro]: "istopology(openin U)"
+lemma istopology_openin[iff]: "istopology(openin U)"
   using openin[of U] by blast
 
-lemma istopology_open: "istopology open"
+lemma istopology_open[iff]: "istopology open"
   by (auto simp: istopology_def)
 
-lemma topology_inverse': "istopology U \<Longrightarrow> openin (topology U) = U"
+lemma topology_inverse' [simp]: "istopology U \<Longrightarrow> openin (topology U) = U"
   using topology_inverse[unfolded mem_Collect_eq] .
 
 lemma topology_inverse_iff: "istopology U \<longleftrightarrow> openin (topology U) = U"
-  using topology_inverse[of U] istopology_openin[of "topology U"] by auto
+  by (metis istopology_openin topology_inverse')
 
 lemma topology_eq: "T1 = T2 \<longleftrightarrow> (\<forall>S. openin T1 S \<longleftrightarrow> openin T2 S)"
 proof
