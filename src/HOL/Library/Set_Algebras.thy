@@ -87,6 +87,35 @@ instance set :: (monoid_mult) monoid_mult
 instance set :: (comm_monoid_mult) comm_monoid_mult
   by standard (simp_all add: set_times_def)
 
+lemma sumset_empty [simp]: "A + {} = {}" "{} + A = {}"
+  by (auto simp: set_plus_def)
+
+lemma Un_set_plus: "(A \<union> B) + C = (A+C) \<union> (B+C)" and set_plus_Un: "C + (A \<union> B) = (C+A) \<union> (C+B)"
+  by (auto simp: set_plus_def)
+
+lemma 
+  fixes A :: "'a::comm_monoid_add set"
+  shows insert_set_plus: "(insert a A) + B = (A+B) \<union> (((+)a) ` B)" and set_plus_insert: "B + (insert a A) = (B+A) \<union> (((+)a) ` B)"
+  using add.commute by (auto simp: set_plus_def)
+
+lemma set_add_0 [simp]:
+  fixes A :: "'a::comm_monoid_add set"
+  shows "{0} + A = A"
+  by (metis comm_monoid_add_class.add_0 set_zero)
+
+lemma set_add_0_right [simp]:
+  fixes A :: "'a::comm_monoid_add set"
+  shows "A + {0} = A"
+  by (metis add.comm_neutral set_zero)
+
+lemma card_plus_sing:
+  fixes A :: "'a::ab_group_add set"
+  shows "card (A + {a}) = card A"
+proof (rule bij_betw_same_card)
+  show "bij_betw ((+) (-a)) (A + {a}) A"
+    by (fastforce simp: set_plus_def bij_betw_def image_iff)
+qed
+
 lemma set_plus_intro [intro]: "a \<in> C \<Longrightarrow> b \<in> D \<Longrightarrow> a + b \<in> C + D"
   by (auto simp add: set_plus_def)
 
@@ -100,12 +129,7 @@ lemma set_plus_intro2 [intro]: "b \<in> C \<Longrightarrow> a + b \<in> a +o C"
 
 lemma set_plus_rearrange: "(a +o C) + (b +o D) = (a + b) +o (C + D)"
   for a b :: "'a::comm_monoid_add"
-  apply (auto simp add: elt_set_plus_def set_plus_def ac_simps)
-   apply (rule_tac x = "ba + bb" in exI)
-   apply (auto simp add: ac_simps)
-  apply (rule_tac x = "aa + a" in exI)
-  apply (auto simp add: ac_simps)
-  done
+    by (auto simp: elt_set_plus_def set_plus_def; metis group_cancel.add1 group_cancel.add2)
 
 lemma set_plus_rearrange2: "a +o (b +o C) = (a + b) +o C"
   for a b :: "'a::semigroup_add"
@@ -113,22 +137,11 @@ lemma set_plus_rearrange2: "a +o (b +o C) = (a + b) +o C"
 
 lemma set_plus_rearrange3: "(a +o B) + C = a +o (B + C)"
   for a :: "'a::semigroup_add"
-  apply (auto simp add: elt_set_plus_def set_plus_def)
-   apply (blast intro: ac_simps)
-  apply (rule_tac x = "a + aa" in exI)
-  apply (rule conjI)
-   apply (rule_tac x = "aa" in bexI)
-    apply auto
-  apply (rule_tac x = "ba" in bexI)
-   apply (auto simp add: ac_simps)
-  done
+  by (auto simp add: elt_set_plus_def set_plus_def; metis add.assoc)
 
 theorem set_plus_rearrange4: "C + (a +o D) = a +o (C + D)"
   for a :: "'a::comm_monoid_add"
-  apply (auto simp add: elt_set_plus_def set_plus_def ac_simps)
-   apply (rule_tac x = "aa + ba" in exI)
-   apply (auto simp add: ac_simps)
-  done
+  by (metis add.commute set_plus_rearrange3)
 
 lemmas set_plus_rearranges = set_plus_rearrange set_plus_rearrange2
   set_plus_rearrange3 set_plus_rearrange4
@@ -148,34 +161,10 @@ lemma set_plus_mono4 [intro]: "a \<in> C \<Longrightarrow> a +o D \<subseteq> D 
   by (auto simp add: elt_set_plus_def set_plus_def ac_simps)
 
 lemma set_plus_mono5: "a \<in> C \<Longrightarrow> B \<subseteq> D \<Longrightarrow> a +o B \<subseteq> C + D"
-  apply (subgoal_tac "a +o B \<subseteq> a +o D")
-   apply (erule order_trans)
-   apply (erule set_plus_mono3)
-  apply (erule set_plus_mono)
-  done
+  using order_subst2 by blast
 
 lemma set_plus_mono_b: "C \<subseteq> D \<Longrightarrow> x \<in> a +o C \<Longrightarrow> x \<in> a +o D"
-  apply (frule set_plus_mono)
-  apply auto
-  done
-
-lemma set_plus_mono2_b: "C \<subseteq> D \<Longrightarrow> E \<subseteq> F \<Longrightarrow> x \<in> C + E \<Longrightarrow> x \<in> D + F"
-  apply (frule set_plus_mono2)
-   prefer 2
-   apply force
-  apply assumption
-  done
-
-lemma set_plus_mono3_b: "a \<in> C \<Longrightarrow> x \<in> a +o D \<Longrightarrow> x \<in> C + D"
-  apply (frule set_plus_mono3)
-  apply auto
-  done
-
-lemma set_plus_mono4_b: "a \<in> C \<Longrightarrow> x \<in> a +o D \<Longrightarrow> x \<in> D + C"
-  for a x :: "'a::comm_monoid_add"
-  apply (frule set_plus_mono4)
-  apply auto
-  done
+  using set_plus_mono by blast
 
 lemma set_zero_plus [simp]: "0 +o C = C"
   for C :: "'a::comm_monoid_add set"
@@ -183,11 +172,7 @@ lemma set_zero_plus [simp]: "0 +o C = C"
 
 lemma set_zero_plus2: "0 \<in> A \<Longrightarrow> B \<subseteq> A + B"
   for A B :: "'a::comm_monoid_add set"
-  apply (auto simp add: set_plus_def)
-  apply (rule_tac x = 0 in bexI)
-   apply (rule_tac x = x in bexI)
-    apply (auto simp add: ac_simps)
-  done
+  using set_plus_intro by fastforce
 
 lemma set_plus_imp_minus: "a \<in> b +o C \<Longrightarrow> a - b \<in> C"
   for a b :: "'a::ab_group_add"
@@ -195,21 +180,11 @@ lemma set_plus_imp_minus: "a \<in> b +o C \<Longrightarrow> a - b \<in> C"
 
 lemma set_minus_imp_plus: "a - b \<in> C \<Longrightarrow> a \<in> b +o C"
   for a b :: "'a::ab_group_add"
-  apply (auto simp add: elt_set_plus_def ac_simps)
-  apply (subgoal_tac "a = (a + - b) + b")
-   apply (rule bexI)
-    apply assumption
-   apply (auto simp add: ac_simps)
-  done
+  by (metis add.commute diff_add_cancel set_plus_intro2)
 
 lemma set_minus_plus: "a - b \<in> C \<longleftrightarrow> a \<in> b +o C"
   for a b :: "'a::ab_group_add"
-  apply (rule iffI)
-   apply (rule set_minus_imp_plus)
-   apply assumption
-  apply (rule set_plus_imp_minus)
-  apply assumption
-  done
+  by (meson set_minus_imp_plus set_plus_imp_minus)
 
 lemma set_times_intro [intro]: "a \<in> C \<Longrightarrow> b \<in> D \<Longrightarrow> a * b \<in> C * D"
   by (auto simp add: set_times_def)
@@ -224,12 +199,7 @@ lemma set_times_intro2 [intro!]: "b \<in> C \<Longrightarrow> a * b \<in> a *o C
 
 lemma set_times_rearrange: "(a *o C) * (b *o D) = (a * b) *o (C * D)"
   for a b :: "'a::comm_monoid_mult"
-  apply (auto simp add: elt_set_times_def set_times_def)
-   apply (rule_tac x = "ba * bb" in exI)
-   apply (auto simp add: ac_simps)
-  apply (rule_tac x = "aa * a" in exI)
-  apply (auto simp add: ac_simps)
-  done
+  by (auto simp add: elt_set_times_def set_times_def; metis mult.assoc mult.left_commute)
 
 lemma set_times_rearrange2: "a *o (b *o C) = (a * b) *o C"
   for a b :: "'a::semigroup_mult"
@@ -237,22 +207,11 @@ lemma set_times_rearrange2: "a *o (b *o C) = (a * b) *o C"
 
 lemma set_times_rearrange3: "(a *o B) * C = a *o (B * C)"
   for a :: "'a::semigroup_mult"
-  apply (auto simp add: elt_set_times_def set_times_def)
-   apply (blast intro: ac_simps)
-  apply (rule_tac x = "a * aa" in exI)
-  apply (rule conjI)
-   apply (rule_tac x = "aa" in bexI)
-    apply auto
-  apply (rule_tac x = "ba" in bexI)
-   apply (auto simp add: ac_simps)
-  done
+  by (auto simp add: elt_set_times_def set_times_def; metis mult.assoc)
 
 theorem set_times_rearrange4: "C * (a *o D) = a *o (C * D)"
   for a :: "'a::comm_monoid_mult"
-  apply (auto simp add: elt_set_times_def set_times_def ac_simps)
-   apply (rule_tac x = "aa * ba" in exI)
-   apply (auto simp add: ac_simps)
-  done
+  by (metis mult.commute set_times_rearrange3)
 
 lemmas set_times_rearranges = set_times_rearrange set_times_rearrange2
   set_times_rearrange3 set_times_rearrange4
@@ -272,34 +231,7 @@ lemma set_times_mono4 [intro]: "a \<in> C \<Longrightarrow> a *o D \<subseteq> D
   by (auto simp add: elt_set_times_def set_times_def ac_simps)
 
 lemma set_times_mono5: "a \<in> C \<Longrightarrow> B \<subseteq> D \<Longrightarrow> a *o B \<subseteq> C * D"
-  apply (subgoal_tac "a *o B \<subseteq> a *o D")
-   apply (erule order_trans)
-   apply (erule set_times_mono3)
-  apply (erule set_times_mono)
-  done
-
-lemma set_times_mono_b: "C \<subseteq> D \<Longrightarrow> x \<in> a *o C \<Longrightarrow> x \<in> a *o D"
-  apply (frule set_times_mono)
-  apply auto
-  done
-
-lemma set_times_mono2_b: "C \<subseteq> D \<Longrightarrow> E \<subseteq> F \<Longrightarrow> x \<in> C * E \<Longrightarrow> x \<in> D * F"
-  apply (frule set_times_mono2)
-   prefer 2
-   apply force
-  apply assumption
-  done
-
-lemma set_times_mono3_b: "a \<in> C \<Longrightarrow> x \<in> a *o D \<Longrightarrow> x \<in> C * D"
-  apply (frule set_times_mono3)
-  apply auto
-  done
-
-lemma set_times_mono4_b: "a \<in> C \<Longrightarrow> x \<in> a *o D \<Longrightarrow> x \<in> D * C"
-  for a x :: "'a::comm_monoid_mult"
-  apply (frule set_times_mono4)
-  apply auto
-  done
+  by (meson dual_order.trans set_times_mono set_times_mono3)
 
 lemma set_one_times [simp]: "1 *o C = C"
   for C :: "'a::comm_monoid_mult set"
@@ -311,17 +243,12 @@ lemma set_times_plus_distrib: "a *o (b +o C) = (a * b) +o (a *o C)"
 
 lemma set_times_plus_distrib2: "a *o (B + C) = (a *o B) + (a *o C)"
   for a :: "'a::semiring"
-  apply (auto simp add: set_plus_def elt_set_times_def ring_distribs)
-   apply blast
-  apply (rule_tac x = "b + bb" in exI)
-  apply (auto simp add: ring_distribs)
-  done
+  by (auto simp: set_plus_def elt_set_times_def; metis distrib_left)
 
 lemma set_times_plus_distrib3: "(a +o C) * D \<subseteq> a *o D + C * D"
   for a :: "'a::semiring"
-  apply (auto simp: elt_set_plus_def elt_set_times_def set_times_def set_plus_def ring_distribs)
-  apply auto
-  done
+  using distrib_right 
+  by (fastforce simp add: elt_set_plus_def elt_set_times_def set_times_def set_plus_def)
 
 lemmas set_times_plus_distribs =
   set_times_plus_distrib
