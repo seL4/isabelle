@@ -27,9 +27,11 @@ text \<open>
     \<^descr>[Isabelle/Scala] is the system programming language of Isabelle. It
     extends the pure logical environment of Isabelle/ML towards the outer
     world of graphical user interfaces, text editors, IDE frameworks, web
-    services, SSH servers, SQL databases etc. Special infrastructure allows to
-    transfer algebraic datatypes and formatted text easily between ML and
-    Scala, using asynchronous protocol commands.
+    services, SSH servers, SQL databases etc. Both Scala and ML provide
+    library modules to support formatted text with formal markup, and to
+    encode/decode algebraic datatypes. Scala communicates with ML via
+    asynchronous protocol commands; from the ML perspective this is wrapped up
+    as synchronous function call (RPC).
 
     \<^descr>[PIDE] is a general framework for Prover IDEs based on Isabelle/Scala. It
     is built around a concept of parallel and asynchronous document
