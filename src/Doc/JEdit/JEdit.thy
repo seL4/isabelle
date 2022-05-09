@@ -41,9 +41,9 @@ text \<open>
     rich formal markup for GUI rendering.
 
     \<^descr>[jEdit] is a sophisticated text editor\<^footnote>\<open>\<^url>\<open>http://www.jedit.org\<close>\<close>
-    implemented in Java\<^footnote>\<open>\<^url>\<open>https://adoptopenjdk.net\<close>\<close>. It is easily
+    implemented in Java\<^footnote>\<open>\<^url>\<open>https://openjdk.java.net\<close>\<close>. The editor is easily
     extensible by plugins written in any language that works on the JVM. In
-    the context of Isabelle this is always
+    the context of Isabelle this is usually
     Scala\<^footnote>\<open>\<^url>\<open>https://www.scala-lang.org\<close>\<close>.
 
     \<^descr>[Isabelle/jEdit] is the main application of the PIDE framework and the
