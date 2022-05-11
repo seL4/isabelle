@@ -26,6 +26,11 @@ access to the underlying technologies of VSCodium, for use in other
 applications. This essentially provides a freely programmable Chromium
 browser engine that works uniformly on all platforms.
 
+Example:
+
+  URL="https://isabelle.in.tum.de" isabelle electron \
+    --app="$(isabelle getenv -b ISABELLE_HOME)"/src/Tools/Electron/test
+
 
 *** HOL ***
 
