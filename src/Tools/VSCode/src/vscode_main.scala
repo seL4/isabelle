@@ -19,7 +19,7 @@ object VSCode_Main {
     Path.explode("$ISABELLE_VSCODE_SETTINGS/server.log").expand
 
   def run_vscodium(args: List[String],
-    environment: Iterable[(String, String)] = Nil,
+    environment: List[(String, String)] = Nil,
     options: List[String] = Nil,
     logic: String = "",
     logic_ancestor: String = "",
@@ -49,11 +49,11 @@ object VSCode_Main {
         (if (server_log) Some(server_log_path.absolute.implode) else None)) ++
       JSON.optional("verbose" -> proper_bool(verbose))
 
-    val env = new java.util.HashMap(Isabelle_System.settings())
-    for ((a, b) <- environment) env.put(a, b)
-    env.put("ISABELLE_VSCODIUM_ARGS", JSON.Format(args_json))
-    env.put("ISABELLE_VSCODIUM_APP", platform_path("$ISABELLE_VSCODIUM_RESOURCES/vscodium"))
-    env.put("ELECTRON_RUN_AS_NODE", "1")
+    val env =
+      Isabelle_System.settings(environment ::: List(
+        "ISABELLE_VSCODIUM_ARGS" -> JSON.Format(args_json),
+        "ISABELLE_VSCODIUM_APP" -> platform_path("$ISABELLE_VSCODIUM_RESOURCES/vscodium"),
+        "ELECTRON_RUN_AS_NODE" -> "1"))
 
     val electron = Isabelle_System.getenv("ISABELLE_VSCODIUM_ELECTRON")
     if (electron.isEmpty) {

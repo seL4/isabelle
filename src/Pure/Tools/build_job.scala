@@ -7,8 +7,6 @@ Build job running prover process, with rudimentary PIDE session.
 package isabelle
 
 
-import java.util.HashMap
-
 import scala.collection.mutable
 
 
@@ -215,8 +213,9 @@ class Build_Job(progress: Progress,
       val base = deps(parent)
       val result_base = deps(session_name)
 
-      val env = new HashMap(Isabelle_System.settings())
-      env.put("ISABELLE_ML_DEBUGGER", options.bool("ML_debugger").toString)
+      val env =
+        Isabelle_System.settings(
+          List("ISABELLE_ML_DEBUGGER" -> options.bool("ML_debugger").toString))
 
       val is_pure = Sessions.is_pure(session_name)
 
