@@ -354,7 +354,7 @@ proof -
           Pi_pmf A dflt' (\<lambda>x. g x \<bind> (\<lambda>x. return_pmf (f x)))"
     using assms by (simp add: map_pmf_def Pi_pmf_bind)
   also have "\<dots> = Pi_pmf A dflt g \<bind> (\<lambda>h. return_pmf (\<lambda>x. if x \<in> A then f (h x) else dflt'))"
-   by (subst Pi_pmf_bind[where d' = dflt]) (auto simp: )
+   by (subst Pi_pmf_bind[where d' = dflt]) auto
   also have "\<dots> = map_pmf (\<lambda>h. f \<circ> h) (Pi_pmf A dflt g)"
     unfolding map_pmf_def using set_Pi_pmf_subset'[of A dflt g]
     by (intro bind_pmf_cong refl arg_cong[of _ _ return_pmf])

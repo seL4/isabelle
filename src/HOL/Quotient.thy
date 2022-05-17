@@ -576,7 +576,7 @@ proof -
         using r Quotient3_refl1 R1 rep_abs_rsp by fastforce
       moreover have "R2' (Rep1 (Abs1 r)) (Rep1 (Abs1 s))"
         using that
-        apply (simp add: )
+        apply simp
         apply (metis (full_types) Rep1 Abs1 Quotient3_rel R2 Quotient3_refl1 [OF R1] Quotient3_refl2 [OF R1] Quotient3_rel_abs [OF R1])
         done
       moreover have "R1 (Rep1 (Abs1 s)) s"

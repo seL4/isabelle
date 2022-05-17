@@ -2408,7 +2408,7 @@ proof
   proof (rule ccontr, simp add: not_less)
     assume "b \<le> a"
     with that show False
-      by (simp add: )
+      by simp
   qed
 qed
 

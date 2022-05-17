@@ -465,7 +465,7 @@ lemma (in linorder) atLeastLessThan_subset_iff:
   apply (auto simp:subset_eq Ball_def not_le)
   apply(frule_tac x=a in spec)
   apply(erule_tac x=d in allE)
-  apply (auto simp: )
+  apply auto
   done
 
 lemma atLeastLessThan_inj:

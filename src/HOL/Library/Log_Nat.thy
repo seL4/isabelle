@@ -183,7 +183,7 @@ proof -
   proof -
     have "0 \<le> log (real b) (real x)"
       using \<open>b > 1\<close> \<open>0 < x\<close>
-      by (auto simp: )
+      by auto
     then have "?l \<le> b powr log (real b) (real x)"
       using \<open>b > 1\<close>
       by (auto simp flip: powr_realpow intro!: powr_mono of_nat_floor)

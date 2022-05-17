@@ -333,7 +333,7 @@ lemma mult_float_intervalI:
   "x * y \<in>\<^sub>r mult_float_interval prec A B"
   if "x \<in>\<^sub>i real_interval A" "y \<in>\<^sub>i real_interval B"
   using mult_float_interval[of A B] that
-  by (auto simp: )
+  by auto
 
 lemma mult_float_interval_mono':
   "set_of (mult_float_interval prec A B) \<subseteq> set_of (mult_float_interval prec X Y)"

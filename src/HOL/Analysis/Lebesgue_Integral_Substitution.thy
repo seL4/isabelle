@@ -122,7 +122,7 @@ proof-
         by (simp add: vimage_Compl diff_eq Int_commute[of "-A"])
       also have "{g a..g b} - A = {g a..g b} - A \<inter> {g a..g b}" by blast
       also have "emeasure lborel ... = g b - g a - emeasure lborel (A \<inter> {g a..g b})"
-             using \<open>A \<in> sets borel\<close> by (subst emeasure_Diff) (auto simp: )
+             using \<open>A \<in> sets borel\<close> by (subst emeasure_Diff) auto
      also have "emeasure lborel (A \<inter> {g a..g b}) =
                     \<integral>\<^sup>+x. indicator A x * indicator {g a..g b} x \<partial>lborel"
        using \<open>A \<in> sets borel\<close>

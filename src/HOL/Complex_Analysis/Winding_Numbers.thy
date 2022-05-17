@@ -1316,7 +1316,7 @@ proof -
         also have "... < e"
           using \<open>e>0\<close> by (auto simp: norm_mult intro: le_less_trans [OF norm_triangle_ineq4])
         finally have "z \<in> ball 0 e"
-          using \<open>e>0\<close> by (simp add: )
+          using \<open>e>0\<close> by simp
         then have "Im z * Re b \<le> Im b * Re z"
           using e by blast
         then have b: "0 < Re b" "0 < Im b" and disj: "e * Re b < - (Im b * e) \<or> e * Re b = - (Im b * e)"

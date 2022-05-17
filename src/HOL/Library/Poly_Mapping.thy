@@ -1688,7 +1688,7 @@ lemma keys_cmul: "Poly_Mapping.keys(frag_cmul c a) \<subseteq> Poly_Mapping.keys
   
 
 lemma keys_cmul_iff [iff]: "i \<in> Poly_Mapping.keys (frag_cmul c x) \<longleftrightarrow> i \<in> Poly_Mapping.keys x \<and> c \<noteq> 0"
-  apply (auto simp: )
+  apply auto
   apply (meson subsetD keys_cmul)
   by (metis in_keys_iff lookup_frag_cmul mult_eq_0_iff)
 

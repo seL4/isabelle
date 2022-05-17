@@ -289,7 +289,7 @@ next
         by metis
       with \<open>a \<notin> T\<close> compactin_subset_topspace [OF T]
       have Topen: "\<forall>W \<in> U ` T. openin X W" and Tsub: "T \<subseteq> \<Union> (U ` T)"
-        by (auto simp: )
+        by auto
       then obtain \<F> where \<F>: "finite \<F>" "\<F> \<subseteq> U ` T" and "T \<subseteq> \<Union>\<F>"
         using T unfolding compactin_def by meson
       then obtain F where F: "finite F" "F \<subseteq> T" "\<F> = U ` F" and SUF: "T \<subseteq> \<Union>(U ` F)" and "a \<notin> F"

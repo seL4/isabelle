@@ -493,7 +493,7 @@ proof (rule measure_eqI_generator_eq)
     proof (safe intro!: sets_Sup_in_sets del: subsetI equalityI)
       fix i :: nat
       show "space (?V i) = space ?R"
-        using scylinder_streams by (subst space_measure_of) (auto simp: )
+        using scylinder_streams by (subst space_measure_of) auto
       { fix A assume "A \<in> G"
         then have "scylinder (space S) (replicate i (space S) @ [A]) = (\<lambda>s. s !! i) -` A \<inter> streams (space S)"
           by (induction i) (auto simp add: streams_shd streams_stl cong: conj_cong)

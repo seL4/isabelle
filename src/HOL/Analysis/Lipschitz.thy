@@ -623,7 +623,7 @@ proof (safe, simp)
         by (simp add: dist_commute)
       subgoal
         using \<open>0 < u\<close> \<open>b \<in> X\<close>
-        by (simp add: )
+        by simp
       done
     also have "(L + 1) * dist y b \<le> e / 2"
       using le1 \<open>0 \<le> L\<close> by simp

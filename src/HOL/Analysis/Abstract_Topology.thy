@@ -3924,7 +3924,7 @@ proof -
       using \<open>(x, y) \<in> E1 \<times> E2\<close> \<open>x \<in> S\<close> \<open>y \<in> T\<close> by auto
     show "(E1 \<inter> S) \<times> (E2 \<inter> T) \<subseteq> U"
       using \<open>E1 \<times> E2 \<subseteq> E\<close> \<open>U = _\<close>
-      by (auto simp: )
+      by auto
   qed
 qed
 

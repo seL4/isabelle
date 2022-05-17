@@ -751,8 +751,8 @@ lemma lower_split_interval1: "lower (fst (split_interval X m)) = min (lower X) m
   and upper_split_interval2: "upper (snd (split_interval X m)) = max (upper X) m"
   subgoal by transfer auto
   subgoal by transfer (auto simp: min.commute)
-  subgoal by transfer (auto simp: )
-  subgoal by transfer (auto simp: )
+  subgoal by transfer auto
+  subgoal by transfer auto
   done
 
 lemma split_intervalD: "split_interval X x = (A, B) \<Longrightarrow> set_of X \<subseteq> set_of A \<union> set_of B"

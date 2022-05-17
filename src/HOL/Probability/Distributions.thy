@@ -1332,7 +1332,7 @@ lemma (in prob_space) standard_normal_distributed_expectation:
   shows "expectation X = 0"
   using integral_std_normal_moment_odd[of 0]
     distributed_integral[OF D, of "\<lambda>x. x", symmetric]
-  by (auto simp: )
+  by auto
 
 lemma (in prob_space) normal_distributed_expectation:
   assumes \<sigma>[arith]: "0 < \<sigma>"

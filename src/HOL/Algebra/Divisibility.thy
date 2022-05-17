@@ -2600,7 +2600,7 @@ proof (induction as)
 next
   case (Cons x as)
   then have "x \<in> carrier G"  "set as \<subseteq> carrier G" and "a divides x \<otimes> foldr (\<otimes>) as \<one>"
-    by (auto simp: )
+    by auto
   with carr aprime have "a divides x \<or> a divides foldr (\<otimes>) as \<one>"
     by (intro prime_divides) simp+
   then show ?case

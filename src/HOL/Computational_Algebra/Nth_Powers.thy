@@ -279,7 +279,7 @@ lemma nth_root_nat_aux_correct:
 lemma nth_root_nat_naive_code [code]:
   "nth_root_nat m n = (if m = 0 \<or> n = 0 then 0 else if m = 1 \<or> n = 1 then n else
                         nth_root_nat_aux m 1 1 n)"
-  using nth_root_nat_aux_correct[of 1 m n] by (auto simp: )
+  using nth_root_nat_aux_correct[of 1 m n] by auto
 
 
 lemma nth_root_nat_nth_power [simp]: "k > 0 \<Longrightarrow> nth_root_nat k (n ^ k) = n"
