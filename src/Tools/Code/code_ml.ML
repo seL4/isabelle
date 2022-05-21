@@ -891,9 +891,13 @@ val _ = Theory.setup
   #> Code_Target.set_printings (Type_Constructor ("fun",
     [(target_SML, SOME (2, fun_syntax)), (target_OCaml, SOME (2, fun_syntax))]))
   #> fold (Code_Target.add_reserved target_SML) ML_Syntax.reserved_names
-  #> fold (Code_Target.add_reserved target_SML)
-      ["ref" (*rebinding is illegal*), "o" (*dictionary projections use it already*),
-        "Fail", "div", "mod" (*standard infixes*), "IntInf"]
+  #> fold (Code_Target.add_reserved target_SML) [
+      "ref", (*rebinding is illegal*)
+      "o", (*dictionary projections use it already*)
+      "nil", (*predefined constructor*)
+      "Fail",
+      "div", "mod", (*standard infixes*)
+      "IntInf"]
   #> fold (Code_Target.add_reserved target_OCaml) [
       "and", "as", "assert", "begin", "class",
       "constraint", "do", "done", "downto", "else", "end", "exception",
