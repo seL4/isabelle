@@ -1346,6 +1346,25 @@ lemma
   filter_mset_False[simp]: "{#y \<in># M. False#} = {#}"
   by (auto simp: multiset_eq_iff)
 
+lemma filter_mset_cong0:
+  assumes "\<And>x. x \<in># M \<Longrightarrow> f x \<longleftrightarrow> g x"
+  shows "filter_mset f M = filter_mset g M"
+proof (rule subset_mset.antisym; unfold subseteq_mset_def; rule allI)
+  fix x
+  show "count (filter_mset f M) x \<le> count (filter_mset g M) x"
+    using assms by (cases "x \<in># M") (simp_all add: not_in_iff)
+next
+  fix x
+  show "count (filter_mset g M) x \<le> count (filter_mset f M) x"
+    using assms by (cases "x \<in># M") (simp_all add: not_in_iff)
+qed
+
+lemma filter_mset_cong:
+  assumes "M = M'" and "\<And>x. x \<in># M' \<Longrightarrow> f x \<longleftrightarrow> g x"
+  shows "filter_mset f M = filter_mset g M'"
+  unfolding \<open>M = M'\<close>
+  using assms by (auto intro: filter_mset_cong0)
+
 
 subsubsection \<open>Size\<close>
 
