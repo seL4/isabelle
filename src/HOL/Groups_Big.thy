@@ -695,29 +695,18 @@ proof -
     by simp (subst sum.union_disjoint, auto)+
 qed
 
+(*Like sum.subset_diff but expressed perhaps more conveniently using subtraction*)
+lemma sum_diff: 
+  fixes f :: "'b \<Rightarrow> 'a::ab_group_add"
+  assumes "finite A" "B \<subseteq> A"
+  shows "sum f (A - B) = sum f A - sum f B"
+  using sum.subset_diff [of B A f] assms by simp
+
 lemma sum_diff1:
   fixes f :: "'b \<Rightarrow> 'a::ab_group_add"
   assumes "finite A"
   shows "sum f (A - {a}) = (if a \<in> A then sum f A - f a else sum f A)"
-  using assms by induct (auto simp: insert_Diff_if)
-
-lemma sum_diff:
-  fixes f :: "'b \<Rightarrow> 'a::ab_group_add"
-  assumes "finite A" "B \<subseteq> A"
-  shows "sum f (A - B) = sum f A - sum f B"
-proof -
-  from assms(2,1) have "finite B" by (rule finite_subset)
-  from this \<open>B \<subseteq> A\<close>
-  show ?thesis
-  proof induct
-    case empty
-    thus ?case by simp
-  next
-    case (insert x F)
-    with \<open>finite A\<close> \<open>finite B\<close> show ?case
-      by (simp add: Diff_insert[where a=x and B=F] sum_diff1 insert_absorb)
-  qed
-qed
+  using assms by (simp add: sum_diff)
 
 lemma sum_diff1'_aux:
   fixes f :: "'a \<Rightarrow> 'b::ab_group_add"
