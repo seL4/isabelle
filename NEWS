@@ -58,6 +58,10 @@ longer. INCOMPATIBILITY.
     used for what is now called multp_code. Minor INCOMPATIBILITY.
   - Lifted multiple lemmas from mult to multp.
   - Redefined less_multiset to be based on multp. INCOMPATIBILITY.
+  - Added lemmas.
+      filter_mset_cong
+      filter_mset_cong0
+      image_mset_filter_mset_swap
 
 * Sledgehammer:
   - Redesigned multithreading to provide more fine grained prover schedules.
