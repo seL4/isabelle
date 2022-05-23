@@ -1815,6 +1815,10 @@ lemma image_mset_const_eq:
   "{#c. a \<in># M#} = replicate_mset (size M) c"
   by (induct M) simp_all
 
+lemma image_mset_filter_mset_swap:
+  "image_mset f (filter_mset (\<lambda>x. P (f x)) M) = filter_mset P (image_mset f M)"
+  by (induction M rule: multiset_induct) simp_all
+
 
 subsection \<open>Further conversions\<close>
 
