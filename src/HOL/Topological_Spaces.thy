@@ -3415,6 +3415,11 @@ definition complete :: "'a set \<Rightarrow> bool"
   where complete_uniform: "complete S \<longleftrightarrow>
     (\<forall>F \<le> principal S. F \<noteq> bot \<longrightarrow> cauchy_filter F \<longrightarrow> (\<exists>x\<in>S. F \<le> nhds x))"
 
+lemma (in uniform_space) cauchy_filter_complete_converges:
+  assumes "cauchy_filter F" "complete A" "F \<le> principal A" "F \<noteq> bot"
+  shows   "\<exists>c. F \<le> nhds c"
+  using assms unfolding complete_uniform by blast
+
 end
 
 subsubsection \<open>Uniformly continuous functions\<close>

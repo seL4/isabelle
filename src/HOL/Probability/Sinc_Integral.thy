@@ -48,7 +48,7 @@ lemma LBINT_I0c_exp_mscale_sin:
 proof (subst interval_integral_FTC_finite)
   show "(?F has_vector_derivative exp (- (u * x)) * sin x) (at x within {min 0 t..max 0 t})" for x
     by (auto intro!: derivative_eq_intros
-             simp: has_field_derivative_iff_has_vector_derivative[symmetric] power2_eq_square)
+             simp: has_real_derivative_iff_has_vector_derivative[symmetric] power2_eq_square)
        (simp_all add: field_simps add_nonneg_eq_0_iff)
 qed (auto intro: continuous_at_imp_continuous_on)
 
@@ -197,7 +197,7 @@ proof -
   ultimately show ?thesis
     using interval_integral_FTC2[of "min 0 (x - 1)" 0 "max 0 (x + 1)" sinc x]
     by (auto simp: continuous_at_imp_continuous_on isCont_sinc Si_alt_def[abs_def] zero_ereal_def
-                   has_field_derivative_iff_has_vector_derivative
+                   has_real_derivative_iff_has_vector_derivative
              split del: if_split)
 qed
 

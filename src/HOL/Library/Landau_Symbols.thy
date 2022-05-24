@@ -508,6 +508,16 @@ qed
 
 end
 
+lemma summable_comparison_test_bigo:
+  fixes f :: "nat \<Rightarrow> real"
+  assumes "summable (\<lambda>n. norm (g n))" "f \<in> O(g)"
+  shows   "summable f"
+proof -
+  from \<open>f \<in> O(g)\<close> obtain C where C: "eventually (\<lambda>x. norm (f x) \<le> C * norm (g x)) at_top"
+    by (auto elim: landau_o.bigE)
+  thus ?thesis
+    by (rule summable_comparison_test_ev) (insert assms, auto intro: summable_mult)
+qed
 
 lemma bigomega_iff_bigo: "g \<in> \<Omega>[F](f) \<longleftrightarrow> f \<in> O[F](g)"
 proof

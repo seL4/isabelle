@@ -653,7 +653,7 @@ proof -
   have FTCi: "\<And>i. (LBINT x=l i..u i. f x) = F (u i) - F (l i)"
     using assms approx apply (intro interval_integral_FTC_finite)
     apply (auto simp: less_imp_le min_def max_def
-      has_field_derivative_iff_has_vector_derivative[symmetric])
+      has_real_derivative_iff_has_vector_derivative[symmetric])
     apply (rule continuous_at_imp_continuous_on, auto intro!: f)
     by (rule DERIV_subset [OF F], auto)
   have 1: "\<And>i. set_integrable lborel {l i..u i} f"
@@ -807,7 +807,7 @@ theorem interval_integral_substitution_finite:
   shows "LBINT x=a..b. g' x *\<^sub>R f (g x) = LBINT y=g a..g b. f y"
 proof-
   have v_derivg: "\<And>x. a \<le> x \<Longrightarrow> x \<le> b \<Longrightarrow> (g has_vector_derivative (g' x)) (at x within {a..b})"
-    using derivg unfolding has_field_derivative_iff_has_vector_derivative .
+    using derivg unfolding has_real_derivative_iff_has_vector_derivative .
   then have contg [simp]: "continuous_on {a..b} g"
     by (rule continuous_on_vector_derivative) auto
   have 1: "\<exists>x\<in>{a..b}. u = g x" if "min (g a) (g b) \<le> u" "u \<le> max (g a) (g b)" for u
@@ -920,7 +920,7 @@ proof -
   (* finally, the main argument *)
   have eq1: "(LBINT x=l i.. u i. g' x *\<^sub>R f (g x)) = (LBINT y=g (l i)..g (u i). f y)" for i
     apply (rule interval_integral_substitution_finite [OF _ DERIV_subset [OF deriv_g]])
-    unfolding has_field_derivative_iff_has_vector_derivative[symmetric]
+    unfolding has_real_derivative_iff_has_vector_derivative[symmetric]
          apply (auto intro!: continuous_at_imp_continuous_on contf contg')
     done
   have "(\<lambda>i. LBINT x=l i..u i. g' x *\<^sub>R f (g x)) \<longlonglongrightarrow> (LBINT x=a..b. g' x *\<^sub>R f (g x))"
@@ -1023,7 +1023,7 @@ proof -
   proof -
     have "(LBINT x=l i.. u i. g' x *\<^sub>R f (g x)) = (LBINT y=g (l i)..g (u i). f y)"
       apply (rule interval_integral_substitution_finite [OF _ DERIV_subset [OF deriv_g]])
-      unfolding has_field_derivative_iff_has_vector_derivative[symmetric]
+      unfolding has_real_derivative_iff_has_vector_derivative[symmetric]
            apply (auto simp: less_imp_le intro!: continuous_at_imp_continuous_on contf contg')
       done
     then show ?thesis
@@ -1124,6 +1124,6 @@ qed
 (* TODO: should we have a library of facts like these? *)
 lemma integral_cos: "t \<noteq> 0 \<Longrightarrow> LBINT x=a..b. cos (t * x) = sin (t * b) / t - sin (t * a) / t"
   apply (intro interval_integral_FTC_finite continuous_intros)
-  by (auto intro!: derivative_eq_intros simp: has_field_derivative_iff_has_vector_derivative[symmetric])
+  by (auto intro!: derivative_eq_intros simp: has_real_derivative_iff_has_vector_derivative[symmetric])
 
 end

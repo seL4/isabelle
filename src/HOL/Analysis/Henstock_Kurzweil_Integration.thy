@@ -795,6 +795,11 @@ lemma has_integral_cong:
   using has_integral_eq[of s f g] has_integral_eq[of s g f] assms
   by auto
 
+lemma integrable_cong:
+  assumes "\<And>x. x \<in> A \<Longrightarrow> f x = g x"
+  shows   "f integrable_on A \<longleftrightarrow> g integrable_on A"
+  using has_integral_cong [OF assms] by fast
+
 lemma integral_cong:
   assumes "\<And>x. x \<in> s \<Longrightarrow> f x = g x"
   shows "integral s f = integral s g"
@@ -2712,6 +2717,13 @@ proof safe
   qed
 qed
 
+lemma has_complex_derivative_imp_has_vector_derivative:
+  fixes f :: "complex \<Rightarrow> complex"
+  assumes "(f has_field_derivative f') (at (of_real a) within (cbox (of_real x) (of_real y)))"
+  shows "((f o of_real) has_vector_derivative f') (at a within {x..y})"
+  using has_derivative_in_compose[of of_real of_real a "{x..y}" f "(*) f'"] assms
+  by (simp add: scaleR_conv_of_real ac_simps has_vector_derivative_def has_field_derivative_def o_def cbox_complex_of_real)
+
 lemma ident_has_integral:
   fixes a::real
   assumes "a \<le> b"
@@ -2742,7 +2754,7 @@ proof -
   have "(sin has_integral (- cos b - - cos a)) {a..b}"
   proof (rule fundamental_theorem_of_calculus)
     show "((\<lambda>a. - cos a) has_vector_derivative sin x) (at x within {a..b})" for x
-      unfolding has_field_derivative_iff_has_vector_derivative [symmetric]
+      unfolding has_real_derivative_iff_has_vector_derivative [symmetric]
       by (rule derivative_eq_intros | force)+
   qed (use assms in auto)
   then show ?thesis
@@ -2756,12 +2768,19 @@ proof -
   have "(cos has_integral (sin b - sin a)) {a..b}"
   proof (rule fundamental_theorem_of_calculus)
     show "(sin has_vector_derivative cos x) (at x within {a..b})" for x
-      unfolding has_field_derivative_iff_has_vector_derivative [symmetric]
+      unfolding has_real_derivative_iff_has_vector_derivative [symmetric]
       by (rule derivative_eq_intros | force)+
   qed (use assms in auto)
   then show ?thesis
     by (simp add: integral_unique)
 qed
+
+lemma integral_exp [simp]:
+  fixes a::real
+  assumes "a \<le> b" shows "integral {a..b} exp = exp b - exp a"
+  by (meson DERIV_exp assms fundamental_theorem_of_calculus has_real_derivative_iff_has_vector_derivative
+       has_vector_derivative_at_within integral_unique)
+
 
 lemma has_integral_sin_nx: "((\<lambda>x. sin(real_of_int n * x)) has_integral 0) {-pi..pi}"
 proof (cases "n = 0")
@@ -3265,7 +3284,7 @@ lemma integral_has_real_derivative:
   assumes "t \<in> {a..b}"
   shows "((\<lambda>x. integral {a..x} g) has_real_derivative g t) (at t within {a..b})"
   using integral_has_vector_derivative[of a b g t] assms
-  by (auto simp: has_field_derivative_iff_has_vector_derivative)
+  by (auto simp: has_real_derivative_iff_has_vector_derivative)
 
 lemma antiderivative_continuous:
   fixes q b :: real
@@ -3532,6 +3551,11 @@ lemma has_integral_cmul_iff:
   shows   "((\<lambda>x. c *\<^sub>R f x) has_integral (c *\<^sub>R I)) A \<longleftrightarrow> (f has_integral I) A"
   using assms has_integral_cmul[of f I A c]
         has_integral_cmul[of "\<lambda>x. c *\<^sub>R f x" "c *\<^sub>R I" A "inverse c"] by (auto simp: field_simps)
+
+lemma has_integral_cmul_iff':
+  assumes "c \<noteq> 0"
+  shows   "((\<lambda>x. c *\<^sub>R f x) has_integral I) A \<longleftrightarrow> (f has_integral I /\<^sub>R c) A"
+  using assms by (metis divideR_right has_integral_cmul_iff)
 
 lemma has_integral_affinity':
   fixes a :: "'a::euclidean_space"
@@ -4369,7 +4393,7 @@ lemma integral_has_real_derivative':
   assumes "t \<in> {a..b}"
   shows "((\<lambda>x. integral {x..b} g) has_real_derivative -g t) (at t within {a..b})"
   using integral_has_vector_derivative'[OF assms]
-  by (auto simp: has_field_derivative_iff_has_vector_derivative)
+  by (auto simp: has_real_derivative_iff_has_vector_derivative)
 
 
 subsection \<open>This doesn't directly involve integration, but that gives an easy proof\<close>
@@ -4989,6 +5013,21 @@ lemma integral_open_interval:
   fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: banach"
   shows "integral(box a b) f = integral(cbox a b) f"
   by (metis has_integral_integrable_integral has_integral_open_interval not_integrable_integral)
+
+lemma has_integral_Icc_iff_Ioo:
+  fixes f :: "real \<Rightarrow> 'a :: banach"
+  shows "(f has_integral I) {a..b} \<longleftrightarrow> (f has_integral I) {a<..<b}"
+proof (rule has_integral_spike_set_eq)
+  show "negligible {x \<in> {a..b} - {a<..<b}. f x \<noteq> 0}"
+    by (rule negligible_subset [of "{a,b}"]) auto
+  show "negligible {x \<in> {a<..<b} - {a..b}. f x \<noteq> 0}"
+    by (rule negligible_subset [of "{}"]) auto
+qed
+
+lemma integrable_on_Icc_iff_Ioo:
+  fixes f :: "real \<Rightarrow> 'a :: banach"
+  shows "f integrable_on {a..b} \<longleftrightarrow> f integrable_on {a<..<b}"
+  using has_integral_Icc_iff_Ioo by blast
 
 
 subsection \<open>More lemmas that are useful later\<close>
@@ -6458,7 +6497,7 @@ proof (intro Cauchy_uniformly_convergent uniformly_Cauchy_onI', goal_cases)
     have M': "M' \<ge> a" "M' \<ge> M" unfolding M'_def by linarith+
     have int_g: "(g has_integral (G (real n) - G (real m))) {real m..real n}"
       using 1 M' by (intro fundamental_theorem_of_calculus) 
-                    (auto simp: has_field_derivative_iff_has_vector_derivative [symmetric] 
+                    (auto simp: has_real_derivative_iff_has_vector_derivative [symmetric] 
                           intro!: DERIV_subset[OF deriv])
     have int_f: "f x integrable_on {a'..real n}" if "a' \<ge> a" for a'
       using that 1 by (cases "a' \<le> real n") (auto intro: integrable)
@@ -6907,7 +6946,7 @@ proof -
                  (at x within {a..b})" if "x \<in> {a..b} - s" for x
   proof (rule has_vector_derivative_eq_rhs [OF vector_diff_chain_within refl])
     show "(g has_vector_derivative g' x) (at x within {a..b})"
-      using deriv has_field_derivative_iff_has_vector_derivative that by blast
+      using deriv has_real_derivative_iff_has_vector_derivative that by blast
     show "((\<lambda>x. integral {c..x} f) has_vector_derivative f (g x)) 
           (at (g x) within g ` {a..b})"
       using that le subset
@@ -7320,7 +7359,7 @@ proof -
       have "((\<lambda>x. exp (-a*x)) has_integral (-exp (-a*real k)/a - (-exp (-a*c)/a))) {c..real k}"
       by (intro fundamental_theorem_of_calculus)
          (auto intro!: derivative_eq_intros
-               simp: has_field_derivative_iff_has_vector_derivative [symmetric])
+               simp: has_real_derivative_iff_has_vector_derivative [symmetric])
     hence "(f k has_integral (exp (-a*c)/a - exp (-a*real k)/a)) {c..}" unfolding f_def
       by (subst has_integral_restrict) simp_all
   } note has_integral_f = this
@@ -7409,7 +7448,7 @@ proof (cases "c = 0")
                inverse (real (Suc k)) powr (a + 1) / (a + 1)) {inverse (real (Suc k))..c}"
         using True a by (intro fundamental_theorem_of_calculus)
            (auto intro!: derivative_eq_intros continuous_on_powr' continuous_on_const
-              simp: has_field_derivative_iff_has_vector_derivative [symmetric])
+              simp: has_real_derivative_iff_has_vector_derivative [symmetric])
       with True show ?thesis unfolding f_def F_def by (subst has_integral_restrict) simp_all
     next
       case False
@@ -7494,7 +7533,7 @@ proof -
   proof -
     from n assms have "((\<lambda>x. x powr e) has_integral (F n - F a)) {a..n}"
       by (intro fundamental_theorem_of_calculus) (auto intro!: derivative_eq_intros
-            simp: has_field_derivative_iff_has_vector_derivative [symmetric] F_def)
+            simp: has_real_derivative_iff_has_vector_derivative [symmetric] F_def)
     hence "(f n has_integral (F n - F a)) {a..n}"
       by (rule has_integral_eq [rotated]) (simp add: f_def)
     thus "(f n has_integral (F n - F a)) {a..}"

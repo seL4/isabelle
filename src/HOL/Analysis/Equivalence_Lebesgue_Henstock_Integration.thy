@@ -3830,7 +3830,7 @@ proof -
 
   have "(f has_integral F b - F a) {a..b}"
     by (intro fundamental_theorem_of_calculus)
-       (auto simp: has_field_derivative_iff_has_vector_derivative[symmetric]
+       (auto simp: has_real_derivative_iff_has_vector_derivative[symmetric]
              intro: has_field_derivative_subset[OF f(1)] \<open>a \<le> b\<close>)
   then have i: "((\<lambda>x. f x * indicator {a .. b} x) has_integral F b - F a) UNIV"
     unfolding indicator_def of_bool_def if_distrib[where f="\<lambda>x. a * x" for a]
@@ -3881,7 +3881,7 @@ lemma
     and integral_FTC_Icc_real: "(\<integral>x. f x * indicator {a .. b} x \<partial>lborel) = F b - F a" (is ?eq)
 proof -
   have 1: "\<And>x. a \<le> x \<Longrightarrow> x \<le> b \<Longrightarrow> (F has_vector_derivative f x) (at x within {a .. b})"
-    unfolding has_field_derivative_iff_has_vector_derivative[symmetric]
+    unfolding has_real_derivative_iff_has_vector_derivative[symmetric]
     using deriv by (auto intro: DERIV_subset)
   have 2: "continuous_on {a .. b} f"
     using cont by (intro continuous_at_imp_continuous_on) auto

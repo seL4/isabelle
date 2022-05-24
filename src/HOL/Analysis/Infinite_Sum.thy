@@ -696,11 +696,45 @@ lemma infsum_Un_disjoint:
   shows \<open>infsum f (A \<union> B) = infsum f A + infsum f B\<close>
   by (intro infsumI has_sum_Un_disjoint has_sum_infsum assms)  
 
-(* TODO move *)
-lemma (in uniform_space) cauchy_filter_complete_converges:
-  assumes "cauchy_filter F" "complete A" "F \<le> principal A" "F \<noteq> bot"
-  shows   "\<exists>c. F \<le> nhds c"
-  using assms unfolding complete_uniform by blast
+lemma norm_summable_imp_has_sum:
+  fixes f :: "nat \<Rightarrow> 'a :: banach"
+  assumes "summable (\<lambda>n. norm (f n))" and "f sums S"
+  shows   "has_sum f (UNIV :: nat set) S"
+  unfolding has_sum_def tendsto_iff eventually_finite_subsets_at_top
+proof (safe, goal_cases)
+  case (1 \<epsilon>)
+  from assms(1) obtain S' where S': "(\<lambda>n. norm (f n)) sums S'"
+    by (auto simp: summable_def)
+  with 1 obtain N where N: "\<And>n. n \<ge> N \<Longrightarrow> \<bar>S' - (\<Sum>i<n. norm (f i))\<bar> < \<epsilon>"
+    by (auto simp: tendsto_iff eventually_at_top_linorder sums_def dist_norm abs_minus_commute)
+  
+  show ?case
+  proof (rule exI[of _ "{..<N}"], safe, goal_cases)
+    case (2 Y)
+    from 2 have "(\<lambda>n. if n \<in> Y then 0 else f n) sums (S - sum f Y)"
+      by (intro sums_If_finite_set'[OF \<open>f sums S\<close>]) (auto simp: sum_negf)
+    hence "S - sum f Y = (\<Sum>n. if n \<in> Y then 0 else f n)"
+      by (simp add: sums_iff)
+    also have "norm \<dots> \<le> (\<Sum>n. norm (if n \<in> Y then 0 else f n))"
+      by (rule summable_norm[OF summable_comparison_test'[OF assms(1)]]) auto
+    also have "\<dots> \<le> (\<Sum>n. if n < N then 0 else norm (f n))"
+      using 2 by (intro suminf_le summable_comparison_test'[OF assms(1)]) auto
+    also have "(\<lambda>n. if n \<in> {..<N} then 0 else norm (f n)) sums (S' - (\<Sum>i<N. norm (f i)))" 
+      by (intro sums_If_finite_set'[OF S']) (auto simp: sum_negf)
+    hence "(\<Sum>n. if n < N then 0 else norm (f n)) = S' - (\<Sum>i<N. norm (f i))"
+      by (simp add: sums_iff)
+    also have "S' - (\<Sum>i<N. norm (f i)) \<le> \<bar>S' - (\<Sum>i<N. norm (f i))\<bar>" by simp
+    also have "\<dots> < \<epsilon>" by (rule N) auto
+    finally show ?case by (simp add: dist_norm norm_minus_commute)
+  qed auto
+qed
+
+lemma norm_summable_imp_summable_on:
+  fixes f :: "nat \<Rightarrow> 'a :: banach"
+  assumes "summable (\<lambda>n. norm (f n))"
+  shows   "f summable_on UNIV"
+  using norm_summable_imp_has_sum[OF assms, of "suminf f"] assms
+  by (auto simp: sums_iff summable_on_def dest: summable_norm_cancel)
 
 text \<open>The following lemma indeed needs a complete space (as formalized by the premise \<^term>\<open>complete UNIV\<close>).
   The following two counterexamples show this:

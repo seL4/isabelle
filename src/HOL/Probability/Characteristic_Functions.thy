@@ -238,7 +238,7 @@ proof -
     have "LBINT s=0..x. (x - s)^n = ?F x - ?F 0"
       unfolding zero_ereal_def
       by (intro interval_integral_FTC_finite continuous_at_imp_continuous_on
-                has_field_derivative_iff_has_vector_derivative[THEN iffD1])
+                has_real_derivative_iff_has_vector_derivative[THEN iffD1])
          (auto simp del: power_Suc intro!: derivative_eq_intros simp add: add_nonneg_eq_0_iff)
     also have "\<dots> = x ^ (Suc n) / (Suc n)" by simp
     finally show ?thesis .

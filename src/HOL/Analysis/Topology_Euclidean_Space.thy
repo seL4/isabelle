@@ -815,6 +815,14 @@ lemma in_cbox_complex_iff:
   "x \<in> cbox a b \<longleftrightarrow> Re x \<in> {Re a..Re b} \<and> Im x \<in> {Im a..Im b}"
   by (cases x; cases a; cases b) (auto simp: cbox_Complex_eq)
 
+lemma cbox_complex_of_real: "cbox (complex_of_real x) (complex_of_real y) = complex_of_real ` {x..y}"
+proof -
+  have "(x \<le> Re z \<and> Re z \<le> y \<and> Im z = 0) = (z \<in> complex_of_real ` {x..y})" for z
+    by (cases z) (simp add: complex_eq_cancel_iff2 image_iff)
+  then show ?thesis
+    by (auto simp: in_cbox_complex_iff)
+qed
+
 lemma box_Complex_eq:
   "box (Complex a c) (Complex b d) = (\<lambda>(x,y). Complex x y) ` (box a b \<times> box c d)"
   by (auto simp: box_def Basis_complex_def image_iff complex_eq_iff)
@@ -822,6 +830,9 @@ lemma box_Complex_eq:
 lemma in_box_complex_iff:
   "x \<in> box a b \<longleftrightarrow> Re x \<in> {Re a<..<Re b} \<and> Im x \<in> {Im a<..<Im b}"
   by (cases x; cases a; cases b) (auto simp: box_Complex_eq)
+
+lemma box_complex_of_real [simp]: "box (complex_of_real x) (complex_of_real y) = {}"
+  by (auto simp: in_box_complex_iff)
 
 lemma Int_interval:
   fixes a :: "'a::euclidean_space"
