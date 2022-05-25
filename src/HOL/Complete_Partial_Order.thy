@@ -9,19 +9,6 @@ theory Complete_Partial_Order
   imports Product_Type
 begin
 
-subsection \<open>Monotone functions\<close>
-
-text \<open>Dictionary-passing version of \<^const>\<open>Orderings.mono\<close>.\<close>
-
-definition monotone :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool"
-  where "monotone orda ordb f \<longleftrightarrow> (\<forall>x y. orda x y \<longrightarrow> ordb (f x) (f y))"
-
-lemma monotoneI[intro?]: "(\<And>x y. orda x y \<Longrightarrow> ordb (f x) (f y)) \<Longrightarrow> monotone orda ordb f"
-  unfolding monotone_def by iprover
-
-lemma monotoneD[dest?]: "monotone orda ordb f \<Longrightarrow> orda x y \<Longrightarrow> ordb (f x) (f y)"
-  unfolding monotone_def by iprover
-
 
 subsection \<open>Chains\<close>
 
