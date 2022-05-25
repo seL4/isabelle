@@ -350,7 +350,7 @@ proof -
       hence "complex_integrable (M n) (\<lambda>x. if x = 0 then 0 else 2 * (u  - sin (u * x) / x))"
         using \<open>u > 0\<close>
         unfolding set_integrable_def
-        by (subst integrable_cong) (auto simp add: * simp del: of_real_mult)
+        by (subst Bochner_Integration.integrable_cong) (auto simp add: * simp del: of_real_mult)
       hence **: "integrable (M n) (\<lambda>x. if x = 0 then 0 else 2 * (u  - sin (u * x) / x))"
         unfolding complex_of_real_integrable_eq .
       have "2 * sin x \<le> x" if "2 \<le> x" for x :: real
