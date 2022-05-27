@@ -127,7 +127,7 @@ fun induction_rules_of_string "include" = SOME Include
   | induction_rules_of_string "instantiate" = SOME Instantiate
   | induction_rules_of_string _ = NONE
 
-val is_atp = member (op =) atps
+val is_atp = member (op =) all_atps
 
 type params =
   {debug : bool,

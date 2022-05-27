@@ -41,7 +41,9 @@ sig
   val refresh_systems_on_tptp : unit -> unit
   val local_atps : string list
   val remote_atps : string list
-  val atps : string list
+  val dummy_atps : string list
+  val non_dummy_atps : string list
+  val all_atps : string list
 end;
 
 structure Sledgehammer_ATP_Systems : SLEDGEHAMMER_ATP_SYSTEMS =
@@ -568,13 +570,18 @@ val local_atps =
   [agsyhol, alt_ergo, e, iprover, leo2, leo3, satallax, spass, vampire, zipperposition]
 val remote_atps =
   [remote_agsyhol, remote_alt_ergo, remote_e, remote_iprover, remote_leo2, remote_leo3,
-   remote_waldmeister, remote_zipperposition, dummy_fof, dummy_tfx, dummy_thf, dummy_thf_reduced]
-val atps = local_atps @ remote_atps
+   remote_waldmeister, remote_zipperposition]
+val dummy_atps =
+  [dummy_fof, dummy_tfx, dummy_thf, dummy_thf_reduced]
+val non_dummy_atps = local_atps @ remote_atps
+val all_atps = non_dummy_atps @ dummy_atps
 
-val _ = Theory.setup (fold add_atp atps)
+val _ = Theory.setup (fold add_atp all_atps)
 
 val local_atps = map fst local_atps
 val remote_atps = map fst remote_atps
-val atps = map fst atps
+val dummy_atps = map fst dummy_atps
+val non_dummy_atps = map fst non_dummy_atps
+val all_atps = map fst all_atps
 
 end;

@@ -162,7 +162,8 @@ structure Data = Theory_Data
 
 (* The first ATP of the list is used by Auto Sledgehammer. *)
 fun default_provers_param_value ctxt =
-  filter (is_prover_installed ctxt) (smts ctxt @ atps) \<comment> \<open>see also \<^system_option>\<open>sledgehammer_provers\<close>\<close>
+  \<comment> \<open>see also \<^system_option>\<open>sledgehammer_provers\<close>\<close>
+  filter (is_prover_installed ctxt) (smts ctxt @ non_dummy_atps)
   |> implode_param
 
 fun set_default_raw_param param thy =
