@@ -486,6 +486,26 @@ lemma total_onI [intro?]:
 
 abbreviation "total \<equiv> total_on UNIV"
 
+definition totalp_on where
+  "totalp_on A R \<longleftrightarrow> (\<forall>x \<in> A. \<forall>y \<in> A. x \<noteq> y \<longrightarrow> R x y \<or> R y x)"
+
+abbreviation totalp where
+  "totalp \<equiv> totalp_on UNIV"
+
+lemma totalp_onI:
+  "(\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> x \<noteq> y \<Longrightarrow> R x y \<or> R y x) \<Longrightarrow> totalp_on A R"
+  by (simp add: totalp_on_def)
+
+lemma totalpI: "(\<And>x y. x \<noteq> y \<Longrightarrow> R x y \<or> R y x) \<Longrightarrow> totalp R"
+  by (rule totalp_onI)
+
+lemma totalp_onD:
+  "totalp_on A R \<Longrightarrow> x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> x \<noteq> y \<Longrightarrow> R x y \<or> R y x"
+  by (simp add: totalp_on_def)
+
+lemma totalpD: "totalp R \<Longrightarrow> x \<noteq> y \<Longrightarrow> R x y \<or> R y x"
+  by (simp add: totalp_onD)
+
 lemma total_on_empty [simp]: "total_on {} r"
   by (simp add: total_on_def)
 
