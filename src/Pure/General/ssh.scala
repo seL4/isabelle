@@ -323,12 +323,13 @@ object SSH {
       new Session(new_options, session, on_close, nominal_host, nominal_user)
 
     def host: String = if (session.getHost == null) "" else session.getHost
+    def port: Int = session.getPort
 
     override def hg_url: String =
       "ssh://" + user_prefix(nominal_user) + nominal_host + "/"
 
     override def toString: String =
-      user_prefix(session.getUserName) + host + port_suffix(session.getPort) +
+      user_prefix(session.getUserName) + host + port_suffix(port) +
       (if (session.isConnected) "" else " (disconnected)")
 
 
