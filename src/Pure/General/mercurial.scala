@@ -238,8 +238,10 @@ object Mercurial {
         opt_rev(rev) + opt_flag("--clean", clean) + opt_flag("--check", check), options).check
     }
 
-    def known_files(): List[String] =
-      hg.command("status", options = "--modified --added --clean --no-status").check.out_lines
+    def status(options: String = ""): List[String] =
+      hg.command("status", options = options).check.out_lines
+
+    def known_files(): List[String] = status(options = "--modified --added --clean --no-status")
 
     def graph(): Graph = {
       val Node = """^node: (\w{12}) (\w{12}) (\w{12})""".r
