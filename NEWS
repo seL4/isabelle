@@ -59,6 +59,8 @@ longer. INCOMPATIBILITY.
   - Lifted multiple lemmas from mult to multp.
   - Redefined less_multiset to be based on multp. INCOMPATIBILITY.
   - Added lemmas.
+      Multiset.bex_greatest_element
+      Multiset.bex_least_element
       filter_mset_cong
       filter_mset_cong0
       image_mset_filter_mset_swap

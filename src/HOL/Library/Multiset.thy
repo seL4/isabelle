@@ -1605,6 +1605,64 @@ proof -
 qed
 
 
+subsection \<open>Least and greatest elements\<close>
+
+context begin
+
+qualified lemma
+  assumes
+    (* FIXME: Replace by transp_on (set_mset M) R if it gets introduced. *)
+    "\<forall>x \<in> set_mset M. \<forall>y \<in> set_mset M. \<forall>z \<in> set_mset M. R x y \<longrightarrow> R y z \<longrightarrow> R x z" and
+    "totalp_on (set_mset M) R" and
+    "M \<noteq> {#}"
+  shows
+    bex_least_element: "(\<exists>least \<in># M. \<forall>x \<in># M. least \<noteq> x \<longrightarrow> R least x)" and
+    bex_greatest_element: "(\<exists>greatest \<in># M. \<forall>x \<in># M. greatest \<noteq> x \<longrightarrow> R x greatest)"
+  unfolding atomize_conj
+  using assms
+proof (induction M rule: multiset_induct)
+  case empty
+  hence False by simp
+  thus ?case ..
+next
+  case (add x M)
+  from add.prems(1) have transp_on_x_M_raw: "\<forall>y\<in>#M. \<forall>z\<in>#M. R x y \<and> R y z \<longrightarrow> R x z"
+    by (metis insert_iff set_mset_add_mset_insert)
+
+  from add.prems(1) have transp_on_R_M:
+    "\<forall>x \<in> set_mset M. \<forall>y \<in> set_mset M. \<forall>z \<in> set_mset M. R x y \<longrightarrow> R y z \<longrightarrow> R x z"
+    by (meson mset_subsetD multi_psub_of_add_self)
+
+  from add.prems(2) have
+    totalp_on_x_M_raw: "\<forall>y \<in># M. x \<noteq> y \<longrightarrow> R x y \<or> R y x" and
+    totalp_on_M_R: "totalp_on (set_mset M) R"
+    by (simp_all add: totalp_on_def)
+
+  show ?case
+  proof (cases "M = {#}")
+    case True
+    thus ?thesis by simp
+  next
+    case False
+    then obtain least greatest where
+      least_of_M: "least \<in># M" "\<forall>y\<in>#M. least \<noteq> y \<longrightarrow> R least y" and
+      greatest_of_M: "greatest\<in>#M" "\<forall>y\<in>#M. greatest \<noteq> y \<longrightarrow> R y greatest"
+      using add.IH[OF transp_on_R_M totalp_on_M_R] by blast
+
+    show ?thesis
+    proof (rule conjI)
+      from least_of_M show "\<exists>y\<in>#add_mset x M. \<forall>z\<in>#add_mset x M. y \<noteq> z \<longrightarrow> R y z"
+        by (metis insert_iff set_mset_add_mset_insert totalp_on_x_M_raw transp_on_x_M_raw)
+    next
+      from greatest_of_M show "\<exists>y\<in>#add_mset x M. \<forall>z\<in>#add_mset x M. y \<noteq> z \<longrightarrow> R z y"
+        by (metis insert_iff set_mset_add_mset_insert totalp_on_x_M_raw transp_on_x_M_raw)
+    qed
+  qed
+qed
+
+end
+
+
 subsection \<open>The fold combinator\<close>
 
 definition fold_mset :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a multiset \<Rightarrow> 'b"
