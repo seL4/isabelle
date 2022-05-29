@@ -428,7 +428,7 @@ object Isabelle_System {
     clean: Boolean = false,
     filter: List[String] = Nil,
     args: List[String] = Nil
-  ): Process_Result = {
+  ): Unit = {
     val script =
       "rsync --protect-args --archive" +
         (if (verbose || dry_run) " --verbose" else "") +
@@ -436,7 +436,7 @@ object Isabelle_System {
         (if (clean) " --delete-excluded" else "") +
         filter.map(s => " --filter=" + Bash.string(s)).mkString +
         (if (args.nonEmpty) " " + Bash.strings(args) else "")
-    progress.bash(script, cwd = cwd, echo = true)
+    progress.bash(script, cwd = cwd, echo = true).check
   }
 
   def make_patch(base_dir: Path, src: Path, dst: Path, diff_options: String = ""): String = {
