@@ -426,6 +426,7 @@ object Isabelle_System {
     verbose: Boolean = false,
     dry_run: Boolean = false,
     clean: Boolean = false,
+    filter: List[String] = Nil,
     args: List[String] = Nil
   ): Process_Result = {
     val script =
@@ -433,6 +434,7 @@ object Isabelle_System {
         (if (verbose || dry_run) " --verbose" else "") +
         (if (dry_run) " --dry-run" else "") +
         (if (clean) " --delete-excluded" else "") +
+        filter.map(s => " --filter=" + Bash.string(s)).mkString +
         (if (args.nonEmpty) " " + Bash.strings(args) else "")
     progress.bash(script, cwd = cwd, echo = true)
   }

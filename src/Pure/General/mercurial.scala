@@ -255,13 +255,14 @@ object Mercurial {
       progress: Progress = new Progress,
       verbose: Boolean = false,
       dry_run: Boolean = false,
-      clean: Boolean = false
+      clean: Boolean = false,
+      filter: List[String] = Nil
     ): Unit = {
       Isabelle_System.with_tmp_file("exclude") { exclude_path =>
         val exclude = status(options = "--unknown --ignored --no-status")
         File.write(exclude_path, cat_lines((".hg" :: exclude).map("/" + _)))
         Isabelle_System.rsync(
-          progress = progress, verbose = verbose, dry_run = dry_run, clean = clean,
+          progress = progress, verbose = verbose, dry_run = dry_run, clean = clean, filter = filter,
           args = List("--prune-empty-dirs", "--exclude-from=" + exclude_path.implode,
             "--", ssh.rsync_url + root.expand.implode + "/.", target)
         ).check
@@ -469,6 +470,7 @@ Usage: isabelle hg_setup [OPTIONS] REMOTE LOCAL_DIR
     Isabelle_Tool("hg_sync", "synchronize Mercurial repository working directory",
       Scala_Project.here, { args =>
         var clean = false
+        var protect: List[String] = Nil
         var root: Option[Path] = None
         var dry_run = false
         var verbose = false
@@ -479,6 +481,7 @@ Usage: isabelle hg_sync [OPTIONS] TARGET
   Options are:
     -C           clean all unknown/ignored files on target
                  (potentially DANGEROUS: use with option -f to confirm)
+    -P NAME      protect NAME within TARGET from deletion
     -R ROOT      explicit repository root directory
                  (default: implicit from current directory)
     -f           force changes: no dry-run
@@ -489,6 +492,7 @@ Usage: isabelle hg_sync [OPTIONS] TARGET
   which can be local or remote (using notation of rsync).
 """,
           "C" -> { _ => clean = true; dry_run = true },
+          "P:" -> (arg => protect = protect ::: List(arg)),
           "R:" -> (arg => root = Some(Path.explode(arg))),
           "f" -> (_ => dry_run = false),
           "n" -> (_ => dry_run = true),
@@ -507,7 +511,9 @@ Usage: isabelle hg_sync [OPTIONS] TARGET
             case Some(dir) => repository(dir)
             case None => the_repository(Path.current)
           }
-        hg.sync(target, verbose = verbose, dry_run = dry_run, clean = clean, progress = progress)
+        hg.sync(target, verbose = verbose, dry_run = dry_run, clean = clean,
+          filter = protect.map("protect /" + _),
+          progress = progress)
       }
     )
 }
