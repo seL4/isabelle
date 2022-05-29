@@ -259,6 +259,8 @@ object Mercurial {
       filter: List[String] = Nil,
       rev: String = ""
     ): Unit = {
+      require(ssh == SSH.Local, "local repository required")
+
       Isabelle_System.with_tmp_dir("rsync") { tmp_dir =>
         val (options, source) =
           if (rev.isEmpty) {
@@ -267,7 +269,7 @@ object Mercurial {
             File.write(exclude_path, cat_lines((".hg" :: exclude).map("/" + _)))
 
             val options = List("--exclude-from=" + exclude_path.implode)
-            val source = ssh.rsync_url + root.expand.implode
+            val source = File.standard_path(root)
             (options, source)
           }
           else {
