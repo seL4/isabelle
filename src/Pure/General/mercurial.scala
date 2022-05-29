@@ -480,7 +480,7 @@ Usage: isabelle hg_sync [OPTIONS] TARGET
 
   Options are:
     -C           clean all unknown/ignored files on target
-                 (potentially DANGEROUS: use with option -f to confirm)
+                 (implies -n for testing; use option -f to confirm)
     -P NAME      protect NAME within TARGET from deletion
     -R ROOT      explicit repository root directory
                  (default: implicit from current directory)

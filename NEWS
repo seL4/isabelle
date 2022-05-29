@@ -117,6 +117,10 @@ alternative to Maven: either option -G or -M needs to be specified
 explicitly. This increases the chances that the Java/Scala IDE project
 works properly.
 
+* Command-line tool "isabelle hg_sync" synchronizes the working
+directory of a local Mercurial repository with a target directory, using
+rsync notation for destinations.
+
 
 
 New in Isabelle2021-1 (December 2021)
