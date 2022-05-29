@@ -303,9 +303,9 @@ text \<open>
 section \<open>Mercurial repository synchronization\<close>
 
 text \<open>
-  The @{tool_def hg_sync} tool synchronizes the working directory of a local
-  Mercurial repository with a target directory, using
-  \<^verbatim>\<open>rsync\<close>\<^footnote>\<open>\<^url>\<open>https://linux.die.net/man/1/rsync\<close>\<close> notation for destinations.
+  The @{tool_def hg_sync} tool synchronizes a local Mercurial repository with
+  a target directory, using \<^verbatim>\<open>rsync\<close>\<^footnote>\<open>\<^url>\<open>https://linux.die.net/man/1/rsync\<close>\<close>
+  notation for destinations.
 
   @{verbatim [display]
 \<open>Usage: isabelle hg_sync [OPTIONS] TARGET
@@ -318,14 +318,18 @@ text \<open>
                  (default: implicit from current directory)
     -f           force changes: no dry-run
     -n           no changes: dry-run
+    -r REV       explicit revision (default: state of working directory)
     -v           verbose
 
-  Synchronize Mercurial repository working directory with other TARGET,
+  Synchronize Mercurial repository with TARGET directory,
   which can be local or remote (using notation of rsync).\<close>}
 
   The \<^verbatim>\<open>TARGET\<close> specification can be a local or remote directory (via ssh),
   using \<^verbatim>\<open>rsync\<close> notation (see examples below). The content is written
   directly into the target, \<^emph>\<open>without\<close> creating a separate sub-directory.
+
+  \<^medskip> Option \<^verbatim>\<open>-r\<close> specifies an explicit revision of the repository; the default
+  is the current state of the working directory (which might be uncommitted).
 
   \<^medskip> Option \<^verbatim>\<open>-v\<close> enables verbose mode. Option \<^verbatim>\<open>-n\<close> enables ``dry-run'' mode:
   operations are only simulated and printed as in verbose mode. Option \<^verbatim>\<open>-f\<close>
@@ -341,8 +345,8 @@ text \<open>
   \<^verbatim>\<open>-P\<close> options may be given to accumulate protected entries.
 
   \<^medskip> Option \<^verbatim>\<open>-R\<close> specifies an explicit repository root directory. The default
-  is to derive it from the current working directory, searching upwards until
-  a suitable \<^verbatim>\<open>.hg\<close> directory is found.
+  is to derive it from the current directory, searching upwards until a
+  suitable \<^verbatim>\<open>.hg\<close> directory is found.
 \<close>
 
 subsubsection \<open>Examples\<close>
