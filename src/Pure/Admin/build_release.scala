@@ -412,7 +412,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
       Isabelle_System.new_directory(context.dist_dir)
 
-      hg.archive(context.isabelle_dir.expand.implode, rev = id, options = "--type files")
+      hg.archive(context.isabelle_dir.expand.implode, rev = id)
 
       for (name <- List(".hg_archival.txt", ".hgtags", ".hgignore", "README_REPOSITORY")) {
         (context.isabelle_dir + Path.explode(name)).file.delete
