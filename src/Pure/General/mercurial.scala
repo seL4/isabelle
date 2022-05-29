@@ -256,16 +256,18 @@ object Mercurial {
       verbose: Boolean = false,
       dry_run: Boolean = false,
       clean: Boolean = false,
-      filter: List[String] = Nil
+      filter: List[String] = Nil,
     ): Unit = {
-      Isabelle_System.with_tmp_file("exclude") { exclude_path =>
+      Isabelle_System.with_tmp_dir("rsync") { tmp_dir =>
+        val exclude_path = tmp_dir + Path.explode("exclude")
         val exclude = status(options = "--unknown --ignored --no-status")
         File.write(exclude_path, cat_lines((".hg" :: exclude).map("/" + _)))
+
+        val options = List("--exclude-from=" + exclude_path.implode)
+        val source = ssh.rsync_url + root.expand.implode + "/."
         Isabelle_System.rsync(
           progress = progress, verbose = verbose, dry_run = dry_run, clean = clean, filter = filter,
-          args = List("--prune-empty-dirs", "--exclude-from=" + exclude_path.implode,
-            "--", ssh.rsync_url + root.expand.implode + "/.", target)
-        ).check
+          args = List("--prune-empty-dirs") ::: options ::: List("--", source, target)).check
       }
     }
 
