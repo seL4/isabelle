@@ -136,6 +136,10 @@ object Mercurial {
     find(ssh.expand_path(start))
   }
 
+  def the_repository(start: Path, ssh: SSH.System = SSH.Local): Repository =
+    find_repository(start, ssh = ssh) getOrElse
+      error("No repository found in " + start.absolute)
+
   private def make_repository(
     root: Path,
     cmd: String,
@@ -246,6 +250,23 @@ object Mercurial {
       hg.command("status", options = options).check.out_lines
 
     def known_files(): List[String] = status(options = "--modified --added --clean --no-status")
+
+    def sync(target: String,
+      progress: Progress = new Progress,
+      verbose: Boolean = false,
+      dry_run: Boolean = false,
+      clean: Boolean = false
+    ): Unit = {
+      Isabelle_System.with_tmp_file("exclude") { exclude_path =>
+        val exclude = status(options = "--unknown --ignored --no-status")
+        File.write(exclude_path, cat_lines((".hg" :: exclude).map("/" + _)))
+        Isabelle_System.rsync(
+          progress = progress, verbose = verbose, dry_run = dry_run, clean = clean,
+          args = List("--prune-empty-dirs", "--exclude-from=" + exclude_path.implode,
+            "--", ssh.rsync_url + root.expand.implode + "/.", target)
+        ).check
+      }
+    }
 
     def graph(): Graph = {
       val Node = """^node: (\w{12}) (\w{12}) (\w{12})""".r
@@ -403,7 +424,7 @@ object Mercurial {
     local_hg.push(remote = remote_url)
   }
 
-  val isabelle_tool =
+  val isabelle_tool1 =
     Isabelle_Tool("hg_setup", "setup remote vs. local Mercurial repository",
       Scala_Project.here,
       { args =>
@@ -439,4 +460,54 @@ Usage: isabelle hg_setup [OPTIONS] REMOTE LOCAL_DIR
         hg_setup(remote, local_path, remote_name = remote_name, path_name = path_name,
           remote_exists = remote_exists, progress = progress)
       })
+
+
+
+  /** hg_sync **/
+
+  val isabelle_tool2 =
+    Isabelle_Tool("hg_sync", "synchronize Mercurial repository working directory",
+      Scala_Project.here, { args =>
+        var clean = false
+        var root: Option[Path] = None
+        var dry_run = false
+        var verbose = false
+
+        val getopts = Getopts("""
+Usage: isabelle hg_sync [OPTIONS] TARGET
+
+  Options are:
+    -C           clean all unknown/ignored files on target
+                 (potentially DANGEROUS: use with option -f to confirm)
+    -R ROOT      explicit repository root directory
+                 (default: implicit from current directory)
+    -f           force changes: no dry-run
+    -n           no changes: dry-run
+    -v           verbose
+
+  Synchronize Mercurial repository working directory with other TARGET,
+  which can be local or remote (using notation of rsync).
+""",
+          "C" -> { _ => clean = true; dry_run = true },
+          "R:" -> (arg => root = Some(Path.explode(arg))),
+          "f" -> (_ => dry_run = false),
+          "n" -> (_ => dry_run = true),
+          "v" -> (_ => verbose = true))
+
+        val more_args = getopts(args)
+        val target =
+          more_args match {
+            case List(target) => target
+            case _ => getopts.usage()
+          }
+
+        val progress = new Console_Progress
+        val hg =
+          root match {
+            case Some(dir) => repository(dir)
+            case None => the_repository(Path.current)
+          }
+        hg.sync(target, verbose = verbose, dry_run = dry_run, clean = clean, progress = progress)
+      }
+    )
 }

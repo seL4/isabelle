@@ -40,8 +40,8 @@ object SSH {
   val default_port = 22
   def make_port(port: Int): Int = if (port > 0) port else default_port
 
-  def port_suffix(port: Int): String =
-    if (port == default_port) "" else ":" + port
+  def port_suffix(port: Int, suffix: String = ":"): String =
+    if (port == default_port) "" else suffix + port
 
   def user_prefix(user: String): String =
     proper_string(user) match {
@@ -328,6 +328,9 @@ object SSH {
     override def hg_url: String =
       "ssh://" + user_prefix(nominal_user) + nominal_host + "/"
 
+    override def rsync_url: String = ""
+      user_prefix(nominal_user) + nominal_host + ":" + port_suffix(port, suffix = "") + "/"
+
     override def toString: String =
       user_prefix(session.getUserName) + host + port_suffix(port) +
       (if (session.isConnected) "" else " (disconnected)")
@@ -488,6 +491,7 @@ object SSH {
     def close(): Unit = ()
 
     def hg_url: String = ""
+    def rsync_url: String = ""
 
     def expand_path(path: Path): Path = path.expand
     def bash_path(path: Path): String = File.bash_path(path)
