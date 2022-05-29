@@ -16,7 +16,8 @@ object Mercurial {
   type Graph = isabelle.Graph[String, Unit]
 
 
-  /* HTTP server */
+
+  /** HTTP server **/
 
   object Server {
     def apply(root: String): Server = new Server(root)
@@ -78,6 +79,9 @@ object Mercurial {
     }
   }
 
+
+
+  /** repository commands **/
 
   /* command-line syntax */
 
@@ -258,7 +262,8 @@ object Mercurial {
   }
 
 
-  /* check files */
+
+  /** check files **/
 
   def check_files(files: List[Path], ssh: SSH.System = SSH.Local): (List[Path], List[Path]) = {
     val outside = new mutable.ListBuffer[Path]
@@ -285,7 +290,8 @@ object Mercurial {
   }
 
 
-  /* setup remote vs. local repository */
+
+  /** hg_setup **/
 
   private def edit_hgrc(local_hg: Repository, path_name: String, source: String): Unit = {
     val hgrc = local_hg.root + Path.explode(".hg/hgrc")
