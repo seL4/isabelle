@@ -430,7 +430,7 @@ object Isabelle_System {
   ): Process_Result = {
     val script =
       "rsync --protect-args --archive" +
-        (if (verbose) " --verbose" else "") +
+        (if (verbose || dry_run) " --verbose" else "") +
         (if (dry_run) " --dry-run" else "") +
         (if (clean) " --delete-excluded" else "") +
         (if (args.nonEmpty) " " + Bash.strings(args) else "")
