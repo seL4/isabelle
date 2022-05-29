@@ -40,8 +40,8 @@ object SSH {
   val default_port = 22
   def make_port(port: Int): Int = if (port > 0) port else default_port
 
-  def port_suffix(port: Int): String =
-    if (port == default_port) "" else ":" + port
+  def port_suffix(port: Int, suffix: String = ":"): String =
+    if (port == default_port) "" else suffix + port
 
   def user_prefix(user: String): String =
     proper_string(user) match {
@@ -323,12 +323,13 @@ object SSH {
       new Session(new_options, session, on_close, nominal_host, nominal_user)
 
     def host: String = if (session.getHost == null) "" else session.getHost
+    def port: Int = session.getPort
 
     override def hg_url: String =
       "ssh://" + user_prefix(nominal_user) + nominal_host + "/"
 
     override def toString: String =
-      user_prefix(session.getUserName) + host + port_suffix(session.getPort) +
+      user_prefix(session.getUserName) + host + port_suffix(port) +
       (if (session.isConnected) "" else " (disconnected)")
 
 

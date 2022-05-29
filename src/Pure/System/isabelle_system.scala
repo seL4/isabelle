@@ -420,6 +420,25 @@ object Isabelle_System {
     else error("Expected to find GNU tar executable")
   }
 
+  def rsync(
+    cwd: JFile = null,
+    progress: Progress = new Progress,
+    verbose: Boolean = false,
+    dry_run: Boolean = false,
+    clean: Boolean = false,
+    filter: List[String] = Nil,
+    args: List[String] = Nil
+  ): Process_Result = {
+    val script =
+      "rsync --protect-args --archive" +
+        (if (verbose || dry_run) " --verbose" else "") +
+        (if (dry_run) " --dry-run" else "") +
+        (if (clean) " --delete-excluded" else "") +
+        filter.map(s => " --filter=" + Bash.string(s)).mkString +
+        (if (args.nonEmpty) " " + Bash.strings(args) else "")
+    progress.bash(script, cwd = cwd, echo = true)
+  }
+
   def make_patch(base_dir: Path, src: Path, dst: Path, diff_options: String = ""): String = {
     with_tmp_file("patch") { patch =>
       Isabelle_System.bash(
