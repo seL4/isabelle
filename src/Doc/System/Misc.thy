@@ -316,6 +316,7 @@ text \<open>
     -P NAME      protect NAME within TARGET from deletion
     -R ROOT      explicit repository root directory
                  (default: implicit from current directory)
+    -T           thorough check of file content (default: time and size)
     -f           force changes: no dry-run
     -n           no changes: dry-run
     -r REV       explicit revision (default: state of working directory)
@@ -347,6 +348,9 @@ text \<open>
   \<^medskip> Option \<^verbatim>\<open>-R\<close> specifies an explicit repository root directory. The default
   is to derive it from the current directory, searching upwards until a
   suitable \<^verbatim>\<open>.hg\<close> directory is found.
+
+  \<^medskip> Option \<^verbatim>\<open>-T\<close> indicates a thorough check of file content; the default is to
+  consider files with equal time and size already as equal.
 \<close>
 
 subsubsection \<open>Examples\<close>

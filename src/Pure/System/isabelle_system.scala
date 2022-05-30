@@ -424,6 +424,7 @@ object Isabelle_System {
     cwd: JFile = null,
     progress: Progress = new Progress,
     verbose: Boolean = false,
+    thorough: Boolean = false,
     dry_run: Boolean = false,
     clean: Boolean = false,
     filter: List[String] = Nil,
@@ -432,6 +433,7 @@ object Isabelle_System {
     val script =
       "rsync --protect-args --archive" +
         (if (verbose || dry_run) " --verbose" else "") +
+        (if (thorough) " --ignore-times" else "") +
         (if (dry_run) " --dry-run" else "") +
         (if (clean) " --delete-excluded" else "") +
         filter.map(s => " --filter=" + Bash.string(s)).mkString +

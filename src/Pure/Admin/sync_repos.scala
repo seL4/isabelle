@@ -11,6 +11,7 @@ object Sync_Repos {
   def sync_repos(target: String,
     progress: Progress = new Progress,
     verbose: Boolean = false,
+    thorough: Boolean = false,
     dry_run: Boolean = false,
     clean: Boolean = false,
     rev: String = "",
@@ -23,8 +24,8 @@ object Sync_Repos {
     val afp_hg = afp_root.map(Mercurial.repository(_))
 
     def sync(hg: Mercurial.Repository, dest: String, r: String, filter: List[String] = Nil): Unit =
-      hg.sync(dest, progress = progress, verbose = verbose, dry_run = dry_run, clean = clean,
-        rev = r, filter = filter)
+      hg.sync(dest, rev = r, progress = progress, verbose = verbose, thorough = thorough,
+        dry_run = dry_run, clean = clean, filter = filter)
 
     progress.echo("\n* Isabelle repository:")
     sync(isabelle_hg, target, rev, filter = List("protect /AFP", "protect etc/ISABELLE_ID"))
@@ -33,7 +34,8 @@ object Sync_Repos {
       Isabelle_System.with_tmp_dir("sync_repos") { tmp_dir =>
         val id_path = tmp_dir + Path.explode("ISABELLE_ID")
         File.write(id_path, isabelle_hg.id(rev = rev))
-        Isabelle_System.rsync(args = List(File.standard_path(id_path), target_dir + "etc/"))
+        Isabelle_System.rsync(thorough = thorough,
+          args = List(File.standard_path(id_path), target_dir + "etc/"))
       }
     }
 
@@ -48,6 +50,7 @@ object Sync_Repos {
       Scala_Project.here, { args =>
         var afp_root: Option[Path] = None
         var clean = false
+        var thorough = false
         var afp_rev = ""
         var dry_run = false
         var rev = ""
@@ -60,6 +63,7 @@ Usage: isabelle sync_repos [OPTIONS] TARGET
     -A ROOT      include AFP with given root directory
     -C           clean all unknown/ignored files on target
                  (implies -n for testing; use option -f to confirm)
+    -T           thorough check of file content (default: time and size)
     -a REV       explicit AFP revision (default: state of working directory)
     -f           force changes: no dry-run
     -n           no changes: dry-run
@@ -74,6 +78,7 @@ Usage: isabelle sync_repos [OPTIONS] TARGET
 """,
           "A:" -> (arg => afp_root = Some(Path.explode(arg))),
           "C" -> { _ => clean = true; dry_run = true },
+          "T" -> (_ => thorough = true),
           "a:" -> (arg => afp_rev = arg),
           "f" -> (_ => dry_run = false),
           "n" -> (_ => dry_run = true),
@@ -88,8 +93,8 @@ Usage: isabelle sync_repos [OPTIONS] TARGET
           }
 
         val progress = new Console_Progress
-        sync_repos(target, progress = progress, verbose = verbose, dry_run = dry_run, clean = clean,
-          rev = rev, afp_root = afp_root, afp_rev = afp_rev)
+        sync_repos(target, progress = progress, verbose = verbose, thorough = thorough,
+          dry_run = dry_run, clean = clean, rev = rev, afp_root = afp_root, afp_rev = afp_rev)
       }
     )
 }

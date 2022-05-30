@@ -254,6 +254,7 @@ object Mercurial {
     def sync(target: String,
       progress: Progress = new Progress,
       verbose: Boolean = false,
+      thorough: Boolean = false,
       dry_run: Boolean = false,
       clean: Boolean = false,
       filter: List[String] = Nil,
@@ -278,7 +279,8 @@ object Mercurial {
             (Nil, source)
           }
         Isabelle_System.rsync(
-          progress = progress, verbose = verbose, dry_run = dry_run, clean = clean, filter = filter,
+          progress = progress, verbose = verbose, thorough = thorough,
+          dry_run = dry_run, clean = clean, filter = filter,
           args = List("--prune-empty-dirs") ::: options ::: List("--", source + "/.", target))
       }
     }
@@ -486,6 +488,7 @@ Usage: isabelle hg_setup [OPTIONS] REMOTE LOCAL_DIR
         var clean = false
         var protect: List[String] = Nil
         var root: Option[Path] = None
+        var thorough = false
         var dry_run = false
         var rev = ""
         var verbose = false
@@ -499,6 +502,7 @@ Usage: isabelle hg_sync [OPTIONS] TARGET
     -P NAME      protect NAME within TARGET from deletion
     -R ROOT      explicit repository root directory
                  (default: implicit from current directory)
+    -T           thorough check of file content (default: time and size)
     -f           force changes: no dry-run
     -n           no changes: dry-run
     -r REV       explicit revision (default: state of working directory)
@@ -510,6 +514,7 @@ Usage: isabelle hg_sync [OPTIONS] TARGET
           "C" -> { _ => clean = true; dry_run = true },
           "P:" -> (arg => protect = protect ::: List(arg)),
           "R:" -> (arg => root = Some(Path.explode(arg))),
+          "T" -> (_ => thorough = true),
           "f" -> (_ => dry_run = false),
           "n" -> (_ => dry_run = true),
           "r:" -> (arg => rev = arg),
@@ -528,8 +533,9 @@ Usage: isabelle hg_sync [OPTIONS] TARGET
             case Some(dir) => repository(dir)
             case None => the_repository(Path.current)
           }
-        hg.sync(target, progress = progress, verbose = verbose, dry_run = dry_run, clean = clean,
-          filter = protect.map("protect /" + _), rev = rev)
+        hg.sync(target, progress = progress, verbose = verbose, thorough = thorough,
+          dry_run = dry_run, clean = clean, rev = rev,
+          filter = protect.map("protect /" + _))
       }
     )
 }
