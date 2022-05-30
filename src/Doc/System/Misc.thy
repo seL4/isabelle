@@ -316,7 +316,7 @@ text \<open>
     -F RULE      add rsync filter RULE (e.g. "protect /foo" to avoid deletion)
     -R ROOT      explicit repository root directory
                  (default: implicit from current directory)
-    -T           thorough check of file content (default: time and size)
+    -T           thorough treatment of file content and directory times
     -f           force changes: no dry-run
     -n           no changes: dry-run
     -r REV       explicit revision (default: state of working directory)
@@ -349,15 +349,16 @@ text \<open>
   is to derive it from the current directory, searching upwards until a
   suitable \<^verbatim>\<open>.hg\<close> directory is found.
 
-  \<^medskip> Option \<^verbatim>\<open>-T\<close> indicates a thorough check of file content; the default is to
-  consider files with equal time and size already as equal.
+  \<^medskip> Option \<^verbatim>\<open>-T\<close> indicates thorough treatment of file content and directory
+  times. The default is to consider files with equal time and size already as
+  equal, and to ignore time stamps on directories.
 \<close>
 
 subsubsection \<open>Examples\<close>
 
 text \<open>
   Synchronize the current repository onto a remote host, with accurate
-  treatment of all files (concerning comparison and deletion on target):
+  treatment of all content:
   @{verbatim [display] \<open>  isabelle hg_sync -T -C remotename:test/repos\<close>}
 
   So far, this is only a dry run. In a realistic situation, it requires

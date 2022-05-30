@@ -502,7 +502,7 @@ Usage: isabelle hg_sync [OPTIONS] TARGET
     -F RULE      add rsync filter RULE (e.g. "protect /foo" to avoid deletion)
     -R ROOT      explicit repository root directory
                  (default: implicit from current directory)
-    -T           thorough check of file content (default: time and size)
+    -T           thorough treatment of file content and directory times
     -f           force changes: no dry-run
     -n           no changes: dry-run
     -r REV       explicit revision (default: state of working directory)

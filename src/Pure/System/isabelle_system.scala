@@ -433,7 +433,7 @@ object Isabelle_System {
     val script =
       "rsync --protect-args --archive" +
         (if (verbose || dry_run) " --verbose" else "") +
-        (if (thorough) " --ignore-times" else "") +
+        (if (thorough) " --ignore-times" else " --omit-dir-times") +
         (if (dry_run) " --dry-run" else "") +
         (if (clean) " --delete-excluded" else "") +
         filter.map(s => " --filter=" + Bash.string(s)).mkString +

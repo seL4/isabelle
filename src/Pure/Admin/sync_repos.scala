@@ -68,7 +68,7 @@ Usage: isabelle sync_repos [OPTIONS] TARGET
     -J           preserve *.jar files
     -C           clean all unknown/ignored files on target
                  (implies -n for testing; use option -f to confirm)
-    -T           thorough check of file content (default: time and size)
+    -T           thorough treatment of file content and directory times
     -a REV       explicit AFP revision (default: state of working directory)
     -f           force changes: no dry-run
     -n           no changes: dry-run
