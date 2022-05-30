@@ -2406,6 +2406,9 @@ by (cases xs) auto
 lemma takeWhile_nth: "j < length (takeWhile P xs) \<Longrightarrow> takeWhile P xs ! j = xs ! j"
   by (metis nth_append takeWhile_dropWhile_id)
 
+lemma takeWhile_takeWhile: "takeWhile Q (takeWhile P xs) = takeWhile (\<lambda>x. P x \<and> Q x) xs"
+by(induct xs) simp_all
+
 lemma dropWhile_nth: "j < length (dropWhile P xs) \<Longrightarrow>
   dropWhile P xs ! j = xs ! (j + length (takeWhile P xs))"
   by (metis add.commute nth_append_length_plus takeWhile_dropWhile_id)
@@ -2453,6 +2456,16 @@ lemma dropWhile_eq_Cons_conv:
 
 lemma dropWhile_eq_self_iff: "dropWhile P xs = xs \<longleftrightarrow> xs = [] \<or> \<not>P (hd xs)"
 by (cases xs) (auto simp: dropWhile_eq_Cons_conv)
+
+lemma dropWhile_dropWhile1: "(\<And>x. Q x \<Longrightarrow> P x) \<Longrightarrow> dropWhile Q (dropWhile P xs) = dropWhile P xs"
+by(induct xs) simp_all
+
+lemma dropWhile_dropWhile2: "(\<And>x. P x \<Longrightarrow> Q x) \<Longrightarrow> takeWhile P (takeWhile Q xs) = takeWhile P xs"
+by(induct xs) simp_all
+
+lemma dropWhile_takeWhile:
+  "(\<And>x. P x \<Longrightarrow> Q x) \<Longrightarrow> dropWhile P (takeWhile Q xs) = takeWhile Q (dropWhile P xs)"
+by (induction xs) auto
 
 lemma distinct_takeWhile[simp]: "distinct xs \<Longrightarrow> distinct (takeWhile P xs)"
   by (induct xs) (auto dest: set_takeWhileD)
