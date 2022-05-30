@@ -491,6 +491,27 @@ proof -
   finally show ?thesis .
 qed
 
+lemma cos_gt_neg1:
+  assumes "(t::real) \<in> {-pi<..<pi}"
+  shows   "cos t > -1"
+proof -
+  have "cos t \<ge> -1"
+    by simp
+  moreover have "cos t \<noteq> -1"
+  proof
+    assume "cos t = -1"
+    then obtain n where n: "t = (2 * of_int n + 1) * pi"
+      by (subst (asm) cos_eq_minus1) auto
+    from assms have "t / pi \<in> {-1<..<1}"
+      by (auto simp: field_simps)
+    also from n have "t / pi = of_int (2 * n + 1)"
+      by auto
+    finally show False
+      by auto
+  qed
+  ultimately show ?thesis by linarith
+qed
+
 lemma dist_exp_i_1: "norm(exp(\<i> * of_real t) - 1) = 2 * \<bar>sin(t / 2)\<bar>"
 proof -
   have "sqrt (2 - cos t * 2) = 2 * \<bar>sin (t / 2)\<bar>"
@@ -529,7 +550,7 @@ proof
   qed
 next
   assume ?rhs
-  then consider n::int where "w = z + of_real (2 * of_int n * pi)" 
+  then consider n::int where "w = z + of_real (2 * of_int n * pi)"
               | n::int where  " w = -z + of_real ((2 * of_int n + 1) * pi)"
     using Ints_cases by blast
   then show ?lhs
@@ -540,7 +561,7 @@ next
       by (auto simp: algebra_simps)
   next
     case 2
-    then show ?thesis 
+    then show ?thesis
       using Periodic_Fun.sin.plus_of_int [of "-z" "n"]
       apply (simp add: algebra_simps)
       by (metis add.commute add.inverse_inverse add_diff_cancel_left diff_add_cancel sin_plus_pi)
@@ -1051,7 +1072,7 @@ corollary\<^marker>\<open>tag unimportant\<close> Arg2pi_gt_0:
   unfolding nonneg_Reals_def by fastforce
 
 lemma Arg2pi_eq_pi: "Arg2pi z = pi \<longleftrightarrow> z \<in> \<real> \<and> Re z < 0"
-    using Arg2pi_le_pi [of z] Arg2pi_lt_pi [of z] Arg2pi_eq_0 [of z] Arg2pi_ge_0 [of z] 
+    using Arg2pi_le_pi [of z] Arg2pi_lt_pi [of z] Arg2pi_eq_0 [of z] Arg2pi_ge_0 [of z]
     by (fastforce simp: complex_is_Real_iff)
 
 lemma Arg2pi_eq_0_pi: "Arg2pi z = 0 \<or> Arg2pi z = pi \<longleftrightarrow> z \<in> \<real>"
@@ -1303,7 +1324,7 @@ proof -
   have 1: "open ?U"
     by (simp add: open_Collect_conj open_halfspace_Im_gt open_halfspace_Im_lt)
   have 2: "\<And>x. x \<in> ?U \<Longrightarrow> (exp has_derivative blinfun_apply(Blinfun ((*) (exp x)))) (at x)"
-    by (simp add: bounded_linear_Blinfun_apply bounded_linear_mult_right has_field_derivative_imp_has_derivative)   
+    by (simp add: bounded_linear_Blinfun_apply bounded_linear_mult_right has_field_derivative_imp_has_derivative)
   have 3: "continuous_on ?U (\<lambda>x. Blinfun ((*) (exp x)))"
     unfolding blinfun_mult_right.abs_eq [symmetric] by (intro continuous_intros)
   have 4: "Ln z \<in> ?U"
@@ -1486,7 +1507,7 @@ proof -
   also have A: "summable (\<lambda>n. norm z^2 * (inverse (real_of_nat (Suc (Suc n))) * cmod z ^ n))"
     by (rule summable_mult, rule summable_comparison_test_ev[OF _ summable_geometric[of "norm z"]])
        (auto simp: assms field_simps intro!: always_eventually)
-  hence "norm (\<Sum>i. (-(z^2)) * inverse (of_nat (i+2)) * (-z)^i) 
+  hence "norm (\<Sum>i. (-(z^2)) * inverse (of_nat (i+2)) * (-z)^i)
       \<le> (\<Sum>i. norm (-(z^2) * inverse (of_nat (i+2)) * (-z)^i))"
     by (intro summable_norm)
        (auto simp: norm_power norm_inverse norm_mult mult_ac simp del: of_nat_add of_nat_Suc)
@@ -1525,10 +1546,10 @@ proof -
       by auto
     have "\<bar>Im w\<bar> < pi/2 \<longleftrightarrow> 0 < Re(exp w)"
     proof
-      assume "\<bar>Im w\<bar> < pi/2" then show "0 < Re(exp w)" 
+      assume "\<bar>Im w\<bar> < pi/2" then show "0 < Re(exp w)"
         by (auto simp: Re_exp cos_gt_zero_pi split: if_split_asm)
     next
-      assume R: "0 < Re(exp w)" then 
+      assume R: "0 < Re(exp w)" then
       have "\<bar>Im w\<bar> \<noteq> pi/2"
         by (metis cos_minus cos_pi_half mult_eq_0_iff Re_exp abs_if order_less_irrefl)
       then show "\<bar>Im w\<bar> < pi/2"
@@ -1788,7 +1809,7 @@ lemma Arg_eq_Im_Ln:
   assumes "z \<noteq> 0" shows "Arg z = Im (Ln z)"
 proof (rule cis_Arg_unique)
   show "sgn z = cis (Im (Ln z))"
-    by (metis assms exp_Ln exp_eq_polar nonzero_mult_div_cancel_left norm_eq_zero 
+    by (metis assms exp_Ln exp_eq_polar nonzero_mult_div_cancel_left norm_eq_zero
               norm_exp_eq_Re of_real_eq_0_iff sgn_eq)
   show "- pi < Im (Ln z)"
     by (simp add: assms mpi_less_Im_Ln)
@@ -2127,7 +2148,7 @@ proof -
   consider "Re z < 0" | "Im z \<noteq> 0" using assms
     using complex_nonneg_Reals_iff not_le by blast
   then have [simp]: "(\<lambda>z. Im (Ln (- z)) + pi) \<midarrow>z\<rightarrow> Arg2pi z"
-    using "*" by (simp add: Arg2pi_Ln Arg2pi_gt_0 assms continuous_within) 
+    using "*" by (simp add: Arg2pi_Ln Arg2pi_gt_0 assms continuous_within)
   show ?thesis
     unfolding continuous_at
   proof (rule Lim_transform_within_open)
@@ -3143,7 +3164,7 @@ proof -
   have ne: "1 + x\<^sup>2 \<noteq> 0"
     by (metis power_one sum_power2_eq_zero_iff zero_neq_one)
   have ne1: "1 + \<i> * complex_of_real x \<noteq> 0"
-    using Complex_eq complex_eq_cancel_iff2 by fastforce 
+    using Complex_eq complex_eq_cancel_iff2 by fastforce
   have "Re (Ln ((1 - \<i> * x) * inverse (1 + \<i> * x))) = 0"
     apply (rule norm_exp_imaginary)
     using ne
@@ -3822,7 +3843,7 @@ next
   fix x'
   assume "- (pi / 2) \<le> x'" "x' \<le> pi / 2" "x = sin x'"
   then show "x' = Re (Arcsin (complex_of_real (sin x')))"
-    unfolding sin_of_real [symmetric] 
+    unfolding sin_of_real [symmetric]
     by (subst Arcsin_sin) auto
 qed
 

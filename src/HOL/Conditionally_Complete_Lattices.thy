@@ -47,6 +47,8 @@ lemma Int2 [simp]:
 
 end
 
+subsection \<open>Preorders\<close>
+
 context preorder
 begin
 
@@ -172,6 +174,8 @@ lemma
   using bdd_below_image_antimono[of uminus X] bdd_above_image_antimono[of uminus "uminus`X"]
   by (auto simp: antimono_def image_image)
 
+subsection \<open>Lattices\<close>
+
 context lattice
 begin
 
@@ -230,6 +234,8 @@ To avoid name classes with the \<^class>\<open>complete_lattice\<close>-class we
 \<^const>\<open>Inf\<close> in theorem names with c.
 
 \<close>
+
+subsection \<open>Conditionally complete lattices\<close>
 
 class conditionally_complete_lattice = lattice + Sup + Inf +
   assumes cInf_lower: "x \<in> X \<Longrightarrow> bdd_below X \<Longrightarrow> Inf X \<le> x"
@@ -448,6 +454,21 @@ lemma cInf_le_cSup:
 
 end
 
+text \<open>The special case of well-orderings\<close>
+
+lemma wellorder_InfI:
+  fixes k :: "'a::{wellorder,conditionally_complete_lattice}"
+  assumes "k \<in> A" shows "Inf A \<in> A" 
+  using wellorder_class.LeastI [of "\<lambda>x. x \<in> A" k]
+  by (simp add: Least_le assms cInf_eq_minimum)
+
+lemma wellorder_Inf_le1:
+  fixes k :: "'a::{wellorder,conditionally_complete_lattice}"
+  assumes "k \<in> A" shows "Inf A \<le> k"
+  by (meson Least_le assms bdd_below.I cInf_lower)
+
+subsection \<open>Complete lattices\<close>
+
 instance complete_lattice \<subseteq> conditionally_complete_lattice
   by standard (auto intro: Sup_upper Sup_least Inf_lower Inf_greatest)
 
@@ -529,6 +550,8 @@ next
 qed
 
 end
+
+subsection \<open>Instances\<close>
 
 instance complete_linorder < conditionally_complete_linorder
   ..
@@ -763,11 +786,12 @@ lemma cSUP_eq_cINF_D:
      and bdd: "bdd_above (f ` A)" "bdd_below (f ` A)"
      and a: "a \<in> A"
   shows "f a = (\<Sqinter>x\<in>A. f x)"
-apply (rule antisym)
-using a bdd
-apply (auto simp: cINF_lower)
-apply (metis eq cSUP_upper)
-done
+proof (rule antisym)
+  show "f a \<le> \<Sqinter> (f ` A)"
+    by (metis a bdd(1) eq cSUP_upper)
+  show "\<Sqinter> (f ` A) \<le> f a"
+    using a bdd by (auto simp: cINF_lower)
+qed
 
 lemma cSUP_UNION:
   fixes f :: "_ \<Rightarrow> 'b::conditionally_complete_lattice"

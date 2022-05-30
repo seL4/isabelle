@@ -729,6 +729,12 @@ lemma Re_sum[simp]: "Re (sum f s) = (\<Sum>x\<in>s. Re (f x))"
 lemma Im_sum[simp]: "Im (sum f s) = (\<Sum>x\<in>s. Im(f x))"
   by (induct s rule: infinite_finite_induct) auto
 
+lemma sum_Re_le_cmod: "(\<Sum>i\<in>I. Re (z i)) \<le> cmod (\<Sum>i\<in>I. z i)"
+  by (metis Re_sum complex_Re_le_cmod)
+
+lemma sum_Im_le_cmod: "(\<Sum>i\<in>I. Im (z i)) \<le> cmod (\<Sum>i\<in>I. z i)"
+  by (smt (verit, best) Im_sum abs_Im_le_cmod sum.cong)
+
 lemma sums_complex_iff: "f sums x \<longleftrightarrow> ((\<lambda>x. Re (f x)) sums Re x) \<and> ((\<lambda>x. Im (f x)) sums Im x)"
   unfolding sums_def tendsto_complex_iff Im_sum Re_sum ..
 
