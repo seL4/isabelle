@@ -31,7 +31,7 @@ object Sync_Repos {
     sync(isabelle_hg, target, rev, filter = List("protect /AFP", "protect /etc/ISABELLE_ID"))
 
     if (!dry_run) {
-      Isabelle_System.with_tmp_dir("sync_repos") { tmp_dir =>
+      Isabelle_System.with_tmp_dir("sync") { tmp_dir =>
         val id_path = tmp_dir + Path.explode("ISABELLE_ID")
         File.write(id_path, isabelle_hg.id(rev = rev))
         Isabelle_System.rsync(thorough = thorough,

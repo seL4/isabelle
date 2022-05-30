@@ -136,7 +136,7 @@ object Build_JEdit {
       path
     }
 
-    Isabelle_System.with_tmp_dir("tmp") { tmp_dir =>
+    Isabelle_System.with_tmp_dir("build") { tmp_dir =>
       /* original version */
 
       val install_path = download_jedit(tmp_dir, "install.jar")

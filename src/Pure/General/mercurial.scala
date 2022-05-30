@@ -262,7 +262,7 @@ object Mercurial {
     ): Unit = {
       require(ssh == SSH.Local, "local repository required")
 
-      Isabelle_System.with_tmp_dir("rsync") { tmp_dir =>
+      Isabelle_System.with_tmp_dir("sync") { tmp_dir =>
         val (options, source) =
           if (rev.isEmpty) {
             val exclude_path = tmp_dir + Path.explode("exclude")

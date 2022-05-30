@@ -54,7 +54,7 @@ classpath "$ISABELLE_SQLITE_HOME/""" + download_name + """.jar"
     val jar = component_dir + Path.basic(download_name).ext("jar")
     Isabelle_System.download_file(download_url, jar, progress = progress)
 
-    Isabelle_System.with_tmp_dir("sqlite") { jar_dir =>
+    Isabelle_System.with_tmp_dir("build") { jar_dir =>
       progress.echo("Unpacking " + jar)
       Isabelle_System.bash("isabelle_jdk jar xf " + File.bash_path(jar.absolute),
         cwd = jar_dir.file).check

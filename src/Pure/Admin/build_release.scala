@@ -102,7 +102,7 @@ directory individually.
 
   object Release_Archive {
     def make(bytes: Bytes, rename: String = ""): Release_Archive = {
-      Isabelle_System.with_tmp_dir("tmp")(dir =>
+      Isabelle_System.with_tmp_dir("build_release")(dir =>
         Isabelle_System.with_tmp_file("archive", ext = "tar.gz") { archive_path =>
           val isabelle_dir = Isabelle_System.make_directory(dir + ISABELLE)
 
