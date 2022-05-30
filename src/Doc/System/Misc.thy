@@ -356,8 +356,9 @@ text \<open>
 subsubsection \<open>Examples\<close>
 
 text \<open>
-  Synchronize the Isabelle repository onto a remote host:
-  @{verbatim [display] \<open>  isabelle hg_sync -R '$ISABELLE_HOME' -C testmachine:test/isabelle\<close>}
+  Synchronize the current repository onto a remote host, with accurate
+  treatment of all files (concerning comparison and deletion on target):
+  @{verbatim [display] \<open>  isabelle hg_sync -T -C remotename:test/repos\<close>}
 
   So far, this is only a dry run. In a realistic situation, it requires
   consecutive options \<^verbatim>\<open>-C -f\<close> as confirmation.
