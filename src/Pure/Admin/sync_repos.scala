@@ -64,7 +64,7 @@ object Sync_Repos {
 Usage: isabelle sync_repos [OPTIONS] TARGET
 
   Options are:
-    -A ROOT      include AFP with given root directory
+    -A ROOT      include AFP with given root directory (":" for """ + AFP.BASE.implode + """)
     -J           preserve *.jar files
     -C           clean all unknown/ignored files on target
                  (implies -n for testing; use option -f to confirm)
@@ -81,13 +81,13 @@ Usage: isabelle sync_repos [OPTIONS] TARGET
 
    * quick testing
 
-      isabelle sync_repos -A '$AFP_BASE' -J -C testmachine:test/isabelle_afp
+      isabelle sync_repos -A: -J -C testmachine:test/isabelle_afp
 
    * accurate testing
 
-      isabelle sync_repos -A '$AFP_BASE' -T -C testmachine:test/isabelle_afp
+      isabelle sync_repos -A: -T -C testmachine:test/isabelle_afp
 """,
-          "A:" -> (arg => afp_root = Some(Path.explode(arg))),
+          "A:" -> (arg => afp_root = Some(if (arg == ":") AFP.BASE else Path.explode(arg))),
           "J" -> (_ => preserve_jars = true),
           "C" -> { _ => clean = true; dry_run = true },
           "T" -> (_ => thorough = true),

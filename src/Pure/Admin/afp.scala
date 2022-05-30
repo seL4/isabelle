@@ -23,7 +23,9 @@ object AFP {
 
   val force_partition1: List[String] = List("Category3", "HOL-ODE")
 
-  def init(options: Options, base_dir: Path = Path.explode("$AFP_BASE")): AFP =
+  val BASE: Path = Path.explode("$AFP_BASE")
+
+  def init(options: Options, base_dir: Path = BASE): AFP =
     new AFP(options, base_dir)
 
 
