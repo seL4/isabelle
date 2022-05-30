@@ -12,6 +12,7 @@ object Sync_Repos {
     progress: Progress = new Progress,
     verbose: Boolean = false,
     thorough: Boolean = false,
+    preserve_jars: Boolean = false,
     dry_run: Boolean = false,
     clean: Boolean = false,
     rev: String = "",
@@ -23,9 +24,11 @@ object Sync_Repos {
     val isabelle_hg = Mercurial.repository(Path.ISABELLE_HOME)
     val afp_hg = afp_root.map(Mercurial.repository(_))
 
+    val more_filter = if (preserve_jars) List("include *.jar", "protect *.jar") else Nil
+
     def sync(hg: Mercurial.Repository, dest: String, r: String, filter: List[String] = Nil): Unit =
       hg.sync(dest, rev = r, progress = progress, verbose = verbose, thorough = thorough,
-        dry_run = dry_run, clean = clean, filter = filter)
+        dry_run = dry_run, clean = clean, filter = filter ::: more_filter)
 
     progress.echo("\n* Isabelle repository:")
     sync(isabelle_hg, target, rev, filter = List("protect /AFP", "protect /etc/ISABELLE_ID"))
@@ -50,6 +53,7 @@ object Sync_Repos {
       Scala_Project.here, { args =>
         var afp_root: Option[Path] = None
         var clean = false
+        var preserve_jars = false
         var thorough = false
         var afp_rev = ""
         var dry_run = false
@@ -61,6 +65,7 @@ Usage: isabelle sync_repos [OPTIONS] TARGET
 
   Options are:
     -A ROOT      include AFP with given root directory
+    -J           preserve *.jar files
     -C           clean all unknown/ignored files on target
                  (implies -n for testing; use option -f to confirm)
     -T           thorough check of file content (default: time and size)
@@ -72,11 +77,18 @@ Usage: isabelle sync_repos [OPTIONS] TARGET
 
   Synchronize Isabelle + AFP repositories; see also "isabelle hg_sync".
 
-  Example (without -f as "dry-run"):
+  Examples (without -f as "dry-run"):
 
-    isabelle sync_repos -A '$AFP_BASE' -C testmachine:test/isabelle_afp
+   * quick testing
+
+      isabelle sync_repos -A '$AFP_BASE' -J -C testmachine:test/isabelle_afp
+
+   * accurate testing
+
+      isabelle sync_repos -A '$AFP_BASE' -T -C testmachine:test/isabelle_afp
 """,
           "A:" -> (arg => afp_root = Some(Path.explode(arg))),
+          "J" -> (_ => preserve_jars = true),
           "C" -> { _ => clean = true; dry_run = true },
           "T" -> (_ => thorough = true),
           "a:" -> (arg => afp_rev = arg),
@@ -94,7 +106,8 @@ Usage: isabelle sync_repos [OPTIONS] TARGET
 
         val progress = new Console_Progress
         sync_repos(target, progress = progress, verbose = verbose, thorough = thorough,
-          dry_run = dry_run, clean = clean, rev = rev, afp_root = afp_root, afp_rev = afp_rev)
+          preserve_jars = preserve_jars, dry_run = dry_run, clean = clean, rev = rev,
+          afp_root = afp_root, afp_rev = afp_rev)
       }
     )
 }
