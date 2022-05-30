@@ -67,6 +67,10 @@ Usage: isabelle sync_repos [OPTIONS] TARGET
     -v           verbose
 
   Synchronize Isabelle + AFP repositories; see also "isabelle hg_sync".
+
+  Example (without -f as "dry-run"):
+
+    isabelle sync_repos -A '$AFP_BASE' -C testmachine:test/isabelle_afp
 """,
           "A:" -> (arg => afp_root = Some(Path.explode(arg))),
           "C" -> { _ => clean = true; dry_run = true },
