@@ -313,7 +313,7 @@ text \<open>
   Options are:
     -C           clean all unknown/ignored files on target
                  (implies -n for testing; use option -f to confirm)
-    -P NAME      protect NAME within TARGET from deletion
+    -F RULE      add rsync filter RULE (e.g. "protect /foo" to avoid deletion)
     -R ROOT      explicit repository root directory
                  (default: implicit from current directory)
     -T           thorough check of file content (default: time and size)
@@ -342,8 +342,8 @@ text \<open>
   for ``dry-run'' with verbose output. A subsequent option \<^verbatim>\<open>-f\<close> is required
   to force actual deletions on the target.
 
-  \<^medskip> Option \<^verbatim>\<open>-P\<close> protects a given file or directory from deletion; multiple
-  \<^verbatim>\<open>-P\<close> options may be given to accumulate protected entries.
+  \<^medskip> Option \<^verbatim>\<open>-F\<close> adds a filter rule to the underlying \<^verbatim>\<open>rsync\<close> command;
+  multiple \<^verbatim>\<open>-F\<close> options may be given to accumulate a list of rules.
 
   \<^medskip> Option \<^verbatim>\<open>-R\<close> specifies an explicit repository root directory. The default
   is to derive it from the current directory, searching upwards until a
@@ -356,9 +356,8 @@ text \<open>
 subsubsection \<open>Examples\<close>
 
 text \<open>
-  Synchronize the Isabelle repository onto a remote host, while
-  protecting a copy of AFP inside of it (without changing that):
-  @{verbatim [display] \<open>  isabelle hg_sync -R '$ISABELLE_HOME' -P AFP -C testmachine:test/isabelle\<close>}
+  Synchronize the Isabelle repository onto a remote host:
+  @{verbatim [display] \<open>  isabelle hg_sync -R '$ISABELLE_HOME' -C testmachine:test/isabelle\<close>}
 
   So far, this is only a dry run. In a realistic situation, it requires
   consecutive options \<^verbatim>\<open>-C -f\<close> as confirmation.

@@ -486,7 +486,7 @@ Usage: isabelle hg_setup [OPTIONS] REMOTE LOCAL_DIR
     Isabelle_Tool("hg_sync", "synchronize Mercurial repository with target directory",
       Scala_Project.here, { args =>
         var clean = false
-        var protect: List[String] = Nil
+        var filter: List[String] = Nil
         var root: Option[Path] = None
         var thorough = false
         var dry_run = false
@@ -499,7 +499,7 @@ Usage: isabelle hg_sync [OPTIONS] TARGET
   Options are:
     -C           clean all unknown/ignored files on target
                  (implies -n for testing; use option -f to confirm)
-    -P NAME      protect NAME within TARGET from deletion
+    -F RULE      add rsync filter RULE (e.g. "protect /foo" to avoid deletion)
     -R ROOT      explicit repository root directory
                  (default: implicit from current directory)
     -T           thorough check of file content (default: time and size)
@@ -512,7 +512,7 @@ Usage: isabelle hg_sync [OPTIONS] TARGET
   which can be local or remote (using notation of rsync).
 """,
           "C" -> { _ => clean = true; dry_run = true },
-          "P:" -> (arg => protect = protect ::: List(arg)),
+          "F:" -> (arg => filter = filter ::: List(arg)),
           "R:" -> (arg => root = Some(Path.explode(arg))),
           "T" -> (_ => thorough = true),
           "f" -> (_ => dry_run = false),
@@ -534,8 +534,7 @@ Usage: isabelle hg_sync [OPTIONS] TARGET
             case None => the_repository(Path.current)
           }
         hg.sync(target, progress = progress, verbose = verbose, thorough = thorough,
-          dry_run = dry_run, clean = clean, rev = rev,
-          filter = protect.map("protect /" + _))
+          dry_run = dry_run, clean = clean, filter = filter, rev = rev)
       }
     )
 }
