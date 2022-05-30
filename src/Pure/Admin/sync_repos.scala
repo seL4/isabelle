@@ -28,7 +28,7 @@ object Sync_Repos {
         dry_run = dry_run, clean = clean, filter = filter)
 
     progress.echo("\n* Isabelle repository:")
-    sync(isabelle_hg, target, rev, filter = List("protect /AFP", "protect etc/ISABELLE_ID"))
+    sync(isabelle_hg, target, rev, filter = List("protect /AFP", "protect /etc/ISABELLE_ID"))
 
     if (!dry_run) {
       Isabelle_System.with_tmp_dir("sync_repos") { tmp_dir =>
