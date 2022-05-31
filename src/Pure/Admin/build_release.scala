@@ -398,7 +398,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
   ): Unit = {
     val progress = context.progress
 
-    val hg = Mercurial.repository(Path.ISABELLE_HOME)
+    val hg = Mercurial.self_repository()
     val id =
       try { hg.id(version) }
       catch { case ERROR(msg) => cat_error("Bad repository version: " + version, msg) }

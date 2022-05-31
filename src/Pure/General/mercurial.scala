@@ -127,6 +127,8 @@ object Mercurial {
     hg
   }
 
+  def self_repository(): Repository = repository(Path.ISABELLE_HOME)
+
   def find_repository(start: Path, ssh: SSH.System = SSH.Local): Option[Repository] = {
     @tailrec def find(root: Path): Option[Repository] =
       if (is_repository(root, ssh)) Some(repository(root, ssh = ssh))

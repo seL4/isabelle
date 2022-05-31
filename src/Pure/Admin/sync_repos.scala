@@ -22,7 +22,7 @@ object Sync_Repos {
   ): Unit = {
     val target_dir = if (target.endsWith(":") || target.endsWith("/")) target else target + "/"
 
-    val isabelle_hg = Mercurial.repository(Path.ISABELLE_HOME)
+    val hg = Mercurial.self_repository()
     val afp_hg = afp_root.map(Mercurial.repository(_))
 
     val more_filter = if (preserve_jars) List("include *.jar", "protect *.jar") else Nil
@@ -32,12 +32,12 @@ object Sync_Repos {
         thorough = thorough, dry_run = dry_run, clean = clean, filter = filter ::: more_filter)
 
     progress.echo("\n* Isabelle repository:")
-    sync(isabelle_hg, target, rev, filter = List("protect /AFP", "protect /etc/ISABELLE_ID"))
+    sync(hg, target, rev, filter = List("protect /AFP", "protect /etc/ISABELLE_ID"))
 
     if (!dry_run) {
       Isabelle_System.with_tmp_dir("sync") { tmp_dir =>
         val id_path = tmp_dir + Path.explode("ISABELLE_ID")
-        File.write(id_path, isabelle_hg.id(rev = rev))
+        File.write(id_path, hg.id(rev = rev))
         Isabelle_System.rsync(port = port, thorough = thorough,
           args = List(File.standard_path(id_path), target_dir + "etc/"))
       }
