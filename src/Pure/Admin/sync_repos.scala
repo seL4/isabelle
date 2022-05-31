@@ -39,7 +39,8 @@ object Sync_Repos {
         val id_path = tmp_dir + Path.explode("ISABELLE_ID")
         File.write(id_path, hg.id(rev = rev))
         Isabelle_System.rsync(port = port, thorough = thorough,
-          args = List(File.standard_path(id_path), target_dir + "etc/"))
+          args = List(File.standard_path(id_path), target_dir + "etc/")
+        ).check
       }
     }
 

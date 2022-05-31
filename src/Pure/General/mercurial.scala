@@ -284,7 +284,8 @@ object Mercurial {
         Isabelle_System.rsync(
           progress = progress, port = port, verbose = verbose, thorough = thorough,
           dry_run = dry_run, clean = clean, filter = filter,
-          args = List("--prune-empty-dirs") ::: options ::: List("--", source + "/.", target))
+          args = List("--prune-empty-dirs") ::: options ::: List("--", source + "/.", target)
+        ).check
       }
     }
 
