@@ -4,7 +4,7 @@
 *)
 section \<open>The Median-of-Medians Selection Algorithm\<close>
 theory Selection
-  imports Complex_Main Sorting Time_Funs
+  imports Complex_Main Time_Funs Sorting
 begin
 
 text \<open>
@@ -17,8 +17,8 @@ subsection \<open>Auxiliary material\<close>
 lemma replicate_numeral: "replicate (numeral n) x = x # replicate (pred_numeral n) x"
   by (simp add: numeral_eq_Suc)
 
-lemma isort_correct: "isort xs = sort xs"
-  using sorted_isort mset_isort by (metis properties_for_sort)
+lemma insort_correct: "insort xs = sort xs"
+  using sorted_insort mset_insort by (metis properties_for_sort)
 
 lemma sum_list_replicate [simp]: "sum_list (replicate n x) = n * x"
   by (induction n) auto
@@ -498,13 +498,13 @@ text \<open>
   using the naive selection algorithm where we sort the list using insertion sort.
 \<close>
 definition slow_select where
-  "slow_select k xs = isort xs ! k"
+  "slow_select k xs = insort xs ! k"
 
 definition slow_median where
   "slow_median xs = slow_select ((length xs - 1) div 2) xs"
 
 lemma slow_select_correct: "slow_select k xs = select k xs"
-  by (simp add: slow_select_def select_def isort_correct)
+  by (simp add: slow_select_def select_def insort_correct)
 
 lemma slow_median_correct: "slow_median xs = median xs"
   by (simp add: median_def slow_median_def slow_select_correct)
@@ -635,18 +635,18 @@ lemma T_partition3_eq: "T_partition3 x xs = length xs + 1"
   by (induction x xs rule: T_partition3.induct) auto
 
 definition T_slow_select :: "nat \<Rightarrow> 'a :: linorder list \<Rightarrow> nat" where
-  "T_slow_select k xs = T_isort xs + T_nth (isort xs) k + 1"
+  "T_slow_select k xs = T_insort xs + T_nth (insort xs) k + 1"
 
 definition T_slow_median :: "'a :: linorder list \<Rightarrow> nat" where
   "T_slow_median xs = T_slow_select ((length xs - 1) div 2) xs + 1"
 
 lemma T_slow_select_le: "T_slow_select k xs \<le> length xs ^ 2 + 3 * length xs + 3"
 proof -
-  have "T_slow_select k xs \<le> (length xs + 1)\<^sup>2 + (length (isort xs) + 1) + 1"
+  have "T_slow_select k xs \<le> (length xs + 1)\<^sup>2 + (length (insort xs) + 1) + 1"
     unfolding T_slow_select_def
-    by (intro add_mono T_isort_length) (auto simp: T_nth_eq)
+    by (intro add_mono T_insort_length) (auto simp: T_nth_eq)
   also have "\<dots> = length xs ^ 2 + 3 * length xs + 3"
-    by (simp add: isort_correct algebra_simps power2_eq_square)
+    by (simp add: insort_correct algebra_simps power2_eq_square)
   finally show ?thesis .
 qed
 

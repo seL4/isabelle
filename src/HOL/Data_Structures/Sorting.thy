@@ -15,40 +15,40 @@ declare Let_def [simp]
 
 subsection "Insertion Sort"
 
-fun insort :: "'a::linorder \<Rightarrow> 'a list \<Rightarrow> 'a list" where
-"insort x [] = [x]" |
-"insort x (y#ys) =
-  (if x \<le> y then x#y#ys else y#(insort x ys))"
+fun insort1 :: "'a::linorder \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+"insort1 x [] = [x]" |
+"insort1 x (y#ys) =
+  (if x \<le> y then x#y#ys else y#(insort1 x ys))"
 
-fun isort :: "'a::linorder list \<Rightarrow> 'a list" where
-"isort [] = []" |
-"isort (x#xs) = insort x (isort xs)"
+fun insort :: "'a::linorder list \<Rightarrow> 'a list" where
+"insort [] = []" |
+"insort (x#xs) = insort1 x (insort xs)"
 
 
 subsubsection "Functional Correctness"
 
-lemma mset_insort: "mset (insort x xs) = {#x#} + mset xs"
+lemma mset_insort1: "mset (insort1 x xs) = {#x#} + mset xs"
 apply(induction xs)
 apply auto
 done
 
-lemma mset_isort: "mset (isort xs) = mset xs"
+lemma mset_insort: "mset (insort xs) = mset xs"
 apply(induction xs)
 apply simp
-apply (simp add: mset_insort)
+apply (simp add: mset_insort1)
 done
 
-lemma set_insort: "set (insort x xs) = {x} \<union> set xs"
-by(simp add: mset_insort flip: set_mset_mset)
+lemma set_insort1: "set (insort1 x xs) = {x} \<union> set xs"
+by(simp add: mset_insort1 flip: set_mset_mset)
 
-lemma sorted_insort: "sorted (insort a xs) = sorted xs"
+lemma sorted_insort1: "sorted (insort1 a xs) = sorted xs"
 apply(induction xs)
-apply(auto simp add: set_insort)
+apply(auto simp add: set_insort1)
 done
 
-lemma sorted_isort: "sorted (isort xs)"
+lemma sorted_insort: "sorted (insort xs)"
 apply(induction xs)
-apply(auto simp: sorted_insort)
+apply(auto simp: sorted_insort1)
 done
 
 
@@ -57,49 +57,49 @@ subsubsection "Time Complexity"
 text \<open>We count the number of function calls.\<close>
 
 text\<open>
-\<open>insort x [] = [x]\<close>
-\<open>insort x (y#ys) =
-  (if x \<le> y then x#y#ys else y#(insort x ys))\<close>
+\<open>insort1 x [] = [x]\<close>
+\<open>insort1 x (y#ys) =
+  (if x \<le> y then x#y#ys else y#(insort1 x ys))\<close>
 \<close>
-fun T_insort :: "'a::linorder \<Rightarrow> 'a list \<Rightarrow> nat" where
-"T_insort x [] = 1" |
-"T_insort x (y#ys) =
-  (if x \<le> y then 0 else T_insort x ys) + 1"
+fun T_insort1 :: "'a::linorder \<Rightarrow> 'a list \<Rightarrow> nat" where
+"T_insort1 x [] = 1" |
+"T_insort1 x (y#ys) =
+  (if x \<le> y then 0 else T_insort1 x ys) + 1"
 
 text\<open>
-\<open>isort [] = []\<close>
-\<open>isort (x#xs) = insort x (isort xs)\<close>
+\<open>insort [] = []\<close>
+\<open>insort (x#xs) = insort1 x (insort xs)\<close>
 \<close>
-fun T_isort :: "'a::linorder list \<Rightarrow> nat" where
-"T_isort [] = 1" |
-"T_isort (x#xs) = T_isort xs + T_insort x (isort xs) + 1"
+fun T_insort :: "'a::linorder list \<Rightarrow> nat" where
+"T_insort [] = 1" |
+"T_insort (x#xs) = T_insort xs + T_insort1 x (insort xs) + 1"
 
 
-lemma T_insort_length: "T_insort x xs \<le> length xs + 1"
+lemma T_insort1_length: "T_insort1 x xs \<le> length xs + 1"
 apply(induction xs)
 apply auto
 done
 
-lemma length_insort: "length (insort x xs) = length xs + 1"
+lemma length_insort1: "length (insort1 x xs) = length xs + 1"
 apply(induction xs)
 apply auto
 done
 
-lemma length_isort: "length (isort xs) = length xs"
+lemma length_insort: "length (insort xs) = length xs"
 apply(induction xs)
-apply (auto simp: length_insort)
+apply (auto simp: length_insort1)
 done
 
-lemma T_isort_length: "T_isort xs \<le> (length xs + 1) ^ 2"
+lemma T_insort_length: "T_insort xs \<le> (length xs + 1) ^ 2"
 proof(induction xs)
   case Nil show ?case by simp
 next
   case (Cons x xs)
-  have "T_isort (x#xs) = T_isort xs + T_insort x (isort xs) + 1" by simp
-  also have "\<dots> \<le> (length xs + 1) ^ 2 + T_insort x (isort xs) + 1"
+  have "T_insort (x#xs) = T_insort xs + T_insort1 x (insort xs) + 1" by simp
+  also have "\<dots> \<le> (length xs + 1) ^ 2 + T_insort1 x (insort xs) + 1"
     using Cons.IH by simp
   also have "\<dots> \<le> (length xs + 1) ^ 2 + length xs + 1 + 1"
-    using T_insort_length[of x "isort xs"] by (simp add: length_isort)
+    using T_insort1_length[of x "insort xs"] by (simp add: length_insort)
   also have "\<dots> \<le> (length(x#xs) + 1) ^ 2"
     by (simp add: power2_eq_square)
   finally show ?case .
@@ -379,61 +379,65 @@ done
 
 subsection "Insertion Sort w.r.t. Keys and Stability"
 
-text \<open>Note that \<^const>\<open>insort_key\<close> is already defined in theory \<^theory>\<open>HOL.List\<close>.
-Thus some of the lemmas are already present as well.\<close>
+hide_const List.insort_key
 
-fun isort_key :: "('a \<Rightarrow> 'k::linorder) \<Rightarrow> 'a list \<Rightarrow> 'a list" where
-"isort_key f [] = []" |
-"isort_key f (x # xs) = insort_key f x (isort_key f xs)"
+fun insort1_key :: "('a \<Rightarrow> 'k::linorder) \<Rightarrow> 'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+"insort1_key f x [] = [x]" |
+"insort1_key f x (y # ys) = (if f x \<le> f y then x # y # ys else y # insort1_key f x ys)"
+
+fun insort_key :: "('a \<Rightarrow> 'k::linorder) \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+"insort_key f [] = []" |
+"insort_key f (x # xs) = insort1_key f x (insort_key f xs)"
 
 
 subsubsection "Standard functional correctness"
 
-lemma mset_insort_key: "mset (insort_key f x xs) = {#x#} + mset xs"
+lemma mset_insort1_key: "mset (insort1_key f x xs) = {#x#} + mset xs"
 by(induction xs) simp_all
 
-lemma mset_isort_key: "mset (isort_key f xs) = mset xs"
-by(induction xs) (simp_all add: mset_insort_key)
+lemma mset_insort_key: "mset (insort_key f xs) = mset xs"
+by(induction xs) (simp_all add: mset_insort1_key)
 
-lemma set_isort_key: "set (isort_key f xs) = set xs"
-by (rule mset_eq_setD[OF mset_isort_key])
+(* Inductive proof simpler than derivation from mset lemma: *)
+lemma set_insort1_key: "set (insort1_key f x xs) = {x} \<union> set xs"
+by (induction xs) auto
 
-lemma sorted_insort_key: "sorted (map f (insort_key f a xs)) = sorted (map f xs)"
-by(induction xs)(auto simp: set_insort_key)
+lemma sorted_insort1_key: "sorted (map f (insort1_key f a xs)) = sorted (map f xs)"
+by(induction xs)(auto simp: set_insort1_key)
 
-lemma sorted_isort_key: "sorted (map f (isort_key f xs))"
-by(induction xs)(simp_all add: sorted_insort_key)
+lemma sorted_insort_key: "sorted (map f (insort_key f xs))"
+by(induction xs)(simp_all add: sorted_insort1_key)
 
 
 subsubsection "Stability"
 
-lemma insort_is_Cons: "\<forall>x\<in>set xs. f a \<le> f x \<Longrightarrow> insort_key f a xs = a # xs"
+lemma insort1_is_Cons: "\<forall>x\<in>set xs. f a \<le> f x \<Longrightarrow> insort1_key f a xs = a # xs"
 by (cases xs) auto
 
-lemma filter_insort_key_neg:
-  "\<not> P x \<Longrightarrow> filter P (insort_key f x xs) = filter P xs"
+lemma filter_insort1_key_neg:
+  "\<not> P x \<Longrightarrow> filter P (insort1_key f x xs) = filter P xs"
 by (induction xs) simp_all
 
-lemma filter_insort_key_pos:
-  "sorted (map f xs) \<Longrightarrow> P x \<Longrightarrow> filter P (insort_key f x xs) = insort_key f x (filter P xs)"
-by (induction xs) (auto, subst insort_is_Cons, auto)
+lemma filter_insort1_key_pos:
+  "sorted (map f xs) \<Longrightarrow> P x \<Longrightarrow> filter P (insort1_key f x xs) = insort1_key f x (filter P xs)"
+by (induction xs) (auto, subst insort1_is_Cons, auto)
 
-lemma sort_key_stable: "filter (\<lambda>y. f y = k) (isort_key f xs) = filter (\<lambda>y. f y = k) xs"
+lemma sort_key_stable: "filter (\<lambda>y. f y = k) (insort_key f xs) = filter (\<lambda>y. f y = k) xs"
 proof (induction xs)
   case Nil thus ?case by simp
 next
   case (Cons a xs)
   thus ?case
   proof (cases "f a = k")
-    case False thus ?thesis  by (simp add: Cons.IH filter_insort_key_neg)
+    case False thus ?thesis  by (simp add: Cons.IH filter_insort1_key_neg)
   next
     case True
-    have "filter (\<lambda>y. f y = k) (isort_key f (a # xs))
-      = filter (\<lambda>y. f y = k) (insort_key f a (isort_key f xs))"  by simp
-    also have "\<dots> = insort_key f a (filter (\<lambda>y. f y = k) (isort_key f xs))"
-      by (simp add: True filter_insort_key_pos sorted_isort_key)
-    also have "\<dots> = insort_key f a (filter (\<lambda>y. f y = k) xs)"  by (simp add: Cons.IH)
-    also have "\<dots> = a # (filter (\<lambda>y. f y = k) xs)"  by(simp add: True insort_is_Cons)
+    have "filter (\<lambda>y. f y = k) (insort_key f (a # xs))
+      = filter (\<lambda>y. f y = k) (insort1_key f a (insort_key f xs))"  by simp
+    also have "\<dots> = insort1_key f a (filter (\<lambda>y. f y = k) (insort_key f xs))"
+      by (simp add: True filter_insort1_key_pos sorted_insort_key)
+    also have "\<dots> = insort1_key f a (filter (\<lambda>y. f y = k) xs)"  by (simp add: Cons.IH)
+    also have "\<dots> = a # (filter (\<lambda>y. f y = k) xs)"  by(simp add: True insort1_is_Cons)
     also have "\<dots> = filter (\<lambda>y. f y = k) (a # xs)" by (simp add: True)
     finally show ?thesis .
   qed
