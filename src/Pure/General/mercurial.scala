@@ -253,6 +253,7 @@ object Mercurial {
 
     def sync(target: String,
       progress: Progress = new Progress,
+      port: Int = SSH.default_port,
       verbose: Boolean = false,
       thorough: Boolean = false,
       dry_run: Boolean = false,
@@ -279,7 +280,7 @@ object Mercurial {
             (Nil, source)
           }
         Isabelle_System.rsync(
-          progress = progress, verbose = verbose, thorough = thorough,
+          progress = progress, port = port, verbose = verbose, thorough = thorough,
           dry_run = dry_run, clean = clean, filter = filter,
           args = List("--prune-empty-dirs") ::: options ::: List("--", source + "/.", target))
       }
@@ -491,6 +492,7 @@ Usage: isabelle hg_setup [OPTIONS] REMOTE LOCAL_DIR
         var thorough = false
         var dry_run = false
         var rev = ""
+        var port = SSH.default_port
         var verbose = false
 
         val getopts = Getopts("""
@@ -506,6 +508,7 @@ Usage: isabelle hg_sync [OPTIONS] TARGET
     -f           force changes: no dry-run
     -n           no changes: dry-run
     -r REV       explicit revision (default: state of working directory)
+    -p PORT      explicit SSH port (default: """ + SSH.default_port + """)
     -v           verbose
 
   Synchronize Mercurial repository with TARGET directory,
@@ -518,6 +521,7 @@ Usage: isabelle hg_sync [OPTIONS] TARGET
           "f" -> (_ => dry_run = false),
           "n" -> (_ => dry_run = true),
           "r:" -> (arg => rev = arg),
+          "p:" -> (arg => port = Value.Int.parse(arg)),
           "v" -> (_ => verbose = true))
 
         val more_args = getopts(args)
@@ -533,7 +537,7 @@ Usage: isabelle hg_sync [OPTIONS] TARGET
             case Some(dir) => repository(dir)
             case None => the_repository(Path.current)
           }
-        hg.sync(target, progress = progress, verbose = verbose, thorough = thorough,
+        hg.sync(target, progress = progress, port = port, verbose = verbose, thorough = thorough,
           dry_run = dry_run, clean = clean, filter = filter, rev = rev)
       }
     )

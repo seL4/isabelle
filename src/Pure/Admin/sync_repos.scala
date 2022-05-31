@@ -10,6 +10,7 @@ package isabelle
 object Sync_Repos {
   def sync_repos(target: String,
     progress: Progress = new Progress,
+    port: Int = SSH.default_port,
     verbose: Boolean = false,
     thorough: Boolean = false,
     preserve_jars: Boolean = false,
@@ -27,8 +28,8 @@ object Sync_Repos {
     val more_filter = if (preserve_jars) List("include *.jar", "protect *.jar") else Nil
 
     def sync(hg: Mercurial.Repository, dest: String, r: String, filter: List[String] = Nil): Unit =
-      hg.sync(dest, rev = r, progress = progress, verbose = verbose, thorough = thorough,
-        dry_run = dry_run, clean = clean, filter = filter ::: more_filter)
+      hg.sync(dest, rev = r, progress = progress, port = port, verbose = verbose,
+        thorough = thorough, dry_run = dry_run, clean = clean, filter = filter ::: more_filter)
 
     progress.echo("\n* Isabelle repository:")
     sync(isabelle_hg, target, rev, filter = List("protect /AFP", "protect /etc/ISABELLE_ID"))
@@ -37,7 +38,7 @@ object Sync_Repos {
       Isabelle_System.with_tmp_dir("sync") { tmp_dir =>
         val id_path = tmp_dir + Path.explode("ISABELLE_ID")
         File.write(id_path, isabelle_hg.id(rev = rev))
-        Isabelle_System.rsync(thorough = thorough,
+        Isabelle_System.rsync(port = port, thorough = thorough,
           args = List(File.standard_path(id_path), target_dir + "etc/"))
       }
     }
@@ -58,6 +59,7 @@ object Sync_Repos {
         var afp_rev = ""
         var dry_run = false
         var rev = ""
+        var port = SSH.default_port
         var verbose = false
 
         val getopts = Getopts("""
@@ -73,6 +75,7 @@ Usage: isabelle sync_repos [OPTIONS] TARGET
     -f           force changes: no dry-run
     -n           no changes: dry-run
     -r REV       explicit revision (default: state of working directory)
+    -p PORT      explicit SSH port (default: """ + SSH.default_port + """)
     -v           verbose
 
   Synchronize Isabelle + AFP repositories; see also "isabelle hg_sync".
@@ -95,6 +98,7 @@ Usage: isabelle sync_repos [OPTIONS] TARGET
           "f" -> (_ => dry_run = false),
           "n" -> (_ => dry_run = true),
           "r:" -> (arg => rev = arg),
+          "p:" -> (arg => port = Value.Int.parse(arg)),
           "v" -> (_ => verbose = true))
 
         val more_args = getopts(args)
@@ -105,7 +109,7 @@ Usage: isabelle sync_repos [OPTIONS] TARGET
           }
 
         val progress = new Console_Progress
-        sync_repos(target, progress = progress, verbose = verbose, thorough = thorough,
+        sync_repos(target, progress = progress, port = port, verbose = verbose, thorough = thorough,
           preserve_jars = preserve_jars, dry_run = dry_run, clean = clean, rev = rev,
           afp_root = afp_root, afp_rev = afp_rev)
       }

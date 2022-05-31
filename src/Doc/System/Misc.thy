@@ -320,6 +320,7 @@ text \<open>
     -f           force changes: no dry-run
     -n           no changes: dry-run
     -r REV       explicit revision (default: state of working directory)
+    -p PORT      explicit SSH port (default: 22)
     -v           verbose
 
   Synchronize Mercurial repository with TARGET directory,
@@ -352,6 +353,9 @@ text \<open>
   \<^medskip> Option \<^verbatim>\<open>-T\<close> indicates thorough treatment of file content and directory
   times. The default is to consider files with equal time and size already as
   equal, and to ignore time stamps on directories.
+
+  \<^medskip> Option \<^verbatim>\<open>-p\<close> specifies an explicit port for the SSH connection underlying
+  \<^verbatim>\<open>rsync\<close>.
 \<close>
 
 subsubsection \<open>Examples\<close>

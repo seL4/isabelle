@@ -423,6 +423,7 @@ object Isabelle_System {
   def rsync(
     cwd: JFile = null,
     progress: Progress = new Progress,
+    port: Int = SSH.default_port,
     verbose: Boolean = false,
     thorough: Boolean = false,
     dry_run: Boolean = false,
@@ -431,7 +432,7 @@ object Isabelle_System {
     args: List[String] = Nil
   ): Unit = {
     val script =
-      "rsync --protect-args --archive" +
+      "rsync --protect-args --archive --rsh=" + Bash.string("ssh -p " + port) +
         (if (verbose || dry_run) " --verbose" else "") +
         (if (thorough) " --ignore-times" else " --omit-dir-times") +
         (if (dry_run) " --dry-run" else "") +
