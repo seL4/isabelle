@@ -540,8 +540,8 @@ Usage: isabelle hg_sync [OPTIONS] TARGET
             case Some(dir) => repository(dir)
             case None => the_repository(Path.current)
           }
-        hg.sync(target, progress = progress, port = port, verbose = verbose, thorough = thorough,
-          dry_run = dry_run, clean = clean, filter = filter, rev = rev)
+        hg.sync(target, progress = progress, port = port, verbose = verbose || dry_run,
+          thorough = thorough, dry_run = dry_run, clean = clean, filter = filter, rev = rev)
       }
     )
 }

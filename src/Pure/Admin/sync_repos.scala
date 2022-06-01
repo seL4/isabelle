@@ -28,7 +28,7 @@ object Sync_Repos {
     val more_filter = if (preserve_jars) List("include *.jar", "protect *.jar") else Nil
 
     def sync(hg: Mercurial.Repository, dest: String, r: String, filter: List[String] = Nil): Unit =
-      hg.sync(dest, rev = r, progress = progress, port = port, verbose = verbose,
+      hg.sync(dest, rev = r, progress = progress, port = port, verbose = verbose || dry_run,
         thorough = thorough, dry_run = dry_run, clean = clean, filter = filter ::: more_filter)
 
     progress.echo("\n* Isabelle repository:")

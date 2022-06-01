@@ -433,7 +433,7 @@ object Isabelle_System {
   ): Process_Result = {
     val script =
       "rsync --protect-args --archive --rsh=" + Bash.string("ssh -p " + port) +
-        (if (verbose || dry_run) " --verbose" else "") +
+        (if (verbose) " --verbose" else "") +
         (if (thorough) " --ignore-times" else " --omit-dir-times") +
         (if (dry_run) " --dry-run" else "") +
         (if (clean) " --delete-excluded" else "") +
