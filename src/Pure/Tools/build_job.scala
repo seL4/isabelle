@@ -96,7 +96,11 @@ object Build_Job {
     margin: Double = Pretty.default_margin,
     breakgain: Double = Pretty.default_breakgain,
     metric: Pretty.Metric = Symbol.Metric,
-    unicode_symbols: Boolean = false
+    unicode_symbols: Boolean = false,
+    show_theory_timings: Boolean = false,
+    show_command_timings: Boolean = false,
+    show_session_timing: Boolean = false,
+    sort_timings: Boolean = false
   ): Unit = {
     val store = Sessions.store(options)
     val session = new Session(options, Resources.empty)
@@ -114,47 +118,107 @@ object Build_Job {
             db <- session_context.session_db()
             theories = store.read_theories(db, session_name)
             errors = store.read_errors(db, session_name)
+            thy_timings = store.read_theory_timings(db, session_name)
+            command_timings = store.read_command_timings(db, session_name)
+            session_timing = store.read_session_timing(db, session_name)
             info <- store.read_build(db, session_name)
-          } yield (theories, errors, info.return_code)
+          } yield (theories, errors, thy_timings, command_timings, session_timing, info.return_code)
         result match {
           case None => store.error_database(session_name)
-          case Some((used_theories, errors, rc)) =>
+          case Some((used_theories, errors, thy_timings, command_timings, session_timing, rc)) =>
             theories.filterNot(used_theories.toSet) match {
               case Nil =>
               case bad => error("Unknown theories " + commas_quote(bad))
             }
-            val print_theories =
-              if (theories.isEmpty) used_theories else used_theories.filter(theories.toSet)
+            if (verbose || !(show_command_timings || show_theory_timings || show_session_timing)) {
+              val print_theories =
+                if (theories.isEmpty) used_theories else used_theories.filter(theories.toSet)
 
-            for (thy <- print_theories) {
-              val thy_heading = "\nTheory " + quote(thy) + " (in " + session_name + ")" + ":"
+              for (thy <- print_theories) {
+                val thy_heading = "\nTheory " + quote(thy) + " (in " + session_name + ")" + ":"
 
-              read_theory(session_context.theory(thy), unicode_symbols = unicode_symbols) match {
-                case None => progress.echo(thy_heading + " MISSING")
-                case Some(snapshot) =>
-                  val rendering = new Rendering(snapshot, options, session)
-                  val messages =
-                    rendering.text_messages(Text.Range.full)
-                      .filter(message => verbose || Protocol.is_exported(message.info))
-                  if (messages.nonEmpty) {
-                    val line_document = Line.Document(snapshot.source)
-                    val buffer = new mutable.ListBuffer[String]
-                    for (Text.Info(range, elem) <- messages) {
-                      val line = line_document.position(range.start).line1
-                      val pos = Position.Line_File(line, snapshot.node_name.node)
-                      def message_text: String =
-                        Protocol.message_text(elem, heading = true, pos = pos,
-                          margin = margin, breakgain = breakgain, metric = metric)
-                      val ok =
-                        check(message_head, Protocol.message_heading(elem, pos)) &&
-                        check(message_body, XML.content(Pretty.unformatted(List(elem))))
-                      if (ok) buffer += message_text
+                read_theory(session_context.theory(thy), unicode_symbols = unicode_symbols) match {
+                  case None => progress.echo(thy_heading + " MISSING")
+                  case Some(snapshot) =>
+                    val rendering = new Rendering(snapshot, options, session)
+                    val messages =
+                      rendering.text_messages(Text.Range.full)
+                        .filter(message => verbose || Protocol.is_exported(message.info))
+                    if (messages.nonEmpty) {
+                      val line_document = Line.Document(snapshot.source)
+                      val buffer = new mutable.ListBuffer[String]
+                      for (Text.Info(range, elem) <- messages) {
+                        val line = line_document.position(range.start).line1
+                        val pos = Position.Line_File(line, snapshot.node_name.node)
+                        def message_text: String =
+                          Protocol.message_text(elem, heading = true, pos = pos,
+                            margin = margin, breakgain = breakgain, metric = metric)
+                        val ok =
+                          check(message_head, Protocol.message_heading(elem, pos)) &&
+                          check(message_body, XML.content(Pretty.unformatted(List(elem))))
+                        if (ok) buffer += message_text
+                      }
+                      if (buffer.nonEmpty) {
+                        progress.echo(thy_heading)
+                        buffer.foreach(progress.echo)
+                      }
                     }
-                    if (buffer.nonEmpty) {
-                      progress.echo(thy_heading)
-                      buffer.foreach(progress.echo)
-                    }
-                  }
+                }
+              }
+            }
+
+            if (show_theory_timings || verbose) {
+              val typed_thy_timings =
+                thy_timings.map({
+                  case (_, name)::(_, elapsed)::(_, cpu)::(_, gc)::_ =>
+                    val e = Time.seconds(elapsed.toDouble)
+                    val c = Time.seconds(cpu.toDouble)
+                    val g = Time.seconds(gc.toDouble)
+                    (name, Timing(e, c, g), e)
+                  case bad => ("bad timing data", Timing.zero, Time.zero)
+                })
+
+              val sorted_timings =
+                if (sort_timings) typed_thy_timings.sortWith({ case ((_, _, a), (_, _, b)) => a < b })
+                else typed_thy_timings
+
+              progress.echo("\nTheory timings:")
+              for ((name, timing, _) <- sorted_timings) {
+                progress.echo(name + ": " + timing)
+              }
+            }
+
+            if (show_command_timings || verbose) {
+              val typed_command_timings =
+                command_timings.map({
+                  case (_, name)::(_, offset)::(_, file)::(_, time)::_ =>
+                    (name, offset, file, Time.seconds(time.toDouble))
+                  case bad => ("bad timing data", 0, "", Time.zero)
+                })
+
+              val sorted_com_timings =
+                if (sort_timings) typed_command_timings.sortWith({ case ((_, _, _, a), (_, _, _, b)) => a < b })
+                else typed_command_timings
+
+              progress.echo("\nCommand timings:")
+              for (timing <- sorted_com_timings) {
+                timing match {
+                  case (name, offset, file, t) =>
+                    progress.echo(quote(name) + " " + t + "s ["+file+"::"+offset+"]")
+                }
+              }
+            }
+
+            if (show_session_timing || verbose) {
+              session_timing match {
+                case (_, threads)::(_, elapsed)::(_, cpu)::(_, gc)::_ =>
+                  val e = Time.seconds(elapsed.toDouble)
+                  val c = Time.seconds(cpu.toDouble)
+                  val g = Time.seconds(gc.toDouble)
+                  progress.echo("\nSession timing " + session_name + ": " +
+                                Timing(e,c,g).message_resources +
+                                ", " + threads + " threads")
+                case bad => progress.echo("\nBad session timing data")
               }
             }
 
@@ -194,6 +258,10 @@ object Build_Job {
       var margin = Pretty.default_margin
       var options = Options.init()
       var verbose = false
+      var command_timings = false
+      var theory_timings = false
+      var session_timing = false
+      var sort_timings = false
 
       val getopts = Getopts("""
 Usage: isabelle log [OPTIONS] [SESSIONS ...]
@@ -201,10 +269,14 @@ Usage: isabelle log [OPTIONS] [SESSIONS ...]
   Options are:
     -H REGEX     filter messages by matching against head
     -M REGEX     filter messages by matching against body
+    -S           sort timing output by elapsed time
     -T NAME      restrict to given theories (multiple options possible)
     -U           output Unicode symbols
+    -c           show command timings
     -m MARGIN    margin for pretty printing (default: """ + margin + """)
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
+    -s           show session timing
+    -t           show theory timings
     -v           print all messages, including information etc.
 
   Print messages from the build database of the given sessions, without any
@@ -217,10 +289,14 @@ Usage: isabelle log [OPTIONS] [SESSIONS ...]
 """,
         "H:" -> (arg => message_head = message_head ::: List(arg.r)),
         "M:" -> (arg => message_body = message_body ::: List(arg.r)),
+        "S" -> (_ => sort_timings = true),
         "T:" -> (arg => theories = theories ::: List(arg)),
         "U" -> (_ => unicode_symbols = true),
+        "c" -> (_ => command_timings = true),
         "m:" -> (arg => margin = Value.Double.parse(arg)),
         "o:" -> (arg => options = options + arg),
+        "s" -> (_ => session_timing = true),
+        "t" -> (_ => theory_timings = true),
         "v" -> (_ => verbose = true))
 
       val sessions = getopts(args)
@@ -231,7 +307,9 @@ Usage: isabelle log [OPTIONS] [SESSIONS ...]
       else {
         print_log(options, sessions, theories = theories, message_head = message_head,
           message_body = message_body, verbose = verbose, margin = margin, progress = progress,
-          unicode_symbols = unicode_symbols)
+          unicode_symbols = unicode_symbols, show_theory_timings = theory_timings,
+          show_command_timings = command_timings, show_session_timing = session_timing,
+          sort_timings = sort_timings)
       }
     })
 }
