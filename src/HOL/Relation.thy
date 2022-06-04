@@ -200,6 +200,9 @@ lemma reflpE:
   obtains "r x x"
   using assms by (auto dest: refl_onD simp add: reflp_def)
 
+lemma reflp_on_subset: "reflp_on A R \<Longrightarrow> B \<subseteq> A \<Longrightarrow> reflp_on B R"
+  by (auto intro: reflp_onI dest: reflp_onD)
+
 lemma refl_on_Int: "refl_on A r \<Longrightarrow> refl_on B s \<Longrightarrow> refl_on (A \<inter> B) (r \<inter> s)"
   unfolding refl_on_def by blast
 
@@ -519,6 +522,12 @@ lemma totalp_onD:
 
 lemma totalpD: "totalp R \<Longrightarrow> x \<noteq> y \<Longrightarrow> R x y \<or> R y x"
   by (simp add: totalp_onD)
+
+lemma total_on_subset: "total_on A r \<Longrightarrow> B \<subseteq> A \<Longrightarrow> total_on B r"
+  by (auto simp: total_on_def)
+
+lemma totalp_on_subset: "totalp_on A R \<Longrightarrow> B \<subseteq> A \<Longrightarrow> totalp_on B R"
+  by (auto intro: totalp_onI dest: totalp_onD)
 
 lemma total_on_empty [simp]: "total_on {} r"
   by (simp add: total_on_def)

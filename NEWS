@@ -41,11 +41,17 @@ split_if_asm.  INCOMPATIBILITY.
 longer. INCOMPATIBILITY.
 
 * Theory "HOL.Relation":
-  - Added lemmas asymp_less and asymp_greater to type class preorder.
   - Added predicate reflp_on and redefined reflp to ab an abbreviation.
     Lemma reflp_def is explicitly provided for backward compatibility
     but its usage is discouraged. Minor INCOMPATIBILITY.
-  - Added lemmas reflp_onI and reflp_onD.
+  - Added lemmas.
+      preorder.asymp_greater
+      preorder.asymp_less
+      reflp_onD
+      reflp_onI
+      reflp_on_subset
+      total_on_subset
+      totalp_on_subset
 
 * Theory "HOL-Library.Multiset":
   - Consolidated operation and fact names.
