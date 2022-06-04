@@ -758,7 +758,7 @@ fun setup_lifting_cmd xthm opt_reflp_xthm opt_par_xthm lthy =
           handle TERM _ => error "Invalid form of the reflexivity theorem. Use \"reflp R\"."
       in
         case reflp_tm of
-          Const (\<^const_name>\<open>reflp\<close>, _) $ _ => ()
+          \<^Const_>\<open>reflp_on _ for \<^Const>\<open>top_class.top _\<close> _\<close> => ()
           | _ => error "Invalid form of the reflexivity theorem. Use \"reflp R\"."
       end
       

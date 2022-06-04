@@ -389,7 +389,7 @@ fun mk_eq_onp P =
 
 fun mk_pred name R =
   Const (name, uncurry mk_pred2T (fastype_of R |> dest_pred2T) --> HOLogic.boolT) $ R;
-val mk_reflp = mk_pred \<^const_name>\<open>reflp\<close>;
+val mk_reflp = mk_pred \<^const_abbrev>\<open>reflp\<close>;
 val mk_symp = mk_pred \<^const_name>\<open>symp\<close>;
 val mk_transp =  mk_pred \<^const_name>\<open>transp\<close>;
 
