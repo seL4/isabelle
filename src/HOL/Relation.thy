@@ -244,7 +244,7 @@ lemma reflp_on_mono:
   "reflp_on A R \<Longrightarrow> (\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> R x y \<Longrightarrow> Q x y) \<Longrightarrow> reflp_on A Q"
   by (auto intro: reflp_onI dest: reflp_onD)
 
-lemma reflp_mono: "reflp R \<Longrightarrow> (\<And>x y. R x y \<longrightarrow> Q x y) \<Longrightarrow> reflp Q"
+lemma reflp_mono: "reflp R \<Longrightarrow> (\<And>x y. R x y \<Longrightarrow> Q x y) \<Longrightarrow> reflp Q"
   by (rule reflp_on_mono[of UNIV R Q]) simp_all
 
 

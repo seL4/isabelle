@@ -45,6 +45,8 @@ longer. INCOMPATIBILITY.
     Lemma reflp_def is explicitly provided for backward compatibility
     but its usage is discouraged. Minor INCOMPATIBILITY.
   - Added predicate totalp_on and abbreviation totalp.
+  - Replaced HOL.implies by Pure.imp in lemma reflp_mono for consistency
+    with other lemmas. Minor INCOMPATIBILITY.
   - Added lemmas.
       preorder.asymp_greater
       preorder.asymp_less
