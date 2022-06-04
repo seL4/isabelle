@@ -224,8 +224,14 @@ lemma reflp_sup: "reflp r \<Longrightarrow> reflp s \<Longrightarrow> reflp (r \
 lemma refl_on_INTER: "\<forall>x\<in>S. refl_on (A x) (r x) \<Longrightarrow> refl_on (\<Inter>(A ` S)) (\<Inter>(r ` S))"
   unfolding refl_on_def by fast
 
+lemma reflp_on_Inf: "\<forall>x\<in>S. reflp_on (A x) (R x) \<Longrightarrow> reflp_on (\<Inter>(A ` S)) (\<Sqinter>(R ` S))"
+  by (auto intro: reflp_onI dest: reflp_onD)
+
 lemma refl_on_UNION: "\<forall>x\<in>S. refl_on (A x) (r x) \<Longrightarrow> refl_on (\<Union>(A ` S)) (\<Union>(r ` S))"
   unfolding refl_on_def by blast
+
+lemma reflp_on_Sup: "\<forall>x\<in>S. reflp_on (A x) (R x) \<Longrightarrow> reflp_on (\<Union>(A ` S)) (\<Squnion>(R ` S))"
+  by (auto intro: reflp_onI dest: reflp_onD)
 
 lemma refl_on_empty [simp]: "refl_on {} {}"
   by (simp add: refl_on_def)
