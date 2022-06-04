@@ -54,6 +54,7 @@ longer. INCOMPATIBILITY.
       reflp_onI
       reflp_on_Inf
       reflp_on_Sup
+      reflp_on_empty[simp]
       reflp_on_inf
       reflp_on_mono
       reflp_on_subset
@@ -63,6 +64,7 @@ longer. INCOMPATIBILITY.
       totalpI
       totalp_onD
       totalp_onI
+      totalp_on_empty[simp]
       totalp_on_subset
 
 * Theory "HOL-Library.Multiset":
