@@ -121,6 +121,9 @@ object Mercurial {
     ssh.is_dir(root + Path.explode(".hg")) &&
     new Repository(root, ssh).command("root").ok
 
+  def id_repository(root: Path, ssh: SSH.System = SSH.Local, rev: String = "tip"): Option[String] =
+    if (is_repository(root, ssh = ssh)) Some(repository(root, ssh = ssh).id(rev = rev)) else None
+
   def repository(root: Path, ssh: SSH.System = SSH.Local): Repository = {
     val hg = new Repository(root, ssh)
     hg.command("root").check
