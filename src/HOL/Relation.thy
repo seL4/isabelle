@@ -528,6 +528,9 @@ definition totalp_on where
 abbreviation totalp where
   "totalp \<equiv> totalp_on UNIV"
 
+lemma totalp_on_refl_on_eq[pred_set_conv]: "totalp_on A (\<lambda>x y. (x, y) \<in> r) \<longleftrightarrow> total_on A r"
+  by (simp add: totalp_on_def total_on_def)
+
 lemma totalp_onI:
   "(\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> x \<noteq> y \<Longrightarrow> R x y \<or> R y x) \<Longrightarrow> totalp_on A R"
   by (simp add: totalp_on_def)

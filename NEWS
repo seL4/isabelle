@@ -66,6 +66,7 @@ longer. INCOMPATIBILITY.
       totalp_onI
       totalp_on_empty[simp]
       totalp_on_subset
+      totalp_on_total_on_eq[pred_set_conv]
 
 * Theory "HOL-Library.Multiset":
   - Consolidated operation and fact names.
