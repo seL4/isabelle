@@ -31,13 +31,13 @@ object Sync_Repos {
         thorough = thorough, dry_run = dry_run, contents = contents, filter = filter ::: more_filter)
     }
 
-    progress.echo("\n* Isabelle repository:")
+    progress.echo_if(verbose, "\n* Isabelle repository:")
     sync(hg, target, rev,
       contents = List(File.Content(Path.explode("etc/ISABELLE_ID"), hg.id(rev = rev))),
       filter = List("protect /AFP"))
 
     for (hg <- afp_hg) {
-      progress.echo("\n* AFP repository:")
+      progress.echo_if(verbose, "\n* AFP repository:")
       sync(hg, Isabelle_System.rsync_dir(target) + "/AFP", afp_rev)
     }
   }
