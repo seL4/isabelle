@@ -115,6 +115,12 @@ object Mercurial {
     archive_info(root).map(info => info.tags.mkString(" "))
 
 
+  /* hg_sync meta data */
+
+  val HG_SYNC: Path = Path.explode(".hg_sync")
+  val HG_SYNC_ID: Path = HG_SYNC + Path.explode("id")
+
+
   /* repository access */
 
   def is_repository(root: Path, ssh: SSH.System = SSH.Local): Boolean =
@@ -262,13 +268,26 @@ object Mercurial {
       verbose: Boolean = false,
       thorough: Boolean = false,
       dry_run: Boolean = false,
-      clean: Boolean = false,
       filter: List[String] = Nil,
+      contents: List[File.Content] = Nil,
       rev: String = ""
     ): Unit = {
       require(ssh == SSH.Local, "local repository required")
 
       Isabelle_System.with_tmp_dir("sync") { tmp_dir =>
+        Isabelle_System.rsync_init(target, port = port)
+
+        val list =
+          Isabelle_System.rsync(port = port, list = true,
+            args = List("--", Isabelle_System.rsync_dir(target))
+          ).check.out_lines.filterNot(_.endsWith(" ."))
+        if (list.nonEmpty && !list.exists(_.endsWith(" .hg_sync"))) {
+          error("No .hg_sync meta data in " + quote(target))
+        }
+
+        Isabelle_System.rsync_init(target, port = port,
+          contents = File.Content(HG_SYNC_ID, id(rev = rev)) :: contents)
+
         val (options, source) =
           if (rev.isEmpty) {
             val exclude_path = tmp_dir + Path.explode("exclude")
@@ -284,10 +303,16 @@ object Mercurial {
             archive(source, rev = rev)
             (Nil, source)
           }
+
+        val protect =
+          (HG_SYNC :: contents.map(_.path)).map(path => "protect /" + File.standard_path(path))
         Isabelle_System.rsync(
           progress = progress, port = port, verbose = verbose, thorough = thorough,
-          dry_run = dry_run, clean = clean, filter = filter,
-          args = List("--prune-empty-dirs") ::: options ::: List("--", source + "/.", target)
+          dry_run = dry_run,
+          clean = true,
+          prune_empty_dirs = true,
+          filter = protect ::: filter,
+          args = options ::: List("--", Isabelle_System.rsync_dir(source), target)
         ).check
       }
     }
@@ -492,7 +517,6 @@ Usage: isabelle hg_setup [OPTIONS] REMOTE LOCAL_DIR
   val isabelle_tool2 =
     Isabelle_Tool("hg_sync", "synchronize Mercurial repository with target directory",
       Scala_Project.here, { args =>
-        var clean = false
         var filter: List[String] = Nil
         var root: Option[Path] = None
         var thorough = false
@@ -505,13 +529,11 @@ Usage: isabelle hg_setup [OPTIONS] REMOTE LOCAL_DIR
 Usage: isabelle hg_sync [OPTIONS] TARGET
 
   Options are:
-    -C           clean all unknown/ignored files on target
-                 (implies -n for testing; use option -f to confirm)
-    -F RULE      add rsync filter RULE (e.g. "protect /foo" to avoid deletion)
+    -F RULE      add rsync filter RULE
+                 (e.g. "protect /foo" to avoid deletion)
     -R ROOT      explicit repository root directory
                  (default: implicit from current directory)
     -T           thorough treatment of file content and directory times
-    -f           force changes: no dry-run
     -n           no changes: dry-run
     -r REV       explicit revision (default: state of working directory)
     -p PORT      explicit SSH port (default: """ + SSH.default_port + """)
@@ -520,11 +542,9 @@ Usage: isabelle hg_sync [OPTIONS] TARGET
   Synchronize Mercurial repository with TARGET directory,
   which can be local or remote (using notation of rsync).
 """,
-          "C" -> { _ => clean = true; dry_run = true },
           "F:" -> (arg => filter = filter ::: List(arg)),
           "R:" -> (arg => root = Some(Path.explode(arg))),
           "T" -> (_ => thorough = true),
-          "f" -> (_ => dry_run = false),
           "n" -> (_ => dry_run = true),
           "r:" -> (arg => rev = arg),
           "p:" -> (arg => port = Value.Int.parse(arg)),
@@ -543,8 +563,8 @@ Usage: isabelle hg_sync [OPTIONS] TARGET
             case Some(dir) => repository(dir)
             case None => the_repository(Path.current)
           }
-        hg.sync(target, progress = progress, port = port, verbose = verbose || dry_run,
-          thorough = thorough, dry_run = dry_run, clean = clean, filter = filter, rev = rev)
+        hg.sync(target, progress = progress, port = port, verbose = verbose, thorough = thorough,
+          dry_run = dry_run, filter = filter, rev = rev)
       }
     )
 }
