@@ -117,8 +117,36 @@ object Mercurial {
 
   /* hg_sync meta data */
 
-  val HG_SYNC: Path = Path.explode(".hg_sync")
-  val HG_SYNC_ID: Path = HG_SYNC + Path.explode("id")
+  object Hg_Sync {
+    val NAME = ".hg_sync"
+    val _NAME: String = " " + NAME
+    val PATH: Path = Path.explode(NAME)
+    val PATH_ID: Path = PATH + Path.explode("id")
+    val PATH_LOG: Path = PATH + Path.explode("log")
+    val PATH_DIFF: Path = PATH + Path.explode("diff")
+    val PATH_STAT: Path = PATH + Path.explode("stat")
+
+    def is_directory(root: Path, ssh: SSH.System = SSH.Local): Boolean =
+      ssh.is_dir(root + PATH)
+
+    def directory(root: Path, ssh: SSH.System = SSH.Local): Directory = {
+      if (is_directory(root, ssh = ssh)) new Directory(root, ssh)
+      else error("No .hg_sync directory found in " + ssh.rsync_path(root))
+    }
+
+    class Directory private [Hg_Sync](val root: Path, val ssh: SSH.System)
+    {
+      override def toString: String = ssh.rsync_path(root)
+
+      def read(path: Path): String = ssh.read(root + path)
+      lazy val id: String = read(PATH_ID)
+      lazy val log: String = read(PATH_LOG)
+      lazy val diff: String = read(PATH_DIFF)
+      lazy val stat: String = read(PATH_STAT)
+
+      def changed: Boolean = id.endsWith("+")
+    }
+  }
 
 
   /* repository access */
@@ -232,6 +260,9 @@ object Mercurial {
     def log(rev: String = "", template: String = "", options: String = ""): String =
       hg.command("log", opt_rev(rev) + opt_template(template), options).check.out
 
+    def diff(rev: String = "", options: String = ""): String =
+      hg.command("diff", opt_rev(rev), options).check.out
+
     def parent(): String = log(rev = "p1()", template = "{node|short}")
 
     def push(
@@ -281,12 +312,22 @@ object Mercurial {
           Isabelle_System.rsync(port = port, list = true,
             args = List("--", Isabelle_System.rsync_dir(target))
           ).check.out_lines.filterNot(_.endsWith(" ."))
-        if (list.nonEmpty && !list.exists(_.endsWith(" .hg_sync"))) {
+        if (list.nonEmpty && !list.exists(_.endsWith(Hg_Sync._NAME))) {
           error("No .hg_sync meta data in " + quote(target))
         }
 
+        val id_content = id(rev = rev)
+        val is_changed = id_content.endsWith("+")
+        val log_content = if (is_changed) "" else log(rev = rev, options = "-l1")
+        val diff_content = if (is_changed) diff(rev = rev, options = "--git") else ""
+        val stat_content = if (is_changed) diff(rev = rev, options = "--stat") else ""
+
         Isabelle_System.rsync_init(target, port = port,
-          contents = File.Content(HG_SYNC_ID, id(rev = rev)) :: contents)
+          contents =
+            File.Content(Hg_Sync.PATH_ID, id_content) ::
+            File.Content(Hg_Sync.PATH_LOG, log_content) ::
+            File.Content(Hg_Sync.PATH_DIFF, diff_content) ::
+            File.Content(Hg_Sync.PATH_STAT, stat_content) :: contents)
 
         val (options, source) =
           if (rev.isEmpty) {
@@ -305,7 +346,8 @@ object Mercurial {
           }
 
         val protect =
-          (HG_SYNC :: contents.map(_.path)).map(path => "protect /" + File.standard_path(path))
+          (Hg_Sync.PATH :: contents.map(_.path))
+            .map(path => "protect /" + File.standard_path(path))
         Isabelle_System.rsync(
           progress = progress, port = port, verbose = verbose, thorough = thorough,
           dry_run = dry_run,
