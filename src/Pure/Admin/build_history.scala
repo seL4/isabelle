@@ -551,7 +551,7 @@ Usage: Admin/build_history [OPTIONS] REPOSITORY [ARGS ...]
         strict = strict).check
 
     if (self_update) {
-      val hg = Mercurial.repository(Path.ISABELLE_HOME)
+      val hg = Mercurial.self_repository()
       hg.push(self_hg.root_url, force = true)
       self_hg.update(rev = hg.parent(), clean = true)
 

@@ -307,11 +307,19 @@ object File {
   }
 
   final class Content_Bytes private[File](val path: Path, content: Bytes) extends Content {
-    def write(dir: Path): Unit = Bytes.write(dir + path, content)
+    def write(dir: Path): Unit = {
+      val full_path = dir + path
+      Isabelle_System.make_directory(full_path.expand.dir)
+      Bytes.write(full_path, content)
+    }
   }
 
   final class Content_String private[File](val path: Path, content: String) extends Content {
-    def write(dir: Path): Unit = File.write(dir + path, content)
+    def write(dir: Path): Unit = {
+      val full_path = dir + path
+      Isabelle_System.make_directory(full_path.expand.dir)
+      File.write(full_path, content)
+    }
   }
 
   final class Content_XML private[File](val path: Path, content: XML.Body) {

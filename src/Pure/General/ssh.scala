@@ -439,8 +439,8 @@ object SSH {
 
     override def read_file(path: Path, local_path: Path): Unit =
       sftp.get(remote_path(path), File.platform_path(local_path))
-    def read_bytes(path: Path): Bytes = using(open_input(path))(Bytes.read_stream(_))
-    def read(path: Path): String = using(open_input(path))(File.read_stream)
+    override def read_bytes(path: Path): Bytes = using(open_input(path))(Bytes.read_stream(_))
+    override def read(path: Path): String = using(open_input(path))(File.read_stream)
 
     override def write_file(path: Path, local_path: Path): Unit =
       sftp.put(File.platform_path(local_path), remote_path(path))
@@ -503,6 +503,8 @@ object SSH {
     def with_tmp_dir[A](body: Path => A): A = Isabelle_System.with_tmp_dir("tmp")(body)
     def read_file(path1: Path, path2: Path): Unit = Isabelle_System.copy_file(path1, path2)
     def write_file(path1: Path, path2: Path): Unit = Isabelle_System.copy_file(path2, path1)
+    def read_bytes(path: Path): Bytes = Bytes.read(path)
+    def read(path: Path): String = File.read(path)
 
     def execute(command: String,
         progress_stdout: String => Unit = (_: String) => (),
