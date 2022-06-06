@@ -137,7 +137,6 @@ object Isabelle_Cronjob {
     proxy_host: String = "",
     proxy_user: String = "",
     proxy_port: Int = 0,
-    self_update: Boolean = false,
     historic: Boolean = false,
     history: Int = 0,
     history_base: String = "build_history_base",
@@ -207,7 +206,6 @@ object Isabelle_Cronjob {
     List(
       Remote_Build("Linux A", "i21of4", user = "i21isatest",
         proxy_host = "lxbroy10", proxy_user = "i21isatest",
-        self_update = true,
         options = "-m32 -M1x4,2,4" +
           " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAML_SETUP=true" +
           " -e ISABELLE_GHC_SETUP=true" +
@@ -227,8 +225,8 @@ object Isabelle_Cronjob {
         detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("Benchmarks")),
       Remote_Build("macOS 10.14 Mojave (Old)", "lapnipkow3",
         options = "-m32 -M1,2 -e ISABELLE_GHC_SETUP=true -p pide_session=false",
-        self_update = true, args = "-a -d '~~/src/Benchmarks'"),
-      Remote_Build("AFP old bulky", "lrzcloud1", self_update = true,
+        args = "-a -d '~~/src/Benchmarks'"),
+      Remote_Build("AFP old bulky", "lrzcloud1",
         proxy_host = "lxbroy10", proxy_user = "i21isatest",
         options = "-m64 -M6 -U30000 -s10 -t AFP",
         args = "-g large -g slow",
@@ -315,12 +313,12 @@ object Isabelle_Cronjob {
             " -e ISABELLE_MLTON=mlton" +
             " -e ISABELLE_SMLNJ=sml" +
             " -e ISABELLE_SWIPL=swipl",
-          self_update = true, args = "-a -d '~~/src/Benchmarks'")),
+          args = "-a -d '~~/src/Benchmarks'")),
       List(Remote_Build("Linux B", "lxbroy10", historic = true, history = 90,
         options = "-m32 -B -M1x4,2,4,6", args = "-N -g timing")),
       List(Remote_Build("macOS 10.13 High Sierra", "lapbroy68",
         options = "-m32 -B -M1,2,4 -e ISABELLE_GHC_SETUP=true -p pide_session=false",
-        self_update = true, args = "-a -d '~~/src/Benchmarks'")),
+        args = "-a -d '~~/src/Benchmarks'")),
       List(
         Remote_Build("macOS 11 Big Sur", "mini1",
           options = "-m32 -B -M1x2,2,4 -p pide_session=false" +
@@ -329,7 +327,7 @@ object Isabelle_Cronjob {
             " -e ISABELLE_MLTON=/usr/local/bin/mlton" +
             " -e ISABELLE_SMLNJ=/usr/local/smlnj/bin/sml" +
             " -e ISABELLE_SWIPL=/usr/local/bin/swipl",
-          self_update = true, args = "-a -d '~~/src/Benchmarks'")),
+          args = "-a -d '~~/src/Benchmarks'")),
       List(
         Remote_Build("macOS 10.14 Mojave", "mini2",
           options = "-m32 -B -M1x2,2,4 -p pide_session=false" +
@@ -338,21 +336,20 @@ object Isabelle_Cronjob {
             " -e ISABELLE_MLTON=/usr/local/bin/mlton" +
             " -e ISABELLE_SMLNJ=/usr/local/smlnj/bin/sml" +
             " -e ISABELLE_SWIPL=/usr/local/bin/swipl",
-          self_update = true, args = "-a -d '~~/src/Benchmarks'"),
+          args = "-a -d '~~/src/Benchmarks'"),
         Remote_Build("macOS, quick_and_dirty", "mini2",
           options = "-m32 -M4 -t quick_and_dirty -p pide_session=false",
-          self_update = true, args = "-a -o quick_and_dirty",
+          args = "-a -o quick_and_dirty",
           detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("quick_and_dirty")),
         Remote_Build("macOS, skip_proofs", "mini2",
           options = "-m32 -M4 -t skip_proofs -p pide_session=false", args = "-a -o skip_proofs",
           detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("skip_proofs"))),
       List(Remote_Build("macOS 10.15 Catalina", "laramac01", user = "makarius",
         proxy_host = "laraserver", proxy_user = "makarius",
-        self_update = true,
         options = "-m32 -M4 -e ISABELLE_GHC_SETUP=true -p pide_session=false",
         args = "-a -d '~~/src/Benchmarks'")),
       List(
-        Remote_Build("Windows", "vmnipkow9", historic = true, history = 90, self_update = true,
+        Remote_Build("Windows", "vmnipkow9", historic = true, history = 90,
           options = "-m32 -M4" +
             " -C /cygdrive/d/isatest/contrib" +
             " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAML_SETUP=true" +
@@ -362,7 +359,7 @@ object Isabelle_Cronjob {
           detect =
             Build_Log.Settings.ML_PLATFORM.toString + " = " + SQL.string("x86-windows") + " OR " +
             Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86_64_32-windows")),
-        Remote_Build("Windows", "vmnipkow9", historic = true, history = 90, self_update = true,
+        Remote_Build("Windows", "vmnipkow9", historic = true, history = 90,
           options = "-m64 -M4" +
             " -C /cygdrive/d/isatest/contrib" +
             " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAML_SETUP=true" +
@@ -375,7 +372,7 @@ object Isabelle_Cronjob {
   val remote_builds2: List[List[Remote_Build]] =
     List(
       List(
-        Remote_Build("AFP", "lrzcloud2", actual_host = "10.195.4.41", self_update = true,
+        Remote_Build("AFP", "lrzcloud2", actual_host = "10.195.4.41",
           proxy_host = "lxbroy10", proxy_user = "i21isatest",
           java_heap = "8g",
           options = "-m32 -M1x6 -t AFP" +
@@ -386,7 +383,7 @@ object Isabelle_Cronjob {
           args = "-a -X large -X slow",
           afp = true,
           detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("AFP")),
-        Remote_Build("AFP", "lrzcloud2", actual_host = "10.195.4.41", self_update = true,
+        Remote_Build("AFP", "lrzcloud2", actual_host = "10.195.4.41",
           proxy_host = "lxbroy10", proxy_user = "i21isatest",
           java_heap = "8g",
           options = "-m64 -M8 -U30000 -s10 -t AFP",
@@ -410,7 +407,6 @@ object Isabelle_Cronjob {
               isabelle_repos,
               isabelle_repos.ext(r.host),
               isabelle_identifier = "cronjob_build_history",
-              self_update = r.self_update,
               rev = rev,
               afp_repos = if (afp_rev.isDefined) Some(afp_repos) else None,
               afp_rev = afp_rev.getOrElse(""),

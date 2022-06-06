@@ -521,7 +521,6 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
     isabelle_self: Path,
     isabelle_other: Path,
     isabelle_identifier: String = "remote_build_history",
-    self_update: Boolean = false,
     progress: Progress = new Progress,
     rev: String = "",
     afp_repos: Option[Path] = None,
@@ -551,12 +550,10 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
         progress_stderr = progress.echo_if(echo, _),
         strict = strict).check
 
-    if (self_update) {
-      sync_repos(isabelle_self)
-      execute("bin/isabelle", "components -I")
-      execute("bin/isabelle", "components -a", echo = true)
-      execute("bin/isabelle", "jedit -bf")
-    }
+    sync_repos(isabelle_self)
+    execute("bin/isabelle", "components -I")
+    execute("bin/isabelle", "components -a", echo = true)
+    execute("bin/isabelle", "jedit -bf")
 
     sync_repos(isabelle_other, accurate = true,
       rev = proper_string(rev) getOrElse "tip",
