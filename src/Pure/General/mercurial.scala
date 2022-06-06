@@ -329,21 +329,21 @@ object Mercurial {
             File.Content(Hg_Sync.PATH_DIFF, diff_content) ::
             File.Content(Hg_Sync.PATH_STAT, stat_content) :: contents)
 
-        val (options, source) =
+        val (exclude, source) =
           if (rev.isEmpty) {
-            val exclude_path = tmp_dir + Path.explode("exclude")
-            val exclude = status(options = "--unknown --ignored --no-status")
-            File.write(exclude_path, cat_lines((".hg" :: exclude).map("/" + _)))
-
-            val options = List("--exclude-from=" + exclude_path.implode)
+            val exclude = ".hg" :: status(options = "--unknown --ignored --no-status")
             val source = File.standard_path(root)
-            (options, source)
+            (exclude, source)
           }
           else {
+            val exclude = List(".hg_archival.txt")
             val source = File.standard_path(tmp_dir + Path.explode("archive"))
             archive(source, rev = rev)
-            (Nil, source)
+            (exclude, source)
           }
+
+        val exclude_path = tmp_dir + Path.explode("exclude")
+        File.write(exclude_path, cat_lines(exclude.map("/" + _)))
 
         val protect =
           (Hg_Sync.PATH :: contents.map(_.path))
@@ -354,7 +354,8 @@ object Mercurial {
           clean = true,
           prune_empty_dirs = true,
           filter = protect ::: filter,
-          args = options ::: List("--", Isabelle_System.rsync_dir(source), target)
+          args = List("--exclude-from=" + exclude_path.implode, "--",
+            Isabelle_System.rsync_dir(source), target)
         ).check
       }
     }
