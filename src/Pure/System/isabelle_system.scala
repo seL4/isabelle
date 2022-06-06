@@ -421,7 +421,6 @@ object Isabelle_System {
   }
 
   def rsync(
-    cwd: JFile = null,
     progress: Progress = new Progress,
     port: Int = SSH.default_port,
     verbose: Boolean = false,
@@ -443,7 +442,7 @@ object Isabelle_System {
         (if (list) " --list-only --no-human-readable" else "") +
         filter.map(s => " --filter=" + Bash.string(s)).mkString +
         (if (args.nonEmpty) " " + Bash.strings(args) else "")
-    progress.bash(script, cwd = cwd, echo = true)
+    progress.bash(script, echo = true)
   }
 
   def rsync_dir(target: String): String = {
