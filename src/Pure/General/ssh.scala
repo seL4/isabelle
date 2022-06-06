@@ -493,7 +493,7 @@ object SSH {
     def hg_url: String = ""
 
     def rsync_prefix: String = ""
-    def rsync_path(path: Path): String = rsync_prefix + expand_path(path)
+    def rsync_path(path: Path): String = rsync_prefix + expand_path(path).implode
 
     def expand_path(path: Path): Path = path.expand
     def bash_path(path: Path): String = File.bash_path(path)
