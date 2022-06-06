@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# DESCRIPTION: build history versions from another repository clone
+# DESCRIPTION: build other Isabelle from sync_repos directory
 
 unset CDPATH
 THIS="$(cd "$(dirname "$0")"; pwd)"

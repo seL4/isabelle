@@ -406,13 +406,14 @@ object Isabelle_Cronjob {
       { logger =>
         using(r.ssh_session(logger.ssh_context)) { ssh =>
           val results =
-            Build_History.remote_build_history(ssh,
+            Build_History.remote_build(ssh,
               isabelle_repos,
               isabelle_repos.ext(r.host),
               isabelle_identifier = "cronjob_build_history",
               self_update = r.self_update,
               rev = rev,
-              afp_rev = afp_rev,
+              afp_repos = if (afp_rev.isDefined) Some(afp_repos) else None,
+              afp_rev = afp_rev.getOrElse(""),
               options =
                 " -N " + Bash.string(task_name) + (if (i < 0) "" else "_" + (i + 1).toString) +
                 " -R " + Bash.string(Components.default_component_repository) +

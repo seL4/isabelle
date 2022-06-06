@@ -257,7 +257,7 @@ object Build_Log {
 
 
 
-  /** digested meta info: produced by Admin/build_history in log.xz file **/
+  /** digested meta info: produced by Admin/build_other in log.xz file **/
 
   object Meta_Info {
     val empty: Meta_Info = Meta_Info(Nil, Nil)
@@ -404,7 +404,7 @@ object Build_Log {
 
 
 
-  /** build info: toplevel output of isabelle build or Admin/build_history **/
+  /** build info: toplevel output of isabelle build or Admin/build_other **/
 
   val SESSION_NAME = "session_name"
 
