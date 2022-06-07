@@ -206,20 +206,32 @@ lemma reflp_on_subset: "reflp_on A R \<Longrightarrow> B \<subseteq> A \<Longrig
 lemma refl_on_Int: "refl_on A r \<Longrightarrow> refl_on B s \<Longrightarrow> refl_on (A \<inter> B) (r \<inter> s)"
   unfolding refl_on_def by blast
 
+lemma reflp_on_inf: "reflp_on A R \<Longrightarrow> reflp_on B S \<Longrightarrow> reflp_on (A \<inter> B) (R \<sqinter> S)"
+  by (auto intro: reflp_onI dest: reflp_onD)
+
 lemma reflp_inf: "reflp r \<Longrightarrow> reflp s \<Longrightarrow> reflp (r \<sqinter> s)"
-  by (auto intro: reflpI elim: reflpE)
+  by (rule reflp_on_inf[of UNIV _ UNIV, unfolded Int_absorb])
 
 lemma refl_on_Un: "refl_on A r \<Longrightarrow> refl_on B s \<Longrightarrow> refl_on (A \<union> B) (r \<union> s)"
   unfolding refl_on_def by blast
 
+lemma reflp_on_sup: "reflp_on A R \<Longrightarrow> reflp_on B S \<Longrightarrow> reflp_on (A \<union> B) (R \<squnion> S)"
+  by (auto intro: reflp_onI dest: reflp_onD)
+
 lemma reflp_sup: "reflp r \<Longrightarrow> reflp s \<Longrightarrow> reflp (r \<squnion> s)"
-  by (auto intro: reflpI elim: reflpE)
+  by (rule reflp_on_sup[of UNIV _ UNIV, unfolded Un_absorb])
 
 lemma refl_on_INTER: "\<forall>x\<in>S. refl_on (A x) (r x) \<Longrightarrow> refl_on (\<Inter>(A ` S)) (\<Inter>(r ` S))"
   unfolding refl_on_def by fast
 
+lemma reflp_on_Inf: "\<forall>x\<in>S. reflp_on (A x) (R x) \<Longrightarrow> reflp_on (\<Inter>(A ` S)) (\<Sqinter>(R ` S))"
+  by (auto intro: reflp_onI dest: reflp_onD)
+
 lemma refl_on_UNION: "\<forall>x\<in>S. refl_on (A x) (r x) \<Longrightarrow> refl_on (\<Union>(A ` S)) (\<Union>(r ` S))"
   unfolding refl_on_def by blast
+
+lemma reflp_on_Sup: "\<forall>x\<in>S. reflp_on (A x) (R x) \<Longrightarrow> reflp_on (\<Union>(A ` S)) (\<Squnion>(R ` S))"
+  by (auto intro: reflp_onI dest: reflp_onD)
 
 lemma refl_on_empty [simp]: "refl_on {} {}"
   by (simp add: refl_on_def)
@@ -234,8 +246,12 @@ lemma refl_on_def' [nitpick_unfold, code]:
 lemma reflp_equality [simp]: "reflp (=)"
   by (simp add: reflp_def)
 
-lemma reflp_mono: "reflp R \<Longrightarrow> (\<And>x y. R x y \<longrightarrow> Q x y) \<Longrightarrow> reflp Q"
-  by (auto intro: reflpI dest: reflpD)
+lemma reflp_on_mono:
+  "reflp_on A R \<Longrightarrow> (\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> R x y \<Longrightarrow> Q x y) \<Longrightarrow> reflp_on A Q"
+  by (auto intro: reflp_onI dest: reflp_onD)
+
+lemma reflp_mono: "reflp R \<Longrightarrow> (\<And>x y. R x y \<Longrightarrow> Q x y) \<Longrightarrow> reflp Q"
+  by (rule reflp_on_mono[of UNIV R Q]) simp_all
 
 
 subsubsection \<open>Irreflexivity\<close>
