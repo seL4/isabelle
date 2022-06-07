@@ -307,9 +307,8 @@ object Mercurial {
         Rsync.init(context, target)
 
         val list =
-          Rsync.exec(context, list = true,
-            args = List("--", Rsync.terminate(target))
-          ).check.out_lines.filterNot(_.endsWith(" ."))
+          Rsync.exec(context, list = true, args = List("--", Rsync.terminate(target)))
+            .check.out_lines.filterNot(_.endsWith(" ."))
         if (list.nonEmpty && !list.exists(_.endsWith(Hg_Sync._NAME))) {
           error("No .hg_sync meta data in " + quote(target))
         }
