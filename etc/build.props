@@ -83,6 +83,7 @@ sources = \
   src/Pure/General/pretty.scala \
   src/Pure/General/properties.scala \
   src/Pure/General/rdf.scala \
+  src/Pure/General/rsync.scala \
   src/Pure/General/scan.scala \
   src/Pure/General/sha1.scala \
   src/Pure/General/sql.scala \

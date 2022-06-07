@@ -522,6 +522,7 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
     isabelle_other: Path,
     isabelle_identifier: String = "remote_build_history",
     progress: Progress = new Progress,
+    protect_args: Boolean = false,
     rev: String = "",
     afp_repos: Option[Path] = None,
     afp_rev: String = "",
@@ -534,7 +535,8 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
     def sync_repos(target: Path, accurate: Boolean = false,
       rev: String = "", afp_rev: String = "", afp: Boolean = false
     ): Unit = {
-      Sync_Repos.sync_repos(ssh.rsync_path(target), port = ssh.port, progress = progress,
+      val context = Rsync.Context(progress, port = ssh.port, protect_args = protect_args)
+      Sync_Repos.sync_repos(context, ssh.rsync_path(target),
         thorough = accurate, preserve_jars = !accurate,
         rev = rev, afp_rev = afp_rev, afp_root = if (afp) afp_repos else None)
     }
