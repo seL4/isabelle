@@ -49,8 +49,11 @@ object Rsync {
     Isabelle_System.with_tmp_dir("sync") { tmp_dir =>
       val init_dir = Isabelle_System.make_directory(tmp_dir + Path.explode("init"))
       contents.foreach(_.write(init_dir))
-      exec(context, thorough = true,
-        args = List(File.bash_path(init_dir) + "/.", target)).check
+      exec(context.copy(archive = false),
+        thorough = true,
+        args =
+          List(if (contents.nonEmpty) "--archive" else "--dirs",
+            File.bash_path(init_dir) + "/.", target)).check
     }
 
   def terminate(target: String): String =
