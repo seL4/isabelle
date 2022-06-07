@@ -304,10 +304,12 @@ object Mercurial {
       require(ssh == SSH.Local, "local repository required")
 
       Isabelle_System.with_tmp_dir("sync") { tmp_dir =>
-        Rsync.init(context, target)
+        val context0 = context.copy(progress = new Progress)
+
+        Rsync.init(context0, target)
 
         val list =
-          Rsync.exec(context, list = true, args = List("--", Rsync.terminate(target)))
+          Rsync.exec(context0, list = true, args = List("--", Rsync.terminate(target)))
             .check.out_lines.filterNot(_.endsWith(" ."))
         if (list.nonEmpty && !list.exists(_.endsWith(Hg_Sync._NAME))) {
           error("No .hg_sync meta data in " + quote(target))
@@ -319,7 +321,7 @@ object Mercurial {
         val diff_content = if (is_changed) diff(rev = rev, options = "--git") else ""
         val stat_content = if (is_changed) diff(rev = rev, options = "--stat") else ""
 
-        Rsync.init(context, target,
+        Rsync.init(context0, target,
           contents =
             File.Content(Hg_Sync.PATH_ID, id_content) ::
             File.Content(Hg_Sync.PATH_LOG, log_content) ::
