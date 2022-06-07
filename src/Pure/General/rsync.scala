@@ -33,12 +33,6 @@ object Rsync {
     progress.bash(script, echo = true)
   }
 
-  def rsync_dir(target: String): String = {
-    if (target.endsWith(":.") || target.endsWith("/.")) target
-    else if (target.endsWith(":") || target.endsWith("/")) target + "."
-    else target + "/."
-  }
-
   def rsync_init(target: String,
     port: Int = SSH.default_port,
     contents: List[File.Content] = Nil
@@ -49,4 +43,13 @@ object Rsync {
       rsync(port = port, thorough = true,
         args = List(File.bash_path(init_dir) + "/.", target)).check
     }
+
+  def terminate(target: String): String =
+    if (target.endsWith(":") || target.endsWith("/")) target + "."
+    else if (target.endsWith(":.") || target.endsWith("/.")) target
+    else target + "/."
+
+  def append(target: String, rest: String): String =
+    if (target.endsWith(":") || target.endsWith("/")) target + rest
+    else target + "/" + rest
 }
