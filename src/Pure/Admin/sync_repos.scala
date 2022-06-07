@@ -45,6 +45,7 @@ object Sync_Repos {
       Scala_Project.here, { args =>
         var afp_root: Option[Path] = None
         var preserve_jars = false
+        var protect_args = false
         var thorough = false
         var afp_rev = ""
         var dry_run = false
@@ -58,6 +59,7 @@ Usage: isabelle sync_repos [OPTIONS] TARGET
   Options are:
     -A ROOT      include AFP with given root directory (":" for """ + AFP.BASE.implode + """)
     -J           preserve *.jar files
+    -S           robust (but less portable) treatment of spaces in directory names
     -T           thorough treatment of file content and directory times
     -a REV       explicit AFP revision (default: state of working directory)
     -n           no changes: dry-run
@@ -77,6 +79,7 @@ Usage: isabelle sync_repos [OPTIONS] TARGET
 """,
           "A:" -> (arg => afp_root = Some(if (arg == ":") AFP.BASE else Path.explode(arg))),
           "J" -> (_ => preserve_jars = true),
+          "S" -> (_ => protect_args = true),
           "T" -> (_ => thorough = true),
           "a:" -> (arg => afp_rev = arg),
           "n" -> (_ => dry_run = true),
@@ -92,7 +95,7 @@ Usage: isabelle sync_repos [OPTIONS] TARGET
           }
 
         val progress = new Console_Progress
-        val context = Rsync.Context(progress, port = port)
+        val context = Rsync.Context(progress, port = port, protect_args = protect_args)
         sync_repos(context, target, verbose = verbose, thorough = thorough,
           preserve_jars = preserve_jars, dry_run = dry_run, rev = rev, afp_root = afp_root,
           afp_rev = afp_rev)
