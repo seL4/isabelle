@@ -304,10 +304,10 @@ object Mercurial {
       require(ssh == SSH.Local, "local repository required")
 
       Isabelle_System.with_tmp_dir("sync") { tmp_dir =>
-        Rsync.rsync_init(context, target)
+        Rsync.init(context, target)
 
         val list =
-          Rsync.rsync(context, list = true,
+          Rsync.exec(context, list = true,
             args = List("--", Rsync.terminate(target))
           ).check.out_lines.filterNot(_.endsWith(" ."))
         if (list.nonEmpty && !list.exists(_.endsWith(Hg_Sync._NAME))) {
@@ -320,7 +320,7 @@ object Mercurial {
         val diff_content = if (is_changed) diff(rev = rev, options = "--git") else ""
         val stat_content = if (is_changed) diff(rev = rev, options = "--stat") else ""
 
-        Rsync.rsync_init(context, target,
+        Rsync.init(context, target,
           contents =
             File.Content(Hg_Sync.PATH_ID, id_content) ::
             File.Content(Hg_Sync.PATH_LOG, log_content) ::
@@ -346,7 +346,7 @@ object Mercurial {
         val protect =
           (Hg_Sync.PATH :: contents.map(_.path))
             .map(path => "protect /" + File.standard_path(path))
-        Rsync.rsync(context,
+        Rsync.exec(context,
           verbose = verbose,
           thorough = thorough,
           dry_run = dry_run,

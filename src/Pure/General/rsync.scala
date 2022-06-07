@@ -13,7 +13,7 @@ object Rsync {
       "rsync --protect-args --archive --rsh=" + Bash.string("ssh -p " + port)
   }
 
-  def rsync(
+  def exec(
     context: Context,
     verbose: Boolean = false,
     thorough: Boolean = false,
@@ -37,13 +37,13 @@ object Rsync {
     context.progress.bash(script, echo = true)
   }
 
-  def rsync_init(context: Context, target: String,
+  def init(context: Context, target: String,
     contents: List[File.Content] = Nil
   ): Unit =
     Isabelle_System.with_tmp_dir("sync") { tmp_dir =>
       val init_dir = Isabelle_System.make_directory(tmp_dir + Path.explode("init"))
       contents.foreach(_.write(init_dir))
-      rsync(context, thorough = true,
+      exec(context, thorough = true,
         args = List(File.bash_path(init_dir) + "/.", target)).check
     }
 
