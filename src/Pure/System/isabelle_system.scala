@@ -420,48 +420,6 @@ object Isabelle_System {
     else error("Expected to find GNU tar executable")
   }
 
-  def rsync(
-    progress: Progress = new Progress,
-    port: Int = SSH.default_port,
-    verbose: Boolean = false,
-    thorough: Boolean = false,
-    prune_empty_dirs: Boolean = false,
-    dry_run: Boolean = false,
-    clean: Boolean = false,
-    list: Boolean = false,
-    filter: List[String] = Nil,
-    args: List[String] = Nil
-  ): Process_Result = {
-    val script =
-      "rsync --protect-args --archive --rsh=" + Bash.string("ssh -p " + port) +
-        (if (verbose) " --verbose" else "") +
-        (if (thorough) " --ignore-times" else " --omit-dir-times") +
-        (if (prune_empty_dirs) " --prune-empty-dirs" else "") +
-        (if (dry_run) " --dry-run" else "") +
-        (if (clean) " --delete-excluded" else "") +
-        (if (list) " --list-only --no-human-readable" else "") +
-        filter.map(s => " --filter=" + Bash.string(s)).mkString +
-        (if (args.nonEmpty) " " + Bash.strings(args) else "")
-    progress.bash(script, echo = true)
-  }
-
-  def rsync_dir(target: String): String = {
-    if (target.endsWith(":.") || target.endsWith("/.")) target
-    else if (target.endsWith(":") || target.endsWith("/")) target + "."
-    else target + "/."
-  }
-
-  def rsync_init(target: String,
-    port: Int = SSH.default_port,
-    contents: List[File.Content] = Nil
-  ): Unit =
-    with_tmp_dir("sync") { tmp_dir =>
-      val init_dir = make_directory(tmp_dir + Path.explode("init"))
-      contents.foreach(_.write(init_dir))
-      rsync(port = port, thorough = true,
-        args = List(File.bash_path(init_dir) + "/.", target)).check
-    }
-
   def make_patch(base_dir: Path, src: Path, dst: Path, diff_options: String = ""): String = {
     with_tmp_file("patch") { patch =>
       Isabelle_System.bash(

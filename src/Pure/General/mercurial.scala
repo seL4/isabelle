@@ -306,11 +306,11 @@ object Mercurial {
       require(ssh == SSH.Local, "local repository required")
 
       Isabelle_System.with_tmp_dir("sync") { tmp_dir =>
-        Isabelle_System.rsync_init(target, port = port)
+        Rsync.rsync_init(target, port = port)
 
         val list =
-          Isabelle_System.rsync(port = port, list = true,
-            args = List("--", Isabelle_System.rsync_dir(target))
+          Rsync.rsync(port = port, list = true,
+            args = List("--", Rsync.rsync_dir(target))
           ).check.out_lines.filterNot(_.endsWith(" ."))
         if (list.nonEmpty && !list.exists(_.endsWith(Hg_Sync._NAME))) {
           error("No .hg_sync meta data in " + quote(target))
@@ -322,7 +322,7 @@ object Mercurial {
         val diff_content = if (is_changed) diff(rev = rev, options = "--git") else ""
         val stat_content = if (is_changed) diff(rev = rev, options = "--stat") else ""
 
-        Isabelle_System.rsync_init(target, port = port,
+        Rsync.rsync_init(target, port = port,
           contents =
             File.Content(Hg_Sync.PATH_ID, id_content) ::
             File.Content(Hg_Sync.PATH_LOG, log_content) ::
@@ -348,14 +348,14 @@ object Mercurial {
         val protect =
           (Hg_Sync.PATH :: contents.map(_.path))
             .map(path => "protect /" + File.standard_path(path))
-        Isabelle_System.rsync(
+        Rsync.rsync(
           progress = progress, port = port, verbose = verbose, thorough = thorough,
           dry_run = dry_run,
           clean = true,
           prune_empty_dirs = true,
           filter = protect ::: filter,
           args = List("--exclude-from=" + exclude_path.implode, "--",
-            Isabelle_System.rsync_dir(source), target)
+            Rsync.rsync_dir(source), target)
         ).check
       }
     }

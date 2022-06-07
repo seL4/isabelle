@@ -38,7 +38,7 @@ object Sync_Repos {
 
     for (hg <- afp_hg) {
       progress.echo_if(verbose, "\n* AFP repository:")
-      sync(hg, Isabelle_System.rsync_dir(target) + "/AFP", afp_rev)
+      sync(hg, Rsync.rsync_dir(target) + "/AFP", afp_rev)
     }
   }
 
