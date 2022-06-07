@@ -293,9 +293,7 @@ object Mercurial {
 
     def known_files(): List[String] = status(options = "--modified --added --clean --no-status")
 
-    def sync(target: String,
-      progress: Progress = new Progress,
-      port: Int = SSH.default_port,
+    def sync(context: Rsync.Context, target: String,
       verbose: Boolean = false,
       thorough: Boolean = false,
       dry_run: Boolean = false,
@@ -306,10 +304,10 @@ object Mercurial {
       require(ssh == SSH.Local, "local repository required")
 
       Isabelle_System.with_tmp_dir("sync") { tmp_dir =>
-        Rsync.rsync_init(target, port = port)
+        Rsync.rsync_init(context, target)
 
         val list =
-          Rsync.rsync(port = port, list = true,
+          Rsync.rsync(context, list = true,
             args = List("--", Rsync.terminate(target))
           ).check.out_lines.filterNot(_.endsWith(" ."))
         if (list.nonEmpty && !list.exists(_.endsWith(Hg_Sync._NAME))) {
@@ -322,7 +320,7 @@ object Mercurial {
         val diff_content = if (is_changed) diff(rev = rev, options = "--git") else ""
         val stat_content = if (is_changed) diff(rev = rev, options = "--stat") else ""
 
-        Rsync.rsync_init(target, port = port,
+        Rsync.rsync_init(context, target,
           contents =
             File.Content(Hg_Sync.PATH_ID, id_content) ::
             File.Content(Hg_Sync.PATH_LOG, log_content) ::
@@ -348,8 +346,9 @@ object Mercurial {
         val protect =
           (Hg_Sync.PATH :: contents.map(_.path))
             .map(path => "protect /" + File.standard_path(path))
-        Rsync.rsync(
-          progress = progress, port = port, verbose = verbose, thorough = thorough,
+        Rsync.rsync(context,
+          verbose = verbose,
+          thorough = thorough,
           dry_run = dry_run,
           clean = true,
           prune_empty_dirs = true,
@@ -606,7 +605,8 @@ Usage: isabelle hg_sync [OPTIONS] TARGET
             case Some(dir) => repository(dir)
             case None => the_repository(Path.current)
           }
-        hg.sync(target, progress = progress, port = port, verbose = verbose, thorough = thorough,
+        val context = Rsync.Context(progress, port = port)
+        hg.sync(context, target, verbose = verbose, thorough = thorough,
           dry_run = dry_run, filter = filter, rev = rev)
       }
     )

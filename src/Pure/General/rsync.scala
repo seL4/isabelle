@@ -8,9 +8,13 @@ package isabelle
 
 
 object Rsync {
+  sealed case class Context(progress: Progress, port: Int = SSH.default_port) {
+    def command: String =
+      "rsync --protect-args --archive --rsh=" + Bash.string("ssh -p " + port)
+  }
+
   def rsync(
-    progress: Progress = new Progress,
-    port: Int = SSH.default_port,
+    context: Context,
     verbose: Boolean = false,
     thorough: Boolean = false,
     prune_empty_dirs: Boolean = false,
@@ -21,7 +25,7 @@ object Rsync {
     args: List[String] = Nil
   ): Process_Result = {
     val script =
-      "rsync --protect-args --archive --rsh=" + Bash.string("ssh -p " + port) +
+      context.command +
         (if (verbose) " --verbose" else "") +
         (if (thorough) " --ignore-times" else " --omit-dir-times") +
         (if (prune_empty_dirs) " --prune-empty-dirs" else "") +
@@ -30,17 +34,16 @@ object Rsync {
         (if (list) " --list-only --no-human-readable" else "") +
         filter.map(s => " --filter=" + Bash.string(s)).mkString +
         (if (args.nonEmpty) " " + Bash.strings(args) else "")
-    progress.bash(script, echo = true)
+    context.progress.bash(script, echo = true)
   }
 
-  def rsync_init(target: String,
-    port: Int = SSH.default_port,
+  def rsync_init(context: Context, target: String,
     contents: List[File.Content] = Nil
   ): Unit =
     Isabelle_System.with_tmp_dir("sync") { tmp_dir =>
       val init_dir = Isabelle_System.make_directory(tmp_dir + Path.explode("init"))
       contents.foreach(_.write(init_dir))
-      rsync(port = port, thorough = true,
+      rsync(context, thorough = true,
         args = List(File.bash_path(init_dir) + "/.", target)).check
     }
 

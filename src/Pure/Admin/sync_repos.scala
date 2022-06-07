@@ -8,9 +8,7 @@ package isabelle
 
 
 object Sync_Repos {
-  def sync_repos(target: String,
-    progress: Progress = new Progress,
-    port: Int = SSH.default_port,
+  def sync_repos(context: Rsync.Context, target: String,
     verbose: Boolean = false,
     thorough: Boolean = false,
     preserve_jars: Boolean = false,
@@ -27,17 +25,17 @@ object Sync_Repos {
     def sync(hg: Mercurial.Repository, dest: String, r: String,
       contents: List[File.Content] = Nil, filter: List[String] = Nil
     ): Unit = {
-      hg.sync(dest, rev = r, progress = progress, port = port, verbose = verbose,
-        thorough = thorough, dry_run = dry_run, contents = contents, filter = filter ::: more_filter)
+      hg.sync(context, dest, rev = r, verbose = verbose, thorough = thorough, dry_run = dry_run,
+        contents = contents, filter = filter ::: more_filter)
     }
 
-    progress.echo_if(verbose, "\n* Isabelle repository:")
+    context.progress.echo_if(verbose, "\n* Isabelle repository:")
     sync(hg, target, rev,
       contents = List(File.Content(Path.explode("etc/ISABELLE_ID"), hg.id(rev = rev))),
       filter = List("protect /AFP"))
 
     for (hg <- afp_hg) {
-      progress.echo_if(verbose, "\n* AFP repository:")
+      context.progress.echo_if(verbose, "\n* AFP repository:")
       sync(hg, Rsync.append(target, "AFP"), afp_rev)
     }
   }
@@ -94,7 +92,8 @@ Usage: isabelle sync_repos [OPTIONS] TARGET
           }
 
         val progress = new Console_Progress
-        sync_repos(target, progress = progress, port = port, verbose = verbose, thorough = thorough,
+        val context = Rsync.Context(progress, port = port)
+        sync_repos(context, target, verbose = verbose, thorough = thorough,
           preserve_jars = preserve_jars, dry_run = dry_run, rev = rev, afp_root = afp_root,
           afp_rev = afp_rev)
       }
