@@ -8,9 +8,15 @@ package isabelle
 
 
 object Rsync {
-  sealed case class Context(progress: Progress, port: Int = SSH.default_port) {
+  sealed case class Context(progress: Progress,
+    port: Int = SSH.default_port,
+    archive: Boolean = true,
+    protect_args: Boolean = true
+  ) {
     def command: String =
-      "rsync --protect-args --archive --rsh=" + Bash.string("ssh -p " + port)
+      "rsync --rsh=" + Bash.string("ssh -p " + port) +
+        (if (archive) " --archive" else "") +
+        (if (protect_args) " --protect-args" else "")
   }
 
   def exec(
