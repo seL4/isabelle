@@ -535,7 +535,7 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
     def sync_repos(target: Path, accurate: Boolean = false,
       rev: String = "", afp_rev: String = "", afp: Boolean = false
     ): Unit = {
-      val context = Rsync.Context(progress, port = ssh.port, protect_args = protect_args)
+      val context = Rsync.Context(progress, port = ssh.nominal_port, protect_args = protect_args)
       Sync_Repos.sync_repos(context, ssh.rsync_path(target),
         thorough = accurate, preserve_jars = !accurate,
         rev = rev, afp_rev = afp_rev, afp_root = if (afp) afp_repos else None)

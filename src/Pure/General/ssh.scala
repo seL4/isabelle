@@ -107,6 +107,7 @@ object SSH {
       host_key_permissive: Boolean = false,
       nominal_host: String = "",
       nominal_user: String = "",
+      nominal_port: Int = 0,
       on_close: () => Unit = () => ()
     ): Session = {
       val session = jsch.getSession(proper_string(user).orNull, host, make_port(port))
@@ -126,7 +127,8 @@ object SSH {
       session.connect(connect_timeout(options))
       new Session(options, session, on_close,
         proper_string(nominal_host) getOrElse host,
-        proper_string(nominal_user) getOrElse user)
+        proper_string(nominal_user) getOrElse user,
+        if (nominal_port > 0) nominal_port else port)
     }
 
     def open_session(
@@ -151,7 +153,7 @@ object SSH {
         try {
           connect_session(host = fw.local_host, port = fw.local_port,
             host_key_permissive = permissive,
-            nominal_host = host, nominal_user = user, user = user,
+            nominal_host = host, nominal_port = port, nominal_user = user, user = user,
             on_close = { () => fw.close(); proxy.close() })
         }
         catch { case exn: Throwable => fw.close(); proxy.close(); throw exn }
@@ -317,13 +319,13 @@ object SSH {
     val session: JSch_Session,
     on_close: () => Unit,
     val nominal_host: String,
-    val nominal_user: String
+    val nominal_user: String,
+    val nominal_port: Int
   ) extends System {
     def update_options(new_options: Options): Session =
-      new Session(new_options, session, on_close, nominal_host, nominal_user)
+      new Session(new_options, session, on_close, nominal_host, nominal_user, nominal_port)
 
     def host: String = if (session.getHost == null) "" else session.getHost
-    def port: Int = session.getPort
 
     override def hg_url: String =
       "ssh://" + user_prefix(nominal_user) + nominal_host + "/"
@@ -332,7 +334,7 @@ object SSH {
       user_prefix(nominal_user) + nominal_host + ":"
 
     override def toString: String =
-      user_prefix(session.getUserName) + host + port_suffix(port) +
+      user_prefix(session.getUserName) + host + port_suffix(session.getPort) +
       (if (session.isConnected) "" else " (disconnected)")
 
 
