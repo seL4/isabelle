@@ -2714,6 +2714,9 @@ lemma abs_less_iff: "\<bar>a\<bar> < b \<longleftrightarrow> a < b \<and> - a < 
 lemma abs_mult_pos: "0 \<le> x \<Longrightarrow> \<bar>y\<bar> * x = \<bar>y * x\<bar>"
   by (simp add: abs_mult)
 
+lemma abs_mult_pos': "0 \<le> x \<Longrightarrow> x * \<bar>y\<bar> = \<bar>x * y\<bar>"
+  by (simp add: abs_mult)
+
 lemma abs_diff_less_iff: "\<bar>x - a\<bar> < r \<longleftrightarrow> a - r < x \<and> x < a + r"
   by (auto simp add: diff_less_eq ac_simps abs_less_iff)
 

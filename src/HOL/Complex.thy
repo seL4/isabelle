@@ -279,12 +279,7 @@ lemma divide_numeral_i [simp]: "z / (numeral n * \<i>) = - (\<i> * z) / numeral 
 lemma imaginary_eq_real_iff [simp]:
   assumes "y \<in> Reals" "x \<in> Reals"
   shows "\<i> * y = x \<longleftrightarrow> x=0 \<and> y=0"
-    using assms
-    unfolding Reals_def
-    apply clarify
-      apply (rule iffI)
-    apply (metis Im_complex_of_real Im_i_times Re_complex_of_real mult_eq_0_iff of_real_0)
-    by simp
+  by (metis Im_complex_of_real Im_i_times assms mult_zero_right of_real_0 of_real_Re)
 
 lemma real_eq_imaginary_iff [simp]:
   assumes "y \<in> Reals" "x \<in> Reals"
@@ -355,11 +350,7 @@ lemma abs_Im_le_cmod: "\<bar>Im x\<bar> \<le> cmod x"
   by (simp add: norm_complex_def)
 
 lemma cmod_le: "cmod z \<le> \<bar>Re z\<bar> + \<bar>Im z\<bar>"
-  apply (subst complex_eq)
-  apply (rule order_trans)
-   apply (rule norm_triangle_ineq)
-  apply (simp add: norm_mult)
-  done
+  using norm_complex_def sqrt_sum_squares_le_sum_abs by presburger
 
 lemma cmod_eq_Re: "Im z = 0 \<Longrightarrow> cmod z = \<bar>Re z\<bar>"
   by (simp add: norm_complex_def)
@@ -412,6 +403,7 @@ lemma Im_sgn [simp]: "Im(sgn z) = Im(z)/cmod z"
 
 subsection \<open>Absolute value\<close>
 
+
 instantiation complex :: field_abs_sgn
 begin
 
@@ -419,11 +411,7 @@ definition abs_complex :: "complex \<Rightarrow> complex"
   where "abs_complex = of_real \<circ> norm"
 
 instance
-  apply standard
-         apply (auto simp add: abs_complex_def complex_sgn_def norm_mult)
-  apply (auto simp add: scaleR_conv_of_real field_simps)
-  done
-
+  proof qed (auto simp add: abs_complex_def complex_sgn_def norm_divide norm_mult scaleR_conv_of_real field_simps)
 end
 
 
@@ -449,6 +437,8 @@ lemmas has_derivative_Re [derivative_intros] = bounded_linear.has_derivative[OF 
 lemmas has_derivative_Im [derivative_intros] = bounded_linear.has_derivative[OF bounded_linear_Im]
 lemmas sums_Re = bounded_linear.sums [OF bounded_linear_Re]
 lemmas sums_Im = bounded_linear.sums [OF bounded_linear_Im]
+lemmas Re_suminf = bounded_linear.suminf[OF bounded_linear_Re]
+lemmas Im_suminf = bounded_linear.suminf[OF bounded_linear_Im]
 
 lemma tendsto_Complex [tendsto_intros]:
   "(f \<longlongrightarrow> a) F \<Longrightarrow> (g \<longlongrightarrow> b) F \<Longrightarrow> ((\<lambda>x. Complex (f x) (g x)) \<longlongrightarrow> Complex a b) F"
@@ -781,13 +771,7 @@ proof -
   have g: "\<And>n. cmod (g n) = Re (g n)"
     using assms by (metis abs_of_nonneg in_Reals_norm)
   show ?thesis
-    apply (rule summable_comparison_test' [where g = "\<lambda>n. norm (g n)" and N=N])
-    using sg
-     apply (auto simp: summable_def)
-     apply (rule_tac x = "Re s" in exI)
-     apply (auto simp: g sums_Re)
-    apply (metis fg g)
-    done
+    by (metis fg g sg summable_comparison_test summable_complex_iff)
 qed
 
 
@@ -939,11 +923,7 @@ lemma norm_exp_eq_Re [simp]: "norm (exp z) = exp (Re z)"
   by (simp add: cis.code cmod_complex_polar exp_eq_polar Complex_eq)
 
 lemma complex_exp_exists: "\<exists>a r. z = complex_of_real r * exp a"
-  apply (insert rcis_Ex [of z])
-  apply (auto simp add: exp_eq_polar rcis_def mult.assoc [symmetric])
-  apply (rule_tac x = "\<i> * complex_of_real a" in exI)
-  apply auto
-  done
+  using cis_conv_exp rcis_Ex rcis_def by force
 
 lemma exp_pi_i [simp]: "exp (of_real pi * \<i>) = -1"
   by (metis cis_conv_exp cis_pi mult.commute)

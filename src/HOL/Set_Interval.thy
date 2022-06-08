@@ -111,12 +111,10 @@ lemma Compl_greaterThan [simp]:
   by (auto simp add: greaterThan_def atMost_def)
 
 lemma Compl_atMost [simp]: "!!k:: 'a::linorder. -atMost k = greaterThan k"
-  apply (subst Compl_greaterThan [symmetric])
-  apply (rule double_complement)
-  done
+  by (metis Compl_greaterThan double_complement)
 
 lemma (in ord) atLeast_iff [iff]: "(i \<in> atLeast k) = (k<=i)"
-by (simp add: atLeast_def)
+  by (simp add: atLeast_def)
 
 lemma Compl_atLeast [simp]: "!!k:: 'a::linorder. -atLeast k = lessThan k"
   by (auto simp add: lessThan_def atLeast_def)
@@ -142,15 +140,15 @@ lemma atMost_UNIV_triv [simp]: "{..UNIV} = UNIV"
   by auto
 
 lemma atLeast_subset_iff [iff]:
-     "(atLeast x \<subseteq> atLeast y) = (y \<le> (x::'a::preorder))"
-by (blast intro: order_trans)
+  "(atLeast x \<subseteq> atLeast y) = (y \<le> (x::'a::preorder))"
+  by (blast intro: order_trans)
 
 lemma atLeast_eq_iff [iff]:
-     "(atLeast x = atLeast y) = (x = (y::'a::order))"
-by (blast intro: order_antisym order_trans)
+  "(atLeast x = atLeast y) = (x = (y::'a::order))"
+  by (blast intro: order_antisym order_trans)
 
 lemma greaterThan_subset_iff [iff]:
-     "(greaterThan x \<subseteq> greaterThan y) = (y \<le> (x::'a::linorder))"
+  "(greaterThan x \<subseteq> greaterThan y) = (y \<le> (x::'a::linorder))"
   unfolding greaterThan_def by (auto simp: linorder_not_less [symmetric])
 
 lemma greaterThan_eq_iff [iff]:
@@ -304,6 +302,10 @@ lemma atLeastAtMost_singleton': "a = b \<Longrightarrow> {a .. b} = {a}" by simp
 lemma Icc_eq_Icc[simp]:
   "{l..h} = {l'..h'} = (l=l' \<and> h=h' \<or> \<not> l\<le>h \<and> \<not> l'\<le>h')"
   by (simp add: order_class.order.eq_iff) (auto intro: order_trans)
+
+lemma (in linorder) Ico_eq_Ico:
+  "{l..<h} = {l'..<h'} = (l=l' \<and> h=h' \<or> \<not> l<h \<and> \<not> l'<h')"
+  by (metis atLeastLessThan_empty_iff2 nle_le not_less ord.atLeastLessThan_iff)
 
 lemma atLeastAtMost_singleton_iff[simp]:
   "{a .. b} = {c} \<longleftrightarrow> a = b \<and> b = c"

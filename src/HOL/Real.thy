@@ -1404,6 +1404,20 @@ lemma numeral_le_real_of_nat_iff [simp]: "numeral n \<le> real m \<longleftright
 lemma of_int_floor_cancel [simp]: "of_int \<lfloor>x\<rfloor> = x \<longleftrightarrow> (\<exists>n::int. x = of_int n)"
   by (metis floor_of_int)
 
+lemma of_int_floor [simp]: "a \<in> \<int> \<Longrightarrow> of_int (floor a) = a"
+  by (metis Ints_cases of_int_floor_cancel) 
+
+lemma floor_frac [simp]: "\<lfloor>frac r\<rfloor> = 0"
+  by (simp add: frac_def)
+
+lemma frac_1 [simp]: "frac 1 = 0"
+  by (simp add: frac_def)
+
+lemma frac_in_Rats_iff [simp]:
+  fixes r::"'a::{floor_ceiling,field_char_0}"
+  shows "frac r \<in> \<rat> \<longleftrightarrow> r \<in> \<rat>"
+  by (metis Rats_add Rats_diff Rats_of_int diff_add_cancel frac_def)
+
 lemma floor_eq: "real_of_int n < x \<Longrightarrow> x < real_of_int n + 1 \<Longrightarrow> \<lfloor>x\<rfloor> = n"
   by linarith
 
@@ -1479,6 +1493,9 @@ by (metis divide_minus_left floor_divide_of_int_eq of_int_neg_numeral of_int_num
 
 lemma of_int_ceiling_cancel [simp]: "of_int \<lceil>x\<rceil> = x \<longleftrightarrow> (\<exists>n::int. x = of_int n)"
   using ceiling_of_int by metis
+
+lemma of_int_ceiling [simp]: "a \<in> \<int> \<Longrightarrow> of_int (ceiling a) = a"
+  by (metis Ints_cases of_int_ceiling_cancel) 
 
 lemma ceiling_eq: "of_int n < x \<Longrightarrow> x \<le> of_int n + 1 \<Longrightarrow> \<lceil>x\<rceil> = n + 1"
   by (simp add: ceiling_unique)
