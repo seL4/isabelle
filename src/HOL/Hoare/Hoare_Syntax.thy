@@ -12,8 +12,8 @@ begin
 syntax
   "_assign" :: "idt \<Rightarrow> 'b \<Rightarrow> 'com"  ("(2_ :=/ _)" [70, 65] 61)
   "_Seq" :: "'com \<Rightarrow> 'com \<Rightarrow> 'com"  ("(_;/ _)" [61,60] 60)
-  "_Cond" :: "'bexp \<Rightarrow> 'com \<Rightarrow> 'com \<Rightarrow> 'com"  ("(1IF _/ THEN _ / ELSE _/ FI)" [0,0,0] 61)
-  "_While" :: "'bexp \<Rightarrow> 'assn \<Rightarrow> 'var \<Rightarrow> 'com \<Rightarrow> 'com"  ("(1WHILE _/ INV {(_)} / VAR {(_)} //DO _ /OD)" [0,0,0,0] 61)
+  "_Cond" :: "'bexp \<Rightarrow> 'com \<Rightarrow> 'com \<Rightarrow> 'com"  ("(IF _/ THEN _ / ELSE _/ FI)" [0,0,0] 61)
+  "_While" :: "'bexp \<Rightarrow> 'assn \<Rightarrow> 'var \<Rightarrow> 'com \<Rightarrow> 'com"  ("(WHILE _/ INV {(_)} / VAR {(_)} //DO _ /OD)" [0,0,0,0] 61)
 
 text \<open>The \<open>VAR {_}\<close> syntax supports two variants:
 \<^item> \<open>VAR {x = t}\<close> where \<open>t::nat\<close> is the decreasing expression,
@@ -32,8 +32,8 @@ syntax
  "_hoare_vars" :: "[idts, 'assn,'com, 'assn] \<Rightarrow> bool"  ("VARS _// {_} // _ // {_}" [0,0,55,0] 50)
  "_hoare_vars_tc" :: "[idts, 'assn, 'com, 'assn] \<Rightarrow> bool"  ("VARS _// [_] // _ // [_]" [0,0,55,0] 50)
 syntax (output)
- "_hoare" :: "['assn, 'com, 'assn] \<Rightarrow> bool"  ("({_} // _ // {_})" [0,55,0] 50)
- "_hoare_tc" :: "['assn, 'com, 'assn] \<Rightarrow> bool"  ("([_] // _ // [_])" [0,55,0] 50)
+ "_hoare" :: "['assn, 'com, 'assn] \<Rightarrow> bool"  ("({_}//_//{_})" [0,55,0] 50)
+ "_hoare_tc" :: "['assn, 'com, 'assn] \<Rightarrow> bool"  ("([_]//_//[_])" [0,55,0] 50)
 
 text \<open>Completeness requires(?) the ability to refer to an outer variant in an inner invariant.
 Thus we need to abstract over a variable equated with the variant, the \<open>x\<close> in \<open>VAR {x = t}\<close>.
