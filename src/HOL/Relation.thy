@@ -236,6 +236,9 @@ lemma reflp_on_Sup: "\<forall>x\<in>S. reflp_on (A x) (R x) \<Longrightarrow> re
 lemma refl_on_empty [simp]: "refl_on {} {}"
   by (simp add: refl_on_def)
 
+lemma reflp_on_empty [simp]: "reflp_on {} R"
+  by (auto intro: reflp_onI)
+
 lemma refl_on_singleton [simp]: "refl_on {x} {(x, x)}"
 by (blast intro: refl_onI)
 
@@ -525,6 +528,9 @@ definition totalp_on where
 abbreviation totalp where
   "totalp \<equiv> totalp_on UNIV"
 
+lemma totalp_on_refl_on_eq[pred_set_conv]: "totalp_on A (\<lambda>x y. (x, y) \<in> r) \<longleftrightarrow> total_on A r"
+  by (simp add: totalp_on_def total_on_def)
+
 lemma totalp_onI:
   "(\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> x \<noteq> y \<Longrightarrow> R x y \<or> R y x) \<Longrightarrow> totalp_on A R"
   by (simp add: totalp_on_def)
@@ -547,6 +553,9 @@ lemma totalp_on_subset: "totalp_on A R \<Longrightarrow> B \<subseteq> A \<Longr
 
 lemma total_on_empty [simp]: "total_on {} r"
   by (simp add: total_on_def)
+
+lemma totalp_on_empty [simp]: "totalp_on {} R"
+  by (auto intro: totalp_onI)
 
 lemma total_on_singleton [simp]: "total_on {x} {(x, x)}"
   unfolding total_on_def by blast
