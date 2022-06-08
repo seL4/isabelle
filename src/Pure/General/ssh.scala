@@ -107,7 +107,7 @@ object SSH {
       host_key_permissive: Boolean = false,
       nominal_host: String = "",
       nominal_user: String = "",
-      nominal_port: Int = 0,
+      nominal_port: Option[Int] = None,
       on_close: () => Unit = () => ()
     ): Session = {
       val session = jsch.getSession(proper_string(user).orNull, host, make_port(port))
@@ -128,7 +128,7 @@ object SSH {
       new Session(options, session, on_close,
         proper_string(nominal_host) getOrElse host,
         proper_string(nominal_user) getOrElse user,
-        if (nominal_port > 0) nominal_port else port)
+        nominal_port.getOrElse(port))
     }
 
     def open_session(
@@ -153,7 +153,9 @@ object SSH {
         try {
           connect_session(host = fw.local_host, port = fw.local_port,
             host_key_permissive = permissive,
-            nominal_host = host, nominal_port = port, nominal_user = user, user = user,
+            nominal_host = host,
+	    nominal_port = Some(make_port(port)),
+	    nominal_user = user, user = user,
             on_close = { () => fw.close(); proxy.close() })
         }
         catch { case exn: Throwable => fw.close(); proxy.close(); throw exn }
