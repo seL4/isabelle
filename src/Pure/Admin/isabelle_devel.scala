@@ -32,11 +32,13 @@ object Isabelle_Devel {
 
   /* release snapshot */
 
-  def release_snapshot(options: Options, rev: String, afp_rev: String): Unit = {
+  def release_snapshot(options: Options, rev: String, afp_rev: String,
+    progress: Progress = new Progress
+  ): Unit = {
     Isabelle_System.with_tmp_dir("isadist") { target_dir =>
       Isabelle_System.update_directory(root + Path.explode(RELEASE_SNAPSHOT),
         { website_dir =>
-          val context = Build_Release.Release_Context(target_dir)
+          val context = Build_Release.Release_Context(target_dir, progress = progress)
           Build_Release.build_release_archive(context, rev)
           Build_Release.build_release(options, context, afp_rev = afp_rev,
             build_sessions = List(Isabelle_System.getenv("ISABELLE_LOGIC")),

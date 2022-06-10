@@ -18,6 +18,7 @@ object Isabelle_Cronjob {
   val backup = "lxbroy10:cronjob"
   val main_dir: Path = Path.explode("~/cronjob")
   val main_state_file: Path = main_dir + Path.explode("run/main.state")
+  val build_release_log: Path = main_dir + Path.explode("run/build_release.log")
   val current_log: Path = main_dir + Path.explode("run/main.log")  // owned by log service
   val cumulative_log: Path = main_dir + Path.explode("log/main.log")  // owned by log service
 
@@ -81,8 +82,11 @@ object Isabelle_Cronjob {
   /* build release */
 
   val build_release: Logger_Task =
-    Logger_Task("build_release",
-      { logger => Isabelle_Devel.release_snapshot(logger.options, get_rev(), get_afp_rev()) })
+    Logger_Task("build_release", { logger =>
+      build_release_log.file.delete
+      Isabelle_Devel.release_snapshot(logger.options, get_rev(), get_afp_rev(),
+        progress = new File_Progress(build_release_log))
+    })
 
 
   /* remote build_history */
