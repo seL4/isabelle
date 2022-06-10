@@ -14,8 +14,7 @@ import scala.collection.mutable
 import scala.util.matching.Regex
 
 import com.jcraft.jsch.{JSch, Logger => JSch_Logger, Session => JSch_Session, SftpException,
-  OpenSSHConfig, UserInfo, Channel => JSch_Channel, ChannelExec, ChannelSftp, SftpATTRS,
-  JSchException}
+  OpenSSHConfig, UserInfo, ChannelExec, ChannelSftp, SftpATTRS, JSchException}
 
 
 object SSH {
@@ -249,7 +248,7 @@ object SSH {
   class Exec private[SSH](session: Session, channel: ChannelExec) extends AutoCloseable {
     override def toString: String = "exec " + session.toString
 
-    def close(): Unit = channel.disconnect
+    def close(): Unit = channel.disconnect()
 
     val exit_status: Future[Int] =
       Future.thread("ssh_wait") {
@@ -278,7 +277,7 @@ object SSH {
           val line = Library.trim_line(line_buffer.toString(UTF8.charset_name))
           progress(line)
           result += line
-          line_buffer.reset
+          line_buffer.reset()
         }
 
         var c = 0
@@ -358,7 +357,7 @@ object SSH {
     val sftp: ChannelSftp = session.openChannel("sftp").asInstanceOf[ChannelSftp]
     sftp.connect(connect_timeout(options))
 
-    override def close(): Unit = { sftp.disconnect; session.disconnect; on_close() }
+    override def close(): Unit = { sftp.disconnect(); session.disconnect(); on_close() }
 
     val settings: JMap[String, String] = {
       val home = sftp.getHome
