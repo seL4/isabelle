@@ -36,6 +36,7 @@ object Sync {
   def sync(options: Options, context: Rsync.Context, target: String,
     verbose: Boolean = false,
     thorough: Boolean = false,
+    purge_heaps: Boolean = false,
     session_images: List[String] = Nil,
     preserve_jars: Boolean = false,
     dry_run: Boolean = false,
@@ -56,9 +57,10 @@ object Sync {
     }
 
     context.progress.echo_if(verbose, "\n* Isabelle repository:")
+    val filter_heaps = if (purge_heaps) Nil else List("protect /heaps", "protect /heaps/**")
     sync(hg, target, rev,
       contents = List(File.Content(Path.explode("etc/ISABELLE_ID"), hg.id(rev = rev))),
-      filter = List("protect /heaps", "protect /heaps/**", "protect /AFP"))
+      filter = filter_heaps ::: List("protect /AFP"))
 
     for (hg <- afp_hg) {
       context.progress.echo_if(verbose, "\n* AFP repository:")
@@ -79,6 +81,7 @@ object Sync {
     Isabelle_Tool("sync", "synchronize Isabelle + AFP repositories",
       Scala_Project.here, { args =>
         var afp_root: Option[Path] = None
+        var purge_heaps = false
         var session_images = List.empty[String]
         var preserve_jars = false
         var protect_args = false
@@ -94,6 +97,7 @@ Usage: isabelle sync [OPTIONS] TARGET
 
   Options are:
     -A ROOT      include AFP with given root directory (":" for """ + AFP.BASE.implode + """)
+    -H           purge heaps directory on target
     -I NAME      include session heap image and build database
                  (based on accidental local state)
     -J           preserve *.jar files
@@ -120,6 +124,7 @@ Usage: isabelle sync [OPTIONS] TARGET
     isabelle sync -A: -I HOL-Analysis testmachine:test/isabelle_afp
 """,
           "A:" -> (arg => afp_root = Some(if (arg == ":") AFP.BASE else Path.explode(arg))),
+          "H" -> (_ => purge_heaps = true),
           "I:" -> (arg => session_images = session_images ::: List(arg)),
           "J" -> (_ => preserve_jars = true),
           "S" -> (_ => protect_args = true),
@@ -141,9 +146,8 @@ Usage: isabelle sync [OPTIONS] TARGET
         val progress = new Console_Progress
         val context = Rsync.Context(progress, port = port, protect_args = protect_args)
         sync(options, context, target, verbose = verbose, thorough = thorough,
-          session_images = session_images, preserve_jars = preserve_jars,
-          dry_run = dry_run, rev = rev, afp_root = afp_root,
-          afp_rev = afp_rev)
+          purge_heaps = purge_heaps, session_images = session_images, preserve_jars = preserve_jars,
+          dry_run = dry_run, rev = rev, afp_root = afp_root, afp_rev = afp_rev)
       }
     )
 }
