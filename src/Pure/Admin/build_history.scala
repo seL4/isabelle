@@ -89,7 +89,7 @@ object Build_History {
 
 
 
-  /** local build --- from sync_repos directory **/
+  /** local build **/
 
   private val default_user_home = Path.USER_HOME
   private val default_multicore = (1, 1)
@@ -142,7 +142,7 @@ object Build_History {
     }
 
 
-    /* Isabelle + AFP directory (produced via sync_repos) */
+    /* Isabelle + AFP directory */
 
     def directory(dir: Path): Mercurial.Hg_Sync.Directory = {
       val directory = Mercurial.Hg_Sync.directory(dir)
@@ -532,11 +532,11 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
   ): List[(String, Bytes)] = {
     /* synchronize Isabelle + AFP repositories */
 
-    def sync_repos(target: Path, accurate: Boolean = false,
+    def sync(target: Path, accurate: Boolean = false,
       rev: String = "", afp_rev: String = "", afp: Boolean = false
     ): Unit = {
       val context = Rsync.Context(progress, port = ssh.nominal_port, protect_args = protect_args)
-      Sync_Repos.sync_repos(context, ssh.rsync_path(target),
+      Sync.sync(context, ssh.rsync_path(target),
         thorough = accurate, preserve_jars = !accurate,
         rev = rev, afp_rev = afp_rev, afp_root = if (afp) afp_repos else None)
     }
@@ -552,12 +552,12 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
         progress_stderr = progress.echo_if(echo, _),
         strict = strict).check
 
-    sync_repos(isabelle_self)
+    sync(isabelle_self)
     execute("bin/isabelle", "components -I")
     execute("bin/isabelle", "components -a", echo = true)
     execute("bin/isabelle", "jedit -bf")
 
-    sync_repos(isabelle_other, accurate = true,
+    sync(isabelle_other, accurate = true,
       rev = proper_string(rev) getOrElse "tip",
       afp_rev = proper_string(afp_rev) getOrElse "tip",
       afp = true)

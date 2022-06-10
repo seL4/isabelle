@@ -1,4 +1,4 @@
-/*  Title:      Pure/Admin/sync_repos.scala
+/*  Title:      Pure/Admin/sync.scala
     Author:     Makarius
 
 Synchronize Isabelle + AFP repositories.
@@ -7,8 +7,8 @@ Synchronize Isabelle + AFP repositories.
 package isabelle
 
 
-object Sync_Repos {
-  def sync_repos(context: Rsync.Context, target: String,
+object Sync {
+  def sync(context: Rsync.Context, target: String,
     verbose: Boolean = false,
     thorough: Boolean = false,
     preserve_jars: Boolean = false,
@@ -41,7 +41,7 @@ object Sync_Repos {
   }
 
   val isabelle_tool =
-    Isabelle_Tool("sync_repos", "synchronize Isabelle + AFP repositories",
+    Isabelle_Tool("sync", "synchronize Isabelle + AFP repositories",
       Scala_Project.here, { args =>
         var afp_root: Option[Path] = None
         var preserve_jars = false
@@ -54,7 +54,7 @@ object Sync_Repos {
         var verbose = false
 
         val getopts = Getopts("""
-Usage: isabelle sync_repos [OPTIONS] TARGET
+Usage: isabelle sync [OPTIONS] TARGET
 
   Options are:
     -A ROOT      include AFP with given root directory (":" for """ + AFP.BASE.implode + """)
@@ -71,11 +71,11 @@ Usage: isabelle sync_repos [OPTIONS] TARGET
 
   Example: quick testing
 
-    isabelle sync_repos -A: -J testmachine:test/isabelle_afp
+    isabelle sync -A: -J testmachine:test/isabelle_afp
 
   Example: accurate testing
 
-    isabelle sync_repos -A: -T testmachine:test/isabelle_afp
+    isabelle sync -A: -T testmachine:test/isabelle_afp
 """,
           "A:" -> (arg => afp_root = Some(if (arg == ":") AFP.BASE else Path.explode(arg))),
           "J" -> (_ => preserve_jars = true),
@@ -96,7 +96,7 @@ Usage: isabelle sync_repos [OPTIONS] TARGET
 
         val progress = new Console_Progress
         val context = Rsync.Context(progress, port = port, protect_args = protect_args)
-        sync_repos(context, target, verbose = verbose, thorough = thorough,
+        sync(context, target, verbose = verbose, thorough = thorough,
           preserve_jars = preserve_jars, dry_run = dry_run, rev = rev, afp_root = afp_root,
           afp_rev = afp_rev)
       }
