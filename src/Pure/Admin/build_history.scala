@@ -536,7 +536,7 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
       rev: String = "", afp_rev: String = "", afp: Boolean = false
     ): Unit = {
       val context = Rsync.Context(progress, port = ssh.nominal_port, protect_args = protect_args)
-      Sync.sync(context, ssh.rsync_path(target),
+      Sync.sync(ssh.options, context, ssh.rsync_path(target),
         thorough = accurate, preserve_jars = !accurate,
         rev = rev, afp_rev = afp_rev, afp_root = if (afp) afp_repos else None)
     }

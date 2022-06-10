@@ -1302,6 +1302,9 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
     /* database */
 
+    def find_database(name: String): Option[Path] =
+      input_dirs.map(_ + database(name)).find(_.is_file)
+
     def database_server: Boolean = options.bool("build_database_server")
 
     def open_database_server(): SQL.Database =
