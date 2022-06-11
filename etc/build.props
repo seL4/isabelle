@@ -38,7 +38,6 @@ sources = \
   src/Pure/Admin/isabelle_devel.scala \
   src/Pure/Admin/jenkins.scala \
   src/Pure/Admin/other_isabelle.scala \
-  src/Pure/Admin/sync.scala \
   src/Pure/Concurrent/consumer_thread.scala \
   src/Pure/Concurrent/counter.scala \
   src/Pure/Concurrent/delay.scala \
@@ -189,6 +188,7 @@ sources = \
   src/Pure/Tools/server_commands.scala \
   src/Pure/Tools/simplifier_trace.scala \
   src/Pure/Tools/spell_checker.scala \
+  src/Pure/Tools/sync.scala \
   src/Pure/Tools/task_statistics.scala \
   src/Pure/Tools/update.scala \
   src/Pure/Tools/update_cartouches.scala \

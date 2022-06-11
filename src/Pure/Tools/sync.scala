@@ -1,4 +1,4 @@
-/*  Title:      Pure/Admin/sync.scala
+/*  Title:      Pure/Tools/sync.scala
     Author:     Makarius
 
 Synchronize Isabelle + AFP repositories.
@@ -101,7 +101,8 @@ Usage: isabelle sync [OPTIONS] TARGET
     -I NAME      include session heap image and build database
                  (based on accidental local state)
     -J           preserve *.jar files
-    -S           robust (but less portable) treatment of spaces in directory names
+    -S           robust (but less portable) treatment of spaces in
+                 file and directory names on the target
     -T           thorough treatment of file content and directory times
     -a REV       explicit AFP revision (default: state of working directory)
     -n           no changes: dry-run
@@ -109,19 +110,7 @@ Usage: isabelle sync [OPTIONS] TARGET
     -p PORT      explicit SSH port (default: """ + SSH.default_port + """)
     -v           verbose
 
-  Synchronize Isabelle + AFP repositories; see also "isabelle hg_sync".
-
-  Example: quick testing
-
-    isabelle sync -A: -J testmachine:test/isabelle_afp
-
-  Example: accurate testing
-
-    isabelle sync -A: -T testmachine:test/isabelle_afp
-
-  Example: incremental testing based on session images
-
-    isabelle sync -A: -I HOL-Analysis testmachine:test/isabelle_afp
+  Synchronize Isabelle + AFP repositories, based on "isabelle hg_sync".
 """,
           "A:" -> (arg => afp_root = Some(if (arg == ":") AFP.BASE else Path.explode(arg))),
           "H" -> (_ => purge_heaps = true),

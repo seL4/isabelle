@@ -148,6 +148,13 @@ works properly.
 directory of a local Mercurial repository with a target directory, using
 rsync notation for destinations.
 
+* Command-line tool "isabelle sync" synchronizes Isabelle + AFP
+repositories with a target directory, based on "isabelle hg_sync". Local
+jars and sessions images may be uploaded as well, to avoid redundant
+builds on the remote side. This tool requires a Mercurial clone of the
+Isabelle repository: a regular download of the distribution will not
+work!
+
 
 
 New in Isabelle2021-1 (December 2021)

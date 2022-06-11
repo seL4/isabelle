@@ -300,7 +300,7 @@ text \<open>
 \<close>
 
 
-section \<open>Mercurial repository synchronization\<close>
+section \<open>Mercurial repository synchronization \label{sec:tool-hg-sync}\<close>
 
 text \<open>
   The @{tool_def hg_sync} tool synchronizes a local Mercurial repository with
@@ -422,6 +422,100 @@ text \<open>
   Implementors of Isabelle tools and applications are encouraged to make
   derived Isabelle logos for their own projects using this template. The
   license is the same as for the regular Isabelle distribution (BSD).
+\<close>
+
+
+section \<open>Isabelle and AFP repository synchronization\<close>
+
+text \<open>
+  The @{tool_def sync} tool synchronizes a local Isabelle and AFP repository,
+  potentially including its prebuilt \<^verbatim>\<open>.jar\<close> files and session images.
+
+  @{verbatim [display]
+\<open>Usage: isabelle sync [OPTIONS] TARGET
+
+  Options are:
+    -A ROOT      include AFP with given root directory (":" for $AFP_BASE)
+    -H           purge heaps directory on target
+    -I NAME      include session heap image and build database
+                 (based on accidental local state)
+    -J           preserve *.jar files
+    -S           robust (but less portable) treatment of spaces in
+                 file and directory names on the target
+    -T           thorough treatment of file content and directory times
+    -a REV       explicit AFP revision (default: state of working directory)
+    -n           no changes: dry-run
+    -r REV       explicit revision (default: state of working directory)
+    -p PORT      explicit SSH port (default: 22)
+    -v           verbose
+
+  Synchronize Isabelle + AFP repositories, based on "isabelle hg_sync".\<close>}
+
+  The approach is to apply @{tool hg_sync} (\secref{sec:tool-hg-sync}) on the
+  underlying Isabelle repository plus a given AFP repository (optional). This
+  means that the Isabelle installation needs to be a Mercurial repository
+  clone: a regular download of the Isabelle distribution is not sufficient!
+
+  On the target side, AFP is placed into @{setting ISABELLE_HOME} as immediate
+  sub-directory with the literal name \<^verbatim>\<open>AFP\<close>; thus it can be easily included
+  elsewhere, e.g. @{tool build}~\<^verbatim>\<open>-d\<close>~\<^verbatim>\<open>'~~/AFP'\<close> on the remote side.
+
+  \<^medskip> Options \<^verbatim>\<open>-T\<close>, \<^verbatim>\<open>-n\<close>, \<^verbatim>\<open>-p\<close>, \<^verbatim>\<open>-v\<close> are the same as the underlying
+  @{tool hg_sync}.
+
+  \<^medskip> Options \<^verbatim>\<open>-r\<close> and \<^verbatim>\<open>-a\<close> are the same as option \<^verbatim>\<open>-r\<close> for @{tool hg_sync},
+  but for the Isabelle and AFP repositories, respectively. The AFP version is
+  only used if a corresponding repository is given via option \<^verbatim>\<open>-A\<close>, either
+  with explicit root directory, or as \<^verbatim>\<open>-A:\<close> to refer to \<^verbatim>\<open>$AFP_BASE\<close> (this
+  assumes AFP as component of the local Isabelle installation).
+
+  \<^medskip> Option \<^verbatim>\<open>-J\<close> uploads existing \<^verbatim>\<open>.jar\<close> files, which are usually
+  Isabelle/Scala/Java modules under control of \<^verbatim>\<open>etc/build.props\<close> (see also
+  \secref{sec:scala-build}). Normally, the underlying dependency management is
+  accurate: bad uploads will be rebuilt on the remote side (or ignored). For
+  historic Isabelle versions, going far back into the past via option \<^verbatim>\<open>-r\<close>,
+  it is better to omit option \<^verbatim>\<open>-J\<close> and thus purge \<^verbatim>\<open>.jar\<close> files on the target
+  (because they do not belong to the repository).
+
+  \<^medskip> Option \<^verbatim>\<open>-I\<close> uploads a collection of session images. The set of \<^verbatim>\<open>-I\<close>
+  options specifies the end-points in the session build graph, including all
+  required ancestors. The result collection is uploaded using the underlying
+  \<^verbatim>\<open>rsync\<close> policies: unchanged images are ignored. Session images are
+  assembled within the target \<^verbatim>\<open>heaps\<close> directory: this scheme fits together
+  with @{tool build}~\<^verbatim>\<open>-o system_heaps\<close>. Images are taken as-is from the local
+  Isabelle installation, regardless of option \<^verbatim>\<open>-r\<close>. Bad images do not cause
+  any harm, apart from wasting network bandwidth and file-system space:
+  running e.g. @{tool build} on the target will check dependencies accurately,
+  and rebuild outdated images on demand.
+
+  \<^medskip> Option \<^verbatim>\<open>-H\<close> tells the underlying \<^verbatim>\<open>rsync\<close> process to purge the \<^verbatim>\<open>heaps\<close>
+  directory on the target, before uploading new images from \<^verbatim>\<open>-I\<close> options. The
+  default is to work monotonically: old material that is not overwritten
+  remains unchanged, it is never deleted. Over time, this may lead to
+  unreachable garbage, due to changes in session names or Poly/ML versions.
+  Option \<^verbatim>\<open>-H\<close> helps to avoid wasting file-system space, although @{tool
+  build} does not require it, due to its precise checking of all dependencies.
+
+  \<^medskip> Option \<^verbatim>\<open>-S\<close> uses \<^verbatim>\<open>rsync --protect-args\<close>, but this requires at least
+  \<^verbatim>\<open>rsync 3.0.0\<close>, while many versions of macOS still ship \<^verbatim>\<open>rsync 2.9.x\<close>.
+  Since Isabelle + AFP don't use spaces or other special characters, it is
+  usually safe to omit this non-portable option.
+\<close>
+
+subsubsection \<open>Examples\<close>
+
+text \<open>
+  Quick testing of Isabelle + AFP on a remote machine: upload changed sources,
+  jars, and local sessions images for \<^verbatim>\<open>HOL\<close>:
+  @{verbatim [display] \<open>  isabelle sync -A: -I HOL -J testmachine:test/isabelle_afp\<close>}
+  Assuming that the local \<^verbatim>\<open>HOL\<close> hierarchy has been up-to-date, and the local
+  and remote ML platforms coincide, a remote @{tool build} will proceed
+  without building \<^verbatim>\<open>HOL\<close> again.
+
+  \<^medskip> A variation for accurate testing of Isabelle + AFP: no option \<^verbatim>\<open>-J\<close>, but
+  option \<^verbatim>\<open>-T\<close> to disable the default ``quick check'' of \<^verbatim>\<open>rsync\<close> (which only
+  inspects file sizes and date stamps):
+  @{verbatim [display] \<open> isabelle sync -A: -T testmachine:test/isabelle_afp\<close>}
 \<close>
 
 
