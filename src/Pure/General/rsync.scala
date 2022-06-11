@@ -11,7 +11,7 @@ object Rsync {
   sealed case class Context(progress: Progress,
     port: Int = SSH.default_port,
     archive: Boolean = true,
-    protect_args: Boolean = true
+    protect_args: Boolean = true  // requires rsync 3.0.0, or later
   ) {
     def command: String =
       "rsync --rsh=" + Bash.string("ssh -p " + port) +
