@@ -896,7 +896,7 @@ text \<open>
   sub-directory with the literal name \<^verbatim>\<open>AFP\<close>; thus it can be easily included
   elsewhere, e.g. @{tool build}~\<^verbatim>\<open>-d\<close>~\<^verbatim>\<open>'~~/AFP'\<close> on the remote side.
 
-  \<^medskip> Options \<^verbatim>\<open>-T\<close>, \<^verbatim>\<open>-n\<close>, \<^verbatim>\<open>-p\<close>, \<^verbatim>\<open>-v\<close> are the same as the underlying
+  \<^medskip> Options \<^verbatim>\<open>-S\<close>, \<^verbatim>\<open>-T\<close>, \<^verbatim>\<open>-n\<close>, \<^verbatim>\<open>-p\<close>, \<^verbatim>\<open>-v\<close> are the same as the underlying
   @{tool hg_sync}.
 
   \<^medskip> Options \<^verbatim>\<open>-r\<close> and \<^verbatim>\<open>-a\<close> are the same as option \<^verbatim>\<open>-r\<close> for @{tool hg_sync},
@@ -933,11 +933,6 @@ text \<open>
   remains unchanged. Over time, this may lead to unused garbage, due to
   changes in session names or the Poly/ML version. Option \<^verbatim>\<open>-H\<close> helps to avoid
   wasting file-system space.
-
-  \<^medskip> Option \<^verbatim>\<open>-S\<close> uses \<^verbatim>\<open>rsync --protect-args\<close>, but this requires at least
-  \<^verbatim>\<open>rsync 3.0.0\<close>, while macOS might only provide \<^verbatim>\<open>rsync 2.9.x\<close>. Since
-  Isabelle + AFP don't use spaces or other special characters, it is usually
-  safe to omit this non-portable option.
 \<close>
 
 subsubsection \<open>Examples\<close>

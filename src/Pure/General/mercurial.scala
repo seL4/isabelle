@@ -562,6 +562,7 @@ Usage: isabelle hg_setup [OPTIONS] REMOTE LOCAL_DIR
       Scala_Project.here, { args =>
         var filter: List[String] = Nil
         var root: Option[Path] = None
+        var protect_args = false
         var thorough = false
         var dry_run = false
         var rev = ""
@@ -576,6 +577,8 @@ Usage: isabelle hg_sync [OPTIONS] TARGET
                  (e.g. "protect /foo" to avoid deletion)
     -R ROOT      explicit repository root directory
                  (default: implicit from current directory)
+    -S           robust (but less portable) treatment of spaces in
+                 file and directory names on the target
     -T           thorough treatment of file content and directory times
     -n           no changes: dry-run
     -r REV       explicit revision (default: state of working directory)
@@ -587,6 +590,7 @@ Usage: isabelle hg_sync [OPTIONS] TARGET
 """,
           "F:" -> (arg => filter = filter ::: List(arg)),
           "R:" -> (arg => root = Some(Path.explode(arg))),
+          "S" -> (_ => protect_args = true),
           "T" -> (_ => thorough = true),
           "n" -> (_ => dry_run = true),
           "r:" -> (arg => rev = arg),
@@ -606,7 +610,7 @@ Usage: isabelle hg_sync [OPTIONS] TARGET
             case Some(dir) => repository(dir)
             case None => the_repository(Path.current)
           }
-        val context = Rsync.Context(progress, port = port)
+        val context = Rsync.Context(progress, port = port, protect_args = protect_args)
         hg.sync(context, target, verbose = verbose, thorough = thorough,
           dry_run = dry_run, filter = filter, rev = rev)
       }
