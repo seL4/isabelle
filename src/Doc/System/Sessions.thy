@@ -865,10 +865,9 @@ text \<open>
 section \<open>Synchronize source repositories and session images for Isabelle and AFP\<close>
 
 text \<open>
-  The @{tool_def sync} tool synchronizes a local Isabelle and AFP repository
-  clone, potentially including its prebuilt \<^verbatim>\<open>.jar\<close> files and session images.
-
-  @{verbatim [display]
+  The @{tool_def sync} tool synchronizes a local Isabelle and AFP source
+  repository, possibly with prebuilt \<^verbatim>\<open>.jar\<close> files and session images. Its
+  command-line usage is: @{verbatim [display]
 \<open>Usage: isabelle sync [OPTIONS] TARGET
 
   Options are:
@@ -888,9 +887,9 @@ text \<open>
 
   Synchronize Isabelle + AFP repositories, based on "isabelle hg_sync".\<close>}
 
-  The approach is to apply @{tool hg_sync} (\secref{sec:tool-hg-sync}) on the
-  underlying Isabelle repository plus a given AFP repository (optional). This
-  means that the Isabelle installation needs to be a Mercurial repository
+  The approach is to apply @{tool hg_sync} (see \secref{sec:tool-hg-sync}) on
+  the underlying Isabelle repository, and an optional AFP repository.
+  Consequently, the Isabelle installation needs to be a Mercurial repository
   clone: a regular download of the Isabelle distribution is not sufficient!
 
   On the target side, AFP is placed into @{setting ISABELLE_HOME} as immediate
@@ -904,55 +903,59 @@ text \<open>
   but for the Isabelle and AFP repositories, respectively. The AFP version is
   only used if a corresponding repository is given via option \<^verbatim>\<open>-A\<close>, either
   with explicit root directory, or as \<^verbatim>\<open>-A:\<close> to refer to \<^verbatim>\<open>$AFP_BASE\<close> (this
-  assumes AFP as component of the local Isabelle installation).
+  assumes AFP as component of the local Isabelle installation). If no AFP
+  repository is given, an existing \<^verbatim>\<open>AFP\<close> directory on the target remains
+  unchanged.
 
-  \<^medskip> Option \<^verbatim>\<open>-J\<close> uploads existing \<^verbatim>\<open>.jar\<close> files, which are usually
-  Isabelle/Scala/Java modules under control of \<^verbatim>\<open>etc/build.props\<close> (see also
-  \secref{sec:scala-build}). Normally, the underlying dependency management is
-  accurate: bad uploads will be rebuilt on the remote side (or ignored). For
-  historic Isabelle versions, going far back into the past via option \<^verbatim>\<open>-r\<close>,
-  it is better to omit option \<^verbatim>\<open>-J\<close> and thus purge \<^verbatim>\<open>.jar\<close> files on the target
-  (because they do not belong to the repository).
+  \<^medskip> Option \<^verbatim>\<open>-J\<close> uploads existing \<^verbatim>\<open>.jar\<close> files from the working directory,
+  which are usually Isabelle/Scala/Java modules under control of @{tool
+  scala_build} via \<^verbatim>\<open>etc/build.props\<close> (see also \secref{sec:scala-build}).
+  Thus the dependency management is accurate: bad uploads will be rebuilt
+  eventually (or ignored). This might fail for very old Isabelle versions,
+  when going into the past via option \<^verbatim>\<open>-r\<close>: here it is better to omit option
+  \<^verbatim>\<open>-J\<close> and thus purge \<^verbatim>\<open>.jar\<close> files on the target (because they do not belong
+  to the repository).
 
   \<^medskip> Option \<^verbatim>\<open>-I\<close> uploads a collection of session images. The set of \<^verbatim>\<open>-I\<close>
   options specifies the end-points in the session build graph, including all
   required ancestors. The result collection is uploaded using the underlying
-  \<^verbatim>\<open>rsync\<close> policies: unchanged images are ignored. Session images are
-  assembled within the target \<^verbatim>\<open>heaps\<close> directory: this scheme fits together
-  with @{tool build}~\<^verbatim>\<open>-o system_heaps\<close>. Images are taken as-is from the local
-  Isabelle installation, regardless of option \<^verbatim>\<open>-r\<close>. Bad images do not cause
-  any harm, apart from wasting network bandwidth and file-system space:
-  running e.g. @{tool build} on the target will check dependencies accurately,
-  and rebuild outdated images on demand.
+  \<^verbatim>\<open>rsync\<close> policies, so unchanged images are not sent again. Session images
+  are assembled within the target \<^verbatim>\<open>heaps\<close> directory: this scheme fits
+  together with @{tool build}~\<^verbatim>\<open>-o system_heaps\<close>. Images are taken as-is from
+  the local Isabelle installation, regardless of option \<^verbatim>\<open>-r\<close>. Upload of bad
+  images could waste time and space, but running e.g. @{tool build} on the
+  target will check dependencies accurately and rebuild outdated images on
+  demand.
 
   \<^medskip> Option \<^verbatim>\<open>-H\<close> tells the underlying \<^verbatim>\<open>rsync\<close> process to purge the \<^verbatim>\<open>heaps\<close>
-  directory on the target, before uploading new images from \<^verbatim>\<open>-I\<close> options. The
+  directory on the target, before uploading new images via option \<^verbatim>\<open>-I\<close>. The
   default is to work monotonically: old material that is not overwritten
-  remains unchanged, it is never deleted. Over time, this may lead to
-  unreachable garbage, due to changes in session names or Poly/ML versions.
-  Option \<^verbatim>\<open>-H\<close> helps to avoid wasting file-system space, although @{tool
-  build} does not require it, due to its precise checking of all dependencies.
+  remains unchanged. Over time, this may lead to unused garbage, due to
+  changes in session names or the Poly/ML version. Option \<^verbatim>\<open>-H\<close> helps to avoid
+  wasting file-system space.
 
   \<^medskip> Option \<^verbatim>\<open>-S\<close> uses \<^verbatim>\<open>rsync --protect-args\<close>, but this requires at least
-  \<^verbatim>\<open>rsync 3.0.0\<close>, while many versions of macOS still ship \<^verbatim>\<open>rsync 2.9.x\<close>.
-  Since Isabelle + AFP don't use spaces or other special characters, it is
-  usually safe to omit this non-portable option.
+  \<^verbatim>\<open>rsync 3.0.0\<close>, while macOS might only provide \<^verbatim>\<open>rsync 2.9.x\<close>. Since
+  Isabelle + AFP don't use spaces or other special characters, it is usually
+  safe to omit this non-portable option.
 \<close>
 
 subsubsection \<open>Examples\<close>
 
 text \<open>
-  Quick testing of Isabelle + AFP on a remote machine: upload changed sources,
-  jars, and local sessions images for \<^verbatim>\<open>HOL\<close>:
+  For quick testing of Isabelle + AFP on a remote machine, upload changed
+  sources, jars, and local sessions images for \<^verbatim>\<open>HOL\<close>:
+
   @{verbatim [display] \<open>  isabelle sync -A: -I HOL -J testmachine:test/isabelle_afp\<close>}
   Assuming that the local \<^verbatim>\<open>HOL\<close> hierarchy has been up-to-date, and the local
   and remote ML platforms coincide, a remote @{tool build} will proceed
   without building \<^verbatim>\<open>HOL\<close> again.
 
-  \<^medskip> A variation for accurate testing of Isabelle + AFP: no option \<^verbatim>\<open>-J\<close>, but
-  option \<^verbatim>\<open>-T\<close> to disable the default ``quick check'' of \<^verbatim>\<open>rsync\<close> (which only
-  inspects file sizes and date stamps):
-  @{verbatim [display] \<open> isabelle sync -A: -T testmachine:test/isabelle_afp\<close>}
+  \<^medskip> Here is a variation for extra-clean testing of Isabelle + AFP: no option
+  \<^verbatim>\<open>-J\<close>, but option \<^verbatim>\<open>-T\<close> to disable the default ``quick check'' of \<^verbatim>\<open>rsync\<close>
+  (which only inspects file sizes and date stamps); existing heaps are
+  deleted:
+  @{verbatim [display] \<open> isabelle sync -A: -T -H testmachine:test/isabelle_afp\<close>}
 \<close>
 
 end
