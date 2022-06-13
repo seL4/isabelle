@@ -488,53 +488,53 @@ subsubsection \<open>Examples\<close>
 
 text \<open>
   Build a specific logic image:
-  @{verbatim [display] \<open>isabelle build -b HOLCF\<close>}
+  @{verbatim [display] \<open>  isabelle build -b HOLCF\<close>}
 
   \<^smallskip>
   Build the main group of logic images:
-  @{verbatim [display] \<open>isabelle build -b -g main\<close>}
+  @{verbatim [display] \<open>  isabelle build -b -g main\<close>}
 
   \<^smallskip>
   Build all descendants (and requirements) of \<^verbatim>\<open>FOL\<close> and \<^verbatim>\<open>ZF\<close>:
-  @{verbatim [display] \<open>isabelle build -B FOL -B ZF\<close>}
+  @{verbatim [display] \<open>  isabelle build -B FOL -B ZF\<close>}
 
   \<^smallskip>
   Build all sessions where sources have changed (ignoring heaps):
-  @{verbatim [display] \<open>isabelle build -a -S\<close>}
+  @{verbatim [display] \<open>  isabelle build -a -S\<close>}
 
   \<^smallskip>
   Provide a general overview of the status of all Isabelle sessions, without
   building anything:
-  @{verbatim [display] \<open>isabelle build -a -n -v\<close>}
+  @{verbatim [display] \<open>  isabelle build -a -n -v\<close>}
 
   \<^smallskip>
   Build all sessions with HTML browser info and PDF document preparation:
-  @{verbatim [display] \<open>isabelle build -a -o browser_info -o document\<close>}
+  @{verbatim [display] \<open>  isabelle build -a -o browser_info -o document\<close>}
 
   \<^smallskip>
   Build all sessions with a maximum of 8 parallel prover processes and 4
   worker threads each (on a machine with many cores):
-  @{verbatim [display] \<open>isabelle build -a -j8 -o threads=4\<close>}
+  @{verbatim [display] \<open>  isabelle build -a -j8 -o threads=4\<close>}
 
   \<^smallskip>
   Build some session images with cleanup of their descendants, while retaining
   their ancestry:
-  @{verbatim [display] \<open>isabelle build -b -c HOL-Library HOL-Algebra\<close>}
+  @{verbatim [display] \<open>  isabelle build -b -c HOL-Library HOL-Algebra\<close>}
 
   \<^smallskip>
   Clean all sessions without building anything:
-  @{verbatim [display] \<open>isabelle build -a -n -c\<close>}
+  @{verbatim [display] \<open>  isabelle build -a -n -c\<close>}
 
   \<^smallskip>
   Build all sessions from some other directory hierarchy, according to the
   settings variable \<^verbatim>\<open>AFP\<close> that happens to be defined inside the Isabelle
   environment:
-  @{verbatim [display] \<open>isabelle build -D '$AFP'\<close>}
+  @{verbatim [display] \<open>  isabelle build -D '$AFP'\<close>}
 
   \<^smallskip>
   Inform about the status of all sessions required for AFP, without building
   anything yet:
-  @{verbatim [display] \<open>isabelle build -D '$AFP' -R -v -n\<close>}
+  @{verbatim [display] \<open>  isabelle build -D '$AFP' -R -v -n\<close>}
 \<close>
 
 
@@ -586,7 +586,7 @@ subsubsection \<open>Examples\<close>
 text \<open>
   Print messages from theory \<^verbatim>\<open>HOL.Nat\<close> of session \<^verbatim>\<open>HOL\<close>, using Unicode
   rendering of Isabelle symbols and a margin of 100 characters:
-  @{verbatim [display] \<open>isabelle log -T HOL.Nat -U -m 100 HOL\<close>}
+  @{verbatim [display] \<open>  isabelle log -T HOL.Nat -U -m 100 HOL\<close>}
 \<close>
 
 
@@ -695,17 +695,17 @@ subsubsection \<open>Examples\<close>
 
 text \<open>
   Dump all Isabelle/ZF sessions (which are rather small):
-  @{verbatim [display] \<open>isabelle dump -v -B ZF\<close>}
+  @{verbatim [display] \<open>  isabelle dump -v -B ZF\<close>}
 
   \<^smallskip>
   Dump the quite substantial \<^verbatim>\<open>HOL-Analysis\<close> session, with full bootstrap
   from Isabelle/Pure:
-  @{verbatim [display] \<open>isabelle dump -v HOL-Analysis\<close>}
+  @{verbatim [display] \<open>  isabelle dump -v HOL-Analysis\<close>}
 
   \<^smallskip>
   Dump all sessions connected to HOL-Analysis, using main Isabelle/HOL as
   basis:
-  @{verbatim [display] \<open>isabelle dump -v -b HOL -B HOL-Analysis\<close>}
+  @{verbatim [display] \<open>  isabelle dump -v -b HOL -B HOL-Analysis\<close>}
 
   This results in uniform PIDE markup for everything, except for the
   Isabelle/Pure bootstrap process itself. Producing that on the spot requires
@@ -713,8 +713,8 @@ text \<open>
   process (in 64bit mode). Here are some relevant settings (\secref{sec:boot})
   for such ambitious applications:
   @{verbatim [display]
-\<open>ISABELLE_TOOL_JAVA_OPTIONS="-Xms4g -Xmx32g -Xss16m"
-ML_OPTIONS="--minheap 4G --maxheap 32G"
+\<open>  ISABELLE_TOOL_JAVA_OPTIONS="-Xms4g -Xmx32g -Xss16m"
+  ML_OPTIONS="--minheap 4G --maxheap 32G"
 \<close>}
 \<close>
 
@@ -797,17 +797,17 @@ text \<open>
   Update some cartouche notation in all theory sources required for session
   \<^verbatim>\<open>HOL-Analysis\<close> (and ancestors):
 
-  @{verbatim [display] \<open>isabelle update -u mixfix_cartouches HOL-Analysis\<close>}
+  @{verbatim [display] \<open>  isabelle update -u mixfix_cartouches HOL-Analysis\<close>}
 
   \<^smallskip> Update the same for all application sessions based on \<^verbatim>\<open>HOL-Analysis\<close> ---
   using its image as starting point (for reduced resource requirements):
 
-  @{verbatim [display] \<open>isabelle update -u mixfix_cartouches -b HOL-Analysis -B HOL-Analysis\<close>}
+  @{verbatim [display] \<open>  isabelle update -u mixfix_cartouches -b HOL-Analysis -B HOL-Analysis\<close>}
 
   \<^smallskip> Update sessions that build on \<^verbatim>\<open>HOL-Proofs\<close>, which need to be run
   separately with special options as follows:
 
-  @{verbatim [display] \<open>isabelle update -u mixfix_cartouches -l HOL-Proofs -B HOL-Proofs
+  @{verbatim [display] \<open>  isabelle update -u mixfix_cartouches -l HOL-Proofs -B HOL-Proofs
   -o record_proofs=2\<close>}
 
   \<^smallskip> See also the end of \secref{sec:tool-dump} for hints on increasing
@@ -846,19 +846,19 @@ subsubsection \<open>Examples\<close>
 
 text \<open>
   All sessions of the Isabelle distribution:
-  @{verbatim [display] \<open>isabelle sessions -a\<close>}
+  @{verbatim [display] \<open>  isabelle sessions -a\<close>}
 
   \<^medskip>
   Sessions that are based on \<^verbatim>\<open>ZF\<close> (and required by it):
-  @{verbatim [display] \<open>isabelle sessions -B ZF\<close>}
+  @{verbatim [display] \<open>  isabelle sessions -B ZF\<close>}
 
   \<^medskip>
   All sessions of Isabelle/AFP (based in directory \<^path>\<open>AFP\<close>):
-  @{verbatim [display] \<open>isabelle sessions -D AFP/thys\<close>}
+  @{verbatim [display] \<open>  isabelle sessions -D AFP/thys\<close>}
 
   \<^medskip>
   Sessions required by Isabelle/AFP (based in directory \<^path>\<open>AFP\<close>):
-  @{verbatim [display] \<open>isabelle sessions -R -D AFP/thys\<close>}
+  @{verbatim [display] \<open>  isabelle sessions -R -D AFP/thys\<close>}
 \<close>
 
 
@@ -955,7 +955,7 @@ text \<open>
   \<^verbatim>\<open>-J\<close>, but option \<^verbatim>\<open>-T\<close> to disable the default ``quick check'' of \<^verbatim>\<open>rsync\<close>
   (which only inspects file sizes and date stamps); existing heaps are
   deleted:
-  @{verbatim [display] \<open> isabelle sync -A: -T -H testmachine:test/isabelle_afp\<close>}
+  @{verbatim [display] \<open>  isabelle sync -A: -T -H testmachine:test/isabelle_afp\<close>}
 \<close>
 
 end
