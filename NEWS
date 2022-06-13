@@ -88,7 +88,11 @@ longer. INCOMPATIBILITY.
       Multiset.bex_least_element
       filter_mset_cong
       filter_mset_cong0
+      image_mset_eq_image_mset_plusD
+      image_mset_eq_plusD
+      image_mset_eq_plus_image_msetD
       image_mset_filter_mset_swap
+      multp_image_mset_image_msetD
 
 * Sledgehammer:
   - Redesigned multithreading to provide more fine grained prover schedules.
