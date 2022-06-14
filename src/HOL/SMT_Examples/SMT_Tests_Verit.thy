@@ -717,4 +717,20 @@ lemma
   "{x. x \<in> P} = {y. y \<in> P}"
   by (smt smt_sets)+
 
+
+context
+  fixes in_multiset :: "'d \<Rightarrow> 'd_multiset \<Rightarrow> bool" and
+    add_mset :: "'d \<Rightarrow> 'd_multiset \<Rightarrow> 'd_multiset" and
+    set_mset :: "'d_multiset \<Rightarrow> 'd set"
+begin
+lemma
+  assumes "\<And>a b A. ((a::'d) \<in> insert b A) = (a = b \<or> a \<in> A)"
+    "\<And>a A. set_mset (add_mset (a::'d) A) = insert a (set_mset A)"
+    "\<And>r. transp (r::'d \<Rightarrow> 'd \<Rightarrow> bool) = (\<forall>x y z. r x y \<longrightarrow> r y z \<longrightarrow> r x z)"
+  shows
+    "transp (\<lambda>x y. (x::'d) \<in> set_mset (add_mset m M) \<and> y \<in> set_mset (add_mset m M) \<and> R x y) \<Longrightarrow>
+     transp (\<lambda>x y. x \<in> set_mset M \<and> y \<in> set_mset M \<and> R x y)"
+   by (smt (verit) assms)
+end
+
 end

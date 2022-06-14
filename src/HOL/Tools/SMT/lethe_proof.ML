@@ -58,6 +58,7 @@ sig
   val skolemization_steps : string list
   val theory_resolution2_rule: string
   val equiv_pos2_rule: string
+  val and_pos_rule: string
   val th_resolution_rule: string
 
   val is_skolemization: string -> bool
@@ -142,11 +143,12 @@ val default_skolem_rule = "sko_forall" (*arbitrary, but must be one of the skole
 val theory_resolution2_rule = "__theory_resolution2" (*arbitrary*)
 val equiv_pos2_rule = "equiv_pos2"
 val th_resolution_rule = "th_resolution"
+val and_pos_rule = "and_pos"
 
 val skolemization_steps = ["sko_forall", "sko_ex"]
 val is_skolemization = member (op =) skolemization_steps
-val keep_app_symbols = member (op =) [eq_congruent_pred_rule, eq_congruent_rule, ite_intro_rule]
-val keep_raw_lifting = member (op =) [eq_congruent_pred_rule, eq_congruent_rule, ite_intro_rule]
+val keep_app_symbols = member (op =) [eq_congruent_pred_rule, eq_congruent_rule, ite_intro_rule, and_pos_rule]
+val keep_raw_lifting = member (op =) [eq_congruent_pred_rule, eq_congruent_rule, ite_intro_rule, and_pos_rule]
 val is_SH_trivial = member (op =) [not_not_rule, contract_rule]
 
 fun is_skolemization_step (Lethe_Replay_Node {id, ...}) = is_skolemization id

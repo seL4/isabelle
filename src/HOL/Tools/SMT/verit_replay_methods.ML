@@ -41,7 +41,6 @@ fun verit_rule_of "bind" = Bind
   | verit_rule_of "ac_simp" = AC_Simp
   | verit_rule_of "and" = And
   | verit_rule_of "not_and" = Not_And
-  | verit_rule_of "and_pos" = And_Pos
   | verit_rule_of "and_neg" = And_Neg
   | verit_rule_of "or_pos" = Or_Pos
   | verit_rule_of "or_neg" = Or_Neg
@@ -101,6 +100,7 @@ fun verit_rule_of "bind" = Bind
      else if r = Lethe_Proof.theory_resolution2_rule then Theory_Resolution2
      else if r = Lethe_Proof.th_resolution_rule then Theory_Resolution
      else if r = Lethe_Proof.equiv_pos2_rule then Equiv_pos2
+     else if r = Lethe_Proof.and_pos_rule then And_Pos
      else (@{print} ("Unsupport rule", r); Unsupported)
 
 
