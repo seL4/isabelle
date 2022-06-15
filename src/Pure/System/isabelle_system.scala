@@ -122,8 +122,7 @@ object Isabelle_System {
     }
 
   def export_isabelle_identifier(isabelle_identifier: String): String =
-    if (isabelle_identifier == "") ""
-    else "export ISABELLE_IDENTIFIER=" + Bash.string(isabelle_identifier) + "\n"
+    "export ISABELLE_IDENTIFIER=" + Bash.string(isabelle_identifier) + "\n"
 
   def isabelle_identifier(): Option[String] = proper_string(getenv("ISABELLE_IDENTIFIER"))
 
