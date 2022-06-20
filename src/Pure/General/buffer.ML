@@ -10,10 +10,11 @@ sig
   val empty: T
   val is_empty: T -> bool
   val add: string -> T -> T
+  val length: T -> int
+  val contents: T -> string list
   val content: T -> string
   val build: (T -> T) -> T
   val build_content: (T -> T) -> string
-  val output: T -> (string -> unit) -> unit
   val markup: Markup.T -> (T -> T) -> T -> T
 end;
 
@@ -30,12 +31,13 @@ fun is_empty (Buffer xs) = null xs;
 fun add "" buf = buf
   | add x (Buffer xs) = Buffer (x :: xs);
 
-fun content (Buffer xs) = implode (rev xs);
+fun length (Buffer xs) = fold (Integer.add o size) xs 0;
+
+fun contents (Buffer xs) = rev xs;
+val content = implode o contents;
 
 fun build (f: T -> T) = f empty;
 fun build_content f = build f |> content;
-
-fun output (Buffer xs) out = List.app out (rev xs);
 
 end;
 

@@ -169,7 +169,8 @@ fun write path txt = write_list path [txt];
 fun append path txt = append_list path [txt];
 fun generate path txt = if try read path = SOME txt then () else write path txt;
 
-fun write_buffer path buf = open_output (Buffer.output buf o output) path;
+fun write_buffer path buf =
+  open_output (fn file => List.app (output file) (Buffer.contents buf)) path;
 
 
 (* eq *)
