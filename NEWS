@@ -94,6 +94,9 @@ longer. INCOMPATIBILITY.
       image_mset_filter_mset_swap
       multp_image_mset_image_msetD
 
+* Theory "HOL-Library.Sublist":
+  - Added lemma map_mono_strict_suffix.
+
 * Sledgehammer:
   - Redesigned multithreading to provide more fine grained prover schedules.
     The binary option 'slice' has been replaced by a numeric value 'slices'

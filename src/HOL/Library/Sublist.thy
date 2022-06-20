@@ -609,6 +609,9 @@ lemma distinct_suffix: "distinct ys \<Longrightarrow> suffix xs ys \<Longrightar
 lemma map_mono_suffix: "suffix xs ys \<Longrightarrow> suffix (map f xs) (map f ys)"
 by (auto elim!: suffixE intro: suffixI)
 
+lemma map_mono_strict_suffix: "strict_suffix xs ys \<Longrightarrow> strict_suffix (map f xs) (map f ys)"
+  by (auto simp: strict_suffix_def suffix_def)
+
 lemma filter_mono_suffix: "suffix xs ys \<Longrightarrow> suffix (filter P xs) (filter P ys)"
 by (auto simp: suffix_def)
 
