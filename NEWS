@@ -141,6 +141,17 @@ longer. INCOMPATIBILITY.
   are printed in a way suitable for Scala 3.
 
 
+*** ML ***
+
+* Type Bytes.T supports scalable byte strings, beyond the limit of
+String.maxSize (approx. 64 MB on 64_32 architecture).
+
+* Operations for XZ compression (via Isabelle/Scala):
+
+  Isabelle_System.compress: Bytes.T -> Bytes.T
+  Isabelle_System.uncompress: Bytes.T -> Bytes.T
+
+
 *** System ***
 
 * Command-line tool "isabelle scala_project" supports Gradle as
