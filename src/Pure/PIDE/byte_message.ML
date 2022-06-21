@@ -36,7 +36,7 @@ fun write_line stream s = (write stream [s, "\n"]; flush stream);
 
 (* input operations *)
 
-fun read stream n = Byte.bytesToString (BinIO.inputN (stream, n));
+fun read stream n = File.input_size n stream;
 
 fun read_block stream n =
   let

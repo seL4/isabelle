@@ -70,13 +70,10 @@ val string = build o add;
 
 val buffer = build o fold add o Buffer.contents;
 
-fun read_chunk stream =
-  Byte.bytesToString (BinIO.inputN (stream, chunk_size));
-
 val read = File.open_input (fn stream =>
   let
     fun read_bytes bytes =
-      (case read_chunk stream of
+      (case File.input_size chunk_size stream of
         "" => bytes
       | s => read_bytes (add s bytes))
   in read_bytes empty end);
