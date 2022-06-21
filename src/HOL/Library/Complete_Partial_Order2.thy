@@ -373,9 +373,9 @@ fun cont_intro_simproc ctxt ct =
       | NONE => NONE
   in
     case Thm.term_of ct of
-      t as Const (\<^const_name>\<open>ccpo.admissible\<close>, _) $ _ $ _ $ _ => mk_thm t
-    | t as Const (\<^const_name>\<open>mcont\<close>, _) $ _ $ _ $ _ $ _ $ _ => mk_thm t
-    | t as Const (\<^const_name>\<open>monotone\<close>, _) $ _ $ _ $ _ => mk_thm t
+      t as \<^Const_>\<open>ccpo.admissible _ for _ _ _\<close> => mk_thm t
+    | t as \<^Const_>\<open>mcont _ _ for _ _ _ _ _\<close> => mk_thm t
+    | t as \<^Const_>\<open>monotone_on _ _ for \<^Const_>\<open>Orderings.top _\<close> _ _ _\<close> => mk_thm t
     | _ => NONE
   end
   handle THM _ => NONE 

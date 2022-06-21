@@ -927,7 +927,33 @@ proof
   then show False by blast
 qed
 
+
 subsection \<open>Monotonic functions over a set\<close>
+
+definition monotone_on :: "'a set \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool"
+  where "monotone_on A orda ordb f \<longleftrightarrow> (\<forall>x\<in>A. \<forall>y\<in>A. orda x y \<longrightarrow> ordb (f x) (f y))"
+
+abbreviation monotone :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool"
+  where "monotone \<equiv> monotone_on UNIV"
+
+lemma monotone_def[no_atp]: "monotone orda ordb f \<longleftrightarrow> (\<forall>x y. orda x y \<longrightarrow> ordb (f x) (f y))"
+  by (simp add: monotone_on_def)
+
+text \<open>Lemma @{thm [source] monotone_def} is provided for backward compatibility.\<close>
+
+lemma monotone_onI:
+  "(\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> orda x y \<Longrightarrow> ordb (f x) (f y)) \<Longrightarrow> monotone_on A orda ordb f"
+  by (simp add: monotone_on_def)
+
+lemma monotoneI[intro?]: "(\<And>x y. orda x y \<Longrightarrow> ordb (f x) (f y)) \<Longrightarrow> monotone orda ordb f"
+  by (rule monotone_onI)
+
+lemma monotone_onD:
+  "monotone_on A orda ordb f \<Longrightarrow> x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> orda x y \<Longrightarrow> ordb (f x) (f y)"
+  by (simp add: monotone_on_def)
+
+lemma monotoneD[dest?]: "monotone orda ordb f \<Longrightarrow> orda x y \<Longrightarrow> ordb (f x) (f y)"
+  by (simp add: monotone_onD)
 
 definition "mono_on f A \<equiv> \<forall>r s. r \<in> A \<and> s \<in> A \<and> r \<le> s \<longrightarrow> f r \<le> f s"
 

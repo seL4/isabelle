@@ -40,8 +40,16 @@ split_if_asm.  INCOMPATIBILITY.
 * Theory "HOL.Bit_Operations": rule bit_0 is not default [simp] any
 longer. INCOMPATIBILITY.
 
+* Theory "HOL.Fun":
+  - Added predicate monotone_on and redefined monotone to be an
+    abbreviation. Lemma monotone_def is explicitly provided for backward
+    compatibility but its usage is discouraged. Minor INCOMPATIBILITY.
+  - Added lemmas.
+      monotone_onD
+      monotone_onI
+
 * Theory "HOL.Relation":
-  - Added predicate reflp_on and redefined reflp to ab an abbreviation.
+  - Added predicate reflp_on and redefined reflp to be an abbreviation.
     Lemma reflp_def is explicitly provided for backward compatibility
     but its usage is discouraged. Minor INCOMPATIBILITY.
   - Added predicate totalp_on and abbreviation totalp.
