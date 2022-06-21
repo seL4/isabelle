@@ -1,5 +1,5 @@
 /*  Title:      Pure/Admin/ci_profile.scala
-    Author:     Lars Hupel
+    Author:     Lars Hupel and Fabian Huch, TU Munich
 
 Build profile for continuous integration services.
 */
@@ -12,31 +12,73 @@ import java.time.format.DateTimeFormatter
 import java.util.{Properties => JProperties, Map => JMap}
 
 
-abstract class CI_Profile extends Isabelle_Tool.Body {
+object CI_Profile {
+
+  /* Result */
+
   case class Result(rc: Int)
   case object Result {
     def ok: Result = Result(Process_Result.RC.ok)
     def error: Result = Result(Process_Result.RC.error)
   }
 
-  private def build(options: Options): (Build.Results, Time) = {
-    val progress = new Console_Progress(verbose = true)
-    val start_time = Time.now()
-    val results = progress.interrupt_handler {
-      Build.build(
-        options + "system_heaps",
-        selection = selection,
-        progress = progress,
-        clean_build = clean,
-        verbose = true,
-        numa_shuffling = numa,
-        max_jobs = jobs,
-        dirs = include,
-        select_dirs = select)
+
+  /* Profile */
+
+  case class Profile(threads: Int, jobs: Int, numa: Boolean)
+
+  object Profile {
+    def from_host: Profile = {
+      Isabelle_System.hostname() match {
+        case "hpcisabelle" => Profile(8, 8, numa = true)
+        case "lxcisa1" => Profile(4, 10, numa = false)
+        case _ => Profile(2, 2, numa = false)
+      }
     }
-    val end_time = Time.now()
-    (results, end_time - start_time)
   }
+
+
+  /* Config */
+
+  case class Build_Config(
+    documents: Boolean = true,
+    clean: Boolean = true,
+    include: List[Path] = Nil,
+    select: List[Path] = Nil,
+    pre_hook: () => Result = () => { Result.ok },
+    post_hook: Build.Results => Result = { _ => Result.ok },
+    selection: Sessions.Selection = Sessions.Selection.empty
+  )
+
+
+  /* Status */
+
+  sealed abstract class Status(val str: String) {
+    def merge(that: Status): Status = (this, that) match {
+      case (Ok, s) => s
+      case (Failed, _) => Failed
+      case (Skipped, Failed) => Failed
+      case (Skipped, _) => Skipped
+    }
+  }
+
+  object Status {
+    def merge(statuses: List[Status]): Status =
+      statuses.foldLeft(Ok: Status)(_ merge _)
+
+    def from_results(results: Build.Results, session: String): Status =
+      if (results.cancelled(session))
+        Skipped
+      else if (results(session).ok)
+        Ok
+      else
+        Failed
+  }
+
+  case object Ok extends Status("ok")
+  case object Skipped extends Status("skipped")
+  case object Failed extends Status("failed")
+
 
   private def load_properties(): JProperties = {
     val props = new JProperties()
@@ -60,8 +102,8 @@ abstract class CI_Profile extends Isabelle_Tool.Body {
     timings.foldLeft(Timing.zero)(_ + _)
   }
 
-  private def with_documents(options: Options): Options = {
-    if (documents)
+  private def with_documents(options: Options, config: Build_Config): Options = {
+    if (config.documents)
       options
         .bool.update("browser_info", true)
         .string.update("document", "pdf")
@@ -70,39 +112,54 @@ abstract class CI_Profile extends Isabelle_Tool.Body {
       options
   }
 
-
-  final def hg_id(path: Path): String =
+  def hg_id(path: Path): String =
     Mercurial.repository(path).id()
 
-  final def print_section(title: String): Unit =
+  def print_section(title: String): Unit =
     println(s"\n=== $title ===\n")
 
+  def build(profile: Profile, config: Build_Config): Unit = {
+    val isabelle_home = Path.explode(Isabelle_System.getenv_strict("ISABELLE_HOME"))
+    val isabelle_id = hg_id(isabelle_home)
 
-  final val isabelle_home = Path.explode(Isabelle_System.getenv_strict("ISABELLE_HOME"))
-  final val isabelle_id = hg_id(isabelle_home)
-  final val start_time = Instant.now().atZone(ZoneId.systemDefault).format(DateTimeFormatter.RFC_1123_DATE_TIME)
+    val start_time = Instant.now().atZone(ZoneId.systemDefault).format(DateTimeFormatter.RFC_1123_DATE_TIME)
 
-
-  override final def apply(args: List[String]): Unit = {
     print_section("CONFIGURATION")
     println(Build_Log.Settings.show())
     val props = load_properties()
-    System.getProperties().asInstanceOf[JMap[AnyRef, AnyRef]].putAll(props)
+    System.getProperties.asInstanceOf[JMap[AnyRef, AnyRef]].putAll(props)
 
     val options =
-      with_documents(Options.init())
+      with_documents(Options.init(), config)
         .int.update("parallel_proofs", 1)
-        .int.update("threads", threads)
+        .int.update("threads", profile.threads)
 
-    println(s"jobs = $jobs, threads = $threads, numa = $numa")
+    println(s"jobs = ${profile.jobs}, threads = ${profile.threads}, numa = ${profile.numa}")
 
     print_section("BUILD")
     println(s"Build started at $start_time")
     println(s"Isabelle id $isabelle_id")
-    val pre_result = pre_hook(args)
+    val pre_result = config.pre_hook()
 
     print_section("LOG")
-    val (results, elapsed_time) = build(options)
+    val (results, elapsed_time) = {
+      val progress = new Console_Progress(verbose = true)
+      val start_time = Time.now()
+      val results = progress.interrupt_handler {
+        Build.build(
+          options + "system_heaps",
+          selection = config.selection,
+          progress = progress,
+          clean_build = config.clean,
+          verbose = true,
+          numa_shuffling = profile.numa,
+          max_jobs = profile.jobs,
+          dirs = config.include,
+          select_dirs = config.select)
+      }
+      val end_time = Time.now()
+      (results, end_time - start_time)
+    }
 
     print_section("TIMING")
 
@@ -123,40 +180,13 @@ abstract class CI_Profile extends Isabelle_Tool.Body {
         else {
           val result = results(name)
           if (!result.ok)
-            println(s"Session $name: FAILED ${result.rc}")
+            println(s"Session $name: FAILED ${ result.rc }")
         }
       }
     }
 
-    val post_result = post_hook(results)
+    val post_result = config.post_hook(results)
 
     System.exit(List(pre_result.rc, results.rc, post_result.rc).max)
   }
-
-  /* profile */
-
-  def threads: Int = Isabelle_System.hostname() match {
-    case "hpcisabelle" => 8
-    case "lxcisa1" => 4
-    case _ => 2
-  }
-
-  def jobs: Int = Isabelle_System.hostname() match {
-    case "hpcisabelle" => 8
-    case "lxcisa1" => 10
-    case _ => 2
-  }
-
-  def numa: Boolean = Isabelle_System.hostname() == "hpcisabelle"
-
-  def documents: Boolean = true
-  def clean: Boolean = true
-
-  def include: List[Path]
-  def select: List[Path]
-
-  def pre_hook(args: List[String]): Result
-  def post_hook(results: Build.Results): Result
-
-  def selection: Sessions.Selection
 }
