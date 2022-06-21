@@ -2,8 +2,10 @@
     Author:     Makarius
 
 Scalable byte strings, with incremental construction (add content to the
-end). Note: type string is implicitly limited by String.maxSize (approx. 64
-MB on 64_32 architecture).
+end).
+
+Note: type string is implicitly limited by String.maxSize (approx. 64 MB on
+64_32 architecture).
 *)
 
 signature BYTES =
