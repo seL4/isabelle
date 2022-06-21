@@ -33,6 +33,8 @@ end;
 structure Bytes: BYTES =
 struct
 
+(* primitive operations *)
+
 val chunk_size = 1024 * 1024;
 
 abstype T = Bytes of
@@ -71,6 +73,9 @@ val add = add_substring o Substring.full;
 
 end;
 
+
+(* derived operations *)
+
 fun append bytes1 bytes2 =  (*left-associative*)
   if is_empty bytes1 then bytes2
   else if is_empty bytes2 then bytes1
@@ -96,6 +101,9 @@ fun write_stream stream = File.outputs stream o contents;
 
 val read = File.open_input read_stream;
 val write = File.open_output write_stream;
+
+
+(* ML pretty printing *)
 
 val _ =
   ML_system_pp (fn _ => fn _ => fn bytes =>
