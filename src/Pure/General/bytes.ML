@@ -97,4 +97,8 @@ fun write_stream stream = File.outputs stream o contents;
 val read = File.open_input read_stream;
 val write = File.open_output write_stream;
 
+val _ =
+  ML_system_pp (fn _ => fn _ => fn bytes =>
+    PolyML.PrettyString ("Bytes {length = " ^ string_of_int (length bytes) ^ "}"))
+
 end;
