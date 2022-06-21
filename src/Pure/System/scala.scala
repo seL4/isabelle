@@ -309,6 +309,8 @@ class Scala_Functions extends Scala.Functions(
   Scala.Toplevel,
   Bytes.Decode_Base64,
   Bytes.Encode_Base64,
+  Bytes.Compress,
+  Bytes.Uncompress,
   Doc.Doc_Names,
   Bibtex.Check_Database,
   Isabelle_System.Make_Directory,
