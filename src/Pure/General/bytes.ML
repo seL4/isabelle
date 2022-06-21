@@ -19,6 +19,7 @@ sig
   val empty: T
   val add_substring: substring -> T -> T
   val add: string -> T -> T
+  val append: T -> T -> T
   val build: (T -> T) -> T
   val string: string -> T
   val buffer: Buffer.T -> T
@@ -69,6 +70,11 @@ fun add_substring s (bytes as Bytes {buffer, chunks, m, n}) =
 val add = add_substring o Substring.full;
 
 end;
+
+fun append bytes1 bytes2 =  (*left-associative*)
+  if is_empty bytes1 then bytes2
+  else if is_empty bytes2 then bytes1
+  else bytes1 |> fold add (contents bytes2);
 
 fun build (f: T -> T) = f empty;
 
