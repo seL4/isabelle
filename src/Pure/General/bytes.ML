@@ -15,6 +15,7 @@ sig
   val content: T -> string
   val is_empty: T -> bool
   val empty: T
+  val add_substring: substring -> T -> T
   val add: string -> T -> T
   val build: (T -> T) -> T
   val string: string -> T
@@ -44,19 +45,22 @@ fun is_empty bytes = length bytes = 0;
 
 val empty = Bytes {buffer = [], chunks = [], m = 0, n = 0};
 
-fun add "" bytes = bytes
-  | add s (Bytes {buffer, chunks, m, n}) =
-      let val l = size s in
-        if l + m < chunk_size
-        then Bytes {buffer = s :: buffer, chunks = chunks, m = l + m, n = n}
-        else
-          let
-            val k = chunk_size - m;
-            val chunk = compact (String.substring (s, 0, k) :: buffer);
-            val s' = String.substring (s, k, l - k);
-            val bytes' = Bytes {buffer = [], chunks = chunk :: chunks, m = 0, n = chunk_size + n};
-          in add s' bytes' end
-      end;
+fun add_substring s (bytes as Bytes {buffer, chunks, m, n}) =
+  if Substring.isEmpty s then bytes
+  else
+    let val l = Substring.size s in
+      if l + m < chunk_size
+      then Bytes {buffer = Substring.string s :: buffer, chunks = chunks, m = l + m, n = n}
+      else
+        let
+          val k = chunk_size - m;
+          val chunk = compact (Substring.string (Substring.slice (s, 0, SOME k)) :: buffer);
+          val s' = Substring.slice (s, k, SOME (l - k));
+          val bytes' = Bytes {buffer = [], chunks = chunk :: chunks, m = 0, n = chunk_size + n};
+        in add_substring s' bytes' end
+    end;
+
+val add = add_substring o Substring.full;
 
 end;
 
