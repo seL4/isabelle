@@ -20,10 +20,10 @@ sig
   val with_tmp_file: string -> string -> (Path.T -> 'a) -> 'a
   val rm_tree: Path.T -> unit
   val with_tmp_dir: string -> (Path.T -> 'a) -> 'a
-  val download: string -> string
+  val download: string -> Bytes.T
   val download_file: string -> Path.T -> unit
-  val decode_base64: string -> string
-  val encode_base64: string -> string
+  val decode_base64: Bytes.T -> Bytes.T
+  val encode_base64: Bytes.T -> Bytes.T
   val isabelle_id: unit -> string
   val isabelle_identifier: unit -> string option
   val isabelle_heading: unit -> string
@@ -156,15 +156,15 @@ fun with_tmp_dir name f =
 
 (* download file *)
 
-val download = Scala.function1 "download";
+val download = Bytes.string #> Scala.function1_bytes "download";
 
-fun download_file url path = File.write path (download url);
+fun download_file url path = Bytes.write path (download url);
 
 
 (* base64 *)
 
-val decode_base64 = Scala.function1 "decode_base64";
-val encode_base64 = Scala.function1 "encode_base64";
+val decode_base64 = Scala.function1_bytes "decode_base64";
+val encode_base64 = Scala.function1_bytes "encode_base64";
 
 
 (* Isabelle distribution identification *)
