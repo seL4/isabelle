@@ -955,6 +955,12 @@ lemma monotone_onD:
 lemma monotoneD[dest?]: "monotone orda ordb f \<Longrightarrow> orda x y \<Longrightarrow> ordb (f x) (f y)"
   by (simp add: monotone_onD)
 
+lemma monotone_on_subset: "monotone_on A orda ordb f \<Longrightarrow> B \<subseteq> A \<Longrightarrow> monotone_on B orda ordb f"
+  by (auto intro: monotone_onI dest: monotone_onD)
+
+lemma monotone_on_empty[simp]: "monotone_on {} orda ordb f"
+  by (auto intro: monotone_onI dest: monotone_onD)
+
 definition "mono_on f A \<equiv> \<forall>r s. r \<in> A \<and> s \<in> A \<and> r \<le> s \<longrightarrow> f r \<le> f s"
 
 lemma mono_onI:

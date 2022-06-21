@@ -47,6 +47,8 @@ longer. INCOMPATIBILITY.
   - Added lemmas.
       monotone_onD
       monotone_onI
+      monotone_on_empty[simp]
+      monotone_on_subset
 
 * Theory "HOL.Relation":
   - Added predicate reflp_on and redefined reflp to be an abbreviation.
