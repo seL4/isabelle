@@ -14,17 +14,24 @@ sig
   type T
   val length: T -> int
   val contents: T -> string list
+  val contents_blob: T -> XML.body
   val content: T -> string
   val is_empty: T -> bool
   val empty: T
+  val build: (T -> T) -> T
   val add_substring: substring -> T -> T
   val add: string -> T -> T
+  val beginning: int -> T -> string
+  val exists_string: (string -> bool) -> T -> bool
+  val forall_string: (string -> bool) -> T -> bool
+  val last_string: T -> string option
+  val trim_line: T -> T
   val append: T -> T -> T
-  val build: (T -> T) -> T
   val string: string -> T
+  val newline: T
   val buffer: Buffer.T -> T
-  val read_chunk: BinIO.instream -> string
-  val read_stream: BinIO.instream -> T
+  val read_block: int -> BinIO.instream -> string
+  val read_stream: int -> BinIO.instream -> T
   val write_stream: BinIO.outstream -> T -> unit
   val read: Path.T -> T
   val write: Path.T -> T -> unit
@@ -48,11 +55,15 @@ val compact = implode o rev;
 fun contents (Bytes {buffer, chunks, ...}) =
   rev (chunks |> not (null buffer) ? cons (compact buffer));
 
+val contents_blob = contents #> XML.blob;
+
 val content = implode o contents;
 
 fun is_empty bytes = length bytes = 0;
 
 val empty = Bytes {buffer = [], chunks = [], m = 0, n = 0};
+
+fun build (f: T -> T) = f empty;
 
 fun add_substring s (bytes as Bytes {buffer, chunks, m, n}) =
   if Substring.isEmpty s then bytes
@@ -71,35 +82,76 @@ fun add_substring s (bytes as Bytes {buffer, chunks, m, n}) =
 
 val add = add_substring o Substring.full;
 
+fun exists_string pred (Bytes {buffer, chunks, ...}) =
+  let val ex = (exists o Library.exists_string) pred
+  in ex buffer orelse ex chunks end;
+
+fun forall_string pred = not o exists_string (not o pred);
+
+fun last_string (Bytes {buffer, chunks, ...}) =
+  (case buffer of
+    s :: _ => Library.last_string s
+  | [] =>
+      (case chunks of
+        s :: _ => Library.last_string s
+      | [] => NONE));
+
+fun trim_line (bytes as Bytes {buffer, chunks, ...}) =
+  let
+    val is_line =
+      (case last_string bytes of
+        SOME s => Symbol.is_ascii_line_terminator s
+      | NONE => false);
+  in
+    if is_line then
+      let
+        val (last_chunk, chunks') =
+          (case chunks of
+            [] => ("", [])
+          | c :: cs => (c, cs));
+        val trimed = Library.trim_line (last_chunk ^ compact buffer);
+      in build (fold_rev add chunks' #> add trimed) end
+    else bytes
+  end;
+
 end;
 
 
 (* derived operations *)
+
+fun beginning n bytes =
+  let
+    val dots = " ...";
+    val m = (String.maxSize - size dots) div chunk_size;
+    val a = implode (take m (contents bytes));
+    val b = String.substring (a, 0, Int.min (n, size a));
+  in if size b < length bytes then b ^ dots else b end;
 
 fun append bytes1 bytes2 =  (*left-associative*)
   if is_empty bytes1 then bytes2
   else if is_empty bytes2 then bytes1
   else bytes1 |> fold add (contents bytes2);
 
-fun build (f: T -> T) = f empty;
-
 val string = build o add;
+
+val newline = string "\n";
 
 val buffer = build o fold add o Buffer.contents;
 
-val read_chunk = File.input_size chunk_size;
+fun read_block limit =
+  File.input_size (if limit < 0 then chunk_size else Int.min (chunk_size, limit));
 
-fun read_stream stream =
+fun read_stream limit stream =
   let
-    fun read_bytes bytes =
-      (case read_chunk stream of
+    fun read bytes =
+      (case read_block (limit - length bytes) stream of
         "" => bytes
-      | s => read_bytes (add s bytes))
-  in read_bytes empty end;
+      | s => read (add s bytes))
+  in read empty end;
 
 fun write_stream stream = File.outputs stream o contents;
 
-val read = File.open_input read_stream;
+val read = File.open_input (read_stream ~1);
 val write = File.open_output write_stream;
 
 

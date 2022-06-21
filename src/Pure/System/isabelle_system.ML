@@ -58,14 +58,14 @@ fun bash_process params =
     fun with_streams f = Socket_IO.with_streams' f address password;
 
     fun kill (SOME uuid) =
-          with_streams (fn s => Byte_Message.write_message (#2 s) [Bash.server_kill, uuid])
+          with_streams (fn s => Byte_Message.write_message_string (#2 s) [Bash.server_kill, uuid])
       | kill NONE = ();
   in
     Thread_Attributes.uninterruptible (fn restore_attributes => fn () =>
       let
         fun err () = raise Fail "Malformed result from bash_process server";
         fun loop maybe_uuid s =
-          (case restore_attributes Byte_Message.read_message (#1 s) of
+          (case restore_attributes Byte_Message.read_message_string (#1 s) of
             SOME (head :: args) =>
               if head = Bash.server_uuid andalso length args = 1 then
                 loop (SOME (hd args)) s
@@ -91,7 +91,7 @@ fun bash_process params =
                else err ()
           | _ => err ())
           handle exn => (kill maybe_uuid; Exn.reraise exn);
-      in with_streams (fn s => (Byte_Message.write_message (#2 s) run; loop NONE s)) end) ()
+      in with_streams (fn s => (Byte_Message.write_message_string (#2 s) run; loop NONE s)) end) ()
   end;
 
 val bash = Bash.script #> bash_process #> Process_Result.print #> Process_Result.rc;

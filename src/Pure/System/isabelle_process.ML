@@ -96,7 +96,7 @@ fun init_protocol modes = Thread_Attributes.uninterruptible (fn _ => fn (address
     (* streams *)
 
     val (in_stream, out_stream) = Socket_IO.open_streams address;
-    val _ = Byte_Message.write_line out_stream password;
+    val _ = Byte_Message.write_line out_stream (Bytes.string password);
 
     val _ = TextIO.StreamIO.setBufferMode (TextIO.getOutstream TextIO.stdOut, IO.LINE_BUF);
     val _ = TextIO.StreamIO.setBufferMode (TextIO.getOutstream TextIO.stdErr, IO.LINE_BUF);
@@ -158,7 +158,7 @@ fun init_protocol modes = Thread_Attributes.uninterruptible (fn _ => fn (address
           (case Byte_Message.read_message in_stream of
             NONE => raise Protocol_Command.STOP 0
           | SOME [] => Output.system_message "Isabelle process: no input"
-          | SOME (name :: args) => Protocol_Command.run name args)
+          | SOME (name :: args) => Protocol_Command.run (Bytes.content name) args)
           handle exn =>
             if Protocol_Command.is_protocol_exn exn then Exn.reraise exn
             else (Runtime.exn_system_message exn handle crash => recover crash);
