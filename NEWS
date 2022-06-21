@@ -102,6 +102,8 @@ longer. INCOMPATIBILITY.
       image_mset_eq_plusD
       image_mset_eq_plus_image_msetD
       image_mset_filter_mset_swap
+      monotone_multp_multp_image_mset
+      monotone_on_multp_multp_image_mset
       multp_image_mset_image_msetD
 
 * Theory "HOL-Library.Sublist":

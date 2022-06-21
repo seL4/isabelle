@@ -3191,6 +3191,54 @@ lemmas subset_implies_multp = subset_implies_mult[of _ _ "{(x, y). r x y}" for r
 
 subsubsection \<open>Monotonicity\<close>
 
+lemma monotone_on_multp_multp_image_mset:
+  assumes "monotone_on A orda ordb f" and "transp orda"
+  shows "monotone_on {M. set_mset M \<subseteq> A} (multp orda) (multp ordb) (image_mset f)"
+proof (rule monotone_onI)
+  fix M1 M2
+  assume
+    M1_in: "M1 \<in> {M. set_mset M \<subseteq> A}" and
+    M2_in: "M2 \<in> {M. set_mset M \<subseteq> A}" and
+    M1_lt_M2: "multp orda M1 M2"
+
+  from multp_implies_one_step[OF \<open>transp orda\<close> M1_lt_M2] obtain I J K where
+    M2_eq: "M2 = I + J" and
+    M1_eq: "M1 = I + K" and
+    J_neq_mempty: "J \<noteq> {#}" and
+    ball_K_less: "\<forall>k\<in>#K. \<exists>x\<in>#J. orda k x"
+    by metis
+
+  have "multp ordb (image_mset f I + image_mset f K) (image_mset f I + image_mset f J)"
+  proof (intro one_step_implies_multp ballI)
+    show "image_mset f J \<noteq> {#}"
+      using J_neq_mempty by simp
+  next
+    fix k' assume "k'\<in>#image_mset f K"
+    then obtain k where "k' = f k" and k_in: "k \<in># K"
+      by auto
+    then obtain j where j_in: "j\<in>#J" and "orda k j"
+      using ball_K_less by auto
+
+    have "ordb (f k) (f j)"
+    proof (rule \<open>monotone_on A orda ordb f\<close>[THEN monotone_onD, OF _ _ \<open>orda k j\<close>])
+      show "k \<in> A"
+        using M1_eq M1_in k_in by auto
+    next
+      show "j \<in> A"
+        using M2_eq M2_in j_in by auto
+    qed
+    thus "\<exists>j\<in>#image_mset f J. ordb k' j"
+      using \<open>j \<in># J\<close> \<open>k' = f k\<close> by auto
+  qed
+  thus "multp ordb (image_mset f M1) (image_mset f M2)"
+    by (simp add: M1_eq M2_eq)
+qed
+
+lemma monotone_multp_multp_image_mset:
+  assumes "monotone orda ordb f" and "transp orda"
+  shows "monotone (multp orda) (multp ordb) (image_mset f)"
+  by (rule monotone_on_multp_multp_image_mset[OF assms, simplified])
+
 lemma multp_image_mset_image_msetD:
   assumes
     "multp R (image_mset f A) (image_mset f B)" and
