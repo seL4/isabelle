@@ -20,7 +20,10 @@ sig
   val build: (T -> T) -> T
   val string: string -> T
   val buffer: Buffer.T -> T
+  val read_stream: BinIO.instream -> T
+  val write_stream: BinIO.outstream -> T -> unit
   val read: Path.T -> T
+  val write: Path.T -> T -> unit
 end;
 
 structure Bytes: BYTES =
@@ -70,12 +73,18 @@ val string = build o add;
 
 val buffer = build o fold add o Buffer.contents;
 
-val read = File.open_input (fn stream =>
+fun read_stream stream =
   let
     fun read_bytes bytes =
       (case File.input_size chunk_size stream of
         "" => bytes
       | s => read_bytes (add s bytes))
-  in read_bytes empty end);
+  in read_bytes empty end;
+
+fun write_stream stream bytes =
+  List.app (File.output stream) (contents bytes);
+
+val read = File.open_input read_stream;
+val write = File.open_output write_stream;
 
 end;
