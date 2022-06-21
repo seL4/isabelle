@@ -22,6 +22,7 @@ sig
   val build: (T -> T) -> T
   val string: string -> T
   val buffer: Buffer.T -> T
+  val read_chunk: BinIO.instream -> string
   val read_stream: BinIO.instream -> T
   val write_stream: BinIO.outstream -> T -> unit
   val read: Path.T -> T
@@ -75,10 +76,12 @@ val string = build o add;
 
 val buffer = build o fold add o Buffer.contents;
 
+val read_chunk = File.input_size chunk_size;
+
 fun read_stream stream =
   let
     fun read_bytes bytes =
-      (case File.input_size chunk_size stream of
+      (case read_chunk stream of
         "" => bytes
       | s => read_bytes (add s bytes))
   in read_bytes empty end;
