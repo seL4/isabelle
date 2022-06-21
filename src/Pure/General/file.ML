@@ -38,6 +38,7 @@ sig
   val append: Path.T -> string -> unit
   val generate: Path.T -> string -> unit
   val output: BinIO.outstream -> string -> unit
+  val outputs: BinIO.outstream -> string list -> unit
   val write_list: Path.T -> string list -> unit
   val append_list: Path.T -> string list -> unit
   val write_buffer: Path.T -> Buffer.T -> unit
@@ -167,6 +168,7 @@ val read = open_input input_all;
 (* output *)
 
 fun output file txt = BinIO.output (file, Byte.stringToBytes txt);
+val outputs = List.app o output;
 
 fun output_list txts file = List.app (output file) txts;
 fun write_list path txts = open_output (output_list txts) path;

@@ -25,7 +25,7 @@ struct
 
 (* output operations *)
 
-fun write stream = List.app (File.output stream);
+val write = File.outputs;
 
 fun write_yxml stream tree = YXML.traverse (fn s => fn () => File.output stream s) tree ();
 

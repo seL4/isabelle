@@ -81,8 +81,7 @@ fun read_stream stream =
       | s => read_bytes (add s bytes))
   in read_bytes empty end;
 
-fun write_stream stream bytes =
-  List.app (File.output stream) (contents bytes);
+fun write_stream stream = File.outputs stream o contents;
 
 val read = File.open_input read_stream;
 val write = File.open_output write_stream;
