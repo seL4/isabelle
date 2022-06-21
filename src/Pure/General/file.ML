@@ -26,6 +26,9 @@ sig
   val open_append: (BinIO.outstream -> 'a) -> Path.T -> 'a
   val fold_dir: (string -> 'a -> 'a) -> Path.T -> 'a -> 'a
   val read_dir: Path.T -> string list
+  val input: BinIO.instream -> string
+  val input_size: int -> BinIO.instream -> string
+  val input_all: BinIO.instream -> string
   val fold_lines: (string -> 'a -> 'a) -> Path.T -> 'a -> 'a
   val fold_pages: (string -> 'a -> 'a) -> Path.T -> 'a -> 'a
   val read_lines: Path.T -> string list
@@ -35,6 +38,7 @@ sig
   val append: Path.T -> string -> unit
   val generate: Path.T -> string -> unit
   val output: BinIO.outstream -> string -> unit
+  val outputs: BinIO.outstream -> string list -> unit
   val write_list: Path.T -> string list -> unit
   val append_list: Path.T -> string list -> unit
   val write_buffer: Path.T -> Buffer.T -> unit
@@ -130,6 +134,10 @@ fun read_dir path = sort_strings (fold_dir cons path []);
 
 (* input *)
 
+val input = Byte.bytesToString o BinIO.input;
+fun input_size n stream = Byte.bytesToString (BinIO.inputN (stream, n));
+val input_all = Byte.bytesToString o BinIO.inputAll;
+
 (*
   scalable iterator:
   . avoid size limit of TextIO.inputAll and overhead of many TextIO.inputLine
@@ -138,7 +146,7 @@ fun read_dir path = sort_strings (fold_dir cons path []);
 fun fold_chunks terminator f path a = open_input (fn file =>
   let
     fun read buf x =
-      (case Byte.bytesToString (BinIO.input file) of
+      (case input file of
         "" => (case Buffer.content buf of "" => x | line => f line x)
       | input =>
           (case String.fields (fn c => c = terminator) input of
@@ -154,12 +162,13 @@ fun fold_pages f = fold_chunks #"\f" f;
 fun read_lines path = rev (fold_lines cons path []);
 fun read_pages path = rev (fold_pages cons path []);
 
-val read = open_input (Byte.bytesToString o BinIO.inputAll);
+val read = open_input input_all;
 
 
 (* output *)
 
 fun output file txt = BinIO.output (file, Byte.stringToBytes txt);
+val outputs = List.app o output;
 
 fun output_list txts file = List.app (output file) txts;
 fun write_list path txts = open_output (output_list txts) path;
@@ -169,7 +178,8 @@ fun write path txt = write_list path [txt];
 fun append path txt = append_list path [txt];
 fun generate path txt = if try read path = SOME txt then () else write path txt;
 
-fun write_buffer path buf = open_output (Buffer.output buf o output) path;
+fun write_buffer path buf =
+  open_output (fn file => List.app (output file) (Buffer.contents buf)) path;
 
 
 (* eq *)

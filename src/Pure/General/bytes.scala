@@ -60,6 +60,21 @@ object Bytes {
   }
 
 
+  /* XZ compression */
+
+  object Compress extends Scala.Fun("compress") {
+    val here = Scala_Project.here
+    def invoke(args: List[Bytes]): List[Bytes] =
+      List(Library.the_single(args).compress())
+  }
+
+  object Uncompress extends Scala.Fun("uncompress") {
+    val here = Scala_Project.here
+    def invoke(args: List[Bytes]): List[Bytes] =
+      List(Library.the_single(args).uncompress())
+  }
+
+
   /* read */
 
   def read_stream(stream: InputStream, limit: Int = Integer.MAX_VALUE, hint: Int = 1024): Bytes =

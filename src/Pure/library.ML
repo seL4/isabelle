@@ -135,6 +135,7 @@ sig
   val exists_string: (string -> bool) -> string -> bool
   val forall_string: (string -> bool) -> string -> bool
   val member_string: string -> string -> bool
+  val last_string: string -> string option
   val first_field: string -> string -> (string * string) option
   val enclose: string -> string -> string -> string
   val unenclose: string -> string
@@ -713,6 +714,9 @@ fun exists_string pred str =
 fun forall_string pred = not o exists_string (not o pred);
 
 fun member_string str s = exists_string (fn s' => s = s') str;
+
+fun last_string "" = NONE
+  | last_string s = SOME (str (String.sub (s, size s - 1)));
 
 fun first_field sep str =
   let

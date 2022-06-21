@@ -96,6 +96,6 @@ fun with_streams f =
 
 fun with_streams' f socket_name password =
   with_streams (fn streams =>
-    (Byte_Message.write_line (#2 streams) password; f streams)) socket_name;
+    (Byte_Message.write_line (#2 streams) (Bytes.string password); f streams)) socket_name;
 
 end;
