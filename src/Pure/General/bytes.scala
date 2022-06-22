@@ -47,13 +47,13 @@ object Bytes {
     new Bytes(a, 0, a.length)
   }
 
-  object Decode_Base64 extends Scala.Fun("decode_base64") {
+  object Decode_Base64 extends Scala.Fun("decode_base64") with Scala.Fun_Single_Bytes {
     val here = Scala_Project.here
     def invoke(args: List[Bytes]): List[Bytes] =
       List(base64(Library.the_single(args).text))
   }
 
-  object Encode_Base64 extends Scala.Fun("encode_base64") {
+  object Encode_Base64 extends Scala.Fun("encode_base64") with Scala.Fun_Single_Bytes {
     val here = Scala_Project.here
     def invoke(args: List[Bytes]): List[Bytes] =
       List(Bytes(Library.the_single(args).base64))
@@ -62,13 +62,13 @@ object Bytes {
 
   /* XZ compression */
 
-  object Compress extends Scala.Fun("compress") {
+  object Compress extends Scala.Fun("compress") with Scala.Fun_Single_Bytes {
     val here = Scala_Project.here
     def invoke(args: List[Bytes]): List[Bytes] =
       List(Library.the_single(args).compress())
   }
 
-  object Uncompress extends Scala.Fun("uncompress") {
+  object Uncompress extends Scala.Fun("uncompress") with Scala.Fun_Single_Bytes {
     val here = Scala_Project.here
     def invoke(args: List[Bytes]): List[Bytes] =
       List(Library.the_single(args).uncompress())

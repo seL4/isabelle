@@ -13,7 +13,7 @@ sig
      bibtex_entries: (string * string list) list,
      command_timings: Properties.T list,
      load_commands: (string * Position.T) list,
-     scala_functions: (string * (bool * Position.T)) list,
+     scala_functions: (string * ((bool * bool) * Position.T)) list,
      global_theories: (string * string) list,
      loaded_theories: string list} -> unit
   val init_session_yxml: string -> unit
@@ -25,7 +25,7 @@ sig
   val last_timing: Toplevel.transition -> Time.time
   val check_load_command: Proof.context -> string * Position.T -> string
   val scala_functions: unit -> string list
-  val check_scala_function: Proof.context -> string * Position.T -> string * bool
+  val check_scala_function: Proof.context -> string * Position.T -> string * (bool * bool)
   val master_directory: theory -> Path.T
   val imports_of: theory -> (string * Position.T) list
   val begin_theory: Path.T -> Thy_Header.header -> theory list -> theory
@@ -104,7 +104,7 @@ val empty_session_base =
     bibtex_entries = Symtab.empty: string list Symtab.table,
     timings = empty_timings,
     load_commands = []: (string * Position.T) list,
-    scala_functions = Symtab.empty: (bool * Position.T) Symtab.table},
+    scala_functions = Symtab.empty: ((bool * bool) * Position.T) Symtab.table},
    {global_theories = Symtab.empty: string Symtab.table,
     loaded_theories = Symtab.empty: unit Symtab.table});
 
@@ -137,7 +137,7 @@ fun init_session_yxml yxml =
             (pair (list (pair string string))
               (pair (list (pair string (list string))) (pair (list properties)
                 (pair (list (pair string properties))
-                  (pair (list (pair string (pair bool properties)))
+                  (pair (list (pair string (pair (pair bool bool) properties)))
                     (pair (list (pair string string)) (list string))))))))
         end;
   in
@@ -183,19 +183,18 @@ fun check_load_command ctxt arg =
 (*raw bootstrap environment*)
 fun scala_functions () = space_explode "," (getenv "ISABELLE_SCALA_FUNCTIONS");
 
+val scala_function_default = the_default ((true, false), Position.none);
+
 (*regular resources*)
 fun scala_function a =
-  (a, the_default (false, Position.none) (Symtab.lookup (get_session_base1 #scala_functions) a));
+  (a, scala_function_default (Symtab.lookup (get_session_base1 #scala_functions) a));
 
 fun check_scala_function ctxt arg =
   let
     val funs = scala_functions () |> sort_strings |> map scala_function;
     val name = Completion.check_entity Markup.scala_functionN (map (apsnd #2) funs) ctxt arg;
-    val multi =
-      (case AList.lookup (op =) funs name of
-        SOME (multi, _) => multi
-      | NONE => false);
-  in (name, multi) end;
+    val flags = #1 (scala_function_default (AList.lookup (op =) funs name));
+  in (name, flags) end;
 
 val _ = Theory.setup
  (Document_Output.antiquotation_verbatim_embedded \<^binding>\<open>scala_function\<close>
@@ -206,8 +205,10 @@ val _ = Theory.setup
   ML_Antiquotation.value_embedded \<^binding>\<open>scala\<close>
     (Args.context -- Scan.lift Parse.embedded_position >> (fn (ctxt, arg) =>
       let
-        val (name, multi) = check_scala_function ctxt arg;
-        val func = if multi then "Scala.function" else "Scala.function1";
+        val (name, (single, bytes)) = check_scala_function ctxt arg;
+        val func =
+          (if single then "Scala.function1" else "Scala.function") ^
+          (if bytes then "_bytes" else "");
       in ML_Syntax.atomic (func ^ " " ^ ML_Syntax.print_string name) end)));
 
 

@@ -18,11 +18,16 @@ object Scala {
 
   abstract class Fun(val name: String, val thread: Boolean = false) {
     override def toString: String = name
-    def multi: Boolean = true
+    def single: Boolean = false
+    def bytes: Boolean = false
     def position: Properties.T = here.position
     def here: Scala_Project.Here
     def invoke(args: List[Bytes]): List[Bytes]
   }
+
+  trait Fun_Single extends Fun { override def single: Boolean = true }
+  trait Fun_Bytes extends Fun { override def bytes: Boolean = true }
+  trait Fun_Single_Bytes extends Fun_Single with Fun_Bytes
 
   abstract class Fun_Strings(name: String, thread: Boolean = false)
   extends Fun(name, thread = thread) {
@@ -32,11 +37,16 @@ object Scala {
   }
 
   abstract class Fun_String(name: String, thread: Boolean = false)
-  extends Fun_Strings(name, thread = thread) {
-    override def multi: Boolean = false
+  extends Fun_Strings(name, thread = thread) with Fun_Single {
     override def apply(args: List[String]): List[String] =
       List(apply(Library.the_single(args)))
     def apply(arg: String): String
+  }
+
+  val encode_fun: XML.Encode.T[Fun] = { fun =>
+    import XML.Encode._
+    pair(string, pair(pair(bool, bool), properties))(
+      fun.name, ((fun.single, fun.bytes), fun.position))
   }
 
   class Functions(val functions: Fun*) extends Isabelle_System.Service
