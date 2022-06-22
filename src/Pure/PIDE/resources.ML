@@ -17,14 +17,13 @@ sig
      global_theories: (string * string) list,
      loaded_theories: string list} -> unit
   val init_session_yxml: string -> unit
-  val init_session_file: Path.T -> unit
+  val init_session_env: unit -> unit
   val finish_session_base: unit -> unit
   val global_theory: string -> string option
   val loaded_theory: string -> bool
   val check_session: Proof.context -> string * Position.T -> string
   val last_timing: Toplevel.transition -> Time.time
   val check_load_command: Proof.context -> string * Position.T -> string
-  val scala_functions: unit -> string list
   val check_scala_function: Proof.context -> string * Position.T -> string * (bool * bool)
   val master_directory: theory -> Path.T
   val imports_of: theory -> (string * Position.T) list
@@ -152,8 +151,14 @@ fun init_session_yxml yxml =
        loaded_theories = loaded_theories}
   end;
 
-fun init_session_file path =
-  init_session_yxml (File.read path) before File.rm path;
+fun init_session_env () =
+  (case getenv "ISABELLE_INIT_SESSION" of
+    "" => ()
+  | name =>
+      try File.read (Path.explode name)
+      |> Option.app init_session_yxml);
+
+val _ = init_session_env ();
 
 fun finish_session_base () =
   Synchronized.change global_session_base
@@ -180,20 +185,12 @@ fun check_load_command ctxt arg =
 
 (* Scala functions *)
 
-(*raw bootstrap environment*)
-fun scala_functions () = space_explode "," (getenv "ISABELLE_SCALA_FUNCTIONS");
-
-val scala_function_default = the_default ((true, false), Position.none);
-
-(*regular resources*)
-fun scala_function a =
-  (a, scala_function_default (Symtab.lookup (get_session_base1 #scala_functions) a));
-
 fun check_scala_function ctxt arg =
   let
-    val funs = scala_functions () |> sort_strings |> map scala_function;
-    val name = Completion.check_entity Markup.scala_functionN (map (apsnd #2) funs) ctxt arg;
-    val flags = #1 (scala_function_default (AList.lookup (op =) funs name));
+    val table = get_session_base1 #scala_functions;
+    val funs = Symtab.fold (fn (a, (_, pos)) => cons (a, pos)) table [] |> sort_by #1;
+    val name = Completion.check_entity Markup.scala_functionN funs ctxt arg;
+    val flags = #1 (the (Symtab.lookup table name));
   in (name, flags) end;
 
 val _ = Theory.setup

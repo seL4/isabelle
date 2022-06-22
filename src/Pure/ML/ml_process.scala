@@ -78,16 +78,14 @@ object ML_Process {
     val eval_options = if (heaps.isEmpty) Nil else List("Options.load_default ()")
 
     // session base
+    val (init_session_base, eval_init_session) =
+      session_base match {
+        case None => (sessions_structure.bootstrap, Nil)
+        case Some(base) => (base, List("Resources.init_session_env ()"))
+      }
     val init_session = Isabelle_System.tmp_file("init_session")
     Isabelle_System.chmod("600", File.path(init_session))
-    val eval_init_session =
-      session_base match {
-        case None => Nil
-        case Some(base) =>
-          File.write(init_session, new Resources(sessions_structure, base).init_session_yxml)
-          List("Resources.init_session_file (Path.explode " +
-            ML_Syntax.print_string_bytes(File.path(init_session).implode) + ")")
-      }
+    File.write(init_session, new Resources(sessions_structure, init_session_base).init_session_yxml)
 
     // process
     val eval_process =
@@ -119,9 +117,9 @@ object ML_Process {
 
     val bash_env = new HashMap(env)
     bash_env.put("ISABELLE_PROCESS_OPTIONS", File.standard_path(isabelle_process_options))
+    bash_env.put("ISABELLE_INIT_SESSION", File.standard_path(init_session))
     bash_env.put("ISABELLE_TMP", File.standard_path(isabelle_tmp))
     bash_env.put("POLYSTATSDIR", isabelle_tmp.getAbsolutePath)
-    bash_env.put("ISABELLE_SCALA_FUNCTIONS", Scala.functions.mkString(","))
 
     Bash.process(
       options.string("ML_process_policy") + """ "$ML_HOME/poly" -q """ +
