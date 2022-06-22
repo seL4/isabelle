@@ -25,9 +25,8 @@ object Scala {
     def invoke(args: List[Bytes]): List[Bytes]
   }
 
-  trait Fun_Single extends Fun { override def single: Boolean = true }
-  trait Fun_Bytes extends Fun { override def bytes: Boolean = true }
-  trait Fun_Single_Bytes extends Fun_Single with Fun_Bytes
+  trait Single_Fun extends Fun { override def single: Boolean = true }
+  trait Bytes_Fun extends Fun { override def bytes: Boolean = true }
 
   abstract class Fun_Strings(name: String, thread: Boolean = false)
   extends Fun(name, thread = thread) {
@@ -37,10 +36,17 @@ object Scala {
   }
 
   abstract class Fun_String(name: String, thread: Boolean = false)
-  extends Fun_Strings(name, thread = thread) with Fun_Single {
+  extends Fun_Strings(name, thread = thread) with Single_Fun {
     override def apply(args: List[String]): List[String] =
       List(apply(Library.the_single(args)))
     def apply(arg: String): String
+  }
+
+  abstract class Fun_Bytes(name: String, thread: Boolean = false)
+    extends Fun(name, thread = thread) with Single_Fun with Bytes_Fun {
+    override def invoke(args: List[Bytes]): List[Bytes] =
+      List(apply(Library.the_single(args)))
+    def apply(arg: Bytes): Bytes
   }
 
   val encode_fun: XML.Encode.T[Fun] = { fun =>

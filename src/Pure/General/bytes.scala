@@ -47,31 +47,27 @@ object Bytes {
     new Bytes(a, 0, a.length)
   }
 
-  object Decode_Base64 extends Scala.Fun("decode_base64") with Scala.Fun_Single_Bytes {
+  object Decode_Base64 extends Scala.Fun_Bytes("decode_base64") {
     val here = Scala_Project.here
-    def invoke(args: List[Bytes]): List[Bytes] =
-      List(decode_base64(Library.the_single(args).text))
+    def apply(arg: Bytes): Bytes = decode_base64(arg.text)
   }
 
-  object Encode_Base64 extends Scala.Fun("encode_base64") with Scala.Fun_Single_Bytes {
+  object Encode_Base64 extends Scala.Fun_Bytes("encode_base64") {
     val here = Scala_Project.here
-    def invoke(args: List[Bytes]): List[Bytes] =
-      List(Bytes(Library.the_single(args).encode_base64))
+    def apply(arg: Bytes): Bytes = Bytes(arg.encode_base64)
   }
 
 
   /* XZ compression */
 
-  object Compress extends Scala.Fun("compress") with Scala.Fun_Single_Bytes {
+  object Compress extends Scala.Fun_Bytes("compress") {
     val here = Scala_Project.here
-    def invoke(args: List[Bytes]): List[Bytes] =
-      List(Library.the_single(args).compress())
+    def apply(arg: Bytes): Bytes = arg.compress()
   }
 
-  object Uncompress extends Scala.Fun("uncompress") with Scala.Fun_Single_Bytes {
+  object Uncompress extends Scala.Fun_Bytes("uncompress") {
     val here = Scala_Project.here
-    def invoke(args: List[Bytes]): List[Bytes] =
-      List(Library.the_single(args).uncompress())
+    def apply(arg: Bytes): Bytes = arg.uncompress()
   }
 
 
