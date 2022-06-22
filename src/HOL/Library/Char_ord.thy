@@ -25,14 +25,14 @@ end
 
 lemma less_eq_char_simp [simp]:
   "Char b0 b1 b2 b3 b4 b5 b6 b7 \<le> Char c0 c1 c2 c3 c4 c5 c6 c7
-    \<longleftrightarrow> foldr (\<lambda>b k. of_bool b + k * 2) [b0, b1, b2, b3, b4, b5, b6, b7] 0
-      \<le> foldr (\<lambda>b k. of_bool b + k * 2) [c0, c1, c2, c3, c4, c5, c6, c7] (0::nat)"
+    \<longleftrightarrow> horner_sum of_bool (2 :: nat) [b0, b1, b2, b3, b4, b5, b6, b7]
+      \<le> horner_sum of_bool (2 :: nat) [c0, c1, c2, c3, c4, c5, c6, c7]"
   by (simp add: less_eq_char_def)
 
 lemma less_char_simp [simp]:
   "Char b0 b1 b2 b3 b4 b5 b6 b7 < Char c0 c1 c2 c3 c4 c5 c6 c7
-    \<longleftrightarrow> foldr (\<lambda>b k. of_bool b + k * 2) [b0, b1, b2, b3, b4, b5, b6, b7] 0
-      < foldr (\<lambda>b k. of_bool b + k * 2) [c0, c1, c2, c3, c4, c5, c6, c7] (0::nat)"
+    \<longleftrightarrow> horner_sum of_bool (2 :: nat) [b0, b1, b2, b3, b4, b5, b6, b7]
+      < horner_sum of_bool (2 :: nat) [c0, c1, c2, c3, c4, c5, c6, c7]"
   by (simp add: less_char_def)
 
 instantiation char :: distrib_lattice
