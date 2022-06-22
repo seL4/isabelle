@@ -72,10 +72,10 @@ object ML_Process {
 
 
     // options
+    val eval_options = if (heaps.isEmpty) Nil else List("Options.load_default ()")
     val isabelle_process_options = Isabelle_System.tmp_file("options")
     Isabelle_System.chmod("600", File.path(isabelle_process_options))
     File.write(isabelle_process_options, YXML.string_of_body(options.encode))
-    val eval_options = if (heaps.isEmpty) Nil else List("Options.load_default ()")
 
     // session base
     val (init_session_base, eval_init_session) =
