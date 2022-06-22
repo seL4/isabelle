@@ -138,6 +138,9 @@ val newline = string "\n";
 
 val buffer = build o fold add o Buffer.contents;
 
+
+(* IO *)
+
 fun read_block limit =
   File.input_size (if limit < 0 then chunk_size else Int.min (chunk_size, limit));
 
