@@ -5966,6 +5966,9 @@ qed
 lemma sorted_enumerate [simp]: "sorted (map fst (enumerate n xs))"
 by (simp add: enumerate_eq_zip)
 
+lemma sorted_insort_is_snoc: "sorted xs \<Longrightarrow> \<forall>x \<in> set xs. a \<ge> x \<Longrightarrow> insort a xs = xs @ [a]"
+ by (induct xs) (auto dest!: insort_is_Cons)
+
 text \<open>Stability of \<^const>\<open>sort_key\<close>:\<close>
 
 lemma sort_key_stable: "filter (\<lambda>y. f y = k) (sort_key f xs) = filter (\<lambda>y. f y = k) xs"
@@ -7011,7 +7014,7 @@ where
 
 end
 
-lemma lexordp_simps [simp]:
+lemma lexordp_simps [simp, code]:
   "lexordp [] ys = (ys \<noteq> [])"
   "lexordp xs [] = False"
   "lexordp (x # xs) (y # ys) \<longleftrightarrow> x < y \<or> \<not> y < x \<and> lexordp xs ys"
@@ -7022,7 +7025,7 @@ inductive lexordp_eq :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool" where
 | Cons: "x < y \<Longrightarrow> lexordp_eq (x # xs) (y # ys)"
 | Cons_eq: "\<lbrakk> \<not> x < y; \<not> y < x; lexordp_eq xs ys \<rbrakk> \<Longrightarrow> lexordp_eq (x # xs) (y # ys)"
 
-lemma lexordp_eq_simps [simp]:
+lemma lexordp_eq_simps [simp, code]:
   "lexordp_eq [] ys = True"
   "lexordp_eq xs [] \<longleftrightarrow> xs = []"
   "lexordp_eq (x # xs) [] = False"
@@ -7062,7 +7065,7 @@ by (metis append_Nil2 lexordp_append_rightI lexordp_eq_refl lexordp_into_lexordp
 end
 
 declare ord.lexordp_simps [simp, code]
-declare ord.lexordp_eq_simps [code, simp]
+declare ord.lexordp_eq_simps [simp, code]
 
 context order
 begin
@@ -7154,9 +7157,6 @@ lemma lexordp_linorder: "class.linorder lexordp_eq lexordp"
      (auto simp add: lexordp_conv_lexordp_eq lexordp_eq_refl lexordp_eq_antisym intro: lexordp_eq_trans del: disjCI intro: lexordp_eq_linear)
 
 end
-
-lemma sorted_insort_is_snoc: "sorted xs \<Longrightarrow> \<forall>x \<in> set xs. a \<ge> x \<Longrightarrow> insort a xs = xs @ [a]"
- by (induct xs) (auto dest!: insort_is_Cons)
 
 
 subsubsection \<open>Lexicographic combination of measure functions\<close>
