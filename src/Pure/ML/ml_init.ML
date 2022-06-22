@@ -33,3 +33,9 @@ struct
     if n = 1 then String.str (String.sub (s, i))
     else String.substring (s, i, n);
 end;
+
+structure Substring =
+struct
+  open Substring;
+  val empty = full "";
+end;

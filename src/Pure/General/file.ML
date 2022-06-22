@@ -30,9 +30,7 @@ sig
   val input_size: int -> BinIO.instream -> string
   val input_all: BinIO.instream -> string
   val fold_lines: (string -> 'a -> 'a) -> Path.T -> 'a -> 'a
-  val fold_pages: (string -> 'a -> 'a) -> Path.T -> 'a -> 'a
   val read_lines: Path.T -> string list
-  val read_pages: Path.T -> string list
   val read: Path.T -> string
   val write: Path.T -> string -> unit
   val append: Path.T -> string -> unit
@@ -143,24 +141,20 @@ val input_all = Byte.bytesToString o BinIO.inputAll;
   . avoid size limit of TextIO.inputAll and overhead of many TextIO.inputLine
   . optional terminator at end-of-input
 *)
-fun fold_chunks terminator f path a = open_input (fn file =>
+fun fold_lines f path a = open_input (fn file =>
   let
     fun read buf x =
       (case input file of
         "" => (case Buffer.content buf of "" => x | line => f line x)
       | input =>
-          (case String.fields (fn c => c = terminator) input of
+          (case String.fields (fn c => c = #"\n") input of
             [rest] => read (Buffer.add rest buf) x
-          | line :: more => read_lines more (f (Buffer.content (Buffer.add line buf)) x)))
-    and read_lines [rest] x = read (Buffer.add rest Buffer.empty) x
-      | read_lines (line :: more) x = read_lines more (f line x);
+          | line :: more => read_more more (f (Buffer.content (Buffer.add line buf)) x)))
+    and read_more [rest] x = read (Buffer.add rest Buffer.empty) x
+      | read_more (line :: more) x = read_more more (f line x);
   in read Buffer.empty a end) path;
 
-fun fold_lines f = fold_chunks #"\n" f;
-fun fold_pages f = fold_chunks #"\f" f;
-
 fun read_lines path = rev (fold_lines cons path []);
-fun read_pages path = rev (fold_pages cons path []);
 
 val read = open_input input_all;
 
