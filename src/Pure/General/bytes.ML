@@ -32,6 +32,7 @@ sig
   val buffer: Buffer.T -> T
   val space_explode: string -> T -> string list
   val split_lines: T -> string list
+  val trim_split_lines: T -> string list
   val cat_lines: string list -> T
   val read_block: int -> BinIO.instream -> string
   val read_stream: int -> BinIO.instream -> T
@@ -176,6 +177,8 @@ fun space_explode sep bytes =
     in explode Substring.empty (contents bytes) NONE [] end;
 
 val split_lines = space_explode "\n";
+
+val trim_split_lines = trim_line #> split_lines #> map Library.trim_line;
 
 fun cat_lines lines = build (fold add (separate "\n" lines));
 
