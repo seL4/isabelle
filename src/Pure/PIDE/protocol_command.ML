@@ -8,8 +8,9 @@ signature PROTOCOL_COMMAND =
 sig
   exception STOP of int
   val is_protocol_exn: exn -> bool
+  val define_bytes: string -> (Bytes.T list -> unit) -> unit
   val define: string -> (string list -> unit) -> unit
-  val run: string -> string list -> unit
+  val run: string -> Bytes.T list -> unit
 end;
 
 structure Protocol_Command: PROTOCOL_COMMAND =
@@ -23,15 +24,17 @@ local
 
 val commands =
   Synchronized.var "Protocol_Command.commands"
-    (Symtab.empty: (string list -> unit) Symtab.table);
+    (Symtab.empty: (Bytes.T list -> unit) Symtab.table);
 
 in
 
-fun define name cmd =
+fun define_bytes name cmd =
   Synchronized.change commands (fn cmds =>
    (if not (Symtab.defined cmds name) then ()
     else warning ("Redefining Isabelle protocol command " ^ quote name);
     Symtab.update (name, cmd) cmds));
+
+fun define name cmd = define_bytes name (map Bytes.content #> cmd);
 
 fun run name args =
   (case Symtab.lookup (Synchronized.value commands) name of

@@ -20,10 +20,12 @@ sig
   val with_tmp_file: string -> string -> (Path.T -> 'a) -> 'a
   val rm_tree: Path.T -> unit
   val with_tmp_dir: string -> (Path.T -> 'a) -> 'a
-  val download: string -> string
+  val download: string -> Bytes.T
   val download_file: string -> Path.T -> unit
-  val decode_base64: string -> string
-  val encode_base64: string -> string
+  val decode_base64: Bytes.T -> Bytes.T
+  val encode_base64: Bytes.T -> Bytes.T
+  val compress: Bytes.T -> Bytes.T
+  val uncompress: Bytes.T -> Bytes.T
   val isabelle_id: unit -> string
   val isabelle_identifier: unit -> string option
   val isabelle_heading: unit -> string
@@ -58,14 +60,14 @@ fun bash_process params =
     fun with_streams f = Socket_IO.with_streams' f address password;
 
     fun kill (SOME uuid) =
-          with_streams (fn s => Byte_Message.write_message (#2 s) [Bash.server_kill, uuid])
+          with_streams (fn s => Byte_Message.write_message_string (#2 s) [Bash.server_kill, uuid])
       | kill NONE = ();
   in
     Thread_Attributes.uninterruptible (fn restore_attributes => fn () =>
       let
         fun err () = raise Fail "Malformed result from bash_process server";
         fun loop maybe_uuid s =
-          (case restore_attributes Byte_Message.read_message (#1 s) of
+          (case restore_attributes Byte_Message.read_message_string (#1 s) of
             SOME (head :: args) =>
               if head = Bash.server_uuid andalso length args = 1 then
                 loop (SOME (hd args)) s
@@ -91,7 +93,7 @@ fun bash_process params =
                else err ()
           | _ => err ())
           handle exn => (kill maybe_uuid; Exn.reraise exn);
-      in with_streams (fn s => (Byte_Message.write_message (#2 s) run; loop NONE s)) end) ()
+      in with_streams (fn s => (Byte_Message.write_message_string (#2 s) run; loop NONE s)) end) ()
   end;
 
 val bash = Bash.script #> bash_process #> Process_Result.print #> Process_Result.rc;
@@ -156,15 +158,21 @@ fun with_tmp_dir name f =
 
 (* download file *)
 
-val download = Scala.function1 "download";
+val download = Bytes.string #> Scala.function1_bytes "download";
 
-fun download_file url path = File.write path (download url);
+fun download_file url path = Bytes.write path (download url);
 
 
 (* base64 *)
 
-val decode_base64 = Scala.function1 "decode_base64";
-val encode_base64 = Scala.function1 "encode_base64";
+val decode_base64 = Scala.function1_bytes "decode_base64";
+val encode_base64 = Scala.function1_bytes "encode_base64";
+
+
+(* XZ compression *)
+
+val compress = Scala.function1_bytes "compress";
+val uncompress = Scala.function1_bytes "uncompress";
 
 
 (* Isabelle distribution identification *)

@@ -1,31 +1,164 @@
 (*  Title:      Pure/General/bytes.ML
     Author:     Makarius
 
-Byte-vector messages.
+Scalable byte strings, with incremental construction (add content to the
+end).
+
+Note: type string is implicitly limited by String.maxSize (approx. 64 MB on
+64_32 architecture).
 *)
 
 signature BYTES =
 sig
-  val read_line: BinIO.instream -> string option
-  val read_block: BinIO.instream -> int -> string
+  val chunk_size: int
+  type T
+  val length: T -> int
+  val contents: T -> string list
+  val contents_blob: T -> XML.body
+  val content: T -> string
+  val is_empty: T -> bool
+  val empty: T
+  val build: (T -> T) -> T
+  val add_substring: substring -> T -> T
+  val add: string -> T -> T
+  val beginning: int -> T -> string
+  val exists_string: (string -> bool) -> T -> bool
+  val forall_string: (string -> bool) -> T -> bool
+  val last_string: T -> string option
+  val trim_line: T -> T
+  val append: T -> T -> T
+  val string: string -> T
+  val newline: T
+  val buffer: Buffer.T -> T
+  val read_block: int -> BinIO.instream -> string
+  val read_stream: int -> BinIO.instream -> T
+  val write_stream: BinIO.outstream -> T -> unit
+  val read: Path.T -> T
+  val write: Path.T -> T -> unit
 end;
 
 structure Bytes: BYTES =
 struct
 
-fun read_line stream =
-  let
-    val result = trim_line o String.implode o rev;
-    fun read cs =
-      (case BinIO.input1 stream of
-        NONE => if null cs then NONE else SOME (result cs)
-      | SOME b =>
-          (case Byte.byteToChar b of
-            #"\n" => SOME (result cs)
-          | c => read (c :: cs)));
-  in read [] end;
+(* primitive operations *)
 
-fun read_block stream n =
-  Byte.bytesToString (BinIO.inputN (stream, n));
+val chunk_size = 1024 * 1024;
+
+abstype T = Bytes of
+  {buffer: string list, chunks: string list, m: int (*buffer size*), n: int (*chunks size*)}
+with
+
+fun length (Bytes {m, n, ...}) = m + n;
+
+val compact = implode o rev;
+
+fun contents (Bytes {buffer, chunks, ...}) =
+  rev (chunks |> not (null buffer) ? cons (compact buffer));
+
+val contents_blob = contents #> XML.blob;
+
+val content = implode o contents;
+
+fun is_empty bytes = length bytes = 0;
+
+val empty = Bytes {buffer = [], chunks = [], m = 0, n = 0};
+
+fun build (f: T -> T) = f empty;
+
+fun add_substring s (bytes as Bytes {buffer, chunks, m, n}) =
+  if Substring.isEmpty s then bytes
+  else
+    let val l = Substring.size s in
+      if l + m < chunk_size
+      then Bytes {buffer = Substring.string s :: buffer, chunks = chunks, m = l + m, n = n}
+      else
+        let
+          val k = chunk_size - m;
+          val chunk = compact (Substring.string (Substring.slice (s, 0, SOME k)) :: buffer);
+          val s' = Substring.slice (s, k, SOME (l - k));
+          val bytes' = Bytes {buffer = [], chunks = chunk :: chunks, m = 0, n = chunk_size + n};
+        in add_substring s' bytes' end
+    end;
+
+val add = add_substring o Substring.full;
+
+fun exists_string pred (Bytes {buffer, chunks, ...}) =
+  let val ex = (exists o Library.exists_string) pred
+  in ex buffer orelse ex chunks end;
+
+fun forall_string pred = not o exists_string (not o pred);
+
+fun last_string (Bytes {buffer, chunks, ...}) =
+  (case buffer of
+    s :: _ => Library.last_string s
+  | [] =>
+      (case chunks of
+        s :: _ => Library.last_string s
+      | [] => NONE));
+
+fun trim_line (bytes as Bytes {buffer, chunks, ...}) =
+  let
+    val is_line =
+      (case last_string bytes of
+        SOME s => Symbol.is_ascii_line_terminator s
+      | NONE => false);
+  in
+    if is_line then
+      let
+        val (last_chunk, chunks') =
+          (case chunks of
+            [] => ("", [])
+          | c :: cs => (c, cs));
+        val trimed = Library.trim_line (last_chunk ^ compact buffer);
+      in build (fold_rev add chunks' #> add trimed) end
+    else bytes
+  end;
+
+end;
+
+
+(* derived operations *)
+
+fun beginning n bytes =
+  let
+    val dots = " ...";
+    val m = (String.maxSize - size dots) div chunk_size;
+    val a = implode (take m (contents bytes));
+    val b = String.substring (a, 0, Int.min (n, size a));
+  in if size b < length bytes then b ^ dots else b end;
+
+fun append bytes1 bytes2 =  (*left-associative*)
+  if is_empty bytes1 then bytes2
+  else if is_empty bytes2 then bytes1
+  else bytes1 |> fold add (contents bytes2);
+
+val string = build o add;
+
+val newline = string "\n";
+
+val buffer = build o fold add o Buffer.contents;
+
+fun read_block limit =
+  File.input_size (if limit < 0 then chunk_size else Int.min (chunk_size, limit));
+
+fun read_stream limit stream =
+  let
+    fun read bytes =
+      (case read_block (limit - length bytes) stream of
+        "" => bytes
+      | s => read (add s bytes))
+  in read empty end;
+
+fun write_stream stream = File.outputs stream o contents;
+
+val read = File.open_input (read_stream ~1);
+val write = File.open_output write_stream;
+
+
+(* ML pretty printing *)
+
+val _ =
+  ML_system_pp (fn _ => fn _ => fn bytes =>
+    PolyML.PrettyString ("Bytes {length = " ^ string_of_int (length bytes) ^ "}"))
 
 end;
