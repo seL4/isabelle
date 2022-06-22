@@ -30,6 +30,9 @@ sig
   val string: string -> T
   val newline: T
   val buffer: Buffer.T -> T
+  val space_explode: string -> T -> string list
+  val split_lines: T -> string list
+  val cat_lines: string list -> T
   val read_block: int -> BinIO.instream -> string
   val read_stream: int -> BinIO.instream -> T
   val write_stream: BinIO.outstream -> T -> unit
@@ -137,6 +140,44 @@ val string = build o add;
 val newline = string "\n";
 
 val buffer = build o fold add o Buffer.contents;
+
+
+(* space_explode *)
+
+fun space_explode sep bytes =
+  if is_empty bytes then []
+  else if size sep <> 1 then [content bytes]
+  else
+    let
+      val sep_char = String.sub (sep, 0);
+
+      fun add_part s part =
+        Buffer.add (Substring.string s) (the_default Buffer.empty part);
+
+      fun explode head tail part res =
+        if Substring.isEmpty head then
+          (case tail of
+            [] =>
+              (case part of
+                NONE => rev res
+              | SOME buf => rev (Buffer.content buf :: res))
+          | chunk :: chunks => explode (Substring.full chunk) chunks part res)
+        else
+          (case Substring.fields (fn c => c = sep_char) head of
+            [a] => explode Substring.empty tail (SOME (add_part a part)) res
+          | a :: rest =>
+              let
+                val (bs, c) = split_last rest;
+                val res' = res
+                  |> cons (Buffer.content (add_part a part))
+                  |> fold (cons o Substring.string) bs;
+                val part' = SOME (add_part c NONE);
+              in explode Substring.empty tail part' res' end)
+    in explode Substring.empty (contents bytes) NONE [] end;
+
+val split_lines = space_explode "\n";
+
+fun cat_lines lines = build (fold add (separate "\n" lines));
 
 
 (* IO *)
