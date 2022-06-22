@@ -147,13 +147,13 @@ fun fold_chunks terminator f path a = open_input (fn file =>
   let
     fun read buf x =
       (case input file of
-        "" => (case Buffer.content buf of "" => x | line => f line x)
+        "" => (case Buffer.content buf of "" => x | chunk => f chunk x)
       | input =>
           (case String.fields (fn c => c = terminator) input of
             [rest] => read (Buffer.add rest buf) x
-          | line :: more => read_lines more (f (Buffer.content (Buffer.add line buf)) x)))
-    and read_lines [rest] x = read (Buffer.add rest Buffer.empty) x
-      | read_lines (line :: more) x = read_lines more (f line x);
+          | chunk :: more => read_chunks more (f (Buffer.content (Buffer.add chunk buf)) x)))
+    and read_chunks [rest] x = read (Buffer.add rest Buffer.empty) x
+      | read_chunks (line :: more) x = read_chunks more (f line x);
   in read Buffer.empty a end) path;
 
 fun fold_lines f = fold_chunks #"\n" f;
