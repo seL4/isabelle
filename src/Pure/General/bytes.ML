@@ -196,10 +196,12 @@ fun read_stream limit stream =
       | s => read (add s bytes))
   in read empty end;
 
-fun write_stream stream = File.outputs stream o contents;
+fun write_stream stream bytes =
+  File.outputs stream (contents bytes);
 
-val read = File.open_input (read_stream ~1);
-val write = File.open_output write_stream;
+fun read path = File.open_input (fn stream => read_stream ~1 stream) path;
+
+fun write path bytes = File.open_output (fn stream => write_stream stream bytes) path;
 
 
 (* ML pretty printing *)
