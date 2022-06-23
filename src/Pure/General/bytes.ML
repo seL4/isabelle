@@ -12,6 +12,7 @@ signature BYTES =
 sig
   val chunk_size: int
   type T
+  val eq: T * T -> bool
   val length: T -> int
   val contents: T -> string list
   val contents_blob: T -> XML.body
@@ -27,6 +28,7 @@ sig
   val last_string: T -> string option
   val trim_line: T -> T
   val append: T -> T -> T
+  val appends: T list -> T
   val string: string -> T
   val newline: T
   val buffer: Buffer.T -> T
@@ -55,6 +57,10 @@ with
 fun length (Bytes {m, n, ...}) = m + n;
 
 val compact = implode o rev;
+
+fun eq (Bytes {buffer, chunks, m, n}, Bytes {buffer = buffer', chunks = chunks', m = m', n = n'}) =
+  m = m' andalso n = n' andalso chunks = chunks' andalso
+  (buffer = buffer' orelse compact buffer = compact buffer);
 
 fun contents (Bytes {buffer, chunks, ...}) =
   rev (chunks |> not (null buffer) ? cons (compact buffer));
@@ -136,6 +142,8 @@ fun append bytes1 bytes2 =  (*left-associative*)
   else if is_empty bytes2 then bytes1
   else bytes1 |> fold add (contents bytes2);
 
+val appends = build o fold (fn b => fn a => append a b);
+
 val string = build o add;
 
 val newline = string "\n";
@@ -196,10 +204,12 @@ fun read_stream limit stream =
       | s => read (add s bytes))
   in read empty end;
 
-fun write_stream stream = File.outputs stream o contents;
+fun write_stream stream bytes =
+  File.outputs stream (contents bytes);
 
-val read = File.open_input (read_stream ~1);
-val write = File.open_output write_stream;
+fun read path = File.open_input (fn stream => read_stream ~1 stream) path;
+
+fun write path bytes = File.open_output (fn stream => write_stream stream bytes) path;
 
 
 (* ML pretty printing *)

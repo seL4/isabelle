@@ -26,7 +26,7 @@ sig
   val doublesemicolon: Pretty.T list -> Pretty.T
   val indent: int -> Pretty.T -> Pretty.T
   val markup_stmt: Code_Symbol.T -> Pretty.T -> Pretty.T
-  val format: Code_Symbol.T list -> int -> Pretty.T -> string
+  val format: Code_Symbol.T list -> int -> Pretty.T -> Bytes.T
 
   type var_ctxt
   val make_vars: string list -> var_ctxt
@@ -165,7 +165,7 @@ fun format presentation_names width =
   #> YXML.parse_body
   #> filter_presentation presentation_names
   #> Buffer.add "\n"
-  #> Buffer.content;
+  #> Bytes.buffer;
 
 
 (** names and variable name contexts **)

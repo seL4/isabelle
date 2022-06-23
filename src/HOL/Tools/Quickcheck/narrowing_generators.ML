@@ -215,8 +215,9 @@ fun with_overlord_dir name f =
   |> Exn.release
 
 fun value (contains_existentials, ((genuine_only, (quiet, verbose)), size))
-    ctxt cookie (code_modules, _) =
+    ctxt cookie (code_modules_bytes, _) =
   let
+    val code_modules = (map o apsnd) Bytes.content code_modules_bytes
     val ((is_genuine, counterexample_of), (get, put, put_ml)) = cookie
     fun message s = if quiet then () else writeln s
     fun verbose_message s = if not quiet andalso verbose then writeln s else ()

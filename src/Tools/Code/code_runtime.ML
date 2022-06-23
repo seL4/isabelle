@@ -92,7 +92,7 @@ fun reject_vars ctxt t =
 
 fun build_compilation_text ctxt some_target program consts =
   Code_Target.compilation_text ctxt (the_default target some_target) program consts false
-  #>> (fn ml_modules => space_implode "\n\n" (map snd ml_modules));
+  #>> (fn ml_modules => space_implode "\n\n" (map (Bytes.content o snd) ml_modules));
 
 fun run_compilation_text cookie ctxt comp vs_t args =
   let
@@ -439,7 +439,7 @@ fun runtime_code'' ctxt module_name program tycos consts =
     val (ml_modules, target_names) =
       Code_Target.produce_code_for ctxt
         target module_name NONE [] program false (map Constant consts @ map Type_Constructor tycos);
-    val ml_code = space_implode "\n\n" (map snd ml_modules);
+    val ml_code = space_implode "\n\n" (map (Bytes.content o snd) ml_modules);
     val (consts', tycos') = chop (length consts) target_names;
     val consts_map = map2 (fn const =>
       fn NONE =>
@@ -482,7 +482,7 @@ fun runtime_code' ctxt some_module_name named_tycos named_consts computation_Ts 
         | SOME c' => c';
     val tyco_names =  map deresolve_tyco named_tycos;
     val const_names = map deresolve_const named_consts;
-    val generated_code = space_implode "\n\n" (map snd ml_modules);
+    val generated_code = space_implode "\n\n" (map (Bytes.content o snd) ml_modules);
     val (of_term_code, of_term_names) =
       print_computation_code ctxt compiled_value computation_cTs computation_Ts;
     val compiled_computation = generated_code ^ "\n" ^ of_term_code;
@@ -720,7 +720,7 @@ fun process_reflection (code, (tyco_map, (constr_map, const_map))) module_name N
           "(* Generated from " ^
             Path.implode (Resources.thy_path (Path.basic (Context.theory_name thy))) ^
           "; DO NOT EDIT! *)";
-        val thy' = Code_Target.export code_binding (preamble ^ "\n\n" ^ code) thy;
+        val thy' = Code_Target.export code_binding (Bytes.string (preamble ^ "\n\n" ^ code)) thy;
         val _ = Code_Target.code_export_message thy';
       in thy' end;
 

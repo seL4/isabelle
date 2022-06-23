@@ -16,9 +16,9 @@ sig
     -> int option -> Token.T list  -> Code_Thingol.program -> bool -> Code_Symbol.T list
     -> local_theory -> local_theory
   val produce_code_for: Proof.context -> string -> string -> int option -> Token.T list
-    -> Code_Thingol.program -> bool -> Code_Symbol.T list -> (string list * string) list * string option list
+    -> Code_Thingol.program -> bool -> Code_Symbol.T list -> (string list * Bytes.T) list * string option list
   val present_code_for: Proof.context -> string -> string -> int option -> Token.T list
-    -> Code_Thingol.program -> Code_Symbol.T list * Code_Symbol.T list -> string
+    -> Code_Thingol.program -> Code_Symbol.T list * Code_Symbol.T list -> Bytes.T
   val check_code_for: string -> bool -> Token.T list
     -> Code_Thingol.program -> bool -> Code_Symbol.T list -> local_theory -> local_theory
 
@@ -29,9 +29,9 @@ sig
     -> (((string * string) * ({physical: bool} * Input.source) option) * Token.T list) list
     -> local_theory -> local_theory
   val produce_code: Proof.context -> bool -> string list
-    -> string -> string -> int option -> Token.T list -> (string list * string) list * string option list
+    -> string -> string -> int option -> Token.T list -> (string list * Bytes.T) list * string option list
   val present_code: Proof.context -> string list -> Code_Symbol.T list
-    -> string -> string -> int option -> Token.T list -> string
+    -> string -> string -> int option -> Token.T list -> Bytes.T
   val check_code: bool -> string list -> ((string * bool) * Token.T list) list
     -> local_theory -> local_theory
 
@@ -39,13 +39,13 @@ sig
   val generatedN: string
   val code_path: Path.T -> Path.T
   val code_export_message: theory -> unit
-  val export: Path.binding -> string -> theory -> theory
+  val export: Path.binding -> Bytes.T -> theory -> theory
   val compilation_text: Proof.context -> string -> Code_Thingol.program
     -> Code_Symbol.T list -> bool -> ((string * class list) list * Code_Thingol.itype) * Code_Thingol.iterm
-    -> (string list * string) list * string
+    -> (string list * Bytes.T) list * string
   val compilation_text': Proof.context -> string -> string option -> Code_Thingol.program
     -> Code_Symbol.T list -> bool -> ((string * class list) list * Code_Thingol.itype) * Code_Thingol.iterm
-    -> ((string list * string) list * string) * (Code_Symbol.T -> string option)
+    -> ((string list * Bytes.T) list * string) * (Code_Symbol.T -> string option)
 
   type serializer
   type literals = Code_Printer.literals
@@ -289,7 +289,7 @@ fun code_export_message thy = writeln (Export.message thy (Path.basic codeN));
 fun export binding content thy =
   let
     val thy' = thy |> Generated_Files.add_files (binding, content);
-    val _ = Export.export thy' binding [XML.Text content];
+    val _ = Export.export thy' binding (Bytes.contents_blob content);
   in thy' end;
 
 local
@@ -309,11 +309,11 @@ fun export_logical (file_prefix, file_pos) format pretty_modules =
 
 fun export_physical root format pretty_modules =
   (case pretty_modules of
-    Singleton (_, p) => File.write root (format p)
+    Singleton (_, p) => Bytes.write root (format p)
   | Hierarchy code_modules =>
       (Isabelle_System.make_directory root;
         List.app (fn (names, p) =>
-          File.write (Path.appends (root :: map Path.basic names)) (format p)) code_modules));
+          Bytes.write (Path.appends (root :: map Path.basic names)) (format p)) code_modules));
 
 in
 
@@ -343,7 +343,8 @@ fun present_result selects width (pretty_modules, _) =
   let val format = Code_Printer.format selects width in
     (case pretty_modules of
       Singleton (_, p) => format p
-    | Hierarchy code_modules => space_implode "\n\n" (map (format o #2) code_modules))
+    | Hierarchy code_modules =>
+        Bytes.appends (separate (Bytes.string "\n\n") (map (format o #2) code_modules)))
   end;
 
 end;
@@ -788,6 +789,7 @@ val _ = Theory.setup
     (fn ctxt => fn ((consts, symbols), (target_name, some_width)) =>
        present_code ctxt consts symbols
          target_name "Example" some_width []
+       |> Bytes.content
        |> trim_line
        |> Document_Output.verbatim (Config.put Document_Antiquotation.thy_output_display true ctxt)));
 

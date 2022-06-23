@@ -34,7 +34,6 @@ sig
   val read: Path.T -> string
   val write: Path.T -> string -> unit
   val append: Path.T -> string -> unit
-  val generate: Path.T -> string -> unit
   val output: BinIO.outstream -> string -> unit
   val outputs: BinIO.outstream -> string list -> unit
   val write_list: Path.T -> string list -> unit
@@ -170,7 +169,6 @@ fun append_list path txts = open_append (output_list txts) path;
 
 fun write path txt = write_list path [txt];
 fun append path txt = append_list path [txt];
-fun generate path txt = if try read path = SOME txt then () else write path txt;
 
 fun write_buffer path buf =
   open_output (fn file => List.app (output file) (Buffer.contents buf)) path;
