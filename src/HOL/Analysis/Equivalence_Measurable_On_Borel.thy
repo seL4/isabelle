@@ -1587,7 +1587,7 @@ subsection \<open>Monotonic functions are Lebesgue integrable\<close>
 (*Can these be generalised from type real?*)
 lemma integrable_mono_on_nonneg:
   fixes f :: "real \<Rightarrow> real"
-  assumes mon: "mono_on f {a..b}" and 0: "\<And>x. 0 \<le> f x"
+  assumes mon: "mono_on {a..b} f" and 0: "\<And>x. 0 \<le> f x"
   shows "integrable (lebesgue_on {a..b}) f" 
 proof -
   have "space lborel = space lebesgue" "sets borel \<subseteq> sets lebesgue"
@@ -1641,11 +1641,11 @@ qed
 
 lemma integrable_mono_on:
   fixes f :: "real \<Rightarrow> real"
-  assumes "mono_on f {a..b}" 
+  assumes "mono_on {a..b} f"
   shows "integrable (lebesgue_on {a..b}) f" 
 proof -
   define f' where "f' \<equiv> \<lambda>x. if x \<in> {a..b} then f x - f a else 0"
-  have "mono_on f' {a..b}"
+  have "mono_on {a..b} f'"
     by (smt (verit, best) assms f'_def mono_on_def)
   moreover have 0: "\<And>x. 0 \<le> f' x"
     by (smt (verit, best) assms atLeastAtMost_iff f'_def mono_on_def)
@@ -1663,7 +1663,7 @@ qed
 
 lemma integrable_on_mono_on:
   fixes f :: "real \<Rightarrow> real"
-  assumes "mono_on f {a..b}" 
+  assumes "mono_on {a..b} f"
   shows "f integrable_on {a..b}"
   by (simp add: assms integrable_mono_on integrable_on_lebesgue_on) 
 

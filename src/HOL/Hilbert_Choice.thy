@@ -425,7 +425,7 @@ qed
 lemma strict_mono_inv_on_range:
   fixes f :: "'a::linorder \<Rightarrow> 'b::order"
   assumes "strict_mono f"
-  shows "strict_mono_on (inv f) (range f)"
+  shows "strict_mono_on (range f) (inv f)"
 proof (clarsimp simp: strict_mono_on_def)
   fix x y
   assume "f x < f y"

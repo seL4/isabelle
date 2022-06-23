@@ -29,14 +29,14 @@ proof -
 qed
 
 proposition mono_on_imp_deriv_nonneg:
-  assumes mono: "mono_on f A" and deriv: "(f has_real_derivative D) (at x)"
+  assumes mono: "mono_on A f" and deriv: "(f has_real_derivative D) (at x)"
   assumes "x \<in> interior A"
   shows "D \<ge> 0"
 proof (rule tendsto_lowerbound)
   let ?A' = "(\<lambda>y. y - x) ` interior A"
   from deriv show "((\<lambda>h. (f (x + h) - f x) / h) \<longlongrightarrow> D) (at 0)"
       by (simp add: field_has_derivative_at has_field_derivative_def)
-  from mono have mono': "mono_on f (interior A)" by (rule mono_on_subset) (rule interior_subset)
+  from mono have mono': "mono_on (interior A) f" by (rule mono_on_subset) (rule interior_subset)
 
   show "eventually (\<lambda>h. (f (x + h) - f x) / h \<ge> 0) (at 0)"
   proof (subst eventually_at_topological, intro exI conjI ballI impI)
@@ -58,11 +58,11 @@ qed simp
 proposition mono_on_ctble_discont:
   fixes f :: "real \<Rightarrow> real"
   fixes A :: "real set"
-  assumes "mono_on f A"
+  assumes "mono_on A f"
   shows "countable {a\<in>A. \<not> continuous (at a within A) f}"
 proof -
   have mono: "\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> x \<le> y \<Longrightarrow> f x \<le> f y"
-    using \<open>mono_on f A\<close> by (simp add: mono_on_def)
+    using \<open>mono_on A f\<close> by (simp add: mono_on_def)
   have "\<forall>a \<in> {a\<in>A. \<not> continuous (at a within A) f}. \<exists>q :: nat \<times> rat.
       (fst q = 0 \<and> of_rat (snd q) < f a \<and> (\<forall>x \<in> A. x < a \<longrightarrow> f x < of_rat (snd q))) \<or>
       (fst q = 1 \<and> of_rat (snd q) > f a \<and> (\<forall>x \<in> A. x > a \<longrightarrow> f x > of_rat (snd q)))"
@@ -125,7 +125,7 @@ qed
 lemma mono_on_ctble_discont_open:
   fixes f :: "real \<Rightarrow> real"
   fixes A :: "real set"
-  assumes "open A" "mono_on f A"
+  assumes "open A" "mono_on A f"
   shows "countable {a\<in>A. \<not>isCont f a}"
 proof -
   have "{a\<in>A. \<not>isCont f a} = {a\<in>A. \<not>(continuous (at a within A) f)}"
@@ -139,7 +139,7 @@ lemma mono_ctble_discont:
   fixes f :: "real \<Rightarrow> real"
   assumes "mono f"
   shows "countable {a. \<not> isCont f a}"
-  using assms mono_on_ctble_discont [of f UNIV] unfolding mono_on_def mono_def by auto
+  using assms mono_on_ctble_discont [of UNIV f] unfolding mono_on_def mono_def by auto
 
 lemma has_real_derivative_imp_continuous_on:
   assumes "\<And>x. x \<in> A \<Longrightarrow> (f has_real_derivative f' x) (at x)"
@@ -1819,7 +1819,7 @@ but in the current state they are restricted to reals.\<close>
 
 lemma borel_measurable_mono_on_fnc:
   fixes f :: "real \<Rightarrow> real" and A :: "real set"
-  assumes "mono_on f A"
+  assumes "mono_on A f"
   shows "f \<in> borel_measurable (restrict_space borel A)"
   apply (rule measurable_restrict_countable[OF mono_on_ctble_discont[OF assms]])
   apply (auto intro!: image_eqI[where x="{x}" for x] simp: sets_restrict_space)
@@ -1830,14 +1830,14 @@ lemma borel_measurable_mono_on_fnc:
 
 lemma borel_measurable_piecewise_mono:
   fixes f::"real \<Rightarrow> real" and C::"real set set"
-  assumes "countable C" "\<And>c. c \<in> C \<Longrightarrow> c \<in> sets borel" "\<And>c. c \<in> C \<Longrightarrow> mono_on f c" "(\<Union>C) = UNIV"
+  assumes "countable C" "\<And>c. c \<in> C \<Longrightarrow> c \<in> sets borel" "\<And>c. c \<in> C \<Longrightarrow> mono_on c f" "(\<Union>C) = UNIV"
   shows "f \<in> borel_measurable borel"
   by (rule measurable_piecewise_restrict[of C], auto intro: borel_measurable_mono_on_fnc simp: assms)
 
 lemma borel_measurable_mono:
   fixes f :: "real \<Rightarrow> real"
   shows "mono f \<Longrightarrow> f \<in> borel_measurable borel"
-  using borel_measurable_mono_on_fnc[of f UNIV] by (simp add: mono_def mono_on_def)
+  using borel_measurable_mono_on_fnc[of UNIV f] by (simp add: mono_def mono_on_def)
 
 lemma measurable_bdd_below_real[measurable (raw)]:
   fixes F :: "'a \<Rightarrow> 'i \<Rightarrow> real"

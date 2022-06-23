@@ -87,14 +87,14 @@ lemma emeasure_density_distr_interval:
   assumes nonnegf: "\<And>x. f x \<ge> 0"
   assumes derivg: "\<And>x. x \<in> {a..b} \<Longrightarrow> (g has_real_derivative g' x) (at x)"
   assumes contg': "continuous_on {a..b} g'"
-  assumes mono: "strict_mono_on g {a..b}" and inv: "\<And>x. h x \<in> {a..b} \<Longrightarrow> g (h x) = x"
+  assumes mono: "strict_mono_on {a..b} g" and inv: "\<And>x. h x \<in> {a..b} \<Longrightarrow> g (h x) = x"
   assumes range: "{a..b} \<subseteq> range h"
   shows "emeasure (distr (density lborel f) lborel h) {a..b} =
              emeasure (density lborel (\<lambda>x. f (g x) * g' x)) {a..b}"
 proof (cases "a < b")
   assume "a < b"
   from mono have inj: "inj_on g {a..b}" by (rule strict_mono_on_imp_inj_on)
-  from mono have mono': "mono_on g {a..b}" by (rule strict_mono_on_imp_mono_on)
+  from mono have mono': "mono_on {a..b} g" by (rule strict_mono_on_imp_mono_on)
   from mono' derivg have "\<And>x. x \<in> {a<..<b} \<Longrightarrow> g' x \<ge> 0"
     by (rule mono_on_imp_deriv_nonneg) auto
   from contg' this have derivg_nonneg: "\<And>x. x \<in> {a..b} \<Longrightarrow> g' x \<ge> 0"

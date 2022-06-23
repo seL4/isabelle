@@ -953,7 +953,7 @@ lemma monotone_onD:
   by (simp add: monotone_on_def)
 
 lemma monotoneD[dest?]: "monotone orda ordb f \<Longrightarrow> orda x y \<Longrightarrow> ordb (f x) (f y)"
-  by (simp add: monotone_onD)
+  by (rule monotone_onD[of UNIV, simplified])
 
 lemma monotone_on_subset: "monotone_on A orda ordb f \<Longrightarrow> B \<subseteq> A \<Longrightarrow> monotone_on B orda ordb f"
   by (auto intro: monotone_onI dest: monotone_onD)
@@ -961,34 +961,34 @@ lemma monotone_on_subset: "monotone_on A orda ordb f \<Longrightarrow> B \<subse
 lemma monotone_on_empty[simp]: "monotone_on {} orda ordb f"
   by (auto intro: monotone_onI dest: monotone_onD)
 
-definition "mono_on f A \<equiv> \<forall>r s. r \<in> A \<and> s \<in> A \<and> r \<le> s \<longrightarrow> f r \<le> f s"
+definition "mono_on A f \<equiv> \<forall>r s. r \<in> A \<and> s \<in> A \<and> r \<le> s \<longrightarrow> f r \<le> f s"
 
 lemma mono_onI:
-  "(\<And>r s. r \<in> A \<Longrightarrow> s \<in> A \<Longrightarrow> r \<le> s \<Longrightarrow> f r \<le> f s) \<Longrightarrow> mono_on f A"
+  "(\<And>r s. r \<in> A \<Longrightarrow> s \<in> A \<Longrightarrow> r \<le> s \<Longrightarrow> f r \<le> f s) \<Longrightarrow> mono_on A f"
   unfolding mono_on_def by simp
 
 lemma mono_onD:
-  "\<lbrakk>mono_on f A; r \<in> A; s \<in> A; r \<le> s\<rbrakk> \<Longrightarrow> f r \<le> f s"
+  "\<lbrakk>mono_on A f; r \<in> A; s \<in> A; r \<le> s\<rbrakk> \<Longrightarrow> f r \<le> f s"
   unfolding mono_on_def by simp
 
-lemma mono_imp_mono_on: "mono f \<Longrightarrow> mono_on f A"
+lemma mono_imp_mono_on: "mono f \<Longrightarrow> mono_on A f"
   unfolding mono_def mono_on_def by auto
 
-lemma mono_on_subset: "mono_on f A \<Longrightarrow> B \<subseteq> A \<Longrightarrow> mono_on f B"
+lemma mono_on_subset: "mono_on A f \<Longrightarrow> B \<subseteq> A \<Longrightarrow> mono_on B f"
   unfolding mono_on_def by auto
 
-definition "strict_mono_on f A \<equiv> \<forall>r s. r \<in> A \<and> s \<in> A \<and> r < s \<longrightarrow> f r < f s"
+definition "strict_mono_on A f \<equiv> \<forall>r s. r \<in> A \<and> s \<in> A \<and> r < s \<longrightarrow> f r < f s"
 
 lemma strict_mono_onI:
-  "(\<And>r s. r \<in> A \<Longrightarrow> s \<in> A \<Longrightarrow> r < s \<Longrightarrow> f r < f s) \<Longrightarrow> strict_mono_on f A"
+  "(\<And>r s. r \<in> A \<Longrightarrow> s \<in> A \<Longrightarrow> r < s \<Longrightarrow> f r < f s) \<Longrightarrow> strict_mono_on A f"
   unfolding strict_mono_on_def by simp
 
 lemma strict_mono_onD:
-  "\<lbrakk>strict_mono_on f A; r \<in> A; s \<in> A; r < s\<rbrakk> \<Longrightarrow> f r < f s"
+  "\<lbrakk>strict_mono_on A f; r \<in> A; s \<in> A; r < s\<rbrakk> \<Longrightarrow> f r < f s"
   unfolding strict_mono_on_def by simp
 
 lemma mono_on_greaterD:
-  assumes "mono_on g A" "x \<in> A" "y \<in> A" "g x > (g (y::_::linorder) :: _ :: linorder)"
+  assumes "mono_on A g" "x \<in> A" "y \<in> A" "g x > (g (y::_::linorder) :: _ :: linorder)"
   shows "x > y"
 proof (rule ccontr)
   assume "\<not>x > y"
@@ -1009,7 +1009,7 @@ proof
 qed
 
 lemma strict_mono_on_imp_inj_on:
-  assumes "strict_mono_on (f :: (_ :: linorder) \<Rightarrow> (_ :: preorder)) A"
+  assumes "strict_mono_on A (f :: (_ :: linorder) \<Rightarrow> (_ :: preorder))"
   shows "inj_on f A"
 proof (rule inj_onI)
   fix x y assume "x \<in> A" "y \<in> A" "f x = f y"
@@ -1019,7 +1019,7 @@ proof (rule inj_onI)
 qed
 
 lemma strict_mono_on_leD:
-  assumes "strict_mono_on (f :: (_ :: linorder) \<Rightarrow> _ :: preorder) A" "x \<in> A" "y \<in> A" "x \<le> y"
+  assumes "strict_mono_on A (f :: (_ :: linorder) \<Rightarrow> _ :: preorder)" "x \<in> A" "y \<in> A" "x \<le> y"
   shows "f x \<le> f y"
 proof (insert le_less_linear[of y x], elim disjE)
   assume "x < y"
@@ -1029,12 +1029,12 @@ qed (insert assms, simp)
 
 lemma strict_mono_on_eqD:
   fixes f :: "(_ :: linorder) \<Rightarrow> (_ :: preorder)"
-  assumes "strict_mono_on f A" "f x = f y" "x \<in> A" "y \<in> A"
+  assumes "strict_mono_on A f" "f x = f y" "x \<in> A" "y \<in> A"
   shows "y = x"
   using assms by (rule_tac linorder_cases[of x y]) (auto dest: strict_mono_onD)
 
 lemma strict_mono_on_imp_mono_on:
-  "strict_mono_on (f :: (_ :: linorder) \<Rightarrow> _ :: preorder) A \<Longrightarrow> mono_on f A"
+  "strict_mono_on A (f :: (_ :: linorder) \<Rightarrow> _ :: preorder) \<Longrightarrow> mono_on A f"
   by (rule mono_onI, rule strict_mono_on_leD)
 
 

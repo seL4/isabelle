@@ -44,6 +44,9 @@ longer. INCOMPATIBILITY.
   - Added predicate monotone_on and redefined monotone to be an
     abbreviation. Lemma monotone_def is explicitly provided for backward
     compatibility but its usage is discouraged. Minor INCOMPATIBILITY.
+  - Changed argument order of mono_on and strict_mono_on to uniformize
+    with monotone_on and the general "characterizing set at the beginning
+    of predicates" preference. Minor INCOMPATIBILITY
   - Added lemmas.
       monotone_onD
       monotone_onI

@@ -65,7 +65,7 @@ qed
 lemma pseudoinverse': "\<forall>\<omega>\<in>{a<..<b}. \<forall>x. \<omega> \<le> f x \<longleftrightarrow> I \<omega> \<le> x"
   by (intro ballI allI impI pseudoinverse) auto
 
-lemma mono_I: "mono_on I {a <..< b}"
+lemma mono_I: "mono_on {a <..< b} I"
   unfolding mono_on_def by (metis order.trans order.refl pseudoinverse')
 
 end
