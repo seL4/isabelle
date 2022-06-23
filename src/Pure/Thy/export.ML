@@ -53,10 +53,10 @@ fun export_executable thy binding body =
     {theory = thy, binding = binding, executable = true, compress = true, strict = true} body;
 
 fun export_file thy binding file =
-  export thy binding [XML.Text (File.read file)];
+  export thy binding (Bytes.contents_blob (Bytes.read file));
 
 fun export_executable_file thy binding file =
-  export_executable thy binding [XML.Text (File.read file)];
+  export_executable thy binding (Bytes.contents_blob (Bytes.read file));
 
 
 (* information message *)
