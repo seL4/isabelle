@@ -12,6 +12,7 @@ signature BYTES =
 sig
   val chunk_size: int
   type T
+  val eq: T * T -> bool
   val length: T -> int
   val contents: T -> string list
   val contents_blob: T -> XML.body
@@ -27,6 +28,7 @@ sig
   val last_string: T -> string option
   val trim_line: T -> T
   val append: T -> T -> T
+  val appends: T list -> T
   val string: string -> T
   val newline: T
   val buffer: Buffer.T -> T
@@ -55,6 +57,10 @@ with
 fun length (Bytes {m, n, ...}) = m + n;
 
 val compact = implode o rev;
+
+fun eq (Bytes {buffer, chunks, m, n}, Bytes {buffer = buffer', chunks = chunks', m = m', n = n'}) =
+  m = m' andalso n = n' andalso chunks = chunks' andalso
+  (buffer = buffer' orelse compact buffer = compact buffer);
 
 fun contents (Bytes {buffer, chunks, ...}) =
   rev (chunks |> not (null buffer) ? cons (compact buffer));
@@ -135,6 +141,8 @@ fun append bytes1 bytes2 =  (*left-associative*)
   if is_empty bytes1 then bytes2
   else if is_empty bytes2 then bytes1
   else bytes1 |> fold add (contents bytes2);
+
+val appends = build o fold (fn b => fn a => append a b);
 
 val string = build o add;
 
