@@ -441,7 +441,7 @@ fun process_line str tstate =
   end
 
 fun process_file path thy =
-  #1 (fold process_line (Bytes.trim_split_lines (Bytes.read path)) (thy, init_state))
+  #1 (fold process_line (File.read_lines path) (thy, init_state))
 
 val _ = Outer_Syntax.command \<^command_keyword>\<open>import_file\<close>
   "import a recorded proof file"

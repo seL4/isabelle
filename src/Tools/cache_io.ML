@@ -35,13 +35,11 @@ type result = {
   redirected_output: string list,
   return_code: int}
 
-val read_lines = Bytes.read #> Bytes.trim_split_lines
-
 fun raw_run make_cmd str in_path out_path =
   let
     val _ = File.write in_path str
     val (out2, rc) = Isabelle_System.bash_output (make_cmd in_path out_path)
-    val out1 = the_default [] (try read_lines out_path)
+    val out1 = the_default [] (try File.read_lines out_path)
   in {output = split_lines out2, redirected_output = out1, return_code = rc} end
 
 fun run make_cmd str =
@@ -82,7 +80,7 @@ fun unsynchronized_init cache_path =
               let val (key, l1, l2) = split line
               in ((i+1, l+l1+l2+1), Symtab.update (key, (i+1, l1, l2)) tab) end
             else ((i+1, l), tab)
-        in apfst fst (fold parse (read_lines cache_path) ((1, 1), Symtab.empty)) end
+        in apfst fst (fold parse (File.read_lines cache_path) ((1, 1), Symtab.empty)) end
       else (1, Symtab.empty)
   in Cache {path = cache_path, table = Synchronized.var "Cache_IO" table} end
 
@@ -100,7 +98,7 @@ fun lookup (Cache {path = cache_path, table}) str =
               else if i < p + len2 then (i+1, apsnd (cons line) xsp)
               else (i, xsp)
             val (out, err) =
-              apply2 rev (snd (fold load (read_lines cache_path) (1, ([], []))))
+              apply2 rev (snd (fold load (File.read_lines cache_path) (1, ([], []))))
           in ((SOME {output = err, redirected_output = out, return_code = 0}, key), tab) end))
   end
 

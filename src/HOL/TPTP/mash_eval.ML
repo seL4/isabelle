@@ -46,7 +46,7 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name file_names report_
       perhaps (try (unsuffix "_suggestions")) o List.last o space_explode "/"
 
     val methods = "isar" :: map method_of_file_name file_names
-    val lines_of = Path.explode #> try (Bytes.read #> Bytes.trim_split_lines) #> these
+    val lines_of = Path.explode #> try File.read_lines #> these
     val liness0 = map lines_of file_names
     val num_lines = fold (Integer.max o length) liness0 0
 

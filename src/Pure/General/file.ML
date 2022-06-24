@@ -22,9 +22,8 @@ sig
   val check_file: Path.T -> Path.T
   val fold_dir: (string -> 'a -> 'a) -> Path.T -> 'a -> 'a
   val read_dir: Path.T -> string list
-  val fold_lines: (string -> 'a -> 'a) -> Path.T -> 'a -> 'a
-  val read_lines: Path.T -> string list
   val read: Path.T -> string
+  val read_lines: Path.T -> string list
   val write: Path.T -> string -> unit
   val append: Path.T -> string -> unit
   val write_list: Path.T -> string list -> unit
@@ -98,27 +97,11 @@ fun fold_dir f path a =
 fun read_dir path = sort_strings (fold_dir cons path []);
 
 
-(*
-  scalable iterator:
-  . avoid size limit of TextIO.inputAll and overhead of many TextIO.inputLine
-  . optional terminator at end-of-input
-*)
-fun fold_lines f path a = File_Stream.open_input (fn file =>
-  let
-    fun read buf x =
-      (case File_Stream.input file of
-        "" => (case Buffer.content buf of "" => x | line => f line x)
-      | input =>
-          (case String.fields (fn c => c = #"\n") input of
-            [rest] => read (Buffer.add rest buf) x
-          | line :: more => read_more more (f (Buffer.content (Buffer.add line buf)) x)))
-    and read_more [rest] x = read (Buffer.add rest Buffer.empty) x
-      | read_more (line :: more) x = read_more more (f line x);
-  in read Buffer.empty a end) path;
-
-fun read_lines path = rev (fold_lines cons path []);
+(* read *)
 
 val read = File_Stream.open_input File_Stream.input_all;
+
+val read_lines = Bytes.read #> Bytes.trim_split_lines;
 
 
 (* write *)
