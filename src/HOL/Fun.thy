@@ -961,6 +961,22 @@ lemma monotone_on_subset: "monotone_on A orda ordb f \<Longrightarrow> B \<subse
 lemma monotone_on_empty[simp]: "monotone_on {} orda ordb f"
   by (auto intro: monotone_onI dest: monotone_onD)
 
+lemma monotone_on_o:
+  assumes
+    mono_f: "monotone_on A orda ordb f" and
+    mono_g: "monotone_on B ordc orda g" and
+    "g ` B \<subseteq> A"
+  shows "monotone_on B ordc ordb (f \<circ> g)"
+proof (rule monotone_onI)
+  fix x y assume "x \<in> B" and "y \<in> B" and "ordc x y"
+  hence "orda (g x) (g y)"
+    by (rule mono_g[THEN monotone_onD])
+  moreover from \<open>g ` B \<subseteq> A\<close> \<open>x \<in> B\<close> \<open>y \<in> B\<close> have "g x \<in> A" and "g y \<in> A"
+    unfolding image_subset_iff by simp_all
+  ultimately show "ordb ((f \<circ> g) x) ((f \<circ> g) y)"
+    using mono_f[THEN monotone_onD] by simp
+qed
+
 abbreviation mono_on :: "('a :: ord) set \<Rightarrow> ('a \<Rightarrow> 'b :: ord) \<Rightarrow> bool"
   where "mono_on A \<equiv> monotone_on A (\<le>) (\<le>)"
 

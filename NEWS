@@ -52,6 +52,7 @@ longer. INCOMPATIBILITY.
       monotone_onD
       monotone_onI
       monotone_on_empty[simp]
+      monotone_on_o
       monotone_on_subset
 
 * Theory "HOL.Relation":
