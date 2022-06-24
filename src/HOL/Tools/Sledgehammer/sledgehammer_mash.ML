@@ -681,7 +681,7 @@ fun load_state ctxt (time_state as (memory_time, _)) =
         time_state
       else
         (disk_time,
-         (case try File.read_lines path of
+         (case try (Bytes.trim_split_lines o Bytes.read) path of
            SOME (version' :: node_lines) =>
            let
              fun extract_line_and_add_node line =

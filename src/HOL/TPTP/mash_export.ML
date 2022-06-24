@@ -316,8 +316,8 @@ fun generate_mesh_suggestions max_suggs mash_file_name mepo_file_name mesh_file_
         val mesh_line = encode_str name ^ ": " ^ encode_strs mesh_suggs ^ "\n"
       in File.append mesh_path mesh_line end
 
-    val mash_lines = Path.explode mash_file_name |> File.read_lines
-    val mepo_lines = Path.explode mepo_file_name |> File.read_lines
+    val mash_lines = Path.explode mash_file_name |> Bytes.read |> Bytes.trim_split_lines
+    val mepo_lines = Path.explode mepo_file_name |> Bytes.read |> Bytes.trim_split_lines
   in
     if length mash_lines = length mepo_lines then List.app do_fact (mash_lines ~~ mepo_lines)
     else warning "Skipped: MaSh file missing or out of sync with MePo file"
