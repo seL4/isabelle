@@ -2247,13 +2247,13 @@ qed
 
 lemma butlast_take:
   "n \<le> length xs \<Longrightarrow> butlast (take n xs) = take (n - 1) xs"
-  by (simp add: butlast_conv_take min.absorb1 min.absorb2)
+  by (simp add: butlast_conv_take)
 
 lemma butlast_drop: "butlast (drop n xs) = drop n (butlast xs)"
   by (simp add: butlast_conv_take drop_take ac_simps)
 
 lemma take_butlast: "n < length xs \<Longrightarrow> take n (butlast xs) = take n xs"
-  by (simp add: butlast_conv_take min.absorb1)
+  by (simp add: butlast_conv_take)
 
 lemma drop_butlast: "drop n (butlast xs) = butlast (drop n xs)"
   by (simp add: butlast_conv_take drop_take ac_simps)
@@ -2374,7 +2374,7 @@ proof (cases "n \<ge> length xs")
 qed auto
 
 lemma nth_image: "l \<le> size xs \<Longrightarrow> nth xs ` {0..<l} = set(take l xs)"
-  by(auto simp: set_conv_nth image_def) (metis Suc_le_eq nth_take order_trans)
+  by (simp add: set_conv_nth) force
 
 
 subsubsection \<open>\<^const>\<open>takeWhile\<close> and \<^const>\<open>dropWhile\<close>\<close>
@@ -2808,7 +2808,7 @@ proof -
     proof (induction "zip xs (zip ys zs)" arbitrary: xs ys zs)
       case Nil
       from Nil [symmetric] show ?case
-        by (auto simp add: zip_eq_Nil_iff)
+        by auto
     next
       case (Cons xyz xyzs)
       from Cons.hyps(2) [symmetric] show ?case
@@ -2820,7 +2820,7 @@ proof -
     proof (induction "zip xs ys" arbitrary: xs ys)
       case Nil
       then show ?case
-        by (auto simp add: zip_eq_Nil_iff dest: sym)
+        by auto
     next
       case (Cons xy xys)
       from Cons.hyps(2) [symmetric] show ?case
@@ -3702,8 +3702,9 @@ lemma distinct_conv_nth: "distinct xs = (\<forall>i < size xs. \<forall>j < size
 proof (induct xs)
   case (Cons x xs)
   show ?case
-    apply (auto simp add: Cons nth_Cons split: nat.split_asm)
-    apply (metis Suc_less_eq2 in_set_conv_nth less_not_refl zero_less_Suc)+
+    apply (auto simp add: Cons nth_Cons less_Suc_eq_le split: nat.split_asm)
+    apply (metis Suc_leI in_set_conv_nth length_pos_if_in_set lessI less_imp_le_nat less_nat_zero_code)
+    apply (metis Suc_le_eq)
     done
 qed auto
 
@@ -5256,8 +5257,8 @@ using assms proof (induct arbitrary: i rule: transpose.induct)
     case (Suc j)
     have *: "\<And>xss. xs # map tl xss = map tl ((x#xs)#xss)" by simp
     have **: "\<And>xss. (x#xs) # filter (\<lambda>ys. ys \<noteq> []) xss = filter (\<lambda>ys. ys \<noteq> []) ((x#xs)#xss)" by simp
-    { fix x have "Suc j < length x \<longleftrightarrow> x \<noteq> [] \<and> j < length x - Suc 0"
-      by (cases x) simp_all
+    { fix xs :: \<open>'a list\<close> have "Suc j < length xs \<longleftrightarrow> xs \<noteq> [] \<and> j < length xs - Suc 0"
+      by (cases xs) simp_all
     } note *** = this
 
     have j_less: "j < length (transpose (xs # concat (map (case_list [] (\<lambda>h t. [t])) xss)))"
@@ -5281,6 +5282,7 @@ proof (rule nth_equalityI)
   thus "transpose (map (map f) xs) ! i = map (map f) (transpose xs) ! i"
     by (simp add: nth_transpose filter_map comp_def)
 qed
+
 
 subsubsection \<open>\<^const>\<open>min\<close> and \<^const>\<open>arg_min\<close>\<close>
 
@@ -5547,8 +5549,6 @@ lemma sorted2: "sorted (x # y # zs) = (x \<le> y \<and> sorted (y # zs))"
   by(induction zs) auto
 
 lemmas sorted2_simps = sorted1 sorted2
-
-lemmas [code] = sorted0 sorted2_simps
 
 lemma sorted_append:
   "sorted (xs@ys) = (sorted xs \<and> sorted ys \<and> (\<forall>x \<in> set xs. \<forall>y \<in> set ys. x\<le>y))"
@@ -5965,6 +5965,9 @@ qed
 
 lemma sorted_enumerate [simp]: "sorted (map fst (enumerate n xs))"
 by (simp add: enumerate_eq_zip)
+
+lemma sorted_insort_is_snoc: "sorted xs \<Longrightarrow> \<forall>x \<in> set xs. a \<ge> x \<Longrightarrow> insort a xs = xs @ [a]"
+ by (induct xs) (auto dest!: insort_is_Cons)
 
 text \<open>Stability of \<^const>\<open>sort_key\<close>:\<close>
 
@@ -7011,7 +7014,7 @@ where
 
 end
 
-lemma lexordp_simps [simp]:
+lemma lexordp_simps [simp, code]:
   "lexordp [] ys = (ys \<noteq> [])"
   "lexordp xs [] = False"
   "lexordp (x # xs) (y # ys) \<longleftrightarrow> x < y \<or> \<not> y < x \<and> lexordp xs ys"
@@ -7022,7 +7025,7 @@ inductive lexordp_eq :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool" where
 | Cons: "x < y \<Longrightarrow> lexordp_eq (x # xs) (y # ys)"
 | Cons_eq: "\<lbrakk> \<not> x < y; \<not> y < x; lexordp_eq xs ys \<rbrakk> \<Longrightarrow> lexordp_eq (x # xs) (y # ys)"
 
-lemma lexordp_eq_simps [simp]:
+lemma lexordp_eq_simps [simp, code]:
   "lexordp_eq [] ys = True"
   "lexordp_eq xs [] \<longleftrightarrow> xs = []"
   "lexordp_eq (x # xs) [] = False"
@@ -7062,7 +7065,7 @@ by (metis append_Nil2 lexordp_append_rightI lexordp_eq_refl lexordp_into_lexordp
 end
 
 declare ord.lexordp_simps [simp, code]
-declare ord.lexordp_eq_simps [code, simp]
+declare ord.lexordp_eq_simps [simp, code]
 
 context order
 begin
@@ -7154,9 +7157,6 @@ lemma lexordp_linorder: "class.linorder lexordp_eq lexordp"
      (auto simp add: lexordp_conv_lexordp_eq lexordp_eq_refl lexordp_eq_antisym intro: lexordp_eq_trans del: disjCI intro: lexordp_eq_linear)
 
 end
-
-lemma sorted_insort_is_snoc: "sorted xs \<Longrightarrow> \<forall>x \<in> set xs. a \<ge> x \<Longrightarrow> insort a xs = xs @ [a]"
- by (induct xs) (auto dest!: insort_is_Cons)
 
 
 subsubsection \<open>Lexicographic combination of measure functions\<close>

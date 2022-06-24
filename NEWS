@@ -34,6 +34,9 @@ Example:
 
 *** HOL ***
 
+* Theory Char_ord: streamlined logical specifications.
+Minor INCOMPATIBILITY.
+
 * Rule split_of_bool_asm is not split any longer, analogously to
 split_if_asm.  INCOMPATIBILITY.
 

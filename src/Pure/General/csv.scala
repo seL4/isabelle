@@ -10,7 +10,7 @@ package isabelle
 object CSV {
   def print_field(field: Any): String = {
     val str = field.toString
-    if (str.exists("\",\r\n".contains(_))) {
+    if (str.exists("\",\r\n ".contains(_))) {
       (for (c <- str) yield { if (c == '"') "\"\"" else c.toString }).mkString("\"", "", "\"")
     }
     else str

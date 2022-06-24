@@ -42,36 +42,32 @@ object Bytes {
 
   /* base64 */
 
-  def base64(s: String): Bytes = {
+  def decode_base64(s: String): Bytes = {
     val a = Base64.getDecoder.decode(s)
     new Bytes(a, 0, a.length)
   }
 
-  object Decode_Base64 extends Scala.Fun("decode_base64") {
+  object Decode_Base64 extends Scala.Fun_Bytes("decode_base64") {
     val here = Scala_Project.here
-    def invoke(args: List[Bytes]): List[Bytes] =
-      List(base64(Library.the_single(args).text))
+    def apply(arg: Bytes): Bytes = decode_base64(arg.text)
   }
 
-  object Encode_Base64 extends Scala.Fun("encode_base64") {
+  object Encode_Base64 extends Scala.Fun_Bytes("encode_base64") {
     val here = Scala_Project.here
-    def invoke(args: List[Bytes]): List[Bytes] =
-      List(Bytes(Library.the_single(args).base64))
+    def apply(arg: Bytes): Bytes = Bytes(arg.encode_base64)
   }
 
 
   /* XZ compression */
 
-  object Compress extends Scala.Fun("compress") {
+  object Compress extends Scala.Fun_Bytes("compress") {
     val here = Scala_Project.here
-    def invoke(args: List[Bytes]): List[Bytes] =
-      List(Library.the_single(args).compress())
+    def apply(arg: Bytes): Bytes = arg.compress()
   }
 
-  object Uncompress extends Scala.Fun("uncompress") {
+  object Uncompress extends Scala.Fun_Bytes("uncompress") {
     val here = Scala_Project.here
-    def invoke(args: List[Bytes]): List[Bytes] =
-      List(Library.the_single(args).uncompress())
+    def apply(arg: Bytes): Bytes = arg.uncompress()
   }
 
 
@@ -160,16 +156,16 @@ final class Bytes private(
 
   def text: String = UTF8.decode_permissive(this)
 
-  def base64: String = {
+  def encode_base64: String = {
     val b =
       if (offset == 0 && length == bytes.length) bytes
       else Bytes(bytes, offset, length).bytes
     Base64.getEncoder.encodeToString(b)
   }
 
-  def maybe_base64: (Boolean, String) = {
+  def maybe_encode_base64: (Boolean, String) = {
     val s = text
-    if (this == Bytes(s)) (false, s) else (true, base64)
+    if (this == Bytes(s)) (false, s) else (true, encode_base64)
   }
 
   override def toString: String = "Bytes(" + length + ")"

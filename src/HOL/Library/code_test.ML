@@ -153,7 +153,8 @@ fun dynamic_value_strict ctxt t compiler =
       | SOME drv => drv)
     val with_dir = if Config.get ctxt debug then with_debug_dir else Isabelle_System.with_tmp_dir
     fun eval result =
-      with_dir "Code_Test" (driver ctxt ((apfst o map o apfst) Long_Name.implode result))
+      with_dir "Code_Test"
+        (driver ctxt ((apfst o map) (apfst Long_Name.implode #> apsnd Bytes.content) result))
       |> parse_result compiler
     fun evaluator program _ vs_ty deps =
       Exn.interruptible_capture eval
