@@ -38,7 +38,6 @@ sig
   val outputs: BinIO.outstream -> string list -> unit
   val write_list: Path.T -> string list -> unit
   val append_list: Path.T -> string list -> unit
-  val write_buffer: Path.T -> Buffer.T -> unit
   val eq: Path.T * Path.T -> bool
 end;
 
@@ -169,9 +168,6 @@ fun append_list path txts = open_append (output_list txts) path;
 
 fun write path txt = write_list path [txt];
 fun append path txt = append_list path [txt];
-
-fun write_buffer path buf =
-  open_output (fn file => List.app (output file) (Buffer.contents buf)) path;
 
 
 (* eq *)
