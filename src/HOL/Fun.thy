@@ -961,31 +961,39 @@ lemma monotone_on_subset: "monotone_on A orda ordb f \<Longrightarrow> B \<subse
 lemma monotone_on_empty[simp]: "monotone_on {} orda ordb f"
   by (auto intro: monotone_onI dest: monotone_onD)
 
-definition "mono_on A f \<equiv> \<forall>r s. r \<in> A \<and> s \<in> A \<and> r \<le> s \<longrightarrow> f r \<le> f s"
+abbreviation mono_on :: "('a :: ord) set \<Rightarrow> ('a \<Rightarrow> 'b :: ord) \<Rightarrow> bool"
+  where "mono_on A \<equiv> monotone_on A (\<le>) (\<le>)"
+
+lemma mono_on_def: "mono_on A f \<longleftrightarrow> (\<forall>r s. r \<in> A \<and> s \<in> A \<and> r \<le> s \<longrightarrow> f r \<le> f s)"
+  by (auto simp add: monotone_on_def)
 
 lemma mono_onI:
   "(\<And>r s. r \<in> A \<Longrightarrow> s \<in> A \<Longrightarrow> r \<le> s \<Longrightarrow> f r \<le> f s) \<Longrightarrow> mono_on A f"
-  unfolding mono_on_def by simp
+  by (rule monotone_onI)
 
 lemma mono_onD:
   "\<lbrakk>mono_on A f; r \<in> A; s \<in> A; r \<le> s\<rbrakk> \<Longrightarrow> f r \<le> f s"
-  unfolding mono_on_def by simp
+  by (rule monotone_onD)
 
 lemma mono_imp_mono_on: "mono f \<Longrightarrow> mono_on A f"
   unfolding mono_def mono_on_def by auto
 
 lemma mono_on_subset: "mono_on A f \<Longrightarrow> B \<subseteq> A \<Longrightarrow> mono_on B f"
-  unfolding mono_on_def by auto
+  by (rule monotone_on_subset)
 
-definition "strict_mono_on A f \<equiv> \<forall>r s. r \<in> A \<and> s \<in> A \<and> r < s \<longrightarrow> f r < f s"
+abbreviation strict_mono_on :: "('a :: ord) set \<Rightarrow> ('a \<Rightarrow> 'b :: ord) \<Rightarrow> bool"
+  where "strict_mono_on A \<equiv> monotone_on A (<) (<)"
+
+lemma strict_mono_on_def: "strict_mono_on A f \<longleftrightarrow> (\<forall>r s. r \<in> A \<and> s \<in> A \<and> r < s \<longrightarrow> f r < f s)"
+  by (auto simp add: monotone_on_def)
 
 lemma strict_mono_onI:
   "(\<And>r s. r \<in> A \<Longrightarrow> s \<in> A \<Longrightarrow> r < s \<Longrightarrow> f r < f s) \<Longrightarrow> strict_mono_on A f"
-  unfolding strict_mono_on_def by simp
+  by (rule monotone_onI)
 
 lemma strict_mono_onD:
   "\<lbrakk>strict_mono_on A f; r \<in> A; s \<in> A; r < s\<rbrakk> \<Longrightarrow> f r < f s"
-  unfolding strict_mono_on_def by simp
+  by (rule monotone_onD)
 
 lemma mono_on_greaterD:
   assumes "mono_on A g" "x \<in> A" "y \<in> A" "g x > (g (y::_::linorder) :: _ :: linorder)"
