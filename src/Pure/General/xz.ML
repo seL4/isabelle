@@ -13,7 +13,7 @@ end;
 structure XZ: XZ =
 struct
 
-val compress = Scala.function1_bytes "XZ.compress";
-val uncompress = Scala.function1_bytes "XZ.uncompress";
+val compress = \<^scala>\<open>XZ.compress\<close>;
+val uncompress = \<^scala>\<open>XZ.uncompress\<close>;
 
 end;

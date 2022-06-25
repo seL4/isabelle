@@ -13,7 +13,7 @@ end;
 structure Base64: BASE64 =
 struct
 
-val decode = Scala.function1_bytes "Base64.decode";
-val encode = Scala.function1_bytes "Base64.encode";
+val decode = \<^scala>\<open>Base64.decode\<close>;
+val encode = \<^scala>\<open>Base64.encode\<close>;
 
 end;

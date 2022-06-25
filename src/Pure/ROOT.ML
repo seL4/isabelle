@@ -300,8 +300,6 @@ ML_file "PIDE/protocol_command.ML";
 ML_file "System/scala.ML";
 ML_file "System/process_result.ML";
 ML_file "System/isabelle_system.ML";
-ML_file "General/base64.ML";
-ML_file "General/xz.ML";
 
 
 (*theory documents*)
@@ -347,6 +345,8 @@ ML_file "General/output_primitives_virtual.ML";
 
 subsection "Miscellaneous tools and packages for Pure Isabelle";
 
+ML_file "General/base64.ML";
+ML_file "General/xz.ML";
 ML_file "Tools/build.ML";
 ML_file "Tools/named_thms.ML";
 ML_file "Tools/print_operation.ML";
