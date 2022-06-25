@@ -54,6 +54,7 @@ sources = \
   src/Pure/GUI/popup.scala \
   src/Pure/GUI/wrap_panel.scala \
   src/Pure/General/antiquote.scala \
+  src/Pure/General/base64.scala \
   src/Pure/General/bytes.scala \
   src/Pure/General/cache.scala \
   src/Pure/General/codepoint.scala \

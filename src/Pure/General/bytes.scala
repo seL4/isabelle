@@ -10,7 +10,6 @@ package isabelle
 import java.io.{File => JFile, ByteArrayOutputStream, ByteArrayInputStream,
   OutputStream, InputStream, FileInputStream, FileOutputStream}
 import java.net.URL
-import java.util.Base64
 
 import org.tukaani.xz.{XZInputStream, XZOutputStream}
 
@@ -43,31 +42,8 @@ object Bytes {
   /* base64 */
 
   def decode_base64(s: String): Bytes = {
-    val a = Base64.getDecoder.decode(s)
+    val a = Base64.decode(s)
     new Bytes(a, 0, a.length)
-  }
-
-  object Decode_Base64 extends Scala.Fun_Bytes("decode_base64") {
-    val here = Scala_Project.here
-    def apply(arg: Bytes): Bytes = decode_base64(arg.text)
-  }
-
-  object Encode_Base64 extends Scala.Fun_Bytes("encode_base64") {
-    val here = Scala_Project.here
-    def apply(arg: Bytes): Bytes = Bytes(arg.encode_base64)
-  }
-
-
-  /* XZ compression */
-
-  object Compress extends Scala.Fun_Bytes("compress") {
-    val here = Scala_Project.here
-    def apply(arg: Bytes): Bytes = arg.compress()
-  }
-
-  object Uncompress extends Scala.Fun_Bytes("uncompress") {
-    val here = Scala_Project.here
-    def apply(arg: Bytes): Bytes = arg.uncompress()
   }
 
 
@@ -160,7 +136,7 @@ final class Bytes private(
     val b =
       if (offset == 0 && length == bytes.length) bytes
       else Bytes(bytes, offset, length).bytes
-    Base64.getEncoder.encodeToString(b)
+    Base64.encode(b)
   }
 
   def maybe_encode_base64: (Boolean, String) = {

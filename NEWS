@@ -171,8 +171,8 @@ String.maxSize (approx. 64 MB on 64_32 architecture).
 
 * Operations for XZ compression (via Isabelle/Scala):
 
-  Isabelle_System.compress: Bytes.T -> Bytes.T
-  Isabelle_System.uncompress: Bytes.T -> Bytes.T
+  XZ.compress: Bytes.T -> Bytes.T
+  XZ.uncompress: Bytes.T -> Bytes.T
 
 
 *** System ***

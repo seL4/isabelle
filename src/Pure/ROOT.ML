@@ -300,6 +300,8 @@ ML_file "PIDE/protocol_command.ML";
 ML_file "System/scala.ML";
 ML_file "System/process_result.ML";
 ML_file "System/isabelle_system.ML";
+ML_file "General/base64.ML";
+ML_file "General/xz.ML";
 
 
 (*theory documents*)

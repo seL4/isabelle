@@ -31,4 +31,17 @@ object XZ {
     def apply(): ArrayCache = ArrayCache.getDefaultCache()
     def make(): ArrayCache = new BasicArrayCache
   }
+
+
+  /* Scala functions in ML */
+
+  object Compress extends Scala.Fun_Bytes("XZ.compress") {
+    val here = Scala_Project.here
+    def apply(arg: Bytes): Bytes = arg.compress()
+  }
+
+  object Uncompress extends Scala.Fun_Bytes("XZ.uncompress") {
+    val here = Scala_Project.here
+    def apply(arg: Bytes): Bytes = arg.uncompress()
+  }
 }
