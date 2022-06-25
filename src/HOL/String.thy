@@ -38,6 +38,15 @@ lemma of_char_Char [simp]:
 
 end
 
+lemma (in comm_semiring_1) of_nat_of_char:
+  \<open>of_nat (of_char c) = of_char c\<close>
+  by (cases c) simp
+
+lemma (in comm_ring_1) of_int_of_char:
+  \<open>of_int (of_char c) = of_char c\<close>
+  by (cases c) simp
+
+
 context unique_euclidean_semiring_with_bit_operations
 begin
 
@@ -193,6 +202,14 @@ lifting_forget integer.lifting
 
 lifting_update natural.lifting
 lifting_forget natural.lifting
+
+lemma size_char_eq_0 [simp, code]:
+  \<open>size c = 0\<close> for c :: char
+  by (cases c) simp
+
+lemma size'_char_eq_0 [simp, code]:
+  \<open>size_char c = 0\<close>
+  by (cases c) simp
 
 syntax
   "_Char" :: "str_position \<Rightarrow> char"    ("CHR _")
@@ -354,6 +371,34 @@ qualified lemma ascii_of_Char [simp]:
   "ascii_of (Char b0 b1 b2 b3 b4 b5 b6 b7) = Char b0 b1 b2 b3 b4 b5 b6 False"
   by (simp add: ascii_of_def)
 
+qualified lemma digit0_ascii_of_iff [simp]:
+  "digit0 (String.ascii_of c) \<longleftrightarrow> digit0 c"
+  by (simp add: String.ascii_of_def)
+
+qualified lemma digit1_ascii_of_iff [simp]:
+  "digit1 (String.ascii_of c) \<longleftrightarrow> digit1 c"
+  by (simp add: String.ascii_of_def)
+
+qualified lemma digit2_ascii_of_iff [simp]:
+  "digit2 (String.ascii_of c) \<longleftrightarrow> digit2 c"
+  by (simp add: String.ascii_of_def)
+
+qualified lemma digit3_ascii_of_iff [simp]:
+  "digit3 (String.ascii_of c) \<longleftrightarrow> digit3 c"
+  by (simp add: String.ascii_of_def)
+
+qualified lemma digit4_ascii_of_iff [simp]:
+  "digit4 (String.ascii_of c) \<longleftrightarrow> digit4 c"
+  by (simp add: String.ascii_of_def)
+
+qualified lemma digit5_ascii_of_iff [simp]:
+  "digit5 (String.ascii_of c) \<longleftrightarrow> digit5 c"
+  by (simp add: String.ascii_of_def)
+
+qualified lemma digit6_ascii_of_iff [simp]:
+  "digit6 (String.ascii_of c) \<longleftrightarrow> digit6 c"
+  by (simp add: String.ascii_of_def)
+
 qualified lemma not_digit7_ascii_of [simp]:
   "\<not> digit7 (ascii_of c)"
   by (simp add: ascii_of_def)
@@ -361,10 +406,6 @@ qualified lemma not_digit7_ascii_of [simp]:
 qualified lemma ascii_of_idem:
   "ascii_of c = c" if "\<not> digit7 c"
   using that by (cases c) simp
-
-qualified lemma char_of_ascii_of [simp]:
-  "of_char (ascii_of c) = take_bit 7 (of_char c :: nat)"
-  by (cases c) (simp only: ascii_of_Char of_char_Char take_bit_horner_sum_bit_eq, simp)
 
 qualified typedef literal = "{cs. \<forall>c\<in>set cs. \<not> digit7 c}"
   morphisms explode Abs_literal
@@ -391,6 +432,24 @@ qed
 qualified lemma explode_implode_eq [simp]:
   "String.explode (String.implode cs) = map ascii_of cs"
   by transfer rule
+
+end
+
+context unique_euclidean_semiring_with_bit_operations
+begin
+
+context
+begin
+
+qualified lemma char_of_ascii_of [simp]:
+  \<open>of_char (String.ascii_of c) = take_bit 7 (of_char c)\<close>
+  by (cases c) (simp only: String.ascii_of_Char of_char_Char take_bit_horner_sum_bit_eq, simp)
+
+qualified lemma ascii_of_char_of:
+  \<open>String.ascii_of (char_of a) = char_of (take_bit 7 a)\<close>
+  by (simp add: char_of_def bit_simps)
+
+end
 
 end
 
