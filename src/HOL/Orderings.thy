@@ -1058,36 +1058,6 @@ qed
 *)
 
 
-subsection \<open>Monotonicity\<close>
-
-context order
-begin
-
-definition antimono :: "('a \<Rightarrow> 'b::order) \<Rightarrow> bool" where
-  "antimono f \<longleftrightarrow> (\<forall>x y. x \<le> y \<longrightarrow> f x \<ge> f y)"
-
-lemma antimonoI [intro?]:
-  fixes f :: "'a \<Rightarrow> 'b::order"
-  shows "(\<And>x y. x \<le> y \<Longrightarrow> f x \<ge> f y) \<Longrightarrow> antimono f"
-  unfolding antimono_def by iprover
-
-lemma antimonoD [dest?]:
-  fixes f :: "'a \<Rightarrow> 'b::order"
-  shows "antimono f \<Longrightarrow> x \<le> y \<Longrightarrow> f x \<ge> f y"
-  unfolding antimono_def by iprover
-
-lemma antimonoE:
-  fixes f :: "'a \<Rightarrow> 'b::order"
-  assumes "antimono f"
-  assumes "x \<le> y"
-  obtains "f x \<ge> f y"
-proof
-  from assms show "f x \<ge> f y" by (simp add: antimono_def)
-qed
-
-end
-
-
 subsection \<open>min and max -- fundamental\<close>
 
 definition (in ord) min :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where

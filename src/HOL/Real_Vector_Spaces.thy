@@ -2154,7 +2154,7 @@ next
     for n x y
     by metis
   have "antimono P"
-    using P(4) unfolding decseq_Suc_iff le_fun_def by blast
+    using P(4) by (rule decseq_SucI)
 
   obtain X where X: "P n (X n)" for n
     using P(1)[THEN eventually_happens'[OF \<open>F \<noteq> bot\<close>]] by metis

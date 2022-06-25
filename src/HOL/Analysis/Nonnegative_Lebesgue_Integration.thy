@@ -1383,7 +1383,7 @@ qed
 lemma nn_integral_monotone_convergence_INF_decseq:
   assumes f: "decseq f" and *: "\<And>i. f i \<in> borel_measurable M" "(\<integral>\<^sup>+ x. f i x \<partial>M) < \<infinity>"
   shows "(\<integral>\<^sup>+ x. (INF i. f i x) \<partial>M) = (INF i. integral\<^sup>N M (f i))"
-  using nn_integral_monotone_convergence_INF_AE[of f M i, OF _ *] f by (auto simp: decseq_Suc_iff le_fun_def)
+  using nn_integral_monotone_convergence_INF_AE[of f M i, OF _ *] f by (simp add: decseq_SucD le_funD)
 
 theorem nn_integral_liminf:
   fixes u :: "nat \<Rightarrow> 'a \<Rightarrow> ennreal"
@@ -1464,7 +1464,7 @@ proof safe
   fix C :: "nat \<Rightarrow> 'b" assume C: "decseq C"
   then show "(\<integral>\<^sup>+ y. f y (Inf (C ` UNIV)) \<partial>M) = (INF i. \<integral>\<^sup>+ y. f y (C i) \<partial>M)"
     using inf_continuous_mono[OF f] bnd
-    by (auto simp add: inf_continuousD[OF f C] fun_eq_iff antimono_def mono_def le_fun_def less_top
+    by (auto simp add: inf_continuousD[OF f C] fun_eq_iff monotone_def le_fun_def less_top
              intro!: nn_integral_monotone_convergence_INF_decseq)
 qed
 

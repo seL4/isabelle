@@ -57,10 +57,11 @@ longer. INCOMPATIBILITY.
     of monotone_of. Lemmas mono_on_def and strict_mono_on_def are
     explicitly provided for backward compatibility but their usage is
     discouraged. INCOMPATIBILITY.
-  - Move mono, strict_mono, and relevant lemmas to Fun theory. Also change
-    them to be abbreviations of mono_on and strict_mono_on. Lemmas
-    mono_def and strict_mono_def, are explicitly provided for backward
-    compatibility but their usage is discouraged. Minor INCOMPATIBILITY.
+  - Move mono, strict_mono, antimono, and relevant lemmas to Fun theory.
+    Also change them to be abbreviations of mono_on, strict_mono_on,
+    and monotone, respectively. Lemmas mono_def, strict_mono_def, and
+    antimono_def are explicitly provided for backward compatibility but
+    their usage is discouraged. Minor INCOMPATIBILITY.
   - Added lemmas.
       monotone_onD
       monotone_onI

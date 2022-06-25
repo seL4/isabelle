@@ -1035,19 +1035,28 @@ abbreviation mono :: "('a \<Rightarrow> 'b::order) \<Rightarrow> bool"
 abbreviation strict_mono :: "('a \<Rightarrow> 'b::order) \<Rightarrow> bool"
   where "strict_mono \<equiv> strict_mono_on UNIV"
 
+abbreviation antimono :: "('a \<Rightarrow> 'b::order) \<Rightarrow> bool"
+  where "antimono \<equiv> monotone (\<le>) (\<lambda>x y. y \<le> x)"
+
 lemma mono_def[no_atp]: "mono f \<longleftrightarrow> (\<forall>x y. x \<le> y \<longrightarrow> f x \<le> f y)"
   by (simp add: monotone_on_def)
 
 lemma strict_mono_def[no_atp]: "strict_mono f \<longleftrightarrow> (\<forall>x y. x < y \<longrightarrow> f x < f y)"
   by (simp add: monotone_on_def)
 
-text \<open>Lemmas @{thm [source] mono_def} and @{thm [source] strict_mono_def} are provided for backward
-compatibility.\<close>
+lemma antimono_def[no_atp]: "antimono f \<longleftrightarrow> (\<forall>x y. x \<le> y \<longrightarrow> f x \<ge> f y)"
+  by (simp add: monotone_on_def)
+
+text \<open>Lemmas @{thm [source] mono_def}, @{thm [source] strict_mono_def}, and
+@{thm [source] antimono_def} are provided for backward compatibility.\<close>
 
 lemma monoI [intro?]: "(\<And>x y. x \<le> y \<Longrightarrow> f x \<le> f y) \<Longrightarrow> mono f"
   by (rule monotoneI)
 
 lemma strict_monoI [intro?]: "(\<And>x y. x < y \<Longrightarrow> f x < f y) \<Longrightarrow> strict_mono f"
+  by (rule monotoneI)
+
+lemma antimonoI [intro?]: "(\<And>x y. x \<le> y \<Longrightarrow> f x \<ge> f y) \<Longrightarrow> antimono f"
   by (rule monotoneI)
 
 lemma monoD [dest?]: "mono f \<Longrightarrow> x \<le> y \<Longrightarrow> f x \<le> f y"
@@ -1056,12 +1065,24 @@ lemma monoD [dest?]: "mono f \<Longrightarrow> x \<le> y \<Longrightarrow> f x \
 lemma strict_monoD [dest?]: "strict_mono f \<Longrightarrow> x < y \<Longrightarrow> f x < f y"
   by (rule monotoneD)
 
+lemma antimonoD [dest?]: "antimono f \<Longrightarrow> x \<le> y \<Longrightarrow> f x \<ge> f y"
+  by (rule monotoneD)
+
 lemma monoE:
   assumes "mono f"
   assumes "x \<le> y"
   obtains "f x \<le> f y"
 proof
   from assms show "f x \<le> f y" by (simp add: mono_def)
+qed
+
+lemma antimonoE:
+  fixes f :: "'a \<Rightarrow> 'b::order"
+  assumes "antimono f"
+  assumes "x \<le> y"
+  obtains "f x \<ge> f y"
+proof
+  from assms show "f x \<ge> f y" by (simp add: antimono_def)
 qed
 
 lemma mono_imp_mono_on: "mono f \<Longrightarrow> mono_on A f"
@@ -1218,6 +1239,11 @@ lemma (in linorder) min_of_mono: "mono f \<Longrightarrow> min (f m) (f n) = f (
 
 lemma (in linorder) max_of_mono: "mono f \<Longrightarrow> max (f m) (f n) = f (max m n)"
   by (auto simp: mono_def Orderings.max_def max_def intro: Orderings.antisym)
+
+lemma (in linorder)
+  max_of_antimono: "antimono f \<Longrightarrow> max (f x) (f y) = f (min x y)" and
+  min_of_antimono: "antimono f \<Longrightarrow> min (f x) (f y) = f (max x y)"
+  by (auto simp: antimono_def Orderings.max_def max_def Orderings.min_def min_def intro!: antisym)
 
 lemma (in linorder) strict_mono_imp_inj_on: "strict_mono f \<Longrightarrow> inj_on f A"
   by (auto intro!: inj_onI dest: strict_mono_eq)

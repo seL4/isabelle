@@ -156,6 +156,7 @@ Available via \<^theory_text>\<open>unbundle lattice_syntax\<close>.
 \<^const>\<open>Fun.mono\<close> & \<^typeof>\<open>Fun.mono\<close>\\
 \<^const>\<open>Fun.strict_mono_on\<close> & \<^typeof>\<open>Fun.strict_mono_on\<close>\\
 \<^const>\<open>Fun.strict_mono\<close> & \<^typeof>\<open>Fun.strict_mono\<close>\\
+\<^const>\<open>Fun.antimono\<close> & \<^typeof>\<open>Fun.antimono\<close>\\
 \<^const>\<open>Fun.fun_upd\<close> & \<^typeof>\<open>Fun.fun_upd\<close>\\
 \end{tabular}
 
