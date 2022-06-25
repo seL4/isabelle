@@ -194,7 +194,7 @@ fun cat_lines lines = build (fold add (separate "\n" lines));
 (* IO *)
 
 fun read_block limit =
-  File.input_size (if limit < 0 then chunk_size else Int.min (chunk_size, limit));
+  File_Stream.input_size (if limit < 0 then chunk_size else Int.min (chunk_size, limit));
 
 fun read_stream limit stream =
   let
@@ -205,11 +205,11 @@ fun read_stream limit stream =
   in read empty end;
 
 fun write_stream stream bytes =
-  File.outputs stream (contents bytes);
+  File_Stream.outputs stream (contents bytes);
 
-fun read path = File.open_input (fn stream => read_stream ~1 stream) path;
+fun read path = File_Stream.open_input (fn stream => read_stream ~1 stream) path;
 
-fun write path bytes = File.open_output (fn stream => write_stream stream bytes) path;
+fun write path bytes = File_Stream.open_output (fn stream => write_stream stream bytes) path;
 
 
 (* ML pretty printing *)

@@ -89,8 +89,8 @@ val string_of_body = Buffer.build_content o fold (traverse Buffer.add);
 val string_of = string_of_body o single;
 
 fun write_body path body =
-  path |> File.open_output (fn file =>
-    fold (traverse (fn s => fn () => File.output file s)) body ());
+  path |> File_Stream.open_output (fn file =>
+    fold (traverse (fn s => fn () => File_Stream.output file s)) body ());
 
 
 (* markup elements *)

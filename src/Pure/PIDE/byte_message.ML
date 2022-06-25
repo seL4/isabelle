@@ -29,7 +29,8 @@ struct
 
 val write = List.app o Bytes.write_stream;
 
-fun write_yxml stream tree = YXML.traverse (fn s => fn () => File.output stream s) tree ();
+fun write_yxml stream tree =
+  YXML.traverse (fn s => fn () => File_Stream.output stream s) tree ();
 
 fun flush stream = ignore (try BinIO.flushOut stream);
 

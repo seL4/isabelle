@@ -140,11 +140,12 @@ text \<open>
 paragraph \<open>Scopes.\<close>
 text \<open>
   Apart from very basic library modules, ML structures are not ``opened'', but
-  names are referenced with explicit qualification, as in \<^ML>\<open>Syntax.string_of_term\<close> for example. When devising names for structures and
-  their components it is important to aim at eye-catching compositions of both
-  parts, because this is how they are seen in the sources and documentation.
-  For the same reasons, aliases of well-known library functions should be
-  avoided.
+  names are referenced with explicit qualification, as in
+  \<^ML>\<open>Syntax.string_of_term\<close> for example. When devising names for
+  structures and their components it is important to aim at eye-catching
+  compositions of both parts, because this is how they are seen in the sources
+  and documentation. For the same reasons, aliases of well-known library
+  functions should be avoided.
 
   Local names of function abstraction or case/let bindings are typically
   shorter, sometimes using only rudiments of ``words'', while still avoiding
@@ -185,8 +186,10 @@ paragraph \<open>Specific conventions.\<close>
 text \<open>
   Here are some specific name forms that occur frequently in the sources.
 
-  \<^item> A function that maps \<^ML_text>\<open>foo\<close> to \<^ML_text>\<open>bar\<close> is called \<^ML_text>\<open>foo_to_bar\<close> or \<^ML_text>\<open>bar_of_foo\<close> (never \<^ML_text>\<open>foo2bar\<close>, nor
-  \<^ML_text>\<open>bar_from_foo\<close>, nor \<^ML_text>\<open>bar_for_foo\<close>, nor \<^ML_text>\<open>bar4foo\<close>).
+  \<^item> A function that maps \<^ML_text>\<open>foo\<close> to \<^ML_text>\<open>bar\<close> is called
+  \<^ML_text>\<open>foo_to_bar\<close> or \<^ML_text>\<open>bar_of_foo\<close> (never
+  \<^ML_text>\<open>foo2bar\<close>, nor \<^ML_text>\<open>bar_from_foo\<close>, nor
+  \<^ML_text>\<open>bar_for_foo\<close>, nor \<^ML_text>\<open>bar4foo\<close>).
 
   \<^item> The name component \<^ML_text>\<open>legacy\<close> means that the operation is about to
   be discontinued soon.
@@ -206,7 +209,8 @@ text \<open>
     \<^item> theories are called \<^ML_text>\<open>thy\<close>, rarely \<^ML_text>\<open>theory\<close>
     (never \<^ML_text>\<open>thry\<close>)
 
-    \<^item> proof contexts are called \<^ML_text>\<open>ctxt\<close>, rarely \<^ML_text>\<open>context\<close> (never \<^ML_text>\<open>ctx\<close>)
+    \<^item> proof contexts are called \<^ML_text>\<open>ctxt\<close>, rarely \<^ML_text>\<open>context\<close>
+    (never \<^ML_text>\<open>ctx\<close>)
 
     \<^item> generic contexts are called \<^ML_text>\<open>context\<close>
 
@@ -547,9 +551,10 @@ ML \<open>
 \<close>
 
 text \<open>
-  Here the ML environment is already managed by Isabelle, i.e.\ the \<^ML>\<open>factorial\<close> function is not yet accessible in the preceding paragraph, nor in
-  a different theory that is independent from the current one in the import
-  hierarchy.
+  Here the ML environment is already managed by Isabelle, i.e.\ the
+  \<^ML>\<open>factorial\<close> function is not yet accessible in the preceding paragraph,
+  nor in a different theory that is independent from the current one in the
+  import hierarchy.
 
   Removing the above ML declaration from the source text will remove any trace
   of this definition, as expected. The Isabelle/ML toplevel environment is
@@ -583,8 +588,9 @@ text \<open>
   Two further ML commands are useful in certain situations: @{command_ref
   ML_val} and @{command_ref ML_command} are \<^emph>\<open>diagnostic\<close> in the sense that
   there is no effect on the underlying environment, and can thus be used
-  anywhere. The examples below produce long strings of digits by invoking \<^ML>\<open>factorial\<close>: @{command ML_val} takes care of printing the ML toplevel result,
-  but @{command ML_command} is silent so we produce an explicit output
+  anywhere. The examples below produce long strings of digits by invoking
+  \<^ML>\<open>factorial\<close>: @{command ML_val} takes care of printing the ML toplevel
+  result, but @{command ML_command} is silent so we produce an explicit output
   message.
 \<close>
 
@@ -894,9 +900,10 @@ ML_val \<open>
 \<close>
 
 text \<open>
-  Note how \<^ML>\<open>fold (Buffer.add o string_of_int)\<close> above saves an extra \<^ML>\<open>map\<close> over the given list. This kind of peephole optimization reduces both
-  the code size and the tree structures in memory (``deforestation''), but it
-  requires some practice to read and write fluently.
+  Note how \<^ML>\<open>fold (Buffer.add o string_of_int)\<close> above saves an extra
+  \<^ML>\<open>map\<close> over the given list. This kind of peephole optimization reduces
+  both the code size and the tree structures in memory (``deforestation''),
+  but it requires some practice to read and write fluently.
 
   \<^medskip>
   The next example elaborates the idea of canonical iteration, demonstrating
@@ -939,10 +946,12 @@ text \<open>
   buffers that can be continued in further linear transformations, folding
   etc. Thus it is more compositional than the naive \<^ML>\<open>slow_content\<close>. As
   realistic example, compare the old-style
-  \<^ML>\<open>Term.maxidx_of_term: term -> int\<close> with the newer \<^ML>\<open>Term.maxidx_term: term -> int -> int\<close> in Isabelle/Pure.
+  \<^ML>\<open>Term.maxidx_of_term: term -> int\<close> with the newer
+  \<^ML>\<open>Term.maxidx_term: term -> int -> int\<close> in Isabelle/Pure.
 
   Note that \<^ML>\<open>fast_content\<close> above is only defined as example. In many
-  practical situations, it is customary to provide the incremental \<^ML>\<open>add_content\<close> only and leave the initialization and termination to the
+  practical situations, it is customary to provide the incremental
+  \<^ML>\<open>add_content\<close> only and leave the initialization and termination to the
   concrete application to the user.
 \<close>
 
@@ -1007,8 +1016,9 @@ text %mlref \<open>
 
   \begin{warn}
   Regular Isabelle/ML code should output messages exclusively by the official
-  channels. Using raw I/O on \<^emph>\<open>stdout\<close> or \<^emph>\<open>stderr\<close> instead (e.g.\ via \<^ML>\<open>TextIO.output\<close>) is apt to cause problems in the presence of parallel and
-  asynchronous processing of Isabelle theories. Such raw output might be
+  channels. Using raw I/O on \<^emph>\<open>stdout\<close> or \<^emph>\<open>stderr\<close> instead (e.g.\ via
+  \<^ML>\<open>TextIO.output\<close>) is apt to cause problems in the presence of parallel
+  and asynchronous processing of Isabelle theories. Such raw output might be
   displayed by the front-end in some system console log, with a low chance
   that the user will ever see it. Moreover, as a genuine side-effect on global
   process channels, there is no proper way to retract output when Isar command
@@ -1304,12 +1314,15 @@ text %mlref \<open>
   is mainly that of the list structure: individual symbols that happen to be a
   singleton string do not require extra memory in Poly/ML.\<close>
 
-  \<^descr> \<^ML>\<open>Symbol.is_letter\<close>, \<^ML>\<open>Symbol.is_digit\<close>, \<^ML>\<open>Symbol.is_quasi\<close>, \<^ML>\<open>Symbol.is_blank\<close> classify standard symbols
+  \<^descr> \<^ML>\<open>Symbol.is_letter\<close>, \<^ML>\<open>Symbol.is_digit\<close>,
+  \<^ML>\<open>Symbol.is_quasi\<close>, \<^ML>\<open>Symbol.is_blank\<close> classify standard symbols
   according to fixed syntactic conventions of Isabelle, cf.\ @{cite
   "isabelle-isar-ref"}.
 
   \<^descr> Type \<^ML_type>\<open>Symbol.sym\<close> is a concrete datatype that represents the
-  different kinds of symbols explicitly, with constructors \<^ML>\<open>Symbol.Char\<close>, \<^ML>\<open>Symbol.UTF8\<close>, \<^ML>\<open>Symbol.Sym\<close>, \<^ML>\<open>Symbol.Control\<close>, \<^ML>\<open>Symbol.Malformed\<close>.
+  different kinds of symbols explicitly, with constructors
+  \<^ML>\<open>Symbol.Char\<close>, \<^ML>\<open>Symbol.UTF8\<close>, \<^ML>\<open>Symbol.Sym\<close>,
+  \<^ML>\<open>Symbol.Control\<close>, \<^ML>\<open>Symbol.Malformed\<close>.
 
   \<^descr> \<^ML>\<open>Symbol.decode\<close> converts the string representation of a symbol into
   the datatype version.
@@ -1336,7 +1349,8 @@ text \<open>
   of its operations simply do not fit with important Isabelle/ML conventions
   (like ``canonical argument order'', see
   \secref{sec:canonical-argument-order}), others cause problems with the
-  parallel evaluation model of Isabelle/ML (such as \<^ML>\<open>TextIO.print\<close> or \<^ML>\<open>OS.Process.system\<close>).
+  parallel evaluation model of Isabelle/ML (such as \<^ML>\<open>TextIO.print\<close> or
+  \<^ML>\<open>OS.Process.system\<close>).
 
   Subsequently we give a brief overview of important operations on basic ML
   data types.
@@ -1370,7 +1384,8 @@ text %mlref \<open>
   Isabelle-specific purposes with the following implicit substructures packed
   into the string content:
 
-    \<^enum> sequence of Isabelle symbols (see also \secref{sec:symbols}), with \<^ML>\<open>Symbol.explode\<close> as key operation;
+    \<^enum> sequence of Isabelle symbols (see also \secref{sec:symbols}), with
+    \<^ML>\<open>Symbol.explode\<close> as key operation;
   
     \<^enum> XML tree structure via YXML (see also @{cite "isabelle-system"}), with
     \<^ML>\<open>YXML.parse_body\<close> as key operation.
@@ -1544,7 +1559,8 @@ ML_val \<open>
 
 text \<open>
   Here the first list is treated conservatively: only the new elements from
-  the second list are inserted. The inside-out order of insertion via \<^ML>\<open>fold_rev\<close> attempts to preserve the order of elements in the result.
+  the second list are inserted. The inside-out order of insertion via
+  \<^ML>\<open>fold_rev\<close> attempts to preserve the order of elements in the result.
 
   This way of merging lists is typical for context data
   (\secref{sec:context-data}). See also \<^ML>\<open>merge\<close> as defined in
@@ -2128,8 +2144,9 @@ text %mlref \<open>
     \<^item> \<open>pri : int\<close> (default \<^ML>\<open>0\<close>) specifies a priority within the task
     queue.
 
-    Typically there is only little deviation from the default priority \<^ML>\<open>0\<close>. As a rule of thumb, \<^ML>\<open>~1\<close> means ``low priority" and \<^ML>\<open>1\<close> means
-    ``high priority''.
+    Typically there is only little deviation from the default priority
+    \<^ML>\<open>0\<close>. As a rule of thumb, \<^ML>\<open>~1\<close> means ``low priority" and
+    \<^ML>\<open>1\<close> means ``high priority''.
 
     Note that the task priority only affects the position in the queue, not
     the thread priority. When a worker thread picks up a task for processing,
@@ -2184,10 +2201,11 @@ text %mlref \<open>
   There is very low overhead for this proforma wrapping of strict values as
   futures.
 
-  \<^descr> \<^ML>\<open>Future.map\<close>~\<open>f x\<close> is a fast-path implementation of \<^ML>\<open>Future.fork\<close>~\<open>(fn () => f (\<close>\<^ML>\<open>Future.join\<close>~\<open>x))\<close>, which avoids the full
-  overhead of the task queue and worker-thread farm as far as possible. The
-  function \<open>f\<close> is supposed to be some trivial post-processing or projection of
-  the future result.
+  \<^descr> \<^ML>\<open>Future.map\<close>~\<open>f x\<close> is a fast-path implementation of
+  \<^ML>\<open>Future.fork\<close>~\<open>(fn () => f (\<close>\<^ML>\<open>Future.join\<close>~\<open>x))\<close>, which avoids
+  the full overhead of the task queue and worker-thread farm as far as
+  possible. The function \<open>f\<close> is supposed to be some trivial post-processing or
+  projection of the future result.
 
   \<^descr> \<^ML>\<open>Future.cancel\<close>~\<open>x\<close> cancels the task group of the given future, using
   \<^ML>\<open>Future.cancel_group\<close> below.
