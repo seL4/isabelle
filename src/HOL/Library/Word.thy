@@ -1958,6 +1958,25 @@ proof (cases \<open>LENGTH('a) = 0 \<or> n=0\<close>)
 qed auto
 
 
+subsection \<open>Single-bit operations\<close>
+
+lemma set_bit_eq_idem_iff:
+  \<open>Bit_Operations.set_bit n w = w \<longleftrightarrow> bit w n \<or> n \<ge> LENGTH('a)\<close>
+  for w :: \<open>'a::len word\<close>
+  by (simp add: bit_eq_iff) (auto simp add: bit_simps not_le)
+
+lemma unset_bit_eq_idem_iff:
+  \<open>unset_bit n w = w \<longleftrightarrow> bit w n \<longrightarrow> n \<ge> LENGTH('a)\<close>
+  for w :: \<open>'a::len word\<close>
+  by (simp add: bit_eq_iff) (auto simp add: bit_simps dest: bit_imp_le_length)
+
+lemma flip_bit_eq_idem_iff:
+  \<open>flip_bit n w = w \<longleftrightarrow> n \<ge> LENGTH('a)\<close>
+  for w :: \<open>'a::len word\<close>
+  using linorder_le_less_linear
+  by (simp add: bit_eq_iff) (auto simp add: bit_simps)
+
+
 subsection \<open>Rotation\<close>
 
 lift_definition word_rotr :: \<open>nat \<Rightarrow> 'a::len word \<Rightarrow> 'a::len word\<close>
