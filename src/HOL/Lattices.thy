@@ -220,9 +220,6 @@ lemma le_iff_inf: "x \<le> y \<longleftrightarrow> x \<sqinter> y = x"
 lemma inf_mono: "a \<le> c \<Longrightarrow> b \<le> d \<Longrightarrow> a \<sqinter> b \<le> c \<sqinter> d"
   by (fast intro: inf_greatest le_infI1 le_infI2)
 
-lemma mono_inf: "mono f \<Longrightarrow> f (A \<sqinter> B) \<le> f A \<sqinter> f B" for f :: "'a \<Rightarrow> 'b::semilattice_inf"
-  by (auto simp add: mono_def intro: Lattices.inf_greatest)
-
 end
 
 context semilattice_sup
@@ -248,9 +245,6 @@ lemma le_iff_sup: "x \<le> y \<longleftrightarrow> x \<squnion> y = y"
 
 lemma sup_mono: "a \<le> c \<Longrightarrow> b \<le> d \<Longrightarrow> a \<squnion> b \<le> c \<squnion> d"
   by (fast intro: sup_least le_supI1 le_supI2)
-
-lemma mono_sup: "mono f \<Longrightarrow> f A \<squnion> f B \<le> f (A \<squnion> B)" for f :: "'a \<Rightarrow> 'b::semilattice_sup"
-  by (auto simp add: mono_def intro: Lattices.sup_least)
 
 end
 
@@ -609,12 +603,6 @@ lemma split_min_lin [no_atp]:
 lemma split_max_lin [no_atp]:
   \<open>P (max a b) \<longleftrightarrow> (b = a \<longrightarrow> P a) \<and> (a < b \<longrightarrow> P b) \<and> (b < a \<longrightarrow> P a)\<close>
   by (cases a b rule: linorder_cases) auto
-
-lemma min_of_mono: "mono f \<Longrightarrow> min (f m) (f n) = f (min m n)" for f :: "'a \<Rightarrow> 'b::linorder"
-  by (auto simp: mono_def Orderings.min_def min_def intro: Orderings.antisym)
-
-lemma max_of_mono: "mono f \<Longrightarrow> max (f m) (f n) = f (max m n)" for f :: "'a \<Rightarrow> 'b::linorder"
-  by (auto simp: mono_def Orderings.max_def max_def intro: Orderings.antisym)
 
 end
 

@@ -399,7 +399,8 @@ fun prove_mono quiet_mode skip_mono predT fp_fun monos ctxt =
   (if skip_mono then Goal.prove_sorry else Goal.prove_future) ctxt
     [] []
     (HOLogic.mk_Trueprop
-      (Const (\<^const_name>\<open>Orderings.mono\<close>, (predT --> predT) --> HOLogic.boolT) $ fp_fun))
+      (\<^Const>\<open>monotone_on predT predT for
+          \<^Const>\<open>top \<^Type>\<open>set predT\<close>\<close> \<^Const>\<open>less_eq predT\<close> \<^Const>\<open>less_eq predT\<close> fp_fun\<close>))
     (fn _ => EVERY [resolve_tac ctxt @{thms monoI} 1,
       REPEAT (resolve_tac ctxt [@{thm le_funI}, @{thm le_boolI'}] 1),
       REPEAT (FIRST

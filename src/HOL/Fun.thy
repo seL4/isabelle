@@ -590,9 +590,6 @@ lemma inj_on_vimage_singleton: "inj_on f A \<Longrightarrow> f -` {a} \<inter> A
 lemma (in ordered_ab_group_add) inj_uminus[simp, intro]: "inj_on uminus A"
   by (auto intro!: inj_onI)
 
-lemma (in linorder) strict_mono_imp_inj_on: "strict_mono f \<Longrightarrow> inj_on f A"
-  by (auto intro!: inj_onI dest: strict_mono_eq)
-
 lemma bij_betw_byWitness:
   assumes left: "\<forall>a \<in> A. f' (f a) = a"
     and right: "\<forall>a' \<in> A'. f (f' a') = a'"
@@ -931,7 +928,7 @@ proof
 qed
 
 
-subsection \<open>Monotonic functions over a set\<close>
+subsection \<open>Monotonicity\<close>
 
 definition monotone_on :: "'a set \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool"
   where "monotone_on A orda ordb f \<longleftrightarrow> (\<forall>x\<in>A. \<forall>y\<in>A. orda x y \<longrightarrow> ordb (f x) (f y))"
@@ -980,39 +977,45 @@ proof (rule monotone_onI)
     using mono_f[THEN monotone_onD] by simp
 qed
 
-abbreviation mono_on :: "('a :: ord) set \<Rightarrow> ('a \<Rightarrow> 'b :: ord) \<Rightarrow> bool"
+
+subsubsection \<open>Specializations For @{class ord} Type Class And More\<close>
+
+context ord begin
+
+abbreviation mono_on :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b :: ord) \<Rightarrow> bool"
   where "mono_on A \<equiv> monotone_on A (\<le>) (\<le>)"
 
-lemma mono_on_def: "mono_on A f \<longleftrightarrow> (\<forall>r s. r \<in> A \<and> s \<in> A \<and> r \<le> s \<longrightarrow> f r \<le> f s)"
+abbreviation strict_mono_on :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b :: ord) \<Rightarrow> bool"
+  where "strict_mono_on A \<equiv> monotone_on A (<) (<)"
+
+lemma mono_on_def[no_atp]: "mono_on A f \<longleftrightarrow> (\<forall>r s. r \<in> A \<and> s \<in> A \<and> r \<le> s \<longrightarrow> f r \<le> f s)"
   by (auto simp add: monotone_on_def)
+
+lemma strict_mono_on_def[no_atp]:
+  "strict_mono_on A f \<longleftrightarrow> (\<forall>r s. r \<in> A \<and> s \<in> A \<and> r < s \<longrightarrow> f r < f s)"
+  by (auto simp add: monotone_on_def)
+
+text \<open>Lemmas @{thm [source] mono_on_def} and @{thm [source] strict_mono_on_def} are provided for
+backward compatibility.\<close>
 
 lemma mono_onI:
   "(\<And>r s. r \<in> A \<Longrightarrow> s \<in> A \<Longrightarrow> r \<le> s \<Longrightarrow> f r \<le> f s) \<Longrightarrow> mono_on A f"
   by (rule monotone_onI)
 
-lemma mono_onD:
-  "\<lbrakk>mono_on A f; r \<in> A; s \<in> A; r \<le> s\<rbrakk> \<Longrightarrow> f r \<le> f s"
-  by (rule monotone_onD)
-
-lemma mono_imp_mono_on: "mono f \<Longrightarrow> mono_on A f"
-  unfolding mono_def mono_on_def by auto
-
-lemma mono_on_subset: "mono_on A f \<Longrightarrow> B \<subseteq> A \<Longrightarrow> mono_on B f"
-  by (rule monotone_on_subset)
-
-abbreviation strict_mono_on :: "('a :: ord) set \<Rightarrow> ('a \<Rightarrow> 'b :: ord) \<Rightarrow> bool"
-  where "strict_mono_on A \<equiv> monotone_on A (<) (<)"
-
-lemma strict_mono_on_def: "strict_mono_on A f \<longleftrightarrow> (\<forall>r s. r \<in> A \<and> s \<in> A \<and> r < s \<longrightarrow> f r < f s)"
-  by (auto simp add: monotone_on_def)
-
 lemma strict_mono_onI:
   "(\<And>r s. r \<in> A \<Longrightarrow> s \<in> A \<Longrightarrow> r < s \<Longrightarrow> f r < f s) \<Longrightarrow> strict_mono_on A f"
   by (rule monotone_onI)
 
-lemma strict_mono_onD:
-  "\<lbrakk>strict_mono_on A f; r \<in> A; s \<in> A; r < s\<rbrakk> \<Longrightarrow> f r < f s"
+lemma mono_onD: "\<lbrakk>mono_on A f; r \<in> A; s \<in> A; r \<le> s\<rbrakk> \<Longrightarrow> f r \<le> f s"
   by (rule monotone_onD)
+
+lemma strict_mono_onD: "\<lbrakk>strict_mono_on A f; r \<in> A; s \<in> A; r < s\<rbrakk> \<Longrightarrow> f r < f s"
+  by (rule monotone_onD)
+
+lemma mono_on_subset: "mono_on A f \<Longrightarrow> B \<subseteq> A \<Longrightarrow> mono_on B f"
+  by (rule monotone_on_subset)
+
+end
 
 lemma mono_on_greaterD:
   assumes "mono_on A g" "x \<in> A" "y \<in> A" "g x > (g (y::_::linorder) :: _ :: linorder)"
@@ -1023,6 +1026,136 @@ proof (rule ccontr)
   from assms(1-3) and this have "g x \<le> g y" by (rule mono_onD)
   with assms(4) show False by simp
 qed
+
+context order begin
+
+abbreviation mono :: "('a \<Rightarrow> 'b::order) \<Rightarrow> bool"
+  where "mono \<equiv> mono_on UNIV"
+
+abbreviation strict_mono :: "('a \<Rightarrow> 'b::order) \<Rightarrow> bool"
+  where "strict_mono \<equiv> strict_mono_on UNIV"
+
+lemma mono_def[no_atp]: "mono f \<longleftrightarrow> (\<forall>x y. x \<le> y \<longrightarrow> f x \<le> f y)"
+  by (simp add: monotone_on_def)
+
+lemma strict_mono_def[no_atp]: "strict_mono f \<longleftrightarrow> (\<forall>x y. x < y \<longrightarrow> f x < f y)"
+  by (simp add: monotone_on_def)
+
+text \<open>Lemmas @{thm [source] mono_def} and @{thm [source] strict_mono_def} are provided for backward
+compatibility.\<close>
+
+lemma monoI [intro?]: "(\<And>x y. x \<le> y \<Longrightarrow> f x \<le> f y) \<Longrightarrow> mono f"
+  by (rule monotoneI)
+
+lemma strict_monoI [intro?]: "(\<And>x y. x < y \<Longrightarrow> f x < f y) \<Longrightarrow> strict_mono f"
+  by (rule monotoneI)
+
+lemma monoD [dest?]: "mono f \<Longrightarrow> x \<le> y \<Longrightarrow> f x \<le> f y"
+  by (rule monotoneD)
+
+lemma strict_monoD [dest?]: "strict_mono f \<Longrightarrow> x < y \<Longrightarrow> f x < f y"
+  by (rule monotoneD)
+
+lemma monoE:
+  assumes "mono f"
+  assumes "x \<le> y"
+  obtains "f x \<le> f y"
+proof
+  from assms show "f x \<le> f y" by (simp add: mono_def)
+qed
+
+lemma mono_imp_mono_on: "mono f \<Longrightarrow> mono_on A f"
+  by (rule monotone_on_subset[OF _ subset_UNIV])
+
+lemma strict_mono_mono [dest?]:
+  assumes "strict_mono f"
+  shows "mono f"
+proof (rule monoI)
+  fix x y
+  assume "x \<le> y"
+  show "f x \<le> f y"
+  proof (cases "x = y")
+    case True then show ?thesis by simp
+  next
+    case False with \<open>x \<le> y\<close> have "x < y" by simp
+    with assms strict_monoD have "f x < f y" by auto
+    then show ?thesis by simp
+
+  qed
+qed
+
+end
+
+context linorder begin
+
+lemma mono_invE:
+  fixes f :: "'a \<Rightarrow> 'b::order"
+  assumes "mono f"
+  assumes "f x < f y"
+  obtains "x \<le> y"
+proof
+  show "x \<le> y"
+  proof (rule ccontr)
+    assume "\<not> x \<le> y"
+    then have "y \<le> x" by simp
+    with \<open>mono f\<close> obtain "f y \<le> f x" by (rule monoE)
+    with \<open>f x < f y\<close> show False by simp
+  qed
+qed
+
+lemma mono_strict_invE:
+  fixes f :: "'a \<Rightarrow> 'b::order"
+  assumes "mono f"
+  assumes "f x < f y"
+  obtains "x < y"
+proof
+  show "x < y"
+  proof (rule ccontr)
+    assume "\<not> x < y"
+    then have "y \<le> x" by simp
+    with \<open>mono f\<close> obtain "f y \<le> f x" by (rule monoE)
+    with \<open>f x < f y\<close> show False by simp
+  qed
+qed
+
+lemma strict_mono_eq:
+  assumes "strict_mono f"
+  shows "f x = f y \<longleftrightarrow> x = y"
+proof
+  assume "f x = f y"
+  show "x = y" proof (cases x y rule: linorder_cases)
+    case less with assms strict_monoD have "f x < f y" by auto
+    with \<open>f x = f y\<close> show ?thesis by simp
+  next
+    case equal then show ?thesis .
+  next
+    case greater with assms strict_monoD have "f y < f x" by auto
+    with \<open>f x = f y\<close> show ?thesis by simp
+  qed
+qed simp
+
+lemma strict_mono_less_eq:
+  assumes "strict_mono f"
+  shows "f x \<le> f y \<longleftrightarrow> x \<le> y"
+proof
+  assume "x \<le> y"
+  with assms strict_mono_mono monoD show "f x \<le> f y" by auto
+next
+  assume "f x \<le> f y"
+  show "x \<le> y" proof (rule ccontr)
+    assume "\<not> x \<le> y" then have "y < x" by simp
+    with assms strict_monoD have "f y < f x" by auto
+    with \<open>f x \<le> f y\<close> show False by simp
+  qed
+qed
+
+lemma strict_mono_less:
+  assumes "strict_mono f"
+  shows "f x < f y \<longleftrightarrow> x < y"
+  using assms
+    by (auto simp add: less_le Orderings.less_le strict_mono_eq strict_mono_less_eq)
+
+end
 
 lemma strict_mono_inv:
   fixes f :: "('a::linorder) \<Rightarrow> ('b::linorder)"
@@ -1063,6 +1196,50 @@ lemma strict_mono_on_eqD:
 lemma strict_mono_on_imp_mono_on:
   "strict_mono_on A (f :: (_ :: linorder) \<Rightarrow> _ :: preorder) \<Longrightarrow> mono_on A f"
   by (rule mono_onI, rule strict_mono_on_leD)
+
+lemma mono_compose: "mono Q \<Longrightarrow> mono (\<lambda>i x. Q i (f x))"
+  unfolding mono_def le_fun_def by auto
+
+lemma mono_add:
+  fixes a :: "'a::ordered_ab_semigroup_add" 
+  shows "mono ((+) a)"
+  by (simp add: add_left_mono monoI)
+
+lemma (in semilattice_inf) mono_inf: "mono f \<Longrightarrow> f (A \<sqinter> B) \<le> f A \<sqinter> f B"
+  for f :: "'a \<Rightarrow> 'b::semilattice_inf"
+  by (auto simp add: mono_def intro: Lattices.inf_greatest)
+
+lemma (in semilattice_sup) mono_sup: "mono f \<Longrightarrow> f A \<squnion> f B \<le> f (A \<squnion> B)"
+  for f :: "'a \<Rightarrow> 'b::semilattice_sup"
+  by (auto simp add: mono_def intro: Lattices.sup_least)
+
+lemma (in linorder) min_of_mono: "mono f \<Longrightarrow> min (f m) (f n) = f (min m n)"
+  by (auto simp: mono_def Orderings.min_def min_def intro: Orderings.antisym)
+
+lemma (in linorder) max_of_mono: "mono f \<Longrightarrow> max (f m) (f n) = f (max m n)"
+  by (auto simp: mono_def Orderings.max_def max_def intro: Orderings.antisym)
+
+lemma (in linorder) strict_mono_imp_inj_on: "strict_mono f \<Longrightarrow> inj_on f A"
+  by (auto intro!: inj_onI dest: strict_mono_eq)
+
+lemma mono_Int: "mono f \<Longrightarrow> f (A \<inter> B) \<subseteq> f A \<inter> f B"
+  by (fact mono_inf)
+
+lemma mono_Un: "mono f \<Longrightarrow> f A \<union> f B \<subseteq> f (A \<union> B)"
+  by (fact mono_sup)
+
+
+subsubsection \<open>Least value operator\<close>
+
+lemma Least_mono: "mono f \<Longrightarrow> \<exists>x\<in>S. \<forall>y\<in>S. x \<le> y \<Longrightarrow> (LEAST y. y \<in> f ` S) = f (LEAST x. x \<in> S)"
+  for f :: "'a::order \<Rightarrow> 'b::order"
+  \<comment> \<open>Courtesy of Stephan Merz\<close>
+  apply clarify
+  apply (erule_tac P = "\<lambda>x. x \<in> S" in LeastI2_order)
+   apply fast
+  apply (rule LeastI2_order)
+    apply (auto elim: monoD intro!: order_antisym)
+  done
 
 
 subsection \<open>Setup\<close>

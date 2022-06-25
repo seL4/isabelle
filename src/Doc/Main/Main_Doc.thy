@@ -58,8 +58,6 @@ preorder, partial order, linear order, dense linear order and wellorder.
 \<^const>\<open>Orderings.max\<close> & \<^typeof>\<open>Orderings.max\<close>\\
 @{const[source] top} & \<^typeof>\<open>Orderings.top\<close>\\
 @{const[source] bot} & \<^typeof>\<open>Orderings.bot\<close>\\
-\<^const>\<open>Orderings.mono\<close> & \<^typeof>\<open>Orderings.mono\<close>\\
-\<^const>\<open>Orderings.strict_mono\<close> & \<^typeof>\<open>Orderings.strict_mono\<close>\\
 \end{tabular}
 
 \subsubsection*{Syntax}
@@ -152,6 +150,12 @@ Available via \<^theory_text>\<open>unbundle lattice_syntax\<close>.
 \<^const>\<open>Fun.surj\<close> & \<^typeof>\<open>Fun.surj\<close>\\
 \<^const>\<open>Fun.bij\<close> & \<^typeof>\<open>Fun.bij\<close>\\
 \<^const>\<open>Fun.bij_betw\<close> & @{term_type_only Fun.bij_betw "('a\<Rightarrow>'b)\<Rightarrow>'a set\<Rightarrow>'b set\<Rightarrow>bool"}\\
+\<^const>\<open>Fun.monotone_on\<close> & \<^typeof>\<open>Fun.monotone_on\<close>\\
+\<^const>\<open>Fun.monotone\<close> & \<^typeof>\<open>Fun.monotone\<close>\\
+\<^const>\<open>Fun.mono_on\<close> & \<^typeof>\<open>Fun.mono_on\<close>\\
+\<^const>\<open>Fun.mono\<close> & \<^typeof>\<open>Fun.mono\<close>\\
+\<^const>\<open>Fun.strict_mono_on\<close> & \<^typeof>\<open>Fun.strict_mono_on\<close>\\
+\<^const>\<open>Fun.strict_mono\<close> & \<^typeof>\<open>Fun.strict_mono\<close>\\
 \<^const>\<open>Fun.fun_upd\<close> & \<^typeof>\<open>Fun.fun_upd\<close>\\
 \end{tabular}
 

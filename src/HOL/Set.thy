@@ -666,9 +666,6 @@ lemma IntD2: "c \<in> A \<inter> B \<Longrightarrow> c \<in> B"
 lemma IntE [elim!]: "c \<in> A \<inter> B \<Longrightarrow> (c \<in> A \<Longrightarrow> c \<in> B \<Longrightarrow> P) \<Longrightarrow> P"
   by simp
 
-lemma mono_Int: "mono f \<Longrightarrow> f (A \<inter> B) \<subseteq> f A \<inter> f B"
-  by (fact mono_inf)
-
 
 subsubsection \<open>Binary union\<close>
 
@@ -699,9 +696,6 @@ lemma UnE [elim!]: "c \<in> A \<union> B \<Longrightarrow> (c \<in> A \<Longrigh
 
 lemma insert_def: "insert a B = {x. x = a} \<union> B"
   by (simp add: insert_compr Un_def)
-
-lemma mono_Un: "mono f \<Longrightarrow> f A \<union> f B \<subseteq> f (A \<union> B)"
-  by (fact mono_sup)
 
 
 subsubsection \<open>Set difference\<close>
@@ -1806,19 +1800,6 @@ proof (rule the1_equality)
   with * show "f ` A = {f x}" by auto
   then show "\<exists>!x. f ` A = {x}" by auto
 qed
-
-
-subsubsection \<open>Least value operator\<close>
-
-lemma Least_mono: "mono f \<Longrightarrow> \<exists>x\<in>S. \<forall>y\<in>S. x \<le> y \<Longrightarrow> (LEAST y. y \<in> f ` S) = f (LEAST x. x \<in> S)"
-  for f :: "'a::order \<Rightarrow> 'b::order"
-  \<comment> \<open>Courtesy of Stephan Merz\<close>
-  apply clarify
-  apply (erule_tac P = "\<lambda>x. x \<in> S" in LeastI2_order)
-   apply fast
-  apply (rule LeastI2_order)
-    apply (auto elim: monoD intro!: order_antisym)
-  done
 
 
 subsubsection \<open>Monad operation\<close>

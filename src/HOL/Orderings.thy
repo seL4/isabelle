@@ -1063,28 +1063,6 @@ subsection \<open>Monotonicity\<close>
 context order
 begin
 
-definition mono :: "('a \<Rightarrow> 'b::order) \<Rightarrow> bool" where
-  "mono f \<longleftrightarrow> (\<forall>x y. x \<le> y \<longrightarrow> f x \<le> f y)"
-
-lemma monoI [intro?]:
-  fixes f :: "'a \<Rightarrow> 'b::order"
-  shows "(\<And>x y. x \<le> y \<Longrightarrow> f x \<le> f y) \<Longrightarrow> mono f"
-  unfolding mono_def by iprover
-
-lemma monoD [dest?]:
-  fixes f :: "'a \<Rightarrow> 'b::order"
-  shows "mono f \<Longrightarrow> x \<le> y \<Longrightarrow> f x \<le> f y"
-  unfolding mono_def by iprover
-
-lemma monoE:
-  fixes f :: "'a \<Rightarrow> 'b::order"
-  assumes "mono f"
-  assumes "x \<le> y"
-  obtains "f x \<le> f y"
-proof
-  from assms show "f x \<le> f y" by (simp add: mono_def)
-qed
-
 definition antimono :: "('a \<Rightarrow> 'b::order) \<Rightarrow> bool" where
   "antimono f \<longleftrightarrow> (\<forall>x y. x \<le> y \<longrightarrow> f x \<ge> f y)"
 
@@ -1106,107 +1084,6 @@ lemma antimonoE:
 proof
   from assms show "f x \<ge> f y" by (simp add: antimono_def)
 qed
-
-definition strict_mono :: "('a \<Rightarrow> 'b::order) \<Rightarrow> bool" where
-  "strict_mono f \<longleftrightarrow> (\<forall>x y. x < y \<longrightarrow> f x < f y)"
-
-lemma strict_monoI [intro?]:
-  assumes "\<And>x y. x < y \<Longrightarrow> f x < f y"
-  shows "strict_mono f"
-  using assms unfolding strict_mono_def by auto
-
-lemma strict_monoD [dest?]:
-  "strict_mono f \<Longrightarrow> x < y \<Longrightarrow> f x < f y"
-  unfolding strict_mono_def by auto
-
-lemma strict_mono_mono [dest?]:
-  assumes "strict_mono f"
-  shows "mono f"
-proof (rule monoI)
-  fix x y
-  assume "x \<le> y"
-  show "f x \<le> f y"
-  proof (cases "x = y")
-    case True then show ?thesis by simp
-  next
-    case False with \<open>x \<le> y\<close> have "x < y" by simp
-    with assms strict_monoD have "f x < f y" by auto
-    then show ?thesis by simp
-
-  qed
-qed
-
-end
-
-context linorder
-begin
-
-lemma mono_invE:
-  fixes f :: "'a \<Rightarrow> 'b::order"
-  assumes "mono f"
-  assumes "f x < f y"
-  obtains "x \<le> y"
-proof
-  show "x \<le> y"
-  proof (rule ccontr)
-    assume "\<not> x \<le> y"
-    then have "y \<le> x" by simp
-    with \<open>mono f\<close> obtain "f y \<le> f x" by (rule monoE)
-    with \<open>f x < f y\<close> show False by simp
-  qed
-qed
-
-lemma mono_strict_invE:
-  fixes f :: "'a \<Rightarrow> 'b::order"
-  assumes "mono f"
-  assumes "f x < f y"
-  obtains "x < y"
-proof
-  show "x < y"
-  proof (rule ccontr)
-    assume "\<not> x < y"
-    then have "y \<le> x" by simp
-    with \<open>mono f\<close> obtain "f y \<le> f x" by (rule monoE)
-    with \<open>f x < f y\<close> show False by simp
-  qed
-qed
-
-lemma strict_mono_eq:
-  assumes "strict_mono f"
-  shows "f x = f y \<longleftrightarrow> x = y"
-proof
-  assume "f x = f y"
-  show "x = y" proof (cases x y rule: linorder_cases)
-    case less with assms strict_monoD have "f x < f y" by auto
-    with \<open>f x = f y\<close> show ?thesis by simp
-  next
-    case equal then show ?thesis .
-  next
-    case greater with assms strict_monoD have "f y < f x" by auto
-    with \<open>f x = f y\<close> show ?thesis by simp
-  qed
-qed simp
-
-lemma strict_mono_less_eq:
-  assumes "strict_mono f"
-  shows "f x \<le> f y \<longleftrightarrow> x \<le> y"
-proof
-  assume "x \<le> y"
-  with assms strict_mono_mono monoD show "f x \<le> f y" by auto
-next
-  assume "f x \<le> f y"
-  show "x \<le> y" proof (rule ccontr)
-    assume "\<not> x \<le> y" then have "y < x" by simp
-    with assms strict_monoD have "f y < f x" by auto
-    with \<open>f x \<le> f y\<close> show False by simp
-  qed
-qed
-
-lemma strict_mono_less:
-  assumes "strict_mono f"
-  shows "f x < f y \<longleftrightarrow> x < y"
-  using assms
-    by (auto simp add: less_le Orderings.less_le strict_mono_eq strict_mono_less_eq)
 
 end
 
@@ -1613,9 +1490,6 @@ lemma le_funE: "f \<le> g \<Longrightarrow> (f x \<le> g x \<Longrightarrow> P) 
 
 lemma le_funD: "f \<le> g \<Longrightarrow> f x \<le> g x"
   by (rule le_funE)
-
-lemma mono_compose: "mono Q \<Longrightarrow> mono (\<lambda>i x. Q i (f x))"
-  unfolding mono_def le_fun_def by auto
 
 
 subsection \<open>Order on unary and binary predicates\<close>

@@ -53,8 +53,14 @@ longer. INCOMPATIBILITY.
     compatibility but its usage is discouraged. Minor INCOMPATIBILITY.
   - Changed argument order of mono_on and strict_mono_on to uniformize
     with monotone_on and the general "characterizing set at the beginning
-    of predicates" preference. Also change them to be abbreviation of
-    monotone_of. Minor INCOMPATIBILITY
+    of predicates" preference. Also change them to be abbreviations
+    of monotone_of. Lemmas mono_on_def and strict_mono_on_def are
+    explicitly provided for backward compatibility but their usage is
+    discouraged. INCOMPATIBILITY.
+  - Move mono, strict_mono, and relevant lemmas to Fun theory. Also change
+    them to be abbreviations of mono_on and strict_mono_on. Lemmas
+    mono_def and strict_mono_def, are explicitly provided for backward
+    compatibility but their usage is discouraged. Minor INCOMPATIBILITY.
   - Added lemmas.
       monotone_onD
       monotone_onI
