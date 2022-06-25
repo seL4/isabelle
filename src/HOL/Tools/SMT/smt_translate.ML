@@ -210,7 +210,7 @@ fun eta_expand ctxt funcs =
       | expand (q as Const (\<^const_name>\<open>Ex\<close>, T)) = exp2 T q
       | expand (Const (\<^const_name>\<open>Let\<close>, T) $ t) =
           let val U = Term.domain_type (Term.range_type T)
-          in Abs (Name.uu, U, Bound 0 $ Term.incr_boundvars 1 t) end
+          in Abs (Name.uu, U, expand (Bound 0 $ Term.incr_boundvars 1 t)) end
       | expand (Const (\<^const_name>\<open>Let\<close>, T)) =
           let val U = Term.domain_type (Term.range_type T)
           in Abs (Name.uu, Term.domain_type T, Abs (Name.uu, U, Bound 0 $ Bound 1)) end
