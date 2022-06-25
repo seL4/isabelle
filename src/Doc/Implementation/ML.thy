@@ -1394,6 +1394,16 @@ text %mlref \<open>
   ``\<^verbatim>\<open>\<alpha>\<close>'' natively, \<^emph>\<open>without\<close> escaping the backslash. This is a consequence
   of Isabelle treating all source text as strings of symbols, instead of raw
   characters.
+
+
+  \begin{warn}
+  The regular \<^verbatim>\<open>64_32\<close> platform of Poly/ML has a size limit of 64\,MB for
+  \<^ML_type>\<open>string\<close> values. This is usually sufficient for text
+  applications, with a little bit of YXML markup. Very large XML trees or
+  binary blobs are better stored as scalable byte strings, see type
+  \<^ML_type>\<open>Bytes.T\<close> and corresponding operations in
+  \<^file>\<open>~~/src/Pure/General/bytes.ML\<close>.
+  \end{warn}
 \<close>
 
 text %mlex \<open>
@@ -1428,7 +1438,8 @@ text %mlref \<open>
   \<^descr> Type \<^ML_type>\<open>int\<close> represents regular mathematical integers, which are
   \<^emph>\<open>unbounded\<close>. Overflow is treated properly, but should never happen in
   practice.\<^footnote>\<open>The size limit for integer bit patterns in memory is 64\,MB for
-  32-bit Poly/ML, and much higher for 64-bit systems.\<close>
+  the regular \<^verbatim>\<open>64_32\<close> platform, and much higher for native \<^verbatim>\<open>64\<close>
+  architecture.\<close>
 
   Structure \<^ML_structure>\<open>IntInf\<close> of SML97 is obsolete and superseded by
   \<^ML_structure>\<open>Int\<close>. Structure \<^ML_structure>\<open>Integer\<close> in
