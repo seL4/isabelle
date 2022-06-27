@@ -188,6 +188,7 @@ sig
 
   val mk_sum_Cinfinite: thm list -> thm
   val mk_sum_card_order: thm list -> thm
+  val mk_sum_Cinfinite_regularCard: (thm * thm) list -> thm * thm
 
   val force_typ: Proof.context -> typ -> term -> term
 
@@ -547,6 +548,14 @@ fun mk_sum_Cinfinite [thm] = thm
 
 fun mk_sum_card_order [thm] = thm
   | mk_sum_card_order (thm :: thms) = @{thm card_order_csum} OF [thm, mk_sum_card_order thms];
+
+fun mk_sum_Cinfinite_regularCard [x] = x
+  | mk_sum_Cinfinite_regularCard ((cinf, thm) :: thms) =
+    let val (cinf_sum, thm_sum) = mk_sum_Cinfinite_regularCard thms
+    in (
+      @{thm Cinfinite_csum_weak} OF [cinf, cinf_sum],
+      @{thm regularCard_csum} OF [cinf, cinf_sum, thm, thm_sum]
+    ) end;
 
 fun mk_xtor_rel_co_induct_thm fp pre_rels pre_phis rels phis xs ys xtors xtor's tac lthy =
   let

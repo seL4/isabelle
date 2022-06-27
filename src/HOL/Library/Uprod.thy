@@ -128,8 +128,9 @@ proof -
   show "set_uprod \<circ> map_uprod f = (`) f \<circ> set_uprod" for f :: "'a \<Rightarrow> 'b" by transfer auto
   show "card_order natLeq" by(rule natLeq_card_order)
   show "BNF_Cardinal_Arithmetic.cinfinite natLeq" by(rule natLeq_cinfinite)
-  show "ordLeq3 (card_of (set_uprod x)) natLeq" for x :: "'a uprod"
-    by (auto simp flip: finite_iff_ordLess_natLeq intro: ordLess_imp_ordLeq)
+  show "regularCard natLeq" by(rule regularCard_natLeq)
+  show "ordLess2 (card_of (set_uprod x)) natLeq" for x :: "'a uprod"
+    by (auto simp flip: finite_iff_ordLess_natLeq)
   show "rel_uprod R OO rel_uprod S \<le> rel_uprod (R OO S)"
     for R :: "'a \<Rightarrow> 'b \<Rightarrow> bool" and S :: "'b \<Rightarrow> 'c \<Rightarrow> bool" by(rule predicate2I)(transfer; auto)
   show "rel_uprod R = (\<lambda>x y. \<exists>z. set_uprod z \<subseteq> {(x, y). R x y} \<and> map_uprod fst z = x \<and> map_uprod snd z = y)"

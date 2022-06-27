@@ -1355,7 +1355,7 @@ next
     by auto
 qed
 
-bnf pmf: "'a pmf" map: map_pmf sets: set_pmf bd : "natLeq" rel: rel_pmf
+bnf pmf: "'a pmf" map: map_pmf sets: set_pmf bd : "card_suc natLeq" rel: rel_pmf
 proof -
   show "map_pmf id = id" by (rule map_pmf_id)
   show "\<And>f g. map_pmf (f \<circ> g) = map_pmf f \<circ> map_pmf g" by (rule map_pmf_compose)
@@ -1365,14 +1365,20 @@ proof -
   show "\<And>f::'a \<Rightarrow> 'b. set_pmf \<circ> map_pmf f = (`) f \<circ> set_pmf"
     by (rule pmf_set_map)
 
-  show "(card_of (set_pmf p), natLeq) \<in> ordLeq" for p :: "'s pmf"
+  show "card_order (card_suc natLeq)" using natLeq_card_order by (rule card_order_card_suc)
+  show "BNF_Cardinal_Arithmetic.cinfinite (card_suc natLeq)"
+    using natLeq_Cinfinite natLeq_card_order Cinfinite_card_suc by blast
+  show "regularCard (card_suc natLeq)" using natLeq_card_order natLeq_Cinfinite
+    by (rule regular_card_suc)
+
+  show "(card_of (set_pmf p), card_suc natLeq) \<in> ordLess" for p :: "'s pmf"
   proof -
     have "(card_of (set_pmf p), card_of (UNIV :: nat set)) \<in> ordLeq"
       by (rule card_of_ordLeqI[where f="to_nat_on (set_pmf p)"])
          (auto intro: countable_set_pmf)
     also have "(card_of (UNIV :: nat set), natLeq) \<in> ordLeq"
       by (metis Field_natLeq card_of_least natLeq_Well_order)
-    finally show ?thesis .
+    finally show ?thesis using card_suc_greater natLeq_card_order ordLeq_ordLess_trans by blast
   qed
 
   show "\<And>R. rel_pmf R = (\<lambda>x y. \<exists>z. set_pmf z \<subseteq> {(x, y). R x y} \<and>
@@ -1413,7 +1419,7 @@ proof -
     then show ?thesis
       by(auto simp add: le_fun_def)
   qed
-qed (fact natLeq_card_order natLeq_cinfinite)+
+qed
 
 lemma map_pmf_idI: "(\<And>x. x \<in> set_pmf p \<Longrightarrow> f x = x) \<Longrightarrow> map_pmf f p = p"
 by(simp cong: pmf.map_cong)

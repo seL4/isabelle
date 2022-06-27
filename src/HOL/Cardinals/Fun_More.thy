@@ -38,12 +38,6 @@ next
 qed
 
 (* unused *)
-(*1*)lemma bij_betw_ball:
-assumes BIJ: "bij_betw f A B"
-shows "(\<forall>b \<in> B. phi b) = (\<forall>a \<in> A. phi(f a))"
-using assms unfolding bij_betw_def inj_on_def by blast
-
-(* unused *)
 (*1*)lemma bij_betw_diff_singl:
 assumes BIJ: "bij_betw f A A'" and IN: "a \<in> A"
 shows "bij_betw f (A - {a}) (A' - {f a})"

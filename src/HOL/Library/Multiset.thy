@@ -4088,9 +4088,11 @@ proof -
     by (rule natLeq_card_order)
   show "BNF_Cardinal_Arithmetic.cinfinite natLeq"
     by (rule natLeq_cinfinite)
-  show "ordLeq3 (card_of (set_mset X)) natLeq" for X
+  show "regularCard natLeq"
+    by (rule regularCard_natLeq)
+  show "ordLess2 (card_of (set_mset X)) natLeq" for X
     by transfer
-      (auto intro!: ordLess_imp_ordLeq simp: finite_iff_ordLess_natLeq[symmetric])
+      (auto simp: finite_iff_ordLess_natLeq[symmetric])
   show "rel_mset R OO rel_mset S \<le> rel_mset (R OO S)" for R S
     unfolding rel_mset_def[abs_def] OO_def
     apply clarify

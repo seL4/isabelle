@@ -457,6 +457,9 @@ lemma bij_betw_combine:
 lemma bij_betw_subset: "bij_betw f A A' \<Longrightarrow> B \<subseteq> A \<Longrightarrow> f ` B = B' \<Longrightarrow> bij_betw f B B'"
   by (auto simp add: bij_betw_def inj_on_def)
 
+lemma bij_betw_ball: "bij_betw f A B \<Longrightarrow> (\<forall>b \<in> B. phi b) = (\<forall>a \<in> A. phi (f a))"
+  unfolding bij_betw_def inj_on_def by blast
+
 lemma bij_pointE:
   assumes "bij f"
   obtains x where "y = f x" and "\<And>x'. y = f x' \<Longrightarrow> x' = x"

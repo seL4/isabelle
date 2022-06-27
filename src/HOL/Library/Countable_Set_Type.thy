@@ -593,7 +593,7 @@ begin
 bnf "'a cset"
   map: cimage
   sets: rcset
-  bd: natLeq
+  bd: "card_suc natLeq"
   wits: "cempty"
   rel: rel_cset
 proof -
@@ -606,12 +606,18 @@ next
 next
   fix f show "rcset \<circ> cimage f = (`) f \<circ> rcset" including cset.lifting by transfer' fastforce
 next
-  show "card_order natLeq" by (rule natLeq_card_order)
+  show "card_order (card_suc natLeq)" by (rule card_order_card_suc[OF natLeq_card_order])
 next
-  show "cinfinite natLeq" by (rule natLeq_cinfinite)
+  show "cinfinite (card_suc natLeq)" using Cinfinite_card_suc[OF natLeq_Cinfinite natLeq_card_order]
+    by simp
 next
-  fix C show "|rcset C| \<le>o natLeq"
-    including cset.lifting by transfer (unfold countable_card_le_natLeq)
+  show "regularCard (card_suc natLeq)" using natLeq_card_order natLeq_Cinfinite
+    by (rule regular_card_suc)
+next
+  fix C
+  have "|rcset C| \<le>o natLeq" including cset.lifting by transfer (unfold countable_card_le_natLeq)
+  then show "|rcset C| <o card_suc natLeq"
+    using card_suc_greater natLeq_card_order ordLeq_ordLess_trans by blast
 next
   fix R S
   show "rel_cset R OO rel_cset S \<le> rel_cset (R OO S)"

@@ -1,7 +1,8 @@
 (*  Title:      HOL/BNF_Composition.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2012, 2013, 2014
+    Author:     Jan van Brügge, TU Muenchen
+    Copyright   2012, 2013, 2014, 2022
 
 Composition of bounded natural functors.
 *)
@@ -18,11 +19,41 @@ lemma ssubst_mem: "\<lbrakk>t = s; s \<in> X\<rbrakk> \<Longrightarrow> t \<in> 
 lemma empty_natural: "(\<lambda>_. {}) \<circ> f = image g \<circ> (\<lambda>_. {})"
   by (rule ext) simp
 
+lemma Cinfinite_gt_empty: "Cinfinite r \<Longrightarrow> |{}| <o r"
+  by (simp add: cinfinite_def finite_ordLess_infinite card_of_ordIso_finite Field_card_of card_of_well_order_on emptyI card_order_on_well_order_on)
+
 lemma Union_natural: "Union \<circ> image (image f) = image f \<circ> Union"
   by (rule ext) (auto simp only: comp_apply)
 
 lemma in_Union_o_assoc: "x \<in> (Union \<circ> gset \<circ> gmap) A \<Longrightarrow> x \<in> (Union \<circ> (gset \<circ> gmap)) A"
   by (unfold comp_assoc)
+
+lemma regularCard_UNION_bound:
+  assumes "Cinfinite r" "regularCard r" and "|I| <o r" "\<And>i. i \<in> I \<Longrightarrow> |A i| <o r"
+  shows "|\<Union>i\<in>I. A i| <o r"
+  using assms cinfinite_def regularCard_stable stable_UNION by blast
+
+lemma comp_single_set_bd_strict:
+  assumes fbd: "Cinfinite fbd" "regularCard fbd" and
+    gbd: "Cinfinite gbd" "regularCard gbd" and
+    fset_bd: "\<And>x. |fset x| <o fbd" and
+    gset_bd: "\<And>x. |gset x| <o gbd"
+  shows "|\<Union>(fset ` gset x)| <o gbd *c fbd"
+proof (cases "fbd <o gbd")
+  case True
+  then have "|fset x| <o gbd" for x using fset_bd ordLess_transitive by blast
+  then have "|\<Union>(fset ` gset x)| <o gbd" using regularCard_UNION_bound[OF gbd gset_bd] by blast
+  then have "|\<Union> (fset ` gset x)| <o fbd *c gbd"
+    using ordLess_ordLeq_trans ordLeq_cprod2 gbd(1) fbd(1) cinfinite_not_czero by blast
+  then show ?thesis using ordLess_ordIso_trans cprod_com by blast
+next
+  case False
+  have "Well_order fbd" "Well_order gbd" using fbd(1) gbd(1) card_order_on_well_order_on by auto
+  then have "gbd \<le>o fbd" using not_ordLess_iff_ordLeq False by blast
+  then have "|gset x| <o fbd" for x using gset_bd ordLess_ordLeq_trans by blast
+  then have "|\<Union>(fset ` gset x)| <o fbd" using regularCard_UNION_bound[OF fbd] fset_bd by blast
+  then show ?thesis using ordLess_ordLeq_trans ordLeq_cprod2 gbd(1) fbd(1) cinfinite_not_czero by blast
+qed
 
 lemma comp_single_set_bd:
   assumes fbd_Card_order: "Card_order fbd" and
@@ -75,6 +106,9 @@ lemma UN_image_subset: "\<Union>(f ` g x) \<subseteq> X = (g x \<subseteq> {x. f
 lemma comp_set_bd_Union_o_collect: "|\<Union>(\<Union>((\<lambda>f. f x) ` X))| \<le>o hbd \<Longrightarrow> |(Union \<circ> collect X) x| \<le>o hbd"
   by (unfold comp_apply collect_def) simp
 
+lemma comp_set_bd_Union_o_collect_strict: "|\<Union>(\<Union>((\<lambda>f. f x) ` X))| <o hbd \<Longrightarrow> |(Union \<circ> collect X) x| <o hbd"
+  by (unfold comp_apply collect_def) simp
+
 lemma Collect_inj: "Collect P = Collect Q \<Longrightarrow> P = Q"
   by blast
 
@@ -91,7 +125,7 @@ lemma vimage2p_relcompp_mono: "R OO S \<le> T \<Longrightarrow>
 lemma type_copy_map_cong0: "M (g x) = N (h x) \<Longrightarrow> (f \<circ> M \<circ> g) x = (f \<circ> N \<circ> h) x"
   by auto
 
-lemma type_copy_set_bd: "(\<And>y. |S y| \<le>o bd) \<Longrightarrow> |(S \<circ> Rep) x| \<le>o bd"
+lemma type_copy_set_bd: "(\<And>y. |S y| <o bd) \<Longrightarrow> |(S \<circ> Rep) x| <o bd"
   by auto
 
 lemma vimage2p_cong: "R = S \<Longrightarrow> vimage2p f g R = vimage2p f g S"
@@ -152,7 +186,7 @@ bnf DEADID: 'a
   map: "id :: 'a \<Rightarrow> 'a"
   bd: natLeq
   rel: "(=) :: 'a \<Rightarrow> 'a \<Rightarrow> bool"
-  by (auto simp add: natLeq_card_order natLeq_cinfinite)
+  by (auto simp add: natLeq_card_order natLeq_cinfinite regularCard_natLeq)
 
 definition id_bnf :: "'a \<Rightarrow> 'a" where
   "id_bnf \<equiv> (\<lambda>x. x)"
@@ -167,8 +201,8 @@ bnf ID: 'a
   rel: "id_bnf :: ('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool"
   pred: "id_bnf :: ('a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> bool"
   unfolding id_bnf_def
-  apply (auto simp: Grp_def fun_eq_iff relcompp.simps natLeq_card_order natLeq_cinfinite)
-  apply (rule ordLess_imp_ordLeq[OF finite_ordLess_infinite[OF _ natLeq_Well_order]])
+  apply (auto simp: Grp_def fun_eq_iff relcompp.simps natLeq_card_order natLeq_cinfinite regularCard_natLeq)
+  apply (rule finite_ordLess_infinite[OF _ natLeq_Well_order])
   apply (auto simp add: Field_card_of Field_natLeq card_of_well_order_on)[3]
   done
 

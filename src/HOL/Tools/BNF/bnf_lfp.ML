@@ -1,7 +1,8 @@
 (*  Title:      HOL/Tools/BNF/bnf_lfp.ML
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Andrei Popescu, TU Muenchen
-    Copyright   2012
+    Author:     Jan van Brügge, TU Muenchen
+    Copyright   2012, 2022
 
 Datatype construction.
 *)
@@ -133,6 +134,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
     val bd0_card_orders = map bd_card_order_of_bnf bnfs;
     val bd0_Card_orders = map bd_Card_order_of_bnf bnfs;
     val bd0_Cinfinites = map bd_Cinfinite_of_bnf bnfs;
+    val bd0_regularCards = map bd_regularCard_of_bnf bnfs;
     val set_bd0ss = map set_bd_of_bnf bnfs;
 
     val bd_Card_order = @{thm Card_order_csum};
@@ -142,7 +144,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
     val bd_Cinfinite = hd bd_Cinfinites;
     val set_bdss =
       map2 (fn set_bd0s => fn bd0_Card_order =>
-        map (fn thm => ctrans OF [thm, bd0_Card_order RS @{thm ordLeq_csum1}]) set_bd0s)
+        map (fn thm => @{thm ordLess_ordLeq_trans} OF [thm, bd0_Card_order RS @{thm ordLeq_csum1}]) set_bd0s)
       set_bd0ss bd0_Card_orders;
     val in_bds = map in_bd_of_bnf bnfs;
     val sym_map_comps = map (fn bnf => map_comp0_of_bnf bnf RS sym) bnfs;
@@ -491,8 +493,8 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
           val sbd_Card_order = sbd_Cinfinite RS conjunct2;
 
           fun mk_set_sbd i bd_Card_order bds =
-            map (fn thm => @{thm ordLeq_ordIso_trans} OF
-              [bd_Card_order RS mk_ordLeq_csum n i thm, sbd_ordIso]) bds;
+            map (fn thm => @{thm ordLess_ordIso_trans} OF
+              [bd_Card_order RS mk_ordLess_csum n i thm, sbd_ordIso]) bds;
           val set_sbdss = @{map 3} mk_set_sbd ks bd_Card_orders set_bdss;
 
           fun mk_in_bd_sum i Co Cnz bd =
@@ -690,6 +692,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
 
     val (alg_min_alg_thm, card_of_min_alg_thms, least_min_alg_thms, mor_incl_min_alg_thm) =
       let
+        val set_sbdss_weak = map (map (fn thm => @{thm ordLess_imp_ordLeq} OF [thm])) set_sbdss;
         val alg_min_alg =
           let
             val goal = HOLogic.mk_Trueprop (mk_alg min_algs ss);
@@ -697,7 +700,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
           in
             Goal.prove_sorry lthy vars [] goal
               (fn {context = ctxt, prems = _} => mk_alg_min_alg_tac ctxt m alg_def min_alg_defs
-                suc_bd_limit_thm sbd_Cinfinite set_sbdss min_algs_thms min_algs_mono_thms)
+                suc_bd_limit_thm sbd_Cinfinite set_sbdss_weak min_algs_thms min_algs_mono_thms)
             |> Thm.close_derivation \<^here>
           end;
 
@@ -1372,9 +1375,9 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
               ctors (0 upto n - 1) witss
           end;
 
-        val (lthy, sbd0, sbd0_card_order, sbd0_Cinfinite, set_sbd0ss) =
+        val (lthy, sbd0, sbd0_card_order, sbd0_Cinfinite, sbd0_regularCard, set_sbd0ss) =
           if n = 1
-          then (lthy, hd bd0s, hd bd0_card_orders, hd bd0_Cinfinites, set_bd0ss)
+          then (lthy, hd bd0s, hd bd0_card_orders, hd bd0_Cinfinites, hd bd0_regularCards, set_bd0ss)
           else
             let
               val sum_bd0 = Library.foldr1 (uncurry mk_csum) bd0s;
@@ -1411,7 +1414,8 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
               val Abs_sbd0T_inj = mk_Abs_inj_thm (#Abs_inject sbd0T_loc_info);
               val Abs_sbd0T_bij = mk_Abs_bij_thm lthy Abs_sbd0T_inj (#Abs_cases sbd0T_loc_info);
 
-              val sum_Cinfinite = mk_sum_Cinfinite bd0_Cinfinites;
+              val (sum_Cinfinite, sum_regularCard) =
+                mk_sum_Cinfinite_regularCard (bd0_Cinfinites ~~ bd0_regularCards);
               val sum_Card_order = sum_Cinfinite RS conjunct2;
               val sum_card_order = mk_sum_card_order bd0_card_orders;
 
@@ -1422,12 +1426,15 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
               val sbd0_card_order = @{thm iffD2[OF arg_cong[of _ _ card_order]]} OF
                 [sbd0_def, @{thm card_order_dir_image} OF [Abs_sbd0T_bij, sum_card_order]];
 
+              val sbd0_regularCard = @{thm regularCard_ordIso} OF
+                [sbd0_ordIso, sum_Cinfinite, sum_regularCard];
+
               fun mk_set_sbd0 i bd0_Card_order bd0s =
-                map (fn thm => @{thm ordLeq_ordIso_trans} OF
-                  [bd0_Card_order RS mk_ordLeq_csum n i thm, sbd0_ordIso]) bd0s;
+                map (fn thm => @{thm ordLess_ordIso_trans} OF
+                  [bd0_Card_order RS mk_ordLess_csum n i thm, sbd0_ordIso]) bd0s;
               val set_sbd0ss = @{map 3} mk_set_sbd0 ks bd0_Card_orders set_bd0ss;
             in
-              (lthy, sbd0, sbd0_card_order, sbd0_Cinfinite, set_sbd0ss)
+              (lthy, sbd0, sbd0_card_order, sbd0_Cinfinite, sbd0_regularCard, set_sbd0ss)
             end;
 
         val (Ibnf_consts, lthy) =
@@ -1605,7 +1612,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
 
         val Iset_bd_thmss =
           let
-            fun mk_set_bd z bd set = mk_ordLeq (mk_card_of (set $ z)) bd;
+            fun mk_set_bd z bd set = mk_ordLess (mk_card_of (set $ z)) bd;
 
             fun mk_cphi z set = Thm.cterm_of lthy (Term.absfree (dest_Free z) (mk_set_bd z sbd0 set));
 
@@ -1619,7 +1626,8 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
                 HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
                   (@{map 3} mk_set_bd Izs Ibds sets))) Isetss_by_range;
 
-            fun mk_tac ctxt induct = mk_set_bd_tac ctxt m (rtac ctxt induct) sbd0_Cinfinite set_sbd0ss;
+            fun mk_tac ctxt induct = mk_set_bd_tac ctxt m (rtac ctxt induct) sbd0_Cinfinite
+              sbd0_regularCard set_sbd0ss;
             val thms =
               @{map 4} (fn goal => fn ctor_sets => fn induct => fn i =>
                 Variable.add_free_names lthy goal []
@@ -1736,6 +1744,8 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
           unfold_thms_tac ctxt Ibd_defs THEN rtac ctxt sbd0_card_order 1);
         val bd_cinf_tacs = replicate n (fn ctxt =>
           unfold_thms_tac ctxt Ibd_defs THEN rtac ctxt (sbd0_Cinfinite RS conjunct1) 1);
+        val bd_reg_tacs = replicate n (fn ctxt =>
+          unfold_thms_tac ctxt Ibd_defs THEN rtac ctxt sbd0_regularCard 1);
         val set_bd_tacss = map (map (fn thm => fn ctxt => rtac ctxt thm 1)) (transpose Iset_bd_thmss);
         val le_rel_OO_tacs = map (fn i => fn ctxt =>
           (rtac ctxt @{thm predicate2I} THEN' etac ctxt (le_Irel_OO_thm RS mk_conjunctN n i RS mp)) 1) ks;
@@ -1744,8 +1754,8 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
 
         val pred_set_tacs = map (fn def => fn ctxt => rtac ctxt def 1) Ipred_unabs_defs;
 
-        val tacss = @{map 10} zip_axioms map_id0_tacs map_comp0_tacs map_cong0_tacs set_map0_tacss
-          bd_co_tacs bd_cinf_tacs set_bd_tacss le_rel_OO_tacs rel_OO_Grp_tacs pred_set_tacs;
+        val tacss = @{map 11} zip_axioms map_id0_tacs map_comp0_tacs map_cong0_tacs set_map0_tacss
+          bd_co_tacs bd_cinf_tacs bd_reg_tacs set_bd_tacss le_rel_OO_tacs rel_OO_Grp_tacs pred_set_tacs;
 
         fun wit_tac ctxt = unfold_thms_tac ctxt (flat Iwit_defss) THEN
           mk_wit_tac ctxt n (flat ctor_Iset_thmss) (maps wit_thms_of_bnf bnfs);

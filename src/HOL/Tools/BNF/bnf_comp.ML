@@ -298,6 +298,10 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
     fun bd_cinfinite_tac ctxt =
       mk_comp_bd_cinfinite_tac ctxt (bd_cinfinite_of_bnf inner) (bd_cinfinite_of_bnf outer);
 
+    fun bd_regularCard_tac ctxt =
+      mk_comp_bd_regularCard_tac ctxt (map bd_regularCard_of_bnf inners) (bd_regularCard_of_bnf outer)
+        (map bd_Cinfinite_of_bnf inners) (bd_Cinfinite_of_bnf outer);
+
     val set_alt_thms =
       if Config.get lthy quick_and_dirty then
         []
@@ -320,15 +324,23 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
         let
           val outer_set_bds = set_bd_of_bnf outer;
           val inner_set_bdss = map set_bd_of_bnf inners;
-          val inner_bd_Card_orders = map bd_Card_order_of_bnf inners;
+          val inner_bd_Cinfinites = map bd_Cinfinite_of_bnf inners;
+          val inner_bd_regularCards = map bd_regularCard_of_bnf inners;
           fun single_set_bd_thm i j =
-            @{thm comp_single_set_bd} OF [nth inner_bd_Card_orders j, nth (nth inner_set_bdss j) i,
+            @{thm comp_single_set_bd_strict} OF [nth inner_bd_Cinfinites j, nth inner_bd_regularCards j,
+              bd_Cinfinite_of_bnf outer, bd_regularCard_of_bnf outer, nth (nth inner_set_bdss j) i,
               nth outer_set_bds j]
+          fun single_bd_Cinfinite i = @{thm Cinfinite_cprod2} OF [
+            @{thm Cinfinite_Cnotzero} OF [bd_Cinfinite_of_bnf outer],
+            nth inner_bd_Cinfinites i
+          ]
           val single_set_bd_thmss =
             map ((fn f => map f (0 upto olive - 1)) o single_set_bd_thm) (0 upto ilive - 1);
+          val Gbd_Fbd_Cinfinites = map single_bd_Cinfinite (0 upto length inners - 1)
         in
           @{map 3} (fn set'_eq_set => fn set_alt => fn single_set_bds => fn ctxt =>
-            mk_comp_set_bd_tac ctxt set'_eq_set bd_ordIso_natLeq_thm_opt set_alt single_set_bds)
+            mk_comp_set_bd_tac ctxt set'_eq_set bd_ordIso_natLeq_thm_opt set_alt single_set_bds
+            Gbd_Fbd_Cinfinites)
           set'_eq_sets set_alt_thms single_set_bd_thmss
         end;
 
@@ -371,7 +383,7 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
       end
 
     val tacs = zip_axioms map_id0_tac map_comp0_tac map_cong0_tac set_map0_tacs bd_card_order_tac
-      bd_cinfinite_tac set_bd_tacs le_rel_OO_tac rel_OO_Grp_tac pred_set_tac;
+      bd_cinfinite_tac bd_regularCard_tac set_bd_tacs le_rel_OO_tac rel_OO_Grp_tac pred_set_tac;
 
     val outer_wits = mk_wits_of_bnf (replicate onwits oDs) (replicate onwits CAs) outer;
 
@@ -454,6 +466,7 @@ fun raw_kill_bnf qualify n bnf (accum as (unfold_set, lthy)) =
     val set_map0_tacs = map (fn thm => fn ctxt => rtac ctxt thm 1) (drop n (set_map0_of_bnf bnf));
     fun bd_card_order_tac ctxt = rtac ctxt (bd_card_order_of_bnf bnf) 1;
     fun bd_cinfinite_tac ctxt = rtac ctxt (bd_cinfinite_of_bnf bnf) 1;
+    fun bd_regularCard_tac ctxt = rtac ctxt (bd_regularCard_of_bnf bnf) 1;
     val set_bd_tacs = map (fn thm => fn ctxt => rtac ctxt thm 1) (drop n (set_bd_of_bnf bnf));
 
     val in_alt_thm =
@@ -488,7 +501,7 @@ fun raw_kill_bnf qualify n bnf (accum as (unfold_set, lthy)) =
     fun pred_set_tac ctxt = mk_simple_pred_set_tac ctxt (pred_set_of_bnf bnf) in_alt_thm;
 
     val tacs = zip_axioms map_id0_tac map_comp0_tac map_cong0_tac set_map0_tacs bd_card_order_tac
-      bd_cinfinite_tac set_bd_tacs le_rel_OO_tac rel_OO_Grp_tac pred_set_tac;
+      bd_cinfinite_tac bd_regularCard_tac set_bd_tacs le_rel_OO_tac rel_OO_Grp_tac pred_set_tac;
 
     val bnf_wits = mk_wits_of_bnf (replicate nwits Ds) (replicate nwits As) bnf;
 
@@ -563,11 +576,12 @@ fun raw_lift_bnf qualify n bnf (accum as (unfold_set, lthy)) =
         map (fn thm => fn ctxt => rtac ctxt thm 1) (set_map0_of_bnf bnf);
     fun bd_card_order_tac ctxt = rtac ctxt (bd_card_order_of_bnf bnf) 1;
     fun bd_cinfinite_tac ctxt = rtac ctxt (bd_cinfinite_of_bnf bnf) 1;
+    fun bd_regularCard_tac ctxt = rtac ctxt (bd_regularCard_of_bnf bnf) 1;
     val set_bd_tacs =
       if Config.get lthy quick_and_dirty then
         replicate (n + live) (K all_tac)
       else
-        replicate n (fn ctxt => mk_lift_set_bd_tac ctxt (bd_Card_order_of_bnf bnf)) @
+        replicate n (fn ctxt => mk_lift_set_bd_tac ctxt (bd_Cinfinite_of_bnf bnf)) @
         (map (fn thm => fn ctxt => rtac ctxt thm 1) (set_bd_of_bnf bnf));
 
     val in_alt_thm =
@@ -587,7 +601,7 @@ fun raw_lift_bnf qualify n bnf (accum as (unfold_set, lthy)) =
     fun pred_set_tac ctxt = mk_simple_pred_set_tac ctxt (pred_set_of_bnf bnf) in_alt_thm;
 
     val tacs = zip_axioms map_id0_tac map_comp0_tac map_cong0_tac set_map0_tacs bd_card_order_tac
-      bd_cinfinite_tac set_bd_tacs le_rel_OO_tac rel_OO_Grp_tac pred_set_tac;
+      bd_cinfinite_tac bd_regularCard_tac set_bd_tacs le_rel_OO_tac rel_OO_Grp_tac pred_set_tac;
 
     val wits = map snd (mk_wits_of_bnf (replicate nwits Ds) (replicate nwits As) bnf);
 
@@ -655,6 +669,7 @@ fun raw_permute_bnf qualify src dest bnf (accum as (unfold_set, lthy)) =
     val set_map0_tacs = permute (map (fn thm => fn ctxt => rtac ctxt thm 1) (set_map0_of_bnf bnf));
     fun bd_card_order_tac ctxt = rtac ctxt (bd_card_order_of_bnf bnf) 1;
     fun bd_cinfinite_tac ctxt = rtac ctxt (bd_cinfinite_of_bnf bnf) 1;
+    fun bd_regularCard_tac ctxt = rtac ctxt (bd_regularCard_of_bnf bnf) 1;
     val set_bd_tacs = permute (map (fn thm => fn ctxt => rtac ctxt thm 1) (set_bd_of_bnf bnf));
 
     val in_alt_thm =
@@ -675,7 +690,7 @@ fun raw_permute_bnf qualify src dest bnf (accum as (unfold_set, lthy)) =
     fun pred_set_tac ctxt = mk_simple_pred_set_tac ctxt (pred_set_of_bnf bnf) in_alt_thm;
 
     val tacs = zip_axioms map_id0_tac map_comp0_tac map_cong0_tac set_map0_tacs bd_card_order_tac
-      bd_cinfinite_tac set_bd_tacs le_rel_OO_tac rel_OO_Grp_tac pred_set_tac;
+      bd_cinfinite_tac bd_regularCard_tac set_bd_tacs le_rel_OO_tac rel_OO_Grp_tac pred_set_tac;
 
     val wits = map snd (mk_wits_of_bnf (replicate nwits Ds) (replicate nwits As) bnf);
 
@@ -887,9 +902,9 @@ fun seal_bnf qualify (unfold_set : unfold_set) b force_out_of_line Ds all_Ds bnf
       maybe_typedef false (bdT_bind, params, NoSyn) (HOLogic.mk_UNIV bd_repT) NONE
         (fn ctxt => EVERY' [rtac ctxt exI, rtac ctxt UNIV_I] 1) lthy;
 
-    val (bnf_bd', bd_ordIso, bd_card_order, bd_cinfinite) =
+    val (bnf_bd', bd_ordIso, bd_card_order, bd_cinfinite, bd_regularCard) =
       if bdT = bd_repT then (bnf_bd, bd_Card_order_of_bnf bnf RS @{thm ordIso_refl},
-        bd_card_order_of_bnf bnf, bd_cinfinite_of_bnf bnf)
+        bd_card_order_of_bnf bnf, bd_cinfinite_of_bnf bnf, bd_regularCard_of_bnf bnf)
       else
         let
           val bnf_bd' = mk_dir_image bnf_bd (Const (Abs_bd_name, bd_repT --> bdT));
@@ -902,8 +917,10 @@ fun seal_bnf qualify (unfold_set : unfold_set) b force_out_of_line Ds all_Ds bnf
             @{thm card_order_dir_image} OF [Abs_bdT_bij, bd_card_order_of_bnf bnf];
           val bd_cinfinite =
             (@{thm Cinfinite_cong} OF [bd_ordIso, bd_Cinfinite_of_bnf bnf]) RS conjunct1;
+          val bd_regularCard = @{thm regularCard_ordIso} OF [bd_ordIso, bd_Cinfinite_of_bnf bnf,
+            bd_regularCard_of_bnf bnf];
         in
-          (bnf_bd', bd_ordIso, bd_card_order, bd_cinfinite)
+          (bnf_bd', bd_ordIso, bd_card_order, bd_cinfinite, bd_regularCard)
         end;
 
     fun map_id0_tac ctxt =
@@ -916,7 +933,7 @@ fun seal_bnf qualify (unfold_set : unfold_set) b force_out_of_line Ds all_Ds bnf
           etac ctxt (o_apply RS equalityD2 RS set_mp)]) (1 upto live)) 1;
     fun set_map0_tac thm ctxt =
       rtac ctxt (@{thm type_copy_set_map0} OF [type_definition, thm]) 1;
-    val set_bd_tacs = map (fn thm => fn ctxt => rtac ctxt (@{thm ordLeq_ordIso_trans} OF
+    val set_bd_tacs = map (fn thm => fn ctxt => rtac ctxt (@{thm ordLess_ordIso_trans} OF
         [thm, bd_ordIso] RS @{thm type_copy_set_bd}) 1) (set_bd_of_bnf bnf);
     fun le_rel_OO_tac ctxt =
       rtac ctxt (le_rel_OO_of_bnf bnf RS @{thm vimage2p_relcompp_mono}) 1;
@@ -936,7 +953,7 @@ fun seal_bnf qualify (unfold_set : unfold_set) b force_out_of_line Ds all_Ds bnf
     val tacs = zip_axioms map_id0_tac map_comp0_tac map_cong0_tac
       (map set_map0_tac (set_map0_of_bnf bnf))
       (fn ctxt => rtac ctxt bd_card_order 1) (fn ctxt => rtac ctxt bd_cinfinite 1)
-      set_bd_tacs le_rel_OO_tac rel_OO_Grp_tac pred_set_tac;
+      (fn ctxt => rtac ctxt bd_regularCard 1) set_bd_tacs le_rel_OO_tac rel_OO_Grp_tac pred_set_tac;
 
     val bnf_wits = map (fn (I, t) =>
         fold Term.absdummy (map (nth As) I)

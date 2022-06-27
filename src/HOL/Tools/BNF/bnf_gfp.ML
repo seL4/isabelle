@@ -2,7 +2,8 @@
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Andrei Popescu, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2012
+    Author:     Jan van Brügge, TU Muenchen
+    Copyright   2012, 2022
 
 Codatatype construction.
 *)
@@ -181,6 +182,7 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
     val bd_Card_order = hd bd_Card_orders;
     val bd_Cinfinites = map bd_Cinfinite_of_bnf bnfs;
     val bd_Cinfinite = hd bd_Cinfinites;
+    val bd_regularCards = map bd_regularCard_of_bnf bnfs;
     val in_monos = map in_mono_of_bnf bnfs;
     val map_comp0s = map map_comp0_of_bnf bnfs;
     val sym_map_comps = map mk_sym map_comp0s;
@@ -745,8 +747,7 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
 
     (* bounds *)
 
-    val (lthy, sbd, sbdT,
-      sbd_card_order, sbd_Cinfinite, sbd_Card_order, set_sbdss) =
+    val (lthy, sbd', sbdT', sbd_card_order', sbd_Cinfinite', sbd_Card_order', set_sbdss') =
       if n = 1
       then (lthy, sum_bd, sum_bdT, bd_card_order, bd_Cinfinite, bd_Card_order, set_bdss)
       else
@@ -785,19 +786,30 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
           val sum_card_order = mk_sum_card_order bd_card_orders;
 
           val sbd_ordIso = @{thm ssubst_Pair_rhs} OF
-            [@{thm dir_image} OF [Abs_sbdT_inj, sum_Card_order], sbd_def];
+            [@{thm dir_image} OF [Abs_sbdT_inj, sum_Card_order],
+            sbd_def
+          ];
           val sbd_card_order = @{thm iffD2[OF arg_cong[of _ _ card_order]]} OF
             [sbd_def, @{thm card_order_dir_image} OF [Abs_sbdT_bij, sum_card_order]];
           val sbd_Cinfinite = @{thm Cinfinite_cong} OF [sbd_ordIso, sum_Cinfinite];
-          val sbd_Card_order = sbd_Cinfinite RS conjunct2;
+          val sbd_Card_order = conjunct2 OF [sbd_Cinfinite];
 
           fun mk_set_sbd i bd_Card_order bds =
-            map (fn thm => @{thm ordLeq_ordIso_trans} OF
-              [bd_Card_order RS mk_ordLeq_csum n i thm, sbd_ordIso]) bds;
+            map (fn thm => @{thm ordLess_ordIso_trans} OF
+              [mk_ordLess_csum n i thm OF [bd_Card_order], sbd_ordIso]) bds;
           val set_sbdss = @{map 3} mk_set_sbd ks bd_Card_orders set_bdss;
        in
          (lthy, sbd, sbdT, sbd_card_order, sbd_Cinfinite, sbd_Card_order, set_sbdss)
        end;
+    val sbd = mk_card_suc sbd';
+    val sbdT = fst (dest_relT (fastype_of sbd));
+    val sbd_card_order = @{thm card_order_card_suc} OF [sbd_card_order'];
+    val sbd_Cinfinite = @{thm Cinfinite_card_suc} OF [sbd_Cinfinite', sbd_card_order'];
+    val sbd_Card_order = @{thm Card_order_card_suc} OF [sbd_card_order'];
+    val sbd_regularCard = @{thm regular_card_suc} OF [sbd_card_order', sbd_Cinfinite'];
+    val set_sbdss = map (map (fn thm => @{thm ordLess_transitive} OF [
+      thm, @{thm card_suc_greater} OF [sbd_card_order']
+    ])) set_sbdss';
 
     val sbdTs = replicate n sbdT;
     val sum_sbdT = mk_sumTN sbdTs;
@@ -978,7 +990,7 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
       mk_fromCard (nth (nth setssAs (i - 1)) (m + i' - 1) $ (s $ x)) sbd;
 
     fun mk_to_sbd_thmss thm = map (map (fn set_sbd =>
-      thm OF [set_sbd, sbd_Card_order]) o drop m) set_sbdss;
+      thm OF [@{thm ordLess_imp_ordLeq} OF [set_sbd], sbd_Card_order]) o drop m) set_sbdss;
 
     val to_sbd_inj_thmss = mk_to_sbd_thmss @{thm toCard_inj};
     val from_to_sbd_thmss = mk_to_sbd_thmss @{thm fromCard_toCard};
@@ -2075,7 +2087,7 @@ thm trans[OF x.dtor_unfold_unique x.dtor_unfold_unique[symmetric,
 
         val col_bd_thmss =
           let
-            fun mk_col_bd z col bd = mk_ordLeq (mk_card_of (col $ z)) bd;
+            fun mk_col_bd z col bd = mk_ordLess (mk_card_of (col $ z)) bd;
 
             fun mk_goal bds cols = list_all_free Jzs (Library.foldr1 HOLogic.mk_conj
               (@{map 3} mk_col_bd Jzs cols bds));
@@ -2090,7 +2102,7 @@ thm trans[OF x.dtor_unfold_unique x.dtor_unfold_unique[symmetric,
                 Variable.add_free_names lthy goal []
                 |> (fn vars => Goal.prove_sorry lthy vars [] (HOLogic.mk_Trueprop goal)
                   (fn {context = ctxt, prems = _} => unfold_thms_tac ctxt Jbd_defs THEN
-                    mk_col_bd_tac ctxt m j cts rec_0s rec_Sucs sbd_Card_order sbd_Cinfinite set_sbdss))
+                    mk_col_bd_tac ctxt m j cts rec_0s rec_Sucs sbd_regularCard sbd_Cinfinite set_sbdss))
                 |> Thm.close_derivation \<^here>)
               ls goals ctss col_0ss' col_Sucss';
           in
@@ -2468,14 +2480,20 @@ thm trans[OF x.dtor_unfold_unique x.dtor_unfold_unique[symmetric,
 
         val Jbd_card_orders = map (fn def => Local_Defs.fold lthy [def] sbd_card_order) Jbd_defs;
         val Jbd_Cinfinites = map (fn def => Local_Defs.fold lthy [def] sbd_Cinfinite) Jbd_defs;
+        val Jbd_regularCards = map (fn def => Local_Defs.fold lthy [def] sbd_regularCard) Jbd_defs;
+
+        val Jbd_natLeq_ordLess_thms = map (fn def => @{thm natLeq_ordLess_cinfinite'} OF [
+          sbd_Cinfinite', sbd_card_order', def
+        ]) Jbd_defs;
 
         val bd_co_tacs = map (fn thm => fn ctxt => rtac ctxt thm 1) Jbd_card_orders;
         val bd_cinf_tacs = map (fn thm => fn ctxt => rtac ctxt (thm RS conjunct1) 1) Jbd_Cinfinites;
+        val bd_reg_tacs = map (fn thm => fn ctxt => rtac ctxt thm 1) Jbd_regularCards;
 
         val set_bd_tacss =
-          map2 (fn Cinf => map (fn col => fn ctxt =>
-            unfold_thms_tac ctxt Jset_defs THEN mk_set_bd_tac ctxt Cinf col))
-          Jbd_Cinfinites (transpose col_bd_thmss);
+          @{map 4} (fn Cinf => fn Creg => fn thm => map (fn col => fn ctxt =>
+            unfold_thms_tac ctxt Jset_defs THEN mk_set_bd_tac ctxt Cinf Creg thm col))
+          Jbd_Cinfinites Jbd_regularCards Jbd_natLeq_ordLess_thms (transpose col_bd_thmss);
 
         val le_rel_OO_tacs = map (fn i => fn ctxt =>
           rtac ctxt (le_Jrel_OO_thm RS mk_conjunctN n i) 1) ks;
@@ -2484,8 +2502,8 @@ thm trans[OF x.dtor_unfold_unique x.dtor_unfold_unique[symmetric,
 
         val pred_set_tacs = map (fn def => fn ctxt => rtac ctxt def 1) Jpred_unabs_defs;
 
-        val tacss = @{map 10} zip_axioms map_id0_tacs map_comp0_tacs map_cong0_tacs set_map0_tacss
-          bd_co_tacs bd_cinf_tacs set_bd_tacss le_rel_OO_tacs rel_OO_Grp_tacs pred_set_tacs;
+        val tacss = @{map 11} zip_axioms map_id0_tacs map_comp0_tacs map_cong0_tacs set_map0_tacss
+          bd_co_tacs bd_cinf_tacs bd_reg_tacs set_bd_tacss le_rel_OO_tacs rel_OO_Grp_tacs pred_set_tacs;
 
         fun wit_tac thms ctxt =
           mk_wit_tac ctxt n dtor_ctor_thms (flat dtor_Jset_thmss) (maps wit_thms_of_bnf bnfs) thms;

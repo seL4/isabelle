@@ -1,6 +1,7 @@
 (*  Title:      HOL/Tools/BNF/bnf_gfp_util.ML
     Author:     Dmitriy Traytel, TU Muenchen
-    Copyright   2012
+    Author:     Jan van Brügge, TU Muenchen
+    Copyright   2012, 2022
 
 Library for the codatatype construction.
 *)
@@ -31,6 +32,7 @@ sig
   val mk_toCard: term -> term -> term
   val mk_undefined: typ -> term
   val mk_univ: term -> term
+  val mk_card_suc: term -> term
 
   val mk_specN: int -> thm -> thm
 
@@ -140,6 +142,12 @@ fun mk_congruent R f =
   Const (\<^const_name>\<open>congruent\<close>, fastype_of R --> fastype_of f --> HOLogic.boolT) $ R $ f;
 
 fun mk_undefined T = Const (\<^const_name>\<open>undefined\<close>, T);
+
+fun mk_card_suc t =
+  let
+    val T = fst (dest_relT (fastype_of t))
+    val T' = Type (\<^type_name>\<open>suc\<close>, [T])
+  in Const (\<^const_name>\<open>card_suc\<close>, mk_relT (T, T) --> mk_relT (T', T')) $ t end;
 
 fun mk_rec_nat Zero Suc =
   let val T = fastype_of Zero;

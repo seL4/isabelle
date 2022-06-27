@@ -614,6 +614,8 @@ fun typedef_bnf thm wits specs map_b rel_b pred_b opts lthy =
 
             fun cinfinite_bd_tac ctxt = HEADGOAL (rtac ctxt (bd_cinfinite_of_bnf bnf_F));
 
+            fun regularCard_bd_tac ctxt = HEADGOAL (rtac ctxt (bd_regularCard_of_bnf bnf_F));
+
             val set_bds_tac =
               map (fn set_bd => fn ctxt =>
                 HEADGOAL (EVERY' [SELECT_GOAL (unfold_thms_tac ctxt [o_apply]), rtac ctxt set_bd]))
@@ -670,7 +672,7 @@ fun typedef_bnf thm wits specs map_b rel_b pred_b opts lthy =
                 wit_thms));
 
             val tactics = [map_id0_tac, map_comp0_tac, map_cong0_tac] @ set_map0s_tac @
-              [card_order_bd_tac, cinfinite_bd_tac] @ set_bds_tac @
+              [card_order_bd_tac, cinfinite_bd_tac, regularCard_bd_tac] @ set_bds_tac @
               [le_rel_OO_tac, rel_OO_Grp_tac, pred_set_tac];
 
             val (bnf_G, lthy) = bnf_def Dont_Inline (user_policy Note_Some) true I
@@ -1105,6 +1107,7 @@ fun quotient_bnf (equiv_thm, quot_thm) wits specs map_b rel_b pred_b opts lthy =
           (* auxiliary lemmas *)
           val bd_card_order = bd_card_order_of_bnf bnf_F;
           val bd_cinfinite = bd_cinfinite_of_bnf bnf_F;
+          val bd_regularCard = bd_regularCard_of_bnf bnf_F;
           val in_rel = in_rel_of_bnf bnf_F;
           val map_F_comp = map_comp_of_bnf bnf_F;
           val map_F_comp0 = map_comp0_of_bnf bnf_F;
@@ -1798,11 +1801,14 @@ fun quotient_bnf (equiv_thm, quot_thm) wits specs map_b rel_b pred_b opts lthy =
           (* bd_cinfinite: BNF_Cardinal_Arithmetic.cinfinite bd_F *)
           fun bd_cinfinite_tac ctxt = HEADGOAL (rtac ctxt bd_cinfinite);
 
-          (*target: ordLeq3 (card_of (set_F' (rep_G x_))) bd_F*)
+          (* bd_regularCard: regularCard bd_F *)
+          fun bd_regularCard_tac ctxt = HEADGOAL (rtac ctxt bd_regularCard);
+
+          (*target: ordLess2 (card_of (set_F' (rep_G x_))) bd_F*)
           fun mk_set_G_bd_tac thms set_bd_thm ctxt = EVERY
             [Local_Defs.fold_tac ctxt [#set_F'_def thms],
             unfold_thms_tac ctxt [o_apply],
-            HEADGOAL (rtac ctxt (@{thm ordLeq_transitive} OF
+            HEADGOAL (rtac ctxt (@{thm ordLeq_ordLess_trans} OF
               [@{thm card_of_mono1} OF [#set_F'_subset thms], set_bd_thm]))];
 
           (* rel_compp: rel_G R OO rel_G S \<le> rel_G (R OO S) *)
@@ -1859,7 +1865,7 @@ fun quotient_bnf (equiv_thm, quot_thm) wits specs map_b rel_b pred_b opts lthy =
 
           val tactics = map_G_id0_tac :: map_G_comp0_tac :: map_G_cong_tac ::
             map mk_set_G_map0_G_tac set_F'_thmss @
-            bd_card_order_tac :: bd_cinfinite_tac ::
+            bd_card_order_tac :: bd_cinfinite_tac :: bd_regularCard_tac ::
             map2 mk_set_G_bd_tac set_F'_thmss set_bd_thms @
             rel_compp_tac :: rel_compp_Grp_tac :: [pred_G_set_G_tac];
 

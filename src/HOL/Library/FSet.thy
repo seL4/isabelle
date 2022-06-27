@@ -1167,8 +1167,9 @@ apply -
         apply transfer apply force
        apply transfer' apply force
       apply (rule natLeq_card_order)
-     apply (rule natLeq_cinfinite)
-    apply transfer apply (metis ordLess_imp_ordLeq finite_iff_ordLess_natLeq)
+       apply (rule natLeq_cinfinite)
+  apply (rule regularCard_natLeq)
+    apply transfer apply (metis finite_iff_ordLess_natLeq)
    apply (fastforce simp: rel_fset_alt)
  apply (simp add: Grp_def relcompp.simps conversep.simps fun_eq_iff rel_fset_alt
    rel_fset_aux[unfolded OO_Grp_alt])

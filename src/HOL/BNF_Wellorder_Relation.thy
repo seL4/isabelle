@@ -190,6 +190,9 @@ shows "(max2 a b = b) = ((a,b) \<in> r)"
 using assms ANTISYM unfolding antisym_def using TOTALS
 unfolding max2_def by auto
 
+lemma in_notinI:
+assumes "(j,i) \<notin> r \<or> j = i" and "i \<in> Field r" and "j \<in> Field r"
+shows "(i,j) \<in> r" using assms max2_def max2_greater_among by fastforce
 
 subsubsection \<open>Existence and uniqueness for isMinim and well-definedness of minim\<close>
 

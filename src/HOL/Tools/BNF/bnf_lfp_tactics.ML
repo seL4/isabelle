@@ -1,7 +1,8 @@
 (*  Title:      HOL/Tools/BNF/bnf_lfp_tactics.ML
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Andrei Popescu, TU Muenchen
-    Copyright   2012
+    Author:     Jan van Brügge, TU Muenchen
+    Copyright   2012, 2022
 
 Tactics for the datatype construction.
 *)
@@ -65,8 +66,8 @@ sig
     thm list -> tactic
   val mk_rec_tac: Proof.context -> thm list -> thm -> thm list -> tactic
   val mk_rec_unique_mor_tac: Proof.context -> thm list -> thm list -> thm -> tactic
-  val mk_set_bd_tac: Proof.context -> int -> (int -> tactic) -> thm -> thm list list -> thm list ->
-    int -> tactic
+  val mk_set_bd_tac: Proof.context -> int -> (int -> tactic) -> thm -> thm -> thm list list ->
+    thm list -> int -> tactic
   val mk_set_nat_tac: Proof.context -> int -> (int -> tactic) -> thm list list -> thm list ->
     cterm list -> thm list -> int -> tactic
   val mk_set_map0_tac: Proof.context -> thm -> tactic
@@ -563,17 +564,22 @@ fun mk_set_nat_tac ctxt m induct_tac set_mapss ctor_maps csets ctor_sets i =
     (induct_tac THEN' EVERY' (@{map 4} mk_set_nat csets ctor_maps ctor_sets set_mapss)) 1
   end;
 
-fun mk_set_bd_tac ctxt m induct_tac bd_Cinfinite set_bdss ctor_sets i =
+fun mk_set_bd_tac ctxt m induct_tac bd_Cinfinite bd_regularCard set_bdss ctor_sets i =
   let
     val n = length ctor_sets;
 
-    fun useIH set_bd = EVERY' [rtac ctxt @{thm UNION_Cinfinite_bound}, rtac ctxt set_bd, rtac ctxt ballI,
-      Goal.assume_rule_tac ctxt, rtac ctxt bd_Cinfinite];
+    fun useIH set_bd = EVERY' [
+      rtac ctxt (@{thm card_of_UNION_ordLess_infinite_Field_regularCard} OF [
+        bd_regularCard, bd_Cinfinite, set_bd
+      ]),
+      rtac ctxt ballI,
+      Goal.assume_rule_tac ctxt
+    ];
 
     fun mk_set_nat ctor_set set_bds =
-      EVERY' [rtac ctxt @{thm ordIso_ordLeq_trans}, rtac ctxt @{thm card_of_ordIso_subst}, rtac ctxt ctor_set,
-        rtac ctxt (bd_Cinfinite RSN (3, @{thm Un_Cinfinite_bound})), rtac ctxt (nth set_bds (i - 1)),
-        REPEAT_DETERM_N (n - 1) o rtac ctxt (bd_Cinfinite RSN (3, @{thm Un_Cinfinite_bound})),
+      EVERY' [rtac ctxt @{thm ordIso_ordLess_trans}, rtac ctxt @{thm card_of_ordIso_subst}, rtac ctxt ctor_set,
+        rtac ctxt (bd_Cinfinite RSN (3, @{thm Un_Cinfinite_bound_strict})), rtac ctxt (nth set_bds (i - 1)),
+        REPEAT_DETERM_N (n - 1) o rtac ctxt (bd_Cinfinite RSN (3, @{thm Un_Cinfinite_bound_strict})),
         EVERY' (map useIH (drop m set_bds))];
   in
     (induct_tac THEN' EVERY' (map2 mk_set_nat ctor_sets set_bdss)) 1

@@ -76,7 +76,7 @@ sig
   val mk_sbis_lsbis_tac: Proof.context -> thm list -> thm -> thm -> tactic
   val mk_set_Lev_tac: Proof.context -> cterm option list -> thm list -> thm list -> thm list ->
     thm list -> thm list list -> tactic
-  val mk_set_bd_tac: Proof.context -> thm -> thm -> tactic
+  val mk_set_bd_tac: Proof.context -> thm -> thm -> thm -> thm -> tactic
   val mk_set_Jset_incl_Jset_tac: Proof.context -> int -> thm -> int -> tactic
   val mk_set_image_Lev_tac: Proof.context -> cterm option list -> thm list -> thm list ->
     thm list -> thm list -> thm list list -> thm list list -> tactic
@@ -881,28 +881,31 @@ fun mk_set_map0_tac ctxt col_natural =
   EVERY' (map (rtac ctxt) [@{thm ext}, o_apply RS trans, sym, o_apply RS trans,
     @{thm image_UN} RS trans, refl RS @{thm SUP_cong}, col_natural]) 1;
 
-fun mk_col_bd_tac ctxt m j cts rec_0s rec_Sucs sbd_Card_order sbd_Cinfinite set_sbdss =
+fun mk_col_bd_tac ctxt m j cts rec_0s rec_Sucs sbd_regularCard sbd_Cinfinite set_sbdss =
   let
     val n = length rec_0s;
   in
     EVERY' [rtac ctxt (Thm.instantiate' [] cts nat_induct),
       REPEAT_DETERM o rtac ctxt allI,
-      CONJ_WRAP' (fn rec_0 => EVERY' (map (rtac ctxt) [ordIso_ordLeq_trans,
-        @{thm card_of_ordIso_subst}, rec_0, @{thm Card_order_empty}, sbd_Card_order])) rec_0s,
+      CONJ_WRAP' (fn rec_0 => EVERY' (map (rtac ctxt) [@{thm ordIso_ordLess_trans},
+        @{thm card_of_ordIso_subst}, rec_0, @{thm Cinfinite_gt_empty}, sbd_Cinfinite])) rec_0s,
       REPEAT_DETERM o rtac ctxt allI,
       CONJ_WRAP' (fn (rec_Suc, set_sbds) => EVERY'
-        [rtac ctxt ordIso_ordLeq_trans, rtac ctxt @{thm card_of_ordIso_subst}, rtac ctxt rec_Suc,
-        rtac ctxt (sbd_Cinfinite RSN (3, @{thm Un_Cinfinite_bound})), rtac ctxt (nth set_sbds (j - 1)),
-        REPEAT_DETERM_N (n - 1) o rtac ctxt (sbd_Cinfinite RSN (3, @{thm Un_Cinfinite_bound})),
-        EVERY' (map2 (fn i => fn set_sbd => EVERY' [rtac ctxt @{thm UNION_Cinfinite_bound},
-          rtac ctxt set_sbd, rtac ctxt ballI, REPEAT_DETERM o etac ctxt allE,
-          etac ctxt (mk_conjunctN n i), rtac ctxt sbd_Cinfinite]) (1 upto n) (drop m set_sbds))])
+        [rtac ctxt @{thm ordIso_ordLess_trans}, rtac ctxt @{thm card_of_ordIso_subst},
+        rtac ctxt rec_Suc, rtac ctxt (sbd_Cinfinite RSN (3, @{thm Un_Cinfinite_bound_strict})),
+        rtac ctxt (nth set_sbds (j - 1)),
+        REPEAT_DETERM_N (n - 1) o rtac ctxt (sbd_Cinfinite RSN (3, @{thm Un_Cinfinite_bound_strict})),
+        EVERY' (map2 (fn i => fn set_sbd => EVERY' [
+          rtac ctxt (@{thm card_of_UNION_ordLess_infinite_Field_regularCard} OF [sbd_regularCard,
+          sbd_Cinfinite]), rtac ctxt set_sbd, rtac ctxt ballI, REPEAT_DETERM o etac ctxt allE,
+          etac ctxt (mk_conjunctN n i)]) (1 upto n) (drop m set_sbds))])
       (rec_Sucs ~~ set_sbdss)] 1
   end;
 
-fun mk_set_bd_tac ctxt sbd_Cinfinite col_bd =
-  EVERY' (map (rtac ctxt) [@{thm UNION_Cinfinite_bound}, ordIso_ordLeq_trans, @{thm card_of_nat},
-    @{thm natLeq_ordLeq_cinfinite}, sbd_Cinfinite, ballI, col_bd, sbd_Cinfinite]) 1;
+fun mk_set_bd_tac ctxt sbd_Cinfinite sbd_regularCard natLeq_ordLess_bd col_bd =
+  EVERY' (map (rtac ctxt) [@{thm card_of_UNION_ordLess_infinite_Field_regularCard} OF [
+    sbd_regularCard, sbd_Cinfinite], @{thm ordIso_ordLess_trans}, @{thm card_of_nat},
+    natLeq_ordLess_bd, ballI, col_bd]) 1;
 
 fun mk_le_rel_OO_tac ctxt coinduct rel_Jrels le_rel_OOs =
   EVERY' (rtac ctxt coinduct :: map2 (fn rel_Jrel => fn le_rel_OO =>

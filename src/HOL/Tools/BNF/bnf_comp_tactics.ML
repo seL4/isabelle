@@ -10,12 +10,13 @@ signature BNF_COMP_TACTICS =
 sig
   val mk_comp_bd_card_order_tac: Proof.context -> thm list -> thm -> tactic
   val mk_comp_bd_cinfinite_tac: Proof.context -> thm -> thm -> tactic
+  val mk_comp_bd_regularCard_tac: Proof.context -> thm list -> thm -> thm list -> thm -> tactic
   val mk_comp_in_alt_tac: Proof.context -> thm list -> tactic
   val mk_comp_map_comp0_tac: Proof.context -> thm -> thm -> thm list -> tactic
   val mk_comp_map_cong0_tac: Proof.context -> thm list -> thm list -> thm -> thm list -> tactic
   val mk_comp_map_id0_tac: Proof.context -> thm -> thm -> thm list -> tactic
   val mk_comp_set_alt_tac: Proof.context -> thm -> tactic
-  val mk_comp_set_bd_tac: Proof.context -> thm -> thm option -> thm -> thm list -> tactic
+  val mk_comp_set_bd_tac: Proof.context -> thm -> thm option -> thm -> thm list -> thm list -> tactic
   val mk_comp_set_map0_tac: Proof.context -> thm -> thm -> thm -> thm -> thm list -> tactic
   val mk_comp_wit_tac: Proof.context -> thm list -> thm list -> thm -> thm list -> tactic
 
@@ -126,25 +127,58 @@ fun mk_comp_bd_cinfinite_tac ctxt Fbd_cinfinite Gbd_cinfinite =
     rtac ctxt Fbd_cinfinite) THEN'
    rtac ctxt Gbd_cinfinite) 1;
 
-fun mk_comp_set_bd_tac ctxt set'_eq_set bd_ordIso_natLeq_opt comp_set_alt Gset_Fset_bds =
+fun mk_comp_bd_regularCard_tac ctxt Fbd_regularCards Gbd_regularCard Fbd_Cinfinites Gbd_Cinfinite =
+  rtac ctxt @{thm regularCard_natLeq} 1 ORELSE
+  EVERY1 [
+    rtac ctxt @{thm regularCard_cprod},
+    TRY o rtac ctxt @{thm Cinfinite_csum1},
+    resolve_tac ctxt Fbd_Cinfinites,
+    rtac ctxt Gbd_Cinfinite,
+    REPEAT_DETERM o EVERY' [
+      rtac ctxt @{thm regularCard_csum},
+      resolve_tac ctxt Fbd_Cinfinites,
+      TRY o rtac ctxt @{thm Cinfinite_csum1},
+      resolve_tac ctxt Fbd_Cinfinites,
+      resolve_tac ctxt Fbd_regularCards
+    ],
+    resolve_tac ctxt Fbd_regularCards,
+    rtac ctxt Gbd_regularCard
+  ];
+
+fun mk_comp_set_bd_tac ctxt set'_eq_set bd_ordIso_natLeq_opt comp_set_alt Gset_Fset_bds Gbd_Fbd_Cinfinites =
   let
     val (bds, last_bd) = split_last Gset_Fset_bds;
-    fun gen_before bd =
-      rtac ctxt ctrans THEN' rtac ctxt @{thm Un_csum} THEN'
-      rtac ctxt ctrans THEN' rtac ctxt @{thm csum_mono} THEN'
-      rtac ctxt bd;
-    fun gen_after _ = rtac ctxt @{thm ordIso_imp_ordLeq} THEN' rtac ctxt @{thm cprod_csum_distrib1};
+    fun gen_before bd = EVERY' [
+      rtac ctxt @{thm ordLeq_ordLess_trans},
+      rtac ctxt @{thm Un_csum},
+      rtac ctxt @{thm csum_mono_strict},
+      rtac ctxt @{thm card_of_Card_order},
+      rtac ctxt @{thm card_of_Card_order},
+      resolve_tac ctxt Gbd_Fbd_Cinfinites,
+      defer_tac,
+      rtac ctxt bd
+    ];
   in
     (case bd_ordIso_natLeq_opt of
-      SOME thm => rtac ctxt (thm RSN (2, @{thm ordLeq_ordIso_trans})) 1
+      SOME thm => rtac ctxt (thm RSN (2, @{thm ordLess_ordIso_trans})) 1
     | NONE => all_tac) THEN
     unfold_thms_tac ctxt [set'_eq_set, comp_set_alt] THEN
-    rtac ctxt @{thm comp_set_bd_Union_o_collect} 1 THEN
+    rtac ctxt @{thm comp_set_bd_Union_o_collect_strict} 1 THEN
     unfold_thms_tac ctxt @{thms Union_image_insert Union_image_empty Union_Un_distrib o_apply} THEN
-    (rtac ctxt ctrans THEN'
-     WRAP' gen_before gen_after bds (rtac ctxt last_bd) THEN'
-     rtac ctxt @{thm ordIso_imp_ordLeq} THEN'
-     rtac ctxt @{thm cprod_com}) 1
+    EVERY1 [
+      rtac ctxt @{thm ordLess_ordLeq_trans},
+      WRAP' gen_before (K (K all_tac)) bds (rtac ctxt last_bd),
+      rtac ctxt @{thm ordIso_imp_ordLeq},
+      REPEAT_DETERM_N (length Gset_Fset_bds - 1) o EVERY' [
+        rtac ctxt @{thm ordIso_transitive},
+        REPEAT_DETERM o (rtac ctxt @{thm cprod_csum_distrib1} ORELSE' rtac ctxt @{thm csum_cong2})
+      ],
+      rtac ctxt @{thm cprod_com},
+      REPEAT_DETERM o EVERY' [
+        TRY o rtac ctxt @{thm Cinfinite_csum1},
+        resolve_tac ctxt Gbd_Fbd_Cinfinites
+      ]
+    ]
   end;
 
 val comp_in_alt_thms = @{thms o_apply collect_def image_insert image_empty Union_insert UN_insert
@@ -204,8 +238,8 @@ fun kill_in_alt_tac ctxt =
 
 fun empty_natural_tac ctxt = rtac ctxt @{thm empty_natural} 1;
 
-fun mk_lift_set_bd_tac ctxt bd_Card_order =
-  (rtac ctxt @{thm Card_order_empty} THEN' rtac ctxt bd_Card_order) 1;
+fun mk_lift_set_bd_tac ctxt bd_Cinfinite =
+  (rtac ctxt @{thm Cinfinite_gt_empty} THEN' rtac ctxt bd_Cinfinite) 1;
 
 fun lift_in_alt_tac ctxt =
   ((rtac ctxt @{thm Collect_cong} THEN' rtac ctxt iffI) 1 THEN

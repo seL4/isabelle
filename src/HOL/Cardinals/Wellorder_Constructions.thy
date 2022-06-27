@@ -511,10 +511,6 @@ unfolding inj_on_def proof safe
   ultimately show "a = b" using TOTALS A a b unfolding underS_def by auto
 qed
 
-lemma in_notinI:
-assumes "(j,i) \<notin> r \<or> j = i" and "i \<in> Field r" and "j \<in> Field r"
-shows "(i,j) \<in> r" by (metis assms max2_def max2_greater_among)
-
 lemma ofilter_init_seg_of:
 assumes "ofilter F"
 shows "Restr r F initial_segment_of r"

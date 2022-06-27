@@ -561,6 +561,10 @@ lemma not_ordLess_ordLeq:
 "r <o r' \<Longrightarrow> \<not> r' \<le>o r"
 using ordLess_ordLeq_trans ordLess_irreflexive by blast
 
+lemma not_ordLeq_ordLess:
+"r \<le>o r' \<Longrightarrow> \<not> r' <o r"
+using not_ordLess_ordLeq by blast
+
 lemma ordLess_or_ordLeq:
 assumes WELL: "Well_order r" and WELL': "Well_order r'"
 shows "r <o r' \<or> r' \<le>o r"

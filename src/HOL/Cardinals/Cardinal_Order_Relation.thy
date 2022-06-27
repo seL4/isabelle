@@ -91,22 +91,6 @@ qed
 lemma card_of_unique2: "\<lbrakk>card_order_on B r; bij_betw f A B\<rbrakk> \<Longrightarrow> r =o |A|"
 using card_of_ordIso card_of_unique ordIso_equivalence by blast
 
-lemma internalize_card_of_ordLess:
-"( |A| <o r) = (\<exists>B < Field r. |A| =o |B| \<and> |B| <o r)"
-proof
-  assume "|A| <o r"
-  then obtain p where 1: "Field p < Field r \<and> |A| =o p \<and> p <o r"
-  using internalize_ordLess[of "|A|" r] by blast
-  hence "Card_order p" using card_of_Card_order Card_order_ordIso2 by blast
-  hence "|Field p| =o p" using card_of_Field_ordIso by blast
-  hence "|A| =o |Field p| \<and> |Field p| <o r"
-  using 1 ordIso_equivalence ordIso_ordLess_trans by blast
-  thus "\<exists>B < Field r. |A| =o |B| \<and> |B| <o r" using 1 by blast
-next
-  assume "\<exists>B < Field r. |A| =o |B| \<and> |B| <o r"
-  thus "|A| <o r" using ordIso_ordLess_trans by blast
-qed
-
 lemma internalize_card_of_ordLess2:
 "( |A| <o |C| ) = (\<exists>B < C. |A| =o |B| \<and> |B| <o |C| )"
 using internalize_card_of_ordLess[of "A" "|C|"] Field_card_of[of C] by auto
@@ -387,36 +371,6 @@ assumes "inj_on f I" and "f ` I \<le> J" and
 shows "|SIGMA i : I. Field(p(f i))| \<le>o |SIGMA j : J. Field(r j)|"
 using assms card_of_mono2 card_of_Sigma_mono
       [of f I J "\<lambda> i. Field(p i)" "\<lambda> j. Field(r j)"] by metis
-
-lemma card_of_Sigma_cong1:
-assumes "\<forall>i \<in> I. |A i| =o |B i|"
-shows "|SIGMA i : I. A i| =o |SIGMA i : I. B i|"
-using assms by (auto simp add: card_of_Sigma_mono1 ordIso_iff_ordLeq)
-
-lemma card_of_Sigma_cong2:
-assumes "bij_betw f (I::'i set) (J::'j set)"
-shows "|SIGMA i : I. (A::'j \<Rightarrow> 'a set) (f i)| =o |SIGMA j : J. A j|"
-proof-
-  let ?LEFT = "SIGMA i : I. A (f i)"
-  let ?RIGHT = "SIGMA j : J. A j"
-  obtain u where u_def: "u = (\<lambda>(i::'i,a::'a). (f i,a))" by blast
-  have "bij_betw u ?LEFT ?RIGHT"
-  using assms unfolding u_def bij_betw_def inj_on_def by auto
-  thus ?thesis using card_of_ordIso by blast
-qed
-
-lemma card_of_Sigma_cong:
-assumes BIJ: "bij_betw f I J" and
-        ISO: "\<forall>j \<in> J. |A j| =o |B j|"
-shows "|SIGMA i : I. A (f i)| =o |SIGMA j : J. B j|"
-proof-
-  have "\<forall>i \<in> I. |A(f i)| =o |B(f i)|"
-  using ISO BIJ unfolding bij_betw_def by blast
-  hence "|SIGMA i : I. A (f i)| =o |SIGMA i : I. B (f i)|" by (rule card_of_Sigma_cong1)
-  moreover have "|SIGMA i : I. B (f i)| =o |SIGMA j : J. B j|"
-  using BIJ card_of_Sigma_cong2 by blast
-  ultimately show ?thesis using ordIso_transitive by blast
-qed
 
 lemma ordIso_Sigma_cong1:
 assumes "\<forall>i \<in> I. p i =o r i"
@@ -1656,62 +1610,6 @@ qed
 
 subsection \<open>Regular vs. stable cardinals\<close>
 
-definition stable :: "'a rel \<Rightarrow> bool"
-where
-"stable r \<equiv> \<forall>(A::'a set) (F :: 'a \<Rightarrow> 'a set).
-               |A| <o r \<and> (\<forall>a \<in> A. |F a| <o r)
-               \<longrightarrow> |SIGMA a : A. F a| <o r"
-
-lemma regularCard_stable:
-assumes cr: "Card_order r" and ir: "\<not>finite (Field r)" and reg: "regularCard r"
-shows "stable r"
-unfolding stable_def proof safe
-  fix A :: "'a set" and F :: "'a \<Rightarrow> 'a set" assume A: "|A| <o r" and F: "\<forall>a\<in>A. |F a| <o r"
-  {assume "r \<le>o |Sigma A F|"
-   hence "|Field r| \<le>o |Sigma A F|" using card_of_Field_ordIso[OF cr]
-   by (metis Field_card_of card_of_cong ordLeq_iff_ordLess_or_ordIso ordLeq_ordLess_trans)
-   moreover have Fi: "Field r \<noteq> {}" using ir by auto
-   ultimately obtain f where f: "f ` Sigma A F = Field r" using card_of_ordLeq2 by metis
-   have r: "wo_rel r" using cr unfolding card_order_on_def wo_rel_def by auto
-   {fix a assume a: "a \<in> A"
-    define L where "L = {(a,u) | u. u \<in> F a}"
-    have fL: "f ` L \<subseteq> Field r" using f a unfolding L_def by auto
-    have "|L| =o |F a|" unfolding L_def card_of_ordIso[symmetric]
-    apply(rule exI[of _ snd]) unfolding bij_betw_def inj_on_def by (auto simp: image_def)
-    hence "|L| <o r" using F a ordIso_ordLess_trans[of "|L|" "|F a|"] unfolding L_def by auto
-    hence "|f ` L| <o r" using ordLeq_ordLess_trans[OF card_of_image, of "L"] unfolding L_def by auto
-    hence "\<not> cofinal (f ` L) r" using reg fL unfolding regularCard_def by (metis not_ordLess_ordIso)
-    then obtain k where k: "k \<in> Field r" and "\<forall> l \<in> L. \<not> (f l \<noteq> k \<and> (k, f l) \<in> r)"
-    unfolding cofinal_def image_def by auto
-    hence "\<exists> k \<in> Field r. \<forall> l \<in> L. (f l, k) \<in> r" using r by (metis fL image_subset_iff wo_rel.in_notinI)
-    hence "\<exists> k \<in> Field r. \<forall> u \<in> F a. (f (a,u), k) \<in> r" unfolding L_def by auto
-   }
-   then obtain gg where gg: "\<forall> a \<in> A. \<forall> u \<in> F a. (f (a,u), gg a) \<in> r" by metis
-   obtain j0 where j0: "j0 \<in> Field r" using Fi by auto
-   define g where [abs_def]: "g a = (if F a \<noteq> {} then gg a else j0)" for a
-   have g: "\<forall> a \<in> A. \<forall> u \<in> F a. (f (a,u),g a) \<in> r" using gg unfolding g_def by auto
-   hence 1: "Field r \<subseteq> (\<Union>a \<in> A. under r (g a))"
-   using f[symmetric] unfolding under_def image_def by auto
-   have gA: "g ` A \<subseteq> Field r" using gg j0 unfolding Field_def g_def by auto
-   moreover have "cofinal (g ` A) r" unfolding cofinal_def proof safe
-     fix i assume "i \<in> Field r"
-     then obtain j where ij: "(i,j) \<in> r" "i \<noteq> j" using cr ir by (metis infinite_Card_order_limit)
-     hence "j \<in> Field r" by (metis card_order_on_def cr well_order_on_domain)
-     then obtain a where a: "a \<in> A" and j: "(j, g a) \<in> r" using 1 unfolding under_def by auto
-     hence "(i, g a) \<in> r" using ij wo_rel.TRANS[OF r] unfolding trans_def by blast
-     moreover have "i \<noteq> g a"
-     using ij j r unfolding wo_rel_def unfolding well_order_on_def linear_order_on_def
-     partial_order_on_def antisym_def by auto
-     ultimately show "\<exists>j\<in>g ` A. i \<noteq> j \<and> (i, j) \<in> r" using a by auto
-   qed
-   ultimately have "|g ` A| =o r" using reg unfolding regularCard_def by auto
-   moreover have "|g ` A| \<le>o |A|" by (metis card_of_image)
-   ultimately have False using A by (metis not_ordLess_ordIso ordLeq_ordLess_trans)
-  }
-  thus "|Sigma A F| <o r"
-  using cr not_ordLess_iff_ordLeq by (metis card_of_Well_order card_order_on_well_order_on)
-qed
-
 lemma stable_regularCard:
 assumes cr: "Card_order r" and ir: "\<not>finite (Field r)" and st: "stable r"
 shows "regularCard r"
@@ -1736,36 +1634,6 @@ unfolding regularCard_def proof safe
   ultimately show "|K| =o r" by (metis ordLeq_iff_ordLess_or_ordIso)
 qed
 
-(* Note that below the types of A and F are now unconstrained: *)
-lemma stable_elim:
-assumes ST: "stable r" and A_LESS: "|A| <o r" and
-        F_LESS: "\<And> a. a \<in> A \<Longrightarrow> |F a| <o r"
-shows "|SIGMA a : A. F a| <o r"
-proof-
-  obtain A' where 1: "A' < Field r \<and> |A'| <o r" and 2: " |A| =o |A'|"
-  using internalize_card_of_ordLess[of A r] A_LESS by blast
-  then obtain G where 3: "bij_betw G A' A"
-  using card_of_ordIso  ordIso_symmetric by blast
-  (*  *)
-  {fix a assume "a \<in> A"
-   hence "\<exists>B'. B' \<le> Field r \<and> |F a| =o |B'| \<and> |B'| <o r"
-   using internalize_card_of_ordLess[of "F a" r] F_LESS by blast
-  }
-  then obtain F' where
-  temp: "\<forall>a \<in> A. F' a \<le> Field r \<and> |F a| =o |F' a| \<and> |F' a| <o r"
-  using bchoice[of A "\<lambda> a B'. B' \<le> Field r \<and> |F a| =o |B'| \<and> |B'| <o r"] by blast
-  hence 4: "\<forall>a \<in> A. F' a \<le> Field r \<and> |F' a| <o r" by auto
-  have 5: "\<forall>a \<in> A. |F' a| =o |F a|" using temp ordIso_symmetric by auto
-  (*  *)
-  have "\<forall>a' \<in> A'. F'(G a') \<le> Field r \<and> |F'(G a')| <o r"
-  using 3 4 bij_betw_ball[of G A' A] by auto
-  hence "|SIGMA a' : A'. F'(G a')| <o r"
-  using ST 1 unfolding stable_def by auto
-  moreover have "|SIGMA a' : A'. F'(G a')| =o |SIGMA a : A. F a|"
-  using card_of_Sigma_cong[of G A' A F' F] 5 3 by blast
-  ultimately show ?thesis using ordIso_symmetric ordIso_ordLess_trans by blast
-qed
-
 lemma stable_natLeq: "stable natLeq"
 proof(unfold stable_def, safe)
   fix A :: "'a set" and F :: "'a \<Rightarrow> 'a set"
@@ -1785,16 +1653,6 @@ assumes CARD: "Card_order r" and INF: "\<not>finite (Field r)"
 shows "stable(cardSuc r)"
 using infinite_cardSuc_regularCard regularCard_stable
 by (metis CARD INF cardSuc_Card_order cardSuc_finite)
-
-lemma stable_UNION:
-assumes ST: "stable r" and A_LESS: "|A| <o r" and
-        F_LESS: "\<And> a. a \<in> A \<Longrightarrow> |F a| <o r"
-shows "|\<Union>a \<in> A. F a| <o r"
-proof-
-  have "|\<Union>a \<in> A. F a| \<le>o |SIGMA a : A. F a|"
-  using card_of_UNION_Sigma by blast
-  thus ?thesis using assms stable_elim ordLeq_ordLess_trans by blast
-qed
 
 lemma stable_ordIso1:
 assumes ST: "stable r" and ISO: "r' =o r"

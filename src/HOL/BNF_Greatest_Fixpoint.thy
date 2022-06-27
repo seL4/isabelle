@@ -281,6 +281,24 @@ proof
   thus "univ f X \<in> B" using x PRES by simp
 qed
 
+lemma card_suc_ordLess_imp_ordLeq:
+  assumes ORD: "Card_order r" "Card_order r'" "card_order r'"
+  and LESS: "r <o card_suc r'"
+shows "r \<le>o r'"
+proof -
+  have "Card_order (card_suc r')" by (rule Card_order_card_suc[OF ORD(3)])
+  then have "cardSuc r \<le>o card_suc r'" using cardSuc_least ORD LESS by blast
+  then have "cardSuc r \<le>o cardSuc r'" using cardSuc_ordIso_card_suc ordIso_symmetric
+      ordLeq_ordIso_trans ORD(3) by blast
+  then show ?thesis using cardSuc_mono_ordLeq ORD by blast
+qed
+
+lemma natLeq_ordLess_cinfinite: "\<lbrakk>Cinfinite r; card_order r\<rbrakk> \<Longrightarrow> natLeq <o card_suc r"
+  using natLeq_ordLeq_cinfinite card_suc_greater ordLeq_ordLess_trans by blast
+
+corollary natLeq_ordLess_cinfinite': "\<lbrakk>Cinfinite r'; card_order r'; r \<equiv> card_suc r'\<rbrakk> \<Longrightarrow> natLeq <o r"
+  using natLeq_ordLess_cinfinite by blast
+
 ML_file \<open>Tools/BNF/bnf_gfp_util.ML\<close>
 ML_file \<open>Tools/BNF/bnf_gfp_tactics.ML\<close>
 ML_file \<open>Tools/BNF/bnf_gfp.ML\<close>
