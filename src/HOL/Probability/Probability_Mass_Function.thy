@@ -532,7 +532,7 @@ lemma integral_map_pmf[simp]:
 
 lemma integrable_map_pmf_eq [simp]:
   fixes g :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
-  shows "integrable (map_pmf f p) g \<longleftrightarrow> integrable (measure_pmf p) (\<lambda>x. g (f x))"              
+  shows "integrable (map_pmf f p) g \<longleftrightarrow> integrable (measure_pmf p) (\<lambda>x. g (f x))"
   by (subst map_pmf_rep_eq, subst integrable_distr_eq) auto
 
 lemma integrable_map_pmf [intro]:
@@ -694,7 +694,7 @@ lemma expectation_pair_pmf_fst [simp]:
   fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
   shows "measure_pmf.expectation (pair_pmf p q) (\<lambda>x. f (fst x)) = measure_pmf.expectation p f"
 proof -
-  have "measure_pmf.expectation (pair_pmf p q) (\<lambda>x. f (fst x)) = 
+  have "measure_pmf.expectation (pair_pmf p q) (\<lambda>x. f (fst x)) =
           measure_pmf.expectation (map_pmf fst (pair_pmf p q)) f" by simp
   also have "map_pmf fst (pair_pmf p q) = p"
     by (simp add: map_fst_pair_pmf)
@@ -705,7 +705,7 @@ lemma expectation_pair_pmf_snd [simp]:
   fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
   shows "measure_pmf.expectation (pair_pmf p q) (\<lambda>x. f (snd x)) = measure_pmf.expectation q f"
 proof -
-  have "measure_pmf.expectation (pair_pmf p q) (\<lambda>x. f (snd x)) = 
+  have "measure_pmf.expectation (pair_pmf p q) (\<lambda>x. f (snd x)) =
           measure_pmf.expectation (map_pmf snd (pair_pmf p q)) f" by simp
   also have "map_pmf snd (pair_pmf p q) = q"
     by (simp add: map_snd_pair_pmf)
@@ -1369,7 +1369,7 @@ proof -
   show "BNF_Cardinal_Arithmetic.cinfinite (card_suc natLeq)"
     using natLeq_Cinfinite natLeq_card_order Cinfinite_card_suc by blast
   show "regularCard (card_suc natLeq)" using natLeq_card_order natLeq_Cinfinite
-    by (rule regular_card_suc)
+    by (rule regularCard_card_suc)
 
   show "(card_of (set_pmf p), card_suc natLeq) \<in> ordLess" for p :: "'s pmf"
   proof -
@@ -2234,7 +2234,7 @@ next
     have "pmf (neg_binomial_pmf (Suc n) p) k =
             pmf (geometric_pmf p \<bind> (\<lambda>x. map_pmf ((+) x) (neg_binomial_pmf n p))) k"
       by (auto simp: pair_pmf_def bind_return_pmf map_pmf_def bind_assoc_pmf neg_binomial_pmf_Suc)
-    also have "\<dots> = measure_pmf.expectation (geometric_pmf p) 
+    also have "\<dots> = measure_pmf.expectation (geometric_pmf p)
                       (\<lambda>x. measure_pmf.prob (neg_binomial_pmf n p) ((+) x -` {k}))"
       by (simp add: pmf_bind pmf_map)
     also have "(\<lambda>x. (+) x -` {k}) = (\<lambda>x. if x \<le> k then {k - x} else {})"
@@ -2257,7 +2257,7 @@ next
       finally show ?case by simp
     qed
     also have "(\<Sum>i\<le>k. (k - i + n - 1) choose (k - i)) = (\<Sum>i\<le>k. (n - 1 + i) choose i)"
-      by (intro sum.reindex_bij_witness[of _ "\<lambda>i. k - i" "\<lambda>i. k - i"]) 
+      by (intro sum.reindex_bij_witness[of _ "\<lambda>i. k - i" "\<lambda>i. k - i"])
          (use \<open>n \<noteq> 0\<close> in \<open>auto simp: algebra_simps\<close>)
     also have "\<dots> = (n + k) choose k"
       by (subst sum_choose_lower) (use \<open>n \<noteq> 0\<close> in auto)
@@ -2332,7 +2332,7 @@ proof (cases "k = 0")
     by auto
   thus ?thesis
     using prob_neg_binomial_pmf_atMost[OF p, of n "k - 1"] False by simp
-qed auto  
+qed auto
 
 text \<open>
   The expected value of the negative binomial distribution is $n(1-p)/p$:

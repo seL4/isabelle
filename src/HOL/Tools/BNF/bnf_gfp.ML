@@ -806,7 +806,7 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
     val sbd_card_order = @{thm card_order_card_suc} OF [sbd_card_order'];
     val sbd_Cinfinite = @{thm Cinfinite_card_suc} OF [sbd_Cinfinite', sbd_card_order'];
     val sbd_Card_order = @{thm Card_order_card_suc} OF [sbd_card_order'];
-    val sbd_regularCard = @{thm regular_card_suc} OF [sbd_card_order', sbd_Cinfinite'];
+    val sbd_regularCard = @{thm regularCard_card_suc} OF [sbd_card_order', sbd_Cinfinite'];
     val set_sbdss = map (map (fn thm => @{thm ordLess_transitive} OF [
       thm, @{thm card_suc_greater} OF [sbd_card_order']
     ])) set_sbdss';

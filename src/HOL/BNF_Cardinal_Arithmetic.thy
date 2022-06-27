@@ -817,24 +817,15 @@ using cardSuc_UNION assms unfolding cinfinite_def by blast
 lemma Cinfinite_card_suc: "\<lbrakk> Cinfinite r ; card_order r \<rbrakk> \<Longrightarrow> Cinfinite (card_suc r)"
   using Cinfinite_cong[OF cardSuc_ordIso_card_suc Cinfinite_cardSuc] .
 
+lemma card_suc_least: "\<lbrakk>card_order r; Card_order s; r <o s\<rbrakk> \<Longrightarrow> card_suc r \<le>o s"
+  by (rule ordIso_ordLeq_trans[OF ordIso_symmetric[OF cardSuc_ordIso_card_suc]])
+    (auto intro!: cardSuc_least simp: card_order_on_Card_order)
+
 lemma regularCard_cardSuc: "Cinfinite k \<Longrightarrow> regularCard (cardSuc k)"
   by (rule infinite_cardSuc_regularCard) (auto simp: cinfinite_def)
 
-lemma regular_card_suc: "card_order r \<Longrightarrow> Cinfinite r \<Longrightarrow> regularCard (card_suc r)"
+lemma regularCard_card_suc: "card_order r \<Longrightarrow> Cinfinite r \<Longrightarrow> regularCard (card_suc r)"
   using cardSuc_ordIso_card_suc Cinfinite_cardSuc regularCard_cardSuc regularCard_ordIso
   by blast
-
-(* card_suc (natLeq +c |UNIV| ) *)
-
-lemma card_order_card_suc_natLeq_UNIV: "card_order (card_suc (natLeq +c |UNIV :: 'a set| ))"
-  using card_order_card_suc card_order_csum natLeq_card_order card_of_card_order_on by blast
-
-lemma cinfinite_card_suc_natLeq_UNIV: "cinfinite (card_suc (natLeq +c |UNIV :: 'a set| ))"
-  using Cinfinite_card_suc card_order_csum natLeq_card_order card_of_card_order_on natLeq_Cinfinite
-      Cinfinite_csum1 by blast
-
-lemma regularCard_card_suc_natLeq_UNIV: "regularCard (card_suc (natLeq +c |UNIV :: 'a set| ))"
-  using regular_card_suc card_order_csum natLeq_card_order card_of_card_order_on Cinfinite_csum1
-      natLeq_Cinfinite by blast
 
 end

@@ -612,7 +612,7 @@ next
     by simp
 next
   show "regularCard (card_suc natLeq)" using natLeq_card_order natLeq_Cinfinite
-    by (rule regular_card_suc)
+    by (rule regularCard_card_suc)
 next
   fix C
   have "|rcset C| \<le>o natLeq" including cset.lifting by transfer (unfold countable_card_le_natLeq)

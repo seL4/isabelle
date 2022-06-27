@@ -131,14 +131,16 @@ fun mk_comp_bd_regularCard_tac ctxt Fbd_regularCards Gbd_regularCard Fbd_Cinfini
   rtac ctxt @{thm regularCard_natLeq} 1 ORELSE
   EVERY1 [
     rtac ctxt @{thm regularCard_cprod},
-    TRY o rtac ctxt @{thm Cinfinite_csum1},
-    resolve_tac ctxt Fbd_Cinfinites,
+    resolve_tac ctxt (Fbd_Cinfinites) ORELSE'
+    ((TRY o rtac ctxt @{thm Cinfinite_csum1}) THEN'
+    resolve_tac ctxt (Fbd_Cinfinites)),
     rtac ctxt Gbd_Cinfinite,
     REPEAT_DETERM o EVERY' [
       rtac ctxt @{thm regularCard_csum},
       resolve_tac ctxt Fbd_Cinfinites,
-      TRY o rtac ctxt @{thm Cinfinite_csum1},
-      resolve_tac ctxt Fbd_Cinfinites,
+      resolve_tac ctxt (Fbd_Cinfinites) ORELSE'
+      ((TRY o rtac ctxt @{thm Cinfinite_csum1}) THEN'
+      resolve_tac ctxt (Fbd_Cinfinites)),
       resolve_tac ctxt Fbd_regularCards
     ],
     resolve_tac ctxt Fbd_regularCards,
