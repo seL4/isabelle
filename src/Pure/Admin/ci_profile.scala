@@ -10,6 +10,7 @@ package isabelle
 import java.time.{Instant, ZoneId}
 import java.time.format.DateTimeFormatter
 import java.util.{Properties => JProperties, Map => JMap}
+import java.nio.file.Files
 
 
 object CI_Profile {
@@ -78,15 +79,13 @@ object CI_Profile {
 
 
   private def load_properties(): JProperties = {
-    val props = new JProperties()
+    val props = new JProperties
     val file_name = Isabelle_System.getenv("ISABELLE_CI_PROPERTIES")
-
-    if (file_name != "") {
-      val file = Path.explode(file_name).file
-      if (file.exists()) props.load(new java.io.FileReader(file))
-      props
+    if (file_name.nonEmpty) {
+      val path = Path.explode(file_name)
+      if (path.is_file) props.load(Files.newBufferedReader(path.java_path))
     }
-    else props
+    props
   }
 
   private def compute_timing(results: Build.Results, group: Option[String]): Timing = {
