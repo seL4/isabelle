@@ -7,7 +7,6 @@ Build profile for continuous integration services.
 package isabelle
 
 
-import java.time.{Instant, ZoneId}
 import java.time.format.DateTimeFormatter
 import java.util.{Properties => JProperties, Map => JMap}
 import java.nio.file.Files
@@ -118,7 +117,7 @@ object CI_Profile {
     val isabelle_id = hg_id(isabelle_home)
 
     val start_time =
-      Instant.now().atZone(ZoneId.systemDefault).format(DateTimeFormatter.RFC_1123_DATE_TIME)
+      Date.Format.make(List(DateTimeFormatter.RFC_1123_DATE_TIME))(Date.now())
 
     print_section("CONFIGURATION")
     println(Build_Log.Settings.show())
