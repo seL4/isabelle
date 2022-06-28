@@ -181,6 +181,6 @@ object CI_Profile {
 
     val post_result = config.post_hook(results)
 
-    System.exit(List(pre_result.rc, results.rc, post_result.rc).max)
+    sys.exit(List(pre_result.rc, results.rc, post_result.rc).max)
   }
 }
