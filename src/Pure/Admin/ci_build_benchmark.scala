@@ -8,10 +8,9 @@ package isabelle
 
 
 object CI_Build_Benchmark {
-
-  val isabelle_tool = Isabelle_Tool("ci_build_benchmark", "builds Isabelle benchmarks + timing group",
-    Scala_Project.here,
-  { args =>
+  val isabelle_tool =
+    Isabelle_Tool("ci_build_benchmark", "builds Isabelle benchmarks + timing group",
+      Scala_Project.here, { args =>
     val getopts = Getopts("""
 Usage: isabelle ci_build_benchmark
 

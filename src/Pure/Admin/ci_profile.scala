@@ -38,15 +38,15 @@ object CI_Profile {
   }
 
 
-  /* Config */
+  /* Build_Config */
 
   case class Build_Config(
     documents: Boolean = true,
     clean: Boolean = true,
     include: List[Path] = Nil,
     select: List[Path] = Nil,
-    pre_hook: () => Result = () => { Result.ok },
-    post_hook: Build.Results => Result = { _ => Result.ok },
+    pre_hook: () => Result = () => Result.ok,
+    post_hook: Build.Results => Result = _ => Result.ok,
     selection: Sessions.Selection = Sessions.Selection.empty
   )
 
@@ -67,12 +67,9 @@ object CI_Profile {
       statuses.foldLeft(Ok: Status)(_ merge _)
 
     def from_results(results: Build.Results, session: String): Status =
-      if (results.cancelled(session))
-        Skipped
-      else if (results(session).ok)
-        Ok
-      else
-        Failed
+      if (results.cancelled(session)) Skipped
+      else if (results(session).ok) Ok
+      else Failed
   }
 
   case object Ok extends Status("ok")
@@ -86,30 +83,29 @@ object CI_Profile {
 
     if (file_name != "") {
       val file = Path.explode(file_name).file
-      if (file.exists())
-        props.load(new java.io.FileReader(file))
+      if (file.exists()) props.load(new java.io.FileReader(file))
       props
     }
-    else
-      props
+    else props
   }
 
   private def compute_timing(results: Build.Results, group: Option[String]): Timing = {
-    val timings = results.sessions.collect {
-      case session if group.forall(results.info(session).groups.contains(_)) =>
-        results(session).timing
-    }
+    val timings =
+      results.sessions.collect {
+        case session if group.forall(results.info(session).groups.contains(_)) =>
+          results(session).timing
+      }
     timings.foldLeft(Timing.zero)(_ + _)
   }
 
   private def with_documents(options: Options, config: Build_Config): Options = {
-    if (config.documents)
+    if (config.documents) {
       options
         .bool.update("browser_info", true)
         .string.update("document", "pdf")
         .string.update("document_variants", "document:outline=/proof,/ML")
-    else
-      options
+    }
+    else options
   }
 
   def hg_id(path: Path): String =
@@ -122,7 +118,8 @@ object CI_Profile {
     val isabelle_home = Path.explode(Isabelle_System.getenv_strict("ISABELLE_HOME"))
     val isabelle_id = hg_id(isabelle_home)
 
-    val start_time = Instant.now().atZone(ZoneId.systemDefault).format(DateTimeFormatter.RFC_1123_DATE_TIME)
+    val start_time =
+      Instant.now().atZone(ZoneId.systemDefault).format(DateTimeFormatter.RFC_1123_DATE_TIME)
 
     print_section("CONFIGURATION")
     println(Build_Log.Settings.show())
@@ -174,13 +171,10 @@ object CI_Profile {
       print_section("FAILED SESSIONS")
 
       for (name <- results.sessions) {
-        if (results.cancelled(name)) {
-          println(s"Session $name: CANCELLED")
-        }
+        if (results.cancelled(name)) println(s"Session $name: CANCELLED")
         else {
           val result = results(name)
-          if (!result.ok)
-            println(s"Session $name: FAILED ${ result.rc }")
+          if (!result.ok) println(s"Session $name: FAILED ${ result.rc }")
         }
       }
     }
