@@ -29,7 +29,9 @@ sig
   val output_markup: Markup.T -> string * string
   val output_markup_elem: Markup.T -> (string * string) * string
   val parse_body: string -> XML.body
+  val parse_body_bytes: Bytes.T -> XML.body
   val parse: string -> XML.tree
+  val parse_bytes: Bytes.T -> XML.tree
   val content_of: string -> string
   val is_wellformed: string -> bool
 end;
@@ -119,6 +121,11 @@ val split_string =
   Substring.tokens (fn c => c = X_char) #>
   map (Substring.fields (fn c => c = Y_char) #> map Substring.string);
 
+val split_bytes =
+  Bytes.space_explode X
+  #> filter (fn "" => false | _ => true)
+  #> map (space_explode Y);
+
 
 (* structural errors *)
 
@@ -152,18 +159,24 @@ fun parse_chunk ["", ""] = pop
   | parse_chunk ("" :: name :: atts) = push name (map parse_attrib atts)
   | parse_chunk txts = fold (add o XML.Text) txts;
 
-in
-
-fun parse_body source =
-  (case fold parse_chunk (split_string source) [(("", []), [])] of
+fun parse_body' chunks =
+  (case fold parse_chunk chunks [(("", []), [])] of
     [(("", _), result)] => rev result
   | ((name, _), _) :: _ => err_unbalanced name);
 
-fun parse source =
-  (case parse_body source of
+fun parse' chunks =
+  (case parse_body' chunks of
     [result] => result
   | [] => XML.Text ""
   | _ => err "multiple results");
+
+in
+
+val parse_body = parse_body' o split_string;
+val parse_body_bytes = parse_body' o split_bytes;
+
+val parse = parse' o split_string;
+val parse_bytes = parse' o split_bytes;
 
 end;
 

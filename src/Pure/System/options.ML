@@ -211,8 +211,8 @@ fun load_default () =
   (case getenv "ISABELLE_PROCESS_OPTIONS" of
     "" => ()
   | name =>
-      try File.read (Path.explode name)
-      |> Option.app (set_default o decode o YXML.parse_body));
+      try Bytes.read (Path.explode name)
+      |> Option.app (set_default o decode o YXML.parse_body_bytes));
 
 val _ = load_default ();
 val _ = ML_Print_Depth.set_print_depth (default_int "ML_print_depth");

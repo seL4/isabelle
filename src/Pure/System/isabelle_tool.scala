@@ -177,6 +177,7 @@ class Tools extends Isabelle_Scala_Tools(
   Build.isabelle_tool,
   Build_Docker.isabelle_tool,
   Build_Job.isabelle_tool,
+  CI_Build_Benchmark.isabelle_tool,
   Doc.isabelle_tool,
   Document_Build.isabelle_tool,
   Dump.isabelle_tool,

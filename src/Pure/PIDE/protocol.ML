@@ -18,13 +18,13 @@ val _ =
        raise Protocol_Command.STOP (Value.parse_int rc)));
 
 val _ =
-  Protocol_Command.define "Prover.options"
+  Protocol_Command.define_bytes "Prover.options"
     (fn [options_yxml] =>
-      (Options.set_default (Options.decode (YXML.parse_body options_yxml));
+      (Options.set_default (Options.decode (YXML.parse_body_bytes options_yxml));
        Isabelle_Process.init_options_interactive ()));
 
 val _ =
-  Protocol_Command.define "Prover.init_session"
+  Protocol_Command.define_bytes "Prover.init_session"
     (fn [yxml] => Resources.init_session_yxml yxml);
 
 val _ =
@@ -97,18 +97,18 @@ val _ =
     (fn [exec_id] => Execution.cancel (Document_ID.parse exec_id));
 
 val _ =
-  Protocol_Command.define "Document.update"
+  Protocol_Command.define_bytes "Document.update"
     (Future.task_context "Document.update" (Future.new_group NONE)
-      (fn old_id_string :: new_id_string :: consolidate_yxml :: edits_yxml =>
+      (fn old_id_bytes :: new_id_bytes :: consolidate_yxml :: edits_yxml =>
         Document.change_state (fn state =>
           let
-            val old_id = Document_ID.parse old_id_string;
-            val new_id = Document_ID.parse new_id_string;
+            val old_id = Document_ID.parse (Bytes.content old_id_bytes);
+            val new_id = Document_ID.parse (Bytes.content new_id_bytes);
             val consolidate =
-              YXML.parse_body consolidate_yxml |>
+              YXML.parse_body_bytes consolidate_yxml |>
                 let open XML.Decode in list string end;
             val edits =
-              edits_yxml |> map (YXML.parse_body #>
+              edits_yxml |> map (YXML.parse_body_bytes #>
                 let open XML.Decode in
                   pair string
                     (variant
@@ -151,14 +151,14 @@ val _ =
           in Document.start_execution state' end)));
 
 val _ =
-  Protocol_Command.define "Document.remove_versions"
+  Protocol_Command.define_bytes "Document.remove_versions"
     (fn [versions_yxml] => Document.change_state (fn state =>
       let
         val versions =
-          YXML.parse_body versions_yxml |>
+          YXML.parse_body_bytes versions_yxml |>
             let open XML.Decode in list int end;
         val state1 = Document.remove_versions versions state;
-        val _ = Output.protocol_message Markup.removed_versions [[XML.Text (versions_yxml)]];
+        val _ = Output.protocol_message Markup.removed_versions [Bytes.contents_blob versions_yxml];
       in state1 end));
 
 val _ =

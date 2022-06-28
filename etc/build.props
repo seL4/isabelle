@@ -33,6 +33,7 @@ sources = \
   src/Pure/Admin/build_verit.scala \
   src/Pure/Admin/build_zipperposition.scala \
   src/Pure/Admin/check_sources.scala \
+  src/Pure/Admin/ci_build_benchmark.scala \
   src/Pure/Admin/ci_profile.scala \
   src/Pure/Admin/isabelle_cronjob.scala \
   src/Pure/Admin/isabelle_devel.scala \
