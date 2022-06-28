@@ -24,7 +24,7 @@ val _ =
        Isabelle_Process.init_options_interactive ()));
 
 val _ =
-  Protocol_Command.define "Prover.init_session"
+  Protocol_Command.define_bytes "Prover.init_session"
     (fn [yxml] => Resources.init_session_yxml yxml);
 
 val _ =

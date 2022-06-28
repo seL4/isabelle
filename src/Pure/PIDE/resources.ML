@@ -16,7 +16,7 @@ sig
      scala_functions: (string * ((bool * bool) * Position.T)) list,
      global_theories: (string * string) list,
      loaded_theories: string list} -> unit
-  val init_session_yxml: string -> unit
+  val init_session_yxml: Bytes.T -> unit
   val init_session_env: unit -> unit
   val finish_session_base: unit -> unit
   val global_theory: string -> string option
@@ -130,7 +130,7 @@ fun init_session_yxml yxml =
   let
     val (session_positions, (session_directories, (bibtex_entries, (command_timings,
         (load_commands, (scala_functions, (global_theories, loaded_theories))))))) =
-      YXML.parse_body yxml |>
+      YXML.parse_body_bytes yxml |>
         let open XML.Decode in
           (pair (list (pair string properties))
             (pair (list (pair string string))
@@ -155,7 +155,7 @@ fun init_session_env () =
   (case getenv "ISABELLE_INIT_SESSION" of
     "" => ()
   | name =>
-      try File.read (Path.explode name)
+      try Bytes.read (Path.explode name)
       |> Option.app init_session_yxml);
 
 val _ = init_session_env ();
