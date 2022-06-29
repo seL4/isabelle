@@ -524,4 +524,18 @@ proof (induct M N arbitrary: \<sigma> rule: unify.induct)
   qed
 qed (auto intro!: Var_Idem split: option.splits if_splits)
 
+
+subsection \<open>Idempotent Most General Unifier\<close>
+
+definition IMGU :: "'a subst \<Rightarrow> 'a trm \<Rightarrow> 'a trm \<Rightarrow> bool" where
+  "IMGU \<mu> t u \<longleftrightarrow> Unifier \<mu> t u \<and> (\<forall>\<theta>. Unifier \<theta> t u \<longrightarrow> \<theta> \<doteq> \<mu> \<lozenge> \<theta>)"
+
+lemma IMGU_iff_Idem_and_MGU: "IMGU \<mu> t u \<longleftrightarrow> Idem \<mu> \<and> MGU \<mu> t u"
+  unfolding IMGU_def Idem_def MGU_def
+  by (smt (verit, best) subst_comp subst_eq_def)
+
+lemma unify_computes_IMGU:
+  "unify M N = Some \<sigma> \<Longrightarrow> IMGU \<sigma> M N"
+  by (simp add: IMGU_iff_Idem_and_MGU unify_computes_MGU unify_gives_Idem)
+
 end
