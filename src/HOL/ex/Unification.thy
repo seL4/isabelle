@@ -142,6 +142,8 @@ qed
 lemma var_same[simp]: "[(v, t)] \<doteq> [] \<longleftrightarrow> t = Var v"
 by (metis assoc.simps(2) subst.simps(1) subst_eq_def var_self)
 
+lemma vars_of_subst_conv_Union: "vars_of (t \<lhd> \<eta>) = \<Union>(vars_of ` (\<lambda>x. Var x \<lhd> \<eta>) ` vars_of t)"
+  by (induction t) simp_all
 
 subsection \<open>Unifiers and Most General Unifiers\<close>
 
@@ -523,6 +525,119 @@ proof (induct M N arbitrary: \<sigma> rule: unify.induct)
     finally show "\<theta>2 \<lozenge> \<sigma> \<doteq> \<sigma>" .
   qed
 qed (auto intro!: Var_Idem split: option.splits if_splits)
+
+
+subsection \<open>Unification Returns Substitution With Minimal Range \<close>
+
+definition range_vars where
+  "range_vars \<sigma> = \<Union> {vars_of (Var x \<lhd> \<sigma>) |x. Var x \<lhd> \<sigma> \<noteq> Var x}"
+
+lemma vars_of_subst_subset: "vars_of (N \<lhd> \<sigma>) \<subseteq> vars_of N \<union> range_vars \<sigma>"
+proof (rule subsetI)
+  fix x assume "x \<in> vars_of (N \<lhd> \<sigma>)"
+  thus "x \<in> vars_of N \<union> range_vars \<sigma>"
+  proof (induction N)
+    case (Var y)
+    then show ?case
+      unfolding range_vars_def vars_of.simps
+      by force
+  next
+    case (Const y)
+    then show ?case by simp
+  next
+    case (Comb N1 N2)
+    then show ?case
+      by auto
+  qed
+qed
+
+lemma range_vars_comp_subset: "range_vars (\<sigma>\<^sub>1 \<lozenge> \<sigma>\<^sub>2) \<subseteq> range_vars \<sigma>\<^sub>1 \<union> range_vars \<sigma>\<^sub>2"
+proof (rule subsetI)
+  fix x assume "x \<in> range_vars (\<sigma>\<^sub>1 \<lozenge> \<sigma>\<^sub>2)"
+  then obtain x' where
+    x'_\<sigma>\<^sub>1_\<sigma>\<^sub>2: "Var x' \<lhd> \<sigma>\<^sub>1 \<lhd> \<sigma>\<^sub>2 \<noteq> Var x'" and x_in: "x \<in> vars_of (Var x' \<lhd> \<sigma>\<^sub>1 \<lhd> \<sigma>\<^sub>2)"
+    unfolding range_vars_def by auto
+  
+  show "x \<in> range_vars \<sigma>\<^sub>1 \<union> range_vars \<sigma>\<^sub>2"
+  proof (cases "Var x' \<lhd> \<sigma>\<^sub>1 = Var x'")
+    case True
+    with x'_\<sigma>\<^sub>1_\<sigma>\<^sub>2 x_in show ?thesis
+      unfolding range_vars_def by auto
+  next
+    case x'_\<sigma>\<^sub>1_neq: False
+    show ?thesis
+    proof (cases "Var x' \<lhd> \<sigma>\<^sub>1 \<lhd> \<sigma>\<^sub>2 = Var x' \<lhd> \<sigma>\<^sub>1")
+      case True
+      with x'_\<sigma>\<^sub>1_\<sigma>\<^sub>2 x_in x'_\<sigma>\<^sub>1_neq show ?thesis
+        unfolding range_vars_def by auto
+    next
+      case False
+      with x_in obtain y where "y \<in> vars_of (Var x' \<lhd> \<sigma>\<^sub>1)" and "x \<in> vars_of (Var y \<lhd> \<sigma>\<^sub>2)"
+        by (smt (verit, best) UN_iff image_iff vars_of_subst_conv_Union)
+      with x'_\<sigma>\<^sub>1_neq show ?thesis
+        unfolding range_vars_def by force
+    qed
+  qed
+qed
+
+theorem unify_gives_minimal_range:
+  "unify M N  = Some \<sigma> \<Longrightarrow> range_vars \<sigma> \<subseteq> vars_of M \<union> vars_of N"
+proof (induct M N arbitrary: \<sigma> rule: unify.induct)
+  case (1 c M N)
+  thus ?case by simp
+next
+  case (2 M N c)
+  thus ?case by simp
+next
+  case (3 c v)
+  hence "\<sigma> = [(v, Const c)]"
+    by simp
+  thus ?case
+    by (simp add: range_vars_def)
+next
+  case (4 M N v)
+  hence "\<sigma> = [(v, M \<cdot> N)]"
+    by (metis option.discI option.sel unify.simps(4))
+  thus ?case
+    by (auto simp: range_vars_def)
+next
+  case (5 v M)
+  hence "\<sigma> = [(v, M)]"
+    by (metis option.discI option.inject unify.simps(5))
+  thus ?case
+    by (auto simp: range_vars_def)
+next
+  case (6 c d)
+  hence "\<sigma> = []"
+    by (metis option.distinct(1) option.sel unify.simps(6))
+  thus ?case
+    by (simp add: range_vars_def)
+next
+  case (7 M N M' N')
+  from "7.prems" obtain \<theta>\<^sub>1 \<theta>\<^sub>2 where
+    "unify M M' = Some \<theta>\<^sub>1" and "unify (N \<lhd> \<theta>\<^sub>1) (N' \<lhd> \<theta>\<^sub>1) = Some \<theta>\<^sub>2" and "\<sigma> = \<theta>\<^sub>1 \<lozenge> \<theta>\<^sub>2"
+    apply simp
+    by (metis (no_types, lifting) option.case_eq_if option.collapse option.discI option.sel)
+
+  from "7.hyps"(1) have range_\<theta>\<^sub>1: "range_vars \<theta>\<^sub>1 \<subseteq> vars_of M \<union> vars_of M'"
+    using \<open>unify M M' = Some \<theta>\<^sub>1\<close> by simp
+
+  from "7.hyps"(2) have "range_vars \<theta>\<^sub>2 \<subseteq> vars_of (N \<lhd> \<theta>\<^sub>1) \<union> vars_of (N' \<lhd> \<theta>\<^sub>1)"
+    using \<open>unify M M' = Some \<theta>\<^sub>1\<close> \<open>unify (N \<lhd> \<theta>\<^sub>1) (N' \<lhd> \<theta>\<^sub>1) = Some \<theta>\<^sub>2\<close> by simp
+  hence range_\<theta>\<^sub>2: "range_vars \<theta>\<^sub>2 \<subseteq> vars_of N \<union> vars_of N' \<union> range_vars \<theta>\<^sub>1"
+    using vars_of_subst_subset[of _ \<theta>\<^sub>1] by auto
+
+  have "range_vars \<sigma> = range_vars (\<theta>\<^sub>1 \<lozenge> \<theta>\<^sub>2)"
+    unfolding \<open>\<sigma> = \<theta>\<^sub>1 \<lozenge> \<theta>\<^sub>2\<close> by simp
+  also have "... \<subseteq> range_vars \<theta>\<^sub>1 \<union> range_vars \<theta>\<^sub>2"
+    by (rule range_vars_comp_subset)
+  also have "... \<subseteq> range_vars \<theta>\<^sub>1 \<union> vars_of N \<union> vars_of N'"
+    using range_\<theta>\<^sub>2 by auto
+  also have "... \<subseteq> vars_of M \<union> vars_of M' \<union> vars_of N \<union> vars_of N'"
+    using range_\<theta>\<^sub>1 by auto
+  finally show ?case
+    by auto
+qed
 
 
 subsection \<open>Idempotent Most General Unifier\<close>
