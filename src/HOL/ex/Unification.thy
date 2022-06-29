@@ -686,7 +686,7 @@ next
 
   from "7.hyps"(2) have "fst ` set \<theta>\<^sub>2 \<subseteq> vars_of (N \<lhd> \<theta>\<^sub>1) \<union> vars_of (N' \<lhd> \<theta>\<^sub>1)"
     using \<open>unify M M' = Some \<theta>\<^sub>1\<close> \<open>unify (N \<lhd> \<theta>\<^sub>1) (N' \<lhd> \<theta>\<^sub>1) = Some \<theta>\<^sub>2\<close> by simp
-  hence dom_\<theta>\<^sub>2': "fst ` set \<theta>\<^sub>2 \<subseteq> vars_of N \<union> vars_of N' \<union> range_vars \<theta>\<^sub>1"
+  hence dom_\<theta>\<^sub>2: "fst ` set \<theta>\<^sub>2 \<subseteq> vars_of N \<union> vars_of N' \<union> range_vars \<theta>\<^sub>1"
     using vars_of_subst_subset[of _ \<theta>\<^sub>1] by auto
 
   have "fst ` set \<sigma> = fst ` set (\<theta>\<^sub>1 \<lozenge> \<theta>\<^sub>2)"
@@ -696,7 +696,7 @@ next
   also have "... \<subseteq> vars_of M \<union> vars_of M' \<union> fst ` set \<theta>\<^sub>2"
     using dom_\<theta>\<^sub>1 by (auto simp: dom_map_of_conv_image_fst)
   also have "... \<subseteq> vars_of M \<union> vars_of M' \<union> vars_of N \<union> vars_of N' \<union> range_vars \<theta>\<^sub>1"
-    using dom_\<theta>\<^sub>2' by (auto simp: dom_map_of_conv_image_fst)
+    using dom_\<theta>\<^sub>2 by (auto simp: dom_map_of_conv_image_fst)
   also have "... \<subseteq> vars_of M \<union> vars_of M' \<union> vars_of N \<union> vars_of N'"
     using unify_gives_minimal_range[OF \<open>unify M M' = Some \<theta>\<^sub>1\<close>] by auto
   finally show ?case
