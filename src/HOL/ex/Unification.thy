@@ -145,6 +145,9 @@ by (metis assoc.simps(2) subst.simps(1) subst_eq_def var_self)
 lemma vars_of_subst_conv_Union: "vars_of (t \<lhd> \<eta>) = \<Union>(vars_of ` (\<lambda>x. Var x \<lhd> \<eta>) ` vars_of t)"
   by (induction t) simp_all
 
+lemma domain_comp: "fst ` set (\<sigma> \<lozenge> \<theta>) = fst ` (set \<sigma> \<union> set \<theta>)"
+  by (induction \<sigma> \<theta> rule: comp.induct) auto
+
 subsection \<open>Unifiers and Most General Unifiers\<close>
 
 definition Unifier :: "'a subst \<Rightarrow> 'a trm \<Rightarrow> 'a trm \<Rightarrow> bool"
@@ -635,6 +638,67 @@ next
     using range_\<theta>\<^sub>2 by auto
   also have "... \<subseteq> vars_of M \<union> vars_of M' \<union> vars_of N \<union> vars_of N'"
     using range_\<theta>\<^sub>1 by auto
+  finally show ?case
+    by auto
+qed
+
+theorem unify_gives_minimal_domain:
+  "unify M N  = Some \<sigma> \<Longrightarrow> fst ` set \<sigma> \<subseteq> vars_of M \<union> vars_of N"
+proof (induct M N arbitrary: \<sigma> rule: unify.induct)
+  case (1 c M N)
+  thus ?case
+    by simp
+next
+  case (2 M N c)
+  thus ?case
+    by simp
+next
+  case (3 c v)
+  hence "\<sigma> = [(v, Const c)]"
+    by simp
+  thus ?case
+    by (simp add: dom_def)
+next
+  case (4 M N v)
+  hence "\<sigma> = [(v, M \<cdot> N)]"
+    by (metis option.distinct(1) option.inject unify.simps(4))
+  thus ?case
+    by (simp add: dom_def)
+next
+  case (5 v M)
+  hence "\<sigma> = [(v, M)]"
+    by (metis option.distinct(1) option.inject unify.simps(5))
+  thus ?case
+    by (simp add: dom_def)
+next
+  case (6 c d)
+  then show ?case
+    by (cases "c = d") simp_all
+next
+  case (7 M N M' N')
+  from "7.prems" obtain \<theta>\<^sub>1 \<theta>\<^sub>2 where
+    "unify M M' = Some \<theta>\<^sub>1" and "unify (N \<lhd> \<theta>\<^sub>1) (N' \<lhd> \<theta>\<^sub>1) = Some \<theta>\<^sub>2" and "\<sigma> = \<theta>\<^sub>1 \<lozenge> \<theta>\<^sub>2"
+    apply simp
+    by (metis (no_types, lifting) option.case_eq_if option.collapse option.discI option.sel)
+
+  from "7.hyps"(1) have dom_\<theta>\<^sub>1: "fst ` set \<theta>\<^sub>1 \<subseteq> vars_of M \<union> vars_of M'"
+    using \<open>unify M M' = Some \<theta>\<^sub>1\<close> by simp
+
+  from "7.hyps"(2) have "fst ` set \<theta>\<^sub>2 \<subseteq> vars_of (N \<lhd> \<theta>\<^sub>1) \<union> vars_of (N' \<lhd> \<theta>\<^sub>1)"
+    using \<open>unify M M' = Some \<theta>\<^sub>1\<close> \<open>unify (N \<lhd> \<theta>\<^sub>1) (N' \<lhd> \<theta>\<^sub>1) = Some \<theta>\<^sub>2\<close> by simp
+  hence dom_\<theta>\<^sub>2': "fst ` set \<theta>\<^sub>2 \<subseteq> vars_of N \<union> vars_of N' \<union> range_vars \<theta>\<^sub>1"
+    using vars_of_subst_subset[of _ \<theta>\<^sub>1] by auto
+
+  have "fst ` set \<sigma> = fst ` set (\<theta>\<^sub>1 \<lozenge> \<theta>\<^sub>2)"
+    unfolding \<open>\<sigma> = \<theta>\<^sub>1 \<lozenge> \<theta>\<^sub>2\<close> by simp
+  also have "... = fst ` set \<theta>\<^sub>1 \<union> fst ` set \<theta>\<^sub>2"
+    by (auto simp: domain_comp)
+  also have "... \<subseteq> vars_of M \<union> vars_of M' \<union> fst ` set \<theta>\<^sub>2"
+    using dom_\<theta>\<^sub>1 by (auto simp: dom_map_of_conv_image_fst)
+  also have "... \<subseteq> vars_of M \<union> vars_of M' \<union> vars_of N \<union> vars_of N' \<union> range_vars \<theta>\<^sub>1"
+    using dom_\<theta>\<^sub>2' by (auto simp: dom_map_of_conv_image_fst)
+  also have "... \<subseteq> vars_of M \<union> vars_of M' \<union> vars_of N \<union> vars_of N'"
+    using unify_gives_minimal_range[OF \<open>unify M M' = Some \<theta>\<^sub>1\<close>] by auto
   finally show ?case
     by auto
 qed
