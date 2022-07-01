@@ -6,10 +6,6 @@ Isabelle system tools: external executables or internal Scala functions.
 
 package isabelle
 
-import java.net.URLClassLoader
-import scala.reflect.runtime.universe
-import scala.tools.reflect.{ToolBox, ToolBoxError}
-
 
 object Isabelle_Tool {
   /* external tools */
