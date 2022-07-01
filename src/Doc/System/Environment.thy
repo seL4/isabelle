@@ -284,25 +284,13 @@ Available tools:
 
     \<^enum> An external tool found on the directories listed in the @{setting
     ISABELLE_TOOLS} settings variable (colon-separated list in standard POSIX
-    notation).
+    notation). It is invoked as stand-alone program with the command-line
+    arguments provided as \<^verbatim>\<open>argv\<close> array.
 
-      \<^enum> If a file ``\<open>tool\<close>\<^verbatim>\<open>.scala\<close>'' is found, the content needs to define
-      some object that extends the class \<^verbatim>\<open>Isabelle_Tool.Body\<close>. The Scala
-      compiler is invoked on the spot (which may take some time), and the body
-      function is run with the command-line arguments as \<^verbatim>\<open>List[String]\<close>.
-
-      \<^enum> If an executable file ``\<open>tool\<close>'' is found, it is invoked as
-      stand-alone program with the command-line arguments provided as \<^verbatim>\<open>argv\<close>
-      array.
-
-    \<^enum> An internal tool that is registered in \<^verbatim>\<open>etc/settings\<close> via the shell
-    function \<^bash_function>\<open>isabelle_scala_service\<close>, referring to a
-    suitable instance of class \<^scala_type>\<open>isabelle.Isabelle_Scala_Tools\<close>.
-    This is the preferred approach for non-trivial systems programming in
-    Isabelle/Scala: instead of adhoc interpretation of \<^verbatim>\<open>scala\<close> scripts,
-    which is somewhat slow and only type-checked at runtime, there are
-    properly compiled \<^verbatim>\<open>jar\<close> modules (see also the shell function
-    \<^bash_function>\<open>classpath\<close> in \secref{sec:scala}).
+    \<^enum> An internal tool that is declared via class
+    \<^scala_type>\<open>isabelle.Isabelle_Scala_Tools\<close> and registered via
+    \<^verbatim>\<open>services\<close> in \<^path>\<open>etc/build.props\<close>. See \secref{sec:scala-build} for
+    more details.
 
   There are also various administrative tools that are available from a bare
   repository clone of Isabelle, but not in regular distributions.

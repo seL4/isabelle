@@ -1,6 +1,5 @@
 /*  Title:      Pure/System/isabelle_tool.scala
     Author:     Makarius
-    Author:     Lars Hupel
 
 Isabelle system tools: external executables or internal Scala functions.
 */
@@ -13,55 +12,15 @@ import scala.tools.reflect.{ToolBox, ToolBoxError}
 
 
 object Isabelle_Tool {
-  /* Scala source tools */
-
-  abstract class Body extends Function[List[String], Unit]
-
-  private def compile(path: Path): Body = {
-    def err(msg: String): Nothing =
-      cat_error(msg, "The error(s) above occurred in Isabelle/Scala tool " + path)
-
-    val source = File.read(path)
-
-    val class_loader = new URLClassLoader(Array(), getClass.getClassLoader)
-    val tool_box = universe.runtimeMirror(class_loader).mkToolBox()
-
-    try {
-      val tree = tool_box.parse(source)
-      val module =
-        try { tree.asInstanceOf[universe.ModuleDef] }
-        catch {
-          case _: java.lang.ClassCastException =>
-            err("Source does not describe a module (Scala object)")
-        }
-      tool_box.compile(universe.Ident(tool_box.define(module)))() match {
-        case body: Body => body
-        case _ => err("Ill-typed source: Isabelle_Tool.Body expected")
-      }
-    }
-    catch {
-      case e: ToolBoxError =>
-        if (tool_box.frontEnd.hasErrors) {
-          val infos = tool_box.frontEnd.infos.toList
-          val msgs = infos.map(info => "Error in line " + info.pos.line + ":\n" + info.msg)
-          err(msgs.mkString("\n"))
-        }
-        else
-          err(e.toString)
-    }
-  }
-
-
   /* external tools */
 
   private def dirs(): List[Path] = Path.split(Isabelle_System.getenv_strict("ISABELLE_TOOLS"))
 
-  private def is_external(dir: Path, file_name: String): Boolean = {
-    val file = (dir + Path.explode(file_name)).file
+  private def is_external(dir: Path, name: String): Boolean = {
+    val file = (dir + Path.explode(name)).file
     try {
-      file.isFile && file.canRead &&
-        (file_name.endsWith(".scala") || file.canExecute) &&
-        !file_name.endsWith("~") && !file_name.endsWith(".orig")
+      file.isFile && file.canRead && file.canExecute &&
+        !name.endsWith("~") && !name.endsWith(".orig")
     }
     catch { case _: SecurityException => false }
   }
@@ -69,8 +28,6 @@ object Isabelle_Tool {
   private def find_external(name: String): Option[List[String] => Unit] =
     dirs().collectFirst(
       {
-        case dir if is_external(dir, name + ".scala") =>
-          compile(dir + Path.explode(name + ".scala"))
         case dir if is_external(dir, name) =>
           { (args: List[String]) =>
             val tool = dir + Path.explode(name)
@@ -116,12 +73,8 @@ object Isabelle_Tool {
   def external_tools(): List[External] = {
     for {
       dir <- dirs() if dir.is_dir
-      file_name <- File.read_dir(dir) if is_external(dir, file_name)
-    } yield {
-      val path = dir + Path.explode(file_name)
-      val name = Library.perhaps_unsuffix(".scala", file_name)
-      External(name, path)
-    }
+      name <- File.read_dir(dir) if is_external(dir, name)
+    } yield External(name, dir + Path.explode(name))
   }
 
   def isabelle_tools(): List[Entry] =

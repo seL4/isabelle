@@ -195,6 +195,13 @@ builds on the remote side. This tool requires a Mercurial clone of the
 Isabelle repository: a regular download of the distribution will not
 work!
 
+* External Isabelle tools implemented as .scala scripts are no longer
+supported. INCOMPATIBILITY, instead provide a proper Isabelle/Scala
+module with etc/build.props and "services" for a suitable class instance
+of isabelle.Isabelle_Scala_Tools. For example, see
+$ISABELLE_HOME/etc/build.props and its isabelle.Tools, which defines the
+standard Isabelle tools.
+
 
 
 New in Isabelle2021-1 (December 2021)
