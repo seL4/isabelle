@@ -477,11 +477,11 @@ val _ = Theory.setup
         print_typ (INFX (1, R)) ty2
       )))]))
   #> fold (Code_Target.add_reserved target) [
-      "abstract", "case", "catch", "class", "def", "do", "else", "extends", "false",
-      "final", "finally", "for", "forSome", "if", "implicit", "import", "lazy",
-      "match", "new", "null", "object", "override", "package", "private", "protected",
-      "requires", "return", "sealed", "super", "this", "throw", "trait", "try",
-      "true", "type", "val", "var", "while", "with", "yield"
+      "abstract", "case", "catch", "class", "def", "do", "else", "enum", "export", "extends",
+      "false", "final", "finally", "for", "forSome", "given", "if", "implicit", "import", "lazy",
+      "match", "new", "null", "object", "override", "package", "private", "protected", "requires",
+      "return", "sealed", "super", "then", "this", "throw", "trait", "try", "true", "type", "val",
+      "var", "while", "with", "yield"
     ]
   #> fold (Code_Target.add_reserved target) [
       "apply", "sys", "scala", "BigInt", "Nil", "List"
