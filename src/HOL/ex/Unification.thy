@@ -530,7 +530,7 @@ proof (induct M N arbitrary: \<sigma> rule: unify.induct)
 qed (auto intro!: Var_Idem split: option.splits if_splits)
 
 
-subsection \<open>Unification Returns Substitution With Minimal Range \<close>
+subsection \<open>Unification Returns Substitution With Minimal Domain And Range\<close>
 
 definition range_vars where
   "range_vars \<sigma> = \<Union> {vars_of (Var x \<lhd> \<sigma>) |x. Var x \<lhd> \<sigma> \<noteq> Var x}"
@@ -541,15 +541,15 @@ proof (rule subsetI)
   thus "x \<in> vars_of N \<union> range_vars \<sigma>"
   proof (induction N)
     case (Var y)
-    then show ?case
-      unfolding range_vars_def vars_of.simps
-      by force
+    thus ?case
+      unfolding range_vars_def vars_of.simps by force
   next
     case (Const y)
-    then show ?case by simp
+    thus ?case
+      by simp
   next
     case (Comb N1 N2)
-    then show ?case
+    thus ?case
       by auto
   qed
 qed
@@ -672,8 +672,10 @@ next
     by (simp add: dom_def)
 next
   case (6 c d)
-  then show ?case
-    by (cases "c = d") simp_all
+  hence "\<sigma> = []"
+    by (metis option.distinct(1) option.sel unify.simps(6))
+  thus ?case
+    by simp
 next
   case (7 M N M' N')
   from "7.prems" obtain \<theta>\<^sub>1 \<theta>\<^sub>2 where
@@ -694,9 +696,9 @@ next
   also have "... = fst ` set \<theta>\<^sub>1 \<union> fst ` set \<theta>\<^sub>2"
     by (auto simp: domain_comp)
   also have "... \<subseteq> vars_of M \<union> vars_of M' \<union> fst ` set \<theta>\<^sub>2"
-    using dom_\<theta>\<^sub>1 by (auto simp: dom_map_of_conv_image_fst)
+    using dom_\<theta>\<^sub>1 by auto
   also have "... \<subseteq> vars_of M \<union> vars_of M' \<union> vars_of N \<union> vars_of N' \<union> range_vars \<theta>\<^sub>1"
-    using dom_\<theta>\<^sub>2 by (auto simp: dom_map_of_conv_image_fst)
+    using dom_\<theta>\<^sub>2 by auto
   also have "... \<subseteq> vars_of M \<union> vars_of M' \<union> vars_of N \<union> vars_of N'"
     using unify_gives_minimal_range[OF \<open>unify M M' = Some \<theta>\<^sub>1\<close>] by auto
   finally show ?case
