@@ -161,7 +161,7 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
               vars
               |> print_bind tyvars some_thm BR pat
               |>> (fn p => (false, concat [str "val", p, str "=",
-                constraint (print_term tyvars false some_thm vars NOBR t) (print_typ tyvars NOBR ty)]));
+                constraint (print_term tyvars false some_thm vars NOBR t) (print_typ tyvars BR ty)]));
             fun print_match_seq t vars =
               ((true, print_term tyvars false some_thm vars NOBR t), vars);
             fun print_match is_first ((IVar NONE, ty), t) =
@@ -334,7 +334,7 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
                 (map print_classparam_val classparams))
               :: map print_classparam_def classparams
               @| Pretty.block_enclose
-                (str ("object " ^ deresolve_class class ^ "{"), str "}")
+                (str ("object " ^ deresolve_class class ^ " {"), str "}")
                 (map (print_inst class) insts)
             )
           end;
