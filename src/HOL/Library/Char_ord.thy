@@ -123,4 +123,8 @@ instance
 
 end
 
+code_identifier
+  code_module Char_ord \<rightharpoonup>
+    (SML) Str and (OCaml) Str and (Haskell) Str and (Scala) Str
+
 end

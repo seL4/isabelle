@@ -208,6 +208,10 @@ text \<open>
        containing both \<open>Code_Target_Nat\<close> and
        \<open>Code_Target_Int\<close>.
 
+    \item[\<open>Code_Abstract_Char\<close>] implements type \<^typ>\<open>char\<close> by target language
+       integers, sacrificing pattern patching in exchange for dramatically
+       increased performance for comparisions.
+
     \item[\<^theory>\<open>HOL-Library.IArray\<close>] provides a type \<^typ>\<open>'a iarray\<close>
        isomorphic to lists but implemented by (effectively immutable)
        arrays \emph{in SML only}.

@@ -716,6 +716,10 @@ code_reserved OCaml string String Char List
 code_reserved Haskell Prelude
 code_reserved Scala string
 
+code_identifier
+  code_module String \<rightharpoonup>
+    (SML) Str and (OCaml) Str and (Haskell) Str and (Scala) Str
+
 code_printing
   type_constructor String.literal \<rightharpoonup>
     (SML) "string"

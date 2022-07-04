@@ -37,6 +37,10 @@ Example:
 * Theory Char_ord: streamlined logical specifications.
 Minor INCOMPATIBILITY.
 
+* New Theory Code_Abstract_Char implements characters by target language
+integers, sacrificing pattern patching in exchange for dramatically
+increased performance for comparisions.
+
 * Rule split_of_bool_asm is not split any longer, analogously to
 split_if_asm.  INCOMPATIBILITY.
 

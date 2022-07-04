@@ -17,6 +17,11 @@ Contributions to this Isabelle version
   code generation: type annotations in pattern bindings are printed in a
   way suitable for Scala 3.
 
+* July 2022: Florian Haftmann, TU München and René Thiemann, UIBK
+  Theory Code_Abstract_Char implements characters by target language
+  integers, sacrificing pattern patching in exchange for dramatically
+  increased performance for comparisions.
+
 
 Contributions to Isabelle2021-1
 -------------------------------
