@@ -2045,17 +2045,17 @@ proof (rule bit_eqI)
   qed
 qed
 
-lemma and_int_unfold [code]:
+lemma and_int_unfold:
   \<open>k AND l = (if k = 0 \<or> l = 0 then 0 else if k = - 1 then l else if l = - 1 then k
     else (k mod 2) * (l mod 2) + 2 * ((k div 2) AND (l div 2)))\<close> for k l :: int
   by (auto simp add: and_int_rec [of k l] zmult_eq_1_iff elim: oddE)
 
-lemma or_int_unfold [code]:
+lemma or_int_unfold:
   \<open>k OR l = (if k = - 1 \<or> l = - 1 then - 1 else if k = 0 then l else if l = 0 then k
     else max (k mod 2) (l mod 2) + 2 * ((k div 2) OR (l div 2)))\<close> for k l :: int
   by (auto simp add: or_int_rec [of k l] elim: oddE)
 
-lemma xor_int_unfold [code]:
+lemma xor_int_unfold:
   \<open>k XOR l = (if k = - 1 then NOT l else if l = - 1 then NOT k else if k = 0 then l else if l = 0 then k
     else \<bar>k mod 2 - l mod 2\<bar> + 2 * ((k div 2) XOR (l div 2)))\<close> for k l :: int
   by (auto simp add: xor_int_rec [of k l] not_int_def elim!: oddE)
@@ -3139,7 +3139,7 @@ lemma xor_minus_numerals [simp]:
 
 definition take_bit_num :: \<open>nat \<Rightarrow> num \<Rightarrow> num option\<close>
   where \<open>take_bit_num n m =
-    (if take_bit n (numeral m ::nat) = 0 then None else Some (num_of_nat (take_bit n (numeral m ::nat))))\<close>
+    (if take_bit n (numeral m :: nat) = 0 then None else Some (num_of_nat (take_bit n (numeral m :: nat))))\<close>
 
 lemma take_bit_num_simps:
   \<open>take_bit_num 0 m = None\<close>
@@ -3710,6 +3710,93 @@ proof -
   finally show ?thesis
     by (simp add: horner_sum_eq_sum)
 qed
+
+
+subsection \<open>Symbolic computations for code generation\<close>
+
+lemma bit_int_code [code]:
+  \<open>bit (0::int)               n      \<longleftrightarrow> False\<close>
+  \<open>bit (Int.Neg num.One)      n      \<longleftrightarrow> True\<close>
+  \<open>bit (Int.Pos num.One)      0      \<longleftrightarrow> True\<close>
+  \<open>bit (Int.Pos (num.Bit0 m)) 0      \<longleftrightarrow> False\<close>
+  \<open>bit (Int.Pos (num.Bit1 m)) 0      \<longleftrightarrow> True\<close>
+  \<open>bit (Int.Neg (num.Bit0 m)) 0      \<longleftrightarrow> False\<close>
+  \<open>bit (Int.Neg (num.Bit1 m)) 0      \<longleftrightarrow> True\<close>
+  \<open>bit (Int.Pos num.One)      (Suc n) \<longleftrightarrow> False\<close>
+  \<open>bit (Int.Pos (num.Bit0 m)) (Suc n) \<longleftrightarrow> bit (Int.Pos m) n\<close>
+  \<open>bit (Int.Pos (num.Bit1 m)) (Suc n) \<longleftrightarrow> bit (Int.Pos m) n\<close>
+  \<open>bit (Int.Neg (num.Bit0 m)) (Suc n) \<longleftrightarrow> bit (Int.Neg m) n\<close>
+  \<open>bit (Int.Neg (num.Bit1 m)) (Suc n) \<longleftrightarrow> bit (Int.Neg (Num.inc m)) n\<close>
+  by (simp_all add: Num.add_One bit_0 bit_Suc)
+
+lemma not_int_code [code]:
+  \<open>NOT (0 :: int) = - 1\<close>
+  \<open>NOT (Int.Pos n) = Int.Neg (Num.inc n)\<close>
+  \<open>NOT (Int.Neg n) = Num.sub n num.One\<close>
+  by (simp_all add: Num.add_One not_int_def)
+
+lemma and_int_code [code]:
+  fixes i j :: int shows
+  \<open>0 AND j = 0\<close>
+  \<open>i AND 0 = 0\<close>
+  \<open>Int.Pos n AND Int.Pos m = (case and_num n m of None \<Rightarrow> 0 | Some n' \<Rightarrow> Int.Pos n')\<close>
+  \<open>Int.Neg n AND Int.Neg m = NOT (Num.sub n num.One OR Num.sub m num.One)\<close>
+  \<open>Int.Pos n AND Int.Neg num.One = Int.Pos n\<close>
+  \<open>Int.Pos n AND Int.Neg (num.Bit0 m) = Num.sub (or_not_num_neg (Num.BitM m) n) num.One\<close>
+  \<open>Int.Pos n AND Int.Neg (num.Bit1 m) = Num.sub (or_not_num_neg (num.Bit0 m) n) num.One\<close>
+  \<open>Int.Neg num.One AND Int.Pos m = Int.Pos m\<close>
+  \<open>Int.Neg (num.Bit0 n) AND Int.Pos m = Num.sub (or_not_num_neg (Num.BitM n) m) num.One\<close>
+  \<open>Int.Neg (num.Bit1 n) AND Int.Pos m = Num.sub (or_not_num_neg (num.Bit0 n) m) num.One\<close>
+  apply (auto simp add: and_num_eq_None_iff [where ?'a = int] and_num_eq_Some_iff [where ?'a = int]
+    split: option.split)
+     apply (simp_all only: sub_one_eq_not_neg numeral_or_not_num_eq minus_minus and_not_numerals
+       bit.de_Morgan_disj bit.double_compl and_not_num_eq_None_iff and_not_num_eq_Some_iff ac_simps)
+  done
+
+lemma or_int_code [code]:
+  fixes i j :: int shows
+  \<open>0 OR j = j\<close>
+  \<open>i OR 0 = i\<close>
+  \<open>Int.Pos n OR Int.Pos m = Int.Pos (or_num n m)\<close>
+  \<open>Int.Neg n OR Int.Neg m = NOT (Num.sub n num.One AND Num.sub m num.One)\<close>
+  \<open>Int.Pos n OR Int.Neg num.One = Int.Neg num.One\<close>
+  \<open>Int.Pos n OR Int.Neg (num.Bit0 m) = (case and_not_num (Num.BitM m) n of None \<Rightarrow> -1 | Some n' \<Rightarrow> Int.Neg (Num.inc n'))\<close>
+  \<open>Int.Pos n OR Int.Neg (num.Bit1 m) = (case and_not_num (num.Bit0 m) n of None \<Rightarrow> -1 | Some n' \<Rightarrow> Int.Neg (Num.inc n'))\<close>
+  \<open>Int.Neg num.One OR Int.Pos m = Int.Neg num.One\<close>
+  \<open>Int.Neg (num.Bit0 n) OR Int.Pos m = (case and_not_num (Num.BitM n) m of None \<Rightarrow> -1 | Some n' \<Rightarrow> Int.Neg (Num.inc n'))\<close>
+  \<open>Int.Neg (num.Bit1 n) OR Int.Pos m = (case and_not_num (num.Bit0 n) m of None \<Rightarrow> -1 | Some n' \<Rightarrow> Int.Neg (Num.inc n'))\<close>
+  apply (auto simp add: numeral_or_num_eq split: option.splits)
+         apply (simp_all only: and_not_num_eq_None_iff and_not_num_eq_Some_iff and_not_numerals
+           numeral_or_not_num_eq or_int_def bit.double_compl ac_simps flip: numeral_eq_iff [where ?'a = int])
+         apply simp_all
+  done
+
+lemma xor_int_code [code]:
+  fixes i j :: int shows
+  \<open>0 XOR j = j\<close>
+  \<open>i XOR 0 = i\<close>
+  \<open>Int.Pos n XOR Int.Pos m = (case xor_num n m of None \<Rightarrow> 0 | Some n' \<Rightarrow> Int.Pos n')\<close>
+  \<open>Int.Neg n XOR Int.Neg m = Num.sub n num.One XOR Num.sub m num.One\<close>
+  \<open>Int.Neg n XOR Int.Pos m = NOT (Num.sub n num.One XOR Int.Pos m)\<close>
+  \<open>Int.Pos n XOR Int.Neg m = NOT (Int.Pos n XOR Num.sub m num.One)\<close>
+  by (simp_all add: xor_num_eq_None_iff [where ?'a = int] xor_num_eq_Some_iff [where ?'a = int] split: option.split)
+
+lemma push_bit_int_code [code]:
+  \<open>push_bit 0 i = i\<close>
+  \<open>push_bit (Suc n) i = push_bit n (Int.dup i)\<close>
+  by (simp_all add: ac_simps)
+
+lemma drop_bit_int_code [code]:
+  fixes i :: int shows
+  \<open>drop_bit 0 i = i\<close>
+  \<open>drop_bit (Suc n) 0 = (0 :: int)\<close>
+  \<open>drop_bit (Suc n) (Int.Pos num.One) = 0\<close>
+  \<open>drop_bit (Suc n) (Int.Pos (num.Bit0 m)) = drop_bit n (Int.Pos m)\<close>
+  \<open>drop_bit (Suc n) (Int.Pos (num.Bit1 m)) = drop_bit n (Int.Pos m)\<close>
+  \<open>drop_bit (Suc n) (Int.Neg num.One) = - 1\<close>
+  \<open>drop_bit (Suc n) (Int.Neg (num.Bit0 m)) = drop_bit n (Int.Neg m)\<close>
+  \<open>drop_bit (Suc n) (Int.Neg (num.Bit1 m)) = drop_bit n (Int.Neg (Num.inc m))\<close>
+  by (simp_all add: drop_bit_Suc add_One)
 
 
 subsection \<open>Key ideas of bit operations\<close>
