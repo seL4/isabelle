@@ -47,11 +47,7 @@ object Scala_Build {
         Library.trim_line(output0.toString(UTF8.charset))
       }
       try {
-        Console.withOut(output) {
-          Console.withErr(output) {
-            isabelle.setup.Build.build(output, java_context, fresh)
-          }
-        }
+        isabelle.setup.Build.build(output, java_context, fresh)
         get_output()
       }
       catch { case ERROR(msg) => cat_error(get_output(), msg) }

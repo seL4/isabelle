@@ -12,7 +12,7 @@ import isabelle.jedit._
 
 import console.{Console, ConsolePane, Shell, Output}
 import org.gjt.sp.jedit.JARClassLoader
-import java.io.{OutputStream, Writer, PrintWriter}
+import java.io.OutputStream
 
 
 object Scala_Console {
@@ -67,17 +67,6 @@ class Scala_Console extends Shell("Scala") {
     }
   }
 
-  private val console_writer = new Writer {
-    def flush(): Unit = console_stream.flush()
-    def close(): Unit = console_stream.flush()
-
-    def write(cbuf: Array[Char], off: Int, len: Int): Unit = {
-      if (len > 0) {
-        UTF8.bytes(new String(cbuf.slice(off, off + len))).foreach(console_stream.write(_))
-      }
-    }
-  }
-
   private def with_console[A](console: Console, out: Output, err: Output)(e: => A): A = {
     global_console = console
     global_out = out
@@ -95,24 +84,18 @@ class Scala_Console extends Shell("Scala") {
     }
   }
 
-  private def report_error(str: String): Unit = {
-    if (global_console == null || global_err == null) isabelle.Output.writeln(str)
-    else GUI_Thread.later { global_err.print(global_console.getErrorColor, str) }
-  }
-
 
   /* jEdit console methods */
 
   override def openConsole(console: Console): Unit = {
     val context =
       Scala.Compiler.context(
-      print_writer = new PrintWriter(console_writer, true),
-      error = report_error,
       jar_dirs = JEdit_Lib.directories,
       class_loader = Some(new JARClassLoader))
 
     val interpreter = new Scala_Console.Interpreter(context, console)
-    interpreter.execute(_.interp.interpret(Scala_Console.init))
+    interpreter.execute((context, state) =>
+      context.compile(Scala_Console.init, state = state).state)
   }
 
   override def closeConsole(console: Console): Unit =
@@ -141,12 +124,18 @@ class Scala_Console extends Shell("Scala") {
     command: String
   ): Unit = {
     Scala_Console.console_interpreter(console).foreach(interpreter =>
-      interpreter.execute { context =>
-        with_console(console, out, err) { context.interp.interpret(command) }
+      interpreter.execute { (context, state) =>
+        val result = with_console(console, out, err) { context.compile(command, state) }
         GUI_Thread.later {
+          val diag = if (err == null) out else err
+          for (message <- result.messages) {
+            val color = if (message.is_error) console.getErrorColor else null
+            diag.print(color, message.text + "\n")
+          }
           Option(err).foreach(_.commandDone())
           out.commandDone()
         }
+        result.state
       })
   }
 

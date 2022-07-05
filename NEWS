@@ -188,6 +188,12 @@ String.maxSize (approx. 64 MB on 64_32 architecture).
 
 *** System ***
 
+* Isabelle/Scala is now based on Scala 3. This is a completely different
+compiler ("dotty") and a quite different source language (we are using
+the classic Java-style syntax, not the new Python-style syntax).
+Occasional INCOMPATIBILITY, see also the official Scala documentation
+https://docs.scala-lang.org/scala3/guides/migration/compatibility-intro.html
+
 * Command-line tool "isabelle scala_project" supports Gradle as
 alternative to Maven: either option -G or -M needs to be specified
 explicitly. This increases the chances that the Java/Scala IDE project

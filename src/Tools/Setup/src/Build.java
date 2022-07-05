@@ -38,7 +38,10 @@ import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 
-import scala.tools.nsc.MainClass;
+import dotty.tools.dotc.Driver;
+import dotty.tools.dotc.interfaces.Diagnostic;
+import dotty.tools.dotc.interfaces.ReporterResult;
+import dotty.tools.dotc.interfaces.SimpleReporter;
 
 
 public class Build
@@ -245,7 +248,7 @@ public class Build
     }
 
     public static void compile_scala_sources(
-        PrintStream output,  // ignored, but see scala.Console.withOut/withErr
+        PrintStream output,
         Path target_dir,
         String more_options,
         List<Path> deps,
@@ -266,8 +269,16 @@ public class Build
             if (p.toString().endsWith(".scala")) { scala_sources = true; }
         }
         if (scala_sources) {
-            boolean ok = new MainClass().process(args.toArray(String[]::new));
-            if (!ok) { throw new RuntimeException("Failed to compile Scala sources"); }
+            String[] args_array = args.toArray(String[]::new);
+            SimpleReporter reporter = new SimpleReporter() {
+                @Override
+                public void report(Diagnostic diagnostic) {
+                    output.println(diagnostic.message());
+                }
+            };
+            new Driver().process(args_array, reporter, null);
+            ReporterResult result = new Driver().process(args_array);
+            if (result.hasErrors()) { throw new RuntimeException("Failed to compile Scala sources"); }
         }
     }
 

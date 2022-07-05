@@ -12,7 +12,7 @@ object Scala_Project {
   /** build tools **/
 
   val java_version: String = "17"
-  val scala_version: String = "2.13.5"
+  val scala_version: String = "3.1.3"
 
   abstract class Build_Tool {
     def project_root: Path
@@ -66,7 +66,7 @@ repositories {
 }
 
 dependencies {
-  implementation 'org.scala-lang:scala-library:""" + scala_version + """'
+  implementation 'org.scala-lang:scala3-library_3:scala-library:""" + scala_version + """'
   compileOnly files(
     """ + jars.map(jar => groovy_string(File.platform_path(jar))).mkString("", ",\n    ", ")") +
 """
