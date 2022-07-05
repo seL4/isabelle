@@ -368,14 +368,17 @@ fun cont_intro_simproc ctxt ct =
       |> Thm.cterm_of ctxt
       |> Goal.init
     fun mk_thm t =
-      case SINGLE (cont_intro_tac ctxt 1) (mk_stmt t) of
-        SOME thm => SOME (Goal.finish ctxt thm RS @{thm Eq_TrueI})
-      | NONE => NONE
+      if exists_subterm Term.is_Var t then
+        NONE
+      else
+        case SINGLE (cont_intro_tac ctxt 1) (mk_stmt t) of
+          SOME thm => SOME (Goal.finish ctxt thm RS @{thm Eq_TrueI})
+        | NONE => NONE
   in
     case Thm.term_of ct of
       t as \<^Const_>\<open>ccpo.admissible _ for _ _ _\<close> => mk_thm t
     | t as \<^Const_>\<open>mcont _ _ for _ _ _ _ _\<close> => mk_thm t
-    | t as \<^Const_>\<open>monotone_on _ _ for \<^Const_>\<open>Orderings.top _\<close> _ _ _\<close> => mk_thm t
+    | t as \<^Const_>\<open>monotone_on _ _ for _ _ _ _\<close> => mk_thm t
     | _ => NONE
   end
   handle THM _ => NONE 
@@ -395,6 +398,15 @@ lemmas [cont_intro] =
   option.const_mono
   tailrec.const_mono
   bind_mono
+
+experiment begin
+
+text \<open>The following proof by simplification diverges if variables are not handled properly.\<close>
+
+lemma "(\<And>f. monotone R S f \<Longrightarrow> thesis) \<Longrightarrow> monotone R S g \<Longrightarrow> thesis"
+  by simp
+
+end
 
 declare if_mono[simp]
 
