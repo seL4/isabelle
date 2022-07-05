@@ -312,6 +312,12 @@ qed
 
 subsection \<open>Transitive closure\<close>
 
+lemma totalp_on_tranclp: "totalp_on A R \<Longrightarrow> totalp_on A (tranclp R)"
+  by (auto intro: totalp_onI dest: totalp_onD)
+
+lemma total_on_trancl: "total_on A r \<Longrightarrow> total_on A (trancl r)"
+  by (rule totalp_on_tranclp[to_set])
+
 lemma trancl_mono:
   assumes "p \<in> r\<^sup>+" "r \<subseteq> s"
   shows "p \<in> s\<^sup>+"

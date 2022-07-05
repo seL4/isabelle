@@ -90,6 +90,11 @@ longer. INCOMPATIBILITY.
       totalp_on_subset
       totalp_on_total_on_eq[pred_set_conv]
 
+* Theory "HOL.Transitive_Closure":
+  - Added lemmas.
+      total_on_trancl
+      totalp_on_tranclp
+
 * Theory "HOL-Library.Multiset":
   - Consolidated operation and fact names.
         multp ~> multp_code
