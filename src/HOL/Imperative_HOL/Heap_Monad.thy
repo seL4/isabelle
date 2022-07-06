@@ -605,14 +605,13 @@ object Array {
     def toList: List[A] = array.toList.asInstanceOf[List[A]]
     override def toString: String = array.mkString("Array.T(", ",", ")")
   }
-  def make[A](n: BigInt)(f: BigInt => A): T[A] =
-  {
-    val m = n.toInt
-    val a = new T[A](m)
-    for (i <- 0 until m) a(i) = f(i)
+  def init[A](n: Int)(f: Int => A): T[A] = {
+    val a = new T[A](n)
+    for (i <- 0 until n) a(i) = f(i)
     a
   }
-  def alloc[A](n: BigInt)(x: A): T[A] = make(n)(_ => x)
+  def make[A](n: BigInt)(f: BigInt => A): T[A] = init(n.toInt)((i: Int) => f(BigInt(i)))
+  def alloc[A](n: BigInt)(x: A): T[A] = init(n.toInt)(_ => x)
   def len[A](a: T[A]): BigInt = BigInt(a.length)
   def nth[A](a: T[A], n: BigInt): A = a(n.toInt)
   def upd[A](a: T[A], n: BigInt, x: A): Unit = a.update(n.toInt, x)
