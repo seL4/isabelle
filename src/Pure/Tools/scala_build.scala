@@ -74,17 +74,6 @@ object Scala_Build {
     new Context(new isabelle.setup.Build.Context(dir.java_path, props, props_path.implode))
   }
 
-  def build(dir: Path,
-    fresh: Boolean = false,
-    component: Boolean = false,
-    no_title: Boolean = false,
-    do_build: Boolean = false,
-    module: Option[Path] = None
-  ): String = {
-    context(dir, component = component, no_title = no_title, do_build = do_build, module = module)
-      .build(fresh = fresh)
-  }
-
   sealed case class Result(output: String, jar_bytes: Bytes, jar_path: Option[Path]) {
     def write(): Unit = {
       if (jar_path.isDefined) {
@@ -97,7 +86,8 @@ object Scala_Build {
   def build_result(dir: Path, component: Boolean = false): Result = {
     Isabelle_System.with_tmp_file("result", "jar") { tmp_file =>
       val output =
-        build(dir, component = component, no_title = true, do_build = true, module = Some(tmp_file))
+        context(dir, component = component, no_title = true, do_build = true,
+          module = Some(tmp_file)).build()
       val jar_bytes = Bytes.read(tmp_file)
       val jar_path = context(dir, component = component).module_result
       Result(output, jar_bytes, jar_path)
