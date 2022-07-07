@@ -162,20 +162,19 @@ dependencies {
     (jars, sources)
   }
 
-  lazy val isabelle_scala_files: Map[String, Path] = {
-    val context = Scala_Build.context(Path.ISABELLE_HOME, component = true)
-    context.sources.iterator.foldLeft(Map.empty[String, Path]) {
-      case (map, path) =>
-        if (path.is_scala) {
-        val base = path.base.implode
-          map.get(base) match {
-            case None => map + (base -> path)
-            case Some(path2) => error("Conflicting base names: " + path + " vs. " + path2)
+  lazy val isabelle_scala_files: Map[String, Path] =
+    Scala_Build.context(Path.ISABELLE_HOME, component = true)
+      .sources.iterator.foldLeft(Map.empty[String, Path]) {
+        case (map, path) =>
+          if (path.is_scala) {
+          val base = path.base.implode
+            map.get(base) match {
+              case None => map + (base -> path)
+              case Some(path2) => error("Conflicting base names: " + path + " vs. " + path2)
+            }
           }
-        }
-        else map
-    }
-  }
+          else map
+      }
 
 
   /* compile-time position */
