@@ -371,6 +371,7 @@ class Scala_Functions extends Scala.Functions(
   Scala.Echo,
   Scala.Sleep,
   Scala.Toplevel,
+  Scala_Build.Scala_Fun,
   Base64.Decode,
   Base64.Encode,
   XZ.Compress,

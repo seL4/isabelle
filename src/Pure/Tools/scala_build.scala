@@ -94,6 +94,24 @@ object Scala_Build {
     }
   }
 
+  object Scala_Fun extends Scala.Fun("scala_build") with Scala.Bytes_Fun {
+    val here = Scala_Project.here
+    def invoke(args: List[Bytes]): List[Bytes] =
+      args match {
+        case List(component, dir) =>
+          val result =
+            build_result(Path.explode(dir.text),
+              component = Value.Boolean.parse(component.text))
+          val jar_name =
+            result.jar_path match {
+              case Some(path) => path.file_name
+              case None => "result.jar"
+            }
+          List(Bytes("scala_build/" + jar_name), result.jar_bytes, Bytes(result.output))
+        case _ => error("Bad arguments")
+      }
+  }
+
   def component_contexts(): List[Context] =
     isabelle.setup.Build.component_contexts().asScala.toList.map(new Context(_))
 }

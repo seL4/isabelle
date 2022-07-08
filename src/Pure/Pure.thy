@@ -24,6 +24,7 @@ keywords
   and "generate_file" :: thy_decl
   and "export_generated_files" :: diag
   and "compile_generated_files" :: diag and "external_files" "export_files" "export_prefix"
+  and "scala_build_component" "scala_build_directory" :: diag
   and "ML_file" "ML_file_debug" "ML_file_no_debug" :: thy_load % "ML"
   and "SML_file" "SML_file_debug" "SML_file_no_debug" :: thy_load % "ML"
   and "SML_import" "SML_export" "ML_export" :: thy_decl % "ML"
@@ -189,6 +190,17 @@ local
             Generated_Files.compile_generated_files_cmd
               (Toplevel.context_of st) args external export export_prefix source)));
 
+  val _ =
+    Outer_Syntax.command \<^command_keyword>\<open>scala_build_component\<close>
+      "build and export Isabelle/Scala/Java module (defined via etc/build.props)"
+      (Parse.path_input >> (fn dir =>
+        Toplevel.keep (fn st => Scala_Build.scala_build_component (Toplevel.context_of st) dir)));
+
+  val _ =
+    Outer_Syntax.command \<^command_keyword>\<open>scala_build_directory\<close>
+      "build and export Isabelle/Scala/Java module (defined via build.props)"
+      (Parse.path_input >> (fn dir =>
+        Toplevel.keep (fn st => Scala_Build.scala_build_directory (Toplevel.context_of st) dir)));
 in end\<close>
 
 external_file "ROOT0.ML"
