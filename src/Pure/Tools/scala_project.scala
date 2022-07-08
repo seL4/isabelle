@@ -87,7 +87,7 @@ dependencies {
       def dependency(jar: Path): String = {
         val name = jar.expand.drop_ext.base.implode
         val system_path = File.platform_path(jar.absolute)
-      """  <dependency>
+        """  <dependency>
     <groupId>classpath</groupId>
     <artifactId>""" + XML.text(name) + """</artifactId>
     <version>0</version>

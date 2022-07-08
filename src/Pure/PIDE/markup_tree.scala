@@ -258,7 +258,7 @@ final class Markup_Tree private(val branches: Markup_Tree.Branches.T) {
       body ++= make_text(last, elem_range.stop)
       make_elems(elem_markup, body.toList)
     }
-   make_body(root_range, Nil, overlapping(root_range))
+    make_body(root_range, Nil, overlapping(root_range))
   }
 
   override def toString: String =

@@ -229,12 +229,13 @@ object Symbol {
     def decode(symbol_offset: Offset): Text.Offset = index.decode(symbol_offset)
     def decode(symbol_range: Range): Text.Range = index.decode(symbol_range)
     def incorporate(symbol_range: Range): Option[Text.Range] = {
-      def in(r: Range): Option[Text.Range] =
+      def in(r: Range): Option[Text.Range] = {
         range.try_restrict(decode(r)) match {
           case Some(r1) if !r1.is_singularity => Some(r1)
           case _ => None
         }
-     in(symbol_range) orElse in(symbol_range - 1)
+      }
+      in(symbol_range) orElse in(symbol_range - 1)
     }
   }
 

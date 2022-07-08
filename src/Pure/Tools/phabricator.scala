@@ -564,7 +564,7 @@ Usage: isabelle phabricator_setup [OPTIONS]
   /** setup mail **/
 
   val mailers_template: String =
-"""[
+    """[
   {
     "key": "example.org",
     "type": "smtp",

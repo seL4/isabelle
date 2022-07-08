@@ -103,10 +103,12 @@ object Syntax_Style {
             AffineTransform.getScaleInstance(2.0, font0.getSize.toDouble)))
       new_styles(control) =
         new SyntaxStyle(style0.getForegroundColor, style0.getBackgroundColor,
-          { val font_style =
+          {
+            val font_style =
               (if (font0.isItalic) 0 else Font.ITALIC) |
               (if (font0.isBold) 0 else Font.BOLD)
-            new Font(font0.getFamily, font_style, font0.getSize) })
+            new Font(font0.getFamily, font_style, font0.getSize)
+          })
       new_styles
     }
   }

@@ -206,7 +206,7 @@ object Bibtex {
             val full_name = Long_Name.qualify(Markup.CITATION, entry)
             val description = List(entry, "(BibTeX entry)")
             val replacement = quote(entry)
-          Completion.Item(r, original, full_name, description, replacement, 0, false)
+            Completion.Item(r, original, full_name, description, replacement, 0, false)
         }).sorted(history.ordering).take(rendering.options.int("completion_limit"))
     } yield Completion.Result(r, original, false, items)
   }
