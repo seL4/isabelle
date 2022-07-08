@@ -1,7 +1,7 @@
 /*  Title:      Pure/Tools/scala_build.scala
     Author:     Makarius
 
-Manage and build Isabelle/Scala/Java components.
+Manage and build Isabelle/Scala/Java modules.
 */
 
 package isabelle
