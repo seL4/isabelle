@@ -73,7 +73,9 @@ object Export {
   }
 
   def read_theory_exports(db: SQL.Database, session_name: String): List[(String, String)] = {
-    val select = Data.table.select(List(Data.theory_name, Data.name), Data.where_equal(session_name))
+    val select =
+      Data.table.select(List(Data.theory_name, Data.name), Data.where_equal(session_name)) +
+      " ORDER BY " + Data.theory_name + ", " + Data.name
     db.using_statement(select)(stmt =>
       stmt.execute_query().iterator(res =>
         (res.string(Data.theory_name), res.string(Data.name))).toList)
@@ -147,10 +149,13 @@ object Export {
     make(Nil, 0, pattern.toList)
   }
 
-  def make_matcher(pattern: String): (String, String) => Boolean = {
-    val regex = make_regex(pattern)
-    (theory_name: String, name: String) =>
-      regex.pattern.matcher(compound_name(theory_name, name)).matches
+  def make_matcher(pats: List[String]): (String, String) => Boolean = {
+    val regs = pats.map(make_regex)
+    {
+      (theory_name: String, name: String) =>
+        val s = compound_name(theory_name, name)
+        regs.exists(_.pattern.matcher(s).matches)
+    }
   }
 
   def make_entry(
@@ -362,21 +367,16 @@ object Export {
 
         // list
         if (export_list) {
-          (for ((theory_name, name) <- export_names) yield compound_name(theory_name, name)).
-            sorted.foreach(progress.echo)
+          for ((theory_name, name) <- export_names) {
+            progress.echo(compound_name(theory_name, name))
+          }
         }
 
         // export
         if (export_patterns.nonEmpty) {
-          val exports =
-            (for {
-              export_pattern <- export_patterns.iterator
-              matcher = make_matcher(export_pattern)
-              (theory_name, name) <- export_names if matcher(theory_name, name)
-            } yield (theory_name, name)).toSet
+          val matcher = make_matcher(export_patterns)
           for {
-            (theory_name, group) <- exports.toList.groupBy(_._1).toList.sortBy(_._1)
-            name <- group.map(_._2).sorted
+            (theory_name, name) <- export_names if matcher(theory_name, name)
             entry <- read_entry(db, store.cache, session_name, theory_name, name)
           } {
             val elems = theory_name :: space_explode('/', name)

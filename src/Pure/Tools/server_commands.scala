@@ -263,7 +263,7 @@ object Server_Commands {
                   } yield output_message(tree, pos))) +
                 ("exports" ->
                   (if (args.export_pattern == "") Nil else {
-                    val matcher = Export.make_matcher(args.export_pattern)
+                    val matcher = Export.make_matcher(List(args.export_pattern))
                     for { entry <- snapshot.exports if matcher(entry.theory_name, entry.name) }
                     yield {
                       val (base64, body) = entry.uncompressed.maybe_encode_base64
