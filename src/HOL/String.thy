@@ -46,6 +46,10 @@ lemma (in comm_ring_1) of_int_of_char:
   \<open>of_int (of_char c) = of_char c\<close>
   by (cases c) simp
 
+lemma nat_of_char [simp]:
+  \<open>nat (of_char c) = of_char c\<close>
+  by (cases c) (simp only: of_char_Char nat_horner_sum)
+
 
 context unique_euclidean_semiring_with_bit_operations
 begin
