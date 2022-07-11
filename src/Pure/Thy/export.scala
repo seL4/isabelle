@@ -48,15 +48,39 @@ object Export {
         (if (name == "") "" else " AND " + Data.name.equal(name))
   }
 
-  def read_name(
-    db: SQL.Database,
-    session_name: String,
-    theory_name: String,
-    name: String
-  ): Boolean = {
-    val select =
-      Data.table.select(List(Data.name), Data.where_equal(session_name, theory_name, name))
-    db.using_statement(select)(stmt => stmt.execute_query().next())
+  sealed case class Entry_Name(session: String, theory: String, name: String) {
+    def readable(db: SQL.Database): Boolean = {
+      val select = Data.table.select(List(Data.name), Data.where_equal(session, theory, name))
+      db.using_statement(select)(stmt => stmt.execute_query().next())
+    }
+
+    def read(db: SQL.Database, cache: XML.Cache): Option[Entry] = {
+      val select =
+        Data.table.select(List(Data.executable, Data.compressed, Data.body),
+          Data.where_equal(session, theory, name))
+      db.using_statement(select) { stmt =>
+        val res = stmt.execute_query()
+        if (res.next()) {
+          val executable = res.bool(Data.executable)
+          val compressed = res.bool(Data.compressed)
+          val bytes = res.bytes(Data.body)
+          val body = Future.value(compressed, bytes)
+          Some(Entry(this, executable, body, cache))
+        }
+        else None
+      }
+    }
+
+    def read(dir: Path, cache: XML.Cache): Option[Entry] = {
+      val path = dir + Path.basic(theory) + Path.explode(name)
+      if (path.is_file) {
+        val executable = File.is_executable(path)
+        val uncompressed = Bytes.read(path)
+        val body = Future.value((false, uncompressed))
+        Some(Entry(this, executable, body, cache))
+      }
+      else None
+    }
   }
 
   def read_names(db: SQL.Database, session_name: String, theory_name: String): List[String] = {
@@ -88,16 +112,17 @@ object Export {
     if (a.isEmpty) b else a + ":" + b
 
   def empty_entry(theory_name: String, name: String): Entry =
-    Entry("", theory_name, name, false, Future.value(false, Bytes.empty), XML.Cache.none)
+    Entry(Entry_Name("", theory_name, name), false, Future.value(false, Bytes.empty), XML.Cache.none)
 
   sealed case class Entry(
-    session_name: String,
-    theory_name: String,
-    name: String,
+    entry_name: Entry_Name,
     executable: Boolean,
     body: Future[(Boolean, Bytes)],
     cache: XML.Cache
   ) {
+    def session_name: String = entry_name.session
+    def theory_name: String = entry_name.theory
+    def name: String = entry_name.name
     override def toString: String = name
 
     def compound_name: String = Export.compound_name(theory_name, name)
@@ -167,47 +192,8 @@ object Export {
     val body =
       if (args.compress) Future.fork(bytes.maybe_compress(cache = cache.xz))
       else Future.value((false, bytes))
-    Entry(session_name, args.theory_name, args.name, args.executable, body, cache)
-  }
-
-  def read_entry(
-    db: SQL.Database,
-    cache: XML.Cache,
-    session_name: String,
-    theory_name: String,
-    name: String
-  ): Option[Entry] = {
-    val select =
-      Data.table.select(List(Data.executable, Data.compressed, Data.body),
-        Data.where_equal(session_name, theory_name, name))
-    db.using_statement(select) { stmt =>
-      val res = stmt.execute_query()
-      if (res.next()) {
-        val executable = res.bool(Data.executable)
-        val compressed = res.bool(Data.compressed)
-        val bytes = res.bytes(Data.body)
-        val body = Future.value(compressed, bytes)
-        Some(Entry(session_name, theory_name, name, executable, body, cache))
-      }
-      else None
-    }
-  }
-
-  def read_entry(
-    dir: Path,
-    cache: XML.Cache,
-    session_name: String,
-    theory_name: String,
-    name: String
-  ): Option[Entry] = {
-    val path = dir + Path.basic(theory_name) + Path.explode(name)
-    if (path.is_file) {
-      val executable = File.is_executable(path)
-      val uncompressed = Bytes.read(path)
-      val body = Future.value((false, uncompressed))
-      Some(Entry(session_name, theory_name, name, executable, body, cache))
-    }
-    else None
+    val entry_name = Entry_Name(session_name, args.theory_name, args.name)
+    Entry(entry_name, args.executable, body, cache)
   }
 
 
@@ -232,7 +218,7 @@ object Export {
                     entry.body.cancel()
                     Exn.Res(())
                   }
-                  else if (read_name(db, entry.session_name, entry.theory_name, entry.name)) {
+                  else if (entry.entry_name.readable(db)) {
                     if (strict) {
                       val msg = message("Duplicate export", entry.theory_name, entry.name)
                       errors.change(msg :: _)
@@ -291,7 +277,7 @@ object Export {
     ) : Provider = {
       new Provider {
         def apply(export_name: String): Option[Entry] =
-          read_entry(db, cache, session_name, theory_name, export_name)
+          Entry_Name(session_name, theory_name, export_name).read(db, cache)
 
         def focus(other_theory: String): Provider =
           if (other_theory == theory_name) this
@@ -326,7 +312,7 @@ object Export {
     ) : Provider = {
       new Provider {
         def apply(export_name: String): Option[Entry] =
-          read_entry(dir, cache, session_name, theory_name, export_name)
+          Entry_Name(session_name, theory_name, export_name).read(dir, cache)
 
         def focus(other_theory: String): Provider =
           if (other_theory == theory_name) this
@@ -377,7 +363,7 @@ object Export {
           val matcher = make_matcher(export_patterns)
           for {
             (theory_name, name) <- export_names if matcher(theory_name, name)
-            entry <- read_entry(db, store.cache, session_name, theory_name, name)
+            entry <- Entry_Name(session_name, theory_name, name).read(db, store.cache)
           } {
             val elems = theory_name :: space_explode('/', name)
             val path =
