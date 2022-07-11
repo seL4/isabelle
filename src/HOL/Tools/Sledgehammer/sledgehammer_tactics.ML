@@ -51,7 +51,7 @@ fun run_prover override_params fact_override chained i n ctxt goal =
     (case prover params problem slice of
       {outcome = NONE, used_facts, ...} => used_facts |> map fst |> SOME
     | _ => NONE)
-    handle ERROR message => (warning ("Error: " ^ message ^ "\n"); NONE)
+    handle ERROR message => (warning ("Warning: " ^ message ^ "\n"); NONE)
   end
 
 fun sledgehammer_with_metis_tac ctxt override_params fact_override chained i th =

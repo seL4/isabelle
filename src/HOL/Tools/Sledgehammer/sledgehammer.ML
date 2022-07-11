@@ -266,7 +266,7 @@ fun launch_prover_and_preplay (params as {debug, timeout, expect, ...}) mode wri
       else
         (really_go ()
          handle
-           ERROR msg => (SH_Unknown, fn () => "Error: " ^ msg ^ "\n")
+           ERROR msg => (SH_Unknown, fn () => "Warning: " ^ msg ^ "\n")
          | exn =>
            if Exn.is_interrupt exn then Exn.reraise exn
            else (SH_Unknown, fn () => "Internal error:\n" ^ Runtime.exn_message exn ^ "\n"))
@@ -495,7 +495,7 @@ fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_fac
           | SH_Unknown => (the_default writeln writeln_result message; false)
           | SH_Timeout => (the_default writeln writeln_result "No proof found"; false)
           | SH_None => (the_default writeln writeln_result
-                (if message = "" then "No proof found" else "Error: " ^ message);
+                (if message = "" then "No proof found" else "Warning: " ^ message);
               false)))
       end)
 
