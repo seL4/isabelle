@@ -48,7 +48,12 @@ object Export {
         (if (name == "") "" else " AND " + Data.name.equal(name))
   }
 
+  def compound_name(a: String, b: String): String =
+    if (a.isEmpty) b else a + ":" + b
+
   sealed case class Entry_Name(session: String = "", theory: String = "", name: String = "") {
+    val compound_name: String = Export.compound_name(theory, name)
+
     def readable(db: SQL.Database): Boolean = {
       val select = Data.table.select(List(Data.name), Data.where_equal(session, theory, name))
       db.using_statement(select)(stmt => stmt.execute_query().next())
@@ -90,20 +95,19 @@ object Export {
       stmt.execute_query().iterator(_.string(Data.theory_name)).toList)
   }
 
-  def read_theory_exports(db: SQL.Database, session_name: String): List[(String, String)] = {
+  def read_entry_names(db: SQL.Database, session_name: String): List[Entry_Name] = {
     val select =
       Data.table.select(List(Data.theory_name, Data.name), Data.where_equal(session_name)) +
       " ORDER BY " + Data.theory_name + ", " + Data.name
     db.using_statement(select)(stmt =>
       stmt.execute_query().iterator(res =>
-        (res.string(Data.theory_name), res.string(Data.name))).toList)
+        Entry_Name(session = session_name,
+          theory = res.string(Data.theory_name),
+          name = res.string(Data.name))).toList)
   }
 
   def message(msg: String, theory_name: String, name: String): String =
     msg + " " + quote(name) + " for theory " + quote(theory_name)
-
-  def compound_name(a: String, b: String): String =
-    if (a.isEmpty) b else a + ":" + b
 
   def empty_entry(theory_name: String, name: String): Entry =
     Entry(Entry_Name(theory = theory_name, name = name),
@@ -120,7 +124,7 @@ object Export {
     def name: String = entry_name.name
     override def toString: String = name
 
-    def compound_name: String = Export.compound_name(theory_name, name)
+    def compound_name: String = entry_name.compound_name
 
     def name_has_prefix(s: String): Boolean = name.startsWith(s)
     val name_elems: List[String] = explode_name(name)
@@ -169,13 +173,10 @@ object Export {
     make(Nil, 0, pattern.toList)
   }
 
-  def make_matcher(pats: List[String]): (String, String) => Boolean = {
+  def make_matcher(pats: List[String]): Entry_Name => Boolean = {
     val regs = pats.map(make_regex)
-    {
-      (theory_name: String, name: String) =>
-        val s = compound_name(theory_name, name)
-        regs.exists(_.pattern.matcher(s).matches)
-    }
+    (entry_name: Entry_Name) =>
+      regs.exists(_.pattern.matcher(entry_name.compound_name).matches)
   }
 
   def make_entry(
@@ -346,24 +347,21 @@ object Export {
   ): Unit = {
     using(store.open_database(session_name)) { db =>
       db.transaction {
-        val export_names = read_theory_exports(db, session_name)
+        val entry_names = read_entry_names(db, session_name)
 
         // list
         if (export_list) {
-          for ((theory_name, name) <- export_names) {
-            progress.echo(compound_name(theory_name, name))
-          }
+          for (entry_name <- entry_names) progress.echo(entry_name.compound_name)
         }
 
         // export
         if (export_patterns.nonEmpty) {
           val matcher = make_matcher(export_patterns)
           for {
-            (theory_name, name) <- export_names if matcher(theory_name, name)
-            entry <- Entry_Name(session = session_name, theory = theory_name, name = name)
-              .read(db, store.cache)
+            entry_name <- entry_names if matcher(entry_name)
+            entry <- entry_name.read(db, store.cache)
           } {
-            val elems = theory_name :: space_explode('/', name)
+            val elems = entry_name.theory :: space_explode('/', entry_name.name)
             val path =
               if (elems.length < export_prune + 1) {
                 error("Cannot prune path by " + export_prune + " element(s): " + Path.make(elems))
