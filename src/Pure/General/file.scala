@@ -296,8 +296,8 @@ object File {
   /* content */
 
   object Content {
-    def apply(path: Path, content: Bytes): Content = new Content_Bytes(path, content)
-    def apply(path: Path, content: String): Content = new Content_String(path, content)
+    def apply(path: Path, content: Bytes): Content_Bytes = new Content_Bytes(path, content)
+    def apply(path: Path, content: String): Content_String = new Content_String(path, content)
     def apply(path: Path, content: XML.Body): Content_XML = new Content_XML(path, content)
   }
 
@@ -306,7 +306,7 @@ object File {
     def write(dir: Path): Unit
   }
 
-  final class Content_Bytes private[File](val path: Path, content: Bytes) extends Content {
+  final class Content_Bytes private[File](val path: Path, val content: Bytes) extends Content {
     def write(dir: Path): Unit = {
       val full_path = dir + path
       Isabelle_System.make_directory(full_path.expand.dir)
@@ -314,7 +314,7 @@ object File {
     }
   }
 
-  final class Content_String private[File](val path: Path, content: String) extends Content {
+  final class Content_String private[File](val path: Path, val content: String) extends Content {
     def write(dir: Path): Unit = {
       val full_path = dir + path
       Isabelle_System.make_directory(full_path.expand.dir)
@@ -322,7 +322,7 @@ object File {
     }
   }
 
-  final class Content_XML private[File](val path: Path, content: XML.Body) {
+  final class Content_XML private[File](val path: Path, val content: XML.Body) {
     def output(out: XML.Body => String): Content_String =
       new Content_String(path, out(content))
   }
