@@ -686,6 +686,82 @@ next
     by (simp add: PiE_insert_eq inj_combinator card_image card_cartesian_product)
 qed
 
+lemma card_funcsetE: "finite A \<Longrightarrow> card (A \<rightarrow>\<^sub>E B) = card B ^ card A" 
+  by (subst card_PiE, auto)
+
+lemma card_inj_on_subset_funcset: assumes finB: "finite B"
+  and finC: "finite C" 
+  and AB: "A \<subseteq> B" 
+shows "card {f \<in> B \<rightarrow>\<^sub>E C. inj_on f A} = 
+  card C^(card B - card A) * prod ((-) (card C)) {0 ..< card A}"
+proof -
+  define D where "D = B - A" 
+  from AB have B: "B = A \<union> D" and disj: "A \<inter> D = {}" unfolding D_def by auto
+  have sub: "card B - card A = card D" unfolding D_def using finB AB
+    by (metis card_Diff_subset finite_subset)
+  have "finite A" "finite D" using finB unfolding B by auto
+  thus ?thesis unfolding sub unfolding B using disj
+  proof (induct A rule: finite_induct)
+    case empty
+    from card_funcsetE[OF this(1), of C] show ?case by auto
+  next
+    case (insert a A)
+    have "{f. f \<in> insert a A \<union> D \<rightarrow>\<^sub>E C \<and> inj_on f (insert a A)}
+      = {f(a := c) | f c. f \<in> A \<union> D \<rightarrow>\<^sub>E C \<and> inj_on f A \<and> c \<in> C - f ` A}" 
+      (is "?l = ?r")
+    proof
+      show "?r \<subseteq> ?l" 
+        by (auto intro: inj_on_fun_updI split: if_splits) 
+      {
+        fix f
+        assume f: "f \<in> ?l" 
+        let ?g = "f(a := undefined)" 
+        let ?h = "?g(a := f a)" 
+        have mem: "f a \<in> C - ?g ` A" using insert(1,2,4,5) f by auto
+        from f have f: "f \<in> insert a A \<union> D \<rightarrow>\<^sub>E C" "inj_on f (insert a A)" by auto
+        hence "?g \<in> A \<union> D \<rightarrow>\<^sub>E C" "inj_on ?g A" using \<open>a \<notin> A\<close> \<open>insert a A \<inter> D = {}\<close>
+          by (auto split: if_splits simp: inj_on_def)
+        with mem have "?h \<in> ?r" by blast
+        also have "?h = f" by auto
+        finally have "f \<in> ?r" .
+      }
+      thus "?l \<subseteq> ?r" by auto
+    qed
+    also have "\<dots> = (\<lambda> (f, c). f (a := c)) ` 
+         (Sigma {f . f \<in> A \<union> D \<rightarrow>\<^sub>E C \<and> inj_on f A} (\<lambda> f. C - f ` A))"
+      by auto
+    also have "card (...) = card (Sigma {f . f \<in> A \<union> D \<rightarrow>\<^sub>E C \<and> inj_on f A} (\<lambda> f. C - f ` A))" 
+    proof (rule card_image, intro inj_onI, clarsimp, goal_cases) 
+      case (1 f c g d)
+      let ?f = "f(a := c, a := undefined)" 
+      let ?g = "g(a := d, a := undefined)" 
+      from 1 have id: "f(a := c) = g(a := d)" by auto
+      from fun_upd_eqD[OF id] 
+      have cd: "c = d" by auto
+      from id have "?f = ?g" by auto
+      also have "?f = f" using `f \<in> A \<union> D \<rightarrow>\<^sub>E C` insert(1,2,4,5) 
+        by (intro ext, auto)
+      also have "?g = g" using `g \<in> A \<union> D \<rightarrow>\<^sub>E C` insert(1,2,4,5) 
+        by (intro ext, auto)
+      finally show "f = g \<and> c = d" using cd by auto
+    qed
+    also have "\<dots> = (\<Sum>f\<in>{f \<in> A \<union> D \<rightarrow>\<^sub>E C. inj_on f A}. card (C - f ` A))" 
+      by (rule card_SigmaI, rule finite_subset[of _ "A \<union> D \<rightarrow>\<^sub>E C"],
+          insert \<open>finite C\<close> \<open>finite D\<close> \<open>finite A\<close>, auto intro!: finite_PiE)
+    also have "\<dots> = (\<Sum>f\<in>{f \<in> A \<union> D \<rightarrow>\<^sub>E C. inj_on f A}. card C - card A)"
+      by (rule sum.cong[OF refl], subst card_Diff_subset, insert \<open>finite A\<close>, auto simp: card_image)
+    also have "\<dots> = (card C - card A) * card {f \<in> A \<union> D \<rightarrow>\<^sub>E C. inj_on f A}" 
+      by simp
+    also have "\<dots> = card C ^ card D * ((card C - card A) * prod ((-) (card C)) {0..<card A})" 
+      using insert by (auto simp: ac_simps)
+    also have "(card C - card A) * prod ((-) (card C)) {0..<card A} =
+      prod ((-) (card C)) {0..<Suc (card A)}" by simp
+    also have "Suc (card A) = card (insert a A)" using insert by auto
+    finally show ?case .
+  qed
+qed
+
+
 subsection \<open>The pigeonhole principle\<close>
 
 text \<open>
