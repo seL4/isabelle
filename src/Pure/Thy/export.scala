@@ -48,7 +48,7 @@ object Export {
         (if (name == "") "" else " AND " + Data.name.equal(name))
   }
 
-  sealed case class Entry_Name(session: String, theory: String, name: String) {
+  sealed case class Entry_Name(session: String = "", theory: String = "", name: String = "") {
     def readable(db: SQL.Database): Boolean = {
       val select = Data.table.select(List(Data.name), Data.where_equal(session, theory, name))
       db.using_statement(select)(stmt => stmt.execute_query().next())
@@ -112,7 +112,8 @@ object Export {
     if (a.isEmpty) b else a + ":" + b
 
   def empty_entry(theory_name: String, name: String): Entry =
-    Entry(Entry_Name("", theory_name, name), false, Future.value(false, Bytes.empty), XML.Cache.none)
+    Entry(Entry_Name(theory = theory_name, name = name),
+      false, Future.value(false, Bytes.empty), XML.Cache.none)
 
   sealed case class Entry(
     entry_name: Entry_Name,
@@ -192,7 +193,7 @@ object Export {
     val body =
       if (args.compress) Future.fork(bytes.maybe_compress(cache = cache.xz))
       else Future.value((false, bytes))
-    val entry_name = Entry_Name(session_name, args.theory_name, args.name)
+    val entry_name = Entry_Name(session = session_name, theory = args.theory_name, name = args.name)
     Entry(entry_name, args.executable, body, cache)
   }
 
@@ -277,7 +278,8 @@ object Export {
     ) : Provider = {
       new Provider {
         def apply(export_name: String): Option[Entry] =
-          Entry_Name(session_name, theory_name, export_name).read(db, cache)
+          Entry_Name(session = session_name, theory = theory_name, name = export_name)
+            .read(db, cache)
 
         def focus(other_theory: String): Provider =
           if (other_theory == theory_name) this
@@ -312,7 +314,8 @@ object Export {
     ) : Provider = {
       new Provider {
         def apply(export_name: String): Option[Entry] =
-          Entry_Name(session_name, theory_name, export_name).read(dir, cache)
+          Entry_Name(session = session_name, theory = theory_name, name = export_name)
+            .read(dir, cache)
 
         def focus(other_theory: String): Provider =
           if (other_theory == theory_name) this
@@ -363,7 +366,8 @@ object Export {
           val matcher = make_matcher(export_patterns)
           for {
             (theory_name, name) <- export_names if matcher(theory_name, name)
-            entry <- Entry_Name(session_name, theory_name, name).read(db, store.cache)
+            entry <- Entry_Name(session = session_name, theory = theory_name, name = name)
+              .read(db, store.cache)
           } {
             val elems = theory_name :: space_explode('/', name)
             val path =

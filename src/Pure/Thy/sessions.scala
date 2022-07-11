@@ -1216,12 +1216,15 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
         database_server match {
           case Some(db) =>
             sessions.view.map(session_name =>
-              Export.Entry_Name(session_name, theory_name, name).read(db, store.cache))
+              Export.Entry_Name(session = session_name, theory = theory_name, name = name)
+                .read(db, store.cache))
           case None =>
             sessions.view.map(session_name =>
               store.try_open_database(session_name) match {
                 case Some(db) =>
-                  using(db)(Export.Entry_Name(session_name, theory_name, name).read(_, store.cache))
+                  using(db) { _ =>
+                    Export.Entry_Name(session = session_name, theory = theory_name, name = name)
+                      .read(db, store.cache) }
                 case None => None
               })
         }
