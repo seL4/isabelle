@@ -30,11 +30,8 @@ datatype sat_solver_info =
 val berkmin_exec = getenv "BERKMIN_EXE"
 
 val static_list =
-  [("Lingeling_JNI", Internal (JNI, Batch, ["Lingeling"])),
-   ("CryptoMiniSat", External ("CRYPTOMINISAT_HOME", "cryptominisat", [])),
-   ("CryptoMiniSat_JNI", Internal (JNI, Batch, ["CryptoMiniSat"])),
+  [("CryptoMiniSat", External ("CRYPTOMINISAT_HOME", "cryptominisat", [])),
    ("MiniSat", ExternalV2 (ToFile, "MINISAT_HOME", "minisat", [], "SAT", "", "UNSAT")),
-   ("MiniSat_JNI", Internal (JNI, Incremental, ["MiniSat"])),
    ("zChaff", ExternalV2 (ToStdout, "ZCHAFF_HOME", "zchaff", [],
                           "Instance Satisfiable", "",
                           "Instance Unsatisfiable")),
@@ -47,7 +44,10 @@ val static_list =
                            "solution =", "UNSATISFIABLE          !!")),
    ("BerkMin_Alloy", External ("BERKMINALLOY_HOME", "berkmin", [])),
    ("SAT4J", Internal (Java, Incremental, ["DefaultSAT4J"])),
-   ("SAT4J_Light", Internal (Java, Incremental, ["LightSAT4J"]))]
+   ("SAT4J_Light", Internal (Java, Incremental, ["LightSAT4J"])),
+   ("Lingeling_JNI", Internal (JNI, Batch, ["Lingeling"])),
+   ("CryptoMiniSat_JNI", Internal (JNI, Batch, ["CryptoMiniSat"])),
+   ("MiniSat_JNI", Internal (JNI, Incremental, ["MiniSat"]))]
 
 fun dynamic_entry_for_external name dev home exec args markers =
   let

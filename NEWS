@@ -126,6 +126,9 @@ longer. INCOMPATIBILITY.
 * Theory "HOL-Library.Sublist":
   - Added lemma map_mono_strict_suffix.
 
+* Nitpick: To avoid technical issues, prefer non-JNI solvers to JNI solvers by
+  default. Minor INCOMPATIBILITY.
+
 * Sledgehammer:
   - Redesigned multithreading to provide more fine grained prover schedules.
     The binary option 'slice' has been replaced by a numeric value 'slices'
