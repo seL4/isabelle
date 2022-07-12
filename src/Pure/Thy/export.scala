@@ -54,12 +54,12 @@ object Export {
   sealed case class Entry_Name(session: String = "", theory: String = "", name: String = "") {
     val compound_name: String = Export.compound_name(theory, name)
 
-    def elements(prune: Int = 0): List[String] = {
+    def make_path(prune: Int = 0): Path = {
       val elems = theory :: space_explode('/', name)
       if (elems.length < prune + 1) {
         error("Cannot prune path by " + prune + " element(s): " + Path.make(elems))
       }
-      else elems.drop(prune)
+      else Path.make(elems.drop(prune))
     }
 
     def readable(db: SQL.Database): Boolean = {
@@ -369,7 +369,7 @@ object Export {
             entry_name <- entry_names if matcher(entry_name)
             entry <- entry_name.read(db, store.cache)
           } {
-            val path = export_dir + Path.make(entry_name.elements(prune = export_prune))
+            val path = export_dir + entry_name.make_path(prune = export_prune)
             progress.echo("export " + path + (if (entry.executable) " (executable)" else ""))
             Isabelle_System.make_directory(path.dir)
             val bytes = entry.uncompressed

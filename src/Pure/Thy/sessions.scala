@@ -1259,7 +1259,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
               for {
                 entry_name <- Export.read_entry_names(db, name) if matcher(entry_name)
                 entry <- entry_name.read(db, store.cache)
-              } yield File.Content(Path.make(entry.entry_name.elements()), entry.uncompressed)
+              } yield File.Content(entry.entry_name.make_path(), entry.uncompressed)
             Some(res)
           }
         ).getOrElse(Nil)
