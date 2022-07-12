@@ -24,6 +24,7 @@ keywords
   and "generate_file" :: thy_decl
   and "export_generated_files" :: diag
   and "compile_generated_files" :: diag and "external_files" "export_files" "export_prefix"
+  and "export_classpath"
   and "scala_build_component" "scala_build_directory" :: diag
   and "ML_file" "ML_file_debug" "ML_file_no_debug" :: thy_load % "ML"
   and "SML_file" "SML_file_debug" "SML_file_no_debug" :: thy_load % "ML"

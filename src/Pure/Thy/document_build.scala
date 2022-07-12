@@ -121,10 +121,12 @@ object Document_Build {
     db_context: Sessions.Database_Context,
     progress: Progress = new Progress
   ): Context = {
-    val info = deps.sessions_structure(session)
+    val structure = deps.sessions_structure
+    val info = structure(session)
     val base = deps(session)
     val hierarchy = deps.sessions_structure.build_hierarchy(session)
-    new Context(info, base, hierarchy, db_context, progress)
+    val classpath = db_context.get_classpath(structure, session)
+    new Context(info, base, hierarchy, db_context, classpath, progress)
   }
 
   final class Context private[Document_Build](
@@ -132,6 +134,7 @@ object Document_Build {
     base: Sessions.Base,
     hierarchy: List[String],
     db_context: Sessions.Database_Context,
+    val classpath: List[File.Content_Bytes],
     val progress: Progress = new Progress
   ) {
     /* session info */
