@@ -304,6 +304,7 @@ object File {
   trait Content {
     def path: Path
     def write(dir: Path): Unit
+    override def toString: String = path.toString
   }
 
   final class Content_Bytes private[File](val path: Path, val content: Bytes) extends Content {
