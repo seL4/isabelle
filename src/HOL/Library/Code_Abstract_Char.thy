@@ -17,7 +17,7 @@ lemma char_of_integer_of_char [code abstype]:
   by (simp add: integer_of_char_def)
 
 lemma char_of_integer_code [code]:
-  \<open>integer_of_char (char_of_integer k) = (if 0 \<le> k \<and> k < 256 then k else take_bit 8 k)\<close>
+  \<open>integer_of_char (char_of_integer k) = (if 0 \<le> k \<and> k < 256 then k else k mod 256)\<close>
   by (simp add: integer_of_char_def char_of_integer_def take_bit_eq_mod unique_euclidean_semiring_numeral_class.mod_less)
 
 lemma of_char_code [code]:
@@ -49,7 +49,7 @@ lemma byte_code [code]:
 lemma Char_code [code]:
   \<open>integer_of_char (Char b0 b1 b2 b3 b4 b5 b6 b7) = byte b0 b1 b2 b3 b4 b5 b6 b7\<close>
   by (simp add: integer_of_char_def)
-                     
+
 lemma digit_0_code [code]:
   \<open>digit0 c \<longleftrightarrow> bit (integer_of_char c) 0\<close>
   by (cases c) (simp add: integer_of_char_def)
