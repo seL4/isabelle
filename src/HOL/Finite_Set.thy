@@ -2102,6 +2102,56 @@ next
   case True thus ?thesis using assms[of F] by auto
 qed
 
+lemma obtain_subset_with_card_n:
+  assumes "n \<le> card S"
+  obtains T where "T \<subseteq> S" "card T = n" "finite T"
+proof -
+  obtain n' where "card S = n + n'"
+    using le_Suc_ex[OF assms] by blast
+  with that show thesis
+  proof (induct n' arbitrary: S)
+    case 0 
+    thus ?case by (cases "finite S") auto
+  next
+    case Suc 
+    thus ?case by (auto simp add: card_Suc_eq)
+  qed
+qed
+
+lemma exists_subset_between: 
+  assumes 
+    "card A \<le> n" 
+    "n \<le> card C"
+    "A \<subseteq> C"
+    "finite C"
+  shows "\<exists>B. A \<subseteq> B \<and> B \<subseteq> C \<and> card B = n" 
+  using assms 
+proof (induct n arbitrary: A C)
+  case 0
+  thus ?case using finite_subset[of A C] by (intro exI[of _ "{}"], auto)
+next
+  case (Suc n A C)
+  show ?case
+  proof (cases "A = {}")
+    case True
+    from obtain_subset_with_card_n[OF Suc(3)]
+    obtain B where "B \<subseteq> C" "card B = Suc n" by blast
+    thus ?thesis unfolding True by blast
+  next
+    case False
+    then obtain a where a: "a \<in> A" by auto
+    let ?A = "A - {a}" 
+    let ?C = "C - {a}" 
+    have 1: "card ?A \<le> n" using Suc(2-) a 
+      using finite_subset by fastforce 
+    have 2: "card ?C \<ge> n" using Suc(2-) a by auto
+    from Suc(1)[OF 1 2 _ finite_subset[OF _ Suc(5)]] Suc(2-)
+    obtain B where "?A \<subseteq> B" "B \<subseteq> ?C" "card B = n" by blast
+    thus ?thesis using a Suc(2-) 
+      by (intro exI[of _ "insert a B"], auto intro!: card_insert_disjoint finite_subset[of B C])
+  qed
+qed
+
 
 subsubsection \<open>Cardinality of image\<close>
 

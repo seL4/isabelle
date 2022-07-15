@@ -1699,23 +1699,6 @@ lemma ivl_subset [simp]: "({i..<j} \<subseteq> {m..<n}) = (j \<le> i \<or> m \<l
    apply (force intro: leI)+
   done
 
-lemma obtain_subset_with_card_n:
-  assumes "n \<le> card S"
-  obtains T where "T \<subseteq> S" "card T = n" "finite T"
-proof -
-  obtain n' where "card S = n + n'" 
-    by (metis assms le_add_diff_inverse)
-  with that show thesis
-  proof (induct n' arbitrary: S)
-    case 0 
-    then show ?case
-      by (cases "finite S") auto
-  next
-    case Suc 
-    then show ?case 
-      by (simp add: card_Suc_eq) (metis subset_insertI2)
-  qed
-qed
 
 subsection \<open>Generic big monoid operation over intervals\<close>
 
