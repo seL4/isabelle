@@ -352,7 +352,15 @@ val _ =
     (file_type \<^binding>\<open>Haskell\<close>
       {ext = "hs",
        make_comment = enclose "{-" "-}",
-       make_string = GHC.print_string});
+       make_string = GHC.print_string} #>
+     file_type \<^binding>\<open>Java\<close>
+      {ext = "java",
+       make_comment = enclose "/*" "*/",
+       make_string = Java.print_string} #>
+     file_type \<^binding>\<open>Scala\<close>
+      {ext = "scala",
+       make_comment = enclose "/*" "*/",
+       make_string = Java.print_string});
 
 
 
