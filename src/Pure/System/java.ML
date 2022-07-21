@@ -28,14 +28,14 @@ val print_str =
       let val c = ord s in
         if c < 16 then "\\u000" ^ Int.fmt StringCvt.HEX c
         else if c < 128 then "\\u00" ^ Int.fmt StringCvt.HEX c
-        else error ("Cannot print non-ASCII Scala string literal: " ^ quote s)
+        else error ("Cannot print non-ASCII Java/Scala string literal: " ^ quote s)
       end;
 
 in
 
 fun print_string str =
   quote (translate_string print_str str)
-    handle Fail _ => error ("Cannot print non-ASCII Scala string literal: " ^ quote str);
+    handle Fail _ => error ("Cannot print non-ASCII Java/Scala string literal: " ^ quote str);
 
 end;
 
