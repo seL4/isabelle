@@ -251,7 +251,7 @@ lemma converse_rtranclpE [consumes 1, case_names base step]:
   shows P
 proof -
   have "x = z \<or> (\<exists>y. r x y \<and> r\<^sup>*\<^sup>* y z)"
-    by (rule_tac major [THEN converse_rtranclp_induct]) iprover+
+    by (rule major [THEN converse_rtranclp_induct]) iprover+
   then show ?thesis
     by (auto intro: cases)
 qed
@@ -1007,10 +1007,10 @@ proof (induct n arbitrary: b)
 next
   case (Suc n)
   show ?case
-  proof (simp add: relcomp_unfold Suc)
-    show "(\<exists>y. (\<exists>f. f 0 = a \<and> f n = y \<and> (\<forall>i<n. (f i,f(Suc i)) \<in> R)) \<and> (y,b) \<in> R) \<longleftrightarrow>
+  proof -
+    have "(\<exists>y. (\<exists>f. f 0 = a \<and> f n = y \<and> (\<forall>i<n. (f i,f(Suc i)) \<in> R)) \<and> (y,b) \<in> R) \<longleftrightarrow>
       (\<exists>f. f 0 = a \<and> f(Suc n) = b \<and> (\<forall>i<Suc n. (f i, f (Suc i)) \<in> R))"
-    (is "?l = ?r")
+      (is "?l \<longleftrightarrow> ?r")
     proof
       assume ?l
       then obtain c f
@@ -1022,8 +1022,9 @@ next
       assume ?r
       then obtain f where 1: "f 0 = a"  "b = f (Suc n)"  "\<And>i. i < Suc n \<Longrightarrow> (f i, f (Suc i)) \<in> R"
         by auto
-      show ?l by (rule exI[of _ "f n"], rule conjI, rule exI[of _ f], insert 1, auto)
+      show ?l by (rule exI[of _ "f n"], rule conjI, rule exI[of _ f], auto simp add: 1)
     qed
+    then show ?thesis by (simp add: relcomp_unfold Suc)
   qed
 qed
 

@@ -148,8 +148,8 @@ proof -
   moreover
   have "(R1 ===> R2) ((abs1 ---> rep2) a) ((abs1 ---> rep2) a)" for a
     by (rule rel_funI)
-      (insert q1 q2 Quotient3_rel_abs [of R1 abs1 rep1] Quotient3_rel_rep [of R2 abs2 rep2],
-        simp (no_asm) add: Quotient3_def, simp)
+       (use q1 q2 Quotient3_rel_abs [of R1 abs1 rep1] Quotient3_rel_rep [of R2 abs2 rep2]
+         in \<open>simp (no_asm) add: Quotient3_def, simp\<close>)
   moreover
   have "(R1 ===> R2) r s = ((R1 ===> R2) r r \<and> (R1 ===> R2) s s \<and>
         (rep1 ---> abs2) r  = (rep1 ---> abs2) s)" for r s
@@ -322,9 +322,9 @@ where
 
 lemma babs_rsp:
   assumes q: "Quotient3 R1 Abs1 Rep1"
-  and     a: "(R1 ===> R2) f g"
-  shows      "(R1 ===> R2) (Babs (Respects R1) f) (Babs (Respects R1) g)"
-proof (clarsimp simp add: Babs_def in_respects rel_fun_def)
+      and a: "(R1 ===> R2) f g"
+    shows "(R1 ===> R2) (Babs (Respects R1) f) (Babs (Respects R1) g)"
+proof
   fix x y
   assume "R1 x y"
   then have "x \<in> Respects R1 \<and> y \<in> Respects R1"
@@ -542,7 +542,7 @@ lemma Quotient:
       then have "Abs (Collect (R r)) = Abs (Collect (R s)) \<longleftrightarrow> Collect (R r) = Collect (R s)"
         by (metis abs_inverse)
       also have "Collect (R r) = Collect (R s) \<longleftrightarrow> (\<lambda>A x. x \<in> A) (Collect (R r)) = (\<lambda>A x. x \<in> A) (Collect (R s))"
-        by rule simp_all
+        by (rule iffI) simp_all
       finally show "Abs (Collect (R r)) = Abs (Collect (R s)) \<longleftrightarrow> R r = R s" by simp
     qed
     then show "R r s \<longleftrightarrow> R r r \<and> R s s \<and> (Abs (Collect (R r)) = Abs (Collect (R s)))"

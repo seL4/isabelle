@@ -790,109 +790,109 @@ lemma ord_eq_less_trans: "a = b \<Longrightarrow> b < c \<Longrightarrow> a < c"
 
 end
 
-lemma order_less_subst2: "(a::'a::order) < b ==> f b < (c::'c::order) ==>
-  (!!x y. x < y ==> f x < f y) ==> f a < c"
+lemma order_less_subst2: "(a::'a::order) < b \<Longrightarrow> f b < (c::'c::order) \<Longrightarrow>
+  (!!x y. x < y \<Longrightarrow> f x < f y) \<Longrightarrow> f a < c"
 proof -
-  assume r: "!!x y. x < y ==> f x < f y"
+  assume r: "!!x y. x < y \<Longrightarrow> f x < f y"
   assume "a < b" hence "f a < f b" by (rule r)
   also assume "f b < c"
   finally (less_trans) show ?thesis .
 qed
 
-lemma order_less_subst1: "(a::'a::order) < f b ==> (b::'b::order) < c ==>
-  (!!x y. x < y ==> f x < f y) ==> a < f c"
+lemma order_less_subst1: "(a::'a::order) < f b \<Longrightarrow> (b::'b::order) < c \<Longrightarrow>
+  (!!x y. x < y \<Longrightarrow> f x < f y) \<Longrightarrow> a < f c"
 proof -
-  assume r: "!!x y. x < y ==> f x < f y"
+  assume r: "!!x y. x < y \<Longrightarrow> f x < f y"
   assume "a < f b"
   also assume "b < c" hence "f b < f c" by (rule r)
   finally (less_trans) show ?thesis .
 qed
 
-lemma order_le_less_subst2: "(a::'a::order) <= b ==> f b < (c::'c::order) ==>
-  (!!x y. x <= y ==> f x <= f y) ==> f a < c"
+lemma order_le_less_subst2: "(a::'a::order) <= b \<Longrightarrow> f b < (c::'c::order) \<Longrightarrow>
+  (!!x y. x <= y \<Longrightarrow> f x <= f y) \<Longrightarrow> f a < c"
 proof -
-  assume r: "!!x y. x <= y ==> f x <= f y"
+  assume r: "!!x y. x <= y \<Longrightarrow> f x <= f y"
   assume "a <= b" hence "f a <= f b" by (rule r)
   also assume "f b < c"
   finally (le_less_trans) show ?thesis .
 qed
 
-lemma order_le_less_subst1: "(a::'a::order) <= f b ==> (b::'b::order) < c ==>
-  (!!x y. x < y ==> f x < f y) ==> a < f c"
+lemma order_le_less_subst1: "(a::'a::order) <= f b \<Longrightarrow> (b::'b::order) < c \<Longrightarrow>
+  (!!x y. x < y \<Longrightarrow> f x < f y) \<Longrightarrow> a < f c"
 proof -
-  assume r: "!!x y. x < y ==> f x < f y"
+  assume r: "!!x y. x < y \<Longrightarrow> f x < f y"
   assume "a <= f b"
   also assume "b < c" hence "f b < f c" by (rule r)
   finally (le_less_trans) show ?thesis .
 qed
 
-lemma order_less_le_subst2: "(a::'a::order) < b ==> f b <= (c::'c::order) ==>
-  (!!x y. x < y ==> f x < f y) ==> f a < c"
+lemma order_less_le_subst2: "(a::'a::order) < b \<Longrightarrow> f b <= (c::'c::order) \<Longrightarrow>
+  (!!x y. x < y \<Longrightarrow> f x < f y) \<Longrightarrow> f a < c"
 proof -
-  assume r: "!!x y. x < y ==> f x < f y"
+  assume r: "!!x y. x < y \<Longrightarrow> f x < f y"
   assume "a < b" hence "f a < f b" by (rule r)
   also assume "f b <= c"
   finally (less_le_trans) show ?thesis .
 qed
 
-lemma order_less_le_subst1: "(a::'a::order) < f b ==> (b::'b::order) <= c ==>
-  (!!x y. x <= y ==> f x <= f y) ==> a < f c"
+lemma order_less_le_subst1: "(a::'a::order) < f b \<Longrightarrow> (b::'b::order) <= c \<Longrightarrow>
+  (!!x y. x <= y \<Longrightarrow> f x <= f y) \<Longrightarrow> a < f c"
 proof -
-  assume r: "!!x y. x <= y ==> f x <= f y"
+  assume r: "!!x y. x <= y \<Longrightarrow> f x <= f y"
   assume "a < f b"
   also assume "b <= c" hence "f b <= f c" by (rule r)
   finally (less_le_trans) show ?thesis .
 qed
 
-lemma order_subst1: "(a::'a::order) <= f b ==> (b::'b::order) <= c ==>
-  (!!x y. x <= y ==> f x <= f y) ==> a <= f c"
+lemma order_subst1: "(a::'a::order) <= f b \<Longrightarrow> (b::'b::order) <= c \<Longrightarrow>
+  (!!x y. x <= y \<Longrightarrow> f x <= f y) \<Longrightarrow> a <= f c"
 proof -
-  assume r: "!!x y. x <= y ==> f x <= f y"
+  assume r: "!!x y. x <= y \<Longrightarrow> f x <= f y"
   assume "a <= f b"
   also assume "b <= c" hence "f b <= f c" by (rule r)
   finally (order_trans) show ?thesis .
 qed
 
-lemma order_subst2: "(a::'a::order) <= b ==> f b <= (c::'c::order) ==>
-  (!!x y. x <= y ==> f x <= f y) ==> f a <= c"
+lemma order_subst2: "(a::'a::order) <= b \<Longrightarrow> f b <= (c::'c::order) \<Longrightarrow>
+  (!!x y. x <= y \<Longrightarrow> f x <= f y) \<Longrightarrow> f a <= c"
 proof -
-  assume r: "!!x y. x <= y ==> f x <= f y"
+  assume r: "!!x y. x <= y \<Longrightarrow> f x <= f y"
   assume "a <= b" hence "f a <= f b" by (rule r)
   also assume "f b <= c"
   finally (order_trans) show ?thesis .
 qed
 
-lemma ord_le_eq_subst: "a <= b ==> f b = c ==>
-  (!!x y. x <= y ==> f x <= f y) ==> f a <= c"
+lemma ord_le_eq_subst: "a <= b \<Longrightarrow> f b = c \<Longrightarrow>
+  (!!x y. x <= y \<Longrightarrow> f x <= f y) \<Longrightarrow> f a <= c"
 proof -
-  assume r: "!!x y. x <= y ==> f x <= f y"
+  assume r: "!!x y. x <= y \<Longrightarrow> f x <= f y"
   assume "a <= b" hence "f a <= f b" by (rule r)
   also assume "f b = c"
   finally (ord_le_eq_trans) show ?thesis .
 qed
 
-lemma ord_eq_le_subst: "a = f b ==> b <= c ==>
-  (!!x y. x <= y ==> f x <= f y) ==> a <= f c"
+lemma ord_eq_le_subst: "a = f b \<Longrightarrow> b <= c \<Longrightarrow>
+  (!!x y. x <= y \<Longrightarrow> f x <= f y) \<Longrightarrow> a <= f c"
 proof -
-  assume r: "!!x y. x <= y ==> f x <= f y"
+  assume r: "!!x y. x <= y \<Longrightarrow> f x <= f y"
   assume "a = f b"
   also assume "b <= c" hence "f b <= f c" by (rule r)
   finally (ord_eq_le_trans) show ?thesis .
 qed
 
-lemma ord_less_eq_subst: "a < b ==> f b = c ==>
-  (!!x y. x < y ==> f x < f y) ==> f a < c"
+lemma ord_less_eq_subst: "a < b \<Longrightarrow> f b = c \<Longrightarrow>
+  (!!x y. x < y \<Longrightarrow> f x < f y) \<Longrightarrow> f a < c"
 proof -
-  assume r: "!!x y. x < y ==> f x < f y"
+  assume r: "!!x y. x < y \<Longrightarrow> f x < f y"
   assume "a < b" hence "f a < f b" by (rule r)
   also assume "f b = c"
   finally (ord_less_eq_trans) show ?thesis .
 qed
 
-lemma ord_eq_less_subst: "a = f b ==> b < c ==>
-  (!!x y. x < y ==> f x < f y) ==> a < f c"
+lemma ord_eq_less_subst: "a = f b \<Longrightarrow> b < c \<Longrightarrow>
+  (!!x y. x < y \<Longrightarrow> f x < f y) \<Longrightarrow> a < f c"
 proof -
-  assume r: "!!x y. x < y ==> f x < f y"
+  assume r: "!!x y. x < y \<Longrightarrow> f x < f y"
   assume "a = f b"
   also assume "b < c" hence "f b < f c" by (rule r)
   finally (ord_eq_less_trans) show ?thesis .
@@ -975,7 +975,7 @@ lemmas order_trans_rules =
   trans
 
 text \<open>These support proving chains of decreasing inequalities
-    a >= b >= c ... in Isar proofs.\<close>
+    a \<ge> b \<ge> c ... in Isar proofs.\<close>
 
 lemma xt1 [no_atp]:
   "a = b \<Longrightarrow> b > c \<Longrightarrow> a > c"
@@ -997,54 +997,78 @@ lemma xt1 [no_atp]:
   by auto
 
 lemma xt2 [no_atp]:
-  "(a::'a::order) >= f b ==> b >= c ==> (!!x y. x >= y ==> f x >= f y) ==> a >= f c"
-by (subgoal_tac "f b >= f c", force, force)
+  assumes "(a::'a::order) \<ge> f b"
+    and "b \<ge> c"
+    and "\<And>x y. x \<ge> y \<Longrightarrow> f x \<ge> f y"
+  shows  "a \<ge> f c"
+  using assms by force
 
-lemma xt3 [no_atp]: "(a::'a::order) >= b ==> (f b::'b::order) >= c ==>
-    (!!x y. x >= y ==> f x >= f y) ==> f a >= c"
-by (subgoal_tac "f a >= f b", force, force)
+lemma xt3 [no_atp]:
+ assumes "(a::'a::order) \<ge> b"
+    and "(f b::'b::order) \<ge> c"
+    and "\<And>x y. x \<ge> y \<Longrightarrow> f x \<ge> f y"
+  shows  "f a \<ge> c"
+  using assms by force
 
-lemma xt4 [no_atp]: "(a::'a::order) > f b ==> (b::'b::order) >= c ==>
-  (!!x y. x >= y ==> f x >= f y) ==> a > f c"
-by (subgoal_tac "f b >= f c", force, force)
+lemma xt4 [no_atp]:
+ assumes "(a::'a::order) > f b"
+    and "(b::'b::order) \<ge> c"
+    and "\<And>x y. x \<ge> y \<Longrightarrow> f x \<ge> f y"
+  shows  "a > f c"
+  using assms by force
 
-lemma xt5 [no_atp]: "(a::'a::order) > b ==> (f b::'b::order) >= c==>
-    (!!x y. x > y ==> f x > f y) ==> f a > c"
-by (subgoal_tac "f a > f b", force, force)
+lemma xt5 [no_atp]:
+ assumes "(a::'a::order) > b"
+    and "(f b::'b::order) \<ge> c"
+    and "\<And>x y. x > y \<Longrightarrow> f x > f y"
+  shows  "f a > c"
+  using assms by force
 
-lemma xt6 [no_atp]: "(a::'a::order) >= f b ==> b > c ==>
-    (!!x y. x > y ==> f x > f y) ==> a > f c"
-by (subgoal_tac "f b > f c", force, force)
+lemma xt6 [no_atp]:
+ assumes "(a::'a::order) \<ge> f b" 
+    and "b > c"
+    and "\<And>x y. x > y \<Longrightarrow> f x > f y"
+  shows  "a > f c"
+  using assms by force
 
-lemma xt7 [no_atp]: "(a::'a::order) >= b ==> (f b::'b::order) > c ==>
-    (!!x y. x >= y ==> f x >= f y) ==> f a > c"
-by (subgoal_tac "f a >= f b", force, force)
+lemma xt7 [no_atp]:
+ assumes "(a::'a::order) \<ge> b"
+    and "(f b::'b::order) > c"
+    and "\<And>x y. x \<ge> y \<Longrightarrow> f x \<ge> f y"
+  shows  "f a > c"
+  using assms by force
 
-lemma xt8 [no_atp]: "(a::'a::order) > f b ==> (b::'b::order) > c ==>
-    (!!x y. x > y ==> f x > f y) ==> a > f c"
-by (subgoal_tac "f b > f c", force, force)
+lemma xt8 [no_atp]:
+ assumes "(a::'a::order) > f b"
+    and "(b::'b::order) > c"
+    and "\<And>x y. x > y \<Longrightarrow> f x > f y"
+  shows  "a > f c"
+  using assms by force
 
-lemma xt9 [no_atp]: "(a::'a::order) > b ==> (f b::'b::order) > c ==>
-    (!!x y. x > y ==> f x > f y) ==> f a > c"
-by (subgoal_tac "f a > f b", force, force)
+lemma xt9 [no_atp]:
+ assumes "(a::'a::order) > b"
+    and "(f b::'b::order) > c"
+    and "\<And>x y. x > y \<Longrightarrow> f x > f y"
+  shows  "f a > c"
+  using assms by force
 
 lemmas xtrans = xt1 xt2 xt3 xt4 xt5 xt6 xt7 xt8 xt9
 
 (*
-  Since "a >= b" abbreviates "b <= a", the abbreviation "..." stands
+  Since "a \<ge> b" abbreviates "b \<le> a", the abbreviation "..." stands
   for the wrong thing in an Isar proof.
 
   The extra transitivity rules can be used as follows:
 
 lemma "(a::'a::order) > z"
 proof -
-  have "a >= b" (is "_ >= ?rhs")
+  have "a \<ge> b" (is "_ \<ge> ?rhs")
     sorry
-  also have "?rhs >= c" (is "_ >= ?rhs")
+  also have "?rhs \<ge> c" (is "_ \<ge> ?rhs")
     sorry
   also (xtrans) have "?rhs = d" (is "_ = ?rhs")
     sorry
-  also (xtrans) have "?rhs >= e" (is "_ >= ?rhs")
+  also (xtrans) have "?rhs \<ge> e" (is "_ \<ge> ?rhs")
     sorry
   also (xtrans) have "?rhs > f" (is "_ > ?rhs")
     sorry

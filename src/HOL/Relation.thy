@@ -1180,12 +1180,19 @@ lemma Image_INT_subset: "(r `` (\<Inter>(B ` A))) \<subseteq> (\<Inter>x\<in>A. 
   by blast
 
 text \<open>Converse inclusion requires some assumptions\<close>
-lemma Image_INT_eq: "single_valued (r\<inverse>) \<Longrightarrow> A \<noteq> {} \<Longrightarrow> r `` (\<Inter>(B ` A)) = (\<Inter>x\<in>A. r `` B x)"
-  apply (rule equalityI)
-   apply (rule Image_INT_subset)
-  apply (auto simp add: single_valued_def)
-  apply blast
-  done
+lemma Image_INT_eq:
+  assumes "single_valued (r\<inverse>)"
+    and "A \<noteq> {}"
+  shows "r `` (\<Inter>(B ` A)) = (\<Inter>x\<in>A. r `` B x)"
+proof(rule equalityI, rule Image_INT_subset)
+  show "(\<Inter>x\<in>A. r `` B x) \<subseteq> r `` \<Inter> (B ` A)"
+  proof
+    fix x
+    assume "x \<in> (\<Inter>x\<in>A. r `` B x)"
+    then show "x \<in> r `` \<Inter> (B ` A)"
+      using assms unfolding single_valued_def by simp blast
+  qed
+qed
 
 lemma Image_subset_eq: "r``A \<subseteq> B \<longleftrightarrow> A \<subseteq> - ((r\<inverse>) `` (- B))"
   by blast

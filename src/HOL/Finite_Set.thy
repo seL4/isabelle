@@ -1226,7 +1226,7 @@ lemma (in comp_fun_idem) comp_comp_fun_idem: "comp_fun_idem (f o g)"
 subsubsection \<open>Expressing set operations via \<^const>\<open>fold\<close>\<close>
 
 lemma comp_fun_commute_const: "comp_fun_commute (\<lambda>_. f)"
-  by standard rule
+  by standard (rule refl)
 
 lemma comp_fun_idem_insert: "comp_fun_idem insert"
   by standard auto
@@ -1571,7 +1571,7 @@ text \<open>
 
 global_interpretation card: folding "\<lambda>_. Suc" 0
   defines card = "folding_on.F (\<lambda>_. Suc) 0"
-  by standard rule
+  by standard (rule refl)
 
 lemma card_insert_disjoint: "finite A \<Longrightarrow> x \<notin> A \<Longrightarrow> card (insert x A) = Suc (card A)"
   by (fact card.insert)
@@ -1824,11 +1824,12 @@ next
     from "2.prems"(1,2,5) "2.hyps"(1,2) have cst: "card s \<le> card t"
       by simp
     from "2.prems"(3) [OF "2.hyps"(1) cst]
-    obtain f where "f ` s \<subseteq> t" "inj_on f s"
+    obtain f where *: "f ` s \<subseteq> t" "inj_on f s"
       by blast
-    with "2.prems"(2) "2.hyps"(2) show ?case
-      unfolding inj_on_def
-      by (rule_tac x = "\<lambda>z. if z = x then y else f z" in exI) auto
+    let ?g = "(\<lambda>a. if a = x then y else f a)"
+    have "?g ` insert x s \<subseteq> insert y t \<and> inj_on ?g (insert x s)"
+      using * "2.prems"(2) "2.hyps"(2) unfolding inj_on_def by auto
+    then show ?case by (rule exI[where ?x="?g"])
   qed
 qed
 
@@ -2415,7 +2416,7 @@ proof
           by (simp add: fS)
         have "\<lbrakk>x \<noteq> y; x \<in> S; z \<in> S; f x = f y\<rbrakk>
          \<Longrightarrow> \<exists>x \<in> S. x \<noteq> y \<and> f z = f x" for z
-          by (case_tac "z = y \<longrightarrow> z = x") auto
+          by (cases "z = y \<longrightarrow> z = x") auto
         then show "T \<subseteq> f ` (S - {y})"
           using h xy x y f by fastforce
       qed

@@ -219,11 +219,18 @@ lemma fixp_induct_uc:
     and step: "\<And>f. P (U f) \<Longrightarrow> P (U (F f))"
   shows "P (U f)"
 unfolding eq inverse
-apply (rule ccpo.fixp_induct[OF ccpo adm])
-apply (insert mono, auto simp: monotone_def fun_ord_def bot fun_lub_def)[2]
-apply (rule_tac f5="C x" in step)
-apply (simp add: inverse)
-done
+proof (rule ccpo.fixp_induct[OF ccpo adm])
+  show "monotone le_fun le_fun (\<lambda>f. U (F (C f)))"
+    using mono by (auto simp: monotone_def fun_ord_def)
+next
+  show "P (lub_fun {})"
+    by (auto simp: bot fun_lub_def)
+next
+  fix x
+  assume "P x"
+  then show "P (U (F (C x)))"
+    using step[of "C x"] by (simp add: inverse)
+qed
 
 
 text \<open>Rules for \<^term>\<open>mono_body\<close>:\<close>

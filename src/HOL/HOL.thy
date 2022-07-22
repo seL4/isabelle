@@ -745,13 +745,13 @@ lemmas [symmetric, rulify] = atomize_all atomize_imp
 subsubsection \<open>Atomizing elimination rules\<close>
 
 lemma atomize_exL[atomize_elim]: "(\<And>x. P x \<Longrightarrow> Q) \<equiv> ((\<exists>x. P x) \<Longrightarrow> Q)"
-  by rule iprover+
+  by (rule equal_intr_rule) iprover+
 
 lemma atomize_conjL[atomize_elim]: "(A \<Longrightarrow> B \<Longrightarrow> C) \<equiv> (A \<and> B \<Longrightarrow> C)"
-  by rule iprover+
+  by (rule equal_intr_rule) iprover+
 
 lemma atomize_disjL[atomize_elim]: "((A \<Longrightarrow> C) \<Longrightarrow> (B \<Longrightarrow> C) \<Longrightarrow> C) \<equiv> ((A \<or> B \<Longrightarrow> C) \<Longrightarrow> C)"
-  by rule iprover+
+  by (rule equal_intr_rule) iprover+
 
 lemma atomize_elimL[atomize_elim]: "(\<And>B. (A \<Longrightarrow> B) \<Longrightarrow> B) \<equiv> Trueprop A" ..
 
@@ -1923,7 +1923,7 @@ lemma equal: "equal = (=)"
   by (rule ext equal_eq)+
 
 lemma equal_refl: "equal x x \<longleftrightarrow> True"
-  unfolding equal by rule+
+  unfolding equal by (rule iffI TrueI refl)+
 
 lemma eq_equal: "(=) \<equiv> equal"
   by (rule eq_reflection) (rule ext, rule ext, rule sym, rule equal_eq)

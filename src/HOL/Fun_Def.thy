@@ -40,20 +40,14 @@ lemma fundef_ex1_uniqueness:
   assumes ex1: "\<exists>!y. G x y"
   assumes elm: "G x (h x)"
   shows "h x = f x"
-  apply (simp only: f_def)
-  apply (rule THE_default1_equality [symmetric])
-   apply (rule ex1)
-  apply (rule elm)
-  done
+  by (auto simp add: f_def ex1 elm THE_default1_equality[symmetric])
 
 lemma fundef_ex1_iff:
   assumes f_def: "f \<equiv> (\<lambda>x::'a. THE_default (d x) (\<lambda>y. G x y))"
   assumes ex1: "\<exists>!y. G x y"
   shows "(G x y) = (f x = y)"
-  apply (auto simp:ex1 f_def THE_default1_equality)
-  apply (rule THE_defaultI')
-  apply (rule ex1)
-  done
+  by (auto simp add: ex1 f_def THE_default1_equality THE_defaultI')
+
 
 lemma fundef_default_value:
   assumes f_def: "f \<equiv> (\<lambda>x::'a. THE_default (d x) (\<lambda>y. G x y))"
@@ -243,17 +237,33 @@ text \<open>Reduction Pairs.\<close>
 lemma max_ext_compat:
   assumes "R O S \<subseteq> R"
   shows "max_ext R O (max_ext S \<union> {({}, {})}) \<subseteq> max_ext R"
-  using assms
-  apply auto
-  apply (elim max_ext.cases)
-  apply rule
-     apply auto[3]
-  apply (drule_tac x=xa in meta_spec)
-  apply simp
-  apply (erule bexE)
-  apply (drule_tac x=xb in meta_spec)
-  apply auto
-  done
+proof -
+  have "\<And>X Y Z. (X, Y) \<in> max_ext R \<Longrightarrow> (Y, Z) \<in> max_ext S \<Longrightarrow> (X, Z) \<in> max_ext R"
+  proof -
+    fix X Y Z
+    assume "(X,Y)\<in>max_ext R"
+      "(Y, Z)\<in>max_ext S"
+    then have *: "finite X" "finite Y" "finite Z" "Y\<noteq>{}" "Z\<noteq>{}"
+      "(\<And>x. x\<in>X \<Longrightarrow> \<exists>y\<in>Y. (x, y)\<in>R)"
+      "(\<And>y. y\<in>Y \<Longrightarrow> \<exists>z\<in>Z. (y, z)\<in>S)"
+      by (auto elim: max_ext.cases)
+    moreover have "\<And>x. x\<in>X \<Longrightarrow> \<exists>z\<in>Z. (x, z)\<in>R"
+    proof -
+      fix x
+      assume "x\<in>X"
+      then obtain y where 1: "y\<in>Y" "(x, y)\<in>R"
+        using * by auto
+      then obtain z where "z\<in>Z" "(y, z)\<in>S"
+        using * by auto
+      then show "\<exists>z\<in>Z. (x, z)\<in>R"
+        using assms 1 by (auto elim: max_ext.cases)
+    qed
+    ultimately show "(X,Z)\<in>max_ext R"
+      by auto
+  qed
+  then show "max_ext R O (max_ext S \<union> {({}, {})}) \<subseteq> max_ext R"
+    by auto
+qed
 
 lemma max_rpair_set: "reduction_pair (max_strict, max_weak)"
   unfolding max_strict_def max_weak_def
@@ -265,15 +275,25 @@ lemma max_rpair_set: "reduction_pair (max_strict, max_weak)"
 
 lemma min_ext_compat:
   assumes "R O S \<subseteq> R"
-  shows "min_ext R O  (min_ext S \<union> {({},{})}) \<subseteq> min_ext R"
-  using assms
-  apply (auto simp: min_ext_def)
-  apply (drule_tac x=ya in bspec, assumption)
-  apply (erule bexE)
-  apply (drule_tac x=xc in bspec)
-   apply assumption
-  apply auto
-  done
+  shows "min_ext R O (min_ext S \<union> {({},{})}) \<subseteq> min_ext R"
+proof -
+  have "\<And>X Y Z z. \<forall>y\<in>Y. \<exists>x\<in>X. (x, y) \<in> R \<Longrightarrow> \<forall>z\<in>Z. \<exists>y\<in>Y. (y, z) \<in> S
+  \<Longrightarrow> z \<in> Z \<Longrightarrow> \<exists>x\<in>X. (x, z) \<in> R"
+  proof -
+    fix X Y Z z
+    assume *: "\<forall>y\<in>Y. \<exists>x\<in>X. (x, y) \<in> R"
+      "\<forall>z\<in>Z. \<exists>y\<in>Y. (y, z) \<in> S"
+      "z\<in>Z"
+    then obtain y' where 1: "y'\<in>Y" "(y', z) \<in> S"
+      by auto
+    then obtain x' where 2: "x'\<in>X" "(x', y') \<in> R"
+      using * by auto
+    show "\<exists>x\<in>X. (x, z) \<in> R"
+      using 1 2 assms by auto
+  qed
+  then show ?thesis
+    using assms by (auto simp: min_ext_def)
+qed
 
 lemma min_rpair_set: "reduction_pair (min_strict, min_weak)"
   unfolding min_strict_def min_weak_def

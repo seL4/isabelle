@@ -40,7 +40,7 @@ qed
 
 lemma unique_quotient_lemma_neg:
   "b * q' + r' \<le> b*q + r \<Longrightarrow> r \<le> 0 \<Longrightarrow> b < r \<Longrightarrow> b < r' \<Longrightarrow> q \<le> (q'::int)"
-  by (rule_tac b = "-b" and r = "-r'" and r' = "-r" in unique_quotient_lemma) auto
+  using unique_quotient_lemma[where b = "-b" and r = "-r'" and r'="-r"] by auto
 
 lemma unique_quotient:
   "eucl_rel_int a b (q, r) \<Longrightarrow> eucl_rel_int a b (q', r') \<Longrightarrow> q = q'"
@@ -50,11 +50,15 @@ lemma unique_quotient:
   done
 
 lemma unique_remainder:
-  "eucl_rel_int a b (q, r) \<Longrightarrow> eucl_rel_int a b (q', r') \<Longrightarrow> r = r'"
-apply (subgoal_tac "q = q'")
- apply (simp add: eucl_rel_int_iff)
-apply (blast intro: unique_quotient)
-done
+  assumes "eucl_rel_int a b (q, r)"
+    and "eucl_rel_int a b (q', r')"
+  shows "r = r'"
+proof -
+  have "q = q'"
+    using assms by (blast intro: unique_quotient)
+  then show "r = r'"
+    using assms by (simp add: eucl_rel_int_iff)
+qed
 
 lemma eucl_rel_int:
   "eucl_rel_int k l (k div l, k mod l)"
@@ -445,7 +449,7 @@ lemma zmod_trivial_iff:
   shows "i mod k = i \<longleftrightarrow> k = 0 \<or> 0 \<le> i \<and> i < k \<or> i \<le> 0 \<and> k < i"
 proof -
   have "i mod k = i \<longleftrightarrow> i div k = 0"
-    by safe (insert div_mult_mod_eq [of i k], auto)
+    using div_mult_mod_eq [of i k] by safe auto
   with zdiv_eq_0_iff
   show ?thesis
     by simp
@@ -482,17 +486,15 @@ next
       by simp
   next
     case False
-    moreover have \<open>0 < k mod l\<close> \<open>k mod l < 1 + l\<close>
-      using \<open>0 < l\<close> le_imp_0_less False apply auto
-      using le_less apply fastforce
-      using pos_mod_bound [of l k] apply linarith 
-      done
-    with \<open>l > 0\<close> have \<open>(k mod l - 1) mod l = k mod l - 1\<close>
+    moreover have 1: \<open>0 < k mod l\<close>
+      using \<open>0 < l\<close> False le_less by fastforce
+    moreover have 2: \<open>k mod l < 1 + l\<close>
+      using \<open>0 < l\<close> pos_mod_bound[of l k] by linarith
+    from 1 2 \<open>l > 0\<close> have \<open>(k mod l - 1) mod l = k mod l - 1\<close>
       by (simp add: zmod_trivial_iff)
     ultimately show ?thesis
-      apply (simp only: zmod_zminus1_eq_if)
-      apply (simp add: mod_eq_0_iff_dvd algebra_simps mod_simps)
-      done
+      by (simp only: zmod_zminus1_eq_if)
+         (simp add: mod_eq_0_iff_dvd algebra_simps mod_simps)
   qed
 qed
 
@@ -581,9 +583,12 @@ lemma div_int_pos_iff:
   for k l :: int
 proof (cases "k = 0 \<or> l = 0")
   case False
-  then show ?thesis
-   apply (auto simp add: pos_imp_zdiv_nonneg_iff neg_imp_zdiv_nonneg_iff)
+  then have *: "k \<noteq> 0" "l \<noteq> 0"
+    by auto
+  then have "0 \<le> k div l \<Longrightarrow> \<not> k < 0 \<Longrightarrow> 0 \<le> l"
     by (meson neg_imp_zdiv_neg_iff not_le not_less_iff_gr_or_eq)
+  then show ?thesis
+   using * by (auto simp add: pos_imp_zdiv_nonneg_iff neg_imp_zdiv_nonneg_iff)
 qed auto
 
 lemma mod_int_pos_iff:
@@ -672,7 +677,7 @@ lemma mod_eq_nat2E:
 lemma nat_mod_eq_lemma:
   assumes "(x::nat) mod n = y mod n" and "y \<le> x"
   shows "\<exists>q. x = y + n * q"
-  using assms by (rule mod_eq_nat1E) rule
+  using assms by (rule mod_eq_nat1E) (rule exI)
 
 lemma nat_mod_eq_iff: "(x::nat) mod n = y mod n \<longleftrightarrow> (\<exists>q1 q2. x + n * q1 = y + n * q2)"
   (is "?lhs = ?rhs")
@@ -681,11 +686,25 @@ proof
   {assume xy: "x \<le> y"
     from H have th: "y mod n = x mod n" by simp
     from nat_mod_eq_lemma[OF th xy] have ?rhs
-      apply clarify  apply (rule_tac x="q" in exI) by (rule exI[where x="0"], simp)}
+    proof
+      fix q
+      assume "y = x + n * q"
+      then have "x + n * q = y + n * 0"
+        by simp
+      then show "\<exists>q1 q2. x + n * q1 = y + n * q2"
+        by blast
+    qed}
   moreover
   {assume xy: "y \<le> x"
     from nat_mod_eq_lemma[OF H xy] have ?rhs
-      apply clarify  apply (rule_tac x="0" in exI) by (rule_tac x="q" in exI, simp)}
+    proof
+      fix q
+      assume "x = y + n * q"
+      then have "x + n * 0 = y + n * q"
+        by simp
+      then show "\<exists>q1 q2. x + n * q1 = y + n * q2"
+        by blast
+    qed}
   ultimately  show ?rhs using linear[of x y] by blast
 next
   assume ?rhs then obtain q1 q2 where q12: "x + n * q1 = y + n * q2" by blast
@@ -740,7 +759,7 @@ proof -
   have mod_w: "a mod (2 * b) = a mod b + b * w"
     by (simp add: w_def mod_mult2_eq ac_simps)
   from assms w_exhaust have "w = 1"
-    by (auto simp add: mod_w) (insert mod_less, auto)
+    using mod_less by (auto simp add: mod_w)
   with mod_w have mod: "a mod (2 * b) = a mod b + b" by simp
   have "2 * (a div (2 * b)) = a div b - w"
     by (simp add: w_def div_mult2_eq minus_mod_eq_mult_div ac_simps)

@@ -377,28 +377,30 @@ lemma bij_betw_comp_iff: "bij_betw f A A' \<Longrightarrow> bij_betw f' A' A'' \
 lemma bij_betw_comp_iff2:
   assumes bij: "bij_betw f' A' A''"
     and img: "f ` A \<le> A'"
-  shows "bij_betw f A A' \<longleftrightarrow> bij_betw (f' \<circ> f) A A''"
-  using assms
-proof (auto simp add: bij_betw_comp_iff)
-  assume *: "bij_betw (f' \<circ> f) A A''"
-  then show "bij_betw f A A'"
-    using img
-  proof (auto simp add: bij_betw_def)
-    assume "inj_on (f' \<circ> f) A"
-    then show "inj_on f A"
-      using inj_on_imageI2 by blast
+  shows "bij_betw f A A' \<longleftrightarrow> bij_betw (f' \<circ> f) A A''" (is "?L \<longleftrightarrow> ?R")
+proof
+  assume "?L"
+  then show "?R"
+    using assms by (auto simp add: bij_betw_comp_iff)
   next
-    fix a'
-    assume **: "a' \<in> A'"
-    with bij have "f' a' \<in> A''"
-      unfolding bij_betw_def by auto
-    with * obtain a where 1: "a \<in> A \<and> f' (f a) = f' a'"
-      unfolding bij_betw_def by force
-    with img have "f a \<in> A'" by auto
-    with bij ** 1 have "f a = a'"
-      unfolding bij_betw_def inj_on_def by auto
-    with 1 show "a' \<in> f ` A" by auto
-  qed
+    assume *: "?R"
+    have "inj_on (f' \<circ> f) A \<Longrightarrow> inj_on f A"
+      using inj_on_imageI2 by blast
+    moreover have "A' \<subseteq> f ` A"
+    proof
+      fix a'
+      assume **: "a' \<in> A'"
+      with bij have "f' a' \<in> A''"
+        unfolding bij_betw_def by auto
+      with * obtain a where 1: "a \<in> A \<and> f' (f a) = f' a'"
+        unfolding bij_betw_def by force
+      with img have "f a \<in> A'" by auto
+      with bij ** 1 have "f a = a'"
+        unfolding bij_betw_def inj_on_def by auto
+      with 1 show "a' \<in> f ` A" by auto
+    qed
+    ultimately show "?L"
+      using img * by (auto simp add: bij_betw_def)
 qed
 
 lemma bij_betw_inv:
@@ -425,7 +427,7 @@ proof -
     from g [OF a1] a1 g [OF a2] a2 \<open>?g x = ?g y\<close> show "x = y" by simp
   qed
   moreover have "?g ` B = A"
-  proof (auto simp: image_def)
+  proof safe
     fix b
     assume "b \<in> B"
     with s obtain a where P: "?P b a" by blast
@@ -435,7 +437,9 @@ proof -
     assume "a \<in> A"
     with s obtain b where P: "?P b a" by blast
     with s have "b \<in> B" by blast
-    with g[OF P] show "\<exists>b\<in>B. a = ?g b" by blast
+    with g[OF P] have "\<exists>b\<in>B. a = ?g b" by blast
+    then show "a \<in> ?g ` B"
+      by auto
   qed
   ultimately show ?thesis
     by (auto simp: bij_betw_def)
@@ -637,7 +641,7 @@ proof
 next
   assume *: "bij_betw f (A \<union> {b}) (A' \<union> {f b})"
   have "f ` A = A'"
-  proof auto
+  proof safe
     fix a
     assume **: "a \<in> A"
     then have "f a \<in> A' \<union> {f b}"
@@ -797,7 +801,6 @@ lemma fun_upd_idem_iff: "f(x:=y) = f \<longleftrightarrow> f x = y"
   unfolding fun_upd_def
   apply safe
    apply (erule subst)
-   apply (rule_tac [2] ext)
    apply auto
   done
 
@@ -903,12 +906,13 @@ lemma bij_betw_iff_bijections:
   "bij_betw f A B \<longleftrightarrow> (\<exists>g. (\<forall>x \<in> A. f x \<in> B \<and> g(f x) = x) \<and> (\<forall>y \<in> B. g y \<in> A \<and> f(g y) = y))"
   (is "?lhs = ?rhs")
 proof
-  assume L: ?lhs
-  then show ?rhs
-    apply (rule_tac x="the_inv_into A f" in exI)
-    apply (auto simp: bij_betw_def f_the_inv_into_f the_inv_into_f_f the_inv_into_into)
-    done
-qed (force intro: bij_betw_byWitness)
+  show "?lhs \<Longrightarrow> ?rhs"
+    by (auto simp: bij_betw_def f_the_inv_into_f the_inv_into_f_f the_inv_into_into
+        exI[where ?x="the_inv_into A f"])
+next
+  show "?rhs \<Longrightarrow> ?lhs"
+    by (force intro: bij_betw_byWitness)
+qed
 
 abbreviation the_inv :: "('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'a)"
   where "the_inv f \<equiv> the_inv_into UNIV f"
@@ -1048,17 +1052,21 @@ qed
 lemma strict_mono_on_leD:
   assumes "strict_mono_on A (f :: (_ :: linorder) \<Rightarrow> _ :: preorder)" "x \<in> A" "y \<in> A" "x \<le> y"
   shows "f x \<le> f y"
-proof (insert le_less_linear[of y x], elim disjE)
-  assume "x < y"
-  with assms have "f x < f y" by (rule_tac strict_mono_onD[OF assms(1)]) simp_all
-  thus ?thesis by (rule less_imp_le)
-qed (insert assms, simp)
+proof (cases "x = y")
+  case True
+  then show ?thesis by simp
+next
+  case False
+  with assms have "f x < f y"
+    using strict_mono_onD[OF assms(1)] by simp
+  then show ?thesis by (rule less_imp_le)
+qed
 
 lemma strict_mono_on_eqD:
   fixes f :: "(_ :: linorder) \<Rightarrow> (_ :: preorder)"
   assumes "strict_mono_on A f" "f x = f y" "x \<in> A" "y \<in> A"
   shows "y = x"
-  using assms by (rule_tac linorder_cases[of x y]) (auto dest: strict_mono_onD)
+  using assms by (cases rule: linorder_cases) (auto dest: strict_mono_onD)
 
 lemma strict_mono_on_imp_mono_on:
   "strict_mono_on A (f :: (_ :: linorder) \<Rightarrow> _ :: preorder) \<Longrightarrow> mono_on A f"

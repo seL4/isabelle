@@ -101,15 +101,20 @@ lemma same_fstI [intro!]: "P x \<Longrightarrow> (y', y) \<in> R x \<Longrightar
 lemma wf_same_fst:
   assumes "\<And>x. P x \<Longrightarrow> wf (R x)"
   shows "wf (same_fst P R)"
-proof (clarsimp simp add: wf_def same_fst_def)
-  fix Q a b
-  assume *: "\<forall>a b. (\<forall>x. P a \<and> (x,b) \<in> R a \<longrightarrow> Q (a,x)) \<longrightarrow> Q (a,b)"
-  show "Q(a,b)"
-  proof (cases "wf (R a)")
-    case True
-    then show ?thesis
-      by (induction b rule: wf_induct_rule) (use * in blast)
-  qed (use * assms in blast)
+proof -
+  have "\<And>a b Q. \<forall>a b. (\<forall>x. P a \<and> (x, b) \<in> R a \<longrightarrow> Q (a, x)) \<longrightarrow> Q (a, b) \<Longrightarrow> Q (a, b)"
+  proof -
+    fix Q a b
+    assume *: "\<forall>a b. (\<forall>x. P a \<and> (x,b) \<in> R a \<longrightarrow> Q (a,x)) \<longrightarrow> Q (a,b)"
+    show "Q(a,b)"
+    proof (cases "wf (R a)")
+      case True
+      then show ?thesis
+        by (induction b rule: wf_induct_rule) (use * in blast)
+    qed (use * assms in blast)
+  qed
+  then show ?thesis
+    by (clarsimp simp add: wf_def same_fst_def)
 qed
 
 end

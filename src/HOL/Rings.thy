@@ -191,7 +191,7 @@ lemma one_dvd [simp]: "1 dvd a"
   by (auto intro: dvdI)
 
 lemma dvd_mult [simp]: "a dvd (b * c)" if "a dvd c"
-  using that by rule (auto intro: mult.left_commute dvdI)
+  using that by (auto intro: mult.left_commute dvdI)
 
 lemma dvd_mult2 [simp]: "a dvd (b * c)" if "a dvd b"
   using that dvd_mult [of a b c] by (simp add: ac_simps)
@@ -1175,7 +1175,7 @@ lemma is_unit_div_mult_cancel_right:
 lemma unit_div_eq_0_iff:
   assumes "is_unit b"
   shows "a div b = 0 \<longleftrightarrow> a = 0"
-  by (rule dvd_div_eq_0_iff) (insert assms, auto)  
+  using assms by (simp add: dvd_div_eq_0_iff unit_imp_dvd)
 
 lemma div_mult_unit2:
   "is_unit c \<Longrightarrow> b dvd a \<Longrightarrow> a div (b * c) = a div b div c"
@@ -1542,7 +1542,7 @@ lemma normalize_idem_imp_is_unit_iff:
 
 lemma coprime_normalize_left_iff [simp]:
   "coprime (normalize a) b \<longleftrightarrow> coprime a b"
-  by (rule; rule coprimeI) (auto intro: coprime_common_divisor)
+  by (rule iffI; rule coprimeI) (auto intro: coprime_common_divisor)
 
 lemma coprime_normalize_right_iff [simp]:
   "coprime a (normalize b) \<longleftrightarrow> coprime a b"
@@ -2039,7 +2039,7 @@ text \<open>This weaker variant has more natural premises\<close>
 lemma mult_strict_mono':
   assumes "a < b" and "c < d" and "0 \<le> a" and "0 \<le> c"
   shows "a * c < b * d"
-  by (rule mult_strict_mono) (insert assms, auto)
+  using assms by (auto simp add: mult_strict_mono)
 
 lemma mult_less_le_imp_less:
   assumes "a < b" and "c \<le> d" and "0 \<le> a" and "0 < c"
@@ -2365,7 +2365,7 @@ class linordered_nonzero_semiring = ordered_comm_semiring + monoid_mult + linord
 begin
 
 subclass zero_neq_one
-  by standard (insert zero_less_one, blast)
+  by standard
 
 subclass comm_semiring_1
   by standard (rule mult_1_left)
@@ -2405,10 +2405,12 @@ begin
 subclass linordered_nonzero_semiring 
 proof
   show "a + 1 < b + 1" if "a < b" for a b
-  proof (rule ccontr, simp add: not_less)
-    assume "b \<le> a"
-    with that show False
+  proof (rule ccontr)
+    assume "\<not> a + 1 < b + 1"
+    moreover with that have "a + 1 < b + 1"
       by simp
+    ultimately show False
+      by contradiction
   qed
 qed
 

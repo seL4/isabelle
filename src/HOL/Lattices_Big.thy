@@ -1042,16 +1042,22 @@ by (metis le_less)
 lemma ex_has_greatest_nat_lemma:
   "P k \<Longrightarrow> \<forall>x. P x \<longrightarrow> (\<exists>y. P y \<and> \<not> f y \<le> f x) \<Longrightarrow> \<exists>y. P y \<and> \<not> f y < f k + n"
   for f :: "'a \<Rightarrow> nat"
-by (induct n) (force simp: le_Suc_eq)+
+  by (induct n) (force simp: le_Suc_eq)+
 
 lemma ex_has_greatest_nat:
-  "P k \<Longrightarrow> \<forall>y. P y \<longrightarrow> f y < b \<Longrightarrow> \<exists>x. P x \<and> (\<forall>y. P y \<longrightarrow> f y \<le> f x)"
-  for f :: "'a \<Rightarrow> nat"
-apply (rule ccontr)
-apply (cut_tac P = P and n = "b - f k" in ex_has_greatest_nat_lemma)
-  apply (subgoal_tac [3] "f k \<le> b")
-   apply auto
-done
+  assumes "P k"
+    and "\<forall>y. P y \<longrightarrow> (f:: 'a \<Rightarrow> nat) y < b"
+shows "\<exists>x. P x \<and> (\<forall>y. P y \<longrightarrow> f y \<le> f x)"
+proof (rule ccontr)
+  assume "\<nexists>x. P x \<and> (\<forall>y. P y \<longrightarrow> f y \<le> f x)"
+  then have "\<forall>x. P x \<longrightarrow> (\<exists>y. P y \<and> \<not> f y \<le> f x)"
+    by auto
+  then have "\<exists>y. P y \<and> \<not> f y < f k + (b - f k)"
+    using assms ex_has_greatest_nat_lemma[of P k f "b - f k"]
+    by blast
+  then show "False"
+    using assms by auto
+qed
 
 lemma arg_max_nat_lemma:
   "\<lbrakk> P k;  \<forall>y. P y \<longrightarrow> f y < b \<rbrakk>

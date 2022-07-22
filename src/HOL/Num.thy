@@ -391,20 +391,42 @@ lemma is_num_numeral: "is_num (numeral k)"
   by (induct k) (simp_all add: numeral.simps is_num.intros)
 
 lemma is_num_add_commute: "is_num x \<Longrightarrow> is_num y \<Longrightarrow> x + y = y + x"
-  apply (induct x rule: is_num.induct)
-    apply (induct y rule: is_num.induct)
-      apply simp
-     apply (rule_tac a=x in add_left_imp_eq)
-     apply (rule_tac a=x in add_right_imp_eq)
-     apply (simp add: add.assoc)
-    apply (simp add: add.assoc [symmetric])
-    apply (simp add: add.assoc)
-   apply (rule_tac a=x in add_left_imp_eq)
-   apply (rule_tac a=x in add_right_imp_eq)
-   apply (simp add: add.assoc)
-  apply (simp add: add.assoc)
-  apply (simp add: add.assoc [symmetric])
-  done
+proof(induction x rule: is_num.induct)
+  case 1
+  then show ?case
+  proof (induction y rule: is_num.induct)
+    case 1
+    then show ?case by simp
+  next
+    case (2 y)
+    then have "y + (1 + - y) + y = y + (- y + 1) + y"
+      by (simp add: add.assoc)
+    then have "y + (1 + - y) = y + (- y + 1)"
+      by simp
+    then show ?case
+      by (rule add_left_imp_eq[of y])
+  next
+    case (3 x y)
+    then have "1 + (x + y) = x + 1 + y"
+      by (simp add: add.assoc [symmetric])
+    then show ?case using 3
+      by (simp add: add.assoc)
+  qed
+next
+  case (2 x)
+  then have "x + (- x + y) + x = x + (y + - x) + x"
+    by (simp add: add.assoc)
+  then have "x + (- x + y) = x + (y + - x)"
+    by simp
+  then show ?case
+    by (rule add_left_imp_eq[of x])
+next
+  case (3 x z)
+  moreover have "x + (y + z) = (x + y) + z"
+    by (simp add: add.assoc[symmetric])
+  ultimately show ?case 
+    by (simp add: add.assoc)
+qed
 
 lemma is_num_add_left_commute: "is_num x \<Longrightarrow> is_num y \<Longrightarrow> x + (y + z) = y + (x + z)"
   by (simp only: add.assoc [symmetric] is_num_add_commute)
@@ -1508,21 +1530,22 @@ proof (induction q)
     by simp
 next
   case (Bit0 q)
-  then show ?case
-    apply (simp only: Num.numeral_Bit0 Num.numeral_add)
-    apply (subst num_of_nat_double)
-     apply simp_all
-    done
+  then have "num_of_nat (numeral (num.Bit0 q)) = num_of_nat (numeral q + numeral q)"
+    by (simp only: Num.numeral_Bit0 Num.numeral_add)
+  also have "\<dots> = num.Bit0 (num_of_nat (numeral q))"
+    by (rule num_of_nat_double) simp
+  finally show ?case
+    using Bit0.IH by simp
 next
   case (Bit1 q)
-  then show ?case
-    apply (simp only: Num.numeral_Bit1 Num.numeral_add)
-    apply (subst num_of_nat_plus_distrib)
-      apply simp
-     apply simp
-    apply (subst num_of_nat_double)
-     apply simp_all
-    done
+  then have "num_of_nat (numeral (num.Bit1 q)) = num_of_nat (numeral q + numeral q + 1)"
+    by (simp only: Num.numeral_Bit1 Num.numeral_add)
+  also have "\<dots> = num_of_nat (numeral q + numeral q) + num_of_nat 1"
+    by (rule num_of_nat_plus_distrib) auto
+  also have "\<dots> = num.Bit0 (num_of_nat (numeral q)) + num_of_nat 1"
+    by (subst num_of_nat_double) auto
+  finally show ?case
+    using Bit1.IH by simp
 qed
 
 end

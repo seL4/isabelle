@@ -264,11 +264,10 @@ proof clarify
   assume cd: "(c,d) \<in> r1"
   then have "c \<in> A1" "d \<in> A1"
     using \<open>equiv A1 r1\<close> by (auto elim!: equiv_type [THEN subsetD, THEN SigmaE2])
-  with assms show "\<Union> (f c ` r2 `` {a}) = \<Union> (f d ` r2 `` {a})"
-  proof (simp add: UN_equiv_class congruent2_implies_congruent)
-    show "f c a = f d a"
-      using assms cd unfolding congruent2_def equiv_def refl_on_def by blast
-  qed
+  moreover have "f c a = f d a"
+    using assms cd unfolding congruent2_def equiv_def refl_on_def by blast
+  ultimately show "\<Union> (f c ` r2 `` {a}) = \<Union> (f d ` r2 `` {a})"
+    using assms by (simp add: UN_equiv_class congruent2_implies_congruent)
 qed
 
 lemma UN_equiv_class2:
@@ -368,7 +367,7 @@ next
   assume ?lhs
   then show ?rhs
     unfolding proj_def quotient_def
-  proof clarsimp
+  proof safe
     fix y
     assume y: "y \<in> A" and "r `` {x} = r `` {y}"
     moreover have "y \<in> r `` {y}"

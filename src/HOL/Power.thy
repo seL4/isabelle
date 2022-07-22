@@ -368,7 +368,7 @@ proof
     also from \<open>m > n\<close> have "m = n + (m - n)" by simp
     also have "x ^ \<dots> = x ^ n * x ^ (m - n)" by (rule power_add)
     finally have "x ^ (m - n) dvd 1"
-      by (subst (asm) dvd_times_left_cancel_iff) (insert assms, simp_all)
+      using assms by (subst (asm) dvd_times_left_cancel_iff) simp_all
     with \<open>m > n\<close> have "is_unit x" by (simp add: is_unit_power_iff)
   }
   thus "is_unit x \<or> m \<le> n" by force
@@ -490,9 +490,16 @@ text \<open>
 \<close>
 lemma power_less_imp_less_exp: "1 < a \<Longrightarrow> a ^ m < a ^ n \<Longrightarrow> m < n"
   by (simp add: order_less_le [of m n] less_le [of "a^m" "a^n"] power_le_imp_le_exp)
-
-lemma power_strict_mono [rule_format]: "a < b \<Longrightarrow> 0 \<le> a \<Longrightarrow> 0 < n \<longrightarrow> a ^ n < b ^ n"
-  by (induct n) (auto simp: mult_strict_mono le_less_trans [of 0 a b])
+                               
+lemma power_strict_mono: "a < b \<Longrightarrow> 0 \<le> a \<Longrightarrow> 0 < n \<Longrightarrow> a ^ n < b ^ n"
+proof (induct n)
+  case 0
+  then show ?case by simp
+next
+  case (Suc n)
+  then show ?case
+    by (cases "n = 0") (auto simp: mult_strict_mono le_less_trans [of 0 a b])
+qed
 
 lemma power_mono_iff [simp]:
   shows "\<lbrakk>a \<ge> 0; b \<ge> 0; n>0\<rbrakk> \<Longrightarrow> a ^ n \<le> b ^ n \<longleftrightarrow> a \<le> b"
@@ -502,35 +509,27 @@ text\<open>Lemma for \<open>power_strict_decreasing\<close>\<close>
 lemma power_Suc_less: "0 < a \<Longrightarrow> a < 1 \<Longrightarrow> a * a ^ n < a ^ n"
   by (induct n) (auto simp: mult_strict_left_mono)
 
-lemma power_strict_decreasing [rule_format]: "n < N \<Longrightarrow> 0 < a \<Longrightarrow> a < 1 \<longrightarrow> a ^ N < a ^ n"
-proof (induct N)
-  case 0
-  then show ?case by simp
-next
-  case (Suc N)
-  then show ?case
-    apply (auto simp add: power_Suc_less less_Suc_eq)
-    apply (subgoal_tac "a * a^N < 1 * a^n")
-     apply simp
-    apply (rule mult_strict_mono)
-       apply auto
-    done
-qed
+lemma power_strict_decreasing: "n < N \<Longrightarrow> 0 < a \<Longrightarrow> a < 1 \<Longrightarrow> a ^ N < a ^ n"
+proof (induction N)
+   case 0
+   then show ?case by simp
+ next
+   case (Suc N)
+   then show ?case
+     using mult_strict_mono[of a 1 "a ^ N" "a ^ n"]
+     by (auto simp add: power_Suc_less less_Suc_eq)
+ qed
 
 text \<open>Proof resembles that of \<open>power_strict_decreasing\<close>.\<close>
 lemma power_decreasing: "n \<le> N \<Longrightarrow> 0 \<le> a \<Longrightarrow> a \<le> 1 \<Longrightarrow> a ^ N \<le> a ^ n"
-proof (induct N)
+proof (induction N)
   case 0
   then show ?case by simp
 next
   case (Suc N)
   then show ?case
-    apply (auto simp add: le_Suc_eq)
-    apply (subgoal_tac "a * a^N \<le> 1 * a^n")
-     apply simp
-    apply (rule mult_mono)
-       apply auto
-    done
+    using mult_mono[of a 1 "a^N" "a ^ n"]
+    by (auto simp add: le_Suc_eq)
 qed
 
 lemma power_decreasing_iff [simp]: "\<lbrakk>0 < b; b < 1\<rbrakk> \<Longrightarrow> b ^ m \<le> b ^ n \<longleftrightarrow> n \<le> m"
@@ -552,12 +551,8 @@ proof (induct N)
 next
   case (Suc N)
   then show ?case
-    apply (auto simp add: le_Suc_eq)
-    apply (subgoal_tac "1 * a^n \<le> a * a^N")
-     apply simp
-    apply (rule mult_mono)
-       apply (auto simp add: order_trans [OF zero_le_one])
-    done
+    using mult_mono[of 1 a "a ^ n" "a ^ N"]
+    by (auto simp add: le_Suc_eq order_trans [OF zero_le_one])
 qed
 
 text \<open>Lemma for \<open>power_strict_increasing\<close>.\<close>
@@ -571,12 +566,8 @@ proof (induct N)
 next
   case (Suc N)
   then show ?case
-    apply (auto simp add: power_less_power_Suc less_Suc_eq)
-    apply (subgoal_tac "1 * a^n < a * a^N")
-     apply simp
-    apply (rule mult_strict_mono)
-    apply (auto simp add: less_trans [OF zero_less_one] less_imp_le)
-    done
+    using mult_strict_mono[of 1 a "a^n" "a^N"]
+    by (auto simp add: power_less_power_Suc less_Suc_eq less_trans [OF zero_less_one] less_imp_le)
 qed
 
 lemma power_increasing_iff [simp]: "1 < b \<Longrightarrow> b ^ x \<le> b ^ y \<longleftrightarrow> x \<le> y"

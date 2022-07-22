@@ -106,12 +106,22 @@ by (auto simp add: wo_rel_def wo_rel.ofilter_def wo_rel.REFL Refl_Field_Restr2)
 lemma ofilter_Restr_under:
 assumes WELL: "Well_order r" and OF: "wo_rel.ofilter r A" and IN: "a \<in> A"
 shows "under (Restr r A) a = under r a"
-using assms wo_rel_def
-proof(auto simp add: wo_rel.ofilter_def under_def)
-  fix b assume *: "a \<in> A" and "(b,a) \<in> r"
-  hence "b \<in> under r a \<and> a \<in> Field r"
-  unfolding under_def using Field_def by fastforce
-  thus "b \<in> A" using * assms by (auto simp add: wo_rel_def wo_rel.ofilter_def)
+  unfolding wo_rel.ofilter_def under_def
+proof
+  show "{b. (b, a) \<in> Restr r A} \<subseteq> {b. (b, a) \<in> r}"
+    by auto
+next
+  have "under r a \<subseteq> A"
+  proof
+    fix x
+    assume *: "x \<in> under r a"
+    then have "a \<in> Field r"
+      unfolding under_def using Field_def by fastforce
+    then show "x \<in> A" using IN assms *
+      by (auto simp add: wo_rel_def wo_rel.ofilter_def)
+  qed
+  then show "{b. (b, a) \<in> r} \<subseteq> {b. (b, a) \<in> Restr r A}"
+    unfolding under_def using assms by auto
 qed
 
 lemma ofilter_embed:
@@ -120,12 +130,13 @@ shows "wo_rel.ofilter r A = (A \<le> Field r \<and> embed (Restr r A) r id)"
 proof
   assume *: "wo_rel.ofilter r A"
   show "A \<le> Field r \<and> embed (Restr r A) r id"
-  proof(unfold embed_def, auto)
+  unfolding embed_def
+  proof safe
     fix a assume "a \<in> A" thus "a \<in> Field r" using assms *
     by (auto simp add: wo_rel_def wo_rel.ofilter_def)
   next
     fix a assume "a \<in> Field (Restr r A)"
-    thus "bij_betw id (under (Restr r A) a) (under r a)" using assms *
+    thus "bij_betw id (under (Restr r A) a) (under r (id a))" using assms *
     by (simp add: ofilter_Restr_under Field_Restr_ofilter)
   qed
 next
@@ -160,7 +171,8 @@ proof-
   by (simp add: Well_order_Restr wo_rel_def)
   (* Main proof *)
   show ?thesis using WellB assms
-  proof(auto simp add: wo_rel.ofilter_def under_def)
+    unfolding wo_rel.ofilter_def under_def ofilter_def
+  proof safe
     fix a assume "a \<in> A" and *: "a \<in> B"
     hence "a \<in> Field r" using OFA Well by (auto simp add: wo_rel.ofilter_def)
     with * show "a \<in> Field ?rB" using Field by auto
@@ -714,7 +726,7 @@ qed
 lemma ordLess_iff_ordIso_Restr:
 assumes WELL: "Well_order r" and WELL': "Well_order r'"
 shows "(r' <o r) = (\<exists>a \<in> Field r. r' =o Restr r (underS r a))"
-proof(auto)
+proof safe
   fix a assume *: "a \<in> Field r" and **: "r' =o Restr r (underS r a)"
   hence "Restr r (underS r a) <o r" using WELL underS_Restr_ordLess[of r] by blast
   thus "r' <o r" using ** ordIso_ordLess_trans by blast
@@ -779,7 +791,7 @@ qed
 lemma ordLeq_iff_ordLess_Restr:
 assumes WELL: "Well_order r" and WELL': "Well_order r'"
 shows "(r \<le>o r') = (\<forall>a \<in> Field r. Restr r (underS r a) <o r')"
-proof(auto)
+proof safe
   assume *: "r \<le>o r'"
   fix a assume "a \<in> Field r"
   hence "Restr r (underS r a) <o r"
@@ -932,7 +944,8 @@ qed
 lemma trans_dir_image:
 assumes TRANS: "trans r" and INJ: "inj_on f (Field r)"
 shows "trans(dir_image r f)"
-proof(unfold trans_def, auto)
+unfolding trans_def
+proof safe
   fix a' b' c'
   assume "(a',b') \<in> dir_image r f" "(b',c') \<in> dir_image r f"
   then obtain a b1 b2 c where 1: "a' = f a \<and> b' = f b1 \<and> b' = f b2 \<and> c' = f c" and
@@ -953,7 +966,8 @@ by (simp add: preorder_on_def Refl_dir_image trans_dir_image)
 lemma antisym_dir_image:
 assumes AN: "antisym r" and INJ: "inj_on f (Field r)"
 shows "antisym(dir_image r f)"
-proof(unfold antisym_def, auto)
+unfolding antisym_def
+proof safe
   fix a' b'
   assume "(a',b') \<in> dir_image r f" "(b',a') \<in> dir_image r f"
   then obtain a1 b1 a2 b2 where 1: "a' = f a1 \<and> a' = f a2 \<and> b' = f b1 \<and> b' = f b2" and
@@ -1096,7 +1110,7 @@ proof
   qed
 next
   show "Field r \<times> Field r \<le> Field (bsqr r)"
-  proof(auto)
+  proof safe
     fix a1 a2 assume "a1 \<in> Field r" and "a2 \<in> Field r"
     hence "((a1,a2),(a1,a2)) \<in> bsqr r" unfolding bsqr_def by blast
     thus "(a1,a2) \<in> Field (bsqr r)" unfolding Field_def by auto
@@ -1109,7 +1123,8 @@ by(unfold refl_on_def Field_bsqr, auto simp add: bsqr_def)
 lemma bsqr_Trans:
 assumes "Well_order r"
 shows "trans (bsqr r)"
-proof(unfold trans_def, auto)
+unfolding trans_def
+proof safe
   (* Preliminary facts *)
   have Well: "wo_rel r" using assms wo_rel_def by auto
   hence Trans: "trans r" using wo_rel.TRANS by auto
@@ -1573,12 +1588,11 @@ qed
 
 lemma bij_betw_curr:
 "bij_betw (curr A) (Func (A \<times> B) C) (Func A (Func B C))"
-unfolding bij_betw_def inj_on_def image_def
-apply (intro impI conjI ballI)
-apply (erule curr_inj[THEN iffD1], assumption+)
-apply auto
-apply (erule curr_in)
-using curr_surj by blast
+  unfolding bij_betw_def inj_on_def image_def
+  apply (intro impI conjI ballI)
+   apply (erule curr_inj[THEN iffD1], assumption+, safe)
+  using curr_surj curr_in apply blast+
+  done
 
 definition Func_map where
 "Func_map B2 f1 f2 g b2 \<equiv> if b2 \<in> B2 then f1 (g (f2 b2)) else undefined"
@@ -1661,7 +1675,7 @@ next
     using j2A2 B1 A2 unfolding j1_def by (fast intro: inv_into_into)+
     ultimately show "h \<in> Func_map B2 f1 f2 ` Func A2 A1"
     unfolding Func_map_def[abs_def] by auto
-  qed(insert B1 Func_map[OF _ _ A2(2)], auto)
+  qed(use B1 Func_map[OF _ _ A2(2)] in auto)
 qed
 
 end

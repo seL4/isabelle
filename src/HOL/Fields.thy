@@ -286,7 +286,7 @@ lemma divide_self_if [simp]:
 
 lemma inverse_nonzero_iff_nonzero [simp]:
   "inverse a = 0 \<longleftrightarrow> a = 0"
-  by rule (fact inverse_zero_imp_zero, simp)
+  by (rule iffI) (fact inverse_zero_imp_zero, simp)
 
 lemma inverse_minus_eq [simp]:
   "inverse (- a) = - inverse a"
@@ -519,7 +519,7 @@ lemma minus_divide_divide:
 
 lemma inverse_eq_1_iff [simp]:
   "inverse x = 1 \<longleftrightarrow> x = 1"
-  by (insert inverse_eq_iff_eq [of x 1], simp)
+  using inverse_eq_iff_eq [of x 1] by simp
 
 lemma divide_eq_0_iff [simp]:
   "a / b = 0 \<longleftrightarrow> a = 0 \<or> b = 0"
@@ -647,8 +647,8 @@ qed
 
 lemma negative_imp_inverse_negative:
   "a < 0 \<Longrightarrow> inverse a < 0"
-  by (insert positive_imp_inverse_positive [of "-a"],
-    simp add: nonzero_inverse_minus_eq less_imp_not_eq)
+  using positive_imp_inverse_positive [of "-a"]
+  by (simp add: nonzero_inverse_minus_eq less_imp_not_eq)
 
 lemma inverse_le_imp_le:
   assumes invle: "inverse a \<le> inverse b" and apos: "0 < a"

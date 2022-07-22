@@ -988,9 +988,9 @@ lemma Union_subsetI: "(\<And>x. x \<in> A \<Longrightarrow> \<exists>y. y \<in> 
   by blast
 
 lemma disjnt_inj_on_iff:
-     "\<lbrakk>inj_on f (\<Union>\<A>); X \<in> \<A>; Y \<in> \<A>\<rbrakk> \<Longrightarrow> disjnt (f ` X) (f ` Y) \<longleftrightarrow> disjnt X Y"
-  apply (auto simp: disjnt_def)
-  using inj_on_eq_iff by fastforce
+ "\<lbrakk>inj_on f (\<Union>\<A>); X \<in> \<A>; Y \<in> \<A>\<rbrakk> \<Longrightarrow> disjnt (f ` X) (f ` Y) \<longleftrightarrow> disjnt X Y"
+  unfolding disjnt_def
+  by safe (use inj_on_eq_iff in \<open>fastforce+\<close>)
 
 lemma disjnt_Union1 [simp]: "disjnt (\<Union>\<A>) B \<longleftrightarrow> (\<forall>A \<in> \<A>. disjnt A B)"
   by (auto simp: disjnt_def)

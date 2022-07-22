@@ -28,7 +28,36 @@ lemma minf:
   "\<exists>z.\<forall>(x::'b::{linorder,plus,Rings.dvd})<z. (d dvd x + s) = (d dvd x + s)"
   "\<exists>z.\<forall>(x::'b::{linorder,plus,Rings.dvd})<z. (\<not> d dvd x + s) = (\<not> d dvd x + s)"
   "\<exists>z.\<forall>x<z. F = F"
-  by ((erule exE, erule exE,rule_tac x="min z za" in exI,simp)+, (rule_tac x="t" in exI,fastforce)+) simp_all
+proof safe
+  fix z1 z2
+  assume "\<forall>x<z1. P x = P' x" and "\<forall>x<z2. Q x = Q' x"
+  then have "\<forall>x < min z1 z2. (P x \<and> Q x) = (P' x \<and> Q' x)"
+    by simp
+  then show "\<exists>z. \<forall>x<z. (P x \<and> Q x) = (P' x \<and> Q' x)"
+    by blast
+next
+  fix z1 z2
+  assume "\<forall>x<z1. P x = P' x" and "\<forall>x<z2. Q x = Q' x"
+  then have "\<forall>x < min z1 z2. (P x \<or> Q x) = (P' x \<or> Q' x)"
+    by simp
+  then show "\<exists>z. \<forall>x<z. (P x \<or> Q x) = (P' x \<or> Q' x)"
+    by blast
+next
+  have "\<forall>x<t. x \<le> t"
+    by fastforce
+  then show "\<exists>z. \<forall>x<z. (x \<le> t) = True"
+    by auto
+next
+  have "\<forall>x<t. \<not> t < x"
+    by fastforce
+  then show "\<exists>z. \<forall>x<z. (t < x) = False"
+    by auto
+next
+  have "\<forall>x<t. \<not> t \<le> x"
+    by fastforce
+  then show "\<exists>z. \<forall>x<z. (t \<le> x) = False"
+    by auto
+qed auto
 
 lemma pinf:
   "\<lbrakk>\<exists>(z ::'a::linorder).\<forall>x>z. P x = P' x; \<exists>z.\<forall>x>z. Q x = Q' x\<rbrakk> 
@@ -44,7 +73,36 @@ lemma pinf:
   "\<exists>z.\<forall>(x::'b::{linorder,plus,Rings.dvd})>z. (d dvd x + s) = (d dvd x + s)"
   "\<exists>z.\<forall>(x::'b::{linorder,plus,Rings.dvd})>z. (\<not> d dvd x + s) = (\<not> d dvd x + s)"
   "\<exists>z.\<forall>x>z. F = F"
-  by ((erule exE, erule exE,rule_tac x="max z za" in exI,simp)+,(rule_tac x="t" in exI,fastforce)+) simp_all
+proof safe
+  fix z1 z2
+  assume "\<forall>x>z1. P x = P' x" and "\<forall>x>z2. Q x = Q' x"
+  then have "\<forall>x > max z1 z2. (P x \<and> Q x) = (P' x \<and> Q' x)"
+    by simp
+  then show "\<exists>z. \<forall>x>z. (P x \<and> Q x) = (P' x \<and> Q' x)"
+    by blast
+next
+  fix z1 z2
+  assume "\<forall>x>z1. P x = P' x" and "\<forall>x>z2. Q x = Q' x"
+  then have "\<forall>x > max z1 z2. (P x \<or> Q x) = (P' x \<or> Q' x)"
+    by simp
+  then show "\<exists>z. \<forall>x>z. (P x \<or> Q x) = (P' x \<or> Q' x)"
+    by blast
+next
+  have "\<forall>x>t. \<not> x < t"
+    by fastforce
+  then show "\<exists>z. \<forall>x>z. x < t = False"
+    by blast
+next
+  have "\<forall>x>t. \<not> x \<le> t"
+    by fastforce
+  then show "\<exists>z. \<forall>x>z. x \<le> t = False"
+    by blast
+next
+  have "\<forall>x>t. t \<le> x"
+    by fastforce
+  then show "\<exists>z. \<forall>x>z. t \<le> x = True"
+    by blast
+qed auto
 
 lemma inf_period:
   "\<lbrakk>\<forall>x k. P x = P (x - k*D); \<forall>x k. Q x = Q (x - k*D)\<rbrakk> 
@@ -166,8 +224,19 @@ next
   thus "\<forall>x.(\<forall>j\<in>{1 .. D}. \<forall>b\<in>A. x \<noteq> b - j)\<longrightarrow> (x \<le> t) \<longrightarrow> (x + D \<le> t)" by blast
 next
   assume d: "d dvd D"
-  {fix x assume H: "d dvd x + t" with d have "d dvd (x + D) + t"
-      by (clarsimp simp add: dvd_def,rule_tac x= "ka + k" in exI,simp add: algebra_simps)}
+  have "\<And>x. d dvd x + t \<Longrightarrow> d dvd x + D + t"
+  proof -
+    fix x
+    assume H: "d dvd x + t"
+    then obtain ka where "x + t = d * ka"
+      unfolding dvd_def by blast
+    moreover from d obtain k where *:"D = d * k"
+      unfolding dvd_def by blast
+    ultimately have "x + d * k + t = d * (ka + k)"
+      by (simp add: algebra_simps)
+    then show "d dvd (x + D) + t"
+      using * unfolding dvd_def by blast
+  qed
   thus "\<forall>(x::int).(\<forall>j\<in>{1 .. D}. \<forall>b\<in>A. x \<noteq> b - j)\<longrightarrow> (d dvd x+t) \<longrightarrow> (d dvd (x + D) + t)" by simp
 next
   assume d: "d dvd D"
@@ -346,20 +415,7 @@ apply(fastforce)
 done
 
 theorem unity_coeff_ex: "(\<exists>(x::'a::{semiring_0,Rings.dvd}). P (l * x)) \<equiv> (\<exists>x. l dvd (x + 0) \<and> P x)"
-  apply (rule eq_reflection [symmetric])
-  apply (rule iffI)
-  defer
-  apply (erule exE)
-  apply (rule_tac x = "l * x" in exI)
-  apply (simp add: dvd_def)
-  apply (rule_tac x = x in exI, simp)
-  apply (erule exE)
-  apply (erule conjE)
-  apply simp
-  apply (erule dvdE)
-  apply (rule_tac x = k in exI)
-  apply simp
-  done
+  unfolding dvd_def by (rule eq_reflection, rule iffI) auto
 
 lemma zdvd_mono:
   fixes k m t :: int

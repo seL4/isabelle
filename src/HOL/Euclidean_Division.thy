@@ -99,7 +99,8 @@ proof (rule ccontr)
   with size_mult_mono'[OF assms(1), of b] 
     have eq: "euclidean_size (a * b) = euclidean_size b" by simp
   have "a * b dvd b"
-    by (rule dvd_euclidean_size_eq_imp_dvd [OF _ eq]) (insert assms, simp_all)
+    by (rule dvd_euclidean_size_eq_imp_dvd [OF _ eq])
+       (use assms in simp_all)
   hence "a * b dvd 1 * b" by simp
   with \<open>b \<noteq> 0\<close> have "is_unit a" by (subst (asm) dvd_times_right_cancel_iff)
   with assms(3) show False by contradiction
@@ -108,7 +109,7 @@ qed
 lemma dvd_imp_size_le:
   assumes "a dvd b" "b \<noteq> 0" 
   shows   "euclidean_size a \<le> euclidean_size b"
-  using assms by (auto elim!: dvdE simp: size_mult_mono)
+  using assms by (auto simp: size_mult_mono)
 
 lemma dvd_proper_imp_size_less:
   assumes "a dvd b" "\<not> b dvd a" "b \<noteq> 0" 
@@ -139,7 +140,7 @@ qed
 
 lemma coprime_mod_left_iff [simp]:
   "coprime (a mod b) b \<longleftrightarrow> coprime a b" if "b \<noteq> 0"
-  by (rule; rule coprimeI)
+  by (rule iffI; rule coprimeI)
     (use that in \<open>auto dest!: dvd_mod_imp_dvd coprime_common_divisor simp add: dvd_mod_iff\<close>)
 
 lemma coprime_mod_right_iff [simp]:
