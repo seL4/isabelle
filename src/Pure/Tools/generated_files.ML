@@ -304,7 +304,7 @@ fun scala_build_generated_files ctxt args external =
       val _ = List.app (fn (file, pos) => report_file ctxt pos file) files;
       val _ = List.app (write_file dir o #1) files;
       val _ = List.app (get_external_files dir) external;
-    in Scala_Build.scala_build_directory ctxt (Input.string (Path.implode (Path.expand dir))) end);
+    in Scala_Build.scala_build ctxt dir end);
 
 fun scala_build_generated_files_cmd ctxt args external =
   scala_build_generated_files ctxt
