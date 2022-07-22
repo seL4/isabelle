@@ -33,6 +33,14 @@ sig
   val export_generated_files: Proof.context -> (Path.binding list * theory) list -> unit
   val export_generated_files_cmd: Proof.context ->
     ((string * Position.T) list * (string * Position.T) option) list -> unit
+  val check_external_files: Proof.context ->
+    Input.source list * Input.source -> Path.T list * Path.T
+  val get_external_files: Path.T -> Path.T list * Path.T -> unit
+  val scala_build_generated_files: Proof.context -> (Path.binding list * theory) list ->
+    (Path.T list * Path.T) list -> unit
+  val scala_build_generated_files_cmd: Proof.context ->
+    ((string * Position.T) list * (string * Position.T) option) list ->
+    (Input.source list * Input.source) list -> unit
   val with_compile_dir: (Path.T -> unit) -> unit
   val compile_generated_files: Proof.context ->
     (Path.binding list * theory) list ->
@@ -272,6 +280,38 @@ fun export_generated_files_cmd ctxt args =
   export_generated_files ctxt (map (check_files_in ctxt) args);
 
 
+(* external files *)
+
+fun check_external_files ctxt (raw_files, raw_base_dir) =
+  let
+    val base_dir = Resources.check_dir ctxt NONE raw_base_dir;
+    fun check source =
+     (Resources.check_file ctxt (SOME base_dir) source;
+      Path.explode (Input.string_of source));
+    val files = map check raw_files;
+  in (files, base_dir) end;
+
+fun get_external_files dir (files, base_dir) =
+  files |> List.app (fn file => Isabelle_System.copy_file_base (base_dir, file) dir);
+
+
+(* scala_build_generated_files *)
+
+fun scala_build_generated_files ctxt args external =
+  Isabelle_System.with_tmp_dir "scala_build" (fn dir =>
+    let
+      val files = maps get_files_in args;
+      val _ = List.app (fn (file, pos) => report_file ctxt pos file) files;
+      val _ = List.app (write_file dir o #1) files;
+      val _ = List.app (get_external_files dir) external;
+    in Scala_Build.scala_build ctxt dir end);
+
+fun scala_build_generated_files_cmd ctxt args external =
+  scala_build_generated_files ctxt
+    (map (check_files_in ctxt) args)
+    (map (check_external_files ctxt) external)
+
+
 (* compile_generated_files *)
 
 val compile_dir = Config.declare_string ("compile_dir", \<^here>) (K "");
@@ -287,9 +327,7 @@ fun compile_generated_files ctxt args external export export_prefix source =
       val files = maps get_files_in args;
       val _ = List.app (fn (file, pos) => report_file ctxt pos file) files;
       val _ = List.app (write_file dir o #1) files;
-      val _ =
-        external |> List.app (fn (files, base_dir) =>
-          files |> List.app (fn file => Isabelle_System.copy_file_base (base_dir, file) dir));
+      val _ = List.app (get_external_files dir) external;
       val _ =
         ML_Context.eval_in (SOME (Config.put compile_dir (Path.implode dir) ctxt))
           ML_Compiler.flags (Input.pos_of source)
@@ -320,14 +358,7 @@ fun compile_generated_files ctxt args external export export_prefix source =
 fun compile_generated_files_cmd ctxt args external export export_prefix source =
   compile_generated_files ctxt
     (map (check_files_in ctxt) args)
-    (external |> map (fn (raw_files, raw_base_dir) =>
-      let
-        val base_dir = Resources.check_dir ctxt NONE raw_base_dir;
-        fun check source =
-         (Resources.check_file ctxt (SOME base_dir) source;
-          Path.explode (Input.string_of source));
-        val files = map check raw_files;
-      in (files, base_dir) end))
+    (map (check_external_files ctxt) external)
     ((map o apfst o map) Path.explode_binding export)
     (Path.explode_binding export_prefix)
     source;
@@ -352,7 +383,19 @@ val _ =
     (file_type \<^binding>\<open>Haskell\<close>
       {ext = "hs",
        make_comment = enclose "{-" "-}",
-       make_string = GHC.print_string});
+       make_string = GHC.print_string} #>
+     file_type \<^binding>\<open>Java\<close>
+      {ext = "java",
+       make_comment = enclose "/*" "*/",
+       make_string = Java.print_string} #>
+     file_type \<^binding>\<open>Scala\<close>
+      {ext = "scala",
+       make_comment = enclose "/*" "*/",
+       make_string = Java.print_string} #>
+     file_type \<^binding>\<open>Properties\<close>
+      {ext = "props",
+       make_comment = enclose "#" "",
+       make_string = I});
 
 
 

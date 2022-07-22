@@ -429,7 +429,8 @@ object Sessions {
                   theories = List((Nil, required_theories.map(thy => ((thy, Position.none), false)))),
                   document_theories = Nil,
                   document_files = Nil,
-                  export_files = Nil))))
+                  export_files = Nil,
+                  export_classpath = Nil))))
         }
       }
       else (session, Nil)
@@ -466,6 +467,7 @@ object Sessions {
     document_theories: List[(String, Position.T)],
     document_files: List[(Path, Path)],
     export_files: List[(Path, Int, List[String])],
+    export_classpath: List[String],
     meta_digest: SHA1.Digest
   ) {
     def chapter_session: String = chapter + "/" + name
@@ -599,7 +601,7 @@ object Sessions {
       Info(name, chapter, dir_selected, entry.pos, entry.groups, session_path,
         entry.parent, entry.description, directories, session_options,
         entry.imports, theories, global_theories, entry.document_theories, document_files,
-        export_files, meta_digest)
+        export_files, entry.export_classpath, meta_digest)
     }
     catch {
       case ERROR(msg) =>
@@ -860,6 +862,7 @@ object Sessions {
   private val DOCUMENT_THEORIES = "document_theories"
   private val DOCUMENT_FILES = "document_files"
   private val EXPORT_FILES = "export_files"
+  private val EXPORT_CLASSPATH = "export_classpath"
 
   val root_syntax: Outer_Syntax =
     Outer_Syntax.empty + "(" + ")" + "+" + "," + "=" + "[" + "]" +
@@ -873,7 +876,8 @@ object Sessions {
       (THEORIES, Keyword.QUASI_COMMAND) +
       (DOCUMENT_THEORIES, Keyword.QUASI_COMMAND) +
       (DOCUMENT_FILES, Keyword.QUASI_COMMAND) +
-      (EXPORT_FILES, Keyword.QUASI_COMMAND)
+      (EXPORT_FILES, Keyword.QUASI_COMMAND) +
+      (EXPORT_CLASSPATH, Keyword.QUASI_COMMAND)
 
   abstract class Entry
   sealed case class Chapter(name: String) extends Entry
@@ -890,7 +894,8 @@ object Sessions {
     theories: List[(List[Options.Spec], List[((String, Position.T), Boolean)])],
     document_theories: List[(String, Position.T)],
     document_files: List[(String, String)],
-    export_files: List[(String, Int, List[String])]
+    export_files: List[(String, Int, List[String])],
+    export_classpath: List[String]
   ) extends Entry {
     def theories_no_position: List[(List[Options.Spec], List[(String, Boolean)])] =
       theories.map({ case (a, b) => (a, b.map({ case ((c, _), d) => (c, d) })) })
@@ -934,6 +939,10 @@ object Sessions {
         $$$(EXPORT_FILES) ~! ((in_path | success("export")) ~ prune ~ rep1(embedded)) ^^
           { case _ ~ (x ~ y ~ z) => (x, y, z) }
 
+      val export_classpath =
+        $$$(EXPORT_CLASSPATH) ~! (rep1(embedded) | success(List("*:classpath/*.jar"))) ^^
+          { case _ ~ x => x }
+
       command(SESSION) ~!
         (position(session_name) ~
           (($$$("(") ~! (rep1(name) <~ $$$(")")) ^^ { case _ ~ x => x }) | success(Nil)) ~
@@ -947,9 +956,10 @@ object Sessions {
               rep(theories) ~
               (opt(document_theories) ^^ (x => x.getOrElse(Nil))) ~
               (rep(document_files) ^^ (x => x.flatten)) ~
-              rep(export_files)))) ^^
-        { case _ ~ ((a, pos) ~ b ~ c ~ (_ ~ (d ~ e ~ f ~ g ~ h ~ i ~ j ~ k ~ l))) =>
-            Session_Entry(pos, a, b, c, d, e, f, g, h, i, j, k, l) }
+              rep(export_files) ~
+              opt(export_classpath)))) ^^
+        { case _ ~ ((a, pos) ~ b ~ c ~ (_ ~ (d ~ e ~ f ~ g ~ h ~ i ~ j ~ k ~ l ~ m))) =>
+            Session_Entry(pos, a, b, c, d, e, f, g, h, i, j, k, l, m.getOrElse(Nil)) }
     }
 
     def parse_root(path: Path): List[Entry] = {
@@ -1216,12 +1226,15 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
         database_server match {
           case Some(db) =>
             sessions.view.map(session_name =>
-              Export.read_entry(db, store.cache, session_name, theory_name, name))
+              Export.Entry_Name(session = session_name, theory = theory_name, name = name)
+                .read(db, store.cache))
           case None =>
             sessions.view.map(session_name =>
               store.try_open_database(session_name) match {
                 case Some(db) =>
-                  using(db)(Export.read_entry(_, store.cache, session_name, theory_name, name))
+                  using(db) { _ =>
+                    Export.Entry_Name(session = session_name, theory = theory_name, name = name)
+                      .read(db, store.cache) }
                 case None => None
               })
         }
@@ -1232,6 +1245,26 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
         session_hierarchy: List[String], theory_name: String, name: String): Export.Entry =
       read_export(session_hierarchy, theory_name, name) getOrElse
         Export.empty_entry(theory_name, name)
+
+    def get_classpath(structure: Structure, session: String): List[File.Content_Bytes] =
+    {
+      (for {
+        name <- structure.build_requirements(List(session))
+        patterns = structure(name).export_classpath if patterns.nonEmpty
+      } yield {
+        input_database(name)((db, _) =>
+          db.transaction {
+            val matcher = Export.make_matcher(patterns)
+            val res =
+              for {
+                entry_name <- Export.read_entry_names(db, name) if matcher(entry_name)
+                entry <- entry_name.read(db, store.cache)
+              } yield File.Content(entry.entry_name.make_path(), entry.uncompressed)
+            Some(res)
+          }
+        ).getOrElse(Nil)
+      }).flatten
+    }
 
     override def toString: String = {
       val s =

@@ -41,6 +41,9 @@ val export_files =
   Parse.$$$ "export_files" |--
     Parse.!!! (Scan.optional in_path (Input.string "export") -- prune -- Scan.repeat1 Parse.embedded);
 
+val export_classpath =
+  Parse.$$$ "export_classpath" |-- Scan.repeat Parse.embedded;
+
 fun path_source source path =
   Input.source (Input.is_delimited source) (Path.implode path) (Input.range_of source);
 
@@ -60,10 +63,11 @@ val command_parser =
       Scan.repeat theories --
       Scan.optional document_theories [] --
       Scan.repeat document_files --
-      Scan.repeat export_files))
+      Scan.repeat export_files --
+      Scan.optional export_classpath []))
   >> (fn (((((session, _), _), dir),
-          (((((((((parent, descr), options), sessions), directories), theories),
-            document_theories), document_files), export_files)))) =>
+          ((((((((((parent, descr), options), sessions), directories), theories),
+            document_theories), document_files), export_files), _)))) =>
     Toplevel.keep (fn state =>
       let
         val ctxt = Toplevel.context_of state;

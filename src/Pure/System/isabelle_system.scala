@@ -55,7 +55,7 @@ object Isabelle_System {
 
   /* init settings + services */
 
-  def make_services(): List[Class[Service]] = {
+  def get_services(): List[Class[Service]] = {
     def make(where: String, names: List[String]): List[Class[Service]] = {
       for (name <- names) yield {
         def err(msg: String): Nothing =
@@ -75,12 +75,12 @@ object Isabelle_System {
       make(quote(platform_jar),
         isabelle.setup.Build.get_services(JPath.of(platform_jar)).asScala.toList)
 
-    from_env("ISABELLE_SCALA_SERVICES") ::: Scala.class_path().flatMap(from_jar)
+    from_env("ISABELLE_SCALA_SERVICES") ::: Scala.get_classpath().flatMap(from_jar)
   }
 
   def init(isabelle_root: String = "", cygwin_root: String = ""): Unit = {
     isabelle.setup.Environment.init(isabelle_root, cygwin_root)
-    synchronized { if (_services.isEmpty) { _services = Some(make_services()) } }
+    synchronized { if (_services.isEmpty) { _services = Some(get_services()) } }
   }
 
 

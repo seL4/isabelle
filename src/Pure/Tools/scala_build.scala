@@ -98,16 +98,14 @@ object Scala_Build {
     val here = Scala_Project.here
     def invoke(args: List[Bytes]): List[Bytes] =
       args match {
-        case List(component, dir) =>
-          val result =
-            build_result(Path.explode(dir.text),
-              component = Value.Boolean.parse(component.text))
+        case List(dir) =>
+          val result = build_result(Path.explode(dir.text))
           val jar_name =
             result.jar_path match {
               case Some(path) => path.file_name
-              case None => "result.jar"
+              case None => "scala_build.jar"
             }
-          List(Bytes("scala_build/" + jar_name), result.jar_bytes, Bytes(result.output))
+          List(Bytes("classpath/" + jar_name), result.jar_bytes, Bytes(result.output))
         case _ => error("Bad arguments")
       }
   }
