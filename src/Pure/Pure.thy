@@ -23,6 +23,7 @@ keywords
   and "external_file" "bibtex_file" "ROOTS_file" :: thy_load
   and "generate_file" :: thy_decl
   and "export_generated_files" :: diag
+  and "scala_build_generated_files" :: diag
   and "compile_generated_files" :: diag and "external_files" "export_files" "export_prefix"
   and "export_classpath"
   and "scala_build_component" "scala_build_directory" :: diag
@@ -190,6 +191,16 @@ local
           Toplevel.keep (fn st =>
             Generated_Files.compile_generated_files_cmd
               (Toplevel.context_of st) args external export export_prefix source)));
+
+  val _ =
+    Outer_Syntax.command \<^command_keyword>\<open>scala_build_generated_files\<close>
+      "build and export Isabelle/Scala/Java module"
+      (Parse.and_list files_in_theory --
+        Scan.optional (\<^keyword>\<open>external_files\<close> |-- Parse.!!! (Parse.and_list1 external_files)) []
+        >> (fn (args, external) =>
+          Toplevel.keep (fn st =>
+            Generated_Files.scala_build_generated_files_cmd
+              (Toplevel.context_of st) args external)));
 
   val _ =
     Outer_Syntax.command \<^command_keyword>\<open>scala_build_component\<close>

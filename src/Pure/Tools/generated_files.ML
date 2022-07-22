@@ -36,6 +36,11 @@ sig
   val check_external_files: Proof.context ->
     Input.source list * Input.source -> Path.T list * Path.T
   val get_external_files: Path.T -> Path.T list * Path.T -> unit
+  val scala_build_generated_files: Proof.context -> (Path.binding list * theory) list ->
+    (Path.T list * Path.T) list -> unit
+  val scala_build_generated_files_cmd: Proof.context ->
+    ((string * Position.T) list * (string * Position.T) option) list ->
+    (Input.source list * Input.source) list -> unit
   val with_compile_dir: (Path.T -> unit) -> unit
   val compile_generated_files: Proof.context ->
     (Path.binding list * theory) list ->
@@ -290,6 +295,23 @@ fun get_external_files dir (files, base_dir) =
   files |> List.app (fn file => Isabelle_System.copy_file_base (base_dir, file) dir);
 
 
+(* scala_build_generated_files *)
+
+fun scala_build_generated_files ctxt args external =
+  Isabelle_System.with_tmp_dir "scala_build" (fn dir =>
+    let
+      val files = maps get_files_in args;
+      val _ = List.app (fn (file, pos) => report_file ctxt pos file) files;
+      val _ = List.app (write_file dir o #1) files;
+      val _ = List.app (get_external_files dir) external;
+    in Scala_Build.scala_build_directory ctxt (Input.string (Path.implode (Path.expand dir))) end);
+
+fun scala_build_generated_files_cmd ctxt args external =
+  scala_build_generated_files ctxt
+    (map (check_files_in ctxt) args)
+    (map (check_external_files ctxt) external)
+
+
 (* compile_generated_files *)
 
 val compile_dir = Config.declare_string ("compile_dir", \<^here>) (K "");
@@ -369,7 +391,11 @@ val _ =
      file_type \<^binding>\<open>Scala\<close>
       {ext = "scala",
        make_comment = enclose "/*" "*/",
-       make_string = Java.print_string});
+       make_string = Java.print_string} #>
+     file_type \<^binding>\<open>Properties\<close>
+      {ext = "props",
+       make_comment = enclose "#" "",
+       make_string = I});
 
 
 
