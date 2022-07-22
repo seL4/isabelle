@@ -975,7 +975,7 @@ lemmas order_trans_rules =
   trans
 
 text \<open>These support proving chains of decreasing inequalities
-    a \<ge> b \<ge> c ... in Isar proofs.\<close>
+    a \<open>\<ge>\<close> b \<open>\<ge>\<close> c ... in Isar proofs.\<close>
 
 lemma xt1 [no_atp]:
   "a = b \<Longrightarrow> b > c \<Longrightarrow> a > c"
