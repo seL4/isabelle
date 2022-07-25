@@ -76,9 +76,6 @@ object Isabelle_System {
   def init_services_jar(jar: Path): List[Class[Service]] =
     init_services(jar.toString, isabelle.setup.Build.get_services(jar.java_path).asScala.toList)
 
-  def init_services_jar(platform_jar: String): List[Class[Service]] =
-    init_services_jar(Path.explode(File.standard_path(platform_jar)))
-
   def init(isabelle_root: String = "", cygwin_root: String = ""): Unit = {
     isabelle.setup.Environment.init(isabelle_root, cygwin_root)
     synchronized {

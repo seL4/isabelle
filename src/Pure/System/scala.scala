@@ -100,9 +100,11 @@ object Scala {
 
   /** compiler **/
 
-  def get_classpath(): List[String] =
-    space_explode(JFile.pathSeparatorChar, System.getProperty("java.class.path", ""))
-      .filter(_.nonEmpty)
+  def get_classpath(): List[Path] =
+    for {
+      s <- space_explode(JFile.pathSeparatorChar, System.getProperty("java.class.path", ""))
+      if s.nonEmpty
+    } yield Path.explode(File.standard_path(s))
 
   object Compiler {
     object Message {
