@@ -252,6 +252,15 @@ next
   qed
 qed
 
+text \<open>A much more general version of this monotonicity lemma
+can be formulated with multisets and the multiset order\<close>
+
+lemma sum_list_mono2: fixes xs :: "'a ::ordered_comm_monoid_add list"
+shows "\<lbrakk> length xs = length ys; \<And>i. i < length xs \<longrightarrow> xs!i \<le> ys!i \<rbrakk>
+  \<Longrightarrow> sum_list xs \<le> sum_list ys"
+apply(induction xs ys rule: list_induct2)
+by(auto simp: nth_Cons' less_Suc_eq_0_disj imp_ex add_mono)
+
 lemma (in monoid_add) sum_list_distinct_conv_sum_set:
   "distinct xs \<Longrightarrow> sum_list (map f xs) = sum f (set xs)"
   by (induct xs) simp_all

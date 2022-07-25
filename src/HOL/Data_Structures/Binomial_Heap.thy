@@ -457,15 +457,15 @@ proof -
 
   have "(2::nat)^length ts = (\<Sum>i\<in>{0..<length ts}. 2^i) + 1"
     by (simp add: sum_power2)
-  also have "\<dots> \<le> (\<Sum>t\<leftarrow>ts. 2^rank t) + 1"
-    using sorted_wrt_less_sum_mono_lowerbound[OF _ ASC, of "(^) (2::nat)"]
-    using power_increasing[where a="2::nat"]
-    by (auto simp: o_def)
-  also have "\<dots> = (\<Sum>t\<leftarrow>ts. size (mset_tree t)) + 1" using TINV
+  also have "\<dots> = (\<Sum>i\<leftarrow>[0..<length ts]. 2^i) + 1" (is "_ = ?S + 1")
+    by (simp add: interv_sum_list_conv_sum_set_nat)
+  also have "?S \<le> (\<Sum>t\<leftarrow>ts. 2^rank t)" (is "_ \<le> ?T")
+    using sorted_wrt_less_idx[OF ASC] by(simp add: sum_list_mono2)
+  also have "?T + 1 \<le> (\<Sum>t\<leftarrow>ts. size (mset_tree t)) + 1" using TINV
     by (auto cong: map_cong simp: size_mset_tree)
   also have "\<dots> = size (mset_trees ts) + 1"
     unfolding mset_trees_def by (induction ts) auto
-  finally have "2^length ts \<le> size (mset_trees ts) + 1" .
+  finally have "2^length ts \<le> size (mset_trees ts) + 1" by simp
   then show ?thesis using le_log2_of_power by blast
 qed
 
