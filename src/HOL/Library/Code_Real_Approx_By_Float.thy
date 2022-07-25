@@ -20,14 +20,69 @@ text\<open>
   purposes.
 \<close>
 
+definition Realfract :: \<open>real \<Rightarrow> real \<Rightarrow> real\<close>
+  where \<open>Realfract p q = p / q\<close>
+
+code_datatype Realfract
+
+context
+begin
+
+qualified definition real_of_int :: \<open>int \<Rightarrow> real\<close>
+  where [code_abbrev]: \<open>real_of_int = of_int\<close>
+
+qualified definition real_of_integer :: "integer \<Rightarrow> real"
+  where [code_abbrev]: "real_of_integer = of_int \<circ> int_of_integer"
+
+lemma [code]: "real_of_int = real_of_integer \<circ> integer_of_int"
+  by (simp add: fun_eq_iff real_of_integer_def real_of_int_def)
+
+qualified definition exp_real :: \<open>real \<Rightarrow> real\<close>
+  where [code_abbrev, code del]: \<open>exp_real = exp\<close>
+
+qualified definition sin_real :: \<open>real \<Rightarrow> real\<close>
+  where [code_abbrev, code del]: \<open>sin_real = sin\<close>
+
+qualified definition cos_real :: \<open>real \<Rightarrow> real\<close>
+  where [code_abbrev, code del]: \<open>cos_real = cos\<close>
+
+end
+
+definition Quotreal :: \<open>int \<Rightarrow> int \<Rightarrow> real\<close>
+  where \<open>Quotreal p q = Realfract (of_int p) (of_int q)\<close>
+
+lemma [code]: "Ratreal r = case_prod Quotreal (quotient_of r)"
+  by (cases r) (simp add: Realfract_def Quotreal_def quotient_of_Fract of_rat_rat)
+
+lemma [code]: \<open>inverse r = 1 / r\<close> for r :: real
+  by (fact inverse_eq_divide)
+
+lemma [code_unfold del]: "numeral k \<equiv> real_of_rat (numeral k)"
+  by simp
+
+lemma [code_unfold del]: "- numeral k \<equiv> real_of_rat (- numeral k)"
+  by simp
+
+declare [[code drop: \<open>HOL.equal :: real \<Rightarrow> real \<Rightarrow> bool\<close>
+  \<open>plus :: real \<Rightarrow> real \<Rightarrow> real\<close>
+  \<open>uminus :: real \<Rightarrow> real\<close>
+  \<open>minus :: real \<Rightarrow> real \<Rightarrow> real\<close>
+  \<open>times :: real \<Rightarrow> real \<Rightarrow> real\<close>
+  \<open>divide :: real \<Rightarrow> real \<Rightarrow> real\<close>
+  \<open>(<) :: real \<Rightarrow> real \<Rightarrow> bool\<close>
+  \<open>(\<le>) :: real \<Rightarrow> real \<Rightarrow> bool\<close>
+  sqrt \<open>ln :: real \<Rightarrow> real\<close> pi
+  arcsin arccos arctan]]
+
+code_reserved SML Real
+
 code_printing
   type_constructor real \<rightharpoonup>
     (SML) "real"
     and (OCaml) "float"
 
 code_printing
-  constant Ratreal \<rightharpoonup>
-    (SML) "error/ \"Bad constant: Ratreal\""
+  constant Realfract \<rightharpoonup> (SML) "_/ '// _"
 
 code_printing
   constant "0 :: real" \<rightharpoonup>
@@ -80,131 +135,54 @@ code_printing
     and (OCaml) "Pervasives.( '/. )"
 
 code_printing
-  constant "HOL.equal :: real \<Rightarrow> real \<Rightarrow> bool" \<rightharpoonup>
-    (SML) "Real.== ((_:real), (_))"
-
-code_printing
   constant "sqrt :: real \<Rightarrow> real" \<rightharpoonup>
     (SML) "Math.sqrt"
     and (OCaml) "Pervasives.sqrt"
-declare sqrt_def[code del]
-
-context
-begin
-
-qualified definition real_exp :: "real \<Rightarrow> real"
-  where "real_exp = exp"
-
-lemma exp_eq_real_exp [code_unfold]: "exp = real_exp"
-  unfolding real_exp_def ..
-
-end
 
 code_printing
-  constant Code_Real_Approx_By_Float.real_exp \<rightharpoonup>
+  constant Code_Real_Approx_By_Float.exp_real \<rightharpoonup>
     (SML) "Math.exp"
     and (OCaml) "Pervasives.exp"
-declare Code_Real_Approx_By_Float.real_exp_def[code del]
-declare exp_def[code del]
 
 code_printing
   constant ln \<rightharpoonup>
     (SML) "Math.ln"
     and (OCaml) "Pervasives.ln"
-declare ln_real_def[code del]
 
 code_printing
-  constant cos \<rightharpoonup>
+  constant Code_Real_Approx_By_Float.cos_real \<rightharpoonup>
     (SML) "Math.cos"
     and (OCaml) "Pervasives.cos"
-declare cos_def[code del]
 
 code_printing
-  constant sin \<rightharpoonup>
+  constant Code_Real_Approx_By_Float.sin_real \<rightharpoonup>
     (SML) "Math.sin"
     and (OCaml) "Pervasives.sin"
-declare sin_def[code del]
 
 code_printing
   constant pi \<rightharpoonup>
     (SML) "Math.pi"
     and (OCaml) "Pervasives.pi"
-declare pi_def[code del]
 
 code_printing
   constant arctan \<rightharpoonup>
     (SML) "Math.atan"
     and (OCaml) "Pervasives.atan"
-declare arctan_def[code del]
 
 code_printing
   constant arccos \<rightharpoonup>
     (SML) "Math.scos"
     and (OCaml) "Pervasives.acos"
-declare arccos_def[code del]
 
 code_printing
   constant arcsin \<rightharpoonup>
     (SML) "Math.asin"
     and (OCaml) "Pervasives.asin"
-declare arcsin_def[code del]
-
-definition real_of_integer :: "integer \<Rightarrow> real"
-  where "real_of_integer = of_int \<circ> int_of_integer"
 
 code_printing
-  constant real_of_integer \<rightharpoonup>
+  constant Code_Real_Approx_By_Float.real_of_integer \<rightharpoonup>
     (SML) "Real.fromInt"
     and (OCaml) "Pervasives.float/ (Big'_int.to'_int (_))"
-
-context
-begin
-
-qualified definition real_of_int :: "int \<Rightarrow> real"
-  where [code_abbrev]: "real_of_int = of_int"
-
-lemma [code]: "real_of_int = real_of_integer \<circ> integer_of_int"
-  by (simp add: fun_eq_iff real_of_integer_def real_of_int_def)
-
-lemma [code_unfold del]: "0 \<equiv> (of_rat 0 :: real)"
-  by simp
-
-lemma [code_unfold del]: "1 \<equiv> (of_rat 1 :: real)"
-  by simp
-
-lemma [code_unfold del]: "numeral k \<equiv> (of_rat (numeral k) :: real)"
-  by simp
-
-lemma [code_unfold del]: "- numeral k \<equiv> (of_rat (- numeral k) :: real)"
-  by simp
-
-end
-
-code_printing
-  constant Ratreal \<rightharpoonup> (SML)
-
-definition Realfract :: "int \<Rightarrow> int \<Rightarrow> real"
-  where "Realfract p q = of_int p / of_int q"
-
-code_datatype Realfract
-
-code_printing
-  constant Realfract \<rightharpoonup> (SML) "Real.fromInt _/ '// Real.fromInt _"
-
-lemma [code]: "Ratreal r = case_prod Realfract (quotient_of r)"
-  by (cases r) (simp add: Realfract_def quotient_of_Fract of_rat_rat)
-
-declare [[code drop: "HOL.equal :: real \<Rightarrow> real \<Rightarrow> bool"
-  "plus :: real \<Rightarrow> real \<Rightarrow> real"
-  "uminus :: real \<Rightarrow> real"
-  "minus :: real \<Rightarrow> real \<Rightarrow> real"
-  "times :: real \<Rightarrow> real \<Rightarrow> real"
-  "divide :: real \<Rightarrow> real \<Rightarrow> real"
-  "(<) :: real \<Rightarrow> real \<Rightarrow> bool"
-  "(\<le>) :: real \<Rightarrow> real \<Rightarrow> bool"]]
-
-lemma [code]: "inverse r = 1 / r" for r :: real
-  by (fact inverse_eq_divide)
 
 notepad
 begin
