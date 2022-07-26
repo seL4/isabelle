@@ -287,7 +287,7 @@ object JEdit_Lib {
   def load_icon(name: String): Icon = {
     val name1 =
       if (name.startsWith("idea-icons/")) {
-        val file = Path.explode("$ISABELLE_IDEA_ICONS").file.toURI.toASCIIString
+        val file = Path.explode("$ISABELLE_IDEA_ICONS").uri.toASCIIString
         "jar:" + file + "!/" + name
       }
       else name

@@ -12,6 +12,7 @@ import java.io.{File => JFile, IOException}
 import java.nio.file.{Path => JPath, Files, SimpleFileVisitor, FileVisitResult,
   StandardCopyOption, FileSystemException}
 import java.nio.file.attribute.BasicFileAttributes
+import java.net.URLClassLoader
 
 import scala.jdk.CollectionConverters._
 
@@ -48,18 +49,45 @@ object Isabelle_System {
     _services.get
   }
 
-  def make_services[C](c: Class[C]): List[C] =
-    for { c1 <- services() if Library.is_subclass(c1, c) }
+  def make_services[C](c: Class[C], more_services: List[Class[Service]] = Nil): List[C] =
+    for { c1 <- services() ::: more_services if Library.is_subclass(c1, c) }
       yield c1.getDeclaredConstructor().newInstance().asInstanceOf[C]
+
+  class Tmp_Loader private[Isabelle_System](tmp_jars: List[JFile], parent: ClassLoader)
+    extends URLClassLoader(tmp_jars.map(_.toURI.toURL).toArray, parent) {
+      override def finalize(): Unit = {
+        for (tmp_jar <- tmp_jars) {
+          try { tmp_jar.delete() }
+          catch { case _: Throwable => }
+        }
+      }
+    }
+
+  def make_classloader(jars: List[File.Content_Bytes]): (List[JFile], ClassLoader) =
+  {
+    val default_classloader = Isabelle_System.getClass.getClassLoader
+    if (jars.isEmpty) (Nil, default_classloader)
+    else {
+      val tmp_jars =
+        for (jar <- jars) yield {
+          val tmp_jar = tmp_file("jar", ext = "jar")
+          Bytes.write(tmp_jar, jar.content)
+          tmp_jar
+        }
+      (tmp_jars, new Tmp_Loader(tmp_jars, default_classloader))
+    }
+  }
 
 
   /* init settings + services */
 
-  private def init_services(where: String, names: List[String]): List[Class[Service]] = {
+  private def init_services(
+    where: String, names: List[String], classloader: ClassLoader
+  ): List[Class[Service]] = {
     for (name <- names) yield {
       def err(msg: String): Nothing =
         error("Bad Isabelle/Scala service " + quote(name) + " in " + where + "\n" + msg)
-      try { Class.forName(name).asInstanceOf[Class[Service]] }
+      try { Class.forName(name, true, classloader).asInstanceOf[Class[Service]] }
       catch {
         case _: ClassNotFoundException => err("Class not found")
         case exn: Throwable => err(Exn.message(exn))
@@ -67,23 +95,24 @@ object Isabelle_System {
     }
   }
 
-  def init_services_env(): List[Class[Service]] =
+  def init_services_env(classloader: ClassLoader): List[Class[Service]] =
   {
     val variable = "ISABELLE_SCALA_SERVICES"
-    init_services(quote(variable), space_explode(':', getenv_strict(variable)))
+    init_services(quote(variable), space_explode(':', getenv_strict(variable)), classloader)
   }
 
-  def init_services_jar(jar: Path): List[Class[Service]] =
-    init_services(jar.toString, isabelle.setup.Build.get_services(jar.java_path).asScala.toList)
-
-  def init_services_jar(platform_jar: String): List[Class[Service]] =
-    init_services_jar(Path.explode(File.standard_path(platform_jar)))
+  def init_services_jar(jar: Path, classloader: ClassLoader): List[Class[Service]] =
+    init_services(jar.toString,
+      isabelle.setup.Build.get_services(jar.java_path).asScala.toList, classloader)
 
   def init(isabelle_root: String = "", cygwin_root: String = ""): Unit = {
     isabelle.setup.Environment.init(isabelle_root, cygwin_root)
+    val (_, classloader) = make_classloader(Nil)
     synchronized {
       if (_services.isEmpty) {
-        _services = Some(init_services_env() ::: Scala.get_classpath().flatMap(init_services_jar))
+        _services =
+          Some(init_services_env(classloader) :::
+            Scala.get_classpath().flatMap(init_services_jar(_, classloader)))
       }
     }
   }
