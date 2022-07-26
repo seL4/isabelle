@@ -155,7 +155,11 @@ object Document_Build {
 
     def get_engine(): Engine = {
       val name = document_build
-      engines.find(_.name == name).getOrElse(error("Bad document_build engine " + quote(name)))
+      val (files, classloader) = Isabelle_System.make_classloader(classpath)
+      val more_services =
+        files.flatMap(file => Isabelle_System.init_services_jar(File.path(file), classloader))
+      Isabelle_System.make_services(classOf[Engine], more_services = more_services)
+        .find(_.name == name).getOrElse(error("Bad document_build engine " + quote(name)))
     }
 
     def get_export(theory: String, name: String): Export.Entry =
@@ -300,8 +304,6 @@ object Document_Build {
 
 
   /* build engines */
-
-  lazy val engines: List[Engine] = Isabelle_System.make_services(classOf[Engine])
 
   abstract class Engine(val name: String) extends Isabelle_System.Service {
     override def toString: String = name
