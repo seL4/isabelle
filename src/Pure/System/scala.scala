@@ -174,7 +174,9 @@ object Scala {
         File.find_files(dir, file => file.getName.endsWith(".jar")).
           map(File.absolute_name)
 
-      val classpath = (get_classpath() ::: jar_dirs.flatMap(find_jars)).mkString(JFile.pathSeparator)
+      val classpath =
+        (get_classpath().map(File.platform_path) :::
+          jar_dirs.flatMap(find_jars)).mkString(JFile.pathSeparator)
       val settings1 = isabelle_settings ::: settings ::: List("-classpath", classpath)
       new Context(settings1, class_loader)
     }
