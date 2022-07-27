@@ -100,12 +100,6 @@ object Scala {
 
   /** compiler **/
 
-  def get_classpath(): List[Path] =
-    for {
-      s <- space_explode(JFile.pathSeparatorChar, System.getProperty("java.class.path", ""))
-      if s.nonEmpty
-    } yield Path.explode(File.standard_path(s))
-
   object Compiler {
     object Message {
       object Kind extends Enumeration {
@@ -164,19 +158,13 @@ object Scala {
 
     def context(
       settings: List[String] = Nil,
-      jar_dirs: List[JFile] = Nil,
+      jar_files: List[JFile] = Nil,
       class_loader: Option[ClassLoader] = None
     ): Context = {
       val isabelle_settings =
         Word.explode(Isabelle_System.getenv_strict("ISABELLE_SCALAC_OPTIONS"))
 
-      def find_jars(dir: JFile): List[String] =
-        File.find_files(dir, file => file.getName.endsWith(".jar")).
-          map(File.absolute_name)
-
-      val classpath =
-        (get_classpath().map(File.platform_path) :::
-          jar_dirs.flatMap(find_jars)).mkString(JFile.pathSeparator)
+      val classpath = Classpath(jar_files = jar_files).platform_path
       val settings1 = isabelle_settings ::: settings ::: List("-classpath", classpath)
       new Context(settings1, class_loader)
     }

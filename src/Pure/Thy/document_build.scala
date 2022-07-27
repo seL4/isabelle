@@ -155,10 +155,7 @@ object Document_Build {
 
     def get_engine(): Engine = {
       val name = document_build
-      val (files, classloader) = Isabelle_System.make_classloader(classpath)
-      val more_services =
-        files.flatMap(file => Isabelle_System.init_services_jar(File.path(file), classloader))
-      Isabelle_System.make_services(classOf[Engine], more_services = more_services)
+      Classpath(jar_contents = classpath).make_services(classOf[Engine])
         .find(_.name == name).getOrElse(error("Bad document_build engine " + quote(name)))
     }
 
