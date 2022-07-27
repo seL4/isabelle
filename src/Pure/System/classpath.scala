@@ -26,7 +26,7 @@ object Classpath {
       for {
         s <- space_explode(JFile.pathSeparatorChar, System.getProperty("java.class.path", ""))
         if s.nonEmpty
-      } yield new JFile(s)
+      } yield File.absolute(new JFile(s))
 
     val jar_files1 =
       jar_files.flatMap(start => File.find_files(start, _.getName.endsWith(".jar")))
