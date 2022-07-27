@@ -11,7 +11,6 @@ package isabelle
 import java.util.{Map => JMap}
 import java.io.{File => JFile}
 import java.nio.file.{Path => JPath}
-import java.net.{URI, URL}
 
 import scala.util.matching.Regex
 
@@ -313,9 +312,6 @@ final class Path private(
   def file: JFile = File.platform_file(this)
   def is_file: Boolean = file.isFile
   def is_dir: Boolean = file.isDirectory
-
-  def uri: URI = file.toURI
-  def url: URL = uri.toURL
 
   def java_path: JPath = file.toPath
 

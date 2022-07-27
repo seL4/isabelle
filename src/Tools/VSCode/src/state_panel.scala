@@ -66,7 +66,7 @@ class State_Panel private(val server: Language_Server) {
                   thy_file <- Position.Def_File.unapply(props)
                   def_line <- Position.Def_Line.unapply(props)
                   source <- server.resources.source_file(thy_file)
-                  uri = Path.explode(source).absolute_file.toURI
+                  uri = File.uri(Path.explode(source).absolute_file)
                 } yield HTML.link(uri.toString + "#" + def_line, body)
             }
           val elements = Presentation.elements2.copy(entity = Markup.Elements.full)

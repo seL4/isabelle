@@ -13,7 +13,7 @@ import java.io.{BufferedWriter, OutputStreamWriter, FileOutputStream, BufferedOu
 import java.nio.file.{StandardOpenOption, Path => JPath, Files, SimpleFileVisitor,
   FileVisitOption, FileVisitResult}
 import java.nio.file.attribute.BasicFileAttributes
-import java.net.{URL, MalformedURLException}
+import java.net.{URI, URL, MalformedURLException}
 import java.util.zip.{GZIPInputStream, GZIPOutputStream}
 import java.util.EnumSet
 
@@ -61,6 +61,12 @@ object File {
 
   def path(file: JFile): Path = Path.explode(standard_path(file))
   def pwd(): Path = path(Path.current.absolute_file)
+
+  def uri(file: JFile): URI = file.toURI
+  def uri(path: Path): URI = path.file.toURI
+
+  def url(file: JFile): URL = uri(file).toURL
+  def url(path: Path): URL = url(path.file)
 
 
   /* relative paths */
