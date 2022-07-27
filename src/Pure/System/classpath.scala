@@ -49,12 +49,12 @@ class Classpath private(static_jars: List[JFile], dynamic_jars: List[JFile]) {
 
   def platform_path: String = jars.map(_.getPath).mkString(JFile.pathSeparator)
 
-  val classloader: ClassLoader =
+  val class_loader: ClassLoader =
   {
-    val this_classloader = this.getClass.getClassLoader
-    if (dynamic_jars.isEmpty) this_classloader
+    val this_class_loader = this.getClass.getClassLoader
+    if (dynamic_jars.isEmpty) this_class_loader
     else {
-      new URLClassLoader(dynamic_jars.map(File.url).toArray, this_classloader) {
+      new URLClassLoader(dynamic_jars.map(File.url).toArray, this_class_loader) {
         override def finalize(): Unit = {
           for (jar <- dynamic_jars) {
             try { jar.delete() }
@@ -69,7 +69,7 @@ class Classpath private(static_jars: List[JFile], dynamic_jars: List[JFile]) {
     for (name <- names) yield {
       def err(msg: String): Nothing =
         error("Bad Isabelle/Scala service " + quote(name) + " in " + where + "\n" + msg)
-      try { Class.forName(name, true, classloader).asInstanceOf[Classpath.Service_Class] }
+      try { Class.forName(name, true, class_loader).asInstanceOf[Classpath.Service_Class] }
       catch {
         case _: ClassNotFoundException => err("Class not found")
         case exn: Throwable => err(Exn.message(exn))
