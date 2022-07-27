@@ -36,12 +36,11 @@ object SHA1 {
     make_digest(sha => using(new FileInputStream(file)) { stream =>
       val buf = new Array[Byte](65536)
       var m = 0
-      var cont = true
-      while (cont) {
+      while ({
         m = stream.read(buf, 0, buf.length)
         if (m != -1) sha.update(buf, 0, m)
-        cont = (m != -1)
-      }
+        m != -1
+      }) ()
     })
 
   def digest(path: Path): Digest = digest(path.file)
