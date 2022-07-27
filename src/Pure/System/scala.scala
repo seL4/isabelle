@@ -163,16 +163,18 @@ object Scala {
     ): Context = {
       val isabelle_settings =
         Word.explode(Isabelle_System.getenv_strict("ISABELLE_SCALAC_OPTIONS"))
-
-      val classpath = Classpath(jar_files = jar_files).platform_path
-      val settings1 = isabelle_settings ::: settings ::: List("-classpath", classpath)
-      new Context(settings1, class_loader)
+      val classpath = Classpath(jar_files = jar_files)
+      new Context(isabelle_settings ::: settings, classpath, class_loader)
     }
 
     class Context private [Compiler](
-      val settings: List[String],
+      _settings: List[String],
+      val classpath: Classpath,
       val class_loader: Option[ClassLoader] = None
     ) {
+      def settings: List[String] =
+        _settings ::: List("-classpath", classpath.platform_path)
+
       private val out_stream = new ByteArrayOutputStream(1024)
       private val out = new PrintStream(out_stream)
       private val driver: ReplDriver = new ReplDriver(settings.toArray, out, class_loader)
