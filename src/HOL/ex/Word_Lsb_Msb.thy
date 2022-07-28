@@ -130,6 +130,15 @@ lemma msb_signed_take_bit_iff:
   \<open>msb (signed_take_bit n w) \<longleftrightarrow> bit w (min n (word_length TYPE('a) - Suc 0))\<close>
   by (simp add: msb_def bit_simps possible_bit_iff_less_word_length)
 
+definition signed_drop_bit :: \<open>nat \<Rightarrow> 'a \<Rightarrow> 'a\<close>
+  where \<open>signed_drop_bit n w = drop_bit n w
+    OR (of_bool (bit w (word_length TYPE('a) - Suc 0)) * NOT (mask (word_length TYPE('a) - Suc n)))\<close>
+
+lemma msb_signed_drop_bit_iff [simp]:
+  \<open>msb (signed_drop_bit n w) \<longleftrightarrow> msb w\<close>
+  by (simp add: signed_drop_bit_def bit_simps not_le not_less)
+    (simp add: msb_def)
+
 end
 
 end
