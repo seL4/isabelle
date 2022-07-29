@@ -605,13 +605,13 @@ object Presentation {
             make_html(entity_context(name), thy_elements,
               snapshot.xml_markup(elements = thy_elements.html)))
 
-        val thy_session = html_context.theory_session(name)
+        val thy_session = html_context.theory_session(name).name
         val thy_dir = Isabelle_System.make_directory(html_context.theory_dir(name))
         val files =
           for { (src_path, file_html) <- files_html }
             yield {
-              seen_files.find(_.check(src_path, name, thy_session.name)) match {
-                case None => seen_files ::= Seen_File(src_path, name, thy_session.name)
+              seen_files.find(_.check(src_path, name, thy_session)) match {
+                case None => seen_files ::= Seen_File(src_path, name, thy_session)
                 case Some(seen_file) =>
                   error("Incoherent use of file name " + src_path + " as " + files_path(src_path) +
                     " in theory " + seen_file.thy_name + " vs. " + name)
@@ -632,7 +632,7 @@ object Presentation {
           List(HTML.title(thy_title)), List(html_context.head(thy_title), thy_html),
           base = Some(html_context.root_dir))
 
-        if (thy_session.name == session) {
+        if (thy_session == session) {
           Some(
             List(HTML.link(html_name(name),
               HTML.text(name.theory_base_name) :::
