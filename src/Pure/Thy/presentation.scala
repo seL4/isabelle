@@ -521,7 +521,6 @@ object Presentation {
     val base = deps(session)
 
     val hierarchy = deps.sessions_structure.build_hierarchy(session)
-    val hierarchy_theories = hierarchy.reverse.flatMap(a => deps(a).used_theories.map(_._1))
 
     val session_dir = Isabelle_System.make_directory(html_context.session_dir(info))
 
