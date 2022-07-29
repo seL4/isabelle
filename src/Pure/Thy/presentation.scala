@@ -520,8 +520,7 @@ object Presentation {
     val options = info.options
     val base = deps(session)
 
-    val hierarchy = deps.sessions_structure.build_hierarchy(session)
-
+    val session_hierarchy = deps.sessions_structure.build_hierarchy(session)
     val session_dir = Isabelle_System.make_directory(html_context.session_dir(info))
 
     Bytes.write(session_dir + session_graph_path,
@@ -579,7 +578,7 @@ object Presentation {
     def present_theory(name: Document.Node.Name): Option[XML.Body] = {
       progress.expose_interrupt()
 
-      Build_Job.read_theory(db_context, hierarchy, name.theory).flatMap { command =>
+      Build_Job.read_theory(db_context, session_hierarchy, name.theory).flatMap { command =>
         if (verbose) progress.echo("Presenting theory " + name)
         val snapshot = Document.State.init.snippet(command)
 
