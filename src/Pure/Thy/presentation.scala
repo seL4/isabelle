@@ -27,10 +27,10 @@ object Presentation {
 
     def session_dir(info: Sessions.Info): Path =
       root_dir + Path.explode(info.chapter_session)
-    def theory_path(name: Document.Node.Name): Path =
-      session_dir(theory_session(name)) + Path.explode(name.theory_base_name).html
+    def theory_dir(name: Document.Node.Name): Path =
+      session_dir(theory_session(name))
     def files_path(name: Document.Node.Name, path: Path): Path =
-      theory_path(name).dir + Path.explode("files") + path.squash.html
+      theory_dir(name) + Path.explode("files") + path.squash.html
 
     type Theory_Exports = Map[String, Entity_Context.Theory_Export]
     def theory_exports: Theory_Exports = Map.empty
@@ -606,7 +606,7 @@ object Presentation {
               snapshot.xml_markup(elements = thy_elements.html)))
 
         val thy_session = html_context.theory_session(name)
-        val thy_dir = Isabelle_System.make_directory(html_context.session_dir(thy_session))
+        val thy_dir = Isabelle_System.make_directory(html_context.theory_dir(name))
         val files =
           for { (src_path, file_html) <- files_html }
             yield {
