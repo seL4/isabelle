@@ -456,23 +456,6 @@ object Presentation {
     session_relative(deps, session0, session1)
   }
 
-  def theory_link(
-    deps: Sessions.Deps,
-    session0: String,
-    name: Document.Node.Name,
-    body: XML.Body,
-    anchor: Option[String] = None
-  ): Option[XML.Tree] = {
-    val session1 = deps(session0).theory_qualifier(name)
-    val info0 = deps.sessions_structure.get(session0)
-    val info1 = deps.sessions_structure.get(session1)
-    val fragment = if (anchor.isDefined) "#" + anchor.get else ""
-    if (info0.isDefined && info1.isDefined) {
-      Some(HTML.link(info0.get.relative_path(info1.get) + html_name(name) + fragment, body))
-    }
-    else None
-  }
-
   def read_exports(
     sessions: List[String],
     deps: Sessions.Deps,
