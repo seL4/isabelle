@@ -110,9 +110,9 @@ object Presentation {
     val empty: Nodes = make(Nil)
     def make(infos: Iterable[(String, Node_Info)]): Nodes = new Nodes(infos.toMap)
   }
-  class Nodes private(by_session: Map[String, Node_Info]) {
-    def apply(name: String): Node_Info = by_session.getOrElse(name, Node_Info.empty)
-    def get(name: String): Option[Node_Info] = by_session.get(name)
+  class Nodes private(theory_node_info: Map[String, Node_Info]) {
+    def apply(name: String): Node_Info = theory_node_info.getOrElse(name, Node_Info.empty)
+    def get(name: String): Option[Node_Info] = theory_node_info.get(name)
   }
 
 
