@@ -22,6 +22,7 @@ object Presentation {
   abstract class HTML_Context {
     /* directory structure and resources */
 
+    def nodes: Nodes
     def root_dir: Path
     def theory_session(name: Document.Node.Name): Sessions.Info
 
@@ -31,8 +32,6 @@ object Presentation {
       session_dir(theory_session(name))
     def files_path(name: Document.Node.Name, path: Path): Path =
       theory_dir(name) + Path.explode("files") + path.squash.html
-
-    def nodes: Nodes = Nodes.empty
 
 
     /* HTML content */
