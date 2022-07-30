@@ -496,7 +496,7 @@ object Build {
 
         using(store.open_database_context()) { db_context =>
           val presentation_nodes =
-            Presentation.read_nodes(presentation_sessions.map(_.name), deps, db_context)
+            Presentation.Nodes.read(presentation_sessions.map(_.name), deps, db_context)
 
           Par_List.map({ (session: String) =>
             progress.expose_interrupt()

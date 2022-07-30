@@ -107,8 +107,37 @@ object Presentation {
   }
 
   object Nodes {
-    val empty: Nodes = make(Nil)
-    def make(infos: Iterable[(String, Node_Info)]): Nodes = new Nodes(infos.toMap)
+    val empty: Nodes = new Nodes(Map.empty)
+    def read(
+      sessions: List[String],
+      deps: Sessions.Deps,
+      db_context: Sessions.Database_Context
+    ): Nodes = {
+      type Batch = (String, List[String])
+      val batches =
+        sessions.foldLeft((Set.empty[String], List.empty[Batch]))(
+          { case ((seen, batches), session) =>
+              val thys = deps(session).loaded_theories.keys.filterNot(seen)
+              (seen ++ thys, (session, thys) :: batches)
+          })._2
+      val theory_node_info =
+        Par_List.map[Batch, List[(String, Node_Info)]](
+          { case (session, thys) =>
+              for (thy_name <- thys) yield {
+                val theory =
+                  if (thy_name == Thy_Header.PURE) Export_Theory.no_theory
+                  else {
+                    val provider = Export.Provider.database_context(db_context, List(session), thy_name)
+                    if (Export_Theory.read_theory_parents(provider, thy_name).isDefined) {
+                      Export_Theory.read_theory(provider, session, thy_name, cache = db_context.cache)
+                    }
+                    else Export_Theory.no_theory
+                  }
+                thy_name -> Node_Info.make(theory)
+              }
+          }, batches).flatten.toMap
+      new Nodes(theory_node_info)
+    }
   }
   class Nodes private(theory_node_info: Map[String, Node_Info]) {
     def apply(name: String): Node_Info = theory_node_info.getOrElse(name, Node_Info.empty)
@@ -469,37 +498,6 @@ object Presentation {
   ): Option[String] = {
     val session1 = deps(session0).theory_qualifier(node_name)
     session_relative(deps, session0, session1)
-  }
-
-  def read_nodes(
-    sessions: List[String],
-    deps: Sessions.Deps,
-    db_context: Sessions.Database_Context
-  ): Nodes = {
-    type Batch = (String, List[String])
-    val batches =
-      sessions.foldLeft((Set.empty[String], List.empty[Batch]))(
-        { case ((seen, batches), session) =>
-            val thys = deps(session).loaded_theories.keys.filterNot(seen)
-            (seen ++ thys, (session, thys) :: batches)
-        })._2
-    val infos =
-      Par_List.map[Batch, List[(String, Node_Info)]](
-        { case (session, thys) =>
-            for (thy_name <- thys) yield {
-              val theory =
-                if (thy_name == Thy_Header.PURE) Export_Theory.no_theory
-                else {
-                  val provider = Export.Provider.database_context(db_context, List(session), thy_name)
-                  if (Export_Theory.read_theory_parents(provider, thy_name).isDefined) {
-                    Export_Theory.read_theory(provider, session, thy_name, cache = db_context.cache)
-                  }
-                  else Export_Theory.no_theory
-                }
-              thy_name -> Node_Info.make(theory)
-            }
-        }, batches).flatten
-    Nodes.make(infos)
   }
 
   def session_html(
