@@ -507,7 +507,7 @@ object Build {
                 override def root_dir: Path = presentation_dir
                 override def theory_session(name: Document.Node.Name): Sessions.Info =
                   deps.sessions_structure(deps(session).theory_qualifier(name))
-                override def theory_exports: Theory_Exports = exports
+                override def theory_exports: Presentation.Theory_Exports = exports
               }
             Presentation.session_html(
               session, deps, db_context, progress = progress,

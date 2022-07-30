@@ -32,10 +32,7 @@ object Presentation {
     def files_path(name: Document.Node.Name, path: Path): Path =
       theory_dir(name) + Path.explode("files") + path.squash.html
 
-    type Theory_Exports = Map[String, Entity_Context.Theory_Export]
-    def theory_exports: Theory_Exports = Map.empty
-    def theory_export(name: String): Entity_Context.Theory_Export =
-      theory_exports.getOrElse(name, Entity_Context.no_theory_export)
+    def theory_exports: Theory_Exports = Theory_Exports.empty
 
 
     /* HTML content */
@@ -88,18 +85,37 @@ object Presentation {
       language = Markup.Elements(Markup.Language.DOCUMENT))
 
 
+  /* theory exports */
+
+  object Theory_Export {
+    val empty: Theory_Export = make(Map.empty, Map.empty, Nil)
+    def make(
+      entity_by_range: Map[Symbol.Range, List[Export_Theory.Entity[Export_Theory.No_Content]]],
+      entity_by_kind_name: Map[(String, String), Export_Theory.Entity[Export_Theory.No_Content]],
+      others: List[String]): Theory_Export =
+      new Theory_Export(entity_by_range, entity_by_kind_name, others)
+  }
+  class Theory_Export private(
+    val entity_by_range: Map[Symbol.Range, List[Export_Theory.Entity[Export_Theory.No_Content]]],
+    val entity_by_kind_name: Map[(String, String), Export_Theory.Entity[Export_Theory.No_Content]],
+    val others: List[String])
+
+  object Theory_Exports {
+    val empty: Theory_Exports = make(Nil)
+    def make(entries: Iterable[(String, Theory_Export)]): Theory_Exports =
+      new Theory_Exports(entries.toMap)
+  }
+  class Theory_Exports private(export_by_session: Map[String, Theory_Export]) {
+    def apply(name: String): Theory_Export = export_by_session.getOrElse(name, Theory_Export.empty)
+    def get(name: String): Option[Theory_Export] = export_by_session.get(name)
+  }
+
+
   /* formal entities */
 
   type Entity = Export_Theory.Entity[Export_Theory.No_Content]
 
   object Entity_Context {
-    sealed case class Theory_Export(
-      entity_by_range: Map[Symbol.Range, List[Export_Theory.Entity[Export_Theory.No_Content]]],
-      entity_by_kind_name: Map[(String, String), Export_Theory.Entity[Export_Theory.No_Content]],
-      others: List[String])
-
-    val no_theory_export: Theory_Export = Theory_Export(Map.empty, Map.empty, Nil)
-
     object Theory_Ref {
       def unapply(props: Properties.T): Option[Document.Node.Name] =
         (props, props, props) match {
@@ -460,7 +476,7 @@ object Presentation {
     sessions: List[String],
     deps: Sessions.Deps,
     db_context: Sessions.Database_Context
-  ): Map[String, Entity_Context.Theory_Export] = {
+  ): Theory_Exports = {
     type Batch = (String, List[String])
     val batches =
       sessions.foldLeft((Set.empty[String], List.empty[Batch]))(
@@ -468,26 +484,28 @@ object Presentation {
             val thys = deps(session).loaded_theories.keys.filterNot(seen)
             (seen ++ thys, (session, thys) :: batches)
         })._2
-    Par_List.map[Batch, List[(String, Entity_Context.Theory_Export)]](
-      { case (session, thys) =>
-          for (thy_name <- thys) yield {
-            val theory =
-              if (thy_name == Thy_Header.PURE) Export_Theory.no_theory
-              else {
-                val provider = Export.Provider.database_context(db_context, List(session), thy_name)
-                if (Export_Theory.read_theory_parents(provider, thy_name).isDefined) {
-                  Export_Theory.read_theory(provider, session, thy_name, cache = db_context.cache)
+    val exports =
+      Par_List.map[Batch, List[(String, Theory_Export)]](
+        { case (session, thys) =>
+            for (thy_name <- thys) yield {
+              val theory =
+                if (thy_name == Thy_Header.PURE) Export_Theory.no_theory
+                else {
+                  val provider = Export.Provider.database_context(db_context, List(session), thy_name)
+                  if (Export_Theory.read_theory_parents(provider, thy_name).isDefined) {
+                    Export_Theory.read_theory(provider, session, thy_name, cache = db_context.cache)
+                  }
+                  else Export_Theory.no_theory
                 }
-                else Export_Theory.no_theory
-              }
-            val entity_by_range =
-              theory.entity_iterator.toList.groupBy(_.range)
-            val entity_by_kind_name =
-              theory.entity_iterator.map(entity => ((entity.kind, entity.name), entity)).toMap
-            val others = theory.others.keySet.toList
-            thy_name -> Entity_Context.Theory_Export(entity_by_range, entity_by_kind_name, others)
-          }
-      }, batches).flatten.toMap
+              val entity_by_range =
+                theory.entity_iterator.toList.groupBy(_.range)
+              val entity_by_kind_name =
+                theory.entity_iterator.map(entity => ((entity.kind, entity.name), entity)).toMap
+              val others = theory.others.keySet.toList
+              thy_name -> Theory_Export.make(entity_by_range, entity_by_kind_name, others)
+            }
+        }, batches).flatten
+    Theory_Exports.make(exports)
   }
 
   def session_html(
@@ -567,7 +585,7 @@ object Presentation {
 
         val thy_elements =
           session_elements.copy(entity =
-            html_context.theory_export(name.theory).others
+            html_context.theory_exports(name.theory).others
               .foldLeft(session_elements.entity)(_ + _))
 
         val files_html =
