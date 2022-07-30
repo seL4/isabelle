@@ -80,7 +80,7 @@ object Export_Theory {
   ) {
     override def toString: String = name
 
-    def entity_iterator: Iterator[Entity[No_Content]] =
+    def entity_iterator: Iterator[Entity0] =
       types.iterator.map(_.no_content) ++
       consts.iterator.map(_.no_content) ++
       axioms.iterator.map(_.no_content) ++
@@ -213,7 +213,7 @@ object Export_Theory {
     def the_content: A =
       if (content.isDefined) content.get else error("No content for " + toString)
 
-    def no_content: Entity[No_Content] = copy(content = None)
+    def no_content: Entity0 = copy(content = None)
 
     def cache(cache: Term.Cache): Entity[A] =
       Entity(
@@ -225,6 +225,7 @@ object Export_Theory {
         serial,
         content.map(_.cache(cache)))
   }
+  type Entity0 = Entity[No_Content]
 
   def read_entities[A <: Content[A]](
     provider: Export.Provider,

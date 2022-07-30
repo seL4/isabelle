@@ -88,17 +88,24 @@ object Presentation {
   /* theory exports */
 
   object Theory_Export {
-    val empty: Theory_Export = make(Map.empty, Map.empty, Nil)
-    def make(
-      entity_by_range: Map[Symbol.Range, List[Export_Theory.Entity[Export_Theory.No_Content]]],
-      entity_by_kind_name: Map[(String, String), Export_Theory.Entity[Export_Theory.No_Content]],
-      others: List[String]): Theory_Export =
-      new Theory_Export(entity_by_range, entity_by_kind_name, others)
+    val empty: Theory_Export = new Theory_Export(Map.empty, Map.empty, Nil)
+    def make(theory: Export_Theory.Theory): Theory_Export = {
+      val by_range = theory.entity_iterator.toList.groupBy(_.range)
+      val by_kind_name =
+        theory.entity_iterator.map(entity => ((entity.kind, entity.name), entity)).toMap
+      val others = theory.others.keySet.toList
+      new Theory_Export(by_range, by_kind_name, others)
+    }
   }
   class Theory_Export private(
-    val entity_by_range: Map[Symbol.Range, List[Export_Theory.Entity[Export_Theory.No_Content]]],
-    val entity_by_kind_name: Map[(String, String), Export_Theory.Entity[Export_Theory.No_Content]],
-    val others: List[String])
+    by_range: Map[Symbol.Range, List[Export_Theory.Entity0]],
+    by_kind_name: Map[(String, String), Export_Theory.Entity0],
+    val others: List[String]) {
+    def for_range(range: Symbol.Range): List[Export_Theory.Entity0] =
+      by_range.getOrElse(range, Nil)
+    def get_kind_name(kind: String, name: String): Option[String] =
+      by_kind_name.get((kind, name)).map(_.kname)
+  }
 
   object Theory_Exports {
     val empty: Theory_Exports = make(Nil)
@@ -151,10 +158,7 @@ object Presentation {
             case List(XML.Elem(Markup("span", List("id" -> _)), _)) => None
             case _ =>
               Some {
-                val entities =
-                  html_context.theory_exports.get(node.theory)
-                    .flatMap(_.entity_by_range.get(range))
-                    .getOrElse(Nil)
+                val entities = html_context.theory_exports(node.theory).for_range(range)
                 val body1 =
                   if (seen_ranges.contains(range)) {
                     HTML.entity_def(HTML.span(HTML.id(offset_id(range)), body))
@@ -181,10 +185,7 @@ object Presentation {
         }
 
         private def logical_ref(thy_name: String, kind: String, name: String): Option[String] =
-          for {
-            thy <- html_context.theory_exports.get(thy_name)
-            entity <- thy.entity_by_kind_name.get((kind, name))
-          } yield entity.kname
+          html_context.theory_exports.get(thy_name).flatMap(_.get_kind_name(kind, name))
 
         override def make_ref(props: Properties.T, body: XML.Body): Option[XML.Elem] = {
           props match {
@@ -497,12 +498,7 @@ object Presentation {
                   }
                   else Export_Theory.no_theory
                 }
-              val entity_by_range =
-                theory.entity_iterator.toList.groupBy(_.range)
-              val entity_by_kind_name =
-                theory.entity_iterator.map(entity => ((entity.kind, entity.name), entity)).toMap
-              val others = theory.others.keySet.toList
-              thy_name -> Theory_Export.make(entity_by_range, entity_by_kind_name, others)
+              thy_name -> Theory_Export.make(theory)
             }
         }, batches).flatten
     Theory_Exports.make(exports)
