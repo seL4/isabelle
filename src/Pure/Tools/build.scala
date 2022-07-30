@@ -504,10 +504,10 @@ object Build {
 
             val html_context =
               new Presentation.HTML_Context {
+                override def nodes: Presentation.Nodes = presentation_nodes
                 override def root_dir: Path = presentation_dir
                 override def theory_session(name: Document.Node.Name): Sessions.Info =
                   deps.sessions_structure(deps(session).theory_qualifier(name))
-                override def nodes: Presentation.Nodes = presentation_nodes
               }
             Presentation.session_html(
               session, deps, db_context, progress = progress,

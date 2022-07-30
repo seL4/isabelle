@@ -96,6 +96,7 @@ object Presentation {
       new Node_Info(by_range, by_kind_name, others)
     }
   }
+
   class Node_Info private(
     by_range: Map[Symbol.Range, List[Export_Theory.Entity0]],
     by_kind_name: Map[(String, String), Export_Theory.Entity0],
@@ -108,14 +109,15 @@ object Presentation {
 
   object Nodes {
     val empty: Nodes = new Nodes(Map.empty)
+
     def read(
-      sessions: List[String],
+      presentation_sessions: List[String],
       deps: Sessions.Deps,
       db_context: Sessions.Database_Context
     ): Nodes = {
       type Batch = (String, List[String])
       val batches =
-        sessions.foldLeft((Set.empty[String], List.empty[Batch]))(
+        presentation_sessions.foldLeft((Set.empty[String], List.empty[Batch]))(
           { case ((seen, batches), session) =>
               val thys = deps(session).loaded_theories.keys.filterNot(seen)
               (seen ++ thys, (session, thys) :: batches)
@@ -139,6 +141,7 @@ object Presentation {
       new Nodes(theory_node_info)
     }
   }
+
   class Nodes private(theory_node_info: Map[String, Node_Info]) {
     def apply(name: String): Node_Info = theory_node_info.getOrElse(name, Node_Info.empty)
     def get(name: String): Option[Node_Info] = theory_node_info.get(name)
