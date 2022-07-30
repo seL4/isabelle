@@ -495,8 +495,8 @@ object Build {
         }
 
         using(store.open_database_context()) { db_context =>
-          val exports =
-            Presentation.read_exports(presentation_sessions.map(_.name), deps, db_context)
+          val presentation_nodes =
+            Presentation.read_nodes(presentation_sessions.map(_.name), deps, db_context)
 
           Par_List.map({ (session: String) =>
             progress.expose_interrupt()
@@ -507,7 +507,7 @@ object Build {
                 override def root_dir: Path = presentation_dir
                 override def theory_session(name: Document.Node.Name): Sessions.Info =
                   deps.sessions_structure(deps(session).theory_qualifier(name))
-                override def theory_exports: Presentation.Theory_Exports = exports
+                override def nodes: Presentation.Nodes = presentation_nodes
               }
             Presentation.session_html(
               session, deps, db_context, progress = progress,
