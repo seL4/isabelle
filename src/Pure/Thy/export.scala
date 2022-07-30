@@ -201,6 +201,21 @@ object Export {
   }
 
 
+  /* specific entries */
+
+  def read_document_id(read: String => Entry): Option[Long] =
+    read(DOCUMENT_ID).text match {
+      case Value.Long(id) => Some(id)
+      case _ => None
+    }
+
+  def read_files(read: String => Entry): Option[(String, List[String])] =
+    split_lines(read(FILES).text) match {
+      case thy_file :: blobs_files => Some((thy_file, blobs_files))
+      case Nil => None
+    }
+
+
   /* database consumer thread */
 
   def consumer(db: SQL.Database, cache: XML.Cache, progress: Progress = new Progress): Consumer =
