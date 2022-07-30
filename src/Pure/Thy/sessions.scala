@@ -1217,33 +1217,26 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
       }
 
     def read_export(
-      sessions: List[String],
-      theory_name: String,
-      name: String
+      session_hierarchy: List[String], theory: String, name: String
     ): Option[Export.Entry] = {
+      def read(db: SQL.Database, session: String): Option[Export.Entry] =
+        Export.Entry_Name(session = session, theory = theory, name = name).read(db, store.cache)
       val attempts =
         database_server match {
-          case Some(db) =>
-            sessions.view.map(session_name =>
-              Export.Entry_Name(session = session_name, theory = theory_name, name = name)
-                .read(db, store.cache))
+          case Some(db) => session_hierarchy.view.map(read(db, _))
           case None =>
-            sessions.view.map(session_name =>
-              store.try_open_database(session_name) match {
-                case Some(db) =>
-                  using(db) { _ =>
-                    Export.Entry_Name(session = session_name, theory = theory_name, name = name)
-                      .read(db, store.cache) }
+            session_hierarchy.view.map(session =>
+              store.try_open_database(session) match {
+                case Some(db) => using(db) { _ => read(db, session) }
                 case None => None
               })
         }
       attempts.collectFirst({ case Some(entry) => entry })
     }
 
-    def get_export(
-        session_hierarchy: List[String], theory_name: String, name: String): Export.Entry =
-      read_export(session_hierarchy, theory_name, name) getOrElse
-        Export.empty_entry(theory_name, name)
+    def get_export(session_hierarchy: List[String], theory: String, name: String): Export.Entry =
+      read_export(session_hierarchy, theory, name) getOrElse
+        Export.empty_entry(theory, name)
 
     def get_classpath(structure: Structure, session: String): List[File.Content_Bytes] =
     {
