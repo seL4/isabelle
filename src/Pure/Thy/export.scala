@@ -285,8 +285,11 @@ object Export {
     ) : Provider = {
       new Provider {
         def apply(export_name: String): Option[Entry] =
-          Entry_Name(session = session_name, theory = theory_name, name = export_name)
-            .read(db, cache)
+          if (theory_name.isEmpty) None
+          else {
+            Entry_Name(session = session_name, theory = theory_name, name = export_name)
+              .read(db, cache)
+          }
 
         def focus(other_theory: String): Provider =
           if (other_theory == theory_name) this
