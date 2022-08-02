@@ -94,7 +94,7 @@ object Build_Job {
 
     using(store.open_database_context()) { db_context =>
       val result =
-        db_context.input_database(session_name) { (db, _) =>
+        db_context.input_database(session_name) { db =>
           val theories = store.read_theories(db, session_name)
           val errors = store.read_errors(db, session_name)
           store.read_build(db, session_name).map(info => (theories, errors, info.return_code))

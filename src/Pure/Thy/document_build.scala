@@ -253,7 +253,7 @@ object Document_Build {
 
     def old_document(directory: Directory): Option[Document_Output] =
       for {
-        old_doc <- db_context.input_database(session)(read_document(_, _, directory.doc.name))
+        old_doc <- db_context.input_database(session)(read_document(_, session, directory.doc.name))
         if old_doc.sources == directory.sources
       }
       yield old_doc

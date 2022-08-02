@@ -1206,12 +1206,12 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
         case None => using(store.open_database(session, output = true))(f)
       }
 
-    def input_database[A](session: String)(f: (SQL.Database, String) => Option[A]): Option[A] =
+    def input_database[A](session: String)(f: SQL.Database => Option[A]): Option[A] =
       database_server match {
-        case Some(db) => f(db, session)
+        case Some(db) => f(db)
         case None =>
           store.try_open_database(session) match {
-            case Some(db) => using(db)(f(_, session))
+            case Some(db) => using(db)(f)
             case None => None
           }
       }
@@ -1244,7 +1244,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
         name <- structure.build_requirements(List(session))
         patterns = structure(name).export_classpath if patterns.nonEmpty
       } yield {
-        input_database(name)((db, _) =>
+        input_database(name) { db =>
           db.transaction {
             val matcher = Export.make_matcher(patterns)
             val res =
@@ -1254,7 +1254,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
               } yield File.Content(entry.entry_name.make_path(), entry.uncompressed)
             Some(res)
           }
-        ).getOrElse(Nil)
+        }.getOrElse(Nil)
       }).flatten
     }
 
