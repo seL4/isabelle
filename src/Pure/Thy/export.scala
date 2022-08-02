@@ -83,17 +83,6 @@ object Export {
         else None
       }
     }
-
-    def read(dir: Path, cache: XML.Cache): Option[Entry] = {
-      val path = dir + Path.basic(theory) + Path.explode(name)
-      if (path.is_file) {
-        val executable = File.is_executable(path)
-        val uncompressed = Bytes.read(path)
-        val body = Future.value((false, uncompressed))
-        Some(Entry(this, executable, body, cache))
-      }
-      else None
-    }
   }
 
   def read_theory_names(db: SQL.Database, session_name: String): List[String] = {
@@ -323,25 +312,6 @@ object Export {
 
         override def toString: String = snapshot.toString
       }
-
-    def directory(
-      dir: Path,
-      cache: XML.Cache,
-      session_name: String,
-      theory_name: String
-    ) : Provider = {
-      new Provider {
-        def apply(export_name: String): Option[Entry] =
-          Entry_Name(session = session_name, theory = theory_name, name = export_name)
-            .read(dir, cache)
-
-        def focus(other_theory: String): Provider =
-          if (other_theory == theory_name) this
-          else Provider.directory(dir, cache, session_name, other_theory)
-
-        override def toString: String = dir.toString
-      }
-    }
   }
 
   trait Provider {
