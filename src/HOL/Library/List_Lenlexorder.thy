@@ -3,6 +3,8 @@
 
 section \<open>Lexicographic order on lists\<close>
 
+text \<open>This version prioritises length and can yield wellorderings\<close>
+
 theory List_Lenlexorder
 imports Main
 begin
@@ -49,6 +51,14 @@ proof
     by (rule total_lenlex) (auto simp: total_on_def)
   then show "xs \<le> ys \<or> ys \<le> xs"
     by (auto simp add: total_on_def list_le_def list_less_def)
+qed
+
+instance list :: (wellorder) wellorder
+proof
+  fix P :: "'a list \<Rightarrow> bool" and a
+  assume "\<And>x. (\<And>y. y < x \<Longrightarrow> P y) \<Longrightarrow> P x" 
+  then show "P a"
+    unfolding list_less_def by (metis wf_lenlex wf_induct wf_lenlex wf)
 qed
 
 instantiation list :: (linorder) distrib_lattice
