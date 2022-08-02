@@ -1200,13 +1200,13 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
     def close(): Unit = database_server.foreach(_.close())
 
-    def output_database[A](session: String)(f: SQL.Database => A): A =
+    def database_output[A](session: String)(f: SQL.Database => A): A =
       database_server match {
         case Some(db) => f(db)
         case None => using(store.open_database(session, output = true))(f)
       }
 
-    def input_database[A](session: String)(f: SQL.Database => Option[A]): Option[A] =
+    def database[A](session: String)(f: SQL.Database => Option[A]): Option[A] =
       database_server match {
         case Some(db) => f(db)
         case None =>
@@ -1244,7 +1244,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
         name <- structure.build_requirements(List(session))
         patterns = structure(name).export_classpath if patterns.nonEmpty
       } yield {
-        input_database(name) { db =>
+        database(name) { db =>
           db.transaction {
             val matcher = Export.make_matcher(patterns)
             val res =

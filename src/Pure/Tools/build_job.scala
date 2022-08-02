@@ -94,7 +94,7 @@ object Build_Job {
 
     using(store.open_database_context()) { db_context =>
       val result =
-        db_context.input_database(session_name) { db =>
+        db_context.database(session_name) { db =>
           val theories = store.read_theories(db, session_name)
           val errors = store.read_errors(db, session_name)
           store.read_build(db, session_name).map(info => (theories, errors, info.return_code))
@@ -448,7 +448,7 @@ class Build_Job(progress: Progress,
                   Document_Build.context(session_name, deps, db_context, progress = progress),
                   output_sources = info.document_output,
                   output_pdf = info.document_output)
-              db_context.output_database(session_name)(db =>
+              db_context.database_output(session_name)(db =>
                 documents.foreach(_.write(db, session_name)))
               (documents.flatMap(_.log_lines), Nil)
             }

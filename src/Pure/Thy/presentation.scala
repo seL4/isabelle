@@ -125,7 +125,7 @@ object Presentation {
       val theory_node_info =
         Par_List.map[Batch, List[(String, Node_Info)]](
           { case (session, thys) =>
-              db_context.input_database(session) { db =>
+              db_context.database(session) { db =>
                 val provider0 = Export.Provider.database(db, db_context.cache, session, "")
                 val result =
                   for (thy_name <- thys) yield {
@@ -530,7 +530,7 @@ object Presentation {
     val documents =
       for {
         doc <- info.document_variants
-        document <- db_context.input_database(session)(db =>
+        document <- db_context.database(session)(db =>
           Document_Build.read_document(db, session, doc.name))
       } yield {
         val doc_path = (session_dir + doc.path.pdf).expand

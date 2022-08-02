@@ -18,8 +18,7 @@ object Profiling_Report {
     val store = Sessions.store(options)
 
     using(store.open_database_context()) { db_context =>
-      val result =
-        db_context.input_database(session)(db => Some(store.read_theories(db, session)))
+      val result = db_context.database(session)(db => Some(store.read_theories(db, session)))
       result match {
         case None => error("Missing build database for session " + quote(session))
         case Some(used_theories) =>
