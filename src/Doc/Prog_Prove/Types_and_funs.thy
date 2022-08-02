@@ -220,7 +220,9 @@ without removing duplicates.
 Then define a function \<open>sum_tree ::\<close> \<^typ>\<open>nat tree \<Rightarrow> nat\<close>
 that sums up all values in a tree of natural numbers
 and prove \<^prop>\<open>sum_tree t = sum_list(contents t)\<close>
-(where \<^const>\<open>sum_list\<close> is predefined).
+where \<^const>\<open>sum_list\<close> is predefined by the equations
+@{thm sum_list.Nil[where 'a=nat]} and
+@{thm sum_list.Cons}.
 \end{exercise}
 
 \begin{exercise}
@@ -272,8 +274,7 @@ and it returns that second argument when the first one becomes
 empty. Note that \<^const>\<open>itrev\<close> is tail-recursive: it can be
 compiled into a loop; no stack is necessary for executing it.
 
-Naturally, we would like to show that \<^const>\<open>itrev\<close> does indeed reverse
-its first argument provided the second one is empty:
+Naturally, we would like to show that \<^const>\<open>itrev\<close> reverses its first argument:
 \<close>
 
 lemma "itrev xs [] = rev xs"
@@ -323,7 +324,7 @@ lemma "itrev xs ys = rev xs @ ys"
 (*>*)
 apply(induction xs arbitrary: ys)
 
-txt\<open>The induction hypothesis in the induction step is now universally quantified over \<open>ys\<close>:
+txt\<open>The induction hypothesis is now universally quantified over \<open>ys\<close>:
 @{subgoals[display,margin=65]}
 Thus the proof succeeds:
 \<close>

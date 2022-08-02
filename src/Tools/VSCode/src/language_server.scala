@@ -84,7 +84,7 @@ Usage: isabelle vscode_server [OPTIONS]
           // prevent spurious garbage on the main protocol channel
           val orig_out = System.out
           try {
-            System.setOut(new PrintStream(new OutputStream { def write(n: Int): Unit = {} }))
+            System.setOut(new PrintStream(OutputStream.nullOutputStream()))
             server.start()
           }
           finally { System.setOut(orig_out) }

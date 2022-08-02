@@ -145,6 +145,30 @@ proof
     by blast
 qed (auto simp: prod_defs)
 
+lemma raw_has_prod_norm:
+  fixes a :: "'a ::real_normed_field"
+  assumes "raw_has_prod f M a"
+  shows "raw_has_prod (\<lambda>n. norm (f n)) M (norm a)"
+  using assms by (auto simp: raw_has_prod_def prod_norm tendsto_norm)
+
+lemma has_prod_norm:
+  fixes a :: "'a ::real_normed_field"
+  assumes f: "f has_prod a" 
+  shows "(\<lambda>n. norm (f n)) has_prod (norm a)"
+  using f [unfolded has_prod_def]
+proof (elim disjE exE conjE)
+  assume f0: "raw_has_prod f 0 a"
+  then show "(\<lambda>n. norm (f n)) has_prod norm a"
+    using has_prod_def raw_has_prod_norm by blast
+next
+  fix i p
+  assume "a = 0" and "f i = 0" and p: "raw_has_prod f (Suc i) p"
+  then have "Ex (raw_has_prod (\<lambda>n. norm (f n)) (Suc i))"
+    using raw_has_prod_norm by blast
+  then show ?thesis
+    by (metis \<open>a = 0\<close> \<open>f i = 0\<close> has_prod_0_iff norm_zero)
+qed
+
 
 subsection\<open>Absolutely convergent products\<close>
 

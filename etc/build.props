@@ -135,6 +135,7 @@ sources = \
   src/Pure/PIDE/yxml.scala \
   src/Pure/ROOT.scala \
   src/Pure/System/bash.scala \
+  src/Pure/System/classpath.scala \
   src/Pure/System/command_line.scala \
   src/Pure/System/components.scala \
   src/Pure/System/executable.scala \

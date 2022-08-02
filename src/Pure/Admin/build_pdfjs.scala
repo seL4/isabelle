@@ -17,7 +17,7 @@ object Build_PDFjs {
   /* build pdfjs component */
 
   val default_url = "https://github.com/mozilla/pdf.js/releases/download"
-  val default_version = "2.12.313"
+  val default_version = "2.14.305"
 
   def build_pdfjs(
     base_url: String = default_url,
@@ -39,7 +39,7 @@ object Build_PDFjs {
 
     val download_url = base_url + "/v" + version
     Isabelle_System.with_tmp_file("archive", ext = "zip") { archive_file =>
-      Isabelle_System.download_file(download_url + "/pdfjs-" + version + "-dist.zip",
+      Isabelle_System.download_file(download_url + "/pdfjs-" + version + "-legacy-dist.zip",
         archive_file, progress = progress)
       Isabelle_System.bash("unzip -x " + File.bash_path(archive_file),
         cwd = component_dir.file).check

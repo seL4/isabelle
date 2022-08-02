@@ -99,6 +99,7 @@ d94e6da7299004890c04a7b395a3f2d381a3281e flatlaf-1.0-rc3.tar.gz
 9908e5ab721f1c0035c0ab04dc7ad0bd00a8db27 flatlaf-1.2.tar.gz
 9534b721b7b78344f3225067ee4df28a5440b87e flatlaf-1.6.4.tar.gz
 212a0f1f867511722024cc60156fd71872a16f92 flatlaf-1.6.tar.gz
+6d4dbb6f2bde5804298d9008e3edceb0b9ee20ae flatlaf-2.4.tar.gz
 f339234ec18369679be0095264e0c0af7762f351 gnu-utils-20210414.tar.gz
 71259aa46134e6cf2c6473b4fc408051b3336490 gnu-utils-20211030.tar.gz
 683acd94761ef460cca1a628f650355370de5afb hol-light-bundle-0.5-126.tar.gz
@@ -295,6 +296,7 @@ ddb3b438430d9565adbf5e3d913bd52af8337511 opam-2.0.6.tar.gz
 fc66802c169f44511d3be30435eb89a11e635742 opam-2.0.7.tar.gz
 108e947d17e9aa6170872614492d8f647802f483 opam-2.1.0.tar.gz
 f8d0218371457eabe2b4214427d9570de92ed861 pdfjs-2.12.313.tar.gz
+aa7fc4a3d2cbd6c8744ddfeefd863828ea602bcd pdfjs-2.14.305.tar.gz
 1c8cb6a8f4cbeaedce2d6d1ba8fc7e2ab3663aeb polyml-5.4.1.tar.gz
 a3f9c159a0ee9a63b7a5d0c835ed9c2c908f8b56 polyml-5.5.0-1.tar.gz
 7d604a99355efbfc1459d80db3279ffa7ade3e39 polyml-5.5.0-2.tar.gz
@@ -373,6 +375,7 @@ e7cd5c7955e9eb5ce8cd07feb97230b23d2eec40 postgresql-42.2.2.tar.gz
 1aaa38429dc9aa7b1095394d9a7ba3465f8d6e04 postgresql-42.2.24.tar.gz
 231b33c9c3c27d47e3ba01b399103d70509e0731 postgresql-42.2.5.tar.gz
 6335fbc0658e447b5b9bc48c9ad36e33a05bb72b postgresql-42.2.9.tar.gz
+f84c7ecafb07a0d763f1d70edc54f7c43c2e8c63 postgresql-42.4.0.tar.gz
 f132329ca1045858ef456cc08b197c9eeea6881b postgresql-9.4.1212.tar.gz
 f042bba5fb82c7eb8aee99f92eb6ec38c8a067f7 python-3.10.4.tar.gz
 0885e1f1d8feaca78d2f204b6487e6eec6dfab4b scala-2.10.0.tar.gz

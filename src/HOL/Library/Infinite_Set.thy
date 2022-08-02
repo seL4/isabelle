@@ -267,6 +267,10 @@ lemma enumerate_mono_iff [simp]:
   "infinite S \<Longrightarrow> enumerate S m < enumerate S n \<longleftrightarrow> m < n"
   by (metis enumerate_mono less_asym less_linear)
 
+lemma enumerate_mono_le_iff [simp]:
+  "infinite S \<Longrightarrow> enumerate S m \<le> enumerate S n \<longleftrightarrow> m \<le> n"
+  by (meson enumerate_mono_iff not_le)
+
 lemma le_enumerate:
   assumes S: "infinite S"
   shows "n \<le> enumerate S n"

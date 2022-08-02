@@ -90,7 +90,7 @@ class Scala_Console extends Shell("Scala") {
   override def openConsole(console: Console): Unit = {
     val context =
       Scala.Compiler.context(
-      jar_dirs = JEdit_Lib.directories,
+      jar_files = JEdit_Lib.directories,
       class_loader = Some(new JARClassLoader))
 
     val interpreter = new Scala_Console.Interpreter(context, console)

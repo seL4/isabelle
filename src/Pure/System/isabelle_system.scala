@@ -13,8 +13,6 @@ import java.nio.file.{Path => JPath, Files, SimpleFileVisitor, FileVisitResult,
   StandardCopyOption, FileSystemException}
 import java.nio.file.attribute.BasicFileAttributes
 
-import scala.jdk.CollectionConverters._
-
 
 object Isabelle_System {
   /* settings environment */
@@ -39,52 +37,24 @@ object Isabelle_System {
 
   /* services */
 
-  abstract class Service
+  type Service = Classpath.Service
 
-  @volatile private var _services: Option[List[Class[Service]]] = None
+  @volatile private var _classpath: Option[Classpath] = None
 
-  def services(): List[Class[Service]] = {
-    if (_services.isEmpty) init()  // unsynchronized check
-    _services.get
+  def classpath(): Classpath = {
+    if (_classpath.isEmpty) init()  // unsynchronized check
+    _classpath.get
   }
 
-  def make_services[C](c: Class[C]): List[C] =
-    for { c1 <- services() if Library.is_subclass(c1, c) }
-      yield c1.getDeclaredConstructor().newInstance().asInstanceOf[C]
+  def make_services[C](c: Class[C]): List[C] = classpath().make_services(c)
 
 
-  /* init settings + services */
-
-  private def init_services(where: String, names: List[String]): List[Class[Service]] = {
-    for (name <- names) yield {
-      def err(msg: String): Nothing =
-        error("Bad Isabelle/Scala service " + quote(name) + " in " + where + "\n" + msg)
-      try { Class.forName(name).asInstanceOf[Class[Service]] }
-      catch {
-        case _: ClassNotFoundException => err("Class not found")
-        case exn: Throwable => err(Exn.message(exn))
-      }
-    }
-  }
-
-  def init_services_env(): List[Class[Service]] =
-  {
-    val variable = "ISABELLE_SCALA_SERVICES"
-    init_services(quote(variable), space_explode(':', getenv_strict(variable)))
-  }
-
-  def init_services_jar(jar: Path): List[Class[Service]] =
-    init_services(jar.toString, isabelle.setup.Build.get_services(jar.java_path).asScala.toList)
-
-  def init_services_jar(platform_jar: String): List[Class[Service]] =
-    init_services_jar(Path.explode(File.standard_path(platform_jar)))
+  /* init settings + classpath */
 
   def init(isabelle_root: String = "", cygwin_root: String = ""): Unit = {
     isabelle.setup.Environment.init(isabelle_root, cygwin_root)
     synchronized {
-      if (_services.isEmpty) {
-        _services = Some(init_services_env() ::: Scala.get_classpath().flatMap(init_services_jar))
-      }
+      if (_classpath.isEmpty) _classpath = Some(Classpath())
     }
   }
 
