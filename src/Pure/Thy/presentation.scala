@@ -125,18 +125,23 @@ object Presentation {
       val theory_node_info =
         Par_List.map[Batch, List[(String, Node_Info)]](
           { case (session, thys) =>
-              for (thy_name <- thys) yield {
-                val theory =
-                  if (thy_name == Thy_Header.PURE) Export_Theory.no_theory
-                  else {
-                    val provider = Export.Provider.database_context(db_context, List(session), thy_name)
-                    if (Export_Theory.read_theory_parents(provider, thy_name).isDefined) {
-                      Export_Theory.read_theory(provider, session, thy_name, cache = db_context.cache)
-                    }
-                    else Export_Theory.no_theory
+              db_context.input_database(session) { (db, _) =>
+                val provider0 = Export.Provider.database(db, db_context.cache, session, "")
+                val result =
+                  for (thy_name <- thys) yield {
+                    val theory =
+                      if (thy_name == Thy_Header.PURE) Export_Theory.no_theory
+                      else {
+                        val provider = provider0.focus(thy_name)
+                        if (Export_Theory.read_theory_parents(provider, thy_name).isDefined) {
+                          Export_Theory.read_theory(provider, session, thy_name, cache = db_context.cache)
+                        }
+                        else Export_Theory.no_theory
+                      }
+                    thy_name -> Node_Info.make(theory)
                   }
-                thy_name -> Node_Info.make(theory)
-              }
+                Some(result)
+              } getOrElse Nil
           }, batches).flatten.toMap
       new Nodes(theory_node_info)
     }

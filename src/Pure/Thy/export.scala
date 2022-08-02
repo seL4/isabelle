@@ -264,19 +264,6 @@ object Export {
         override def toString: String = "none"
       }
 
-    def database_context(
-        context: Sessions.Database_Context,
-        session_hierarchy: List[String],
-        theory_name: String): Provider =
-      new Provider {
-        def apply(export_name: String): Option[Entry] =
-          context.read_export(session_hierarchy, theory_name, export_name)
-
-        def focus(other_theory: String): Provider = this
-
-        override def toString: String = context.toString
-      }
-
     def database(
       db: SQL.Database,
       cache: XML.Cache,
