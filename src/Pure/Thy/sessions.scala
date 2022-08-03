@@ -62,7 +62,7 @@ object Sessions {
     pos: Position.T = Position.none,
     session_directories: Map[JFile, String] = Map.empty,
     global_theories: Map[String, String] = Map.empty,
-    session_theories: List[Document.Node.Name] = Nil,
+    proper_session_theories: List[Document.Node.Name] = Nil,
     document_theories: List[Document.Node.Name] = Nil,
     loaded_theories: Graph[String, Outer_Syntax] = Graph.string,  // cumulative imports
     used_theories: List[(Document.Node.Name, Options)] = Nil,  // new imports
@@ -172,7 +172,7 @@ object Sessions {
 
             val overall_syntax = dependencies.overall_syntax
 
-            val session_theories =
+            val proper_session_theories =
               dependencies.theories.filter(name => deps_base.theory_qualifier(name) == session_name)
 
             val theory_files = dependencies.theories.map(_.path)
@@ -271,7 +271,7 @@ object Sessions {
                     case None => err("Unknown document theory")
                     case Some(name) =>
                       val qualifier = deps_base.theory_qualifier(name)
-                      if (session_theories.contains(name)) {
+                      if (proper_session_theories.contains(name)) {
                         err("Redundant document theory from this session:")
                       }
                       else if (build_hierarchy.contains(qualifier)) None
@@ -286,7 +286,7 @@ object Sessions {
               val ok = info.dirs.map(_.canonical_file).toSet
               val bad =
                 (for {
-                  name <- session_theories.iterator
+                  name <- proper_session_theories.iterator
                   path = name.master_dir_path
                   if !ok(path.canonical_file)
                   path1 = File.relative_path(info.dir.canonical, path).getOrElse(path)
@@ -302,7 +302,7 @@ object Sessions {
               val errs3 = for (p <- info.dirs if !p.is_dir) yield "No such directory: " + p
               val errs4 =
                 (for {
-                  name <- session_theories.iterator
+                  name <- proper_session_theories.iterator
                   name1 <- resources.find_theory_node(name.theory)
                   if name.node != name1.node
                 } yield "Incoherent theory file import:\n  " + name.path + " vs. \n  " + name1.path)
@@ -327,7 +327,7 @@ object Sessions {
                 pos = info.pos,
                 session_directories = sessions_structure.session_directories,
                 global_theories = sessions_structure.global_theories,
-                session_theories = session_theories,
+                proper_session_theories = proper_session_theories,
                 document_theories = document_theories,
                 loaded_theories = dependencies.loaded_theories,
                 used_theories = dependencies.theories_adjunct,

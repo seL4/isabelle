@@ -640,7 +640,7 @@ object Presentation {
       }
     }
 
-    val theories = base.session_theories.flatMap(present_theory)
+    val theories = base.proper_session_theories.flatMap(present_theory)
 
     val title = "Session " + session
     HTML.write_document(session_dir, "index.html",
