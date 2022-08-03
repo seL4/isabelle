@@ -216,12 +216,12 @@ object Headless {
               (for {
                 name <- dep_graph.keys_iterator
                 if !loaded_theory(name)
-              } yield { (name -> Document_Status.Node_Status.make(state, version, name)) }).toList
+              } yield name -> Document_Status.Node_Status.make(state, version, name)).toList
             val nodes_committed =
               (for {
                 name <- dep_graph.keys_iterator
                 status <- already_committed1.get(name)
-              } yield (name -> status)).toList
+              } yield name -> status).toList
             Some(Exn.Res(new Use_Theories_Result(state, version, nodes, nodes_committed)))
           }
           else result
@@ -314,7 +314,7 @@ object Headless {
           }
 
         isabelle.Session.Consumer[isabelle.Session.Commands_Changed](getClass.getName) {
-          case changed =>
+          changed =>
             if (changed.nodes.exists(dep_theories_set)) {
               val snapshot = session.snapshot()
               val state = snapshot.state
@@ -339,7 +339,7 @@ object Headless {
                       (name, node_status) <- nodes_status1.present.iterator
                       if changed.nodes.contains(name) && !st.already_committed.isDefinedAt(name)
                       p1 = node_status.percentage
-                      if p1 > 0 && Some(p1) != st.nodes_status.get(name).map(_.percentage)
+                      if p1 > 0 && !st.nodes_status.get(name).map(_.percentage).contains(p1)
                     } yield Progress.Theory(name.theory, percentage = Some(p1))).toList
 
                   (theory_progress, st.update(nodes_status1))
