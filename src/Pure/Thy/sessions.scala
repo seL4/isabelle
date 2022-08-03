@@ -64,8 +64,8 @@ object Sessions {
     global_theories: Map[String, String] = Map.empty,
     session_theories: List[Document.Node.Name] = Nil,
     document_theories: List[Document.Node.Name] = Nil,
-    loaded_theories: Graph[String, Outer_Syntax] = Graph.string,
-    used_theories: List[(Document.Node.Name, Options)] = Nil,
+    loaded_theories: Graph[String, Outer_Syntax] = Graph.string,  // cumulative imports
+    used_theories: List[(Document.Node.Name, Options)] = Nil,  // new imports
     load_commands: Map[Document.Node.Name, List[Command_Span.Span]] = Map.empty,
     known_theories: Map[String, Document.Node.Entry] = Map.empty,
     known_loaded_files: Map[String, List[Path]] = Map.empty,
