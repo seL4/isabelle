@@ -132,10 +132,8 @@ object Presentation {
                     val theory =
                       if (thy_name == Thy_Header.PURE) Export_Theory.no_theory
                       else {
-                        if (Export_Theory.read_theory_parents(provider, thy_name).isDefined) {
-                          Export_Theory.read_theory(provider, session, thy_name, cache = db_context.cache)
-                        }
-                        else Export_Theory.no_theory
+                        Export_Theory.read_theory(provider, session, thy_name,
+                          permissive = true, cache = db_context.cache)
                       }
                     thy_name -> Node_Info.make(theory)
                   }

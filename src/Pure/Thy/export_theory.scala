@@ -122,29 +122,33 @@ object Export_Theory {
     provider: Export.Provider,
     session_name: String,
     theory_name: String,
+    permissive: Boolean = false,
     cache: Term.Cache = Term.Cache.none
   ): Theory = {
     val theory_provider = provider.focus(theory_name)
-    val parents =
-      read_theory_parents(theory_provider, theory_name) getOrElse
+    read_theory_parents(theory_provider, theory_name) match {
+      case None if permissive => no_theory
+      case None =>
         error("Missing theory export in session " + quote(session_name) + ": " + quote(theory_name))
-    val theory =
-      Theory(theory_name, parents,
-        read_types(theory_provider),
-        read_consts(theory_provider),
-        read_axioms(theory_provider),
-        read_thms(theory_provider),
-        read_classes(theory_provider),
-        read_locales(theory_provider),
-        read_locale_dependencies(theory_provider),
-        read_classrel(theory_provider),
-        read_arities(theory_provider),
-        read_constdefs(theory_provider),
-        read_typedefs(theory_provider),
-        read_datatypes(theory_provider),
-        read_spec_rules(theory_provider),
-        read_others(theory_provider))
-    if (cache.no_cache) theory else theory.cache(cache)
+      case Some(parents) =>
+        val theory =
+          Theory(theory_name, parents,
+            read_types(theory_provider),
+            read_consts(theory_provider),
+            read_axioms(theory_provider),
+            read_thms(theory_provider),
+            read_classes(theory_provider),
+            read_locales(theory_provider),
+            read_locale_dependencies(theory_provider),
+            read_classrel(theory_provider),
+            read_arities(theory_provider),
+            read_constdefs(theory_provider),
+            read_typedefs(theory_provider),
+            read_datatypes(theory_provider),
+            read_spec_rules(theory_provider),
+            read_others(theory_provider))
+        if (cache.no_cache) theory else theory.cache(cache)
+    }
   }
 
   def read_pure[A](store: Sessions.Store, read: (Export.Provider, String, String) => A): A = {
