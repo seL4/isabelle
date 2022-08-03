@@ -407,7 +407,7 @@ class Resources(
     def get_syntax(name: Document.Node.Name): Outer_Syntax =
       loaded_theories.get_node(name.theory)
 
-    def load_commands: List[(Document.Node.Name, List[Command_Span.Span])] =
+    lazy val load_commands: List[(Document.Node.Name, List[Command_Span.Span])] =
       theories.zip(
         Par_List.map((e: () => List[Command_Span.Span]) => e(),
           theories.map(name => resources.load_commands(get_syntax(name), name))))
