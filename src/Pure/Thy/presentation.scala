@@ -126,13 +126,12 @@ object Presentation {
         Par_List.map[Batch, List[(String, Node_Info)]](
           { case (session, thys) =>
               db_context.database(session) { db =>
-                val provider0 = Export.Provider.database(db, db_context.cache, session, "")
+                val provider = Export.Provider.database(db, db_context.cache, session)
                 val result =
                   for (thy_name <- thys) yield {
                     val theory =
                       if (thy_name == Thy_Header.PURE) Export_Theory.no_theory
                       else {
-                        val provider = provider0.focus(thy_name)
                         if (Export_Theory.read_theory_parents(provider, thy_name).isDefined) {
                           Export_Theory.read_theory(provider, session, thy_name, cache = db_context.cache)
                         }

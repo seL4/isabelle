@@ -267,20 +267,20 @@ object Export {
     def database(
       db: SQL.Database,
       cache: XML.Cache,
-      session_name: String,
-      theory_name: String
+      session: String,
+      theory: String = ""
     ) : Provider = {
       new Provider {
         def apply(export_name: String): Option[Entry] =
-          if (theory_name.isEmpty) None
+          if (theory.isEmpty) None
           else {
-            Entry_Name(session = session_name, theory = theory_name, name = export_name)
+            Entry_Name(session = session, theory = theory, name = export_name)
               .read(db, cache)
           }
 
         def focus(other_theory: String): Provider =
-          if (other_theory == theory_name) this
-          else Provider.database(db, cache, session_name, other_theory)
+          if (other_theory == theory) this
+          else Provider.database(db, cache, session, theory = other_theory)
 
         override def toString: String = db.toString
       }

@@ -33,10 +33,10 @@ object Export_Theory {
     val thys =
       sessions_structure.build_requirements(List(session_name)).flatMap(session =>
         using(store.open_database(session)) { db =>
+          val provider = Export.Provider.database(db, store.cache, session)
           for (theory <- Export.read_theory_names(db, session))
           yield {
             progress.echo("Reading theory " + theory)
-            val provider = Export.Provider.database(db, store.cache, session, theory)
             read_theory(provider, session, theory, cache = cache)
           }
         })
@@ -110,7 +110,7 @@ object Export_Theory {
   def read_theory_parents(provider: Export.Provider, theory_name: String): Option[List[String]] = {
     if (theory_name == Thy_Header.PURE) Some(Nil)
     else {
-      provider(Export.THEORY_PREFIX + "parents")
+      provider.focus(theory_name)(Export.THEORY_PREFIX + "parents")
         .map(entry => split_lines(entry.uncompressed.text))
     }
   }
@@ -124,25 +124,26 @@ object Export_Theory {
     theory_name: String,
     cache: Term.Cache = Term.Cache.none
   ): Theory = {
+    val theory_provider = provider.focus(theory_name)
     val parents =
-      read_theory_parents(provider, theory_name) getOrElse
+      read_theory_parents(theory_provider, theory_name) getOrElse
         error("Missing theory export in session " + quote(session_name) + ": " + quote(theory_name))
     val theory =
       Theory(theory_name, parents,
-        read_types(provider),
-        read_consts(provider),
-        read_axioms(provider),
-        read_thms(provider),
-        read_classes(provider),
-        read_locales(provider),
-        read_locale_dependencies(provider),
-        read_classrel(provider),
-        read_arities(provider),
-        read_constdefs(provider),
-        read_typedefs(provider),
-        read_datatypes(provider),
-        read_spec_rules(provider),
-        read_others(provider))
+        read_types(theory_provider),
+        read_consts(theory_provider),
+        read_axioms(theory_provider),
+        read_thms(theory_provider),
+        read_classes(theory_provider),
+        read_locales(theory_provider),
+        read_locale_dependencies(theory_provider),
+        read_classrel(theory_provider),
+        read_arities(theory_provider),
+        read_constdefs(theory_provider),
+        read_typedefs(theory_provider),
+        read_datatypes(theory_provider),
+        read_spec_rules(theory_provider),
+        read_others(theory_provider))
     if (cache.no_cache) theory else theory.cache(cache)
   }
 
@@ -151,7 +152,7 @@ object Export_Theory {
     val theory_name = Thy_Header.PURE
 
     using(store.open_database(session_name)) { db =>
-      val provider = Export.Provider.database(db, store.cache, session_name, theory_name)
+      val provider = Export.Provider.database(db, store.cache, session_name)
       read(provider, session_name, theory_name)
     }
   }
