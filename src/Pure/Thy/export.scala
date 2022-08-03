@@ -329,28 +329,26 @@ object Export {
     export_patterns: List[String] = Nil
   ): Unit = {
     using(store.open_database(session_name)) { db =>
-      db.transaction {
-        val entry_names = read_entry_names(db, session_name)
+      val entry_names = read_entry_names(db, session_name)
 
-        // list
-        if (export_list) {
-          for (entry_name <- entry_names) progress.echo(entry_name.compound_name)
-        }
+      // list
+      if (export_list) {
+        for (entry_name <- entry_names) progress.echo(entry_name.compound_name)
+      }
 
-        // export
-        if (export_patterns.nonEmpty) {
-          val matcher = make_matcher(export_patterns)
-          for {
-            entry_name <- entry_names if matcher(entry_name)
-            entry <- entry_name.read(db, store.cache)
-          } {
-            val path = export_dir + entry_name.make_path(prune = export_prune)
-            progress.echo("export " + path + (if (entry.executable) " (executable)" else ""))
-            Isabelle_System.make_directory(path.dir)
-            val bytes = entry.uncompressed
-            if (!path.is_file || Bytes.read(path) != bytes) Bytes.write(path, bytes)
-            File.set_executable(path, entry.executable)
-          }
+      // export
+      if (export_patterns.nonEmpty) {
+        val matcher = make_matcher(export_patterns)
+        for {
+          entry_name <- entry_names if matcher(entry_name)
+          entry <- entry_name.read(db, store.cache)
+        } {
+          val path = export_dir + entry_name.make_path(prune = export_prune)
+          progress.echo("export " + path + (if (entry.executable) " (executable)" else ""))
+          Isabelle_System.make_directory(path.dir)
+          val bytes = entry.uncompressed
+          if (!path.is_file || Bytes.read(path) != bytes) Bytes.write(path, bytes)
+          File.set_executable(path, entry.executable)
         }
       }
     }

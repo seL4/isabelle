@@ -1245,15 +1245,13 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
         patterns = structure(name).export_classpath if patterns.nonEmpty
       } yield {
         database(name) { db =>
-          db.transaction {
-            val matcher = Export.make_matcher(patterns)
-            val res =
-              for {
-                entry_name <- Export.read_entry_names(db, name) if matcher(entry_name)
-                entry <- entry_name.read(db, store.cache)
-              } yield File.Content(entry.entry_name.make_path(), entry.uncompressed)
-            Some(res)
-          }
+          val matcher = Export.make_matcher(patterns)
+          val res =
+            for {
+              entry_name <- Export.read_entry_names(db, name) if matcher(entry_name)
+              entry <- entry_name.read(db, store.cache)
+            } yield File.Content(entry.entry_name.make_path(), entry.uncompressed)
+          Some(res)
         }.getOrElse(Nil)
       }).flatten
     }
@@ -1438,12 +1436,10 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     }
 
     def session_info_defined(db: SQL.Database, name: String): Boolean =
-      db.transaction {
-        session_info_exists(db) && {
-          db.using_statement(
-            Session_Info.table.select(List(Session_Info.session_name),
-              Session_Info.session_name.where_equal(name)))(stmt => stmt.execute_query().next())
-        }
+      session_info_exists(db) && {
+        db.using_statement(
+          Session_Info.table.select(List(Session_Info.session_name),
+            Session_Info.session_name.where_equal(name)))(stmt => stmt.execute_query().next())
       }
 
     def write_session_info(

@@ -33,13 +33,11 @@ object Export_Theory {
     val thys =
       sessions_structure.build_requirements(List(session_name)).flatMap(session =>
         using(store.open_database(session)) { db =>
-          db.transaction {
-            for (theory <- Export.read_theory_names(db, session))
-            yield {
-              progress.echo("Reading theory " + theory)
-              val provider = Export.Provider.database(db, store.cache, session, theory)
-              read_theory(provider, session, theory, cache = cache)
-            }
+          for (theory <- Export.read_theory_names(db, session))
+          yield {
+            progress.echo("Reading theory " + theory)
+            val provider = Export.Provider.database(db, store.cache, session, theory)
+            read_theory(provider, session, theory, cache = cache)
           }
         })
 
@@ -153,10 +151,8 @@ object Export_Theory {
     val theory_name = Thy_Header.PURE
 
     using(store.open_database(session_name)) { db =>
-      db.transaction {
-        val provider = Export.Provider.database(db, store.cache, session_name, theory_name)
-        read(provider, session_name, theory_name)
-      }
+      val provider = Export.Provider.database(db, store.cache, session_name, theory_name)
+      read(provider, session_name, theory_name)
     }
   }
 
