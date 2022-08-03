@@ -381,7 +381,7 @@ object Headless {
       val nodes =
         if (all) None
         else Some(theories.map(resources.import_name(qualifier, master_directory(master_dir), _)))
-      resources.purge_theories(session, nodes)
+      resources.purge_theories(nodes)
     }
   }
 
@@ -513,7 +513,6 @@ object Headless {
       }
 
       def unload_theories(
-        session: Session,
         id: UUID.T,
         theories: List[Document.Node.Name]
       ) : (List[Document.Edit_Text], State) = {
@@ -532,7 +531,6 @@ object Headless {
       }
 
       def purge_theories(
-        session: Session,
         nodes: Option[List[Document.Node.Name]]
       ) : ((List[Document.Node.Name], List[Document.Node.Name], List[Document.Edit_Text]), State) = {
         val all_nodes = theory_graph.topological_order
@@ -622,7 +620,7 @@ object Headless {
 
     def unload_theories(session: Session, id: UUID.T, theories: List[Document.Node.Name]): Unit = {
       state.change { st =>
-        val (edits, st1) = st.unload_theories(session, id, theories)
+        val (edits, st1) = st.unload_theories(id, theories)
         session.update(st.doc_blobs, edits)
         st1
       }
@@ -630,19 +628,18 @@ object Headless {
 
     def clean_theories(session: Session, id: UUID.T, theories: List[Document.Node.Name]): Unit = {
       state.change { st =>
-        val (edits1, st1) = st.unload_theories(session, id, theories)
-        val ((_, _, edits2), st2) = st1.purge_theories(session, None)
+        val (edits1, st1) = st.unload_theories(id, theories)
+        val ((_, _, edits2), st2) = st1.purge_theories(None)
         session.update(st.doc_blobs, edits1 ::: edits2)
         st2
       }
     }
 
     def purge_theories(
-      session: Session,
       nodes: Option[List[Document.Node.Name]]
     ) : (List[Document.Node.Name], List[Document.Node.Name]) = {
       state.change_result { st =>
-        val ((purged, retained, _), st1) = st.purge_theories(session, nodes)
+        val ((purged, retained, _), st1) = st.purge_theories(nodes)
         ((purged, retained), st1)
       }
     }
