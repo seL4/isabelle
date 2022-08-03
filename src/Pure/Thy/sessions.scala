@@ -71,7 +71,7 @@ object Sessions {
     known_loaded_files: Map[String, List[Path]] = Map.empty,
     overall_syntax: Outer_Syntax = Outer_Syntax.empty,
     imported_sources: List[(Path, SHA1.Digest)] = Nil,
-    sources: List[(Path, SHA1.Digest)] = Nil,
+    session_sources: List[(Path, SHA1.Digest)] = Nil,
     session_graph_display: Graph_Display.Graph = Graph_Display.empty_graph,
     errors: List[String] = Nil
   ) {
@@ -108,8 +108,8 @@ object Sessions {
     def imported_sources(name: String): List[SHA1.Digest] =
       session_bases(name).imported_sources.map(_._2)
 
-    def sources(name: String): List[SHA1.Digest] =
-      session_bases(name).sources.map(_._2)
+    def session_sources(name: String): List[SHA1.Digest] =
+      session_bases(name).session_sources.map(_._2)
 
     def errors: List[String] =
       (for {
@@ -338,7 +338,7 @@ object Sessions {
                 known_loaded_files = known_loaded_files,
                 overall_syntax = overall_syntax,
                 imported_sources = check_sources(imported_files),
-                sources = check_sources(session_files),
+                session_sources = check_sources(session_files),
                 session_graph_display = session_graph_display,
                 errors = dependencies.errors ::: load_commands_errors ::: import_errors :::
                   document_errors ::: dir_errors ::: sources_errors ::: path_errors :::

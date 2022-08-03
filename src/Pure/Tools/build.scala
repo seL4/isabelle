@@ -203,7 +203,7 @@ object Build {
     def sources_stamp(deps: Sessions.Deps, session_name: String): String = {
       val digests =
         full_sessions(session_name).meta_digest ::
-        deps.sources(session_name) :::
+        deps.session_sources(session_name) :::
         deps.imported_sources(session_name)
       SHA1.digest_set(digests).toString
     }
@@ -247,7 +247,7 @@ object Build {
       val source_files =
         (for {
           (_, base) <- deps.session_bases.iterator
-          (path, _) <- base.sources.iterator
+          (path, _) <- base.session_sources.iterator
         } yield path).toList
       val exclude_files = List(Path.explode("$POLYML_EXE")).map(_.canonical_file)
       val unknown_files =
