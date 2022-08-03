@@ -177,8 +177,6 @@ object Sessions {
 
             val theory_files = dependencies.theories.map(_.path)
 
-            dependencies.load_commands
-
             val (load_commands, load_commands_errors) =
               try { if (inlined_files) (dependencies.load_commands, Nil) else (Nil, Nil) }
               catch { case ERROR(msg) => (Nil, List(msg)) }
