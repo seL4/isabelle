@@ -59,7 +59,7 @@ object Sessions {
   /* base info and source dependencies */
 
   sealed case class Base(
-    pos: Position.T = Position.none,
+    session_pos: Position.T = Position.none,
     session_directories: Map[JFile, String] = Map.empty,
     global_theories: Map[String, String] = Map.empty,
     proper_session_theories: List[Document.Node.Name] = Nil,
@@ -116,7 +116,7 @@ object Sessions {
         (name, base) <- session_bases.iterator
         if base.errors.nonEmpty
       } yield cat_lines(base.errors) +
-          "\nThe error(s) above occurred in session " + quote(name) + Position.here(base.pos)
+          "\nThe error(s) above occurred in session " + quote(name) + Position.here(base.session_pos)
       ).toList
 
     def check_errors: Deps =
@@ -324,7 +324,7 @@ object Sessions {
 
             val base =
               Base(
-                pos = info.pos,
+                session_pos = info.pos,
                 session_directories = sessions_structure.session_directories,
                 global_theories = sessions_structure.global_theories,
                 proper_session_theories = proper_session_theories,
