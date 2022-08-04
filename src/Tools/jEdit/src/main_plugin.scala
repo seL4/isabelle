@@ -284,7 +284,7 @@ class Main_Plugin extends EBPlugin {
   private def init_title(view: View): Unit = {
     val title =
       proper_string(Isabelle_System.getenv("ISABELLE_IDENTIFIER")).getOrElse("Isabelle") +
-        "/" + PIDE.resources.session_name
+        "/" + PIDE.resources.session_base.session_name
     val marker = "\u200B"
 
     val old_title = view.getViewConfig.title

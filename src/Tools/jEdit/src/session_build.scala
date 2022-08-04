@@ -155,7 +155,8 @@ object Session_Build {
     setVisible(true)
 
     Isabelle_Thread.fork(name = "session_build") {
-      progress.echo("Build started for Isabelle/" + PIDE.resources.session_name + " ...")
+      progress.echo("Build started for Isabelle/" +
+        PIDE.resources.session_base.session_name + " ...")
 
       val (out, rc) =
         try { ("", JEdit_Sessions.session_build(options, progress = progress)) }

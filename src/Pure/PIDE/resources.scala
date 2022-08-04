@@ -34,8 +34,6 @@ class Resources(
 ) {
   resources =>
 
-  def session_name: String = session_base.session_name
-
 
   /* init session */
 
