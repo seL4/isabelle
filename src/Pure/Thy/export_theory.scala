@@ -34,7 +34,7 @@ object Export_Theory {
       sessions_structure.build_requirements(List(session_name)).flatMap(session =>
         using(store.open_database(session)) { db =>
           val provider = Export.Provider.database(db, store.cache, session)
-          for (theory <- Export.read_theory_names(db, session))
+          for (theory <- provider.theory_names)
           yield {
             progress.echo("Reading theory " + theory)
             read_theory(provider, session, theory, cache = cache)

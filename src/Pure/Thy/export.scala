@@ -258,19 +258,27 @@ object Export {
   object Provider {
     def none: Provider =
       new Provider {
+        def theory_names: List[String] = Nil
         def apply(export_name: String): Option[Entry] = None
         def focus(other_theory: String): Provider = this
 
         override def toString: String = "none"
       }
 
-    def database(
-      db: SQL.Database,
-      cache: XML.Cache,
-      session: String,
-      theory: String = ""
-    ) : Provider = {
+    private def make_database(
+        db: SQL.Database,
+        cache: XML.Cache,
+        session: String,
+        theory: String,
+        _theory_names: Synchronized[Option[List[String]]]
+    ): Provider = {
       new Provider {
+        def theory_names: List[String] =
+          _theory_names.change_result { st =>
+            val res = st.getOrElse(read_theory_names(db, session))
+            (res, Some(res))
+          }
+
         def apply(export_name: String): Option[Entry] =
           if (theory.isEmpty) None
           else {
@@ -280,14 +288,30 @@ object Export {
 
         def focus(other_theory: String): Provider =
           if (other_theory == theory) this
-          else Provider.database(db, cache, session, theory = other_theory)
+          else make_database(db, cache, session, theory, _theory_names)
 
         override def toString: String = db.toString
       }
     }
 
-    def snapshot(snapshot: Document.Snapshot): Provider =
+    def database(
+      db: SQL.Database,
+      cache: XML.Cache,
+      session: String,
+      theory: String = ""
+    ): Provider = make_database(db, cache, session, theory, Synchronized(None))
+
+    def snapshot(
+      resources: Resources,
+      snapshot: Document.Snapshot
+    ): Provider =
       new Provider {
+        def theory_names: List[String] =
+          (for {
+            (name, _) <- snapshot.version.nodes.iterator
+            if name.is_theory && !resources.session_base.loaded_theory(name)
+          } yield name.theory).toList
+
         def apply(export_name: String): Option[Entry] =
           snapshot.exports_map.get(export_name)
 
@@ -297,7 +321,7 @@ object Export {
             val node_name =
               snapshot.version.nodes.theory_name(other_theory) getOrElse
                 error("Bad theory " + quote(other_theory))
-            Provider.snapshot(snapshot.state.snapshot(node_name))
+            Provider.snapshot(resources, snapshot.state.snapshot(node_name))
           }
 
         override def toString: String = snapshot.toString
@@ -305,6 +329,8 @@ object Export {
   }
 
   trait Provider {
+    def theory_names: List[String]
+
     def apply(export_name: String): Option[Entry]
 
     def uncompressed_yxml(export_name: String): XML.Body =
