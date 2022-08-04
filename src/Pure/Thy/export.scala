@@ -256,16 +256,15 @@ object Export {
   /* abstract provider */
 
   object Provider {
-    def none: Provider =
+    val none: Provider =
       new Provider {
         def theory_names: List[String] = Nil
         def apply(export_name: String): Option[Entry] = None
         def focus(other_theory: String): Provider = this
-
         override def toString: String = "none"
       }
 
-    private def make_database(
+    private def database_provider(
         db: SQL.Database,
         cache: XML.Cache,
         session: String,
@@ -288,7 +287,7 @@ object Export {
 
         def focus(other_theory: String): Provider =
           if (other_theory == theory) this
-          else make_database(db, cache, session, theory, _theory_names)
+          else database_provider(db, cache, session, theory, _theory_names)
 
         override def toString: String = db.toString
       }
@@ -299,7 +298,7 @@ object Export {
       cache: XML.Cache,
       session: String,
       theory: String = ""
-    ): Provider = make_database(db, cache, session, theory, Synchronized(None))
+    ): Provider = database_provider(db, cache, session, theory, Synchronized(None))
 
     def snapshot(
       resources: Resources,
