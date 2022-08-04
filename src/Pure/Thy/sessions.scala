@@ -59,6 +59,7 @@ object Sessions {
   /* base info and source dependencies */
 
   sealed case class Base(
+    session_name: String = "",
     session_pos: Position.T = Position.none,
     session_directories: Map[JFile, String] = Map.empty,
     global_theories: Map[String, String] = Map.empty,
@@ -76,7 +77,8 @@ object Sessions {
     errors: List[String] = Nil
   ) {
     override def toString: String =
-      "Sessions.Base(loaded_theories = " + loaded_theories.size +
+      "Sessions.Base(session_name = " + quote(session_name) +
+        ", loaded_theories = " + loaded_theories.size +
         ", used_theories = " + used_theories.length + ")"
 
     def theory_qualifier(name: String): String =
@@ -151,8 +153,13 @@ object Sessions {
       }
     }
 
+    val bootstrap_bases = {
+      val base = sessions_structure.bootstrap
+      Map(base.session_name -> base)
+    }
+
     val session_bases =
-      sessions_structure.imports_topological_order.foldLeft(Map("" -> sessions_structure.bootstrap)) {
+      sessions_structure.imports_topological_order.foldLeft(bootstrap_bases) {
         case (session_bases, session_name) =>
           progress.expose_interrupt()
 
@@ -324,6 +331,7 @@ object Sessions {
 
             val base =
               Base(
+                session_name = info.name,
                 session_pos = info.pos,
                 session_directories = sessions_structure.session_directories,
                 global_theories = sessions_structure.global_theories,
@@ -358,13 +366,13 @@ object Sessions {
   /* base info */
 
   sealed case class Base_Info(
-    session: String,
     sessions_structure: Structure,
     errors: List[String],
     base: Base,
     infos: List[Info]
   ) {
     def check: Base_Info = if (errors.isEmpty) this else error(cat_lines(errors))
+    def session: String = base.session_name
   }
 
   def base_info(options: Options,
@@ -442,7 +450,7 @@ object Sessions {
 
     val deps1 = Sessions.deps(selected_sessions1, progress = progress)
 
-    Base_Info(session1, full_sessions1, deps1.errors, deps1(session1), infos1)
+    Base_Info(full_sessions1, deps1.errors, deps1(session1), infos1)
   }
 
 
