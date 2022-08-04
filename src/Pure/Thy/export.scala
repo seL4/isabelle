@@ -256,14 +256,6 @@ object Export {
   /* abstract provider */
 
   object Provider {
-    val none: Provider =
-      new Provider {
-        override def theory_names: List[String] = Nil
-        override def apply(export_name: String): Option[Entry] = None
-        override def focus(other_theory: String): Provider = this
-        override def toString: String = "none"
-      }
-
     private def database_provider(
         db: SQL.Database,
         cache: XML.Cache,
