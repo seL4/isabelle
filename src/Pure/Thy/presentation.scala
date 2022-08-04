@@ -86,6 +86,8 @@ object Presentation {
 
   /* per-session node info */
 
+  sealed case class File_Info(theory: String, is_theory: Boolean = false)
+
   object Node_Info {
     val empty: Node_Info = new Node_Info(Map.empty, Map.empty, Nil)
     def make(theory: Export_Theory.Theory): Node_Info = {
@@ -108,7 +110,7 @@ object Presentation {
   }
 
   object Nodes {
-    val empty: Nodes = new Nodes(Map.empty)
+    val empty: Nodes = new Nodes(Map.empty, Map.empty)
 
     def read(
       presentation_sessions: List[String],
@@ -140,11 +142,33 @@ object Presentation {
                 Some(result)
               } getOrElse Nil
           }, batches).flatten.toMap
-      new Nodes(theory_node_info)
+      val files_info =
+        deps.sessions_structure.build_requirements(presentation_sessions).flatMap(session =>
+          db_context.database(session) { db =>
+            val res =
+              Export.read_theory_names(db, session).flatMap { theory =>
+                val files =
+                  Export.read_files(name =>
+                    Export.Entry_Name(session = session, theory = theory, name = name)
+                      .read(db, db_context.cache)
+                      .getOrElse(Export.empty_entry(theory, name)))
+                files match {
+                  case None => Nil
+                  case Some((thy, other)) =>
+                    val thy_file_info = File_Info(theory, is_theory = true)
+                    (thy -> thy_file_info) :: other.map(_ -> File_Info(theory))
+                }
+              }
+            Some(res)
+          }.getOrElse(Nil)).toMap
+      new Nodes(theory_node_info, files_info)
     }
   }
 
-  class Nodes private(theory_node_info: Map[String, Node_Info]) {
+  class Nodes private(
+    theory_node_info: Map[String, Node_Info],
+    val files_info: Map[String, File_Info]
+  ) {
     def apply(name: String): Node_Info = theory_node_info.getOrElse(name, Node_Info.empty)
     def get(name: String): Option[Node_Info] = theory_node_info.get(name)
   }
