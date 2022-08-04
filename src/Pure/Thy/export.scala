@@ -258,9 +258,9 @@ object Export {
   object Provider {
     val none: Provider =
       new Provider {
-        def theory_names: List[String] = Nil
-        def apply(export_name: String): Option[Entry] = None
-        def focus(other_theory: String): Provider = this
+        override def theory_names: List[String] = Nil
+        override def apply(export_name: String): Option[Entry] = None
+        override def focus(other_theory: String): Provider = this
         override def toString: String = "none"
       }
 
@@ -272,20 +272,20 @@ object Export {
         _theory_names: Synchronized[Option[List[String]]]
     ): Provider = {
       new Provider {
-        def theory_names: List[String] =
+        override def theory_names: List[String] =
           _theory_names.change_result { st =>
             val res = st.getOrElse(read_theory_names(db, session))
             (res, Some(res))
           }
 
-        def apply(export_name: String): Option[Entry] =
+        override def apply(export_name: String): Option[Entry] =
           if (theory.isEmpty) None
           else {
             Entry_Name(session = session, theory = theory, name = export_name)
               .read(db, cache)
           }
 
-        def focus(other_theory: String): Provider =
+        override def focus(other_theory: String): Provider =
           if (other_theory == theory) this
           else database_provider(db, cache, session, theory, _theory_names)
 
@@ -305,16 +305,16 @@ object Export {
       snapshot: Document.Snapshot
     ): Provider =
       new Provider {
-        def theory_names: List[String] =
+        override def theory_names: List[String] =
           (for {
             (name, _) <- snapshot.version.nodes.iterator
             if name.is_theory && !resources.session_base.loaded_theory(name)
           } yield name.theory).toList
 
-        def apply(export_name: String): Option[Entry] =
+        override def apply(export_name: String): Option[Entry] =
           snapshot.exports_map.get(export_name)
 
-        def focus(other_theory: String): Provider =
+        override def focus(other_theory: String): Provider =
           if (other_theory == snapshot.node_name.theory) this
           else {
             val node_name =
