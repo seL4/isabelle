@@ -1200,7 +1200,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
   class Database_Context private[Sessions](
     val store: Sessions.Store,
-    database_server: Option[SQL.Database]
+    val database_server: Option[SQL.Database]
   ) extends AutoCloseable {
     def cache: Term.Cache = store.cache
 
@@ -1369,9 +1369,21 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
       }
     }
 
+    def bad_database(name: String): Nothing =
+      error("Missing build database for session " + quote(name))
+
     def open_database(name: String, output: Boolean = false): SQL.Database =
-      try_open_database(name, output = output) getOrElse
-        error("Missing build database for session " + quote(name))
+      try_open_database(name, output = output) getOrElse bad_database(name)
+
+    def open_databases(names: List[String]): List[SQL.Database] = {
+      val res = names.map(name => name -> try_open_database(name))
+      res.collectFirst({ case (name, None) => name }) match {
+        case None => res.map(_._2.get)
+        case Some(bad) =>
+          for ((_, Some(db)) <- res) db.close()
+          bad_database(bad)
+      }
+    }
 
     def clean_output(name: String): (Boolean, Boolean) = {
       val relevant_db =

@@ -334,6 +334,77 @@ object Export {
   }
 
 
+  /* context for retrieval */
+
+  def context(db_context: Sessions.Database_Context): Context = new Context(db_context)
+
+  def open_context(store: Sessions.Store): Context =
+    new Context(store.open_database_context()) { override def close(): Unit = db_context.close() }
+
+  def open_context(options: Options): Context = open_context(Sessions.store(options))
+
+  class Context private[Export](val db_context: Sessions.Database_Context) extends AutoCloseable {
+    def close(): Unit = ()
+
+    def open_session(
+      session: String,
+      resources: Resources,
+      snapshot: Document.Snapshot = Document.Snapshot.init
+    ): Session_Context = {
+      val session_hierarchy = resources.sessions_structure.build_hierarchy(session)
+      db_context.database_server match {
+        case Some(db) =>
+          new Session_Context(resources, snapshot, db_context.cache, List(session -> db))
+        case None =>
+          val db_hierarchy = session_hierarchy.zip(db_context.store.open_databases(session_hierarchy))
+          new Session_Context(resources, snapshot, db_context.cache, db_hierarchy) {
+            override def close(): Unit = for ((_, db) <- this.db_hierarchy) db.close()
+          }
+      }
+    }
+
+    override def toString: String = db_context.toString
+  }
+
+  class Session_Context private[Export](
+    val resources: Resources,
+    val snapshot: Document.Snapshot,
+    val cache: Term.Cache,
+    val db_hierarchy: List[(String, SQL.Database)]
+  ) extends AutoCloseable {
+    session_context =>
+
+    def close(): Unit = ()
+
+    def get(theory: String, name: String): Option[Entry] =
+      snapshot.exports_map.get(name) orElse
+        db_hierarchy.view.map({ case (session, db) =>
+            Export.Entry_Name(session = session, theory = theory, name = name).read(db, cache)
+        }).collectFirst({ case Some(entry) => entry })
+
+    def apply(theory: String, name: String, permissive: Boolean = false): Entry =
+      get(theory, name) match {
+        case None if permissive => empty_entry(theory, name)
+        case None => error("Missing export entry " + quote(compound_name(theory, name)))
+        case Some(entry) => entry
+      }
+
+    def theory(theory: String): Theory_Context =
+      new Theory_Context(session_context, theory)
+
+    override def toString: String =
+      "Export.Session_Context(" + commas_quote(db_hierarchy.map(_._1)) + ")"
+  }
+
+  class Theory_Context private[Export](session_context: Session_Context, theory: String) {
+    def get(name: String): Option[Entry] = session_context.get(theory, name)
+    def apply(name: String, permissive: Boolean = false): Entry =
+      session_context.apply(theory, name, permissive = permissive)
+
+    override def toString: String = "Export.Theory_Context(" + quote(theory) + ")"
+  }
+
+
   /* export to file-system */
 
   def export_files(
