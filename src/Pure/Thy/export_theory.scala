@@ -108,7 +108,7 @@ object Export_Theory {
   }
 
   def read_theory_parents(provider: Export.Provider, theory_name: String): Option[List[String]] =
-    provider.focus(theory_name)(Export.THEORY_PREFIX + "parents")
+    provider.focus(theory_name)(Export.THEORY_PARENTS)
       .map(entry => Library.trim_split_lines(entry.uncompressed.text))
 
   def no_theory: Theory =

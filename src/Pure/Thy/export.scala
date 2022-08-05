@@ -23,6 +23,7 @@ object Export {
   val DOCUMENT_CITATIONS = DOCUMENT_PREFIX + "citations"
   val THEORY_PREFIX: String = "theory/"
   val PROOFS_PREFIX: String = "proofs/"
+  val THEORY_PARENTS: String = THEORY_PREFIX + "parents"
 
   def explode_name(s: String): List[String] = space_explode('/', s)
   def implode_name(elems: Iterable[String]): String = elems.mkString("/")
@@ -87,7 +88,8 @@ object Export {
 
   def read_theory_names(db: SQL.Database, session_name: String): List[String] = {
     val select =
-      Data.table.select(List(Data.theory_name), Data.where_equal(session_name), distinct = true) +
+      Data.table.select(List(Data.theory_name),
+        Data.where_equal(session_name, name = THEORY_PARENTS)) +
       " ORDER BY " + Data.theory_name
     db.using_statement(select)(stmt =>
       stmt.execute_query().iterator(_.string(Data.theory_name)).toList)
