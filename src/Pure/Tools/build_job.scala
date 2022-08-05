@@ -315,7 +315,7 @@ class Build_Job(progress: Progress,
           private def export_(msg: Prover.Protocol_Output): Boolean =
             msg.properties match {
               case Protocol.Export(args) =>
-                export_consumer(session_name, args, msg.chunk)
+                export_consumer.make_entry(session_name, args, msg.chunk)
                 true
               case _ => false
             }
@@ -353,8 +353,8 @@ class Build_Job(progress: Progress,
                 val theory_name = snapshot.node_name.theory
                 val args =
                   Protocol.Export.Args(theory_name = theory_name, name = name, compress = compress)
-                val bytes = Bytes(Symbol.encode(YXML.string_of_body(xml)))
-                if (!bytes.is_empty) export_consumer(session_name, args, bytes)
+                val body = Bytes(Symbol.encode(YXML.string_of_body(xml)))
+                export_consumer.make_entry(session_name, args, body)
               }
             }
             def export_text(name: String, text: String, compress: Boolean = true): Unit =

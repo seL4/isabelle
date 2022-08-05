@@ -239,9 +239,9 @@ object Export {
             (results, true)
           })
 
-    def apply(session_name: String, args: Protocol.Export.Args, body: Bytes): Unit = {
-      if (!progress.stopped) {
-        consumer.send(make_entry(session_name, args, body, cache) -> args.strict)
+    def make_entry(session_name: String, args: Protocol.Export.Args, body: Bytes): Unit = {
+      if (!progress.stopped && !body.is_empty) {
+        consumer.send(Export.make_entry(session_name, args, body, cache) -> args.strict)
       }
     }
 
