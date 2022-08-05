@@ -341,8 +341,6 @@ object Export {
   def open_context(store: Sessions.Store): Context =
     new Context(store.open_database_context()) { override def close(): Unit = db_context.close() }
 
-  def open_context(options: Options): Context = open_context(Sessions.store(options))
-
   class Session_Database private[Export](val session: String, val db: SQL.Database) {
     def close(): Unit = ()
   }
