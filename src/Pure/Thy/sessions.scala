@@ -126,6 +126,9 @@ object Sessions {
         case Nil => this
         case errs => error(cat_lines(errs))
       }
+
+    def base_info(session: String): Base_Info =
+      Base_Info(sessions_structure, errors, apply(session), Nil)
   }
 
   def deps(sessions_structure: Structure,

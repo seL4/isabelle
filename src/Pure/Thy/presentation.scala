@@ -117,6 +117,8 @@ object Presentation {
       deps: Sessions.Deps,
       db_context: Sessions.Database_Context
     ): Nodes = {
+      val export_context = Export.context(db_context)
+
       type Batch = (String, List[String])
       val batches =
         presentation_sessions.foldLeft((Set.empty[String], List.empty[Batch]))(
@@ -124,43 +126,35 @@ object Presentation {
               val thys = deps(session).loaded_theories.keys.filterNot(seen)
               (seen ++ thys, (session, thys) :: batches)
           })._2
+
       val theory_node_info =
         Par_List.map[Batch, List[(String, Node_Info)]](
           { case (session, thys) =>
-              db_context.database(session) { db =>
-                val provider = Export.Provider.database(db, db_context.cache, session)
-                val result =
-                  for (thy_name <- thys) yield {
-                    val theory =
-                      if (thy_name == Thy_Header.PURE) Export_Theory.no_theory
-                      else {
-                        Export_Theory.read_theory(provider, session, thy_name,
-                          permissive = true, cache = db_context.cache)
-                      }
-                    thy_name -> Node_Info.make(theory)
-                  }
-                Some(result)
-              } getOrElse Nil
-          }, batches).flatten.toMap
-      val files_info =
-        deps.sessions_structure.build_requirements(presentation_sessions).flatMap(session =>
-          db_context.database(session) { db =>
-            val res =
-              Export.read_theory_names(db, session).flatMap { theory =>
-                val files =
-                  Export.read_files(name =>
-                    Export.Entry_Name(session = session, theory = theory, name = name)
-                      .read(db, db_context.cache)
-                      .getOrElse(Export.empty_entry(theory, name)))
-                files match {
-                  case None => Nil
-                  case Some((thy, other)) =>
-                    val thy_file_info = File_Info(theory, is_theory = true)
-                    (thy -> thy_file_info) :: other.map(_ -> File_Info(theory))
+              using(export_context.open_session(deps.base_info(session))) { session_context =>
+                for (thy_name <- thys) yield {
+                  val theory_context = session_context.theory(thy_name)
+                  val theory =
+                    Export_Theory.read_theory(theory_context,
+                      permissive = true, cache = db_context.cache)
+                  thy_name -> Node_Info.make(theory)
                 }
               }
-            Some(res)
-          }.getOrElse(Nil)).toMap
+          }, batches).flatten.toMap
+
+      val files_info =
+        deps.sessions_structure.build_requirements(presentation_sessions).flatMap(session =>
+          using(export_context.open_session(deps.base_info(session))) { session_context =>
+            session_context.theory_names().flatMap { theory =>
+              val theory_context = session_context.theory(theory)
+              Export.read_files(theory_context(_, permissive = true)) match {
+                case None => Nil
+                case Some((thy, other)) =>
+                  val thy_file_info = File_Info(theory, is_theory = true)
+                  (thy -> thy_file_info) :: other.map(_ -> File_Info(theory))
+              }
+            }
+          }).toMap
+
       new Nodes(theory_node_info, files_info)
     }
   }

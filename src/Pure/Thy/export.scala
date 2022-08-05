@@ -256,88 +256,6 @@ object Export {
   }
 
 
-  /* abstract provider */
-
-  object Provider {
-    private def database_provider(
-        db: SQL.Database,
-        cache: XML.Cache,
-        session: String,
-        theory: String,
-        _theory_names: Synchronized[Option[List[String]]]
-    ): Provider = {
-      new Provider {
-        override def theory_names: List[String] =
-          _theory_names.change_result { st =>
-            val res = st.getOrElse(read_theory_names(db, session))
-            (res, Some(res))
-          }
-
-        override def apply(export_name: String): Option[Entry] =
-          if (theory.isEmpty) None
-          else {
-            Entry_Name(session = session, theory = theory, name = export_name)
-              .read(db, cache)
-          }
-
-        override def focus(other_theory: String): Provider =
-          if (other_theory == theory) this
-          else database_provider(db, cache, session, theory, _theory_names)
-
-        override def toString: String = db.toString
-      }
-    }
-
-    def database(
-      db: SQL.Database,
-      cache: XML.Cache,
-      session: String,
-      theory: String = ""
-    ): Provider = database_provider(db, cache, session, theory, Synchronized(None))
-
-    def snapshot(
-      resources: Resources,
-      snapshot: Document.Snapshot
-    ): Provider =
-      new Provider {
-        override def theory_names: List[String] =
-          (for {
-            (name, _) <- snapshot.version.nodes.iterator
-            if name.is_theory && !resources.session_base.loaded_theory(name)
-          } yield name.theory).toList
-
-        override def apply(name: String): Option[Entry] =
-          snapshot.all_exports.get(
-            Entry_Name(session = Sessions.DRAFT, theory = snapshot.node_name.theory, name = name))
-
-        override def focus(other_theory: String): Provider =
-          if (other_theory == snapshot.node_name.theory) this
-          else {
-            val node_name =
-              snapshot.version.nodes.theory_name(other_theory) getOrElse
-                error("Bad theory " + quote(other_theory))
-            Provider.snapshot(resources, snapshot.state.snapshot(node_name))
-          }
-
-        override def toString: String = snapshot.toString
-      }
-  }
-
-  trait Provider {
-    def theory_names: List[String]
-
-    def apply(export_name: String): Option[Entry]
-
-    def uncompressed_yxml(export_name: String): XML.Body =
-      apply(export_name) match {
-        case Some(entry) => entry.uncompressed_yxml
-        case None => Nil
-      }
-
-    def focus(other_theory: String): Provider
-  }
-
-
   /* context for retrieval */
 
   def context(db_context: Sessions.Database_Context): Context = new Context(db_context)
@@ -473,10 +391,19 @@ object Export {
       "Export.Session_Context(" + commas_quote(session_stack) + ")"
   }
 
-  class Theory_Context private[Export](val session_context: Session_Context, theory: String) {
+  class Theory_Context private[Export](
+    val session_context: Session_Context,
+    val theory: String
+  ) {
     def get(name: String): Option[Entry] = session_context.get(theory, name)
     def apply(name: String, permissive: Boolean = false): Entry =
       session_context.apply(theory, name, permissive = permissive)
+
+    def uncompressed_yxml(name: String): XML.Body =
+      get(name) match {
+        case Some(entry) => entry.uncompressed_yxml
+        case None => Nil
+      }
 
     override def toString: String = "Export.Theory_Context(" + quote(theory) + ")"
   }
