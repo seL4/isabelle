@@ -306,8 +306,9 @@ object Export {
             if name.is_theory && !resources.session_base.loaded_theory(name)
           } yield name.theory).toList
 
-        override def apply(export_name: String): Option[Entry] =
-          snapshot.exports_map.get(export_name)
+        override def apply(name: String): Option[Entry] =
+          snapshot.all_exports.get(
+            Entry_Name(session = Sessions.DRAFT, theory = snapshot.node_name.theory, name = name))
 
         override def focus(other_theory: String): Provider =
           if (other_theory == snapshot.node_name.theory) this
@@ -348,6 +349,7 @@ object Export {
     def close(): Unit = ()
 
     lazy val theory_names: List[String] = read_theory_names(db, session)
+    lazy val entry_names: List[Entry_Name] = read_entry_names(db, session)
   }
 
   class Context private[Export](val db_context: Sessions.Database_Context) extends AutoCloseable {
@@ -356,13 +358,13 @@ object Export {
     def open_session(
       session: String,
       resources: Resources,
-      snapshot: Document.Snapshot = Document.Snapshot.init
+      document_snapshot: Option[Document.Snapshot] = None
     ): Session_Context = {
       val session_hierarchy = resources.sessions_structure.build_hierarchy(session)
       db_context.database_server match {
         case Some(db) =>
           val session_databases = session_hierarchy.map(name => new Session_Database(name, db))
-          new Session_Context(resources, snapshot, db_context.cache, session_databases)
+          new Session_Context(resources, db_context.cache, session_databases, document_snapshot)
         case None =>
           val store = db_context.store
           val session_databases = {
@@ -378,8 +380,8 @@ object Export {
                 store.bad_database(bad)
             }
           }
-          new Session_Context(resources, snapshot, db_context.cache, session_databases) {
-            override def close(): Unit = db_hierarchy.foreach(_.close())
+          new Session_Context(resources, db_context.cache, session_databases, document_snapshot) {
+            override def close(): Unit = session_databases.foreach(_.close())
           }
       }
     }
@@ -389,20 +391,61 @@ object Export {
 
   class Session_Context private[Export](
     val resources: Resources,
-    val snapshot: Document.Snapshot,
     val cache: Term.Cache,
-    val db_hierarchy: List[Session_Database]
+    db_hierarchy: List[Session_Database],
+    document_snapshot: Option[Document.Snapshot]
   ) extends AutoCloseable {
     session_context =>
 
     def close(): Unit = ()
 
+    def session_name: String =
+      if (document_snapshot.isDefined) Sessions.DRAFT
+      else resources.session_base.session_name
+
+    def session_stack: List[String] =
+      ((if (document_snapshot.isDefined) List(session_name) else Nil) :::
+        db_hierarchy.map(_.session)).reverse
+
+    private def select[A](
+      session: String,
+      select1: Entry_Name => Option[A],
+      select2: Session_Database => List[A]
+    ): List[A] = {
+      def sel(name: String): List[A] =
+        if (name == Sessions.DRAFT) {
+          (for {
+            snapshot <- document_snapshot.iterator
+            entry_name <- snapshot.all_exports.keysIterator
+            res <- select1(entry_name).iterator
+          } yield entry_name -> res).toList.sortBy(_._1.compound_name).map(_._2)
+        }
+        else { db_hierarchy.find(_.session == name).map(select2).getOrElse(Nil) }
+      if (session.nonEmpty) sel(session) else session_stack.flatMap(sel)
+    }
+
+    def entry_names(session: String = session_name): List[Entry_Name] =
+      select(session, Some(_), _.entry_names)
+
+    def theory_names(session: String = session_name): List[String] =
+      select(session, a => if(a.name == THEORY_PARENTS) Some(a.theory) else None, _.theory_names)
+
     def get(theory: String, name: String): Option[Entry] =
-      snapshot.exports_map.get(name) orElse
+    {
+      def snapshot_entry =
+        for {
+          snapshot <- document_snapshot
+          entry_name = Entry_Name(session = Sessions.DRAFT, theory = theory, name = name)
+          entry <- snapshot.all_exports.get(entry_name)
+        } yield entry
+      def db_entry =
         db_hierarchy.view.map(session_db =>
           Export.Entry_Name(session = session_db.session, theory = theory, name = name)
             .read(session_db.db, cache))
           .collectFirst({ case Some(entry) => entry })
+
+      snapshot_entry orElse db_entry
+    }
 
     def apply(theory: String, name: String, permissive: Boolean = false): Entry =
       get(theory, name) match {
@@ -411,14 +454,11 @@ object Export {
         case Some(entry) => entry
       }
 
-    def theory_names(session: String): List[String] =
-      db_hierarchy.find(_.session == session).map(_.theory_names).getOrElse(Nil)
-
     def theory(theory: String): Theory_Context =
       new Theory_Context(session_context, theory)
 
     override def toString: String =
-      "Export.Session_Context(" + commas_quote(db_hierarchy.map(_.session)) + ")"
+      "Export.Session_Context(" + commas_quote(session_stack) + ")"
   }
 
   class Theory_Context private[Export](session_context: Session_Context, theory: String) {
