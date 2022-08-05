@@ -35,6 +35,9 @@ class Resources(
   resources =>
 
 
+  override def toString: String = "Resources(" + session_base.toString + ")"
+
+
   /* init session */
 
   def init_session_yxml: String = {
