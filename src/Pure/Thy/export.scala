@@ -356,8 +356,8 @@ object Export {
       val session_hierarchy = resources.sessions_structure.build_hierarchy(session)
       db_context.database_server match {
         case Some(db) =>
-          val session_database = new Session_Database(session, db)
-          new Session_Context(resources, snapshot, db_context.cache, List(session_database))
+          val session_databases = session_hierarchy.map(name => new Session_Database(name, db))
+          new Session_Context(resources, snapshot, db_context.cache, session_databases)
         case None =>
           val store = db_context.store
           val session_databases = {
