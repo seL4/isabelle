@@ -345,6 +345,16 @@ object Export {
   def open_context(store: Sessions.Store): Context =
     new Context(store.open_database_context()) { override def close(): Unit = db_context.close() }
 
+  def open_session_context(
+    store: Sessions.Store,
+    session: String,
+    resources: Resources,
+    document_snapshot: Option[Document.Snapshot] = None
+  ): Session_Context = {
+    open_context(store)
+      .open_session(session, resources, document_snapshot = document_snapshot, close_context = true)
+  }
+
   class Session_Database private[Export](val session: String, val db: SQL.Database) {
     def close(): Unit = ()
 
@@ -353,6 +363,8 @@ object Export {
   }
 
   class Context private[Export](val db_context: Sessions.Database_Context) extends AutoCloseable {
+    context =>
+
     override def toString: String = db_context.toString
 
     def close(): Unit = ()
@@ -360,7 +372,8 @@ object Export {
     def open_session(
       session: String,
       resources: Resources,
-      document_snapshot: Option[Document.Snapshot] = None
+      document_snapshot: Option[Document.Snapshot] = None,
+      close_context: Boolean = false
     ): Session_Context = {
       val session_hierarchy = resources.sessions_structure.build_hierarchy(session)
       val session_databases: List[Session_Database] =
@@ -380,7 +393,10 @@ object Export {
             }
         }
       new Session_Context(resources, db_context.cache, session_databases, document_snapshot) {
-        override def close(): Unit = session_databases.foreach(_.close())
+        override def close(): Unit = {
+          session_databases.foreach(_.close())
+          if (close_context) context.close()
+        }
       }
     }
   }
