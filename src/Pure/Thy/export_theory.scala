@@ -107,13 +107,9 @@ object Export_Theory {
         (for ((k, xs) <- others.iterator) yield cache.string(k) -> xs.map(_.cache(cache))).toMap)
   }
 
-  def read_theory_parents(provider: Export.Provider, theory_name: String): Option[List[String]] = {
-    if (theory_name == Thy_Header.PURE) Some(Nil)
-    else {
-      provider.focus(theory_name)(Export.THEORY_PREFIX + "parents")
-        .map(entry => split_lines(entry.uncompressed.text))
-    }
-  }
+  def read_theory_parents(provider: Export.Provider, theory_name: String): Option[List[String]] =
+    provider.focus(theory_name)(Export.THEORY_PREFIX + "parents")
+      .map(entry => Library.trim_split_lines(entry.uncompressed.text))
 
   def no_theory: Theory =
     Theory("", Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Map.empty)

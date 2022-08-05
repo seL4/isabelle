@@ -156,7 +156,7 @@ val _ = (Theory.setup o Thy_Info.add_presentation) (fn context => fn thy =>
     val parents = Theory.parents_of thy;
     val _ =
       Export.export thy \<^path_binding>\<open>theory/parents\<close>
-        (XML.Encode.string (cat_lines (map Context.theory_long_name parents)));
+        (XML.Encode.string (terminate_lines (map Context.theory_long_name parents)));
 
 
     (* spec rules *)
