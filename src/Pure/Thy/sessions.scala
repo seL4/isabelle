@@ -373,7 +373,6 @@ object Sessions {
   ) {
     def check: Base_Info = if (errors.isEmpty) this else error(cat_lines(errors))
     def session: String = base.session_name
-    lazy val resources: Resources = new Resources(sessions_structure, check.base)
   }
 
   def base_info(options: Options,

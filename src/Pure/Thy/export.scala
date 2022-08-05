@@ -347,12 +347,11 @@ object Export {
 
   def open_session_context(
     store: Sessions.Store,
-    session: String,
-    resources: Resources,
+    session_base_info: Sessions.Base_Info,
     document_snapshot: Option[Document.Snapshot] = None
   ): Session_Context = {
-    open_context(store)
-      .open_session(session, resources, document_snapshot = document_snapshot, close_context = true)
+    open_context(store).open_session(
+      session_base_info, document_snapshot = document_snapshot, close_context = true)
   }
 
   class Session_Database private[Export](val session: String, val db: SQL.Database) {
@@ -370,13 +369,14 @@ object Export {
     def close(): Unit = ()
 
     def open_session(
-      session: String,
-      resources: Resources,
+      session_base_info: Sessions.Base_Info,
       document_snapshot: Option[Document.Snapshot] = None,
       close_context: Boolean = false
     ): Session_Context = {
-      val session_hierarchy = resources.sessions_structure.build_hierarchy(session)
-      val session_databases: List[Session_Database] =
+      val session_base = session_base_info.check.base
+      val session_hierarchy =
+        session_base_info.sessions_structure.build_hierarchy(session_base.session_name)
+      val session_databases =
         db_context.database_server match {
           case Some(db) => session_hierarchy.map(name => new Session_Database(name, db))
           case None =>
@@ -392,7 +392,7 @@ object Export {
                 }
             }
         }
-      new Session_Context(resources, db_context.cache, session_databases, document_snapshot) {
+      new Session_Context(db_context.cache, session_base, session_databases, document_snapshot) {
         override def close(): Unit = {
           session_databases.foreach(_.close())
           if (close_context) context.close()
@@ -402,8 +402,8 @@ object Export {
   }
 
   class Session_Context private[Export](
-    val resources: Resources,
     val cache: Term.Cache,
+    session_base: Sessions.Base,
     db_hierarchy: List[Session_Database],
     document_snapshot: Option[Document.Snapshot]
   ) extends AutoCloseable {
@@ -413,7 +413,7 @@ object Export {
 
     def session_name: String =
       if (document_snapshot.isDefined) Sessions.DRAFT
-      else resources.session_base.session_name
+      else session_base.session_name
 
     def session_stack: List[String] =
       ((if (document_snapshot.isDefined) List(session_name) else Nil) :::
