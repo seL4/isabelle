@@ -87,7 +87,8 @@ object Export {
 
   def read_theory_names(db: SQL.Database, session_name: String): List[String] = {
     val select =
-      Data.table.select(List(Data.theory_name), Data.where_equal(session_name), distinct = true)
+      Data.table.select(List(Data.theory_name), Data.where_equal(session_name), distinct = true) +
+      " ORDER BY " + Data.theory_name
     db.using_statement(select)(stmt =>
       stmt.execute_query().iterator(_.string(Data.theory_name)).toList)
   }
@@ -343,6 +344,8 @@ object Export {
 
   class Session_Database private[Export](val session: String, val db: SQL.Database) {
     def close(): Unit = ()
+
+    lazy val theory_names: List[String] = read_theory_names(db, session)
   }
 
   class Context private[Export](val db_context: Sessions.Database_Context) extends AutoCloseable {
@@ -405,6 +408,9 @@ object Export {
         case None => error("Missing export entry " + quote(compound_name(theory, name)))
         case Some(entry) => entry
       }
+
+    def theory_names(session: String): List[String] =
+      db_hierarchy.find(_.session == session).map(_.theory_names).getOrElse(Nil)
 
     def theory(theory: String): Theory_Context =
       new Theory_Context(session_context, theory)
