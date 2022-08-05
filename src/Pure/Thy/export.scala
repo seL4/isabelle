@@ -353,6 +353,8 @@ object Export {
   }
 
   class Context private[Export](val db_context: Sessions.Database_Context) extends AutoCloseable {
+    override def toString: String = db_context.toString
+
     def close(): Unit = ()
 
     def open_session(
@@ -361,32 +363,26 @@ object Export {
       document_snapshot: Option[Document.Snapshot] = None
     ): Session_Context = {
       val session_hierarchy = resources.sessions_structure.build_hierarchy(session)
-      db_context.database_server match {
-        case Some(db) =>
-          val session_databases = session_hierarchy.map(name => new Session_Database(name, db))
-          new Session_Context(resources, db_context.cache, session_databases, document_snapshot)
-        case None =>
-          val store = db_context.store
-          val session_databases = {
-            val res = session_hierarchy.map(name => name -> store.try_open_database(name))
-            res.collectFirst({ case (name, None) => name }) match {
+      val session_databases: List[Session_Database] =
+        db_context.database_server match {
+          case Some(db) => session_hierarchy.map(name => new Session_Database(name, db))
+          case None =>
+            val store = db_context.store
+            val attempts = session_hierarchy.map(name => name -> store.try_open_database(name))
+            attempts.collectFirst({ case (name, None) => name }) match {
+              case Some(bad) =>
+                for ((_, Some(db)) <- attempts) db.close()
+                store.bad_database(bad)
               case None =>
-                for ((name, Some(db)) <- res)
-                yield {
+                for ((name, Some(db)) <- attempts) yield {
                   new Session_Database(name, db) { override def close(): Unit = this.db.close() }
                 }
-              case Some(bad) =>
-                for ((_, Some(db)) <- res) db.close()
-                store.bad_database(bad)
             }
-          }
-          new Session_Context(resources, db_context.cache, session_databases, document_snapshot) {
-            override def close(): Unit = session_databases.foreach(_.close())
-          }
+        }
+      new Session_Context(resources, db_context.cache, session_databases, document_snapshot) {
+        override def close(): Unit = session_databases.foreach(_.close())
       }
     }
-
-    override def toString: String = db_context.toString
   }
 
   class Session_Context private[Export](
@@ -461,7 +457,7 @@ object Export {
       "Export.Session_Context(" + commas_quote(session_stack) + ")"
   }
 
-  class Theory_Context private[Export](session_context: Session_Context, theory: String) {
+  class Theory_Context private[Export](val session_context: Session_Context, theory: String) {
     def get(name: String): Option[Entry] = session_context.get(theory, name)
     def apply(name: String, permissive: Boolean = false): Entry =
       session_context.apply(theory, name, permissive = permissive)
