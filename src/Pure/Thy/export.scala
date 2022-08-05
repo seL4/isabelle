@@ -343,6 +343,10 @@ object Export {
 
   def open_context(options: Options): Context = open_context(Sessions.store(options))
 
+  class Session_Database private[Export](val session: String, val db: SQL.Database) {
+    def close(): Unit = ()
+  }
+
   class Context private[Export](val db_context: Sessions.Database_Context) extends AutoCloseable {
     def close(): Unit = ()
 
@@ -354,11 +358,25 @@ object Export {
       val session_hierarchy = resources.sessions_structure.build_hierarchy(session)
       db_context.database_server match {
         case Some(db) =>
-          new Session_Context(resources, snapshot, db_context.cache, List(session -> db))
+          val session_database = new Session_Database(session, db)
+          new Session_Context(resources, snapshot, db_context.cache, List(session_database))
         case None =>
-          val db_hierarchy = session_hierarchy.zip(db_context.store.open_databases(session_hierarchy))
-          new Session_Context(resources, snapshot, db_context.cache, db_hierarchy) {
-            override def close(): Unit = for ((_, db) <- this.db_hierarchy) db.close()
+          val store = db_context.store
+          val session_databases = {
+            val res = session_hierarchy.map(name => name -> store.try_open_database(name))
+            res.collectFirst({ case (name, None) => name }) match {
+              case None =>
+                for ((name, Some(db)) <- res)
+                yield {
+                  new Session_Database(name, db) { override def close(): Unit = this.db.close() }
+                }
+              case Some(bad) =>
+                for ((_, Some(db)) <- res) db.close()
+                store.bad_database(bad)
+            }
+          }
+          new Session_Context(resources, snapshot, db_context.cache, session_databases) {
+            override def close(): Unit = db_hierarchy.foreach(_.close())
           }
       }
     }
@@ -370,7 +388,7 @@ object Export {
     val resources: Resources,
     val snapshot: Document.Snapshot,
     val cache: Term.Cache,
-    val db_hierarchy: List[(String, SQL.Database)]
+    val db_hierarchy: List[Session_Database]
   ) extends AutoCloseable {
     session_context =>
 
@@ -378,9 +396,10 @@ object Export {
 
     def get(theory: String, name: String): Option[Entry] =
       snapshot.exports_map.get(name) orElse
-        db_hierarchy.view.map({ case (session, db) =>
-            Export.Entry_Name(session = session, theory = theory, name = name).read(db, cache)
-        }).collectFirst({ case Some(entry) => entry })
+        db_hierarchy.view.map(session_db =>
+          Export.Entry_Name(session = session_db.session, theory = theory, name = name)
+            .read(session_db.db, cache))
+          .collectFirst({ case Some(entry) => entry })
 
     def apply(theory: String, name: String, permissive: Boolean = false): Entry =
       get(theory, name) match {
@@ -393,7 +412,7 @@ object Export {
       new Theory_Context(session_context, theory)
 
     override def toString: String =
-      "Export.Session_Context(" + commas_quote(db_hierarchy.map(_._1)) + ")"
+      "Export.Session_Context(" + commas_quote(db_hierarchy.map(_.session)) + ")"
   }
 
   class Theory_Context private[Export](session_context: Session_Context, theory: String) {

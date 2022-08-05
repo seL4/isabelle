@@ -1377,16 +1377,6 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     def open_database(name: String, output: Boolean = false): SQL.Database =
       try_open_database(name, output = output) getOrElse bad_database(name)
 
-    def open_databases(names: List[String]): List[SQL.Database] = {
-      val res = names.map(name => name -> try_open_database(name))
-      res.collectFirst({ case (name, None) => name }) match {
-        case None => res.map(_._2.get)
-        case Some(bad) =>
-          for ((_, Some(db)) <- res) db.close()
-          bad_database(bad)
-      }
-    }
-
     def clean_output(name: String): (Boolean, Boolean) = {
       val relevant_db =
         database_server && {
