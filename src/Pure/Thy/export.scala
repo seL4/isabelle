@@ -332,6 +332,12 @@ object Export {
       if (document_snapshot.isDefined) Sessions.DRAFT
       else session_base.session_name
 
+    def session_database(session: String = session_name): Option[Session_Database] =
+      db_hierarchy.find(_.session == session)
+
+    def session_db(session: String = session_name): Option[SQL.Database] =
+      session_database(session = session).map(_.db)
+
     def session_stack: List[String] =
       ((if (document_snapshot.isDefined) List(session_name) else Nil) :::
         db_hierarchy.map(_.session)).reverse
@@ -349,7 +355,7 @@ object Export {
             res <- select1(entry_name).iterator
           } yield entry_name -> res).toList.sortBy(_._1.compound_name).map(_._2)
         }
-        else { db_hierarchy.find(_.session == name).map(select2).getOrElse(Nil) }
+        else { session_database(name).map(select2).getOrElse(Nil) }
       if (session.nonEmpty) sel(session) else session_stack.flatMap(sel)
     }
 
@@ -385,10 +391,6 @@ object Export {
 
     def theory(theory: String): Theory_Context =
       new Theory_Context(session_context, theory)
-
-    def read_document(session: String, name: String): Option[Document_Build.Document_Output] =
-      db_hierarchy.find(_.session == session).flatMap(session_db =>
-        Document_Build.read_document(session_db.db, session_db.session, name))
 
     override def toString: String =
       "Export.Session_Context(" + commas_quote(session_stack) + ")"

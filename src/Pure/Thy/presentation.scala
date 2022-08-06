@@ -544,7 +544,8 @@ object Presentation {
     val documents =
       for {
         doc <- info.document_variants
-        document <- session_context.read_document(session, doc.name)
+        db <- session_context.session_db()
+        document <- Document_Build.read_document(db, session, doc.name)
       } yield {
         val doc_path = (session_dir + doc.path.pdf).expand
         if (verbose) progress.echo("Presenting document " + session + "/" + doc.name)

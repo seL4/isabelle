@@ -18,8 +18,7 @@ object Profiling_Report {
     val store = Sessions.store(options)
 
     using(Export.open_session_context0(store, session)) { session_context =>
-      session_context.db_context.database(session)(db => Some(store.read_theories(db, session)))
-      match {
+      session_context.session_db().map(db => store.read_theories(db, session)) match {
         case None => error("Missing build database for session " + quote(session))
         case Some(used_theories) =>
           theories.filterNot(used_theories.toSet) match {

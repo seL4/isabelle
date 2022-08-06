@@ -91,11 +91,12 @@ object Build_Job {
 
     using(Export.open_session_context0(store, session_name)) { session_context =>
       val result =
-        session_context.db_context.database(session_name) { db =>
-          val theories = store.read_theories(db, session_name)
-          val errors = store.read_errors(db, session_name)
-          store.read_build(db, session_name).map(info => (theories, errors, info.return_code))
-        }
+        for {
+          db <- session_context.session_db()
+          theories = store.read_theories(db, session_name)
+          errors = store.read_errors(db, session_name)
+          info <- store.read_build(db, session_name)
+        } yield (theories, errors, info.return_code)
       result match {
         case None => error("Missing build database for session " + quote(session_name))
         case Some((used_theories, errors, rc)) =>
