@@ -303,13 +303,13 @@ object SQL {
     def close(): Unit = connection.close()
 
     def transaction[A](body: => A): A = {
-      val auto_commit = connection.getAutoCommit
+      val auto_commit = connection.getAutoCommit()
       try {
         connection.setAutoCommit(false)
-        val savepoint = connection.setSavepoint
+        val savepoint = connection.setSavepoint()
         try {
           val result = body
-          connection.commit
+          connection.commit()
           result
         }
         catch { case exn: Throwable => connection.rollback(savepoint); throw exn }
@@ -403,7 +403,7 @@ object SQLite {
     def insert_permissive(table: SQL.Table, sql: SQL.Source = ""): SQL.Source =
       table.insert_cmd("INSERT OR IGNORE", sql = sql)
 
-    def rebuild: Unit = using_statement("VACUUM")(_.execute())
+    def rebuild(): Unit = using_statement("VACUUM")(_.execute())
   }
 }
 

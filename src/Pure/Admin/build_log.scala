@@ -910,7 +910,7 @@ object Build_Log {
             db2.create_view(Data.universal_table)
           }
         }
-        db2.rebuild
+        db2.rebuild()
       }
     }
 
