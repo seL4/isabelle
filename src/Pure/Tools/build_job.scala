@@ -11,28 +11,38 @@ import scala.collection.mutable
 
 
 object Build_Job {
-  /* theory markup/messages from database */
+  /* theory markup/messages from session database */
 
-  def read_theory(
+  def read_session_theory(
     db_context: Sessions.Database_Context,
-    session_hierarchy: List[String],
+    session: String,
     theory: String,
     unicode_symbols: Boolean = false
   ): Option[Command] = {
-    def read(name: String): Export.Entry =
-      db_context.get_export(session_hierarchy, theory, name)
+    val export_context = Export.context(db_context)
+    val session_base_info = Sessions.base_info_empty(session)
+    using(export_context.open_session(session_base_info)) { session_context =>
+      Build_Job.read_theory(session_context.theory(theory), unicode_symbols = unicode_symbols)
+    }
+  }
+
+  def read_theory(
+    theory_context: Export.Theory_Context,
+    unicode_symbols: Boolean = false
+  ): Option[Command] = {
+    def read(name: String): Export.Entry = theory_context(name, permissive = true)
 
     def read_xml(name: String): XML.Body =
       YXML.parse_body(
         Symbol.output(unicode_symbols, UTF8.decode_permissive(read(name).uncompressed)),
-        cache = db_context.cache)
+        cache = theory_context.cache)
 
     for {
-      id <- Export.read_document_id(read)
-      (thy_file, blobs_files) <- Export.read_files(read)
+      id <- theory_context.document_id()
+      (thy_file, blobs_files) <- theory_context.files()
     }
     yield {
-      val node_name = Resources.file_node(Path.explode(thy_file), theory = theory)
+      val node_name = Resources.file_node(Path.explode(thy_file), theory = theory_context.theory)
 
       val results =
         Command.Results.make(
@@ -108,9 +118,11 @@ object Build_Job {
           }
           val print_theories =
             if (theories.isEmpty) used_theories else used_theories.filter(theories.toSet)
+
           for (thy <- print_theories) {
             val thy_heading = "\nTheory " + quote(thy) + ":"
-            read_theory(db_context, List(session_name), thy, unicode_symbols = unicode_symbols)
+
+            read_session_theory(db_context, session_name, thy, unicode_symbols = unicode_symbols)
             match {
               case None => progress.echo(thy_heading + " MISSING")
               case Some(command) =>

@@ -146,11 +146,11 @@ object Presentation {
           using(export_context.open_session(deps.base_info(session))) { session_context =>
             session_context.theory_names().flatMap { theory =>
               val theory_context = session_context.theory(theory)
-              Export.read_files(theory_context(_, permissive = true)) match {
+              theory_context.files() match {
                 case None => Nil
-                case Some((thy, other)) =>
+                case Some((thy, blobs)) =>
                   val thy_file_info = File_Info(theory, is_theory = true)
-                  (thy -> thy_file_info) :: other.map(_ -> File_Info(theory))
+                  (thy -> thy_file_info) :: blobs.map(_ -> File_Info(theory))
               }
             }
           }).toMap
@@ -524,19 +524,18 @@ object Presentation {
   }
 
   def session_html(
-    session: String,
+    session_context: Export.Session_Context,
     deps: Sessions.Deps,
-    db_context: Sessions.Database_Context,
     progress: Progress = new Progress,
     verbose: Boolean = false,
     html_context: HTML_Context,
     session_elements: Elements
   ): Unit = {
-    val info = deps.sessions_structure(session)
+    val session = session_context.session_name
+    val info = session_context.sessions_structure(session)
     val options = info.options
-    val base = deps(session)
+    val base = session_context.session_base
 
-    val session_hierarchy = deps.sessions_structure.build_hierarchy(session)
     val session_dir = Isabelle_System.make_directory(html_context.session_dir(info))
 
     Bytes.write(session_dir + session_graph_path,
@@ -545,8 +544,7 @@ object Presentation {
     val documents =
       for {
         doc <- info.document_variants
-        document <- db_context.database(session)(db =>
-          Document_Build.read_document(db, session, doc.name))
+        document <- session_context.read_document(session, doc.name)
       } yield {
         val doc_path = (session_dir + doc.path.pdf).expand
         if (verbose) progress.echo("Presenting document " + session + "/" + doc.name)
@@ -595,7 +593,7 @@ object Presentation {
     def present_theory(name: Document.Node.Name): Option[XML.Body] = {
       progress.expose_interrupt()
 
-      Build_Job.read_theory(db_context, session_hierarchy, name.theory).flatMap { command =>
+      Build_Job.read_theory(session_context.theory(name.theory)).flatMap { command =>
         if (verbose) progress.echo("Presenting theory " + name)
         val snapshot = Document.State.init.snippet(command)
 

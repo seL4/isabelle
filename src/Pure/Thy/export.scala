@@ -193,21 +193,6 @@ object Export {
   }
 
 
-  /* specific entries */
-
-  def read_document_id(read: String => Entry): Option[Long] =
-    read(DOCUMENT_ID).text match {
-      case Value.Long(id) => Some(id)
-      case _ => None
-    }
-
-  def read_files(read: String => Entry): Option[(String, List[String])] =
-    split_lines(read(FILES).text) match {
-      case thy_file :: blobs_files => Some((thy_file, blobs_files))
-      case Nil => None
-    }
-
-
   /* database consumer thread */
 
   def consumer(db: SQL.Database, cache: XML.Cache, progress: Progress = new Progress): Consumer =
@@ -291,9 +276,8 @@ object Export {
       document_snapshot: Option[Document.Snapshot] = None,
       close_context: Boolean = false
     ): Session_Context = {
-      val session_base = session_base_info.check.base
-      val session_hierarchy =
-        session_base_info.sessions_structure.build_hierarchy(session_base.session_name)
+      val session_name = session_base_info.check.base.session_name
+      val session_hierarchy = session_base_info.sessions_structure.build_hierarchy(session_name)
       val session_databases =
         db_context.database_server match {
           case Some(db) => session_hierarchy.map(name => new Session_Database(name, db))
@@ -311,7 +295,7 @@ object Export {
                 }
             }
         }
-      new Session_Context(db_context.cache, session_base, session_databases, document_snapshot) {
+      new Session_Context(context, session_base_info, session_databases, document_snapshot) {
         override def close(): Unit = {
           session_databases.foreach(_.close())
           if (close_context) context.close()
@@ -321,14 +305,20 @@ object Export {
   }
 
   class Session_Context private[Export](
-    val cache: Term.Cache,
-    session_base: Sessions.Base,
+    val export_context: Context,
+    session_base_info: Sessions.Base_Info,
     db_hierarchy: List[Session_Database],
     document_snapshot: Option[Document.Snapshot]
   ) extends AutoCloseable {
     session_context =>
 
     def close(): Unit = ()
+
+    def cache: Term.Cache = export_context.db_context.cache
+
+    def sessions_structure: Sessions.Structure = session_base_info.sessions_structure
+
+    def session_base: Sessions.Base = session_base_info.base
 
     def session_name: String =
       if (document_snapshot.isDefined) Sessions.DRAFT
@@ -388,6 +378,10 @@ object Export {
     def theory(theory: String): Theory_Context =
       new Theory_Context(session_context, theory)
 
+    def read_document(session: String, name: String): Option[Document_Build.Document_Output] =
+      db_hierarchy.find(_.session == session).flatMap(session_db =>
+        Document_Build.read_document(session_db.db, session_db.session, name))
+
     override def toString: String =
       "Export.Session_Context(" + commas_quote(session_stack) + ")"
   }
@@ -396,6 +390,8 @@ object Export {
     val session_context: Session_Context,
     val theory: String
   ) {
+    def cache: Term.Cache = session_context.cache
+
     def get(name: String): Option[Entry] = session_context.get(theory, name)
     def apply(name: String, permissive: Boolean = false): Entry =
       session_context.apply(theory, name, permissive = permissive)
@@ -404,6 +400,18 @@ object Export {
       get(name) match {
         case Some(entry) => entry.uncompressed_yxml
         case None => Nil
+      }
+
+    def document_id(): Option[Long] =
+      apply(DOCUMENT_ID, permissive = true).text match {
+        case Value.Long(id) => Some(id)
+        case _ => None
+      }
+
+    def files(): Option[(String, List[String])] =
+      split_lines(apply(FILES, permissive = true).text) match {
+        case Nil => None
+        case thy_file :: blobs_files => Some((thy_file, blobs_files))
       }
 
     override def toString: String = "Export.Theory_Context(" + quote(theory) + ")"

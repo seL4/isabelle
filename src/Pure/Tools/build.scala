@@ -494,7 +494,9 @@ object Build {
           Presentation.update_chapter(presentation_dir, chapter, entries)
         }
 
-        using(store.open_database_context()) { db_context =>
+        using(Export.open_context(store)) { export_context =>
+          val db_context = export_context.db_context
+
           val presentation_nodes =
             Presentation.Nodes.read(presentation_sessions.map(_.name), deps, db_context)
 
@@ -509,10 +511,15 @@ object Build {
                 override def theory_session(name: Document.Node.Name): Sessions.Info =
                   deps.sessions_structure(deps(session).theory_qualifier(name))
               }
-            Presentation.session_html(
-              session, deps, db_context, progress = progress,
-              verbose = verbose, html_context = html_context,
-              Presentation.elements1)
+
+            val session_base_info = deps.base_info(session)
+            using(export_context.open_session(session_base_info)) { session_context =>
+              Presentation.session_html(session_context, deps,
+                progress = progress,
+                verbose = verbose,
+                html_context = html_context,
+                Presentation.elements1)
+            }
           }, presentation_sessions.map(_.name))
         }
       }
