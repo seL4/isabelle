@@ -13,19 +13,6 @@ import scala.collection.mutable
 object Build_Job {
   /* theory markup/messages from session database */
 
-  def read_session_theory(
-    db_context: Sessions.Database_Context,
-    session: String,
-    theory: String,
-    unicode_symbols: Boolean = false
-  ): Option[Command] = {
-    val export_context = Export.context(db_context)
-    val session_base_info = Sessions.base_info_empty(session)
-    using(export_context.open_session(session_base_info)) { session_context =>
-      Build_Job.read_theory(session_context.theory(theory), unicode_symbols = unicode_symbols)
-    }
-  }
-
   def read_theory(
     theory_context: Export.Theory_Context,
     unicode_symbols: Boolean = false
@@ -102,9 +89,9 @@ object Build_Job {
     val store = Sessions.store(options)
     val session = new Session(options, Resources.empty)
 
-    using(store.open_database_context()) { db_context =>
+    using(Export.open_session_context0(store, session_name)) { session_context =>
       val result =
-        db_context.database(session_name) { db =>
+        session_context.db_context.database(session_name) { db =>
           val theories = store.read_theories(db, session_name)
           val errors = store.read_errors(db, session_name)
           store.read_build(db, session_name).map(info => (theories, errors, info.return_code))
@@ -122,8 +109,7 @@ object Build_Job {
           for (thy <- print_theories) {
             val thy_heading = "\nTheory " + quote(thy) + ":"
 
-            read_session_theory(db_context, session_name, thy, unicode_symbols = unicode_symbols)
-            match {
+            read_theory(session_context.theory(thy), unicode_symbols = unicode_symbols) match {
               case None => progress.echo(thy_heading + " MISSING")
               case Some(command) =>
                 val snapshot = Document.State.init.snippet(command)

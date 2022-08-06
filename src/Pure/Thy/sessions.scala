@@ -378,7 +378,7 @@ object Sessions {
     def session: String = base.session_name
   }
 
-  def base_info_empty(session: String): Base_Info =
+  def base_info0(session: String): Base_Info =
     Base_Info(Base(session_name = session))
 
   def base_info(options: Options,

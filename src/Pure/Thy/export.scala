@@ -248,6 +248,9 @@ object Export {
   def open_context(store: Sessions.Store): Context =
     new Context(store.open_database_context()) { override def close(): Unit = db_context.close() }
 
+  def open_session_context0(store: Sessions.Store, session: String): Session_Context =
+    open_context(store).open_session0(session, close_context = true)
+
   def open_session_context(
     store: Sessions.Store,
     session_base_info: Sessions.Base_Info,
@@ -270,6 +273,9 @@ object Export {
     override def toString: String = db_context.toString
 
     def close(): Unit = ()
+
+    def open_session0(session: String, close_context: Boolean = false): Session_Context =
+      open_session(Sessions.base_info0(session), close_context = close_context)
 
     def open_session(
       session_base_info: Sessions.Base_Info,
@@ -313,6 +319,8 @@ object Export {
     session_context =>
 
     def close(): Unit = ()
+
+    def db_context: Sessions.Database_Context = export_context.db_context
 
     def cache: Term.Cache = export_context.db_context.cache
 
