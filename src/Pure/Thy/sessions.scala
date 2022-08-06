@@ -1356,14 +1356,18 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
               port = options.int("build_database_ssh_port"))),
         ssh_close = true)
 
-    def open_database_context(): Database_Context =
-      new Database_Context(store, if (database_server) Some(open_database_server()) else None)
+    def open_database_context(server: Boolean = database_server): Database_Context =
+      new Database_Context(store, if (server) Some(open_database_server()) else None)
 
-    def try_open_database(name: String, output: Boolean = false): Option[SQL.Database] = {
+    def try_open_database(
+      name: String,
+      output: Boolean = false,
+      server: Boolean = database_server
+    ): Option[SQL.Database] = {
       def check(db: SQL.Database): Option[SQL.Database] =
         if (output || session_info_exists(db)) Some(db) else { db.close(); None }
 
-      if (database_server) check(open_database_server())
+      if (server) check(open_database_server())
       else if (output) Some(SQLite.open_database(output_database(name)))
       else {
         (for {

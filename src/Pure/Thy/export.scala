@@ -299,7 +299,8 @@ object Export {
           case Some(db) => session_hierarchy.map(name => new Session_Database(name, db))
           case None =>
             val store = db_context.store
-            val attempts = session_hierarchy.map(name => name -> store.try_open_database(name))
+            val attempts =
+              session_hierarchy.map(name => name -> store.try_open_database(name, server = false))
             attempts.collectFirst({ case (name, None) => name }) match {
               case Some(bad) =>
                 for ((_, Some(db)) <- attempts) db.close()
