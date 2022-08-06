@@ -216,12 +216,12 @@ object Headless {
               (for {
                 name <- dep_graph.keys_iterator
                 if !loaded_theory(name)
-              } yield { (name -> Document_Status.Node_Status.make(state, version, name)) }).toList
+              } yield name -> Document_Status.Node_Status.make(state, version, name)).toList
             val nodes_committed =
               (for {
                 name <- dep_graph.keys_iterator
                 status <- already_committed1.get(name)
-              } yield (name -> status)).toList
+              } yield name -> status).toList
             Some(Exn.Res(new Use_Theories_Result(state, version, nodes, nodes_committed)))
           }
           else result
@@ -314,7 +314,7 @@ object Headless {
           }
 
         isabelle.Session.Consumer[isabelle.Session.Commands_Changed](getClass.getName) {
-          case changed =>
+          changed =>
             if (changed.nodes.exists(dep_theories_set)) {
               val snapshot = session.snapshot()
               val state = snapshot.state
@@ -339,7 +339,7 @@ object Headless {
                       (name, node_status) <- nodes_status1.present.iterator
                       if changed.nodes.contains(name) && !st.already_committed.isDefinedAt(name)
                       p1 = node_status.percentage
-                      if p1 > 0 && Some(p1) != st.nodes_status.get(name).map(_.percentage)
+                      if p1 > 0 && !st.nodes_status.get(name).map(_.percentage).contains(p1)
                     } yield Progress.Theory(name.theory, percentage = Some(p1))).toList
 
                   (theory_progress, st.update(nodes_status1))
@@ -381,7 +381,7 @@ object Headless {
       val nodes =
         if (all) None
         else Some(theories.map(resources.import_name(qualifier, master_directory(master_dir), _)))
-      resources.purge_theories(session, nodes)
+      resources.purge_theories(nodes)
     }
   }
 
@@ -513,7 +513,6 @@ object Headless {
       }
 
       def unload_theories(
-        session: Session,
         id: UUID.T,
         theories: List[Document.Node.Name]
       ) : (List[Document.Edit_Text], State) = {
@@ -532,7 +531,6 @@ object Headless {
       }
 
       def purge_theories(
-        session: Session,
         nodes: Option[List[Document.Node.Name]]
       ) : ((List[Document.Node.Name], List[Document.Node.Name], List[Document.Edit_Text]), State) = {
         val all_nodes = theory_graph.topological_order
@@ -622,7 +620,7 @@ object Headless {
 
     def unload_theories(session: Session, id: UUID.T, theories: List[Document.Node.Name]): Unit = {
       state.change { st =>
-        val (edits, st1) = st.unload_theories(session, id, theories)
+        val (edits, st1) = st.unload_theories(id, theories)
         session.update(st.doc_blobs, edits)
         st1
       }
@@ -630,19 +628,18 @@ object Headless {
 
     def clean_theories(session: Session, id: UUID.T, theories: List[Document.Node.Name]): Unit = {
       state.change { st =>
-        val (edits1, st1) = st.unload_theories(session, id, theories)
-        val ((_, _, edits2), st2) = st1.purge_theories(session, None)
+        val (edits1, st1) = st.unload_theories(id, theories)
+        val ((_, _, edits2), st2) = st1.purge_theories(None)
         session.update(st.doc_blobs, edits1 ::: edits2)
         st2
       }
     }
 
     def purge_theories(
-      session: Session,
       nodes: Option[List[Document.Node.Name]]
     ) : (List[Document.Node.Name], List[Document.Node.Name]) = {
       state.change_result { st =>
-        val ((purged, retained, _), st1) = st.purge_theories(session, nodes)
+        val ((purged, retained, _), st1) = st.purge_theories(nodes)
         ((purged, retained), st1)
       }
     }

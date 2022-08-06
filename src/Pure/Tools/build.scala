@@ -54,7 +54,7 @@ object Build {
           catch {
             case ERROR(msg) => ignore_error(msg)
             case exn: java.lang.Error => ignore_error(Exn.message(exn))
-            case _: XML.Error => ignore_error("")
+            case _: XML.Error => ignore_error("XML.Error")
           }
           finally { db.close() }
       }
@@ -203,7 +203,7 @@ object Build {
     def sources_stamp(deps: Sessions.Deps, session_name: String): String = {
       val digests =
         full_sessions(session_name).meta_digest ::
-        deps.sources(session_name) :::
+        deps.session_sources(session_name) :::
         deps.imported_sources(session_name)
       SHA1.digest_set(digests).toString
     }
@@ -247,7 +247,7 @@ object Build {
       val source_files =
         (for {
           (_, base) <- deps.session_bases.iterator
-          (path, _) <- base.sources.iterator
+          (path, _) <- base.session_sources.iterator
         } yield path).toList
       val exclude_files = List(Path.explode("$POLYML_EXE")).map(_.canonical_file)
       val unknown_files =
@@ -494,9 +494,9 @@ object Build {
           Presentation.update_chapter(presentation_dir, chapter, entries)
         }
 
-        using(store.open_database_context()) { db_context =>
-          val exports =
-            Presentation.read_exports(presentation_sessions.map(_.name), deps, db_context)
+        using(Export.open_context(store)) { export_context =>
+          val presentation_nodes =
+            Presentation.Nodes.read(export_context, deps, presentation_sessions.map(_.name))
 
           Par_List.map({ (session: String) =>
             progress.expose_interrupt()
@@ -504,15 +504,19 @@ object Build {
 
             val html_context =
               new Presentation.HTML_Context {
+                override def nodes: Presentation.Nodes = presentation_nodes
                 override def root_dir: Path = presentation_dir
                 override def theory_session(name: Document.Node.Name): Sessions.Info =
                   deps.sessions_structure(deps(session).theory_qualifier(name))
-                override def theory_exports: Theory_Exports = exports
               }
-            Presentation.session_html(
-              session, deps, db_context, progress = progress,
-              verbose = verbose, html_context = html_context,
-              Presentation.elements1)
+
+            using(export_context.open_session(deps.base_info(session))) { session_context =>
+              Presentation.session_html(session_context, deps,
+                progress = progress,
+                verbose = verbose,
+                html_context = html_context,
+                Presentation.elements1)
+            }
           }, presentation_sessions.map(_.name))
         }
       }

@@ -633,8 +633,12 @@ object Document {
     lazy val exports: List[Export.Entry] =
       state.node_exports(version, node_name).iterator.map(_._2).toList
 
-    lazy val exports_map: Map[String, Export.Entry] =
-      (for (entry <- exports.iterator) yield (entry.name, entry)).toMap
+    lazy val all_exports: Map[Export.Entry_Name, Export.Entry] =
+      (for {
+        (name, _) <- version.nodes.iterator
+        (_, entry) <- state.node_exports(version, name).iterator
+        if entry.entry_name.session == Sessions.DRAFT
+      } yield entry.entry_name -> entry).toMap
 
 
     /* find command */

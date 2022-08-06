@@ -22,20 +22,16 @@ object Presentation {
   abstract class HTML_Context {
     /* directory structure and resources */
 
+    def nodes: Nodes
     def root_dir: Path
     def theory_session(name: Document.Node.Name): Sessions.Info
 
     def session_dir(info: Sessions.Info): Path =
       root_dir + Path.explode(info.chapter_session)
-    def theory_path(name: Document.Node.Name): Path =
-      session_dir(theory_session(name)) + Path.explode(name.theory_base_name).html
+    def theory_dir(name: Document.Node.Name): Path =
+      session_dir(theory_session(name))
     def files_path(name: Document.Node.Name, path: Path): Path =
-      theory_path(name).dir + Path.explode("files") + path.squash.html
-
-    type Theory_Exports = Map[String, Entity_Context.Theory_Export]
-    def theory_exports: Theory_Exports = Map.empty
-    def theory_export(name: String): Entity_Context.Theory_Export =
-      theory_exports.getOrElse(name, Entity_Context.no_theory_export)
+      theory_dir(name) + Path.explode("files") + path.squash.html
 
 
     /* HTML content */
@@ -88,18 +84,96 @@ object Presentation {
       language = Markup.Elements(Markup.Language.DOCUMENT))
 
 
+  /* per-session node info */
+
+  sealed case class File_Info(theory: String, is_theory: Boolean = false)
+
+  object Node_Info {
+    val empty: Node_Info = new Node_Info(Map.empty, Map.empty, Nil)
+    def make(theory: Export_Theory.Theory): Node_Info = {
+      val by_range = theory.entity_iterator.toList.groupBy(_.range)
+      val by_kind_name =
+        theory.entity_iterator.map(entity => ((entity.kind, entity.name), entity)).toMap
+      val others = theory.others.keySet.toList
+      new Node_Info(by_range, by_kind_name, others)
+    }
+  }
+
+  class Node_Info private(
+    by_range: Map[Symbol.Range, List[Export_Theory.Entity0]],
+    by_kind_name: Map[(String, String), Export_Theory.Entity0],
+    val others: List[String]) {
+    def for_range(range: Symbol.Range): List[Export_Theory.Entity0] =
+      by_range.getOrElse(range, Nil)
+    def get_kind_name(kind: String, name: String): Option[String] =
+      by_kind_name.get((kind, name)).map(_.kname)
+  }
+
+  object Nodes {
+    val empty: Nodes = new Nodes(Map.empty, Map.empty)
+
+    def read(
+      export_context: Export.Context,
+      deps: Sessions.Deps,
+      presentation_sessions: List[String]
+    ): Nodes = {
+
+      def open_session(session: String): Export.Session_Context =
+        export_context.open_session(deps.base_info(session))
+
+      type Batch = (String, List[String])
+      val batches =
+        presentation_sessions.foldLeft((Set.empty[String], List.empty[Batch]))(
+          { case ((seen, batches), session) =>
+              val thys = deps(session).loaded_theories.keys.filterNot(seen)
+              (seen ++ thys, (session, thys) :: batches)
+          })._2
+
+      val theory_node_info =
+        Par_List.map[Batch, List[(String, Node_Info)]](
+          { case (session, thys) =>
+              using(open_session(session)) { session_context =>
+                for (thy_name <- thys) yield {
+                  val theory_context = session_context.theory(thy_name)
+                  val theory =
+                    Export_Theory.read_theory(theory_context,
+                      permissive = true, cache = session_context.cache)
+                  thy_name -> Node_Info.make(theory)
+                }
+              }
+          }, batches).flatten.toMap
+
+      val files_info =
+        deps.sessions_structure.build_requirements(presentation_sessions).flatMap(session =>
+          using(open_session(session)) { session_context =>
+            session_context.theory_names().flatMap { theory =>
+              session_context.theory(theory).files() match {
+                case None => Nil
+                case Some((thy, blobs)) =>
+                  val thy_file_info = File_Info(theory, is_theory = true)
+                  (thy -> thy_file_info) :: blobs.map(_ -> File_Info(theory))
+              }
+            }
+          }).toMap
+
+      new Nodes(theory_node_info, files_info)
+    }
+  }
+
+  class Nodes private(
+    theory_node_info: Map[String, Node_Info],
+    val files_info: Map[String, File_Info]
+  ) {
+    def apply(name: String): Node_Info = theory_node_info.getOrElse(name, Node_Info.empty)
+    def get(name: String): Option[Node_Info] = theory_node_info.get(name)
+  }
+
+
   /* formal entities */
 
   type Entity = Export_Theory.Entity[Export_Theory.No_Content]
 
   object Entity_Context {
-    sealed case class Theory_Export(
-      entity_by_range: Map[Symbol.Range, List[Export_Theory.Entity[Export_Theory.No_Content]]],
-      entity_by_kind_name: Map[(String, String), Export_Theory.Entity[Export_Theory.No_Content]],
-      others: List[String])
-
-    val no_theory_export: Theory_Export = Theory_Export(Map.empty, Map.empty, Nil)
-
     object Theory_Ref {
       def unapply(props: Properties.T): Option[Document.Node.Name] =
         (props, props, props) match {
@@ -135,10 +209,7 @@ object Presentation {
             case List(XML.Elem(Markup("span", List("id" -> _)), _)) => None
             case _ =>
               Some {
-                val entities =
-                  html_context.theory_exports.get(node.theory)
-                    .flatMap(_.entity_by_range.get(range))
-                    .getOrElse(Nil)
+                val entities = html_context.nodes(node.theory).for_range(range)
                 val body1 =
                   if (seen_ranges.contains(range)) {
                     HTML.entity_def(HTML.span(HTML.id(offset_id(range)), body))
@@ -165,10 +236,7 @@ object Presentation {
         }
 
         private def logical_ref(thy_name: String, kind: String, name: String): Option[String] =
-          for {
-            thy <- html_context.theory_exports.get(thy_name)
-            entity <- thy.entity_by_kind_name.get((kind, name))
-          } yield entity.kname
+          html_context.nodes.get(thy_name).flatMap(_.get_kind_name(kind, name))
 
         override def make_ref(props: Properties.T, body: XML.Body): Option[XML.Elem] = {
           props match {
@@ -456,72 +524,18 @@ object Presentation {
     session_relative(deps, session0, session1)
   }
 
-  def theory_link(
-    deps: Sessions.Deps,
-    session0: String,
-    name: Document.Node.Name,
-    body: XML.Body,
-    anchor: Option[String] = None
-  ): Option[XML.Tree] = {
-    val session1 = deps(session0).theory_qualifier(name)
-    val info0 = deps.sessions_structure.get(session0)
-    val info1 = deps.sessions_structure.get(session1)
-    val fragment = if (anchor.isDefined) "#" + anchor.get else ""
-    if (info0.isDefined && info1.isDefined) {
-      Some(HTML.link(info0.get.relative_path(info1.get) + html_name(name) + fragment, body))
-    }
-    else None
-  }
-
-  def read_exports(
-    sessions: List[String],
-    deps: Sessions.Deps,
-    db_context: Sessions.Database_Context
-  ): Map[String, Entity_Context.Theory_Export] = {
-    type Batch = (String, List[String])
-    val batches =
-      sessions.foldLeft((Set.empty[String], List.empty[Batch]))(
-        { case ((seen, batches), session) =>
-            val thys = deps(session).loaded_theories.keys.filterNot(seen)
-            (seen ++ thys, (session, thys) :: batches)
-        })._2
-    Par_List.map[Batch, List[(String, Entity_Context.Theory_Export)]](
-      { case (session, thys) =>
-          for (thy_name <- thys) yield {
-            val theory =
-              if (thy_name == Thy_Header.PURE) Export_Theory.no_theory
-              else {
-                val provider = Export.Provider.database_context(db_context, List(session), thy_name)
-                if (Export_Theory.read_theory_parents(provider, thy_name).isDefined) {
-                  Export_Theory.read_theory(provider, session, thy_name, cache = db_context.cache)
-                }
-                else Export_Theory.no_theory
-              }
-            val entity_by_range =
-              theory.entity_iterator.toList.groupBy(_.range)
-            val entity_by_kind_name =
-              theory.entity_iterator.map(entity => ((entity.kind, entity.name), entity)).toMap
-            val others = theory.others.keySet.toList
-            thy_name -> Entity_Context.Theory_Export(entity_by_range, entity_by_kind_name, others)
-          }
-      }, batches).flatten.toMap
-  }
-
   def session_html(
-    session: String,
+    session_context: Export.Session_Context,
     deps: Sessions.Deps,
-    db_context: Sessions.Database_Context,
     progress: Progress = new Progress,
     verbose: Boolean = false,
     html_context: HTML_Context,
     session_elements: Elements
   ): Unit = {
-    val info = deps.sessions_structure(session)
+    val session = session_context.session_name
+    val info = session_context.sessions_structure(session)
     val options = info.options
-    val base = deps(session)
-
-    val hierarchy = deps.sessions_structure.build_hierarchy(session)
-    val hierarchy_theories = hierarchy.reverse.flatMap(a => deps(a).used_theories.map(_._1))
+    val base = session_context.session_base
 
     val session_dir = Isabelle_System.make_directory(html_context.session_dir(info))
 
@@ -531,7 +545,8 @@ object Presentation {
     val documents =
       for {
         doc <- info.document_variants
-        document <- db_context.input_database(session)(Document_Build.read_document(_, _, doc.name))
+        db <- session_context.session_db()
+        document <- Document_Build.read_document(db, session, doc.name)
       } yield {
         val doc_path = (session_dir + doc.path.pdf).expand
         if (verbose) progress.echo("Presenting document " + session + "/" + doc.name)
@@ -580,14 +595,13 @@ object Presentation {
     def present_theory(name: Document.Node.Name): Option[XML.Body] = {
       progress.expose_interrupt()
 
-      Build_Job.read_theory(db_context, hierarchy, name.theory).flatMap { command =>
+      Build_Job.read_theory(session_context.theory(name.theory)).flatMap { command =>
         if (verbose) progress.echo("Presenting theory " + name)
         val snapshot = Document.State.init.snippet(command)
 
         val thy_elements =
           session_elements.copy(entity =
-            html_context.theory_export(name.theory).others
-              .foldLeft(session_elements.entity)(_ + _))
+            html_context.nodes(name.theory).others.foldLeft(session_elements.entity)(_ + _))
 
         val files_html =
           for {
@@ -607,13 +621,13 @@ object Presentation {
             make_html(entity_context(name), thy_elements,
               snapshot.xml_markup(elements = thy_elements.html)))
 
-        val thy_session = html_context.theory_session(name)
-        val thy_dir = Isabelle_System.make_directory(html_context.session_dir(thy_session))
+        val thy_session = html_context.theory_session(name).name
+        val thy_dir = Isabelle_System.make_directory(html_context.theory_dir(name))
         val files =
           for { (src_path, file_html) <- files_html }
             yield {
-              seen_files.find(_.check(src_path, name, thy_session.name)) match {
-                case None => seen_files ::= Seen_File(src_path, name, thy_session.name)
+              seen_files.find(_.check(src_path, name, thy_session)) match {
+                case None => seen_files ::= Seen_File(src_path, name, thy_session)
                 case Some(seen_file) =>
                   error("Incoherent use of file name " + src_path + " as " + files_path(src_path) +
                     " in theory " + seen_file.thy_name + " vs. " + name)
@@ -634,7 +648,7 @@ object Presentation {
           List(HTML.title(thy_title)), List(html_context.head(thy_title), thy_html),
           base = Some(html_context.root_dir))
 
-        if (thy_session.name == session) {
+        if (thy_session == session) {
           Some(
             List(HTML.link(html_name(name),
               HTML.text(name.theory_base_name) :::
@@ -644,7 +658,7 @@ object Presentation {
       }
     }
 
-    val theories = base.session_theories.flatMap(present_theory)
+    val theories = base.proper_session_theories.flatMap(present_theory)
 
     val title = "Session " + session
     HTML.write_document(session_dir, "index.html",

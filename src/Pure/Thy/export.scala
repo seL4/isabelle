@@ -23,6 +23,7 @@ object Export {
   val DOCUMENT_CITATIONS = DOCUMENT_PREFIX + "citations"
   val THEORY_PREFIX: String = "theory/"
   val PROOFS_PREFIX: String = "proofs/"
+  val THEORY_PARENTS: String = THEORY_PREFIX + "parents"
 
   def explode_name(s: String): List[String] = space_explode('/', s)
   def implode_name(elems: Iterable[String]): String = elems.mkString("/")
@@ -83,22 +84,13 @@ object Export {
         else None
       }
     }
-
-    def read(dir: Path, cache: XML.Cache): Option[Entry] = {
-      val path = dir + Path.basic(theory) + Path.explode(name)
-      if (path.is_file) {
-        val executable = File.is_executable(path)
-        val uncompressed = Bytes.read(path)
-        val body = Future.value((false, uncompressed))
-        Some(Entry(this, executable, body, cache))
-      }
-      else None
-    }
   }
 
   def read_theory_names(db: SQL.Database, session_name: String): List[String] = {
     val select =
-      Data.table.select(List(Data.theory_name), Data.where_equal(session_name), distinct = true)
+      Data.table.select(List(Data.theory_name),
+        Data.where_equal(session_name, name = THEORY_PARENTS)) +
+      " ORDER BY " + Data.theory_name
     db.using_statement(select)(stmt =>
       stmt.execute_query().iterator(_.string(Data.theory_name)).toList)
   }
@@ -235,9 +227,9 @@ object Export {
             (results, true)
           })
 
-    def apply(session_name: String, args: Protocol.Export.Args, body: Bytes): Unit = {
-      if (!progress.stopped) {
-        consumer.send(make_entry(session_name, args, body, cache) -> args.strict)
+    def make_entry(session_name: String, args: Protocol.Export.Args, body: Bytes): Unit = {
+      if (!progress.stopped && !body.is_empty) {
+        consumer.send(Export.make_entry(session_name, args, body, cache) -> args.strict)
       }
     }
 
@@ -249,96 +241,203 @@ object Export {
   }
 
 
-  /* abstract provider */
+  /* context for retrieval */
 
-  object Provider {
-    def none: Provider =
-      new Provider {
-        def apply(export_name: String): Option[Entry] = None
-        def focus(other_theory: String): Provider = this
+  def context(db_context: Sessions.Database_Context): Context = new Context(db_context)
 
-        override def toString: String = "none"
-      }
+  def open_context(store: Sessions.Store): Context =
+    new Context(store.open_database_context()) { override def close(): Unit = db_context.close() }
 
-    def database_context(
-        context: Sessions.Database_Context,
-        session_hierarchy: List[String],
-        theory_name: String): Provider =
-      new Provider {
-        def apply(export_name: String): Option[Entry] =
-          context.read_export(session_hierarchy, theory_name, export_name)
+  def open_session_context0(store: Sessions.Store, session: String): Session_Context =
+    open_context(store).open_session0(session, close_context = true)
 
-        def focus(other_theory: String): Provider = this
+  def open_session_context(
+    store: Sessions.Store,
+    session_base_info: Sessions.Base_Info,
+    document_snapshot: Option[Document.Snapshot] = None
+  ): Session_Context = {
+    open_context(store).open_session(
+      session_base_info, document_snapshot = document_snapshot, close_context = true)
+  }
 
-        override def toString: String = context.toString
-      }
+  class Session_Database private[Export](val session: String, val db: SQL.Database) {
+    def close(): Unit = ()
 
-    def database(
-      db: SQL.Database,
-      cache: XML.Cache,
-      session_name: String,
-      theory_name: String
-    ) : Provider = {
-      new Provider {
-        def apply(export_name: String): Option[Entry] =
-          Entry_Name(session = session_name, theory = theory_name, name = export_name)
-            .read(db, cache)
+    lazy val theory_names: List[String] = read_theory_names(db, session)
+    lazy val entry_names: List[Entry_Name] = read_entry_names(db, session)
+  }
 
-        def focus(other_theory: String): Provider =
-          if (other_theory == theory_name) this
-          else Provider.database(db, cache, session_name, other_theory)
+  class Context private[Export](protected val db_context: Sessions.Database_Context)
+  extends AutoCloseable {
+    context =>
 
-        override def toString: String = db.toString
-      }
-    }
+    override def toString: String = db_context.toString
 
-    def snapshot(snapshot: Document.Snapshot): Provider =
-      new Provider {
-        def apply(export_name: String): Option[Entry] =
-          snapshot.exports_map.get(export_name)
+    def cache: Term.Cache = db_context.cache
 
-        def focus(other_theory: String): Provider =
-          if (other_theory == snapshot.node_name.theory) this
-          else {
-            val node_name =
-              snapshot.version.nodes.theory_name(other_theory) getOrElse
-                error("Bad theory " + quote(other_theory))
-            Provider.snapshot(snapshot.state.snapshot(node_name))
-          }
+    def close(): Unit = ()
 
-        override def toString: String = snapshot.toString
-      }
+    def open_session0(session: String, close_context: Boolean = false): Session_Context =
+      open_session(Sessions.base_info0(session), close_context = close_context)
 
-    def directory(
-      dir: Path,
-      cache: XML.Cache,
-      session_name: String,
-      theory_name: String
-    ) : Provider = {
-      new Provider {
-        def apply(export_name: String): Option[Entry] =
-          Entry_Name(session = session_name, theory = theory_name, name = export_name)
-            .read(dir, cache)
-
-        def focus(other_theory: String): Provider =
-          if (other_theory == theory_name) this
-          else Provider.directory(dir, cache, session_name, other_theory)
-
-        override def toString: String = dir.toString
+    def open_session(
+      session_base_info: Sessions.Base_Info,
+      document_snapshot: Option[Document.Snapshot] = None,
+      close_context: Boolean = false
+    ): Session_Context = {
+      val session_name = session_base_info.check.base.session_name
+      val session_hierarchy = session_base_info.sessions_structure.build_hierarchy(session_name)
+      val session_databases =
+        db_context.database_server match {
+          case Some(db) => session_hierarchy.map(name => new Session_Database(name, db))
+          case None =>
+            val store = db_context.store
+            val attempts =
+              session_hierarchy.map(name => name -> store.try_open_database(name, server = false))
+            attempts.collectFirst({ case (name, None) => name }) match {
+              case Some(bad) =>
+                for ((_, Some(db)) <- attempts) db.close()
+                store.bad_database(bad)
+              case None =>
+                for ((name, Some(db)) <- attempts) yield {
+                  new Session_Database(name, db) { override def close(): Unit = this.db.close() }
+                }
+            }
+        }
+      new Session_Context(context, session_base_info, session_databases, document_snapshot) {
+        override def close(): Unit = {
+          session_databases.foreach(_.close())
+          if (close_context) context.close()
+        }
       }
     }
   }
 
-  trait Provider {
-    def apply(export_name: String): Option[Entry]
+  class Session_Context private[Export](
+    val export_context: Context,
+    session_base_info: Sessions.Base_Info,
+    db_hierarchy: List[Session_Database],
+    document_snapshot: Option[Document.Snapshot]
+  ) extends AutoCloseable {
+    session_context =>
 
-    def uncompressed_yxml(export_name: String): XML.Body =
-      apply(export_name) match {
+    def close(): Unit = ()
+
+    def cache: Term.Cache = export_context.cache
+
+    def sessions_structure: Sessions.Structure = session_base_info.sessions_structure
+
+    def session_base: Sessions.Base = session_base_info.base
+
+    def session_name: String =
+      if (document_snapshot.isDefined) Sessions.DRAFT
+      else session_base.session_name
+
+    def session_database(session: String = session_name): Option[Session_Database] =
+      db_hierarchy.find(_.session == session)
+
+    def session_db(session: String = session_name): Option[SQL.Database] =
+      session_database(session = session).map(_.db)
+
+    def session_stack: List[String] =
+      ((if (document_snapshot.isDefined) List(session_name) else Nil) :::
+        db_hierarchy.map(_.session)).reverse
+
+    private def select[A](
+      session: String,
+      select1: Entry_Name => Option[A],
+      select2: Session_Database => List[A]
+    ): List[A] = {
+      def sel(name: String): List[A] =
+        if (name == Sessions.DRAFT) {
+          (for {
+            snapshot <- document_snapshot.iterator
+            entry_name <- snapshot.all_exports.keysIterator
+            res <- select1(entry_name).iterator
+          } yield entry_name -> res).toList.sortBy(_._1.compound_name).map(_._2)
+        }
+        else { session_database(name).map(select2).getOrElse(Nil) }
+      if (session.nonEmpty) sel(session) else session_stack.flatMap(sel)
+    }
+
+    def entry_names(session: String = session_name): List[Entry_Name] =
+      select(session, Some(_), _.entry_names)
+
+    def theory_names(session: String = session_name): List[String] =
+      select(session, a => if(a.name == THEORY_PARENTS) Some(a.theory) else None, _.theory_names)
+
+    def get(theory: String, name: String): Option[Entry] =
+    {
+      def snapshot_entry: Option[Entry] =
+        for {
+          snapshot <- document_snapshot
+          entry_name = Entry_Name(session = Sessions.DRAFT, theory = theory, name = name)
+          entry <- snapshot.all_exports.get(entry_name)
+        } yield entry
+      def db_entry: Option[Entry] =
+        db_hierarchy.view.map(database =>
+          Export.Entry_Name(session = database.session, theory = theory, name = name)
+            .read(database.db, cache))
+          .collectFirst({ case Some(entry) => entry })
+
+      snapshot_entry orElse db_entry
+    }
+
+    def apply(theory: String, name: String, permissive: Boolean = false): Entry =
+      get(theory, name) match {
+        case None if permissive => empty_entry(theory, name)
+        case None => error("Missing export entry " + quote(compound_name(theory, name)))
+        case Some(entry) => entry
+      }
+
+    def theory(theory: String): Theory_Context =
+      new Theory_Context(session_context, theory)
+
+    def classpath(): List[File.Content_Bytes] = {
+      (for {
+        session <- session_stack.iterator
+        info <- sessions_structure.get(session).iterator
+        if info.export_classpath.nonEmpty
+        matcher = make_matcher(info.export_classpath)
+        entry_name <- entry_names(session = session).iterator
+        if matcher(entry_name)
+        entry <- get(entry_name.theory, entry_name.name).iterator
+      } yield File.Content(entry.entry_name.make_path(), entry.uncompressed)).toList
+  }
+
+  override def toString: String =
+      "Export.Session_Context(" + commas_quote(session_stack) + ")"
+  }
+
+  class Theory_Context private[Export](
+    val session_context: Session_Context,
+    val theory: String
+  ) {
+    def cache: Term.Cache = session_context.cache
+
+    def get(name: String): Option[Entry] = session_context.get(theory, name)
+    def apply(name: String, permissive: Boolean = false): Entry =
+      session_context.apply(theory, name, permissive = permissive)
+
+    def uncompressed_yxml(name: String): XML.Body =
+      get(name) match {
         case Some(entry) => entry.uncompressed_yxml
         case None => Nil
       }
 
-    def focus(other_theory: String): Provider
+    def document_id(): Option[Long] =
+      apply(DOCUMENT_ID, permissive = true).text match {
+        case Value.Long(id) => Some(id)
+        case _ => None
+      }
+
+    def files(): Option[(String, List[String])] =
+      split_lines(apply(FILES, permissive = true).text) match {
+        case Nil => None
+        case thy_file :: blobs_files => Some((thy_file, blobs_files))
+      }
+
+    override def toString: String = "Export.Theory_Context(" + quote(theory) + ")"
   }
 
 
@@ -354,28 +453,26 @@ object Export {
     export_patterns: List[String] = Nil
   ): Unit = {
     using(store.open_database(session_name)) { db =>
-      db.transaction {
-        val entry_names = read_entry_names(db, session_name)
+      val entry_names = read_entry_names(db, session_name)
 
-        // list
-        if (export_list) {
-          for (entry_name <- entry_names) progress.echo(entry_name.compound_name)
-        }
+      // list
+      if (export_list) {
+        for (entry_name <- entry_names) progress.echo(entry_name.compound_name)
+      }
 
-        // export
-        if (export_patterns.nonEmpty) {
-          val matcher = make_matcher(export_patterns)
-          for {
-            entry_name <- entry_names if matcher(entry_name)
-            entry <- entry_name.read(db, store.cache)
-          } {
-            val path = export_dir + entry_name.make_path(prune = export_prune)
-            progress.echo("export " + path + (if (entry.executable) " (executable)" else ""))
-            Isabelle_System.make_directory(path.dir)
-            val bytes = entry.uncompressed
-            if (!path.is_file || Bytes.read(path) != bytes) Bytes.write(path, bytes)
-            File.set_executable(path, entry.executable)
-          }
+      // export
+      if (export_patterns.nonEmpty) {
+        val matcher = make_matcher(export_patterns)
+        for {
+          entry_name <- entry_names if matcher(entry_name)
+          entry <- entry_name.read(db, store.cache)
+        } {
+          val path = export_dir + entry_name.make_path(prune = export_prune)
+          progress.echo("export " + path + (if (entry.executable) " (executable)" else ""))
+          Isabelle_System.make_directory(path.dir)
+          val bytes = entry.uncompressed
+          if (!path.is_file || Bytes.read(path) != bytes) Bytes.write(path, bytes)
+          File.set_executable(path, entry.executable)
         }
       }
     }

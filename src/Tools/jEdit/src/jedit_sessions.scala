@@ -125,7 +125,7 @@ object JEdit_Sessions {
     no_build: Boolean = false
   ): Int = {
     Build.build(session_options(options),
-      selection = Sessions.Selection.session(PIDE.resources.session_name),
+      selection = Sessions.Selection.session(PIDE.resources.session_base.session_name),
       progress = progress, build_heap = true, no_build = no_build, dirs = session_dirs,
       infos = PIDE.resources.session_base_info.infos).rc
   }
@@ -139,7 +139,7 @@ object JEdit_Sessions {
     session.phase_changed += PIDE.plugin.session_phase_changed
 
     Isabelle_Process.start(session, options, sessions_structure, store,
-      logic = PIDE.resources.session_name,
+      logic = PIDE.resources.session_base.session_name,
       modes =
         (space_explode(',', options.string("jedit_print_mode")) :::
          space_explode(',', Isabelle_System.getenv("JEDIT_PRINT_MODE"))).reverse)

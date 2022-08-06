@@ -59,24 +59,26 @@ object Sessions {
   /* base info and source dependencies */
 
   sealed case class Base(
-    pos: Position.T = Position.none,
+    session_name: String = "",
+    session_pos: Position.T = Position.none,
     session_directories: Map[JFile, String] = Map.empty,
     global_theories: Map[String, String] = Map.empty,
-    session_theories: List[Document.Node.Name] = Nil,
+    proper_session_theories: List[Document.Node.Name] = Nil,
     document_theories: List[Document.Node.Name] = Nil,
-    loaded_theories: Graph[String, Outer_Syntax] = Graph.string,
-    used_theories: List[(Document.Node.Name, Options)] = Nil,
+    loaded_theories: Graph[String, Outer_Syntax] = Graph.string,  // cumulative imports
+    used_theories: List[(Document.Node.Name, Options)] = Nil,  // new imports
     load_commands: Map[Document.Node.Name, List[Command_Span.Span]] = Map.empty,
     known_theories: Map[String, Document.Node.Entry] = Map.empty,
     known_loaded_files: Map[String, List[Path]] = Map.empty,
     overall_syntax: Outer_Syntax = Outer_Syntax.empty,
     imported_sources: List[(Path, SHA1.Digest)] = Nil,
-    sources: List[(Path, SHA1.Digest)] = Nil,
+    session_sources: List[(Path, SHA1.Digest)] = Nil,
     session_graph_display: Graph_Display.Graph = Graph_Display.empty_graph,
     errors: List[String] = Nil
   ) {
     override def toString: String =
-      "Sessions.Base(loaded_theories = " + loaded_theories.size +
+      "Sessions.Base(session_name = " + quote(session_name) +
+        ", loaded_theories = " + loaded_theories.size +
         ", used_theories = " + used_theories.length + ")"
 
     def theory_qualifier(name: String): String =
@@ -108,15 +110,15 @@ object Sessions {
     def imported_sources(name: String): List[SHA1.Digest] =
       session_bases(name).imported_sources.map(_._2)
 
-    def sources(name: String): List[SHA1.Digest] =
-      session_bases(name).sources.map(_._2)
+    def session_sources(name: String): List[SHA1.Digest] =
+      session_bases(name).session_sources.map(_._2)
 
     def errors: List[String] =
       (for {
         (name, base) <- session_bases.iterator
         if base.errors.nonEmpty
       } yield cat_lines(base.errors) +
-          "\nThe error(s) above occurred in session " + quote(name) + Position.here(base.pos)
+          "\nThe error(s) above occurred in session " + quote(name) + Position.here(base.session_pos)
       ).toList
 
     def check_errors: Deps =
@@ -124,6 +126,9 @@ object Sessions {
         case Nil => this
         case errs => error(cat_lines(errs))
       }
+
+    def base_info(session: String): Base_Info =
+      Base_Info(base = apply(session), sessions_structure = sessions_structure, errors = errors)
   }
 
   def deps(sessions_structure: Structure,
@@ -151,8 +156,13 @@ object Sessions {
       }
     }
 
+    val bootstrap_bases = {
+      val base = sessions_structure.bootstrap
+      Map(base.session_name -> base)
+    }
+
     val session_bases =
-      sessions_structure.imports_topological_order.foldLeft(Map("" -> sessions_structure.bootstrap)) {
+      sessions_structure.imports_topological_order.foldLeft(bootstrap_bases) {
         case (session_bases, session_name) =>
           progress.expose_interrupt()
 
@@ -172,12 +182,10 @@ object Sessions {
 
             val overall_syntax = dependencies.overall_syntax
 
-            val session_theories =
+            val proper_session_theories =
               dependencies.theories.filter(name => deps_base.theory_qualifier(name) == session_name)
 
             val theory_files = dependencies.theories.map(_.path)
-
-            dependencies.load_commands
 
             val (load_commands, load_commands_errors) =
               try { if (inlined_files) (dependencies.load_commands, Nil) else (Nil, Nil) }
@@ -273,7 +281,7 @@ object Sessions {
                     case None => err("Unknown document theory")
                     case Some(name) =>
                       val qualifier = deps_base.theory_qualifier(name)
-                      if (session_theories.contains(name)) {
+                      if (proper_session_theories.contains(name)) {
                         err("Redundant document theory from this session:")
                       }
                       else if (build_hierarchy.contains(qualifier)) None
@@ -288,7 +296,7 @@ object Sessions {
               val ok = info.dirs.map(_.canonical_file).toSet
               val bad =
                 (for {
-                  name <- session_theories.iterator
+                  name <- proper_session_theories.iterator
                   path = name.master_dir_path
                   if !ok(path.canonical_file)
                   path1 = File.relative_path(info.dir.canonical, path).getOrElse(path)
@@ -304,7 +312,7 @@ object Sessions {
               val errs3 = for (p <- info.dirs if !p.is_dir) yield "No such directory: " + p
               val errs4 =
                 (for {
-                  name <- session_theories.iterator
+                  name <- proper_session_theories.iterator
                   name1 <- resources.find_theory_node(name.theory)
                   if name.node != name1.node
                 } yield "Incoherent theory file import:\n  " + name.path + " vs. \n  " + name1.path)
@@ -326,10 +334,11 @@ object Sessions {
 
             val base =
               Base(
-                pos = info.pos,
+                session_name = info.name,
+                session_pos = info.pos,
                 session_directories = sessions_structure.session_directories,
                 global_theories = sessions_structure.global_theories,
-                session_theories = session_theories,
+                proper_session_theories = proper_session_theories,
                 document_theories = document_theories,
                 loaded_theories = dependencies.loaded_theories,
                 used_theories = dependencies.theories_adjunct,
@@ -338,7 +347,7 @@ object Sessions {
                 known_loaded_files = known_loaded_files,
                 overall_syntax = overall_syntax,
                 imported_sources = check_sources(imported_files),
-                sources = check_sources(session_files),
+                session_sources = check_sources(session_files),
                 session_graph_display = session_graph_display,
                 errors = dependencies.errors ::: load_commands_errors ::: import_errors :::
                   document_errors ::: dir_errors ::: sources_errors ::: path_errors :::
@@ -360,14 +369,17 @@ object Sessions {
   /* base info */
 
   sealed case class Base_Info(
-    session: String,
-    sessions_structure: Structure,
-    errors: List[String],
     base: Base,
-    infos: List[Info]
+    sessions_structure: Structure = Structure.empty,
+    errors: List[String] = Nil,
+    infos: List[Info] = Nil
   ) {
     def check: Base_Info = if (errors.isEmpty) this else error(cat_lines(errors))
+    def session: String = base.session_name
   }
+
+  def base_info0(session: String): Base_Info =
+    Base_Info(Base(session_name = session))
 
   def base_info(options: Options,
     session: String,
@@ -444,7 +456,8 @@ object Sessions {
 
     val deps1 = Sessions.deps(selected_sessions1, progress = progress)
 
-    Base_Info(session1, full_sessions1, deps1.errors, deps1(session1), infos1)
+    Base_Info(deps1(session1), sessions_structure = full_sessions1,
+      errors = deps1.errors, infos = infos1)
   }
 
 
@@ -824,17 +837,19 @@ object Sessions {
       deps
     }
 
+    def build_hierarchy(session: String): List[String] =
+      if (build_graph.defined(session)) build_graph.all_preds(List(session))
+      else List(session)
+
     def build_selection(sel: Selection): List[String] = selected(build_graph, sel)
     def build_descendants(ss: List[String]): List[String] = build_graph.all_succs(ss)
     def build_requirements(ss: List[String]): List[String] = build_graph.all_preds_rev(ss)
     def build_topological_order: List[String] = build_graph.topological_order
-    def build_hierarchy(session: String): List[String] = build_graph.all_preds(List(session))
 
     def imports_selection(sel: Selection): List[String] = selected(imports_graph, sel)
     def imports_descendants(ss: List[String]): List[String] = imports_graph.all_succs(ss)
     def imports_requirements(ss: List[String]): List[String] = imports_graph.all_preds_rev(ss)
     def imports_topological_order: List[String] = imports_graph.topological_order
-    def imports_hierarchy(session: String): List[String] = imports_graph.all_preds(List(session))
 
     def bibtex_entries: List[(String, List[String])] =
       build_topological_order.flatMap(name =>
@@ -1194,76 +1209,17 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
   class Database_Context private[Sessions](
     val store: Sessions.Store,
-    database_server: Option[SQL.Database]
+    val database_server: Option[SQL.Database]
   ) extends AutoCloseable {
     def cache: Term.Cache = store.cache
 
     def close(): Unit = database_server.foreach(_.close())
 
-    def output_database[A](session: String)(f: SQL.Database => A): A =
+    def database_output[A](session: String)(f: SQL.Database => A): A =
       database_server match {
         case Some(db) => f(db)
         case None => using(store.open_database(session, output = true))(f)
       }
-
-    def input_database[A](session: String)(f: (SQL.Database, String) => Option[A]): Option[A] =
-      database_server match {
-        case Some(db) => f(db, session)
-        case None =>
-          store.try_open_database(session) match {
-            case Some(db) => using(db)(f(_, session))
-            case None => None
-          }
-      }
-
-    def read_export(
-      sessions: List[String],
-      theory_name: String,
-      name: String
-    ): Option[Export.Entry] = {
-      val attempts =
-        database_server match {
-          case Some(db) =>
-            sessions.view.map(session_name =>
-              Export.Entry_Name(session = session_name, theory = theory_name, name = name)
-                .read(db, store.cache))
-          case None =>
-            sessions.view.map(session_name =>
-              store.try_open_database(session_name) match {
-                case Some(db) =>
-                  using(db) { _ =>
-                    Export.Entry_Name(session = session_name, theory = theory_name, name = name)
-                      .read(db, store.cache) }
-                case None => None
-              })
-        }
-      attempts.collectFirst({ case Some(entry) => entry })
-    }
-
-    def get_export(
-        session_hierarchy: List[String], theory_name: String, name: String): Export.Entry =
-      read_export(session_hierarchy, theory_name, name) getOrElse
-        Export.empty_entry(theory_name, name)
-
-    def get_classpath(structure: Structure, session: String): List[File.Content_Bytes] =
-    {
-      (for {
-        name <- structure.build_requirements(List(session))
-        patterns = structure(name).export_classpath if patterns.nonEmpty
-      } yield {
-        input_database(name)((db, _) =>
-          db.transaction {
-            val matcher = Export.make_matcher(patterns)
-            val res =
-              for {
-                entry_name <- Export.read_entry_names(db, name) if matcher(entry_name)
-                entry <- entry_name.read(db, store.cache)
-              } yield File.Content(entry.entry_name.make_path(), entry.uncompressed)
-            Some(res)
-          }
-        ).getOrElse(Nil)
-      }).flatten
-    }
 
     override def toString: String = {
       val s =
@@ -1354,14 +1310,18 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
               port = options.int("build_database_ssh_port"))),
         ssh_close = true)
 
-    def open_database_context(): Database_Context =
-      new Database_Context(store, if (database_server) Some(open_database_server()) else None)
+    def open_database_context(server: Boolean = database_server): Database_Context =
+      new Database_Context(store, if (server) Some(open_database_server()) else None)
 
-    def try_open_database(name: String, output: Boolean = false): Option[SQL.Database] = {
+    def try_open_database(
+      name: String,
+      output: Boolean = false,
+      server: Boolean = database_server
+    ): Option[SQL.Database] = {
       def check(db: SQL.Database): Option[SQL.Database] =
         if (output || session_info_exists(db)) Some(db) else { db.close(); None }
 
-      if (database_server) check(open_database_server())
+      if (server) check(open_database_server())
       else if (output) Some(SQLite.open_database(output_database(name)))
       else {
         (for {
@@ -1372,9 +1332,11 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
       }
     }
 
+    def bad_database(name: String): Nothing =
+      error("Missing build database for session " + quote(name))
+
     def open_database(name: String, output: Boolean = false): SQL.Database =
-      try_open_database(name, output = output) getOrElse
-        error("Missing build database for session " + quote(name))
+      try_open_database(name, output = output) getOrElse bad_database(name)
 
     def clean_output(name: String): (Boolean, Boolean) = {
       val relevant_db =
@@ -1445,12 +1407,10 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     }
 
     def session_info_defined(db: SQL.Database, name: String): Boolean =
-      db.transaction {
-        session_info_exists(db) && {
-          db.using_statement(
-            Session_Info.table.select(List(Session_Info.session_name),
-              Session_Info.session_name.where_equal(name)))(stmt => stmt.execute_query().next())
-        }
+      session_info_exists(db) && {
+        db.using_statement(
+          Session_Info.table.select(List(Session_Info.session_name),
+            Session_Info.session_name.where_equal(name)))(stmt => stmt.execute_query().next())
       }
 
     def write_session_info(

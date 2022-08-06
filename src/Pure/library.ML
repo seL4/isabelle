@@ -145,6 +145,7 @@ sig
   val commas: string list -> string
   val commas_quote: string list -> string
   val cat_lines: string list -> string
+  val terminate_lines: string list -> string
   val space_explode: string -> string -> string list
   val split_lines: string -> string list
   val plain_words: string -> string
@@ -747,6 +748,8 @@ val commas = space_implode ", ";
 val commas_quote = commas o map quote;
 
 val cat_lines = space_implode "\n";
+
+fun terminate_lines lines = cat_lines lines ^ "\n";
 
 (*space_explode "." "h.e..l.lo" = ["h", "e", "", "l", "lo"]*)
 fun space_explode _ "" = []

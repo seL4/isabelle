@@ -17,10 +17,8 @@ object Profiling_Report {
   ): Unit = {
     val store = Sessions.store(options)
 
-    using(store.open_database_context()) { db_context =>
-      val result =
-        db_context.input_database(session)((db, name) => Some(store.read_theories(db, name)))
-      result match {
+    using(Export.open_session_context0(store, session)) { session_context =>
+      session_context.session_db().map(db => store.read_theories(db, session)) match {
         case None => error("Missing build database for session " + quote(session))
         case Some(used_theories) =>
           theories.filterNot(used_theories.toSet) match {
@@ -31,7 +29,7 @@ object Profiling_Report {
             (for {
               thy <- used_theories.iterator
               if theories.isEmpty || theories.contains(thy)
-              command <- Build_Job.read_theory(db_context, List(session), thy).iterator
+              command <- Build_Job.read_theory(session_context.theory(thy)).iterator
               snapshot = Document.State.init.snippet(command)
               (Protocol.ML_Profiling(report), _) <- snapshot.messages.iterator
             } yield if (clean_name) report.clean_name else report).toList
