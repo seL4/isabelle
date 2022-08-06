@@ -128,7 +128,7 @@ object Sessions {
       }
 
     def base_info(session: String): Base_Info =
-      Base_Info(sessions_structure, errors, apply(session), Nil)
+      Base_Info(base = apply(session), sessions_structure = sessions_structure, errors = errors)
   }
 
   def deps(sessions_structure: Structure,
@@ -369,14 +369,17 @@ object Sessions {
   /* base info */
 
   sealed case class Base_Info(
-    sessions_structure: Structure,
-    errors: List[String],
     base: Base,
-    infos: List[Info]
+    sessions_structure: Structure = Structure.empty,
+    errors: List[String] = Nil,
+    infos: List[Info] = Nil
   ) {
     def check: Base_Info = if (errors.isEmpty) this else error(cat_lines(errors))
     def session: String = base.session_name
   }
+
+  def base_info_empty(session: String): Base_Info =
+    Base_Info(Base(session_name = session))
 
   def base_info(options: Options,
     session: String,
@@ -453,7 +456,8 @@ object Sessions {
 
     val deps1 = Sessions.deps(selected_sessions1, progress = progress)
 
-    Base_Info(full_sessions1, deps1.errors, deps1(session1), infos1)
+    Base_Info(deps1(session1), sessions_structure = full_sessions1,
+      errors = deps1.errors, infos = infos1)
   }
 
 
