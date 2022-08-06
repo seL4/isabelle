@@ -113,11 +113,13 @@ object Presentation {
     val empty: Nodes = new Nodes(Map.empty, Map.empty)
 
     def read(
-      presentation_sessions: List[String],
+      export_context: Export.Context,
       deps: Sessions.Deps,
-      db_context: Sessions.Database_Context
+      presentation_sessions: List[String]
     ): Nodes = {
-      val export_context = Export.context(db_context)
+
+      def open_session(session: String): Export.Session_Context =
+        export_context.open_session(deps.base_info(session))
 
       type Batch = (String, List[String])
       val batches =
@@ -130,12 +132,12 @@ object Presentation {
       val theory_node_info =
         Par_List.map[Batch, List[(String, Node_Info)]](
           { case (session, thys) =>
-              using(export_context.open_session(deps.base_info(session))) { session_context =>
+              using(open_session(session)) { session_context =>
                 for (thy_name <- thys) yield {
                   val theory_context = session_context.theory(thy_name)
                   val theory =
                     Export_Theory.read_theory(theory_context,
-                      permissive = true, cache = db_context.cache)
+                      permissive = true, cache = session_context.cache)
                   thy_name -> Node_Info.make(theory)
                 }
               }
@@ -143,10 +145,9 @@ object Presentation {
 
       val files_info =
         deps.sessions_structure.build_requirements(presentation_sessions).flatMap(session =>
-          using(export_context.open_session(deps.base_info(session))) { session_context =>
+          using(open_session(session)) { session_context =>
             session_context.theory_names().flatMap { theory =>
-              val theory_context = session_context.theory(theory)
-              theory_context.files() match {
+              session_context.theory(theory).files() match {
                 case None => Nil
                 case Some((thy, blobs)) =>
                   val thy_file_info = File_Info(theory, is_theory = true)

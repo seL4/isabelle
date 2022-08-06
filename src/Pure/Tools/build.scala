@@ -495,10 +495,8 @@ object Build {
         }
 
         using(Export.open_context(store)) { export_context =>
-          val db_context = export_context.db_context
-
           val presentation_nodes =
-            Presentation.Nodes.read(presentation_sessions.map(_.name), deps, db_context)
+            Presentation.Nodes.read(export_context, deps, presentation_sessions.map(_.name))
 
           Par_List.map({ (session: String) =>
             progress.expose_interrupt()
@@ -512,8 +510,7 @@ object Build {
                   deps.sessions_structure(deps(session).theory_qualifier(name))
               }
 
-            val session_base_info = deps.base_info(session)
-            using(export_context.open_session(session_base_info)) { session_context =>
+            using(export_context.open_session(deps.base_info(session))) { session_context =>
               Presentation.session_html(session_context, deps,
                 progress = progress,
                 verbose = verbose,
