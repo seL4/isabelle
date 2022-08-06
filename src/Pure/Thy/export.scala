@@ -368,16 +368,16 @@ object Export {
 
     def get(theory: String, name: String): Option[Entry] =
     {
-      def snapshot_entry =
+      def snapshot_entry: Option[Entry] =
         for {
           snapshot <- document_snapshot
           entry_name = Entry_Name(session = Sessions.DRAFT, theory = theory, name = name)
           entry <- snapshot.all_exports.get(entry_name)
         } yield entry
-      def db_entry =
-        db_hierarchy.view.map(session_db =>
-          Export.Entry_Name(session = session_db.session, theory = theory, name = name)
-            .read(session_db.db, cache))
+      def db_entry: Option[Entry] =
+        db_hierarchy.view.map(database =>
+          Export.Entry_Name(session = database.session, theory = theory, name = name)
+            .read(database.db, cache))
           .collectFirst({ case Some(entry) => entry })
 
       snapshot_entry orElse db_entry
