@@ -54,7 +54,7 @@ object Build {
           catch {
             case ERROR(msg) => ignore_error(msg)
             case exn: java.lang.Error => ignore_error(Exn.message(exn))
-            case _: XML.Error => ignore_error("")
+            case _: XML.Error => ignore_error("XML.Error")
           }
           finally { db.close() }
       }
