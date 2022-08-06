@@ -116,30 +116,23 @@ object Document_Build {
       map(name => texinputs + Path.basic(name))
 
   def context(
-    session: String,
-    deps: Sessions.Deps,
-    db_context: Sessions.Database_Context,
+    session_context: Export.Session_Context,
     progress: Progress = new Progress
-  ): Context = {
-    val structure = deps.sessions_structure
-    val info = structure(session)
-    val base = deps(session)
-    val hierarchy = deps.sessions_structure.build_hierarchy(session)
-    val classpath = db_context.get_classpath(structure, session)
-    new Context(info, base, hierarchy, db_context, classpath, progress)
-  }
+  ): Context = new Context(session_context, progress)
 
   final class Context private[Document_Build](
-    info: Sessions.Info,
-    base: Sessions.Base,
-    hierarchy: List[String],
-    db_context: Sessions.Database_Context,
-    val classpath: List[File.Content_Bytes],
+    val session_context: Export.Session_Context,
     val progress: Progress = new Progress
   ) {
     /* session info */
 
-    def session: String = info.name
+    def session: String = session_context.session_name
+
+    private val info = session_context.sessions_structure(session)
+    private val base = session_context.session_base
+
+    val classpath: List[File.Content_Bytes] = session_context.classpath()
+
     def options: Options = info.options
 
     def document_bibliography: Boolean = options.bool("document_bibliography")
@@ -159,9 +152,6 @@ object Document_Build {
         .find(_.name == name).getOrElse(error("Bad document_build engine " + quote(name)))
     }
 
-    def get_export(theory: String, name: String): Export.Entry =
-      db_context.get_export(hierarchy, theory, name)
-
 
     /* document content */
 
@@ -176,7 +166,8 @@ object Document_Build {
       for (name <- document_theories)
       yield {
         val path = Path.basic(tex_name(name))
-        val content = YXML.parse_body(get_export(name.theory, Export.DOCUMENT_LATEX).text)
+        val entry = session_context(name.theory, Export.DOCUMENT_LATEX, permissive = true)
+        val content = YXML.parse_body(entry.text)
         File.Content(path, content)
       }
 
@@ -255,7 +246,8 @@ object Document_Build {
 
     def old_document(directory: Directory): Option[Document_Output] =
       for {
-        old_doc <- db_context.database(session)(read_document(_, session, directory.doc.name))
+        db <- session_context.session_db()
+        old_doc <- read_document(db, session, directory.doc.name)
         if old_doc.sources == directory.sources
       }
       yield old_doc
@@ -481,12 +473,15 @@ Usage: isabelle document [OPTIONS] SESSION
             Sessions.load_structure(options + "document=pdf", dirs = dirs).
               selection_deps(Sessions.Selection.session(session))
 
+          val session_base_info = deps.base_info(session)
+
           if (output_sources.isEmpty && output_pdf.isEmpty) {
             progress.echo_warning("No output directory")
           }
 
-          using(store.open_database_context()) { db_context =>
-            build_documents(context(session, deps, db_context, progress = progress),
+          using(Export.open_session_context(store, session_base_info)) { session_context =>
+            build_documents(
+              context(session_context, progress = progress),
               output_sources = output_sources, output_pdf = output_pdf,
               verbose = verbose_latex)
           }

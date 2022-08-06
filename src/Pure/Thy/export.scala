@@ -267,10 +267,13 @@ object Export {
     lazy val entry_names: List[Entry_Name] = read_entry_names(db, session)
   }
 
-  class Context private[Export](val db_context: Sessions.Database_Context) extends AutoCloseable {
+  class Context private[Export](protected val db_context: Sessions.Database_Context)
+  extends AutoCloseable {
     context =>
 
     override def toString: String = db_context.toString
+
+    def cache: Term.Cache = db_context.cache
 
     def close(): Unit = ()
 
@@ -320,9 +323,7 @@ object Export {
 
     def close(): Unit = ()
 
-    def db_context: Sessions.Database_Context = export_context.db_context
-
-    def cache: Term.Cache = export_context.db_context.cache
+    def cache: Term.Cache = export_context.cache
 
     def sessions_structure: Sessions.Structure = session_base_info.sessions_structure
 
@@ -392,7 +393,19 @@ object Export {
     def theory(theory: String): Theory_Context =
       new Theory_Context(session_context, theory)
 
-    override def toString: String =
+    def classpath(): List[File.Content_Bytes] = {
+      (for {
+        session <- session_stack.iterator
+        info <- sessions_structure.get(session).iterator
+        if info.export_classpath.nonEmpty
+        matcher = make_matcher(info.export_classpath)
+        entry_name <- entry_names(session = session).iterator
+        if matcher(entry_name)
+        entry <- get(entry_name.theory, entry_name.name).iterator
+      } yield File.Content(entry.entry_name.make_path(), entry.uncompressed)).toList
+  }
+
+  override def toString: String =
       "Export.Session_Context(" + commas_quote(session_stack) + ")"
   }
 

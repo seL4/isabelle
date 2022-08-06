@@ -1221,56 +1221,6 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
         case None => using(store.open_database(session, output = true))(f)
       }
 
-    def database[A](session: String)(f: SQL.Database => Option[A]): Option[A] =
-      database_server match {
-        case Some(db) => f(db)
-        case None =>
-          store.try_open_database(session) match {
-            case Some(db) => using(db)(f)
-            case None => None
-          }
-      }
-
-    def read_export(
-      session_hierarchy: List[String], theory: String, name: String
-    ): Option[Export.Entry] = {
-      def read(db: SQL.Database, session: String): Option[Export.Entry] =
-        Export.Entry_Name(session = session, theory = theory, name = name).read(db, store.cache)
-      val attempts =
-        database_server match {
-          case Some(db) => session_hierarchy.view.map(read(db, _))
-          case None =>
-            session_hierarchy.view.map(session =>
-              store.try_open_database(session) match {
-                case Some(db) => using(db) { _ => read(db, session) }
-                case None => None
-              })
-        }
-      attempts.collectFirst({ case Some(entry) => entry })
-    }
-
-    def get_export(session_hierarchy: List[String], theory: String, name: String): Export.Entry =
-      read_export(session_hierarchy, theory, name) getOrElse
-        Export.empty_entry(theory, name)
-
-    def get_classpath(structure: Structure, session: String): List[File.Content_Bytes] =
-    {
-      (for {
-        name <- structure.build_requirements(List(session))
-        patterns = structure(name).export_classpath if patterns.nonEmpty
-      } yield {
-        database(name) { db =>
-          val matcher = Export.make_matcher(patterns)
-          val res =
-            for {
-              entry_name <- Export.read_entry_names(db, name) if matcher(entry_name)
-              entry <- entry_name.read(db, store.cache)
-            } yield File.Content(entry.entry_name.make_path(), entry.uncompressed)
-          Some(res)
-        }.getOrElse(Nil)
-      }).flatten
-    }
-
     override def toString: String = {
       val s =
         database_server match {

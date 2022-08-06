@@ -54,9 +54,11 @@ object Build_Doc {
             progress.expose_interrupt()
             progress.echo("Documentation " + quote(doc) + " ...")
 
-            using(store.open_database_context()) { db_context =>
-              Document_Build.build_documents(Document_Build.context(session, deps, db_context),
-                output_pdf = Some(Path.explode("~~/doc")))
+            using(Export.open_session_context(store, deps.base_info(session))) {
+              session_context =>
+                Document_Build.build_documents(
+                  Document_Build.context(session_context),
+                  output_pdf = Some(Path.explode("~~/doc")))
             }
             None
           }
