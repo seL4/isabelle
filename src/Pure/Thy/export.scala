@@ -243,14 +243,6 @@ object Export {
 
   /* context for database access */
 
-  class Session_Database private[Export](val session: String, val db: SQL.Database)
-  extends AutoCloseable {
-    def close(): Unit = ()
-
-    lazy private [Export] val theory_names: List[String] = read_theory_names(db, session)
-    lazy private [Export] val entry_names: List[Entry_Name] = read_entry_names(db, session)
-  }
-
   def open_database_context(store: Sessions.Store): Database_Context = {
     val database_server = if (store.database_server) Some(store.open_database_server()) else None
     new Database_Context(store, database_server)
@@ -329,6 +321,14 @@ object Export {
         }
       }
     }
+  }
+
+  class Session_Database private[Export](val session: String, val db: SQL.Database)
+  extends AutoCloseable {
+    def close(): Unit = ()
+
+    lazy private [Export] val theory_names: List[String] = read_theory_names(db, session)
+    lazy private [Export] val entry_names: List[Entry_Name] = read_entry_names(db, session)
   }
 
   class Session_Context private[Export](
