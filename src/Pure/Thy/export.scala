@@ -408,8 +408,8 @@ object Export {
         case Some(entry) => entry
       }
 
-    def theory(theory: String): Theory_Context =
-      new Theory_Context(session_context, theory)
+    def theory(theory: String, other_cache: Option[Term.Cache] = None): Theory_Context =
+      new Theory_Context(session_context, theory, other_cache)
 
     def classpath(): List[File.Content_Bytes] = {
       (for {
@@ -429,9 +429,10 @@ object Export {
 
   class Theory_Context private[Export](
     val session_context: Session_Context,
-    val theory: String
+    val theory: String,
+    other_cache: Option[Term.Cache]
   ) {
-    def cache: Term.Cache = session_context.cache
+    def cache: Term.Cache = other_cache getOrElse session_context.cache
 
     def get(name: String): Option[Entry] = session_context.get(theory, name)
     def apply(name: String, permissive: Boolean = false): Entry =

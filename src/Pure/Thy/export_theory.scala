@@ -26,13 +26,12 @@ object Export_Theory {
 
   def read_session(
     session_context: Export.Session_Context,
-    progress: Progress = new Progress,
-    cache: Term.Cache = Term.Cache.make()
+    progress: Progress = new Progress
   ): Session = {
     val thys =
       for (theory <- session_context.theory_names()) yield {
         progress.echo("Reading theory " + theory)
-        read_theory(session_context.theory(theory), cache = cache)
+        read_theory(session_context.theory(theory))
       }
 
     val graph0 =
@@ -110,9 +109,9 @@ object Export_Theory {
 
   def read_theory(
     theory_context: Export.Theory_Context,
-    permissive: Boolean = false,
-    cache: Term.Cache = Term.Cache.none
+    permissive: Boolean = false
   ): Theory = {
+    val cache = theory_context.cache
     val session_name = theory_context.session_context.session_name
     val theory_name = theory_context.theory
     read_theory_parents(theory_context) match {
@@ -374,9 +373,11 @@ object Export_Theory {
   def read_proof(
     session_context: Export.Session_Context,
     id: Thm_Id,
-    cache: Term.Cache = Term.Cache.none
+    other_cache: Option[Term.Cache] = None
   ): Option[Proof] = {
-    val theory_context = session_context.theory(id.theory_name)
+    val theory_context = session_context.theory(id.theory_name, other_cache = other_cache)
+    val cache = theory_context.cache
+
     for { entry <- theory_context.get(Export.PROOFS_PREFIX + id.serial) }
     yield {
       val body = entry.uncompressed_yxml
@@ -398,7 +399,7 @@ object Export_Theory {
     session_context: Export.Session_Context,
     proof: Term.Proof,
     suppress: Thm_Id => Boolean = _ => false,
-    cache: Term.Cache = Term.Cache.none
+    other_cache: Option[Term.Cache] = None
   ): List[(Thm_Id, Proof)] = {
     var seen = Set.empty[Long]
     var result = SortedMap.empty[Long, (Thm_Id, Proof)]
@@ -413,7 +414,7 @@ object Export_Theory {
           seen += thm.serial
           val id = Thm_Id(thm.serial, thm.theory_name)
           if (!suppress(id)) {
-            Export_Theory.read_proof(session_context, id, cache = cache) match {
+            Export_Theory.read_proof(session_context, id, other_cache = other_cache) match {
               case Some(p) =>
                 result += (thm.serial -> (id -> p))
                 boxes(Some((thm.serial, p.proof)), p.proof)

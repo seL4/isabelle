@@ -134,10 +134,9 @@ object Presentation {
           { case (session, thys) =>
               using(open_session(session)) { session_context =>
                 for (thy_name <- thys) yield {
-                  val theory_context = session_context.theory(thy_name)
-                  val theory =
-                    Export_Theory.read_theory(theory_context,
-                      permissive = true, cache = session_context.cache)
+                  val theory_context =
+                    session_context.theory(thy_name, other_cache = Some(Term.Cache.none))
+                  val theory = Export_Theory.read_theory(theory_context, permissive = true)
                   thy_name -> Node_Info.make(theory)
                 }
               }
