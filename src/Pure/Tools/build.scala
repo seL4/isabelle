@@ -39,7 +39,8 @@ object Build {
         case None => no_timings
         case Some(db) =>
           def ignore_error(msg: String) = {
-            progress.echo_warning("Ignoring bad database " + db + (if (msg == "") "" else "\n" + msg))
+            progress.echo_warning("Ignoring bad database " + db +
+              " for session " + quote(session_name) + (if (msg == "") "" else ":\n" + msg))
             no_timings
           }
           try {
