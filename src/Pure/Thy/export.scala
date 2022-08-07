@@ -241,24 +241,7 @@ object Export {
   }
 
 
-  /* context for retrieval */
-
-  def context(db_context: Sessions.Database_Context): Context = new Context(db_context)
-
-  def open_context(store: Sessions.Store): Context =
-    new Context(store.open_database_context()) { override def close(): Unit = db_context.close() }
-
-  def open_session_context0(store: Sessions.Store, session: String): Session_Context =
-    open_context(store).open_session0(session, close_context = true)
-
-  def open_session_context(
-    store: Sessions.Store,
-    session_base_info: Sessions.Base_Info,
-    document_snapshot: Option[Document.Snapshot] = None
-  ): Session_Context = {
-    open_context(store).open_session(
-      session_base_info, document_snapshot = document_snapshot, close_context = true)
-  }
+  /* context for database access */
 
   class Session_Database private[Export](val session: String, val db: SQL.Database) {
     def close(): Unit = ()
@@ -267,31 +250,62 @@ object Export {
     lazy val entry_names: List[Entry_Name] = read_entry_names(db, session)
   }
 
-  class Context private[Export](protected val db_context: Sessions.Database_Context)
-  extends AutoCloseable {
-    context =>
+  def open_database_context(store: Sessions.Store): Database_Context = {
+    val database_server = if (store.database_server) Some(store.open_database_server()) else None
+    new Database_Context(store, database_server)
+  }
 
-    override def toString: String = db_context.toString
+  def open_session_context0(store: Sessions.Store, session: String): Session_Context =
+    open_database_context(store).open_session0(session, close_database_context = true)
 
-    def cache: Term.Cache = db_context.cache
+  def open_session_context(
+    store: Sessions.Store,
+    session_base_info: Sessions.Base_Info,
+    document_snapshot: Option[Document.Snapshot] = None
+  ): Session_Context = {
+    open_database_context(store).open_session(
+      session_base_info, document_snapshot = document_snapshot, close_database_context = true)
+  }
 
-    def close(): Unit = ()
+  class Database_Context private[Export](
+    val store: Sessions.Store,
+    val database_server: Option[SQL.Database]
+  ) extends AutoCloseable {
+    database_context =>
 
-    def open_session0(session: String, close_context: Boolean = false): Session_Context =
-      open_session(Sessions.base_info0(session), close_context = close_context)
+    override def toString: String = {
+      val s =
+        database_server match {
+          case Some(db) => db.toString
+          case None => "input_dirs = " + store.input_dirs.map(_.absolute).mkString(", ")
+        }
+      "Database_Context(" + s + ")"
+    }
+
+    def cache: Term.Cache = store.cache
+
+    def close(): Unit = database_server.foreach(_.close())
+
+    def database_output[A](session: String)(f: SQL.Database => A): A =
+      database_server match {
+        case Some(db) => f(db)
+        case None => using(store.open_database(session, output = true))(f)
+      }
+
+    def open_session0(session: String, close_database_context: Boolean = false): Session_Context =
+      open_session(Sessions.base_info0(session), close_database_context = close_database_context)
 
     def open_session(
       session_base_info: Sessions.Base_Info,
       document_snapshot: Option[Document.Snapshot] = None,
-      close_context: Boolean = false
+      close_database_context: Boolean = false
     ): Session_Context = {
       val session_name = session_base_info.check.base.session_name
       val session_hierarchy = session_base_info.sessions_structure.build_hierarchy(session_name)
       val session_databases =
-        db_context.database_server match {
+        database_server match {
           case Some(db) => session_hierarchy.map(name => new Session_Database(name, db))
           case None =>
-            val store = db_context.store
             val attempts =
               session_hierarchy.map(name => name -> store.try_open_database(name, server = false))
             attempts.collectFirst({ case (name, None) => name }) match {
@@ -304,17 +318,17 @@ object Export {
                 }
             }
         }
-      new Session_Context(context, session_base_info, session_databases, document_snapshot) {
+      new Session_Context(database_context, session_base_info, session_databases, document_snapshot) {
         override def close(): Unit = {
           session_databases.foreach(_.close())
-          if (close_context) context.close()
+          if (close_database_context) database_context.close()
         }
       }
     }
   }
 
   class Session_Context private[Export](
-    val export_context: Context,
+    val database_context: Database_Context,
     session_base_info: Sessions.Base_Info,
     db_hierarchy: List[Session_Database],
     document_snapshot: Option[Document.Snapshot]
@@ -323,7 +337,7 @@ object Export {
 
     def close(): Unit = ()
 
-    def cache: Term.Cache = export_context.cache
+    def cache: Term.Cache = database_context.cache
 
     def sessions_structure: Sessions.Structure = session_base_info.sessions_structure
 

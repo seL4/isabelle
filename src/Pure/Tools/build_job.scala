@@ -441,16 +441,16 @@ class Build_Job(progress: Progress,
       val (document_output, document_errors) =
         try {
           if (build_errors.isInstanceOf[Exn.Res[_]] && process_result.ok && info.documents.nonEmpty) {
-            using(store.open_database_context()) { db_context =>
+            using(Export.open_database_context(store)) { database_context =>
               val documents =
-                using(Export.context(db_context).open_session(deps.base_info(session_name))) {
+                using(database_context.open_session(deps.base_info(session_name))) {
                   session_context =>
                     Document_Build.build_documents(
                       Document_Build.context(session_context, progress = progress),
                       output_sources = info.document_output,
                       output_pdf = info.document_output)
                 }
-              db_context.database_output(session_name)(db =>
+              database_context.database_output(session_name)(db =>
                 documents.foreach(_.write(db, session_name)))
               (documents.flatMap(_.log_lines), Nil)
             }

@@ -1207,30 +1207,6 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     val table = SQL.Table("isabelle_session_info", build_log_columns ::: build_columns)
   }
 
-  class Database_Context private[Sessions](
-    val store: Sessions.Store,
-    val database_server: Option[SQL.Database]
-  ) extends AutoCloseable {
-    def cache: Term.Cache = store.cache
-
-    def close(): Unit = database_server.foreach(_.close())
-
-    def database_output[A](session: String)(f: SQL.Database => A): A =
-      database_server match {
-        case Some(db) => f(db)
-        case None => using(store.open_database(session, output = true))(f)
-      }
-
-    override def toString: String = {
-      val s =
-        database_server match {
-          case Some(db) => db.toString
-          case None => "input_dirs = " + store.input_dirs.map(_.absolute).mkString(", ")
-        }
-      "Database_Context(" + s + ")"
-    }
-  }
-
   def store(options: Options, cache: Term.Cache = Term.Cache.make()): Store =
     new Store(options, cache)
 
@@ -1309,9 +1285,6 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
               user = options.string("build_database_ssh_user"),
               port = options.int("build_database_ssh_port"))),
         ssh_close = true)
-
-    def open_database_context(server: Boolean = database_server): Database_Context =
-      new Database_Context(store, if (server) Some(open_database_server()) else None)
 
     def try_open_database(
       name: String,

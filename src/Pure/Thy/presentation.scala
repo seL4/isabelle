@@ -113,13 +113,13 @@ object Presentation {
     val empty: Nodes = new Nodes(Map.empty, Map.empty)
 
     def read(
-      export_context: Export.Context,
+      database_context: Export.Database_Context,
       deps: Sessions.Deps,
       presentation_sessions: List[String]
     ): Nodes = {
 
       def open_session(session: String): Export.Session_Context =
-        export_context.open_session(deps.base_info(session))
+        database_context.open_session(deps.base_info(session))
 
       type Batch = (String, List[String])
       val batches =

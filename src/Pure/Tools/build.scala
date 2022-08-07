@@ -494,9 +494,9 @@ object Build {
           Presentation.update_chapter(presentation_dir, chapter, entries)
         }
 
-        using(Export.open_context(store)) { export_context =>
+        using(Export.open_database_context(store)) { database_context =>
           val presentation_nodes =
-            Presentation.Nodes.read(export_context, deps, presentation_sessions.map(_.name))
+            Presentation.Nodes.read(database_context, deps, presentation_sessions.map(_.name))
 
           Par_List.map({ (session: String) =>
             progress.expose_interrupt()
@@ -510,7 +510,7 @@ object Build {
                   deps.sessions_structure(deps(session).theory_qualifier(name))
               }
 
-            using(export_context.open_session(deps.base_info(session))) { session_context =>
+            using(database_context.open_session(deps.base_info(session))) { session_context =>
               Presentation.session_html(session_context, deps,
                 progress = progress,
                 verbose = verbose,
