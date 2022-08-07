@@ -243,7 +243,8 @@ object Export {
 
   /* context for database access */
 
-  class Session_Database private[Export](val session: String, val db: SQL.Database) {
+  class Session_Database private[Export](val session: String, val db: SQL.Database)
+  extends AutoCloseable {
     def close(): Unit = ()
 
     lazy val theory_names: List[String] = read_theory_names(db, session)
@@ -286,10 +287,13 @@ object Export {
 
     def close(): Unit = database_server.foreach(_.close())
 
-    def database_output[A](session: String)(f: SQL.Database => A): A =
+    def open_output_database(session: String): Session_Database =
       database_server match {
-        case Some(db) => f(db)
-        case None => using(store.open_database(session, output = true))(f)
+        case Some(db) => new Session_Database(session, db)
+        case None =>
+          new Session_Database(session, store.open_database(session, output = true)) {
+            override def close(): Unit = db.close()
+          }
       }
 
     def open_session0(session: String, close_database_context: Boolean = false): Session_Context =
