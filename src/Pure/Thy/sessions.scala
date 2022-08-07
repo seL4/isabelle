@@ -1305,11 +1305,11 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
       }
     }
 
-    def bad_database(name: String): Nothing =
+    def error_database(name: String): Nothing =
       error("Missing build database for session " + quote(name))
 
     def open_database(name: String, output: Boolean = false): SQL.Database =
-      try_open_database(name, output = output) getOrElse bad_database(name)
+      try_open_database(name, output = output) getOrElse error_database(name)
 
     def clean_output(name: String): (Boolean, Boolean) = {
       val relevant_db =

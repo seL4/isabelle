@@ -19,7 +19,7 @@ object Profiling_Report {
 
     using(Export.open_session_context0(store, session)) { session_context =>
       session_context.session_db().map(db => store.read_theories(db, session)) match {
-        case None => error("Missing build database for session " + quote(session))
+        case None => store.error_database(session)
         case Some(used_theories) =>
           theories.filterNot(used_theories.toSet) match {
             case Nil =>

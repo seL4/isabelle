@@ -98,7 +98,7 @@ object Build_Job {
           info <- store.read_build(db, session_name)
         } yield (theories, errors, info.return_code)
       result match {
-        case None => error("Missing build database for session " + quote(session_name))
+        case None => store.error_database(session_name)
         case Some((used_theories, errors, rc)) =>
           theories.filterNot(used_theories.toSet) match {
             case Nil =>

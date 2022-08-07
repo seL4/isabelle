@@ -307,7 +307,7 @@ object Export {
             attempts.collectFirst({ case (name, None) => name }) match {
               case Some(bad) =>
                 for ((_, Some(db)) <- attempts) db.close()
-                store.bad_database(bad)
+                store.error_database(bad)
               case None =>
                 for ((name, Some(db)) <- attempts) yield {
                   new Session_Database(name, db) { override def close(): Unit = this.db.close() }
