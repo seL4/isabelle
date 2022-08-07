@@ -247,8 +247,8 @@ object Export {
   extends AutoCloseable {
     def close(): Unit = ()
 
-    lazy val theory_names: List[String] = read_theory_names(db, session)
-    lazy val entry_names: List[Entry_Name] = read_entry_names(db, session)
+    lazy private [Export] val theory_names: List[String] = read_theory_names(db, session)
+    lazy private [Export] val entry_names: List[Entry_Name] = read_entry_names(db, session)
   }
 
   def open_database_context(store: Sessions.Store): Database_Context = {
