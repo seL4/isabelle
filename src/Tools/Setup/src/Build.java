@@ -492,13 +492,14 @@ public class Build
                         output.print("### Building " + title + " (" + jar_path + ") ...\n");
                     }
 
-                    String isabelle_classpath = Environment.getenv("ISABELLE_CLASSPATH");
+                    String classpath1 = Environment.getenv("ISABELLE_CLASSPATH");
+                    String classpath2 = Environment.getenv("ISABELLE_SETUP_CLASSPATH");
 
                     Path build_dir = Files.createTempDirectory("isabelle");
                     try {
                         /* compile sources */
 
-                        for (String s : isabelle_classpath.split(":", -1)) {
+                        for (String s : (classpath1 + ":" + classpath2).split(":", -1)) {
                             if (!s.isEmpty()) {
                               compiler_deps.add(Path.of(Environment.platform_path(s)));
                             }
