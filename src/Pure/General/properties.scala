@@ -43,10 +43,15 @@ object Properties {
 
   /* external storage */
 
-  def encode(ps: T): Bytes = Bytes(YXML.string_of_body(XML.Encode.properties(ps)))
+  def encode(ps: T): Bytes = {
+    if (ps.isEmpty) Bytes.empty
+    else Bytes(YXML.string_of_body(XML.Encode.properties(ps)))
+  }
 
-  def decode(bs: Bytes, cache: XML.Cache = XML.Cache.none): T =
-    cache.props(XML.Decode.properties(YXML.parse_body(bs.text)))
+  def decode(bs: Bytes, cache: XML.Cache = XML.Cache.none): T = {
+    if (bs.is_empty) Nil
+    else cache.props(XML.Decode.properties(YXML.parse_body(bs.text)))
+  }
 
   def compress(ps: List[T],
     options: XZ.Options = XZ.options(),
