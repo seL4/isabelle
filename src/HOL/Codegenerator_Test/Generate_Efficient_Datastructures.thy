@@ -29,6 +29,7 @@ declare [[code drop:
   Euclidean_Algorithm.Lcm
   "Gcd :: _ poly set \<Rightarrow> _"
   "Lcm :: _ poly set \<Rightarrow> _"
+  nlists
 ]]
 
 text \<open>

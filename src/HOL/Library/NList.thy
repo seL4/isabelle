@@ -14,11 +14,11 @@ definition nlists :: "nat \<Rightarrow> 'a set \<Rightarrow> 'a list set"
 lemma nlistsI: "\<lbrakk> size xs = n; set xs \<subseteq> A \<rbrakk> \<Longrightarrow> xs \<in> nlists n A"
   by (simp add: nlists_def)
 
-lemma nlistsE_length [simp](*rm simp del*): "xs \<in> nlists n A \<Longrightarrow> size xs = n"
+lemma nlistsE_length (*rm simp del*): "xs \<in> nlists n A \<Longrightarrow> size xs = n"
   by (simp add: nlists_def)
 
 lemma less_lengthI: "\<lbrakk> xs \<in> nlists n A; p < n \<rbrakk> \<Longrightarrow> p < size xs"
-by (simp)
+by (simp add: nlistsE_length)
 
 lemma nlistsE_set[simp](*rm simp del*): "xs \<in> nlists n A \<Longrightarrow> set xs \<subseteq> A"
 unfolding nlists_def by (simp)
@@ -27,7 +27,7 @@ lemma nlists_mono:
 assumes "A \<subseteq> B" shows "nlists n A \<subseteq> nlists n B"
 proof
   fix xs assume "xs \<in> nlists n A"
-  then obtain size: "size xs = n" and inA: "set xs \<subseteq> A" by simp
+  then obtain size: "size xs = n" and inA: "set xs \<subseteq> A" by (simp add:nlistsE_length)
   with assms have "set xs \<subseteq> B" by simp
   with size show "xs \<in> nlists n B" by(clarsimp intro!: nlistsI)
 qed
