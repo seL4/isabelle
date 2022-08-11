@@ -41,6 +41,8 @@ Minor INCOMPATIBILITY.
 integers, sacrificing pattern patching in exchange for dramatically
 increased performance for comparisions.
 
+* New theory HOL-Library.NList of fixed length lists
+
 * Rule split_of_bool_asm is not split any longer, analogously to
 split_if_asm.  INCOMPATIBILITY.
 

@@ -95,4 +95,7 @@ unfolding nlists_def by (auto)
 lemma nlists_replicateI [intro]: "x \<in> A \<Longrightarrow> replicate n x \<in> nlists n A"
  by (induct n) auto
 
+lemma nlists_set[code]: "nlists n (set xs) = set (List.n_lists n xs)"
+unfolding nlists_def by (rule sym, induct n) (auto simp: image_iff length_Suc_conv)
+
 end
