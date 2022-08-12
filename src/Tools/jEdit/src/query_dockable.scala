@@ -243,7 +243,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
       reactions += {
         case ButtonClicked(_) => apply_query()
         case evt @ KeyPressed(_, Key.Enter, 0, _) =>
-          evt.peer.consume
+          evt.peer.consume()
           apply_query()
       }
     }

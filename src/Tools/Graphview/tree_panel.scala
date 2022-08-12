@@ -73,7 +73,7 @@ extends BorderPanel {
   tree.addKeyListener(new KeyAdapter {
     override def keyPressed(e: KeyEvent): Unit =
       if (e.getKeyCode == KeyEvent.VK_ENTER) {
-        e.consume
+        e.consume()
         selection_action()
       }
   })

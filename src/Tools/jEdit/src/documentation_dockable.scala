@@ -58,7 +58,7 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
   tree.addKeyListener(new KeyAdapter {
     override def keyPressed(e: KeyEvent): Unit = {
       if (e.getKeyCode == KeyEvent.VK_ENTER) {
-        e.consume
+        e.consume()
         val path = tree.getSelectionPath
         if (path != null) {
           path.getLastPathComponent match {

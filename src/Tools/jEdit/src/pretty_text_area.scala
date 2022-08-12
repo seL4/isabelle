@@ -208,15 +208,15 @@ class Pretty_Text_Area(
         case KeyEvent.VK_C | KeyEvent.VK_INSERT
         if strict_control && text_area.getSelectionCount != 0 =>
           Registers.copy(text_area, '$')
-          evt.consume
+          evt.consume()
 
         case KeyEvent.VK_A
         if strict_control =>
           text_area.selectAll
-          evt.consume
+          evt.consume()
 
         case KeyEvent.VK_ESCAPE =>
-          if (Isabelle.dismissed_popups(view)) evt.consume
+          if (Isabelle.dismissed_popups(view)) evt.consume()
 
         case _ =>
       }
