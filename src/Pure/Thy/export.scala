@@ -411,7 +411,7 @@ object Export {
     def theory(theory: String, other_cache: Option[Term.Cache] = None): Theory_Context =
       new Theory_Context(session_context, theory, other_cache)
 
-    def classpath(): List[File.Content_Bytes] = {
+    def classpath(): List[File.Content] = {
       (for {
         session <- session_stack.iterator
         info <- sessions_structure.get(session).iterator

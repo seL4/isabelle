@@ -138,7 +138,7 @@ object Document_Build {
 
     override def toString: String = session
 
-    val classpath: List[File.Content_Bytes] = session_context.classpath()
+    val classpath: List[File.Content] = session_context.classpath()
 
     def document_bibliography: Boolean = options.bool("document_bibliography")
 

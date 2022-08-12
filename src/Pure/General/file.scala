@@ -301,17 +301,13 @@ object File {
 
   /* content */
 
-  def content(path: Path, content: Bytes): Content_Bytes = new Content_Bytes(path, content)
-  def content(path: Path, content: String): Content_String = new Content_String(path, content)
+  def content(path: Path, content: Bytes): Content = new Content(path, content)
+  def content(path: Path, content: String): Content = new Content(path, Bytes(content))
   def content(path: Path, content: XML.Body): Content_XML = new Content_XML(path, content)
 
-  trait Content {
-    def path: Path
-    def write(dir: Path): Unit
+  final class Content private[File](val path: Path, val content: Bytes) {
     override def toString: String = path.toString
-  }
 
-  final class Content_Bytes private[File](val path: Path, val content: Bytes) extends Content {
     def write(dir: Path): Unit = {
       val full_path = dir + path
       Isabelle_System.make_directory(full_path.expand.dir)
@@ -319,18 +315,9 @@ object File {
     }
   }
 
-  final class Content_String private[File](val path: Path, val content: String) extends Content {
-    def write(dir: Path): Unit = {
-      val full_path = dir + path
-      Isabelle_System.make_directory(full_path.expand.dir)
-      File.write(full_path, content)
-    }
-  }
-
   final class Content_XML private[File](val path: Path, val content: XML.Body) {
     override def toString: String = path.toString
 
-    def output(out: XML.Body => String): Content_String =
-      new Content_String(path, out(content))
+    def output(out: XML.Body => String): Content = new Content(path, Bytes(out(content)))
   }
 }
