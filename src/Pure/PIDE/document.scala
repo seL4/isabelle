@@ -338,7 +338,7 @@ object Document {
     def source: String =
       get_blob match {
         case Some(blob) => blob.source
-        case None => command_iterator(0).map({ case (cmd, _) => cmd.source }).mkString
+        case None => command_iterator().map({ case (cmd, _) => cmd.source }).mkString
       }
   }
 
@@ -1099,7 +1099,7 @@ object Document {
       (for {
         command <- commands.iterator
         id <- (command.id :: assignment.command_execs.getOrElse(command.id, Nil)).iterator
-      } yield (id -> command)).toMap
+      } yield id -> command).toMap
     }
 
     def command_maybe_consolidated(version: Version, command: Command): Boolean = {
