@@ -686,12 +686,6 @@ object Document {
       state.command_results(version, command)
 
 
-    /* command ids: static and dynamic */
-
-    def command_id_map: Map[Document_ID.Generic, Command] =
-      state.command_id_map(version, get_node(node_name).commands)
-
-
     /* cumulate markup */
 
     def cumulate[A](
@@ -1088,18 +1082,6 @@ object Document {
         assignments = assignments1,
         history = history.purge(versions1),
         removing_versions = false)
-    }
-
-    def command_id_map(
-      version: Version,
-      commands: Iterable[Command]
-    ) : Map[Document_ID.Generic, Command] = {
-      require(is_assigned(version), "version not assigned (command_id_map)")
-      val assignment = the_assignment(version).check_finished
-      (for {
-        command <- commands.iterator
-        id <- (command.id :: assignment.command_execs.getOrElse(command.id, Nil)).iterator
-      } yield id -> command).toMap
     }
 
     def command_maybe_consolidated(version: Version, command: Command): Boolean = {
