@@ -31,10 +31,12 @@ object Document_Build {
   }
 
   sealed case class Document_Input(name: String, sources: SHA1.Digest)
-  extends Document_Name
+  extends Document_Name { override def toString: String = name }
 
   sealed case class Document_Output(name: String, sources: SHA1.Digest, log_xz: Bytes, pdf: Bytes)
   extends Document_Name {
+    override def toString: String = name
+
     def log: String = log_xz.uncompress().text
     def log_lines: List[String] = split_lines(log)
 
