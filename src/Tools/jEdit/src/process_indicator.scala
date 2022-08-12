@@ -27,26 +27,24 @@ class Process_Indicator {
   private class Animation extends ImageIcon(passive_icon) {
     private var current_frame = 0
     private val timer =
-      new Timer(0, new ActionListener {
-        override def actionPerformed(e: ActionEvent): Unit = {
-          current_frame = (current_frame + 1) % active_icons.length
-          setImage(active_icons(current_frame))
-          label.repaint()
-        }
+      new Timer(0, { (_: ActionEvent) =>
+        current_frame = (current_frame + 1) % active_icons.length
+        setImage(active_icons(current_frame))
+        label.repaint()
       })
     timer.setRepeats(true)
 
     def update(rate: Int): Unit = {
       if (rate == 0) {
         setImage(passive_icon)
-        timer.stop
+        timer.stop()
         label.repaint()
       }
       else {
         val delay = 1000 / rate
         timer.setInitialDelay(delay)
         timer.setDelay(delay)
-        timer.restart
+        timer.restart()
       }
     }
   }
