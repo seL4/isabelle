@@ -32,7 +32,7 @@ object Query_Dockable {
 class Query_Dockable(view: View, position: String) extends Dockable(view, position) {
   /* common GUI components */
 
-  private val zoom = new Font_Info.Zoom_Box { def changed() = handle_resize() }
+  private val zoom = new Font_Info.Zoom_Box { def changed(): Unit = handle_resize() }
 
   private def make_query(
     property: String,
@@ -71,7 +71,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
 
   /* find theorems */
 
-  private val find_theorems = new Query_Dockable.Operation(view) {
+  private val find_theorems: Query_Dockable.Operation = new Query_Dockable.Operation(view) {
     /* query */
 
     private val process_indicator = new Process_Indicator
@@ -101,8 +101,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
 
     private val limit = new TextField(PIDE.options.int("find_theorems_limit").toString, 5) {
       tooltip = "Limit of displayed results"
-      verifier = (s: String) =>
-        s match { case Value.Int(x) => x >= 0 case _ => false }
+      verifier = { case Value.Int(x) => x >= 0 case _ => false }
       listenTo(keys)
       reactions += { case KeyPressed(_, Key.Enter, 0, _) => apply_query() }
     }
@@ -136,7 +135,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
 
   /* find consts */
 
-  private val find_consts = new Query_Dockable.Operation(view) {
+  private val find_consts: Query_Dockable.Operation = new Query_Dockable.Operation(view) {
     /* query */
 
     private val process_indicator = new Process_Indicator
@@ -189,7 +188,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
     /* items */
 
     private class Item(val name: String, description: String, sel: Boolean) {
-      val checkbox = new CheckBox(name) {
+      val checkbox: CheckBox = new CheckBox(name) {
         tooltip = "Print " + description
         selected = sel
         reactions += { case ButtonClicked(_) => apply_query() }

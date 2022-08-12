@@ -96,7 +96,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
     reactions += { case ButtonClicked(_) => handle_update(true, None) }
   }
 
-  private val zoom = new Font_Info.Zoom_Box { def changed() = handle_resize() }
+  private val zoom = new Font_Info.Zoom_Box { def changed(): Unit = handle_resize() }
 
   private val controls =
     Wrap_Panel(
