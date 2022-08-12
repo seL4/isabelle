@@ -622,11 +622,11 @@ ML_file \<open>Tools/SMT/smtlib_isar.ML\<close>
 ML_file \<open>Tools/SMT/z3_proof.ML\<close>
 ML_file \<open>Tools/SMT/z3_isar.ML\<close>
 ML_file \<open>Tools/SMT/smt_solver.ML\<close>
-ML_file \<open>Tools/SMT/cvc4_interface.ML\<close>
+ML_file \<open>Tools/SMT/cvc_interface.ML\<close>
 ML_file \<open>Tools/SMT/lethe_proof.ML\<close>
 ML_file \<open>Tools/SMT/lethe_isar.ML\<close>
 ML_file \<open>Tools/SMT/lethe_proof_parse.ML\<close>
-ML_file \<open>Tools/SMT/cvc4_proof_parse.ML\<close>
+ML_file \<open>Tools/SMT/cvc_proof_parse.ML\<close>
 ML_file \<open>Tools/SMT/verit_proof.ML\<close>
 ML_file \<open>Tools/SMT/conj_disj_perm.ML\<close>
 ML_file \<open>Tools/SMT/smt_replay_methods.ML\<close>
@@ -691,6 +691,7 @@ options.
 \<close>
 
 declare [[cvc4_options = ""]]
+declare [[cvc5_options = ""]]
 declare [[verit_options = ""]]
 declare [[z3_options = ""]]
 
@@ -705,11 +706,11 @@ declare [[smt_infer_triggers = false]]
 
 text \<open>
 Enable the following option to use built-in support for datatypes,
-codatatypes, and records in CVC4. Currently, this is implemented only
-in oracle mode.
+codatatypes, and records in CVC4 and cvc5. Currently, this is implemented
+only in oracle mode.
 \<close>
 
-declare [[cvc4_extensions = false]]
+declare [[cvc_extensions = false]]
 
 text \<open>
 Enable the following option to use built-in support for div/mod, datatypes,
@@ -890,6 +891,7 @@ lemma [z3_rule]:  (* for def-axiom *)
   "(if P then \<not> Q else R) \<or> \<not> P \<or> Q"
   "(if P then Q else \<not> R) \<or> P \<or> R"
   by auto
+
 hide_type (open) symb_list pattern
 hide_const (open) Symb_Nil Symb_Cons trigger pat nopat fun_app z3div z3mod
 
