@@ -57,9 +57,9 @@ class JEdit_Options(init_options: Options) extends Options_Variable(init_options
 
     val button = new ColorWellButton(Color_Value(opt.value))
     val component = new Component with Option_Component {
-      override lazy val peer = button
+      override lazy val peer: JComponent = button
       name = opt_name
-      val title = opt_title
+      val title: String = opt_title
       def load(): Unit = button.setSelectedColor(Color_Value(string(opt_name)))
       def save(): Unit = string(opt_name) = Color_Value.print(button.getSelectedColor)
     }
@@ -77,7 +77,7 @@ class JEdit_Options(init_options: Options) extends Options_Variable(init_options
       if (opt.typ == Options.Bool)
         new CheckBox with Option_Component {
           name = opt_name
-          val title = opt_title
+          val title: String = opt_title
           def load(): Unit = selected = bool(opt_name)
           def save(): Unit = bool(opt_name) = selected
         }
@@ -87,7 +87,7 @@ class JEdit_Options(init_options: Options) extends Options_Variable(init_options
           new TextArea with Option_Component {
             if (default_font != null) font = default_font
             name = opt_name
-            val title = opt_title
+            val title: String = opt_title
             def load(): Unit = text = value.check_name(opt_name).value
             def save(): Unit =
               try { JEdit_Options.this += (opt_name, text) }
@@ -97,14 +97,11 @@ class JEdit_Options(init_options: Options) extends Options_Variable(init_options
                     GUI.scrollable_text(msg))
               }
           }
-        text_area.peer.setInputVerifier(new InputVerifier {
-          def verify(jcomponent: JComponent): Boolean =
-            jcomponent match {
-              case text: JTextComponent =>
-                try { value + (opt_name, text.getText); true }
-                catch { case ERROR(_) => false }
-              case _ => true
-            }
+        text_area.peer.setInputVerifier({
+            case text: JTextComponent =>
+              try { value + (opt_name, text.getText); true }
+              catch { case ERROR(_) => false }
+            case _ => true
           })
         GUI.plain_focus_traversal(text_area.peer)
         text_area
