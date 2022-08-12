@@ -78,9 +78,6 @@ object Document {
       abbrevs: Thy_Header.Abbrevs = Nil,
       errors: List[String] = Nil
     ) {
-      def imports_offset: Map[Int, Name] =
-        (for { (name, Position.Offset(i)) <- imports_pos } yield i -> name).toMap
-
       def imports: List[Name] = imports_pos.map(_._1)
 
       def append_errors(msgs: List[String]): Header =
@@ -341,7 +338,7 @@ object Document {
     def source: String =
       get_blob match {
         case Some(blob) => blob.source
-        case None => command_iterator(0).map({ case (cmd, _) => cmd.source }).mkString
+        case None => command_iterator().map({ case (cmd, _) => cmd.source }).mkString
       }
   }
 
@@ -687,12 +684,6 @@ object Document {
 
     def command_results(command: Command): Command.Results =
       state.command_results(version, command)
-
-
-    /* command ids: static and dynamic */
-
-    def command_id_map: Map[Document_ID.Generic, Command] =
-      state.command_id_map(version, get_node(node_name).commands)
 
 
     /* cumulate markup */
@@ -1091,18 +1082,6 @@ object Document {
         assignments = assignments1,
         history = history.purge(versions1),
         removing_versions = false)
-    }
-
-    def command_id_map(
-      version: Version,
-      commands: Iterable[Command]
-    ) : Map[Document_ID.Generic, Command] = {
-      require(is_assigned(version), "version not assigned (command_id_map)")
-      val assignment = the_assignment(version).check_finished
-      (for {
-        command <- commands.iterator
-        id <- (command.id :: assignment.command_execs.getOrElse(command.id, Nil)).iterator
-      } yield (id -> command)).toMap
     }
 
     def command_maybe_consolidated(version: Version, command: Command): Boolean = {

@@ -18,12 +18,6 @@ import org.gjt.sp.jedit.browser.VFSBrowser
 
 
 object Isabelle_Session {
-  /* sessions structure */
-
-  def sessions_structure(): Sessions.Structure =
-    JEdit_Sessions.sessions_structure(PIDE.options.value)
-
-
   /* virtual file-system */
 
   val vfs_prefix = "isabelle-session:"
@@ -53,7 +47,7 @@ object Isabelle_Session {
       explode_url(url, component = component) match {
         case None => null
         case Some(elems) =>
-          val sessions = sessions_structure()
+          val sessions = JEdit_Sessions.sessions_structure()
           elems match {
             case Nil =>
               sessions.chapters.iterator.map(p => make_entry(p._1, is_dir = true)).toArray
@@ -90,7 +84,7 @@ object Isabelle_Session {
       PIDE.maybe_snapshot(view) match {
         case None => ""
         case Some(snapshot) =>
-          val sessions = sessions_structure()
+          val sessions = JEdit_Sessions.sessions_structure()
           val session = PIDE.resources.session_base.theory_qualifier(snapshot.node_name)
           val chapter =
             sessions.get(session) match {

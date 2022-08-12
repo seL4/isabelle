@@ -20,7 +20,7 @@ object Classpath {
 
   def apply(
     jar_files: List[JFile] = Nil,
-    jar_contents: List[File.Content_Bytes] = Nil): Classpath =
+    jar_contents: List[File.Content] = Nil): Classpath =
   {
     val jar_files0 =
       for {

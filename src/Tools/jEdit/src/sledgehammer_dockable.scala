@@ -62,17 +62,13 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
     override def componentShown(e: ComponentEvent): Unit = delay_resize.invoke()
   })
 
-  private def handle_resize(): Unit = {
-    GUI_Thread.require {}
-
-    pretty_text_area.resize(
-      Font_Info.main(PIDE.options.real("jedit_font_scale") * zoom.factor / 100))
-  }
+  private def handle_resize(): Unit =
+    GUI_Thread.require { pretty_text_area.zoom(zoom.factor) }
 
 
   /* controls */
 
-  private def clicked: Unit = {
+  private def clicked(): Unit = {
     provers.addCurrentToHistory()
     PIDE.options.string("sledgehammer_provers") = provers.getText
     sledgehammer.apply_query(
@@ -88,7 +84,7 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
 
   private val provers = new HistoryTextField("isabelle-sledgehammer-provers") {
     override def processKeyEvent(evt: KeyEvent): Unit = {
-      if (evt.getID == KeyEvent.KEY_PRESSED && evt.getKeyCode == KeyEvent.VK_ENTER) clicked
+      if (evt.getID == KeyEvent.KEY_PRESSED && evt.getKeyCode == KeyEvent.VK_ENTER) clicked()
       super.processKeyEvent(evt)
     }
     setToolTipText(provers_label.tooltip)
@@ -116,7 +112,7 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
 
   private val apply_query = new Button("<html><b>Apply</b></html>") {
     tooltip = "Search for first-order proof using automatic theorem provers"
-    reactions += { case ButtonClicked(_) => clicked }
+    reactions += { case ButtonClicked(_) => clicked() }
   }
 
   private val cancel_query = new Button("Cancel") {
@@ -129,7 +125,7 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
     reactions += { case ButtonClicked(_) => sledgehammer.locate_query() }
   }
 
-  private val zoom = new Font_Info.Zoom_Box { def changed = handle_resize() }
+  private val zoom = new Font_Info.Zoom_Box { def changed(): Unit = handle_resize() }
 
   private val controls =
     Wrap_Panel(

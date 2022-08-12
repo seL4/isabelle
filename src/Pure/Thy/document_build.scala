@@ -31,10 +31,12 @@ object Document_Build {
   }
 
   sealed case class Document_Input(name: String, sources: SHA1.Digest)
-  extends Document_Name
+  extends Document_Name { override def toString: String = name }
 
   sealed case class Document_Output(name: String, sources: SHA1.Digest, log_xz: Bytes, pdf: Bytes)
   extends Document_Name {
+    override def toString: String = name
+
     def log: String = log_xz.uncompress().text
     def log_lines: List[String] = split_lines(log)
 
@@ -117,23 +119,29 @@ object Document_Build {
 
   def context(
     session_context: Export.Session_Context,
+    document_session: Option[Sessions.Base] = None,
     progress: Progress = new Progress
-  ): Context = new Context(session_context, progress)
+  ): Context = new Context(session_context, document_session, progress)
 
   final class Context private[Document_Build](
-    val session_context: Export.Session_Context,
+    session_context: Export.Session_Context,
+    document_session: Option[Sessions.Base],
     val progress: Progress = new Progress
   ) {
+    context =>
+
+
     /* session info */
 
-    def session: String = session_context.session_name
+    private val base = document_session getOrElse session_context.session_base
+    private val info = session_context.sessions_structure(base.session_name)
 
-    private val info = session_context.sessions_structure(session)
-    private val base = session_context.session_base
-
-    val classpath: List[File.Content_Bytes] = session_context.classpath()
-
+    def session: String = info.name
     def options: Options = info.options
+
+    override def toString: String = session
+
+    val classpath: List[File.Content] = session_context.classpath()
 
     def document_bibliography: Boolean = options.bool("document_bibliography")
 
@@ -168,13 +176,13 @@ object Document_Build {
         val path = Path.basic(tex_name(name))
         val entry = session_context(name.theory, Export.DOCUMENT_LATEX, permissive = true)
         val content = YXML.parse_body(entry.text)
-        File.Content(path, content)
+        File.content(path, content)
       }
 
     lazy val session_graph: File.Content = {
       val path = Presentation.session_graph_path
       val content = graphview.Graph_File.make_pdf(options, base.session_graph_display)
-      File.Content(path, content)
+      File.content(path, content)
     }
 
     lazy val session_tex: File.Content = {
@@ -182,7 +190,7 @@ object Document_Build {
       val content =
         Library.terminate_lines(
           base.proper_session_theories.map(name => "\\input{" + tex_name(name) + "}"))
-      File.Content(path, content)
+      File.content(path, content)
     }
 
     lazy val isabelle_logo: Option[File.Content] = {
@@ -191,8 +199,19 @@ object Document_Build {
           Logo.create_logo(logo_name, output_file = tmp_path, quiet = true)
           val path = Path.basic("isabelle_logo.pdf")
           val content = Bytes.read(tmp_path)
-          File.Content(path, content)
+          File.content(path, content)
         })
+    }
+
+
+    /* build document */
+
+    def build_document(doc: Document_Variant, verbose: Boolean = false): Document_Output = {
+      Isabelle_System.with_tmp_dir("document") { tmp_dir =>
+        val engine = get_engine()
+        val directory = engine.prepare_directory(context, tmp_dir, doc)
+        engine.build_document(context, directory, verbose)
+      }
     }
 
 

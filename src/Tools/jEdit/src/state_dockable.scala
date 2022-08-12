@@ -45,12 +45,8 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
     override def componentShown(e: ComponentEvent): Unit = delay_resize.invoke()
   })
 
-  private def handle_resize(): Unit = {
-    GUI_Thread.require {}
-
-    pretty_text_area.resize(
-      Font_Info.main(PIDE.options.real("jedit_font_scale") * zoom.factor / 100))
-  }
+  private def handle_resize(): Unit =
+    GUI_Thread.require { pretty_text_area.zoom(zoom.factor) }
 
 
   /* update */
@@ -98,7 +94,7 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
     reactions += { case ButtonClicked(_) => print_state.locate_query() }
   }
 
-  private val zoom = new Font_Info.Zoom_Box { def changed = handle_resize() }
+  private val zoom = new Font_Info.Zoom_Box { def changed(): Unit = handle_resize() }
 
   private val controls =
     Wrap_Panel(

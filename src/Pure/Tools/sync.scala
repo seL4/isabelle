@@ -59,7 +59,7 @@ object Sync {
     context.progress.echo_if(verbose, "\n* Isabelle repository:")
     val filter_heaps = if (purge_heaps) Nil else List("protect /heaps", "protect /heaps/**")
     sync(hg, target, rev,
-      contents = List(File.Content(Path.explode("etc/ISABELLE_ID"), hg.id(rev = rev))),
+      contents = List(File.content(Path.explode("etc/ISABELLE_ID"), hg.id(rev = rev))),
       filter = filter_heaps ::: List("protect /AFP"))
 
     for (hg <- afp_hg) {

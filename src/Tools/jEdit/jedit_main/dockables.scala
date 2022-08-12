@@ -13,6 +13,9 @@ import org.gjt.sp.jedit.View
 class Debugger_Dockable(view: View, position: String)
   extends isabelle.jedit.Debugger_Dockable(view, position)
 
+class Document_Dockable(view: View, position: String)
+  extends isabelle.jedit.Document_Dockable(view, position)
+
 class Documentation_Dockable(view: View, position: String)
   extends isabelle.jedit.Documentation_Dockable(view, position)
 

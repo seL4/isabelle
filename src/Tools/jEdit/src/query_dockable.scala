@@ -24,7 +24,7 @@ object Query_Dockable {
     val pretty_text_area = new Pretty_Text_Area(view)
     def query_operation: Query_Operation[View]
     def query: JComponent
-    def select: Unit
+    def select(): Unit
     def page: TabbedPane.Page
   }
 }
@@ -32,7 +32,7 @@ object Query_Dockable {
 class Query_Dockable(view: View, position: String) extends Dockable(view, position) {
   /* common GUI components */
 
-  private val zoom = new Font_Info.Zoom_Box { def changed = handle_resize() }
+  private val zoom = new Font_Info.Zoom_Box { def changed(): Unit = handle_resize() }
 
   private def make_query(
     property: String,
@@ -71,7 +71,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
 
   /* find theorems */
 
-  private val find_theorems = new Query_Dockable.Operation(view) {
+  private val find_theorems: Query_Dockable.Operation = new Query_Dockable.Operation(view) {
     /* query */
 
     private val process_indicator = new Process_Indicator
@@ -101,8 +101,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
 
     private val limit = new TextField(PIDE.options.int("find_theorems_limit").toString, 5) {
       tooltip = "Limit of displayed results"
-      verifier = (s: String) =>
-        s match { case Value.Int(x) => x >= 0 case _ => false }
+      verifier = { case Value.Int(x) => x >= 0 case _ => false }
       listenTo(keys)
       reactions += { case KeyPressed(_, Key.Enter, 0, _) => apply_query() }
     }
@@ -124,7 +123,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
           process_indicator.component, apply_button,
           pretty_text_area.search_label, pretty_text_area.search_field))
 
-    def select: Unit = { control_panel.contents += zoom }
+    def select(): Unit = { control_panel.contents += zoom }
 
     val page =
       new TabbedPane.Page("Find Theorems", new BorderPanel {
@@ -136,7 +135,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
 
   /* find consts */
 
-  private val find_consts = new Query_Dockable.Operation(view) {
+  private val find_consts: Query_Dockable.Operation = new Query_Dockable.Operation(view) {
     /* query */
 
     private val process_indicator = new Process_Indicator
@@ -173,7 +172,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
           query_label, Component.wrap(query), process_indicator.component, apply_button,
           pretty_text_area.search_label, pretty_text_area.search_field))
 
-    def select: Unit = { control_panel.contents += zoom }
+    def select(): Unit = { control_panel.contents += zoom }
 
     val page =
       new TabbedPane.Page("Find Constants", new BorderPanel {
@@ -189,7 +188,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
     /* items */
 
     private class Item(val name: String, description: String, sel: Boolean) {
-      val checkbox = new CheckBox(name) {
+      val checkbox: CheckBox = new CheckBox(name) {
         tooltip = "Print " + description
         selected = sel
         reactions += { case ButtonClicked(_) => apply_query() }
@@ -243,14 +242,14 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
       reactions += {
         case ButtonClicked(_) => apply_query()
         case evt @ KeyPressed(_, Key.Enter, 0, _) =>
-          evt.peer.consume
+          evt.peer.consume()
           apply_query()
       }
     }
 
     private val control_panel = Wrap_Panel()
 
-    def select: Unit = {
+    def select(): Unit = {
       control_panel.contents.clear()
       control_panel.contents += query_label
       update_items().foreach(item => control_panel.contents += item.checkbox)
@@ -282,7 +281,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
     catch { case _: IndexOutOfBoundsException => None }
 
   private def select_operation(): Unit = {
-    for (op <- get_operation()) { op.select; op.query.requestFocus() }
+    for (op <- get_operation()) { op.select(); op.query.requestFocus() }
     operations_pane.revalidate()
   }
 
@@ -303,12 +302,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
   /* resize */
 
   private def handle_resize(): Unit =
-    GUI_Thread.require {
-      for (op <- operations) {
-        op.pretty_text_area.resize(
-          Font_Info.main(PIDE.options.real("jedit_font_scale") * zoom.factor / 100))
-      }
-    }
+    GUI_Thread.require { operations.foreach(_.pretty_text_area.zoom(zoom.factor)) }
 
   private val delay_resize =
     Delay.first(PIDE.options.seconds("editor_update_delay"), gui = true) { handle_resize() }

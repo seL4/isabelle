@@ -411,7 +411,7 @@ object Export {
     def theory(theory: String, other_cache: Option[Term.Cache] = None): Theory_Context =
       new Theory_Context(session_context, theory, other_cache)
 
-    def classpath(): List[File.Content_Bytes] = {
+    def classpath(): List[File.Content] = {
       (for {
         session <- session_stack.iterator
         info <- sessions_structure.get(session).iterator
@@ -420,7 +420,7 @@ object Export {
         entry_name <- entry_names(session = session).iterator
         if matcher(entry_name)
         entry <- get(entry_name.theory, entry_name.name).iterator
-      } yield File.Content(entry.entry_name.make_path(), entry.uncompressed)).toList
+      } yield File.content(entry.entry_name.make_path(), entry.uncompressed)).toList
   }
 
   override def toString: String =

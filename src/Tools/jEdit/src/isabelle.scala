@@ -108,6 +108,12 @@ object Isabelle {
       case _ => None
     }
 
+  def document_dockable(view: View): Option[Document_Dockable] =
+    wm(view).getDockableWindow("isabelle-document") match {
+      case dockable: Document_Dockable => Some(dockable)
+      case _ => None
+    }
+
   def documentation_dockable(view: View): Option[Documentation_Dockable] =
     wm(view).getDockableWindow("isabelle-documentation") match {
       case dockable: Documentation_Dockable => Some(dockable)

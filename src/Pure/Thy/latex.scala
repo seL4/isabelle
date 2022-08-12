@@ -133,7 +133,7 @@ object Latex {
       val tags =
         (for ((name, op) <- map.iterator)
           yield "\\isa" + op + "tag{" + name + "}").toList
-      File.Content(path, comment + """
+      File.content(path, comment + """
 
 \newcommand{\isakeeptag}[1]%
 {\includecomment{isadelim#1}\includecomment{isatag#1}\csarg\def{isafold#1}{}}
