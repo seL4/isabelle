@@ -74,12 +74,8 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
 
   private val zoom = new Font_Info.Zoom_Box { def changed(): Unit = handle_resize() }
 
-  private def handle_resize(): Unit = {
-    GUI_Thread.require {}
-
-    pretty_text_area.resize(
-      Font_Info.main(PIDE.options.real("jedit_font_scale") * zoom.factor / 100))
-  }
+  private def handle_resize(): Unit =
+    GUI_Thread.require { pretty_text_area.zoom(zoom.factor) }
 
 
   /* resize */

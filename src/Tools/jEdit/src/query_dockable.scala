@@ -302,12 +302,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
   /* resize */
 
   private def handle_resize(): Unit =
-    GUI_Thread.require {
-      for (op <- operations) {
-        op.pretty_text_area.resize(
-          Font_Info.main(PIDE.options.real("jedit_font_scale") * zoom.factor / 100))
-      }
-    }
+    GUI_Thread.require { operations.foreach(_.pretty_text_area.zoom(zoom.factor)) }
 
   private val delay_resize =
     Delay.first(PIDE.options.seconds("editor_update_delay"), gui = true) { handle_resize() }

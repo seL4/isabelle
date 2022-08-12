@@ -158,12 +158,8 @@ class Simplifier_Trace_Window(
     pretty_text_area.update(snapshot, Command.Results.empty, xml)
   }
 
-  def do_paint(): Unit = {
-    GUI_Thread.later {
-      pretty_text_area.resize(
-        Font_Info.main(PIDE.options.real("jedit_font_scale") * zoom.factor / 100))
-    }
-  }
+  def do_paint(): Unit =
+    GUI_Thread.later { pretty_text_area.zoom(zoom.factor) }
 
   def handle_resize(): Unit = do_paint()
 

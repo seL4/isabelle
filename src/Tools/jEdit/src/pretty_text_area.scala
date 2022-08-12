@@ -122,6 +122,9 @@ class Pretty_Text_Area(
     refresh()
   }
 
+  def zoom(factor: Int): Unit =
+    resize(Font_Info.main(PIDE.options.real("jedit_font_scale") * factor / 100))
+
   def update(
     base_snapshot: Document.Snapshot,
     base_results: Command.Results,
