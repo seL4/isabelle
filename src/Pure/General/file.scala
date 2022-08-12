@@ -330,6 +330,8 @@ object File {
   }
 
   final class Content_XML private[File](val path: Path, val content: XML.Body) {
+    override def toString: String = path.toString
+
     def output(out: XML.Body => String): Content_String =
       new Content_String(path, out(content))
   }
