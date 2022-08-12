@@ -81,11 +81,11 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     val new_snapshot = PIDE.editor.current_node_snapshot(view).getOrElse(current_snapshot)
     val (new_threads, new_output) = debugger.status(tree_selection())
 
-    if (new_threads != current_threads)
-      update_tree(new_threads)
+    if (new_threads != current_threads) update_tree(new_threads)
 
-    if (new_output != current_output)
+    if (new_output != current_output) {
       pretty_text_area.update(new_snapshot, Command.Results.empty, Pretty.separate(new_output))
+    }
 
     current_snapshot = new_snapshot
     current_threads = new_threads
@@ -126,12 +126,12 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
         case _ => thread_contexts.headOption
       }
 
-    tree.clearSelection
-    root.removeAllChildren
+    tree.clearSelection()
+    root.removeAllChildren()
 
     for (thread <- thread_contexts) {
       val thread_node = new DefaultMutableTreeNode(thread)
-      for ((debug_state, i) <- thread.debug_states.zipWithIndex)
+      for ((_, i) <- thread.debug_states.zipWithIndex)
         thread_node.add(new DefaultMutableTreeNode(thread.select(i)))
       root.add(thread_node)
     }
@@ -163,19 +163,15 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     }
   }
 
-  tree.addTreeSelectionListener(
-    new TreeSelectionListener {
-      override def valueChanged(e: TreeSelectionEvent): Unit = {
-        update_focus()
-        update_vals()
-      }
-    })
+  tree.addTreeSelectionListener({ (_: TreeSelectionEvent) =>
+    update_focus()
+    update_vals()
+  })
   tree.addMouseListener(
     new MouseAdapter {
       override def mouseClicked(e: MouseEvent): Unit = {
         val click = tree.getPathForLocation(e.getX, e.getY)
-        if (click != null && e.getClickCount == 1)
-          update_focus()
+        if (click != null && e.getClickCount == 1) update_focus()
       }
     })
 
@@ -219,8 +215,9 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   private val context_field =
     new Completion_Popup.History_Text_Field("isabelle-debugger-context") {
       override def processKeyEvent(evt: KeyEvent): Unit = {
-        if (evt.getID == KeyEvent.KEY_PRESSED && evt.getKeyCode == KeyEvent.VK_ENTER)
+        if (evt.getID == KeyEvent.KEY_PRESSED && evt.getKeyCode == KeyEvent.VK_ENTER) {
           eval_expression()
+        }
         super.processKeyEvent(evt)
       }
       setColumns(20)
@@ -234,8 +231,9 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   private val expression_field =
     new Completion_Popup.History_Text_Field("isabelle-debugger-expression") {
       override def processKeyEvent(evt: KeyEvent): Unit = {
-        if (evt.getID == KeyEvent.KEY_PRESSED && evt.getKeyCode == KeyEvent.VK_ENTER)
+        if (evt.getID == KeyEvent.KEY_PRESSED && evt.getKeyCode == KeyEvent.VK_ENTER) {
           eval_expression()
+        }
         super.processKeyEvent(evt)
       }
       { val max = getPreferredSize; max.width = Integer.MAX_VALUE; setMaximumSize(max) }
