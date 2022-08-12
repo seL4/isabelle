@@ -117,23 +117,26 @@ object Document_Build {
 
   def context(
     session_context: Export.Session_Context,
+    document_session: Option[Sessions.Base] = None,
     progress: Progress = new Progress
-  ): Context = new Context(session_context, progress)
+  ): Context = new Context(session_context, document_session, progress)
 
   final class Context private[Document_Build](
-    val session_context: Export.Session_Context,
+    session_context: Export.Session_Context,
+    document_session: Option[Sessions.Base],
     val progress: Progress = new Progress
   ) {
     /* session info */
 
-    def session: String = session_context.session_name
+    private val base = document_session getOrElse session_context.session_base
+    private val info = session_context.sessions_structure(base.session_name)
 
-    private val info = session_context.sessions_structure(session)
-    private val base = session_context.session_base
+    def session: String = info.name
+    def options: Options = info.options
+
+    override def toString: String = session
 
     val classpath: List[File.Content_Bytes] = session_context.classpath()
-
-    def options: Options = info.options
 
     def document_bibliography: Boolean = options.bool("document_bibliography")
 
