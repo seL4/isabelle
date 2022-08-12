@@ -236,6 +236,7 @@ sources = \
   src/Tools/jEdit/src/context_menu.scala \
   src/Tools/jEdit/src/debugger_dockable.scala \
   src/Tools/jEdit/src/dockable.scala \
+  src/Tools/jEdit/src/document_dockable.scala \
   src/Tools/jEdit/src/document_model.scala \
   src/Tools/jEdit/src/document_view.scala \
   src/Tools/jEdit/src/documentation_dockable.scala \
