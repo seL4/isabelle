@@ -128,6 +128,9 @@ object Document_Build {
     document_session: Option[Sessions.Base],
     val progress: Progress = new Progress
   ) {
+    context =>
+
+
     /* session info */
 
     private val base = document_session getOrElse session_context.session_base
@@ -198,6 +201,17 @@ object Document_Build {
           val content = Bytes.read(tmp_path)
           File.content(path, content)
         })
+    }
+
+
+    /* build document */
+
+    def build_document(doc: Document_Variant, verbose: Boolean = false): Document_Output = {
+      Isabelle_System.with_tmp_dir("document") { tmp_dir =>
+        val engine = get_engine()
+        val directory = engine.prepare_directory(context, tmp_dir, doc)
+        engine.build_document(context, directory, verbose)
+      }
     }
 
 
