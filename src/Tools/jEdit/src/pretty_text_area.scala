@@ -136,13 +136,13 @@ class Pretty_Text_Area(
     refresh()
   }
 
-  def detach: Unit = {
+  def detach(): Unit = {
     GUI_Thread.require {}
     Info_Dockable(view, current_base_snapshot, current_base_results, current_body)
   }
 
   def detach_operation: Option[() => Unit] =
-    if (current_body.isEmpty) None else Some(() => detach)
+    if (current_body.isEmpty) None else Some(() => detach())
 
 
   /* common GUI components */
