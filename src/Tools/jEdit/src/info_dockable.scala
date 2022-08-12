@@ -102,13 +102,13 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
     }
 
   override def init(): Unit = {
-    GUI.parent_window(this).map(_.addWindowFocusListener(window_focus_listener))
+    GUI.parent_window(this).foreach(_.addWindowFocusListener(window_focus_listener))
     PIDE.session.global_options += main
     handle_resize()
   }
 
   override def exit(): Unit = {
-    GUI.parent_window(this).map(_.removeWindowFocusListener(window_focus_listener))
+    GUI.parent_window(this).foreach(_.removeWindowFocusListener(window_focus_listener))
     PIDE.session.global_options -= main
     delay_resize.revoke()
   }
