@@ -420,7 +420,7 @@ object Export {
         entry_name <- entry_names(session = session).iterator
         if matcher(entry_name)
         entry <- get(entry_name.theory, entry_name.name).iterator
-      } yield File.Content(entry.entry_name.make_path(), entry.uncompressed)).toList
+      } yield File.content(entry.entry_name.make_path(), entry.uncompressed)).toList
   }
 
   override def toString: String =

@@ -323,10 +323,10 @@ object Mercurial {
 
         Rsync.init(context0, target,
           contents =
-            File.Content(Hg_Sync.PATH_ID, id_content) ::
-            File.Content(Hg_Sync.PATH_LOG, log_content) ::
-            File.Content(Hg_Sync.PATH_DIFF, diff_content) ::
-            File.Content(Hg_Sync.PATH_STAT, stat_content) :: contents)
+            File.content(Hg_Sync.PATH_ID, id_content) ::
+            File.content(Hg_Sync.PATH_LOG, log_content) ::
+            File.content(Hg_Sync.PATH_DIFF, diff_content) ::
+            File.content(Hg_Sync.PATH_STAT, stat_content) :: contents)
 
         val (exclude, source) =
           if (rev.isEmpty) {

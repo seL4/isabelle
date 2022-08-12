@@ -37,7 +37,7 @@ object Build_VSCodium {
             "abbrevs" -> entry.abbrevs) ++
           JSON.optional("code", entry.code))
 
-    File.Content(Path.explode("symbols.json"), symbols_js)
+    File.content(Path.explode("symbols.json"), symbols_js)
   }
 
   def make_isabelle_encoding(header: String): File.Content = {
@@ -51,7 +51,7 @@ object Build_VSCodium {
     val body =
       File.read(Path.explode("$ISABELLE_VSCODE_HOME/patches") + path)
         .replace("[/*symbols*/]", symbols_js)
-    File.Content(path, header + "\n" + body)
+    File.content(path, header + "\n" + body)
   }
 
 

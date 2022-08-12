@@ -301,11 +301,9 @@ object File {
 
   /* content */
 
-  object Content {
-    def apply(path: Path, content: Bytes): Content_Bytes = new Content_Bytes(path, content)
-    def apply(path: Path, content: String): Content_String = new Content_String(path, content)
-    def apply(path: Path, content: XML.Body): Content_XML = new Content_XML(path, content)
-  }
+  def content(path: Path, content: Bytes): Content_Bytes = new Content_Bytes(path, content)
+  def content(path: Path, content: String): Content_String = new Content_String(path, content)
+  def content(path: Path, content: XML.Body): Content_XML = new Content_XML(path, content)
 
   trait Content {
     def path: Path

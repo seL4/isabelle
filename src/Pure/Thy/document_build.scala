@@ -173,13 +173,13 @@ object Document_Build {
         val path = Path.basic(tex_name(name))
         val entry = session_context(name.theory, Export.DOCUMENT_LATEX, permissive = true)
         val content = YXML.parse_body(entry.text)
-        File.Content(path, content)
+        File.content(path, content)
       }
 
     lazy val session_graph: File.Content = {
       val path = Presentation.session_graph_path
       val content = graphview.Graph_File.make_pdf(options, base.session_graph_display)
-      File.Content(path, content)
+      File.content(path, content)
     }
 
     lazy val session_tex: File.Content = {
@@ -187,7 +187,7 @@ object Document_Build {
       val content =
         Library.terminate_lines(
           base.proper_session_theories.map(name => "\\input{" + tex_name(name) + "}"))
-      File.Content(path, content)
+      File.content(path, content)
     }
 
     lazy val isabelle_logo: Option[File.Content] = {
@@ -196,7 +196,7 @@ object Document_Build {
           Logo.create_logo(logo_name, output_file = tmp_path, quiet = true)
           val path = Path.basic("isabelle_logo.pdf")
           val content = Bytes.read(tmp_path)
-          File.Content(path, content)
+          File.content(path, content)
         })
     }
 
