@@ -72,7 +72,7 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
 
   pretty_text_area.update(snapshot, results, info)
 
-  private val zoom = new Font_Info.Zoom_Box { def changed = handle_resize() }
+  private val zoom = new Font_Info.Zoom_Box { def changed() = handle_resize() }
 
   private def handle_resize(): Unit = {
     GUI_Thread.require {}

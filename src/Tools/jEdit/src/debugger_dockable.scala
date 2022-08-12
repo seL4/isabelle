@@ -268,7 +268,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     selected = false
   }
 
-  private val zoom = new Font_Info.Zoom_Box { def changed = handle_resize() }
+  private val zoom = new Font_Info.Zoom_Box { def changed() = handle_resize() }
 
   private val controls =
     Wrap_Panel(

@@ -118,7 +118,7 @@ object GUI {
   abstract class Zoom_Box extends ComboBox[String](
     List("50%", "70%", "85%", "100%", "125%", "150%", "175%", "200%", "300%", "400%")
   ) {
-    def changed: Unit
+    def changed(): Unit
     def factor: Int = parse(selection.item)
 
     private def parse(text: String): Int =
@@ -147,7 +147,7 @@ object GUI {
     selection.index = 3
 
     listenTo(selection)
-    reactions += { case SelectionChanged(_) => changed }
+    reactions += { case SelectionChanged(_) => changed() }
   }
 
 

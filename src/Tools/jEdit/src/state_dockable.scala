@@ -98,7 +98,7 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
     reactions += { case ButtonClicked(_) => print_state.locate_query() }
   }
 
-  private val zoom = new Font_Info.Zoom_Box { def changed = handle_resize() }
+  private val zoom = new Font_Info.Zoom_Box { def changed() = handle_resize() }
 
   private val controls =
     Wrap_Panel(
