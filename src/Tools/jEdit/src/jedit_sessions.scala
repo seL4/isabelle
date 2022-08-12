@@ -90,8 +90,9 @@ object JEdit_Sessions {
       new Logic_Entry("", "default (" + logic_name(options.value) + ")") ::
         session_list.map(name => new Logic_Entry(name, name))
 
-    val component = new ComboBox(entries) with Option_Component {
+    new ComboBox(entries) with Option_Component {
       name = jedit_logic_option
+      tooltip = "Logic session name (change requires restart)"
       val title = "Logic"
       def load(): Unit = {
         val logic = options.string(jedit_logic_option)
@@ -101,15 +102,13 @@ object JEdit_Sessions {
         }
       }
       def save(): Unit = options.string(jedit_logic_option) = selection.item.name
-    }
 
-    component.load()
-    if (autosave) {
-      component.listenTo(component.selection)
-      component.reactions += { case SelectionChanged(_) => component.save() }
+      load()
+      if (autosave) {
+        listenTo(selection)
+        reactions += { case SelectionChanged(_) => save() }
+      }
     }
-    component.tooltip = "Logic session name (change requires restart)"
-    component
   }
 
 
