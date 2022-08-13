@@ -27,7 +27,7 @@ import org.jedit.options.CombinedOptions
 object Isabelle {
   /* editor modes */
 
-  val modes =
+  val modes: List[String] =
     List(
       "isabelle",         // theory source
       "isabelle-ml",      // ML source
@@ -300,7 +300,7 @@ object Isabelle {
       val line = text_area.getCaretLine
       val caret = text_area.getCaretPosition
 
-      def nl: Unit = text_area.userInput('\n')
+      def nl(): Unit = text_area.userInput('\n')
 
       if (indent_enabled(buffer, "jedit_indent_newline")) {
         buffer_syntax(buffer) match {
@@ -316,11 +316,11 @@ object Isabelle {
               text_area.setSelectedText("\n")
               if (!buffer.indentLine(line + 1, true)) text_area.goToStartOfWhiteSpace(false)
             }
-            else nl
-          case None => nl
+            else nl()
+          case None => nl()
         }
       }
-      else nl
+      else nl()
     }
   }
 
@@ -330,7 +330,7 @@ object Isabelle {
       val text1 =
         if (text_area.getSelectionCount == 0) {
           def pad(range: Text.Range): String =
-            if (JEdit_Lib.get_text(buffer, range) == Some("\n")) "" else "\n"
+            if (JEdit_Lib.get_text(buffer, range).contains("\n")) "" else "\n"
 
           val caret = JEdit_Lib.caret_range(text_area)
           val before_caret = JEdit_Lib.point_range(buffer, caret.start - 1)
