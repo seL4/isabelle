@@ -125,10 +125,10 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
     opaque = true
     border = BorderFactory.createEmptyBorder(2, 2, 2, 2)
 
-    var node_name = Document.Node.Name.empty
+    var node_name: Document.Node.Name = Document.Node.Name.empty
 
     val checkbox_geometry = new Geometry
-    val checkbox = new CheckBox {
+    val checkbox: CheckBox = new CheckBox {
       opaque = false
       override def paintComponent(gfx: Graphics2D): Unit = {
         super.paintComponent(gfx)
@@ -137,7 +137,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
     }
 
     val label_geometry = new Geometry
-    val label = new Label {
+    val label: Label = new Label {
       background = view.getTextArea.getPainter.getBackground
       foreground = view.getTextArea.getPainter.getForeground
       opaque = false
