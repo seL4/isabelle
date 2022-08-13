@@ -43,9 +43,9 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
       case MouseMoved(_, point, _) =>
         val index = peer.locationToIndex(point)
         val index_location = peer.indexToLocation(index)
-        if (index >= 0 && in_checkbox(index_location, point))
+        if (index >= 0 && in_checkbox(index_location, point)) {
           tooltip = "Mark as required for continuous checking"
-        else if (index >= 0 && in_label(index_location, point)) {
+        } else if (index >= 0 && in_label(index_location, point)) {
           val name = listData(index)
           val st = nodes_status.overall_node_status(name)
           tooltip =
@@ -96,19 +96,29 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
   private var nodes_status = Document_Status.Nodes_Status.empty
   private var nodes_required: Set[Document.Node.Name] = Document_Model.required_nodes()
 
-  private def in(geometry: Option[(Point, Dimension)], loc0: Point, p: Point): Boolean =
-    geometry match {
-      case Some((loc, size)) =>
-        loc0.x + loc.x <= p.x && p.x < loc0.x + size.width &&
-        loc0.y + loc.y <= p.y && p.y < loc0.y + size.height
-      case None => false
+  private class Geometry {
+    private var location: Point = null
+    private var size: Dimension = null
+
+    def in(location0: Point, p: Point): Boolean = {
+      location != null && size != null &&
+        location0.x + location.x <= p.x && p.x < location0.x + size.width &&
+        location0.y + location.y <= p.y && p.y < location0.y + size.height
     }
 
-  private def in_checkbox(loc0: Point, p: Point): Boolean =
-    Node_Renderer_Component != null && in(Node_Renderer_Component.checkbox_geometry, loc0, p)
+    def update(new_location: Point, new_size: Dimension): Unit = {
+      if (new_location != null && new_size != null) {
+        location = new_location
+        size = new_size
+      }
+    }
+  }
 
-  private def in_label(loc0: Point, p: Point): Boolean =
-    Node_Renderer_Component != null && in(Node_Renderer_Component.label_geometry, loc0, p)
+  private def in_checkbox(location0: Point, p: Point): Boolean =
+    Node_Renderer_Component != null && Node_Renderer_Component.checkbox_geometry.in(location0, p)
+
+  private def in_label(location0: Point, p: Point): Boolean =
+    Node_Renderer_Component != null && Node_Renderer_Component.label_geometry.in(location0, p)
 
 
   private object Node_Renderer_Component extends BorderPanel {
@@ -117,17 +127,16 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
 
     var node_name = Document.Node.Name.empty
 
-    var checkbox_geometry: Option[(Point, Dimension)] = None
+    val checkbox_geometry = new Geometry
     val checkbox = new CheckBox {
       opaque = false
       override def paintComponent(gfx: Graphics2D): Unit = {
         super.paintComponent(gfx)
-        if (location != null && size != null)
-          checkbox_geometry = Some((location, size))
+        checkbox_geometry.update(location, size)
       }
     }
 
-    var label_geometry: Option[(Point, Dimension)] = None
+    val label_geometry = new Geometry
     val label = new Label {
       background = view.getTextArea.getPainter.getBackground
       foreground = view.getTextArea.getPainter.getForeground
@@ -163,8 +172,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
         }
         super.paintComponent(gfx)
 
-        if (location != null && size != null)
-          label_geometry = Some((location, size))
+        label_geometry.update(location, size)
       }
     }
 
