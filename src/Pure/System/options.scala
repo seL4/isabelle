@@ -243,7 +243,7 @@ final class Options private(
 
   /* basic operations */
 
-  private def put[A](name: String, typ: Options.Type, value: String): Options = {
+  private def put(name: String, typ: Options.Type, value: String): Options = {
     val opt = check_type(name, typ)
     new Options(options + (name -> opt.copy(value = value)), section)
   }
