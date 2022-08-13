@@ -12,8 +12,7 @@ import isabelle._
 import java.awt.event.{ComponentEvent, ComponentAdapter, KeyEvent}
 import javax.swing.{JComponent, JTextField}
 
-import scala.swing.{Button, Component, TextField, CheckBox, Label, ListView,
-  ComboBox, TabbedPane, BorderPanel}
+import scala.swing.{Button, Component, TextField, CheckBox, Label, ListView, TabbedPane, BorderPanel}
 import scala.swing.event.{SelectionChanged, ButtonClicked, Key, KeyPressed}
 
 import org.gjt.sp.jedit.View
