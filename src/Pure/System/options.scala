@@ -267,22 +267,19 @@ final class Options private(
 
   class Bool_Access extends Options.Access[Boolean] {
     def apply(name: String): Boolean = get(name, Options.Bool, Value.Boolean.unapply)
-    def update(name: String, x: Boolean): Options =
-      put(name, Options.Bool, Value.Boolean(x))
+    def update(name: String, x: Boolean): Options = put(name, Options.Bool, Value.Boolean(x))
   }
   val bool = new Bool_Access
 
   class Int_Access extends Options.Access[Int] {
     def apply(name: String): Int = get(name, Options.Int, Value.Int.unapply)
-    def update(name: String, x: Int): Options =
-      put(name, Options.Int, Value.Int(x))
+    def update(name: String, x: Int): Options = put(name, Options.Int, Value.Int(x))
   }
   val int = new Int_Access
 
   class Real_Access extends Options.Access[Double] {
     def apply(name: String): Double = get(name, Options.Real, Value.Double.unapply)
-    def update(name: String, x: Double): Options =
-      put(name, Options.Real, Value.Double(x))
+    def update(name: String, x: Double): Options = put(name, Options.Real, Value.Double(x))
   }
   val real = new Real_Access
 
