@@ -133,7 +133,7 @@ class Simplifier_Trace_Window(
   GUI_Thread.require {}
 
   private val pretty_text_area = new Pretty_Text_Area(view)
-  private val zoom = new Font_Info.Zoom_Box { def changed(): Unit = do_paint() }
+  private val zoom = new Font_Info.Zoom { override def changed(): Unit = do_paint() }
 
   size = new Dimension(500, 500)
   contents = new BorderPanel {
@@ -159,7 +159,7 @@ class Simplifier_Trace_Window(
   }
 
   def do_paint(): Unit =
-    GUI_Thread.later { pretty_text_area.zoom(zoom.factor) }
+    GUI_Thread.later { pretty_text_area.zoom(zoom) }
 
   def handle_resize(): Unit = do_paint()
 

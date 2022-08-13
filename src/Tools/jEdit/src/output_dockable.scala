@@ -34,7 +34,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
 
 
   private def handle_resize(): Unit =
-    GUI_Thread.require { pretty_text_area.zoom(zoom.factor) }
+    GUI_Thread.require { pretty_text_area.zoom(zoom) }
 
   private def handle_update(follow: Boolean, restriction: Option[Set[Command]]): Unit = {
     GUI_Thread.require {}
@@ -93,7 +93,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
     reactions += { case ButtonClicked(_) => handle_update(true, None) }
   }
 
-  private val zoom = new Font_Info.Zoom_Box { def changed(): Unit = handle_resize() }
+  private val zoom = new Font_Info.Zoom { override def changed(): Unit = handle_resize() }
 
   private val controls =
     Wrap_Panel(

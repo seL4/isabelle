@@ -63,7 +63,7 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
   })
 
   private def handle_resize(): Unit =
-    GUI_Thread.require { pretty_text_area.zoom(zoom.factor) }
+    GUI_Thread.require { pretty_text_area.zoom(zoom) }
 
 
   /* controls */
@@ -125,7 +125,7 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
     reactions += { case ButtonClicked(_) => sledgehammer.locate_query() }
   }
 
-  private val zoom = new Font_Info.Zoom_Box { def changed(): Unit = handle_resize() }
+  private val zoom = new Font_Info.Zoom { override def changed(): Unit = handle_resize() }
 
   private val controls =
     Wrap_Panel(

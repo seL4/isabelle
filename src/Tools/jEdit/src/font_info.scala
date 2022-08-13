@@ -78,9 +78,9 @@ object Font_Info {
   }
 
 
-  /* zoom box */
+  /* zoom */
 
-  abstract class Zoom_Box extends GUI.Zoom_Box { tooltip = "Zoom factor for output font size" }
+  class Zoom extends GUI.Zoom { tooltip = "Zoom factor for output font size" }
 }
 
 sealed case class Font_Info(family: String, size: Float) {

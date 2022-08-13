@@ -111,14 +111,20 @@ object GUI {
     }
 
 
-  /* zoom box */
+  /* variations on ComboBox */
+
+  class Selector[A](val entries: List[A]) extends ComboBox[A](entries) {
+    def changed(): Unit = {}
+
+    listenTo(selection)
+    reactions += { case SelectionChanged(_) => changed() }
+  }
 
   private val Zoom_Factor = "([0-9]+)%?".r
 
-  abstract class Zoom_Box extends ComboBox[String](
+  class Zoom extends Selector[String](
     List("50%", "70%", "85%", "100%", "125%", "150%", "175%", "200%", "300%", "400%")
   ) {
-    def changed(): Unit
     def factor: Int = parse(selection.item)
 
     private def parse(text: String): Int =
@@ -145,9 +151,6 @@ object GUI {
     }
 
     selection.index = 3
-
-    listenTo(selection)
-    reactions += { case SelectionChanged(_) => changed() }
   }
 
 

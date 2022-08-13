@@ -10,9 +10,6 @@ package isabelle.jedit
 
 import isabelle._
 
-import scala.swing.ComboBox
-import scala.swing.event.SelectionChanged
-
 
 object JEdit_Sessions {
   /* session options */
@@ -88,9 +85,7 @@ object JEdit_Sessions {
       (main_sessions.sorted ::: other_sessions.sorted).map(name => Logic_Entry(name = name))
     }
 
-    val entries = default_entry :: session_entries
-
-    new ComboBox[Logic_Entry](entries) with Option_Component {
+    new GUI.Selector[Logic_Entry](default_entry :: session_entries) with Option_Component {
       name = jedit_logic_option
       tooltip = "Logic session name (change requires restart)"
       val title = "Logic"
@@ -102,12 +97,9 @@ object JEdit_Sessions {
         }
       }
       def save(): Unit = options.string(jedit_logic_option) = selection.item.name
+      override def changed(): Unit = if (autosave) save()
 
       load()
-      if (autosave) {
-        listenTo(selection)
-        reactions += { case SelectionChanged(_) => save() }
-      }
     }
   }
 

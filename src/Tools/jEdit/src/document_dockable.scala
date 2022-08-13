@@ -12,8 +12,8 @@ import isabelle._
 import java.awt.BorderLayout
 import java.awt.event.{ComponentEvent, ComponentAdapter}
 
-import scala.swing.{ComboBox, Button}
-import scala.swing.event.{SelectionChanged, ButtonClicked}
+import scala.swing.Button
+import scala.swing.event.ButtonClicked
 
 import org.gjt.sp.jedit.{jEdit, View}
 
@@ -46,18 +46,15 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
   })
 
   private def handle_resize(): Unit =
-    GUI_Thread.require { pretty_text_area.zoom(zoom.factor) }
+    GUI_Thread.require { pretty_text_area.zoom(zoom) }
 
 
   /* controls */
 
-  private val document_session: ComboBox[String] = {
-    new ComboBox(JEdit_Sessions.sessions_structure().build_topological_order.sorted) {
+  private val document_session =
+    new GUI.Selector(JEdit_Sessions.sessions_structure().build_topological_order.sorted) {
       val title = "Session"
-      listenTo(selection)
-      reactions += { case SelectionChanged(_) => }  // FIXME
     }
-  }
 
   private val build_button = new Button("<html><b>Build</b></html>") {
       tooltip = "Build document"
@@ -68,7 +65,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
       }
     }
 
-  private val zoom = new Font_Info.Zoom_Box { def changed(): Unit = handle_resize() }
+  private val zoom = new Font_Info.Zoom { override def changed(): Unit = handle_resize() }
 
   private val controls =
     Wrap_Panel(List(document_session, process_indicator.component, build_button,

@@ -12,8 +12,8 @@ import isabelle._
 import java.awt.BorderLayout
 
 import scala.collection.immutable.Queue
-import scala.swing.{TextField, ComboBox, Button}
-import scala.swing.event.{SelectionChanged, ButtonClicked, ValueChanged}
+import scala.swing.{TextField, Button}
+import scala.swing.event.{ButtonClicked, ValueChanged}
 
 import org.jfree.chart.ChartPanel
 import org.jfree.data.xy.XYSeriesCollection
@@ -64,10 +64,9 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
 
   /* controls */
 
-  private val select_data = new ComboBox[String](ML_Statistics.all_fields.map(_._1)) {
+  private val select_data = new GUI.Selector[String](ML_Statistics.all_fields.map(_._1)) {
     tooltip = "Select visualized data collection"
-    listenTo(selection)
-    reactions += { case SelectionChanged(_) => data_name = selection.item; update_chart() }
+    override def changed(): Unit = { data_name = selection.item; update_chart() }
   }
 
   private val limit_data = new TextField("200", 5) {
