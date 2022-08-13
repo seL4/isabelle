@@ -26,7 +26,12 @@ trait Option_Component extends Component {
 }
 
 object JEdit_Options {
+  /* sections */
+
   val RENDERING_SECTION = "Rendering of Document Content"
+
+
+  /* typed access */
 
   class Access[A](access: Options.Access_Variable[A], val name: String) {
     def apply(): A = access.apply(name)
@@ -44,6 +49,38 @@ object JEdit_Options {
     def set(): Unit = update(true)
     def reset(): Unit = update(false)
     def toggle(): Unit = change(b => !b)
+  }
+
+
+  /* specific options */
+
+  object continuous_checking extends Bool_Access("editor_continuous_checking") {
+    override def changed(): Unit = {
+      super.changed()
+      PIDE.plugin.deps_changed()
+    }
+
+    class GUI extends CheckBox("Continuous checking") {
+      tooltip = "Continuous checking of proof document (visible and required parts)"
+      reactions += { case ButtonClicked(_) => continuous_checking.update(selected) }
+      def load(): Unit = { selected = continuous_checking() }
+      load()
+    }
+  }
+
+  object output_state extends Bool_Access("editor_output_state") {
+    override def changed(): Unit = GUI_Thread.require {
+      super.changed()
+      PIDE.editor.flush_edits(hidden = true)
+      PIDE.editor.flush()
+    }
+
+    class GUI extends CheckBox("Proof state") {
+      tooltip = "Output of proof state (normally shown on State panel)"
+      reactions += { case ButtonClicked(_) => output_state.update(selected) }
+      def load(): Unit = { selected = output_state() }
+      load()
+    }
   }
 }
 

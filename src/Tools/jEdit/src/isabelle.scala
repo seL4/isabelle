@@ -195,41 +195,9 @@ object Isabelle {
 
   /* continuous checking */
 
-  object continuous_checking extends JEdit_Options.Bool_Access("editor_continuous_checking") {
-    override def changed(): Unit = {
-      super.changed()
-      PIDE.plugin.deps_changed()
-    }
-
-    class GUI extends CheckBox("Continuous checking") {
-      tooltip = "Continuous checking of proof document (visible and required parts)"
-      reactions += { case ButtonClicked(_) => continuous_checking.update(selected) }
-      def load(): Unit = { selected = continuous_checking() }
-      load()
-    }
-  }
-
-  def set_continuous_checking(): Unit = continuous_checking.set()
-  def reset_continuous_checking(): Unit = continuous_checking.reset()
-  def toggle_continuous_checking(): Unit = continuous_checking.toggle()
-
-
-  /* output state */
-
-  object output_state extends JEdit_Options.Bool_Access("editor_output_state") {
-    override def changed(): Unit = GUI_Thread.require {
-      super.changed()
-      PIDE.editor.flush_edits(hidden = true)
-      PIDE.editor.flush()
-    }
-
-    class GUI extends CheckBox("Proof state") {
-      tooltip = "Output of proof state (normally shown on State panel)"
-      reactions += { case ButtonClicked(_) => output_state.update(selected) }
-      def load(): Unit = { selected = output_state() }
-      load()
-    }
-  }
+  def set_continuous_checking(): Unit = JEdit_Options.continuous_checking.set()
+  def reset_continuous_checking(): Unit = JEdit_Options.continuous_checking.reset()
+  def toggle_continuous_checking(): Unit = JEdit_Options.continuous_checking.toggle()
 
 
   /* update state */

@@ -109,7 +109,7 @@ class Main_Plugin extends EBPlugin {
   private def delay_load_activated(): Boolean =
     delay_load_active.guarded_access(a => Some((!a, true)))
   private def delay_load_action(): Unit = {
-    if (Isabelle.continuous_checking() && delay_load_activated() &&
+    if (JEdit_Options.continuous_checking() && delay_load_activated() &&
         PerspectiveManager.isPerspectiveEnabled) {
       if (JEdit_Lib.jedit_buffers().exists(_.isLoading)) delay_load.invoke()
       else {
@@ -189,7 +189,7 @@ class Main_Plugin extends EBPlugin {
     case Session.Ready if !shutting_down.value =>
       init_models()
 
-      if (!Isabelle.continuous_checking()) {
+      if (!JEdit_Options.continuous_checking()) {
         GUI_Thread.later {
           val answer =
             GUI.confirm_dialog(jEdit.getActiveView,
@@ -198,7 +198,7 @@ class Main_Plugin extends EBPlugin {
               "Continuous checking is presently disabled:",
               "editor buffers will remain inactive!",
               "Enable continuous checking now?")
-          if (answer == 0) Isabelle.continuous_checking.set()
+          if (answer == 0) JEdit_Options.continuous_checking.set()
         }
       }
 

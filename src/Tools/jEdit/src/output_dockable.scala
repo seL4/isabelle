@@ -51,7 +51,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
 
       val new_output =
         if (restriction.isEmpty || restriction.get.contains(command))
-          Rendering.output_messages(results, Isabelle.output_state())
+          Rendering.output_messages(results, JEdit_Options.output_state())
         else current_output
 
       if (current_output != new_output) {
@@ -64,7 +64,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
 
   /* controls */
 
-  private val output_state_button = new Isabelle.output_state.GUI
+  private val output_state_button = new JEdit_Options.output_state.GUI
 
   private val auto_update_button = new CheckBox("Auto update") {
     tooltip = "Indicate automatic update following cursor movement"

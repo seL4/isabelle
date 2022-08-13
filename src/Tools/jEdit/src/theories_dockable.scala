@@ -80,7 +80,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
     reactions += { case ButtonClicked(_) => PIDE.editor.purge() }
   }
 
-  private val continuous_checking = new Isabelle.continuous_checking.GUI
+  private val continuous_checking = new JEdit_Options.continuous_checking.GUI
   continuous_checking.focusable = false
 
   private val logic = JEdit_Sessions.logic_selector(PIDE.options, autosave = true)
