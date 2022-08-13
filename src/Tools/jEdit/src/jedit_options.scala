@@ -27,23 +27,6 @@ trait Option_Component extends Component {
 
 object JEdit_Options {
   val RENDERING_SECTION = "Rendering of Document Content"
-
-  class Check_Box(name: String, label: String, description: String) extends CheckBox(label) {
-    tooltip = description
-    reactions += { case ButtonClicked(_) => update(selected) }
-
-    def stored: Boolean = PIDE.options.bool(name)
-    def update(b: Boolean): Unit =
-      GUI_Thread.require {
-        if (selected != b) selected = b
-        if (stored != b) {
-          PIDE.options.bool(name) = b
-          PIDE.session.update_options(PIDE.options.value)
-        }
-      }
-    def load(): Unit = { selected = stored }
-    load()
-  }
 }
 
 class JEdit_Options(init_options: Options) extends Options_Variable(init_options) {
