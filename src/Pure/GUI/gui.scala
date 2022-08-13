@@ -13,8 +13,8 @@ import java.awt.font.{FontRenderContext, LineMetrics, TextAttribute, TransformAt
 import java.awt.geom.AffineTransform
 import javax.swing.{ImageIcon, JButton, JDialog, JFrame, JLabel, JLayeredPane, JOptionPane,
   JTextField, JWindow, LookAndFeel, UIManager, SwingUtilities}
-import scala.swing.{ComboBox, ScrollPane, TextArea}
-import scala.swing.event.SelectionChanged
+import scala.swing.{CheckBox, ComboBox, ScrollPane, TextArea}
+import scala.swing.event.{ButtonClicked, SelectionChanged}
 
 
 object GUI {
@@ -111,7 +111,15 @@ object GUI {
     }
 
 
-  /* variations on ComboBox */
+  /* basic GUI components */
+
+  class Bool(label: String, init: Boolean = false) extends CheckBox(label) {
+    def clicked(state: Boolean): Unit = {}
+    def clicked(): Unit = {}
+
+    selected = init
+    reactions += { case ButtonClicked(_) => clicked(selected); clicked() }
+  }
 
   class Selector[A](val entries: List[A]) extends ComboBox[A](entries) {
     def changed(): Unit = {}
@@ -119,6 +127,9 @@ object GUI {
     listenTo(selection)
     reactions += { case SelectionChanged(_) => changed() }
   }
+
+
+  /* zoom factor */
 
   private val Zoom_Factor = "([0-9]+)%?".r
 

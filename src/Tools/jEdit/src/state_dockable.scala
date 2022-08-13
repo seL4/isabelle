@@ -9,7 +9,7 @@ package isabelle.jedit
 
 import isabelle._
 
-import scala.swing.{Button, CheckBox}
+import scala.swing.Button
 import scala.swing.event.ButtonClicked
 
 import java.awt.BorderLayout
@@ -78,10 +78,12 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
 
   /* controls */
 
-  private val auto_update_button = new CheckBox("Auto update") {
+  private val auto_update_button = new GUI.Bool("Auto update", init = auto_update_enabled) {
     tooltip = "Indicate automatic update following cursor movement"
-    reactions += { case ButtonClicked(_) => auto_update_enabled = this.selected; auto_update() }
-    selected = auto_update_enabled
+    override def clicked(state: Boolean): Unit = {
+      auto_update_enabled = state
+      auto_update()
+    }
   }
 
   private val update_button = new Button("<html><b>Update</b></html>") {

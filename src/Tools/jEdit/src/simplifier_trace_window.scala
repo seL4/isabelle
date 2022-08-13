@@ -11,7 +11,7 @@ import isabelle._
 
 import scala.annotation.tailrec
 import scala.collection.immutable.SortedMap
-import scala.swing.{BorderPanel, CheckBox, Component, Dimension, Frame, Label, TextField}
+import scala.swing.{BorderPanel, Component, Dimension, Frame, Label, TextField}
 import scala.swing.event.{Key, KeyPressed}
 import scala.util.matching.Regex
 

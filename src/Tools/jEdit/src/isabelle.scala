@@ -11,8 +11,6 @@ import isabelle._
 
 import java.awt.{Point, Frame, Rectangle}
 
-import scala.swing.event.ButtonClicked
-
 import org.gjt.sp.jedit.{jEdit, View, Buffer, EditBus}
 import org.gjt.sp.jedit.msg.ViewUpdate
 import org.gjt.sp.jedit.buffer.JEditBuffer

@@ -12,8 +12,7 @@ import isabelle._
 import java.awt.event.{WindowEvent, WindowAdapter}
 import javax.swing.{WindowConstants, JDialog}
 
-import scala.swing.{ScrollPane, Button, CheckBox, FlowPanel,
-  BorderPanel, TextArea, Component, Label}
+import scala.swing.{ScrollPane, Button, FlowPanel, BorderPanel, TextArea, Component, Label}
 import scala.swing.event.ButtonClicked
 
 import org.gjt.sp.jedit.View
@@ -132,14 +131,13 @@ object Session_Build {
     private var do_auto_close = true
     private def can_auto_close: Boolean = do_auto_close && _return_code == Some(0)
 
-    private val auto_close = new CheckBox("Auto close") {
-      reactions += {
-        case ButtonClicked(_) => do_auto_close = this.selected
+    private val auto_close = new GUI.Bool("Auto close", init = do_auto_close) {
+      tooltip = "Automatically close dialog when finished"
+      override def clicked(state: Boolean): Unit = {
+        do_auto_close = state
         if (can_auto_close) conclude()
       }
     }
-    auto_close.selected = do_auto_close
-    auto_close.tooltip = "Automatically close dialog when finished"
 
     set_actions(stop_button, auto_close)
 

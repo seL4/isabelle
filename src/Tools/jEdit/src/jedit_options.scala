@@ -14,7 +14,6 @@ import javax.swing.{InputVerifier, JComponent, UIManager}
 import javax.swing.text.JTextComponent
 
 import scala.swing.{Component, CheckBox, TextArea}
-import scala.swing.event.ButtonClicked
 
 import org.gjt.sp.jedit.gui.ColorWellButton
 
@@ -54,13 +53,10 @@ object JEdit_Options {
 
   /* GUI components */
 
-  class Bool_GUI(access: Bool_Access, label: String, description: String)
-  extends CheckBox(label) {
-    tooltip = description
-    reactions += { case ButtonClicked(_) => access.update(selected) }
+  class Bool_GUI(access: Bool_Access, label: String)
+  extends GUI.Bool(label, init = access()) {
     def load(): Unit = { selected = access() }
-
-    load()
+    override def clicked(state: Boolean): Unit = access.update(state)
   }
 
 
@@ -72,8 +68,9 @@ object JEdit_Options {
       PIDE.plugin.deps_changed()
     }
 
-    class GUI extends Bool_GUI(this, "Continuous checking",
-      "Continuous checking of proof document (visible and required parts)")
+    class GUI extends Bool_GUI(this, "Continuous checking") {
+      tooltip = "Continuous checking of proof document (visible and required parts)"
+    }
   }
 
   object output_state extends Bool_Access("editor_output_state") {
@@ -83,8 +80,9 @@ object JEdit_Options {
       PIDE.editor.flush()
     }
 
-    class GUI extends Bool_GUI(this, "Proof state",
-      "Output of proof state (normally shown on State panel)")
+    class GUI extends Bool_GUI(this, "Proof state") {
+      tooltip = "Output of proof state (normally shown on State panel)"
+    }
   }
 }
 

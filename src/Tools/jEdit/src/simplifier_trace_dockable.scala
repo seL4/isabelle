@@ -9,7 +9,7 @@ package isabelle.jedit
 
 import isabelle._
 
-import scala.swing.{Button, CheckBox, Orientation, Separator}
+import scala.swing.{Button, Orientation, Separator}
 import scala.swing.event.ButtonClicked
 
 import java.awt.BorderLayout
@@ -146,10 +146,10 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
   private val controls =
     Wrap_Panel(
       List(
-        new CheckBox("Auto update") {
-          selected = do_update
-          reactions += {
-            case ButtonClicked(_) => do_update = this.selected; handle_update(do_update)
+        new GUI.Bool("Auto update", init = do_update) {
+          override def clicked(state: Boolean): Unit = {
+            do_update = state
+            handle_update(do_update)
           }
         },
         new Button("Update") {

@@ -17,8 +17,7 @@ import javax.swing.tree.{DefaultMutableTreeNode, DefaultTreeModel, TreeSelection
 import javax.swing.event.{TreeSelectionEvent, TreeSelectionListener}
 
 import scala.collection.immutable.SortedMap
-import scala.swing.{Button, Label, Component, ScrollPane, SplitPane, Orientation,
-  CheckBox, BorderPanel}
+import scala.swing.{Button, Label, Component, ScrollPane, SplitPane, Orientation, BorderPanel}
 import scala.swing.event.ButtonClicked
 
 import org.gjt.sp.jedit.{jEdit, View}
@@ -183,10 +182,9 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
   /* controls */
 
-  private val break_button = new CheckBox("Break") {
+  private val break_button = new GUI.Bool("Break", init = debugger.is_break()) {
     tooltip = "Break running threads at next possible breakpoint"
-    selected = debugger.is_break()
-    reactions += { case ButtonClicked(_) => debugger.set_break(selected) }
+    override def clicked(state: Boolean): Unit = debugger.set_break(state)
   }
 
   private val continue_button = new Button("Continue") {
@@ -257,9 +255,8 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     }
   }
 
-  private val sml_button = new CheckBox("SML") {
+  private val sml_button = new GUI.Bool("SML") {
     tooltip = "Official Standard ML instead of Isabelle/ML"
-    selected = false
   }
 
   private val zoom = new Font_Info.Zoom { override def changed(): Unit = handle_resize() }

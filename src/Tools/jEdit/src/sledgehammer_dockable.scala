@@ -9,7 +9,7 @@ package isabelle.jedit
 
 import isabelle._
 
-import scala.swing.{Button, Component, Label, CheckBox}
+import scala.swing.{Button, Component, Label}
 import scala.swing.event.ButtonClicked
 
 import java.awt.BorderLayout
@@ -100,14 +100,12 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
     }
   }
 
-  private val isar_proofs = new CheckBox("Isar proofs") {
+  private val isar_proofs = new GUI.Bool("Isar proofs") {
     tooltip = "Specify whether Isar proofs should be output in addition to \"by\" one-liner"
-    selected = false
   }
 
-  private val try0 = new CheckBox("Try methods") {
+  private val try0 = new GUI.Bool("Try methods", init = true) {
     tooltip = "Try standard proof methods like \"auto\" and \"blast\" as alternatives to \"metis\""
-    selected = true
   }
 
   private val apply_query = new Button("<html><b>Apply</b></html>") {

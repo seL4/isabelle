@@ -16,7 +16,7 @@ import javax.swing.tree.{DefaultMutableTreeNode, TreeSelectionModel, TreePath}
 import javax.swing.event.{TreeSelectionEvent, TreeSelectionListener, DocumentListener, DocumentEvent}
 
 import scala.util.matching.Regex
-import scala.swing.{Component, ScrollPane, BorderPanel, Label, TextField, Button, CheckBox, Action}
+import scala.swing.{Component, ScrollPane, BorderPanel, Label, TextField, Button, Action}
 
 
 class Tree_Panel(val graphview: Graphview, graph_panel: Graph_Panel)

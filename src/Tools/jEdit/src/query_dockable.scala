@@ -12,7 +12,7 @@ import isabelle._
 import java.awt.event.{ComponentEvent, ComponentAdapter, KeyEvent}
 import javax.swing.{JComponent, JTextField}
 
-import scala.swing.{Button, Component, TextField, CheckBox, Label, ListView, TabbedPane, BorderPanel}
+import scala.swing.{Button, Component, TextField, Label, ListView, TabbedPane, BorderPanel}
 import scala.swing.event.{SelectionChanged, ButtonClicked, Key, KeyPressed}
 
 import org.gjt.sp.jedit.View
@@ -105,10 +105,9 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
       reactions += { case KeyPressed(_, Key.Enter, 0, _) => apply_query() }
     }
 
-    private val allow_dups = new CheckBox("Duplicates") {
+    private val allow_dups = new GUI.Bool("Duplicates") {
       tooltip = "Show all versions of matching theorems"
-      selected = false
-      reactions += { case ButtonClicked(_) => apply_query() }
+      override def clicked(): Unit = apply_query()
     }
 
     private val apply_button = new Button("<html><b>Apply</b></html>") {
@@ -186,25 +185,24 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
   private val print_operation = new Query_Dockable.Operation(view) {
     /* items */
 
-    private class Item(val name: String, description: String, sel: Boolean) {
-      val checkbox: CheckBox = new CheckBox(name) {
+    private class Item(val name: String, description: String, selected: Boolean) {
+      val gui: GUI.Bool = new GUI.Bool(name, init = selected) {
         tooltip = "Print " + description
-        selected = sel
-        reactions += { case ButtonClicked(_) => apply_query() }
+        override def clicked(): Unit = apply_query()
       }
     }
 
     private var _items: List[Item] = Nil
 
     private def selected_items(): List[String] =
-      for (item <- _items if item.checkbox.selected) yield item.name
+      for (item <- _items if item.gui.selected) yield item.name
 
     private def update_items(): List[Item] = {
       val old_items = _items
       def was_selected(name: String): Boolean =
         old_items.find(item => item.name == name) match {
           case None => false
-          case Some(item) => item.checkbox.selected
+          case Some(item) => item.gui.selected
         }
 
       _items =
@@ -251,7 +249,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
     def select(): Unit = {
       control_panel.contents.clear()
       control_panel.contents += query_label
-      update_items().foreach(item => control_panel.contents += item.checkbox)
+      update_items().foreach(item => control_panel.contents += item.gui)
       control_panel.contents ++=
         List(process_indicator.component, apply_button,
           pretty_text_area.search_label, pretty_text_area.search_field, zoom)
