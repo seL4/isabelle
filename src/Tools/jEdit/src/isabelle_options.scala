@@ -43,19 +43,18 @@ class Isabelle_Options1 extends Isabelle_Options("isabelle-general") {
 
   protected val components =
     options.make_components(predefined,
-      (for ((name, opt) <- options.value.options.iterator if opt.public) yield name).toSet)
+      (for ((name, opt) <- options.value.opt_iterator if opt.public) yield name).toSet)
 }
 
 
 class Isabelle_Options2 extends Isabelle_Options("isabelle-rendering") {
   private val predefined =
     (for {
-      (name, opt) <- PIDE.options.value.options.toList
+      (name, opt) <- PIDE.options.value.opt_iterator
       if (name.endsWith("_color") && opt.section == JEdit_Options.RENDERING_SECTION)
-    } yield PIDE.options.make_color_component(opt))
+    } yield PIDE.options.make_color_component(opt)).toList
 
   assert(predefined.nonEmpty)
 
   protected val components = PIDE.options.make_components(predefined, _ => false)
 }
-

@@ -213,23 +213,27 @@ Usage: isabelle options [OPTIONS] [MORE_OPTIONS ...]
 
 
 final class Options private(
-  val options: Map[String, Options.Opt] = Map.empty,
+  options: Map[String, Options.Opt] = Map.empty,
   val section: String = ""
 ) {
-  override def toString: String = options.iterator.mkString("Options(", ",", ")")
+  def opt_iterator: Iterator[(String, Options.Opt)] = options.iterator
+
+  override def toString: String = opt_iterator.mkString("Options(", ",", ")")
 
   private def print_opt(opt: Options.Opt): String =
     if (opt.public) "public " + opt.print else opt.print
 
-  def print: String = cat_lines(options.toList.sortBy(_._1).map(p => print_opt(p._2)))
+  def print: String = cat_lines(opt_iterator.toList.sortBy(_._1).map(p => print_opt(p._2)))
 
   def description(name: String): String = check_name(name).description
 
 
   /* check */
 
+  def get(name: String): Option[Options.Opt] = options.get(name)
+
   def check_name(name: String): Options.Opt =
-    options.get(name) match {
+    get(name) match {
       case Some(opt) if !opt.unknown => opt
       case _ => error("Unknown option " + quote(name))
     }
@@ -316,7 +320,7 @@ final class Options private(
     standard: Option[Option[String]],
     description: String
   ): Options = {
-    options.get(name) match {
+    get(name) match {
       case Some(other) =>
         error("Duplicate declaration of option " + quote(name) + Position.here(pos) +
           Position.here(other.pos))
@@ -405,7 +409,7 @@ final class Options private(
     val changed =
       (for {
         (name, opt2) <- options.iterator
-        opt1 = defaults.options.get(name)
+        opt1 = defaults.get(name)
         if opt1.isEmpty || opt1.get.value != opt2.value
       } yield (name, opt2.value, if (opt1.isEmpty) "  (* unknown *)" else "")).toList
 
