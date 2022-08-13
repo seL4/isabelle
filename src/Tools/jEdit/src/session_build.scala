@@ -12,8 +12,7 @@ import isabelle._
 import java.awt.event.{WindowEvent, WindowAdapter}
 import javax.swing.{WindowConstants, JDialog}
 
-import scala.swing.{ScrollPane, Button, FlowPanel, BorderPanel, TextArea, Component, Label}
-import scala.swing.event.ButtonClicked
+import scala.swing.{ScrollPane, FlowPanel, BorderPanel, TextArea, Component, Label}
 
 import org.gjt.sp.jedit.View
 
@@ -96,7 +95,7 @@ object Session_Build {
       Delay.first(Time.seconds(1.0), gui = true) {
         if (can_auto_close) conclude()
         else {
-          val button = new Button("Close") { reactions += { case ButtonClicked(_) => conclude() } }
+          val button = new GUI.Button("Close") { override def clicked(): Unit = conclude() }
           set_actions(button)
           button.peer.getRootPane.setDefaultButton(button.peer)
         }
@@ -124,8 +123,8 @@ object Session_Build {
       set_actions(new Label("Stopping ..."))
     }
 
-    private val stop_button = new Button("Stop") {
-      reactions += { case ButtonClicked(_) => stopping() }
+    private val stop_button = new GUI.Button("Stop") {
+      override def clicked(): Unit = stopping()
     }
 
     private var do_auto_close = true

@@ -11,7 +11,7 @@ import isabelle._
 
 import scala.swing.{Button, TextArea, Label, ListView, Alignment,
   ScrollPane, Component, CheckBox, BorderPanel}
-import scala.swing.event.{ButtonClicked, MouseClicked, MouseMoved}
+import scala.swing.event.{MouseClicked, MouseMoved}
 
 import java.awt.{BorderLayout, Graphics2D, Color, Point, Dimension}
 import javax.swing.{JList, BorderFactory, UIManager}
@@ -75,9 +75,9 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
     session_phase.text = " " + phase_text(phase) + " "
   }
 
-  private val purge = new Button("Purge") {
+  private val purge = new GUI.Button("Purge") {
     tooltip = "Restrict document model to theories required for open editor buffers"
-    reactions += { case ButtonClicked(_) => PIDE.editor.purge() }
+    override def clicked(): Unit = PIDE.editor.purge()
   }
 
   private val continuous_checking = new JEdit_Options.continuous_checking.GUI

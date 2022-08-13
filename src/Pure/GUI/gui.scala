@@ -113,6 +113,12 @@ object GUI {
 
   /* basic GUI components */
 
+  class Button(label: String) extends scala.swing.Button(label) {
+    def clicked(): Unit = {}
+
+    reactions += { case ButtonClicked(_) => clicked() }
+  }
+
   class Bool(label: String, init: Boolean = false) extends CheckBox(label) {
     def clicked(state: Boolean): Unit = {}
     def clicked(): Unit = {}

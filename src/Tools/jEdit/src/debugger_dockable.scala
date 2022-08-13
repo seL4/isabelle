@@ -187,24 +187,24 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     override def clicked(state: Boolean): Unit = debugger.set_break(state)
   }
 
-  private val continue_button = new Button("Continue") {
+  private val continue_button = new GUI.Button("Continue") {
     tooltip = "Continue program on current thread, until next breakpoint"
-    reactions += { case ButtonClicked(_) => thread_selection().map(debugger.continue) }
+    override def clicked(): Unit = thread_selection().map(debugger.continue)
   }
 
-  private val step_button = new Button("Step") {
+  private val step_button = new GUI.Button("Step") {
     tooltip = "Single-step in depth-first order"
-    reactions += { case ButtonClicked(_) => thread_selection().map(debugger.step) }
+    override def clicked(): Unit = thread_selection().map(debugger.step)
   }
 
-  private val step_over_button = new Button("Step over") {
+  private val step_over_button = new GUI.Button("Step over") {
     tooltip = "Single-step within this function"
-    reactions += { case ButtonClicked(_) => thread_selection().map(debugger.step_over) }
+    override def clicked(): Unit = thread_selection().map(debugger.step_over)
   }
 
-  private val step_out_button = new Button("Step out") {
+  private val step_out_button = new GUI.Button("Step out") {
     tooltip = "Single-step outside this function"
-    reactions += { case ButtonClicked(_) => thread_selection().map(debugger.step_out) }
+    override def clicked(): Unit = thread_selection().map(debugger.step_out)
   }
 
   private val context_label = new Label("Context:") {
@@ -240,9 +240,10 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
       setFont(GUI.imitate_font(getFont, scale = 1.2))
     }
 
-  private val eval_button = new Button("<html><b>Eval</b></html>") {
+  private val eval_button =
+    new GUI.Button("<html><b>Eval</b></html>") {
       tooltip = "Evaluate ML expression within optional context"
-      reactions += { case ButtonClicked(_) => eval_expression() }
+      override def clicked(): Unit = eval_expression()
     }
 
   private def eval_expression(): Unit = {

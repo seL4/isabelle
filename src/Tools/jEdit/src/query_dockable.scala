@@ -12,8 +12,8 @@ import isabelle._
 import java.awt.event.{ComponentEvent, ComponentAdapter, KeyEvent}
 import javax.swing.{JComponent, JTextField}
 
-import scala.swing.{Button, Component, TextField, Label, ListView, TabbedPane, BorderPanel}
-import scala.swing.event.{SelectionChanged, ButtonClicked, Key, KeyPressed}
+import scala.swing.{Component, TextField, Label, ListView, TabbedPane, BorderPanel}
+import scala.swing.event.{SelectionChanged, Key, KeyPressed}
 
 import org.gjt.sp.jedit.View
 
@@ -110,9 +110,9 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
       override def clicked(): Unit = apply_query()
     }
 
-    private val apply_button = new Button("<html><b>Apply</b></html>") {
+    private val apply_button = new GUI.Button("<html><b>Apply</b></html>") {
       tooltip = "Find theorems meeting specified criteria"
-      reactions += { case ButtonClicked(_) => apply_query() }
+      override def clicked(): Unit = apply_query()
     }
 
     private val control_panel =
@@ -159,9 +159,9 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
 
     /* GUI page */
 
-    private val apply_button = new Button("<html><b>Apply</b></html>") {
+    private val apply_button = new GUI.Button("<html><b>Apply</b></html>") {
       tooltip = "Find constants by name / type patterns"
-      reactions += { case ButtonClicked(_) => apply_query() }
+      override def clicked(): Unit = apply_query()
     }
 
     private val control_panel =
@@ -233,11 +233,12 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
 
     /* GUI page */
 
-    private val apply_button = new Button("<html><b>Apply</b></html>") {
+    private val apply_button = new GUI.Button("<html><b>Apply</b></html>") {
       tooltip = "Apply to current context"
+      override def clicked(): Unit = apply_query()
+
       listenTo(keys)
       reactions += {
-        case ButtonClicked(_) => apply_query()
         case evt @ KeyPressed(_, Key.Enter, 0, _) =>
           evt.peer.consume()
           apply_query()

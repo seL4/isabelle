@@ -12,9 +12,6 @@ import isabelle._
 import java.awt.BorderLayout
 import java.awt.event.{ComponentEvent, ComponentAdapter}
 
-import scala.swing.Button
-import scala.swing.event.ButtonClicked
-
 import org.gjt.sp.jedit.{jEdit, View}
 
 
@@ -56,9 +53,10 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
       val title = "Session"
     }
 
-  private val build_button = new Button("<html><b>Build</b></html>") {
+  private val build_button =
+    new GUI.Button("<html><b>Build</b></html>") {
       tooltip = "Build document"
-      reactions += { case ButtonClicked(_) =>
+      override def clicked(): Unit = {
         pretty_text_area.update(
           Document.Snapshot.init, Command.Results.empty,
             List(XML.Text(Date.now().toString)))  // FIXME

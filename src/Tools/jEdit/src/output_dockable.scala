@@ -9,9 +9,6 @@ package isabelle.jedit
 
 import isabelle._
 
-import scala.swing.Button
-import scala.swing.event.ButtonClicked
-
 import java.awt.BorderLayout
 import java.awt.event.{ComponentEvent, ComponentAdapter}
 
@@ -74,9 +71,9 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
     }
   }
 
-  private val update_button = new Button("Update") {
+  private val update_button = new GUI.Button("Update") {
     tooltip = "Update display according to the command at cursor position"
-    reactions += { case ButtonClicked(_) => handle_update(true, None) }
+    override def clicked(): Unit = handle_update(true, None)
   }
 
   private val zoom = new Font_Info.Zoom { override def changed(): Unit = handle_resize() }
