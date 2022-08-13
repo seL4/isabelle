@@ -52,6 +52,18 @@ object JEdit_Options {
   }
 
 
+  /* GUI components */
+
+  class Bool_GUI(access: Bool_Access, label: String, description: String)
+  extends CheckBox(label) {
+    tooltip = description
+    reactions += { case ButtonClicked(_) => access.update(selected) }
+    def load(): Unit = { selected = access() }
+
+    load()
+  }
+
+
   /* specific options */
 
   object continuous_checking extends Bool_Access("editor_continuous_checking") {
@@ -60,12 +72,8 @@ object JEdit_Options {
       PIDE.plugin.deps_changed()
     }
 
-    class GUI extends CheckBox("Continuous checking") {
-      tooltip = "Continuous checking of proof document (visible and required parts)"
-      reactions += { case ButtonClicked(_) => continuous_checking.update(selected) }
-      def load(): Unit = { selected = continuous_checking() }
-      load()
-    }
+    class GUI extends Bool_GUI(this, "Continuous checking",
+      "Continuous checking of proof document (visible and required parts)")
   }
 
   object output_state extends Bool_Access("editor_output_state") {
@@ -75,12 +83,8 @@ object JEdit_Options {
       PIDE.editor.flush()
     }
 
-    class GUI extends CheckBox("Proof state") {
-      tooltip = "Output of proof state (normally shown on State panel)"
-      reactions += { case ButtonClicked(_) => output_state.update(selected) }
-      def load(): Unit = { selected = output_state() }
-      load()
-    }
+    class GUI extends Bool_GUI(this, "Proof state",
+      "Output of proof state (normally shown on State panel)")
   }
 }
 
