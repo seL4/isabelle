@@ -83,7 +83,8 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   private val auto_update_button = new CheckBox("Auto update") {
     tooltip = "Indicate automatic update following cursor movement"
     reactions += {
-      case ButtonClicked(_) => do_update = this.selected; handle_update(do_update, None) }
+      case ButtonClicked(_) => do_update = this.selected; handle_update(do_update, None)
+    }
     selected = do_update
   }
 
