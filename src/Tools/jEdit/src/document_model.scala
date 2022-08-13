@@ -342,7 +342,7 @@ sealed abstract class Document_Model extends Document.Model {
   ): (Boolean, Document.Node.Perspective_Text) = {
     GUI_Thread.require {}
 
-    if (Isabelle.continuous_checking && is_theory) {
+    if (Isabelle.continuous_checking() && is_theory) {
       val snapshot = this.snapshot()
 
       val reparse = snapshot.node.load_commands_changed(doc_blobs)

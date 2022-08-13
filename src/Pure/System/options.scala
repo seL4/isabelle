@@ -13,16 +13,22 @@ object Options {
   val empty: Options = new Options()
 
 
-  /* access */
+  /* typed access */
 
   abstract class Access[A](val options: Options) {
     def apply(name: String): A
     def update(name: String, x: A): Options
+    def change(name: String, f: A => A): Options = update(name, f(apply(name)))
   }
 
-  abstract class Access_Variable[A](val options: Options_Variable) {
-    def apply(name: String): A
-    def update(name: String, x: A): Unit
+  class Access_Variable[A](
+    val options: Options_Variable,
+    val pure_access: Options => Access[A]
+  ) {
+    def apply(name: String): A = pure_access(options.value)(name)
+    def update(name: String, x: A): Unit =
+      options.change(options => pure_access(options).update(name, x))
+    def change(name: String, f: A => A): Unit = update(name, f(apply(name)))
   }
 
 
@@ -428,28 +434,16 @@ class Options_Variable(init_options: Options) {
   def += (name: String, x: String): Unit = change(options => options + (name, x))
 
   val bool: Options.Access_Variable[Boolean] =
-    new Options.Access_Variable[Boolean](this) {
-      def apply(name: String): Boolean = value.bool(name)
-      def update(name: String, x: Boolean): Unit = change(options => options.bool.update(name, x))
-    }
+    new Options.Access_Variable[Boolean](this, _.bool)
 
   val int: Options.Access_Variable[Int] =
-    new Options.Access_Variable[Int](this) {
-      def apply(name: String): Int = value.int(name)
-      def update(name: String, x: Int): Unit = change(options => options.int.update(name, x))
-    }
+    new Options.Access_Variable[Int](this, _.int)
 
   val real: Options.Access_Variable[Double] =
-    new Options.Access_Variable[Double](this) {
-      def apply(name: String): Double = value.real(name)
-      def update(name: String, x: Double): Unit = change(options => options.real.update(name, x))
-    }
+    new Options.Access_Variable[Double](this, _.real)
 
   val string: Options.Access_Variable[String] =
-    new Options.Access_Variable[String](this) {
-      def apply(name: String): String = value.string(name)
-      def update(name: String, x: String): Unit = change(options => options.string.update(name, x))
-    }
+    new Options.Access_Variable[String](this, _.string)
 
   def proper_string(name: String): Option[String] =
     Library.proper_string(string(name))

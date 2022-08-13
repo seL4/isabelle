@@ -27,6 +27,18 @@ trait Option_Component extends Component {
 
 object JEdit_Options {
   val RENDERING_SECTION = "Rendering of Document Content"
+
+  class Access[A](access: Options.Access_Variable[A], val name: String) {
+    def apply(): A = access.apply(name)
+    def update(x: A): Unit = change(_ => x)
+    def change(f: A => A): Unit = {
+      val x0 = apply()
+      access.change(name, f)
+      val x1 = apply()
+      if (x0 != x1) changed()
+    }
+    def changed(): Unit = GUI_Thread.require { PIDE.session.update_options(access.options.value) }
+  }
 }
 
 class JEdit_Options(init_options: Options) extends Options_Variable(init_options) {

@@ -195,27 +195,42 @@ object Isabelle {
 
   /* continuous checking */
 
-  private val CONTINUOUS_CHECKING = "editor_continuous_checking"
-
-  def continuous_checking: Boolean = PIDE.options.bool(CONTINUOUS_CHECKING)
-  def continuous_checking_=(b: Boolean): Unit =
-    GUI_Thread.require {
-      if (continuous_checking != b) {
-        PIDE.options.bool(CONTINUOUS_CHECKING) = b
-        PIDE.session.update_options(PIDE.options.value)
-        PIDE.plugin.deps_changed()
-      }
+  object continuous_checking
+  extends JEdit_Options.Access(PIDE.options.bool, "editor_continuous_checking") {
+    override def changed(): Unit = {
+      super.changed()
+      PIDE.plugin.deps_changed()
     }
 
-  def set_continuous_checking(): Unit = { continuous_checking = true }
-  def reset_continuous_checking(): Unit = { continuous_checking = false }
-  def toggle_continuous_checking(): Unit = { continuous_checking = !continuous_checking }
+    class GUI extends CheckBox("Continuous checking") {
+      tooltip = "Continuous checking of proof document (visible and required parts)"
+      reactions += { case ButtonClicked(_) => continuous_checking.update(selected) }
+      def load(): Unit = { selected = continuous_checking() }
+      load()
+    }
+  }
 
-  class Continuous_Checking extends CheckBox("Continuous checking") {
-    tooltip = "Continuous checking of proof document (visible and required parts)"
-    reactions += { case ButtonClicked(_) => continuous_checking = selected }
-    def load(): Unit = { selected = continuous_checking }
-    load()
+  def set_continuous_checking(): Unit = continuous_checking.update(true)
+  def reset_continuous_checking(): Unit = continuous_checking.update(false)
+  def toggle_continuous_checking(): Unit = continuous_checking.change(b => !b)
+
+
+  /* output state */
+
+  object output_state
+  extends JEdit_Options.Access(PIDE.options.bool, "editor_output_state") {
+    override def changed(): Unit = GUI_Thread.require {
+      super.changed()
+      PIDE.editor.flush_edits(hidden = true)
+      PIDE.editor.flush()
+    }
+
+    class GUI extends CheckBox("Proof state") {
+      tooltip = "Output of proof state (normally shown on State panel)"
+      reactions += { case ButtonClicked(_) => output_state.update(selected) }
+      def load(): Unit = { selected = output_state() }
+      load()
+    }
   }
 
 

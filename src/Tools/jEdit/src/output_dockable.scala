@@ -51,7 +51,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
 
       val new_output =
         if (restriction.isEmpty || restriction.get.contains(command))
-          Rendering.output_messages(results, output_state)
+          Rendering.output_messages(results, Isabelle.output_state())
         else current_output
 
       if (current_output != new_output) {
@@ -64,21 +64,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
 
   /* controls */
 
-  private def output_state: Boolean = PIDE.options.bool("editor_output_state")
-  private def output_state_=(b: Boolean): Unit = {
-    if (output_state != b) {
-      PIDE.options.bool("editor_output_state") = b
-      PIDE.session.update_options(PIDE.options.value)
-      PIDE.editor.flush_edits(hidden = true)
-      PIDE.editor.flush()
-    }
-  }
-
-  private val output_state_button = new CheckBox("Proof state") {
-    tooltip = "Output of proof state (normally shown on State panel)"
-    reactions += { case ButtonClicked(_) => output_state = selected }
-    selected = output_state
-  }
+  private val output_state_button = new Isabelle.output_state.GUI
 
   private val auto_update_button = new CheckBox("Auto update") {
     tooltip = "Indicate automatic update following cursor movement"
@@ -110,7 +96,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
       case _: Session.Global_Options =>
         GUI_Thread.later {
           handle_resize()
-          output_state_button.selected = output_state
+          output_state_button.load()
           handle_update(do_update, None)
         }
 
