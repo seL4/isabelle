@@ -15,12 +15,12 @@ object Options {
 
   /* access */
 
-  trait Access[A] {
+  abstract class Access[A](val options: Options) {
     def apply(name: String): A
     def update(name: String, x: A): Options
   }
 
-  trait Access_Variable[A] {
+  abstract class Access_Variable[A](val options: Options_Variable) {
     def apply(name: String): A
     def update(name: String, x: A): Unit
   }
@@ -265,29 +265,29 @@ final class Options private(
 
   /* internal lookup and update */
 
-  class Bool_Access extends Options.Access[Boolean] {
-    def apply(name: String): Boolean = get(name, Options.Bool, Value.Boolean.unapply)
-    def update(name: String, x: Boolean): Options = put(name, Options.Bool, Value.Boolean(x))
-  }
-  val bool = new Bool_Access
+  val bool: Options.Access[Boolean] =
+    new Options.Access[Boolean](this) {
+      def apply(name: String): Boolean = get(name, Options.Bool, Value.Boolean.unapply)
+      def update(name: String, x: Boolean): Options = put(name, Options.Bool, Value.Boolean(x))
+    }
 
-  class Int_Access extends Options.Access[Int] {
-    def apply(name: String): Int = get(name, Options.Int, Value.Int.unapply)
-    def update(name: String, x: Int): Options = put(name, Options.Int, Value.Int(x))
-  }
-  val int = new Int_Access
+  val int: Options.Access[Int] =
+    new Options.Access[Int](this) {
+      def apply(name: String): Int = get(name, Options.Int, Value.Int.unapply)
+      def update(name: String, x: Int): Options = put(name, Options.Int, Value.Int(x))
+    }
 
-  class Real_Access extends Options.Access[Double] {
-    def apply(name: String): Double = get(name, Options.Real, Value.Double.unapply)
-    def update(name: String, x: Double): Options = put(name, Options.Real, Value.Double(x))
-  }
-  val real = new Real_Access
+  val real: Options.Access[Double] =
+    new Options.Access[Double](this) {
+      def apply(name: String): Double = get(name, Options.Real, Value.Double.unapply)
+      def update(name: String, x: Double): Options = put(name, Options.Real, Value.Double(x))
+    }
 
-  class String_Access extends Options.Access[String] {
-    def apply(name: String): String = get(name, Options.String, s => Some(s))
-    def update(name: String, x: String): Options = put(name, Options.String, x)
-  }
-  val string = new String_Access
+  val string: Options.Access[String] =
+    new Options.Access[String](this) {
+      def apply(name: String): String = get(name, Options.String, Some(_))
+      def update(name: String, x: String): Options = put(name, Options.String, x)
+    }
 
   def proper_string(name: String): Option[String] =
     Library.proper_string(string(name))
@@ -421,36 +421,35 @@ final class Options private(
 
 
 class Options_Variable(init_options: Options) {
-  private var options = init_options
+  private var _options = init_options
 
-  def value: Options = synchronized { options }
+  def value: Options = synchronized { _options }
+  def change(f: Options => Options): Unit = synchronized { _options = f(_options) }
+  def += (name: String, x: String): Unit = change(options => options + (name, x))
 
-  private def upd(f: Options => Options): Unit = synchronized { options = f(options) }
-  def += (name: String, x: String): Unit = upd(opts => opts + (name, x))
+  val bool: Options.Access_Variable[Boolean] =
+    new Options.Access_Variable[Boolean](this) {
+      def apply(name: String): Boolean = value.bool(name)
+      def update(name: String, x: Boolean): Unit = change(options => options.bool.update(name, x))
+    }
 
-  class Bool_Access extends Options.Access_Variable[Boolean] {
-    def apply(name: String): Boolean = value.bool(name)
-    def update(name: String, x: Boolean): Unit = upd(opts => opts.bool.update(name, x))
-  }
-  val bool = new Bool_Access
+  val int: Options.Access_Variable[Int] =
+    new Options.Access_Variable[Int](this) {
+      def apply(name: String): Int = value.int(name)
+      def update(name: String, x: Int): Unit = change(options => options.int.update(name, x))
+    }
 
-  class Int_Access extends Options.Access_Variable[Int] {
-    def apply(name: String): Int = value.int(name)
-    def update(name: String, x: Int): Unit = upd(opts => opts.int.update(name, x))
-  }
-  val int = new Int_Access
+  val real: Options.Access_Variable[Double] =
+    new Options.Access_Variable[Double](this) {
+      def apply(name: String): Double = value.real(name)
+      def update(name: String, x: Double): Unit = change(options => options.real.update(name, x))
+    }
 
-  class Real_Access extends Options.Access_Variable[Double] {
-    def apply(name: String): Double = value.real(name)
-    def update(name: String, x: Double): Unit = upd(opts => opts.real.update(name, x))
-  }
-  val real = new Real_Access
-
-  class String_Access extends Options.Access_Variable[String] {
-    def apply(name: String): String = value.string(name)
-    def update(name: String, x: String): Unit = upd(opts => opts.string.update(name, x))
-  }
-  val string = new String_Access
+  val string: Options.Access_Variable[String] =
+    new Options.Access_Variable[String](this) {
+      def apply(name: String): String = value.string(name)
+      def update(name: String, x: String): Unit = change(options => options.string.update(name, x))
+    }
 
   def proper_string(name: String): Option[String] =
     Library.proper_string(string(name))
