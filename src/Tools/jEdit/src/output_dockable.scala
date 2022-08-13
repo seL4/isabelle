@@ -51,7 +51,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
 
       val new_output =
         if (restriction.isEmpty || restriction.get.contains(command))
-          Rendering.output_messages(results)
+          Rendering.output_messages(results, output_state)
         else current_output
 
       if (current_output != new_output) {

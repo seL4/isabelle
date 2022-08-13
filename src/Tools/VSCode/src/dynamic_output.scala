@@ -27,9 +27,10 @@ object Dynamic_Output {
                 case None => copy(output = Nil)
                 case Some(command) =>
                   copy(output =
-                    if (restriction.isEmpty || restriction.get.contains(command))
-                      Rendering.output_messages(snapshot.command_results(command))
-                    else output)
+                    if (restriction.isEmpty || restriction.get.contains(command)) {
+                      val output_state = resources.options.bool("editor_output_state")
+                      Rendering.output_messages(snapshot.command_results(command), output_state)
+                    } else output)
               }
             }
             else this
