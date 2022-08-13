@@ -11,7 +11,6 @@ import isabelle._
 
 import java.awt.{Point, Frame, Rectangle}
 
-import scala.swing.CheckBox
 import scala.swing.event.ButtonClicked
 
 import org.gjt.sp.jedit.{jEdit, View, Buffer, EditBus}
