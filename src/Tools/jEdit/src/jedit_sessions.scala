@@ -90,7 +90,7 @@ object JEdit_Sessions {
 
     val entries = default_entry :: session_entries
 
-    new ComboBox(entries) with Option_Component {
+    new ComboBox[Logic_Entry](entries) with Option_Component {
       name = jedit_logic_option
       tooltip = "Logic session name (change requires restart)"
       val title = "Logic"
