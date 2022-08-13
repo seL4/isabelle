@@ -67,11 +67,7 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
   private val select_data = new ComboBox[String](ML_Statistics.all_fields.map(_._1)) {
     tooltip = "Select visualized data collection"
     listenTo(selection)
-    reactions += {
-      case SelectionChanged(_) =>
-        data_name = selection.item
-        update_chart()
-    }
+    reactions += { case SelectionChanged(_) => data_name = selection.item; update_chart() }
   }
 
   private val limit_data = new TextField("200", 5) {
@@ -85,11 +81,7 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
 
   private val reset_data = new Button("Reset") {
     tooltip = "Reset accumulated data"
-    reactions += {
-      case ButtonClicked(_) =>
-        clear_statistics()
-        update_chart()
-    }
+    reactions += { case ButtonClicked(_) => clear_statistics(); update_chart() }
   }
 
   private val full_gc = new Button("GC") {
