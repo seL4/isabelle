@@ -39,6 +39,12 @@ object JEdit_Options {
     }
     def changed(): Unit = GUI_Thread.require { PIDE.session.update_options(access.options.value) }
   }
+
+  class Bool_Access(name: String) extends Access(PIDE.options.bool, name) {
+    def set(): Unit = update(true)
+    def reset(): Unit = update(false)
+    def toggle(): Unit = change(b => !b)
+  }
 }
 
 class JEdit_Options(init_options: Options) extends Options_Variable(init_options) {

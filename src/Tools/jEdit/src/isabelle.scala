@@ -195,8 +195,7 @@ object Isabelle {
 
   /* continuous checking */
 
-  object continuous_checking
-  extends JEdit_Options.Access(PIDE.options.bool, "editor_continuous_checking") {
+  object continuous_checking extends JEdit_Options.Bool_Access("editor_continuous_checking") {
     override def changed(): Unit = {
       super.changed()
       PIDE.plugin.deps_changed()
@@ -210,15 +209,14 @@ object Isabelle {
     }
   }
 
-  def set_continuous_checking(): Unit = continuous_checking.update(true)
-  def reset_continuous_checking(): Unit = continuous_checking.update(false)
-  def toggle_continuous_checking(): Unit = continuous_checking.change(b => !b)
+  def set_continuous_checking(): Unit = continuous_checking.set()
+  def reset_continuous_checking(): Unit = continuous_checking.reset()
+  def toggle_continuous_checking(): Unit = continuous_checking.toggle()
 
 
   /* output state */
 
-  object output_state
-  extends JEdit_Options.Access(PIDE.options.bool, "editor_output_state") {
+  object output_state extends JEdit_Options.Bool_Access("editor_output_state") {
     override def changed(): Unit = GUI_Thread.require {
       super.changed()
       PIDE.editor.flush_edits(hidden = true)

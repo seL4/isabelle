@@ -198,7 +198,7 @@ class Main_Plugin extends EBPlugin {
               "Continuous checking is presently disabled:",
               "editor buffers will remain inactive!",
               "Enable continuous checking now?")
-          if (answer == 0) Isabelle.set_continuous_checking()
+          if (answer == 0) Isabelle.continuous_checking.set()
         }
       }
 
