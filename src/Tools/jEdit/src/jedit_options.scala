@@ -30,7 +30,7 @@ object JEdit_Options {
   val RENDERING_SECTION = "Rendering of Document Content"
 
 
-  /* typed access */
+  /* typed access and GUI components */
 
   class Access[A](access: Options.Access_Variable[A], val name: String) {
     def apply(): A = access.apply(name)
@@ -49,9 +49,6 @@ object JEdit_Options {
     def reset(): Unit = update(false)
     def toggle(): Unit = change(b => !b)
   }
-
-
-  /* GUI components */
 
   class Bool_GUI(access: Bool_Access, label: String)
   extends GUI.Check(label, init = access()) {
