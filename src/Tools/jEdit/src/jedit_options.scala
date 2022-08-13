@@ -54,7 +54,7 @@ object JEdit_Options {
   /* GUI components */
 
   class Bool_GUI(access: Bool_Access, label: String)
-  extends GUI.Bool(label, init = access()) {
+  extends GUI.Check(label, init = access()) {
     def load(): Unit = { selected = access() }
     override def clicked(state: Boolean): Unit = access.update(state)
   }

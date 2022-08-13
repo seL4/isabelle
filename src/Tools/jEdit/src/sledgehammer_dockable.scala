@@ -99,11 +99,11 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
     }
   }
 
-  private val isar_proofs = new GUI.Bool("Isar proofs") {
+  private val isar_proofs = new GUI.Check("Isar proofs") {
     tooltip = "Specify whether Isar proofs should be output in addition to \"by\" one-liner"
   }
 
-  private val try0 = new GUI.Bool("Try methods", init = true) {
+  private val try0 = new GUI.Check("Try methods", init = true) {
     tooltip = "Try standard proof methods like \"auto\" and \"blast\" as alternatives to \"metis\""
   }
 

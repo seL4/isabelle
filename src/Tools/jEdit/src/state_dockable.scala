@@ -75,7 +75,7 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
 
   /* controls */
 
-  private val auto_update_button = new GUI.Bool("Auto update", init = auto_update_enabled) {
+  private val auto_update_button = new GUI.Check("Auto update", init = auto_update_enabled) {
     tooltip = "Indicate automatic update following cursor movement"
     override def clicked(state: Boolean): Unit = {
       auto_update_enabled = state

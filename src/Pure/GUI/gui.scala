@@ -119,7 +119,7 @@ object GUI {
     reactions += { case ButtonClicked(_) => clicked() }
   }
 
-  class Bool(label: String, init: Boolean = false) extends CheckBox(label) {
+  class Check(label: String, init: Boolean = false) extends CheckBox(label) {
     def clicked(state: Boolean): Unit = {}
     def clicked(): Unit = {}
 

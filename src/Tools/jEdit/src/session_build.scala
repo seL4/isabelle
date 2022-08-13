@@ -130,7 +130,7 @@ object Session_Build {
     private var do_auto_close = true
     private def can_auto_close: Boolean = do_auto_close && _return_code == Some(0)
 
-    private val auto_close = new GUI.Bool("Auto close", init = do_auto_close) {
+    private val auto_close = new GUI.Check("Auto close", init = do_auto_close) {
       tooltip = "Automatically close dialog when finished"
       override def clicked(state: Boolean): Unit = {
         do_auto_close = state

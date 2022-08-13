@@ -105,7 +105,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
       reactions += { case KeyPressed(_, Key.Enter, 0, _) => apply_query() }
     }
 
-    private val allow_dups = new GUI.Bool("Duplicates") {
+    private val allow_dups = new GUI.Check("Duplicates") {
       tooltip = "Show all versions of matching theorems"
       override def clicked(): Unit = apply_query()
     }
@@ -186,7 +186,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
     /* items */
 
     private class Item(val name: String, description: String, selected: Boolean) {
-      val gui: GUI.Bool = new GUI.Bool(name, init = selected) {
+      val gui: GUI.Check = new GUI.Check(name, init = selected) {
         tooltip = "Print " + description
         override def clicked(): Unit = apply_query()
       }

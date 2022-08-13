@@ -182,7 +182,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
   /* controls */
 
-  private val break_button = new GUI.Bool("Break", init = debugger.is_break()) {
+  private val break_button = new GUI.Check("Break", init = debugger.is_break()) {
     tooltip = "Break running threads at next possible breakpoint"
     override def clicked(state: Boolean): Unit = debugger.set_break(state)
   }
@@ -256,7 +256,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     }
   }
 
-  private val sml_button = new GUI.Bool("SML") {
+  private val sml_button = new GUI.Check("SML") {
     tooltip = "Official Standard ML instead of Isabelle/ML"
   }
 

@@ -143,7 +143,7 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
   private val controls =
     Wrap_Panel(
       List(
-        new GUI.Bool("Auto update", init = do_update) {
+        new GUI.Check("Auto update", init = do_update) {
           override def clicked(state: Boolean): Unit = {
             do_update = state
             handle_update(do_update)

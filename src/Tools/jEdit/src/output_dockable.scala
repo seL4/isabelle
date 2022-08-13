@@ -63,7 +63,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
 
   private val output_state_button = new JEdit_Options.output_state.GUI
 
-  private val auto_update_button = new GUI.Bool("Auto update", init = do_update) {
+  private val auto_update_button = new GUI.Check("Auto update", init = do_update) {
     tooltip = "Indicate automatic update following cursor movement"
     override def clicked(state: Boolean): Unit = {
       do_update = state
