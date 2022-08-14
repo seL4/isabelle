@@ -94,8 +94,10 @@ object Library {
 
   /* lines */
 
-  def terminate_lines(lines: IterableOnce[String]): String =
-    lines.iterator.mkString("", "\n", "\n")
+  def terminate_lines(lines: IterableOnce[String]): String = {
+    val it = lines.iterator
+    if (it.isEmpty) "" else it.mkString("", "\n", "\n")
+  }
 
   def cat_lines(lines: IterableOnce[String]): String =
     lines.iterator.mkString("\n")
