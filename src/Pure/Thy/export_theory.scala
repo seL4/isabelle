@@ -101,7 +101,7 @@ object Export_Theory {
   }
 
   def read_theory_parents(theory_context: Export.Theory_Context): Option[List[String]] =
-    theory_context.get(Export.THEORY_PARENTS)
+    theory_context.get(Export.THEORY_PREFIX + "parents")
       .map(entry => Library.trim_split_lines(entry.uncompressed.text))
 
   def no_theory: Theory =

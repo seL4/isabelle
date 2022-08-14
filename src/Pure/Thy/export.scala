@@ -23,7 +23,6 @@ object Export {
   val DOCUMENT_CITATIONS = DOCUMENT_PREFIX + "citations"
   val THEORY_PREFIX: String = "theory/"
   val PROOFS_PREFIX: String = "proofs/"
-  val THEORY_PARENTS: String = THEORY_PREFIX + "parents"
 
   def explode_name(s: String): List[String] = space_explode('/', s)
   def implode_name(elems: Iterable[String]): String = elems.mkString("/")
@@ -88,8 +87,7 @@ object Export {
 
   def read_theory_names(db: SQL.Database, session_name: String): List[String] = {
     val select =
-      Data.table.select(List(Data.theory_name),
-        Data.where_equal(session_name, name = THEORY_PARENTS)) +
+      Data.table.select(List(Data.theory_name), Data.where_equal(session_name), distinct = true) +
       " ORDER BY " + Data.theory_name
     db.using_statement(select)(stmt =>
       stmt.execute_query().iterator(_.string(Data.theory_name)).toList)
@@ -363,26 +361,27 @@ object Export {
 
     private def select[A](
       session: String,
-      select1: Entry_Name => Option[A],
-      select2: Session_Database => List[A]
+      select: Session_Database => List[A],
+      project: Entry_Name => A,
+      sort_key: A => String
     ): List[A] = {
-      def sel(name: String): List[A] =
+      def result(name: String): List[A] =
         if (name == Sessions.DRAFT) {
           (for {
             snapshot <- document_snapshot.iterator
             entry_name <- snapshot.all_exports.keysIterator
-            res <- select1(entry_name).iterator
-          } yield entry_name -> res).toList.sortBy(_._1.compound_name).map(_._2)
+          } yield project(entry_name)).toSet.toList.sortBy(sort_key)
         }
-        else { session_database(name).map(select2).getOrElse(Nil) }
-      if (session.nonEmpty) sel(session) else session_stack.flatMap(sel)
+        else session_database(name).map(select).getOrElse(Nil)
+
+      if (session.nonEmpty) result(session) else session_stack.flatMap(result)
     }
 
     def entry_names(session: String = session_name): List[Entry_Name] =
-      select(session, Some(_), _.entry_names)
+      select(session, _.entry_names, identity, _.compound_name)
 
     def theory_names(session: String = session_name): List[String] =
-      select(session, a => if(a.name == THEORY_PARENTS) Some(a.theory) else None, _.theory_names)
+      select(session, _.theory_names, _.theory, identity)
 
     def get(theory: String, name: String): Option[Entry] =
     {
