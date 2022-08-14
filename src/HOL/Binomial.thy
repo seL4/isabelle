@@ -1074,18 +1074,18 @@ subsection \<open>More on Binomial Coefficients\<close>
 lemma choose_one: "n choose 1 = n" for n :: nat
   by simp
 
-lemma card_UNION:
+text \<open>The famous inclusion-exclusion formula for the cardinality of a union\<close>
+lemma int_card_UNION:
   assumes "finite A"
     and "\<forall>k \<in> A. finite k"
-  shows "card (\<Union>A) = nat (\<Sum>I | I \<subseteq> A \<and> I \<noteq> {}. (- 1) ^ (card I + 1) * int (card (\<Inter>I)))"
+  shows "int (card (\<Union>A)) = (\<Sum>I | I \<subseteq> A \<and> I \<noteq> {}. (- 1) ^ (card I + 1) * int (card (\<Inter>I)))"
   (is "?lhs = ?rhs")
 proof -
-  have "?rhs = nat (\<Sum>I | I \<subseteq> A \<and> I \<noteq> {}. (- 1) ^ (card I + 1) * (\<Sum>_\<in>\<Inter>I. 1))"
+  have "?rhs = (\<Sum>I | I \<subseteq> A \<and> I \<noteq> {}. (- 1) ^ (card I + 1) * (\<Sum>_\<in>\<Inter>I. 1))"
     by simp
-  also have "\<dots> = nat (\<Sum>I | I \<subseteq> A \<and> I \<noteq> {}. (\<Sum>_\<in>\<Inter>I. (- 1) ^ (card I + 1)))"
-    (is "_ = nat ?rhs")
+  also have "\<dots> = (\<Sum>I | I \<subseteq> A \<and> I \<noteq> {}. (\<Sum>_\<in>\<Inter>I. (- 1) ^ (card I + 1)))"
     by (subst sum_distrib_left) simp
-  also have "?rhs = (\<Sum>(I, _)\<in>Sigma {I. I \<subseteq> A \<and> I \<noteq> {}} Inter. (- 1) ^ (card I + 1))"
+  also have "\<dots> = (\<Sum>(I, _)\<in>Sigma {I. I \<subseteq> A \<and> I \<noteq> {}} Inter. (- 1) ^ (card I + 1))"
     using assms by (subst sum.Sigma) auto
   also have "\<dots> = (\<Sum>(x, I)\<in>(SIGMA x:UNIV. {I. I \<subseteq> A \<and> I \<noteq> {} \<and> x \<in> \<Inter>I}). (- 1) ^ (card I + 1))"
     by (rule sum.reindex_cong [where l = "\<lambda>(x, y). (y, x)"]) (auto intro: inj_onI)
@@ -1132,7 +1132,7 @@ proof -
       also have "\<dots> = {}"
         using \<open>finite A\<close> i by (auto simp add: K_def dest: card_mono[rotated 1])
       finally show "(- 1) ^ (i + 1) * (\<Sum>I | I \<subseteq> A \<and> card I = i \<and> x \<in> \<Inter>I. 1 :: int) = 0"
-        by (simp only:) simp
+        by (metis mult_zero_right sum.empty)
     next
       fix i
       have "(\<Sum>I | I \<subseteq> A \<and> card I = i \<and> x \<in> \<Inter>I. 1) = (\<Sum>I | I \<subseteq> K \<and> card I = i. 1 :: int)"
@@ -1155,10 +1155,22 @@ proof -
       using x K by (auto simp add: K_def card_gt_0_iff)
     finally show "?lhs x = 1" .
   qed
-  also have "nat \<dots> = card (\<Union>A)"
+  also have "\<dots> = int (card (\<Union>A))"
     by simp
   finally show ?thesis ..
 qed
+
+lemma card_UNION:
+  assumes "finite A"
+    and "\<forall>k \<in> A. finite k"
+  shows "card (\<Union>A) = nat (\<Sum>I | I \<subseteq> A \<and> I \<noteq> {}. (- 1) ^ (card I + 1) * int (card (\<Inter>I)))"
+  by (simp only: flip: int_card_UNION [OF assms])
+
+lemma card_UNION_nonneg:
+  assumes "finite A"
+    and "\<forall>k \<in> A. finite k"
+  shows "(\<Sum>I | I \<subseteq> A \<and> I \<noteq> {}. (- 1) ^ (card I + 1) * int (card (\<Inter>I))) \<ge> 0"
+  using int_card_UNION [OF assms] by presburger
 
 text \<open>The number of nat lists of length \<open>m\<close> summing to \<open>N\<close> is \<^term>\<open>(N + m - 1) choose N\<close>:\<close>
 lemma card_length_sum_list_rec:
