@@ -1768,6 +1768,14 @@ begin
 lemma of_nat_eq_iff [simp]: "of_nat m = of_nat n \<longleftrightarrow> m = n"
   by (auto intro: inj_of_nat injD)
 
+lemma one_plus_of_nat_neq_zero [simp]:
+  "1 + of_nat n \<noteq> 0"
+proof -
+  have "of_nat (Suc n) \<noteq> of_nat 0"
+    unfolding of_nat_eq_iff by simp
+  then show ?thesis by simp
+qed
+
 text \<open>Special cases where either operand is zero\<close>
 
 lemma of_nat_0_eq_iff [simp]: "0 = of_nat n \<longleftrightarrow> 0 = n"

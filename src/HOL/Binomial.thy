@@ -1045,17 +1045,11 @@ proof -
     by (simp add: binomial_altdef_nat)
   also have "... = fact (m + r + k) * fact (m + k) div
                  (fact (m + k) * fact (m + r - m) * (fact k * fact m))"
-    apply (subst div_mult_div_if_dvd)
-      apply (auto simp: algebra_simps fact_fact_dvd_fact)
-    apply (metis add.assoc add.commute fact_fact_dvd_fact)
-    done
+    by (metis add_implies_diff add_le_mono1 choose_dvd diff_cancel2 div_mult_div_if_dvd le_add1 le_add2)
   also have "\<dots> = fact (m + r + k) div (fact r * (fact k * fact m))"
     by (auto simp: algebra_simps fact_fact_dvd_fact)
   also have "\<dots> = (fact (m + r + k) * fact (m + r)) div (fact r * (fact k * fact m) * fact (m + r))"
-    apply (subst div_mult_div_if_dvd [symmetric])
-    apply (auto simp add: algebra_simps)
-    apply (metis fact_fact_dvd_fact dvd_trans nat_mult_dvd_cancel_disj)
-    done
+    by simp
   also have "\<dots> =
       (fact (m + r + k) div (fact k * fact (m + r)) * (fact (m + r) div (fact r * fact m)))"
     by (auto simp: div_mult_div_if_dvd fact_fact_dvd_fact algebra_simps)
@@ -1067,6 +1061,26 @@ text \<open>The "Subset of a Subset" identity.\<close>
 lemma choose_mult:
   "k \<le> m \<Longrightarrow> m \<le> n \<Longrightarrow> (n choose m) * (m choose k) = (n choose k) * ((n - k) choose (m - k))"
   using choose_mult_lemma [of "m-k" "n-m" k] by simp
+
+lemma of_nat_binomial_eq_mult_binomial_Suc:
+  assumes "k \<le> n"
+  shows "(of_nat :: (nat \<Rightarrow> ('a :: field_char_0))) (n choose k) = of_nat (n + 1 - k) / of_nat (n + 1) * of_nat (Suc n choose k)"
+proof (cases k)
+  case 0 then show ?thesis by simp
+next
+  case (Suc l)
+  have "of_nat (n + 1) * (\<Prod>i=0..<k. of_nat (n - i)) = (of_nat :: (nat \<Rightarrow> 'a)) (n + 1 - k) * (\<Prod>i=0..<k. of_nat (Suc n - i))"
+    using prod.atLeast0_lessThan_Suc [where ?'a = 'a, symmetric, of "\<lambda>i. of_nat (Suc n - i)" k]
+    by (simp add: ac_simps prod.atLeast0_lessThan_Suc_shift del: prod.op_ivl_Suc)
+  also have "... = (of_nat :: (nat \<Rightarrow> 'a)) (Suc n - k) * (\<Prod>i=0..<k. of_nat (Suc n - i))"
+    by (simp add: Suc atLeast0_atMost_Suc atLeastLessThanSuc_atLeastAtMost)
+  also have "... = (of_nat :: (nat \<Rightarrow> 'a)) (n + 1 - k) * (\<Prod>i=0..<k. of_nat (Suc n - i))"
+    by (simp only: Suc_eq_plus1)
+  finally have "(\<Prod>i=0..<k. of_nat (n - i)) = (of_nat :: (nat \<Rightarrow> 'a)) (n + 1 - k) / of_nat (n + 1) * (\<Prod>i=0..<k. of_nat (Suc n - i))"
+    by (simp add: field_simps)
+  with assms show ?thesis
+    by (simp add: binomial_altdef_of_nat prod_dividef)
+qed
 
 
 subsection \<open>More on Binomial Coefficients\<close>

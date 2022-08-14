@@ -5,58 +5,16 @@ theory Sum_of_Powers
 imports Complex_Main
 begin
 
-subsection \<open>Additions to \<^theory>\<open>HOL.Binomial\<close> Theory\<close>
-
-lemma (in field_char_0) one_plus_of_nat_neq_zero [simp]:
-  "1 + of_nat n \<noteq> 0"
-proof -
-  have "of_nat (Suc n) \<noteq> of_nat 0"
-    unfolding of_nat_eq_iff by simp
-  then show ?thesis by simp
-qed
-
-lemma of_nat_binomial_eq_mult_binomial_Suc:
-  assumes "k \<le> n"
-  shows "(of_nat :: (nat \<Rightarrow> ('a :: field_char_0))) (n choose k) = of_nat (n + 1 - k) / of_nat (n + 1) * of_nat (Suc n choose k)"
-proof (cases k)
-  case 0 then show ?thesis by simp
-next
-  case (Suc l)
-  have "of_nat (n + 1) * (\<Prod>i=0..<k. of_nat (n - i)) = (of_nat :: (nat \<Rightarrow> 'a)) (n + 1 - k) * (\<Prod>i=0..<k. of_nat (Suc n - i))"
-    using prod.atLeast0_lessThan_Suc [where ?'a = 'a, symmetric, of "\<lambda>i. of_nat (Suc n - i)" k]
-    by (simp add: ac_simps prod.atLeast0_lessThan_Suc_shift del: prod.op_ivl_Suc)
-  also have "... = (of_nat :: (nat \<Rightarrow> 'a)) (Suc n - k) * (\<Prod>i=0..<k. of_nat (Suc n - i))"
-    by (simp add: Suc atLeast0_atMost_Suc atLeastLessThanSuc_atLeastAtMost)
-  also have "... = (of_nat :: (nat \<Rightarrow> 'a)) (n + 1 - k) * (\<Prod>i=0..<k. of_nat (Suc n - i))"
-    by (simp only: Suc_eq_plus1)
-  finally have "(\<Prod>i=0..<k. of_nat (n - i)) = (of_nat :: (nat \<Rightarrow> 'a)) (n + 1 - k) / of_nat (n + 1) * (\<Prod>i=0..<k. of_nat (Suc n - i))"
-    by (simp add: field_simps)
-  with assms show ?thesis
-    by (simp add: binomial_altdef_of_nat prod_dividef)
-qed
-
-lemma real_binomial_eq_mult_binomial_Suc:
-  assumes "k \<le> n"
-  shows "(n choose k) = (n + 1 - k) / (n + 1) * (Suc n choose k)"
-by (metis Suc_eq_plus1 add.commute assms le_SucI of_nat_Suc of_nat_binomial_eq_mult_binomial_Suc of_nat_diff)
-
 subsection \<open>Preliminaries\<close>
 
 lemma integrals_eq:
-  assumes "f 0 = g 0"
+  assumes "f a = g a"
   assumes "\<And> x. ((\<lambda>x. f x - g x) has_real_derivative 0) (at x)"
   shows "f x = g x"
-proof -
-  show "f x = g x"
-  proof (cases "x \<noteq> 0")
-    case True
-    from assms DERIV_const_ratio_const[OF this, of "\<lambda>x. f x - g x" 0]
-    show ?thesis by auto
-  qed (simp add: assms)
-qed
+  by (metis (no_types, lifting) DERIV_isconst_all assms(1) assms(2) eq_iff_diff_eq_0)
 
 lemma sum_diff: "((\<Sum>i\<le>n::nat. f (i + 1) - f i)::'a::field) = f (n + 1) - f 0"
-by (induct n) (auto simp add: field_simps)
+  by (induct n) (auto simp add: field_simps)
 
 declare One_nat_def [simp del]
 
