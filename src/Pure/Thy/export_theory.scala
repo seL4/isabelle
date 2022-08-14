@@ -26,10 +26,11 @@ object Export_Theory {
 
   def read_session(
     session_context: Export.Session_Context,
+    session_stack: Boolean = false,
     progress: Progress = new Progress
   ): Session = {
     val thys =
-      for (theory <- theory_names(session_context)) yield {
+      for (theory <- theory_names(session_context, session_stack = session_stack)) yield {
         progress.echo("Reading theory " + theory)
         read_theory(session_context.theory(theory))
       }
@@ -104,11 +105,16 @@ object Export_Theory {
     theory_context.get(Export.THEORY_PREFIX + "parents")
       .map(entry => Library.trim_split_lines(entry.uncompressed.text))
 
-  def theory_names(session_context: Export.Session_Context): List[String] =
+  def theory_names(
+    session_context: Export.Session_Context,
+    session_stack: Boolean = false
+  ): List[String] = {
+    val session = if (session_stack) "" else session_context.session_name
     for {
-      theory <- session_context.theory_names()
+      theory <- session_context.theory_names(session = session)
       if read_theory_parents(session_context.theory(theory)).isDefined
     } yield theory
+  }
 
   def no_theory: Theory =
     Theory("", Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Map.empty)
