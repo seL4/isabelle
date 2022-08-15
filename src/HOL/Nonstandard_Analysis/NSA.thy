@@ -460,7 +460,6 @@ lemma Infinitesimal_interval2:
   for x :: hypreal
   by (auto intro: Infinitesimal_interval simp add: order_le_less)
 
-
 lemma lemma_Infinitesimal_hyperpow: "x \<in> Infinitesimal \<Longrightarrow> 0 < N \<Longrightarrow> \<bar>x pow N\<bar> \<le> \<bar>x\<bar>"
   for x :: hypreal
   apply (clarsimp simp: Infinitesimal_def)
@@ -1465,13 +1464,13 @@ lemma FreeUltrafilterNat_const_Finite:
   by (simp add: FreeUltrafilterNat_HFinite [where u = "u+1"] eventually_mono)
 
 lemma HInfinite_FreeUltrafilterNat:
-  "star_n X \<in> HInfinite \<Longrightarrow> eventually (\<lambda>n. u < norm (X n)) \<U>"
-  apply (drule HInfinite_HFinite_iff [THEN iffD1])
-  apply (simp add: HFinite_FreeUltrafilterNat_iff)
-  apply (drule_tac x="u + 1" in spec)
-  apply (simp add: FreeUltrafilterNat.eventually_not_iff[symmetric])
-  apply (auto elim: eventually_mono)
-  done
+  assumes "star_n X \<in> HInfinite" shows "\<forall>\<^sub>F n in \<U>. u < norm (X n)"
+proof -
+have "\<not> (\<forall>\<^sub>F n in \<U>. norm (X n) < u + 1)"
+  using FreeUltrafilterNat_HFinite HFinite_HInfinite_iff assms by auto
+  then show ?thesis
+    by (auto simp flip: FreeUltrafilterNat.eventually_not_iff elim: eventually_mono)
+qed
 
 lemma FreeUltrafilterNat_HInfinite:
   assumes "\<And>u. eventually (\<lambda>n. u < norm (X n)) \<U>"
@@ -1500,18 +1499,12 @@ lemma ball_SReal_eq: "(\<forall>x::hypreal \<in> Reals. P x) \<longleftrightarro
 
 lemma Infinitesimal_FreeUltrafilterNat_iff:
   "(star_n X \<in> Infinitesimal) = (\<forall>u>0. eventually (\<lambda>n. norm (X n) < u) \<U>)"  (is "?lhs = ?rhs")
-proof 
-  assume ?lhs
-  then show ?rhs
-    apply (simp add: Infinitesimal_def ball_SReal_eq)
-    apply (simp add: hnorm_def starfun_star_n star_of_def star_less_def starP2_star_n)
-    done
-next
-  assume ?rhs
-  then show ?lhs
-    apply (simp add: Infinitesimal_def ball_SReal_eq)
-    apply (simp add: hnorm_def starfun_star_n star_of_def star_less_def starP2_star_n)
-    done
+proof -
+  have "?lhs \<longleftrightarrow> (\<forall>r>0. hnorm (star_n X) < hypreal_of_real r)"
+    by (simp add: Infinitesimal_def ball_SReal_eq)
+  also have "... \<longleftrightarrow> ?rhs"
+    by (simp add: hnorm_def starfun_star_n star_of_def star_less_def starP2_star_n)
+  finally show ?thesis .
 qed
 
 
@@ -1521,16 +1514,18 @@ lemma lemma_Infinitesimal: "(\<forall>r. 0 < r \<longrightarrow> x < r) \<longle
   by (meson inverse_positive_iff_positive less_trans of_nat_0_less_iff reals_Archimedean zero_less_Suc)
 
 lemma lemma_Infinitesimal2:
-  "(\<forall>r \<in> Reals. 0 < r \<longrightarrow> x < r) \<longleftrightarrow> (\<forall>n. x < inverse(hypreal_of_nat (Suc n)))"
-  apply safe
-   apply (drule_tac x = "inverse (hypreal_of_real (real (Suc n))) " in bspec)
-    apply simp_all
-  using less_imp_of_nat_less apply fastforce
-  apply (auto dest!: reals_Archimedean simp add: SReal_iff simp del: of_nat_Suc)
-  apply (drule star_of_less [THEN iffD2])
-  apply simp
-  apply (blast intro: order_less_trans)
-  done
+  "(\<forall>r \<in> Reals. 0 < r \<longrightarrow> x < r) \<longleftrightarrow> (\<forall>n. x < inverse(hypreal_of_nat (Suc n)))" (is "_ = ?rhs")
+proof (intro iffI strip)
+  assume R: ?rhs
+  fix r::hypreal
+  assume "r \<in> \<real>" "0 < r"
+  then obtain n y where "inverse (real (Suc n)) < y" and r: "r = hypreal_of_real y"
+    by (metis SReal_iff reals_Archimedean star_of_0_less)
+  then have "inverse (1 + hypreal_of_nat n) < hypreal_of_real y"
+    by (metis of_nat_Suc star_of_inverse star_of_less star_of_nat_def)
+  then show "x < r"
+    by (metis R r le_less_trans less_imp_le of_nat_Suc)
+qed (meson Reals_inverse Reals_of_nat of_nat_0_less_iff positive_imp_inverse_positive zero_less_Suc)
 
 
 lemma Infinitesimal_hypreal_of_nat_iff:
@@ -1552,10 +1547,14 @@ lemma finite_real_of_nat_segment: "finite {n::nat. real n < real (m::nat)}"
   by auto
 
 lemma finite_real_of_nat_less_real: "finite {n::nat. real n < u}"
-  apply (cut_tac x = u in reals_Archimedean2, safe)
-  apply (rule finite_real_of_nat_segment [THEN [2] finite_subset])
-  apply (auto dest: order_less_trans)
-  done
+proof -
+  obtain m where "u < real m"
+    using reals_Archimedean2 by blast
+  then have "{n. real n < u} \<subseteq> {..<m}"
+    by force
+  then show ?thesis
+    using finite_nat_iff_bounded by force
+qed
 
 lemma finite_real_of_nat_le_real: "finite {n::nat. real n \<le> u}"
   by (metis infinite_nat_iff_unbounded leD le_nat_floor mem_Collect_eq)
@@ -1619,7 +1618,7 @@ lemma finite_inverse_real_of_posnat_ge_real:
   shows "finite {n. u \<le> inverse (real (Suc n))}"
 proof -
   have "\<forall>na. u \<le> inverse (1 + real na) \<longrightarrow> na \<le> ceiling (inverse u)"
-    by (metis add.commute add1_zle_eq assms ceiling_mono ceiling_of_nat dual_order.order_iff_strict inverse_inverse_eq le_imp_inverse_le semiring_1_class.of_nat_simps(2))
+    by (smt (verit, best) assms ceiling_less_cancel ceiling_of_nat inverse_inverse_eq inverse_le_iff_le)
   then show ?thesis
     apply (auto simp add: finite_nat_set_iff_bounded_le)
     by (meson assms inverse_positive_iff_positive le_nat_iff less_imp_le zero_less_ceiling)

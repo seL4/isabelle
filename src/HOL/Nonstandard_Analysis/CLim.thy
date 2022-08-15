@@ -20,22 +20,7 @@ lemma lemma_complex_mult_inverse_squared [simp]: "x \<noteq> 0 \<Longrightarrow>
 
 text \<open>Changing the quantified variable. Install earlier?\<close>
 lemma all_shift: "(\<forall>x::'a::comm_ring_1. P x) \<longleftrightarrow> (\<forall>x. P (x - a))"
-  apply auto
-  apply (drule_tac x = "x + a" in spec)
-  apply (simp add: add.assoc)
-  done
-
-lemma complex_add_minus_iff [simp]: "x + - a = 0 \<longleftrightarrow> x = a"
-  for x a :: complex
-  by (simp add: diff_eq_eq)
-
-lemma complex_add_eq_0_iff [iff]: "x + y = 0 \<longleftrightarrow> y = - x"
-  for x y :: complex
-  apply auto
-  apply (drule sym [THEN diff_eq_eq [THEN iffD2]])
-  apply auto
-  done
-
+  by (metis add_diff_cancel)
 
 subsection \<open>Limit of Complex to Complex Function\<close>
 
