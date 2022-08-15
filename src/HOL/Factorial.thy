@@ -64,11 +64,7 @@ lemma fact_reduce: "n > 0 \<Longrightarrow> fact n = of_nat n * fact (n - 1)"
   by (cases n) auto
 
 lemma fact_nonzero [simp]: "fact n \<noteq> (0::'a::{semiring_char_0,semiring_no_zero_divisors})"
-  apply (induct n)
-  apply auto
-  using of_nat_eq_0_iff
-  apply fastforce
-  done
+  using of_nat_0_neq by (induct n) auto
 
 lemma fact_mono_nat: "m \<le> n \<Longrightarrow> fact m \<le> (fact n :: nat)"
   by (induct n) (auto simp: le_Suc_eq)

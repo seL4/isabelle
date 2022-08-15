@@ -1066,7 +1066,8 @@ lemma of_nat_binomial_eq_mult_binomial_Suc:
   assumes "k \<le> n"
   shows "(of_nat :: (nat \<Rightarrow> ('a :: field_char_0))) (n choose k) = of_nat (n + 1 - k) / of_nat (n + 1) * of_nat (Suc n choose k)"
 proof (cases k)
-  case 0 then show ?thesis by simp
+  case 0 then show ?thesis
+    using of_nat_neq_0 by auto
 next
   case (Suc l)
   have "of_nat (n + 1) * (\<Prod>i=0..<k. of_nat (n - i)) = (of_nat :: (nat \<Rightarrow> 'a)) (n + 1 - k) * (\<Prod>i=0..<k. of_nat (Suc n - i))"
@@ -1077,7 +1078,7 @@ next
   also have "... = (of_nat :: (nat \<Rightarrow> 'a)) (n + 1 - k) * (\<Prod>i=0..<k. of_nat (Suc n - i))"
     by (simp only: Suc_eq_plus1)
   finally have "(\<Prod>i=0..<k. of_nat (n - i)) = (of_nat :: (nat \<Rightarrow> 'a)) (n + 1 - k) / of_nat (n + 1) * (\<Prod>i=0..<k. of_nat (Suc n - i))"
-    by (simp add: field_simps)
+    using of_nat_neq_0 by (auto simp: mult.commute divide_simps)
   with assms show ?thesis
     by (simp add: binomial_altdef_of_nat prod_dividef)
 qed
