@@ -110,7 +110,7 @@ fun play_one_line_proofs minimize timeout used_facts state i methss =
                  comment = ""}
              val ress' =
                preplay_isar_step ctxt chained timeout [] (mk_step meths)
-               |> map (fn result as (meth, play_outcome) =>
+               |> map (fn (meth, play_outcome) =>
                   (case (minimize, play_outcome) of
                     (true, Played time) =>
                     let
@@ -137,8 +137,11 @@ fun select_one_line_proof used_facts preferred_meth preplay_results =
     (* Select best method if preplay succeeded *)
     (best_meth, best_outcome as Played _, best_used_facts) :: _ =>
     (best_used_facts, (best_meth, best_outcome))
-    (* Otherwise select preferred method with dummy timeout *)
-  | _ => (used_facts, (preferred_meth, Play_Timed_Out Time.zeroTime)))
+    (* Otherwise select preferred method *)
+  | (fst_meth, fst_outcome, _) :: _ =>
+    (used_facts, (preferred_meth,
+       if fst_meth = preferred_meth then fst_outcome else Play_Timed_Out Time.zeroTime))
+  | [] => (used_facts, (preferred_meth, Play_Timed_Out Time.zeroTime)))
   |> apfst (filter_out (fn (_, (sc, _)) => sc = Chained))
 
 fun launch_prover (params as {verbose, spy, slices, timeout, ...}) mode learn
