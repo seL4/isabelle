@@ -494,9 +494,12 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
                   (if do_preplay then [string_of_play_outcome play_outcome] else [])
               in
                 one_line_proof_text ctxt 0 one_line_params ^
-                "\n\nIsar proof" ^ (commas msg |> not (null msg) ? enclose " (" ")") ^ ":\n" ^
-                Active.sendback_markup_command
-                  (string_of_isar_proof ctxt subgoal subgoal_count isar_proof)
+                (if isar_proofs <> NONE orelse (case play_outcome of Played _ => true | _ => false) then
+                   "\n\nIsar proof" ^ (commas msg |> not (null msg) ? enclose " (" ")") ^ ":\n" ^
+                   Active.sendback_markup_command
+                     (string_of_isar_proof ctxt subgoal subgoal_count isar_proof)
+                 else
+                   "")
               end)
           end
       end

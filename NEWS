@@ -146,6 +146,8 @@ longer. INCOMPATIBILITY.
   - Added support for TX0 and TX1 TPTP formats and $ite/$let expressions
     in TH0 and TH1.
   - Added support for cvc5.
+  - Generate Isar proofs by default when and only when the one-liner proof
+    fails to replay and the Isar proof succeeds.
   - Replaced option "sledgehammer_atp_dest_dir" by
     "sledgehammer_atp_problem_dest_dir", for problem files, and
     "sledgehammer_atp_proof_dest_dir", for proof files. Minor INCOMPATIBILITY.
