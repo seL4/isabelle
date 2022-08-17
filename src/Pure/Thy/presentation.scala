@@ -192,27 +192,27 @@ object Presentation {
 
   /* formal entities */
 
+  object Theory_Ref {
+    def unapply(props: Properties.T): Option[Document.Node.Name] =
+      (props, props, props) match {
+        case (Markup.Kind(Markup.THEORY), Markup.Name(theory), Position.Def_File(thy_file)) =>
+          Some(Resources.file_node(Path.explode(thy_file), theory = theory))
+        case _ => None
+      }
+  }
+
+  object Entity_Ref {
+    def unapply(props: Properties.T): Option[(Path, Option[String], String, String)] =
+      (props, props, props, props) match {
+        case (Markup.Entity.Ref.Prop(_), Position.Def_File(def_file),
+        Markup.Kind(kind), Markup.Name(name)) =>
+          val def_theory = Position.Def_Theory.unapply(props)
+          Some((Path.explode(def_file), def_theory, kind, name))
+        case _ => None
+      }
+  }
+
   object Entity_Context {
-    object Theory_Ref {
-      def unapply(props: Properties.T): Option[Document.Node.Name] =
-        (props, props, props) match {
-          case (Markup.Kind(Markup.THEORY), Markup.Name(theory), Position.Def_File(thy_file)) =>
-            Some(Resources.file_node(Path.explode(thy_file), theory = theory))
-          case _ => None
-        }
-    }
-
-    object Entity_Ref {
-      def unapply(props: Properties.T): Option[(Path, Option[String], String, String)] =
-        (props, props, props, props) match {
-          case (Markup.Entity.Ref.Prop(_), Position.Def_File(def_file),
-              Markup.Kind(kind), Markup.Name(name)) =>
-            val def_theory = Position.Def_Theory.unapply(props)
-            Some((Path.explode(def_file), def_theory, kind, name))
-          case _ => None
-        }
-    }
-
     val empty: Entity_Context = new Entity_Context
 
     def make(
