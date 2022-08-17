@@ -571,10 +571,6 @@ object Presentation {
           map(link => HTML.text("View ") ::: List(link))).flatten
     }
 
-    def entity_context(name: Document.Node.Name): Entity_Context =
-      Entity_Context.make(session, name, html_context)
-
-
     sealed case class Seen_File(
       src_path: Path,
       thy_name: Document.Node.Name,
@@ -615,8 +611,8 @@ object Presentation {
 
         val thy_html =
           html_context.source(
-            make_html(entity_context(name), thy_elements,
-              snapshot.xml_markup(elements = thy_elements.html)))
+            make_html(Entity_Context.make(session, name, html_context),
+              thy_elements, snapshot.xml_markup(elements = thy_elements.html)))
 
         val thy_session = html_context.theory_session_info(name).name
         val thy_dir = Isabelle_System.make_directory(html_context.theory_dir(name))
