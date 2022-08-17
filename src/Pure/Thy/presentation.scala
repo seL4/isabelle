@@ -134,7 +134,7 @@ object Presentation {
       val batches =
         presentation_sessions.foldLeft((Set.empty[String], List.empty[Batch]))(
           { case ((seen, batches), session) =>
-              val thys = deps(session).loaded_theories.keys.filterNot(seen)
+              val thys = deps(session).loaded_theories.keys_iterator.filterNot(seen).toList
               (seen ++ thys, (session, thys) :: batches)
           })._2
 
