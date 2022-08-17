@@ -450,7 +450,7 @@ public class Build
 
     /** build **/
 
-    public static void build(PrintStream output, Context context, boolean fresh)
+    public static void build(List<Path> classpath, PrintStream output, Context context, boolean fresh)
         throws NoSuchAlgorithmException, IOException, InterruptedException
     {
         String module = context.module_result();
@@ -492,18 +492,11 @@ public class Build
                         output.print("### Building " + title + " (" + jar_path + ") ...\n");
                     }
 
-                    String classpath1 = Environment.getenv("ISABELLE_CLASSPATH");
-                    String classpath2 = Environment.getenv("ISABELLE_SETUP_CLASSPATH");
-
                     Path build_dir = Files.createTempDirectory("isabelle");
                     try {
                         /* compile sources */
 
-                        for (String s : (classpath1 + ":" + classpath2).split(":", -1)) {
-                            if (!s.isEmpty()) {
-                              compiler_deps.add(Path.of(Environment.platform_path(s)));
-                            }
-                        }
+                        compiler_deps.addAll(classpath);
 
                         List<Path> compiler_sources = new LinkedList<Path>();
                         for (String s : sources) { compiler_sources.add(context.path(s)); }
@@ -563,8 +556,15 @@ public class Build
     public static void build_components(PrintStream output, boolean fresh)
         throws NoSuchAlgorithmException, IOException, InterruptedException
     {
+        List<Path> classpath = new LinkedList<Path>();
+        for (String s : Environment.getenv("ISABELLE_CLASSPATH").split(":", -1)) {
+            if (!s.isEmpty()) {
+                classpath.add(Path.of(Environment.platform_path(s)));
+            }
+        }
+
         for (Context context : component_contexts()) {
-            build(output, context, fresh);
+            build(classpath, output, context, fresh);
         }
     }
 }

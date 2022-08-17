@@ -10,6 +10,7 @@ package isabelle
 import java.util.{Properties => JProperties}
 import java.io.{ByteArrayOutputStream, PrintStream}
 import java.nio.file.Files
+import java.nio.file.{Path => JPath}
 
 import scala.jdk.CollectionConverters._
 
@@ -39,15 +40,22 @@ object Scala_Build {
         p <- java_context.requirement_paths(s).asScala.iterator
       } yield (File.path(p.toFile))).toList
 
-    def build(fresh: Boolean = false): String = {
+    def build(
+      classpath: List[Path] = Path.split(Isabelle_System.getenv("ISABELLE_CLASSPATH")),
+      fresh: Boolean = false
+    ): String = {
+      val java_classpath = new java.util.LinkedList[JPath]
+      classpath.foreach(path => java_classpath.add(path.java_path))
+
       val output0 = new ByteArrayOutputStream
       val output = new PrintStream(output0)
       def get_output(): String = {
         output.flush()
         Library.trim_line(output0.toString(UTF8.charset))
       }
+
       try {
-        isabelle.setup.Build.build(output, java_context, fresh)
+        isabelle.setup.Build.build(java_classpath, output, java_context, fresh)
         get_output()
       }
       catch { case ERROR(msg) => cat_error(get_output(), msg) }
@@ -87,7 +95,7 @@ object Scala_Build {
     Isabelle_System.with_tmp_file("result", "jar") { tmp_file =>
       val output =
         context(dir, component = component, no_title = true, do_build = true,
-          module = Some(tmp_file)).build()
+          module = Some(tmp_file)).build(classpath = Classpath().jars.map(File.path))
       val jar_bytes = Bytes.read(tmp_file)
       val jar_path = context(dir, component = component).module_result
       Result(output, jar_bytes, jar_path)
