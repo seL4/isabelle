@@ -511,8 +511,8 @@ object Presentation {
 
   /* present session */
 
-  val session_graph_path = Path.explode("session_graph.pdf")
-  val readme_path = Path.explode("README.html")
+  val session_graph_path: Path = Path.explode("session_graph.pdf")
+  val readme_path: Path = Path.explode("README.html")
 
   def html_name(name: Document.Node.Name): String = Path.explode(name.theory_base_name).html.implode
   def files_path(src_path: Path): String = (Path.explode("files") + src_path.squash.html).implode
