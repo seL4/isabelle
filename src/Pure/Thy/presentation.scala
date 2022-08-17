@@ -30,8 +30,10 @@ object Presentation {
   ) {
     /* directory structure and resources */
 
+    def theory_session(name: Document.Node.Name): String =
+      sessions_structure.theory_qualifier(name)
     def theory_session_info(name: Document.Node.Name): Sessions.Info =
-      sessions_structure(sessions_structure.theory_qualifier(name))
+      sessions_structure(theory_session(name))
 
     def session_dir(info: Sessions.Info): Path =
       root_dir + Path.explode(info.chapter_session)
@@ -614,7 +616,7 @@ object Presentation {
             make_html(Entity_Context.make(session, name, html_context),
               thy_elements, snapshot.xml_markup(elements = thy_elements.html)))
 
-        val thy_session = html_context.theory_session_info(name).name
+        val thy_session = html_context.theory_session(name)
         val thy_dir = Isabelle_System.make_directory(html_context.theory_dir(name))
         val files =
           for { (src_path, file_html) <- files_html }
