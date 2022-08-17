@@ -7,9 +7,58 @@ theory Signed_Division
   imports Main
 begin
 
-class signed_division =
-  fixes signed_divide :: \<open>'a \<Rightarrow> 'a \<Rightarrow> 'a\<close> (infixl "sdiv" 70)
-  and signed_modulo :: \<open>'a \<Rightarrow> 'a \<Rightarrow> 'a\<close> (infixl "smod" 70)
+lemma sgn_div_eq_sgn_mult:
+  \<open>sgn (a div b) = sgn (a * b)\<close>
+  if \<open>a div b \<noteq> 0\<close> for a b :: int
+proof -
+  have \<open>0 \<le> \<bar>a\<bar> div \<bar>b\<bar>\<close>
+    by (cases \<open>b = 0\<close>) (simp_all add: pos_imp_zdiv_nonneg_iff)
+  then have \<open>\<bar>a\<bar> div \<bar>b\<bar> \<noteq> 0 \<longleftrightarrow> 0 < \<bar>a\<bar> div \<bar>b\<bar>\<close>
+    by (simp add: less_le)
+  also have \<open>\<dots> \<longleftrightarrow> \<bar>a\<bar> \<ge> \<bar>b\<bar>\<close>
+    using that nonneg1_imp_zdiv_pos_iff by auto
+  finally have *: \<open>\<bar>a\<bar> div \<bar>b\<bar> \<noteq> 0 \<longleftrightarrow> \<bar>b\<bar> \<le> \<bar>a\<bar>\<close> .
+  show ?thesis
+    using \<open>0 \<le> \<bar>a\<bar> div \<bar>b\<bar>\<close> that
+  by (auto simp add: div_eq_div_abs [of a b] div_eq_sgn_abs [of a b]
+    sgn_mult sgn_1_pos sgn_1_neg sgn_eq_0_iff nonneg1_imp_zdiv_pos_iff * dest: sgn_not_eq_imp)
+qed
+
+class signed_division = comm_semiring_1_cancel +
+  fixes signed_divide :: \<open>'a \<Rightarrow> 'a \<Rightarrow> 'a\<close> (infixl \<open>sdiv\<close> 70)
+  and signed_modulo :: \<open>'a \<Rightarrow> 'a \<Rightarrow> 'a\<close> (infixl \<open>smod\<close> 70)
+  assumes sdiv_mult_smod_eq: \<open>a sdiv b * b + a smod b = a\<close>
+begin
+
+lemma mult_sdiv_smod_eq:
+  \<open>b * (a sdiv b) + a smod b = a\<close>
+  using sdiv_mult_smod_eq [of a b] by (simp add: ac_simps)
+
+lemma smod_sdiv_mult_eq:
+  \<open>a smod b + a sdiv b * b = a\<close>
+  using sdiv_mult_smod_eq [of a b] by (simp add: ac_simps)
+
+lemma smod_mult_sdiv_eq:
+  \<open>a smod b + b * (a sdiv b) = a\<close>
+  using sdiv_mult_smod_eq [of a b] by (simp add: ac_simps)
+
+lemma minus_sdiv_mult_eq_smod:
+  \<open>a - a sdiv b * b = a smod b\<close>
+  by (rule add_implies_diff [symmetric]) (fact smod_sdiv_mult_eq)
+
+lemma minus_mult_sdiv_eq_smod:
+  \<open>a - b * (a sdiv b) = a smod b\<close>
+  by (rule add_implies_diff [symmetric]) (fact smod_mult_sdiv_eq)
+
+lemma minus_smod_eq_sdiv_mult:
+  \<open>a - a smod b = a sdiv b * b\<close>
+  by (rule add_implies_diff [symmetric]) (fact sdiv_mult_smod_eq)
+
+lemma minus_smod_eq_mult_sdiv:
+  \<open>a - a smod b = b * (a sdiv b)\<close>
+  by (rule add_implies_diff [symmetric]) (fact mult_sdiv_smod_eq)
+
+end
 
 instantiation int :: signed_division
 begin
@@ -18,11 +67,44 @@ definition signed_divide_int :: \<open>int \<Rightarrow> int \<Rightarrow> int\<
   where \<open>k sdiv l = sgn k * sgn l * (\<bar>k\<bar> div \<bar>l\<bar>)\<close> for k l :: int
 
 definition signed_modulo_int :: \<open>int \<Rightarrow> int \<Rightarrow> int\<close>
-  where \<open>k smod l = k - (k sdiv l) * l\<close> for k l :: int
+  where \<open>k smod l = sgn k * (\<bar>k\<bar> mod \<bar>l\<bar>)\<close> for k l :: int
 
-instance ..
+instance by standard
+  (simp add: signed_divide_int_def signed_modulo_int_def div_abs_eq mod_abs_eq algebra_simps)
 
 end
+
+lemma divide_int_eq_signed_divide_int:
+  \<open>k div l = k sdiv l - of_bool (l \<noteq> 0 \<and> sgn k \<noteq> sgn l \<and> \<not> l dvd k)\<close>
+  for k l :: int
+  by (simp add: div_eq_div_abs [of k l] signed_divide_int_def)
+
+lemma signed_divide_int_eq_divide_int:
+  \<open>k sdiv l = k div l + of_bool (l \<noteq> 0 \<and> sgn k \<noteq> sgn l \<and> \<not> l dvd k)\<close>
+  for k l :: int
+  by (simp add: divide_int_eq_signed_divide_int)
+
+lemma modulo_int_eq_signed_modulo_int:
+  \<open>k mod l = k smod l + l * of_bool (sgn k \<noteq> sgn l \<and> \<not> l dvd k)\<close>
+  for k l :: int
+  by (simp add: mod_eq_mod_abs [of k l] signed_modulo_int_def)
+
+lemma signed_modulo_int_eq_modulo_int:
+  \<open>k smod l = k mod l - l * of_bool (sgn k \<noteq> sgn l \<and> \<not> l dvd k)\<close>
+  for k l :: int
+  by (simp add: modulo_int_eq_signed_modulo_int)
+
+lemma sdiv_int_div_0:
+  "(x :: int) sdiv 0 = 0"
+  by (clarsimp simp: signed_divide_int_def)
+
+lemma sdiv_int_0_div [simp]:
+  "0 sdiv (x :: int) = 0"
+  by (clarsimp simp: signed_divide_int_def)
+
+lemma smod_int_alt_def:
+     "(a::int) smod b = sgn (a) * (abs a mod abs b)"
+  by (fact signed_modulo_int_def)
 
 lemma int_sdiv_simps [simp]:
     "(a :: int) sdiv 1 = a"
@@ -31,11 +113,13 @@ lemma int_sdiv_simps [simp]:
   apply (auto simp: signed_divide_int_def sgn_if)
   done
 
-lemma sgn_div_eq_sgn_mult:
-    "a div b \<noteq> 0 \<Longrightarrow> sgn ((a :: int) div b) = sgn (a * b)"
-  apply (clarsimp simp: sgn_if zero_le_mult_iff neg_imp_zdiv_nonneg_iff not_less)
-  apply (metis less_le mult_le_0_iff neg_imp_zdiv_neg_iff not_less pos_imp_zdiv_neg_iff zdiv_eq_0_iff)
-  done
+lemma smod_int_mod_0 [simp]:
+  "x smod (0 :: int) = x"
+  by (clarsimp simp: signed_modulo_int_def abs_mult_sgn ac_simps)
+
+lemma smod_int_0_mod [simp]:
+  "0 smod (x :: int) = 0"
+  by (clarsimp simp: smod_int_alt_def)
 
 lemma sgn_sdiv_eq_sgn_mult:
   "a sdiv b \<noteq> 0 \<Longrightarrow> sgn ((a :: int) sdiv b) = sgn (a * b)"
@@ -71,38 +155,17 @@ lemma int_sdiv_negated_is_minus1 [simp]:
   done
 
 lemma sdiv_int_range:
-    "(a :: int) sdiv b \<in> { - (abs a) .. (abs a) }"
-  apply (unfold signed_divide_int_def)
-  apply (subgoal_tac "(abs a) div (abs b) \<le> (abs a)")
-   apply (auto simp add: sgn_if not_less)
-      apply (metis le_less le_less_trans neg_equal_0_iff_equal neg_less_iff_less not_le pos_imp_zdiv_neg_iff)
-     apply (metis add.inverse_neutral div_int_pos_iff le_less neg_le_iff_le order_trans)
-    apply (metis div_minus_right le_less_trans neg_imp_zdiv_neg_iff neg_less_0_iff_less not_le)
-  using div_int_pos_iff apply fastforce
-  apply (auto simp add: abs_if not_less)
-     apply (metis add.inverse_inverse add_0_left div_by_1 div_minus_right less_le neg_0_le_iff_le not_le not_one_le_zero zdiv_mono2 zless_imp_add1_zle)
-    apply (metis div_by_1 neg_0_less_iff_less pos_imp_zdiv_pos_iff zdiv_mono2 zero_less_one)
-   apply (metis add.inverse_neutral div_by_0 div_by_1 int_div_less_self int_one_le_iff_zero_less less_le less_minus_iff order_refl)
-  apply (metis div_by_1 divide_int_def int_div_less_self less_le linorder_neqE_linordered_idom order_refl unique_euclidean_semiring_numeral_class.div_less)
-  done
-
-lemma sdiv_int_div_0 [simp]:
-  "(x :: int) sdiv 0 = 0"
-  by (clarsimp simp: signed_divide_int_def)
-
-lemma sdiv_int_0_div [simp]:
-  "0 sdiv (x :: int) = 0"
-  by (clarsimp simp: signed_divide_int_def)
-
-lemma smod_int_alt_def:
-     "(a::int) smod b = sgn (a) * (abs a mod abs b)"
-  apply (clarsimp simp: signed_modulo_int_def signed_divide_int_def)
-  apply (clarsimp simp: minus_div_mult_eq_mod [symmetric] abs_sgn sgn_mult sgn_if algebra_split_simps)
-  done
+  \<open>a sdiv b \<in> {- \<bar>a\<bar>..\<bar>a\<bar>}\<close> for a b :: int
+  using zdiv_mono2 [of \<open>\<bar>a\<bar>\<close> 1 \<open>\<bar>b\<bar>\<close>]
+  by (cases \<open>b = 0\<close>; cases \<open>sgn b = sgn a\<close>)
+     (auto simp add: signed_divide_int_def pos_imp_zdiv_nonneg_iff
+     dest!: sgn_not_eq_imp intro: order_trans [of _ 0])
 
 lemma smod_int_range:
-  "b \<noteq> 0 \<Longrightarrow> (a::int) smod b \<in> { - abs b + 1 .. abs b - 1 }"
-  apply (case_tac  "b > 0")
+  \<open>a smod b \<in> {- \<bar>b\<bar> + 1..\<bar>b\<bar> - 1}\<close>
+  if \<open>b \<noteq> 0\<close> for a b :: int
+  using that
+  apply (cases \<open>b > 0\<close>)
    apply (insert pos_mod_conj [where a=a and b=b])[1]
    apply (insert pos_mod_conj [where a="-a" and b=b])[1]
    apply (auto simp: smod_int_alt_def algebra_simps sgn_if
@@ -128,14 +191,6 @@ lemma smod_int_compares:
   apply (insert smod_int_range [where a=a and b=b])
   apply (auto simp: add1_zle_eq smod_int_alt_def sgn_if)
   done
-
-lemma smod_int_mod_0 [simp]:
-  "x smod (0 :: int) = x"
-  by (clarsimp simp: signed_modulo_int_def)
-
-lemma smod_int_0_mod [simp]:
-  "0 smod (x :: int) = 0"
-  by (clarsimp simp: smod_int_alt_def)
 
 lemma smod_mod_positive:
     "\<lbrakk> 0 \<le> (a :: int); 0 \<le> b \<rbrakk> \<Longrightarrow> a smod b = a mod b"

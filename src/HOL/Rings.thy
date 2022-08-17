@@ -2567,6 +2567,10 @@ lemma sgn_mult_self_eq [simp]:
   "sgn a * sgn a = of_bool (a \<noteq> 0)"
   by (cases "a > 0") simp_all
 
+lemma left_sgn_mult_self_eq [simp]:
+  \<open>sgn a * (sgn a * b) = of_bool (a \<noteq> 0) * b\<close>
+  by (simp flip: mult.assoc)
+
 lemma abs_mult_self_eq [simp]:
   "\<bar>a\<bar> * \<bar>a\<bar> = a * a"
   by (cases "a > 0") simp_all

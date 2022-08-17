@@ -39,7 +39,7 @@ Minor INCOMPATIBILITY.
 
 * New Theory Code_Abstract_Char implements characters by target language
 integers, sacrificing pattern patching in exchange for dramatically
-increased performance for comparisions.
+increased performance for comparisons.
 
 * New theory HOL-Library.NList of fixed length lists
 
@@ -48,6 +48,9 @@ split_if_asm.  INCOMPATIBILITY.
 
 * Theory "HOL.Bit_Operations": rule bit_0 is not default [simp] any
 longer. INCOMPATIBILITY.
+
+* Streamlined primitive definitions of division and modulus on integers.
+INCOMPATIBILITY.
 
 * Theory "HOL.Fun":
   - Added predicate monotone_on and redefined monotone to be an

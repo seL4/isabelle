@@ -7,6 +7,15 @@ theory Bit_Operations
   imports Presburger Groups_List
 begin
 
+lemma half_nonnegative_int_iff [simp]:
+  \<open>k div 2 \<ge> 0 \<longleftrightarrow> k \<ge> 0\<close> for k :: int
+  by auto
+
+lemma half_negative_int_iff [simp]:
+  \<open>k div 2 < 0 \<longleftrightarrow> k < 0\<close> for k :: int
+  by auto
+
+
 subsection \<open>Abstract bit structures\<close>
 
 class semiring_bits = semiring_parity +
@@ -1465,7 +1474,7 @@ lemma even_not_iff_int:
 
 lemma not_int_div_2:
   \<open>NOT k div 2 = NOT (k div 2)\<close> for k :: int
-  by (cases k) (simp_all add: not_int_def divide_int_def nat_add_distrib)
+  by (simp add: not_int_def)
 
 lemma bit_not_int_iff:
   \<open>bit (NOT k) n \<longleftrightarrow> \<not> bit k n\<close>
@@ -1729,7 +1738,7 @@ next
   case (odd k)
   from odd.IH [of \<open>l div 2\<close>] odd.hyps odd.prems
   show ?case
-    by (simp add: and_int_rec [of _ l]) linarith
+    by (simp add: and_int_rec [of _ l])
 qed
 
 lemma or_nonnegative_int_iff [simp]:
@@ -1754,7 +1763,7 @@ next
   case (even k)
   from even.IH [of \<open>l div 2\<close>] even.hyps even.prems
   show ?case
-    by (simp add: or_int_rec [of _ l]) linarith
+    by (simp add: or_int_rec [of _ l])
 next
   case (odd k)
   from odd.IH [of \<open>l div 2\<close>] odd.hyps odd.prems
@@ -2172,22 +2181,6 @@ lemma take_bit_int_greater_eq_self_iff:
 lemma not_exp_less_eq_0_int [simp]:
   \<open>\<not> 2 ^ n \<le> (0::int)\<close>
   by (simp add: power_le_zero_eq)
-
-lemma half_nonnegative_int_iff [simp]:
-  \<open>k div 2 \<ge> 0 \<longleftrightarrow> k \<ge> 0\<close> for k :: int
-proof (cases \<open>k \<ge> 0\<close>)
-  case True
-  then show ?thesis
-    by (auto simp add: divide_int_def sgn_1_pos)
-next
-  case False
-  then show ?thesis
-    by (auto simp add: divide_int_def not_le elim!: evenE)
-qed
-
-lemma half_negative_int_iff [simp]:
-  \<open>k div 2 < 0 \<longleftrightarrow> k < 0\<close> for k :: int
-  by (subst Not_eq_iff [symmetric]) (simp add: not_less)
 
 lemma int_bit_bound:
   fixes k :: int

@@ -11,6 +11,43 @@ begin
 
 subsection \<open>More on division\<close>
 
+subsubsection \<open>Laws for div and mod with Unary Minus\<close>
+
+lemma zmod_zminus1_not_zero:
+  fixes k l :: int
+  shows "- k mod l \<noteq> 0 \<Longrightarrow> k mod l \<noteq> 0"
+  by (simp add: mod_eq_0_iff_dvd)
+
+lemma zmod_zminus2_not_zero:
+  fixes k l :: int
+  shows "k mod - l \<noteq> 0 \<Longrightarrow> k mod l \<noteq> 0"
+  by (simp add: mod_eq_0_iff_dvd)
+
+lemma zdiv_zminus1_eq_if:
+  \<open>(- a) div b = (if a mod b = 0 then - (a div b) else - (a div b) - 1)\<close>
+  if \<open>b \<noteq> 0\<close> for a b :: int
+  using that sgn_not_eq_imp [of b \<open>- a\<close>]
+  by (cases \<open>a = 0\<close>) (auto simp add: div_eq_div_abs [of \<open>- a\<close> b] div_eq_div_abs [of a b] sgn_eq_0_iff)
+
+lemma zdiv_zminus2_eq_if:
+  \<open>a div (- b) = (if a mod b = 0 then - (a div b) else - (a div b) - 1)\<close>
+  if \<open>b \<noteq> 0\<close> for a b :: int
+  using that by (auto simp add: zdiv_zminus1_eq_if div_minus_right)
+
+lemma zmod_zminus1_eq_if:
+  \<open>(- a) mod b = (if a mod b = 0 then 0 else b - (a mod b))\<close>
+  for a b :: int
+  by (cases \<open>b = 0\<close>)
+    (auto simp flip: minus_div_mult_eq_mod simp add: zdiv_zminus1_eq_if algebra_simps)
+
+lemma zmod_zminus2_eq_if:
+  \<open>a mod (- b) = (if a mod b = 0 then 0 else (a mod b) - b)\<close>
+  for a b :: int
+  by (auto simp add: zmod_zminus1_eq_if mod_minus_right)
+
+
+subsubsection \<open>Monotonicity in the First Argument (Dividend)\<close>
+
 inductive eucl_rel_int :: "int \<Rightarrow> int \<Rightarrow> int \<times> int \<Rightarrow> bool"
   where eucl_rel_int_by0: "eucl_rel_int k 0 (0, k)"
   | eucl_rel_int_dividesI: "l \<noteq> 0 \<Longrightarrow> k = q * l \<Longrightarrow> eucl_rel_int k l (q, 0)"
@@ -91,139 +128,20 @@ lemma divmod_int_unique:
   using unique_quotient [of k l] unique_remainder [of k l]
   by auto
 
-lemma div_abs_eq_div_nat:
-  "\<bar>k\<bar> div \<bar>l\<bar> = int (nat \<bar>k\<bar> div nat \<bar>l\<bar>)"
-  by (simp add: divide_int_def)
-
-lemma mod_abs_eq_div_nat:
-  "\<bar>k\<bar> mod \<bar>l\<bar> = int (nat \<bar>k\<bar> mod nat \<bar>l\<bar>)"
-  by (simp add: modulo_int_def)
-
-lemma zdiv_int:
-  "int (a div b) = int a div int b"
-  by (simp add: divide_int_def)
-
-lemma zmod_int:
-  "int (a mod b) = int a mod int b"
-  by (simp add: modulo_int_def)
-
-lemma div_sgn_abs_cancel:
-  fixes k l v :: int
-  assumes "v \<noteq> 0"
-  shows "(sgn v * \<bar>k\<bar>) div (sgn v * \<bar>l\<bar>) = \<bar>k\<bar> div \<bar>l\<bar>"
-proof -
-  from assms have "sgn v = - 1 \<or> sgn v = 1"
-    by (cases "v \<ge> 0") auto
-  then show ?thesis
-    using assms unfolding divide_int_def [of "sgn v * \<bar>k\<bar>" "sgn v * \<bar>l\<bar>"]
-    by (fastforce simp add: not_less div_abs_eq_div_nat)
-qed
-
-lemma div_eq_sgn_abs:
-  fixes k l v :: int
-  assumes "sgn k = sgn l"
-  shows "k div l = \<bar>k\<bar> div \<bar>l\<bar>"
-proof (cases "l = 0")
-  case True
-  then show ?thesis
-    by simp
-next
-  case False
-  with assms have "(sgn k * \<bar>k\<bar>) div (sgn l * \<bar>l\<bar>) = \<bar>k\<bar> div \<bar>l\<bar>"
-    using div_sgn_abs_cancel [of l k l] by simp
-  then show ?thesis
-    by (simp add: sgn_mult_abs)
-qed
-
-lemma div_dvd_sgn_abs:
-  fixes k l :: int
-  assumes "l dvd k"
-  shows "k div l = (sgn k * sgn l) * (\<bar>k\<bar> div \<bar>l\<bar>)"
-proof (cases "k = 0 \<or> l = 0")
-  case True
-  then show ?thesis
-    by auto
-next
-  case False
-  then have "k \<noteq> 0" and "l \<noteq> 0"
-    by auto
-  show ?thesis
-  proof (cases "sgn l = sgn k")
-    case True
-    then show ?thesis
-      by (auto simp add: div_eq_sgn_abs)
-  next
-    case False
-    with \<open>k \<noteq> 0\<close> \<open>l \<noteq> 0\<close>
-    have "sgn l * sgn k = - 1"
-      by (simp add: sgn_if split: if_splits)
-    with assms show ?thesis
-      unfolding divide_int_def [of k l]
-      by (auto simp add: zdiv_int ac_simps)
-  qed
-qed
-
-lemma div_noneq_sgn_abs:
-  fixes k l :: int
-  assumes "l \<noteq> 0"
-  assumes "sgn k \<noteq> sgn l"
-  shows "k div l = - (\<bar>k\<bar> div \<bar>l\<bar>) - of_bool (\<not> l dvd k)"
-  using assms
-  by (simp only: divide_int_def [of k l], auto simp add: not_less zdiv_int)
-  
-
-subsubsection \<open>Laws for div and mod with Unary Minus\<close>
-
 lemma zminus1_lemma:
      "eucl_rel_int a b (q, r) ==> b \<noteq> 0
       ==> eucl_rel_int (-a) b (if r=0 then -q else -q - 1,
                           if r=0 then 0 else b-r)"
 by (force simp add: eucl_rel_int_iff right_diff_distrib)
 
-
-lemma zdiv_zminus1_eq_if:
-     "b \<noteq> (0::int)
-      \<Longrightarrow> (-a) div b = (if a mod b = 0 then - (a div b) else  - (a div b) - 1)"
-by (blast intro: eucl_rel_int [THEN zminus1_lemma, THEN div_int_unique])
-
-lemma zmod_zminus1_eq_if:
-     "(-a::int) mod b = (if a mod b = 0 then 0 else  b - (a mod b))"
-proof (cases "b = 0")
-  case False
-  then show ?thesis
-    by (blast intro: eucl_rel_int [THEN zminus1_lemma, THEN mod_int_unique])
-qed auto
-
-lemma zmod_zminus1_not_zero:
-  fixes k l :: int
-  shows "- k mod l \<noteq> 0 \<Longrightarrow> k mod l \<noteq> 0"
-  by (simp add: mod_eq_0_iff_dvd)
-
-lemma zmod_zminus2_not_zero:
-  fixes k l :: int
-  shows "k mod - l \<noteq> 0 \<Longrightarrow> k mod l \<noteq> 0"
-  by (simp add: mod_eq_0_iff_dvd)
-
-lemma zdiv_zminus2_eq_if:
-  "b \<noteq> (0::int)
-      ==> a div (-b) =
-          (if a mod b = 0 then - (a div b) else  - (a div b) - 1)"
-  by (auto simp add: zdiv_zminus1_eq_if div_minus_right)
-
-lemma zmod_zminus2_eq_if:
-  "a mod (-b::int) = (if a mod b = 0 then 0 else  (a mod b) - b)"
-  by (auto simp add: zmod_zminus1_eq_if mod_minus_right)
-
-
-subsubsection \<open>Monotonicity in the First Argument (Dividend)\<close>
-
 lemma zdiv_mono1:
-  fixes b::int
-  assumes "a \<le> a'" "0 < b" shows "a div b \<le> a' div b"
+  \<open>a div b \<le> a' div b\<close>
+  if \<open>a \<le> a'\<close> \<open>0 < b\<close>
+  for a b b' :: int
 proof (rule unique_quotient_lemma)
   show "b * (a div b) + a mod b \<le> b * (a' div b) + a' mod b"
-    using assms(1) by auto
-qed (use assms in auto)
+    using \<open>a \<le> a'\<close> by auto
+qed (use that in auto)
 
 lemma zdiv_mono1_neg:
   fixes b::int
