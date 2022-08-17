@@ -1191,14 +1191,13 @@ than the later.
 Specifies the maximum number of seconds that the automatic provers should spend
 searching for a proof. This excludes problem preparation and is a soft limit.
 
-\opdefault{slices}{int}{\upshape 6 times the number of cores detected}
-Specifies the number of time slices. Each time slice corresponds to a prover
-invocation and has its own set of options. For example, for SPASS, one slice
-might specify the fast but incomplete set-of-support (SOS) strategy with 100
-relevant lemmas, whereas other slices might run without SOS and with 500 lemmas.
-Slicing (and thereby parallelism) can be disable by setting \textit{slices} to
-1. Since slicing is a valuable optimization, you should probably leave it
-enabled unless you are conducting experiments.
+\opdefault{slices}{int}{\upshape 12 times the number of cores detected}
+Specifies the number of time slices. Time slices are the basic unit for prover
+invocations. They are divided among the available provers. A single prover
+invocation can occupy a single slice, two slices, or more, depending on the
+prover. Slicing (and thereby parallelism) can be disable by setting
+\textit{slices} to 1. Since slicing is a valuable optimization, you should
+probably leave it enabled unless you are conducting experiments.
 
 \nopagebreak
 {\small See also \textit{verbose} (\S\ref{output-format}).}

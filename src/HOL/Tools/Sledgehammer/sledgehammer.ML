@@ -300,10 +300,12 @@ fun string_of_factss factss =
     cat_lines (map (fn (filter, facts) => string_of_facts filter facts) factss)
 
 val default_slice_schedule =
-  (* FUDGE (inspired by Seventeen evaluation) *)
-  [cvc4N, zipperpositionN, vampireN, veritN, eN, cvc4N, zipperpositionN, cvc4N, vampireN, cvc4N,
-   cvc4N, vampireN, cvc4N, iproverN, zipperpositionN, vampireN, vampireN, zipperpositionN, z3N,
-   zipperpositionN, vampireN, iproverN, vampireN, cvc4N, z3N, z3N, cvc4N, cvc4N]
+  (* FUDGE (loosely inspired by Seventeen evaluation) *)
+  [cvc4N, zipperpositionN, vampireN, veritN, zipperpositionN, eN, cvc4N,
+   zipperpositionN, cvc4N, zipperpositionN, vampireN, cvc4N, cvc4N, vampireN,
+   cvc4N, iproverN, zipperpositionN, vampireN, zipperpositionN, vampireN,
+   zipperpositionN, z3N, zipperpositionN, vampireN, iproverN, zipperpositionN,
+   vampireN, cvc4N, zipperpositionN, z3N, z3N, cvc4N, cvc4N, zipperpositionN]
 
 fun schedule_of_provers provers num_slices =
   let

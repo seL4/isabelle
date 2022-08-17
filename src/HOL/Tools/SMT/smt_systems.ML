@@ -104,13 +104,13 @@ val cvc4: SMT_Solver.solver_config = {
   smt_options = [(":produce-unsat-cores", "true")],
   good_slices =
     (* FUDGE *)
-    [((1, 512, meshN), ["--full-saturate-quant", "--inst-when=full-last-call", "--inst-no-entail", "--term-db-mode=relevant", "--multi-trigger-linear"]),
-     ((1, 64, meshN), ["--decision=internal", "--simplification=none", "--full-saturate-quant"]),
-     ((1, 1024, meshN), ["--relevant-triggers", "--full-saturate-quant"]),
-     ((1, 256, mepoN), ["--trigger-sel=max", "--full-saturate-quant"]),
-     ((1, 32, meshN), ["--term-db-mode=relevant", "--full-saturate-quant"]),
-     ((1, 128, meshN), ["--no-e-matching", "--full-saturate-quant"]),
-     ((1, 256, meshN), ["--finite-model-find", "--fmf-inst-engine"])],
+    [((2, 512, meshN), ["--full-saturate-quant", "--inst-when=full-last-call", "--inst-no-entail", "--term-db-mode=relevant", "--multi-trigger-linear"]),
+     ((2, 64, meshN), ["--decision=internal", "--simplification=none", "--full-saturate-quant"]),
+     ((2, 1024, meshN), ["--relevant-triggers", "--full-saturate-quant"]),
+     ((2, 256, mepoN), ["--trigger-sel=max", "--full-saturate-quant"]),
+     ((2, 32, meshN), ["--term-db-mode=relevant", "--full-saturate-quant"]),
+     ((2, 128, meshN), ["--no-e-matching", "--full-saturate-quant"]),
+     ((2, 256, meshN), ["--finite-model-find", "--fmf-inst-engine"])],
   outcome = on_first_line (outcome_of "unsat" "sat" "unknown" "timeout"),
   parse_proof = SOME (K CVC_Proof_Parse.parse_proof),
   replay = NONE }
@@ -124,13 +124,13 @@ val cvc5: SMT_Solver.solver_config = {
   smt_options = [(":produce-unsat-cores", "true")],
   good_slices =
     (* FUDGE *)
-    [((1, 512, meshN), ["--full-saturate-quant", "--inst-when=full-last-call", "--inst-no-entail", "--term-db-mode=relevant", "--multi-trigger-linear"]),
-     ((1, 64, meshN), ["--decision=internal", "--simplification=none", "--full-saturate-quant"]),
-     ((1, 1024, meshN), ["--relevant-triggers", "--full-saturate-quant"]),
-     ((1, 256, mepoN), ["--trigger-sel=max", "--full-saturate-quant"]),
-     ((1, 32, meshN), ["--term-db-mode=relevant", "--full-saturate-quant"]),
-     ((1, 128, meshN), ["--no-e-matching", "--full-saturate-quant"]),
-     ((1, 256, meshN), ["--finite-model-find", "--fmf-inst-engine"])],
+    [((2, 512, meshN), ["--full-saturate-quant", "--inst-when=full-last-call", "--inst-no-entail", "--term-db-mode=relevant", "--multi-trigger-linear"]),
+     ((2, 64, meshN), ["--decision=internal", "--simplification=none", "--full-saturate-quant"]),
+     ((2, 1024, meshN), ["--relevant-triggers", "--full-saturate-quant"]),
+     ((2, 256, mepoN), ["--trigger-sel=max", "--full-saturate-quant"]),
+     ((2, 32, meshN), ["--term-db-mode=relevant", "--full-saturate-quant"]),
+     ((2, 128, meshN), ["--no-e-matching", "--full-saturate-quant"]),
+     ((2, 256, meshN), ["--finite-model-find", "--fmf-inst-engine"])],
   outcome = on_first_line (outcome_of "unsat" "sat" "unknown" "timeout"),
   parse_proof = SOME (K CVC_Proof_Parse.parse_proof),
   replay = NONE }
@@ -169,12 +169,12 @@ val veriT: SMT_Solver.solver_config = {
   smt_options = [(":produce-proofs", "true")],
   good_slices =
     (* FUDGE *)
-    [((1, 1024, meshN), []),
-     ((1, 512, mashN), []),
-     ((1, 64, meshN), []),
-     ((1, 128, meshN), []),
-     ((1, 256, mepoN), []),
-     ((1, 32, meshN), [])],
+    [((2, 1024, meshN), []),
+     ((2, 512, mashN), []),
+     ((2, 64, meshN), []),
+     ((2, 128, meshN), []),
+     ((2, 256, mepoN), []),
+     ((2, 32, meshN), [])],
   outcome = on_first_non_unsupported_line (outcome_of "unsat" "sat" "unknown" "Time limit exceeded"),
   parse_proof = SOME (K Lethe_Proof_Parse.parse_proof),
   replay = SOME Verit_Replay.replay }
@@ -210,12 +210,12 @@ val z3: SMT_Solver.solver_config = {
   smt_options = [(":produce-proofs", "true")],
   good_slices =
     (* FUDGE *)
-    [((1, 1024, meshN), []),
-     ((1, 512, mepoN), []),
-     ((1, 64, meshN), []),
-     ((1, 256, meshN), []),
-     ((1, 128, mashN), []),
-     ((1, 32, meshN), [])],
+    [((2, 1024, meshN), []),
+     ((2, 512, mepoN), []),
+     ((2, 64, meshN), []),
+     ((2, 256, meshN), []),
+     ((2, 128, mashN), []),
+     ((2, 32, meshN), [])],
   outcome = on_first_line (outcome_of "unsat" "sat" "unknown" "timeout"),
   parse_proof = SOME Z3_Replay.parse_proof,
   replay = SOME Z3_Replay.replay }
