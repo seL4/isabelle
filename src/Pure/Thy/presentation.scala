@@ -188,8 +188,6 @@ object Presentation {
 
   /* formal entities */
 
-  type Entity = Export_Theory.Entity[Export_Theory.No_Content]
-
   object Entity_Context {
     object Theory_Ref {
       def unapply(props: Properties.T): Option[Document.Node.Name] =
