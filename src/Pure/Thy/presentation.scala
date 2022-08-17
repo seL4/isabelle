@@ -32,13 +32,13 @@ object Presentation {
 
     def theory_session(name: Document.Node.Name): String =
       sessions_structure.theory_qualifier(name)
-    def theory_session_info(name: Document.Node.Name): Sessions.Info =
-      sessions_structure(theory_session(name))
 
-    def session_dir(info: Sessions.Info): Path =
-      root_dir + Path.explode(info.chapter_session)
+    def session_dir(name: String): Path =
+      root_dir + Path.explode(sessions_structure(name).chapter_session)
+
     def theory_dir(name: Document.Node.Name): Path =
-      session_dir(theory_session_info(name))
+      session_dir(theory_session(name))
+
     def files_path(name: Document.Node.Name, path: Path): Path =
       theory_dir(name) + Path.explode("files") + path.squash.html
 
@@ -536,7 +536,7 @@ object Presentation {
     val options = info.options
     val base = session_context.session_base
 
-    val session_dir = Isabelle_System.make_directory(html_context.session_dir(info))
+    val session_dir = Isabelle_System.make_directory(html_context.session_dir(session))
 
     Bytes.write(session_dir + session_graph_path,
       graphview.Graph_File.make_pdf(options, base.session_graph_display))
