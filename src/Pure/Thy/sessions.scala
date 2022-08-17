@@ -81,10 +81,6 @@ object Sessions {
         ", loaded_theories = " + loaded_theories.size +
         ", used_theories = " + used_theories.length + ")"
 
-    def theory_qualifier(name: String): String =
-      global_theories.getOrElse(name, Long_Name.qualifier(name))
-    def theory_qualifier(name: Document.Node.Name): String = theory_qualifier(name.theory)
-
     def loaded_theory(name: String): Boolean = loaded_theories.defined(name)
     def loaded_theory(name: Document.Node.Name): Boolean = loaded_theory(name.theory)
 
@@ -183,7 +179,8 @@ object Sessions {
             val overall_syntax = dependencies.overall_syntax
 
             val proper_session_theories =
-              dependencies.theories.filter(name => deps_base.theory_qualifier(name) == session_name)
+              dependencies.theories.filter(name =>
+                sessions_structure.theory_qualifier(name) == session_name)
 
             val theory_files = dependencies.theories.map(_.path)
 
@@ -213,7 +210,7 @@ object Sessions {
                 Graph_Display.Node("[" + name + "]", "session." + name)
 
               def node(name: Document.Node.Name): Graph_Display.Node = {
-                val qualifier = deps_base.theory_qualifier(name)
+                val qualifier = sessions_structure.theory_qualifier(name)
                 if (qualifier == info.name)
                   Graph_Display.Node(name.theory_base_name, "theory." + name.theory)
                 else session_node(qualifier)
@@ -221,7 +218,7 @@ object Sessions {
 
               val required_sessions =
                 dependencies.loaded_theories.all_preds(dependencies.theories.map(_.theory))
-                  .map(theory => deps_base.theory_qualifier(theory))
+                  .map(theory => sessions_structure.theory_qualifier(theory))
                   .filter(name => name != info.name && sessions_structure.defined(name))
 
               val required_subgraph =
@@ -258,7 +255,7 @@ object Sessions {
                 sessions_structure.imports_requirements(List(session_name)).toSet
               for {
                 name <- dependencies.theories
-                qualifier = deps_base.theory_qualifier(name)
+                qualifier = sessions_structure.theory_qualifier(name)
                 if !known_sessions(qualifier)
               } yield "Bad import of theory " + quote(name.toString) +
                 ": need to include sessions " + quote(qualifier) + " in ROOT"
@@ -280,7 +277,7 @@ object Sessions {
                   known_theories.get(thy).map(_.name) match {
                     case None => err("Unknown document theory")
                     case Some(name) =>
-                      val qualifier = deps_base.theory_qualifier(name)
+                      val qualifier = sessions_structure.theory_qualifier(name)
                       if (proper_session_theories.contains(name)) {
                         err("Redundant document theory from this session:")
                       }
@@ -413,7 +410,7 @@ object Sessions {
         val required_theories =
           for {
             thy <- base.loaded_theories.keys
-            if !ancestor_loaded(thy) && base.theory_qualifier(thy) != session
+            if !ancestor_loaded(thy) && selected_sessions.theory_qualifier(thy) != session
           }
           yield thy
 
@@ -764,6 +761,7 @@ object Sessions {
 
     def theory_qualifier(name: String): String =
       global_theories.getOrElse(name, Long_Name.qualifier(name))
+    def theory_qualifier(name: Document.Node.Name): String = theory_qualifier(name.theory)
 
     def check_sessions(names: List[String]): Unit = {
       val bad_sessions = SortedSet(names.filterNot(defined): _*).toList

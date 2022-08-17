@@ -504,12 +504,10 @@ object Build {
             progress.echo("Presenting " + session + " ...")
 
             val html_context =
-              new Presentation.HTML_Context {
-                override def nodes: Presentation.Nodes = presentation_nodes
-                override def root_dir: Path = presentation_dir
-                override def theory_session(name: Document.Node.Name): Sessions.Info =
-                  deps.sessions_structure(deps(session).theory_qualifier(name))
-              }
+              Presentation.html_context(
+                sessions_structure = deps.sessions_structure,
+                root_dir = presentation_dir,
+                nodes = presentation_nodes)
 
             using(database_context.open_session(deps.base_info(session))) { session_context =>
               Presentation.session_html(session_context, deps,

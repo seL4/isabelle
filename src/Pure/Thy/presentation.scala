@@ -17,19 +17,26 @@ object Presentation {
 
   /* HTML context */
 
-  sealed case class HTML_Document(title: String, content: String)
+  def html_context(
+    sessions_structure: Sessions.Structure,
+    root_dir: Path = Path.current,
+    nodes: Nodes = Nodes.empty
+  ): HTML_Context = new HTML_Context(sessions_structure, root_dir, nodes)
 
-  abstract class HTML_Context {
+  class HTML_Context private[Presentation](
+    sessions_structure: Sessions.Structure,
+    val root_dir: Path,
+    val nodes: Nodes
+  ) {
     /* directory structure and resources */
 
-    def nodes: Nodes
-    def root_dir: Path
-    def theory_session(name: Document.Node.Name): Sessions.Info
+    def theory_session_info(name: Document.Node.Name): Sessions.Info =
+      sessions_structure(sessions_structure.theory_qualifier(name))
 
     def session_dir(info: Sessions.Info): Path =
       root_dir + Path.explode(info.chapter_session)
     def theory_dir(name: Document.Node.Name): Path =
-      session_dir(theory_session(name))
+      session_dir(theory_session_info(name))
     def files_path(name: Document.Node.Name, path: Path): Path =
       theory_dir(name) + Path.explode("files") + path.squash.html
 
@@ -62,6 +69,8 @@ object Presentation {
       HTML_Document(title, content)
     }
   }
+
+  sealed case class HTML_Document(title: String, content: String)
 
 
   /* presentation elements */
@@ -518,7 +527,7 @@ object Presentation {
     session0: String,
     node_name: Document.Node.Name
   ): Option[String] = {
-    val session1 = deps(session0).theory_qualifier(node_name)
+    val session1 = deps.sessions_structure.theory_qualifier(node_name)
     session_relative(deps, session0, session1)
   }
 
@@ -619,7 +628,7 @@ object Presentation {
             make_html(entity_context(name), thy_elements,
               snapshot.xml_markup(elements = thy_elements.html)))
 
-        val thy_session = html_context.theory_session(name).name
+        val thy_session = html_context.theory_session_info(name).name
         val thy_dir = Isabelle_System.make_directory(html_context.theory_dir(name))
         val files =
           for { (src_path, file_html) <- files_html }

@@ -157,7 +157,7 @@ class Resources(
 
   def find_theory_node(theory: String): Option[Document.Node.Name] = {
     val thy_file = Path.basic(Long_Name.base_name(theory)).thy
-    val session = session_base.theory_qualifier(theory)
+    val session = sessions_structure.theory_qualifier(theory)
     val dirs =
       sessions_structure.get(session) match {
         case Some(info) => info.dirs
@@ -182,7 +182,7 @@ class Resources(
   }
 
   def import_name(name: Document.Node.Name, s: String): Document.Node.Name =
-    import_name(session_base.theory_qualifier(name), name.master_dir, s)
+    import_name(sessions_structure.theory_qualifier(name), name.master_dir, s)
 
   def import_name(info: Sessions.Info, s: String): Document.Node.Name =
     import_name(info.name, info.dir.implode, s)
@@ -198,7 +198,7 @@ class Resources(
   }
 
   def complete_import_name(context_name: Document.Node.Name, s: String): List[String] = {
-    val context_session = session_base.theory_qualifier(context_name)
+    val context_session = sessions_structure.theory_qualifier(context_name)
     val context_dir =
       try { Some(context_name.master_dir_path) }
       catch { case ERROR(_) => None }
