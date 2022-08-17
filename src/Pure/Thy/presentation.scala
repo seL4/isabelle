@@ -44,7 +44,11 @@ object Presentation {
       for {
         info0 <- sessions_structure.get(session0)
         info1 <- sessions_structure.get(session1)
-      } yield info0.relative_path(info1)
+      } yield {
+        if (info0.name == info1.name) ""
+        else if (info0.chapter == info1.chapter) "../" + info1.name + "/"
+        else "../../" + info1.chapter_session + "/"
+      }
     }
 
     def node_relative(session0: String, node_name: Document.Node.Name): Option[String] =
