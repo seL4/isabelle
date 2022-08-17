@@ -40,6 +40,16 @@ object Presentation {
     def files_path(name: Document.Node.Name, path: Path): Path =
       theory_dir(name) + Path.explode("files") + path.squash.html
 
+    private def session_relative(session0: String, session1: String): Option[String] = {
+      for {
+        info0 <- sessions_structure.get(session0)
+        info1 <- sessions_structure.get(session1)
+      } yield info0.relative_path(info1)
+    }
+
+    def node_relative(session0: String, node_name: Document.Node.Name): Option[String] =
+      session_relative(session0, sessions_structure.theory_qualifier(node_name))
+
 
     /* HTML content */
 
@@ -205,7 +215,6 @@ object Presentation {
 
     def make(
         session: String,
-        deps: Sessions.Deps,
         node: Document.Node.Name,
         html_context: HTML_Context): Entity_Context =
       new Entity_Context {
@@ -248,14 +257,14 @@ object Presentation {
         override def make_ref(props: Properties.T, body: XML.Body): Option[XML.Elem] = {
           props match {
             case Theory_Ref(node_name) =>
-              node_relative(deps, session, node_name).map(html_dir =>
+              html_context.node_relative(session, node_name).map(html_dir =>
                 HTML.link(html_dir + html_name(node_name), body))
             case Entity_Ref(file_path, def_theory, kind, name) if file_path.get_ext == "thy" =>
               for {
                 thy_name <-
                   def_theory orElse (if (File.eq(node.path, file_path)) Some(node.theory) else None)
                 node_name = Resources.file_node(file_path, theory = thy_name)
-                html_dir <- node_relative(deps, session, node_name)
+                html_dir <- html_context.node_relative(session, node_name)
                 html_file = node_file(node_name)
                 html_ref <-
                   logical_ref(thy_name, kind, name) orElse physical_ref(thy_name, props)
@@ -511,33 +520,12 @@ object Presentation {
   private def node_file(name: Document.Node.Name): String =
     if (name.node.endsWith(".thy")) html_name(name) else files_path(name.path)
 
-  private def session_relative(
-    deps: Sessions.Deps,
-    session0: String,
-    session1: String
-  ): Option[String] = {
-    for {
-      info0 <- deps.sessions_structure.get(session0)
-      info1 <- deps.sessions_structure.get(session1)
-    } yield info0.relative_path(info1)
-  }
-
-  def node_relative(
-    deps: Sessions.Deps,
-    session0: String,
-    node_name: Document.Node.Name
-  ): Option[String] = {
-    val session1 = deps.sessions_structure.theory_qualifier(node_name)
-    session_relative(deps, session0, session1)
-  }
-
   def session_html(
+    html_context: HTML_Context,
     session_context: Export.Session_Context,
-    deps: Sessions.Deps,
+    session_elements: Elements,
     progress: Progress = new Progress,
     verbose: Boolean = false,
-    html_context: HTML_Context,
-    session_elements: Elements
   ): Unit = {
     val session = session_context.session_name
     val info = session_context.sessions_structure(session)
@@ -582,7 +570,7 @@ object Presentation {
     }
 
     def entity_context(name: Document.Node.Name): Entity_Context =
-      Entity_Context.make(session, deps, name, html_context)
+      Entity_Context.make(session, name, html_context)
 
 
     sealed case class Seen_File(

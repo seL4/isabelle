@@ -510,11 +510,8 @@ object Build {
                 nodes = presentation_nodes)
 
             using(database_context.open_session(deps.base_info(session))) { session_context =>
-              Presentation.session_html(session_context, deps,
-                progress = progress,
-                verbose = verbose,
-                html_context = html_context,
-                Presentation.elements1)
+              Presentation.session_html(html_context, session_context, Presentation.elements1,
+                progress = progress, verbose = verbose)
             }
           }, presentation_sessions.map(_.name))
         }
