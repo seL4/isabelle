@@ -61,8 +61,6 @@ object Sessions {
   sealed case class Base(
     session_name: String = "",
     session_pos: Position.T = Position.none,
-    session_directories: Map[JFile, String] = Map.empty,
-    global_theories: Map[String, String] = Map.empty,
     proper_session_theories: List[Document.Node.Name] = Nil,
     document_theories: List[Document.Node.Name] = Nil,
     loaded_theories: Graph[String, Outer_Syntax] = Graph.string,  // cumulative imports
@@ -76,6 +74,8 @@ object Sessions {
     session_graph_display: Graph_Display.Graph = Graph_Display.empty_graph,
     errors: List[String] = Nil
   ) {
+    def session_entry: (String, Base) = session_name -> this
+
     override def toString: String =
       "Sessions.Base(session_name = " + quote(session_name) +
         ", loaded_theories = " + loaded_theories.size +
@@ -95,6 +95,8 @@ object Sessions {
     def node_syntax(nodes: Document.Nodes, name: Document.Node.Name): Outer_Syntax =
       nodes(name).syntax orElse loaded_theory_syntax(name) getOrElse overall_syntax
   }
+
+  val bootstrap_base: Base = Base(overall_syntax = Thy_Header.bootstrap_syntax)
 
   sealed case class Deps(sessions_structure: Structure, session_bases: Map[String, Base]) {
     override def toString: String = "Sessions.Deps(" + sessions_structure + ")"
@@ -152,13 +154,9 @@ object Sessions {
       }
     }
 
-    val bootstrap_bases = {
-      val base = sessions_structure.bootstrap
-      Map(base.session_name -> base)
-    }
-
     val session_bases =
-      sessions_structure.imports_topological_order.foldLeft(bootstrap_bases) {
+      sessions_structure.imports_topological_order.foldLeft(
+          Map(Sessions.bootstrap_base.session_entry)) {
         case (session_bases, session_name) =>
           progress.expose_interrupt()
 
@@ -333,8 +331,6 @@ object Sessions {
               Base(
                 session_name = info.name,
                 session_pos = info.pos,
-                session_directories = sessions_structure.session_directories,
-                global_theories = sessions_structure.global_theories,
                 proper_session_theories = proper_session_theories,
                 document_theories = document_theories,
                 loaded_theories = dependencies.loaded_theories,
@@ -350,7 +346,7 @@ object Sessions {
                   document_errors ::: dir_errors ::: sources_errors ::: path_errors :::
                   bibtex_errors)
 
-            session_bases + (info.name -> base)
+            session_bases + base.session_entry
           }
           catch {
             case ERROR(msg) =>
@@ -736,11 +732,7 @@ object Sessions {
   ) {
     sessions_structure =>
 
-    def bootstrap: Base =
-      Base(
-        session_directories = session_directories,
-        global_theories = global_theories,
-        overall_syntax = Thy_Header.bootstrap_syntax)
+    def bootstrap: Base = Base(overall_syntax = Thy_Header.bootstrap_syntax)
 
     def dest_session_directories: List[(String, String)] =
       for ((file, session) <- session_directories.toList)

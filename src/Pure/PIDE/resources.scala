@@ -57,7 +57,7 @@ class Resources(
        (command_timings,
        (Command_Span.load_commands.map(cmd => (cmd.name, cmd.position)),
        (Scala.functions,
-       (session_base.global_theories.toList,
+       (sessions_structure.global_theories.toList,
         session_base.loaded_theories.keys)))))))))
   }
 
@@ -150,9 +150,11 @@ class Resources(
     } yield file
   }
 
+  def global_theory(theory: String): Boolean =
+    sessions_structure.global_theories.isDefinedAt(theory)
+
   def theory_name(qualifier: String, theory: String): String =
-    if (Long_Name.is_qualified(theory) || session_base.global_theories.isDefinedAt(theory))
-      theory
+    if (Long_Name.is_qualified(theory) || global_theory(theory)) theory
     else Long_Name.qualify(qualifier, theory)
 
   def find_theory_node(theory: String): Option[Document.Node.Name] = {
@@ -189,7 +191,7 @@ class Resources(
 
   def find_theory(file: JFile): Option[Document.Node.Name] = {
     for {
-      qualifier <- session_base.session_directories.get(File.canonical(file).getParentFile)
+      qualifier <- sessions_structure.session_directories.get(File.canonical(file).getParentFile)
       theory_base <- proper_string(Thy_Header.theory_name(file.getName))
       theory = theory_name(qualifier, theory_base)
       theory_node <- find_theory_node(theory)
@@ -208,7 +210,7 @@ class Resources(
       theory <- Thy_Header.try_read_dir(dir).iterator
       if Completion.completed(s)(theory)
     } yield {
-      if (session == context_session || session_base.global_theories.isDefinedAt(theory)) theory
+      if (session == context_session || global_theory(theory)) theory
       else Long_Name.qualify(session, theory)
     }).toList.sorted
   }
