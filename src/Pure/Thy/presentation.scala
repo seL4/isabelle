@@ -423,8 +423,6 @@ object Presentation {
     def enabled: Boolean
     def enabled(info: Sessions.Info): Boolean = enabled || info.browser_info
     def dir(store: Sessions.Store): Path = store.presentation_dir
-    def dir(store: Sessions.Store, info: Sessions.Info): Path =
-      dir(store) + Path.explode(info.chapter_session)
   }
 
 
