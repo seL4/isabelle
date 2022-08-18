@@ -578,20 +578,6 @@ object Presentation {
           map(link => HTML.text("View ") ::: List(link))).flatten
     }
 
-    sealed case class Seen_File(
-      src_path: Path,
-      thy_name: Document.Node.Name,
-      thy_session: String
-    ) {
-      val files_path: Path = html_context.files_path(thy_name, src_path)
-
-      def check(src_path1: Path, thy_name1: Document.Node.Name, thy_session1: String): Boolean = {
-        val files_path1 = html_context.files_path(thy_name1, src_path1)
-        (src_path == src_path1 || files_path == files_path1) && thy_session == thy_session1
-      }
-    }
-    var seen_files = List.empty[Seen_File]
-
     def present_theory(name: Document.Node.Name): Option[XML.Body] = {
       progress.expose_interrupt()
 
@@ -624,13 +610,6 @@ object Presentation {
         val files =
           for { (src_path, file_html) <- files_html }
             yield {
-              seen_files.find(_.check(src_path, name, thy_session)) match {
-                case None => seen_files ::= Seen_File(src_path, name, thy_session)
-                case Some(seen_file) =>
-                  error("Incoherent use of file name " + src_path + " as " + files_path(src_path) +
-                    " in theory " + seen_file.thy_name + " vs. " + name)
-              }
-
               val file_path = html_context.files_path(name, src_path)
               val file_title = "File " + Symbol.cartouche_decoded(src_path.implode_short)
               HTML.write_document(file_path.dir, file_path.file_name,
