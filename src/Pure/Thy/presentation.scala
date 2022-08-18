@@ -117,21 +117,22 @@ object Presentation {
     val empty: Node_Info = new Node_Info(Map.empty, Map.empty, Nil)
     def make(theory: Export_Theory.Theory): Node_Info = {
       val by_range = theory.entity_iterator.toList.groupBy(_.range)
-      val by_kind_name =
-        theory.entity_iterator.map(entity => ((entity.kind, entity.name), entity)).toMap
+      val by_kname = theory.entity_iterator.map(entity => entity.kname -> entity).toMap
       val others = theory.others.keySet.toList
-      new Node_Info(by_range, by_kind_name, others)
+      new Node_Info(by_range, by_kname, others)
     }
   }
 
   class Node_Info private(
     by_range: Map[Symbol.Range, List[Export_Theory.Entity0]],
-    by_kind_name: Map[(String, String), Export_Theory.Entity0],
-    val others: List[String]) {
-    def for_range(range: Symbol.Range): List[Export_Theory.Entity0] =
+    by_kname: Map[String, Export_Theory.Entity0],
+    val others: List[String]
+  ) {
+    def get_defs(range: Symbol.Range): List[Export_Theory.Entity0] =
       by_range.getOrElse(range, Nil)
-    def get_kind_name(kind: String, name: String): Option[String] =
-      by_kind_name.get((kind, name)).map(_.kname)
+    def get_def(kind: String, name: String): Option[Export_Theory.Entity0] = {
+      by_kname.get(Export_Theory.export_kind_name(kind, name))
+    }
   }
 
   object Nodes {
@@ -229,14 +230,14 @@ object Presentation {
             case List(XML.Elem(Markup("span", List("id" -> _)), _)) => None
             case _ =>
               Some {
-                val entities = html_context.nodes(node.theory).for_range(range)
                 val body1 =
                   if (seen_ranges.contains(range)) {
                     HTML.entity_def(HTML.span(HTML.id(offset_id(range)), body))
                   }
                   else HTML.span(body)
-                entities.map(_.kname).foldLeft(body1) {
-                  case (elem, id) => HTML.entity_def(HTML.span(HTML.id(id), List(elem)))
+                html_context.nodes(node.theory).get_defs(range).foldLeft(body1) {
+                  case (elem, entity) =>
+                    HTML.entity_def(HTML.span(HTML.id(entity.kname), List(elem)))
                 }
               }
           }
@@ -256,7 +257,10 @@ object Presentation {
         }
 
         private def logical_ref(thy_name: String, kind: String, name: String): Option[String] =
-          html_context.nodes.get(thy_name).flatMap(_.get_kind_name(kind, name))
+          for {
+            node_info <- html_context.nodes.get(thy_name)
+            entity <- node_info.get_def(kind, name)
+          } yield entity.kname
 
         override def make_ref(props: Properties.T, body: XML.Body): Option[XML.Elem] = {
           props match {
