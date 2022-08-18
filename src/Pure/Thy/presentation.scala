@@ -41,6 +41,16 @@ object Presentation {
     def session_dir(session: String): Path =
       root_dir + Path.explode(sessions_structure(session).chapter_session)
 
+    def html_name_theory(name: Document.Node.Name): String =
+      Path.explode(name.theory_base_name).html.implode
+
+    def html_name_file(src_path: Path): String =
+      (Path.explode("files") + src_path.squash.html).implode
+
+    def html_name(name: Document.Node.Name): String =
+      if (name.node.endsWith(".thy")) html_name_theory(name)
+      else html_name_file(name.path)
+
     def files_path(session: String, path: Path): Path =
       session_dir(session) + Path.explode("files") + path.squash.html
 
@@ -268,14 +278,14 @@ object Presentation {
           props match {
             case Theory_Ref(node_name) =>
               html_context.node_relative(session, node_name).map(html_dir =>
-                HTML.link(html_dir + html_name(node_name), body))
+                HTML.link(html_dir + html_context.html_name_theory(node_name), body))
             case Entity_Ref(file_path, def_theory, kind, name) if file_path.get_ext == "thy" =>
               for {
                 thy_name <-
                   def_theory orElse (if (File.eq(node.path, file_path)) Some(node.theory) else None)
                 node_name = Resources.file_node(file_path, theory = thy_name)
                 html_dir <- html_context.node_relative(session, node_name)
-                html_file = node_file(node_name)
+                html_file = html_context.html_name(node_name)
                 html_ref <-
                   logical_ref(thy_name, kind, name) orElse physical_ref(thy_name, props)
               } yield {
@@ -521,12 +531,6 @@ object Presentation {
   val session_graph_path: Path = Path.explode("session_graph.pdf")
   val readme_path: Path = Path.explode("README.html")
 
-  def html_name(name: Document.Node.Name): String = Path.explode(name.theory_base_name).html.implode
-  def files_path(src_path: Path): String = (Path.explode("files") + src_path.squash.html).implode
-
-  private def node_file(name: Document.Node.Name): String =
-    if (name.node.endsWith(".thy")) html_name(name) else files_path(name.path)
-
   def session_html(
     html_context: HTML_Context,
     session_context: Export.Session_Context,
@@ -620,11 +624,11 @@ object Presentation {
 
         val thy_title = "Theory " + name.theory_base_name
 
-        HTML.write_document(session_dir, html_name(name),
+        HTML.write_document(session_dir, html_context.html_name_theory(name),
           List(HTML.title(thy_title)), List(html_context.head(thy_title), thy_html),
           base = Some(html_context.root_dir))
 
-        List(HTML.link(html_name(name),
+        List(HTML.link(html_context.html_name_theory(name),
           HTML.text(name.theory_base_name) :::
             (if (files.isEmpty) Nil else List(HTML.itemize(files)))))
       }
