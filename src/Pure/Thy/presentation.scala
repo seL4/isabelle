@@ -19,12 +19,14 @@ object Presentation {
 
   def html_context(
     sessions_structure: Sessions.Structure,
+    elements: Elements,
     root_dir: Path = Path.current,
     nodes: Nodes = Nodes.empty
-  ): HTML_Context = new HTML_Context(sessions_structure, root_dir, nodes)
+  ): HTML_Context = new HTML_Context(sessions_structure, elements, root_dir, nodes)
 
   class HTML_Context private[Presentation](
     sessions_structure: Sessions.Structure,
+    val elements: Elements,
     val root_dir: Path,
     val nodes: Nodes
   ) {
@@ -32,6 +34,9 @@ object Presentation {
 
     def theory_session(name: Document.Node.Name): String =
       sessions_structure.theory_qualifier(name)
+
+    def theory_elements(name: Document.Node.Name): Elements =
+      elements.copy(entity = nodes(name.theory).others.foldLeft(elements.entity)(_ + _))
 
     def session_dir(name: String): Path =
       root_dir + Path.explode(sessions_structure(name).chapter_session)
@@ -379,7 +384,6 @@ object Presentation {
   def html_document(
     snapshot: Document.Snapshot,
     html_context: HTML_Context,
-    elements: Elements,
     plain_text: Boolean = false,
     fonts_css: String = HTML.fonts_css()
   ): HTML_Document = {
@@ -396,8 +400,8 @@ object Presentation {
         val title =
           if (name.is_theory) "Theory " + quote(name.theory_base_name)
           else "File " + Symbol.cartouche_decoded(name.path.file_name)
-        val xml = snapshot.xml_markup(elements = elements.html)
-        val body = make_html(Entity_Context.empty, elements, xml)
+        val xml = snapshot.xml_markup(elements = html_context.elements.html)
+        val body = make_html(Entity_Context.empty, html_context.elements, xml)
         html_context.html_document(title, body, fonts_css)
       }
     }
@@ -529,7 +533,6 @@ object Presentation {
   def session_html(
     html_context: HTML_Context,
     session_context: Export.Session_Context,
-    session_elements: Elements,
     progress: Progress = new Progress,
     verbose: Boolean = false,
   ): Unit = {
@@ -596,9 +599,7 @@ object Presentation {
         if (verbose) progress.echo("Presenting theory " + name)
         val snapshot = Document.State.init.snippet(command)
 
-        val thy_elements =
-          session_elements.copy(entity =
-            html_context.nodes(name.theory).others.foldLeft(session_elements.entity)(_ + _))
+        val thy_elements = html_context.theory_elements(name)
 
         val files_html =
           for {

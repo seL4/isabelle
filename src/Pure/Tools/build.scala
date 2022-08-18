@@ -504,13 +504,11 @@ object Build {
             progress.echo("Presenting " + session + " ...")
 
             val html_context =
-              Presentation.html_context(
-                sessions_structure = deps.sessions_structure,
-                root_dir = presentation_dir,
-                nodes = presentation_nodes)
+              Presentation.html_context(deps.sessions_structure, Presentation.elements1,
+                root_dir = presentation_dir, nodes = presentation_nodes)
 
             using(database_context.open_session(deps.base_info(session))) { session_context =>
-              Presentation.session_html(html_context, session_context, Presentation.elements1,
+              Presentation.session_html(html_context, session_context,
                 progress = progress, verbose = verbose)
             }
           }, presentation_sessions.map(_.name))
