@@ -38,14 +38,11 @@ object Presentation {
     def theory_elements(name: Document.Node.Name): Elements =
       elements.copy(entity = nodes(name.theory).others.foldLeft(elements.entity)(_ + _))
 
-    def session_dir(name: String): Path =
-      root_dir + Path.explode(sessions_structure(name).chapter_session)
+    def session_dir(session: String): Path =
+      root_dir + Path.explode(sessions_structure(session).chapter_session)
 
-    def theory_dir(name: Document.Node.Name): Path =
-      session_dir(theory_session(name))
-
-    def files_path(name: Document.Node.Name, path: Path): Path =
-      theory_dir(name) + Path.explode("files") + path.squash.html
+    def files_path(session: String, path: Path): Path =
+      session_dir(session) + Path.explode("files") + path.squash.html
 
     private def session_relative(session0: String, session1: String): Option[String] = {
       for {
@@ -541,7 +538,10 @@ object Presentation {
     val options = info.options
     val base = session_context.session_base
 
-    val session_dir = Isabelle_System.make_directory(html_context.session_dir(session))
+    val session_dir =
+      Isabelle_System.make_directory(html_context.session_dir(session)).expand
+
+    progress.echo("Presenting " + session + " in " + session_dir + " ...")
 
     Bytes.write(session_dir + session_graph_path,
       graphview.Graph_File.make_pdf(options, base.session_graph_display))
@@ -551,8 +551,9 @@ object Presentation {
         doc <- info.document_variants
         db <- session_context.session_db()
         document <- Document_Build.read_document(db, session, doc.name)
-      } yield {
-        val doc_path = (session_dir + doc.path.pdf).expand
+      }
+      yield {
+        val doc_path = session_dir + doc.path.pdf
         if (verbose) progress.echo("Presenting document " + session + "/" + doc.name)
         if (options.bool("document_echo")) progress.echo("Document at " + doc_path)
         Bytes.write(doc_path, document.pdf)
@@ -581,11 +582,16 @@ object Presentation {
     def present_theory(name: Document.Node.Name): Option[XML.Body] = {
       progress.expose_interrupt()
 
-      Build_Job.read_theory(session_context.theory(name.theory)).flatMap { command =>
+      Build_Job.read_theory(session_context.theory(name.theory)).map { command =>
         if (verbose) progress.echo("Presenting theory " + name)
         val snapshot = Document.State.init.snippet(command)
 
         val thy_elements = html_context.theory_elements(name)
+
+        val thy_html =
+          html_context.source(
+            make_html(Entity_Context.make(session, name, html_context),
+              thy_elements, snapshot.xml_markup(elements = thy_elements.html)))
 
         val files_html =
           for {
@@ -595,53 +601,42 @@ object Presentation {
           yield {
             progress.expose_interrupt()
             if (verbose) progress.echo("Presenting file " + src_path)
-
-            (src_path, html_context.source(
-              make_html(Entity_Context.empty, thy_elements, xml)))
+            (src_path, html_context.source(make_html(Entity_Context.empty, thy_elements, xml)))
           }
 
-        val thy_html =
-          html_context.source(
-            make_html(Entity_Context.make(session, name, html_context),
-              thy_elements, snapshot.xml_markup(elements = thy_elements.html)))
-
-        val thy_session = html_context.theory_session(name)
-        val thy_dir = Isabelle_System.make_directory(html_context.theory_dir(name))
         val files =
-          for { (src_path, file_html) <- files_html }
-            yield {
-              val file_path = html_context.files_path(name, src_path)
-              val file_title = "File " + Symbol.cartouche_decoded(src_path.implode_short)
-              HTML.write_document(file_path.dir, file_path.file_name,
-                List(HTML.title(file_title)), List(html_context.head(file_title), file_html),
-                base = Some(html_context.root_dir))
-
-              List(HTML.link(files_path(src_path), HTML.text(file_title)))
-            }
+          for {
+            (src_path, file_html) <- files_html
+            file_path = html_context.files_path(session, src_path)
+            rel_path <- File.relative_path(session_dir, file_path)
+          }
+          yield {
+            val file_title = "File " + Symbol.cartouche_decoded(src_path.implode_short)
+            HTML.write_document(file_path.dir, file_path.file_name,
+              List(HTML.title(file_title)), List(html_context.head(file_title), file_html),
+              base = Some(html_context.root_dir))
+            List(HTML.link(rel_path.implode, HTML.text(file_title)))
+          }
 
         val thy_title = "Theory " + name.theory_base_name
 
-        HTML.write_document(thy_dir, html_name(name),
+        HTML.write_document(session_dir, html_name(name),
           List(HTML.title(thy_title)), List(html_context.head(thy_title), thy_html),
           base = Some(html_context.root_dir))
 
-        if (thy_session == session) {
-          Some(
-            List(HTML.link(html_name(name),
-              HTML.text(name.theory_base_name) :::
-                (if (files.isEmpty) Nil else List(HTML.itemize(files))))))
-        }
-        else None
+        List(HTML.link(html_name(name),
+          HTML.text(name.theory_base_name) :::
+            (if (files.isEmpty) Nil else List(HTML.itemize(files)))))
       }
     }
 
     val theories = base.proper_session_theories.flatMap(present_theory)
 
     val title = "Session " + session
-    HTML.write_document(session_dir, "index.html",
-      List(HTML.title(title + Isabelle_System.isabelle_heading())),
-      html_context.head(title, List(HTML.par(view_links))) ::
-        html_context.contents("Theories", theories),
-      base = Some(html_context.root_dir))
+      HTML.write_document(session_dir, "index.html",
+        List(HTML.title(title + Isabelle_System.isabelle_heading())),
+        html_context.head(title, List(HTML.par(view_links))) ::
+          html_context.contents("Theories", theories),
+        base = Some(html_context.root_dir))
   }
 }
