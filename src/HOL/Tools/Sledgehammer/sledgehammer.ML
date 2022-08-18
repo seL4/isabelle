@@ -301,11 +301,12 @@ fun string_of_factss factss =
 
 val default_slice_schedule =
   (* FUDGE (loosely inspired by Seventeen evaluation) *)
-  [cvc4N, zipperpositionN, vampireN, veritN, zipperpositionN, eN, cvc4N,
+  [cvc4N, zipperpositionN, vampireN, veritN, spassN, zipperpositionN, eN, cvc4N,
    zipperpositionN, cvc4N, zipperpositionN, vampireN, cvc4N, cvc4N, vampireN,
-   cvc4N, iproverN, zipperpositionN, vampireN, zipperpositionN, vampireN,
-   zipperpositionN, z3N, zipperpositionN, vampireN, iproverN, zipperpositionN,
-   vampireN, cvc4N, zipperpositionN, z3N, z3N, cvc4N, cvc4N, zipperpositionN]
+   cvc4N, iproverN, zipperpositionN, spassN, vampireN, zipperpositionN,
+   vampireN, zipperpositionN, z3N, zipperpositionN, vampireN, iproverN, spassN,
+   zipperpositionN, vampireN, cvc4N, zipperpositionN, z3N, z3N, cvc4N, cvc4N,
+   zipperpositionN]
 
 fun schedule_of_provers provers num_slices =
   let
