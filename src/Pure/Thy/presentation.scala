@@ -44,11 +44,12 @@ object Presentation {
     def theory_html(theory: Document_Info.Theory): Path =
       Path.explode(theory.print_short).html
 
-    def file_html(path: Path): Path =
-      Path.explode("files") + path.squash.html
+    def file_html(theory: Document_Info.Theory, file: Path): Path =
+      Path.explode(theory.print_short) + file.squash.html
 
-    def smart_html(theory: Document_Info.Theory, file: String): Path =
-      if (File.is_thy(file)) theory_html(theory) else file_html(Path.explode(file))
+    def smart_html(theory: Document_Info.Theory, file: Path): Path =
+      if (File.is_thy(file.file_name)) theory_html(theory)
+      else file_html(theory, file: Path)
 
     def relative_link(dir: Path, file: Path): String =
       try { File.path(dir.java_path.relativize(file.java_path).toFile).implode }
@@ -191,7 +192,7 @@ object Presentation {
                 html_ref <- logical_ref(theory) orElse physical_ref(theory)
               }
               yield {
-                val html_path = session_dir + html_context.smart_html(theory, def_file)
+                val html_path = session_dir + html_context.smart_html(theory, Path.explode(def_file))
                 val html_link = html_context.relative_link(file_dir, html_path)
                 HTML.entity_ref(HTML.link(html_link + "#" + html_ref, body))
               }
@@ -520,7 +521,7 @@ object Presentation {
         val files =
           for {
             (src_path, file_html) <- files_html
-            file_path = session_dir + html_context.file_html(src_path)
+            file_path = session_dir + html_context.file_html(theory, src_path)
             rel_path <- File.relative_path(session_dir, file_path)
           }
           yield {
