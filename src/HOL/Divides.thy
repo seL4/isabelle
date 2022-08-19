@@ -879,9 +879,9 @@ qualified lemma adjust_div_eq [simp, code]:
   "adjust_div (q, r) = q + of_bool (r \<noteq> 0)"
   by (simp add: adjust_div_def)
 
-qualified definition adjust_mod :: "int \<Rightarrow> int \<Rightarrow> int"
+qualified definition adjust_mod :: "num \<Rightarrow> int \<Rightarrow> int"
 where
-  [simp]: "adjust_mod l r = (if r = 0 then 0 else l - r)"
+  [simp]: "adjust_mod l r = (if r = 0 then 0 else numeral l - r)"
 
 lemma minus_numeral_div_numeral [simp]:
   "- numeral m div numeral n = - (adjust_div (divmod m n) :: int)"
@@ -893,7 +893,7 @@ proof -
 qed
 
 lemma minus_numeral_mod_numeral [simp]:
-  "- numeral m mod numeral n = adjust_mod (numeral n) (snd (divmod m n) :: int)"
+  "- numeral m mod numeral n = adjust_mod n (snd (divmod m n) :: int)"
 proof (cases "snd (divmod m n) = (0::int)")
   case True
   then show ?thesis
@@ -917,7 +917,7 @@ proof -
 qed
   
 lemma numeral_mod_minus_numeral [simp]:
-  "numeral m mod - numeral n = - adjust_mod (numeral n) (snd (divmod m n) :: int)"
+  "numeral m mod - numeral n = - adjust_mod n (snd (divmod m n) :: int)"
 proof (cases "snd (divmod m n) = (0::int)")
   case True
   then show ?thesis
@@ -936,7 +936,7 @@ lemma minus_one_div_numeral [simp]:
   using minus_numeral_div_numeral [of Num.One n] by simp  
 
 lemma minus_one_mod_numeral [simp]:
-  "- 1 mod numeral n = adjust_mod (numeral n) (snd (divmod Num.One n) :: int)"
+  "- 1 mod numeral n = adjust_mod n (snd (divmod Num.One n) :: int)"
   using minus_numeral_mod_numeral [of Num.One n] by simp
 
 lemma one_div_minus_numeral [simp]:
@@ -944,7 +944,7 @@ lemma one_div_minus_numeral [simp]:
   using numeral_div_minus_numeral [of Num.One n] by simp
   
 lemma one_mod_minus_numeral [simp]:
-  "1 mod - numeral n = - adjust_mod (numeral n) (snd (divmod Num.One n) :: int)"
+  "1 mod - numeral n = - adjust_mod n (snd (divmod Num.One n) :: int)"
   using numeral_mod_minus_numeral [of Num.One n] by simp
 
 end
@@ -1053,9 +1053,9 @@ lemma [code]:
     "Int.Pos m div Int.Pos n = (fst (divmod m n) :: int)"
     "Int.Pos m mod Int.Pos n = (snd (divmod m n) :: int)"
     "Int.Neg m div Int.Pos n = - (Divides.adjust_div (divmod m n) :: int)"
-    "Int.Neg m mod Int.Pos n = Divides.adjust_mod (Int.Pos n) (snd (divmod m n) :: int)"
+    "Int.Neg m mod Int.Pos n = Divides.adjust_mod n (snd (divmod m n) :: int)"
     "Int.Pos m div Int.Neg n = - (Divides.adjust_div (divmod m n) :: int)"
-    "Int.Pos m mod Int.Neg n = - Divides.adjust_mod (Int.Pos n) (snd (divmod m n) :: int)"
+    "Int.Pos m mod Int.Neg n = - Divides.adjust_mod n (snd (divmod m n) :: int)"
     "Int.Neg m div Int.Neg n = (fst (divmod m n) :: int)"
     "Int.Neg m mod Int.Neg n = - (snd (divmod m n) :: int)"
   by simp_all
