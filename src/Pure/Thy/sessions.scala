@@ -519,6 +519,8 @@ object Sessions {
       variants
     }
 
+    def document_echo: Boolean = options.bool("document_echo")
+
     def documents: List[Document_Build.Document_Variant] = {
       val variants = document_variants
       if (!document_enabled || document_files.isEmpty) Nil else variants

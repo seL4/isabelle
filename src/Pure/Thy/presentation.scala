@@ -537,29 +537,29 @@ object Presentation {
     progress: Progress = new Progress,
     verbose: Boolean = false,
   ): Unit = {
-    val session = session_context.session_name
-    val info = session_context.sessions_structure(session)
-    val options = info.options
+    val session_name = session_context.session_name
+    val session_info = session_context.sessions_structure(session_name)
     val base = session_context.session_base
 
     val session_dir =
-      Isabelle_System.make_directory(html_context.session_dir(session)).expand
+      Isabelle_System.make_directory(html_context.session_dir(session_name)).expand
 
-    progress.echo("Presenting " + session + " in " + session_dir + " ...")
+    progress.echo("Presenting " + session_name + " in " + session_dir + " ...")
 
     Bytes.write(session_dir + session_graph_path,
-      graphview.Graph_File.make_pdf(options, base.session_graph_display))
+      graphview.Graph_File.make_pdf(session_info.options,
+        session_context.session_base.session_graph_display))
 
     val documents =
       for {
-        doc <- info.document_variants
+        doc <- session_info.document_variants
         db <- session_context.session_db()
-        document <- Document_Build.read_document(db, session, doc.name)
+        document <- Document_Build.read_document(db, session_name, doc.name)
       }
       yield {
         val doc_path = session_dir + doc.path.pdf
-        if (verbose) progress.echo("Presenting document " + session + "/" + doc.name)
-        if (options.bool("document_echo")) progress.echo("Document at " + doc_path)
+        if (verbose) progress.echo("Presenting document " + session_name + "/" + doc.name)
+        if (session_info.document_echo) progress.echo("Document at " + doc_path)
         Bytes.write(doc_path, document.pdf)
         doc
       }
@@ -569,8 +569,8 @@ object Presentation {
         HTML.link(session_graph_path, HTML.text("theory dependencies"))
 
       val readme_links =
-        if ((info.dir + readme_path).is_file) {
-          Isabelle_System.copy_file(info.dir + readme_path, session_dir + readme_path)
+        if ((session_info.dir + readme_path).is_file) {
+          Isabelle_System.copy_file(session_info.dir + readme_path, session_dir + readme_path)
           List(HTML.link(readme_path, HTML.text("README")))
         }
         else Nil
@@ -594,7 +594,7 @@ object Presentation {
 
         val thy_html =
           html_context.source(
-            make_html(Entity_Context.make(session, name, html_context),
+            make_html(Entity_Context.make(session_name, name, html_context),
               thy_elements, snapshot.xml_markup(elements = thy_elements.html)))
 
         val files_html =
@@ -611,7 +611,7 @@ object Presentation {
         val files =
           for {
             (src_path, file_html) <- files_html
-            file_path = html_context.files_path(session, src_path)
+            file_path = html_context.files_path(session_name, src_path)
             rel_path <- File.relative_path(session_dir, file_path)
           }
           yield {
@@ -636,7 +636,7 @@ object Presentation {
 
     val theories = base.proper_session_theories.flatMap(present_theory)
 
-    val title = "Session " + session
+    val title = "Session " + session_name
       HTML.write_document(session_dir, "index.html",
         List(HTML.title(title + Isabelle_System.isabelle_heading())),
         html_context.head(title, List(HTML.par(view_links))) ::
