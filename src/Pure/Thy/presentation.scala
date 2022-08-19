@@ -44,12 +44,12 @@ object Presentation {
     def theory_html(theory: Document_Info.Theory): Path =
       Path.explode(theory.print_short).html
 
-    def file_html(theory: Document_Info.Theory, file: Path): Path =
-      Path.explode(theory.print_short) + file.squash.html
+    def file_html(theory: Document_Info.Theory, file: String): Path =
+      Path.explode(theory.print_short) + Path.explode(file).squash.html
 
-    def smart_html(theory: Document_Info.Theory, file: Path): Path =
-      if (File.is_thy(file.file_name)) theory_html(theory)
-      else file_html(theory, file: Path)
+    def smart_html(theory: Document_Info.Theory, file: String): Path =
+      if (File.is_thy(file)) theory_html(theory)
+      else file_html(theory, file)
 
     def relative_link(dir: Path, file: Path): String =
       try { File.path(dir.java_path.relativize(file.java_path).toFile).implode }
@@ -192,7 +192,7 @@ object Presentation {
                 html_ref <- logical_ref(theory) orElse physical_ref(theory)
               }
               yield {
-                val html_path = session_dir + html_context.smart_html(theory, Path.explode(def_file))
+                val html_path = session_dir + html_context.smart_html(theory, def_file)
                 val html_link = html_context.relative_link(file_dir, html_path)
                 HTML.entity_ref(HTML.link(html_link + "#" + html_ref, body))
               }
@@ -507,25 +507,25 @@ object Presentation {
             make_html(Entity_Context.make(html_context, session_name, theory_name, theory.thy_file),
               thy_elements, snapshot.xml_markup(elements = thy_elements.html)))
 
-        val files_html =
+        val blobs_html =
           for {
-            (src_path, xml) <- snapshot.xml_markup_blobs(elements = thy_elements.html)
+            (blob, xml) <- snapshot.xml_markup_blobs(elements = thy_elements.html)
             if xml.nonEmpty
           }
           yield {
             progress.expose_interrupt()
-            if (verbose) progress.echo("Presenting file " + src_path)
-            (src_path, html_context.source(make_html(Entity_Context.empty, thy_elements, xml)))
+            if (verbose) progress.echo("Presenting file " + quote(blob.name.node))
+            (blob, html_context.source(make_html(Entity_Context.empty, thy_elements, xml)))
           }
 
         val files =
           for {
-            (src_path, file_html) <- files_html
-            file_path = session_dir + html_context.file_html(theory, src_path)
+            (blob, file_html) <- blobs_html
+            file_path = session_dir + html_context.file_html(theory, blob.name.node)
             rel_path <- File.relative_path(session_dir, file_path)
           }
           yield {
-            val file_title = "File " + Symbol.cartouche_decoded(src_path.implode_short)
+            val file_title = "File " + Symbol.cartouche_decoded(blob.src_path.implode_short)
             HTML.write_document(file_path.dir, file_path.file_name,
               List(HTML.title(file_title)), List(html_context.head(file_title), file_html),
               base = Some(html_context.root_dir))

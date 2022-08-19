@@ -591,7 +591,7 @@ object Document {
 
     def xml_markup_blobs(
       elements: Markup.Elements = Markup.Elements.full
-    ) : List[(Path, XML.Body)] = {
+    ) : List[(Command.Blob, XML.Body)] = {
       snippet_command match {
         case None => Nil
         case Some(command) =>
@@ -605,7 +605,7 @@ object Document {
                 markup.to_XML(Text.Range(0, text.length), text, elements)
               }
               else Nil
-            blob.src_path -> xml
+            blob -> xml
           }
       }
     }
