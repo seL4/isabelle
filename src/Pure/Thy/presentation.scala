@@ -44,12 +44,11 @@ object Presentation {
     def theory_html(theory: Document_Info.Theory): Path =
       Path.explode(theory.print_short).html
 
-    def file_html(theory: Document_Info.Theory, file: String): Path =
-      Path.explode(theory.print_short) + Path.explode(file).squash.html
+    def file_html(file: String): Path =
+      Path.explode(file).squash.html
 
     def smart_html(theory: Document_Info.Theory, file: String): Path =
-      if (File.is_thy(file)) theory_html(theory)
-      else file_html(theory, file)
+      if (File.is_thy(file)) theory_html(theory) else file_html(file)
 
     def relative_link(dir: Path, file: Path): String =
       try { File.path(dir.java_path.relativize(file.java_path).toFile).implode }
@@ -521,7 +520,7 @@ object Presentation {
         val files =
           for {
             (blob, file_html) <- blobs_html
-            file_path = session_dir + html_context.file_html(theory, blob.name.node)
+            file_path = session_dir + html_context.file_html(blob.name.node)
             rel_path <- File.relative_path(session_dir, file_path)
           }
           yield {
