@@ -495,15 +495,15 @@ object Build {
         }
 
         using(Export.open_database_context(store)) { database_context =>
-          val presentation_nodes =
-            Presentation.Nodes.read(database_context, deps, presentation_sessions.map(_.name))
+          val document_info =
+            Document_Info.read(database_context, deps, presentation_sessions.map(_.name))
 
           Par_List.map({ (session: String) =>
             progress.expose_interrupt()
 
             val html_context =
               Presentation.html_context(deps.sessions_structure, Presentation.elements1,
-                root_dir = presentation_dir, nodes = presentation_nodes)
+                root_dir = presentation_dir, document_info = document_info)
 
             using(database_context.open_session(deps.base_info(session))) { session_context =>
               Presentation.session_html(html_context, session_context,
