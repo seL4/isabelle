@@ -433,7 +433,6 @@ object Presentation {
   /* present session */
 
   val session_graph_path: Path = Path.explode("session_graph.pdf")
-  val readme_path: Path = Path.explode("README.html")
 
   def session_html(
     html_context: HTML_Context,
@@ -473,19 +472,11 @@ object Presentation {
       val deps_link =
         HTML.link(session_graph_path, HTML.text("theory dependencies"))
 
-      val readme_links =
-        if ((session_info.dir + readme_path).is_file) {
-          Isabelle_System.copy_file(session_info.dir + readme_path, session_dir + readme_path)
-          List(HTML.link(readme_path, HTML.text("README")))
-        }
-        else Nil
-
       val document_links =
         documents.map(doc => HTML.link(doc.path.pdf, HTML.text(doc.name)))
 
       Library.separate(HTML.break ::: HTML.nl,
-        (deps_link :: readme_links ::: document_links).
-          map(link => HTML.text("View ") ::: List(link))).flatten
+        (deps_link :: document_links).map(link => HTML.text("View ") ::: List(link))).flatten
     }
 
     def present_theory(theory_name: String): Option[XML.Body] = {

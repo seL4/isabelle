@@ -58,6 +58,8 @@ session "HOL-Library" (main timing) in Library = HOL +
   description "
     Classical Higher-order Logic -- batteries included.
   "
+  theories [document = false]
+    README
   theories
     Library
     (*conflicting type class instantiations and dependent applications*)
@@ -326,6 +328,8 @@ session "HOL-Hoare" in Hoare = HOL +
     Verification of imperative programs (verification conditions are generated
     automatically from pre/post conditions and loop invariants).
   "
+  theories [document = false]
+    README
   theories
     Examples
     ExamplesAbort
@@ -406,6 +410,8 @@ session "HOL-Algebra" (main timing) in Algebra = "HOL-Computational_Algebra" +
   sessions
     "HOL-Cardinals"
     "HOL-Combinatorics"
+  theories [document = false]
+    README
   theories
     (* Orders and Lattices *)
     Galois_Connection    (* Knaster-Tarski theorem and Galois connections *)
@@ -429,10 +435,15 @@ session "HOL-Auth" (timing) in Auth = HOL +
   "
   sessions "HOL-Library"
   directories "Smartcard" "Guard"
+  theories [document = false]
+    README
   theories
     Auth_Shared
     Auth_Public
     "Smartcard/Auth_Smartcard"
+  theories [document = false]
+    "Guard/README_Guard"
+  theories
     "Guard/Auth_Guard_Shared"
     "Guard/Auth_Guard_Public"
   document_files "root.tex"
@@ -445,10 +456,15 @@ session "HOL-UNITY" (timing) in UNITY = "HOL-Auth" +
     Verifying security protocols using Chandy and Misra's UNITY formalism.
   "
   directories "Simple" "Comp"
+  theories [document = false]
+    README
   theories
     (*Basic meta-theory*)
     UNITY_Main
 
+  theories [document = false]
+    "Simple/README_Simple"
+  theories
     (*Simple examples: no composition*)
     "Simple/Deadlock"
     "Simple/Common"
@@ -463,6 +479,9 @@ session "HOL-UNITY" (timing) in UNITY = "HOL-Auth" +
     (*Verifying security protocols using UNITY*)
     "Simple/NSP_Bad"
 
+  theories [document = false]
+    "Comp/README_Comp"
+  theories
     (*Example of composition*)
     "Comp/Handshake"
 
@@ -783,7 +802,9 @@ session "HOL-TLA" in TLA = HOL +
   description "
     Lamport's Temporal Logic of Actions.
   "
-  theories TLA
+  theories
+    README
+    TLA
 
 session "HOL-TLA-Inc" in "TLA/Inc" = "HOL-TLA" +
   theories Inc
@@ -1083,6 +1104,8 @@ session HOLCF (main timing) in HOLCF = HOL +
   "
   sessions
     "HOL-Library"
+  theories [document = false]
+    README
   theories
     HOLCF (global)
   document_files "root.tex"
