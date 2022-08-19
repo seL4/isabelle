@@ -108,8 +108,8 @@ object Build_Log {
     def apply(file: JFile): Log_File = {
       val name = file.getName
       val text =
-        if (name.endsWith(".gz")) File.read_gzip(file)
-        else if (name.endsWith(".xz")) File.read_xz(file)
+        if (File.is_gz(name)) File.read_gzip(file)
+        else if (File.is_xz(name)) File.read_xz(file)
         else File.read(file)
       apply(name, text)
     }

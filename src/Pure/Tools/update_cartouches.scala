@@ -97,7 +97,7 @@ Usage: isabelle update_cartouches [FILES|DIRS...]
         for {
           spec <- specs
           file <- File.find_files(Path.explode(spec).file,
-            file => file.getName.endsWith(".thy") || file.getName == "ROOT")
+            file => File.is_thy(file.getName) || file.getName == "ROOT")
         } update_cartouches(replace_text, File.path(file))
       })
 }

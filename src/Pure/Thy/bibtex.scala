@@ -17,8 +17,6 @@ import scala.util.parsing.input.Reader
 object Bibtex {
   /** file format **/
 
-  def is_bibtex(name: String): Boolean = name.endsWith(".bib")
-
   class File_Format extends isabelle.File_Format {
     val format_name: String = "bibtex"
     val file_ext: String = "bib"

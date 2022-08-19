@@ -420,7 +420,7 @@ object Mailman {
 
     def find_messages(dir: Path): List[Message] = {
       for {
-        file <- File.find_files(dir.file, file => file.getName.endsWith(".html"))
+        file <- File.find_files(dir.file, file => File.is_html(file.getName))
         rel_path <- File.relative_path(dir, File.path(file))
       }
       yield {

@@ -420,7 +420,7 @@ case class File_Model(
     else Some(Document.Blob(content.bytes, content.text, content.chunk, pending_edits.nonEmpty))
 
   def bibtex_entries: List[Text.Info[String]] =
-    if (Bibtex.is_bibtex(node_name.node)) content.bibtex_entries else Nil
+    if (File.is_bib(node_name.node)) content.bibtex_entries else Nil
 
 
   /* edits */
@@ -542,7 +542,7 @@ extends Document_Model {
 
   def bibtex_entries: List[Text.Info[String]] =
     GUI_Thread.require {
-      if (Bibtex.is_bibtex(node_name.node)) {
+      if (File.is_bib(node_name.node)) {
         _bibtex_entries match {
           case Some(entries) => entries
           case None =>

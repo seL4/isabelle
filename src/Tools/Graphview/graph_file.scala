@@ -27,8 +27,8 @@ object Graph_File {
     }
 
     val name = file.getName
-    if (name.endsWith(".png")) Graphics_File.write_png(file, paint, w, h)
-    else if (name.endsWith(".pdf")) Graphics_File.write_pdf(file, paint, w, h)
+    if (File.is_png(name)) Graphics_File.write_png(file, paint, w, h)
+    else if (File.is_pdf(name)) Graphics_File.write_pdf(file, paint, w, h)
     else error("Bad type of file: " + quote(name) + " (.png or .pdf expected)")
   }
 

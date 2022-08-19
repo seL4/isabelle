@@ -48,7 +48,7 @@ object Presentation {
       Path.explode("files") + Path.explode(file).squash.html
 
     def smart_html(theory: Nodes.Theory, file: String): Path =
-      if (file.endsWith(".thy")) theory_html(theory) else file_html(file)
+      if (File.is_thy(file)) theory_html(theory) else file_html(file)
 
     def files_path(session: String, path: Path): Path =
       session_dir(session) + Path.explode("files") + path.squash.html
@@ -151,8 +151,8 @@ object Presentation {
           case Nil => error("Unknown theory file for " + quote(name))
           case a :: bs =>
             def for_theory: String = " for theory " + quote(name)
-            if (!a.endsWith(".thy")) error("Bad .thy file " + quote(a) + for_theory)
-            for (b <- bs if b.endsWith(".thy")) error("Bad auxiliary file " + quote(b) + for_theory)
+            if (!File.is_thy(a)) error("Bad .thy file " + quote(a) + for_theory)
+            for (b <- bs if File.is_thy(b)) error("Bad auxiliary file " + quote(b) + for_theory)
             (a, bs)
         }
 

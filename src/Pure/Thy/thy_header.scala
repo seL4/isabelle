@@ -91,7 +91,7 @@ object Thy_Header {
 
   def import_name(s: String): String =
     s match {
-      case File_Name(name) if !name.endsWith(".thy") => name
+      case File_Name(name) if !File.is_thy(name) => name
       case _ => error("Malformed theory import: " + quote(s))
     }
 

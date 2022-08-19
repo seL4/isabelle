@@ -537,7 +537,7 @@ object Sessions {
     lazy val bibtex_entries: List[Text.Info[String]] =
       (for {
         (document_dir, file) <- document_files.iterator
-        if Bibtex.is_bibtex(file.file_name)
+        if File.is_bib(file.file_name)
         info <- Bibtex.entries(File.read(dir + document_dir + file)).iterator
       } yield info).toList
 
