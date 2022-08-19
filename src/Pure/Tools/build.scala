@@ -487,6 +487,7 @@ object Build {
     if (!no_build && !progress.stopped && results.ok) {
       if (presentation_sessions.nonEmpty) {
         val presentation_dir = presentation.dir(store)
+        progress.echo("Presentation in " + presentation_dir.absolute)
         Presentation.update_root(presentation_dir)
 
         for ((chapter, infos) <- presentation_sessions.groupBy(_.chapter).iterator) {
