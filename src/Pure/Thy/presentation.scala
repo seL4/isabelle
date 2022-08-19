@@ -42,7 +42,11 @@ object Presentation {
       root_dir + Path.explode(sessions_structure(session).chapter_session)
 
     def theory_html(theory: Document_Info.Theory): Path =
-      Path.explode(theory.print_short).html
+    {
+      val name1 = theory.print_short
+      val name2 = if (Word.lowercase(name1) == "index") theory.name else name1
+      Path.explode(name2).html
+    }
 
     def file_html(file: String): Path =
       Path.explode(file).squash.html

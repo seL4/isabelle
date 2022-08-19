@@ -30,11 +30,8 @@ object Sessions {
 
   def is_pure(name: String): Boolean = name == Thy_Header.PURE
 
-
   def exclude_session(name: String): Boolean = name == "" || name == DRAFT
-
-  def exclude_theory(name: String): Boolean =
-    name == root_name || name == "index" || name == "bib"
+  def exclude_theory(name: String): Boolean = name == root_name || name == "bib"
 
 
   /* ROOTS file format */
