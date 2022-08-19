@@ -26,7 +26,7 @@ object Build_Job {
 
     for {
       id <- theory_context.document_id()
-      (thy_file, blobs_files) <- theory_context.files()
+      (thy_file, blobs_files) <- theory_context.files(permissive = true)
     }
     yield {
       val node_name = Resources.file_node(Path.explode(thy_file), theory = theory_context.theory)
