@@ -385,17 +385,17 @@ definition divmod_integer :: "num \<Rightarrow> num \<Rightarrow> integer \<time
 where
   divmod_integer'_def: "divmod_integer m n = (numeral m div numeral n, numeral m mod numeral n)"
 
-definition divmod_step_integer :: "num \<Rightarrow> integer \<times> integer \<Rightarrow> integer \<times> integer"
+definition divmod_step_integer :: "integer \<Rightarrow> integer \<times> integer \<Rightarrow> integer \<times> integer"
 where
   "divmod_step_integer l qr = (let (q, r) = qr
-    in if r \<ge> numeral l then (2 * q + 1, r - numeral l)
+    in if r \<ge> l then (2 * q + 1, r - l)
     else (2 * q, r))"
 
 instance proof
   show "divmod m n = (numeral m div numeral n :: integer, numeral m mod numeral n)"
     for m n by (fact divmod_integer'_def)
   show "divmod_step l qr = (let (q, r) = qr
-    in if r \<ge> numeral l then (2 * q + 1, r - numeral l)
+    in if r \<ge> l then (2 * q + 1, r - l)
     else (2 * q, r))" for l and qr :: "integer \<times> integer"
     by (fact divmod_step_integer_def)
 qed (transfer,

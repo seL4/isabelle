@@ -562,10 +562,10 @@ class unique_euclidean_semiring_numeral = unique_euclidean_semiring_with_nat + l
     and div_mult2_eq: "0 \<le> c \<Longrightarrow> a div (b * c) = a div b div c"
   assumes discrete: "a < b \<longleftrightarrow> a + 1 \<le> b"
   fixes divmod :: "num \<Rightarrow> num \<Rightarrow> 'a \<times> 'a"
-    and divmod_step :: "num \<Rightarrow> 'a \<times> 'a \<Rightarrow> 'a \<times> 'a"
+    and divmod_step :: "'a \<Rightarrow> 'a \<times> 'a \<Rightarrow> 'a \<times> 'a"
   assumes divmod_def: "divmod m n = (numeral m div numeral n, numeral m mod numeral n)"
     and divmod_step_def: "divmod_step l qr = (let (q, r) = qr
-    in if r \<ge> numeral l then (2 * q + 1, r - numeral l)
+    in if r \<ge> l then (2 * q + 1, r - l)
     else (2 * q, r))"
     \<comment> \<open>These are conceptually definitions but force generated code
     to be monomorphic wrt. particular instances of this class which
@@ -652,8 +652,8 @@ text \<open>
 \<close>
 
 lemma divmod_step_eq [simp]:
-  "divmod_step l (q, r) = (if numeral l \<le> r
-    then (2 * q + 1, r - numeral l) else (2 * q, r))"
+  "divmod_step l (q, r) = (if l \<le> r
+    then (2 * q + 1, r - l) else (2 * q, r))"
   by (simp add: divmod_step_def)
 
 text \<open>
@@ -666,7 +666,7 @@ text \<open>
 
 lemma divmod_divmod_step:
   "divmod m n = (if m < n then (0, numeral m)
-    else divmod_step n (divmod m (Num.Bit0 n)))"
+    else divmod_step (numeral n) (divmod m (Num.Bit0 n)))"
 proof (cases "m < n")
   case True then have "numeral m < numeral n" by simp
   then show ?thesis
@@ -674,12 +674,12 @@ proof (cases "m < n")
 next
   case False
   have "divmod m n =
-    divmod_step n (numeral m div (2 * numeral n),
+    divmod_step (numeral n) (numeral m div (2 * numeral n),
       numeral m mod (2 * numeral n))"
   proof (cases "numeral n \<le> numeral m mod (2 * numeral n)")
     case True
     with divmod_step_eq
-      have "divmod_step n (numeral m div (2 * numeral n), numeral m mod (2 * numeral n)) =
+      have "divmod_step (numeral n) (numeral m div (2 * numeral n), numeral m mod (2 * numeral n)) =
         (2 * (numeral m div (2 * numeral n)) + 1, numeral m mod (2 * numeral n) - numeral n)"
         by simp
     moreover from True divmod_digit_1 [of "numeral m" "numeral n"]
@@ -691,7 +691,7 @@ next
     case False then have *: "numeral m mod (2 * numeral n) < numeral n"
       by (simp add: not_le)
     with divmod_step_eq
-      have "divmod_step n (numeral m div (2 * numeral n), numeral m mod (2 * numeral n)) =
+      have "divmod_step (numeral n) (numeral m div (2 * numeral n), numeral m mod (2 * numeral n)) =
         (2 * (numeral m div (2 * numeral n)), numeral m mod (2 * numeral n))"
         by auto
     moreover from * divmod_digit_0 [of "numeral n" "numeral m"]
@@ -701,10 +701,10 @@ next
     ultimately show ?thesis by (simp only: divmod_def)
   qed
   then have "divmod m n =
-    divmod_step n (numeral m div numeral (Num.Bit0 n),
+    divmod_step (numeral n) (numeral m div numeral (Num.Bit0 n),
       numeral m mod numeral (Num.Bit0 n))"
     by (simp only: numeral.simps distrib mult_1)
-  then have "divmod m n = divmod_step n (divmod m (Num.Bit0 n))"
+  then have "divmod m n = divmod_step (numeral n) (divmod m (Num.Bit0 n))"
     by (simp add: divmod_def)
   with False show ?thesis by simp
 qed
@@ -738,12 +738,12 @@ text \<open>The really hard work\<close>
 lemma divmod_steps [simp]:
   "divmod (num.Bit0 m) (num.Bit1 n) =
       (if m \<le> n then (0, numeral (num.Bit0 m))
-       else divmod_step (num.Bit1 n)
+       else divmod_step (numeral (num.Bit1 n))
              (divmod (num.Bit0 m)
                (num.Bit0 (num.Bit1 n))))"
   "divmod (num.Bit1 m) (num.Bit1 n) =
       (if m < n then (0, numeral (num.Bit1 m))
-       else divmod_step (num.Bit1 n)
+       else divmod_step (numeral (num.Bit1 n))
              (divmod (num.Bit1 m)
                (num.Bit0 (num.Bit1 n))))"
   by (simp_all add: divmod_divmod_step)
@@ -824,10 +824,10 @@ definition divmod_nat :: "num \<Rightarrow> num \<Rightarrow> nat \<times> nat"
 where
   divmod'_nat_def: "divmod_nat m n = (numeral m div numeral n, numeral m mod numeral n)"
 
-definition divmod_step_nat :: "num \<Rightarrow> nat \<times> nat \<Rightarrow> nat \<times> nat"
+definition divmod_step_nat :: "nat \<Rightarrow> nat \<times> nat \<Rightarrow> nat \<times> nat"
 where
   "divmod_step_nat l qr = (let (q, r) = qr
-    in if r \<ge> numeral l then (2 * q + 1, r - numeral l)
+    in if r \<ge> l then (2 * q + 1, r - l)
     else (2 * q, r))"
 
 instance by standard
@@ -854,10 +854,10 @@ definition divmod_int :: "num \<Rightarrow> num \<Rightarrow> int \<times> int"
 where
   "divmod_int m n = (numeral m div numeral n, numeral m mod numeral n)"
 
-definition divmod_step_int :: "num \<Rightarrow> int \<times> int \<Rightarrow> int \<times> int"
+definition divmod_step_int :: "int \<Rightarrow> int \<times> int \<Rightarrow> int \<times> int"
 where
   "divmod_step_int l qr = (let (q, r) = qr
-    in if r \<ge> numeral l then (2 * q + 1, r - numeral l)
+    in if r \<ge> l then (2 * q + 1, r - l)
     else (2 * q, r))"
 
 instance
