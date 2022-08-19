@@ -2003,7 +2003,7 @@ text \<open>
   \begin{matharray}{rcl}
     @{method_def (HOL) arith} & : & \<open>method\<close> \\
     @{attribute_def (HOL) arith} & : & \<open>attribute\<close> \\
-    @{attribute_def (HOL) arith_split} & : & \<open>attribute\<close> \\
+    @{attribute_def (HOL) linarith_split} & : & \<open>attribute\<close> \\
   \end{matharray}
 
   \<^descr> @{method (HOL) arith} decides linear arithmetic problems (on types \<open>nat\<close>,
@@ -2013,7 +2013,7 @@ text \<open>
   \<^descr> @{attribute (HOL) arith} declares facts that are supplied to the
   arithmetic provers implicitly.
 
-  \<^descr> @{attribute (HOL) arith_split} attribute declares case split rules to be
+  \<^descr> @{attribute (HOL) linarith_split} attribute declares case split rules to be
   expanded before @{method (HOL) arith} is invoked.
 
 

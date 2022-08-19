@@ -652,7 +652,7 @@ lemma nat_of_bool [simp]:
   "nat (of_bool P) = of_bool P"
   by auto
 
-lemma split_nat [arith_split]: "P (nat i) \<longleftrightarrow> ((\<forall>n. i = int n \<longrightarrow> P n) \<and> (i < 0 \<longrightarrow> P 0))"
+lemma split_nat [linarith_split]: "P (nat i) \<longleftrightarrow> ((\<forall>n. i = int n \<longrightarrow> P n) \<and> (i < 0 \<longrightarrow> P 0))"
   (is "?P = (?L \<and> ?R)")
   for i :: int
 proof (cases "i < 0")
@@ -739,11 +739,11 @@ lemma zadd_int_left: "int m + (int n + z) = int (m + n) + z"
 
 text \<open>
   This version is proved for all ordered rings, not just integers!
-  It is proved here because attribute \<open>arith_split\<close> is not available
+  It is proved here because attribute \<open>linarith_split\<close> is not available
   in theory \<open>Rings\<close>.
   But is it really better than just rewriting with \<open>abs_if\<close>?
 \<close>
-lemma abs_split [arith_split, no_atp]: "P \<bar>a\<bar> \<longleftrightarrow> (0 \<le> a \<longrightarrow> P a) \<and> (a < 0 \<longrightarrow> P (- a))"
+lemma abs_split [linarith_split, no_atp]: "P \<bar>a\<bar> \<longleftrightarrow> (0 \<le> a \<longrightarrow> P a) \<and> (a < 0 \<longrightarrow> P (- a))"
   for a :: "'a::linordered_idom"
   by (force dest: order_less_le_trans simp add: abs_if linorder_not_less)
 

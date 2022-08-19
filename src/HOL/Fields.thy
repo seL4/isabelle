@@ -85,7 +85,7 @@ simproc_setup fast_arith_nat ("(m::nat) < n" | "(m::nat) \<le> n" | "(m::nat) = 
    \<^text>\<open>fast_nat_arith_simproc\<close> anyway. However, it seems cheaper to activate the
    solver all the time rather than add the additional check.\<close>
 
-lemmas [arith_split] = nat_diff_split split_min split_max
+lemmas [linarith_split] = nat_diff_split split_min split_max
 
 text\<open>Lemmas \<open>divide_simps\<close> move division to the outside and eliminates them on (in)equalities.\<close>
 
