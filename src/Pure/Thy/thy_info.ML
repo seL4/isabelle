@@ -38,7 +38,8 @@ type presentation_context =
     segments: Document_Output.segment list};
 
 fun adjust_pos_properties (context: presentation_context) pos =
-  Position.offset_properties_of (#adjust_pos context pos) @ Position.id_properties_of pos;
+  Position.offset_properties_of (#adjust_pos context pos) @
+  filter (fn (a, _) => a = Markup.idN orelse a = Markup.fileN) (Position.get_props pos);
 
 structure Presentation = Theory_Data
 (
