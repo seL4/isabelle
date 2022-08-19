@@ -11,39 +11,92 @@ begin
 
 subsection \<open>More on division\<close>
 
-subsubsection \<open>Laws for div and mod with Unary Minus\<close>
+subsubsection \<open>Splitting Rules for div and mod\<close>
 
-lemma zmod_zminus1_not_zero:
-  fixes k l :: int
-  shows "- k mod l \<noteq> 0 \<Longrightarrow> k mod l \<noteq> 0"
-  by (simp add: mod_eq_0_iff_dvd)
+text\<open>The proofs of the two lemmas below are essentially identical\<close>
 
-lemma zmod_zminus2_not_zero:
-  fixes k l :: int
-  shows "k mod - l \<noteq> 0 \<Longrightarrow> k mod l \<noteq> 0"
-  by (simp add: mod_eq_0_iff_dvd)
+lemma split_pos_lemma:
+ "0<k \<Longrightarrow>
+    P(n div k :: int)(n mod k) = (\<forall>i j. 0\<le>j \<and> j<k \<and> n = k*i + j \<longrightarrow> P i j)"
+  by auto
 
-lemma zdiv_zminus1_eq_if:
-  \<open>(- a) div b = (if a mod b = 0 then - (a div b) else - (a div b) - 1)\<close>
-  if \<open>b \<noteq> 0\<close> for a b :: int
-  using that sgn_not_eq_imp [of b \<open>- a\<close>]
-  by (cases \<open>a = 0\<close>) (auto simp add: div_eq_div_abs [of \<open>- a\<close> b] div_eq_div_abs [of a b] sgn_eq_0_iff)
+lemma split_neg_lemma:
+ "k<0 \<Longrightarrow>
+    P(n div k :: int)(n mod k) = (\<forall>i j. k<j \<and> j\<le>0 \<and> n = k*i + j \<longrightarrow> P i j)"
+  by auto
 
-lemma zdiv_zminus2_eq_if:
-  \<open>a div (- b) = (if a mod b = 0 then - (a div b) else - (a div b) - 1)\<close>
-  if \<open>b \<noteq> 0\<close> for a b :: int
-  using that by (auto simp add: zdiv_zminus1_eq_if div_minus_right)
+lemma split_zdiv:
+  \<open>P (n div k) \<longleftrightarrow>
+    (k = 0 \<longrightarrow> P 0) \<and>
+    (0 < k \<longrightarrow> (\<forall>i j. 0 \<le> j \<and> j < k \<and> n = k * i + j \<longrightarrow> P i)) \<and>
+    (k < 0 \<longrightarrow> (\<forall>i j. k < j \<and> j \<le> 0 \<and> n = k * i + j \<longrightarrow> P i))\<close> for n k :: int
+proof (cases \<open>k = 0\<close>)
+  case True
+  then show ?thesis
+    by simp
+next
+  case False
+  then have \<open>k < 0 \<or> 0 < k\<close>
+    by auto
+  then show ?thesis
+    by (auto simp add: split_pos_lemma [of concl: "\<lambda>x y. P x"] split_neg_lemma [of concl: "\<lambda>x y. P x"])
+qed
 
-lemma zmod_zminus1_eq_if:
-  \<open>(- a) mod b = (if a mod b = 0 then 0 else b - (a mod b))\<close>
-  for a b :: int
-  by (cases \<open>b = 0\<close>)
-    (auto simp flip: minus_div_mult_eq_mod simp add: zdiv_zminus1_eq_if algebra_simps)
+lemma split_zmod:
+  \<open>P (n mod k) \<longleftrightarrow>
+    (k = 0 \<longrightarrow> P n) \<and>
+    (0 < k \<longrightarrow> (\<forall>i j. 0 \<le> j \<and> j < k \<and> n = k * i + j \<longrightarrow> P j)) \<and>
+    (k < 0 \<longrightarrow> (\<forall>i j. k < j \<and> j \<le> 0 \<and> n = k * i + j \<longrightarrow> P j))\<close> for n k :: int
+proof (cases \<open>k = 0\<close>)
+  case True
+  then show ?thesis
+    by simp
+next
+  case False
+  then have \<open>k < 0 \<or> 0 < k\<close>
+    by auto
+  then show ?thesis
+    by (auto simp add: split_pos_lemma [of concl: "\<lambda>x y. P y"] split_neg_lemma [of concl: "\<lambda>x y. P y"])
+qed
 
-lemma zmod_zminus2_eq_if:
-  \<open>a mod (- b) = (if a mod b = 0 then 0 else (a mod b) - b)\<close>
-  for a b :: int
-  by (auto simp add: zmod_zminus1_eq_if mod_minus_right)
+text \<open>Enable (lin)arith to deal with \<^const>\<open>divide\<close> and \<^const>\<open>modulo\<close>
+  when these are applied to some constant that is of the form
+  \<^term>\<open>numeral k\<close>:\<close>
+declare split_zdiv [of _ _ \<open>numeral k\<close>, arith_split] for k
+declare split_zmod [of _ _ \<open>numeral k\<close>, arith_split] for k
+
+lemma half_nonnegative_int_iff [simp]:
+  \<open>k div 2 \<ge> 0 \<longleftrightarrow> k \<ge> 0\<close> for k :: int
+  by auto
+
+lemma half_negative_int_iff [simp]:
+  \<open>k div 2 < 0 \<longleftrightarrow> k < 0\<close> for k :: int
+  by auto
+
+lemma zdiv_eq_0_iff:
+  "i div k = 0 \<longleftrightarrow> k = 0 \<or> 0 \<le> i \<and> i < k \<or> i \<le> 0 \<and> k < i" (is "?L = ?R")
+  for i k :: int
+proof
+  assume ?L
+  moreover have "?L \<longrightarrow> ?R"
+    by (rule split_zdiv [THEN iffD2]) simp
+  ultimately show ?R
+    by blast
+next
+  assume ?R then show ?L
+    by auto
+qed
+
+lemma zmod_trivial_iff:
+  fixes i k :: int
+  shows "i mod k = i \<longleftrightarrow> k = 0 \<or> 0 \<le> i \<and> i < k \<or> i \<le> 0 \<and> k < i"
+proof -
+  have "i mod k = i \<longleftrightarrow> i div k = 0"
+    using div_mult_mod_eq [of i k] by safe auto
+  with zdiv_eq_0_iff
+  show ?thesis
+    by simp
+qed
 
 
 subsubsection \<open>Monotonicity in the First Argument (Dividend)\<close>
@@ -238,84 +291,6 @@ proof -
 qed
 
 
-subsubsection \<open>Splitting Rules for div and mod\<close>
-
-text\<open>The proofs of the two lemmas below are essentially identical\<close>
-
-lemma split_pos_lemma:
- "0<k \<Longrightarrow>
-    P(n div k :: int)(n mod k) = (\<forall>i j. 0\<le>j \<and> j<k \<and> n = k*i + j \<longrightarrow> P i j)"
-  by auto
-
-lemma split_neg_lemma:
- "k<0 \<Longrightarrow>
-    P(n div k :: int)(n mod k) = (\<forall>i j. k<j \<and> j\<le>0 \<and> n = k*i + j \<longrightarrow> P i j)"
-  by auto
-
-lemma split_zdiv:
- "P(n div k :: int) =
-  ((k = 0 \<longrightarrow> P 0) \<and>
-   (0<k \<longrightarrow> (\<forall>i j. 0\<le>j \<and> j<k \<and> n = k*i + j \<longrightarrow> P i)) \<and>
-   (k<0 \<longrightarrow> (\<forall>i j. k<j \<and> j\<le>0 \<and> n = k*i + j \<longrightarrow> P i)))"
-proof (cases "k = 0")
-  case False
-  then show ?thesis
-    unfolding linorder_neq_iff
-    by (auto simp add: split_pos_lemma [of concl: "\<lambda>x y. P x"] split_neg_lemma [of concl: "\<lambda>x y. P x"])
-qed auto
-
-lemma split_zmod:
- "P(n mod k :: int) =
-  ((k = 0 \<longrightarrow> P n) \<and>
-   (0<k \<longrightarrow> (\<forall>i j. 0\<le>j \<and> j<k \<and> n = k*i + j \<longrightarrow> P j)) \<and>
-   (k<0 \<longrightarrow> (\<forall>i j. k<j \<and> j\<le>0 \<and> n = k*i + j \<longrightarrow> P j)))"
-proof (cases "k = 0")
-  case False
-  then show ?thesis
-    unfolding linorder_neq_iff
-    by (auto simp add: split_pos_lemma [of concl: "\<lambda>x y. P y"] split_neg_lemma [of concl: "\<lambda>x y. P y"])
-qed auto
-
-text \<open>Enable (lin)arith to deal with \<^const>\<open>divide\<close> and \<^const>\<open>modulo\<close>
-  when these are applied to some constant that is of the form
-  \<^term>\<open>numeral k\<close>:\<close>
-declare split_zdiv [of _ _ "numeral k", arith_split] for k
-declare split_zmod [of _ _ "numeral k", arith_split] for k
-
-lemma half_nonnegative_int_iff [simp]:
-  \<open>k div 2 \<ge> 0 \<longleftrightarrow> k \<ge> 0\<close> for k :: int
-  by auto
-
-lemma half_negative_int_iff [simp]:
-  \<open>k div 2 < 0 \<longleftrightarrow> k < 0\<close> for k :: int
-  by auto
-
-lemma zdiv_eq_0_iff:
-  "i div k = 0 \<longleftrightarrow> k = 0 \<or> 0 \<le> i \<and> i < k \<or> i \<le> 0 \<and> k < i" (is "?L = ?R")
-  for i k :: int
-proof
-  assume ?L
-  moreover have "?L \<longrightarrow> ?R"
-    by (rule split_zdiv [THEN iffD2]) simp
-  ultimately show ?R
-    by blast
-next
-  assume ?R then show ?L
-    by auto
-qed
-
-lemma zmod_trivial_iff:
-  fixes i k :: int
-  shows "i mod k = i \<longleftrightarrow> k = 0 \<or> 0 \<le> i \<and> i < k \<or> i \<le> 0 \<and> k < i"
-proof -
-  have "i mod k = i \<longleftrightarrow> i div k = 0"
-    using div_mult_mod_eq [of i k] by safe auto
-  with zdiv_eq_0_iff
-  show ?thesis
-    by simp
-qed
-
-
 subsubsection \<open>Computing \<open>div\<close> and \<open>mod\<close> with shifting\<close>
 
 lemma pos_eucl_rel_int_mult_2:
@@ -380,7 +355,6 @@ lemma zmod_numeral_Bit1 [simp]:
   unfolding numeral_Bit1 [of v] numeral_Bit0 [of w]
   unfolding mult_2 [symmetric] add.commute [of _ 1]
   by (rule pos_zmod_mult_2, simp)
-
 
   
 subsubsection \<open>Quotients of Signs\<close>

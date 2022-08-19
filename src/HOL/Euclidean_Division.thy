@@ -2091,6 +2091,41 @@ text \<open>There is neither \<open>div_neg_pos_trivial\<close> nor \<open>mod_n
   because \<^term>\<open>0 div l = 0\<close> would supersede it.\<close>
 
 
+subsubsection \<open>Laws for unary minus\<close>
+
+lemma zmod_zminus1_not_zero:
+  fixes k l :: int
+  shows "- k mod l \<noteq> 0 \<Longrightarrow> k mod l \<noteq> 0"
+  by (simp add: mod_eq_0_iff_dvd)
+
+lemma zmod_zminus2_not_zero:
+  fixes k l :: int
+  shows "k mod - l \<noteq> 0 \<Longrightarrow> k mod l \<noteq> 0"
+  by (simp add: mod_eq_0_iff_dvd)
+
+lemma zdiv_zminus1_eq_if:
+  \<open>(- a) div b = (if a mod b = 0 then - (a div b) else - (a div b) - 1)\<close>
+  if \<open>b \<noteq> 0\<close> for a b :: int
+  using that sgn_not_eq_imp [of b \<open>- a\<close>]
+  by (cases \<open>a = 0\<close>) (auto simp add: div_eq_div_abs [of \<open>- a\<close> b] div_eq_div_abs [of a b] sgn_eq_0_iff)
+
+lemma zdiv_zminus2_eq_if:
+  \<open>a div (- b) = (if a mod b = 0 then - (a div b) else - (a div b) - 1)\<close>
+  if \<open>b \<noteq> 0\<close> for a b :: int
+  using that by (auto simp add: zdiv_zminus1_eq_if div_minus_right)
+
+lemma zmod_zminus1_eq_if:
+  \<open>(- a) mod b = (if a mod b = 0 then 0 else b - (a mod b))\<close>
+  for a b :: int
+  by (cases \<open>b = 0\<close>)
+    (auto simp flip: minus_div_mult_eq_mod simp add: zdiv_zminus1_eq_if algebra_simps)
+
+lemma zmod_zminus2_eq_if:
+  \<open>a mod (- b) = (if a mod b = 0 then 0 else (a mod b) - b)\<close>
+  for a b :: int
+  by (auto simp add: zmod_zminus1_eq_if mod_minus_right)
+
+
 subsubsection \<open>Borders\<close>
 
 lemma pos_mod_bound [simp]:
