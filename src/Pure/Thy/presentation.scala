@@ -124,8 +124,8 @@ object Presentation {
   object Entity_Ref {
     def unapply(props: Properties.T): Option[(String, String, String)] =
       (props, props, props, props) match {
-        case (Markup.Entity.Ref.Prop(_), Position.Def_File(file), Markup.Kind(kind), Markup.Name(name)) =>
-          Some((file, kind, name))
+        case (Markup.Entity.Ref.Prop(_), Position.Def_File(file), Markup.Kind(kind), Markup.Name(name))
+        if Path.is_wellformed(file) => Some((file, kind, name))
         case _ => None
       }
   }
