@@ -183,9 +183,9 @@ object Presentation {
         deps.sessions_structure.build_requirements(presentation_sessions).flatMap(session =>
           using(open_session(session)) { session_context =>
             session_context.theory_names().flatMap { theory =>
-              session_context.theory(theory).files() match {
-                case None => Nil
-                case Some((thy, blobs)) =>
+              session_context.theory(theory).files0(permissive = true) match {
+                case Nil => Nil
+                case thy :: blobs =>
                   val thy_file_info = File_Info(theory, is_theory = true)
                   (thy -> thy_file_info) :: blobs.map(_ -> File_Info(theory))
               }

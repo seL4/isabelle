@@ -449,10 +449,13 @@ object Export {
         case _ => None
       }
 
-    def files(): Option[(String, List[String])] =
-      split_lines(apply(FILES, permissive = true).text) match {
+    def files0(permissive: Boolean = false): List[String] =
+      split_lines(apply(FILES, permissive = permissive).text)
+
+    def files(permissive: Boolean = false): Option[(String, List[String])] =
+      files0(permissive = permissive) match {
         case Nil => None
-        case thy_file :: blobs_files => Some((thy_file, blobs_files))
+        case a :: bs => Some((a, bs))
       }
 
     override def toString: String = "Export.Theory_Context(" + quote(theory) + ")"
