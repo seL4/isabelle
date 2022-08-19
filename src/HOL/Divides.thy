@@ -11,111 +11,7 @@ begin
 
 subsection \<open>More on division\<close>
 
-subsubsection \<open>Splitting Rules for div and mod\<close>
-
-text\<open>The proofs of the two lemmas below are essentially identical\<close>
-
-lemma split_pos_lemma:
- "0<k \<Longrightarrow>
-    P(n div k :: int)(n mod k) = (\<forall>i j. 0\<le>j \<and> j<k \<and> n = k*i + j \<longrightarrow> P i j)"
-  by auto
-
-lemma split_neg_lemma:
- "k<0 \<Longrightarrow>
-    P(n div k :: int)(n mod k) = (\<forall>i j. k<j \<and> j\<le>0 \<and> n = k*i + j \<longrightarrow> P i j)"
-  by auto
-
-lemma split_zdiv:
-  \<open>P (n div k) \<longleftrightarrow>
-    (k = 0 \<longrightarrow> P 0) \<and>
-    (0 < k \<longrightarrow> (\<forall>i j. 0 \<le> j \<and> j < k \<and> n = k * i + j \<longrightarrow> P i)) \<and>
-    (k < 0 \<longrightarrow> (\<forall>i j. k < j \<and> j \<le> 0 \<and> n = k * i + j \<longrightarrow> P i))\<close> for n k :: int
-proof (cases \<open>k = 0\<close>)
-  case True
-  then show ?thesis
-    by simp
-next
-  case False
-  then have \<open>k < 0 \<or> 0 < k\<close>
-    by auto
-  then show ?thesis
-    by (auto simp add: split_pos_lemma [of concl: "\<lambda>x y. P x"] split_neg_lemma [of concl: "\<lambda>x y. P x"])
-qed
-
-lemma split_zmod:
-  \<open>P (n mod k) \<longleftrightarrow>
-    (k = 0 \<longrightarrow> P n) \<and>
-    (0 < k \<longrightarrow> (\<forall>i j. 0 \<le> j \<and> j < k \<and> n = k * i + j \<longrightarrow> P j)) \<and>
-    (k < 0 \<longrightarrow> (\<forall>i j. k < j \<and> j \<le> 0 \<and> n = k * i + j \<longrightarrow> P j))\<close> for n k :: int
-proof (cases \<open>k = 0\<close>)
-  case True
-  then show ?thesis
-    by simp
-next
-  case False
-  then have \<open>k < 0 \<or> 0 < k\<close>
-    by auto
-  then show ?thesis
-    by (auto simp add: split_pos_lemma [of concl: "\<lambda>x y. P y"] split_neg_lemma [of concl: "\<lambda>x y. P y"])
-qed
-
-text \<open>Enable (lin)arith to deal with \<^const>\<open>divide\<close> and \<^const>\<open>modulo\<close>
-  when these are applied to some constant that is of the form
-  \<^term>\<open>numeral k\<close>:\<close>
-declare split_zdiv [of _ _ \<open>numeral n\<close>, linarith_split] for n
-declare split_zdiv [of _ _ \<open>- numeral n\<close>, linarith_split] for n
-declare split_zmod [of _ _ \<open>numeral n\<close>, linarith_split] for n
-declare split_zmod [of _ _ \<open>- numeral n\<close>, linarith_split] for n
-
-lemma half_nonnegative_int_iff [simp]:
-  \<open>k div 2 \<ge> 0 \<longleftrightarrow> k \<ge> 0\<close> for k :: int
-  by auto
-
-lemma half_negative_int_iff [simp]:
-  \<open>k div 2 < 0 \<longleftrightarrow> k < 0\<close> for k :: int
-  by auto
-
-lemma zdiv_eq_0_iff:
-  "i div k = 0 \<longleftrightarrow> k = 0 \<or> 0 \<le> i \<and> i < k \<or> i \<le> 0 \<and> k < i" (is "?L = ?R")
-  for i k :: int
-proof
-  assume ?L
-  moreover have "?L \<longrightarrow> ?R"
-    by (rule split_zdiv [THEN iffD2]) simp
-  ultimately show ?R
-    by blast
-next
-  assume ?R then show ?L
-    by auto
-qed
-
-lemma zmod_trivial_iff:
-  fixes i k :: int
-  shows "i mod k = i \<longleftrightarrow> k = 0 \<or> 0 \<le> i \<and> i < k \<or> i \<le> 0 \<and> k < i"
-proof -
-  have "i mod k = i \<longleftrightarrow> i div k = 0"
-    using div_mult_mod_eq [of i k] by safe auto
-  with zdiv_eq_0_iff
-  show ?thesis
-    by simp
-qed
-
-
 subsubsection \<open>Monotonicity in the First Argument (Dividend)\<close>
-
-inductive eucl_rel_int :: "int \<Rightarrow> int \<Rightarrow> int \<times> int \<Rightarrow> bool"
-  where eucl_rel_int_by0: "eucl_rel_int k 0 (0, k)"
-  | eucl_rel_int_dividesI: "l \<noteq> 0 \<Longrightarrow> k = q * l \<Longrightarrow> eucl_rel_int k l (q, 0)"
-  | eucl_rel_int_remainderI: "sgn r = sgn l \<Longrightarrow> \<bar>r\<bar> < \<bar>l\<bar>
-      \<Longrightarrow> k = q * l + r \<Longrightarrow> eucl_rel_int k l (q, r)"
-
-lemma eucl_rel_int_iff:    
-  "eucl_rel_int k l (q, r) \<longleftrightarrow> 
-    k = l * q + r \<and>
-     (if 0 < l then 0 \<le> r \<and> r < l else if l < 0 then l < r \<and> r \<le> 0 else q = 0)"
-  by (cases "r = 0")
-    (auto elim!: eucl_rel_int.cases intro: eucl_rel_int_by0 eucl_rel_int_dividesI eucl_rel_int_remainderI
-    simp add: ac_simps sgn_1_pos sgn_1_neg)
 
 lemma unique_quotient_lemma:
   assumes "b * q' + r' \<le> b * q + r" "0 \<le> r'" "r' < b" "r < b" shows "q' \<le> (q::int)"
@@ -133,61 +29,6 @@ qed
 lemma unique_quotient_lemma_neg:
   "b * q' + r' \<le> b*q + r \<Longrightarrow> r \<le> 0 \<Longrightarrow> b < r \<Longrightarrow> b < r' \<Longrightarrow> q \<le> (q'::int)"
   using unique_quotient_lemma[where b = "-b" and r = "-r'" and r'="-r"] by auto
-
-lemma unique_quotient:
-  "eucl_rel_int a b (q, r) \<Longrightarrow> eucl_rel_int a b (q', r') \<Longrightarrow> q = q'"
-  apply (rule order_antisym)
-   apply (simp_all add: eucl_rel_int_iff linorder_neq_iff split: if_split_asm)
-     apply (blast intro: order_eq_refl [THEN unique_quotient_lemma] order_eq_refl [THEN unique_quotient_lemma_neg] sym)+
-  done
-
-lemma unique_remainder:
-  assumes "eucl_rel_int a b (q, r)"
-    and "eucl_rel_int a b (q', r')"
-  shows "r = r'"
-proof -
-  have "q = q'"
-    using assms by (blast intro: unique_quotient)
-  then show "r = r'"
-    using assms by (simp add: eucl_rel_int_iff)
-qed
-
-lemma eucl_rel_int:
-  "eucl_rel_int k l (k div l, k mod l)"
-proof (cases k rule: int_cases3)
-  case zero
-  then show ?thesis
-    by (simp add: eucl_rel_int_iff divide_int_def modulo_int_def)
-next
-  case (pos n)
-  then show ?thesis
-    using div_mult_mod_eq [of n]
-    by (cases l rule: int_cases3)
-      (auto simp del: of_nat_mult of_nat_add
-        simp add: mod_greater_zero_iff_not_dvd of_nat_mult [symmetric] of_nat_add [symmetric] algebra_simps
-        eucl_rel_int_iff divide_int_def modulo_int_def)
-next
-  case (neg n)
-  then show ?thesis
-    using div_mult_mod_eq [of n]
-    by (cases l rule: int_cases3)
-      (auto simp del: of_nat_mult of_nat_add
-        simp add: mod_greater_zero_iff_not_dvd of_nat_mult [symmetric] of_nat_add [symmetric] algebra_simps
-        eucl_rel_int_iff divide_int_def modulo_int_def)
-qed
-
-lemma divmod_int_unique:
-  assumes "eucl_rel_int k l (q, r)"
-  shows div_int_unique: "k div l = q" and mod_int_unique: "k mod l = r"
-  using assms eucl_rel_int [of k l]
-  using unique_quotient [of k l] unique_remainder [of k l]
-  by auto
-
-lemma zminus1_lemma:
-     "eucl_rel_int a b (q, r) ==> b \<noteq> 0
-      ==> eucl_rel_int (-a) b (if r=0 then -q else -q - 1,
-                          if r=0 then 0 else b-r)"
-by (force simp add: eucl_rel_int_iff right_diff_distrib)
 
 lemma zdiv_mono1:
   \<open>a div b \<le> a' div b\<close>
@@ -272,6 +113,72 @@ proof (rule zdiv_mono2_neg_lemma)
     by simp
 qed (use assms in auto)
 
+
+subsubsection \<open>Computing \<open>div\<close> and \<open>mod\<close> with shifting\<close>
+
+inductive eucl_rel_int :: "int \<Rightarrow> int \<Rightarrow> int \<times> int \<Rightarrow> bool"
+  where eucl_rel_int_by0: "eucl_rel_int k 0 (0, k)"
+  | eucl_rel_int_dividesI: "l \<noteq> 0 \<Longrightarrow> k = q * l \<Longrightarrow> eucl_rel_int k l (q, 0)"
+  | eucl_rel_int_remainderI: "sgn r = sgn l \<Longrightarrow> \<bar>r\<bar> < \<bar>l\<bar>
+      \<Longrightarrow> k = q * l + r \<Longrightarrow> eucl_rel_int k l (q, r)"
+
+lemma eucl_rel_int_iff:    
+  "eucl_rel_int k l (q, r) \<longleftrightarrow> 
+    k = l * q + r \<and>
+     (if 0 < l then 0 \<le> r \<and> r < l else if l < 0 then l < r \<and> r \<le> 0 else q = 0)"
+  by (cases "r = 0")
+    (auto elim!: eucl_rel_int.cases intro: eucl_rel_int_by0 eucl_rel_int_dividesI eucl_rel_int_remainderI
+    simp add: ac_simps sgn_1_pos sgn_1_neg)
+
+lemma unique_quotient:
+  "eucl_rel_int a b (q, r) \<Longrightarrow> eucl_rel_int a b (q', r') \<Longrightarrow> q = q'"
+  apply (rule order_antisym)
+   apply (simp_all add: eucl_rel_int_iff linorder_neq_iff split: if_split_asm)
+     apply (blast intro: order_eq_refl [THEN unique_quotient_lemma] order_eq_refl [THEN unique_quotient_lemma_neg] sym)+
+  done
+
+lemma unique_remainder:
+  assumes "eucl_rel_int a b (q, r)"
+    and "eucl_rel_int a b (q', r')"
+  shows "r = r'"
+proof -
+  have "q = q'"
+    using assms by (blast intro: unique_quotient)
+  then show "r = r'"
+    using assms by (simp add: eucl_rel_int_iff)
+qed
+
+lemma eucl_rel_int:
+  "eucl_rel_int k l (k div l, k mod l)"
+proof (cases k rule: int_cases3)
+  case zero
+  then show ?thesis
+    by (simp add: eucl_rel_int_iff divide_int_def modulo_int_def)
+next
+  case (pos n)
+  then show ?thesis
+    using div_mult_mod_eq [of n]
+    by (cases l rule: int_cases3)
+      (auto simp del: of_nat_mult of_nat_add
+        simp add: mod_greater_zero_iff_not_dvd of_nat_mult [symmetric] of_nat_add [symmetric] algebra_simps
+        eucl_rel_int_iff divide_int_def modulo_int_def)
+next
+  case (neg n)
+  then show ?thesis
+    using div_mult_mod_eq [of n]
+    by (cases l rule: int_cases3)
+      (auto simp del: of_nat_mult of_nat_add
+        simp add: mod_greater_zero_iff_not_dvd of_nat_mult [symmetric] of_nat_add [symmetric] algebra_simps
+        eucl_rel_int_iff divide_int_def modulo_int_def)
+qed
+
+lemma divmod_int_unique:
+  assumes "eucl_rel_int k l (q, r)"
+  shows div_int_unique: "k div l = q" and mod_int_unique: "k mod l = r"
+  using assms eucl_rel_int [of k l]
+  using unique_quotient [of k l] unique_remainder [of k l]
+  by auto
+
 lemma div_pos_geq:
   fixes k l :: int
   assumes "0 < l" and "l \<le> k"
@@ -291,9 +198,6 @@ proof -
   then obtain j where k: "k = j + l" ..
   with assms show ?thesis by simp
 qed
-
-
-subsubsection \<open>Computing \<open>div\<close> and \<open>mod\<close> with shifting\<close>
 
 lemma pos_eucl_rel_int_mult_2:
   assumes "0 \<le> b"

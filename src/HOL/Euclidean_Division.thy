@@ -937,6 +937,14 @@ qed simp_all
 
 end
 
+lemma div_nat_eqI:
+  "m div n = q" if "n * q \<le> m" and "m < n * Suc q" for m n q :: nat
+  by (rule div_eqI [of _ "m - n * q"]) (use that in \<open>simp_all add: algebra_simps\<close>)
+
+lemma mod_nat_eqI:
+  "m mod n = r" if "r < n" and "r \<le> m" and "n dvd m - r" for m n r :: nat
+  by (rule mod_eqI [of _ _ "(m - r) div n"]) (use that in \<open>simp_all add: algebra_simps\<close>)
+
 text \<open>Tool support\<close>
 
 ML \<open>
@@ -966,14 +974,6 @@ structure Cancel_Div_Mod_Nat = Cancel_Div_Mod
 
 simproc_setup cancel_div_mod_nat ("(m::nat) + n") =
   \<open>K Cancel_Div_Mod_Nat.proc\<close>
-
-lemma div_nat_eqI:
-  "m div n = q" if "n * q \<le> m" and "m < n * Suc q" for m n q :: nat
-  by (rule div_eqI [of _ "m - n * q"]) (use that in \<open>simp_all add: algebra_simps\<close>)
-
-lemma mod_nat_eqI:
-  "m mod n = r" if "r < n" and "r \<le> m" and "n dvd m - r" for m n r :: nat
-  by (rule mod_eqI [of _ _ "(m - r) div n"]) (use that in \<open>simp_all add: algebra_simps\<close>)
 
 lemma div_mult_self_is_m [simp]:
   "m * n div n = m" if "n > 0" for m n :: nat
@@ -1030,6 +1030,41 @@ lemma
   and mod_less [simp]: "m mod n = m"
   if "m < n" for m n :: nat
   using that by (auto intro: div_eqI mod_eqI) 
+ 
+lemma split_div:
+  \<open>P (m div n) \<longleftrightarrow>
+    (n = 0 \<longrightarrow> P 0) \<and>
+    (n \<noteq> 0 \<longrightarrow> (\<forall>i j. j < n \<and> m = n * i + j \<longrightarrow> P i))\<close> (is ?div)
+  and split_mod:
+  \<open>Q (m mod n) \<longleftrightarrow>
+    (n = 0 \<longrightarrow> Q m) \<and>
+    (n \<noteq> 0 \<longrightarrow> (\<forall>i j. j < n \<and> m = n * i + j \<longrightarrow> Q j))\<close> (is ?mod)
+  for m n :: nat
+proof -
+  have *: \<open>R (m div n) (m mod n) \<longleftrightarrow>
+    (n = 0 \<longrightarrow> R 0 m) \<and>
+    (n \<noteq> 0 \<longrightarrow> (\<forall>i j. j < n \<and> m = n * i + j \<longrightarrow> R i j))\<close> for R
+    by (cases \<open>n = 0\<close>) auto
+  from * [of \<open>\<lambda>q _. P q\<close>] show ?div .
+  from * [of \<open>\<lambda>_ r. Q r\<close>] show ?mod .
+qed
+
+declare split_div [of _ _ \<open>numeral n\<close>, linarith_split] for n
+declare split_mod [of _ _ \<open>numeral n\<close>, linarith_split] for n
+
+lemma split_div':
+  "P (m div n) \<longleftrightarrow> n = 0 \<and> P 0 \<or> (\<exists>q. (n * q \<le> m \<and> m < n * Suc q) \<and> P q)"
+proof (cases "n = 0")
+  case True
+  then show ?thesis
+    by simp
+next
+  case False
+  then have "n * q \<le> m \<and> m < n * Suc q \<longleftrightarrow> m div n = q" for q
+    by (auto intro: div_nat_eqI dividend_less_times_div)
+  then show ?thesis
+    by auto
+qed
 
 lemma le_div_geq:
   "m div n = Suc ((m - n) div n)" if "0 < n" and "n \<le> m" for m n :: nat
@@ -1417,71 +1452,6 @@ next
   with mod show ?case
     by simp
 qed
-
-lemma split_div:
-  "P (m div n) \<longleftrightarrow> (n = 0 \<longrightarrow> P 0) \<and> (n \<noteq> 0 \<longrightarrow>
-     (\<forall>i j. j < n \<longrightarrow> m = n * i + j \<longrightarrow> P i))"
-     (is "?P = ?Q") for m n :: nat
-proof (cases "n = 0")
-  case True
-  then show ?thesis
-    by simp
-next
-  case False
-  show ?thesis
-  proof
-    assume ?P
-    with False show ?Q
-      by auto
-  next
-    assume ?Q
-    with False have *: "\<And>i j. j < n \<Longrightarrow> m = n * i + j \<Longrightarrow> P i"
-      by simp
-    with False show ?P
-      by (auto intro: * [of "m mod n"])
-  qed
-qed
-
-lemma split_div':
-  "P (m div n) \<longleftrightarrow> n = 0 \<and> P 0 \<or> (\<exists>q. (n * q \<le> m \<and> m < n * Suc q) \<and> P q)"
-proof (cases "n = 0")
-  case True
-  then show ?thesis
-    by simp
-next
-  case False
-  then have "n * q \<le> m \<and> m < n * Suc q \<longleftrightarrow> m div n = q" for q
-    by (auto intro: div_nat_eqI dividend_less_times_div)
-  then show ?thesis
-    by auto
-qed
-
-lemma split_mod:
-  "P (m mod n) \<longleftrightarrow> (n = 0 \<longrightarrow> P m) \<and> (n \<noteq> 0 \<longrightarrow>
-     (\<forall>i j. j < n \<longrightarrow> m = n * i + j \<longrightarrow> P j))"
-     (is "?P \<longleftrightarrow> ?Q") for m n :: nat
-proof (cases "n = 0")
-  case True
-  then show ?thesis
-    by simp
-next
-  case False
-  show ?thesis
-  proof
-    assume ?P
-    with False show ?Q
-      by auto
-  next
-    assume ?Q
-    with False have *: "\<And>i j. j < n \<Longrightarrow> m = n * i + j \<Longrightarrow> P j"
-      by simp
-    with False show ?P
-      by (auto intro: * [of _ "m div n"])
-  qed
-qed
-
-declare split_div [of _ _ \<open>numeral n\<close>, linarith_split] for n
-declare split_mod [of _ _ \<open>numeral n\<close>, linarith_split] for n
 
 lemma funpow_mod_eq: \<^marker>\<open>contributor \<open>Lars Noschinski\<close>\<close>
   \<open>(f ^^ (m mod n)) x = (f ^^ m) x\<close> if \<open>(f ^^ n) x = x\<close>
@@ -2192,6 +2162,64 @@ proof -
 qed
 
 
+subsubsection \<open>Splitting Rules for div and mod\<close>
+
+lemma split_zdiv:
+  \<open>P (n div k) \<longleftrightarrow>
+    (k = 0 \<longrightarrow> P 0) \<and>
+    (0 < k \<longrightarrow> (\<forall>i j. 0 \<le> j \<and> j < k \<and> n = k * i + j \<longrightarrow> P i)) \<and>
+    (k < 0 \<longrightarrow> (\<forall>i j. k < j \<and> j \<le> 0 \<and> n = k * i + j \<longrightarrow> P i))\<close> (is ?div)
+  and split_zmod:
+  \<open>Q (n mod k) \<longleftrightarrow>
+    (k = 0 \<longrightarrow> Q n) \<and>
+    (0 < k \<longrightarrow> (\<forall>i j. 0 \<le> j \<and> j < k \<and> n = k * i + j \<longrightarrow> Q j)) \<and>
+    (k < 0 \<longrightarrow> (\<forall>i j. k < j \<and> j \<le> 0 \<and> n = k * i + j \<longrightarrow> Q j))\<close> (is ?mod)
+  for n k :: int
+proof -
+  have *: \<open>R (n div k) (n mod k) \<longleftrightarrow>
+    (k = 0 \<longrightarrow> R 0 n) \<and>
+    (0 < k \<longrightarrow> (\<forall>i j. 0 \<le> j \<and> j < k \<and> n = k * i + j \<longrightarrow> R i j)) \<and>
+    (k < 0 \<longrightarrow> (\<forall>i j. k < j \<and> j \<le> 0 \<and> n = k * i + j \<longrightarrow> R i j))\<close> for R
+    by (cases \<open>k = 0\<close>)
+      (auto simp add: linorder_class.neq_iff)
+  from * [of \<open>\<lambda>q _. P q\<close>] show ?div .
+  from * [of \<open>\<lambda>_ r. Q r\<close>] show ?mod .
+qed
+ 
+text \<open>Enable (lin)arith to deal with \<^const>\<open>divide\<close> and \<^const>\<open>modulo\<close>
+  when these are applied to some constant that is of the form
+  \<^term>\<open>numeral k\<close>:\<close>
+declare split_zdiv [of _ _ \<open>numeral n\<close>, linarith_split] for n
+declare split_zdiv [of _ _ \<open>- numeral n\<close>, linarith_split] for n
+declare split_zmod [of _ _ \<open>numeral n\<close>, linarith_split] for n
+declare split_zmod [of _ _ \<open>- numeral n\<close>, linarith_split] for n
+
+lemma zdiv_eq_0_iff:
+  "i div k = 0 \<longleftrightarrow> k = 0 \<or> 0 \<le> i \<and> i < k \<or> i \<le> 0 \<and> k < i" (is "?L = ?R")
+  for i k :: int
+proof
+  assume ?L
+  moreover have "?L \<longrightarrow> ?R"
+    by (rule split_zdiv [THEN iffD2]) simp
+  ultimately show ?R
+    by blast
+next
+  assume ?R then show ?L
+    by auto
+qed
+
+lemma zmod_trivial_iff:
+  fixes i k :: int
+  shows "i mod k = i \<longleftrightarrow> k = 0 \<or> 0 \<le> i \<and> i < k \<or> i \<le> 0 \<and> k < i"
+proof -
+  have "i mod k = i \<longleftrightarrow> i div k = 0"
+    using div_mult_mod_eq [of i k] by safe auto
+  with zdiv_eq_0_iff
+  show ?thesis
+    by simp
+qed
+
+
 subsubsection \<open>Algebraic rewrites\<close>
 
 lemma zdiv_zmult2_eq:
@@ -2229,6 +2257,14 @@ next
   with that show ?thesis
     using mod_mult2_eq' [of \<open>- a\<close> \<open>nat (- b)\<close> \<open>nat c\<close>] by simp
 qed
+
+lemma half_nonnegative_int_iff [simp]:
+  \<open>k div 2 \<ge> 0 \<longleftrightarrow> k \<ge> 0\<close> for k :: int
+  by auto
+
+lemma half_negative_int_iff [simp]:
+  \<open>k div 2 < 0 \<longleftrightarrow> k < 0\<close> for k :: int
+  by auto
 
 
 subsubsection \<open>Distributive laws for conversions.\<close>
