@@ -20,9 +20,6 @@ lemmas semiring_norm =
   numeral_One [symmetric] uminus_numeral_One [symmetric] Suc_eq_plus1
   eq_numeral_iff_iszero not_iszero_Numeral1
 
-declare split_div [of _ _ "numeral k", linarith_split] for k
-declare split_mod [of _ _ "numeral k", linarith_split] for k
-
 text \<open>For \<open>combine_numerals\<close>\<close>
 
 lemma left_add_mult_distrib: "i*u + (j*u + k) = (i+j)*u + (k::nat)"

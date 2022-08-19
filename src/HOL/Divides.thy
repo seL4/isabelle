@@ -62,8 +62,10 @@ qed
 text \<open>Enable (lin)arith to deal with \<^const>\<open>divide\<close> and \<^const>\<open>modulo\<close>
   when these are applied to some constant that is of the form
   \<^term>\<open>numeral k\<close>:\<close>
-declare split_zdiv [of _ _ \<open>numeral k\<close>, linarith_split] for k
-declare split_zmod [of _ _ \<open>numeral k\<close>, linarith_split] for k
+declare split_zdiv [of _ _ \<open>numeral n\<close>, linarith_split] for n
+declare split_zdiv [of _ _ \<open>- numeral n\<close>, linarith_split] for n
+declare split_zmod [of _ _ \<open>numeral n\<close>, linarith_split] for n
+declare split_zmod [of _ _ \<open>- numeral n\<close>, linarith_split] for n
 
 lemma half_nonnegative_int_iff [simp]:
   \<open>k div 2 \<ge> 0 \<longleftrightarrow> k \<ge> 0\<close> for k :: int

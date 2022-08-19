@@ -1480,6 +1480,9 @@ next
   qed
 qed
 
+declare split_div [of _ _ \<open>numeral n\<close>, linarith_split] for n
+declare split_mod [of _ _ \<open>numeral n\<close>, linarith_split] for n
+
 lemma funpow_mod_eq: \<^marker>\<open>contributor \<open>Lars Noschinski\<close>\<close>
   \<open>(f ^^ (m mod n)) x = (f ^^ m) x\<close> if \<open>(f ^^ n) x = x\<close>
 proof -

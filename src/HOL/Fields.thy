@@ -13,32 +13,6 @@ theory Fields
 imports Nat
 begin
 
-context idom
-begin
-
-lemma inj_mult_left [simp]: \<open>inj ((*) a) \<longleftrightarrow> a \<noteq> 0\<close> (is \<open>?P \<longleftrightarrow> ?Q\<close>)
-proof
-  assume ?P
-  show ?Q
-  proof
-    assume \<open>a = 0\<close>
-    with \<open>?P\<close> have "inj ((*) 0)"
-      by simp
-    moreover have "0 * 0 = 0 * 1"
-      by simp
-    ultimately have "0 = 1"
-      by (rule injD)
-    then show False
-      by simp
-  qed
-next
-  assume ?Q then show ?P
-    by (auto intro: injI)
-qed
-
-end
-
-
 subsection \<open>Division rings\<close>
 
 text \<open>
@@ -60,7 +34,7 @@ text \<open>Setup for linear arithmetic prover\<close>
 ML_file \<open>~~/src/Provers/Arith/fast_lin_arith.ML\<close>
 ML_file \<open>Tools/lin_arith.ML\<close>
 setup \<open>Lin_Arith.global_setup\<close>
-declaration \<open>K (
+declaration \<open>K (                 
   Lin_Arith.init_arith_data
   #> Lin_Arith.add_discrete_type \<^type_name>\<open>nat\<close>
   #> Lin_Arith.add_lessD @{thm Suc_leI}
@@ -85,7 +59,7 @@ simproc_setup fast_arith_nat ("(m::nat) < n" | "(m::nat) \<le> n" | "(m::nat) = 
    \<^text>\<open>fast_nat_arith_simproc\<close> anyway. However, it seems cheaper to activate the
    solver all the time rather than add the additional check.\<close>
 
-lemmas [linarith_split] = nat_diff_split split_min split_max
+lemmas [linarith_split] = nat_diff_split split_min split_max abs_split
 
 text\<open>Lemmas \<open>divide_simps\<close> move division to the outside and eliminates them on (in)equalities.\<close>
 

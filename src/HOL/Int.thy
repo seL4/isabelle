@@ -737,16 +737,6 @@ qed
 lemma zadd_int_left: "int m + (int n + z) = int (m + n) + z"
   by simp
 
-text \<open>
-  This version is proved for all ordered rings, not just integers!
-  It is proved here because attribute \<open>linarith_split\<close> is not available
-  in theory \<open>Rings\<close>.
-  But is it really better than just rewriting with \<open>abs_if\<close>?
-\<close>
-lemma abs_split [linarith_split, no_atp]: "P \<bar>a\<bar> \<longleftrightarrow> (0 \<le> a \<longrightarrow> P a) \<and> (a < 0 \<longrightarrow> P (- a))"
-  for a :: "'a::linordered_idom"
-  by (force dest: order_less_le_trans simp add: abs_if linorder_not_less)
-
 lemma negD:
   assumes "x < 0" shows "\<exists>n. x = - (int (Suc n))"
 proof -

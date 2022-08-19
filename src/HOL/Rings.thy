@@ -560,6 +560,26 @@ next
   then show "a * a = b * b" by auto
 qed
 
+lemma inj_mult_left [simp]: \<open>inj ((*) a) \<longleftrightarrow> a \<noteq> 0\<close> (is \<open>?P \<longleftrightarrow> ?Q\<close>)
+proof
+  assume ?P
+  show ?Q
+  proof
+    assume \<open>a = 0\<close>
+    with \<open>?P\<close> have "inj ((*) 0)"
+      by simp
+    moreover have "0 * 0 = 0 * 1"
+      by simp
+    ultimately have "0 = 1"
+      by (rule injD)
+    then show False
+      by simp
+  qed
+next
+  assume ?Q then show ?P
+    by (auto intro: injI)
+qed
+
 end
 
 class idom_abs_sgn = idom + abs + sgn +
@@ -2650,6 +2670,12 @@ lemma minus_less_iff_1 [simp, no_atp]: "- a < 1 \<longleftrightarrow> - 1 < a"
 lemma add_less_zeroD:
   shows "x+y < 0 \<Longrightarrow> x<0 \<or> y<0"
   by (auto simp: not_less intro: le_less_trans [of _ "x+y"])
+
+text \<open>
+  Is this really better than just rewriting with \<open>abs_if\<close>?
+\<close>
+lemma abs_split [no_atp]: \<open>P \<bar>a\<bar> \<longleftrightarrow> (0 \<le> a \<longrightarrow> P a) \<and> (a < 0 \<longrightarrow> P (- a))\<close>
+  by (force dest: order_less_le_trans simp add: abs_if linorder_not_less)
 
 end
 
