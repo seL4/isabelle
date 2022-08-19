@@ -116,8 +116,6 @@ object Document {
 
       def expand: Name =
         Name(path.expand.implode, master_dir_path.expand.implode, theory)
-      def symbolic: Name =
-        Name(path.implode_symbolic, master_dir_path.implode_symbolic, theory)
 
       def is_theory: Boolean = theory.nonEmpty
 

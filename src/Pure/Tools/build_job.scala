@@ -364,7 +364,7 @@ class Build_Job(progress: Progress,
             }
 
             export_text(Export.FILES,
-              cat_lines(snapshot.node_files.map(_.symbolic.node)), compress = false)
+              cat_lines(snapshot.node_files.map(_.path.implode_symbolic)), compress = false)
 
             for (((_, xml), i) <- snapshot.xml_markup_blobs().zipWithIndex) {
               export_(Export.MARKUP + (i + 1), xml)
