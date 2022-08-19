@@ -1494,9 +1494,11 @@ proof -
 qed
 
 
-subsection \<open>Euclidean division on \<^typ>\<open>int\<close>\<close>
+subsection \<open>Elementary euclidean division on \<^typ>\<open>int\<close>\<close>
 
-instantiation int :: normalization_semidom
+subsubsection \<open>Basic instantiation\<close>
+
+instantiation int :: "{normalization_semidom, idom_modulo}"
 begin
 
 definition normalize_int :: \<open>int \<Rightarrow> int\<close>
@@ -1514,6 +1516,14 @@ lemma divide_int_unfold:
     - of_bool ((k = 0 \<longleftrightarrow> m = 0) \<and> l \<noteq> 0 \<and> n \<noteq> 0 \<and> sgn k \<noteq> sgn l \<and> \<not> n dvd m))\<close>
   by (simp add: divide_int_def sgn_mult nat_mult_distrib abs_mult sgn_eq_0_iff ac_simps)
 
+definition modulo_int :: \<open>int \<Rightarrow> int \<Rightarrow> int\<close>
+  where \<open>k mod l = sgn k * int (nat \<bar>k\<bar> mod nat \<bar>l\<bar>) + l * of_bool (sgn k \<noteq> sgn l \<and> \<not> l dvd k)\<close>
+
+lemma modulo_int_unfold:
+  \<open>(sgn k * int m) mod (sgn l * int n) =
+    sgn k * int (m mod (of_bool (l \<noteq> 0) * n)) + (sgn l * int n) * of_bool ((k = 0 \<longleftrightarrow> m = 0) \<and> sgn k \<noteq> sgn l \<and> \<not> n dvd m)\<close>
+  by (auto simp add: modulo_int_def sgn_mult abs_mult)
+
 instance proof
   fix k :: int show "k div 0 = 0"
   by (simp add: divide_int_def)
@@ -1527,24 +1537,18 @@ next
   with k l \<open>l \<noteq> 0\<close> show "k * l div l = k"
     by (simp only: divide_int_unfold)
       (auto simp add: algebra_simps sgn_mult sgn_1_pos sgn_0_0)
+next
+  fix k l :: int
+  obtain n m and s t where "k = sgn s * int n" and "l = sgn t * int m" 
+    by (blast intro: int_sgnE elim: that)
+  then show "k div l * l + k mod l = k"
+    by (simp add: divide_int_unfold modulo_int_unfold algebra_simps modulo_nat_def of_nat_diff)
 qed (auto simp add: sgn_mult mult_sgn_abs abs_eq_iff')
 
 end
 
-lemma div_abs_eq_div_nat:
-  "\<bar>k\<bar> div \<bar>l\<bar> = int (nat \<bar>k\<bar> div nat \<bar>l\<bar>)"
-  by (auto simp add: divide_int_def)
 
-lemma div_eq_div_abs:
-  \<open>k div l = sgn k * sgn l * (\<bar>k\<bar> div \<bar>l\<bar>)
-    - of_bool (l \<noteq> 0 \<and> sgn k \<noteq> sgn l \<and> \<not> l dvd k)\<close>
-  for k l :: int
-  by (simp add: divide_int_def [of k l] div_abs_eq_div_nat)
-
-lemma div_abs_eq:
-  \<open>\<bar>k\<bar> div \<bar>l\<bar> = sgn k * sgn l * (k div l + of_bool (sgn k \<noteq> sgn l \<and> \<not> l dvd k))\<close>
-  for k l :: int
-  by (simp add: div_eq_div_abs [of k l] ac_simps)
+subsubsection \<open>Algebraic foundations\<close>
 
 lemma coprime_int_iff [simp]:
   "coprime (int m) (int n) \<longleftrightarrow> coprime m n" (is "?P \<longleftrightarrow> ?Q")
@@ -1604,26 +1608,23 @@ lemma coprime_common_divisor_int: "coprime a b \<Longrightarrow> x dvd a \<Longr
   for a b :: int
   by (drule coprime_common_divisor [of _ _ x]) simp_all
 
-instantiation int :: idom_modulo
-begin
 
-definition modulo_int :: \<open>int \<Rightarrow> int \<Rightarrow> int\<close>
-  where \<open>k mod l = sgn k * int (nat \<bar>k\<bar> mod nat \<bar>l\<bar>) + l * of_bool (sgn k \<noteq> sgn l \<and> \<not> l dvd k)\<close>
+subsubsection \<open>Basic conversions\<close>
 
-lemma modulo_int_unfold:
-  \<open>(sgn k * int m) mod (sgn l * int n) =
-    sgn k * int (m mod (of_bool (l \<noteq> 0) * n)) + (sgn l * int n) * of_bool ((k = 0 \<longleftrightarrow> m = 0) \<and> sgn k \<noteq> sgn l \<and> \<not> n dvd m)\<close>
-  by (auto simp add: modulo_int_def sgn_mult abs_mult)
+lemma div_abs_eq_div_nat:
+  "\<bar>k\<bar> div \<bar>l\<bar> = int (nat \<bar>k\<bar> div nat \<bar>l\<bar>)"
+  by (auto simp add: divide_int_def)
 
-instance proof
-  fix k l :: int
-  obtain n m and s t where "k = sgn s * int n" and "l = sgn t * int m" 
-    by (blast intro: int_sgnE elim: that)
-  then show "k div l * l + k mod l = k"
-    by (simp add: divide_int_unfold modulo_int_unfold algebra_simps modulo_nat_def of_nat_diff)
-qed
+lemma div_eq_div_abs:
+  \<open>k div l = sgn k * sgn l * (\<bar>k\<bar> div \<bar>l\<bar>)
+    - of_bool (l \<noteq> 0 \<and> sgn k \<noteq> sgn l \<and> \<not> l dvd k)\<close>
+  for k l :: int
+  by (simp add: divide_int_def [of k l] div_abs_eq_div_nat)
 
-end
+lemma div_abs_eq:
+  \<open>\<bar>k\<bar> div \<bar>l\<bar> = sgn k * sgn l * (k div l + of_bool (sgn k \<noteq> sgn l \<and> \<not> l dvd k))\<close>
+  for k l :: int
+  by (simp add: div_eq_div_abs [of k l] ac_simps)
 
 lemma mod_abs_eq_div_nat:
   "\<bar>k\<bar> mod \<bar>l\<bar> = int (nat \<bar>k\<bar> mod nat \<bar>l\<bar>)"
@@ -1638,6 +1639,35 @@ lemma mod_abs_eq:
   \<open>\<bar>k\<bar> mod \<bar>l\<bar> = sgn k * (k mod l - l * of_bool (sgn k \<noteq> sgn l \<and> \<not> l dvd k))\<close>
   for k l :: int
   by (auto simp: mod_eq_mod_abs [of k l])
+
+lemma div_sgn_abs_cancel:
+  fixes k l v :: int
+  assumes "v \<noteq> 0"
+  shows "(sgn v * \<bar>k\<bar>) div (sgn v * \<bar>l\<bar>) = \<bar>k\<bar> div \<bar>l\<bar>"
+  using assms by (simp add: sgn_mult abs_mult sgn_0_0
+    divide_int_def [of "sgn v * \<bar>k\<bar>" "sgn v * \<bar>l\<bar>"] flip: div_abs_eq_div_nat)
+
+lemma div_eq_sgn_abs:
+  fixes k l v :: int
+  assumes "sgn k = sgn l"
+  shows "k div l = \<bar>k\<bar> div \<bar>l\<bar>"
+  using assms by (auto simp add: div_abs_eq)
+
+lemma div_dvd_sgn_abs:
+  fixes k l :: int
+  assumes "l dvd k"
+  shows "k div l = (sgn k * sgn l) * (\<bar>k\<bar> div \<bar>l\<bar>)"
+  using assms by (auto simp add: div_abs_eq ac_simps)
+
+lemma div_noneq_sgn_abs:
+  fixes k l :: int
+  assumes "l \<noteq> 0"
+  assumes "sgn k \<noteq> sgn l"
+  shows "k div l = - (\<bar>k\<bar> div \<bar>l\<bar>) - of_bool (\<not> l dvd k)"
+  using assms by (auto simp add: div_abs_eq ac_simps sgn_0_0 dest!: sgn_not_eq_imp)
+
+
+subsubsection \<open>Euclidean division\<close>
 
 instantiation int :: unique_euclidean_ring
 begin
@@ -1741,133 +1771,6 @@ next
 qed (use mult_le_mono2 [of 1] in \<open>auto simp add: division_segment_int_def not_le zero_less_mult_iff mult_less_0_iff abs_mult sgn_mult abs_mod_less sgn_mod nat_mult_distrib\<close>)
 
 end
-
-lemma div_sgn_abs_cancel:
-  fixes k l v :: int
-  assumes "v \<noteq> 0"
-  shows "(sgn v * \<bar>k\<bar>) div (sgn v * \<bar>l\<bar>) = \<bar>k\<bar> div \<bar>l\<bar>"
-  using assms by (simp add: sgn_mult abs_mult sgn_0_0 of_nat_div divide_int_def [of "sgn v * \<bar>k\<bar>" "sgn v * \<bar>l\<bar>"])
-
-lemma pos_mod_bound [simp]:
-  "k mod l < l" if "l > 0" for k l :: int
-proof -
-  obtain m and s where "k = sgn s * int m"
-    by (rule int_sgnE)
-  moreover from that obtain n where "l = sgn 1 * int n"
-    by (cases l) simp_all
-  moreover from this that have "n > 0"
-    by simp
-  ultimately show ?thesis
-    by (simp only: modulo_int_unfold)
-      (auto simp add: mod_greater_zero_iff_not_dvd sgn_1_pos)
-qed
-
-lemma neg_mod_bound [simp]:
-  "l < k mod l" if "l < 0" for k l :: int
-proof -
-  obtain m and s where "k = sgn s * int m"
-    by (rule int_sgnE)
-  moreover from that obtain q where "l = sgn (- 1) * int (Suc q)"
-    by (cases l) simp_all
-  moreover define n where "n = Suc q"
-  then have "Suc q = n"
-    by simp
-  ultimately show ?thesis
-    by (simp only: modulo_int_unfold)
-      (auto simp add: mod_greater_zero_iff_not_dvd sgn_1_neg)
-qed
-
-lemma pos_mod_sign [simp]:
-  "0 \<le> k mod l" if "l > 0" for k l :: int
-proof -
-  obtain m and s where "k = sgn s * int m"
-    by (rule int_sgnE)
-  moreover from that obtain n where "l = sgn 1 * int n"
-    by (cases l) auto
-  moreover from this that have "n > 0"
-    by simp
-  ultimately show ?thesis
-    by (simp only: modulo_int_unfold) (auto simp add: sgn_1_pos)
-qed
-
-lemma neg_mod_sign [simp]:
-  "k mod l \<le> 0" if "l < 0" for k l :: int
-proof -
-  obtain m and s where "k = sgn s * int m"
-    by (rule int_sgnE)
-  moreover from that obtain q where "l = sgn (- 1) * int (Suc q)"
-    by (cases l) simp_all
-  moreover define n where "n = Suc q"
-  then have "Suc q = n"
-    by simp
-  moreover have \<open>int (m mod n) \<le> int n\<close>
-    using \<open>Suc q = n\<close> by simp
-  then have \<open>sgn s * int (m mod n) \<le> int n\<close>
-    by (cases s \<open>0::int\<close> rule: linorder_cases) simp_all
-  ultimately show ?thesis
-    by (simp only: modulo_int_unfold) auto
-qed
-
-lemma div_pos_pos_trivial [simp]:
-  "k div l = 0" if "k \<ge> 0" and "k < l" for k l :: int
-  using that by (simp add: unique_euclidean_semiring_class.div_eq_0_iff division_segment_int_def)
-
-lemma mod_pos_pos_trivial [simp]:
-  "k mod l = k" if "k \<ge> 0" and "k < l" for k l :: int
-  using that by (simp add: mod_eq_self_iff_div_eq_0)
-
-lemma div_neg_neg_trivial [simp]:
-  "k div l = 0" if "k \<le> 0" and "l < k" for k l :: int
-  using that by (cases "k = 0") (simp, simp add: unique_euclidean_semiring_class.div_eq_0_iff division_segment_int_def)
-
-lemma mod_neg_neg_trivial [simp]:
-  "k mod l = k" if "k \<le> 0" and "l < k" for k l :: int
-  using that by (simp add: mod_eq_self_iff_div_eq_0)
-
-lemma div_pos_neg_trivial:
-  "k div l = - 1" if "0 < k" and "k + l \<le> 0" for k l :: int
-proof (cases \<open>l = - k\<close>)
-  case True
-  with that show ?thesis
-    by (simp add: divide_int_def)
-next
-  case False
-  show ?thesis
-    apply (rule div_eqI [of _ "k + l"])
-    using False that apply (simp_all add: division_segment_int_def)
-    done
-qed
-
-lemma mod_pos_neg_trivial:
-  "k mod l = k + l" if "0 < k" and "k + l \<le> 0" for k l :: int
-proof (cases \<open>l = - k\<close>)
-  case True
-  with that show ?thesis
-    by (simp add: divide_int_def)
-next
-  case False
-  show ?thesis
-    apply (rule mod_eqI [of _ _ \<open>- 1\<close>])
-    using False that apply (simp_all add: division_segment_int_def)
-    done
-qed
-
-text \<open>There is neither \<open>div_neg_pos_trivial\<close> nor \<open>mod_neg_pos_trivial\<close>
-  because \<^term>\<open>0 div l = 0\<close> would supersede it.\<close>
-
-text \<open>Distributive laws for function \<open>nat\<close>.\<close>
-
-lemma nat_div_distrib:
-  \<open>nat (x div y) = nat x div nat y\<close> if \<open>0 \<le> x\<close>
-  using that by (simp add: divide_int_def sgn_if)
-
-lemma nat_div_distrib':
-  \<open>nat (x div y) = nat x div nat y\<close> if \<open>0 \<le> y\<close>
-  using that by (simp add: divide_int_def sgn_if)
-
-lemma nat_mod_distrib: \<comment> \<open>Fails if y<0: the LHS collapses to (nat z) but the RHS doesn't\<close>
-  \<open>nat (x mod y) = nat x mod nat y\<close> if \<open>0 \<le> x\<close> \<open>0 \<le> y\<close>
-  using that by (simp add: modulo_int_def sgn_if)
 
 
 subsection \<open>Special case: euclidean rings containing the natural numbers\<close>
@@ -2135,25 +2038,123 @@ instance nat :: unique_euclidean_semiring_with_nat
 instance int :: unique_euclidean_ring_with_nat
   by standard (auto simp add: divide_int_def division_segment_int_def elim: contrapos_np)
 
-lemma div_eq_sgn_abs:
-  fixes k l v :: int
-  assumes "sgn k = sgn l"
-  shows "k div l = \<bar>k\<bar> div \<bar>l\<bar>"
-  using assms by (auto simp add: divide_int_def [of k l] of_nat_div)
 
-lemma div_dvd_sgn_abs:
-  fixes k l :: int
-  assumes "l dvd k"
-  shows "k div l = (sgn k * sgn l) * (\<bar>k\<bar> div \<bar>l\<bar>)"
-  using assms by (auto simp add: divide_int_def [of k l] of_nat_div)
+subsection \<open>More on euclidean division on \<^typ>\<open>int\<close>\<close>
 
-lemma div_noneq_sgn_abs:
-  fixes k l :: int
-  assumes "l \<noteq> 0"
-  assumes "sgn k \<noteq> sgn l"
-  shows "k div l = - (\<bar>k\<bar> div \<bar>l\<bar>) - of_bool (\<not> l dvd k)"
-  using assms
-  by (simp only: divide_int_def [of k l]) (auto simp add: of_nat_div sgn_0_0 dest!: sgn_not_eq_imp)
+subsubsection \<open>Trivial reduction steps\<close>
+
+lemma div_pos_pos_trivial [simp]:
+  "k div l = 0" if "k \<ge> 0" and "k < l" for k l :: int
+  using that by (simp add: unique_euclidean_semiring_class.div_eq_0_iff division_segment_int_def)
+
+lemma mod_pos_pos_trivial [simp]:
+  "k mod l = k" if "k \<ge> 0" and "k < l" for k l :: int
+  using that by (simp add: mod_eq_self_iff_div_eq_0)
+
+lemma div_neg_neg_trivial [simp]:
+  "k div l = 0" if "k \<le> 0" and "l < k" for k l :: int
+  using that by (cases "k = 0") (simp, simp add: unique_euclidean_semiring_class.div_eq_0_iff division_segment_int_def)
+
+lemma mod_neg_neg_trivial [simp]:
+  "k mod l = k" if "k \<le> 0" and "l < k" for k l :: int
+  using that by (simp add: mod_eq_self_iff_div_eq_0)
+
+lemma div_pos_neg_trivial:
+  "k div l = - 1" if "0 < k" and "k + l \<le> 0" for k l :: int
+proof (cases \<open>l = - k\<close>)
+  case True
+  with that show ?thesis
+    by (simp add: divide_int_def)
+next
+  case False
+  show ?thesis
+    apply (rule div_eqI [of _ "k + l"])
+    using False that apply (simp_all add: division_segment_int_def)
+    done
+qed
+
+lemma mod_pos_neg_trivial:
+  "k mod l = k + l" if "0 < k" and "k + l \<le> 0" for k l :: int
+proof (cases \<open>l = - k\<close>)
+  case True
+  with that show ?thesis
+    by (simp add: divide_int_def)
+next
+  case False
+  show ?thesis
+    apply (rule mod_eqI [of _ _ \<open>- 1\<close>])
+    using False that apply (simp_all add: division_segment_int_def)
+    done
+qed
+
+text \<open>There is neither \<open>div_neg_pos_trivial\<close> nor \<open>mod_neg_pos_trivial\<close>
+  because \<^term>\<open>0 div l = 0\<close> would supersede it.\<close>
+
+
+subsubsection \<open>Borders\<close>
+
+lemma pos_mod_bound [simp]:
+  "k mod l < l" if "l > 0" for k l :: int
+proof -
+  obtain m and s where "k = sgn s * int m"
+    by (rule int_sgnE)
+  moreover from that obtain n where "l = sgn 1 * int n"
+    by (cases l) simp_all
+  moreover from this that have "n > 0"
+    by simp
+  ultimately show ?thesis
+    by (simp only: modulo_int_unfold)
+      (auto simp add: mod_greater_zero_iff_not_dvd sgn_1_pos)
+qed
+
+lemma neg_mod_bound [simp]:
+  "l < k mod l" if "l < 0" for k l :: int
+proof -
+  obtain m and s where "k = sgn s * int m"
+    by (rule int_sgnE)
+  moreover from that obtain q where "l = sgn (- 1) * int (Suc q)"
+    by (cases l) simp_all
+  moreover define n where "n = Suc q"
+  then have "Suc q = n"
+    by simp
+  ultimately show ?thesis
+    by (simp only: modulo_int_unfold)
+      (auto simp add: mod_greater_zero_iff_not_dvd sgn_1_neg)
+qed
+
+lemma pos_mod_sign [simp]:
+  "0 \<le> k mod l" if "l > 0" for k l :: int
+proof -
+  obtain m and s where "k = sgn s * int m"
+    by (rule int_sgnE)
+  moreover from that obtain n where "l = sgn 1 * int n"
+    by (cases l) auto
+  moreover from this that have "n > 0"
+    by simp
+  ultimately show ?thesis
+    by (simp only: modulo_int_unfold) (auto simp add: sgn_1_pos)
+qed
+
+lemma neg_mod_sign [simp]:
+  "k mod l \<le> 0" if "l < 0" for k l :: int
+proof -
+  obtain m and s where "k = sgn s * int m"
+    by (rule int_sgnE)
+  moreover from that obtain q where "l = sgn (- 1) * int (Suc q)"
+    by (cases l) simp_all
+  moreover define n where "n = Suc q"
+  then have "Suc q = n"
+    by simp
+  moreover have \<open>int (m mod n) \<le> int n\<close>
+    using \<open>Suc q = n\<close> by simp
+  then have \<open>sgn s * int (m mod n) \<le> int n\<close>
+    by (cases s \<open>0::int\<close> rule: linorder_cases) simp_all
+  ultimately show ?thesis
+    by (simp only: modulo_int_unfold) auto
+qed
+
+
+subsubsection \<open>Algebraic rewrites\<close>
 
 lemma zdiv_zmult2_eq:
   \<open>a div (b * c) = (a div b) div c\<close> if \<open>c \<ge> 0\<close> for a b c :: int
@@ -2165,6 +2166,18 @@ next
   case False
   with that show ?thesis
     using div_mult2_eq' [of \<open>- a\<close> \<open>nat (- b)\<close> \<open>nat c\<close>] by simp
+qed
+
+lemma zdiv_zmult2_eq':
+  \<open>k div (l * j) = ((sgn j * k) div l) div \<bar>j\<bar>\<close> for k l j :: int
+proof -
+  have \<open>k div (l * j) = (sgn j * k) div (sgn j * (l * j))\<close>
+    by (simp add: sgn_0_0)
+  also have \<open>sgn j * (l * j) = l * \<bar>j\<bar>\<close>
+    by (simp add: mult.left_commute [of _ l] abs_sgn) (simp add: ac_simps)
+  also have \<open>(sgn j * k) div (l * \<bar>j\<bar>) = ((sgn j * k) div l) div \<bar>j\<bar>\<close>
+    by (simp add: zdiv_zmult2_eq)
+  finally show ?thesis .
 qed
 
 lemma zmod_zmult2_eq:
@@ -2179,6 +2192,9 @@ next
     using mod_mult2_eq' [of \<open>- a\<close> \<open>nat (- b)\<close> \<open>nat c\<close>] by simp
 qed
 
+
+subsubsection \<open>Distributive laws for conversions.\<close>
+
 lemma zdiv_int:
   "int (a div b) = int a div int b"
   by (fact of_nat_div)
@@ -2186,6 +2202,18 @@ lemma zdiv_int:
 lemma zmod_int:
   "int (a mod b) = int a mod int b"
   by (fact of_nat_mod)
+
+lemma nat_div_distrib:
+  \<open>nat (x div y) = nat x div nat y\<close> if \<open>0 \<le> x\<close>
+  using that by (simp add: divide_int_def sgn_if)
+
+lemma nat_div_distrib':
+  \<open>nat (x div y) = nat x div nat y\<close> if \<open>0 \<le> y\<close>
+  using that by (simp add: divide_int_def sgn_if)
+
+lemma nat_mod_distrib: \<comment> \<open>Fails if y<0: the LHS collapses to (nat z) but the RHS doesn't\<close>
+  \<open>nat (x mod y) = nat x mod nat y\<close> if \<open>0 \<le> x\<close> \<open>0 \<le> y\<close>
+  using that by (simp add: modulo_int_def sgn_if)
 
 
 subsection \<open>Code generation\<close>

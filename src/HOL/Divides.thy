@@ -282,6 +282,39 @@ text \<open>Enable (lin)arith to deal with \<^const>\<open>divide\<close> and \<
 declare split_zdiv [of _ _ "numeral k", arith_split] for k
 declare split_zmod [of _ _ "numeral k", arith_split] for k
 
+lemma half_nonnegative_int_iff [simp]:
+  \<open>k div 2 \<ge> 0 \<longleftrightarrow> k \<ge> 0\<close> for k :: int
+  by auto
+
+lemma half_negative_int_iff [simp]:
+  \<open>k div 2 < 0 \<longleftrightarrow> k < 0\<close> for k :: int
+  by auto
+
+lemma zdiv_eq_0_iff:
+  "i div k = 0 \<longleftrightarrow> k = 0 \<or> 0 \<le> i \<and> i < k \<or> i \<le> 0 \<and> k < i" (is "?L = ?R")
+  for i k :: int
+proof
+  assume ?L
+  moreover have "?L \<longrightarrow> ?R"
+    by (rule split_zdiv [THEN iffD2]) simp
+  ultimately show ?R
+    by blast
+next
+  assume ?R then show ?L
+    by auto
+qed
+
+lemma zmod_trivial_iff:
+  fixes i k :: int
+  shows "i mod k = i \<longleftrightarrow> k = 0 \<or> 0 \<le> i \<and> i < k \<or> i \<le> 0 \<and> k < i"
+proof -
+  have "i mod k = i \<longleftrightarrow> i div k = 0"
+    using div_mult_mod_eq [of i k] by safe auto
+  with zdiv_eq_0_iff
+  show ?thesis
+    by simp
+qed
+
 
 subsubsection \<open>Computing \<open>div\<close> and \<open>mod\<close> with shifting\<close>
 
@@ -348,30 +381,6 @@ lemma zmod_numeral_Bit1 [simp]:
   unfolding mult_2 [symmetric] add.commute [of _ 1]
   by (rule pos_zmod_mult_2, simp)
 
-lemma zdiv_eq_0_iff:
-  "i div k = 0 \<longleftrightarrow> k = 0 \<or> 0 \<le> i \<and> i < k \<or> i \<le> 0 \<and> k < i" (is "?L = ?R")
-  for i k :: int
-proof
-  assume ?L
-  moreover have "?L \<longrightarrow> ?R"
-    by (rule split_zdiv [THEN iffD2]) simp
-  ultimately show ?R
-    by blast
-next
-  assume ?R then show ?L
-    by auto
-qed
-
-lemma zmod_trivial_iff:
-  fixes i k :: int
-  shows "i mod k = i \<longleftrightarrow> k = 0 \<or> 0 \<le> i \<and> i < k \<or> i \<le> 0 \<and> k < i"
-proof -
-  have "i mod k = i \<longleftrightarrow> i div k = 0"
-    using div_mult_mod_eq [of i k] by safe auto
-  with zdiv_eq_0_iff
-  show ?thesis
-    by simp
-qed
 
   
 subsubsection \<open>Quotients of Signs\<close>
@@ -459,7 +468,6 @@ lemma pos_imp_zdiv_pos_iff:
   "0<k \<Longrightarrow> 0 < (i::int) div k \<longleftrightarrow> k \<le> i"
   using pos_imp_zdiv_nonneg_iff[of k i] zdiv_eq_0_iff[of i k] by arith
 
-
 lemma neg_imp_zdiv_nonneg_iff:
   fixes a::int
   assumes "b < 0" 
@@ -491,6 +499,28 @@ qed
 
 lemma zmod_le_nonneg_dividend: "(m::int) \<ge> 0 \<Longrightarrow> m mod k \<le> m"
   by (rule split_zmod[THEN iffD2]) (fastforce dest: q_pos_lemma intro: split_mult_pos_le)
+
+lemma sgn_div_eq_sgn_mult:
+  \<open>sgn (k div l) = of_bool (k div l \<noteq> 0) * sgn (k * l)\<close>
+  for k l :: int
+proof (cases \<open>k div l = 0\<close>)
+  case True
+  then show ?thesis
+    by simp
+next
+  case False
+  have \<open>0 \<le> \<bar>k\<bar> div \<bar>l\<bar>\<close>
+    by (cases \<open>l = 0\<close>) (simp_all add: pos_imp_zdiv_nonneg_iff)
+  then have \<open>\<bar>k\<bar> div \<bar>l\<bar> \<noteq> 0 \<longleftrightarrow> 0 < \<bar>k\<bar> div \<bar>l\<bar>\<close>
+    by (simp add: less_le)
+  also have \<open>\<dots> \<longleftrightarrow> \<bar>k\<bar> \<ge> \<bar>l\<bar>\<close>
+    using False nonneg1_imp_zdiv_pos_iff by auto
+  finally have *: \<open>\<bar>k\<bar> div \<bar>l\<bar> \<noteq> 0 \<longleftrightarrow> \<bar>l\<bar> \<le> \<bar>k\<bar>\<close> .
+  show ?thesis
+    using \<open>0 \<le> \<bar>k\<bar> div \<bar>l\<bar>\<close> False
+  by (auto simp add: div_eq_div_abs [of k l] div_eq_sgn_abs [of k l]
+    sgn_mult sgn_1_pos sgn_1_neg sgn_eq_0_iff nonneg1_imp_zdiv_pos_iff * dest: sgn_not_eq_imp)
+qed
 
 
 subsubsection \<open>Further properties\<close>

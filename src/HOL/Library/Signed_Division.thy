@@ -7,23 +7,6 @@ theory Signed_Division
   imports Main
 begin
 
-lemma sgn_div_eq_sgn_mult:
-  \<open>sgn (a div b) = sgn (a * b)\<close>
-  if \<open>a div b \<noteq> 0\<close> for a b :: int
-proof -
-  have \<open>0 \<le> \<bar>a\<bar> div \<bar>b\<bar>\<close>
-    by (cases \<open>b = 0\<close>) (simp_all add: pos_imp_zdiv_nonneg_iff)
-  then have \<open>\<bar>a\<bar> div \<bar>b\<bar> \<noteq> 0 \<longleftrightarrow> 0 < \<bar>a\<bar> div \<bar>b\<bar>\<close>
-    by (simp add: less_le)
-  also have \<open>\<dots> \<longleftrightarrow> \<bar>a\<bar> \<ge> \<bar>b\<bar>\<close>
-    using that nonneg1_imp_zdiv_pos_iff by auto
-  finally have *: \<open>\<bar>a\<bar> div \<bar>b\<bar> \<noteq> 0 \<longleftrightarrow> \<bar>b\<bar> \<le> \<bar>a\<bar>\<close> .
-  show ?thesis
-    using \<open>0 \<le> \<bar>a\<bar> div \<bar>b\<bar>\<close> that
-  by (auto simp add: div_eq_div_abs [of a b] div_eq_sgn_abs [of a b]
-    sgn_mult sgn_1_pos sgn_1_neg sgn_eq_0_iff nonneg1_imp_zdiv_pos_iff * dest: sgn_not_eq_imp)
-qed
-
 class signed_division = comm_semiring_1_cancel +
   fixes signed_divide :: \<open>'a \<Rightarrow> 'a \<Rightarrow> 'a\<close> (infixl \<open>sdiv\<close> 70)
   and signed_modulo :: \<open>'a \<Rightarrow> 'a \<Rightarrow> 'a\<close> (infixl \<open>smod\<close> 70)

@@ -7,15 +7,6 @@ theory Bit_Operations
   imports Presburger Groups_List
 begin
 
-lemma half_nonnegative_int_iff [simp]:
-  \<open>k div 2 \<ge> 0 \<longleftrightarrow> k \<ge> 0\<close> for k :: int
-  by auto
-
-lemma half_negative_int_iff [simp]:
-  \<open>k div 2 < 0 \<longleftrightarrow> k < 0\<close> for k :: int
-  by auto
-
-
 subsection \<open>Abstract bit structures\<close>
 
 class semiring_bits = semiring_parity +
