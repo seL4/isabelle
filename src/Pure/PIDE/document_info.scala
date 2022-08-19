@@ -87,37 +87,44 @@ object Document_Info {
     val sessions_structure = deps.sessions_structure
     val sessions_requirements = sessions_structure.build_requirements(sessions)
 
-    def read_theory(theory_context: Export.Theory_Context): Document_Info.Theory =
+    def read_theory(theory_context: Export.Theory_Context): Option[Document_Info.Theory] =
     {
       val session_name = theory_context.session_context.session_name
       val theory_name = theory_context.theory
 
-      val files = theory_context.files0(permissive = true)
-
-      val (entities, others) =
-        if (sessions_domain(session_name)) {
-          val theory = Export_Theory.read_theory(theory_context, permissive = true)
-          (theory.entity_iterator.toList,
-           theory.others.keySet.toList)
-        }
-        else (Nil, Nil)
-
-      Theory(theory_name,
-        static_session = sessions_structure.theory_qualifier(theory_name),
-        dynamic_session = session_name,
-        files = files,
-        entities = entities,
-        others = others)
+      theory_context.files0(permissive = true) match {
+        case Nil => None
+        case files =>
+          val (entities, others) =
+            if (sessions_domain(session_name)) {
+              val theory = Export_Theory.read_theory(theory_context, permissive = true)
+              (theory.entity_iterator.toList,
+                theory.others.keySet.toList)
+            }
+            else (Nil, Nil)
+          val theory =
+            Theory(theory_name,
+              static_session = sessions_structure.theory_qualifier(theory_name),
+              dynamic_session = session_name,
+              files = files,
+              entities = entities,
+              others = others)
+          Some(theory)
+      }
     }
 
     def read_session(session_name: String): Document_Info.Session = {
-      val used_theories = deps(session_name).used_theories.map(_._1.theory)
-      val loaded_theories0 =
+      val static_theories = deps(session_name).used_theories.map(_._1.theory)
+      val loaded_theories0 = {
         using(database_context.open_session(deps.base_info(session_name))) { session_context =>
-          for (theory_name <- used_theories)
-            yield theory_name -> read_theory(session_context.theory(theory_name))
+          for {
+            theory_name <- static_theories
+            theory <- read_theory(session_context.theory(theory_name))
+          } yield theory_name -> theory
         }
-      Session(session_name, used_theories, loaded_theories0.toMap)
+      }.toMap
+      val used_theories = static_theories.filter(loaded_theories0.keySet)
+      Session(session_name, used_theories, loaded_theories0)
     }
 
     val result0 =
