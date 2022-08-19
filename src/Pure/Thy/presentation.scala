@@ -32,41 +32,33 @@ object Presentation {
   ) {
     /* directory structure and resources */
 
-    def theory_session(name: Document.Node.Name): String =
-      sessions_structure.theory_qualifier(name)
+    def theory_by_name(session: String, theory: String): Option[Nodes.Theory] =
+      nodes.theory_by_name(session, theory)
 
-    def theory_elements(name: Document.Node.Name): Elements =
-      elements.copy(entity = nodes(name.theory).others.foldLeft(elements.entity)(_ + _))
+    def theory_by_file(session: String, file: String): Option[Nodes.Theory] =
+      nodes.theory_by_file(session, file)
 
     def session_dir(session: String): Path =
       root_dir + Path.explode(sessions_structure(session).chapter_session)
 
-    def html_name_theory(name: Document.Node.Name): String =
-      Path.explode(name.theory_base_name).html.implode
+    def theory_html(theory: Nodes.Theory): Path =
+      Path.explode(theory.print_short).html
 
-    def html_name_file(src_path: Path): String =
-      (Path.explode("files") + src_path.squash.html).implode
+    def file_html(file: String): Path =
+      Path.explode("files") + Path.explode(file).squash.html
 
-    def html_name(name: Document.Node.Name): String =
-      if (name.node.endsWith(".thy")) html_name_theory(name)
-      else html_name_file(name.path)
+    def smart_html(theory: Nodes.Theory, file: String): Path =
+      if (file.endsWith(".thy")) theory_html(theory) else file_html(file)
 
     def files_path(session: String, path: Path): Path =
       session_dir(session) + Path.explode("files") + path.squash.html
 
-    private def session_relative(session0: String, session1: String): Option[String] = {
-      for {
-        info0 <- sessions_structure.get(session0)
-        info1 <- sessions_structure.get(session1)
-      } yield {
-        if (info0.name == info1.name) ""
-        else if (info0.chapter == info1.chapter) "../" + info1.name + "/"
-        else "../../" + info1.chapter_session + "/"
+    def relative_link(dir: Path, file: Path): String =
+      try { File.path(dir.java_path.relativize(file.java_path).toFile).implode }
+      catch {
+        case _: IllegalArgumentException =>
+          error("Cannot relativize " + file + " wrt. " + dir)
       }
-    }
-
-    def node_relative(session0: String, node_name: Document.Node.Name): Option[String] =
-      session_relative(session0, sessions_structure.theory_qualifier(node_name))
 
 
     /* HTML content */
@@ -123,106 +115,185 @@ object Presentation {
 
   /* per-session node info */
 
-  sealed case class File_Info(theory: String, is_theory: Boolean = false)
-
-  object Node_Info {
-    val empty: Node_Info = new Node_Info(Map.empty, Map.empty, Nil)
-    def make(theory: Export_Theory.Theory): Node_Info = {
-      val by_range = theory.entity_iterator.toList.groupBy(_.range)
-      val by_kname = theory.entity_iterator.map(entity => entity.kname -> entity).toMap
-      val others = theory.others.keySet.toList
-      new Node_Info(by_range, by_kname, others)
-    }
-  }
-
-  class Node_Info private(
-    by_range: Map[Symbol.Range, List[Export_Theory.Entity0]],
-    by_kname: Map[String, Export_Theory.Entity0],
-    val others: List[String]
-  ) {
-    def get_defs(range: Symbol.Range): List[Export_Theory.Entity0] =
-      by_range.getOrElse(range, Nil)
-    def get_def(kind: String, name: String): Option[Export_Theory.Entity0] = {
-      by_kname.get(Export_Theory.export_kind_name(kind, name))
-    }
-  }
-
   object Nodes {
-    val empty: Nodes = new Nodes(Map.empty, Map.empty)
+    sealed case class Session(
+      name: String,
+      used_theories: List[String],
+      loaded_theories: Map[String, Theory])
+
+    object Theory {
+      def apply(
+        name: String,
+        files: List[String],
+        static_session: String,
+        dynamic_session: String,
+        entities: List[Export_Theory.Entity0],
+        others: List[String]
+      ): Theory = {
+        val entities1 =
+          entities.filter(e => e.file.nonEmpty && Position.Range.unapply(e.pos).isDefined)
+        new Theory(name, files, static_session, dynamic_session, entities1, others)
+      }
+    }
+
+    class Theory private(
+      val name: String,
+      val files: List[String],
+      val static_session: String,
+      val dynamic_session: String,
+      entities: List[Export_Theory.Entity0],
+      others: List[String]
+    ) {
+      override def toString: String = name
+
+      val (thy_file, blobs_files) =
+        files match {
+          case Nil => error("Unknown theory file for " + quote(name))
+          case a :: bs =>
+            def for_theory: String = " for theory " + quote(name)
+            if (!a.endsWith(".thy")) error("Bad .thy file " + quote(a) + for_theory)
+            for (b <- bs if b.endsWith(".thy")) error("Bad auxiliary file " + quote(b) + for_theory)
+            (a, bs)
+        }
+
+      def home_session: Boolean = static_session == dynamic_session
+
+      def print_short: String =
+        if (home_session) Long_Name.base_name(name) else name
+
+      def print_long: String =
+        "theory " + quote(name) +
+        (if (home_session) "" else " (session " + quote(dynamic_session) + ")")
+
+      private lazy val by_file_range: Map[(String, Symbol.Range), List[Export_Theory.Entity0]] =
+        entities.groupBy(entity => (entity.file, entity.range))
+
+      private lazy val by_file_kname: Map[(String, String), Export_Theory.Entity0] =
+        (for {
+          entity <- entities
+          file <- Position.File.unapply(entity.pos)
+        } yield (file, entity.kname) -> entity).toMap
+
+      def get_defs(file: String, range: Symbol.Range): List[Export_Theory.Entity0] =
+        by_file_range.getOrElse((file, range), Nil)
+
+      def get_def(file: String, kind: String, name: String): Option[Export_Theory.Entity0] =
+        by_file_kname.get((file, Export_Theory.export_kind_name(kind, name)))
+
+      def elements(elements: Elements): Elements =
+        elements.copy(entity = others.foldLeft(elements.entity)(_ + _))
+    }
+
+    val empty: Nodes = new Nodes(Map.empty)
 
     def read(
       database_context: Export.Database_Context,
       deps: Sessions.Deps,
-      presentation_sessions: List[String]
+      sessions: List[String]
     ): Nodes = {
+      val sessions_domain = sessions.toSet
+      val sessions_structure = deps.sessions_structure
+      val sessions_requirements = sessions_structure.build_requirements(sessions)
 
-      def open_session(session: String): Export.Session_Context =
-        database_context.open_session(deps.base_info(session))
+      def read_theory(theory_context: Export.Theory_Context): Nodes.Theory =
+      {
+        val session_name = theory_context.session_context.session_name
+        val theory_name = theory_context.theory
 
-      type Batch = (String, List[String])
-      val batches =
-        presentation_sessions.foldLeft((Set.empty[String], List.empty[Batch]))(
-          { case ((seen, batches), session) =>
-              val thys = deps(session).loaded_theories.keys_iterator.filterNot(seen).toList
-              (seen ++ thys, (session, thys) :: batches)
-          })._2
+        val files = theory_context.files0(permissive = true)
 
-      val theory_node_info =
-        Par_List.map[Batch, List[(String, Node_Info)]](
-          { case (session, thys) =>
-              using(open_session(session)) { session_context =>
-                for (thy_name <- thys) yield {
-                  val theory_context = session_context.theory(thy_name)
-                  val theory = Export_Theory.read_theory(theory_context, permissive = true)
-                  thy_name -> Node_Info.make(theory)
-                }
+        val (entities, others) =
+          if (sessions_domain(session_name)) {
+            val theory = Export_Theory.read_theory(theory_context, permissive = true)
+            (theory.entity_iterator.toList,
+             theory.others.keySet.toList)
+          }
+          else (Nil, Nil)
+
+        Theory(theory_name,
+          static_session = sessions_structure.theory_qualifier(theory_name),
+          dynamic_session = session_name,
+          files = files,
+          entities = entities,
+          others = others)
+      }
+
+      def read_session(session_name: String): Nodes.Session = {
+        val used_theories = deps(session_name).used_theories.map(_._1.theory)
+        val loaded_theories0 =
+          using(database_context.open_session(deps.base_info(session_name))) { session_context =>
+            for (theory_name <- used_theories)
+              yield theory_name -> read_theory(session_context.theory(theory_name))
+          }
+        Session(session_name, used_theories, loaded_theories0.toMap)
+      }
+
+      val result0 =
+        (for (session <- Par_List.map(read_session, sessions_requirements).iterator)
+          yield session.name -> session).toMap
+
+      val result1 =
+        sessions_requirements.foldLeft(Map.empty[String, Session]) {
+          case (seen, session_name) =>
+            val session0 = result0(session_name)
+            val loaded_theories1 =
+              sessions_structure(session_name).parent.map(seen) match {
+                case None => session0.loaded_theories
+                case Some(parent_session) =>
+                  parent_session.loaded_theories ++ session0.loaded_theories
               }
-          }, batches).flatten.toMap
+            val session1 = session0.copy(loaded_theories = loaded_theories1)
+            seen + (session_name -> session1)
+        }
 
-      val files_info =
-        deps.sessions_structure.build_requirements(presentation_sessions).flatMap(session =>
-          using(open_session(session)) { session_context =>
-            session_context.theory_names().flatMap { theory =>
-              session_context.theory(theory).files0(permissive = true) match {
-                case Nil => Nil
-                case thy :: blobs =>
-                  val thy_file_info = File_Info(theory, is_theory = true)
-                  (thy -> thy_file_info) :: blobs.map(_ -> File_Info(theory))
-              }
-            }
-          }).toMap
-
-      new Nodes(theory_node_info, files_info)
+      new Nodes(result1)
     }
   }
 
-  class Nodes private(
-    theory_node_info: Map[String, Node_Info],
-    val files_info: Map[String, File_Info]
-  ) {
-    def apply(name: String): Node_Info = theory_node_info.getOrElse(name, Node_Info.empty)
-    def get(name: String): Option[Node_Info] = theory_node_info.get(name)
+  class Nodes private(sessions: Map[String, Nodes.Session]) {
+    override def toString: String =
+      sessions.keysIterator.toList.sorted.mkString("Nodes(", ", ", ")")
+
+    def the_session(session: String): Nodes.Session =
+      sessions.getOrElse(session, error("Unknown session node information: " + quote(session)))
+
+    def theory_by_name(session: String, theory: String): Option[Nodes.Theory] =
+      by_session_and_theory_name.get((session, theory))
+
+    def theory_by_file(session: String, file: String): Option[Nodes.Theory] =
+      by_session_and_theory_file.get((session, file))
+
+    private lazy val by_session_and_theory_name: Map[(String, String), Nodes.Theory] =
+      (for {
+        session <- sessions.valuesIterator
+        theory <- session.loaded_theories.valuesIterator
+      } yield (session.name, theory.name) -> theory).toMap
+
+    private lazy val by_session_and_theory_file: Map[(String, String), Nodes.Theory] = {
+      (for {
+        session <- sessions.valuesIterator
+        theory <- session.loaded_theories.valuesIterator
+        file <- theory.files.iterator
+      } yield (session.name, file) -> theory).toMap
+    }
   }
 
 
   /* formal entities */
 
   object Theory_Ref {
-    def unapply(props: Properties.T): Option[Document.Node.Name] =
-      (props, props, props) match {
-        case (Markup.Kind(Markup.THEORY), Markup.Name(theory), Position.Def_File(thy_file)) =>
-          Some(Resources.file_node(Path.explode(thy_file), theory = theory))
+    def unapply(props: Properties.T): Option[String] =
+      (props, props) match {
+        case (Markup.Kind(Markup.THEORY), Markup.Name(theory)) => Some(theory)
         case _ => None
       }
   }
 
   object Entity_Ref {
-    def unapply(props: Properties.T): Option[(Path, Option[String], String, String)] =
+    def unapply(props: Properties.T): Option[(String, String, String)] =
       (props, props, props, props) match {
-        case (Markup.Entity.Ref.Prop(_), Position.Def_File(def_file),
-        Markup.Kind(kind), Markup.Name(name)) =>
-          val def_theory = Position.Def_Theory.unapply(props)
-          Some((Path.explode(def_file), def_theory, kind, name))
+        case (Markup.Entity.Ref.Prop(_), Position.Def_File(file), Markup.Kind(kind), Markup.Name(name)) =>
+          Some((file, kind, name))
         case _ => None
       }
   }
@@ -231,65 +302,67 @@ object Presentation {
     val empty: Entity_Context = new Entity_Context
 
     def make(
-        session: String,
-        node: Document.Node.Name,
-        html_context: HTML_Context): Entity_Context =
+      html_context: HTML_Context,
+      session_name: String,
+      theory_name: String,
+      file_name: String
+    ): Entity_Context =
       new Entity_Context {
+        private val session_dir = html_context.session_dir(session_name)
+        private val file_dir = Path.explode(file_name).dir
+
         private val seen_ranges: mutable.Set[Symbol.Range] = mutable.Set.empty
 
-        override def make_def(range: Symbol.Range, body: XML.Body): Option[XML.Elem] = {
+        override def make_def(range: Symbol.Range, body: XML.Body): Option[XML.Elem] =
           body match {
             case List(XML.Elem(Markup("span", List("id" -> _)), _)) => None
             case _ =>
-              Some {
+              for (theory <- html_context.theory_by_name(session_name, theory_name))
+              yield {
                 val body1 =
                   if (seen_ranges.contains(range)) {
                     HTML.entity_def(HTML.span(HTML.id(offset_id(range)), body))
                   }
                   else HTML.span(body)
-                html_context.nodes(node.theory).get_defs(range).foldLeft(body1) {
+                theory.get_defs(file_name, range).foldLeft(body1) {
                   case (elem, entity) =>
                     HTML.entity_def(HTML.span(HTML.id(entity.kname), List(elem)))
                 }
               }
           }
-        }
 
         private def offset_id(range: Text.Range): String =
           "offset_" + range.start + ".." + range.stop
 
-        private def physical_ref(thy_name: String, props: Properties.T): Option[String] = {
-          for {
-            range <- Position.Def_Range.unapply(props)
-            if thy_name == node.theory
-          } yield {
-            seen_ranges += range
-            offset_id(range)
-          }
-        }
-
-        private def logical_ref(thy_name: String, kind: String, name: String): Option[String] =
-          for {
-            node_info <- html_context.nodes.get(thy_name)
-            entity <- node_info.get_def(kind, name)
-          } yield entity.kname
-
         override def make_ref(props: Properties.T, body: XML.Body): Option[XML.Elem] = {
           props match {
-            case Theory_Ref(node_name) =>
-              html_context.node_relative(session, node_name).map(html_dir =>
-                HTML.link(html_dir + html_context.html_name_theory(node_name), body))
-            case Entity_Ref(file_path, def_theory, kind, name) if file_path.get_ext == "thy" =>
+            case Theory_Ref(thy_name) =>
+              for (theory <- html_context.theory_by_name(session_name, thy_name))
+              yield {
+                val html_path = session_dir + html_context.theory_html(theory)
+                val html_link = html_context.relative_link(file_dir, html_path)
+                HTML.link(html_link, body)
+              }
+            case Entity_Ref(def_file, kind, name) =>
+              def logical_ref(theory: Nodes.Theory): Option[String] =
+                theory.get_def(def_file, kind, name).map(_.kname)
+
+              def physical_ref(theory: Nodes.Theory): Option[String] =
+                props match {
+                  case Position.Def_Range(range) if theory.name == theory_name =>
+                    seen_ranges += range
+                    Some(offset_id(range))
+                  case _ => None
+                }
+
               for {
-                thy_name <-
-                  def_theory orElse (if (File.eq(node.path, file_path)) Some(node.theory) else None)
-                node_name = Resources.file_node(file_path, theory = thy_name)
-                html_dir <- html_context.node_relative(session, node_name)
-                html_file = html_context.html_name(node_name)
-                html_ref <-
-                  logical_ref(thy_name, kind, name) orElse physical_ref(thy_name, props)
-              } yield {
-                HTML.entity_ref(HTML.link(html_dir + html_file + "#" + html_ref, body))
+                theory <- html_context.theory_by_file(session_name, def_file)
+                html_ref <- logical_ref(theory) orElse physical_ref(theory)
+              }
+              yield {
+                val html_path = session_dir + html_context.smart_html(theory, def_file)
+                val html_link = html_context.relative_link(file_dir, html_path)
+                HTML.entity_ref(HTML.link(html_link + "#" + html_ref, body))
               }
             case _ => None
           }
@@ -539,12 +612,13 @@ object Presentation {
   ): Unit = {
     val session_name = session_context.session_name
     val session_info = session_context.sessions_structure(session_name)
-    val base = session_context.session_base
 
     val session_dir =
       Isabelle_System.make_directory(html_context.session_dir(session_name)).expand
 
     progress.echo("Presenting " + session_name + " in " + session_dir + " ...")
+
+    val session = html_context.nodes.the_session(session_name)
 
     Bytes.write(session_dir + session_graph_path,
       graphview.Graph_File.make_pdf(session_info.options,
@@ -583,18 +657,22 @@ object Presentation {
           map(link => HTML.text("View ") ::: List(link))).flatten
     }
 
-    def present_theory(name: Document.Node.Name): Option[XML.Body] = {
+    def present_theory(theory_name: String): Option[XML.Body] = {
       progress.expose_interrupt()
 
-      Build_Job.read_theory(session_context.theory(name.theory)).map { command =>
-        if (verbose) progress.echo("Presenting theory " + name)
+      for {
+        command <- Build_Job.read_theory(session_context.theory(theory_name))
+        theory <- html_context.theory_by_name(session_name, theory_name)
+      }
+      yield {
+        if (verbose) progress.echo("Presenting theory " + quote(theory_name))
         val snapshot = Document.State.init.snippet(command)
 
-        val thy_elements = html_context.theory_elements(name)
+        val thy_elements = theory.elements(html_context.elements)
 
         val thy_html =
           html_context.source(
-            make_html(Entity_Context.make(session_name, name, html_context),
+            make_html(Entity_Context.make(html_context, session_name, theory_name, theory.thy_file),
               thy_elements, snapshot.xml_markup(elements = thy_elements.html)))
 
         val files_html =
@@ -622,19 +700,18 @@ object Presentation {
             List(HTML.link(rel_path.implode, HTML.text(file_title)))
           }
 
-        val thy_title = "Theory " + name.theory_base_name
+        val thy_title = "Theory " + theory.print_short
 
-        HTML.write_document(session_dir, html_context.html_name_theory(name),
+        HTML.write_document(session_dir, html_context.theory_html(theory).implode,
           List(HTML.title(thy_title)), List(html_context.head(thy_title), thy_html),
           base = Some(html_context.root_dir))
 
-        List(HTML.link(html_context.html_name_theory(name),
-          HTML.text(name.theory_base_name) :::
-            (if (files.isEmpty) Nil else List(HTML.itemize(files)))))
+        List(HTML.link(html_context.theory_html(theory),
+          HTML.text(theory.print_short) ::: (if (files.isEmpty) Nil else List(HTML.itemize(files)))))
       }
     }
 
-    val theories = base.proper_session_theories.flatMap(present_theory)
+    val theories = session.used_theories.flatMap(present_theory)
 
     val title = "Session " + session_name
       HTML.write_document(session_dir, "index.html",

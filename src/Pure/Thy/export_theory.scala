@@ -190,6 +190,7 @@ object Export_Theory {
   ) {
     val kname: String = export_kind_name(kind, name)
     val range: Symbol.Range = Position.Range.unapply(pos).getOrElse(Text.Range.offside)
+    val file: String = Position.File.unapply(pos).getOrElse("")
 
     def export_kind: String = Export_Theory.export_kind(kind)
     override def toString: String = export_kind + " " + quote(name)
