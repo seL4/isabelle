@@ -14,10 +14,7 @@ object Isabelle_Tool {
 
   private def is_external(dir: Path, name: String): Boolean = {
     val file = (dir + Path.explode(name)).file
-    try {
-      file.isFile && file.canRead && file.canExecute &&
-        !name.endsWith("~") && !name.endsWith(".orig")
-    }
+    try { file.isFile && file.canRead && file.canExecute && !File.is_backup(name) }
     catch { case _: SecurityException => false }
   }
 

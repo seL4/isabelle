@@ -116,8 +116,6 @@ object Document {
 
       def expand: Name =
         Name(path.expand.implode, master_dir_path.expand.implode, theory)
-      def symbolic: Name =
-        Name(path.implode_symbolic, master_dir_path.implode_symbolic, theory)
 
       def is_theory: Boolean = theory.nonEmpty
 
@@ -593,7 +591,7 @@ object Document {
 
     def xml_markup_blobs(
       elements: Markup.Elements = Markup.Elements.full
-    ) : List[(Path, XML.Body)] = {
+    ) : List[(Command.Blob, XML.Body)] = {
       snippet_command match {
         case None => Nil
         case Some(command) =>
@@ -607,7 +605,7 @@ object Document {
                 markup.to_XML(Text.Range(0, text.length), text, elements)
               }
               else Nil
-            blob.src_path -> xml
+            blob -> xml
           }
       }
     }

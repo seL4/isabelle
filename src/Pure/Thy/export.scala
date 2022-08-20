@@ -294,7 +294,7 @@ object Export {
       document_snapshot: Option[Document.Snapshot] = None,
       close_database_context: Boolean = false
     ): Session_Context = {
-      val session_name = session_base_info.check.base.session_name
+      val session_name = session_base_info.check_errors.session_name
       val session_hierarchy = session_base_info.sessions_structure.build_hierarchy(session_name)
       val session_databases =
         database_server match {
@@ -420,9 +420,9 @@ object Export {
         if matcher(entry_name)
         entry <- get(entry_name.theory, entry_name.name).iterator
       } yield File.content(entry.entry_name.make_path(), entry.uncompressed)).toList
-  }
+    }
 
-  override def toString: String =
+    override def toString: String =
       "Export.Session_Context(" + commas_quote(session_stack) + ")"
   }
 
@@ -449,10 +449,13 @@ object Export {
         case _ => None
       }
 
-    def files(): Option[(String, List[String])] =
-      split_lines(apply(FILES, permissive = true).text) match {
+    def files0(permissive: Boolean = false): List[String] =
+      split_lines(apply(FILES, permissive = permissive).text)
+
+    def files(permissive: Boolean = false): Option[(String, List[String])] =
+      files0(permissive = permissive) match {
         case Nil => None
-        case thy_file :: blobs_files => Some((thy_file, blobs_files))
+        case a :: bs => Some((a, bs))
       }
 
     override def toString: String = "Export.Theory_Context(" + quote(theory) + ")"

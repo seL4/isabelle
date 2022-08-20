@@ -161,7 +161,7 @@ isabelle_java java -Duser.home=""" + File.bash_platform_path(tmp_dir) +
       for {
         file <- File.find_files(Path.explode("~~/src/Tools/jEdit/patches").file).iterator
         name = file.getName
-        if !name.endsWith("~") && !name.endsWith(".orig")
+        if !File.is_backup(name)
       } {
         progress.bash("patch -p2 < " + File.bash_path(File.path(file)),
           cwd = source_dir.file, echo = true).check
@@ -181,7 +181,7 @@ isabelle_java java -Duser.home=""" + File.bash_platform_path(tmp_dir) +
 
       val java_sources =
         for {
-          file <- File.find_files(org_source_dir.file, file => file.getName.endsWith(".java"))
+          file <- File.find_files(org_source_dir.file, file => File.is_java(file.getName))
           package_name <- Scala_Project.package_name(File.path(file))
           if !exclude_package(package_name)
         } yield File.path(component_dir.java_path.relativize(file.toPath).toFile).implode

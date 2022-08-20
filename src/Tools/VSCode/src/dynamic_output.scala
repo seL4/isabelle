@@ -36,8 +36,8 @@ object Dynamic_Output {
             else this
         }
       if (st1.output != output) {
-        val context =
-          new Presentation.Entity_Context {
+        val node_context =
+          new Presentation.Node_Context {
             override def make_ref(props: Properties.T, body: XML.Body): Option[XML.Elem] =
               for {
                 thy_file <- Position.Def_File.unapply(props)
@@ -47,7 +47,7 @@ object Dynamic_Output {
               } yield HTML.link(uri.toString + "#" + def_line, body)
           }
         val elements = Presentation.elements2.copy(entity = Markup.Elements.full)
-        val html = Presentation.make_html(context, elements, Pretty.separate(st1.output))
+        val html = node_context.make_html(elements, Pretty.separate(st1.output))
         channel.write(LSP.Dynamic_Output(HTML.source(html).toString))
       }
       st1

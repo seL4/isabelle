@@ -496,27 +496,19 @@ object Build {
         }
 
         using(Export.open_database_context(store)) { database_context =>
-          val presentation_nodes =
-            Presentation.Nodes.read(database_context, deps, presentation_sessions.map(_.name))
+          val document_info =
+            Document_Info.read(database_context, deps, presentation_sessions.map(_.name))
 
           Par_List.map({ (session: String) =>
             progress.expose_interrupt()
-            progress.echo("Presenting " + session + " ...")
 
             val html_context =
-              new Presentation.HTML_Context {
-                override def nodes: Presentation.Nodes = presentation_nodes
-                override def root_dir: Path = presentation_dir
-                override def theory_session(name: Document.Node.Name): Sessions.Info =
-                  deps.sessions_structure(deps(session).theory_qualifier(name))
-              }
+              Presentation.html_context(deps.sessions_structure, Presentation.elements1,
+                root_dir = presentation_dir, document_info = document_info)
 
             using(database_context.open_session(deps.base_info(session))) { session_context =>
-              Presentation.session_html(session_context, deps,
-                progress = progress,
-                verbose = verbose,
-                html_context = html_context,
-                Presentation.elements1)
+              Presentation.session_html(html_context, session_context,
+                progress = progress, verbose = verbose)
             }
           }, presentation_sessions.map(_.name))
         }

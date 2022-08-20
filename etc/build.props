@@ -116,6 +116,7 @@ sources = \
   src/Pure/PIDE/command_span.scala \
   src/Pure/PIDE/document.scala \
   src/Pure/PIDE/document_id.scala \
+  src/Pure/PIDE/document_info.scala \
   src/Pure/PIDE/document_status.scala \
   src/Pure/PIDE/editor.scala \
   src/Pure/PIDE/headless.scala \

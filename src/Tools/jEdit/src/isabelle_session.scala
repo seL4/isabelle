@@ -84,10 +84,10 @@ object Isabelle_Session {
       PIDE.maybe_snapshot(view) match {
         case None => ""
         case Some(snapshot) =>
-          val sessions = JEdit_Sessions.sessions_structure()
-          val session = PIDE.resources.session_base.theory_qualifier(snapshot.node_name)
+          val sessions_structure = JEdit_Sessions.sessions_structure()
+          val session = sessions_structure.theory_qualifier(snapshot.node_name)
           val chapter =
-            sessions.get(session) match {
+            sessions_structure.get(session) match {
               case Some(info) => info.chapter
               case None => Sessions.UNSORTED
             }

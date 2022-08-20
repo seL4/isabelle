@@ -30,11 +30,8 @@ object Sessions {
 
   def is_pure(name: String): Boolean = name == Thy_Header.PURE
 
-
-  def exclude_session(name: String): Boolean = name == "" || name == DRAFT
-
-  def exclude_theory(name: String): Boolean =
-    name == root_name || name == "README" || name == "index" || name == "bib"
+  def illegal_session(name: String): Boolean = name == "" || name == DRAFT
+  def illegal_theory(name: String): Boolean = name == root_name || name == "bib"
 
 
   /* ROOTS file format */
@@ -61,8 +58,6 @@ object Sessions {
   sealed case class Base(
     session_name: String = "",
     session_pos: Position.T = Position.none,
-    session_directories: Map[JFile, String] = Map.empty,
-    global_theories: Map[String, String] = Map.empty,
     proper_session_theories: List[Document.Node.Name] = Nil,
     document_theories: List[Document.Node.Name] = Nil,
     loaded_theories: Graph[String, Outer_Syntax] = Graph.string,  // cumulative imports
@@ -76,14 +71,12 @@ object Sessions {
     session_graph_display: Graph_Display.Graph = Graph_Display.empty_graph,
     errors: List[String] = Nil
   ) {
+    def session_entry: (String, Base) = session_name -> this
+
     override def toString: String =
       "Sessions.Base(session_name = " + quote(session_name) +
         ", loaded_theories = " + loaded_theories.size +
         ", used_theories = " + used_theories.length + ")"
-
-    def theory_qualifier(name: String): String =
-      global_theories.getOrElse(name, Long_Name.qualifier(name))
-    def theory_qualifier(name: Document.Node.Name): String = theory_qualifier(name.theory)
 
     def loaded_theory(name: String): Boolean = loaded_theories.defined(name)
     def loaded_theory(name: Document.Node.Name): Boolean = loaded_theory(name.theory)
@@ -99,6 +92,8 @@ object Sessions {
     def node_syntax(nodes: Document.Nodes, name: Document.Node.Name): Outer_Syntax =
       nodes(name).syntax orElse loaded_theory_syntax(name) getOrElse overall_syntax
   }
+
+  val bootstrap_base: Base = Base(overall_syntax = Thy_Header.bootstrap_syntax)
 
   sealed case class Deps(sessions_structure: Structure, session_bases: Map[String, Base]) {
     override def toString: String = "Sessions.Deps(" + sessions_structure + ")"
@@ -156,13 +151,9 @@ object Sessions {
       }
     }
 
-    val bootstrap_bases = {
-      val base = sessions_structure.bootstrap
-      Map(base.session_name -> base)
-    }
-
     val session_bases =
-      sessions_structure.imports_topological_order.foldLeft(bootstrap_bases) {
+      sessions_structure.imports_topological_order.foldLeft(
+          Map(Sessions.bootstrap_base.session_entry)) {
         case (session_bases, session_name) =>
           progress.expose_interrupt()
 
@@ -183,7 +174,8 @@ object Sessions {
             val overall_syntax = dependencies.overall_syntax
 
             val proper_session_theories =
-              dependencies.theories.filter(name => deps_base.theory_qualifier(name) == session_name)
+              dependencies.theories.filter(name =>
+                sessions_structure.theory_qualifier(name) == session_name)
 
             val theory_files = dependencies.theories.map(_.path)
 
@@ -213,7 +205,7 @@ object Sessions {
                 Graph_Display.Node("[" + name + "]", "session." + name)
 
               def node(name: Document.Node.Name): Graph_Display.Node = {
-                val qualifier = deps_base.theory_qualifier(name)
+                val qualifier = sessions_structure.theory_qualifier(name)
                 if (qualifier == info.name)
                   Graph_Display.Node(name.theory_base_name, "theory." + name.theory)
                 else session_node(qualifier)
@@ -221,7 +213,7 @@ object Sessions {
 
               val required_sessions =
                 dependencies.loaded_theories.all_preds(dependencies.theories.map(_.theory))
-                  .map(theory => deps_base.theory_qualifier(theory))
+                  .map(theory => sessions_structure.theory_qualifier(theory))
                   .filter(name => name != info.name && sessions_structure.defined(name))
 
               val required_subgraph =
@@ -258,7 +250,7 @@ object Sessions {
                 sessions_structure.imports_requirements(List(session_name)).toSet
               for {
                 name <- dependencies.theories
-                qualifier = deps_base.theory_qualifier(name)
+                qualifier = sessions_structure.theory_qualifier(name)
                 if !known_sessions(qualifier)
               } yield "Bad import of theory " + quote(name.toString) +
                 ": need to include sessions " + quote(qualifier) + " in ROOT"
@@ -280,7 +272,7 @@ object Sessions {
                   known_theories.get(thy).map(_.name) match {
                     case None => err("Unknown document theory")
                     case Some(name) =>
-                      val qualifier = deps_base.theory_qualifier(name)
+                      val qualifier = sessions_structure.theory_qualifier(name)
                       if (proper_session_theories.contains(name)) {
                         err("Redundant document theory from this session:")
                       }
@@ -336,8 +328,6 @@ object Sessions {
               Base(
                 session_name = info.name,
                 session_pos = info.pos,
-                session_directories = sessions_structure.session_directories,
-                global_theories = sessions_structure.global_theories,
                 proper_session_theories = proper_session_theories,
                 document_theories = document_theories,
                 loaded_theories = dependencies.loaded_theories,
@@ -353,7 +343,7 @@ object Sessions {
                   document_errors ::: dir_errors ::: sources_errors ::: path_errors :::
                   bibtex_errors)
 
-            session_bases + (info.name -> base)
+            session_bases + base.session_entry
           }
           catch {
             case ERROR(msg) =>
@@ -374,8 +364,11 @@ object Sessions {
     errors: List[String] = Nil,
     infos: List[Info] = Nil
   ) {
-    def check: Base_Info = if (errors.isEmpty) this else error(cat_lines(errors))
-    def session: String = base.session_name
+    def session_name: String = base.session_name
+
+    def check_errors: Base_Info =
+      if (errors.isEmpty) this
+      else error(cat_lines(errors))
   }
 
   def base_info0(session: String): Base_Info =
@@ -413,7 +406,7 @@ object Sessions {
         val required_theories =
           for {
             thy <- base.loaded_theories.keys
-            if !ancestor_loaded(thy) && base.theory_qualifier(thy) != session
+            if !ancestor_loaded(thy) && selected_sessions.theory_qualifier(thy) != session
           }
           yield thy
 
@@ -485,11 +478,6 @@ object Sessions {
   ) {
     def chapter_session: String = chapter + "/" + name
 
-    def relative_path(info1: Info): String =
-      if (name == info1.name) ""
-      else if (chapter == info1.chapter) "../" + info1.name + "/"
-      else "../../" + info1.chapter_session + "/"
-
     def deps: List[String] = parent.toList ::: imports
 
     def deps_base(session_bases: String => Base): Base = {
@@ -531,6 +519,8 @@ object Sessions {
       variants
     }
 
+    def document_echo: Boolean = options.bool("document_echo")
+
     def documents: List[Document_Build.Document_Variant] = {
       val variants = document_variants
       if (!document_enabled || document_files.isEmpty) Nil else variants
@@ -547,7 +537,7 @@ object Sessions {
     lazy val bibtex_entries: List[Text.Info[String]] =
       (for {
         (document_dir, file) <- document_files.iterator
-        if Bibtex.is_bibtex(file.file_name)
+        if File.is_bib(file.file_name)
         info <- Bibtex.entries(File.read(dir + document_dir + file)).iterator
       } yield info).toList
 
@@ -567,7 +557,7 @@ object Sessions {
     try {
       val name = entry.name
 
-      if (exclude_session(name)) error("Bad session name")
+      if (illegal_session(name)) error("Illegal session name " + quote(name))
       if (is_pure(name) && entry.parent.isDefined) error("Illegal parent session")
       if (!is_pure(name) && !entry.parent.isDefined) error("Missing parent session")
 
@@ -580,8 +570,10 @@ object Sessions {
         entry.theories.map({ case (opts, thys) =>
           (session_options ++ opts,
             thys.map({ case ((thy, pos), _) =>
-              if (exclude_theory(thy))
-                error("Bad theory name " + quote(thy) + Position.here(pos))
+              val thy_name = Thy_Header.import_name(thy)
+              if (illegal_theory(thy_name)) {
+                error("Illegal theory name " + quote(thy_name) + Position.here(pos))
+              }
               else (thy, pos) })) })
 
       val global_theories =
@@ -739,11 +731,7 @@ object Sessions {
   ) {
     sessions_structure =>
 
-    def bootstrap: Base =
-      Base(
-        session_directories = session_directories,
-        global_theories = global_theories,
-        overall_syntax = Thy_Header.bootstrap_syntax)
+    def bootstrap: Base = Base(overall_syntax = Thy_Header.bootstrap_syntax)
 
     def dest_session_directories: List[(String, String)] =
       for ((file, session) <- session_directories.toList)
@@ -764,6 +752,7 @@ object Sessions {
 
     def theory_qualifier(name: String): String =
       global_theories.getOrElse(name, Long_Name.qualifier(name))
+    def theory_qualifier(name: Document.Node.Name): String = theory_qualifier(name.theory)
 
     def check_sessions(names: List[String]): Unit = {
       val bad_sessions = SortedSet(names.filterNot(defined): _*).toList

@@ -314,16 +314,9 @@ object Document_Model {
       yield {
         val snapshot = model.await_stable_snapshot()
         val html_context =
-          new Presentation.HTML_Context {
-            override def nodes: Presentation.Nodes = Presentation.Nodes.empty
-            override def root_dir: Path = Path.current
-            override def theory_session(name: Document.Node.Name): Sessions.Info =
-              PIDE.resources.sessions_structure(
-                PIDE.resources.session_base.theory_qualifier(name))
-          }
+          Presentation.html_context(PIDE.resources.sessions_structure, Presentation.elements2)
         val document =
-          Presentation.html_document(
-            snapshot, html_context, Presentation.elements2,
+          Presentation.html_document(snapshot, html_context,
             plain_text = query.startsWith(plain_text_prefix),
             fonts_css = HTML.fonts_css_dir(HTTP.url_path(request.server_name)))
         HTTP.Response.html(document.content)
@@ -427,7 +420,7 @@ case class File_Model(
     else Some(Document.Blob(content.bytes, content.text, content.chunk, pending_edits.nonEmpty))
 
   def bibtex_entries: List[Text.Info[String]] =
-    if (Bibtex.is_bibtex(node_name.node)) content.bibtex_entries else Nil
+    if (File.is_bib(node_name.node)) content.bibtex_entries else Nil
 
 
   /* edits */
@@ -549,7 +542,7 @@ extends Document_Model {
 
   def bibtex_entries: List[Text.Info[String]] =
     GUI_Thread.require {
-      if (Bibtex.is_bibtex(node_name.node)) {
+      if (File.is_bib(node_name.node)) {
         _bibtex_entries match {
           case Some(entries) => entries
           case None =>

@@ -66,7 +66,7 @@ object Build_VSCodium {
     def is_linux: Boolean = platform == Platform.Family.linux
 
     def download_name: String = "VSCodium-" + download_template.replace("{VERSION}", version)
-    def download_zip: Boolean = download_name.endsWith(".zip")
+    def download_zip: Boolean = File.is_zip(download_name)
 
     def download(dir: Path, progress: Progress = new Progress): Unit = {
       if (download_zip) Isabelle_System.require_command("unzip", test = "-h")
@@ -222,7 +222,7 @@ object Build_VSCodium {
         val files =
           File.find_files(dir.file, pred = { file =>
             val name = file.getName
-            name.endsWith(".dll") || name.endsWith(".exe") || name.endsWith(".node")
+            File.is_dll(name) || File.is_exe(name) || File.is_node(name)
           })
         files.foreach(file => File.set_executable(File.path(file), true))
         Isabelle_System.bash("chmod -R o-w " + File.bash_path(dir)).check
