@@ -458,7 +458,7 @@ object Presentation {
       graphview.Graph_File.make_pdf(session_info.options,
         session_context.session_base.session_graph_display))
 
-    val documents =
+    val document_variants =
       for {
         doc <- session_info.document_variants
         db <- session_context.session_db()
@@ -472,15 +472,11 @@ object Presentation {
         doc
       }
 
-    val view_links = {
-      val deps_link =
-        HTML.link(session_graph_path, HTML.text("theory dependencies"))
-
-      val document_links =
-        documents.map(doc => HTML.link(doc.path.pdf, HTML.text(doc.name)))
-
+    val document_links = {
+      val link1 = HTML.link(session_graph_path, HTML.text("theory dependencies"))
+      val links2 = document_variants.map(doc => HTML.link(doc.path.pdf, HTML.text(doc.name)))
       Library.separate(HTML.break ::: HTML.nl,
-        (deps_link :: document_links).map(link => HTML.text("View ") ::: List(link))).flatten
+        (link1 :: links2).map(link => HTML.text("View ") ::: List(link))).flatten
     }
 
     def present_theory(theory_name: String): XML.Body = {
@@ -534,7 +530,8 @@ object Presentation {
         base = Some(html_context.root_dir))
 
       List(HTML.link(html_context.theory_html(theory),
-        HTML.text(theory.print_short) ::: (if (files.isEmpty) Nil else List(HTML.itemize(files)))))
+        HTML.text(theory.print_short) :::
+        (if (files.isEmpty) Nil else List(HTML.itemize(files)))))
     }
 
     val theories = session.used_theories.map(present_theory)
@@ -542,7 +539,7 @@ object Presentation {
     val title = "Session " + session_name
       HTML.write_document(session_dir, "index.html",
         List(HTML.title(title + Isabelle_System.isabelle_heading())),
-        html_context.head(title, List(HTML.par(view_links))) ::
+        html_context.head(title, List(HTML.par(document_links))) ::
           html_context.contents("Theories", theories),
         base = Some(html_context.root_dir))
   }
