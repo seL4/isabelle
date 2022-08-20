@@ -145,11 +145,11 @@ object Presentation {
       html_context: HTML_Context,
       session_name: String,
       theory_name: String,
-      file_name: String
+      file_name: String,
+      node_dir: Path,
     ): Node_Context =
       new Node_Context {
         private val session_dir = html_context.session_dir(session_name)
-        private val file_dir = Path.explode(file_name).dir
 
         private val seen_ranges: mutable.Set[Symbol.Range] = mutable.Set.empty
 
@@ -180,7 +180,7 @@ object Presentation {
               for (theory <- html_context.theory_by_name(session_name, thy_name))
               yield {
                 val html_path = session_dir + html_context.theory_html(theory)
-                val html_link = html_context.relative_link(file_dir, html_path)
+                val html_link = html_context.relative_link(node_dir, html_path)
                 HTML.link(html_link, body)
               }
             case Entity_Ref(def_file, kind, name) =>
@@ -201,7 +201,7 @@ object Presentation {
               }
               yield {
                 val html_path = session_dir + html_context.smart_html(theory, def_file)
-                val html_link = html_context.relative_link(file_dir, html_path)
+                val html_link = html_context.relative_link(node_dir, html_path)
                 HTML.entity_ref(HTML.link(html_link + "#" + html_ref, body))
               }
             case _ => None
@@ -495,12 +495,12 @@ object Presentation {
 
       val thy_elements = theory.elements(html_context.elements)
 
-      def node_context(file_name: String): Node_Context =
-        Node_Context.make(html_context, session_name, theory_name, file_name)
+      def node_context(file_name: String, node_dir: Path): Node_Context =
+        Node_Context.make(html_context, session_name, theory_name, file_name, node_dir)
 
       val thy_html =
         html_context.source(
-          node_context(theory.thy_file).
+          node_context(theory.thy_file, session_dir).
             make_html(thy_elements, snapshot.xml_markup(elements = thy_elements.html)))
 
       val blobs_html =
