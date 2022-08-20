@@ -60,7 +60,11 @@ object Presentation {
       if (File.is_thy(file)) theory_html(theory) else file_html(file)
 
     def relative_link(dir: Path, file: Path): String =
-      try { File.path(dir.java_path.relativize(file.java_path).toFile).implode }
+      try {
+        val path1 = dir.absolute_file.toPath
+        val path2 = file.absolute_file.toPath
+        File.path(path1.relativize(path2).toFile).implode
+      }
       catch {
         case _: IllegalArgumentException =>
           error("Cannot relativize " + file + " wrt. " + dir)
