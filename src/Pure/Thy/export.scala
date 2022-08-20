@@ -420,9 +420,9 @@ object Export {
         if matcher(entry_name)
         entry <- get(entry_name.theory, entry_name.name).iterator
       } yield File.content(entry.entry_name.make_path(), entry.uncompressed)).toList
-  }
+    }
 
-  override def toString: String =
+    override def toString: String =
       "Export.Session_Context(" + commas_quote(session_stack) + ")"
   }
 
