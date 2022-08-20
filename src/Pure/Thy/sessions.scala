@@ -30,8 +30,8 @@ object Sessions {
 
   def is_pure(name: String): Boolean = name == Thy_Header.PURE
 
-  def exclude_session(name: String): Boolean = name == "" || name == DRAFT
-  def exclude_theory(name: String): Boolean = name == root_name || name == "bib"
+  def illegal_session(name: String): Boolean = name == "" || name == DRAFT
+  def illegal_theory(name: String): Boolean = name == root_name || name == "bib"
 
 
   /* ROOTS file format */
@@ -557,7 +557,7 @@ object Sessions {
     try {
       val name = entry.name
 
-      if (exclude_session(name)) error("Bad session name")
+      if (illegal_session(name)) error("Illegal session name " + quote(name))
       if (is_pure(name) && entry.parent.isDefined) error("Illegal parent session")
       if (!is_pure(name) && !entry.parent.isDefined) error("Missing parent session")
 
@@ -570,8 +570,9 @@ object Sessions {
         entry.theories.map({ case (opts, thys) =>
           (session_options ++ opts,
             thys.map({ case ((thy, pos), _) =>
-              if (exclude_theory(thy))
-                error("Bad theory name " + quote(thy) + Position.here(pos))
+              if (illegal_theory(thy)) {
+                error("Illegal theory name " + quote(thy) + Position.here(pos))
+              }
               else (thy, pos) })) })
 
       val global_theories =
