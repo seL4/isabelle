@@ -21,7 +21,7 @@ object Build_VSCode {
     progress: Progress = new Progress
   ): Unit = {
     val keywords =
-      Sessions.base_info(options, logic, dirs = dirs).check.base.overall_syntax.keywords
+      Sessions.base_info(options, logic, dirs = dirs).check_errors.base.overall_syntax.keywords
 
     val output_path = build_dir + Path.explode("isabelle-grammar.json")
     progress.echo(output_path.expand.implode)

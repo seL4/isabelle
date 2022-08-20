@@ -173,7 +173,7 @@ Usage: isabelle process [OPTIONS]
       val more_args = getopts(args)
       if (args.isEmpty || more_args.nonEmpty) getopts.usage()
 
-      val base_info = Sessions.base_info(options, logic, dirs = dirs).check
+      val base_info = Sessions.base_info(options, logic, dirs = dirs).check_errors
       val store = Sessions.store(options)
       val result =
         ML_Process(options, base_info.sessions_structure, store, logic = logic, args = eval_args,

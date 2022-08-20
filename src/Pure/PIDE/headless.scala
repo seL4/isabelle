@@ -549,7 +549,11 @@ object Headless {
       val options: Options,
       val session_base_info: Sessions.Base_Info,
       log: Logger = No_Logger)
-  extends isabelle.Resources(session_base_info.sessions_structure, session_base_info.check.base, log = log) {
+    extends isabelle.Resources(
+      session_base_info.sessions_structure,
+      session_base_info.check_errors.base,
+      log = log
+    ) {
     resources =>
 
     val store: Sessions.Store = Sessions.store(options)

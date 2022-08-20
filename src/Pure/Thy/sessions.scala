@@ -364,8 +364,11 @@ object Sessions {
     errors: List[String] = Nil,
     infos: List[Info] = Nil
   ) {
-    def check: Base_Info = if (errors.isEmpty) this else error(cat_lines(errors))
     def session: String = base.session_name
+
+    def check_errors: Base_Info =
+      if (errors.isEmpty) this
+      else error(cat_lines(errors))
   }
 
   def base_info0(session: String): Base_Info =
