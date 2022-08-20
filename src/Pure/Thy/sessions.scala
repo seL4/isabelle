@@ -570,8 +570,9 @@ object Sessions {
         entry.theories.map({ case (opts, thys) =>
           (session_options ++ opts,
             thys.map({ case ((thy, pos), _) =>
-              if (illegal_theory(thy)) {
-                error("Illegal theory name " + quote(thy) + Position.here(pos))
+              val thy_name = Thy_Header.import_name(thy)
+              if (illegal_theory(thy_name)) {
+                error("Illegal theory name " + quote(thy_name) + Position.here(pos))
               }
               else (thy, pos) })) })
 
