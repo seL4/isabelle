@@ -517,13 +517,15 @@ object Presentation {
           val file_name = blob.name.node
           if (verbose) progress.echo("Presenting file " + quote(file_name))
 
-          val file_path = session_dir + html_context.file_html(file_name)
-          val node_dir = file_path.dir
-          val html_link = html_context.relative_link(node_dir, file_path)
-          val html = html_context.source(Node_Context.empty.make_html(thy_elements, xml))
+          val file_html = session_dir + html_context.file_html(file_name)
+          val file_dir = file_html.dir
+          val html_link = html_context.relative_link(session_dir, file_html)
+          val html =
+            html_context.source(
+              node_context(file_name, file_dir).make_html(thy_elements, xml))
 
           val file_title = "File " + Symbol.cartouche_decoded(blob.src_path.implode_short)
-          HTML.write_document(file_path.dir, file_path.file_name,
+          HTML.write_document(file_dir, file_html.file_name,
             List(HTML.title(file_title)), List(html_context.head(file_title), html),
             base = Some(html_context.root_dir))
           List(HTML.link(html_link, HTML.text(file_title)))
