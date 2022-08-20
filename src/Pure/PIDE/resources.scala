@@ -232,9 +232,10 @@ class Resources(
         val imports =
           header.imports.map({ case (s, pos) =>
             val name = import_name(node_name, s)
-            if (Sessions.exclude_theory(name.theory_base_name))
+            if (Sessions.exclude_theory(name.theory_base_name)) {
               error("Bad theory name " + quote(name.theory_base_name) + Position.here(pos))
-            (name, pos)
+            }
+            else (name, pos)
           })
         Document.Node.Header(imports, header.keywords, header.abbrevs)
       }
