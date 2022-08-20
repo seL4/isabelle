@@ -43,9 +43,14 @@ object Presentation {
 
     def theory_html(theory: Document_Info.Theory): Path =
     {
-      val name1 = theory.print_short
-      val name2 = if (Word.lowercase(name1) == "index") theory.name else name1
-      Path.explode(name2).html
+      def check(name: String): Option[Path] = {
+        val path = Path.explode(name).html
+        if (Path.eq_case_insensitive(path, Path.index_html)) None
+        else Some(path)
+      }
+      check(theory.print_short) orElse check(theory.name) getOrElse
+        error("Illegal global theory name " + quote(theory.name) +
+          " (conflict with " + Path.index_html + ")")
     }
 
     def file_html(file: String): Path =
@@ -466,6 +471,10 @@ object Presentation {
       }
       yield {
         val doc_path = session_dir + doc.path.pdf
+        if (Path.eq_case_insensitive(doc.path.pdf, session_graph_path)) {
+          error("Illegal document variant " + quote(doc.name) +
+            " (conflict with " + session_graph_path + ")")
+        }
         if (verbose) progress.echo("Presenting document " + session_name + "/" + doc.name)
         if (session_info.document_echo) progress.echo("Document at " + doc_path)
         Bytes.write(doc_path, document.pdf)
