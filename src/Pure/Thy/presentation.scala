@@ -138,16 +138,16 @@ object Presentation {
       }
   }
 
-  object Entity_Context {
-    val empty: Entity_Context = new Entity_Context
+  object Node_Context {
+    val empty: Node_Context = new Node_Context
 
     def make(
       html_context: HTML_Context,
       session_name: String,
       theory_name: String,
       file_name: String
-    ): Entity_Context =
-      new Entity_Context {
+    ): Node_Context =
+      new Node_Context {
         private val session_dir = html_context.session_dir(session_name)
         private val file_dir = Path.explode(file_name).dir
 
@@ -210,7 +210,7 @@ object Presentation {
       }
   }
 
-  class Entity_Context {
+  class Node_Context {
     def make_def(range: Symbol.Range, body: XML.Body): Option[XML.Elem] = None
     def make_ref(props: Properties.T, body: XML.Body): Option[XML.Elem] = None
   }
@@ -223,7 +223,7 @@ object Presentation {
       HTML.descr.name)
 
   def make_html(
-    entity_context: Entity_Context,
+    node_context: Node_Context,
     elements: Elements,
     xml: XML.Body
   ): XML.Body = {
@@ -251,7 +251,7 @@ object Presentation {
         case XML.Elem(Markup(Markup.ENTITY, props @ Markup.Kind(kind)), body) =>
           val (body1, offset) = html_body(body, end_offset)
           if (elements.entity(kind)) {
-            entity_context.make_ref(props, body1) match {
+            node_context.make_ref(props, body1) match {
               case Some(link) => (List(link), offset)
               case None => (body1, offset)
             }
@@ -289,7 +289,7 @@ object Presentation {
         case XML.Text(text) =>
           val offset = end_offset - Symbol.length(text)
           val body = HTML.text(Symbol.decode(text))
-          entity_context.make_def(Text.Range(offset, end_offset), body) match {
+          node_context.make_def(Text.Range(offset, end_offset), body) match {
             case Some(body1) => (List(body1), offset)
             case None => (body, offset)
           }
@@ -321,7 +321,7 @@ object Presentation {
           if (name.is_theory) "Theory " + quote(name.theory_base_name)
           else "File " + Symbol.cartouche_decoded(name.path.file_name)
         val xml = snapshot.xml_markup(elements = html_context.elements.html)
-        val body = make_html(Entity_Context.empty, html_context.elements, xml)
+        val body = make_html(Node_Context.empty, html_context.elements, xml)
         html_context.html_document(title, body, fonts_css)
       }
     }
@@ -504,7 +504,7 @@ object Presentation {
 
       val thy_html =
         html_context.source(
-          make_html(Entity_Context.make(html_context, session_name, theory_name, theory.thy_file),
+          make_html(Node_Context.make(html_context, session_name, theory_name, theory.thy_file),
             thy_elements, snapshot.xml_markup(elements = thy_elements.html)))
 
       val blobs_html =
@@ -515,7 +515,7 @@ object Presentation {
         yield {
           progress.expose_interrupt()
           if (verbose) progress.echo("Presenting file " + quote(blob.name.node))
-          (blob, html_context.source(make_html(Entity_Context.empty, thy_elements, xml)))
+          (blob, html_context.source(make_html(Node_Context.empty, thy_elements, xml)))
         }
 
       val files =
