@@ -483,61 +483,61 @@ object Presentation {
         (deps_link :: document_links).map(link => HTML.text("View ") ::: List(link))).flatten
     }
 
-    def present_theory(theory_name: String): Option[XML.Body] = {
+    def present_theory(theory_name: String): XML.Body = {
       progress.expose_interrupt()
 
-      for {
-        command <- Build_Job.read_theory(session_context.theory(theory_name))
-        theory <- html_context.theory_by_name(session_name, theory_name)
-      }
-      yield {
-        if (verbose) progress.echo("Presenting theory " + quote(theory_name))
-        val snapshot = Document.State.init.snippet(command)
+      def err(): Nothing =
+        error("Missing document information for theory: " + quote(theory_name))
 
-        val thy_elements = theory.elements(html_context.elements)
+      val command = Build_Job.read_theory(session_context.theory(theory_name)) getOrElse err()
+      val theory = html_context.theory_by_name(session_name, theory_name) getOrElse err()
 
-        val thy_html =
-          html_context.source(
-            make_html(Entity_Context.make(html_context, session_name, theory_name, theory.thy_file),
-              thy_elements, snapshot.xml_markup(elements = thy_elements.html)))
+      if (verbose) progress.echo("Presenting theory " + quote(theory_name))
+      val snapshot = Document.State.init.snippet(command)
 
-        val blobs_html =
-          for {
-            (blob, xml) <- snapshot.xml_markup_blobs(elements = thy_elements.html)
-            if xml.nonEmpty
-          }
-          yield {
-            progress.expose_interrupt()
-            if (verbose) progress.echo("Presenting file " + quote(blob.name.node))
-            (blob, html_context.source(make_html(Entity_Context.empty, thy_elements, xml)))
-          }
+      val thy_elements = theory.elements(html_context.elements)
 
-        val files =
-          for {
-            (blob, file_html) <- blobs_html
-            file_path = session_dir + html_context.file_html(blob.name.node)
-            rel_path <- File.relative_path(session_dir, file_path)
-          }
-          yield {
-            val file_title = "File " + Symbol.cartouche_decoded(blob.src_path.implode_short)
-            HTML.write_document(file_path.dir, file_path.file_name,
-              List(HTML.title(file_title)), List(html_context.head(file_title), file_html),
-              base = Some(html_context.root_dir))
-            List(HTML.link(rel_path.implode, HTML.text(file_title)))
-          }
+      val thy_html =
+        html_context.source(
+          make_html(Entity_Context.make(html_context, session_name, theory_name, theory.thy_file),
+            thy_elements, snapshot.xml_markup(elements = thy_elements.html)))
 
-        val thy_title = "Theory " + theory.print_short
+      val blobs_html =
+        for {
+          (blob, xml) <- snapshot.xml_markup_blobs(elements = thy_elements.html)
+          if xml.nonEmpty
+        }
+        yield {
+          progress.expose_interrupt()
+          if (verbose) progress.echo("Presenting file " + quote(blob.name.node))
+          (blob, html_context.source(make_html(Entity_Context.empty, thy_elements, xml)))
+        }
 
-        HTML.write_document(session_dir, html_context.theory_html(theory).implode,
-          List(HTML.title(thy_title)), List(html_context.head(thy_title), thy_html),
-          base = Some(html_context.root_dir))
+      val files =
+        for {
+          (blob, file_html) <- blobs_html
+          file_path = session_dir + html_context.file_html(blob.name.node)
+          rel_path <- File.relative_path(session_dir, file_path)
+        }
+        yield {
+          val file_title = "File " + Symbol.cartouche_decoded(blob.src_path.implode_short)
+          HTML.write_document(file_path.dir, file_path.file_name,
+            List(HTML.title(file_title)), List(html_context.head(file_title), file_html),
+            base = Some(html_context.root_dir))
+          List(HTML.link(rel_path.implode, HTML.text(file_title)))
+        }
 
-        List(HTML.link(html_context.theory_html(theory),
-          HTML.text(theory.print_short) ::: (if (files.isEmpty) Nil else List(HTML.itemize(files)))))
-      }
+      val thy_title = "Theory " + theory.print_short
+
+      HTML.write_document(session_dir, html_context.theory_html(theory).implode,
+        List(HTML.title(thy_title)), List(html_context.head(thy_title), thy_html),
+        base = Some(html_context.root_dir))
+
+      List(HTML.link(html_context.theory_html(theory),
+        HTML.text(theory.print_short) ::: (if (files.isEmpty) Nil else List(HTML.itemize(files)))))
     }
 
-    val theories = session.used_theories.flatMap(present_theory)
+    val theories = session.used_theories.map(present_theory)
 
     val title = "Session " + session_name
       HTML.write_document(session_dir, "index.html",
