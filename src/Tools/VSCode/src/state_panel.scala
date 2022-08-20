@@ -70,7 +70,7 @@ class State_Panel private(val server: Language_Server) {
                 } yield HTML.link(uri.toString + "#" + def_line, body)
             }
           val elements = Presentation.elements2.copy(entity = Markup.Elements.full)
-          val html = Presentation.make_html(node_context, elements, Pretty.separate(body))
+          val html = node_context.make_html(elements, Pretty.separate(body))
           output(HTML.source(html).toString)
         })
 

@@ -47,7 +47,7 @@ object Dynamic_Output {
               } yield HTML.link(uri.toString + "#" + def_line, body)
           }
         val elements = Presentation.elements2.copy(entity = Markup.Elements.full)
-        val html = Presentation.make_html(node_context, elements, Pretty.separate(st1.output))
+        val html = node_context.make_html(elements, Pretty.separate(st1.output))
         channel.write(LSP.Dynamic_Output(HTML.source(html).toString))
       }
       st1

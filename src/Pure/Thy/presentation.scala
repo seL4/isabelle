@@ -213,89 +213,82 @@ object Presentation {
   class Node_Context {
     def make_def(range: Symbol.Range, body: XML.Body): Option[XML.Elem] = None
     def make_ref(props: Properties.T, body: XML.Body): Option[XML.Elem] = None
-  }
 
+    val div_elements: Set[String] =
+      Set(HTML.div.name, HTML.pre.name, HTML.par.name, HTML.list.name, HTML.`enum`.name,
+        HTML.descr.name)
 
-  /* HTML output */
+    def make_html(elements: Elements, xml: XML.Body): XML.Body = {
+      def html_div(html: XML.Body): Boolean =
+        html exists {
+          case XML.Elem(markup, body) => div_elements.contains(markup.name) || html_div(body)
+          case XML.Text(_) => false
+        }
 
-  private val div_elements =
-    Set(HTML.div.name, HTML.pre.name, HTML.par.name, HTML.list.name, HTML.`enum`.name,
-      HTML.descr.name)
+      def html_class(c: String, html: XML.Body): XML.Body =
+        if (c == "") html
+        else if (html_div(html)) List(HTML.div(c, html))
+        else List(HTML.span(c, html))
 
-  def make_html(
-    node_context: Node_Context,
-    elements: Elements,
-    xml: XML.Body
-  ): XML.Body = {
-    def html_div(html: XML.Body): Boolean =
-      html exists {
-        case XML.Elem(markup, body) => div_elements.contains(markup.name) || html_div(body)
-        case XML.Text(_) => false
-      }
+      def html_body(xml_body: XML.Body, end_offset: Symbol.Offset): (XML.Body, Symbol.Offset) =
+        xml_body.foldRight((List.empty[XML.Tree], end_offset)) { case (tree, (res, end_offset1)) =>
+          val (res1, offset) = html_body_single(tree, end_offset1)
+          (res1 ++ res, offset)
+        }
 
-    def html_class(c: String, html: XML.Body): XML.Body =
-      if (c == "") html
-      else if (html_div(html)) List(HTML.div(c, html))
-      else List(HTML.span(c, html))
-
-    def html_body(xml_body: XML.Body, end_offset: Symbol.Offset): (XML.Body, Symbol.Offset) =
-      xml_body.foldRight((List.empty[XML.Tree], end_offset)) { case (tree, (res, end_offset1)) =>
-        val (res1, offset) = html_body_single(tree, end_offset1)
-        (res1 ++ res, offset)
-      }
-
-    @tailrec
-    def html_body_single(xml_tree: XML.Tree, end_offset: Symbol.Offset): (XML.Body, Symbol.Offset) =
-      xml_tree match {
-        case XML.Wrapped_Elem(markup, _, body) => html_body_single(XML.Elem(markup, body), end_offset)
-        case XML.Elem(Markup(Markup.ENTITY, props @ Markup.Kind(kind)), body) =>
-          val (body1, offset) = html_body(body, end_offset)
-          if (elements.entity(kind)) {
-            node_context.make_ref(props, body1) match {
-              case Some(link) => (List(link), offset)
-              case None => (body1, offset)
+      @tailrec
+      def html_body_single(xml_tree: XML.Tree, end_offset: Symbol.Offset): (XML.Body, Symbol.Offset) =
+        xml_tree match {
+          case XML.Wrapped_Elem(markup, _, body) => html_body_single(XML.Elem(markup, body), end_offset)
+          case XML.Elem(Markup(Markup.ENTITY, props @ Markup.Kind(kind)), body) =>
+            val (body1, offset) = html_body(body, end_offset)
+            if (elements.entity(kind)) {
+              make_ref(props, body1) match {
+                case Some(link) => (List(link), offset)
+                case None => (body1, offset)
+              }
             }
-          }
-          else (body1, offset)
-        case XML.Elem(Markup(Markup.LANGUAGE, Markup.Name(name)), body) =>
-          val (body1, offset) = html_body(body, end_offset)
-          (html_class(if (elements.language(name)) name else "", body1), offset)
-        case XML.Elem(Markup(Markup.MARKDOWN_PARAGRAPH, _), body) =>
-          val (body1, offset) = html_body(body, end_offset)
-          (List(HTML.par(body1)), offset)
-        case XML.Elem(Markup(Markup.MARKDOWN_ITEM, _), body) =>
-          val (body1, offset) = html_body(body, end_offset)
-          (List(HTML.item(body1)), offset)
-        case XML.Elem(Markup(Markup.Markdown_Bullet.name, _), text) =>
-          (Nil, end_offset - XML.symbol_length(text))
-        case XML.Elem(Markup.Markdown_List(kind), body) =>
-          val (body1, offset) = html_body(body, end_offset)
-          if (kind == Markup.ENUMERATE) (List(HTML.`enum`(body1)), offset)
-          else (List(HTML.list(body1)), offset)
-        case XML.Elem(markup, body) =>
-          val name = markup.name
-          val (body1, offset) = html_body(body, end_offset)
-          val html =
-            markup.properties match {
-              case Markup.Kind(kind) if kind == Markup.COMMAND || kind == Markup.KEYWORD =>
-                html_class(kind, body1)
-              case _ =>
-                body1
+            else (body1, offset)
+          case XML.Elem(Markup(Markup.LANGUAGE, Markup.Name(name)), body) =>
+            val (body1, offset) = html_body(body, end_offset)
+            (html_class(if (elements.language(name)) name else "", body1), offset)
+          case XML.Elem(Markup(Markup.MARKDOWN_PARAGRAPH, _), body) =>
+            val (body1, offset) = html_body(body, end_offset)
+            (List(HTML.par(body1)), offset)
+          case XML.Elem(Markup(Markup.MARKDOWN_ITEM, _), body) =>
+            val (body1, offset) = html_body(body, end_offset)
+            (List(HTML.item(body1)), offset)
+          case XML.Elem(Markup(Markup.Markdown_Bullet.name, _), text) =>
+            (Nil, end_offset - XML.symbol_length(text))
+          case XML.Elem(Markup.Markdown_List(kind), body) =>
+            val (body1, offset) = html_body(body, end_offset)
+            if (kind == Markup.ENUMERATE) (List(HTML.`enum`(body1)), offset)
+            else (List(HTML.list(body1)), offset)
+          case XML.Elem(markup, body) =>
+            val name = markup.name
+            val (body1, offset) = html_body(body, end_offset)
+            val html =
+              markup.properties match {
+                case Markup.Kind(kind) if kind == Markup.COMMAND || kind == Markup.KEYWORD =>
+                  html_class(kind, body1)
+                case _ =>
+                  body1
+              }
+            Rendering.foreground.get(name) orElse Rendering.text_color.get(name) match {
+              case Some(c) => (html_class(c.toString, html), offset)
+              case None => (html_class(name, html), offset)
             }
-          Rendering.foreground.get(name) orElse Rendering.text_color.get(name) match {
-            case Some(c) => (html_class(c.toString, html), offset)
-            case None => (html_class(name, html), offset)
-          }
-        case XML.Text(text) =>
-          val offset = end_offset - Symbol.length(text)
-          val body = HTML.text(Symbol.decode(text))
-          node_context.make_def(Text.Range(offset, end_offset), body) match {
-            case Some(body1) => (List(body1), offset)
-            case None => (body, offset)
-          }
-      }
+          case XML.Text(text) =>
+            val offset = end_offset - Symbol.length(text)
+            val body = HTML.text(Symbol.decode(text))
+            make_def(Text.Range(offset, end_offset), body) match {
+              case Some(body1) => (List(body1), offset)
+              case None => (body, offset)
+            }
+        }
 
-    html_body(xml, XML.symbol_length(xml) + 1)._1
+      html_body(xml, XML.symbol_length(xml) + 1)._1
+    }
   }
 
 
@@ -321,7 +314,7 @@ object Presentation {
           if (name.is_theory) "Theory " + quote(name.theory_base_name)
           else "File " + Symbol.cartouche_decoded(name.path.file_name)
         val xml = snapshot.xml_markup(elements = html_context.elements.html)
-        val body = make_html(Node_Context.empty, html_context.elements, xml)
+        val body = Node_Context.empty.make_html(html_context.elements, xml)
         html_context.html_document(title, body, fonts_css)
       }
     }
@@ -502,10 +495,13 @@ object Presentation {
 
       val thy_elements = theory.elements(html_context.elements)
 
+      def node_context(file_name: String): Node_Context =
+        Node_Context.make(html_context, session_name, theory_name, file_name)
+
       val thy_html =
         html_context.source(
-          make_html(Node_Context.make(html_context, session_name, theory_name, theory.thy_file),
-            thy_elements, snapshot.xml_markup(elements = thy_elements.html)))
+          node_context(theory.thy_file).
+            make_html(thy_elements, snapshot.xml_markup(elements = thy_elements.html)))
 
       val blobs_html =
         for {
@@ -515,7 +511,7 @@ object Presentation {
         yield {
           progress.expose_interrupt()
           if (verbose) progress.echo("Presenting file " + quote(blob.name.node))
-          (blob, html_context.source(make_html(Node_Context.empty, thy_elements, xml)))
+          (blob, html_context.source(Node_Context.empty.make_html(thy_elements, xml)))
         }
 
       val files =
