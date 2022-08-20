@@ -507,33 +507,29 @@ object Presentation {
           node_context(theory.thy_file, session_dir).
             make_html(thy_elements, snapshot.xml_markup(elements = thy_elements.html)))
 
-      val blobs_html =
+      val files =
         for {
           (blob, xml) <- snapshot.xml_markup_blobs(elements = thy_elements.html)
           if xml.nonEmpty
         }
         yield {
           progress.expose_interrupt()
-          if (verbose) progress.echo("Presenting file " + quote(blob.name.node))
-          (blob, html_context.source(Node_Context.empty.make_html(thy_elements, xml)))
-        }
+          val file_name = blob.name.node
+          if (verbose) progress.echo("Presenting file " + quote(file_name))
 
-      val files =
-        for {
-          (blob, file_html) <- blobs_html
-          file_path = session_dir + html_context.file_html(blob.name.node)
-          rel_path <- File.relative_path(session_dir, file_path)
-        }
-        yield {
+          val file_path = session_dir + html_context.file_html(file_name)
+          val node_dir = file_path.dir
+          val html_link = html_context.relative_link(node_dir, file_path)
+          val html = html_context.source(Node_Context.empty.make_html(thy_elements, xml))
+
           val file_title = "File " + Symbol.cartouche_decoded(blob.src_path.implode_short)
           HTML.write_document(file_path.dir, file_path.file_name,
-            List(HTML.title(file_title)), List(html_context.head(file_title), file_html),
+            List(HTML.title(file_title)), List(html_context.head(file_title), html),
             base = Some(html_context.root_dir))
-          List(HTML.link(rel_path.implode, HTML.text(file_title)))
+          List(HTML.link(html_link, HTML.text(file_title)))
         }
 
       val thy_title = "Theory " + theory.print_short
-
       HTML.write_document(session_dir, html_context.theory_html(theory).implode,
         List(HTML.title(thy_title)), List(html_context.head(thy_title), thy_html),
         base = Some(html_context.root_dir))
