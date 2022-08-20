@@ -565,11 +565,12 @@ object Headless {
       print_mode: List[String] = Nil,
       progress: Progress = new Progress
     ): Session = {
-      val session = new Session(session_base_info.session, options, resources)
+      val session_name = session_base_info.session_name
+      val session = new Session(session_name, options, resources)
 
-      progress.echo("Starting session " + session_base_info.session + " ...")
+      progress.echo("Starting session " + session_name + " ...")
       Isabelle_Process.start(session, options, session_base_info.sessions_structure, store,
-        logic = session_base_info.session, modes = print_mode).await_startup()
+        logic = session_name, modes = print_mode).await_startup()
 
       session
     }

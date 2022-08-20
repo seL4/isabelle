@@ -294,7 +294,7 @@ object Export {
       document_snapshot: Option[Document.Snapshot] = None,
       close_database_context: Boolean = false
     ): Session_Context = {
-      val session_name = session_base_info.check_errors.base.session_name
+      val session_name = session_base_info.check_errors.session_name
       val session_hierarchy = session_base_info.sessions_structure.build_hierarchy(session_name)
       val session_databases =
         database_server match {

@@ -364,7 +364,7 @@ object Sessions {
     errors: List[String] = Nil,
     infos: List[Info] = Nil
   ) {
-    def session: String = base.session_name
+    def session_name: String = base.session_name
 
     def check_errors: Base_Info =
       if (errors.isEmpty) this

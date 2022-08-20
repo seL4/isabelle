@@ -267,11 +267,11 @@ class Language_Server(
 
         def build(no_build: Boolean = false): Build.Results =
           Build.build(options,
-            selection = Sessions.Selection.session(base_info.session), build_heap = true,
-            no_build = no_build, dirs = session_dirs, infos = base_info.infos)
+            selection = Sessions.Selection.session(base_info.session_name),
+            build_heap = true, no_build = no_build, dirs = session_dirs, infos = base_info.infos)
 
         if (!session_no_build && !build(no_build = true).ok) {
-          val start_msg = "Build started for Isabelle/" + base_info.session + " ..."
+          val start_msg = "Build started for Isabelle/" + base_info.session_name + " ..."
           val fail_msg = "Session build failed -- prover process remains inactive!"
 
           val progress = channel.progress(verbose = true)
@@ -304,8 +304,8 @@ class Language_Server(
 
       try {
         Isabelle_Process.start(session, options, base_info.sessions_structure,
-          Sessions.store(options), modes = modes, logic = base_info.session).await_startup()
-        reply_ok("Welcome to Isabelle/" + base_info.session + Isabelle_System.isabelle_heading())
+          Sessions.store(options), modes = modes, logic = base_info.session_name).await_startup()
+        reply_ok("Welcome to Isabelle/" + base_info.session_name + Isabelle_System.isabelle_heading())
       }
       catch { case ERROR(msg) => reply_error(msg) }
     }
