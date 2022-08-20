@@ -59,17 +59,6 @@ object Presentation {
     def smart_html(theory: Document_Info.Theory, file: String): Path =
       if (File.is_thy(file)) theory_html(theory) else file_html(file)
 
-    def relative_link(dir: Path, file: Path): String =
-      try {
-        val path1 = dir.absolute_file.toPath
-        val path2 = file.absolute_file.toPath
-        File.path(path1.relativize(path2).toFile).implode
-      }
-      catch {
-        case _: IllegalArgumentException =>
-          error("Cannot relativize " + file + " wrt. " + dir)
-      }
-
 
     /* HTML content */
 
@@ -184,7 +173,7 @@ object Presentation {
               for (theory <- html_context.theory_by_name(session_name, thy_name))
               yield {
                 val html_path = session_dir + html_context.theory_html(theory)
-                val html_link = html_context.relative_link(node_dir, html_path)
+                val html_link = HTML.relative_href(html_path, base = Some(node_dir))
                 HTML.link(html_link, body)
               }
             case Entity_Ref(def_file, kind, name) =>
@@ -205,7 +194,7 @@ object Presentation {
               }
               yield {
                 val html_path = session_dir + html_context.smart_html(theory, def_file)
-                val html_link = html_context.relative_link(node_dir, html_path)
+                val html_link = HTML.relative_href(html_path, base = Some(node_dir))
                 HTML.entity_ref(HTML.link(html_link + "#" + html_ref, body))
               }
             case _ => None
@@ -519,7 +508,7 @@ object Presentation {
 
           val file_html = session_dir + html_context.file_html(file_name)
           val file_dir = file_html.dir
-          val html_link = html_context.relative_link(session_dir, file_html)
+          val html_link = HTML.relative_href(file_html, base = Some(session_dir))
           val html =
             html_context.source(
               node_context(file_name, file_dir).make_html(thy_elements, xml))

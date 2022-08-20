@@ -94,6 +94,30 @@ object HTML {
   def script_file(path: Path): XML.Elem = script_file(Url.print_file(path.file))
 
 
+  /* href */
+
+  def relative_href(loc: Path, base: Option[Path] = None, reverse: Boolean = false): String = {
+    base match {
+      case None =>
+        val path = loc.expand
+        if (path.is_absolute) Exn.error("Relative href expected: " + path)
+        else if (path.is_current) "" else path.implode
+      case Some(dir) =>
+        val path1 = dir.absolute_file.toPath
+        val path2 = loc.absolute_file.toPath
+        try {
+          val java_path = if (reverse) path2.relativize(path1) else path1.relativize(path2)
+          val path = File.path(java_path.toFile)
+          if (path.is_current) "" else path.implode
+        }
+        catch {
+          case _: IllegalArgumentException =>
+            Exn.error("Failed to relativize href " + path2 + " with wrt. base " + path1)
+        }
+    }
+  }
+
+
   /* output text with control symbols */
 
   private val control: Map[Symbol.Symbol, Operator] =
@@ -416,14 +440,6 @@ object HTML {
 
   /* document directory context (fonts + css) */
 
-  def relative_prefix(dir: Path, base: Option[Path]): String =
-    base match {
-      case None => ""
-      case Some(base_dir) =>
-        val path = File.path(dir.absolute.java_path.relativize(base_dir.absolute.java_path).toFile)
-        if (path.is_current) "" else path.implode + "/"
-    }
-
   def isabelle_css: Path = Path.explode("~~/etc/isabelle.css")
 
   def write_document(dir: Path, name: String, head: XML.Body, body: XML.Body,
@@ -433,8 +449,8 @@ object HTML {
     structural: Boolean = true
   ): Unit = {
     Isabelle_System.make_directory(dir)
-    val prefix = relative_prefix(dir, base)
-    File.write(dir + isabelle_css.base, fonts_css_dir(prefix) + "\n\n" + File.read(isabelle_css))
+    val fonts = fonts_css_dir(relative_href(dir, base = base, reverse = true))
+    File.write(dir + isabelle_css.base, fonts + "\n\n" + File.read(isabelle_css))
     File.write(dir + Path.basic(name),
       output_document(head, body, css = css, hidden = hidden, structural = structural))
   }
