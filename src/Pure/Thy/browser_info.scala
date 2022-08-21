@@ -98,6 +98,9 @@ object Browser_Info {
       else List(HTML.div(css_class, List(HTML.section(heading), HTML.itemize(items))))
     }
 
+
+    /* preview PIDE document */
+
     val isabelle_css: String = File.read(HTML.isabelle_css)
 
     def html_document(title: String, body: XML.Body, fonts_css: String): HTML_Document = {
@@ -108,6 +111,31 @@ object Browser_Info {
             HTML.title(title)),
           List(HTML.source(body)), css = "", structural = false)
       HTML_Document(title, content)
+    }
+
+    def preview_document(
+      snapshot: Document.Snapshot,
+      plain_text: Boolean = false,
+      fonts_css: String = HTML.fonts_css()
+    ): HTML_Document = {
+      require(!snapshot.is_outdated, "document snapshot outdated")
+
+      val name = snapshot.node_name
+      if (plain_text) {
+        val title = "File " + Symbol.cartouche_decoded(name.path.file_name)
+        val body = HTML.text(snapshot.node.source)
+        html_document(title, body, fonts_css)
+      }
+      else {
+        Resources.html_document(snapshot) getOrElse {
+          val title =
+            if (name.is_theory) "Theory " + quote(name.theory_base_name)
+            else "File " + Symbol.cartouche_decoded(name.path.file_name)
+          val xml = snapshot.xml_markup(elements = elements.html)
+          val body = Node_Context.empty.make_html(elements, xml)
+          html_document(title, body, fonts_css)
+        }
+      }
     }
   }
 
@@ -303,35 +331,6 @@ object Browser_Info {
         }
 
       html_body(xml, XML.symbol_length(xml) + 1)._1
-    }
-  }
-
-
-  /* PIDE HTML document */
-
-  def html_document(
-    snapshot: Document.Snapshot,
-    context: Context,
-    plain_text: Boolean = false,
-    fonts_css: String = HTML.fonts_css()
-  ): HTML_Document = {
-    require(!snapshot.is_outdated, "document snapshot outdated")
-
-    val name = snapshot.node_name
-    if (plain_text) {
-      val title = "File " + Symbol.cartouche_decoded(name.path.file_name)
-      val body = HTML.text(snapshot.node.source)
-      context.html_document(title, body, fonts_css)
-    }
-    else {
-      Resources.html_document(snapshot) getOrElse {
-        val title =
-          if (name.is_theory) "Theory " + quote(name.theory_base_name)
-          else "File " + Symbol.cartouche_decoded(name.path.file_name)
-        val xml = snapshot.xml_markup(elements = context.elements.html)
-        val body = Node_Context.empty.make_html(context.elements, xml)
-        context.html_document(title, body, fonts_css)
-      }
     }
   }
 
