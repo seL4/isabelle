@@ -83,6 +83,9 @@ object Browser_Info {
     def session_dir(session: String): Path =
       root_dir + Path.explode(sessions_structure(session).chapter_session)
 
+    def theory_dir(theory: Document_Info.Theory): Path =
+      session_dir(theory.dynamic_session)
+
     def theory_html(theory: Document_Info.Theory): Path =
     {
       def check(name: String): Option[Path] = {
@@ -192,8 +195,6 @@ object Browser_Info {
       node_dir: Path,
     ): Node_Context =
       new Node_Context {
-        private val session_dir = context.session_dir(session_name)
-
         private val seen_ranges: mutable.Set[Symbol.Range] = mutable.Set.empty
 
         override def make_def(range: Symbol.Range, body: XML.Body): Option[XML.Elem] =
@@ -222,7 +223,7 @@ object Browser_Info {
             case Theory_Ref(thy_name) =>
               for (theory <- context.theory_by_name(session_name, thy_name))
               yield {
-                val html_path = session_dir + context.theory_html(theory)
+                val html_path = context.theory_dir(theory) + context.theory_html(theory)
                 val html_link = HTML.relative_href(html_path, base = Some(node_dir))
                 HTML.link(html_link, body)
               }
@@ -243,7 +244,7 @@ object Browser_Info {
                 html_ref <- logical_ref(theory) orElse physical_ref(theory)
               }
               yield {
-                val html_path = session_dir + context.smart_html(theory, def_file)
+                val html_path = context.theory_dir(theory) + context.smart_html(theory, def_file)
                 val html_link = HTML.relative_href(html_path, base = Some(node_dir))
                 HTML.entity_ref(HTML.link(html_link + "#" + html_ref, body))
               }
