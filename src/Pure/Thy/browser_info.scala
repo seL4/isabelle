@@ -536,4 +536,44 @@ object Browser_Info {
           context.contents("Theories", theories),
         root = Some(context.root_dir))
   }
+
+
+  /* build */
+
+  def build(
+    browser_info: Config,
+    store: Sessions.Store,
+    deps: Sessions.Deps,
+    presentation_sessions: List[String],
+    progress: Progress = new Progress,
+    verbose: Boolean = false
+  ): Unit = {
+    val presentation_dir = browser_info.dir(store)
+    progress.echo("Presentation in " + presentation_dir.absolute)
+    update_root(presentation_dir)
+
+    val chapter_infos =
+      presentation_sessions.map(deps.sessions_structure.apply).groupBy(_.chapter)
+
+    for ((chapter, infos) <- chapter_infos.iterator) {
+      val entries = infos.map(info => (info.name, info.description))
+      update_chapter(presentation_dir, chapter, entries)
+    }
+
+    using(Export.open_database_context(store)) { database_context =>
+      val document_info = Document_Info.read(database_context, deps, presentation_sessions)
+
+      Par_List.map({ (session: String) =>
+        progress.expose_interrupt()
+
+        val build_context =
+          context(deps.sessions_structure, elements1,
+            root_dir = presentation_dir, document_info = document_info)
+
+        using(database_context.open_session(deps.base_info(session))) { session_context =>
+          session_html(build_context, session_context, progress = progress, verbose = verbose)
+        }
+      }, presentation_sessions)
+    }
+  }
 }

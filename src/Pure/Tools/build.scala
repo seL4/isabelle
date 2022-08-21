@@ -239,7 +239,7 @@ object Build {
         session_name <- deps.sessions_structure.build_topological_order.iterator
         info <- deps.sessions_structure.get(session_name)
         if full_sessions_selected(session_name) && browser_info.enabled(info) }
-      yield info).toList
+      yield session_name).toList
 
 
     /* check unknown files */
@@ -481,38 +481,9 @@ object Build {
       progress.echo("Unfinished session(s): " + commas(unfinished))
     }
 
-
-    /* PDF/HTML presentation */
-
-    if (!no_build && !progress.stopped && results.ok) {
-      if (presentation_sessions.nonEmpty) {
-        val presentation_dir = browser_info.dir(store)
-        progress.echo("Presentation in " + presentation_dir.absolute)
-        Browser_Info.update_root(presentation_dir)
-
-        for ((chapter, infos) <- presentation_sessions.groupBy(_.chapter).iterator) {
-          val entries = infos.map(info => (info.name, info.description))
-          Browser_Info.update_chapter(presentation_dir, chapter, entries)
-        }
-
-        using(Export.open_database_context(store)) { database_context =>
-          val document_info =
-            Document_Info.read(database_context, deps, presentation_sessions.map(_.name))
-
-          Par_List.map({ (session: String) =>
-            progress.expose_interrupt()
-
-            val context =
-              Browser_Info.context(deps.sessions_structure, Browser_Info.elements1,
-                root_dir = presentation_dir, document_info = document_info)
-
-            using(database_context.open_session(deps.base_info(session))) { session_context =>
-              Browser_Info.session_html(context, session_context,
-                progress = progress, verbose = verbose)
-            }
-          }, presentation_sessions.map(_.name))
-        }
-      }
+    if (!no_build && !progress.stopped && results.ok && presentation_sessions.nonEmpty) {
+      Browser_Info.build(browser_info, store, deps, presentation_sessions,
+        progress = progress, verbose = verbose)
     }
 
     results
