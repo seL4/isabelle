@@ -163,7 +163,7 @@ object Build {
   def build(
     options: Options,
     selection: Sessions.Selection = Sessions.Selection.empty,
-    presentation: Browser_Info.Context = Browser_Info.Context.none,
+    browser_info: Browser_Info.Config = Browser_Info.Config.none,
     progress: Progress = new Progress,
     check_unknown_files: Boolean = false,
     build_heap: Boolean = false,
@@ -238,7 +238,7 @@ object Build {
       (for {
         session_name <- deps.sessions_structure.build_topological_order.iterator
         info <- deps.sessions_structure.get(session_name)
-        if full_sessions_selected(session_name) && presentation.enabled(info) }
+        if full_sessions_selected(session_name) && browser_info.enabled(info) }
       yield info).toList
 
 
@@ -486,7 +486,7 @@ object Build {
 
     if (!no_build && !progress.stopped && results.ok) {
       if (presentation_sessions.nonEmpty) {
-        val presentation_dir = presentation.dir(store)
+        val presentation_dir = browser_info.dir(store)
         progress.echo("Presentation in " + presentation_dir.absolute)
         Browser_Info.update_root(presentation_dir)
 
@@ -502,12 +502,12 @@ object Build {
           Par_List.map({ (session: String) =>
             progress.expose_interrupt()
 
-            val html_context =
-              Browser_Info.html_context(deps.sessions_structure, Browser_Info.elements1,
+            val context =
+              Browser_Info.context(deps.sessions_structure, Browser_Info.elements1,
                 root_dir = presentation_dir, document_info = document_info)
 
             using(database_context.open_session(deps.base_info(session))) { session_context =>
-              Browser_Info.session_html(html_context, session_context,
+              Browser_Info.session_html(context, session_context,
                 progress = progress, verbose = verbose)
             }
           }, presentation_sessions.map(_.name))
@@ -529,7 +529,7 @@ object Build {
       var base_sessions: List[String] = Nil
       var select_dirs: List[Path] = Nil
       var numa_shuffling = false
-      var presentation = Browser_Info.Context.none
+      var browser_info = Browser_Info.Config.none
       var requirements = false
       var soft_build = false
       var exclude_session_groups: List[String] = Nil
@@ -580,7 +580,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
         "B:" -> (arg => base_sessions = base_sessions ::: List(arg)),
         "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
         "N" -> (_ => numa_shuffling = true),
-        "P:" -> (arg => presentation = Browser_Info.Context.make(arg)),
+        "P:" -> (arg => browser_info = Browser_Info.Config.make(arg)),
         "R" -> (_ => requirements = true),
         "S" -> (_ => soft_build = true),
         "X:" -> (arg => exclude_session_groups = exclude_session_groups ::: List(arg)),
@@ -623,7 +623,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
               exclude_sessions = exclude_sessions,
               session_groups = session_groups,
               sessions = sessions),
-            presentation = presentation,
+            browser_info = browser_info,
             progress = progress,
             check_unknown_files = Mercurial.is_repository(Path.ISABELLE_HOME),
             build_heap = build_heap,

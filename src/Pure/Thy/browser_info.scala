@@ -15,16 +15,16 @@ import scala.collection.mutable
 object Browser_Info {
   /** HTML documents **/
 
-  /* HTML context */
+  /* PDF/HTML presentation context */
 
-  def html_context(
+  def context(
     sessions_structure: Sessions.Structure,
     elements: Elements,
     root_dir: Path = Path.current,
     document_info: Document_Info = Document_Info.empty
-  ): HTML_Context = new HTML_Context(sessions_structure, elements, root_dir, document_info)
+  ): Context = new Context(sessions_structure, elements, root_dir, document_info)
 
-  class HTML_Context private[Browser_Info](
+  class Context private[Browser_Info](
     sessions_structure: Sessions.Structure,
     val elements: Elements,
     val root_dir: Path,
@@ -135,14 +135,14 @@ object Browser_Info {
     val empty: Node_Context = new Node_Context
 
     def make(
-      html_context: HTML_Context,
+      context: Context,
       session_name: String,
       theory_name: String,
       file_name: String,
       node_dir: Path,
     ): Node_Context =
       new Node_Context {
-        private val session_dir = html_context.session_dir(session_name)
+        private val session_dir = context.session_dir(session_name)
 
         private val seen_ranges: mutable.Set[Symbol.Range] = mutable.Set.empty
 
@@ -150,7 +150,7 @@ object Browser_Info {
           body match {
             case List(XML.Elem(Markup("span", List("id" -> _)), _)) => None
             case _ =>
-              for (theory <- html_context.theory_by_name(session_name, theory_name))
+              for (theory <- context.theory_by_name(session_name, theory_name))
               yield {
                 val body1 =
                   if (seen_ranges.contains(range)) {
@@ -170,9 +170,9 @@ object Browser_Info {
         override def make_ref(props: Properties.T, body: XML.Body): Option[XML.Elem] = {
           props match {
             case Theory_Ref(thy_name) =>
-              for (theory <- html_context.theory_by_name(session_name, thy_name))
+              for (theory <- context.theory_by_name(session_name, thy_name))
               yield {
-                val html_path = session_dir + html_context.theory_html(theory)
+                val html_path = session_dir + context.theory_html(theory)
                 val html_link = HTML.relative_href(html_path, base = Some(node_dir))
                 HTML.link(html_link, body)
               }
@@ -189,11 +189,11 @@ object Browser_Info {
                 }
 
               for {
-                theory <- html_context.theory_by_file(session_name, def_file)
+                theory <- context.theory_by_file(session_name, def_file)
                 html_ref <- logical_ref(theory) orElse physical_ref(theory)
               }
               yield {
-                val html_path = session_dir + html_context.smart_html(theory, def_file)
+                val html_path = session_dir + context.smart_html(theory, def_file)
                 val html_link = HTML.relative_href(html_path, base = Some(node_dir))
                 HTML.entity_ref(HTML.link(html_link + "#" + html_ref, body))
               }
@@ -289,7 +289,7 @@ object Browser_Info {
 
   def html_document(
     snapshot: Document.Snapshot,
-    html_context: HTML_Context,
+    context: Context,
     plain_text: Boolean = false,
     fonts_css: String = HTML.fonts_css()
   ): HTML_Document = {
@@ -299,16 +299,16 @@ object Browser_Info {
     if (plain_text) {
       val title = "File " + Symbol.cartouche_decoded(name.path.file_name)
       val body = HTML.text(snapshot.node.source)
-      html_context.html_document(title, body, fonts_css)
+      context.html_document(title, body, fonts_css)
     }
     else {
       Resources.html_document(snapshot) getOrElse {
         val title =
           if (name.is_theory) "Theory " + quote(name.theory_base_name)
           else "File " + Symbol.cartouche_decoded(name.path.file_name)
-        val xml = snapshot.xml_markup(elements = html_context.elements.html)
-        val body = Node_Context.empty.make_html(html_context.elements, xml)
-        html_context.html_document(title, body, fonts_css)
+        val xml = snapshot.xml_markup(elements = context.elements.html)
+        val body = Node_Context.empty.make_html(context.elements, xml)
+        context.html_document(title, body, fonts_css)
       }
     }
   }
@@ -317,23 +317,23 @@ object Browser_Info {
 
   /** HTML presentation **/
 
-  /* presentation context */
+  /* browser_info store configuration */
 
-  object Context {
-    val none: Context = new Context { def enabled: Boolean = false }
-    val standard: Context = new Context { def enabled: Boolean = true }
+  object Config {
+    val none: Config = new Config { def enabled: Boolean = false }
+    val standard: Config = new Config { def enabled: Boolean = true }
 
-    def dir(path: Path): Context =
-      new Context {
+    def dir(path: Path): Config =
+      new Config {
         def enabled: Boolean = true
         override def dir(store: Sessions.Store): Path = path
       }
 
-    def make(s: String): Context =
+    def make(s: String): Config =
       if (s == ":") standard else dir(Path.explode(s))
   }
 
-  abstract class Context private {
+  abstract class Config private {
     def enabled: Boolean
     def enabled(info: Sessions.Info): Boolean = enabled || info.browser_info
     def dir(store: Sessions.Store): Path = store.presentation_dir
@@ -430,7 +430,7 @@ object Browser_Info {
   val session_graph_path: Path = Path.explode("session_graph.pdf")
 
   def session_html(
-    html_context: HTML_Context,
+    context: Context,
     session_context: Export.Session_Context,
     progress: Progress = new Progress,
     verbose: Boolean = false,
@@ -439,11 +439,11 @@ object Browser_Info {
     val session_info = session_context.sessions_structure(session_name)
 
     val session_dir =
-      Isabelle_System.make_directory(html_context.session_dir(session_name)).expand
+      Isabelle_System.make_directory(context.session_dir(session_name)).expand
 
     progress.echo("Presenting " + session_name + " in " + session_dir + " ...")
 
-    val session = html_context.document_info.the_session(session_name)
+    val session = context.document_info.the_session(session_name)
 
     Bytes.write(session_dir + session_graph_path,
       graphview.Graph_File.make_pdf(session_info.options,
@@ -481,18 +481,18 @@ object Browser_Info {
         error("Missing document information for theory: " + quote(theory_name))
 
       val command = Build_Job.read_theory(session_context.theory(theory_name)) getOrElse err()
-      val theory = html_context.theory_by_name(session_name, theory_name) getOrElse err()
+      val theory = context.theory_by_name(session_name, theory_name) getOrElse err()
 
       if (verbose) progress.echo("Presenting theory " + quote(theory_name))
       val snapshot = Document.State.init.snippet(command)
 
-      val thy_elements = theory.elements(html_context.elements)
+      val thy_elements = theory.elements(context.elements)
 
       def node_context(file_name: String, node_dir: Path): Node_Context =
-        Node_Context.make(html_context, session_name, theory_name, file_name, node_dir)
+        Node_Context.make(context, session_name, theory_name, file_name, node_dir)
 
       val thy_html =
-        html_context.source(
+        context.source(
           node_context(theory.thy_file, session_dir).
             make_html(thy_elements, snapshot.xml_markup(elements = thy_elements.html)))
 
@@ -506,26 +506,24 @@ object Browser_Info {
           val file_name = blob.name.node
           if (verbose) progress.echo("Presenting file " + quote(file_name))
 
-          val file_html = session_dir + html_context.file_html(file_name)
+          val file_html = session_dir + context.file_html(file_name)
           val file_dir = file_html.dir
           val html_link = HTML.relative_href(file_html, base = Some(session_dir))
-          val html =
-            html_context.source(
-              node_context(file_name, file_dir).make_html(thy_elements, xml))
+          val html = context.source(node_context(file_name, file_dir).make_html(thy_elements, xml))
 
           val file_title = "File " + Symbol.cartouche_decoded(blob.src_path.implode_short)
           HTML.write_document(file_dir, file_html.file_name,
-            List(HTML.title(file_title)), List(html_context.head(file_title), html),
-            root = Some(html_context.root_dir))
+            List(HTML.title(file_title)), List(context.head(file_title), html),
+            root = Some(context.root_dir))
           List(HTML.link(html_link, HTML.text(file_title)))
         }
 
       val thy_title = "Theory " + theory.print_short
-      HTML.write_document(session_dir, html_context.theory_html(theory).implode,
-        List(HTML.title(thy_title)), List(html_context.head(thy_title), thy_html),
-        root = Some(html_context.root_dir))
+      HTML.write_document(session_dir, context.theory_html(theory).implode,
+        List(HTML.title(thy_title)), List(context.head(thy_title), thy_html),
+        root = Some(context.root_dir))
 
-      List(HTML.link(html_context.theory_html(theory),
+      List(HTML.link(context.theory_html(theory),
         HTML.text(theory.print_short) :::
         (if (files.isEmpty) Nil else List(HTML.itemize(files)))))
     }
@@ -535,8 +533,8 @@ object Browser_Info {
     val title = "Session " + session_name
       HTML.write_document(session_dir, "index.html",
         List(HTML.title(title + Isabelle_System.isabelle_heading())),
-        html_context.head(title, List(HTML.par(document_links))) ::
-          html_context.contents("Theories", theories),
-        root = Some(html_context.root_dir))
+        context.head(title, List(HTML.par(document_links))) ::
+          context.contents("Theories", theories),
+        root = Some(context.root_dir))
   }
 }

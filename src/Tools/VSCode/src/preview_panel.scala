@@ -28,9 +28,9 @@ class Preview_Panel(resources: VSCode_Resources) {
                 val snapshot = model.snapshot()
                 if (snapshot.is_outdated) m
                 else {
-                  val html_context =
-                    Browser_Info.html_context(resources.sessions_structure, Browser_Info.elements2)
-                  val document = Browser_Info.html_document(snapshot, html_context)
+                  val context =
+                    Browser_Info.context(resources.sessions_structure, Browser_Info.elements2)
+                  val document = Browser_Info.html_document(snapshot, context)
                   channel.write(LSP.Preview_Response(file, column, document.title, document.content))
                   m - file
                 }
