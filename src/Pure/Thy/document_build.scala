@@ -180,7 +180,7 @@ object Document_Build {
       }
 
     lazy val session_graph: File.Content = {
-      val path = Presentation.session_graph_path
+      val path = Browser_Info.session_graph_path
       val content = graphview.Graph_File.make_pdf(options, base.session_graph_display)
       File.content(path, content)
     }

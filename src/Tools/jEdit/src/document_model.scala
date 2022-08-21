@@ -314,9 +314,9 @@ object Document_Model {
       yield {
         val snapshot = model.await_stable_snapshot()
         val html_context =
-          Presentation.html_context(PIDE.resources.sessions_structure, Presentation.elements2)
+          Browser_Info.html_context(PIDE.resources.sessions_structure, Browser_Info.elements2)
         val document =
-          Presentation.html_document(snapshot, html_context,
+          Browser_Info.html_document(snapshot, html_context,
             plain_text = query.startsWith(plain_text_prefix),
             fonts_css = HTML.fonts_css_dir(HTTP.url_path(request.server_name)))
         HTTP.Response.html(document.content)

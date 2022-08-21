@@ -60,7 +60,7 @@ class State_Panel private(val server: Language_Server) {
       (_, _, body) =>
         if (output_active.value && body.nonEmpty){
           val node_context =
-            new Presentation.Node_Context {
+            new Browser_Info.Node_Context {
               override def make_ref(props: Properties.T, body: XML.Body): Option[XML.Elem] =
                 for {
                   thy_file <- Position.Def_File.unapply(props)
@@ -69,7 +69,7 @@ class State_Panel private(val server: Language_Server) {
                   uri = File.uri(Path.explode(source).absolute_file)
                 } yield HTML.link(uri.toString + "#" + def_line, body)
             }
-          val elements = Presentation.elements2.copy(entity = Markup.Elements.full)
+          val elements = Browser_Info.elements2.copy(entity = Markup.Elements.full)
           val html = node_context.make_html(elements, Pretty.separate(body))
           output(HTML.source(html).toString)
         })

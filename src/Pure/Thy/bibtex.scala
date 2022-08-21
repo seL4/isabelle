@@ -26,7 +26,7 @@ object Bibtex {
       """theory "bib" imports Pure begin bibtex_file """ +
         Outer_Syntax.quote_string(name) + """ end"""
 
-    override def html_document(snapshot: Document.Snapshot): Option[Presentation.HTML_Document] = {
+    override def html_document(snapshot: Document.Snapshot): Option[Browser_Info.HTML_Document] = {
       val name = snapshot.node_name
       if (detect(name.node)) {
         val title = "Bibliography " + quote(snapshot.node_name.path.file_name)
@@ -35,7 +35,7 @@ object Bibtex {
             File.write(bib, snapshot.node.source)
             Bibtex.html_output(List(bib), style = "unsort", title = title)
           }
-        Some(Presentation.HTML_Document(title, content))
+        Some(Browser_Info.HTML_Document(title, content))
       }
       else None
     }

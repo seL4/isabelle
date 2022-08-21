@@ -72,7 +72,7 @@ object Document_Info {
     def get_def(file: String, kind: String, name: String): Option[Export_Theory.Entity0] =
       by_file_kname.get((file, Export_Theory.export_kind_name(kind, name)))
 
-    def elements(elements: Presentation.Elements): Presentation.Elements =
+    def elements(elements: Browser_Info.Elements): Browser_Info.Elements =
       elements.copy(entity = others.foldLeft(elements.entity)(_ + _))
   }
 

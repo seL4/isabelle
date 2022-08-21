@@ -1,7 +1,7 @@
-/*  Title:      Pure/Thy/presentation.scala
+/*  Title:      Pure/Thy/browser_info.scala
     Author:     Makarius
 
-HTML presentation of PIDE document content.
+HTML presentation of PIDE document information.
 */
 
 package isabelle
@@ -12,7 +12,7 @@ import scala.collection.immutable.SortedMap
 import scala.collection.mutable
 
 
-object Presentation {
+object Browser_Info {
   /** HTML documents **/
 
   /* HTML context */
@@ -24,7 +24,7 @@ object Presentation {
     document_info: Document_Info = Document_Info.empty
   ): HTML_Context = new HTML_Context(sessions_structure, elements, root_dir, document_info)
 
-  class HTML_Context private[Presentation](
+  class HTML_Context private[Browser_Info](
     sessions_structure: Sessions.Structure,
     val elements: Elements,
     val root_dir: Path,

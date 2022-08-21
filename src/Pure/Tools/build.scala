@@ -163,7 +163,7 @@ object Build {
   def build(
     options: Options,
     selection: Sessions.Selection = Sessions.Selection.empty,
-    presentation: Presentation.Context = Presentation.Context.none,
+    presentation: Browser_Info.Context = Browser_Info.Context.none,
     progress: Progress = new Progress,
     check_unknown_files: Boolean = false,
     build_heap: Boolean = false,
@@ -488,11 +488,11 @@ object Build {
       if (presentation_sessions.nonEmpty) {
         val presentation_dir = presentation.dir(store)
         progress.echo("Presentation in " + presentation_dir.absolute)
-        Presentation.update_root(presentation_dir)
+        Browser_Info.update_root(presentation_dir)
 
         for ((chapter, infos) <- presentation_sessions.groupBy(_.chapter).iterator) {
           val entries = infos.map(info => (info.name, info.description))
-          Presentation.update_chapter(presentation_dir, chapter, entries)
+          Browser_Info.update_chapter(presentation_dir, chapter, entries)
         }
 
         using(Export.open_database_context(store)) { database_context =>
@@ -503,11 +503,11 @@ object Build {
             progress.expose_interrupt()
 
             val html_context =
-              Presentation.html_context(deps.sessions_structure, Presentation.elements1,
+              Browser_Info.html_context(deps.sessions_structure, Browser_Info.elements1,
                 root_dir = presentation_dir, document_info = document_info)
 
             using(database_context.open_session(deps.base_info(session))) { session_context =>
-              Presentation.session_html(html_context, session_context,
+              Browser_Info.session_html(html_context, session_context,
                 progress = progress, verbose = verbose)
             }
           }, presentation_sessions.map(_.name))
@@ -529,7 +529,7 @@ object Build {
       var base_sessions: List[String] = Nil
       var select_dirs: List[Path] = Nil
       var numa_shuffling = false
-      var presentation = Presentation.Context.none
+      var presentation = Browser_Info.Context.none
       var requirements = false
       var soft_build = false
       var exclude_session_groups: List[String] = Nil
@@ -580,7 +580,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
         "B:" -> (arg => base_sessions = base_sessions ::: List(arg)),
         "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
         "N" -> (_ => numa_shuffling = true),
-        "P:" -> (arg => presentation = Presentation.Context.make(arg)),
+        "P:" -> (arg => presentation = Browser_Info.Context.make(arg)),
         "R" -> (_ => requirements = true),
         "S" -> (_ => soft_build = true),
         "X:" -> (arg => exclude_session_groups = exclude_session_groups ::: List(arg)),

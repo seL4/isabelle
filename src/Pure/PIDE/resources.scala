@@ -19,7 +19,7 @@ object Resources {
   def hidden_node(name: Document.Node.Name): Boolean =
     !name.is_theory || name.theory == Sessions.root_name || File_Format.registry.is_theory(name)
 
-  def html_document(snapshot: Document.Snapshot): Option[Presentation.HTML_Document] =
+  def html_document(snapshot: Document.Snapshot): Option[Browser_Info.HTML_Document] =
     File_Format.registry.get(snapshot.node_name).flatMap(_.html_document(snapshot))
 }
 
