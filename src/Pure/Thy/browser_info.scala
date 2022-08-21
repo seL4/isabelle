@@ -22,7 +22,7 @@ object Browser_Info {
     def dir(path: Path): Config =
       new Config {
         def enabled: Boolean = true
-        override def dir(store: Sessions.Store): Path = path
+        override def presentation_dir(store: Sessions.Store): Path = path
       }
 
     def make(s: String): Config =
@@ -32,7 +32,7 @@ object Browser_Info {
   abstract class Config private {
     def enabled: Boolean
     def enabled(info: Sessions.Info): Boolean = enabled || info.browser_info
-    def dir(store: Sessions.Store): Path = store.presentation_dir
+    def presentation_dir(store: Sessions.Store): Path = store.presentation_dir
   }
 
 
@@ -159,6 +159,87 @@ object Browser_Info {
           html_document(title, body, fonts_css)
         }
       }
+    }
+
+
+    /* maintain presentation structure */
+
+    private val sessions_path = Path.basic(".sessions")
+
+    private def read_sessions(dir: Path): List[(String, String)] = synchronized {
+      val path = dir + sessions_path
+      if (path.is_file) {
+        import XML.Decode._
+        list(pair(string, string))(Symbol.decode_yxml(File.read(path)))
+      }
+      else Nil
+    }
+
+    def update_chapter(chapter: String, new_sessions: List[(String, String)]): Unit = synchronized {
+      val dir = Isabelle_System.make_directory(root_dir + Path.basic(chapter))
+
+      val sessions0 =
+        try { read_sessions(dir) }
+        catch { case _: XML.Error => Nil }
+
+      val sessions = (SortedMap.empty[String, String] ++ sessions0 ++ new_sessions).toList
+      File.write(dir + sessions_path,
+        {
+          import XML.Encode._
+          YXML.string_of_body(list(pair(string, string))(sessions))
+        })
+
+      val title = "Isabelle/" + chapter + " sessions"
+      HTML.write_document(dir, "index.html",
+        List(HTML.title(title + Isabelle_System.isabelle_heading())),
+        HTML.chapter(title) ::
+         (if (sessions.isEmpty) Nil
+          else
+            List(HTML.div("sessions",
+              List(HTML.description(
+                sessions.map({ case (name, description) =>
+                  val descr = Symbol.trim_blank_lines(description)
+                  (List(HTML.link(name + "/index.html", HTML.text(name))),
+                    if (descr == "") Nil
+                    else HTML.break ::: List(HTML.pre(HTML.text(descr)))) })))))),
+        root = Some(root_dir))
+    }
+
+    def update_root(): Unit = synchronized {
+      Isabelle_System.make_directory(root_dir)
+      HTML.init_fonts(root_dir)
+      Isabelle_System.copy_file(Path.explode("~~/lib/logo/isabelle.gif"),
+        root_dir + Path.explode("isabelle.gif"))
+      val title = "The " + XML.text(Isabelle_System.isabelle_name()) + " Library"
+      File.write(root_dir + Path.explode("index.html"),
+        HTML.header +
+"""
+<head>
+  """ + HTML.head_meta + """
+  <title>""" + title + """</title>
+</head>
+
+<body text="#000000" bgcolor="#FFFFFF" link="#0000FF" vlink="#000099" alink="#404040">
+  <center>
+    <table width="100%" border="0" cellspacing="10" cellpadding="0">
+      <tr>
+        <td width="20%" valign="middle" align="center"><a href="https://isabelle.in.tum.de/"><img align="bottom" src="isabelle.gif" width="100" height="86" alt="[Isabelle]" border="0" /></a></td>
+
+        <td width="80%" valign="middle" align="center">
+          <table width="90%" border="0" cellspacing="0" cellpadding="20">
+            <tr>
+              <td valign="middle" align="center" bgcolor="#AACCCC"><font face="Helvetica,Arial" size="+2">""" + title + """</font></td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </center>
+  <hr />
+""" + File.read(Path.explode("~~/lib/html/library_index_content.template")) +
+"""
+</body>
+""" + HTML.footer)
     }
   }
 
@@ -339,101 +420,16 @@ object Browser_Info {
 
   /** build presentation **/
 
-  /* maintain chapter index */
-
-  private val sessions_path = Path.basic(".sessions")
-
-  private def read_sessions(dir: Path): List[(String, String)] = {
-    val path = dir + sessions_path
-    if (path.is_file) {
-      import XML.Decode._
-      list(pair(string, string))(Symbol.decode_yxml(File.read(path)))
-    }
-    else Nil
-  }
-
-  def update_chapter(
-    presentation_dir: Path,
-    chapter: String,
-    new_sessions: List[(String, String)]
-  ): Unit = {
-    val dir = Isabelle_System.make_directory(presentation_dir + Path.basic(chapter))
-
-    val sessions0 =
-      try { read_sessions(dir) }
-      catch { case _: XML.Error => Nil }
-
-    val sessions = (SortedMap.empty[String, String] ++ sessions0 ++ new_sessions).toList
-    File.write(dir + sessions_path,
-      {
-        import XML.Encode._
-        YXML.string_of_body(list(pair(string, string))(sessions))
-      })
-
-    val title = "Isabelle/" + chapter + " sessions"
-    HTML.write_document(dir, "index.html",
-      List(HTML.title(title + Isabelle_System.isabelle_heading())),
-      HTML.chapter(title) ::
-       (if (sessions.isEmpty) Nil
-        else
-          List(HTML.div("sessions",
-            List(HTML.description(
-              sessions.map({ case (name, description) =>
-                val descr = Symbol.trim_blank_lines(description)
-                (List(HTML.link(name + "/index.html", HTML.text(name))),
-                  if (descr == "") Nil
-                  else HTML.break ::: List(HTML.pre(HTML.text(descr)))) })))))),
-      root = Some(presentation_dir))
-  }
-
-  def update_root(presentation_dir: Path): Unit = {
-    Isabelle_System.make_directory(presentation_dir)
-    HTML.init_fonts(presentation_dir)
-    Isabelle_System.copy_file(Path.explode("~~/lib/logo/isabelle.gif"),
-      presentation_dir + Path.explode("isabelle.gif"))
-    val title = "The " + XML.text(Isabelle_System.isabelle_name()) + " Library"
-    File.write(presentation_dir + Path.explode("index.html"),
-      HTML.header +
-"""
-<head>
-  """ + HTML.head_meta + """
-  <title>""" + title + """</title>
-</head>
-
-<body text="#000000" bgcolor="#FFFFFF" link="#0000FF" vlink="#000099" alink="#404040">
-  <center>
-    <table width="100%" border="0" cellspacing="10" cellpadding="0">
-      <tr>
-        <td width="20%" valign="middle" align="center"><a href="https://isabelle.in.tum.de/"><img align="bottom" src="isabelle.gif" width="100" height="86" alt="[Isabelle]" border="0" /></a></td>
-
-        <td width="80%" valign="middle" align="center">
-          <table width="90%" border="0" cellspacing="0" cellpadding="20">
-            <tr>
-              <td valign="middle" align="center" bgcolor="#AACCCC"><font face="Helvetica,Arial" size="+2">""" + title + """</font></td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
-  </center>
-  <hr />
-""" + File.read(Path.explode("~~/lib/html/library_index_content.template")) +
-"""
-</body>
-""" + HTML.footer)
-  }
-
-
-  /* present session */
-
   val session_graph_path: Path = Path.explode("session_graph.pdf")
 
-  def session_html(
+  def build_session(
     context: Context,
     session_context: Export.Session_Context,
     progress: Progress = new Progress,
     verbose: Boolean = false,
   ): Unit = {
+    progress.expose_interrupt()
+
     val session_name = session_context.session_name
     val session_info = session_context.sessions_structure(session_name)
 
@@ -502,6 +498,7 @@ object Browser_Info {
         }
         yield {
           progress.expose_interrupt()
+
           val file_name = blob.name.node
           if (verbose) progress.echo("Presenting file " + quote(file_name))
 
@@ -537,9 +534,6 @@ object Browser_Info {
         root = Some(context.root_dir))
   }
 
-
-  /* build */
-
   def build(
     browser_info: Config,
     store: Sessions.Store,
@@ -548,30 +542,29 @@ object Browser_Info {
     progress: Progress = new Progress,
     verbose: Boolean = false
   ): Unit = {
-    val presentation_dir = browser_info.dir(store)
-    progress.echo("Presentation in " + presentation_dir.absolute)
-    update_root(presentation_dir)
-
-    val chapter_infos =
-      presentation_sessions.map(deps.sessions_structure.apply).groupBy(_.chapter)
-
-    for ((chapter, infos) <- chapter_infos.iterator) {
-      val entries = infos.map(info => (info.name, info.description))
-      update_chapter(presentation_dir, chapter, entries)
-    }
+    val root_dir = browser_info.presentation_dir(store).absolute
+    progress.echo("Presentation in " + root_dir)
 
     using(Export.open_database_context(store)) { database_context =>
       val document_info = Document_Info.read(database_context, deps, presentation_sessions)
 
+      val context =
+        Browser_Info.context(deps.sessions_structure, elements1, root_dir = root_dir,
+          document_info = document_info)
+
+      context.update_root()
+
+      val chapter_infos =
+        presentation_sessions.map(deps.sessions_structure.apply).groupBy(_.chapter)
+
+      for ((chapter, infos) <- chapter_infos.iterator) {
+        val entries = infos.map(info => (info.name, info.description))
+        context.update_chapter(chapter, entries)
+      }
+
       Par_List.map({ (session: String) =>
-        progress.expose_interrupt()
-
-        val build_context =
-          context(deps.sessions_structure, elements1,
-            root_dir = presentation_dir, document_info = document_info)
-
         using(database_context.open_session(deps.base_info(session))) { session_context =>
-          session_html(build_context, session_context, progress = progress, verbose = verbose)
+          build_session(context, session_context, progress = progress, verbose = verbose)
         }
       }, presentation_sessions)
     }
