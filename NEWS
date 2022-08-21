@@ -34,6 +34,9 @@ Example:
 
 *** HOL ***
 
+* Moved auxiliary computation constant "divmod_nat" to theory
+"Euclidean_Division".  Minor INCOMPATIBILITY.
+
 * Renamed attribute "arith_split" to "linarith_split".  Minor
 INCOMPATIBILITY.
 
@@ -44,7 +47,7 @@ Minor INCOMPATIBILITY.
 integers, sacrificing pattern patching in exchange for dramatically
 increased performance for comparisons.
 
-* New theory HOL-Library.NList of fixed length lists
+* New theory HOL-Library.NList of fixed length lists.
 
 * Rule split_of_bool_asm is not split any longer, analogously to
 split_if_asm.  INCOMPATIBILITY.

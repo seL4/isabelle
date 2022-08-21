@@ -74,6 +74,7 @@ session "HOL-Library" (main timing) in Library = HOL +
     Datatype_Records
     (*data refinements and dependent applications*)
     AList_Mapping
+    Code_Abstract_Char
     Code_Binary_Nat
     Code_Prolog
     Code_Real_Approx_By_Float
