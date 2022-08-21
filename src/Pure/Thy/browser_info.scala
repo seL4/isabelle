@@ -13,7 +13,7 @@ import scala.collection.mutable
 
 
 object Browser_Info {
-  /** browser_info store configuration **/
+  /* browser_info store configuration */
 
   object Config {
     val none: Config = new Config { def enabled: Boolean = false }
@@ -34,6 +34,26 @@ object Browser_Info {
     def enabled(info: Sessions.Info): Boolean = enabled || info.browser_info
     def dir(store: Sessions.Store): Path = store.presentation_dir
   }
+
+
+  /* presentation elements */
+
+  sealed case class Elements(
+    html: Markup.Elements = Markup.Elements.empty,
+    entity: Markup.Elements = Markup.Elements.empty,
+    language: Markup.Elements = Markup.Elements.empty)
+
+  val elements1: Elements =
+    Elements(
+      html = Rendering.foreground_elements ++ Rendering.text_color_elements +
+        Markup.NUMERAL + Markup.COMMENT + Markup.ENTITY + Markup.LANGUAGE,
+      entity = Markup.Elements(Markup.THEORY, Markup.TYPE_NAME, Markup.CONSTANT, Markup.FACT,
+        Markup.CLASS, Markup.LOCALE, Markup.FREE))
+
+  val elements2: Elements =
+    Elements(
+      html = elements1.html ++ Rendering.markdown_elements,
+      language = Markup.Elements(Markup.Language.DOCUMENT))
 
 
 
@@ -140,26 +160,6 @@ object Browser_Info {
   }
 
   sealed case class HTML_Document(title: String, content: String)
-
-
-  /* presentation elements */
-
-  sealed case class Elements(
-    html: Markup.Elements = Markup.Elements.empty,
-    entity: Markup.Elements = Markup.Elements.empty,
-    language: Markup.Elements = Markup.Elements.empty)
-
-  val elements1: Elements =
-    Elements(
-      html = Rendering.foreground_elements ++ Rendering.text_color_elements +
-        Markup.NUMERAL + Markup.COMMENT + Markup.ENTITY + Markup.LANGUAGE,
-      entity = Markup.Elements(Markup.THEORY, Markup.TYPE_NAME, Markup.CONSTANT, Markup.FACT,
-        Markup.CLASS, Markup.LOCALE, Markup.FREE))
-
-  val elements2: Elements =
-    Elements(
-      html = elements1.html ++ Rendering.markdown_elements,
-      language = Markup.Elements(Markup.Language.DOCUMENT))
 
 
   /* formal entities */
@@ -336,7 +336,7 @@ object Browser_Info {
 
 
 
-  /** HTML presentation **/
+  /** build presentation **/
 
   /* maintain chapter index */
 
