@@ -384,7 +384,7 @@ object Presentation {
                 (List(HTML.link(name + "/index.html", HTML.text(name))),
                   if (descr == "") Nil
                   else HTML.break ::: List(HTML.pre(HTML.text(descr)))) })))))),
-      base = Some(presentation_dir))
+      root = Some(presentation_dir))
   }
 
   def update_root(presentation_dir: Path): Unit = {
@@ -516,14 +516,14 @@ object Presentation {
           val file_title = "File " + Symbol.cartouche_decoded(blob.src_path.implode_short)
           HTML.write_document(file_dir, file_html.file_name,
             List(HTML.title(file_title)), List(html_context.head(file_title), html),
-            base = Some(html_context.root_dir))
+            root = Some(html_context.root_dir))
           List(HTML.link(html_link, HTML.text(file_title)))
         }
 
       val thy_title = "Theory " + theory.print_short
       HTML.write_document(session_dir, html_context.theory_html(theory).implode,
         List(HTML.title(thy_title)), List(html_context.head(thy_title), thy_html),
-        base = Some(html_context.root_dir))
+        root = Some(html_context.root_dir))
 
       List(HTML.link(html_context.theory_html(theory),
         HTML.text(theory.print_short) :::
@@ -537,6 +537,6 @@ object Presentation {
         List(HTML.title(title + Isabelle_System.isabelle_heading())),
         html_context.head(title, List(HTML.par(document_links))) ::
           html_context.contents("Theories", theories),
-        base = Some(html_context.root_dir))
+        root = Some(html_context.root_dir))
   }
 }

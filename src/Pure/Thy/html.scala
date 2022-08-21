@@ -96,19 +96,19 @@ object HTML {
 
   /* href */
 
-  def relative_href(loc: Path, base: Option[Path] = None): String = {
+  def relative_href(location: Path, base: Option[Path] = None): String = {
     val path =
       base match {
         case None =>
-          val path = loc.expand
-          if (path.is_absolute) Exn.error("Relative href expected: " + path) else path
-        case Some(dir) =>
-          val path1 = dir.absolute_file.toPath
-          val path2 = loc.absolute_file.toPath
+          val path = location.expand
+          if (path.is_absolute) Exn.error("Relative href location expected: " + path) else path
+        case Some(base_dir) =>
+          val path1 = base_dir.absolute_file.toPath
+          val path2 = location.absolute_file.toPath
           try { File.path(path1.relativize(path2).toFile) }
           catch {
             case _: IllegalArgumentException =>
-              Exn.error("Failed to relativize href " + path2 + " with wrt. base " + path1)
+              Exn.error("Failed to relativize href location " + path2 + " with wrt. base " + path1)
           }
       }
     if (path.is_current) "" else path.implode
@@ -439,17 +439,17 @@ object HTML {
 
   def isabelle_css: Path = Path.explode("~~/etc/isabelle.css")
 
-  def write_document(dir: Path, name: String, head: XML.Body, body: XML.Body,
-    base: Option[Path] = None,
+  def write_document(base_dir: Path, name: String, head: XML.Body, body: XML.Body,
+    root: Option[Path] = None,
     css: String = isabelle_css.file_name,
     hidden: Boolean = true,
     structural: Boolean = true
   ): Unit = {
-    Isabelle_System.make_directory(dir)
-    val fonts_prefix = relative_href(base getOrElse dir, base = Some(dir))
+    Isabelle_System.make_directory(base_dir)
+    val fonts_prefix = relative_href(root getOrElse base_dir, base = Some(base_dir))
     val fonts = fonts_css_dir(fonts_prefix)
-    File.write(dir + isabelle_css.base, fonts + "\n\n" + File.read(isabelle_css))
-    File.write(dir + Path.basic(name),
+    File.write(base_dir + isabelle_css.base, fonts + "\n\n" + File.read(isabelle_css))
+    File.write(base_dir + Path.basic(name),
       output_document(head, body, css = css, hidden = hidden, structural = structural))
   }
 }
