@@ -97,23 +97,21 @@ object HTML {
   /* href */
 
   def relative_href(loc: Path, base: Option[Path] = None): String = {
-    base match {
-      case None =>
-        val path = loc.expand
-        if (path.is_absolute) Exn.error("Relative href expected: " + path)
-        else if (path.is_current) "" else path.implode
-      case Some(dir) =>
-        val path1 = dir.absolute_file.toPath
-        val path2 = loc.absolute_file.toPath
-        try {
-          val path = File.path(path1.relativize(path2).toFile)
-          if (path.is_current) "" else path.implode
-        }
-        catch {
-          case _: IllegalArgumentException =>
-            Exn.error("Failed to relativize href " + path2 + " with wrt. base " + path1)
-        }
-    }
+    val path =
+      base match {
+        case None =>
+          val path = loc.expand
+          if (path.is_absolute) Exn.error("Relative href expected: " + path) else path
+        case Some(dir) =>
+          val path1 = dir.absolute_file.toPath
+          val path2 = loc.absolute_file.toPath
+          try { File.path(path1.relativize(path2).toFile) }
+          catch {
+            case _: IllegalArgumentException =>
+              Exn.error("Failed to relativize href " + path2 + " with wrt. base " + path1)
+          }
+      }
+    if (path.is_current) "" else path.implode
   }
 
 
