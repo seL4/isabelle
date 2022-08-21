@@ -13,9 +13,31 @@ import scala.collection.mutable
 
 
 object Browser_Info {
-  /** HTML documents **/
+  /** browser_info store configuration **/
 
-  /* PDF/HTML presentation context */
+  object Config {
+    val none: Config = new Config { def enabled: Boolean = false }
+    val standard: Config = new Config { def enabled: Boolean = true }
+
+    def dir(path: Path): Config =
+      new Config {
+        def enabled: Boolean = true
+        override def dir(store: Sessions.Store): Path = path
+      }
+
+    def make(s: String): Config =
+      if (s == ":") standard else dir(Path.explode(s))
+  }
+
+  abstract class Config private {
+    def enabled: Boolean
+    def enabled(info: Sessions.Info): Boolean = enabled || info.browser_info
+    def dir(store: Sessions.Store): Path = store.presentation_dir
+  }
+
+
+
+  /** PDF/HTML presentation context **/
 
   def context(
     sessions_structure: Sessions.Structure,
@@ -316,29 +338,6 @@ object Browser_Info {
 
 
   /** HTML presentation **/
-
-  /* browser_info store configuration */
-
-  object Config {
-    val none: Config = new Config { def enabled: Boolean = false }
-    val standard: Config = new Config { def enabled: Boolean = true }
-
-    def dir(path: Path): Config =
-      new Config {
-        def enabled: Boolean = true
-        override def dir(store: Sessions.Store): Path = path
-      }
-
-    def make(s: String): Config =
-      if (s == ":") standard else dir(Path.explode(s))
-  }
-
-  abstract class Config private {
-    def enabled: Boolean
-    def enabled(info: Sessions.Info): Boolean = enabled || info.browser_info
-    def dir(store: Sessions.Store): Path = store.presentation_dir
-  }
-
 
   /* maintain chapter index */
 
