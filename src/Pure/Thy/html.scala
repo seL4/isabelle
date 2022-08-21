@@ -96,7 +96,7 @@ object HTML {
 
   /* href */
 
-  def relative_href(loc: Path, base: Option[Path] = None, reverse: Boolean = false): String = {
+  def relative_href(loc: Path, base: Option[Path] = None): String = {
     base match {
       case None =>
         val path = loc.expand
@@ -106,8 +106,7 @@ object HTML {
         val path1 = dir.absolute_file.toPath
         val path2 = loc.absolute_file.toPath
         try {
-          val java_path = if (reverse) path2.relativize(path1) else path1.relativize(path2)
-          val path = File.path(java_path.toFile)
+          val path = File.path(path1.relativize(path2).toFile)
           if (path.is_current) "" else path.implode
         }
         catch {
@@ -449,7 +448,8 @@ object HTML {
     structural: Boolean = true
   ): Unit = {
     Isabelle_System.make_directory(dir)
-    val fonts = fonts_css_dir(relative_href(dir, base = base, reverse = true))
+    val fonts_prefix = relative_href(base getOrElse dir, base = Some(dir))
+    val fonts = fonts_css_dir(fonts_prefix)
     File.write(dir + isabelle_css.base, fonts + "\n\n" + File.read(isabelle_css))
     File.write(dir + Path.basic(name),
       output_document(head, body, css = css, hidden = hidden, structural = structural))
