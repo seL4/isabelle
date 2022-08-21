@@ -38,6 +38,9 @@ Example:
 add-on to the index.html of a session. Rare INCOMPATIBILITY, consider
 using a separate theory "README" with Isabelle document markup/markdown.
 
+* ML files (and other auxiliary files) are presented with detailed
+hyperlinks, just like regular theory sources.
+
 
 *** HOL ***
 
