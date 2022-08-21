@@ -148,8 +148,10 @@ lemma [code]:
     let l = k - 1 in p (sub' (as, l)) \<or> exists_upto p l as)"
 proof (cases "k \<ge> 1")
   case False
+  then have \<open>k \<le> 0\<close>
+    including integer.lifting by transfer simp
   then show ?thesis
-    by (auto simp add: not_le discrete)
+    by simp
 next
   case True
   then have less: "k \<le> 0 \<longleftrightarrow> False"

@@ -445,7 +445,7 @@ named_theorems smt_arith_simplify \<open>Theorems to combine theorems in the LA 
 
 lemmas [smt_arith_simplify] =
     div_add dvd_numeral_simp divmod_steps less_num_simps le_num_simps if_True if_False divmod_cancel
-    dvd_mult dvd_mult2 less_irrefl prod.case numeral_plus_one divmod_step_eq order.refl le_zero_eq
+    dvd_mult dvd_mult2 less_irrefl prod.case numeral_plus_one divmod_step_def order.refl le_zero_eq
     le_numeral_simps less_numeral_simps mult.right_neutral simp_thms divides_aux_eq
     mult_nonneg_nonneg dvd_imp_mod_0 dvd_add zero_less_one mod_mult_self4 numeral_mod_numeral
     divmod_trivial prod.sel mult.left_neutral div_pos_pos_trivial arith_simps div_add div_mult_self1
@@ -453,7 +453,7 @@ lemmas [smt_arith_simplify] =
     zero_neq_one zero_le_one le_num_simps add_Suc mod_div_trivial nat.distinct mult_minus_right
     add.inverse_inverse distrib_left_numeral mult_num_simps numeral_times_numeral add_num_simps
     divmod_steps rel_simps if_True if_False numeral_div_numeral divmod_cancel prod.case
-    add_num_simps one_plus_numeral fst_conv divmod_step_eq arith_simps sub_num_simps dbl_inc_simps
+    add_num_simps one_plus_numeral fst_conv arith_simps sub_num_simps dbl_inc_simps
     dbl_simps mult_1 add_le_cancel_right left_diff_distrib_numeral add_uminus_conv_diff zero_neq_one
     zero_le_one One_nat_def add_Suc mod_div_trivial nat.distinct of_int_1 numerals numeral_One
     of_int_numeral add_uminus_conv_diff zle_diff1_eq add_less_same_cancel2 minus_add_distrib
