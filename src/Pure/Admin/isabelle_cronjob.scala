@@ -208,6 +208,10 @@ object Isabelle_Cronjob {
 
   val remote_builds_old: List[Remote_Build] =
     List(
+      Remote_Build("macOS 10.15 Catalina", "laramac01", user = "makarius",
+        proxy_host = "laraserver", proxy_user = "makarius",
+        options = "-m32 -M4 -e ISABELLE_GHC_SETUP=true -p pide_session=false",
+        args = "-a -d '~~/src/Benchmarks'"),
       Remote_Build("Linux A", "i21of4", user = "i21isatest",
         proxy_host = "lxbroy10", proxy_user = "i21isatest",
         options = "-m32 -M1x4,2,4" +
@@ -348,10 +352,6 @@ object Isabelle_Cronjob {
         Remote_Build("macOS, skip_proofs", "mini2",
           options = "-m32 -M4 -t skip_proofs -p pide_session=false", args = "-a -o skip_proofs",
           detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("skip_proofs"))),
-      List(Remote_Build("macOS 10.15 Catalina", "laramac01", user = "makarius",
-        proxy_host = "laraserver", proxy_user = "makarius",
-        options = "-m32 -M4 -e ISABELLE_GHC_SETUP=true -p pide_session=false",
-        args = "-a -d '~~/src/Benchmarks'")),
       List(
         Remote_Build("Windows", "vmnipkow9", historic = true, history = 90,
           options = "-m32 -M4" +
