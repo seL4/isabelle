@@ -1,7 +1,7 @@
 /*  Title:      Pure/Thy/browser_info.scala
     Author:     Makarius
 
-HTML presentation of PIDE document information.
+HTML/PDF presentation of PIDE document information.
 */
 
 package isabelle
@@ -57,7 +57,7 @@ object Browser_Info {
 
 
 
-  /** PDF/HTML presentation context **/
+  /** HTML/PDF presentation context **/
 
   def context(
     sessions_structure: Sessions.Structure,
