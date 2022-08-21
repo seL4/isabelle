@@ -32,6 +32,13 @@ Example:
     --app="$(isabelle getenv -b ISABELLE_HOME)"/src/Tools/Electron/test
 
 
+*** HTML/PDF presentation ***
+
+* HTML presentation no longer supports README.html, which was meant as
+add-on to the index.html of a session. Rare INCOMPATIBILITY, consider
+using a separate theory "README" with Isabelle document markup/markdown.
+
+
 *** HOL ***
 
 * Moved auxiliary computation constant "divmod_nat" to theory
@@ -204,10 +211,6 @@ String.maxSize (approx. 64 MB on 64_32 architecture).
 
 
 *** System ***
-
-* HTML presentation no longer supports README.html, which was meant as
-add-on to the index.html of a session. Rare INCOMPATIBILITY, consider
-using a separate theory "README" with Isabelle document markup/markdown.
 
 * Isabelle/Scala is now based on Scala 3. This is a completely different
 compiler ("dotty") and a quite different source language (we are using
