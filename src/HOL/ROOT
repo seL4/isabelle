@@ -29,6 +29,7 @@ session "HOL-Examples" in Examples = HOL +
     Commands
     Drinker
     Functions
+    Gauss_Numbers
     Groebner_Examples
     Iff_Oracle
     Induction_Schema
