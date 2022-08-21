@@ -166,31 +166,37 @@ object Browser_Info {
 
     private val sessions_path = Path.basic(".sessions")
 
-    private def read_sessions(dir: Path): List[(String, String)] = synchronized {
-      val path = dir + sessions_path
-      if (path.is_file) {
-        import XML.Decode._
-        list(pair(string, string))(Symbol.decode_yxml(File.read(path)))
-      }
-      else Nil
-    }
-
-    def update_chapter(chapter: String, new_sessions: List[(String, String)]): Unit = synchronized {
-      val dir = Isabelle_System.make_directory(root_dir + Path.basic(chapter))
+    private def update_sessions_list(
+      chapter_dir: Path,
+      new_sessions: List[(String, String)]
+    ): List[(String, String)] = synchronized {
+      val path = chapter_dir + sessions_path
 
       val sessions0 =
-        try { read_sessions(dir) }
-        catch { case _: XML.Error => Nil }
+        if (path.is_file) {
+          import XML.Decode._
+          list(pair(string, string))(Symbol.decode_yxml(File.read(path)))
+        }
+        else Nil
 
       val sessions = (SortedMap.empty[String, String] ++ sessions0 ++ new_sessions).toList
-      File.write(dir + sessions_path,
+
+      File.write(path,
         {
           import XML.Encode._
           YXML.string_of_body(list(pair(string, string))(sessions))
         })
 
+      sessions
+    }
+
+    def update_chapter(chapter: String, new_sessions: List[(String, String)]): Unit = synchronized {
+      val chapter_dir = Isabelle_System.make_directory(root_dir + Path.basic(chapter))
+
+      val sessions = update_sessions_list(chapter_dir, new_sessions)
+
       val title = "Isabelle/" + chapter + " sessions"
-      HTML.write_document(dir, "index.html",
+      HTML.write_document(chapter_dir, "index.html",
         List(HTML.title(title + Isabelle_System.isabelle_heading())),
         HTML.chapter(title) ::
          (if (sessions.isEmpty) Nil
