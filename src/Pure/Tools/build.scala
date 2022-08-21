@@ -209,7 +209,7 @@ object Build {
       SHA1.digest_set(digests).toString
     }
 
-    val deps = {
+    val build_deps = {
       val deps0 =
         Sessions.deps(full_sessions.selection(selection),
           progress = progress, inlined_files = true, verbose = verbose,
@@ -234,10 +234,12 @@ object Build {
       else deps0
     }
 
+    val build_sessions = build_deps.sessions_structure
+
     val presentation_sessions =
       (for {
-        session_name <- deps.sessions_structure.build_topological_order.iterator
-        info <- deps.sessions_structure.get(session_name)
+        session_name <- build_sessions.build_topological_order.iterator
+        info <- build_sessions.get(session_name)
         if full_sessions_selected(session_name) && browser_info.enabled(info) }
       yield session_name).toList
 
@@ -247,7 +249,7 @@ object Build {
     if (check_unknown_files) {
       val source_files =
         (for {
-          (_, base) <- deps.session_bases.iterator
+          (_, base) <- build_deps.session_bases.iterator
           (path, _) <- base.session_sources.iterator
         } yield path).toList
       val exclude_files = List(Path.explode("$POLYML_EXE")).map(_.canonical_file)
@@ -263,7 +265,7 @@ object Build {
 
     /* main build process */
 
-    val queue = Queue(progress, deps.sessions_structure, store)
+    val queue = Queue(progress, build_sessions, store)
 
     store.prepare_output_dir()
 
@@ -353,7 +355,7 @@ object Build {
                 build_log =
                   if (process_result.timeout) build_log.error("Timeout") else build_log,
                 build =
-                  Session_Info(sources_stamp(deps, session_name), input_heaps, heap_digest,
+                  Session_Info(sources_stamp(build_deps, session_name), input_heaps, heap_digest,
                     process_result.rc)))
 
             // messages
@@ -377,7 +379,7 @@ object Build {
             pending.dequeue(running.isDefinedAt) match {
               case Some((session_name, info)) =>
                 val ancestor_results =
-                  deps.sessions_structure.build_requirements(List(session_name)).
+                  build_sessions.build_requirements(List(session_name)).
                     filterNot(_ == session_name).map(results(_))
                 val ancestor_heaps = ancestor_results.flatMap(_.heap_digest)
 
@@ -393,7 +395,7 @@ object Build {
                           val current =
                             !fresh_build &&
                             build.ok &&
-                            build.sources == sources_stamp(deps, session_name) &&
+                            build.sources == sources_stamp(build_deps, session_name) &&
                             build.input_heaps == ancestor_heaps &&
                             build.output_heap == heap_digest &&
                             !(do_store && heap_digest.isEmpty)
@@ -424,7 +426,7 @@ object Build {
 
                   val numa_node = numa_nodes.next(used_node)
                   val job =
-                    new Build_Job(progress, session_name, info, deps, store, do_store,
+                    new Build_Job(progress, session_name, info, build_deps, store, do_store,
                       log, session_setup, numa_node, queue.command_timings(session_name))
                   loop(pending, running + (session_name -> (ancestor_heaps, job)), results)
                 }
@@ -446,7 +448,7 @@ object Build {
 
     val results = {
       val results0 =
-        if (deps.is_empty) {
+        if (build_deps.is_empty) {
           progress.echo_warning("Nothing to build")
           Map.empty[String, Result]
         }
@@ -482,7 +484,7 @@ object Build {
     }
 
     if (!no_build && !progress.stopped && results.ok && presentation_sessions.nonEmpty) {
-      Browser_Info.build(browser_info, store, deps, presentation_sessions,
+      Browser_Info.build(browser_info, store, build_deps, presentation_sessions,
         progress = progress, verbose = verbose)
     }
 
