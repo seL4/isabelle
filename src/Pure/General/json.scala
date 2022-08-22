@@ -253,7 +253,7 @@ object JSON {
 
     def pretty(x: T): XML.Tree = pretty_atom(x) getOrElse pretty_tree(x)
 
-    def pretty_print(x: T, margin: Int = Pretty.default_margin.toInt): String =
+    def pretty_print(x: T, margin: Int = Pretty.default_margin.toInt): JSON.S =
       Pretty.string_of(List(pretty(x)), margin = margin.toDouble)
   }
 
