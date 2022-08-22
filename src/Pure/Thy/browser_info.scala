@@ -36,6 +36,95 @@ object Browser_Info {
   }
 
 
+  /* meta data within the file-system */
+
+  object Meta_Data {
+    /* directory */
+
+    val PATH: Path = Path.explode(".browser_info")
+
+    def check_directory(dir: Path): Unit = {
+      if (dir.is_dir && !(dir + PATH).is_dir && File.read_dir(dir).nonEmpty) {
+        error("Existing content in " + dir.expand + " lacks " + PATH + " meta data.\n" +
+          "To avoid potential disaster, it has not been changed automatically.\n" +
+          "If this is the intended directory, please move/remove/empty it manually.")
+      }
+    }
+
+    def init_directory(dir: Path): Path = {
+      check_directory(dir)
+      Isabelle_System.make_directory(dir + PATH)
+      dir
+    }
+
+
+    /* content */
+
+    def make_path(dir: Path, name: String): Path =
+      dir + PATH + Path.basic(name)
+
+    def value(dir: Path, name: String): String = {
+      val path = make_path(dir, name)
+      if (path.is_file) File.read(path) else ""
+    }
+
+    def change(dir: Path, name: String)(f: String => String): Unit = {
+      val path = make_path(dir, name)
+      val x = value(dir, name)
+      val y =
+        try { f(x) }
+        catch { case ERROR(msg) => error("Failed to change " + path.expand + ":\n" + msg)}
+      if (x != y) File.write(path, y)
+    }
+
+
+    /* index */
+
+    val INDEX = "index.json"
+
+    object Item {
+      def parse(json: JSON.T): Item = {
+        def err(): Nothing =
+          error("Bad JSON object for item:\n" + JSON.Format.pretty_print(json))
+        val obj = JSON.Object.unapply(json) getOrElse err()
+
+        val name = JSON.string(obj, "name") getOrElse err()
+        val description = JSON.string(obj, "description") getOrElse ""
+        Item(name, description = Symbol.trim_blank_lines(description))
+      }
+    }
+
+    sealed case class Item(name: String, description: String = "") {
+      def json: JSON.T = JSON.Object("name" -> name, "description" -> description)
+    }
+
+    object Index {
+      def parse(s: JSON.S, kind: String): Index = {
+        if (s.isEmpty) Index(kind, Nil)
+        else {
+          def err(): Nothing = error("Bad JSON object " + kind + " index:\n" + s)
+
+          val json = JSON.parse(s)
+          val obj = JSON.Object.unapply(json) getOrElse err()
+
+          val kind1 = JSON.string(obj, "kind") getOrElse err()
+          val items = JSON.list(obj, "items", x => Some(Item.parse(x))) getOrElse err()
+          if (kind == kind1) Index(kind, items)
+          else error("Expected index kind " + quote(kind) + " but found " + quote(kind1))
+        }
+      }
+    }
+
+    sealed case class Index(kind: String, items: List[Item]) {
+      def +(item: Item): Index =
+        Index(kind, (item :: items.filterNot(_.name == item.name)).sortBy(_.name))
+
+      def json: JSON.T = JSON.Object("kind" -> kind, "items" -> items.map(_.json))
+      def print_json: JSON.S = JSON.Format.pretty_print(json)
+    }
+  }
+
+
   /* presentation elements */
 
   sealed case class Elements(
@@ -82,6 +171,9 @@ object Browser_Info {
 
     def session_dir(session: String): Path =
       root_dir + Path.explode(sessions_structure(session).chapter_session)
+
+    def chapter_dir(chapter: String): Path =
+      root_dir + Path.basic(chapter)
 
     def theory_dir(theory: Document_Info.Theory): Path =
       session_dir(theory.dynamic_session)
@@ -164,55 +256,40 @@ object Browser_Info {
 
     /* maintain presentation structure */
 
-    private val sessions_path = Path.basic(".sessions")
+    def update_chapter(
+      chapter: String,
+      session_name: String,
+      session_description: String
+    ): Unit = synchronized {
+      val dir = Meta_Data.init_directory(chapter_dir(chapter))
+      Meta_Data.change(dir, Meta_Data.INDEX) { text =>
+        val index0 = Meta_Data.Index.parse(text, "chapter")
+        val item = Meta_Data.Item(session_name, description = session_description)
+        val index = index0 + item
+        val sessions = index.items
 
-    private def update_sessions_list(
-      chapter_dir: Path,
-      new_sessions: List[(String, String)]
-    ): List[(String, String)] = synchronized {
-      val path = chapter_dir + sessions_path
-
-      val sessions0 =
-        if (path.is_file) {
-          import XML.Decode._
-          list(pair(string, string))(Symbol.decode_yxml(File.read(path)))
+        if (index != index0) {
+          val title = "Isabelle/" + chapter + " sessions"
+          HTML.write_document(dir, "index.html",
+            List(HTML.title(title + Isabelle_System.isabelle_heading())),
+            HTML.chapter(title) ::
+              (if (sessions.isEmpty) Nil
+              else
+                List(HTML.div("sessions",
+                  List(HTML.description(
+                    sessions.map(session =>
+                      (List(HTML.link(session.name + "/index.html", HTML.text(session.name))),
+                        if (session.description.isEmpty) Nil
+                        else HTML.break ::: List(HTML.pre(HTML.text(session.description)))))))))),
+            root = Some(root_dir))
         }
-        else Nil
 
-      val sessions = (SortedMap.empty[String, String] ++ sessions0 ++ new_sessions).toList
-
-      File.write(path,
-        {
-          import XML.Encode._
-          YXML.string_of_body(list(pair(string, string))(sessions))
-        })
-
-      sessions
-    }
-
-    def update_chapter(chapter: String, new_sessions: List[(String, String)]): Unit = synchronized {
-      val chapter_dir = Isabelle_System.make_directory(root_dir + Path.basic(chapter))
-
-      val sessions = update_sessions_list(chapter_dir, new_sessions)
-
-      val title = "Isabelle/" + chapter + " sessions"
-      HTML.write_document(chapter_dir, "index.html",
-        List(HTML.title(title + Isabelle_System.isabelle_heading())),
-        HTML.chapter(title) ::
-         (if (sessions.isEmpty) Nil
-          else
-            List(HTML.div("sessions",
-              List(HTML.description(
-                sessions.map({ case (name, description) =>
-                  val descr = Symbol.trim_blank_lines(description)
-                  (List(HTML.link(name + "/index.html", HTML.text(name))),
-                    if (descr == "") Nil
-                    else HTML.break ::: List(HTML.pre(HTML.text(descr)))) })))))),
-        root = Some(root_dir))
+        index.print_json
+      }
     }
 
     def update_root(): Unit = synchronized {
-      Isabelle_System.make_directory(root_dir)
+      Meta_Data.init_directory(root_dir)
       HTML.init_fonts(root_dir)
       Isabelle_System.copy_file(Path.explode("~~/lib/logo/isabelle.gif"),
         root_dir + Path.explode("isabelle.gif"))
@@ -439,10 +516,11 @@ object Browser_Info {
     val session_name = session_context.session_name
     val session_info = session_context.sessions_structure(session_name)
 
-    val session_dir =
-      Isabelle_System.make_directory(context.session_dir(session_name)).expand
-
+    val session_dir = context.session_dir(session_name).expand
     progress.echo("Presenting " + session_name + " in " + session_dir + " ...")
+
+    Meta_Data.init_directory(context.chapter_dir(session_info.chapter))
+    Meta_Data.init_directory(session_dir)
 
     val session = context.document_info.the_session(session_name)
 
@@ -538,6 +616,8 @@ object Browser_Info {
         context.head(title, List(HTML.par(document_links))) ::
           context.contents("Theories", theories),
         root = Some(context.root_dir))
+
+    context.update_chapter(session_info.chapter, session_name, session_info.description)
   }
 
   def build(
@@ -559,14 +639,6 @@ object Browser_Info {
           document_info = document_info)
 
       context.update_root()
-
-      val chapter_infos =
-        presentation_sessions.map(deps.sessions_structure.apply).groupBy(_.chapter)
-
-      for ((chapter, infos) <- chapter_infos.iterator) {
-        val entries = infos.map(info => (info.name, info.description))
-        context.update_chapter(chapter, entries)
-      }
 
       Par_List.map({ (session: String) =>
         using(database_context.open_session(deps.base_info(session))) { session_context =>
