@@ -29,7 +29,7 @@ object Build_VSCodium {
   def make_symbols(): File.Content = {
     val symbols = Symbol.Symbols.load(static = true)
     val symbols_js =
-      JSON.Format.apply_lines(
+      JSON.Format.pretty_print(
         for (entry <- symbols.entries) yield
           JSON.Object(
             "symbol" -> entry.symbol,
@@ -43,7 +43,7 @@ object Build_VSCodium {
   def make_isabelle_encoding(header: String): File.Content = {
     val symbols = Symbol.Symbols.load(static = true)
     val symbols_js =
-      JSON.Format.apply_lines(
+      JSON.Format.pretty_print(
         for (entry <- symbols.entries; code <- entry.code)
           yield JSON.Object("symbol" -> entry.symbol, "code" -> code))
 

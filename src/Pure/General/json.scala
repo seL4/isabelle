@@ -165,8 +165,6 @@ object JSON {
       try { Some(parse(s, strict = false)) }
       catch { case ERROR(_) => None }
 
-    def apply_lines(json: List[T]): S = json.map(apply).mkString("[", ",\n", "]")
-
     private def output_string(s: String, result: StringBuilder): Unit = {
       result += '"'
       result ++=
@@ -228,6 +226,35 @@ object JSON {
       output(json)
       result.toString
     }
+
+    private def pretty_atom(x: T): Option[XML.Tree] = {
+      val result = new StringBuilder
+      val ok = output_atom(x, result)
+      if (ok) Some(XML.Text(result.toString)) else None
+    }
+
+    private def pretty_string(s: String): XML.Tree = {
+      val result = new StringBuilder
+      output_string(s, result)
+      XML.Text(result.toString)
+    }
+
+    private def pretty_tree(x: T): XML.Tree =
+      x match {
+        case Object(obj) =>
+          Pretty.`enum`(
+            for ((x, y) <- obj.toList)
+              yield Pretty.block(List(pretty_string(x), XML.Text(":"), Pretty.brk(1), pretty(y))),
+            bg = "{", en = "}", indent = 1)
+        case list: List[T] =>
+          Pretty.`enum`(list.map(pretty), bg = "[", en = "]", indent = 1)
+        case _ => error("Bad JSON value: " + x.toString)
+      }
+
+    def pretty(x: T): XML.Tree = pretty_atom(x) getOrElse pretty_tree(x)
+
+    def pretty_print(x: T, margin: Int = Pretty.default_margin.toInt): String =
+      Pretty.string_of(List(pretty(x)), margin = margin.toDouble)
   }
 
 
