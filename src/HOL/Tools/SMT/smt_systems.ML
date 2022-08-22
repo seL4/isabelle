@@ -154,7 +154,7 @@ local
     "--proof-merge",
     "--disable-print-success",
     "--disable-banner"] @
-    Verit_Proof.veriT_current_strategy (Context.Proof ctxt) @
+    Verit_Strategies.veriT_current_strategy (Context.Proof ctxt) @
     (case SMT_Config.get_timeout ctxt of
       NONE => []
     | SOME t => ["--max-time=" ^ string_of_int (Time.toMilliseconds t)])
@@ -238,7 +238,7 @@ fun smt_method ((solver, stgy), thms) ctxt facts =
       else ()
     val ctxt =
       ctxt
-      |> (if stgy <> NONE then Context.proof_map (Verit_Proof.select_veriT_stgy (the stgy)) else I)
+      |> (if stgy <> NONE then Context.proof_map (Verit_Strategies.select_veriT_stgy (the stgy)) else I)
       |> Context.Proof
       |> SMT_Config.select_solver solver
       |> Context.proof_of

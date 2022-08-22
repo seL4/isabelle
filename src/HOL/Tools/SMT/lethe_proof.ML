@@ -48,6 +48,7 @@ sig
   val simp_arith_rule : string
   val lethe_deep_skolemize_rule : string
   val lethe_def : string
+  val is_lethe_def : string -> bool
   val subproof_rule : string
   val local_input_rule : string
   val not_not_rule : string
@@ -145,6 +146,7 @@ val equiv_pos2_rule = "equiv_pos2"
 val th_resolution_rule = "th_resolution"
 val and_pos_rule = "and_pos"
 
+val is_lethe_def = String.isSuffix lethe_def
 val skolemization_steps = ["sko_forall", "sko_ex"]
 val is_skolemization = member (op =) skolemization_steps
 val keep_app_symbols = member (op =) [eq_congruent_pred_rule, eq_congruent_rule, ite_intro_rule, and_pos_rule]
@@ -546,10 +548,9 @@ fun postprocess_proof compress ctxt step cx =
 
       (* fix step *)
       val _ = if bounds <> [] then raise (Fail "found dangling variable in concl") else ()
-
       val skolem_defs = (if is_skolemization rule
          then map (fn id => id ^ lethe_def) (skolems_introduced_by_rule (SMTLIB.S (map fst args))) else [])
-      val skolems_of_subproof = (if is_skolemization rule
+      val skolems_of_subproof = (if compress andalso is_skolemization rule
          then flat (map collect_skolem_defs subproof) else [])
       val fixed_prems =
         prems @ (if is_assm_repetition id rule then [id] else []) @

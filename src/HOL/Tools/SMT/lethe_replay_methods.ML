@@ -404,6 +404,14 @@ val extract_all_exists_quantified_names =
   #> extract_all_exists_quantified_names_q
 
 
+fun extract_all_forall_exists_quantified_names_q (Const(\<^const_name>\<open>HOL.Ex\<close>, _) $ Abs (name, _, t)) =
+      name :: (extract_all_forall_exists_quantified_names_q t)
+  | extract_all_forall_exists_quantified_names_q (Const(\<^const_name>\<open>HOL.All\<close>, _) $ Abs (name, _, t)) =
+      name :: (extract_all_forall_exists_quantified_names_q t)
+  | extract_all_forall_exists_quantified_names_q (t $ u) =
+      extract_all_forall_exists_quantified_names_q t @ extract_all_forall_exists_quantified_names_q u
+  | extract_all_forall_exists_quantified_names_q _ = []
+
 val extract_bind_names =
    HOLogic.dest_eq
    #> apply2 (fn (Free (name, _)) => name)
@@ -482,7 +490,8 @@ fun forall_inst ctxt _ _ insts t =
         in
            (Method.insert_tac ctxt [inst_thm]
            THEN' TRY' (fn i => assume_tac ctxt i)
-           THEN' TRY' (partial_simplify_tac ctxt @{thms eq_commute})) i
+           THEN' TRY' (partial_simplify_tac ctxt @{thms eq_commute ac_simps})
+           THEN' TRY' (blast_tac ctxt)) i
         end
      | instantiate_and_solve _ ({context = ctxt, prems = thms, ...}: Subgoal.focus) =
          replay_error ctxt "invalid application" Forall_Inst thms t
@@ -510,7 +519,12 @@ fun implies_pos ctxt _ t = SMT_Replay_Methods.prove ctxt t (fn _ =>
   resolve_tac ctxt implies_pos_thm)
 
 (* Skolemization *)
-
+local
+  fun split _ [] = ([], [])
+    | split f (a :: xs) =
+        split f xs
+        |> (if f a then apfst (curry (op ::) a) else apsnd (curry (op ::) a))
+in
 fun extract_rewrite_rule_assumption _ thms =
   let
     fun is_rewrite_rule thm =
@@ -521,23 +535,34 @@ fun extract_rewrite_rule_assumption _ thms =
       (case Thm.prop_of thm of
         \<^term>\<open>Trueprop\<close> $ (Const(\<^const_name>\<open>HOL.eq\<close>, _) $ Free(_, _) $ Free(_, _)) => true
       | _ => false)
-    val ctxt_eq =
+    val (ctxt_eq, other) =
       thms
-      |> filter is_context_rule
-    val rew =
-      thms
-      |> filter_out is_context_rule
-      |> filter is_rewrite_rule
+      |> split is_context_rule
+    val (rew, other) =
+      other
+      |> split is_rewrite_rule
   in
-    (ctxt_eq, rew)
+    (ctxt_eq, rew, other)
   end
+end
+(*
+Without compression, we have to rewrite skolems only once. However, it can happen than the same
+skolem constant is used multiple times with a different name under the forall.
 
+For strictness, we use the multiple rewriting only when compressing is activated.
+*)
 local
-  fun rewrite_all_skolems thm_indirect ctxt (SOME thm :: thms) =
-     EqSubst.eqsubst_tac ctxt [0] [thm_indirect OF [thm]]
-     THEN' (partial_simplify_tac ctxt (@{thms eq_commute}))
-     THEN' rewrite_all_skolems thm_indirect ctxt thms
-   | rewrite_all_skolems thm_indirect ctxt (NONE :: thms) = rewrite_all_skolems thm_indirect ctxt thms
+  fun rewrite_all_skolems thm_indirect ctxt ((v,SOME thm) :: thms) =
+     let
+       val rewrite_sk_thms =
+         List.mapPartial (fn tm => SOME (tm OF [thm]) handle THM _ => NONE) thm_indirect
+       val multiple_rew = if SMT_Config.compress_verit_proofs ctxt then REPEAT_CHANGED else fn x => x
+     in
+       multiple_rew (EqSubst.eqsubst_tac ctxt [0] rewrite_sk_thms
+         THEN' SOLVED' (K (HEADGOAL (partial_simplify_tac ctxt (@{thms eq_commute})))))
+       THEN' rewrite_all_skolems thm_indirect ctxt thms
+     end
+   | rewrite_all_skolems thm_indirect ctxt ((_,NONE) :: thms) = rewrite_all_skolems thm_indirect ctxt thms
    | rewrite_all_skolems _ _ [] = K (all_tac)
 
    fun extract_var_name (thm :: thms) =
@@ -552,30 +577,31 @@ local
 
 fun skolem_tac extractor thm1 thm2 ctxt thms t  =
   let
-    val (ctxt_eq, ts) = extract_rewrite_rule_assumption ctxt thms
+    val (ctxt_eq, ts, other) = extract_rewrite_rule_assumption ctxt thms
+
     fun ordered_definitions () =
       let
         val var_order = extractor t
         val thm_names_with_var = extract_var_name ts |> flat
-      in map (AList.lookup (op =) thm_names_with_var) var_order end
-
+      in map (fn v => (v, AList.lookup (op =) thm_names_with_var v)) var_order end
   in
     SMT_Replay_Methods.prove ctxt t (fn _ =>
       K (unfold_tac ctxt ctxt_eq)
-      THEN' ((SOLVED' (K (unfold_tac ctxt (map (fn thm => thm1 OF [@{thm sym} OF [thm]]) ts))))
-        ORELSE'
-          (rewrite_all_skolems thm2 ctxt (ordered_definitions ())
-          THEN' partial_simplify_tac ctxt @{thms eq_commute})))
+      THEN' rewrite_all_skolems thm2 ctxt (ordered_definitions ())
+      THEN' (eqsubst_all ctxt (map (fn thm => thm RS sym) other))
+      THEN_ALL_NEW TRY' (resolve_tac ctxt @{thms refl})
+      THEN' K (unfold_tac ctxt ctxt_eq)
+      THEN' TRY' (partial_simplify_tac ctxt (@{thms eq_commute})))
   end
 in
 
 val skolem_forall =
-  skolem_tac extract_all_forall_quantified_names @{thm verit_sko_forall_indirect}
-    @{thm verit_sko_forall_indirect2}
+  skolem_tac extract_all_forall_exists_quantified_names_q @{thm verit_sko_forall_indirect}
+    @{thms verit_sko_forall_indirect2  verit_sko_ex_indirect2}
 
 val skolem_ex =
-  skolem_tac extract_all_exists_quantified_names @{thm verit_sko_ex_indirect}
-    @{thm verit_sko_ex_indirect2}
+  skolem_tac extract_all_forall_exists_quantified_names_q @{thm verit_sko_ex_indirect}
+    @{thms verit_sko_ex_indirect2 verit_sko_forall_indirect2}
 
 end
 
