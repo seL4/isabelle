@@ -18,10 +18,8 @@ object Pretty {
     else if (n == 1) space
     else List(XML.Text(Symbol.spaces(n)))
 
-  def block(consistent: Boolean, indent: Int, body: XML.Body): XML.Tree =
+  def block(body: XML.Body, consistent: Boolean = false, indent: Int = 2): XML.Tree =
     XML.Elem(Markup.Block(consistent, indent), body)
-  def block(indent: Int, body: XML.Body): XML.Tree = block(false, indent, body)
-  def block(body: XML.Body): XML.Tree = block(2, body)
 
   def brk(width: Int, indent: Int = 0): XML.Tree =
     XML.Elem(Markup.Break(width, indent), spaces(width))
@@ -30,7 +28,18 @@ object Pretty {
   def fbreaks(ts: List[XML.Tree]): XML.Body = Library.separate(fbrk, ts)
 
   val Separator: XML.Body = List(XML.elem(Markup.SEPARATOR, space), fbrk)
-  def separate(ts: List[XML.Tree]): XML.Body = Library.separate(Separator, ts.map(List(_))).flatten
+  def separate(ts: List[XML.Tree], sep: XML.Body = Separator): XML.Body =
+    Library.separate(sep, ts.map(List(_))).flatten
+
+  val comma: XML.Body = List(XML.Text(","), brk(1))
+  def commas(ts: List[XML.Tree]): XML.Body = separate(ts, sep = comma)
+
+  def `enum`(ts: List[XML.Tree],
+    bg: String = "(",
+    en: String = ")",
+    sep: XML.Body = comma,
+    indent: Int = 2
+  ): XML.Tree = Pretty.block(XML.enclose(bg, en, separate(ts, sep = sep)), indent = indent)
 
 
   /* text metric -- standardized to width of space */

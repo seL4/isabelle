@@ -659,7 +659,7 @@ class Rendering(
             Some(info + (r0, true, Pretty.block(XML.Text("::") :: Pretty.brk(1) :: body)))
 
           case (info, Text.Info(r0, XML.Elem(Markup(Markup.CLASS_PARAMETER, _), body))) =>
-            Some(info + (r0, true, Pretty.block(0, body)))
+            Some(info + (r0, true, Pretty.block(body, indent = 0)))
 
           case (info, Text.Info(r0, XML.Elem(Markup(Markup.ML_TYPING, _), body))) =>
             Some(info + (r0, false, Pretty.block(XML.Text("ML:") :: Pretty.brk(1) :: body)))
