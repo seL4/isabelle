@@ -167,63 +167,65 @@ object JSON {
 
     def apply_lines(json: List[T]): S = json.map(apply).mkString("[", ",\n", "]")
 
+    private def output_string(s: String, result: StringBuilder): Unit = {
+      result += '"'
+      result ++=
+        s.iterator.map {
+          case '"' => "\\\""
+          case '\\' => "\\\\"
+          case '\b' => "\\b"
+          case '\f' => "\\f"
+          case '\n' => "\\n"
+          case '\r' => "\\r"
+          case '\t' => "\\t"
+          case c =>
+            if (c <= '\u001f' || c >= '\u007f' && c <= '\u009f') "\\u%04x".format(c.toInt)
+            else c
+        }.mkString
+      result += '"'
+    }
+
+    private def output_atom(x: T, result: StringBuilder): Boolean =
+      x match {
+        case null => result ++= "null"; true
+        case _: Int | _ : Long | _: Boolean => result ++= x.toString; true
+        case n: Double =>
+          val i = n.toLong
+          result ++= (if (i.toDouble == n) i.toString else n.toString)
+          true
+        case s: String => output_string(s, result); true
+        case _ => false
+      }
+
     def apply(json: T): S = {
       val result = new StringBuilder
 
-      def string(s: String): Unit = {
-        result += '"'
-        result ++=
-          s.iterator.map {
-            case '"'  => "\\\""
-            case '\\' => "\\\\"
-            case '\b' => "\\b"
-            case '\f' => "\\f"
-            case '\n' => "\\n"
-            case '\r' => "\\r"
-            case '\t' => "\\t"
-            case c =>
-              if (c <= '\u001f' || c >= '\u007f' && c <= '\u009f') "\\u%04x".format(c.toInt)
-              else c
-          }.mkString
-        result += '"'
-      }
-
-      def array(list: List[T]): Unit = {
-        result += '['
-        Library.separate(None, list.map(Some(_))).foreach({
-          case None => result += ','
-          case Some(x) => json_format(x)
-        })
-        result += ']'
-      }
-
-      def object_(obj: Object.T): Unit = {
-        result += '{'
-        Library.separate(None, obj.toList.map(Some(_))).foreach({
-          case None => result += ','
-          case Some((x, y)) =>
-            string(x)
-            result += ':'
-            json_format(y)
-        })
-        result += '}'
-      }
-
-      def json_format(x: T): Unit = {
-        x match {
-          case null => result ++= "null"
-          case _: Int | _: Long | _: Boolean => result ++= x.toString
-          case n: Double =>
-            val i = n.toLong
-            result ++= (if (i.toDouble == n) i.toString else n.toString)
-          case s: String => string(s)
-          case Object(m) => object_(m)
-          case list: List[T] => array(list)
-          case _ => error("Bad JSON value: " + x.toString)
+      def output(x: T): Unit = {
+        if (!output_atom(x, result)) {
+          x match {
+            case Object(obj) =>
+              result += '{'
+              Library.separate(None, obj.toList.map(Some(_))).foreach({
+                case None => result += ','
+                case Some((x, y)) =>
+                  output_string(x, result)
+                  result += ':'
+                  output(y)
+              })
+              result += '}'
+            case list: List[T] =>
+              result += '['
+              Library.separate(None, list.map(Some(_))).foreach({
+                case None => result += ','
+                case Some(x) => output(x)
+              })
+              result += ']'
+            case _ => error("Bad JSON value: " + x.toString)
+          }
         }
       }
 
-      json_format(json)
+      output(json)
       result.toString
     }
   }
