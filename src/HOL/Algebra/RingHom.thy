@@ -98,7 +98,7 @@ subsection \<open>The Kernel of a Ring Homomorphism\<close>
 
 \<comment> \<open>the kernel of a ring homomorphism is an ideal\<close>
 lemma (in ring_hom_ring) kernel_is_ideal: "ideal (a_kernel R S h) R"
-  apply (rule idealI [OF R.is_ring])
+  apply (rule idealI [OF R.ring_axioms])
     apply (rule additive_subgroup.a_subgroup[OF additive_subgroup_a_kernel])
    apply (auto simp: a_kernel_def')
   done

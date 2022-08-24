@@ -44,6 +44,14 @@ hyperlinks, just like regular theory sources.
 
 *** HOL ***
 
+* HOL-Algebra: Facts renamed to avoid fact name clashes on interpretation:
+
+    is_ring ~> ring_axioms
+    cring ~> cring_axioms
+    R_def ~> R_m_def
+
+INCOMPATIBILITY.
+
 * Moved auxiliary computation constant "divmod_nat" to theory
 "Euclidean_Division".  Minor INCOMPATIBILITY.
 

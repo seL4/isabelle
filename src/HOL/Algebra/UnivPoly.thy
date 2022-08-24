@@ -501,11 +501,8 @@ text \<open>
   Interpretation of lemmas from \<^term>\<open>algebra\<close>.
 \<close>
 
-lemma (in cring) cring:
-  "cring R" ..
-
 lemma (in UP_cring) UP_algebra:
-  "algebra R P" by (auto intro!: algebraI R.cring UP_cring UP_smult_l_distr UP_smult_r_distr
+  "algebra R P" by (auto intro!: algebraI R.cring_axioms UP_cring UP_smult_l_distr UP_smult_r_distr
     UP_smult_assoc1 UP_smult_assoc2)
 
 sublocale UP_cring < algebra R P using UP_algebra .

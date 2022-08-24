@@ -49,7 +49,7 @@ lemma (in ring) ideal_prod_is_ideal:
   assumes "ideal I R" "ideal J R"
   shows "ideal (I \<cdot> J) R"
 proof (rule idealI)
-  show "ring R" using is_ring .
+  show "ring R" using ring_axioms .
 next
   show "subgroup (I \<cdot> J) (add_monoid R)"
     unfolding subgroup_def

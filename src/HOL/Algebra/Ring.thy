@@ -292,10 +292,8 @@ lemma is_abelian_group: "abelian_group R" ..
 lemma is_monoid: "monoid R"
   by (auto intro!: monoidI m_assoc)
 
-lemma is_ring: "ring R"
-  by (rule ring_axioms)
-
 end
+
 thm monoid_record_simps
 lemmas ring_record_simps = monoid_record_simps ring.simps
 
