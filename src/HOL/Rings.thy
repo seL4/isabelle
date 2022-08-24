@@ -382,7 +382,7 @@ begin
 
 subclass semiring_1_cancel ..
 
-lemma of_bool_not_iff [simp]:
+lemma of_bool_not_iff:
   \<open>of_bool (\<not> P) = 1 - of_bool P\<close>
   by simp
 
