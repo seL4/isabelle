@@ -728,7 +728,6 @@ session "HOL-ex" (timing) in ex = "HOL-Number_Theory" +
     Specifications_with_bundle_mixins
     Sqrt_Script
     Sudoku
-    Sum_of_Powers
     Tarski
     Termination
     ThreeDivides
