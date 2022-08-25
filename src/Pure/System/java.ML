@@ -26,7 +26,8 @@ val print_str =
    | "\\" => "\\\\"
    | s =>
       let val c = ord s in
-        if c < 16 then "\\u000" ^ Int.fmt StringCvt.HEX c
+        if 32 < c andalso c < 127 andalso c <> 34 andalso c <> 92 then s
+        else if c < 16 then "\\u000" ^ Int.fmt StringCvt.HEX c
         else if c < 128 then "\\u00" ^ Int.fmt StringCvt.HEX c
         else error ("Cannot print non-ASCII Java/Scala string literal: " ^ quote s)
       end;
