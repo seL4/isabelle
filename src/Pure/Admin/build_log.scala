@@ -718,7 +718,7 @@ object Build_Log {
 
     /* recent entries */
 
-    def recent_time(days: Int): SQL.Source =
+    def recent_time(days: Int): PostgreSQL.Source =
       "now() - INTERVAL '" + days.max(0) + " days'"
 
     def recent_pull_date_table(
@@ -744,7 +744,7 @@ object Build_Log {
            else "")))
     }
 
-    def select_recent_log_names(days: Int): SQL.Source = {
+    def select_recent_log_names(days: Int): PostgreSQL.Source = {
       val table1 = meta_info_table
       val table2 = recent_pull_date_table(days)
       table1.select(List(log_name), distinct = true) + SQL.join_inner + table2.query_named +
@@ -755,8 +755,8 @@ object Build_Log {
       days: Int,
       rev: String = "",
       afp_rev: Option[String] = None,
-      sql: SQL.Source = ""
-    ): SQL.Source = {
+      sql: PostgreSQL.Source = ""
+    ): PostgreSQL.Source = {
       val afp = afp_rev.isDefined
       val version = Prop.isabelle_version
       val table1 = recent_pull_date_table(days, rev = rev, afp_rev = afp_rev)

@@ -110,7 +110,7 @@ object Isabelle_Cronjob {
     days: Int,
     rev: String,
     afp_rev: Option[String],
-    sql: SQL.Source
+    sql: PostgreSQL.Source
   ): List[Item] = {
     val afp = afp_rev.isDefined
     val select =
@@ -150,7 +150,7 @@ object Isabelle_Cronjob {
     afp: Boolean = false,
     bulky: Boolean = false,
     more_hosts: List[String] = Nil,
-    detect: SQL.Source = "",
+    detect: PostgreSQL.Source = "",
     active: Boolean = true
   ) {
     def ssh_session(context: SSH.Context): SSH.Session =
@@ -158,7 +158,7 @@ object Isabelle_Cronjob {
         proxy_host = proxy_host, proxy_user = proxy_user, proxy_port = proxy_port,
         permissive = proxy_host.nonEmpty)
 
-    def sql: SQL.Source =
+    def sql: PostgreSQL.Source =
       Build_Log.Prop.build_engine.toString + " = " + SQL.string(Build_History.engine) + " AND " +
       SQL.member(Build_Log.Prop.build_host.ident, host :: more_hosts) +
       (if (detect == "") "" else " AND " + SQL.enclose(detect))

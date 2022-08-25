@@ -36,7 +36,7 @@ object Build_Status {
       options: Options,
       columns: List[SQL.Column],
       only_sessions: Set[String]
-    ): SQL.Source = {
+    ): PostgreSQL.Source = {
       Build_Log.Data.universal_table.select(columns, distinct = true,
         sql = "WHERE " +
           Build_Log.Data.pull_date(afp) + " > " + Build_Log.Data.recent_time(days(options)) +
