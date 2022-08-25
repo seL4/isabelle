@@ -131,9 +131,6 @@ object SQL {
   /* tables */
 
   sealed case class Table(name: String, columns: List[Column], body: Source = "") {
-    private val columns_index: Map[String, Int] =
-      columns.iterator.map(_.name).zipWithIndex.toMap
-
     Library.duplicates(columns.map(_.name)) match {
       case Nil =>
       case bad => error("Duplicate column names " + commas_quote(bad) + " for table " + quote(name))
