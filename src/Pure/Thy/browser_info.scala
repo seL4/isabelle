@@ -216,7 +216,7 @@ object Browser_Info {
 
     /* preview PIDE document */
 
-    val isabelle_css: String = File.read(HTML.isabelle_css)
+    lazy val isabelle_css: String = File.read(HTML.isabelle_css)
 
     def html_document(title: String, body: XML.Body, fonts_css: String): HTML_Document = {
       val content =
