@@ -34,6 +34,14 @@ Example:
 
 *** HTML/PDF presentation ***
 
+* Management of dependencies has become more robust and accurate,
+following the session build hierarchy, and the up-to-date notion of
+"isabelle build". Changed sessions and updated builds will cause new
+HTML presentation, when that is enabled eventually. Unchanged sessions
+retain their HTML output that is already present. Thus HTML presentation
+for basic sessions like "HOL" and "HOL-Analysis" is produced at most
+once, as required by user sessions.
+
 * HTML presentation no longer supports README.html, which was meant as
 add-on to the index.html of a session. Rare INCOMPATIBILITY, consider
 using a separate theory "README" with Isabelle document markup/markdown.
