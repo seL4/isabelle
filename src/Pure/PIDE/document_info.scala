@@ -11,7 +11,11 @@ object Document_Info {
   sealed case class Session(
     name: String,
     used_theories: List[String],
-    loaded_theories: Map[String, Theory])
+    loaded_theories: Map[String, Theory],
+    build_uuid: String
+  ) {
+    if (build_uuid.isEmpty) error("Missing build_uuid for session " + quote(name))
+  }
 
   object Theory {
     def apply(
@@ -115,16 +119,24 @@ object Document_Info {
 
     def read_session(session_name: String): Document_Info.Session = {
       val static_theories = deps(session_name).used_theories.map(_._1.theory)
-      val loaded_theories0 = {
+      val (thys, build_uuid) = {
         using(database_context.open_session(deps.base_info(session_name))) { session_context =>
-          for {
-            theory_name <- static_theories
-            theory <- read_theory(session_context.theory(theory_name))
-          } yield theory_name -> theory
+          val thys =
+            for {
+              theory_name <- static_theories
+              theory <- read_theory(session_context.theory(theory_name))
+            } yield theory_name -> theory
+          val build_uuid =
+            (for {
+              db <- session_context.session_db(session_name)
+              build <- database_context.store.read_build(db, session_name)
+            } yield build.uuid).getOrElse("")
+          (thys, build_uuid)
         }
-      }.toMap
+      }
+      val loaded_theories0 = thys.toMap
       val used_theories = static_theories.filter(loaded_theories0.keySet)
-      Session(session_name, used_theories, loaded_theories0)
+      Session(session_name, used_theories, loaded_theories0, build_uuid)
     }
 
     val result0 =

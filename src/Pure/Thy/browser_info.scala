@@ -78,6 +78,19 @@ object Browser_Info {
     }
 
 
+    /* build_uuid */
+
+    val BUILD_UUID = "build_uuid"
+
+    def check_build_uuid(dir: Path, uuid: String): Boolean = {
+      val uuid0 = value(dir, BUILD_UUID)
+      uuid0.nonEmpty && uuid.nonEmpty && uuid0 == uuid
+    }
+
+    def set_build_uuid(dir: Path, uuid: String): Unit =
+      change(dir, BUILD_UUID)(_ => uuid)
+
+
     /* index */
 
     val INDEX = "index.json"
@@ -617,6 +630,8 @@ object Browser_Info {
           context.contents("Theories", theories),
         root = Some(context.root_dir))
 
+    Meta_Data.set_build_uuid(session_dir, session.build_uuid)
+
     context.update_chapter(session_info.chapter, session_name, session_info.description)
   }
 
@@ -624,7 +639,7 @@ object Browser_Info {
     browser_info: Config,
     store: Sessions.Store,
     deps: Sessions.Deps,
-    presentation_sessions: List[String],
+    sessions: List[String],
     progress: Progress = new Progress,
     verbose: Boolean = false
   ): Unit = {
@@ -632,19 +647,31 @@ object Browser_Info {
     progress.echo("Presentation in " + root_dir)
 
     using(Export.open_database_context(store)) { database_context =>
-      val document_info = Document_Info.read(database_context, deps, presentation_sessions)
+      val context0 = context(deps.sessions_structure, elements1, root_dir = root_dir)
 
-      val context =
-        Browser_Info.context(deps.sessions_structure, elements1, root_dir = root_dir,
-          document_info = document_info)
+      val sessions1 =
+        deps.sessions_structure.build_requirements(sessions).filter { session_name =>
+          using(database_context.open_database(session_name)) { session_database =>
+            database_context.store.read_build(session_database.db, session_name) match {
+              case None => false
+              case Some(build) =>
+                val session_dir = context0.session_dir(session_name)
+                !Meta_Data.check_build_uuid(session_dir, build.uuid)
+            }
+          }
+        }
 
-      context.update_root()
+      val context1 =
+        context(deps.sessions_structure, elements1, root_dir = root_dir,
+          document_info = Document_Info.read(database_context, deps, sessions1))
+
+      context1.update_root()
 
       Par_List.map({ (session: String) =>
         using(database_context.open_session(deps.base_info(session))) { session_context =>
-          build_session(context, session_context, progress = progress, verbose = verbose)
+          build_session(context1, session_context, progress = progress, verbose = verbose)
         }
-      }, presentation_sessions)
+      }, sessions1)
     }
   }
 }
