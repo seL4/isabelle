@@ -277,11 +277,11 @@ object Export {
 
     def close(): Unit = database_server.foreach(_.close())
 
-    def open_output_database(session: String): Session_Database =
+    def open_database(session: String, output: Boolean = false): Session_Database =
       database_server match {
         case Some(db) => new Session_Database(session, db)
         case None =>
-          new Session_Database(session, store.open_database(session, output = true)) {
+          new Session_Database(session, store.open_database(session, output = output)) {
             override def close(): Unit = db.close()
           }
       }

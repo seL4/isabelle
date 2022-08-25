@@ -456,7 +456,7 @@ class Build_Job(progress: Progress,
                       output_sources = info.document_output,
                       output_pdf = info.document_output)
                 }
-              using(database_context.open_output_database(session_name))(session_database =>
+              using(database_context.open_database(session_name, output = true))(session_database =>
                 documents.foreach(_.write(session_database.db, session_name)))
               (documents.flatMap(_.log_lines), Nil)
             }
