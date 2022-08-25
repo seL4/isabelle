@@ -144,7 +144,7 @@ object SQL {
 
     def query_named: Source = query + " AS " + SQL.ident(name)
 
-    def create(strict: Boolean = false, sql_type: Type.Value => Source): Source = {
+    def create(strict: Boolean, sql_type: Type.Value => Source): Source = {
       val primary_key =
         columns.filter(_.primary_key).map(_.name) match {
           case Nil => Nil
