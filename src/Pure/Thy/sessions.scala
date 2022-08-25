@@ -10,6 +10,7 @@ import java.io.{File => JFile}
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
 import java.nio.file.StandardOpenOption
+import java.sql.SQLException
 
 import scala.collection.immutable.{SortedSet, SortedMap}
 import scala.collection.mutable
@@ -1191,9 +1192,14 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     val input_heaps = SQL.Column.string("input_heaps")
     val output_heap = SQL.Column.string("output_heap")
     val return_code = SQL.Column.int("return_code")
-    val build_columns = List(sources, input_heaps, output_heap, return_code)
+    val uuid = SQL.Column.string("uuid")
+    val build_columns = List(sources, input_heaps, output_heap, return_code, uuid)
 
     val table = SQL.Table("isabelle_session_info", build_log_columns ::: build_columns)
+
+    val augment_table: PostgreSQL.Source =
+      "ALTER TABLE IF EXISTS " + table.ident +
+        " ADD COLUMN IF NOT EXISTS " + uuid.decl(SQL.sql_type_postgresql)
   }
 
   def store(options: Options, cache: Term.Cache = Term.Cache.make()): Store =
@@ -1350,6 +1356,9 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
         db.create_table(Session_Info.table)
         db.using_statement(
           Session_Info.table.delete(Session_Info.session_name.where_equal(name)))(_.execute())
+        if (db.isInstanceOf[PostgreSQL.Database]) {
+          db.using_statement(Session_Info.augment_table)(_.execute())
+        }
 
         db.create_table(Export.Data.table)
         db.using_statement(
@@ -1382,7 +1391,8 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
       build: Build.Session_Info
     ): Unit = {
       db.transaction {
-        db.using_statement(Session_Info.table.insert()) { stmt =>
+        val table = Session_Info.table
+        db.using_statement(table.insert()) { stmt =>
           stmt.string(1) = name
           stmt.bytes(2) = Properties.encode(build_log.session_timing)
           stmt.bytes(3) = Properties.compress(build_log.command_timings, cache = cache.xz)
@@ -1394,6 +1404,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
           stmt.string(9) = cat_lines(build.input_heaps)
           stmt.string(10) = build.output_heap getOrElse ""
           stmt.int(11) = build.return_code
+          stmt.string(12) = build.uuid
           stmt.execute()
         }
       }
@@ -1422,17 +1433,21 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
     def read_build(db: SQL.Database, name: String): Option[Build.Session_Info] = {
       if (db.tables.contains(Session_Info.table.name)) {
-        db.using_statement(Session_Info.table.select(Session_Info.build_columns,
+        db.using_statement(Session_Info.table.select(Nil,
           Session_Info.session_name.where_equal(name))) { stmt =>
           val res = stmt.execute_query()
           if (!res.next()) None
           else {
+            val uuid =
+              try { Option(res.string(Session_Info.uuid)).getOrElse("") }
+              catch { case _: SQLException => "" }
             Some(
               Build.Session_Info(
                 res.string(Session_Info.sources),
                 split_lines(res.string(Session_Info.input_heaps)),
                 res.string(Session_Info.output_heap) match { case "" => None case s => Some(s) },
-                res.int(Session_Info.return_code)))
+                res.int(Session_Info.return_code),
+                uuid))
           }
         }
       }

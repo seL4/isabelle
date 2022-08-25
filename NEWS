@@ -245,6 +245,10 @@ builds on the remote side. This tool requires a Mercurial clone of the
 Isabelle repository: a regular download of the distribution will not
 work!
 
+* The session build database now maintains an additional "uuid" column
+to identity the original build process uniquely. Thus other tools may
+dependent symbolically on a particular build instance.
+
 * External Isabelle tools implemented as .scala scripts are no longer
 supported. INCOMPATIBILITY, instead provide a proper Isabelle/Scala
 module with etc/build.props and "services" for a suitable class instance

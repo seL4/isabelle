@@ -409,6 +409,8 @@ object SQLite {
 /** PostgreSQL **/
 
 object PostgreSQL {
+  type Source = SQL.Source
+
   val default_port = 5432
 
   lazy val init_jdbc: Unit = Class.forName("org.postgresql.Driver")

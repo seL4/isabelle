@@ -21,7 +21,8 @@ object Build {
     sources: String,
     input_heaps: List[String],
     output_heap: Option[String],
-    return_code: Int
+    return_code: Int,
+    uuid: String
   ) {
     def ok: Boolean = return_code == 0
   }
@@ -356,7 +357,7 @@ object Build {
                   if (process_result.timeout) build_log.error("Timeout") else build_log,
                 build =
                   Session_Info(sources_stamp(build_deps, session_name), input_heaps, heap_digest,
-                    process_result.rc)))
+                    process_result.rc, UUID.random().toString)))
 
             // messages
             process_result.err_lines.foreach(progress.echo)
