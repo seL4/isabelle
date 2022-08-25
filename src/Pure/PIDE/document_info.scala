@@ -87,7 +87,6 @@ object Document_Info {
     deps: Sessions.Deps,
     sessions: List[String]
   ): Document_Info = {
-    val sessions_domain = sessions.toSet
     val sessions_structure = deps.sessions_structure
     val sessions_requirements = sessions_structure.build_requirements(sessions)
 
@@ -99,20 +98,14 @@ object Document_Info {
       theory_context.files0(permissive = true) match {
         case Nil => None
         case files =>
-          val (entities, others) =
-            if (sessions_domain(session_name)) {
-              val theory = Export_Theory.read_theory(theory_context, permissive = true)
-              (theory.entity_iterator.toList,
-                theory.others.keySet.toList)
-            }
-            else (Nil, Nil)
+          val theory_export = Export_Theory.read_theory(theory_context, permissive = true)
           val theory =
             Theory(theory_name,
               static_session = sessions_structure.theory_qualifier(theory_name),
               dynamic_session = session_name,
               files = files,
-              entities = entities,
-              others = others)
+              entities = theory_export.entity_iterator.toList,
+              others = theory_export.others.keySet.toList)
           Some(theory)
       }
     }
