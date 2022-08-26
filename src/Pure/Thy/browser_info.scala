@@ -135,8 +135,12 @@ object Browser_Info {
     }
 
     sealed case class Index(kind: String, items: List[Item]) {
-      def +(item: Item): Index =
-        Index(kind, (item :: items.filterNot(_.name == item.name)).sortBy(_.name))
+      def ++ (more_items: List[Item]): Index = {
+        val items1 = items.filterNot(item => more_items.exists(_.name == item.name))
+        val items2 = (more_items ::: items1).sortBy(_.name)
+        Index(kind, items2)
+      }
+      def + (item: Item): Index = this ++ List(item)
 
       def json: JSON.T = JSON.Object("kind" -> kind, "items" -> items.map(_.json))
       def print_json: JSON.S = JSON.Format.pretty_print(json)
@@ -323,7 +327,7 @@ object Browser_Info {
               (name, _) <- sessions_structure.chapters.iterator
               if !items1.exists(_.name == name)
             } yield Meta_Data.Item(name)).toList
-          (items1 ::: items2).foldLeft(index0)(_ + _)
+          index0 ++ (items1 ::: items2)
         }
         val chapters = index.items
 
