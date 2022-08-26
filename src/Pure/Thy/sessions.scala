@@ -1197,7 +1197,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
     val augment_table: PostgreSQL.Source =
       "ALTER TABLE IF EXISTS " + table.ident +
-        " ADD COLUMN IF NOT EXISTS " + uuid.decl(SQL.sql_type_postgresql)
+      " ADD COLUMN IF NOT EXISTS " + uuid.decl(SQL.sql_type_postgresql)
   }
 
   def store(options: Options, cache: Term.Cache = Term.Cache.make()): Store =
