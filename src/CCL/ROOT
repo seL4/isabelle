@@ -1,4 +1,4 @@
-chapter CCL
+chapter FOL
 
 session CCL = Pure +
   description "

@@ -6,39 +6,19 @@ chapter_definition HOL
     that of the HOL System (https://www.cl.cam.ac.uk/Research/HVG/HOL).
   "
 
-chapter_definition FOL
-  description "
-    Many-sorted First-Order Logic.
-
-    Isabelle/FOL provides basic classical and intuitionistic first-order logic.
-    It is polymorphic.
-  "
-
 chapter_definition ZF
   description "
-    Isabelle/ZF (Set Theory) offers a formulation of Zermelo-Fraenkel set theory
-    on top of Isabelle/FOL.
+    Zermelo-Fraenkel set theory.
+
+    Isabelle/ZF offers a formulation of Zermelo-Fraenkel set theory on top of
+    Isabelle/FOL.
   "
 
-chapter_definition CCL
-  description "Classical Computational Logic."
-
-chapter_definition LCF
-  description "Logic of Computable Functions."
-
-chapter_definition FOLP
-  description "FOL with Proof Terms."
-
-chapter_definition Sequents
-  description "First-order, modal and linear logics."
-
-chapter_definition CTT
+chapter_definition FOL
   description "
-    Constructive Type Theory: an extensional version of Martin-Löf's Type Theory.
+    First-Order Logic with some variations: single-sorted vs. many-sorted
+    (polymorphic), classical vs. intuitionistic, domain-theory (LCF).
   "
-
-chapter_definition Cube
-  description "Barendregt's Lambda Cube."
 
 chapter_definition Pure
   description "
@@ -48,8 +28,8 @@ chapter_definition Pure
     expresses rules for Natural Deduction declaratively.
   "
 
+chapter_definition Misc
+  description "Miscellaneous object-logics, tools, and experiments."
+
 chapter_definition Doc
   description "Sources of Documentation."
-
-chapter_definition Tools
-  description "Miscellaneous tools."
