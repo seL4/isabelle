@@ -135,6 +135,8 @@ object Browser_Info {
     }
 
     sealed case class Index(kind: String, items: List[Item]) {
+      def is_empty: Boolean = items.isEmpty
+
       def ++ (more_items: List[Item]): Index = {
         val items1 = items.filterNot(item => more_items.exists(_.name == item.name))
         val items2 = (more_items ::: items1).sortBy(_.name)
@@ -288,21 +290,20 @@ object Browser_Info {
         val index0 = Meta_Data.Index.parse(text, "chapter")
         val item = Meta_Data.Item(session_name, description = session_description)
         val index = index0 + item
-        val sessions = index.items
 
         if (index != index0) {
           val title = "Isabelle/" + session_chapter(session_name) + " sessions"
           HTML.write_document(dir, "index.html",
             List(HTML.title(title + Isabelle_System.isabelle_heading())),
             HTML.chapter(title) ::
-              (if (sessions.isEmpty) Nil
+              (if (index.is_empty) Nil
               else
                 List(HTML.div("sessions",
                   List(HTML.description(
-                    sessions.map(session =>
-                      (List(HTML.link(session.name + "/index.html", HTML.text(session.name))),
-                        if (session.description.isEmpty) Nil
-                        else HTML.break ::: List(HTML.pre(HTML.text(session.description)))))))))),
+                    index.items.map(item =>
+                      (List(HTML.link(item.name + "/index.html", HTML.text(item.name))),
+                        if (item.description.isEmpty) Nil
+                        else HTML.break ::: List(HTML.pre(HTML.text(item.description)))))))))),
             root = Some(root_dir))
         }
 
@@ -329,21 +330,20 @@ object Browser_Info {
             } yield Meta_Data.Item(name)).toList
           index0 ++ (items1 ::: items2)
         }
-        val chapters = index.items
 
         if (index != index0) {
           val title = "The " + XML.text(Isabelle_System.isabelle_name()) + " Library"
           HTML.write_document(root_dir, "index.html",
             List(HTML.title(title + Isabelle_System.isabelle_heading())),
             HTML.chapter(title) ::
-              (if (chapters.isEmpty) Nil
+              (if (index.is_empty) Nil
               else
                 List(HTML.div("sessions",
                   List(HTML.description(
-                    chapters.map(chapter =>
-                      (List(HTML.link(chapter.name + "/index.html", HTML.text(chapter.name))),
-                        if (chapter.description.isEmpty) Nil
-                        else HTML.break ::: List(HTML.pre(HTML.text(chapter.description)))))))))),
+                    index.items.map(item =>
+                      (List(HTML.link(item.name + "/index.html", HTML.text(item.name))),
+                        if (item.description.isEmpty) Nil
+                        else HTML.break ::: List(HTML.pre(HTML.text(item.description)))))))))),
             root = Some(root_dir))
         }
 
