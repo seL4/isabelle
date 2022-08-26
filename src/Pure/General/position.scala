@@ -25,8 +25,6 @@ object Position {
   val Def_File = new Properties.String(Markup.DEF_FILE)
   val Def_Id = new Properties.Long(Markup.DEF_ID)
 
-  val Def_Theory = new Properties.String(Markup.DEF_THEORY)
-
   object Line_File {
     def apply(line: Int, file: String): T =
       (if (line > 0) Line(line) else Nil) :::
