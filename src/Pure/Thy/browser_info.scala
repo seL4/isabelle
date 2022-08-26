@@ -182,8 +182,11 @@ object Browser_Info {
     def theory_by_file(session: String, file: String): Option[Document_Info.Theory] =
       document_info.theory_by_file(session, file)
 
+    def session_chapter(session: String): String =
+      sessions_structure(session).chapter
+
     def session_dir(session: String): Path =
-      root_dir + Path.basic(sessions_structure(session).chapter) + Path.basic(session)
+      root_dir + Path.basic(session_chapter(session)) + Path.basic(session)
 
     def chapter_dir(chapter: String): Path =
       root_dir + Path.basic(chapter)
@@ -269,11 +272,8 @@ object Browser_Info {
 
     /* maintain presentation structure */
 
-    def update_chapter(
-      chapter: String,
-      session_name: String,
-      session_description: String
-    ): Unit = synchronized {
+    def update_chapter(session_name: String, session_description: String): Unit = synchronized {
+      val chapter = session_chapter(session_name)
       val dir = Meta_Data.init_directory(chapter_dir(chapter))
       Meta_Data.change(dir, Meta_Data.INDEX) { text =>
         val index0 = Meta_Data.Index.parse(text, "chapter")
@@ -632,7 +632,7 @@ object Browser_Info {
 
     Meta_Data.set_build_uuid(session_dir, session.build_uuid)
 
-    context.update_chapter(session_info.chapter, session_name, session_info.description)
+    context.update_chapter(session_name, session_info.description)
   }
 
   def build(
