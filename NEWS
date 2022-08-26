@@ -163,6 +163,9 @@ INCOMPATIBILITY.
 * Theory "HOL-Library.Sublist":
   - Added lemma map_mono_strict_suffix.
 
+* Theory "HOL-ex.Sum_of_Powers":
+  - Deleted. The same material is in the AFP as Bernoulli.
+
 * Nitpick: To avoid technical issues, prefer non-JNI solvers to JNI solvers by
   default. Minor INCOMPATIBILITY.
 
