@@ -311,36 +311,40 @@ object Browser_Info {
       HTML.init_fonts(root_dir)
       Isabelle_System.copy_file(Path.explode("~~/lib/logo/isabelle.gif"),
         root_dir + Path.explode("isabelle.gif"))
-      val title = "The " + XML.text(Isabelle_System.isabelle_name()) + " Library"
-      File.write(root_dir + Path.explode("index.html"),
-        HTML.header +
-"""
-<head>
-  """ + HTML.head_meta + """
-  <title>""" + title + """</title>
-</head>
 
-<body text="#000000" bgcolor="#FFFFFF" link="#0000FF" vlink="#000099" alink="#404040">
-  <center>
-    <table width="100%" border="0" cellspacing="10" cellpadding="0">
-      <tr>
-        <td width="20%" valign="middle" align="center"><a href="https://isabelle.in.tum.de/"><img align="bottom" src="isabelle.gif" width="100" height="86" alt="[Isabelle]" border="0" /></a></td>
+      Meta_Data.change(root_dir, Meta_Data.INDEX) { text =>
+        val index0 = Meta_Data.Index.parse(text, "root")
+        val index = {
+          val items1 =
+            for (entry <- sessions_structure.chapter_defs.list)
+              yield Meta_Data.Item(entry.name, description = entry.description)
+          val items2 =
+            (for {
+              (name, _) <- sessions_structure.chapters.iterator
+              if !items1.exists(_.name == name)
+            } yield Meta_Data.Item(name)).toList
+          (items1 ::: items2).foldLeft(index0)(_ + _)
+        }
+        val chapters = index.items
 
-        <td width="80%" valign="middle" align="center">
-          <table width="90%" border="0" cellspacing="0" cellpadding="20">
-            <tr>
-              <td valign="middle" align="center" bgcolor="#AACCCC"><font face="Helvetica,Arial" size="+2">""" + title + """</font></td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
-  </center>
-  <hr />
-""" + File.read(Path.explode("~~/lib/html/library_index_content.template")) +
-"""
-</body>
-""" + HTML.footer)
+        if (index != index0) {
+          val title = "The " + XML.text(Isabelle_System.isabelle_name()) + " Library"
+          HTML.write_document(root_dir, "index.html",
+            List(HTML.title(title + Isabelle_System.isabelle_heading())),
+            HTML.chapter(title) ::
+              (if (chapters.isEmpty) Nil
+              else
+                List(HTML.div("sessions",
+                  List(HTML.description(
+                    chapters.map(chapter =>
+                      (List(HTML.link(chapter.name + "/index.html", HTML.text(chapter.name))),
+                        if (chapter.description.isEmpty) Nil
+                        else HTML.break ::: List(HTML.pre(HTML.text(chapter.description)))))))))),
+            root = Some(root_dir))
+        }
+
+        index.print_json
+      }
     }
   }
 
