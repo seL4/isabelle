@@ -183,7 +183,7 @@ object Browser_Info {
       document_info.theory_by_file(session, file)
 
     def session_dir(session: String): Path =
-      root_dir + Path.explode(sessions_structure(session).chapter_session)
+      root_dir + Path.basic(sessions_structure(session).chapter) + Path.basic(session)
 
     def chapter_dir(chapter: String): Path =
       root_dir + Path.basic(chapter)
@@ -194,7 +194,7 @@ object Browser_Info {
     def theory_html(theory: Document_Info.Theory): Path =
     {
       def check(name: String): Option[Path] = {
-        val path = Path.explode(name).html
+        val path = Path.basic(name).html
         if (Path.eq_case_insensitive(path, Path.index_html)) None
         else Some(path)
       }

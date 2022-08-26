@@ -167,7 +167,7 @@ object Sessions {
               val groups =
                 if (info.groups.isEmpty) ""
                 else info.groups.mkString(" (", " ", ")")
-              progress.echo("Session " + info.chapter_session + groups)
+              progress.echo("Session " + info.chapter + "/" + session_name + groups)
             }
 
             val dependencies = resources.session_dependencies(info)
@@ -477,8 +477,6 @@ object Sessions {
     export_classpath: List[String],
     meta_digest: SHA1.Digest
   ) {
-    def chapter_session: String = chapter + "/" + name
-
     def deps: List[String] = parent.toList ::: imports
 
     def deps_base(session_bases: String => Base): Base = {
