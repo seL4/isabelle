@@ -8,7 +8,8 @@ signature SESSIONS =
 sig
   val root_name: string
   val theory_name: string
-  val command_parser: (Toplevel.transition -> Toplevel.transition) parser
+  val chapter_definition_parser: (Toplevel.transition -> Toplevel.transition) parser
+  val session_parser: (Toplevel.transition -> Toplevel.transition) parser
 end;
 
 structure Sessions: SESSIONS =
@@ -49,7 +50,19 @@ fun path_source source path =
 
 in
 
-val command_parser =
+val chapter_definition_parser =
+  Parse.chapter_name --
+    (Parse.$$$ "description" |-- Parse.!!! (Parse.input Parse.embedded)) >> (fn (_, descr) =>
+      Toplevel.keep (fn state =>
+        let
+          val ctxt = Toplevel.context_of state;
+          val _ =
+            Context_Position.report ctxt
+              (Position.range_position (Symbol_Pos.range (Input.source_explode descr)))
+              Markup.comment;
+        in () end));
+
+val session_parser =
   Parse.session_name --
   Scan.optional (Parse.$$$ "(" |-- Parse.!!! (Scan.repeat1 Parse.name --| Parse.$$$ ")")) [] --
   Scan.optional (Parse.$$$ "in" |-- Parse.!!! Parse.path_input) (Input.string ".") --
