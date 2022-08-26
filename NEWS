@@ -12,6 +12,9 @@ New in this Isabelle version
 * Old-style {* verbatim *} tokens have been discontinued (legacy feature
 since Isabelle2019). INCOMPATIBILITY, use \<open>cartouche\<close> syntax instead.
 
+* Session ROOT files support 'chapter_definition', in order to associate
+a description for presentation purposes.
+
 
 *** Isabelle/VSCode Prover IDE ***
 

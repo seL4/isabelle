@@ -38,18 +38,22 @@ text \<open>
   The ROOT file format follows the lexical conventions of the \<^emph>\<open>outer syntax\<close>
   of Isabelle/Isar, see also @{cite "isabelle-isar-ref"}. This defines common
   forms like identifiers, names, quoted strings, verbatim text, nested
-  comments etc. The grammar for @{syntax session_chapter} and @{syntax
-  session_entry} is given as syntax diagram below; each ROOT file may contain
-  multiple specifications like this. Chapters help to organize browser info
-  (\secref{sec:info}), but have no formal meaning. The default chapter is
-  ``\<open>Unsorted\<close>''.
+  comments etc. The grammar for @{syntax chapter_def}, @{syntax chapter_entry}
+  and @{syntax session_entry} is given as syntax diagram below. Each ROOT file
+  may contain multiple specifications like this. Chapters help to organize
+  browser info (\secref{sec:info}), but have no formal meaning. The default
+  chapter is ``\<open>Unsorted\<close>''. Chapter definitions are optional: the main
+  purpose is to associate a description for presentation.
 
   Isabelle/jEdit @{cite "isabelle-jedit"} includes a simple editing mode
   \<^verbatim>\<open>isabelle-root\<close> for session ROOT files, which is enabled by default for any
   file of that name.
 
   \<^rail>\<open>
-    @{syntax_def session_chapter}: @'chapter' @{syntax name}
+    @{syntax_def chapter_def}: @'chapter_definition' @{syntax name} description
+    ;
+
+    @{syntax_def chapter_entry}: @'chapter' @{syntax name}
     ;
 
     @{syntax_def session_entry}: @'session' @{syntax system_name} groups? dir? '=' \<newline>

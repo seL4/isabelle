@@ -114,8 +114,7 @@ type entry =
   serial: serial};
 
 fun entry_markup def kind (name, {pos, theory_long_name, serial, ...}: entry) =
-  Position.make_entity_markup def serial kind (name, pos)
-  ||> not (#def def orelse theory_long_name = "") ? cons (Markup.def_theoryN, theory_long_name);
+  Position.make_entity_markup def serial kind (name, pos);
 
 fun print_entry_ref kind (name, entry) =
   quote (Markup.markup (entry_markup {def = false} kind (name, entry)) name);

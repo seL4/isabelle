@@ -167,7 +167,7 @@ object Sessions {
               val groups =
                 if (info.groups.isEmpty) ""
                 else info.groups.mkString(" (", " ", ")")
-              progress.echo("Session " + info.chapter_session + groups)
+              progress.echo("Session " + info.chapter + "/" + session_name + groups)
             }
 
             val dependencies = resources.session_dependencies(info)
@@ -477,8 +477,6 @@ object Sessions {
     export_classpath: List[String],
     meta_digest: SHA1.Digest
   ) {
-    def chapter_session: String = chapter + "/" + name
-
     def deps: List[String] = parent.toList ::: imports
 
     def deps_base(session_bases: String => Base): Base = {
@@ -643,9 +641,9 @@ object Sessions {
   }
 
   object Structure {
-    val empty: Structure = make(Nil)
+    val empty: Structure = make(Chapter_Defs.empty, Nil)
 
-    def make(infos: List[Info]): Structure = {
+    def make(chapter_defs: Chapter_Defs, infos: List[Info]): Structure = {
       def add_edges(
         graph: Graph[String, Info],
         kind: String,
@@ -718,12 +716,13 @@ object Sessions {
               }
           }
 
-      new Structure(
-        session_positions, session_directories, global_theories, build_graph, imports_graph)
+      new Structure(chapter_defs, session_positions, session_directories,
+        global_theories, build_graph, imports_graph)
     }
   }
 
   final class Structure private[Sessions](
+    val chapter_defs: Chapter_Defs,
     val session_positions: List[(String, Position.T)],
     val session_directories: Map[JFile, String],
     val global_theories: Map[String, String],
@@ -801,8 +800,7 @@ object Sessions {
         graph.restrict(graph.all_preds(sessions).toSet)
       }
 
-      new Structure(
-        session_positions, session_directories, global_theories,
+      new Structure(chapter_defs, session_positions, session_directories, global_theories,
         restrict(build_graph), restrict(imports_graph))
     }
 
@@ -855,6 +853,7 @@ object Sessions {
 
   /* parser */
 
+  private val CHAPTER_DEFINITION = "chapter_definition"
   private val CHAPTER = "chapter"
   private val SESSION = "session"
   private val IN = "in"
@@ -872,6 +871,7 @@ object Sessions {
   val root_syntax: Outer_Syntax =
     Outer_Syntax.empty + "(" + ")" + "+" + "," + "=" + "[" + "]" +
       GLOBAL + IN +
+      (CHAPTER_DEFINITION, Keyword.THY_DECL) +
       (CHAPTER, Keyword.THY_DECL) +
       (SESSION, Keyword.THY_DECL) +
       (DESCRIPTION, Keyword.QUASI_COMMAND) +
@@ -885,7 +885,8 @@ object Sessions {
       (EXPORT_CLASSPATH, Keyword.QUASI_COMMAND)
 
   abstract class Entry
-  sealed case class Chapter(name: String) extends Entry
+  sealed case class Chapter_Def(pos: Position.T, name: String, description: String) extends Entry
+  sealed case class Chapter_Entry(name: String) extends Entry
   sealed case class Session_Entry(
     pos: Position.T,
     name: String,
@@ -908,12 +909,45 @@ object Sessions {
       document_theories.map(_._1)
   }
 
-  private object Parsers extends Options.Parsers {
-    private val chapter: Parser[Chapter] = {
-      val chapter_name = atom("chapter name", _.is_name)
+  object Chapter_Defs {
+    val empty: Chapter_Defs = new Chapter_Defs(Nil)
+  }
 
-      command(CHAPTER) ~! chapter_name ^^ { case _ ~ a => Chapter(a) }
-    }
+  class Chapter_Defs private(rev_list: List[Chapter_Def]) {
+    def list: List[Chapter_Def] = rev_list.reverse
+
+    override def toString: String =
+      list.map(_.name).mkString("Chapter_Defs(", ", ", ")")
+
+    private def find(chapter: String): Option[Chapter_Def] =
+      rev_list.find(_.name == chapter)
+
+    def apply(chapter: String): String =
+      find(chapter) match {
+        case None => ""
+        case Some(ch_def) => ch_def.description
+      }
+
+    def + (ch_def: Chapter_Def): Chapter_Defs =
+      if (ch_def.description.isEmpty) this
+      else {
+        find(ch_def.name) match {
+          case None => new Chapter_Defs(ch_def :: rev_list)
+          case Some(old_def) =>
+            error("Duplicate chapter definition " + quote(ch_def.name) +
+              Position.here(old_def.pos) + Position.here(ch_def.pos))
+        }
+      }
+  }
+
+  private object Parsers extends Options.Parsers {
+    private val chapter_def: Parser[Chapter_Def] =
+      command(CHAPTER_DEFINITION) ~!
+        (position(chapter_name) ~ $$$(DESCRIPTION) ~ text) ^^
+        { case _ ~ ((a, pos) ~ _ ~ b) => Chapter_Def(pos, a, b) }
+
+    private val chapter_entry: Parser[Chapter_Entry] =
+      command(CHAPTER) ~! chapter_name ^^ { case _ ~ a => Chapter_Entry(a) }
 
     private val session_entry: Parser[Session_Entry] = {
       val option =
@@ -970,8 +1004,8 @@ object Sessions {
     def parse_root(path: Path): List[Entry] = {
       val toks = Token.explode(root_syntax.keywords, File.read(path))
       val start = Token.Pos.file(path.implode)
-
-      parse_all(rep(chapter | session_entry), Token.reader(toks, start)) match {
+      val parser: Parser[Entry] = chapter_def | chapter_entry | session_entry
+      parse_all(rep(parser), Token.reader(toks, start)) match {
         case Success(result, _) => result
         case bad => error(bad.toString)
       }
@@ -984,15 +1018,22 @@ object Sessions {
     for (entry <- Parsers.parse_root(path) if entry.isInstanceOf[Session_Entry])
     yield entry.asInstanceOf[Session_Entry]
 
-  def read_root(options: Options, select: Boolean, path: Path): List[Info] = {
+  def read_root(
+    options: Options,
+    select: Boolean,
+    path: Path,
+    chapter_defs: Chapter_Defs
+  ): (List[Info], Chapter_Defs) = {
+    var chapter_defs1 = chapter_defs
     var entry_chapter = UNSORTED
     val infos = new mutable.ListBuffer[Info]
     parse_root(path).foreach {
-      case Chapter(name) => entry_chapter = name
+      case ch_def: Chapter_Def => chapter_defs1 += ch_def
+      case entry: Chapter_Entry => entry_chapter = entry.name
       case entry: Session_Entry =>
         infos += make_info(options, select, path.dir, entry_chapter, entry)
     }
-    infos.toList
+    (infos.toList, chapter_defs1)
   }
 
   def parse_roots(roots: Path): List[String] = {
@@ -1065,7 +1106,18 @@ object Sessions {
           }
       }.toList.map(_._2)
 
-    Structure.make(unique_roots.flatMap(p => read_root(options, p._1, p._2)) ::: infos)
+    val (chapter_defs, info_roots) = {
+      var chapter_defs = Chapter_Defs.empty
+      val result = new mutable.ListBuffer[Info]
+      for { (select, path) <- unique_roots } {
+        val (infos, chapter_defs1) = read_root(options, select, path, chapter_defs)
+        chapter_defs = chapter_defs1
+        result ++= infos
+      }
+      (chapter_defs, result.toList)
+    }
+
+    Structure.make(chapter_defs, info_roots ::: infos)
   }
 
 
@@ -1199,7 +1251,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
     val augment_table: PostgreSQL.Source =
       "ALTER TABLE IF EXISTS " + table.ident +
-        " ADD COLUMN IF NOT EXISTS " + uuid.decl(SQL.sql_type_postgresql)
+      " ADD COLUMN IF NOT EXISTS " + uuid.decl(SQL.sql_type_postgresql)
   }
 
   def store(options: Options, cache: Term.Cache = Term.Cache.make()): Store =
