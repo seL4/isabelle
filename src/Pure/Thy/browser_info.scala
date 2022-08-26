@@ -185,11 +185,11 @@ object Browser_Info {
     def session_chapter(session: String): String =
       sessions_structure(session).chapter
 
-    def session_dir(session: String): Path =
-      root_dir + Path.basic(session_chapter(session)) + Path.basic(session)
+    def chapter_dir(session: String): Path =
+      root_dir + Path.basic(session_chapter(session))
 
-    def chapter_dir(chapter: String): Path =
-      root_dir + Path.basic(chapter)
+    def session_dir(session: String): Path =
+      chapter_dir(session) + Path.basic(session)
 
     def theory_dir(theory: Document_Info.Theory): Path =
       session_dir(theory.dynamic_session)
@@ -273,8 +273,7 @@ object Browser_Info {
     /* maintain presentation structure */
 
     def update_chapter(session_name: String, session_description: String): Unit = synchronized {
-      val chapter = session_chapter(session_name)
-      val dir = Meta_Data.init_directory(chapter_dir(chapter))
+      val dir = Meta_Data.init_directory(chapter_dir(session_name))
       Meta_Data.change(dir, Meta_Data.INDEX) { text =>
         val index0 = Meta_Data.Index.parse(text, "chapter")
         val item = Meta_Data.Item(session_name, description = session_description)
@@ -282,7 +281,7 @@ object Browser_Info {
         val sessions = index.items
 
         if (index != index0) {
-          val title = "Isabelle/" + chapter + " sessions"
+          val title = "Isabelle/" + session_chapter(session_name) + " sessions"
           HTML.write_document(dir, "index.html",
             List(HTML.title(title + Isabelle_System.isabelle_heading())),
             HTML.chapter(title) ::
@@ -532,7 +531,7 @@ object Browser_Info {
     val session_dir = context.session_dir(session_name).expand
     progress.echo("Presenting " + session_name + " in " + session_dir + " ...")
 
-    Meta_Data.init_directory(context.chapter_dir(session_info.chapter))
+    Meta_Data.init_directory(context.chapter_dir(session_name))
     Meta_Data.init_directory(session_dir)
 
     val session = context.document_info.the_session(session_name)
