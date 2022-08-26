@@ -883,7 +883,7 @@ object Sessions {
       (EXPORT_CLASSPATH, Keyword.QUASI_COMMAND)
 
   abstract class Entry
-  sealed case class Chapter(name: String) extends Entry
+  sealed case class Chapter_Entry(name: String) extends Entry
   sealed case class Session_Entry(
     pos: Position.T,
     name: String,
@@ -907,10 +907,10 @@ object Sessions {
   }
 
   private object Parsers extends Options.Parsers {
-    private val chapter: Parser[Chapter] = {
+    private val chapter: Parser[Chapter_Entry] = {
       val chapter_name = atom("chapter name", _.is_name)
 
-      command(CHAPTER) ~! chapter_name ^^ { case _ ~ a => Chapter(a) }
+      command(CHAPTER) ~! chapter_name ^^ { case _ ~ a => Chapter_Entry(a) }
     }
 
     private val session_entry: Parser[Session_Entry] = {
@@ -986,7 +986,7 @@ object Sessions {
     var entry_chapter = UNSORTED
     val infos = new mutable.ListBuffer[Info]
     parse_root(path).foreach {
-      case Chapter(name) => entry_chapter = name
+      case Chapter_Entry(name) => entry_chapter = name
       case entry: Session_Entry =>
         infos += make_info(options, select, path.dir, entry_chapter, entry)
     }
