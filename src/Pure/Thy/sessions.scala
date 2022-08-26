@@ -941,9 +941,6 @@ object Sessions {
   }
 
   private object Parsers extends Options.Parsers {
-    private val chapter_name: Parser[String] =
-      atom("chapter name", _.is_name)
-
     private val chapter_def: Parser[Chapter_Def] =
       command(CHAPTER_DEFINITION) ~!
         (position(chapter_name) ~ $$$(DESCRIPTION) ~ text) ^^

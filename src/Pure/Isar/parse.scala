@@ -71,6 +71,7 @@ object Parse {
     def path: Parser[String] =
       atom("file name/path specification", tok => tok.is_embedded && Path.is_wellformed(tok.content))
 
+    def chapter_name: Parser[String] = atom("chapter name", _.is_system_name)
     def session_name: Parser[String] = atom("session name", _.is_system_name)
     def theory_name: Parser[String] = atom("theory name", _.is_system_name)
 
