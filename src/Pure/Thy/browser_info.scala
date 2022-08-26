@@ -57,6 +57,12 @@ object Browser_Info {
       dir
     }
 
+    def clean_directory(dir: Path): Path = {
+      check_directory(dir)
+      Isabelle_System.rm_tree(dir)  // guarded by check_directory!
+      Isabelle_System.new_directory(dir + PATH)
+    }
+
 
     /* content */
 
@@ -532,7 +538,7 @@ object Browser_Info {
     progress.echo("Presenting " + session_name + " in " + session_dir + " ...")
 
     Meta_Data.init_directory(context.chapter_dir(session_name))
-    Meta_Data.init_directory(session_dir)
+    Meta_Data.clean_directory(session_dir)
 
     val session = context.document_info.the_session(session_name)
 
