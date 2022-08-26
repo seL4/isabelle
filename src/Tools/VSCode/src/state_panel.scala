@@ -69,7 +69,7 @@ class State_Panel private(val server: Language_Server) {
                   uri = File.uri(Path.explode(source).absolute_file)
                 } yield HTML.link(uri.toString + "#" + def_line, body)
             }
-          val elements = Browser_Info.elements2.copy(entity = Markup.Elements.full)
+          val elements = Browser_Info.extra_elements.copy(entity = Markup.Elements.full)
           val html = node_context.make_html(elements, Pretty.separate(body))
           output(HTML.source(html).toString)
         })

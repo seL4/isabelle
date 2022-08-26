@@ -145,16 +145,16 @@ object Browser_Info {
     entity: Markup.Elements = Markup.Elements.empty,
     language: Markup.Elements = Markup.Elements.empty)
 
-  val elements1: Elements =
+  val default_elements: Elements =
     Elements(
       html = Rendering.foreground_elements ++ Rendering.text_color_elements +
         Markup.NUMERAL + Markup.COMMENT + Markup.ENTITY + Markup.LANGUAGE,
       entity = Markup.Elements(Markup.THEORY, Markup.TYPE_NAME, Markup.CONSTANT, Markup.FACT,
         Markup.CLASS, Markup.LOCALE, Markup.FREE))
 
-  val elements2: Elements =
+  val extra_elements: Elements =
     Elements(
-      html = elements1.html ++ Rendering.markdown_elements,
+      html = default_elements.html ++ Rendering.markdown_elements,
       language = Markup.Elements(Markup.Language.DOCUMENT))
 
 
@@ -163,7 +163,7 @@ object Browser_Info {
 
   def context(
     sessions_structure: Sessions.Structure,
-    elements: Elements,
+    elements: Elements = default_elements,
     root_dir: Path = Path.current,
     document_info: Document_Info = Document_Info.empty
   ): Context = new Context(sessions_structure, elements, root_dir, document_info)
@@ -647,7 +647,7 @@ object Browser_Info {
     progress.echo("Presentation in " + root_dir)
 
     using(Export.open_database_context(store)) { database_context =>
-      val context0 = context(deps.sessions_structure, elements1, root_dir = root_dir)
+      val context0 = context(deps.sessions_structure, root_dir = root_dir)
 
       val sessions1 =
         deps.sessions_structure.build_requirements(sessions).filter { session_name =>
@@ -662,7 +662,7 @@ object Browser_Info {
         }
 
       val context1 =
-        context(deps.sessions_structure, elements1, root_dir = root_dir,
+        context(deps.sessions_structure, root_dir = root_dir,
           document_info = Document_Info.read(database_context, deps, sessions1))
 
       context1.update_root()
