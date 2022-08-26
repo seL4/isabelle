@@ -114,6 +114,8 @@ object Browser_Info {
     }
 
     sealed case class Item(name: String, description: String = "") {
+      override def toString: String = name
+
       def json: JSON.T = JSON.Object("name" -> name, "description" -> description)
     }
 
