@@ -42,15 +42,16 @@ text \<open>
   and @{syntax session_entry} is given as syntax diagram below. Each ROOT file
   may contain multiple specifications like this. Chapters help to organize
   browser info (\secref{sec:info}), but have no formal meaning. The default
-  chapter is ``\<open>Unsorted\<close>''. Chapter definitions are optional: the main
-  purpose is to associate a description for presentation.
+  chapter is ``\<open>Unsorted\<close>''. Chapter definitions, which are optional, allow to
+  associate additional information.
 
   Isabelle/jEdit @{cite "isabelle-jedit"} includes a simple editing mode
   \<^verbatim>\<open>isabelle-root\<close> for session ROOT files, which is enabled by default for any
   file of that name.
 
   \<^rail>\<open>
-    @{syntax_def chapter_def}: @'chapter_definition' @{syntax name} description?
+    @{syntax_def chapter_def}: @'chapter_definition' @{syntax name} \<newline>
+      groups? description?
     ;
 
     @{syntax_def chapter_entry}: @'chapter' @{syntax name}
@@ -90,6 +91,10 @@ text \<open>
       (@{syntax embedded}+)
   \<close>
 
+  \<^descr> \isakeyword{chapter{\isacharunderscorekeyword}definition}~\<open>A (groups)\<close>
+  associates a collection of groups with chapter \<open>A\<close>. All sessions that belong
+  to this chapter will automatically become members of these groups.
+
   \<^descr> \isakeyword{session}~\<open>A = B + body\<close> defines a new session \<open>A\<close> based on
   parent session \<open>B\<close>, with its content given in \<open>body\<close> (imported sessions and
   theories). Note that a parent (like \<open>HOL\<close>) is mandatory in practical
@@ -114,8 +119,8 @@ text \<open>
   All theory files are located relatively to the session directory. The prover
   process is run within the same as its current working directory.
 
-  \<^descr> \isakeyword{description}~\<open>text\<close> is a free-form annotation for this
-  session.
+  \<^descr> \isakeyword{description}~\<open>text\<close> is a free-form description for this
+  session (or chapter), e.g. for presentation purposes.
 
   \<^descr> \isakeyword{options}~\<open>[x = a, y = b, z]\<close> defines separate options
   (\secref{sec:system-options}) that are used when processing this session,

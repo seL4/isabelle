@@ -20,6 +20,9 @@ val theory_name = "Pure.Sessions";
 
 local
 
+val groups =
+  Scan.optional (Parse.$$$ "(" |-- Parse.!!! (Scan.repeat1 Parse.name --| Parse.$$$ ")")) [];
+
 val description =
   Scan.optional (Parse.$$$ "description" |-- Parse.!!! (Parse.input Parse.embedded)) Input.empty;
 
@@ -54,7 +57,7 @@ fun path_source source path =
 in
 
 val chapter_definition_parser =
-  Parse.chapter_name -- description >> (fn (_, descr) =>
+  Parse.chapter_name -- groups -- description >> (fn (_, descr) =>
     Toplevel.keep (fn state =>
       let
         val ctxt = Toplevel.context_of state;
@@ -65,8 +68,7 @@ val chapter_definition_parser =
       in () end));
 
 val session_parser =
-  Parse.session_name --
-  Scan.optional (Parse.$$$ "(" |-- Parse.!!! (Scan.repeat1 Parse.name --| Parse.$$$ ")")) [] --
+  Parse.session_name -- groups --
   Scan.optional (Parse.$$$ "in" |-- Parse.!!! Parse.path_input) (Input.string ".") --
   (Parse.$$$ "=" |--
     Parse.!!! (Scan.option (Parse.session_name --| Parse.!!! (Parse.$$$ "+")) -- description --

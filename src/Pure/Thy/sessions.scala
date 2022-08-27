@@ -418,7 +418,9 @@ object Sessions {
 
           (other_name,
             List(
-              make_info(info.options,
+              make_info(
+                Chapter_Defs.empty,
+                info.options,
                 dir_selected = false,
                 dir = Path.explode("$ISABELLE_TMP_PREFIX"),
                 chapter = info.chapter,
@@ -460,6 +462,7 @@ object Sessions {
   sealed case class Chapter_Info(
     name: String,
     pos: Position.T,
+    groups: List[String],
     description: String,
     sessions: List[String]
   )
@@ -554,6 +557,7 @@ object Sessions {
   }
 
   def make_info(
+    chapter_defs: Chapter_Defs,
     options: Options,
     dir_selected: Boolean,
     dir: Path,
@@ -609,7 +613,10 @@ object Sessions {
             entry.document_files)
           .toString)
 
-      Info(name, chapter, dir_selected, entry.pos, entry.groups, session_path,
+      val chapter_groups = chapter_defs(chapter).groups
+      val groups = chapter_groups ::: entry.groups.filterNot(chapter_groups.contains)
+
+      Info(name, chapter, dir_selected, entry.pos, groups, session_path,
         entry.parent, entry.description, directories, session_options,
         entry.imports, theories, global_theories, entry.document_theories, document_files,
         export_files, entry.export_classpath, meta_digest)
@@ -752,13 +759,13 @@ object Sessions {
       val chapters1 =
         (for (entry <- chapter_defs.list.iterator) yield {
           val sessions = chapter_sessions.get_list(entry.name)
-          Chapter_Info(entry.name, entry.pos, entry.description, sessions.sorted)
+          Chapter_Info(entry.name, entry.pos, entry.groups, entry.description, sessions.sorted)
         }).toList
       val chapters2 =
         (for {
           (name, sessions) <- chapter_sessions.iterator_list
           if !chapters1.exists(_.name == name)
-        } yield Chapter_Info(name, Position.none, "", sessions.sorted)).toList.sortBy(_.name)
+        } yield Chapter_Info(name, Position.none, Nil, "", sessions.sorted)).toList.sortBy(_.name)
       chapters1 ::: chapters2
     }
 
@@ -906,7 +913,15 @@ object Sessions {
       (EXPORT_CLASSPATH, Keyword.QUASI_COMMAND)
 
   abstract class Entry
-  sealed case class Chapter_Def(pos: Position.T, name: String, description: String) extends Entry
+  object Chapter_Def {
+    def empty(chapter: String): Chapter_Def = Chapter_Def(Position.none, chapter, Nil, "")
+  }
+  sealed case class Chapter_Def(
+    pos: Position.T,
+    name: String,
+    groups: List[String],
+    description: String
+  ) extends Entry
   sealed case class Chapter_Entry(name: String) extends Entry
   sealed case class Session_Entry(
     pos: Position.T,
@@ -943,6 +958,9 @@ object Sessions {
     def get(chapter: String): Option[Chapter_Def] =
       rev_list.find(_.name == chapter)
 
+    def apply(chapter: String): Chapter_Def =
+      get(chapter) getOrElse Chapter_Def.empty(chapter)
+
     def + (entry: Chapter_Def): Chapter_Defs =
       get(entry.name) match {
         case None => new Chapter_Defs(entry :: rev_list)
@@ -953,12 +971,15 @@ object Sessions {
   }
 
   private object Parsers extends Options.Parsers {
+    private val groups: Parser[List[String]] =
+      ($$$("(") ~! (rep1(name) <~ $$$(")")) ^^ { case _ ~ x => x }) | success(Nil)
+
     private val description: Parser[String] =
       ($$$(DESCRIPTION) ~! text ^^ { case _ ~ x => x }) | success("")
 
     private val chapter_def: Parser[Chapter_Def] =
-      command(CHAPTER_DEFINITION) ~! (position(chapter_name) ~ description) ^^
-        { case _ ~ ((a, pos) ~ b) => Chapter_Def(pos, a, b) }
+      command(CHAPTER_DEFINITION) ~! (position(chapter_name) ~ groups ~ description) ^^
+        { case _ ~ ((a, pos) ~ b ~ c) => Chapter_Def(pos, a, b, c) }
 
     private val chapter_entry: Parser[Chapter_Entry] =
       command(CHAPTER) ~! chapter_name ^^ { case _ ~ a => Chapter_Entry(a) }
@@ -997,8 +1018,7 @@ object Sessions {
           { case _ ~ x => x }
 
       command(SESSION) ~!
-        (position(session_name) ~
-          (($$$("(") ~! (rep1(name) <~ $$$(")")) ^^ { case _ ~ x => x }) | success(Nil)) ~
+        (position(session_name) ~ groups ~
           (($$$(IN) ~! path ^^ { case _ ~ x => x }) | success(".")) ~
           ($$$("=") ~!
             (opt(session_name ~! $$$("+") ^^ { case x ~ _ => x }) ~ description ~
@@ -1103,7 +1123,7 @@ object Sessions {
 
     val (chapter_defs, info_roots) = {
       var chapter_defs = Chapter_Defs.empty
-      val info_roots = new mutable.ListBuffer[Info]
+      val mk_infos = new mutable.ListBuffer[() => Info]
 
       for ((select, path) <- unique_roots) {
         var entry_chapter = UNSORTED
@@ -1111,10 +1131,11 @@ object Sessions {
           case entry: Chapter_Def => chapter_defs += entry
           case entry: Chapter_Entry => entry_chapter = entry.name
           case entry: Session_Entry =>
-            info_roots += make_info(options, select, path.dir, entry_chapter, entry)
+            def mk(): Info = make_info(chapter_defs, options, select, path.dir, entry_chapter, entry)
+            mk_infos += mk
         }
       }
-      (chapter_defs, info_roots.toList)
+      (chapter_defs, mk_infos.toList.map(_()))
     }
 
     Structure.make(chapter_defs, info_roots ::: infos)
