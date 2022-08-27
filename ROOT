@@ -6,18 +6,11 @@ chapter_definition HOL
     that of the HOL System (https://www.cl.cam.ac.uk/Research/HVG/HOL).
   "
 
-chapter_definition ZF
-  description "
-    Zermelo-Fraenkel set theory.
-
-    Isabelle/ZF offers a formulation of Zermelo-Fraenkel set theory on top of
-    Isabelle/FOL.
-  "
-
 chapter_definition FOL
   description "
     First-Order Logic with some variations: single-sorted vs. many-sorted
-    (polymorphic), classical vs. intuitionistic, domain-theory (LCF).
+    (polymorphic), classical vs. intuitionistic, domain-theory (LCF) vs.
+    set-theory (ZF).
   "
 
 chapter_definition Pure
