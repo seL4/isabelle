@@ -919,23 +919,17 @@ object Sessions {
     override def toString: String =
       list.map(_.name).mkString("Chapter_Defs(", ", ", ")")
 
-    private def find(chapter: String): Option[Chapter_Def] =
+    def get(chapter: String): Option[Chapter_Def] =
       rev_list.find(_.name == chapter)
 
-    def apply(chapter: String): String =
-      find(chapter) match {
-        case None => ""
-        case Some(ch_def) => ch_def.description
-      }
-
-    def + (ch_def: Chapter_Def): Chapter_Defs =
-      if (ch_def.description.isEmpty) this
+    def + (entry: Chapter_Def): Chapter_Defs =
+      if (entry.description.isEmpty) this
       else {
-        find(ch_def.name) match {
-          case None => new Chapter_Defs(ch_def :: rev_list)
-          case Some(old_def) =>
-            error("Duplicate chapter definition " + quote(ch_def.name) +
-              Position.here(old_def.pos) + Position.here(ch_def.pos))
+        get(entry.name) match {
+          case None => new Chapter_Defs(entry :: rev_list)
+          case Some(old_entry) =>
+            error("Duplicate chapter definition " + quote(entry.name) +
+              Position.here(old_entry.pos) + Position.here(entry.pos))
         }
       }
   }
