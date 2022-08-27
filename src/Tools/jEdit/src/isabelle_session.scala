@@ -50,9 +50,9 @@ object Isabelle_Session {
           val sessions = JEdit_Sessions.sessions_structure()
           elems match {
             case Nil =>
-              sessions.chapters.sortBy(_.name).map(ch => make_entry(ch.name, is_dir = true)).toArray
+              sessions.relevant_chapters.sortBy(_.name).map(ch => make_entry(ch.name, is_dir = true)).toArray
             case List(chapter) =>
-              sessions.chapters.find(_.name == chapter) match {
+              sessions.relevant_chapters.find(_.name == chapter) match {
                 case None => null
                 case Some(chapter_info) =>
                   chapter_info.sessions.map { session =>

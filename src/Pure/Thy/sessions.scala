@@ -762,7 +762,7 @@ object Sessions {
       chapters1 ::: chapters2
     }
 
-    def chapters: List[Chapter_Info] = known_chapters.filter(_.sessions.nonEmpty)
+    def relevant_chapters: List[Chapter_Info] = known_chapters.filter(_.sessions.nonEmpty)
 
     def build_graph_display: Graph_Display.Graph = Graph_Display.make_graph(build_graph)
     def imports_graph_display: Graph_Display.Graph = Graph_Display.make_graph(imports_graph)
