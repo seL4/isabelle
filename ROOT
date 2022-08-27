@@ -37,3 +37,8 @@ chapter_definition Doc
   description "
     Sources of Documentation.
   "
+
+chapter_definition Unsorted
+  description "
+    Sessions without 'chapter' declaration.
+  "
