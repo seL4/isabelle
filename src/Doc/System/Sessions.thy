@@ -50,7 +50,7 @@ text \<open>
   file of that name.
 
   \<^rail>\<open>
-    @{syntax_def chapter_def}: @'chapter_definition' @{syntax name} description
+    @{syntax_def chapter_def}: @'chapter_definition' @{syntax name} description?
     ;
 
     @{syntax_def chapter_entry}: @'chapter' @{syntax name}

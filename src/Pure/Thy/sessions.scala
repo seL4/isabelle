@@ -932,10 +932,12 @@ object Sessions {
   }
 
   private object Parsers extends Options.Parsers {
+    private val description: Parser[String] =
+      ($$$(DESCRIPTION) ~! text ^^ { case _ ~ x => x }) | success("")
+
     private val chapter_def: Parser[Chapter_Def] =
-      command(CHAPTER_DEFINITION) ~!
-        (position(chapter_name) ~ $$$(DESCRIPTION) ~ text) ^^
-        { case _ ~ ((a, pos) ~ _ ~ b) => Chapter_Def(pos, a, b) }
+      command(CHAPTER_DEFINITION) ~! (position(chapter_name) ~ description) ^^
+        { case _ ~ ((a, pos) ~ b) => Chapter_Def(pos, a, b) }
 
     private val chapter_entry: Parser[Chapter_Entry] =
       command(CHAPTER) ~! chapter_name ^^ { case _ ~ a => Chapter_Entry(a) }
@@ -978,8 +980,7 @@ object Sessions {
           (($$$("(") ~! (rep1(name) <~ $$$(")")) ^^ { case _ ~ x => x }) | success(Nil)) ~
           (($$$(IN) ~! path ^^ { case _ ~ x => x }) | success(".")) ~
           ($$$("=") ~!
-            (opt(session_name ~! $$$("+") ^^ { case x ~ _ => x }) ~
-              (($$$(DESCRIPTION) ~! text ^^ { case _ ~ x => x }) | success("")) ~
+            (opt(session_name ~! $$$("+") ^^ { case x ~ _ => x }) ~ description ~
               (($$$(OPTIONS) ~! options ^^ { case _ ~ x => x }) | success(Nil)) ~
               (($$$(SESSIONS) ~! rep1(session_name)  ^^ { case _ ~ x => x }) | success(Nil)) ~
               (($$$(DIRECTORIES) ~! rep1(path) ^^ { case _ ~ x => x }) | success(Nil)) ~

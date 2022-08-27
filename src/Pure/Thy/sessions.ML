@@ -20,6 +20,9 @@ val theory_name = "Pure.Sessions";
 
 local
 
+val description =
+  Scan.optional (Parse.$$$ "description" |-- Parse.!!! (Parse.input Parse.embedded)) Input.empty;
+
 val theory_entry = Parse.input Parse.theory_name --| Parse.opt_keyword "global";
 
 val theories =
@@ -51,24 +54,22 @@ fun path_source source path =
 in
 
 val chapter_definition_parser =
-  Parse.chapter_name --
-    (Parse.$$$ "description" |-- Parse.!!! (Parse.input Parse.embedded)) >> (fn (_, descr) =>
-      Toplevel.keep (fn state =>
-        let
-          val ctxt = Toplevel.context_of state;
-          val _ =
-            Context_Position.report ctxt
-              (Position.range_position (Symbol_Pos.range (Input.source_explode descr)))
-              Markup.comment;
-        in () end));
+  Parse.chapter_name -- description >> (fn (_, descr) =>
+    Toplevel.keep (fn state =>
+      let
+        val ctxt = Toplevel.context_of state;
+        val _ =
+          Context_Position.report ctxt
+            (Position.range_position (Symbol_Pos.range (Input.source_explode descr)))
+            Markup.comment;
+      in () end));
 
 val session_parser =
   Parse.session_name --
   Scan.optional (Parse.$$$ "(" |-- Parse.!!! (Scan.repeat1 Parse.name --| Parse.$$$ ")")) [] --
   Scan.optional (Parse.$$$ "in" |-- Parse.!!! Parse.path_input) (Input.string ".") --
   (Parse.$$$ "=" |--
-    Parse.!!! (Scan.option (Parse.session_name --| Parse.!!! (Parse.$$$ "+")) --
-      Scan.optional (Parse.$$$ "description" |-- Parse.!!! (Parse.input Parse.embedded)) Input.empty --
+    Parse.!!! (Scan.option (Parse.session_name --| Parse.!!! (Parse.$$$ "+")) -- description --
       Scan.optional (Parse.$$$ "options" |-- Parse.!!! Parse.options) [] --
       Scan.optional (Parse.$$$ "sessions" |--
         Parse.!!! (Scan.repeat1 Parse.session_name)) [] --
