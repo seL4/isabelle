@@ -1018,24 +1018,6 @@ object Sessions {
     for (entry <- Parsers.parse_root(path) if entry.isInstanceOf[Session_Entry])
     yield entry.asInstanceOf[Session_Entry]
 
-  def read_root(
-    options: Options,
-    select: Boolean,
-    path: Path,
-    chapter_defs: Chapter_Defs
-  ): (List[Info], Chapter_Defs) = {
-    var chapter_defs1 = chapter_defs
-    var entry_chapter = UNSORTED
-    val infos = new mutable.ListBuffer[Info]
-    parse_root(path).foreach {
-      case ch_def: Chapter_Def => chapter_defs1 += ch_def
-      case entry: Chapter_Entry => entry_chapter = entry.name
-      case entry: Session_Entry =>
-        infos += make_info(options, select, path.dir, entry_chapter, entry)
-    }
-    (infos.toList, chapter_defs1)
-  }
-
   def parse_roots(roots: Path): List[String] = {
     for {
       line <- split_lines(File.read(roots))
@@ -1108,13 +1090,18 @@ object Sessions {
 
     val (chapter_defs, info_roots) = {
       var chapter_defs = Chapter_Defs.empty
-      val result = new mutable.ListBuffer[Info]
-      for { (select, path) <- unique_roots } {
-        val (infos, chapter_defs1) = read_root(options, select, path, chapter_defs)
-        chapter_defs = chapter_defs1
-        result ++= infos
+      val info_roots = new mutable.ListBuffer[Info]
+
+      for ((select, path) <- unique_roots) {
+        var entry_chapter = UNSORTED
+        parse_root(path).foreach {
+          case entry: Chapter_Def => chapter_defs += entry
+          case entry: Chapter_Entry => entry_chapter = entry.name
+          case entry: Session_Entry =>
+            info_roots += make_info(options, select, path.dir, entry_chapter, entry)
+        }
       }
-      (chapter_defs, result.toList)
+      (chapter_defs, info_roots.toList)
     }
 
     Structure.make(chapter_defs, info_roots ::: infos)
