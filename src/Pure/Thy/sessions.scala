@@ -758,7 +758,7 @@ object Sessions {
         (for {
           (name, sessions) <- chapter_sessions.iterator_list
           if !chapters1.exists(_.name == name)
-        } yield Chapter_Info(name, Position.none, "", sessions.sorted)).toList
+        } yield Chapter_Info(name, Position.none, "", sessions.sorted)).toList.sortBy(_.name)
       chapters1 ::: chapters2
     }
 
