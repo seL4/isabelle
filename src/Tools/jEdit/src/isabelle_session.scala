@@ -54,10 +54,10 @@ object Isabelle_Session {
             case List(chapter) =>
               sessions.relevant_chapters.find(_.name == chapter) match {
                 case None => null
-                case Some(chapter_info) =>
-                  chapter_info.sessions.map { session =>
+                case Some(ch) =>
+                  ch.sessions.map { session =>
                     val pos = sessions(session).pos
-                    val name = chapter_info.name + "/" + session
+                    val name = ch.name + "/" + session
                     val path =
                       Position.File.unapply(pos) match {
                         case Some(path) => File.platform_path(path)
