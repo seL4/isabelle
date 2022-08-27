@@ -50,25 +50,26 @@ object Isabelle_Session {
           val sessions = JEdit_Sessions.sessions_structure()
           elems match {
             case Nil =>
-              sessions.chapters.iterator.map(p => make_entry(p._1, is_dir = true)).toArray
+              sessions.chapters.sortBy(_.name).map(ch => make_entry(ch.name, is_dir = true)).toArray
             case List(chapter) =>
-              sessions.chapters.get(chapter) match {
+              sessions.chapters.find(_.name == chapter) match {
                 case None => null
-                case Some(infos) =>
-                  infos.map(info => {
-                    val name = chapter + "/" + info.name
+                case Some(chapter_info) =>
+                  chapter_info.sessions.map { session =>
+                    val pos = sessions(session).pos
+                    val name = chapter_info.name + "/" + session
                     val path =
-                      Position.File.unapply(info.pos) match {
+                      Position.File.unapply(pos) match {
                         case Some(path) => File.platform_path(path)
                         case None => null
                       }
                     val marker =
-                      Position.Line.unapply(info.pos) match {
+                      Position.Line.unapply(pos) match {
                         case Some(line) => "+line:" + line
                         case None => null
                       }
                     new Session_Entry(name, path, marker)
-                  }).toArray
+                  }.toArray
               }
             case _ => null
           }

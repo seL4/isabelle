@@ -457,6 +457,13 @@ object Sessions {
 
   /* cumulative session info */
 
+  sealed case class Chapter_Info(
+    name: String,
+    pos: Position.T,
+    description: String,
+    sessions: List[String]
+  )
+
   sealed case class Info(
     name: String,
     chapter: String,
@@ -722,7 +729,7 @@ object Sessions {
   }
 
   final class Structure private[Sessions](
-    val chapter_defs: Chapter_Defs,
+    chapter_defs: Chapter_Defs,
     val session_positions: List[(String, Position.T)],
     val session_directories: Map[JFile, String],
     val global_theories: Map[String, String],
@@ -737,11 +744,25 @@ object Sessions {
       for ((file, session) <- session_directories.toList)
         yield (File.standard_path(file), session)
 
-    lazy val chapters: SortedMap[String, List[Info]] =
-      build_graph.iterator.foldLeft(SortedMap.empty[String, List[Info]]) {
-        case (chs, (_, (info, _))) =>
-          chs + (info.chapter -> (info :: chs.getOrElse(info.chapter, Nil)))
-      }
+    lazy val known_chapters: List[Chapter_Info] = {
+      val chapter_sessions =
+        Multi_Map.from(
+          for ((_, (info, _)) <- build_graph.iterator)
+            yield info.chapter -> info.name)
+      val chapters1 =
+        (for (entry <- chapter_defs.list.iterator) yield {
+          val sessions = chapter_sessions.get_list(entry.name)
+          Chapter_Info(entry.name, entry.pos, entry.description, sessions.sorted)
+        }).toList
+      val chapters2 =
+        (for {
+          (name, sessions) <- chapter_sessions.iterator_list
+          if !chapters1.exists(_.name == name)
+        } yield Chapter_Info(name, Position.none, "", sessions.sorted)).toList
+      chapters1 ::: chapters2
+    }
+
+    def chapters: List[Chapter_Info] = known_chapters.filter(_.sessions.nonEmpty)
 
     def build_graph_display: Graph_Display.Graph = Graph_Display.make_graph(build_graph)
     def imports_graph_display: Graph_Display.Graph = Graph_Display.make_graph(imports_graph)
