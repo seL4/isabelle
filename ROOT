@@ -29,7 +29,11 @@ chapter_definition Pure
   "
 
 chapter_definition Misc
-  description "Miscellaneous object-logics, tools, and experiments."
+  description "
+    Miscellaneous object-logics, tools, and experiments.
+  "
 
 chapter_definition Doc
-  description "Sources of Documentation."
+  description "
+    Sources of Documentation.
+  "
