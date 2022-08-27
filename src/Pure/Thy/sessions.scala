@@ -923,14 +923,11 @@ object Sessions {
       rev_list.find(_.name == chapter)
 
     def + (entry: Chapter_Def): Chapter_Defs =
-      if (entry.description.isEmpty) this
-      else {
-        get(entry.name) match {
-          case None => new Chapter_Defs(entry :: rev_list)
-          case Some(old_entry) =>
-            error("Duplicate chapter definition " + quote(entry.name) +
-              Position.here(old_entry.pos) + Position.here(entry.pos))
-        }
+      get(entry.name) match {
+        case None => new Chapter_Defs(entry :: rev_list)
+        case Some(old_entry) =>
+          error("Duplicate chapter definition " + quote(entry.name) +
+            Position.here(old_entry.pos) + Position.here(entry.pos))
       }
   }
 
