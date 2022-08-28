@@ -63,14 +63,14 @@ fun read_file_node file_node master_dir pos delimited src_path =
       if Context_Position.pide_reports ()
       then Position.report pos (Markup.language_path delimited) else ();
 
-    fun read_file () =
+    fun read_local () =
       let
         val path = File.check_file (File.full_path master_dir src_path);
         val text = File.read path;
         val file_pos = Path.position path;
       in (text, file_pos) end;
 
-    fun read_url () =
+    fun read_remote () =
       let
         val text = Bytes.content (Isabelle_System.download file_node);
         val file_pos = Position.file file_node;
@@ -78,9 +78,9 @@ fun read_file_node file_node master_dir pos delimited src_path =
 
     val (text, file_pos) =
       (case try Url.explode file_node of
-        NONE => read_file ()
-      | SOME (Url.File _) => read_file ()
-      | _ => read_url ());
+        NONE => read_local ()
+      | SOME (Url.File _) => read_local ()
+      | _ => read_remote ());
 
     val lines = split_lines text;
     val digest = SHA1.digest text;
