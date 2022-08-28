@@ -7,7 +7,7 @@ section \<open>The rewrite Proof Method by Example\<close>
 text\<open>
 This theory gives an overview over the features of the pattern-based rewrite proof method.
 
-Documentation: @{url "https://arxiv.org/abs/2111.04082"}
+Documentation: \<^url>\<open>https://arxiv.org/abs/2111.04082\<close>
 \<close>
 
 lemma
