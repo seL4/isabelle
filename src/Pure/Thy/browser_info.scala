@@ -158,7 +158,8 @@ object Browser_Info {
   val default_elements: Elements =
     Elements(
       html = Rendering.foreground_elements ++ Rendering.text_color_elements +
-        Markup.NUMERAL + Markup.COMMENT + Markup.ENTITY + Markup.LANGUAGE + Markup.URL,
+        Markup.NUMERAL + Markup.COMMENT + Markup.ENTITY + Markup.LANGUAGE +
+        Markup.PATH + Markup.URL,
       entity = Markup.Elements(Markup.THEORY, Markup.TYPE_NAME, Markup.CONSTANT, Markup.FACT,
         Markup.CLASS, Markup.LOCALE, Markup.FREE))
 
@@ -402,6 +403,15 @@ object Browser_Info {
         private def offset_id(range: Text.Range): String =
           "offset_" + range.start + ".." + range.stop
 
+        override def make_file_ref(file: String, body: XML.Body): Option[XML.Elem] = {
+          for (theory <- context.theory_by_file(session_name, file))
+          yield {
+            val html_path = context.theory_dir(theory) + context.smart_html(theory, file)
+            val html_link = HTML.relative_href(html_path, base = Some(node_dir))
+            HTML.link(html_link, body)
+          }
+        }
+
         override def make_ref(props: Properties.T, body: XML.Body): Option[XML.Elem] = {
           props match {
             case Theory_Ref(thy_name) =>
@@ -441,6 +451,7 @@ object Browser_Info {
   class Node_Context {
     def make_def(range: Symbol.Range, body: XML.Body): Option[XML.Elem] = None
     def make_ref(props: Properties.T, body: XML.Body): Option[XML.Elem] = None
+    def make_file_ref(file: String, body: XML.Body): Option[XML.Elem] = None
 
     val div_elements: Set[String] =
       Set(HTML.div.name, HTML.pre.name, HTML.par.name, HTML.list.name, HTML.`enum`.name,
@@ -477,6 +488,12 @@ object Browser_Info {
               }
             }
             else (body1, offset)
+          case XML.Elem(Markup.Path(file), body) =>
+            val (body1, offset) = html_body(body, end_offset)
+            make_file_ref(file, body1) match {
+              case Some(link) => (List(link), offset)
+              case None => (body1, offset)
+            }
           case XML.Elem(Markup.Url(href), body) =>
             val (body1, offset) = html_body(body, end_offset)
             (List(HTML.link(href, body1)), offset)
