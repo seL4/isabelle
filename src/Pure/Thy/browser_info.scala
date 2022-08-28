@@ -158,7 +158,7 @@ object Browser_Info {
   val default_elements: Elements =
     Elements(
       html = Rendering.foreground_elements ++ Rendering.text_color_elements +
-        Markup.NUMERAL + Markup.COMMENT + Markup.ENTITY + Markup.LANGUAGE,
+        Markup.NUMERAL + Markup.COMMENT + Markup.ENTITY + Markup.LANGUAGE + Markup.URL,
       entity = Markup.Elements(Markup.THEORY, Markup.TYPE_NAME, Markup.CONSTANT, Markup.FACT,
         Markup.CLASS, Markup.LOCALE, Markup.FREE))
 
@@ -477,6 +477,9 @@ object Browser_Info {
               }
             }
             else (body1, offset)
+          case XML.Elem(Markup.Url(href), body) =>
+            val (body1, offset) = html_body(body, end_offset)
+            (List(HTML.link(href, body1)), offset)
           case XML.Elem(Markup(Markup.LANGUAGE, Markup.Name(name)), body) =>
             val (body1, offset) = html_body(body, end_offset)
             (html_class(if (elements.language(name)) name else "", body1), offset)
