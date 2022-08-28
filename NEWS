@@ -58,6 +58,11 @@ using a separate theory "README" with Isabelle document markup/markdown.
 * ML files (and other auxiliary files) are presented with detailed
 hyperlinks, just like regular theory sources.
 
+* Support for external hyperlinks (URLs).
+
+* Support for internal hyperlinks to files that belong formally to the
+presented session.
+
 
 *** HOL ***
 
