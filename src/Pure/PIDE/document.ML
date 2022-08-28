@@ -439,9 +439,8 @@ fun define_command {command_id, name, parents, blobs_digests, blobs_index, token
                           SOME thy => Theory.get_markup thy
                         | NONE =>
                             (case try Url.explode parent of
-                              NONE => Markup.path parent
-                            | SOME (Url.File path) => Markup.path (Path.implode path)
-                            | SOME _ => Markup.path parent))
+                              SOME (Url.File path) => Markup.path (Path.implode path)
+                            | _ => Markup.path parent))
                       in Position.report pos markup end)
                   else ();
                 val _ =
