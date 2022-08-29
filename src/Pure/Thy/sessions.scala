@@ -1105,37 +1105,46 @@ object Sessions {
       else Nil
     }
 
-    val roots =
+    val raw_roots: List[(Boolean, Path)] =
       for {
         (select, dir) <- directories(dirs, select_dirs)
         res <- load_dir(select, check_session_dir(dir))
       } yield res
 
-    val unique_roots =
-      roots.foldLeft(Map.empty[JFile, (Boolean, Path)]) {
+    val unique_roots: List[(Boolean, Path, List[Entry])] =
+      raw_roots.foldLeft(Map.empty[JFile, (Boolean, Path, List[Entry])]) {
         case (m, (select, path)) =>
           val file = path.canonical_file
           m.get(file) match {
-            case None => m + (file -> (select, path))
-            case Some((select1, path1)) => m + (file -> (select1 || select, path1))
+            case None =>
+              val entries = parse_root(path)
+              m + (file -> (select, path.dir, entries))
+            case Some((select1, dir1, entries1)) =>
+              m + (file -> (select1 || select, dir1, entries1))
           }
-      }.toList.map(_._2)
+      }.valuesIterator.toList
 
-    val (chapter_defs, info_roots) = {
-      var chapter_defs = Chapter_Defs.empty
-      val mk_infos = new mutable.ListBuffer[() => Info]
+    val chapter_defs: Chapter_Defs =
+      unique_roots.foldLeft(Chapter_Defs.empty) {
+        case (defs1, (_, _, entries)) =>
+          entries.foldLeft(defs1) {
+            case ((defs2, entry: Chapter_Def)) => defs2 + entry
+            case ((defs2, _)) => defs2
+          }
+      }
 
-      for ((select, path) <- unique_roots) {
-        var entry_chapter = UNSORTED
-        parse_root(path).foreach {
-          case entry: Chapter_Def => chapter_defs += entry
-          case entry: Chapter_Entry => entry_chapter = entry.name
+    val info_roots = {
+      var chapter = UNSORTED
+      val info_roots = new mutable.ListBuffer[Info]
+      for ((select, dir, entries) <- unique_roots) {
+        entries.foreach {
+          case entry: Chapter_Entry => chapter = entry.name
           case entry: Session_Entry =>
-            def mk(): Info = make_info(chapter_defs, options, select, path.dir, entry_chapter, entry)
-            mk_infos += mk
+            info_roots += make_info(chapter_defs, options, select, dir, chapter, entry)
+          case _ =>
         }
       }
-      (chapter_defs, mk_infos.toList.map(_()))
+      info_roots.toList
     }
 
     Structure.make(chapter_defs, info_roots ::: infos)
