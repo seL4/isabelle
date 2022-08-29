@@ -252,7 +252,8 @@ final class Path private(
   }
 
   def exe: Path = ext("exe")
-  def platform_exe: Path = if (Platform.is_windows) exe else this
+  def exe_if(b: Boolean): Path = if (b) exe else this
+  def platform_exe: Path = exe_if(Platform.is_windows)
 
   private val Ext = new Regex("(.*)\\.([^.]*)")
 

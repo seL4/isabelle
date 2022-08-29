@@ -155,6 +155,7 @@ class Tools extends Isabelle_Scala_Tools(
 
 class Admin_Tools extends Isabelle_Scala_Tools(
   Build_CSDP.isabelle_tool,
+  Build_CVC5.isabelle_tool,
   Build_Cygwin.isabelle_tool,
   Build_Doc.isabelle_tool,
   Build_E.isabelle_tool,
