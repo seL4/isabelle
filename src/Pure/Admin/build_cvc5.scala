@@ -79,9 +79,9 @@ fi
 
     File.write(component_dir + Path.basic("README"),
       """This distribution of cvc5 was assembled from the official downloads
-from """ + base_url + """ for 64bit
-macOS, Linux, Windows. There is native support for macOS ARM64, but Linux
-ARM64 is missing.
+from """ + base_url + """ for 64bit macOS,
+Linux, and Windows. There is native support for macOS ARM64, but
+Linux ARM64 is missing.
 
 The oldest supported version of macOS is 10.14 Mojave.
 
