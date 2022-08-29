@@ -17,7 +17,7 @@
         "url": "https://isabelle-dev.sketis.net"
     },
     "engines": {
-        "vscode": "1.65.2"
+        "vscode": "1.70.1"
     },
     "categories": [
         "Programming Languages"
