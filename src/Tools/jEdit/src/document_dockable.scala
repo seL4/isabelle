@@ -19,22 +19,16 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
   GUI_Thread.require {}
 
 
-  /* text area */
+  /* text area with zoom/resize */
 
   val pretty_text_area = new Pretty_Text_Area(view)
-  set_content(pretty_text_area)
 
   override def detach_operation: Option[() => Unit] = pretty_text_area.detach_operation
 
+  private val zoom = new Font_Info.Zoom { override def changed(): Unit = handle_resize() }
+  private def handle_resize(): Unit = GUI_Thread.require { pretty_text_area.zoom(zoom) }
 
-  /* document build process */
-
-  private val process_indicator = new Process_Indicator
-
-
-  /* resize */
-
-  private val delay_resize =
+  private val delay_resize: Delay =
     Delay.first(PIDE.options.seconds("editor_update_delay"), gui = true) { handle_resize() }
 
   addComponentListener(new ComponentAdapter {
@@ -42,13 +36,17 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     override def componentShown(e: ComponentEvent): Unit = delay_resize.invoke()
   })
 
-  private def handle_resize(): Unit =
-    GUI_Thread.require { pretty_text_area.zoom(zoom) }
+  set_content(pretty_text_area)
+
+
+  /* document build process */
+
+  private val process_indicator = new Process_Indicator
 
 
   /* controls */
 
-  private val document_session =
+  private val document_session: GUI.Selector[String] =
     new GUI.Selector(JEdit_Sessions.sessions_structure().build_topological_order.sorted) {
       val title = "Session"
     }
@@ -62,8 +60,6 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
             List(XML.Text(Date.now().toString)))  // FIXME
       }
     }
-
-  private val zoom = new Font_Info.Zoom { override def changed(): Unit = handle_resize() }
 
   private val controls =
     Wrap_Panel(List(document_session, process_indicator.component, build_button,
@@ -92,4 +88,3 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     delay_resize.revoke()
   }
 }
-
