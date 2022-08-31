@@ -753,36 +753,36 @@ datatype ('a,'s) M_state = M_STATE (run: "'s \<Rightarrow> ('a\<times>'s) M_nres
 https://isabelle.zulipchat.com/#narrow/stream/247541-Mirror.3A-Isabelle-Users-Mailing-List/topic/.5Bisabelle.5D.20smt.20.28verit.29.3A.20exception.20THM.200.20raised.20.28line.20312.20.2E.2E.2E/near/290088165
 *)
 lemma "\<lbrakk>\<forall>x y. (\<forall>xa s. is_fail (run (x xa) s) \<or>
-		   is_fail (run (y xa) s) = is_fail (run (x xa) s) \<and>
-		   (\<forall>a b. is_res (run (y xa) s) (a, b) = is_res (run (x xa) s) (a, b)))
+                   is_fail (run (y xa) s) = is_fail (run (x xa) s) \<and>
+                   (\<forall>a b. is_res (run (y xa) s) (a, b) = is_res (run (x xa) s) (a, b)))
 \<longrightarrow>
-	   (\<forall>s. is_fail (run (B x) s) \<or>
-		is_fail (run (B y) s) = is_fail (run (B x) s) \<and>
-		(\<forall>a b. is_res (run (B y) s) (a, b) = is_res (run (B x) s) (a, b)));
+           (\<forall>s. is_fail (run (B x) s) \<or>
+                is_fail (run (B y) s) = is_fail (run (B x) s) \<and>
+                (\<forall>a b. is_res (run (B y) s) (a, b) = is_res (run (B x) s) (a, b)));
      \<And>y. \<forall>x ya. (\<forall>xa s. is_fail (run (x xa) s) \<or>
-			 is_fail (run (ya xa) s) = is_fail (run (x xa) s) \<and>
-			 (\<forall>a b. is_res (run (ya xa) s) (a, b) = is_res (run (x xa) s) (a, b)))
+                         is_fail (run (ya xa) s) = is_fail (run (x xa) s) \<and>
+                         (\<forall>a b. is_res (run (ya xa) s) (a, b) = is_res (run (x xa) s) (a, b)))
 \<longrightarrow>
-		 (\<forall>s. is_fail (run (C y x) s) \<or>
-		      is_fail (run (C y ya) s) = is_fail (run (C y x) s) \<and>
-		      (\<forall>a b. is_res (run (C y ya) s) (a, b) = is_res (run (C y x) s) (a,
+                 (\<forall>s. is_fail (run (C y x) s) \<or>
+                      is_fail (run (C y ya) s) = is_fail (run (C y x) s) \<and>
+                      (\<forall>a b. is_res (run (C y ya) s) (a, b) = is_res (run (C y x) s) (a,
 b)))\<rbrakk>
     \<Longrightarrow> \<forall>x y. (\<forall>xa s.
-		  is_fail (run (x xa) s) \<or>
-		  is_fail (run (y xa) s) = is_fail (run (x xa) s) \<and>
-		  (\<forall>a b. is_res (run (y xa) s) (a, b) = is_res (run (x xa) s) (a, b)))
+                  is_fail (run (x xa) s) \<or>
+                  is_fail (run (y xa) s) = is_fail (run (x xa) s) \<and>
+                  (\<forall>a b. is_res (run (y xa) s) (a, b) = is_res (run (x xa) s) (a, b)))
 \<longrightarrow>
-	      (\<forall>s. is_fail (run (B x) s) \<or>
-		   (\<exists>a b. is_res (run (B x) s) (a, b) \<and> is_fail (run (C a x) b)) \<or>
-		   (is_fail (run (B y) s) \<or> (\<exists>a b. is_res (run (B y) s) (a, b) \<and>
+              (\<forall>s. is_fail (run (B x) s) \<or>
+                   (\<exists>a b. is_res (run (B x) s) (a, b) \<and> is_fail (run (C a x) b)) \<or>
+                   (is_fail (run (B y) s) \<or> (\<exists>a b. is_res (run (B y) s) (a, b) \<and>
 is_fail (run (C a y) b))) =
-		   (is_fail (run (B x) s) \<or> (\<exists>a b. is_res (run (B x) s) (a, b) \<and>
+                   (is_fail (run (B x) s) \<or> (\<exists>a b. is_res (run (B x) s) (a, b) \<and>
 is_fail (run (C a x) b))) \<and>
-		   (\<forall>a b. (is_fail (run (B y) s) \<or>
-			   (\<exists>aa ba. is_res (run (B y) s) (aa, ba) \<and> is_res (run (C aa y)
+                   (\<forall>a b. (is_fail (run (B y) s) \<or>
+                           (\<exists>aa ba. is_res (run (B y) s) (aa, ba) \<and> is_res (run (C aa y)
 ba) (a, b))) =
-			  (is_fail (run (B x) s) \<or>
-			   (\<exists>aa ba. is_res (run (B x) s) (aa, ba) \<and> is_res (run (C aa x)
+                          (is_fail (run (B x) s) \<or>
+                           (\<exists>aa ba. is_res (run (B x) s) (aa, ba) \<and> is_res (run (C aa x)
 ba) (a, b)))))"  
   apply (rule duplicate_goal)
   subgoal
