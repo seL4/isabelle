@@ -55,7 +55,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
   private val pretty_text_area = new Pretty_Text_Area(view)
   private val message_pane = new TabbedPane
 
-  def show_state(): Unit = GUI_Thread.later {
+  private def show_state(): Unit = GUI_Thread.later {
     val st = current_state.value
 
     pretty_text_area.update(Document.Snapshot.init, Command.Results.empty, st.output)
