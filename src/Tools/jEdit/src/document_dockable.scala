@@ -27,17 +27,18 @@ object Document_Dockable {
     val FINISHED = Value("finished")
   }
 
-  sealed case class Result(failed: Boolean = false, output: List[XML.Tree] = Nil)
+  sealed case class Result(output: List[XML.Tree] = Nil) {
+    def failed: Boolean = output.exists(Protocol.is_error)
+  }
 
   object State {
     val empty: State = State()
-    def finish(result: Result): State = State(failed = result.failed, output = result.output)
+    def finish(result: Result): State = State(output = result.output)
   }
 
   sealed case class State(
     progress: Progress = new Progress,
     process: Future[Unit] = Future.value(()),
-    failed: Boolean = false,
     output: List[XML.Tree] = Nil,
     status: Status.Value = Status.FINISHED
   )
@@ -55,7 +56,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
   private val pretty_text_area = new Pretty_Text_Area(view)
   private val message_pane = new TabbedPane
 
-  private def show_state(): Unit = GUI_Thread.later {
+  private def show_state(show_output: Boolean = false): Unit = GUI_Thread.later {
     val st = current_state.value
 
     pretty_text_area.update(Document.Snapshot.init, Command.Results.empty, st.output)
@@ -69,7 +70,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
         process_indicator.update(null, 0)
     }
 
-    if (st.failed && output_page != null) message_pane.selection.page = output_page
+    if (show_output && output_page != null) message_pane.selection.page = output_page
   }
 
 
@@ -122,7 +123,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
 
   private def finish(result: Document_Dockable.Result): Unit = {
     current_state.change { _ => Document_Dockable.State.finish(result) }
-    show_state()
+    show_state(show_output = result.failed)
   }
 
   private def build_document(): Unit = {
@@ -137,12 +138,12 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
                 Time.seconds(2.0).sleep()
                 progress.echo("Stop " + Date.now())
               }
-            val (failed, msg) =
+            val msg =
               res match {
-                case Exn.Res(_) => (false, Protocol.make_message(XML.string("OK")))
-                case Exn.Exn(exn) => (true, Protocol.error_message(XML.string(Exn.message(exn))))
+                case Exn.Res(_) => Protocol.make_message(XML.string("OK"))
+                case Exn.Exn(exn) => Protocol.error_message(XML.string(Exn.message(exn)))
               }
-            val result = Document_Dockable.Result(failed = failed, output = List(msg))
+            val result = Document_Dockable.Result(output = List(msg))
             finish(result)
           }
         st.copy(progress = progress, process = process, status = Document_Dockable.Status.RUNNING)
