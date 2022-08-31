@@ -1,4 +1,4 @@
-(* Author:     Tobias Nipkow
+(*  Author:     Tobias Nipkow
     Copyright   2000 TUM
 *)
 
