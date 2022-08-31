@@ -2361,7 +2361,7 @@ next
     by (auto simp add: t)
   ultimately show ?thesis
     by (simp add: divmod_def prod_eq_iff split_def Let_def
-	    not_less mod_eq_0_iff_dvd Rings.mod_eq_0_iff_dvd False not_le *)
+        not_less mod_eq_0_iff_dvd Rings.mod_eq_0_iff_dvd False not_le *)
     (simp add: flip: of_nat_numeral of_nat_mult add.commute [of 1] of_nat_div of_nat_mod of_nat_Suc of_nat_diff)
 qed
 
