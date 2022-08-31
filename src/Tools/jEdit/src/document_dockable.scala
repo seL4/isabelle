@@ -27,17 +27,17 @@ object Document_Dockable {
     val FINISHED = Value("finished")
   }
 
-  sealed case class Result(output: List[XML.Tree] = Nil, ok: Boolean = true)
+  sealed case class Result(failed: Boolean = false, output: List[XML.Tree] = Nil)
 
   object State {
     val empty: State = State()
-    def finish(result: Result): State = State(ok = result.ok, output = result.output)
+    def finish(result: Result): State = State(failed = result.failed, output = result.output)
   }
 
   sealed case class State(
     progress: Progress = new Progress,
     process: Future[Unit] = Future.value(()),
-    ok: Boolean = true,
+    failed: Boolean = false,
     output: List[XML.Tree] = Nil,
     status: Status.Value = Status.FINISHED
   )
@@ -69,7 +69,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
         process_indicator.update(null, 0)
     }
 
-    if (!st.ok && output_page != null) message_pane.selection.page = output_page
+    if (st.failed && output_page != null) message_pane.selection.page = output_page
   }
 
 
@@ -137,12 +137,12 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
                 Time.seconds(2.0).sleep()
                 progress.echo("Stop " + Date.now())
               }
-            val (ok, msg) =
+            val (failed, msg) =
               res match {
-                case Exn.Res(_) => (true, Protocol.make_message(XML.string("OK")))
-                case Exn.Exn(exn) => (false, Protocol.error_message(XML.string(Exn.message(exn))))
+                case Exn.Res(_) => (false, Protocol.make_message(XML.string("OK")))
+                case Exn.Exn(exn) => (true, Protocol.error_message(XML.string(Exn.message(exn))))
               }
-            val result = Document_Dockable.Result(ok = ok, output = List(msg))
+            val result = Document_Dockable.Result(failed = failed, output = List(msg))
             finish(result)
           }
         st.copy(progress = progress, process = process, status = Document_Dockable.Status.RUNNING)
