@@ -56,7 +56,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
   private val pretty_text_area = new Pretty_Text_Area(view)
   private val message_pane = new TabbedPane
 
-  private def show_state(show_output: Boolean = false): Unit = GUI_Thread.later {
+  private def show_state(): Unit = GUI_Thread.later {
     val st = current_state.value
 
     pretty_text_area.update(Document.Snapshot.init, Command.Results.empty, st.output)
@@ -69,8 +69,10 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
       case Document_Dockable.Status.FINISHED =>
         process_indicator.update(null, 0)
     }
+  }
 
-    if (show_output && output_page != null) message_pane.selection.page = output_page
+  private def show_page(page: TabbedPane.Page): Unit = GUI_Thread.later {
+    message_pane.selection.page = page
   }
 
 
@@ -123,7 +125,8 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
 
   private def finish(result: Document_Dockable.Result): Unit = {
     current_state.change { _ => Document_Dockable.State.finish(result) }
-    show_state(show_output = result.failed)
+    show_state()
+    show_page(output_page)
   }
 
   private def build_document(): Unit = {
@@ -132,6 +135,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
         val progress = init_progress()
         val process =
           Future.thread[Unit](name = "document_build") {
+            show_page(log_page)
             val res =
               Exn.capture {
                 progress.echo("Start " + Date.now())
