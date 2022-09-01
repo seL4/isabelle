@@ -209,7 +209,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
       layout(log_area) = BorderPanel.Position.Center
     }, "Raw log of build process")
 
-  message_pane.pages ++= List(output_page, log_page)
+  message_pane.pages ++= List(log_page, output_page)
 
   set_content(message_pane)
 
