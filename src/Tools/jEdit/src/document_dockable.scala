@@ -123,12 +123,6 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
   private def cancel(): Unit =
     current_state.change { st => st.process.cancel(); st }
 
-  private def finish(result: Document_Dockable.Result): Unit = {
-    current_state.change { _ => Document_Dockable.State.finish(result) }
-    show_state()
-    show_page(output_page)
-  }
-
   private def build_document(): Unit = {
     current_state.change { st =>
       if (st.process.is_finished) {
@@ -148,7 +142,9 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
                 case Exn.Exn(exn) => Protocol.error_message(XML.string(Exn.message(exn)))
               }
             val result = Document_Dockable.Result(output = List(msg))
-            finish(result)
+            current_state.change(_ => Document_Dockable.State.finish(result))
+            show_state()
+            show_page(output_page)
           }
         st.copy(progress = progress, process = process, status = Document_Dockable.Status.RUNNING)
       }
