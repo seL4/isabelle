@@ -6,6 +6,9 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* August 2022: Norbert Schirmer, Apple
+  Record simproc that sorts update expressions.
+
 * June 2022: Jan van Brügge, TU München
   Strict cardinality bounds for BNFs.
 
