@@ -1019,10 +1019,10 @@ fun prove_unfold_defs thy upd_funs ex_simps ex_simprs prop =
     val prop' = Envir.beta_eta_contract prop;
     val (lhs, _) = Logic.dest_equals (Logic.strip_assums_concl prop');
     val (_, args) = strip_comb lhs;
-    val simps = if null upd_funs then 
-                   (if length args = 1 then get_accupd_simps else get_updupd_simps) ctxt lhs defset
-                else
-                  gen_get_updupd_simps ctxt upd_funs defset
+    val simps =
+      if null upd_funs then
+        (if length args = 1 then get_accupd_simps else get_updupd_simps) ctxt lhs defset
+      else gen_get_updupd_simps ctxt upd_funs defset
   in
     Goal.prove ctxt [] [] prop'
       (fn {context = ctxt', ...} =>
@@ -1060,7 +1060,7 @@ in
   - If X is a more-selector we have to make sure that S is not in the updated
     subrecord.
 *)
-val  _ = Theory.setup (Named_Target.theory_map (Simplifier.define_simproc \<^binding>\<open>select_update\<close> 
+val  _ = Theory.setup (Named_Target.theory_map (Simplifier.define_simproc \<^binding>\<open>select_update\<close>
    {lhss = [\<^term>\<open>x::'a::{}\<close>],
     proc = fn _ => fn ctxt => fn ct =>
       let
@@ -1115,7 +1115,9 @@ val  _ = Theory.setup (Named_Target.theory_map (Simplifier.define_simproc \<^bin
             else NONE
         | _ => NONE)
       end}));
-val simproc_name = Simplifier.check_simproc (Context.the_local_context ()) ("select_update", Position.none);
+
+val simproc_name =
+  Simplifier.check_simproc (Context.the_local_context ()) ("select_update", Position.none);
 val simproc = Simplifier.the_simproc (Context.the_local_context ()) simproc_name;
 
 fun get_upd_acc_cong_thm upd acc thy ss =
@@ -1136,15 +1138,15 @@ fun get_upd_acc_cong_thm upd acc thy ss =
 
 fun sorted ord [] = true
   | sorted ord [x] = true
-  | sorted ord (x::y::xs) = 
-      (case ord (x, y) of 
+  | sorted ord (x::y::xs) =
+      (case ord (x, y) of
          LESS => sorted ord (y::xs)
        | EQUAL => sorted ord (y::xs)
        | GREATER => false)
 
 fun insert_unique ord x [] = [x]
-  | insert_unique ord x (y::ys) = 
-      (case ord (x, y) of 
+  | insert_unique ord x (y::ys) =
+      (case ord (x, y) of
          LESS => (x::y::ys)
        | EQUAL => (x::ys)
        | GREATER => y :: insert_unique ord x ys)
@@ -1152,7 +1154,7 @@ fun insert_unique ord x [] = [x]
 fun insert_unique_hd ord (x::xs) = x :: insert_unique ord x xs
   | insert_unique_hd ord xs = xs
 
-                                 
+
 (* upd_simproc *)
 
 (*Simplify multiple updates:
@@ -1163,7 +1165,7 @@ fun insert_unique_hd ord (x::xs) = x :: insert_unique ord x xs
   In both cases "more" updates complicate matters: for this reason
   we omit considering further updates if doing so would introduce
   both a more update and an update to a field within it.*)
-val  _ = Theory.setup (Named_Target.theory_map (Simplifier.define_simproc \<^binding>\<open>update\<close> 
+val  _ = Theory.setup (Named_Target.theory_map (Simplifier.define_simproc \<^binding>\<open>update\<close>
    {lhss = [\<^term>\<open>x::'a::{}\<close>],
     proc = fn _ => fn ctxt => fn ct =>
       let
@@ -1196,10 +1198,10 @@ val  _ = Theory.setup (Named_Target.theory_map (Simplifier.define_simproc \<^bin
         val (upds, base, baseT) = getupdseq t 0 ~1;
         val orig_upds = map_index (fn (i, (x, y, z)) => (x, y, z, i)) upds
         val upd_ord = rev_order o fast_string_ord o apply2 #2
-        val (upds, commuted) = 
+        val (upds, commuted) =
           if not (null orig_upds) andalso Config.get ctxt sort_updates andalso not (sorted upd_ord orig_upds) then
              (sort upd_ord orig_upds, true)
-          else 
+          else
              (orig_upds, false)
 
         fun is_upd_noop s (Abs (n, T, Const (s', T') $ tm')) tm =
@@ -1269,10 +1271,10 @@ val  _ = Theory.setup (Named_Target.theory_map (Simplifier.define_simproc \<^bin
         val orig_order_lhs_upds = lhs_upds |> sort (rev_order o int_ord o apply2 snd)
         val lhs = Bound 0 |> fold (fn (upd, _) => fn s => upd $ s) orig_order_lhs_upds
         (* Note that the simplifier works bottom up. So all nested updates are already
-           normalised, e.g. sorted. 'commuted' thus means that the outermost update has to be 
-           inserted at its place inside the sorted nested updates. The necessary swaps can be 
+           normalised, e.g. sorted. 'commuted' thus means that the outermost update has to be
+           inserted at its place inside the sorted nested updates. The necessary swaps can be
            expressed via 'upd_funs' by replicating the outer update at the designated position: *)
-        val upd_funs = (if commuted then insert_unique_hd upd_ord orig_upds else orig_upds) |> map #1 
+        val upd_funs = (if commuted then insert_unique_hd upd_ord orig_upds else orig_upds) |> map #1
         val noops' = maps snd (Symtab.dest noops);
       in
         if simp orelse commuted then
@@ -1281,8 +1283,9 @@ val  _ = Theory.setup (Named_Target.theory_map (Simplifier.define_simproc \<^bin
               (Logic.list_all (vars, Logic.mk_equals (lhs, rhs))))
         else NONE
       end}));
-val upd_simproc_name = Simplifier.check_simproc (Context.the_local_context ()) 
-      ("update", Position.none);
+
+val upd_simproc_name =
+  Simplifier.check_simproc (Context.the_local_context ()) ("update", Position.none);
 val upd_simproc = Simplifier.the_simproc (Context.the_local_context ()) upd_simproc_name;
 
 end;
@@ -1303,7 +1306,7 @@ end;
  Complexity: #components * #updates     #updates
 *)
 
-val  _ = Theory.setup (Named_Target.theory_map (Simplifier.define_simproc \<^binding>\<open>eq\<close>  
+val  _ = Theory.setup (Named_Target.theory_map (Simplifier.define_simproc \<^binding>\<open>eq\<close>
    {lhss = [\<^term>\<open>r = s\<close>],
     proc = fn _ => fn ctxt => fn ct =>
       (case Thm.term_of ct of
@@ -1314,9 +1317,9 @@ val  _ = Theory.setup (Named_Target.theory_map (Simplifier.define_simproc \<^bin
               (case get_equalities (Proof_Context.theory_of ctxt) name of
                 NONE => NONE
               | SOME thm => SOME (thm RS @{thm Eq_TrueI})))
-      | _ => NONE)}))
-val eq_simproc_name = Simplifier.check_simproc (Context.the_local_context ()) 
-      ("eq", Position.none);
+      | _ => NONE)}));
+
+val eq_simproc_name = Simplifier.check_simproc (Context.the_local_context ()) ("eq", Position.none);
 val eq_simproc = Simplifier.the_simproc (Context.the_local_context ()) eq_simproc_name;
 
 (* split_simproc *)
@@ -1394,8 +1397,9 @@ val  _ = Theory.setup (Named_Target.theory_map (Simplifier.define_simproc \<^bin
             end handle TERM _ => NONE)
         | _ => NONE)
       end}));
-val ex_sel_eq_simproc_name = Simplifier.check_simproc (Context.the_local_context ()) 
-      ("ex_sel_eq", Position.none);
+
+val ex_sel_eq_simproc_name =
+  Simplifier.check_simproc (Context.the_local_context ()) ("ex_sel_eq", Position.none);
 val ex_sel_eq_simproc = Simplifier.the_simproc (Context.the_local_context ()) ex_sel_eq_simproc_name;
 val _ = Theory.setup (map_theory_simpset (fn ctxt => ctxt delsimprocs [ex_sel_eq_simproc]));
 
