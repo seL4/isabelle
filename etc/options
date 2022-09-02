@@ -133,7 +133,7 @@ option process_output_tail : int = 40
   -- "build process output tail shown to user (in lines, 0 = unlimited)"
 
 option profiling : string = "" (standard "time")
-  -- "ML profiling (possible values: time, allocations)"
+  -- "ML profiling (possible values: time, time_thread, allocations)"
 
 option system_log : string = "" (standard "-")
   -- "output for system messages (log file or \"-\" for console progress)"
