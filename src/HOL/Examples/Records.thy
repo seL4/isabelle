@@ -327,7 +327,7 @@ schematic_goal "r\<lparr>b := x, a:= y\<rparr> = ?X"
 text \<open>Normalisation towards an update ordering (string ordering of update function names) can
 be configured as follows.\<close>
 schematic_goal "r\<lparr>b := y, a := x\<rparr> = ?X"
-  supply [[record_sort_updates = true]]
+  supply [[record_sort_updates]]
   by simp
 
 text \<open>Note the interplay between update ordering and record equality. Without update ordering
@@ -347,16 +347,16 @@ text \<open>With update ordering the equality is already established after updat
 is no need for componentwise comparison.\<close>
 
 lemma "r\<lparr>f := x1, a:= x2\<rparr> = r\<lparr>a := x2, f:= x1\<rparr>"
-  supply [[record_sort_updates = true, simproc del: Record.eq]]
+  supply [[record_sort_updates, simproc del: Record.eq]]
   apply simp
   done
 
 schematic_goal "r\<lparr>f := x1, e := x2, d:= x3, c:= x4, b:=x5, a:= x6\<rparr> = ?X"
-  supply [[record_sort_updates = true]]
+  supply [[record_sort_updates]]
   by simp
 
 schematic_goal "r\<lparr>f := x1, e := x2, d:= x3, c:= x4, e:=x5, a:= x6\<rparr> = ?X"
-  supply [[record_sort_updates = true]]
+  supply [[record_sort_updates]]
   by simp
 
 schematic_goal "r\<lparr>f := x1, e := x2, d:= x3, c:= x4, e:=x5, a:= x6\<rparr> = ?X"
@@ -400,7 +400,7 @@ in
 end
 \<close>
 
-declare [[record_codegen = true]]
+declare [[record_codegen]]
 
 schematic_goal \<open>fld_1 (r\<lparr>fld_300 := x300, fld_20 := x20, fld_200 := x200\<rparr>) = ?X\<close>
   by simp
