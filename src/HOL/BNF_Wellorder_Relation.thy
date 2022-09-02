@@ -220,27 +220,26 @@ assumes SUB: "B \<le> Field r" and NE: "B \<noteq> {}"
 shows "\<exists>b. isMinim B b"
 proof-
   from spec[OF WF[unfolded wf_eq_minimal[of "r - Id"]], of B] NE obtain b where
-  *: "b \<in> B \<and> (\<forall>b'. b' \<noteq> b \<and> (b',b) \<in> r \<longrightarrow> b' \<notin> B)" by auto
-  show ?thesis
-  proof(simp add: isMinim_def, rule exI[of _ b], auto)
-    show "b \<in> B" using * by simp
-  next
-    fix b' assume As: "b' \<in> B"
-    hence **: "b \<in> Field r \<and> b' \<in> Field r" using As SUB * by auto
-    (*  *)
-    from As  * have "b' = b \<or> (b',b) \<notin> r" by auto
-    moreover
-    {assume "b' = b"
-     hence "(b,b') \<in> r"
-     using ** REFL by (auto simp add: refl_on_def)
-    }
-    moreover
-    {assume "b' \<noteq> b \<and> (b',b) \<notin> r"
-     hence "(b,b') \<in> r"
-     using ** TOTAL by (auto simp add: total_on_def)
-    }
-    ultimately show "(b,b') \<in> r" by blast
+    *: "b \<in> B \<and> (\<forall>b'. b' \<noteq> b \<and> (b',b) \<in> r \<longrightarrow> b' \<notin> B)" by auto
+  have "\<forall>b'. b' \<in> B \<longrightarrow> (b, b') \<in> r"
+  proof
+    fix b'
+    show "b' \<in> B \<longrightarrow> (b, b') \<in> r"
+    proof
+      assume As: "b' \<in> B"
+      hence **: "b \<in> Field r \<and> b' \<in> Field r" using As SUB * by auto
+      from As  * have "b' = b \<or> (b',b) \<notin> r" by auto
+      moreover have "b' = b \<Longrightarrow> (b, b') \<in> r"
+        using ** REFL by (auto simp add: refl_on_def)
+      moreover have "b' \<noteq> b \<and> (b',b) \<notin> r \<Longrightarrow> (b,b') \<in> r"
+         using ** TOTAL by (auto simp add: total_on_def)
+      ultimately show "(b,b') \<in> r" by blast
+    qed
   qed
+  then have "isMinim B b"
+    unfolding isMinim_def using * by auto
+  then show ?thesis
+    by auto
 qed
 
 lemma minim_isMinim:
@@ -395,16 +394,22 @@ subsubsection \<open>Properties of order filters\<close>
 
 lemma under_ofilter:
 "ofilter (under a)"
-proof(unfold ofilter_def under_def, auto simp add: Field_def)
-  fix aa x
-  assume "(aa,a) \<in> r" "(x,aa) \<in> r"
-  thus "(x,a) \<in> r"
-  using TRANS trans_def[of r] by blast
+proof -
+  have "\<And>aa x. (aa, a) \<in> r \<Longrightarrow> (x, aa) \<in> r \<Longrightarrow> (x, a) \<in> r"
+  proof -
+    fix aa x
+    assume "(aa,a) \<in> r" "(x,aa) \<in> r"
+    then show "(x,a) \<in> r"
+      using TRANS trans_def[of r] by blast
+  qed
+  then show ?thesis unfolding ofilter_def under_def
+    by (auto simp add: Field_def)
 qed
 
 lemma underS_ofilter:
 "ofilter (underS a)"
-proof(unfold ofilter_def underS_def under_def, auto simp add: Field_def)
+  unfolding ofilter_def underS_def under_def
+proof safe
   fix aa assume "(a, aa) \<in> r" "(aa, a) \<in> r" and DIFF: "aa \<noteq> a"
   thus False
   using ANTISYM antisym_def[of r] by blast
@@ -412,7 +417,13 @@ next
   fix aa x
   assume "(aa,a) \<in> r" "aa \<noteq> a" "(x,aa) \<in> r"
   thus "(x,a) \<in> r"
-  using TRANS trans_def[of r] by blast
+    using TRANS trans_def[of r] by blast
+next
+  fix x
+  assume "x \<noteq> a" and "(x, a) \<in> r"
+  then show "x \<in> Field r"
+    unfolding Field_def
+    by auto
 qed
 
 lemma Field_ofilter:
@@ -430,7 +441,7 @@ next
   let ?One = "(\<exists>a\<in>Field r. A = underS a)"
   let ?Two = "(A = Field r)"
   show "?One \<or> ?Two"
-  proof(cases ?Two, simp)
+  proof(cases ?Two)
     let ?B = "(Field r) - A"
     let ?a = "minim ?B"
     assume "A \<noteq> Field r"
@@ -445,7 +456,7 @@ next
     have "A = underS ?a"
     proof
       show "A \<le> underS ?a"
-      proof(unfold underS_def, auto simp add: 4)
+      proof
         fix x assume **: "x \<in> A"
         hence 11: "x \<in> Field r" using 5 by auto
         have 12: "x \<noteq> ?a" using 4 ** by auto
@@ -458,25 +469,32 @@ next
          hence "?a \<in> A" using ** 13 by blast
          with 4 have False by simp
         }
-        thus "(x,?a) \<in> r" by blast
+        then have "(x,?a) \<in> r" by blast
+        thus "x \<in> underS ?a"
+          unfolding underS_def by (auto simp add: 12)
       qed
     next
       show "underS ?a \<le> A"
-      proof(unfold underS_def, auto)
+      proof
         fix x
-        assume **: "x \<noteq> ?a" and ***: "(x,?a) \<in> r"
-        hence 11: "x \<in> Field r" using Field_def by fastforce
+        assume **: "x \<in> underS ?a"
+        hence 11: "x \<in> Field r"
+         using Field_def unfolding underS_def by fastforce
          {assume "x \<notin> A"
           hence "x \<in> ?B" using 11 by auto
           hence "(?a,x) \<in> r" using 3 minim_least[of ?B x] by blast
           hence False
-          using ANTISYM antisym_def[of r] ** *** by auto
+          using ANTISYM antisym_def[of r] ** unfolding underS_def by auto
          }
         thus "x \<in> A" by blast
       qed
     qed
     ultimately have ?One using 2 by blast
     thus ?thesis by simp
+  next
+    assume "A = Field r"
+    then show ?thesis
+      by simp
   qed
 qed
 

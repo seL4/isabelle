@@ -464,11 +464,16 @@ end
 
 lemma (in linorder) atLeastLessThan_subset_iff:
   "{a..<b} \<subseteq> {c..<d} \<Longrightarrow> b \<le> a \<or> c\<le>a \<and> b\<le>d"
-  apply (auto simp:subset_eq Ball_def not_le)
-  apply(frule_tac x=a in spec)
-  apply(erule_tac x=d in allE)
-  apply auto
-  done
+proof (cases "a < b")
+  case True
+  assume assm: "{a..<b} \<subseteq> {c..<d}"
+  then have 1: "c \<le> a \<and> a \<le> d"
+    using True by (auto simp add: subset_eq Ball_def)
+  then have 2: "b \<le> d"
+    using assm by (auto simp add: subset_eq)
+  from 1 2 show ?thesis
+    by simp
+qed (auto)
 
 lemma atLeastLessThan_inj:
   fixes a b c d :: "'a::linorder"
@@ -941,7 +946,7 @@ proof safe
 next
   fix y assume "y \<le> -x"
   have "- (-y) \<in> uminus ` {x..}"
-    by (rule imageI) (insert \<open>y \<le> -x\<close>[THEN le_imp_neg_le], simp)
+    by (rule imageI) (use \<open>y \<le> -x\<close>[THEN le_imp_neg_le] in \<open>simp\<close>)
   thus "y \<in> uminus ` {x..}" by simp
 qed simp_all
 
@@ -991,9 +996,17 @@ corollary image_Suc_lessThan:
 
 lemma image_diff_atLeastAtMost [simp]:
   fixes d::"'a::linordered_idom" shows "((-) d ` {a..b}) = {d-b..d-a}"
-  apply auto
-  apply (rule_tac x="d-x" in rev_image_eqI, auto)
-  done
+proof
+  show "{d - b..d - a} \<subseteq> (-) d ` {a..b}"
+  proof
+    fix x
+    assume "x \<in> {d - b..d - a}"
+    then have "d - x \<in> {a..b}" and "x = d - (d - x)"
+      by auto
+    then show "x \<in> (-) d ` {a..b}"
+      by (rule rev_image_eqI)
+  qed
+qed(auto)
 
 lemma image_diff_atLeastLessThan [simp]:
   fixes a b c::"'a::linordered_idom"
@@ -1144,10 +1157,7 @@ lemma atLeast1_atMost_eq_remove0:
 
 lemma image_add_int_atLeastLessThan:
     "(\<lambda>x. x + (l::int)) ` {0..<u-l} = {l..<u}"
-  apply (auto simp add: image_def)
-  apply (rule_tac x = "x - l" in bexI)
-  apply auto
-  done
+  by safe auto
 
 lemma image_minus_const_atLeastLessThan_nat:
   fixes c :: nat
@@ -1218,8 +1228,9 @@ lemma finite_nat_set_iff_bounded_le: "finite(N::nat set) = (\<exists>m. \<forall
   by (blast dest:less_imp_le_nat le_imp_less_Suc)
 
 lemma finite_less_ub:
-     "!!f::nat=>nat. (!!n. n \<le> f n) ==> finite {n. f n \<le> u}"
-by (rule_tac B="{..u}" in finite_subset, auto intro: order_trans)
+     "\<And>f::nat\<Rightarrow>nat. (!!n. n \<le> f n) \<Longrightarrow> finite {n. f n \<le> u}"
+  by (rule finite_subset[of _ "{..u}"])
+    (auto intro: order_trans)
 
 lemma bounded_Max_nat:
   fixes P :: "nat \<Rightarrow> bool"
@@ -1315,7 +1326,7 @@ lemma UN_finite_subset:
 lemma UN_finite2_subset:
   assumes "\<And>n::nat. (\<Union>i\<in>{0..<n}. A i) \<subseteq> (\<Union>i\<in>{0..<n + k}. B i)"
   shows "(\<Union>n. A n) \<subseteq> (\<Union>n. B n)"
-proof (rule UN_finite_subset, rule)
+proof (rule UN_finite_subset, rule subsetI)
   fix n and a
   from assms have "(\<Union>i\<in>{0..<n}. A i) \<subseteq> (\<Union>i\<in>{0..<n + k}. B i)" .
   moreover assume "a \<in> (\<Union>i\<in>{0..<n}. A i)"
@@ -1324,12 +1335,17 @@ proof (rule UN_finite_subset, rule)
 qed
 
 lemma UN_finite2_eq:
-  "(\<And>n::nat. (\<Union>i\<in>{0..<n}. A i) = (\<Union>i\<in>{0..<n + k}. B i)) \<Longrightarrow>
-    (\<Union>n. A n) = (\<Union>n. B n)"
-  apply (rule subset_antisym [OF UN_finite_subset UN_finite2_subset])
-   apply auto
-  apply (force simp add: atLeastLessThan_add_Un [of 0])+
-  done
+  assumes "(\<And>n::nat. (\<Union>i\<in>{0..<n}. A i) = (\<Union>i\<in>{0..<n + k}. B i))"
+  shows "(\<Union>n. A n) = (\<Union>n. B n)"
+proof (rule subset_antisym [OF UN_finite_subset UN_finite2_subset])
+  fix n
+  show "\<Union> (A ` {0..<n}) \<subseteq> (\<Union>n. B n)"
+    using assms by auto
+next
+  fix n
+  show "\<Union> (B ` {0..<n}) \<subseteq> \<Union> (A ` {0..<n + k})"
+    using assms by (force simp add: atLeastLessThan_add_Un [of 0])+
+qed
 
 
 subsubsection \<open>Cardinality\<close>
@@ -1342,11 +1358,21 @@ lemma card_atMost [simp]: "card {..u} = Suc u"
 
 lemma card_atLeastLessThan [simp]: "card {l..<u} = u - l"
 proof -
-  have "{l..<u} = (\<lambda>x. x + l) ` {..<u-l}"
-    apply (auto simp add: image_def atLeastLessThan_def lessThan_def)
-    apply (rule_tac x = "x - l" in exI)
-    apply arith
-    done
+  have "(\<lambda>x. x + l) ` {..<u - l} \<subseteq> {l..<u}"
+    by auto
+  moreover have "{l..<u} \<subseteq> (\<lambda>x. x + l) ` {..<u-l}"
+  proof
+    fix x
+    assume *: "x \<in> {l..<u}"
+    then have "x - l \<in> {..< u -l}"
+      by auto
+    then have "(x - l) + l \<in> (\<lambda>x. x + l) ` {..< u -l}"
+      by auto
+    then show "x \<in> (\<lambda>x. x + l) ` {..<u - l}"
+      using * by auto
+  qed
+  ultimately have "{l..<u} = (\<lambda>x. x + l) ` {..<u-l}"
+    by auto
   then have "card {l..<u} = card {..<u-l}"
     by (simp add: card_image inj_on_def)
   then show ?thesis
@@ -1430,7 +1456,8 @@ proof -
   let ?f = "\<lambda>a. SOME b. ?P a b"
   have 1: "?f ` A \<subseteq> B"  by (auto intro: someI2_ex[OF assms(2)])
   have "inj_on ?f A"
-  proof (auto simp: inj_on_def)
+    unfolding inj_on_def
+  proof safe
     fix a1 a2 assume asms: "a1 \<in> A" "a2 \<in> A" "?f a1 = ?f a2"
     have 0: "?f a1 \<in> B" using "1" \<open>a1 \<in> A\<close> by blast
     have 1: "r a1 (?f a1)" using someI_ex[OF assms(2)[OF \<open>a1 \<in> A\<close>]] by blast
@@ -1475,13 +1502,24 @@ lemma atLeastPlusOneLessThan_greaterThanLessThan_int:
 
 subsubsection \<open>Finiteness\<close>
 
-lemma image_atLeastZeroLessThan_int: "0 \<le> u ==>
-    {(0::int)..<u} = int ` {..<nat u}"
+lemma image_atLeastZeroLessThan_int:
+  assumes "0 \<le> u"
+  shows "{(0::int)..<u} = int ` {..<nat u}"
   unfolding image_def lessThan_def
-  apply auto
-  apply (rule_tac x = "nat x" in exI)
-  apply (auto simp add: zless_nat_eq_int_zless [THEN sym])
-  done
+proof
+  show "{0..<u} \<subseteq> {y. \<exists>x\<in>{x. x < nat u}. y = int x}"
+  proof
+    fix x
+    assume "x \<in> {0..<u}"
+    then have "x = int (nat x)" and  "nat x < nat u"
+      by (auto simp add: zless_nat_eq_int_zless [THEN sym])
+    then have "\<exists>xa<nat u. x = int xa"
+      using exI[of _ "(nat x)"] by simp
+    then show "x \<in> {y. \<exists>x\<in>{x. x < nat u}. y = int x}"
+      by simp
+  qed
+qed (auto)
+
 
 lemma finite_atLeastZeroLessThan_int: "finite {(0::int)..<u}"
 proof (cases "0 \<le> u")
@@ -1695,27 +1733,8 @@ subsubsection \<open>Some Subset Conditions\<close>
 
 lemma ivl_subset [simp]: "({i..<j} \<subseteq> {m..<n}) = (j \<le> i \<or> m \<le> i \<and> j \<le> (n::'a::linorder))"
   using linorder_class.le_less_linear[of i n]
-  apply (auto simp: linorder_not_le)
-   apply (force intro: leI)+
-  done
+  by safe (force intro: leI)+
 
-lemma obtain_subset_with_card_n:
-  assumes "n \<le> card S"
-  obtains T where "T \<subseteq> S" "card T = n" "finite T"
-proof -
-  obtain n' where "card S = n + n'" 
-    by (metis assms le_add_diff_inverse)
-  with that show thesis
-  proof (induct n' arbitrary: S)
-    case 0 
-    then show ?case
-      by (cases "finite S") auto
-  next
-    case Suc 
-    then show ?case 
-      by (simp add: card_Suc_eq) (metis subset_insertI2)
-  qed
-qed
 
 subsection \<open>Generic big monoid operation over intervals\<close>
 
@@ -1724,7 +1743,7 @@ begin
 
 lemma inj_on_of_nat [simp]:
   "inj_on of_nat N"
-  by rule simp
+  by (rule inj_onI) simp
 
 lemma bij_betw_of_nat [simp]:
   "bij_betw of_nat N A \<longleftrightarrow> of_nat ` N = A"
@@ -2327,8 +2346,24 @@ lemma sum_gp:
                (if n < m then 0
                 else if x = 1 then of_nat((n + 1) - m)
                 else (x^m - x^Suc n) / (1 - x))"
-using sum_gp_multiplied [of m n x] apply auto
-by (metis eq_iff_diff_eq_0 mult.commute nonzero_divide_eq_eq)
+proof (cases "n < m")
+  case False
+  assume *: "\<not> n < m"
+  then show ?thesis
+  proof (cases "x = 1")
+    case False
+    assume "x \<noteq> 1"
+    then have not_zero: "1 - x \<noteq> 0"
+      by auto
+    have "(1 - x) * (\<Sum>i=m..n. x^i) = x ^ m - x * x ^ n"
+      using sum_gp_multiplied [of m n x] * by auto
+    then have "(\<Sum>i=m..n. x^i) = (x ^ m - x * x ^ n) / (1 - x) "
+      using nonzero_divide_eq_eq mult.commute not_zero
+      by metis
+    then show ?thesis
+      by auto
+  qed (auto)
+qed (auto)
 
 
 subsubsection\<open>Geometric progressions\<close>

@@ -14,10 +14,7 @@ object Isabelle_Tool {
 
   private def is_external(dir: Path, name: String): Boolean = {
     val file = (dir + Path.explode(name)).file
-    try {
-      file.isFile && file.canRead && file.canExecute &&
-        !name.endsWith("~") && !name.endsWith(".orig")
-    }
+    try { file.isFile && file.canRead && file.canExecute && !File.is_backup(name) }
     catch { case _: SecurityException => false }
   }
 
@@ -158,6 +155,7 @@ class Tools extends Isabelle_Scala_Tools(
 
 class Admin_Tools extends Isabelle_Scala_Tools(
   Build_CSDP.isabelle_tool,
+  Build_CVC5.isabelle_tool,
   Build_Cygwin.isabelle_tool,
   Build_Doc.isabelle_tool,
   Build_E.isabelle_tool,

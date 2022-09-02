@@ -13,7 +13,7 @@ import java.io.{BufferedWriter, OutputStreamWriter, FileOutputStream, BufferedOu
 import java.nio.file.{StandardOpenOption, Path => JPath, Files, SimpleFileVisitor,
   FileVisitOption, FileVisitResult}
 import java.nio.file.attribute.BasicFileAttributes
-import java.net.{URL, MalformedURLException}
+import java.net.{URI, URL, MalformedURLException}
 import java.util.zip.{GZIPInputStream, GZIPOutputStream}
 import java.util.EnumSet
 
@@ -61,6 +61,32 @@ object File {
 
   def path(file: JFile): Path = Path.explode(standard_path(file))
   def pwd(): Path = path(Path.current.absolute_file)
+
+  def uri(file: JFile): URI = file.toURI
+  def uri(path: Path): URI = path.file.toURI
+
+  def url(file: JFile): URL = uri(file).toURL
+  def url(path: Path): URL = url(path.file)
+
+
+  /* adhoc file types */
+
+  def is_ML(s: String): Boolean = s.endsWith(".ML")
+  def is_bib(s: String): Boolean = s.endsWith(".bib")
+  def is_dll(s: String): Boolean = s.endsWith(".dll")
+  def is_exe(s: String): Boolean = s.endsWith(".exe")
+  def is_gz(s: String): Boolean = s.endsWith(".gz")
+  def is_html(s: String): Boolean = s.endsWith(".html")
+  def is_jar(s: String): Boolean = s.endsWith(".jar")
+  def is_java(s: String): Boolean = s.endsWith(".java")
+  def is_node(s: String): Boolean = s.endsWith(".node")
+  def is_pdf(s: String): Boolean = s.endsWith(".pdf")
+  def is_png(s: String): Boolean = s.endsWith(".png")
+  def is_thy(s: String): Boolean = s.endsWith(".thy")
+  def is_xz(s: String): Boolean = s.endsWith(".xz")
+  def is_zip(s: String): Boolean = s.endsWith(".zip")
+
+  def is_backup(s: String): Boolean = s.endsWith("~") || s.endsWith(".orig")
 
 
   /* relative paths */
@@ -295,18 +321,13 @@ object File {
 
   /* content */
 
-  object Content {
-    def apply(path: Path, content: Bytes): Content = new Content_Bytes(path, content)
-    def apply(path: Path, content: String): Content = new Content_String(path, content)
-    def apply(path: Path, content: XML.Body): Content_XML = new Content_XML(path, content)
-  }
+  def content(path: Path, content: Bytes): Content = new Content(path, content)
+  def content(path: Path, content: String): Content = new Content(path, Bytes(content))
+  def content(path: Path, content: XML.Body): Content_XML = new Content_XML(path, content)
 
-  trait Content {
-    def path: Path
-    def write(dir: Path): Unit
-  }
+  final class Content private[File](val path: Path, val content: Bytes) {
+    override def toString: String = path.toString
 
-  final class Content_Bytes private[File](val path: Path, content: Bytes) extends Content {
     def write(dir: Path): Unit = {
       val full_path = dir + path
       Isabelle_System.make_directory(full_path.expand.dir)
@@ -314,16 +335,9 @@ object File {
     }
   }
 
-  final class Content_String private[File](val path: Path, content: String) extends Content {
-    def write(dir: Path): Unit = {
-      val full_path = dir + path
-      Isabelle_System.make_directory(full_path.expand.dir)
-      File.write(full_path, content)
-    }
-  }
+  final class Content_XML private[File](val path: Path, val content: XML.Body) {
+    override def toString: String = path.toString
 
-  final class Content_XML private[File](val path: Path, content: XML.Body) {
-    def output(out: XML.Body => String): Content_String =
-      new Content_String(path, out(content))
+    def output(out: XML.Body => String): Content = new Content(path, Bytes(out(content)))
   }
 }

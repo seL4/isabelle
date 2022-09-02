@@ -133,15 +133,19 @@ lemma Total_Id_Field:
   assumes "Total r"
     and not_Id: "\<not> r \<subseteq> Id"
   shows "Field r = Field (r - Id)"
-  using mono_Field[of "r - Id" r] Diff_subset[of r Id]
-proof auto
-  fix a assume *: "a \<in> Field r"
-  from not_Id have "r \<noteq> {}" by fast
-  with not_Id obtain b and c where "b \<noteq> c \<and> (b,c) \<in> r" by auto
-  then have "b \<noteq> c \<and> {b, c} \<subseteq> Field r" by (auto simp: Field_def)
-  with * obtain d where "d \<in> Field r" "d \<noteq> a" by auto
-  with * \<open>Total r\<close> have "(a, d) \<in> r \<or> (d, a) \<in> r" by (simp add: total_on_def)
-  with \<open>d \<noteq> a\<close> show "a \<in> Field (r - Id)" unfolding Field_def by blast
+proof -
+  have "Field r \<subseteq> Field (r - Id)"
+  proof (rule subsetI)
+    fix a assume *: "a \<in> Field r"
+    from not_Id have "r \<noteq> {}" by fast
+    with not_Id obtain b and c where "b \<noteq> c \<and> (b,c) \<in> r" by auto
+    then have "b \<noteq> c \<and> {b, c} \<subseteq> Field r" by (auto simp: Field_def)
+    with * obtain d where "d \<in> Field r" "d \<noteq> a" by auto
+    with * \<open>Total r\<close> have "(a, d) \<in> r \<or> (d, a) \<in> r" by (simp add: total_on_def)
+    with \<open>d \<noteq> a\<close> show "a \<in> Field (r - Id)" unfolding Field_def by blast
+  qed
+  then show ?thesis
+    using mono_Field[of "r - Id" r] Diff_subset[of r Id] by auto
 qed
 
 subsection\<open>Relations given by a predicate and the field\<close>
@@ -323,7 +327,7 @@ lemma under_incr:
     and "(a, b) \<in> r"
   shows "under r a \<subseteq> under r b"
   unfolding under_def
-proof auto
+proof safe
   fix x assume "(x, a) \<in> r"
   with assms trans_def[of r] show "(x, b) \<in> r" by blast
 qed
@@ -334,7 +338,7 @@ lemma underS_incr:
     and ab: "(a, b) \<in> r"
   shows "underS r a \<subseteq> underS r b"
   unfolding underS_def
-proof auto
+proof safe
   assume *: "b \<noteq> a" and **: "(b, a) \<in> r"
   with \<open>antisym r\<close> antisym_def[of r] ab show False
     by blast
@@ -440,12 +444,18 @@ proof -
     then have "(\<forall>b. (\<forall>c. (c, b) \<in> R a \<longrightarrow> chi c) \<longrightarrow> chi b) \<longrightarrow> (\<forall>b. chi b)"
       unfolding wf_def by blast
     also have "\<forall>b. (\<forall>c. (c, b) \<in> R a \<longrightarrow> chi c) \<longrightarrow> chi b"
-    proof (auto simp add: chi_def R_def)
+    proof safe
       fix b
-      assume "(b, a) \<in> r" and "\<forall>c. (c, b) \<in> r \<and> (c, a) \<in> r \<longrightarrow> phi c"
-      then have "\<forall>c. (c, b) \<in> r \<longrightarrow> phi c"
-        using assms trans_def[of r] by blast
-      with ** show "phi b" by blast
+      assume "\<forall>c. (c, b) \<in> R a \<longrightarrow> chi c"
+      moreover have "(b, a) \<in> r \<Longrightarrow> \<forall>c. (c, b) \<in> r \<and> (c, a) \<in> r \<longrightarrow> phi c \<Longrightarrow> phi b"
+      proof -
+        assume "(b, a) \<in> r" and "\<forall>c. (c, b) \<in> r \<and> (c, a) \<in> r \<longrightarrow> phi c"
+        then have "\<forall>c. (c, b) \<in> r \<longrightarrow> phi c"
+          using assms trans_def[of r] by blast
+        with ** show "phi b" by blast
+      qed
+      ultimately show "chi b"
+        by (auto simp add: chi_def R_def)
     qed
     finally have  "\<forall>b. chi b" .
     with ** chi_def show "phi a" by blast
@@ -456,13 +466,18 @@ qed
 text\<open>A transitive relation is well-founded if all initial segments are finite.\<close>
 corollary wf_finite_segments:
   assumes "irrefl r" and "trans r" and "\<And>x. finite {y. (y, x) \<in> r}"
-  shows "wf (r)"
-proof (clarsimp simp: trans_wf_iff wf_iff_acyclic_if_finite converse_def assms)
-  fix a
-  have "trans (r \<inter> ({x. (x, a) \<in> r} \<times> {x. (x, a) \<in> r}))"
-    using assms unfolding trans_def Field_def by blast
-  then show "acyclic (r \<inter> {x. (x, a) \<in> r} \<times> {x. (x, a) \<in> r})"
-    using assms acyclic_def assms irrefl_def by fastforce
+  shows "wf r"
+proof -
+  have "\<And>a. acyclic (r \<inter> {x. (x, a) \<in> r} \<times> {x. (x, a) \<in> r})"
+  proof -
+    fix a
+    have "trans (r \<inter> ({x. (x, a) \<in> r} \<times> {x. (x, a) \<in> r}))"
+      using assms unfolding trans_def Field_def by blast
+    then show "acyclic (r \<inter> {x. (x, a) \<in> r} \<times> {x. (x, a) \<in> r})"
+      using assms acyclic_def assms irrefl_def by fastforce
+  qed
+  then show ?thesis
+    by (clarsimp simp: trans_wf_iff wf_iff_acyclic_if_finite converse_def assms)
 qed
 
 text \<open>The next lemma is a variation of \<open>wf_eq_minimal\<close> from Wellfounded,
@@ -472,13 +487,26 @@ lemma wf_eq_minimal2: "wf r \<longleftrightarrow> (\<forall>A. A \<subseteq> Fie
 proof-
   let ?phi = "\<lambda>A. A \<noteq> {} \<longrightarrow> (\<exists>a \<in> A. \<forall>a' \<in> A. (a',a) \<notin> r)"
   have "wf r \<longleftrightarrow> (\<forall>A. ?phi A)"
-    apply (auto simp: ex_in_conv [THEN sym])
-     apply (erule wfE_min)
-      apply assumption
-     apply blast
-    apply (rule wfI_min)
-    apply fast
-    done
+  proof
+    assume "wf r"
+    show  "\<forall>A. ?phi A"
+    proof clarify
+      fix A:: "'a set"
+      assume "A \<noteq> {}"
+      then obtain x where "x \<in> A"
+        by auto
+      show "\<exists>a\<in>A. \<forall>a'\<in>A. (a', a) \<notin> r"
+        apply (rule wfE_min[of r x A])
+          apply fact+
+        by blast
+    qed
+  next
+    assume *: "\<forall>A. ?phi A"
+    then show "wf r"
+      apply (clarsimp simp: ex_in_conv [THEN sym])
+      apply (rule wfI_min)
+      by fast
+  qed
   also have "(\<forall>A. ?phi A) \<longleftrightarrow> (\<forall>B \<subseteq> Field r. ?phi B)"
   proof
     assume "\<forall>A. ?phi A"

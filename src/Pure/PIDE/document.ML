@@ -402,9 +402,6 @@ fun resolve_blob state (blob_digest: blob_digest) =
   blob_digest |> Exn.map_res (fn {file_node, src_path, digest} =>
     {file_node = file_node, src_path = src_path, content = Option.map (the_blob state) digest});
 
-fun blob_reports pos (blob_digest: blob_digest) =
-  (case blob_digest of Exn.Res {file_node, ...} => [(pos, Markup.path file_node)] | _ => []);
-
 
 (* commands *)
 
@@ -439,9 +436,8 @@ fun define_command {command_id, name, parents, blobs_digests, blobs_index, token
                           SOME thy => Theory.get_markup thy
                         | NONE =>
                             (case try Url.explode parent of
-                              NONE => Markup.path parent
-                            | SOME (Url.File path) => Markup.path (Path.implode path)
-                            | SOME _ => Markup.path parent))
+                              SOME (Url.File path) => Markup.path (Path.implode path)
+                            | _ => Markup.path parent))
                       in Position.report pos markup end)
                   else ();
                 val _ =
@@ -450,8 +446,11 @@ fun define_command {command_id, name, parents, blobs_digests, blobs_index, token
                     map_filter Exn.get_exn blobs_digests
                     |> List.app (Output.error_message o Runtime.exn_message)
                   else (*auxiliary files*)
-                    let val pos = Token.pos_of (nth tokens blobs_index)
-                    in Position.reports (maps (blob_reports pos) blobs_digests) end;
+                    let
+                      val pos = Token.pos_of (nth tokens blobs_index);
+                      fun reports (Exn.Res {file_node, ...}) = [(pos, Markup.path file_node)]
+                        | reports _ = [];
+                    in Position.reports (maps reports blobs_digests) end;
               in tokens end) ());
       val commands' =
         Inttab.update_new (command_id, (name, blobs_digests, blobs_index, span)) commands

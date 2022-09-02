@@ -110,7 +110,7 @@ fun play_one_line_proofs minimize timeout used_facts state i methss =
                  comment = ""}
              val ress' =
                preplay_isar_step ctxt chained timeout [] (mk_step meths)
-               |> map (fn result as (meth, play_outcome) =>
+               |> map (fn (meth, play_outcome) =>
                   (case (minimize, play_outcome) of
                     (true, Played time) =>
                     let
@@ -137,8 +137,11 @@ fun select_one_line_proof used_facts preferred_meth preplay_results =
     (* Select best method if preplay succeeded *)
     (best_meth, best_outcome as Played _, best_used_facts) :: _ =>
     (best_used_facts, (best_meth, best_outcome))
-    (* Otherwise select preferred method with dummy timeout *)
-  | _ => (used_facts, (preferred_meth, Play_Timed_Out Time.zeroTime)))
+    (* Otherwise select preferred method *)
+  | (fst_meth, fst_outcome, _) :: _ =>
+    (used_facts, (preferred_meth,
+       if fst_meth = preferred_meth then fst_outcome else Play_Timed_Out Time.zeroTime))
+  | [] => (used_facts, (preferred_meth, Play_Timed_Out Time.zeroTime)))
   |> apfst (filter_out (fn (_, (sc, _)) => sc = Chained))
 
 fun launch_prover (params as {verbose, spy, slices, timeout, ...}) mode learn
@@ -266,7 +269,7 @@ fun launch_prover_and_preplay (params as {debug, timeout, expect, ...}) mode wri
       else
         (really_go ()
          handle
-           ERROR msg => (SH_Unknown, fn () => "Error: " ^ msg ^ "\n")
+           ERROR msg => (SH_Unknown, fn () => "Warning: " ^ msg ^ "\n")
          | exn =>
            if Exn.is_interrupt exn then Exn.reraise exn
            else (SH_Unknown, fn () => "Internal error:\n" ^ Runtime.exn_message exn ^ "\n"))
@@ -297,10 +300,13 @@ fun string_of_factss factss =
     cat_lines (map (fn (filter, facts) => string_of_facts filter facts) factss)
 
 val default_slice_schedule =
-  (* FUDGE (inspired by Seventeen evaluation) *)
-  [cvc4N, zipperpositionN, vampireN, veritN, eN, cvc4N, zipperpositionN, cvc4N, vampireN, cvc4N,
-   cvc4N, vampireN, cvc4N, iproverN, zipperpositionN, vampireN, vampireN, zipperpositionN, z3N,
-   zipperpositionN, vampireN, iproverN, vampireN, cvc4N, z3N, z3N, cvc4N, cvc4N]
+  (* FUDGE (loosely inspired by Seventeen evaluation) *)
+  [cvc4N, zipperpositionN, vampireN, veritN, spassN, zipperpositionN, eN, cvc4N,
+   zipperpositionN, cvc4N, zipperpositionN, vampireN, cvc4N, cvc4N, vampireN,
+   cvc4N, iproverN, zipperpositionN, spassN, vampireN, zipperpositionN,
+   vampireN, zipperpositionN, z3N, zipperpositionN, vampireN, iproverN, spassN,
+   zipperpositionN, vampireN, cvc4N, zipperpositionN, z3N, z3N, cvc4N, cvc4N,
+   zipperpositionN]
 
 fun schedule_of_provers provers num_slices =
   let
@@ -495,7 +501,7 @@ fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_fac
           | SH_Unknown => (the_default writeln writeln_result message; false)
           | SH_Timeout => (the_default writeln writeln_result "No proof found"; false)
           | SH_None => (the_default writeln writeln_result
-                (if message = "" then "No proof found" else "Error: " ^ message);
+                (if message = "" then "No proof found" else "Warning: " ^ message);
               false)))
       end)
 

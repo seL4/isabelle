@@ -186,8 +186,7 @@ text \<open>
 
   Further engines can be defined by add-on components in Isabelle/Scala
   (\secref{sec:scala-build}), providing a service class derived from
-  \<^scala_type>\<open>isabelle.Document_Build.Engine\<close>. Available classes are listed
-  in \<^scala>\<open>isabelle.Document_Build.engines\<close>.
+  \<^scala_type>\<open>isabelle.Document_Build.Engine\<close>.
 \<close>
 
 

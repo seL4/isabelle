@@ -78,9 +78,6 @@ object Document {
       abbrevs: Thy_Header.Abbrevs = Nil,
       errors: List[String] = Nil
     ) {
-      def imports_offset: Map[Int, Name] =
-        (for { (name, Position.Offset(i)) <- imports_pos } yield i -> name).toMap
-
       def imports: List[Name] = imports_pos.map(_._1)
 
       def append_errors(msgs: List[String]): Header =
@@ -119,8 +116,6 @@ object Document {
 
       def expand: Name =
         Name(path.expand.implode, master_dir_path.expand.implode, theory)
-      def symbolic: Name =
-        Name(path.implode_symbolic, master_dir_path.implode_symbolic, theory)
 
       def is_theory: Boolean = theory.nonEmpty
 
@@ -341,7 +336,7 @@ object Document {
     def source: String =
       get_blob match {
         case Some(blob) => blob.source
-        case None => command_iterator(0).map({ case (cmd, _) => cmd.source }).mkString
+        case None => command_iterator().map({ case (cmd, _) => cmd.source }).mkString
       }
   }
 
@@ -596,7 +591,7 @@ object Document {
 
     def xml_markup_blobs(
       elements: Markup.Elements = Markup.Elements.full
-    ) : List[(Path, XML.Body)] = {
+    ) : List[(Command.Blob, XML.Body)] = {
       snippet_command match {
         case None => Nil
         case Some(command) =>
@@ -610,7 +605,7 @@ object Document {
                 markup.to_XML(Text.Range(0, text.length), text, elements)
               }
               else Nil
-            blob.src_path -> xml
+            blob -> xml
           }
       }
     }
@@ -633,8 +628,12 @@ object Document {
     lazy val exports: List[Export.Entry] =
       state.node_exports(version, node_name).iterator.map(_._2).toList
 
-    lazy val exports_map: Map[String, Export.Entry] =
-      (for (entry <- exports.iterator) yield (entry.name, entry)).toMap
+    lazy val all_exports: Map[Export.Entry_Name, Export.Entry] =
+      (for {
+        (name, _) <- version.nodes.iterator
+        (_, entry) <- state.node_exports(version, name).iterator
+        if entry.entry_name.session == Sessions.DRAFT
+      } yield entry.entry_name -> entry).toMap
 
 
     /* find command */
@@ -683,12 +682,6 @@ object Document {
 
     def command_results(command: Command): Command.Results =
       state.command_results(version, command)
-
-
-    /* command ids: static and dynamic */
-
-    def command_id_map: Map[Document_ID.Generic, Command] =
-      state.command_id_map(version, get_node(node_name).commands)
 
 
     /* cumulate markup */
@@ -1087,18 +1080,6 @@ object Document {
         assignments = assignments1,
         history = history.purge(versions1),
         removing_versions = false)
-    }
-
-    def command_id_map(
-      version: Version,
-      commands: Iterable[Command]
-    ) : Map[Document_ID.Generic, Command] = {
-      require(is_assigned(version), "version not assigned (command_id_map)")
-      val assignment = the_assignment(version).check_finished
-      (for {
-        command <- commands.iterator
-        id <- (command.id :: assignment.command_execs.getOrElse(command.id, Nil)).iterator
-      } yield (id -> command)).toMap
     }
 
     def command_maybe_consolidated(version: Version, command: Command): Boolean = {

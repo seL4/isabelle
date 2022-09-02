@@ -6,16 +6,10 @@
 
 isabelle scala_build || exit $?
 
-eval "declare -a JAVA_ARGS=($ISABELLE_JAVA_SYSTEM_OPTIONS)"
-declare -a SCALA_ARGS=()
-for ARG in "${JAVA_ARGS[@]}"
-do
-  SCALA_ARGS["${#SCALA_ARGS[@]}"]="-J$ARG"
-done
-
 classpath "$ISABELLE_SETUP_CLASSPATH"; unset ISABELLE_SETUP_CLASSPATH
 classpath "$CLASSPATH"; unset CLASSPATH
 
-isabelle_scala scala "${SCALA_ARGS[@]}" \
-  -classpath "$(platform_path "$ISABELLE_CLASSPATH")" \
-  -Disabelle.scala.classpath="$(platform_path "$ISABELLE_CLASSPATH")" "$@"
+export jvm_cp_args="$(platform_path "$ISABELLE_CLASSPATH")"
+export JAVA_OPTS="$ISABELLE_JAVA_SYSTEM_OPTIONS -J-Dscala.usejavacp=true"
+
+isabelle_scala scala $ISABELLE_SCALAC_OPTIONS "$@"

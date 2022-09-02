@@ -145,7 +145,11 @@ fun run_smt_solver mode name (params as {debug, verbose, isar_proofs, compress, 
               SMT_Method (if name = "z3" then SMT_Z3 else SMT_Verit "default")
             else
               Metis_Method (NONE, NONE);
-          val methss = bunches_of_proof_methods ctxt try0 smt_proofs false liftingN;
+          val methss =
+            if try0 then
+              bunches_of_proof_methods ctxt smt_proofs false liftingN
+            else
+              [[preferred]]
         in
           ((preferred, methss),
            fn preplay =>

@@ -21,7 +21,8 @@ object Build {
     sources: String,
     input_heaps: List[String],
     output_heap: Option[String],
-    return_code: Int
+    return_code: Int,
+    uuid: String
   ) {
     def ok: Boolean = return_code == 0
   }
@@ -39,7 +40,8 @@ object Build {
         case None => no_timings
         case Some(db) =>
           def ignore_error(msg: String) = {
-            progress.echo_warning("Ignoring bad database " + db + (if (msg == "") "" else "\n" + msg))
+            progress.echo_warning("Ignoring bad database " + db +
+              " for session " + quote(session_name) + (if (msg == "") "" else ":\n" + msg))
             no_timings
           }
           try {
@@ -54,7 +56,7 @@ object Build {
           catch {
             case ERROR(msg) => ignore_error(msg)
             case exn: java.lang.Error => ignore_error(Exn.message(exn))
-            case _: XML.Error => ignore_error("")
+            case _: XML.Error => ignore_error("XML.Error")
           }
           finally { db.close() }
       }
@@ -162,7 +164,7 @@ object Build {
   def build(
     options: Options,
     selection: Sessions.Selection = Sessions.Selection.empty,
-    presentation: Presentation.Context = Presentation.Context.none,
+    browser_info: Browser_Info.Config = Browser_Info.Config.none,
     progress: Progress = new Progress,
     check_unknown_files: Boolean = false,
     build_heap: Boolean = false,
@@ -203,12 +205,12 @@ object Build {
     def sources_stamp(deps: Sessions.Deps, session_name: String): String = {
       val digests =
         full_sessions(session_name).meta_digest ::
-        deps.sources(session_name) :::
+        deps.session_sources(session_name) :::
         deps.imported_sources(session_name)
       SHA1.digest_set(digests).toString
     }
 
-    val deps = {
+    val build_deps = {
       val deps0 =
         Sessions.deps(full_sessions.selection(selection),
           progress = progress, inlined_files = true, verbose = verbose,
@@ -233,12 +235,14 @@ object Build {
       else deps0
     }
 
+    val build_sessions = build_deps.sessions_structure
+
     val presentation_sessions =
       (for {
-        session_name <- deps.sessions_structure.build_topological_order.iterator
-        info <- deps.sessions_structure.get(session_name)
-        if full_sessions_selected(session_name) && presentation.enabled(info) }
-      yield info).toList
+        session_name <- build_sessions.build_topological_order.iterator
+        info <- build_sessions.get(session_name)
+        if full_sessions_selected(session_name) && browser_info.enabled(info) }
+      yield session_name).toList
 
 
     /* check unknown files */
@@ -246,8 +250,8 @@ object Build {
     if (check_unknown_files) {
       val source_files =
         (for {
-          (_, base) <- deps.session_bases.iterator
-          (path, _) <- base.sources.iterator
+          (_, base) <- build_deps.session_bases.iterator
+          (path, _) <- base.session_sources.iterator
         } yield path).toList
       val exclude_files = List(Path.explode("$POLYML_EXE")).map(_.canonical_file)
       val unknown_files =
@@ -262,7 +266,7 @@ object Build {
 
     /* main build process */
 
-    val queue = Queue(progress, deps.sessions_structure, store)
+    val queue = Queue(progress, build_sessions, store)
 
     store.prepare_output_dir()
 
@@ -352,8 +356,8 @@ object Build {
                 build_log =
                   if (process_result.timeout) build_log.error("Timeout") else build_log,
                 build =
-                  Session_Info(sources_stamp(deps, session_name), input_heaps, heap_digest,
-                    process_result.rc)))
+                  Session_Info(sources_stamp(build_deps, session_name), input_heaps, heap_digest,
+                    process_result.rc, UUID.random().toString)))
 
             // messages
             process_result.err_lines.foreach(progress.echo)
@@ -376,7 +380,7 @@ object Build {
             pending.dequeue(running.isDefinedAt) match {
               case Some((session_name, info)) =>
                 val ancestor_results =
-                  deps.sessions_structure.build_requirements(List(session_name)).
+                  build_sessions.build_requirements(List(session_name)).
                     filterNot(_ == session_name).map(results(_))
                 val ancestor_heaps = ancestor_results.flatMap(_.heap_digest)
 
@@ -392,7 +396,7 @@ object Build {
                           val current =
                             !fresh_build &&
                             build.ok &&
-                            build.sources == sources_stamp(deps, session_name) &&
+                            build.sources == sources_stamp(build_deps, session_name) &&
                             build.input_heaps == ancestor_heaps &&
                             build.output_heap == heap_digest &&
                             !(do_store && heap_digest.isEmpty)
@@ -423,7 +427,7 @@ object Build {
 
                   val numa_node = numa_nodes.next(used_node)
                   val job =
-                    new Build_Job(progress, session_name, info, deps, store, do_store,
+                    new Build_Job(progress, session_name, info, build_deps, store, do_store,
                       log, session_setup, numa_node, queue.command_timings(session_name))
                   loop(pending, running + (session_name -> (ancestor_heaps, job)), results)
                 }
@@ -445,7 +449,7 @@ object Build {
 
     val results = {
       val results0 =
-        if (deps.is_empty) {
+        if (build_deps.is_empty) {
           progress.echo_warning("Nothing to build")
           Map.empty[String, Result]
         }
@@ -480,42 +484,9 @@ object Build {
       progress.echo("Unfinished session(s): " + commas(unfinished))
     }
 
-
-    /* PDF/HTML presentation */
-
-    if (!no_build && !progress.stopped && results.ok) {
-      if (presentation_sessions.nonEmpty) {
-        val presentation_dir = presentation.dir(store)
-        progress.echo("Presentation in " + presentation_dir.absolute)
-        Presentation.update_root(presentation_dir)
-
-        for ((chapter, infos) <- presentation_sessions.groupBy(_.chapter).iterator) {
-          val entries = infos.map(info => (info.name, info.description))
-          Presentation.update_chapter(presentation_dir, chapter, entries)
-        }
-
-        using(store.open_database_context()) { db_context =>
-          val exports =
-            Presentation.read_exports(presentation_sessions.map(_.name), deps, db_context)
-
-          Par_List.map({ (session: String) =>
-            progress.expose_interrupt()
-            progress.echo("Presenting " + session + " ...")
-
-            val html_context =
-              new Presentation.HTML_Context {
-                override def root_dir: Path = presentation_dir
-                override def theory_session(name: Document.Node.Name): Sessions.Info =
-                  deps.sessions_structure(deps(session).theory_qualifier(name))
-                override def theory_exports: Theory_Exports = exports
-              }
-            Presentation.session_html(
-              session, deps, db_context, progress = progress,
-              verbose = verbose, html_context = html_context,
-              Presentation.elements1)
-          }, presentation_sessions.map(_.name))
-        }
-      }
+    if (!no_build && !progress.stopped && results.ok && presentation_sessions.nonEmpty) {
+      Browser_Info.build(browser_info, store, build_deps, presentation_sessions,
+        progress = progress, verbose = verbose)
     }
 
     results
@@ -532,7 +503,7 @@ object Build {
       var base_sessions: List[String] = Nil
       var select_dirs: List[Path] = Nil
       var numa_shuffling = false
-      var presentation = Presentation.Context.none
+      var browser_info = Browser_Info.Config.none
       var requirements = false
       var soft_build = false
       var exclude_session_groups: List[String] = Nil
@@ -583,7 +554,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
         "B:" -> (arg => base_sessions = base_sessions ::: List(arg)),
         "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
         "N" -> (_ => numa_shuffling = true),
-        "P:" -> (arg => presentation = Presentation.Context.make(arg)),
+        "P:" -> (arg => browser_info = Browser_Info.Config.make(arg)),
         "R" -> (_ => requirements = true),
         "S" -> (_ => soft_build = true),
         "X:" -> (arg => exclude_session_groups = exclude_session_groups ::: List(arg)),
@@ -626,7 +597,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
               exclude_sessions = exclude_sessions,
               session_groups = session_groups,
               sessions = sessions),
-            presentation = presentation,
+            browser_info = browser_info,
             progress = progress,
             check_unknown_files = Mercurial.is_repository(Path.ISABELLE_HOME),
             build_heap = build_heap,

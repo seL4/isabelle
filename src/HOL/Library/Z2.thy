@@ -140,7 +140,7 @@ lemma modulo_bit_unfold [simp, code]:
   \<open>a mod b = of_bool (odd a \<and> even b)\<close> for a b :: bit
   by (simp add: modulo_bit_def Abs_bit_eq_of_bool Rep_bit_eq_odd)
 
-lemma power_bit_unfold [simp, code]:
+lemma power_bit_unfold [simp]:
   \<open>a ^ n = of_bool (odd a \<or> n = 0)\<close> for a :: bit
   by (cases a) simp_all
 
@@ -235,10 +235,12 @@ lemma mult_bit_eq_and [simp, code]:
   by (simp add: fun_eq_iff)
 
 
-lemma bit_numeral_even [simp]: "numeral (Num.Bit0 w) = (0 :: bit)"
+lemma bit_numeral_even [simp]:
+  \<open>numeral (Num.Bit0 n) = (0 :: bit)\<close>
   by (simp only: Z2.bit_eq_iff even_numeral) simp
 
-lemma bit_numeral_odd [simp]: "numeral (Num.Bit1 w) = (1 :: bit)"
+lemma bit_numeral_odd [simp]:
+  \<open>numeral (Num.Bit1 n) = (1 :: bit)\<close>
   by (simp only: Z2.bit_eq_iff odd_numeral)  simp
 
 end

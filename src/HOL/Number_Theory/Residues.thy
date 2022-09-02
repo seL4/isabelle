@@ -38,7 +38,7 @@ definition residue_ring :: "int \<Rightarrow> int ring"
 locale residues =
   fixes m :: int and R (structure)
   assumes m_gt_one: "m > 1"
-  defines "R \<equiv> residue_ring m"
+  defines R_m_def: "R \<equiv> residue_ring m"
 begin
 
 lemma abelian_group: "abelian_group R"
@@ -55,11 +55,11 @@ proof -
       by (metis False atLeastAtMost_iff diff_ge_0_iff_ge diff_left_mono int_one_le_iff_zero_less less_le)
   qed
   with m_gt_one show ?thesis
-    by (fastforce simp add: R_def residue_ring_def mod_add_right_eq ac_simps  intro!: abelian_groupI)
+    by (fastforce simp add: R_m_def residue_ring_def mod_add_right_eq ac_simps  intro!: abelian_groupI)
 qed
 
 lemma comm_monoid: "comm_monoid R"
-  unfolding R_def residue_ring_def
+  unfolding R_m_def residue_ring_def
   apply (rule comm_monoidI)
     using m_gt_one  apply auto
   apply (metis mod_mult_right_eq mult.assoc mult.commute)
@@ -68,7 +68,7 @@ lemma comm_monoid: "comm_monoid R"
 
 lemma cring: "cring R"
   apply (intro cringI abelian_group comm_monoid)
-  unfolding R_def residue_ring_def
+  unfolding R_m_def residue_ring_def
   apply (auto simp add: comm_semiring_class.distrib mod_add_eq mod_mult_left_eq)
   done
 
@@ -87,29 +87,29 @@ text \<open>
 \<close>
 
 lemma res_carrier_eq: "carrier R = {0..m - 1}"
-  by (auto simp: R_def residue_ring_def)
+  by (auto simp: R_m_def residue_ring_def)
 
 lemma res_add_eq: "x \<oplus> y = (x + y) mod m"
-  by (auto simp: R_def residue_ring_def)
+  by (auto simp: R_m_def residue_ring_def)
 
 lemma res_mult_eq: "x \<otimes> y = (x * y) mod m"
-  by (auto simp: R_def residue_ring_def)
+  by (auto simp: R_m_def residue_ring_def)
 
 lemma res_zero_eq: "\<zero> = 0"
-  by (auto simp: R_def residue_ring_def)
+  by (auto simp: R_m_def residue_ring_def)
 
 lemma res_one_eq: "\<one> = 1"
-  by (auto simp: R_def residue_ring_def units_of_def)
+  by (auto simp: R_m_def residue_ring_def units_of_def)
 
 lemma res_units_eq: "Units R = {x. 0 < x \<and> x < m \<and> coprime x m}"
   using m_gt_one
-  apply (auto simp add: Units_def R_def residue_ring_def ac_simps invertible_coprime intro: ccontr)
+  apply (auto simp add: Units_def R_m_def residue_ring_def ac_simps invertible_coprime intro: ccontr)
   apply (subst (asm) coprime_iff_invertible'_int)
    apply (auto simp add: cong_def)
   done
 
 lemma res_neg_eq: "\<ominus> x = (- x) mod m"
-  using m_gt_one unfolding R_def a_inv_def m_inv_def residue_ring_def
+  using m_gt_one unfolding R_m_def a_inv_def m_inv_def residue_ring_def
   apply simp
   apply (rule the_equality)
    apply (simp add: mod_add_right_eq)
@@ -134,16 +134,16 @@ lemma mod_in_carrier [iff]: "a mod m \<in> carrier R"
   using insert m_gt_one by auto
 
 lemma add_cong: "(x mod m) \<oplus> (y mod m) = (x + y) mod m"
-  by (auto simp: R_def residue_ring_def mod_simps)
+  by (auto simp: R_m_def residue_ring_def mod_simps)
 
 lemma mult_cong: "(x mod m) \<otimes> (y mod m) = (x * y) mod m"
-  by (auto simp: R_def residue_ring_def mod_simps)
+  by (auto simp: R_m_def residue_ring_def mod_simps)
 
 lemma zero_cong: "\<zero> = 0"
-  by (auto simp: R_def residue_ring_def)
+  by (auto simp: R_m_def residue_ring_def)
 
 lemma one_cong: "\<one> = 1 mod m"
-  using m_gt_one by (auto simp: R_def residue_ring_def)
+  using m_gt_one by (auto simp: R_m_def residue_ring_def)
 
 (* FIXME revise algebra library to use 1? *)
 lemma pow_cong: "(x mod m) [^] n = x^n mod m"
@@ -276,7 +276,7 @@ proof  -
     by (simp add: totient_def totatives_eq card_image)
 qed
 
-lemma (in residues_prime) totient_eq: "totient p = p - 1"
+lemma (in residues_prime) prime_totient_eq: "totient p = p - 1"
   using totient_eq by (simp add: res_prime_units_eq)
 
 lemma (in residues) euler_theorem:

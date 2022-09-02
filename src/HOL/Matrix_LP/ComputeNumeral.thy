@@ -51,10 +51,10 @@ lemmas compute_div_mod = div_0 mod_0 div_by_0 mod_by_0 div_by_1 mod_by_1
   one_div_minus_numeral one_mod_minus_numeral
   numeral_div_numeral numeral_mod_numeral minus_numeral_div_numeral minus_numeral_mod_numeral
   numeral_div_minus_numeral numeral_mod_minus_numeral
-  div_minus_minus mod_minus_minus Divides.adjust_div_eq of_bool_eq one_neq_zero
+  div_minus_minus mod_minus_minus Euclidean_Division.adjust_div_eq of_bool_eq one_neq_zero
   numeral_neq_zero neg_equal_0_iff_equal arith_simps arith_special divmod_trivial
-  divmod_steps divmod_cancel divmod_step_eq fst_conv snd_conv numeral_One
-  case_prod_beta rel_simps Divides.adjust_mod_def div_minus1_right mod_minus1_right
+  divmod_steps divmod_cancel divmod_step_def fst_conv snd_conv numeral_One
+  case_prod_beta rel_simps Euclidean_Division.adjust_mod_def div_minus1_right mod_minus1_right
   minus_minus numeral_times_numeral mult_zero_right mult_1_right
 
 

@@ -13,32 +13,6 @@ theory Fields
 imports Nat
 begin
 
-context idom
-begin
-
-lemma inj_mult_left [simp]: \<open>inj ((*) a) \<longleftrightarrow> a \<noteq> 0\<close> (is \<open>?P \<longleftrightarrow> ?Q\<close>)
-proof
-  assume ?P
-  show ?Q
-  proof
-    assume \<open>a = 0\<close>
-    with \<open>?P\<close> have "inj ((*) 0)"
-      by simp
-    moreover have "0 * 0 = 0 * 1"
-      by simp
-    ultimately have "0 = 1"
-      by (rule injD)
-    then show False
-      by simp
-  qed
-next
-  assume ?Q then show ?P
-    by (auto intro: injI)
-qed
-
-end
-
-
 subsection \<open>Division rings\<close>
 
 text \<open>
@@ -60,7 +34,7 @@ text \<open>Setup for linear arithmetic prover\<close>
 ML_file \<open>~~/src/Provers/Arith/fast_lin_arith.ML\<close>
 ML_file \<open>Tools/lin_arith.ML\<close>
 setup \<open>Lin_Arith.global_setup\<close>
-declaration \<open>K (
+declaration \<open>K (                 
   Lin_Arith.init_arith_data
   #> Lin_Arith.add_discrete_type \<^type_name>\<open>nat\<close>
   #> Lin_Arith.add_lessD @{thm Suc_leI}
@@ -85,7 +59,7 @@ simproc_setup fast_arith_nat ("(m::nat) < n" | "(m::nat) \<le> n" | "(m::nat) = 
    \<^text>\<open>fast_nat_arith_simproc\<close> anyway. However, it seems cheaper to activate the
    solver all the time rather than add the additional check.\<close>
 
-lemmas [arith_split] = nat_diff_split split_min split_max
+lemmas [linarith_split] = nat_diff_split split_min split_max abs_split
 
 text\<open>Lemmas \<open>divide_simps\<close> move division to the outside and eliminates them on (in)equalities.\<close>
 
@@ -286,7 +260,7 @@ lemma divide_self_if [simp]:
 
 lemma inverse_nonzero_iff_nonzero [simp]:
   "inverse a = 0 \<longleftrightarrow> a = 0"
-  by rule (fact inverse_zero_imp_zero, simp)
+  by (rule iffI) (fact inverse_zero_imp_zero, simp)
 
 lemma inverse_minus_eq [simp]:
   "inverse (- a) = - inverse a"
@@ -519,7 +493,7 @@ lemma minus_divide_divide:
 
 lemma inverse_eq_1_iff [simp]:
   "inverse x = 1 \<longleftrightarrow> x = 1"
-  by (insert inverse_eq_iff_eq [of x 1], simp)
+  using inverse_eq_iff_eq [of x 1] by simp
 
 lemma divide_eq_0_iff [simp]:
   "a / b = 0 \<longleftrightarrow> a = 0 \<or> b = 0"
@@ -647,8 +621,8 @@ qed
 
 lemma negative_imp_inverse_negative:
   "a < 0 \<Longrightarrow> inverse a < 0"
-  by (insert positive_imp_inverse_positive [of "-a"],
-    simp add: nonzero_inverse_minus_eq less_imp_not_eq)
+  using positive_imp_inverse_positive [of "-a"]
+  by (simp add: nonzero_inverse_minus_eq less_imp_not_eq)
 
 lemma inverse_le_imp_le:
   assumes invle: "inverse a \<le> inverse b" and apos: "0 < a"

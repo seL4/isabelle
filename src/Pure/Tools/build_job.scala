@@ -11,67 +11,70 @@ import scala.collection.mutable
 
 
 object Build_Job {
-  /* theory markup/messages from database */
+  /* theory markup/messages from session database */
 
   def read_theory(
-    db_context: Sessions.Database_Context,
-    session_hierarchy: List[String],
-    theory: String,
+    theory_context: Export.Theory_Context,
     unicode_symbols: Boolean = false
   ): Option[Command] = {
-    def read(name: String): Export.Entry =
-      db_context.get_export(session_hierarchy, theory, name)
+    def read(name: String): Export.Entry = theory_context(name, permissive = true)
 
     def read_xml(name: String): XML.Body =
       YXML.parse_body(
         Symbol.output(unicode_symbols, UTF8.decode_permissive(read(name).uncompressed)),
-        cache = db_context.cache)
+        cache = theory_context.cache)
 
-    (read(Export.DOCUMENT_ID).text, split_lines(read(Export.FILES).text)) match {
-      case (Value.Long(id), thy_file :: blobs_files) =>
-        val node_name = Resources.file_node(Path.explode(thy_file), theory = theory)
+    for {
+      id <- theory_context.document_id()
+      (thy_file, blobs_files) <- theory_context.files(permissive = true)
+    }
+    yield {
+      val master_dir =
+        Thy_Header.split_file_name(thy_file) match {
+          case Some((dir, _)) => dir
+          case None => error("Cannot determine theory master directory: " + quote(thy_file))
+        }
+      val node_name =
+        Document.Node.Name(thy_file, master_dir = master_dir, theory = theory_context.theory)
 
-        val results =
-          Command.Results.make(
-            for (elem @ XML.Elem(Markup(_, Markup.Serial(i)), _) <- read_xml(Export.MESSAGES))
-              yield i -> elem)
+      val results =
+        Command.Results.make(
+          for (elem @ XML.Elem(Markup(_, Markup.Serial(i)), _) <- read_xml(Export.MESSAGES))
+            yield i -> elem)
 
-        val blobs =
-          blobs_files.map { file =>
-            val path = Path.explode(file)
-            val name = Resources.file_node(path)
-            val src_path = File.relative_path(node_name.master_dir_path, path).getOrElse(path)
-            Command.Blob(name, src_path, None)
-          }
-        val blobs_xml =
-          for (i <- (1 to blobs.length).toList)
-            yield read_xml(Export.MARKUP + i)
+      val blobs =
+        blobs_files.map { file =>
+          val name = Document.Node.Name(file)
+          val path = Path.explode(file)
+          val src_path = File.relative_path(node_name.master_dir_path, path).getOrElse(path)
+          Command.Blob(name, src_path, None)
+        }
+      val blobs_xml =
+        for (i <- (1 to blobs.length).toList)
+          yield read_xml(Export.MARKUP + i)
 
-        val blobs_info =
-          Command.Blobs_Info(
-            for { (Command.Blob(name, src_path, _), xml) <- blobs zip blobs_xml }
-              yield {
-                val text = XML.content(xml)
-                val chunk = Symbol.Text_Chunk(text)
-                val digest = SHA1.digest(Symbol.encode(text))
-                Exn.Res(Command.Blob(name, src_path, Some((digest, chunk))))
-              })
+      val blobs_info =
+        Command.Blobs_Info(
+          for { (Command.Blob(name, src_path, _), xml) <- blobs zip blobs_xml }
+            yield {
+              val text = XML.content(xml)
+              val chunk = Symbol.Text_Chunk(text)
+              val digest = SHA1.digest(Symbol.encode(text))
+              Exn.Res(Command.Blob(name, src_path, Some((digest, chunk))))
+            })
 
-        val thy_xml = read_xml(Export.MARKUP)
-        val thy_source = XML.content(thy_xml)
+      val thy_xml = read_xml(Export.MARKUP)
+      val thy_source = XML.content(thy_xml)
 
-        val markups_index =
-          Command.Markup_Index.markup :: blobs.map(Command.Markup_Index.blob)
-        val markups =
-          Command.Markups.make(
-            for ((index, xml) <- markups_index.zip(thy_xml :: blobs_xml))
-            yield index -> Markup_Tree.from_XML(xml))
+      val markups_index =
+        Command.Markup_Index.markup :: blobs.map(Command.Markup_Index.blob)
+      val markups =
+        Command.Markups.make(
+          for ((index, xml) <- markups_index.zip(thy_xml :: blobs_xml))
+          yield index -> Markup_Tree.from_XML(xml))
 
-        val command =
-          Command.unparsed(thy_source, theory = true, id = id, node_name = node_name,
-            blobs_info = blobs_info, results = results, markups = markups)
-        Some(command)
-      case _ => None
+      Command.unparsed(thy_source, theory = true, id = id, node_name = node_name,
+        blobs_info = blobs_info, results = results, markups = markups)
     }
   }
 
@@ -92,15 +95,16 @@ object Build_Job {
     val store = Sessions.store(options)
     val session = new Session(options, Resources.empty)
 
-    using(store.open_database_context()) { db_context =>
+    using(Export.open_session_context0(store, session_name)) { session_context =>
       val result =
-        db_context.input_database(session_name) { (db, _) =>
-          val theories = store.read_theories(db, session_name)
-          val errors = store.read_errors(db, session_name)
-          store.read_build(db, session_name).map(info => (theories, errors, info.return_code))
-        }
+        for {
+          db <- session_context.session_db()
+          theories = store.read_theories(db, session_name)
+          errors = store.read_errors(db, session_name)
+          info <- store.read_build(db, session_name)
+        } yield (theories, errors, info.return_code)
       result match {
-        case None => error("Missing build database for session " + quote(session_name))
+        case None => store.error_database(session_name)
         case Some((used_theories, errors, rc)) =>
           theories.filterNot(used_theories.toSet) match {
             case Nil =>
@@ -108,10 +112,11 @@ object Build_Job {
           }
           val print_theories =
             if (theories.isEmpty) used_theories else used_theories.filter(theories.toSet)
+
           for (thy <- print_theories) {
             val thy_heading = "\nTheory " + quote(thy) + ":"
-            read_theory(db_context, List(session_name), thy, unicode_symbols = unicode_symbols)
-            match {
+
+            read_theory(session_context.theory(thy), unicode_symbols = unicode_symbols) match {
               case None => progress.echo(thy_heading + " MISSING")
               case Some(command) =>
                 val snapshot = Document.State.init.snippet(command)
@@ -315,7 +320,7 @@ class Build_Job(progress: Progress,
           private def export_(msg: Prover.Protocol_Output): Boolean =
             msg.properties match {
               case Protocol.Export(args) =>
-                export_consumer(session_name, args, msg.chunk)
+                export_consumer.make_entry(session_name, args, msg.chunk)
                 true
               case _ => false
             }
@@ -353,8 +358,8 @@ class Build_Job(progress: Progress,
                 val theory_name = snapshot.node_name.theory
                 val args =
                   Protocol.Export.Args(theory_name = theory_name, name = name, compress = compress)
-                val bytes = Bytes(Symbol.encode(YXML.string_of_body(xml)))
-                if (!bytes.is_empty) export_consumer(session_name, args, bytes)
+                val body = Bytes(Symbol.encode(YXML.string_of_body(xml)))
+                export_consumer.make_entry(session_name, args, body)
               }
             }
             def export_text(name: String, text: String, compress: Boolean = true): Unit =
@@ -365,7 +370,7 @@ class Build_Job(progress: Progress,
             }
 
             export_text(Export.FILES,
-              cat_lines(snapshot.node_files.map(_.symbolic.node)), compress = false)
+              cat_lines(snapshot.node_files.map(_.path.implode_symbolic)), compress = false)
 
             for (((_, xml), i) <- snapshot.xml_markup_blobs().zipWithIndex) {
               export_(Export.MARKUP + (i + 1), xml)
@@ -442,14 +447,17 @@ class Build_Job(progress: Progress,
       val (document_output, document_errors) =
         try {
           if (build_errors.isInstanceOf[Exn.Res[_]] && process_result.ok && info.documents.nonEmpty) {
-            using(store.open_database_context()) { db_context =>
+            using(Export.open_database_context(store)) { database_context =>
               val documents =
-                Document_Build.build_documents(
-                  Document_Build.context(session_name, deps, db_context, progress = progress),
-                  output_sources = info.document_output,
-                  output_pdf = info.document_output)
-              db_context.output_database(session_name)(db =>
-                documents.foreach(_.write(db, session_name)))
+                using(database_context.open_session(deps.base_info(session_name))) {
+                  session_context =>
+                    Document_Build.build_documents(
+                      Document_Build.context(session_context, progress = progress),
+                      output_sources = info.document_output,
+                      output_pdf = info.document_output)
+                }
+              using(database_context.open_database(session_name, output = true))(session_database =>
+                documents.foreach(_.write(session_database.db, session_name)))
               (documents.flatMap(_.log_lines), Nil)
             }
           }

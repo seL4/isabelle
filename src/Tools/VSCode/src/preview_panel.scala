@@ -28,14 +28,10 @@ class Preview_Panel(resources: VSCode_Resources) {
                 val snapshot = model.snapshot()
                 if (snapshot.is_outdated) m
                 else {
-                  val html_context =
-                    new Presentation.HTML_Context {
-                      override def root_dir: Path = Path.current
-                      override def theory_session(name: Document.Node.Name): Sessions.Info =
-                        resources.sessions_structure(resources.session_base.theory_qualifier(name))
-                    }
-                  val document =
-                    Presentation.html_document(snapshot, html_context, Presentation.elements2)
+                  val context =
+                    Browser_Info.context(resources.sessions_structure,
+                      elements = Browser_Info.extra_elements)
+                  val document = context.preview_document(snapshot)
                   channel.write(LSP.Preview_Response(file, column, document.title, document.content))
                   m - file
                 }

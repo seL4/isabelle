@@ -11,9 +11,6 @@ import isabelle._
 
 import java.awt.{Point, Frame, Rectangle}
 
-import scala.swing.CheckBox
-import scala.swing.event.ButtonClicked
-
 import org.gjt.sp.jedit.{jEdit, View, Buffer, EditBus}
 import org.gjt.sp.jedit.msg.ViewUpdate
 import org.gjt.sp.jedit.buffer.JEditBuffer
@@ -27,7 +24,7 @@ import org.jedit.options.CombinedOptions
 object Isabelle {
   /* editor modes */
 
-  val modes =
+  val modes: List[String] =
     List(
       "isabelle",         // theory source
       "isabelle-ml",      // ML source
@@ -105,6 +102,12 @@ object Isabelle {
   def debugger_dockable(view: View): Option[Debugger_Dockable] =
     wm(view).getDockableWindow("isabelle-debugger") match {
       case dockable: Debugger_Dockable => Some(dockable)
+      case _ => None
+    }
+
+  def document_dockable(view: View): Option[Document_Dockable] =
+    wm(view).getDockableWindow("isabelle-document") match {
+      case dockable: Document_Dockable => Some(dockable)
       case _ => None
     }
 
@@ -189,28 +192,9 @@ object Isabelle {
 
   /* continuous checking */
 
-  private val CONTINUOUS_CHECKING = "editor_continuous_checking"
-
-  def continuous_checking: Boolean = PIDE.options.bool(CONTINUOUS_CHECKING)
-  def continuous_checking_=(b: Boolean): Unit =
-    GUI_Thread.require {
-      if (continuous_checking != b) {
-        PIDE.options.bool(CONTINUOUS_CHECKING) = b
-        PIDE.session.update_options(PIDE.options.value)
-        PIDE.plugin.deps_changed()
-      }
-    }
-
-  def set_continuous_checking(): Unit = { continuous_checking = true }
-  def reset_continuous_checking(): Unit = { continuous_checking = false }
-  def toggle_continuous_checking(): Unit = { continuous_checking = !continuous_checking }
-
-  class Continuous_Checking extends CheckBox("Continuous checking") {
-    tooltip = "Continuous checking of proof document (visible and required parts)"
-    reactions += { case ButtonClicked(_) => continuous_checking = selected }
-    def load(): Unit = { selected = continuous_checking }
-    load()
-  }
+  def set_continuous_checking(): Unit = JEdit_Options.continuous_checking.set()
+  def reset_continuous_checking(): Unit = JEdit_Options.continuous_checking.reset()
+  def toggle_continuous_checking(): Unit = JEdit_Options.continuous_checking.toggle()
 
 
   /* update state */
@@ -294,7 +278,7 @@ object Isabelle {
       val line = text_area.getCaretLine
       val caret = text_area.getCaretPosition
 
-      def nl: Unit = text_area.userInput('\n')
+      def nl(): Unit = text_area.userInput('\n')
 
       if (indent_enabled(buffer, "jedit_indent_newline")) {
         buffer_syntax(buffer) match {
@@ -310,11 +294,11 @@ object Isabelle {
               text_area.setSelectedText("\n")
               if (!buffer.indentLine(line + 1, true)) text_area.goToStartOfWhiteSpace(false)
             }
-            else nl
-          case None => nl
+            else nl()
+          case None => nl()
         }
       }
-      else nl
+      else nl()
     }
   }
 
@@ -324,7 +308,7 @@ object Isabelle {
       val text1 =
         if (text_area.getSelectionCount == 0) {
           def pad(range: Text.Range): String =
-            if (JEdit_Lib.get_text(buffer, range) == Some("\n")) "" else "\n"
+            if (JEdit_Lib.get_text(buffer, range).contains("\n")) "" else "\n"
 
           val caret = JEdit_Lib.caret_range(text_area)
           val before_caret = JEdit_Lib.point_range(buffer, caret.start - 1)

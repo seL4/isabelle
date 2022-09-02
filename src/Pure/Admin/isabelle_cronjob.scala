@@ -110,7 +110,7 @@ object Isabelle_Cronjob {
     days: Int,
     rev: String,
     afp_rev: Option[String],
-    sql: SQL.Source
+    sql: PostgreSQL.Source
   ): List[Item] = {
     val afp = afp_rev.isDefined
     val select =
@@ -150,7 +150,7 @@ object Isabelle_Cronjob {
     afp: Boolean = false,
     bulky: Boolean = false,
     more_hosts: List[String] = Nil,
-    detect: SQL.Source = "",
+    detect: PostgreSQL.Source = "",
     active: Boolean = true
   ) {
     def ssh_session(context: SSH.Context): SSH.Session =
@@ -158,7 +158,7 @@ object Isabelle_Cronjob {
         proxy_host = proxy_host, proxy_user = proxy_user, proxy_port = proxy_port,
         permissive = proxy_host.nonEmpty)
 
-    def sql: SQL.Source =
+    def sql: PostgreSQL.Source =
       Build_Log.Prop.build_engine.toString + " = " + SQL.string(Build_History.engine) + " AND " +
       SQL.member(Build_Log.Prop.build_host.ident, host :: more_hosts) +
       (if (detect == "") "" else " AND " + SQL.enclose(detect))
@@ -208,6 +208,10 @@ object Isabelle_Cronjob {
 
   val remote_builds_old: List[Remote_Build] =
     List(
+      Remote_Build("macOS 10.15 Catalina", "laramac01", user = "makarius",
+        proxy_host = "laraserver", proxy_user = "makarius",
+        options = "-m32 -M4 -e ISABELLE_GHC_SETUP=true -p pide_session=false",
+        args = "-a -d '~~/src/Benchmarks'"),
       Remote_Build("Linux A", "i21of4", user = "i21isatest",
         proxy_host = "lxbroy10", proxy_user = "i21isatest",
         options = "-m32 -M1x4,2,4" +
@@ -348,10 +352,11 @@ object Isabelle_Cronjob {
         Remote_Build("macOS, skip_proofs", "mini2",
           options = "-m32 -M4 -t skip_proofs -p pide_session=false", args = "-a -o skip_proofs",
           detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("skip_proofs"))),
-      List(Remote_Build("macOS 10.15 Catalina", "laramac01", user = "makarius",
-        proxy_host = "laraserver", proxy_user = "makarius",
-        options = "-m32 -M4 -e ISABELLE_GHC_SETUP=true -p pide_session=false",
-        args = "-a -d '~~/src/Benchmarks'")),
+      List(
+        Remote_Build("macOS 10.15 Catalina", "monterey", actual_host = "laramac01",
+          user = "makarius", proxy_host = "laraserver", proxy_user = "makarius",
+          options = "-m32 -M4 -e ISABELLE_GHC_SETUP=true -p pide_session=false",
+          args = "-a -d '~~/src/Benchmarks'")),
       List(
         Remote_Build("Windows", "vmnipkow9", historic = true, history = 90,
           options = "-m32 -M4" +

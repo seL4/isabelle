@@ -1,4 +1,4 @@
-chapter FOLP
+chapter FOL
 
 session FOLP = Pure +
   description "

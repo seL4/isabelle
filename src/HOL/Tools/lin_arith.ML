@@ -104,6 +104,15 @@ val split_limit = Attrib.setup_config_int \<^binding>\<open>linarith_split_limit
 val neq_limit = Attrib.setup_config_int \<^binding>\<open>linarith_neq_limit\<close> (K 9);
 val trace = Attrib.setup_config_bool \<^binding>\<open>linarith_trace\<close> (K false);
 
+fun nnf_simpset ctxt =
+  (empty_simpset ctxt
+    |> Simplifier.set_mkeqTrue mk_eq_True
+    |> Simplifier.set_mksimps (mksimps mksimps_pairs))
+  addsimps @{thms imp_conv_disj iff_conv_conj_imp de_Morgan_disj
+    de_Morgan_conj not_all not_ex not_not}
+
+fun prem_nnf_tac ctxt = full_simp_tac (nnf_simpset ctxt)
+
 
 structure LA_Data: LIN_ARITH_DATA =
 struct
@@ -764,6 +773,7 @@ fun pre_decomp ctxt (Ts : typ list, terms : term list) : (typ list * term list) 
     result
   end;
 
+
 (* takes the i-th subgoal  [| A1; ...; An |] ==> B  to                       *)
 (* An --> ... --> A1 --> B,  performs splitting with the given 'split_thms'  *)
 (* (resulting in a different subgoal P), takes  P  to  ~P ==> False,         *)
@@ -772,16 +782,6 @@ fun pre_decomp ctxt (Ts : typ list, terms : term list) : (typ list * term list) 
 (* the case of disjunctions) resulting in several new subgoals, each of the  *)
 (* general form  [| Q1; ...; Qm |] ==> False.  Fails if more than            *)
 (* !split_limit splits are possible.                              *)
-
-local
-  fun nnf_simpset ctxt =
-    (empty_simpset ctxt
-      |> Simplifier.set_mkeqTrue mk_eq_True
-      |> Simplifier.set_mksimps (mksimps mksimps_pairs))
-    addsimps [@{thm imp_conv_disj}, @{thm iff_conv_conj_imp}, @{thm de_Morgan_disj},
-      @{thm de_Morgan_conj}, not_all, not_ex, not_not]
-  fun prem_nnf_tac ctxt = full_simp_tac (nnf_simpset ctxt)
-in
 
 fun split_once_tac ctxt split_thms =
   let
@@ -812,8 +812,6 @@ fun split_once_tac ctxt split_thms =
         (DETERM o (eresolve_tac ctxt [conjE, exE] ORELSE' eresolve_tac ctxt [disjE]))
     ]
   end;
-
-end;  (* local *)
 
 (* remove irrelevant premises, then split the i-th subgoal (and all new      *)
 (* subgoals) by using 'split_once_tac' repeatedly.  Beta-eta-normalize new   *)
@@ -897,16 +895,6 @@ val simproc = add_arith_facts #> Fast_Arith.lin_arith_simproc;
    where the Ai are atomic, i.e. no top-level &, | or EX
 *)
 
-local
-  fun nnf_simpset ctxt =
-    (empty_simpset ctxt
-      |> Simplifier.set_mkeqTrue mk_eq_True
-      |> Simplifier.set_mksimps (mksimps mksimps_pairs))
-    addsimps [@{thm imp_conv_disj}, @{thm iff_conv_conj_imp}, @{thm de_Morgan_disj},
-      @{thm de_Morgan_conj}, @{thm not_all}, @{thm not_ex}, @{thm not_not}];
-  fun prem_nnf_tac ctxt = full_simp_tac (nnf_simpset ctxt);
-in
-
 fun refute_tac ctxt test prep_tac ref_tac =
   let val refute_prems_tac =
         REPEAT_DETERM
@@ -920,8 +908,6 @@ fun refute_tac ctxt test prep_tac ref_tac =
               resolve_tac ctxt @{thms ccontr}, prem_nnf_tac ctxt,
             SELECT_GOAL (DEPTH_SOLVE refute_prems_tac)]
   end;
-
-end;
 
 
 (* arith proof method *)
@@ -961,7 +947,7 @@ end;
 val global_setup =
   map_theory_simpset (fn ctxt => ctxt
     addSolver (mk_solver "lin_arith" (add_arith_facts #> Fast_Arith.prems_lin_arith_tac))) #>
-  Attrib.setup \<^binding>\<open>arith_split\<close> (Scan.succeed (Thm.declaration_attribute add_split))
+  Attrib.setup \<^binding>\<open>linarith_split\<close> (Scan.succeed (Thm.declaration_attribute add_split))
     "declaration of split rules for arithmetic procedure" #>
   Method.setup \<^binding>\<open>linarith\<close>
     (Scan.succeed (fn ctxt =>

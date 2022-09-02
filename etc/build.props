@@ -11,6 +11,7 @@ sources = \
   src/HOL/Tools/Mirabelle/mirabelle.scala \
   src/HOL/Tools/Nitpick/kodkod.scala \
   src/Pure/Admin/afp.scala \
+  src/Pure/Admin/build_cvc5.scala \
   src/Pure/Admin/build_csdp.scala \
   src/Pure/Admin/build_cygwin.scala \
   src/Pure/Admin/build_doc.scala \
@@ -116,6 +117,7 @@ sources = \
   src/Pure/PIDE/command_span.scala \
   src/Pure/PIDE/document.scala \
   src/Pure/PIDE/document_id.scala \
+  src/Pure/PIDE/document_info.scala \
   src/Pure/PIDE/document_status.scala \
   src/Pure/PIDE/editor.scala \
   src/Pure/PIDE/headless.scala \
@@ -135,6 +137,7 @@ sources = \
   src/Pure/PIDE/yxml.scala \
   src/Pure/ROOT.scala \
   src/Pure/System/bash.scala \
+  src/Pure/System/classpath.scala \
   src/Pure/System/command_line.scala \
   src/Pure/System/components.scala \
   src/Pure/System/executable.scala \
@@ -158,13 +161,13 @@ sources = \
   src/Pure/System/system_channel.scala \
   src/Pure/System/tty_loop.scala \
   src/Pure/Thy/bibtex.scala \
+  src/Pure/Thy/browser_info.scala \
   src/Pure/Thy/document_build.scala \
   src/Pure/Thy/export.scala \
   src/Pure/Thy/export_theory.scala \
   src/Pure/Thy/file_format.scala \
   src/Pure/Thy/html.scala \
   src/Pure/Thy/latex.scala \
-  src/Pure/Thy/presentation.scala \
   src/Pure/Thy/sessions.scala \
   src/Pure/Thy/thy_element.scala \
   src/Pure/Thy/thy_header.scala \
@@ -235,6 +238,7 @@ sources = \
   src/Tools/jEdit/src/context_menu.scala \
   src/Tools/jEdit/src/debugger_dockable.scala \
   src/Tools/jEdit/src/dockable.scala \
+  src/Tools/jEdit/src/document_dockable.scala \
   src/Tools/jEdit/src/document_model.scala \
   src/Tools/jEdit/src/document_view.scala \
   src/Tools/jEdit/src/documentation_dockable.scala \

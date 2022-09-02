@@ -9,9 +9,6 @@ package isabelle.jedit
 
 import isabelle._
 
-import scala.swing.{Button, CheckBox}
-import scala.swing.event.ButtonClicked
-
 import java.awt.BorderLayout
 import java.awt.event.{ComponentEvent, ComponentAdapter}
 
@@ -45,12 +42,8 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
     override def componentShown(e: ComponentEvent): Unit = delay_resize.invoke()
   })
 
-  private def handle_resize(): Unit = {
-    GUI_Thread.require {}
-
-    pretty_text_area.resize(
-      Font_Info.main(PIDE.options.real("jedit_font_scale") * zoom.factor / 100))
-  }
+  private def handle_resize(): Unit =
+    GUI_Thread.require { pretty_text_area.zoom(zoom) }
 
 
   /* update */
@@ -82,23 +75,25 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
 
   /* controls */
 
-  private val auto_update_button = new CheckBox("Auto update") {
+  private val auto_update_button = new GUI.Check("Auto update", init = auto_update_enabled) {
     tooltip = "Indicate automatic update following cursor movement"
-    reactions += { case ButtonClicked(_) => auto_update_enabled = this.selected; auto_update() }
-    selected = auto_update_enabled
+    override def clicked(state: Boolean): Unit = {
+      auto_update_enabled = state
+      auto_update()
+    }
   }
 
-  private val update_button = new Button("<html><b>Update</b></html>") {
+  private val update_button = new GUI.Button("<html><b>Update</b></html>") {
     tooltip = "Update display according to the command at cursor position"
-    reactions += { case ButtonClicked(_) => update_request() }
+    override def clicked(): Unit = update_request()
   }
 
-  private val locate_button = new Button("Locate") {
+  private val locate_button = new GUI.Button("Locate") {
     tooltip = "Locate printed command within source text"
-    reactions += { case ButtonClicked(_) => print_state.locate_query() }
+    override def clicked(): Unit = print_state.locate_query()
   }
 
-  private val zoom = new Font_Info.Zoom_Box { def changed = handle_resize() }
+  private val zoom = new Font_Info.Zoom { override def changed(): Unit = handle_resize() }
 
   private val controls =
     Wrap_Panel(

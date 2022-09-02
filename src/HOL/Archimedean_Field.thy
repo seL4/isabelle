@@ -243,7 +243,7 @@ lemma less_floor_iff: "z < \<lfloor>x\<rfloor> \<longleftrightarrow> of_int z + 
 lemma floor_le_iff: "\<lfloor>x\<rfloor> \<le> z \<longleftrightarrow> x < of_int z + 1"
   by (simp add: not_less [symmetric] less_floor_iff)
 
-lemma floor_split[arith_split]: "P \<lfloor>t\<rfloor> \<longleftrightarrow> (\<forall>i. of_int i \<le> t \<and> t < of_int i + 1 \<longrightarrow> P i)"
+lemma floor_split[linarith_split]: "P \<lfloor>t\<rfloor> \<longleftrightarrow> (\<forall>i. of_int i \<le> t \<and> t < of_int i + 1 \<longrightarrow> P i)"
   by (metis floor_correct floor_unique less_floor_iff not_le order_refl)
 
 lemma floor_mono:
@@ -618,7 +618,7 @@ lemma ceiling_diff_numeral [simp]: "\<lceil>x - numeral v\<rceil> = \<lceil>x\<r
 lemma ceiling_diff_one [simp]: "\<lceil>x - 1\<rceil> = \<lceil>x\<rceil> - 1"
   using ceiling_diff_of_int [of x 1] by simp
 
-lemma ceiling_split[arith_split]: "P \<lceil>t\<rceil> \<longleftrightarrow> (\<forall>i. of_int i - 1 < t \<and> t \<le> of_int i \<longrightarrow> P i)"
+lemma ceiling_split[linarith_split]: "P \<lceil>t\<rceil> \<longleftrightarrow> (\<forall>i. of_int i - 1 < t \<and> t \<le> of_int i \<longrightarrow> P i)"
   by (auto simp add: ceiling_unique ceiling_correct)
 
 lemma ceiling_diff_floor_le_1: "\<lceil>x\<rceil> - \<lfloor>x\<rfloor> \<le> 1"

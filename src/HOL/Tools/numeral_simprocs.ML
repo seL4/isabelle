@@ -166,7 +166,7 @@ val num_ss =
   simpset_of (put_simpset HOL_basic_ss \<^context> |> Simplifier.set_term_ord numterm_ord);
 
 (*Maps 1 to Numeral1 so that arithmetic isn't complicated by the abstract 1.*)
-val numeral_syms = [@{thm numeral_One} RS sym];
+val numeral_syms = @{thms numeral_One [symmetric]};
 
 (*Simplify 0+n, n+0, Numeral1*n, n*Numeral1, 1*x, x*1, x/1 *)
 val add_0s =  @{thms add_0_left add_0_right};
@@ -174,57 +174,54 @@ val mult_1s = @{thms mult_1s divide_numeral_1 mult_1_left mult_1_right mult_minu
 
 (* For post-simplification of the rhs of simproc-generated rules *)
 val post_simps =
-    [@{thm numeral_One},
-     @{thm add_0_left}, @{thm add_0_right},
-     @{thm mult_zero_left}, @{thm mult_zero_right},
-     @{thm mult_1_left}, @{thm mult_1_right},
-     @{thm mult_minus1}, @{thm mult_minus1_right}]
+    @{thms numeral_One
+      add_0_left add_0_right
+      mult_zero_left mult_zero_right
+      mult_1_left mult_1_right
+      mult_minus1 mult_minus1_right}
 
 val field_post_simps =
-    post_simps @ [@{thm div_0}, @{thm div_by_1}]
+    post_simps @ @{thms div_0 div_by_1}
 
 (*Simplify inverse Numeral1*)
-val inverse_1s = [@{thm inverse_numeral_1}];
+val inverse_1s = @{thms inverse_numeral_1}
 
 (*To perform binary arithmetic.  The "left" rewriting handles patterns
   created by the Numeral_Simprocs, such as 3 * (5 * x). *)
 val simps =
-    [@{thm numeral_One} RS sym] @
-    @{thms add_numeral_left} @
-    @{thms add_neg_numeral_left} @
-    @{thms mult_numeral_left} @
-    @{thms arith_simps} @ @{thms rel_simps};
+    @{thms numeral_One [symmetric]
+      add_numeral_left
+      add_neg_numeral_left
+      mult_numeral_left
+      arith_simps rel_simps}
 
 (*Binary arithmetic BUT NOT ADDITION since it may collapse adjacent terms
   during re-arrangement*)
 val non_add_simps =
   subtract Thm.eq_thm
-    (@{thms add_numeral_left} @
-     @{thms add_neg_numeral_left} @
-     @{thms numeral_plus_numeral} @
-     @{thms add_neg_numeral_simps}) simps;
-
-(*To evaluate binary negations of coefficients*)
-val minus_simps = [@{thm minus_zero}, @{thm minus_minus}];
+    @{thms add_numeral_left
+       add_neg_numeral_left
+       numeral_plus_numeral
+       add_neg_numeral_simps} simps;
 
 (*To let us treat subtraction as addition*)
-val diff_simps = [@{thm diff_conv_add_uminus}, @{thm minus_add_distrib}, @{thm minus_minus}];
+val diff_simps = @{thms diff_conv_add_uminus minus_add_distrib minus_minus};
 
 (*To let us treat division as multiplication*)
-val divide_simps = [@{thm divide_inverse}, @{thm inverse_mult_distrib}, @{thm inverse_inverse_eq}];
+val divide_simps = @{thms divide_inverse inverse_mult_distrib inverse_inverse_eq};
 
 (*to extract again any uncancelled minuses*)
 val minus_from_mult_simps =
-    [@{thm minus_minus}, @{thm mult_minus_left}, @{thm mult_minus_right}];
+    @{thms minus_minus mult_minus_left mult_minus_right};
 
 (*combine unary minus with numeric literals, however nested within a product*)
 val mult_minus_simps =
-    [@{thm mult.assoc}, @{thm minus_mult_right}, @{thm minus_mult_commute}, @{thm numeral_times_minus_swap}];
+    @{thms mult.assoc minus_mult_right minus_mult_commute numeral_times_minus_swap};
 
 val norm_ss1 =
   simpset_of (put_simpset num_ss \<^context>
     addsimps numeral_syms @ add_0s @ mult_1s @
-    diff_simps @ minus_simps @ @{thms ac_simps})
+    diff_simps @ @{thms minus_zero ac_simps})
 
 val norm_ss2 =
   simpset_of (put_simpset num_ss \<^context>
@@ -232,7 +229,7 @@ val norm_ss2 =
 
 val norm_ss3 =
   simpset_of (put_simpset num_ss \<^context>
-    addsimps minus_from_mult_simps @ @{thms ac_simps} @ @{thms ac_simps minus_mult_commute})
+    addsimps minus_from_mult_simps @ @{thms ac_simps minus_mult_commute})
 
 structure CancelNumeralsCommon =
 struct
@@ -249,7 +246,7 @@ struct
     THEN ALLGOALS (simp_tac (put_simpset norm_ss3 ctxt))
 
   val numeral_simp_ss =
-    simpset_of (put_simpset HOL_basic_ss \<^context> addsimps add_0s @ simps)
+    simpset_of (put_simpset HOL_basic_ss \<^context> addsimps simps)
   fun numeral_simp_tac ctxt =
     ALLGOALS (simp_tac (put_simpset numeral_simp_ss ctxt))
   val simplify_meta_eq = Arith_Data.simplify_meta_eq post_simps
@@ -303,7 +300,7 @@ struct
     THEN ALLGOALS (simp_tac (put_simpset norm_ss3 ctxt))
 
   val numeral_simp_ss =
-    simpset_of (put_simpset HOL_basic_ss \<^context> addsimps add_0s @ simps)
+    simpset_of (put_simpset HOL_basic_ss \<^context> addsimps simps)
   fun numeral_simp_tac ctxt =
     ALLGOALS (simp_tac (put_simpset numeral_simp_ss ctxt))
   val simplify_meta_eq = Arith_Data.simplify_meta_eq post_simps
@@ -326,7 +323,7 @@ struct
   val trans_tac = trans_tac
 
   val norm_ss1a =
-    simpset_of (put_simpset norm_ss1 \<^context> addsimps inverse_1s @ divide_simps)
+    simpset_of (put_simpset norm_ss1 \<^context> addsimps (inverse_1s @ divide_simps))
   fun norm_tac ctxt =
     ALLGOALS (simp_tac (put_simpset norm_ss1a ctxt))
     THEN ALLGOALS (simp_tac (put_simpset norm_ss2 ctxt))
@@ -334,7 +331,7 @@ struct
 
   val numeral_simp_ss =
     simpset_of (put_simpset HOL_basic_ss \<^context>
-      addsimps add_0s @ simps @ [@{thm add_frac_eq}, @{thm not_False_eq_True}])
+      addsimps (simps @ @{thms add_frac_eq not_False_eq_True}))
   fun numeral_simp_tac ctxt =
     ALLGOALS (simp_tac (put_simpset numeral_simp_ss ctxt))
   val simplify_meta_eq = Arith_Data.simplify_meta_eq field_post_simps
@@ -386,7 +383,7 @@ struct
   fun numeral_simp_tac ctxt =
     ALLGOALS (simp_tac (put_simpset numeral_simp_ss ctxt))
   val simplify_meta_eq = Arith_Data.simplify_meta_eq
-    ([@{thm Nat.add_0}, @{thm Nat.add_0_right}] @ post_simps)
+    (@{thms Nat.add_0 Nat.add_0_right} @ post_simps)
   val prove_conv = Arith_Data.prove_conv
 end
 
@@ -588,9 +585,9 @@ val zero = cterm_of (Const (\<^const_name>\<open>zero_class.zero\<close>, TVar z
 val type_tvar = tvar \<^sort>\<open>type\<close>;
 val geq = cterm_of (Const (\<^const_name>\<open>HOL.eq\<close>, TVar type_tvar --> TVar type_tvar --> \<^typ>\<open>bool\<close>));
 
-val add_frac_eq = mk_meta_eq @{thm "add_frac_eq"}
-val add_frac_num = mk_meta_eq @{thm "add_frac_num"}
-val add_num_frac = mk_meta_eq @{thm "add_num_frac"}
+val add_frac_eq = mk_meta_eq @{thm add_frac_eq}
+val add_frac_num = mk_meta_eq @{thm add_frac_num}
+val add_num_frac = mk_meta_eq @{thm add_num_frac}
 
 fun prove_nz ctxt T t =
   let
@@ -706,35 +703,37 @@ val ord_frac_simproc =
       \<^term>\<open>(a::'a::{field, ord}) / b = c\<close>],
     proc = K proc3}
 
-val ths =
- [@{thm "mult_numeral_1"}, @{thm "mult_numeral_1_right"},
-  @{thm "divide_numeral_1"},
-  @{thm "div_by_0"}, @{thm div_0},
-  @{thm "divide_divide_eq_left"},
-  @{thm "times_divide_eq_left"}, @{thm "times_divide_eq_right"},
-  @{thm "times_divide_times_eq"},
-  @{thm "divide_divide_eq_right"},
-  @{thm diff_conv_add_uminus}, @{thm "minus_divide_left"},
-  @{thm "add_divide_distrib"} RS sym,
-  @{thm Fields.field_divide_inverse} RS sym, @{thm inverse_divide},
-  Conv.fconv_rule (Conv.arg_conv (Conv.arg1_conv (Conv.rewr_conv (mk_meta_eq @{thm mult.commute}))))
-  (@{thm Fields.field_divide_inverse} RS sym)]
-
 val field_comp_ss =
   simpset_of
     (put_simpset HOL_basic_ss \<^context>
-      addsimps @{thms "semiring_norm"}
-      addsimps ths addsimps @{thms simp_thms}
+      addsimps @{thms semiring_norm
+        mult_numeral_1
+        mult_numeral_1_right
+        divide_numeral_1
+        div_by_0
+        div_0
+        divide_divide_eq_left
+        times_divide_eq_left
+        times_divide_eq_right
+        times_divide_times_eq
+        divide_divide_eq_right
+        diff_conv_add_uminus
+        minus_divide_left
+        add_divide_distrib [symmetric]
+        Fields.field_divide_inverse [symmetric]
+        inverse_divide
+        divide_inverse_commute [symmetric]
+        simp_thms}
       addsimprocs field_cancel_numeral_factors
       addsimprocs [add_frac_frac_simproc, add_frac_num_simproc, ord_frac_simproc]
-      |> Simplifier.add_cong @{thm "if_weak_cong"})
+      |> Simplifier.add_cong @{thm if_weak_cong})
 
 in
 
 fun field_comp_conv ctxt =
   Simplifier.rewrite (put_simpset field_comp_ss ctxt)
   then_conv
-  Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps [@{thm numeral_One}])
+  Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps @{thms numeral_One})
 
 end
 

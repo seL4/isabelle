@@ -12,6 +12,15 @@ New in this Isabelle version
 * Old-style {* verbatim *} tokens have been discontinued (legacy feature
 since Isabelle2019). INCOMPATIBILITY, use \<open>cartouche\<close> syntax instead.
 
+* Session ROOT files support 'chapter_definition' entries (optional).
+This allows to associate additional information as follows:
+
+  - "chapter_definition NAME (GROUPS)" to make all sessions that belong
+  to this chapter members of the given groups
+
+  - "chapter_definition NAME description TEXT" to provide a description
+  for presentation purposes
+
 
 *** Isabelle/VSCode Prover IDE ***
 
@@ -32,20 +41,62 @@ Example:
     --app="$(isabelle getenv -b ISABELLE_HOME)"/src/Tools/Electron/test
 
 
+*** HTML/PDF presentation ***
+
+* Management of dependencies has become more robust and accurate,
+following the session build hierarchy, and the up-to-date notion of
+"isabelle build". Changed sessions and updated builds will cause new
+HTML presentation, when that is enabled eventually. Unchanged sessions
+retain their HTML output that is already present. Thus HTML presentation
+for basic sessions like "HOL" and "HOL-Analysis" is produced at most
+once, as required by user sessions.
+
+* HTML presentation no longer supports README.html, which was meant as
+add-on to the index.html of a session. Rare INCOMPATIBILITY, consider
+using a separate theory "README" with Isabelle document markup/markdown.
+
+* ML files (and other auxiliary files) are presented with detailed
+hyperlinks, just like regular theory sources.
+
+* Support for external hyperlinks (URLs).
+
+* Support for internal hyperlinks to files that belong formally to the
+presented session.
+
+
 *** HOL ***
+
+* HOL-Algebra: Facts renamed to avoid fact name clashes on interpretation:
+
+    is_ring ~> ring_axioms
+    cring ~> cring_axioms
+    R_def ~> R_m_def
+
+INCOMPATIBILITY.
+
+* Moved auxiliary computation constant "divmod_nat" to theory
+"Euclidean_Division".  Minor INCOMPATIBILITY.
+
+* Renamed attribute "arith_split" to "linarith_split".  Minor
+INCOMPATIBILITY.
 
 * Theory Char_ord: streamlined logical specifications.
 Minor INCOMPATIBILITY.
 
 * New Theory Code_Abstract_Char implements characters by target language
 integers, sacrificing pattern patching in exchange for dramatically
-increased performance for comparisions.
+increased performance for comparisons.
+
+* New theory HOL-Library.NList of fixed length lists.
 
 * Rule split_of_bool_asm is not split any longer, analogously to
 split_if_asm.  INCOMPATIBILITY.
 
 * Theory "HOL.Bit_Operations": rule bit_0 is not default [simp] any
 longer. INCOMPATIBILITY.
+
+* Streamlined primitive definitions of division and modulus on integers.
+INCOMPATIBILITY.
 
 * Theory "HOL.Fun":
   - Added predicate monotone_on and redefined monotone to be an
@@ -97,6 +148,11 @@ longer. INCOMPATIBILITY.
       totalp_on_subset
       totalp_on_total_on_eq[pred_set_conv]
 
+* Theory "HOL.Transitive_Closure":
+  - Added lemmas.
+      total_on_trancl
+      totalp_on_tranclp
+
 * Theory "HOL-Library.Multiset":
   - Consolidated operation and fact names.
         multp ~> multp_code
@@ -128,6 +184,12 @@ longer. INCOMPATIBILITY.
 * Theory "HOL-Library.Sublist":
   - Added lemma map_mono_strict_suffix.
 
+* Theory "HOL-ex.Sum_of_Powers":
+  - Deleted. The same material is in the AFP as Bernoulli.
+
+* Nitpick: To avoid technical issues, prefer non-JNI solvers to JNI solvers by
+  default. Minor INCOMPATIBILITY.
+
 * Sledgehammer:
   - Redesigned multithreading to provide more fine grained prover schedules.
     The binary option 'slice' has been replaced by a numeric value 'slices'
@@ -142,6 +204,9 @@ longer. INCOMPATIBILITY.
     INCOMPATIBILITY.
   - Added support for TX0 and TX1 TPTP formats and $ite/$let expressions
     in TH0 and TH1.
+  - Added support for cvc5.
+  - Generate Isar proofs by default when and only when the one-liner proof
+    fails to replay and the Isar proof succeeds.
   - Replaced option "sledgehammer_atp_dest_dir" by
     "sledgehammer_atp_problem_dest_dir", for problem files, and
     "sledgehammer_atp_proof_dest_dir", for proof files. Minor INCOMPATIBILITY.
@@ -190,6 +255,12 @@ String.maxSize (approx. 64 MB on 64_32 architecture).
 
 *** System ***
 
+* Isabelle/Scala is now based on Scala 3. This is a completely different
+compiler ("dotty") and a quite different source language (we are using
+the classic Java-style syntax, not the new Python-style syntax).
+Occasional INCOMPATIBILITY, see also the official Scala documentation
+https://docs.scala-lang.org/scala3/guides/migration/compatibility-intro.html
+
 * Command-line tool "isabelle scala_project" supports Gradle as
 alternative to Maven: either option -G or -M needs to be specified
 explicitly. This increases the chances that the Java/Scala IDE project
@@ -205,6 +276,10 @@ jars and sessions images may be uploaded as well, to avoid redundant
 builds on the remote side. This tool requires a Mercurial clone of the
 Isabelle repository: a regular download of the distribution will not
 work!
+
+* The session build database now maintains an additional "uuid" column
+to identity the original build process uniquely. Thus other tools may
+dependent symbolically on a particular build instance.
 
 * External Isabelle tools implemented as .scala scripts are no longer
 supported. INCOMPATIBILITY, instead provide a proper Isabelle/Scala

@@ -14,7 +14,6 @@ import javax.swing.{InputVerifier, JComponent, UIManager}
 import javax.swing.text.JTextComponent
 
 import scala.swing.{Component, CheckBox, TextArea}
-import scala.swing.event.ButtonClicked
 
 import org.gjt.sp.jedit.gui.ColorWellButton
 
@@ -26,23 +25,61 @@ trait Option_Component extends Component {
 }
 
 object JEdit_Options {
+  /* sections */
+
   val RENDERING_SECTION = "Rendering of Document Content"
 
-  class Check_Box(name: String, label: String, description: String) extends CheckBox(label) {
-    tooltip = description
-    reactions += { case ButtonClicked(_) => update(selected) }
 
-    def stored: Boolean = PIDE.options.bool(name)
-    def update(b: Boolean): Unit =
-      GUI_Thread.require {
-        if (selected != b) selected = b
-        if (stored != b) {
-          PIDE.options.bool(name) = b
-          PIDE.session.update_options(PIDE.options.value)
-        }
-      }
-    def load(): Unit = { selected = stored }
-    load()
+  /* typed access and GUI components */
+
+  class Access[A](access: Options.Access_Variable[A], val name: String) {
+    def apply(): A = access.apply(name)
+    def update(x: A): Unit = change(_ => x)
+    def change(f: A => A): Unit = {
+      val x0 = apply()
+      access.change(name, f)
+      val x1 = apply()
+      if (x0 != x1) changed()
+    }
+    def changed(): Unit = GUI_Thread.require { PIDE.session.update_options(access.options.value) }
+  }
+
+  class Bool_Access(name: String) extends Access(PIDE.options.bool, name) {
+    def set(): Unit = update(true)
+    def reset(): Unit = update(false)
+    def toggle(): Unit = change(b => !b)
+  }
+
+  class Bool_GUI(access: Bool_Access, label: String)
+  extends GUI.Check(label, init = access()) {
+    def load(): Unit = { selected = access() }
+    override def clicked(state: Boolean): Unit = access.update(state)
+  }
+
+
+  /* specific options */
+
+  object continuous_checking extends Bool_Access("editor_continuous_checking") {
+    override def changed(): Unit = {
+      super.changed()
+      PIDE.plugin.deps_changed()
+    }
+
+    class GUI extends Bool_GUI(this, "Continuous checking") {
+      tooltip = "Continuous checking of proof document (visible and required parts)"
+    }
+  }
+
+  object output_state extends Bool_Access("editor_output_state") {
+    override def changed(): Unit = GUI_Thread.require {
+      super.changed()
+      PIDE.editor.flush_edits(hidden = true)
+      PIDE.editor.flush()
+    }
+
+    class GUI extends Bool_GUI(this, "Proof state") {
+      tooltip = "Output of proof state (normally shown on State panel)"
+    }
   }
 }
 
@@ -57,9 +94,9 @@ class JEdit_Options(init_options: Options) extends Options_Variable(init_options
 
     val button = new ColorWellButton(Color_Value(opt.value))
     val component = new Component with Option_Component {
-      override lazy val peer = button
+      override lazy val peer: JComponent = button
       name = opt_name
-      val title = opt_title
+      val title: String = opt_title
       def load(): Unit = button.setSelectedColor(Color_Value(string(opt_name)))
       def save(): Unit = string(opt_name) = Color_Value.print(button.getSelectedColor)
     }
@@ -77,7 +114,7 @@ class JEdit_Options(init_options: Options) extends Options_Variable(init_options
       if (opt.typ == Options.Bool)
         new CheckBox with Option_Component {
           name = opt_name
-          val title = opt_title
+          val title: String = opt_title
           def load(): Unit = selected = bool(opt_name)
           def save(): Unit = bool(opt_name) = selected
         }
@@ -87,7 +124,7 @@ class JEdit_Options(init_options: Options) extends Options_Variable(init_options
           new TextArea with Option_Component {
             if (default_font != null) font = default_font
             name = opt_name
-            val title = opt_title
+            val title: String = opt_title
             def load(): Unit = text = value.check_name(opt_name).value
             def save(): Unit =
               try { JEdit_Options.this += (opt_name, text) }
@@ -97,14 +134,11 @@ class JEdit_Options(init_options: Options) extends Options_Variable(init_options
                     GUI.scrollable_text(msg))
               }
           }
-        text_area.peer.setInputVerifier(new InputVerifier {
-          def verify(jcomponent: JComponent): Boolean =
-            jcomponent match {
-              case text: JTextComponent =>
-                try { value + (opt_name, text.getText); true }
-                catch { case ERROR(_) => false }
-              case _ => true
-            }
+        text_area.peer.setInputVerifier({
+            case text: JTextComponent =>
+              try { value + (opt_name, text.getText); true }
+              catch { case ERROR(_) => false }
+            case _ => true
           })
         GUI.plain_focus_traversal(text_area.peer)
         text_area

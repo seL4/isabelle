@@ -191,7 +191,7 @@ lemma one_dvd [simp]: "1 dvd a"
   by (auto intro: dvdI)
 
 lemma dvd_mult [simp]: "a dvd (b * c)" if "a dvd c"
-  using that by rule (auto intro: mult.left_commute dvdI)
+  using that by (auto intro: mult.left_commute dvdI)
 
 lemma dvd_mult2 [simp]: "a dvd (b * c)" if "a dvd b"
   using that dvd_mult [of a b c] by (simp add: ac_simps)
@@ -382,7 +382,7 @@ begin
 
 subclass semiring_1_cancel ..
 
-lemma of_bool_not_iff [simp]:
+lemma of_bool_not_iff:
   \<open>of_bool (\<not> P) = 1 - of_bool P\<close>
   by simp
 
@@ -558,6 +558,26 @@ proof
 next
   assume "a = b \<or> a = - b"
   then show "a * a = b * b" by auto
+qed
+
+lemma inj_mult_left [simp]: \<open>inj ((*) a) \<longleftrightarrow> a \<noteq> 0\<close> (is \<open>?P \<longleftrightarrow> ?Q\<close>)
+proof
+  assume ?P
+  show ?Q
+  proof
+    assume \<open>a = 0\<close>
+    with \<open>?P\<close> have "inj ((*) 0)"
+      by simp
+    moreover have "0 * 0 = 0 * 1"
+      by simp
+    ultimately have "0 = 1"
+      by (rule injD)
+    then show False
+      by simp
+  qed
+next
+  assume ?Q then show ?P
+    by (auto intro: injI)
 qed
 
 end
@@ -1175,7 +1195,7 @@ lemma is_unit_div_mult_cancel_right:
 lemma unit_div_eq_0_iff:
   assumes "is_unit b"
   shows "a div b = 0 \<longleftrightarrow> a = 0"
-  by (rule dvd_div_eq_0_iff) (insert assms, auto)  
+  using assms by (simp add: dvd_div_eq_0_iff unit_imp_dvd)
 
 lemma div_mult_unit2:
   "is_unit c \<Longrightarrow> b dvd a \<Longrightarrow> a div (b * c) = a div b div c"
@@ -1542,7 +1562,7 @@ lemma normalize_idem_imp_is_unit_iff:
 
 lemma coprime_normalize_left_iff [simp]:
   "coprime (normalize a) b \<longleftrightarrow> coprime a b"
-  by (rule; rule coprimeI) (auto intro: coprime_common_divisor)
+  by (rule iffI; rule coprimeI) (auto intro: coprime_common_divisor)
 
 lemma coprime_normalize_right_iff [simp]:
   "coprime a (normalize b) \<longleftrightarrow> coprime a b"
@@ -2039,7 +2059,7 @@ text \<open>This weaker variant has more natural premises\<close>
 lemma mult_strict_mono':
   assumes "a < b" and "c < d" and "0 \<le> a" and "0 \<le> c"
   shows "a * c < b * d"
-  by (rule mult_strict_mono) (insert assms, auto)
+  using assms by (auto simp add: mult_strict_mono)
 
 lemma mult_less_le_imp_less:
   assumes "a < b" and "c \<le> d" and "0 \<le> a" and "0 < c"
@@ -2365,7 +2385,7 @@ class linordered_nonzero_semiring = ordered_comm_semiring + monoid_mult + linord
 begin
 
 subclass zero_neq_one
-  by standard (insert zero_less_one, blast)
+  by standard
 
 subclass comm_semiring_1
   by standard (rule mult_1_left)
@@ -2405,10 +2425,12 @@ begin
 subclass linordered_nonzero_semiring 
 proof
   show "a + 1 < b + 1" if "a < b" for a b
-  proof (rule ccontr, simp add: not_less)
-    assume "b \<le> a"
-    with that show False
+  proof (rule ccontr)
+    assume "\<not> a + 1 < b + 1"
+    moreover with that have "a + 1 < b + 1"
       by simp
+    ultimately show False
+      by contradiction
   qed
 qed
 
@@ -2565,6 +2587,10 @@ lemma sgn_mult_self_eq [simp]:
   "sgn a * sgn a = of_bool (a \<noteq> 0)"
   by (cases "a > 0") simp_all
 
+lemma left_sgn_mult_self_eq [simp]:
+  \<open>sgn a * (sgn a * b) = of_bool (a \<noteq> 0) * b\<close>
+  by (simp flip: mult.assoc)
+
 lemma abs_mult_self_eq [simp]:
   "\<bar>a\<bar> * \<bar>a\<bar> = a * a"
   by (cases "a > 0") simp_all
@@ -2644,6 +2670,12 @@ lemma minus_less_iff_1 [simp, no_atp]: "- a < 1 \<longleftrightarrow> - 1 < a"
 lemma add_less_zeroD:
   shows "x+y < 0 \<Longrightarrow> x<0 \<or> y<0"
   by (auto simp: not_less intro: le_less_trans [of _ "x+y"])
+
+text \<open>
+  Is this really better than just rewriting with \<open>abs_if\<close>?
+\<close>
+lemma abs_split [no_atp]: \<open>P \<bar>a\<bar> \<longleftrightarrow> (0 \<le> a \<longrightarrow> P a) \<and> (a < 0 \<longrightarrow> P (- a))\<close>
+  by (force dest: order_less_le_trans simp add: abs_if linorder_not_less)
 
 end
 

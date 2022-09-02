@@ -109,7 +109,7 @@ class Main_Plugin extends EBPlugin {
   private def delay_load_activated(): Boolean =
     delay_load_active.guarded_access(a => Some((!a, true)))
   private def delay_load_action(): Unit = {
-    if (Isabelle.continuous_checking && delay_load_activated() &&
+    if (JEdit_Options.continuous_checking() && delay_load_activated() &&
         PerspectiveManager.isPerspectiveEnabled) {
       if (JEdit_Lib.jedit_buffers().exists(_.isLoading)) delay_load.invoke()
       else {
@@ -189,7 +189,7 @@ class Main_Plugin extends EBPlugin {
     case Session.Ready if !shutting_down.value =>
       init_models()
 
-      if (!Isabelle.continuous_checking) {
+      if (!JEdit_Options.continuous_checking()) {
         GUI_Thread.later {
           val answer =
             GUI.confirm_dialog(jEdit.getActiveView,
@@ -198,7 +198,7 @@ class Main_Plugin extends EBPlugin {
               "Continuous checking is presently disabled:",
               "editor buffers will remain inactive!",
               "Enable continuous checking now?")
-          if (answer == 0) Isabelle.continuous_checking = true
+          if (answer == 0) JEdit_Options.continuous_checking.set()
         }
       }
 
@@ -242,7 +242,7 @@ class Main_Plugin extends EBPlugin {
             val model = Document_Model.init(session, node_name, buffer)
             for {
               text_area <- JEdit_Lib.jedit_text_areas(buffer)
-              if Document_View.get(text_area).map(_.model) != Some(model)
+              if !Document_View.get(text_area).map(_.model).contains(model)
             } Document_View.init(model, text_area)
           }
         }
@@ -284,7 +284,7 @@ class Main_Plugin extends EBPlugin {
   private def init_title(view: View): Unit = {
     val title =
       proper_string(Isabelle_System.getenv("ISABELLE_IDENTIFIER")).getOrElse("Isabelle") +
-        "/" + PIDE.resources.session_name
+        "/" + PIDE.resources.session_base.session_name
     val marker = "\u200B"
 
     val old_title = view.getViewConfig.title
@@ -298,7 +298,7 @@ class Main_Plugin extends EBPlugin {
 
     if (startup_failure.isDefined && !startup_notified) {
       message match {
-        case msg: EditorStarted =>
+        case _: EditorStarted =>
           GUI.error_dialog(null, "Isabelle plugin startup failure",
             GUI.scrollable_text(Exn.message(startup_failure.get)),
             "Prover IDE inactive!")
@@ -309,7 +309,7 @@ class Main_Plugin extends EBPlugin {
 
     if (startup_failure.isEmpty) {
       message match {
-        case msg: EditorStarted =>
+        case _: EditorStarted =>
           if (resources.session_errors.nonEmpty) {
             GUI.warning_dialog(jEdit.getActiveView,
               "Bad session structure: may cause problems with theory imports",
@@ -369,7 +369,7 @@ class Main_Plugin extends EBPlugin {
               Completion_Popup.Text_Area.exit(text_area)
           }
 
-        case msg: PropertiesChanged =>
+        case _: PropertiesChanged =>
           for {
             view <- JEdit_Lib.jedit_views()
             edit_pane <- JEdit_Lib.jedit_edit_panes(view)

@@ -95,11 +95,11 @@ object Rendering {
     legacy_pri -> Color.legacy_message,
     error_pri -> Color.error_message)
 
-  def output_messages(results: Command.Results): List[XML.Elem] = {
+  def output_messages(results: Command.Results, output_state: Boolean): List[XML.Elem] = {
     val (states, other) =
       results.iterator.map(_._2).filterNot(Protocol.is_result).toList
         .partition(Protocol.is_state)
-    states ::: other
+    (if (output_state) states else Nil) ::: other
   }
 
 
@@ -659,7 +659,7 @@ class Rendering(
             Some(info + (r0, true, Pretty.block(XML.Text("::") :: Pretty.brk(1) :: body)))
 
           case (info, Text.Info(r0, XML.Elem(Markup(Markup.CLASS_PARAMETER, _), body))) =>
-            Some(info + (r0, true, Pretty.block(0, body)))
+            Some(info + (r0, true, Pretty.block(body, indent = 0)))
 
           case (info, Text.Info(r0, XML.Elem(Markup(Markup.ML_TYPING, _), body))) =>
             Some(info + (r0, false, Pretty.block(XML.Text("ML:") :: Pretty.brk(1) :: body)))

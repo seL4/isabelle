@@ -811,7 +811,7 @@ qed
 lemma DERIV_def: "DERIV f x :> D \<longleftrightarrow> (\<lambda>h. (f (x + h) - f x) / h) \<midarrow>0\<rightarrow> D"
   unfolding field_has_derivative_at has_field_derivative_def has_field_derivative_iff ..
 
-text \<open>due to Christian Pardillo Laursen, replacing a proper epsilon-delta horror\<close>
+text \<open>due to Christian Pardillo Laursen, replacing a proper epsilon-delta horror\<close>
 lemma field_derivative_lim_unique:
   assumes f: "(f has_field_derivative df) (at z)"
     and s: "s \<longlonglongrightarrow> 0"  "\<And>n. s n \<noteq> 0" 

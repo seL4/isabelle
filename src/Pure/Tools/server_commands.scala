@@ -68,7 +68,7 @@ object Server_Commands {
 
       val base_info =
         Sessions.base_info(options, args.session, progress = progress, dirs = dirs,
-          include_sessions = args.include_sessions).check
+          include_sessions = args.include_sessions).check_errors
 
       val results =
         Build.build(options,
@@ -263,8 +263,8 @@ object Server_Commands {
                   } yield output_message(tree, pos))) +
                 ("exports" ->
                   (if (args.export_pattern == "") Nil else {
-                    val matcher = Export.make_matcher(args.export_pattern)
-                    for { entry <- snapshot.exports if matcher(entry.theory_name, entry.name) }
+                    val matcher = Export.make_matcher(List(args.export_pattern))
+                    for { entry <- snapshot.exports if matcher(entry.entry_name) }
                     yield {
                       val (base64, body) = entry.uncompressed.maybe_encode_base64
                       JSON.Object("name" -> entry.name, "base64" -> base64, "body" -> body)

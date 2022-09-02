@@ -8,7 +8,8 @@ signature SESSIONS =
 sig
   val root_name: string
   val theory_name: string
-  val command_parser: (Toplevel.transition -> Toplevel.transition) parser
+  val chapter_definition_parser: (Toplevel.transition -> Toplevel.transition) parser
+  val session_parser: (Toplevel.transition -> Toplevel.transition) parser
 end;
 
 structure Sessions: SESSIONS =
@@ -18,6 +19,12 @@ val root_name = "ROOT";
 val theory_name = "Pure.Sessions";
 
 local
+
+val groups =
+  Scan.optional (Parse.$$$ "(" |-- Parse.!!! (Scan.repeat1 Parse.name --| Parse.$$$ ")")) [];
+
+val description =
+  Scan.optional (Parse.$$$ "description" |-- Parse.!!! (Parse.input Parse.embedded)) Input.empty;
 
 val theory_entry = Parse.input Parse.theory_name --| Parse.opt_keyword "global";
 
@@ -41,18 +48,30 @@ val export_files =
   Parse.$$$ "export_files" |--
     Parse.!!! (Scan.optional in_path (Input.string "export") -- prune -- Scan.repeat1 Parse.embedded);
 
+val export_classpath =
+  Parse.$$$ "export_classpath" |-- Scan.repeat Parse.embedded;
+
 fun path_source source path =
   Input.source (Input.is_delimited source) (Path.implode path) (Input.range_of source);
 
 in
 
-val command_parser =
-  Parse.session_name --
-  Scan.optional (Parse.$$$ "(" |-- Parse.!!! (Scan.repeat1 Parse.name --| Parse.$$$ ")")) [] --
+val chapter_definition_parser =
+  Parse.chapter_name -- groups -- description >> (fn (_, descr) =>
+    Toplevel.keep (fn state =>
+      let
+        val ctxt = Toplevel.context_of state;
+        val _ =
+          Context_Position.report ctxt
+            (Position.range_position (Symbol_Pos.range (Input.source_explode descr)))
+            Markup.comment;
+      in () end));
+
+val session_parser =
+  Parse.session_name -- groups --
   Scan.optional (Parse.$$$ "in" |-- Parse.!!! Parse.path_input) (Input.string ".") --
   (Parse.$$$ "=" |--
-    Parse.!!! (Scan.option (Parse.session_name --| Parse.!!! (Parse.$$$ "+")) --
-      Scan.optional (Parse.$$$ "description" |-- Parse.!!! (Parse.input Parse.embedded)) Input.empty --
+    Parse.!!! (Scan.option (Parse.session_name --| Parse.!!! (Parse.$$$ "+")) -- description --
       Scan.optional (Parse.$$$ "options" |-- Parse.!!! Parse.options) [] --
       Scan.optional (Parse.$$$ "sessions" |--
         Parse.!!! (Scan.repeat1 Parse.session_name)) [] --
@@ -60,10 +79,11 @@ val command_parser =
       Scan.repeat theories --
       Scan.optional document_theories [] --
       Scan.repeat document_files --
-      Scan.repeat export_files))
+      Scan.repeat export_files --
+      Scan.optional export_classpath []))
   >> (fn (((((session, _), _), dir),
-          (((((((((parent, descr), options), sessions), directories), theories),
-            document_theories), document_files), export_files)))) =>
+          ((((((((((parent, descr), options), sessions), directories), theories),
+            document_theories), document_files), export_files), _)))) =>
     Toplevel.keep (fn state =>
       let
         val ctxt = Toplevel.context_of state;

@@ -29,19 +29,20 @@ text \<open>
   providers --- there is no need to follow big cloud corporations. So it is
   feasible to remain the master of your virtual home, following the slogan
   ``own all your data''. In many respects, Phabricator is similar to the
-  well-known Nextcloud\<^footnote>\<open>\<^url>\<open>https://nextcloud.org\<close>\<close> product, concerning both
+  well-known Nextcloud\<^footnote>\<open>\<^url>\<open>https://nextcloud.com\<close>\<close> product, concerning both
   the technology and sociology.
 
   \<^medskip>
   The following Phabricator instances may serve as examples:
 
-    \<^item> Phabricator development \<^url>\<open>https://secure.phabricator.com\<close>
     \<^item> Wikimedia development \<^url>\<open>https://phabricator.wikimedia.org\<close>
     \<^item> Blender development \<^url>\<open>https://developer.blender.org\<close>
     \<^item> LLVM development \<^url>\<open>https://reviews.llvm.org\<close>
     \<^item> Mozilla development \<^url>\<open>https://phabricator.services.mozilla.com\<close>
-    \<^item> Mercurial development \<^url>\<open>https://phab.mercurial-scm.org\<close>
     \<^item> Isabelle development \<^url>\<open>https://isabelle-dev.sketis.net\<close>
+    \<^item> Phabricator development (inactive) \<^url>\<open>https://secure.phabricator.com\<close>
+    \<^item> Phorge development (planned successor of Phabricator)
+      \<^url>\<open>https://we.phorge.it\<close>
 
   \<^medskip>
   Initial Phabricator configuration requires many details to be done right.
@@ -234,7 +235,7 @@ text \<open>
 
     \<^item> Install \<^verbatim>\<open>certbot\<close> from \<^url>\<open>https://certbot.eff.org\<close> following the
     description for Apache and Ubuntu 20.04 on
-    \<^url>\<open>https://certbot.eff.org/lets-encrypt/ubuntubionic-apache\<close>. Run
+    \<^url>\<open>https://certbot.eff.org/instructions?ws=apache&os=ubuntufocal\<close>. Run
     \<^verbatim>\<open>certbot\<close> interactively and let it operate on the domain
     \<^verbatim>\<open>vcs.example.org\<close>.
 

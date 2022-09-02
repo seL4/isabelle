@@ -256,7 +256,7 @@ text \<open>
   Option \<^verbatim>\<open>-q\<close> suppresses all output on stdout/stderr produced by the Scala or
   Java compiler.
 
-  \<^medskip> Explicit invocation of \<^verbatim>\<open>isabelle scala_build\<close> mainly serves testing or
+  \<^medskip> Explicit invocation of @{tool scala_build} mainly serves testing or
   applications with special options: the Isabelle system normally does an
   automatic the build on demand.
 \<close>

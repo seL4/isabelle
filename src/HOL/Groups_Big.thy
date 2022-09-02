@@ -1001,12 +1001,15 @@ next
   case empty
   then show ?case by simp
 next
-  case insert
+  case (insert x F)
   then show ?case
-    apply (auto simp: insert_Diff_if)
-    apply (drule mk_disjoint_insert)
-    apply auto
-    done
+  proof (cases "a \<in> F")
+    case True
+    then have "\<exists>B. F = insert a B \<and> a \<notin> B"
+      by (auto simp: mk_disjoint_insert)
+    then show ?thesis  using insert
+      by (auto simp: insert_Diff_if)
+  qed (auto)
 qed
 
 lemma sum_diff_nat:
@@ -1497,7 +1500,7 @@ proof (induct A)
 next
   case (insert a A)
   then have "f a = 0 \<or> (\<exists>a\<in>A. f a = 0)" by simp
-  then have "f a * prod f A = 0" by rule (simp_all add: insert)
+  then have "f a * prod f A = 0" by (rule disjE) (simp_all add: insert)
   with insert show ?case by simp
 qed
 

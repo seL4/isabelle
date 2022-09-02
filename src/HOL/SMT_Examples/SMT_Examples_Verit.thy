@@ -15,7 +15,7 @@ begin
 external_file \<open>SMT_Examples_Verit.certs\<close>
 
 declare [[smt_certificates = "SMT_Examples_Verit.certs"]]
-declare [[smt_read_only_certificates = true]]
+declare [[smt_read_only_certificates = false]]
 
 
 section \<open>Propositional and first-order logic\<close>
@@ -737,4 +737,82 @@ axiomatization where
 
 lemma "g (Some (3::int)) = g (Some True)" by (smt (verit) g1 g2 g3 list.size)
 
+experiment
+begin
+
+lemma duplicate_goal: \<open>A \<Longrightarrow> A \<Longrightarrow> A\<close>
+  by auto
+
+datatype 'a M_nres = is_fail: FAIL | SPEC "'a \<Rightarrow> bool"
+
+definition "is_res m x \<equiv> case m of FAIL \<Rightarrow> True | SPEC P \<Rightarrow> P x"
+
+datatype ('a,'s) M_state = M_STATE (run: "'s \<Rightarrow> ('a\<times>'s) M_nres")
+
+(*Courtesy of Peter Lammich
+https://isabelle.zulipchat.com/#narrow/stream/247541-Mirror.3A-Isabelle-Users-Mailing-List/topic/.5Bisabelle.5D.20smt.20.28verit.29.3A.20exception.20THM.200.20raised.20.28line.20312.20.2E.2E.2E/near/290088165
+*)
+lemma "\<lbrakk>\<forall>x y. (\<forall>xa s. is_fail (run (x xa) s) \<or>
+                   is_fail (run (y xa) s) = is_fail (run (x xa) s) \<and>
+                   (\<forall>a b. is_res (run (y xa) s) (a, b) = is_res (run (x xa) s) (a, b)))
+\<longrightarrow>
+           (\<forall>s. is_fail (run (B x) s) \<or>
+                is_fail (run (B y) s) = is_fail (run (B x) s) \<and>
+                (\<forall>a b. is_res (run (B y) s) (a, b) = is_res (run (B x) s) (a, b)));
+     \<And>y. \<forall>x ya. (\<forall>xa s. is_fail (run (x xa) s) \<or>
+                         is_fail (run (ya xa) s) = is_fail (run (x xa) s) \<and>
+                         (\<forall>a b. is_res (run (ya xa) s) (a, b) = is_res (run (x xa) s) (a, b)))
+\<longrightarrow>
+                 (\<forall>s. is_fail (run (C y x) s) \<or>
+                      is_fail (run (C y ya) s) = is_fail (run (C y x) s) \<and>
+                      (\<forall>a b. is_res (run (C y ya) s) (a, b) = is_res (run (C y x) s) (a,
+b)))\<rbrakk>
+    \<Longrightarrow> \<forall>x y. (\<forall>xa s.
+                  is_fail (run (x xa) s) \<or>
+                  is_fail (run (y xa) s) = is_fail (run (x xa) s) \<and>
+                  (\<forall>a b. is_res (run (y xa) s) (a, b) = is_res (run (x xa) s) (a, b)))
+\<longrightarrow>
+              (\<forall>s. is_fail (run (B x) s) \<or>
+                   (\<exists>a b. is_res (run (B x) s) (a, b) \<and> is_fail (run (C a x) b)) \<or>
+                   (is_fail (run (B y) s) \<or> (\<exists>a b. is_res (run (B y) s) (a, b) \<and>
+is_fail (run (C a y) b))) =
+                   (is_fail (run (B x) s) \<or> (\<exists>a b. is_res (run (B x) s) (a, b) \<and>
+is_fail (run (C a x) b))) \<and>
+                   (\<forall>a b. (is_fail (run (B y) s) \<or>
+                           (\<exists>aa ba. is_res (run (B y) s) (aa, ba) \<and> is_res (run (C aa y)
+ba) (a, b))) =
+                          (is_fail (run (B x) s) \<or>
+                           (\<exists>aa ba. is_res (run (B x) s) (aa, ba) \<and> is_res (run (C aa x)
+ba) (a, b)))))"  
+  apply (rule duplicate_goal)
+  subgoal
+    supply [[verit_compress_proofs=true]]
+    by (smt (verit))
+  subgoal
+    supply [[verit_compress_proofs=false]]
+    by (smt (verit))
+  done
+
+(*Example of Reordering in skolemization*)
+lemma
+  fixes Abs_ExpList :: "'freeExp_list \<Rightarrow> 'exp_list" and
+    Abs_Exp:: "'freeExp_set \<Rightarrow> 'exp" and
+    exprel:: "('freeExp \<times> 'freeExp) set" and
+    map2 :: "('freeExp \<Rightarrow> 'exp) \<Rightarrow> 'freeExp_list \<Rightarrow> 'exp_list"
+  assumes "\<And>Xs. Abs_ExpList Xs \<equiv>  map2 (\<lambda>U. Abs_Exp (myImage exprel {U})) Xs"
+    "\<And>P z. (\<And>U. z = Abs_Exp (myImage exprel {U}) \<Longrightarrow> P) \<Longrightarrow> P"
+    "\<And>(ys::'exp_list) (f::'freeExp \<Rightarrow> _). (\<exists>xs. ys = map2 f xs) = (\<forall>y\<in>myset ys. \<exists>x. y = f x)"
+  shows "\<exists>Us. z = Abs_ExpList Us"
+  apply (rule duplicate_goal)
+  subgoal
+    supply [[verit_compress_proofs=true]]
+    using assms
+    by (smt (verit,del_insts))
+  subgoal
+    using assms
+    supply [[verit_compress_proofs=false]]
+    by (smt (verit,del_insts))
+  done
+
+end
 end

@@ -1226,7 +1226,7 @@ lemma (in comp_fun_idem) comp_comp_fun_idem: "comp_fun_idem (f o g)"
 subsubsection \<open>Expressing set operations via \<^const>\<open>fold\<close>\<close>
 
 lemma comp_fun_commute_const: "comp_fun_commute (\<lambda>_. f)"
-  by standard rule
+  by standard (rule refl)
 
 lemma comp_fun_idem_insert: "comp_fun_idem insert"
   by standard auto
@@ -1571,7 +1571,7 @@ text \<open>
 
 global_interpretation card: folding "\<lambda>_. Suc" 0
   defines card = "folding_on.F (\<lambda>_. Suc) 0"
-  by standard rule
+  by standard (rule refl)
 
 lemma card_insert_disjoint: "finite A \<Longrightarrow> x \<notin> A \<Longrightarrow> card (insert x A) = Suc (card A)"
   by (fact card.insert)
@@ -1824,11 +1824,12 @@ next
     from "2.prems"(1,2,5) "2.hyps"(1,2) have cst: "card s \<le> card t"
       by simp
     from "2.prems"(3) [OF "2.hyps"(1) cst]
-    obtain f where "f ` s \<subseteq> t" "inj_on f s"
+    obtain f where *: "f ` s \<subseteq> t" "inj_on f s"
       by blast
-    with "2.prems"(2) "2.hyps"(2) show ?case
-      unfolding inj_on_def
-      by (rule_tac x = "\<lambda>z. if z = x then y else f z" in exI) auto
+    let ?g = "(\<lambda>a. if a = x then y else f a)"
+    have "?g ` insert x s \<subseteq> insert y t \<and> inj_on ?g (insert x s)"
+      using * "2.prems"(2) "2.hyps"(2) unfolding inj_on_def by auto
+    then show ?case by (rule exI[where ?x="?g"])
   qed
 qed
 
@@ -2102,6 +2103,56 @@ next
   case True thus ?thesis using assms[of F] by auto
 qed
 
+lemma obtain_subset_with_card_n:
+  assumes "n \<le> card S"
+  obtains T where "T \<subseteq> S" "card T = n" "finite T"
+proof -
+  obtain n' where "card S = n + n'"
+    using le_Suc_ex[OF assms] by blast
+  with that show thesis
+  proof (induct n' arbitrary: S)
+    case 0 
+    thus ?case by (cases "finite S") auto
+  next
+    case Suc 
+    thus ?case by (auto simp add: card_Suc_eq)
+  qed
+qed
+
+lemma exists_subset_between: 
+  assumes 
+    "card A \<le> n" 
+    "n \<le> card C"
+    "A \<subseteq> C"
+    "finite C"
+  shows "\<exists>B. A \<subseteq> B \<and> B \<subseteq> C \<and> card B = n" 
+  using assms 
+proof (induct n arbitrary: A C)
+  case 0
+  thus ?case using finite_subset[of A C] by (intro exI[of _ "{}"], auto)
+next
+  case (Suc n A C)
+  show ?case
+  proof (cases "A = {}")
+    case True
+    from obtain_subset_with_card_n[OF Suc(3)]
+    obtain B where "B \<subseteq> C" "card B = Suc n" by blast
+    thus ?thesis unfolding True by blast
+  next
+    case False
+    then obtain a where a: "a \<in> A" by auto
+    let ?A = "A - {a}" 
+    let ?C = "C - {a}" 
+    have 1: "card ?A \<le> n" using Suc(2-) a 
+      using finite_subset by fastforce 
+    have 2: "card ?C \<ge> n" using Suc(2-) a by auto
+    from Suc(1)[OF 1 2 _ finite_subset[OF _ Suc(5)]] Suc(2-)
+    obtain B where "?A \<subseteq> B" "B \<subseteq> ?C" "card B = n" by blast
+    thus ?thesis using a Suc(2-) 
+      by (intro exI[of _ "insert a B"], auto intro!: card_insert_disjoint finite_subset[of B C])
+  qed
+qed
+
 
 subsubsection \<open>Cardinality of image\<close>
 
@@ -2365,7 +2416,7 @@ proof
           by (simp add: fS)
         have "\<lbrakk>x \<noteq> y; x \<in> S; z \<in> S; f x = f y\<rbrakk>
          \<Longrightarrow> \<exists>x \<in> S. x \<noteq> y \<and> f z = f x" for z
-          by (case_tac "z = y \<longrightarrow> z = x") auto
+          by (cases "z = y \<longrightarrow> z = x") auto
         then show "T \<subseteq> f ` (S - {y})"
           using h xy x y f by fastforce
       qed

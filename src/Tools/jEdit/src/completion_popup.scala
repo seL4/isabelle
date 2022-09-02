@@ -517,12 +517,12 @@ object Completion_Popup {
           case KeyEvent.KEY_PRESSED =>
             val key_code = evt.getKeyCode
             if (key_code == KeyEvent.VK_ESCAPE) {
-              if (dismissed()) evt.consume
+              if (dismissed()) evt.consume()
             }
           case KeyEvent.KEY_TYPED =>
             super.processKeyEvent(evt)
             process(evt)
-            evt.consume
+            evt.consume()
           case _ =>
         }
         if (!evt.isConsumed) super.processKeyEvent(evt)
@@ -598,26 +598,26 @@ class Completion_Popup private(
         if (!e.isConsumed) {
           e.getKeyCode match {
             case KeyEvent.VK_ENTER if PIDE.options.bool("jedit_completion_select_enter") =>
-              if (complete_selected()) e.consume
+              if (complete_selected()) e.consume()
               hide_popup()
             case KeyEvent.VK_TAB if PIDE.options.bool("jedit_completion_select_tab") =>
-              if (complete_selected()) e.consume
+              if (complete_selected()) e.consume()
               hide_popup()
             case KeyEvent.VK_ESCAPE =>
               hide_popup()
-              e.consume
+              e.consume()
             case KeyEvent.VK_UP | KeyEvent.VK_KP_UP if multi =>
               move_items(-1)
-              e.consume
+              e.consume()
             case KeyEvent.VK_DOWN | KeyEvent.VK_KP_DOWN if multi =>
               move_items(1)
-              e.consume
+              e.consume()
             case KeyEvent.VK_PAGE_UP if multi =>
               move_pages(-1)
-              e.consume
+              e.consume()
             case KeyEvent.VK_PAGE_DOWN if multi =>
               move_pages(1)
-              e.consume
+              e.consume()
             case _ =>
               if (e.isActionKey || e.isAltDown || e.isMetaDown || e.isControlDown)
                 hide_popup()
@@ -632,7 +632,7 @@ class Completion_Popup private(
 
   list_view.peer.addMouseListener(new MouseAdapter {
     override def mouseClicked(e: MouseEvent): Unit = {
-      if (complete_selected()) e.consume
+      if (complete_selected()) e.consume()
       hide_popup()
     }
   })

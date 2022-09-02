@@ -5,6 +5,9 @@
 	<DOCKABLE NAME="isabelle-debugger" MOVABLE="TRUE">
 		new isabelle.jedit_main.Debugger_Dockable(view, position);
 	</DOCKABLE>
+	<DOCKABLE NAME="isabelle-document" MOVABLE="TRUE">
+		new isabelle.jedit_main.Document_Dockable(view, position);
+	</DOCKABLE>
 	<DOCKABLE NAME="isabelle-documentation" MOVABLE="TRUE">
 		new isabelle.jedit_main.Documentation_Dockable(view, position);
 	</DOCKABLE>

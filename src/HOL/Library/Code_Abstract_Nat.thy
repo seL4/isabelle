@@ -114,7 +114,11 @@ end
 \<close>
 
 
-subsection \<open>One candidate which needs special treatment\<close>
+subsection \<open>Candidates which need special treatment\<close>
+
+lemma drop_bit_int_code [code]:
+  \<open>drop_bit n k = k div 2 ^ n\<close> for k :: int
+  by (fact drop_bit_eq_div)
 
 lemma take_bit_num_code [code]:
   \<open>take_bit_num n Num.One =

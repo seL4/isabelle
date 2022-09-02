@@ -9,8 +9,7 @@ package isabelle.jedit
 
 import isabelle._
 
-import scala.swing.{Button, Component, Label, CheckBox}
-import scala.swing.event.ButtonClicked
+import scala.swing.{Component, Label}
 
 import java.awt.BorderLayout
 import java.awt.event.{ComponentEvent, ComponentAdapter, KeyEvent}
@@ -62,17 +61,13 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
     override def componentShown(e: ComponentEvent): Unit = delay_resize.invoke()
   })
 
-  private def handle_resize(): Unit = {
-    GUI_Thread.require {}
-
-    pretty_text_area.resize(
-      Font_Info.main(PIDE.options.real("jedit_font_scale") * zoom.factor / 100))
-  }
+  private def handle_resize(): Unit =
+    GUI_Thread.require { pretty_text_area.zoom(zoom) }
 
 
   /* controls */
 
-  private def clicked: Unit = {
+  private def hammer(): Unit = {
     provers.addCurrentToHistory()
     PIDE.options.string("sledgehammer_provers") = provers.getText
     sledgehammer.apply_query(
@@ -88,7 +83,7 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
 
   private val provers = new HistoryTextField("isabelle-sledgehammer-provers") {
     override def processKeyEvent(evt: KeyEvent): Unit = {
-      if (evt.getID == KeyEvent.KEY_PRESSED && evt.getKeyCode == KeyEvent.VK_ENTER) clicked
+      if (evt.getID == KeyEvent.KEY_PRESSED && evt.getKeyCode == KeyEvent.VK_ENTER) hammer()
       super.processKeyEvent(evt)
     }
     setToolTipText(provers_label.tooltip)
@@ -104,32 +99,30 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
     }
   }
 
-  private val isar_proofs = new CheckBox("Isar proofs") {
+  private val isar_proofs = new GUI.Check("Isar proofs") {
     tooltip = "Specify whether Isar proofs should be output in addition to \"by\" one-liner"
-    selected = false
   }
 
-  private val try0 = new CheckBox("Try methods") {
+  private val try0 = new GUI.Check("Try methods", init = true) {
     tooltip = "Try standard proof methods like \"auto\" and \"blast\" as alternatives to \"metis\""
-    selected = true
   }
 
-  private val apply_query = new Button("<html><b>Apply</b></html>") {
+  private val apply_query = new GUI.Button("<html><b>Apply</b></html>") {
     tooltip = "Search for first-order proof using automatic theorem provers"
-    reactions += { case ButtonClicked(_) => clicked }
+    override def clicked(): Unit = hammer()
   }
 
-  private val cancel_query = new Button("Cancel") {
+  private val cancel_query = new GUI.Button("Cancel") {
     tooltip = "Interrupt unfinished sledgehammering"
-    reactions += { case ButtonClicked(_) => sledgehammer.cancel_query() }
+    override def clicked(): Unit = sledgehammer.cancel_query()
   }
 
-  private val locate_query = new Button("Locate") {
+  private val locate_query = new GUI.Button("Locate") {
     tooltip = "Locate context of current query within source text"
-    reactions += { case ButtonClicked(_) => sledgehammer.locate_query() }
+    override def clicked(): Unit = sledgehammer.locate_query()
   }
 
-  private val zoom = new Font_Info.Zoom_Box { def changed = handle_resize() }
+  private val zoom = new Font_Info.Zoom { override def changed(): Unit = handle_resize() }
 
   private val controls =
     Wrap_Panel(

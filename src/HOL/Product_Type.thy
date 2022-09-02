@@ -177,7 +177,7 @@ instance
 end
 
 lemma [code]: "HOL.equal u v \<longleftrightarrow> True" for u v :: unit
-  unfolding equal unit_eq [of u] unit_eq [of v] by rule+
+  unfolding equal unit_eq [of u] unit_eq [of v] by (rule iffI TrueI refl)+
 
 code_printing
   type_constructor unit \<rightharpoonup>
@@ -694,7 +694,12 @@ lemma case_prod_beta: "case_prod f p = f (fst p) (snd p)"
 
 lemma prod_cases3 [cases type]:
   obtains (fields) a b c where "y = (a, b, c)"
-  by (cases y, case_tac b) blast
+proof (cases y)
+  case (Pair a b)
+  with that show ?thesis
+    by (cases b) blast
+qed
+
 
 lemma prod_induct3 [case_names fields, induct type]:
   "(\<And>a b c. P (a, b, c)) \<Longrightarrow> P x"
@@ -702,7 +707,11 @@ lemma prod_induct3 [case_names fields, induct type]:
 
 lemma prod_cases4 [cases type]:
   obtains (fields) a b c d where "y = (a, b, c, d)"
-  by (cases y, case_tac c) blast
+proof (cases y)
+  case (fields a b c)
+  with that show ?thesis
+    by (cases c) blast
+qed
 
 lemma prod_induct4 [case_names fields, induct type]:
   "(\<And>a b c d. P (a, b, c, d)) \<Longrightarrow> P x"
@@ -710,7 +719,11 @@ lemma prod_induct4 [case_names fields, induct type]:
 
 lemma prod_cases5 [cases type]:
   obtains (fields) a b c d e where "y = (a, b, c, d, e)"
-  by (cases y, case_tac d) blast
+proof (cases y)
+  case (fields a b c d)
+  with that show ?thesis
+    by (cases d) blast
+qed
 
 lemma prod_induct5 [case_names fields, induct type]:
   "(\<And>a b c d e. P (a, b, c, d, e)) \<Longrightarrow> P x"
@@ -718,7 +731,11 @@ lemma prod_induct5 [case_names fields, induct type]:
 
 lemma prod_cases6 [cases type]:
   obtains (fields) a b c d e f where "y = (a, b, c, d, e, f)"
-  by (cases y, case_tac e) blast
+proof (cases y)
+  case (fields a b c d e)
+  with that show ?thesis
+    by (cases e) blast
+qed
 
 lemma prod_induct6 [case_names fields, induct type]:
   "(\<And>a b c d e f. P (a, b, c, d, e, f)) \<Longrightarrow> P x"
@@ -726,7 +743,12 @@ lemma prod_induct6 [case_names fields, induct type]:
 
 lemma prod_cases7 [cases type]:
   obtains (fields) a b c d e f g where "y = (a, b, c, d, e, f, g)"
-  by (cases y, case_tac f) blast
+proof (cases y)
+  case (fields a b c d e f)
+  with that show ?thesis
+    by (cases f) blast
+qed
+
 
 lemma prod_induct7 [case_names fields, induct type]:
   "(\<And>a b c d e f g. P (a, b, c, d, e, f, g)) \<Longrightarrow> P x"
@@ -852,11 +874,12 @@ lemma prod_fun_imageE [elim!]:
   assumes major: "c \<in> map_prod f g ` R"
     and cases: "\<And>x y. c = (f x, g y) \<Longrightarrow> (x, y) \<in> R \<Longrightarrow> P"
   shows P
-  apply (rule major [THEN imageE])
-  apply (case_tac x)
-  apply (rule cases)
-   apply simp_all
-  done
+proof (rule major [THEN imageE])
+  fix x
+  assume "c = map_prod f g x" "x \<in> R"
+  then show P
+    using cases by (cases x) simp
+qed
 
 definition apfst :: "('a \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c \<times> 'b"
   where "apfst f = map_prod f id"

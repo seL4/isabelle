@@ -124,7 +124,7 @@ object Debugger {
         case Markup.Debugger_Output(thread_name) =>
           Symbol.decode_yxml_failsafe(msg.text) match {
             case List(XML.Elem(Markup(name, props @ Markup.Serial(i)), body)) =>
-              val message = XML.Elem(Markup(Markup.message(name), props), body)
+              val message = Protocol.make_message(body, kind = name, props = props)
               debugger.add_output(thread_name, i -> session.cache.elem(message))
               true
             case _ => false

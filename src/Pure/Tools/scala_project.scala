@@ -12,7 +12,7 @@ object Scala_Project {
   /** build tools **/
 
   val java_version: String = "17"
-  val scala_version: String = "2.13.5"
+  val scala_version: String = "3.1.3"
 
   abstract class Build_Tool {
     def project_root: Path
@@ -66,7 +66,7 @@ repositories {
 }
 
 dependencies {
-  implementation 'org.scala-lang:scala-library:""" + scala_version + """'
+  implementation 'org.scala-lang:scala3-library_3:scala-library:""" + scala_version + """'
   compileOnly files(
     """ + jars.map(jar => groovy_string(File.platform_path(jar))).mkString("", ",\n    ", ")") +
 """
@@ -87,7 +87,7 @@ dependencies {
       def dependency(jar: Path): String = {
         val name = jar.expand.drop_ext.base.implode
         val system_path = File.platform_path(jar.absolute)
-      """  <dependency>
+        """  <dependency>
     <groupId>classpath</groupId>
     <artifactId>""" + XML.text(name) + """</artifactId>
     <version>0</version>
@@ -162,20 +162,19 @@ dependencies {
     (jars, sources)
   }
 
-  lazy val isabelle_scala_files: Map[String, Path] = {
-    val context = Scala_Build.context(Path.ISABELLE_HOME, component = true)
-    context.sources.iterator.foldLeft(Map.empty[String, Path]) {
-      case (map, path) =>
-        if (path.is_scala) {
-        val base = path.base.implode
-          map.get(base) match {
-            case None => map + (base -> path)
-            case Some(path2) => error("Conflicting base names: " + path + " vs. " + path2)
+  lazy val isabelle_scala_files: Map[String, Path] =
+    Scala_Build.context(Path.ISABELLE_HOME, component = true)
+      .sources.iterator.foldLeft(Map.empty[String, Path]) {
+        case (map, path) =>
+          if (path.is_scala) {
+          val base = path.base.implode
+            map.get(base) match {
+              case None => map + (base -> path)
+              case Some(path2) => error("Conflicting base names: " + path + " vs. " + path2)
+            }
           }
-        }
-        else map
-    }
-  }
+          else map
+      }
 
 
   /* compile-time position */

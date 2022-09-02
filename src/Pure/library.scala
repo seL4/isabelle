@@ -70,11 +70,10 @@ object Library {
       private def next_chunk(i: Int): Option[(CharSequence, Int)] = {
         if (i < end) {
           var j = i
-          var cont = true
-          while (cont) {
+          while ({
             j += 1
-            cont = (j < end && !sep(source.charAt(j)))
-          }
+            j < end && !sep(source.charAt(j))
+          }) ()
           Some((source.subSequence(i + 1, j), j))
         }
         else None
@@ -95,8 +94,10 @@ object Library {
 
   /* lines */
 
-  def terminate_lines(lines: IterableOnce[String]): String =
-    lines.iterator.mkString("", "\n", "\n")
+  def terminate_lines(lines: IterableOnce[String]): String = {
+    val it = lines.iterator
+    if (it.isEmpty) "" else it.mkString("", "\n", "\n")
+  }
 
   def cat_lines(lines: IterableOnce[String]): String =
     lines.iterator.mkString("\n")

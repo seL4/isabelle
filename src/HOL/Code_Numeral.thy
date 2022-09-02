@@ -378,37 +378,21 @@ lemma [code]:
 
 end
 
-instantiation integer :: unique_euclidean_semiring_numeral
+instantiation integer :: unique_euclidean_semiring_with_nat_division
 begin
 
 definition divmod_integer :: "num \<Rightarrow> num \<Rightarrow> integer \<times> integer"
 where
   divmod_integer'_def: "divmod_integer m n = (numeral m div numeral n, numeral m mod numeral n)"
 
-definition divmod_step_integer :: "num \<Rightarrow> integer \<times> integer \<Rightarrow> integer \<times> integer"
+definition divmod_step_integer :: "integer \<Rightarrow> integer \<times> integer \<Rightarrow> integer \<times> integer"
 where
   "divmod_step_integer l qr = (let (q, r) = qr
-    in if r \<ge> numeral l then (2 * q + 1, r - numeral l)
+    in if \<bar>l\<bar> \<le> \<bar>r\<bar> then (2 * q + 1, r - l)
     else (2 * q, r))"
 
-instance proof
-  show "divmod m n = (numeral m div numeral n :: integer, numeral m mod numeral n)"
-    for m n by (fact divmod_integer'_def)
-  show "divmod_step l qr = (let (q, r) = qr
-    in if r \<ge> numeral l then (2 * q + 1, r - numeral l)
-    else (2 * q, r))" for l and qr :: "integer \<times> integer"
-    by (fact divmod_step_integer_def)
-qed (transfer,
-  fact le_add_diff_inverse2
-  unique_euclidean_semiring_numeral_class.div_less
-  unique_euclidean_semiring_numeral_class.mod_less
-  unique_euclidean_semiring_numeral_class.div_positive
-  unique_euclidean_semiring_numeral_class.mod_less_eq_dividend
-  unique_euclidean_semiring_numeral_class.pos_mod_bound
-  unique_euclidean_semiring_numeral_class.pos_mod_sign
-  unique_euclidean_semiring_numeral_class.mod_mult2_eq
-  unique_euclidean_semiring_numeral_class.div_mult2_eq
-  unique_euclidean_semiring_numeral_class.discrete)+
+instance by standard
+  (auto simp add: divmod_integer'_def divmod_step_integer_def integer_less_eq_iff)
 
 end
 

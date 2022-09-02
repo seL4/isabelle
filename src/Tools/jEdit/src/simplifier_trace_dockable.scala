@@ -9,8 +9,7 @@ package isabelle.jedit
 
 import isabelle._
 
-import scala.swing.{Button, CheckBox, Orientation, Separator}
-import scala.swing.event.ButtonClicked
+import scala.swing.{Orientation, Separator}
 
 import java.awt.BorderLayout
 import java.awt.event.{ComponentEvent, ComponentAdapter}
@@ -45,11 +44,9 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
         val content = Pretty.separate(XML.Text(data.text) :: data.content)
         text_area.update(snapshot, Command.Results.empty, content)
         q.answers.foreach { answer =>
-          answers.contents += new Button(answer.string) {
-            reactions += {
-              case ButtonClicked(_) =>
-                Simplifier_Trace.send_reply(PIDE.session, data.serial, answer)
-            }
+          answers.contents += new GUI.Button(answer.string) {
+            override def clicked(): Unit =
+              Simplifier_Trace.send_reply(PIDE.session, data.serial, answer)
           }
         }
       case Nil =>
@@ -146,32 +143,17 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
   private val controls =
     Wrap_Panel(
       List(
-        new CheckBox("Auto update") {
-          selected = do_update
-          reactions += {
-            case ButtonClicked(_) =>
-              do_update = this.selected
-              handle_update(do_update)
+        new GUI.Check("Auto update", init = do_update) {
+          override def clicked(state: Boolean): Unit = {
+            do_update = state
+            handle_update(do_update)
           }
         },
-        new Button("Update") {
-          reactions += {
-            case ButtonClicked(_) =>
-              handle_update(true)
-          }
-        },
+        new GUI.Button("Update") { override def clicked(): Unit = handle_update(true) },
         new Separator(Orientation.Vertical),
-        new Button("Show trace") {
-          reactions += {
-            case ButtonClicked(_) =>
-              show_trace()
-          }
-        },
-        new Button("Clear memory") {
-          reactions += {
-            case ButtonClicked(_) =>
-              Simplifier_Trace.clear_memory(PIDE.session)
-          }
+        new GUI.Button("Show trace") { override def clicked(): Unit = show_trace() },
+        new GUI.Button("Clear memory") {
+          override def clicked(): Unit = Simplifier_Trace.clear_memory(PIDE.session)
         }))
 
   private val answers = Wrap_Panel(Nil, Wrap_Panel.Alignment.Left)

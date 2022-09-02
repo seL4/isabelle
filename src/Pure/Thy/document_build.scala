@@ -31,10 +31,12 @@ object Document_Build {
   }
 
   sealed case class Document_Input(name: String, sources: SHA1.Digest)
-  extends Document_Name
+  extends Document_Name { override def toString: String = name }
 
   sealed case class Document_Output(name: String, sources: SHA1.Digest, log_xz: Bytes, pdf: Bytes)
   extends Document_Name {
+    override def toString: String = name
+
     def log: String = log_xz.uncompress().text
     def log_lines: List[String] = split_lines(log)
 
@@ -116,28 +118,30 @@ object Document_Build {
       map(name => texinputs + Path.basic(name))
 
   def context(
-    session: String,
-    deps: Sessions.Deps,
-    db_context: Sessions.Database_Context,
+    session_context: Export.Session_Context,
+    document_session: Option[Sessions.Base] = None,
     progress: Progress = new Progress
-  ): Context = {
-    val info = deps.sessions_structure(session)
-    val base = deps(session)
-    val hierarchy = deps.sessions_structure.build_hierarchy(session)
-    new Context(info, base, hierarchy, db_context, progress)
-  }
+  ): Context = new Context(session_context, document_session, progress)
 
   final class Context private[Document_Build](
-    info: Sessions.Info,
-    base: Sessions.Base,
-    hierarchy: List[String],
-    db_context: Sessions.Database_Context,
+    session_context: Export.Session_Context,
+    document_session: Option[Sessions.Base],
     val progress: Progress = new Progress
   ) {
+    context =>
+
+
     /* session info */
+
+    private val base = document_session getOrElse session_context.session_base
+    private val info = session_context.sessions_structure(base.session_name)
 
     def session: String = info.name
     def options: Options = info.options
+
+    override def toString: String = session
+
+    val classpath: List[File.Content] = session_context.classpath()
 
     def document_bibliography: Boolean = options.bool("document_bibliography")
 
@@ -152,40 +156,41 @@ object Document_Build {
 
     def get_engine(): Engine = {
       val name = document_build
-      engines.find(_.name == name).getOrElse(error("Bad document_build engine " + quote(name)))
+      Classpath(jar_contents = classpath).make_services(classOf[Engine])
+        .find(_.name == name).getOrElse(error("Bad document_build engine " + quote(name)))
     }
-
-    def get_export(theory: String, name: String): Export.Entry =
-      db_context.get_export(hierarchy, theory, name)
 
 
     /* document content */
 
     def documents: List[Document_Variant] = info.documents
 
-    def session_theories: List[Document.Node.Name] = base.session_theories
-    def document_theories: List[Document.Node.Name] = session_theories ::: base.document_theories
+    def proper_session_theories: List[Document.Node.Name] = base.proper_session_theories
+
+    def document_theories: List[Document.Node.Name] =
+      proper_session_theories ::: base.document_theories
 
     lazy val document_latex: List[File.Content_XML] =
       for (name <- document_theories)
       yield {
         val path = Path.basic(tex_name(name))
-        val content = YXML.parse_body(get_export(name.theory, Export.DOCUMENT_LATEX).text)
-        File.Content(path, content)
+        val entry = session_context(name.theory, Export.DOCUMENT_LATEX, permissive = true)
+        val content = YXML.parse_body(entry.text)
+        File.content(path, content)
       }
 
     lazy val session_graph: File.Content = {
-      val path = Presentation.session_graph_path
+      val path = Browser_Info.session_graph_path
       val content = graphview.Graph_File.make_pdf(options, base.session_graph_display)
-      File.Content(path, content)
+      File.content(path, content)
     }
 
     lazy val session_tex: File.Content = {
       val path = Path.basic("session.tex")
       val content =
         Library.terminate_lines(
-          base.session_theories.map(name => "\\input{" + tex_name(name) + "}"))
-      File.Content(path, content)
+          base.proper_session_theories.map(name => "\\input{" + tex_name(name) + "}"))
+      File.content(path, content)
     }
 
     lazy val isabelle_logo: Option[File.Content] = {
@@ -194,8 +199,19 @@ object Document_Build {
           Logo.create_logo(logo_name, output_file = tmp_path, quiet = true)
           val path = Path.basic("isabelle_logo.pdf")
           val content = Bytes.read(tmp_path)
-          File.Content(path, content)
+          File.content(path, content)
         })
+    }
+
+
+    /* build document */
+
+    def build_document(doc: Document_Variant, verbose: Boolean = false): Document_Output = {
+      Isabelle_System.with_tmp_dir("document") { tmp_dir =>
+        val engine = get_engine()
+        val directory = engine.prepare_directory(context, tmp_dir, doc)
+        engine.build_document(context, directory, verbose)
+      }
     }
 
 
@@ -249,7 +265,8 @@ object Document_Build {
 
     def old_document(directory: Directory): Option[Document_Output] =
       for {
-        old_doc <- db_context.input_database(session)(read_document(_, _, directory.doc.name))
+        db <- session_context.session_db()
+        old_doc <- read_document(db, session, directory.doc.name)
         if old_doc.sources == directory.sources
       }
       yield old_doc
@@ -297,8 +314,6 @@ object Document_Build {
 
 
   /* build engines */
-
-  lazy val engines: List[Engine] = Isabelle_System.make_services(classOf[Engine])
 
   abstract class Engine(val name: String) extends Isabelle_System.Service {
     override def toString: String = name
@@ -477,12 +492,15 @@ Usage: isabelle document [OPTIONS] SESSION
             Sessions.load_structure(options + "document=pdf", dirs = dirs).
               selection_deps(Sessions.Selection.session(session))
 
+          val session_base_info = deps.base_info(session)
+
           if (output_sources.isEmpty && output_pdf.isEmpty) {
             progress.echo_warning("No output directory")
           }
 
-          using(store.open_database_context()) { db_context =>
-            build_documents(context(session, deps, db_context, progress = progress),
+          using(Export.open_session_context(store, session_base_info)) { session_context =>
+            build_documents(
+              context(session_context, progress = progress),
               output_sources = output_sources, output_pdf = output_pdf,
               verbose = verbose_latex)
           }

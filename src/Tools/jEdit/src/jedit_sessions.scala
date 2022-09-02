@@ -10,9 +10,6 @@ package isabelle.jedit
 
 import isabelle._
 
-import scala.swing.ComboBox
-import scala.swing.event.SelectionChanged
-
 
 object JEdit_Sessions {
   /* session options */
@@ -39,8 +36,12 @@ object JEdit_Sessions {
     options2
   }
 
-  def sessions_structure(options: Options, dirs: List[Path] = session_dirs): Sessions.Structure =
+  def sessions_structure(
+    options: Options = PIDE.options.value,
+    dirs: List[Path] = session_dirs
+  ): Sessions.Structure = {
     Sessions.load_structure(session_options(options), dirs = dirs)
+  }
 
 
   /* raw logic info */
@@ -58,7 +59,7 @@ object JEdit_Sessions {
     space_explode(':', Isabelle_System.getenv("JEDIT_INCLUDE_SESSIONS"))
 
   def logic_info(options: Options): Option[Sessions.Info] =
-    try { sessions_structure(options).get(logic_name(options)) }
+    try { sessions_structure(options = options).get(logic_name(options)) }
     catch { case ERROR(_) => None }
 
   def logic_root(options: Options): Position.T =
@@ -68,26 +69,25 @@ object JEdit_Sessions {
 
   /* logic selector */
 
-  private class Logic_Entry(val name: String, val description: String) {
-    override def toString: String = description
+  private sealed case class Logic_Entry(name: String = "", description: String = "") {
+    override def toString: String = proper_string(description) getOrElse name
   }
 
-  def logic_selector(options: Options_Variable, autosave: Boolean): Option_Component = {
+  def logic_selector(options: Options_Variable, autosave: Boolean = false): Option_Component = {
     GUI_Thread.require {}
 
-    val session_list = {
-      val sessions = sessions_structure(options.value)
+    val default_entry = Logic_Entry(description = "default (" + logic_name(options.value) + ")")
+
+    val session_entries = {
+      val sessions = sessions_structure(options = options.value)
       val (main_sessions, other_sessions) =
         sessions.imports_topological_order.partition(name => sessions(name).groups.contains("main"))
-      main_sessions.sorted ::: other_sessions.sorted
+      (main_sessions.sorted ::: other_sessions.sorted).map(name => Logic_Entry(name = name))
     }
 
-    val entries =
-      new Logic_Entry("", "default (" + logic_name(options.value) + ")") ::
-        session_list.map(name => new Logic_Entry(name, name))
-
-    val component = new ComboBox(entries) with Option_Component {
+    new GUI.Selector[Logic_Entry](default_entry :: session_entries) with Option_Component {
       name = jedit_logic_option
+      tooltip = "Logic session name (change requires restart)"
       val title = "Logic"
       def load(): Unit = {
         val logic = options.string(jedit_logic_option)
@@ -97,15 +97,10 @@ object JEdit_Sessions {
         }
       }
       def save(): Unit = options.string(jedit_logic_option) = selection.item.name
-    }
+      override def changed(): Unit = if (autosave) save()
 
-    component.load()
-    if (autosave) {
-      component.listenTo(component.selection)
-      component.reactions += { case SelectionChanged(_) => component.save() }
+      load()
     }
-    component.tooltip = "Logic session name (change requires restart)"
-    component
   }
 
 
@@ -125,7 +120,7 @@ object JEdit_Sessions {
     no_build: Boolean = false
   ): Int = {
     Build.build(session_options(options),
-      selection = Sessions.Selection.session(PIDE.resources.session_name),
+      selection = Sessions.Selection.session(PIDE.resources.session_base.session_name),
       progress = progress, build_heap = true, no_build = no_build, dirs = session_dirs,
       infos = PIDE.resources.session_base_info.infos).rc
   }
@@ -139,7 +134,7 @@ object JEdit_Sessions {
     session.phase_changed += PIDE.plugin.session_phase_changed
 
     Isabelle_Process.start(session, options, sessions_structure, store,
-      logic = PIDE.resources.session_name,
+      logic = PIDE.resources.session_base.session_name,
       modes =
         (space_explode(',', options.string("jedit_print_mode")) :::
          space_explode(',', Isabelle_System.getenv("JEDIT_PRINT_MODE"))).reverse)

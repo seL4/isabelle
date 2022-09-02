@@ -12,9 +12,7 @@ import isabelle._
 import java.awt.event.{WindowEvent, WindowAdapter}
 import javax.swing.{WindowConstants, JDialog}
 
-import scala.swing.{ScrollPane, Button, CheckBox, FlowPanel,
-  BorderPanel, TextArea, Component, Label}
-import scala.swing.event.ButtonClicked
+import scala.swing.{ScrollPane, FlowPanel, BorderPanel, TextArea, Component, Label}
 
 import org.gjt.sp.jedit.View
 
@@ -97,7 +95,7 @@ object Session_Build {
       Delay.first(Time.seconds(1.0), gui = true) {
         if (can_auto_close) conclude()
         else {
-          val button = new Button("Close") { reactions += { case ButtonClicked(_) => conclude() } }
+          val button = new GUI.Button("Close") { override def clicked(): Unit = conclude() }
           set_actions(button)
           button.peer.getRootPane.setDefaultButton(button.peer)
         }
@@ -125,21 +123,20 @@ object Session_Build {
       set_actions(new Label("Stopping ..."))
     }
 
-    private val stop_button = new Button("Stop") {
-      reactions += { case ButtonClicked(_) => stopping() }
+    private val stop_button = new GUI.Button("Stop") {
+      override def clicked(): Unit = stopping()
     }
 
     private var do_auto_close = true
     private def can_auto_close: Boolean = do_auto_close && _return_code == Some(0)
 
-    private val auto_close = new CheckBox("Auto close") {
-      reactions += {
-        case ButtonClicked(_) => do_auto_close = this.selected
+    private val auto_close = new GUI.Check("Auto close", init = do_auto_close) {
+      tooltip = "Automatically close dialog when finished"
+      override def clicked(state: Boolean): Unit = {
+        do_auto_close = state
         if (can_auto_close) conclude()
       }
     }
-    auto_close.selected = do_auto_close
-    auto_close.tooltip = "Automatically close dialog when finished"
 
     set_actions(stop_button, auto_close)
 
@@ -155,7 +152,8 @@ object Session_Build {
     setVisible(true)
 
     Isabelle_Thread.fork(name = "session_build") {
-      progress.echo("Build started for Isabelle/" + PIDE.resources.session_name + " ...")
+      progress.echo("Build started for Isabelle/" +
+        PIDE.resources.session_base.session_name + " ...")
 
       val (out, rc) =
         try { ("", JEdit_Sessions.session_build(options, progress = progress)) }

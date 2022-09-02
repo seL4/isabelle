@@ -57,22 +57,18 @@ USER isabelle
 
 # Isabelle
 WORKDIR /home/isabelle
-""" +
- (if (is_remote)
-   "RUN curl --fail --silent " + Bash.string(app_archive) + " > Isabelle.tar.gz"
-  else "COPY Isabelle.tar.gz .") +
-"""
+""" + (if (is_remote)
+       "RUN curl --fail --silent " + Bash.string(app_archive) + " > Isabelle.tar.gz"
+      else "COPY Isabelle.tar.gz .") + """
 RUN tar xzf Isabelle.tar.gz && \
   mv """ + isabelle_name + """ Isabelle && \
   sed -i -e 's,ISABELLE_HOME_USER=.*,ISABELLE_HOME_USER="\$USER_HOME/.isabelle",g;' Isabelle/etc/settings && \
   sed -i -e 's,ISABELLE_LOGIC=.*,ISABELLE_LOGIC=""" + logic + """,g;' Isabelle/etc/settings && \
   Isabelle/bin/isabelle build -o system_heaps -b """ + logic + """ && \
-  rm Isabelle.tar.gz""" +
- (if (entrypoint) """
+  rm Isabelle.tar.gz""" + (if (entrypoint) """
 
 ENTRYPOINT ["Isabelle/bin/isabelle"]
-"""
-  else "")
+""" else "")
 
     output.foreach(File.write(_, dockerfile))
 

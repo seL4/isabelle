@@ -127,7 +127,7 @@ fun tac_of_proof_method ctxt (local_facts, global_facts) meth =
       end
 
     fun tac_of_smt SMT_Z3 = SMT_Solver.smt_tac
-      | tac_of_smt (SMT_Verit strategy) = Verit_Proof.verit_tac_stgy strategy
+      | tac_of_smt (SMT_Verit strategy) = Verit_Strategies.verit_tac_stgy strategy
   in
     (case meth of
       Metis_Method options => tac_of_metis options

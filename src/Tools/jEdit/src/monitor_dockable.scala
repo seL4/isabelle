@@ -12,8 +12,8 @@ import isabelle._
 import java.awt.BorderLayout
 
 import scala.collection.immutable.Queue
-import scala.swing.{TextField, ComboBox, Button}
-import scala.swing.event.{SelectionChanged, ButtonClicked, ValueChanged}
+import scala.swing.TextField
+import scala.swing.event.ValueChanged
 
 import org.jfree.chart.ChartPanel
 import org.jfree.data.xy.XYSeriesCollection
@@ -64,14 +64,9 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
 
   /* controls */
 
-  private val select_data = new ComboBox[String](ML_Statistics.all_fields.map(_._1)) {
+  private val select_data = new GUI.Selector[String](ML_Statistics.all_fields.map(_._1)) {
     tooltip = "Select visualized data collection"
-    listenTo(selection)
-    reactions += {
-      case SelectionChanged(_) =>
-        data_name = selection.item
-        update_chart()
-    }
+    override def changed(): Unit = { data_name = selection.item; update_chart() }
   }
 
   private val limit_data = new TextField("200", 5) {
@@ -83,29 +78,19 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
     reactions += { case ValueChanged(_) => input_delay.invoke() }
   }
 
-  private val reset_data = new Button("Reset") {
+  private val reset_data = new GUI.Button("Reset") {
     tooltip = "Reset accumulated data"
-    reactions += {
-      case ButtonClicked(_) =>
-        clear_statistics()
-        update_chart()
-    }
+    override def clicked(): Unit = { clear_statistics(); update_chart() }
   }
 
-  private val full_gc = new Button("GC") {
+  private val full_gc = new GUI.Button("GC") {
     tooltip = "Full garbage collection of ML heap"
-    reactions += {
-      case ButtonClicked(_) =>
-        PIDE.session.protocol_command("ML_Heap.full_gc")
-    }
+    override def clicked(): Unit = PIDE.session.protocol_command("ML_Heap.full_gc")
   }
 
-  private val share_common_data = new Button("Sharing") {
+  private val share_common_data = new GUI.Button("Sharing") {
     tooltip = "Share common data of ML heap"
-    reactions += {
-      case ButtonClicked(_) =>
-        PIDE.session.protocol_command("ML_Heap.share_common_data")
-    }
+    override def clicked(): Unit = PIDE.session.protocol_command("ML_Heap.share_common_data")
   }
 
   private val controls =

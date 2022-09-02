@@ -77,11 +77,20 @@ qed
 
 free_constructors case_nat for "0 :: nat" | Suc pred
   where "pred (0 :: nat) = (0 :: nat)"
-    apply atomize_elim
-    apply (rename_tac n, induct_tac n rule: nat_induct0, auto)
-   apply (simp add: Suc_def Nat_Abs_Nat_inject Nat_Rep_Nat Suc_RepI Suc_Rep_inject' Rep_Nat_inject)
-  apply (simp only: Suc_not_Zero)
-  done
+proof atomize_elim
+  fix n
+  show "n = 0 \<or> (\<exists>m. n = Suc m)"
+    by (induction n rule: nat_induct0) auto
+next
+  fix n m
+  show "(Suc n = Suc m) = (n = m)"
+    by (simp add: Suc_def Nat_Abs_Nat_inject Nat_Rep_Nat Suc_RepI Suc_Rep_inject' Rep_Nat_inject)
+next
+  fix n
+  show "0 \<noteq> Suc n"
+    by (simp add: Suc_not_Zero)
+qed
+
 
 \<comment> \<open>Avoid name clashes by prefixing the output of \<open>old_rep_datatype\<close> with \<open>old\<close>.\<close>
 setup \<open>Sign.mandatory_path "old"\<close>
@@ -1084,8 +1093,9 @@ lemma infinite_descent0 [case_names 0 smaller]:
     and "\<And>n. n > 0 \<Longrightarrow> \<not> P n \<Longrightarrow> \<exists>m. m < n \<and> \<not> P m"
   shows "P n"
 proof (rule infinite_descent)
-  show "\<And>n. \<not> P n \<Longrightarrow> \<exists>m<n. \<not> P m"
-  using assms by (case_tac "n > 0") auto
+  fix n
+  show "\<not> P n \<Longrightarrow> \<exists>m<n. \<not> P m"
+    using assms by (cases "n > 0") auto
 qed
 
 text \<open>
@@ -1124,9 +1134,11 @@ lemma infinite_descent_measure:
 proof -
   from assms obtain n where "n = V x" by auto
   moreover have "\<And>x. V x = n \<Longrightarrow> P x"
-  proof (induct n rule: infinite_descent, auto)
-    show "\<exists>m < V x. \<exists>y. V y = m \<and> \<not> P y" if "\<not> P x" for x
+  proof -
+    have "\<exists>m < V x. \<exists>y. V y = m \<and> \<not> P y" if "\<not> P x" for x
       using assms and that by auto
+    then show "\<And>x. V x = n \<Longrightarrow> P x"
+      by (induct n rule: infinite_descent, auto)
   qed
   ultimately show "P x" by auto
 qed

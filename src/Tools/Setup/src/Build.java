@@ -38,7 +38,10 @@ import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 
-import scala.tools.nsc.MainClass;
+import dotty.tools.dotc.Driver;
+import dotty.tools.dotc.interfaces.Diagnostic;
+import dotty.tools.dotc.interfaces.ReporterResult;
+import dotty.tools.dotc.interfaces.SimpleReporter;
 
 
 public class Build
@@ -245,7 +248,7 @@ public class Build
     }
 
     public static void compile_scala_sources(
-        PrintStream output,  // ignored, but see scala.Console.withOut/withErr
+        PrintStream output,
         Path target_dir,
         String more_options,
         List<Path> deps,
@@ -266,8 +269,16 @@ public class Build
             if (p.toString().endsWith(".scala")) { scala_sources = true; }
         }
         if (scala_sources) {
-            boolean ok = new MainClass().process(args.toArray(String[]::new));
-            if (!ok) { throw new RuntimeException("Failed to compile Scala sources"); }
+            String[] args_array = args.toArray(String[]::new);
+            SimpleReporter reporter = new SimpleReporter() {
+                @Override
+                public void report(Diagnostic diagnostic) {
+                    output.println(diagnostic.message());
+                }
+            };
+            new Driver().process(args_array, reporter, null);
+            ReporterResult result = new Driver().process(args_array);
+            if (result.hasErrors()) { throw new RuntimeException("Failed to compile Scala sources"); }
         }
     }
 
@@ -439,7 +450,7 @@ public class Build
 
     /** build **/
 
-    public static void build(PrintStream output, Context context, boolean fresh)
+    public static void build(List<Path> classpath, PrintStream output, Context context, boolean fresh)
         throws NoSuchAlgorithmException, IOException, InterruptedException
     {
         String module = context.module_result();
@@ -481,17 +492,11 @@ public class Build
                         output.print("### Building " + title + " (" + jar_path + ") ...\n");
                     }
 
-                    String isabelle_classpath = Environment.getenv("ISABELLE_CLASSPATH");
-
                     Path build_dir = Files.createTempDirectory("isabelle");
                     try {
                         /* compile sources */
 
-                        for (String s : isabelle_classpath.split(":", -1)) {
-                            if (!s.isEmpty()) {
-                              compiler_deps.add(Path.of(Environment.platform_path(s)));
-                            }
-                        }
+                        compiler_deps.addAll(classpath);
 
                         List<Path> compiler_sources = new LinkedList<Path>();
                         for (String s : sources) { compiler_sources.add(context.path(s)); }
@@ -551,8 +556,15 @@ public class Build
     public static void build_components(PrintStream output, boolean fresh)
         throws NoSuchAlgorithmException, IOException, InterruptedException
     {
+        List<Path> classpath = new LinkedList<Path>();
+        for (String s : Environment.getenv("ISABELLE_CLASSPATH").split(":", -1)) {
+            if (!s.isEmpty()) {
+                classpath.add(Path.of(Environment.platform_path(s)));
+            }
+        }
+
         for (Context context : component_contexts()) {
-            build(output, context, fresh);
+            build(classpath, output, context, fresh);
         }
     }
 }

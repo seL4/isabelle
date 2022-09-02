@@ -46,6 +46,10 @@ lemma (in comm_ring_1) of_int_of_char:
   \<open>of_int (of_char c) = of_char c\<close>
   by (cases c) simp
 
+lemma nat_of_char [simp]:
+  \<open>nat (of_char c) = of_char c\<close>
+  by (cases c) (simp only: of_char_Char nat_horner_sum)
+
 
 context unique_euclidean_semiring_with_bit_operations
 begin
@@ -711,8 +715,8 @@ lemma [code_computation_unfold]:
 
 end
 
-code_reserved SML string String Char List
-code_reserved OCaml string String Char List
+code_reserved SML string String Char Str_Literal
+code_reserved OCaml string String Char Str_Literal
 code_reserved Haskell Prelude
 code_reserved Scala string
 
@@ -737,26 +741,72 @@ setup \<open>
 \<close>
 
 code_printing
-  constant "(+) :: String.literal \<Rightarrow> String.literal \<Rightarrow> String.literal" \<rightharpoonup>
+  code_module "Str_Literal" \<rightharpoonup>
+    (SML) \<open>structure Str_Literal =
+struct
+
+fun map f [] = []
+  | map f (x :: xs) = f x :: map f xs; (* deliberate clone not relying on List._ module *)
+
+fun check_ascii (k : IntInf.int) =
+  if 0 <= k andalso k < 128
+  then k
+  else raise Fail "Non-ASCII character in literal";
+
+val char_of_ascii = Char.chr o IntInf.toInt o check_ascii;
+
+val ascii_of_char = check_ascii o IntInf.fromInt o Char.ord;
+
+val literal_of_asciis = String.implode o map char_of_ascii;
+
+val asciis_of_literal = map ascii_of_char o String.explode;
+
+end;\<close> for constant String.literal_of_asciis String.asciis_of_literal
+    and (OCaml) \<open>module Str_Literal =
+struct
+
+let implode f xs =
+  let rec length xs = match xs with
+      [] -> 0
+    | x :: xs -> 1 + length xs in
+  let rec nth xs n = match xs with
+    (x :: xs) -> if n <= 0 then x else nth xs (n - 1)
+  in String.init (length xs) (fun n -> f (nth xs n));;
+
+let explode f s =
+  let rec map_range f n =
+    if n <= 0 then [] else map_range f (n - 1) @ [f n]
+  in map_range (fun n -> f (String.get s n)) (String.length s);;
+
+let z_128 = Z.of_int 128;;
+
+let check_ascii (k : Z.t) =
+  if Z.leq Z.zero k && Z.lt k z_128
+  then k
+  else failwith "Non-ASCII character in literal";;
+
+let char_of_ascii k = Char.chr (Z.to_int (check_ascii k));;
+
+let ascii_of_char c = check_ascii (Z.of_int (Char.code c));;
+
+let literal_of_asciis ks = implode char_of_ascii ks;;
+
+let asciis_of_literal s = explode ascii_of_char s;;
+
+end;;\<close> for constant String.literal_of_asciis String.asciis_of_literal
+| constant "(+) :: String.literal \<Rightarrow> String.literal \<Rightarrow> String.literal" \<rightharpoonup>
     (SML) infixl 18 "^"
     and (OCaml) infixr 6 "^"
     and (Haskell) infixr 5 "++"
     and (Scala) infixl 7 "+"
 | constant String.literal_of_asciis \<rightharpoonup>
-    (SML) "!(String.implode/ o List.map (fn k => if 0 <= k andalso k < 128 then (Char.chr o IntInf.toInt) k else raise Fail \"Non-ASCII character in literal\"))"
-    and (OCaml) "!(let xs = _
-      and chr k =
-        let l = Z.to'_int k
-          in if 0 <= l && l < 128
-          then Char.chr l
-          else failwith \"Non-ASCII character in literal\"
-      in String.init (List.length xs) (List.nth (List.map chr xs)))"
+    (SML) "Str'_Literal.literal'_of'_asciis"
+    and (OCaml) "Str'_Literal.literal'_of'_asciis"
     and (Haskell) "map/ (let chr k | (0 <= k && k < 128) = Prelude.toEnum k :: Prelude.Char in chr . Prelude.fromInteger)"
     and (Scala) "\"\"/ ++/ _.map((k: BigInt) => if (BigInt(0) <= k && k < BigInt(128)) k.charValue else sys.error(\"Non-ASCII character in literal\"))"
 | constant String.asciis_of_literal \<rightharpoonup>
-    (SML) "!(List.map (fn c => let val k = Char.ord c in if k < 128 then IntInf.fromInt k else raise Fail \"Non-ASCII character in literal\" end)/ o String.explode)"
-    and (OCaml) "!(let s = _ in let rec exp i l = if i < 0 then l else exp (i - 1) (let k = Char.code (String.get s i) in
-      if k < 128 then Z.of'_int k :: l else failwith \"Non-ASCII character in literal\") in exp (String.length s - 1) [])"
+    (SML) "Str'_Literal.asciis'_of'_literal"
+    and (OCaml) "Str'_Literal.asciis'_of'_literal"
     and (Haskell) "map/ (let ord k | (k < 128) = Prelude.toInteger k in ord . (Prelude.fromEnum :: Prelude.Char -> Prelude.Int))"
     and (Scala) "!(_.toList.map(c => { val k: Int = c.toInt; if (k < 128) BigInt(k) else sys.error(\"Non-ASCII character in literal\") }))"
 | class_instance String.literal :: equal \<rightharpoonup>

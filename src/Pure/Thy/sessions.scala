@@ -10,6 +10,7 @@ import java.io.{File => JFile}
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
 import java.nio.file.StandardOpenOption
+import java.sql.SQLException
 
 import scala.collection.immutable.{SortedSet, SortedMap}
 import scala.collection.mutable
@@ -30,11 +31,8 @@ object Sessions {
 
   def is_pure(name: String): Boolean = name == Thy_Header.PURE
 
-
-  def exclude_session(name: String): Boolean = name == "" || name == DRAFT
-
-  def exclude_theory(name: String): Boolean =
-    name == root_name || name == "README" || name == "index" || name == "bib"
+  def illegal_session(name: String): Boolean = name == "" || name == DRAFT
+  def illegal_theory(name: String): Boolean = name == root_name || name == "bib"
 
 
   /* ROOTS file format */
@@ -59,29 +57,27 @@ object Sessions {
   /* base info and source dependencies */
 
   sealed case class Base(
-    pos: Position.T = Position.none,
-    session_directories: Map[JFile, String] = Map.empty,
-    global_theories: Map[String, String] = Map.empty,
-    session_theories: List[Document.Node.Name] = Nil,
+    session_name: String = "",
+    session_pos: Position.T = Position.none,
+    proper_session_theories: List[Document.Node.Name] = Nil,
     document_theories: List[Document.Node.Name] = Nil,
-    loaded_theories: Graph[String, Outer_Syntax] = Graph.string,
-    used_theories: List[(Document.Node.Name, Options)] = Nil,
+    loaded_theories: Graph[String, Outer_Syntax] = Graph.string,  // cumulative imports
+    used_theories: List[(Document.Node.Name, Options)] = Nil,  // new imports
     load_commands: Map[Document.Node.Name, List[Command_Span.Span]] = Map.empty,
     known_theories: Map[String, Document.Node.Entry] = Map.empty,
     known_loaded_files: Map[String, List[Path]] = Map.empty,
     overall_syntax: Outer_Syntax = Outer_Syntax.empty,
     imported_sources: List[(Path, SHA1.Digest)] = Nil,
-    sources: List[(Path, SHA1.Digest)] = Nil,
+    session_sources: List[(Path, SHA1.Digest)] = Nil,
     session_graph_display: Graph_Display.Graph = Graph_Display.empty_graph,
     errors: List[String] = Nil
   ) {
-    override def toString: String =
-      "Sessions.Base(loaded_theories = " + loaded_theories.size +
-        ", used_theories = " + used_theories.length + ")"
+    def session_entry: (String, Base) = session_name -> this
 
-    def theory_qualifier(name: String): String =
-      global_theories.getOrElse(name, Long_Name.qualifier(name))
-    def theory_qualifier(name: Document.Node.Name): String = theory_qualifier(name.theory)
+    override def toString: String =
+      "Sessions.Base(session_name = " + quote(session_name) +
+        ", loaded_theories = " + loaded_theories.size +
+        ", used_theories = " + used_theories.length + ")"
 
     def loaded_theory(name: String): Boolean = loaded_theories.defined(name)
     def loaded_theory(name: Document.Node.Name): Boolean = loaded_theory(name.theory)
@@ -98,6 +94,8 @@ object Sessions {
       nodes(name).syntax orElse loaded_theory_syntax(name) getOrElse overall_syntax
   }
 
+  val bootstrap_base: Base = Base(overall_syntax = Thy_Header.bootstrap_syntax)
+
   sealed case class Deps(sessions_structure: Structure, session_bases: Map[String, Base]) {
     override def toString: String = "Sessions.Deps(" + sessions_structure + ")"
 
@@ -108,15 +106,15 @@ object Sessions {
     def imported_sources(name: String): List[SHA1.Digest] =
       session_bases(name).imported_sources.map(_._2)
 
-    def sources(name: String): List[SHA1.Digest] =
-      session_bases(name).sources.map(_._2)
+    def session_sources(name: String): List[SHA1.Digest] =
+      session_bases(name).session_sources.map(_._2)
 
     def errors: List[String] =
       (for {
         (name, base) <- session_bases.iterator
         if base.errors.nonEmpty
       } yield cat_lines(base.errors) +
-          "\nThe error(s) above occurred in session " + quote(name) + Position.here(base.pos)
+          "\nThe error(s) above occurred in session " + quote(name) + Position.here(base.session_pos)
       ).toList
 
     def check_errors: Deps =
@@ -124,6 +122,9 @@ object Sessions {
         case Nil => this
         case errs => error(cat_lines(errs))
       }
+
+    def base_info(session: String): Base_Info =
+      Base_Info(base = apply(session), sessions_structure = sessions_structure, errors = errors)
   }
 
   def deps(sessions_structure: Structure,
@@ -152,7 +153,8 @@ object Sessions {
     }
 
     val session_bases =
-      sessions_structure.imports_topological_order.foldLeft(Map("" -> sessions_structure.bootstrap)) {
+      sessions_structure.imports_topological_order.foldLeft(
+          Map(Sessions.bootstrap_base.session_entry)) {
         case (session_bases, session_name) =>
           progress.expose_interrupt()
 
@@ -165,19 +167,18 @@ object Sessions {
               val groups =
                 if (info.groups.isEmpty) ""
                 else info.groups.mkString(" (", " ", ")")
-              progress.echo("Session " + info.chapter_session + groups)
+              progress.echo("Session " + info.chapter + "/" + session_name + groups)
             }
 
             val dependencies = resources.session_dependencies(info)
 
             val overall_syntax = dependencies.overall_syntax
 
-            val session_theories =
-              dependencies.theories.filter(name => deps_base.theory_qualifier(name) == session_name)
+            val proper_session_theories =
+              dependencies.theories.filter(name =>
+                sessions_structure.theory_qualifier(name) == session_name)
 
             val theory_files = dependencies.theories.map(_.path)
-
-            dependencies.load_commands
 
             val (load_commands, load_commands_errors) =
               try { if (inlined_files) (dependencies.load_commands, Nil) else (Nil, Nil) }
@@ -205,7 +206,7 @@ object Sessions {
                 Graph_Display.Node("[" + name + "]", "session." + name)
 
               def node(name: Document.Node.Name): Graph_Display.Node = {
-                val qualifier = deps_base.theory_qualifier(name)
+                val qualifier = sessions_structure.theory_qualifier(name)
                 if (qualifier == info.name)
                   Graph_Display.Node(name.theory_base_name, "theory." + name.theory)
                 else session_node(qualifier)
@@ -213,7 +214,7 @@ object Sessions {
 
               val required_sessions =
                 dependencies.loaded_theories.all_preds(dependencies.theories.map(_.theory))
-                  .map(theory => deps_base.theory_qualifier(theory))
+                  .map(theory => sessions_structure.theory_qualifier(theory))
                   .filter(name => name != info.name && sessions_structure.defined(name))
 
               val required_subgraph =
@@ -250,7 +251,7 @@ object Sessions {
                 sessions_structure.imports_requirements(List(session_name)).toSet
               for {
                 name <- dependencies.theories
-                qualifier = deps_base.theory_qualifier(name)
+                qualifier = sessions_structure.theory_qualifier(name)
                 if !known_sessions(qualifier)
               } yield "Bad import of theory " + quote(name.toString) +
                 ": need to include sessions " + quote(qualifier) + " in ROOT"
@@ -272,8 +273,8 @@ object Sessions {
                   known_theories.get(thy).map(_.name) match {
                     case None => err("Unknown document theory")
                     case Some(name) =>
-                      val qualifier = deps_base.theory_qualifier(name)
-                      if (session_theories.contains(name)) {
+                      val qualifier = sessions_structure.theory_qualifier(name)
+                      if (proper_session_theories.contains(name)) {
                         err("Redundant document theory from this session:")
                       }
                       else if (build_hierarchy.contains(qualifier)) None
@@ -288,7 +289,7 @@ object Sessions {
               val ok = info.dirs.map(_.canonical_file).toSet
               val bad =
                 (for {
-                  name <- session_theories.iterator
+                  name <- proper_session_theories.iterator
                   path = name.master_dir_path
                   if !ok(path.canonical_file)
                   path1 = File.relative_path(info.dir.canonical, path).getOrElse(path)
@@ -304,7 +305,7 @@ object Sessions {
               val errs3 = for (p <- info.dirs if !p.is_dir) yield "No such directory: " + p
               val errs4 =
                 (for {
-                  name <- session_theories.iterator
+                  name <- proper_session_theories.iterator
                   name1 <- resources.find_theory_node(name.theory)
                   if name.node != name1.node
                 } yield "Incoherent theory file import:\n  " + name.path + " vs. \n  " + name1.path)
@@ -326,10 +327,9 @@ object Sessions {
 
             val base =
               Base(
-                pos = info.pos,
-                session_directories = sessions_structure.session_directories,
-                global_theories = sessions_structure.global_theories,
-                session_theories = session_theories,
+                session_name = info.name,
+                session_pos = info.pos,
+                proper_session_theories = proper_session_theories,
                 document_theories = document_theories,
                 loaded_theories = dependencies.loaded_theories,
                 used_theories = dependencies.theories_adjunct,
@@ -338,13 +338,13 @@ object Sessions {
                 known_loaded_files = known_loaded_files,
                 overall_syntax = overall_syntax,
                 imported_sources = check_sources(imported_files),
-                sources = check_sources(session_files),
+                session_sources = check_sources(session_files),
                 session_graph_display = session_graph_display,
                 errors = dependencies.errors ::: load_commands_errors ::: import_errors :::
                   document_errors ::: dir_errors ::: sources_errors ::: path_errors :::
                   bibtex_errors)
 
-            session_bases + (info.name -> base)
+            session_bases + base.session_entry
           }
           catch {
             case ERROR(msg) =>
@@ -360,14 +360,20 @@ object Sessions {
   /* base info */
 
   sealed case class Base_Info(
-    session: String,
-    sessions_structure: Structure,
-    errors: List[String],
     base: Base,
-    infos: List[Info]
+    sessions_structure: Structure = Structure.empty,
+    errors: List[String] = Nil,
+    infos: List[Info] = Nil
   ) {
-    def check: Base_Info = if (errors.isEmpty) this else error(cat_lines(errors))
+    def session_name: String = base.session_name
+
+    def check_errors: Base_Info =
+      if (errors.isEmpty) this
+      else error(cat_lines(errors))
   }
+
+  def base_info0(session: String): Base_Info =
+    Base_Info(Base(session_name = session))
 
   def base_info(options: Options,
     session: String,
@@ -401,7 +407,7 @@ object Sessions {
         val required_theories =
           for {
             thy <- base.loaded_theories.keys
-            if !ancestor_loaded(thy) && base.theory_qualifier(thy) != session
+            if !ancestor_loaded(thy) && selected_sessions.theory_qualifier(thy) != session
           }
           yield thy
 
@@ -412,7 +418,9 @@ object Sessions {
 
           (other_name,
             List(
-              make_info(info.options,
+              make_info(
+                Chapter_Defs.empty,
+                info.options,
                 dir_selected = false,
                 dir = Path.explode("$ISABELLE_TMP_PREFIX"),
                 chapter = info.chapter,
@@ -429,7 +437,8 @@ object Sessions {
                   theories = List((Nil, required_theories.map(thy => ((thy, Position.none), false)))),
                   document_theories = Nil,
                   document_files = Nil,
-                  export_files = Nil))))
+                  export_files = Nil,
+                  export_classpath = Nil))))
         }
       }
       else (session, Nil)
@@ -443,11 +452,20 @@ object Sessions {
 
     val deps1 = Sessions.deps(selected_sessions1, progress = progress)
 
-    Base_Info(session1, full_sessions1, deps1.errors, deps1(session1), infos1)
+    Base_Info(deps1(session1), sessions_structure = full_sessions1,
+      errors = deps1.errors, infos = infos1)
   }
 
 
   /* cumulative session info */
+
+  sealed case class Chapter_Info(
+    name: String,
+    pos: Position.T,
+    groups: List[String],
+    description: String,
+    sessions: List[String]
+  )
 
   sealed case class Info(
     name: String,
@@ -466,15 +484,9 @@ object Sessions {
     document_theories: List[(String, Position.T)],
     document_files: List[(Path, Path)],
     export_files: List[(Path, Int, List[String])],
+    export_classpath: List[String],
     meta_digest: SHA1.Digest
   ) {
-    def chapter_session: String = chapter + "/" + name
-
-    def relative_path(info1: Info): String =
-      if (name == info1.name) ""
-      else if (chapter == info1.chapter) "../" + info1.name + "/"
-      else "../../" + info1.chapter_session + "/"
-
     def deps: List[String] = parent.toList ::: imports
 
     def deps_base(session_bases: String => Base): Base = {
@@ -516,6 +528,8 @@ object Sessions {
       variants
     }
 
+    def document_echo: Boolean = options.bool("document_echo")
+
     def documents: List[Document_Build.Document_Variant] = {
       val variants = document_variants
       if (!document_enabled || document_files.isEmpty) Nil else variants
@@ -532,7 +546,7 @@ object Sessions {
     lazy val bibtex_entries: List[Text.Info[String]] =
       (for {
         (document_dir, file) <- document_files.iterator
-        if Bibtex.is_bibtex(file.file_name)
+        if File.is_bib(file.file_name)
         info <- Bibtex.entries(File.read(dir + document_dir + file)).iterator
       } yield info).toList
 
@@ -543,6 +557,7 @@ object Sessions {
   }
 
   def make_info(
+    chapter_defs: Chapter_Defs,
     options: Options,
     dir_selected: Boolean,
     dir: Path,
@@ -552,7 +567,7 @@ object Sessions {
     try {
       val name = entry.name
 
-      if (exclude_session(name)) error("Bad session name")
+      if (illegal_session(name)) error("Illegal session name " + quote(name))
       if (is_pure(name) && entry.parent.isDefined) error("Illegal parent session")
       if (!is_pure(name) && !entry.parent.isDefined) error("Missing parent session")
 
@@ -565,8 +580,10 @@ object Sessions {
         entry.theories.map({ case (opts, thys) =>
           (session_options ++ opts,
             thys.map({ case ((thy, pos), _) =>
-              if (exclude_theory(thy))
-                error("Bad theory name " + quote(thy) + Position.here(pos))
+              val thy_name = Thy_Header.import_name(thy)
+              if (illegal_theory(thy_name)) {
+                error("Illegal theory name " + quote(thy_name) + Position.here(pos))
+              }
               else (thy, pos) })) })
 
       val global_theories =
@@ -596,10 +613,13 @@ object Sessions {
             entry.document_files)
           .toString)
 
-      Info(name, chapter, dir_selected, entry.pos, entry.groups, session_path,
+      val chapter_groups = chapter_defs(chapter).groups
+      val groups = chapter_groups ::: entry.groups.filterNot(chapter_groups.contains)
+
+      Info(name, chapter, dir_selected, entry.pos, groups, session_path,
         entry.parent, entry.description, directories, session_options,
         entry.imports, theories, global_theories, entry.document_theories, document_files,
-        export_files, meta_digest)
+        export_files, entry.export_classpath, meta_digest)
     }
     catch {
       case ERROR(msg) =>
@@ -635,9 +655,9 @@ object Sessions {
   }
 
   object Structure {
-    val empty: Structure = make(Nil)
+    val empty: Structure = make(Chapter_Defs.empty, Nil)
 
-    def make(infos: List[Info]): Structure = {
+    def make(chapter_defs: Chapter_Defs, infos: List[Info]): Structure = {
       def add_edges(
         graph: Graph[String, Info],
         kind: String,
@@ -710,12 +730,13 @@ object Sessions {
               }
           }
 
-      new Structure(
-        session_positions, session_directories, global_theories, build_graph, imports_graph)
+      new Structure(chapter_defs, session_positions, session_directories,
+        global_theories, build_graph, imports_graph)
     }
   }
 
   final class Structure private[Sessions](
+    chapter_defs: Chapter_Defs,
     val session_positions: List[(String, Position.T)],
     val session_directories: Map[JFile, String],
     val global_theories: Map[String, String],
@@ -724,21 +745,31 @@ object Sessions {
   ) {
     sessions_structure =>
 
-    def bootstrap: Base =
-      Base(
-        session_directories = session_directories,
-        global_theories = global_theories,
-        overall_syntax = Thy_Header.bootstrap_syntax)
+    def bootstrap: Base = Base(overall_syntax = Thy_Header.bootstrap_syntax)
 
     def dest_session_directories: List[(String, String)] =
       for ((file, session) <- session_directories.toList)
         yield (File.standard_path(file), session)
 
-    lazy val chapters: SortedMap[String, List[Info]] =
-      build_graph.iterator.foldLeft(SortedMap.empty[String, List[Info]]) {
-        case (chs, (_, (info, _))) =>
-          chs + (info.chapter -> (info :: chs.getOrElse(info.chapter, Nil)))
-      }
+    lazy val known_chapters: List[Chapter_Info] = {
+      val chapter_sessions =
+        Multi_Map.from(
+          for ((_, (info, _)) <- build_graph.iterator)
+            yield info.chapter -> info.name)
+      val chapters1 =
+        (for (entry <- chapter_defs.list.iterator) yield {
+          val sessions = chapter_sessions.get_list(entry.name)
+          Chapter_Info(entry.name, entry.pos, entry.groups, entry.description, sessions.sorted)
+        }).toList
+      val chapters2 =
+        (for {
+          (name, sessions) <- chapter_sessions.iterator_list
+          if !chapters1.exists(_.name == name)
+        } yield Chapter_Info(name, Position.none, Nil, "", sessions.sorted)).toList.sortBy(_.name)
+      chapters1 ::: chapters2
+    }
+
+    def relevant_chapters: List[Chapter_Info] = known_chapters.filter(_.sessions.nonEmpty)
 
     def build_graph_display: Graph_Display.Graph = Graph_Display.make_graph(build_graph)
     def imports_graph_display: Graph_Display.Graph = Graph_Display.make_graph(imports_graph)
@@ -749,6 +780,7 @@ object Sessions {
 
     def theory_qualifier(name: String): String =
       global_theories.getOrElse(name, Long_Name.qualifier(name))
+    def theory_qualifier(name: Document.Node.Name): String = theory_qualifier(name.theory)
 
     def check_sessions(names: List[String]): Unit = {
       val bad_sessions = SortedSet(names.filterNot(defined): _*).toList
@@ -796,8 +828,7 @@ object Sessions {
         graph.restrict(graph.all_preds(sessions).toSet)
       }
 
-      new Structure(
-        session_positions, session_directories, global_theories,
+      new Structure(chapter_defs, session_positions, session_directories, global_theories,
         restrict(build_graph), restrict(imports_graph))
     }
 
@@ -822,17 +853,19 @@ object Sessions {
       deps
     }
 
+    def build_hierarchy(session: String): List[String] =
+      if (build_graph.defined(session)) build_graph.all_preds(List(session))
+      else List(session)
+
     def build_selection(sel: Selection): List[String] = selected(build_graph, sel)
     def build_descendants(ss: List[String]): List[String] = build_graph.all_succs(ss)
     def build_requirements(ss: List[String]): List[String] = build_graph.all_preds_rev(ss)
     def build_topological_order: List[String] = build_graph.topological_order
-    def build_hierarchy(session: String): List[String] = build_graph.all_preds(List(session))
 
     def imports_selection(sel: Selection): List[String] = selected(imports_graph, sel)
     def imports_descendants(ss: List[String]): List[String] = imports_graph.all_succs(ss)
     def imports_requirements(ss: List[String]): List[String] = imports_graph.all_preds_rev(ss)
     def imports_topological_order: List[String] = imports_graph.topological_order
-    def imports_hierarchy(session: String): List[String] = imports_graph.all_preds(List(session))
 
     def bibtex_entries: List[(String, List[String])] =
       build_topological_order.flatMap(name =>
@@ -848,6 +881,7 @@ object Sessions {
 
   /* parser */
 
+  private val CHAPTER_DEFINITION = "chapter_definition"
   private val CHAPTER = "chapter"
   private val SESSION = "session"
   private val IN = "in"
@@ -860,10 +894,12 @@ object Sessions {
   private val DOCUMENT_THEORIES = "document_theories"
   private val DOCUMENT_FILES = "document_files"
   private val EXPORT_FILES = "export_files"
+  private val EXPORT_CLASSPATH = "export_classpath"
 
   val root_syntax: Outer_Syntax =
     Outer_Syntax.empty + "(" + ")" + "+" + "," + "=" + "[" + "]" +
       GLOBAL + IN +
+      (CHAPTER_DEFINITION, Keyword.THY_DECL) +
       (CHAPTER, Keyword.THY_DECL) +
       (SESSION, Keyword.THY_DECL) +
       (DESCRIPTION, Keyword.QUASI_COMMAND) +
@@ -873,10 +909,20 @@ object Sessions {
       (THEORIES, Keyword.QUASI_COMMAND) +
       (DOCUMENT_THEORIES, Keyword.QUASI_COMMAND) +
       (DOCUMENT_FILES, Keyword.QUASI_COMMAND) +
-      (EXPORT_FILES, Keyword.QUASI_COMMAND)
+      (EXPORT_FILES, Keyword.QUASI_COMMAND) +
+      (EXPORT_CLASSPATH, Keyword.QUASI_COMMAND)
 
   abstract class Entry
-  sealed case class Chapter(name: String) extends Entry
+  object Chapter_Def {
+    def empty(chapter: String): Chapter_Def = Chapter_Def(Position.none, chapter, Nil, "")
+  }
+  sealed case class Chapter_Def(
+    pos: Position.T,
+    name: String,
+    groups: List[String],
+    description: String
+  ) extends Entry
+  sealed case class Chapter_Entry(name: String) extends Entry
   sealed case class Session_Entry(
     pos: Position.T,
     name: String,
@@ -890,7 +936,8 @@ object Sessions {
     theories: List[(List[Options.Spec], List[((String, Position.T), Boolean)])],
     document_theories: List[(String, Position.T)],
     document_files: List[(String, String)],
-    export_files: List[(String, Int, List[String])]
+    export_files: List[(String, Int, List[String])],
+    export_classpath: List[String]
   ) extends Entry {
     def theories_no_position: List[(List[Options.Spec], List[(String, Boolean)])] =
       theories.map({ case (a, b) => (a, b.map({ case ((c, _), d) => (c, d) })) })
@@ -898,12 +945,44 @@ object Sessions {
       document_theories.map(_._1)
   }
 
-  private object Parsers extends Options.Parsers {
-    private val chapter: Parser[Chapter] = {
-      val chapter_name = atom("chapter name", _.is_name)
+  object Chapter_Defs {
+    val empty: Chapter_Defs = new Chapter_Defs(Nil)
+  }
 
-      command(CHAPTER) ~! chapter_name ^^ { case _ ~ a => Chapter(a) }
-    }
+  class Chapter_Defs private(rev_list: List[Chapter_Def]) {
+    def list: List[Chapter_Def] = rev_list.reverse
+
+    override def toString: String =
+      list.map(_.name).mkString("Chapter_Defs(", ", ", ")")
+
+    def get(chapter: String): Option[Chapter_Def] =
+      rev_list.find(_.name == chapter)
+
+    def apply(chapter: String): Chapter_Def =
+      get(chapter) getOrElse Chapter_Def.empty(chapter)
+
+    def + (entry: Chapter_Def): Chapter_Defs =
+      get(entry.name) match {
+        case None => new Chapter_Defs(entry :: rev_list)
+        case Some(old_entry) =>
+          error("Duplicate chapter definition " + quote(entry.name) +
+            Position.here(old_entry.pos) + Position.here(entry.pos))
+      }
+  }
+
+  private object Parsers extends Options.Parsers {
+    private val groups: Parser[List[String]] =
+      ($$$("(") ~! (rep1(name) <~ $$$(")")) ^^ { case _ ~ x => x }) | success(Nil)
+
+    private val description: Parser[String] =
+      ($$$(DESCRIPTION) ~! text ^^ { case _ ~ x => x }) | success("")
+
+    private val chapter_def: Parser[Chapter_Def] =
+      command(CHAPTER_DEFINITION) ~! (position(chapter_name) ~ groups ~ description) ^^
+        { case _ ~ ((a, pos) ~ b ~ c) => Chapter_Def(pos, a, b, c) }
+
+    private val chapter_entry: Parser[Chapter_Entry] =
+      command(CHAPTER) ~! chapter_name ^^ { case _ ~ a => Chapter_Entry(a) }
 
     private val session_entry: Parser[Session_Entry] = {
       val option =
@@ -934,29 +1013,32 @@ object Sessions {
         $$$(EXPORT_FILES) ~! ((in_path | success("export")) ~ prune ~ rep1(embedded)) ^^
           { case _ ~ (x ~ y ~ z) => (x, y, z) }
 
+      val export_classpath =
+        $$$(EXPORT_CLASSPATH) ~! (rep1(embedded) | success(List("*:classpath/*.jar"))) ^^
+          { case _ ~ x => x }
+
       command(SESSION) ~!
-        (position(session_name) ~
-          (($$$("(") ~! (rep1(name) <~ $$$(")")) ^^ { case _ ~ x => x }) | success(Nil)) ~
+        (position(session_name) ~ groups ~
           (($$$(IN) ~! path ^^ { case _ ~ x => x }) | success(".")) ~
           ($$$("=") ~!
-            (opt(session_name ~! $$$("+") ^^ { case x ~ _ => x }) ~
-              (($$$(DESCRIPTION) ~! text ^^ { case _ ~ x => x }) | success("")) ~
+            (opt(session_name ~! $$$("+") ^^ { case x ~ _ => x }) ~ description ~
               (($$$(OPTIONS) ~! options ^^ { case _ ~ x => x }) | success(Nil)) ~
               (($$$(SESSIONS) ~! rep1(session_name)  ^^ { case _ ~ x => x }) | success(Nil)) ~
               (($$$(DIRECTORIES) ~! rep1(path) ^^ { case _ ~ x => x }) | success(Nil)) ~
               rep(theories) ~
               (opt(document_theories) ^^ (x => x.getOrElse(Nil))) ~
               (rep(document_files) ^^ (x => x.flatten)) ~
-              rep(export_files)))) ^^
-        { case _ ~ ((a, pos) ~ b ~ c ~ (_ ~ (d ~ e ~ f ~ g ~ h ~ i ~ j ~ k ~ l))) =>
-            Session_Entry(pos, a, b, c, d, e, f, g, h, i, j, k, l) }
+              rep(export_files) ~
+              opt(export_classpath)))) ^^
+        { case _ ~ ((a, pos) ~ b ~ c ~ (_ ~ (d ~ e ~ f ~ g ~ h ~ i ~ j ~ k ~ l ~ m))) =>
+            Session_Entry(pos, a, b, c, d, e, f, g, h, i, j, k, l, m.getOrElse(Nil)) }
     }
 
     def parse_root(path: Path): List[Entry] = {
       val toks = Token.explode(root_syntax.keywords, File.read(path))
       val start = Token.Pos.file(path.implode)
-
-      parse_all(rep(chapter | session_entry), Token.reader(toks, start)) match {
+      val parser: Parser[Entry] = chapter_def | chapter_entry | session_entry
+      parse_all(rep(parser), Token.reader(toks, start)) match {
         case Success(result, _) => result
         case bad => error(bad.toString)
       }
@@ -968,17 +1050,6 @@ object Sessions {
   def parse_root_entries(path: Path): List[Session_Entry] =
     for (entry <- Parsers.parse_root(path) if entry.isInstanceOf[Session_Entry])
     yield entry.asInstanceOf[Session_Entry]
-
-  def read_root(options: Options, select: Boolean, path: Path): List[Info] = {
-    var entry_chapter = UNSORTED
-    val infos = new mutable.ListBuffer[Info]
-    parse_root(path).foreach {
-      case Chapter(name) => entry_chapter = name
-      case entry: Session_Entry =>
-        infos += make_info(options, select, path.dir, entry_chapter, entry)
-    }
-    infos.toList
-  }
 
   def parse_roots(roots: Path): List[String] = {
     for {
@@ -1034,23 +1105,49 @@ object Sessions {
       else Nil
     }
 
-    val roots =
+    val raw_roots: List[(Boolean, Path)] =
       for {
         (select, dir) <- directories(dirs, select_dirs)
         res <- load_dir(select, check_session_dir(dir))
       } yield res
 
-    val unique_roots =
-      roots.foldLeft(Map.empty[JFile, (Boolean, Path)]) {
+    val unique_roots: List[(Boolean, Path, List[Entry])] =
+      raw_roots.foldLeft(Map.empty[JFile, (Boolean, Path, List[Entry])]) {
         case (m, (select, path)) =>
           val file = path.canonical_file
           m.get(file) match {
-            case None => m + (file -> (select, path))
-            case Some((select1, path1)) => m + (file -> (select1 || select, path1))
+            case None =>
+              val entries = parse_root(path)
+              m + (file -> (select, path.dir, entries))
+            case Some((select1, dir1, entries1)) =>
+              m + (file -> (select1 || select, dir1, entries1))
           }
-      }.toList.map(_._2)
+      }.valuesIterator.toList
 
-    Structure.make(unique_roots.flatMap(p => read_root(options, p._1, p._2)) ::: infos)
+    val chapter_defs: Chapter_Defs =
+      unique_roots.foldLeft(Chapter_Defs.empty) {
+        case (defs1, (_, _, entries)) =>
+          entries.foldLeft(defs1) {
+            case ((defs2, entry: Chapter_Def)) => defs2 + entry
+            case ((defs2, _)) => defs2
+          }
+      }
+
+    val info_roots = {
+      var chapter = UNSORTED
+      val info_roots = new mutable.ListBuffer[Info]
+      for ((select, dir, entries) <- unique_roots) {
+        entries.foreach {
+          case entry: Chapter_Entry => chapter = entry.name
+          case entry: Session_Entry =>
+            info_roots += make_info(chapter_defs, options, select, dir, chapter, entry)
+          case _ =>
+        }
+      }
+      info_roots.toList
+    }
+
+    Structure.make(chapter_defs, info_roots ::: infos)
   }
 
 
@@ -1126,12 +1223,11 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
           val buf = ByteBuffer.allocate(n)
           var i = 0
           var m = 0
-          var cont = true
-          while (cont) {
+          while ({
             m = file.read(buf)
             if (m != -1) i += m
-            cont = (m != -1 && n > i)
-          }
+            m != -1 && n > i
+          }) ()
 
           if (i == n) {
             val prefix = new String(buf.array(), 0, sha1_prefix.length, UTF8.charset)
@@ -1178,69 +1274,14 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     val input_heaps = SQL.Column.string("input_heaps")
     val output_heap = SQL.Column.string("output_heap")
     val return_code = SQL.Column.int("return_code")
-    val build_columns = List(sources, input_heaps, output_heap, return_code)
+    val uuid = SQL.Column.string("uuid")
+    val build_columns = List(sources, input_heaps, output_heap, return_code, uuid)
 
     val table = SQL.Table("isabelle_session_info", build_log_columns ::: build_columns)
-  }
 
-  class Database_Context private[Sessions](
-    val store: Sessions.Store,
-    database_server: Option[SQL.Database]
-  ) extends AutoCloseable {
-    def cache: Term.Cache = store.cache
-
-    def close(): Unit = database_server.foreach(_.close())
-
-    def output_database[A](session: String)(f: SQL.Database => A): A =
-      database_server match {
-        case Some(db) => f(db)
-        case None => using(store.open_database(session, output = true))(f)
-      }
-
-    def input_database[A](session: String)(f: (SQL.Database, String) => Option[A]): Option[A] =
-      database_server match {
-        case Some(db) => f(db, session)
-        case None =>
-          store.try_open_database(session) match {
-            case Some(db) => using(db)(f(_, session))
-            case None => None
-          }
-      }
-
-    def read_export(
-      sessions: List[String],
-      theory_name: String,
-      name: String
-    ): Option[Export.Entry] = {
-      val attempts =
-        database_server match {
-          case Some(db) =>
-            sessions.view.map(session_name =>
-              Export.read_entry(db, store.cache, session_name, theory_name, name))
-          case None =>
-            sessions.view.map(session_name =>
-              store.try_open_database(session_name) match {
-                case Some(db) =>
-                  using(db)(Export.read_entry(_, store.cache, session_name, theory_name, name))
-                case None => None
-              })
-        }
-      attempts.collectFirst({ case Some(entry) => entry })
-    }
-
-    def get_export(
-        session_hierarchy: List[String], theory_name: String, name: String): Export.Entry =
-      read_export(session_hierarchy, theory_name, name) getOrElse
-        Export.empty_entry(theory_name, name)
-
-    override def toString: String = {
-      val s =
-        database_server match {
-          case Some(db) => db.toString
-          case None => "input_dirs = " + store.input_dirs.map(_.absolute).mkString(", ")
-        }
-      "Database_Context(" + s + ")"
-    }
+    val augment_table: PostgreSQL.Source =
+      "ALTER TABLE IF EXISTS " + table.ident +
+      " ADD COLUMN IF NOT EXISTS " + uuid.decl(SQL.sql_type_postgresql)
   }
 
   def store(options: Options, cache: Term.Cache = Term.Cache.make()): Store =
@@ -1322,14 +1363,15 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
               port = options.int("build_database_ssh_port"))),
         ssh_close = true)
 
-    def open_database_context(): Database_Context =
-      new Database_Context(store, if (database_server) Some(open_database_server()) else None)
-
-    def try_open_database(name: String, output: Boolean = false): Option[SQL.Database] = {
+    def try_open_database(
+      name: String,
+      output: Boolean = false,
+      server: Boolean = database_server
+    ): Option[SQL.Database] = {
       def check(db: SQL.Database): Option[SQL.Database] =
         if (output || session_info_exists(db)) Some(db) else { db.close(); None }
 
-      if (database_server) check(open_database_server())
+      if (server) check(open_database_server())
       else if (output) Some(SQLite.open_database(output_database(name)))
       else {
         (for {
@@ -1340,9 +1382,11 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
       }
     }
 
+    def error_database(name: String): Nothing =
+      error("Missing build database for session " + quote(name))
+
     def open_database(name: String, output: Boolean = false): SQL.Database =
-      try_open_database(name, output = output) getOrElse
-        error("Missing build database for session " + quote(name))
+      try_open_database(name, output = output) getOrElse error_database(name)
 
     def clean_output(name: String): (Boolean, Boolean) = {
       val relevant_db =
@@ -1394,6 +1438,9 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
         db.create_table(Session_Info.table)
         db.using_statement(
           Session_Info.table.delete(Session_Info.session_name.where_equal(name)))(_.execute())
+        if (db.isInstanceOf[PostgreSQL.Database]) {
+          db.using_statement(Session_Info.augment_table)(_.execute())
+        }
 
         db.create_table(Export.Data.table)
         db.using_statement(
@@ -1413,12 +1460,10 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     }
 
     def session_info_defined(db: SQL.Database, name: String): Boolean =
-      db.transaction {
-        session_info_exists(db) && {
-          db.using_statement(
-            Session_Info.table.select(List(Session_Info.session_name),
-              Session_Info.session_name.where_equal(name)))(stmt => stmt.execute_query().next())
-        }
+      session_info_exists(db) && {
+        db.using_statement(
+          Session_Info.table.select(List(Session_Info.session_name),
+            Session_Info.session_name.where_equal(name)))(stmt => stmt.execute_query().next())
       }
 
     def write_session_info(
@@ -1428,7 +1473,8 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
       build: Build.Session_Info
     ): Unit = {
       db.transaction {
-        db.using_statement(Session_Info.table.insert()) { stmt =>
+        val table = Session_Info.table
+        db.using_statement(table.insert()) { stmt =>
           stmt.string(1) = name
           stmt.bytes(2) = Properties.encode(build_log.session_timing)
           stmt.bytes(3) = Properties.compress(build_log.command_timings, cache = cache.xz)
@@ -1440,6 +1486,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
           stmt.string(9) = cat_lines(build.input_heaps)
           stmt.string(10) = build.output_heap getOrElse ""
           stmt.int(11) = build.return_code
+          stmt.string(12) = build.uuid
           stmt.execute()
         }
       }
@@ -1468,17 +1515,21 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
     def read_build(db: SQL.Database, name: String): Option[Build.Session_Info] = {
       if (db.tables.contains(Session_Info.table.name)) {
-        db.using_statement(Session_Info.table.select(Session_Info.build_columns,
+        db.using_statement(Session_Info.table.select(Nil,
           Session_Info.session_name.where_equal(name))) { stmt =>
           val res = stmt.execute_query()
           if (!res.next()) None
           else {
+            val uuid =
+              try { Option(res.string(Session_Info.uuid)).getOrElse("") }
+              catch { case _: SQLException => "" }
             Some(
               Build.Session_Info(
                 res.string(Session_Info.sources),
                 split_lines(res.string(Session_Info.input_heaps)),
                 res.string(Session_Info.output_heap) match { case "" => None case s => Some(s) },
-                res.int(Session_Info.return_code)))
+                res.int(Session_Info.return_code),
+                uuid))
           }
         }
       }

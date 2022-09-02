@@ -10,7 +10,6 @@ package isabelle.jedit
 import isabelle._
 
 import javax.swing.JMenuItem
-import scala.swing.ComboBox
 
 import org.gjt.sp.jedit.menu.EnhancedMenuItem
 import org.gjt.sp.jedit.jEdit
@@ -86,9 +85,9 @@ object JEdit_Spell_Checker {
     val option_name = "spell_checker_dictionary"
     val opt = PIDE.options.value.check_name(option_name)
 
-    val entries = Spell_Checker.dictionaries
-    val component = new ComboBox(entries) with Option_Component {
+    new GUI.Selector[Spell_Checker.Dictionary](Spell_Checker.dictionaries) with Option_Component {
       name = option_name
+      tooltip = GUI.tooltip_lines(opt.print_default)
       val title = opt.title()
       def load(): Unit = {
         val lang = PIDE.options.string(option_name)
@@ -98,10 +97,8 @@ object JEdit_Spell_Checker {
         }
       }
       def save(): Unit = PIDE.options.string(option_name) = selection.item.lang
-    }
 
-    component.load()
-    component.tooltip = GUI.tooltip_lines(opt.print_default)
-    component
+      load()
+    }
   }
 }

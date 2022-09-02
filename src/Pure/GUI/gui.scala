@@ -13,8 +13,8 @@ import java.awt.font.{FontRenderContext, LineMetrics, TextAttribute, TransformAt
 import java.awt.geom.AffineTransform
 import javax.swing.{ImageIcon, JButton, JDialog, JFrame, JLabel, JLayeredPane, JOptionPane,
   JTextField, JWindow, LookAndFeel, UIManager, SwingUtilities}
-import scala.swing.{ComboBox, ScrollPane, TextArea}
-import scala.swing.event.SelectionChanged
+import scala.swing.{CheckBox, ComboBox, ScrollPane, TextArea}
+import scala.swing.event.{ButtonClicked, SelectionChanged}
 
 
 object GUI {
@@ -111,14 +111,37 @@ object GUI {
     }
 
 
-  /* zoom box */
+  /* basic GUI components */
+
+  class Button(label: String) extends scala.swing.Button(label) {
+    def clicked(): Unit = {}
+
+    reactions += { case ButtonClicked(_) => clicked() }
+  }
+
+  class Check(label: String, init: Boolean = false) extends CheckBox(label) {
+    def clicked(state: Boolean): Unit = {}
+    def clicked(): Unit = {}
+
+    selected = init
+    reactions += { case ButtonClicked(_) => clicked(selected); clicked() }
+  }
+
+  class Selector[A](val entries: List[A]) extends ComboBox[A](entries) {
+    def changed(): Unit = {}
+
+    listenTo(selection)
+    reactions += { case SelectionChanged(_) => changed() }
+  }
+
+
+  /* zoom factor */
 
   private val Zoom_Factor = "([0-9]+)%?".r
 
-  abstract class Zoom_Box extends ComboBox[String](
+  class Zoom extends Selector[String](
     List("50%", "70%", "85%", "100%", "125%", "150%", "175%", "200%", "300%", "400%")
   ) {
-    def changed: Unit
     def factor: Int = parse(selection.item)
 
     private def parse(text: String): Int =
@@ -145,9 +168,6 @@ object GUI {
     }
 
     selection.index = 3
-
-    listenTo(selection)
-    reactions += { case SelectionChanged(_) => changed }
   }
 
 

@@ -1076,6 +1076,12 @@ qed auto
 lemma real_of_nat_div4: "real (n div x) \<le> real n / real x" for n x :: nat
   using real_of_nat_div2 [of n x] by simp
 
+lemma real_binomial_eq_mult_binomial_Suc:
+  assumes "k \<le> n"
+  shows "real(n choose k) = (n + 1 - k) / (n + 1) * (Suc n choose k)"
+  using assms
+  by (simp add: of_nat_binomial_eq_mult_binomial_Suc [of k n] add.commute of_nat_diff)
+
 
 subsection \<open>The Archimedean Property of the Reals\<close>
 

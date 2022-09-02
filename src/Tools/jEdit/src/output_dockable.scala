@@ -9,9 +9,6 @@ package isabelle.jedit
 
 import isabelle._
 
-import scala.swing.{Button, CheckBox}
-import scala.swing.event.ButtonClicked
-
 import java.awt.BorderLayout
 import java.awt.event.{ComponentEvent, ComponentAdapter}
 
@@ -33,12 +30,8 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   override def detach_operation: Option[() => Unit] = pretty_text_area.detach_operation
 
 
-  private def handle_resize(): Unit = {
-    GUI_Thread.require {}
-
-    pretty_text_area.resize(
-      Font_Info.main(PIDE.options.real("jedit_font_scale") * zoom.factor / 100))
-  }
+  private def handle_resize(): Unit =
+    GUI_Thread.require { pretty_text_area.zoom(zoom) }
 
   private def handle_update(follow: Boolean, restriction: Option[Set[Command]]): Unit = {
     GUI_Thread.require {}
@@ -55,7 +48,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
 
       val new_output =
         if (restriction.isEmpty || restriction.get.contains(command))
-          Rendering.output_messages(results)
+          Rendering.output_messages(results, JEdit_Options.output_state())
         else current_output
 
       if (current_output != new_output) {
@@ -68,35 +61,22 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
 
   /* controls */
 
-  private def output_state: Boolean = PIDE.options.bool("editor_output_state")
-  private def output_state_=(b: Boolean): Unit = {
-    if (output_state != b) {
-      PIDE.options.bool("editor_output_state") = b
-      PIDE.session.update_options(PIDE.options.value)
-      PIDE.editor.flush_edits(hidden = true)
-      PIDE.editor.flush()
+  private val output_state_button = new JEdit_Options.output_state.GUI
+
+  private val auto_update_button = new GUI.Check("Auto update", init = do_update) {
+    tooltip = "Indicate automatic update following cursor movement"
+    override def clicked(state: Boolean): Unit = {
+      do_update = state
+      handle_update(do_update, None)
     }
   }
 
-  private val output_state_button = new CheckBox("Proof state") {
-    tooltip = "Output of proof state (normally shown on State panel)"
-    reactions += { case ButtonClicked(_) => output_state = selected }
-    selected = output_state
-  }
-
-  private val auto_update_button = new CheckBox("Auto update") {
-    tooltip = "Indicate automatic update following cursor movement"
-    reactions += {
-      case ButtonClicked(_) => do_update = this.selected; handle_update(do_update, None) }
-    selected = do_update
-  }
-
-  private val update_button = new Button("Update") {
+  private val update_button = new GUI.Button("Update") {
     tooltip = "Update display according to the command at cursor position"
-    reactions += { case ButtonClicked(_) => handle_update(true, None) }
+    override def clicked(): Unit = handle_update(true, None)
   }
 
-  private val zoom = new Font_Info.Zoom_Box { def changed = handle_resize() }
+  private val zoom = new Font_Info.Zoom { override def changed(): Unit = handle_resize() }
 
   private val controls =
     Wrap_Panel(
@@ -113,7 +93,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
       case _: Session.Global_Options =>
         GUI_Thread.later {
           handle_resize()
-          output_state_button.selected = output_state
+          output_state_button.load()
           handle_update(do_update, None)
         }
 

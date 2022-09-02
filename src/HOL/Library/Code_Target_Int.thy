@@ -116,11 +116,11 @@ declare [[code drop: "gcd :: int \<Rightarrow> _" "lcm :: int \<Rightarrow> _"]]
 
 lemma gcd_int_of_integer [code]:
   "gcd (int_of_integer x) (int_of_integer y) = int_of_integer (gcd x y)"
-by transfer rule
+  by transfer rule
 
 lemma lcm_int_of_integer [code]:
   "lcm (int_of_integer x) (int_of_integer y) = int_of_integer (lcm x y)"
-by transfer rule
+  by transfer rule
 
 end
 
@@ -158,6 +158,64 @@ lemma [code]:
   "int_of_char = int_of_integer \<circ> integer_of_char"
   including integer.lifting unfolding integer_of_char_def int_of_char_def
   by transfer (simp add: fun_eq_iff)
+
+context
+  includes integer.lifting bit_operations_syntax
+begin
+
+declare [[code drop: \<open>bit :: int \<Rightarrow> _\<close> \<open>not :: int \<Rightarrow> _\<close>
+  \<open>and :: int \<Rightarrow> _\<close> \<open>or :: int \<Rightarrow> _\<close> \<open>xor :: int \<Rightarrow> _\<close>
+  \<open>push_bit :: _ \<Rightarrow> _ \<Rightarrow> int\<close> \<open>drop_bit :: _ \<Rightarrow> _ \<Rightarrow> int\<close> \<open>take_bit :: _ \<Rightarrow> _ \<Rightarrow> int\<close>]]
+
+lemma [code]:
+  \<open>bit (int_of_integer k) n \<longleftrightarrow> bit k n\<close>
+  by transfer rule
+
+lemma [code]:
+  \<open>NOT (int_of_integer k) = int_of_integer (NOT k)\<close>
+  by transfer rule
+
+lemma [code]:
+  \<open>int_of_integer k AND int_of_integer l = int_of_integer (k AND l)\<close>
+  by transfer rule
+
+lemma [code]:
+  \<open>int_of_integer k OR int_of_integer l = int_of_integer (k OR l)\<close>
+  by transfer rule
+
+lemma [code]:
+  \<open>int_of_integer k XOR int_of_integer l = int_of_integer (k XOR l)\<close>
+  by transfer rule
+
+lemma [code]:
+  \<open>push_bit n (int_of_integer k) = int_of_integer (push_bit n k)\<close>
+  by transfer rule
+
+lemma [code]:
+  \<open>drop_bit n (int_of_integer k) = int_of_integer (drop_bit n k)\<close>
+  by transfer rule
+
+lemma [code]:
+  \<open>take_bit n (int_of_integer k) = int_of_integer (take_bit n k)\<close>
+  by transfer rule
+
+lemma [code]:
+  \<open>mask n = int_of_integer (mask n)\<close>
+  by transfer rule
+
+lemma [code]:
+  \<open>set_bit n (int_of_integer k) = int_of_integer (set_bit n k)\<close>
+  by transfer rule
+
+lemma [code]:
+  \<open>unset_bit n (int_of_integer k) = int_of_integer (unset_bit n k)\<close>
+  by transfer rule
+
+lemma [code]:
+  \<open>flip_bit n (int_of_integer k) = int_of_integer (flip_bit n k)\<close>
+  by transfer rule
+
+end
 
 code_identifier
   code_module Code_Target_Int \<rightharpoonup>

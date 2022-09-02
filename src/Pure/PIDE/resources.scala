@@ -16,13 +16,10 @@ object Resources {
   def empty: Resources =
     new Resources(Sessions.Structure.empty, Sessions.Structure.empty.bootstrap)
 
-  def file_node(file: Path, dir: String = "", theory: String = ""): Document.Node.Name =
-    empty.file_node(file, dir = dir, theory = theory)
-
   def hidden_node(name: Document.Node.Name): Boolean =
     !name.is_theory || name.theory == Sessions.root_name || File_Format.registry.is_theory(name)
 
-  def html_document(snapshot: Document.Snapshot): Option[Presentation.HTML_Document] =
+  def html_document(snapshot: Document.Snapshot): Option[Browser_Info.HTML_Document] =
     File_Format.registry.get(snapshot.node_name).flatMap(_.html_document(snapshot))
 }
 
@@ -33,6 +30,9 @@ class Resources(
   command_timings: List[Properties.T] = Nil
 ) {
   resources =>
+
+
+  override def toString: String = "Resources(" + session_base.toString + ")"
 
 
   /* init session */
@@ -54,7 +54,7 @@ class Resources(
        (command_timings,
        (Command_Span.load_commands.map(cmd => (cmd.name, cmd.position)),
        (Scala.functions,
-       (session_base.global_theories.toList,
+       (sessions_structure.global_theories.toList,
         session_base.loaded_theories.keys)))))))))
   }
 
@@ -147,14 +147,16 @@ class Resources(
     } yield file
   }
 
+  def global_theory(theory: String): Boolean =
+    sessions_structure.global_theories.isDefinedAt(theory)
+
   def theory_name(qualifier: String, theory: String): String =
-    if (Long_Name.is_qualified(theory) || session_base.global_theories.isDefinedAt(theory))
-      theory
+    if (Long_Name.is_qualified(theory) || global_theory(theory)) theory
     else Long_Name.qualify(qualifier, theory)
 
   def find_theory_node(theory: String): Option[Document.Node.Name] = {
     val thy_file = Path.basic(Long_Name.base_name(theory)).thy
-    val session = session_base.theory_qualifier(theory)
+    val session = sessions_structure.theory_qualifier(theory)
     val dirs =
       sessions_structure.get(session) match {
         case Some(info) => info.dirs
@@ -179,14 +181,14 @@ class Resources(
   }
 
   def import_name(name: Document.Node.Name, s: String): Document.Node.Name =
-    import_name(session_base.theory_qualifier(name), name.master_dir, s)
+    import_name(sessions_structure.theory_qualifier(name), name.master_dir, s)
 
   def import_name(info: Sessions.Info, s: String): Document.Node.Name =
     import_name(info.name, info.dir.implode, s)
 
   def find_theory(file: JFile): Option[Document.Node.Name] = {
     for {
-      qualifier <- session_base.session_directories.get(File.canonical(file).getParentFile)
+      qualifier <- sessions_structure.session_directories.get(File.canonical(file).getParentFile)
       theory_base <- proper_string(Thy_Header.theory_name(file.getName))
       theory = theory_name(qualifier, theory_base)
       theory_node <- find_theory_node(theory)
@@ -195,7 +197,7 @@ class Resources(
   }
 
   def complete_import_name(context_name: Document.Node.Name, s: String): List[String] = {
-    val context_session = session_base.theory_qualifier(context_name)
+    val context_session = sessions_structure.theory_qualifier(context_name)
     val context_dir =
       try { Some(context_name.master_dir_path) }
       catch { case ERROR(_) => None }
@@ -205,7 +207,7 @@ class Resources(
       theory <- Thy_Header.try_read_dir(dir).iterator
       if Completion.completed(s)(theory)
     } yield {
-      if (session == context_session || session_base.global_theories.isDefinedAt(theory)) theory
+      if (session == context_session || global_theory(theory)) theory
       else Long_Name.qualify(session, theory)
     }).toList.sorted
   }
@@ -230,9 +232,10 @@ class Resources(
         val imports =
           header.imports.map({ case (s, pos) =>
             val name = import_name(node_name, s)
-            if (Sessions.exclude_theory(name.theory_base_name))
-              error("Bad theory name " + quote(name.theory_base_name) + Position.here(pos))
-            (name, pos)
+            if (Sessions.illegal_theory(name.theory_base_name)) {
+              error("Illegal theory name " + quote(name.theory_base_name) + Position.here(pos))
+            }
+            else (name, pos)
           })
         Document.Node.Header(imports, header.keywords, header.abbrevs)
       }
@@ -407,7 +410,7 @@ class Resources(
     def get_syntax(name: Document.Node.Name): Outer_Syntax =
       loaded_theories.get_node(name.theory)
 
-    def load_commands: List[(Document.Node.Name, List[Command_Span.Span])] =
+    lazy val load_commands: List[(Document.Node.Name, List[Command_Span.Span])] =
       theories.zip(
         Par_List.map((e: () => List[Command_Span.Span]) => e(),
           theories.map(name => resources.load_commands(get_syntax(name), name))))

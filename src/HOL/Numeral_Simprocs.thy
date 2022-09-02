@@ -15,13 +15,10 @@ ML_file \<open>~~/src/Provers/Arith/extract_common_term.ML\<close>
 lemmas semiring_norm =
   Let_def arith_simps diff_nat_numeral rel_simps
   if_False if_True
-  add_0 add_Suc add_numeral_left
+  add_Suc add_numeral_left
   add_neg_numeral_left mult_numeral_left
   numeral_One [symmetric] uminus_numeral_One [symmetric] Suc_eq_plus1
   eq_numeral_iff_iszero not_iszero_Numeral1
-
-declare split_div [of _ _ "numeral k", arith_split] for k
-declare split_mod [of _ _ "numeral k", arith_split] for k
 
 text \<open>For \<open>combine_numerals\<close>\<close>
 
@@ -92,16 +89,16 @@ lemmas nat_mult_less_cancel_disj = mult_less_cancel1
 lemma nat_mult_eq_cancel_disj:
   fixes k m n :: nat
   shows "k * m = k * n \<longleftrightarrow> k = 0 \<or> m = n"
-  by auto
+  by (fact mult_cancel_left)
 
-lemma nat_mult_div_cancel_disj [simp]:
+lemma nat_mult_div_cancel_disj:
   fixes k m n :: nat
   shows "(k * m) div (k * n) = (if k = 0 then 0 else m div n)"
   by (fact div_mult_mult1_if)
 
 lemma numeral_times_minus_swap:
   fixes x:: "'a::comm_ring_1" shows  "numeral w * -x = x * - numeral w"
-  by (simp add: mult.commute)
+  by (simp add: ac_simps)
 
 ML_file \<open>Tools/numeral_simprocs.ML\<close>
 

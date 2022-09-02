@@ -853,10 +853,30 @@ lemma real_polynomial_function_diff [intro]:
   using polynomial_function_diff [of f]
   by (simp add: real_polynomial_function_eq)
 
+lemma real_polynomial_function_divide [intro]:
+  assumes "real_polynomial_function p" shows "real_polynomial_function (\<lambda>x. p x / c)"
+proof -
+  have "real_polynomial_function (\<lambda>x. p x * Fields.inverse c)"
+    using assms by auto
+  then show ?thesis
+    by (simp add: divide_inverse)
+qed
+
 lemma real_polynomial_function_sum [intro]:
     "\<lbrakk>finite I; \<And>i. i \<in> I \<Longrightarrow> real_polynomial_function (\<lambda>x. f x i)\<rbrakk> \<Longrightarrow> real_polynomial_function (\<lambda>x. sum (f x) I)"
   using polynomial_function_sum [of I f]
   by (simp add: real_polynomial_function_eq)
+
+lemma real_polynomial_function_prod [intro]:
+  "\<lbrakk>finite I; \<And>i. i \<in> I \<Longrightarrow> real_polynomial_function (\<lambda>x. f x i)\<rbrakk> \<Longrightarrow> real_polynomial_function (\<lambda>x. prod (f x) I)"
+  by (induct I rule: finite_induct) auto
+
+lemma real_polynomial_function_gchoose:
+  obtains p where "real_polynomial_function p" "\<And>x. x gchoose r = p x"
+proof
+  show "real_polynomial_function (\<lambda>x. (\<Prod>i = 0..<r. x - real i) / fact r)"
+    by force
+qed (simp add: gbinomial_prod_rev)
 
 lemma real_polynomial_function_power [intro]:
     "real_polynomial_function f \<Longrightarrow> real_polynomial_function (\<lambda>x. f x^n)"

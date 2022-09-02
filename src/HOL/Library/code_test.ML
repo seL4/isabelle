@@ -506,7 +506,7 @@ fun evaluate_in_scala (_: Proof.context) (code_files, value_name) dir =
 }\<close>
     val _ = File.write code_path code
     val _ = File.write driver_path driver
-    val _ = Scala_Compiler.toplevel true (code ^ driver)
+    val _ = Scala_Compiler.toplevel (code ^ driver)
       handle ERROR msg => error ("Evaluation for " ^ scalaN ^ " failed:\n" ^ msg)
   in File.read out_path end
 

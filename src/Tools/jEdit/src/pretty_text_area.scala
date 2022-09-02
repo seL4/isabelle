@@ -122,6 +122,11 @@ class Pretty_Text_Area(
     refresh()
   }
 
+  def zoom(zoom: GUI.Zoom): Unit = {
+    val factor = if (zoom == null) 100 else zoom.factor
+    resize(Font_Info.main(PIDE.options.real("jedit_font_scale") * factor / 100))
+  }
+
   def update(
     base_snapshot: Document.Snapshot,
     base_results: Command.Results,
@@ -136,13 +141,13 @@ class Pretty_Text_Area(
     refresh()
   }
 
-  def detach: Unit = {
+  def detach(): Unit = {
     GUI_Thread.require {}
     Info_Dockable(view, current_base_snapshot, current_base_results, current_body)
   }
 
   def detach_operation: Option[() => Unit] =
-    if (current_body.isEmpty) None else Some(() => detach)
+    if (current_body.isEmpty) None else Some(() => detach())
 
 
   /* common GUI components */
@@ -208,15 +213,15 @@ class Pretty_Text_Area(
         case KeyEvent.VK_C | KeyEvent.VK_INSERT
         if strict_control && text_area.getSelectionCount != 0 =>
           Registers.copy(text_area, '$')
-          evt.consume
+          evt.consume()
 
         case KeyEvent.VK_A
         if strict_control =>
           text_area.selectAll
-          evt.consume
+          evt.consume()
 
         case KeyEvent.VK_ESCAPE =>
-          if (Isabelle.dismissed_popups(view)) evt.consume
+          if (Isabelle.dismissed_popups(view)) evt.consume()
 
         case _ =>
       }

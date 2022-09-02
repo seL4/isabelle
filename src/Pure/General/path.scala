@@ -91,6 +91,8 @@ object Path {
   val USER_HOME: Path = variable("USER_HOME")
   val ISABELLE_HOME: Path = variable("ISABELLE_HOME")
 
+  val index_html: Path = basic("index.html")
+
 
   /* explode */
 
@@ -158,6 +160,10 @@ object Path {
       error(("Collision of file names due case-insensitivity:" :: collisions).mkString("\n  "))
     }
   }
+
+  def eq_case_insensitive(path1: Path, path2: Path): Boolean =
+    path1 == path2 ||
+    Word.lowercase(path1.expand.implode) == Word.lowercase(path2.expand.implode)
 }
 
 
@@ -246,7 +252,8 @@ final class Path private(
   }
 
   def exe: Path = ext("exe")
-  def platform_exe: Path = if (Platform.is_windows) exe else this
+  def exe_if(b: Boolean): Path = if (b) exe else this
+  def platform_exe: Path = exe_if(Platform.is_windows)
 
   private val Ext = new Regex("(.*)\\.([^.]*)")
 

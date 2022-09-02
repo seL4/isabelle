@@ -70,7 +70,7 @@ val default_default_params =
    ("try0", "true"),
    ("smt_proofs", "true"),
    ("minimize", "true"),
-   ("slices", string_of_int (6 * Multithreading.max_threads ())),
+   ("slices", string_of_int (12 * Multithreading.max_threads ())),
    ("preplay_timeout", "1")]
 
 val alias_params =

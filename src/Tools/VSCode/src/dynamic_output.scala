@@ -27,26 +27,27 @@ object Dynamic_Output {
                 case None => copy(output = Nil)
                 case Some(command) =>
                   copy(output =
-                    if (restriction.isEmpty || restriction.get.contains(command))
-                      Rendering.output_messages(snapshot.command_results(command))
-                    else output)
+                    if (restriction.isEmpty || restriction.get.contains(command)) {
+                      val output_state = resources.options.bool("editor_output_state")
+                      Rendering.output_messages(snapshot.command_results(command), output_state)
+                    } else output)
               }
             }
             else this
         }
       if (st1.output != output) {
-        val context =
-          new Presentation.Entity_Context {
+        val node_context =
+          new Browser_Info.Node_Context {
             override def make_ref(props: Properties.T, body: XML.Body): Option[XML.Elem] =
               for {
                 thy_file <- Position.Def_File.unapply(props)
                 def_line <- Position.Def_Line.unapply(props)
                 source <- resources.source_file(thy_file)
-                uri = Path.explode(source).absolute_file.toURI
+                uri = File.uri(Path.explode(source).absolute_file)
               } yield HTML.link(uri.toString + "#" + def_line, body)
           }
-        val elements = Presentation.elements2.copy(entity = Markup.Elements.full)
-        val html = Presentation.make_html(context, elements, Pretty.separate(st1.output))
+        val elements = Browser_Info.extra_elements.copy(entity = Markup.Elements.full)
+        val html = node_context.make_html(elements, Pretty.separate(st1.output))
         channel.write(LSP.Dynamic_Output(HTML.source(html).toString))
       }
       st1

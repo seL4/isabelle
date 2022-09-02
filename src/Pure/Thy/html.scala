@@ -94,6 +94,27 @@ object HTML {
   def script_file(path: Path): XML.Elem = script_file(Url.print_file(path.file))
 
 
+  /* href */
+
+  def relative_href(location: Path, base: Option[Path] = None): String = {
+    val path =
+      base match {
+        case None =>
+          val path = location.expand
+          if (path.is_absolute) Exn.error("Relative href location expected: " + path) else path
+        case Some(base_dir) =>
+          val path1 = base_dir.absolute_file.toPath
+          val path2 = location.absolute_file.toPath
+          try { File.path(path1.relativize(path2).toFile) }
+          catch {
+            case _: IllegalArgumentException =>
+              Exn.error("Failed to relativize href location " + path2 + " with wrt. base " + path1)
+          }
+      }
+    if (path.is_current) "" else path.implode
+  }
+
+
   /* output text with control symbols */
 
   private val control: Map[Symbol.Symbol, Operator] =
@@ -416,26 +437,19 @@ object HTML {
 
   /* document directory context (fonts + css) */
 
-  def relative_prefix(dir: Path, base: Option[Path]): String =
-    base match {
-      case None => ""
-      case Some(base_dir) =>
-        val path = File.path(dir.absolute.java_path.relativize(base_dir.absolute.java_path).toFile)
-        if (path.is_current) "" else path.implode + "/"
-    }
-
   def isabelle_css: Path = Path.explode("~~/etc/isabelle.css")
 
-  def write_document(dir: Path, name: String, head: XML.Body, body: XML.Body,
-    base: Option[Path] = None,
+  def write_document(base_dir: Path, name: String, head: XML.Body, body: XML.Body,
+    root: Option[Path] = None,
     css: String = isabelle_css.file_name,
     hidden: Boolean = true,
     structural: Boolean = true
   ): Unit = {
-    Isabelle_System.make_directory(dir)
-    val prefix = relative_prefix(dir, base)
-    File.write(dir + isabelle_css.base, fonts_css_dir(prefix) + "\n\n" + File.read(isabelle_css))
-    File.write(dir + Path.basic(name),
+    Isabelle_System.make_directory(base_dir)
+    val fonts_prefix = relative_href(root getOrElse base_dir, base = Some(base_dir))
+    val fonts = fonts_css_dir(fonts_prefix)
+    File.write(base_dir + isabelle_css.base, fonts + "\n\n" + File.read(isabelle_css))
+    File.write(base_dir + Path.basic(name),
       output_document(head, body, css = css, hidden = hidden, structural = structural))
   }
 }

@@ -278,46 +278,6 @@ lemma hpowr_Suc [simp]: "r ^ (Suc n) = r * (r ^ n)"
   for r :: hypreal
   by (rule power_Suc)
 
-lemma hrealpow_two: "r ^ Suc (Suc 0) = r * r"
-  for r :: hypreal
-  by simp
-
-lemma hrealpow_two_le [simp]: "0 \<le> r ^ Suc (Suc 0)"
-  for r :: hypreal
-  by (auto simp add: zero_le_mult_iff)
-
-lemma hrealpow_two_le_add_order [simp]: "0 \<le> u ^ Suc (Suc 0) + v ^ Suc (Suc 0)"
-  for u v :: hypreal
-  by (simp only: hrealpow_two_le add_nonneg_nonneg)
-
-lemma hrealpow_two_le_add_order2 [simp]: "0 \<le> u ^ Suc (Suc 0) + v ^ Suc (Suc 0) + w ^ Suc (Suc 0)"
-  for u v w :: hypreal
-  by (simp only: hrealpow_two_le add_nonneg_nonneg)
-
-lemma hypreal_add_nonneg_eq_0_iff: "0 \<le> x \<Longrightarrow> 0 \<le> y \<Longrightarrow> x + y = 0 \<longleftrightarrow> x = 0 \<and> y = 0"
-  for x y :: hypreal
-  by arith
-
-
-(* FIXME: DELETE THESE *)
-lemma hypreal_three_squares_add_zero_iff: "x * x + y * y + z * z = 0 \<longleftrightarrow> x = 0 \<and> y = 0 \<and> z = 0"
-  for x y z :: hypreal
-  by (simp only: zero_le_square add_nonneg_nonneg hypreal_add_nonneg_eq_0_iff) auto
-
-lemma hrealpow_three_squares_add_zero_iff [simp]:
-  "x ^ Suc (Suc 0) + y ^ Suc (Suc 0) + z ^ Suc (Suc 0) = 0 \<longleftrightarrow> x = 0 \<and> y = 0 \<and> z = 0"
-  for x y z :: hypreal
-  by (simp only: hypreal_three_squares_add_zero_iff hrealpow_two)
-
-(*FIXME: This and RealPow.abs_realpow_two should be replaced by an abstract
-  result proved in Rings or Fields*)
-lemma hrabs_hrealpow_two [simp]: "\<bar>x ^ Suc (Suc 0)\<bar> = x ^ Suc (Suc 0)"
-  for x :: hypreal
-  by (simp add: abs_mult)
-
-lemma two_hrealpow_ge_one [simp]: "(1::hypreal) \<le> 2 ^ n"
-  using power_increasing [of 0 n "2::hypreal"] by simp
-
 lemma hrealpow: "star_n X ^ m = star_n (\<lambda>n. (X n::real) ^ m)"
   by (induct m) (auto simp: star_n_one_num star_n_mult)
 
@@ -336,14 +296,6 @@ lemma power_hypreal_of_real_neg_numeral:
   "(- numeral v :: hypreal) ^ n = hypreal_of_real ((- numeral v) ^ n)"
   by simp
 declare power_hypreal_of_real_neg_numeral [of _ "numeral w", simp] for w
-(*
-lemma hrealpow_HFinite:
-  fixes x :: "'a::{real_normed_algebra,power} star"
-  shows "x \<in> HFinite ==> x ^ n \<in> HFinite"
-apply (induct_tac "n")
-apply (auto simp add: power_Suc intro: HFinite_mult)
-done
-*)
 
 
 subsection \<open>Powers with Hypernatural Exponents\<close>

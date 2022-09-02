@@ -59,18 +59,18 @@ class State_Panel private(val server: Language_Server) {
     new Query_Operation(server.editor, (), "print_state", _ => (),
       (_, _, body) =>
         if (output_active.value && body.nonEmpty){
-          val context =
-            new Presentation.Entity_Context {
+          val node_context =
+            new Browser_Info.Node_Context {
               override def make_ref(props: Properties.T, body: XML.Body): Option[XML.Elem] =
                 for {
                   thy_file <- Position.Def_File.unapply(props)
                   def_line <- Position.Def_Line.unapply(props)
                   source <- server.resources.source_file(thy_file)
-                  uri = Path.explode(source).absolute_file.toURI
+                  uri = File.uri(Path.explode(source).absolute_file)
                 } yield HTML.link(uri.toString + "#" + def_line, body)
             }
-          val elements = Presentation.elements2.copy(entity = Markup.Elements.full)
-          val html = Presentation.make_html(context, elements, Pretty.separate(body))
+          val elements = Browser_Info.extra_elements.copy(entity = Markup.Elements.full)
+          val html = node_context.make_html(elements, Pretty.separate(body))
           output(HTML.source(html).toString)
         })
 

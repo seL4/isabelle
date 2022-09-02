@@ -1,4 +1,4 @@
-chapter Sequents
+chapter Misc
 
 session Sequents = Pure +
   description "

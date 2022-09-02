@@ -131,9 +131,6 @@ object SQL {
   /* tables */
 
   sealed case class Table(name: String, columns: List[Column], body: Source = "") {
-    private val columns_index: Map[String, Int] =
-      columns.iterator.map(_.name).zipWithIndex.toMap
-
     Library.duplicates(columns.map(_.name)) match {
       case Nil =>
       case bad => error("Duplicate column names " + commas_quote(bad) + " for table " + quote(name))
@@ -147,7 +144,7 @@ object SQL {
 
     def query_named: Source = query + " AS " + SQL.ident(name)
 
-    def create(strict: Boolean = false, sql_type: Type.Value => Source): Source = {
+    def create(strict: Boolean, sql_type: Type.Value => Source): Source = {
       val primary_key =
         columns.filter(_.primary_key).map(_.name) match {
           case Nil => Nil
@@ -303,13 +300,13 @@ object SQL {
     def close(): Unit = connection.close()
 
     def transaction[A](body: => A): A = {
-      val auto_commit = connection.getAutoCommit
+      val auto_commit = connection.getAutoCommit()
       try {
         connection.setAutoCommit(false)
-        val savepoint = connection.setSavepoint
+        val savepoint = connection.setSavepoint()
         try {
           val result = body
-          connection.commit
+          connection.commit()
           result
         }
         catch { case exn: Throwable => connection.rollback(savepoint); throw exn }
@@ -403,7 +400,7 @@ object SQLite {
     def insert_permissive(table: SQL.Table, sql: SQL.Source = ""): SQL.Source =
       table.insert_cmd("INSERT OR IGNORE", sql = sql)
 
-    def rebuild: Unit = using_statement("VACUUM")(_.execute())
+    def rebuild(): Unit = using_statement("VACUUM")(_.execute())
   }
 }
 
@@ -412,6 +409,8 @@ object SQLite {
 /** PostgreSQL **/
 
 object PostgreSQL {
+  type Source = SQL.Source
+
   val default_port = 5432
 
   lazy val init_jdbc: Unit = Class.forName("org.postgresql.Driver")

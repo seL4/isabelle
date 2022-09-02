@@ -54,7 +54,7 @@ val satallax_skolemize_rule = "tab_ex"
 val vampire_skolemisation_rule = "skolemisation"
 val veriT_la_generic_rule = "la_generic"
 val veriT_simp_arith_rule = "simp_arith"
-val veriT_skolemize_rules = Verit_Proof.skolemization_steps
+val veriT_skolemize_rules = Lethe_Proof.skolemization_steps
 val z3_skolemize_rule = Z3_Proof.string_of_rule Z3_Proof.Skolemize
 val z3_th_lemma_rule_prefix = Z3_Proof.string_of_rule (Z3_Proof.Th_Lemma "")
 val zipperposition_cnf_rule = "cnf"
@@ -162,7 +162,7 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
 
             fun massage_methods (meths as meth :: _) =
               if not try0 then [meth]
-              else if smt_proofs then SMT_Method SMT_Z3 :: meths
+              else if smt_proofs then insert (op =) (SMT_Method SMT_Z3) meths
               else meths
 
             val (params, _, concl_t) = strip_subgoal goal subgoal ctxt
@@ -494,9 +494,12 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
                   (if do_preplay then [string_of_play_outcome play_outcome] else [])
               in
                 one_line_proof_text ctxt 0 one_line_params ^
-                "\n\nIsar proof" ^ (commas msg |> not (null msg) ? enclose " (" ")") ^ ":\n" ^
-                Active.sendback_markup_command
-                  (string_of_isar_proof ctxt subgoal subgoal_count isar_proof)
+                (if isar_proofs <> NONE orelse (case play_outcome of Played _ => true | _ => false) then
+                   "\n\nIsar proof" ^ (commas msg |> not (null msg) ? enclose " (" ")") ^ ":\n" ^
+                   Active.sendback_markup_command
+                     (string_of_isar_proof ctxt subgoal subgoal_count isar_proof)
+                 else
+                   "")
               end)
           end
       end

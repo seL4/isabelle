@@ -330,6 +330,10 @@ fun parse_files make_paths =
           val pos = Input.pos_of source;
           val delimited = Input.is_delimited source;
           val src_paths = make_paths (Path.explode name);
+          val reports =
+            src_paths |> map (fn src_path =>
+              (pos, Markup.path (Path.implode_symbolic (master_dir + src_path))));
+          val _ = Position.reports reports;
         in map (Command.read_file master_dir pos delimited) src_paths end
     | files => map Exn.release files));
 

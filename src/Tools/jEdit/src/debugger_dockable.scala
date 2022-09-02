@@ -17,8 +17,7 @@ import javax.swing.tree.{DefaultMutableTreeNode, DefaultTreeModel, TreeSelection
 import javax.swing.event.{TreeSelectionEvent, TreeSelectionListener}
 
 import scala.collection.immutable.SortedMap
-import scala.swing.{Button, Label, Component, ScrollPane, SplitPane, Orientation,
-  CheckBox, BorderPanel}
+import scala.swing.{Button, Label, Component, ScrollPane, SplitPane, Orientation, BorderPanel}
 import scala.swing.event.ButtonClicked
 
 import org.gjt.sp.jedit.{jEdit, View}
@@ -72,12 +71,8 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
   override def detach_operation: Option[() => Unit] = pretty_text_area.detach_operation
 
-  private def handle_resize(): Unit = {
-    GUI_Thread.require {}
-
-    pretty_text_area.resize(
-      Font_Info.main(PIDE.options.real("jedit_font_scale") * zoom.factor / 100))
-  }
+  private def handle_resize(): Unit =
+    GUI_Thread.require { pretty_text_area.zoom(zoom) }
 
   private def handle_update(): Unit = {
     GUI_Thread.require {}
@@ -85,11 +80,11 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     val new_snapshot = PIDE.editor.current_node_snapshot(view).getOrElse(current_snapshot)
     val (new_threads, new_output) = debugger.status(tree_selection())
 
-    if (new_threads != current_threads)
-      update_tree(new_threads)
+    if (new_threads != current_threads) update_tree(new_threads)
 
-    if (new_output != current_output)
+    if (new_output != current_output) {
       pretty_text_area.update(new_snapshot, Command.Results.empty, Pretty.separate(new_output))
+    }
 
     current_snapshot = new_snapshot
     current_threads = new_threads
@@ -130,12 +125,12 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
         case _ => thread_contexts.headOption
       }
 
-    tree.clearSelection
-    root.removeAllChildren
+    tree.clearSelection()
+    root.removeAllChildren()
 
     for (thread <- thread_contexts) {
       val thread_node = new DefaultMutableTreeNode(thread)
-      for ((debug_state, i) <- thread.debug_states.zipWithIndex)
+      for ((_, i) <- thread.debug_states.zipWithIndex)
         thread_node.add(new DefaultMutableTreeNode(thread.select(i)))
       root.add(thread_node)
     }
@@ -167,19 +162,15 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     }
   }
 
-  tree.addTreeSelectionListener(
-    new TreeSelectionListener {
-      override def valueChanged(e: TreeSelectionEvent): Unit = {
-        update_focus()
-        update_vals()
-      }
-    })
+  tree.addTreeSelectionListener({ (_: TreeSelectionEvent) =>
+    update_focus()
+    update_vals()
+  })
   tree.addMouseListener(
     new MouseAdapter {
       override def mouseClicked(e: MouseEvent): Unit = {
         val click = tree.getPathForLocation(e.getX, e.getY)
-        if (click != null && e.getClickCount == 1)
-          update_focus()
+        if (click != null && e.getClickCount == 1) update_focus()
       }
     })
 
@@ -191,30 +182,29 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
   /* controls */
 
-  private val break_button = new CheckBox("Break") {
+  private val break_button = new GUI.Check("Break", init = debugger.is_break()) {
     tooltip = "Break running threads at next possible breakpoint"
-    selected = debugger.is_break()
-    reactions += { case ButtonClicked(_) => debugger.set_break(selected) }
+    override def clicked(state: Boolean): Unit = debugger.set_break(state)
   }
 
-  private val continue_button = new Button("Continue") {
+  private val continue_button = new GUI.Button("Continue") {
     tooltip = "Continue program on current thread, until next breakpoint"
-    reactions += { case ButtonClicked(_) => thread_selection().map(debugger.continue) }
+    override def clicked(): Unit = thread_selection().map(debugger.continue)
   }
 
-  private val step_button = new Button("Step") {
+  private val step_button = new GUI.Button("Step") {
     tooltip = "Single-step in depth-first order"
-    reactions += { case ButtonClicked(_) => thread_selection().map(debugger.step) }
+    override def clicked(): Unit = thread_selection().map(debugger.step)
   }
 
-  private val step_over_button = new Button("Step over") {
+  private val step_over_button = new GUI.Button("Step over") {
     tooltip = "Single-step within this function"
-    reactions += { case ButtonClicked(_) => thread_selection().map(debugger.step_over) }
+    override def clicked(): Unit = thread_selection().map(debugger.step_over)
   }
 
-  private val step_out_button = new Button("Step out") {
+  private val step_out_button = new GUI.Button("Step out") {
     tooltip = "Single-step outside this function"
-    reactions += { case ButtonClicked(_) => thread_selection().map(debugger.step_out) }
+    override def clicked(): Unit = thread_selection().map(debugger.step_out)
   }
 
   private val context_label = new Label("Context:") {
@@ -223,8 +213,9 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   private val context_field =
     new Completion_Popup.History_Text_Field("isabelle-debugger-context") {
       override def processKeyEvent(evt: KeyEvent): Unit = {
-        if (evt.getID == KeyEvent.KEY_PRESSED && evt.getKeyCode == KeyEvent.VK_ENTER)
+        if (evt.getID == KeyEvent.KEY_PRESSED && evt.getKeyCode == KeyEvent.VK_ENTER) {
           eval_expression()
+        }
         super.processKeyEvent(evt)
       }
       setColumns(20)
@@ -238,8 +229,9 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   private val expression_field =
     new Completion_Popup.History_Text_Field("isabelle-debugger-expression") {
       override def processKeyEvent(evt: KeyEvent): Unit = {
-        if (evt.getID == KeyEvent.KEY_PRESSED && evt.getKeyCode == KeyEvent.VK_ENTER)
+        if (evt.getID == KeyEvent.KEY_PRESSED && evt.getKeyCode == KeyEvent.VK_ENTER) {
           eval_expression()
+        }
         super.processKeyEvent(evt)
       }
       { val max = getPreferredSize; max.width = Integer.MAX_VALUE; setMaximumSize(max) }
@@ -248,9 +240,10 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
       setFont(GUI.imitate_font(getFont, scale = 1.2))
     }
 
-  private val eval_button = new Button("<html><b>Eval</b></html>") {
+  private val eval_button =
+    new GUI.Button("<html><b>Eval</b></html>") {
       tooltip = "Evaluate ML expression within optional context"
-      reactions += { case ButtonClicked(_) => eval_expression() }
+      override def clicked(): Unit = eval_expression()
     }
 
   private def eval_expression(): Unit = {
@@ -263,12 +256,11 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     }
   }
 
-  private val sml_button = new CheckBox("SML") {
+  private val sml_button = new GUI.Check("SML") {
     tooltip = "Official Standard ML instead of Isabelle/ML"
-    selected = false
   }
 
-  private val zoom = new Font_Info.Zoom_Box { def changed = handle_resize() }
+  private val zoom = new Font_Info.Zoom { override def changed(): Unit = handle_resize() }
 
   private val controls =
     Wrap_Panel(

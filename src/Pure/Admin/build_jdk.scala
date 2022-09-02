@@ -69,7 +69,7 @@ object Build_JDK {
   /* README */
 
   def readme(jdk_version: String): String =
-"""This is OpenJDK """ + jdk_version + """ based on downloads by Azul, see also
+    """This is OpenJDK """ + jdk_version + """ based on downloads by Azul, see also
 https://www.azul.com/downloads/zulu-community/?package=jdk
 
 The main license is GPL2, but some modules are covered by other (more liberal)
@@ -83,7 +83,7 @@ subdirectories.
   /* settings */
 
   val settings: String =
-"""# -*- shell-script -*- :mode=shellscript:
+    """# -*- shell-script -*- :mode=shellscript:
 
 case "$ISABELLE_PLATFORM_FAMILY" in
   linux)

@@ -291,10 +291,14 @@ fun run_atp mode name
         let
           val used_facts = sort_by fst (used_facts_in_atp_proof ctxt (map fst used_from) atp_proof)
           val needs_full_types = is_typed_helper_used_in_atp_proof atp_proof
+          val preferred = Metis_Method (NONE, NONE)
           val preferred_methss =
-            (Metis_Method (NONE, NONE),
-             bunches_of_proof_methods ctxt try0 smt_proofs needs_full_types
-               (if atp_proof_prefers_lifting atp_proof then liftingN else opaque_liftingN))
+            (preferred,
+             if try0 then
+               bunches_of_proof_methods ctxt smt_proofs needs_full_types
+                 (if atp_proof_prefers_lifting atp_proof then liftingN else opaque_liftingN)
+             else
+               [[preferred]])
         in
           (used_facts, preferred_methss,
            fn preplay =>

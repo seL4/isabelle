@@ -6,7 +6,7 @@ Setup SMT solvers.
 
 signature SMT_SYSTEMS =
 sig
-  val cvc4_extensions: bool Config.T
+  val cvc_extensions: bool Config.T
   val z3_extensions: bool Config.T
 end;
 
@@ -59,9 +59,9 @@ fun on_first_non_unsupported_line test_outcome solver_name lines =
   on_first_line test_outcome solver_name (filter (curry (op <>) "unsupported") lines)
 
 
-(* CVC4 *)
+(* CVC4 and cvc5 *)
 
-val cvc4_extensions = Attrib.setup_config_bool \<^binding>\<open>cvc4_extensions\<close> (K false)
+val cvc_extensions = Attrib.setup_config_bool \<^binding>\<open>cvc_extensions\<close> (K false)
 
 local
   fun cvc4_options ctxt =
@@ -72,12 +72,20 @@ local
       NONE => []
     | SOME t => ["--tlimit", string_of_int (Time.toMilliseconds t)])
 
+  fun cvc5_options ctxt =
+    ["--no-stats",
+     "--sat-random-seed=" ^ string_of_int (Config.get ctxt SMT_Config.random_seed),
+     "--lang=smt2"] @
+    (case SMT_Config.get_timeout ctxt of
+      NONE => []
+    | SOME t => ["--tlimit", string_of_int (Time.toMilliseconds t)])
+
   fun select_class ctxt =
-    if Config.get ctxt cvc4_extensions then
+    if Config.get ctxt cvc_extensions then
       if Config.get ctxt SMT_Config.higher_order then
-        CVC4_Interface.hosmtlib_cvc4C
+        CVC_Interface.hosmtlib_cvcC
       else
-        CVC4_Interface.smtlib_cvc4C
+        CVC_Interface.smtlib_cvcC
     else
       if Config.get ctxt SMT_Config.higher_order then
         SMTLIB_Interface.hosmtlibC
@@ -96,15 +104,35 @@ val cvc4: SMT_Solver.solver_config = {
   smt_options = [(":produce-unsat-cores", "true")],
   good_slices =
     (* FUDGE *)
-    [((1, 512, meshN), ["--full-saturate-quant", "--inst-when=full-last-call", "--inst-no-entail", "--term-db-mode=relevant", "--multi-trigger-linear"]),
-     ((1, 64, meshN), ["--decision=internal", "--simplification=none", "--full-saturate-quant"]),
-     ((1, 1024, meshN), ["--relevant-triggers", "--full-saturate-quant"]),
-     ((1, 256, mepoN), ["--trigger-sel=max", "--full-saturate-quant"]),
-     ((1, 32, meshN), ["--term-db-mode=relevant", "--full-saturate-quant"]),
-     ((1, 128, meshN), ["--no-e-matching", "--full-saturate-quant"]),
-     ((1, 256, meshN), ["--finite-model-find", "--fmf-inst-engine"])],
+    [((2, 512, meshN), ["--full-saturate-quant", "--inst-when=full-last-call", "--inst-no-entail", "--term-db-mode=relevant", "--multi-trigger-linear"]),
+     ((2, 64, meshN), ["--decision=internal", "--simplification=none", "--full-saturate-quant"]),
+     ((2, 1024, meshN), ["--relevant-triggers", "--full-saturate-quant"]),
+     ((2, 256, mepoN), ["--trigger-sel=max", "--full-saturate-quant"]),
+     ((2, 32, meshN), ["--term-db-mode=relevant", "--full-saturate-quant"]),
+     ((2, 128, meshN), ["--no-e-matching", "--full-saturate-quant"]),
+     ((2, 256, meshN), ["--finite-model-find", "--fmf-inst-engine"])],
   outcome = on_first_line (outcome_of "unsat" "sat" "unknown" "timeout"),
-  parse_proof = SOME (K CVC4_Proof_Parse.parse_proof),
+  parse_proof = SOME (K CVC_Proof_Parse.parse_proof),
+  replay = NONE }
+
+val cvc5: SMT_Solver.solver_config = {
+  name = "cvc5",
+  class = select_class,
+  avail = make_avail "CVC5",
+  command = make_command "CVC5",
+  options = cvc5_options,
+  smt_options = [(":produce-unsat-cores", "true")],
+  good_slices =
+    (* FUDGE *)
+    [((2, 512, meshN), ["--full-saturate-quant", "--inst-when=full-last-call", "--inst-no-entail", "--term-db-mode=relevant", "--multi-trigger-linear"]),
+     ((2, 64, meshN), ["--decision=internal", "--simplification=none", "--full-saturate-quant"]),
+     ((2, 1024, meshN), ["--relevant-triggers", "--full-saturate-quant"]),
+     ((2, 256, mepoN), ["--trigger-sel=max", "--full-saturate-quant"]),
+     ((2, 32, meshN), ["--term-db-mode=relevant", "--full-saturate-quant"]),
+     ((2, 128, meshN), ["--no-e-matching", "--full-saturate-quant"]),
+     ((2, 256, meshN), ["--finite-model-find", "--fmf-inst-engine"])],
+  outcome = on_first_line (outcome_of "unsat" "sat" "unknown" "timeout"),
+  parse_proof = SOME (K CVC_Proof_Parse.parse_proof),
   replay = NONE }
 
 end
@@ -126,7 +154,7 @@ local
     "--proof-merge",
     "--disable-print-success",
     "--disable-banner"] @
-    Verit_Proof.veriT_current_strategy (Context.Proof ctxt) @
+    Verit_Strategies.veriT_current_strategy (Context.Proof ctxt) @
     (case SMT_Config.get_timeout ctxt of
       NONE => []
     | SOME t => ["--max-time=" ^ string_of_int (Time.toMilliseconds t)])
@@ -141,12 +169,12 @@ val veriT: SMT_Solver.solver_config = {
   smt_options = [(":produce-proofs", "true")],
   good_slices =
     (* FUDGE *)
-    [((1, 1024, meshN), []),
-     ((1, 512, mashN), []),
-     ((1, 64, meshN), []),
-     ((1, 128, meshN), []),
-     ((1, 256, mepoN), []),
-     ((1, 32, meshN), [])],
+    [((2, 1024, meshN), []),
+     ((2, 512, mashN), []),
+     ((2, 64, meshN), []),
+     ((2, 128, meshN), []),
+     ((2, 256, mepoN), []),
+     ((2, 32, meshN), [])],
   outcome = on_first_non_unsupported_line (outcome_of "unsat" "sat" "unknown" "Time limit exceeded"),
   parse_proof = SOME (K Lethe_Proof_Parse.parse_proof),
   replay = SOME Verit_Replay.replay }
@@ -182,12 +210,12 @@ val z3: SMT_Solver.solver_config = {
   smt_options = [(":produce-proofs", "true")],
   good_slices =
     (* FUDGE *)
-    [((1, 1024, meshN), []),
-     ((1, 512, mepoN), []),
-     ((1, 64, meshN), []),
-     ((1, 256, meshN), []),
-     ((1, 128, mashN), []),
-     ((1, 32, meshN), [])],
+    [((2, 1024, meshN), []),
+     ((2, 512, mepoN), []),
+     ((2, 64, meshN), []),
+     ((2, 256, meshN), []),
+     ((2, 128, mashN), []),
+     ((2, 32, meshN), [])],
   outcome = on_first_line (outcome_of "unsat" "sat" "unknown" "timeout"),
   parse_proof = SOME Z3_Replay.parse_proof,
   replay = SOME Z3_Replay.replay }
@@ -210,7 +238,7 @@ fun smt_method ((solver, stgy), thms) ctxt facts =
       else ()
     val ctxt =
       ctxt
-      |> (if stgy <> NONE then Context.proof_map (Verit_Proof.select_veriT_stgy (the stgy)) else I)
+      |> (if stgy <> NONE then Context.proof_map (Verit_Strategies.select_veriT_stgy (the stgy)) else I)
       |> Context.Proof
       |> SMT_Config.select_solver solver
       |> Context.proof_of
@@ -228,6 +256,7 @@ val _ =
 
 val _ = Theory.setup (
   SMT_Solver.add_solver cvc4 #>
+  SMT_Solver.add_solver cvc5 #>
   SMT_Solver.add_solver veriT #>
   SMT_Solver.add_solver z3)
 

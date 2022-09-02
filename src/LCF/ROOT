@@ -1,4 +1,4 @@
-chapter LCF
+chapter FOL
 
 session LCF = Pure +
   description "

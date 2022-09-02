@@ -98,13 +98,13 @@ lemma "i < j ==> nat (i - j) = 0"
   by linarith
 
 lemma "(i::nat) mod 0 = i"
-  using split_mod [of _ _ 0, arith_split]
+  using split_mod [of _ _ 0, linarith_split]
     \<comment> \<open>rule \<^text>\<open>split_mod\<close> is only declared by default for numerals\<close>
   by linarith
 
 lemma "(i::nat) mod 1 = 0"
   (* rule split_mod is only declared by default for numerals *)
-  using split_mod [of _ _ 1, arith_split]
+  using split_mod [of _ _ 1, linarith_split]
     \<comment> \<open>rule \<^text>\<open>split_mod\<close> is only declared by default for numerals\<close>
   by linarith
 
@@ -112,12 +112,12 @@ lemma "(i::nat) mod 42 <= 41"
   by linarith
 
 lemma "(i::int) mod 0 = i"
-  using split_zmod [of _ _ 0, arith_split]
+  using split_zmod [of _ _ 0, linarith_split]
     \<comment> \<open>rule \<^text>\<open>split_zmod\<close> is only declared by default for numerals\<close>
   by linarith
 
 lemma "(i::int) mod 1 = 0"
-  using split_zmod [of _ _ "1", arith_split]
+  using split_zmod [of _ _ "1", linarith_split]
     \<comment> \<open>rule \<^text>\<open>split_zmod\<close> is only declared by default for numerals\<close>
   by linarith
 

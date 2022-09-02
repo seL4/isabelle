@@ -252,6 +252,15 @@ next
   qed
 qed
 
+text \<open>A much more general version of this monotonicity lemma
+can be formulated with multisets and the multiset order\<close>
+
+lemma sum_list_mono2: fixes xs :: "'a ::ordered_comm_monoid_add list"
+shows "\<lbrakk> length xs = length ys; \<And>i. i < length xs \<longrightarrow> xs!i \<le> ys!i \<rbrakk>
+  \<Longrightarrow> sum_list xs \<le> sum_list ys"
+apply(induction xs ys rule: list_induct2)
+by(auto simp: nth_Cons' less_Suc_eq_0_disj imp_ex add_mono)
+
 lemma (in monoid_add) sum_list_distinct_conv_sum_set:
   "distinct xs \<Longrightarrow> sum_list (map f xs) = sum f (set xs)"
   by (induct xs) simp_all
@@ -400,6 +409,89 @@ lemma horner_sum_append:
   using sum.atLeastLessThan_shift_bounds [of _ 0 \<open>length xs\<close> \<open>length ys\<close>]
     atLeastLessThan_add_Un [of 0 \<open>length xs\<close> \<open>length ys\<close>]
   by (simp add: horner_sum_eq_sum sum_distrib_left sum.union_disjoint ac_simps nth_append power_add)
+
+end
+
+context linordered_semidom
+begin
+
+lemma horner_sum_nonnegative:
+  \<open>0 \<le> horner_sum of_bool 2 bs\<close>
+  by (induction bs) simp_all
+
+end
+
+context unique_euclidean_semiring_numeral
+begin
+
+lemma horner_sum_bound:
+  \<open>horner_sum of_bool 2 bs < 2 ^ length bs\<close>
+proof (induction bs)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons b bs)
+  moreover define a where \<open>a = 2 ^ length bs - horner_sum of_bool 2 bs\<close>
+  ultimately have *: \<open>2 ^ length bs = horner_sum of_bool 2 bs + a\<close>
+    by simp
+  have \<open>1 < a * 2\<close> if \<open>0 < a\<close>
+    using that add_mono [of 1 a 1 a]
+    by (simp add: mult_2_right discrete)
+  with Cons show ?case
+    by (simp add: algebra_simps *)
+qed
+
+end
+
+lemma nat_horner_sum [simp]:
+  \<open>nat (horner_sum of_bool 2 bs) = horner_sum of_bool 2 bs\<close>
+  by (induction bs) (auto simp add: nat_add_distrib horner_sum_nonnegative)
+
+context unique_euclidean_semiring_numeral
+begin
+
+lemma horner_sum_less_eq_iff_lexordp_eq:
+  \<open>horner_sum of_bool 2 bs \<le> horner_sum of_bool 2 cs \<longleftrightarrow> lexordp_eq (rev bs) (rev cs)\<close>
+  if \<open>length bs = length cs\<close>
+proof -
+  have \<open>horner_sum of_bool 2 (rev bs) \<le> horner_sum of_bool 2 (rev cs) \<longleftrightarrow> lexordp_eq bs cs\<close>
+    if \<open>length bs = length cs\<close> for bs cs
+  using that proof (induction bs cs rule: list_induct2)
+    case Nil
+    then show ?case
+      by simp
+  next
+    case (Cons b bs c cs)
+    with horner_sum_nonnegative [of \<open>rev bs\<close>] horner_sum_nonnegative [of \<open>rev cs\<close>]
+      horner_sum_bound [of \<open>rev bs\<close>] horner_sum_bound [of \<open>rev cs\<close>]
+    show ?case
+      by (auto simp add: horner_sum_append not_le Cons intro: add_strict_increasing2 add_increasing)
+  qed
+  from that this [of \<open>rev bs\<close> \<open>rev cs\<close>] show ?thesis
+    by simp
+qed
+
+lemma horner_sum_less_iff_lexordp:
+  \<open>horner_sum of_bool 2 bs < horner_sum of_bool 2 cs \<longleftrightarrow> ord_class.lexordp (rev bs) (rev cs)\<close>
+  if \<open>length bs = length cs\<close>
+proof -
+  have \<open>horner_sum of_bool 2 (rev bs) < horner_sum of_bool 2 (rev cs) \<longleftrightarrow> ord_class.lexordp bs cs\<close>
+    if \<open>length bs = length cs\<close> for bs cs
+  using that proof (induction bs cs rule: list_induct2)
+    case Nil
+    then show ?case
+      by simp
+  next
+    case (Cons b bs c cs)
+    with horner_sum_nonnegative [of \<open>rev bs\<close>] horner_sum_nonnegative [of \<open>rev cs\<close>]
+      horner_sum_bound [of \<open>rev bs\<close>] horner_sum_bound [of \<open>rev cs\<close>]
+    show ?case
+      by (auto simp add: horner_sum_append not_less Cons intro: add_strict_increasing2 add_increasing)
+  qed
+  from that this [of \<open>rev bs\<close> \<open>rev cs\<close>] show ?thesis
+    by simp
+qed
 
 end
 

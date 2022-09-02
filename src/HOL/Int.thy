@@ -53,7 +53,7 @@ lift_definition minus_int :: "int \<Rightarrow> int \<Rightarrow> int"
 
 lift_definition times_int :: "int \<Rightarrow> int \<Rightarrow> int"
   is "\<lambda>(x, y) (u, v). (x*u + y*v, x*v + y*u)"
-proof (clarsimp)
+proof (unfold intrel_def, clarify)
   fix s t u v w x y z :: nat
   assume "s + v = u + t" and "w + z = y + x"
   then have "(s + v) * w + (u + t) * x + u * (w + z) + v * (y + x) =
@@ -140,7 +140,7 @@ lemma zero_le_imp_eq_int:
   assumes "k \<ge> (0::int)" shows "\<exists>n. k = int n"
 proof -
   have "b \<le> a \<Longrightarrow> \<exists>n::nat. a = n + b" for a b
-    by (rule_tac x="a - b" in exI) simp
+    using exI[of _ "a - b"] by simp
   with assms show ?thesis
     by transfer auto
 qed
@@ -149,7 +149,7 @@ lemma zero_less_imp_eq_int:
   assumes "k > (0::int)" shows "\<exists>n>0. k = int n"
 proof -
   have "b < a \<Longrightarrow> \<exists>n::nat. n>0 \<and> a = n + b" for a b
-    by (rule_tac x="a - b" in exI) simp
+    using exI[of _ "a - b"] by simp
   with assms show ?thesis
     by transfer auto
 qed
@@ -189,7 +189,14 @@ lemma zless_iff_Suc_zadd: "w < z \<longleftrightarrow> (\<exists>n. z = w + int 
   for w z :: int
 proof -
   have "\<And>a b c d. a + d < c + b \<Longrightarrow> \<exists>n. c + b = Suc (a + n + d)"
-    by (rule_tac x="c+b - Suc(a+d)" in exI) arith
+  proof -
+    fix a b c d :: nat
+    assume "a + d < c + b"
+    then have "c + b = Suc (a + (c + b - Suc (a + d)) + d) "
+      by arith
+    then show "\<exists>n. c + b = Suc (a + n + d)"
+      by (rule exI)
+  qed
   then show ?thesis
     by transfer auto
 qed
@@ -474,14 +481,20 @@ qed
 
 instance int :: no_top
 proof
-  show "\<And>x::int. \<exists>y. x < y"
-    by (rule_tac x="x + 1" in exI) simp
+  fix x::int
+  have "x < x + 1"
+    by simp
+  then show "\<exists>y. x < y"
+    by (rule exI)
 qed
 
 instance int :: no_bot
 proof
-  show "\<And>x::int. \<exists>y. y < x"
-    by (rule_tac x="x - 1" in exI) simp
+  fix x::int
+  have "x - 1< x"
+    by simp
+  then show "\<exists>y. y < x"
+    by (rule exI)
 qed
 
 
@@ -639,7 +652,7 @@ lemma nat_of_bool [simp]:
   "nat (of_bool P) = of_bool P"
   by auto
 
-lemma split_nat [arith_split]: "P (nat i) \<longleftrightarrow> ((\<forall>n. i = int n \<longrightarrow> P n) \<and> (i < 0 \<longrightarrow> P 0))"
+lemma split_nat [linarith_split]: "P (nat i) \<longleftrightarrow> ((\<forall>n. i = int n \<longrightarrow> P n) \<and> (i < 0 \<longrightarrow> P 0))"
   (is "?P = (?L \<and> ?R)")
   for i :: int
 proof (cases "i < 0")
@@ -724,21 +737,18 @@ qed
 lemma zadd_int_left: "int m + (int n + z) = int (m + n) + z"
   by simp
 
-text \<open>
-  This version is proved for all ordered rings, not just integers!
-  It is proved here because attribute \<open>arith_split\<close> is not available
-  in theory \<open>Rings\<close>.
-  But is it really better than just rewriting with \<open>abs_if\<close>?
-\<close>
-lemma abs_split [arith_split, no_atp]: "P \<bar>a\<bar> \<longleftrightarrow> (0 \<le> a \<longrightarrow> P a) \<and> (a < 0 \<longrightarrow> P (- a))"
-  for a :: "'a::linordered_idom"
-  by (force dest: order_less_le_trans simp add: abs_if linorder_not_less)
-
 lemma negD:
   assumes "x < 0" shows "\<exists>n. x = - (int (Suc n))"
 proof -
   have "\<And>a b. a < b \<Longrightarrow> \<exists>n. Suc (a + n) = b"
-    by (rule_tac x="b - Suc a" in exI) arith
+  proof -
+    fix a b:: nat
+    assume "a < b"
+    then have "Suc (a + (b - Suc a)) = b"
+      by arith
+    then show "\<exists>n. Suc (a + n) = b"
+      by (rule exI)
+  qed
   with assms show ?thesis
     by transfer auto
 qed
@@ -1148,9 +1158,9 @@ lemma Ints_nonzero_abs_ge1:
 proof (rule Ints_cases [OF \<open>x \<in> Ints\<close>])
   fix z::int
   assume "x = of_int z"
-    with \<open>x \<noteq> 0\<close> 
+  with \<open>x \<noteq> 0\<close>
   show "1 \<le> \<bar>x\<bar>"
-    apply (auto simp add: abs_if)
+    apply (auto simp: abs_if)
     by (metis diff_0 of_int_1 of_int_le_iff of_int_minus zle_diff1_eq)
 qed
   
@@ -1425,7 +1435,7 @@ proof -
   obtain i where "i \<le> n - m" "k = f (m + i)"
     using nat_ivt_aux [of "n - m" "f \<circ> plus m" k] assms by auto
   with assms show ?thesis
-    by (rule_tac x = "m + i" in exI) auto
+    using exI[of _ "m + i"] by auto
 qed
 
 lemma nat0_intermed_int_val:

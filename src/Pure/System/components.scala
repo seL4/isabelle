@@ -318,7 +318,7 @@ object Components {
         var options = Options.init()
 
         def show_options: String =
-          cat_lines(relevant_options.map(name => options.options(name).print))
+          cat_lines(relevant_options.flatMap(options.get).map(_.print))
 
         val getopts = Getopts("""
 Usage: isabelle build_components [OPTIONS] ARCHIVES... DIRS...

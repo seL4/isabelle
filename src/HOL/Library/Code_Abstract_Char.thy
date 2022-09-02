@@ -17,13 +17,19 @@ lemma char_of_integer_of_char [code abstype]:
   by (simp add: integer_of_char_def)
 
 lemma char_of_integer_code [code]:
-  \<open>integer_of_char (char_of_integer k) = take_bit 8 k\<close>
-  by (simp add: integer_of_char_def char_of_integer_def take_bit_eq_mod)
+  \<open>integer_of_char (char_of_integer k) = (if 0 \<le> k \<and> k < 256 then k else k mod 256)\<close>
+  by (simp add: integer_of_char_def char_of_integer_def integer_eq_iff integer_less_eq_iff integer_less_iff)
 
-context comm_semiring_1
-begin
+lemma of_char_code [code]:
+  \<open>of_char c = of_nat (nat_of_integer (integer_of_char c))\<close>
+proof -
+  have \<open>int_of_integer (of_char c) = of_char c\<close>
+    by (cases c) simp
+  then show ?thesis
+    by (simp add: integer_of_char_def nat_of_integer_def of_nat_of_char)
+qed
 
-definition byte :: \<open>bool \<Rightarrow> bool \<Rightarrow> bool \<Rightarrow> bool \<Rightarrow> bool \<Rightarrow> bool \<Rightarrow> bool \<Rightarrow> bool \<Rightarrow> 'a\<close>
+definition byte :: \<open>bool \<Rightarrow> bool \<Rightarrow> bool \<Rightarrow> bool \<Rightarrow> bool \<Rightarrow> bool \<Rightarrow> bool \<Rightarrow> bool \<Rightarrow> integer\<close>
   where [simp]: \<open>byte b0 b1 b2 b3 b4 b5 b6 b7 = horner_sum of_bool 2 [b0, b1, b2, b3, b4, b5, b6, b7]\<close>
 
 lemma byte_code [code]:
@@ -40,12 +46,10 @@ lemma byte_code [code]:
     in s7)\<close>
   by simp
 
-end
-
 lemma Char_code [code]:
   \<open>integer_of_char (Char b0 b1 b2 b3 b4 b5 b6 b7) = byte b0 b1 b2 b3 b4 b5 b6 b7\<close>
   by (simp add: integer_of_char_def)
-                     
+
 lemma digit_0_code [code]:
   \<open>digit0 c \<longleftrightarrow> bit (integer_of_char c) 0\<close>
   by (cases c) (simp add: integer_of_char_def)
@@ -100,7 +104,7 @@ proof (cases \<open>of_char c < (128 :: integer)\<close>)
   then have \<open>(0 :: integer) \<le> of_char c\<close>
     by (simp only: of_nat_0 of_nat_of_char)
   ultimately show ?thesis
-    by (simp add: Let_def integer_of_char_def take_bit_eq_mod unique_euclidean_semiring_numeral_class.mod_less)
+    by (simp add: Let_def integer_of_char_def take_bit_eq_mod integer_eq_iff integer_less_eq_iff integer_less_iff)
 next
   case False
   then have \<open>(128 :: integer) \<le> of_char c\<close>
@@ -113,7 +117,7 @@ next
   then have \<open>of_char c = k + 128\<close>
     by simp
   ultimately show ?thesis
-    by (simp add: Let_def integer_of_char_def take_bit_eq_mod unique_euclidean_semiring_numeral_class.mod_less)
+    by (simp add: Let_def integer_of_char_def take_bit_eq_mod integer_eq_iff integer_less_eq_iff integer_less_iff)
 qed    
 
 lemma equal_char_code [code]:

@@ -84,7 +84,7 @@ Usage: isabelle vscode_server [OPTIONS]
           // prevent spurious garbage on the main protocol channel
           val orig_out = System.out
           try {
-            System.setOut(new PrintStream(new OutputStream { def write(n: Int): Unit = {} }))
+            System.setOut(new PrintStream(OutputStream.nullOutputStream()))
             server.start()
           }
           finally { System.setOut(orig_out) }
@@ -263,15 +263,15 @@ class Language_Server(
           Sessions.base_info(
             options, session_name, dirs = session_dirs,
             include_sessions = include_sessions, session_ancestor = session_ancestor,
-            session_requirements = session_requirements).check
+            session_requirements = session_requirements).check_errors
 
         def build(no_build: Boolean = false): Build.Results =
           Build.build(options,
-            selection = Sessions.Selection.session(base_info.session), build_heap = true,
-            no_build = no_build, dirs = session_dirs, infos = base_info.infos)
+            selection = Sessions.Selection.session(base_info.session_name),
+            build_heap = true, no_build = no_build, dirs = session_dirs, infos = base_info.infos)
 
         if (!session_no_build && !build(no_build = true).ok) {
-          val start_msg = "Build started for Isabelle/" + base_info.session + " ..."
+          val start_msg = "Build started for Isabelle/" + base_info.session_name + " ..."
           val fail_msg = "Session build failed -- prover process remains inactive!"
 
           val progress = channel.progress(verbose = true)
@@ -304,8 +304,8 @@ class Language_Server(
 
       try {
         Isabelle_Process.start(session, options, base_info.sessions_structure,
-          Sessions.store(options), modes = modes, logic = base_info.session).await_startup()
-        reply_ok("Welcome to Isabelle/" + base_info.session + Isabelle_System.isabelle_heading())
+          Sessions.store(options), modes = modes, logic = base_info.session_name).await_startup()
+        reply_ok("Welcome to Isabelle/" + base_info.session_name + Isabelle_System.isabelle_heading())
       }
       catch { case ERROR(msg) => reply_error(msg) }
     }

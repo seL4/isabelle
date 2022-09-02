@@ -91,21 +91,16 @@ text \<open>Infinite sums are obtained by summing to some infinite hypernatural
 lemma sumhr_hypreal_of_hypnat_omega: "sumhr (0, whn, \<lambda>i. 1) = hypreal_of_hypnat whn"
   by (simp add: sumhr_const)
 
+lemma whn_eq_\<omega>m1: "hypreal_of_hypnat whn = \<omega> - 1"
+  unfolding star_class_defs omega_def hypnat_omega_def of_hypnat_def star_of_def
+  by (simp add: starfun_star_n starfun2_star_n)
+
 lemma sumhr_hypreal_omega_minus_one: "sumhr(0, whn, \<lambda>i. 1) = \<omega> - 1"
-  apply (simp add: sumhr_const)
-    (* FIXME: need lemma: hypreal_of_hypnat whn = \<omega> - 1 *)
-    (* maybe define \<omega> = hypreal_of_hypnat whn + 1 *)
-  apply (unfold star_class_defs omega_def hypnat_omega_def of_hypnat_def star_of_def)
-  apply (simp add: starfun_star_n starfun2_star_n)
-  done
+  by (simp add: sumhr_const whn_eq_\<omega>m1)
 
 lemma sumhr_minus_one_realpow_zero [simp]: "\<And>N. sumhr (0, N + N, \<lambda>i. (-1) ^ (i + 1)) = 0"
   unfolding sumhr_app
-  apply transfer
-  apply (simp del: power_Suc add: mult_2 [symmetric])
-  apply (induct_tac N)
-   apply simp_all
-  done
+  by transfer (induct_tac N, auto)
 
 lemma sumhr_interval_const:
   "(\<forall>n. m \<le> Suc n \<longrightarrow> f n = r) \<and> m \<le> na \<Longrightarrow>
@@ -145,17 +140,19 @@ lemma NSseries_zero: "\<forall>m. n \<le> Suc m \<longrightarrow> f m = 0 \<Long
   by (auto simp add: sums_NSsums_iff [symmetric] not_le[symmetric] intro!: sums_finite)
 
 lemma NSsummable_NSCauchy:
-  "NSsummable f \<longleftrightarrow> (\<forall>M \<in> HNatInfinite. \<forall>N \<in> HNatInfinite. \<bar>sumhr (M, N, f)\<bar> \<approx> 0)"
-  apply (auto simp add: summable_NSsummable_iff [symmetric]
-      summable_iff_convergent convergent_NSconvergent_iff atLeast0LessThan[symmetric]
-      NSCauchy_NSconvergent_iff [symmetric] NSCauchy_def starfunNat_sumr)
-  apply (cut_tac x = M and y = N in linorder_less_linear)
-  by (metis approx_hrabs_zero_cancel approx_minus_iff approx_refl approx_sym sumhr_split_diff)
+  "NSsummable f \<longleftrightarrow> (\<forall>M \<in> HNatInfinite. \<forall>N \<in> HNatInfinite. \<bar>sumhr (M, N, f)\<bar> \<approx> 0)" (is "?L=?R")
+proof -
+  have "?L = (\<forall>M\<in>HNatInfinite. \<forall>N\<in>HNatInfinite. sumhr (0, M, f) \<approx> sumhr (0, N, f))"
+    by (auto simp add: summable_iff_convergent convergent_NSconvergent_iff NSCauchy_def starfunNat_sumr 
+        simp flip: NSCauchy_NSconvergent_iff summable_NSsummable_iff atLeast0LessThan)
+  also have "... \<longleftrightarrow> ?R"
+    by (metis approx_hrabs_zero_cancel approx_minus_iff approx_refl approx_sym linorder_less_linear sumhr_hrabs_approx sumhr_split_diff)
+  finally show ?thesis .
+qed
 
 text \<open>Terms of a convergent series tend to zero.\<close>
 lemma NSsummable_NSLIMSEQ_zero: "NSsummable f \<Longrightarrow> f \<longlonglongrightarrow>\<^sub>N\<^sub>S 0"
-  apply (auto simp add: NSLIMSEQ_def NSsummable_NSCauchy)
-  by (metis HNatInfinite_add approx_hrabs_zero_cancel sumhr_Suc)
+  by (metis HNatInfinite_add NSLIMSEQ_def NSsummable_NSCauchy approx_hrabs_zero_cancel star_of_zero sumhr_Suc)
 
 text \<open>Nonstandard comparison test.\<close>
 lemma NSsummable_comparison_test: "\<exists>N. \<forall>n. N \<le> n \<longrightarrow> \<bar>f n\<bar> \<le> g n \<Longrightarrow> NSsummable g \<Longrightarrow> NSsummable f"

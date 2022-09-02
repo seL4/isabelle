@@ -25,23 +25,15 @@ object Export_Theory {
   }
 
   def read_session(
-    store: Sessions.Store,
-    sessions_structure: Sessions.Structure,
-    session_name: String,
-    progress: Progress = new Progress,
-    cache: Term.Cache = Term.Cache.make()): Session = {
+    session_context: Export.Session_Context,
+    session_stack: Boolean = false,
+    progress: Progress = new Progress
+  ): Session = {
     val thys =
-      sessions_structure.build_requirements(List(session_name)).flatMap(session =>
-        using(store.open_database(session)) { db =>
-          db.transaction {
-            for (theory <- Export.read_theory_names(db, session))
-            yield {
-              progress.echo("Reading theory " + theory)
-              val provider = Export.Provider.database(db, store.cache, session, theory)
-              read_theory(provider, session, theory, cache = cache)
-            }
-          }
-        })
+      for (theory <- theory_names(session_context, session_stack = session_stack)) yield {
+        progress.echo("Reading theory " + theory)
+        read_theory(session_context.theory(theory))
+      }
 
     val graph0 =
       thys.foldLeft(Graph.string[Option[Theory]]) {
@@ -55,7 +47,7 @@ object Export_Theory {
           }
       }
 
-    Session(session_name, graph1)
+    Session(session_context.session_name, graph1)
   }
 
 
@@ -80,7 +72,7 @@ object Export_Theory {
   ) {
     override def toString: String = name
 
-    def entity_iterator: Iterator[Entity[No_Content]] =
+    def entity_iterator: Iterator[Entity0] =
       types.iterator.map(_.no_content) ++
       consts.iterator.map(_.no_content) ++
       axioms.iterator.map(_.no_content) ++
@@ -109,63 +101,55 @@ object Export_Theory {
         (for ((k, xs) <- others.iterator) yield cache.string(k) -> xs.map(_.cache(cache))).toMap)
   }
 
-  def read_theory_parents(provider: Export.Provider, theory_name: String): Option[List[String]] = {
-    if (theory_name == Thy_Header.PURE) Some(Nil)
-    else {
-      provider(Export.THEORY_PREFIX + "parents")
-        .map(entry => split_lines(entry.uncompressed.text))
-    }
+  def read_theory_parents(theory_context: Export.Theory_Context): Option[List[String]] =
+    theory_context.get(Export.THEORY_PREFIX + "parents")
+      .map(entry => Library.trim_split_lines(entry.uncompressed.text))
+
+  def theory_names(
+    session_context: Export.Session_Context,
+    session_stack: Boolean = false
+  ): List[String] = {
+    val session = if (session_stack) "" else session_context.session_name
+    for {
+      theory <- session_context.theory_names(session = session)
+      if read_theory_parents(session_context.theory(theory)).isDefined
+    } yield theory
   }
 
   def no_theory: Theory =
     Theory("", Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Map.empty)
 
   def read_theory(
-    provider: Export.Provider,
-    session_name: String,
-    theory_name: String,
-    cache: Term.Cache = Term.Cache.none
+    theory_context: Export.Theory_Context,
+    permissive: Boolean = false
   ): Theory = {
-    val parents =
-      read_theory_parents(provider, theory_name) getOrElse
+    val cache = theory_context.cache
+    val session_name = theory_context.session_context.session_name
+    val theory_name = theory_context.theory
+    read_theory_parents(theory_context) match {
+      case None if permissive => no_theory
+      case None =>
         error("Missing theory export in session " + quote(session_name) + ": " + quote(theory_name))
-    val theory =
-      Theory(theory_name, parents,
-        read_types(provider),
-        read_consts(provider),
-        read_axioms(provider),
-        read_thms(provider),
-        read_classes(provider),
-        read_locales(provider),
-        read_locale_dependencies(provider),
-        read_classrel(provider),
-        read_arities(provider),
-        read_constdefs(provider),
-        read_typedefs(provider),
-        read_datatypes(provider),
-        read_spec_rules(provider),
-        read_others(provider))
-    if (cache.no_cache) theory else theory.cache(cache)
-  }
-
-  def read_pure[A](store: Sessions.Store, read: (Export.Provider, String, String) => A): A = {
-    val session_name = Thy_Header.PURE
-    val theory_name = Thy_Header.PURE
-
-    using(store.open_database(session_name)) { db =>
-      db.transaction {
-        val provider = Export.Provider.database(db, store.cache, session_name, theory_name)
-        read(provider, session_name, theory_name)
-      }
+      case Some(parents) =>
+        val theory =
+          Theory(theory_name, parents,
+            read_types(theory_context),
+            read_consts(theory_context),
+            read_axioms(theory_context),
+            read_thms(theory_context),
+            read_classes(theory_context),
+            read_locales(theory_context),
+            read_locale_dependencies(theory_context),
+            read_classrel(theory_context),
+            read_arities(theory_context),
+            read_constdefs(theory_context),
+            read_typedefs(theory_context),
+            read_datatypes(theory_context),
+            read_spec_rules(theory_context),
+            read_others(theory_context))
+        if (cache.no_cache) theory else theory.cache(cache)
     }
   }
-
-  def read_pure_theory(store: Sessions.Store, cache: Term.Cache = Term.Cache.none): Theory =
-    read_pure(store, read_theory(_, _, _, cache = cache))
-
-  def read_pure_proof(
-      store: Sessions.Store, id: Thm_Id, cache: Term.Cache = Term.Cache.none): Option[Proof] =
-    read_pure(store, (provider, _, _) => read_proof(provider, id, cache = cache))
 
 
   /* entities */
@@ -206,6 +190,7 @@ object Export_Theory {
   ) {
     val kname: String = export_kind_name(kind, name)
     val range: Symbol.Range = Position.Range.unapply(pos).getOrElse(Text.Range.offside)
+    val file: String = Position.File.unapply(pos).getOrElse("")
 
     def export_kind: String = Export_Theory.export_kind(kind)
     override def toString: String = export_kind + " " + quote(name)
@@ -213,7 +198,7 @@ object Export_Theory {
     def the_content: A =
       if (content.isDefined) content.get else error("No content for " + toString)
 
-    def no_content: Entity[No_Content] = copy(content = None)
+    def no_content: Entity0 = copy(content = None)
 
     def cache(cache: Term.Cache): Entity[A] =
       Entity(
@@ -225,9 +210,10 @@ object Export_Theory {
         serial,
         content.map(_.cache(cache)))
   }
+  type Entity0 = Entity[No_Content]
 
   def read_entities[A <: Content[A]](
-    provider: Export.Provider,
+    theory_context: Export.Theory_Context,
     export_name: String,
     kind: String,
     decode: XML.Decode.T[A]
@@ -247,7 +233,7 @@ object Export_Theory {
         case _ => err()
       }
     }
-    provider.uncompressed_yxml(export_name).map(decode_entity)
+    theory_context.uncompressed_yxml(export_name).map(decode_entity)
   }
 
 
@@ -283,8 +269,8 @@ object Export_Theory {
         abbrev.map(cache.typ))
   }
 
-  def read_types(provider: Export.Provider): List[Entity[Type]] =
-    read_entities(provider, Export.THEORY_PREFIX + "types", Markup.TYPE_NAME,
+  def read_types(theory_context: Export.Theory_Context): List[Entity[Type]] =
+    read_entities(theory_context, Export.THEORY_PREFIX + "types", Markup.TYPE_NAME,
       { body =>
         import XML.Decode._
         val (syntax, args, abbrev) =
@@ -311,8 +297,8 @@ object Export_Theory {
         propositional)
   }
 
-  def read_consts(provider: Export.Provider): List[Entity[Const]] =
-    read_entities(provider, Export.THEORY_PREFIX + "consts", Markup.CONSTANT,
+  def read_consts(theory_context: Export.Theory_Context): List[Entity[Const]] =
+    read_entities(theory_context, Export.THEORY_PREFIX + "consts", Markup.CONSTANT,
       { body =>
         import XML.Decode._
         val (syntax, (typargs, (typ, (abbrev, propositional)))) =
@@ -351,16 +337,14 @@ object Export_Theory {
     override def cache(cache: Term.Cache): Axiom = Axiom(prop.cache(cache))
   }
 
-  def read_axioms(provider: Export.Provider): List[Entity[Axiom]] =
-    read_entities(provider, Export.THEORY_PREFIX + "axioms", Markup.AXIOM,
+  def read_axioms(theory_context: Export.Theory_Context): List[Entity[Axiom]] =
+    read_entities(theory_context, Export.THEORY_PREFIX + "axioms", Markup.AXIOM,
       body => Axiom(decode_prop(body)))
 
 
   /* theorems */
 
-  sealed case class Thm_Id(serial: Long, theory_name: String) {
-    def pure: Boolean = theory_name == Thy_Header.PURE
-  }
+  sealed case class Thm_Id(serial: Long, theory_name: String)
 
   sealed case class Thm(
     prop: Prop,
@@ -374,8 +358,8 @@ object Export_Theory {
         cache.proof(proof))
   }
 
-  def read_thms(provider: Export.Provider): List[Entity[Thm]] =
-    read_entities(provider, Export.THEORY_PREFIX + "thms", Kind.THM,
+  def read_thms(theory_context: Export.Theory_Context): List[Entity[Thm]] =
+    read_entities(theory_context, Export.THEORY_PREFIX + "thms", Kind.THM,
       { body =>
         import XML.Decode._
         import Term_XML.Decode._
@@ -400,11 +384,14 @@ object Export_Theory {
   }
 
   def read_proof(
-    provider: Export.Provider,
+    session_context: Export.Session_Context,
     id: Thm_Id,
-    cache: Term.Cache = Term.Cache.none
+    other_cache: Option[Term.Cache] = None
   ): Option[Proof] = {
-    for { entry <- provider.focus(id.theory_name)(Export.PROOFS_PREFIX + id.serial) }
+    val theory_context = session_context.theory(id.theory_name, other_cache = other_cache)
+    val cache = theory_context.cache
+
+    for { entry <- theory_context.get(Export.PROOFS_PREFIX + id.serial) }
     yield {
       val body = entry.uncompressed_yxml
       val (typargs, (args, (prop_body, proof_body))) = {
@@ -422,11 +409,10 @@ object Export_Theory {
   }
 
   def read_proof_boxes(
-    store: Sessions.Store,
-    provider: Export.Provider,
+    session_context: Export.Session_Context,
     proof: Term.Proof,
     suppress: Thm_Id => Boolean = _ => false,
-    cache: Term.Cache = Term.Cache.none
+    other_cache: Option[Term.Cache] = None
   ): List[(Thm_Id, Proof)] = {
     var seen = Set.empty[Long]
     var result = SortedMap.empty[Long, (Thm_Id, Proof)]
@@ -441,10 +427,7 @@ object Export_Theory {
           seen += thm.serial
           val id = Thm_Id(thm.serial, thm.theory_name)
           if (!suppress(id)) {
-            val read =
-              if (id.pure) Export_Theory.read_pure_proof(store, id, cache = cache)
-              else Export_Theory.read_proof(provider, id, cache = cache)
-            read match {
+            Export_Theory.read_proof(session_context, id, other_cache = other_cache) match {
               case Some(p) =>
                 result += (thm.serial -> (id -> p))
                 boxes(Some((thm.serial, p.proof)), p.proof)
@@ -475,8 +458,8 @@ object Export_Theory {
         axioms.map(_.cache(cache)))
   }
 
-  def read_classes(provider: Export.Provider): List[Entity[Class]] =
-    read_entities(provider, Export.THEORY_PREFIX + "classes", Markup.CLASS,
+  def read_classes(theory_context: Export.Theory_Context): List[Entity[Class]] =
+    read_entities(theory_context, Export.THEORY_PREFIX + "classes", Markup.CLASS,
       { body =>
         import XML.Decode._
         import Term_XML.Decode._
@@ -499,8 +482,8 @@ object Export_Theory {
         axioms.map(_.cache(cache)))
   }
 
-  def read_locales(provider: Export.Provider): List[Entity[Locale]] =
-    read_entities(provider, Export.THEORY_PREFIX + "locales", Markup.LOCALE,
+  def read_locales(theory_context: Export.Theory_Context): List[Entity[Locale]] =
+    read_entities(theory_context, Export.THEORY_PREFIX + "locales", Markup.LOCALE,
       { body =>
         import XML.Decode._
         import Term_XML.Decode._
@@ -532,8 +515,11 @@ object Export_Theory {
       subst_types.isEmpty && subst_terms.isEmpty
   }
 
-  def read_locale_dependencies(provider: Export.Provider): List[Entity[Locale_Dependency]] =
-    read_entities(provider, Export.THEORY_PREFIX + "locale_dependencies", Kind.LOCALE_DEPENDENCY,
+  def read_locale_dependencies(
+    theory_context: Export.Theory_Context
+  ): List[Entity[Locale_Dependency]] = {
+    read_entities(theory_context, Export.THEORY_PREFIX + "locale_dependencies",
+      Kind.LOCALE_DEPENDENCY,
       { body =>
         import XML.Decode._
         import Term_XML.Decode._
@@ -542,6 +528,7 @@ object Export_Theory {
             pair(list(pair(pair(string, sort), typ)), list(pair(pair(string, typ), term))))))(body)
         Locale_Dependency(source, target, prefix, subst_types, subst_terms)
       })
+  }
 
 
   /* sort algebra */
@@ -551,8 +538,8 @@ object Export_Theory {
       Classrel(cache.string(class1), cache.string(class2), prop.cache(cache))
   }
 
-  def read_classrel(provider: Export.Provider): List[Classrel] = {
-    val body = provider.uncompressed_yxml(Export.THEORY_PREFIX + "classrel")
+  def read_classrel(theory_context: Export.Theory_Context): List[Classrel] = {
+    val body = theory_context.uncompressed_yxml(Export.THEORY_PREFIX + "classrel")
     val classrel = {
       import XML.Decode._
       list(pair(decode_prop, pair(string, string)))(body)
@@ -571,8 +558,8 @@ object Export_Theory {
         prop.cache(cache))
   }
 
-  def read_arities(provider: Export.Provider): List[Arity] = {
-    val body = provider.uncompressed_yxml(Export.THEORY_PREFIX + "arities")
+  def read_arities(theory_context: Export.Theory_Context): List[Arity] = {
+    val body = theory_context.uncompressed_yxml(Export.THEORY_PREFIX + "arities")
     val arities = {
       import XML.Decode._
       import Term_XML.Decode._
@@ -589,8 +576,8 @@ object Export_Theory {
       Constdef(cache.string(name), cache.string(axiom_name))
   }
 
-  def read_constdefs(provider: Export.Provider): List[Constdef] = {
-    val body = provider.uncompressed_yxml(Export.THEORY_PREFIX + "constdefs")
+  def read_constdefs(theory_context: Export.Theory_Context): List[Constdef] = {
+    val body = theory_context.uncompressed_yxml(Export.THEORY_PREFIX + "constdefs")
     val constdefs = {
       import XML.Decode._
       list(pair(string, string))(body)
@@ -618,8 +605,8 @@ object Export_Theory {
         cache.string(axiom_name))
   }
 
-  def read_typedefs(provider: Export.Provider): List[Typedef] = {
-    val body = provider.uncompressed_yxml(Export.THEORY_PREFIX + "typedefs")
+  def read_typedefs(theory_context: Export.Theory_Context): List[Typedef] = {
+    val body = theory_context.uncompressed_yxml(Export.THEORY_PREFIX + "typedefs")
     val typedefs = {
       import XML.Decode._
       import Term_XML.Decode._
@@ -652,8 +639,8 @@ object Export_Theory {
         constructors.map({ case (term, typ) => (cache.term(term), cache.typ(typ)) }))
   }
 
-  def read_datatypes(provider: Export.Provider): List[Datatype] = {
-    val body = provider.uncompressed_yxml(Export.THEORY_PREFIX + "datatypes")
+  def read_datatypes(theory_context: Export.Theory_Context): List[Datatype] = {
+    val body = theory_context.uncompressed_yxml(Export.THEORY_PREFIX + "datatypes")
     val datatypes = {
       import XML.Decode._
       import Term_XML.Decode._
@@ -742,8 +729,8 @@ object Export_Theory {
         rules.map(cache.term))
   }
 
-  def read_spec_rules(provider: Export.Provider): List[Spec_Rule] = {
-    val body = provider.uncompressed_yxml(Export.THEORY_PREFIX + "spec_rules")
+  def read_spec_rules(theory_context: Export.Theory_Context): List[Spec_Rule] = {
+    val body = theory_context.uncompressed_yxml(Export.THEORY_PREFIX + "spec_rules")
     val spec_rules = {
       import XML.Decode._
       import Term_XML.Decode._
@@ -763,15 +750,15 @@ object Export_Theory {
     override def cache(cache: Term.Cache): Other = this
   }
 
-  def read_others(provider: Export.Provider): Map[String, List[Entity[Other]]] = {
+  def read_others(theory_context: Export.Theory_Context): Map[String, List[Entity[Other]]] = {
     val kinds =
-      provider(Export.THEORY_PREFIX + "other_kinds") match {
+      theory_context.get(Export.THEORY_PREFIX + "other_kinds") match {
         case Some(entry) => split_lines(entry.uncompressed.text)
         case None => Nil
       }
     val other = Other()
     def read_other(kind: String): List[Entity[Other]] =
-      read_entities(provider, Export.THEORY_PREFIX + "other/" + kind, kind, _ => other)
+      read_entities(theory_context, Export.THEORY_PREFIX + "other/" + kind, kind, _ => other)
 
     kinds.map(kind => kind -> read_other(kind)).toMap
   }

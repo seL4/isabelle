@@ -17,8 +17,6 @@ import scala.util.parsing.input.Reader
 object Bibtex {
   /** file format **/
 
-  def is_bibtex(name: String): Boolean = name.endsWith(".bib")
-
   class File_Format extends isabelle.File_Format {
     val format_name: String = "bibtex"
     val file_ext: String = "bib"
@@ -28,7 +26,7 @@ object Bibtex {
       """theory "bib" imports Pure begin bibtex_file """ +
         Outer_Syntax.quote_string(name) + """ end"""
 
-    override def html_document(snapshot: Document.Snapshot): Option[Presentation.HTML_Document] = {
+    override def html_document(snapshot: Document.Snapshot): Option[Browser_Info.HTML_Document] = {
       val name = snapshot.node_name
       if (detect(name.node)) {
         val title = "Bibliography " + quote(snapshot.node_name.path.file_name)
@@ -37,7 +35,7 @@ object Bibtex {
             File.write(bib, snapshot.node.source)
             Bibtex.html_output(List(bib), style = "unsort", title = title)
           }
-        Some(Presentation.HTML_Document(title, content))
+        Some(Browser_Info.HTML_Document(title, content))
       }
       else None
     }
@@ -206,7 +204,7 @@ object Bibtex {
             val full_name = Long_Name.qualify(Markup.CITATION, entry)
             val description = List(entry, "(BibTeX entry)")
             val replacement = quote(entry)
-          Completion.Item(r, original, full_name, description, replacement, 0, false)
+            Completion.Item(r, original, full_name, description, replacement, 0, false)
         }).sorted(history.ordering).take(rendering.options.int("completion_limit"))
     } yield Completion.Result(r, original, false, items)
   }

@@ -13,6 +13,25 @@ object Options {
   val empty: Options = new Options()
 
 
+  /* typed access */
+
+  abstract class Access[A](val options: Options) {
+    def apply(name: String): A
+    def update(name: String, x: A): Options
+    def change(name: String, f: A => A): Options = update(name, f(apply(name)))
+  }
+
+  class Access_Variable[A](
+    val options: Options_Variable,
+    val pure_access: Options => Access[A]
+  ) {
+    def apply(name: String): A = pure_access(options.value)(name)
+    def update(name: String, x: A): Unit =
+      options.change(options => pure_access(options).update(name, x))
+    def change(name: String, f: A => A): Unit = update(name, f(apply(name)))
+  }
+
+
   /* representation */
 
   sealed abstract class Type {
@@ -200,23 +219,27 @@ Usage: isabelle options [OPTIONS] [MORE_OPTIONS ...]
 
 
 final class Options private(
-  val options: Map[String, Options.Opt] = Map.empty,
+  options: Map[String, Options.Opt] = Map.empty,
   val section: String = ""
 ) {
-  override def toString: String = options.iterator.mkString("Options(", ",", ")")
+  def opt_iterator: Iterator[(String, Options.Opt)] = options.iterator
+
+  override def toString: String = opt_iterator.mkString("Options(", ",", ")")
 
   private def print_opt(opt: Options.Opt): String =
     if (opt.public) "public " + opt.print else opt.print
 
-  def print: String = cat_lines(options.toList.sortBy(_._1).map(p => print_opt(p._2)))
+  def print: String = cat_lines(opt_iterator.toList.sortBy(_._1).map(p => print_opt(p._2)))
 
   def description(name: String): String = check_name(name).description
 
 
   /* check */
 
+  def get(name: String): Option[Options.Opt] = options.get(name)
+
   def check_name(name: String): Options.Opt =
-    options.get(name) match {
+    get(name) match {
       case Some(opt) if !opt.unknown => opt
       case _ => error("Unknown option " + quote(name))
     }
@@ -230,7 +253,7 @@ final class Options private(
 
   /* basic operations */
 
-  private def put[A](name: String, typ: Options.Type, value: String): Options = {
+  private def put(name: String, typ: Options.Type, value: String): Options = {
     val opt = check_type(name, typ)
     new Options(options + (name -> opt.copy(value = value)), section)
   }
@@ -248,32 +271,29 @@ final class Options private(
 
   /* internal lookup and update */
 
-  class Bool_Access {
-    def apply(name: String): Boolean = get(name, Options.Bool, Value.Boolean.unapply)
-    def update(name: String, x: Boolean): Options =
-      put(name, Options.Bool, Value.Boolean(x))
-  }
-  val bool = new Bool_Access
+  val bool: Options.Access[Boolean] =
+    new Options.Access[Boolean](this) {
+      def apply(name: String): Boolean = get(name, Options.Bool, Value.Boolean.unapply)
+      def update(name: String, x: Boolean): Options = put(name, Options.Bool, Value.Boolean(x))
+    }
 
-  class Int_Access {
-    def apply(name: String): Int = get(name, Options.Int, Value.Int.unapply)
-    def update(name: String, x: Int): Options =
-      put(name, Options.Int, Value.Int(x))
-  }
-  val int = new Int_Access
+  val int: Options.Access[Int] =
+    new Options.Access[Int](this) {
+      def apply(name: String): Int = get(name, Options.Int, Value.Int.unapply)
+      def update(name: String, x: Int): Options = put(name, Options.Int, Value.Int(x))
+    }
 
-  class Real_Access {
-    def apply(name: String): Double = get(name, Options.Real, Value.Double.unapply)
-    def update(name: String, x: Double): Options =
-      put(name, Options.Real, Value.Double(x))
-  }
-  val real = new Real_Access
+  val real: Options.Access[Double] =
+    new Options.Access[Double](this) {
+      def apply(name: String): Double = get(name, Options.Real, Value.Double.unapply)
+      def update(name: String, x: Double): Options = put(name, Options.Real, Value.Double(x))
+    }
 
-  class String_Access {
-    def apply(name: String): String = get(name, Options.String, s => Some(s))
-    def update(name: String, x: String): Options = put(name, Options.String, x)
-  }
-  val string = new String_Access
+  val string: Options.Access[String] =
+    new Options.Access[String](this) {
+      def apply(name: String): String = get(name, Options.String, Some(_))
+      def update(name: String, x: String): Options = put(name, Options.String, x)
+    }
 
   def proper_string(name: String): Option[String] =
     Library.proper_string(string(name))
@@ -303,7 +323,7 @@ final class Options private(
     standard: Option[Option[String]],
     description: String
   ): Options = {
-    options.get(name) match {
+    get(name) match {
       case Some(other) =>
         error("Duplicate declaration of option " + quote(name) + Position.here(pos) +
           Position.here(other.pos))
@@ -392,7 +412,7 @@ final class Options private(
     val changed =
       (for {
         (name, opt2) <- options.iterator
-        opt1 = defaults.options.get(name)
+        opt1 = defaults.get(name)
         if opt1.isEmpty || opt1.get.value != opt2.value
       } yield (name, opt2.value, if (opt1.isEmpty) "  (* unknown *)" else "")).toList
 
@@ -407,36 +427,23 @@ final class Options private(
 
 
 class Options_Variable(init_options: Options) {
-  private var options = init_options
+  private var _options = init_options
 
-  def value: Options = synchronized { options }
+  def value: Options = synchronized { _options }
+  def change(f: Options => Options): Unit = synchronized { _options = f(_options) }
+  def += (name: String, x: String): Unit = change(options => options + (name, x))
 
-  private def upd(f: Options => Options): Unit = synchronized { options = f(options) }
-  def += (name: String, x: String): Unit = upd(opts => opts + (name, x))
+  val bool: Options.Access_Variable[Boolean] =
+    new Options.Access_Variable[Boolean](this, _.bool)
 
-  class Bool_Access {
-    def apply(name: String): Boolean = value.bool(name)
-    def update(name: String, x: Boolean): Unit = upd(opts => opts.bool.update(name, x))
-  }
-  val bool = new Bool_Access
+  val int: Options.Access_Variable[Int] =
+    new Options.Access_Variable[Int](this, _.int)
 
-  class Int_Access {
-    def apply(name: String): Int = value.int(name)
-    def update(name: String, x: Int): Unit = upd(opts => opts.int.update(name, x))
-  }
-  val int = new Int_Access
+  val real: Options.Access_Variable[Double] =
+    new Options.Access_Variable[Double](this, _.real)
 
-  class Real_Access {
-    def apply(name: String): Double = value.real(name)
-    def update(name: String, x: Double): Unit = upd(opts => opts.real.update(name, x))
-  }
-  val real = new Real_Access
-
-  class String_Access {
-    def apply(name: String): String = value.string(name)
-    def update(name: String, x: String): Unit = upd(opts => opts.string.update(name, x))
-  }
-  val string = new String_Access
+  val string: Options.Access_Variable[String] =
+    new Options.Access_Variable[String](this, _.string)
 
   def proper_string(name: String): Option[String] =
     Library.proper_string(string(name))

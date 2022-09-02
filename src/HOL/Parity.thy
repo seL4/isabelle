@@ -669,6 +669,44 @@ lemma power_int_minus_one_mult_self' [simp]:
 
 end
 
+
+subsection \<open>Computing congruences modulo \<open>2 ^ q\<close>\<close>
+
+context unique_euclidean_semiring_with_nat_division
+begin
+
+lemma cong_exp_iff_simps:
+  "numeral n mod numeral Num.One = 0
+    \<longleftrightarrow> True"
+  "numeral (Num.Bit0 n) mod numeral (Num.Bit0 q) = 0
+    \<longleftrightarrow> numeral n mod numeral q = 0"
+  "numeral (Num.Bit1 n) mod numeral (Num.Bit0 q) = 0
+    \<longleftrightarrow> False"
+  "numeral m mod numeral Num.One = (numeral n mod numeral Num.One)
+    \<longleftrightarrow> True"
+  "numeral Num.One mod numeral (Num.Bit0 q) = (numeral Num.One mod numeral (Num.Bit0 q))
+    \<longleftrightarrow> True"
+  "numeral Num.One mod numeral (Num.Bit0 q) = (numeral (Num.Bit0 n) mod numeral (Num.Bit0 q))
+    \<longleftrightarrow> False"
+  "numeral Num.One mod numeral (Num.Bit0 q) = (numeral (Num.Bit1 n) mod numeral (Num.Bit0 q))
+    \<longleftrightarrow> (numeral n mod numeral q) = 0"
+  "numeral (Num.Bit0 m) mod numeral (Num.Bit0 q) = (numeral Num.One mod numeral (Num.Bit0 q))
+    \<longleftrightarrow> False"
+  "numeral (Num.Bit0 m) mod numeral (Num.Bit0 q) = (numeral (Num.Bit0 n) mod numeral (Num.Bit0 q))
+    \<longleftrightarrow> numeral m mod numeral q = (numeral n mod numeral q)"
+  "numeral (Num.Bit0 m) mod numeral (Num.Bit0 q) = (numeral (Num.Bit1 n) mod numeral (Num.Bit0 q))
+    \<longleftrightarrow> False"
+  "numeral (Num.Bit1 m) mod numeral (Num.Bit0 q) = (numeral Num.One mod numeral (Num.Bit0 q))
+    \<longleftrightarrow> (numeral m mod numeral q) = 0"
+  "numeral (Num.Bit1 m) mod numeral (Num.Bit0 q) = (numeral (Num.Bit0 n) mod numeral (Num.Bit0 q))
+    \<longleftrightarrow> False"
+  "numeral (Num.Bit1 m) mod numeral (Num.Bit0 q) = (numeral (Num.Bit1 n) mod numeral (Num.Bit0 q))
+    \<longleftrightarrow> numeral m mod numeral q = (numeral n mod numeral q)"
+  by (auto simp add: case_prod_beta dest: arg_cong [of _ _ even])
+
+end
+
+
 code_identifier
   code_module Parity \<rightharpoonup> (SML) Arith and (OCaml) Arith and (Haskell) Arith
 

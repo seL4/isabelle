@@ -532,7 +532,12 @@ lemma case_nat_transfer [transfer_rule]:
 
 lemma rec_nat_transfer [transfer_rule]:
   "(A ===> ((=) ===> A ===> A) ===> (=) ===> A) rec_nat rec_nat"
-  unfolding rel_fun_def by (clarsimp, rename_tac n, induct_tac n, simp_all)
+  unfolding rel_fun_def
+  apply safe
+  subgoal for _ _ _ _ _ n
+    by (induction n) simp_all
+  done
+
 
 lemma funpow_transfer [transfer_rule]:
   "((=) ===> (A ===> A) ===> (A ===> A)) compow compow"

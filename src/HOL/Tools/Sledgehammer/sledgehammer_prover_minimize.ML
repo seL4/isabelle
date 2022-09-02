@@ -234,7 +234,7 @@ fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) slice 
           "Timeout: You can increase the time limit using the \"timeout\" option (e.g., \
           \timeout = " ^ string_of_int (10 + Time.toMilliseconds timeout div 1000) ^ "\")")
      | {message, ...} => (NONE, (prefix "Prover error: " o message))))
-    handle ERROR msg => (NONE, fn _ => "Error: " ^ msg)
+    handle ERROR msg => (NONE, fn _ => "Warning: " ^ msg)
   end
 
 fun maybe_minimize mode do_learn name (params as {verbose, minimize, ...})

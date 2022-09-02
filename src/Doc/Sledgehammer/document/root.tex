@@ -109,8 +109,9 @@ The supported ATPs include agsyHOL \cite{agsyHOL}, Alt-Ergo \cite{alt-ergo}, E
 Vampire \cite{riazanov-voronkov-2002}, Waldmeister \cite{waldmeister}, and
 Zipperposition \cite{cruanes-2014}. The ATPs are run either locally or remotely
 via the System\-On\-TPTP web service \cite{sutcliffe-2000}. The supported SMT
-solvers are CVC4 \cite{cvc4}, veriT \cite{bouton-et-al-2009}, and Z3
-\cite{de-moura-2008}. These are always run locally.
+solvers are CVC4 \cite{cvc4}, cvc5 \cite{barbosa-et-al-cvc5}, veriT
+\cite{bouton-et-al-2009}, and Z3 \cite{de-moura-2008}. These are always run
+locally.
 
 The problem passed to the external provers (or solvers) consists of your current
 goal together with a heuristic selection of hundreds of facts (theorems) from the
@@ -151,15 +152,15 @@ Among the ATPs, agsyHOL, Alt-Ergo, E, LEO-II, Leo-III, Satallax, SPASS, Vampire,
 and Zipperposition can be run locally; in addition, agsyHOL, Alt-Ergo, E,
 iProver, LEO-II, Leo-III, Satallax, Vampire, Waldmeister, and Zipperposition are
 available remotely via System\-On\-TPTP \cite{sutcliffe-2000}. The SMT solvers
-CVC4, veriT, and Z3 can be run locally.
+CVC4, cvc5, veriT, and Z3 can be run locally.
 
 There are three main ways to install automatic provers on your machine:
 
 \begin{sloppy}
 \begin{enum}
 \item[\labelitemi] If you installed an official Isabelle package, it should
-already include properly set up executables for CVC4, E, SPASS, Vampire, veriT,
-Z3, and Zipperposition ready to use.
+already include properly set up executables for CVC4, cvc5, E, SPASS, Vampire,
+veriT, Z3, and Zipperposition ready to use.
 
 \item[\labelitemi] Alternatively, you can download the Isabelle-aware CVC4, E,
 SPASS, Vampire, veriT, Z3, and Zipperposition binary packages from \download.
@@ -191,10 +192,11 @@ should also set \texttt{E\_VERSION}, \texttt{LEO2\_VERSION},
 \texttt{LEO3\_VERSION}, \texttt{SATALLAX\_VERSION}, or
 \texttt{ZIPPERPOSITION\_VERSION} to the prover's version number (e.g., ``3.6'').
 
-Similarly, if you want to install CVC4, veriT, or Z3, set the environment
-variable \texttt{CVC4\_\allowbreak SOLVER}, \texttt{ISABELLE\_\allowbreak VERIT},
+Similarly, if you want to install CVC4, cvc5, veriT, or Z3, set the environment
+variable \texttt{CVC4\_\allowbreak SOLVER}, \texttt{CVC5\_\allowbreak SOLVER},
+\texttt{ISABELLE\_\allowbreak VERIT},
 or \texttt{Z3\_SOLVER} to the complete path of the executable, \emph{including
-the file name}. Ideally, also set \texttt{CVC4\_VERSION},
+the file name}. Ideally, also set \texttt{CVC4\_VERSION}, \texttt{CVC5\_VERSION},
 \texttt{VERIT\_VERSION}, or \texttt{Z3\_VERSION} to the solver's version number
 (e.g., ``4.4.0'').
 \end{enum}
@@ -673,10 +675,15 @@ to the directory that contains the \texttt{why3} executable. Sledgehammer
 requires Alt-Ergo 0.95.2 and Why3 0.83.
 
 \item[\labelitemi] \textbf{\textit{cvc4}:} CVC4 is an SMT solver developed by
-Clark Barrett, Cesare Tinelli, and their colleagues \cite{cvc4}. To use CVC4,
+Barrett et al.\ \cite{cvc4}. To use CVC4,
 set the environment variable \texttt{CVC4\_SOLVER} to the complete path of the
 executable, including the file name, or install the prebuilt CVC4 package from
 \download.
+
+\item[\labelitemi] \textbf{\textit{cvc5}:} cvc5 is an SMT solver developed by
+Barbosa et al.\ \cite{barbosa-et-al-cvc5}. To use cvc5,
+set the environment variable \texttt{CVC5\_SOLVER} to the complete path of the
+executable, including the file name.
 
 \item[\labelitemi] \textbf{\textit{e}:} E is a first-order resolution prover
 developed by Stephan Schulz \cite{schulz-2019}. To use E, set the environment
@@ -776,10 +783,10 @@ runs on Geoff Sutcliffe's Miami servers.
 version of Zipperposition runs on Geoff Sutcliffe's Miami servers.
 \end{enum}
 
-By default, Sledgehammer runs a subset of CVC4, E, SPASS, Vampire, veriT, and
-Z3 in parallel, either locally or remotely---depending on the number of
-processor cores available and on which provers are actually installed. It is
-generally desirable to run several provers in parallel.
+By default, Sledgehammer runs a subset of CVC4, E, SPASS, Vampire, veriT, Z3,
+and Zipperposition in parallel, either locally or remotely---depending on the
+number of processor cores available and on which provers are actually installed.
+It is generally beneficial to run several provers in parallel.
 
 \opnodefault{prover}{string}
 Alias for \textit{provers}.
@@ -1122,9 +1129,9 @@ soft limit.
 \opsmart{isar\_proofs}{no\_isar\_proofs}
 Specifies whether Isar proofs should be output in addition to one-line proofs.
 The construction of Isar proof is still experimental and may sometimes fail;
-however, when they succeed they are usually faster and more intelligible than
-one-line proofs. If the option is set to \textit{smart} (the default), Isar
-proofs are only generated when no working one-line proof is available.
+however, when they succeed they can be faster and sometimes more intelligible
+than one-line proofs. If the option is set to \textit{smart} (the default), Isar
+proofs are generated only when no working one-line proof is available.
 
 \opdefault{compress}{int}{smart}
 Specifies the granularity of the generated Isar proofs if \textit{isar\_proofs}
@@ -1184,14 +1191,13 @@ than the later.
 Specifies the maximum number of seconds that the automatic provers should spend
 searching for a proof. This excludes problem preparation and is a soft limit.
 
-\opdefault{slices}{int}{\upshape 6 times the number of cores detected}
-Specifies the number of time slices. Each time slice corresponds to a prover
-invocation and has its own set of options. For example, for SPASS, one slice
-might specify the fast but incomplete set-of-support (SOS) strategy with 100
-relevant lemmas, whereas other slices might run without SOS and with 500 lemmas.
-Slicing (and thereby parallelism) can be disable by setting \textit{slices} to
-1. Since slicing is a valuable optimization, you should probably leave it
-enabled unless you are conducting experiments.
+\opdefault{slices}{int}{\upshape 12 times the number of cores detected}
+Specifies the number of time slices. Time slices are the basic unit for prover
+invocations. They are divided among the available provers. A single prover
+invocation can occupy a single slice, two slices, or more, depending on the
+prover. Slicing (and thereby parallelism) can be disable by setting
+\textit{slices} to 1. Since slicing is a valuable optimization, you should
+probably leave it enabled unless you are conducting experiments.
 
 \nopagebreak
 {\small See also \textit{verbose} (\S\ref{output-format}).}

@@ -29,7 +29,7 @@ object JEdit_Bibtex {
   def context_menu(text_area: JEditTextArea): List[JMenuItem] = {
     text_area.getBuffer match {
       case buffer: Buffer
-      if Bibtex.is_bibtex(JEdit_Lib.buffer_name(buffer)) && buffer.isEditable =>
+      if File.is_bib(JEdit_Lib.buffer_name(buffer)) && buffer.isEditable =>
         val menu = new JMenu("BibTeX entries")
         for (entry <- Bibtex.known_entries) {
           val item = new JMenuItem(entry.kind)

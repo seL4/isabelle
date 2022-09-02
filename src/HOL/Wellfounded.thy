@@ -257,8 +257,10 @@ next
         then obtain z where "z \<in> Q" "(z, y) \<in> r\<^sup>*"
                             "\<And>z'. (z', z) \<in> r \<longrightarrow> z' \<in> Q \<longrightarrow> (z', y) \<notin> r\<^sup>*"
           using R' [of "{z \<in> Q. (z,y) \<in> r\<^sup>*}"] by auto
-        with R show ?thesis
-          by (rule_tac x="z" in bexI) (blast intro: rtrancl_trans)
+        then have "\<forall>y'. (y', z) \<in> insert (y, x) r \<longrightarrow> y' \<notin> Q"
+          using R by(blast intro: rtrancl_trans)+
+        then show ?thesis
+          by (rule bexI) fact
       next
         case False
         then show ?thesis
@@ -293,7 +295,7 @@ proof (unfold wf_eq_minimal, clarify)
     thus ?thesis
       using inj unfolding A_def
       by (intro bexI[of _ "f a0"]) auto
-  qed (insert \<open>b \<in> B\<close>, unfold A_def, auto)
+  qed (use \<open>b \<in> B\<close> in  \<open>unfold A_def, auto\<close>)
 qed
 
 lemma wf_map_prod_image: "wf r \<Longrightarrow> inj f \<Longrightarrow> wf (map_prod f f ` r)"
@@ -581,11 +583,13 @@ lemma pred_nat_trancl_eq_le: "(m, n) \<in> pred_nat\<^sup>* \<longleftrightarrow
   unfolding less_eq rtrancl_eq_or_trancl by auto
 
 lemma wf_pred_nat: "wf pred_nat"
-  apply (unfold wf_def pred_nat_def)
-  apply clarify
-  apply (induct_tac x)
-   apply blast+
-  done
+  unfolding wf_def
+proof clarify
+  fix P x
+  assume "\<forall>x'. (\<forall>y. (y, x') \<in> pred_nat \<longrightarrow> P y) \<longrightarrow> P x'"
+  then show "P x"
+    unfolding pred_nat_def by (induction x) blast+
+qed
 
 lemma wf_less_than [iff]: "wf less_than"
   by (simp add: less_than_def wf_pred_nat [THEN wf_trancl])
@@ -673,10 +677,12 @@ theorem accp_downwards: "accp r a \<Longrightarrow> r\<^sup>*\<^sup>* b a \<Long
   by (blast dest: accp_downwards_aux)
 
 theorem accp_wfPI: "\<forall>x. accp r x \<Longrightarrow> wfP r"
-  apply (rule wfPUNIVI)
-  apply (rule_tac P = P in accp_induct)
-   apply blast+
-  done
+proof (rule wfPUNIVI)
+  fix P x
+  assume "\<forall>x. accp r x" "\<forall>x. (\<forall>y. r y x \<longrightarrow> P y) \<longrightarrow> P x"
+  then show "P x"
+    using accp_induct[where P = P] by blast
+qed
 
 theorem accp_wfPD: "wfP r \<Longrightarrow> accp r x"
   apply (erule wfP_induct_rule)
@@ -750,15 +756,20 @@ lemma wf_inv_image [simp,intro!]:
   fixes f :: "'a \<Rightarrow> 'b"
   assumes "wf r"
   shows "wf (inv_image r f)"
-proof (clarsimp simp: inv_image_def wf_eq_minimal)
-  fix P and x::'a
-  assume "x \<in> P"
-  then obtain w where w: "w \<in> {w. \<exists>x::'a. x \<in> P \<and> f x = w}"
-    by auto
-  have *: "\<And>Q u. u \<in> Q \<Longrightarrow> \<exists>z\<in>Q. \<forall>y. (y, z) \<in> r \<longrightarrow> y \<notin> Q"
-    using assms by (auto simp add: wf_eq_minimal)
-  show "\<exists>z\<in>P. \<forall>y. (f y, f z) \<in> r \<longrightarrow> y \<notin> P"
-    using * [OF w] by auto
+proof -
+  have "\<And>x P. x \<in> P \<Longrightarrow> \<exists>z\<in>P. \<forall>y. (f y, f z) \<in> r \<longrightarrow> y \<notin> P"
+  proof -
+    fix P and x::'a
+    assume "x \<in> P"
+    then obtain w where w: "w \<in> {w. \<exists>x::'a. x \<in> P \<and> f x = w}"
+      by auto
+    have *: "\<And>Q u. u \<in> Q \<Longrightarrow> \<exists>z\<in>Q. \<forall>y. (y, z) \<in> r \<longrightarrow> y \<notin> Q"
+      using assms by (auto simp add: wf_eq_minimal)
+    show "\<exists>z\<in>P. \<forall>y. (f y, f z) \<in> r \<longrightarrow> y \<notin> P"
+      using * [OF w] by auto
+  qed
+  then show ?thesis
+    by (clarsimp simp: inv_image_def wf_eq_minimal)
 qed
 
 text \<open>Measure functions into \<^typ>\<open>nat\<close>\<close>
@@ -901,7 +912,7 @@ proof (rule acc_wfI, intro allI)
         next
           case False
           from * finites have N2: "(?N2, M) \<in> max_ext r"
-            by (rule_tac max_extI[OF _ _ \<open>M \<noteq> {}\<close>]) auto
+            using max_extI[OF _ _ \<open>M \<noteq> {}\<close>, where ?X = ?N2] by auto
           with \<open>M \<in> ?W\<close> show "?N2 \<in> ?W" by (rule acc_downward)
         qed
         with finites have "?N1 \<union> ?N2 \<in> ?W"

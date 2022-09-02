@@ -522,31 +522,29 @@ lemma complete_interval:
   assumes "a < b" and "P a" and "\<not> P b"
   shows "\<exists>c. a \<le> c \<and> c \<le> b \<and> (\<forall>x. a \<le> x \<and> x < c \<longrightarrow> P x) \<and>
              (\<forall>d. (\<forall>x. a \<le> x \<and> x < d \<longrightarrow> P x) \<longrightarrow> d \<le> c)"
-proof (rule exI [where x = "Sup {d. \<forall>x. a \<le> x \<and> x < d \<longrightarrow> P x}"], auto)
+proof (rule exI [where x = "Sup {d. \<forall>x. a \<le> x \<and> x < d \<longrightarrow> P x}"], safe)
   show "a \<le> Sup {d. \<forall>c. a \<le> c \<and> c < d \<longrightarrow> P c}"
     by (rule cSup_upper, auto simp: bdd_above_def)
        (metis \<open>a < b\<close> \<open>\<not> P b\<close> linear less_le)
 next
   show "Sup {d. \<forall>c. a \<le> c \<and> c < d \<longrightarrow> P c} \<le> b"
-    apply (rule cSup_least)
-    apply auto
-    apply (metis less_le_not_le)
-    apply (metis \<open>a<b\<close> \<open>\<not> P b\<close> linear less_le)
-    done
+    by (rule cSup_least)
+       (use \<open>a<b\<close> \<open>\<not> P b\<close> in \<open>auto simp add: less_le_not_le\<close>)
 next
   fix x
   assume x: "a \<le> x" and lt: "x < Sup {d. \<forall>c. a \<le> c \<and> c < d \<longrightarrow> P c}"
   show "P x"
-    apply (rule less_cSupE [OF lt], auto)
-    apply (metis less_le_not_le)
-    apply (metis x)
-    done
+    by (rule less_cSupE [OF lt]) (use less_le_not_le x in \<open>auto\<close>)
 next
   fix d
-    assume 0: "\<forall>x. a \<le> x \<and> x < d \<longrightarrow> P x"
-    thus "d \<le> Sup {d. \<forall>c. a \<le> c \<and> c < d \<longrightarrow> P c}"
-      by (rule_tac cSup_upper, auto simp: bdd_above_def)
-         (metis \<open>a<b\<close> \<open>\<not> P b\<close> linear less_le)
+  assume 0: "\<forall>x. a \<le> x \<and> x < d \<longrightarrow> P x"
+  then have "d \<in> {d. \<forall>c. a \<le> c \<and> c < d \<longrightarrow> P c}"
+    by auto
+  moreover have "bdd_above {d. \<forall>c. a \<le> c \<and> c < d \<longrightarrow> P c}"
+    unfolding bdd_above_def using \<open>a<b\<close> \<open>\<not> P b\<close> linear
+    by (simp add: less_le) blast
+  ultimately show "d \<le> Sup {d. \<forall>c. a \<le> c \<and> c < d \<longrightarrow> P c}"
+    by (auto simp: cSup_upper)
 qed
 
 end

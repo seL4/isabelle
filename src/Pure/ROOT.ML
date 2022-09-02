@@ -297,6 +297,7 @@ ML_file "Proof/extraction.ML";
 
 (*Isabelle system*)
 ML_file "PIDE/protocol_command.ML";
+ML_file "System/java.ML";
 ML_file "System/scala.ML";
 ML_file "System/process_result.ML";
 ML_file "System/isabelle_system.ML";
@@ -362,4 +363,4 @@ ML_file "Tools/named_theorems.ML";
 ML_file "Tools/doc.ML";
 ML_file "Tools/jedit.ML";
 ML_file "Tools/ghc.ML";
-ML_file "Tools/generated_files.ML"
+ML_file "Tools/generated_files.ML";

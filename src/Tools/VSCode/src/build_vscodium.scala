@@ -29,7 +29,7 @@ object Build_VSCodium {
   def make_symbols(): File.Content = {
     val symbols = Symbol.Symbols.load(static = true)
     val symbols_js =
-      JSON.Format.apply_lines(
+      JSON.Format.pretty_print(
         for (entry <- symbols.entries) yield
           JSON.Object(
             "symbol" -> entry.symbol,
@@ -37,13 +37,13 @@ object Build_VSCodium {
             "abbrevs" -> entry.abbrevs) ++
           JSON.optional("code", entry.code))
 
-    File.Content(Path.explode("symbols.json"), symbols_js)
+    File.content(Path.explode("symbols.json"), symbols_js)
   }
 
   def make_isabelle_encoding(header: String): File.Content = {
     val symbols = Symbol.Symbols.load(static = true)
     val symbols_js =
-      JSON.Format.apply_lines(
+      JSON.Format.pretty_print(
         for (entry <- symbols.entries; code <- entry.code)
           yield JSON.Object("symbol" -> entry.symbol, "code" -> code))
 
@@ -51,7 +51,7 @@ object Build_VSCodium {
     val body =
       File.read(Path.explode("$ISABELLE_VSCODE_HOME/patches") + path)
         .replace("[/*symbols*/]", symbols_js)
-    File.Content(path, header + "\n" + body)
+    File.content(path, header + "\n" + body)
   }
 
 
@@ -66,7 +66,7 @@ object Build_VSCodium {
     def is_linux: Boolean = platform == Platform.Family.linux
 
     def download_name: String = "VSCodium-" + download_template.replace("{VERSION}", version)
-    def download_zip: Boolean = download_name.endsWith(".zip")
+    def download_zip: Boolean = File.is_zip(download_name)
 
     def download(dir: Path, progress: Progress = new Progress): Unit = {
       if (download_zip) Isabelle_System.require_command("unzip", test = "-h")
@@ -222,7 +222,7 @@ object Build_VSCodium {
         val files =
           File.find_files(dir.file, pred = { file =>
             val name = file.getName
-            name.endsWith(".dll") || name.endsWith(".exe") || name.endsWith(".node")
+            File.is_dll(name) || File.is_exe(name) || File.is_node(name)
           })
         files.foreach(file => File.set_executable(File.path(file), true))
         Isabelle_System.bash("chmod -R o-w " + File.bash_path(dir)).check

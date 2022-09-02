@@ -1045,17 +1045,11 @@ proof -
     by (simp add: binomial_altdef_nat)
   also have "... = fact (m + r + k) * fact (m + k) div
                  (fact (m + k) * fact (m + r - m) * (fact k * fact m))"
-    apply (subst div_mult_div_if_dvd)
-      apply (auto simp: algebra_simps fact_fact_dvd_fact)
-    apply (metis add.assoc add.commute fact_fact_dvd_fact)
-    done
+    by (metis add_implies_diff add_le_mono1 choose_dvd diff_cancel2 div_mult_div_if_dvd le_add1 le_add2)
   also have "\<dots> = fact (m + r + k) div (fact r * (fact k * fact m))"
     by (auto simp: algebra_simps fact_fact_dvd_fact)
   also have "\<dots> = (fact (m + r + k) * fact (m + r)) div (fact r * (fact k * fact m) * fact (m + r))"
-    apply (subst div_mult_div_if_dvd [symmetric])
-    apply (auto simp add: algebra_simps)
-    apply (metis fact_fact_dvd_fact dvd_trans nat_mult_dvd_cancel_disj)
-    done
+    by simp
   also have "\<dots> =
       (fact (m + r + k) div (fact k * fact (m + r)) * (fact (m + r) div (fact r * fact m)))"
     by (auto simp: div_mult_div_if_dvd fact_fact_dvd_fact algebra_simps)
@@ -1068,24 +1062,45 @@ lemma choose_mult:
   "k \<le> m \<Longrightarrow> m \<le> n \<Longrightarrow> (n choose m) * (m choose k) = (n choose k) * ((n - k) choose (m - k))"
   using choose_mult_lemma [of "m-k" "n-m" k] by simp
 
+lemma of_nat_binomial_eq_mult_binomial_Suc:
+  assumes "k \<le> n"
+  shows "(of_nat :: (nat \<Rightarrow> ('a :: field_char_0))) (n choose k) = of_nat (n + 1 - k) / of_nat (n + 1) * of_nat (Suc n choose k)"
+proof (cases k)
+  case 0 then show ?thesis
+    using of_nat_neq_0 by auto
+next
+  case (Suc l)
+  have "of_nat (n + 1) * (\<Prod>i=0..<k. of_nat (n - i)) = (of_nat :: (nat \<Rightarrow> 'a)) (n + 1 - k) * (\<Prod>i=0..<k. of_nat (Suc n - i))"
+    using prod.atLeast0_lessThan_Suc [where ?'a = 'a, symmetric, of "\<lambda>i. of_nat (Suc n - i)" k]
+    by (simp add: ac_simps prod.atLeast0_lessThan_Suc_shift del: prod.op_ivl_Suc)
+  also have "... = (of_nat :: (nat \<Rightarrow> 'a)) (Suc n - k) * (\<Prod>i=0..<k. of_nat (Suc n - i))"
+    by (simp add: Suc atLeast0_atMost_Suc atLeastLessThanSuc_atLeastAtMost)
+  also have "... = (of_nat :: (nat \<Rightarrow> 'a)) (n + 1 - k) * (\<Prod>i=0..<k. of_nat (Suc n - i))"
+    by (simp only: Suc_eq_plus1)
+  finally have "(\<Prod>i=0..<k. of_nat (n - i)) = (of_nat :: (nat \<Rightarrow> 'a)) (n + 1 - k) / of_nat (n + 1) * (\<Prod>i=0..<k. of_nat (Suc n - i))"
+    using of_nat_neq_0 by (auto simp: mult.commute divide_simps)
+  with assms show ?thesis
+    by (simp add: binomial_altdef_of_nat prod_dividef)
+qed
+
 
 subsection \<open>More on Binomial Coefficients\<close>
 
 lemma choose_one: "n choose 1 = n" for n :: nat
   by simp
 
-lemma card_UNION:
+text \<open>The famous inclusion-exclusion formula for the cardinality of a union\<close>
+lemma int_card_UNION:
   assumes "finite A"
     and "\<forall>k \<in> A. finite k"
-  shows "card (\<Union>A) = nat (\<Sum>I | I \<subseteq> A \<and> I \<noteq> {}. (- 1) ^ (card I + 1) * int (card (\<Inter>I)))"
+  shows "int (card (\<Union>A)) = (\<Sum>I | I \<subseteq> A \<and> I \<noteq> {}. (- 1) ^ (card I + 1) * int (card (\<Inter>I)))"
   (is "?lhs = ?rhs")
 proof -
-  have "?rhs = nat (\<Sum>I | I \<subseteq> A \<and> I \<noteq> {}. (- 1) ^ (card I + 1) * (\<Sum>_\<in>\<Inter>I. 1))"
+  have "?rhs = (\<Sum>I | I \<subseteq> A \<and> I \<noteq> {}. (- 1) ^ (card I + 1) * (\<Sum>_\<in>\<Inter>I. 1))"
     by simp
-  also have "\<dots> = nat (\<Sum>I | I \<subseteq> A \<and> I \<noteq> {}. (\<Sum>_\<in>\<Inter>I. (- 1) ^ (card I + 1)))"
-    (is "_ = nat ?rhs")
+  also have "\<dots> = (\<Sum>I | I \<subseteq> A \<and> I \<noteq> {}. (\<Sum>_\<in>\<Inter>I. (- 1) ^ (card I + 1)))"
     by (subst sum_distrib_left) simp
-  also have "?rhs = (\<Sum>(I, _)\<in>Sigma {I. I \<subseteq> A \<and> I \<noteq> {}} Inter. (- 1) ^ (card I + 1))"
+  also have "\<dots> = (\<Sum>(I, _)\<in>Sigma {I. I \<subseteq> A \<and> I \<noteq> {}} Inter. (- 1) ^ (card I + 1))"
     using assms by (subst sum.Sigma) auto
   also have "\<dots> = (\<Sum>(x, I)\<in>(SIGMA x:UNIV. {I. I \<subseteq> A \<and> I \<noteq> {} \<and> x \<in> \<Inter>I}). (- 1) ^ (card I + 1))"
     by (rule sum.reindex_cong [where l = "\<lambda>(x, y). (y, x)"]) (auto intro: inj_onI)
@@ -1132,7 +1147,7 @@ proof -
       also have "\<dots> = {}"
         using \<open>finite A\<close> i by (auto simp add: K_def dest: card_mono[rotated 1])
       finally show "(- 1) ^ (i + 1) * (\<Sum>I | I \<subseteq> A \<and> card I = i \<and> x \<in> \<Inter>I. 1 :: int) = 0"
-        by (simp only:) simp
+        by (metis mult_zero_right sum.empty)
     next
       fix i
       have "(\<Sum>I | I \<subseteq> A \<and> card I = i \<and> x \<in> \<Inter>I. 1) = (\<Sum>I | I \<subseteq> K \<and> card I = i. 1 :: int)"
@@ -1155,10 +1170,22 @@ proof -
       using x K by (auto simp add: K_def card_gt_0_iff)
     finally show "?lhs x = 1" .
   qed
-  also have "nat \<dots> = card (\<Union>A)"
+  also have "\<dots> = int (card (\<Union>A))"
     by simp
   finally show ?thesis ..
 qed
+
+lemma card_UNION:
+  assumes "finite A"
+    and "\<forall>k \<in> A. finite k"
+  shows "card (\<Union>A) = nat (\<Sum>I | I \<subseteq> A \<and> I \<noteq> {}. (- 1) ^ (card I + 1) * int (card (\<Inter>I)))"
+  by (simp only: flip: int_card_UNION [OF assms])
+
+lemma card_UNION_nonneg:
+  assumes "finite A"
+    and "\<forall>k \<in> A. finite k"
+  shows "(\<Sum>I | I \<subseteq> A \<and> I \<noteq> {}. (- 1) ^ (card I + 1) * int (card (\<Inter>I))) \<ge> 0"
+  using int_card_UNION [OF assms] by presburger
 
 text \<open>The number of nat lists of length \<open>m\<close> summing to \<open>N\<close> is \<^term>\<open>(N + m - 1) choose N\<close>:\<close>
 lemma card_length_sum_list_rec:

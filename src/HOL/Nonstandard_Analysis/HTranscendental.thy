@@ -122,7 +122,7 @@ lemma hypreal_sqrt_sum_squares_ge1 [simp]: "\<And>x y. x \<le> ( *f* sqrt)(x\<^s
 
 lemma HFinite_hypreal_sqrt_imp_HFinite:
   "\<lbrakk>0 \<le> x; ( *f* sqrt) x \<in> HFinite\<rbrakk> \<Longrightarrow> x \<in> HFinite"
-  by (metis HFinite_mult hrealpow_two hypreal_sqrt_pow2_iff numeral_2_eq_2)
+  by (metis HFinite_mult hypreal_sqrt_pow2_iff power2_eq_square)
 
 lemma HFinite_hypreal_sqrt_iff [simp]:
   "0 \<le> x \<Longrightarrow> (( *f* sqrt) x \<in> HFinite) = (x \<in> HFinite)"
