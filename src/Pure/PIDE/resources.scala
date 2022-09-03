@@ -150,8 +150,11 @@ class Resources(
   def global_theory(theory: String): Boolean =
     sessions_structure.global_theories.isDefinedAt(theory)
 
+  def literal_theory(theory: String): Boolean =
+    Long_Name.is_qualified(theory) || global_theory(theory)
+
   def theory_name(qualifier: String, theory: String): String =
-    if (Long_Name.is_qualified(theory) || global_theory(theory)) theory
+    if (literal_theory(theory)) theory
     else Long_Name.qualify(qualifier, theory)
 
   def find_theory_node(theory: String): Option[Document.Node.Name] = {
@@ -173,7 +176,7 @@ class Resources(
       find_theory_node(theory) match {
         case Some(node_name) => node_name
         case None =>
-          if (Thy_Header.is_base_name(s) && Long_Name.is_qualified(s)) loaded_theory_node(theory)
+          if (Thy_Header.is_base_name(s) && literal_theory(s)) loaded_theory_node(theory)
           else file_node(Path.explode(s).thy, dir = dir, theory = theory)
       }
     }

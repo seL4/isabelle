@@ -256,9 +256,11 @@ fun theory_qualifier theory =
     SOME qualifier => qualifier
   | NONE => Long_Name.qualifier theory);
 
+fun literal_theory theory =
+  Long_Name.is_qualified theory orelse is_some (global_theory theory);
+
 fun theory_name qualifier theory =
-  if Long_Name.is_qualified theory orelse is_some (global_theory theory)
-  then theory
+  if literal_theory theory then theory
   else Long_Name.qualify qualifier theory;
 
 fun theory_bibtex_entries theory =
