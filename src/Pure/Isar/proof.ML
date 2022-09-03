@@ -1147,13 +1147,13 @@ fun global_qed arg =
 
 fun schematic_goal state =
   let val (_, {statement = (_, _, prop), ...}) = find_goal state
-  in Goal.is_schematic prop end;
+  in Term.is_schematic prop end;
 
 fun is_relevant state =
   (case try find_goal state of
     NONE => true
   | SOME (_, {statement = (_, _, prop), goal, ...}) =>
-      Goal.is_schematic prop orelse not (Logic.protect prop aconv Thm.concl_of goal));
+      Term.is_schematic prop orelse not (Logic.protect prop aconv Thm.concl_of goal));
 
 
 (* terminal proof steps *)
