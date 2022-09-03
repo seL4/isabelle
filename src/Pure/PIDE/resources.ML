@@ -284,15 +284,16 @@ fun loaded_theory_node theory =
 fun import_name qualifier dir s =
   let
     val theory = theory_name qualifier (Thy_Header.import_name s);
-    fun theory_node () =
-      make_theory_node (File.full_path dir (thy_path (Path.expand (Path.explode s)))) theory;
+    fun theory_node path = make_theory_node path theory;
   in
-    if not (Thy_Header.is_base_name s) then theory_node ()
-    else if loaded_theory theory then loaded_theory_node theory
+    if loaded_theory theory then loaded_theory_node theory
     else
       (case find_theory_file theory of
-        SOME node_name => make_theory_node node_name theory
-      | NONE => if Long_Name.is_qualified s then loaded_theory_node theory else theory_node ())
+        SOME node_name => theory_node node_name
+      | NONE =>
+          if Thy_Header.is_base_name s andalso Long_Name.is_qualified s
+          then loaded_theory_node theory
+          else theory_node (File.full_path dir (thy_path (Path.expand (Path.explode s)))))
   end;
 
 fun check_file dir file = File.check_file (File.full_path dir file);
