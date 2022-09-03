@@ -171,6 +171,11 @@ class Resources(
 
   def import_name(qualifier: String, dir: String, s: String): Document.Node.Name = {
     val theory = theory_name(qualifier, Thy_Header.import_name(s))
+    val literal_import =
+      literal_theory(theory) && qualifier != sessions_structure.theory_qualifier(theory)
+    if (literal_import && !Thy_Header.is_base_name(s)) {
+      error("Bad import of theory from other session via file-path: " + quote(s))
+    }
     if (session_base.loaded_theory(theory)) loaded_theory_node(theory)
     else {
       find_theory_node(theory) match {

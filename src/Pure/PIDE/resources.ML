@@ -287,6 +287,11 @@ fun import_name qualifier dir s =
   let
     val theory = theory_name qualifier (Thy_Header.import_name s);
     fun theory_node path = make_theory_node path theory;
+    val literal_import = literal_theory theory andalso qualifier <> theory_qualifier theory;
+    val _ =
+      if literal_import andalso not (Thy_Header.is_base_name s) then
+        error ("Bad import of theory from other session via file-path: " ^ quote s)
+      else ();
   in
     if loaded_theory theory then loaded_theory_node theory
     else
