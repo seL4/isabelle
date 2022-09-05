@@ -100,9 +100,6 @@ fun pretty_theory verbose ctxt =
     fun pretty_abbrev (c, (ty, t)) = Pretty.block
       (prt_const (c, ty) @ [Pretty.str " \<equiv>", Pretty.brk 1, prt_term_no_vars t]);
 
-    fun pretty_axm (a, t) =
-      Pretty.block [Pretty.mark_str a, Pretty.str ":", Pretty.brk 1, prt_term_no_vars t];
-
     val tsig = Sign.tsig_of thy;
     val consts = Sign.consts_of thy;
     val {const_space, constants, constraints} = Consts.dest consts;
