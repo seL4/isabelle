@@ -992,8 +992,10 @@ fun implicit_vars props =
   let
     val var_props = take_prefix is_var props;
     val explicit_vars = fold Term.add_vars var_props [];
-    val vars = filter_out (member (op =) explicit_vars) (fold Term.add_vars props []);
-  in map (Logic.mk_term o Var) vars end;
+  in
+    fold Term.add_vars props [] |> map_filter (fn v =>
+      if member (op =) explicit_vars v then NONE else SOME (Logic.mk_term (Var v)))
+  end;
 
 fun refine_terms n =
   refine_singleton (Method.Basic (fn ctxt => CONTEXT_TACTIC o
