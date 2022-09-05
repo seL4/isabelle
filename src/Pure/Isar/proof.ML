@@ -1008,12 +1008,12 @@ fun generic_goal kind before_qed after_qed goal_ctxt goal_propss result_binds st
     val pos = Position.thread_data ();
 
     val goal_props = flat goal_propss;
-    val vars = implicit_vars goal_props;
-    val propss' = vars :: goal_propss;
-    val goal_propss = filter_out null propss';
+    val goal_vars = implicit_vars goal_props;
+    val propss' = goal_vars :: goal_propss;
+    val goal_propss' = filter_out null propss';
 
     val goal =
-      Logic.mk_conjunction_balanced (map Logic.mk_conjunction_balanced goal_propss)
+      Logic.mk_conjunction_balanced (map Logic.mk_conjunction_balanced goal_propss')
       |> Thm.cterm_of goal_ctxt
       |> Thm.weaken_sorts' goal_ctxt;
     val statement = ((kind, pos), propss', Thm.term_of goal);
@@ -1034,8 +1034,8 @@ fun generic_goal kind before_qed after_qed goal_ctxt goal_propss result_binds st
     |> set_goal (make_goal (statement, [], Goal.init goal, before_qed, after_qed'))
     |> chaining ? (`the_facts #-> using_facts)
     |> reset_facts
-    |> not (null vars) ? refine_terms (length goal_propss)
-    |> null goal_props ? refine_singleton (Method.Basic Method.assumption)
+    |> not (null goal_vars) ? refine_terms (length goal_propss')
+    |> forall null goal_propss' ? refine_singleton (Method.Basic Method.assumption)
   end;
 
 fun generic_qed state =
