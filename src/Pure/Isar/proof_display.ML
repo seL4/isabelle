@@ -258,19 +258,21 @@ fun pretty_goal_inst ctxt propss goal =
       if Envir.is_empty env then []
       else
         let
+          val Envir.Envir {tyenv, tenv, ...} = env;
+
           val prt_type = Syntax.pretty_typ ctxt;
           val prt_term = Syntax.pretty_term ctxt;
 
           fun instT v =
             let
               val T = TVar v;
-              val T' = Envir.norm_type (Envir.type_env env) T;
+              val T' = Envir.subst_type tyenv T;
             in if T = T' then NONE else SOME (prt_type T, prt_type T') end;
 
           fun inst v =
             let
               val t = Var v;
-              val t' = Envir.norm_term env t;
+              val t' = Envir.subst_term (tyenv, tenv) t;
             in if t aconv t' then NONE else SOME (prt_term t, prt_term t') end;
 
           fun prt_eq (x, y) = Pretty.block [x, Pretty.str " =", Pretty.brk 1, y];
