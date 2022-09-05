@@ -251,7 +251,7 @@ fun pretty_goal_facts _ _ NONE = []
 
 (* goal instantiation *)
 
-val show_goal_inst = Config.declare_bool ("show_goal_inst", \<^here>) (K false);
+val show_goal_inst = Attrib.setup_config_bool \<^binding>\<open>show_goal_inst\<close> (K false);
 
 fun pretty_goal_inst ctxt propss goal =
   let
@@ -328,7 +328,8 @@ val interactive =
   Config.declare_bool ("interactive", \<^here>) (K false);
 
 val show_results =
-  Config.declare_bool ("show_results", \<^here>) (fn context => Config.get_generic context interactive);
+  Attrib.setup_config_bool \<^binding>\<open>show_results\<close>
+    (fn context => Config.get_generic context interactive);
 
 fun no_print int ctxt = not (Config.get (Config.put interactive int ctxt) show_results);
 
