@@ -19,7 +19,7 @@ sig
   val string_of_rule: Proof.context -> string -> thm -> string
   val pretty_goal_header: thm -> Pretty.T
   val string_of_goal: Proof.context -> thm -> string
-  val pretty_goal_facts: Proof.context -> string -> thm list -> Pretty.T
+  val pretty_goal_facts: Proof.context -> string -> thm list option -> Pretty.T list
   val method_error: string -> Position.T ->
     {context: Proof.context, facts: thm list, goal: thm} -> 'a Seq.result
   val show_results: bool Config.T
@@ -239,11 +239,12 @@ fun string_of_goal ctxt goal =
 
 (* goal facts *)
 
-fun pretty_goal_facts ctxt s ths =
-  (Pretty.block o Pretty.fbreaks)
-    [if s = "" then Pretty.str "this:"
-     else Pretty.block [Pretty.keyword1 s, Pretty.brk 1, Pretty.str "this:"],
-     Proof_Context.pretty_fact ctxt ("", ths)];
+fun pretty_goal_facts _ _ NONE = []
+  | pretty_goal_facts ctxt s (SOME ths) =
+      (single o Pretty.block o Pretty.fbreaks)
+        [if s = "" then Pretty.str "this:"
+         else Pretty.block [Pretty.keyword1 s, Pretty.brk 1, Pretty.str "this:"],
+         Proof_Context.pretty_fact ctxt ("", ths)];
 
 
 (* method_error *)
@@ -255,7 +256,7 @@ fun method_error kind pos {context = ctxt, facts, goal} = Seq.Error (fn () =>
       "proof method" ^ Position.here pos ^ ":\n";
     val pr_facts =
       if null facts then ""
-      else Pretty.string_of (pretty_goal_facts ctxt "using" facts) ^ "\n";
+      else Pretty.string_of (Pretty.chunks (pretty_goal_facts ctxt "using" (SOME facts))) ^ "\n";
     val pr_goal = string_of_goal ctxt goal;
   in pr_header ^ pr_facts ^ pr_goal end);
 

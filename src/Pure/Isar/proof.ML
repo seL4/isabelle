@@ -369,9 +369,6 @@ fun get_goal state =
 
 local
 
-fun pretty_facts _ _ NONE = []
-  | pretty_facts ctxt s (SOME ths) = [Proof_Display.pretty_goal_facts ctxt s ths];
-
 fun pretty_sep prts [] = prts
   | pretty_sep [] prts = prts
   | pretty_sep prts1 prts2 = prts1 @ [Pretty.str ""] @ prts2;
@@ -383,10 +380,11 @@ fun pretty_state state =
     val {context = ctxt, facts, mode, goal = _} = top state;
     val verbose = Config.get ctxt Proof_Context.verbose;
 
+    val prt_facts = Proof_Display.pretty_goal_facts ctxt;
+
     fun prt_goal (SOME (_, {statement = _, using, goal, before_qed = _, after_qed = _})) =
           pretty_sep
-            (pretty_facts ctxt "using"
-              (if mode <> Backward orelse null using then NONE else SOME using))
+            (prt_facts "using" (if mode <> Backward orelse null using then NONE else SOME using))
             ([Proof_Display.pretty_goal_header goal] @ Goal_Display.pretty_goals ctxt goal)
       | prt_goal NONE = [];
 
@@ -401,8 +399,8 @@ fun pretty_state state =
       [Pretty.mark_str (position_markup, "proof"), Pretty.str (" (" ^ mode_name mode ^ ")")]] @
     (if null prt_ctxt then [] else prt_ctxt @ [Pretty.str ""]) @
     (if verbose orelse mode = Forward then
-       pretty_sep (pretty_facts ctxt "" (Option.map #1 facts)) (prt_goal (try find_goal state))
-     else if mode = Chain then pretty_facts ctxt "picking" (Option.map #1 facts)
+       pretty_sep (prt_facts "" (Option.map #1 facts)) (prt_goal (try find_goal state))
+     else if mode = Chain then prt_facts "picking" (Option.map #1 facts)
      else prt_goal (try find_goal state))
   end;
 
