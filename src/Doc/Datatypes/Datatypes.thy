@@ -3679,7 +3679,7 @@ from the \emph{Archive of Formal Proofs} to the new datatypes. Gerwin Klein and
 Lars Noschinski implemented the @{command simps_of_case} and @{command
 case_of_simps} commands. Florian Haftmann, Christian Urban, and Makarius
 Wenzel provided general advice on Isabelle and package writing. Stefan Milius
-and Lutz Schr\"oder found an elegant proof that eliminated one of the BNF
+and Lutz Schröder found an elegant proof that eliminated one of the BNF
 proof obligations. Mamoun Filali-Amine, Gerwin Klein, Andreas Lochbihler,
 Tobias Nipkow, and Christian Sternagel suggested many textual improvements to
 this tutorial.

@@ -488,7 +488,7 @@ qed (auto simp: empty_def)
 
 subsection \<open>Height-Size Relation\<close>
 
-text \<open>By Daniel St\"uwe\<close>
+text \<open>By Daniel Stüwe\<close>
 
 fun fib_tree :: "nat \<Rightarrow> unit bro" where
   "fib_tree 0 = N0" 

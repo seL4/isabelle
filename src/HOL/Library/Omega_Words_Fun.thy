@@ -31,7 +31,7 @@ text \<open>
   We represent $\omega$-words as functions from the natural numbers
   to the alphabet type. Other possible formalizations include
   a coinductive definition or a uniform encoding of finite and
-  infinite words, as studied by M\"uller et al.
+  infinite words, as studied by Müller et al.
 \<close>
 
 type_synonym

@@ -2076,7 +2076,7 @@ text \<open>
 \<close>
 
 
-section \<open>Algebraic reasoning via Gr\"obner bases\<close>
+section \<open>Algebraic reasoning via Gröbner bases\<close>
 
 text \<open>
   \begin{matharray}{rcl}
@@ -2092,7 +2092,7 @@ text \<open>
     @@{attribute (HOL) algebra} (() | 'add' | 'del')
   \<close>
 
-  \<^descr> @{method (HOL) algebra} performs algebraic reasoning via Gr\"obner bases,
+  \<^descr> @{method (HOL) algebra} performs algebraic reasoning via Gröbner bases,
   see also @{cite "Chaieb-Wenzel:2007"} and @{cite \<open>\S3.2\<close> "Chaieb-thesis"}.
   The method handles deals with two main classes of problems:
 
