@@ -506,10 +506,11 @@ fun conclude_goal ctxt goal propss =
       Conjunction.elim_balanced (length goal_propss) th
       |> map2 Conjunction.elim_balanced (map length goal_propss)
       handle THM _ => err_lost ();
+    val matcher =
+      Unify.matcher (Context.Proof ctxt)
+        (map (Soft_Type_System.purge ctxt) (flat goal_propss)) (map Thm.prop_of (flat results));
     val _ =
-      Unify.matches_list (Context.Proof ctxt)
-        (map (Soft_Type_System.purge ctxt) (flat goal_propss)) (map Thm.prop_of (flat results))
-        orelse error ("Proved a different theorem:\n" ^ Thm.string_of_thm ctxt th);
+      is_none matcher andalso error ("Proved a different theorem:\n" ^ Thm.string_of_thm ctxt th);
 
     fun recover_result ([] :: pss) thss = [] :: recover_result pss thss
       | recover_result (_ :: pss) (ths :: thss) = ths :: recover_result pss thss
