@@ -248,7 +248,7 @@ fun pretty_goal_facts _ _ NONE = []
 
 (* goal instantiation *)
 
-val show_goal_inst = Attrib.setup_config_bool \<^binding>\<open>show_goal_inst\<close> (K false);
+val show_goal_inst = Attrib.setup_option_bool ("show_goal_inst", \<^here>);
 
 fun pretty_goal_inst ctxt propss goal =
   let

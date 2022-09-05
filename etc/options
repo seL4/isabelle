@@ -59,6 +59,8 @@ option show_question_marks : bool = true
 
 option show_consts : bool = false
   -- "show constants with types when printing proof state"
+option show_goal_inst : bool = false
+  -- "show goal instantiation (for schematic goals)"
 option show_main_goal : bool = false
   -- "show main goal when printing proof state"
 option goals_limit : int = 10
