@@ -276,9 +276,11 @@ lift_definition division_segment_integer :: "integer \<Rightarrow> integer"
 declare division_segment_integer.rep_eq [simp]
 
 instance
-  by (standard; transfer)
-    (use mult_le_mono2 [of 1] in \<open>auto simp add: sgn_mult_abs abs_mult sgn_mult abs_mod_less sgn_mod nat_mult_distrib
-     division_segment_mult division_segment_mod intro: div_eqI\<close>)
+  apply (standard; transfer)
+  apply (use mult_le_mono2 [of 1] in \<open>auto simp add: sgn_mult_abs abs_mult sgn_mult abs_mod_less sgn_mod nat_mult_distrib
+     division_segment_mult division_segment_mod\<close>)
+  apply (simp add: division_segment_int_def split: if_splits)
+  done
 
 end
 

@@ -605,203 +605,233 @@ end
 subsection \<open>Uniquely determined division\<close>
 
 class unique_euclidean_semiring = euclidean_semiring + 
-  assumes euclidean_size_mult: "euclidean_size (a * b) = euclidean_size a * euclidean_size b"
-  fixes division_segment :: "'a \<Rightarrow> 'a"
-  assumes is_unit_division_segment [simp]: "is_unit (division_segment a)"
+  assumes euclidean_size_mult: \<open>euclidean_size (a * b) = euclidean_size a * euclidean_size b\<close>
+  fixes division_segment :: \<open>'a \<Rightarrow> 'a\<close>
+  assumes is_unit_division_segment [simp]: \<open>is_unit (division_segment a)\<close>
     and division_segment_mult:
-    "a \<noteq> 0 \<Longrightarrow> b \<noteq> 0 \<Longrightarrow> division_segment (a * b) = division_segment a * division_segment b"
+    \<open>a \<noteq> 0 \<Longrightarrow> b \<noteq> 0 \<Longrightarrow> division_segment (a * b) = division_segment a * division_segment b\<close>
     and division_segment_mod:
-    "b \<noteq> 0 \<Longrightarrow> \<not> b dvd a \<Longrightarrow> division_segment (a mod b) = division_segment b"
+    \<open>b \<noteq> 0 \<Longrightarrow> \<not> b dvd a \<Longrightarrow> division_segment (a mod b) = division_segment b\<close>
   assumes div_bounded:
-    "b \<noteq> 0 \<Longrightarrow> division_segment r = division_segment b
+    \<open>b \<noteq> 0 \<Longrightarrow> division_segment r = division_segment b
     \<Longrightarrow> euclidean_size r < euclidean_size b
-    \<Longrightarrow> (q * b + r) div b = q"
+    \<Longrightarrow> (q * b + r) div b = q\<close>
 begin
 
 lemma division_segment_not_0 [simp]:
-  "division_segment a \<noteq> 0"
-  using is_unit_division_segment [of a] is_unitE [of "division_segment a"] by blast
+  \<open>division_segment a \<noteq> 0\<close>
+  using is_unit_division_segment [of a] is_unitE [of \<open>division_segment a\<close>] by blast
 
-lemma divmod_cases [case_names divides remainder by0]:
-  obtains 
-    (divides) q where "b \<noteq> 0"
-      and "a div b = q"
-      and "a mod b = 0"
-      and "a = q * b"
-  | (remainder) q r where "b \<noteq> 0"
-      and "division_segment r = division_segment b"
-      and "euclidean_size r < euclidean_size b"
-      and "r \<noteq> 0"
-      and "a div b = q"
-      and "a mod b = r"
-      and "a = q * b + r"
-  | (by0) "b = 0"
-proof (cases "b = 0")
+lemma euclidean_relationI [case_names by0 divides euclidean_relation]:
+  \<open>(a div b, a mod b) = (q, r)\<close>
+    if by0: \<open>b = 0 \<Longrightarrow> q = 0 \<and> r = a\<close>
+    and divides: \<open>b \<noteq> 0 \<Longrightarrow> b dvd a \<Longrightarrow> r = 0 \<and> a = q * b\<close>
+    and euclidean_relation: \<open>b \<noteq> 0 \<Longrightarrow> \<not> b dvd a \<Longrightarrow> division_segment r = division_segment b
+      \<and> euclidean_size r < euclidean_size b \<and> a = q * b + r\<close>
+proof (cases \<open>b = 0\<close>)
   case True
-  then show thesis
-  by (rule by0)
+  with by0 show ?thesis
+    by simp
 next
   case False
-  show thesis
-  proof (cases "b dvd a")
+  show ?thesis
+  proof (cases \<open>b dvd a\<close>)
     case True
-    then obtain q where "a = b * q" ..
     with \<open>b \<noteq> 0\<close> divides
-    show thesis
-      by (simp add: ac_simps)
+    show ?thesis
+      by simp
   next
     case False
-    then have "a mod b \<noteq> 0"
-      by (simp add: mod_eq_0_iff_dvd)
-    moreover from \<open>b \<noteq> 0\<close> \<open>\<not> b dvd a\<close> have "division_segment (a mod b) = division_segment b"
-      by (rule division_segment_mod)
-    moreover have "euclidean_size (a mod b) < euclidean_size b"
-      using \<open>b \<noteq> 0\<close> by (rule mod_size_less)
-    moreover have "a = a div b * b + a mod b"
+    with \<open>b \<noteq> 0\<close> euclidean_relation
+    have \<open>division_segment r = division_segment b\<close>
+      \<open>euclidean_size r < euclidean_size b\<close> \<open>a = q * b + r\<close>
+      by simp_all
+    from \<open>b \<noteq> 0\<close> \<open>division_segment r = division_segment b\<close>
+      \<open>euclidean_size r < euclidean_size b\<close>
+    have \<open>(q * b + r) div b = q\<close>
+      by (rule div_bounded)
+    with \<open>a = q * b + r\<close>
+    have \<open>q = a div b\<close>
+      by simp
+    from \<open>a = q * b + r\<close>
+    have \<open>a div b * b + a mod b = q * b + r\<close>
       by (simp add: div_mult_mod_eq)
-    ultimately show thesis
-      using \<open>b \<noteq> 0\<close> by (blast intro!: remainder)
+    with \<open>q = a div b\<close>
+    have \<open>q * b + a mod b = q * b + r\<close>
+      by simp
+    then have \<open>r = a mod b\<close>
+      by simp
+    with \<open>q = a div b\<close>
+    show ?thesis
+      by simp
   qed
-qed
-
-lemma div_eqI:
-  "a div b = q" if "b \<noteq> 0" "division_segment r = division_segment b"
-    "euclidean_size r < euclidean_size b" "q * b + r = a"
-proof -
-  from that have "(q * b + r) div b = q"
-    by (auto intro: div_bounded)
-  with that show ?thesis
-    by simp
-qed
-
-lemma mod_eqI:
-  "a mod b = r" if "b \<noteq> 0" "division_segment r = division_segment b"
-    "euclidean_size r < euclidean_size b" "q * b + r = a" 
-proof -
-  from that have "a div b = q"
-    by (rule div_eqI)
-  moreover have "a div b * b + a mod b = a"
-    by (fact div_mult_mod_eq)
-  ultimately have "a div b * b + a mod b = a div b * b + r"
-    using \<open>q * b + r = a\<close> by simp
-  then show ?thesis
-    by simp
 qed
 
 subclass euclidean_semiring_cancel
 proof
-  show "(a + c * b) div b = c + a div b" if "b \<noteq> 0" for a b c
-  proof (cases a b rule: divmod_cases)
+  fix a b c
+  assume \<open>b \<noteq> 0\<close>
+  have \<open>((a + c * b) div b, (a + c * b) mod b) = (c + a div b, a mod b)\<close>
+  proof (cases b \<open>c + a div b\<close> \<open>a mod b\<close> \<open>a + c * b\<close> rule: euclidean_relationI)
     case by0
-    with \<open>b \<noteq> 0\<close> show ?thesis
+    with \<open>b \<noteq> 0\<close>
+    show ?case
       by simp
   next
-    case (divides q)
-    then show ?thesis
+    case divides
+    then show ?case
+      by (simp add: algebra_simps dvd_add_left_iff)
+  next
+    case euclidean_relation
+    then have \<open>\<not> b dvd a\<close>
+      by (simp add: dvd_add_left_iff)
+    have \<open>a mod b + (b * c + b * (a div b)) = b * c + ((a div b) * b + a mod b)\<close>
       by (simp add: ac_simps)
-  next
-    case (remainder q r)
-    then show ?thesis
-      by (auto intro: div_eqI simp add: algebra_simps)
+    with \<open>b \<noteq> 0\<close> have *: \<open>a mod b + (b * c + b * (a div b)) = b * c + a\<close>
+      by (simp add: div_mult_mod_eq)
+    from \<open>\<not> b dvd a\<close> euclidean_relation show ?case
+      by (simp_all add: algebra_simps division_segment_mod mod_size_less *)
   qed
+  then show \<open>(a + c * b) div b = c + a div b\<close>
+    by simp
 next
-  show"(c * a) div (c * b) = a div b" if "c \<noteq> 0" for a b c
-  proof (cases a b rule: divmod_cases)
+  fix a b c
+  assume \<open>c \<noteq> 0\<close>
+  have \<open>((c * a) div (c * b), (c * a) mod (c * b)) = (a div b, c * (a mod b))\<close>
+  proof (cases \<open>c * b\<close> \<open>a div b\<close> \<open>c * (a mod b)\<close> \<open>c * a\<close> rule: euclidean_relationI)
     case by0
-    then show ?thesis
+    with \<open>c \<noteq> 0\<close> show ?case
       by simp
   next
-    case (divides q)
-    with \<open>c \<noteq> 0\<close> show ?thesis
-      by (simp add: mult.left_commute [of c])
+    case divides
+    then show ?case
+      by (auto simp add: algebra_simps)
   next
-    case (remainder q r)
-    from \<open>b \<noteq> 0\<close> \<open>c \<noteq> 0\<close> have "b * c \<noteq> 0"
-      by simp
-    from remainder \<open>c \<noteq> 0\<close>
-    have "division_segment (r * c) = division_segment (b * c)"
-      and "euclidean_size (r * c) < euclidean_size (b * c)"
-      by (simp_all add: division_segment_mult division_segment_mod euclidean_size_mult)
-    with remainder show ?thesis
-      by (auto intro!: div_eqI [of _ "c * (a mod b)"] simp add: algebra_simps)
-        (use \<open>b * c \<noteq> 0\<close> in simp)
+    case euclidean_relation
+    then have \<open>b \<noteq> 0\<close> \<open>a mod b \<noteq> 0\<close>
+      by (simp_all add: mod_eq_0_iff_dvd)
+    have \<open>c * (a mod b) + b * (c * (a div b)) = c * ((a div b) * b + a mod b)\<close>
+      by (simp add: algebra_simps)
+    with \<open>b \<noteq> 0\<close> have *: \<open>c * (a mod b) + b * (c * (a div b)) = c * a\<close>
+      by (simp add: div_mult_mod_eq)
+    from \<open>b \<noteq> 0\<close> \<open>c \<noteq> 0\<close> have \<open>euclidean_size c * euclidean_size (a mod b)
+      < euclidean_size c * euclidean_size b\<close>
+      using mod_size_less [of b a] by simp
+    with euclidean_relation \<open>b \<noteq> 0\<close> \<open>a mod b \<noteq> 0\<close> show ?case
+      by (simp add: algebra_simps division_segment_mult division_segment_mod euclidean_size_mult *)
   qed
+  then show \<open>(c * a) div (c * b) = a div b\<close>
+    by simp
+qed
+
+lemma div_eq_0_iff:
+  \<open>a div b = 0 \<longleftrightarrow> euclidean_size a < euclidean_size b \<or> b = 0\<close> (is "_ \<longleftrightarrow> ?P")
+  if \<open>division_segment a = division_segment b\<close>
+proof (cases \<open>a = 0 \<or> b = 0\<close>)
+  case True
+  then show ?thesis by auto
+next
+  case False
+  then have \<open>a \<noteq> 0\<close> \<open>b \<noteq> 0\<close>
+    by simp_all
+  have \<open>a div b = 0 \<longleftrightarrow> euclidean_size a < euclidean_size b\<close>
+  proof
+    assume \<open>a div b = 0\<close>
+    then have \<open>a mod b = a\<close>
+      using div_mult_mod_eq [of a b] by simp
+    with \<open>b \<noteq> 0\<close> mod_size_less [of b a]
+    show \<open>euclidean_size a < euclidean_size b\<close>
+      by simp
+  next
+    assume \<open>euclidean_size a < euclidean_size b\<close>
+    have \<open>(a div b, a mod b) = (0, a)\<close>
+    proof (cases b 0 a a rule: euclidean_relationI)
+      case by0
+      show ?case
+        by simp
+    next
+      case divides
+      with \<open>euclidean_size a < euclidean_size b\<close> show ?case
+        using dvd_imp_size_le [of b a] \<open>a \<noteq> 0\<close> by simp
+    next
+      case euclidean_relation
+      with \<open>euclidean_size a < euclidean_size b\<close> that
+      show ?case
+        by simp
+    qed
+    then show \<open>a div b = 0\<close>
+      by simp
+  qed
+  with \<open>b \<noteq> 0\<close> show ?thesis
+    by simp
 qed
 
 lemma div_mult1_eq:
-  "(a * b) div c = a * (b div c) + a * (b mod c) div c"
-proof (cases "a * (b mod c)" c rule: divmod_cases)
-  case (divides q)
-  have "a * b = a * (b div c * c + b mod c)"
-    by (simp add: div_mult_mod_eq)
-  also have "\<dots> = (a * (b div c) + q) * c"
-    using divides by (simp add: algebra_simps)
-  finally have "(a * b) div c = \<dots> div c"
-    by simp
-  with divides show ?thesis
-    by simp
-next
-  case (remainder q r)
-  from remainder(1-3) show ?thesis
-  proof (rule div_eqI)
-    have "a * b = a * (b div c * c + b mod c)"
-      by (simp add: div_mult_mod_eq)
-    also have "\<dots> = a * c * (b div c) + q * c + r"
-      using remainder by (simp add: algebra_simps)
-    finally show "(a * (b div c) + a * (b mod c) div c) * c + r = a * b"
-      using remainder(5-7) by (simp add: algebra_simps)
+  \<open>(a * b) div c = a * (b div c) + a * (b mod c) div c\<close>
+proof -
+  have *: \<open>(a * b) mod c + (a * (c * (b div c)) + c * (a * (b mod c) div c)) = a * b\<close> (is \<open>?A + (?B + ?C) = _\<close>)
+  proof -
+    have \<open>?A = a * (b mod c) mod c\<close>
+      by (simp add: mod_mult_right_eq)
+    then have \<open>?C + ?A = a * (b mod c)\<close>
+      by (simp add: mult_div_mod_eq)
+    then have \<open>?B + (?C + ?A) = a * (c * (b div c) + (b mod c))\<close>
+      by (simp add: algebra_simps)
+    also have \<open>\<dots> = a * b\<close>
+      by (simp add: mult_div_mod_eq)
+    finally show ?thesis
+      by (simp add: algebra_simps)
   qed
-next
-  case by0
+  have \<open>((a * b) div c, (a * b) mod c) = (a * (b div c) + a * (b mod c) div c, (a * b) mod c)\<close>
+  proof (cases c \<open>a * (b div c) + a * (b mod c) div c\<close> \<open>(a * b) mod c\<close> \<open>a * b\<close> rule: euclidean_relationI)
+    case by0
+    then show ?case by simp
+  next
+    case divides
+    with * show ?case
+      by (simp add: algebra_simps)
+  next
+    case euclidean_relation
+    with * show ?case
+      by (simp add: division_segment_mod mod_size_less algebra_simps)
+  qed
   then show ?thesis
     by simp
 qed
 
 lemma div_add1_eq:
-  "(a + b) div c = a div c + b div c + (a mod c + b mod c) div c"
-proof (cases "a mod c + b mod c" c rule: divmod_cases)
-  case (divides q)
-  have "a + b = (a div c * c + a mod c) + (b div c * c + b mod c)"
-    using mod_mult_div_eq [of a c] mod_mult_div_eq [of b c] by (simp add: ac_simps)
-  also have "\<dots> = (a div c + b div c) * c + (a mod c + b mod c)"
-    by (simp add: algebra_simps)
-  also have "\<dots> = (a div c + b div c + q) * c"
-    using divides by (simp add: algebra_simps)
-  finally have "(a + b) div c = (a div c + b div c + q) * c div c"
-    by simp
-  with divides show ?thesis
-    by simp
-next
-  case (remainder q r)
-  from remainder(1-3) show ?thesis
-  proof (rule div_eqI)
-    have "(a div c + b div c + q) * c + r + (a mod c + b mod c) =
-        (a div c * c + a mod c) + (b div c * c + b mod c) + q * c + r"
-      by (simp add: algebra_simps)
-    also have "\<dots> = a + b + (a mod c + b mod c)"
-      by (simp add: div_mult_mod_eq remainder) (simp add: ac_simps)
-    finally show "(a div c + b div c + (a mod c + b mod c) div c) * c + r = a + b"
-      using remainder by simp
+  \<open>(a + b) div c = a div c + b div c + (a mod c + b mod c) div c\<close>
+proof -
+  have *: \<open>(a + b) mod c + (c * (a div c) + (c * (b div c) + c * ((a mod c + b mod c) div c))) = a + b\<close>
+    (is \<open>?A + (?B + (?C + ?D)) = _\<close>)
+  proof -
+    have \<open>?A + (?B + (?C + ?D)) = ?A + ?D + (?B + ?C)\<close>
+      by (simp add: ac_simps)
+    also have \<open>?A + ?D = (a mod c + b mod c) mod c + ?D\<close>
+      by (simp add: mod_add_eq)
+    also have \<open>\<dots> = a mod c + b mod c\<close>
+      by (simp add: mod_mult_div_eq)
+    finally have \<open>?A + (?B + (?C + ?D)) = (a mod c + ?B) + (b mod c + ?C)\<close>
+      by (simp add: ac_simps)
+    then show ?thesis
+      by (simp add: mod_mult_div_eq)
   qed
-next
-  case by0
+  have \<open>((a + b) div c, (a + b) mod c) = (a div c + b div c + (a mod c + b mod c) div c, (a + b) mod c)\<close>
+  proof (cases c \<open>a div c + b div c + (a mod c + b mod c) div c\<close> \<open>(a + b) mod c\<close> \<open>a + b\<close> rule: euclidean_relationI)
+    case by0
+    then show ?case
+      by simp
+  next
+    case divides
+    with * show ?case
+      by (simp add: algebra_simps)
+  next
+    case euclidean_relation
+    with * show ?case
+      by (simp add: division_segment_mod mod_size_less algebra_simps)
+  qed
   then show ?thesis
     by simp
-qed
-
-lemma div_eq_0_iff:
-  "a div b = 0 \<longleftrightarrow> euclidean_size a < euclidean_size b \<or> b = 0" (is "_ \<longleftrightarrow> ?P")
-  if "division_segment a = division_segment b"
-proof
-  assume ?P
-  with that show "a div b = 0"
-    by (cases "b = 0") (auto intro: div_eqI)
-next
-  assume "a div b = 0"
-  then have "a mod b = a"
-    using div_mult_mod_eq [of a b] by simp
-  with mod_size_less [of b a] show ?P
-    by auto
 qed
 
 end
@@ -819,19 +849,19 @@ subsection \<open>Euclidean division on \<^typ>\<open>nat\<close>\<close>
 instantiation nat :: normalization_semidom
 begin
 
-definition normalize_nat :: "nat \<Rightarrow> nat"
-  where [simp]: "normalize = (id :: nat \<Rightarrow> nat)"
+definition normalize_nat :: \<open>nat \<Rightarrow> nat\<close>
+  where [simp]: \<open>normalize = (id :: nat \<Rightarrow> nat)\<close>
 
-definition unit_factor_nat :: "nat \<Rightarrow> nat"
-  where "unit_factor n = (if n = 0 then 0 else 1 :: nat)"
+definition unit_factor_nat :: \<open>nat \<Rightarrow> nat\<close>
+  where \<open>unit_factor n = of_bool (n > 0)\<close> for n :: nat
 
 lemma unit_factor_simps [simp]:
-  "unit_factor 0 = (0::nat)"
-  "unit_factor (Suc n) = 1"
+  \<open>unit_factor 0 = (0::nat)\<close>
+  \<open>unit_factor (Suc n) = 1\<close>
   by (simp_all add: unit_factor_nat_def)
 
-definition divide_nat :: "nat \<Rightarrow> nat \<Rightarrow> nat"
-  where "m div n = (if n = 0 then 0 else Max {k::nat. k * n \<le> m})"
+definition divide_nat :: \<open>nat \<Rightarrow> nat \<Rightarrow> nat\<close>
+  where \<open>m div n = (if n = 0 then 0 else Max {k. k * n \<le> m})\<close> for m n :: nat
 
 instance
   by standard (auto simp add: divide_nat_def ac_simps unit_factor_nat_def intro: Max_eqI)
@@ -853,14 +883,14 @@ lemma coprime_common_divisor_nat: "coprime a b \<Longrightarrow> x dvd a \<Longr
 instantiation nat :: unique_euclidean_semiring
 begin
 
-definition euclidean_size_nat :: "nat \<Rightarrow> nat"
-  where [simp]: "euclidean_size_nat = id"
+definition euclidean_size_nat :: \<open>nat \<Rightarrow> nat\<close>
+  where [simp]: \<open>euclidean_size_nat = id\<close>
 
-definition division_segment_nat :: "nat \<Rightarrow> nat"
-  where [simp]: "division_segment_nat n = 1"
+definition division_segment_nat :: \<open>nat \<Rightarrow> nat\<close>
+  where [simp]: \<open>division_segment n = 1\<close> for n :: nat
 
-definition modulo_nat :: "nat \<Rightarrow> nat \<Rightarrow> nat"
-  where "m mod n = m - (m div n * (n::nat))"
+definition modulo_nat :: \<open>nat \<Rightarrow> nat \<Rightarrow> nat\<close>
+  where \<open>m mod n = m - (m div n * n)\<close> for m n :: nat
 
 instance proof
   fix m n :: nat
@@ -938,12 +968,60 @@ qed simp_all
 end
 
 lemma div_nat_eqI:
-  "m div n = q" if "n * q \<le> m" and "m < n * Suc q" for m n q :: nat
-  by (rule div_eqI [of _ "m - n * q"]) (use that in \<open>simp_all add: algebra_simps\<close>)
+  \<open>m div n = q\<close> if \<open>n * q \<le> m\<close> and \<open>m < n * Suc q\<close> for m n q :: nat
+proof -
+  have \<open>(m div n, m mod n) = (q, m - n * q)\<close>
+  proof (cases n q \<open>m - n * q\<close>  m rule: euclidean_relationI)
+    case by0
+    with that show ?case
+      by simp
+  next
+    case divides
+    from \<open>n dvd m\<close> obtain s where \<open>m = n * s\<close> ..
+    with \<open>n \<noteq> 0\<close> that have \<open>s < Suc q\<close>
+      by (simp only: mult_less_cancel1)
+    with \<open>m = n * s\<close> \<open>n \<noteq> 0\<close> that have \<open>q = s\<close>
+      by simp
+    with \<open>m = n * s\<close> show ?case
+      by (simp add: ac_simps)
+  next
+    case euclidean_relation
+    with that show ?case
+      by (simp add: ac_simps)
+  qed
+  then show ?thesis
+    by simp
+qed
 
 lemma mod_nat_eqI:
-  "m mod n = r" if "r < n" and "r \<le> m" and "n dvd m - r" for m n r :: nat
-  by (rule mod_eqI [of _ _ "(m - r) div n"]) (use that in \<open>simp_all add: algebra_simps\<close>)
+  \<open>m mod n = r\<close> if \<open>r < n\<close> and \<open>r \<le> m\<close> and \<open>n dvd m - r\<close> for m n r :: nat
+proof -
+  have \<open>(m div n, m mod n) = ((m - r) div n, r)\<close>
+  proof (cases n \<open>(m - r) div n\<close> r  m rule: euclidean_relationI)
+    case by0
+    with that show ?case
+      by simp
+  next
+    case divides
+    from that dvd_minus_add [of r \<open>m\<close> 1 n]
+    have \<open>n dvd m + (n - r)\<close>
+      by simp
+    with divides have \<open>n dvd n - r\<close>
+      by (simp add: dvd_add_right_iff)
+    then have \<open>n \<le> n - r\<close>
+      by (rule dvd_imp_le) (use \<open>r < n\<close> in simp)
+    with \<open>n \<noteq> 0\<close> have \<open>r = 0\<close>
+      by simp
+    with \<open>n \<noteq> 0\<close> that show ?case
+      by simp
+  next
+    case euclidean_relation
+    with that show ?case
+      by (simp add: ac_simps)
+  qed
+  then show ?thesis
+    by simp
+qed
 
 text \<open>Tool support\<close>
 
@@ -1029,7 +1107,7 @@ lemma
   div_less [simp]: "m div n = 0"
   and mod_less [simp]: "m mod n = m"
   if "m < n" for m n :: nat
-  using that by (auto intro: div_eqI mod_eqI) 
+  using that by (auto intro: div_nat_eqI mod_nat_eqI)
  
 lemma split_div:
   \<open>P (m div n) \<longleftrightarrow>
@@ -1176,53 +1254,42 @@ lemma Suc_0_mod_eq [simp]:
   "Suc 0 mod n = of_bool (n \<noteq> Suc 0)"
   by (cases n) simp_all
 
-context
-  fixes m n q :: nat
-begin
-
-private lemma eucl_rel_mult2:
-  "m mod n + n * (m div n mod q) < n * q"
-  if "n > 0" and "q > 0"
-proof -
-  from \<open>n > 0\<close> have "m mod n < n"
-    by (rule mod_less_divisor)
-  from \<open>q > 0\<close> have "m div n mod q < q"
-    by (rule mod_less_divisor)
-  then obtain s where "q = Suc (m div n mod q + s)"
-    by (blast dest: less_imp_Suc_add)
-  moreover have "m mod n + n * (m div n mod q) < n * Suc (m div n mod q + s)"
-    using \<open>m mod n < n\<close> by (simp add: add_mult_distrib2)
-  ultimately show ?thesis
-    by simp
-qed
-
 lemma div_mult2_eq:
-  "m div (n * q) = (m div n) div q"
-proof (cases "n = 0 \<or> q = 0")
-  case True
-  then show ?thesis
-    by auto
-next
-  case False
-  with eucl_rel_mult2 show ?thesis
-    by (auto intro: div_eqI [of _ "n * (m div n mod q) + m mod n"]
-      simp add: algebra_simps add_mult_distrib2 [symmetric])
+    \<open>m div (n * q) = (m div n) div q\<close> (is ?Q)
+  and mod_mult2_eq:
+    \<open>m mod (n * q) = n * (m div n mod q) + m mod n\<close> (is ?R)
+  for m n q :: nat
+proof -
+  have \<open>(m div (n * q), m mod (n * q)) = ((m div n) div q, n * (m div n mod q) + m mod n)\<close>
+  proof (cases \<open>n * q\<close> \<open>(m div n) div q\<close> \<open>n * (m div n mod q) + m mod n\<close> m rule: euclidean_relationI)
+    case by0
+    then show ?case
+      by auto
+  next
+    case divides
+    from \<open>n * q dvd m\<close> obtain t where \<open>m = n * q * t\<close> ..
+    with \<open>n * q \<noteq> 0\<close> show ?case
+      by (simp add: algebra_simps)
+  next
+    case euclidean_relation
+    then have \<open>n > 0\<close> \<open>q > 0\<close>
+      by simp_all
+    from \<open>n > 0\<close> have \<open>m mod n < n\<close>
+      by (rule mod_less_divisor)
+    from \<open>q > 0\<close> have \<open>m div n mod q < q\<close>
+      by (rule mod_less_divisor)
+    then obtain s where \<open>q = Suc (m div n mod q + s)\<close>
+      by (blast dest: less_imp_Suc_add)
+    moreover have \<open>m mod n + n * (m div n mod q) < n * Suc (m div n mod q + s)\<close>
+      using \<open>m mod n < n\<close> by (simp add: add_mult_distrib2)
+    ultimately have \<open>m mod n + n * (m div n mod q) < n * q\<close>
+      by simp
+    then show ?case
+      by (simp add: algebra_simps flip: add_mult_distrib2)
+  qed
+  then show ?Q and ?R
+    by simp_all
 qed
-
-lemma mod_mult2_eq:
-  "m mod (n * q) = n * (m div n mod q) + m mod n"
-proof (cases "n = 0 \<or> q = 0")
-  case True
-  then show ?thesis
-    by auto
-next
-  case False
-  with eucl_rel_mult2 show ?thesis
-    by (auto intro: mod_eqI [of _ _ "(m div n) div q"]
-      simp add: algebra_simps add_mult_distrib2 [symmetric])
-qed
-
-end
 
 lemma div_le_mono:
   "m div k \<le> n div k" if "m \<le> n" for m n k :: nat
@@ -1864,42 +1931,54 @@ lemma one_div_2_pow_eq [simp]:
   using div_mult_mod_eq [of 1 "2 ^ n"] by auto
 
 lemma div_mult2_eq':
-  "a div (of_nat m * of_nat n) = a div of_nat m div of_nat n"
-proof (cases a "of_nat m * of_nat n" rule: divmod_cases)
-  case (divides q)
-  then show ?thesis
-    using nonzero_mult_div_cancel_right [of "of_nat m" "q * of_nat n"]
-    by (simp add: ac_simps)
-next
-  case (remainder q r)
-  then have "division_segment r = 1"
-    using division_segment_of_nat [of "m * n"] by simp
-  with division_segment_euclidean_size [of r]
-  have "of_nat (euclidean_size r) = r"
-    by simp
-  have "a mod (of_nat m * of_nat n) div (of_nat m * of_nat n) = 0"
-    by simp
-  with remainder(6) have "r div (of_nat m * of_nat n) = 0"
-    by simp
-  with \<open>of_nat (euclidean_size r) = r\<close>
-  have "of_nat (euclidean_size r) div (of_nat m * of_nat n) = 0"
-    by simp
-  then have "of_nat (euclidean_size r div (m * n)) = 0"
-    by (simp add: of_nat_div)
-  then have "of_nat (euclidean_size r div m div n) = 0"
-    by (simp add: div_mult2_eq)
-  with \<open>of_nat (euclidean_size r) = r\<close> have "r div of_nat m div of_nat n = 0"
-    by (simp add: of_nat_div)
-  with remainder(1)
-  have "q = (r div of_nat m + q * of_nat n * of_nat m div of_nat m) div of_nat n"
-    by simp
-  with remainder(5) remainder(7) show ?thesis
-    using div_plus_div_distrib_dvd_right [of "of_nat m" "q * (of_nat m * of_nat n)" r]
-    by (simp add: ac_simps)
-next
-  case by0
+  \<open>a div (of_nat m * of_nat n) = a div of_nat m div of_nat n\<close>
+proof (cases \<open>m = 0 \<or> n = 0\<close>)
+  case True
   then show ?thesis
     by auto
+next
+  case False
+  then have \<open>m > 0\<close> \<open>n > 0\<close>
+    by simp_all
+  show ?thesis
+  proof (cases \<open>of_nat m * of_nat n dvd a\<close>)
+    case True
+    then obtain b where \<open>a = (of_nat m * of_nat n) * b\<close> ..
+    then have \<open>a = of_nat m * (of_nat n * b)\<close>
+      by (simp add: ac_simps)
+    then show ?thesis
+      by simp
+  next
+    case False
+    define q where \<open>q = a div (of_nat m * of_nat n)\<close>
+    define r where \<open>r = a mod (of_nat m * of_nat n)\<close>
+    from \<open>m > 0\<close> \<open>n > 0\<close> \<open>\<not> of_nat m * of_nat n dvd a\<close> r_def have "division_segment r = 1"
+      using division_segment_of_nat [of "m * n"] by (simp add: division_segment_mod)
+    with division_segment_euclidean_size [of r]
+    have "of_nat (euclidean_size r) = r"
+      by simp
+    have "a mod (of_nat m * of_nat n) div (of_nat m * of_nat n) = 0"
+      by simp
+    with \<open>m > 0\<close> \<open>n > 0\<close> r_def have "r div (of_nat m * of_nat n) = 0"
+      by simp
+    with \<open>of_nat (euclidean_size r) = r\<close>
+    have "of_nat (euclidean_size r) div (of_nat m * of_nat n) = 0"
+      by simp
+    then have "of_nat (euclidean_size r div (m * n)) = 0"
+      by (simp add: of_nat_div)
+    then have "of_nat (euclidean_size r div m div n) = 0"
+      by (simp add: div_mult2_eq)
+    with \<open>of_nat (euclidean_size r) = r\<close> have "r div of_nat m div of_nat n = 0"
+      by (simp add: of_nat_div)
+    with \<open>m > 0\<close> \<open>n > 0\<close> q_def
+    have "q = (r div of_nat m + q * of_nat n * of_nat m div of_nat m) div of_nat n"
+      by simp
+    moreover have \<open>a = q * (of_nat m * of_nat n) + r\<close>
+      by (simp add: q_def r_def div_mult_mod_eq)
+    ultimately show \<open>a div (of_nat m * of_nat n) = a div of_nat m div of_nat n\<close>
+      using q_def [symmetric] div_plus_div_distrib_dvd_right [of \<open>of_nat m\<close> \<open>q * (of_nat m * of_nat n)\<close> r]
+      by (simp add: ac_simps)
+  qed
 qed
 
 lemma mod_mult2_eq':
@@ -2033,31 +2112,45 @@ lemma mod_neg_neg_trivial [simp]:
   using that by (simp add: mod_eq_self_iff_div_eq_0)
 
 lemma div_pos_neg_trivial:
-  "k div l = - 1" if "0 < k" and "k + l \<le> 0" for k l :: int
-proof (cases \<open>l = - k\<close>)
+  \<open>k div l = - 1\<close> if \<open>0 < k\<close> and \<open>k + l \<le> 0\<close> for k l :: int
+proof (cases \<open>l dvd k\<close>)
   case True
-  with that show ?thesis
-    by (simp add: divide_int_def)
+  then obtain j where \<open>k = l * j\<close> ..
+  from that have \<open>l < 0\<close>
+    by simp
+  with \<open>k = l * j\<close> \<open>0 < k\<close> have \<open>j \<le> - 1\<close>
+    by (simp add: zero_less_mult_iff)
+  moreover from \<open>k + l \<le> 0\<close> \<open>k = l * j\<close> have \<open>l * (j + 1) \<le> 0\<close>
+    by (simp add: algebra_simps)
+  with \<open>l < 0\<close> have \<open>- 1 \<le> j\<close>
+    by (simp add: mult_le_0_iff)
+  ultimately have \<open>j = - 1\<close>
+    by (rule order.antisym)
+  with \<open>k = l * j\<close> \<open>l < 0\<close> show ?thesis
+    by (simp add: dvd_neg_div)
 next
   case False
-  show ?thesis
-    apply (rule div_eqI [of _ "k + l"])
-    using False that apply (simp_all add: division_segment_int_def)
-    done
+  have \<open>k + l < 0\<close>
+  proof (rule ccontr)
+    assume \<open>\<not> k + l < 0\<close>
+    with \<open>k + l \<le> 0\<close> have \<open>k + l = 0\<close>
+      by simp
+    then have \<open>k = - l\<close>
+      by simp
+    then have \<open>l dvd k\<close>
+      by simp
+    with \<open>\<not> l dvd k\<close> show False ..
+  qed
+  with that \<open>\<not> l dvd k\<close> show ?thesis
+    by (simp add: div_eq_div_abs [of k l])
 qed
 
 lemma mod_pos_neg_trivial:
-  "k mod l = k + l" if "0 < k" and "k + l \<le> 0" for k l :: int
-proof (cases \<open>l = - k\<close>)
-  case True
-  with that show ?thesis
-    by (simp add: divide_int_def)
-next
-  case False
-  show ?thesis
-    apply (rule mod_eqI [of _ _ \<open>- 1\<close>])
-    using False that apply (simp_all add: division_segment_int_def)
-    done
+  \<open>k mod l = k + l\<close> if \<open>0 < k\<close> and \<open>k + l \<le> 0\<close> for k l :: int
+proof -
+  from that have \<open>k mod l = k div l * l + k mod l + l\<close>
+    by (simp add: div_pos_neg_trivial)
+  then show ?thesis by simp
 qed
 
 text \<open>There is neither \<open>div_neg_pos_trivial\<close> nor \<open>mod_neg_pos_trivial\<close>
