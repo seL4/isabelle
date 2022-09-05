@@ -382,10 +382,17 @@ fun pretty_state state =
 
     val prt_facts = Proof_Display.pretty_goal_facts ctxt;
 
-    fun prt_goal (SOME (_, {statement = _, using, goal, before_qed = _, after_qed = _})) =
-          pretty_sep
-            (prt_facts "using" (if mode <> Backward orelse null using then NONE else SOME using))
-            ([Proof_Display.pretty_goal_header goal] @ Goal_Display.pretty_goals ctxt goal)
+    fun prt_goal (SOME (_, goal)) =
+          let
+            val {statement = (_, propss, _), using, goal, before_qed = _, after_qed = _} = goal;
+            val head = [Proof_Display.pretty_goal_header goal];
+            val body = Goal_Display.pretty_goals ctxt goal;
+            val foot = Proof_Display.pretty_goal_inst ctxt propss goal;
+          in
+            pretty_sep
+              (prt_facts "using" (if mode <> Backward orelse null using then NONE else SOME using))
+              (head @ body @ foot)
+          end
       | prt_goal NONE = [];
 
     val prt_ctxt =

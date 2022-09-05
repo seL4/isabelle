@@ -20,6 +20,8 @@ sig
   val pretty_goal_header: thm -> Pretty.T
   val string_of_goal: Proof.context -> thm -> string
   val pretty_goal_facts: Proof.context -> string -> thm list option -> Pretty.T list
+  val show_goal_inst: bool Config.T
+  val pretty_goal_inst: Proof.context -> term list list -> thm -> Pretty.T list
   val method_error: string -> Position.T ->
     {context: Proof.context, facts: thm list, goal: thm} -> 'a Seq.result
   val show_results: bool Config.T
@@ -245,6 +247,63 @@ fun pretty_goal_facts _ _ NONE = []
         [if s = "" then Pretty.str "this:"
          else Pretty.block [Pretty.keyword1 s, Pretty.brk 1, Pretty.str "this:"],
          Proof_Context.pretty_fact ctxt ("", ths)];
+
+
+(* goal instantiation *)
+
+val show_goal_inst = Config.declare_bool ("show_goal_inst", \<^here>) (K false);
+
+fun pretty_goal_inst ctxt propss goal =
+  let
+    val title = "instantiation:";
+
+    fun prt_inst env =
+      if Envir.is_empty env then []
+      else
+        let
+          val prt_type = Syntax.pretty_typ ctxt;
+          val prt_term = Syntax.pretty_term ctxt;
+
+          fun instT v =
+            let
+              val T = TVar v;
+              val T' = Envir.norm_type (Envir.type_env env) T;
+            in if T = T' then NONE else SOME (prt_type T, prt_type T') end;
+
+          fun inst v =
+            let
+              val t = Var v;
+              val t' = Envir.norm_term env t;
+            in if t aconv t' then NONE else SOME (prt_term t, prt_term t') end;
+
+          fun prt_eq (x, y) = Pretty.block [x, Pretty.str " =", Pretty.brk 1, y];
+
+          val prts =
+            ((fold o fold) Term.add_tvars propss [] |> sort Term_Ord.tvar_ord |> map_filter instT) @
+            ((fold o fold) Term.add_vars propss [] |> sort Term_Ord.var_ord |> map_filter inst);
+        in if null prts then [] else [Pretty.big_list title (map prt_eq prts)] end;
+
+    fun prt_failed prt = [Pretty.block [Pretty.str title, Pretty.brk 1, prt]];
+
+    fun goal_matcher () =
+      let
+        val concl = Logic.unprotect (Thm.concl_of goal);
+        val goal_propss = filter_out null propss;
+        val results =
+          Logic.dest_conjunction_balanced (length goal_propss) concl
+          |> map2 Logic.dest_conjunction_balanced (map length goal_propss);
+      in
+        Unify.matcher (Context.Proof ctxt)
+          (map (Soft_Type_System.purge ctxt) (flat goal_propss)) (flat results)
+      end;
+  in
+    if Config.get ctxt show_goal_inst then
+      (case Exn.interruptible_capture goal_matcher () of
+        Exn.Res (SOME env) => prt_inst env
+      | Exn.Res NONE => prt_failed (Pretty.mark_str (Markup.bad (), "FAILED"))
+      | Exn.Exn exn => prt_failed (Runtime.pretty_exn exn))
+    else []
+  end;
 
 
 (* method_error *)

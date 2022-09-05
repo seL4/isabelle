@@ -601,6 +601,7 @@ val _ = Theory.setup
   register_config_bool Thm.show_consts #>
   register_config_bool Thm.show_hyps #>
   register_config_bool Thm.show_tags #>
+  register_config_bool Proof_Display.show_goal_inst #>
   register_config_bool Proof_Display.show_results #>
   register_config_bool Pattern.unify_trace_failure #>
   register_config_int Unify.trace_bound #>
