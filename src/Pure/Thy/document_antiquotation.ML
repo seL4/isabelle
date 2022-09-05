@@ -43,15 +43,15 @@ struct
 
 (* options *)
 
-val thy_output_display = Attrib.setup_option_bool ("thy_output_display", \<^here>);
-val thy_output_break = Attrib.setup_option_bool ("thy_output_break", \<^here>);
-val thy_output_cartouche = Attrib.setup_option_bool ("thy_output_cartouche", \<^here>);
-val thy_output_quotes = Attrib.setup_option_bool ("thy_output_quotes", \<^here>);
-val thy_output_margin = Attrib.setup_option_int ("thy_output_margin", \<^here>);
-val thy_output_indent = Attrib.setup_option_int ("thy_output_indent", \<^here>);
-val thy_output_source = Attrib.setup_option_bool ("thy_output_source", \<^here>);
-val thy_output_source_cartouche = Attrib.setup_option_bool ("thy_output_source_cartouche", \<^here>);
-val thy_output_modes = Attrib.setup_option_string ("thy_output_modes", \<^here>);
+val thy_output_display = Attrib.setup_option_bool (\<^system_option>\<open>thy_output_display\<close>, \<^here>);
+val thy_output_break = Attrib.setup_option_bool (\<^system_option>\<open>thy_output_break\<close>, \<^here>);
+val thy_output_cartouche = Attrib.setup_option_bool (\<^system_option>\<open>thy_output_cartouche\<close>, \<^here>);
+val thy_output_quotes = Attrib.setup_option_bool (\<^system_option>\<open>thy_output_quotes\<close>, \<^here>);
+val thy_output_margin = Attrib.setup_option_int (\<^system_option>\<open>thy_output_margin\<close>, \<^here>);
+val thy_output_indent = Attrib.setup_option_int (\<^system_option>\<open>thy_output_indent\<close>, \<^here>);
+val thy_output_source = Attrib.setup_option_bool (\<^system_option>\<open>thy_output_source\<close>, \<^here>);
+val thy_output_source_cartouche = Attrib.setup_option_bool (\<^system_option>\<open>thy_output_source_cartouche\<close>, \<^here>);
+val thy_output_modes = Attrib.setup_option_string (\<^system_option>\<open>thy_output_modes\<close>, \<^here>);
 
 
 (* blanks *)
