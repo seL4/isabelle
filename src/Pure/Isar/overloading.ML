@@ -53,7 +53,7 @@ fun map_improvable_syntax f =
   Improvable_Syntax.map (fn {syntax, secondary_pass} => {syntax = f syntax, secondary_pass = secondary_pass});
 
 val mark_passed =
-  Improvable_Syntax.map (fn {syntax, secondary_pass} => {syntax = syntax, secondary_pass = true});
+  Improvable_Syntax.map (fn {syntax, secondary_pass = _} => {syntax = syntax, secondary_pass = true});
 
 fun improve_term_check ts ctxt =
   let
