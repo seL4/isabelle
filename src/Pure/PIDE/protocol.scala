@@ -165,7 +165,7 @@ object Protocol {
     }
 
   def is_inlined(msg: XML.Tree): Boolean =
-    !(is_result(msg) || is_tracing(msg) || is_state(msg))
+    !(is_result(msg) || is_tracing(msg))
 
   def is_exported(msg: XML.Tree): Boolean =
     is_writeln(msg) || is_warning(msg) || is_legacy(msg) || is_error(msg)
