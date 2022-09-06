@@ -628,10 +628,22 @@ fun setmp_thread_position (Transition {pos, ...}) f x =
 
 local
 
+fun show_state (st', opt_err) =
+  let
+    val enabled = is_none opt_err andalso Options.default_bool \<^system_option>\<open>show_states\<close>;
+    val opt_err' =
+      if enabled then
+        (case Exn.capture (Output.state o string_of_state) st' of
+          Exn.Exn exn => SOME exn
+        | Exn.Res _ => opt_err)
+      else opt_err;
+  in (st', opt_err') end;
+
 fun app int (tr as Transition {name, markers, trans, ...}) =
   setmp_thread_position tr
     (Timing.protocol (name_of tr) (pos_of tr) (apply_trans int name markers trans)
-      ##> Option.map (fn UNDEF => ERROR (type_error tr) | exn => exn));
+      ##> Option.map (fn UNDEF => ERROR (type_error tr) | exn => exn)
+      #> show_state);
 
 in
 

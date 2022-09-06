@@ -66,6 +66,10 @@ option show_main_goal : bool = false
 option goals_limit : int = 10
   -- "maximum number of subgoals to be printed"
 
+option show_states : bool = false
+  -- "show toplevel states even if outside of interactive mode"
+
+
 option names_long : bool = false
   -- "show fully qualified names"
 option names_short : bool = false

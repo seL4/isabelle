@@ -21,6 +21,21 @@ This allows to associate additional information as follows:
   - "chapter_definition NAME description TEXT" to provide a description
   for presentation purposes
 
+* System option "show_states" controls output of toplevel command states
+(notably proof states) in batch-builds; in interactive mode this is
+always done on demand. The option is relevant for tools that operate on
+exported PIDE markup, e.g. document presentation or diagnostics. For
+example:
+
+  isabelle build -o show_states FOL-ex
+  isabelle log -v -U FOL-ex
+
+Option "show_states" is also the default for the configuration option
+"show_results" within the formal context.
+
+Note that printing intermediate states may cause considerable slowdown
+in building a session.
+
 
 *** Isabelle/VSCode Prover IDE ***
 
