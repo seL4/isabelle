@@ -1048,10 +1048,15 @@ fun generic_goal kind before_qed after_qed goal_ctxt goal_propss result_binds st
 
 fun generic_qed state =
   let
-    val (goal_ctxt, {statement = (_, propss, _), goal, after_qed, ...}) =
-      current_goal state;
+    val (goal_ctxt, goal_config) = current_goal state;
+    val {statement = (_, propss, _), goal, after_qed, ...} = goal_config;
     val results = tl (conclude_goal goal_ctxt goal propss);
-  in state |> close_block |> pair (after_qed, (goal_ctxt, results)) end;
+    val res =
+     {goal_ctxt = goal_ctxt,
+      goal_config = goal_config,
+      after_qed = after_qed,
+      results = results};
+  in state |> close_block |> pair res end;
 
 end;
 
@@ -1114,8 +1119,8 @@ fun local_goal print_results prep_statement prep_att strict_asm
   end;
 
 fun local_qeds arg =
-  end_proof false arg
-  #> Seq.map_result (generic_qed #-> (fn ((after_qed, _), results) => after_qed results));
+  end_proof false arg #> Seq.map_result
+    (generic_qed #-> (fn {after_qed, goal_ctxt, results, ...} => #1 after_qed (goal_ctxt, results)));
 
 fun local_qed arg =
   local_qeds (Position.none, arg) #> Seq.the_result finished_goal_error;
@@ -1143,12 +1148,21 @@ val theorem = global_goal Proof_Context.cert_propp;
 val theorem_cmd = global_goal Proof_Context.read_propp;
 
 fun global_qeds arg =
-  end_proof true arg
-  #> Seq.map_result (generic_qed #> (fn (((_, after_qed), results), state) =>
-    after_qed results (context_of state)));
+  end_proof true arg #> Seq.map_result
+    (generic_qed #> (fn ({goal_ctxt, goal_config, after_qed, results}, state) =>
+      ((goal_ctxt, Goal goal_config), #2 after_qed (goal_ctxt, results) (context_of state))));
+
+fun global_goal_inst ((goal_ctxt, Goal goal), result_ctxt: context) =
+  let
+    val {statement = (_, propss, _), goal, ...} = goal;
+    val _ =
+      (case Proof_Display.pretty_goal_inst goal_ctxt propss goal of
+        [] => ()
+      | prts => Output.state (Pretty.string_of (Pretty.chunks prts)));
+  in result_ctxt end;
 
 fun global_qed arg =
-  global_qeds (Position.none, arg) #> Seq.the_result finished_goal_error;
+  global_qeds (Position.none, arg) #> Seq.the_result finished_goal_error #> global_goal_inst;
 
 
 (* relevant proof states *)
@@ -1192,10 +1206,12 @@ val local_default_proof = local_terminal_proof ((Method.standard_text, Position.
 val local_immediate_proof = local_terminal_proof ((Method.this_text, Position.no_range), NONE);
 val local_done_proof = terminal_proof local_qeds (Method.done_text, Position.no_range) (NONE, false);
 
-fun global_terminal_proof (text, opt_text) = terminal_proof global_qeds text (opt_text, true);
+fun global_terminal_proof (text, opt_text) =
+  terminal_proof global_qeds text (opt_text, true) #> global_goal_inst;
 val global_default_proof = global_terminal_proof ((Method.standard_text, Position.no_range), NONE);
 val global_immediate_proof = global_terminal_proof ((Method.this_text, Position.no_range), NONE);
-val global_done_proof = terminal_proof global_qeds (Method.done_text, Position.no_range) (NONE, false);
+val global_done_proof =
+  terminal_proof global_qeds (Method.done_text, Position.no_range) (NONE, false) #> global_goal_inst;
 
 end;
 
