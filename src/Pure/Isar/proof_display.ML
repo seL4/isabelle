@@ -252,7 +252,7 @@ val show_goal_inst = Attrib.setup_option_bool (\<^system_option>\<open>show_goal
 
 fun pretty_goal_inst ctxt propss goal =
   let
-    val title = "instantiation:";
+    val title = "goal instantiation:";
 
     fun prt_inst env =
       if Envir.is_empty env then []
@@ -275,12 +275,12 @@ fun pretty_goal_inst ctxt propss goal =
               val t' = Envir.subst_term (tyenv, tenv) (Envir.subst_term_types tyenv t);
             in if t aconv t' then NONE else SOME (prt_term t, prt_term t') end;
 
-          fun prt_eq (x, y) = Pretty.block [x, Pretty.str " =", Pretty.brk 1, y];
+          fun inst_pair (x, y) = Pretty.item [x, Pretty.str " \<leadsto>", Pretty.brk 1, y];
 
           val prts =
             ((fold o fold) Term.add_tvars propss [] |> sort Term_Ord.tvar_ord |> map_filter instT) @
             ((fold o fold) Term.add_vars propss [] |> sort Term_Ord.var_ord |> map_filter inst);
-        in if null prts then [] else [Pretty.big_list title (map prt_eq prts)] end;
+        in if null prts then [] else [Pretty.big_list title (map inst_pair prts)] end;
 
     fun prt_failed prt = [Pretty.block [Pretty.str title, Pretty.brk 1, prt]];
 
