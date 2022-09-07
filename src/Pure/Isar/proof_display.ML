@@ -272,7 +272,7 @@ fun pretty_goal_inst ctxt propss goal =
           fun inst v =
             let
               val t = Var v;
-              val t' = Envir.subst_term (tyenv, tenv) t;
+              val t' = Envir.subst_term (tyenv, tenv) (Envir.subst_term_types tyenv t);
             in if t aconv t' then NONE else SOME (prt_term t, prt_term t') end;
 
           fun prt_eq (x, y) = Pretty.block [x, Pretty.str " =", Pretty.brk 1, y];
