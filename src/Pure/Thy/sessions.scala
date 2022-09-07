@@ -193,8 +193,9 @@ object Sessions {
 
             val imported_files = if (inlined_files) dependencies.imported_files else Nil
 
-            if (list_files)
+            if (list_files) {
               progress.echo(cat_lines(session_files.map(_.implode).sorted.map("  " + _)))
+            }
 
             if (check_keywords.nonEmpty) {
               Check_Keywords.check_keywords(
@@ -207,8 +208,9 @@ object Sessions {
 
               def node(name: Document.Node.Name): Graph_Display.Node = {
                 val qualifier = sessions_structure.theory_qualifier(name)
-                if (qualifier == info.name)
+                if (qualifier == info.name) {
                   Graph_Display.Node(name.theory_base_name, "theory." + name.theory)
+                }
                 else session_node(qualifier)
               }
 
@@ -590,9 +592,10 @@ object Sessions {
         for { (_, thys) <- entry.theories; ((thy, pos), global) <- thys if global }
         yield {
           val thy_name = Path.explode(thy).file_name
-          if (Long_Name.is_qualified(thy_name))
+          if (Long_Name.is_qualified(thy_name)) {
             error("Bad qualified name for global theory " +
               quote(thy_name) + Position.here(pos))
+          }
           else thy_name
         }
 
@@ -664,9 +667,10 @@ object Sessions {
         edges: Info => Iterable[String]
       ) : Graph[String, Info] = {
         def add_edge(pos: Position.T, name: String, g: Graph[String, Info], parent: String) = {
-          if (!g.defined(parent))
+          if (!g.defined(parent)) {
             error("Bad " + kind + " session " + quote(parent) + " for " +
               quote(name) + Position.here(pos))
+          }
 
           try { g.add_edge_acyclic(parent, name) }
           catch {
@@ -685,9 +689,10 @@ object Sessions {
       val info_graph =
         infos.foldLeft(Graph.string[Info]) {
           case (graph, info) =>
-            if (graph.defined(info.name))
+            if (graph.defined(info.name)) {
               error("Duplicate session " + quote(info.name) + Position.here(info.pos) +
                 Position.here(graph.get_node(info.name).pos))
+            }
             else graph.new_node(info.name, info)
         }
       val build_graph = add_edges(info_graph, "parent", _.parent)
@@ -784,8 +789,9 @@ object Sessions {
 
     def check_sessions(names: List[String]): Unit = {
       val bad_sessions = SortedSet(names.filterNot(defined): _*).toList
-      if (bad_sessions.nonEmpty)
+      if (bad_sessions.nonEmpty) {
         error("Undefined session(s): " + commas_quote(bad_sessions))
+      }
     }
 
     def check_sessions(sel: Selection): Unit =

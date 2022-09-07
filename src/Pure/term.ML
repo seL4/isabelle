@@ -114,6 +114,7 @@ sig
   val exists_type: (typ -> bool) -> term -> bool
   val exists_subterm: (term -> bool) -> term -> bool
   val exists_Const: (string * typ -> bool) -> term -> bool
+  val is_schematic: term -> bool
 end;
 
 signature TERM =
@@ -949,6 +950,10 @@ fun exists_subterm P =
   in ex end;
 
 fun exists_Const P = exists_subterm (fn Const c => P c | _ => false);
+
+fun is_schematic t =
+  exists_subterm is_Var t orelse
+  (exists_type o exists_subtype) is_TVar t;
 
 
 (* contraction *)

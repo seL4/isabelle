@@ -30,19 +30,19 @@ class JEdit_Editor extends Editor[View] {
   override def flush(): Unit = flush_edits()
   def purge(): Unit = flush_edits(purge = true)
 
-  private val delay1_flush =
+  private val delay_input: Delay =
     Delay.last(PIDE.options.seconds("editor_input_delay"), gui = true) { flush() }
 
-  private val delay2_flush =
+  private val delay_generated_input: Delay =
     Delay.first(PIDE.options.seconds("editor_generated_input_delay"), gui = true) { flush() }
 
-  def invoke(): Unit = delay1_flush.invoke()
-  def invoke_generated(): Unit = { delay1_flush.invoke(); delay2_flush.invoke() }
+  def invoke(): Unit = delay_input.invoke()
+  def invoke_generated(): Unit = { delay_input.invoke(); delay_generated_input.invoke() }
 
   def shutdown(): Unit =
     GUI_Thread.require {
-      delay1_flush.revoke()
-      delay2_flush.revoke()
+      delay_input.revoke()
+      delay_generated_input.revoke()
       Document_Model.flush_edits(hidden = false, purge = false)
     }
 

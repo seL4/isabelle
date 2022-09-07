@@ -245,12 +245,14 @@ fun filter_used_facts keep_chained used =
     (if keep_chained then is_fact_chained else K false))
 
 val max_fact_instances = 10 (* FUDGE *)
+val max_schematics = 20 (* FUDGE *)
 
 fun repair_monomorph_context max_iters best_max_iters max_new_instances best_max_new_instances =
   Config.put Monomorph.max_rounds (max_iters |> the_default best_max_iters)
   #> Config.put Monomorph.max_new_instances
        (max_new_instances |> the_default best_max_new_instances)
   #> Config.put Monomorph.max_thm_instances max_fact_instances
+  #> Config.put Monomorph.max_schematics max_schematics
 
 fun supported_provers ctxt =
   let

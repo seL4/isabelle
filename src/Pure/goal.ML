@@ -25,7 +25,6 @@ sig
   val skip_proofs_enabled: unit -> bool
   val future_result: Proof.context -> thm future -> term -> thm
   val prove_internal: Proof.context -> cterm list -> cterm -> (thm list -> tactic) -> thm
-  val is_schematic: term -> bool
   val prove_common: Proof.context -> int option -> string list -> term list -> term list ->
     ({prems: thm list, context: Proof.context} -> tactic) -> thm list
   val prove_future: Proof.context -> string list -> term list -> term ->
@@ -81,8 +80,7 @@ fun conclude th = Drule.comp_no_flatten (th, Thm.nprems_of th) 1 Drule.protectD;
 *)
 fun check_finished ctxt th =
   if Thm.no_prems th then th
-  else
-    raise THM ("Proof failed.\n" ^ Pretty.string_of (Goal_Display.pretty_goal ctxt th), 0, [th]);
+  else raise THM ("Proof failed.\n" ^ Goal_Display.string_of_goal ctxt th, 0, [th]);
 
 fun finish ctxt = check_finished ctxt #> conclude;
 
@@ -162,15 +160,11 @@ fun prove_internal ctxt casms cprop tac =
 
 (* prove variations *)
 
-fun is_schematic t =
-  Term.exists_subterm Term.is_Var t orelse
-  Term.exists_type (Term.exists_subtype Term.is_TVar) t;
-
 fun prove_common ctxt fork_pri xs asms props tac =
   let
     val thy = Proof_Context.theory_of ctxt;
 
-    val schematic = exists is_schematic props;
+    val schematic = exists Term.is_schematic props;
     val immediate = is_none fork_pri;
     val future = Future.proofs_enabled 1 andalso not (Proofterm.proofs_enabled ());
     val skip = not immediate andalso not schematic andalso future andalso skip_proofs_enabled ();

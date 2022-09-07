@@ -66,6 +66,10 @@ presented session.
 
 *** HOL ***
 
+* HOL record: new simproc that sorts update expressions, guarded by
+configuration option "record_sort_updates" (default: false). Some
+examples are in theory "HOL-Examples.Records".
+
 * HOL-Algebra: Facts renamed to avoid fact name clashes on interpretation:
 
     is_ring ~> ring_axioms

@@ -114,155 +114,6 @@ proof (rule zdiv_mono2_neg_lemma)
 qed (use assms in auto)
 
 
-subsubsection \<open>Computing \<open>div\<close> and \<open>mod\<close> with shifting\<close>
-
-inductive eucl_rel_int :: "int \<Rightarrow> int \<Rightarrow> int \<times> int \<Rightarrow> bool"
-  where eucl_rel_int_by0: "eucl_rel_int k 0 (0, k)"
-  | eucl_rel_int_dividesI: "l \<noteq> 0 \<Longrightarrow> k = q * l \<Longrightarrow> eucl_rel_int k l (q, 0)"
-  | eucl_rel_int_remainderI: "sgn r = sgn l \<Longrightarrow> \<bar>r\<bar> < \<bar>l\<bar>
-      \<Longrightarrow> k = q * l + r \<Longrightarrow> eucl_rel_int k l (q, r)"
-
-lemma eucl_rel_int_iff:    
-  "eucl_rel_int k l (q, r) \<longleftrightarrow> 
-    k = l * q + r \<and>
-     (if 0 < l then 0 \<le> r \<and> r < l else if l < 0 then l < r \<and> r \<le> 0 else q = 0)"
-  by (cases "r = 0")
-    (auto elim!: eucl_rel_int.cases intro: eucl_rel_int_by0 eucl_rel_int_dividesI eucl_rel_int_remainderI
-    simp add: ac_simps sgn_1_pos sgn_1_neg)
-
-lemma unique_quotient:
-  "eucl_rel_int a b (q, r) \<Longrightarrow> eucl_rel_int a b (q', r') \<Longrightarrow> q = q'"
-  apply (rule order_antisym)
-   apply (simp_all add: eucl_rel_int_iff linorder_neq_iff split: if_split_asm)
-     apply (blast intro: order_eq_refl [THEN unique_quotient_lemma] order_eq_refl [THEN unique_quotient_lemma_neg] sym)+
-  done
-
-lemma unique_remainder:
-  assumes "eucl_rel_int a b (q, r)"
-    and "eucl_rel_int a b (q', r')"
-  shows "r = r'"
-proof -
-  have "q = q'"
-    using assms by (blast intro: unique_quotient)
-  then show "r = r'"
-    using assms by (simp add: eucl_rel_int_iff)
-qed
-
-lemma eucl_rel_int:
-  "eucl_rel_int k l (k div l, k mod l)"
-proof (cases k rule: int_cases3)
-  case zero
-  then show ?thesis
-    by (simp add: eucl_rel_int_iff divide_int_def modulo_int_def)
-next
-  case (pos n)
-  then show ?thesis
-    using div_mult_mod_eq [of n]
-    by (cases l rule: int_cases3)
-      (auto simp del: of_nat_mult of_nat_add
-        simp add: mod_greater_zero_iff_not_dvd of_nat_mult [symmetric] of_nat_add [symmetric] algebra_simps
-        eucl_rel_int_iff divide_int_def modulo_int_def)
-next
-  case (neg n)
-  then show ?thesis
-    using div_mult_mod_eq [of n]
-    by (cases l rule: int_cases3)
-      (auto simp del: of_nat_mult of_nat_add
-        simp add: mod_greater_zero_iff_not_dvd of_nat_mult [symmetric] of_nat_add [symmetric] algebra_simps
-        eucl_rel_int_iff divide_int_def modulo_int_def)
-qed
-
-lemma divmod_int_unique:
-  assumes "eucl_rel_int k l (q, r)"
-  shows div_int_unique: "k div l = q" and mod_int_unique: "k mod l = r"
-  using assms eucl_rel_int [of k l]
-  using unique_quotient [of k l] unique_remainder [of k l]
-  by auto
-
-lemma div_pos_geq:
-  fixes k l :: int
-  assumes "0 < l" and "l \<le> k"
-  shows "k div l = (k - l) div l + 1"
-proof -
-  have "k = (k - l) + l" by simp
-  then obtain j where k: "k = j + l" ..
-  with assms show ?thesis by (simp add: div_add_self2)
-qed
-
-lemma mod_pos_geq:
-  fixes k l :: int
-  assumes "0 < l" and "l \<le> k"
-  shows "k mod l = (k - l) mod l"
-proof -
-  have "k = (k - l) + l" by simp
-  then obtain j where k: "k = j + l" ..
-  with assms show ?thesis by simp
-qed
-
-lemma pos_eucl_rel_int_mult_2:
-  assumes "0 \<le> b"
-  assumes "eucl_rel_int a b (q, r)"
-  shows "eucl_rel_int (1 + 2*a) (2*b) (q, 1 + 2*r)"
-  using assms unfolding eucl_rel_int_iff by auto
-
-lemma neg_eucl_rel_int_mult_2:
-  assumes "b \<le> 0"
-  assumes "eucl_rel_int (a + 1) b (q, r)"
-  shows "eucl_rel_int (1 + 2*a) (2*b) (q, 2*r - 1)"
-  using assms unfolding eucl_rel_int_iff by auto
-
-text\<open>computing div by shifting\<close>
-
-lemma pos_zdiv_mult_2: "(0::int) \<le> a ==> (1 + 2*b) div (2*a) = b div a"
-  using pos_eucl_rel_int_mult_2 [OF _ eucl_rel_int]
-  by (rule div_int_unique)
-
-lemma neg_zdiv_mult_2:
-  assumes A: "a \<le> (0::int)" shows "(1 + 2*b) div (2*a) = (b+1) div a"
-  using neg_eucl_rel_int_mult_2 [OF A eucl_rel_int]
-  by (rule div_int_unique)
-
-lemma zdiv_numeral_Bit0 [simp]:
-  "numeral (Num.Bit0 v) div numeral (Num.Bit0 w) =
-    numeral v div (numeral w :: int)"
-  unfolding numeral.simps unfolding mult_2 [symmetric]
-  by (rule div_mult_mult1, simp)
-
-lemma zdiv_numeral_Bit1 [simp]:
-  "numeral (Num.Bit1 v) div numeral (Num.Bit0 w) =
-    (numeral v div (numeral w :: int))"
-  unfolding numeral.simps
-  unfolding mult_2 [symmetric] add.commute [of _ 1]
-  by (rule pos_zdiv_mult_2, simp)
-
-lemma pos_zmod_mult_2:
-  fixes a b :: int
-  assumes "0 \<le> a"
-  shows "(1 + 2 * b) mod (2 * a) = 1 + 2 * (b mod a)"
-  using pos_eucl_rel_int_mult_2 [OF assms eucl_rel_int]
-  by (rule mod_int_unique)
-
-lemma neg_zmod_mult_2:
-  fixes a b :: int
-  assumes "a \<le> 0"
-  shows "(1 + 2 * b) mod (2 * a) = 2 * ((b + 1) mod a) - 1"
-  using neg_eucl_rel_int_mult_2 [OF assms eucl_rel_int]
-  by (rule mod_int_unique)
-
-lemma zmod_numeral_Bit0 [simp]:
-  "numeral (Num.Bit0 v) mod numeral (Num.Bit0 w) =
-    (2::int) * (numeral v mod numeral w)"
-  unfolding numeral_Bit0 [of v] numeral_Bit0 [of w]
-  unfolding mult_2 [symmetric] by (rule mod_mult_mult1)
-
-lemma zmod_numeral_Bit1 [simp]:
-  "numeral (Num.Bit1 v) mod numeral (Num.Bit0 w) =
-    2 * (numeral v mod numeral w) + (1::int)"
-  unfolding numeral_Bit1 [of v] numeral_Bit0 [of w]
-  unfolding mult_2 [symmetric] add.commute [of _ 1]
-  by (rule pos_zmod_mult_2, simp)
-
-  
 subsubsection \<open>Quotients of Signs\<close>
 
 lemma div_eq_minus1: "0 < b \<Longrightarrow> - 1 div b = - 1" for b :: int
@@ -402,6 +253,29 @@ next
     sgn_mult sgn_1_pos sgn_1_neg sgn_eq_0_iff nonneg1_imp_zdiv_pos_iff * dest: sgn_not_eq_imp)
 qed
 
+lemma
+  fixes a b q r :: int
+  assumes \<open>a = b * q + r\<close> \<open>0 \<le> r\<close> \<open>r < b\<close>
+  shows int_div_pos_eq:
+      \<open>a div b = q\<close> (is ?Q)
+    and int_mod_pos_eq:
+      \<open>a mod b = r\<close> (is ?R)
+proof -
+  from assms have \<open>(a div b, a mod b) = (q, r)\<close>
+    by (cases b q r a rule: euclidean_relationI)
+      (auto simp add: division_segment_int_def ac_simps dvd_add_left_iff dest: zdvd_imp_le)
+  then show ?Q and ?R
+    by simp_all
+qed
+
+lemma int_div_neg_eq:
+  \<open>a div b = q\<close> if \<open>a = b * q + r\<close> \<open>r \<le> 0\<close> \<open>b < r\<close> for a b q r :: int
+  using that int_div_pos_eq [of a \<open>- b\<close> \<open>- q\<close> \<open>- r\<close>] by simp_all
+
+lemma int_mod_neg_eq:
+  \<open>a mod b = r\<close> if \<open>a = b * q + r\<close> \<open>r \<le> 0\<close> \<open>b < r\<close> for a b q r :: int
+  using that int_div_neg_eq [of a b q r] by simp
+
 
 subsubsection \<open>Further properties\<close>
 
@@ -429,21 +303,6 @@ proof (cases "l > 0")
 qed auto
 
 text \<open>Simplify expressions in which div and mod combine numerical constants\<close>
-
-lemma int_div_pos_eq: "\<lbrakk>(a::int) = b * q + r; 0 \<le> r; r < b\<rbrakk> \<Longrightarrow> a div b = q"
-  by (rule div_int_unique [of a b q r]) (simp add: eucl_rel_int_iff)
-
-lemma int_div_neg_eq: "\<lbrakk>(a::int) = b * q + r; r \<le> 0; b < r\<rbrakk> \<Longrightarrow> a div b = q"
-  by (rule div_int_unique [of a b q r],
-    simp add: eucl_rel_int_iff)
-
-lemma int_mod_pos_eq: "\<lbrakk>(a::int) = b * q + r; 0 \<le> r; r < b\<rbrakk> \<Longrightarrow> a mod b = r"
-  by (rule mod_int_unique [of a b q r],
-    simp add: eucl_rel_int_iff)
-
-lemma int_mod_neg_eq: "\<lbrakk>(a::int) = b * q + r; r \<le> 0; b < r\<rbrakk> \<Longrightarrow> a mod b = r"
-  by (rule mod_int_unique [of a b q r],
-    simp add: eucl_rel_int_iff)
 
 lemma abs_div: "(y::int) dvd x \<Longrightarrow> \<bar>x div y\<bar> = \<bar>x\<bar> div \<bar>y\<bar>"
   unfolding dvd_def by (cases "y=0") (auto simp add: abs_mult)
@@ -541,6 +400,157 @@ next
 qed
 
 
+subsubsection \<open>Uniqueness rules\<close>
+
+inductive eucl_rel_int :: "int \<Rightarrow> int \<Rightarrow> int \<times> int \<Rightarrow> bool"
+  where eucl_rel_int_by0: "eucl_rel_int k 0 (0, k)"
+  | eucl_rel_int_dividesI: "l \<noteq> 0 \<Longrightarrow> k = q * l \<Longrightarrow> eucl_rel_int k l (q, 0)"
+  | eucl_rel_int_remainderI: "sgn r = sgn l \<Longrightarrow> \<bar>r\<bar> < \<bar>l\<bar>
+      \<Longrightarrow> k = q * l + r \<Longrightarrow> eucl_rel_int k l (q, r)"
+
+lemma eucl_rel_int_iff:    
+  "eucl_rel_int k l (q, r) \<longleftrightarrow> 
+    k = l * q + r \<and>
+     (if 0 < l then 0 \<le> r \<and> r < l else if l < 0 then l < r \<and> r \<le> 0 else q = 0)"
+  by (cases "r = 0")
+    (auto elim!: eucl_rel_int.cases intro: eucl_rel_int_by0 eucl_rel_int_dividesI eucl_rel_int_remainderI
+    simp add: ac_simps sgn_1_pos sgn_1_neg)
+
+lemma eucl_rel_int:
+  "eucl_rel_int k l (k div l, k mod l)"
+proof (cases k rule: int_cases3)
+  case zero
+  then show ?thesis
+    by (simp add: eucl_rel_int_iff divide_int_def modulo_int_def)
+next
+  case (pos n)
+  then show ?thesis
+    using div_mult_mod_eq [of n]
+    by (cases l rule: int_cases3)
+      (auto simp del: of_nat_mult of_nat_add
+        simp add: mod_greater_zero_iff_not_dvd of_nat_mult [symmetric] of_nat_add [symmetric] algebra_simps
+        eucl_rel_int_iff divide_int_def modulo_int_def)
+next
+  case (neg n)
+  then show ?thesis
+    using div_mult_mod_eq [of n]
+    by (cases l rule: int_cases3)
+      (auto simp del: of_nat_mult of_nat_add
+        simp add: mod_greater_zero_iff_not_dvd of_nat_mult [symmetric] of_nat_add [symmetric] algebra_simps
+        eucl_rel_int_iff divide_int_def modulo_int_def)
+qed
+
+lemma unique_quotient:
+  \<open>q = q'\<close> if \<open>eucl_rel_int a b (q, r)\<close> \<open>eucl_rel_int a b (q', r')\<close>
+  apply (rule order_antisym)
+  using that
+   apply (simp_all add: eucl_rel_int_iff linorder_neq_iff split: if_split_asm)
+     apply (blast intro: order_eq_refl [THEN unique_quotient_lemma] order_eq_refl [THEN unique_quotient_lemma_neg] sym)+
+  done
+
+lemma unique_remainder:
+  \<open>r = r'\<close> if \<open>eucl_rel_int a b (q, r)\<close> \<open>eucl_rel_int a b (q', r')\<close>
+proof -
+  have \<open>q = q'\<close>
+    using that by (blast intro: unique_quotient)
+  then show ?thesis
+    using that by (simp add: eucl_rel_int_iff)
+qed
+
+lemma divmod_int_unique:
+  assumes \<open>eucl_rel_int k l (q, r)\<close>
+  shows div_int_unique: \<open>k div l = q\<close> and mod_int_unique: \<open>k mod l = r\<close>
+  using assms eucl_rel_int [of k l]
+  using unique_quotient [of k l] unique_remainder [of k l]
+  by auto
+
+
+subsubsection \<open>Computing \<open>div\<close> and \<open>mod\<close> with shifting\<close>
+
+lemma div_pos_geq:
+  fixes k l :: int
+  assumes "0 < l" and "l \<le> k"
+  shows "k div l = (k - l) div l + 1"
+proof -
+  have "k = (k - l) + l" by simp
+  then obtain j where k: "k = j + l" ..
+  with assms show ?thesis by (simp add: div_add_self2)
+qed
+
+lemma mod_pos_geq:
+  fixes k l :: int
+  assumes "0 < l" and "l \<le> k"
+  shows "k mod l = (k - l) mod l"
+proof -
+  have "k = (k - l) + l" by simp
+  then obtain j where k: "k = j + l" ..
+  with assms show ?thesis by simp
+qed
+
+lemma pos_eucl_rel_int_mult_2:
+  assumes "0 \<le> b"
+  assumes "eucl_rel_int a b (q, r)"
+  shows "eucl_rel_int (1 + 2*a) (2*b) (q, 1 + 2*r)"
+  using assms unfolding eucl_rel_int_iff by auto
+
+lemma neg_eucl_rel_int_mult_2:
+  assumes "b \<le> 0"
+  assumes "eucl_rel_int (a + 1) b (q, r)"
+  shows "eucl_rel_int (1 + 2*a) (2*b) (q, 2*r - 1)"
+  using assms unfolding eucl_rel_int_iff by auto
+
+text\<open>computing div by shifting\<close>
+
+lemma pos_zdiv_mult_2: "(0::int) \<le> a ==> (1 + 2*b) div (2*a) = b div a"
+  using pos_eucl_rel_int_mult_2 [OF _ eucl_rel_int]
+  by (rule div_int_unique)
+
+lemma neg_zdiv_mult_2:
+  assumes A: "a \<le> (0::int)" shows "(1 + 2*b) div (2*a) = (b+1) div a"
+  using neg_eucl_rel_int_mult_2 [OF A eucl_rel_int]
+  by (rule div_int_unique)
+
+lemma zdiv_numeral_Bit0 [simp]:
+  "numeral (Num.Bit0 v) div numeral (Num.Bit0 w) =
+    numeral v div (numeral w :: int)"
+  unfolding numeral.simps unfolding mult_2 [symmetric]
+  by (rule div_mult_mult1, simp)
+
+lemma zdiv_numeral_Bit1 [simp]:
+  "numeral (Num.Bit1 v) div numeral (Num.Bit0 w) =
+    (numeral v div (numeral w :: int))"
+  unfolding numeral.simps
+  unfolding mult_2 [symmetric] add.commute [of _ 1]
+  by (rule pos_zdiv_mult_2, simp)
+
+lemma pos_zmod_mult_2:
+  fixes a b :: int
+  assumes "0 \<le> a"
+  shows "(1 + 2 * b) mod (2 * a) = 1 + 2 * (b mod a)"
+  using pos_eucl_rel_int_mult_2 [OF assms eucl_rel_int]
+  by (rule mod_int_unique)
+
+lemma neg_zmod_mult_2:
+  fixes a b :: int
+  assumes "a \<le> 0"
+  shows "(1 + 2 * b) mod (2 * a) = 2 * ((b + 1) mod a) - 1"
+  using neg_eucl_rel_int_mult_2 [OF assms eucl_rel_int]
+  by (rule mod_int_unique)
+
+lemma zmod_numeral_Bit0 [simp]:
+  "numeral (Num.Bit0 v) mod numeral (Num.Bit0 w) =
+    (2::int) * (numeral v mod numeral w)"
+  unfolding numeral_Bit0 [of v] numeral_Bit0 [of w]
+  unfolding mult_2 [symmetric] by (rule mod_mult_mult1)
+
+lemma zmod_numeral_Bit1 [simp]:
+  "numeral (Num.Bit1 v) mod numeral (Num.Bit0 w) =
+    2 * (numeral v mod numeral w) + (1::int)"
+  unfolding numeral_Bit1 [of v] numeral_Bit0 [of w]
+  unfolding mult_2 [symmetric] add.commute [of _ 1]
+  by (rule pos_zmod_mult_2, simp)
+
+  
 code_identifier
   code_module Divides \<rightharpoonup> (SML) Arith and (OCaml) Arith and (Haskell) Arith
 
