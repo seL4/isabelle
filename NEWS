@@ -37,6 +37,13 @@ Note that printing intermediate states may cause considerable slowdown
 in building a session.
 
 
+*** Isabelle/jEdit Prover IDE ***
+
+* Command 'print_state' outputs a plain message ("writeln" instead of
+"state"). Thus it is displayed in the Output panel, even if the option
+"editor_output_state" is disabled.
+
+
 *** Isabelle/VSCode Prover IDE ***
 
 * VSCodium, an open-source distribution of VSCode without MS telemetry,
