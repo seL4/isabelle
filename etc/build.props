@@ -25,6 +25,7 @@ sources = \
   src/Pure/Admin/build_minisat.scala \
   src/Pure/Admin/build_pdfjs.scala \
   src/Pure/Admin/build_polyml.scala \
+  src/Pure/Admin/build_postgresql.scala \
   src/Pure/Admin/build_release.scala \
   src/Pure/Admin/build_scala.scala \
   src/Pure/Admin/build_spass.scala \
