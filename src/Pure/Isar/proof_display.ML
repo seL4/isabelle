@@ -282,25 +282,29 @@ fun pretty_goal_inst ctxt propss goal =
             ((fold o fold) Term.add_vars propss [] |> sort Term_Ord.var_ord |> map_filter inst);
         in if null prts then [] else [Pretty.big_list title (map inst_pair prts)] end;
 
-    fun prt_failed prt = [Pretty.block [Pretty.str title, Pretty.brk 1, prt]];
-
+    exception LOST_STRUCTURE;
     fun goal_matcher () =
       let
-        val concl = Logic.unprotect (Thm.concl_of goal);
+        val concl =
+          Logic.unprotect (Thm.concl_of goal)
+            handle TERM _ => raise LOST_STRUCTURE;
         val goal_propss = filter_out null propss;
         val results =
           Logic.dest_conjunction_balanced (length goal_propss) concl
-          |> map2 Logic.dest_conjunction_balanced (map length goal_propss);
+          |> map2 Logic.dest_conjunction_balanced (map length goal_propss)
+            handle TERM _ => raise LOST_STRUCTURE;
       in
         Unify.matcher (Context.Proof ctxt)
           (map (Soft_Type_System.purge ctxt) (flat goal_propss)) (flat results)
       end;
+
+    fun failure msg = (warning (title ^ " " ^ msg); []);
   in
     if Config.get ctxt show_goal_inst then
-      (case Exn.interruptible_capture goal_matcher () of
-        Exn.Res (SOME env) => prt_inst env
-      | Exn.Res NONE => prt_failed (Pretty.mark_str (Markup.bad (), "FAILED"))
-      | Exn.Exn exn => prt_failed (Runtime.pretty_exn exn))
+      (case goal_matcher () of
+        SOME env => prt_inst env
+      | NONE => failure "match failed")
+      handle LOST_STRUCTURE => failure "lost goal structure"
     else []
   end;
 
