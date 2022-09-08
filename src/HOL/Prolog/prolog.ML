@@ -2,8 +2,6 @@
     Author:   David von Oheimb (based on a lecture on Lambda Prolog by Nadathur)
 *)
 
-Options.default_put_bool \<^system_option>\<open>show_main_goal\<close> true;
-
 structure Prolog =
 struct
 
