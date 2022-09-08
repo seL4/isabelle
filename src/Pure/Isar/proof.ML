@@ -1334,7 +1334,7 @@ fun future_proof fork_proof state =
 end;
 
 
-(* terminal proofs *)  (* FIXME avoid toplevel imitation -- include in PIDE/document *)
+(* terminal proofs *)
 
 local
 
