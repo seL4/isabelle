@@ -10,8 +10,6 @@ begin
 
 ML_file \<open>prolog.ML\<close>
 
-declare [[show_main_goal]]
-
 method_setup ptac =
   \<open>Attrib.thms >> (fn thms => fn ctxt => SIMPLE_METHOD' (Prolog.ptac ctxt thms))\<close>
   "basic Lambda Prolog interpreter"
