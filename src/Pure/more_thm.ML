@@ -731,7 +731,7 @@ fun pretty_thm_raw ctxt {quote, show_hyps = show_hyps'} raw_th =
       if hlen = 0 then []
       else if show_hyps orelse show_hyps' then
         [Pretty.brk 2, Pretty.list "[" "]"
-          (map (q o Syntax.pretty_flexpair ctxt) tpairs @ map prt_term hyps @
+          (map (q o Pretty.block o Syntax.pretty_flexpair ctxt) tpairs @ map prt_term hyps @
            map (Syntax.pretty_sort ctxt) extra_shyps)]
       else [Pretty.brk 2, Pretty.str ("[" ^ replicate_string hlen "." ^ "]")];
     val tsymbs =
