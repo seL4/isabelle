@@ -8,6 +8,7 @@ package isabelle
 
 
 import scala.collection.mutable
+import scala.util.matching.Regex
 
 
 object Build_Job {
@@ -85,6 +86,8 @@ object Build_Job {
     options: Options,
     session_name: String,
     theories: List[String] = Nil,
+    message_head: List[Regex] = Nil,
+    message_body: List[Regex] = Nil,
     verbose: Boolean = false,
     progress: Progress = new Progress,
     margin: Double = Pretty.default_margin,
@@ -94,6 +97,12 @@ object Build_Job {
   ): Unit = {
     val store = Sessions.store(options)
     val session = new Session(options, Resources.empty)
+
+    def check(filter: List[Regex], make_string: => String): Boolean =
+      filter.isEmpty || {
+        val s = Output.clean_yxml(make_string)
+        filter.forall(r => r.findFirstIn(Output.clean_yxml(s)).nonEmpty)
+      }
 
     using(Export.open_session_context0(store, session_name)) { session_context =>
       val result =
@@ -126,13 +135,21 @@ object Build_Job {
                     .filter(message => verbose || Protocol.is_exported(message.info))
                 if (messages.nonEmpty) {
                   val line_document = Line.Document(command.source)
-                  progress.echo(thy_heading)
+                  val buffer = new mutable.ListBuffer[String]
                   for (Text.Info(range, elem) <- messages) {
                     val line = line_document.position(range.start).line1
                     val pos = Position.Line_File(line, command.node_name.node)
-                    progress.echo(
+                    def message_text: String =
                       Protocol.message_text(elem, heading = true, pos = pos,
-                        margin = margin, breakgain = breakgain, metric = metric))
+                        margin = margin, breakgain = breakgain, metric = metric)
+                    val ok =
+                      check(message_head, Protocol.message_heading(elem, pos)) &&
+                      check(message_body, XML.content(Pretty.unformatted(List(elem))))
+                    if (ok) buffer += message_text
+                  }
+                  if (buffer.nonEmpty) {
+                    progress.echo(thy_heading)
+                    buffer.foreach(progress.echo)
                   }
                 }
             }
@@ -157,6 +174,8 @@ object Build_Job {
     { args =>
       /* arguments */
 
+      var message_head = List.empty[Regex]
+      var message_body = List.empty[Regex]
       var unicode_symbols = false
       var theories: List[String] = Nil
       var margin = Pretty.default_margin
@@ -167,6 +186,8 @@ object Build_Job {
 Usage: isabelle log [OPTIONS] SESSION
 
   Options are:
+    -H REGEX     filter messages by matching against head
+    -M REGEX     filter messages by matching against body
     -T NAME      restrict to given theories (multiple options possible)
     -U           output Unicode symbols
     -m MARGIN    margin for pretty printing (default: """ + margin + """)
@@ -176,7 +197,13 @@ Usage: isabelle log [OPTIONS] SESSION
   Print messages from the build database of the given session, without any
   checks against current sources: results from a failed build can be
   printed as well.
+
+  Multiple options -H and -M are conjunctive: all given patterns need to
+  match. Patterns match any substring, but ^ or $ may be used to match
+  the start or end explicitly.
 """,
+        "H:" -> (arg => message_head = message_head ::: List(arg.r)),
+        "M:" -> (arg => message_body = message_body ::: List(arg.r)),
         "T:" -> (arg => theories = theories ::: List(arg)),
         "U" -> (_ => unicode_symbols = true),
         "m:" -> (arg => margin = Value.Double.parse(arg)),
@@ -192,8 +219,9 @@ Usage: isabelle log [OPTIONS] SESSION
 
       val progress = new Console_Progress()
 
-      print_log(options, session_name, theories = theories, verbose = verbose, margin = margin,
-        progress = progress, unicode_symbols = unicode_symbols)
+      print_log(options, session_name, theories = theories, message_head = message_head,
+        message_body = message_body, verbose = verbose, margin = margin, progress = progress,
+        unicode_symbols = unicode_symbols)
     })
 }
 

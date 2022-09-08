@@ -170,6 +170,17 @@ object Protocol {
   def is_exported(msg: XML.Tree): Boolean =
     is_writeln(msg) || is_warning(msg) || is_legacy(msg) || is_error(msg)
 
+  def message_heading(elem: XML.Elem, pos: Position.T): String = {
+    val h =
+      if (is_warning(elem) || is_legacy(elem)) "Warning"
+      else if (is_error(elem)) "Error"
+      else if (is_information(elem)) "Information"
+      else if (is_tracing(elem)) "Tracing"
+      else if (is_state(elem)) "State"
+      else "Output"
+    h + Position.here(pos)
+  }
+
   def message_text(elem: XML.Elem,
     heading: Boolean = false,
     pos: Position.T = Position.none,
@@ -177,18 +188,7 @@ object Protocol {
     breakgain: Double = Pretty.default_breakgain,
     metric: Pretty.Metric = Pretty.Default_Metric
   ): String = {
-    val text1 =
-      if (heading) {
-        val h =
-          if (is_warning(elem) || is_legacy(elem)) "Warning"
-          else if (is_error(elem)) "Error"
-          else if (is_information(elem)) "Information"
-          else if (is_tracing(elem)) "Tracing"
-          else if (is_state(elem)) "State"
-          else "Output"
-        "\n" + h + Position.here(pos) + ":\n"
-      }
-      else ""
+    val text1 = if (heading) "\n" + message_heading(elem, pos) + ":\n" else ""
 
     val body =
       Pretty.string_of(Protocol_Message.expose_no_reports(List(elem)),
