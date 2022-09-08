@@ -71,7 +71,7 @@ subsection\<open>Composition of homomorphisms is a Homomorphism\<close>
 
 text\<open>Given as a challenge problem in
   R. Boyer et al.,
-  Set Theory in First-Order Logic: Clauses for G\"odel's Axioms,
+  Set Theory in First-Order Logic: Clauses for Gödel's Axioms,
   JAR 2 (1986), 287-327\<close>
 
 text\<open>collecting the relevant lemmas\<close>

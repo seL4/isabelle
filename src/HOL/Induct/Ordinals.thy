@@ -10,7 +10,7 @@ begin
 
 text \<open>
   Some basic definitions of ordinal numbers.  Draws an Agda
-  development (in Martin-L\"of type theory) by Peter Hancock (see
+  development (in Martin-Löf type theory) by Peter Hancock (see
   \<^url>\<open>http://www.dcs.ed.ac.uk/home/pgh/chat.html\<close>).
 \<close>
 

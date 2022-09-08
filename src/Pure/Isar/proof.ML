@@ -359,18 +359,11 @@ fun find_goal state =
     SOME ctxt_goal => ctxt_goal
   | NONE => find_goal (close_block state handle ERROR _ => error "No proof goal"));
 
-fun get_goal state =
-  let val (ctxt, {using, goal, ...}) = find_goal state
-  in (ctxt, (using, goal)) end;
-
 
 
 (** pretty_state **)
 
 local
-
-fun pretty_facts _ _ NONE = []
-  | pretty_facts ctxt s (SOME ths) = [Proof_Display.pretty_goal_facts ctxt s ths];
 
 fun pretty_sep prts [] = prts
   | pretty_sep [] prts = prts
@@ -383,11 +376,19 @@ fun pretty_state state =
     val {context = ctxt, facts, mode, goal = _} = top state;
     val verbose = Config.get ctxt Proof_Context.verbose;
 
-    fun prt_goal (SOME (_, {statement = _, using, goal, before_qed = _, after_qed = _})) =
-          pretty_sep
-            (pretty_facts ctxt "using"
-              (if mode <> Backward orelse null using then NONE else SOME using))
-            ([Proof_Display.pretty_goal_header goal] @ Goal_Display.pretty_goals ctxt goal)
+    val prt_facts = Proof_Display.pretty_goal_facts ctxt;
+
+    fun prt_goal (SOME (_, goal)) =
+          let
+            val {statement = (_, propss, _), using, goal, before_qed = _, after_qed = _} = goal;
+            val head = [Proof_Display.pretty_goal_header goal];
+            val body = Goal_Display.pretty_goals ctxt goal;
+            val foot = Proof_Display.pretty_goal_inst ctxt propss goal;
+          in
+            pretty_sep
+              (prt_facts "using" (if mode <> Backward orelse null using then NONE else SOME using))
+              (head @ body @ foot)
+          end
       | prt_goal NONE = [];
 
     val prt_ctxt =
@@ -401,8 +402,8 @@ fun pretty_state state =
       [Pretty.mark_str (position_markup, "proof"), Pretty.str (" (" ^ mode_name mode ^ ")")]] @
     (if null prt_ctxt then [] else prt_ctxt @ [Pretty.str ""]) @
     (if verbose orelse mode = Forward then
-       pretty_sep (pretty_facts ctxt "" (Option.map #1 facts)) (prt_goal (try find_goal state))
-     else if mode = Chain then pretty_facts ctxt "picking" (Option.map #1 facts)
+       pretty_sep (prt_facts "" (Option.map #1 facts)) (prt_goal (try find_goal state))
+     else if mode = Chain then prt_facts "picking" (Option.map #1 facts)
      else prt_goal (try find_goal state))
   end;
 
@@ -471,7 +472,7 @@ in
 
 fun refine_goals print_rule result_ctxt result state =
   let
-    val (goal_ctxt, (_, goal)) = get_goal state;
+    val (goal_ctxt, {goal, ...}) = find_goal state;
     fun refine rule st =
       (print_rule goal_ctxt rule; FINDGOAL (goal_tac goal_ctxt rule) st);
   in
@@ -508,10 +509,11 @@ fun conclude_goal ctxt goal propss =
       Conjunction.elim_balanced (length goal_propss) th
       |> map2 Conjunction.elim_balanced (map length goal_propss)
       handle THM _ => err_lost ();
+    val matcher =
+      Unify.matcher (Context.Proof ctxt)
+        (map (Soft_Type_System.purge ctxt) (flat goal_propss)) (map Thm.prop_of (flat results));
     val _ =
-      Unify.matches_list (Context.Proof ctxt)
-        (map (Soft_Type_System.purge ctxt) (flat goal_propss)) (map Thm.prop_of (flat results))
-        orelse error ("Proved a different theorem:\n" ^ Thm.string_of_thm ctxt th);
+      is_none matcher andalso error ("Proved a different theorem:\n" ^ Thm.string_of_thm ctxt th);
 
     fun recover_result ([] :: pss) thss = [] :: recover_result pss thss
       | recover_result (_ :: pss) (ths :: thss) = ths :: recover_result pss thss
@@ -522,7 +524,7 @@ fun conclude_goal ctxt goal propss =
 val finished_goal_error = "Failed to finish proof";
 
 fun finished_goal pos state =
-  let val (ctxt, (_, goal)) = get_goal state in
+  let val (ctxt, {goal, ...}) = find_goal state in
     if Thm.no_prems goal then Seq.Result state
     else
       Seq.Error (fn () =>
@@ -536,15 +538,15 @@ fun finished_goal pos state =
 val goal_finished = Thm.no_prems o #goal o #2 o find_goal;
 
 fun raw_goal state =
-  let val (ctxt, (using, goal)) = get_goal state
+  let val (ctxt, {using, goal, ...}) = find_goal state
   in {context = ctxt, facts = using, goal = goal} end;
 
 val goal = raw_goal o refine_insert [];
 
 fun simple_goal state =
   let
-    val (_, (using, _)) = get_goal state;
-    val (ctxt, (_, goal)) = get_goal (refine_insert using state);
+    val (_, {using, ...}) = find_goal state;
+    val (ctxt, {goal, ...}) = find_goal (refine_insert using state);
   in {context = ctxt, goal = goal} end;
 
 fun method_error kind pos state =
@@ -992,8 +994,10 @@ fun implicit_vars props =
   let
     val var_props = take_prefix is_var props;
     val explicit_vars = fold Term.add_vars var_props [];
-    val vars = filter_out (member (op =) explicit_vars) (fold Term.add_vars props []);
-  in map (Logic.mk_term o Var) vars end;
+  in
+    fold Term.add_vars props [] |> map_filter (fn v =>
+      if member (op =) explicit_vars v then NONE else SOME (Logic.mk_term (Var v)))
+  end;
 
 fun refine_terms n =
   refine_singleton (Method.Basic (fn ctxt => CONTEXT_TACTIC o
@@ -1008,12 +1012,12 @@ fun generic_goal kind before_qed after_qed goal_ctxt goal_propss result_binds st
     val pos = Position.thread_data ();
 
     val goal_props = flat goal_propss;
-    val vars = implicit_vars goal_props;
-    val propss' = vars :: goal_propss;
-    val goal_propss = filter_out null propss';
+    val goal_vars = implicit_vars goal_props;
+    val propss' = goal_vars :: goal_propss;
+    val goal_propss' = filter_out null propss';
 
     val goal =
-      Logic.mk_conjunction_balanced (map Logic.mk_conjunction_balanced goal_propss)
+      Logic.mk_conjunction_balanced (map Logic.mk_conjunction_balanced goal_propss')
       |> Thm.cterm_of goal_ctxt
       |> Thm.weaken_sorts' goal_ctxt;
     val statement = ((kind, pos), propss', Thm.term_of goal);
@@ -1034,16 +1038,21 @@ fun generic_goal kind before_qed after_qed goal_ctxt goal_propss result_binds st
     |> set_goal (make_goal (statement, [], Goal.init goal, before_qed, after_qed'))
     |> chaining ? (`the_facts #-> using_facts)
     |> reset_facts
-    |> not (null vars) ? refine_terms (length goal_propss)
-    |> null goal_props ? refine_singleton (Method.Basic Method.assumption)
+    |> not (null goal_vars) ? refine_terms (length goal_propss')
+    |> forall null goal_propss' ? refine_singleton (Method.Basic Method.assumption)
   end;
 
 fun generic_qed state =
   let
-    val (goal_ctxt, {statement = (_, propss, _), goal, after_qed, ...}) =
-      current_goal state;
+    val (goal_ctxt, goal_config) = current_goal state;
+    val {statement = (_, propss, _), goal, after_qed, ...} = goal_config;
     val results = tl (conclude_goal goal_ctxt goal propss);
-  in state |> close_block |> pair (after_qed, (goal_ctxt, results)) end;
+    val res =
+     {goal_ctxt = goal_ctxt,
+      goal_config = goal_config,
+      after_qed = after_qed,
+      results = results};
+  in state |> close_block |> pair res end;
 
 end;
 
@@ -1106,8 +1115,8 @@ fun local_goal print_results prep_statement prep_att strict_asm
   end;
 
 fun local_qeds arg =
-  end_proof false arg
-  #> Seq.map_result (generic_qed #-> (fn ((after_qed, _), results) => after_qed results));
+  end_proof false arg #> Seq.map_result
+    (generic_qed #-> (fn {after_qed, goal_ctxt, results, ...} => #1 after_qed (goal_ctxt, results)));
 
 fun local_qed arg =
   local_qeds (Position.none, arg) #> Seq.the_result finished_goal_error;
@@ -1135,12 +1144,21 @@ val theorem = global_goal Proof_Context.cert_propp;
 val theorem_cmd = global_goal Proof_Context.read_propp;
 
 fun global_qeds arg =
-  end_proof true arg
-  #> Seq.map_result (generic_qed #> (fn (((_, after_qed), results), state) =>
-    after_qed results (context_of state)));
+  end_proof true arg #> Seq.map_result
+    (generic_qed #> (fn ({goal_ctxt, goal_config, after_qed, results}, state) =>
+      ((goal_ctxt, Goal goal_config), #2 after_qed (goal_ctxt, results) (context_of state))));
+
+fun global_goal_inst ((goal_ctxt, Goal goal), result_ctxt: context) =
+  let
+    val {statement = (_, propss, _), goal, ...} = goal;
+    val _ =
+      (case Proof_Display.pretty_goal_inst goal_ctxt propss goal of
+        [] => ()
+      | prts => Output.state (Pretty.string_of (Pretty.chunks prts)));
+  in result_ctxt end;
 
 fun global_qed arg =
-  global_qeds (Position.none, arg) #> Seq.the_result finished_goal_error;
+  global_qeds (Position.none, arg) #> Seq.the_result finished_goal_error #> global_goal_inst;
 
 
 (* relevant proof states *)
@@ -1184,10 +1202,12 @@ val local_default_proof = local_terminal_proof ((Method.standard_text, Position.
 val local_immediate_proof = local_terminal_proof ((Method.this_text, Position.no_range), NONE);
 val local_done_proof = terminal_proof local_qeds (Method.done_text, Position.no_range) (NONE, false);
 
-fun global_terminal_proof (text, opt_text) = terminal_proof global_qeds text (opt_text, true);
+fun global_terminal_proof (text, opt_text) =
+  terminal_proof global_qeds text (opt_text, true) #> global_goal_inst;
 val global_default_proof = global_terminal_proof ((Method.standard_text, Position.no_range), NONE);
 val global_immediate_proof = global_terminal_proof ((Method.this_text, Position.no_range), NONE);
-val global_done_proof = terminal_proof global_qeds (Method.done_text, Position.no_range) (NONE, false);
+val global_done_proof =
+  terminal_proof global_qeds (Method.done_text, Position.no_range) (NONE, false) #> global_goal_inst;
 
 end;
 
@@ -1290,8 +1310,8 @@ in
 fun future_proof fork_proof state =
   let
     val _ = assert_backward state;
-    val (goal_ctxt, goal_info) = find_goal state;
-    val {statement as (kind, _, prop), using, goal, before_qed, after_qed} = goal_info;
+    val (goal_ctxt, goal) = find_goal state;
+    val {statement as (kind, _, prop), using, goal, before_qed, after_qed} = goal;
 
     val _ = is_relevant state andalso error "Cannot fork relevant proof";
 
@@ -1314,7 +1334,7 @@ fun future_proof fork_proof state =
 end;
 
 
-(* terminal proofs *)  (* FIXME avoid toplevel imitation -- include in PIDE/document *)
+(* terminal proofs *)
 
 local
 

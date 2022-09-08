@@ -164,7 +164,7 @@ fun declare_string name default = string (declare name (String o default));
 
 fun declare_option (name, pos) =
   let
-    val typ = Options.default_typ name;
+    val typ = Options.default_typ name handle ERROR msg => error (msg ^ Position.here pos);
     val default =
       if typ = Options.boolT then fn _ => Bool (Options.default_bool name)
       else if typ = Options.intT then fn _ => Int (Options.default_int name)

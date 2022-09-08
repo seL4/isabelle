@@ -506,7 +506,7 @@ text \<open>More information on locales and their interpretation is
   mechanisms, which are described in another paper by Haftmann and
   Wenzel~@{cite HaftmannWenzel2009}.
 
-  The original work of Kamm\"uller on locales~@{cite KammullerEtAl1999}
+  The original work of Kammüller on locales~@{cite KammullerEtAl1999}
   may be of interest from a historical perspective.  My previous
   report on locales and locale expressions~@{cite Ballarin2004a}
   describes a simpler form of expressions than available now and is

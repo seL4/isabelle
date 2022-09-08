@@ -19,7 +19,9 @@ sig
   val string_of_rule: Proof.context -> string -> thm -> string
   val pretty_goal_header: thm -> Pretty.T
   val string_of_goal: Proof.context -> thm -> string
-  val pretty_goal_facts: Proof.context -> string -> thm list -> Pretty.T
+  val pretty_goal_facts: Proof.context -> string -> thm list option -> Pretty.T list
+  val show_goal_inst: bool Config.T
+  val pretty_goal_inst: Proof.context -> term list list -> thm -> Pretty.T list
   val method_error: string -> Position.T ->
     {context: Proof.context, facts: thm list, goal: thm} -> 'a Seq.result
   val show_results: bool Config.T
@@ -97,9 +99,6 @@ fun pretty_theory verbose ctxt =
 
     fun pretty_abbrev (c, (ty, t)) = Pretty.block
       (prt_const (c, ty) @ [Pretty.str " \<equiv>", Pretty.brk 1, prt_term_no_vars t]);
-
-    fun pretty_axm (a, t) =
-      Pretty.block [Pretty.mark_str a, Pretty.str ":", Pretty.brk 1, prt_term_no_vars t];
 
     val tsig = Sign.tsig_of thy;
     val consts = Sign.consts_of thy;
@@ -239,11 +238,75 @@ fun string_of_goal ctxt goal =
 
 (* goal facts *)
 
-fun pretty_goal_facts ctxt s ths =
-  (Pretty.block o Pretty.fbreaks)
-    [if s = "" then Pretty.str "this:"
-     else Pretty.block [Pretty.keyword1 s, Pretty.brk 1, Pretty.str "this:"],
-     Proof_Context.pretty_fact ctxt ("", ths)];
+fun pretty_goal_facts _ _ NONE = []
+  | pretty_goal_facts ctxt s (SOME ths) =
+      (single o Pretty.block o Pretty.fbreaks)
+        [if s = "" then Pretty.str "this:"
+         else Pretty.block [Pretty.keyword1 s, Pretty.brk 1, Pretty.str "this:"],
+         Proof_Context.pretty_fact ctxt ("", ths)];
+
+
+(* goal instantiation *)
+
+val show_goal_inst = Attrib.setup_option_bool (\<^system_option>\<open>show_goal_inst\<close>, \<^here>);
+
+fun pretty_goal_inst ctxt propss goal =
+  let
+    val title = "goal instantiation:";
+
+    fun prt_inst env =
+      if Envir.is_empty env then []
+      else
+        let
+          val Envir.Envir {tyenv, tenv, ...} = env;
+
+          val prt_type = Syntax.pretty_typ ctxt;
+          val prt_term = Syntax.pretty_term ctxt;
+
+          fun instT v =
+            let
+              val T = TVar v;
+              val T' = Envir.subst_type tyenv T;
+            in if T = T' then NONE else SOME (prt_type T, prt_type T') end;
+
+          fun inst v =
+            let
+              val t = Var v;
+              val t' = Envir.subst_term (tyenv, tenv) (Envir.subst_term_types tyenv t);
+            in if t aconv t' then NONE else SOME (prt_term t, prt_term t') end;
+
+          fun inst_pair (x, y) = Pretty.item [x, Pretty.str " \<leadsto>", Pretty.brk 1, y];
+
+          val prts =
+            ((fold o fold) Term.add_tvars propss [] |> sort Term_Ord.tvar_ord |> map_filter instT) @
+            ((fold o fold) Term.add_vars propss [] |> sort Term_Ord.var_ord |> map_filter inst);
+        in if null prts then [] else [Pretty.big_list title (map inst_pair prts)] end;
+
+    exception LOST_STRUCTURE;
+    fun goal_matcher () =
+      let
+        val concl =
+          Logic.unprotect (Thm.concl_of goal)
+            handle TERM _ => raise LOST_STRUCTURE;
+        val goal_propss = filter_out null propss;
+        val results =
+          Logic.dest_conjunction_balanced (length goal_propss) concl
+          |> map2 Logic.dest_conjunction_balanced (map length goal_propss)
+            handle TERM _ => raise LOST_STRUCTURE;
+      in
+        Unify.matcher (Context.Proof ctxt)
+          (map (Soft_Type_System.purge ctxt) (flat goal_propss)) (flat results)
+      end;
+
+    fun failure msg = (warning (title ^ " " ^ msg); []);
+  in
+    if Config.get ctxt show_goal_inst then
+      (case goal_matcher () of
+        SOME env => prt_inst env
+      | NONE => failure "match failed")
+      handle LOST_STRUCTURE => failure "lost goal structure"
+    else []
+  end;
 
 
 (* method_error *)
@@ -255,7 +318,7 @@ fun method_error kind pos {context = ctxt, facts, goal} = Seq.Error (fn () =>
       "proof method" ^ Position.here pos ^ ":\n";
     val pr_facts =
       if null facts then ""
-      else Pretty.string_of (pretty_goal_facts ctxt "using" facts) ^ "\n";
+      else Pretty.string_of (Pretty.chunks (pretty_goal_facts ctxt "using" (SOME facts))) ^ "\n";
     val pr_goal = string_of_goal ctxt goal;
   in pr_header ^ pr_facts ^ pr_goal end);
 
@@ -268,7 +331,10 @@ val interactive =
   Config.declare_bool ("interactive", \<^here>) (K false);
 
 val show_results =
-  Config.declare_bool ("show_results", \<^here>) (fn context => Config.get_generic context interactive);
+  Attrib.setup_config_bool \<^binding>\<open>show_results\<close>
+    (fn context =>
+      Config.get_generic context interactive orelse
+      Options.default_bool \<^system_option>\<open>show_states\<close>);
 
 fun no_print int ctxt = not (Config.get (Config.put interactive int ctxt) show_results);
 

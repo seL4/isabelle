@@ -167,6 +167,7 @@ class Admin_Tools extends Isabelle_Scala_Tools(
   Build_PDFjs.isabelle_tool,
   Build_PolyML.isabelle_tool1,
   Build_PolyML.isabelle_tool2,
+  Build_PostgreSQL.isabelle_tool,
   Build_SPASS.isabelle_tool,
   Build_SQLite.isabelle_tool,
   Build_Scala.isabelle_tool,

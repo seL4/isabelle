@@ -72,7 +72,7 @@ fun pretty_goals ctxt0 state =
       Syntax.unparse_term ctxt;
 
     fun prt_atoms prt prtT (X, xs) = Pretty.block
-      [Pretty.block (Pretty.commas (map prt xs)), Pretty.str " ::",
+      [Pretty.item (Pretty.commas (map prt xs)), Pretty.str " ::",
         Pretty.brk 1, prtT X];
 
     fun prt_var (x, ~1) = prt_term (Syntax.free x)
@@ -93,7 +93,7 @@ fun pretty_goals ctxt0 state =
       Pretty.markup (Markup.subgoal s) [Pretty.str (" " ^ s ^ ". "), prt_term A];
     val pretty_subgoals = map_index (fn (i, A) => pretty_subgoal (string_of_int (i + 1)) A);
 
-    val pretty_ffpairs = pretty_list "flex-flex pairs:" (Syntax.pretty_flexpair ctxt);
+    val pretty_ffpairs = pretty_list "flex-flex pairs:" (Pretty.item o Syntax.pretty_flexpair ctxt);
 
     val pretty_consts = pretty_list "constants:" prt_consts o consts_of;
     val pretty_vars = pretty_list "variables:" prt_vars o vars_of;

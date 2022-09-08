@@ -1860,8 +1860,8 @@ fun solve _ [] bigenv = bigenv
         fun search _ [] =
               error ("Unsolvable constraints:\n" ^
                 Pretty.string_of (Pretty.chunks (map (fn (_, p, _) =>
-                  Syntax.pretty_flexpair (Syntax.init_pretty_global thy)
-                    (apply2 (Envir.norm_term bigenv) p)) cs)))
+                  Pretty.item (Syntax.pretty_flexpair (Syntax.init_pretty_global thy)
+                    (apply2 (Envir.norm_term bigenv) p))) cs)))
           | search env ((u, p as (t1, t2), vs)::ps) =
               if u then
                 let

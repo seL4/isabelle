@@ -206,9 +206,9 @@ fun prove_common ctxt fork_pri xs asms props tac =
                 |> Thm.check_hyps (Context.Proof ctxt'))
               handle THM (msg, _, _) => err msg | ERROR msg => err msg;
           in
-            if Unify.matches_list (Context.Proof ctxt') [Thm.term_of stmt] [Thm.prop_of res]
-            then res
-            else err ("Proved a different theorem: " ^ Syntax.string_of_term ctxt' (Thm.prop_of res))
+            if is_none (Unify.matcher (Context.Proof ctxt') [Thm.term_of stmt] [Thm.prop_of res])
+            then err ("Proved a different theorem: " ^ Syntax.string_of_term ctxt' (Thm.prop_of res))
+            else res
           end);
     val res =
       if immediate orelse schematic orelse not future orelse skip then result ()

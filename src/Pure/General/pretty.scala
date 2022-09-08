@@ -92,6 +92,23 @@ object Pretty {
   }
 
 
+  /* unformatted output */
+
+  def unformatted(input: XML.Body): XML.Body = {
+    input flatMap {
+      case XML.Wrapped_Elem(markup, body1, body2) =>
+        List(XML.Wrapped_Elem(markup, body1, unformatted(body2)))
+      case XML.Elem(markup, body) =>
+        markup match {
+          case Markup.Block(_, _) => unformatted(body)
+          case Markup.Break(width, _) => XML.string(Symbol.spaces(width))
+          case _ => List(XML.Elem(markup, unformatted(body)))
+        }
+      case XML.Text(text) => XML.string(split_lines(text).mkString(Symbol.space))
+    }
+  }
+
+
   /* formatted output */
 
   private sealed case class Text(tx: XML.Body = Nil, pos: Double = 0.0, nl: Int = 0) {

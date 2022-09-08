@@ -145,7 +145,8 @@ fun gen_guess prep_var raw_vars int state =
         |> Proof.map_context (fold Variable.unbind_term Auto_Bind.no_facts)
       end;
 
-    val goal = Var (("guess", 0), propT);
+    val guess = (("guess", 0), propT);
+    val goal = Var guess;
     val pos = Position.thread_data ();
     fun print_result ctxt' (k, [(s, [_, th])]) =
       Proof_Display.print_results int pos ctxt' (k, [(s, [th])]);
@@ -154,11 +155,13 @@ fun gen_guess prep_var raw_vars int state =
         Goal.conclude #> Raw_Simplifier.norm_hhf ctxt #>
           (fn th => Goal.protect 0 (Conjunction.intr (Drule.mk_term (Thm.cprop_of th)) th)));
     fun after_qed (result_ctxt, results) state' =
-      let val [_, res] = Proof_Context.export result_ctxt (Proof.context_of state') (flat results)
+      let
+        val [_, res] = Proof_Context.export result_ctxt (Proof.context_of state') (flat results);
+        val res' = res RS Conjunction.conjunctionD2;
       in
         state'
         |> Proof.end_block
-        |> guess_context (Obtain.check_result ctxt thesis res)
+        |> guess_context (Obtain.check_result ctxt thesis res')
       end;
   in
     state
@@ -170,8 +173,10 @@ fun gen_guess prep_var raw_vars int state =
       (SOME before_qed) after_qed
       [] [] [(Binding.empty_atts, [(Logic.mk_term goal, []), (goal, [])])]
     |> snd
-    |> Proof.refine_singleton
-        (Method.primitive_text (fn _ => fn _ => Goal.init (Thm.cterm_of ctxt thesis)))
+    |> Proof.refine_singleton (Method.Basic (fn _ => fn _ => CONTEXT_TACTIC
+        (PRIMITIVE (Thm.instantiate (TVars.empty, Vars.make [(guess, Thm.cterm_of ctxt thesis)]))
+          THEN Goal.conjunction_tac 1
+          THEN resolve_tac ctxt [Drule.termI] 1)))
   end;
 
 in

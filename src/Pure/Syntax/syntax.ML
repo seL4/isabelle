@@ -70,7 +70,7 @@ sig
   val string_of_term_global: theory -> term -> string
   val string_of_typ_global: theory -> typ -> string
   val string_of_sort_global: theory -> sort -> string
-  val pretty_flexpair: Proof.context -> term * term -> Pretty.T
+  val pretty_flexpair: Proof.context -> term * term -> Pretty.T list
   type syntax
   val eq_syntax: syntax * syntax -> bool
   val force_syntax: syntax -> unit
@@ -346,7 +346,7 @@ val string_of_sort_global = string_of_sort o init_pretty_global;
 
 (* derived operations *)
 
-fun pretty_flexpair ctxt (t, u) = Pretty.block
+fun pretty_flexpair ctxt (t, u) =
   [pretty_term ctxt t, Pretty.str " \<equiv>\<^sup>?", Pretty.brk 1, pretty_term ctxt u];
 
 

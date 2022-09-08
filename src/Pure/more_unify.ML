@@ -8,7 +8,7 @@ signature UNIFY =
 sig
   include UNIFY
   val matchers: Context.generic -> (term * term) list -> Envir.env Seq.seq
-  val matches_list: Context.generic -> term list -> term list -> bool
+  val matcher: Context.generic -> term list -> term list -> Envir.env option
 end;
 
 structure Unify: UNIFY =
@@ -75,11 +75,10 @@ fun matchers _ [] = Seq.single Envir.init
           (first_order_matchers thy pairs empty)
       end;
 
-fun matches_list context ps os =
-  length ps = length os andalso is_some (Seq.pull (matchers context (ps ~~ os)));
-
+fun matcher context ps os =
+  if length ps <> length os then NONE
+  else Seq.pull (matchers context (ps ~~ os)) |> Option.map #1;
 
 open Unify;
 
 end;
-

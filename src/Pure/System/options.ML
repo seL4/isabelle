@@ -35,10 +35,6 @@ sig
   val default_real: string -> real
   val default_seconds: string -> Time.time
   val default_string: string -> string
-  val default_put_bool: string -> bool -> unit
-  val default_put_int: string -> int -> unit
-  val default_put_real: string -> real -> unit
-  val default_put_string: string -> string -> unit
   val get_default: string -> string
   val put_default: string -> string -> unit
   val set_default: T -> unit
@@ -194,11 +190,6 @@ fun default_int name = int (default ()) name;
 fun default_real name = real (default ()) name;
 fun default_seconds name = seconds (default ()) name;
 fun default_string name = string (default ()) name;
-
-val default_put_bool = change_default put_bool;
-val default_put_int = change_default put_int;
-val default_put_real = change_default put_real;
-val default_put_string = change_default put_string;
 
 fun get_default name =
   let val options = default () in get (typ options name) SOME options name end;

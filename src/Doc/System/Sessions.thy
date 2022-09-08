@@ -554,24 +554,31 @@ text \<open>
   database of the given session. Its command-line usage is:
 
   @{verbatim [display]
-\<open>Usage: isabelle log [OPTIONS] SESSION
+\<open>Usage: isabelle log [OPTIONS] [SESSIONS ...]
 
   Options are:
+    -H REGEX     filter messages by matching against head
+    -M REGEX     filter messages by matching against body
     -T NAME      restrict to given theories (multiple options possible)
     -U           output Unicode symbols
     -m MARGIN    margin for pretty printing (default: 76.0)
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -v           print all messages, including information etc.
 
-  Print messages from the build database of the given session, without any
-  checks against current sources: results from a failed build can be
-  printed as well.\<close>}
+  Print messages from the build database of the given sessions, without any
+  checks against current sources nor session structure: results from old
+  sessions or failed builds can be printed as well.
 
-  The specified session database is taken as is, independently of the current
-  session structure and theories sources. The order of messages follows the
-  source positions of source files; thus the erratic evaluation of parallel
-  processing rarely matters. There is \<^emph>\<open>no\<close> implicit build process involved,
-  so it is possible to retrieve error messages from a failed session as well.
+  Multiple options -H and -M are conjunctive: all given patterns need to
+  match. Patterns match any substring, but ^ or $ may be used to match the
+  start or end explicitly.\<close>}
+
+  The specified session databases are taken as is, with formal checking
+  against current sources: There is \<^emph>\<open>no\<close> implicit build process involved, so
+  it is possible to retrieve error messages from a failed session as well. The
+  order of messages follows the source positions of source files; thus the
+  result is mostly deterministic, independent of the somewhat erratic
+  evaluation of parallel processing.
 
   \<^medskip> Option \<^verbatim>\<open>-o\<close> allows to change system options, as in @{tool build}
   (\secref{sec:tool-build}). This may affect the storage space for the build
@@ -588,6 +595,16 @@ text \<open>
 
   \<^medskip> Option \<^verbatim>\<open>-v\<close> prints all messages from the session database that are
   normally inlined into the source text, including information messages etc.
+
+  \<^medskip> Options \<^verbatim>\<open>-H\<close> and \<^verbatim>\<open>-M\<close> filter messages according to their header or body
+  content, respectively. The header follows a very basic format that makes it
+  easy to match message kinds (e.g. \<^verbatim>\<open>Warning\<close> or \<^verbatim>\<open>Error\<close>) and file names
+  (e.g. \<^verbatim>\<open>src/HOL/Nat.thy\<close>). The body is usually pretty-printed, but for
+  matching it is treated like one long line: blocks are ignored and breaks are
+  turned into plain spaces (according to their formal width).
+
+  The syntax for patters follows regular expressions of the Java
+  platform.\<^footnote>\<open>\<^url>\<open>https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html\<close>\<close>
 \<close>
 
 subsubsection \<open>Examples\<close>
@@ -596,6 +613,15 @@ text \<open>
   Print messages from theory \<^verbatim>\<open>HOL.Nat\<close> of session \<^verbatim>\<open>HOL\<close>, using Unicode
   rendering of Isabelle symbols and a margin of 100 characters:
   @{verbatim [display] \<open>  isabelle log -T HOL.Nat -U -m 100 HOL\<close>}
+
+  Print warnings about ambiguous input (inner syntax) of session
+  \<^verbatim>\<open>HOL-Library\<close>, which is built beforehand:
+  @{verbatim [display] \<open>  isabelle build HOL-Library
+  isabelle log -H "Warning" -M "Ambiguous input" HOL-Library\<close>}
+
+  Print all errors from all sessions, e.g. from a partial build of
+  Isabelle/AFP:
+  @{verbatim [display] \<open>  isabelle log -H "Error" $(isabelle sessions -a -d AFP/thys)\<close>}
 \<close>
 
 
