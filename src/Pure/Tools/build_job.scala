@@ -84,7 +84,7 @@ object Build_Job {
 
   def print_log(
     options: Options,
-    session_name: String,
+    sessions: List[String],
     theories: List[String] = Nil,
     message_head: List[Regex] = Nil,
     message_body: List[Regex] = Nil,
@@ -104,66 +104,77 @@ object Build_Job {
         filter.forall(r => r.findFirstIn(Output.clean_yxml(s)).nonEmpty)
       }
 
-    using(Export.open_session_context0(store, session_name)) { session_context =>
-      val result =
-        for {
-          db <- session_context.session_db()
-          theories = store.read_theories(db, session_name)
-          errors = store.read_errors(db, session_name)
-          info <- store.read_build(db, session_name)
-        } yield (theories, errors, info.return_code)
-      result match {
-        case None => store.error_database(session_name)
-        case Some((used_theories, errors, rc)) =>
-          theories.filterNot(used_theories.toSet) match {
-            case Nil =>
-            case bad => error("Unknown theories " + commas_quote(bad))
-          }
-          val print_theories =
-            if (theories.isEmpty) used_theories else used_theories.filter(theories.toSet)
-
-          for (thy <- print_theories) {
-            val thy_heading = "\nTheory " + quote(thy) + ":"
-
-            read_theory(session_context.theory(thy), unicode_symbols = unicode_symbols) match {
-              case None => progress.echo(thy_heading + " MISSING")
-              case Some(command) =>
-                val snapshot = Document.State.init.snippet(command)
-                val rendering = new Rendering(snapshot, options, session)
-                val messages =
-                  rendering.text_messages(Text.Range.full)
-                    .filter(message => verbose || Protocol.is_exported(message.info))
-                if (messages.nonEmpty) {
-                  val line_document = Line.Document(command.source)
-                  val buffer = new mutable.ListBuffer[String]
-                  for (Text.Info(range, elem) <- messages) {
-                    val line = line_document.position(range.start).line1
-                    val pos = Position.Line_File(line, command.node_name.node)
-                    def message_text: String =
-                      Protocol.message_text(elem, heading = true, pos = pos,
-                        margin = margin, breakgain = breakgain, metric = metric)
-                    val ok =
-                      check(message_head, Protocol.message_heading(elem, pos)) &&
-                      check(message_body, XML.content(Pretty.unformatted(List(elem))))
-                    if (ok) buffer += message_text
-                  }
-                  if (buffer.nonEmpty) {
-                    progress.echo(thy_heading)
-                    buffer.foreach(progress.echo)
-                  }
-                }
+    def print(session_name: String): Unit = {
+      using(Export.open_session_context0(store, session_name)) { session_context =>
+        val result =
+          for {
+            db <- session_context.session_db()
+            theories = store.read_theories(db, session_name)
+            errors = store.read_errors(db, session_name)
+            info <- store.read_build(db, session_name)
+          } yield (theories, errors, info.return_code)
+        result match {
+          case None => store.error_database(session_name)
+          case Some((used_theories, errors, rc)) =>
+            theories.filterNot(used_theories.toSet) match {
+              case Nil =>
+              case bad => error("Unknown theories " + commas_quote(bad))
             }
-          }
+            val print_theories =
+              if (theories.isEmpty) used_theories else used_theories.filter(theories.toSet)
 
-          if (errors.nonEmpty) {
-            val msg = Symbol.output(unicode_symbols, cat_lines(errors))
-            progress.echo("\nBuild errors:\n" + Output.error_message_text(msg))
-          }
-          if (rc != Process_Result.RC.ok) {
-            progress.echo("\n" + Process_Result.RC.print_long(rc))
-          }
+            for (thy <- print_theories) {
+              val thy_heading = "\nTheory " + quote(thy) + " (in " + session_name + ")" + ":"
+
+              read_theory(session_context.theory(thy), unicode_symbols = unicode_symbols) match {
+                case None => progress.echo(thy_heading + " MISSING")
+                case Some(command) =>
+                  val snapshot = Document.State.init.snippet(command)
+                  val rendering = new Rendering(snapshot, options, session)
+                  val messages =
+                    rendering.text_messages(Text.Range.full)
+                      .filter(message => verbose || Protocol.is_exported(message.info))
+                  if (messages.nonEmpty) {
+                    val line_document = Line.Document(command.source)
+                    val buffer = new mutable.ListBuffer[String]
+                    for (Text.Info(range, elem) <- messages) {
+                      val line = line_document.position(range.start).line1
+                      val pos = Position.Line_File(line, command.node_name.node)
+                      def message_text: String =
+                        Protocol.message_text(elem, heading = true, pos = pos,
+                          margin = margin, breakgain = breakgain, metric = metric)
+                      val ok =
+                        check(message_head, Protocol.message_heading(elem, pos)) &&
+                        check(message_body, XML.content(Pretty.unformatted(List(elem))))
+                      if (ok) buffer += message_text
+                    }
+                    if (buffer.nonEmpty) {
+                      progress.echo(thy_heading)
+                      buffer.foreach(progress.echo)
+                    }
+                  }
+              }
+            }
+
+            if (errors.nonEmpty) {
+              val msg = Symbol.output(unicode_symbols, cat_lines(errors))
+              progress.echo("\nBuild errors:\n" + Output.error_message_text(msg))
+            }
+            if (rc != Process_Result.RC.ok) {
+              progress.echo("\n" + Process_Result.RC.print_long(rc))
+            }
+        }
       }
     }
+
+    val errors = new mutable.ListBuffer[String]
+    for (session_name <- sessions) {
+      Exn.interruptible_capture(print(session_name)) match {
+        case Exn.Res(_) =>
+        case Exn.Exn(exn) => errors += Exn.message(exn)
+      }
+    }
+    if (errors.nonEmpty) error(cat_lines(errors.toList))
   }
 
 
@@ -183,7 +194,7 @@ object Build_Job {
       var verbose = false
 
       val getopts = Getopts("""
-Usage: isabelle log [OPTIONS] SESSION
+Usage: isabelle log [OPTIONS] [SESSIONS ...]
 
   Options are:
     -H REGEX     filter messages by matching against head
@@ -194,13 +205,13 @@ Usage: isabelle log [OPTIONS] SESSION
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -v           print all messages, including information etc.
 
-  Print messages from the build database of the given session, without any
-  checks against current sources: results from a failed build can be
-  printed as well.
+  Print messages from the build database of the given sessions, without any
+  checks against current sources nor session structure: results from old
+  sessions or failed builds can be printed as well.
 
   Multiple options -H and -M are conjunctive: all given patterns need to
-  match. Patterns match any substring, but ^ or $ may be used to match
-  the start or end explicitly.
+  match. Patterns match any substring, but ^ or $ may be used to match the
+  start or end explicitly.
 """,
         "H:" -> (arg => message_head = message_head ::: List(arg.r)),
         "M:" -> (arg => message_body = message_body ::: List(arg.r)),
@@ -210,18 +221,16 @@ Usage: isabelle log [OPTIONS] SESSION
         "o:" -> (arg => options = options + arg),
         "v" -> (_ => verbose = true))
 
-      val more_args = getopts(args)
-      val session_name =
-        more_args match {
-          case List(session_name) => session_name
-          case _ => getopts.usage()
-        }
+      val sessions = getopts(args)
 
       val progress = new Console_Progress()
 
-      print_log(options, session_name, theories = theories, message_head = message_head,
-        message_body = message_body, verbose = verbose, margin = margin, progress = progress,
-        unicode_symbols = unicode_symbols)
+      if (sessions.isEmpty) progress.echo_warning("No sessions to print")
+      else {
+        print_log(options, sessions, theories = theories, message_head = message_head,
+          message_body = message_body, verbose = verbose, margin = margin, progress = progress,
+          unicode_symbols = unicode_symbols)
+      }
     })
 }
 
