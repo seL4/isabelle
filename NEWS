@@ -280,6 +280,10 @@ the classic Java-style syntax, not the new Python-style syntax).
 Occasional INCOMPATIBILITY, see also the official Scala documentation
 https://docs.scala-lang.org/scala3/guides/migration/compatibility-intro.html
 
+* Command-line tool "isabelle log" has been refined to support multiple
+sessions, and to match messages against regular expressions (using Java
+Pattern syntax).
+
 * Command-line tool "isabelle scala_project" supports Gradle as
 alternative to Maven: either option -G or -M needs to be specified
 explicitly. This increases the chances that the Java/Scala IDE project
