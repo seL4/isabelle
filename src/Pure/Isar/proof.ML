@@ -359,10 +359,6 @@ fun find_goal state =
     SOME ctxt_goal => ctxt_goal
   | NONE => find_goal (close_block state handle ERROR _ => error "No proof goal"));
 
-fun get_goal state =
-  let val (ctxt, {using, goal, ...}) = find_goal state
-  in (ctxt, (using, goal)) end;
-
 
 
 (** pretty_state **)
@@ -476,7 +472,7 @@ in
 
 fun refine_goals print_rule result_ctxt result state =
   let
-    val (goal_ctxt, (_, goal)) = get_goal state;
+    val (goal_ctxt, {goal, ...}) = find_goal state;
     fun refine rule st =
       (print_rule goal_ctxt rule; FINDGOAL (goal_tac goal_ctxt rule) st);
   in
@@ -528,7 +524,7 @@ fun conclude_goal ctxt goal propss =
 val finished_goal_error = "Failed to finish proof";
 
 fun finished_goal pos state =
-  let val (ctxt, (_, goal)) = get_goal state in
+  let val (ctxt, {goal, ...}) = find_goal state in
     if Thm.no_prems goal then Seq.Result state
     else
       Seq.Error (fn () =>
@@ -542,15 +538,15 @@ fun finished_goal pos state =
 val goal_finished = Thm.no_prems o #goal o #2 o find_goal;
 
 fun raw_goal state =
-  let val (ctxt, (using, goal)) = get_goal state
+  let val (ctxt, {using, goal, ...}) = find_goal state
   in {context = ctxt, facts = using, goal = goal} end;
 
 val goal = raw_goal o refine_insert [];
 
 fun simple_goal state =
   let
-    val (_, (using, _)) = get_goal state;
-    val (ctxt, (_, goal)) = get_goal (refine_insert using state);
+    val (_, {using, ...}) = find_goal state;
+    val (ctxt, {goal, ...}) = find_goal (refine_insert using state);
   in {context = ctxt, goal = goal} end;
 
 fun method_error kind pos state =
@@ -1314,8 +1310,8 @@ in
 fun future_proof fork_proof state =
   let
     val _ = assert_backward state;
-    val (goal_ctxt, goal_info) = find_goal state;
-    val {statement as (kind, _, prop), using, goal, before_qed, after_qed} = goal_info;
+    val (goal_ctxt, goal) = find_goal state;
+    val {statement as (kind, _, prop), using, goal, before_qed, after_qed} = goal;
 
     val _ = is_relevant state andalso error "Cannot fork relevant proof";
 
