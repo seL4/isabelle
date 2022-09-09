@@ -20,7 +20,6 @@ sig
   val pretty_goal_header: thm -> Pretty.T
   val string_of_goal: Proof.context -> thm -> string
   val pretty_goal_facts: Proof.context -> string -> thm list option -> Pretty.T list
-  val show_goal_inst: bool Config.T
   val pretty_goal_inst: Proof.context -> term list list -> thm -> Pretty.T list
   val method_error: string -> Position.T ->
     {context: Proof.context, facts: thm list, goal: thm} -> 'a Seq.result
@@ -248,8 +247,6 @@ fun pretty_goal_facts _ _ NONE = []
 
 (* goal instantiation *)
 
-val show_goal_inst = Attrib.setup_option_bool (\<^system_option>\<open>show_goal_inst\<close>, \<^here>);
-
 fun pretty_goal_inst ctxt propss goal =
   let
     val title = "goal instantiation:";
@@ -300,12 +297,10 @@ fun pretty_goal_inst ctxt propss goal =
 
     fun failure msg = (warning (title ^ " " ^ msg); []);
   in
-    if Config.get ctxt show_goal_inst then
-      (case goal_matcher () of
-        SOME env => prt_inst env
-      | NONE => failure "match failed")
-      handle LOST_STRUCTURE => failure "lost goal structure"
-    else []
+    (case goal_matcher () of
+      SOME env => prt_inst env
+    | NONE => failure "match failed")
+    handle LOST_STRUCTURE => failure "lost goal structure"
   end;
 
 
