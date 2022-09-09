@@ -252,7 +252,7 @@ object Completion {
     override val whiteSpace = "".r
 
     private val symboloid_regex: Regex = """\\([A-Za-z0-9_']+|<\^?[A-Za-z0-9_']+>?)""".r
-    def is_symboloid(s: CharSequence): Boolean = symboloid_regex.pattern.matcher(s).matches
+    def is_symboloid(s: CharSequence): Boolean = symboloid_regex.matches(s)
 
     private def reverse_symbol: Parser[String] = """>[A-Za-z0-9_']+\^?<\\""".r
     private def reverse_symb: Parser[String] = """[A-Za-z0-9_']{2,}\^?<\\""".r
@@ -262,7 +262,7 @@ object Completion {
     private def word2: Parser[String] = "[a-zA-Z0-9_'.]{2,}".r
     private def underscores: Parser[String] = "_*".r
 
-    def is_word(s: CharSequence): Boolean = word_regex.pattern.matcher(s).matches
+    def is_word(s: CharSequence): Boolean = word_regex.matches(s)
     def is_word_char(c: Char): Boolean = Symbol.is_ascii_letdig(c) || c == '.'
 
     def read_symbol(in: CharSequence): Option[String] = {

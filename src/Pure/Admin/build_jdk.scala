@@ -41,7 +41,7 @@ object Build_JDK {
       val path = jdk_dir + Path.explode("bin") + Path.explode(exe)
       if (path.is_file) {
         val file_descr = Isabelle_System.bash("file -b " + File.bash_path(path)).check.out
-        if (platform_regex.pattern.matcher(file_descr).matches) {
+        if (platform_regex.matches(file_descr)) {
           val Version = ("^(" + major_version + """[0-9.+]+)(?:-LTS)?$""").r
           val version_lines =
             Isabelle_System.bash("strings " + File.bash_path(path)).check

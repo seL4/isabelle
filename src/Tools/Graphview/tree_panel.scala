@@ -97,7 +97,7 @@ extends BorderPanel {
   private def selection_filter(node: Graph_Display.Node): Boolean =
     selection_pattern match {
       case None => false
-      case Some(re) => re.pattern.matcher(node.toString).find
+      case Some(re) => re.findFirstIn(node.toString).isDefined
     }
 
   private val selection_label = new Label("Selection:") {

@@ -173,8 +173,7 @@ object Export {
 
   def make_matcher(pats: List[String]): Entry_Name => Boolean = {
     val regs = pats.map(make_regex)
-    (entry_name: Entry_Name) =>
-      regs.exists(_.pattern.matcher(entry_name.compound_name).matches)
+    (entry_name: Entry_Name) => regs.exists(_.matches(entry_name.compound_name))
   }
 
   def make_entry(
