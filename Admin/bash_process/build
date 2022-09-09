@@ -12,7 +12,7 @@ PRG="$(basename "$0")"
 function usage()
 {
   echo
-  echo "Usage: $PRG TARGET"
+  echo "Usage: $PRG PLATFORM"
   echo
   exit 1
 }
@@ -27,26 +27,29 @@ function fail()
 # command line args
 
 [ "$#" -eq 0 ] && usage
-TARGET="$1"; shift
+PLATFORM="$1"; shift
 
 [ "$#" -eq 0 ] || usage
 
 
 # main
 
-mkdir -p "$TARGET"
+PLATFORM_DIR="platform_${PLATFORM}"
 
-case "$TARGET" in
+case "$PLATFORM" in
   arm64-linux)
-    cc -Wall bash_process.c -o "$TARGET/bash_process"
+    mkdir -p "$PLATFORM_DIR"
+    cc -Wall bash_process.c -o "$PLATFORM_DIR/bash_process"
     ;;
   x86_64-linux | x86_64-darwin)
-    cc -Wall -m64 bash_process.c -o "$TARGET/bash_process"
+    mkdir -p "$PLATFORM_DIR"
+    cc -Wall -m64 bash_process.c -o "$PLATFORM_DIR/bash_process"
     ;;
   x86_64-cygwin)
-    cc -Wall bash_process.c -o "$TARGET/bash_process.exe"
+    mkdir -p "$PLATFORM_DIR"
+    cc -Wall bash_process.c -o "$PLATFORM_DIR/bash_process.exe"
     ;;
   *)
-    fail "Bad target platform: \"$TARGET\""
+    fail "Bad target platform: \"$PLATFORM\""
     ;;
 esac
