@@ -3,8 +3,8 @@ For the purposes of the license agreement in the file COPYRIGHT, a
 listed as an author in one of the source files of this Isabelle distribution.
 
 
-Contributions to this Isabelle version
---------------------------------------
+Contributions to Isabelle2022
+-----------------------------
 
 * August 2022: Norbert Schirmer, Apple
   Record simproc that sorts update expressions.
@@ -24,6 +24,9 @@ Contributions to this Isabelle version
   Theory Code_Abstract_Char implements characters by target language
   integers, sacrificing pattern patching in exchange for dramatically
   increased performance for comparisions.
+
+* November 2021, July - August 2022: Fabian Huch and Makarius Wenzel
+  Improved HTML presentation.
 
 
 Contributions to Isabelle2021-1

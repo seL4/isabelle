@@ -4,13 +4,17 @@ Isabelle NEWS -- history of user-relevant changes
 (Note: Isabelle/jEdit shows a tree-view of the NEWS file in Sidekick.)
 
 
-New in this Isabelle version
-----------------------------
+New in Isabelle2022 (October 2022)
+----------------------------------
 
 *** General ***
 
-* Old-style {* verbatim *} tokens have been discontinued (legacy feature
-since Isabelle2019). INCOMPATIBILITY, use \<open>cartouche\<close> syntax instead.
+* The instantiation of schematic goals is now displayed explicitly as a
+list of variable assignments. This works for proof state output, and at
+the end of a toplevel proof. In rare situations, a proof command or
+proof method may violate the intended goal discipline, by not producing
+an instance of the original goal, but there is only a warning, no hard
+error.
 
 * Session ROOT files support 'chapter_definition' entries (optional).
 This allows to associate additional information as follows:
@@ -21,33 +25,14 @@ This allows to associate additional information as follows:
   - "chapter_definition NAME description TEXT" to provide a description
   for presentation purposes
 
-* The instantiation of schematic goals is now displayed explicitly as a
-list of variable assignments. This works for proof state output, and at
-the end of a toplevel proof. In rare situations, a proof command or
-proof method may violate the intended goal discipline, by not producing
-an instance of the original goal, but there is only a warning, no hard
-error.
-
-* System option "show_states" controls output of toplevel command states
-(notably proof states) in batch-builds; in interactive mode this is
-always done on demand. The option is relevant for tools that operate on
-exported PIDE markup, e.g. document presentation or diagnostics. For
-example:
-
-  isabelle build -o show_states FOL-ex
-  isabelle log -v -U FOL-ex
-
-Option "show_states" is also the default for the configuration option
-"show_results" within the formal context.
-
-Note that printing intermediate states may cause considerable slowdown
-in building a session.
+* Old-style {* verbatim *} tokens have been discontinued (legacy feature
+since Isabelle2019). INCOMPATIBILITY, use \<open>cartouche\<close> syntax instead.
 
 
 *** Isabelle/jEdit Prover IDE ***
 
-* Command 'print_state' outputs a plain message ("writeln" instead of
-"state"). Thus it is displayed in the Output panel, even if the option
+* Command 'print_state' outputs a plain message, i.e. "writeln" instead
+of "state". Thus it is displayed in the Output panel, even if the option
 "editor_output_state" is disabled.
 
 
@@ -95,35 +80,21 @@ presented session.
 
 *** HOL ***
 
-* HOL record: new simproc that sorts update expressions, guarded by
-configuration option "record_sort_updates" (default: false). Some
+* HOL record types: new simproc that sorts update expressions, guarded
+by configuration option "record_sort_updates" (default: false). Some
 examples are in theory "HOL-Examples.Records".
 
-* HOL-Algebra: Facts renamed to avoid fact name clashes on interpretation:
-
-    is_ring ~> ring_axioms
-    cring ~> cring_axioms
-    R_def ~> R_m_def
-
+* Meson: added support for polymorphic "using" facts. Minor
 INCOMPATIBILITY.
 
 * Moved auxiliary computation constant "divmod_nat" to theory
-"Euclidean_Division".  Minor INCOMPATIBILITY.
+"HOL.Euclidean_Division". Minor INCOMPATIBILITY.
 
-* Renamed attribute "arith_split" to "linarith_split".  Minor
+* Renamed attribute "arith_split" to "linarith_split". Minor
 INCOMPATIBILITY.
 
-* Theory Char_ord: streamlined logical specifications.
-Minor INCOMPATIBILITY.
-
-* New Theory Code_Abstract_Char implements characters by target language
-integers, sacrificing pattern patching in exchange for dramatically
-increased performance for comparisons.
-
-* New theory HOL-Library.NList of fixed length lists.
-
-* Rule split_of_bool_asm is not split any longer, analogously to
-split_if_asm.  INCOMPATIBILITY.
+* Theory "HOL.Rings": rule split_of_bool_asm is not split any longer,
+analogously to split_if_asm. INCOMPATIBILITY.
 
 * Theory "HOL.Bit_Operations": rule bit_0 is not default [simp] any
 longer. INCOMPATIBILITY.
@@ -186,6 +157,15 @@ INCOMPATIBILITY.
       total_on_trancl
       totalp_on_tranclp
 
+* New theory "HOL-Library.NList" of fixed length lists.
+
+* New Theory "HOL-Library.Code_Abstract_Char" implements characters by
+target language integers, sacrificing pattern patching in exchange for
+dramatically increased performance for comparisons.
+
+* Theory "HOL-Library.Char_ord": streamlined logical specifications.
+Minor INCOMPATIBILITY.
+
 * Theory "HOL-Library.Multiset":
   - Consolidated operation and fact names.
         multp ~> multp_code
@@ -214,55 +194,63 @@ INCOMPATIBILITY.
       monotone_on_multp_multp_image_mset
       multp_image_mset_image_msetD
 
-* Theory "HOL-Library.Sublist":
-  - Added lemma map_mono_strict_suffix.
+* Theory "HOL-Library.Sublist": added lemma map_mono_strict_suffix.
 
-* Theory "HOL-ex.Sum_of_Powers":
-  - Deleted. The same material is in the AFP as Bernoulli.
+* Theory "HOL-ex.Sum_of_Powers" has been deleted. The same material is
+in the AFP as Bernoulli.
 
-* Nitpick: To avoid technical issues, prefer non-JNI solvers to JNI solvers by
-  default. Minor INCOMPATIBILITY.
+* Session HOL-Algebra: some facts have been renamed to avoid fact name
+clashes on interpretation:
+
+    is_ring ~> ring_axioms
+    cring ~> cring_axioms
+    R_def ~> R_m_def
+
+INCOMPATIBILITY.
+
+* Nitpick: To avoid technical issues, prefer non-JNI solvers to JNI
+solvers by default. Minor INCOMPATIBILITY.
 
 * Sledgehammer:
-  - Redesigned multithreading to provide more fine grained prover schedules.
-    The binary option 'slice' has been replaced by a numeric value 'slices'
-    indicating the number of desired slices. Stronger provers can now be run by
-    more than one thread simultaneously. The new option 'max_proofs' controls
-    the number of proofs shown. INCOMPATIBILITY.
-  - Introduced sledgehammer_outcome data type and changed return type of ML
-    function Sledgehammer.run_sledgehammer from "bool * (string * string list)"
-    to "bool * (sledgehammer_outcome * string)". The former value can be
-    recomputed with "apsnd (ATP_Util.map_prod
+  - Redesigned multithreading to provide more fine grained prover
+    schedules. The binary option 'slice' has been replaced by a numeric
+    value 'slices' indicating the number of desired slices. Stronger
+    provers can now be run by more than one thread simultaneously. The
+    new option 'max_proofs' controls the number of proofs shown.
+    INCOMPATIBILITY.
+  - Introduced sledgehammer_outcome data type and changed return type of
+    ML function Sledgehammer.run_sledgehammer from "bool * (string *
+    string list)" to "bool * (sledgehammer_outcome * string)". The
+    former value can be recomputed with "apsnd (ATP_Util.map_prod
     Sledgehammer.short_string_of_sledgehammer_outcome single)".
     INCOMPATIBILITY.
   - Added support for TX0 and TX1 TPTP formats and $ite/$let expressions
     in TH0 and TH1.
   - Added support for cvc5.
-  - Generate Isar proofs by default when and only when the one-liner proof
-    fails to replay and the Isar proof succeeds.
+  - Generate Isar proofs by default when and only when the one-liner
+    proof fails to replay and the Isar proof succeeds.
   - Replaced option "sledgehammer_atp_dest_dir" by
     "sledgehammer_atp_problem_dest_dir", for problem files, and
-    "sledgehammer_atp_proof_dest_dir", for proof files. Minor INCOMPATIBILITY.
+    "sledgehammer_atp_proof_dest_dir", for proof files. Minor
+    INCOMPATIBILITY.
   - Removed support for experimental prover 'z3_tptp'.
   - The fastest successfully preplayed proof is always suggested.
-  - All SMT solvers but Z3 now resort to suggest (smt (verit)) when no proof
-    could be preplayed.
-  - Added new "some_preplayed" value to "expect" option to specify that some
-    successfully preplayed proof is expected. This is in contrast to the "some"
-    value which doesn't specify whether preplay succeeds or not.
+  - All SMT solvers but Z3 now resort to suggest (smt (verit)) when no
+    proof could be preplayed.
+  - Added new "some_preplayed" value to "expect" option to specify that
+    some successfully preplayed proof is expected. This is in contrast
+    to the "some" value which doesn't specify whether preplay succeeds
+    or not.
 
 * Mirabelle:
-  - Replaced sledgehammer option "keep" by
-    "keep_probs", for problems files, and
-    "keep_proofs" for proof files. Minor INCOMPATIBILITY.
-  - Added option "-r INT" to randomize the goals with a given 64-bit seed before
-    selection.
+  - Replaced sledgehammer option "keep" by "keep_probs", for problems
+    files, and "keep_proofs" for proof files. Minor INCOMPATIBILITY.
+  - Added option "-r INT" to randomize the goals with a given 64-bit
+    seed before selection.
   - Added option "-y" for a dry run.
-  - Renamed run_action to run in Mirabelle.action record. Minor INCOMPATIBILITY.
+  - Renamed run_action to run in Mirabelle.action record. Minor
+    INCOMPATIBILITY.
   - Run the actions on goals before commands "unfolding" and "using".
-
-* Meson
-  - Added support for polymorphic "using" facts. Minor INCOMPATIBILITY.
 
 * (Co)datatype package:
   - BNFs now require a strict cardinality bound (<o instead of \<le>o).
@@ -271,8 +259,8 @@ INCOMPATIBILITY.
 
 * More ambitious minimization of case expressions in generated code.
 
-* Code generation for Scala: type annotations in pattern bindings
-  are printed in a way suitable for Scala 3.
+* Code generation for Scala: type annotations in pattern bindings are
+printed in a way suitable for Scala 3.
 
 
 *** ML ***
@@ -294,9 +282,16 @@ the classic Java-style syntax, not the new Python-style syntax).
 Occasional INCOMPATIBILITY, see also the official Scala documentation
 https://docs.scala-lang.org/scala3/guides/migration/compatibility-intro.html
 
-* Command-line tool "isabelle log" has been refined to support multiple
-sessions, and to match messages against regular expressions (using Java
-Pattern syntax).
+* External Isabelle tools implemented as .scala scripts are no longer
+supported. INCOMPATIBILITY, instead provide a proper Isabelle/Scala
+module with etc/build.props and "services" for a suitable class instance
+of isabelle.Isabelle_Scala_Tools. For example, see
+$ISABELLE_HOME/etc/build.props and its isabelle.Tools, which defines the
+standard Isabelle tools.
+
+* The session build database now maintains an additional "uuid" column
+to identity the original build process uniquely. Thus other tools may
+dependent symbolically on a particular build instance.
 
 * Command-line tool "isabelle scala_project" supports Gradle as
 alternative to Maven: either option -G or -M needs to be specified
@@ -314,16 +309,24 @@ builds on the remote side. This tool requires a Mercurial clone of the
 Isabelle repository: a regular download of the distribution will not
 work!
 
-* The session build database now maintains an additional "uuid" column
-to identity the original build process uniquely. Thus other tools may
-dependent symbolically on a particular build instance.
+* Command-line tool "isabelle log" has been refined to support multiple
+sessions, and to match messages against regular expressions (using Java
+Pattern syntax).
 
-* External Isabelle tools implemented as .scala scripts are no longer
-supported. INCOMPATIBILITY, instead provide a proper Isabelle/Scala
-module with etc/build.props and "services" for a suitable class instance
-of isabelle.Isabelle_Scala_Tools. For example, see
-$ISABELLE_HOME/etc/build.props and its isabelle.Tools, which defines the
-standard Isabelle tools.
+* System option "show_states" controls output of toplevel command states
+(notably proof states) in batch-builds; in interactive mode this is
+always done on demand. The option is relevant for tools that operate on
+exported PIDE markup, e.g. document presentation or diagnostics. For
+example:
+
+  isabelle build -o show_states FOL-ex
+  isabelle log -v -U FOL-ex
+
+Option "show_states" is also the default for the configuration option
+"show_results" within the formal context.
+
+Note that printing intermediate states may cause considerable slowdown
+in building a session.
 
 
 
