@@ -97,8 +97,6 @@ object SSH {
       permissive = permissive)
 
   class Context private[SSH](val options: Options, val jsch: JSch) {
-    def update_options(new_options: Options): Context = new Context(new_options, jsch)
-
     private def connect_session(
       host: String,
       user: String = "",
@@ -327,9 +325,6 @@ object SSH {
     val nominal_user: String,
     val nominal_port: Int
   ) extends System {
-    def update_options(new_options: Options): Session =
-      new Session(new_options, session, on_close, nominal_host, nominal_user, nominal_port)
-
     def host: String = if (session.getHost == null) "" else session.getHost
 
     override def hg_url: String =
