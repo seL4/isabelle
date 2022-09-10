@@ -1167,6 +1167,7 @@ object Sessions {
       var requirements = false
       var exclude_session_groups: List[String] = Nil
       var all_sessions = false
+      var build_graph = false
       var dirs: List[Path] = Nil
       var session_groups: List[String] = Nil
       var exclude_sessions: List[String] = Nil
@@ -1180,6 +1181,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     -R           refer to requirements of selected sessions
     -X NAME      exclude sessions from group NAME and all descendants
     -a           select all sessions
+    -b           follow session build dependencies (default: source imports)
     -d DIR       include session directory
     -g NAME      select session group NAME
     -x NAME      exclude session NAME and all descendants
@@ -1192,6 +1194,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
         "R" -> (_ => requirements = true),
         "X:" -> (arg => exclude_session_groups = exclude_session_groups ::: List(arg)),
         "a" -> (_ => all_sessions = true),
+        "b" -> (_ => build_graph = true),
         "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
         "g:" -> (arg => session_groups = session_groups ::: List(arg)),
         "x:" -> (arg => exclude_sessions = exclude_sessions ::: List(arg)))
@@ -1207,9 +1210,10 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
       val sessions_structure =
         load_structure(options, dirs = dirs, select_dirs = select_dirs).selection(selection)
 
-      for (name <- sessions_structure.imports_topological_order) {
-        Output.writeln(name, stdout = true)
-      }
+      val order =
+        if (build_graph) sessions_structure.build_topological_order
+        else sessions_structure.imports_topological_order
+      for (name <- order) Output.writeln(name, stdout = true)
     })
 
 

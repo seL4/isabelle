@@ -865,6 +865,7 @@ text \<open>
     -R           refer to requirements of selected sessions
     -X NAME      exclude sessions from group NAME and all descendants
     -a           select all sessions
+    -b           follow session build dependencies (default: source imports)
     -d DIR       include session directory
     -g NAME      select session group NAME
     -x NAME      exclude session NAME and all descendants
@@ -884,7 +885,15 @@ text \<open>
   @{verbatim [display] \<open>  isabelle sessions -a\<close>}
 
   \<^medskip>
-  Sessions that are based on \<^verbatim>\<open>ZF\<close> (and required by it):
+  Sessions that are imported by \<^verbatim>\<open>ZF\<close>:
+  @{verbatim [display] \<open>  isabelle sessions ZF\<close>}
+
+  \<^medskip>
+  Sessions that are required to build \<^verbatim>\<open>ZF\<close>:
+  @{verbatim [display] \<open>  isabelle sessions -b ZF\<close>}
+
+  \<^medskip>
+  Sessions that are based on \<^verbatim>\<open>ZF\<close> (and imported by it):
   @{verbatim [display] \<open>  isabelle sessions -B ZF\<close>}
 
   \<^medskip>
