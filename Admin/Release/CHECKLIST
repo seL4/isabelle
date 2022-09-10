@@ -76,11 +76,11 @@ Packaging
 
 - Docker image:
 
-  isabelle build_docker -o Dockerfile -E -t makarius/isabelle:Isabelle2021-1 Isabelle2021-1_linux.tar.gz
+  isabelle build_docker -o Dockerfile -E -t makarius/isabelle:Isabelle2022 Isabelle2022_linux.tar.gz
 
   docker login
 
-  docker push makarius/isabelle:Isabelle2021-1
+  docker push makarius/isabelle:Isabelle2022
 
   docker tag ... latest
   docker push makarius/isabelle:latest
