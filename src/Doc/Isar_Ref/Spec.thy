@@ -1327,8 +1327,9 @@ text \<open>
   corresponding @{path build.props} file is expected directly in the toplevel
   directory, instead of @{path "etc/build.props"} for Isabelle system
   components. These properties need to specify sources, resources, services
-  etc. as usual. The resulting \<^verbatim>\<open>jar\<close> module becomes an export artifact of the
-  session database.
+  etc. as usual. The resulting JAR module becomes an export artefact of the
+  session database, with a name of the form
+  ``\<open>theory\<close>\<^verbatim>\<open>:classpath/\<close>\<open>module\<close>\<^verbatim>\<open>.jar\<close>''.
 
   \<^descr> \<^theory_text>\<open>compile_generated_files paths (in thy) where compile_body\<close> retrieves
   named generated files as for \<^theory_text>\<open>export_generated_files\<close> and writes them into

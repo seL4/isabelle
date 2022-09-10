@@ -61,7 +61,7 @@ text \<open>
       (@{syntax system_name} '+')? description? options? \<newline>
       sessions? directories? (theories*) \<newline>
       (document_theories?) (document_files*) \<newline>
-      (export_files*)
+      (export_files*) (export_classpath?)
     ;
     groups: '(' (@{syntax name} +) ')'
     ;
@@ -89,6 +89,8 @@ text \<open>
     ;
     export_files: @'export_files' ('(' dir ')')? ('[' nat ']')? \<newline>
       (@{syntax embedded}+)
+    ;
+    export_classpath: @'export_classpath' (@{syntax embedded}*)
   \<close>
 
   \<^descr> \isakeyword{chapter{\isacharunderscorekeyword}definition}~\<open>A (groups)\<close>
@@ -182,6 +184,15 @@ text \<open>
   0) specifies the prefix of elements that should be removed from each name:
   it allows to reduce the resulting directory hierarchy at the danger of
   overwriting files due to loss of uniqueness.
+
+  \<^descr> \isakeyword{export_classpath}~\<open>patterns\<close> specifies export artifacts that
+  should be included into the local Java/Scala classpath of this session
+  context. This is only relevant for tools that allow dynamic loading of
+  service classes (\secref{sec:scala-build}), while most other Isabelle/Scala
+  tools require global configuration during system startup. An empty list of
+  \<open>patterns\<close> defaults to \<^verbatim>\<open>"*:classpath/*.jar"\<close>, which fits to the naming
+  convention of JAR modules produced by the Isabelle/Isar command
+  \<^theory_text>\<open>scala_build_generated_files\<close> @{cite "isabelle-isar-ref"}.
 \<close>
 
 

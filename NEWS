@@ -328,6 +328,14 @@ Option "show_states" is also the default for the configuration option
 Note that printing intermediate states may cause considerable slowdown
 in building a session.
 
+* Session ROOT entries support 'export_classpath' to augment the
+Java/Scala name space for tools that allow dynamic loading of service
+classes within a session context. A notable example is document
+preparation, which works via the class isabelle.Document_Build.Engine
+and is configured by the corresponding system option "document_build".
+The Isabelle/Isar command 'scala_build_generated_files' helps to produce
+a suitable .jar module for inclusion via 'export_classpath'.
+
 
 
 New in Isabelle2021-1 (December 2021)
