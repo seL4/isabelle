@@ -1,49 +1,35 @@
-Subject: Announcing Isabelle2021-1
+Subject: Announcing Isabelle2022
 To: isabelle-users@cl.cam.ac.uk
 
-Isabelle2021-1 is now available.
+Isabelle2022 is now available.
 
-This version introduces many changes over Isabelle2020-1: see the NEWS
-file for further details. Here are various details:
+This version introduces notable changes over Isabelle2021-1: see the
+NEWS file for further details. Here are various details:
 
-* HTML presentation now includes links to formal entities.
+* HTML presentation is more robust and covers more files and links.
 
-* Isar: local theory support for 'syntax' and 'no_syntax' commands.
+* Display of instantiation for schematic goals.
 
-* Isabelle/jEdit: distribution of original jEdit editor with Isabelle/Scala
-modules and plugins.
+* PIDE: improved Isabelle/VSCode based on bundled VSCodium engine.
 
-* HOL: new order prover.
+* HOL: various improvements of theory libraries.
 
-* HOL: many changes and improvements on bit operations and word types.
+* HOL: updates and improvements of Sledgehammer.
 
-* HOL: various library improvements (HOL-Library, HOL-Combinatorics,
-HOL-Analysis, HOL-Statespace)
+* HOL: improved simproc support for record types.
 
-* Sledgehammer: update of ATPs and SMTs: E prover, veriT, Zipperposition,
-Vampire (now with Open-Source license).
+* ML: scalable type Bytes.T with support for XZ compression.
 
-* Nitpick: external MiniSat solver for all supported Isabelle platforms.
+* System: bundled Node.js/Chromium/Electron platform (part VSCodium).
 
-* ML: uniform treatment of external processes via Isabelle/Scala.
+* System: Isabelle/Scala is based on Scala 3 (dotty compiler).
 
-* ML: advanced antiquotations for Type/Const constructors, and for inline
-instantiation of types, terms, facts.
+* System: tools to sync hg repositories, notably Isabelle + AFP.
 
-* Haskell: substantially improved Isabelle/Haskell library.
-
-* System: more predefined Isabelle symbols (blackboard-bold, Z notation).
-
-* System: support for Isabelle/Scala modules defined in user-space.
-
-* System: improved document preparation using Isabelle/Scala.
-
-* System: update to current Java 17 LTS.
-
-* System: update to Poly/ML 5.9 with improved support for ARM64 on Linux.
+* System: improved "isabelle log" tool with regex filtering.
 
 
-You may get Isabelle2021-1 from the following mirror sites:
+You may get Isabelle2022 from the following mirror sites:
 
   Cambridge (UK)       https://www.cl.cam.ac.uk/research/hvg/Isabelle
   Munich (Germany)     https://isabelle.in.tum.de
