@@ -520,21 +520,45 @@ proof -
 qed
 
 lemma verit_le_mono_div_int:
-  fixes A B :: int
-  assumes "A < B" "0 < n"
-  shows "(A div n) + (if B mod n = 0 then 1 else 0) \<le> (B div n)"
+  \<open>A div n + (if B mod n = 0 then 1 else 0) \<le> B div n\<close>
+    if \<open>A < B\<close> \<open>0 < n\<close>
+    for A B n :: int
 proof -
-  have f2: "B div n = A div n \<or> A div n < B div n"
-    by (metis (no_types) assms less_le zdiv_mono1)
-  have "B div n \<noteq> A div n \<or> B mod n \<noteq> 0"
-    using assms(1) by (metis Groups.add_ac(2) assms(2) eucl_rel_int eucl_rel_int_iff
-      group_cancel.rule0 le_add_same_cancel2 not_le)
-  then have "B mod n = 0 \<longrightarrow> A div n + (if B mod n = 0 then 1 else 0) \<le> B div n"
-    using f2 by (auto dest: zless_imp_add1_zle)
-  then show ?thesis
-    using assms zdiv_mono1 by auto
+  from \<open>A < B\<close> \<open>0 < n\<close> have \<open>A div n \<le> B div n\<close>
+    by (auto intro: zdiv_mono1)
+  show ?thesis
+  proof (cases \<open>n dvd B\<close>)
+    case False
+    with \<open>A div n \<le> B div n\<close> show ?thesis
+      by auto
+  next
+    case True
+    then obtain C where \<open>B = n * C\<close> ..
+    then have \<open>B div n = C\<close>
+      using \<open>0 < n\<close> by simp
+    from \<open>0 < n\<close> have \<open>A mod n \<ge> 0\<close>
+      by simp
+    have \<open>A div n < C\<close>
+    proof (rule ccontr)
+      assume \<open>\<not> A div n < C\<close>
+      then have \<open>C \<le> A div n\<close>
+        by simp
+      with \<open>B div n = C\<close> \<open>A div n \<le> B div n\<close>
+      have \<open>A div n = C\<close>
+        by simp
+      moreover from \<open>A < B\<close> have \<open>n * (A div n) + A mod n < B\<close>
+        by simp
+      ultimately have \<open>n * C + A mod n < n * C\<close>
+        using \<open>B = n * C\<close> by simp
+      moreover have \<open>A mod n \<ge> 0\<close>
+        using \<open>0 < n\<close> by simp
+      ultimately show False
+        by simp
+    qed
+    with \<open>n dvd B\<close> \<open>B div n = C\<close> show ?thesis
+      by simp
+  qed
 qed
-
 
 lemma verit_less_mono_div_int2:
   fixes A B :: int
