@@ -21,6 +21,9 @@ object Build_Docker {
       "latex" ->
         List("texlive-fonts-extra", "texlive-font-utils", "texlive-latex-extra", "texlive-science"))
 
+  def all_packages: List[String] =
+    packages ::: package_collections.valuesIterator.flatten.toList
+
   def build_docker(progress: Progress,
     app_archive: String,
     base: String = default_base,
