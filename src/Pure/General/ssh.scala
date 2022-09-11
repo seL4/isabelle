@@ -58,9 +58,53 @@ object SSH {
     options.int("ssh_alive_count_max")
 
 
-  /* init context */
+  /* open session */
 
-  def init_context(options: Options): Context = {
+  private def connect_session(
+    options: Options,
+    jsch: JSch,
+    host: String,
+    user: String = "",
+    port: Int = 0,
+    permissive: Boolean = false,
+    nominal_host: String = "",
+    nominal_user: String = "",
+    nominal_port: Option[Int] = None,
+    on_close: () => Unit = () => ()
+  ): Session = {
+    val connect_port = make_port(port)
+    val session = jsch.getSession(proper_string(user).orNull, host, connect_port)
+
+    session.setUserInfo(No_User_Info)
+    session.setServerAliveInterval(alive_interval(options))
+    session.setServerAliveCountMax(alive_count_max(options))
+    session.setConfig("MaxAuthTries", "3")
+    if (permissive) session.setConfig("StrictHostKeyChecking", "no")
+    if (nominal_host != "") session.setHostKeyAlias(nominal_host)
+
+    if (options.bool("ssh_compression")) {
+      session.setConfig("compression.s2c", "zlib@openssh.com,zlib,none")
+      session.setConfig("compression.c2s", "zlib@openssh.com,zlib,none")
+      session.setConfig("compression_level", "9")
+    }
+    session.connect(connect_timeout(options))
+    new Session(options, session, on_close,
+      proper_string(nominal_host) getOrElse host,
+      proper_string(nominal_user) getOrElse user,
+      nominal_port getOrElse connect_port)
+  }
+
+  def open_session(
+    options: Options,
+    host: String,
+    user: String = "",
+    port: Int = 0,
+    actual_host: String = "",
+    proxy_host: String = "",
+    proxy_user: String = "",
+    proxy_port: Int = 0,
+    permissive: Boolean = false
+  ): Session = {
     val config_dir = Path.explode(options.string("ssh_config_dir"))
     if (!config_dir.is_dir) error("Bad ssh config directory: " + config_dir)
 
@@ -84,83 +128,30 @@ object SSH {
       }
     }
 
-    new Context(options, jsch)
-  }
-
-  def open_session(options: Options,
-      host: String, user: String = "", port: Int = 0, actual_host: String = "",
-      proxy_host: String = "", proxy_user: String = "", proxy_port: Int = 0,
-      permissive: Boolean = false): Session =
-    init_context(options).open_session(
-      host = host, user = user, port = port, actual_host = actual_host,
-      proxy_host = proxy_host, proxy_user = proxy_user, proxy_port = proxy_port,
-      permissive = permissive)
-
-  class Context private[SSH](val options: Options, val jsch: JSch) {
-    private def connect_session(
-      host: String,
-      user: String = "",
-      port: Int = 0,
-      permissive: Boolean = false,
-      nominal_host: String = "",
-      nominal_user: String = "",
-      nominal_port: Option[Int] = None,
-      on_close: () => Unit = () => ()
-    ): Session = {
-      val connect_port = make_port(port)
-      val session = jsch.getSession(proper_string(user).orNull, host, connect_port)
-
-      session.setUserInfo(No_User_Info)
-      session.setServerAliveInterval(alive_interval(options))
-      session.setServerAliveCountMax(alive_count_max(options))
-      session.setConfig("MaxAuthTries", "3")
-      if (permissive) session.setConfig("StrictHostKeyChecking", "no")
-      if (nominal_host != "") session.setHostKeyAlias(nominal_host)
-
-      if (options.bool("ssh_compression")) {
-        session.setConfig("compression.s2c", "zlib@openssh.com,zlib,none")
-        session.setConfig("compression.c2s", "zlib@openssh.com,zlib,none")
-        session.setConfig("compression_level", "9")
-      }
-      session.connect(connect_timeout(options))
-      new Session(options, session, on_close,
-        proper_string(nominal_host) getOrElse host,
-        proper_string(nominal_user) getOrElse user,
-        nominal_port getOrElse connect_port)
+    val connect_host = proper_string(actual_host) getOrElse host
+    val connect_port = make_port(port)
+    if (proxy_host == "") {
+      connect_session(options, jsch, host = connect_host, user = user, port = connect_port)
     }
+    else {
+      val proxy =
+        connect_session(options, jsch, host = proxy_host, port = proxy_port, user = proxy_user)
 
-    def open_session(
-      host: String,
-      user: String = "",
-      port: Int = 0,
-      actual_host: String = "",
-      proxy_host: String = "",
-      proxy_user: String = "",
-      proxy_port: Int = 0,
-      permissive: Boolean = false
-    ): Session = {
-      val connect_host = proper_string(actual_host) getOrElse host
-      val connect_port = make_port(port)
-      if (proxy_host == "") connect_session(host = connect_host, user = user, port = connect_port)
-      else {
-        val proxy = connect_session(host = proxy_host, port = proxy_port, user = proxy_user)
+      val fw =
+        try { proxy.port_forwarding(remote_host = connect_host, remote_port = connect_port) }
+        catch { case exn: Throwable => proxy.close(); throw exn }
 
-        val fw =
-          try { proxy.port_forwarding(remote_host = connect_host, remote_port = connect_port) }
-          catch { case exn: Throwable => proxy.close(); throw exn }
-
-        try {
-          connect_session(
-            host = fw.local_host,
-            port = fw.local_port,
-            permissive = permissive,
-            nominal_host = host,
-            nominal_port = Some(connect_port),
-            nominal_user = user, user = user,
-            on_close = { () => fw.close(); proxy.close() })
-        }
-        catch { case exn: Throwable => fw.close(); proxy.close(); throw exn }
+      try {
+        connect_session(options, jsch,
+          host = fw.local_host,
+          port = fw.local_port,
+          permissive = permissive,
+          nominal_host = host,
+          nominal_port = Some(connect_port),
+          nominal_user = user, user = user,
+          on_close = { () => fw.close(); proxy.close() })
       }
+      catch { case exn: Throwable => fw.close(); proxy.close(); throw exn }
     }
   }
 

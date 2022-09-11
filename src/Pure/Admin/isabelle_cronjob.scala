@@ -153,8 +153,8 @@ object Isabelle_Cronjob {
     detect: PostgreSQL.Source = "",
     active: Boolean = true
   ) {
-    def ssh_session(context: SSH.Context): SSH.Session =
-      context.open_session(host = host, user = user, port = port, actual_host = actual_host,
+    def open_session(options: Options): SSH.Session =
+      SSH.open_session(options, host = host, user = user, port = port, actual_host = actual_host,
         proxy_host = proxy_host, proxy_user = proxy_user, proxy_port = proxy_port,
         permissive = proxy_host.nonEmpty)
 
@@ -410,7 +410,7 @@ object Isabelle_Cronjob {
     val task_name = "build_history-" + r.host
     Logger_Task(task_name,
       { logger =>
-        using(r.ssh_session(logger.ssh_context)) { ssh =>
+        using(r.open_session(logger.options)) { ssh =>
           val results =
             Build_History.remote_build(ssh,
               isabelle_repos,
@@ -443,10 +443,10 @@ object Isabelle_Cronjob {
 
   object Log_Service {
     def apply(options: Options, progress: Progress = new Progress): Log_Service =
-      new Log_Service(SSH.init_context(options), progress)
+      new Log_Service(options, progress)
   }
 
-  class Log_Service private(val ssh_context: SSH.Context, progress: Progress) {
+  class Log_Service private(val options: Options, progress: Progress) {
     current_log.file.delete
 
     private val thread: Consumer_Thread[String] =
@@ -493,12 +493,11 @@ object Isabelle_Cronjob {
   }
 
   class Logger private[Isabelle_Cronjob](
-    val log_service: Log_Service,
+    log_service: Log_Service,
     val start_date: Date,
     val task_name: String
   ) {
-    def ssh_context: SSH.Context = log_service.ssh_context
-    def options: Options = ssh_context.options
+    def options: Options = log_service.options
 
     def log(date: Date, msg: String): Unit = log_service.log(date, task_name, msg)
 
