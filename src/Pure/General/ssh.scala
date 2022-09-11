@@ -187,40 +187,6 @@ object SSH {
   }
 
 
-  /* port forwarding */
-
-  object Port_Forwarding {
-    def open(
-      ssh: Session,
-      ssh_close: Boolean,
-      local_host: String,
-      local_port: Int,
-      remote_host: String,
-      remote_port: Int
-    ): Port_Forwarding = {
-      val port = ssh.session.setPortForwardingL(local_host, local_port, remote_host, remote_port)
-      new Port_Forwarding(ssh, ssh_close, local_host, port, remote_host, remote_port)
-    }
-  }
-
-  class Port_Forwarding private[SSH](
-    ssh: SSH.Session,
-    ssh_close: Boolean,
-    val local_host: String,
-    val local_port: Int,
-    val remote_host: String,
-    val remote_port: Int
-  ) extends AutoCloseable {
-    override def toString: String =
-      local_host + ":" + local_port + ":" + remote_host + ":" + remote_port
-
-    def close(): Unit = {
-      ssh.session.delPortForwardingL(local_host, local_port)
-      if (ssh_close) ssh.close()
-    }
-  }
-
-
   /* Sftp channel */
 
   type Attrs = SftpATTRS
@@ -310,12 +276,14 @@ object SSH {
 
   class Session private[SSH](
     val options: Options,
-    val session: JSch_Session,
+    session: JSch_Session,
     on_close: () => Unit,
     val nominal_host: String,
     val nominal_user: String,
     val nominal_port: Int
   ) extends System {
+    ssh =>
+
     def host: String = if (session.getHost == null) "" else session.getHost
 
     override def hg_url: String =
@@ -332,15 +300,25 @@ object SSH {
     /* port forwarding */
 
     def port_forwarding(
-        remote_port: Int, remote_host: String = "localhost",
-        local_port: Int = 0, local_host: String = "localhost",
-        ssh_close: Boolean = false): Port_Forwarding =
-      Port_Forwarding.open(this, ssh_close, local_host, local_port, remote_host, remote_port)
+      remote_port: Int,
+      remote_host: String = "localhost",
+      local_port: Int = 0,
+      local_host: String = "localhost",
+      ssh_close: Boolean = false
+    ): Port_Forwarding = {
+      val local_port1 = session.setPortForwardingL(local_host, local_port, remote_host, remote_port)
+      new Port_Forwarding(local_host, local_port1, remote_host, remote_port) {
+        override def close(): Unit = {
+          session.delPortForwardingL(this.local_host, this.local_port)
+          if (ssh_close) ssh.close()
+        }
+      }
+    }
 
 
     /* sftp channel */
 
-    val sftp: ChannelSftp = session.openChannel("sftp").asInstanceOf[ChannelSftp]
+    private val sftp: ChannelSftp = session.openChannel("sftp").asInstanceOf[ChannelSftp]
     sftp.connect(connect_timeout(options))
 
     override def close(): Unit = { sftp.disconnect(); session.disconnect(); on_close() }
@@ -475,6 +453,16 @@ object SSH {
       val remote_dir = tmp_dir()
       try { body(Path.explode(remote_dir)) } finally { rm_tree(remote_dir) }
     }
+  }
+
+  abstract class Port_Forwarding private[SSH](
+    val local_host: String,
+    val local_port: Int,
+    val remote_host: String,
+    val remote_port: Int
+  ) extends AutoCloseable {
+    override def toString: String =
+      local_host + ":" + local_port + ":" + remote_host + ":" + remote_port
   }
 
 
