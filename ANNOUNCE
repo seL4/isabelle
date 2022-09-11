@@ -20,7 +20,7 @@ NEWS file for further details. Here are various details:
 
 * ML: scalable type Bytes.T with support for XZ compression.
 
-* System: bundled Node.js/Chromium/Electron platform (part VSCodium).
+* System: bundled Node.js/Chromium/Electron platform (via VSCodium).
 
 * System: Isabelle/Scala is based on Scala 3 (dotty compiler).
 
