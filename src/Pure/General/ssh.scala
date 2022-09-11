@@ -312,9 +312,7 @@ object SSH {
     def remote_path(path: Path): String = expand_path(path).implode
     override def bash_path(path: Path): String = Bash.string(remote_path(path))
 
-    def chmod(permissions: Int, path: Path): Unit = sftp.chmod(permissions, remote_path(path))
     def rm(path: Path): Unit = sftp.rm(remote_path(path))
-    def mkdir(path: Path): Unit = sftp.mkdir(remote_path(path))
 
     private def test_entry(path: Path, as_dir: Boolean): Boolean =
       try {
