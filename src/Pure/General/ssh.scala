@@ -156,25 +156,6 @@ object SSH {
   }
 
 
-  /* logging */
-
-  def logging(verbose: Boolean = true, debug: Boolean = false): Unit = {
-    JSch.setLogger(if (verbose) new Logger(debug) else null)
-  }
-
-  private class Logger(debug: Boolean) extends JSch_Logger {
-    def isEnabled(level: Int): Boolean = level != JSch_Logger.DEBUG || debug
-
-    def log(level: Int, msg: String): Unit = {
-      level match {
-        case JSch_Logger.ERROR | JSch_Logger.FATAL => Output.error_message(msg)
-        case JSch_Logger.WARN => Output.warning(msg)
-        case _ => Output.writeln(msg)
-      }
-    }
-  }
-
-
   /* user info */
 
   object No_User_Info extends UserInfo {
@@ -332,10 +313,8 @@ object SSH {
     override def bash_path(path: Path): String = Bash.string(remote_path(path))
 
     def chmod(permissions: Int, path: Path): Unit = sftp.chmod(permissions, remote_path(path))
-    def mv(path1: Path, path2: Path): Unit = sftp.rename(remote_path(path1), remote_path(path2))
     def rm(path: Path): Unit = sftp.rm(remote_path(path))
     def mkdir(path: Path): Unit = sftp.mkdir(remote_path(path))
-    def rmdir(path: Path): Unit = sftp.rmdir(remote_path(path))
 
     private def test_entry(path: Path, as_dir: Boolean): Boolean =
       try {
@@ -346,10 +325,6 @@ object SSH {
 
     override def is_dir(path: Path): Boolean = test_entry(path, true)
     override def is_file(path: Path): Boolean = test_entry(path, false)
-
-    def is_link(path: Path): Boolean =
-      try { sftp.lstat(remote_path(path)).isLink }
-      catch { case _: SftpException => false }
 
     override def make_directory(path: Path): Path = {
       if (!is_dir(path)) {
@@ -380,29 +355,6 @@ object SSH {
           }
           else attrs.isDir)
       }).toList.sortBy(_.name)
-    }
-
-    def find_files(
-      start: Path,
-      pred: Path => Boolean = _ => true,
-      include_dirs: Boolean = false,
-      follow_links: Boolean = false
-    ): List[Path] = {
-      val result = new mutable.ListBuffer[Path]
-      def check(path: Path): Unit = { if (pred(path)) result += path }
-
-      def find(dir: Path): Unit = {
-        if (include_dirs) check(dir)
-        if (follow_links || !is_link(dir)) {
-          for (entry <- read_dir(dir)) {
-            val path = dir + Path.basic(entry.name)
-            if (entry.is_file) check(path) else find(path)
-          }
-        }
-      }
-      if (is_file(start)) check(start) else find(start)
-
-      result.toList
     }
 
     def open_input(path: Path): InputStream = sftp.get(remote_path(path))
