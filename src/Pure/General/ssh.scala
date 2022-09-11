@@ -327,10 +327,8 @@ object SSH {
     override def is_file(path: Path): Boolean = test_entry(path, false)
 
     override def make_directory(path: Path): Path = {
-      if (!is_dir(path)) {
-        execute(
-          "perl -e \"use File::Path make_path; make_path('" + remote_path(path) + "');\"")
-        if (!is_dir(path)) error("Failed to create directory: " + quote(remote_path(path)))
+      if (!execute("mkdir -p " + remote_path(path)).ok) {
+        error("Failed to create directory: " + quote(remote_path(path)))
       }
       path
     }
