@@ -427,14 +427,6 @@ next
     by simp
 qed
 
-lemma euclidean_relation_intI' [case_names by0 pos neg]:
-  \<open>(k div l, k mod l) = (q, r)\<close>
-    if \<open>l = 0 \<Longrightarrow> q = 0 \<and> r = k\<close>
-    and \<open>l > 0 \<Longrightarrow> 0 \<le> r \<and> r < l \<and> k = q * l + r\<close>
-    and \<open>l < 0 \<Longrightarrow> l < r \<and> r \<le> 0 \<and> k = q * l + r\<close> for k l q r :: int
-  by (cases l \<open>0::int\<close> rule: linorder_cases)
-    (auto dest: that)
-
 
 subsubsection \<open>Computing \<open>div\<close> and \<open>mod\<close> with shifting\<close>
 
@@ -465,13 +457,21 @@ lemma pos_zdiv_mult_2: \<open>(1 + 2 * b) div (2 * a) = b div a\<close> (is ?Q)
   if \<open>0 \<le> a\<close> for a b :: int
 proof -
   have \<open>((1 + 2 * b) div (2 * a), (1 + 2 * b) mod (2 * a)) = (b div a, 1 + 2 * (b mod a))\<close>
-  proof (cases \<open>2 * a\<close> \<open>b div a\<close> \<open>1 + 2 * (b mod a)\<close> \<open>1 + 2 * b\<close> rule: euclidean_relation_intI')
+  proof (cases \<open>2 * a\<close> \<open>b div a\<close> \<open>1 + 2 * (b mod a)\<close> \<open>1 + 2 * b\<close> rule: euclidean_relation_intI)
     case by0
     then show ?case
       by simp
   next
-    case pos
-    then have \<open>a > 0\<close>
+    case divides
+    have \<open>even (2 * a)\<close>
+      by simp
+    then have \<open>even (1 + 2 * b)\<close>
+      using \<open>2 * a dvd 1 + 2 * b\<close> by (rule dvd_trans)
+    then show ?case
+      by simp
+  next
+    case euclidean_relation
+    with that have \<open>a > 0\<close>
       by simp
     moreover have \<open>b mod a < a\<close>
       using \<open>a > 0\<close> by simp
@@ -479,12 +479,10 @@ proof -
       by simp
     moreover have \<open>2 * (b mod a) + a * (2 * (b div a)) = 2 * (b div a * a + b mod a)\<close>
       by (simp only: algebra_simps)
+    moreover have \<open>0 \<le> 2 * (b mod a)\<close>
+      using \<open>a > 0\<close> by simp
     ultimately show ?case
       by (simp add: algebra_simps)
-  next
-    case neg
-    with that show ?case
-      by simp
   qed
   then show ?Q and ?R
     by simp_all
@@ -495,17 +493,21 @@ lemma neg_zdiv_mult_2: \<open>(1 + 2 * b) div (2 * a) = (b + 1) div a\<close> (i
   if \<open>a \<le> 0\<close> for a b :: int
 proof -
   have \<open>((1 + 2 * b) div (2 * a), (1 + 2 * b) mod (2 * a)) = ((b + 1) div a, 2 * ((b + 1) mod a) - 1)\<close>
-  proof (cases \<open>2 * a\<close> \<open>(b + 1) div a\<close> \<open>2 * ((b + 1) mod a) - 1\<close> \<open>1 + 2 * b\<close> rule: euclidean_relation_intI')
+  proof (cases \<open>2 * a\<close> \<open>(b + 1) div a\<close> \<open>2 * ((b + 1) mod a) - 1\<close> \<open>1 + 2 * b\<close> rule: euclidean_relation_intI)
     case by0
     then show ?case
       by simp
   next
-    case pos
-    with that show ?case
+    case divides
+    have \<open>even (2 * a)\<close>
+      by simp
+    then have \<open>even (1 + 2 * b)\<close>
+      using \<open>2 * a dvd 1 + 2 * b\<close> by (rule dvd_trans)
+    then show ?case
       by simp
   next
-    case neg
-    then have \<open>a < 0\<close>
+    case euclidean_relation
+    with that have \<open>a < 0\<close>
       by simp
     moreover have \<open>(b + 1) mod a > a\<close>
       using \<open>a < 0\<close> by simp
@@ -519,7 +521,7 @@ proof -
       2 * ((1 + b) div a * a + (1 + b) mod a)\<close>
       by (simp only: algebra_simps)
     ultimately show ?case
-      by (simp add: algebra_simps)
+      by (simp add: algebra_simps sgn_mult abs_mult)
   qed
   then show ?Q and ?R
     by simp_all
