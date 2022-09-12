@@ -444,7 +444,7 @@ object PostgreSQL {
             ssh.port_forwarding(remote_host = db_host,
               remote_port = if (port > 0) port else default_port,
               ssh_close = ssh_close)
-          val url = "jdbc:postgresql://localhost:" + fw.local_port + db_name
+          val url = "jdbc:postgresql://localhost:" + fw.port + db_name
           val name = user + "@" + fw + db_name + " via ssh " + ssh
           (url, name, Some(fw))
       }

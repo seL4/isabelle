@@ -138,9 +138,6 @@ object Isabelle_Cronjob {
     actual_host: String = "",
     user: String = "",
     port: Int = 0,
-    proxy_host: String = "",
-    proxy_user: String = "",
-    proxy_port: Int = 0,
     historic: Boolean = false,
     history: Int = 0,
     history_base: String = "build_history_base",
@@ -154,9 +151,7 @@ object Isabelle_Cronjob {
     active: Boolean = true
   ) {
     def open_session(options: Options): SSH.Session =
-      SSH.open_session(options, host = host, user = user, port = port, actual_host = actual_host,
-        proxy_host = proxy_host, proxy_user = proxy_user, proxy_port = proxy_port,
-        permissive = proxy_host.nonEmpty)
+      SSH.open_session(options, host = host, user = user, port = port, actual_host = actual_host)
 
     def sql: PostgreSQL.Source =
       Build_Log.Prop.build_engine.toString + " = " + SQL.string(Build_History.engine) + " AND " +
@@ -209,11 +204,9 @@ object Isabelle_Cronjob {
   val remote_builds_old: List[Remote_Build] =
     List(
       Remote_Build("macOS 10.15 Catalina", "laramac01", user = "makarius",
-        proxy_host = "laraserver", proxy_user = "makarius",
         options = "-m32 -M4 -e ISABELLE_GHC_SETUP=true -p pide_session=false",
         args = "-a -d '~~/src/Benchmarks'"),
       Remote_Build("Linux A", "i21of4", user = "i21isatest",
-        proxy_host = "lxbroy10", proxy_user = "i21isatest",
         options = "-m32 -M1x4,2,4" +
           " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAML_SETUP=true" +
           " -e ISABELLE_GHC_SETUP=true" +
@@ -235,7 +228,6 @@ object Isabelle_Cronjob {
         options = "-m32 -M1,2 -e ISABELLE_GHC_SETUP=true -p pide_session=false",
         args = "-a -d '~~/src/Benchmarks'"),
       Remote_Build("AFP old bulky", "lrzcloud1",
-        proxy_host = "lxbroy10", proxy_user = "i21isatest",
         options = "-m64 -M6 -U30000 -s10 -t AFP",
         args = "-g large -g slow",
         afp = true,
@@ -354,7 +346,7 @@ object Isabelle_Cronjob {
           detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("skip_proofs"))),
       List(
         Remote_Build("macOS 10.15 Catalina", "monterey", actual_host = "laramac01",
-          user = "makarius", proxy_host = "laraserver", proxy_user = "makarius",
+          user = "makarius",
           options = "-m32 -M4 -e ISABELLE_GHC_SETUP=true -p pide_session=false",
           args = "-a -d '~~/src/Benchmarks'")),
       List(
@@ -382,7 +374,6 @@ object Isabelle_Cronjob {
     List(
       List(
         Remote_Build("AFP", "lrzcloud2", actual_host = "10.195.4.41",
-          proxy_host = "lxbroy10", proxy_user = "i21isatest",
           java_heap = "8g",
           options = "-m32 -M1x6 -t AFP" +
             " -e ISABELLE_GHC=ghc" +
@@ -393,7 +384,6 @@ object Isabelle_Cronjob {
           afp = true,
           detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("AFP")),
         Remote_Build("AFP", "lrzcloud2", actual_host = "10.195.4.41",
-          proxy_host = "lxbroy10", proxy_user = "i21isatest",
           java_heap = "8g",
           options = "-m64 -M8 -U30000 -s10 -t AFP",
           args = "-g large -g slow",
