@@ -135,7 +135,6 @@ object Isabelle_Cronjob {
   sealed case class Remote_Build(
     description: String,
     host: String,
-    actual_host: String = "",
     user: String = "",
     port: Int = 0,
     historic: Boolean = false,
@@ -151,7 +150,7 @@ object Isabelle_Cronjob {
     active: Boolean = true
   ) {
     def open_session(options: Options): SSH.Session =
-      SSH.open_session(options, host = host, user = user, port = port, actual_host = actual_host)
+      SSH.open_session(options, host = host, user = user, port = port)
 
     def sql: PostgreSQL.Source =
       Build_Log.Prop.build_engine.toString + " = " + SQL.string(Build_History.engine) + " AND " +
@@ -345,8 +344,7 @@ object Isabelle_Cronjob {
           options = "-m32 -M4 -t skip_proofs -p pide_session=false", args = "-a -o skip_proofs",
           detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("skip_proofs"))),
       List(
-        Remote_Build("macOS 10.15 Catalina", "monterey", actual_host = "laramac01",
-          user = "makarius",
+        Remote_Build("macOS 10.15 Catalina", "monterey", user = "makarius",
           options = "-m32 -M4 -e ISABELLE_GHC_SETUP=true -p pide_session=false",
           args = "-a -d '~~/src/Benchmarks'")),
       List(
@@ -373,7 +371,7 @@ object Isabelle_Cronjob {
   val remote_builds2: List[List[Remote_Build]] =
     List(
       List(
-        Remote_Build("AFP", "lrzcloud2", actual_host = "10.195.4.41",
+        Remote_Build("AFP", "lrzcloud2",
           java_heap = "8g",
           options = "-m32 -M1x6 -t AFP" +
             " -e ISABELLE_GHC=ghc" +
@@ -383,7 +381,7 @@ object Isabelle_Cronjob {
           args = "-a -X large -X slow",
           afp = true,
           detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("AFP")),
-        Remote_Build("AFP", "lrzcloud2", actual_host = "10.195.4.41",
+        Remote_Build("AFP", "lrzcloud2",
           java_heap = "8g",
           options = "-m64 -M8 -U30000 -s10 -t AFP",
           args = "-g large -g slow",

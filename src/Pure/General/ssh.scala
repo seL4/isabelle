@@ -94,12 +94,8 @@ object SSH {
     host: String,
     port: Int = 0,
     user: String = "",
-    actual_host: String = "",
     multiplex: Boolean = !Platform.is_windows
   ): Session = {
-    val session_host = proper_string(actual_host) getOrElse host
-    val session_port = make_port(port)
-
     val (control_master, control_path) =
       if (multiplex) {
         val file = Isabelle_System.tmp_file("ssh_socket")
@@ -108,7 +104,7 @@ object SSH {
       }
       else (false, "")
 
-    new Session(options, session_host, session_port, user, control_master, control_path)
+    new Session(options, host, make_port(port), user, control_master, control_path)
   }
 
   class Session private[SSH](
