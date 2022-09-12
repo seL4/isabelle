@@ -266,6 +266,8 @@ object SSH {
       local_host: String = "localhost",
       ssh_close: Boolean = false
     ): Port_Forwarding = {
+      if (control_path.isEmpty) error("SSH port forwarding requires multiplexing")
+
       val port =
         if (local_port > 0) local_port
         else {
