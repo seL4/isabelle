@@ -9,7 +9,10 @@ imports
   Fraction_Field
 begin
 
-definition quot_to_fract :: "'a :: {idom} \<times> 'a \<Rightarrow> 'a fract" where
+lemma unit_factor_1_imp_normalized: "unit_factor x = 1 \<Longrightarrow> normalize x = x"
+  using unit_factor_mult_normalize [of x] by simp
+
+definition quot_to_fract :: "'a \<times> 'a \<Rightarrow> 'a :: idom fract" where
   "quot_to_fract = (\<lambda>(a,b). Fraction_Field.Fract a b)"
 
 definition normalize_quot :: "'a :: {ring_gcd,idom_divide,semiring_gcd_mult_normalize} \<times> 'a \<Rightarrow> 'a \<times> 'a" where
@@ -412,5 +415,30 @@ proof (cases "y = 0")
           normalize_quot_normalize_right normalize_quot_normalize_left)
   finally show ?thesis .
 qed simp_all
+
+lemma snd_quot_of_fract_nonzero [simp]: "snd (quot_of_fract x) \<noteq> 0"
+  by transfer simp
+
+lemma Fract_quot_of_fract [simp]: "Fract (fst (quot_of_fract x)) (snd (quot_of_fract x)) = x"
+  by transfer (simp del: fractrel_iff, subst fractrel_normalize_quot_left, simp)
+
+lemma snd_quot_of_fract_Fract_whole:
+  assumes "y dvd x"
+  shows   "snd (quot_of_fract (Fract x y)) = 1"
+  using assms by transfer (auto simp: normalize_quot_def Let_def gcd_proj2_if_dvd)
+
+lemma fst_quot_of_fract_eq_0_iff [simp]: "fst (quot_of_fract x) = 0 \<longleftrightarrow> x = 0"
+  by transfer simp
+
+lemma coprime_quot_of_fract:
+  "coprime (fst (quot_of_fract x)) (snd (quot_of_fract x))"
+  by transfer (simp add: coprime_normalize_quot)
+
+lemma unit_factor_snd_quot_of_fract: "unit_factor (snd (quot_of_fract x)) = 1"
+  using quot_of_fract_in_normalized_fracts[of x] 
+  by (simp add: normalized_fracts_def case_prod_unfold)  
+
+lemma normalize_snd_quot_of_fract: "normalize (snd (quot_of_fract x)) = snd (quot_of_fract x)"
+  by (intro unit_factor_1_imp_normalized unit_factor_snd_quot_of_fract)
 
 end

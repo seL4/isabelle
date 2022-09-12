@@ -1438,7 +1438,7 @@ next
   proof
     assume "[:c:] dvd p"
     then show "\<forall>n. c dvd coeff p n"
-      by (auto elim!: dvdE simp: coeffs_def)
+      by (auto simp: coeffs_def)
   next
     assume *: "\<forall>n. c dvd coeff p n"
     define mydiv where "mydiv x y = (SOME z. x = y * z)" for x y :: 'a
@@ -1867,7 +1867,7 @@ lemma order_0_monom [simp]: "c \<noteq> 0 \<Longrightarrow> order 0 (monom c n) 
   using order_power_n_n[of 0 n] by (simp add: monom_altdef order_smult)
 
 lemma dvd_imp_order_le: "q \<noteq> 0 \<Longrightarrow> p dvd q \<Longrightarrow> Polynomial.order a p \<le> Polynomial.order a q"
-  by (auto simp: order_mult elim: dvdE)
+  by (auto simp: order_mult)
 
 text \<open>Now justify the standard squarefree decomposition, i.e. \<open>f / gcd f f'\<close>.\<close>
 
@@ -3954,6 +3954,58 @@ lemma mod_poly_eq: "eucl_rel_poly x y (q, r) \<Longrightarrow> x mod y = r"
   for x :: "'a::field poly"
   by (rule eucl_rel_poly_unique_mod [OF eucl_rel_poly])
 
+lemma div_poly_less:
+  fixes x :: "'a::field poly"
+  assumes "degree x < degree y"
+  shows "x div y = 0"
+proof -
+  from assms have "eucl_rel_poly x y (0, x)"
+    by (simp add: eucl_rel_poly_iff)
+  then show "x div y = 0"
+    by (rule div_poly_eq)
+qed
+
+lemma mod_poly_less:
+  assumes "degree x < degree y"
+  shows "x mod y = x"
+proof -
+  from assms have "eucl_rel_poly x y (0, x)"
+    by (simp add: eucl_rel_poly_iff)
+  then show "x mod y = x"
+    by (rule mod_poly_eq)
+qed
+
+lemma degree_mod_less: "y \<noteq> 0 \<Longrightarrow> x mod y = 0 \<or> degree (x mod y) < degree y"
+  using eucl_rel_poly [of x y] unfolding eucl_rel_poly_iff by simp
+
+lemma degree_mod_less': "b \<noteq> 0 \<Longrightarrow> a mod b \<noteq> 0 \<Longrightarrow> degree (a mod b) < degree b"
+  using degree_mod_less[of b a] by auto
+
+instantiation poly :: (field) unique_euclidean_ring
+begin
+
+definition euclidean_size_poly :: "'a poly \<Rightarrow> nat"
+  where "euclidean_size_poly p = (if p = 0 then 0 else 2 ^ degree p)"
+
+definition division_segment_poly :: "'a poly \<Rightarrow> 'a poly"
+  where [simp]: "division_segment_poly p = 1"
+
+instance proof
+  show "(q * p + r) div p = q" if "p \<noteq> 0"
+    and "euclidean_size r < euclidean_size p" for q p r :: "'a poly"
+  proof -
+    from \<open>p \<noteq> 0\<close> eucl_rel_poly [of r p] have "eucl_rel_poly (r + q * p) p (q + r div p, r mod p)"
+      by (simp add: eucl_rel_poly_iff distrib_right)
+    then have "(r + q * p) div p = q + r div p"
+      by (rule div_poly_eq)
+    with that show ?thesis
+      by (cases "r = 0") (simp_all add: euclidean_size_poly_def div_poly_less ac_simps)
+  qed
+qed (auto simp: euclidean_size_poly_def Rings.div_mult_mod_eq div_poly_less degree_mult_eq power_add
+    intro!: degree_mod_less' split: if_splits)
+
+end
+
 instance poly :: (field) idom_modulo ..
 
 lemma div_pCons_eq:
@@ -3979,33 +4031,6 @@ lemma div_mod_fold_coeffs:
           let b = coeff (pCons a r) (degree q) / coeff q (degree q)
           in (pCons b s, pCons a r - smult b q)) p (0, 0))"
   by (rule sym, induct p) (auto simp: div_pCons_eq mod_pCons_eq Let_def)
-
-lemma degree_mod_less: "y \<noteq> 0 \<Longrightarrow> x mod y = 0 \<or> degree (x mod y) < degree y"
-  using eucl_rel_poly [of x y] unfolding eucl_rel_poly_iff by simp
-
-lemma degree_mod_less': "b \<noteq> 0 \<Longrightarrow> a mod b \<noteq> 0 \<Longrightarrow> degree (a mod b) < degree b"
-  using degree_mod_less[of b a] by auto
-
-lemma div_poly_less:
-  fixes x :: "'a::field poly"
-  assumes "degree x < degree y"
-  shows "x div y = 0"
-proof -
-  from assms have "eucl_rel_poly x y (0, x)"
-    by (simp add: eucl_rel_poly_iff)
-  then show "x div y = 0"
-    by (rule div_poly_eq)
-qed
-
-lemma mod_poly_less:
-  assumes "degree x < degree y"
-  shows "x mod y = x"
-proof -
-  from assms have "eucl_rel_poly x y (0, x)"
-    by (simp add: eucl_rel_poly_iff)
-  then show "x mod y = x"
-    by (rule mod_poly_eq)
-qed
 
 lemma eucl_rel_poly_smult_left:
   "eucl_rel_poly x y (q, r) \<Longrightarrow> eucl_rel_poly (smult a x) y (smult a q, smult a r)"

@@ -41,12 +41,6 @@ lemma to_fract_eq_iff [simp]: "to_fract x = to_fract y \<longleftrightarrow> x =
 lemma to_fract_eq_0_iff [simp]: "to_fract x = 0 \<longleftrightarrow> x = 0"
   by (simp add: to_fract_def Zero_fract_def eq_fract)
 
-lemma snd_quot_of_fract_nonzero [simp]: "snd (quot_of_fract x) \<noteq> 0"
-  by transfer simp
-
-lemma Fract_quot_of_fract [simp]: "Fract (fst (quot_of_fract x)) (snd (quot_of_fract x)) = x"
-  by transfer (simp del: fractrel_iff, subst fractrel_normalize_quot_left, simp)
-
 lemma to_fract_quot_of_fract:
   assumes "snd (quot_of_fract x) = 1"
   shows   "to_fract (fst (quot_of_fract x)) = x"
@@ -56,47 +50,24 @@ proof -
   finally show ?thesis by (simp add: to_fract_def)
 qed
 
-lemma snd_quot_of_fract_Fract_whole:
-  assumes "y dvd x"
-  shows   "snd (quot_of_fract (Fract x y)) = 1"
-  using assms by transfer (auto simp: normalize_quot_def Let_def gcd_proj2_if_dvd)
-  
 lemma Fract_conv_to_fract: "Fract a b = to_fract a / to_fract b"
   by (simp add: to_fract_def)
 
 lemma quot_of_fract_to_fract [simp]: "quot_of_fract (to_fract x) = (x, 1)"
   unfolding to_fract_def by transfer (simp add: normalize_quot_def)
 
-lemma fst_quot_of_fract_eq_0_iff [simp]: "fst (quot_of_fract x) = 0 \<longleftrightarrow> x = 0"
-  by transfer simp
- 
 lemma snd_quot_of_fract_to_fract [simp]: "snd (quot_of_fract (to_fract x)) = 1"
   unfolding to_fract_def by (rule snd_quot_of_fract_Fract_whole) simp_all
-
-lemma coprime_quot_of_fract:
-  "coprime (fst (quot_of_fract x)) (snd (quot_of_fract x))"
-  by transfer (simp add: coprime_normalize_quot)
-
-lemma unit_factor_snd_quot_of_fract: "unit_factor (snd (quot_of_fract x)) = 1"
-  using quot_of_fract_in_normalized_fracts[of x] 
-  by (simp add: normalized_fracts_def case_prod_unfold)  
-
-lemma unit_factor_1_imp_normalized: "unit_factor x = 1 \<Longrightarrow> normalize x = x"
-  by (subst (2) normalize_mult_unit_factor [symmetric, of x])
-     (simp del: normalize_mult_unit_factor)
-  
-lemma normalize_snd_quot_of_fract: "normalize (snd (quot_of_fract x)) = snd (quot_of_fract x)"
-  by (intro unit_factor_1_imp_normalized unit_factor_snd_quot_of_fract)
 
 
 subsection \<open>Lifting polynomial coefficients to the field of fractions\<close>
 
-abbreviation (input) fract_poly 
+abbreviation (input) fract_poly :: \<open>'a::idom poly \<Rightarrow> 'a fract poly\<close>
   where "fract_poly \<equiv> map_poly to_fract"
 
-abbreviation (input) unfract_poly 
+abbreviation (input) unfract_poly :: \<open>'a::{ring_gcd,semiring_gcd_mult_normalize,idom_divide} fract poly \<Rightarrow> 'a poly\<close>
   where "unfract_poly \<equiv> map_poly (fst \<circ> quot_of_fract)"
-  
+
 lemma fract_poly_smult [simp]: "fract_poly (smult c p) = smult (to_fract c) (fract_poly p)"
   by (simp add: smult_conv_map_poly map_poly_map_poly o_def)
 
@@ -128,7 +99,7 @@ lemma fract_poly_eq_0_iff [simp]: "fract_poly p = 0 \<longleftrightarrow> p = 0"
   using fract_poly_eq_iff[of p 0] by (simp del: fract_poly_eq_iff)
 
 lemma fract_poly_dvd: "p dvd q \<Longrightarrow> fract_poly p dvd fract_poly q"
-  by (auto elim!: dvdE)
+  by auto
 
 lemma prod_mset_fract_poly: 
   "(\<Prod>x\<in>#A. map_poly to_fract (f x)) = fract_poly (prod_mset (image_mset f A))"
@@ -271,84 +242,6 @@ next
   thus ?thesis
     by (rule that[OF content_times_primitive_part_fract [symmetric] content_primitive_part_fract])
 qed
-
-
-subsection \<open>More properties of content and primitive part\<close>
-
-lemma lift_prime_elem_poly:
-  assumes "prime_elem (c :: 'a :: semidom)"
-  shows   "prime_elem [:c:]"
-proof (rule prime_elemI)
-  fix a b assume *: "[:c:] dvd a * b"
-  from * have dvd: "c dvd coeff (a * b) n" for n
-    by (subst (asm) const_poly_dvd_iff) blast
-  {
-    define m where "m = (GREATEST m. \<not>c dvd coeff b m)"
-    assume "\<not>[:c:] dvd b"
-    hence A: "\<exists>i. \<not>c dvd coeff b i" by (subst (asm) const_poly_dvd_iff) blast
-    have B: "\<And>i. \<not>c dvd coeff b i \<Longrightarrow> i \<le> degree b"
-      by (auto intro: le_degree)
-    have coeff_m: "\<not>c dvd coeff b m" unfolding m_def by (rule GreatestI_ex_nat[OF A B])
-    have "i \<le> m" if "\<not>c dvd coeff b i" for i
-      unfolding m_def by (blast intro!: Greatest_le_nat that B)
-    hence dvd_b: "c dvd coeff b i" if "i > m" for i using that by force
-
-    have "c dvd coeff a i" for i
-    proof (induction i rule: nat_descend_induct[of "degree a"])
-      case (base i)
-      thus ?case by (simp add: coeff_eq_0)
-    next
-      case (descend i)
-      let ?A = "{..i+m} - {i}"
-      have "c dvd coeff (a * b) (i + m)" by (rule dvd)
-      also have "coeff (a * b) (i + m) = (\<Sum>k\<le>i + m. coeff a k * coeff b (i + m - k))"
-        by (simp add: coeff_mult)
-      also have "{..i+m} = insert i ?A" by auto
-      also have "(\<Sum>k\<in>\<dots>. coeff a k * coeff b (i + m - k)) =
-                   coeff a i * coeff b m + (\<Sum>k\<in>?A. coeff a k * coeff b (i + m - k))"
-        (is "_ = _ + ?S")
-        by (subst sum.insert) simp_all
-      finally have eq: "c dvd coeff a i * coeff b m + ?S" .
-      moreover have "c dvd ?S"
-      proof (rule dvd_sum)
-        fix k assume k: "k \<in> {..i+m} - {i}"
-        show "c dvd coeff a k * coeff b (i + m - k)"
-        proof (cases "k < i")
-          case False
-          with k have "c dvd coeff a k" by (intro descend.IH) simp
-          thus ?thesis by simp
-        next
-          case True
-          hence "c dvd coeff b (i + m - k)" by (intro dvd_b) simp
-          thus ?thesis by simp
-        qed
-      qed
-      ultimately have "c dvd coeff a i * coeff b m"
-        by (simp add: dvd_add_left_iff)
-      with assms coeff_m show "c dvd coeff a i"
-        by (simp add: prime_elem_dvd_mult_iff)
-    qed
-    hence "[:c:] dvd a" by (subst const_poly_dvd_iff) blast
-  }
-  then show "[:c:] dvd a \<or> [:c:] dvd b" by blast
-next
-  from assms show "[:c:] \<noteq> 0" and "\<not> [:c:] dvd 1"
-    by (simp_all add: prime_elem_def is_unit_const_poly_iff)
-qed
-
-lemma prime_elem_const_poly_iff:
-  fixes c :: "'a :: semidom"
-  shows   "prime_elem [:c:] \<longleftrightarrow> prime_elem c"
-proof
-  assume A: "prime_elem [:c:]"
-  show "prime_elem c"
-  proof (rule prime_elemI)
-    fix a b assume "c dvd a * b"
-    hence "[:c:] dvd [:a:] * [:b:]" by (simp add: mult_ac)
-    from A and this have "[:c:] dvd [:a:] \<or> [:c:] dvd [:b:]" by (rule prime_elem_dvd_multD)
-    thus "c dvd a \<or> c dvd b" by simp
-  qed (insert A, auto simp: prime_elem_def is_unit_poly_iff)
-qed (auto intro: lift_prime_elem_poly)
 
 lemma fract_poly_dvdD:
   fixes p :: "'a :: {factorial_semiring,semiring_Gcd,ring_gcd,idom_divide,
@@ -732,31 +625,8 @@ end
 
 instance poly :: ("{factorial_ring_gcd, semiring_gcd_mult_normalize}") semiring_gcd_mult_normalize ..
 
-instantiation poly :: ("{field,factorial_ring_gcd,semiring_gcd_mult_normalize}")
-   "{unique_euclidean_ring, normalization_euclidean_semiring}"
-begin
-
-definition euclidean_size_poly :: "'a poly \<Rightarrow> nat"
-  where "euclidean_size_poly p = (if p = 0 then 0 else 2 ^ degree p)"
-
-definition division_segment_poly :: "'a poly \<Rightarrow> 'a poly"
-  where [simp]: "division_segment_poly p = 1"
-
-instance proof
-  show "(q * p + r) div p = q" if "p \<noteq> 0"
-    and "euclidean_size r < euclidean_size p" for q p r :: "'a poly"
-  proof -
-    from \<open>p \<noteq> 0\<close> eucl_rel_poly [of r p] have "eucl_rel_poly (r + q * p) p (q + r div p, r mod p)"
-      by (simp add: eucl_rel_poly_iff distrib_right)
-    then have "(r + q * p) div p = q + r div p"
-      by (rule div_poly_eq)
-    with that show ?thesis
-      by (cases "r = 0") (simp_all add: euclidean_size_poly_def div_poly_less ac_simps)
-  qed
-qed (auto simp: euclidean_size_poly_def Rings.div_mult_mod_eq div_poly_less degree_mult_eq power_add
-    intro!: degree_mod_less' split: if_splits)
-
-end
+instance poly :: ("{field,factorial_ring_gcd,semiring_gcd_mult_normalize}")
+   "normalization_euclidean_semiring" ..
 
 instance poly :: ("{field, normalization_euclidean_semiring, factorial_ring_gcd,
                     semiring_gcd_mult_normalize}") euclidean_ring_gcd
