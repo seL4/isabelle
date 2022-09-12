@@ -271,12 +271,13 @@ object Components {
               val lines =
                 for {
                   entry <- ssh.read_dir(components_dir)
-                  if entry.is_file && entry.name.endsWith(Archive.suffix)
+                  if ssh.is_file(components_dir + Path.basic(entry)) &&
+                    entry.endsWith(Archive.suffix)
                 }
                 yield {
-                  progress.echo("Digesting remote " + entry.name)
+                  progress.echo("Digesting remote " + entry)
                   ssh.execute("cd " + ssh.bash_path(components_dir) +
-                    "; sha1sum " + Bash.string(entry.name)).check.out
+                    "; sha1sum " + Bash.string(entry)).check.out
                 }
               write_components_sha1(read_components_sha1(lines))
             }
