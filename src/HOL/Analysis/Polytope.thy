@@ -82,16 +82,16 @@ proof -
     then have zne: "\<And>u. \<lbrakk>u \<in> {0<..<1}; (1 - u) *\<^sub>R y + u *\<^sub>R x \<in> T\<rbrakk> \<Longrightarrow> False"
       using \<open>x \<in> S\<close> \<open>x \<notin> T\<close> \<open>T face_of S\<close> unfolding face_of_def
       by (meson greaterThanLessThan_iff in_segment(2))
-    have in01: "min (1/2) (e / norm (x - y)) \<in> {0<..<1}"
-      using \<open>y \<noteq> x\<close> \<open>e > 0\<close> by simp
-    have \<section>: "norm (min (1/2) (e / norm (x - y)) *\<^sub>R y - min (1/2) (e / norm (x - y)) *\<^sub>R x) \<le> e"
+    define u where "u \<equiv> min (1/2) (e / norm (x - y))"
+    have in01: "u \<in> {0<..<1}"
+      using \<open>y \<noteq> x\<close> \<open>e > 0\<close> by (simp add: u_def)
+    have "norm (u *\<^sub>R y - u *\<^sub>R x) \<le> e"
       using \<open>e > 0\<close>
-        by (simp add: scaleR_diff_right [symmetric] norm_minus_commute min_mult_distrib_right)
-    show False
-      apply (rule zne [OF in01 e [THEN subsetD]])
-      using \<open>y \<in> T\<close>
-        apply (simp add: hull_inc mem_affine x)
-        by (simp add: dist_norm algebra_simps \<section>)
+      by (simp add: u_def norm_minus_commute min_mult_distrib_right flip: scaleR_diff_right)
+    then have "dist y ((1 - u) *\<^sub>R y + u *\<^sub>R x) \<le> e"
+      by (simp add: dist_norm algebra_simps)
+    then show False
+      using zne [OF in01 e [THEN subsetD]] by (simp add: \<open>y \<in> T\<close> hull_inc mem_affine x)
   qed
   show ?thesis
   proof (rule subset_antisym)
@@ -187,8 +187,8 @@ proof
       by (simp add: divide_simps) (simp add: algebra_simps)
     have "b \<in> open_segment d c"
       apply (simp add: open_segment_image_interval)
-      apply (simp add: d_def algebra_simps image_def)
-      apply (rule_tac x="e / (e + norm (b - c))" in bexI)
+      apply (simp add: d_def algebra_simps)
+      apply (rule_tac x="e / (e + norm (b - c))" in image_eqI)
       using False nbc \<open>0 < e\<close> by (auto simp: algebra_simps)
     then have "d \<in> T \<and> c \<in> T"
       by (meson \<open>b \<in> T\<close> \<open>c \<in> u\<close> \<open>d \<in> u\<close> assms face_ofD subset_iff)
@@ -244,8 +244,9 @@ proof -
   proof (cases "T = {}")
     case True then show ?thesis
       by (metis aff_dim_empty \<open>T \<noteq> S\<close>)
-  next case False then show ?thesis
-    by (metis Set.set_insert assms convex_rel_frontier_aff_dim dual_order.irrefl face_of_imp_convex face_of_subset_rel_frontier insert_not_empty subsetI)
+  next 
+    case False then show ?thesis
+      by (smt (verit) aff_dim_empty assms convex_rel_frontier_aff_dim face_of_imp_convex face_of_subset_rel_frontier)
   qed
   ultimately show ?thesis
     by simp
@@ -262,10 +263,10 @@ proof (rule subset_of_face_of [OF T \<open>U \<subseteq> S\<close>])
 qed
 
 lemma affine_hull_face_of_disjoint_rel_interior:
-    fixes S :: "'a::euclidean_space set"
+  fixes S :: "'a::euclidean_space set"
   assumes "convex S" "F face_of S" "F \<noteq> S"
   shows "affine hull F \<inter> rel_interior S = {}"
-  by (metis assms disjnt_def face_of_imp_subset order_refl subset_antisym subset_of_face_of_affine_hull)
+  by (meson antisym assms disjnt_def equalityD2 face_of_def subset_of_face_of_affine_hull)
 
 lemma affine_diff_divide:
     assumes "affine S" "k \<noteq> 0" "k \<noteq> 1" and xy: "x \<in> S" "y /\<^sub>R (1 - k) \<in> S"
@@ -312,14 +313,12 @@ proof -
       have a0: "a i = 0" if "i \<in> (S - T)" for i
         using ci0 [OF that] u01 a [of i] b [of i] that
         by (simp add: c_def Groups.ordered_comm_monoid_add_class.add_nonneg_eq_0_iff)
-      have [simp]: "sum a T = 1"
+      have  "sum a T = 1"
         using assms by (metis sum.mono_neutral_cong_right a0 asum)
-      show ?thesis
-        apply (simp add: convex_hull_finite \<open>finite T\<close>)
-        apply (rule_tac x=a in exI)
-        using a0 assms
-        apply (auto simp: cge0 a aeqx [symmetric] sum.mono_neutral_right)
-        done
+      moreover have "(\<Sum>x\<in>T. a x *\<^sub>R x) = x"
+        using a0 assms by (auto simp: cge0 a aeqx [symmetric] sum.mono_neutral_right)
+      ultimately show ?thesis
+        using a assms(2) by (auto simp add: convex_hull_finite \<open>finite T\<close> )
     next
       case False
       define k where "k = sum c (S - T)"
@@ -332,38 +331,34 @@ proof -
         case True
         then have "sum c T = 0"
           by (simp add: S k_def sum_diff sumc1)
-        then have [simp]: "sum c (S - T) = 1"
+        then have "sum c (S - T) = 1"
           by (simp add: S sum_diff sumc1)
-        have ci0: "\<And>i. i \<in> T \<Longrightarrow> c i = 0"
+        moreover have ci0: "\<And>i. i \<in> T \<Longrightarrow> c i = 0"
           by (meson \<open>finite T\<close> \<open>sum c T = 0\<close> \<open>T \<subseteq> S\<close> cge0 sum_nonneg_eq_0_iff subsetCE)
-        then have [simp]: "(\<Sum>i\<in>S-T. c i *\<^sub>R i) = w"
+        then have "(\<Sum>i\<in>S-T. c i *\<^sub>R i) = w"
           by (simp add: weq_sumsum)
-        have "w \<in> convex hull (S - T)"
-          apply (simp add: convex_hull_finite fin)
-          apply (rule_tac x=c in exI)
-          apply (auto simp: cge0 weq True k_def)
-          done
+        ultimately have "w \<in> convex hull (S - T)"
+          using cge0 by (auto simp add: convex_hull_finite fin)
         then show ?thesis
           using disj waff by blast
       next
         case False
         then have sumcf: "sum c T = 1 - k"
           by (simp add: S k_def sum_diff sumc1)
-        have ge0: "\<And>x. x \<in> T \<Longrightarrow> 0 \<le> inverse (1 - k) * c x"
+        have "\<And>x. x \<in> T \<Longrightarrow> 0 \<le> inverse (1 - k) * c x"
           by (metis \<open>T \<subseteq> S\<close> cge0 inverse_nonnegative_iff_nonnegative mult_nonneg_nonneg subsetD sum_nonneg sumcf)
-        have eq1: "(\<Sum>x\<in>T. inverse (1 - k) * c x) = 1"
+        moreover have "(\<Sum>x\<in>T. inverse (1 - k) * c x) = 1"
           by (metis False eq_iff_diff_eq_0 mult.commute right_inverse sum_distrib_left sumcf)
-        have "(\<Sum>i\<in>T. c i *\<^sub>R i) /\<^sub>R (1 - k) \<in> convex hull T"
+        ultimately have "(\<Sum>i\<in>T. c i *\<^sub>R i) /\<^sub>R (1 - k) \<in> convex hull T"
           apply (simp add: convex_hull_finite fin)
-          apply (rule_tac x="\<lambda>i. inverse (1-k) * c i" in exI)
-          by (metis (mono_tags, lifting) eq1 ge0 scaleR_scaleR scale_sum_right sum.cong)
+          by (metis (mono_tags, lifting) scaleR_right.sum scaleR_scaleR sum.cong)
         with \<open>0 < k\<close>  have "inverse(k) *\<^sub>R (w - sum (\<lambda>i. c i *\<^sub>R i) T) \<in> affine hull T"
           by (simp add: affine_diff_divide [OF affine_affine_hull] False waff convex_hull_subset_affine_hull [THEN subsetD])
         moreover have "inverse(k) *\<^sub>R (w - sum (\<lambda>x. c x *\<^sub>R x) T) \<in> convex hull (S - T)"
           apply (simp add: weq_sumsum convex_hull_finite fin)
           apply (rule_tac x="\<lambda>i. inverse k * c i" in exI)
           using \<open>k > 0\<close> cge0
-          apply (auto simp: scaleR_right.sum sum_distrib_left [symmetric] k_def [symmetric])
+          apply (auto simp: scaleR_right.sum simp flip: sum_distrib_left k_def)
           done
         ultimately show ?thesis
           using disj by blast
@@ -402,12 +397,9 @@ proof (rule ccontr, clarsimp)
       case True with \<open>a \<in> T\<close> show ?thesis by auto
     next
       case False
-      then have "a \<noteq> 2 *\<^sub>R a - b"
-        by (simp add: scaleR_2)
-        with False have "a \<in> open_segment (2 *\<^sub>R a - b) b"
-        apply (clarsimp simp: open_segment_def closed_segment_def)
-        apply (rule_tac x="1/2" in exI)
-          by (simp add: algebra_simps)
+      then have "a \<in> open_segment (2 *\<^sub>R a - b) b"
+        by (metis diff_add_cancel inverse_eq_divide midpoint_def midpoint_in_open_segment 
+            scaleR_2 scaleR_half_double)
       moreover have "2 *\<^sub>R a - b \<in> S"
         by (rule mem_affine [OF \<open>affine S\<close> \<open>a \<in> S\<close> \<open>b \<in> S\<close>, of 2 "-1", simplified])
       moreover note \<open>b \<in> S\<close> \<open>a \<in> T\<close>
@@ -648,10 +640,12 @@ definition\<^marker>\<open>tag important\<close> exposed_face_of :: "['a::euclid
          T face_of S \<and> (\<exists>a b. S \<subseteq> {x. a \<bullet> x \<le> b} \<and> T = S \<inter> {x. a \<bullet> x = b})"
 
 lemma empty_exposed_face_of [iff]: "{} exposed_face_of S"
-  apply (simp add: exposed_face_of_def)
-  apply (rule_tac x=0 in exI)
-  apply (rule_tac x=1 in exI, force)
-  done
+proof -
+  have "S \<subseteq> {x. 0 \<bullet> x \<le> 1} \<and> {} = S \<inter> {x. 0 \<bullet> x = 1}"
+    by force
+  then show ?thesis
+    using exposed_face_of_def by blast
+qed
 
 lemma exposed_face_of_refl_eq [simp]: "S exposed_face_of S \<longleftrightarrow> convex S"
 proof
@@ -671,9 +665,6 @@ lemma exposed_face_of:
      (T = {} \<or> T = S \<or>
       (\<exists>a b. a \<noteq> 0 \<and> S \<subseteq> {x. a \<bullet> x \<le> b} \<and> T = S \<inter> {x. a \<bullet> x = b}))"
 proof (cases "T = {}")
-  case True then show ?thesis
-    by simp
-next
   case False
   show ?thesis
   proof (cases "T = S")
@@ -686,7 +677,7 @@ next
       apply (metis inner_zero_left)
       done
   qed
-qed
+qed auto
 
 lemma exposed_face_of_Int_supporting_hyperplane_le:
    "\<lbrakk>convex S; \<And>x. x \<in> S \<Longrightarrow> a \<bullet> x \<le> b\<rbrakk> \<Longrightarrow> (S \<inter> {x. a \<bullet> x = b}) exposed_face_of S"
@@ -713,13 +704,10 @@ proof -
     using T teq u ueq by (simp add: face_of_Int)
   have ss: "S \<subseteq> {x. (a + a') \<bullet> x \<le> b + b'}"
     using S s' by (force simp: inner_left_distrib)
-  show ?thesis
-    apply (simp add: exposed_face_of_def tu)
-    apply (rule_tac x="a+a'" in exI)
-    apply (rule_tac x="b+b'" in exI)
-    using S s'
-    apply (fastforce simp: ss inner_left_distrib teq ueq)
-    done
+  have "S \<subseteq> {x. (a + a') \<bullet> x \<le> b + b'} \<and> T \<inter> u = S \<inter> {x. (a + a') \<bullet> x = b + b'}"
+    using S s' by (fastforce simp: ss inner_left_distrib teq ueq)
+  then show ?thesis
+    using exposed_face_of_def tu by auto
 qed
 
 proposition exposed_face_of_Inter:
@@ -2568,15 +2556,16 @@ next
           using \<open>h \<in> F\<close> F_def face_of_disjoint_rel_interior hface by auto
       qed
     qed
-    have "S \<subseteq> affine hull S \<inter> \<Inter>{{x. a h \<bullet> x \<le> b h} |h. h \<in> F}"
+    let ?S' = "affine hull S \<inter> \<Inter>{{x. a h \<bullet> x \<le> b h} |h. h \<in> F}"
+    have "S \<subseteq> ?S'"
       using ab by (auto simp: hull_subset)
-    moreover have "affine hull S \<inter> \<Inter>{{x. a h \<bullet> x \<le> b h} |h. h \<in> F} \<subseteq> S"
+    moreover have "?S' \<subseteq> S"
       using * by blast
-    ultimately have "S = affine hull S \<inter> \<Inter> {{x. a h \<bullet> x \<le> b h} |h. h \<in> F}" ..
-    then show ?thesis
-      apply (rule ssubst)
-      apply (force intro: polyhedron_affine_hull polyhedron_halfspace_le simp: \<open>finite F\<close>)
-      done
+    ultimately have "S = ?S'" ..
+    moreover have "polyhedron ?S'"
+      by (force intro: polyhedron_affine_hull polyhedron_halfspace_le simp: \<open>finite F\<close>)
+    ultimately show ?thesis
+      by auto
   qed
 qed
 
@@ -2599,19 +2588,22 @@ lemma polyhedron_linear_image_eq:
   assumes "linear h" "bij h"
     shows "polyhedron (h ` S) \<longleftrightarrow> polyhedron S"
 proof -
-  have *: "{f. P f} = (image h) ` {f. P (h ` f)}" for P
-    apply safe
-    apply (rule_tac x="inv h ` x" in image_eqI)
-    apply (auto simp: \<open>bij h\<close> bij_is_surj image_f_inv_f)
-    done
-  have "inj h" using bij_is_inj assms by blast
+  have [simp]: "inj h" using bij_is_inj assms by blast
   then have injim: "inj_on ((`) h) A" for A
     by (simp add: inj_on_def inj_image_eq_iff)
-  show ?thesis
-    using \<open>linear h\<close> \<open>inj h\<close>
-    apply (simp add: polyhedron_eq_finite_faces closed_injective_linear_image_eq)
-    apply (simp add: * face_of_linear_image [of h _ S, symmetric] finite_image_iff injim)
-    done
+  { fix P
+    have "\<And>x. P x \<Longrightarrow> x \<in> (`) h ` {f. P (h ` f)}" 
+      using bij_is_surj [OF \<open>bij h\<close>]
+      by (metis image_eqI mem_Collect_eq subset_imageE top_greatest)
+    then have "{f. P f} = (image h) ` {f. P (h ` f)}"
+      by force
+  } 
+  then have "finite {F. F face_of h ` S} =finite {F. F face_of S}"
+    using \<open>linear h\<close> 
+    by (simp add: finite_image_iff injim flip: face_of_linear_image [of h _ S])
+  then show ?thesis
+    using \<open>linear h\<close> 
+    by (simp add: polyhedron_eq_finite_faces closed_injective_linear_image_eq)
 qed
 
 lemma polyhedron_negations:
@@ -2814,8 +2806,7 @@ proof -
     have x: "x < ?n * a"
       by (meson \<open>0 < a\<close> divide_less_eq floor_eq_iff)
     have "?n * a \<le> a + x"
-      apply (simp add: algebra_simps)
-      by (metis assms(2) floor_divide_lower mult.commute)
+      using \<open>a>0\<close> by (simp add: distrib_right floor_divide_lower)
     also have "... < y"
       by (rule 1)
     finally have "?n * a < y" .
@@ -2827,8 +2818,7 @@ proof -
     have y: "y < ?n * a"
       by (meson \<open>0 < a\<close> divide_less_eq floor_eq_iff)
     have "?n * a \<le> a + y"
-      apply (simp add: algebra_simps)
-      by (metis assms(2) floor_divide_lower mult.commute)
+      using \<open>a>0\<close> by (simp add: distrib_right floor_divide_lower)
     also have "... < x"
       by (rule 2)
     finally have "?n * a < x" .
@@ -3064,8 +3054,7 @@ lemma aff_dim_simplex:
   by (metis simplex add.commute add_diff_cancel_left' aff_dim_convex_hull affine_independent_iff_card)
 
 lemma zero_simplex_sing: "0 simplex {a}"
-  apply (simp add: simplex_def)
-  using affine_independent_1 card_1_singleton_iff convex_hull_singleton by blast
+  using affine_independent_1 simplex_convex_hull by fastforce
 
 lemma simplex_sing [simp]: "n simplex {a} \<longleftrightarrow> n = 0"
   using aff_dim_simplex aff_dim_sing zero_simplex_sing by blast
