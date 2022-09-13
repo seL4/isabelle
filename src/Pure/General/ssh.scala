@@ -253,15 +253,8 @@ object SSH {
     ): Port_Forwarding = {
       if (control_path.isEmpty) error("SSH port forwarding requires multiplexing")
 
-      val port =
-        if (local_port > 0) local_port
-        else {
-          // FIXME race condition
-          val dummy = new ServerSocket(0)
-          val port = dummy.getLocalPort
-          dummy.close()
-          port
-        }
+      val port = if (local_port > 0) local_port else Isabelle_System.local_port()
+
       val string = List(local_host, port, remote_host, remote_port).mkString(":")
       run_ssh(opts = "-L " + Bash.string(string) + " -O forward").check
 

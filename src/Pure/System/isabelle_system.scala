@@ -9,6 +9,7 @@ package isabelle
 
 import java.util.{Map => JMap, HashMap}
 import java.io.{File => JFile, IOException}
+import java.net.ServerSocket
 import java.nio.file.{Path => JPath, Files, SimpleFileVisitor, FileVisitResult,
   StandardCopyOption, FileSystemException}
 import java.nio.file.attribute.BasicFileAttributes
@@ -348,6 +349,15 @@ object Isabelle_System {
     rm_tree(old_dir)
   }
 
+
+  /* TCP/IP ports */
+
+  def local_port(): Int = {
+    val socket = new ServerSocket(0)
+    val port = socket.getLocalPort
+    socket.close()
+    port
+  }
 
 
   /** external processes **/
