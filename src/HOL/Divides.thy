@@ -262,8 +262,8 @@ lemma
       \<open>a mod b = r\<close> (is ?R)
 proof -
   from assms have \<open>(a div b, a mod b) = (q, r)\<close>
-    by (cases b q r a rule: euclidean_relationI)
-      (auto simp add: division_segment_int_def ac_simps dvd_add_left_iff dest: zdvd_imp_le)
+    by (cases b q r a rule: euclidean_relation_intI)
+      (auto simp add: ac_simps dvd_add_left_iff sgn_1_pos le_less dest: zdvd_imp_le)
   then show ?Q and ?R
     by simp_all
 qed
@@ -397,34 +397,6 @@ next
   assume ?rhs then obtain q1 q2 where q12: "x + n * q1 = y + n * q2" by blast
   hence "(x + n * q1) mod n = (y + n * q2) mod n" by simp
   thus  ?lhs by simp
-qed
-
-
-subsubsection \<open>Uniqueness rules\<close>
-
-lemma euclidean_relation_intI [case_names by0 divides euclidean_relation]:
-  \<open>(k div l, k mod l) = (q, r)\<close>
-    if by0': \<open>l = 0 \<Longrightarrow> q = 0 \<and> r = k\<close>
-    and divides': \<open>l \<noteq> 0 \<Longrightarrow> l dvd k \<Longrightarrow> r = 0 \<and> k = q * l\<close>
-    and euclidean_relation': \<open>l \<noteq> 0 \<Longrightarrow> \<not> l dvd k \<Longrightarrow> sgn r = sgn l
-      \<and> \<bar>r\<bar> < \<bar>l\<bar> \<and> k = q * l + r\<close> for k l :: int
-proof (cases l q r k rule: euclidean_relationI)
-  case by0
-  then show ?case
-    by (rule by0')
-next
-  case divides
-  then show ?case
-    by (rule divides')
-next
-  case euclidean_relation
-  with euclidean_relation' have \<open>sgn r = sgn l\<close> \<open>\<bar>r\<bar> < \<bar>l\<bar>\<close> \<open>k = q * l + r\<close>
-    by simp_all
-  from \<open>sgn r = sgn l\<close> \<open>l \<noteq> 0\<close> have \<open>division_segment r = division_segment l\<close>
-    by (simp add: division_segment_int_def sgn_if split: if_splits)
-  with \<open>\<bar>r\<bar> < \<bar>l\<bar>\<close> \<open>k = q * l + r\<close>
-  show ?case
-    by simp
 qed
 
 

@@ -967,20 +967,27 @@ qed simp_all
 
 end
 
+lemma euclidean_relation_natI [case_names by0 divides euclidean_relation]:
+  \<open>(m div n, m mod n) = (q, r)\<close>
+    if by0: \<open>n = 0 \<Longrightarrow> q = 0 \<and> r = m\<close>
+    and divides: \<open>n > 0 \<Longrightarrow> n dvd m \<Longrightarrow> r = 0 \<and> m = q * n\<close>
+    and euclidean_relation: \<open>n > 0 \<Longrightarrow> \<not> n dvd m \<Longrightarrow> r < n \<and> m = q * n + r\<close> for m n q r :: nat
+  by (rule euclidean_relationI) (use that in simp_all)
+
 lemma div_nat_eqI:
   \<open>m div n = q\<close> if \<open>n * q \<le> m\<close> and \<open>m < n * Suc q\<close> for m n q :: nat
 proof -
   have \<open>(m div n, m mod n) = (q, m - n * q)\<close>
-  proof (cases n q \<open>m - n * q\<close>  m rule: euclidean_relationI)
+  proof (cases n q \<open>m - n * q\<close>  m rule: euclidean_relation_natI)
     case by0
     with that show ?case
       by simp
   next
     case divides
     from \<open>n dvd m\<close> obtain s where \<open>m = n * s\<close> ..
-    with \<open>n \<noteq> 0\<close> that have \<open>s < Suc q\<close>
+    with \<open>n > 0\<close> that have \<open>s < Suc q\<close>
       by (simp only: mult_less_cancel1)
-    with \<open>m = n * s\<close> \<open>n \<noteq> 0\<close> that have \<open>q = s\<close>
+    with \<open>m = n * s\<close> \<open>n > 0\<close> that have \<open>q = s\<close>
       by simp
     with \<open>m = n * s\<close> show ?case
       by (simp add: ac_simps)
@@ -997,7 +1004,7 @@ lemma mod_nat_eqI:
   \<open>m mod n = r\<close> if \<open>r < n\<close> and \<open>r \<le> m\<close> and \<open>n dvd m - r\<close> for m n r :: nat
 proof -
   have \<open>(m div n, m mod n) = ((m - r) div n, r)\<close>
-  proof (cases n \<open>(m - r) div n\<close> r  m rule: euclidean_relationI)
+  proof (cases n \<open>(m - r) div n\<close> r  m rule: euclidean_relation_natI)
     case by0
     with that show ?case
       by simp
@@ -1010,9 +1017,9 @@ proof -
       by (simp add: dvd_add_right_iff)
     then have \<open>n \<le> n - r\<close>
       by (rule dvd_imp_le) (use \<open>r < n\<close> in simp)
-    with \<open>n \<noteq> 0\<close> have \<open>r = 0\<close>
+    with \<open>n > 0\<close> have \<open>r = 0\<close>
       by simp
-    with \<open>n \<noteq> 0\<close> that show ?case
+    with \<open>n > 0\<close> that show ?case
       by simp
   next
     case euclidean_relation
@@ -1261,14 +1268,14 @@ lemma div_mult2_eq:
   for m n q :: nat
 proof -
   have \<open>(m div (n * q), m mod (n * q)) = ((m div n) div q, n * (m div n mod q) + m mod n)\<close>
-  proof (cases \<open>n * q\<close> \<open>(m div n) div q\<close> \<open>n * (m div n mod q) + m mod n\<close> m rule: euclidean_relationI)
+  proof (cases \<open>n * q\<close> \<open>(m div n) div q\<close> \<open>n * (m div n mod q) + m mod n\<close> m rule: euclidean_relation_natI)
     case by0
     then show ?case
       by auto
   next
     case divides
     from \<open>n * q dvd m\<close> obtain t where \<open>m = n * q * t\<close> ..
-    with \<open>n * q \<noteq> 0\<close> show ?case
+    with \<open>n * q > 0\<close> show ?case
       by (simp add: algebra_simps)
   next
     case euclidean_relation
@@ -1811,6 +1818,31 @@ next
 qed (use mult_le_mono2 [of 1] in \<open>auto simp add: division_segment_int_def not_le zero_less_mult_iff mult_less_0_iff abs_mult sgn_mult abs_mod_less sgn_mod nat_mult_distrib\<close>)
 
 end
+
+lemma euclidean_relation_intI [case_names by0 divides euclidean_relation]:
+  \<open>(k div l, k mod l) = (q, r)\<close>
+    if by0': \<open>l = 0 \<Longrightarrow> q = 0 \<and> r = k\<close>
+    and divides': \<open>l \<noteq> 0 \<Longrightarrow> l dvd k \<Longrightarrow> r = 0 \<and> k = q * l\<close>
+    and euclidean_relation': \<open>l \<noteq> 0 \<Longrightarrow> \<not> l dvd k \<Longrightarrow> sgn r = sgn l
+      \<and> \<bar>r\<bar> < \<bar>l\<bar> \<and> k = q * l + r\<close> for k l :: int
+proof (cases l q r k rule: euclidean_relationI)
+  case by0
+  then show ?case
+    by (rule by0')
+next
+  case divides
+  then show ?case
+    by (rule divides')
+next
+  case euclidean_relation
+  with euclidean_relation' have \<open>sgn r = sgn l\<close> \<open>\<bar>r\<bar> < \<bar>l\<bar>\<close> \<open>k = q * l + r\<close>
+    by simp_all
+  from \<open>sgn r = sgn l\<close> \<open>l \<noteq> 0\<close> have \<open>division_segment r = division_segment l\<close>
+    by (simp add: division_segment_int_def sgn_if split: if_splits)
+  with \<open>\<bar>r\<bar> < \<bar>l\<bar>\<close> \<open>k = q * l + r\<close>
+  show ?case
+    by simp
+qed
 
 
 subsection \<open>Special case: euclidean rings containing the natural numbers\<close>
