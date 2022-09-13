@@ -101,8 +101,7 @@ Usage: isabelle sync [OPTIONS] TARGET
     -I NAME      include session heap image and build database
                  (based on accidental local state)
     -J           preserve *.jar files
-    -S           robust (but less portable) treatment of spaces in
-                 file and directory names on the target
+    -P           protect spaces in target file names: more robust, less portable
     -T           thorough treatment of file content and directory times
     -a REV       explicit AFP revision (default: state of working directory)
     -n           no changes: dry-run
@@ -116,7 +115,7 @@ Usage: isabelle sync [OPTIONS] TARGET
           "H" -> (_ => purge_heaps = true),
           "I:" -> (arg => session_images = session_images ::: List(arg)),
           "J" -> (_ => preserve_jars = true),
-          "S" -> (_ => protect_args = true),
+          "P" -> (_ => protect_args = true),
           "T" -> (_ => thorough = true),
           "a:" -> (arg => afp_rev = arg),
           "n" -> (_ => dry_run = true),
