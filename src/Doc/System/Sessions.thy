@@ -937,7 +937,7 @@ text \<open>
     -a REV       explicit AFP revision (default: state of working directory)
     -n           no changes: dry-run
     -r REV       explicit revision (default: state of working directory)
-    -p PORT      explicit SSH port (default: 22)
+    -p PORT      explicit SSH port
     -v           verbose
 
   Synchronize Isabelle + AFP repositories, based on "isabelle hg_sync".\<close>}

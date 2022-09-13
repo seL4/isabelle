@@ -28,17 +28,9 @@ object SSH {
     }
   }
 
-  val default_port = 22
-  def make_port(port: Int): Int = if (port > 0) port else default_port
+  def port_suffix(port: Int): String = if (port > 0) ":" + port else ""
 
-  def port_suffix(port: Int): String =
-    if (port == default_port) "" else ":" + port
-
-  def user_prefix(user: String): String =
-    proper_string(user) match {
-      case None => ""
-      case Some(name) => name + "@"
-    }
+  def user_prefix(user: String): String = if (user.nonEmpty) user + "@" else ""
 
 
   /* OpenSSH configuration and command-line */
@@ -50,7 +42,7 @@ object SSH {
     def entry(x: String, y: Boolean): String = entry(x, if (y) "yes" else "no")
 
     def make(options: Options,
-      port: Int = default_port,
+      port: Int = 0,
       user: String = "",
       control_master: Boolean = false,
       control_path: String = ""
@@ -60,7 +52,7 @@ object SSH {
         entry("ServerAliveInterval", options.seconds("ssh_alive_interval").ms.toInt),
         entry("ServerAliveCountMax", options.int("ssh_alive_count_max")),
         entry("Compression", options.bool("ssh_compression"))) :::
-      (if (port > 0 && port != default_port) List(entry("Port", port)) else Nil) :::
+      (if (port > 0) List(entry("Port", port)) else Nil) :::
       (if (user.nonEmpty) List(entry("User", user)) else Nil) :::
       (if (control_master) List("ControlMaster=yes", "ControlPersist=yes") else Nil) :::
       (if (control_path.nonEmpty) List("ControlPath=" + control_path) else Nil)
@@ -101,7 +93,7 @@ object SSH {
       }
       else (false, "")
 
-    new Session(options, host, make_port(port), user, control_master, control_path)
+    new Session(options, host, port, user, control_master, control_path)
   }
 
   class Session private[SSH](

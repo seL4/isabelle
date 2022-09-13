@@ -319,7 +319,7 @@ text \<open>
     -T           thorough treatment of file content and directory times
     -n           no changes: dry-run
     -r REV       explicit revision (default: state of working directory)
-    -p PORT      explicit SSH port (default: 22)
+    -p PORT      explicit SSH port
     -v           verbose
 
   Synchronize Mercurial repository with TARGET directory,
@@ -354,7 +354,7 @@ text \<open>
   equal, and to ignore time stamps on directories.
 
   \<^medskip> Option \<^verbatim>\<open>-p\<close> specifies an explicit port for the SSH connection underlying
-  \<^verbatim>\<open>rsync\<close>.
+  \<^verbatim>\<open>rsync\<close>; the default is taken from the user's \<^path>\<open>ssh_config\<close> file.
 
   \<^medskip> Option \<^verbatim>\<open>-S\<close> uses \<^verbatim>\<open>rsync --protect-args\<close> to work robustly with spaces or
   special characters of the shell. This requires at least \<^verbatim>\<open>rsync 3.0.0\<close>,

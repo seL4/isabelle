@@ -89,7 +89,7 @@ object Sync {
         var afp_rev = ""
         var dry_run = false
         var rev = ""
-        var port = SSH.default_port
+        var port = 0
         var verbose = false
 
         val getopts = Getopts("""
@@ -107,7 +107,7 @@ Usage: isabelle sync [OPTIONS] TARGET
     -a REV       explicit AFP revision (default: state of working directory)
     -n           no changes: dry-run
     -r REV       explicit revision (default: state of working directory)
-    -p PORT      explicit SSH port (default: """ + SSH.default_port + """)
+    -p PORT      explicit SSH port
     -v           verbose
 
   Synchronize Isabelle + AFP repositories, based on "isabelle hg_sync".
