@@ -82,11 +82,7 @@ object SSH {
     multiplex: Boolean = !Platform.is_windows
   ): Session = {
     val (control_master, control_path) =
-      if (multiplex) {
-        val file = Isabelle_System.tmp_file("ssh_socket")
-        file.delete()
-        (true, file.getPath)
-      }
+      if (multiplex) (true, Isabelle_System.tmp_file("ssh_socket", initialized = false).getPath)
       else (false, "")
 
     new Session(options, host, port, user, control_master, control_path)

@@ -269,10 +269,15 @@ object Isabelle_System {
     File.platform_file(path)
   }
 
-  def tmp_file(name: String, ext: String = "", base_dir: JFile = isabelle_tmp_prefix()): JFile = {
+  def tmp_file(
+    name: String,
+    ext: String = "",
+    base_dir: JFile = isabelle_tmp_prefix(),
+    initialized: Boolean = true
+  ): JFile = {
     val suffix = if (ext == "") "" else "." + ext
     val file = Files.createTempFile(base_dir.toPath, name, suffix).toFile
-    file.deleteOnExit()
+    if (initialized) file.deleteOnExit() else file.delete()
     file
   }
 
