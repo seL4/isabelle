@@ -107,7 +107,7 @@ object SSH {
     ssh =>
 
     override def toString: String = user_prefix(user) + host + port_suffix(port)
-    override def hg_url: String = "ssh://" + user_prefix(user) + host + "/"
+    override def hg_url: String = "ssh://" + toString + "/"
     override def rsync_prefix: String = user_prefix(user) + host + ":"
 
 
