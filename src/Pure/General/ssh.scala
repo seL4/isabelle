@@ -60,7 +60,7 @@ object SSH {
         entry("ServerAliveInterval", options.seconds("ssh_alive_interval").ms.toInt),
         entry("ServerAliveCountMax", options.int("ssh_alive_count_max")),
         entry("Compression", options.bool("ssh_compression"))) :::
-      (if (port > 0 && port != default_port) List(entry("Port", port)) else Nil)
+      (if (port > 0 && port != default_port) List(entry("Port", port)) else Nil) :::
       (if (user.nonEmpty) List(entry("User", user)) else Nil) :::
       (if (control_master) List("ControlMaster=yes", "ControlPersist=yes") else Nil) :::
       (if (control_path.nonEmpty) List("ControlPath=" + control_path) else Nil)
