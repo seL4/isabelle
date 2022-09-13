@@ -28,10 +28,6 @@ object SSH {
     }
   }
 
-  def port_suffix(port: Int): String = if (port > 0) ":" + port else ""
-
-  def user_prefix(user: String): String = if (user.nonEmpty) user + "@" else ""
-
 
   /* OpenSSH configuration and command-line */
 
@@ -106,9 +102,12 @@ object SSH {
   ) extends System {
     ssh =>
 
-    override def toString: String = user_prefix(user) + host + port_suffix(port)
+    def port_suffix: String = if (port > 0) ":" + port else ""
+    def user_prefix: String = if (user.nonEmpty) user + "@" else ""
+
+    override def toString: String = user_prefix + host + port_suffix
     override def hg_url: String = "ssh://" + toString + "/"
-    override def rsync_prefix: String = user_prefix(user) + host + ":"
+    override def rsync_prefix: String = user_prefix + host + ":"
 
 
     /* ssh commands */
