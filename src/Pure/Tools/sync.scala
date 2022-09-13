@@ -88,8 +88,9 @@ object Sync {
         var thorough = false
         var afp_rev = ""
         var dry_run = false
+        var ssh_port = 0
         var rev = ""
-        var port = 0
+        var ssh_control_path = ""
         var verbose = false
 
         val getopts = Getopts("""
@@ -102,11 +103,12 @@ Usage: isabelle sync [OPTIONS] TARGET
                  (based on accidental local state)
     -J           preserve *.jar files
     -P           protect spaces in target file names: more robust, less portable
+    -S PATH      SSH control path for connection multiplexing
     -T           thorough treatment of file content and directory times
     -a REV       explicit AFP revision (default: state of working directory)
     -n           no changes: dry-run
+    -p PORT      SSH port
     -r REV       explicit revision (default: state of working directory)
-    -p PORT      explicit SSH port
     -v           verbose
 
   Synchronize Isabelle + AFP repositories, based on "isabelle hg_sync".
@@ -116,11 +118,12 @@ Usage: isabelle sync [OPTIONS] TARGET
           "I:" -> (arg => session_images = session_images ::: List(arg)),
           "J" -> (_ => preserve_jars = true),
           "P" -> (_ => protect_args = true),
+          "S:" -> (arg => ssh_control_path = arg),
           "T" -> (_ => thorough = true),
           "a:" -> (arg => afp_rev = arg),
           "n" -> (_ => dry_run = true),
+          "p:" -> (arg => ssh_port = Value.Int.parse(arg)),
           "r:" -> (arg => rev = arg),
-          "p:" -> (arg => port = Value.Int.parse(arg)),
           "v" -> (_ => verbose = true))
 
         val more_args = getopts(args)
@@ -132,7 +135,9 @@ Usage: isabelle sync [OPTIONS] TARGET
 
         val options = Options.init()
         val progress = new Console_Progress
-        val context = Rsync.Context(progress, port = port, protect_args = protect_args)
+        val context =
+          Rsync.Context(progress, ssh_port = ssh_port, ssh_control_path = ssh_control_path,
+            protect_args = protect_args)
         sync(options, context, target, verbose = verbose, thorough = thorough,
           purge_heaps = purge_heaps, session_images = session_images, preserve_jars = preserve_jars,
           dry_run = dry_run, rev = rev, afp_root = afp_root, afp_rev = afp_rev)

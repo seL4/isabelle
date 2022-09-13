@@ -98,7 +98,7 @@ object SSH {
     val port: Int,
     val user: String,
     control_master: Boolean,
-    control_path: String
+    val control_path: String
   ) extends System {
     ssh =>
 

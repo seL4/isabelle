@@ -9,14 +9,23 @@ package isabelle
 
 object Rsync {
   sealed case class Context(progress: Progress,
-    port: Int = 0,
+    ssh_port: Int = 0,
+    ssh_control_path: String = "",
     archive: Boolean = true,
     protect_args: Boolean = true  // requires rsync 3.0.0, or later
   ) {
-    def command: String =
-      "rsync --rsh=" + Bash.string("ssh" + (if (port > 0) "-p " + port else "")) +
+    require(ssh_control_path.isEmpty || ssh_control_path == Bash.string(ssh_control_path),
+      "Malformed socket path: " + quote(ssh_control_path))
+
+    def command: String = {
+      val ssh_command =
+        "ssh" + (if (ssh_port > 0) " -p " + ssh_port else "") +
+        (if (ssh_control_path.nonEmpty) " -o ControlPath=" + ssh_control_path else "")
+
+      "rsync --rsh=" + Bash.string(ssh_command) +
         (if (archive) " --archive" else "") +
         (if (protect_args) " --protect-args" else "")
+    }
   }
 
   def exec(

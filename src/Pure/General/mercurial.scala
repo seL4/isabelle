@@ -563,10 +563,11 @@ Usage: isabelle hg_setup [OPTIONS] REMOTE LOCAL_DIR
         var filter: List[String] = Nil
         var protect_args = false
         var root: Option[Path] = None
+        var ssh_control_path = ""
         var thorough = false
         var dry_run = false
+        var ssh_port = 0
         var rev = ""
-        var port = 0
         var verbose = false
 
         val getopts = Getopts("""
@@ -578,10 +579,11 @@ Usage: isabelle hg_sync [OPTIONS] TARGET
     -P           protect spaces in target file names: more robust, less portable
     -R ROOT      explicit repository root directory
                  (default: implicit from current directory)
+    -S PATH      SSH control path for connection multiplexing
     -T           thorough treatment of file content and directory times
     -n           no changes: dry-run
+    -p PORT      SSH port
     -r REV       explicit revision (default: state of working directory)
-    -p PORT      explicit SSH port
     -v           verbose
 
   Synchronize Mercurial repository with TARGET directory,
@@ -590,10 +592,11 @@ Usage: isabelle hg_sync [OPTIONS] TARGET
           "F:" -> (arg => filter = filter ::: List(arg)),
           "P" -> (_ => protect_args = true),
           "R:" -> (arg => root = Some(Path.explode(arg))),
+          "S:" -> (arg => ssh_control_path = arg),
           "T" -> (_ => thorough = true),
           "n" -> (_ => dry_run = true),
+          "p:" -> (arg => ssh_port = Value.Int.parse(arg)),
           "r:" -> (arg => rev = arg),
-          "p:" -> (arg => port = Value.Int.parse(arg)),
           "v" -> (_ => verbose = true))
 
         val more_args = getopts(args)
@@ -609,7 +612,8 @@ Usage: isabelle hg_sync [OPTIONS] TARGET
             case Some(dir) => repository(dir)
             case None => the_repository(Path.current)
           }
-        val context = Rsync.Context(progress, port = port, protect_args = protect_args)
+        val context = Rsync.Context(progress, ssh_port = ssh_port,
+          ssh_control_path = ssh_control_path, protect_args = protect_args)
         hg.sync(context, target, verbose = verbose, thorough = thorough,
           dry_run = dry_run, filter = filter, rev = rev)
       }

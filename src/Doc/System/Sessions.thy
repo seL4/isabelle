@@ -932,11 +932,12 @@ text \<open>
                  (based on accidental local state)
     -J           preserve *.jar files
     -P           protect spaces in target file names: more robust, less portable
+    -S PATH      SSH control path for connection multiplexing
     -T           thorough treatment of file content and directory times
     -a REV       explicit AFP revision (default: state of working directory)
     -n           no changes: dry-run
+    -p PORT      SSH port
     -r REV       explicit revision (default: state of working directory)
-    -p PORT      explicit SSH port
     -v           verbose
 
   Synchronize Isabelle + AFP repositories, based on "isabelle hg_sync".\<close>}
@@ -950,8 +951,8 @@ text \<open>
   sub-directory with the literal name \<^verbatim>\<open>AFP\<close>; thus it can be easily included
   elsewhere, e.g. @{tool build}~\<^verbatim>\<open>-d\<close>~\<^verbatim>\<open>'~~/AFP'\<close> on the remote side.
 
-  \<^medskip> Options \<^verbatim>\<open>-P\<close>, \<^verbatim>\<open>-T\<close>, \<^verbatim>\<open>-n\<close>, \<^verbatim>\<open>-p\<close>, \<^verbatim>\<open>-v\<close> are the same as the underlying
-  @{tool hg_sync}.
+  \<^medskip> Options \<^verbatim>\<open>-P\<close>, \<^verbatim>\<open>-S\<close>, \<^verbatim>\<open>-T\<close>, \<^verbatim>\<open>-n\<close>, \<^verbatim>\<open>-p\<close>, \<^verbatim>\<open>-v\<close> are the same as the
+  underlying @{tool hg_sync}.
 
   \<^medskip> Options \<^verbatim>\<open>-r\<close> and \<^verbatim>\<open>-a\<close> are the same as option \<^verbatim>\<open>-r\<close> for @{tool hg_sync},
   but for the Isabelle and AFP repositories, respectively. The AFP version is
