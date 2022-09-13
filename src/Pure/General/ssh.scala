@@ -170,7 +170,8 @@ object SSH {
       settings: Boolean = true,
       strict: Boolean = true
     ): Process_Result = {
-      val args1 = Bash.string(host) + " env " + Bash.string("USER_HOME=\"$HOME\"") + " " + cmd_line
+      val args1 =
+        Bash.string(host) + " export " + Bash.string("USER_HOME=\"$HOME\"") + "\n" + cmd_line
       run_command("ssh", args = args1, progress_stdout = progress_stdout,
         progress_stderr = progress_stderr, strict = strict)
     }
