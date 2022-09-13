@@ -16,19 +16,16 @@ object SSH {
   /* target machine: user@host syntax */
 
   object Target {
-    private val User_Host = "^([^@]+)@(.+)$".r
+    def parse(s: String): (String, String) = {
+      val i = s.indexOf('@')
+      if (i <= 0) ("", s)
+      else (s.substring(0, i), s.substring(i + 1))
+    }
 
-    def parse(s: String): (String, String) =
-      s match {
-        case User_Host(user, host) => (user, host)
-        case _ => ("", s)
-      }
-
-    def unapplySeq(s: String): Option[List[String]] =
-      parse(s) match {
-        case (_, "") => None
-        case (user, host) => Some(List(user, host))
-      }
+    def unapplySeq(s: String): Option[List[String]] = {
+      val (user, host) = parse(s)
+      if (host.isEmpty) None else Some(List(user, host))
+    }
   }
 
   val default_port = 22
