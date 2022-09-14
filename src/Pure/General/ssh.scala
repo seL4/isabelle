@@ -155,8 +155,8 @@ object SSH {
     /* init and exit */
 
     val user_home: String = {
-      val args = Bash.string("printenv HOME\nprintenv SHELL")
-      run_ssh(master = control_master, args = args).check.out_lines match {
+      run_ssh(master = control_master, args = "printenv HOME \";\" printenv SHELL").check.out_lines
+      match {
         case List(user_home, shell) =>
           if (shell.endsWith("/bash")) user_home
           else {
