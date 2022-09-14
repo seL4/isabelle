@@ -64,11 +64,12 @@ object SSH {
   }
 
   def sftp_string(str: String): String = {
-    val special = Set(' ', '*', '?', '{', '}')
-    if (str.exists(special)) {
+    val special = "[]?*\\{} \"'"
+    if (str.isEmpty) "\"\""
+    else if (str.exists(special.contains)) {
       val res = new StringBuilder
       for (c <- str) {
-        if (special(c)) res += '\\'
+        if (special.contains(c)) res += '\\'
         res += c
       }
       res.toString()
