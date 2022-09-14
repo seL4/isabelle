@@ -29,10 +29,6 @@ Build Log Database Server
 - special user account:
   useradd -m -s /bin/bash isatest
 
-- SSH access for jsch (on each client):
-  LOCALHOST$ ssh-keyscan -t rsa DBSERVER
-  >> ~/.ssh/known_hosts
-
 - PostgreSQL:
 
   $ apt install postgresql

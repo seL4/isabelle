@@ -4,12 +4,6 @@ Notes on maintaining the Isabelle component repository at TUM
 Quick reference
 ---------------
 
-  * ensure that Isabelle/Scala/SSH can connect to the host specified via
-    system option `isabelle_components_server`; this may require to install
-    an unencrypted ssh host key as follows:
-
-      $ ssh-keyscan -t rsa lxbroy10.informatik.tu-muenchen.de >> ~/.ssh/known_hosts
-
   * local setup (and test) of component directory, e.g. in
 
       screwdriver-3.14/
