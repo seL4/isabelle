@@ -1,10 +1,10 @@
-(*   Author:      Florian Haftmann, TU Muenchen; based on existing material on gauss numbers\<close>
+(*   Author:      Florian Haftmann, TU Muenchen; based on existing material on complex numbers\<close>
 *)
 
 section \<open>Gauss Numbers: integral gauss numbers\<close>
 
 theory Gauss_Numbers
-imports Main
+  imports "HOL-Library.Rounded_Division"
 begin
 
 codatatype gauss = Gauss (Re: int) (Im: int)
@@ -308,8 +308,8 @@ begin
 
 primcorec divide_gauss :: \<open>gauss \<Rightarrow> gauss \<Rightarrow> gauss\<close>
   where
-    \<open>Re (x div y) = (Re x * Re y + Im x * Im y) div ((Re y)\<^sup>2 + (Im y)\<^sup>2)\<close>
-  | \<open>Im (x div y) = (Im x * Re y - Re x * Im y) div ((Re y)\<^sup>2 + (Im y)\<^sup>2)\<close>
+    \<open>Re (x div y) = (Re x * Re y + Im x * Im y) rdiv ((Re y)\<^sup>2 + (Im y)\<^sup>2)\<close>
+  | \<open>Im (x div y) = (Im x * Re y - Re x * Im y) rdiv ((Re y)\<^sup>2 + (Im y)\<^sup>2)\<close>
 
 definition modulo_gauss :: \<open>gauss \<Rightarrow> gauss \<Rightarrow> gauss\<close>
   where
@@ -321,7 +321,7 @@ instance
   apply (auto simp add: gauss_eq_iff algebra_simps power2_eq_square)
            apply (simp_all only: flip: mult.assoc distrib_right)
        apply (simp_all only: mult.assoc [of \<open>Im k\<close> \<open>Re l\<close> \<open>Re r\<close> for k l r])
-      apply (simp_all add: sum_squares_eq_zero_iff mult.commute flip: distrib_left)
+     apply (simp_all add: sum_squares_eq_zero_iff mult.commute nonzero_mult_rdiv_cancel_right flip: distrib_left)
   done
 
 end
