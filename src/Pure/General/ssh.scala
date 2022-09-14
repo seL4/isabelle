@@ -83,9 +83,9 @@ object SSH {
     options: Options,
     host: String,
     port: Int = 0,
-    user: String = "",
-    multiplex: Boolean = !Platform.is_windows
+    user: String = ""
   ): Session = {
+    val multiplex = options.bool("ssh_multiplexing") && !Platform.is_windows
     val (control_master, control_path) =
       if (multiplex) (true, Isabelle_System.tmp_file("ssh_socket", initialized = false).getPath)
       else (false, "")
@@ -265,7 +265,26 @@ object SSH {
           run_ssh(opts = forward_option + " -O forward").check
           () => run_ssh(opts = forward_option + " -O cancel")  // permissive
         }
-        else error("SSH port forwarding requires multiplexing")
+        else {
+          val result = Synchronized[Exn.Result[Boolean]](Exn.Res(false))
+          val thread = Isabelle_Thread.fork("port_forwarding") {
+            val opts =
+              forward_option +
+                " " + Config.option("SessionType", "none") +
+                " " + Config.option("PermitLocalCommand", true) +
+                " " + Config.option("LocalCommand", "pwd")
+            try {
+              run_command("ssh", opts = opts, args = Bash.string(host),
+                progress_stdout = _ => result.change(_ => Exn.Res(true))).check
+            }
+            catch { case exn: Throwable => result.change(_ => Exn.Exn(exn)) }
+          }
+          result.guarded_access {
+            case res@Exn.Res(ok) => if (ok) Some((), res) else None
+            case Exn.Exn(exn) => throw exn
+          }
+          () => thread.interrupt()
+        }
 
       val shutdown_hook =
         Isabelle_System.create_shutdown_hook { cancel() }
