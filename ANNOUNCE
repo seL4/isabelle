@@ -28,6 +28,8 @@ NEWS file for further details. Here are various details:
 
 * System: improved "isabelle log" tool with regex filtering.
 
+* System: more robust SSH support in Isabelle/Scala.
+
 
 You may get Isabelle2022 from the following mirror sites:
 

@@ -336,6 +336,23 @@ and is configured by the corresponding system option "document_build".
 The Isabelle/Isar command 'scala_build_generated_files' helps to produce
 a suitable .jar module for inclusion via 'export_classpath'.
 
+* Isabelle/Scala SSH connections now use regular OpenSSH executables
+from the local system: ssh, scp, sftp; the old ssh-java component has
+been discontinued. This has various practical consequences:
+
+  - Authentication and configuration works accurately via the official
+    .ssh/known_hosts and .ssh/config files.
+
+  - Host connections are usually shared (via multiplexed channels), to
+    reduce the overhead for multiple commands. This also works for SSH
+    connections for rsync (e.g. "isabelle sync"). Windows/Cygwin does
+    not support multiplexing: the functionality should be the same, but
+    slower, with a new connection for each command.
+
+  - Multiple hops via "bastion hosts" can be easily configured in
+    .ssh/config via ProxyJump declarations. The former Isabelle/Scala
+    parameters for proxy_host etc. have been discontinued: minor
+    INCOMPATIBILITY.
 
 
 New in Isabelle2021-1 (December 2021)
