@@ -146,7 +146,7 @@ object SSH {
     }
 
     def run_scp(opts: String = "", args: String = ""): Process_Result = {
-      val opts1 = "-s -p -q" + (if (opts.nonEmpty) " " + opts else "")
+      val opts1 = "-p -q" + (if (opts.nonEmpty) " " + opts else "")
       run_command("scp", opts = opts1, args = args)
     }
 
