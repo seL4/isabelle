@@ -154,9 +154,9 @@ object SSH {
 
     /* init and exit */
 
-    val user_home: String =
-      run_ssh(master = control_master, args = "printenv HOME \";\" printenv SHELL").check.out_lines
-      match {
+    val user_home: String = {
+      val args = Bash.string("printenv HOME\nprintenv SHELL")
+      run_ssh(master = control_master, args = args).check.out_lines match {
         case List(user_home, shell) =>
           if (shell.endsWith("/bash")) user_home
           else {
@@ -164,6 +164,7 @@ object SSH {
           }
         case _ => error("Malformed remote environment for " + quote(toString))
       }
+    }
 
     val settings: JMap[String, String] = JMap.of("HOME", user_home, "USER_HOME", user_home)
 
@@ -180,8 +181,7 @@ object SSH {
       settings: Boolean = true,
       strict: Boolean = true
     ): Process_Result = {
-      val args1 =
-        Bash.string(host) + " export " + Bash.string("USER_HOME=\"$HOME\"") + "\n" + cmd_line
+      val args1 = Bash.string(host) + " " + Bash.string("export USER_HOME=\"$HOME\"\n" + cmd_line)
       run_command("ssh", args = args1, progress_stdout = progress_stdout,
         progress_stderr = progress_stderr, strict = strict)
     }
