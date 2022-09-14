@@ -9,7 +9,6 @@ package isabelle
 
 
 import java.util.{Map => JMap}
-import java.net.ServerSocket
 
 
 object SSH {
