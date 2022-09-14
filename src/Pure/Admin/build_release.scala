@@ -13,7 +13,7 @@ object Build_Release {
   private def execute(dir: Path, script: String): Unit =
     Isabelle_System.bash(script, cwd = dir.file).check
 
-  private def execute_tar(dir: Path, args: String, strip: Int = 0): Unit =
+  private def execute_tar(dir: Path, args: String, strip: Int = 0): Process_Result =
     Isabelle_System.gnutar(args, dir = dir, strip = strip).check
 
   private def bash_java_opens(args: String*): String =
@@ -245,16 +245,22 @@ directory individually.
         ssh.with_tmp_dir { remote_dir =>
           val remote_tmp_tar = remote_dir + Path.basic("tmp.tar")
           ssh.write_file(remote_tmp_tar, local_tmp_tar)
-          val remote_commands =
+
+          val build_command =
+            "bin/isabelle build -o system_heaps -b -- " + Bash.strings(build_sessions)
+          val build_script =
             List(
               "cd " + File.bash_path(remote_dir),
               "tar -xf tmp.tar",
-              "bin/isabelle build -o system_heaps -b -- " + Bash.strings(build_sessions),
+              build_command,
+              """perl -pi -e "s/ISABELLE_APPLE_PLATFORM64/ISABELLE_PLATFORM64/g;" "$(bin/isabelle getenv -b POLYML_HOME)/etc/settings" """,
+              build_command,
               "tar -cf tmp.tar heaps")
-          ssh.execute(remote_commands.mkString(" && "), settings = false).check
+          ssh.execute(build_script.mkString(" && "), settings = false).check
           ssh.read_file(remote_tmp_tar, local_tmp_tar)
         }
-        execute_tar(local_dir, "-xf " + File.bash_path(local_tmp_tar))
+        execute_tar(local_dir, "-xvf " + File.bash_path(local_tmp_tar))
+          .out_lines.sorted.foreach(progress.echo)
       }
     }
     finally { ssh.close() }
