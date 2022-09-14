@@ -54,8 +54,13 @@ object SSH {
       (if (control_path.nonEmpty) List("ControlPath=" + control_path) else Nil)
     }
 
-    def make_command(command: String, config: List[String]): String =
-      Bash.string(command) + " " + config.map(entry => "-o " + Bash.string(entry)).mkString(" ")
+    def option(entry: String): String = "-o " + Bash.string(entry)
+    def option(x: String, y: String): String = option(entry(x, y))
+    def option(x: String, y: Int): String = option(entry(x, y))
+    def option(x: String, y: Boolean): String = option(entry(x, y))
+
+    def command(command: String, config: List[String]): String =
+      Bash.string(command) + config.map(entry => " " + option(entry)).mkString
   }
 
   def sftp_string(str: String): String = {
@@ -84,7 +89,6 @@ object SSH {
     val (control_master, control_path) =
       if (multiplex) (true, Isabelle_System.tmp_file("ssh_socket", initialized = false).getPath)
       else (false, "")
-
     new Session(options, host, port, user, control_master, control_path)
   }
 
@@ -106,7 +110,7 @@ object SSH {
     override def rsync_prefix: String = user_prefix + host + ":"
 
 
-    /* ssh commands */
+    /* local ssh commands */
 
     def run_command(command: String,
       master: Boolean = false,
@@ -120,7 +124,7 @@ object SSH {
         Config.make(options, port = port, user = user,
           control_master = master, control_path = control_path)
       val cmd =
-        Config.make_command(command, config) +
+        Config.command(command, config) +
         (if (opts.nonEmpty) " " + opts else "") +
         (if (args.nonEmpty) " -- " + args else "")
       Isabelle_System.bash(cmd, progress_stdout = progress_stdout,
@@ -251,17 +255,26 @@ object SSH {
       local_host: String = "localhost",
       ssh_close: Boolean = false
     ): Port_Forwarding = {
-      if (control_path.isEmpty) error("SSH port forwarding requires multiplexing")
-
       val port = if (local_port > 0) local_port else Isabelle_System.local_port()
 
-      val string = List(local_host, port, remote_host, remote_port).mkString(":")
-      run_ssh(opts = "-L " + Bash.string(string) + " -O forward").check
+      val forward = List(local_host, port, remote_host, remote_port).mkString(":")
+      val forward_option = "-L " + Bash.string(forward)
+
+      val cancel: () => Unit =
+        if (control_path.nonEmpty) {
+          run_ssh(opts = forward_option + " -O forward").check
+          () => run_ssh(opts = forward_option + " -O cancel")  // permissive
+        }
+        else error("SSH port forwarding requires multiplexing")
+
+      val shutdown_hook =
+        Isabelle_System.create_shutdown_hook { cancel() }
 
       new Port_Forwarding(host, port, remote_host, remote_port) {
-        override def toString: String = string
+        override def toString: String = forward
         override def close(): Unit = {
-          run_ssh(opts = "-L " + Bash.string(string) + " -O cancel").check
+          cancel()
+          Isabelle_System.remove_shutdown_hook(shutdown_hook)
           if (ssh_close) ssh.close()
         }
       }
