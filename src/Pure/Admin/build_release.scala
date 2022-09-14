@@ -227,7 +227,7 @@ directory individually.
   ): Unit = {
     val server_option = "build_host_" + platform.toString
     val server = options.string(server_option)
-    progress.echo("Building heaps " + commas_quote(build_sessions) +
+    progress.echo("Building heaps for " + commas_quote(build_sessions) +
       " (" + server_option + " = " + quote(server) + ") ...")
 
     val ssh =
