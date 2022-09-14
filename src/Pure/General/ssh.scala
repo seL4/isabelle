@@ -153,7 +153,16 @@ object SSH {
 
     /* init and exit */
 
-    val user_home: String = run_ssh(master = control_master, args = "printenv HOME").check.out
+    val user_home: String =
+      run_ssh(master = control_master, args = "printenv HOME \";\" printenv SHELL").check.out_lines
+      match {
+        case List(user_home, shell) =>
+          if (shell.endsWith("/bash")) user_home
+          else {
+            error("Bad SHELL for " + quote(toString) + " -- expected GNU bash, but found " + shell)
+          }
+        case _ => error("Malformed remote environment for " + quote(toString))
+      }
 
     val settings: JMap[String, String] = JMap.of("HOME", user_home, "USER_HOME", user_home)
 
