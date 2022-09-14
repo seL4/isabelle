@@ -54,16 +54,22 @@ object SSH {
       (if (control_path.nonEmpty) List("ControlPath=" + control_path) else Nil)
     }
 
-    def make_command(command: String, config: List[String]): String =
-      Bash.string(command) + " " + config.map(entry => "-o " + Bash.string(entry)).mkString(" ")
+    def option(entry: String): String = "-o " + Bash.string(entry)
+    def option(x: String, y: String): String = option(entry(x, y))
+    def option(x: String, y: Int): String = option(entry(x, y))
+    def option(x: String, y: Boolean): String = option(entry(x, y))
+
+    def command(command: String, config: List[String]): String =
+      Bash.string(command) + config.map(entry => " " + option(entry)).mkString
   }
 
   def sftp_string(str: String): String = {
-    val special = Set(' ', '*', '?', '{', '}')
-    if (str.exists(special)) {
+    val special = "[]?*\\{} \"'"
+    if (str.isEmpty) "\"\""
+    else if (str.exists(special.contains)) {
       val res = new StringBuilder
       for (c <- str) {
-        if (special(c)) res += '\\'
+        if (special.contains(c)) res += '\\'
         res += c
       }
       res.toString()
@@ -78,17 +84,12 @@ object SSH {
     options: Options,
     host: String,
     port: Int = 0,
-    user: String = "",
-    multiplex: Boolean = !Platform.is_windows
+    user: String = ""
   ): Session = {
+    val multiplex = options.bool("ssh_multiplexing") && !Platform.is_windows
     val (control_master, control_path) =
-      if (multiplex) {
-        val file = Isabelle_System.tmp_file("ssh_socket")
-        file.delete()
-        (true, file.getPath)
-      }
+      if (multiplex) (true, Isabelle_System.tmp_file("ssh_socket", initialized = false).getPath)
       else (false, "")
-
     new Session(options, host, port, user, control_master, control_path)
   }
 
@@ -110,7 +111,7 @@ object SSH {
     override def rsync_prefix: String = user_prefix + host + ":"
 
 
-    /* ssh commands */
+    /* local ssh commands */
 
     def run_command(command: String,
       master: Boolean = false,
@@ -124,7 +125,7 @@ object SSH {
         Config.make(options, port = port, user = user,
           control_master = master, control_path = control_path)
       val cmd =
-        Config.make_command(command, config) +
+        Config.command(command, config) +
         (if (opts.nonEmpty) " " + opts else "") +
         (if (args.nonEmpty) " -- " + args else "")
       Isabelle_System.bash(cmd, progress_stdout = progress_stdout,
@@ -153,7 +154,17 @@ object SSH {
 
     /* init and exit */
 
-    val user_home: String = run_ssh(master = control_master, args = "printenv HOME").check.out
+    val user_home: String = {
+      val args = Bash.string("printenv HOME\nprintenv SHELL")
+      run_ssh(master = control_master, args = args).check.out_lines match {
+        case List(user_home, shell) =>
+          if (shell.endsWith("/bash")) user_home
+          else {
+            error("Bad SHELL for " + quote(toString) + " -- expected GNU bash, but found " + shell)
+          }
+        case _ => error("Malformed remote environment for " + quote(toString))
+      }
+    }
 
     val settings: JMap[String, String] = JMap.of("HOME", user_home, "USER_HOME", user_home)
 
@@ -170,8 +181,7 @@ object SSH {
       settings: Boolean = true,
       strict: Boolean = true
     ): Process_Result = {
-      val args1 =
-        Bash.string(host) + " export " + Bash.string("USER_HOME=\"$HOME\"") + "\n" + cmd_line
+      val args1 = Bash.string(host) + " " + Bash.string("export USER_HOME=\"$HOME\"\n" + cmd_line)
       run_command("ssh", args = args1, progress_stdout = progress_stdout,
         progress_stderr = progress_stderr, strict = strict)
     }
@@ -255,24 +265,45 @@ object SSH {
       local_host: String = "localhost",
       ssh_close: Boolean = false
     ): Port_Forwarding = {
-      if (control_path.isEmpty) error("SSH port forwarding requires multiplexing")
+      val port = if (local_port > 0) local_port else Isabelle_System.local_port()
 
-      val port =
-        if (local_port > 0) local_port
-        else {
-          // FIXME race condition
-          val dummy = new ServerSocket(0)
-          val port = dummy.getLocalPort
-          dummy.close()
-          port
+      val forward = List(local_host, port, remote_host, remote_port).mkString(":")
+      val forward_option = "-L " + Bash.string(forward)
+
+      val cancel: () => Unit =
+        if (control_path.nonEmpty) {
+          run_ssh(opts = forward_option + " -O forward").check
+          () => run_ssh(opts = forward_option + " -O cancel")  // permissive
         }
-      val string = List(local_host, port, remote_host, remote_port).mkString(":")
-      run_ssh(opts = "-L " + Bash.string(string) + " -O forward").check
+        else {
+          val result = Synchronized[Exn.Result[Boolean]](Exn.Res(false))
+          val thread = Isabelle_Thread.fork("port_forwarding") {
+            val opts =
+              forward_option +
+                " " + Config.option("SessionType", "none") +
+                " " + Config.option("PermitLocalCommand", true) +
+                " " + Config.option("LocalCommand", "pwd")
+            try {
+              run_command("ssh", opts = opts, args = Bash.string(host),
+                progress_stdout = _ => result.change(_ => Exn.Res(true))).check
+            }
+            catch { case exn: Throwable => result.change(_ => Exn.Exn(exn)) }
+          }
+          result.guarded_access {
+            case res@Exn.Res(ok) => if (ok) Some((), res) else None
+            case Exn.Exn(exn) => throw exn
+          }
+          () => thread.interrupt()
+        }
+
+      val shutdown_hook =
+        Isabelle_System.create_shutdown_hook { cancel() }
 
       new Port_Forwarding(host, port, remote_host, remote_port) {
-        override def toString: String = string
+        override def toString: String = forward
         override def close(): Unit = {
-          run_ssh(opts = "-L " + Bash.string(string) + " -O cancel").check
+          cancel()
+          Isabelle_System.remove_shutdown_hook(shutdown_hook)
           if (ssh_close) ssh.close()
         }
       }

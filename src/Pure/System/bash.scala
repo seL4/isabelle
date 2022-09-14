@@ -146,19 +146,13 @@ object Bash {
     }
 
 
-    // JVM shutdown hook
-
-    private val shutdown_hook = Isabelle_Thread.create(() => terminate())
-
-    try { Runtime.getRuntime.addShutdownHook(shutdown_hook) }
-    catch { case _: IllegalStateException => }
-
-
     // cleanup
 
+    private val shutdown_hook =
+      Isabelle_System.create_shutdown_hook { terminate() }
+
     private def do_cleanup(): Unit = {
-      try { Runtime.getRuntime.removeShutdownHook(shutdown_hook) }
-      catch { case _: IllegalStateException => }
+      Isabelle_System.remove_shutdown_hook(shutdown_hook)
 
       script_file.delete()
       winpid_file.foreach(_.delete())

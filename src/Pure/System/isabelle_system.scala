@@ -9,6 +9,7 @@ package isabelle
 
 import java.util.{Map => JMap, HashMap}
 import java.io.{File => JFile, IOException}
+import java.net.ServerSocket
 import java.nio.file.{Path => JPath, Files, SimpleFileVisitor, FileVisitResult,
   StandardCopyOption, FileSystemException}
 import java.nio.file.attribute.BasicFileAttributes
@@ -269,10 +270,15 @@ object Isabelle_System {
     File.platform_file(path)
   }
 
-  def tmp_file(name: String, ext: String = "", base_dir: JFile = isabelle_tmp_prefix()): JFile = {
+  def tmp_file(
+    name: String,
+    ext: String = "",
+    base_dir: JFile = isabelle_tmp_prefix(),
+    initialized: Boolean = true
+  ): JFile = {
     val suffix = if (ext == "") "" else "." + ext
     val file = Files.createTempFile(base_dir.toPath, name, suffix).toFile
-    file.deleteOnExit()
+    if (initialized) file.deleteOnExit() else file.delete()
     file
   }
 
@@ -342,6 +348,32 @@ object Isabelle_System {
     move_file(new_dir, dir)
     rm_tree(old_dir)
   }
+
+
+  /* TCP/IP ports */
+
+  def local_port(): Int = {
+    val socket = new ServerSocket(0)
+    val port = socket.getLocalPort
+    socket.close()
+    port
+  }
+
+
+  /* JVM shutdown hook */
+
+  def create_shutdown_hook(body: => Unit): Thread = {
+    val shutdown_hook = Isabelle_Thread.create(new Runnable { def run: Unit = body })
+
+    try { Runtime.getRuntime.addShutdownHook(shutdown_hook) }
+    catch { case _: IllegalStateException => }
+
+    shutdown_hook
+  }
+
+  def remove_shutdown_hook(shutdown_hook: Thread): Unit =
+    try { Runtime.getRuntime.removeShutdownHook(shutdown_hook) }
+    catch { case _: IllegalStateException => }
 
 
 

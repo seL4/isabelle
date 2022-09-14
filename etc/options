@@ -289,6 +289,9 @@ public option spell_checker_exclude : string = "document_marker,antiquoted,raw_t
 
 section "Secure Shell"
 
+option ssh_multiplexing : bool = true
+  -- "enable multiplexing of SSH sessions (ignored on Windows)"
+
 option ssh_compression : bool = true
   -- "enable SSH compression"
 
