@@ -87,7 +87,7 @@ object SSH {
   ): Session = {
     val multiplex = options.bool("ssh_multiplexing") && !Platform.is_windows
     val (control_master, control_path) =
-      if (multiplex) (true, Isabelle_System.tmp_file("ssh_socket", initialized = false).getPath)
+      if (multiplex) (true, Isabelle_System.tmp_file("ssh", initialized = false).getPath)
       else (false, "")
     new Session(options, host, port, user, control_master, control_path)
   }
@@ -132,7 +132,7 @@ object SSH {
     }
 
     def run_sftp(script: String, opts: String = "", args: String = ""): Process_Result = {
-      Isabelle_System.with_tmp_file("sftp") { tmp_path =>
+      Isabelle_System.with_tmp_file("ssh") { tmp_path =>
         File.write(tmp_path, script)
         val opts1 = "-b " + File.bash_path(tmp_path) + (if (opts.nonEmpty) " " + opts else "")
         val args1 = Bash.string(host) + (if (args.nonEmpty) " " + args else "")
@@ -218,7 +218,7 @@ object SSH {
         File.bash_platform_path(local_path)).check
 
     override def read_bytes(path: Path): Bytes =
-      Isabelle_System.with_tmp_file("scp") { local_path =>
+      Isabelle_System.with_tmp_file("ssh") { local_path =>
         read_file(path, local_path)
         Bytes.read(local_path)
       }
@@ -230,7 +230,7 @@ object SSH {
         Bash.string(host + ":" + remote_path(path))).check
 
     def write_bytes(path: Path, bytes: Bytes): Unit =
-      Isabelle_System.with_tmp_file("scp") { local_path =>
+      Isabelle_System.with_tmp_file("ssh") { local_path =>
         Bytes.write(local_path, bytes)
         write_file(path, local_path)
       }
