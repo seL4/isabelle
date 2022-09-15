@@ -295,9 +295,6 @@ option ssh_multiplexing : bool = true
 option ssh_compression : bool = true
   -- "enable SSH compression"
 
-option ssh_connect_timeout : real = 60
-  -- "SSH connection timeout (seconds)"
-
 option ssh_alive_interval : real = 30
   -- "time interval to keep SSH server connection alive (seconds)"
 

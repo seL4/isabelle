@@ -45,7 +45,6 @@ object SSH {
       control_path: String = ""
     ): List[String] = {
       List("BatchMode=yes",
-        entry("ConnectTimeout", options.real("ssh_connect_timeout").round),
         entry("ServerAliveInterval", options.real("ssh_alive_interval").round),
         entry("ServerAliveCountMax", options.int("ssh_alive_count_max")),
         entry("Compression", options.bool("ssh_compression"))) :::
