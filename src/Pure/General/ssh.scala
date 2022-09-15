@@ -246,7 +246,7 @@ object SSH {
       execute("rm -r -f " + Bash.string(remote_dir)).check
 
     def tmp_dir(): String =
-      execute("mktemp -d -t tmp.XXXXXXXXXX").check.out
+      execute("mktemp -d /tmp/ssh-XXXXXXXXXXXX").check.out
 
     override def with_tmp_dir[A](body: Path => A): A = {
       val remote_dir = tmp_dir()
