@@ -9,6 +9,7 @@ package isabelle
 
 
 import java.util.{Map => JMap}
+import java.io.{File => JFile}
 
 
 object SSH {
@@ -116,6 +117,7 @@ object SSH {
       master: Boolean = false,
       opts: String = "",
       args: String = "",
+      cwd: JFile = null,
       progress_stdout: String => Unit = (_: String) => (),
       progress_stderr: String => Unit = (_: String) => (),
       strict: Boolean = true
@@ -127,27 +129,28 @@ object SSH {
         Config.command(command, config) +
         (if (opts.nonEmpty) " " + opts else "") +
         (if (args.nonEmpty) " -- " + args else "")
-      Isabelle_System.bash(cmd, progress_stdout = progress_stdout,
+      Isabelle_System.bash(cmd, cwd = cwd, progress_stdout = progress_stdout,
         progress_stderr = progress_stderr, strict = strict)
     }
 
-    def run_sftp(script: String, opts: String = "", args: String = ""): Process_Result = {
-      Isabelle_System.with_tmp_file("ssh") { tmp_path =>
-        File.write(tmp_path, script)
-        val opts1 = "-b " + File.bash_path(tmp_path) + (if (opts.nonEmpty) " " + opts else "")
-        val args1 = Bash.string(host) + (if (args.nonEmpty) " " + args else "")
-        run_command("sftp", opts = opts1, args = args1)
+    def run_sftp(
+      script: String,
+      init: Path => Unit = _ => (),
+      exit: Path => Unit = _ => ()
+    ): Process_Result = {
+      Isabelle_System.with_tmp_dir("ssh") { dir =>
+        init(dir)
+        File.write(dir + Path.explode("script"), script)
+        val result =
+          run_command("sftp", opts = "-b script", args = Bash.string(host), cwd = dir.file).check
+        exit(dir)
+        result
       }
     }
 
     def run_ssh(master: Boolean = false, opts: String = "", args: String = ""): Process_Result = {
       val args1 = Bash.string(host) + (if (args.nonEmpty) " " + args else "")
       run_command("ssh", master = master, opts = opts, args = args1)
-    }
-
-    def run_scp(opts: String = "", args: String = ""): Process_Result = {
-      val opts1 = "-p -q" + (if (opts.nonEmpty) " " + opts else "")
-      run_command("scp", opts = opts1, args = args)
     }
 
 
@@ -196,7 +199,7 @@ object SSH {
     override def bash_path(path: Path): String = Bash.string(remote_path(path))
     def sftp_path(path: Path): String = sftp_string(remote_path(path))
 
-    def rm(path: Path): Unit = run_sftp("rm " + sftp_path(path)).check
+    def rm(path: Path): Unit = run_sftp("rm " + sftp_path(path))
 
     override def is_dir(path: Path): Boolean = run_ssh(args = "test -d " + bash_path(path)).ok
     override def is_file(path: Path): Boolean = run_ssh(args = "test -f " + bash_path(path)).ok
@@ -209,33 +212,34 @@ object SSH {
     }
 
     def read_dir(path: Path): List[String] =
-      run_sftp("ls -1 -a " + sftp_path(path)).check.out_lines.flatMap(s =>
+      run_sftp("ls -1 -a " + sftp_path(path)).out_lines.flatMap(s =>
         if (s == "." || s == ".." || s.endsWith("/.") || s.endsWith("/..")) None
         else Some(Library.perhaps_unprefix("./", s)))
 
+    private def get_file[A](path: Path, f: Path => A): A = {
+      var result: Option[A] = None
+      run_sftp("get -p " + sftp_path(path) + " local",
+        exit = dir => result = Some(f(dir + Path.explode("local"))))
+      result.get
+    }
+
+    private def put_file(path: Path, f: Path => Unit): Unit =
+      run_sftp("put -p local " + sftp_path(path),
+        init = dir => f(dir + Path.explode("local")))
+
     override def read_file(path: Path, local_path: Path): Unit =
-      run_scp(args = Bash.string(host + ":" + remote_path(path)) + " " +
-        File.bash_platform_path(local_path)).check
-
+      get_file(path, Isabelle_System.copy_file(_, local_path))
     override def read_bytes(path: Path): Bytes =
-      Isabelle_System.with_tmp_file("ssh") { local_path =>
-        read_file(path, local_path)
-        Bytes.read(local_path)
-      }
-
-    override def read(path: Path): String = read_bytes(path).text
+      get_file(path, Bytes.read)
+    override def read(path: Path): String =
+      get_file(path, File.read)
 
     override def write_file(path: Path, local_path: Path): Unit =
-      run_scp(args = File.bash_platform_path(local_path) + " " +
-        Bash.string(host + ":" + remote_path(path))).check
-
+      put_file(path, Isabelle_System.copy_file(local_path, _))
     def write_bytes(path: Path, bytes: Bytes): Unit =
-      Isabelle_System.with_tmp_file("ssh") { local_path =>
-        Bytes.write(local_path, bytes)
-        write_file(path, local_path)
-      }
-
-    def write(path: Path, text: String): Unit = write_bytes(path, Bytes(text))
+      put_file(path, Bytes.write(_, bytes))
+    def write(path: Path, text: String): Unit =
+      put_file(path, File.write(_, text))
 
 
     /* tmp dirs */
