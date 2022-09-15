@@ -35,6 +35,7 @@ object SSH {
   object Config {
     def entry(x: String, y: String): String = x + "=" + y
     def entry(x: String, y: Int): String = entry(x, y.toString)
+    def entry(x: String, y: Long): String = entry(x, y.toString)
     def entry(x: String, y: Boolean): String = entry(x, if (y) "yes" else "no")
 
     def make(options: Options,
@@ -44,8 +45,8 @@ object SSH {
       control_path: String = ""
     ): List[String] = {
       List("BatchMode=yes",
-        entry("ConnectTimeout", options.seconds("ssh_connect_timeout").ms.toInt),
-        entry("ServerAliveInterval", options.seconds("ssh_alive_interval").ms.toInt),
+        entry("ConnectTimeout", options.real("ssh_connect_timeout").round),
+        entry("ServerAliveInterval", options.real("ssh_alive_interval").round),
         entry("ServerAliveCountMax", options.int("ssh_alive_count_max")),
         entry("Compression", options.bool("ssh_compression"))) :::
       (if (port > 0) List(entry("Port", port)) else Nil) :::
@@ -57,6 +58,7 @@ object SSH {
     def option(entry: String): String = "-o " + Bash.string(entry)
     def option(x: String, y: String): String = option(entry(x, y))
     def option(x: String, y: Int): String = option(entry(x, y))
+    def option(x: String, y: Long): String = option(entry(x, y))
     def option(x: String, y: Boolean): String = option(entry(x, y))
 
     def command(command: String, config: List[String]): String =
