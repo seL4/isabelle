@@ -889,8 +889,7 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
 
     /* context for operations */
 
-    def apply(server: String, port: Int = default_system_port): API =
-      new API(server, port)
+    def apply(server: String, port: Int = 0): API = new API(server, port)
   }
 
   final class API private(server: String, port: Int) {
