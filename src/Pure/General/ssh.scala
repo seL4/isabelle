@@ -44,11 +44,14 @@ object SSH {
       control_master: Boolean = false,
       control_path: String = ""
     ): List[String] = {
+      val ssh_batch_mode = options.bool("ssh_batch_mode")
       val ssh_compression = options.bool("ssh_compression")
       val ssh_alive_interval = options.real("ssh_alive_interval").round
       val ssh_alive_count_max = options.int("ssh_alive_count_max")
 
-      List("BatchMode=yes", entry("Compression", ssh_compression)) :::
+      List(
+        entry("BatchMode", ssh_batch_mode),
+        entry("Compression", ssh_compression)) :::
       (if (ssh_alive_interval >= 0) List(entry("ServerAliveInterval", ssh_alive_interval)) else Nil) :::
       (if (ssh_alive_count_max >= 0) List(entry("ServerAliveCountMax", ssh_alive_count_max)) else Nil) :::
       (if (port > 0) List(entry("Port", port)) else Nil) :::
