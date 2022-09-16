@@ -467,40 +467,38 @@ object Mercurial {
 
     /* remote repository */
 
-    val remote_url =
-      remote match {
-        case _ if remote.startsWith("ssh://") =>
-          val ssh_url = remote + "/" + repos_name
+    val remote_url = {
+      if (remote.startsWith("ssh://")) {
+        val ssh_url = remote + "/" + repos_name
 
-          if (!remote_exists) {
-            try { local_hg.command("init", ssh_url, repository = false).check }
-            catch { case ERROR(msg) => progress.echo_warning(msg) }
-          }
+        if (!remote_exists) {
+          try { local_hg.command("init", ssh_url, repository = false).check }
+          catch { case ERROR(msg) => progress.echo_warning(msg) }
+        }
 
-          ssh_url
-
-        case SSH.Target(user, host) =>
-          val phabricator = Phabricator.API(user, host)
-
-          var repos =
-            phabricator.get_repositories().find(r => r.short_name == repos_name) getOrElse {
-              if (remote_exists) {
-                error("Remote repository " +
-                  quote(phabricator.hg_url + "/source/" + repos_name) + " expected to exist")
-              }
-              else phabricator.create_repository(repos_name, short_name = repos_name)
-            }
-
-          while (repos.importing) {
-            progress.echo("Awaiting remote repository ...")
-            Time.seconds(0.5).sleep()
-            repos = phabricator.the_repository(repos.phid)
-          }
-
-          repos.ssh_url
-
-        case _ => error("Malformed remote specification " + quote(remote))
+        ssh_url
       }
+      else {
+        val phabricator = Phabricator.API(remote)
+
+        var repos =
+          phabricator.get_repositories().find(r => r.short_name == repos_name) getOrElse {
+            if (remote_exists) {
+              error("Remote repository " +
+                quote(phabricator.hg_url + "/source/" + repos_name) + " expected to exist")
+            }
+            else phabricator.create_repository(repos_name, short_name = repos_name)
+          }
+
+        while (repos.importing) {
+          progress.echo("Awaiting remote repository ...")
+          Time.seconds(0.5).sleep()
+          repos = phabricator.the_repository(repos.phid)
+        }
+
+        repos.ssh_url
+      }
+    }
 
     progress.echo("Remote repository " + quote(remote_url))
 

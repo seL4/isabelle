@@ -221,68 +221,67 @@ object Components {
       }
 
     if ((publish && archives.nonEmpty) || update_components_sha1) {
-      options.string("isabelle_components_server") match {
-        case SSH.Target(user, host) =>
-          using(SSH.open_session(options, host = host, user = user)) { ssh =>
-            val components_dir = Path.explode(options.string("isabelle_components_dir"))
-            val contrib_dir = Path.explode(options.string("isabelle_components_contrib_dir"))
+      val server = options.string("isabelle_components_server")
+      if (server.isEmpty) error("Undefined option isabelle_components_server")
 
-            for (dir <- List(components_dir, contrib_dir) if !ssh.is_dir(dir)) {
-              error("Bad remote directory: " + dir)
+      using(SSH.open_session(options, server)) { ssh =>
+        val components_dir = Path.explode(options.string("isabelle_components_dir"))
+        val contrib_dir = Path.explode(options.string("isabelle_components_contrib_dir"))
+
+        for (dir <- List(components_dir, contrib_dir) if !ssh.is_dir(dir)) {
+          error("Bad remote directory: " + dir)
+        }
+
+        if (publish) {
+          for (archive <- archives) {
+            val archive_name = archive.file_name
+            val name = Archive.get_name(archive_name)
+            val remote_component = components_dir + archive.base
+            val remote_contrib = contrib_dir + Path.explode(name)
+
+            // component archive
+            if (ssh.is_file(remote_component) && !force) {
+              error("Remote component archive already exists: " + remote_component)
             }
+            progress.echo("Uploading " + archive_name)
+            ssh.write_file(remote_component, archive)
 
-            if (publish) {
-              for (archive <- archives) {
-                val archive_name = archive.file_name
-                val name = Archive.get_name(archive_name)
-                val remote_component = components_dir + archive.base
-                val remote_contrib = contrib_dir + Path.explode(name)
-
-                // component archive
-                if (ssh.is_file(remote_component) && !force) {
-                  error("Remote component archive already exists: " + remote_component)
-                }
-                progress.echo("Uploading " + archive_name)
-                ssh.write_file(remote_component, archive)
-
-                // contrib directory
-                val is_standard_component =
-                  Isabelle_System.with_tmp_dir("component") { tmp_dir =>
-                    Isabelle_System.gnutar("-xzf " + File.bash_path(archive), dir = tmp_dir).check
-                    check_dir(tmp_dir + Path.explode(name))
-                  }
-                if (is_standard_component) {
-                  if (ssh.is_dir(remote_contrib)) {
-                    if (force) ssh.rm_tree(remote_contrib)
-                    else error("Remote component directory already exists: " + remote_contrib)
-                  }
-                  progress.echo("Unpacking remote " + archive_name)
-                  ssh.execute("tar -C " + ssh.bash_path(contrib_dir) + " -xzf " +
-                    ssh.bash_path(remote_component)).check
-                }
-                else {
-                  progress.echo_warning("No unpacking of non-standard component: " + archive_name)
-                }
+            // contrib directory
+            val is_standard_component =
+              Isabelle_System.with_tmp_dir("component") { tmp_dir =>
+                Isabelle_System.gnutar("-xzf " + File.bash_path(archive), dir = tmp_dir).check
+                check_dir(tmp_dir + Path.explode(name))
               }
+            if (is_standard_component) {
+              if (ssh.is_dir(remote_contrib)) {
+                if (force) ssh.rm_tree(remote_contrib)
+                else error("Remote component directory already exists: " + remote_contrib)
+              }
+              progress.echo("Unpacking remote " + archive_name)
+              ssh.execute("tar -C " + ssh.bash_path(contrib_dir) + " -xzf " +
+                ssh.bash_path(remote_component)).check
             }
-
-            // remote SHA1 digests
-            if (update_components_sha1) {
-              val lines =
-                for {
-                  entry <- ssh.read_dir(components_dir)
-                  if ssh.is_file(components_dir + Path.basic(entry)) &&
-                    entry.endsWith(Archive.suffix)
-                }
-                yield {
-                  progress.echo("Digesting remote " + entry)
-                  ssh.execute("cd " + ssh.bash_path(components_dir) +
-                    "; sha1sum " + Bash.string(entry)).check.out
-                }
-              write_components_sha1(read_components_sha1(lines))
+            else {
+              progress.echo_warning("No unpacking of non-standard component: " + archive_name)
             }
           }
-        case s => error("Bad isabelle_components_server: " + quote(s))
+        }
+
+        // remote SHA1 digests
+        if (update_components_sha1) {
+          val lines =
+            for {
+              entry <- ssh.read_dir(components_dir)
+              if ssh.is_file(components_dir + Path.basic(entry)) &&
+                entry.endsWith(Archive.suffix)
+            }
+            yield {
+              progress.echo("Digesting remote " + entry)
+              ssh.execute("cd " + ssh.bash_path(components_dir) +
+                "; sha1sum " + Bash.string(entry)).check.out
+            }
+          write_components_sha1(read_components_sha1(lines))
+        }
       }
     }
 

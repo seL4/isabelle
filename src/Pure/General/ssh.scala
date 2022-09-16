@@ -13,22 +13,6 @@ import java.io.{File => JFile}
 
 
 object SSH {
-  /* target machine: user@host syntax */
-
-  object Target {
-    def parse(s: String): (String, String) = {
-      val i = s.indexOf('@')
-      if (i <= 0) ("", s)
-      else (s.substring(0, i), s.substring(i + 1))
-    }
-
-    def unapplySeq(s: String): Option[List[String]] = {
-      val (user, host) = parse(s)
-      if (host.isEmpty) None else Some(List(user, host))
-    }
-  }
-
-
   /* OpenSSH configuration and command-line */
 
   // see https://linux.die.net/man/5/ssh_config

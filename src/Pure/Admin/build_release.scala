@@ -231,14 +231,10 @@ directory individually.
       " (" + server_option + " = " + quote(server) + ") ...")
 
     val ssh =
-       server match {
-        case "" =>
-          if (Platform.family == platform) SSH.Local
-          else error("Undefined option " + server_option + ": cannot build heaps")
-        case SSH.Target(user, host) =>
-          SSH.open_session(options, host = host, user = user)
-        case _ => error("Malformed option " + server_option + ": " + quote(server))
-      }
+      if (server.nonEmpty) SSH.open_session(options, server)
+      else if (Platform.family == platform) SSH.Local
+      else error("Undefined option " + server_option + ": cannot build heaps")
+
     try {
       Isabelle_System.with_tmp_file("tmp", ext = "tar") { local_tmp_tar =>
         execute_tar(local_dir, "-cf " + File.bash_path(local_tmp_tar) + " .")

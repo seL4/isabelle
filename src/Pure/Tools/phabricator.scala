@@ -889,23 +889,20 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
 
     /* context for operations */
 
-    def apply(user: String, host: String, port: Int = default_system_port): API =
-      new API(user, host, port)
+    def apply(ssh_target: String, ssh_port: Int = default_system_port): API =
+      new API(ssh_target, ssh_port)
   }
 
-  final class API private(ssh_user: String, ssh_host: String, ssh_port: Int) {
+  final class API private(ssh_target: String, ssh_port: Int) {
     /* connection */
 
-    require(ssh_host.nonEmpty && ssh_port >= 0, "bad ssh host or port")
-
-    private def ssh_user_prefix: String =
-      if (ssh_user.nonEmpty) ssh_user + "@" else ""
+    require(ssh_target.nonEmpty && ssh_port >= 0, "bad ssh host or port")
 
     private def ssh_port_suffix: String =
       if (ssh_port != default_system_port) ":" + ssh_port else ""
 
-    override def toString: String = ssh_user_prefix + ssh_host + ssh_port_suffix
-    def hg_url: String = "ssh://" + ssh_user_prefix + ssh_host + ssh_port_suffix
+    override def toString: String = ssh_target + ssh_port_suffix
+    def hg_url: String = "ssh://" + ssh_target + ssh_port_suffix
 
 
     /* execute methods */
@@ -915,7 +912,7 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
         File.write(params_file, JSON.Format(JSON.Object("params" -> JSON.Format(params))))
         val result =
           Isabelle_System.bash(
-            "ssh -p " + ssh_port + " " + Bash.string(ssh_user_prefix + ssh_host) +
+            "ssh -p " + ssh_port + " " + Bash.string(ssh_target) +
             " conduit " + Bash.string(method) + " < " + File.bash_path(params_file)).check
         JSON.parse(result.out, strict = false)
       }
