@@ -13,6 +13,17 @@ import java.io.{File => JFile}
 
 
 object SSH {
+  /* client command */
+
+  def client_command(port: Int = 0, control_path: String = ""): String =
+    if (control_path.isEmpty || control_path == Bash.string(control_path)) {
+      "ssh" +
+        (if (port > 0) " -p " + port else "") +
+        (if (control_path.nonEmpty) " -o ControlPath=" + control_path else "")
+    }
+    else error ("Malformed SSH control socket: " + quote(control_path))
+
+
   /* OpenSSH configuration and command-line */
 
   // see https://linux.die.net/man/5/ssh_config

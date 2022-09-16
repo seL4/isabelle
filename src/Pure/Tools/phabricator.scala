@@ -896,10 +896,8 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
   final class API private(ssh_target: String, ssh_port: Int) {
     /* connection */
 
-    require(ssh_target.nonEmpty && ssh_port >= 0, "bad ssh host or port")
-
     private def ssh_port_suffix: String =
-      if (ssh_port != default_system_port) ":" + ssh_port else ""
+      if (ssh_port > 0) ":" + ssh_port else ""
 
     override def toString: String = ssh_target + ssh_port_suffix
     def hg_url: String = "ssh://" + ssh_target + ssh_port_suffix

@@ -14,14 +14,8 @@ object Rsync {
     archive: Boolean = true,
     protect_args: Boolean = true  // requires rsync 3.0.0, or later
   ) {
-    require(ssh_control_path.isEmpty || ssh_control_path == Bash.string(ssh_control_path),
-      "Malformed socket path: " + quote(ssh_control_path))
-
     def command: String = {
-      val ssh_command =
-        "ssh" + (if (ssh_port > 0) " -p " + ssh_port else "") +
-        (if (ssh_control_path.nonEmpty) " -o ControlPath=" + ssh_control_path else "")
-
+      val ssh_command = SSH.client_command(port = ssh_port, control_path = ssh_control_path)
       "rsync --rsh=" + Bash.string(ssh_command) +
         (if (archive) " --archive" else "") +
         (if (protect_args) " --protect-args" else "")
