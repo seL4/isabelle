@@ -12,4 +12,8 @@ classpath "$CLASSPATH"; unset CLASSPATH
 export jvm_cp_args="$(platform_path "$ISABELLE_CLASSPATH")"
 export JAVA_OPTS="$ISABELLE_JAVA_SYSTEM_OPTIONS -J-Dscala.usejavacp=true"
 
+if [ "$ISABELLE_PLATFORM_FAMILY" = "windows" ]; then
+  export TERM=dumb
+fi
+
 isabelle_scala scala $ISABELLE_SCALAC_OPTIONS "$@"
