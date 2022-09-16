@@ -910,7 +910,7 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
         File.write(params_file, JSON.Format(JSON.Object("params" -> JSON.Format(params))))
         val result =
           Isabelle_System.bash(
-            "ssh -p " + ssh_port + " " + Bash.string(ssh_target) +
+            SSH.client_command(port = ssh_port) + " -- " + Bash.string(ssh_target) +
             " conduit " + Bash.string(method) + " < " + File.bash_path(params_file)).check
         JSON.parse(result.out, strict = false)
       }
