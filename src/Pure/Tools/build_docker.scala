@@ -9,6 +9,7 @@ package isabelle
 
 object Build_Docker {
   private val default_base = "ubuntu"
+  private val default_work_dir = Path.current
   private lazy val default_logic = Isabelle_System.getenv("ISABELLE_LOGIC")
 
   private val Isabelle_Name = """^.*?(Isabelle[^/\\:]+)_linux(?:_arm)?\.tar\.gz$""".r
@@ -27,6 +28,7 @@ object Build_Docker {
   def build_docker(progress: Progress,
     app_archive: String,
     base: String = default_base,
+    work_dir: Path = default_work_dir,
     logic: String = default_logic,
     no_build: Boolean = false,
     entrypoint: Boolean = false,
@@ -76,15 +78,19 @@ ENTRYPOINT ["Isabelle/bin/isabelle"]
     output.foreach(File.write(_, dockerfile))
 
     if (!no_build) {
-      Isabelle_System.with_tmp_dir("docker") { tmp_dir =>
+      progress.echo("Docker working directory: " + work_dir.absolute)
+      Isabelle_System.make_directory(work_dir)
+      Isabelle_System.with_tmp_dir("docker_build", base_dir = work_dir.file) { tmp_dir =>
         File.write(tmp_dir + Path.explode("Dockerfile"), dockerfile)
 
         if (is_remote) {
           if (!Url.is_readable(app_archive))
             error("Cannot access remote archive " + app_archive)
         }
-        else Isabelle_System.copy_file(Path.explode(app_archive),
-          tmp_dir + Path.explode("Isabelle.tar.gz"))
+        else {
+          Isabelle_System.copy_file(Path.explode(app_archive),
+            tmp_dir + Path.explode("Isabelle.tar.gz"))
+        }
 
         val quiet_option = if (verbose) "" else " -q"
         val tag_option = if (tag == "") "" else " -t " + Bash.string(tag)
@@ -103,6 +109,7 @@ ENTRYPOINT ["Isabelle/bin/isabelle"]
       { args =>
         var base = default_base
         var entrypoint = false
+        var work_dir = default_work_dir
         var logic = default_logic
         var no_build = false
         var output: Option[Path] = None
@@ -118,6 +125,8 @@ Usage: isabelle build_docker [OPTIONS] APP_ARCHIVE
     -E           set Isabelle/bin/isabelle as entrypoint
     -P NAME      additional Ubuntu package collection (""" +
           package_collections.keySet.toList.sorted.map(quote(_)).mkString(", ") + """)
+    -W DIR       working directory that is accessible to docker,
+                 potentially via snap (default: """ + default_work_dir + """)
     -l NAME      default logic (default ISABELLE_LOGIC=""" + quote(default_logic) + """)
     -n           no docker build
     -o FILE      output generated Dockerfile
@@ -135,6 +144,7 @@ Usage: isabelle build_docker [OPTIONS] APP_ARCHIVE
               case Some(ps) => more_packages :::= ps
               case None => error("Unknown package collection " + quote(arg))
             }),
+          "W:" -> (arg => work_dir = Path.explode(arg)),
           "l:" -> (arg => logic = arg),
           "n" -> (_ => no_build = true),
           "o:" -> (arg => output = Some(Path.explode(arg))),
@@ -149,8 +159,8 @@ Usage: isabelle build_docker [OPTIONS] APP_ARCHIVE
             case _ => getopts.usage()
           }
 
-        build_docker(new Console_Progress(), app_archive, base = base, logic = logic,
-          no_build = no_build, entrypoint = entrypoint, output = output,
+        build_docker(new Console_Progress(), app_archive, base = base, work_dir = work_dir,
+          logic = logic, no_build = no_build, entrypoint = entrypoint, output = output,
           more_packages = more_packages, tag = tag, verbose = verbose)
       })
 }

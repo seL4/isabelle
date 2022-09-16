@@ -293,6 +293,9 @@ standard Isabelle tools.
 to identity the original build process uniquely. Thus other tools may
 dependent symbolically on a particular build instance.
 
+* Command-line tool "isabelle build_docker" supports Docker within Snap
+more robustly; see also option -W.
+
 * Command-line tool "isabelle scala_project" supports Gradle as
 alternative to Maven: either option -G or -M needs to be specified
 explicitly. This increases the chances that the Java/Scala IDE project

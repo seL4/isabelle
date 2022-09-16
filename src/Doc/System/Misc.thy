@@ -41,6 +41,8 @@ text \<open>
     -B NAME      base image (default "ubuntu")
     -E           set Isabelle/bin/isabelle as entrypoint
     -P NAME      additional Ubuntu package collection ("X11", "latex")
+    -W DIR       working directory that is accessible to docker,
+                 potentially via snap (default: ".")
     -l NAME      default logic (default ISABELLE_LOGIC="HOL")
     -n           no docker build
     -o FILE      output generated Dockerfile
@@ -89,6 +91,12 @@ text \<open>
   tools.
 
   Option \<^verbatim>\<open>-v\<close> disables quiet-mode of the underlying \<^verbatim>\<open>docker build\<close> process.
+
+  \<^medskip>
+  Option \<^verbatim>\<open>-W\<close> specifies an alternative work directory: it needs to be
+  accessible to docker, even if this is run via Snap (e.g.\ on Ubuntu 22.04).
+  The default ``\<^verbatim>\<open>.\<close>'' usually works, if this is owned by the user: the tool
+  will create a fresh directory within it, and remove it afterwards.
 \<close>
 
 
