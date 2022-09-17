@@ -73,7 +73,7 @@ Packaging
 - fully-automated packaging (e.g. on lxcisa0):
 
   hg up -r DISTNAME
-  Admin/build_release -D /p/home/isabelle/dist -b HOL -l -R DISTNAME -c .../naproche-20220910
+  Admin/build_release -D /p/home/isabelle/dist -b HOL -l -R DISTNAME -c .../naproche-20220917.tar.gz
 
   #no naproche for arm64-linux
   Admin/build_release -D /p/home/isabelle/dist -b HOL -R DISTNAME -p linux_arm
