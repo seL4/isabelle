@@ -352,8 +352,10 @@ val _ = print \<close> ^ ML_Syntax.print_string end_marker ^ \<^verbatim>\<open>
     val _ = File.write driver_path driver
     val _ = File.write basis_path ("$(SML_LIB)/basis/basis.mlb\n" ^ generatedN ^ "\n" ^ driverN)
   in
-    compile compiler ("\"$ISABELLE_MLTON\" -default-type intinf " ^ File.bash_path basis_path);
-    evaluate compiler (File.bash_path (dir + Path.basic projectN))
+    compile compiler
+      (\<^verbatim>\<open>"$ISABELLE_MLTON" $ISABELLE_MLTON_OPTIONS -default-type intinf \<close> ^
+        File.bash_platform_path basis_path);
+    evaluate compiler (File.bash_platform_path (dir + Path.basic projectN))
   end
 
 

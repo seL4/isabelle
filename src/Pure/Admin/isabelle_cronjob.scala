@@ -309,7 +309,7 @@ object Isabelle_Cronjob {
           options = "-m32 -B -M4" +
             " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAMLFIND=ocamlfind" +
             " -e ISABELLE_GHC_SETUP=true" +
-            " -e ISABELLE_MLTON=mlton" +
+            " -e ISABELLE_MLTON=mlton -e ISABELLE_MLTON_OPTIONS=" +
             " -e ISABELLE_SMLNJ=sml" +
             " -e ISABELLE_SWIPL=swipl",
           args = "-a -d '~~/src/Benchmarks'")),
@@ -323,7 +323,7 @@ object Isabelle_Cronjob {
           options = "-m32 -B -M1x2,2,4 -p pide_session=false" +
             " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAML_SETUP=true" +
             " -e ISABELLE_GHC_SETUP=true" +
-            " -e ISABELLE_MLTON=/usr/local/bin/mlton" +
+            " -e ISABELLE_MLTON=/usr/local/bin/mlton -e ISABELLE_MLTON_OPTIONS=" +
             " -e ISABELLE_SMLNJ=/usr/local/smlnj/bin/sml" +
             " -e ISABELLE_SWIPL=/usr/local/bin/swipl",
           args = "-a -d '~~/src/Benchmarks'")),
@@ -332,7 +332,7 @@ object Isabelle_Cronjob {
           options = "-m32 -B -M1x2,2,4 -p pide_session=false" +
             " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAML_SETUP=true" +
             " -e ISABELLE_GHC_SETUP=true" +
-            " -e ISABELLE_MLTON=/usr/local/bin/mlton" +
+            " -e ISABELLE_MLTON=/usr/local/bin/mlton -e ISABELLE_MLTON_OPTIONS=" +
             " -e ISABELLE_SMLNJ=/usr/local/smlnj/bin/sml" +
             " -e ISABELLE_SWIPL=/usr/local/bin/swipl",
           args = "-a -d '~~/src/Benchmarks'"),
@@ -375,7 +375,7 @@ object Isabelle_Cronjob {
           java_heap = "8g",
           options = "-m32 -M1x6 -t AFP" +
             " -e ISABELLE_GHC=ghc" +
-            " -e ISABELLE_MLTON=mlton" +
+            " -e ISABELLE_MLTON=mlton -e ISABELLE_MLTON_OPTIONS=" +
             " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAMLFIND=ocamlfind" +
             " -e ISABELLE_SMLNJ=sml",
           args = "-a -X large -X slow",

@@ -167,5 +167,6 @@ ISABELLE_GNUPLOT="gnuplot"
 ISABELLE_FONTFORGE="fontforge"
 
 #ISABELLE_MLTON="/usr/bin/mlton"
+#ISABELLE_MLTON_OPTIONS="-pi-style npi"
 #ISABELLE_SMLNJ="/usr/bin/sml"
 #ISABELLE_SWIPL="/usr/bin/swipl"
