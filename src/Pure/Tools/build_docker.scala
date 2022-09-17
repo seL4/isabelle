@@ -8,7 +8,7 @@ package isabelle
 
 
 object Build_Docker {
-  private val default_base = "ubuntu"
+  private val default_base = "ubuntu:22.04"
   private val default_work_dir = Path.current
   private lazy val default_logic = Isabelle_System.getenv("ISABELLE_LOGIC")
 

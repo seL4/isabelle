@@ -38,7 +38,7 @@ text \<open>
 \<open>Usage: isabelle build_docker [OPTIONS] APP_ARCHIVE
 
   Options are:
-    -B NAME      base image (default "ubuntu")
+    -B NAME      base image (default "ubuntu:22.04")
     -E           set Isabelle/bin/isabelle as entrypoint
     -P NAME      additional Ubuntu package collection ("X11", "latex")
     -W DIR       working directory that is accessible to docker,
@@ -70,10 +70,10 @@ text \<open>
 
   \<^medskip>
   Option \<^verbatim>\<open>-B\<close> specifies the Docker image taken as starting point for the
-  Isabelle installation: it needs to be a suitable version of Ubuntu Linux.
-  The default \<^verbatim>\<open>ubuntu\<close> refers to the latest LTS version provided by Canonical
-  as the official Ubuntu vendor\<^footnote>\<open>\<^url>\<open>https://hub.docker.com/_/ubuntu\<close>\<close>. For
-  Isabelle2022 this is normally Ubuntu 22.04 LTS.
+  Isabelle installation: it needs to be a suitable version of Ubuntu Linux,
+  see also \<^url>\<open>https://hub.docker.com/_/ubuntu\<close>. The default for Isabelle2022
+  is \<^verbatim>\<open>ubuntu:22.04\<close>, but other versions often work as well, after some
+  experimentation with packages.
 
   Option \<^verbatim>\<open>-p\<close> includes additional Ubuntu packages, using the terminology
   of \<^verbatim>\<open>apt-get install\<close> within the underlying Linux distribution.
