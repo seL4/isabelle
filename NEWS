@@ -357,6 +357,11 @@ been discontinued. This has various practical consequences:
     parameters for proxy_host etc. have been discontinued: minor
     INCOMPATIBILITY.
 
+* The MLton compiler for x86_64-linux has been bundled as Isabelle
+component, since Ubuntu 22.04 no longer provides a suitable package.
+Note that on macOS, MLton is readily available via Homebrew:
+https://formulae.brew.sh/formula/mlton
+
 
 New in Isabelle2021-1 (December 2021)
 -------------------------------------
