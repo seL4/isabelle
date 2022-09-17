@@ -287,21 +287,21 @@ public option spell_checker_exclude : string = "document_marker,antiquoted,raw_t
   -- "excluded markup elements for spell-checker (separated by commas)"
 
 
-section "Secure Shell"
+section "Secure Shell (OpenSSH)"
 
-option ssh_batch_mode : bool = true
+public option ssh_batch_mode : bool = true
   -- "enable SSH batch mode (no user interaction)"
 
-option ssh_multiplexing : bool = true
+public option ssh_multiplexing : bool = true
   -- "enable multiplexing of SSH sessions (ignored on Windows)"
 
-option ssh_compression : bool = true
+public option ssh_compression : bool = true
   -- "enable SSH compression"
 
-option ssh_alive_interval : real = 30
+public option ssh_alive_interval : real = 30
   -- "time interval to keep SSH server connection alive (seconds, ignore value < 0)"
 
-option ssh_alive_count_max : int = 3
+public option ssh_alive_count_max : int = 3
   -- "maximum number of messages to keep SSH server connection alive (ignore value < 0)"
 
 
