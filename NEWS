@@ -362,6 +362,12 @@ component, since Ubuntu 22.04 no longer provides a suitable package.
 Note that on macOS, MLton is readily available via Homebrew:
 https://formulae.brew.sh/formula/mlton
 
+The Isabelle settings refer to an executable "$ISABELLE_MLTON" and
+command-line options $ISABELLE_MLTON_OPTIONS, which need to fit
+together. Potential INCOMPATIBILITY for existing
+$ISABELLE_HOME_USER/etc/settings.
+
+
 
 New in Isabelle2021-1 (December 2021)
 -------------------------------------
