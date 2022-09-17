@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/SMT/Lethe_Proof.ML
+(*  Title:      HOL/Tools/SMT/lethe_proof.ML
     Author:     Mathias Fleury, ENS Rennes
     Author:     Sascha Boehme, TU Muenchen
 

@@ -1,4 +1,4 @@
-(*  Title:      HOL/Mirabelle/Tools/mirabelle_util.ML
+(*  Title:      HOL/Tools/Mirabelle/mirabelle_util.ML
     Author:     Martin Desharnais, MPI-INF Saarbruecken
 *)
 

@@ -1,4 +1,4 @@
-(*  Title:      HOL/Word/Tools/word_lib.ML
+(*  Title:      HOL/Library/Tools/word_lib.ML
     Author:     Sascha Boehme, TU Muenchen and Thomas Sewell, NICTA
 
 Helper routines for operating on the word type.

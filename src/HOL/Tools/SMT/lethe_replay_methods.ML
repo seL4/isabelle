@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/SMT/verit_replay_methods.ML
+(*  Title:      HOL/Tools/SMT/lethe_replay_methods.ML
     Author:     Mathias Fleury, MPII, JKU, University Freiburg
 
 Proof method for replaying veriT proofs.

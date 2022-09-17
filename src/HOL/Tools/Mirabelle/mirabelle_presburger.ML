@@ -1,4 +1,4 @@
-(*  Title:      HOL/Mirabelle/Tools/mirabelle_presburger.ML
+(*  Title:      HOL/Tools/Mirabelle/mirabelle_presburger.ML
     Author:     Martin Desharnais, MPI-INF Saarbrücken
 
 Mirabelle action: "presburger".

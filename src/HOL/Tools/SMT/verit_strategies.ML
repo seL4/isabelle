@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/SMT/Verit_Proof.ML
+(*  Title:      HOL/Tools/SMT/verit_strategies.ML
     Author:     Mathias Fleury, ENS Rennes, MPI, JKU, Freiburg University
 
 VeriT proofs: parsing and abstract syntax tree.

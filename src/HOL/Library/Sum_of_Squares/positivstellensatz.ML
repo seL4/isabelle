@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/positivstellensatz.ML
+(*  Title:      HOL/Library/Sum_of_Squares/positivstellensatz.ML
     Author:     Amine Chaieb, University of Cambridge
 
 A generic arithmetic prover based on Positivstellensatz certificates

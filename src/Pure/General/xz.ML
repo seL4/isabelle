@@ -1,4 +1,4 @@
-(*  Title:      Pure/System/xz.ML
+(*  Title:      Pure/General/xz.ML
     Author:     Makarius
 
 Support for XZ compression (via Isabelle/Scala).

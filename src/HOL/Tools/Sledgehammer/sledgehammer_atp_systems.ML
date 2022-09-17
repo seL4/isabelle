@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/ATP/atp_systems.ML
+(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_atp_systems.ML
     Author:     Fabian Immler, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
 

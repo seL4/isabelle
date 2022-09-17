@@ -1,4 +1,4 @@
-/*  Title:      Pure/Admin/build_cvc5scala
+/*  Title:      Pure/Admin/build_cvc5.scala
     Author:     Makarius
 
 Build Isabelle component for cvc5. See also:

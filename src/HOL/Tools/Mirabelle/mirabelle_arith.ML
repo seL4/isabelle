@@ -1,4 +1,4 @@
-(*  Title:      HOL/Mirabelle/Tools/mirabelle_arith.ML
+(*  Title:      HOL/Tools/Mirabelle/mirabelle_arith.ML
     Author:     Jasmin Blanchette, TU Munich
     Author:     Sascha Boehme, TU Munich
     Author:     Makarius

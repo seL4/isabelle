@@ -1,4 +1,4 @@
-(*  Title:      Pure/System/base64.ML
+(*  Title:      Pure/General/base64.ML
     Author:     Makarius
 
 Support for Base64 data encoding (via Isabelle/Scala).

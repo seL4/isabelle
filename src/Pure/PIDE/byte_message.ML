@@ -1,4 +1,4 @@
-(*  Title:      Pure/General/byte_message.ML
+(*  Title:      Pure/PIDE/byte_message.ML
     Author:     Makarius
 
 Byte-oriented messages.

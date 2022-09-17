@@ -1,4 +1,4 @@
-(*  Title:      HOL/Mirabelle/Tools/mirabelle_try0.ML
+(*  Title:      HOL/Tools/Mirabelle/mirabelle_try0.ML
     Author:     Jasmin Blanchette, TU Munich
     Author:     Makarius
     Author:     Martin Desharnais, UniBw Munich

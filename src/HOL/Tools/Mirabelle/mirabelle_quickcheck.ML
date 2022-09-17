@@ -1,4 +1,4 @@
-(*  Title:      HOL/Mirabelle/Tools/mirabelle_quickcheck.ML
+(*  Title:      HOL/Tools/Mirabelle/mirabelle_quickcheck.ML
     Author:     Jasmin Blanchette, TU Munich
     Author:     Sascha Boehme, TU Munich
     Author:     Martin Desharnais, UniBw Munich
