@@ -75,12 +75,18 @@ RUN tar xzf Isabelle.tar.gz && \
 ENTRYPOINT ["Isabelle/bin/isabelle"]
 """ else "")
 
-    output.foreach(File.write(_, dockerfile))
+    for (path <- output) {
+      progress.echo("Dockerfile: " + path.absolute)
+      File.write(path, dockerfile)
+    }
 
     if (!no_build) {
-      progress.echo("Docker working directory: " + work_dir.absolute)
       Isabelle_System.make_directory(work_dir)
+      progress.echo("Docker working directory: " + work_dir.absolute)
+
       Isabelle_System.with_tmp_dir("docker_build", base_dir = work_dir.file) { tmp_dir =>
+        progress.echo("Docker temporary directory: " + tmp_dir.absolute)
+
         File.write(tmp_dir + Path.explode("Dockerfile"), dockerfile)
 
         if (is_remote) {
