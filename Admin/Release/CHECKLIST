@@ -70,17 +70,24 @@ Repository fork
 Packaging
 =========
 
-- fully-automated packaging (e.g. on lxcisa0):
+- regular packaging:
 
-  hg up -r DISTNAME
-  Admin/build_release -D /p/home/isabelle/dist -b HOL -l -R DISTNAME -c .../naproche-20220917.tar.gz
+  #on fast Linux machine, with access to Linux + Windows build_host
+  Admin/build_release -D ~/tmp/isadist -b HOL -R Isabelle2022 -c .../naproche-20220917.tar.gz -p linux,windows -l
 
-  #no naproche for arm64-linux
-  Admin/build_release -D /p/home/isabelle/dist -b HOL -R DISTNAME -p linux_arm
+  #with access Apple ARM build_host
+  Admin/build_release -D ~/tmp/isadist -b HOL -R Isabelle2022 -c .../naproche-20220917.tar.gz -p macos
+
+  #with access Linux ARM build_host
+  Admin/build_release -D ~/tmp/isadist -b HOL -R Isabelle2022 -c .../naproche-20220917.tar.gz -p linux_arm
 
 - Docker image:
 
   isabelle build_docker -o Dockerfile -E -t makarius/isabelle:Isabelle2022 Isabelle2022_linux.tar.gz
+  isabelle build_docker -o Dockerfile -E -t makarius/isabelle:Isabelle2022_X11_Latex -P X11 -P latex Isabelle2022_linux.tar.gz
+
+  isabelle build_docker -o Dockerfile -E -t makarius/isabelle:Isabelle2022_ARM Isabelle2022_linux_arm.tar.gz
+  isabelle build_docker -o Dockerfile -E -t makarius/isabelle:Isabelle2022_ARM_X11_Latex -P X11 -P latex Isabelle2022_linux_arm.tar.gz
 
   docker login
 
