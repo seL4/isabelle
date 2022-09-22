@@ -138,11 +138,9 @@ object Build {
 
   class Results private[Build](results: Map[String, (Option[Process_Result], Sessions.Info)]) {
     def sessions: Set[String] = results.keySet
-    def infos: List[Sessions.Info] = results.values.map(_._2).toList
     def cancelled(name: String): Boolean = results(name)._1.isEmpty
+    def info(name: String): Sessions.Info = results(name)._2
     def apply(name: String): Process_Result = results(name)._1.getOrElse(Process_Result(1))
-    def get_info(name: String): Option[Sessions.Info] = results.get(name).map(_._2)
-    def info(name: String): Sessions.Info = get_info(name).get
     val rc: Int =
       results.iterator.map({ case (_, (Some(r), _)) => r.rc case (_, (None, _)) => 1 }).
         foldLeft(Process_Result.RC.ok)(_ max _)
