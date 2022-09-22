@@ -265,7 +265,7 @@ object Browser_Info {
       val name = snapshot.node_name
       if (plain_text) {
         val title = "File " + Symbol.cartouche_decoded(name.path.file_name)
-        val body = HTML.text(snapshot.node.source)
+        val body = HTML.text(snapshot.source)
         html_document(title, body, fonts_css)
       }
       else {

@@ -333,7 +333,7 @@ object Document {
     def command_start(cmd: Command): Option[Text.Offset] =
       Node.Commands.starts(commands.iterator).find(_._1 == cmd).map(_._2)
 
-    def source: String =
+    lazy val source: String =
       get_blob match {
         case Some(blob) => blob.source
         case None => command_iterator().map({ case (cmd, _) => cmd.source }).mkString
@@ -528,6 +528,15 @@ object Document {
 
     def node_files: List[Node.Name] =
       node_name :: node.load_commands.flatMap(_.blobs_names)
+
+
+    /* source text */
+
+    def source: String =
+      snippet_command match {
+        case Some(command) => command.source
+        case None => node.source
+      }
 
 
     /* edits */
@@ -1152,8 +1161,7 @@ object Document {
         } yield tree).toList
       }
       else {
-        val node_source = node.source
-        Text.Range(0, node_source.length).try_restrict(range) match {
+        Text.Range(0, node.source.length).try_restrict(range) match {
           case None => Nil
           case Some(node_range) =>
             val markup =
@@ -1164,7 +1172,7 @@ object Document {
                   val markup_index = Command.Markup_Index(false, chunk_name)
                   command_markup(version, command, markup_index, node_range, elements)
               }
-            markup.to_XML(node_range, node_source, elements)
+            markup.to_XML(node_range, node.source, elements)
         }
       }
     }
