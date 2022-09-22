@@ -65,8 +65,6 @@ object Mirabelle {
 
       progress.echo("Running Mirabelle on " + Isabelle_System.identification() + "...")
 
-      val store = Sessions.store(build_options)
-
       def session_setup(session_name: String, session: Session): Unit = {
         session.all_messages +=
           Session.Consumer[Prover.Message]("mirabelle_export") {
@@ -77,7 +75,7 @@ object Mirabelle {
                     progress.echo(
                       "Mirabelle export " + quote(args.compound_name) + " (in " + session_name + ")")
                   }
-                  val yxml = YXML.parse_body(UTF8.decode_permissive(msg.chunk), cache = store.cache)
+                  val yxml = YXML.parse_body(UTF8.decode_permissive(msg.chunk), cache = build_results0.cache)
                   val lines = Pretty.string_of(yxml).trim()
                   val prefix =
                     Export.explode_name(args.name) match {

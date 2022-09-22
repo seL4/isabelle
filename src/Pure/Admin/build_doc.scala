@@ -18,8 +18,6 @@ object Build_Doc {
     sequential: Boolean = false,
     docs: List[String] = Nil
   ): Unit = {
-    val store = Sessions.store(options)
-
     val sessions_structure = Sessions.load_structure(options)
     val selected =
       for {
@@ -39,8 +37,9 @@ object Build_Doc {
     }
 
     progress.echo("Build started for sessions " + commas_quote(selection.sessions))
-    Build.build(options, selection = selection, progress = progress, max_jobs = max_jobs).ok ||
-      error("Build failed")
+    val build_results =
+      Build.build(options, selection = selection, progress = progress, max_jobs = max_jobs)
+    if (!build_results.ok) error("Build failed")
 
     progress.echo("Build started for documentation " + commas_quote(documents))
     val doc_options = options + "document=pdf"
@@ -54,7 +53,7 @@ object Build_Doc {
             progress.expose_interrupt()
             progress.echo("Documentation " + quote(doc) + " ...")
 
-            using(Export.open_session_context(store, deps.base_info(session))) {
+            using(Export.open_session_context(build_results.store, deps.base_info(session))) {
               session_context =>
                 Document_Build.build_documents(
                   Document_Build.context(session_context),

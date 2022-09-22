@@ -137,9 +137,12 @@ object Build {
   /** build with results **/
 
   class Results private[Build](
+    val store: Sessions.Store,
     results: Map[String, (Option[Process_Result], Sessions.Info)],
     val presentation_sessions: List[String]
   ) {
+    def cache: Term.Cache = store.cache
+
     def sessions: Set[String] = results.keySet
     def cancelled(name: String): Boolean = results(name)._1.isEmpty
     def info(name: String): Sessions.Info = results(name)._2
@@ -461,7 +464,7 @@ object Build {
           if result.ok && browser_info.enabled(result.info)
         } yield name).toList
 
-      new Results(results, presentation_sessions)
+      new Results(store, results, presentation_sessions)
     }
 
     if (export_files) {

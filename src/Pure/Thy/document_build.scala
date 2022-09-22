@@ -480,13 +480,12 @@ Usage: isabelle document [OPTIONS] SESSION
           }
 
         val progress = new Console_Progress(verbose = verbose_build)
-        val store = Sessions.store(options)
 
         progress.interrupt_handler {
-          val res =
+          val build_results =
             Build.build(options, selection = Sessions.Selection.session(session),
               dirs = dirs, progress = progress, verbose = verbose_build)
-          if (!res.ok) error("Failed to build session " + quote(session))
+          if (!build_results.ok) error("Failed to build session " + quote(session))
 
           val deps =
             Sessions.load_structure(options + "document=pdf", dirs = dirs).
@@ -498,11 +497,12 @@ Usage: isabelle document [OPTIONS] SESSION
             progress.echo_warning("No output directory")
           }
 
-          using(Export.open_session_context(store, session_base_info)) { session_context =>
-            build_documents(
-              context(session_context, progress = progress),
-              output_sources = output_sources, output_pdf = output_pdf,
-              verbose = verbose_latex)
+          using(Export.open_session_context(build_results.store, session_base_info)) {
+            session_context =>
+              build_documents(
+                context(session_context, progress = progress),
+                output_sources = output_sources, output_pdf = output_pdf,
+                verbose = verbose_latex)
           }
         }
       })
