@@ -202,9 +202,7 @@ object Build {
 
     val full_sessions =
       Sessions.load_structure(build_options, dirs = dirs, select_dirs = select_dirs, infos = infos)
-
     val full_sessions_selection = full_sessions.imports_selection(selection)
-    val full_sessions_selected = full_sessions_selection.toSet
 
     def sources_stamp(deps: Sessions.Deps, session_name: String): String = {
       val digests =
@@ -445,25 +443,25 @@ object Build {
     /* build results */
 
     val results = {
-      val results0 =
+      val build_results =
         if (build_deps.is_empty) {
           progress.echo_warning("Nothing to build")
           Map.empty[String, Result]
         }
         else Isabelle_Thread.uninterruptible { loop(queue, Map.empty, Map.empty) }
 
-      val results1 =
-        (for ((name, result) <- results0.iterator)
+      val results =
+        (for ((name, result) <- build_results.iterator)
           yield (name, (result.process, result.info))).toMap
 
       val presentation_sessions =
         (for {
           name <- build_sessions.build_topological_order.iterator
-          result <- results0.get(name)
+          result <- build_results.get(name)
           if result.ok && browser_info.enabled(result.info)
         } yield name).toList
 
-      new Results(results1, presentation_sessions)
+      new Results(results, presentation_sessions)
     }
 
     if (export_files) {
