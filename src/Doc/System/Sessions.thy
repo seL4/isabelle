@@ -542,6 +542,11 @@ text \<open>
   @{verbatim [display] \<open>  isabelle build -b -c HOL-Library HOL-Algebra\<close>}
 
   \<^smallskip>
+  HTML/PDF presentation for sessions that happen to be properly built already,
+  without rebuilding anything except the missing browser info:
+  @{verbatim [display] \<open>  isabelle build -a -n -o browser_info\<close>}
+
+  \<^smallskip>
   Clean all sessions without building anything:
   @{verbatim [display] \<open>  isabelle build -a -n -c\<close>}
 
