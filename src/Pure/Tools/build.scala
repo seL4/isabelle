@@ -403,10 +403,11 @@ object Build {
                 }
                 val all_current = current && ancestor_results.forall(_.current)
 
-                if (all_current)
+                if (all_current) {
                   loop(pending - session_name, running,
                     results +
                       (session_name -> Result(true, heap_digest, Some(Process_Result(0)), info)))
+                }
                 else if (no_build) {
                   progress.echo_if(verbose, "Skipping " + session_name + " ...")
                   loop(pending - session_name, running,
@@ -479,7 +480,7 @@ object Build {
       }
     }
 
-    if (!no_build && !progress.stopped && results.presentation_sessions.nonEmpty) {
+    if (results.presentation_sessions.nonEmpty && !progress.stopped) {
       Browser_Info.build(browser_info, store, build_deps, results.presentation_sessions,
         progress = progress, verbose = verbose)
     }
