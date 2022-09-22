@@ -170,10 +170,10 @@ public option ML_process_policy : string = ""
 section "PIDE Build"
 
 option pide_reports : bool = true
-  -- "report PIDE markup"
+  -- "report PIDE markup (in ML)"
 
 option build_pide_reports : bool = true
-  -- "report PIDE markup in batch build"
+  -- "report PIDE markup (in batch build)"
 
 
 section "Editor Session"
