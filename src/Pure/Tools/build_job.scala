@@ -17,7 +17,7 @@ object Build_Job {
   def read_theory(
     theory_context: Export.Theory_Context,
     unicode_symbols: Boolean = false
-  ): Option[Command] = {
+  ): Option[Document.Snapshot] = {
     def read(name: String): Export.Entry = theory_context(name, permissive = true)
 
     def read_xml(name: String): XML.Body =
@@ -74,8 +74,11 @@ object Build_Job {
           for ((index, xml) <- markups_index.zip(thy_xml :: blobs_xml))
           yield index -> Markup_Tree.from_XML(xml))
 
-      Command.unparsed(thy_source, theory = true, id = id, node_name = node_name,
-        blobs_info = blobs_info, results = results, markups = markups)
+      val command =
+        Command.unparsed(thy_source, theory = true, id = id, node_name = node_name,
+          blobs_info = blobs_info, results = results, markups = markups)
+
+      Document.State.init.snippet(command)
     }
   }
 
@@ -128,18 +131,17 @@ object Build_Job {
 
               read_theory(session_context.theory(thy), unicode_symbols = unicode_symbols) match {
                 case None => progress.echo(thy_heading + " MISSING")
-                case Some(command) =>
-                  val snapshot = Document.State.init.snippet(command)
+                case Some(snapshot) =>
                   val rendering = new Rendering(snapshot, options, session)
                   val messages =
                     rendering.text_messages(Text.Range.full)
                       .filter(message => verbose || Protocol.is_exported(message.info))
                   if (messages.nonEmpty) {
-                    val line_document = Line.Document(command.source)
+                    val line_document = Line.Document(snapshot.source)
                     val buffer = new mutable.ListBuffer[String]
                     for (Text.Info(range, elem) <- messages) {
                       val line = line_document.position(range.start).line1
-                      val pos = Position.Line_File(line, command.node_name.node)
+                      val pos = Position.Line_File(line, snapshot.node_name.node)
                       def message_text: String =
                         Protocol.message_text(elem, heading = true, pos = pos,
                           margin = margin, breakgain = breakgain, metric = metric)
