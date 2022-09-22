@@ -136,7 +136,10 @@ object Build {
 
   /** build with results **/
 
-  class Results private[Build](results: Map[String, (Option[Process_Result], Sessions.Info)]) {
+  class Results private[Build](
+    results: Map[String, (Option[Process_Result], Sessions.Info)],
+    val presentation_sessions: List[String]
+  ) {
     def sessions: Set[String] = results.keySet
     def cancelled(name: String): Boolean = results(name)._1.isEmpty
     def info(name: String): Sessions.Info = results(name)._2
@@ -234,13 +237,6 @@ object Build {
     }
 
     val build_sessions = build_deps.sessions_structure
-
-    val presentation_sessions =
-      (for {
-        session_name <- build_sessions.build_topological_order.iterator
-        info <- build_sessions.get(session_name)
-        if full_sessions_selected(session_name) && browser_info.enabled(info) }
-      yield session_name).toList
 
 
     /* check unknown files */
@@ -457,7 +453,14 @@ object Build {
         (for ((name, result) <- results0.iterator)
           yield (name, (result.process, result.info))).toMap
 
-      new Results(results1)
+      val presentation_sessions =
+        (for {
+          name <- build_sessions.build_topological_order.iterator
+          result <- results0.get(name)
+          if result.ok && browser_info.enabled(result.info)
+        } yield name).toList
+
+      new Results(results1, presentation_sessions)
     }
 
     if (export_files) {
@@ -475,6 +478,11 @@ object Build {
       }
     }
 
+    if (!no_build && !progress.stopped && results.presentation_sessions.nonEmpty) {
+      Browser_Info.build(browser_info, store, build_deps, results.presentation_sessions,
+        progress = progress, verbose = verbose)
+    }
+
     if (!results.ok && (verbose || !no_build)) {
       val unfinished =
         (for {
@@ -482,11 +490,6 @@ object Build {
           if !results(name).ok
          } yield name).toList.sorted
       progress.echo("Unfinished session(s): " + commas(unfinished))
-    }
-
-    if (!no_build && !progress.stopped && results.ok && presentation_sessions.nonEmpty) {
-      Browser_Info.build(browser_info, store, build_deps, presentation_sessions,
-        progress = progress, verbose = verbose)
     }
 
     results
