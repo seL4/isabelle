@@ -455,13 +455,15 @@ object Build {
         }
         else Isabelle_Thread.uninterruptible { loop(queue, Map.empty, Map.empty) }
 
-      new Results(
+      val results1 =
         (for ((name, result) <- results0.iterator)
-          yield (name, (result.process, result.info))).toMap)
+          yield (name, (result.process, result.info))).toMap
+
+      new Results(results1)
     }
 
     if (export_files) {
-      for (name <- full_sessions.imports_selection(selection).iterator if results(name).ok) {
+      for (name <- full_sessions_selection.iterator if results(name).ok) {
         val info = results.info(name)
         if (info.export_files.nonEmpty) {
           progress.echo("Exporting " + info.name + " ...")
@@ -475,7 +477,7 @@ object Build {
       }
     }
 
-    if (results.rc != Process_Result.RC.ok && (verbose || !no_build)) {
+    if (!results.ok && (verbose || !no_build)) {
       val unfinished =
         (for {
           name <- results.sessions.iterator
