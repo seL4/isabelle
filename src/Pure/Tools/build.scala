@@ -149,6 +149,9 @@ object Build {
         foldLeft(Process_Result.RC.ok)(_ max _)
     def ok: Boolean = rc == Process_Result.RC.ok
 
+    def unfinished: List[String] =
+      sessions.iterator.filterNot(name => !apply(name).ok).toList.sorted
+
     override def toString: String = rc.toString
   }
 
@@ -484,12 +487,7 @@ object Build {
     }
 
     if (!results.ok && (verbose || !no_build)) {
-      val unfinished =
-        (for {
-          name <- results.sessions.iterator
-          if !results(name).ok
-         } yield name).toList.sorted
-      progress.echo("Unfinished session(s): " + commas(unfinished))
+      progress.echo("Unfinished session(s): " + commas(results.unfinished))
     }
 
     results
