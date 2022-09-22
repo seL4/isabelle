@@ -149,8 +149,7 @@ object Build {
         foldLeft(Process_Result.RC.ok)(_ max _)
     def ok: Boolean = rc == Process_Result.RC.ok
 
-    def unfinished: List[String] =
-      sessions.iterator.filterNot(name => !apply(name).ok).toList.sorted
+    def unfinished: List[String] = sessions.iterator.filterNot(apply(_).ok).toList.sorted
 
     override def toString: String = rc.toString
   }
