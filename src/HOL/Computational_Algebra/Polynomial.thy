@@ -15,6 +15,15 @@ imports
   Factorial_Ring
 begin
 
+context semidom_modulo
+begin
+
+lemma not_dvd_imp_mod_neq_0:
+  \<open>a mod b \<noteq> 0\<close> if \<open>\<not> b dvd a\<close>
+  using that mod_0_imp_dvd [of a b] by blast
+
+end
+
 subsection \<open>Auxiliary: operations for lists (later) representing coefficients\<close>
 
 definition cCons :: "'a::zero \<Rightarrow> 'a list \<Rightarrow> 'a list"  (infixr "##" 65)
@@ -147,7 +156,7 @@ qed
 lemma leading_coeff_0_iff [simp]: "coeff p (degree p) = 0 \<longleftrightarrow> p = 0"
   by (cases "p = 0") (simp_all add: leading_coeff_neq_0)
 
-lemma eq_zero_or_degree_less:
+lemma eq_zero_or_degree_less:            
   assumes "degree p \<le> n" and "coeff p n = 0"
   shows "p = 0 \<or> degree p < n"
 proof (cases n)
@@ -542,7 +551,7 @@ lift_definition monom :: "'a \<Rightarrow> nat \<Rightarrow> 'a::zero poly"
 lemma coeff_monom [simp]: "coeff (monom a m) n = (if m = n then a else 0)"
   by transfer rule
 
-lemma monom_0: "monom a 0 = pCons a 0"
+lemma monom_0: "monom a 0 = [:a:]"
   by (rule poly_eqI) (simp add: coeff_pCons split: nat.split)
 
 lemma monom_Suc: "monom a (Suc n) = pCons 0 (monom a n)"
@@ -3982,6 +3991,10 @@ lemma euclidean_relation_polyI [case_names by0 divides euclidean_relation]:
   by (rule euclidean_relationI)
     (use that in \<open>simp_all add: euclidean_size_poly_def\<close>)
 
+lemma div_poly_eq_0_iff:
+  \<open>x div y = 0 \<longleftrightarrow> x = 0 \<or> y = 0 \<or> degree x < degree y\<close> for x y :: \<open>'a::field poly\<close>
+  by (simp add: unique_euclidean_semiring_class.div_eq_0_iff euclidean_size_poly_def)
+
 lemma degree_div_less:
   fixes x y::"'a::field poly"
   assumes "degree x\<noteq>0" "degree y\<noteq>0"
@@ -4024,12 +4037,6 @@ lemma degree_mod_less: "y \<noteq> 0 \<Longrightarrow> x mod y = 0 \<or> degree 
 lemma degree_mod_less': "b \<noteq> 0 \<Longrightarrow> a mod b \<noteq> 0 \<Longrightarrow> degree (a mod b) < degree b"
   using degree_mod_less [of b a] by auto
 
-lemma eucl_rel_poly_0: "eucl_rel_poly 0 y (0, 0)"
-  by (simp add: eucl_rel_poly_iff)
-
-lemma eucl_rel_poly_by_0: "eucl_rel_poly x 0 (0, x)"
-  by (simp add: eucl_rel_poly_iff)
-
 lemma eucl_rel_poly_pCons:
   assumes rel: "eucl_rel_poly x y (q, r)"
   assumes y: "y \<noteq> 0"
@@ -4057,27 +4064,132 @@ proof -
     unfolding eucl_rel_poly_iff using \<open>y \<noteq> 0\<close> by simp
 qed
 
-lemma eucl_rel_poly_exists: "\<exists>q r. eucl_rel_poly x y (q, r)"
-proof (cases "y = 0")
-  case False
-  show ?thesis
-  proof (induction x)
-    case 0
-    then show ?case
-      using eucl_rel_poly_0 by blast
+lemma div_smult_left: \<open>smult a x div y = smult a (x div y)\<close> (is ?Q)
+  and mod_smult_left: \<open>smult a x mod y = smult a (x mod y)\<close> (is ?R)
+  for x y :: \<open>'a::field poly\<close>
+proof -
+  have \<open>(smult a x div y, smult a x mod y) = (smult a (x div y), smult a (x mod y))\<close>
+  proof (cases \<open>a = 0\<close>)
+    case True
+    then show ?thesis
+      by simp
   next
-    case (pCons a x)
-    then show ?case
-      using False eucl_rel_poly_pCons by blast
+    case False
+    then show ?thesis
+      by (cases y \<open>smult a (x div y)\<close> \<open>smult a (x mod y)\<close> \<open>smult a x\<close> rule: euclidean_relation_polyI)
+        (simp_all add: dvd_smult_iff degree_mod_less_degree flip: smult_add_right)
   qed
-qed (use eucl_rel_poly_by0 in blast)
+  then show ?Q and ?R
+    by simp_all
+qed
 
+lemma poly_div_minus_left [simp]: "(- x) div y = - (x div y)"
+  for x y :: "'a::field poly"
+  using div_smult_left [of "- 1::'a"] by simp
 
-lemma eucl_rel_poly_0_iff: "eucl_rel_poly 0 y (q, r) \<longleftrightarrow> q = 0 \<and> r = 0"
-  by (simp add: pdivmod_pdivmodrel)
+lemma poly_mod_minus_left [simp]: "(- x) mod y = - (x mod y)"
+  for x y :: "'a::field poly"
+  using mod_smult_left [of "- 1::'a"] by simp
 
-lemma eucl_rel_poly_by_0_iff: "eucl_rel_poly x 0 (q, r) \<longleftrightarrow> q = 0 \<and> r = x"
-  by (auto simp add: pdivmod_pdivmodrel)
+lemma poly_div_add_left: \<open>(x + y) div z = x div z + y div z\<close> (is ?Q)
+  and poly_mod_add_left: \<open>(x + y) mod z = x mod z + y mod z\<close> (is ?R)
+  for x y z :: \<open>'a::field poly\<close>
+proof -
+  have \<open>((x + y) div z, (x + y) mod z) = (x div z + y div z, x mod z + y mod z)\<close>
+  proof (cases z \<open>x div z + y div z\<close> \<open>x mod z + y mod z\<close> \<open>x + y\<close> rule: euclidean_relation_polyI)
+    case by0
+    then show ?case by simp
+  next
+    case divides
+    then obtain w where \<open>x + y = z * w\<close>
+      by blast
+    then have y: \<open>y = z * w - x\<close>
+      by (simp add: algebra_simps)
+    from \<open>z \<noteq> 0\<close> show ?case
+      using mod_mult_self4 [of z w \<open>- x\<close>] div_mult_self4 [of z w \<open>- x\<close>]
+      by (simp add: algebra_simps y)
+  next
+    case euclidean_relation
+    then have \<open>degree (x mod z + y mod z) < degree z\<close>
+      using degree_mod_less_degree [of z x] degree_mod_less_degree [of z y]
+        dvd_add_right_iff [of z x y] dvd_add_left_iff [of z y x]
+      by (cases \<open>z dvd x \<or> z dvd y\<close>) (auto intro: degree_add_less)
+    moreover have \<open>x + y = (x div z + y div z) * z + (x mod z + y mod z)\<close>
+      by (simp add: algebra_simps)
+    ultimately show ?case
+      by simp
+  qed
+  then show ?Q and ?R
+    by simp_all
+qed
+
+lemma poly_div_diff_left: "(x - y) div z = x div z - y div z"
+  for x y z :: "'a::field poly"
+  by (simp only: diff_conv_add_uminus poly_div_add_left poly_div_minus_left)
+
+lemma poly_mod_diff_left: "(x - y) mod z = x mod z - y mod z"
+  for x y z :: "'a::field poly"
+  by (simp only: diff_conv_add_uminus poly_mod_add_left poly_mod_minus_left)
+
+lemma div_smult_right: \<open>x div smult a y = smult (inverse a) (x div y)\<close> (is ?Q)
+  and mod_smult_right: \<open>x mod smult a y = (if a = 0 then x else x mod y)\<close> (is ?R)
+proof -
+  have \<open>(x div smult a y, x mod smult a y) = (smult (inverse a) (x div y), (if a = 0 then x else x mod y))\<close>
+  proof (cases \<open>smult a y\<close> \<open>smult (inverse a) (x div y)\<close> \<open>(if a = 0 then x else x mod y)\<close> x rule: euclidean_relation_polyI)
+    case by0
+    then show ?case by auto
+  next
+    case divides
+    moreover define w where \<open>w = x div y\<close>
+    ultimately have \<open>x = y * w\<close>
+      by (simp add: smult_dvd_iff)
+    with divides show ?case
+      by simp
+  next
+    case euclidean_relation
+    then show ?case
+      by (simp add: smult_dvd_iff degree_mod_less_degree)
+  qed
+  then show ?Q and ?R
+    by simp_all
+qed
+
+lemma poly_div_minus_right [simp]: "x div (- y) = - (x div y)"
+  for x y :: "'a::field poly"
+  using div_smult_right [of _ "- 1::'a"] by (simp add: nonzero_inverse_minus_eq)
+
+lemma poly_mod_minus_right [simp]: "x mod (- y) = x mod y"
+  for x y :: "'a::field poly"
+  using mod_smult_right [of _ "- 1::'a"] by simp
+
+lemma poly_div_mult_right: \<open>x div (y * z) = (x div y) div z\<close> (is ?Q)
+  and poly_mod_mult_right: \<open>x mod (y * z) = y * (x div y mod z) + x mod y\<close> (is ?R)
+  for x y z :: \<open>'a::field poly\<close>
+proof -
+  have \<open>(x div (y * z), x mod (y * z)) = ((x div y) div z, y * (x div y mod z) + x mod y)\<close>
+  proof (cases \<open>y * z\<close> \<open>(x div y) div z\<close> \<open>y * (x div y mod z) + x mod y\<close> x rule: euclidean_relation_polyI)
+    case by0
+    then show ?case by auto
+  next
+    case divides
+    then show ?case by auto
+  next                    
+    case euclidean_relation
+    then have \<open>y \<noteq> 0\<close> \<open>z \<noteq> 0\<close>
+      by simp_all
+    with \<open>\<not> y * z dvd x\<close> have \<open>degree (y * (x div y mod z) + x mod y) < degree (y * z)\<close>
+      using degree_mod_less_degree [of y x] degree_mod_less_degree [of z \<open>x div y\<close>]
+        degree_add_eq_left [of \<open>x mod y\<close> \<open>y * (x div y mod z)\<close>]
+        by (cases \<open>z dvd x div y\<close>; cases \<open>y dvd x\<close>)
+          (auto simp add: degree_mult_eq not_dvd_imp_mod_neq_0 dvd_div_iff_mult)
+    moreover have \<open>x = x div y div z * (y * z) + (y * (x div y mod z) + x mod y)\<close>
+      by (simp add: field_simps flip: distrib_left)
+    ultimately show ?case
+      by simp
+  qed
+  then show ?Q and ?R
+    by simp_all
+qed
 
 lemma div_pCons_eq:
   "pCons a p div q =
@@ -4103,98 +4215,6 @@ lemma div_mod_fold_coeffs:
           in (pCons b s, pCons a r - smult b q)) p (0, 0))"
   by (rule sym, induct p) (auto simp: div_pCons_eq mod_pCons_eq Let_def)
 
-lemma eucl_rel_poly_smult_left:
-  "eucl_rel_poly x y (q, r) \<Longrightarrow> eucl_rel_poly (smult a x) y (smult a q, smult a r)"
-  by (simp add: eucl_rel_poly_iff smult_add_right)
-
-lemma div_smult_left: "(smult a x) div y = smult a (x div y)"
-  for x y :: "'a::field poly"
-  by (rule div_poly_eq, rule eucl_rel_poly_smult_left, rule eucl_rel_poly)
-
-lemma mod_smult_left: "(smult a x) mod y = smult a (x mod y)"
-  by (rule mod_poly_eq, rule eucl_rel_poly_smult_left, rule eucl_rel_poly)
-
-lemma poly_div_minus_left [simp]: "(- x) div y = - (x div y)"
-  for x y :: "'a::field poly"
-  using div_smult_left [of "- 1::'a"] by simp
-
-lemma poly_mod_minus_left [simp]: "(- x) mod y = - (x mod y)"
-  for x y :: "'a::field poly"
-  using mod_smult_left [of "- 1::'a"] by simp
-
-lemma eucl_rel_poly_add_left:
-  assumes "eucl_rel_poly x y (q, r)"
-  assumes "eucl_rel_poly x' y (q', r')"
-  shows "eucl_rel_poly (x + x') y (q + q', r + r')"
-  using assms unfolding eucl_rel_poly_iff
-  by (auto simp: algebra_simps degree_add_less)
-
-lemma poly_div_add_left: "(x + y) div z = x div z + y div z"
-  for x y z :: "'a::field poly"
-  using eucl_rel_poly_add_left [OF eucl_rel_poly eucl_rel_poly]
-  by (rule div_poly_eq)
-
-lemma poly_mod_add_left: "(x + y) mod z = x mod z + y mod z"
-  for x y z :: "'a::field poly"
-  using eucl_rel_poly_add_left [OF eucl_rel_poly eucl_rel_poly]
-  by (rule mod_poly_eq)
-
-lemma poly_div_diff_left: "(x - y) div z = x div z - y div z"
-  for x y z :: "'a::field poly"
-  by (simp only: diff_conv_add_uminus poly_div_add_left poly_div_minus_left)
-
-lemma poly_mod_diff_left: "(x - y) mod z = x mod z - y mod z"
-  for x y z :: "'a::field poly"
-  by (simp only: diff_conv_add_uminus poly_mod_add_left poly_mod_minus_left)
-
-lemma eucl_rel_poly_smult_right:
-  "a \<noteq> 0 \<Longrightarrow> eucl_rel_poly x y (q, r) \<Longrightarrow> eucl_rel_poly x (smult a y) (smult (inverse a) q, r)"
-  by (simp add: eucl_rel_poly_iff)
-
-lemma div_smult_right: "a \<noteq> 0 \<Longrightarrow> x div (smult a y) = smult (inverse a) (x div y)"
-  for x y :: "'a::field poly"
-  by (rule div_poly_eq, erule eucl_rel_poly_smult_right, rule eucl_rel_poly)
-
-lemma mod_smult_right: "a \<noteq> 0 \<Longrightarrow> x mod (smult a y) = x mod y"
-  by (rule mod_poly_eq, erule eucl_rel_poly_smult_right, rule eucl_rel_poly)
-
-lemma poly_div_minus_right [simp]: "x div (- y) = - (x div y)"
-  for x y :: "'a::field poly"
-  using div_smult_right [of "- 1::'a"] by (simp add: nonzero_inverse_minus_eq)
-
-lemma poly_mod_minus_right [simp]: "x mod (- y) = x mod y"
-  for x y :: "'a::field poly"
-  using mod_smult_right [of "- 1::'a"] by simp
-
-lemma eucl_rel_poly_mult:
-  assumes "eucl_rel_poly x y (q, r)" "eucl_rel_poly q z (q', r')"
-  shows "eucl_rel_poly x (y * z) (q', y * r' + r)"
-proof (cases "y = 0")
-  case True
-  with assms eucl_rel_poly_0_iff show ?thesis
-    by (force simp add: eucl_rel_poly_iff)
-next
-  case False
-  show ?thesis
-  proof (cases "r' = 0")
-    case True
-    with assms show ?thesis
-      by (auto simp add: eucl_rel_poly_iff degree_mult_eq)
-  next
-    case False
-    with assms \<open>y \<noteq> 0\<close> show ?thesis
-      by (auto simp add: eucl_rel_poly_iff degree_add_less degree_mult_eq field_simps)
-  qed
-qed
-
-lemma poly_div_mult_right: "x div (y * z) = (x div y) div z"
-  for x y z :: "'a::field poly"
-  by (rule div_poly_eq, rule eucl_rel_poly_mult, (rule eucl_rel_poly)+)
-
-lemma poly_mod_mult_right: "x mod (y * z) = y * (x div y mod z) + x mod y"
-  for x y z :: "'a::field poly"
-  by (rule mod_poly_eq, rule eucl_rel_poly_mult, (rule eucl_rel_poly)+)
-
 lemma mod_pCons:
   fixes a :: "'a::field"
     and x y :: "'a::field poly"
@@ -4202,7 +4222,7 @@ lemma mod_pCons:
   defines "b \<equiv> coeff (pCons a (x mod y)) (degree y) / coeff y (degree y)"
   shows "(pCons a x) mod y = pCons a (x mod y) - smult b y"
   unfolding b_def
-  by (rule mod_poly_eq, rule eucl_rel_poly_pCons [OF eucl_rel_poly y refl])
+  by (simp add: mod_pCons_eq)
 
 
 subsubsection \<open>List-based versions for fast implementation\<close>
@@ -4480,13 +4500,13 @@ next
   define ilc where \<open>ilc = inverse (lead_coeff g)\<close>
   define h where \<open>h = smult ilc g\<close>
   from False have \<open>lead_coeff h = 1\<close>
-    and ilc: \<open>ilc \<noteq> 0\<close>
+    and \<open>ilc \<noteq> 0\<close>
     by (auto simp: h_def ilc_def)
   define q r where \<open>q = f div h\<close> and \<open>r = f mod h\<close>
   with \<open>lead_coeff h = 1\<close> have p: \<open>pseudo_divmod f h = (q, r)\<close>
     by (simp add: pseudo_divmod_eq_div_mod)
-  from ilc have "(f div g, f mod g) = (smult ilc q, r)"
-    by (auto simp: h_def div_smult_right [OF ilc] mod_smult_right [OF ilc] q_def r_def)
+  from \<open>ilc \<noteq> 0\<close> have \<open>(f div g, f mod g) = (smult ilc q, r)\<close>
+    by (auto simp: h_def div_smult_right mod_smult_right q_def r_def)
   also have \<open>(smult ilc q, r) = ?r\<close>
     using \<open>g \<noteq> 0\<close> by (auto simp: Let_def p simp flip: h_def ilc_def)
   finally show ?thesis .
