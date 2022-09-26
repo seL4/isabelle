@@ -138,6 +138,7 @@ object Build {
 
   class Results private[Build](
     val store: Sessions.Store,
+    val deps: Sessions.Deps,
     results: Map[String, (Option[Process_Result], Sessions.Info)],
     val presentation_sessions: List[String]
   ) {
@@ -464,7 +465,7 @@ object Build {
           if result.ok && browser_info.enabled(result.info)
         } yield name).toList
 
-      new Results(store, results, presentation_sessions)
+      new Results(store, build_deps, results, presentation_sessions)
     }
 
     if (export_files) {
@@ -483,7 +484,7 @@ object Build {
     }
 
     if (results.presentation_sessions.nonEmpty && !progress.stopped) {
-      Browser_Info.build(browser_info, store, build_deps, results.presentation_sessions,
+      Browser_Info.build(browser_info, results.store, results.deps, results.presentation_sessions,
         progress = progress, verbose = verbose)
     }
 
