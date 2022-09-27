@@ -1,7 +1,7 @@
 (*  Title:      ZF/AC/WO1_AC.thy
     Author:     Krzysztof Grabczewski
 
-The proofs of WO1 ==> AC1 and WO1 ==> AC10(n) for n >= 1
+The proofs of WO1 \<Longrightarrow> AC1 and WO1 \<Longrightarrow> AC10(n) for n >= 1
 
 The latter proof is referred to as clear by the Rubins.
 However it seems to be quite complicated.
@@ -29,17 +29,17 @@ imports AC_Equiv
 begin
 
 (* ********************************************************************** *)
-(* WO1 ==> AC1                                                            *)
+(* WO1 \<Longrightarrow> AC1                                                            *)
 (* ********************************************************************** *)
 
-theorem WO1_AC1: "WO1 ==> AC1"
+theorem WO1_AC1: "WO1 \<Longrightarrow> AC1"
 by (unfold AC1_def WO1_def, fast elim!: ex_choice_fun)
 
 (* ********************************************************************** *)
-(* WO1 ==> AC10(n) (n >= 1)                                               *)
+(* WO1 \<Longrightarrow> AC10(n) (n >= 1)                                               *)
 (* ********************************************************************** *)
 
-lemma lemma1: "[| WO1; \<forall>B \<in> A. \<exists>C \<in> D(B). P(C,B) |] ==> \<exists>f. \<forall>B \<in> A. P(f`B,B)"
+lemma lemma1: "\<lbrakk>WO1; \<forall>B \<in> A. \<exists>C \<in> D(B). P(C,B)\<rbrakk> \<Longrightarrow> \<exists>f. \<forall>B \<in> A. P(f`B,B)"
 apply (unfold WO1_def)
 apply (erule_tac x = "\<Union>({{C \<in> D (B) . P (C,B) }. B \<in> A}) " in allE)
 apply (erule exE, drule ex_choice_fun, fast)
@@ -48,7 +48,7 @@ apply (rule_tac x = "\<lambda>x \<in> A. f`{C \<in> D (x) . P (C,x) }" in exI)
 apply (simp, blast dest!: apply_type [OF _ RepFunI])
 done
 
-lemma lemma2_1: "[| ~Finite(B); WO1 |] ==> |B| + |B| \<approx>  B"
+lemma lemma2_1: "\<lbrakk>\<not>Finite(B); WO1\<rbrakk> \<Longrightarrow> |B| + |B| \<approx>  B"
 apply (unfold WO1_def)
 apply (rule eqpoll_trans)
 prefer 2 apply (fast elim!: well_ord_cardinal_eqpoll)
@@ -61,19 +61,19 @@ apply (simp add: cadd_def [symmetric]
 done
 
 lemma lemma2_2:
-     "f \<in> bij(D+D, B) ==> {{f`Inl(i), f`Inr(i)}. i \<in> D} \<in> Pow(Pow(B))"
+     "f \<in> bij(D+D, B) \<Longrightarrow> {{f`Inl(i), f`Inr(i)}. i \<in> D} \<in> Pow(Pow(B))"
 by (fast elim!: bij_is_fun [THEN apply_type])
 
 
 lemma lemma2_3: 
-        "f \<in> bij(D+D, B) ==> pairwise_disjoint({{f`Inl(i), f`Inr(i)}. i \<in> D})"
+        "f \<in> bij(D+D, B) \<Longrightarrow> pairwise_disjoint({{f`Inl(i), f`Inr(i)}. i \<in> D})"
 apply (unfold pairwise_disjoint_def)
 apply (blast dest: bij_is_inj [THEN inj_apply_equality])
 done
 
 lemma lemma2_4:
-     "[| f \<in> bij(D+D, B); 1\<le>n |] 
-      ==> sets_of_size_between({{f`Inl(i), f`Inr(i)}. i \<in> D}, 2, succ(n))"
+     "\<lbrakk>f \<in> bij(D+D, B); 1\<le>n\<rbrakk> 
+      \<Longrightarrow> sets_of_size_between({{f`Inl(i), f`Inr(i)}. i \<in> D}, 2, succ(n))"
 apply (simp (no_asm_simp) add: sets_of_size_between_def succ_def)
 apply (blast intro!: cons_lepoll_cong 
             intro: singleton_eqpoll_1 [THEN eqpoll_imp_lepoll]  
@@ -82,14 +82,14 @@ apply (blast intro!: cons_lepoll_cong
 done
 
 lemma lemma2_5: 
-     "f \<in> bij(D+D, B) ==> \<Union>({{f`Inl(i), f`Inr(i)}. i \<in> D})=B"
+     "f \<in> bij(D+D, B) \<Longrightarrow> \<Union>({{f`Inl(i), f`Inr(i)}. i \<in> D})=B"
 apply (unfold bij_def surj_def)
 apply (fast elim!: inj_is_fun [THEN apply_type])
 done
 
 lemma lemma2:
-     "[| WO1; ~Finite(B); 1\<le>n  |]   
-      ==> \<exists>C \<in> Pow(Pow(B)). pairwise_disjoint(C) &   
+     "\<lbrakk>WO1; \<not>Finite(B); 1\<le>n\<rbrakk>   
+      \<Longrightarrow> \<exists>C \<in> Pow(Pow(B)). pairwise_disjoint(C) &   
                 sets_of_size_between(C, 2, succ(n)) &   
                 \<Union>(C)=B"
 apply (drule lemma2_1 [THEN eqpoll_def [THEN def_imp_iff, THEN iffD1]], 
@@ -97,7 +97,7 @@ apply (drule lemma2_1 [THEN eqpoll_def [THEN def_imp_iff, THEN iffD1]],
 apply (blast intro!: lemma2_2 lemma2_3 lemma2_4 lemma2_5)
 done
 
-theorem WO1_AC10: "[| WO1; 1\<le>n |] ==> AC10(n)"
+theorem WO1_AC10: "\<lbrakk>WO1; 1\<le>n\<rbrakk> \<Longrightarrow> AC10(n)"
 apply (unfold AC10_def)
 apply (fast intro!: lemma1 elim!: lemma2)
 done

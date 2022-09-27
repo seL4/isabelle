@@ -13,14 +13,14 @@ begin
 
 definition
   mono1 :: "[i, i, i, i, i=>i] => o"  where
-  "mono1(A, r, B, s, f) ==
+  "mono1(A, r, B, s, f) \<equiv>
     (\<forall>x \<in> A. \<forall>y \<in> A. <x,y> \<in> r \<longrightarrow> <f(x), f(y)> \<in> s) & (\<forall>x \<in> A. f(x) \<in> B)"
 
   (* monotonicity of a 2-place meta-function f *)
 
 definition
   mono2 :: "[i, i, i, i, i, i, [i,i]=>i] => o"  where
-  "mono2(A, r, B, s, C, t, f) == 
+  "mono2(A, r, B, s, C, t, f) \<equiv> 
     (\<forall>x \<in> A. \<forall>y \<in> A. \<forall>u \<in> B. \<forall>v \<in> B.
               <x,y> \<in> r & <u,v> \<in> s \<longrightarrow> <f(x,u), f(y,v)> \<in> t) &
     (\<forall>x \<in> A. \<forall>y \<in> B. f(x,y) \<in> C)"
@@ -29,29 +29,29 @@ definition
 
 definition
   SetLe :: "i =>i"  where
-  "SetLe(A) == {<x,y> \<in> Pow(A)*Pow(A). x \<subseteq> y}"
+  "SetLe(A) \<equiv> {<x,y> \<in> Pow(A)*Pow(A). x \<subseteq> y}"
 
 definition
   MultLe :: "[i,i] =>i"  where
-  "MultLe(A, r) == multirel(A, r - id(A)) \<union> id(Mult(A))"
+  "MultLe(A, r) \<equiv> multirel(A, r - id(A)) \<union> id(Mult(A))"
 
 
 lemma mono1D: 
-  "[| mono1(A, r, B, s, f); <x, y> \<in> r; x \<in> A; y \<in> A |] ==> <f(x), f(y)> \<in> s"
+  "\<lbrakk>mono1(A, r, B, s, f); <x, y> \<in> r; x \<in> A; y \<in> A\<rbrakk> \<Longrightarrow> <f(x), f(y)> \<in> s"
 by (unfold mono1_def, auto)
 
 lemma mono2D: 
-     "[| mono2(A, r, B, s, C, t, f);  
-         <x, y> \<in> r; <u,v> \<in> s; x \<in> A; y \<in> A; u \<in> B; v \<in> B |] 
-      ==> <f(x, u), f(y,v)> \<in> t"
+     "\<lbrakk>mono2(A, r, B, s, C, t, f);  
+         <x, y> \<in> r; <u,v> \<in> s; x \<in> A; y \<in> A; u \<in> B; v \<in> B\<rbrakk> 
+      \<Longrightarrow> <f(x, u), f(y,v)> \<in> t"
 by (unfold mono2_def, auto)
 
 
 (** Monotonicity of take **)
 
 lemma take_mono_left_lemma:
-     "[| i \<le> j; xs \<in> list(A); i \<in> nat; j \<in> nat |] 
-      ==> <take(i, xs), take(j, xs)> \<in> prefix(A)"
+     "\<lbrakk>i \<le> j; xs \<in> list(A); i \<in> nat; j \<in> nat\<rbrakk> 
+      \<Longrightarrow> <take(i, xs), take(j, xs)> \<in> prefix(A)"
 apply (case_tac "length (xs) \<le> i")
  apply (subgoal_tac "length (xs) \<le> j")
   apply (simp)
@@ -67,18 +67,18 @@ apply (blast intro: leI)
 done
 
 lemma take_mono_left:
-     "[| i \<le> j; xs \<in> list(A); j \<in> nat |]
-      ==> <take(i, xs), take(j, xs)> \<in> prefix(A)"
+     "\<lbrakk>i \<le> j; xs \<in> list(A); j \<in> nat\<rbrakk>
+      \<Longrightarrow> <take(i, xs), take(j, xs)> \<in> prefix(A)"
 by (blast intro: le_in_nat take_mono_left_lemma) 
 
 lemma take_mono_right:
-     "[| <xs,ys> \<in> prefix(A); i \<in> nat |] 
-      ==> <take(i, xs), take(i, ys)> \<in> prefix(A)"
+     "\<lbrakk><xs,ys> \<in> prefix(A); i \<in> nat\<rbrakk> 
+      \<Longrightarrow> <take(i, xs), take(i, ys)> \<in> prefix(A)"
 by (auto simp add: prefix_iff)
 
 lemma take_mono:
-     "[| i \<le> j; <xs, ys> \<in> prefix(A); j \<in> nat |]
-      ==> <take(i, xs), take(j, ys)> \<in> prefix(A)"
+     "\<lbrakk>i \<le> j; <xs, ys> \<in> prefix(A); j \<in> nat\<rbrakk>
+      \<Longrightarrow> <take(i, xs), take(j, ys)> \<in> prefix(A)"
 apply (rule_tac b = "take (j, xs) " in prefix_trans)
 apply (auto dest: prefix_type [THEN subsetD] intro: take_mono_left take_mono_right)
 done

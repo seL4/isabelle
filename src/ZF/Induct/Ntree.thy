@@ -32,12 +32,12 @@ datatype "maptree2(A, B)" = Sons2 ("a \<in> A", "h \<in> B -||> maptree2(A, B)")
 
 definition
   ntree_rec :: "[[i, i, i] => i, i] => i"  where
-  "ntree_rec(b) ==
+  "ntree_rec(b) \<equiv>
     Vrecursor(\<lambda>pr. ntree_case(\<lambda>x h. b(x, h, \<lambda>i \<in> domain(h). pr`(h`i))))"
 
 definition
   ntree_copy :: "i => i"  where
-  "ntree_copy(z) == ntree_rec(\<lambda>x h r. Branch(x,r), z)"
+  "ntree_copy(z) \<equiv> ntree_rec(\<lambda>x h r. Branch(x,r), z)"
 
 
 text \<open>
@@ -50,8 +50,8 @@ lemma ntree_unfold: "ntree(A) = A \<times> (\<Union>n \<in> nat. n -> ntree(A))"
 
 lemma ntree_induct [consumes 1, case_names Branch, induct set: ntree]:
   assumes t: "t \<in> ntree(A)"
-    and step: "!!x n h. [| x \<in> A;  n \<in> nat;  h \<in> n -> ntree(A);  \<forall>i \<in> n. P(h`i)
-      |] ==> P(Branch(x,h))"
+    and step: "\<And>x n h. \<lbrakk>x \<in> A;  n \<in> nat;  h \<in> n -> ntree(A);  \<forall>i \<in> n. P(h`i)
+\<rbrakk> \<Longrightarrow> P(Branch(x,h))"
   shows "P(t)"
   \<comment> \<open>A nicer induction rule than the standard one.\<close>
   using t
@@ -66,7 +66,7 @@ lemma ntree_induct_eqn [consumes 1]:
   assumes t: "t \<in> ntree(A)"
     and f: "f \<in> ntree(A)->B"
     and g: "g \<in> ntree(A)->B"
-    and step: "!!x n h. [| x \<in> A;  n \<in> nat;  h \<in> n -> ntree(A);  f O h = g O h |] ==>
+    and step: "\<And>x n h. \<lbrakk>x \<in> A;  n \<in> nat;  h \<in> n -> ntree(A);  f O h = g O h\<rbrakk> \<Longrightarrow>
       f ` Branch(x,h) = g ` Branch(x,h)"
   shows "f`t=g`t"
   \<comment> \<open>Induction on \<^term>\<open>ntree(A)\<close> to prove an equation\<close>
@@ -84,7 +84,7 @@ text \<open>
   type definitions.
 \<close>
 
-lemma ntree_mono: "A \<subseteq> B ==> ntree(A) \<subseteq> ntree(B)"
+lemma ntree_mono: "A \<subseteq> B \<Longrightarrow> ntree(A) \<subseteq> ntree(B)"
   apply (unfold ntree.defs)
   apply (rule lfp_mono)
     apply (rule ntree.bnd_mono)+
@@ -99,7 +99,7 @@ lemma ntree_univ: "ntree(univ(A)) \<subseteq> univ(A)"
   apply (blast intro: Pair_in_univ nat_fun_univ [THEN subsetD])
   done
 
-lemma ntree_subset_univ: "A \<subseteq> univ(B) ==> ntree(A) \<subseteq> univ(B)"
+lemma ntree_subset_univ: "A \<subseteq> univ(B) \<Longrightarrow> ntree(A) \<subseteq> univ(B)"
   by (rule subset_trans [OF ntree_mono ntree_univ])
 
 
@@ -108,18 +108,18 @@ text \<open>
 \<close>
 
 lemma ntree_rec_Branch:
-    "function(h) ==>
+    "function(h) \<Longrightarrow>
      ntree_rec(b, Branch(x,h)) = b(x, h, \<lambda>i \<in> domain(h). ntree_rec(b, h`i))"
   apply (rule ntree_rec_def [THEN def_Vrecursor, THEN trans])
   apply (simp add: ntree.con_defs rank_pair2 [THEN [2] lt_trans] rank_apply)
   done
 
 lemma ntree_copy_Branch [simp]:
-    "function(h) ==>
+    "function(h) \<Longrightarrow>
      ntree_copy (Branch(x, h)) = Branch(x, \<lambda>i \<in> domain(h). ntree_copy (h`i))"
   by (simp add: ntree_copy_def ntree_rec_Branch)
 
-lemma ntree_copy_is_ident: "z \<in> ntree(A) ==> ntree_copy(z) = z"
+lemma ntree_copy_is_ident: "z \<in> ntree(A) \<Longrightarrow> ntree_copy(z) = z"
   by (induct z set: ntree)
     (auto simp add: domain_of_fun Pi_Collect_iff fun_is_function)
 
@@ -134,9 +134,9 @@ lemma maptree_unfold: "maptree(A) = A \<times> (maptree(A) -||> maptree(A))"
 
 lemma maptree_induct [consumes 1, induct set: maptree]:
   assumes t: "t \<in> maptree(A)"
-    and step: "!!x n h. [| x \<in> A;  h \<in> maptree(A) -||> maptree(A);
+    and step: "\<And>x n h. \<lbrakk>x \<in> A;  h \<in> maptree(A) -||> maptree(A);
                   \<forall>y \<in> field(h). P(y)
-               |] ==> P(Sons(x,h))"
+\<rbrakk> \<Longrightarrow> P(Sons(x,h))"
   shows "P(t)"
   \<comment> \<open>A nicer induction rule than the standard one.\<close>
   using t
@@ -159,8 +159,8 @@ lemma maptree2_unfold: "maptree2(A, B) = A \<times> (B -||> maptree2(A, B))"
 
 lemma maptree2_induct [consumes 1, induct set: maptree2]:
   assumes t: "t \<in> maptree2(A, B)"
-    and step: "!!x n h. [| x \<in> A;  h \<in> B -||> maptree2(A,B);  \<forall>y \<in> range(h). P(y)
-               |] ==> P(Sons2(x,h))"
+    and step: "\<And>x n h. \<lbrakk>x \<in> A;  h \<in> B -||> maptree2(A,B);  \<forall>y \<in> range(h). P(y)
+\<rbrakk> \<Longrightarrow> P(Sons2(x,h))"
   shows "P(t)"
   using t
   apply induct

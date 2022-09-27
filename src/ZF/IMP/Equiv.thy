@@ -7,8 +7,8 @@ section \<open>Equivalence\<close>
 theory Equiv imports Denotation Com begin
 
 lemma aexp_iff [rule_format]:
-  "[| a \<in> aexp; sigma: loc -> nat |] 
-    ==> \<forall>n. <a,sigma> -a-> n \<longleftrightarrow> A(a,sigma) = n"
+  "\<lbrakk>a \<in> aexp; sigma: loc -> nat\<rbrakk> 
+    \<Longrightarrow> \<forall>n. <a,sigma> -a-> n \<longleftrightarrow> A(a,sigma) = n"
   apply (erule aexp.induct)
      apply (force intro!: evala.intros)+
   done
@@ -26,8 +26,8 @@ inductive_cases [elim!]:
 
 
 lemma bexp_iff [rule_format]:
-  "[| b \<in> bexp; sigma: loc -> nat |] 
-    ==> \<forall>w. <b,sigma> -b-> w \<longleftrightarrow> B(b,sigma) = w"
+  "\<lbrakk>b \<in> bexp; sigma: loc -> nat\<rbrakk> 
+    \<Longrightarrow> \<forall>w. <b,sigma> -b-> w \<longleftrightarrow> B(b,sigma) = w"
   apply (erule bexp.induct) 
   apply (auto intro!: evalb.intros)
   done
@@ -35,7 +35,7 @@ lemma bexp_iff [rule_format]:
 declare bexp_iff [THEN iffD1, simp]
         bexp_iff [THEN iffD2, intro!]
 
-lemma com1: "<c,sigma> -c-> sigma' ==> <sigma,sigma'> \<in> C(c)"
+lemma com1: "<c,sigma> -c-> sigma' \<Longrightarrow> <sigma,sigma'> \<in> C(c)"
   apply (erule evalc.induct)
         apply (simp_all (no_asm_simp))
      txt \<open>\<open>assign\<close>\<close>
@@ -54,7 +54,7 @@ declare B_type [intro!] A_type [intro!]
 declare evalc.intros [intro]
 
 
-lemma com2 [rule_format]: "c \<in> com ==> \<forall>x \<in> C(c). <c,fst(x)> -c-> snd(x)"
+lemma com2 [rule_format]: "c \<in> com \<Longrightarrow> \<forall>x \<in> C(c). <c,fst(x)> -c-> snd(x)"
   apply (erule com.induct)
       txt \<open>\<open>skip\<close>\<close>
       apply force
@@ -76,7 +76,7 @@ lemma com2 [rule_format]: "c \<in> com ==> \<forall>x \<in> C(c). <c,fst(x)> -c-
 subsection \<open>Main theorem\<close>
 
 theorem com_equivalence:
-    "c \<in> com ==> C(c) = {io \<in> (loc->nat) \<times> (loc->nat). <c,fst(io)> -c-> snd(io)}"
+    "c \<in> com \<Longrightarrow> C(c) = {io \<in> (loc->nat) \<times> (loc->nat). <c,fst(io)> -c-> snd(io)}"
   by (force intro: C_subset [THEN subsetD] elim: com2 dest: com1)
 
 end

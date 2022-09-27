@@ -8,7 +8,7 @@ theory AC16_lemmas
 imports AC_Equiv Hartog Cardinal_aux
 begin
 
-lemma cons_Diff_eq: "a\<notin>A ==> cons(a,A)-{a}=A"
+lemma cons_Diff_eq: "a\<notin>A \<Longrightarrow> cons(a,A)-{a}=A"
 by fast
 
 lemma nat_1_lepoll_iff: "1\<lesssim>X \<longleftrightarrow> (\<exists>x. x \<in> X)"
@@ -28,7 +28,7 @@ apply (fast intro!: lepoll_1_is_sing)
 apply (fast intro!: singleton_eqpoll_1)
 done
 
-lemma cons_eqpoll_succ: "[| x\<approx>n; y\<notin>x |] ==> cons(y,x)\<approx>succ(n)"
+lemma cons_eqpoll_succ: "\<lbrakk>x\<approx>n; y\<notin>x\<rbrakk> \<Longrightarrow> cons(y,x)\<approx>succ(n)"
 apply (unfold succ_def)
 apply (fast elim!: cons_eqpoll_cong mem_irrefl)
 done
@@ -60,7 +60,7 @@ apply (rule eqpoll_RepFun_sing [THEN eqpoll_sym])
 done
 
 lemma InfCard_Least_in:
-     "[| InfCard(x); y \<subseteq> x; y \<approx> succ(z) |] ==> (\<mu> i. i \<in> y) \<in> y"
+     "\<lbrakk>InfCard(x); y \<subseteq> x; y \<approx> succ(z)\<rbrakk> \<Longrightarrow> (\<mu> i. i \<in> y) \<in> y"
 apply (erule eqpoll_sym [THEN eqpoll_imp_lepoll, 
                          THEN succ_lepoll_imp_not_empty, THEN not_emptyE])
 apply (fast intro: LeastI 
@@ -69,8 +69,8 @@ apply (fast intro: LeastI
 done
 
 lemma subsets_lepoll_lemma1:
-     "[| InfCard(x); n \<in> nat |] 
-      ==> {y \<in> Pow(x). y\<approx>succ(succ(n))} \<lesssim> x*{y \<in> Pow(x). y\<approx>succ(n)}"
+     "\<lbrakk>InfCard(x); n \<in> nat\<rbrakk> 
+      \<Longrightarrow> {y \<in> Pow(x). y\<approx>succ(succ(n))} \<lesssim> x*{y \<in> Pow(x). y\<approx>succ(n)}"
 apply (unfold lepoll_def)
 apply (rule_tac x = "\<lambda>y \<in> {y \<in> Pow(x) . y\<approx>succ (succ (n))}. 
                       <\<mu> i. i \<in> y, y-{\<mu> i. i \<in> y}>" in exI)
@@ -79,7 +79,7 @@ apply (rule_tac d = "%z. cons (fst(z), snd(z))" in lam_injective)
 apply (simp, blast intro: InfCard_Least_in)
 done
 
-lemma set_of_Ord_succ_Union: "(\<forall>y \<in> z. Ord(y)) ==> z \<subseteq> succ(\<Union>(z))"
+lemma set_of_Ord_succ_Union: "(\<forall>y \<in> z. Ord(y)) \<Longrightarrow> z \<subseteq> succ(\<Union>(z))"
 apply (rule subsetI)
 apply (case_tac "\<forall>y \<in> z. y \<subseteq> x", blast )
 apply (simp, erule bexE) 
@@ -87,11 +87,11 @@ apply (rule_tac i=y and j=x in Ord_linear_le)
 apply (blast dest: le_imp_subset elim: leE ltE)+
 done
 
-lemma subset_not_mem: "j \<subseteq> i ==> i \<notin> j"
+lemma subset_not_mem: "j \<subseteq> i \<Longrightarrow> i \<notin> j"
 by (fast elim!: mem_irrefl)
 
 lemma succ_Union_not_mem:
-     "(!!y. y \<in> z ==> Ord(y)) ==> succ(\<Union>(z)) \<notin> z"
+     "(\<And>y. y \<in> z \<Longrightarrow> Ord(y)) \<Longrightarrow> succ(\<Union>(z)) \<notin> z"
 apply (rule set_of_Ord_succ_Union [THEN subset_not_mem], blast)
 done
 
@@ -99,14 +99,14 @@ lemma Union_cons_eq_succ_Union:
      "\<Union>(cons(succ(\<Union>(z)),z)) = succ(\<Union>(z))"
 by fast
 
-lemma Un_Ord_disj: "[| Ord(i); Ord(j) |] ==> i \<union> j = i | i \<union> j = j"
+lemma Un_Ord_disj: "\<lbrakk>Ord(i); Ord(j)\<rbrakk> \<Longrightarrow> i \<union> j = i | i \<union> j = j"
 by (fast dest!: le_imp_subset elim: Ord_linear_le)
 
-lemma Union_eq_Un: "x \<in> X ==> \<Union>(X) = x \<union> \<Union>(X-{x})"
+lemma Union_eq_Un: "x \<in> X \<Longrightarrow> \<Union>(X) = x \<union> \<Union>(X-{x})"
 by fast
 
 lemma Union_in_lemma [rule_format]:
-     "n \<in> nat ==> \<forall>z. (\<forall>y \<in> z. Ord(y)) & z\<approx>n & z\<noteq>0 \<longrightarrow> \<Union>(z) \<in> z"
+     "n \<in> nat \<Longrightarrow> \<forall>z. (\<forall>y \<in> z. Ord(y)) & z\<approx>n & z\<noteq>0 \<longrightarrow> \<Union>(z) \<in> z"
 apply (induct_tac "n")
 apply (fast dest!: eqpoll_imp_lepoll [THEN lepoll_0_is_0])
 apply (intro allI impI)
@@ -126,11 +126,11 @@ apply (erule Diff_subset [THEN subsetD])
 apply (drule Un_Ord_disj, assumption, auto) 
 done
 
-lemma Union_in: "[| \<forall>x \<in> z. Ord(x); z\<approx>n; z\<noteq>0; n \<in> nat |] ==> \<Union>(z) \<in> z"
+lemma Union_in: "\<lbrakk>\<forall>x \<in> z. Ord(x); z\<approx>n; z\<noteq>0; n \<in> nat\<rbrakk> \<Longrightarrow> \<Union>(z) \<in> z"
 by (blast intro: Union_in_lemma)
 
 lemma succ_Union_in_x:
-     "[| InfCard(x); z \<in> Pow(x); z\<approx>n; n \<in> nat |] ==> succ(\<Union>(z)) \<in> x"
+     "\<lbrakk>InfCard(x); z \<in> Pow(x); z\<approx>n; n \<in> nat\<rbrakk> \<Longrightarrow> succ(\<Union>(z)) \<in> x"
 apply (rule Limit_has_succ [THEN ltE])
 prefer 3 apply assumption
 apply (erule InfCard_is_Limit)
@@ -142,8 +142,8 @@ apply (blast intro: Union_in
 done
 
 lemma succ_lepoll_succ_succ:
-     "[| InfCard(x); n \<in> nat |] 
-      ==> {y \<in> Pow(x). y\<approx>succ(n)} \<lesssim> {y \<in> Pow(x). y\<approx>succ(succ(n))}"
+     "\<lbrakk>InfCard(x); n \<in> nat\<rbrakk> 
+      \<Longrightarrow> {y \<in> Pow(x). y\<approx>succ(n)} \<lesssim> {y \<in> Pow(x). y\<approx>succ(succ(n))}"
 apply (unfold lepoll_def)
 apply (rule_tac x = "\<lambda>z \<in> {y\<in>Pow(x). y\<approx>succ(n)}. cons(succ(\<Union>(z)), z)" 
        in exI)
@@ -159,7 +159,7 @@ apply (fast dest!: InfCard_is_Card [THEN Card_is_Ord]
 done
 
 lemma subsets_eqpoll_X:
-     "[| InfCard(X); n \<in> nat |] ==> {Y \<in> Pow(X). Y\<approx>succ(n)} \<approx> X"
+     "\<lbrakk>InfCard(X); n \<in> nat\<rbrakk> \<Longrightarrow> {Y \<in> Pow(X). Y\<approx>succ(n)} \<approx> X"
 apply (induct_tac "n")
 apply (rule subsets_eqpoll_1_eqpoll)
 apply (rule eqpollI)
@@ -172,16 +172,16 @@ apply (fast elim: eqpoll_sym [THEN eqpoll_imp_lepoll, THEN lepoll_trans]
 done
 
 lemma image_vimage_eq:
-     "[| f \<in> surj(A,B); y \<subseteq> B |] ==> f``(converse(f)``y) = y"
+     "\<lbrakk>f \<in> surj(A,B); y \<subseteq> B\<rbrakk> \<Longrightarrow> f``(converse(f)``y) = y"
 apply (unfold surj_def)
 apply (fast dest: apply_equality2 elim: apply_iff [THEN iffD2])
 done
 
-lemma vimage_image_eq: "[| f \<in> inj(A,B); y \<subseteq> A |] ==> converse(f)``(f``y) = y"
+lemma vimage_image_eq: "\<lbrakk>f \<in> inj(A,B); y \<subseteq> A\<rbrakk> \<Longrightarrow> converse(f)``(f``y) = y"
 by (fast elim!: inj_is_fun [THEN apply_Pair] dest: inj_equality)
 
 lemma subsets_eqpoll:
-     "A\<approx>B ==> {Y \<in> Pow(A). Y\<approx>n}\<approx>{Y \<in> Pow(B). Y\<approx>n}"
+     "A\<approx>B \<Longrightarrow> {Y \<in> Pow(A). Y\<approx>n}\<approx>{Y \<in> Pow(B). Y\<approx>n}"
 apply (unfold eqpoll_def)
 apply (erule exE)
 apply (rule_tac x = "\<lambda>X \<in> {Y \<in> Pow (A) . \<exists>f. f \<in> bij (Y, n) }. f``X" in exI)
@@ -196,23 +196,23 @@ apply (fast elim!: bij_is_inj [THEN vimage_image_eq])
 apply (fast elim!: bij_is_surj [THEN image_vimage_eq])
 done
 
-lemma WO2_imp_ex_Card: "WO2 ==> \<exists>a. Card(a) & X\<approx>a"
+lemma WO2_imp_ex_Card: "WO2 \<Longrightarrow> \<exists>a. Card(a) & X\<approx>a"
 apply (unfold WO2_def)
 apply (drule spec [of _ X])
 apply (blast intro: Card_cardinal eqpoll_trans
           well_ord_Memrel [THEN well_ord_cardinal_eqpoll, THEN eqpoll_sym])
 done
 
-lemma lepoll_infinite: "[| X\<lesssim>Y; ~Finite(X) |] ==> ~Finite(Y)"
+lemma lepoll_infinite: "\<lbrakk>X\<lesssim>Y; \<not>Finite(X)\<rbrakk> \<Longrightarrow> \<not>Finite(Y)"
 by (blast intro: lepoll_Finite)
 
-lemma infinite_Card_is_InfCard: "[| ~Finite(X); Card(X) |] ==> InfCard(X)"
+lemma infinite_Card_is_InfCard: "\<lbrakk>\<not>Finite(X); Card(X)\<rbrakk> \<Longrightarrow> InfCard(X)"
 apply (unfold InfCard_def)
 apply (fast elim!: Card_is_Ord [THEN nat_le_infinite_Ord])
 done
 
-lemma WO2_infinite_subsets_eqpoll_X: "[| WO2; n \<in> nat; ~Finite(X) |]   
-        ==> {Y \<in> Pow(X). Y\<approx>succ(n)}\<approx>X"
+lemma WO2_infinite_subsets_eqpoll_X: "\<lbrakk>WO2; n \<in> nat; \<not>Finite(X)\<rbrakk>   
+        \<Longrightarrow> {Y \<in> Pow(X). Y\<approx>succ(n)}\<approx>X"
 apply (drule WO2_imp_ex_Card)
 apply (elim allE exE conjE)
 apply (frule eqpoll_imp_lepoll [THEN lepoll_infinite], assumption)
@@ -220,12 +220,12 @@ apply (drule infinite_Card_is_InfCard, assumption)
 apply (blast intro: subsets_eqpoll subsets_eqpoll_X eqpoll_sym eqpoll_trans) 
 done
 
-lemma well_ord_imp_ex_Card: "well_ord(X,R) ==> \<exists>a. Card(a) & X\<approx>a"
+lemma well_ord_imp_ex_Card: "well_ord(X,R) \<Longrightarrow> \<exists>a. Card(a) & X\<approx>a"
 by (fast elim!: well_ord_cardinal_eqpoll [THEN eqpoll_sym] 
          intro!: Card_cardinal)
 
 lemma well_ord_infinite_subsets_eqpoll_X:
-     "[| well_ord(X,R); n \<in> nat; ~Finite(X) |] ==> {Y \<in> Pow(X). Y\<approx>succ(n)}\<approx>X"
+     "\<lbrakk>well_ord(X,R); n \<in> nat; \<not>Finite(X)\<rbrakk> \<Longrightarrow> {Y \<in> Pow(X). Y\<approx>succ(n)}\<approx>X"
 apply (drule well_ord_imp_ex_Card)
 apply (elim allE exE conjE)
 apply (frule eqpoll_imp_lepoll [THEN lepoll_infinite], assumption)

@@ -15,7 +15,7 @@ consts
 
 definition
   Gamma :: "[i,i,i] => i"  (\<open>\<Gamma>\<close>) where
-  "\<Gamma>(b,cden) ==
+  "\<Gamma>(b,cden) \<equiv>
     (\<lambda>phi. {io \<in> (phi O cden). B(b,fst(io))=1} \<union>
            {io \<in> id(loc->nat). B(b,fst(io))=0})"
 
@@ -45,28 +45,28 @@ primrec
 
 subsection \<open>Misc lemmas\<close>
 
-lemma A_type [TC]: "[|a \<in> aexp; sigma \<in> loc->nat|] ==> A(a,sigma) \<in> nat"
+lemma A_type [TC]: "\<lbrakk>a \<in> aexp; sigma \<in> loc->nat\<rbrakk> \<Longrightarrow> A(a,sigma) \<in> nat"
   by (erule aexp.induct) simp_all
 
-lemma B_type [TC]: "[|b \<in> bexp; sigma \<in> loc->nat|] ==> B(b,sigma) \<in> bool"
+lemma B_type [TC]: "\<lbrakk>b \<in> bexp; sigma \<in> loc->nat\<rbrakk> \<Longrightarrow> B(b,sigma) \<in> bool"
 by (erule bexp.induct, simp_all)
 
-lemma C_subset: "c \<in> com ==> C(c) \<subseteq> (loc->nat) \<times> (loc->nat)"
+lemma C_subset: "c \<in> com \<Longrightarrow> C(c) \<subseteq> (loc->nat) \<times> (loc->nat)"
   apply (erule com.induct)
       apply simp_all
       apply (blast dest: lfp_subset [THEN subsetD])+
   done
 
 lemma C_type_D [dest]:
-    "[| <x,y> \<in> C(c); c \<in> com |] ==> x \<in> loc->nat & y \<in> loc->nat"
+    "\<lbrakk><x,y> \<in> C(c); c \<in> com\<rbrakk> \<Longrightarrow> x \<in> loc->nat & y \<in> loc->nat"
   by (blast dest: C_subset [THEN subsetD])
 
-lemma C_type_fst [dest]: "[| x \<in> C(c); c \<in> com |] ==> fst(x) \<in> loc->nat"
+lemma C_type_fst [dest]: "\<lbrakk>x \<in> C(c); c \<in> com\<rbrakk> \<Longrightarrow> fst(x) \<in> loc->nat"
   by (auto dest!: C_subset [THEN subsetD])
 
 lemma Gamma_bnd_mono:
   "cden \<subseteq> (loc->nat) \<times> (loc->nat)
-    ==> bnd_mono ((loc->nat) \<times> (loc->nat), \<Gamma>(b,cden))"
+    \<Longrightarrow> bnd_mono ((loc->nat) \<times> (loc->nat), \<Gamma>(b,cden))"
   by (unfold bnd_mono_def Gamma_def) blast
 
 end

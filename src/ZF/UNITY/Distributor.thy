@@ -14,7 +14,7 @@ text\<open>spec (14)\<close>
 
 definition
   distr_follows :: "[i, i, i, i =>i] =>i"  where
-    "distr_follows(A, In, iIn, Out) ==
+    "distr_follows(A, In, iIn, Out) \<equiv>
      (lift(In) IncreasingWrt prefix(A)/list(A)) \<inter>
      (lift(iIn) IncreasingWrt prefix(nat)/list(nat)) \<inter>
      Always({s \<in> state. \<forall>elt \<in> set_of_list(s`iIn). elt < Nclients})
@@ -27,13 +27,13 @@ definition
 
 definition
   distr_allowed_acts :: "[i=>i]=>i"  where
-    "distr_allowed_acts(Out) ==
+    "distr_allowed_acts(Out) \<equiv>
      {D \<in> program. AllowedActs(D) =
      cons(id(state), \<Union>G \<in> (\<Inter>n\<in>nat. preserves(lift(Out(n)))). Acts(G))}"
 
 definition
   distr_spec :: "[i, i, i, i =>i]=>i"  where
-    "distr_spec(A, In, iIn, Out) ==
+    "distr_spec(A, In, iIn, Out) \<equiv>
      distr_follows(A, In, iIn, Out) \<inter> distr_allowed_acts(Out)"
 
 locale distr =
@@ -54,19 +54,19 @@ locale distr =
  and distr_spec:  "D \<in> distr_spec(A, In, iIn, Out)"
 
 
-lemma (in distr) In_value_type [simp,TC]: "s \<in> state ==> s`In \<in> list(A)"
+lemma (in distr) In_value_type [simp,TC]: "s \<in> state \<Longrightarrow> s`In \<in> list(A)"
 apply (unfold state_def)
 apply (drule_tac a = In in apply_type, auto)
 done
 
 lemma (in distr) iIn_value_type [simp,TC]:
-     "s \<in> state ==> s`iIn \<in> list(nat)"
+     "s \<in> state \<Longrightarrow> s`iIn \<in> list(nat)"
 apply (unfold state_def)
 apply (drule_tac a = iIn in apply_type, auto)
 done
 
 lemma (in distr) Out_value_type [simp,TC]:
-     "s \<in> state ==> s`Out(n):list(A)"
+     "s \<in> state \<Longrightarrow> s`Out(n):list(A)"
 apply (unfold state_def)
 apply (drule_tac a = "Out (n)" in apply_type)
 apply auto
@@ -78,7 +78,7 @@ apply (auto simp add: distr_spec_def distr_allowed_acts_def)
 done
 
 lemma (in distr) D_ok_iff:
-     "G \<in> program ==>
+     "G \<in> program \<Longrightarrow>
         D ok G \<longleftrightarrow> ((\<forall>n \<in> nat. G \<in> preserves(lift(Out(n)))) & D \<in> Allowed(G))"
 apply (cut_tac distr_spec)
 apply (auto simp add: INT_iff distr_spec_def distr_allowed_acts_def
@@ -101,10 +101,10 @@ apply (auto intro!: guaranteesI intro: Follows_imp_Increasing_left
 done
 
 lemma (in distr) distr_bag_Follows_lemma:
-"[| \<forall>n \<in> nat. G \<in> preserves(lift(Out(n)));
+"\<lbrakk>\<forall>n \<in> nat. G \<in> preserves(lift(Out(n)));
    D \<squnion> G \<in> Always({s \<in> state.
-          \<forall>elt \<in> set_of_list(s`iIn). elt < Nclients}) |]
-  ==> D \<squnion> G \<in> Always
+          \<forall>elt \<in> set_of_list(s`iIn). elt < Nclients})\<rbrakk>
+  \<Longrightarrow> D \<squnion> G \<in> Always
           ({s \<in> state. msetsum(%n. bag_of (sublist(s`In,
                        {k \<in> nat. k < length(s`iIn) &
                           nth(k, s`iIn)= n})),

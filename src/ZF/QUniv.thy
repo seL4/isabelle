@@ -21,32 +21,32 @@ rep_datatype
 
 definition
   quniv :: "i => i"  where
-   "quniv(A) == Pow(univ(eclose(A)))"
+   "quniv(A) \<equiv> Pow(univ(eclose(A)))"
 
 
 subsection\<open>Properties involving Transset and Sum\<close>
 
 lemma Transset_includes_summands:
-     "[| Transset(C); A+B \<subseteq> C |] ==> A \<subseteq> C & B \<subseteq> C"
+     "\<lbrakk>Transset(C); A+B \<subseteq> C\<rbrakk> \<Longrightarrow> A \<subseteq> C & B \<subseteq> C"
 apply (simp add: sum_def Un_subset_iff)
 apply (blast dest: Transset_includes_range)
 done
 
 lemma Transset_sum_Int_subset:
-     "Transset(C) ==> (A+B) \<inter> C \<subseteq> (A \<inter> C) + (B \<inter> C)"
+     "Transset(C) \<Longrightarrow> (A+B) \<inter> C \<subseteq> (A \<inter> C) + (B \<inter> C)"
 apply (simp add: sum_def Int_Un_distrib2)
 apply (blast dest: Transset_Pair_D)
 done
 
 subsection\<open>Introduction and Elimination Rules\<close>
 
-lemma qunivI: "X \<subseteq> univ(eclose(A)) ==> X \<in> quniv(A)"
+lemma qunivI: "X \<subseteq> univ(eclose(A)) \<Longrightarrow> X \<in> quniv(A)"
 by (simp add: quniv_def)
 
-lemma qunivD: "X \<in> quniv(A) ==> X \<subseteq> univ(eclose(A))"
+lemma qunivD: "X \<in> quniv(A) \<Longrightarrow> X \<subseteq> univ(eclose(A))"
 by (simp add: quniv_def)
 
-lemma quniv_mono: "A<=B ==> quniv(A) \<subseteq> quniv(B)"
+lemma quniv_mono: "A<=B \<Longrightarrow> quniv(A) \<subseteq> quniv(B)"
 apply (unfold quniv_def)
 apply (erule eclose_mono [THEN univ_mono, THEN Pow_mono])
 done
@@ -86,12 +86,12 @@ lemmas A_into_quniv = A_subset_quniv [THEN subsetD]
 
 (*Quine ordered pairs*)
 lemma QPair_subset_univ:
-    "[| a \<subseteq> univ(A);  b \<subseteq> univ(A) |] ==> <a;b> \<subseteq> univ(A)"
+    "\<lbrakk>a \<subseteq> univ(A);  b \<subseteq> univ(A)\<rbrakk> \<Longrightarrow> <a;b> \<subseteq> univ(A)"
 by (simp add: QPair_def sum_subset_univ)
 
 subsection\<open>Quine Disjoint Sum\<close>
 
-lemma QInl_subset_univ: "a \<subseteq> univ(A) ==> QInl(a) \<subseteq> univ(A)"
+lemma QInl_subset_univ: "a \<subseteq> univ(A) \<Longrightarrow> QInl(a) \<subseteq> univ(A)"
 apply (unfold QInl_def)
 apply (erule empty_subsetI [THEN QPair_subset_univ])
 done
@@ -102,7 +102,7 @@ lemmas naturals_subset_nat =
 lemmas naturals_subset_univ =
     subset_trans [OF naturals_subset_nat nat_subset_univ]
 
-lemma QInr_subset_univ: "a \<subseteq> univ(A) ==> QInr(a) \<subseteq> univ(A)"
+lemma QInr_subset_univ: "a \<subseteq> univ(A) \<Longrightarrow> QInr(a) \<subseteq> univ(A)"
 apply (unfold QInr_def)
 apply (erule nat_1I [THEN naturals_subset_univ, THEN QPair_subset_univ])
 done
@@ -111,7 +111,7 @@ subsection\<open>Closure for Quine-Inspired Products and Sums\<close>
 
 (*Quine ordered pairs*)
 lemma QPair_in_quniv:
-    "[| a: quniv(A);  b: quniv(A) |] ==> <a;b> \<in> quniv(A)"
+    "\<lbrakk>a: quniv(A);  b: quniv(A)\<rbrakk> \<Longrightarrow> <a;b> \<in> quniv(A)"
 by (simp add: quniv_def QPair_def sum_subset_univ)
 
 lemma QSigma_quniv: "quniv(A) <*> quniv(A) \<subseteq> quniv(A)"
@@ -121,7 +121,7 @@ lemmas QSigma_subset_quniv =  subset_trans [OF QSigma_mono QSigma_quniv]
 
 (*The opposite inclusion*)
 lemma quniv_QPair_D:
-    "<a;b> \<in> quniv(A) ==> a: quniv(A) & b: quniv(A)"
+    "<a;b> \<in> quniv(A) \<Longrightarrow> a: quniv(A) & b: quniv(A)"
 apply (unfold quniv_def QPair_def)
 apply (rule Transset_includes_summands [THEN conjE])
 apply (rule Transset_eclose [THEN Transset_univ])
@@ -136,10 +136,10 @@ by (blast intro: QPair_in_quniv dest: quniv_QPair_D)
 
 subsection\<open>Quine Disjoint Sum\<close>
 
-lemma QInl_in_quniv: "a: quniv(A) ==> QInl(a) \<in> quniv(A)"
+lemma QInl_in_quniv: "a: quniv(A) \<Longrightarrow> QInl(a) \<in> quniv(A)"
 by (simp add: QInl_def zero_in_quniv QPair_in_quniv)
 
-lemma QInr_in_quniv: "b: quniv(A) ==> QInr(b) \<in> quniv(A)"
+lemma QInr_in_quniv: "b: quniv(A) \<Longrightarrow> QInr(b) \<in> quniv(A)"
 by (simp add: QInr_def one_in_quniv QPair_in_quniv)
 
 lemma qsum_quniv: "quniv(C) <+> quniv(C) \<subseteq> quniv(C)"
@@ -152,7 +152,7 @@ subsection\<open>The Natural Numbers\<close>
 
 lemmas nat_subset_quniv =  subset_trans [OF nat_subset_univ univ_subset_quniv]
 
-(* n:nat ==> n:quniv(A) *)
+(* n:nat \<Longrightarrow> n:quniv(A) *)
 lemmas nat_into_quniv = nat_subset_quniv [THEN subsetD]
 
 lemmas bool_subset_quniv = subset_trans [OF bool_subset_univ univ_subset_quniv]
@@ -163,7 +163,7 @@ lemmas bool_into_quniv = bool_subset_quniv [THEN subsetD]
 (*Intersecting <a;b> with Vfrom...*)
 
 lemma QPair_Int_Vfrom_succ_subset:
- "Transset(X) ==>
+ "Transset(X) \<Longrightarrow>
        <a;b> \<inter> Vfrom(X, succ(i))  \<subseteq>  <a \<inter> Vfrom(X,i);  b \<inter> Vfrom(X,i)>"
 by (simp add: QPair_def sum_def Int_Un_distrib2 Un_mono
               product_Int_Vfrom_subset [THEN subset_trans]
@@ -176,18 +176,18 @@ subsection\<open>"Take-Lemma" Rules\<close>
 (*Rule for level i -- preserving the level, not decreasing it*)
 
 lemma QPair_Int_Vfrom_subset:
- "Transset(X) ==>
+ "Transset(X) \<Longrightarrow>
        <a;b> \<inter> Vfrom(X,i)  \<subseteq>  <a \<inter> Vfrom(X,i);  b \<inter> Vfrom(X,i)>"
 apply (unfold QPair_def)
 apply (erule Transset_Vfrom [THEN Transset_sum_Int_subset])
 done
 
-(*@{term"[| a \<inter> Vset(i) \<subseteq> c; b \<inter> Vset(i) \<subseteq> d |] ==> <a;b> \<inter> Vset(i) \<subseteq> <c;d>"}*)
+(*@{term"\<lbrakk>a \<inter> Vset(i) \<subseteq> c; b \<inter> Vset(i) \<subseteq> d\<rbrakk> \<Longrightarrow> <a;b> \<inter> Vset(i) \<subseteq> <c;d>"}*)
 lemmas QPair_Int_Vset_subset_trans =
      subset_trans [OF Transset_0 [THEN QPair_Int_Vfrom_subset] QPair_mono]
 
 lemma QPair_Int_Vset_subset_UN:
-     "Ord(i) ==> <a;b> \<inter> Vset(i) \<subseteq> (\<Union>j\<in>i. <a \<inter> Vset(j); b \<inter> Vset(j)>)"
+     "Ord(i) \<Longrightarrow> <a;b> \<inter> Vset(i) \<subseteq> (\<Union>j\<in>i. <a \<inter> Vset(j); b \<inter> Vset(j)>)"
 apply (erule Ord_cases)
 (*0 case*)
 apply (simp add: Vfrom_0)

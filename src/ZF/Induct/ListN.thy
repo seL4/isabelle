@@ -17,11 +17,11 @@ inductive
   domains "listn(A)" \<subseteq> "nat \<times> list(A)"
   intros
     NilI: "<0,Nil> \<in> listn(A)"
-    ConsI: "[| a \<in> A; <n,l> \<in> listn(A) |] ==> <succ(n), Cons(a,l)> \<in> listn(A)"
+    ConsI: "\<lbrakk>a \<in> A; <n,l> \<in> listn(A)\<rbrakk> \<Longrightarrow> <succ(n), Cons(a,l)> \<in> listn(A)"
   type_intros nat_typechecks list.intros
 
 
-lemma list_into_listn: "l \<in> list(A) ==> <length(l),l> \<in> listn(A)"
+lemma list_into_listn: "l \<in> list(A) \<Longrightarrow> <length(l),l> \<in> listn(A)"
   by (induct set: list) (simp_all add: listn.intros)
 
 lemma listn_iff: "<n,l> \<in> listn(A) \<longleftrightarrow> l \<in> list(A) & length(l)=n"
@@ -36,7 +36,7 @@ lemma listn_image_eq: "listn(A)``{n} = {l \<in> list(A). length(l)=n}"
   apply (simp add: listn_iff separation image_singleton_iff)
   done
 
-lemma listn_mono: "A \<subseteq> B ==> listn(A) \<subseteq> listn(B)"
+lemma listn_mono: "A \<subseteq> B \<Longrightarrow> listn(A) \<subseteq> listn(B)"
   apply (unfold listn.defs)
   apply (rule lfp_mono)
     apply (rule listn.bnd_mono)+
@@ -44,7 +44,7 @@ lemma listn_mono: "A \<subseteq> B ==> listn(A) \<subseteq> listn(B)"
   done
 
 lemma listn_append:
-    "[| <n,l> \<in> listn(A); <n',l'> \<in> listn(A) |] ==> <n#+n', l@l'> \<in> listn(A)"
+    "\<lbrakk><n,l> \<in> listn(A); <n',l'> \<in> listn(A)\<rbrakk> \<Longrightarrow> <n#+n', l@l'> \<in> listn(A)"
   apply (erule listn.induct)
    apply (frule listn.dom_subset [THEN subsetD])
    apply (simp_all add: listn.intros)

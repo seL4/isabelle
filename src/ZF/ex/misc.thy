@@ -31,7 +31,7 @@ lemma "\<exists>!x. f (g(x)) = x \<Longrightarrow> \<exists>!y. g (f(y)) = y"
 
 
 text\<open>A weird property of ordered pairs.\<close>
-lemma "b\<noteq>c ==> <a,b> \<inter> <a,c> = <a,a>"
+lemma "b\<noteq>c \<Longrightarrow> <a,b> \<inter> <a,c> = <a,a>"
 by (simp add: Pair_def Int_cons_left Int_cons_right doubleton_eq_iff, blast)
 
 text\<open>These two are cited in Benzmueller and Kohlhase's system description of
@@ -44,15 +44,15 @@ lemma "(X = Y \<inter> Z) \<longleftrightarrow> (X \<subseteq> Y & X \<subseteq>
 by (blast intro!: equalityI)
 
 text\<open>trivial example of term synthesis: apparently hard for some provers!\<close>
-schematic_goal "a \<noteq> b ==> a:?X & b \<notin> ?X"
+schematic_goal "a \<noteq> b \<Longrightarrow> a:?X & b \<notin> ?X"
 by blast
 
 text\<open>Nice blast benchmark.  Proved in 0.3s; old tactics can't manage it!\<close>
-lemma "\<forall>x \<in> S. \<forall>y \<in> S. x \<subseteq> y ==> \<exists>z. S \<subseteq> {z}"
+lemma "\<forall>x \<in> S. \<forall>y \<in> S. x \<subseteq> y \<Longrightarrow> \<exists>z. S \<subseteq> {z}"
 by blast
 
 text\<open>variant of the benchmark above\<close>
-lemma "\<forall>x \<in> S. \<Union>(S) \<subseteq> x ==> \<exists>z. S \<subseteq> {z}"
+lemma "\<forall>x \<in> S. \<Union>(S) \<subseteq> x \<Longrightarrow> \<exists>z. S \<subseteq> {z}"
 by blast
 
 (*Example 12 (credited to Peter Andrews) from
@@ -87,10 +87,10 @@ lemma "(\<forall>A f B g. hom(A,f,B,g) =
 by force
 
 text\<open>Another version, with meta-level rewriting\<close>
-lemma "(!! A f B g. hom(A,f,B,g) ==  
+lemma "(\<And>A f B g. hom(A,f,B,g) \<equiv>  
            {H \<in> A->B. f \<in> A*A->A & g \<in> B*B->B &  
                      (\<forall>x \<in> A. \<forall>y \<in> A. H`(f`<x,y>) = g`<H`x,H`y>)}) 
-       ==> J \<in> hom(A,f,B,g) & K \<in> hom(B,g,C,h) \<longrightarrow> (K O J) \<in> hom(A,f,C,h)"
+       \<Longrightarrow> J \<in> hom(A,f,B,g) & K \<in> hom(B,g,C,h) \<longrightarrow> (K O J) \<in> hom(A,f,C,h)"
 by force
 
 
@@ -105,38 +105,38 @@ lemmas compDs [dest] =  comp_mem_injD1 comp_mem_surjD1
                         comp_mem_injD2 comp_mem_surjD2
 
 lemma pastre1: 
-    "[| (h O g O f) \<in> inj(A,A);           
+    "\<lbrakk>(h O g O f) \<in> inj(A,A);           
         (f O h O g) \<in> surj(B,B);          
         (g O f O h) \<in> surj(C,C);          
-        f \<in> A->B;  g \<in> B->C;  h \<in> C->A |] ==> h \<in> bij(C,A)"
+        f \<in> A->B;  g \<in> B->C;  h \<in> C->A\<rbrakk> \<Longrightarrow> h \<in> bij(C,A)"
 by (unfold bij_def, blast)
 
 lemma pastre3: 
-    "[| (h O g O f) \<in> surj(A,A);          
+    "\<lbrakk>(h O g O f) \<in> surj(A,A);          
         (f O h O g) \<in> surj(B,B);          
         (g O f O h) \<in> inj(C,C);           
-        f \<in> A->B;  g \<in> B->C;  h \<in> C->A |] ==> h \<in> bij(C,A)"
+        f \<in> A->B;  g \<in> B->C;  h \<in> C->A\<rbrakk> \<Longrightarrow> h \<in> bij(C,A)"
 by (unfold bij_def, blast)
 
 lemma pastre4: 
-    "[| (h O g O f) \<in> surj(A,A);          
+    "\<lbrakk>(h O g O f) \<in> surj(A,A);          
         (f O h O g) \<in> inj(B,B);           
         (g O f O h) \<in> inj(C,C);           
-        f \<in> A->B;  g \<in> B->C;  h \<in> C->A |] ==> h \<in> bij(C,A)"
+        f \<in> A->B;  g \<in> B->C;  h \<in> C->A\<rbrakk> \<Longrightarrow> h \<in> bij(C,A)"
 by (unfold bij_def, blast)
 
 lemma pastre5: 
-    "[| (h O g O f) \<in> inj(A,A);           
+    "\<lbrakk>(h O g O f) \<in> inj(A,A);           
         (f O h O g) \<in> surj(B,B);          
         (g O f O h) \<in> inj(C,C);           
-        f \<in> A->B;  g \<in> B->C;  h \<in> C->A |] ==> h \<in> bij(C,A)"
+        f \<in> A->B;  g \<in> B->C;  h \<in> C->A\<rbrakk> \<Longrightarrow> h \<in> bij(C,A)"
 by (unfold bij_def, blast)
 
 lemma pastre6: 
-    "[| (h O g O f) \<in> inj(A,A);           
+    "\<lbrakk>(h O g O f) \<in> inj(A,A);           
         (f O h O g) \<in> inj(B,B);           
         (g O f O h) \<in> surj(C,C);          
-        f \<in> A->B;  g \<in> B->C;  h \<in> C->A |] ==> h \<in> bij(C,A)"
+        f \<in> A->B;  g \<in> B->C;  h \<in> C->A\<rbrakk> \<Longrightarrow> h \<in> bij(C,A)"
 by (unfold bij_def, blast)
 
 

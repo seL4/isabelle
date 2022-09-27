@@ -10,14 +10,14 @@ subsection\<open>Transitive closure without fixedpoints\<close>
 
 definition
   rtrancl_alt :: "[i,i]=>i" where
-    "rtrancl_alt(A,r) ==
+    "rtrancl_alt(A,r) \<equiv>
        {p \<in> A*A. \<exists>n\<in>nat. \<exists>f \<in> succ(n) -> A.
                  (\<exists>x y. p = <x,y> &  f`0 = x & f`n = y) &
                        (\<forall>i\<in>n. <f`i, f`succ(i)> \<in> r)}"
 
 lemma alt_rtrancl_lemma1 [rule_format]:
     "n \<in> nat
-     ==> \<forall>f \<in> succ(n) -> field(r).
+     \<Longrightarrow> \<forall>f \<in> succ(n) -> field(r).
          (\<forall>i\<in>n. \<langle>f`i, f ` succ(i)\<rangle> \<in> r) \<longrightarrow> \<langle>f`0, f`n\<rangle> \<in> r^*"
 apply (induct_tac n)
 apply (simp_all add: apply_funtype rtrancl_refl, clarify)
@@ -61,7 +61,7 @@ by (blast del: subsetI
 definition
   rtran_closure_mem :: "[i=>o,i,i,i] => o" where
     \<comment> \<open>The property of belonging to \<open>rtran_closure(r)\<close>\<close>
-    "rtran_closure_mem(M,A,r,p) ==
+    "rtran_closure_mem(M,A,r,p) \<equiv>
               \<exists>nnat[M]. \<exists>n[M]. \<exists>n'[M]. 
                omega(M,nnat) & n\<in>nnat & successor(M,n,n') &
                (\<exists>f[M]. typed_function(M,n',A,f) &
@@ -74,28 +74,28 @@ definition
 
 definition
   rtran_closure :: "[i=>o,i,i] => o" where
-    "rtran_closure(M,r,s) == 
+    "rtran_closure(M,r,s) \<equiv> 
         \<forall>A[M]. is_field(M,r,A) \<longrightarrow>
          (\<forall>p[M]. p \<in> s \<longleftrightarrow> rtran_closure_mem(M,A,r,p))"
 
 definition
   tran_closure :: "[i=>o,i,i] => o" where
-    "tran_closure(M,r,t) ==
+    "tran_closure(M,r,t) \<equiv>
          \<exists>s[M]. rtran_closure(M,r,s) & composition(M,r,s,t)"
     
 locale M_trancl = M_basic +
   assumes rtrancl_separation:
-         "[| M(r); M(A) |] ==> separation (M, rtran_closure_mem(M,A,r))"
+         "\<lbrakk>M(r); M(A)\<rbrakk> \<Longrightarrow> separation (M, rtran_closure_mem(M,A,r))"
       and wellfounded_trancl_separation:
-         "[| M(r); M(Z) |] ==> 
+         "\<lbrakk>M(r); M(Z)\<rbrakk> \<Longrightarrow> 
           separation (M, \<lambda>x. 
               \<exists>w[M]. \<exists>wx[M]. \<exists>rp[M]. 
                w \<in> Z & pair(M,w,x,wx) & tran_closure(M,r,rp) & wx \<in> rp)"
       and M_nat [iff] : "M(nat)"
 
 lemma (in M_trancl) rtran_closure_mem_iff:
-     "[|M(A); M(r); M(p)|]
-      ==> rtran_closure_mem(M,A,r,p) \<longleftrightarrow>
+     "\<lbrakk>M(A); M(r); M(p)\<rbrakk>
+      \<Longrightarrow> rtran_closure_mem(M,A,r,p) \<longleftrightarrow>
           (\<exists>n[M]. n\<in>nat & 
            (\<exists>f[M]. f \<in> succ(n) -> A &
             (\<exists>x[M]. \<exists>y[M]. p = <x,y> & f`0 = x & f`n = y) &
@@ -104,21 +104,21 @@ lemma (in M_trancl) rtran_closure_mem_iff:
 done
 
 lemma (in M_trancl) rtran_closure_rtrancl:
-     "M(r) ==> rtran_closure(M,r,rtrancl(r))"
+     "M(r) \<Longrightarrow> rtran_closure(M,r,rtrancl(r))"
 apply (simp add: rtran_closure_def rtran_closure_mem_iff 
                  rtrancl_alt_eq_rtrancl [symmetric] rtrancl_alt_def)
 apply (auto simp add: nat_0_le [THEN ltD] apply_funtype) 
 done
 
 lemma (in M_trancl) rtrancl_closed [intro,simp]:
-     "M(r) ==> M(rtrancl(r))"
+     "M(r) \<Longrightarrow> M(rtrancl(r))"
 apply (insert rtrancl_separation [of r "field(r)"])
 apply (simp add: rtrancl_alt_eq_rtrancl [symmetric]
                  rtrancl_alt_def rtran_closure_mem_iff)
 done
 
 lemma (in M_trancl) rtrancl_abs [simp]:
-     "[| M(r); M(z) |] ==> rtran_closure(M,r,z) \<longleftrightarrow> z = rtrancl(r)"
+     "\<lbrakk>M(r); M(z)\<rbrakk> \<Longrightarrow> rtran_closure(M,r,z) \<longleftrightarrow> z = rtrancl(r)"
 apply (rule iffI)
  txt\<open>Proving the right-to-left implication\<close>
  prefer 2 apply (blast intro: rtran_closure_rtrancl)
@@ -129,20 +129,20 @@ apply (auto simp add: nat_0_le [THEN ltD] apply_funtype)
 done
 
 lemma (in M_trancl) trancl_closed [intro,simp]:
-     "M(r) ==> M(trancl(r))"
+     "M(r) \<Longrightarrow> M(trancl(r))"
 by (simp add: trancl_def)
 
 lemma (in M_trancl) trancl_abs [simp]:
-     "[| M(r); M(z) |] ==> tran_closure(M,r,z) \<longleftrightarrow> z = trancl(r)"
+     "\<lbrakk>M(r); M(z)\<rbrakk> \<Longrightarrow> tran_closure(M,r,z) \<longleftrightarrow> z = trancl(r)"
 by (simp add: tran_closure_def trancl_def)
 
 lemma (in M_trancl) wellfounded_trancl_separation':
-     "[| M(r); M(Z) |] ==> separation (M, \<lambda>x. \<exists>w[M]. w \<in> Z & <w,x> \<in> r^+)"
+     "\<lbrakk>M(r); M(Z)\<rbrakk> \<Longrightarrow> separation (M, \<lambda>x. \<exists>w[M]. w \<in> Z & <w,x> \<in> r^+)"
 by (insert wellfounded_trancl_separation [of r Z], simp) 
 
 text\<open>Alternative proof of \<open>wf_on_trancl\<close>; inspiration for the
       relativized version.  Original version is on theory WF.\<close>
-lemma "[| wf[A](r);  r-``A \<subseteq> A |] ==> wf[A](r^+)"
+lemma "\<lbrakk>wf[A](r);  r-``A \<subseteq> A\<rbrakk> \<Longrightarrow> wf[A](r^+)"
 apply (simp add: wf_on_def wf_def)
 apply (safe)
 apply (drule_tac x = "{x\<in>A. \<exists>w. \<langle>w,x\<rangle> \<in> r^+ & w \<in> Z}" in spec)
@@ -150,8 +150,8 @@ apply (blast elim: tranclE)
 done
 
 lemma (in M_trancl) wellfounded_on_trancl:
-     "[| wellfounded_on(M,A,r);  r-``A \<subseteq> A; M(r); M(A) |]
-      ==> wellfounded_on(M,A,r^+)"
+     "\<lbrakk>wellfounded_on(M,A,r);  r-``A \<subseteq> A; M(r); M(A)\<rbrakk>
+      \<Longrightarrow> wellfounded_on(M,A,r^+)"
 apply (simp add: wellfounded_on_def)
 apply (safe intro!: equalityI)
 apply (rename_tac Z x)
@@ -168,7 +168,7 @@ apply (erule tranclE)
 done
 
 lemma (in M_trancl) wellfounded_trancl:
-     "[|wellfounded(M,r); M(r)|] ==> wellfounded(M,r^+)"
+     "\<lbrakk>wellfounded(M,r); M(r)\<rbrakk> \<Longrightarrow> wellfounded(M,r^+)"
 apply (simp add: wellfounded_iff_wellfounded_on_field)
 apply (rule wellfounded_on_subset_A, erule wellfounded_on_trancl)
    apply blast
@@ -181,13 +181,13 @@ text\<open>Absoluteness for wfrec-defined functions.\<close>
 (*first use is_recfun, then M_is_recfun*)
 
 lemma (in M_trancl) wfrec_relativize:
-  "[|wf(r); M(a); M(r);  
+  "\<lbrakk>wf(r); M(a); M(r);  
      strong_replacement(M, \<lambda>x z. \<exists>y[M]. \<exists>g[M].
           pair(M,x,y,z) & 
           is_recfun(r^+, x, \<lambda>x f. H(x, restrict(f, r -`` {x})), g) & 
           y = H(x, restrict(g, r -`` {x}))); 
-     \<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g))|] 
-   ==> wfrec(r,a,H) = z \<longleftrightarrow> 
+     \<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g))\<rbrakk> 
+   \<Longrightarrow> wfrec(r,a,H) = z \<longleftrightarrow> 
        (\<exists>f[M]. is_recfun(r^+, a, \<lambda>x f. H(x, restrict(f, r -`` {x})), f) & 
             z = H(a,restrict(f,r-``{a})))"
 apply (frule wf_trancl) 
@@ -204,10 +204,10 @@ text\<open>Assuming \<^term>\<open>r\<close> is transitive simplifies the occurr
       The premise \<^term>\<open>relation(r)\<close> is necessary 
       before we can replace \<^term>\<open>r^+\<close> by \<^term>\<open>r\<close>.\<close>
 theorem (in M_trancl) trans_wfrec_relativize:
-  "[|wf(r);  trans(r);  relation(r);  M(r);  M(a);
+  "\<lbrakk>wf(r);  trans(r);  relation(r);  M(r);  M(a);
      wfrec_replacement(M,MH,r);  relation2(M,MH,H);
-     \<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g))|] 
-   ==> wfrec(r,a,H) = z \<longleftrightarrow> (\<exists>f[M]. is_recfun(r,a,H,f) & z = H(a,f))" 
+     \<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g))\<rbrakk> 
+   \<Longrightarrow> wfrec(r,a,H) = z \<longleftrightarrow> (\<exists>f[M]. is_recfun(r,a,H,f) & z = H(a,f))" 
 apply (frule wfrec_replacement', assumption+) 
 apply (simp cong: is_recfun_cong
            add: wfrec_relativize trancl_eq_r
@@ -215,18 +215,18 @@ apply (simp cong: is_recfun_cong
 done
 
 theorem (in M_trancl) trans_wfrec_abs:
-  "[|wf(r);  trans(r);  relation(r);  M(r);  M(a);  M(z);
+  "\<lbrakk>wf(r);  trans(r);  relation(r);  M(r);  M(a);  M(z);
      wfrec_replacement(M,MH,r);  relation2(M,MH,H);
-     \<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g))|] 
-   ==> is_wfrec(M,MH,r,a,z) \<longleftrightarrow> z=wfrec(r,a,H)" 
+     \<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g))\<rbrakk> 
+   \<Longrightarrow> is_wfrec(M,MH,r,a,z) \<longleftrightarrow> z=wfrec(r,a,H)" 
 by (simp add: trans_wfrec_relativize [THEN iff_sym] is_wfrec_abs, blast) 
 
 
 lemma (in M_trancl) trans_eq_pair_wfrec_iff:
-  "[|wf(r);  trans(r); relation(r); M(r);  M(y); 
+  "\<lbrakk>wf(r);  trans(r); relation(r); M(r);  M(y); 
      wfrec_replacement(M,MH,r);  relation2(M,MH,H);
-     \<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g))|] 
-   ==> y = <x, wfrec(r, x, H)> \<longleftrightarrow> 
+     \<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g))\<rbrakk> 
+   \<Longrightarrow> y = <x, wfrec(r, x, H)> \<longleftrightarrow> 
        (\<exists>f[M]. is_recfun(r,x,H,f) & y = <x, H(x,f)>)"
 apply safe 
  apply (simp add: trans_wfrec_relativize [THEN iff_sym, of concl: _ x]) 
@@ -240,10 +240,10 @@ subsection\<open>M is closed under well-founded recursion\<close>
 
 text\<open>Lemma with the awkward premise mentioning \<open>wfrec\<close>.\<close>
 lemma (in M_trancl) wfrec_closed_lemma [rule_format]:
-     "[|wf(r); M(r); 
+     "\<lbrakk>wf(r); M(r); 
         strong_replacement(M, \<lambda>x y. y = \<langle>x, wfrec(r, x, H)\<rangle>);
-        \<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g)) |] 
-      ==> M(a) \<longrightarrow> M(wfrec(r,a,H))"
+        \<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g))\<rbrakk> 
+      \<Longrightarrow> M(a) \<longrightarrow> M(wfrec(r,a,H))"
 apply (rule_tac a=a in wf_induct, assumption+)
 apply (subst wfrec, assumption, clarify)
 apply (drule_tac x1=x and x="\<lambda>x\<in>r -`` {x}. wfrec(r, x, H)" 
@@ -264,10 +264,10 @@ done
 
 text\<open>Useful version for transitive relations\<close>
 theorem (in M_trancl) trans_wfrec_closed:
-     "[|wf(r); trans(r); relation(r); M(r); M(a);
+     "\<lbrakk>wf(r); trans(r); relation(r); M(r); M(a);
        wfrec_replacement(M,MH,r);  relation2(M,MH,H);
-        \<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g)) |] 
-      ==> M(wfrec(r,a,H))"
+        \<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g))\<rbrakk> 
+      \<Longrightarrow> M(wfrec(r,a,H))"
 apply (frule wfrec_replacement', assumption+) 
 apply (frule wfrec_replacement_iff [THEN iffD1]) 
 apply (rule wfrec_closed_lemma, assumption+) 
@@ -276,13 +276,13 @@ done
 
 subsection\<open>Absoluteness without assuming transitivity\<close>
 lemma (in M_trancl) eq_pair_wfrec_iff:
-  "[|wf(r);  M(r);  M(y); 
+  "\<lbrakk>wf(r);  M(r);  M(y); 
      strong_replacement(M, \<lambda>x z. \<exists>y[M]. \<exists>g[M].
           pair(M,x,y,z) & 
           is_recfun(r^+, x, \<lambda>x f. H(x, restrict(f, r -`` {x})), g) & 
           y = H(x, restrict(g, r -`` {x}))); 
-     \<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g))|] 
-   ==> y = <x, wfrec(r, x, H)> \<longleftrightarrow> 
+     \<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g))\<rbrakk> 
+   \<Longrightarrow> y = <x, wfrec(r, x, H)> \<longleftrightarrow> 
        (\<exists>f[M]. is_recfun(r^+, x, \<lambda>x f. H(x, restrict(f, r -`` {x})), f) & 
             y = <x, H(x,restrict(f,r-``{x}))>)"
 apply safe  
@@ -294,11 +294,11 @@ done
 
 text\<open>Full version not assuming transitivity, but maybe not very useful.\<close>
 theorem (in M_trancl) wfrec_closed:
-     "[|wf(r); M(r); M(a);
+     "\<lbrakk>wf(r); M(r); M(a);
         wfrec_replacement(M,MH,r^+);  
         relation2(M,MH, \<lambda>x f. H(x, restrict(f, r -`` {x})));
-        \<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g)) |] 
-      ==> M(wfrec(r,a,H))"
+        \<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g))\<rbrakk> 
+      \<Longrightarrow> M(wfrec(r,a,H))"
 apply (frule wfrec_replacement' 
                [of MH "r^+" "\<lambda>x f. H(x, restrict(f, r -`` {x}))"])
    prefer 4

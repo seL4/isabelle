@@ -12,7 +12,7 @@ subsection\<open>General Lemmas\<close>
 (*Many of these might be useful in WF.thy*)
 
 lemma apply_recfun2:
-    "[| is_recfun(r,a,H,f); <x,i>:f |] ==> i = H(x, restrict(f,r-``{x}))"
+    "\<lbrakk>is_recfun(r,a,H,f); <x,i>:f\<rbrakk> \<Longrightarrow> i = H(x, restrict(f,r-``{x}))"
 apply (frule apply_recfun) 
  apply (blast dest: is_recfun_type fun_is_rel) 
 apply (simp add: function_apply_equality [OF _ is_recfun_imp_function])
@@ -32,24 +32,24 @@ apply (rule fun_extension)
  apply (fast intro: lam_type, simp) 
 done
 
-lemma is_recfun_imp_in_r: "[|is_recfun(r,a,H,f); \<langle>x,i\<rangle> \<in> f|] ==> \<langle>x, a\<rangle> \<in> r"
+lemma is_recfun_imp_in_r: "\<lbrakk>is_recfun(r,a,H,f); \<langle>x,i\<rangle> \<in> f\<rbrakk> \<Longrightarrow> \<langle>x, a\<rangle> \<in> r"
 by (blast dest: is_recfun_type fun_is_rel)
 
 lemma trans_Int_eq:
-      "[| trans(r); <y,x> \<in> r |] ==> r -`` {x} \<inter> r -`` {y} = r -`` {y}"
+      "\<lbrakk>trans(r); <y,x> \<in> r\<rbrakk> \<Longrightarrow> r -`` {x} \<inter> r -`` {y} = r -`` {y}"
 by (blast intro: transD) 
 
 lemma is_recfun_restrict_idem:
-     "is_recfun(r,a,H,f) ==> restrict(f, r -`` {a}) = f"
+     "is_recfun(r,a,H,f) \<Longrightarrow> restrict(f, r -`` {a}) = f"
 apply (drule is_recfun_type)
 apply (auto simp add: Pi_iff subset_Sigma_imp_relation restrict_idem)  
 done
 
 lemma is_recfun_cong_lemma:
-  "[| is_recfun(r,a,H,f); r = r'; a = a'; f = f'; 
-      !!x g. [| <x,a'> \<in> r'; relation(g); domain(g) \<subseteq> r' -``{x} |] 
-             ==> H(x,g) = H'(x,g) |]
-   ==> is_recfun(r',a',H',f')"
+  "\<lbrakk>is_recfun(r,a,H,f); r = r'; a = a'; f = f'; 
+      \<And>x g. \<lbrakk><x,a'> \<in> r'; relation(g); domain(g) \<subseteq> r' -``{x}\<rbrakk> 
+             \<Longrightarrow> H(x,g) = H'(x,g)\<rbrakk>
+   \<Longrightarrow> is_recfun(r',a',H',f')"
 apply (simp add: is_recfun_def) 
 apply (erule trans) 
 apply (rule lam_cong) 
@@ -59,10 +59,10 @@ done
 text\<open>For \<open>is_recfun\<close> we need only pay attention to functions
       whose domains are initial segments of \<^term>\<open>r\<close>.\<close>
 lemma is_recfun_cong:
-  "[| r = r'; a = a'; f = f'; 
-      !!x g. [| <x,a'> \<in> r'; relation(g); domain(g) \<subseteq> r' -``{x} |] 
-             ==> H(x,g) = H'(x,g) |]
-   ==> is_recfun(r,a,H,f) \<longleftrightarrow> is_recfun(r',a',H',f')"
+  "\<lbrakk>r = r'; a = a'; f = f'; 
+      \<And>x g. \<lbrakk><x,a'> \<in> r'; relation(g); domain(g) \<subseteq> r' -``{x}\<rbrakk> 
+             \<Longrightarrow> H(x,g) = H'(x,g)\<rbrakk>
+   \<Longrightarrow> is_recfun(r,a,H,f) \<longleftrightarrow> is_recfun(r',a',H',f')"
 apply (rule iffI)
 txt\<open>Messy: fast and blast don't work for some reason\<close>
 apply (erule is_recfun_cong_lemma, auto) 
@@ -73,9 +73,9 @@ done
 subsection\<open>Reworking of the Recursion Theory Within \<^term>\<open>M\<close>\<close>
 
 lemma (in M_basic) is_recfun_separation':
-    "[| f \<in> r -`` {a} \<rightarrow> range(f); g \<in> r -`` {b} \<rightarrow> range(g);
-        M(r); M(f); M(g); M(a); M(b) |] 
-     ==> separation(M, \<lambda>x. \<not> (\<langle>x, a\<rangle> \<in> r \<longrightarrow> \<langle>x, b\<rangle> \<in> r \<longrightarrow> f ` x = g ` x))"
+    "\<lbrakk>f \<in> r -`` {a} \<rightarrow> range(f); g \<in> r -`` {b} \<rightarrow> range(g);
+        M(r); M(f); M(g); M(a); M(b)\<rbrakk> 
+     \<Longrightarrow> separation(M, \<lambda>x. \<not> (\<langle>x, a\<rangle> \<in> r \<longrightarrow> \<langle>x, b\<rangle> \<in> r \<longrightarrow> f ` x = g ` x))"
 apply (insert is_recfun_separation [of r f g a b]) 
 apply (simp add: vimage_singleton_iff)
 done
@@ -88,10 +88,10 @@ text\<open>Stated using \<^term>\<open>trans(r)\<close> rather than
       but without them we'd have to undertake
       more work to set up the induction formula.\<close>
 lemma (in M_basic) is_recfun_equal [rule_format]: 
-    "[|is_recfun(r,a,H,f);  is_recfun(r,b,H,g);  
+    "\<lbrakk>is_recfun(r,a,H,f);  is_recfun(r,b,H,g);  
        wellfounded(M,r);  trans(r);
-       M(f); M(g); M(r); M(x); M(a); M(b) |] 
-     ==> <x,a> \<in> r \<longrightarrow> <x,b> \<in> r \<longrightarrow> f`x=g`x"
+       M(f); M(g); M(r); M(x); M(a); M(b)\<rbrakk> 
+     \<Longrightarrow> <x,a> \<in> r \<longrightarrow> <x,b> \<in> r \<longrightarrow> f`x=g`x"
 apply (frule_tac f=f in is_recfun_type) 
 apply (frule_tac f=g in is_recfun_type) 
 apply (simp add: is_recfun_def)
@@ -111,10 +111,10 @@ apply (blast intro: transD sym)
 done
 
 lemma (in M_basic) is_recfun_cut: 
-    "[|is_recfun(r,a,H,f);  is_recfun(r,b,H,g);  
+    "\<lbrakk>is_recfun(r,a,H,f);  is_recfun(r,b,H,g);  
        wellfounded(M,r); trans(r); 
-       M(f); M(g); M(r); <b,a> \<in> r |]   
-      ==> restrict(f, r-``{b}) = g"
+       M(f); M(g); M(r); <b,a> \<in> r\<rbrakk>   
+      \<Longrightarrow> restrict(f, r-``{b}) = g"
 apply (frule_tac f=f in is_recfun_type) 
 apply (rule fun_extension) 
 apply (blast intro: transD restrict_type2) 
@@ -123,8 +123,8 @@ apply (blast intro: is_recfun_equal transD dest: transM)
 done
 
 lemma (in M_basic) is_recfun_functional:
-     "[|is_recfun(r,a,H,f);  is_recfun(r,a,H,g);  
-       wellfounded(M,r); trans(r); M(f); M(g); M(r) |] ==> f=g"
+     "\<lbrakk>is_recfun(r,a,H,f);  is_recfun(r,a,H,g);  
+       wellfounded(M,r); trans(r); M(f); M(g); M(r)\<rbrakk> \<Longrightarrow> f=g"
 apply (rule fun_extension)
 apply (erule is_recfun_type)+
 apply (blast intro!: is_recfun_equal dest: transM) 
@@ -132,8 +132,8 @@ done
 
 text\<open>Tells us that \<open>is_recfun\<close> can (in principle) be relativized.\<close>
 lemma (in M_basic) is_recfun_relativize:
-  "[| M(r); M(f); \<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g)) |] 
-   ==> is_recfun(r,a,H,f) \<longleftrightarrow>
+  "\<lbrakk>M(r); M(f); \<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g))\<rbrakk> 
+   \<Longrightarrow> is_recfun(r,a,H,f) \<longleftrightarrow>
        (\<forall>z[M]. z \<in> f \<longleftrightarrow> 
         (\<exists>x[M]. <x,a> \<in> r & z = <x, H(x, restrict(f, r-``{x}))>))"
 apply (simp add: is_recfun_def lam_def)
@@ -153,10 +153,10 @@ apply (simp add: is_recfun_imp_function function_restrictI)
 done
 
 lemma (in M_basic) is_recfun_restrict:
-     "[| wellfounded(M,r); trans(r); is_recfun(r,x,H,f); \<langle>y,x\<rangle> \<in> r; 
+     "\<lbrakk>wellfounded(M,r); trans(r); is_recfun(r,x,H,f); \<langle>y,x\<rangle> \<in> r; 
        M(r); M(f); 
-       \<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g)) |]
-       ==> is_recfun(r, y, H, restrict(f, r -`` {y}))"
+       \<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g))\<rbrakk>
+       \<Longrightarrow> is_recfun(r, y, H, restrict(f, r -`` {y}))"
 apply (frule pair_components_in_M, assumption, clarify) 
 apply (simp (no_asm_simp) add: is_recfun_relativize restrict_iff
            trans_Int_eq)
@@ -170,14 +170,14 @@ apply (blast intro: apply_recfun dest: transD)
 done
  
 lemma (in M_basic) restrict_Y_lemma:
-   "[| wellfounded(M,r); trans(r); M(r);
+   "\<lbrakk>wellfounded(M,r); trans(r); M(r);
        \<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g));  M(Y);
        \<forall>b[M]. 
            b \<in> Y \<longleftrightarrow>
            (\<exists>x[M]. <x,a1> \<in> r &
             (\<exists>y[M]. b = \<langle>x,y\<rangle> & (\<exists>g[M]. is_recfun(r,x,H,g) \<and> y = H(x,g))));
-          \<langle>x,a1\<rangle> \<in> r; is_recfun(r,x,H,f); M(f) |]
-       ==> restrict(Y, r -`` {x}) = f"
+          \<langle>x,a1\<rangle> \<in> r; is_recfun(r,x,H,f); M(f)\<rbrakk>
+       \<Longrightarrow> restrict(Y, r -`` {x}) = f"
 apply (subgoal_tac "\<forall>y \<in> r-``{x}. \<forall>z. <y,z>:Y \<longleftrightarrow> <y,z>:f") 
  apply (simp (no_asm_simp) add: restrict_def) 
  apply (thin_tac "rall(M,P)" for P)+  \<comment> \<open>essential for efficiency\<close>
@@ -199,8 +199,8 @@ done
 
 text\<open>For typical applications of Replacement for recursive definitions\<close>
 lemma (in M_basic) univalent_is_recfun:
-     "[|wellfounded(M,r); trans(r); M(r)|]
-      ==> univalent (M, A, \<lambda>x p. 
+     "\<lbrakk>wellfounded(M,r); trans(r); M(r)\<rbrakk>
+      \<Longrightarrow> univalent (M, A, \<lambda>x p. 
               \<exists>y[M]. p = \<langle>x,y\<rangle> & (\<exists>f[M]. is_recfun(r,x,H,f) & y = H(x,f)))"
 apply (simp add: univalent_def) 
 apply (blast dest: is_recfun_functional) 
@@ -210,12 +210,12 @@ done
 text\<open>Proof of the inductive step for \<open>exists_is_recfun\<close>, since
       we must prove two versions.\<close>
 lemma (in M_basic) exists_is_recfun_indstep:
-    "[|\<forall>y. \<langle>y, a1\<rangle> \<in> r \<longrightarrow> (\<exists>f[M]. is_recfun(r, y, H, f)); 
+    "\<lbrakk>\<forall>y. \<langle>y, a1\<rangle> \<in> r \<longrightarrow> (\<exists>f[M]. is_recfun(r, y, H, f)); 
        wellfounded(M,r); trans(r); M(r); M(a1);
        strong_replacement(M, \<lambda>x z. 
               \<exists>y[M]. \<exists>g[M]. pair(M,x,y,z) & is_recfun(r,x,H,g) & y = H(x,g)); 
-       \<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g))|]   
-      ==> \<exists>f[M]. is_recfun(r,a1,H,f)"
+       \<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g))\<rbrakk>   
+      \<Longrightarrow> \<exists>f[M]. is_recfun(r,a1,H,f)"
 apply (drule_tac A="r-``{a1}" in strong_replacementD)
   apply blast 
  txt\<open>Discharge the "univalent" obligation of Replacement\<close>
@@ -243,23 +243,23 @@ done
 text\<open>Relativized version, when we have the (currently weaker) premise
       \<^term>\<open>wellfounded(M,r)\<close>\<close>
 lemma (in M_basic) wellfounded_exists_is_recfun:
-    "[|wellfounded(M,r);  trans(r);  
-       separation(M, \<lambda>x. ~ (\<exists>f[M]. is_recfun(r, x, H, f)));
+    "\<lbrakk>wellfounded(M,r);  trans(r);  
+       separation(M, \<lambda>x. \<not> (\<exists>f[M]. is_recfun(r, x, H, f)));
        strong_replacement(M, \<lambda>x z. 
           \<exists>y[M]. \<exists>g[M]. pair(M,x,y,z) & is_recfun(r,x,H,g) & y = H(x,g)); 
        M(r);  M(a);  
-       \<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g)) |]   
-      ==> \<exists>f[M]. is_recfun(r,a,H,f)"
+       \<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g))\<rbrakk>   
+      \<Longrightarrow> \<exists>f[M]. is_recfun(r,a,H,f)"
 apply (rule wellfounded_induct, assumption+, clarify)
 apply (rule exists_is_recfun_indstep, assumption+)
 done
 
 lemma (in M_basic) wf_exists_is_recfun [rule_format]:
-    "[|wf(r);  trans(r);  M(r);  
+    "\<lbrakk>wf(r);  trans(r);  M(r);  
        strong_replacement(M, \<lambda>x z. 
          \<exists>y[M]. \<exists>g[M]. pair(M,x,y,z) & is_recfun(r,x,H,g) & y = H(x,g)); 
-       \<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g)) |]   
-      ==> M(a) \<longrightarrow> (\<exists>f[M]. is_recfun(r,a,H,f))"
+       \<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g))\<rbrakk>   
+      \<Longrightarrow> M(a) \<longrightarrow> (\<exists>f[M]. is_recfun(r,a,H,f))"
 apply (rule wf_induct, assumption+)
 apply (frule wf_imp_relativized)
 apply (intro impI)
@@ -272,7 +272,7 @@ subsection\<open>Relativization of the ZF Predicate \<^term>\<open>is_recfun\<cl
 
 definition
   M_is_recfun :: "[i=>o, [i,i,i]=>o, i, i, i] => o" where
-   "M_is_recfun(M,MH,r,a,f) == 
+   "M_is_recfun(M,MH,r,a,f) \<equiv> 
      \<forall>z[M]. z \<in> f \<longleftrightarrow> 
             (\<exists>x[M]. \<exists>y[M]. \<exists>xa[M]. \<exists>sx[M]. \<exists>r_sx[M]. \<exists>f_r_sx[M]. 
                pair(M,x,y,z) & pair(M,x,a,xa) & upair(M,x,x,sx) &
@@ -281,50 +281,50 @@ definition
 
 definition
   is_wfrec :: "[i=>o, [i,i,i]=>o, i, i, i] => o" where
-   "is_wfrec(M,MH,r,a,z) == 
+   "is_wfrec(M,MH,r,a,z) \<equiv> 
       \<exists>f[M]. M_is_recfun(M,MH,r,a,f) & MH(a,f,z)"
 
 definition
   wfrec_replacement :: "[i=>o, [i,i,i]=>o, i] => o" where
-   "wfrec_replacement(M,MH,r) ==
+   "wfrec_replacement(M,MH,r) \<equiv>
         strong_replacement(M, 
              \<lambda>x z. \<exists>y[M]. pair(M,x,y,z) & is_wfrec(M,MH,r,x,y))"
 
 lemma (in M_basic) is_recfun_abs:
-     "[| \<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g));  M(r); M(a); M(f); 
-         relation2(M,MH,H) |] 
-      ==> M_is_recfun(M,MH,r,a,f) \<longleftrightarrow> is_recfun(r,a,H,f)"
+     "\<lbrakk>\<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g));  M(r); M(a); M(f); 
+         relation2(M,MH,H)\<rbrakk> 
+      \<Longrightarrow> M_is_recfun(M,MH,r,a,f) \<longleftrightarrow> is_recfun(r,a,H,f)"
 apply (simp add: M_is_recfun_def relation2_def is_recfun_relativize)
 apply (rule rall_cong)
 apply (blast dest: transM)
 done
 
 lemma M_is_recfun_cong [cong]:
-     "[| r = r'; a = a'; f = f'; 
-       !!x g y. [| M(x); M(g); M(y) |] ==> MH(x,g,y) \<longleftrightarrow> MH'(x,g,y) |]
-      ==> M_is_recfun(M,MH,r,a,f) \<longleftrightarrow> M_is_recfun(M,MH',r',a',f')"
+     "\<lbrakk>r = r'; a = a'; f = f'; 
+       \<And>x g y. \<lbrakk>M(x); M(g); M(y)\<rbrakk> \<Longrightarrow> MH(x,g,y) \<longleftrightarrow> MH'(x,g,y)\<rbrakk>
+      \<Longrightarrow> M_is_recfun(M,MH,r,a,f) \<longleftrightarrow> M_is_recfun(M,MH',r',a',f')"
 by (simp add: M_is_recfun_def) 
 
 lemma (in M_basic) is_wfrec_abs:
-     "[| \<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g)); 
-         relation2(M,MH,H);  M(r); M(a); M(z) |]
-      ==> is_wfrec(M,MH,r,a,z) \<longleftrightarrow> 
+     "\<lbrakk>\<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g)); 
+         relation2(M,MH,H);  M(r); M(a); M(z)\<rbrakk>
+      \<Longrightarrow> is_wfrec(M,MH,r,a,z) \<longleftrightarrow> 
           (\<exists>g[M]. is_recfun(r,a,H,g) & z = H(a,g))"
 by (simp add: is_wfrec_def relation2_def is_recfun_abs)
 
 text\<open>Relating \<^term>\<open>wfrec_replacement\<close> to native constructs\<close>
 lemma (in M_basic) wfrec_replacement':
-  "[|wfrec_replacement(M,MH,r);
+  "\<lbrakk>wfrec_replacement(M,MH,r);
      \<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g)); 
-     relation2(M,MH,H);  M(r)|] 
-   ==> strong_replacement(M, \<lambda>x z. \<exists>y[M]. 
+     relation2(M,MH,H);  M(r)\<rbrakk> 
+   \<Longrightarrow> strong_replacement(M, \<lambda>x z. \<exists>y[M]. 
                 pair(M,x,y,z) & (\<exists>g[M]. is_recfun(r,x,H,g) & y = H(x,g)))"
 by (simp add: wfrec_replacement_def is_wfrec_abs) 
 
 lemma wfrec_replacement_cong [cong]:
-     "[| !!x y z. [| M(x); M(y); M(z) |] ==> MH(x,y,z) \<longleftrightarrow> MH'(x,y,z);
-         r=r' |] 
-      ==> wfrec_replacement(M, %x y. MH(x,y), r) \<longleftrightarrow> 
+     "\<lbrakk>\<And>x y z. \<lbrakk>M(x); M(y); M(z)\<rbrakk> \<Longrightarrow> MH(x,y,z) \<longleftrightarrow> MH'(x,y,z);
+         r=r'\<rbrakk> 
+      \<Longrightarrow> wfrec_replacement(M, %x y. MH(x,y), r) \<longleftrightarrow> 
           wfrec_replacement(M, %x y. MH'(x,y), r')" 
 by (simp add: is_wfrec_def wfrec_replacement_def) 
 

@@ -23,7 +23,7 @@ by simp (*300 msec*)
 lemma "$- #65745 = #-65745"
 by simp (*80 msec*)
 
-(* negation of ~54321 *)
+(* negation of \<not>54321 *)
 lemma "$- #-54321 = #54321"
 by simp (*90 msec*)
 
@@ -62,7 +62,7 @@ lemma "(#1234567) $\<le> #1234567"
 by simp
 
 
-(*** Quotient and remainder!! [they could be faster] ***)
+(*** Quotient and remainder\<And>[they could be faster] ***)
 
 lemma "#23 zdiv #3 = #7"
 by simp

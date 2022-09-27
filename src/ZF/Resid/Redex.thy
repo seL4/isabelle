@@ -19,14 +19,14 @@ consts
 
 abbreviation
   Ssub_rel  (infixl \<open>\<Longleftarrow>\<close> 70) where
-  "a \<Longleftarrow> b == <a,b> \<in> Ssub"
+  "a \<Longleftarrow> b \<equiv> <a,b> \<in> Ssub"
 
 abbreviation
   Scomp_rel  (infixl \<open>\<sim>\<close> 70) where
-  "a \<sim> b == <a,b> \<in> Scomp"
+  "a \<sim> b \<equiv> <a,b> \<in> Scomp"
 
 abbreviation
-  "regular(a) == a \<in> Sreg"
+  "regular(a) \<equiv> a \<in> Sreg"
 
 consts union_aux        :: "i=>i"
 primrec (*explicit lambda is required because both arguments of "\<squnion>" vary*)
@@ -44,35 +44,35 @@ primrec (*explicit lambda is required because both arguments of "\<squnion>" var
 
 definition
   union  (infixl \<open>\<squnion>\<close> 70) where
-  "u \<squnion> v == union_aux(u)`v"
+  "u \<squnion> v \<equiv> union_aux(u)`v"
 
 
 inductive
   domains       "Ssub" \<subseteq> "redexes*redexes"
   intros
-    Sub_Var:     "n \<in> nat ==> Var(n) \<Longleftarrow> Var(n)"
-    Sub_Fun:     "[|u \<Longleftarrow> v|]==> Fun(u) \<Longleftarrow> Fun(v)"
-    Sub_App1:    "[|u1 \<Longleftarrow> v1; u2 \<Longleftarrow> v2; b \<in> bool|]==>   
+    Sub_Var:     "n \<in> nat \<Longrightarrow> Var(n) \<Longleftarrow> Var(n)"
+    Sub_Fun:     "\<lbrakk>u \<Longleftarrow> v\<rbrakk>\<Longrightarrow> Fun(u) \<Longleftarrow> Fun(v)"
+    Sub_App1:    "\<lbrakk>u1 \<Longleftarrow> v1; u2 \<Longleftarrow> v2; b \<in> bool\<rbrakk>\<Longrightarrow>   
                      App(0,u1,u2) \<Longleftarrow> App(b,v1,v2)"
-    Sub_App2:    "[|u1 \<Longleftarrow> v1; u2 \<Longleftarrow> v2|]==> App(1,u1,u2) \<Longleftarrow> App(1,v1,v2)"
+    Sub_App2:    "\<lbrakk>u1 \<Longleftarrow> v1; u2 \<Longleftarrow> v2\<rbrakk>\<Longrightarrow> App(1,u1,u2) \<Longleftarrow> App(1,v1,v2)"
   type_intros    redexes.intros bool_typechecks
 
 inductive
   domains       "Scomp" \<subseteq> "redexes*redexes"
   intros
-    Comp_Var:    "n \<in> nat ==> Var(n) \<sim> Var(n)"
-    Comp_Fun:    "[|u \<sim> v|]==> Fun(u) \<sim> Fun(v)"
-    Comp_App:    "[|u1 \<sim> v1; u2 \<sim> v2; b1 \<in> bool; b2 \<in> bool|]
-                  ==> App(b1,u1,u2) \<sim> App(b2,v1,v2)"
+    Comp_Var:    "n \<in> nat \<Longrightarrow> Var(n) \<sim> Var(n)"
+    Comp_Fun:    "\<lbrakk>u \<sim> v\<rbrakk>\<Longrightarrow> Fun(u) \<sim> Fun(v)"
+    Comp_App:    "\<lbrakk>u1 \<sim> v1; u2 \<sim> v2; b1 \<in> bool; b2 \<in> bool\<rbrakk>
+                  \<Longrightarrow> App(b1,u1,u2) \<sim> App(b2,v1,v2)"
   type_intros    redexes.intros bool_typechecks
 
 inductive
   domains       "Sreg" \<subseteq> redexes
   intros
-    Reg_Var:     "n \<in> nat ==> regular(Var(n))"
-    Reg_Fun:     "[|regular(u)|]==> regular(Fun(u))"
-    Reg_App1:    "[|regular(Fun(u)); regular(v) |]==>regular(App(1,Fun(u),v))"
-    Reg_App2:    "[|regular(u); regular(v) |]==>regular(App(0,u,v))"
+    Reg_Var:     "n \<in> nat \<Longrightarrow> regular(Var(n))"
+    Reg_Fun:     "\<lbrakk>regular(u)\<rbrakk>\<Longrightarrow> regular(Fun(u))"
+    Reg_App1:    "\<lbrakk>regular(Fun(u)); regular(v)\<rbrakk>\<Longrightarrow>regular(App(1,Fun(u),v))"
+    Reg_App2:    "\<lbrakk>regular(u); regular(v)\<rbrakk>\<Longrightarrow>regular(App(0,u,v))"
   type_intros    redexes.intros bool_typechecks
 
 
@@ -90,15 +90,15 @@ lemmas regD [simp] = Sreg.dom_subset [THEN subsetD]
 (*    Equality rules for union                                               *)
 (* ------------------------------------------------------------------------- *)
 
-lemma union_Var [simp]: "n \<in> nat ==> Var(n) \<squnion> Var(n)=Var(n)"
+lemma union_Var [simp]: "n \<in> nat \<Longrightarrow> Var(n) \<squnion> Var(n)=Var(n)"
 by (simp add: union_def)
 
-lemma union_Fun [simp]: "v \<in> redexes ==> Fun(u) \<squnion> Fun(v) = Fun(u \<squnion> v)"
+lemma union_Fun [simp]: "v \<in> redexes \<Longrightarrow> Fun(u) \<squnion> Fun(v) = Fun(u \<squnion> v)"
 by (simp add: union_def)
  
 lemma union_App [simp]:
-     "[|b2 \<in> bool; u2 \<in> redexes; v2 \<in> redexes|]
-      ==> App(b1,u1,v1) \<squnion> App(b2,u2,v2)=App(b1 or b2,u1 \<squnion> u2,v1 \<squnion> v2)"
+     "\<lbrakk>b2 \<in> bool; u2 \<in> redexes; v2 \<in> redexes\<rbrakk>
+      \<Longrightarrow> App(b1,u1,v1) \<squnion> App(b2,u2,v2)=App(b1 or b2,u1 \<squnion> u2,v1 \<squnion> v2)"
 by (simp add: union_def)
 
 
@@ -135,16 +135,16 @@ inductive_cases [elim!]:
 (*    comp proofs                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-lemma comp_refl [simp]: "u \<in> redexes ==> u \<sim> u"
+lemma comp_refl [simp]: "u \<in> redexes \<Longrightarrow> u \<sim> u"
 by (erule redexes.induct, blast+)
 
-lemma comp_sym: "u \<sim> v ==> v \<sim> u"
+lemma comp_sym: "u \<sim> v \<Longrightarrow> v \<sim> u"
 by (erule Scomp.induct, blast+)
 
 lemma comp_sym_iff: "u \<sim> v \<longleftrightarrow> v \<sim> u"
 by (blast intro: comp_sym)
 
-lemma comp_trans [rule_format]: "u \<sim> v ==> \<forall>w. v \<sim> w\<longrightarrow>u \<sim> w"
+lemma comp_trans [rule_format]: "u \<sim> v \<Longrightarrow> \<forall>w. v \<sim> w\<longrightarrow>u \<sim> w"
 by (erule Scomp.induct, blast+)
 
 (* ------------------------------------------------------------------------- *)

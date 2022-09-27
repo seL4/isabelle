@@ -14,27 +14,27 @@ theory Merge imports AllocBase Follows  Guar GenPrefix begin
 definition
   (*spec (10)*)
   merge_increasing :: "[i, i, i] =>i"  where
-    "merge_increasing(A, Out, iOut) == program guarantees
+    "merge_increasing(A, Out, iOut) \<equiv> program guarantees
          (lift(Out) IncreasingWrt  prefix(A)/list(A)) Int
          (lift(iOut) IncreasingWrt prefix(nat)/list(nat))"
 
 definition
   (*spec (11)*)
   merge_eq_Out :: "[i, i] =>i"  where
-  "merge_eq_Out(Out, iOut) == program guarantees
+  "merge_eq_Out(Out, iOut) \<equiv> program guarantees
          Always({s \<in> state. length(s`Out) = length(s`iOut)})"
 
 definition
   (*spec (12)*)
   merge_bounded :: "i=>i"  where
-  "merge_bounded(iOut) == program guarantees
+  "merge_bounded(iOut) \<equiv> program guarantees
          Always({s \<in> state. \<forall>elt \<in> set_of_list(s`iOut). elt<Nclients})"
   
 definition
   (*spec (13)*)
   (* Parameter A represents the type of tokens *)
   merge_follows :: "[i, i=>i, i, i] =>i"  where
-    "merge_follows(A, In, Out, iOut) ==
+    "merge_follows(A, In, Out, iOut) \<equiv>
      (\<Inter>n \<in> Nclients. lift(In(n)) IncreasingWrt prefix(A)/list(A))
                    guarantees
      (\<Inter>n \<in> Nclients. 
@@ -45,19 +45,19 @@ definition
 definition
   (*spec: preserves part*)
   merge_preserves :: "[i=>i] =>i"  where
-    "merge_preserves(In) == \<Inter>n \<in> nat. preserves(lift(In(n)))"
+    "merge_preserves(In) \<equiv> \<Inter>n \<in> nat. preserves(lift(In(n)))"
 
 definition
 (* environmental constraints*)
   merge_allowed_acts :: "[i, i] =>i"  where
-  "merge_allowed_acts(Out, iOut) ==
+  "merge_allowed_acts(Out, iOut) \<equiv>
          {F \<in> program. AllowedActs(F) =
             cons(id(state), (\<Union>G \<in> preserves(lift(Out)) \<inter>
                                    preserves(lift(iOut)). Acts(G)))}"
   
 definition
   merge_spec :: "[i, i =>i, i, i]=>i"  where
-  "merge_spec(A, In, Out, iOut) ==
+  "merge_spec(A, In, Out, iOut) \<equiv>
    merge_increasing(A, Out, iOut) \<inter> merge_eq_Out(Out, iOut) \<inter>
    merge_bounded(iOut) \<inter>  merge_follows(A, In, Out, iOut)
    \<inter> merge_allowed_acts(Out, iOut) \<inter> merge_preserves(In)"
@@ -84,18 +84,18 @@ locale merge =
      and merge_spec:  "M \<in> merge_spec(A, In, Out, iOut)"
 
 
-lemma (in merge) In_value_type [TC,simp]: "s \<in> state ==> s`In(n) \<in> list(A)"
+lemma (in merge) In_value_type [TC,simp]: "s \<in> state \<Longrightarrow> s`In(n) \<in> list(A)"
 apply (unfold state_def)
 apply (drule_tac a = "In (n)" in apply_type)
 apply auto
 done
 
-lemma (in merge) Out_value_type [TC,simp]: "s \<in> state ==> s`Out \<in> list(A)"
+lemma (in merge) Out_value_type [TC,simp]: "s \<in> state \<Longrightarrow> s`Out \<in> list(A)"
 apply (unfold state_def)
 apply (drule_tac a = Out in apply_type, auto)
 done
 
-lemma (in merge) iOut_value_type [TC,simp]: "s \<in> state ==> s`iOut \<in> list(nat)"
+lemma (in merge) iOut_value_type [TC,simp]: "s \<in> state \<Longrightarrow> s`iOut \<in> list(nat)"
 apply (unfold state_def)
 apply (drule_tac a = iOut in apply_type, auto)
 done
@@ -113,7 +113,7 @@ apply (auto simp add: merge_spec_def merge_allowed_acts_def Allowed_def safety_p
 done
 
 lemma (in merge) M_ok_iff: 
-     "G \<in> program ==>  
+     "G \<in> program \<Longrightarrow>  
        M ok G \<longleftrightarrow> (G \<in> preserves(lift(Out)) &   
                    G \<in> preserves(lift(iOut)) & M \<in> Allowed(G))"
 apply (cut_tac merge_spec)
@@ -121,9 +121,9 @@ apply (auto simp add: merge_Allowed ok_iff_Allowed)
 done
 
 lemma (in merge) merge_Always_Out_eq_iOut: 
-     "[| G \<in> preserves(lift(Out)); G \<in> preserves(lift(iOut));  
-         M \<in> Allowed(G) |]
-      ==> M \<squnion> G \<in> Always({s \<in> state. length(s`Out)=length(s`iOut)})"
+     "\<lbrakk>G \<in> preserves(lift(Out)); G \<in> preserves(lift(iOut));  
+         M \<in> Allowed(G)\<rbrakk>
+      \<Longrightarrow> M \<squnion> G \<in> Always({s \<in> state. length(s`Out)=length(s`iOut)})"
 apply (frule preserves_type [THEN subsetD])
 apply (subgoal_tac "G \<in> program")
  prefer 2 apply assumption
@@ -133,8 +133,8 @@ apply (force dest: guaranteesD simp add: merge_spec_def merge_eq_Out_def)
 done
 
 lemma (in merge) merge_Bounded: 
-     "[| G \<in> preserves(lift(iOut)); G \<in> preserves(lift(Out));  
-         M \<in> Allowed(G) |] ==>  
+     "\<lbrakk>G \<in> preserves(lift(iOut)); G \<in> preserves(lift(Out));  
+         M \<in> Allowed(G)\<rbrakk> \<Longrightarrow>  
        M \<squnion> G: Always({s \<in> state. \<forall>elt \<in> set_of_list(s`iOut). elt<Nclients})"
 apply (frule preserves_type [THEN subsetD])
 apply (frule M_ok_iff)
@@ -143,9 +143,9 @@ apply (force dest: guaranteesD simp add: merge_spec_def merge_bounded_def)
 done
 
 lemma (in merge) merge_bag_Follows_lemma: 
-"[| G \<in> preserves(lift(iOut));  
-    G: preserves(lift(Out)); M \<in> Allowed(G) |]  
-  ==> M \<squnion> G \<in> Always  
+"\<lbrakk>G \<in> preserves(lift(iOut));  
+    G: preserves(lift(Out)); M \<in> Allowed(G)\<rbrakk>  
+  \<Longrightarrow> M \<squnion> G \<in> Always  
     ({s \<in> state. msetsum(%i. bag_of(sublist(s`Out,  
       {k \<in> nat. k < length(s`iOut) & nth(k, s`iOut)=i})),  
                    Nclients, A) = bag_of(s`Out)})"

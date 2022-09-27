@@ -7,10 +7,10 @@ Distributed Resource Management System:  Client Implementation.
 
 theory ClientImpl imports AllocBase Guar begin
 
-abbreviation "ask == Var(Nil)" (* input history:  tokens requested *)
-abbreviation "giv == Var([0])" (* output history: tokens granted *)
-abbreviation "rel == Var([1])" (* input history: tokens released *)
-abbreviation "tok == Var([2])" (* the number of available tokens *)
+abbreviation "ask \<equiv> Var(Nil)" (* input history:  tokens requested *)
+abbreviation "giv \<equiv> Var([0])" (* output history: tokens granted *)
+abbreviation "rel \<equiv> Var([1])" (* input history: tokens released *)
+abbreviation "tok \<equiv> Var([2])" (* the number of available tokens *)
 
 axiomatization where
   type_assumes:
@@ -21,11 +21,11 @@ axiomatization where
    default_val(rel) = Nil & default_val(tok) = 0"
 
 
-(*Array indexing is translated to list indexing as A[n] == nth(n-1,A). *)
+(*Array indexing is translated to list indexing as A[n] \<equiv> nth(n-1,A). *)
 
 definition
  (** Release some client_tokens **)
-    "client_rel_act ==
+    "client_rel_act \<equiv>
      {<s,t> \<in> state*state.
       \<exists>nrel \<in> nat. nrel = length(s`rel) &
                    t = s(rel:=(s`rel)@[nth(nrel, s`giv)]) &
@@ -36,14 +36,14 @@ definition
   (** Including t=s suppresses fairness, allowing the non-trivial part
       of the action to be ignored **)
 definition
-  "client_tok_act == {<s,t> \<in> state*state. t=s |
+  "client_tok_act \<equiv> {<s,t> \<in> state*state. t=s |
                      t = s(tok:=succ(s`tok mod NbT))}"
 
 definition
-  "client_ask_act == {<s,t> \<in> state*state. t=s | (t=s(ask:=s`ask@[s`tok]))}"
+  "client_ask_act \<equiv> {<s,t> \<in> state*state. t=s | (t=s(ask:=s`ask@[s`tok]))}"
 
 definition
-  "client_prog ==
+  "client_prog \<equiv>
    mk_program({s \<in> state. s`tok \<le> NbT & s`giv = Nil &
                        s`ask = Nil & s`rel = Nil},
                     {client_rel_act, client_tok_act, client_ask_act},
@@ -55,22 +55,22 @@ definition
 declare type_assumes [simp] default_val_assumes [simp]
 (* This part should be automated *)
 
-lemma ask_value_type [simp,TC]: "s \<in> state ==> s`ask \<in> list(nat)"
+lemma ask_value_type [simp,TC]: "s \<in> state \<Longrightarrow> s`ask \<in> list(nat)"
 apply (unfold state_def)
 apply (drule_tac a = ask in apply_type, auto)
 done
 
-lemma giv_value_type [simp,TC]: "s \<in> state ==> s`giv \<in> list(nat)"
+lemma giv_value_type [simp,TC]: "s \<in> state \<Longrightarrow> s`giv \<in> list(nat)"
 apply (unfold state_def)
 apply (drule_tac a = giv in apply_type, auto)
 done
 
-lemma rel_value_type [simp,TC]: "s \<in> state ==> s`rel \<in> list(nat)"
+lemma rel_value_type [simp,TC]: "s \<in> state \<Longrightarrow> s`rel \<in> list(nat)"
 apply (unfold state_def)
 apply (drule_tac a = rel in apply_type, auto)
 done
 
-lemma tok_value_type [simp,TC]: "s \<in> state ==> s`tok \<in> nat"
+lemma tok_value_type [simp,TC]: "s \<in> state \<Longrightarrow> s`tok \<in> nat"
 apply (unfold state_def)
 apply (drule_tac a = tok in apply_type, auto)
 done
@@ -105,14 +105,14 @@ done
 
 
 lemma preserves_lift_imp_stable:
-     "G \<in> preserves(lift(ff)) ==> G \<in> stable({s \<in> state. P(s`ff)})"
+     "G \<in> preserves(lift(ff)) \<Longrightarrow> G \<in> stable({s \<in> state. P(s`ff)})"
 apply (drule preserves_imp_stable)
 apply (simp add: lift_def)
 done
 
 lemma preserves_imp_prefix:
      "G \<in> preserves(lift(ff))
-      ==> G \<in> stable({s \<in> state. \<langle>k, s`ff\<rangle> \<in> prefix(nat)})"
+      \<Longrightarrow> G \<in> stable({s \<in> state. \<langle>k, s`ff\<rangle> \<in> prefix(nat)})"
 by (erule preserves_lift_imp_stable)
 
 (*Safety property 1 \<in> ask, rel are increasing: (24) *)
@@ -135,8 +135,8 @@ done
 With no Substitution Axiom, we must prove the two invariants simultaneously. *)
 
 lemma ask_Bounded_lemma:
-"[| client_prog ok G; G \<in> program |]
-      ==> client_prog \<squnion> G \<in>
+"\<lbrakk>client_prog ok G; G \<in> program\<rbrakk>
+      \<Longrightarrow> client_prog \<squnion> G \<in>
               Always({s \<in> state. s`tok \<le> NbT}  \<inter>
                       {s \<in> state. \<forall>elt \<in> set_of_list(s`ask). elt \<le> NbT})"
 apply (rotate_tac -1)
@@ -166,22 +166,22 @@ lemma client_prog_stable_rel_le_giv:
 by (safety, auto)
 
 lemma client_prog_Join_Stable_rel_le_giv:
-"[| client_prog \<squnion> G \<in> Incr(lift(giv)); G \<in> preserves(lift(rel)) |]
-    ==> client_prog \<squnion> G \<in> Stable({s \<in> state. <s`rel, s`giv> \<in> prefix(nat)})"
+"\<lbrakk>client_prog \<squnion> G \<in> Incr(lift(giv)); G \<in> preserves(lift(rel))\<rbrakk>
+    \<Longrightarrow> client_prog \<squnion> G \<in> Stable({s \<in> state. <s`rel, s`giv> \<in> prefix(nat)})"
 apply (rule client_prog_stable_rel_le_giv [THEN Increasing_preserves_Stable])
 apply (auto simp add: lift_def)
 done
 
 lemma client_prog_Join_Always_rel_le_giv:
-     "[| client_prog \<squnion> G \<in> Incr(lift(giv)); G \<in> preserves(lift(rel)) |]
-    ==> client_prog \<squnion> G  \<in> Always({s \<in> state. <s`rel, s`giv> \<in> prefix(nat)})"
+     "\<lbrakk>client_prog \<squnion> G \<in> Incr(lift(giv)); G \<in> preserves(lift(rel))\<rbrakk>
+    \<Longrightarrow> client_prog \<squnion> G  \<in> Always({s \<in> state. <s`rel, s`giv> \<in> prefix(nat)})"
 by (force intro!: AlwaysI client_prog_Join_Stable_rel_le_giv)
 
 lemma def_act_eq:
-     "A == {<s, t> \<in> state*state. P(s, t)} ==> A={<s, t> \<in> state*state. P(s, t)}"
+     "A \<equiv> {<s, t> \<in> state*state. P(s, t)} \<Longrightarrow> A={<s, t> \<in> state*state. P(s, t)}"
 by auto
 
-lemma act_subset: "A={<s,t> \<in> state*state. P(s, t)} ==> A<=state*state"
+lemma act_subset: "A={<s,t> \<in> state*state. P(s, t)} \<Longrightarrow> A<=state*state"
 by auto
 
 lemma transient_lemma:
@@ -215,8 +215,8 @@ apply (auto dest: prefix_type [THEN subsetD])
 done
 
 lemma induct_lemma:
-"[| client_prog \<squnion> G \<in> Incr(lift(giv)); client_prog ok G; G \<in> program |]
-  ==> client_prog \<squnion> G \<in>
+"\<lbrakk>client_prog \<squnion> G \<in> Incr(lift(giv)); client_prog ok G; G \<in> program\<rbrakk>
+  \<Longrightarrow> client_prog \<squnion> G \<in>
   {s \<in> state. s`rel = k & <k,h> \<in> strict_prefix(nat)
    & <h, s`giv> \<in> prefix(nat) & h pfixGe s`ask}
         \<longmapsto>w {s \<in> state. <k, s`rel> \<in> strict_prefix(nat)
@@ -244,8 +244,8 @@ apply (auto intro: strict_prefix_is_prefix [THEN iffD1, THEN conjunct1]
 done
 
 lemma rel_progress_lemma:
-"[| client_prog \<squnion> G  \<in> Incr(lift(giv)); client_prog ok G; G \<in> program |]
-  ==> client_prog \<squnion> G  \<in>
+"\<lbrakk>client_prog \<squnion> G  \<in> Incr(lift(giv)); client_prog ok G; G \<in> program\<rbrakk>
+  \<Longrightarrow> client_prog \<squnion> G  \<in>
      {s \<in> state. <s`rel, h> \<in> strict_prefix(nat)
            & <h, s`giv> \<in> prefix(nat) & h pfixGe s`ask}
                       \<longmapsto>w {s \<in> state. <h, s`rel> \<in> prefix(nat)}"
@@ -273,8 +273,8 @@ apply (erule diff_le_self [THEN ltD])
 done
 
 lemma progress_lemma:
-"[| client_prog \<squnion> G \<in> Incr(lift(giv)); client_prog ok G; G \<in> program |]
- ==> client_prog \<squnion> G
+"\<lbrakk>client_prog \<squnion> G \<in> Incr(lift(giv)); client_prog ok G; G \<in> program\<rbrakk>
+ \<Longrightarrow> client_prog \<squnion> G
        \<in> {s \<in> state. <h, s`giv> \<in> prefix(nat) & h pfixGe s`ask}
          \<longmapsto>w  {s \<in> state. <h, s`rel> \<in> prefix(nat)}"
 apply (rule client_prog_Join_Always_rel_le_giv [THEN Always_LeadsToI],

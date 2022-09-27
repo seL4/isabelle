@@ -21,20 +21,20 @@ consts
   default_val :: "i=>i"
 
 definition
-  "state == \<Prod>x \<in> var. cons(default_val(x), type_of(x))"
+  "state \<equiv> \<Prod>x \<in> var. cons(default_val(x), type_of(x))"
 
 definition
-  "st0 == \<lambda>x \<in> var. default_val(x)"
+  "st0 \<equiv> \<lambda>x \<in> var. default_val(x)"
   
 definition
   st_set  :: "i=>o"  where
 (* To prevent typing conditions like `A<=state' from
    being used in combination with the rules `constrains_weaken', etc. *)
-  "st_set(A) == A<=state"
+  "st_set(A) \<equiv> A<=state"
 
 definition
   st_compl :: "i=>i"  where
-  "st_compl(A) == state-A"
+  "st_compl(A) \<equiv> state-A"
 
 
 lemma st0_in_state [simp,TC]: "st0 \<in> state"
@@ -59,16 +59,16 @@ by (simp add: st_set_def, auto)
 
 (* Intersection *)
 
-lemma st_set_Int [intro!]: "st_set(A) | st_set(B) ==> st_set(A \<inter> B)"
+lemma st_set_Int [intro!]: "st_set(A) | st_set(B) \<Longrightarrow> st_set(A \<inter> B)"
 by (simp add: st_set_def, auto)
 
 lemma st_set_Inter [intro!]: 
-   "(S=0) | (\<exists>A \<in> S. st_set(A)) ==> st_set(\<Inter>(S))"
+   "(S=0) | (\<exists>A \<in> S. st_set(A)) \<Longrightarrow> st_set(\<Inter>(S))"
 apply (simp add: st_set_def Inter_def, auto)
 done
 
 (* Diff *)
-lemma st_set_DiffI [intro!]: "st_set(A) ==> st_set(A - B)"
+lemma st_set_DiffI [intro!]: "st_set(A) \<Longrightarrow> st_set(A - B)"
 by (simp add: st_set_def, auto)
 
 lemma Collect_Int_state [simp]: "Collect(state,P) \<inter> state = Collect(state,P)"
@@ -80,18 +80,18 @@ by auto
 
 (* Introduction and destruction rules for st_set *)
 
-lemma st_setI: "A \<subseteq> state ==> st_set(A)"
+lemma st_setI: "A \<subseteq> state \<Longrightarrow> st_set(A)"
 by (simp add: st_set_def)
 
-lemma st_setD: "st_set(A) ==> A<=state"
+lemma st_setD: "st_set(A) \<Longrightarrow> A<=state"
 by (simp add: st_set_def)
 
-lemma st_set_subset: "[| st_set(A); B<=A |] ==> st_set(B)"
+lemma st_set_subset: "\<lbrakk>st_set(A); B<=A\<rbrakk> \<Longrightarrow> st_set(B)"
 by (simp add: st_set_def, auto)
 
 
 lemma state_update_type: 
-     "[| s \<in> state; x \<in> var; y \<in> type_of(x) |] ==> s(x:=y):state"
+     "\<lbrakk>s \<in> state; x \<in> var; y \<in> type_of(x)\<rbrakk> \<Longrightarrow> s(x:=y):state"
 apply (simp add: state_def)
 apply (blast intro: update_type)
 done
@@ -103,12 +103,12 @@ lemma st_compl_iff [simp]: "x \<in> st_compl(A) \<longleftrightarrow> x \<in> st
 by (simp add: st_compl_def)
 
 lemma st_compl_Collect [simp]:
-     "st_compl({s \<in> state. P(s)}) = {s \<in> state. ~P(s)}"
+     "st_compl({s \<in> state. P(s)}) = {s \<in> state. \<not>P(s)}"
 by (simp add: st_compl_def, auto)
 
 (*For using "disjunction" (union over an index set) to eliminate a variable.*)
 lemma UN_conj_eq:
-     "\<forall>d\<in>D. f(d) \<in> A ==> (\<Union>k\<in>A. {d\<in>D. P(d) & f(d) = k}) = {d\<in>D. P(d)}"
+     "\<forall>d\<in>D. f(d) \<in> A \<Longrightarrow> (\<Union>k\<in>A. {d\<in>D. P(d) & f(d) = k}) = {d\<in>D. P(d)}"
 by blast
 
 end

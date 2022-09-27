@@ -6,7 +6,7 @@ Auxiliary lemmas concerning cardinalities.
 
 theory Cardinal_aux imports AC_Equiv begin
 
-lemma Diff_lepoll: "[| A \<lesssim> succ(m); B \<subseteq> A; B\<noteq>0 |] ==> A-B \<lesssim> m"
+lemma Diff_lepoll: "\<lbrakk>A \<lesssim> succ(m); B \<subseteq> A; B\<noteq>0\<rbrakk> \<Longrightarrow> A-B \<lesssim> m"
 apply (rule not_emptyE, assumption)
 apply (blast intro: lepoll_trans [OF subset_imp_lepoll Diff_sing_lepoll])
 done
@@ -20,14 +20,14 @@ done
 
 (* j=|A| *)
 lemma lepoll_imp_ex_le_eqpoll:
-     "[| A \<lesssim> i; Ord(i) |] ==> \<exists>j. j \<le> i & A \<approx> j"
+     "\<lbrakk>A \<lesssim> i; Ord(i)\<rbrakk> \<Longrightarrow> \<exists>j. j \<le> i & A \<approx> j"
 by (blast intro!: lepoll_cardinal_le well_ord_Memrel
                   well_ord_cardinal_eqpoll [THEN eqpoll_sym]
           dest: lepoll_well_ord)
 
 (* j=|A| *)
 lemma lesspoll_imp_ex_lt_eqpoll:
-     "[| A \<prec> i; Ord(i) |] ==> \<exists>j. j<i & A \<approx> j"
+     "\<lbrakk>A \<prec> i; Ord(i)\<rbrakk> \<Longrightarrow> \<exists>j. j<i & A \<approx> j"
 by (unfold lesspoll_def, blast dest!: lepoll_imp_ex_le_eqpoll elim!: leE)
 
 lemma Un_eqpoll_Inf_Ord:
@@ -70,7 +70,7 @@ by (fast intro!: paired_eqpoll equals0I elim: mem_asym)
 
 (*Finally we reach this result.  Surely there's a simpler proof?*)
 lemma Un_lepoll_Inf_Ord:
-     "[| A \<lesssim> i; B \<lesssim> i; ~Finite(i); Ord(i) |] ==> A \<union> B \<lesssim> i"
+     "\<lbrakk>A \<lesssim> i; B \<lesssim> i; \<not>Finite(i); Ord(i)\<rbrakk> \<Longrightarrow> A \<union> B \<lesssim> i"
 apply (rule_tac A1 = i and C1 = i in ex_eqpoll_disjoint [THEN exE])
 apply (erule conjE)
 apply (drule lepoll_trans)
@@ -79,7 +79,7 @@ apply (rule Un_lepoll_Un [THEN lepoll_trans], (assumption+))
 apply (blast intro: eqpoll_refl Un_eqpoll_Inf_Ord eqpoll_imp_lepoll)
 done
 
-lemma Least_in_Ord: "[| P(i); i \<in> j; Ord(j) |] ==> (\<mu> i. P(i)) \<in> j"
+lemma Least_in_Ord: "\<lbrakk>P(i); i \<in> j; Ord(j)\<rbrakk> \<Longrightarrow> (\<mu> i. P(i)) \<in> j"
 apply (erule Least_le [THEN leE])
 apply (erule Ord_in_Ord, assumption)
 apply (erule ltE)
@@ -88,8 +88,8 @@ apply (erule subst_elem, assumption)
 done
 
 lemma Diff_first_lepoll:
-     "[| well_ord(x,r); y \<subseteq> x; y \<lesssim> succ(n); n \<in> nat |]
-      ==> y - {THE b. first(b,y,r)} \<lesssim> n"
+     "\<lbrakk>well_ord(x,r); y \<subseteq> x; y \<lesssim> succ(n); n \<in> nat\<rbrakk>
+      \<Longrightarrow> y - {THE b. first(b,y,r)} \<lesssim> n"
 apply (case_tac "y=0", simp add: empty_lepollI)
 apply (fast intro!: Diff_sing_lepoll the_first_in)
 done
@@ -98,7 +98,7 @@ lemma UN_subset_split:
      "(\<Union>x \<in> X. P(x)) \<subseteq> (\<Union>x \<in> X. P(x)-Q(x)) \<union> (\<Union>x \<in> X. Q(x))"
 by blast
 
-lemma UN_sing_lepoll: "Ord(a) ==> (\<Union>x \<in> a. {P(x)}) \<lesssim> a"
+lemma UN_sing_lepoll: "Ord(a) \<Longrightarrow> (\<Union>x \<in> a. {P(x)}) \<lesssim> a"
 apply (unfold lepoll_def)
 apply (rule_tac x = "\<lambda>z \<in> (\<Union>x \<in> a. {P (x) }) . (\<mu> i. P (i) =z) " in exI)
 apply (rule_tac d = "%z. P (z) " in lam_injective)
@@ -107,8 +107,8 @@ apply (fast intro: LeastI elim!: Ord_in_Ord)
 done
 
 lemma UN_fun_lepoll_lemma [rule_format]:
-     "[| well_ord(T, R); ~Finite(a); Ord(a); n \<in> nat |]
-      ==> \<forall>f. (\<forall>b \<in> a. f`b \<lesssim> n & f`b \<subseteq> T) \<longrightarrow> (\<Union>b \<in> a. f`b) \<lesssim> a"
+     "\<lbrakk>well_ord(T, R); \<not>Finite(a); Ord(a); n \<in> nat\<rbrakk>
+      \<Longrightarrow> \<forall>f. (\<forall>b \<in> a. f`b \<lesssim> n & f`b \<subseteq> T) \<longrightarrow> (\<Union>b \<in> a. f`b) \<lesssim> a"
 apply (induct_tac "n")
 apply (rule allI)
 apply (rule impI)
@@ -126,21 +126,21 @@ apply (fast intro: Un_lepoll_Inf_Ord UN_sing_lepoll)
 done
 
 lemma UN_fun_lepoll:
-     "[| \<forall>b \<in> a. f`b \<lesssim> n & f`b \<subseteq> T; well_ord(T, R);
-         ~Finite(a); Ord(a); n \<in> nat |] ==> (\<Union>b \<in> a. f`b) \<lesssim> a"
+     "\<lbrakk>\<forall>b \<in> a. f`b \<lesssim> n & f`b \<subseteq> T; well_ord(T, R);
+         \<not>Finite(a); Ord(a); n \<in> nat\<rbrakk> \<Longrightarrow> (\<Union>b \<in> a. f`b) \<lesssim> a"
 by (blast intro: UN_fun_lepoll_lemma)
 
 lemma UN_lepoll:
-     "[| \<forall>b \<in> a. F(b) \<lesssim> n & F(b) \<subseteq> T; well_ord(T, R);
-         ~Finite(a); Ord(a); n \<in> nat |]
-      ==> (\<Union>b \<in> a. F(b)) \<lesssim> a"
+     "\<lbrakk>\<forall>b \<in> a. F(b) \<lesssim> n & F(b) \<subseteq> T; well_ord(T, R);
+         \<not>Finite(a); Ord(a); n \<in> nat\<rbrakk>
+      \<Longrightarrow> (\<Union>b \<in> a. F(b)) \<lesssim> a"
 apply (rule rev_mp)
 apply (rule_tac f="\<lambda>b \<in> a. F (b)" in UN_fun_lepoll)
 apply auto
 done
 
 lemma UN_eq_UN_Diffs:
-     "Ord(a) ==> (\<Union>b \<in> a. F(b)) = (\<Union>b \<in> a. F(b) - (\<Union>c \<in> b. F(c)))"
+     "Ord(a) \<Longrightarrow> (\<Union>b \<in> a. F(b)) = (\<Union>b \<in> a. F(b) - (\<Union>c \<in> b. F(c)))"
 apply (rule equalityI)
  prefer 2 apply fast
 apply (rule subsetI)
@@ -153,7 +153,7 @@ apply (blast intro: Ord_Least ltI)
 done
 
 lemma lepoll_imp_eqpoll_subset:
-     "a \<lesssim> X ==> \<exists>Y. Y \<subseteq> X & a \<approx> Y"
+     "a \<lesssim> X \<Longrightarrow> \<exists>Y. Y \<subseteq> X & a \<approx> Y"
 apply (unfold lepoll_def eqpoll_def, clarify)
 apply (blast intro: restrict_bij
              dest: inj_is_fun [THEN fun_is_rel, THEN image_subset])
@@ -164,7 +164,7 @@ done
 (* ********************************************************************** *)
 
 lemma Diff_lesspoll_eqpoll_Card_lemma:
-     "[| A\<approx>a; ~Finite(a); Card(a); B \<prec> a; A-B \<prec> a |] ==> P"
+     "\<lbrakk>A\<approx>a; \<not>Finite(a); Card(a); B \<prec> a; A-B \<prec> a\<rbrakk> \<Longrightarrow> P"
 apply (elim lesspoll_imp_ex_lt_eqpoll [THEN exE] Card_is_Ord conjE)
 apply (frule_tac j=xa in Un_upper1_le [OF lt_Ord lt_Ord], assumption)
 apply (frule_tac j=xa in Un_upper2_le [OF lt_Ord lt_Ord], assumption)
@@ -186,7 +186,7 @@ apply (simp add: lesspoll_def)
 done
 
 lemma Diff_lesspoll_eqpoll_Card:
-     "[| A \<approx> a; ~Finite(a); Card(a); B \<prec> a |] ==> A - B \<approx> a"
+     "\<lbrakk>A \<approx> a; \<not>Finite(a); Card(a); B \<prec> a\<rbrakk> \<Longrightarrow> A - B \<approx> a"
 apply (rule ccontr)
 apply (rule Diff_lesspoll_eqpoll_Card_lemma, (assumption+))
 apply (blast intro: lesspoll_def [THEN def_imp_iff, THEN iffD2]

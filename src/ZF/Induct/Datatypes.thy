@@ -31,7 +31,7 @@ text \<open>
   type definitions.
 \<close>
 
-lemma data_mono: "[| A \<subseteq> C; B \<subseteq> D |] ==> data(A, B) \<subseteq> data(C, D)"
+lemma data_mono: "\<lbrakk>A \<subseteq> C; B \<subseteq> D\<rbrakk> \<Longrightarrow> data(A, B) \<subseteq> data(C, D)"
   apply (unfold data.defs)
   apply (rule lfp_mono)
    apply (rule data.bnd_mono)+
@@ -46,7 +46,7 @@ lemma data_univ: "data(univ(A), univ(A)) \<subseteq> univ(A)"
   done
 
 lemma data_subset_univ:
-    "[| A \<subseteq> univ(C); B \<subseteq> univ(C) |] ==> data(A, B) \<subseteq> univ(C)"
+    "\<lbrakk>A \<subseteq> univ(C); B \<subseteq> univ(C)\<rbrakk> \<Longrightarrow> data(A, B) \<subseteq> univ(C)"
   by (rule subset_trans [OF data_mono data_univ])
 
 

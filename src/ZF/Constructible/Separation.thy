@@ -9,7 +9,7 @@ theory Separation imports L_axioms WF_absolute begin
 text\<open>This theory proves all instances needed for locale \<open>M_basic\<close>\<close>
 
 text\<open>Helps us solve for de Bruijn indices!\<close>
-lemma nth_ConsI: "[|nth(n,l) = x; n \<in> nat|] ==> nth(succ(n), Cons(a,l)) = x"
+lemma nth_ConsI: "\<lbrakk>nth(n,l) = x; n \<in> nat\<rbrakk> \<Longrightarrow> nth(succ(n), Cons(a,l)) = x"
 by simp
 
 lemmas nth_rules = nth_0 nth_ConsI nat_0I nat_succI
@@ -17,20 +17,20 @@ lemmas sep_rules = nth_0 nth_ConsI FOL_iff_sats function_iff_sats
                    fun_plus_iff_sats
 
 lemma Collect_conj_in_DPow:
-     "[| {x\<in>A. P(x)} \<in> DPow(A);  {x\<in>A. Q(x)} \<in> DPow(A) |]
-      ==> {x\<in>A. P(x) & Q(x)} \<in> DPow(A)"
+     "\<lbrakk>{x\<in>A. P(x)} \<in> DPow(A);  {x\<in>A. Q(x)} \<in> DPow(A)\<rbrakk>
+      \<Longrightarrow> {x\<in>A. P(x) & Q(x)} \<in> DPow(A)"
 by (simp add: Int_in_DPow Collect_Int_Collect_eq [symmetric])
 
 lemma Collect_conj_in_DPow_Lset:
-     "[|z \<in> Lset(j); {x \<in> Lset(j). P(x)} \<in> DPow(Lset(j))|]
-      ==> {x \<in> Lset(j). x \<in> z & P(x)} \<in> DPow(Lset(j))"
+     "\<lbrakk>z \<in> Lset(j); {x \<in> Lset(j). P(x)} \<in> DPow(Lset(j))\<rbrakk>
+      \<Longrightarrow> {x \<in> Lset(j). x \<in> z & P(x)} \<in> DPow(Lset(j))"
 apply (frule mem_Lset_imp_subset_Lset)
 apply (simp add: Collect_conj_in_DPow Collect_mem_eq
                  subset_Int_iff2 elem_subset_in_DPow)
 done
 
 lemma separation_CollectI:
-     "(\<And>z. L(z) ==> L({x \<in> z . P(x)})) ==> separation(L, \<lambda>x. P(x))"
+     "(\<And>z. L(z) \<Longrightarrow> L({x \<in> z . P(x)})) \<Longrightarrow> separation(L, \<lambda>x. P(x))"
 apply (unfold separation_def, clarify)
 apply (rule_tac x="{x\<in>z. P(x)}" in rexI)
 apply simp_all
@@ -38,9 +38,9 @@ done
 
 text\<open>Reduces the original comprehension to the reflected one\<close>
 lemma reflection_imp_L_separation:
-      "[| \<forall>x\<in>Lset(j). P(x) \<longleftrightarrow> Q(x);
+      "\<lbrakk>\<forall>x\<in>Lset(j). P(x) \<longleftrightarrow> Q(x);
           {x \<in> Lset(j) . Q(x)} \<in> DPow(Lset(j));
-          Ord(j);  z \<in> Lset(j)|] ==> L({x \<in> z . P(x)})"
+          Ord(j);  z \<in> Lset(j)\<rbrakk> \<Longrightarrow> L({x \<in> z . P(x)})"
 apply (rule_tac i = "succ(j)" in L_I)
  prefer 2 apply simp
 apply (subgoal_tac "{x \<in> z. P(x)} = {x \<in> Lset(j). x \<in> z & (Q(x))}")
@@ -54,7 +54,7 @@ text\<open>Encapsulates the standard proof script for proving instances of
 lemma gen_separation:
  assumes reflection: "REFLECTS [P,Q]"
      and Lu:         "L(u)"
-     and collI: "!!j. u \<in> Lset(j)
+     and collI: "\<And>j. u \<in> Lset(j)
                 \<Longrightarrow> Collect(Lset(j), Q(j)) \<in> DPow(Lset(j))"
  shows "separation(L,P)"
 apply (rule separation_CollectI)
@@ -73,7 +73,7 @@ text\<open>As above, but typically \<^term>\<open>u\<close> is a finite enumerat
 lemma gen_separation_multi:
  assumes reflection: "REFLECTS [P,Q]"
      and Lu:         "L(u)"
-     and collI: "!!j. u \<subseteq> Lset(j)
+     and collI: "\<And>j. u \<subseteq> Lset(j)
                 \<Longrightarrow> Collect(Lset(j), Q(j)) \<in> DPow(Lset(j))"
  shows "separation(L,P)"
 apply (rule gen_separation [OF reflection Lu])
@@ -90,7 +90,7 @@ lemma Inter_Reflects:
 by (intro FOL_reflections)
 
 lemma Inter_separation:
-     "L(A) ==> separation(L, \<lambda>x. \<forall>y[L]. y\<in>A \<longrightarrow> x\<in>y)"
+     "L(A) \<Longrightarrow> separation(L, \<lambda>x. \<forall>y[L]. y\<in>A \<longrightarrow> x\<in>y)"
 apply (rule gen_separation [OF Inter_Reflects], simp)
 apply (rule DPow_LsetI)
  txt\<open>I leave this one example of a manual proof.  The tedium of manually
@@ -109,7 +109,7 @@ lemma Diff_Reflects:
 by (intro FOL_reflections)  
 
 lemma Diff_separation:
-     "L(B) ==> separation(L, \<lambda>x. x \<notin> B)"
+     "L(B) \<Longrightarrow> separation(L, \<lambda>x. x \<notin> B)"
 apply (rule gen_separation [OF Diff_Reflects], simp)
 apply (rule_tac env="[B]" in DPow_LsetI)
 apply (rule sep_rules | simp)+
@@ -124,8 +124,8 @@ lemma cartprod_Reflects:
 by (intro FOL_reflections function_reflections)
 
 lemma cartprod_separation:
-     "[| L(A); L(B) |]
-      ==> separation(L, \<lambda>z. \<exists>x[L]. x\<in>A & (\<exists>y[L]. y\<in>B & pair(L,x,y,z)))"
+     "\<lbrakk>L(A); L(B)\<rbrakk>
+      \<Longrightarrow> separation(L, \<lambda>z. \<exists>x[L]. x\<in>A & (\<exists>y[L]. y\<in>B & pair(L,x,y,z)))"
 apply (rule gen_separation_multi [OF cartprod_Reflects, of "{A,B}"], auto)
 apply (rule_tac env="[A,B]" in DPow_LsetI)
 apply (rule sep_rules | simp)+
@@ -139,8 +139,8 @@ lemma image_Reflects:
 by (intro FOL_reflections function_reflections)
 
 lemma image_separation:
-     "[| L(A); L(r) |]
-      ==> separation(L, \<lambda>y. \<exists>p[L]. p\<in>r & (\<exists>x[L]. x\<in>A & pair(L,x,y,p)))"
+     "\<lbrakk>L(A); L(r)\<rbrakk>
+      \<Longrightarrow> separation(L, \<lambda>y. \<exists>p[L]. p\<in>r & (\<exists>x[L]. x\<in>A & pair(L,x,y,p)))"
 apply (rule gen_separation_multi [OF image_Reflects, of "{A,r}"], auto)
 apply (rule_tac env="[A,r]" in DPow_LsetI)
 apply (rule sep_rules | simp)+
@@ -156,7 +156,7 @@ lemma converse_Reflects:
 by (intro FOL_reflections function_reflections)
 
 lemma converse_separation:
-     "L(r) ==> separation(L,
+     "L(r) \<Longrightarrow> separation(L,
          \<lambda>z. \<exists>p[L]. p\<in>r & (\<exists>x[L]. \<exists>y[L]. pair(L,x,y,p) & pair(L,y,x,z)))"
 apply (rule gen_separation [OF converse_Reflects], simp)
 apply (rule_tac env="[r]" in DPow_LsetI)
@@ -172,7 +172,7 @@ lemma restrict_Reflects:
 by (intro FOL_reflections function_reflections)
 
 lemma restrict_separation:
-   "L(A) ==> separation(L, \<lambda>z. \<exists>x[L]. x\<in>A & (\<exists>y[L]. pair(L,x,y,z)))"
+   "L(A) \<Longrightarrow> separation(L, \<lambda>z. \<exists>x[L]. x\<in>A & (\<exists>y[L]. pair(L,x,y,z)))"
 apply (rule gen_separation [OF restrict_Reflects], simp)
 apply (rule_tac env="[A]" in DPow_LsetI)
 apply (rule sep_rules | simp)+
@@ -191,8 +191,8 @@ lemma comp_Reflects:
 by (intro FOL_reflections function_reflections)
 
 lemma comp_separation:
-     "[| L(r); L(s) |]
-      ==> separation(L, \<lambda>xz. \<exists>x[L]. \<exists>y[L]. \<exists>z[L]. \<exists>xy[L]. \<exists>yz[L].
+     "\<lbrakk>L(r); L(s)\<rbrakk>
+      \<Longrightarrow> separation(L, \<lambda>xz. \<exists>x[L]. \<exists>y[L]. \<exists>z[L]. \<exists>xy[L]. \<exists>yz[L].
                   pair(L,x,z,xz) & pair(L,x,y,xy) & pair(L,y,z,yz) &
                   xy\<in>s & yz\<in>r)"
 apply (rule gen_separation_multi [OF comp_Reflects, of "{r,s}"], auto)
@@ -213,7 +213,7 @@ lemma pred_Reflects:
 by (intro FOL_reflections function_reflections)
 
 lemma pred_separation:
-     "[| L(r); L(x) |] ==> separation(L, \<lambda>y. \<exists>p[L]. p\<in>r & pair(L,y,x,p))"
+     "\<lbrakk>L(r); L(x)\<rbrakk> \<Longrightarrow> separation(L, \<lambda>y. \<exists>p[L]. p\<in>r & pair(L,y,x,p))"
 apply (rule gen_separation_multi [OF pred_Reflects, of "{r,x}"], auto)
 apply (rule_tac env="[r,x]" in DPow_LsetI)
 apply (rule sep_rules | simp)+
@@ -248,7 +248,7 @@ lemma funspace_succ_Reflects:
 by (intro FOL_reflections function_reflections)
 
 lemma funspace_succ_replacement:
-     "L(n) ==>
+     "L(n) \<Longrightarrow>
       strong_replacement(L, \<lambda>p z. \<exists>f[L]. \<exists>b[L]. \<exists>nb[L]. \<exists>cnbf[L].
                 pair(L,f,b,p) & pair(L,n,b,nb) & is_cons(L,nb,f,cnbf) &
                 upair(L,cnbf,cnbf,z))"
@@ -275,8 +275,8 @@ by (intro FOL_reflections function_reflections fun_plus_reflections)
 
 lemma is_recfun_separation:
      \<comment> \<open>for well-founded recursion\<close>
-     "[| L(r); L(f); L(g); L(a); L(b) |]
-     ==> separation(L,
+     "\<lbrakk>L(r); L(f); L(g); L(a); L(b)\<rbrakk>
+     \<Longrightarrow> separation(L,
             \<lambda>x. \<exists>xa[L]. \<exists>xb[L].
                 pair(L,x,a,xa) & xa \<in> r & pair(L,x,b,xb) & xb \<in> r &
                 (\<exists>fx[L]. \<exists>gx[L]. fun_apply(L,f,x,fx) & fun_apply(L,g,x,gx) &

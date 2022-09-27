@@ -18,10 +18,10 @@ inductive
          "(init \<union> (\<Union>act\<in>acts. field(act)))*list(\<Union>act\<in>acts. field(act))"
   intros 
          (*Initial trace is empty*)
-    Init: "s: init ==> <s,[]> \<in> traces(init,acts)"
+    Init: "s: init \<Longrightarrow> <s,[]> \<in> traces(init,acts)"
 
-    Acts: "[| act:acts;  <s,evs> \<in> traces(init,acts);  <s,s'>: act |]
-           ==> <s', Cons(s,evs)> \<in> traces(init, acts)"
+    Acts: "\<lbrakk>act:acts;  <s,evs> \<in> traces(init,acts);  <s,s'>: act\<rbrakk>
+           \<Longrightarrow> <s', Cons(s,evs)> \<in> traces(init, acts)"
   
   type_intros list.intros UnI1 UnI2 UN_I fieldI2 fieldI1
 
@@ -31,30 +31,30 @@ inductive
   domains
   "reachable(F)" \<subseteq> "Init(F) \<union> (\<Union>act\<in>Acts(F). field(act))"
   intros 
-    Init: "s:Init(F) ==> s:reachable(F)"
+    Init: "s:Init(F) \<Longrightarrow> s:reachable(F)"
 
-    Acts: "[| act: Acts(F);  s:reachable(F);  <s,s'>: act |]
-           ==> s':reachable(F)"
+    Acts: "\<lbrakk>act: Acts(F);  s:reachable(F);  <s,s'>: act\<rbrakk>
+           \<Longrightarrow> s':reachable(F)"
 
   type_intros UnI1 UnI2 fieldI2 UN_I
 
   
 definition
   Constrains :: "[i,i] => i"  (infixl \<open>Co\<close> 60)  where
-  "A Co B == {F:program. F:(reachable(F) \<inter> A) co B}"
+  "A Co B \<equiv> {F:program. F:(reachable(F) \<inter> A) co B}"
 
 definition
   op_Unless  :: "[i, i] => i"  (infixl \<open>Unless\<close> 60)  where
-  "A Unless B == (A-B) Co (A \<union> B)"
+  "A Unless B \<equiv> (A-B) Co (A \<union> B)"
 
 definition
   Stable     :: "i => i"  where
-  "Stable(A) == A Co A"
+  "Stable(A) \<equiv> A Co A"
 
 definition
   (*Always is the weak form of "invariant"*)
   Always :: "i => i"  where
-  "Always(A) == initially(A) \<inter> Stable(A)"
+  "Always(A) \<equiv> initially(A) \<inter> Stable(A)"
 
 
 (*** traces and reachable ***)
@@ -80,7 +80,7 @@ by (cut_tac reachable_type, auto)
 declare state_Int_reachable [iff]
 
 lemma reachable_equiv_traces: 
-"F \<in> program ==> reachable(F)={s \<in> state. \<exists>evs. <s,evs>:traces(Init(F), Acts(F))}"
+"F \<in> program \<Longrightarrow> reachable(F)={s \<in> state. \<exists>evs. <s,evs>:traces(Init(F), Acts(F))}"
 apply (rule equalityI, safe)
 apply (blast dest: reachable_type [THEN subsetD])
 apply (erule_tac [2] traces.induct)
@@ -91,8 +91,8 @@ done
 lemma Init_into_reachable: "Init(F) \<subseteq> reachable(F)"
 by (blast intro: reachable.intros)
 
-lemma stable_reachable: "[| F \<in> program; G \<in> program;  
-    Acts(G) \<subseteq> Acts(F)  |] ==> G \<in> stable(reachable(F))"
+lemma stable_reachable: "\<lbrakk>F \<in> program; G \<in> program;  
+    Acts(G) \<subseteq> Acts(F)\<rbrakk> \<Longrightarrow> G \<in> stable(reachable(F))"
 apply (blast intro: stableI constrainsI st_setI
              reachable_type [THEN subsetD] reachable.intros)
 done
@@ -102,13 +102,13 @@ declare stable_reachable [simp]
 
 (*The set of all reachable states is an invariant...*)
 lemma invariant_reachable: 
-   "F \<in> program ==> F \<in> invariant(reachable(F))"
+   "F \<in> program \<Longrightarrow> F \<in> invariant(reachable(F))"
 apply (unfold invariant_def initially_def)
 apply (blast intro: reachable_type [THEN subsetD] reachable.intros)
 done
 
 (*...in fact the strongest invariant!*)
-lemma invariant_includes_reachable: "F \<in> invariant(A) ==> reachable(F) \<subseteq> A"
+lemma invariant_includes_reachable: "F \<in> invariant(A) \<Longrightarrow> reachable(F) \<subseteq> A"
 apply (cut_tac F = F in Acts_type)
 apply (cut_tac F = F in Init_type)
 apply (cut_tac F = F in reachable_type)
@@ -120,7 +120,7 @@ done
 
 (*** Co ***)
 
-lemma constrains_reachable_Int: "F \<in> B co B'==>F:(reachable(F) \<inter> B) co (reachable(F) \<inter> B')"
+lemma constrains_reachable_Int: "F \<in> B co B'\<Longrightarrow>F:(reachable(F) \<inter> B) co (reachable(F) \<inter> B')"
 apply (frule constrains_type [THEN subsetD])
 apply (frule stable_reachable [OF _ _ subset_refl])
 apply (simp_all add: stable_def constrains_Int)
@@ -136,15 +136,15 @@ done
 
 lemmas Constrains_def2 = Constrains_eq_constrains [THEN eq_reflection]
 
-lemma constrains_imp_Constrains: "F \<in> A co A' ==> F \<in> A Co A'"
+lemma constrains_imp_Constrains: "F \<in> A co A' \<Longrightarrow> F \<in> A Co A'"
 apply (unfold Constrains_def)
 apply (blast intro: constrains_weaken_L dest: constrainsD2)
 done
 
 lemma ConstrainsI: 
-    "[|!!act s s'. [| act \<in> Acts(F); <s,s'>:act; s \<in> A |] ==> s':A'; 
-       F \<in> program|]
-     ==> F \<in> A Co A'"
+    "\<lbrakk>\<And>act s s'. \<lbrakk>act \<in> Acts(F); <s,s'>:act; s \<in> A\<rbrakk> \<Longrightarrow> s':A'; 
+       F \<in> program\<rbrakk>
+     \<Longrightarrow> F \<in> A Co A'"
 apply (auto simp add: Constrains_def constrains_def st_set_def)
 apply (blast dest: reachable_type [THEN subsetD])
 done
@@ -166,34 +166,34 @@ done
 declare Constrains_state [iff]
 
 lemma Constrains_weaken_R: 
-        "[| F \<in> A Co A'; A'<=B' |] ==> F \<in> A Co B'"
+        "\<lbrakk>F \<in> A Co A'; A'<=B'\<rbrakk> \<Longrightarrow> F \<in> A Co B'"
 apply (unfold Constrains_def2)
 apply (blast intro: constrains_weaken_R)
 done
 
 lemma Constrains_weaken_L: 
-    "[| F \<in> A Co A'; B<=A |] ==> F \<in> B Co A'"
+    "\<lbrakk>F \<in> A Co A'; B<=A\<rbrakk> \<Longrightarrow> F \<in> B Co A'"
 apply (unfold Constrains_def2)
 apply (blast intro: constrains_weaken_L st_set_subset)
 done
 
 lemma Constrains_weaken: 
-   "[| F \<in> A Co A'; B<=A; A'<=B' |] ==> F \<in> B Co B'"
+   "\<lbrakk>F \<in> A Co A'; B<=A; A'<=B'\<rbrakk> \<Longrightarrow> F \<in> B Co B'"
 apply (unfold Constrains_def2)
 apply (blast intro: constrains_weaken st_set_subset)
 done
 
 (** Union **)
 lemma Constrains_Un: 
-    "[| F \<in> A Co A'; F \<in> B Co B' |] ==> F \<in> (A \<union> B) Co (A' \<union> B')"
+    "\<lbrakk>F \<in> A Co A'; F \<in> B Co B'\<rbrakk> \<Longrightarrow> F \<in> (A \<union> B) Co (A' \<union> B')"
 apply (unfold Constrains_def2, auto)
 apply (simp add: Int_Un_distrib)
 apply (blast intro: constrains_Un)
 done
 
 lemma Constrains_UN: 
-    "[|(!!i. i \<in> I==>F \<in> A(i) Co A'(i)); F \<in> program|] 
-     ==> F:(\<Union>i \<in> I. A(i)) Co (\<Union>i \<in> I. A'(i))"
+    "\<lbrakk>(\<And>i. i \<in> I\<Longrightarrow>F \<in> A(i) Co A'(i)); F \<in> program\<rbrakk> 
+     \<Longrightarrow> F:(\<Union>i \<in> I. A(i)) Co (\<Union>i \<in> I. A'(i))"
 by (auto intro: constrains_UN simp del: UN_simps 
          simp add: Constrains_def2 Int_UN_distrib)
 
@@ -201,33 +201,33 @@ by (auto intro: constrains_UN simp del: UN_simps
 (** Intersection **)
 
 lemma Constrains_Int: 
-    "[| F \<in> A Co A'; F \<in> B Co B'|]==> F:(A \<inter> B) Co (A' \<inter> B')"
+    "\<lbrakk>F \<in> A Co A'; F \<in> B Co B'\<rbrakk>\<Longrightarrow> F:(A \<inter> B) Co (A' \<inter> B')"
 apply (unfold Constrains_def)
 apply (subgoal_tac "reachable (F) \<inter> (A \<inter> B) = (reachable (F) \<inter> A) \<inter> (reachable (F) \<inter> B) ")
 apply (auto intro: constrains_Int)
 done
 
 lemma Constrains_INT: 
-    "[| (!!i. i \<in> I ==>F \<in> A(i) Co A'(i)); F \<in> program  |]  
-     ==> F:(\<Inter>i \<in> I. A(i)) Co (\<Inter>i \<in> I. A'(i))"
+    "\<lbrakk>(\<And>i. i \<in> I \<Longrightarrow>F \<in> A(i) Co A'(i)); F \<in> program\<rbrakk>  
+     \<Longrightarrow> F:(\<Inter>i \<in> I. A(i)) Co (\<Inter>i \<in> I. A'(i))"
 apply (simp (no_asm_simp) del: INT_simps add: Constrains_def INT_extend_simps)
 apply (rule constrains_INT)
 apply (auto simp add: Constrains_def)
 done
 
-lemma Constrains_imp_subset: "F \<in> A Co A' ==> reachable(F) \<inter> A \<subseteq> A'"
+lemma Constrains_imp_subset: "F \<in> A Co A' \<Longrightarrow> reachable(F) \<inter> A \<subseteq> A'"
 apply (unfold Constrains_def)
 apply (blast dest: constrains_imp_subset)
 done
 
 lemma Constrains_trans: 
- "[| F \<in> A Co B; F \<in> B Co C |] ==> F \<in> A Co C"
+ "\<lbrakk>F \<in> A Co B; F \<in> B Co C\<rbrakk> \<Longrightarrow> F \<in> A Co C"
 apply (unfold Constrains_def2)
 apply (blast intro: constrains_trans constrains_weaken)
 done
 
 lemma Constrains_cancel: 
-"[| F \<in> A Co (A' \<union> B); F \<in> B Co B' |] ==> F \<in> A Co (A' \<union> B')"
+"\<lbrakk>F \<in> A Co (A' \<union> B); F \<in> B Co B'\<rbrakk> \<Longrightarrow> F \<in> A Co (A' \<union> B')"
 apply (unfold Constrains_def2)
 apply (simp (no_asm_use) add: Int_Un_distrib)
 apply (blast intro: constrains_cancel)
@@ -237,13 +237,13 @@ done
 (* Useful because there's no Stable_weaken.  [Tanja Vos] *)
 
 lemma stable_imp_Stable: 
-"F \<in> stable(A) ==> F \<in> Stable(A)"
+"F \<in> stable(A) \<Longrightarrow> F \<in> Stable(A)"
 
 apply (unfold stable_def Stable_def)
 apply (erule constrains_imp_Constrains)
 done
 
-lemma Stable_eq: "[| F \<in> Stable(A); A = B |] ==> F \<in> Stable(B)"
+lemma Stable_eq: "\<lbrakk>F \<in> Stable(A); A = B\<rbrakk> \<Longrightarrow> F \<in> Stable(B)"
 by blast
 
 lemma Stable_eq_stable: 
@@ -251,53 +251,53 @@ lemma Stable_eq_stable:
 apply (auto dest: constrainsD2 simp add: Stable_def stable_def Constrains_def2)
 done
 
-lemma StableI: "F \<in> A Co A ==> F \<in> Stable(A)"
+lemma StableI: "F \<in> A Co A \<Longrightarrow> F \<in> Stable(A)"
 by (unfold Stable_def, assumption)
 
-lemma StableD: "F \<in> Stable(A) ==> F \<in> A Co A"
+lemma StableD: "F \<in> Stable(A) \<Longrightarrow> F \<in> A Co A"
 by (unfold Stable_def, assumption)
 
 lemma Stable_Un: 
-    "[| F \<in> Stable(A); F \<in> Stable(A') |] ==> F \<in> Stable(A \<union> A')"
+    "\<lbrakk>F \<in> Stable(A); F \<in> Stable(A')\<rbrakk> \<Longrightarrow> F \<in> Stable(A \<union> A')"
 apply (unfold Stable_def)
 apply (blast intro: Constrains_Un)
 done
 
 lemma Stable_Int: 
-    "[| F \<in> Stable(A); F \<in> Stable(A') |] ==> F \<in> Stable (A \<inter> A')"
+    "\<lbrakk>F \<in> Stable(A); F \<in> Stable(A')\<rbrakk> \<Longrightarrow> F \<in> Stable (A \<inter> A')"
 apply (unfold Stable_def)
 apply (blast intro: Constrains_Int)
 done
 
 lemma Stable_Constrains_Un: 
-    "[| F \<in> Stable(C); F \<in> A Co (C \<union> A') |]    
-     ==> F \<in> (C \<union> A) Co (C \<union> A')"
+    "\<lbrakk>F \<in> Stable(C); F \<in> A Co (C \<union> A')\<rbrakk>    
+     \<Longrightarrow> F \<in> (C \<union> A) Co (C \<union> A')"
 apply (unfold Stable_def)
 apply (blast intro: Constrains_Un [THEN Constrains_weaken_R])
 done
 
 lemma Stable_Constrains_Int: 
-    "[| F \<in> Stable(C); F \<in> (C \<inter> A) Co A' |]    
-     ==> F \<in> (C \<inter> A) Co (C \<inter> A')"
+    "\<lbrakk>F \<in> Stable(C); F \<in> (C \<inter> A) Co A'\<rbrakk>    
+     \<Longrightarrow> F \<in> (C \<inter> A) Co (C \<inter> A')"
 apply (unfold Stable_def)
 apply (blast intro: Constrains_Int [THEN Constrains_weaken])
 done
 
 lemma Stable_UN: 
-    "[| (!!i. i \<in> I ==> F \<in> Stable(A(i))); F \<in> program |]
-     ==> F \<in> Stable (\<Union>i \<in> I. A(i))"
+    "\<lbrakk>(\<And>i. i \<in> I \<Longrightarrow> F \<in> Stable(A(i))); F \<in> program\<rbrakk>
+     \<Longrightarrow> F \<in> Stable (\<Union>i \<in> I. A(i))"
 apply (simp add: Stable_def)
 apply (blast intro: Constrains_UN)
 done
 
 lemma Stable_INT: 
-    "[|(!!i. i \<in> I ==> F \<in> Stable(A(i))); F \<in> program |]
-     ==> F \<in> Stable (\<Inter>i \<in> I. A(i))"
+    "\<lbrakk>(\<And>i. i \<in> I \<Longrightarrow> F \<in> Stable(A(i))); F \<in> program\<rbrakk>
+     \<Longrightarrow> F \<in> Stable (\<Inter>i \<in> I. A(i))"
 apply (simp add: Stable_def)
 apply (blast intro: Constrains_INT)
 done
 
-lemma Stable_reachable: "F \<in> program ==>F \<in> Stable (reachable(F))"
+lemma Stable_reachable: "F \<in> program \<Longrightarrow>F \<in> Stable (reachable(F))"
 apply (simp (no_asm_simp) add: Stable_eq_stable Int_absorb)
 done
 
@@ -307,12 +307,12 @@ apply (rule Constrains_type)
 done
 
 (*** The Elimination Theorem.  The "free" m has become universally quantified!
-     Should the premise be !!m instead of \<forall>m ?  Would make it harder to use
+     Should the premise be \<And>m instead of \<forall>m ?  Would make it harder to use
      in forward proof. ***)
 
 lemma Elimination: 
-    "[| \<forall>m \<in> M. F \<in> ({s \<in> A. x(s) = m}) Co (B(m)); F \<in> program |]  
-     ==> F \<in> ({s \<in> A. x(s):M}) Co (\<Union>m \<in> M. B(m))"
+    "\<lbrakk>\<forall>m \<in> M. F \<in> ({s \<in> A. x(s) = m}) Co (B(m)); F \<in> program\<rbrakk>  
+     \<Longrightarrow> F \<in> ({s \<in> A. x(s):M}) Co (\<Union>m \<in> M. B(m))"
 apply (unfold Constrains_def, auto)
 apply (rule_tac A1 = "reachable (F) \<inter> A" 
         in UNITY.elimination [THEN constrains_weaken_L])
@@ -321,8 +321,8 @@ done
 
 (* As above, but for the special case of A=state *)
 lemma Elimination2: 
- "[| \<forall>m \<in> M. F \<in> {s \<in> state. x(s) = m} Co B(m); F \<in> program |]  
-     ==> F \<in> {s \<in> state. x(s):M} Co (\<Union>m \<in> M. B(m))"
+ "\<lbrakk>\<forall>m \<in> M. F \<in> {s \<in> state. x(s) = m} Co B(m); F \<in> program\<rbrakk>  
+     \<Longrightarrow> F \<in> {s \<in> state. x(s):M} Co (\<Union>m \<in> M. B(m))"
 apply (blast intro: Elimination)
 done
 
@@ -338,20 +338,20 @@ done
 (** Natural deduction rules for "Always A" **)
 
 lemma AlwaysI: 
-"[| Init(F)<=A;  F \<in> Stable(A) |] ==> F \<in> Always(A)"
+"\<lbrakk>Init(F)<=A;  F \<in> Stable(A)\<rbrakk> \<Longrightarrow> F \<in> Always(A)"
 
 apply (unfold Always_def initially_def)
 apply (frule Stable_type [THEN subsetD], auto)
 done
 
-lemma AlwaysD: "F \<in> Always(A) ==> Init(F)<=A & F \<in> Stable(A)"
+lemma AlwaysD: "F \<in> Always(A) \<Longrightarrow> Init(F)<=A & F \<in> Stable(A)"
 by (simp add: Always_def initially_def)
 
 lemmas AlwaysE = AlwaysD [THEN conjE]
 lemmas Always_imp_Stable = AlwaysD [THEN conjunct2]
 
 (*The set of all reachable states is Always*)
-lemma Always_includes_reachable: "F \<in> Always(A) ==> reachable(F) \<subseteq> A"
+lemma Always_includes_reachable: "F \<in> Always(A) \<Longrightarrow> reachable(F) \<subseteq> A"
 apply (simp (no_asm_use) add: Stable_def Constrains_def constrains_def Always_def initially_def)
 apply (rule subsetI)
 apply (erule reachable.induct)
@@ -359,7 +359,7 @@ apply (blast intro: reachable.intros)+
 done
 
 lemma invariant_imp_Always: 
-     "F \<in> invariant(A) ==> F \<in> Always(A)"
+     "F \<in> invariant(A) \<Longrightarrow> F \<in> Always(A)"
 apply (unfold Always_def invariant_def Stable_def stable_def)
 apply (blast intro: constrains_imp_Constrains)
 done
@@ -389,11 +389,11 @@ apply (auto dest: Always_type [THEN subsetD] reachable_type [THEN subsetD]
 done
 declare Always_state_eq [simp]
 
-lemma state_AlwaysI: "F \<in> program ==> F \<in> Always(state)"
+lemma state_AlwaysI: "F \<in> program \<Longrightarrow> F \<in> Always(state)"
 by (auto dest: reachable_type [THEN subsetD]
             simp add: Always_eq_includes_reachable)
 
-lemma Always_eq_UN_invariant: "st_set(A) ==> Always(A) = (\<Union>I \<in> Pow(A). invariant(I))"
+lemma Always_eq_UN_invariant: "st_set(A) \<Longrightarrow> Always(A) = (\<Union>I \<in> Pow(A). invariant(I))"
 apply (simp (no_asm) add: Always_eq_includes_reachable)
 apply (rule equalityI, auto) 
 apply (blast intro: invariantI rev_subsetD [OF _ Init_into_reachable] 
@@ -401,30 +401,30 @@ apply (blast intro: invariantI rev_subsetD [OF _ Init_into_reachable]
              dest: invariant_type [THEN subsetD])+
 done
 
-lemma Always_weaken: "[| F \<in> Always(A); A \<subseteq> B |] ==> F \<in> Always(B)"
+lemma Always_weaken: "\<lbrakk>F \<in> Always(A); A \<subseteq> B\<rbrakk> \<Longrightarrow> F \<in> Always(B)"
 by (auto simp add: Always_eq_includes_reachable)
 
 
 (*** "Co" rules involving Always ***)
 lemmas Int_absorb2 = subset_Int_iff [unfolded iff_def, THEN conjunct1, THEN mp]
 
-lemma Always_Constrains_pre: "F \<in> Always(I) ==> (F:(I \<inter> A) Co A') \<longleftrightarrow> (F \<in> A Co A')"
+lemma Always_Constrains_pre: "F \<in> Always(I) \<Longrightarrow> (F:(I \<inter> A) Co A') \<longleftrightarrow> (F \<in> A Co A')"
 apply (simp (no_asm_simp) add: Always_includes_reachable [THEN Int_absorb2] Constrains_def Int_assoc [symmetric])
 done
 
-lemma Always_Constrains_post: "F \<in> Always(I) ==> (F \<in> A Co (I \<inter> A')) \<longleftrightarrow>(F \<in> A Co A')"
+lemma Always_Constrains_post: "F \<in> Always(I) \<Longrightarrow> (F \<in> A Co (I \<inter> A')) \<longleftrightarrow>(F \<in> A Co A')"
 apply (simp (no_asm_simp) add: Always_includes_reachable [THEN Int_absorb2] Constrains_eq_constrains Int_assoc [symmetric])
 done
 
-lemma Always_ConstrainsI: "[| F \<in> Always(I);  F \<in> (I \<inter> A) Co A' |] ==> F \<in> A Co A'"
+lemma Always_ConstrainsI: "\<lbrakk>F \<in> Always(I);  F \<in> (I \<inter> A) Co A'\<rbrakk> \<Longrightarrow> F \<in> A Co A'"
 by (blast intro: Always_Constrains_pre [THEN iffD1])
 
-(* [| F \<in> Always(I);  F \<in> A Co A' |] ==> F \<in> A Co (I \<inter> A') *)
+(* \<lbrakk>F \<in> Always(I);  F \<in> A Co A'\<rbrakk> \<Longrightarrow> F \<in> A Co (I \<inter> A') *)
 lemmas Always_ConstrainsD = Always_Constrains_post [THEN iffD2]
 
 (*The analogous proof of Always_LeadsTo_weaken doesn't terminate*)
 lemma Always_Constrains_weaken: 
-"[|F \<in> Always(C); F \<in> A Co A'; C \<inter> B<=A; C \<inter> A'<=B'|]==>F \<in> B Co B'"
+"\<lbrakk>F \<in> Always(C); F \<in> A Co A'; C \<inter> B<=A; C \<inter> A'<=B'\<rbrakk>\<Longrightarrow>F \<in> B Co B'"
 apply (rule Always_ConstrainsI)
 apply (drule_tac [2] Always_ConstrainsD, simp_all) 
 apply (blast intro: Constrains_weaken)
@@ -435,18 +435,18 @@ lemma Always_Int_distrib: "Always(A \<inter> B) = Always(A) \<inter> Always(B)"
 by (auto simp add: Always_eq_includes_reachable)
 
 (* the premise i \<in> I is need since \<Inter>is formally not defined for I=0 *)
-lemma Always_INT_distrib: "i \<in> I==>Always(\<Inter>i \<in> I. A(i)) = (\<Inter>i \<in> I. Always(A(i)))"
+lemma Always_INT_distrib: "i \<in> I\<Longrightarrow>Always(\<Inter>i \<in> I. A(i)) = (\<Inter>i \<in> I. Always(A(i)))"
 apply (rule equalityI)
 apply (auto simp add: Inter_iff Always_eq_includes_reachable)
 done
 
 
-lemma Always_Int_I: "[| F \<in> Always(A);  F \<in> Always(B) |] ==> F \<in> Always(A \<inter> B)"
+lemma Always_Int_I: "\<lbrakk>F \<in> Always(A);  F \<in> Always(B)\<rbrakk> \<Longrightarrow> F \<in> Always(A \<inter> B)"
 apply (simp (no_asm_simp) add: Always_Int_distrib)
 done
 
 (*Allows a kind of "implication introduction"*)
-lemma Always_Diff_Un_eq: "[| F \<in> Always(A) |] ==> (F \<in> Always(C-A \<union> B)) \<longleftrightarrow> (F \<in> Always(B))"
+lemma Always_Diff_Un_eq: "\<lbrakk>F \<in> Always(A)\<rbrakk> \<Longrightarrow> (F \<in> Always(C-A \<union> B)) \<longleftrightarrow> (F \<in> Always(B))"
 by (auto simp add: Always_eq_includes_reachable)
 
 (*Delete the nearest invariance assumption (which will be the second one

@@ -10,7 +10,7 @@ theory OrderArith imports Order Sum Ordinal begin
 definition
   (*disjoint sum of two relations; underlies ordinal addition*)
   radd    :: "[i,i,i,i]=>i"  where
-    "radd(A,r,B,s) ==
+    "radd(A,r,B,s) \<equiv>
                 {z: (A+B) * (A+B).
                     (\<exists>x y. z = <Inl(x), Inr(y)>)   |
                     (\<exists>x' x. z = <Inl(x'), Inl(x)> & <x',x>:r)   |
@@ -19,7 +19,7 @@ definition
 definition
   (*lexicographic product of two relations; underlies ordinal multiplication*)
   rmult   :: "[i,i,i,i]=>i"  where
-    "rmult(A,r,B,s) ==
+    "rmult(A,r,B,s) \<equiv>
                 {z: (A*B) * (A*B).
                     \<exists>x' y' x y. z = <<x',y'>, <x,y>> &
                        (<x',x>: r | (x'=x & <y',y>: s))}"
@@ -27,11 +27,11 @@ definition
 definition
   (*inverse image of a relation*)
   rvimage :: "[i,i,i]=>i"  where
-    "rvimage(A,f,r) == {z \<in> A*A. \<exists>x y. z = <x,y> & <f`x,f`y>: r}"
+    "rvimage(A,f,r) \<equiv> {z \<in> A*A. \<exists>x y. z = <x,y> & <f`x,f`y>: r}"
 
 definition
   measure :: "[i, i\<Rightarrow>i] \<Rightarrow> i"  where
-    "measure(A,f) == {<x,y>: A*A. f(x) < f(y)}"
+    "measure(A,f) \<equiv> {<x,y>: A*A. f(x) < f(y)}"
 
 
 subsection\<open>Addition of Relations -- Disjoint Sum\<close>
@@ -59,11 +59,11 @@ declare radd_Inr_Inl_iff [THEN iffD1, dest!]
 subsubsection\<open>Elimination Rule\<close>
 
 lemma raddE:
-    "[| <p',p> \<in> radd(A,r,B,s);
-        !!x y. [| p'=Inl(x); x \<in> A; p=Inr(y); y \<in> B |] ==> Q;
-        !!x' x. [| p'=Inl(x'); p=Inl(x); <x',x>: r; x':A; x \<in> A |] ==> Q;
-        !!y' y. [| p'=Inr(y'); p=Inr(y); <y',y>: s; y':B; y \<in> B |] ==> Q
-     |] ==> Q"
+    "\<lbrakk><p',p> \<in> radd(A,r,B,s);
+        \<And>x y. \<lbrakk>p'=Inl(x); x \<in> A; p=Inr(y); y \<in> B\<rbrakk> \<Longrightarrow> Q;
+        \<And>x' x. \<lbrakk>p'=Inl(x'); p=Inl(x); <x',x>: r; x':A; x \<in> A\<rbrakk> \<Longrightarrow> Q;
+        \<And>y' y. \<lbrakk>p'=Inr(y'); p=Inr(y); <y',y>: s; y':B; y \<in> B\<rbrakk> \<Longrightarrow> Q
+\<rbrakk> \<Longrightarrow> Q"
 by (unfold radd_def, blast)
 
 subsubsection\<open>Type checking\<close>
@@ -78,13 +78,13 @@ lemmas field_radd = radd_type [THEN field_rel_subset]
 subsubsection\<open>Linearity\<close>
 
 lemma linear_radd:
-    "[| linear(A,r);  linear(B,s) |] ==> linear(A+B,radd(A,r,B,s))"
+    "\<lbrakk>linear(A,r);  linear(B,s)\<rbrakk> \<Longrightarrow> linear(A+B,radd(A,r,B,s))"
 by (unfold linear_def, blast)
 
 
 subsubsection\<open>Well-foundedness\<close>
 
-lemma wf_on_radd: "[| wf[A](r);  wf[B](s) |] ==> wf[A+B](radd(A,r,B,s))"
+lemma wf_on_radd: "\<lbrakk>wf[A](r);  wf[B](s)\<rbrakk> \<Longrightarrow> wf[A+B](radd(A,r,B,s))"
 apply (rule wf_onI2)
 apply (subgoal_tac "\<forall>x\<in>A. Inl (x) \<in> Ba")
  \<comment> \<open>Proving the lemma, which is needed twice!\<close>
@@ -99,14 +99,14 @@ apply blast
 apply (erule_tac r = s and a = ya in wf_on_induct, assumption, blast)
 done
 
-lemma wf_radd: "[| wf(r);  wf(s) |] ==> wf(radd(field(r),r,field(s),s))"
+lemma wf_radd: "\<lbrakk>wf(r);  wf(s)\<rbrakk> \<Longrightarrow> wf(radd(field(r),r,field(s),s))"
 apply (simp add: wf_iff_wf_on_field)
 apply (rule wf_on_subset_A [OF _ field_radd])
 apply (blast intro: wf_on_radd)
 done
 
 lemma well_ord_radd:
-     "[| well_ord(A,r);  well_ord(B,s) |] ==> well_ord(A+B, radd(A,r,B,s))"
+     "\<lbrakk>well_ord(A,r);  well_ord(B,s)\<rbrakk> \<Longrightarrow> well_ord(A+B, radd(A,r,B,s))"
 apply (rule well_ordI)
 apply (simp add: well_ord_def wf_on_radd)
 apply (simp add: well_ord_def tot_ord_def linear_radd)
@@ -115,8 +115,8 @@ done
 subsubsection\<open>An \<^term>\<open>ord_iso\<close> congruence law\<close>
 
 lemma sum_bij:
-     "[| f \<in> bij(A,C);  g \<in> bij(B,D) |]
-      ==> (\<lambda>z\<in>A+B. case(%x. Inl(f`x), %y. Inr(g`y), z)) \<in> bij(A+B, C+D)"
+     "\<lbrakk>f \<in> bij(A,C);  g \<in> bij(B,D)\<rbrakk>
+      \<Longrightarrow> (\<lambda>z\<in>A+B. case(%x. Inl(f`x), %y. Inr(g`y), z)) \<in> bij(A+B, C+D)"
 apply (rule_tac d = "case (%x. Inl (converse(f)`x), %y. Inr(converse(g)`y))"
        in lam_bijective)
 apply (typecheck add: bij_is_inj inj_is_fun)
@@ -124,7 +124,7 @@ apply (auto simp add: left_inverse_bij right_inverse_bij)
 done
 
 lemma sum_ord_iso_cong:
-    "[| f \<in> ord_iso(A,r,A',r');  g \<in> ord_iso(B,s,B',s') |] ==>
+    "\<lbrakk>f \<in> ord_iso(A,r,A',r');  g \<in> ord_iso(B,s,B',s')\<rbrakk> \<Longrightarrow>
             (\<lambda>z\<in>A+B. case(%x. Inl(f`x), %y. Inr(g`y), z))
             \<in> ord_iso(A+B, radd(A,r,B,s), A'+B', radd(A',r',B',s'))"
 apply (unfold ord_iso_def)
@@ -135,7 +135,7 @@ done
 
 (*Could we prove an ord_iso result?  Perhaps
      ord_iso(A+B, radd(A,r,B,s), A \<union> B, r \<union> s) *)
-lemma sum_disjoint_bij: "A \<inter> B = 0 ==>
+lemma sum_disjoint_bij: "A \<inter> B = 0 \<Longrightarrow>
             (\<lambda>z\<in>A+B. case(%x. x, %y. y, z)) \<in> bij(A+B, A \<union> B)"
 apply (rule_tac d = "%z. if z \<in> A then Inl (z) else Inr (z) " in lam_bijective)
 apply auto
@@ -170,10 +170,10 @@ lemma  rmult_iff [iff]:
 by (unfold rmult_def, blast)
 
 lemma rmultE:
-    "[| <<a',b'>, <a,b>> \<in> rmult(A,r,B,s);
-        [| <a',a>: r;  a':A;  a \<in> A;  b':B;  b \<in> B |] ==> Q;
-        [| <b',b>: s;  a \<in> A;  a'=a;  b':B;  b \<in> B |] ==> Q
-     |] ==> Q"
+    "\<lbrakk><<a',b'>, <a,b>> \<in> rmult(A,r,B,s);
+        \<lbrakk><a',a>: r;  a':A;  a \<in> A;  b':B;  b \<in> B\<rbrakk> \<Longrightarrow> Q;
+        \<lbrakk><b',b>: s;  a \<in> A;  a'=a;  b':B;  b \<in> B\<rbrakk> \<Longrightarrow> Q
+\<rbrakk> \<Longrightarrow> Q"
 by blast
 
 subsubsection\<open>Type checking\<close>
@@ -186,12 +186,12 @@ lemmas field_rmult = rmult_type [THEN field_rel_subset]
 subsubsection\<open>Linearity\<close>
 
 lemma linear_rmult:
-    "[| linear(A,r);  linear(B,s) |] ==> linear(A*B,rmult(A,r,B,s))"
+    "\<lbrakk>linear(A,r);  linear(B,s)\<rbrakk> \<Longrightarrow> linear(A*B,rmult(A,r,B,s))"
 by (simp add: linear_def, blast)
 
 subsubsection\<open>Well-foundedness\<close>
 
-lemma wf_on_rmult: "[| wf[A](r);  wf[B](s) |] ==> wf[A*B](rmult(A,r,B,s))"
+lemma wf_on_rmult: "\<lbrakk>wf[A](r);  wf[B](s)\<rbrakk> \<Longrightarrow> wf[A*B](rmult(A,r,B,s))"
 apply (rule wf_onI2)
 apply (erule SigmaE)
 apply (erule ssubst)
@@ -203,14 +203,14 @@ apply (best elim!: rmultE bspec [THEN mp])
 done
 
 
-lemma wf_rmult: "[| wf(r);  wf(s) |] ==> wf(rmult(field(r),r,field(s),s))"
+lemma wf_rmult: "\<lbrakk>wf(r);  wf(s)\<rbrakk> \<Longrightarrow> wf(rmult(field(r),r,field(s),s))"
 apply (simp add: wf_iff_wf_on_field)
 apply (rule wf_on_subset_A [OF _ field_rmult])
 apply (blast intro: wf_on_rmult)
 done
 
 lemma well_ord_rmult:
-     "[| well_ord(A,r);  well_ord(B,s) |] ==> well_ord(A*B, rmult(A,r,B,s))"
+     "\<lbrakk>well_ord(A,r);  well_ord(B,s)\<rbrakk> \<Longrightarrow> well_ord(A*B, rmult(A,r,B,s))"
 apply (rule well_ordI)
 apply (simp add: well_ord_def wf_on_rmult)
 apply (simp add: well_ord_def tot_ord_def linear_rmult)
@@ -220,8 +220,8 @@ done
 subsubsection\<open>An \<^term>\<open>ord_iso\<close> congruence law\<close>
 
 lemma prod_bij:
-     "[| f \<in> bij(A,C);  g \<in> bij(B,D) |]
-      ==> (lam <x,y>:A*B. <f`x, g`y>) \<in> bij(A*B, C*D)"
+     "\<lbrakk>f \<in> bij(A,C);  g \<in> bij(B,D)\<rbrakk>
+      \<Longrightarrow> (lam <x,y>:A*B. <f`x, g`y>) \<in> bij(A*B, C*D)"
 apply (rule_tac d = "%<x,y>. <converse (f) `x, converse (g) `y>"
        in lam_bijective)
 apply (typecheck add: bij_is_inj inj_is_fun)
@@ -229,8 +229,8 @@ apply (auto simp add: left_inverse_bij right_inverse_bij)
 done
 
 lemma prod_ord_iso_cong:
-    "[| f \<in> ord_iso(A,r,A',r');  g \<in> ord_iso(B,s,B',s') |]
-     ==> (lam <x,y>:A*B. <f`x, g`y>)
+    "\<lbrakk>f \<in> ord_iso(A,r,A',r');  g \<in> ord_iso(B,s,B',s')\<rbrakk>
+     \<Longrightarrow> (lam <x,y>:A*B. <f`x, g`y>)
          \<in> ord_iso(A*B, rmult(A,r,B,s), A'*B', rmult(A',r',B',s'))"
 apply (unfold ord_iso_def)
 apply (safe intro!: prod_bij)
@@ -243,7 +243,7 @@ by (rule_tac d = snd in lam_bijective, auto)
 
 (*Used??*)
 lemma singleton_prod_ord_iso:
-     "well_ord({x},xr) ==>
+     "well_ord({x},xr) \<Longrightarrow>
           (\<lambda>z\<in>A. <x,z>) \<in> ord_iso(A, r, {x}*A, rmult({x}, xr, A, r))"
 apply (rule singleton_prod_bij [THEN ord_isoI])
 apply (simp (no_asm_simp))
@@ -253,7 +253,7 @@ done
 (*Here we build a complicated function term, then simplify it using
   case_cong, id_conv, comp_lam, case_case.*)
 lemma prod_sum_singleton_bij:
-     "a\<notin>C ==>
+     "a\<notin>C \<Longrightarrow>
        (\<lambda>x\<in>C*B + D. case(%x. x, %y.<a,y>, x))
        \<in> bij(C*B + D, C*B \<union> {a}*D)"
 apply (rule subst_elem)
@@ -267,7 +267,7 @@ apply (simp (no_asm_simp) add: case_case)
 done
 
 lemma prod_sum_singleton_ord_iso:
- "[| a \<in> A;  well_ord(A,r) |] ==>
+ "\<lbrakk>a \<in> A;  well_ord(A,r)\<rbrakk> \<Longrightarrow>
     (\<lambda>x\<in>pred(A,a,r)*B + pred(B,b,s). case(%x. x, %y.<a,y>, x))
     \<in> ord_iso(pred(A,a,r)*B + pred(B,b,s),
                   radd(A*B, rmult(A,r,B,s), B, s),
@@ -324,19 +324,19 @@ by (unfold rvimage_def, blast)
 subsubsection\<open>Partial Ordering Properties\<close>
 
 lemma irrefl_rvimage:
-    "[| f \<in> inj(A,B);  irrefl(B,r) |] ==> irrefl(A, rvimage(A,f,r))"
+    "\<lbrakk>f \<in> inj(A,B);  irrefl(B,r)\<rbrakk> \<Longrightarrow> irrefl(A, rvimage(A,f,r))"
 apply (unfold irrefl_def rvimage_def)
 apply (blast intro: inj_is_fun [THEN apply_type])
 done
 
 lemma trans_on_rvimage:
-    "[| f \<in> inj(A,B);  trans[B](r) |] ==> trans[A](rvimage(A,f,r))"
+    "\<lbrakk>f \<in> inj(A,B);  trans[B](r)\<rbrakk> \<Longrightarrow> trans[A](rvimage(A,f,r))"
 apply (unfold trans_on_def rvimage_def)
 apply (blast intro: inj_is_fun [THEN apply_type])
 done
 
 lemma part_ord_rvimage:
-    "[| f \<in> inj(A,B);  part_ord(B,r) |] ==> part_ord(A, rvimage(A,f,r))"
+    "\<lbrakk>f \<in> inj(A,B);  part_ord(B,r)\<rbrakk> \<Longrightarrow> part_ord(A, rvimage(A,f,r))"
 apply (unfold part_ord_def)
 apply (blast intro!: irrefl_rvimage trans_on_rvimage)
 done
@@ -344,13 +344,13 @@ done
 subsubsection\<open>Linearity\<close>
 
 lemma linear_rvimage:
-    "[| f \<in> inj(A,B);  linear(B,r) |] ==> linear(A,rvimage(A,f,r))"
+    "\<lbrakk>f \<in> inj(A,B);  linear(B,r)\<rbrakk> \<Longrightarrow> linear(A,rvimage(A,f,r))"
 apply (simp add: inj_def linear_def rvimage_iff)
 apply (blast intro: apply_funtype)
 done
 
 lemma tot_ord_rvimage:
-    "[| f \<in> inj(A,B);  tot_ord(B,r) |] ==> tot_ord(A, rvimage(A,f,r))"
+    "\<lbrakk>f \<in> inj(A,B);  tot_ord(B,r)\<rbrakk> \<Longrightarrow> tot_ord(A, rvimage(A,f,r))"
 apply (unfold tot_ord_def)
 apply (blast intro!: part_ord_rvimage linear_rvimage)
 done
@@ -358,7 +358,7 @@ done
 
 subsubsection\<open>Well-foundedness\<close>
 
-lemma wf_rvimage [intro!]: "wf(r) ==> wf(rvimage(A,f,r))"
+lemma wf_rvimage [intro!]: "wf(r) \<Longrightarrow> wf(rvimage(A,f,r))"
 apply (simp (no_asm_use) add: rvimage_def wf_eq_minimal)
 apply clarify
 apply (subgoal_tac "\<exists>w. w \<in> {w: {f`x. x \<in> Q}. \<exists>x. x \<in> Q & (f`x = w) }")
@@ -370,8 +370,8 @@ apply blast
 done
 
 text\<open>But note that the combination of \<open>wf_imp_wf_on\<close> and
- \<open>wf_rvimage\<close> gives \<^prop>\<open>wf(r) ==> wf[C](rvimage(A,f,r))\<close>\<close>
-lemma wf_on_rvimage: "[| f \<in> A->B;  wf[B](r) |] ==> wf[A](rvimage(A,f,r))"
+ \<open>wf_rvimage\<close> gives \<^prop>\<open>wf(r) \<Longrightarrow> wf[C](rvimage(A,f,r))\<close>\<close>
+lemma wf_on_rvimage: "\<lbrakk>f \<in> A->B;  wf[B](r)\<rbrakk> \<Longrightarrow> wf[A](rvimage(A,f,r))"
 apply (rule wf_onI2)
 apply (subgoal_tac "\<forall>z\<in>A. f`z=f`y \<longrightarrow> z \<in> Ba")
  apply blast
@@ -382,7 +382,7 @@ done
 
 (*Note that we need only wf[A](...) and linear(A,...) to get the result!*)
 lemma well_ord_rvimage:
-     "[| f \<in> inj(A,B);  well_ord(B,r) |] ==> well_ord(A, rvimage(A,f,r))"
+     "\<lbrakk>f \<in> inj(A,B);  well_ord(B,r)\<rbrakk> \<Longrightarrow> well_ord(A, rvimage(A,f,r))"
 apply (rule well_ordI)
 apply (unfold well_ord_def tot_ord_def)
 apply (blast intro!: wf_on_rvimage inj_is_fun)
@@ -390,13 +390,13 @@ apply (blast intro!: linear_rvimage)
 done
 
 lemma ord_iso_rvimage:
-    "f \<in> bij(A,B) ==> f \<in> ord_iso(A, rvimage(A,f,s), B, s)"
+    "f \<in> bij(A,B) \<Longrightarrow> f \<in> ord_iso(A, rvimage(A,f,s), B, s)"
 apply (unfold ord_iso_def)
 apply (simp add: rvimage_iff)
 done
 
 lemma ord_iso_rvimage_eq:
-    "f \<in> ord_iso(A,r, B,s) ==> rvimage(A,f,s) = r \<inter> A*A"
+    "f \<in> ord_iso(A,r, B,s) \<Longrightarrow> rvimage(A,f,s) = r \<inter> A*A"
 by (unfold ord_iso_def rvimage_def, blast)
 
 
@@ -409,28 +409,28 @@ by (blast intro: wf_rvimage wf_Memrel)
 
 definition
   wfrank :: "[i,i]=>i"  where
-    "wfrank(r,a) == wfrec(r, a, %x f. \<Union>y \<in> r-``{x}. succ(f`y))"
+    "wfrank(r,a) \<equiv> wfrec(r, a, %x f. \<Union>y \<in> r-``{x}. succ(f`y))"
 
 definition
   wftype :: "i=>i"  where
-    "wftype(r) == \<Union>y \<in> range(r). succ(wfrank(r,y))"
+    "wftype(r) \<equiv> \<Union>y \<in> range(r). succ(wfrank(r,y))"
 
-lemma wfrank: "wf(r) ==> wfrank(r,a) = (\<Union>y \<in> r-``{a}. succ(wfrank(r,y)))"
+lemma wfrank: "wf(r) \<Longrightarrow> wfrank(r,a) = (\<Union>y \<in> r-``{a}. succ(wfrank(r,y)))"
 by (subst wfrank_def [THEN def_wfrec], simp_all)
 
-lemma Ord_wfrank: "wf(r) ==> Ord(wfrank(r,a))"
+lemma Ord_wfrank: "wf(r) \<Longrightarrow> Ord(wfrank(r,a))"
 apply (rule_tac a=a in wf_induct, assumption)
 apply (subst wfrank, assumption)
 apply (rule Ord_succ [THEN Ord_UN], blast)
 done
 
-lemma wfrank_lt: "[|wf(r); <a,b> \<in> r|] ==> wfrank(r,a) < wfrank(r,b)"
+lemma wfrank_lt: "\<lbrakk>wf(r); <a,b> \<in> r\<rbrakk> \<Longrightarrow> wfrank(r,a) < wfrank(r,b)"
 apply (rule_tac a1 = b in wfrank [THEN ssubst], assumption)
 apply (rule UN_I [THEN ltI])
 apply (simp add: Ord_wfrank vimage_iff)+
 done
 
-lemma Ord_wftype: "wf(r) ==> Ord(wftype(r))"
+lemma Ord_wftype: "wf(r) \<Longrightarrow> Ord(wftype(r))"
 by (simp add: wftype_def Ord_wfrank)
 
 lemma wftypeI: "\<lbrakk>wf(r);  x \<in> field(r)\<rbrakk> \<Longrightarrow> wfrank(r,x) \<in> wftype(r)"
@@ -440,7 +440,7 @@ done
 
 
 lemma wf_imp_subset_rvimage:
-     "[|wf(r); r \<subseteq> A*A|] ==> \<exists>i f. Ord(i) & r \<subseteq> rvimage(A, f, Memrel(i))"
+     "\<lbrakk>wf(r); r \<subseteq> A*A\<rbrakk> \<Longrightarrow> \<exists>i f. Ord(i) & r \<subseteq> rvimage(A, f, Memrel(i))"
 apply (rule_tac x="wftype(r)" in exI)
 apply (rule_tac x="\<lambda>x\<in>A. wfrank(r,x)" in exI)
 apply (simp add: Ord_wftype, clarify)
@@ -450,19 +450,19 @@ apply (blast intro: wftypeI)
 done
 
 theorem wf_iff_subset_rvimage:
-  "relation(r) ==> wf(r) \<longleftrightarrow> (\<exists>i f A. Ord(i) & r \<subseteq> rvimage(A, f, Memrel(i)))"
+  "relation(r) \<Longrightarrow> wf(r) \<longleftrightarrow> (\<exists>i f A. Ord(i) & r \<subseteq> rvimage(A, f, Memrel(i)))"
 by (blast dest!: relation_field_times_field wf_imp_subset_rvimage
           intro: wf_rvimage_Ord [THEN wf_subset])
 
 
 subsection\<open>Other Results\<close>
 
-lemma wf_times: "A \<inter> B = 0 ==> wf(A*B)"
+lemma wf_times: "A \<inter> B = 0 \<Longrightarrow> wf(A*B)"
 by (simp add: wf_def, blast)
 
 text\<open>Could also be used to prove \<open>wf_radd\<close>\<close>
 lemma wf_Un:
-     "[| range(r) \<inter> domain(s) = 0; wf(r);  wf(s) |] ==> wf(r \<union> s)"
+     "\<lbrakk>range(r) \<inter> domain(s) = 0; wf(r);  wf(s)\<rbrakk> \<Longrightarrow> wf(r \<union> s)"
 apply (simp add: wf_def, clarify)
 apply (rule equalityI)
  prefer 2 apply blast
@@ -500,8 +500,8 @@ lemma measure_iff [iff]: "<x,y> \<in> measure(A,f) \<longleftrightarrow> x \<in>
 by (simp (no_asm) add: measure_def)
 
 lemma linear_measure:
- assumes Ordf: "!!x. x \<in> A ==> Ord(f(x))"
-     and inj:  "!!x y. [|x \<in> A; y \<in> A; f(x) = f(y) |] ==> x=y"
+ assumes Ordf: "\<And>x. x \<in> A \<Longrightarrow> Ord(f(x))"
+     and inj:  "\<And>x y. \<lbrakk>x \<in> A; y \<in> A; f(x) = f(y)\<rbrakk> \<Longrightarrow> x=y"
  shows "linear(A, measure(A,f))"
 apply (auto simp add: linear_def)
 apply (rule_tac i="f(x)" and j="f(y)" in Ord_linear_lt)
@@ -513,8 +513,8 @@ lemma wf_on_measure: "wf[B](measure(A,f))"
 by (rule wf_imp_wf_on [OF wf_measure])
 
 lemma well_ord_measure:
- assumes Ordf: "!!x. x \<in> A ==> Ord(f(x))"
-     and inj:  "!!x y. [|x \<in> A; y \<in> A; f(x) = f(y) |] ==> x=y"
+ assumes Ordf: "\<And>x. x \<in> A \<Longrightarrow> Ord(f(x))"
+     and inj:  "\<And>x y. \<lbrakk>x \<in> A; y \<in> A; f(x) = f(y)\<rbrakk> \<Longrightarrow> x=y"
  shows "well_ord(A, measure(A,f))"
 apply (rule well_ordI)
 apply (rule wf_on_measure)
@@ -528,9 +528,9 @@ subsubsection\<open>Well-foundedness of Unions\<close>
 
 lemma wf_on_Union:
  assumes wfA: "wf[A](r)"
-     and wfB: "!!a. a\<in>A ==> wf[B(a)](s)"
-     and ok: "!!a u v. [|<u,v> \<in> s; v \<in> B(a); a \<in> A|]
-                       ==> (\<exists>a'\<in>A. <a',a> \<in> r & u \<in> B(a')) | u \<in> B(a)"
+     and wfB: "\<And>a. a\<in>A \<Longrightarrow> wf[B(a)](s)"
+     and ok: "\<And>a u v. \<lbrakk><u,v> \<in> s; v \<in> B(a); a \<in> A\<rbrakk>
+                       \<Longrightarrow> (\<exists>a'\<in>A. <a',a> \<in> r & u \<in> B(a')) | u \<in> B(a)"
  shows "wf[\<Union>a\<in>A. B(a)](s)"
 apply (rule wf_onI2)
 apply (erule UN_E)

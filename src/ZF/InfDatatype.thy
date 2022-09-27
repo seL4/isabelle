@@ -45,13 +45,13 @@ next
 qed
 
 lemma subset_Vcsucc:
-     "[| D \<subseteq> Vfrom(A,csucc(K));  |D| \<le> K;  InfCard(K) |]
-      ==> \<exists>j. D \<subseteq> Vfrom(A,j) & j < csucc(K)"
+     "\<lbrakk>D \<subseteq> Vfrom(A,csucc(K));  |D| \<le> K;  InfCard(K)\<rbrakk>
+      \<Longrightarrow> \<exists>j. D \<subseteq> Vfrom(A,j) & j < csucc(K)"
 by (simp add: subset_iff_id fun_Vcsucc_lemma)
 
 (*Version for arbitrary index sets*)
 lemma fun_Vcsucc:
-     "[| |D| \<le> K;  InfCard(K);  D \<subseteq> Vfrom(A,csucc(K)) |] ==>
+     "\<lbrakk>|D| \<le> K;  InfCard(K);  D \<subseteq> Vfrom(A,csucc(K))\<rbrakk> \<Longrightarrow>
           D -> Vfrom(A,csucc(K)) \<subseteq> Vfrom(A,csucc(K))"
 apply (safe dest!: fun_Vcsucc_lemma subset_Vcsucc)
 apply (rule Vfrom [THEN ssubst])
@@ -65,9 +65,9 @@ apply (fast intro: Pair_in_Vfrom Vfrom_UnI1 Vfrom_UnI2)
 done
 
 lemma fun_in_Vcsucc:
-     "[| f: D -> Vfrom(A, csucc(K));  |D| \<le> K;  InfCard(K);
-         D \<subseteq> Vfrom(A,csucc(K)) |]
-       ==> f: Vfrom(A,csucc(K))"
+     "\<lbrakk>f: D -> Vfrom(A, csucc(K));  |D| \<le> K;  InfCard(K);
+         D \<subseteq> Vfrom(A,csucc(K))\<rbrakk>
+       \<Longrightarrow> f: Vfrom(A,csucc(K))"
 by (blast intro: fun_Vcsucc [THEN subsetD])
 
 text\<open>Remove \<open>\<subseteq>\<close> from the rule above\<close>
@@ -76,7 +76,7 @@ lemmas fun_in_Vcsucc' = fun_in_Vcsucc [OF _ _ _ subsetI]
 (** Version where K itself is the index set **)
 
 lemma Card_fun_Vcsucc:
-     "InfCard(K) ==> K -> Vfrom(A,csucc(K)) \<subseteq> Vfrom(A,csucc(K))"
+     "InfCard(K) \<Longrightarrow> K -> Vfrom(A,csucc(K)) \<subseteq> Vfrom(A,csucc(K))"
 apply (frule InfCard_is_Card [THEN Card_is_Ord])
 apply (blast del: subsetI
              intro: fun_Vcsucc Ord_cardinal_le i_subset_Vfrom
@@ -84,10 +84,10 @@ apply (blast del: subsetI
 done
 
 lemma Card_fun_in_Vcsucc:
-     "[| f: K -> Vfrom(A, csucc(K));  InfCard(K) |] ==> f: Vfrom(A,csucc(K))"
+     "\<lbrakk>f: K -> Vfrom(A, csucc(K));  InfCard(K)\<rbrakk> \<Longrightarrow> f: Vfrom(A,csucc(K))"
 by (blast intro: Card_fun_Vcsucc [THEN subsetD])
 
-lemma Limit_csucc: "InfCard(K) ==> Limit(csucc(K))"
+lemma Limit_csucc: "InfCard(K) \<Longrightarrow> Limit(csucc(K))"
 by (erule InfCard_csucc [THEN InfCard_is_Limit])
 
 lemmas Pair_in_Vcsucc = Pair_in_VLimit [OF _ _ Limit_csucc]

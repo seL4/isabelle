@@ -12,19 +12,19 @@ theory Increasing imports Constrains Monotonicity begin
 
 definition
   increasing :: "[i, i, i=>i] => i" (\<open>increasing[_]'(_, _')\<close>)  where
-  "increasing[A](r, f) ==
+  "increasing[A](r, f) \<equiv>
     {F \<in> program. (\<forall>k \<in> A. F \<in> stable({s \<in> state. <k, f(s)> \<in> r})) &
                 (\<forall>x \<in> state. f(x):A)}"
   
 definition
   Increasing :: "[i, i, i=>i] => i" (\<open>Increasing[_]'(_, _')\<close>)  where
-  "Increasing[A](r, f) ==
+  "Increasing[A](r, f) \<equiv>
     {F \<in> program. (\<forall>k \<in> A. F \<in> Stable({s \<in> state. <k, f(s)> \<in> r})) &
                 (\<forall>x \<in> state. f(x):A)}"
 
 abbreviation (input)
   IncWrt ::  "[i=>i, i, i] => i" (\<open>(_ IncreasingWrt _ '/ _)\<close> [60, 0, 60] 60)  where
-  "f IncreasingWrt r/A == Increasing[A](r,f)"
+  "f IncreasingWrt r/A \<equiv> Increasing[A](r,f)"
 
 
 (** increasing **)
@@ -32,15 +32,15 @@ abbreviation (input)
 lemma increasing_type: "increasing[A](r, f) \<subseteq> program"
 by (unfold increasing_def, blast)
 
-lemma increasing_into_program: "F \<in> increasing[A](r, f) ==> F \<in> program"
+lemma increasing_into_program: "F \<in> increasing[A](r, f) \<Longrightarrow> F \<in> program"
 by (unfold increasing_def, blast)
 
 lemma increasing_imp_stable: 
-"[| F \<in> increasing[A](r, f); x \<in> A |] ==>F \<in> stable({s \<in> state. <x, f(s)>:r})"
+"\<lbrakk>F \<in> increasing[A](r, f); x \<in> A\<rbrakk> \<Longrightarrow>F \<in> stable({s \<in> state. <x, f(s)>:r})"
 by (unfold increasing_def, blast)
 
 lemma increasingD: 
-"F \<in> increasing[A](r,f) ==> F \<in> program & (\<exists>a. a \<in> A) & (\<forall>s \<in> state. f(s):A)"
+"F \<in> increasing[A](r,f) \<Longrightarrow> F \<in> program & (\<exists>a. a \<in> A) & (\<forall>s \<in> state. f(s):A)"
 apply (unfold increasing_def)
 apply (subgoal_tac "\<exists>x. x \<in> state")
 apply (auto dest: stable_type [THEN subsetD] intro: st0_in_state)
@@ -54,7 +54,7 @@ apply (auto dest: stable_type [THEN subsetD] intro: st0_in_state)
 done
 
 lemma subset_increasing_comp: 
-"[| mono1(A, r, B, s, g); refl(A, r); trans[B](s)  |] ==>  
+"\<lbrakk>mono1(A, r, B, s, g); refl(A, r); trans[B](s)\<rbrakk> \<Longrightarrow>  
    increasing[A](r, f) \<subseteq> increasing[B](s, g comp f)"
 apply (unfold increasing_def stable_def part_order_def 
        constrains_def mono1_def metacomp_def, clarify, simp)
@@ -74,8 +74,8 @@ apply simp_all
 done
 
 lemma imp_increasing_comp:
-     "[| F \<in> increasing[A](r, f); mono1(A, r, B, s, g);  
-         refl(A, r); trans[B](s) |] ==> F \<in> increasing[B](s, g comp f)"
+     "\<lbrakk>F \<in> increasing[A](r, f); mono1(A, r, B, s, g);  
+         refl(A, r); trans[B](s)\<rbrakk> \<Longrightarrow> F \<in> increasing[B](s, g comp f)"
 by (rule subset_increasing_comp [THEN subsetD], auto)
 
 lemma strict_increasing: 
@@ -92,7 +92,7 @@ done
 (** Increasing **)
 
 lemma increasing_imp_Increasing: 
-     "F \<in> increasing[A](r, f) ==> F \<in> Increasing[A](r, f)"
+     "F \<in> increasing[A](r, f) \<Longrightarrow> F \<in> Increasing[A](r, f)"
 
 apply (unfold increasing_def Increasing_def)
 apply (auto intro: stable_imp_Stable)
@@ -101,15 +101,15 @@ done
 lemma Increasing_type: "Increasing[A](r, f) \<subseteq> program"
 by (unfold Increasing_def, auto)
 
-lemma Increasing_into_program: "F \<in> Increasing[A](r, f) ==> F \<in> program"
+lemma Increasing_into_program: "F \<in> Increasing[A](r, f) \<Longrightarrow> F \<in> program"
 by (unfold Increasing_def, auto)
 
 lemma Increasing_imp_Stable: 
-"[| F \<in> Increasing[A](r, f); a \<in> A |] ==> F \<in> Stable({s \<in> state. <a,f(s)>:r})"
+"\<lbrakk>F \<in> Increasing[A](r, f); a \<in> A\<rbrakk> \<Longrightarrow> F \<in> Stable({s \<in> state. <a,f(s)>:r})"
 by (unfold Increasing_def, blast)
 
 lemma IncreasingD: 
-"F \<in> Increasing[A](r, f) ==> F \<in> program & (\<exists>a. a \<in> A) & (\<forall>s \<in> state. f(s):A)"
+"F \<in> Increasing[A](r, f) \<Longrightarrow> F \<in> program & (\<exists>a. a \<in> A) & (\<forall>s \<in> state. f(s):A)"
 apply (unfold Increasing_def)
 apply (subgoal_tac "\<exists>x. x \<in> state")
 apply (auto intro: st0_in_state)
@@ -122,7 +122,7 @@ apply (auto dest!: IncreasingD intro: st0_in_state increasing_imp_Increasing)
 done
 
 lemma subset_Increasing_comp: 
-"[| mono1(A, r, B, s, g); refl(A, r); trans[B](s) |] ==>  
+"\<lbrakk>mono1(A, r, B, s, g); refl(A, r); trans[B](s)\<rbrakk> \<Longrightarrow>  
    Increasing[A](r, f) \<subseteq> Increasing[B](s, g comp f)"
 apply (unfold Increasing_def Stable_def Constrains_def part_order_def 
        constrains_def mono1_def metacomp_def, safe)
@@ -144,8 +144,8 @@ apply simp_all
 done
 
 lemma imp_Increasing_comp:
- "[| F \<in> Increasing[A](r, f); mono1(A, r, B, s, g); refl(A, r); trans[B](s) |] 
-  ==> F \<in> Increasing[B](s, g comp f)"
+ "\<lbrakk>F \<in> Increasing[A](r, f); mono1(A, r, B, s, g); refl(A, r); trans[B](s)\<rbrakk> 
+  \<Longrightarrow> F \<in> Increasing[B](s, g comp f)"
 apply (rule subset_Increasing_comp [THEN subsetD], auto)
 done
   
@@ -161,9 +161,9 @@ done
 (** Two-place monotone operations **)
 
 lemma imp_increasing_comp2: 
-"[| F \<in> increasing[A](r, f); F \<in> increasing[B](s, g);  
-    mono2(A, r, B, s, C, t, h); refl(A, r); refl(B, s); trans[C](t) |]
- ==> F \<in> increasing[C](t, %x. h(f(x), g(x)))"
+"\<lbrakk>F \<in> increasing[A](r, f); F \<in> increasing[B](s, g);  
+    mono2(A, r, B, s, C, t, h); refl(A, r); refl(B, s); trans[C](t)\<rbrakk>
+ \<Longrightarrow> F \<in> increasing[C](t, %x. h(f(x), g(x)))"
 apply (unfold increasing_def stable_def 
        part_order_def constrains_def mono2_def, clarify, simp)
 apply clarify
@@ -193,8 +193,8 @@ apply simp_all
 done
 
 lemma imp_Increasing_comp2: 
-"[| F \<in> Increasing[A](r, f); F \<in> Increasing[B](s, g);  
-  mono2(A, r, B, s, C, t, h); refl(A, r); refl(B, s); trans[C](t) |] ==>  
+"\<lbrakk>F \<in> Increasing[A](r, f); F \<in> Increasing[B](s, g);  
+  mono2(A, r, B, s, C, t, h); refl(A, r); refl(B, s); trans[C](t)\<rbrakk> \<Longrightarrow>  
   F \<in> Increasing[C](t, %x. h(f(x), g(x)))"
 apply (unfold Increasing_def stable_def 
        part_order_def constrains_def mono2_def Stable_def Constrains_def, safe)

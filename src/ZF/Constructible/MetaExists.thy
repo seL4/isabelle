@@ -11,9 +11,9 @@ Yields a proposition rather than a FOL formula.\<close>
 
 definition
   ex :: "(('a::{}) \<Rightarrow> prop) \<Rightarrow> prop"  (binder \<open>\<Or>\<close> 0) where
-  "ex(P) == (\<And>Q. (\<And>x. PROP P(x) \<Longrightarrow> PROP Q) \<Longrightarrow> PROP Q)"
+  "ex(P) \<equiv> (\<And>Q. (\<And>x. PROP P(x) \<Longrightarrow> PROP Q) \<Longrightarrow> PROP Q)"
 
-lemma meta_exI: "PROP P(x) ==> (\<Or>x. PROP P(x))"
+lemma meta_exI: "PROP P(x) \<Longrightarrow> (\<Or>x. PROP P(x))"
 proof (unfold ex_def)
   assume P: "PROP P(x)"
   fix Q
@@ -21,7 +21,7 @@ proof (unfold ex_def)
   from P show "PROP Q" by (rule PQ)
 qed 
 
-lemma meta_exE: "[|\<Or>x. PROP P(x);  \<And>x. PROP P(x) ==> PROP R |] ==> PROP R"
+lemma meta_exE: "\<lbrakk>\<Or>x. PROP P(x);  \<And>x. PROP P(x) \<Longrightarrow> PROP R\<rbrakk> \<Longrightarrow> PROP R"
 proof (unfold ex_def)
   assume QPQ: "\<And>Q. (\<And>x. PROP P(x) \<Longrightarrow> PROP Q) \<Longrightarrow> PROP Q"
   assume PR: "\<And>x. PROP P(x) \<Longrightarrow> PROP R"

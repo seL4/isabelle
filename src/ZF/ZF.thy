@@ -15,27 +15,27 @@ primrec
 
 definition
   iterates_omega :: "[i=>i,i] => i" (\<open>(_^\<omega> '(_'))\<close> [60,1000] 60) where
-    "F^\<omega> (x) == \<Union>n\<in>nat. F^n (x)"
+    "F^\<omega> (x) \<equiv> \<Union>n\<in>nat. F^n (x)"
 
 lemma iterates_triv:
-     "[| n\<in>nat;  F(x) = x |] ==> F^n (x) = x"
+     "\<lbrakk>n\<in>nat;  F(x) = x\<rbrakk> \<Longrightarrow> F^n (x) = x"
 by (induct n rule: nat_induct, simp_all)
 
 lemma iterates_type [TC]:
-     "[| n \<in> nat;  a \<in> A; !!x. x \<in> A ==> F(x) \<in> A |]
-      ==> F^n (a) \<in> A"
+     "\<lbrakk>n \<in> nat;  a \<in> A; \<And>x. x \<in> A \<Longrightarrow> F(x) \<in> A\<rbrakk>
+      \<Longrightarrow> F^n (a) \<in> A"
 by (induct n rule: nat_induct, simp_all)
 
 lemma iterates_omega_triv:
-    "F(x) = x ==> F^\<omega> (x) = x"
+    "F(x) = x \<Longrightarrow> F^\<omega> (x) = x"
 by (simp add: iterates_omega_def iterates_triv)
 
 lemma Ord_iterates [simp]:
-     "[| n\<in>nat;  !!i. Ord(i) ==> Ord(F(i));  Ord(x) |]
-      ==> Ord(F^n (x))"
+     "\<lbrakk>n\<in>nat;  \<And>i. Ord(i) \<Longrightarrow> Ord(F(i));  Ord(x)\<rbrakk>
+      \<Longrightarrow> Ord(F^n (x))"
 by (induct n rule: nat_induct, simp_all)
 
-lemma iterates_commute: "n \<in> nat ==> F(F^n (x)) = F^n (F(x))"
+lemma iterates_commute: "n \<in> nat \<Longrightarrow> F(F^n (x)) = F^n (F(x))"
 by (induct_tac n, simp_all)
 
 
@@ -46,7 +46,7 @@ text\<open>Transfinite recursion for definitions based on the
 
 definition
   transrec3 :: "[i, i, [i,i]=>i, [i,i]=>i] =>i" where
-    "transrec3(k, a, b, c) ==
+    "transrec3(k, a, b, c) \<equiv>
        transrec(k, \<lambda>x r.
          if x=0 then a
          else if Limit(x) then c(x, \<lambda>y\<in>x. r`y)
@@ -60,7 +60,7 @@ lemma transrec3_succ [simp]:
 by (rule transrec3_def [THEN def_transrec, THEN trans], simp)
 
 lemma transrec3_Limit:
-     "Limit(i) ==>
+     "Limit(i) \<Longrightarrow>
       transrec3(i,a,b,c) = c(i, \<lambda>j\<in>i. transrec3(j,a,b,c))"
 by (rule transrec3_def [THEN def_transrec, THEN trans], force)
 

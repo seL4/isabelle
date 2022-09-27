@@ -2,11 +2,11 @@
     Author:     Krzysztof Grabczewski
 
 Proofs needed to state that formulations WO1,...,WO6 are all equivalent.
-The only hard one is WO6 ==> WO1.
+The only hard one is WO6 \<Longrightarrow> WO1.
 
-Every proof (except WO6 ==> WO1 and WO1 ==> WO2) are described as "clear"
+Every proof (except WO6 \<Longrightarrow> WO1 and WO1 \<Longrightarrow> WO2) are described as "clear"
 by Rubin & Rubin (page 2). 
-They refer reader to a book by Gödel to see the proof WO1 ==> WO2.
+They refer reader to a book by Gödel to see the proof WO1 \<Longrightarrow> WO2.
 Fortunately order types made this proof also very easy.
 *)
 
@@ -17,18 +17,18 @@ begin
 (* Auxiliary definitions used in proof *)
 definition
   NN  :: "i => i"  where
-    "NN(y) == {m \<in> nat. \<exists>a. \<exists>f. Ord(a) & domain(f)=a  &  
+    "NN(y) \<equiv> {m \<in> nat. \<exists>a. \<exists>f. Ord(a) & domain(f)=a  &  
                         (\<Union>b<a. f`b) = y & (\<forall>b<a. f`b \<lesssim> m)}"
   
 definition
   uu  :: "[i, i, i, i] => i"  where
-    "uu(f, beta, gamma, delta) == (f`beta * f`gamma) \<inter> f`delta"
+    "uu(f, beta, gamma, delta) \<equiv> (f`beta * f`gamma) \<inter> f`delta"
 
 
 (** Definitions for case 1 **)
 definition
   vv1 :: "[i, i, i] => i"  where
-     "vv1(f,m,b) ==                                                
+     "vv1(f,m,b) \<equiv>                                                
            let g = \<mu> g. (\<exists>d. Ord(d) & (domain(uu(f,b,g,d)) \<noteq> 0 & 
                                  domain(uu(f,b,g,d)) \<lesssim> m));      
                d = \<mu> d. domain(uu(f,b,g,d)) \<noteq> 0 &                  
@@ -37,35 +37,35 @@ definition
 
 definition
   ww1 :: "[i, i, i] => i"  where
-     "ww1(f,m,b) == f`b - vv1(f,m,b)"
+     "ww1(f,m,b) \<equiv> f`b - vv1(f,m,b)"
 
 definition
   gg1 :: "[i, i, i] => i"  where
-     "gg1(f,a,m) == \<lambda>b \<in> a++a. if b<a then vv1(f,m,b) else ww1(f,m,b--a)"
+     "gg1(f,a,m) \<equiv> \<lambda>b \<in> a++a. if b<a then vv1(f,m,b) else ww1(f,m,b--a)"
 
 
 (** Definitions for case 2 **)
 definition
   vv2 :: "[i, i, i, i] => i"  where
-     "vv2(f,b,g,s) ==   
+     "vv2(f,b,g,s) \<equiv>   
            if f`g \<noteq> 0 then {uu(f, b, g, \<mu> d. uu(f,b,g,d) \<noteq> 0)`s} else 0"
 
 definition
   ww2 :: "[i, i, i, i] => i"  where
-     "ww2(f,b,g,s) == f`g - vv2(f,b,g,s)"
+     "ww2(f,b,g,s) \<equiv> f`g - vv2(f,b,g,s)"
 
 definition
   gg2 :: "[i, i, i, i] => i"  where
-     "gg2(f,a,b,s) ==
+     "gg2(f,a,b,s) \<equiv>
               \<lambda>g \<in> a++a. if g<a then vv2(f,b,g,s) else ww2(f,b,g--a,s)"
 
 
-lemma WO2_WO3: "WO2 ==> WO3"
+lemma WO2_WO3: "WO2 \<Longrightarrow> WO3"
 by (unfold WO2_def WO3_def, fast)
 
 (* ********************************************************************** *)
 
-lemma WO3_WO1: "WO3 ==> WO1"
+lemma WO3_WO1: "WO3 \<Longrightarrow> WO1"
 apply (unfold eqpoll_def WO1_def WO3_def)
 apply (intro allI)
 apply (drule_tac x=A in spec) 
@@ -75,25 +75,25 @@ done
 
 (* ********************************************************************** *)
 
-lemma WO1_WO2: "WO1 ==> WO2"
+lemma WO1_WO2: "WO1 \<Longrightarrow> WO2"
 apply (unfold eqpoll_def WO1_def WO2_def)
 apply (blast intro!: Ord_ordertype ordermap_bij)
 done
 
 (* ********************************************************************** *)
 
-lemma lam_sets: "f \<in> A->B ==> (\<lambda>x \<in> A. {f`x}): A -> {{b}. b \<in> B}"
+lemma lam_sets: "f \<in> A->B \<Longrightarrow> (\<lambda>x \<in> A. {f`x}): A -> {{b}. b \<in> B}"
 by (fast intro!: lam_type apply_type)
 
-lemma surj_imp_eq': "f \<in> surj(A,B) ==> (\<Union>a \<in> A. {f`a}) = B"
+lemma surj_imp_eq': "f \<in> surj(A,B) \<Longrightarrow> (\<Union>a \<in> A. {f`a}) = B"
 apply (unfold surj_def)
 apply (fast elim!: apply_type)
 done
 
-lemma surj_imp_eq: "[| f \<in> surj(A,B); Ord(A) |] ==> (\<Union>a<A. {f`a}) = B"
+lemma surj_imp_eq: "\<lbrakk>f \<in> surj(A,B); Ord(A)\<rbrakk> \<Longrightarrow> (\<Union>a<A. {f`a}) = B"
 by (fast dest!: surj_imp_eq' intro!: ltI elim!: ltE)
 
-lemma WO1_WO4: "WO1 ==> WO4(1)"
+lemma WO1_WO4: "WO1 \<Longrightarrow> WO4(1)"
 apply (unfold WO1_def WO4_def)
 apply (rule allI)
 apply (erule_tac x = A in allE)
@@ -108,32 +108,32 @@ done
 
 (* ********************************************************************** *)
 
-lemma WO4_mono: "[| m\<le>n; WO4(m) |] ==> WO4(n)"
+lemma WO4_mono: "\<lbrakk>m\<le>n; WO4(m)\<rbrakk> \<Longrightarrow> WO4(n)"
 apply (unfold WO4_def)
 apply (blast dest!: spec intro: lepoll_trans [OF _ le_imp_lepoll])
 done
 
 (* ********************************************************************** *)
 
-lemma WO4_WO5: "[| m \<in> nat; 1\<le>m; WO4(m) |] ==> WO5"
+lemma WO4_WO5: "\<lbrakk>m \<in> nat; 1\<le>m; WO4(m)\<rbrakk> \<Longrightarrow> WO5"
 by (unfold WO4_def WO5_def, blast)
 
 (* ********************************************************************** *)
 
-lemma WO5_WO6: "WO5 ==> WO6"
+lemma WO5_WO6: "WO5 \<Longrightarrow> WO6"
 by (unfold WO4_def WO5_def WO6_def, blast)
 
 
 (* ********************************************************************** 
-    The proof of "WO6 ==> WO1".  Simplified by L C Paulson.
+    The proof of "WO6 \<Longrightarrow> WO1".  Simplified by L C Paulson.
 
     From the book "Equivalents of the Axiom of Choice" by Rubin & Rubin,
     pages 2-5
 ************************************************************************* *)
 
 lemma lt_oadd_odiff_disj:
-      "[| k < i++j;  Ord(i);  Ord(j) |] 
-       ==> k < i  |  (~ k<i & k = i ++ (k--i) & (k--i)<j)"
+      "\<lbrakk>k < i++j;  Ord(i);  Ord(j)\<rbrakk> 
+       \<Longrightarrow> k < i  |  (\<not> k<i & k = i ++ (k--i) & (k--i)<j)"
 apply (rule_tac i = k and j = i in Ord_linear2)
 prefer 4 
    apply (drule odiff_lt_mono2, assumption)
@@ -154,7 +154,7 @@ lemma domain_uu_subset: "domain(uu(f,b,g,d)) \<subseteq> f`b"
 by (unfold uu_def, blast)
 
 lemma quant_domain_uu_lepoll_m:
-     "\<forall>b<a. f`b \<lesssim> m ==> \<forall>b<a. \<forall>g<a. \<forall>d<a. domain(uu(f,b,g,d)) \<lesssim> m"
+     "\<forall>b<a. f`b \<lesssim> m \<Longrightarrow> \<forall>b<a. \<forall>g<a. \<forall>d<a. domain(uu(f,b,g,d)) \<lesssim> m"
 by (blast intro: domain_uu_subset [THEN subset_imp_lepoll] lepoll_trans)
 
 lemma uu_subset1: "uu(f,b,g,d) \<subseteq> f`b * f`g"
@@ -163,7 +163,7 @@ by (unfold uu_def, blast)
 lemma uu_subset2: "uu(f,b,g,d) \<subseteq> f`d"
 by (unfold uu_def, blast)
 
-lemma uu_lepoll_m: "[| \<forall>b<a. f`b \<lesssim> m;  d<a |] ==> uu(f,b,g,d) \<lesssim> m"
+lemma uu_lepoll_m: "\<lbrakk>\<forall>b<a. f`b \<lesssim> m;  d<a\<rbrakk> \<Longrightarrow> uu(f,b,g,d) \<lesssim> m"
 by (blast intro: uu_subset2 [THEN subset_imp_lepoll] lepoll_trans)
 
 (* ********************************************************************** *)
@@ -171,7 +171,7 @@ by (blast intro: uu_subset2 [THEN subset_imp_lepoll] lepoll_trans)
 (* ********************************************************************** *)
 lemma cases: 
      "\<forall>b<a. \<forall>g<a. \<forall>d<a. u(f,b,g,d) \<lesssim> m   
-      ==> (\<forall>b<a. f`b \<noteq> 0 \<longrightarrow>  
+      \<Longrightarrow> (\<forall>b<a. f`b \<noteq> 0 \<longrightarrow>  
                   (\<exists>g<a. \<exists>d<a. u(f,b,g,d) \<noteq> 0 & u(f,b,g,d) \<prec> m))  
         | (\<exists>b<a. f`b \<noteq> 0 & (\<forall>g<a. \<forall>d<a. u(f,b,g,d) \<noteq> 0 \<longrightarrow>   
                                         u(f,b,g,d) \<approx> m))"
@@ -182,7 +182,7 @@ done
 (* ********************************************************************** *)
 (* Lemmas used in both cases                                              *)
 (* ********************************************************************** *)
-lemma UN_oadd: "Ord(a) ==> (\<Union>b<a++a. C(b)) = (\<Union>b<a. C(b) \<union> C(a++b))"
+lemma UN_oadd: "Ord(a) \<Longrightarrow> (\<Union>b<a++a. C(b)) = (\<Union>b<a. C(b) \<union> C(a++b))"
 by (blast intro: ltI lt_oadd1 oadd_lt_mono2 dest!: lt_oadd_disj)
 
 
@@ -197,7 +197,7 @@ by (simp add: vv1_def Let_def domain_uu_subset)
 (* Case 1: Union of images is the whole "y"                              *)
 (* ********************************************************************** *)
 lemma UN_gg1_eq: 
-  "[| Ord(a);  m \<in> nat |] ==> (\<Union>b<a++a. gg1(f,a,m)`b) = (\<Union>b<a. f`b)"
+  "\<lbrakk>Ord(a);  m \<in> nat\<rbrakk> \<Longrightarrow> (\<Union>b<a++a. gg1(f,a,m)`b) = (\<Union>b<a. f`b)"
 by (simp add: gg1_def UN_oadd lt_oadd1 oadd_le_self [THEN le_imp_not_lt] 
               lt_Ord odiff_oadd_inverse ltD vv1_subset [THEN Diff_partition]
               ww1_def)
@@ -209,9 +209,9 @@ by (simp add: lam_funtype [THEN domain_of_fun] gg1_def)
 (* every value of defined function is less than or equipollent to m       *)
 (* ********************************************************************** *)
 lemma nested_LeastI:
-     "[| P(a, b);  Ord(a);  Ord(b);   
-         Least_a = (\<mu> a. \<exists>x. Ord(x) & P(a, x)) |]   
-      ==> P(Least_a, \<mu> b. P(Least_a, b))"
+     "\<lbrakk>P(a, b);  Ord(a);  Ord(b);   
+         Least_a = (\<mu> a. \<exists>x. Ord(x) & P(a, x))\<rbrakk>   
+      \<Longrightarrow> P(Least_a, \<mu> b. P(Least_a, b))"
 apply (erule ssubst)
 apply (rule_tac Q = "%z. P (z, \<mu> b. P (z, b))" in LeastI2)
 apply (fast elim!: LeastI)+
@@ -222,12 +222,12 @@ lemmas nested_Least_instance =
                                 domain(uu(f,b,g,d)) \<lesssim> m"] for f b m
 
 lemma gg1_lepoll_m: 
-     "[| Ord(a);  m \<in> nat;   
+     "\<lbrakk>Ord(a);  m \<in> nat;   
          \<forall>b<a. f`b \<noteq>0 \<longrightarrow>                                        
              (\<exists>g<a. \<exists>d<a. domain(uu(f,b,g,d)) \<noteq> 0  &                
                           domain(uu(f,b,g,d)) \<lesssim> m);             
-         \<forall>b<a. f`b \<lesssim> succ(m);  b<a++a |] 
-      ==> gg1(f,a,m)`b \<lesssim> m"
+         \<forall>b<a. f`b \<lesssim> succ(m);  b<a++a\<rbrakk> 
+      \<Longrightarrow> gg1(f,a,m)`b \<lesssim> m"
 apply (simp add: gg1_def empty_lepollI)
 apply (safe dest!: lt_oadd_odiff_disj)
 (*Case b<a   \<in> show vv1(f,m,b) \<lesssim> m *)
@@ -253,34 +253,34 @@ done
 (* ********************************************************************** *)
 
 lemma ex_d_uu_not_empty:
-     "[| b<a;  g<a;  f`b\<noteq>0;  f`g\<noteq>0;         
-         y*y \<subseteq> y;  (\<Union>b<a. f`b)=y |] 
-      ==> \<exists>d<a. uu(f,b,g,d) \<noteq> 0"
+     "\<lbrakk>b<a;  g<a;  f`b\<noteq>0;  f`g\<noteq>0;         
+         y*y \<subseteq> y;  (\<Union>b<a. f`b)=y\<rbrakk> 
+      \<Longrightarrow> \<exists>d<a. uu(f,b,g,d) \<noteq> 0"
 by (unfold uu_def, blast) 
 
 lemma uu_not_empty:
-     "[| b<a; g<a; f`b\<noteq>0; f`g\<noteq>0;  y*y \<subseteq> y; (\<Union>b<a. f`b)=y |]   
-      ==> uu(f,b,g,\<mu> d. (uu(f,b,g,d) \<noteq> 0)) \<noteq> 0"
+     "\<lbrakk>b<a; g<a; f`b\<noteq>0; f`g\<noteq>0;  y*y \<subseteq> y; (\<Union>b<a. f`b)=y\<rbrakk>   
+      \<Longrightarrow> uu(f,b,g,\<mu> d. (uu(f,b,g,d) \<noteq> 0)) \<noteq> 0"
 apply (drule ex_d_uu_not_empty, assumption+)
 apply (fast elim!: LeastI lt_Ord)
 done
 
-lemma not_empty_rel_imp_domain: "[| r \<subseteq> A*B; r\<noteq>0 |] ==> domain(r)\<noteq>0"
+lemma not_empty_rel_imp_domain: "\<lbrakk>r \<subseteq> A*B; r\<noteq>0\<rbrakk> \<Longrightarrow> domain(r)\<noteq>0"
 by blast
 
 lemma Least_uu_not_empty_lt_a:
-     "[| b<a; g<a; f`b\<noteq>0; f`g\<noteq>0; y*y \<subseteq> y; (\<Union>b<a. f`b)=y |]   
-      ==> (\<mu> d. uu(f,b,g,d) \<noteq> 0) < a"
+     "\<lbrakk>b<a; g<a; f`b\<noteq>0; f`g\<noteq>0; y*y \<subseteq> y; (\<Union>b<a. f`b)=y\<rbrakk>   
+      \<Longrightarrow> (\<mu> d. uu(f,b,g,d) \<noteq> 0) < a"
 apply (erule ex_d_uu_not_empty [THEN oexE], assumption+)
 apply (blast intro: Least_le [THEN lt_trans1] lt_Ord)
 done
 
-lemma subset_Diff_sing: "[| B \<subseteq> A; a\<notin>B |] ==> B \<subseteq> A-{a}"
+lemma subset_Diff_sing: "\<lbrakk>B \<subseteq> A; a\<notin>B\<rbrakk> \<Longrightarrow> B \<subseteq> A-{a}"
 by blast
 
 (*Could this be proved more directly?*)
 lemma supset_lepoll_imp_eq:
-     "[| A \<lesssim> m; m \<lesssim> B; B \<subseteq> A; m \<in> nat |] ==> A=B"
+     "\<lbrakk>A \<lesssim> m; m \<lesssim> B; B \<subseteq> A; m \<in> nat\<rbrakk> \<Longrightarrow> A=B"
 apply (erule natE)
 apply (fast dest!: lepoll_0_is_0 intro!: equalityI)
 apply (safe intro!: equalityI)
@@ -293,12 +293,12 @@ apply (rule succ_lepoll_natE)
 done
 
 lemma uu_Least_is_fun:
-     "[| \<forall>g<a. \<forall>d<a. domain(uu(f, b, g, d))\<noteq>0 \<longrightarrow>                
+     "\<lbrakk>\<forall>g<a. \<forall>d<a. domain(uu(f, b, g, d))\<noteq>0 \<longrightarrow>                
           domain(uu(f, b, g, d)) \<approx> succ(m);                         
           \<forall>b<a. f`b \<lesssim> succ(m);  y*y \<subseteq> y;                        
           (\<Union>b<a. f`b)=y;  b<a;  g<a;  d<a;                             
-          f`b\<noteq>0;  f`g\<noteq>0;  m \<in> nat;  s \<in> f`b |] 
-      ==> uu(f, b, g, \<mu> d. uu(f,b,g,d)\<noteq>0) \<in> f`b -> f`g"
+          f`b\<noteq>0;  f`g\<noteq>0;  m \<in> nat;  s \<in> f`b\<rbrakk> 
+      \<Longrightarrow> uu(f, b, g, \<mu> d. uu(f,b,g,d)\<noteq>0) \<in> f`b -> f`g"
 apply (drule_tac x2=g in ospec [THEN ospec, THEN mp])
    apply (rule_tac [3] not_empty_rel_imp_domain [OF uu_subset1 uu_not_empty])
         apply (rule_tac [2] Least_uu_not_empty_lt_a, assumption+)
@@ -312,11 +312,11 @@ apply (fast intro!: domain_uu_subset)+
 done
 
 lemma vv2_subset: 
-     "[| \<forall>g<a. \<forall>d<a. domain(uu(f, b, g, d))\<noteq>0 \<longrightarrow>             
+     "\<lbrakk>\<forall>g<a. \<forall>d<a. domain(uu(f, b, g, d))\<noteq>0 \<longrightarrow>             
                        domain(uu(f, b, g, d)) \<approx> succ(m);
          \<forall>b<a. f`b \<lesssim> succ(m); y*y \<subseteq> y;
-         (\<Union>b<a. f`b)=y;  b<a;  g<a;  m \<in> nat;  s \<in> f`b |] 
-      ==> vv2(f,b,g,s) \<subseteq> f`g"
+         (\<Union>b<a. f`b)=y;  b<a;  g<a;  m \<in> nat;  s \<in> f`b\<rbrakk> 
+      \<Longrightarrow> vv2(f,b,g,s) \<subseteq> f`g"
 apply (simp add: vv2_def)
 apply (blast intro: uu_Least_is_fun [THEN apply_type])
 done
@@ -325,11 +325,11 @@ done
 (* Case 2: Union of images is the whole "y"                              *)
 (* ********************************************************************** *)
 lemma UN_gg2_eq: 
-     "[| \<forall>g<a. \<forall>d<a. domain(uu(f,b,g,d)) \<noteq> 0 \<longrightarrow>              
+     "\<lbrakk>\<forall>g<a. \<forall>d<a. domain(uu(f,b,g,d)) \<noteq> 0 \<longrightarrow>              
                domain(uu(f,b,g,d)) \<approx> succ(m);                         
          \<forall>b<a. f`b \<lesssim> succ(m); y*y \<subseteq> y;                        
-         (\<Union>b<a. f`b)=y;  Ord(a);  m \<in> nat;  s \<in> f`b;  b<a |] 
-      ==> (\<Union>g<a++a. gg2(f,a,b,s) ` g) = y"
+         (\<Union>b<a. f`b)=y;  Ord(a);  m \<in> nat;  s \<in> f`b;  b<a\<rbrakk> 
+      \<Longrightarrow> (\<Union>g<a++a. gg2(f,a,b,s) ` g) = y"
 apply (unfold gg2_def)
 apply (drule sym) 
 apply (simp add: ltD UN_oadd  oadd_le_self [THEN le_imp_not_lt] 
@@ -345,7 +345,7 @@ by (simp add: lam_funtype [THEN domain_of_fun] gg2_def)
 (* every value of defined function is less than or equipollent to m       *)
 (* ********************************************************************** *)
 
-lemma vv2_lepoll: "[| m \<in> nat; m\<noteq>0 |] ==> vv2(f,b,g,s) \<lesssim> m"
+lemma vv2_lepoll: "\<lbrakk>m \<in> nat; m\<noteq>0\<rbrakk> \<Longrightarrow> vv2(f,b,g,s) \<lesssim> m"
 apply (unfold vv2_def)
 apply (simp add: empty_lepollI)
 apply (fast dest!: le_imp_subset [THEN subset_imp_lepoll, THEN lepoll_0_is_0] 
@@ -355,8 +355,8 @@ apply (fast dest!: le_imp_subset [THEN subset_imp_lepoll, THEN lepoll_0_is_0]
 done
 
 lemma ww2_lepoll: 
-    "[| \<forall>b<a. f`b \<lesssim> succ(m);  g<a;  m \<in> nat;  vv2(f,b,g,d) \<subseteq> f`g |]  
-     ==> ww2(f,b,g,d) \<lesssim> m"
+    "\<lbrakk>\<forall>b<a. f`b \<lesssim> succ(m);  g<a;  m \<in> nat;  vv2(f,b,g,d) \<subseteq> f`g\<rbrakk>  
+     \<Longrightarrow> ww2(f,b,g,d) \<lesssim> m"
 apply (unfold ww2_def)
 apply (case_tac "f`g = 0")
 apply (simp add: empty_lepollI)
@@ -366,11 +366,11 @@ apply (simp add: vv2_def not_emptyI)
 done
 
 lemma gg2_lepoll_m: 
-     "[| \<forall>g<a. \<forall>d<a. domain(uu(f,b,g,d)) \<noteq> 0 \<longrightarrow>              
+     "\<lbrakk>\<forall>g<a. \<forall>d<a. domain(uu(f,b,g,d)) \<noteq> 0 \<longrightarrow>              
                       domain(uu(f,b,g,d)) \<approx> succ(m);                         
          \<forall>b<a. f`b \<lesssim> succ(m);  y*y \<subseteq> y;                     
-         (\<Union>b<a. f`b)=y;  b<a;  s \<in> f`b;  m \<in> nat;  m\<noteq> 0;  g<a++a |] 
-      ==> gg2(f,a,b,s) ` g \<lesssim> m"
+         (\<Union>b<a. f`b)=y;  b<a;  s \<in> f`b;  m \<in> nat;  m\<noteq> 0;  g<a++a\<rbrakk> 
+      \<Longrightarrow> gg2(f,a,b,s) ` g \<lesssim> m"
 apply (simp add: gg2_def empty_lepollI)
 apply (safe elim!: lt_Ord2 dest!: lt_oadd_odiff_disj)
  apply (simp add: vv2_lepoll)
@@ -380,7 +380,7 @@ done
 (* ********************************************************************** *)
 (* lemma ii                                                               *)
 (* ********************************************************************** *)
-lemma lemma_ii: "[| succ(m) \<in> NN(y); y*y \<subseteq> y; m \<in> nat; m\<noteq>0 |] ==> m \<in> NN(y)"
+lemma lemma_ii: "\<lbrakk>succ(m) \<in> NN(y); y*y \<subseteq> y; m \<in> nat; m\<noteq>0\<rbrakk> \<Longrightarrow> m \<in> NN(y)"
 apply (unfold NN_def)
 apply (elim CollectE exE conjE) 
 apply (rule quant_domain_uu_lepoll_m [THEN cases, THEN disjE], assumption)
@@ -413,16 +413,16 @@ lemma z_n_subset_z_succ_n:
 by (fast intro: rec_succ [THEN ssubst])
 
 lemma le_subsets:
-     "[| \<forall>n \<in> nat. f(n)<=f(succ(n)); n\<le>m; n \<in> nat; m \<in> nat |]   
-      ==> f(n)<=f(m)"
+     "\<lbrakk>\<forall>n \<in> nat. f(n)<=f(succ(n)); n\<le>m; n \<in> nat; m \<in> nat\<rbrakk>   
+      \<Longrightarrow> f(n)<=f(m)"
 apply (erule_tac P = "n\<le>m" in rev_mp)
 apply (rule_tac P = "%z. n\<le>z \<longrightarrow> f (n) \<subseteq> f (z) " in nat_induct) 
 apply (auto simp add: le_iff) 
 done
 
 lemma le_imp_rec_subset:
-     "[| n\<le>m; m \<in> nat |] 
-      ==> rec(n, x, %k r. r \<union> r*r) \<subseteq> rec(m, x, %k r. r \<union> r*r)"
+     "\<lbrakk>n\<le>m; m \<in> nat\<rbrakk> 
+      \<Longrightarrow> rec(n, x, %k r. r \<union> r*r) \<subseteq> rec(m, x, %k r. r \<union> r*r)"
 apply (rule z_n_subset_z_succ_n [THEN le_subsets])
 apply (blast intro: lt_nat_in_nat)+
 done
@@ -444,34 +444,34 @@ done
 (* y can be well-ordered"                                                 *)
 
 (* In fact we have to prove                                               *)
-(*      * WO6 ==> NN(y) \<noteq> 0                                              *)
+(*      * WO6 \<Longrightarrow> NN(y) \<noteq> 0                                              *)
 (*      * reverse induction which lets us infer that 1 \<in> NN(y)            *)
-(*      * 1 \<in> NN(y) ==> y can be well-ordered                             *)
+(*      * 1 \<in> NN(y) \<Longrightarrow> y can be well-ordered                             *)
 (* ********************************************************************** *)
 
 (* ********************************************************************** *)
-(*      WO6 ==> NN(y) \<noteq> 0                                                *)
+(*      WO6 \<Longrightarrow> NN(y) \<noteq> 0                                                *)
 (* ********************************************************************** *)
 
-lemma WO6_imp_NN_not_empty: "WO6 ==> NN(y) \<noteq> 0"
+lemma WO6_imp_NN_not_empty: "WO6 \<Longrightarrow> NN(y) \<noteq> 0"
 by (unfold WO6_def NN_def, clarify, blast)
 
 (* ********************************************************************** *)
-(*      1 \<in> NN(y) ==> y can be well-ordered                               *)
+(*      1 \<in> NN(y) \<Longrightarrow> y can be well-ordered                               *)
 (* ********************************************************************** *)
 
 lemma lemma1:
-     "[| (\<Union>b<a. f`b)=y; x \<in> y; \<forall>b<a. f`b \<lesssim> 1; Ord(a) |] ==> \<exists>c<a. f`c = {x}"
+     "\<lbrakk>(\<Union>b<a. f`b)=y; x \<in> y; \<forall>b<a. f`b \<lesssim> 1; Ord(a)\<rbrakk> \<Longrightarrow> \<exists>c<a. f`c = {x}"
 by (fast elim!: lepoll_1_is_sing)
 
 lemma lemma2:
-     "[| (\<Union>b<a. f`b)=y; x \<in> y; \<forall>b<a. f`b \<lesssim> 1; Ord(a) |]   
-      ==> f` (\<mu> i. f`i = {x}) = {x}"
+     "\<lbrakk>(\<Union>b<a. f`b)=y; x \<in> y; \<forall>b<a. f`b \<lesssim> 1; Ord(a)\<rbrakk>   
+      \<Longrightarrow> f` (\<mu> i. f`i = {x}) = {x}"
 apply (drule lemma1, assumption+)
 apply (fast elim!: lt_Ord intro: LeastI)
 done
 
-lemma NN_imp_ex_inj: "1 \<in> NN(y) ==> \<exists>a f. Ord(a) & f \<in> inj(y, a)"
+lemma NN_imp_ex_inj: "1 \<in> NN(y) \<Longrightarrow> \<exists>a f. Ord(a) & f \<in> inj(y, a)"
 apply (unfold NN_def)
 apply (elim CollectE exE conjE)
 apply (rule_tac x = a in exI)
@@ -483,7 +483,7 @@ apply (fast elim!: Least_le [THEN lt_trans1, THEN ltD] lt_Ord)
 apply (rule lemma2 [THEN ssubst], assumption+, blast)
 done
 
-lemma y_well_ord: "[| y*y \<subseteq> y; 1 \<in> NN(y) |] ==> \<exists>r. well_ord(y, r)"
+lemma y_well_ord: "\<lbrakk>y*y \<subseteq> y; 1 \<in> NN(y)\<rbrakk> \<Longrightarrow> \<exists>r. well_ord(y, r)"
 apply (drule NN_imp_ex_inj)
 apply (fast elim!: well_ord_rvimage [OF _ well_ord_Memrel])
 done
@@ -493,35 +493,35 @@ done
 (* ********************************************************************** *)
 
 lemma rev_induct_lemma [rule_format]: 
-     "[| n \<in> nat; !!m. [| m \<in> nat; m\<noteq>0; P(succ(m)) |] ==> P(m) |]   
-      ==> n\<noteq>0 \<longrightarrow> P(n) \<longrightarrow> P(1)"
+     "\<lbrakk>n \<in> nat; \<And>m. \<lbrakk>m \<in> nat; m\<noteq>0; P(succ(m))\<rbrakk> \<Longrightarrow> P(m)\<rbrakk>   
+      \<Longrightarrow> n\<noteq>0 \<longrightarrow> P(n) \<longrightarrow> P(1)"
 by (erule nat_induct, blast+)
 
 lemma rev_induct:
-     "[| n \<in> nat;  P(n);  n\<noteq>0;   
-         !!m. [| m \<in> nat; m\<noteq>0; P(succ(m)) |] ==> P(m) |]   
-      ==> P(1)"
+     "\<lbrakk>n \<in> nat;  P(n);  n\<noteq>0;   
+         \<And>m. \<lbrakk>m \<in> nat; m\<noteq>0; P(succ(m))\<rbrakk> \<Longrightarrow> P(m)\<rbrakk>   
+      \<Longrightarrow> P(1)"
 by (rule rev_induct_lemma, blast+)
 
-lemma NN_into_nat: "n \<in> NN(y) ==> n \<in> nat"
+lemma NN_into_nat: "n \<in> NN(y) \<Longrightarrow> n \<in> nat"
 by (simp add: NN_def)
 
-lemma lemma3: "[| n \<in> NN(y); y*y \<subseteq> y; n\<noteq>0 |] ==> 1 \<in> NN(y)"
+lemma lemma3: "\<lbrakk>n \<in> NN(y); y*y \<subseteq> y; n\<noteq>0\<rbrakk> \<Longrightarrow> 1 \<in> NN(y)"
 apply (rule rev_induct [OF NN_into_nat], assumption+)
 apply (rule lemma_ii, assumption+)
 done
 
 (* ********************************************************************** *)
-(* Main theorem "WO6 ==> WO1"                                             *)
+(* Main theorem "WO6 \<Longrightarrow> WO1"                                             *)
 (* ********************************************************************** *)
 
 (* another helpful lemma *)
-lemma NN_y_0: "0 \<in> NN(y) ==> y=0"
+lemma NN_y_0: "0 \<in> NN(y) \<Longrightarrow> y=0"
 apply (unfold NN_def) 
 apply (fast intro!: equalityI dest!: lepoll_0_is_0 elim: subst)
 done
 
-lemma WO6_imp_WO1: "WO6 ==> WO1"
+lemma WO6_imp_WO1: "WO6 \<Longrightarrow> WO1"
 apply (unfold WO1_def)
 apply (rule allI)
 apply (case_tac "A=0")

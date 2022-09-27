@@ -25,19 +25,19 @@ done
 
 (*We need m:nat even if we replace the RHS by natify(m), for consider e.g.
   n=2, m=omega; then n + (m-n) = 2 + (0-2) = 2 \<noteq> 0 = natify(m).*)
-lemma add_diff_inverse: "[| n \<le> m;  m:nat |] ==> n #+ (m#-n) = m"
+lemma add_diff_inverse: "\<lbrakk>n \<le> m;  m:nat\<rbrakk> \<Longrightarrow> n #+ (m#-n) = m"
 apply (frule lt_nat_in_nat, erule nat_succI)
 apply (erule rev_mp)
 apply (rule_tac m = m and n = n in diff_induct, auto)
 done
 
-lemma add_diff_inverse2: "[| n \<le> m;  m:nat |] ==> (m#-n) #+ n = m"
+lemma add_diff_inverse2: "\<lbrakk>n \<le> m;  m:nat\<rbrakk> \<Longrightarrow> (m#-n) #+ n = m"
 apply (frule lt_nat_in_nat, erule nat_succI)
 apply (simp (no_asm_simp) add: add_commute add_diff_inverse)
 done
 
 (*Proof is IDENTICAL to that of add_diff_inverse*)
-lemma diff_succ: "[| n \<le> m;  m:nat |] ==> succ(m) #- n = succ(m#-n)"
+lemma diff_succ: "\<lbrakk>n \<le> m;  m:nat\<rbrakk> \<Longrightarrow> succ(m) #- n = succ(m#-n)"
 apply (frule lt_nat_in_nat, erule nat_succI)
 apply (erule rev_mp)
 apply (rule_tac m = m and n = n in diff_induct)
@@ -45,7 +45,7 @@ apply (simp_all (no_asm_simp))
 done
 
 lemma zero_less_diff [simp]:
-     "[| m: nat; n: nat |] ==> 0 < (n #- m)   \<longleftrightarrow>   m<n"
+     "\<lbrakk>m: nat; n: nat\<rbrakk> \<Longrightarrow> 0 < (n #- m)   \<longleftrightarrow>   m<n"
 apply (rule_tac m = m and n = n in diff_induct)
 apply (simp_all (no_asm_simp))
 done
@@ -67,7 +67,7 @@ done
 subsection\<open>Remainder\<close>
 
 (*We need m:nat even with natify*)
-lemma div_termination: "[| 0<n;  n \<le> m;  m:nat |] ==> m #- n < m"
+lemma div_termination: "\<lbrakk>0<n;  n \<le> m;  m:nat\<rbrakk> \<Longrightarrow> m #- n < m"
 apply (frule lt_nat_in_nat, erule nat_succI)
 apply (erule rev_mp)
 apply (erule rev_mp)
@@ -81,7 +81,7 @@ lemmas div_rls =
     div_termination [THEN ltD]
     nat_into_Ord not_lt_iff_le [THEN iffD1]
 
-lemma raw_mod_type: "[| m:nat;  n:nat |] ==> raw_mod (m, n) \<in> nat"
+lemma raw_mod_type: "\<lbrakk>m:nat;  n:nat\<rbrakk> \<Longrightarrow> raw_mod (m, n) \<in> nat"
 apply (unfold raw_mod_def)
 apply (rule Ord_transrec_type)
 apply (auto simp add: nat_into_Ord [THEN Ord_0_lt_iff])
@@ -109,25 +109,25 @@ apply (rule raw_mod_def [THEN def_transrec, THEN trans])
 apply (simp (no_asm_simp))
 done  (*NOT for adding to default simpset*)
 
-lemma raw_mod_less: "m<n ==> raw_mod (m,n) = m"
+lemma raw_mod_less: "m<n \<Longrightarrow> raw_mod (m,n) = m"
 apply (rule raw_mod_def [THEN def_transrec, THEN trans])
 apply (simp (no_asm_simp) add: div_termination [THEN ltD])
 done
 
-lemma mod_less [simp]: "[| m<n; n \<in> nat |] ==> m mod n = m"
+lemma mod_less [simp]: "\<lbrakk>m<n; n \<in> nat\<rbrakk> \<Longrightarrow> m mod n = m"
 apply (frule lt_nat_in_nat, assumption)
 apply (simp (no_asm_simp) add: mod_def raw_mod_less)
 done
 
 lemma raw_mod_geq:
-     "[| 0<n; n \<le> m;  m:nat |] ==> raw_mod (m, n) = raw_mod (m#-n, n)"
+     "\<lbrakk>0<n; n \<le> m;  m:nat\<rbrakk> \<Longrightarrow> raw_mod (m, n) = raw_mod (m#-n, n)"
 apply (frule lt_nat_in_nat, erule nat_succI)
 apply (rule raw_mod_def [THEN def_transrec, THEN trans])
 apply (simp (no_asm_simp) add: div_termination [THEN ltD] not_lt_iff_le [THEN iffD2], blast)
 done
 
 
-lemma mod_geq: "[| n \<le> m;  m:nat |] ==> m mod n = (m#-n) mod n"
+lemma mod_geq: "\<lbrakk>n \<le> m;  m:nat\<rbrakk> \<Longrightarrow> m mod n = (m#-n) mod n"
 apply (frule lt_nat_in_nat, erule nat_succI)
 apply (case_tac "n=0")
  apply (simp add: DIVISION_BY_ZERO_MOD)
@@ -137,7 +137,7 @@ done
 
 subsection\<open>Division\<close>
 
-lemma raw_div_type: "[| m:nat;  n:nat |] ==> raw_div (m, n) \<in> nat"
+lemma raw_div_type: "\<lbrakk>m:nat;  n:nat\<rbrakk> \<Longrightarrow> raw_div (m, n) \<in> nat"
 apply (unfold raw_div_def)
 apply (rule Ord_transrec_type)
 apply (auto simp add: nat_into_Ord [THEN Ord_0_lt_iff])
@@ -149,17 +149,17 @@ apply (unfold div_def)
 apply (simp (no_asm) add: div_def raw_div_type)
 done
 
-lemma raw_div_less: "m<n ==> raw_div (m,n) = 0"
+lemma raw_div_less: "m<n \<Longrightarrow> raw_div (m,n) = 0"
 apply (rule raw_div_def [THEN def_transrec, THEN trans])
 apply (simp (no_asm_simp) add: div_termination [THEN ltD])
 done
 
-lemma div_less [simp]: "[| m<n; n \<in> nat |] ==> m div n = 0"
+lemma div_less [simp]: "\<lbrakk>m<n; n \<in> nat\<rbrakk> \<Longrightarrow> m div n = 0"
 apply (frule lt_nat_in_nat, assumption)
 apply (simp (no_asm_simp) add: div_def raw_div_less)
 done
 
-lemma raw_div_geq: "[| 0<n;  n \<le> m;  m:nat |] ==> raw_div(m,n) = succ(raw_div(m#-n, n))"
+lemma raw_div_geq: "\<lbrakk>0<n;  n \<le> m;  m:nat\<rbrakk> \<Longrightarrow> raw_div(m,n) = succ(raw_div(m#-n, n))"
 apply (subgoal_tac "n \<noteq> 0")
 prefer 2 apply blast
 apply (frule lt_nat_in_nat, erule nat_succI)
@@ -168,7 +168,7 @@ apply (simp (no_asm_simp) add: div_termination [THEN ltD] not_lt_iff_le [THEN if
 done
 
 lemma div_geq [simp]:
-     "[| 0<n;  n \<le> m;  m:nat |] ==> m div n = succ ((m#-n) div n)"
+     "\<lbrakk>0<n;  n \<le> m;  m:nat\<rbrakk> \<Longrightarrow> m div n = succ ((m#-n) div n)"
 apply (frule lt_nat_in_nat, erule nat_succI)
 apply (simp (no_asm_simp) add: div_def raw_div_geq)
 done
@@ -177,7 +177,7 @@ declare div_less [simp] div_geq [simp]
 
 
 (*A key result*)
-lemma mod_div_lemma: "[| m: nat;  n: nat |] ==> (m div n)#*n #+ m mod n = m"
+lemma mod_div_lemma: "\<lbrakk>m: nat;  n: nat\<rbrakk> \<Longrightarrow> (m div n)#*n #+ m mod n = m"
 apply (case_tac "n=0")
  apply (simp add: DIVISION_BY_ZERO_MOD)
 apply (simp add: nat_into_Ord [THEN Ord_0_lt_iff])
@@ -195,7 +195,7 @@ apply force
 apply (subst mod_div_lemma, auto)
 done
 
-lemma mod_div_equality: "m: nat ==> (m div n)#*n #+ m mod n = m"
+lemma mod_div_equality: "m: nat \<Longrightarrow> (m div n)#*n #+ m mod n = m"
 apply (simp (no_asm_simp) add: mod_div_equality_natify)
 done
 
@@ -205,8 +205,8 @@ subsection\<open>Further Facts about Remainder\<close>
 text\<open>(mainly for mutilated chess board)\<close>
 
 lemma mod_succ_lemma:
-     "[| 0<n;  m:nat;  n:nat |]
-      ==> succ(m) mod n = (if succ(m mod n) = n then 0 else succ(m mod n))"
+     "\<lbrakk>0<n;  m:nat;  n:nat\<rbrakk>
+      \<Longrightarrow> succ(m) mod n = (if succ(m mod n) = n then 0 else succ(m mod n))"
 apply (erule complete_induct)
 apply (case_tac "succ (x) <n")
 txt\<open>case succ(x) < n\<close>
@@ -221,7 +221,7 @@ apply (simp add: diff_self_eq_0)
 done
 
 lemma mod_succ:
-  "n:nat ==> succ(m) mod n = (if succ(m mod n) = n then 0 else succ(m mod n))"
+  "n:nat \<Longrightarrow> succ(m) mod n = (if succ(m mod n) = n then 0 else succ(m mod n))"
 apply (case_tac "n=0")
  apply (simp (no_asm_simp) add: natify_succ DIVISION_BY_ZERO_MOD)
 apply (subgoal_tac "natify (succ (m)) mod n = (if succ (natify (m) mod n) = n then 0 else succ (natify (m) mod n))")
@@ -231,7 +231,7 @@ apply (subgoal_tac "natify (succ (m)) mod n = (if succ (natify (m) mod n) = n th
   apply (auto simp del: natify_succ simp add: nat_into_Ord [THEN Ord_0_lt_iff])
 done
 
-lemma mod_less_divisor: "[| 0<n;  n:nat |] ==> m mod n < n"
+lemma mod_less_divisor: "\<lbrakk>0<n;  n:nat\<rbrakk> \<Longrightarrow> m mod n < n"
 apply (subgoal_tac "natify (m) mod n < n")
 apply (rule_tac [2] i = "natify (m) " in complete_induct)
 apply (case_tac [3] "x<n", auto)
@@ -242,7 +242,7 @@ done
 lemma mod_1_eq [simp]: "m mod 1 = 0"
 by (cut_tac n = 1 in mod_less_divisor, auto)
 
-lemma mod2_cases: "b<2 ==> k mod 2 = b | k mod 2 = (if b=1 then 0 else 1)"
+lemma mod2_cases: "b<2 \<Longrightarrow> k mod 2 = b | k mod 2 = (if b=1 then 0 else 1)"
 apply (subgoal_tac "k mod 2: 2")
  prefer 2 apply (simp add: mod_less_divisor [THEN ltD])
 apply (drule ltD, auto)
@@ -266,17 +266,17 @@ by (cut_tac n = 0 in mod2_add_more, auto)
 
 subsection\<open>Additional theorems about \<open>\<le>\<close>\<close>
 
-lemma add_le_self: "m:nat ==> m \<le> (m #+ n)"
+lemma add_le_self: "m:nat \<Longrightarrow> m \<le> (m #+ n)"
 apply (simp (no_asm_simp))
 done
 
-lemma add_le_self2: "m:nat ==> m \<le> (n #+ m)"
+lemma add_le_self2: "m:nat \<Longrightarrow> m \<le> (n #+ m)"
 apply (simp (no_asm_simp))
 done
 
 (*** Monotonicity of Multiplication ***)
 
-lemma mult_le_mono1: "[| i \<le> j; j:nat |] ==> (i#*k) \<le> (j#*k)"
+lemma mult_le_mono1: "\<lbrakk>i \<le> j; j:nat\<rbrakk> \<Longrightarrow> (i#*k) \<le> (j#*k)"
 apply (subgoal_tac "natify (i) #*natify (k) \<le> j#*natify (k) ")
 apply (frule_tac [2] lt_nat_in_nat)
 apply (rule_tac [3] n = "natify (k) " in nat_induct)
@@ -284,14 +284,14 @@ apply (simp_all add: add_le_mono)
 done
 
 (* @{text"\<le>"} monotonicity, BOTH arguments*)
-lemma mult_le_mono: "[| i \<le> j; k \<le> l; j:nat; l:nat |] ==> i#*k \<le> j#*l"
+lemma mult_le_mono: "\<lbrakk>i \<le> j; k \<le> l; j:nat; l:nat\<rbrakk> \<Longrightarrow> i#*k \<le> j#*l"
 apply (rule mult_le_mono1 [THEN le_trans], assumption+)
 apply (subst mult_commute, subst mult_commute, rule mult_le_mono1, assumption+)
 done
 
 (*strict, in 1st argument; proof is by induction on k>0.
   I can't see how to relax the typing conditions.*)
-lemma mult_lt_mono2: "[| i<j; 0<k; j:nat; k:nat |] ==> k#*i < k#*j"
+lemma mult_lt_mono2: "\<lbrakk>i<j; 0<k; j:nat; k:nat\<rbrakk> \<Longrightarrow> k#*i < k#*j"
 apply (erule zero_lt_natE)
 apply (frule_tac [2] lt_nat_in_nat)
 apply (simp_all (no_asm_simp))
@@ -299,7 +299,7 @@ apply (induct_tac "x")
 apply (simp_all (no_asm_simp) add: add_lt_mono)
 done
 
-lemma mult_lt_mono1: "[| i<j; 0<k; j:nat; k:nat |] ==> i#*k < j#*k"
+lemma mult_lt_mono1: "\<lbrakk>i<j; 0<k; j:nat; k:nat\<rbrakk> \<Longrightarrow> i#*k < j#*k"
 apply (simp (no_asm_simp) add: mult_lt_mono2 mult_commute [of _ k])
 done
 
@@ -326,7 +326,7 @@ apply auto
 done
 
 
-lemma mult_is_zero: "[|m: nat; n: nat|] ==> (m #* n = 0) \<longleftrightarrow> (m = 0 | n = 0)"
+lemma mult_is_zero: "\<lbrakk>m: nat; n: nat\<rbrakk> \<Longrightarrow> (m #* n = 0) \<longleftrightarrow> (m = 0 | n = 0)"
 apply auto
 apply (erule natE)
 apply (erule_tac [2] natE, auto)
@@ -342,7 +342,7 @@ done
 subsection\<open>Cancellation Laws for Common Factors in Comparisons\<close>
 
 lemma mult_less_cancel_lemma:
-     "[| k: nat; m: nat; n: nat |] ==> (m#*k < n#*k) \<longleftrightarrow> (0<k & m<n)"
+     "\<lbrakk>k: nat; m: nat; n: nat\<rbrakk> \<Longrightarrow> (m#*k < n#*k) \<longleftrightarrow> (0<k & m<n)"
 apply (safe intro!: mult_lt_mono1)
 apply (erule natE, auto)
 apply (rule not_le_iff_lt [THEN iffD1])
@@ -371,14 +371,14 @@ apply (simp (no_asm_simp) add: not_lt_iff_le [THEN iff_sym])
 apply auto
 done
 
-lemma mult_le_cancel_le1: "k \<in> nat ==> k #* m \<le> k \<longleftrightarrow> (0 < k \<longrightarrow> natify(m) \<le> 1)"
+lemma mult_le_cancel_le1: "k \<in> nat \<Longrightarrow> k #* m \<le> k \<longleftrightarrow> (0 < k \<longrightarrow> natify(m) \<le> 1)"
 by (cut_tac k = k and m = m and n = 1 in mult_le_cancel1, auto)
 
-lemma Ord_eq_iff_le: "[| Ord(m); Ord(n) |] ==> m=n \<longleftrightarrow> (m \<le> n & n \<le> m)"
+lemma Ord_eq_iff_le: "\<lbrakk>Ord(m); Ord(n)\<rbrakk> \<Longrightarrow> m=n \<longleftrightarrow> (m \<le> n & n \<le> m)"
 by (blast intro: le_anti_sym)
 
 lemma mult_cancel2_lemma:
-     "[| k: nat; m: nat; n: nat |] ==> (m#*k = n#*k) \<longleftrightarrow> (m=n | k=0)"
+     "\<lbrakk>k: nat; m: nat; n: nat\<rbrakk> \<Longrightarrow> (m#*k = n#*k) \<longleftrightarrow> (m=n | k=0)"
 apply (simp (no_asm_simp) add: Ord_eq_iff_le [of "m#*k"] Ord_eq_iff_le [of m])
 apply (auto simp add: Ord_0_lt_iff)
 done
@@ -398,7 +398,7 @@ done
 (** Cancellation law for division **)
 
 lemma div_cancel_raw:
-     "[| 0<n; 0<k; k:nat; m:nat; n:nat |] ==> (k#*m) div (k#*n) = m div n"
+     "\<lbrakk>0<n; 0<k; k:nat; m:nat; n:nat\<rbrakk> \<Longrightarrow> (k#*m) div (k#*n) = m div n"
 apply (erule_tac i = m in complete_induct)
 apply (case_tac "x<n")
  apply (simp add: div_less zero_lt_mult_iff mult_lt_mono2)
@@ -407,7 +407,7 @@ apply (simp add: not_lt_iff_le zero_lt_mult_iff le_refl [THEN mult_le_mono]
 done
 
 lemma div_cancel:
-     "[| 0 < natify(n);  0 < natify(k) |] ==> (k#*m) div (k#*n) = m div n"
+     "\<lbrakk>0 < natify(n);  0 < natify(k)\<rbrakk> \<Longrightarrow> (k#*m) div (k#*n) = m div n"
 apply (cut_tac k = "natify (k) " and m = "natify (m)" and n = "natify (n)"
        in div_cancel_raw)
 apply auto
@@ -417,7 +417,7 @@ done
 subsection\<open>More Lemmas about Remainder\<close>
 
 lemma mult_mod_distrib_raw:
-     "[| k:nat; m:nat; n:nat |] ==> (k#*m) mod (k#*n) = k #* (m mod n)"
+     "\<lbrakk>k:nat; m:nat; n:nat\<rbrakk> \<Longrightarrow> (k#*m) mod (k#*n) = k #* (m mod n)"
 apply (case_tac "k=0")
  apply (simp add: DIVISION_BY_ZERO_MOD)
 apply (case_tac "n=0")
@@ -440,7 +440,7 @@ lemma mult_mod_distrib: "(m mod n) #* k = (m#*k) mod (n#*k)"
 apply (simp (no_asm) add: mult_commute mod_mult_distrib2)
 done
 
-lemma mod_add_self2_raw: "n \<in> nat ==> (m #+ n) mod n = m mod n"
+lemma mod_add_self2_raw: "n \<in> nat \<Longrightarrow> (m #+ n) mod n = m mod n"
 apply (subgoal_tac " (n #+ m) mod n = (n #+ m #- n) mod n")
 apply (simp add: add_commute)
 apply (subst mod_geq [symmetric], auto)
@@ -455,7 +455,7 @@ lemma mod_add_self1 [simp]: "(n#+m) mod n = m mod n"
 apply (simp (no_asm_simp) add: add_commute mod_add_self2)
 done
 
-lemma mod_mult_self1_raw: "k \<in> nat ==> (m #+ k#*n) mod n = m mod n"
+lemma mod_mult_self1_raw: "k \<in> nat \<Longrightarrow> (m #+ k#*n) mod n = m mod n"
 apply (erule nat_induct)
 apply (simp_all (no_asm_simp) add: add_left_commute [of _ n])
 done
@@ -470,7 +470,7 @@ apply (simp (no_asm) add: mult_commute mod_mult_self1)
 done
 
 (*Lemma for gcd*)
-lemma mult_eq_self_implies_10: "m = m#*n ==> natify(n)=1 | m=0"
+lemma mult_eq_self_implies_10: "m = m#*n \<Longrightarrow> natify(n)=1 | m=0"
 apply (subgoal_tac "m: nat")
  prefer 2
  apply (erule ssubst)
@@ -486,7 +486,7 @@ apply (drule nat_into_Ord [THEN Ord_0_lt, THEN [2] mult_lt_mono2], auto)
 done
 
 lemma less_imp_succ_add [rule_format]:
-     "[| m<n; n: nat |] ==> \<exists>k\<in>nat. n = succ(m#+k)"
+     "\<lbrakk>m<n; n: nat\<rbrakk> \<Longrightarrow> \<exists>k\<in>nat. n = succ(m#+k)"
 apply (frule lt_nat_in_nat, assumption)
 apply (erule rev_mp)
 apply (induct_tac "n")
@@ -495,7 +495,7 @@ apply (blast elim!: leE intro!: add_0_right [symmetric] add_succ_right [symmetri
 done
 
 lemma less_iff_succ_add:
-     "[| m: nat; n: nat |] ==> (m<n) \<longleftrightarrow> (\<exists>k\<in>nat. n = succ(m#+k))"
+     "\<lbrakk>m: nat; n: nat\<rbrakk> \<Longrightarrow> (m<n) \<longleftrightarrow> (\<exists>k\<in>nat. n = succ(m#+k))"
 by (auto intro: less_imp_succ_add)
 
 lemma add_lt_elim2:
@@ -510,7 +510,7 @@ by (drule less_imp_succ_add, auto)
 subsubsection\<open>More Lemmas About Difference\<close>
 
 lemma diff_is_0_lemma:
-     "[| m: nat; n: nat |] ==> m #- n = 0 \<longleftrightarrow> m \<le> n"
+     "\<lbrakk>m: nat; n: nat\<rbrakk> \<Longrightarrow> m #- n = 0 \<longleftrightarrow> m \<le> n"
 apply (rule_tac m = m and n = n in diff_induct, simp_all)
 done
 
@@ -518,11 +518,11 @@ lemma diff_is_0_iff: "m #- n = 0 \<longleftrightarrow> natify(m) \<le> natify(n)
 by (simp add: diff_is_0_lemma [symmetric])
 
 lemma nat_lt_imp_diff_eq_0:
-     "[| a:nat; b:nat; a<b |] ==> a #- b = 0"
+     "\<lbrakk>a:nat; b:nat; a<b\<rbrakk> \<Longrightarrow> a #- b = 0"
 by (simp add: diff_is_0_iff le_iff)
 
 lemma raw_nat_diff_split:
-     "[| a:nat; b:nat |] ==>
+     "\<lbrakk>a:nat; b:nat\<rbrakk> \<Longrightarrow>
       (P(a #- b)) \<longleftrightarrow> ((a < b \<longrightarrow>P(0)) & (\<forall>d\<in>nat. a = b #+ d \<longrightarrow> P(d)))"
 apply (case_tac "a < b")
  apply (force simp add: nat_lt_imp_diff_eq_0)
@@ -540,7 +540,7 @@ done
 
 text\<open>Difference and less-than\<close>
 
-lemma diff_lt_imp_lt: "[|(k#-i) < (k#-j); i\<in>nat; j\<in>nat; k\<in>nat|] ==> j<i"
+lemma diff_lt_imp_lt: "\<lbrakk>(k#-i) < (k#-j); i\<in>nat; j\<in>nat; k\<in>nat\<rbrakk> \<Longrightarrow> j<i"
 apply (erule rev_mp)
 apply (simp split: nat_diff_split, auto)
  apply (blast intro: add_le_self lt_trans1)
@@ -549,7 +549,7 @@ apply (subgoal_tac "i #+ da < j #+ d", force)
 apply (blast intro: add_le_lt_mono)
 done
 
-lemma lt_imp_diff_lt: "[|j<i; i\<le>k; k\<in>nat|] ==> (k#-i) < (k#-j)"
+lemma lt_imp_diff_lt: "\<lbrakk>j<i; i\<le>k; k\<in>nat\<rbrakk> \<Longrightarrow> (k#-i) < (k#-j)"
 apply (frule le_in_nat, assumption)
 apply (frule lt_nat_in_nat, assumption)
 apply (simp split: nat_diff_split, auto)
@@ -561,7 +561,7 @@ apply (blast intro: add_lt_le_mono)
 done
 
 
-lemma diff_lt_iff_lt: "[|i\<le>k; j\<in>nat; k\<in>nat|] ==> (k#-i) < (k#-j) \<longleftrightarrow> j<i"
+lemma diff_lt_iff_lt: "\<lbrakk>i\<le>k; j\<in>nat; k\<in>nat\<rbrakk> \<Longrightarrow> (k#-i) < (k#-j) \<longleftrightarrow> j<i"
 apply (frule le_in_nat, assumption)
 apply (blast intro: lt_imp_diff_lt diff_lt_imp_lt)
 done

@@ -19,13 +19,13 @@ keywords
     "elimination" "induction" "case_eqns" "recursor_eqns" :: quasi_command
 begin
 
-lemma def_swap_iff: "a == b ==> a = c \<longleftrightarrow> c = b"
+lemma def_swap_iff: "a \<equiv> b \<Longrightarrow> a = c \<longleftrightarrow> c = b"
   by blast
 
-lemma def_trans: "f == g ==> g(a) = b ==> f(a) = b"
+lemma def_trans: "f \<equiv> g \<Longrightarrow> g(a) = b \<Longrightarrow> f(a) = b"
   by simp
 
-lemma refl_thin: "!!P. a = a ==> P ==> P" .
+lemma refl_thin: "\<And>P. a = a \<Longrightarrow> P \<Longrightarrow> P" .
 
 ML_file \<open>ind_syntax.ML\<close>
 ML_file \<open>Tools/ind_cases.ML\<close>

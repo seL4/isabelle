@@ -34,24 +34,24 @@ primrec "ve_app(ve_mk(m), a) = map_app(m,a)"
 
 definition
   ve_emp :: i  where
-   "ve_emp == ve_mk(map_emp)"
+   "ve_emp \<equiv> ve_mk(map_emp)"
 
 
 (* Elimination rules *)
 
 lemma ValEnvE:
-  "[| ve \<in> ValEnv; !!m.[| ve=ve_mk(m); m \<in> PMap(ExVar,Val) |] ==> Q |] ==> Q"
+  "\<lbrakk>ve \<in> ValEnv; \<And>m.\<lbrakk>ve=ve_mk(m); m \<in> PMap(ExVar,Val)\<rbrakk> \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
 apply (unfold Part_def Val_def ValEnv_def, clarify) 
 apply (erule Val_ValEnv.cases) 
 apply (auto simp add: Val_def Part_def Val_ValEnv.con_defs)
 done
 
 lemma ValE:
-  "[| v \<in> Val;  
-      !!c. [| v = v_const(c); c \<in> Const |] ==> Q; 
-      !!e ve x.  
-        [| v = v_clos(x,e,ve); x \<in> ExVar; e \<in> Exp; ve \<in> ValEnv |] ==> Q  
-   |] ==>  
+  "\<lbrakk>v \<in> Val;  
+      \<And>c. \<lbrakk>v = v_const(c); c \<in> Const\<rbrakk> \<Longrightarrow> Q; 
+      \<And>e ve x.  
+        \<lbrakk>v = v_clos(x,e,ve); x \<in> ExVar; e \<in> Exp; ve \<in> ValEnv\<rbrakk> \<Longrightarrow> Q  
+\<rbrakk> \<Longrightarrow>  
    Q"
 apply (unfold Part_def Val_def ValEnv_def, clarify) 
 apply (erule Val_ValEnv.cases) 
@@ -66,7 +66,7 @@ by (unfold QPair_def QInl_def QInr_def Val_ValEnv.con_defs, blast)
 declare v_closNE [THEN notE, elim!]
 
 
-lemma v_constNE [simp]: "c \<in> Const ==> v_const(c) \<noteq> 0"
+lemma v_constNE [simp]: "c \<in> Const \<Longrightarrow> v_const(c) \<noteq> 0"
 apply (unfold QPair_def QInl_def QInr_def Val_ValEnv.con_defs)
 apply (drule constNEE, auto)
 done
@@ -74,28 +74,28 @@ done
 
 (* Proving that the empty set is not a value *)
 
-lemma ValNEE: "v \<in> Val ==> v \<noteq> 0"
+lemma ValNEE: "v \<in> Val \<Longrightarrow> v \<noteq> 0"
 by (erule ValE, auto)
 
 (* Equalities for value environments *)
 
 lemma ve_dom_owr [simp]:
-     "[| ve \<in> ValEnv; v \<noteq>0 |] ==> ve_dom(ve_owr(ve,x,v)) = ve_dom(ve) \<union> {x}"
+     "\<lbrakk>ve \<in> ValEnv; v \<noteq>0\<rbrakk> \<Longrightarrow> ve_dom(ve_owr(ve,x,v)) = ve_dom(ve) \<union> {x}"
 apply (erule ValEnvE)
 apply (auto simp add: map_domain_owr)
 done
 
 lemma ve_app_owr [simp]:
      "ve \<in> ValEnv  
-      ==> ve_app(ve_owr(ve,y,v),x) = (if x=y then v else ve_app(ve,x))"
+      \<Longrightarrow> ve_app(ve_owr(ve,y,v),x) = (if x=y then v else ve_app(ve,x))"
 by (erule ValEnvE, simp add: map_app_owr)
 
 (* Introduction rules for operators on value environments *)
 
-lemma ve_appI: "[| ve \<in> ValEnv; x \<in> ve_dom(ve) |] ==> ve_app(ve,x):Val"
+lemma ve_appI: "\<lbrakk>ve \<in> ValEnv; x \<in> ve_dom(ve)\<rbrakk> \<Longrightarrow> ve_app(ve,x):Val"
 by (erule ValEnvE, simp add: pmap_appI) 
 
-lemma ve_domI: "[| ve \<in> ValEnv; x \<in> ve_dom(ve) |] ==> x \<in> ExVar"
+lemma ve_domI: "\<lbrakk>ve \<in> ValEnv; x \<in> ve_dom(ve)\<rbrakk> \<Longrightarrow> x \<in> ExVar"
 apply (erule ValEnvE, simp) 
 apply (blast dest: pmap_domainD)
 done
@@ -107,7 +107,7 @@ apply (rule pmap_empI)
 done
 
 lemma ve_owrI:
-     "[|ve \<in> ValEnv; x \<in> ExVar; v \<in> Val |] ==> ve_owr(ve,x,v):ValEnv"
+     "\<lbrakk>ve \<in> ValEnv; x \<in> ExVar; v \<in> Val\<rbrakk> \<Longrightarrow> ve_owr(ve,x,v):ValEnv"
 apply (erule ValEnvE, simp)
 apply (blast intro: pmap_owrI Val_ValEnv.intros)
 done

@@ -11,16 +11,16 @@ subsection \<open>Quantifiers and union operator for ordinals\<close>
 definition
   (* Ordinal Quantifiers *)
   oall :: "[i, i => o] => o"  where
-    "oall(A, P) == \<forall>x. x<A \<longrightarrow> P(x)"
+    "oall(A, P) \<equiv> \<forall>x. x<A \<longrightarrow> P(x)"
 
 definition
   oex :: "[i, i => o] => o"  where
-    "oex(A, P)  == \<exists>x. x<A & P(x)"
+    "oex(A, P)  \<equiv> \<exists>x. x<A & P(x)"
 
 definition
   (* Ordinal Union *)
   OUnion :: "[i, i => i] => i"  where
-    "OUnion(i,B) == {z: \<Union>x\<in>i. B(x). Ord(i)}"
+    "OUnion(i,B) \<equiv> {z: \<Union>x\<in>i. B(x). Ord(i)}"
 
 syntax
   "_oall"     :: "[idt, i, o] => o"        (\<open>(3\<forall>_<_./ _)\<close> 10)
@@ -37,11 +37,11 @@ subsubsection \<open>simplification of the new quantifiers\<close>
 
 (*MOST IMPORTANT that this is added to the simpset BEFORE Ord_atomize
   is proved.  Ord_atomize would convert this rule to
-    x < 0 ==> P(x) == True, which causes dire effects!*)
+    x < 0 \<Longrightarrow> P(x) \<equiv> True, which causes dire effects!*)
 lemma [simp]: "(\<forall>x<0. P(x))"
 by (simp add: oall_def)
 
-lemma [simp]: "~(\<exists>x<0. P(x))"
+lemma [simp]: "\<not>(\<exists>x<0. P(x))"
 by (simp add: oex_def)
 
 lemma [simp]: "(\<forall>x<succ(i). P(x)) <-> (Ord(i) \<longrightarrow> P(i) & (\<forall>x<i. P(x)))"
@@ -57,66 +57,66 @@ done
 subsubsection \<open>Union over ordinals\<close>
 
 lemma Ord_OUN [intro,simp]:
-     "[| !!x. x<A ==> Ord(B(x)) |] ==> Ord(\<Union>x<A. B(x))"
+     "\<lbrakk>\<And>x. x<A \<Longrightarrow> Ord(B(x))\<rbrakk> \<Longrightarrow> Ord(\<Union>x<A. B(x))"
 by (simp add: OUnion_def ltI Ord_UN)
 
 lemma OUN_upper_lt:
-     "[| a<A;  i < b(a);  Ord(\<Union>x<A. b(x)) |] ==> i < (\<Union>x<A. b(x))"
+     "\<lbrakk>a<A;  i < b(a);  Ord(\<Union>x<A. b(x))\<rbrakk> \<Longrightarrow> i < (\<Union>x<A. b(x))"
 by (unfold OUnion_def lt_def, blast )
 
 lemma OUN_upper_le:
-     "[| a<A;  i\<le>b(a);  Ord(\<Union>x<A. b(x)) |] ==> i \<le> (\<Union>x<A. b(x))"
+     "\<lbrakk>a<A;  i\<le>b(a);  Ord(\<Union>x<A. b(x))\<rbrakk> \<Longrightarrow> i \<le> (\<Union>x<A. b(x))"
 apply (unfold OUnion_def, auto)
 apply (rule UN_upper_le )
 apply (auto simp add: lt_def)
 done
 
-lemma Limit_OUN_eq: "Limit(i) ==> (\<Union>x<i. x) = i"
+lemma Limit_OUN_eq: "Limit(i) \<Longrightarrow> (\<Union>x<i. x) = i"
 by (simp add: OUnion_def Limit_Union_eq Limit_is_Ord)
 
 (* No < version of this theorem: consider that @{term"(\<Union>i\<in>nat.i)=nat"}! *)
 lemma OUN_least:
-     "(!!x. x<A ==> B(x) \<subseteq> C) ==> (\<Union>x<A. B(x)) \<subseteq> C"
+     "(\<And>x. x<A \<Longrightarrow> B(x) \<subseteq> C) \<Longrightarrow> (\<Union>x<A. B(x)) \<subseteq> C"
 by (simp add: OUnion_def UN_least ltI)
 
 lemma OUN_least_le:
-     "[| Ord(i);  !!x. x<A ==> b(x) \<le> i |] ==> (\<Union>x<A. b(x)) \<le> i"
+     "\<lbrakk>Ord(i);  \<And>x. x<A \<Longrightarrow> b(x) \<le> i\<rbrakk> \<Longrightarrow> (\<Union>x<A. b(x)) \<le> i"
 by (simp add: OUnion_def UN_least_le ltI Ord_0_le)
 
 lemma le_implies_OUN_le_OUN:
-     "[| !!x. x<A ==> c(x) \<le> d(x) |] ==> (\<Union>x<A. c(x)) \<le> (\<Union>x<A. d(x))"
+     "\<lbrakk>\<And>x. x<A \<Longrightarrow> c(x) \<le> d(x)\<rbrakk> \<Longrightarrow> (\<Union>x<A. c(x)) \<le> (\<Union>x<A. d(x))"
 by (blast intro: OUN_least_le OUN_upper_le le_Ord2 Ord_OUN)
 
 lemma OUN_UN_eq:
-     "(!!x. x \<in> A ==> Ord(B(x)))
-      ==> (\<Union>z < (\<Union>x\<in>A. B(x)). C(z)) = (\<Union>x\<in>A. \<Union>z < B(x). C(z))"
+     "(\<And>x. x \<in> A \<Longrightarrow> Ord(B(x)))
+      \<Longrightarrow> (\<Union>z < (\<Union>x\<in>A. B(x)). C(z)) = (\<Union>x\<in>A. \<Union>z < B(x). C(z))"
 by (simp add: OUnion_def)
 
 lemma OUN_Union_eq:
-     "(!!x. x \<in> X ==> Ord(x))
-      ==> (\<Union>z < \<Union>(X). C(z)) = (\<Union>x\<in>X. \<Union>z < x. C(z))"
+     "(\<And>x. x \<in> X \<Longrightarrow> Ord(x))
+      \<Longrightarrow> (\<Union>z < \<Union>(X). C(z)) = (\<Union>x\<in>X. \<Union>z < x. C(z))"
 by (simp add: OUnion_def)
 
 (*So that rule_format will get rid of this quantifier...*)
 lemma atomize_oall [symmetric, rulify]:
-     "(!!x. x<A ==> P(x)) == Trueprop (\<forall>x<A. P(x))"
+     "(\<And>x. x<A \<Longrightarrow> P(x)) \<equiv> Trueprop (\<forall>x<A. P(x))"
 by (simp add: oall_def atomize_all atomize_imp)
 
 subsubsection \<open>universal quantifier for ordinals\<close>
 
 lemma oallI [intro!]:
-    "[| !!x. x<A ==> P(x) |] ==> \<forall>x<A. P(x)"
+    "\<lbrakk>\<And>x. x<A \<Longrightarrow> P(x)\<rbrakk> \<Longrightarrow> \<forall>x<A. P(x)"
 by (simp add: oall_def)
 
-lemma ospec: "[| \<forall>x<A. P(x);  x<A |] ==> P(x)"
+lemma ospec: "\<lbrakk>\<forall>x<A. P(x);  x<A\<rbrakk> \<Longrightarrow> P(x)"
 by (simp add: oall_def)
 
 lemma oallE:
-    "[| \<forall>x<A. P(x);  P(x) ==> Q;  ~x<A ==> Q |] ==> Q"
+    "\<lbrakk>\<forall>x<A. P(x);  P(x) \<Longrightarrow> Q;  \<not>x<A \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
 by (simp add: oall_def, blast)
 
 lemma rev_oallE [elim]:
-    "[| \<forall>x<A. P(x);  ~x<A ==> Q;  P(x) ==> Q |] ==> Q"
+    "\<lbrakk>\<forall>x<A. P(x);  \<not>x<A \<Longrightarrow> Q;  P(x) \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
 by (simp add: oall_def, blast)
 
 
@@ -126,43 +126,43 @@ by blast
 
 (*Congruence rule for rewriting*)
 lemma oall_cong [cong]:
-    "[| a=a';  !!x. x<a' ==> P(x) <-> P'(x) |]
-     ==> oall(a, %x. P(x)) <-> oall(a', %x. P'(x))"
+    "\<lbrakk>a=a';  \<And>x. x<a' \<Longrightarrow> P(x) <-> P'(x)\<rbrakk>
+     \<Longrightarrow> oall(a, %x. P(x)) <-> oall(a', %x. P'(x))"
 by (simp add: oall_def)
 
 
 subsubsection \<open>existential quantifier for ordinals\<close>
 
 lemma oexI [intro]:
-    "[| P(x);  x<A |] ==> \<exists>x<A. P(x)"
+    "\<lbrakk>P(x);  x<A\<rbrakk> \<Longrightarrow> \<exists>x<A. P(x)"
 apply (simp add: oex_def, blast)
 done
 
 (*Not of the general form for such rules... *)
 lemma oexCI:
-   "[| \<forall>x<A. ~P(x) ==> P(a);  a<A |] ==> \<exists>x<A. P(x)"
+   "\<lbrakk>\<forall>x<A. \<not>P(x) \<Longrightarrow> P(a);  a<A\<rbrakk> \<Longrightarrow> \<exists>x<A. P(x)"
 apply (simp add: oex_def, blast)
 done
 
 lemma oexE [elim!]:
-    "[| \<exists>x<A. P(x);  !!x. [| x<A; P(x) |] ==> Q |] ==> Q"
+    "\<lbrakk>\<exists>x<A. P(x);  \<And>x. \<lbrakk>x<A; P(x)\<rbrakk> \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
 apply (simp add: oex_def, blast)
 done
 
 lemma oex_cong [cong]:
-    "[| a=a';  !!x. x<a' ==> P(x) <-> P'(x) |]
-     ==> oex(a, %x. P(x)) <-> oex(a', %x. P'(x))"
+    "\<lbrakk>a=a';  \<And>x. x<a' \<Longrightarrow> P(x) <-> P'(x)\<rbrakk>
+     \<Longrightarrow> oex(a, %x. P(x)) <-> oex(a', %x. P'(x))"
 apply (simp add: oex_def cong add: conj_cong)
 done
 
 
 subsubsection \<open>Rules for Ordinal-Indexed Unions\<close>
 
-lemma OUN_I [intro]: "[| a<i;  b \<in> B(a) |] ==> b: (\<Union>z<i. B(z))"
+lemma OUN_I [intro]: "\<lbrakk>a<i;  b \<in> B(a)\<rbrakk> \<Longrightarrow> b: (\<Union>z<i. B(z))"
 by (unfold OUnion_def lt_def, blast)
 
 lemma OUN_E [elim!]:
-    "[| b \<in> (\<Union>z<i. B(z));  !!a.[| b \<in> B(a);  a<i |] ==> R |] ==> R"
+    "\<lbrakk>b \<in> (\<Union>z<i. B(z));  \<And>a.\<lbrakk>b \<in> B(a);  a<i\<rbrakk> \<Longrightarrow> R\<rbrakk> \<Longrightarrow> R"
 apply (unfold OUnion_def lt_def, blast)
 done
 
@@ -170,11 +170,11 @@ lemma OUN_iff: "b \<in> (\<Union>x<i. B(x)) <-> (\<exists>x<i. b \<in> B(x))"
 by (unfold OUnion_def oex_def lt_def, blast)
 
 lemma OUN_cong [cong]:
-    "[| i=j;  !!x. x<j ==> C(x)=D(x) |] ==> (\<Union>x<i. C(x)) = (\<Union>x<j. D(x))"
+    "\<lbrakk>i=j;  \<And>x. x<j \<Longrightarrow> C(x)=D(x)\<rbrakk> \<Longrightarrow> (\<Union>x<i. C(x)) = (\<Union>x<j. D(x))"
 by (simp add: OUnion_def lt_def OUN_iff)
 
 lemma lt_induct:
-    "[| i<k;  !!x.[| x<k;  \<forall>y<x. P(y) |] ==> P(x) |]  ==>  P(i)"
+    "\<lbrakk>i<k;  \<And>x.\<lbrakk>x<k;  \<forall>y<x. P(y)\<rbrakk> \<Longrightarrow> P(x)\<rbrakk>  \<Longrightarrow>  P(i)"
 apply (simp add: lt_def oall_def)
 apply (erule conjE)
 apply (erule Ord_induct, assumption, blast)
@@ -185,11 +185,11 @@ subsection \<open>Quantification over a class\<close>
 
 definition
   "rall"     :: "[i=>o, i=>o] => o"  where
-    "rall(M, P) == \<forall>x. M(x) \<longrightarrow> P(x)"
+    "rall(M, P) \<equiv> \<forall>x. M(x) \<longrightarrow> P(x)"
 
 definition
   "rex"      :: "[i=>o, i=>o] => o"  where
-    "rex(M, P) == \<exists>x. M(x) & P(x)"
+    "rex(M, P) \<equiv> \<exists>x. M(x) & P(x)"
 
 syntax
   "_rall"     :: "[pttrn, i=>o, o] => o"        (\<open>(3\<forall>_[_]./ _)\<close> 10)
@@ -201,18 +201,18 @@ translations
 
 subsubsection\<open>Relativized universal quantifier\<close>
 
-lemma rallI [intro!]: "[| !!x. M(x) ==> P(x) |] ==> \<forall>x[M]. P(x)"
+lemma rallI [intro!]: "\<lbrakk>\<And>x. M(x) \<Longrightarrow> P(x)\<rbrakk> \<Longrightarrow> \<forall>x[M]. P(x)"
 by (simp add: rall_def)
 
-lemma rspec: "[| \<forall>x[M]. P(x); M(x) |] ==> P(x)"
+lemma rspec: "\<lbrakk>\<forall>x[M]. P(x); M(x)\<rbrakk> \<Longrightarrow> P(x)"
 by (simp add: rall_def)
 
 (*Instantiates x first: better for automatic theorem proving?*)
 lemma rev_rallE [elim]:
-    "[| \<forall>x[M]. P(x);  ~ M(x) ==> Q;  P(x) ==> Q |] ==> Q"
+    "\<lbrakk>\<forall>x[M]. P(x);  \<not> M(x) \<Longrightarrow> Q;  P(x) \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
 by (simp add: rall_def, blast)
 
-lemma rallE: "[| \<forall>x[M]. P(x);  P(x) ==> Q;  ~ M(x) ==> Q |] ==> Q"
+lemma rallE: "\<lbrakk>\<forall>x[M]. P(x);  P(x) \<Longrightarrow> Q;  \<not> M(x) \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
 by blast
 
 (*Trival rewrite rule;   (\<forall>x[M].P)<->P holds only if A is nonempty!*)
@@ -221,32 +221,32 @@ by (simp add: rall_def)
 
 (*Congruence rule for rewriting*)
 lemma rall_cong [cong]:
-    "(!!x. M(x) ==> P(x) <-> P'(x)) ==> (\<forall>x[M]. P(x)) <-> (\<forall>x[M]. P'(x))"
+    "(\<And>x. M(x) \<Longrightarrow> P(x) <-> P'(x)) \<Longrightarrow> (\<forall>x[M]. P(x)) <-> (\<forall>x[M]. P'(x))"
 by (simp add: rall_def)
 
 
 subsubsection\<open>Relativized existential quantifier\<close>
 
-lemma rexI [intro]: "[| P(x); M(x) |] ==> \<exists>x[M]. P(x)"
+lemma rexI [intro]: "\<lbrakk>P(x); M(x)\<rbrakk> \<Longrightarrow> \<exists>x[M]. P(x)"
 by (simp add: rex_def, blast)
 
 (*The best argument order when there is only one M(x)*)
-lemma rev_rexI: "[| M(x);  P(x) |] ==> \<exists>x[M]. P(x)"
+lemma rev_rexI: "\<lbrakk>M(x);  P(x)\<rbrakk> \<Longrightarrow> \<exists>x[M]. P(x)"
 by blast
 
 (*Not of the general form for such rules... *)
-lemma rexCI: "[| \<forall>x[M]. ~P(x) ==> P(a); M(a) |] ==> \<exists>x[M]. P(x)"
+lemma rexCI: "\<lbrakk>\<forall>x[M]. \<not>P(x) \<Longrightarrow> P(a); M(a)\<rbrakk> \<Longrightarrow> \<exists>x[M]. P(x)"
 by blast
 
-lemma rexE [elim!]: "[| \<exists>x[M]. P(x);  !!x. [| M(x); P(x) |] ==> Q |] ==> Q"
+lemma rexE [elim!]: "\<lbrakk>\<exists>x[M]. P(x);  \<And>x. \<lbrakk>M(x); P(x)\<rbrakk> \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
 by (simp add: rex_def, blast)
 
-(*We do not even have (\<exists>x[M]. True) <-> True unless A is nonempty!!*)
+(*We do not even have (\<exists>x[M]. True) <-> True unless A is nonempty\<And>*)
 lemma rex_triv [simp]: "(\<exists>x[M]. P) \<longleftrightarrow> ((\<exists>x. M(x)) \<and> P)"
 by (simp add: rex_def)
 
 lemma rex_cong [cong]:
-    "(!!x. M(x) ==> P(x) <-> P'(x)) ==> (\<exists>x[M]. P(x)) <-> (\<exists>x[M]. P'(x))"
+    "(\<And>x. M(x) \<Longrightarrow> P(x) <-> P'(x)) \<Longrightarrow> (\<exists>x[M]. P(x)) <-> (\<exists>x[M]. P'(x))"
 by (simp add: rex_def cong: conj_cong)
 
 lemma rall_is_ball [simp]: "(\<forall>x[%z. z\<in>A]. P(x)) <-> (\<forall>x\<in>A. P(x))"
@@ -255,7 +255,7 @@ by blast
 lemma rex_is_bex [simp]: "(\<exists>x[%z. z\<in>A]. P(x)) <-> (\<exists>x\<in>A. P(x))"
 by blast
 
-lemma atomize_rall: "(!!x. M(x) ==> P(x)) == Trueprop (\<forall>x[M]. P(x))"
+lemma atomize_rall: "(\<And>x. M(x) \<Longrightarrow> P(x)) \<equiv> Trueprop (\<forall>x[M]. P(x))"
 by (simp add: rall_def atomize_all atomize_imp)
 
 declare atomize_rall [symmetric, rulify]
@@ -264,7 +264,7 @@ lemma rall_simps1:
      "(\<forall>x[M]. P(x) & Q)   <-> (\<forall>x[M]. P(x)) & ((\<forall>x[M]. False) | Q)"
      "(\<forall>x[M]. P(x) | Q)   <-> ((\<forall>x[M]. P(x)) | Q)"
      "(\<forall>x[M]. P(x) \<longrightarrow> Q) <-> ((\<exists>x[M]. P(x)) \<longrightarrow> Q)"
-     "(~(\<forall>x[M]. P(x))) <-> (\<exists>x[M]. ~P(x))"
+     "(\<not>(\<forall>x[M]. P(x))) <-> (\<exists>x[M]. \<not>P(x))"
 by blast+
 
 lemma rall_simps2:
@@ -283,7 +283,7 @@ lemma rex_simps1:
      "(\<exists>x[M]. P(x) & Q) <-> ((\<exists>x[M]. P(x)) & Q)"
      "(\<exists>x[M]. P(x) | Q) <-> (\<exists>x[M]. P(x)) | ((\<exists>x[M]. True) & Q)"
      "(\<exists>x[M]. P(x) \<longrightarrow> Q) <-> ((\<forall>x[M]. P(x)) \<longrightarrow> ((\<exists>x[M]. True) & Q))"
-     "(~(\<exists>x[M]. P(x))) <-> (\<forall>x[M]. ~P(x))"
+     "(\<not>(\<exists>x[M]. P(x))) <-> (\<forall>x[M]. \<not>P(x))"
 by blast+
 
 lemma rex_simps2:
@@ -324,7 +324,7 @@ subsubsection\<open>Sets as Classes\<close>
 
 definition
   setclass :: "[i,i] => o"       (\<open>##_\<close> [40] 40)  where
-   "setclass(A) == %x. x \<in> A"
+   "setclass(A) \<equiv> %x. x \<in> A"
 
 lemma setclass_iff [simp]: "setclass(A,x) <-> x \<in> A"
 by (simp add: setclass_def)

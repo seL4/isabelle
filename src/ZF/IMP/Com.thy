@@ -24,16 +24,16 @@ consts evala :: i
 
 abbreviation
   evala_syntax :: "[i, i] => o"    (infixl \<open>-a->\<close> 50)
-  where "p -a-> n == <p,n> \<in> evala"
+  where "p -a-> n \<equiv> <p,n> \<in> evala"
 
 inductive
   domains "evala" \<subseteq> "(aexp \<times> (loc -> nat)) \<times> nat"
   intros
-    N:   "[| n \<in> nat;  sigma \<in> loc->nat |] ==> <N(n),sigma> -a-> n"
-    X:   "[| x \<in> loc;  sigma \<in> loc->nat |] ==> <X(x),sigma> -a-> sigma`x"
-    Op1: "[| <e,sigma> -a-> n; f \<in> nat -> nat |] ==> <Op1(f,e),sigma> -a-> f`n"
-    Op2: "[| <e0,sigma> -a-> n0;  <e1,sigma>  -a-> n1; f \<in> (nat\<times>nat) -> nat |]
-          ==> <Op2(f,e0,e1),sigma> -a-> f`<n0,n1>"
+    N:   "\<lbrakk>n \<in> nat;  sigma \<in> loc->nat\<rbrakk> \<Longrightarrow> <N(n),sigma> -a-> n"
+    X:   "\<lbrakk>x \<in> loc;  sigma \<in> loc->nat\<rbrakk> \<Longrightarrow> <X(x),sigma> -a-> sigma`x"
+    Op1: "\<lbrakk><e,sigma> -a-> n; f \<in> nat -> nat\<rbrakk> \<Longrightarrow> <Op1(f,e),sigma> -a-> f`n"
+    Op2: "\<lbrakk><e0,sigma> -a-> n0;  <e1,sigma>  -a-> n1; f \<in> (nat\<times>nat) -> nat\<rbrakk>
+          \<Longrightarrow> <Op2(f,e0,e1),sigma> -a-> f`<n0,n1>"
   type_intros aexp.intros apply_funtype
 
 
@@ -54,20 +54,20 @@ consts evalb :: i
 
 abbreviation
   evalb_syntax :: "[i,i] => o"    (infixl \<open>-b->\<close> 50)
-  where "p -b-> b == <p,b> \<in> evalb"
+  where "p -b-> b \<equiv> <p,b> \<in> evalb"
 
 inductive
   domains "evalb" \<subseteq> "(bexp \<times> (loc -> nat)) \<times> bool"
   intros
-    true:  "[| sigma \<in> loc -> nat |] ==> <true,sigma> -b-> 1"
-    false: "[| sigma \<in> loc -> nat |] ==> <false,sigma> -b-> 0"
-    ROp:   "[| <a0,sigma> -a-> n0; <a1,sigma> -a-> n1; f \<in> (nat*nat)->bool |]
-           ==> <ROp(f,a0,a1),sigma> -b-> f`<n0,n1> "
-    noti:  "[| <b,sigma> -b-> w |] ==> <noti(b),sigma> -b-> not(w)"
-    andi:  "[| <b0,sigma> -b-> w0; <b1,sigma> -b-> w1 |]
-          ==> <b0 andi b1,sigma> -b-> (w0 and w1)"
-    ori:   "[| <b0,sigma> -b-> w0; <b1,sigma> -b-> w1 |]
-            ==> <b0 ori b1,sigma> -b-> (w0 or w1)"
+    true:  "\<lbrakk>sigma \<in> loc -> nat\<rbrakk> \<Longrightarrow> <true,sigma> -b-> 1"
+    false: "\<lbrakk>sigma \<in> loc -> nat\<rbrakk> \<Longrightarrow> <false,sigma> -b-> 0"
+    ROp:   "\<lbrakk><a0,sigma> -a-> n0; <a1,sigma> -a-> n1; f \<in> (nat*nat)->bool\<rbrakk>
+           \<Longrightarrow> <ROp(f,a0,a1),sigma> -b-> f`<n0,n1> "
+    noti:  "\<lbrakk><b,sigma> -b-> w\<rbrakk> \<Longrightarrow> <noti(b),sigma> -b-> not(w)"
+    andi:  "\<lbrakk><b0,sigma> -b-> w0; <b1,sigma> -b-> w1\<rbrakk>
+          \<Longrightarrow> <b0 andi b1,sigma> -b-> (w0 and w1)"
+    ori:   "\<lbrakk><b0,sigma> -b-> w0; <b1,sigma> -b-> w1\<rbrakk>
+            \<Longrightarrow> <b0 ori b1,sigma> -b-> (w0 or w1)"
   type_intros  bexp.intros
                apply_funtype and_type or_type bool_1I bool_0I not_type
   type_elims   evala.dom_subset [THEN subsetD, elim_format]
@@ -88,33 +88,33 @@ consts evalc :: i
 
 abbreviation
   evalc_syntax :: "[i, i] => o"    (infixl \<open>-c->\<close> 50)
-  where "p -c-> s == <p,s> \<in> evalc"
+  where "p -c-> s \<equiv> <p,s> \<in> evalc"
 
 inductive
   domains "evalc" \<subseteq> "(com \<times> (loc -> nat)) \<times> (loc -> nat)"
   intros
-    skip:    "[| sigma \<in> loc -> nat |] ==> <\<SKIP>,sigma> -c-> sigma"
+    skip:    "\<lbrakk>sigma \<in> loc -> nat\<rbrakk> \<Longrightarrow> <\<SKIP>,sigma> -c-> sigma"
 
-    assign:  "[| m \<in> nat; x \<in> loc; <a,sigma> -a-> m |]
-              ==> <x \<ASSN> a,sigma> -c-> sigma(x:=m)"
+    assign:  "\<lbrakk>m \<in> nat; x \<in> loc; <a,sigma> -a-> m\<rbrakk>
+              \<Longrightarrow> <x \<ASSN> a,sigma> -c-> sigma(x:=m)"
 
-    semi:    "[| <c0,sigma> -c-> sigma2; <c1,sigma2> -c-> sigma1 |]
-              ==> <c0\<SEQ> c1, sigma> -c-> sigma1"
+    semi:    "\<lbrakk><c0,sigma> -c-> sigma2; <c1,sigma2> -c-> sigma1\<rbrakk>
+              \<Longrightarrow> <c0\<SEQ> c1, sigma> -c-> sigma1"
 
-    if1:     "[| b \<in> bexp; c1 \<in> com; sigma \<in> loc->nat;
-                 <b,sigma> -b-> 1; <c0,sigma> -c-> sigma1 |]
-              ==> <\<IF> b \<THEN> c0 \<ELSE> c1, sigma> -c-> sigma1"
+    if1:     "\<lbrakk>b \<in> bexp; c1 \<in> com; sigma \<in> loc->nat;
+                 <b,sigma> -b-> 1; <c0,sigma> -c-> sigma1\<rbrakk>
+              \<Longrightarrow> <\<IF> b \<THEN> c0 \<ELSE> c1, sigma> -c-> sigma1"
 
-    if0:     "[| b \<in> bexp; c0 \<in> com; sigma \<in> loc->nat;
-                 <b,sigma> -b-> 0; <c1,sigma> -c-> sigma1 |]
-               ==> <\<IF> b \<THEN> c0 \<ELSE> c1, sigma> -c-> sigma1"
+    if0:     "\<lbrakk>b \<in> bexp; c0 \<in> com; sigma \<in> loc->nat;
+                 <b,sigma> -b-> 0; <c1,sigma> -c-> sigma1\<rbrakk>
+               \<Longrightarrow> <\<IF> b \<THEN> c0 \<ELSE> c1, sigma> -c-> sigma1"
 
-    while0:   "[| c \<in> com; <b, sigma> -b-> 0 |]
-               ==> <\<WHILE> b \<DO> c,sigma> -c-> sigma"
+    while0:   "\<lbrakk>c \<in> com; <b, sigma> -b-> 0\<rbrakk>
+               \<Longrightarrow> <\<WHILE> b \<DO> c,sigma> -c-> sigma"
 
-    while1:   "[| c \<in> com; <b,sigma> -b-> 1; <c,sigma> -c-> sigma2;
-                  <\<WHILE> b \<DO> c, sigma2> -c-> sigma1 |]
-               ==> <\<WHILE> b \<DO> c, sigma> -c-> sigma1"
+    while1:   "\<lbrakk>c \<in> com; <b,sigma> -b-> 1; <c,sigma> -c-> sigma2;
+                  <\<WHILE> b \<DO> c, sigma2> -c-> sigma1\<rbrakk>
+               \<Longrightarrow> <\<WHILE> b \<DO> c, sigma> -c-> sigma1"
 
   type_intros  com.intros update_type
   type_elims   evala.dom_subset [THEN subsetD, elim_format]

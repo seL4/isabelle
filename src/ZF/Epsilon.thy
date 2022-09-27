@@ -9,19 +9,19 @@ theory Epsilon imports Nat begin
 
 definition
   eclose    :: "i=>i"  where
-    "eclose(A) == \<Union>n\<in>nat. nat_rec(n, A, %m r. \<Union>(r))"
+    "eclose(A) \<equiv> \<Union>n\<in>nat. nat_rec(n, A, %m r. \<Union>(r))"
 
 definition
   transrec  :: "[i, [i,i]=>i] =>i"  where
-    "transrec(a,H) == wfrec(Memrel(eclose({a})), a, H)"
+    "transrec(a,H) \<equiv> wfrec(Memrel(eclose({a})), a, H)"
 
 definition
   rank      :: "i=>i"  where
-    "rank(a) == transrec(a, %x f. \<Union>y\<in>x. succ(f`y))"
+    "rank(a) \<equiv> transrec(a, %x f. \<Union>y\<in>x. succ(f`y))"
 
 definition
   transrec2 :: "[i, i, [i,i]=>i] =>i"  where
-    "transrec2(k, a, b) ==
+    "transrec2(k, a, b) \<equiv>
        transrec(k,
                 %i r. if(i=0, a,
                         if(\<exists>j. i=succ(j),
@@ -30,11 +30,11 @@ definition
 
 definition
   recursor  :: "[i, [i,i]=>i, i]=>i"  where
-    "recursor(a,b,k) ==  transrec(k, %n f. nat_case(a, %m. b(m, f`m), n))"
+    "recursor(a,b,k) \<equiv>  transrec(k, %n f. nat_case(a, %m. b(m, f`m), n))"
 
 definition
   rec  :: "[i, i, [i,i]=>i]=>i"  where
-    "rec(k,a,b) == recursor(a,b,k)"
+    "rec(k,a,b) \<equiv> recursor(a,b,k)"
 
 
 subsection\<open>Basic Closure Properties\<close>
@@ -56,19 +56,19 @@ apply (erule nat_rec_succ [THEN ssubst])
 apply (erule UnionI, assumption)
 done
 
-(* @{term"x \<in> eclose(A) ==> x \<subseteq> eclose(A)"} *)
+(* @{term"x \<in> eclose(A) \<Longrightarrow> x \<subseteq> eclose(A)"} *)
 lemmas eclose_subset =
        Transset_eclose [unfolded Transset_def, THEN bspec]
 
-(* @{term"[| A \<in> eclose(B); c \<in> A |] ==> c \<in> eclose(B)"} *)
+(* @{term"\<lbrakk>A \<in> eclose(B); c \<in> A\<rbrakk> \<Longrightarrow> c \<in> eclose(B)"} *)
 lemmas ecloseD = eclose_subset [THEN subsetD]
 
 lemmas arg_in_eclose_sing = arg_subset_eclose [THEN singleton_subsetD]
 lemmas arg_into_eclose_sing = arg_in_eclose_sing [THEN ecloseD]
 
 (* This is epsilon-induction for eclose(A); see also eclose_induct_down...
-   [| a \<in> eclose(A);  !!x. [| x \<in> eclose(A); \<forall>y\<in>x. P(y) |] ==> P(x)
-   |] ==> P(a)
+   \<lbrakk>a \<in> eclose(A);  \<And>x. \<lbrakk>x \<in> eclose(A); \<forall>y\<in>x. P(y)\<rbrakk> \<Longrightarrow> P(x)
+\<rbrakk> \<Longrightarrow> P(a)
 *)
 lemmas eclose_induct =
      Transset_induct [OF _ Transset_eclose, induct set: eclose]
@@ -76,7 +76,7 @@ lemmas eclose_induct =
 
 (*Epsilon induction*)
 lemma eps_induct:
-    "[| !!x. \<forall>y\<in>x. P(y) ==> P(x) |]  ==>  P(a)"
+    "\<lbrakk>\<And>x. \<forall>y\<in>x. P(y) \<Longrightarrow> P(x)\<rbrakk>  \<Longrightarrow>  P(a)"
 by (rule arg_in_eclose_sing [THEN eclose_induct], blast)
 
 
@@ -85,7 +85,7 @@ subsection\<open>Leastness of \<^term>\<open>eclose\<close>\<close>
 (** eclose(A) is the least transitive set including A as a subset. **)
 
 lemma eclose_least_lemma:
-    "[| Transset(X);  A<=X;  n \<in> nat |] ==> nat_rec(n, A, %m r. \<Union>(r)) \<subseteq> X"
+    "\<lbrakk>Transset(X);  A<=X;  n \<in> nat\<rbrakk> \<Longrightarrow> nat_rec(n, A, %m r. \<Union>(r)) \<subseteq> X"
 apply (unfold Transset_def)
 apply (erule nat_induct)
 apply (simp add: nat_rec_0)
@@ -93,17 +93,17 @@ apply (simp add: nat_rec_succ, blast)
 done
 
 lemma eclose_least:
-     "[| Transset(X);  A<=X |] ==> eclose(A) \<subseteq> X"
+     "\<lbrakk>Transset(X);  A<=X\<rbrakk> \<Longrightarrow> eclose(A) \<subseteq> X"
 apply (unfold eclose_def)
 apply (rule eclose_least_lemma [THEN UN_least], assumption+)
 done
 
-(*COMPLETELY DIFFERENT induction principle from eclose_induct!!*)
+(*COMPLETELY DIFFERENT induction principle from eclose_induct\<And>*)
 lemma eclose_induct_down [consumes 1]:
-    "[| a \<in> eclose(b);
-        !!y.   [| y \<in> b |] ==> P(y);
-        !!y z. [| y \<in> eclose(b);  P(y);  z \<in> y |] ==> P(z)
-     |] ==> P(a)"
+    "\<lbrakk>a \<in> eclose(b);
+        \<And>y.   \<lbrakk>y \<in> b\<rbrakk> \<Longrightarrow> P(y);
+        \<And>y z. \<lbrakk>y \<in> eclose(b);  P(y);  z \<in> y\<rbrakk> \<Longrightarrow> P(z)
+\<rbrakk> \<Longrightarrow> P(a)"
 apply (rule eclose_least [THEN subsetD, THEN CollectD2, of "eclose(b)"])
   prefer 3 apply assumption
  apply (unfold Transset_def)
@@ -111,49 +111,49 @@ apply (rule eclose_least [THEN subsetD, THEN CollectD2, of "eclose(b)"])
 apply (blast intro: arg_subset_eclose [THEN subsetD])
 done
 
-lemma Transset_eclose_eq_arg: "Transset(X) ==> eclose(X) = X"
+lemma Transset_eclose_eq_arg: "Transset(X) \<Longrightarrow> eclose(X) = X"
 apply (erule equalityI [OF eclose_least arg_subset_eclose])
 apply (rule subset_refl)
 done
 
 text\<open>A transitive set either is empty or contains the empty set.\<close>
-lemma Transset_0_lemma [rule_format]: "Transset(A) ==> x\<in>A \<longrightarrow> 0\<in>A"
+lemma Transset_0_lemma [rule_format]: "Transset(A) \<Longrightarrow> x\<in>A \<longrightarrow> 0\<in>A"
 apply (simp add: Transset_def)
 apply (rule_tac a=x in eps_induct, clarify)
 apply (drule bspec, assumption)
 apply (case_tac "x=0", auto)
 done
 
-lemma Transset_0_disj: "Transset(A) ==> A=0 | 0\<in>A"
+lemma Transset_0_disj: "Transset(A) \<Longrightarrow> A=0 | 0\<in>A"
 by (blast dest: Transset_0_lemma)
 
 
 subsection\<open>Epsilon Recursion\<close>
 
 (*Unused...*)
-lemma mem_eclose_trans: "[| A \<in> eclose(B);  B \<in> eclose(C) |] ==> A \<in> eclose(C)"
+lemma mem_eclose_trans: "\<lbrakk>A \<in> eclose(B);  B \<in> eclose(C)\<rbrakk> \<Longrightarrow> A \<in> eclose(C)"
 by (rule eclose_least [OF Transset_eclose eclose_subset, THEN subsetD],
     assumption+)
 
 (*Variant of the previous lemma in a useable form for the sequel*)
 lemma mem_eclose_sing_trans:
-     "[| A \<in> eclose({B});  B \<in> eclose({C}) |] ==> A \<in> eclose({C})"
+     "\<lbrakk>A \<in> eclose({B});  B \<in> eclose({C})\<rbrakk> \<Longrightarrow> A \<in> eclose({C})"
 by (rule eclose_least [OF Transset_eclose singleton_subsetI, THEN subsetD],
     assumption+)
 
-lemma under_Memrel: "[| Transset(i);  j \<in> i |] ==> Memrel(i)-``{j} = j"
+lemma under_Memrel: "\<lbrakk>Transset(i);  j \<in> i\<rbrakk> \<Longrightarrow> Memrel(i)-``{j} = j"
 by (unfold Transset_def, blast)
 
-lemma lt_Memrel: "j < i ==> Memrel(i) -`` {j} = j"
+lemma lt_Memrel: "j < i \<Longrightarrow> Memrel(i) -`` {j} = j"
 by (simp add: lt_def Ord_def under_Memrel)
 
-(* @{term"j \<in> eclose(A) ==> Memrel(eclose(A)) -`` j = j"} *)
+(* @{term"j \<in> eclose(A) \<Longrightarrow> Memrel(eclose(A)) -`` j = j"} *)
 lemmas under_Memrel_eclose = Transset_eclose [THEN under_Memrel]
 
 lemmas wfrec_ssubst = wf_Memrel [THEN wfrec, THEN ssubst]
 
 lemma wfrec_eclose_eq:
-    "[| k \<in> eclose({j});  j \<in> eclose({i}) |] ==>
+    "\<lbrakk>k \<in> eclose({j});  j \<in> eclose({i})\<rbrakk> \<Longrightarrow>
      wfrec(Memrel(eclose({i})), k, H) = wfrec(Memrel(eclose({j})), k, H)"
 apply (erule eclose_induct)
 apply (rule wfrec_ssubst)
@@ -162,7 +162,7 @@ apply (simp add: under_Memrel_eclose mem_eclose_sing_trans [of _ j i])
 done
 
 lemma wfrec_eclose_eq2:
-    "k \<in> i ==> wfrec(Memrel(eclose({i})),k,H) = wfrec(Memrel(eclose({k})),k,H)"
+    "k \<in> i \<Longrightarrow> wfrec(Memrel(eclose({i})),k,H) = wfrec(Memrel(eclose({k})),k,H)"
 apply (rule arg_in_eclose_sing [THEN wfrec_eclose_eq])
 apply (erule arg_into_eclose_sing)
 done
@@ -175,20 +175,20 @@ done
 
 (*Avoids explosions in proofs; resolve it with a meta-level definition.*)
 lemma def_transrec:
-    "[| !!x. f(x)==transrec(x,H) |] ==> f(a) = H(a, \<lambda>x\<in>a. f(x))"
+    "\<lbrakk>\<And>x. f(x)\<equiv>transrec(x,H)\<rbrakk> \<Longrightarrow> f(a) = H(a, \<lambda>x\<in>a. f(x))"
 apply simp
 apply (rule transrec)
 done
 
 lemma transrec_type:
-    "[| !!x u. [| x \<in> eclose({a});  u \<in> Pi(x,B) |] ==> H(x,u) \<in> B(x) |]
-     ==> transrec(a,H) \<in> B(a)"
+    "\<lbrakk>\<And>x u. \<lbrakk>x \<in> eclose({a});  u \<in> Pi(x,B)\<rbrakk> \<Longrightarrow> H(x,u) \<in> B(x)\<rbrakk>
+     \<Longrightarrow> transrec(a,H) \<in> B(a)"
 apply (rule_tac i = a in arg_in_eclose_sing [THEN eclose_induct])
 apply (subst transrec)
 apply (simp add: lam_type)
 done
 
-lemma eclose_sing_Ord: "Ord(i) ==> eclose({i}) \<subseteq> succ(i)"
+lemma eclose_sing_Ord: "Ord(i) \<Longrightarrow> eclose({i}) \<subseteq> succ(i)"
 apply (erule Ord_is_Transset [THEN Transset_succ, THEN eclose_least])
 apply (rule succI1 [THEN singleton_subsetI])
 done
@@ -198,7 +198,7 @@ apply (insert arg_subset_eclose [of "{i}"], simp)
 apply (frule eclose_subset, blast)
 done
 
-lemma eclose_sing_Ord_eq: "Ord(i) ==> eclose({i}) = succ(i)"
+lemma eclose_sing_Ord_eq: "Ord(i) \<Longrightarrow> eclose({i}) = succ(i)"
 apply (rule equalityI)
 apply (erule eclose_sing_Ord)
 apply (rule succ_subset_eclose_sing)
@@ -207,7 +207,7 @@ done
 lemma Ord_transrec_type:
   assumes jini: "j \<in> i"
       and ordi: "Ord(i)"
-      and minor: " !!x u. [| x \<in> i;  u \<in> Pi(x,B) |] ==> H(x,u) \<in> B(x)"
+      and minor: " \<And>x u. \<lbrakk>x \<in> i;  u \<in> Pi(x,B)\<rbrakk> \<Longrightarrow> H(x,u) \<in> B(x)"
   shows "transrec(j,H) \<in> B(j)"
 apply (rule transrec_type)
 apply (insert jini ordi)
@@ -229,25 +229,25 @@ apply (rule Ord_succ [THEN Ord_UN])
 apply (erule bspec, assumption)
 done
 
-lemma rank_of_Ord: "Ord(i) ==> rank(i) = i"
+lemma rank_of_Ord: "Ord(i) \<Longrightarrow> rank(i) = i"
 apply (erule trans_induct)
 apply (subst rank)
 apply (simp add: Ord_equality)
 done
 
-lemma rank_lt: "a \<in> b ==> rank(a) < rank(b)"
+lemma rank_lt: "a \<in> b \<Longrightarrow> rank(a) < rank(b)"
 apply (rule_tac a1 = b in rank [THEN ssubst])
 apply (erule UN_I [THEN ltI])
 apply (rule_tac [2] Ord_UN, auto)
 done
 
-lemma eclose_rank_lt: "a \<in> eclose(b) ==> rank(a) < rank(b)"
+lemma eclose_rank_lt: "a \<in> eclose(b) \<Longrightarrow> rank(a) < rank(b)"
 apply (erule eclose_induct_down)
 apply (erule rank_lt)
 apply (erule rank_lt [THEN lt_trans], assumption)
 done
 
-lemma rank_mono: "a<=b ==> rank(a) \<le> rank(b)"
+lemma rank_mono: "a<=b \<Longrightarrow> rank(a) \<le> rank(b)"
 apply (rule subset_imp_le)
 apply (auto simp add: rank [of a] rank [of b])
 done
@@ -305,14 +305,14 @@ done
 (*Not clear how to remove the P(a) condition, since the "then" part
   must refer to "a"*)
 lemma the_equality_if:
-     "P(a) ==> (THE x. P(x)) = (if (\<exists>!x. P(x)) then a else 0)"
+     "P(a) \<Longrightarrow> (THE x. P(x)) = (if (\<exists>!x. P(x)) then a else 0)"
 by (simp add: the_0 the_equality2)
 
 (*The first premise not only fixs i but ensures @{term"f\<noteq>0"}.
   The second premise is now essential.  Consider otherwise the relation
   r = {<0,0>,<0,1>,<0,2>,...}.  Then f`0 = \<Union>(f``{0}) = \<Union>(nat) = nat,
   whose rank equals that of r.*)
-lemma rank_apply: "[|i \<in> domain(f); function(f)|] ==> rank(f`i) < rank(f)"
+lemma rank_apply: "\<lbrakk>i \<in> domain(f); function(f)\<rbrakk> \<Longrightarrow> rank(f`i) < rank(f)"
 apply clarify
 apply (simp add: function_apply_equality)
 apply (blast intro: lt_trans rank_lt rank_pair2)
@@ -321,12 +321,12 @@ done
 
 subsection\<open>Corollaries of Leastness\<close>
 
-lemma mem_eclose_subset: "A \<in> B ==> eclose(A)<=eclose(B)"
+lemma mem_eclose_subset: "A \<in> B \<Longrightarrow> eclose(A)<=eclose(B)"
 apply (rule Transset_eclose [THEN eclose_least])
 apply (erule arg_into_eclose [THEN eclose_subset])
 done
 
-lemma eclose_mono: "A<=B ==> eclose(A) \<subseteq> eclose(B)"
+lemma eclose_mono: "A<=B \<Longrightarrow> eclose(A) \<subseteq> eclose(B)"
 apply (rule Transset_eclose [THEN eclose_least])
 apply (erule subset_trans)
 apply (rule arg_subset_eclose)
@@ -352,14 +352,14 @@ apply (simp add: the_equality if_P)
 done
 
 lemma transrec2_Limit:
-     "Limit(i) ==> transrec2(i,a,b) = (\<Union>j<i. transrec2(j,a,b))"
+     "Limit(i) \<Longrightarrow> transrec2(i,a,b) = (\<Union>j<i. transrec2(j,a,b))"
 apply (rule transrec2_def [THEN def_transrec, THEN trans])
 apply (auto simp add: OUnion_def)
 done
 
 lemma def_transrec2:
-     "(!!x. f(x)==transrec2(x,a,b))
-      ==> f(0) = a &
+     "(\<And>x. f(x)\<equiv>transrec2(x,a,b))
+      \<Longrightarrow> f(0) = a &
           f(succ(i)) = b(i, f(i)) &
           (Limit(K) \<longrightarrow> f(K) = (\<Union>j<K. f(j)))"
 by (simp add: transrec2_Limit)
@@ -390,10 +390,10 @@ apply (rule recursor_succ)
 done
 
 lemma rec_type:
-    "[| n \<in> nat;
+    "\<lbrakk>n \<in> nat;
         a \<in> C(0);
-        !!m z. [| m \<in> nat;  z \<in> C(m) |] ==> b(m,z): C(succ(m)) |]
-     ==> rec(n,a,b) \<in> C(n)"
+        \<And>m z. \<lbrakk>m \<in> nat;  z \<in> C(m)\<rbrakk> \<Longrightarrow> b(m,z): C(succ(m))\<rbrakk>
+     \<Longrightarrow> rec(n,a,b) \<in> C(n)"
 by (erule nat_induct, auto)
 
 end

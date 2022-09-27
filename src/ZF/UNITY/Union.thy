@@ -16,28 +16,28 @@ begin
 definition
   (*FIXME: conjoin Init(F) \<inter> Init(G) \<noteq> 0 *)
   ok :: "[i, i] => o"     (infixl \<open>ok\<close> 65)  where
-    "F ok G == Acts(F) \<subseteq> AllowedActs(G) &
+    "F ok G \<equiv> Acts(F) \<subseteq> AllowedActs(G) &
                Acts(G) \<subseteq> AllowedActs(F)"
 
 definition
   (*FIXME: conjoin (\<Inter>i \<in> I. Init(F(i))) \<noteq> 0 *)
   OK  :: "[i, i=>i] => o"  where
-    "OK(I,F) == (\<forall>i \<in> I. \<forall>j \<in> I-{i}. Acts(F(i)) \<subseteq> AllowedActs(F(j)))"
+    "OK(I,F) \<equiv> (\<forall>i \<in> I. \<forall>j \<in> I-{i}. Acts(F(i)) \<subseteq> AllowedActs(F(j)))"
 
 definition
   JOIN  :: "[i, i=>i] => i"  where
-  "JOIN(I,F) == if I = 0 then SKIP else
+  "JOIN(I,F) \<equiv> if I = 0 then SKIP else
                  mk_program(\<Inter>i \<in> I. Init(F(i)), \<Union>i \<in> I. Acts(F(i)),
                  \<Inter>i \<in> I. AllowedActs(F(i)))"
 
 definition
   Join :: "[i, i] => i"  (infixl \<open>\<squnion>\<close> 65)  where
-  "F \<squnion> G == mk_program (Init(F) \<inter> Init(G), Acts(F) \<union> Acts(G),
+  "F \<squnion> G \<equiv> mk_program (Init(F) \<inter> Init(G), Acts(F) \<union> Acts(G),
                                 AllowedActs(F) \<inter> AllowedActs(G))"
 definition
   (*Characterizes safety properties.  Used with specifying AllowedActs*)
   safety_prop :: "i => o"  where
-  "safety_prop(X) == X\<subseteq>program &
+  "safety_prop(X) \<equiv> X\<subseteq>program &
       SKIP \<in> X & (\<forall>G \<in> program. Acts(G) \<subseteq> (\<Union>F \<in> X. Acts(F)) \<longrightarrow> G \<in> X)"
 
 syntax
@@ -45,7 +45,7 @@ syntax
   "_JOIN"   :: "[pttrn, i, i] => i"   (\<open>(3\<Squnion>_ \<in> _./ _)\<close> 10)
 
 translations
-  "\<Squnion>x \<in> A. B"   == "CONST JOIN(A, (\<lambda>x. B))"
+  "\<Squnion>x \<in> A. B" == "CONST JOIN(A, (\<lambda>x. B))"
   "\<Squnion>x y. B"   == "\<Squnion>x. \<Squnion>y. B"
   "\<Squnion>x. B"     == "CONST JOIN(CONST state, (\<lambda>x. B))"
 
@@ -177,14 +177,14 @@ lemma JOIN_cons [simp]: "(\<Squnion>i \<in> cons(a,I). F(i)) = F(a) \<squnion> (
 by (rule program_equalityI, auto)
 
 lemma JOIN_cong [cong]:
-    "[| I=J;  !!i. i \<in> J ==> F(i) = G(i) |] ==>
+    "\<lbrakk>I=J;  \<And>i. i \<in> J \<Longrightarrow> F(i) = G(i)\<rbrakk> \<Longrightarrow>
      (\<Squnion>i \<in> I. F(i)) = (\<Squnion>i \<in> J. G(i))"
 by (simp add: JOIN_def)
 
 
 
 subsection\<open>JOIN laws\<close>
-lemma JOIN_absorb: "k \<in> I ==>F(k) \<squnion> (\<Squnion>i \<in> I. F(i)) = (\<Squnion>i \<in> I. F(i))"
+lemma JOIN_absorb: "k \<in> I \<Longrightarrow>F(k) \<squnion> (\<Squnion>i \<in> I. F(i)) = (\<Squnion>i \<in> I. F(i))"
 apply (subst JOIN_cons [symmetric])
 apply (auto simp add: cons_absorb)
 done
@@ -208,7 +208,7 @@ lemma JOIN_Join_miniscope: "(\<Squnion>i \<in> I. F(i) \<squnion> G) = ((\<Squni
 by (simp add: JOIN_Join_distrib JOIN_constant)
 
 text\<open>Used to prove guarantees_JOIN_I\<close>
-lemma JOIN_Join_diff: "i \<in> I==>F(i) \<squnion> JOIN(I - {i}, F) = JOIN(I, F)"
+lemma JOIN_Join_diff: "i \<in> I\<Longrightarrow>F(i) \<squnion> JOIN(I - {i}, F) = JOIN(I, F)"
 apply (rule program_equalityI)
 apply (auto elim!: not_emptyE)
 done
@@ -221,7 +221,7 @@ subsection\<open>Safety: co, stable, FP\<close>
   I to be nonempty for other reasons anyway.*)
 
 lemma JOIN_constrains:
- "i \<in> I==>(\<Squnion>i \<in> I. F(i)) \<in> A co B \<longleftrightarrow> (\<forall>i \<in> I. programify(F(i)) \<in> A co B)"
+ "i \<in> I\<Longrightarrow>(\<Squnion>i \<in> I. F(i)) \<in> A co B \<longleftrightarrow> (\<forall>i \<in> I. programify(F(i)) \<in> A co B)"
 
 apply (unfold constrains_def JOIN_def st_set_def, auto)
 prefer 2 apply blast
@@ -245,8 +245,8 @@ by (simp add: Join_constrains unless_def)
 *)
 
 lemma Join_constrains_weaken:
-     "[| F \<in> A co A';  G \<in> B co B' |]
-      ==> F \<squnion> G \<in> (A \<inter> B) co (A' \<union> B')"
+     "\<lbrakk>F \<in> A co A';  G \<in> B co B'\<rbrakk>
+      \<Longrightarrow> F \<squnion> G \<in> (A \<inter> B) co (A' \<union> B')"
 apply (subgoal_tac "st_set (A) & st_set (B) & F \<in> program & G \<in> program")
 prefer 2 apply (blast dest: constrainsD2, simp)
 apply (blast intro: constrains_weaken)
@@ -254,7 +254,7 @@ done
 
 (*If I=0, it degenerates to SKIP \<in> state co 0, which is false.*)
 lemma JOIN_constrains_weaken:
-  assumes major: "(!!i. i \<in> I ==> F(i) \<in> A(i) co A'(i))"
+  assumes major: "(\<And>i. i \<in> I \<Longrightarrow> F(i) \<in> A(i) co A'(i))"
       and minor: "i \<in> I"
   shows "(\<Squnion>i \<in> I. F(i)) \<in> (\<Inter>i \<in> I. A(i)) co (\<Union>i \<in> I. A'(i))"
 apply (cut_tac minor)
@@ -274,7 +274,7 @@ apply (drule_tac x = act in bspec, auto)
 done
 
 lemma initially_JOIN_I:
-  assumes major: "(!!i. i \<in> I ==>F(i) \<in> initially(A))"
+  assumes major: "(\<And>i. i \<in> I \<Longrightarrow>F(i) \<in> initially(A))"
       and minor: "i \<in> I"
   shows  "(\<Squnion>i \<in> I. F(i)) \<in> initially(A)"
 apply (cut_tac minor)
@@ -284,7 +284,7 @@ apply (auto simp add: initially_def)
 done
 
 lemma invariant_JOIN_I:
-  assumes major: "(!!i. i \<in> I ==> F(i) \<in> invariant(A))"
+  assumes major: "(\<And>i. i \<in> I \<Longrightarrow> F(i) \<in> invariant(A))"
       and minor: "i \<in> I"
   shows "(\<Squnion>i \<in> I. F(i)) \<in> invariant(A)"
 apply (cut_tac minor)
@@ -302,12 +302,12 @@ lemma Join_stable [iff]:
 by (simp add: stable_def)
 
 lemma initially_JoinI [intro!]:
-     "[| F \<in> initially(A); G \<in> initially(A) |] ==> F \<squnion> G \<in> initially(A)"
+     "\<lbrakk>F \<in> initially(A); G \<in> initially(A)\<rbrakk> \<Longrightarrow> F \<squnion> G \<in> initially(A)"
 by (unfold initially_def, auto)
 
 lemma invariant_JoinI:
-     "[| F \<in> invariant(A); G \<in> invariant(A) |]
-      ==> F \<squnion> G \<in> invariant(A)"
+     "\<lbrakk>F \<in> invariant(A); G \<in> invariant(A)\<rbrakk>
+      \<Longrightarrow> F \<squnion> G \<in> invariant(A)"
 apply (subgoal_tac "F \<in> program&G \<in> program")
 prefer 2 apply (blast dest: invariantD2)
 apply (simp add: invariant_def)
@@ -316,13 +316,13 @@ done
 
 
 (* Fails if I=0 because \<Inter>i \<in> 0. A(i) = 0 *)
-lemma FP_JOIN: "i \<in> I ==> FP(\<Squnion>i \<in> I. F(i)) = (\<Inter>i \<in> I. FP (programify(F(i))))"
+lemma FP_JOIN: "i \<in> I \<Longrightarrow> FP(\<Squnion>i \<in> I. F(i)) = (\<Inter>i \<in> I. FP (programify(F(i))))"
 by (auto simp add: FP_def Inter_def st_set_def JOIN_stable)
 
 subsection\<open>Progress: transient, ensures\<close>
 
 lemma JOIN_transient:
-     "i \<in> I ==>
+     "i \<in> I \<Longrightarrow>
       (\<Squnion>i \<in> I. F(i)) \<in> transient(A) \<longleftrightarrow> (\<exists>i \<in> I. programify(F(i)) \<in> transient(A))"
 apply (auto simp add: transient_def JOIN_def)
 apply (unfold st_set_def)
@@ -336,16 +336,16 @@ lemma Join_transient [iff]:
 apply (auto simp add: transient_def Join_def Int_Un_distrib2)
 done
 
-lemma Join_transient_I1: "F \<in> transient(A) ==> F \<squnion> G \<in> transient(A)"
+lemma Join_transient_I1: "F \<in> transient(A) \<Longrightarrow> F \<squnion> G \<in> transient(A)"
 by (simp add: Join_transient transientD2)
 
 
-lemma Join_transient_I2: "G \<in> transient(A) ==> F \<squnion> G \<in> transient(A)"
+lemma Join_transient_I2: "G \<in> transient(A) \<Longrightarrow> F \<squnion> G \<in> transient(A)"
 by (simp add: Join_transient transientD2)
 
-(*If I=0 it degenerates to (SKIP \<in> A ensures B) = False, i.e. to ~(A\<subseteq>B) *)
+(*If I=0 it degenerates to (SKIP \<in> A ensures B) = False, i.e. to \<not>(A\<subseteq>B) *)
 lemma JOIN_ensures:
-     "i \<in> I ==>
+     "i \<in> I \<Longrightarrow>
       (\<Squnion>i \<in> I. F(i)) \<in> A ensures B \<longleftrightarrow>
       ((\<forall>i \<in> I. programify(F(i)) \<in> (A-B) co (A \<union> B)) &
       (\<exists>i \<in> I. programify(F(i)) \<in> A ensures B))"
@@ -362,8 +362,8 @@ apply (auto simp add: Join_transient)
 done
 
 lemma stable_Join_constrains:
-    "[| F \<in> stable(A);  G \<in> A co A' |]
-     ==> F \<squnion> G \<in> A co A'"
+    "\<lbrakk>F \<in> stable(A);  G \<in> A co A'\<rbrakk>
+     \<Longrightarrow> F \<squnion> G \<in> A co A'"
 apply (unfold stable_def constrains_def Join_def st_set_def)
 apply (cut_tac F = F in Acts_type)
 apply (cut_tac F = G in Acts_type, force)
@@ -372,7 +372,7 @@ done
 (*Premise for G cannot use Always because  F \<in> Stable A  is
    weaker than G \<in> stable A *)
 lemma stable_Join_Always1:
-     "[| F \<in> stable(A);  G \<in> invariant(A) |] ==> F \<squnion> G \<in> Always(A)"
+     "\<lbrakk>F \<in> stable(A);  G \<in> invariant(A)\<rbrakk> \<Longrightarrow> F \<squnion> G \<in> Always(A)"
 apply (subgoal_tac "F \<in> program & G \<in> program & st_set (A) ")
 prefer 2 apply (blast dest: invariantD2 stableD2)
 apply (simp add: Always_def invariant_def initially_def Stable_eq_stable)
@@ -381,7 +381,7 @@ done
 
 (*As above, but exchanging the roles of F and G*)
 lemma stable_Join_Always2:
-     "[| F \<in> invariant(A);  G \<in> stable(A) |] ==> F \<squnion> G \<in> Always(A)"
+     "\<lbrakk>F \<in> invariant(A);  G \<in> stable(A)\<rbrakk> \<Longrightarrow> F \<squnion> G \<in> Always(A)"
 apply (subst Join_commute)
 apply (blast intro: stable_Join_Always1)
 done
@@ -389,7 +389,7 @@ done
 
 
 lemma stable_Join_ensures1:
-     "[| F \<in> stable(A);  G \<in> A ensures B |] ==> F \<squnion> G \<in> A ensures B"
+     "\<lbrakk>F \<in> stable(A);  G \<in> A ensures B\<rbrakk> \<Longrightarrow> F \<squnion> G \<in> A ensures B"
 apply (subgoal_tac "F \<in> program & G \<in> program & st_set (A) ")
 prefer 2 apply (blast dest: stableD2 ensures_type [THEN subsetD])
 apply (simp (no_asm_simp) add: Join_ensures)
@@ -400,7 +400,7 @@ done
 
 (*As above, but exchanging the roles of F and G*)
 lemma stable_Join_ensures2:
-     "[| F \<in> A ensures B;  G \<in> stable(A) |] ==> F \<squnion> G \<in> A ensures B"
+     "\<lbrakk>F \<in> A ensures B;  G \<in> stable(A)\<rbrakk> \<Longrightarrow> F \<squnion> G \<in> A ensures B"
 apply (subst Join_commute)
 apply (blast intro: stable_Join_ensures1)
 done
@@ -433,7 +433,7 @@ lemma ok_Join_iff2 [iff]: "(G \<squnion> H) ok F \<longleftrightarrow> (G ok F &
 by (auto simp add: ok_def)
 
 (*useful?  Not with the previous two around*)
-lemma ok_Join_commute_I: "[| F ok G; (F \<squnion> G) ok H |] ==> F ok (G \<squnion> H)"
+lemma ok_Join_commute_I: "\<lbrakk>F ok G; (F \<squnion> G) ok H\<rbrakk> \<Longrightarrow> F ok (G \<squnion> H)"
 by (auto simp add: ok_def)
 
 lemma ok_JOIN_iff1 [iff]: "F ok JOIN(I,G) \<longleftrightarrow> (\<forall>i \<in> I. F ok G(i))"
@@ -447,7 +447,7 @@ done
 lemma OK_iff_ok: "OK(I,F) \<longleftrightarrow> (\<forall>i \<in> I. \<forall>j \<in> I-{i}. F(i) ok (F(j)))"
 by (auto simp add: ok_def OK_def)
 
-lemma OK_imp_ok: "[| OK(I,F); i \<in> I; j \<in> I; i\<noteq>j|] ==> F(i) ok F(j)"
+lemma OK_imp_ok: "\<lbrakk>OK(I,F); i \<in> I; j \<in> I; i\<noteq>j\<rbrakk> \<Longrightarrow> F(i) ok F(j)"
 by (auto simp add: OK_iff_ok)
 
 
@@ -474,7 +474,7 @@ apply (auto simp add: Allowed_def)
 done
 
 lemma Allowed_JOIN [simp]:
-     "i \<in> I ==>
+     "i \<in> I \<Longrightarrow>
    Allowed(JOIN(I,F)) = (\<Inter>i \<in> I. Allowed(programify(F(i))))"
 apply (auto simp add: Allowed_def, blast)
 done
@@ -494,7 +494,7 @@ done
 subsection\<open>safety_prop, for reasoning about given instances of "ok"\<close>
 
 lemma safety_prop_Acts_iff:
-     "safety_prop(X) ==> (Acts(G) \<subseteq> cons(id(state), (\<Union>F \<in> X. Acts(F)))) \<longleftrightarrow> (programify(G) \<in> X)"
+     "safety_prop(X) \<Longrightarrow> (Acts(G) \<subseteq> cons(id(state), (\<Union>F \<in> X. Acts(F)))) \<longleftrightarrow> (programify(G) \<in> X)"
 apply (simp (no_asm_use) add: safety_prop_def)
 apply clarify
 apply (case_tac "G \<in> program", simp_all, blast, safe)
@@ -503,7 +503,7 @@ apply (force simp add: programify_def)
 done
 
 lemma safety_prop_AllowedActs_iff_Allowed:
-     "safety_prop(X) ==>
+     "safety_prop(X) \<Longrightarrow>
   (\<Union>G \<in> X. Acts(G)) \<subseteq> AllowedActs(F) \<longleftrightarrow> (X \<subseteq> Allowed(programify(F)))"
 apply (simp add: Allowed_def safety_prop_Acts_iff [THEN iff_sym]
                  safety_prop_def, blast)
@@ -511,7 +511,7 @@ done
 
 
 lemma Allowed_eq:
-     "safety_prop(X) ==> Allowed(mk_program(init, acts, \<Union>F \<in> X. Acts(F))) = X"
+     "safety_prop(X) \<Longrightarrow> Allowed(mk_program(init, acts, \<Union>F \<in> X. Acts(F))) = X"
 apply (subgoal_tac "cons (id (state), \<Union>(RepFun (X, Acts)) \<inter> Pow (state * state)) = \<Union>(RepFun (X, Acts))")
 apply (rule_tac [2] equalityI)
   apply (simp del: UN_simps add: Allowed_def safety_prop_Acts_iff safety_prop_def, auto)
@@ -519,8 +519,8 @@ apply (force dest: Acts_type [THEN subsetD] simp add: safety_prop_def)+
 done
 
 lemma def_prg_Allowed:
-     "[| F == mk_program (init, acts, \<Union>F \<in> X. Acts(F)); safety_prop(X) |]
-      ==> Allowed(F) = X"
+     "\<lbrakk>F \<equiv> mk_program (init, acts, \<Union>F \<in> X. Acts(F)); safety_prop(X)\<rbrakk>
+      \<Longrightarrow> Allowed(F) = X"
 by (simp add: Allowed_eq)
 
 (*For safety_prop to hold, the property must be satisfiable!*)
@@ -530,17 +530,17 @@ by (simp add: safety_prop_def constrains_def st_set_def, blast)
 
 (* To be used with resolution *)
 lemma safety_prop_constrainsI [iff]:
-     "[| A\<subseteq>B; st_set(A) |] ==>safety_prop(A co B)"
+     "\<lbrakk>A\<subseteq>B; st_set(A)\<rbrakk> \<Longrightarrow>safety_prop(A co B)"
 by auto
 
 lemma safety_prop_stable [iff]: "safety_prop(stable(A)) \<longleftrightarrow> st_set(A)"
 by (simp add: stable_def)
 
-lemma safety_prop_stableI: "st_set(A) ==> safety_prop(stable(A))"
+lemma safety_prop_stableI: "st_set(A) \<Longrightarrow> safety_prop(stable(A))"
 by auto
 
 lemma safety_prop_Int [simp]:
-     "[| safety_prop(X) ; safety_prop(Y) |] ==> safety_prop(X \<inter> Y)"
+     "\<lbrakk>safety_prop(X) ; safety_prop(Y)\<rbrakk> \<Longrightarrow> safety_prop(X \<inter> Y)"
 apply (simp add: safety_prop_def, safe, blast)
 apply (drule_tac [2] B = "\<Union>(RepFun (X \<inter> Y, Acts))" and C = "\<Union>(RepFun (Y, Acts))" in subset_trans)
 apply (drule_tac B = "\<Union>(RepFun (X \<inter> Y, Acts))" and C = "\<Union>(RepFun (X, Acts))" in subset_trans)
@@ -549,7 +549,7 @@ done
 
 (* If I=0 the conclusion becomes safety_prop(0) which is false *)
 lemma safety_prop_Inter:
-  assumes major: "(!!i. i \<in> I ==>safety_prop(X(i)))"
+  assumes major: "(\<And>i. i \<in> I \<Longrightarrow>safety_prop(X(i)))"
       and minor: "i \<in> I"
   shows "safety_prop(\<Inter>i \<in> I. X(i))"
 apply (simp add: safety_prop_def)
@@ -565,8 +565,8 @@ apply blast+
 done
 
 lemma def_UNION_ok_iff:
-"[| F == mk_program(init,acts, \<Union>G \<in> X. Acts(G)); safety_prop(X) |]
-      ==> F ok G \<longleftrightarrow> (programify(G) \<in> X & acts \<inter> Pow(state*state) \<subseteq> AllowedActs(G))"
+"\<lbrakk>F \<equiv> mk_program(init,acts, \<Union>G \<in> X. Acts(G)); safety_prop(X)\<rbrakk>
+      \<Longrightarrow> F ok G \<longleftrightarrow> (programify(G) \<in> X & acts \<inter> Pow(state*state) \<subseteq> AllowedActs(G))"
 apply (unfold ok_def)
 apply (drule_tac G = G in safety_prop_Acts_iff)
 apply (cut_tac F = G in AllowedActs_type)

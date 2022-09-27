@@ -43,7 +43,7 @@ text \<open>Derived operations.\<close>
 
 definition
   a_inv :: "[i,i] => i" (\<open>\<ominus>\<index> _\<close> [81] 80) where
-  "a_inv(R) == m_inv (<carrier(R), add_field(R), zero(R), 0>)"
+  "a_inv(R) \<equiv> m_inv (<carrier(R), add_field(R), zero(R), 0>)"
 
 definition
   minus :: "[i,i,i] => i" (\<open>(_ \<ominus>\<index> _)\<close> [65,66] 65) where
@@ -105,7 +105,7 @@ lemma (in abelian_group) a_inv_closed [intro, simp]:
 by (simp add: a_inv_def  group.inv_closed [OF a_group, simplified])
 
 lemma (in abelian_monoid) a_closed [intro, simp]:
-     "[| x \<in> carrier(G); y \<in> carrier(G) |] ==> x \<oplus> y \<in> carrier(G)"
+     "\<lbrakk>x \<in> carrier(G); y \<in> carrier(G)\<rbrakk> \<Longrightarrow> x \<oplus> y \<in> carrier(G)"
 by (rule monoid.m_closed [OF a_monoid,
                   simplified, simplified ring_add_def [symmetric]])
 
@@ -173,7 +173,7 @@ lemma (in abelian_group) minus_add:
 lemmas (in abelian_monoid) a_ac = a_assoc a_comm a_lcomm
 
 text \<open>
-  The following proofs are from Jacobson, Basic Algebra I, pp.~88--89
+  The following proofs are from Jacobson, Basic Algebra I, pp.\<not>88--89
 \<close>
 
 context ring
@@ -232,7 +232,7 @@ subsection \<open>Morphisms\<close>
 
 definition
   ring_hom :: "[i,i] => i" where
-  "ring_hom(R,S) ==
+  "ring_hom(R,S) \<equiv>
     {h \<in> carrier(R) -> carrier(S).
       (\<forall>x y. x \<in> carrier(R) & y \<in> carrier(R) \<longrightarrow>
         h ` (x \<cdot>\<^bsub>R\<^esub> y) = (h ` x) \<cdot>\<^bsub>S\<^esub> (h ` y) &

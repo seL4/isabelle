@@ -21,58 +21,58 @@ theory WF imports Trancl begin
 definition
   wf           :: "i=>o"  where
     (*r is a well-founded relation*)
-    "wf(r) == \<forall>Z. Z=0 | (\<exists>x\<in>Z. \<forall>y. <y,x>:r \<longrightarrow> ~ y \<in> Z)"
+    "wf(r) \<equiv> \<forall>Z. Z=0 | (\<exists>x\<in>Z. \<forall>y. <y,x>:r \<longrightarrow> \<not> y \<in> Z)"
 
 definition
   wf_on        :: "[i,i]=>o"                      (\<open>wf[_]'(_')\<close>)  where
     (*r is well-founded on A*)
-    "wf_on(A,r) == wf(r \<inter> A*A)"
+    "wf_on(A,r) \<equiv> wf(r \<inter> A*A)"
 
 definition
   is_recfun    :: "[i, i, [i,i]=>i, i] =>o"  where
-    "is_recfun(r,a,H,f) == (f = (\<lambda>x\<in>r-``{a}. H(x, restrict(f, r-``{x}))))"
+    "is_recfun(r,a,H,f) \<equiv> (f = (\<lambda>x\<in>r-``{a}. H(x, restrict(f, r-``{x}))))"
 
 definition
   the_recfun   :: "[i, i, [i,i]=>i] =>i"  where
-    "the_recfun(r,a,H) == (THE f. is_recfun(r,a,H,f))"
+    "the_recfun(r,a,H) \<equiv> (THE f. is_recfun(r,a,H,f))"
 
 definition
   wftrec :: "[i, i, [i,i]=>i] =>i"  where
-    "wftrec(r,a,H) == H(a, the_recfun(r,a,H))"
+    "wftrec(r,a,H) \<equiv> H(a, the_recfun(r,a,H))"
 
 definition
   wfrec :: "[i, i, [i,i]=>i] =>i"  where
     (*public version.  Does not require r to be transitive*)
-    "wfrec(r,a,H) == wftrec(r^+, a, %x f. H(x, restrict(f,r-``{x})))"
+    "wfrec(r,a,H) \<equiv> wftrec(r^+, a, %x f. H(x, restrict(f,r-``{x})))"
 
 definition
   wfrec_on     :: "[i, i, i, [i,i]=>i] =>i"       (\<open>wfrec[_]'(_,_,_')\<close>)  where
-    "wfrec[A](r,a,H) == wfrec(r \<inter> A*A, a, H)"
+    "wfrec[A](r,a,H) \<equiv> wfrec(r \<inter> A*A, a, H)"
 
 
 subsection\<open>Well-Founded Relations\<close>
 
 subsubsection\<open>Equivalences between \<^term>\<open>wf\<close> and \<^term>\<open>wf_on\<close>\<close>
 
-lemma wf_imp_wf_on: "wf(r) ==> wf[A](r)"
+lemma wf_imp_wf_on: "wf(r) \<Longrightarrow> wf[A](r)"
 by (unfold wf_def wf_on_def, force)
 
-lemma wf_on_imp_wf: "[|wf[A](r); r \<subseteq> A*A|] ==> wf(r)"
+lemma wf_on_imp_wf: "\<lbrakk>wf[A](r); r \<subseteq> A*A\<rbrakk> \<Longrightarrow> wf(r)"
 by (simp add: wf_on_def subset_Int_iff)
 
-lemma wf_on_field_imp_wf: "wf[field(r)](r) ==> wf(r)"
+lemma wf_on_field_imp_wf: "wf[field(r)](r) \<Longrightarrow> wf(r)"
 by (unfold wf_def wf_on_def, fast)
 
 lemma wf_iff_wf_on_field: "wf(r) \<longleftrightarrow> wf[field(r)](r)"
 by (blast intro: wf_imp_wf_on wf_on_field_imp_wf)
 
-lemma wf_on_subset_A: "[| wf[A](r);  B<=A |] ==> wf[B](r)"
+lemma wf_on_subset_A: "\<lbrakk>wf[A](r);  B<=A\<rbrakk> \<Longrightarrow> wf[B](r)"
 by (unfold wf_on_def wf_def, fast)
 
-lemma wf_on_subset_r: "[| wf[A](r); s<=r |] ==> wf[A](s)"
+lemma wf_on_subset_r: "\<lbrakk>wf[A](r); s<=r\<rbrakk> \<Longrightarrow> wf[A](s)"
 by (unfold wf_on_def wf_def, fast)
 
-lemma wf_subset: "[|wf(s); r<=s|] ==> wf(r)"
+lemma wf_subset: "\<lbrakk>wf(s); r<=s\<rbrakk> \<Longrightarrow> wf(r)"
 by (simp add: wf_def, fast)
 
 subsubsection\<open>Introduction Rules for \<^term>\<open>wf_on\<close>\<close>
@@ -80,7 +80,7 @@ subsubsection\<open>Introduction Rules for \<^term>\<open>wf_on\<close>\<close>
 text\<open>If every non-empty subset of \<^term>\<open>A\<close> has an \<^term>\<open>r\<close>-minimal element
    then we have \<^term>\<open>wf[A](r)\<close>.\<close>
 lemma wf_onI:
- assumes prem: "!!Z u. [| Z<=A;  u \<in> Z;  \<forall>x\<in>Z. \<exists>y\<in>Z. <y,x>:r |] ==> False"
+ assumes prem: "\<And>Z u. \<lbrakk>Z<=A;  u \<in> Z;  \<forall>x\<in>Z. \<exists>y\<in>Z. <y,x>:r\<rbrakk> \<Longrightarrow> False"
  shows         "wf[A](r)"
 apply (unfold wf_on_def wf_def)
 apply (rule equals0I [THEN disjCI, THEN allI])
@@ -89,10 +89,10 @@ done
 
 text\<open>If \<^term>\<open>r\<close> allows well-founded induction over \<^term>\<open>A\<close>
    then we have \<^term>\<open>wf[A](r)\<close>.   Premise is equivalent to
-  \<^prop>\<open>!!B. \<forall>x\<in>A. (\<forall>y. <y,x>: r \<longrightarrow> y \<in> B) \<longrightarrow> x \<in> B ==> A<=B\<close>\<close>
+  \<^prop>\<open>\<And>B. \<forall>x\<in>A. (\<forall>y. <y,x>: r \<longrightarrow> y \<in> B) \<longrightarrow> x \<in> B \<Longrightarrow> A<=B\<close>\<close>
 lemma wf_onI2:
- assumes prem: "!!y B. [| \<forall>x\<in>A. (\<forall>y\<in>A. <y,x>:r \<longrightarrow> y \<in> B) \<longrightarrow> x \<in> B;   y \<in> A |]
-                       ==> y \<in> B"
+ assumes prem: "\<And>y B. \<lbrakk>\<forall>x\<in>A. (\<forall>y\<in>A. <y,x>:r \<longrightarrow> y \<in> B) \<longrightarrow> x \<in> B;   y \<in> A\<rbrakk>
+                       \<Longrightarrow> y \<in> B"
  shows         "wf[A](r)"
 apply (rule wf_onI)
 apply (rule_tac c=u in prem [THEN DiffE])
@@ -106,11 +106,11 @@ subsubsection\<open>Well-founded Induction\<close>
 text\<open>Consider the least \<^term>\<open>z\<close> in \<^term>\<open>domain(r)\<close> such that
   \<^term>\<open>P(z)\<close> does not hold...\<close>
 lemma wf_induct_raw:
-    "[| wf(r);
-        !!x.[| \<forall>y. <y,x>: r \<longrightarrow> P(y) |] ==> P(x) |]
-     ==> P(a)"
+    "\<lbrakk>wf(r);
+        \<And>x.\<lbrakk>\<forall>y. <y,x>: r \<longrightarrow> P(y)\<rbrakk> \<Longrightarrow> P(x)\<rbrakk>
+     \<Longrightarrow> P(a)"
 apply (unfold wf_def)
-apply (erule_tac x = "{z \<in> domain(r). ~ P(z)}" in allE)
+apply (erule_tac x = "{z \<in> domain(r). \<not> P(z)}" in allE)
 apply blast
 done
 
@@ -118,9 +118,9 @@ lemmas wf_induct = wf_induct_raw [rule_format, consumes 1, case_names step, indu
 
 text\<open>The form of this rule is designed to match \<open>wfI\<close>\<close>
 lemma wf_induct2:
-    "[| wf(r);  a \<in> A;  field(r)<=A;
-        !!x.[| x \<in> A;  \<forall>y. <y,x>: r \<longrightarrow> P(y) |] ==> P(x) |]
-     ==>  P(a)"
+    "\<lbrakk>wf(r);  a \<in> A;  field(r)<=A;
+        \<And>x.\<lbrakk>x \<in> A;  \<forall>y. <y,x>: r \<longrightarrow> P(y)\<rbrakk> \<Longrightarrow> P(x)\<rbrakk>
+     \<Longrightarrow>  P(a)"
 apply (erule_tac P="a \<in> A" in rev_mp)
 apply (erule_tac a=a in wf_induct, blast)
 done
@@ -129,9 +129,9 @@ lemma field_Int_square: "field(r \<inter> A*A) \<subseteq> A"
 by blast
 
 lemma wf_on_induct_raw [consumes 2, induct set: wf_on]:
-    "[| wf[A](r);  a \<in> A;
-        !!x.[| x \<in> A;  \<forall>y\<in>A. <y,x>: r \<longrightarrow> P(y) |] ==> P(x)
-     |]  ==>  P(a)"
+    "\<lbrakk>wf[A](r);  a \<in> A;
+        \<And>x.\<lbrakk>x \<in> A;  \<forall>y\<in>A. <y,x>: r \<longrightarrow> P(y)\<rbrakk> \<Longrightarrow> P(x)
+\<rbrakk>  \<Longrightarrow>  P(a)"
 apply (unfold wf_on_def)
 apply (erule wf_induct2, assumption)
 apply (rule field_Int_square, blast)
@@ -144,10 +144,10 @@ lemma wf_on_induct [consumes 2, case_names step, induct set: wf_on]:
 text\<open>If \<^term>\<open>r\<close> allows well-founded induction
    then we have \<^term>\<open>wf(r)\<close>.\<close>
 lemma wfI:
-    "[| field(r)<=A;
-        !!y B. [| \<forall>x\<in>A. (\<forall>y\<in>A. <y,x>:r \<longrightarrow> y \<in> B) \<longrightarrow> x \<in> B;  y \<in> A|]
-               ==> y \<in> B |]
-     ==>  wf(r)"
+    "\<lbrakk>field(r)<=A;
+        \<And>y B. \<lbrakk>\<forall>x\<in>A. (\<forall>y\<in>A. <y,x>:r \<longrightarrow> y \<in> B) \<longrightarrow> x \<in> B;  y \<in> A\<rbrakk>
+               \<Longrightarrow> y \<in> B\<rbrakk>
+     \<Longrightarrow>  wf(r)"
 apply (rule wf_on_subset_A [THEN wf_on_field_imp_wf])
 apply (rule wf_onI2)
  prefer 2 apply blast
@@ -157,34 +157,34 @@ done
 
 subsection\<open>Basic Properties of Well-Founded Relations\<close>
 
-lemma wf_not_refl: "wf(r) ==> <a,a> \<notin> r"
+lemma wf_not_refl: "wf(r) \<Longrightarrow> <a,a> \<notin> r"
 by (erule_tac a=a in wf_induct, blast)
 
-lemma wf_not_sym [rule_format]: "wf(r) ==> \<forall>x. <a,x>:r \<longrightarrow> <x,a> \<notin> r"
+lemma wf_not_sym [rule_format]: "wf(r) \<Longrightarrow> \<forall>x. <a,x>:r \<longrightarrow> <x,a> \<notin> r"
 by (erule_tac a=a in wf_induct, blast)
 
-(* @{term"[| wf(r);  <a,x> \<in> r;  ~P ==> <x,a> \<in> r |] ==> P"} *)
+(* @{term"\<lbrakk>wf(r);  <a,x> \<in> r;  \<not>P \<Longrightarrow> <x,a> \<in> r\<rbrakk> \<Longrightarrow> P"} *)
 lemmas wf_asym = wf_not_sym [THEN swap]
 
-lemma wf_on_not_refl: "[| wf[A](r); a \<in> A |] ==> <a,a> \<notin> r"
+lemma wf_on_not_refl: "\<lbrakk>wf[A](r); a \<in> A\<rbrakk> \<Longrightarrow> <a,a> \<notin> r"
 by (erule_tac a=a in wf_on_induct, assumption, blast)
 
 lemma wf_on_not_sym:
-     "[| wf[A](r);  a \<in> A |] ==> (\<And>b. b\<in>A \<Longrightarrow> <a,b>:r \<Longrightarrow> <b,a>\<notin>r)"
+     "\<lbrakk>wf[A](r);  a \<in> A\<rbrakk> \<Longrightarrow> (\<And>b. b\<in>A \<Longrightarrow> <a,b>:r \<Longrightarrow> <b,a>\<notin>r)"
 apply (atomize (full), intro impI)
 apply (erule_tac a=a in wf_on_induct, assumption, blast)
 done
 
 lemma wf_on_asym:
-     "[| wf[A](r);  ~Z ==> <a,b> \<in> r;
-         <b,a> \<notin> r ==> Z; ~Z ==> a \<in> A; ~Z ==> b \<in> A |] ==> Z"
+     "\<lbrakk>wf[A](r);  \<not>Z \<Longrightarrow> <a,b> \<in> r;
+         <b,a> \<notin> r \<Longrightarrow> Z; \<not>Z \<Longrightarrow> a \<in> A; \<not>Z \<Longrightarrow> b \<in> A\<rbrakk> \<Longrightarrow> Z"
 by (blast dest: wf_on_not_sym)
 
 
 (*Needed to prove well_ordI.  Could also reason that wf[A](r) means
   wf(r \<inter> A*A);  thus wf( (r \<inter> A*A)^+ ) and use wf_not_refl *)
 lemma wf_on_chain3:
-     "[| wf[A](r); <a,b>:r; <b,c>:r; <c,a>:r; a \<in> A; b \<in> A; c \<in> A |] ==> P"
+     "\<lbrakk>wf[A](r); <a,b>:r; <b,c>:r; <c,a>:r; a \<in> A; b \<in> A; c \<in> A\<rbrakk> \<Longrightarrow> P"
 apply (subgoal_tac "\<forall>y\<in>A. \<forall>z\<in>A. <a,y>:r \<longrightarrow> <y,z>:r \<longrightarrow> <z,a>:r \<longrightarrow> P",
        blast)
 apply (erule_tac a=a in wf_on_induct, assumption, blast)
@@ -195,14 +195,14 @@ done
 text\<open>transitive closure of a WF relation is WF provided
   \<^term>\<open>A\<close> is downward closed\<close>
 lemma wf_on_trancl:
-    "[| wf[A](r);  r-``A \<subseteq> A |] ==> wf[A](r^+)"
+    "\<lbrakk>wf[A](r);  r-``A \<subseteq> A\<rbrakk> \<Longrightarrow> wf[A](r^+)"
 apply (rule wf_onI2)
 apply (frule bspec [THEN mp], assumption+)
 apply (erule_tac a = y in wf_on_induct, assumption)
 apply (blast elim: tranclE, blast)
 done
 
-lemma wf_trancl: "wf(r) ==> wf(r^+)"
+lemma wf_trancl: "wf(r) \<Longrightarrow> wf(r^+)"
 apply (simp add: wf_iff_wf_on_field)
 apply (rule wf_on_subset_A)
  apply (erule wf_on_trancl)
@@ -219,7 +219,7 @@ lemmas underD = vimage_singleton_iff [THEN iffD1]
 
 subsection\<open>The Predicate \<^term>\<open>is_recfun\<close>\<close>
 
-lemma is_recfun_type: "is_recfun(r,a,H,f) ==> f \<in> r-``{a} -> range(f)"
+lemma is_recfun_type: "is_recfun(r,a,H,f) \<Longrightarrow> f \<in> r-``{a} -> range(f)"
 apply (unfold is_recfun_def)
 apply (erule ssubst)
 apply (rule lamI [THEN rangeI, THEN lam_type], assumption)
@@ -228,7 +228,7 @@ done
 lemmas is_recfun_imp_function = is_recfun_type [THEN fun_is_function]
 
 lemma apply_recfun:
-    "[| is_recfun(r,a,H,f); <x,a>:r |] ==> f`x = H(x, restrict(f,r-``{x}))"
+    "\<lbrakk>is_recfun(r,a,H,f); <x,a>:r\<rbrakk> \<Longrightarrow> f`x = H(x, restrict(f,r-``{x}))"
 apply (unfold is_recfun_def)
   txt\<open>replace f only on the left-hand side\<close>
 apply (erule_tac P = "%x. t(x) = u" for t u in ssubst)
@@ -236,8 +236,8 @@ apply (simp add: underI)
 done
 
 lemma is_recfun_equal [rule_format]:
-     "[| wf(r);  trans(r);  is_recfun(r,a,H,f);  is_recfun(r,b,H,g) |]
-      ==> <x,a>:r \<longrightarrow> <x,b>:r \<longrightarrow> f`x=g`x"
+     "\<lbrakk>wf(r);  trans(r);  is_recfun(r,a,H,f);  is_recfun(r,b,H,g)\<rbrakk>
+      \<Longrightarrow> <x,a>:r \<longrightarrow> <x,b>:r \<longrightarrow> f`x=g`x"
 apply (frule_tac f = f in is_recfun_type)
 apply (frule_tac f = g in is_recfun_type)
 apply (simp add: is_recfun_def)
@@ -253,9 +253,9 @@ apply (blast dest: transD intro: sym)
 done
 
 lemma is_recfun_cut:
-     "[| wf(r);  trans(r);
-         is_recfun(r,a,H,f);  is_recfun(r,b,H,g);  <b,a>:r |]
-      ==> restrict(f, r-``{b}) = g"
+     "\<lbrakk>wf(r);  trans(r);
+         is_recfun(r,a,H,f);  is_recfun(r,b,H,g);  <b,a>:r\<rbrakk>
+      \<Longrightarrow> restrict(f, r-``{b}) = g"
 apply (frule_tac f = f in is_recfun_type)
 apply (rule fun_extension)
   apply (blast dest: transD intro: restrict_type2)
@@ -266,23 +266,23 @@ done
 subsection\<open>Recursion: Main Existence Lemma\<close>
 
 lemma is_recfun_functional:
-     "[| wf(r); trans(r); is_recfun(r,a,H,f); is_recfun(r,a,H,g) |]  ==>  f=g"
+     "\<lbrakk>wf(r); trans(r); is_recfun(r,a,H,f); is_recfun(r,a,H,g)\<rbrakk>  \<Longrightarrow>  f=g"
 by (blast intro: fun_extension is_recfun_type is_recfun_equal)
 
 lemma the_recfun_eq:
-    "[| is_recfun(r,a,H,f);  wf(r);  trans(r) |] ==> the_recfun(r,a,H) = f"
+    "\<lbrakk>is_recfun(r,a,H,f);  wf(r);  trans(r)\<rbrakk> \<Longrightarrow> the_recfun(r,a,H) = f"
 apply (unfold the_recfun_def)
 apply (blast intro: is_recfun_functional)
 done
 
 (*If some f satisfies is_recfun(r,a,H,-) then so does the_recfun(r,a,H) *)
 lemma is_the_recfun:
-    "[| is_recfun(r,a,H,f);  wf(r);  trans(r) |]
-     ==> is_recfun(r, a, H, the_recfun(r,a,H))"
+    "\<lbrakk>is_recfun(r,a,H,f);  wf(r);  trans(r)\<rbrakk>
+     \<Longrightarrow> is_recfun(r, a, H, the_recfun(r,a,H))"
 by (simp add: the_recfun_eq)
 
 lemma unfold_the_recfun:
-     "[| wf(r);  trans(r) |] ==> is_recfun(r, a, H, the_recfun(r,a,H))"
+     "\<lbrakk>wf(r);  trans(r)\<rbrakk> \<Longrightarrow> is_recfun(r, a, H, the_recfun(r,a,H))"
 apply (rule_tac a=a in wf_induct, assumption)
 apply (rename_tac a1)
 apply (rule_tac f = "\<lambda>y\<in>r-``{a1}. wftrec (r,y,H)" in is_the_recfun)
@@ -311,13 +311,13 @@ done
 subsection\<open>Unfolding \<^term>\<open>wftrec(r,a,H)\<close>\<close>
 
 lemma the_recfun_cut:
-     "[| wf(r);  trans(r);  <b,a>:r |]
-      ==> restrict(the_recfun(r,a,H), r-``{b}) = the_recfun(r,b,H)"
+     "\<lbrakk>wf(r);  trans(r);  <b,a>:r\<rbrakk>
+      \<Longrightarrow> restrict(the_recfun(r,a,H), r-``{b}) = the_recfun(r,b,H)"
 by (blast intro: is_recfun_cut unfold_the_recfun)
 
 (*NOT SUITABLE FOR REWRITING: it is recursive!*)
 lemma wftrec:
-    "[| wf(r);  trans(r) |] ==>
+    "\<lbrakk>wf(r);  trans(r)\<rbrakk> \<Longrightarrow>
           wftrec(r,a,H) = H(a, \<lambda>x\<in>r-``{a}. wftrec(r,x,H))"
 apply (unfold wftrec_def)
 apply (subst unfold_the_recfun [unfolded is_recfun_def])
@@ -329,7 +329,7 @@ subsubsection\<open>Removal of the Premise \<^term>\<open>trans(r)\<close>\<clos
 
 (*NOT SUITABLE FOR REWRITING: it is recursive!*)
 lemma wfrec:
-    "wf(r) ==> wfrec(r,a,H) = H(a, \<lambda>x\<in>r-``{a}. wfrec(r,x,H))"
+    "wf(r) \<Longrightarrow> wfrec(r,a,H) = H(a, \<lambda>x\<in>r-``{a}. wfrec(r,x,H))"
 apply (unfold wfrec_def)
 apply (erule wf_trancl [THEN wftrec, THEN ssubst])
  apply (rule trans_trancl)
@@ -338,18 +338,18 @@ apply (rule vimage_pair_mono [THEN restrict_lam_eq, THEN subst_context])
 apply (rule subset_refl)
 done
 
-(*This form avoids giant explosions in proofs.  NOTE USE OF == *)
+(*This form avoids giant explosions in proofs.  NOTE USE OF \<equiv> *)
 lemma def_wfrec:
-    "[| !!x. h(x)==wfrec(r,x,H);  wf(r) |] ==>
+    "\<lbrakk>\<And>x. h(x)\<equiv>wfrec(r,x,H);  wf(r)\<rbrakk> \<Longrightarrow>
      h(a) = H(a, \<lambda>x\<in>r-``{a}. h(x))"
 apply simp
 apply (elim wfrec)
 done
 
 lemma wfrec_type:
-    "[| wf(r);  a \<in> A;  field(r)<=A;
-        !!x u. [| x \<in> A;  u \<in> Pi(r-``{x}, B) |] ==> H(x,u) \<in> B(x)
-     |] ==> wfrec(r,a,H) \<in> B(a)"
+    "\<lbrakk>wf(r);  a \<in> A;  field(r)<=A;
+        \<And>x u. \<lbrakk>x \<in> A;  u \<in> Pi(r-``{x}, B)\<rbrakk> \<Longrightarrow> H(x,u) \<in> B(x)
+\<rbrakk> \<Longrightarrow> wfrec(r,a,H) \<in> B(a)"
 apply (rule_tac a = a in wf_induct2, assumption+)
 apply (subst wfrec, assumption)
 apply (simp add: lam_type underD)
@@ -357,7 +357,7 @@ done
 
 
 lemma wfrec_on:
- "[| wf[A](r);  a \<in> A |] ==>
+ "\<lbrakk>wf[A](r);  a \<in> A\<rbrakk> \<Longrightarrow>
          wfrec[A](r,a,H) = H(a, \<lambda>x\<in>(r-``{a}) \<inter> A. wfrec[A](r,x,H))"
 apply (unfold wf_on_def wfrec_on_def)
 apply (erule wfrec [THEN trans])

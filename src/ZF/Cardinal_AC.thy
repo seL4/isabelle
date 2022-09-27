@@ -19,7 +19,7 @@ done
 text\<open>The theorem \<^term>\<open>||A|| = |A|\<close>\<close>
 lemmas cardinal_idem = cardinal_eqpoll [THEN cardinal_cong, simp]
 
-lemma cardinal_eqE: "|X| = |Y| ==> X \<approx> Y"
+lemma cardinal_eqE: "|X| = |Y| \<Longrightarrow> X \<approx> Y"
 apply (rule AC_well_ord [THEN exE])
 apply (rule AC_well_ord [THEN exE])
 apply (rule well_ord_cardinal_eqE, assumption+)
@@ -29,11 +29,11 @@ lemma cardinal_eqpoll_iff: "|X| = |Y| \<longleftrightarrow> X \<approx> Y"
 by (blast intro: cardinal_cong cardinal_eqE)
 
 lemma cardinal_disjoint_Un:
-     "[| |A|=|B|;  |C|=|D|;  A \<inter> C = 0;  B \<inter> D = 0 |]
-      ==> |A \<union> C| = |B \<union> D|"
+     "\<lbrakk>|A|=|B|;  |C|=|D|;  A \<inter> C = 0;  B \<inter> D = 0\<rbrakk>
+      \<Longrightarrow> |A \<union> C| = |B \<union> D|"
 by (simp add: cardinal_eqpoll_iff eqpoll_disjoint_Un)
 
-lemma lepoll_imp_cardinal_le: "A \<lesssim> B ==> |A| \<le> |B|"
+lemma lepoll_imp_cardinal_le: "A \<lesssim> B \<Longrightarrow> |A| \<le> |B|"
 apply (rule AC_well_ord [THEN exE])
 apply (erule well_ord_lepoll_imp_cardinal_le, assumption)
 done
@@ -59,7 +59,7 @@ apply (rule AC_well_ord [THEN exE])
 apply (rule well_ord_cadd_cmult_distrib, assumption+)
 done
 
-lemma InfCard_square_eq: "InfCard(|A|) ==> A*A \<approx> A"
+lemma InfCard_square_eq: "InfCard(|A|) \<Longrightarrow> A*A \<approx> A"
 apply (rule AC_well_ord [THEN exE])
 apply (erule well_ord_InfCard_square_eq, assumption)
 done
@@ -79,7 +79,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma le_Card_iff: "Card(K) ==> |A| \<le> K \<longleftrightarrow> A \<lesssim> K"
+lemma le_Card_iff: "Card(K) \<Longrightarrow> |A| \<le> K \<longleftrightarrow> A \<lesssim> K"
 apply (erule Card_cardinal_eq [THEN subst], rule iffI,
        erule Card_le_imp_lepoll)
 apply (erule lepoll_imp_cardinal_le)
@@ -109,7 +109,7 @@ next
     by (force intro: cardinal_lt_imp_lt lesspoll_cardinal_lt)
 qed
 
-lemma cardinal_le_imp_lepoll: " i \<le> |A| ==> i \<lesssim> A"
+lemma cardinal_le_imp_lepoll: " i \<le> |A| \<Longrightarrow> i \<lesssim> A"
   by (blast intro: lt_Ord Card_le_imp_lepoll Ord_cardinal_le le_trans)
 
 
@@ -141,11 +141,11 @@ qed
 text\<open>Kunen's Lemma 10.21\<close>
 lemma cardinal_UN_le:
   assumes K: "InfCard(K)" 
-  shows "(!!i. i\<in>K ==> |X(i)| \<le> K) ==> |\<Union>i\<in>K. X(i)| \<le> K"
+  shows "(\<And>i. i\<in>K \<Longrightarrow> |X(i)| \<le> K) \<Longrightarrow> |\<Union>i\<in>K. X(i)| \<le> K"
 proof (simp add: K InfCard_is_Card le_Card_iff)
   have [intro]: "Ord(K)" by (blast intro: InfCard_is_Card Card_is_Ord K) 
-  assume "!!i. i\<in>K ==> X(i) \<lesssim> K"
-  hence "!!i. i\<in>K ==> \<exists>f. f \<in> inj(X(i), K)" by (simp add: lepoll_def) 
+  assume "\<And>i. i\<in>K \<Longrightarrow> X(i) \<lesssim> K"
+  hence "\<And>i. i\<in>K \<Longrightarrow> \<exists>f. f \<in> inj(X(i), K)" by (simp add: lepoll_def) 
   with AC_Pi obtain f where f: "f \<in> (\<Prod>i\<in>K. inj(X(i), K))"
     by force 
   { fix z
@@ -173,15 +173,15 @@ qed
 
 text\<open>The same again, using \<^term>\<open>csucc\<close>\<close>
 lemma cardinal_UN_lt_csucc:
-     "[| InfCard(K);  \<And>i. i\<in>K \<Longrightarrow> |X(i)| < csucc(K) |]
-      ==> |\<Union>i\<in>K. X(i)| < csucc(K)"
+     "\<lbrakk>InfCard(K);  \<And>i. i\<in>K \<Longrightarrow> |X(i)| < csucc(K)\<rbrakk>
+      \<Longrightarrow> |\<Union>i\<in>K. X(i)| < csucc(K)"
 by (simp add: Card_lt_csucc_iff cardinal_UN_le InfCard_is_Card Card_cardinal)
 
 text\<open>The same again, for a union of ordinals.  In use, j(i) is a bit like rank(i),
   the least ordinal j such that i:Vfrom(A,j).\<close>
 lemma cardinal_UN_Ord_lt_csucc:
-     "[| InfCard(K);  \<And>i. i\<in>K \<Longrightarrow> j(i) < csucc(K) |]
-      ==> (\<Union>i\<in>K. j(i)) < csucc(K)"
+     "\<lbrakk>InfCard(K);  \<And>i. i\<in>K \<Longrightarrow> j(i) < csucc(K)\<rbrakk>
+      \<Longrightarrow> (\<Union>i\<in>K. j(i)) < csucc(K)"
 apply (rule cardinal_UN_lt_csucc [THEN Card_lt_imp_lt], assumption)
 apply (blast intro: Ord_cardinal_le [THEN lt_trans1] elim: ltE)
 apply (blast intro!: Ord_UN elim: ltE)

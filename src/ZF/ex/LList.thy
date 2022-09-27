@@ -33,21 +33,21 @@ coinductive
   domains "lleq(A)" \<subseteq> "llist(A) * llist(A)"
   intros
     LNil:  "<LNil, LNil> \<in> lleq(A)"
-    LCons: "[| a \<in> A; <l,l'> \<in> lleq(A) |] 
-            ==> <LCons(a,l), LCons(a,l')> \<in> lleq(A)"
+    LCons: "\<lbrakk>a \<in> A; <l,l'> \<in> lleq(A)\<rbrakk> 
+            \<Longrightarrow> <LCons(a,l), LCons(a,l')> \<in> lleq(A)"
   type_intros  llist.intros
 
 
 (*Lazy list functions; flip is not definitional!*)
 definition
   lconst   :: "i => i"  where
-  "lconst(a) == lfp(univ(a), %l. LCons(a,l))"
+  "lconst(a) \<equiv> lfp(univ(a), %l. LCons(a,l))"
 
 axiomatization flip :: "i => i"
 where
   flip_LNil:   "flip(LNil) = LNil" and
-  flip_LCons:  "[| x \<in> bool; l \<in> llist(bool) |] 
-                ==> flip(LCons(x,l)) = LCons(not(x), flip(l))"
+  flip_LCons:  "\<lbrakk>x \<in> bool; l \<in> llist(bool)\<rbrakk> 
+                \<Longrightarrow> flip(LCons(x,l)) = LCons(not(x), flip(l))"
 
 
 (*These commands cause classical reasoning to regard the subset relation
@@ -77,7 +77,7 @@ inductive_cases LConsE: "LCons(a,l) \<in> llist(A)"
 lemma LCons_iff: "LCons(a,l)=LCons(a',l') \<longleftrightarrow> a=a' & l=l'"
 by auto
 
-lemma LNil_LCons_iff: "~ LNil=LCons(a,l)"
+lemma LNil_LCons_iff: "\<not> LNil=LCons(a,l)"
 by auto
 
 (*
@@ -90,7 +90,7 @@ done
 
 (*** Lemmas to justify using "llist" in other recursive type definitions ***)
 
-lemma llist_mono: "A \<subseteq> B ==> llist(A) \<subseteq> llist(B)"
+lemma llist_mono: "A \<subseteq> B \<Longrightarrow> llist(A) \<subseteq> llist(B)"
 apply (unfold llist.defs )
 apply (rule gfp_mono)
 apply (rule llist.bnd_mono)
@@ -107,7 +107,7 @@ declare qunivD [dest!]
 declare Ord_in_Ord [elim!]
 
 lemma llist_quniv_lemma:
-     "Ord(i) ==> l \<in> llist(quniv(A)) \<Longrightarrow> l \<inter> Vset(i) \<subseteq> univ(eclose(A))"
+     "Ord(i) \<Longrightarrow> l \<in> llist(quniv(A)) \<Longrightarrow> l \<inter> Vset(i) \<subseteq> univ(eclose(A))"
 proof (induct i arbitrary: l rule: trans_induct)
   case (step i l)
   show ?case using \<open>l \<in> llist(quniv(A))\<close>
@@ -142,7 +142,7 @@ declare Ord_in_Ord [elim!]
 
 (*Lemma for proving finality.  Unfold the lazy list; use induction hypothesis*)
 lemma lleq_Int_Vset_subset:
-     "Ord(i) ==> <l,l'> \<in> lleq(A) \<Longrightarrow> l \<inter> Vset(i) \<subseteq> l'"
+     "Ord(i) \<Longrightarrow> <l,l'> \<in> lleq(A) \<Longrightarrow> l \<inter> Vset(i) \<subseteq> l'"
 proof (induct i arbitrary: l l' rule: trans_induct)
   case (step i l l')
   show ?case using \<open>\<langle>l, l'\<rangle> \<in> lleq(A)\<close>
@@ -156,20 +156,20 @@ proof (induct i arbitrary: l l' rule: trans_induct)
 qed
 
 (*lleq(A) is a symmetric relation because qconverse(lleq(A)) is a fixedpoint*)
-lemma lleq_symmetric: "<l,l'> \<in> lleq(A) ==> <l',l> \<in> lleq(A)"
+lemma lleq_symmetric: "<l,l'> \<in> lleq(A) \<Longrightarrow> <l',l> \<in> lleq(A)"
 apply (erule lleq.coinduct [OF converseI]) 
 apply (rule lleq.dom_subset [THEN converse_type], safe)
 apply (erule lleq.cases, blast+)
 done
 
-lemma lleq_implies_equal: "<l,l'> \<in> lleq(A) ==> l=l'"
+lemma lleq_implies_equal: "<l,l'> \<in> lleq(A) \<Longrightarrow> l=l'"
 apply (rule equalityI)
 apply (assumption | rule lleq_Int_Vset_subset [THEN Int_Vset_subset] | 
        erule lleq_symmetric)+
 done
 
 lemma equal_llist_implies_leq:
-     "[| l=l';  l \<in> llist(A) |] ==> <l,l'> \<in> lleq(A)"
+     "\<lbrakk>l=l';  l \<in> llist(A)\<rbrakk> \<Longrightarrow> <l,l'> \<in> lleq(A)"
 apply (rule_tac X = "{<l,l>. l \<in> llist (A) }" in lleq.coinduct)
 apply blast
 apply safe
@@ -195,12 +195,12 @@ lemmas lconst = def_lfp_unfold [OF lconst_def lconst_fun_bnd_mono]
 lemmas lconst_subset = lconst_def [THEN def_lfp_subset]
 lemmas member_subset_Union_eclose = arg_into_eclose [THEN Union_upper]
 
-lemma lconst_in_quniv: "a \<in> A ==> lconst(a) \<in> quniv(A)"
+lemma lconst_in_quniv: "a \<in> A \<Longrightarrow> lconst(a) \<in> quniv(A)"
 apply (rule lconst_subset [THEN subset_trans, THEN qunivI])
 apply (erule arg_into_eclose [THEN eclose_subset, THEN univ_mono])
 done
 
-lemma lconst_type: "a \<in> A ==> lconst(a): llist(A)"
+lemma lconst_type: "a \<in> A \<Longrightarrow> lconst(a): llist(A)"
 apply (rule singletonI [THEN llist.coinduct])
 apply (erule lconst_in_quniv [THEN singleton_subsetI])
 apply (fast intro!: lconst)
@@ -212,7 +212,7 @@ declare flip_LNil [simp]
         flip_LCons [simp] 
         not_type [simp]
 
-lemma bool_Int_subset_univ: "b \<in> bool ==> b \<inter> X \<subseteq> univ(eclose(A))"
+lemma bool_Int_subset_univ: "b \<in> bool \<Longrightarrow> b \<inter> X \<subseteq> univ(eclose(A))"
 by (fast intro: Int_lower1 [THEN subset_trans] elim!: boolE)
 
 declare not_type [intro!]
@@ -221,7 +221,7 @@ declare bool_Int_subset_univ [intro]
 (*Reasoning borrowed from lleq.ML; a similar proof works for all
   "productive" functions -- cf Coquand's "Infinite Objects in Type Theory".*)
 lemma flip_llist_quniv_lemma:
-     "Ord(i) ==> l \<in> llist(bool) \<Longrightarrow> flip(l) \<inter> Vset(i) \<subseteq> univ(eclose(bool))"
+     "Ord(i) \<Longrightarrow> l \<in> llist(bool) \<Longrightarrow> flip(l) \<inter> Vset(i) \<subseteq> univ(eclose(bool))"
 proof (induct i arbitrary: l rule: trans_induct)
   case (step i l)
   show ?case using \<open>l \<in> llist(bool)\<close>
@@ -237,10 +237,10 @@ proof (induct i arbitrary: l rule: trans_induct)
   qed
 qed
 
-lemma flip_in_quniv: "l \<in> llist(bool) ==> flip(l) \<in> quniv(bool)"
+lemma flip_in_quniv: "l \<in> llist(bool) \<Longrightarrow> flip(l) \<in> quniv(bool)"
 by (rule flip_llist_quniv_lemma [THEN Int_Vset_subset, THEN qunivI], assumption+)
 
-lemma flip_type: "l \<in> llist(bool) ==> flip(l): llist(bool)"
+lemma flip_type: "l \<in> llist(bool) \<Longrightarrow> flip(l): llist(bool)"
 apply (rule_tac X = "{flip (l) . l \<in> llist (bool) }" in llist.coinduct)
 apply blast
 apply (fast intro!: flip_in_quniv)
@@ -248,7 +248,7 @@ apply (erule RepFunE)
 apply (erule_tac a=la in llist.cases, auto)
 done
 
-lemma flip_flip: "l \<in> llist(bool) ==> flip(flip(l)) = l"
+lemma flip_flip: "l \<in> llist(bool) \<Longrightarrow> flip(flip(l)) = l"
 apply (rule_tac X1 = "{<flip (flip (l)),l> . l \<in> llist (bool) }" in 
        lleq.coinduct [THEN lleq_implies_equal])
 apply blast

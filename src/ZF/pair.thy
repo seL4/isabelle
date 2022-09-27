@@ -54,7 +54,7 @@ lemmas Pair_neq_0 = Pair_not_0 [THEN notE, elim!]
 
 declare sym [THEN Pair_neq_0, elim!]
 
-lemma Pair_neq_fst: "<a,b>=a ==> P"
+lemma Pair_neq_fst: "<a,b>=a \<Longrightarrow> P"
 proof (unfold Pair_def)
   assume eq: "{{a, a}, {a, b}} = a"
   have  "{a, a} \<in> {{a, a}, {a, b}}" by (rule consI1)
@@ -63,7 +63,7 @@ proof (unfold Pair_def)
   ultimately show "P" by (rule mem_asym)
 qed
 
-lemma Pair_neq_snd: "<a,b>=b ==> P"
+lemma Pair_neq_snd: "<a,b>=b \<Longrightarrow> P"
 proof (unfold Pair_def)
   assume eq: "{{a, a}, {a, b}} = b"
   have  "{a, b} \<in> {{a, a}, {a, b}}" by blast
@@ -80,7 +80,7 @@ text\<open>Generalizes Cartesian product\<close>
 lemma Sigma_iff [simp]: "<a,b>: Sigma(A,B) \<longleftrightarrow> a \<in> A & b \<in> B(a)"
 by (simp add: Sigma_def)
 
-lemma SigmaI [TC,intro!]: "[| a \<in> A;  b \<in> B(a) |] ==> <a,b> \<in> Sigma(A,B)"
+lemma SigmaI [TC,intro!]: "\<lbrakk>a \<in> A;  b \<in> B(a)\<rbrakk> \<Longrightarrow> <a,b> \<in> Sigma(A,B)"
 by simp
 
 lemmas SigmaD1 = Sigma_iff [THEN iffD1, THEN conjunct1]
@@ -88,19 +88,19 @@ lemmas SigmaD2 = Sigma_iff [THEN iffD1, THEN conjunct2]
 
 (*The general elimination rule*)
 lemma SigmaE [elim!]:
-    "[| c \<in> Sigma(A,B);
-        !!x y.[| x \<in> A;  y \<in> B(x);  c=<x,y> |] ==> P
-     |] ==> P"
+    "\<lbrakk>c \<in> Sigma(A,B);
+        \<And>x y.\<lbrakk>x \<in> A;  y \<in> B(x);  c=<x,y>\<rbrakk> \<Longrightarrow> P
+\<rbrakk> \<Longrightarrow> P"
 by (unfold Sigma_def, blast)
 
 lemma SigmaE2 [elim!]:
-    "[| <a,b> \<in> Sigma(A,B);
-        [| a \<in> A;  b \<in> B(a) |] ==> P
-     |] ==> P"
+    "\<lbrakk><a,b> \<in> Sigma(A,B);
+        \<lbrakk>a \<in> A;  b \<in> B(a)\<rbrakk> \<Longrightarrow> P
+\<rbrakk> \<Longrightarrow> P"
 by (unfold Sigma_def, blast)
 
 lemma Sigma_cong:
-    "[| A=A';  !!x. x \<in> A' ==> B(x)=B'(x) |] ==>
+    "\<lbrakk>A=A';  \<And>x. x \<in> A' \<Longrightarrow> B(x)=B'(x)\<rbrakk> \<Longrightarrow>
      Sigma(A,B) = Sigma(A',B')"
 by (simp add: Sigma_def)
 
@@ -126,46 +126,46 @@ by (simp add: fst_def)
 lemma snd_conv [simp]: "snd(<a,b>) = b"
 by (simp add: snd_def)
 
-lemma fst_type [TC]: "p \<in> Sigma(A,B) ==> fst(p) \<in> A"
+lemma fst_type [TC]: "p \<in> Sigma(A,B) \<Longrightarrow> fst(p) \<in> A"
 by auto
 
-lemma snd_type [TC]: "p \<in> Sigma(A,B) ==> snd(p) \<in> B(fst(p))"
+lemma snd_type [TC]: "p \<in> Sigma(A,B) \<Longrightarrow> snd(p) \<in> B(fst(p))"
 by auto
 
-lemma Pair_fst_snd_eq: "a \<in> Sigma(A,B) ==> <fst(a),snd(a)> = a"
+lemma Pair_fst_snd_eq: "a \<in> Sigma(A,B) \<Longrightarrow> <fst(a),snd(a)> = a"
 by auto
 
 
 subsection\<open>The Eliminator, \<^term>\<open>split\<close>\<close>
 
 (*A META-equality, so that it applies to higher types as well...*)
-lemma split [simp]: "split(%x y. c(x,y), <a,b>) == c(a,b)"
+lemma split [simp]: "split(%x y. c(x,y), <a,b>) \<equiv> c(a,b)"
 by (simp add: split_def)
 
 lemma split_type [TC]:
-    "[|  p \<in> Sigma(A,B);
-         !!x y.[| x \<in> A; y \<in> B(x) |] ==> c(x,y):C(<x,y>)
-     |] ==> split(%x y. c(x,y), p) \<in> C(p)"
+    "\<lbrakk>p \<in> Sigma(A,B);
+         \<And>x y.\<lbrakk>x \<in> A; y \<in> B(x)\<rbrakk> \<Longrightarrow> c(x,y):C(<x,y>)
+\<rbrakk> \<Longrightarrow> split(%x y. c(x,y), p) \<in> C(p)"
 by (erule SigmaE, auto)
 
 lemma expand_split:
-  "u \<in> A*B ==>
+  "u \<in> A*B \<Longrightarrow>
         R(split(c,u)) \<longleftrightarrow> (\<forall>x\<in>A. \<forall>y\<in>B. u = <x,y> \<longrightarrow> R(c(x,y)))"
 by (auto simp add: split_def)
 
 
 subsection\<open>A version of \<^term>\<open>split\<close> for Formulae: Result Type \<^typ>\<open>o\<close>\<close>
 
-lemma splitI: "R(a,b) ==> split(R, <a,b>)"
+lemma splitI: "R(a,b) \<Longrightarrow> split(R, <a,b>)"
 by (simp add: split_def)
 
 lemma splitE:
-    "[| split(R,z);  z \<in> Sigma(A,B);
-        !!x y. [| z = <x,y>;  R(x,y) |] ==> P
-     |] ==> P"
+    "\<lbrakk>split(R,z);  z \<in> Sigma(A,B);
+        \<And>x y. \<lbrakk>z = <x,y>;  R(x,y)\<rbrakk> \<Longrightarrow> P
+\<rbrakk> \<Longrightarrow> P"
 by (auto simp add: split_def)
 
-lemma splitD: "split(R,<a,b>) ==> R(a,b)"
+lemma splitD: "split(R,<a,b>) \<Longrightarrow> R(a,b)"
 by (simp add: split_def)
 
 text \<open>

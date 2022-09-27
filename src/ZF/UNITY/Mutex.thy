@@ -21,11 +21,11 @@ Variables' types are introduced globally so that type verification reduces to
 the usual ZF typechecking: an ill-tyed expressions reduce to the empty set.
 \<close>
 
-abbreviation "p == Var([0])"
-abbreviation "m == Var([1])"
-abbreviation "n == Var([0,0])"
-abbreviation "u == Var([0,1])"
-abbreviation "v == Var([1,0])"
+abbreviation "p \<equiv> Var([0])"
+abbreviation "m \<equiv> Var([1])"
+abbreviation "n \<equiv> Var([0,0])"
+abbreviation "u \<equiv> Var([0,1])"
+abbreviation "v \<equiv> Var([1,0])"
 
 axiomatization where \<comment> \<open>Type declarations\<close>
   p_type:  "type_of(p)=bool & default_val(p)=0" and
@@ -36,56 +36,56 @@ axiomatization where \<comment> \<open>Type declarations\<close>
 
 definition
   (** The program for process U **)
-  "U0 == {<s,t>:state*state. t = s(u:=1, m:=#1) & s`m = #0}"
+  "U0 \<equiv> {<s,t>:state*state. t = s(u:=1, m:=#1) & s`m = #0}"
 
 definition
-  "U1 == {<s,t>:state*state. t = s(p:= s`v, m:=#2) &  s`m = #1}"
+  "U1 \<equiv> {<s,t>:state*state. t = s(p:= s`v, m:=#2) &  s`m = #1}"
 
 definition
-  "U2 == {<s,t>:state*state. t = s(m:=#3) & s`p=0 & s`m = #2}"
+  "U2 \<equiv> {<s,t>:state*state. t = s(m:=#3) & s`p=0 & s`m = #2}"
 
 definition
-  "U3 == {<s,t>:state*state. t=s(u:=0, m:=#4) & s`m = #3}"
+  "U3 \<equiv> {<s,t>:state*state. t=s(u:=0, m:=#4) & s`m = #3}"
 
 definition
-  "U4 == {<s,t>:state*state. t = s(p:=1, m:=#0) & s`m = #4}"
+  "U4 \<equiv> {<s,t>:state*state. t = s(p:=1, m:=#0) & s`m = #4}"
 
 
    (** The program for process V **)
 
 definition
-  "V0 == {<s,t>:state*state. t = s (v:=1, n:=#1) & s`n = #0}"
+  "V0 \<equiv> {<s,t>:state*state. t = s (v:=1, n:=#1) & s`n = #0}"
 
 definition
-  "V1 == {<s,t>:state*state. t = s(p:=not(s`u), n:=#2) & s`n = #1}"
+  "V1 \<equiv> {<s,t>:state*state. t = s(p:=not(s`u), n:=#2) & s`n = #1}"
 
 definition
-  "V2 == {<s,t>:state*state. t  = s(n:=#3) & s`p=1 & s`n = #2}"
+  "V2 \<equiv> {<s,t>:state*state. t  = s(n:=#3) & s`p=1 & s`n = #2}"
 
 definition
-  "V3 == {<s,t>:state*state. t = s (v:=0, n:=#4) & s`n = #3}"
+  "V3 \<equiv> {<s,t>:state*state. t = s (v:=0, n:=#4) & s`n = #3}"
 
 definition
-  "V4 == {<s,t>:state*state. t  = s (p:=0, n:=#0) & s`n = #4}"
+  "V4 \<equiv> {<s,t>:state*state. t  = s (p:=0, n:=#0) & s`n = #4}"
 
 definition
-  "Mutex == mk_program({s:state. s`u=0 & s`v=0 & s`m = #0 & s`n = #0},
+  "Mutex \<equiv> mk_program({s:state. s`u=0 & s`v=0 & s`m = #0 & s`n = #0},
               {U0, U1, U2, U3, U4, V0, V1, V2, V3, V4}, Pow(state*state))"
 
   (** The correct invariants **)
 
 definition
-  "IU == {s:state. (s`u = 1\<longleftrightarrow>(#1 $\<le> s`m & s`m $\<le> #3))
+  "IU \<equiv> {s:state. (s`u = 1\<longleftrightarrow>(#1 $\<le> s`m & s`m $\<le> #3))
                      & (s`m = #3 \<longrightarrow> s`p=0)}"
 
 definition
-  "IV == {s:state. (s`v = 1 \<longleftrightarrow> (#1 $\<le> s`n & s`n $\<le> #3))
+  "IV \<equiv> {s:state. (s`v = 1 \<longleftrightarrow> (#1 $\<le> s`n & s`n $\<le> #3))
                       & (s`n = #3 \<longrightarrow> s`p=1)}"
 
   (** The faulty invariant (for U alone) **)
 
 definition
-  "bad_IU == {s:state. (s`u = 1 \<longleftrightarrow> (#1 $\<le> s`m & s`m  $\<le> #3))&
+  "bad_IU \<equiv> {s:state. (s`u = 1 \<longleftrightarrow> (#1 $\<le> s`m & s`m  $\<le> #3))&
                    (#3 $\<le> s`m & s`m $\<le> #4 \<longrightarrow> s`p=0)}"
 
 
@@ -93,27 +93,27 @@ definition
 
 declare p_type [simp] u_type [simp] v_type [simp] m_type [simp] n_type [simp]
 
-lemma u_value_type: "s \<in> state ==>s`u \<in> bool"
+lemma u_value_type: "s \<in> state \<Longrightarrow>s`u \<in> bool"
 apply (unfold state_def)
 apply (drule_tac a = u in apply_type, auto)
 done
 
-lemma v_value_type: "s \<in> state ==> s`v \<in> bool"
+lemma v_value_type: "s \<in> state \<Longrightarrow> s`v \<in> bool"
 apply (unfold state_def)
 apply (drule_tac a = v in apply_type, auto)
 done
 
-lemma p_value_type: "s \<in> state ==> s`p \<in> bool"
+lemma p_value_type: "s \<in> state \<Longrightarrow> s`p \<in> bool"
 apply (unfold state_def)
 apply (drule_tac a = p in apply_type, auto)
 done
 
-lemma m_value_type: "s \<in> state ==> s`m \<in> int"
+lemma m_value_type: "s \<in> state \<Longrightarrow> s`m \<in> int"
 apply (unfold state_def)
 apply (drule_tac a = m in apply_type, auto)
 done
 
-lemma n_value_type: "s \<in> state ==>s`n \<in> int"
+lemma n_value_type: "s \<in> state \<Longrightarrow>s`n \<in> int"
 apply (unfold state_def)
 apply (drule_tac a = n in apply_type, auto)
 done
@@ -174,14 +174,14 @@ apply (unfold Mutex_def, safety)
 done
 
 (*The safety property: mutual exclusion*)
-lemma mutual_exclusion: "Mutex \<in> Always({s \<in> state. ~(s`m = #3 & s`n = #3)})"
+lemma mutual_exclusion: "Mutex \<in> Always({s \<in> state. \<not>(s`m = #3 & s`n = #3)})"
 apply (rule Always_weaken)
 apply (rule Always_Int_I [OF IU IV], auto)
 done
 
 (*The bad invariant FAILS in V1*)
 
-lemma less_lemma: "[| x$<#1; #3 $\<le> x |] ==> P"
+lemma less_lemma: "\<lbrakk>x$<#1; #3 $\<le> x\<rbrakk> \<Longrightarrow> P"
 apply (drule_tac j = "#1" and k = "#3" in zless_zle_trans)
 apply (drule_tac [2] j = x in zle_zless_trans, auto)
 done
@@ -232,7 +232,7 @@ done
 lemma U_lemma1: "Mutex \<in> {s \<in> state. s`m = #1} \<longmapsto>w {s \<in> state. s`p =1}"
 by (rule LeadsTo_Trans [OF U_F1 [THEN LeadsTo_weaken_R] U_lemma2], blast)
 
-lemma eq_123: "i \<in> int ==> (#1 $\<le> i & i $\<le> #3) \<longleftrightarrow> (i=#1 | i=#2 | i=#3)"
+lemma eq_123: "i \<in> int \<Longrightarrow> (#1 $\<le> i & i $\<le> #3) \<longleftrightarrow> (i=#1 | i=#2 | i=#3)"
 apply auto
 apply (auto simp add: neq_iff_zless)
 apply (drule_tac [4] j = "#3" and i = i in zle_zless_trans)

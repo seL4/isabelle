@@ -1,7 +1,7 @@
 (*  Title:      ZF/AC/WO2_AC16.thy
     Author:     Krzysztof Grabczewski
 
-The proof of WO2 ==> AC16(k #+ m, k)
+The proof of WO2 \<Longrightarrow> AC16(k #+ m, k)
   
 The main part of the proof is the inductive reasoning concerning
 properties of constructed family T_gamma.
@@ -15,15 +15,15 @@ contains m distinct elements (in fact is equipollent to s)
 
 theory WO2_AC16 imports AC_Equiv AC16_lemmas Cardinal_aux begin
 
-(**** A recursive definition used in the proof of WO2 ==> AC16 ****)
+(**** A recursive definition used in the proof of WO2 \<Longrightarrow> AC16 ****)
 
 definition
   recfunAC16 :: "[i,i,i,i] => i"  where
-    "recfunAC16(f,h,i,a) == 
+    "recfunAC16(f,h,i,a) \<equiv> 
          transrec2(i, 0, 
               %g r. if (\<exists>y \<in> r. h`g \<subseteq> y) then r
                     else r \<union> {f`(\<mu> i. h`g \<subseteq> f`i & 
-                         (\<forall>b<a. (h`b \<subseteq> f`i \<longrightarrow> (\<forall>t \<in> r. ~ h`b \<subseteq> t))))})"
+                         (\<forall>b<a. (h`b \<subseteq> f`i \<longrightarrow> (\<forall>t \<in> r. \<not> h`b \<subseteq> t))))})"
 
 (* ********************************************************************** *)
 (* Basic properties of recfunAC16                                         *)
@@ -38,12 +38,12 @@ lemma recfunAC16_succ:
        else recfunAC16(f,h,i,a) \<union>  
             {f ` (\<mu> j. h ` i \<subseteq> f ` j &   
              (\<forall>b<a. (h`b \<subseteq> f`j   
-              \<longrightarrow> (\<forall>t \<in> recfunAC16(f,h,i,a). ~ h`b \<subseteq> t))))})"
+              \<longrightarrow> (\<forall>t \<in> recfunAC16(f,h,i,a). \<not> h`b \<subseteq> t))))})"
 apply (simp add: recfunAC16_def)
 done
 
 lemma recfunAC16_Limit: "Limit(i)   
-        ==> recfunAC16(f,h,i,a) = (\<Union>j<i. recfunAC16(f,h,j,a))"
+        \<Longrightarrow> recfunAC16(f,h,i,a) = (\<Union>j<i. recfunAC16(f,h,j,a))"
 by (simp add: recfunAC16_def transrec2_Limit)
 
 (* ********************************************************************** *)
@@ -51,8 +51,8 @@ by (simp add: recfunAC16_def transrec2_Limit)
 (* ********************************************************************** *)
 
 lemma transrec2_mono_lemma [rule_format]:
-     "[| !!g r. r \<subseteq> B(g,r);  Ord(i) |]   
-      ==> j<i \<longrightarrow> transrec2(j, 0, B) \<subseteq> transrec2(i, 0, B)"
+     "\<lbrakk>\<And>g r. r \<subseteq> B(g,r);  Ord(i)\<rbrakk>   
+      \<Longrightarrow> j<i \<longrightarrow> transrec2(j, 0, B) \<subseteq> transrec2(i, 0, B)"
 apply (erule trans_induct)
 apply (rule Ord_cases, assumption+, fast)
 apply (simp (no_asm_simp))
@@ -63,8 +63,8 @@ apply (blast intro: OUN_I ltI Ord_in_Ord [THEN le_refl]
 done
 
 lemma transrec2_mono:
-     "[| !!g r. r \<subseteq> B(g,r); j\<le>i |] 
-      ==> transrec2(j, 0, B) \<subseteq> transrec2(i, 0, B)"
+     "\<lbrakk>\<And>g r. r \<subseteq> B(g,r); j\<le>i\<rbrakk> 
+      \<Longrightarrow> transrec2(j, 0, B) \<subseteq> transrec2(i, 0, B)"
 apply (erule leE)
 apply (rule transrec2_mono_lemma)
 apply (auto intro: lt_Ord2 ) 
@@ -75,7 +75,7 @@ done
 (* ********************************************************************** *)
 
 lemma recfunAC16_mono: 
-       "i\<le>j ==> recfunAC16(f, g, i, a) \<subseteq> recfunAC16(f, g, j, a)"
+       "i\<le>j \<Longrightarrow> recfunAC16(f, g, i, a) \<subseteq> recfunAC16(f, g, j, a)"
 apply (unfold recfunAC16_def)
 apply (rule transrec2_mono, auto) 
 done
@@ -86,31 +86,31 @@ done
 
 
 lemma lemma3_1:
-    "[| \<forall>y<x. \<forall>z<a. z<y | (\<exists>Y \<in> F(y). f(z)<=Y) \<longrightarrow> (\<exists>! Y. Y \<in> F(y) & f(z)<=Y);
+    "\<lbrakk>\<forall>y<x. \<forall>z<a. z<y | (\<exists>Y \<in> F(y). f(z)<=Y) \<longrightarrow> (\<exists>! Y. Y \<in> F(y) & f(z)<=Y);
         \<forall>i j. i\<le>j \<longrightarrow> F(i) \<subseteq> F(j); j\<le>i; i<x; z<a;
-        V \<in> F(i); f(z)<=V; W \<in> F(j); f(z)<=W |]   
-     ==> V = W"
+        V \<in> F(i); f(z)<=V; W \<in> F(j); f(z)<=W\<rbrakk>   
+     \<Longrightarrow> V = W"
 apply (erule asm_rl allE impE)+
 apply (drule subsetD, assumption, blast) 
 done
 
 
 lemma lemma3:
-    "[| \<forall>y<x. \<forall>z<a. z<y | (\<exists>Y \<in> F(y). f(z)<=Y) \<longrightarrow> (\<exists>! Y. Y \<in> F(y) & f(z)<=Y);
+    "\<lbrakk>\<forall>y<x. \<forall>z<a. z<y | (\<exists>Y \<in> F(y). f(z)<=Y) \<longrightarrow> (\<exists>! Y. Y \<in> F(y) & f(z)<=Y);
         \<forall>i j. i\<le>j \<longrightarrow> F(i) \<subseteq> F(j); i<x; j<x; z<a;   
-        V \<in> F(i); f(z)<=V; W \<in> F(j); f(z)<=W |]   
-     ==> V = W"
+        V \<in> F(i); f(z)<=V; W \<in> F(j); f(z)<=W\<rbrakk>   
+     \<Longrightarrow> V = W"
 apply (rule_tac j=j in Ord_linear_le [OF lt_Ord lt_Ord], assumption+)
 apply (erule lemma3_1 [symmetric], assumption+)
 apply (erule lemma3_1, assumption+)
 done
 
 lemma lemma4:
-     "[| \<forall>y<x. F(y) \<subseteq> X &   
+     "\<lbrakk>\<forall>y<x. F(y) \<subseteq> X &   
                 (\<forall>x<a. x < y | (\<exists>Y \<in> F(y). h(x) \<subseteq> Y) \<longrightarrow>   
                  (\<exists>! Y. Y \<in> F(y) & h(x) \<subseteq> Y)); 
-         x < a |]   
-      ==> \<forall>y<x. \<forall>z<a. z < y | (\<exists>Y \<in> F(y). h(z) \<subseteq> Y) \<longrightarrow>   
+         x < a\<rbrakk>   
+      \<Longrightarrow> \<forall>y<x. \<forall>z<a. z < y | (\<exists>Y \<in> F(y). h(z) \<subseteq> Y) \<longrightarrow>   
                        (\<exists>! Y. Y \<in> F(y) & h(z) \<subseteq> Y)"
 apply (intro oallI impI)
 apply (drule ospec, assumption, clarify)
@@ -118,11 +118,11 @@ apply (blast elim!: oallE )
 done
 
 lemma lemma5:
-     "[| \<forall>y<x. F(y) \<subseteq> X &   
+     "\<lbrakk>\<forall>y<x. F(y) \<subseteq> X &   
                (\<forall>x<a. x < y | (\<exists>Y \<in> F(y). h(x) \<subseteq> Y) \<longrightarrow>   
                 (\<exists>! Y. Y \<in> F(y) & h(x) \<subseteq> Y));  
-         x < a; Limit(x); \<forall>i j. i\<le>j \<longrightarrow> F(i) \<subseteq> F(j) |]   
-      ==> (\<Union>x<x. F(x)) \<subseteq> X &   
+         x < a; Limit(x); \<forall>i j. i\<le>j \<longrightarrow> F(i) \<subseteq> F(j)\<rbrakk>   
+      \<Longrightarrow> (\<Union>x<x. F(x)) \<subseteq> X &   
           (\<forall>xa<a. xa < x | (\<exists>x \<in> \<Union>x<x. F(x). h(xa) \<subseteq> x)   
                 \<longrightarrow> (\<exists>! Y. Y \<in> (\<Union>x<x. F(x)) & h(xa) \<subseteq> Y))"
 apply (rule conjI)
@@ -146,7 +146,7 @@ done
 
 (*
   First quite complicated proof of the fact used in the recursive construction
-  of the family T_gamma (WO2 ==> AC16(k #+ m, k)) - the fact that at any stage
+  of the family T_gamma (WO2 \<Longrightarrow> AC16(k #+ m, k)) - the fact that at any stage
   gamma the set (s - \<Union>(...) - k_gamma) is equipollent to s
   (Rubin & Rubin page 15).
 *)
@@ -157,7 +157,7 @@ done
 
 
 lemma dbl_Diff_eqpoll_Card:
-      "[| A\<approx>a; Card(a); ~Finite(a); B\<prec>a; C\<prec>a |] ==> A - B - C\<approx>a"
+      "\<lbrakk>A\<approx>a; Card(a); \<not>Finite(a); B\<prec>a; C\<prec>a\<rbrakk> \<Longrightarrow> A - B - C\<approx>a"
 by (blast intro: Diff_lesspoll_eqpoll_Card) 
 
 (* ********************************************************************** *)
@@ -166,7 +166,7 @@ by (blast intro: Diff_lesspoll_eqpoll_Card)
 
 
 lemma Finite_lesspoll_infinite_Ord: 
-      "[| Finite(X); ~Finite(a); Ord(a) |] ==> X\<prec>a"
+      "\<lbrakk>Finite(X); \<not>Finite(a); Ord(a)\<rbrakk> \<Longrightarrow> X\<prec>a"
 apply (unfold lesspoll_def)
 apply (rule conjI)
 apply (drule nat_le_infinite_Ord [THEN le_imp_lepoll], assumption)
@@ -177,9 +177,9 @@ apply (blast intro: eqpoll_sym [THEN eqpoll_trans])
 done
 
 lemma Union_lesspoll:
-     "[| \<forall>x \<in> X. x \<lesssim> n & x \<subseteq> T; well_ord(T, R); X \<lesssim> b;   
-         b<a; ~Finite(a); Card(a); n \<in> nat |]   
-      ==> \<Union>(X)\<prec>a"
+     "\<lbrakk>\<forall>x \<in> X. x \<lesssim> n & x \<subseteq> T; well_ord(T, R); X \<lesssim> b;   
+         b<a; \<not>Finite(a); Card(a); n \<in> nat\<rbrakk>   
+      \<Longrightarrow> \<Union>(X)\<prec>a"
 apply (case_tac "Finite (X)")
 apply (blast intro: Card_is_Ord Finite_lesspoll_infinite_Ord 
                     lepoll_nat_imp_Finite Finite_Union)
@@ -203,20 +203,20 @@ done
 lemma Un_sing_eq_cons: "A \<union> {a} = cons(a, A)"
 by fast
 
-lemma Un_lepoll_succ: "A \<lesssim> B ==> A \<union> {a} \<lesssim> succ(B)"
+lemma Un_lepoll_succ: "A \<lesssim> B \<Longrightarrow> A \<union> {a} \<lesssim> succ(B)"
 apply (simp add: Un_sing_eq_cons succ_def)
 apply (blast elim!: mem_irrefl intro: cons_lepoll_cong)
 done
 
-lemma Diff_UN_succ_empty: "Ord(a) ==> F(a) - (\<Union>b<succ(a). F(b)) = 0"
+lemma Diff_UN_succ_empty: "Ord(a) \<Longrightarrow> F(a) - (\<Union>b<succ(a). F(b)) = 0"
 by (fast intro!: le_refl)
 
-lemma Diff_UN_succ_subset: "Ord(a) ==> F(a) \<union> X - (\<Union>b<succ(a). F(b)) \<subseteq> X"
+lemma Diff_UN_succ_subset: "Ord(a) \<Longrightarrow> F(a) \<union> X - (\<Union>b<succ(a). F(b)) \<subseteq> X"
 by blast
 
 lemma recfunAC16_Diff_lepoll_1:
      "Ord(x) 
-      ==> recfunAC16(f, g, x, a) - (\<Union>i<x. recfunAC16(f, g, i, a)) \<lesssim> 1"
+      \<Longrightarrow> recfunAC16(f, g, x, a) - (\<Union>i<x. recfunAC16(f, g, i, a)) \<lesssim> 1"
 apply (erule Ord_cases)
   apply (simp add: recfunAC16_0 empty_subsetI [THEN subset_imp_lepoll])
 (*Limit case*)
@@ -231,14 +231,14 @@ apply (best intro: Diff_UN_succ_subset [THEN subset_imp_lepoll]
 done
 
 lemma in_Least_Diff:
-     "[| z \<in> F(x); Ord(x) |]   
-      ==> z \<in> F(\<mu> i. z \<in> F(i)) - (\<Union>j<(\<mu> i. z \<in> F(i)). F(j))"
+     "\<lbrakk>z \<in> F(x); Ord(x)\<rbrakk>   
+      \<Longrightarrow> z \<in> F(\<mu> i. z \<in> F(i)) - (\<Union>j<(\<mu> i. z \<in> F(i)). F(j))"
 by (fast elim: less_LeastE elim!: LeastI)
 
 lemma Least_eq_imp_ex:
-     "[| (\<mu> i. w \<in> F(i)) = (\<mu> i. z \<in> F(i));   
-         w \<in> (\<Union>i<a. F(i)); z \<in> (\<Union>i<a. F(i)) |]   
-      ==> \<exists>b<a. w \<in> (F(b) - (\<Union>c<b. F(c))) & z \<in> (F(b) - (\<Union>c<b. F(c)))"
+     "\<lbrakk>(\<mu> i. w \<in> F(i)) = (\<mu> i. z \<in> F(i));   
+         w \<in> (\<Union>i<a. F(i)); z \<in> (\<Union>i<a. F(i))\<rbrakk>   
+      \<Longrightarrow> \<exists>b<a. w \<in> (F(b) - (\<Union>c<b. F(c))) & z \<in> (F(b) - (\<Union>c<b. F(c)))"
 apply (elim OUN_E)
 apply (drule in_Least_Diff, erule lt_Ord) 
 apply (frule in_Least_Diff, erule lt_Ord) 
@@ -247,13 +247,13 @@ apply (blast intro: lt_Ord Least_le [THEN lt_trans1])
 done
 
 
-lemma two_in_lepoll_1: "[| A \<lesssim> 1; a \<in> A; b \<in> A |] ==> a=b"
+lemma two_in_lepoll_1: "\<lbrakk>A \<lesssim> 1; a \<in> A; b \<in> A\<rbrakk> \<Longrightarrow> a=b"
 by (fast dest!: lepoll_1_is_sing)
 
 
 lemma UN_lepoll_index:
-     "[| \<forall>i<a. F(i)-(\<Union>j<i. F(j)) \<lesssim> 1; Limit(a) |]   
-      ==> (\<Union>x<a. F(x)) \<lesssim> a"
+     "\<lbrakk>\<forall>i<a. F(i)-(\<Union>j<i. F(j)) \<lesssim> 1; Limit(a)\<rbrakk>   
+      \<Longrightarrow> (\<Union>x<a. F(x)) \<lesssim> a"
 apply (rule lepoll_def [THEN def_imp_iff [THEN iffD2]])
 apply (rule_tac x = "\<lambda>z \<in> (\<Union>x<a. F (x)). \<mu> i. z \<in> F (i) " in exI)
 apply (unfold inj_def)
@@ -271,7 +271,7 @@ apply (fast elim!: two_in_lepoll_1)
 done
 
 
-lemma recfunAC16_lepoll_index: "Ord(y) ==> recfunAC16(f, h, y, a) \<lesssim> y"
+lemma recfunAC16_lepoll_index: "Ord(y) \<Longrightarrow> recfunAC16(f, h, y, a) \<lesssim> y"
 apply (erule trans_induct3)
 (*0 case*)
 apply (simp (no_asm_simp) add: recfunAC16_0 lepoll_refl)
@@ -286,9 +286,9 @@ done
 
 
 lemma Union_recfunAC16_lesspoll:
-     "[| recfunAC16(f,g,y,a) \<subseteq> {X \<in> Pow(A). X\<approx>n};   
-         A\<approx>a;  y<a;  ~Finite(a);  Card(a);  n \<in> nat |]   
-      ==> \<Union>(recfunAC16(f,g,y,a))\<prec>a"
+     "\<lbrakk>recfunAC16(f,g,y,a) \<subseteq> {X \<in> Pow(A). X\<approx>n};   
+         A\<approx>a;  y<a;  \<not>Finite(a);  Card(a);  n \<in> nat\<rbrakk>   
+      \<Longrightarrow> \<Union>(recfunAC16(f,g,y,a))\<prec>a"
 apply (erule eqpoll_def [THEN def_imp_iff, THEN iffD1, THEN exE])
 apply (rule_tac T=A in Union_lesspoll, simp_all)
 apply (blast intro!: eqpoll_imp_lepoll)
@@ -298,11 +298,11 @@ apply (erule lt_Ord [THEN recfunAC16_lepoll_index])
 done
 
 lemma dbl_Diff_eqpoll:
-     "[| recfunAC16(f, h, y, a) \<subseteq> {X \<in> Pow(A) . X\<approx>succ(k #+ m)};   
-         Card(a); ~ Finite(a); A\<approx>a;   
+     "\<lbrakk>recfunAC16(f, h, y, a) \<subseteq> {X \<in> Pow(A) . X\<approx>succ(k #+ m)};   
+         Card(a); \<not> Finite(a); A\<approx>a;   
          k \<in> nat;  y<a;   
-         h \<in> bij(a, {Y \<in> Pow(A). Y\<approx>succ(k)}) |]   
-      ==> A - \<Union>(recfunAC16(f, h, y, a)) - h`y\<approx>a"
+         h \<in> bij(a, {Y \<in> Pow(A). Y\<approx>succ(k)})\<rbrakk>   
+      \<Longrightarrow> A - \<Union>(recfunAC16(f, h, y, a)) - h`y\<approx>a"
 apply (rule dbl_Diff_eqpoll_Card, simp_all)
 apply (simp add: Union_recfunAC16_lesspoll)
 apply (rule Finite_lesspoll_infinite_Ord) 
@@ -318,9 +318,9 @@ lemmas disj_Un_eqpoll_nat_sum =
                   OF disj_Un_eqpoll_sum sum_eqpoll_cong nat_sum_eqpoll_sum]
 
 
-lemma Un_in_Collect: "[| x \<in> Pow(A - B - h`i); x\<approx>m;   
-        h \<in> bij(a, {x \<in> Pow(A) . x\<approx>k}); i<a; k \<in> nat; m \<in> nat |]   
-        ==> h ` i \<union> x \<in> {x \<in> Pow(A) . x\<approx>k #+ m}"
+lemma Un_in_Collect: "\<lbrakk>x \<in> Pow(A - B - h`i); x\<approx>m;   
+        h \<in> bij(a, {x \<in> Pow(A) . x\<approx>k}); i<a; k \<in> nat; m \<in> nat\<rbrakk>   
+        \<Longrightarrow> h ` i \<union> x \<in> {x \<in> Pow(A) . x\<approx>k #+ m}"
 by (blast intro: disj_Un_eqpoll_nat_sum
           dest:  ltD bij_is_fun [THEN apply_type])
 
@@ -330,14 +330,14 @@ by (blast intro: disj_Un_eqpoll_nat_sum
 (* ********************************************************************** *)
 
 lemma lemma6:
-     "[| \<forall>y<succ(j). F(y)<=X & (\<forall>x<a. x<y | P(x,y) \<longrightarrow> Q(x,y)); succ(j)<a |]
-      ==> F(j)<=X & (\<forall>x<a. x<j | P(x,j) \<longrightarrow> Q(x,j))"
+     "\<lbrakk>\<forall>y<succ(j). F(y)<=X & (\<forall>x<a. x<y | P(x,y) \<longrightarrow> Q(x,y)); succ(j)<a\<rbrakk>
+      \<Longrightarrow> F(j)<=X & (\<forall>x<a. x<j | P(x,j) \<longrightarrow> Q(x,j))"
 by (blast intro!: lt_Ord succI1 [THEN ltI, THEN lt_Ord, THEN le_refl]) 
 
 
 lemma lemma7:
-     "[| \<forall>x<a. x<j | P(x,j) \<longrightarrow> Q(x,j);  succ(j)<a |]   
-      ==> P(j,j) \<longrightarrow> (\<forall>x<a. x\<le>j | P(x,j) \<longrightarrow> Q(x,j))"
+     "\<lbrakk>\<forall>x<a. x<j | P(x,j) \<longrightarrow> Q(x,j);  succ(j)<a\<rbrakk>   
+      \<Longrightarrow> P(j,j) \<longrightarrow> (\<forall>x<a. x\<le>j | P(x,j) \<longrightarrow> Q(x,j))"
 by (fast elim!: leE)
 
 (* ********************************************************************** *)
@@ -346,7 +346,7 @@ by (fast elim!: leE)
 (* ********************************************************************** *)
 
 lemma ex_subset_eqpoll:
-     "[| A\<approx>a; ~ Finite(a); Ord(a); m \<in> nat |] ==> \<exists>X \<in> Pow(A). X\<approx>m"
+     "\<lbrakk>A\<approx>a; \<not> Finite(a); Ord(a); m \<in> nat\<rbrakk> \<Longrightarrow> \<exists>X \<in> Pow(A). X\<approx>m"
 apply (rule lepoll_imp_eqpoll_subset [of m A, THEN exE]) 
  apply (rule lepoll_trans, rule leI [THEN le_imp_lepoll])
   apply (blast intro: lt_trans2 [OF ltI nat_le_infinite_Ord] Ord_nat)
@@ -354,12 +354,12 @@ apply (erule eqpoll_sym [THEN eqpoll_imp_lepoll])
 apply (fast elim!: eqpoll_sym)
 done
 
-lemma subset_Un_disjoint: "[| A \<subseteq> B \<union> C; A \<inter> C = 0 |] ==> A \<subseteq> B"
+lemma subset_Un_disjoint: "\<lbrakk>A \<subseteq> B \<union> C; A \<inter> C = 0\<rbrakk> \<Longrightarrow> A \<subseteq> B"
 by blast
 
 
 lemma Int_empty:
-     "[| X \<in> Pow(A - \<Union>(B) -C); T \<in> B; F \<subseteq> T |] ==> F \<inter> X = 0"
+     "\<lbrakk>X \<in> Pow(A - \<Union>(B) -C); T \<in> B; F \<subseteq> T\<rbrakk> \<Longrightarrow> F \<inter> X = 0"
 by blast
 
 
@@ -369,7 +369,7 @@ by blast
 
 
 lemma subset_imp_eq_lemma:
-     "m \<in> nat ==> \<forall>A B. A \<subseteq> B & m \<lesssim> A & B \<lesssim> m \<longrightarrow> A=B"
+     "m \<in> nat \<Longrightarrow> \<forall>A B. A \<subseteq> B & m \<lesssim> A & B \<lesssim> m \<longrightarrow> A=B"
 apply (induct_tac "m")
 apply (fast dest!: lepoll_0_is_0)
 apply (intro allI impI)
@@ -385,13 +385,13 @@ apply (blast elim: equalityE)
 done
 
 
-lemma subset_imp_eq: "[| A \<subseteq> B; m \<lesssim> A; B \<lesssim> m; m \<in> nat |] ==> A=B"
+lemma subset_imp_eq: "\<lbrakk>A \<subseteq> B; m \<lesssim> A; B \<lesssim> m; m \<in> nat\<rbrakk> \<Longrightarrow> A=B"
 by (blast dest!: subset_imp_eq_lemma)
 
 
 lemma bij_imp_arg_eq:
-     "[| f \<in> bij(a, {Y \<in> X. Y\<approx>succ(k)}); k \<in> nat; f`b \<subseteq> f`y; b<a; y<a |] 
-      ==> b=y"
+     "\<lbrakk>f \<in> bij(a, {Y \<in> X. Y\<approx>succ(k)}); k \<in> nat; f`b \<subseteq> f`y; b<a; y<a\<rbrakk> 
+      \<Longrightarrow> b=y"
 apply (drule subset_imp_eq)
 apply (erule_tac [3] nat_succI)
 apply (unfold bij_def inj_def)
@@ -401,14 +401,14 @@ done
 
 
 lemma ex_next_set:
-     "[| recfunAC16(f, h, y, a) \<subseteq> {X \<in> Pow(A) . X\<approx>succ(k #+ m)};   
-         Card(a); ~ Finite(a); A\<approx>a;   
+     "\<lbrakk>recfunAC16(f, h, y, a) \<subseteq> {X \<in> Pow(A) . X\<approx>succ(k #+ m)};   
+         Card(a); \<not> Finite(a); A\<approx>a;   
          k \<in> nat; m \<in> nat; y<a;   
          h \<in> bij(a, {Y \<in> Pow(A). Y\<approx>succ(k)});   
-         ~ (\<exists>Y \<in> recfunAC16(f, h, y, a). h`y \<subseteq> Y) |]   
-      ==> \<exists>X \<in> {Y \<in> Pow(A). Y\<approx>succ(k #+ m)}. h`y \<subseteq> X &   
+         \<not> (\<exists>Y \<in> recfunAC16(f, h, y, a). h`y \<subseteq> Y)\<rbrakk>   
+      \<Longrightarrow> \<exists>X \<in> {Y \<in> Pow(A). Y\<approx>succ(k #+ m)}. h`y \<subseteq> X &   
                 (\<forall>b<a. h`b \<subseteq> X \<longrightarrow>   
-                (\<forall>T \<in> recfunAC16(f, h, y, a). ~ h`b \<subseteq> T))"
+                (\<forall>T \<in> recfunAC16(f, h, y, a). \<not> h`b \<subseteq> T))"
 apply (erule_tac m1=m in dbl_Diff_eqpoll [THEN ex_subset_eqpoll, THEN bexE], 
        assumption+)
 apply (erule Card_is_Ord, assumption)
@@ -427,15 +427,15 @@ done
 (* ********************************************************************** *)
 
 lemma ex_next_Ord:
-     "[| recfunAC16(f, h, y, a) \<subseteq> {X \<in> Pow(A) . X\<approx>succ(k #+ m)};   
-         Card(a); ~ Finite(a); A\<approx>a;   
+     "\<lbrakk>recfunAC16(f, h, y, a) \<subseteq> {X \<in> Pow(A) . X\<approx>succ(k #+ m)};   
+         Card(a); \<not> Finite(a); A\<approx>a;   
          k \<in> nat; m \<in> nat; y<a;   
          h \<in> bij(a, {Y \<in> Pow(A). Y\<approx>succ(k)});   
          f \<in> bij(a, {Y \<in> Pow(A). Y\<approx>succ(k #+ m)});   
-         ~ (\<exists>Y \<in> recfunAC16(f, h, y, a). h`y \<subseteq> Y) |]   
-      ==> \<exists>c<a. h`y \<subseteq> f`c &   
+         \<not> (\<exists>Y \<in> recfunAC16(f, h, y, a). h`y \<subseteq> Y)\<rbrakk>   
+      \<Longrightarrow> \<exists>c<a. h`y \<subseteq> f`c &   
                 (\<forall>b<a. h`b \<subseteq> f`c \<longrightarrow>   
-                (\<forall>T \<in> recfunAC16(f, h, y, a). ~ h`b \<subseteq> T))"
+                (\<forall>T \<in> recfunAC16(f, h, y, a). \<not> h`b \<subseteq> T))"
 apply (drule ex_next_set, assumption+)
 apply (erule bexE)
 apply (rule_tac x="converse(f)`X" in oexI)
@@ -450,10 +450,10 @@ done
 (* ********************************************************************** *)
 
 lemma lemma8:
-     "[| \<forall>x<a. x<j | (\<exists>xa \<in> F(j). P(x, xa))   
+     "\<lbrakk>\<forall>x<a. x<j | (\<exists>xa \<in> F(j). P(x, xa))   
          \<longrightarrow> (\<exists>! Y. Y \<in> F(j) & P(x, Y)); F(j) \<subseteq> X;   
-         L \<in> X; P(j, L) & (\<forall>x<a. P(x, L) \<longrightarrow> (\<forall>xa \<in> F(j). ~P(x, xa))) |]   
-      ==> F(j) \<union> {L} \<subseteq> X &   
+         L \<in> X; P(j, L) & (\<forall>x<a. P(x, L) \<longrightarrow> (\<forall>xa \<in> F(j). \<not>P(x, xa)))\<rbrakk>   
+      \<Longrightarrow> F(j) \<union> {L} \<subseteq> X &   
           (\<forall>x<a. x\<le>j | (\<exists>xa \<in> (F(j) \<union> {L}). P(x, xa)) \<longrightarrow>   
                  (\<exists>! Y. Y \<in> (F(j) \<union> {L}) & P(x, Y)))"
 apply (rule conjI)
@@ -468,10 +468,10 @@ done
 (* ********************************************************************** *)
 
 lemma main_induct:
-     "[| b < a; f \<in> bij(a, {Y \<in> Pow(A) . Y\<approx>succ(k #+ m)});   
+     "\<lbrakk>b < a; f \<in> bij(a, {Y \<in> Pow(A) . Y\<approx>succ(k #+ m)});   
          h \<in> bij(a, {Y \<in> Pow(A) . Y\<approx>succ(k)});   
-         ~Finite(a); Card(a); A\<approx>a; k \<in> nat; m \<in> nat |]   
-      ==> recfunAC16(f, h, b, a) \<subseteq> {X \<in> Pow(A) . X\<approx>succ(k #+ m)} &   
+         \<not>Finite(a); Card(a); A\<approx>a; k \<in> nat; m \<in> nat\<rbrakk>   
+      \<Longrightarrow> recfunAC16(f, h, b, a) \<subseteq> {X \<in> Pow(A) . X\<approx>succ(k #+ m)} &   
           (\<forall>x<a. x < b | (\<exists>Y \<in> recfunAC16(f, h, b, a). h ` x \<subseteq> Y) \<longrightarrow>   
           (\<exists>! Y. Y \<in> recfunAC16(f, h, b, a) & h ` x \<subseteq> Y))"
 apply (erule lt_induct)
@@ -507,11 +507,11 @@ done
 (* ********************************************************************** *)
 
 lemma lemma_simp_induct:
-     "[| \<forall>b. b<a \<longrightarrow> F(b) \<subseteq> S & (\<forall>x<a. (x<b | (\<exists>Y \<in> F(b). f`x \<subseteq> Y))  
+     "\<lbrakk>\<forall>b. b<a \<longrightarrow> F(b) \<subseteq> S & (\<forall>x<a. (x<b | (\<exists>Y \<in> F(b). f`x \<subseteq> Y))  
                                    \<longrightarrow> (\<exists>! Y. Y \<in> F(b) & f`x \<subseteq> Y));
          f \<in> a->f``(a); Limit(a); 
-         \<forall>i j. i\<le>j \<longrightarrow> F(i) \<subseteq> F(j) |]   
-        ==> (\<Union>j<a. F(j)) \<subseteq> S &   
+         \<forall>i j. i\<le>j \<longrightarrow> F(i) \<subseteq> F(j)\<rbrakk>   
+        \<Longrightarrow> (\<Union>j<a. F(j)) \<subseteq> S &   
             (\<forall>x \<in> f``a. \<exists>! Y. Y \<in> (\<Union>j<a. F(j)) & x \<subseteq> Y)"
 apply (rule conjI)
 apply (rule subsetI)
@@ -546,7 +546,7 @@ done
 (* The target theorem                                                     *)
 (* ********************************************************************** *)
 
-theorem WO2_AC16: "[| WO2; 0<m; k \<in> nat; m \<in> nat |] ==> AC16(k #+ m,k)"
+theorem WO2_AC16: "\<lbrakk>WO2; 0<m; k \<in> nat; m \<in> nat\<rbrakk> \<Longrightarrow> AC16(k #+ m,k)"
 apply (unfold AC16_def)
 apply (rule allI)
 apply (rule impI)

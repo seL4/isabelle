@@ -15,26 +15,26 @@ theory Univ imports Epsilon Cardinal begin
 
 definition
   Vfrom       :: "[i,i]=>i"  where
-    "Vfrom(A,i) == transrec(i, %x f. A \<union> (\<Union>y\<in>x. Pow(f`y)))"
+    "Vfrom(A,i) \<equiv> transrec(i, %x f. A \<union> (\<Union>y\<in>x. Pow(f`y)))"
 
 abbreviation
   Vset :: "i=>i" where
-  "Vset(x) == Vfrom(0,x)"
+  "Vset(x) \<equiv> Vfrom(0,x)"
 
 
 definition
   Vrec        :: "[i, [i,i]=>i] =>i"  where
-    "Vrec(a,H) == transrec(rank(a), %x g. \<lambda>z\<in>Vset(succ(x)).
+    "Vrec(a,H) \<equiv> transrec(rank(a), %x g. \<lambda>z\<in>Vset(succ(x)).
                            H(z, \<lambda>w\<in>Vset(x). g`rank(w)`w)) ` a"
 
 definition
   Vrecursor   :: "[[i,i]=>i, i] =>i"  where
-    "Vrecursor(H,a) == transrec(rank(a), %x g. \<lambda>z\<in>Vset(succ(x)).
+    "Vrecursor(H,a) \<equiv> transrec(rank(a), %x g. \<lambda>z\<in>Vset(succ(x)).
                                 H(\<lambda>w\<in>Vset(x). g`rank(w)`w, z)) ` a"
 
 definition
   univ        :: "i=>i"  where
-    "univ(A) == Vfrom(A,nat)"
+    "univ(A) \<equiv> Vfrom(A,nat)"
 
 
 subsection\<open>Immediate Consequences of the Definition of \<^term>\<open>Vfrom(A,i)\<close>\<close>
@@ -46,7 +46,7 @@ by (subst Vfrom_def [THEN def_transrec], simp)
 subsubsection\<open>Monotonicity\<close>
 
 lemma Vfrom_mono [rule_format]:
-     "A<=B ==> \<forall>j. i<=j \<longrightarrow> Vfrom(A,i) \<subseteq> Vfrom(B,j)"
+     "A<=B \<Longrightarrow> \<forall>j. i<=j \<longrightarrow> Vfrom(A,i) \<subseteq> Vfrom(B,j)"
 apply (rule_tac a=i in eps_induct)
 apply (rule impI [THEN allI])
 apply (subst Vfrom [of A])
@@ -55,7 +55,7 @@ apply (erule Un_mono)
 apply (erule UN_mono, blast)
 done
 
-lemma VfromI: "[| a \<in> Vfrom(A,j);  j<i |] ==> a \<in> Vfrom(A,i)"
+lemma VfromI: "\<lbrakk>a \<in> Vfrom(A,j);  j<i\<rbrakk> \<Longrightarrow> a \<in> Vfrom(A,i)"
 by (blast dest: Vfrom_mono [OF subset_refl le_imp_subset [OF leI]])
 
 
@@ -96,7 +96,7 @@ done
 
 subsection\<open>Basic Closure Properties\<close>
 
-lemma zero_in_Vfrom: "y:x ==> 0 \<in> Vfrom(A,x)"
+lemma zero_in_Vfrom: "y:x \<Longrightarrow> 0 \<in> Vfrom(A,x)"
 by (subst Vfrom, blast)
 
 lemma i_subset_Vfrom: "i \<subseteq> Vfrom(A,i)"
@@ -111,25 +111,25 @@ done
 
 lemmas A_into_Vfrom = A_subset_Vfrom [THEN subsetD]
 
-lemma subset_mem_Vfrom: "a \<subseteq> Vfrom(A,i) ==> a \<in> Vfrom(A,succ(i))"
+lemma subset_mem_Vfrom: "a \<subseteq> Vfrom(A,i) \<Longrightarrow> a \<in> Vfrom(A,succ(i))"
 by (subst Vfrom, blast)
 
 subsubsection\<open>Finite sets and ordered pairs\<close>
 
-lemma singleton_in_Vfrom: "a \<in> Vfrom(A,i) ==> {a} \<in> Vfrom(A,succ(i))"
+lemma singleton_in_Vfrom: "a \<in> Vfrom(A,i) \<Longrightarrow> {a} \<in> Vfrom(A,succ(i))"
 by (rule subset_mem_Vfrom, safe)
 
 lemma doubleton_in_Vfrom:
-     "[| a \<in> Vfrom(A,i);  b \<in> Vfrom(A,i) |] ==> {a,b} \<in> Vfrom(A,succ(i))"
+     "\<lbrakk>a \<in> Vfrom(A,i);  b \<in> Vfrom(A,i)\<rbrakk> \<Longrightarrow> {a,b} \<in> Vfrom(A,succ(i))"
 by (rule subset_mem_Vfrom, safe)
 
 lemma Pair_in_Vfrom:
-    "[| a \<in> Vfrom(A,i);  b \<in> Vfrom(A,i) |] ==> <a,b> \<in> Vfrom(A,succ(succ(i)))"
+    "\<lbrakk>a \<in> Vfrom(A,i);  b \<in> Vfrom(A,i)\<rbrakk> \<Longrightarrow> <a,b> \<in> Vfrom(A,succ(succ(i)))"
 apply (unfold Pair_def)
 apply (blast intro: doubleton_in_Vfrom)
 done
 
-lemma succ_in_Vfrom: "a \<subseteq> Vfrom(A,i) ==> succ(a) \<in> Vfrom(A,succ(succ(i)))"
+lemma succ_in_Vfrom: "a \<subseteq> Vfrom(A,i) \<Longrightarrow> succ(a) \<in> Vfrom(A,succ(succ(i)))"
 apply (intro subset_mem_Vfrom succ_subsetI, assumption)
 apply (erule subset_trans)
 apply (rule Vfrom_mono [OF subset_refl subset_succI])
@@ -140,7 +140,7 @@ subsection\<open>0, Successor and Limit Equations for \<^term>\<open>Vfrom\<clos
 lemma Vfrom_0: "Vfrom(A,0) = A"
 by (subst Vfrom, blast)
 
-lemma Vfrom_succ_lemma: "Ord(i) ==> Vfrom(A,succ(i)) = A \<union> Pow(Vfrom(A,i))"
+lemma Vfrom_succ_lemma: "Ord(i) \<Longrightarrow> Vfrom(A,succ(i)) = A \<union> Pow(Vfrom(A,i))"
 apply (rule Vfrom [THEN trans])
 apply (rule equalityI [THEN subst_context,
                        OF _ succI1 [THEN RepFunI, THEN Union_upper]])
@@ -159,7 +159,7 @@ done
 
 (*The premise distinguishes this from Vfrom(A,0);  allowing X=0 forces
   the conclusion to be Vfrom(A,\<Union>(X)) = A \<union> (\<Union>y\<in>X. Vfrom(A,y)) *)
-lemma Vfrom_Union: "y:X ==> Vfrom(A,\<Union>(X)) = (\<Union>y\<in>X. Vfrom(A,y))"
+lemma Vfrom_Union: "y:X \<Longrightarrow> Vfrom(A,\<Union>(X)) = (\<Union>y\<in>X. Vfrom(A,y))"
 apply (subst Vfrom)
 apply (rule equalityI)
 txt\<open>first inclusion\<close>
@@ -181,15 +181,15 @@ subsection\<open>\<^term>\<open>Vfrom\<close> applied to Limit Ordinals\<close>
 (*NB. limit ordinals are non-empty:
       Vfrom(A,0) = A = A \<union> (\<Union>y\<in>0. Vfrom(A,y)) *)
 lemma Limit_Vfrom_eq:
-    "Limit(i) ==> Vfrom(A,i) = (\<Union>y\<in>i. Vfrom(A,y))"
+    "Limit(i) \<Longrightarrow> Vfrom(A,i) = (\<Union>y\<in>i. Vfrom(A,y))"
 apply (rule Limit_has_0 [THEN ltD, THEN Vfrom_Union, THEN subst], assumption)
 apply (simp add: Limit_Union_eq)
 done
 
 lemma Limit_VfromE:
-    "[| a \<in> Vfrom(A,i);  ~R ==> Limit(i);
-        !!x. [| x<i;  a \<in> Vfrom(A,x) |] ==> R
-     |] ==> R"
+    "\<lbrakk>a \<in> Vfrom(A,i);  \<not>R \<Longrightarrow> Limit(i);
+        \<And>x. \<lbrakk>x<i;  a \<in> Vfrom(A,x)\<rbrakk> \<Longrightarrow> R
+\<rbrakk> \<Longrightarrow> R"
 apply (rule classical)
 apply (rule Limit_Vfrom_eq [THEN equalityD1, THEN subsetD, THEN UN_E])
   prefer 2 apply assumption
@@ -198,7 +198,7 @@ apply (blast intro: ltI Limit_is_Ord)
 done
 
 lemma singleton_in_VLimit:
-    "[| a \<in> Vfrom(A,i);  Limit(i) |] ==> {a} \<in> Vfrom(A,i)"
+    "\<lbrakk>a \<in> Vfrom(A,i);  Limit(i)\<rbrakk> \<Longrightarrow> {a} \<in> Vfrom(A,i)"
 apply (erule Limit_VfromE, assumption)
 apply (erule singleton_in_Vfrom [THEN VfromI])
 apply (blast intro: Limit_has_succ)
@@ -211,7 +211,7 @@ lemmas Vfrom_UnI2 =
 
 text\<open>Hard work is finding a single j:i such that {a,b}<=Vfrom(A,j)\<close>
 lemma doubleton_in_VLimit:
-    "[| a \<in> Vfrom(A,i);  b \<in> Vfrom(A,i);  Limit(i) |] ==> {a,b} \<in> Vfrom(A,i)"
+    "\<lbrakk>a \<in> Vfrom(A,i);  b \<in> Vfrom(A,i);  Limit(i)\<rbrakk> \<Longrightarrow> {a,b} \<in> Vfrom(A,i)"
 apply (erule Limit_VfromE, assumption)
 apply (erule Limit_VfromE, assumption)
 apply (blast intro:  VfromI [OF doubleton_in_Vfrom]
@@ -219,7 +219,7 @@ apply (blast intro:  VfromI [OF doubleton_in_Vfrom]
 done
 
 lemma Pair_in_VLimit:
-    "[| a \<in> Vfrom(A,i);  b \<in> Vfrom(A,i);  Limit(i) |] ==> <a,b> \<in> Vfrom(A,i)"
+    "\<lbrakk>a \<in> Vfrom(A,i);  b \<in> Vfrom(A,i);  Limit(i)\<rbrakk> \<Longrightarrow> <a,b> \<in> Vfrom(A,i)"
 txt\<open>Infer that a, b occur at ordinals x,xa < i.\<close>
 apply (erule Limit_VfromE, assumption)
 apply (erule Limit_VfromE, assumption)
@@ -228,7 +228,7 @@ apply (blast intro: VfromI [OF Pair_in_Vfrom]
                     Vfrom_UnI1 Vfrom_UnI2 Limit_has_succ Un_least_lt)
 done
 
-lemma product_VLimit: "Limit(i) ==> Vfrom(A,i) * Vfrom(A,i) \<subseteq> Vfrom(A,i)"
+lemma product_VLimit: "Limit(i) \<Longrightarrow> Vfrom(A,i) * Vfrom(A,i) \<subseteq> Vfrom(A,i)"
 by (blast intro: Pair_in_VLimit)
 
 lemmas Sigma_subset_VLimit =
@@ -237,29 +237,29 @@ lemmas Sigma_subset_VLimit =
 lemmas nat_subset_VLimit =
      subset_trans [OF nat_le_Limit [THEN le_imp_subset] i_subset_Vfrom]
 
-lemma nat_into_VLimit: "[| n: nat;  Limit(i) |] ==> n \<in> Vfrom(A,i)"
+lemma nat_into_VLimit: "\<lbrakk>n: nat;  Limit(i)\<rbrakk> \<Longrightarrow> n \<in> Vfrom(A,i)"
 by (blast intro: nat_subset_VLimit [THEN subsetD])
 
 subsubsection\<open>Closure under Disjoint Union\<close>
 
 lemmas zero_in_VLimit = Limit_has_0 [THEN ltD, THEN zero_in_Vfrom]
 
-lemma one_in_VLimit: "Limit(i) ==> 1 \<in> Vfrom(A,i)"
+lemma one_in_VLimit: "Limit(i) \<Longrightarrow> 1 \<in> Vfrom(A,i)"
 by (blast intro: nat_into_VLimit)
 
 lemma Inl_in_VLimit:
-    "[| a \<in> Vfrom(A,i); Limit(i) |] ==> Inl(a) \<in> Vfrom(A,i)"
+    "\<lbrakk>a \<in> Vfrom(A,i); Limit(i)\<rbrakk> \<Longrightarrow> Inl(a) \<in> Vfrom(A,i)"
 apply (unfold Inl_def)
 apply (blast intro: zero_in_VLimit Pair_in_VLimit)
 done
 
 lemma Inr_in_VLimit:
-    "[| b \<in> Vfrom(A,i); Limit(i) |] ==> Inr(b) \<in> Vfrom(A,i)"
+    "\<lbrakk>b \<in> Vfrom(A,i); Limit(i)\<rbrakk> \<Longrightarrow> Inr(b) \<in> Vfrom(A,i)"
 apply (unfold Inr_def)
 apply (blast intro: one_in_VLimit Pair_in_VLimit)
 done
 
-lemma sum_VLimit: "Limit(i) ==> Vfrom(C,i)+Vfrom(C,i) \<subseteq> Vfrom(C,i)"
+lemma sum_VLimit: "Limit(i) \<Longrightarrow> Vfrom(C,i)+Vfrom(C,i) \<subseteq> Vfrom(C,i)"
 by (blast intro!: Inl_in_VLimit Inr_in_VLimit)
 
 lemmas sum_subset_VLimit = subset_trans [OF sum_mono sum_VLimit]
@@ -268,14 +268,14 @@ lemmas sum_subset_VLimit = subset_trans [OF sum_mono sum_VLimit]
 
 subsection\<open>Properties assuming \<^term>\<open>Transset(A)\<close>\<close>
 
-lemma Transset_Vfrom: "Transset(A) ==> Transset(Vfrom(A,i))"
+lemma Transset_Vfrom: "Transset(A) \<Longrightarrow> Transset(Vfrom(A,i))"
 apply (rule_tac a=i in eps_induct)
 apply (subst Vfrom)
 apply (blast intro!: Transset_Union_family Transset_Un Transset_Pow)
 done
 
 lemma Transset_Vfrom_succ:
-     "Transset(A) ==> Vfrom(A, succ(i)) = Pow(Vfrom(A,i))"
+     "Transset(A) \<Longrightarrow> Vfrom(A, succ(i)) = Pow(Vfrom(A,i))"
 apply (rule Vfrom_succ [THEN trans])
 apply (rule equalityI [OF _ Un_upper2])
 apply (rule Un_least [OF _ subset_refl])
@@ -283,26 +283,26 @@ apply (rule A_subset_Vfrom [THEN subset_trans])
 apply (erule Transset_Vfrom [THEN Transset_iff_Pow [THEN iffD1]])
 done
 
-lemma Transset_Pair_subset: "[| <a,b> \<subseteq> C; Transset(C) |] ==> a: C & b: C"
+lemma Transset_Pair_subset: "\<lbrakk><a,b> \<subseteq> C; Transset(C)\<rbrakk> \<Longrightarrow> a: C & b: C"
 by (unfold Pair_def Transset_def, blast)
 
 lemma Transset_Pair_subset_VLimit:
-     "[| <a,b> \<subseteq> Vfrom(A,i);  Transset(A);  Limit(i) |]
-      ==> <a,b> \<in> Vfrom(A,i)"
+     "\<lbrakk><a,b> \<subseteq> Vfrom(A,i);  Transset(A);  Limit(i)\<rbrakk>
+      \<Longrightarrow> <a,b> \<in> Vfrom(A,i)"
 apply (erule Transset_Pair_subset [THEN conjE])
 apply (erule Transset_Vfrom)
 apply (blast intro: Pair_in_VLimit)
 done
 
 lemma Union_in_Vfrom:
-     "[| X \<in> Vfrom(A,j);  Transset(A) |] ==> \<Union>(X) \<in> Vfrom(A, succ(j))"
+     "\<lbrakk>X \<in> Vfrom(A,j);  Transset(A)\<rbrakk> \<Longrightarrow> \<Union>(X) \<in> Vfrom(A, succ(j))"
 apply (drule Transset_Vfrom)
 apply (rule subset_mem_Vfrom)
 apply (unfold Transset_def, blast)
 done
 
 lemma Union_in_VLimit:
-     "[| X \<in> Vfrom(A,i);  Limit(i);  Transset(A) |] ==> \<Union>(X) \<in> Vfrom(A,i)"
+     "\<lbrakk>X \<in> Vfrom(A,i);  Limit(i);  Transset(A)\<rbrakk> \<Longrightarrow> \<Union>(X) \<in> Vfrom(A,i)"
 apply (rule Limit_VfromE, assumption+)
 apply (blast intro: Limit_has_succ VfromI Union_in_Vfrom)
 done
@@ -315,10 +315,10 @@ done
 
 text\<open>General theorem for membership in Vfrom(A,i) when i is a limit ordinal\<close>
 lemma in_VLimit:
-  "[| a \<in> Vfrom(A,i);  b \<in> Vfrom(A,i);  Limit(i);
-      !!x y j. [| j<i; 1:j; x \<in> Vfrom(A,j); y \<in> Vfrom(A,j) |]
-               ==> \<exists>k. h(x,y) \<in> Vfrom(A,k) & k<i |]
-   ==> h(a,b) \<in> Vfrom(A,i)"
+  "\<lbrakk>a \<in> Vfrom(A,i);  b \<in> Vfrom(A,i);  Limit(i);
+      \<And>x y j. \<lbrakk>j<i; 1:j; x \<in> Vfrom(A,j); y \<in> Vfrom(A,j)\<rbrakk>
+               \<Longrightarrow> \<exists>k. h(x,y) \<in> Vfrom(A,k) & k<i\<rbrakk>
+   \<Longrightarrow> h(a,b) \<in> Vfrom(A,i)"
 txt\<open>Infer that a, b occur at ordinals x,xa < i.\<close>
 apply (erule Limit_VfromE, assumption)
 apply (erule Limit_VfromE, assumption, atomize)
@@ -332,8 +332,8 @@ done
 subsubsection\<open>Products\<close>
 
 lemma prod_in_Vfrom:
-    "[| a \<in> Vfrom(A,j);  b \<in> Vfrom(A,j);  Transset(A) |]
-     ==> a*b \<in> Vfrom(A, succ(succ(succ(j))))"
+    "\<lbrakk>a \<in> Vfrom(A,j);  b \<in> Vfrom(A,j);  Transset(A)\<rbrakk>
+     \<Longrightarrow> a*b \<in> Vfrom(A, succ(succ(succ(j))))"
 apply (drule Transset_Vfrom)
 apply (rule subset_mem_Vfrom)
 apply (unfold Transset_def)
@@ -341,8 +341,8 @@ apply (blast intro: Pair_in_Vfrom)
 done
 
 lemma prod_in_VLimit:
-  "[| a \<in> Vfrom(A,i);  b \<in> Vfrom(A,i);  Limit(i);  Transset(A) |]
-   ==> a*b \<in> Vfrom(A,i)"
+  "\<lbrakk>a \<in> Vfrom(A,i);  b \<in> Vfrom(A,i);  Limit(i);  Transset(A)\<rbrakk>
+   \<Longrightarrow> a*b \<in> Vfrom(A,i)"
 apply (erule in_VLimit, assumption+)
 apply (blast intro: prod_in_Vfrom Limit_has_succ)
 done
@@ -350,8 +350,8 @@ done
 subsubsection\<open>Disjoint Sums, or Quine Ordered Pairs\<close>
 
 lemma sum_in_Vfrom:
-    "[| a \<in> Vfrom(A,j);  b \<in> Vfrom(A,j);  Transset(A);  1:j |]
-     ==> a+b \<in> Vfrom(A, succ(succ(succ(j))))"
+    "\<lbrakk>a \<in> Vfrom(A,j);  b \<in> Vfrom(A,j);  Transset(A);  1:j\<rbrakk>
+     \<Longrightarrow> a+b \<in> Vfrom(A, succ(succ(succ(j))))"
 apply (unfold sum_def)
 apply (drule Transset_Vfrom)
 apply (rule subset_mem_Vfrom)
@@ -360,8 +360,8 @@ apply (blast intro: zero_in_Vfrom Pair_in_Vfrom i_subset_Vfrom [THEN subsetD])
 done
 
 lemma sum_in_VLimit:
-  "[| a \<in> Vfrom(A,i);  b \<in> Vfrom(A,i);  Limit(i);  Transset(A) |]
-   ==> a+b \<in> Vfrom(A,i)"
+  "\<lbrakk>a \<in> Vfrom(A,i);  b \<in> Vfrom(A,i);  Limit(i);  Transset(A)\<rbrakk>
+   \<Longrightarrow> a+b \<in> Vfrom(A,i)"
 apply (erule in_VLimit, assumption+)
 apply (blast intro: sum_in_Vfrom Limit_has_succ)
 done
@@ -369,7 +369,7 @@ done
 subsubsection\<open>Function Space!\<close>
 
 lemma fun_in_Vfrom:
-    "[| a \<in> Vfrom(A,j);  b \<in> Vfrom(A,j);  Transset(A) |] ==>
+    "\<lbrakk>a \<in> Vfrom(A,j);  b \<in> Vfrom(A,j);  Transset(A)\<rbrakk> \<Longrightarrow>
           a->b \<in> Vfrom(A, succ(succ(succ(succ(j)))))"
 apply (unfold Pi_def)
 apply (drule Transset_Vfrom)
@@ -385,14 +385,14 @@ apply (blast intro: Pair_in_Vfrom)
 done
 
 lemma fun_in_VLimit:
-  "[| a \<in> Vfrom(A,i);  b \<in> Vfrom(A,i);  Limit(i);  Transset(A) |]
-   ==> a->b \<in> Vfrom(A,i)"
+  "\<lbrakk>a \<in> Vfrom(A,i);  b \<in> Vfrom(A,i);  Limit(i);  Transset(A)\<rbrakk>
+   \<Longrightarrow> a->b \<in> Vfrom(A,i)"
 apply (erule in_VLimit, assumption+)
 apply (blast intro: fun_in_Vfrom Limit_has_succ)
 done
 
 lemma Pow_in_Vfrom:
-    "[| a \<in> Vfrom(A,j);  Transset(A) |] ==> Pow(a) \<in> Vfrom(A, succ(succ(j)))"
+    "\<lbrakk>a \<in> Vfrom(A,j);  Transset(A)\<rbrakk> \<Longrightarrow> Pow(a) \<in> Vfrom(A, succ(succ(j)))"
 apply (drule Transset_Vfrom)
 apply (rule subset_mem_Vfrom)
 apply (unfold Transset_def)
@@ -400,7 +400,7 @@ apply (subst Vfrom, blast)
 done
 
 lemma Pow_in_VLimit:
-     "[| a \<in> Vfrom(A,i);  Limit(i);  Transset(A) |] ==> Pow(a) \<in> Vfrom(A,i)"
+     "\<lbrakk>a \<in> Vfrom(A,i);  Limit(i);  Transset(A)\<rbrakk> \<Longrightarrow> Pow(a) \<in> Vfrom(A,i)"
 by (blast elim: Limit_VfromE intro: Limit_has_succ Pow_in_Vfrom VfromI)
 
 
@@ -414,7 +414,7 @@ lemmas Transset_Vset = Transset_0 [THEN Transset_Vfrom]
 
 subsubsection\<open>Characterisation of the elements of \<^term>\<open>Vset(i)\<close>\<close>
 
-lemma VsetD [rule_format]: "Ord(i) ==> \<forall>b. b \<in> Vset(i) \<longrightarrow> rank(b) < i"
+lemma VsetD [rule_format]: "Ord(i) \<Longrightarrow> \<forall>b. b \<in> Vset(i) \<longrightarrow> rank(b) < i"
 apply (erule trans_induct)
 apply (subst Vset, safe)
 apply (subst rank)
@@ -422,18 +422,18 @@ apply (blast intro: ltI UN_succ_least_lt)
 done
 
 lemma VsetI_lemma [rule_format]:
-     "Ord(i) ==> \<forall>b. rank(b) \<in> i \<longrightarrow> b \<in> Vset(i)"
+     "Ord(i) \<Longrightarrow> \<forall>b. rank(b) \<in> i \<longrightarrow> b \<in> Vset(i)"
 apply (erule trans_induct)
 apply (rule allI)
 apply (subst Vset)
 apply (blast intro!: rank_lt [THEN ltD])
 done
 
-lemma VsetI: "rank(x)<i ==> x \<in> Vset(i)"
+lemma VsetI: "rank(x)<i \<Longrightarrow> x \<in> Vset(i)"
 by (blast intro: VsetI_lemma elim: ltE)
 
 text\<open>Merely a lemma for the next result\<close>
-lemma Vset_Ord_rank_iff: "Ord(i) ==> b \<in> Vset(i) \<longleftrightarrow> rank(b) < i"
+lemma Vset_Ord_rank_iff: "Ord(i) \<Longrightarrow> b \<in> Vset(i) \<longleftrightarrow> rank(b) < i"
 by (blast intro: VsetD VsetI)
 
 lemma Vset_rank_iff [simp]: "b \<in> Vset(a) \<longleftrightarrow> rank(b) < rank(a)"
@@ -444,7 +444,7 @@ done
 text\<open>This is rank(rank(a)) = rank(a)\<close>
 declare Ord_rank [THEN rank_of_Ord, simp]
 
-lemma rank_Vset: "Ord(i) ==> rank(Vset(i)) = i"
+lemma rank_Vset: "Ord(i) \<Longrightarrow> rank(Vset(i)) = i"
 apply (subst rank)
 apply (rule equalityI, safe)
 apply (blast intro: VsetD [THEN ltD])
@@ -453,7 +453,7 @@ apply (blast intro: i_subset_Vfrom [THEN subsetD]
                     Ord_in_Ord [THEN rank_of_Ord, THEN ssubst])
 done
 
-lemma Finite_Vset: "i \<in> nat ==> Finite(Vset(i))"
+lemma Finite_Vset: "i \<in> nat \<Longrightarrow> Finite(Vset(i))"
 apply (erule nat_induct)
  apply (simp add: Vfrom_0)
 apply (simp add: Vset_succ)
@@ -467,7 +467,7 @@ apply (erule rank_lt [THEN VsetI])
 done
 
 lemma Int_Vset_subset:
-    "[| !!i. Ord(i) ==> a \<inter> Vset(i) \<subseteq> b |] ==> a \<subseteq> b"
+    "\<lbrakk>\<And>i. Ord(i) \<Longrightarrow> a \<inter> Vset(i) \<subseteq> b\<rbrakk> \<Longrightarrow> a \<subseteq> b"
 apply (rule subset_trans)
 apply (rule Int_greatest [OF subset_refl arg_subset_Vset_rank])
 apply (blast intro: Ord_rank)
@@ -496,9 +496,9 @@ apply (subst transrec, simp)
 apply (rule refl [THEN lam_cong, THEN subst_context], simp add: lt_def)
 done
 
-text\<open>This form avoids giant explosions in proofs.  NOTE USE OF ==\<close>
+text\<open>This form avoids giant explosions in proofs.  NOTE USE OF \<equiv>\<close>
 lemma def_Vrec:
-    "[| !!x. h(x)==Vrec(x,H) |] ==>
+    "\<lbrakk>\<And>x. h(x)\<equiv>Vrec(x,H)\<rbrakk> \<Longrightarrow>
      h(a) = H(a, \<lambda>x\<in>Vset(rank(a)). h(x))"
 apply simp
 apply (rule Vrec)
@@ -512,9 +512,9 @@ apply (subst transrec, simp)
 apply (rule refl [THEN lam_cong, THEN subst_context], simp add: lt_def)
 done
 
-text\<open>This form avoids giant explosions in proofs.  NOTE USE OF ==\<close>
+text\<open>This form avoids giant explosions in proofs.  NOTE USE OF \<equiv>\<close>
 lemma def_Vrecursor:
-     "h == Vrecursor(H) ==> h(a) = H(\<lambda>x\<in>Vset(rank(a)). h(x),  a)"
+     "h \<equiv> Vrecursor(H) \<Longrightarrow> h(a) = H(\<lambda>x\<in>Vset(rank(a)). h(x),  a)"
 apply simp
 apply (rule Vrecursor)
 done
@@ -522,13 +522,13 @@ done
 
 subsection\<open>The Datatype Universe: \<^term>\<open>univ(A)\<close>\<close>
 
-lemma univ_mono: "A<=B ==> univ(A) \<subseteq> univ(B)"
+lemma univ_mono: "A<=B \<Longrightarrow> univ(A) \<subseteq> univ(B)"
 apply (unfold univ_def)
 apply (erule Vfrom_mono)
 apply (rule subset_refl)
 done
 
-lemma Transset_univ: "Transset(A) ==> Transset(univ(A))"
+lemma Transset_univ: "Transset(A) \<Longrightarrow> Transset(univ(A))"
 apply (unfold univ_def)
 apply (erule Transset_Vfrom)
 done
@@ -540,23 +540,23 @@ apply (unfold univ_def)
 apply (rule Limit_nat [THEN Limit_Vfrom_eq])
 done
 
-lemma subset_univ_eq_Int: "c \<subseteq> univ(A) ==> c = (\<Union>i\<in>nat. c \<inter> Vfrom(A,i))"
+lemma subset_univ_eq_Int: "c \<subseteq> univ(A) \<Longrightarrow> c = (\<Union>i\<in>nat. c \<inter> Vfrom(A,i))"
 apply (rule subset_UN_iff_eq [THEN iffD1])
 apply (erule univ_eq_UN [THEN subst])
 done
 
 lemma univ_Int_Vfrom_subset:
-    "[| a \<subseteq> univ(X);
-        !!i. i:nat ==> a \<inter> Vfrom(X,i) \<subseteq> b |]
-     ==> a \<subseteq> b"
+    "\<lbrakk>a \<subseteq> univ(X);
+        \<And>i. i:nat \<Longrightarrow> a \<inter> Vfrom(X,i) \<subseteq> b\<rbrakk>
+     \<Longrightarrow> a \<subseteq> b"
 apply (subst subset_univ_eq_Int, assumption)
 apply (rule UN_least, simp)
 done
 
 lemma univ_Int_Vfrom_eq:
-    "[| a \<subseteq> univ(X);   b \<subseteq> univ(X);
-        !!i. i:nat ==> a \<inter> Vfrom(X,i) = b \<inter> Vfrom(X,i)
-     |] ==> a = b"
+    "\<lbrakk>a \<subseteq> univ(X);   b \<subseteq> univ(X);
+        \<And>i. i:nat \<Longrightarrow> a \<inter> Vfrom(X,i) = b \<inter> Vfrom(X,i)
+\<rbrakk> \<Longrightarrow> a = b"
 apply (rule equalityI)
 apply (rule univ_Int_Vfrom_subset, assumption)
 apply (blast elim: equalityCE)
@@ -583,25 +583,25 @@ lemmas A_into_univ = A_subset_univ [THEN subsetD]
 
 subsubsection\<open>Closure under Unordered and Ordered Pairs\<close>
 
-lemma singleton_in_univ: "a: univ(A) ==> {a} \<in> univ(A)"
+lemma singleton_in_univ: "a: univ(A) \<Longrightarrow> {a} \<in> univ(A)"
 apply (unfold univ_def)
 apply (blast intro: singleton_in_VLimit Limit_nat)
 done
 
 lemma doubleton_in_univ:
-    "[| a: univ(A);  b: univ(A) |] ==> {a,b} \<in> univ(A)"
+    "\<lbrakk>a: univ(A);  b: univ(A)\<rbrakk> \<Longrightarrow> {a,b} \<in> univ(A)"
 apply (unfold univ_def)
 apply (blast intro: doubleton_in_VLimit Limit_nat)
 done
 
 lemma Pair_in_univ:
-    "[| a: univ(A);  b: univ(A) |] ==> <a,b> \<in> univ(A)"
+    "\<lbrakk>a: univ(A);  b: univ(A)\<rbrakk> \<Longrightarrow> <a,b> \<in> univ(A)"
 apply (unfold univ_def)
 apply (blast intro: Pair_in_VLimit Limit_nat)
 done
 
 lemma Union_in_univ:
-     "[| X: univ(A);  Transset(A) |] ==> \<Union>(X) \<in> univ(A)"
+     "\<lbrakk>X: univ(A);  Transset(A)\<rbrakk> \<Longrightarrow> \<Union>(X) \<in> univ(A)"
 apply (unfold univ_def)
 apply (blast intro: Union_in_VLimit Limit_nat)
 done
@@ -619,7 +619,7 @@ apply (unfold univ_def)
 apply (rule i_subset_Vfrom)
 done
 
-text\<open>n:nat ==> n:univ(A)\<close>
+text\<open>n:nat \<Longrightarrow> n:univ(A)\<close>
 lemmas nat_into_univ = nat_subset_univ [THEN subsetD]
 
 subsubsection\<open>Instances for 1 and 2\<close>
@@ -643,12 +643,12 @@ lemmas bool_into_univ = bool_subset_univ [THEN subsetD]
 
 subsubsection\<open>Closure under Disjoint Union\<close>
 
-lemma Inl_in_univ: "a: univ(A) ==> Inl(a) \<in> univ(A)"
+lemma Inl_in_univ: "a: univ(A) \<Longrightarrow> Inl(a) \<in> univ(A)"
 apply (unfold univ_def)
 apply (erule Inl_in_VLimit [OF _ Limit_nat])
 done
 
-lemma Inr_in_univ: "b: univ(A) ==> Inr(b) \<in> univ(A)"
+lemma Inr_in_univ: "b: univ(A) \<Longrightarrow> Inr(b) \<in> univ(A)"
 apply (unfold univ_def)
 apply (erule Inr_in_VLimit [OF _ Limit_nat])
 done
@@ -661,7 +661,7 @@ done
 lemmas sum_subset_univ = subset_trans [OF sum_mono sum_univ]
 
 lemma Sigma_subset_univ:
-  "[|A \<subseteq> univ(D); \<And>x. x \<in> A \<Longrightarrow> B(x) \<subseteq> univ(D)|] ==> Sigma(A,B) \<subseteq> univ(D)"
+  "\<lbrakk>A \<subseteq> univ(D); \<And>x. x \<in> A \<Longrightarrow> B(x) \<subseteq> univ(D)\<rbrakk> \<Longrightarrow> Sigma(A,B) \<subseteq> univ(D)"
 apply (simp add: univ_def)
 apply (blast intro: Sigma_subset_VLimit del: subsetI)
 done
@@ -677,14 +677,14 @@ subsection\<open>Finite Branching Closure Properties\<close>
 subsubsection\<open>Closure under Finite Powerset\<close>
 
 lemma Fin_Vfrom_lemma:
-     "[| b: Fin(Vfrom(A,i));  Limit(i) |] ==> \<exists>j. b \<subseteq> Vfrom(A,j) & j<i"
+     "\<lbrakk>b: Fin(Vfrom(A,i));  Limit(i)\<rbrakk> \<Longrightarrow> \<exists>j. b \<subseteq> Vfrom(A,j) & j<i"
 apply (erule Fin_induct)
 apply (blast dest!: Limit_has_0, safe)
 apply (erule Limit_VfromE, assumption)
 apply (blast intro!: Un_least_lt intro: Vfrom_UnI1 Vfrom_UnI2)
 done
 
-lemma Fin_VLimit: "Limit(i) ==> Fin(Vfrom(A,i)) \<subseteq> Vfrom(A,i)"
+lemma Fin_VLimit: "Limit(i) \<Longrightarrow> Fin(Vfrom(A,i)) \<subseteq> Vfrom(A,i)"
 apply (rule subsetI)
 apply (drule Fin_Vfrom_lemma, safe)
 apply (rule Vfrom [THEN ssubst])
@@ -701,7 +701,7 @@ done
 subsubsection\<open>Closure under Finite Powers: Functions from a Natural Number\<close>
 
 lemma nat_fun_VLimit:
-     "[| n: nat;  Limit(i) |] ==> n -> Vfrom(A,i) \<subseteq> Vfrom(A,i)"
+     "\<lbrakk>n: nat;  Limit(i)\<rbrakk> \<Longrightarrow> n -> Vfrom(A,i) \<subseteq> Vfrom(A,i)"
 apply (erule nat_fun_subset_Fin [THEN subset_trans])
 apply (blast del: subsetI
     intro: subset_refl Fin_subset_VLimit Sigma_subset_VLimit nat_subset_VLimit)
@@ -709,7 +709,7 @@ done
 
 lemmas nat_fun_subset_VLimit = subset_trans [OF Pi_mono nat_fun_VLimit]
 
-lemma nat_fun_univ: "n: nat ==> n -> univ(A) \<subseteq> univ(A)"
+lemma nat_fun_univ: "n: nat \<Longrightarrow> n -> univ(A) \<subseteq> univ(A)"
 apply (unfold univ_def)
 apply (erule nat_fun_VLimit [OF _ Limit_nat])
 done
@@ -719,7 +719,7 @@ subsubsection\<open>Closure under Finite Function Space\<close>
 
 text\<open>General but seldom-used version; normally the domain is fixed\<close>
 lemma FiniteFun_VLimit1:
-     "Limit(i) ==> Vfrom(A,i) -||> Vfrom(A,i) \<subseteq> Vfrom(A,i)"
+     "Limit(i) \<Longrightarrow> Vfrom(A,i) -||> Vfrom(A,i) \<subseteq> Vfrom(A,i)"
 apply (rule FiniteFun.dom_subset [THEN subset_trans])
 apply (blast del: subsetI
              intro: Fin_subset_VLimit Sigma_subset_VLimit subset_refl)
@@ -732,20 +732,20 @@ done
 
 text\<open>Version for a fixed domain\<close>
 lemma FiniteFun_VLimit:
-     "[| W \<subseteq> Vfrom(A,i); Limit(i) |] ==> W -||> Vfrom(A,i) \<subseteq> Vfrom(A,i)"
+     "\<lbrakk>W \<subseteq> Vfrom(A,i); Limit(i)\<rbrakk> \<Longrightarrow> W -||> Vfrom(A,i) \<subseteq> Vfrom(A,i)"
 apply (rule subset_trans)
 apply (erule FiniteFun_mono [OF _ subset_refl])
 apply (erule FiniteFun_VLimit1)
 done
 
 lemma FiniteFun_univ:
-    "W \<subseteq> univ(A) ==> W -||> univ(A) \<subseteq> univ(A)"
+    "W \<subseteq> univ(A) \<Longrightarrow> W -||> univ(A) \<subseteq> univ(A)"
 apply (unfold univ_def)
 apply (erule FiniteFun_VLimit [OF _ Limit_nat])
 done
 
 lemma FiniteFun_in_univ:
-     "[| f: W -||> univ(A);  W \<subseteq> univ(A) |] ==> f \<in> univ(A)"
+     "\<lbrakk>f: W -||> univ(A);  W \<subseteq> univ(A)\<rbrakk> \<Longrightarrow> f \<in> univ(A)"
 by (erule FiniteFun_univ [THEN subsetD], assumption)
 
 text\<open>Remove \<open>\<subseteq>\<close> from the rule above\<close>
@@ -758,8 +758,8 @@ text\<open>Intersecting a*b with Vfrom...\<close>
 
 text\<open>This version says a, b exist one level down, in the smaller set Vfrom(X,i)\<close>
 lemma doubleton_in_Vfrom_D:
-     "[| {a,b} \<in> Vfrom(X,succ(i));  Transset(X) |]
-      ==> a \<in> Vfrom(X,i)  &  b \<in> Vfrom(X,i)"
+     "\<lbrakk>{a,b} \<in> Vfrom(X,succ(i));  Transset(X)\<rbrakk>
+      \<Longrightarrow> a \<in> Vfrom(X,i)  &  b \<in> Vfrom(X,i)"
 by (drule Transset_Vfrom_succ [THEN equalityD1, THEN subsetD, THEN PowD],
     assumption, fast)
 
@@ -775,14 +775,14 @@ lemmas Vfrom_doubleton_D = Transset_Vfrom [THEN Transset_doubleton_D]
 **)
 
 lemma Pair_in_Vfrom_D:
-    "[| <a,b> \<in> Vfrom(X,succ(i));  Transset(X) |]
-     ==> a \<in> Vfrom(X,i)  &  b \<in> Vfrom(X,i)"
+    "\<lbrakk><a,b> \<in> Vfrom(X,succ(i));  Transset(X)\<rbrakk>
+     \<Longrightarrow> a \<in> Vfrom(X,i)  &  b \<in> Vfrom(X,i)"
 apply (unfold Pair_def)
 apply (blast dest!: doubleton_in_Vfrom_D Vfrom_doubleton_D)
 done
 
 lemma product_Int_Vfrom_subset:
-     "Transset(X) ==>
+     "Transset(X) \<Longrightarrow>
       (a*b) \<inter> Vfrom(X, succ(i)) \<subseteq> (a \<inter> Vfrom(X,i)) * (b \<inter> Vfrom(X,i))"
 by (blast dest!: Pair_in_Vfrom_D)
 

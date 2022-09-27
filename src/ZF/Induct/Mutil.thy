@@ -19,21 +19,21 @@ consts
 inductive
   domains "domino" \<subseteq> "Pow(nat \<times> nat)"
   intros
-    horiz: "[| i \<in> nat;  j \<in> nat |] ==> {<i,j>, <i,succ(j)>} \<in> domino"
-    vertl: "[| i \<in> nat;  j \<in> nat |] ==> {<i,j>, <succ(i),j>} \<in> domino"
+    horiz: "\<lbrakk>i \<in> nat;  j \<in> nat\<rbrakk> \<Longrightarrow> {<i,j>, <i,succ(j)>} \<in> domino"
+    vertl: "\<lbrakk>i \<in> nat;  j \<in> nat\<rbrakk> \<Longrightarrow> {<i,j>, <succ(i),j>} \<in> domino"
   type_intros empty_subsetI cons_subsetI PowI SigmaI nat_succI
 
 inductive
   domains "tiling(A)" \<subseteq> "Pow(\<Union>(A))"
   intros
     empty: "0 \<in> tiling(A)"
-    Un: "[| a \<in> A;  t \<in> tiling(A);  a \<inter> t = 0 |] ==> a \<union> t \<in> tiling(A)"
+    Un: "\<lbrakk>a \<in> A;  t \<in> tiling(A);  a \<inter> t = 0\<rbrakk> \<Longrightarrow> a \<union> t \<in> tiling(A)"
   type_intros empty_subsetI Union_upper Un_least PowI
   type_elims PowD [elim_format]
 
 definition
   evnodd :: "[i, i] => i"  where
-  "evnodd(A,b) == {z \<in> A. \<exists>i j. z = <i,j> \<and> (i #+ j) mod 2 = b}"
+  "evnodd(A,b) \<equiv> {z \<in> A. \<exists>i j. z = <i,j> \<and> (i #+ j) mod 2 = b}"
 
 
 subsection \<open>Basic properties of evnodd\<close>
@@ -44,7 +44,7 @@ lemma evnodd_iff: "<i,j>: evnodd(A,b) \<longleftrightarrow> <i,j>: A & (i#+j) mo
 lemma evnodd_subset: "evnodd(A, b) \<subseteq> A"
   by (unfold evnodd_def) blast
 
-lemma Finite_evnodd: "Finite(X) ==> Finite(evnodd(X,b))"
+lemma Finite_evnodd: "Finite(X) \<Longrightarrow> Finite(evnodd(X,b))"
   by (rule lepoll_Finite, rule subset_imp_lepoll, rule evnodd_subset)
 
 lemma evnodd_Un: "evnodd(A \<union> B, b) = evnodd(A,b) \<union> evnodd(B,b)"
@@ -64,11 +64,11 @@ lemma evnodd_0 [simp]: "evnodd(0, b) = 0"
 
 subsection \<open>Dominoes\<close>
 
-lemma domino_Finite: "d \<in> domino ==> Finite(d)"
+lemma domino_Finite: "d \<in> domino \<Longrightarrow> Finite(d)"
   by (blast intro!: Finite_cons Finite_0 elim: domino.cases)
 
 lemma domino_singleton:
-    "[| d \<in> domino; b<2 |] ==> \<exists>i' j'. evnodd(d,b) = {<i',j'>}"
+    "\<lbrakk>d \<in> domino; b<2\<rbrakk> \<Longrightarrow> \<exists>i' j'. evnodd(d,b) = {<i',j'>}"
   apply (erule domino.cases)
    apply (rule_tac [2] k1 = "i#+j" in mod2_cases [THEN disjE])
      apply (rule_tac k1 = "i#+j" in mod2_cases [THEN disjE])
@@ -83,20 +83,20 @@ subsection \<open>Tilings\<close>
 text \<open>The union of two disjoint tilings is a tiling\<close>
 
 lemma tiling_UnI:
-    "t \<in> tiling(A) ==> u \<in> tiling(A) ==> t \<inter> u = 0 ==> t \<union> u \<in> tiling(A)"
+    "t \<in> tiling(A) \<Longrightarrow> u \<in> tiling(A) \<Longrightarrow> t \<inter> u = 0 \<Longrightarrow> t \<union> u \<in> tiling(A)"
   apply (induct set: tiling)
    apply (simp add: tiling.intros)
   apply (simp add: Un_assoc subset_empty_iff [THEN iff_sym])
   apply (blast intro: tiling.intros)
   done
 
-lemma tiling_domino_Finite: "t \<in> tiling(domino) ==> Finite(t)"
+lemma tiling_domino_Finite: "t \<in> tiling(domino) \<Longrightarrow> Finite(t)"
   apply (induct set: tiling)
    apply (rule Finite_0)
   apply (blast intro!: Finite_Un intro: domino_Finite)
   done
 
-lemma tiling_domino_0_1: "t \<in> tiling(domino) ==> |evnodd(t,0)| = |evnodd(t,1)|"
+lemma tiling_domino_0_1: "t \<in> tiling(domino) \<Longrightarrow> |evnodd(t,0)| = |evnodd(t,1)|"
   apply (induct set: tiling)
    apply (simp add: evnodd_def)
   apply (rule_tac b1 = 0 in domino_singleton [THEN exE])
@@ -115,7 +115,7 @@ lemma tiling_domino_0_1: "t \<in> tiling(domino) ==> |evnodd(t,0)| = |evnodd(t,1
   done
 
 lemma dominoes_tile_row:
-    "[| i \<in> nat;  n \<in> nat |] ==> {i} * (n #+ n) \<in> tiling(domino)"
+    "\<lbrakk>i \<in> nat;  n \<in> nat\<rbrakk> \<Longrightarrow> {i} * (n #+ n) \<in> tiling(domino)"
   apply (induct_tac n)
    apply (simp add: tiling.intros)
   apply (simp add: Un_assoc [symmetric] Sigma_succ2)
@@ -131,20 +131,20 @@ lemma dominoes_tile_row:
   done
 
 lemma dominoes_tile_matrix:
-    "[| m \<in> nat;  n \<in> nat |] ==> m * (n #+ n) \<in> tiling(domino)"
+    "\<lbrakk>m \<in> nat;  n \<in> nat\<rbrakk> \<Longrightarrow> m * (n #+ n) \<in> tiling(domino)"
   apply (induct_tac m)
    apply (simp add: tiling.intros)
   apply (simp add: Sigma_succ1)
   apply (blast intro: tiling_UnI dominoes_tile_row elim: mem_irrefl)
   done
 
-lemma eq_lt_E: "[| x=y; x<y |] ==> P"
+lemma eq_lt_E: "\<lbrakk>x=y; x<y\<rbrakk> \<Longrightarrow> P"
   by auto
 
-theorem mutil_not_tiling: "[| m \<in> nat;  n \<in> nat;
+theorem mutil_not_tiling: "\<lbrakk>m \<in> nat;  n \<in> nat;
          t = (succ(m)#+succ(m))*(succ(n)#+succ(n));
-         t' = t - {<0,0>} - {<succ(m#+m), succ(n#+n)>} |]
-      ==> t' \<notin> tiling(domino)"
+         t' = t - {<0,0>} - {<succ(m#+m), succ(n#+n)>}\<rbrakk>
+      \<Longrightarrow> t' \<notin> tiling(domino)"
   apply (rule notI)
   apply (drule tiling_domino_0_1)
   apply (erule_tac x = "|A|" for A in eq_lt_E)

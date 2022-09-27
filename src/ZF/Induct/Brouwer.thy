@@ -25,8 +25,8 @@ lemma brouwer_induct2 [consumes 1, case_names Zero Suc Lim]:
   assumes b: "b \<in> brouwer"
     and cases:
       "P(Zero)"
-      "!!b. [| b \<in> brouwer;  P(b) |] ==> P(Suc(b))"
-      "!!h. [| h \<in> nat -> brouwer;  \<forall>i \<in> nat. P(h`i) |] ==> P(Lim(h))"
+      "\<And>b. \<lbrakk>b \<in> brouwer;  P(b)\<rbrakk> \<Longrightarrow> P(Suc(b))"
+      "\<And>h. \<lbrakk>h \<in> nat -> brouwer;  \<forall>i \<in> nat. P(h`i)\<rbrakk> \<Longrightarrow> P(Lim(h))"
   shows "P(b)"
   \<comment> \<open>A nicer induction rule than the standard one.\<close>
   using b
@@ -57,7 +57,7 @@ lemma Well_unfold: "Well(A, B) = (\<Sum>x \<in> A. B(x) -> Well(A, B))"
 
 lemma Well_induct2 [consumes 1, case_names step]:
   assumes w: "w \<in> Well(A, B)"
-    and step: "!!a f. [| a \<in> A;  f \<in> B(a) -> Well(A,B);  \<forall>y \<in> B(a). P(f`y) |] ==> P(Sup(a,f))"
+    and step: "\<And>a f. \<lbrakk>a \<in> A;  f \<in> B(a) -> Well(A,B);  \<forall>y \<in> B(a). P(f`y)\<rbrakk> \<Longrightarrow> P(Sup(a,f))"
   shows "P(w)"
   \<comment> \<open>A nicer induction rule than the standard one.\<close>
   using w

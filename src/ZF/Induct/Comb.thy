@@ -41,10 +41,10 @@ abbreviation contract_multi :: "[i,i] \<Rightarrow> o"  (infixl \<open>\<rightar
 inductive
   domains "contract" \<subseteq> "comb \<times> comb"
   intros
-    K:   "[| p \<in> comb;  q \<in> comb |] ==> K\<bullet>p\<bullet>q \<rightarrow>\<^sup>1 p"
-    S:   "[| p \<in> comb;  q \<in> comb;  r \<in> comb |] ==> S\<bullet>p\<bullet>q\<bullet>r \<rightarrow>\<^sup>1 (p\<bullet>r)\<bullet>(q\<bullet>r)"
-    Ap1: "[| p\<rightarrow>\<^sup>1q;  r \<in> comb |] ==> p\<bullet>r \<rightarrow>\<^sup>1 q\<bullet>r"
-    Ap2: "[| p\<rightarrow>\<^sup>1q;  r \<in> comb |] ==> r\<bullet>p \<rightarrow>\<^sup>1 r\<bullet>q"
+    K:   "\<lbrakk>p \<in> comb;  q \<in> comb\<rbrakk> \<Longrightarrow> K\<bullet>p\<bullet>q \<rightarrow>\<^sup>1 p"
+    S:   "\<lbrakk>p \<in> comb;  q \<in> comb;  r \<in> comb\<rbrakk> \<Longrightarrow> S\<bullet>p\<bullet>q\<bullet>r \<rightarrow>\<^sup>1 (p\<bullet>r)\<bullet>(q\<bullet>r)"
+    Ap1: "\<lbrakk>p\<rightarrow>\<^sup>1q;  r \<in> comb\<rbrakk> \<Longrightarrow> p\<bullet>r \<rightarrow>\<^sup>1 q\<bullet>r"
+    Ap2: "\<lbrakk>p\<rightarrow>\<^sup>1q;  r \<in> comb\<rbrakk> \<Longrightarrow> r\<bullet>p \<rightarrow>\<^sup>1 r\<bullet>q"
   type_intros comb.intros
 
 text \<open>
@@ -55,18 +55,18 @@ text \<open>
 consts parcontract :: i
 
 abbreviation parcontract_syntax :: "[i,i] => o"  (infixl \<open>\<Rrightarrow>\<^sup>1\<close> 50)
-  where "p \<Rrightarrow>\<^sup>1 q == <p,q> \<in> parcontract"
+  where "p \<Rrightarrow>\<^sup>1 q \<equiv> <p,q> \<in> parcontract"
 
 abbreviation parcontract_multi :: "[i,i] => o"  (infixl \<open>\<Rrightarrow>\<close> 50)
-  where "p \<Rrightarrow> q == <p,q> \<in> parcontract^+"
+  where "p \<Rrightarrow> q \<equiv> <p,q> \<in> parcontract^+"
 
 inductive
   domains "parcontract" \<subseteq> "comb \<times> comb"
   intros
-    refl: "[| p \<in> comb |] ==> p \<Rrightarrow>\<^sup>1 p"
-    K:    "[| p \<in> comb;  q \<in> comb |] ==> K\<bullet>p\<bullet>q \<Rrightarrow>\<^sup>1 p"
-    S:    "[| p \<in> comb;  q \<in> comb;  r \<in> comb |] ==> S\<bullet>p\<bullet>q\<bullet>r \<Rrightarrow>\<^sup>1 (p\<bullet>r)\<bullet>(q\<bullet>r)"
-    Ap:   "[| p\<Rrightarrow>\<^sup>1q;  r\<Rrightarrow>\<^sup>1s |] ==> p\<bullet>r \<Rrightarrow>\<^sup>1 q\<bullet>s"
+    refl: "\<lbrakk>p \<in> comb\<rbrakk> \<Longrightarrow> p \<Rrightarrow>\<^sup>1 p"
+    K:    "\<lbrakk>p \<in> comb;  q \<in> comb\<rbrakk> \<Longrightarrow> K\<bullet>p\<bullet>q \<Rrightarrow>\<^sup>1 p"
+    S:    "\<lbrakk>p \<in> comb;  q \<in> comb;  r \<in> comb\<rbrakk> \<Longrightarrow> S\<bullet>p\<bullet>q\<bullet>r \<Rrightarrow>\<^sup>1 (p\<bullet>r)\<bullet>(q\<bullet>r)"
+    Ap:   "\<lbrakk>p\<Rrightarrow>\<^sup>1q;  r\<Rrightarrow>\<^sup>1s\<rbrakk> \<Longrightarrow> p\<bullet>r \<Rrightarrow>\<^sup>1 q\<bullet>s"
   type_intros comb.intros
 
 text \<open>
@@ -84,7 +84,7 @@ definition diamond :: "i \<Rightarrow> o"
 subsection \<open>Transitive closure preserves the Church-Rosser property\<close>
 
 lemma diamond_strip_lemmaD [rule_format]:
-  "[| diamond(r);  <x,y>:r^+ |] ==>
+  "\<lbrakk>diamond(r);  <x,y>:r^+\<rbrakk> \<Longrightarrow>
     \<forall>y'. <x,y'>:r \<longrightarrow> (\<exists>z. <y',z>: r^+ & <y,z>: r)"
   apply (unfold diamond_def)
   apply (erule trancl_induct)
@@ -94,7 +94,7 @@ lemma diamond_strip_lemmaD [rule_format]:
   apply (blast intro: r_into_trancl trans_trancl [THEN transD])
   done
 
-lemma diamond_trancl: "diamond(r) ==> diamond(r^+)"
+lemma diamond_trancl: "diamond(r) \<Longrightarrow> diamond(r^+)"
   apply (simp (no_asm_simp) add: diamond_def)
   apply (rule impI [THEN allI, THEN allI])
   apply (erule trancl_induct)
@@ -134,7 +134,7 @@ lemmas reduction_rls =
   contract.Ap1 [THEN rtrancl_into_rtrancl2]
   contract.Ap2 [THEN rtrancl_into_rtrancl2]
 
-lemma "p \<in> comb ==> I\<bullet>p \<rightarrow> p"
+lemma "p \<in> comb \<Longrightarrow> I\<bullet>p \<rightarrow> p"
   \<comment> \<open>Example only: not used\<close>
   unfolding I_def by (blast intro: reduction_rls)
 
@@ -150,13 +150,13 @@ inductive_cases K_contractE [elim!]: "K \<rightarrow>\<^sup>1 r"
   and S_contractE [elim!]: "S \<rightarrow>\<^sup>1 r"
   and Ap_contractE [elim!]: "p\<bullet>q \<rightarrow>\<^sup>1 r"
 
-lemma I_contract_E: "I \<rightarrow>\<^sup>1 r ==> P"
+lemma I_contract_E: "I \<rightarrow>\<^sup>1 r \<Longrightarrow> P"
   by (auto simp add: I_def)
 
-lemma K1_contractD: "K\<bullet>p \<rightarrow>\<^sup>1 r ==> (\<exists>q. r = K\<bullet>q & p \<rightarrow>\<^sup>1 q)"
+lemma K1_contractD: "K\<bullet>p \<rightarrow>\<^sup>1 r \<Longrightarrow> (\<exists>q. r = K\<bullet>q & p \<rightarrow>\<^sup>1 q)"
   by auto
 
-lemma Ap_reduce1: "[| p \<rightarrow> q;  r \<in> comb |] ==> p\<bullet>r \<rightarrow> q\<bullet>r"
+lemma Ap_reduce1: "\<lbrakk>p \<rightarrow> q;  r \<in> comb\<rbrakk> \<Longrightarrow> p\<bullet>r \<rightarrow> q\<bullet>r"
   apply (frule rtrancl_type [THEN subsetD, THEN SigmaD1])
   apply (drule field_contract_eq [THEN equalityD1, THEN subsetD])
   apply (erule rtrancl_induct)
@@ -165,7 +165,7 @@ lemma Ap_reduce1: "[| p \<rightarrow> q;  r \<in> comb |] ==> p\<bullet>r \<righ
   apply (blast intro: contract_combD2 reduction_rls)
   done
 
-lemma Ap_reduce2: "[| p \<rightarrow> q;  r \<in> comb |] ==> r\<bullet>p \<rightarrow> r\<bullet>q"
+lemma Ap_reduce2: "\<lbrakk>p \<rightarrow> q;  r \<in> comb\<rbrakk> \<Longrightarrow> r\<bullet>p \<rightarrow> r\<bullet>q"
   apply (frule rtrancl_type [THEN subsetD, THEN SigmaD1])
   apply (drule field_contract_eq [THEN equalityD1, THEN subsetD])
   apply (erule rtrancl_induct)
@@ -215,15 +215,15 @@ declare parcontract.intros [intro]
 subsection \<open>Basic properties of parallel contraction\<close>
 
 lemma K1_parcontractD [dest!]:
-    "K\<bullet>p \<Rrightarrow>\<^sup>1 r ==> (\<exists>p'. r = K\<bullet>p' & p \<Rrightarrow>\<^sup>1 p')"
+    "K\<bullet>p \<Rrightarrow>\<^sup>1 r \<Longrightarrow> (\<exists>p'. r = K\<bullet>p' & p \<Rrightarrow>\<^sup>1 p')"
   by auto
 
 lemma S1_parcontractD [dest!]:
-    "S\<bullet>p \<Rrightarrow>\<^sup>1 r ==> (\<exists>p'. r = S\<bullet>p' & p \<Rrightarrow>\<^sup>1 p')"
+    "S\<bullet>p \<Rrightarrow>\<^sup>1 r \<Longrightarrow> (\<exists>p'. r = S\<bullet>p' & p \<Rrightarrow>\<^sup>1 p')"
   by auto
 
 lemma S2_parcontractD [dest!]:
-    "S\<bullet>p\<bullet>q \<Rrightarrow>\<^sup>1 r ==> (\<exists>p' q'. r = S\<bullet>p'\<bullet>q' & p \<Rrightarrow>\<^sup>1 p' & q \<Rrightarrow>\<^sup>1 q')"
+    "S\<bullet>p\<bullet>q \<Rrightarrow>\<^sup>1 r \<Longrightarrow> (\<exists>p' q'. r = S\<bullet>p'\<bullet>q' & p \<Rrightarrow>\<^sup>1 p' & q \<Rrightarrow>\<^sup>1 q')"
   by auto
 
 lemma diamond_parcontract: "diamond(parcontract)"
@@ -238,10 +238,10 @@ text \<open>
   \medskip Equivalence of \<^prop>\<open>p \<rightarrow> q\<close> and \<^prop>\<open>p \<Rrightarrow> q\<close>.
 \<close>
 
-lemma contract_imp_parcontract: "p\<rightarrow>\<^sup>1q ==> p\<Rrightarrow>\<^sup>1q"
+lemma contract_imp_parcontract: "p\<rightarrow>\<^sup>1q \<Longrightarrow> p\<Rrightarrow>\<^sup>1q"
   by (induct set: contract) auto
 
-lemma reduce_imp_parreduce: "p\<rightarrow>q ==> p\<Rrightarrow>q"
+lemma reduce_imp_parreduce: "p\<rightarrow>q \<Longrightarrow> p\<Rrightarrow>q"
   apply (frule rtrancl_type [THEN subsetD, THEN SigmaD1])
   apply (drule field_contract_eq [THEN equalityD1, THEN subsetD])
   apply (erule rtrancl_induct)
@@ -250,7 +250,7 @@ lemma reduce_imp_parreduce: "p\<rightarrow>q ==> p\<Rrightarrow>q"
     trans_trancl [THEN transD])
   done
 
-lemma parcontract_imp_reduce: "p\<Rrightarrow>\<^sup>1q ==> p\<rightarrow>q"
+lemma parcontract_imp_reduce: "p\<Rrightarrow>\<^sup>1q \<Longrightarrow> p\<rightarrow>q"
   apply (induct set: parcontract)
      apply (blast intro: reduction_rls)
     apply (blast intro: reduction_rls)
@@ -259,7 +259,7 @@ lemma parcontract_imp_reduce: "p\<Rrightarrow>\<^sup>1q ==> p\<rightarrow>q"
     Ap_reduce1 Ap_reduce2 parcontract_combD1 parcontract_combD2)
   done
 
-lemma parreduce_imp_reduce: "p\<Rrightarrow>q ==> p\<rightarrow>q"
+lemma parreduce_imp_reduce: "p\<Rrightarrow>q \<Longrightarrow> p\<rightarrow>q"
   apply (frule trancl_type [THEN subsetD, THEN SigmaD1])
   apply (drule field_parcontract_eq [THEN equalityD1, THEN subsetD])
   apply (erule trancl_induct, erule parcontract_imp_reduce)

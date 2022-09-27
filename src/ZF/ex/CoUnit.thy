@@ -25,7 +25,7 @@ codatatype
   "counit" = Con ("x \<in> counit")
 
 inductive_cases ConE: "Con(x) \<in> counit"
-  \<comment> \<open>USELESS because folding on \<^term>\<open>Con(xa) == xa\<close> fails.\<close>
+  \<comment> \<open>USELESS because folding on \<^term>\<open>Con(xa) \<equiv> xa\<close> fails.\<close>
 
 lemma Con_iff: "Con(x) = Con(y) \<longleftrightarrow> x = y"
   \<comment> \<open>Proving freeness results.\<close>
@@ -73,7 +73,7 @@ lemma lfp_Con2_in_counit2: "lfp(univ(0), %x. Con2(x,x)) \<in> counit2"
   done
 
 lemma counit2_Int_Vset_subset [rule_format]:
-  "Ord(i) ==> \<forall>x y. x \<in> counit2 \<longrightarrow> y \<in> counit2 \<longrightarrow> x \<inter> Vset(i) \<subseteq> y"
+  "Ord(i) \<Longrightarrow> \<forall>x y. x \<in> counit2 \<longrightarrow> y \<in> counit2 \<longrightarrow> x \<inter> Vset(i) \<subseteq> y"
   \<comment> \<open>Lemma for proving finality.\<close>
   apply (erule trans_induct)
   apply (tactic "safe_tac (put_claset subset_cs \<^context>)")
@@ -85,7 +85,7 @@ lemma counit2_Int_Vset_subset [rule_format]:
     addSEs [@{thm Ord_in_Ord}, @{thm Pair_inject}]) 1\<close>)
   done
 
-lemma counit2_implies_equal: "[| x \<in> counit2;  y \<in> counit2 |] ==> x = y"
+lemma counit2_implies_equal: "\<lbrakk>x \<in> counit2;  y \<in> counit2\<rbrakk> \<Longrightarrow> x = y"
   apply (rule equalityI)
   apply (assumption | rule conjI counit2_Int_Vset_subset [THEN Int_Vset_subset])+
   done
