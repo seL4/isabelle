@@ -61,17 +61,23 @@ theorem Closed_Unbounded_Ord   [simp]: "Closed_Unbounded(Ord)"
 
 text\<open>The class of limit ordinals, \<^term>\<open>Limit\<close>, is closed and unbounded.\<close>
 theorem Closed_Unbounded_Limit [simp]: "Closed_Unbounded(Limit)"
-  apply (simp add: Closed_Unbounded_def Closed_def Unbounded_def Limit_Union, 
-      clarify)
-  apply (rule_tac x="i++nat" in exI)  
-  apply (blast intro: oadd_lt_self oadd_LimitI Limit_has_0) 
-  done
+proof -
+  have "\<exists>j. i < j \<and> Limit(j)" if "Ord(i)" for i
+    apply (rule_tac x="i++nat" in exI)  
+    apply (blast intro: oadd_lt_self oadd_LimitI Limit_has_0 that) 
+    done
+  then show ?thesis
+    by (auto simp: Closed_Unbounded_def Closed_def Unbounded_def Limit_Union)
+qed
 
 text\<open>The class of cardinals, \<^term>\<open>Card\<close>, is closed and unbounded.\<close>
 theorem Closed_Unbounded_Card  [simp]: "Closed_Unbounded(Card)"
-  apply (simp add: Closed_Unbounded_def Closed_def Unbounded_def)
-  apply (blast intro: lt_csucc Card_csucc)
-  done
+proof -
+  have "\<forall>i. Ord(i) \<longrightarrow> (\<exists>j. i < j \<and> Card(j))"
+    by (blast intro: lt_csucc Card_csucc)
+  then show ?thesis
+    by (simp add: Closed_Unbounded_def Closed_def Unbounded_def)
+qed
 
 
 subsubsection\<open>The intersection of any set-indexed family of c.u. classes is
@@ -106,52 +112,53 @@ lemma Ord_next_greater:
 
 text\<open>\<^term>\<open>next_greater\<close> works as expected: it returns a larger value
 and one that belongs to class \<^term>\<open>P(a)\<close>.\<close>
-lemma next_greater_lemma:
-  "\<lbrakk>Ord(x); a\<in>A\<rbrakk> \<Longrightarrow> P(a, next_greater(a,x)) \<and> x < next_greater(a,x)"
-  apply (simp add: next_greater_def)
-  apply (rule exE [OF UnboundedD [OF unbounded]])
-    apply assumption+
-  apply (blast intro: LeastI2 lt_Ord2) 
-  done
-
-lemma next_greater_in_P:
-  "\<lbrakk>Ord(x); a\<in>A\<rbrakk> \<Longrightarrow> P(a, next_greater(a,x))"
-  by (blast dest: next_greater_lemma)
-
-lemma next_greater_gt:
-  "\<lbrakk>Ord(x); a\<in>A\<rbrakk> \<Longrightarrow> x < next_greater(a,x)"
-  by (blast dest: next_greater_lemma)
+lemma 
+  assumes "Ord(x)" "a\<in>A" 
+  shows next_greater_in_P: "P(a, next_greater(a,x))" 
+    and next_greater_gt:   "x < next_greater(a,x)"
+proof -
+  obtain y where "x < y" "P(a,y)"
+    using assms UnboundedD [OF unbounded] by blast
+  then have "P(a, next_greater(a,x)) \<and> x < next_greater(a,x)"
+    unfolding next_greater_def
+    by (blast intro: LeastI2 lt_Ord2) 
+  then show "P(a, next_greater(a,x))" "x < next_greater(a,x)"
+    by auto
+qed
 
 lemma sup_greater_gt:
   "Ord(x) \<Longrightarrow> x < sup_greater(x)"
-  apply (simp add: sup_greater_def)
-  apply (insert A_non0)
-  apply (blast intro: UN_upper_lt next_greater_gt Ord_next_greater)
-  done
+  using A_non0 unfolding sup_greater_def
+  by (blast intro: UN_upper_lt next_greater_gt Ord_next_greater)
 
 lemma next_greater_le_sup_greater:
   "a\<in>A \<Longrightarrow> next_greater(a,x) \<le> sup_greater(x)"
-  apply (simp add: sup_greater_def) 
-  apply (blast intro: UN_upper_le Ord_next_greater)
-  done
+  unfolding sup_greater_def
+  by (force intro: UN_upper_le Ord_next_greater)
 
-lemma omega_sup_greater_eq_UN:
-  "\<lbrakk>Ord(x); a\<in>A\<rbrakk> 
-      \<Longrightarrow> sup_greater^\<omega> (x) = 
+lemma omega_sup_greater_eq_UN: 
+  assumes "Ord(x)" "a\<in>A" 
+  shows "sup_greater^\<omega> (x) = 
           (\<Union>n\<in>nat. next_greater(a, sup_greater^n (x)))"
-  apply (simp add: iterates_omega_def)
-  apply (rule le_anti_sym)
-   apply (rule le_implies_UN_le_UN) 
-   apply (blast intro: leI next_greater_gt Ord_iterates Ord_sup_greater)  
-  txt\<open>Opposite bound:
-@{subgoals[display,indent=0,margin=65]}
-\<close>
-  apply (rule UN_least_le) 
-   apply (blast intro: Ord_iterates Ord_sup_greater)  
-  apply (rule_tac a="succ(n)" in UN_upper_le)
-    apply (simp_all add: next_greater_le_sup_greater) 
-  apply (blast intro: Ord_iterates Ord_sup_greater)  
-  done
+proof (rule le_anti_sym)
+  show "sup_greater^\<omega> (x) \<le> (\<Union>n\<in>nat. next_greater(a, sup_greater^n (x)))"
+    using assms
+    unfolding iterates_omega_def
+    by (blast intro: leI le_implies_UN_le_UN next_greater_gt Ord_iterates Ord_sup_greater)  
+next
+  have "Ord(\<Union>n\<in>nat. sup_greater^n (x))"
+    by (blast intro: Ord_iterates Ord_sup_greater assms)  
+  moreover have "next_greater(a, sup_greater^n (x)) \<le>
+             (\<Union>n\<in>nat. sup_greater^n (x))" if "n \<in> nat" for n
+    using that assms
+    apply (rule_tac a="succ(n)" in UN_upper_le)
+      apply (simp_all add: next_greater_le_sup_greater) 
+    apply (blast intro: Ord_iterates Ord_sup_greater)  
+    done
+  ultimately
+  show "(\<Union>n\<in>nat. next_greater(a, sup_greater^n (x))) \<le> sup_greater^\<omega> (x)"
+    using assms unfolding iterates_omega_def by (blast intro: UN_least_le) 
+qed
 
 lemma P_omega_sup_greater:
   "\<lbrakk>Ord(x); a\<in>A\<rbrakk> \<Longrightarrow> P(a, sup_greater^\<omega> (x))"
@@ -172,8 +179,7 @@ lemma omega_sup_greater_gt:
 
 lemma Unbounded_INT: "Unbounded(\<lambda>x. \<forall>a\<in>A. P(a,x))"
     unfolding Unbounded_def  
-  apply (blast intro!: omega_sup_greater_gt P_omega_sup_greater) 
-  done
+    by (blast intro!: omega_sup_greater_gt P_omega_sup_greater) 
 
 lemma Closed_Unbounded_INT: 
   "Closed_Unbounded(\<lambda>x. \<forall>a\<in>A. P(a,x))"
