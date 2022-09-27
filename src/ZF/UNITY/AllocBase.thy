@@ -268,7 +268,7 @@ done
 
 
 lemma part_ord_Lt [simp]: "part_ord(nat, Lt)"
-apply (unfold part_ord_def Lt_def irrefl_def trans_on_def)
+  unfolding part_ord_def Lt_def irrefl_def trans_on_def
 apply (auto intro: lt_trans)
 done
 

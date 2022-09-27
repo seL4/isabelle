@@ -144,7 +144,7 @@ done
 (*** preserves ***)
 
 lemma preserves_is_safety_prop [simp]: "safety_prop(preserves(f))"
-apply (unfold preserves_def safety_prop_def)
+  unfolding preserves_def safety_prop_def
 apply (auto dest: ActsD simp add: stable_def constrains_def)
 apply (drule_tac c = act in subsetD, auto)
 done
@@ -157,7 +157,7 @@ done
 
 lemma preserves_imp_eq: 
      "\<lbrakk>F \<in> preserves(f);  act \<in> Acts(F);  \<langle>s,t\<rangle> \<in> act\<rbrakk> \<Longrightarrow> f(s) = f(t)"
-apply (unfold preserves_def stable_def constrains_def)
+  unfolding preserves_def stable_def constrains_def
 apply (subgoal_tac "s \<in> state \<and> t \<in> state")
  prefer 2 apply (blast dest!: Acts_type [THEN subsetD], force) 
 done
@@ -224,7 +224,7 @@ by (blast intro: preserves_subset_stable [THEN subsetD])
 
 lemma preserves_imp_increasing: 
  "\<lbrakk>F \<in> preserves(f); \<forall>x \<in> state. f(x):A\<rbrakk> \<Longrightarrow> F \<in> Increasing.increasing(A, r, f)"
-apply (unfold Increasing.increasing_def)
+  unfolding Increasing.increasing_def
 apply (auto intro: preserves_into_program)
 apply (rule_tac P = "\<lambda>x. \<langle>k, x\<rangle>:r" in preserves_imp_stable, auto)
 done
@@ -324,7 +324,7 @@ lemma stable_Join_Stable:
      \<forall>k \<in> A. F \<squnion> G \<in> Stable({s \<in> state. P(k, g(s))});  
      G \<in> preserves(f); \<forall>s \<in> state. f(s):A\<rbrakk>
   \<Longrightarrow> F \<squnion> G \<in> Stable({s \<in> state. P(f(s), g(s))})"
-apply (unfold stable_def Stable_def preserves_def)
+  unfolding stable_def Stable_def preserves_def
 apply (rule_tac A = "(\<Union>k \<in> A. {s \<in> state. f(s)=k} \<inter> {s \<in> state. P (f (s), g (s))})" in Constrains_weaken_L)
 prefer 2 apply blast
 apply (rule Constrains_UN_left, auto)

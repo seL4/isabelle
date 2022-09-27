@@ -187,7 +187,7 @@ lemma ClEx_iff:
      "\<lbrakk>y\<in>Mset(a); Cl(a); ClEx(P,a);
         \<And>a. \<lbrakk>Cl(a); Ord(a)\<rbrakk> \<Longrightarrow> \<forall>x\<in>Mset(a). P(x) \<longleftrightarrow> Q(a,x)\<rbrakk>
       \<Longrightarrow> (\<exists>z. M(z) \<and> P(\<langle>y,z\<rangle>)) \<longleftrightarrow> (\<exists>z\<in>Mset(a). Q(a,\<langle>y,z\<rangle>))"
-apply (unfold ClEx_def FF_def F0_def M_def)
+  unfolding ClEx_def FF_def F0_def M_def
 apply (rule ex_reflection.ZF_ClEx_iff
   [OF ex_reflection.intro, OF reflection.intro ex_reflection_axioms.intro,
     of Mset Cl])
@@ -204,7 +204,7 @@ apply (simp add: ex_reflection_axioms.intro, assumption+)
 lemma Closed_Unbounded_ClEx:
      "(\<And>a. \<lbrakk>Cl(a); Ord(a)\<rbrakk> \<Longrightarrow> \<forall>x\<in>Mset(a). P(x) \<longleftrightarrow> Q(a,x))
       \<Longrightarrow> Closed_Unbounded(ClEx(P))"
-apply (unfold ClEx_eq FF_def F0_def M_def)
+  unfolding ClEx_eq FF_def F0_def M_def
 apply (rule ex_reflection.ZF_Closed_Unbounded_ClEx [of Mset _ _ Cl])
 apply (rule ex_reflection.intro, rule reflection_axioms)
 apply (blast intro: ex_reflection_axioms.intro)

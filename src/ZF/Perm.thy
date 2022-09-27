@@ -177,7 +177,7 @@ done
 lemmas id_inj = subset_refl [THEN id_subset_inj]
 
 lemma id_surj: "id(A): surj(A,A)"
-apply (unfold id_def surj_def)
+  unfolding id_def surj_def
 apply (simp (no_asm_simp))
 done
 

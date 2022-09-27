@@ -67,7 +67,7 @@ declare v_closNE [THEN notE, elim!]
 
 
 lemma v_constNE [simp]: "c \<in> Const \<Longrightarrow> v_const(c) \<noteq> 0"
-apply (unfold QPair_def QInl_def QInr_def Val_ValEnv.con_defs)
+  unfolding QPair_def QInl_def QInr_def Val_ValEnv.con_defs
 apply (drule constNEE, auto)
 done
 

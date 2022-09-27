@@ -53,7 +53,7 @@ by (simp add: Increasing_def Follows_def)
 lemma subset_Always_comp:
 "\<lbrakk>mono1(A, r, B, s, h); \<forall>x \<in> state. f(x):A \<and> g(x):A\<rbrakk> \<Longrightarrow>
    Always({x \<in> state. <f(x), g(x)> \<in> r})<=Always({x \<in> state. <(h comp f)(x), (h comp g)(x)> \<in> s})"
-apply (unfold mono1_def metacomp_def)
+  unfolding mono1_def metacomp_def
 apply (auto simp add: Always_eq_includes_reachable)
 done
 
@@ -110,7 +110,7 @@ lemma imp_LeadsTo_comp_right:
   mono2(A, r, B, s, C, t, h); refl(A, r); refl(B, s); trans[C](t);
   \<forall>x \<in> state. f1(x):A \<and> f(x):A \<and> g(x):B; k \<in> C\<rbrakk> \<Longrightarrow>
   F:{x \<in> state. <k, h(f(x), g(x))> \<in> t} \<longmapsto>w {x \<in> state. <k, h(f1(x), g(x))> \<in> t}"
-apply (unfold mono2_def Increasing_def)
+  unfolding mono2_def Increasing_def
 apply (rule single_LeadsTo_I, auto)
 apply (drule_tac x = "g (sa) " and A = B in bspec)
 apply auto
@@ -133,7 +133,7 @@ lemma imp_LeadsTo_comp_left:
   mono2(A, r, B, s, C, t, h); refl(A,r); refl(B, s); trans[C](t);
   \<forall>x \<in> state. f(x):A \<and> g1(x):B \<and> g(x):B; k \<in> C\<rbrakk> \<Longrightarrow>
   F:{x \<in> state. <k, h(f(x), g(x))> \<in> t} \<longmapsto>w {x \<in> state. <k, h(f(x), g1(x))> \<in> t}"
-apply (unfold mono2_def Increasing_def)
+  unfolding mono2_def Increasing_def
 apply (rule single_LeadsTo_I, auto)
 apply (drule_tac x = "f (sa) " and P = "\<lambda>k. F \<in> Stable (X (k))" for X in bspec)
 apply auto
@@ -275,7 +275,7 @@ by (blast intro: Follows_imp_LeadsTo)
 lemma Always_Follows1:
 "\<lbrakk>F \<in> Always({s \<in> state. f(s) = g(s)}); F \<in> Follows(A, r, f, h);
     \<forall>x \<in> state. g(x):A\<rbrakk> \<Longrightarrow> F \<in> Follows(A, r, g, h)"
-apply (unfold Follows_def Increasing_def Stable_def)
+  unfolding Follows_def Increasing_def Stable_def
 apply (simp add: INT_iff, auto)
 apply (rule_tac [3] C = "{s \<in> state. f(s)=g(s)}"
         and A = "{s \<in> state. <k, h (s)> \<in> r}"
@@ -293,7 +293,7 @@ done
 lemma Always_Follows2:
 "\<lbrakk>F \<in> Always({s \<in> state. g(s) = h(s)});
   F \<in> Follows(A, r, f, g); \<forall>x \<in> state. h(x):A\<rbrakk> \<Longrightarrow> F \<in> Follows(A, r, f, h)"
-apply (unfold Follows_def Increasing_def Stable_def)
+  unfolding Follows_def Increasing_def Stable_def
 apply (simp add: INT_iff, auto)
 apply (rule_tac [3] C = "{s \<in> state. g (s) =h (s) }"
             and A = "{s \<in> state. <k, g (s) > \<in> r}"
@@ -352,7 +352,7 @@ by (unfold MultLe_def refl_def, auto)
 
 lemma MultLe_refl1 [simp]:
  "\<lbrakk>multiset(M); mset_of(M)<=A\<rbrakk> \<Longrightarrow> \<langle>M, M\<rangle> \<in> MultLe(A, r)"
-apply (unfold MultLe_def id_def lam_def)
+  unfolding MultLe_def id_def lam_def
 apply (auto simp add: Mult_iff_multiset)
 done
 
@@ -361,7 +361,7 @@ by (unfold MultLe_def id_def lam_def, auto)
 
 
 lemma trans_on_MultLe [simp]: "trans[Mult(A)](MultLe(A,r))"
-apply (unfold MultLe_def trans_on_def)
+  unfolding MultLe_def trans_on_def
 apply (auto intro: trancl_trans simp add: multirel_def)
 done
 
@@ -379,7 +379,7 @@ done
 
 lemma part_order_imp_part_ord:
      "part_order(A, r) \<Longrightarrow> part_ord(A, r-id(A))"
-apply (unfold part_order_def part_ord_def)
+  unfolding part_order_def part_ord_def
 apply (simp add: refl_def id_def lam_def irrefl_def, auto)
 apply (simp (no_asm) add: trans_on_def)
 apply auto
@@ -390,7 +390,7 @@ done
 
 lemma antisym_MultLe [simp]:
   "part_order(A, r) \<Longrightarrow> antisym(MultLe(A,r))"
-apply (unfold MultLe_def antisym_def)
+  unfolding MultLe_def antisym_def
 apply (drule part_order_imp_part_ord, auto)
 apply (drule irrefl_on_multirel)
 apply (frule multirel_type [THEN subsetD])

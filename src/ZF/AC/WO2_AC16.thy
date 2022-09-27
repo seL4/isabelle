@@ -394,7 +394,7 @@ lemma bij_imp_arg_eq:
       \<Longrightarrow> b=y"
 apply (drule subset_imp_eq)
 apply (erule_tac [3] nat_succI)
-apply (unfold bij_def inj_def)
+  unfolding bij_def inj_def
 apply (blast intro: eqpoll_sym eqpoll_imp_lepoll
              dest:  ltD apply_type)+
 done

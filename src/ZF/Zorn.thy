@@ -312,7 +312,7 @@ apply rule
 apply (rule ccontr)
 apply (frule_tac z=z in chain_extend)
   apply (assumption, blast)
-apply (unfold maxchain_def super_def)
+  unfolding maxchain_def super_def
 apply (blast elim!: equalityCE)
 done
 
@@ -346,7 +346,7 @@ lemma well_ord_TFin:
      "next \<in> increasing(S) 
       \<Longrightarrow> well_ord(TFin(S,next), Subset_rel(TFin(S,next)))"
 apply (rule well_ordI)
-apply (unfold Subset_rel_def linear_def)
+  unfolding Subset_rel_def linear_def
 txt\<open>Prove the well-foundedness goal\<close>
 apply (rule wf_onI)
 apply (frule well_ord_TFin_lemma, assumption)

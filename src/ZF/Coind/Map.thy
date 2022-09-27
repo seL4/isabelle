@@ -81,7 +81,7 @@ done
 
 lemma mapQU:
   "\<lbrakk>m \<in> PMap(A,quniv(B)); \<And>x. x \<in> A \<Longrightarrow> x \<in> univ(B)\<rbrakk> \<Longrightarrow> m \<in> quniv(B)"
-apply (unfold PMap_def TMap_def)
+  unfolding PMap_def TMap_def
 apply (blast intro!: MapQU_lemma [THEN subsetD]) 
 done
 

@@ -85,7 +85,7 @@ text \<open>
 \<close>
 
 lemma ntree_mono: "A \<subseteq> B \<Longrightarrow> ntree(A) \<subseteq> ntree(B)"
-  apply (unfold ntree.defs)
+    unfolding ntree.defs
   apply (rule lfp_mono)
     apply (rule ntree.bnd_mono)+
   apply (assumption | rule univ_mono basic_monos)+
@@ -93,7 +93,7 @@ lemma ntree_mono: "A \<subseteq> B \<Longrightarrow> ntree(A) \<subseteq> ntree(
 
 lemma ntree_univ: "ntree(univ(A)) \<subseteq> univ(A)"
   \<comment> \<open>Easily provable by induction also\<close>
-  apply (unfold ntree.defs ntree.con_defs)
+    unfolding ntree.defs ntree.con_defs
   apply (rule lfp_lowerbound)
    apply (rule_tac [2] A_subset_univ [THEN univ_mono])
   apply (blast intro: Pair_in_univ nat_fun_univ [THEN subsetD])

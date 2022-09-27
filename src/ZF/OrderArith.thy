@@ -325,13 +325,13 @@ subsubsection\<open>Partial Ordering Properties\<close>
 
 lemma irrefl_rvimage:
     "\<lbrakk>f \<in> inj(A,B);  irrefl(B,r)\<rbrakk> \<Longrightarrow> irrefl(A, rvimage(A,f,r))"
-apply (unfold irrefl_def rvimage_def)
+  unfolding irrefl_def rvimage_def
 apply (blast intro: inj_is_fun [THEN apply_type])
 done
 
 lemma trans_on_rvimage:
     "\<lbrakk>f \<in> inj(A,B);  trans[B](r)\<rbrakk> \<Longrightarrow> trans[A](rvimage(A,f,r))"
-apply (unfold trans_on_def rvimage_def)
+  unfolding trans_on_def rvimage_def
 apply (blast intro: inj_is_fun [THEN apply_type])
 done
 
@@ -384,7 +384,7 @@ done
 lemma well_ord_rvimage:
      "\<lbrakk>f \<in> inj(A,B);  well_ord(B,r)\<rbrakk> \<Longrightarrow> well_ord(A, rvimage(A,f,r))"
 apply (rule well_ordI)
-apply (unfold well_ord_def tot_ord_def)
+  unfolding well_ord_def tot_ord_def
 apply (blast intro!: wf_on_rvimage inj_is_fun)
 apply (blast intro!: linear_rvimage)
 done

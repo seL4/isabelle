@@ -33,14 +33,14 @@ text \<open>
 \<close>
 
 lemma bt_mono: "A \<subseteq> B \<Longrightarrow> bt(A) \<subseteq> bt(B)"
-  apply (unfold bt.defs)
+    unfolding bt.defs
   apply (rule lfp_mono)
     apply (rule bt.bnd_mono)+
   apply (rule univ_mono basic_monos | assumption)+
   done
 
 lemma bt_univ: "bt(univ(A)) \<subseteq> univ(A)"
-  apply (unfold bt.defs bt.con_defs)
+    unfolding bt.defs bt.con_defs
   apply (rule lfp_lowerbound)
    apply (rule_tac [2] A_subset_univ [THEN univ_mono])
   apply (fast intro!: zero_in_univ Inl_in_univ Inr_in_univ Pair_in_univ)

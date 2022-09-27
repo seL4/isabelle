@@ -154,7 +154,7 @@ by (blast intro!: list.intros [unfolded list.con_defs]
 (**  Lemmas to justify using "list" in other recursive type definitions **)
 
 lemma list_mono: "A<=B \<Longrightarrow> list(A) \<subseteq> list(B)"
-apply (unfold list.defs )
+  unfolding list.defs 
 apply (rule lfp_mono)
 apply (simp_all add: list.bnd_mono)
 apply (assumption | rule univ_mono basic_monos)+
@@ -162,7 +162,7 @@ done
 
 (*There is a similar proof by list induction.*)
 lemma list_univ: "list(univ(A)) \<subseteq> univ(A)"
-apply (unfold list.defs list.con_defs)
+  unfolding list.defs list.con_defs
 apply (rule lfp_lowerbound)
 apply (rule_tac [2] A_subset_univ [THEN univ_mono])
 apply (blast intro!: zero_in_univ Inl_in_univ Inr_in_univ Pair_in_univ)

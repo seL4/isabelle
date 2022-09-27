@@ -19,7 +19,7 @@ lemma AC0_AC1_lemma: "\<lbrakk>f:(\<Prod>X \<in> A. X); D \<subseteq> A\<rbrakk>
 by (fast intro!: lam_type apply_type)
 
 lemma AC0_AC1: "AC0 \<Longrightarrow> AC1"
-apply (unfold AC0_def AC1_def)
+  unfolding AC0_def AC1_def
 apply (blast intro: AC0_AC1_lemma)
 done
 
@@ -35,7 +35,7 @@ apply (drule apply_type, assumption, fast)
 done
 
 lemma AC1_AC17: "AC1 \<Longrightarrow> AC17"
-apply (unfold AC1_def AC17_def)
+  unfolding AC1_def AC17_def
 apply (rule allI)
 apply (rule ballI)
 apply (erule_tac x = "Pow (A) -{0}" in allE)
@@ -152,7 +152,7 @@ lemma AC1_AC2_aux2:
 by (unfold pairwise_disjoint_def, fast)
 
 lemma AC1_AC2: "AC1 \<Longrightarrow> AC2"
-apply (unfold AC1_def AC2_def)
+  unfolding AC1_def AC2_def
 apply (rule allI)
 apply (rule impI)  
 apply (elim asm_rl conjE allE exE impE, assumption)
@@ -185,7 +185,7 @@ apply (blast intro: AC2_AC1_aux2 fst_type)
 done
 
 lemma AC2_AC1: "AC2 \<Longrightarrow> AC1"
-apply (unfold AC1_def AC2_def pairwise_disjoint_def)
+  unfolding AC1_def AC2_def pairwise_disjoint_def
 apply (intro allI impI)
 apply (elim allE impE)
 prefer 2 apply (fast elim!: AC2_AC1_aux3) 
@@ -201,7 +201,7 @@ lemma empty_notin_images: "0 \<notin> {R``{x}. x \<in> domain(R)}"
 by blast
 
 lemma AC1_AC4: "AC1 \<Longrightarrow> AC4"
-apply (unfold AC1_def AC4_def)
+  unfolding AC1_def AC4_def
 apply (intro allI impI)
 apply (drule spec, drule mp [OF _ empty_notin_images]) 
 apply (best intro!: lam_type elim!: apply_type)
@@ -222,7 +222,7 @@ lemma AC4_AC3_aux3: "x \<in> A \<Longrightarrow> (\<Union>z \<in> A. {z}*f(z))``
 by fast
 
 lemma AC4_AC3: "AC4 \<Longrightarrow> AC3"
-apply (unfold AC3_def AC4_def)
+  unfolding AC3_def AC4_def
 apply (intro allI ballI)
 apply (elim allE impE)
 apply (erule AC4_AC3_aux1)
@@ -240,7 +240,7 @@ apply (rule_tac b = A in subst_context, fast)
 done
 
 lemma AC3_AC1: "AC3 \<Longrightarrow> AC1"
-apply (unfold AC1_def AC3_def)
+  unfolding AC1_def AC3_def
 apply (fast intro!: id_type elim: AC3_AC1_lemma [THEN subst])
 done
 
@@ -249,7 +249,7 @@ done
 (* ********************************************************************** *)
 
 lemma AC4_AC5: "AC4 \<Longrightarrow> AC5"
-apply (unfold range_def AC4_def AC5_def)
+  unfolding range_def AC4_def AC5_def
 apply (intro allI ballI)
 apply (elim allE impE)
 apply (erule fun_is_rel [THEN converse_type])

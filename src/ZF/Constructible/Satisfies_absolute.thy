@@ -890,7 +890,7 @@ lemma Nand_Reflects:
        fun_apply(##Lset(i), rp, u, rpe) \<and> fun_apply(##Lset(i), rq, u, rqe) \<and>
        is_and(##Lset(i), rpe, rqe, andpq) \<and> is_not(##Lset(i), andpq, notpq) \<and>
        u \<in> list(A) \<and> pair(##Lset(i), u, notpq, x))]"
-apply (unfold is_and_def is_not_def) 
+  unfolding is_and_def is_not_def 
 apply (intro FOL_reflections function_reflections)
 done
 

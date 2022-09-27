@@ -134,7 +134,7 @@ by (unfold AC10_def AC11_def AC11_def AC12_def, blast)
 (* ********************************************************************** *)
 
 theorem AC12_AC15: "AC12 \<Longrightarrow> AC15"
-apply (unfold AC12_def AC15_def)
+  unfolding AC12_def AC15_def
 apply (blast del: ballI 
              intro!: cons_times_nat_not_Finite ex_fun_AC13_AC15)
 done
@@ -168,7 +168,7 @@ apply (blast dest!: HH_subset_x_imp_subset_Diff_UN [THEN not_emptyI2])
 done
 
 theorem AC15_WO6: "AC15 \<Longrightarrow> WO6"
-apply (unfold AC15_def WO6_def)
+  unfolding AC15_def WO6_def
 apply (rule allI)
 apply (erule_tac x = "Pow (A) -{0}" in allE)
 apply (erule impE, fast)
@@ -212,7 +212,7 @@ done
 (* ********************************************************************** *)
 
 lemma AC1_AC13: "AC1 \<Longrightarrow> AC13(1)"
-apply (unfold AC1_def AC13_def)
+  unfolding AC1_def AC13_def
 apply (rule allI)
 apply (erule allE)
 apply (rule impI)
@@ -272,7 +272,7 @@ apply (simp add: the_equality)
 done
 
 theorem AC13_AC1: "AC13(1) \<Longrightarrow> AC1"
-apply (unfold AC13_def AC1_def)
+  unfolding AC13_def AC1_def
 apply (fast elim!: AC13_AC1_lemma)
 done
 
@@ -281,7 +281,7 @@ done
 (* ********************************************************************** *)
 
 theorem AC11_AC14: "AC11 \<Longrightarrow> AC14"
-apply (unfold AC11_def AC14_def)
+  unfolding AC11_def AC14_def
 apply (fast intro!: AC10_AC13)
 done
 

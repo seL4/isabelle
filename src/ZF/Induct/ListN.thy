@@ -37,7 +37,7 @@ lemma listn_image_eq: "listn(A)``{n} = {l \<in> list(A). length(l)=n}"
   done
 
 lemma listn_mono: "A \<subseteq> B \<Longrightarrow> listn(A) \<subseteq> listn(B)"
-  apply (unfold listn.defs)
+    unfolding listn.defs
   apply (rule lfp_mono)
     apply (rule listn.bnd_mono)+
   apply (assumption | rule univ_mono Sigma_mono list_mono basic_monos)+

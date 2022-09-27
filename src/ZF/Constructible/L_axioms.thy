@@ -205,7 +205,7 @@ by (blast intro: reflection.intro Lset_mono_le Lset_cont
 theorem Ex_reflection:
      "REFLECTS[\<lambda>x. P(fst(x),snd(x)), \<lambda>a x. Q(a,fst(x),snd(x))]
       \<Longrightarrow> REFLECTS[\<lambda>x. \<exists>z. L(z) \<and> P(x,z), \<lambda>a x. \<exists>z\<in>Lset(a). Q(a,x,z)]"
-apply (unfold L_Reflects_def L_ClEx_def L_FF_def L_F0_def L_def)
+  unfolding L_Reflects_def L_ClEx_def L_FF_def L_F0_def L_def
 apply (elim meta_exE)
 apply (rule meta_exI)
 apply (erule reflection.Ex_reflection [OF reflection_Lset])
@@ -214,7 +214,7 @@ done
 theorem All_reflection:
      "REFLECTS[\<lambda>x. P(fst(x),snd(x)), \<lambda>a x. Q(a,fst(x),snd(x))]
       \<Longrightarrow> REFLECTS[\<lambda>x. \<forall>z. L(z) \<longrightarrow> P(x,z), \<lambda>a x. \<forall>z\<in>Lset(a). Q(a,x,z)]"
-apply (unfold L_Reflects_def L_ClEx_def L_FF_def L_F0_def L_def)
+  unfolding L_Reflects_def L_ClEx_def L_FF_def L_F0_def L_def
 apply (elim meta_exE)
 apply (rule meta_exI)
 apply (erule reflection.All_reflection [OF reflection_Lset])
@@ -239,7 +239,7 @@ text\<open>This version handles an alternative form of the bounded quantifier
 theorem Rex_reflection':
      "REFLECTS[\<lambda>x. P(fst(x),snd(x)), \<lambda>a x. Q(a,fst(x),snd(x))]
       \<Longrightarrow> REFLECTS[\<lambda>x. \<exists>z[L]. P(x,z), \<lambda>a x. \<exists>z[##Lset(a)]. Q(a,x,z)]"
-apply (unfold setclass_def rex_def)
+  unfolding setclass_def rex_def
 apply (erule Rex_reflection [unfolded rex_def Bex_def]) 
 done
 
@@ -247,7 +247,7 @@ text\<open>As above.\<close>
 theorem Rall_reflection':
      "REFLECTS[\<lambda>x. P(fst(x),snd(x)), \<lambda>a x. Q(a,fst(x),snd(x))]
       \<Longrightarrow> REFLECTS[\<lambda>x. \<forall>z[L]. P(x,z), \<lambda>a x. \<forall>z[##Lset(a)]. Q(a,x,z)]"
-apply (unfold setclass_def rall_def)
+  unfolding setclass_def rall_def
 apply (erule Rall_reflection [unfolded rall_def Ball_def]) 
 done
 
@@ -259,7 +259,7 @@ lemmas FOL_reflections =
 lemma ReflectsD:
      "\<lbrakk>REFLECTS[P,Q]; Ord(i)\<rbrakk>
       \<Longrightarrow> \<exists>j. i<j \<and> (\<forall>x \<in> Lset(j). P(x) \<longleftrightarrow> Q(j,x))"
-apply (unfold L_Reflects_def Closed_Unbounded_def)
+  unfolding L_Reflects_def Closed_Unbounded_def
 apply (elim meta_exE, clarify)
 apply (blast dest!: UnboundedD)
 done

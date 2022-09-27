@@ -125,7 +125,7 @@ lemma lepoll_eq_trans [trans]: "\<lbrakk>X \<lesssim> Y;  Y \<approx> Z\<rbrakk>
 
 (*Asymmetry law*)
 lemma eqpollI: "\<lbrakk>X \<lesssim> Y;  Y \<lesssim> X\<rbrakk> \<Longrightarrow> X \<approx> Y"
-apply (unfold lepoll_def eqpoll_def)
+  unfolding lepoll_def eqpoll_def
 apply (elim exE)
 apply (rule schroeder_bernstein, assumption+)
 done
@@ -138,7 +138,7 @@ lemma eqpoll_iff: "X \<approx> Y \<longleftrightarrow> X \<lesssim> Y \<and> Y \
 by (blast intro: eqpollI elim!: eqpollE)
 
 lemma lepoll_0_is_0: "A \<lesssim> 0 \<Longrightarrow> A = 0"
-apply (unfold lepoll_def inj_def)
+  unfolding lepoll_def inj_def
 apply (blast dest: apply_type)
 done
 
@@ -332,7 +332,7 @@ by simp
 (*Need AC to get @{term"X \<lesssim> Y \<Longrightarrow> |X| \<le> |Y|"};  see well_ord_lepoll_imp_cardinal_le
   Converse also requires AC, but see well_ord_cardinal_eqE*)
 lemma cardinal_cong: "X \<approx> Y \<Longrightarrow> |X| = |Y|"
-apply (unfold eqpoll_def cardinal_def)
+  unfolding eqpoll_def cardinal_def
 apply (rule Least_cong)
 apply (blast intro: comp_bij bij_converse_bij)
 done
@@ -380,13 +380,13 @@ done
 
 (* Could replace the  @{term"\<not>(j \<approx> i)"}  by  @{term"\<not>(i \<preceq> j)"}. *)
 lemma CardI: "\<lbrakk>Ord(i);  \<And>j. j<i \<Longrightarrow> \<not>(j \<approx> i)\<rbrakk> \<Longrightarrow> Card(i)"
-apply (unfold Card_def cardinal_def)
+  unfolding Card_def cardinal_def
 apply (subst Least_equality)
 apply (blast intro: eqpoll_refl)+
 done
 
 lemma Card_is_Ord: "Card(i) \<Longrightarrow> Ord(i)"
-apply (unfold Card_def cardinal_def)
+  unfolding Card_def cardinal_def
 apply (erule ssubst)
 apply (rule Ord_Least)
 done
@@ -621,7 +621,7 @@ by (rule nat_lepoll_imp_le [THEN lt_irrefl], auto)
 
 lemma nat_lepoll_imp_ex_eqpoll_n:
      "\<lbrakk>n \<in> nat;  nat \<lesssim> X\<rbrakk> \<Longrightarrow> \<exists>Y. Y \<subseteq> X \<and> n \<approx> Y"
-apply (unfold lepoll_def eqpoll_def)
+  unfolding lepoll_def eqpoll_def
 apply (fast del: subsetI subsetCE
             intro!: subset_SIs
             dest!: Ord_nat [THEN [2] OrdmemD, THEN [2] restrict_inj]
@@ -650,7 +650,7 @@ qed
 
 lemma lesspoll_succ_imp_lepoll:
      "\<lbrakk>A \<prec> succ(m); m \<in> nat\<rbrakk> \<Longrightarrow> A \<lesssim> m"
-apply (unfold lesspoll_def lepoll_def eqpoll_def bij_def)
+  unfolding lesspoll_def lepoll_def eqpoll_def bij_def
 apply (auto dest: inj_not_surj_succ)
 done
 
@@ -951,7 +951,7 @@ done
 
 lemma Finite_imp_well_ord:
     "Finite(A) \<Longrightarrow> \<exists>r. well_ord(A,r)"
-apply (unfold Finite_def eqpoll_def)
+  unfolding Finite_def eqpoll_def
 apply (blast intro: well_ord_rvimage bij_is_inj well_ord_Memrel nat_into_Ord)
 done
 

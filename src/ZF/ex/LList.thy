@@ -91,7 +91,7 @@ done
 (*** Lemmas to justify using "llist" in other recursive type definitions ***)
 
 lemma llist_mono: "A \<subseteq> B \<Longrightarrow> llist(A) \<subseteq> llist(B)"
-apply (unfold llist.defs )
+  unfolding llist.defs 
 apply (rule gfp_mono)
 apply (rule llist.bnd_mono)
 apply (assumption | rule quniv_mono basic_monos)+
@@ -184,7 +184,7 @@ done
 (*** lconst -- defined directly using lfp, but equivalent to a LList_corec ***)
 
 lemma lconst_fun_bnd_mono: "bnd_mono(univ(a), \<lambda>l. LCons(a,l))"
-apply (unfold llist.con_defs )
+  unfolding llist.con_defs 
 apply (rule bnd_monoI)
 apply (blast intro: A_subset_univ QInr_subset_univ)
 apply (blast intro: subset_refl QInr_mono QPair_mono)

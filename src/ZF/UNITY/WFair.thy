@@ -165,13 +165,13 @@ by (unfold leadsTo_def, auto)
 
 lemma leadsToD2:
 "F \<in> A \<longmapsto> B \<Longrightarrow> F \<in> program \<and> st_set(A) \<and> st_set(B)"
-apply (unfold leadsTo_def st_set_def)
+  unfolding leadsTo_def st_set_def
 apply (blast dest: leads_left leads_right)
 done
 
 lemma leadsTo_Basis:
     "\<lbrakk>F \<in> A ensures B; st_set(A); st_set(B)\<rbrakk> \<Longrightarrow> F \<in> A \<longmapsto> B"
-apply (unfold leadsTo_def st_set_def)
+  unfolding leadsTo_def st_set_def
 apply (cut_tac ensures_type)
 apply (auto intro: leads.Basis)
 done
@@ -204,14 +204,14 @@ by (simp add: Un_ac)
 lemma leadsTo_Union:
     "\<lbrakk>\<And>A. A \<in> S \<Longrightarrow> F \<in> A \<longmapsto> B; F \<in> program; st_set(B)\<rbrakk>
      \<Longrightarrow> F \<in> \<Union>(S) \<longmapsto> B"
-apply (unfold leadsTo_def st_set_def)
+  unfolding leadsTo_def st_set_def
 apply (blast intro: leads.Union dest: leads_left)
 done
 
 lemma leadsTo_Union_Int:
     "\<lbrakk>\<And>A. A \<in> S \<Longrightarrow>F \<in> (A \<inter> C) \<longmapsto> B; F \<in> program; st_set(B)\<rbrakk>
      \<Longrightarrow> F \<in> (\<Union>(S)Int C)\<longmapsto> B"
-apply (unfold leadsTo_def st_set_def)
+  unfolding leadsTo_def st_set_def
 apply (simp only: Int_Union_Union)
 apply (blast dest: leads_left intro: leads.Union)
 done
@@ -441,7 +441,7 @@ done
 
 lemma psp_ensures:
 "\<lbrakk>F \<in> A ensures A'; F \<in> B co B'\<rbrakk>\<Longrightarrow> F: (A \<inter> B') ensures ((A' \<inter> B) \<union> (B' - B))"
-apply (unfold ensures_def constrains_def st_set_def)
+  unfolding ensures_def constrains_def st_set_def
 (*speeds up the proof*)
 apply clarify
 apply (blast intro: transient_strengthen)

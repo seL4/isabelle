@@ -87,7 +87,7 @@ apply force
 done
 
 lemma succ_not_lepoll_imp_eqpoll: "\<lbrakk>\<not>A \<approx> B; A \<lesssim> B\<rbrakk> \<Longrightarrow> succ(A) \<lesssim> B"
-apply (unfold lepoll_def eqpoll_def bij_def surj_def)
+  unfolding lepoll_def eqpoll_def bij_def surj_def
 apply (fast elim!: succ_not_lepoll_lemma inj_is_fun)
 done
 
@@ -254,7 +254,7 @@ by (unfold s_def, blast)
 lemma sI: 
       "\<lbrakk>w \<in> t_n; cons(b,cons(u,a)) \<subseteq> w; a \<subseteq> y; b \<in> y-a; l \<approx> a\<rbrakk> 
        \<Longrightarrow> w \<in> s(u)"
-apply (unfold s_def succ_def k_def)
+  unfolding s_def succ_def k_def
 apply (blast intro!: eqpoll_imp_lepoll [THEN cons_lepoll_cong]
              intro: subset_imp_lepoll lepoll_trans)
 done
@@ -394,7 +394,7 @@ done
 
 
 lemma LL_subset: "LL \<subseteq> {z \<in> Pow(y). z \<lesssim> succ(k #+ m)}"
-apply (unfold LL_def MM_def)
+  unfolding LL_def MM_def
 apply (insert "includes")
 apply (blast intro: subset_imp_lepoll eqpoll_imp_lepoll lepoll_trans)
 done
@@ -563,7 +563,7 @@ end
 
 theorem AC16_WO4: 
      "\<lbrakk>AC_Equiv.AC16(k #+ m, k); 0 < k; 0 < m; k \<in> nat; m \<in> nat\<rbrakk> \<Longrightarrow> WO4(m)"
-apply (unfold AC_Equiv.AC16_def WO4_def)
+  unfolding AC_Equiv.AC16_def WO4_def
 apply (rule allI)
 apply (case_tac "Finite (A)")
 apply (rule lemma1, assumption+)

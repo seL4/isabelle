@@ -52,7 +52,7 @@ done
 (* A special case of square_rtrancl_on *)
 lemma diamond_strip:
   "diamond(r) \<Longrightarrow> strip(r)"
-apply (unfold diamond_def commute_def strip_def)
+  unfolding diamond_def commute_def strip_def
 apply (rule square_rtrancl, simp_all)
 done
 
@@ -74,7 +74,7 @@ lemma confluentD: "confluent(r) \<Longrightarrow> diamond(r^*)"
 by (simp add: confluent_def)
 
 lemma strip_confluent: "strip(r) \<Longrightarrow> confluent(r)"
-apply (unfold strip_def confluent_def diamond_def)
+  unfolding strip_def confluent_def diamond_def
 apply (drule commute_rtrancl)
 apply (simp_all add: rtrancl_field)
 done
@@ -88,7 +88,7 @@ lemma diamond_Un:
 
 lemma diamond_confluent:
     "diamond(r) \<Longrightarrow> confluent(r)"
-apply (unfold diamond_def confluent_def)
+  unfolding diamond_def confluent_def
 apply (erule commute_rtrancl, simp)
 done
 

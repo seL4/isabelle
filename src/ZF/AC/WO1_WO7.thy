@@ -21,7 +21,7 @@ definition
 (* ********************************************************************** *)
 
 lemma WO7_iff_LEMMA: "WO7 \<longleftrightarrow> LEMMA"
-apply (unfold WO7_def LEMMA_def)
+  unfolding WO7_def LEMMA_def
 apply (blast intro: Finite_well_ord_converse)
 done
 
@@ -30,7 +30,7 @@ done
 (* ********************************************************************** *)
 
 lemma LEMMA_imp_WO1: "LEMMA \<Longrightarrow> WO1"
-apply (unfold WO1_def LEMMA_def Finite_def eqpoll_def)
+  unfolding WO1_def LEMMA_def Finite_def eqpoll_def
 apply (blast intro!: well_ord_rvimage [OF bij_is_inj nat_implies_well_ord])
 done
 
@@ -49,7 +49,7 @@ done
 
 lemma converse_Memrel_not_wf_on: 
     "\<lbrakk>Ord(a); \<not>Finite(a)\<rbrakk> \<Longrightarrow> \<not>wf[a](converse(Memrel(a)))"
-apply (unfold wf_on_def wf_def)
+  unfolding wf_on_def wf_def
 apply (drule nat_le_infinite_Ord [THEN le_imp_subset], assumption)
 apply (rule notI)
 apply (erule_tac x = nat in allE, blast)
@@ -102,7 +102,7 @@ by (unfold WO1_def WO8_def, fast)
 
 (* The implication "WO8 \<Longrightarrow> WO1": a faithful image of Rubin \<and> Rubin's proof*)
 lemma WO8_WO1: "WO8 \<Longrightarrow> WO1"
-apply (unfold WO1_def WO8_def)
+  unfolding WO1_def WO8_def
 apply (rule allI)
 apply (erule_tac x = "{{x}. x \<in> A}" in allE)
 apply (erule impE)

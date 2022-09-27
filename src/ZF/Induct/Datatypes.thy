@@ -32,14 +32,14 @@ text \<open>
 \<close>
 
 lemma data_mono: "\<lbrakk>A \<subseteq> C; B \<subseteq> D\<rbrakk> \<Longrightarrow> data(A, B) \<subseteq> data(C, D)"
-  apply (unfold data.defs)
+    unfolding data.defs
   apply (rule lfp_mono)
    apply (rule data.bnd_mono)+
   apply (rule univ_mono Un_mono basic_monos | assumption)+
   done
 
 lemma data_univ: "data(univ(A), univ(A)) \<subseteq> univ(A)"
-  apply (unfold data.defs data.con_defs)
+    unfolding data.defs data.con_defs
   apply (rule lfp_lowerbound)
    apply (rule_tac [2] subset_trans [OF A_subset_univ Un_upper1, THEN univ_mono])
   apply (fast intro!: zero_in_univ Inl_in_univ Inr_in_univ Pair_in_univ)

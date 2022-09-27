@@ -196,7 +196,7 @@ done
 
 (*Transitivity of r^+ is proved by transitivity of r^*  *)
 lemma trans_trancl: "trans(r^+)"
-apply (unfold trans_def trancl_def)
+  unfolding trans_def trancl_def
 apply (blast intro: rtrancl_into_rtrancl
                     trans_rtrancl [THEN transD, THEN compI])
 done

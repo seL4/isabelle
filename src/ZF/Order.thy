@@ -362,7 +362,7 @@ done
 
 lemma well_ord_ord_iso:
     "\<lbrakk>well_ord(B,s);  f \<in> ord_iso(A,r,B,s)\<rbrakk> \<Longrightarrow> well_ord(A,r)"
-apply (unfold well_ord_def tot_ord_def)
+  unfolding well_ord_def tot_ord_def
 apply (fast elim!: part_ord_ord_iso linear_ord_iso wf_on_ord_iso)
 done
 
@@ -409,7 +409,7 @@ done
 (*Does not assume r is a wellordering!*)
 lemma ord_iso_image_pred:
      "\<lbrakk>f \<in> ord_iso(A,r,B,s);  a \<in> A\<rbrakk> \<Longrightarrow> f `` pred(A,a,r) = pred(B, f`a, s)"
-apply (unfold ord_iso_def pred_def)
+  unfolding ord_iso_def pred_def
 apply (erule CollectE)
 apply (simp (no_asm_simp) add: image_fun [OF bij_is_fun Collect_subset])
 apply (rule equalityI)
@@ -500,7 +500,7 @@ done
 
 lemma function_ord_iso_map:
     "well_ord(B,s) \<Longrightarrow> function(ord_iso_map(A,r,B,s))"
-apply (unfold ord_iso_map_def function_def)
+  unfolding ord_iso_map_def function_def
 apply (blast intro: well_ord_iso_pred_eq ord_iso_sym ord_iso_trans)
 done
 
@@ -567,7 +567,7 @@ lemma domain_ord_iso_map_cases:
       \<Longrightarrow> domain(ord_iso_map(A,r,B,s)) = A |
           (\<exists>x\<in>A. domain(ord_iso_map(A,r,B,s)) = pred(A,x,r))"
 apply (frule well_ord_is_wf)
-apply (unfold wf_on_def wf_def)
+  unfolding wf_on_def wf_def
 apply (drule_tac x = "A-domain (ord_iso_map (A,r,B,s))" in spec)
 apply safe
 (*The first case: the domain equals A*)
@@ -642,7 +642,7 @@ by (unfold first_def, blast)
 
 lemma well_ord_imp_ex1_first:
         "\<lbrakk>well_ord(A,r); B<=A; B\<noteq>0\<rbrakk> \<Longrightarrow> (\<exists>!b. first(b,B,r))"
-apply (unfold well_ord_def wf_on_def wf_def first_def)
+  unfolding well_ord_def wf_on_def wf_def first_def
 apply (elim conjE allE disjE, blast)
 apply (erule bexE)
 apply (rule_tac a = x in ex1I, auto)

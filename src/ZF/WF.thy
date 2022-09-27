@@ -82,7 +82,7 @@ text\<open>If every non-empty subset of \<^term>\<open>A\<close> has an \<^term>
 lemma wf_onI:
  assumes prem: "\<And>Z u. \<lbrakk>Z<=A;  u \<in> Z;  \<forall>x\<in>Z. \<exists>y\<in>Z. \<langle>y,x\<rangle>:r\<rbrakk> \<Longrightarrow> False"
  shows         "wf[A](r)"
-apply (unfold wf_on_def wf_def)
+  unfolding wf_on_def wf_def
 apply (rule equals0I [THEN disjCI, THEN allI])
 apply (rule_tac Z = Z in prem, blast+)
 done
@@ -287,7 +287,7 @@ apply (rule_tac a=a in wf_induct, assumption)
 apply (rename_tac a1)
 apply (rule_tac f = "\<lambda>y\<in>r-``{a1}. wftrec (r,y,H)" in is_the_recfun)
   apply typecheck
-apply (unfold is_recfun_def wftrec_def)
+  unfolding is_recfun_def wftrec_def
   \<comment> \<open>Applying the substitution: must keep the quantified assumption!\<close>
 apply (rule lam_cong [OF refl])
 apply (drule underD)
@@ -359,7 +359,7 @@ done
 lemma wfrec_on:
  "\<lbrakk>wf[A](r);  a \<in> A\<rbrakk> \<Longrightarrow>
          wfrec[A](r,a,H) = H(a, \<lambda>x\<in>(r-``{a}) \<inter> A. wfrec[A](r,x,H))"
-apply (unfold wf_on_def wfrec_on_def)
+  unfolding wf_on_def wfrec_on_def
 apply (erule wfrec [THEN trans])
 apply (simp add: vimage_Int_square cons_subset_iff)
 done

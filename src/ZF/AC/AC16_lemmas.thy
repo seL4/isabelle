@@ -46,7 +46,7 @@ apply (fast intro!: singleton_eqpoll_1)
 done
 
 lemma eqpoll_RepFun_sing: "X\<approx>{{x}. x \<in> X}"
-apply (unfold eqpoll_def bij_def)
+  unfolding eqpoll_def bij_def
 apply (rule_tac x = "\<lambda>x \<in> X. {x}" in exI)
 apply (rule IntI)
 apply (unfold inj_def surj_def, simp)

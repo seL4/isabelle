@@ -39,7 +39,7 @@ text\<open>Inductive argument for Kunen's Lemma I 6.1, etc.
 lemma  (in M_ordertype) wellordered_iso_subset_lemma: 
      "\<lbrakk>wellordered(M,A,r);  f \<in> ord_iso(A,r, A',r);  A'<= A;  y \<in> A;  
        M(A);  M(f);  M(r)\<rbrakk> \<Longrightarrow> \<not> <f`y, y> \<in> r"
-apply (unfold wellordered_def ord_iso_def)
+  unfolding wellordered_def ord_iso_def
 apply (elim conjE CollectE) 
 apply (erule wellfounded_on_induct, assumption+)
  apply (insert well_ord_iso_separation [of A f r])

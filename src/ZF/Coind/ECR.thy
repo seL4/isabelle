@@ -61,7 +61,7 @@ by (auto simp add: hastyenv_def ve_app_owr HasTyRel_non_zero)
 
 lemma basic_consistency_lem: 
   "\<lbrakk>ve \<in> ValEnv; te \<in> TyEnv; isofenv(ve,te)\<rbrakk> \<Longrightarrow> hastyenv(ve,te)"
-apply (unfold isofenv_def hastyenv_def)
+  unfolding isofenv_def hastyenv_def
 apply (force intro: te_appI ve_domI) 
 done
 

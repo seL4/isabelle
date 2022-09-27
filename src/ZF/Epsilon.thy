@@ -48,7 +48,7 @@ done
 lemmas arg_into_eclose = arg_subset_eclose [THEN subsetD]
 
 lemma Transset_eclose: "Transset(eclose(A))"
-apply (unfold eclose_def Transset_def)
+  unfolding eclose_def Transset_def
 apply (rule subsetI [THEN ballI])
 apply (erule UN_E)
 apply (rule nat_succI [THEN UN_I], assumption)

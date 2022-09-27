@@ -99,7 +99,7 @@ done
 
 lemma HH_subset_x_imp_lepoll: 
      "\<lbrakk>HH(f, x, i) \<in> Pow(x)-{0}; Ord(i)\<rbrakk> \<Longrightarrow> i \<lesssim> Pow(x)-{0}"
-apply (unfold lepoll_def inj_def)
+  unfolding lepoll_def inj_def
 apply (rule_tac x = "\<lambda>j \<in> i. HH (f, x, j) " in exI)
 apply (simp (no_asm_simp))
 apply (fast del: DiffE
@@ -235,7 +235,7 @@ apply (fast intro: Pi_weaken_type)
 done
 
 lemma AC1_WO2: "AC1 \<Longrightarrow> WO2"
-apply (unfold AC1_def WO2_def eqpoll_def)
+  unfolding AC1_def WO2_def eqpoll_def
 apply (intro allI) 
 apply (drule_tac x = "Pow(A) - {0}" in spec) 
 apply (blast dest: bijection)

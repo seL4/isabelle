@@ -393,7 +393,7 @@ by blast
 (*Useful for proving A<=B by rewriting in some cases*)
 lemma subset_iff:
      "A<=B <-> (\<forall>x. x\<in>A \<longrightarrow> x\<in>B)"
-apply (unfold subset_def Ball_def)
+  unfolding subset_def Ball_def
 apply (rule iff_refl)
 done
 

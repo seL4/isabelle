@@ -268,12 +268,12 @@ lemma munion_commute: "M +# N = N +# M"
 by (auto intro!: lam_cong simp add: munion_def)
 
 lemma munion_assoc: "(M +# N) +# K = M +# (N +# K)"
-apply (unfold munion_def mset_of_def)
+  unfolding munion_def mset_of_def
 apply (rule lam_cong, auto)
 done
 
 lemma munion_lcommute: "M +# (N +# K) = N +# (M +# K)"
-apply (unfold munion_def mset_of_def)
+  unfolding munion_def mset_of_def
 apply (rule lam_cong, auto)
 done
 
@@ -291,7 +291,7 @@ lemma mdiff_0_right [simp]: "multiset(M) \<Longrightarrow> M -# 0 = M"
 by (auto simp add: multiset_def mdiff_def normalize_def multiset_fun_iff mset_of_def funrestrict_def)
 
 lemma mdiff_union_inverse2 [simp]: "multiset(M) \<Longrightarrow> M +# {#a#} -# {#a#} = M"
-apply (unfold multiset_def munion_def mdiff_def msingle_def normalize_def mset_of_def)
+  unfolding multiset_def munion_def mdiff_def msingle_def normalize_def mset_of_def
 apply (auto cong add: if_cong simp add: ltD multiset_fun_iff funrestrict_def subset_Un_iff2 [THEN iffD1])
 prefer 2 apply (force intro!: lam_type)
 apply (subgoal_tac [2] "{x \<in> A \<union> {a} . x \<noteq> a \<and> x \<in> A} = A")
@@ -483,7 +483,7 @@ lemma setsum_decr:
   unfolding multiset_def
 apply (erule Finite_induct)
 apply (auto simp add: multiset_fun_iff)
-apply (unfold mset_of_def mcount_def)
+  unfolding mset_of_def mcount_def
 apply (case_tac "x \<in> A", auto)
 apply (subgoal_tac "$# M ` x $+ #-1 = $# M ` x $- $# 1")
 apply (erule ssubst)

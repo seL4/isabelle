@@ -39,7 +39,7 @@ text \<open>
 \<close>
 
 lemma tree_subset_TF: "tree(A) \<subseteq> tree_forest(A)"
-  apply (unfold tree_forest.defs)
+    unfolding tree_forest.defs
   apply (rule Part_subset)
   done
 
@@ -47,7 +47,7 @@ lemma treeI [TC]: "x \<in> tree(A) \<Longrightarrow> x \<in> tree_forest(A)"
   by (rule tree_subset_TF [THEN subsetD])
 
 lemma forest_subset_TF: "forest(A) \<subseteq> tree_forest(A)"
-  apply (unfold tree_forest.defs)
+    unfolding tree_forest.defs
   apply (rule Part_subset)
   done
 
@@ -63,7 +63,7 @@ lemma tree_forest_unfold:
   "tree_forest(A) = (A \<times> forest(A)) + ({0} + tree(A) \<times> forest(A))"
     \<comment> \<open>NOT useful, but interesting \dots\<close>
   supply rews = tree_forest.con_defs tree_def forest_def
-  apply (unfold tree_def forest_def)
+    unfolding tree_def forest_def
   apply (fast intro!: tree_forest.intros [unfolded rews, THEN PartD1]
     elim: tree_forest.cases [unfolded rews])
   done
@@ -75,13 +75,13 @@ lemma tree_forest_unfold':
   by (rule tree_forest_unfold [unfolded tree_def forest_def])
 
 lemma tree_unfold: "tree(A) = {Inl(x). x \<in> A \<times> forest(A)}"
-  apply (unfold tree_def forest_def)
+    unfolding tree_def forest_def
   apply (rule Part_Inl [THEN subst])
   apply (rule tree_forest_unfold' [THEN subst_context])
   done
 
 lemma forest_unfold: "forest(A) = {Inr(x). x \<in> {0} + tree(A)*forest(A)}"
-  apply (unfold tree_def forest_def)
+    unfolding tree_def forest_def
   apply (rule Part_Inr [THEN subst])
   apply (rule tree_forest_unfold' [THEN subst_context])
   done

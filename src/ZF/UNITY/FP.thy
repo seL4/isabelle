@@ -51,7 +51,7 @@ lemma stable_FP_Int: "F \<in> program \<Longrightarrow> F \<in> stable (FP(F) \<
 apply (subgoal_tac "FP (F) \<inter> B = (\<Union>x\<in>B. FP (F) \<inter> {x}) ")
  prefer 2 apply blast
 apply (simp (no_asm_simp) add: Int_cons_right)
-apply (unfold FP_def stable_def)
+  unfolding FP_def stable_def
 apply (rule constrains_UN)
 apply (auto simp add: cons_absorb)
 done

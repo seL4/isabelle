@@ -37,7 +37,7 @@ lemma counit_eq_univ: "counit = quniv(0)"
   apply (rule subsetI)
   apply (erule counit.coinduct)
    apply (rule subset_refl)
-  apply (unfold counit.con_defs)
+    unfolding counit.con_defs
   apply fast
   done
 
@@ -60,7 +60,7 @@ lemma Con2_iff: "Con2(x, y) = Con2(x', y') \<longleftrightarrow> x = x' \<and> y
   by (fast elim!: counit2.free_elims)
 
 lemma Con2_bnd_mono: "bnd_mono(univ(0), \<lambda>x. Con2(x, x))"
-  apply (unfold counit2.con_defs)
+    unfolding counit2.con_defs
   apply (rule bnd_monoI)
    apply (assumption | rule subset_refl QPair_subset_univ QPair_mono)+
   done
@@ -79,7 +79,7 @@ lemma counit2_Int_Vset_subset [rule_format]:
   apply (tactic "safe_tac (put_claset subset_cs \<^context>)")
   apply (erule counit2.cases)
   apply (erule counit2.cases)
-  apply (unfold counit2.con_defs)
+    unfolding counit2.con_defs
   apply (tactic \<open>fast_tac (put_claset subset_cs \<^context>
     addSIs [@{thm QPair_Int_Vset_subset_UN} RS @{thm subset_trans}, @{thm QPair_mono}]
     addSEs [@{thm Ord_in_Ord}, @{thm Pair_inject}]) 1\<close>)

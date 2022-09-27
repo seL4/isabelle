@@ -22,7 +22,7 @@ definition
 
 lemma strip_lemma_r: 
     "\<lbrakk>confluence(Spar_red1)\<rbrakk>\<Longrightarrow> strip"
-apply (unfold confluence_def strip_def)
+  unfolding confluence_def strip_def
 apply (rule impI [THEN allI, THEN allI])
 apply (erule Spar_red.induct, fast)
 apply (fast intro: Spar_red.trans)
@@ -31,7 +31,7 @@ done
 
 lemma strip_lemma_l: 
     "strip\<Longrightarrow> confluence(Spar_red)"
-apply (unfold confluence_def strip_def)
+  unfolding confluence_def strip_def
 apply (rule impI [THEN allI, THEN allI])
 apply (erule Spar_red.induct, blast)
 apply clarify

@@ -52,7 +52,7 @@ done
 (*second half*)
 lemma comp_equivI:
     "\<lbrakk>converse(r) O r = r;  domain(r) = A\<rbrakk> \<Longrightarrow> equiv(A,r)"
-apply (unfold equiv_def refl_def sym_def trans_def)
+  unfolding equiv_def refl_def sym_def trans_def
 apply (erule equalityE)
 apply (subgoal_tac "\<forall>x y. \<langle>x,y\<rangle> \<in> r \<longrightarrow> \<langle>y,x\<rangle> \<in> r", blast+)
 done

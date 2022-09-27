@@ -945,7 +945,7 @@ by (simp add: ordinal_def Ord_def)
 
 lemma (in M_trivial) limit_ordinal_abs [simp]:
      "M(a) \<Longrightarrow> limit_ordinal(M,a) \<longleftrightarrow> Limit(a)"
-apply (unfold Limit_def limit_ordinal_def)
+  unfolding Limit_def limit_ordinal_def
 apply (simp add: Ord_0_lt_iff)
 apply (simp add: lt_def, blast)
 done

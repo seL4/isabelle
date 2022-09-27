@@ -103,7 +103,7 @@ declare stable_reachable [simp]
 (*The set of all reachable states is an invariant...*)
 lemma invariant_reachable: 
    "F \<in> program \<Longrightarrow> F \<in> invariant(reachable(F))"
-apply (unfold invariant_def initially_def)
+  unfolding invariant_def initially_def
 apply (blast intro: reachable_type [THEN subsetD] reachable.intros)
 done
 
@@ -239,7 +239,7 @@ done
 lemma stable_imp_Stable: 
 "F \<in> stable(A) \<Longrightarrow> F \<in> Stable(A)"
 
-apply (unfold stable_def Stable_def)
+  unfolding stable_def Stable_def
 apply (erule constrains_imp_Constrains)
 done
 
@@ -340,7 +340,7 @@ done
 lemma AlwaysI: 
 "\<lbrakk>Init(F)<=A;  F \<in> Stable(A)\<rbrakk> \<Longrightarrow> F \<in> Always(A)"
 
-apply (unfold Always_def initially_def)
+  unfolding Always_def initially_def
 apply (frule Stable_type [THEN subsetD], auto)
 done
 
@@ -360,7 +360,7 @@ done
 
 lemma invariant_imp_Always: 
      "F \<in> invariant(A) \<Longrightarrow> F \<in> Always(A)"
-apply (unfold Always_def invariant_def Stable_def stable_def)
+  unfolding Always_def invariant_def Stable_def stable_def
 apply (blast intro: constrains_imp_Constrains)
 done
 

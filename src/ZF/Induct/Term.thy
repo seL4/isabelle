@@ -77,7 +77,7 @@ text \<open>
 \<close>
 
 lemma term_mono: "A \<subseteq> B \<Longrightarrow> term(A) \<subseteq> term(B)"
-  apply (unfold term.defs)
+    unfolding term.defs
   apply (rule lfp_mono)
     apply (rule term.bnd_mono)+
   apply (rule univ_mono basic_monos| assumption)+
@@ -85,7 +85,7 @@ lemma term_mono: "A \<subseteq> B \<Longrightarrow> term(A) \<subseteq> term(B)"
 
 lemma term_univ: "term(univ(A)) \<subseteq> univ(A)"
   \<comment> \<open>Easily provable by induction also\<close>
-  apply (unfold term.defs term.con_defs)
+    unfolding term.defs term.con_defs
   apply (rule lfp_lowerbound)
    apply (rule_tac [2] A_subset_univ [THEN univ_mono])
   apply safe
@@ -120,7 +120,7 @@ lemma term_rec [simp]: "ts \<in> list(A) \<Longrightarrow>
   term_rec(Apply(a,ts), d) = d(a, ts, map (\<lambda>z. term_rec(z,d), ts))"
   \<comment> \<open>Typing premise is necessary to invoke \<open>map_lemma\<close>.\<close>
   apply (rule term_rec_def [THEN def_Vrec, THEN trans])
-  apply (unfold term.con_defs)
+    unfolding term.con_defs
   apply (simp add: rank_pair2 map_lemma)
   done
 

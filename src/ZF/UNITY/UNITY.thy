@@ -567,7 +567,7 @@ apply (blast dest: stable_type [THEN subsetD])
 done
 
 lemma invariantI: "\<lbrakk>Init(F)\<subseteq>A;  F \<in> stable(A)\<rbrakk> \<Longrightarrow> F \<in> invariant(A)"
-apply (unfold invariant_def initially_def)
+  unfolding invariant_def initially_def
 apply (frule stable_type [THEN subsetD], auto)
 done
 
@@ -583,7 +583,7 @@ text\<open>Could also say
       \<^term>\<open>invariant(A) \<inter> invariant(B) \<subseteq> invariant (A \<inter> B)\<close>\<close>
 lemma invariant_Int:
   "\<lbrakk>F \<in> invariant(A);  F \<in> invariant(B)\<rbrakk> \<Longrightarrow> F \<in> invariant(A \<inter> B)"
-apply (unfold invariant_def initially_def)
+  unfolding invariant_def initially_def
 apply (simp add: stable_Int, blast)
 done
 

@@ -107,7 +107,7 @@ primrec
 subsection \<open>Proof theory of propositional logic\<close>
 
 lemma thms_mono: "G \<subseteq> H \<Longrightarrow> thms(G) \<subseteq> thms(H)"
-  apply (unfold thms.defs)
+    unfolding thms.defs
   apply (rule lfp_mono)
     apply (rule thms.bnd_mono)+
   apply (assumption | rule univ_mono basic_monos)+

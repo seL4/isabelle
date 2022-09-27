@@ -154,7 +154,7 @@ qed
 lemma (in group) inv [simp]:
   "x \<in> carrier(G) \<Longrightarrow> inv x \<in> carrier(G) \<and> inv x \<cdot> x = \<one> \<and> x \<cdot> inv x = \<one>"
   apply (frule inv_ex)
-  apply (unfold Bex_def m_inv_def)
+    unfolding Bex_def m_inv_def
   apply (erule exE)
   apply (rule theI)
   apply (rule ex1I, assumption)

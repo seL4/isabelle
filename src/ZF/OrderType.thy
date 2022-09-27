@@ -99,7 +99,7 @@ subsection\<open>Ordermap and ordertype\<close>
 
 lemma ordermap_type:
     "ordermap(A,r) \<in> A -> ordertype(A,r)"
-apply (unfold ordermap_def ordertype_def)
+  unfolding ordermap_def ordertype_def
 apply (rule lam_type)
 apply (rule lamI [THEN imageI], assumption+)
 done
@@ -110,7 +110,7 @@ subsubsection\<open>Unfolding of ordermap\<close>
 lemma ordermap_eq_image:
     "\<lbrakk>wf[A](r);  x \<in> A\<rbrakk>
      \<Longrightarrow> ordermap(A,r) ` x = ordermap(A,r) `` pred(A,x,r)"
-apply (unfold ordermap_def pred_def)
+  unfolding ordermap_def pred_def
 apply (simp (no_asm_simp))
 apply (erule wfrec_on [THEN trans], assumption)
 apply (simp (no_asm_simp) add: subset_iff image_lam vimage_singleton_iff)
@@ -149,7 +149,7 @@ apply (unfold well_ord_def tot_ord_def part_ord_def, safe)
 apply (rule_tac a=x in wf_on_induct, assumption+)
 apply (simp (no_asm_simp) add: ordermap_pred_unfold)
 apply (rule OrdI [OF _ Ord_is_Transset])
-apply (unfold pred_def Transset_def)
+  unfolding pred_def Transset_def
 apply (blast intro: trans_onD
              dest!: ordermap_unfold [THEN equalityD1])+
 done
@@ -160,7 +160,7 @@ lemma Ord_ordertype:
 apply (subst image_fun [OF ordermap_type subset_refl])
 apply (rule OrdI [OF _ Ord_is_Transset])
 prefer 2 apply (blast intro: Ord_ordermap)
-apply (unfold Transset_def well_ord_def)
+  unfolding Transset_def well_ord_def
 apply (blast intro: trans_onD
              dest!: ordermap_unfold [THEN equalityD1])
 done
@@ -190,7 +190,7 @@ lemma ordermap_surj: "ordermap(A, r) \<in> surj(A, ordertype(A, r))"
 
 lemma ordermap_bij:
     "well_ord(A,r) \<Longrightarrow> ordermap(A,r) \<in> bij(A, ordertype(A,r))"
-apply (unfold well_ord_def tot_ord_def bij_def inj_def)
+  unfolding well_ord_def tot_ord_def bij_def inj_def
 apply (force intro!: ordermap_type ordermap_surj
              elim: linearE dest: ordermap_mono
              simp add: mem_not_refl)
@@ -381,7 +381,7 @@ lemma pred_Inr_bij:
  "b \<in> B \<Longrightarrow>
          id(A+pred(B,b,s))
          \<in> bij(A+pred(B,b,s), pred(A+B, Inr(b), radd(A,r,B,s)))"
-apply (unfold pred_def id_def)
+  unfolding pred_def id_def
 apply (rule_tac d = "\<lambda>z. z" in lam_bijective, auto)
 done
 
@@ -780,7 +780,7 @@ lemma ordertype_pred_Pair_lemma:
      \<Longrightarrow> ordertype(pred(i*j, <i',j'>, rmult(i,Memrel(i),j,Memrel(j))),
                    rmult(i,Memrel(i),j,Memrel(j))) =
          raw_oadd (j**i', j')"
-apply (unfold raw_oadd_def omult_def)
+  unfolding raw_oadd_def omult_def
 apply (simp add: ordertype_pred_Pair_eq lt_pred_Memrel ltD lt_Ord2
                  well_ord_Memrel)
 apply (rule trans)

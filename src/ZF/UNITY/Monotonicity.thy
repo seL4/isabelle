@@ -109,7 +109,7 @@ by (unfold mono2_def SetLe_def, auto)
 
 lemma mono_munion [iff]: 
      "mono2(Mult(A), MultLe(A,r), Mult(A), MultLe(A, r), Mult(A), MultLe(A, r), munion)"
-apply (unfold mono2_def MultLe_def)
+  unfolding mono2_def MultLe_def
 apply (auto simp add: Mult_iff_multiset)
 apply (blast intro: munion_multirel_mono munion_multirel_mono1 munion_multirel_mono2 multiset_into_Mult)+
 done

@@ -83,7 +83,7 @@ done
 
 lemma lemma2_5: 
      "f \<in> bij(D+D, B) \<Longrightarrow> \<Union>({{f`Inl(i), f`Inr(i)}. i \<in> D})=B"
-apply (unfold bij_def surj_def)
+  unfolding bij_def surj_def
 apply (fast elim!: inj_is_fun [THEN apply_type])
 done
 

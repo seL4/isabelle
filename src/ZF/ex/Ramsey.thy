@@ -79,7 +79,7 @@ by (unfold Atleast_def, blast intro: inj_weaken_type)
 
 lemma Atleast_succI: 
     "\<lbrakk>Atleast(m,B);  b\<notin> B\<rbrakk> \<Longrightarrow> Atleast(succ(m), cons(b,B))"
-apply (unfold Atleast_def succ_def)
+  unfolding Atleast_def succ_def
 apply (blast intro: inj_extend elim: mem_irrefl) 
 done
 
@@ -148,7 +148,7 @@ lemma Indept_succ:
     "\<lbrakk>Indept(I, {z \<in> V-{a}. \<langle>a,z\<rangle> \<notin> E}, E);  Symmetric(E);  a \<in> V;   
         Atleast(j,I)\<rbrakk> \<Longrightarrow>    
      Indept(cons(a,I), V, E) \<and> Atleast(succ(j), cons(a,I))"
-apply (unfold Symmetric_def Indept_def)
+  unfolding Symmetric_def Indept_def
 apply (blast intro!: Atleast_succI)
 done
 
@@ -157,7 +157,7 @@ lemma Clique_succ:
     "\<lbrakk>Clique(C, {z \<in> V-{a}. \<langle>a,z\<rangle>:E}, E);  Symmetric(E);  a \<in> V;   
         Atleast(j,C)\<rbrakk> \<Longrightarrow>    
      Clique(cons(a,C), V, E) \<and> Atleast(succ(j), cons(a,C))"
-apply (unfold Symmetric_def Clique_def)
+  unfolding Symmetric_def Clique_def
 apply (blast intro!: Atleast_succI)
 done
 

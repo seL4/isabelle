@@ -136,7 +136,7 @@ lemma lemma1_1: "RR \<subseteq> XX*XX"
 by (unfold RR_def, fast)
 
 lemma lemma1_2: "RR \<noteq> 0"
-apply (unfold RR_def XX_def)
+  unfolding RR_def XX_def
 apply (rule all_ex [THEN ballE])
 apply (erule_tac [2] notE [OF _ empty_subsetI [THEN PowI]])
 apply (erule_tac impE [OF _ nat_0I [THEN n_lesspoll_nat]])
@@ -153,7 +153,7 @@ apply (simp add: singleton_0)
 done
 
 lemma lemma1_3: "range(RR) \<subseteq> domain(RR)"
-apply (unfold RR_def XX_def)
+  unfolding RR_def XX_def
 apply (rule range_subset_domain, blast, clarify)
 apply (frule fun_is_rel [THEN image_subset, THEN PowI, 
                          THEN all_ex [THEN bspec]])
@@ -326,7 +326,7 @@ apply (case_tac
              succ(\<Union>f \<in> Y. domain(f)) \<and> (\<forall>f\<in>Y. restrict(g, domain(f)) = f)")
 apply (simp add: RR_def, blast)
 apply (safe del: domainE)
-apply (unfold XX_def RR_def)
+  unfolding XX_def RR_def
 apply (rule rev_bexI, erule singleton_in_funs)
 apply (simp add: nat_0I [THEN rev_bexI] cons_fun_type2)
 done
@@ -393,7 +393,7 @@ lemma simplify_recursion:
      "\<lbrakk>\<forall>b<nat. <f``b, f`b> \<in> RR;   
          f \<in> nat -> XX; range(R) \<subseteq> domain(R); x \<in> domain(R)\<rbrakk>    
       \<Longrightarrow> allRR"
-apply (unfold RR_def allRR_def)
+  unfolding RR_def allRR_def
 apply (rule oallI, drule ltD)
 apply (erule nat_induct)
 apply (drule_tac x=0 in ospec, blast intro: Limit_has_0) 
@@ -463,7 +463,7 @@ end
 
 
 theorem DC_nat_imp_DC0: "DC(nat) \<Longrightarrow> DC0"
-apply (unfold DC_def DC0_def)
+  unfolding DC_def DC0_def
 apply (intro allI impI)
 apply (erule asm_rl conjE ex_in_domain [THEN exE] allE)+
 apply (erule impE [OF _ imp_DC0.lemma4], assumption+)
@@ -504,7 +504,7 @@ apply (fast dest!: Diff_eq_0_iff [THEN iffD1, THEN subset_imp_lepoll]
 done
 
 theorem DC_WO3: "(\<forall>K. Card(K) \<longrightarrow> DC(K)) \<Longrightarrow> WO3"
-apply (unfold DC_def WO3_def)
+  unfolding DC_def WO3_def
 apply (rule allI)
 apply (case_tac "A \<prec> Hartog (A)")
 apply (fast dest!: lesspoll_imp_ex_lt_eqpoll 
@@ -572,7 +572,7 @@ apply (blast intro: lesspoll_trans1 in_Card_imp_lesspoll RepFun_lepoll)
 done
 
 theorem WO1_DC_Card: "WO1 \<Longrightarrow> \<forall>K. Card(K) \<longrightarrow> DC(K)"
-apply (unfold DC_def WO1_def)
+  unfolding DC_def WO1_def
 apply (rule allI impI)+
 apply (erule allE exE conjE)+
 apply (rule_tac x = "\<lambda>b \<in> K. ff (b, X, Ra, R) " in bexI)

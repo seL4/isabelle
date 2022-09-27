@@ -293,14 +293,14 @@ apply (rule singleton_prod_bij [THEN bij_converse_bij])
 done
 
 lemma cmult_1 [simp]: "Card(K) \<Longrightarrow> 1 \<otimes> K = K"
-apply (unfold cmult_def succ_def)
+  unfolding cmult_def succ_def
 apply (simp add: prod_singleton_eqpoll [THEN cardinal_cong] Card_cardinal_eq)
 done
 
 subsection\<open>Some inequalities for multiplication\<close>
 
 lemma prod_square_lepoll: "A \<lesssim> A*A"
-apply (unfold lepoll_def inj_def)
+  unfolding lepoll_def inj_def
 apply (rule_tac x = "\<lambda>x\<in>A. \<langle>x,x\<rangle>" in exI, simp)
 done
 
@@ -317,7 +317,7 @@ done
 subsubsection\<open>Multiplication by a non-zero cardinal\<close>
 
 lemma prod_lepoll_self: "b \<in> B \<Longrightarrow> A \<lesssim> A*B"
-apply (unfold lepoll_def inj_def)
+  unfolding lepoll_def inj_def
 apply (rule_tac x = "\<lambda>x\<in>A. \<langle>x,b\<rangle>" in exI, simp)
 done
 
@@ -366,7 +366,7 @@ done
 (*Unconditional version requires AC*)
 lemma cmult_succ_lemma:
     "\<lbrakk>Ord(m);  Ord(n)\<rbrakk> \<Longrightarrow> succ(m) \<otimes> n = n \<oplus> (m \<otimes> n)"
-apply (unfold cmult_def cadd_def)
+  unfolding cmult_def cadd_def
 apply (rule prod_succ_eqpoll [THEN cardinal_cong, THEN trans])
 apply (rule cardinal_cong [symmetric])
 apply (rule sum_eqpoll_cong [OF eqpoll_refl well_ord_cardinal_eqpoll])
@@ -502,7 +502,7 @@ done
 
 lemma pred_csquare_subset:
     "z<K \<Longrightarrow> Order.pred(K*K, \<langle>z,z\<rangle>, csquare_rel(K)) \<subseteq> succ(z)*succ(z)"
-apply (unfold Order.pred_def)
+  unfolding Order.pred_def
 apply (safe del: SigmaI dest!: csquareD)
 apply (unfold lt_def, auto)
 done

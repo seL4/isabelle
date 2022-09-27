@@ -41,7 +41,7 @@ inductive
 subsection \<open>Finite Powerset Operator\<close>
 
 lemma Fin_mono: "A<=B \<Longrightarrow> Fin(A) \<subseteq> Fin(B)"
-apply (unfold Fin.defs)
+  unfolding Fin.defs
 apply (rule lfp_mono)
 apply (rule Fin.bnd_mono)+
 apply blast
@@ -130,7 +130,7 @@ subsection\<open>Finite Function Space\<close>
 
 lemma FiniteFun_mono:
     "\<lbrakk>A<=C;  B<=D\<rbrakk> \<Longrightarrow> A -||> B  \<subseteq>  C -||> D"
-apply (unfold FiniteFun.defs)
+  unfolding FiniteFun.defs
 apply (rule lfp_mono)
 apply (rule FiniteFun.bnd_mono)+
 apply (intro Fin_mono Sigma_mono basic_monos, assumption+)

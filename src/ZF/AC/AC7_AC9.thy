@@ -69,7 +69,7 @@ lemma AC7_AC6_lemma2: "0 \<notin> A \<Longrightarrow> 0 \<notin> {(nat -> \<Unio
 by (blast dest: Sigma_fun_space_not0)
 
 lemma AC7_AC6: "AC7 \<Longrightarrow> AC6"
-apply (unfold AC6_def AC7_def)
+  unfolding AC6_def AC7_def
 apply (rule allI)
 apply (rule impI)
 apply (case_tac "A=0", simp)
@@ -97,7 +97,7 @@ apply (simp, fast elim!: apply_type)
 done
 
 lemma AC1_AC8: "AC1 \<Longrightarrow> AC8"
-apply (unfold AC1_def AC8_def)
+  unfolding AC1_def AC8_def
 apply (fast dest: AC1_AC8_lemma1 AC1_AC8_lemma2)
 done
 
@@ -114,7 +114,7 @@ lemma AC8_AC9_lemma:
 by fast
 
 lemma AC8_AC9: "AC8 \<Longrightarrow> AC9"
-apply (unfold AC8_def AC9_def)
+  unfolding AC8_def AC9_def
 apply (intro allI impI)
 apply (erule allE)
 apply (erule impE, erule AC8_AC9_lemma, force) 
@@ -159,7 +159,7 @@ apply (fast intro!: fun_weaken_type bij_is_fun)
 done
 
 lemma AC9_AC1: "AC9 \<Longrightarrow> AC1"
-apply (unfold AC1_def AC9_def)
+  unfolding AC1_def AC9_def
 apply (intro allI impI)
 apply (erule allE)
 apply (case_tac "A\<noteq>0")

@@ -588,13 +588,13 @@ by (unfold refl_def Ge_def, auto)
 declare refl_Ge [iff]
 
 lemma antisym_Ge: "antisym(Ge)"
-apply (unfold antisym_def Ge_def)
+  unfolding antisym_def Ge_def
 apply (auto intro: le_anti_sym)
 done
 declare antisym_Ge [iff]
 
 lemma trans_Ge: "trans(Ge)"
-apply (unfold trans_def Ge_def)
+  unfolding trans_def Ge_def
 apply (auto intro: le_trans)
 done
 declare trans_Ge [iff]
@@ -611,7 +611,7 @@ by (blast intro: antisym_gen_prefix [THEN antisymE])
 
 lemma prefix_imp_pfixGe:
   "\<langle>xs,ys\<rangle>:prefix(nat) \<Longrightarrow> xs pfixGe ys"
-apply (unfold prefix_def Ge_def)
+  unfolding prefix_def Ge_def
 apply (rule gen_prefix_mono [THEN subsetD], auto)
 done
 (* Added by Sidi \<in> prefix and take *)

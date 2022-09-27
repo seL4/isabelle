@@ -66,7 +66,7 @@ by (unfold WO2_def WO3_def, fast)
 (* ********************************************************************** *)
 
 lemma WO3_WO1: "WO3 \<Longrightarrow> WO1"
-apply (unfold eqpoll_def WO1_def WO3_def)
+  unfolding eqpoll_def WO1_def WO3_def
 apply (intro allI)
 apply (drule_tac x=A in spec) 
 apply (blast intro: bij_is_inj well_ord_rvimage 
@@ -76,7 +76,7 @@ done
 (* ********************************************************************** *)
 
 lemma WO1_WO2: "WO1 \<Longrightarrow> WO2"
-apply (unfold eqpoll_def WO1_def WO2_def)
+  unfolding eqpoll_def WO1_def WO2_def
 apply (blast intro!: Ord_ordertype ordermap_bij)
 done
 
@@ -94,7 +94,7 @@ lemma surj_imp_eq: "\<lbrakk>f \<in> surj(A,B); Ord(A)\<rbrakk> \<Longrightarrow
 by (fast dest!: surj_imp_eq' intro!: ltI elim!: ltE)
 
 lemma WO1_WO4: "WO1 \<Longrightarrow> WO4(1)"
-apply (unfold WO1_def WO4_def)
+  unfolding WO1_def WO4_def
 apply (rule allI)
 apply (erule_tac x = A in allE)
 apply (erule exE)

@@ -122,7 +122,7 @@ lemmas QSigma_subset_quniv =  subset_trans [OF QSigma_mono QSigma_quniv]
 (*The opposite inclusion*)
 lemma quniv_QPair_D:
     "<a;b> \<in> quniv(A) \<Longrightarrow> a: quniv(A) \<and> b: quniv(A)"
-apply (unfold quniv_def QPair_def)
+  unfolding quniv_def QPair_def
 apply (rule Transset_includes_summands [THEN conjE])
 apply (rule Transset_eclose [THEN Transset_univ])
 apply (erule PowD, blast)

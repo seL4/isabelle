@@ -21,7 +21,7 @@ inductive
   type_intros domainI rangeI list.intros
 
 lemma rmap_mono: "r \<subseteq> s \<Longrightarrow> rmap(r) \<subseteq> rmap(s)"
-  apply (unfold rmap.defs)
+    unfolding rmap.defs
   apply (rule lfp_mono)
     apply (rule rmap.bnd_mono)+
   apply (assumption | rule Sigma_mono list_mono domain_mono range_mono basic_monos)+

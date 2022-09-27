@@ -210,7 +210,7 @@ done
 
 lemma strict_prefix_is_prefix:
     "\<langle>xs, ys\<rangle> \<in> strict_prefix(A) \<longleftrightarrow>  \<langle>xs, ys\<rangle> \<in> prefix(A) \<and> xs\<noteq>ys"
-apply (unfold strict_prefix_def id_def lam_def)
+  unfolding strict_prefix_def id_def lam_def
 apply (auto dest: prefix_type [THEN subsetD])
 done
 

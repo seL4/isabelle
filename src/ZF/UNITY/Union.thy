@@ -121,7 +121,7 @@ lemma cons_id [simp]: "cons(id(state), Pow(state * state)) = Pow(state*state)"
 by auto
 
 lemma Join_SKIP_left [simp]: "SKIP \<squnion> F = programify(F)"
-apply (unfold Join_def SKIP_def)
+  unfolding Join_def SKIP_def
 apply (auto simp add: Int_absorb cons_eq)
 done
 
@@ -364,7 +364,7 @@ done
 lemma stable_Join_constrains:
     "\<lbrakk>F \<in> stable(A);  G \<in> A co A'\<rbrakk>
      \<Longrightarrow> F \<squnion> G \<in> A co A'"
-apply (unfold stable_def constrains_def Join_def st_set_def)
+  unfolding stable_def constrains_def Join_def st_set_def
 apply (cut_tac F = F in Acts_type)
 apply (cut_tac F = G in Acts_type, force)
 done

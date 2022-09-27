@@ -318,7 +318,7 @@ lemma domain_restrict_idem:
 by (simp add: restrict_def relation_def, blast)
 
 lemma domain_restrict_lam [simp]: "domain(restrict(Lambda(A,f),C)) = A \<inter> C"
-apply (unfold restrict_def lam_def)
+  unfolding restrict_def lam_def
 apply (rule equalityI)
 apply (auto simp add: domain_iff)
 done

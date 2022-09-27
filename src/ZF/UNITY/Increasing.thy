@@ -48,7 +48,7 @@ done
 
 lemma increasing_constant [simp]: 
  "F \<in> increasing[A](r, \<lambda>s. c) \<longleftrightarrow> F \<in> program \<and> c \<in> A"
-apply (unfold increasing_def stable_def)
+  unfolding increasing_def stable_def
 apply (subgoal_tac "\<exists>x. x \<in> state")
 apply (auto dest: stable_type [THEN subsetD] intro: st0_in_state)
 done
@@ -94,7 +94,7 @@ done
 lemma increasing_imp_Increasing: 
      "F \<in> increasing[A](r, f) \<Longrightarrow> F \<in> Increasing[A](r, f)"
 
-apply (unfold increasing_def Increasing_def)
+  unfolding increasing_def Increasing_def
 apply (auto intro: stable_imp_Stable)
 done
 

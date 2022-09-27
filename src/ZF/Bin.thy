@@ -402,7 +402,7 @@ lemma less_integ_of_eq_neg:
      "\<lbrakk>v \<in> bin;  w \<in> bin\<rbrakk>
       \<Longrightarrow> integ_of(v) $< integ_of(w)
           \<longleftrightarrow> znegative (integ_of (bin_add (v, bin_minus(w))))"
-apply (unfold zless_def zdiff_def)
+  unfolding zless_def zdiff_def
 apply (simp add: integ_of_minus integ_of_add)
 done
 
