@@ -16,7 +16,7 @@ definition
   program  :: i  where
   "program \<equiv> {<init, acts, allowed>:
                Pow(state) * Pow(Pow(state*state)) * Pow(Pow(state*state)).
-               id(state) \<in> acts & id(state) \<in> allowed}"
+               id(state) \<in> acts \<and> id(state) \<in> allowed}"
 
 definition
   mk_program :: "[i,i,i]=>i"  where
@@ -69,7 +69,7 @@ definition
   "initially(A) \<equiv> {F \<in> program. Init(F)\<subseteq>A}"
 
 definition "constrains" :: "[i, i] => i"  (infixl \<open>co\<close> 60)  where
-  "A co B \<equiv> {F \<in> program. (\<forall>act \<in> Acts(F). act``A\<subseteq>B) & st_set(A)}"
+  "A co B \<equiv> {F \<in> program. (\<forall>act \<in> Acts(F). act``A\<subseteq>B) \<and> st_set(A)}"
     \<comment> \<open>the condition \<^term>\<open>st_set(A)\<close> makes the definition slightly
          stronger than the HOL one\<close>
 
@@ -176,11 +176,11 @@ lemma AllowedActs_type: "AllowedActs(F) \<subseteq> Pow(state*state)"
 by (simp add: RawAllowedActs_type AllowedActs_def)
 
 text\<open>Needed in Behaviors\<close>
-lemma ActsD: "\<lbrakk>act \<in> Acts(F); <s,s'> \<in> act\<rbrakk> \<Longrightarrow> s \<in> state & s' \<in> state"
+lemma ActsD: "\<lbrakk>act \<in> Acts(F); <s,s'> \<in> act\<rbrakk> \<Longrightarrow> s \<in> state \<and> s' \<in> state"
 by (blast dest: Acts_type [THEN subsetD])
 
 lemma AllowedActsD:
-     "\<lbrakk>act \<in> AllowedActs(F); <s,s'> \<in> act\<rbrakk> \<Longrightarrow> s \<in> state & s' \<in> state"
+     "\<lbrakk>act \<in> AllowedActs(F); <s,s'> \<in> act\<rbrakk> \<Longrightarrow> s \<in> state \<and> s' \<in> state"
 by (blast dest: AllowedActs_type [THEN subsetD])
 
 subsection\<open>Simplification rules involving \<^term>\<open>state\<close>, \<^term>\<open>Init\<close>, 
@@ -307,7 +307,7 @@ by force
 
 lemma program_equality_iff:
     "\<lbrakk>F \<in> program; G \<in> program\<rbrakk> \<Longrightarrow>(F=G)  \<longleftrightarrow>
-     (Init(F) = Init(G) & Acts(F) = Acts(G) & AllowedActs(F) = AllowedActs(G))"
+     (Init(F) = Init(G) \<and> Acts(F) = Acts(G) \<and> AllowedActs(F) = AllowedActs(G))"
 by (blast intro: program_equalityI program_equalityE)
 
 subsection\<open>These rules allow "lazy" definition expansion\<close>
@@ -328,8 +328,8 @@ by auto
 
 lemma def_prg_simps:
     "\<lbrakk>F \<equiv> mk_program (init,acts,allowed)\<rbrakk>
-     \<Longrightarrow> Init(F) = init \<inter> state & 
-         Acts(F) = cons(id(state), acts \<inter> Pow(state*state)) &
+     \<Longrightarrow> Init(F) = init \<inter> state \<and> 
+         Acts(F) = cons(id(state), acts \<inter> Pow(state*state)) \<and>
          AllowedActs(F) = cons(id(state), allowed \<inter> Pow(state*state))"
 by auto
 
@@ -337,7 +337,7 @@ by auto
 text\<open>An action is expanded only if a pair of states is being tested against it\<close>
 lemma def_act_simp:
      "\<lbrakk>act \<equiv> {<s,s'> \<in> A*B. P(s, s')}\<rbrakk>
-      \<Longrightarrow> (<s,s'> \<in> act) \<longleftrightarrow> (<s,s'> \<in> A*B & P(s, s'))"
+      \<Longrightarrow> (<s,s'> \<in> act) \<longleftrightarrow> (<s,s'> \<in> A*B \<and> P(s, s'))"
 by auto
 
 text\<open>A set is expanded only if an element is being tested against it\<close>
@@ -359,21 +359,21 @@ lemma constrainsD:
    "F \<in> A co B \<Longrightarrow> \<forall>act \<in> Acts(F). act``A\<subseteq>B"
 by (force simp add: constrains_def)
 
-lemma constrainsD2: "F \<in> A co B \<Longrightarrow> F \<in> program & st_set(A)"
+lemma constrainsD2: "F \<in> A co B \<Longrightarrow> F \<in> program \<and> st_set(A)"
 by (force simp add: constrains_def)
 
 lemma constrains_empty [iff]: "F \<in> 0 co B \<longleftrightarrow> F \<in> program"
 by (force simp add: constrains_def st_set_def)
 
-lemma constrains_empty2 [iff]: "(F \<in> A co 0) \<longleftrightarrow> (A=0 & F \<in> program)"
+lemma constrains_empty2 [iff]: "(F \<in> A co 0) \<longleftrightarrow> (A=0 \<and> F \<in> program)"
 by (force simp add: constrains_def st_set_def)
 
-lemma constrains_state [iff]: "(F \<in> state co B) \<longleftrightarrow> (state\<subseteq>B & F \<in> program)"
+lemma constrains_state [iff]: "(F \<in> state co B) \<longleftrightarrow> (state\<subseteq>B \<and> F \<in> program)"
 apply (cut_tac F = F in Acts_type)
 apply (force simp add: constrains_def st_set_def)
 done
 
-lemma constrains_state2 [iff]: "F \<in> A co state \<longleftrightarrow> (F \<in> program & st_set(A))"
+lemma constrains_state2 [iff]: "F \<in> A co state \<longleftrightarrow> (F \<in> program \<and> st_set(A))"
 apply (cut_tac F = F in Acts_type)
 apply (force simp add: constrains_def st_set_def)
 done
@@ -500,7 +500,7 @@ by (unfold stable_def, assumption)
 lemma stableD: "F \<in> stable(A) \<Longrightarrow> F \<in> A co A"
 by (unfold stable_def, assumption)
 
-lemma stableD2: "F \<in> stable(A) \<Longrightarrow> F \<in> program & st_set(A)"
+lemma stableD2: "F \<in> stable(A) \<Longrightarrow> F \<in> program \<and> st_set(A)"
 by (unfold stable_def constrains_def, auto)
 
 lemma stable_state [simp]: "stable(state) = program"
@@ -571,10 +571,10 @@ apply (unfold invariant_def initially_def)
 apply (frule stable_type [THEN subsetD], auto)
 done
 
-lemma invariantD: "F \<in> invariant(A) \<Longrightarrow> Init(F)\<subseteq>A & F \<in> stable(A)"
+lemma invariantD: "F \<in> invariant(A) \<Longrightarrow> Init(F)\<subseteq>A \<and> F \<in> stable(A)"
 by (unfold invariant_def initially_def, auto)
 
-lemma invariantD2: "F \<in> invariant(A) \<Longrightarrow> F \<in> program & st_set(A)"
+lemma invariantD2: "F \<in> invariant(A) \<Longrightarrow> F \<in> program \<and> st_set(A)"
 apply (unfold invariant_def)
 apply (blast dest: stableD2)
 done

@@ -97,7 +97,7 @@ by simp
 
 lemma sats_Nand_iff [simp]:
   "env \<in> list(A)
-   \<Longrightarrow> (sats(A, Nand(p,q), env)) \<longleftrightarrow> \<not> (sats(A,p,env) & sats(A,q,env))"
+   \<Longrightarrow> (sats(A, Nand(p,q), env)) \<longleftrightarrow> \<not> (sats(A,p,env) \<and> sats(A,q,env))"
 by (simp add: Bool.and_def Bool.not_def cond_def)
 
 lemma sats_Forall_iff [simp]:
@@ -116,7 +116,7 @@ by (simp add: Neg_def)
 
 lemma sats_And_iff [simp]:
   "env \<in> list(A)
-   \<Longrightarrow> (sats(A, And(p,q), env)) \<longleftrightarrow> sats(A,p,env) & sats(A,q,env)"
+   \<Longrightarrow> (sats(A, And(p,q), env)) \<longleftrightarrow> sats(A,p,env) \<and> sats(A,q,env)"
 by (simp add: And_def)
 
 lemma sats_Or_iff [simp]:
@@ -159,7 +159,7 @@ by simp
 
 lemma conj_iff_sats:
       "\<lbrakk>P \<longleftrightarrow> sats(A,p,env); Q \<longleftrightarrow> sats(A,q,env); env \<in> list(A)\<rbrakk>
-       \<Longrightarrow> (P & Q) \<longleftrightarrow> sats(A, And(p,q), env)"
+       \<Longrightarrow> (P \<and> Q) \<longleftrightarrow> sats(A, And(p,q), env)"
 by (simp)
 
 lemma disj_iff_sats:
@@ -394,7 +394,7 @@ definition
   DPow :: "i => i" where
   "DPow(A) \<equiv> {X \<in> Pow(A).
                \<exists>env \<in> list(A). \<exists>p \<in> formula.
-                 arity(p) \<le> succ(length(env)) &
+                 arity(p) \<le> succ(length(env)) \<and>
                  X = {x\<in>A. sats(A, p, Cons(x,env))}}"
 
 lemma DPowI:
@@ -411,9 +411,9 @@ by (simp add: DPow_def, blast)
 
 lemma DPowD:
   "X \<in> DPow(A)
-   \<Longrightarrow> X \<subseteq> A &
+   \<Longrightarrow> X \<subseteq> A \<and>
        (\<exists>env \<in> list(A).
-        \<exists>p \<in> formula. arity(p) \<le> succ(length(env)) &
+        \<exists>p \<in> formula. arity(p) \<le> succ(length(env)) \<and>
                       X = {x\<in>A. sats(A, p, Cons(x,env))})"
 by (simp add: DPow_def)
 
@@ -593,7 +593,7 @@ definition
 
 definition
   L :: "i=>o" where \<comment> \<open>Kunen's definition VI 1.5, page 167\<close>
-  "L(x) \<equiv> \<exists>i. Ord(i) & x \<in> Lset(i)"
+  "L(x) \<equiv> \<exists>i. Ord(i) \<and> x \<in> Lset(i)"
 
 text\<open>NOT SUITABLE FOR REWRITING -- RECURSIVE!\<close>
 lemma Lset: "Lset(i) = (\<Union>j\<in>i. DPow(Lset(j)))"
@@ -841,7 +841,7 @@ definition
 lemma L_I: "\<lbrakk>x \<in> Lset(i); Ord(i)\<rbrakk> \<Longrightarrow> L(x)"
 by (simp add: L_def, blast)
 
-lemma L_D: "L(x) \<Longrightarrow> \<exists>i. Ord(i) & x \<in> Lset(i)"
+lemma L_D: "L(x) \<Longrightarrow> \<exists>i. Ord(i) \<and> x \<in> Lset(i)"
 by (simp add: L_def)
 
 lemma Ord_lrank [simp]: "Ord(lrank(a))"
@@ -859,7 +859,7 @@ done
 text\<open>Kunen's VI 1.8.  The proof is much harder than the text would
 suggest.  For a start, it needs the previous lemma, which is proved by
 induction.\<close>
-lemma Lset_iff_lrank_lt: "Ord(i) \<Longrightarrow> x \<in> Lset(i) \<longleftrightarrow> L(x) & lrank(x) < i"
+lemma Lset_iff_lrank_lt: "Ord(i) \<Longrightarrow> x \<in> Lset(i) \<longleftrightarrow> L(x) \<and> lrank(x) < i"
 apply (simp add: L_def, auto)
  apply (blast intro: Lset_lrank_lt)
  apply (unfold lrank_def)
@@ -923,7 +923,7 @@ done
 
 text\<open>Every set of constructible sets is included in some \<^term>\<open>Lset\<close>\<close>
 lemma subset_Lset:
-     "(\<forall>x\<in>A. L(x)) \<Longrightarrow> \<exists>i. Ord(i) & A \<subseteq> Lset(i)"
+     "(\<forall>x\<in>A. L(x)) \<Longrightarrow> \<exists>i. Ord(i) \<and> A \<subseteq> Lset(i)"
 by (rule_tac x = "\<Union>x\<in>A. succ(lrank(x))" in exI, force)
 
 lemma subset_LsetE:
@@ -940,7 +940,7 @@ lemma LPow_env_typing:
 by (auto intro: L_I iff: Lset_succ_lrank_iff)
 
 lemma LPow_in_Lset:
-     "\<lbrakk>X \<in> Lset(i); Ord(i)\<rbrakk> \<Longrightarrow> \<exists>j. Ord(j) & {y \<in> Pow(X). L(y)} \<in> Lset(j)"
+     "\<lbrakk>X \<in> Lset(i); Ord(i)\<rbrakk> \<Longrightarrow> \<exists>j. Ord(j) \<and> {y \<in> Pow(X). L(y)} \<in> Lset(j)"
 apply (rule_tac x="succ(\<Union>y \<in> Pow(X). succ(lrank(y)))" in exI)
 apply simp
 apply (rule LsetI [OF succI1])
@@ -985,7 +985,7 @@ done
 
 lemma exists_bigger_env:
   "\<lbrakk>p \<in> formula; 0 \<in> A; env \<in> list(A)\<rbrakk>
-   \<Longrightarrow> \<exists>env' \<in> list(A). arity(p) \<le> succ(length(env')) &
+   \<Longrightarrow> \<exists>env' \<in> list(A). arity(p) \<le> succ(length(env')) \<and>
               (\<forall>a\<in>A. sats(A,p,Cons(a,env')) \<longleftrightarrow> sats(A,p,Cons(a,env)))"
 apply (rule_tac x="env @ repeat(0,arity(p))" in bexI)
 apply (simp del: app_Cons add: app_Cons [symmetric]

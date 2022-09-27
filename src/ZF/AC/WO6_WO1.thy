@@ -5,7 +5,7 @@ Proofs needed to state that formulations WO1,...,WO6 are all equivalent.
 The only hard one is WO6 \<Longrightarrow> WO1.
 
 Every proof (except WO6 \<Longrightarrow> WO1 and WO1 \<Longrightarrow> WO2) are described as "clear"
-by Rubin & Rubin (page 2). 
+by Rubin \<and> Rubin (page 2). 
 They refer reader to a book by Gödel to see the proof WO1 \<Longrightarrow> WO2.
 Fortunately order types made this proof also very easy.
 *)
@@ -17,8 +17,8 @@ begin
 (* Auxiliary definitions used in proof *)
 definition
   NN  :: "i => i"  where
-    "NN(y) \<equiv> {m \<in> nat. \<exists>a. \<exists>f. Ord(a) & domain(f)=a  &  
-                        (\<Union>b<a. f`b) = y & (\<forall>b<a. f`b \<lesssim> m)}"
+    "NN(y) \<equiv> {m \<in> nat. \<exists>a. \<exists>f. Ord(a) \<and> domain(f)=a  \<and>  
+                        (\<Union>b<a. f`b) = y \<and> (\<forall>b<a. f`b \<lesssim> m)}"
   
 definition
   uu  :: "[i, i, i, i] => i"  where
@@ -29,9 +29,9 @@ definition
 definition
   vv1 :: "[i, i, i] => i"  where
      "vv1(f,m,b) \<equiv>                                                
-           let g = \<mu> g. (\<exists>d. Ord(d) & (domain(uu(f,b,g,d)) \<noteq> 0 & 
+           let g = \<mu> g. (\<exists>d. Ord(d) \<and> (domain(uu(f,b,g,d)) \<noteq> 0 \<and> 
                                  domain(uu(f,b,g,d)) \<lesssim> m));      
-               d = \<mu> d. domain(uu(f,b,g,d)) \<noteq> 0 &                  
+               d = \<mu> d. domain(uu(f,b,g,d)) \<noteq> 0 \<and>                  
                             domain(uu(f,b,g,d)) \<lesssim> m         
            in  if f`b \<noteq> 0 then domain(uu(f,b,g,d)) else 0"
 
@@ -127,13 +127,13 @@ by (unfold WO4_def WO5_def WO6_def, blast)
 (* ********************************************************************** 
     The proof of "WO6 \<Longrightarrow> WO1".  Simplified by L C Paulson.
 
-    From the book "Equivalents of the Axiom of Choice" by Rubin & Rubin,
+    From the book "Equivalents of the Axiom of Choice" by Rubin \<and> Rubin,
     pages 2-5
 ************************************************************************* *)
 
 lemma lt_oadd_odiff_disj:
       "\<lbrakk>k < i++j;  Ord(i);  Ord(j)\<rbrakk> 
-       \<Longrightarrow> k < i  |  (\<not> k<i & k = i ++ (k--i) & (k--i)<j)"
+       \<Longrightarrow> k < i  |  (\<not> k<i \<and> k = i ++ (k--i) \<and> (k--i)<j)"
 apply (rule_tac i = k and j = i in Ord_linear2)
 prefer 4 
    apply (drule odiff_lt_mono2, assumption)
@@ -172,8 +172,8 @@ by (blast intro: uu_subset2 [THEN subset_imp_lepoll] lepoll_trans)
 lemma cases: 
      "\<forall>b<a. \<forall>g<a. \<forall>d<a. u(f,b,g,d) \<lesssim> m   
       \<Longrightarrow> (\<forall>b<a. f`b \<noteq> 0 \<longrightarrow>  
-                  (\<exists>g<a. \<exists>d<a. u(f,b,g,d) \<noteq> 0 & u(f,b,g,d) \<prec> m))  
-        | (\<exists>b<a. f`b \<noteq> 0 & (\<forall>g<a. \<forall>d<a. u(f,b,g,d) \<noteq> 0 \<longrightarrow>   
+                  (\<exists>g<a. \<exists>d<a. u(f,b,g,d) \<noteq> 0 \<and> u(f,b,g,d) \<prec> m))  
+        | (\<exists>b<a. f`b \<noteq> 0 \<and> (\<forall>g<a. \<forall>d<a. u(f,b,g,d) \<noteq> 0 \<longrightarrow>   
                                         u(f,b,g,d) \<approx> m))"
 apply (unfold lesspoll_def)
 apply (blast del: equalityI)
@@ -210,7 +210,7 @@ by (simp add: lam_funtype [THEN domain_of_fun] gg1_def)
 (* ********************************************************************** *)
 lemma nested_LeastI:
      "\<lbrakk>P(a, b);  Ord(a);  Ord(b);   
-         Least_a = (\<mu> a. \<exists>x. Ord(x) & P(a, x))\<rbrakk>   
+         Least_a = (\<mu> a. \<exists>x. Ord(x) \<and> P(a, x))\<rbrakk>   
       \<Longrightarrow> P(Least_a, \<mu> b. P(Least_a, b))"
 apply (erule ssubst)
 apply (rule_tac Q = "%z. P (z, \<mu> b. P (z, b))" in LeastI2)
@@ -218,13 +218,13 @@ apply (fast elim!: LeastI)+
 done
 
 lemmas nested_Least_instance =
-       nested_LeastI [of "%g d. domain(uu(f,b,g,d)) \<noteq> 0 & 
+       nested_LeastI [of "%g d. domain(uu(f,b,g,d)) \<noteq> 0 \<and> 
                                 domain(uu(f,b,g,d)) \<lesssim> m"] for f b m
 
 lemma gg1_lepoll_m: 
      "\<lbrakk>Ord(a);  m \<in> nat;   
          \<forall>b<a. f`b \<noteq>0 \<longrightarrow>                                        
-             (\<exists>g<a. \<exists>d<a. domain(uu(f,b,g,d)) \<noteq> 0  &                
+             (\<exists>g<a. \<exists>d<a. domain(uu(f,b,g,d)) \<noteq> 0  \<and>                
                           domain(uu(f,b,g,d)) \<lesssim> m);             
          \<forall>b<a. f`b \<lesssim> succ(m);  b<a++a\<rbrakk> 
       \<Longrightarrow> gg1(f,a,m)`b \<lesssim> m"
@@ -439,7 +439,7 @@ apply (auto intro: le_imp_rec_subset [THEN subsetD]
 done
 
 (* ********************************************************************** *)
-(* Rubin & Rubin wrote,                                                   *)
+(* Rubin \<and> Rubin wrote,                                                   *)
 (* "It follows from (ii) and mathematical induction that if y*y \<subseteq> y then *)
 (* y can be well-ordered"                                                 *)
 
@@ -471,7 +471,7 @@ apply (drule lemma1, assumption+)
 apply (fast elim!: lt_Ord intro: LeastI)
 done
 
-lemma NN_imp_ex_inj: "1 \<in> NN(y) \<Longrightarrow> \<exists>a f. Ord(a) & f \<in> inj(y, a)"
+lemma NN_imp_ex_inj: "1 \<in> NN(y) \<Longrightarrow> \<exists>a f. Ord(a) \<and> f \<in> inj(y, a)"
 apply (unfold NN_def)
 apply (elim CollectE exE conjE)
 apply (rule_tac x = a in exI)

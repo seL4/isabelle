@@ -27,7 +27,7 @@ definition
 subsection\<open>Properties involving Transset and Sum\<close>
 
 lemma Transset_includes_summands:
-     "\<lbrakk>Transset(C); A+B \<subseteq> C\<rbrakk> \<Longrightarrow> A \<subseteq> C & B \<subseteq> C"
+     "\<lbrakk>Transset(C); A+B \<subseteq> C\<rbrakk> \<Longrightarrow> A \<subseteq> C \<and> B \<subseteq> C"
 apply (simp add: sum_def Un_subset_iff)
 apply (blast dest: Transset_includes_range)
 done
@@ -121,7 +121,7 @@ lemmas QSigma_subset_quniv =  subset_trans [OF QSigma_mono QSigma_quniv]
 
 (*The opposite inclusion*)
 lemma quniv_QPair_D:
-    "<a;b> \<in> quniv(A) \<Longrightarrow> a: quniv(A) & b: quniv(A)"
+    "<a;b> \<in> quniv(A) \<Longrightarrow> a: quniv(A) \<and> b: quniv(A)"
 apply (unfold quniv_def QPair_def)
 apply (rule Transset_includes_summands [THEN conjE])
 apply (rule Transset_eclose [THEN Transset_univ])
@@ -130,7 +130,7 @@ done
 
 lemmas quniv_QPair_E = quniv_QPair_D [THEN conjE]
 
-lemma quniv_QPair_iff: "<a;b> \<in> quniv(A) \<longleftrightarrow> a: quniv(A) & b: quniv(A)"
+lemma quniv_QPair_iff: "<a;b> \<in> quniv(A) \<longleftrightarrow> a: quniv(A) \<and> b: quniv(A)"
 by (blast intro: QPair_in_quniv dest: quniv_QPair_D)
 
 

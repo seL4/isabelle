@@ -46,7 +46,7 @@ definition
 
 definition
   equiv    :: "[i,i]=>o"  where
-    "equiv(A,r) \<equiv> r \<subseteq> A*A & refl(A,r) & sym(r) & trans(r)"
+    "equiv(A,r) \<equiv> r \<subseteq> A*A \<and> refl(A,r) \<and> sym(r) \<and> trans(r)"
 
 
 subsection\<open>General properties of relations\<close>
@@ -185,7 +185,7 @@ lemma rtranclE:
     "\<lbrakk><a,b> \<in> r^*;  (a=b) \<Longrightarrow> P;
         \<And>y.\<lbrakk><a,y> \<in> r^*;   <y,b> \<in> r\<rbrakk> \<Longrightarrow> P\<rbrakk>
      \<Longrightarrow> P"
-apply (subgoal_tac "a = b | (\<exists>y. <a,y> \<in> r^* & <y,b> \<in> r) ")
+apply (subgoal_tac "a = b | (\<exists>y. <a,y> \<in> r^* \<and> <y,b> \<in> r) ")
 (*see HOL/trancl*)
 apply blast
 apply (erule rtrancl_induct, blast+)
@@ -257,7 +257,7 @@ lemma tranclE:
         <a,b> \<in> r \<Longrightarrow> P;
         \<And>y.\<lbrakk><a,y> \<in> r^+; <y,b> \<in> r\<rbrakk> \<Longrightarrow> P
 \<rbrakk> \<Longrightarrow> P"
-apply (subgoal_tac "<a,b> \<in> r | (\<exists>y. <a,y> \<in> r^+ & <y,b> \<in> r) ")
+apply (subgoal_tac "<a,b> \<in> r | (\<exists>y. <a,y> \<in> r^+ \<and> <y,b> \<in> r) ")
 apply blast
 apply (rule compEpair)
 apply (unfold trancl_def, assumption)

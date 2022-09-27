@@ -9,7 +9,7 @@ theory Ordinal imports WF Bool equalities begin
 
 definition
   Memrel        :: "i=>i"  where
-    "Memrel(A)   \<equiv> {z\<in>A*A . \<exists>x y. z=<x,y> & x\<in>y }"
+    "Memrel(A)   \<equiv> {z\<in>A*A . \<exists>x y. z=<x,y> \<and> x\<in>y }"
 
 definition
   Transset  :: "i=>o"  where
@@ -17,15 +17,15 @@ definition
 
 definition
   Ord  :: "i=>o"  where
-    "Ord(i)      \<equiv> Transset(i) & (\<forall>x\<in>i. Transset(x))"
+    "Ord(i)      \<equiv> Transset(i) \<and> (\<forall>x\<in>i. Transset(x))"
 
 definition
   lt        :: "[i,i] => o"  (infixl \<open><\<close> 50)   (*less-than on ordinals*)  where
-    "i<j         \<equiv> i\<in>j & Ord(j)"
+    "i<j         \<equiv> i\<in>j \<and> Ord(j)"
 
 definition
   Limit         :: "i=>o"  where
-    "Limit(i)    \<equiv> Ord(i) & 0<i & (\<forall>y. y<i \<longrightarrow> succ(y)<i)"
+    "Limit(i)    \<equiv> Ord(i) \<and> 0<i \<and> (\<forall>y. y<i \<longrightarrow> succ(y)<i)"
 
 abbreviation
   le  (infixl \<open>\<le>\<close> 50) where
@@ -50,11 +50,11 @@ by (unfold Transset_def, blast)
 subsubsection\<open>Consequences of Downwards Closure\<close>
 
 lemma Transset_doubleton_D:
-    "\<lbrakk>Transset(C); {a,b}: C\<rbrakk> \<Longrightarrow> a\<in>C & b\<in>C"
+    "\<lbrakk>Transset(C); {a,b}: C\<rbrakk> \<Longrightarrow> a\<in>C \<and> b\<in>C"
 by (unfold Transset_def, blast)
 
 lemma Transset_Pair_D:
-    "\<lbrakk>Transset(C); <a,b>\<in>C\<rbrakk> \<Longrightarrow> a\<in>C & b\<in>C"
+    "\<lbrakk>Transset(C); <a,b>\<in>C\<rbrakk> \<Longrightarrow> a\<in>C \<and> b\<in>C"
 apply (simp add: Pair_def)
 apply (blast dest: Transset_doubleton_D)
 done
@@ -232,7 +232,7 @@ done
 
 text\<open>Recall that  \<^term>\<open>i \<le> j\<close>  abbreviates  \<^term>\<open>i<succ(j)\<close> \<And>\<close>
 
-lemma le_iff: "i \<le> j <-> i<j | (i=j & Ord(j))"
+lemma le_iff: "i \<le> j <-> i<j | (i=j \<and> Ord(j))"
 by (unfold lt_def, blast)
 
 (*Equivalently, i<j \<Longrightarrow> i < succ(j)*)
@@ -247,7 +247,7 @@ lemmas le_refl = refl [THEN le_eqI]
 lemma le_refl_iff [iff]: "i \<le> i <-> Ord(i)"
 by (simp (no_asm_simp) add: lt_not_refl le_iff)
 
-lemma leCI: "(\<not> (i=j & Ord(j)) \<Longrightarrow> i<j) \<Longrightarrow> i \<le> j"
+lemma leCI: "(\<not> (i=j \<and> Ord(j)) \<Longrightarrow> i<j) \<Longrightarrow> i \<le> j"
 by (simp add: le_iff, blast)
 
 lemma leE:
@@ -267,7 +267,7 @@ lemmas le0D = le0_iff [THEN iffD1, dest!]
 subsection\<open>Natural Deduction Rules for Memrel\<close>
 
 (*The lemmas MemrelI/E give better speed than [iff] here*)
-lemma Memrel_iff [simp]: "<a,b> \<in> Memrel(A) <-> a\<in>b & a\<in>A & b\<in>A"
+lemma Memrel_iff [simp]: "<a,b> \<in> Memrel(A) <-> a\<in>b \<and> a\<in>A \<and> b\<in>A"
 by (unfold Memrel_def, blast)
 
 lemma MemrelI [intro!]: "\<lbrakk>a \<in> b;  a \<in> A;  b \<in> A\<rbrakk> \<Longrightarrow> <a,b> \<in> Memrel(A)"
@@ -313,7 +313,7 @@ by (unfold Transset_def trans_def, blast)
 
 (*If Transset(A) then Memrel(A) internalizes the membership relation below A*)
 lemma Transset_Memrel_iff:
-    "Transset(A) \<Longrightarrow> <a,b> \<in> Memrel(A) <-> a\<in>b & b\<in>A"
+    "Transset(A) \<Longrightarrow> <a,b> \<in> Memrel(A) <-> a\<in>b \<and> b\<in>A"
 by (unfold Transset_def, blast)
 
 
@@ -428,10 +428,10 @@ done
 lemma le_imp_subset: "i \<le> j \<Longrightarrow> i<=j"
 by (blast dest: OrdmemD elim: ltE leE)
 
-lemma le_subset_iff: "j \<le> i <-> j<=i & Ord(i) & Ord(j)"
+lemma le_subset_iff: "j \<le> i <-> j<=i \<and> Ord(i) \<and> Ord(j)"
 by (blast dest: subset_imp_le le_imp_subset elim: ltE)
 
-lemma le_succ_iff: "i \<le> succ(j) <-> i \<le> j | i=succ(j) & Ord(i)"
+lemma le_succ_iff: "i \<le> succ(j) <-> i \<le> j | i=succ(j) \<and> Ord(i)"
 apply (simp (no_asm) add: le_iff)
 apply blast
 done
@@ -476,7 +476,7 @@ done
 lemma lt_imp_0_lt: "j<i \<Longrightarrow> 0<i"
 by (blast intro: lt_trans1 Ord_0_le [OF lt_Ord])
 
-lemma succ_lt_iff: "succ(i) < j <-> i<j & succ(i) \<noteq> j"
+lemma succ_lt_iff: "succ(i) < j <-> i<j \<and> succ(i) \<noteq> j"
 apply auto
 apply (blast intro: lt_trans le_refl dest: lt_Ord)
 apply (frule lt_Ord)
@@ -506,14 +506,14 @@ apply (rule_tac i = i and j = j in Ord_linear_le)
 apply (auto simp add: Un_commute le_subset_iff subset_Un_iff lt_Ord)
 done
 
-lemma Un_least_lt_iff: "\<lbrakk>Ord(i); Ord(j)\<rbrakk> \<Longrightarrow> i \<union> j < k  <->  i<k & j<k"
+lemma Un_least_lt_iff: "\<lbrakk>Ord(i); Ord(j)\<rbrakk> \<Longrightarrow> i \<union> j < k  <->  i<k \<and> j<k"
 apply (safe intro!: Un_least_lt)
 apply (rule_tac [2] Un_upper2_le [THEN lt_trans1])
 apply (rule Un_upper1_le [THEN lt_trans1], auto)
 done
 
 lemma Un_least_mem_iff:
-    "\<lbrakk>Ord(i); Ord(j); Ord(k)\<rbrakk> \<Longrightarrow> i \<union> j \<in> k  <->  i\<in>k & j\<in>k"
+    "\<lbrakk>Ord(i); Ord(j); Ord(k)\<rbrakk> \<Longrightarrow> i \<union> j \<in> k  <->  i\<in>k \<and> j\<in>k"
 apply (insert Un_least_lt_iff [of i j k])
 apply (simp add: lt_def)
 done
@@ -697,7 +697,7 @@ by (blast elim!: leE)
 
 subsubsection\<open>Traditional 3-Way Case Analysis on Ordinals\<close>
 
-lemma Ord_cases_disj: "Ord(i) \<Longrightarrow> i=0 | (\<exists>j. Ord(j) & i=succ(j)) | Limit(i)"
+lemma Ord_cases_disj: "Ord(i) \<Longrightarrow> i=0 | (\<exists>j. Ord(j) \<and> i=succ(j)) | Limit(i)"
 by (blast intro!: non_succ_LimitI Ord_0_lt)
 
 lemma Ord_cases:

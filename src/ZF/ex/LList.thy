@@ -74,7 +74,7 @@ declare subset_refl [intro!]
 inductive_cases LConsE: "LCons(a,l) \<in> llist(A)"
 
 (*Proving freeness results*)
-lemma LCons_iff: "LCons(a,l)=LCons(a',l') \<longleftrightarrow> a=a' & l=l'"
+lemma LCons_iff: "LCons(a,l)=LCons(a',l') \<longleftrightarrow> a=a' \<and> l=l'"
 by auto
 
 lemma LNil_LCons_iff: "\<not> LNil=LCons(a,l)"

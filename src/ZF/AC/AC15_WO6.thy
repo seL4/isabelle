@@ -16,7 +16,7 @@ AC1 \<Longrightarrow> AC13(1);  AC13(m) \<Longrightarrow> AC13(n) \<Longrightarr
 
 So we don't have to prove all implications of both cases.
 Moreover we don't need to prove AC13(1) \<Longrightarrow> AC1 and AC11 \<Longrightarrow> AC14 as
-Rubin & Rubin do.
+Rubin \<and> Rubin do.
 *)
 
 theory AC15_WO6
@@ -46,7 +46,7 @@ apply (subgoal_tac "x \<noteq> 0")
  apply (blast intro: lepoll_Sigma [THEN lepoll_Finite])+
 done
 
-lemma lemma1: "\<lbrakk>\<Union>(C)=A; a \<in> A\<rbrakk> \<Longrightarrow> \<exists>B \<in> C. a \<in> B & B \<subseteq> A"
+lemma lemma1: "\<lbrakk>\<Union>(C)=A; a \<in> A\<rbrakk> \<Longrightarrow> \<exists>B \<in> C. a \<in> B \<and> B \<subseteq> A"
 by fast
 
 lemma lemma2: 
@@ -54,10 +54,10 @@ lemma lemma2:
 by (unfold pairwise_disjoint_def, blast) 
 
 lemma lemma3: 
-     "\<forall>B \<in> {cons(0, x*nat). x \<in> A}. pairwise_disjoint(f`B) &   
-             sets_of_size_between(f`B, 2, n) & \<Union>(f`B)=B   
-     \<Longrightarrow> \<forall>B \<in> A. \<exists>! u. u \<in> f`cons(0, B*nat) & u \<subseteq> cons(0, B*nat) &   
-             0 \<in> u & 2 \<lesssim> u & u \<lesssim> n"
+     "\<forall>B \<in> {cons(0, x*nat). x \<in> A}. pairwise_disjoint(f`B) \<and>   
+             sets_of_size_between(f`B, 2, n) \<and> \<Union>(f`B)=B   
+     \<Longrightarrow> \<forall>B \<in> A. \<exists>! u. u \<in> f`cons(0, B*nat) \<and> u \<subseteq> cons(0, B*nat) \<and>   
+             0 \<in> u \<and> 2 \<lesssim> u \<and> u \<lesssim> n"
 apply (unfold sets_of_size_between_def)
 apply (rule ballI)
 apply (erule_tac x="cons(0, B*nat)" in ballE)
@@ -67,7 +67,7 @@ done
 lemma lemma4: "\<lbrakk>A \<lesssim> i; Ord(i)\<rbrakk> \<Longrightarrow> {P(a). a \<in> A} \<lesssim> i"
 apply (unfold lepoll_def)
 apply (erule exE)
-apply (rule_tac x = "\<lambda>x \<in> RepFun(A,P). \<mu> j. \<exists>a\<in>A. x=P(a) & f`a=j" 
+apply (rule_tac x = "\<lambda>x \<in> RepFun(A,P). \<mu> j. \<exists>a\<in>A. x=P(a) \<and> f`a=j" 
        in exI)
 apply (rule_tac d = "%y. P (converse (f) `y) " in lam_injective)
 apply (erule RepFunE)
@@ -103,10 +103,10 @@ done
 
 lemma ex_fun_AC13_AC15:
      "\<lbrakk>\<forall>B \<in> {cons(0, x*nat). x \<in> A}.   
-                pairwise_disjoint(f`B) &   
-                sets_of_size_between(f`B, 2, succ(n)) & \<Union>(f`B)=B; 
+                pairwise_disjoint(f`B) \<and>   
+                sets_of_size_between(f`B, 2, succ(n)) \<and> \<Union>(f`B)=B; 
          n \<in> nat\<rbrakk>   
-      \<Longrightarrow> \<exists>f. \<forall>B \<in> A. f`B \<noteq> 0 & f`B \<subseteq> B & f`B \<lesssim> n"
+      \<Longrightarrow> \<exists>f. \<forall>B \<in> A. f`B \<noteq> 0 \<and> f`B \<subseteq> B \<and> f`B \<lesssim> n"
 by (fast del: subsetI notI
          dest!: lemma3 theI intro!: lemma5_1 lemma5_2 lemma5_3)
 
@@ -147,7 +147,7 @@ lemma OUN_eq_UN: "Ord(x) \<Longrightarrow> (\<Union>a<x. F(a)) = (\<Union>a \<in
 by (fast intro!: ltI dest!: ltD)
 
 lemma AC15_WO6_aux1:
-     "\<forall>x \<in> Pow(A)-{0}. f`x\<noteq>0 & f`x \<subseteq> x & f`x \<lesssim> m 
+     "\<forall>x \<in> Pow(A)-{0}. f`x\<noteq>0 \<and> f`x \<subseteq> x \<and> f`x \<lesssim> m 
       \<Longrightarrow> (\<Union>i<\<mu> x. HH(f,A,x)={A}. HH(f,A,i)) = A"
 apply (simp add: Ord_Least [THEN OUN_eq_UN])
 apply (rule equalityI)
@@ -157,7 +157,7 @@ apply (blast del: subsetI
 done
 
 lemma AC15_WO6_aux2:
-     "\<forall>x \<in> Pow(A)-{0}. f`x\<noteq>0 & f`x \<subseteq> x & f`x \<lesssim> m 
+     "\<forall>x \<in> Pow(A)-{0}. f`x\<noteq>0 \<and> f`x \<subseteq> x \<and> f`x \<lesssim> m 
       \<Longrightarrow> \<forall>x < (\<mu> x. HH(f,A,x)={A}). HH(f,A,x) \<lesssim> m"
 apply (rule oallI)
 apply (drule ltD [THEN less_Least_subset_x])
@@ -251,7 +251,7 @@ theorem AC14_AC15: "AC14 \<Longrightarrow> AC15"
 by (unfold AC13_def AC14_def AC15_def, fast)
 
 (* ********************************************************************** *)
-(* The redundant proofs; however cited by Rubin & Rubin                   *)
+(* The redundant proofs; however cited by Rubin \<and> Rubin                   *)
 (* ********************************************************************** *)
 
 (* ********************************************************************** *)
@@ -262,7 +262,7 @@ lemma lemma_aux: "\<lbrakk>A\<noteq>0; A \<lesssim> 1\<rbrakk> \<Longrightarrow>
 by (fast elim!: not_emptyE lepoll_1_is_sing)
 
 lemma AC13_AC1_lemma:
-     "\<forall>B \<in> A. f(B)\<noteq>0 & f(B)<=B & f(B) \<lesssim> 1   
+     "\<forall>B \<in> A. f(B)\<noteq>0 \<and> f(B)<=B \<and> f(B) \<lesssim> 1   
       \<Longrightarrow> (\<lambda>x \<in> A. THE y. f(x)={y}) \<in> (\<Prod>X \<in> A. X)"
 apply (rule lam_type)
 apply (drule bspec, assumption)

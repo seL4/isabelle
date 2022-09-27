@@ -22,7 +22,7 @@ definition
 definition
   (*alternative definition of ordinal numbers*)
   Ord_alt   :: "i => o"  where
-   "Ord_alt(X) \<equiv> well_ord(X, Memrel(X)) & (\<forall>u\<in>X. u=pred(X, u, Memrel(X)))"
+   "Ord_alt(X) \<equiv> well_ord(X, Memrel(X)) \<and> (\<forall>u\<in>X. u=pred(X, u, Memrel(X)))"
 
 definition
   (*coercion to ordinal: if not, just 0*)
@@ -600,7 +600,7 @@ apply (simp add: Limit_is_Ord [THEN Ord_in_Ord] oadd_UN [symmetric]
                  Union_eq_UN [symmetric] Limit_Union_eq)
 done
 
-lemma oadd_eq_0_iff: "\<lbrakk>Ord(i); Ord(j)\<rbrakk> \<Longrightarrow> (i ++ j) = 0 \<longleftrightarrow> i=0 & j=0"
+lemma oadd_eq_0_iff: "\<lbrakk>Ord(i); Ord(j)\<rbrakk> \<Longrightarrow> (i ++ j) = 0 \<longleftrightarrow> i=0 \<and> j=0"
 apply (erule trans_induct3 [of j])
 apply (simp_all add: oadd_Limit)
 apply (simp add: Union_empty_iff Limit_def lt_def, blast)
@@ -668,12 +668,12 @@ apply (blast intro: succ_leI oadd_le_mono)
 done
 
 text\<open>Every ordinal is exceeded by some limit ordinal.\<close>
-lemma Ord_imp_greater_Limit: "Ord(i) \<Longrightarrow> \<exists>k. i<k & Limit(k)"
+lemma Ord_imp_greater_Limit: "Ord(i) \<Longrightarrow> \<exists>k. i<k \<and> Limit(k)"
 apply (rule_tac x="i ++ nat" in exI)
 apply (blast intro: oadd_LimitI  oadd_lt_self  Limit_nat [THEN Limit_has_0])
 done
 
-lemma Ord2_imp_greater_Limit: "\<lbrakk>Ord(i); Ord(j)\<rbrakk> \<Longrightarrow> \<exists>k. i<k & j<k & Limit(k)"
+lemma Ord2_imp_greater_Limit: "\<lbrakk>Ord(i); Ord(j)\<rbrakk> \<Longrightarrow> \<exists>k. i<k \<and> j<k \<and> Limit(k)"
 apply (insert Ord_Un [of i j, THEN Ord_imp_greater_Limit])
 apply (simp add: Un_least_lt_iff)
 done
@@ -796,7 +796,7 @@ done
 
 lemma lt_omult:
  "\<lbrakk>Ord(i);  Ord(j);  k<j**i\<rbrakk>
-  \<Longrightarrow> \<exists>j' i'. k = j**i' ++ j' & j'<j & i'<i"
+  \<Longrightarrow> \<exists>j' i'. k = j**i' ++ j' \<and> j'<j \<and> i'<i"
 apply (unfold omult_def)
 apply (simp add: ordertype_pred_unfold well_ord_rmult well_ord_Memrel)
 apply (safe elim!: ltE)

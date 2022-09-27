@@ -56,7 +56,7 @@ proof -
       { fix y ys
         assume "y \<in> A" and "ys \<in> list(A)"
         with Cons
-        have "\<langle>Cons(x,xs),Cons(y,ys)\<rangle> \<in> rlist(A,r) \<or> x=y & xs = ys \<or> \<langle>Cons(y,ys), Cons(x,xs)\<rangle> \<in> rlist(A,r)" 
+        have "\<langle>Cons(x,xs),Cons(y,ys)\<rangle> \<in> rlist(A,r) \<or> x=y \<and> xs = ys \<or> \<langle>Cons(y,ys), Cons(x,xs)\<rangle> \<in> rlist(A,r)" 
           apply (rule_tac i = "length(xs)" and j = "length(ys)" in Ord_linear_lt)
           apply (simp_all add: shorterI)
           apply (rule linearE [OF r, of x y]) 
@@ -172,7 +172,7 @@ by (blast intro: inj_is_fun [OF fn_inj] apply_funtype)
 
 lemma (in Nat_Times_Nat) fn_iff:
     "\<lbrakk>x \<in> nat; y \<in> nat; u \<in> nat; v \<in> nat\<rbrakk>
-     \<Longrightarrow> (fn`<x,y> = fn`<u,v>) \<longleftrightarrow> (x=u & y=v)"
+     \<Longrightarrow> (fn`<x,y> = fn`<u,v>) \<longleftrightarrow> (x=u \<and> y=v)"
 by (blast dest: inj_apply_equality [OF fn_inj])
 
 lemma (in Nat_Times_Nat) enum_type [TC,simp]:
@@ -247,8 +247,8 @@ definition
     \<comment> \<open>predicate that holds if \<^term>\<open>k\<close> is a valid index for \<^term>\<open>X\<close>\<close>
    "DPow_ord(f,r,A,X,k) \<equiv>
            \<exists>env \<in> list(A). \<exists>p \<in> formula.
-             arity(p) \<le> succ(length(env)) &
-             X = {x\<in>A. sats(A, p, Cons(x,env))} &
+             arity(p) \<le> succ(length(env)) \<and>
+             X = {x\<in>A. sats(A, p, Cons(x,env))} \<and>
              env_form_map(f,r,A,<env,p>) = k"
 
 definition
@@ -335,9 +335,9 @@ definition
     "rlimit(i,r) \<equiv>
        if Limit(i) then 
          {z: Lset(i) * Lset(i).
-          \<exists>x' x. z = <x',x> &
+          \<exists>x' x. z = <x',x> \<and>
                  (lrank(x') < lrank(x) |
-                  (lrank(x') = lrank(x) & <x',x> \<in> r(succ(lrank(x)))))}
+                  (lrank(x') = lrank(x) \<and> <x',x> \<in> r(succ(lrank(x)))))}
        else 0"
 
 definition

@@ -13,13 +13,13 @@ theory Increasing imports Constrains Monotonicity begin
 definition
   increasing :: "[i, i, i=>i] => i" (\<open>increasing[_]'(_, _')\<close>)  where
   "increasing[A](r, f) \<equiv>
-    {F \<in> program. (\<forall>k \<in> A. F \<in> stable({s \<in> state. <k, f(s)> \<in> r})) &
+    {F \<in> program. (\<forall>k \<in> A. F \<in> stable({s \<in> state. <k, f(s)> \<in> r})) \<and>
                 (\<forall>x \<in> state. f(x):A)}"
   
 definition
   Increasing :: "[i, i, i=>i] => i" (\<open>Increasing[_]'(_, _')\<close>)  where
   "Increasing[A](r, f) \<equiv>
-    {F \<in> program. (\<forall>k \<in> A. F \<in> Stable({s \<in> state. <k, f(s)> \<in> r})) &
+    {F \<in> program. (\<forall>k \<in> A. F \<in> Stable({s \<in> state. <k, f(s)> \<in> r})) \<and>
                 (\<forall>x \<in> state. f(x):A)}"
 
 abbreviation (input)
@@ -40,14 +40,14 @@ lemma increasing_imp_stable:
 by (unfold increasing_def, blast)
 
 lemma increasingD: 
-"F \<in> increasing[A](r,f) \<Longrightarrow> F \<in> program & (\<exists>a. a \<in> A) & (\<forall>s \<in> state. f(s):A)"
+"F \<in> increasing[A](r,f) \<Longrightarrow> F \<in> program \<and> (\<exists>a. a \<in> A) \<and> (\<forall>s \<in> state. f(s):A)"
 apply (unfold increasing_def)
 apply (subgoal_tac "\<exists>x. x \<in> state")
 apply (auto dest: stable_type [THEN subsetD] intro: st0_in_state)
 done
 
 lemma increasing_constant [simp]: 
- "F \<in> increasing[A](r, %s. c) \<longleftrightarrow> F \<in> program & c \<in> A"
+ "F \<in> increasing[A](r, %s. c) \<longleftrightarrow> F \<in> program \<and> c \<in> A"
 apply (unfold increasing_def stable_def)
 apply (subgoal_tac "\<exists>x. x \<in> state")
 apply (auto dest: stable_type [THEN subsetD] intro: st0_in_state)
@@ -109,14 +109,14 @@ lemma Increasing_imp_Stable:
 by (unfold Increasing_def, blast)
 
 lemma IncreasingD: 
-"F \<in> Increasing[A](r, f) \<Longrightarrow> F \<in> program & (\<exists>a. a \<in> A) & (\<forall>s \<in> state. f(s):A)"
+"F \<in> Increasing[A](r, f) \<Longrightarrow> F \<in> program \<and> (\<exists>a. a \<in> A) \<and> (\<forall>s \<in> state. f(s):A)"
 apply (unfold Increasing_def)
 apply (subgoal_tac "\<exists>x. x \<in> state")
 apply (auto intro: st0_in_state)
 done
 
 lemma Increasing_constant [simp]: 
-     "F \<in> Increasing[A](r, %s. c) \<longleftrightarrow> F \<in> program & (c \<in> A)"
+     "F \<in> Increasing[A](r, %s. c) \<longleftrightarrow> F \<in> program \<and> (c \<in> A)"
 apply (subgoal_tac "\<exists>x. x \<in> state")
 apply (auto dest!: IncreasingD intro: st0_in_state increasing_imp_Increasing)
 done
@@ -127,7 +127,7 @@ lemma subset_Increasing_comp:
 apply (unfold Increasing_def Stable_def Constrains_def part_order_def 
        constrains_def mono1_def metacomp_def, safe)
 apply (simp_all add: ActsD)
-apply (subgoal_tac "xb \<in> state & xa \<in> state")
+apply (subgoal_tac "xb \<in> state \<and> xa \<in> state")
  prefer 2 apply (simp add: ActsD)
 apply (subgoal_tac "<f (xb), f (xb) >:r")
 prefer 2 apply (force simp add: refl_def)
@@ -168,9 +168,9 @@ apply (unfold increasing_def stable_def
        part_order_def constrains_def mono2_def, clarify, simp)
 apply clarify
 apply (rename_tac xa xb)
-apply (subgoal_tac "xb \<in> state & xa \<in> state")
+apply (subgoal_tac "xb \<in> state \<and> xa \<in> state")
  prefer 2 apply (blast dest!: ActsD)
-apply (subgoal_tac "<f (xb), f (xb) >:r & <g (xb), g (xb) >:s")
+apply (subgoal_tac "<f (xb), f (xb) >:r \<and> <g (xb), g (xb) >:s")
 prefer 2 apply (force simp add: refl_def)
 apply (rotate_tac 6)
 apply (drule_tac x = "f (xb) " in bspec)
@@ -199,9 +199,9 @@ lemma imp_Increasing_comp2:
 apply (unfold Increasing_def stable_def 
        part_order_def constrains_def mono2_def Stable_def Constrains_def, safe)
 apply (simp_all add: ActsD)
-apply (subgoal_tac "xa \<in> state & x \<in> state")
+apply (subgoal_tac "xa \<in> state \<and> x \<in> state")
 prefer 2 apply (blast dest!: ActsD)
-apply (subgoal_tac "<f (xa), f (xa) >:r & <g (xa), g (xa) >:s")
+apply (subgoal_tac "<f (xa), f (xa) >:r \<and> <g (xa), g (xa) >:s")
 prefer 2 apply (force simp add: refl_def)
 apply (rotate_tac 6)
 apply (drule_tac x = "f (xa) " in bspec)

@@ -15,7 +15,7 @@ definition
 
 definition
   oex :: "[i, i => o] => o"  where
-    "oex(A, P)  \<equiv> \<exists>x. x<A & P(x)"
+    "oex(A, P)  \<equiv> \<exists>x. x<A \<and> P(x)"
 
 definition
   (* Ordinal Union *)
@@ -44,12 +44,12 @@ by (simp add: oall_def)
 lemma [simp]: "\<not>(\<exists>x<0. P(x))"
 by (simp add: oex_def)
 
-lemma [simp]: "(\<forall>x<succ(i). P(x)) <-> (Ord(i) \<longrightarrow> P(i) & (\<forall>x<i. P(x)))"
+lemma [simp]: "(\<forall>x<succ(i). P(x)) <-> (Ord(i) \<longrightarrow> P(i) \<and> (\<forall>x<i. P(x)))"
 apply (simp add: oall_def le_iff)
 apply (blast intro: lt_Ord2)
 done
 
-lemma [simp]: "(\<exists>x<succ(i). P(x)) <-> (Ord(i) & (P(i) | (\<exists>x<i. P(x))))"
+lemma [simp]: "(\<exists>x<succ(i). P(x)) <-> (Ord(i) \<and> (P(i) | (\<exists>x<i. P(x))))"
 apply (simp add: oex_def le_iff)
 apply (blast intro: lt_Ord2)
 done
@@ -189,7 +189,7 @@ definition
 
 definition
   "rex"      :: "[i=>o, i=>o] => o"  where
-    "rex(M, P) \<equiv> \<exists>x. M(x) & P(x)"
+    "rex(M, P) \<equiv> \<exists>x. M(x) \<and> P(x)"
 
 syntax
   "_rall"     :: "[pttrn, i=>o, o] => o"        (\<open>(3\<forall>_[_]./ _)\<close> 10)
@@ -261,14 +261,14 @@ by (simp add: rall_def atomize_all atomize_imp)
 declare atomize_rall [symmetric, rulify]
 
 lemma rall_simps1:
-     "(\<forall>x[M]. P(x) & Q)   <-> (\<forall>x[M]. P(x)) & ((\<forall>x[M]. False) | Q)"
+     "(\<forall>x[M]. P(x) \<and> Q)   <-> (\<forall>x[M]. P(x)) \<and> ((\<forall>x[M]. False) | Q)"
      "(\<forall>x[M]. P(x) | Q)   <-> ((\<forall>x[M]. P(x)) | Q)"
      "(\<forall>x[M]. P(x) \<longrightarrow> Q) <-> ((\<exists>x[M]. P(x)) \<longrightarrow> Q)"
      "(\<not>(\<forall>x[M]. P(x))) <-> (\<exists>x[M]. \<not>P(x))"
 by blast+
 
 lemma rall_simps2:
-     "(\<forall>x[M]. P & Q(x))   <-> ((\<forall>x[M]. False) | P) & (\<forall>x[M]. Q(x))"
+     "(\<forall>x[M]. P \<and> Q(x))   <-> ((\<forall>x[M]. False) | P) \<and> (\<forall>x[M]. Q(x))"
      "(\<forall>x[M]. P | Q(x))   <-> (P | (\<forall>x[M]. Q(x)))"
      "(\<forall>x[M]. P \<longrightarrow> Q(x)) <-> (P \<longrightarrow> (\<forall>x[M]. Q(x)))"
 by blast+
@@ -276,19 +276,19 @@ by blast+
 lemmas rall_simps [simp] = rall_simps1 rall_simps2
 
 lemma rall_conj_distrib:
-    "(\<forall>x[M]. P(x) & Q(x)) <-> ((\<forall>x[M]. P(x)) & (\<forall>x[M]. Q(x)))"
+    "(\<forall>x[M]. P(x) \<and> Q(x)) <-> ((\<forall>x[M]. P(x)) \<and> (\<forall>x[M]. Q(x)))"
 by blast
 
 lemma rex_simps1:
-     "(\<exists>x[M]. P(x) & Q) <-> ((\<exists>x[M]. P(x)) & Q)"
-     "(\<exists>x[M]. P(x) | Q) <-> (\<exists>x[M]. P(x)) | ((\<exists>x[M]. True) & Q)"
-     "(\<exists>x[M]. P(x) \<longrightarrow> Q) <-> ((\<forall>x[M]. P(x)) \<longrightarrow> ((\<exists>x[M]. True) & Q))"
+     "(\<exists>x[M]. P(x) \<and> Q) <-> ((\<exists>x[M]. P(x)) \<and> Q)"
+     "(\<exists>x[M]. P(x) | Q) <-> (\<exists>x[M]. P(x)) | ((\<exists>x[M]. True) \<and> Q)"
+     "(\<exists>x[M]. P(x) \<longrightarrow> Q) <-> ((\<forall>x[M]. P(x)) \<longrightarrow> ((\<exists>x[M]. True) \<and> Q))"
      "(\<not>(\<exists>x[M]. P(x))) <-> (\<forall>x[M]. \<not>P(x))"
 by blast+
 
 lemma rex_simps2:
-     "(\<exists>x[M]. P & Q(x)) <-> (P & (\<exists>x[M]. Q(x)))"
-     "(\<exists>x[M]. P | Q(x)) <-> ((\<exists>x[M]. True) & P) | (\<exists>x[M]. Q(x))"
+     "(\<exists>x[M]. P \<and> Q(x)) <-> (P \<and> (\<exists>x[M]. Q(x)))"
+     "(\<exists>x[M]. P | Q(x)) <-> ((\<exists>x[M]. True) \<and> P) | (\<exists>x[M]. Q(x))"
      "(\<exists>x[M]. P \<longrightarrow> Q(x)) <-> (((\<forall>x[M]. False) | P) \<longrightarrow> (\<exists>x[M]. Q(x)))"
 by blast+
 
@@ -307,10 +307,10 @@ by blast
 lemma rex_triv_one_point2 [simp]: "(\<exists>x[M]. a=x) <-> ( M(a))"
 by blast
 
-lemma rex_one_point1 [simp]: "(\<exists>x[M]. x=a & P(x)) <-> ( M(a) & P(a))"
+lemma rex_one_point1 [simp]: "(\<exists>x[M]. x=a \<and> P(x)) <-> ( M(a) \<and> P(a))"
 by blast
 
-lemma rex_one_point2 [simp]: "(\<exists>x[M]. a=x & P(x)) <-> ( M(a) & P(a))"
+lemma rex_one_point2 [simp]: "(\<exists>x[M]. a=x \<and> P(x)) <-> ( M(a) \<and> P(a))"
 by blast
 
 lemma rall_one_point1 [simp]: "(\<forall>x[M]. x=a \<longrightarrow> P(x)) <-> ( M(a) \<longrightarrow> P(a))"
@@ -349,7 +349,7 @@ declaration \<open>fn _ =>
 
 text \<open>Setting up the one-point-rule simproc\<close>
 
-simproc_setup defined_rex ("\<exists>x[M]. P(x) & Q(x)") = \<open>
+simproc_setup defined_rex ("\<exists>x[M]. P(x) \<and> Q(x)") = \<open>
   fn _ => Quantifier1.rearrange_Bex
     (fn ctxt => unfold_tac ctxt @{thms rex_def})
 \<close>

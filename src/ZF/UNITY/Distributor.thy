@@ -22,7 +22,7 @@ definition
          (\<Inter>n \<in> Nclients.
           lift(Out(n))
               Fols
-          (%s. sublist(s`In, {k \<in> nat. k<length(s`iIn) & nth(k, s`iIn) = n}))
+          (%s. sublist(s`In, {k \<in> nat. k<length(s`iIn) \<and> nth(k, s`iIn) = n}))
           Wrt prefix(A)/list(A))"
 
 definition
@@ -43,13 +43,13 @@ locale distr =
     and A   \<comment> \<open>the type of items being distributed\<close>
     and D
  assumes
-     var_assumes [simp]:  "In \<in> var & iIn \<in> var & (\<forall>n. Out(n):var)"
+     var_assumes [simp]:  "In \<in> var \<and> iIn \<in> var \<and> (\<forall>n. Out(n):var)"
  and all_distinct_vars:   "\<forall>n. all_distinct([In, iIn, Out(n)])"
- and type_assumes [simp]: "type_of(In)=list(A) &  type_of(iIn)=list(nat) &
+ and type_assumes [simp]: "type_of(In)=list(A) \<and>  type_of(iIn)=list(nat) \<and>
                           (\<forall>n. type_of(Out(n))=list(A))"
  and default_val_assumes [simp]:
-                         "default_val(In)=Nil &
-                          default_val(iIn)=Nil &
+                         "default_val(In)=Nil \<and>
+                          default_val(iIn)=Nil \<and>
                           (\<forall>n. default_val(Out(n))=Nil)"
  and distr_spec:  "D \<in> distr_spec(A, In, iIn, Out)"
 
@@ -79,7 +79,7 @@ done
 
 lemma (in distr) D_ok_iff:
      "G \<in> program \<Longrightarrow>
-        D ok G \<longleftrightarrow> ((\<forall>n \<in> nat. G \<in> preserves(lift(Out(n)))) & D \<in> Allowed(G))"
+        D ok G \<longleftrightarrow> ((\<forall>n \<in> nat. G \<in> preserves(lift(Out(n)))) \<and> D \<in> Allowed(G))"
 apply (cut_tac distr_spec)
 apply (auto simp add: INT_iff distr_spec_def distr_allowed_acts_def
                       Allowed_def ok_iff_Allowed)
@@ -106,7 +106,7 @@ lemma (in distr) distr_bag_Follows_lemma:
           \<forall>elt \<in> set_of_list(s`iIn). elt < Nclients})\<rbrakk>
   \<Longrightarrow> D \<squnion> G \<in> Always
           ({s \<in> state. msetsum(%n. bag_of (sublist(s`In,
-                       {k \<in> nat. k < length(s`iIn) &
+                       {k \<in> nat. k < length(s`iIn) \<and>
                           nth(k, s`iIn)= n})),
                          Nclients, A) =
               bag_of(sublist(s`In, length(s`iIn)))})"
@@ -122,7 +122,7 @@ apply (subst bag_of_sublist_UN_disjoint [symmetric])
  apply (simp (no_asm_simp))
 apply (simp add: set_of_list_conv_nth [of _ nat])
 apply (subgoal_tac
-       "(\<Union>i \<in> Nclients. {k\<in>nat. k < length(s`iIn) & nth(k, s`iIn) = i}) =
+       "(\<Union>i \<in> Nclients. {k\<in>nat. k < length(s`iIn) \<and> nth(k, s`iIn) = i}) =
         length(s`iIn) ")
 apply (simp (no_asm_simp))
 apply (rule equalityI)

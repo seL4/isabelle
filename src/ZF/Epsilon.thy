@@ -359,8 +359,8 @@ done
 
 lemma def_transrec2:
      "(\<And>x. f(x)\<equiv>transrec2(x,a,b))
-      \<Longrightarrow> f(0) = a &
-          f(succ(i)) = b(i, f(i)) &
+      \<Longrightarrow> f(0) = a \<and>
+          f(succ(i)) = b(i, f(i)) \<and>
           (Limit(K) \<longrightarrow> f(K) = (\<Union>j<K. f(j)))"
 by (simp add: transrec2_Limit)
 

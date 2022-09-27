@@ -38,7 +38,7 @@ definition
 
 subsection \<open>Basic properties of evnodd\<close>
 
-lemma evnodd_iff: "<i,j>: evnodd(A,b) \<longleftrightarrow> <i,j>: A & (i#+j) mod 2 = b"
+lemma evnodd_iff: "<i,j>: evnodd(A,b) \<longleftrightarrow> <i,j>: A \<and> (i#+j) mod 2 = b"
   by (unfold evnodd_def) blast
 
 lemma evnodd_subset: "evnodd(A, b) \<subseteq> A"

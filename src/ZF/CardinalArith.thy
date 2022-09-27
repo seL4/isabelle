@@ -9,7 +9,7 @@ theory CardinalArith imports Cardinal OrderArith ArithSimp Finite begin
 
 definition
   InfCard       :: "i=>o"  where
-    "InfCard(i) \<equiv> Card(i) & nat \<le> i"
+    "InfCard(i) \<equiv> Card(i) \<and> nat \<le> i"
 
 definition
   cmult         :: "[i,i]=>i"       (infixl \<open>\<otimes>\<close> 70)  where
@@ -31,13 +31,13 @@ definition
     \<comment> \<open>This definition is more complex than Kunen's but it more easily proved to
         be a cardinal\<close>
     "jump_cardinal(K) \<equiv>
-         \<Union>X\<in>Pow(K). {z. r \<in> Pow(K*K), well_ord(X,r) & z = ordertype(X,r)}"
+         \<Union>X\<in>Pow(K). {z. r \<in> Pow(K*K), well_ord(X,r) \<and> z = ordertype(X,r)}"
 
 definition
   csucc         :: "i=>i"  where
     \<comment> \<open>needed because \<^term>\<open>jump_cardinal(K)\<close> might not be the successor
         of \<^term>\<open>K\<close>\<close>
-    "csucc(K) \<equiv> \<mu> L. Card(L) & K<L"
+    "csucc(K) \<equiv> \<mu> L. Card(L) \<and> K<L"
 
 
 lemma Card_Union [simp,intro,TC]:
@@ -48,7 +48,7 @@ proof (rule CardI)
 next
   fix j
   assume j: "j < \<Union>A"
-  hence "\<exists>c\<in>A. j < c & Card(c)" using A
+  hence "\<exists>c\<in>A. j < c \<and> Card(c)" using A
     by (auto simp add: lt_def intro: Card_is_Ord)
   then obtain c where c: "c\<in>A" "j < c" "Card(c)"
     by blast
@@ -491,7 +491,7 @@ qed
 subsubsection\<open>Characterising initial segments of the well-ordering\<close>
 
 lemma csquareD:
- "\<lbrakk><<x,y>, <z,z>> \<in> csquare_rel(K);  x<K;  y<K;  z<K\<rbrakk> \<Longrightarrow> x \<le> z & y \<le> z"
+ "\<lbrakk><<x,y>, <z,z>> \<in> csquare_rel(K);  x<K;  y<K;  z<K\<rbrakk> \<Longrightarrow> x \<le> z \<and> y \<le> z"
 apply (unfold csquare_rel_def)
 apply (erule rev_mp)
 apply (elim ltE)
@@ -510,17 +510,17 @@ done
 lemma csquare_ltI:
  "\<lbrakk>x<z;  y<z;  z<K\<rbrakk> \<Longrightarrow>  <<x,y>, <z,z>> \<in> csquare_rel(K)"
 apply (unfold csquare_rel_def)
-apply (subgoal_tac "x<K & y<K")
+apply (subgoal_tac "x<K \<and> y<K")
  prefer 2 apply (blast intro: lt_trans)
 apply (elim ltE)
 apply (simp add: rvimage_iff Un_absorb Un_least_mem_iff ltD)
 done
 
-(*Part of the traditional proof.  UNUSED since it's harder to prove & apply *)
+(*Part of the traditional proof.  UNUSED since it's harder to prove \<and> apply *)
 lemma csquare_or_eqI:
- "\<lbrakk>x \<le> z;  y \<le> z;  z<K\<rbrakk> \<Longrightarrow> <<x,y>, <z,z>> \<in> csquare_rel(K) | x=z & y=z"
+ "\<lbrakk>x \<le> z;  y \<le> z;  z<K\<rbrakk> \<Longrightarrow> <<x,y>, <z,z>> \<in> csquare_rel(K) | x=z \<and> y=z"
 apply (unfold csquare_rel_def)
-apply (subgoal_tac "x<K & y<K")
+apply (subgoal_tac "x<K \<and> y<K")
  prefer 2 apply (blast intro: lt_trans1)
 apply (elim ltE)
 apply (simp add: rvimage_iff Un_absorb Un_least_mem_iff ltD)
@@ -535,7 +535,7 @@ lemma ordermap_z_lt:
       "\<lbrakk>Limit(K);  x<K;  y<K;  z=succ(x \<union> y)\<rbrakk> \<Longrightarrow>
           ordermap(K*K, csquare_rel(K)) ` <x,y> <
           ordermap(K*K, csquare_rel(K)) ` <z,z>"
-apply (subgoal_tac "z<K & well_ord (K*K, csquare_rel (K))")
+apply (subgoal_tac "z<K \<and> well_ord (K*K, csquare_rel (K))")
 prefer 2 apply (blast intro!: Un_least_lt Limit_has_succ
                               Limit_is_Ord [THEN well_ord_csquare], clarify)
 apply (rule csquare_ltI [THEN ordermap_mono, THEN ltI])
@@ -745,7 +745,7 @@ done
 (*Allows selective unfolding.  Less work than deriving intro/elim rules*)
 lemma jump_cardinal_iff:
      "i \<in> jump_cardinal(K) \<longleftrightarrow>
-      (\<exists>r X. r \<subseteq> K*K & X \<subseteq> K & well_ord(X,r) & i = ordertype(X,r))"
+      (\<exists>r X. r \<subseteq> K*K \<and> X \<subseteq> K \<and> well_ord(X,r) \<and> i = ordertype(X,r))"
 apply (unfold jump_cardinal_def)
 apply (blast del: subsetI)
 done
@@ -787,7 +787,7 @@ done
 
 subsection\<open>Basic Properties of Successor Cardinals\<close>
 
-lemma csucc_basic: "Ord(K) \<Longrightarrow> Card(csucc(K)) & K < csucc(K)"
+lemma csucc_basic: "Ord(K) \<Longrightarrow> Card(csucc(K)) \<and> K < csucc(K)"
 apply (unfold csucc_def)
 apply (rule LeastI)
 apply (blast intro: Card_jump_cardinal K_lt_jump_cardinal Ord_jump_cardinal)+

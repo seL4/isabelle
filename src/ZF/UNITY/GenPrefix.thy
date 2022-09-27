@@ -17,7 +17,7 @@ begin
 
 definition (*really belongs in ZF/Trancl*)
   part_order :: "[i, i] => o"  where
-  "part_order(A, r) \<equiv> refl(A,r) & trans[A](r) & antisym(r)"
+  "part_order(A, r) \<equiv> refl(A,r) \<and> trans[A](r) \<and> antisym(r)"
 
 consts
   gen_prefix :: "[i, i] => i"
@@ -80,8 +80,8 @@ done
 lemma Cons_gen_prefix_aux:
   "\<lbrakk><xs', ys'> \<in> gen_prefix(A, r)\<rbrakk>
    \<Longrightarrow> (\<forall>x xs. x \<in> A \<longrightarrow> xs'= Cons(x,xs) \<longrightarrow>
-       (\<exists>y ys. y \<in> A & ys' = Cons(y,ys) &
-       <x,y>:r & <xs, ys> \<in> gen_prefix(A, r)))"
+       (\<exists>y ys. y \<in> A \<and> ys' = Cons(y,ys) \<and>
+       <x,y>:r \<and> <xs, ys> \<in> gen_prefix(A, r)))"
 apply (erule gen_prefix.induct)
 prefer 3 apply (force intro: gen_prefix.append, auto)
 done
@@ -97,7 +97,7 @@ declare Cons_gen_prefixE [elim!]
 
 lemma Cons_gen_prefix_Cons:
 "(<Cons(x,xs),Cons(y,ys)> \<in> gen_prefix(A, r))
-  \<longleftrightarrow> (x \<in> A & y \<in> A & <x,y>:r & <xs,ys> \<in> gen_prefix(A, r))"
+  \<longleftrightarrow> (x \<in> A \<and> y \<in> A \<and> <x,y>:r \<and> <xs,ys> \<in> gen_prefix(A, r))"
 apply (auto intro: gen_prefix.prepend)
 done
 declare Cons_gen_prefix_Cons [iff]
@@ -213,7 +213,7 @@ apply (subgoal_tac "ys \<in> list (A) ")
 prefer 2 apply (blast dest: gen_prefix.dom_subset [THEN subsetD])
 apply (drule_tac psi = "<ys @ zs, xs> \<in> gen_prefix (A,r) " in asm_rl)
 apply simp
-apply (subgoal_tac "length (ys @ zs) = length (ys) #+ length (zs) &ys \<in> list (A) &xs \<in> list (A) ")
+apply (subgoal_tac "length (ys @ zs) = length (ys) #+ length (zs) \<and>ys \<in> list (A) \<and>xs \<in> list (A) ")
 prefer 2 apply (blast intro: length_app dest: gen_prefix.dom_subset [THEN subsetD])
 apply (drule gen_prefix_length_le)+
 apply clarify
@@ -240,7 +240,7 @@ declare same_gen_prefix_gen_prefix [simp]
 
 lemma gen_prefix_Cons: "\<lbrakk>xs \<in> list(A); ys \<in> list(A); y \<in> A\<rbrakk> \<Longrightarrow>
     <xs, Cons(y,ys)> \<in> gen_prefix(A,r)  \<longleftrightarrow>
-      (xs=[] | (\<exists>z zs. xs=Cons(z,zs) & z \<in> A & <z,y>:r & <zs,ys> \<in> gen_prefix(A,r)))"
+      (xs=[] | (\<exists>z zs. xs=Cons(z,zs) \<and> z \<in> A \<and> <z,y>:r \<and> <zs,ys> \<in> gen_prefix(A,r)))"
 apply (induct_tac "xs", auto)
 done
 
@@ -276,7 +276,7 @@ apply (simp_all add: length_type)
 (* Append case is hardest *)
 apply (frule gen_prefix_length_le [THEN le_iff [THEN iffD1]])
 apply (frule gen_prefix.dom_subset [THEN subsetD], clarify)
-apply (subgoal_tac "length (xs) :nat&length (ys) :nat &length (zs) :nat")
+apply (subgoal_tac "length (xs) :nat\<and>length (ys) :nat \<and>length (zs) :nat")
 prefer 2 apply (blast intro: length_type, clarify)
 apply (simp_all add: nth_append length_type length_app)
 apply (rule conjI)
@@ -325,7 +325,7 @@ apply (force intro!: nat_0_le simp add: lt_nat_in_nat)
 done
 
 lemma gen_prefix_iff_nth: "(<xs,ys> \<in> gen_prefix(A,r)) \<longleftrightarrow>
-      (xs \<in> list(A) & ys \<in> list(A) & length(xs) \<le> length(ys) &
+      (xs \<in> list(A) \<and> ys \<in> list(A) \<and> length(xs) \<le> length(ys) \<and>
       (\<forall>i. i < length(xs) \<longrightarrow> <nth(i,xs), nth(i, ys)>: r))"
 apply (rule iffI)
 apply (frule gen_prefix.dom_subset [THEN subsetD])
@@ -367,7 +367,7 @@ lemma set_of_list_prefix_mono:
 
 apply (unfold prefix_def)
 apply (erule gen_prefix.induct)
-apply (subgoal_tac [3] "xs \<in> list (A) &ys \<in> list (A) ")
+apply (subgoal_tac [3] "xs \<in> list (A) \<and>ys \<in> list (A) ")
 prefer 4 apply (blast dest: gen_prefix.dom_subset [THEN subsetD])
 apply (auto simp add: set_of_list_append)
 done
@@ -392,7 +392,7 @@ done
 declare prefix_Nil [iff]
 
 lemma Cons_prefix_Cons:
-"<Cons(x,xs), Cons(y,ys)> \<in> prefix(A) \<longleftrightarrow> (x=y & <xs,ys> \<in> prefix(A) & y \<in> A)"
+"<Cons(x,xs), Cons(y,ys)> \<in> prefix(A) \<longleftrightarrow> (x=y \<and> <xs,ys> \<in> prefix(A) \<and> y \<in> A)"
 apply (unfold prefix_def, auto)
 done
 declare Cons_prefix_Cons [iff]
@@ -422,7 +422,7 @@ declare prefix_appendI [simp]
 lemma prefix_Cons:
 "\<lbrakk>xs \<in> list(A); ys \<in> list(A); y \<in> A\<rbrakk> \<Longrightarrow>
   <xs,Cons(y,ys)> \<in> prefix(A) \<longleftrightarrow>
-  (xs=[] | (\<exists>zs. xs=Cons(y,zs) & <zs,ys> \<in> prefix(A)))"
+  (xs=[] | (\<exists>zs. xs=Cons(y,zs) \<and> <zs,ys> \<in> prefix(A)))"
 apply (unfold prefix_def)
 apply (auto simp add: gen_prefix_Cons)
 done
@@ -457,7 +457,7 @@ lemma strict_prefix_length_lt_aux:
      "<xs,ys> \<in> prefix(A) \<Longrightarrow> xs\<noteq>ys \<longrightarrow> length(xs) < length(ys)"
 apply (unfold prefix_def)
 apply (erule gen_prefix.induct, clarify)
-apply (subgoal_tac [!] "ys \<in> list(A) & xs \<in> list(A)")
+apply (subgoal_tac [!] "ys \<in> list(A) \<and> xs \<in> list(A)")
 apply (auto dest: gen_prefix.dom_subset [THEN subsetD]
             simp add: length_type)
 apply (subgoal_tac "length (zs) =0")
@@ -475,7 +475,7 @@ done
 
 (*Equivalence to the definition used in Lex/Prefix.thy*)
 lemma prefix_iff:
-    "<xs,zs> \<in> prefix(A) \<longleftrightarrow> (\<exists>ys \<in> list(A). zs = xs@ys) & xs \<in> list(A)"
+    "<xs,zs> \<in> prefix(A) \<longleftrightarrow> (\<exists>ys \<in> list(A). zs = xs@ys) \<and> xs \<in> list(A)"
 apply (unfold prefix_def)
 apply (auto simp add: gen_prefix_iff_nth lt_nat_in_nat nth_append nth_type app_type length_app)
 apply (subgoal_tac "drop (length (xs), zs) \<in> list (A) ")
@@ -505,7 +505,7 @@ declare prefix_snoc [simp]
 
 lemma prefix_append_iff [rule_format]: "zs \<in> list(A) \<Longrightarrow> \<forall>xs \<in> list(A). \<forall>ys \<in> list(A).
    (<xs, ys@zs> \<in> prefix(A)) \<longleftrightarrow>
-  (<xs,ys> \<in> prefix(A) | (\<exists>us. xs = ys@us & <us,zs> \<in> prefix(A)))"
+  (<xs,ys> \<in> prefix(A) | (\<exists>us. xs = ys@us \<and> <us,zs> \<in> prefix(A)))"
 apply (erule list_append_induct, force, clarify)
 apply (rule iffI)
 apply (simp add: add: app_assoc [symmetric])
@@ -646,7 +646,7 @@ apply (erule list.induct, simp, clarify)
 apply (erule natE, auto)
 done
 
-lemma prefix_take_iff: "<xs,ys> \<in> prefix(A) \<longleftrightarrow> (xs=take(length(xs), ys) & xs \<in> list(A) & ys \<in> list(A))"
+lemma prefix_take_iff: "<xs,ys> \<in> prefix(A) \<longleftrightarrow> (xs=take(length(xs), ys) \<and> xs \<in> list(A) \<and> ys \<in> list(A))"
 apply (rule iffI)
 apply (frule prefix_type [THEN subsetD])
 apply (blast intro: prefix_imp_take, clarify)

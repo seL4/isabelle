@@ -234,9 +234,9 @@ definition
   ring_hom :: "[i,i] => i" where
   "ring_hom(R,S) \<equiv>
     {h \<in> carrier(R) -> carrier(S).
-      (\<forall>x y. x \<in> carrier(R) & y \<in> carrier(R) \<longrightarrow>
-        h ` (x \<cdot>\<^bsub>R\<^esub> y) = (h ` x) \<cdot>\<^bsub>S\<^esub> (h ` y) &
-        h ` (x \<oplus>\<^bsub>R\<^esub> y) = (h ` x) \<oplus>\<^bsub>S\<^esub> (h ` y)) &
+      (\<forall>x y. x \<in> carrier(R) \<and> y \<in> carrier(R) \<longrightarrow>
+        h ` (x \<cdot>\<^bsub>R\<^esub> y) = (h ` x) \<cdot>\<^bsub>S\<^esub> (h ` y) \<and>
+        h ` (x \<oplus>\<^bsub>R\<^esub> y) = (h ` x) \<oplus>\<^bsub>S\<^esub> (h ` y)) \<and>
       h ` \<one>\<^bsub>R\<^esub> = \<one>\<^bsub>S\<^esub>}"
 
 lemma ring_hom_memI:

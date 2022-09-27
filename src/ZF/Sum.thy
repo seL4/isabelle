@@ -28,7 +28,7 @@ definition Part :: "[i,i=>i] => i" where
 subsection\<open>Rules for the \<^term>\<open>Part\<close> Primitive\<close>
 
 lemma Part_iff:
-    "a \<in> Part(A,h) \<longleftrightarrow> a \<in> A & (\<exists>y. a=h(y))"
+    "a \<in> Part(A,h) \<longleftrightarrow> a \<in> A \<and> (\<exists>y. a=h(y))"
 apply (unfold Part_def)
 apply (rule separation)
 done
@@ -106,7 +106,7 @@ by blast
 lemma InrD: "Inr(b): A+B \<Longrightarrow> b \<in> B"
 by blast
 
-lemma sum_iff: "u \<in> A+B \<longleftrightarrow> (\<exists>x. x \<in> A & u=Inl(x)) | (\<exists>y. y \<in> B & u=Inr(y))"
+lemma sum_iff: "u \<in> A+B \<longleftrightarrow> (\<exists>x. x \<in> A \<and> u=Inl(x)) | (\<exists>y. y \<in> B \<and> u=Inr(y))"
 by blast
 
 lemma Inl_in_sum_iff [simp]: "(Inl(x) \<in> A+B) \<longleftrightarrow> (x \<in> A)"
@@ -115,10 +115,10 @@ by auto
 lemma Inr_in_sum_iff [simp]: "(Inr(y) \<in> A+B) \<longleftrightarrow> (y \<in> B)"
 by auto
 
-lemma sum_subset_iff: "A+B \<subseteq> C+D \<longleftrightarrow> A<=C & B<=D"
+lemma sum_subset_iff: "A+B \<subseteq> C+D \<longleftrightarrow> A<=C \<and> B<=D"
 by blast
 
-lemma sum_equal_iff: "A+B = C+D \<longleftrightarrow> A=C & B=D"
+lemma sum_equal_iff: "A+B = C+D \<longleftrightarrow> A=C \<and> B=D"
 by (simp add: extension sum_subset_iff, blast)
 
 lemma sum_eq_2_times: "A+A = 2*A"
@@ -142,7 +142,7 @@ by auto
 
 lemma expand_case: "u \<in> A+B \<Longrightarrow>
         R(case(c,d,u)) \<longleftrightarrow>
-        ((\<forall>x\<in>A. u = Inl(x) \<longrightarrow> R(c(x))) &
+        ((\<forall>x\<in>A. u = Inl(x) \<longrightarrow> R(c(x))) \<and>
         (\<forall>y\<in>B. u = Inr(y) \<longrightarrow> R(d(y))))"
 by auto
 

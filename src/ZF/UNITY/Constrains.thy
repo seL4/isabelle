@@ -344,7 +344,7 @@ apply (unfold Always_def initially_def)
 apply (frule Stable_type [THEN subsetD], auto)
 done
 
-lemma AlwaysD: "F \<in> Always(A) \<Longrightarrow> Init(F)<=A & F \<in> Stable(A)"
+lemma AlwaysD: "F \<in> Always(A) \<Longrightarrow> Init(F)<=A \<and> F \<in> Stable(A)"
 by (simp add: Always_def initially_def)
 
 lemmas AlwaysE = AlwaysD [THEN conjE]

@@ -38,7 +38,7 @@ definition
      (\<Inter>n \<in> Nclients. lift(In(n)) IncreasingWrt prefix(A)/list(A))
                    guarantees
      (\<Inter>n \<in> Nclients. 
-        (%s. sublist(s`Out, {k \<in> nat. k < length(s`iOut) &
+        (%s. sublist(s`Out, {k \<in> nat. k < length(s`iOut) \<and>
                       nth(k, s`iOut) = n})) Fols lift(In(n))
          Wrt prefix(A)/list(A))"
 
@@ -70,16 +70,16 @@ locale merge =
     and A    \<comment> \<open>the type of items being merged\<close>
     and M
  assumes var_assumes [simp]:
-           "(\<forall>n. In(n):var) & Out \<in> var & iOut \<in> var"
+           "(\<forall>n. In(n):var) \<and> Out \<in> var \<and> iOut \<in> var"
      and all_distinct_vars:
            "\<forall>n. all_distinct([In(n), Out, iOut])"
      and type_assumes [simp]:
-           "(\<forall>n. type_of(In(n))=list(A)) &
-            type_of(Out)=list(A) &
+           "(\<forall>n. type_of(In(n))=list(A)) \<and>
+            type_of(Out)=list(A) \<and>
             type_of(iOut)=list(nat)"
      and default_val_assumes [simp]: 
-           "(\<forall>n. default_val(In(n))=Nil) &
-            default_val(Out)=Nil &
+           "(\<forall>n. default_val(In(n))=Nil) \<and>
+            default_val(Out)=Nil \<and>
             default_val(iOut)=Nil"
      and merge_spec:  "M \<in> merge_spec(A, In, Out, iOut)"
 
@@ -114,8 +114,8 @@ done
 
 lemma (in merge) M_ok_iff: 
      "G \<in> program \<Longrightarrow>  
-       M ok G \<longleftrightarrow> (G \<in> preserves(lift(Out)) &   
-                   G \<in> preserves(lift(iOut)) & M \<in> Allowed(G))"
+       M ok G \<longleftrightarrow> (G \<in> preserves(lift(Out)) \<and>   
+                   G \<in> preserves(lift(iOut)) \<and> M \<in> Allowed(G))"
 apply (cut_tac merge_spec)
 apply (auto simp add: merge_Allowed ok_iff_Allowed)
 done
@@ -147,14 +147,14 @@ lemma (in merge) merge_bag_Follows_lemma:
     G: preserves(lift(Out)); M \<in> Allowed(G)\<rbrakk>  
   \<Longrightarrow> M \<squnion> G \<in> Always  
     ({s \<in> state. msetsum(%i. bag_of(sublist(s`Out,  
-      {k \<in> nat. k < length(s`iOut) & nth(k, s`iOut)=i})),  
+      {k \<in> nat. k < length(s`iOut) \<and> nth(k, s`iOut)=i})),  
                    Nclients, A) = bag_of(s`Out)})"
 apply (rule Always_Diff_Un_eq [THEN iffD1]) 
 apply (rule_tac [2] state_AlwaysI [THEN Always_weaken]) 
 apply (rule Always_Int_I [OF merge_Always_Out_eq_iOut merge_Bounded], auto)
 apply (subst bag_of_sublist_UN_disjoint [symmetric])
 apply (auto simp add: nat_into_Finite set_of_list_conv_nth  [OF iOut_value_type])
-apply (subgoal_tac " (\<Union>i \<in> Nclients. {k \<in> nat. k < length (x`iOut) & nth (k, x`iOut) = i}) = length (x`iOut) ")
+apply (subgoal_tac " (\<Union>i \<in> Nclients. {k \<in> nat. k < length (x`iOut) \<and> nth (k, x`iOut) = i}) = length (x`iOut) ")
 apply (auto simp add: sublist_upt_eq_take [OF Out_value_type] 
                       length_type  [OF iOut_value_type]  
                       take_all [OF _ Out_value_type] 

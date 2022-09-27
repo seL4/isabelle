@@ -283,7 +283,7 @@ apply (rule A_subset_Vfrom [THEN subset_trans])
 apply (erule Transset_Vfrom [THEN Transset_iff_Pow [THEN iffD1]])
 done
 
-lemma Transset_Pair_subset: "\<lbrakk><a,b> \<subseteq> C; Transset(C)\<rbrakk> \<Longrightarrow> a: C & b: C"
+lemma Transset_Pair_subset: "\<lbrakk><a,b> \<subseteq> C; Transset(C)\<rbrakk> \<Longrightarrow> a: C \<and> b: C"
 by (unfold Pair_def Transset_def, blast)
 
 lemma Transset_Pair_subset_VLimit:
@@ -317,7 +317,7 @@ text\<open>General theorem for membership in Vfrom(A,i) when i is a limit ordina
 lemma in_VLimit:
   "\<lbrakk>a \<in> Vfrom(A,i);  b \<in> Vfrom(A,i);  Limit(i);
       \<And>x y j. \<lbrakk>j<i; 1:j; x \<in> Vfrom(A,j); y \<in> Vfrom(A,j)\<rbrakk>
-               \<Longrightarrow> \<exists>k. h(x,y) \<in> Vfrom(A,k) & k<i\<rbrakk>
+               \<Longrightarrow> \<exists>k. h(x,y) \<in> Vfrom(A,k) \<and> k<i\<rbrakk>
    \<Longrightarrow> h(a,b) \<in> Vfrom(A,i)"
 txt\<open>Infer that a, b occur at ordinals x,xa < i.\<close>
 apply (erule Limit_VfromE, assumption)
@@ -677,7 +677,7 @@ subsection\<open>Finite Branching Closure Properties\<close>
 subsubsection\<open>Closure under Finite Powerset\<close>
 
 lemma Fin_Vfrom_lemma:
-     "\<lbrakk>b: Fin(Vfrom(A,i));  Limit(i)\<rbrakk> \<Longrightarrow> \<exists>j. b \<subseteq> Vfrom(A,j) & j<i"
+     "\<lbrakk>b: Fin(Vfrom(A,i));  Limit(i)\<rbrakk> \<Longrightarrow> \<exists>j. b \<subseteq> Vfrom(A,j) \<and> j<i"
 apply (erule Fin_induct)
 apply (blast dest!: Limit_has_0, safe)
 apply (erule Limit_VfromE, assumption)
@@ -759,7 +759,7 @@ text\<open>Intersecting a*b with Vfrom...\<close>
 text\<open>This version says a, b exist one level down, in the smaller set Vfrom(X,i)\<close>
 lemma doubleton_in_Vfrom_D:
      "\<lbrakk>{a,b} \<in> Vfrom(X,succ(i));  Transset(X)\<rbrakk>
-      \<Longrightarrow> a \<in> Vfrom(X,i)  &  b \<in> Vfrom(X,i)"
+      \<Longrightarrow> a \<in> Vfrom(X,i)  \<and>  b \<in> Vfrom(X,i)"
 by (drule Transset_Vfrom_succ [THEN equalityD1, THEN subsetD, THEN PowD],
     assumption, fast)
 
@@ -776,7 +776,7 @@ lemmas Vfrom_doubleton_D = Transset_Vfrom [THEN Transset_doubleton_D]
 
 lemma Pair_in_Vfrom_D:
     "\<lbrakk><a,b> \<in> Vfrom(X,succ(i));  Transset(X)\<rbrakk>
-     \<Longrightarrow> a \<in> Vfrom(X,i)  &  b \<in> Vfrom(X,i)"
+     \<Longrightarrow> a \<in> Vfrom(X,i)  \<and>  b \<in> Vfrom(X,i)"
 apply (unfold Pair_def)
 apply (blast dest!: doubleton_in_Vfrom_D Vfrom_doubleton_D)
 done

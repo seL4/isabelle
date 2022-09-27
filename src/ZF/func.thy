@@ -20,12 +20,12 @@ lemma relation_restrict [simp]:  "relation(restrict(r,A))"
 by (simp add: restrict_def relation_def, blast)
 
 lemma Pi_iff:
-    "f \<in> Pi(A,B) \<longleftrightarrow> function(f) & f<=Sigma(A,B) & A<=domain(f)"
+    "f \<in> Pi(A,B) \<longleftrightarrow> function(f) \<and> f<=Sigma(A,B) \<and> A<=domain(f)"
 by (unfold Pi_def, blast)
 
 (*For upward compatibility with the former definition*)
 lemma Pi_iff_old:
-    "f \<in> Pi(A,B) \<longleftrightarrow> f<=Sigma(A,B) & (\<forall>x\<in>A. \<exists>!y. <x,y>: f)"
+    "f \<in> Pi(A,B) \<longleftrightarrow> f<=Sigma(A,B) \<and> (\<forall>x\<in>A. \<exists>!y. <x,y>: f)"
 by (unfold Pi_def function_def, blast)
 
 lemma fun_is_function: "f \<in> Pi(A,B) \<Longrightarrow> function(f)"
@@ -96,7 +96,7 @@ by (blast intro: apply_Pair dest: fun_is_rel)
 lemma apply_funtype: "\<lbrakk>f \<in> A->B;  a \<in> A\<rbrakk> \<Longrightarrow> f`a \<in> B"
 by (blast dest: apply_type)
 
-lemma apply_iff: "f \<in> Pi(A,B) \<Longrightarrow> <a,b>: f \<longleftrightarrow> a \<in> A & f`a = b"
+lemma apply_iff: "f \<in> Pi(A,B) \<Longrightarrow> <a,b>: f \<longleftrightarrow> a \<in> A \<and> f`a = b"
 apply (frule fun_is_rel)
 apply (blast intro!: apply_Pair apply_equality)
 done
@@ -110,7 +110,7 @@ done
 (*Such functions arise in non-standard datatypes, ZF/ex/Ntree for instance*)
 lemma Pi_Collect_iff:
      "(f \<in> Pi(A, %x. {y \<in> B(x). P(x,y)}))
-      \<longleftrightarrow>  f \<in> Pi(A,B) & (\<forall>x\<in>A. P(x, f`x))"
+      \<longleftrightarrow>  f \<in> Pi(A,B) \<and> (\<forall>x\<in>A. P(x, f`x))"
 by (blast intro: Pi_type dest: apply_type)
 
 lemma Pi_weaken_type:
@@ -126,7 +126,7 @@ by (blast dest: fun_is_rel)
 lemma range_type: "\<lbrakk><a,b> \<in> f;  f \<in> Pi(A,B)\<rbrakk> \<Longrightarrow> b \<in> B(a)"
 by (blast dest: fun_is_rel)
 
-lemma Pair_mem_PiD: "\<lbrakk><a,b>: f;  f \<in> Pi(A,B)\<rbrakk> \<Longrightarrow> a \<in> A & b \<in> B(a) & f`a = b"
+lemma Pair_mem_PiD: "\<lbrakk><a,b>: f;  f \<in> Pi(A,B)\<rbrakk> \<Longrightarrow> a \<in> A \<and> b \<in> B(a) \<and> f`a = b"
 by (blast intro: domain_type range_type apply_equality)
 
 subsection\<open>Lambda Abstraction\<close>
@@ -196,7 +196,7 @@ by (unfold Pi_def function_def, blast)
 lemma Pi_empty2 [simp]: "(A->0) = (if A=0 then {0} else 0)"
 by (unfold Pi_def function_def, force)
 
-lemma  fun_space_empty_iff [iff]: "(A->X)=0 \<longleftrightarrow> X=0 & (A \<noteq> 0)"
+lemma  fun_space_empty_iff [iff]: "(A->X)=0 \<longleftrightarrow> X=0 \<and> (A \<noteq> 0)"
 apply auto
 apply (fast intro!: equals0I intro: lam_type)
 done
@@ -296,7 +296,7 @@ by (simp add: apply_def restrict_def, blast)
 lemma restrict_empty [simp]: "restrict(f,0) = 0"
 by (unfold restrict_def, simp)
 
-lemma restrict_iff: "z \<in> restrict(r,A) \<longleftrightarrow> z \<in> r & (\<exists>x\<in>A. \<exists>y. z = \<langle>x, y\<rangle>)"
+lemma restrict_iff: "z \<in> restrict(r,A) \<longleftrightarrow> z \<in> r \<and> (\<exists>x\<in>A. \<exists>y. z = \<langle>x, y\<rangle>)"
 by (simp add: restrict_def)
 
 lemma restrict_restrict [simp]:

@@ -38,7 +38,7 @@ lemma cons_lemma1: "\<lbrakk>x\<notin>C; x\<notin>B\<rbrakk> \<Longrightarrow> c
 by (auto elim: equalityE)
 
 lemma cons_lemma2: "\<lbrakk>cons(x, B)=cons(y, C); x\<noteq>y; x\<notin>B; y\<notin>C\<rbrakk>  
-    \<Longrightarrow>  B - {y} = C-{x} & x\<in>C & y\<in>B"
+    \<Longrightarrow>  B - {y} = C-{x} \<and> x\<in>C \<and> y\<in>B"
 apply (auto elim: equalityE)
 done
 
@@ -57,7 +57,7 @@ apply (auto dest: fold_set_mono_lemma)
 done
 
 lemma fold_set_lemma:
-     "<C, x>\<in>fold_set(A, B, f, e) \<Longrightarrow> <C, x>\<in>fold_set(C, B, f, e) & C<=A"
+     "<C, x>\<in>fold_set(A, B, f, e) \<Longrightarrow> <C, x>\<in>fold_set(C, B, f, e) \<and> C<=A"
 apply (erule fold_set.induct)
 apply (auto intro!: fold_set.intros intro: fold_set_mono [THEN subsetD])
 done
@@ -172,7 +172,7 @@ done
 lemma (in fold_typing) fold_cons_lemma [rule_format]: 
 "\<lbrakk>C \<in> Fin(A); c \<in> A; c\<notin>C\<rbrakk>   
      \<Longrightarrow> <cons(c, C), v> \<in> fold_set(cons(c, C), B, f, e) \<longleftrightarrow>   
-         (\<exists>y. <C, y> \<in> fold_set(C, B, f, e) & v = f(c, y))"
+         (\<exists>y. <C, y> \<in> fold_set(C, B, f, e) \<and> v = f(c, y))"
 apply auto
  prefer 2 apply (blast intro: fold_set_imp_cons) 
  apply (frule_tac Fin.consI [of c, THEN FinD, THEN fold_set_mono, THEN subsetD], assumption+)
@@ -296,7 +296,7 @@ apply (subgoal_tac "\<forall>i\<in>B. x \<noteq> i")
  prefer 2 apply blast
 apply (subgoal_tac "C (x) \<inter> (\<Union>i\<in>B. C (i)) = 0")
  prefer 2 apply blast
-apply (subgoal_tac "Finite (\<Union>i\<in>B. C (i)) & Finite (C (x)) & Finite (B) ")
+apply (subgoal_tac "Finite (\<Union>i\<in>B. C (i)) \<and> Finite (C (x)) \<and> Finite (B) ")
 apply (simp (no_asm_simp) add: setsum_Un_disjoint)
 apply (auto intro: Finite_Union Finite_RepFun)
 done

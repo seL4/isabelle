@@ -34,18 +34,18 @@ definition
   wellfounded :: "[i=>o,i]=>o" where
     \<comment> \<open>EVERY non-empty set has an \<open>r\<close>-minimal element\<close>
     "wellfounded(M,r) \<equiv> 
-        \<forall>x[M]. x\<noteq>0 \<longrightarrow> (\<exists>y[M]. y\<in>x & \<not>(\<exists>z[M]. z\<in>x & <z,y> \<in> r))"
+        \<forall>x[M]. x\<noteq>0 \<longrightarrow> (\<exists>y[M]. y\<in>x \<and> \<not>(\<exists>z[M]. z\<in>x \<and> <z,y> \<in> r))"
 definition
   wellfounded_on :: "[i=>o,i,i]=>o" where
     \<comment> \<open>every non-empty SUBSET OF \<open>A\<close> has an \<open>r\<close>-minimal element\<close>
     "wellfounded_on(M,A,r) \<equiv> 
-        \<forall>x[M]. x\<noteq>0 \<longrightarrow> x\<subseteq>A \<longrightarrow> (\<exists>y[M]. y\<in>x & \<not>(\<exists>z[M]. z\<in>x & <z,y> \<in> r))"
+        \<forall>x[M]. x\<noteq>0 \<longrightarrow> x\<subseteq>A \<longrightarrow> (\<exists>y[M]. y\<in>x \<and> \<not>(\<exists>z[M]. z\<in>x \<and> <z,y> \<in> r))"
 
 definition
   wellordered :: "[i=>o,i,i]=>o" where
     \<comment> \<open>linear and wellfounded on \<open>A\<close>\<close>
     "wellordered(M,A,r) \<equiv> 
-        transitive_rel(M,A,r) & linear_rel(M,A,r) & wellfounded_on(M,A,r)"
+        transitive_rel(M,A,r) \<and> linear_rel(M,A,r) \<and> wellfounded_on(M,A,r)"
 
 
 subsubsection \<open>Trivial absoluteness proofs\<close>
@@ -108,7 +108,7 @@ by (blast intro: wellfounded_imp_wellfounded_on
 (*Consider the least z in domain(r) such that P(z) does not hold...*)
 lemma (in M_basic) wellfounded_induct: 
      "\<lbrakk>wellfounded(M,r); M(a); M(r); separation(M, \<lambda>x. \<not>P(x));  
-         \<forall>x. M(x) & (\<forall>y. <y,x> \<in> r \<longrightarrow> P(y)) \<longrightarrow> P(x)\<rbrakk>
+         \<forall>x. M(x) \<and> (\<forall>y. <y,x> \<in> r \<longrightarrow> P(y)) \<longrightarrow> P(x)\<rbrakk>
       \<Longrightarrow> P(a)"
 apply (simp (no_asm_use) add: wellfounded_def)
 apply (drule_tac x="{z \<in> domain(r). \<not>P(z)}" in rspec)
@@ -118,7 +118,7 @@ done
 lemma (in M_basic) wellfounded_on_induct: 
      "\<lbrakk>a\<in>A;  wellfounded_on(M,A,r);  M(A);  
        separation(M, \<lambda>x. x\<in>A \<longrightarrow> \<not>P(x));  
-       \<forall>x\<in>A. M(x) & (\<forall>y\<in>A. <y,x> \<in> r \<longrightarrow> P(y)) \<longrightarrow> P(x)\<rbrakk>
+       \<forall>x\<in>A. M(x) \<and> (\<forall>y\<in>A. <y,x> \<in> r \<longrightarrow> P(y)) \<longrightarrow> P(x)\<rbrakk>
       \<Longrightarrow> P(a)"
 apply (simp (no_asm_use) add: wellfounded_on_def)
 apply (drule_tac x="{z\<in>A. z\<in>A \<longrightarrow> \<not>P(z)}" in rspec)
@@ -188,7 +188,7 @@ apply (simp add: membership_def Memrel_def, safe)
 done
 
 lemma (in M_basic) M_Memrel_iff:
-     "M(A) \<Longrightarrow> Memrel(A) = {z \<in> A*A. \<exists>x[M]. \<exists>y[M]. z = \<langle>x,y\<rangle> & x \<in> y}"
+     "M(A) \<Longrightarrow> Memrel(A) = {z \<in> A*A. \<exists>x[M]. \<exists>y[M]. z = \<langle>x,y\<rangle> \<and> x \<in> y}"
 unfolding Memrel_def by (blast dest: transM)
 
 lemma (in M_basic) Memrel_closed [intro,simp]: 

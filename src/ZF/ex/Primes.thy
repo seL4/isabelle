@@ -9,12 +9,12 @@ theory Primes imports ZF begin
 
 definition
   divides :: "[i,i]=>o"              (infixl \<open>dvd\<close> 50)  where
-    "m dvd n \<equiv> m \<in> nat & n \<in> nat & (\<exists>k \<in> nat. n = m#*k)"
+    "m dvd n \<equiv> m \<in> nat \<and> n \<in> nat \<and> (\<exists>k \<in> nat. n = m#*k)"
 
 definition
   is_gcd  :: "[i,i,i]=>o"     \<comment> \<open>definition of great common divisor\<close>  where
-    "is_gcd(p,m,n) \<equiv> ((p dvd m) & (p dvd n))   &
-                       (\<forall>d\<in>nat. (d dvd m) & (d dvd n) \<longrightarrow> d dvd p)"
+    "is_gcd(p,m,n) \<equiv> ((p dvd m) \<and> (p dvd n))   \<and>
+                       (\<forall>d\<in>nat. (d dvd m) \<and> (d dvd n) \<longrightarrow> d dvd p)"
 
 definition
   gcd     :: "[i,i]=>i"       \<comment> \<open>Euclid's algorithm for the gcd\<close>  where
@@ -28,12 +28,12 @@ definition
   
 definition
   prime   :: i                \<comment> \<open>the set of prime numbers\<close>  where
-   "prime \<equiv> {p \<in> nat. 1<p & (\<forall>m \<in> nat. m dvd p \<longrightarrow> m=1 | m=p)}"
+   "prime \<equiv> {p \<in> nat. 1<p \<and> (\<forall>m \<in> nat. m dvd p \<longrightarrow> m=1 | m=p)}"
 
 
 subsection\<open>The Divides Relation\<close>
 
-lemma dvdD: "m dvd n \<Longrightarrow> m \<in> nat & n \<in> nat & (\<exists>k \<in> nat. n = m#*k)"
+lemma dvdD: "m dvd n \<Longrightarrow> m \<in> nat \<and> n \<in> nat \<and> (\<exists>k \<in> nat. n = m#*k)"
 by (unfold divides_def, assumption)
 
 lemma dvdE:
@@ -176,7 +176,7 @@ done
 text\<open>Property 1: gcd(a,b) divides a and b\<close>
 
 lemma gcd_dvd_both:
-     "\<lbrakk>m \<in> nat; n \<in> nat\<rbrakk> \<Longrightarrow> gcd (m, n) dvd m & gcd (m, n) dvd n"
+     "\<lbrakk>m \<in> nat; n \<in> nat\<rbrakk> \<Longrightarrow> gcd (m, n) dvd m \<and> gcd (m, n) dvd n"
 apply (rule_tac m = m and n = n in gcd_induct)
 apply (simp_all add: gcd_non_0)
 apply (blast intro: dvd_mod_imp_dvd_raw nat_into_Ord [THEN Ord_0_lt])
@@ -217,7 +217,7 @@ apply (auto simp add: divides_def)
 done
 
 lemma gcd_greatest_iff [simp]: "\<lbrakk>k \<in> nat; m \<in> nat; n \<in> nat\<rbrakk>  
-      \<Longrightarrow> (k dvd gcd (m, n)) \<longleftrightarrow> (k dvd m & k dvd n)"
+      \<Longrightarrow> (k dvd gcd (m, n)) \<longleftrightarrow> (k dvd m \<and> k dvd n)"
 by (blast intro!: gcd_greatest gcd_dvd1 gcd_dvd2 intro: dvd_trans)
 
 
@@ -387,7 +387,7 @@ done
 
 lemma reduction:
      "\<lbrakk>k#*k = p#*(j#*j); p \<in> prime; 0 < k; j \<in> nat; k \<in> nat\<rbrakk>  
-      \<Longrightarrow> k < p#*j & 0 < j"
+      \<Longrightarrow> k < p#*j \<and> 0 < j"
 apply (rule ccontr)
 apply (simp add: not_lt_iff_le prime_into_nat)
 apply (erule disjE)

@@ -51,7 +51,7 @@ by (simp add: Increasing_def Follows_def)
 
 
 lemma subset_Always_comp:
-"\<lbrakk>mono1(A, r, B, s, h); \<forall>x \<in> state. f(x):A & g(x):A\<rbrakk> \<Longrightarrow>
+"\<lbrakk>mono1(A, r, B, s, h); \<forall>x \<in> state. f(x):A \<and> g(x):A\<rbrakk> \<Longrightarrow>
    Always({x \<in> state. <f(x), g(x)> \<in> r})<=Always({x \<in> state. <(h comp f)(x), (h comp g)(x)> \<in> s})"
 apply (unfold mono1_def metacomp_def)
 apply (auto simp add: Always_eq_includes_reachable)
@@ -59,7 +59,7 @@ done
 
 lemma imp_Always_comp:
 "\<lbrakk>F \<in> Always({x \<in> state. <f(x), g(x)> \<in> r});
-    mono1(A, r, B, s, h); \<forall>x \<in> state. f(x):A & g(x):A\<rbrakk> \<Longrightarrow>
+    mono1(A, r, B, s, h); \<forall>x \<in> state. f(x):A \<and> g(x):A\<rbrakk> \<Longrightarrow>
     F \<in> Always({x \<in> state. <(h comp f)(x), (h comp g)(x)> \<in> s})"
 by (blast intro: subset_Always_comp [THEN subsetD])
 
@@ -68,7 +68,7 @@ lemma imp_Always_comp2:
 "\<lbrakk>F \<in> Always({x \<in> state. <f1(x), f(x)> \<in> r});
     F \<in> Always({x \<in> state. <g1(x), g(x)> \<in> s});
     mono2(A, r, B, s, C, t, h);
-    \<forall>x \<in> state. f1(x):A & f(x):A & g1(x):B & g(x):B\<rbrakk>
+    \<forall>x \<in> state. f1(x):A \<and> f(x):A \<and> g1(x):B \<and> g(x):B\<rbrakk>
   \<Longrightarrow> F \<in> Always({x \<in> state. <h(f1(x), g1(x)), h(f(x), g(x))> \<in> t})"
 apply (auto simp add: Always_eq_includes_reachable mono2_def)
 apply (auto dest!: subsetD)
@@ -78,7 +78,7 @@ done
 
 lemma subset_LeadsTo_comp:
 "\<lbrakk>mono1(A, r, B, s, h); refl(A,r); trans[B](s);
-        \<forall>x \<in> state. f(x):A & g(x):A\<rbrakk> \<Longrightarrow>
+        \<forall>x \<in> state. f(x):A \<and> g(x):A\<rbrakk> \<Longrightarrow>
   (\<Inter>j \<in> A. {s \<in> state. <j, g(s)> \<in> r} \<longmapsto>w {s \<in> state. <j,f(s)> \<in> r}) <=
  (\<Inter>k \<in> B. {x \<in> state. <k, (h comp g)(x)> \<in> s} \<longmapsto>w {x \<in> state. <k, (h comp f)(x)> \<in> s})"
 
@@ -99,7 +99,7 @@ done
 lemma imp_LeadsTo_comp:
 "\<lbrakk>F:(\<Inter>j \<in> A. {s \<in> state. <j, g(s)> \<in> r} \<longmapsto>w {s \<in> state. <j,f(s)> \<in> r});
     mono1(A, r, B, s, h); refl(A,r); trans[B](s);
-    \<forall>x \<in> state. f(x):A & g(x):A\<rbrakk> \<Longrightarrow>
+    \<forall>x \<in> state. f(x):A \<and> g(x):A\<rbrakk> \<Longrightarrow>
    F:(\<Inter>k \<in> B. {x \<in> state. <k, (h comp g)(x)> \<in> s} \<longmapsto>w {x \<in> state. <k, (h comp f)(x)> \<in> s})"
 apply (rule subset_LeadsTo_comp [THEN subsetD], auto)
 done
@@ -108,7 +108,7 @@ lemma imp_LeadsTo_comp_right:
 "\<lbrakk>F \<in> Increasing(B, s, g);
   \<forall>j \<in> A. F: {s \<in> state. <j, f(s)> \<in> r} \<longmapsto>w {s \<in> state. <j,f1(s)> \<in> r};
   mono2(A, r, B, s, C, t, h); refl(A, r); refl(B, s); trans[C](t);
-  \<forall>x \<in> state. f1(x):A & f(x):A & g(x):B; k \<in> C\<rbrakk> \<Longrightarrow>
+  \<forall>x \<in> state. f1(x):A \<and> f(x):A \<and> g(x):B; k \<in> C\<rbrakk> \<Longrightarrow>
   F:{x \<in> state. <k, h(f(x), g(x))> \<in> t} \<longmapsto>w {x \<in> state. <k, h(f1(x), g(x))> \<in> t}"
 apply (unfold mono2_def Increasing_def)
 apply (rule single_LeadsTo_I, auto)
@@ -131,7 +131,7 @@ lemma imp_LeadsTo_comp_left:
 "\<lbrakk>F \<in> Increasing(A, r, f);
   \<forall>j \<in> B. F: {x \<in> state. <j, g(x)> \<in> s} \<longmapsto>w {x \<in> state. <j,g1(x)> \<in> s};
   mono2(A, r, B, s, C, t, h); refl(A,r); refl(B, s); trans[C](t);
-  \<forall>x \<in> state. f(x):A & g1(x):B & g(x):B; k \<in> C\<rbrakk> \<Longrightarrow>
+  \<forall>x \<in> state. f(x):A \<and> g1(x):B \<and> g(x):B; k \<in> C\<rbrakk> \<Longrightarrow>
   F:{x \<in> state. <k, h(f(x), g(x))> \<in> t} \<longmapsto>w {x \<in> state. <k, h(f(x), g1(x))> \<in> t}"
 apply (unfold mono2_def Increasing_def)
 apply (rule single_LeadsTo_I, auto)
@@ -156,7 +156,7 @@ lemma imp_LeadsTo_comp2:
   \<forall>j \<in> A. F: {s \<in> state. <j, f(s)> \<in> r} \<longmapsto>w {s \<in> state. <j,f1(s)> \<in> r};
   \<forall>j \<in> B. F: {x \<in> state. <j, g(x)> \<in> s} \<longmapsto>w {x \<in> state. <j,g1(x)> \<in> s};
   mono2(A, r, B, s, C, t, h); refl(A,r); refl(B, s); trans[C](t);
-  \<forall>x \<in> state. f(x):A & g1(x):B & f1(x):A &g(x):B; k \<in> C\<rbrakk>
+  \<forall>x \<in> state. f(x):A \<and> g1(x):B \<and> f1(x):A \<and>g(x):B; k \<in> C\<rbrakk>
   \<Longrightarrow> F:{x \<in> state. <k, h(f(x), g(x))> \<in> t} \<longmapsto>w {x \<in> state. <k, h(f1(x), g1(x))> \<in> t}"
 apply (rule_tac B = "{x \<in> state. <k, h (f1 (x), g (x))> \<in> t}" in LeadsTo_Trans)
 apply (blast intro: imp_LeadsTo_comp_right)
@@ -174,7 +174,7 @@ by (blast dest: Follows_type [THEN subsetD])
 
 lemma FollowsD:
 "F \<in> Follows(A, r, f, g)\<Longrightarrow>
-  F \<in> program & (\<exists>a. a \<in> A) & (\<forall>x \<in> state. f(x):A & g(x):A)"
+  F \<in> program \<and> (\<exists>a. a \<in> A) \<and> (\<forall>x \<in> state. f(x):A \<and> g(x):A)"
 apply (unfold Follows_def)
 apply (blast dest: IncreasingD)
 done
@@ -440,7 +440,7 @@ by (rule_tac h = munion in imp_Increasing_comp2, auto)
 lemma Always_munion:
 "\<lbrakk>F \<in> Always({s \<in> state. <f1(s),f(s)> \<in> MultLe(A,r)});
           F \<in> Always({s \<in> state. <g1(s), g(s)> \<in> MultLe(A,r)});
-  \<forall>x \<in> state. f1(x):Mult(A)&f(x):Mult(A) & g1(x):Mult(A) & g(x):Mult(A)\<rbrakk>
+  \<forall>x \<in> state. f1(x):Mult(A)\<and>f(x):Mult(A) \<and> g1(x):Mult(A) \<and> g(x):Mult(A)\<rbrakk>
       \<Longrightarrow> F \<in> Always({s \<in> state. <f1(s) +# g1(s), f(s) +# g(s)> \<in> MultLe(A,r)})"
 apply (rule_tac h = munion in imp_Always_comp2, simp_all)
 apply (blast intro: munion_mono, simp_all)
@@ -456,8 +456,8 @@ by (rule_tac h = munion in imp_Follows_comp2, auto)
 
 lemma Follows_msetsum_UN:
 "\<And>f. \<lbrakk>\<forall>i \<in> I. F \<in> Follows(Mult(A), MultLe(A, r), f'(i), f(i));
-  \<forall>s. \<forall>i \<in> I. multiset(f'(i, s)) & mset_of(f'(i, s))<=A &
-                        multiset(f(i, s)) & mset_of(f(i, s))<=A ;
+  \<forall>s. \<forall>i \<in> I. multiset(f'(i, s)) \<and> mset_of(f'(i, s))<=A \<and>
+                        multiset(f(i, s)) \<and> mset_of(f(i, s))<=A ;
    Finite(I); F \<in> program\<rbrakk>
         \<Longrightarrow> F \<in> Follows(Mult(A),
                         MultLe(A, r), %x. msetsum(%i. f'(i, x), I, A),

@@ -53,8 +53,8 @@ there too!*)
 
 lemma LReplace_in_Lset:
      "\<lbrakk>X \<in> Lset(i); univalent(L,X,Q); Ord(i)\<rbrakk>
-      \<Longrightarrow> \<exists>j. Ord(j) & Replace(X, %x y. Q(x,y) & L(y)) \<subseteq> Lset(j)"
-apply (rule_tac x="\<Union>y \<in> Replace(X, %x y. Q(x,y) & L(y)). succ(lrank(y))"
+      \<Longrightarrow> \<exists>j. Ord(j) \<and> Replace(X, %x y. Q(x,y) \<and> L(y)) \<subseteq> Lset(j)"
+apply (rule_tac x="\<Union>y \<in> Replace(X, %x y. Q(x,y) \<and> L(y)). succ(lrank(y))"
        in exI)
 apply simp
 apply clarify
@@ -65,7 +65,7 @@ done
 
 lemma LReplace_in_L:
      "\<lbrakk>L(X); univalent(L,X,Q)\<rbrakk>
-      \<Longrightarrow> \<exists>Y. L(Y) & Replace(X, %x y. Q(x,y) & L(y)) \<subseteq> Y"
+      \<Longrightarrow> \<exists>Y. L(Y) \<and> Replace(X, %x y. Q(x,y) \<and> L(y)) \<subseteq> Y"
 apply (drule L_D, clarify)
 apply (drule LReplace_in_Lset, assumption+)
 apply (blast intro: L_I Lset_in_Lset_succ)
@@ -79,7 +79,7 @@ apply (simp_all add: Replace_iff univalent_def, blast)
 done
 
 lemma strong_replacementI [rule_format]:
-    "\<lbrakk>\<forall>B[L]. separation(L, %u. \<exists>x[L]. x\<in>B & P(x,u))\<rbrakk>
+    "\<lbrakk>\<forall>B[L]. separation(L, %u. \<exists>x[L]. x\<in>B \<and> P(x,u))\<rbrakk>
      \<Longrightarrow> strong_replacement(L,P)"
 apply (simp add: strong_replacement_def, clarify)
 apply (frule replacementD [OF replacement], assumption, clarify)
@@ -142,7 +142,7 @@ text\<open>We must use the meta-existential quantifier; otherwise the reflection
       terms become enormous!\<close>
 definition
   L_Reflects :: "[i=>o,[i,i]=>o] => prop"  (\<open>(3REFLECTS/ [_,/ _])\<close>) where
-    "REFLECTS[P,Q] \<equiv> (\<Or>Cl. Closed_Unbounded(Cl) &
+    "REFLECTS[P,Q] \<equiv> (\<Or>Cl. Closed_Unbounded(Cl) \<and>
                            (\<forall>a. Cl(a) \<longrightarrow> (\<forall>x \<in> Lset(a). P(x) \<longleftrightarrow> Q(a,x))))"
 
 
@@ -258,7 +258,7 @@ lemmas FOL_reflections =
 
 lemma ReflectsD:
      "\<lbrakk>REFLECTS[P,Q]; Ord(i)\<rbrakk>
-      \<Longrightarrow> \<exists>j. i<j & (\<forall>x \<in> Lset(j). P(x) \<longleftrightarrow> Q(j,x))"
+      \<Longrightarrow> \<exists>j. i<j \<and> (\<forall>x \<in> Lset(j). P(x) \<longleftrightarrow> Q(j,x))"
 apply (unfold L_Reflects_def Closed_Unbounded_def)
 apply (elim meta_exE, clarify)
 apply (blast dest!: UnboundedD)
@@ -512,7 +512,7 @@ done
 
 subsubsection\<open>The Number 1, Internalized\<close>
 
-(* "number1(M,a) \<equiv> (\<exists>x[M]. empty(M,x) & successor(M,x,a))" *)
+(* "number1(M,a) \<equiv> (\<exists>x[M]. empty(M,x) \<and> successor(M,x,a))" *)
 definition
   number1_fm :: "i=>i" where
     "number1_fm(a) \<equiv> Exists(And(empty_fm(0), succ_fm(0,succ(a))))"
@@ -542,7 +542,7 @@ done
 
 subsubsection\<open>Big Union, Internalized\<close>
 
-(*  "big_union(M,A,z) \<equiv> \<forall>x[M]. x \<in> z \<longleftrightarrow> (\<exists>y[M]. y\<in>A & x \<in> y)" *)
+(*  "big_union(M,A,z) \<equiv> \<forall>x[M]. x \<in> z \<longleftrightarrow> (\<exists>y[M]. y\<in>A \<and> x \<in> y)" *)
 definition
   big_union_fm :: "[i,i]=>i" where
     "big_union_fm(A,z) \<equiv>
@@ -696,7 +696,7 @@ done
 subsubsection\<open>Domain of a Relation, Internalized\<close>
 
 (* "is_domain(M,r,z) \<equiv>
-        \<forall>x[M]. (x \<in> z \<longleftrightarrow> (\<exists>w[M]. w\<in>r & (\<exists>y[M]. pair(M,x,y,w))))" *)
+        \<forall>x[M]. (x \<in> z \<longleftrightarrow> (\<exists>w[M]. w\<in>r \<and> (\<exists>y[M]. pair(M,x,y,w))))" *)
 definition
   domain_fm :: "[i,i]=>i" where
     "domain_fm(r,z) \<equiv>
@@ -731,7 +731,7 @@ done
 subsubsection\<open>Range of a Relation, Internalized\<close>
 
 (* "is_range(M,r,z) \<equiv>
-        \<forall>y[M]. (y \<in> z \<longleftrightarrow> (\<exists>w[M]. w\<in>r & (\<exists>x[M]. pair(M,x,y,w))))" *)
+        \<forall>y[M]. (y \<in> z \<longleftrightarrow> (\<exists>w[M]. w\<in>r \<and> (\<exists>x[M]. pair(M,x,y,w))))" *)
 definition
   range_fm :: "[i,i]=>i" where
     "range_fm(r,z) \<equiv>
@@ -766,8 +766,8 @@ done
 subsubsection\<open>Field of a Relation, Internalized\<close>
 
 (* "is_field(M,r,z) \<equiv>
-        \<exists>dr[M]. is_domain(M,r,dr) &
-            (\<exists>rr[M]. is_range(M,r,rr) & union(M,dr,rr,z))" *)
+        \<exists>dr[M]. is_domain(M,r,dr) \<and>
+            (\<exists>rr[M]. is_range(M,r,rr) \<and> union(M,dr,rr,z))" *)
 definition
   field_fm :: "[i,i]=>i" where
     "field_fm(r,z) \<equiv>
@@ -803,7 +803,7 @@ done
 subsubsection\<open>Image under a Relation, Internalized\<close>
 
 (* "image(M,r,A,z) \<equiv>
-        \<forall>y[M]. (y \<in> z \<longleftrightarrow> (\<exists>w[M]. w\<in>r & (\<exists>x[M]. x\<in>A & pair(M,x,y,w))))" *)
+        \<forall>y[M]. (y \<in> z \<longleftrightarrow> (\<exists>w[M]. w\<in>r \<and> (\<exists>x[M]. x\<in>A \<and> pair(M,x,y,w))))" *)
 definition
   image_fm :: "[i,i,i]=>i" where
     "image_fm(r,A,z) \<equiv>
@@ -839,7 +839,7 @@ done
 subsubsection\<open>Pre-Image under a Relation, Internalized\<close>
 
 (* "pre_image(M,r,A,z) \<equiv>
-        \<forall>x[M]. x \<in> z \<longleftrightarrow> (\<exists>w[M]. w\<in>r & (\<exists>y[M]. y\<in>A & pair(M,x,y,w)))" *)
+        \<forall>x[M]. x \<in> z \<longleftrightarrow> (\<exists>w[M]. w\<in>r \<and> (\<exists>y[M]. y\<in>A \<and> pair(M,x,y,w)))" *)
 definition
   pre_image_fm :: "[i,i,i]=>i" where
     "pre_image_fm(r,A,z) \<equiv>
@@ -876,7 +876,7 @@ subsubsection\<open>Function Application, Internalized\<close>
 
 (* "fun_apply(M,f,x,y) \<equiv>
         (\<exists>xs[M]. \<exists>fxs[M].
-         upair(M,x,x,xs) & image(M,f,xs,fxs) & big_union(M,fxs,y))" *)
+         upair(M,x,x,xs) \<and> image(M,f,xs,fxs) \<and> big_union(M,fxs,y))" *)
 definition
   fun_apply_fm :: "[i,i,i]=>i" where
     "fun_apply_fm(f,x,y) \<equiv>
@@ -981,7 +981,7 @@ done
 subsubsection\<open>Typed Functions, Internalized\<close>
 
 (* "typed_function(M,A,B,r) \<equiv>
-        is_function(M,r) & is_relation(M,r) & is_domain(M,r,A) &
+        is_function(M,r) \<and> is_relation(M,r) \<and> is_domain(M,r,A) \<and>
         (\<forall>u[M]. u\<in>r \<longrightarrow> (\<forall>x[M]. \<forall>y[M]. pair(M,x,y,u) \<longrightarrow> y\<in>B))" *)
 
 definition
@@ -1042,8 +1042,8 @@ subsubsection\<open>Composition of Relations, Internalized\<close>
 (* "composition(M,r,s,t) \<equiv>
         \<forall>p[M]. p \<in> t \<longleftrightarrow>
                (\<exists>x[M]. \<exists>y[M]. \<exists>z[M]. \<exists>xy[M]. \<exists>yz[M].
-                pair(M,x,z,p) & pair(M,x,y,xy) & pair(M,y,z,yz) &
-                xy \<in> s & yz \<in> r)" *)
+                pair(M,x,z,p) \<and> pair(M,x,y,xy) \<and> pair(M,y,z,yz) \<and>
+                xy \<in> s \<and> yz \<in> r)" *)
 definition
   composition_fm :: "[i,i,i]=>i" where
   "composition_fm(r,s,t) \<equiv>
@@ -1081,7 +1081,7 @@ done
 subsubsection\<open>Injections, Internalized\<close>
 
 (* "injection(M,A,B,f) \<equiv>
-        typed_function(M,A,B,f) &
+        typed_function(M,A,B,f) \<and>
         (\<forall>x[M]. \<forall>x'[M]. \<forall>y[M]. \<forall>p[M]. \<forall>p'[M].
           pair(M,x,y,p) \<longrightarrow> pair(M,x',y,p') \<longrightarrow> p\<in>f \<longrightarrow> p'\<in>f \<longrightarrow> x=x')" *)
 definition
@@ -1123,8 +1123,8 @@ subsubsection\<open>Surjections, Internalized\<close>
 
 (*  surjection :: "[i=>o,i,i,i] => o"
     "surjection(M,A,B,f) \<equiv>
-        typed_function(M,A,B,f) &
-        (\<forall>y[M]. y\<in>B \<longrightarrow> (\<exists>x[M]. x\<in>A & fun_apply(M,f,x,y)))" *)
+        typed_function(M,A,B,f) \<and>
+        (\<forall>y[M]. y\<in>B \<longrightarrow> (\<exists>x[M]. x\<in>A \<and> fun_apply(M,f,x,y)))" *)
 definition
   surjection_fm :: "[i,i,i]=>i" where
   "surjection_fm(A,B,f) \<equiv>
@@ -1161,7 +1161,7 @@ done
 subsubsection\<open>Bijections, Internalized\<close>
 
 (*   bijection :: "[i=>o,i,i,i] => o"
-    "bijection(M,A,B,f) \<equiv> injection(M,A,B,f) & surjection(M,A,B,f)" *)
+    "bijection(M,A,B,f) \<equiv> injection(M,A,B,f) \<and> surjection(M,A,B,f)" *)
 definition
   bijection_fm :: "[i,i,i]=>i" where
   "bijection_fm(A,B,f) \<equiv> And(injection_fm(A,B,f), surjection_fm(A,B,f))"
@@ -1194,7 +1194,7 @@ subsubsection\<open>Restriction of a Relation, Internalized\<close>
 
 
 (* "restriction(M,r,A,z) \<equiv>
-        \<forall>x[M]. x \<in> z \<longleftrightarrow> (x \<in> r & (\<exists>u[M]. u\<in>A & (\<exists>v[M]. pair(M,u,v,x))))" *)
+        \<forall>x[M]. x \<in> z \<longleftrightarrow> (x \<in> r \<and> (\<exists>u[M]. u\<in>A \<and> (\<exists>v[M]. pair(M,u,v,x))))" *)
 definition
   restriction_fm :: "[i,i,i]=>i" where
     "restriction_fm(r,A,z) \<equiv>
@@ -1230,7 +1230,7 @@ subsubsection\<open>Order-Isomorphisms, Internalized\<close>
 
 (*  order_isomorphism :: "[i=>o,i,i,i,i,i] => o"
    "order_isomorphism(M,A,r,B,s,f) \<equiv>
-        bijection(M,A,B,f) &
+        bijection(M,A,B,f) \<and>
         (\<forall>x[M]. x\<in>A \<longrightarrow> (\<forall>y[M]. y\<in>A \<longrightarrow>
           (\<forall>p[M]. \<forall>fx[M]. \<forall>fy[M]. \<forall>q[M].
             pair(M,x,y,p) \<longrightarrow> fun_apply(M,f,x,fx) \<longrightarrow> fun_apply(M,f,y,fy) \<longrightarrow>
@@ -1282,8 +1282,8 @@ subsubsection\<open>Limit Ordinals, Internalized\<close>
 text\<open>A limit ordinal is a non-empty, successor-closed ordinal\<close>
 
 (* "limit_ordinal(M,a) \<equiv>
-        ordinal(M,a) & \<not> empty(M,a) &
-        (\<forall>x[M]. x\<in>a \<longrightarrow> (\<exists>y[M]. y\<in>a & successor(M,x,y)))" *)
+        ordinal(M,a) \<and> \<not> empty(M,a) \<and>
+        (\<forall>x[M]. x\<in>a \<longrightarrow> (\<exists>y[M]. y\<in>a \<and> successor(M,x,y)))" *)
 
 definition
   limit_ordinal_fm :: "i=>i" where
@@ -1320,7 +1320,7 @@ done
 subsubsection\<open>Finite Ordinals: The Predicate ``Is A Natural Number''\<close>
 
 (*     "finite_ordinal(M,a) \<equiv> 
-        ordinal(M,a) & \<not> limit_ordinal(M,a) & 
+        ordinal(M,a) \<and> \<not> limit_ordinal(M,a) \<and> 
         (\<forall>x[M]. x\<in>a \<longrightarrow> \<not> limit_ordinal(M,x))" *)
 definition
   finite_ordinal_fm :: "i=>i" where
@@ -1355,7 +1355,7 @@ done
 
 subsubsection\<open>Omega: The Set of Natural Numbers\<close>
 
-(* omega(M,a) \<equiv> limit_ordinal(M,a) & (\<forall>x[M]. x\<in>a \<longrightarrow> \<not> limit_ordinal(M,x)) *)
+(* omega(M,a) \<equiv> limit_ordinal(M,a) \<and> (\<forall>x[M]. x\<in>a \<longrightarrow> \<not> limit_ordinal(M,x)) *)
 definition
   omega_fm :: "i=>i" where
     "omega_fm(x) \<equiv>

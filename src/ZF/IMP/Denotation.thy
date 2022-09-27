@@ -58,7 +58,7 @@ lemma C_subset: "c \<in> com \<Longrightarrow> C(c) \<subseteq> (loc->nat) \<tim
   done
 
 lemma C_type_D [dest]:
-    "\<lbrakk><x,y> \<in> C(c); c \<in> com\<rbrakk> \<Longrightarrow> x \<in> loc->nat & y \<in> loc->nat"
+    "\<lbrakk><x,y> \<in> C(c); c \<in> com\<rbrakk> \<Longrightarrow> x \<in> loc->nat \<and> y \<in> loc->nat"
   by (blast dest: C_subset [THEN subsetD])
 
 lemma C_type_fst [dest]: "\<lbrakk>x \<in> C(c); c \<in> com\<rbrakk> \<Longrightarrow> fst(x) \<in> loc->nat"

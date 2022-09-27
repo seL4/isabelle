@@ -20,14 +20,14 @@ done
 
 (* j=|A| *)
 lemma lepoll_imp_ex_le_eqpoll:
-     "\<lbrakk>A \<lesssim> i; Ord(i)\<rbrakk> \<Longrightarrow> \<exists>j. j \<le> i & A \<approx> j"
+     "\<lbrakk>A \<lesssim> i; Ord(i)\<rbrakk> \<Longrightarrow> \<exists>j. j \<le> i \<and> A \<approx> j"
 by (blast intro!: lepoll_cardinal_le well_ord_Memrel
                   well_ord_cardinal_eqpoll [THEN eqpoll_sym]
           dest: lepoll_well_ord)
 
 (* j=|A| *)
 lemma lesspoll_imp_ex_lt_eqpoll:
-     "\<lbrakk>A \<prec> i; Ord(i)\<rbrakk> \<Longrightarrow> \<exists>j. j<i & A \<approx> j"
+     "\<lbrakk>A \<prec> i; Ord(i)\<rbrakk> \<Longrightarrow> \<exists>j. j<i \<and> A \<approx> j"
 by (unfold lesspoll_def, blast dest!: lepoll_imp_ex_le_eqpoll elim!: leE)
 
 lemma Un_eqpoll_Inf_Ord:
@@ -65,7 +65,7 @@ done
 lemma paired_eqpoll: "{{y,z}. y \<in> x} \<approx> x"
 by (unfold eqpoll_def, fast intro!: paired_bij)
 
-lemma ex_eqpoll_disjoint: "\<exists>B. B \<approx> A & B \<inter> C = 0"
+lemma ex_eqpoll_disjoint: "\<exists>B. B \<approx> A \<and> B \<inter> C = 0"
 by (fast intro!: paired_eqpoll equals0I elim: mem_asym)
 
 (*Finally we reach this result.  Surely there's a simpler proof?*)
@@ -108,7 +108,7 @@ done
 
 lemma UN_fun_lepoll_lemma [rule_format]:
      "\<lbrakk>well_ord(T, R); \<not>Finite(a); Ord(a); n \<in> nat\<rbrakk>
-      \<Longrightarrow> \<forall>f. (\<forall>b \<in> a. f`b \<lesssim> n & f`b \<subseteq> T) \<longrightarrow> (\<Union>b \<in> a. f`b) \<lesssim> a"
+      \<Longrightarrow> \<forall>f. (\<forall>b \<in> a. f`b \<lesssim> n \<and> f`b \<subseteq> T) \<longrightarrow> (\<Union>b \<in> a. f`b) \<lesssim> a"
 apply (induct_tac "n")
 apply (rule allI)
 apply (rule impI)
@@ -126,12 +126,12 @@ apply (fast intro: Un_lepoll_Inf_Ord UN_sing_lepoll)
 done
 
 lemma UN_fun_lepoll:
-     "\<lbrakk>\<forall>b \<in> a. f`b \<lesssim> n & f`b \<subseteq> T; well_ord(T, R);
+     "\<lbrakk>\<forall>b \<in> a. f`b \<lesssim> n \<and> f`b \<subseteq> T; well_ord(T, R);
          \<not>Finite(a); Ord(a); n \<in> nat\<rbrakk> \<Longrightarrow> (\<Union>b \<in> a. f`b) \<lesssim> a"
 by (blast intro: UN_fun_lepoll_lemma)
 
 lemma UN_lepoll:
-     "\<lbrakk>\<forall>b \<in> a. F(b) \<lesssim> n & F(b) \<subseteq> T; well_ord(T, R);
+     "\<lbrakk>\<forall>b \<in> a. F(b) \<lesssim> n \<and> F(b) \<subseteq> T; well_ord(T, R);
          \<not>Finite(a); Ord(a); n \<in> nat\<rbrakk>
       \<Longrightarrow> (\<Union>b \<in> a. F(b)) \<lesssim> a"
 apply (rule rev_mp)
@@ -153,7 +153,7 @@ apply (blast intro: Ord_Least ltI)
 done
 
 lemma lepoll_imp_eqpoll_subset:
-     "a \<lesssim> X \<Longrightarrow> \<exists>Y. Y \<subseteq> X & a \<approx> Y"
+     "a \<lesssim> X \<Longrightarrow> \<exists>Y. Y \<subseteq> X \<and> a \<approx> Y"
 apply (unfold lepoll_def eqpoll_def, clarify)
 apply (blast intro: restrict_bij
              dest: inj_is_fun [THEN fun_is_rel, THEN image_subset])

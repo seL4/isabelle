@@ -51,7 +51,7 @@ by (simp add: st_set_def)
 
 (* Union *)
 
-lemma st_set_Un_iff [iff]: "st_set(A \<union> B) \<longleftrightarrow> st_set(A) & st_set(B)"
+lemma st_set_Un_iff [iff]: "st_set(A \<union> B) \<longleftrightarrow> st_set(A) \<and> st_set(B)"
 by (simp add: st_set_def, auto)
 
 lemma st_set_Union_iff [iff]: "st_set(\<Union>(S)) \<longleftrightarrow> (\<forall>A \<in> S. st_set(A))"
@@ -99,7 +99,7 @@ done
 lemma st_set_compl [simp]: "st_set(st_compl(A))"
 by (simp add: st_compl_def, auto)
 
-lemma st_compl_iff [simp]: "x \<in> st_compl(A) \<longleftrightarrow> x \<in> state & x \<notin> A"
+lemma st_compl_iff [simp]: "x \<in> st_compl(A) \<longleftrightarrow> x \<in> state \<and> x \<notin> A"
 by (simp add: st_compl_def)
 
 lemma st_compl_Collect [simp]:
@@ -108,7 +108,7 @@ by (simp add: st_compl_def, auto)
 
 (*For using "disjunction" (union over an index set) to eliminate a variable.*)
 lemma UN_conj_eq:
-     "\<forall>d\<in>D. f(d) \<in> A \<Longrightarrow> (\<Union>k\<in>A. {d\<in>D. P(d) & f(d) = k}) = {d\<in>D. P(d)}"
+     "\<forall>d\<in>D. f(d) \<in> A \<Longrightarrow> (\<Union>k\<in>A. {d\<in>D. P(d) \<and> f(d) = k}) = {d\<in>D. P(d)}"
 by blast
 
 end

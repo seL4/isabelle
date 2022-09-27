@@ -136,11 +136,11 @@ declare list.intros [simp,TC]
 (*An elimination rule, for type-checking*)
 inductive_cases ConsE: "Cons(a,l) \<in> list(A)"
 
-lemma Cons_type_iff [simp]: "Cons(a,l) \<in> list(A) \<longleftrightarrow> a \<in> A & l \<in> list(A)"
+lemma Cons_type_iff [simp]: "Cons(a,l) \<in> list(A) \<longleftrightarrow> a \<in> A \<and> l \<in> list(A)"
 by (blast elim: ConsE)
 
 (*Proving freeness results*)
-lemma Cons_iff: "Cons(a,l)=Cons(a',l') \<longleftrightarrow> a=a' & l=l'"
+lemma Cons_iff: "Cons(a,l)=Cons(a',l') \<longleftrightarrow> a=a' \<and> l=l'"
 by auto
 
 lemma Nil_Cons_iff: "\<not> Nil=Cons(a,l)"
@@ -480,7 +480,7 @@ apply (unfold min_def)
 apply (auto dest: not_lt_imp_le)
 done
 
-lemma lt_min_iff: "\<lbrakk>i \<in> nat; j \<in> nat; k \<in> nat\<rbrakk> \<Longrightarrow> i<min(j,k) \<longleftrightarrow> i<j & i<k"
+lemma lt_min_iff: "\<lbrakk>i \<in> nat; j \<in> nat; k \<in> nat\<rbrakk> \<Longrightarrow> i<min(j,k) \<longleftrightarrow> i<j \<and> i<k"
 apply (unfold min_def)
 apply (auto dest!: not_lt_imp_le intro: lt_trans2 lt_trans)
 done
@@ -530,17 +530,17 @@ by (erule list.induct, auto)
 lemma length_greater_0_iff: "xs:list(A) \<Longrightarrow> 0<length(xs) \<longleftrightarrow> xs \<noteq> Nil"
 by (erule list.induct, auto)
 
-lemma length_succ_iff: "xs:list(A) \<Longrightarrow> length(xs)=succ(n) \<longleftrightarrow> (\<exists>y ys. xs=Cons(y, ys) & length(ys)=n)"
+lemma length_succ_iff: "xs:list(A) \<Longrightarrow> length(xs)=succ(n) \<longleftrightarrow> (\<exists>y ys. xs=Cons(y, ys) \<and> length(ys)=n)"
 by (erule list.induct, auto)
 
 (** more theorems about append **)
 
 lemma append_is_Nil_iff [simp]:
-     "xs:list(A) \<Longrightarrow> (xs@ys = Nil) \<longleftrightarrow> (xs=Nil & ys = Nil)"
+     "xs:list(A) \<Longrightarrow> (xs@ys = Nil) \<longleftrightarrow> (xs=Nil \<and> ys = Nil)"
 by (erule list.induct, auto)
 
 lemma append_is_Nil_iff2 [simp]:
-     "xs:list(A) \<Longrightarrow> (Nil = xs@ys) \<longleftrightarrow> (xs=Nil & ys = Nil)"
+     "xs:list(A) \<Longrightarrow> (Nil = xs@ys) \<longleftrightarrow> (xs=Nil \<and> ys = Nil)"
 by (erule list.induct, auto)
 
 lemma append_left_is_self_iff [simp]:
@@ -554,7 +554,7 @@ by (erule list.induct, auto)
 (*TOO SLOW as a default simprule!*)
 lemma append_left_is_Nil_iff [rule_format]:
      "\<lbrakk>xs:list(A); ys:list(A); zs:list(A)\<rbrakk> \<Longrightarrow>
-   length(ys)=length(zs) \<longrightarrow> (xs@ys=zs \<longleftrightarrow> (xs=Nil & ys=zs))"
+   length(ys)=length(zs) \<longrightarrow> (xs@ys=zs \<longleftrightarrow> (xs=Nil \<and> ys=zs))"
 apply (erule list.induct)
 apply (auto simp add: length_app)
 done
@@ -562,14 +562,14 @@ done
 (*TOO SLOW as a default simprule!*)
 lemma append_left_is_Nil_iff2 [rule_format]:
      "\<lbrakk>xs:list(A); ys:list(A); zs:list(A)\<rbrakk> \<Longrightarrow>
-   length(ys)=length(zs) \<longrightarrow> (zs=ys@xs \<longleftrightarrow> (xs=Nil & ys=zs))"
+   length(ys)=length(zs) \<longrightarrow> (zs=ys@xs \<longleftrightarrow> (xs=Nil \<and> ys=zs))"
 apply (erule list.induct)
 apply (auto simp add: length_app)
 done
 
 lemma append_eq_append_iff [rule_format]:
      "xs:list(A) \<Longrightarrow> \<forall>ys \<in> list(A).
-      length(xs)=length(ys) \<longrightarrow> (xs@us = ys@vs) \<longleftrightarrow> (xs=ys & us=vs)"
+      length(xs)=length(ys) \<longrightarrow> (xs@us = ys@vs) \<longleftrightarrow> (xs=ys \<and> us=vs)"
 apply (erule list.induct)
 apply (simp (no_asm_simp))
 apply clarify
@@ -580,7 +580,7 @@ declare append_eq_append_iff [simp]
 lemma append_eq_append [rule_format]:
   "xs:list(A) \<Longrightarrow>
    \<forall>ys \<in> list(A). \<forall>us \<in> list(A). \<forall>vs \<in> list(A).
-   length(us) = length(vs) \<longrightarrow> (xs@us = ys@vs) \<longrightarrow> (xs=ys & us=vs)"
+   length(us) = length(vs) \<longrightarrow> (xs@us = ys@vs) \<longrightarrow> (xs=ys \<and> us=vs)"
 apply (induct_tac "xs")
 apply (force simp add: length_app, clarify)
 apply (erule_tac a = ys in list.cases, simp)
@@ -590,7 +590,7 @@ done
 
 lemma append_eq_append_iff2 [simp]:
  "\<lbrakk>xs:list(A); ys:list(A); us:list(A); vs:list(A); length(us)=length(vs)\<rbrakk>
-  \<Longrightarrow>  xs@us = ys@vs \<longleftrightarrow> (xs=ys & us=vs)"
+  \<Longrightarrow>  xs@us = ys@vs \<longleftrightarrow> (xs=ys \<and> us=vs)"
 apply (rule iffI)
 apply (rule append_eq_append, auto)
 done
@@ -606,7 +606,7 @@ by simp
 (* Can also be proved from append_eq_append_iff2,
 but the proof requires two more hypotheses: x \<in> A and y \<in> A *)
 lemma append1_eq_iff [rule_format]:
-     "xs:list(A) \<Longrightarrow> \<forall>ys \<in> list(A). xs@[x] = ys@[y] \<longleftrightarrow> (xs = ys & x=y)"
+     "xs:list(A) \<Longrightarrow> \<forall>ys \<in> list(A). xs@[x] = ys@[y] \<longleftrightarrow> (xs = ys \<and> x=y)"
 apply (erule list.induct)
  apply clarify
  apply (erule list.cases)
@@ -769,7 +769,7 @@ done
 
 lemma set_of_list_conv_nth:
     "xs:list(A)
-     \<Longrightarrow> set_of_list(xs) = {x \<in> A. \<exists>i\<in>nat. i<length(xs) & x = nth(i,xs)}"
+     \<Longrightarrow> set_of_list(xs) = {x \<in> A. \<exists>i\<in>nat. i<length(xs) \<and> x = nth(i,xs)}"
 apply (induct_tac "xs", simp_all)
 apply (rule equalityI, auto)
 apply (rule_tac x = 0 in bexI, auto)
@@ -968,7 +968,7 @@ lemma set_of_list_zip [rule_format]:
      "\<lbrakk>xs:list(A); ys:list(B); i \<in> nat\<rbrakk>
       \<Longrightarrow> set_of_list(zip(xs, ys)) =
           {<x, y>:A*B. \<exists>i\<in>nat. i < min(length(xs), length(ys))
-          & x = nth(i, xs) & y = nth(i, ys)}"
+          \<and> x = nth(i, xs) \<and> y = nth(i, ys)}"
 by (force intro!: Collect_cong simp add: lt_min_iff set_of_list_conv_nth)
 
 (** list_update **)
@@ -1192,7 +1192,7 @@ by (unfold sublist_def, auto)
 lemma sublist_shift_lemma:
  "\<lbrakk>xs:list(B); i \<in> nat\<rbrakk> \<Longrightarrow>
   map(fst, filter(%p. snd(p):A, zip(xs, upt(i,i #+ length(xs))))) =
-  map(fst, filter(%p. snd(p):nat & snd(p) #+ i \<in> A, zip(xs,upt(0,length(xs)))))"
+  map(fst, filter(%p. snd(p):nat \<and> snd(p) #+ i \<in> A, zip(xs,upt(0,length(xs)))))"
 apply (erule list_append_induct)
 apply (simp (no_asm_simp))
 apply (auto simp add: add_commute length_app filter_append map_app_distrib)

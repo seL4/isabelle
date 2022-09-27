@@ -81,13 +81,13 @@ by (fast elim!: not_emptyE)
 
 definition
   DC  :: "i => o"  where
-    "DC(a) \<equiv> \<forall>X R. R \<subseteq> Pow(X)*X  &
+    "DC(a) \<equiv> \<forall>X R. R \<subseteq> Pow(X)*X  \<and>
                     (\<forall>Y \<in> Pow(X). Y \<prec> a \<longrightarrow> (\<exists>x \<in> X. <Y,x> \<in> R)) 
                     \<longrightarrow> (\<exists>f \<in> a->X. \<forall>b<a. <f``b,f`b> \<in> R)"
 
 definition
   DC0 :: o  where
-    "DC0 \<equiv> \<forall>A B R. R \<subseteq> A*B & R\<noteq>0 & range(R) \<subseteq> domain(R) 
+    "DC0 \<equiv> \<forall>A B R. R \<subseteq> A*B \<and> R\<noteq>0 \<and> range(R) \<subseteq> domain(R) 
                     \<longrightarrow> (\<exists>f \<in> nat->domain(R). \<forall>n \<in> nat. <f`n,f`succ(n)>:R)"
 
 definition
@@ -103,7 +103,7 @@ locale DC0_imp =
 
   defines XX_def: "XX \<equiv> (\<Union>n \<in> nat. {f \<in> n->X. \<forall>k \<in> n. <f``k, f`k> \<in> R})"
      and RR_def:  "RR \<equiv> {<z1,z2>:XX*XX. domain(z2)=succ(domain(z1))  
-                                       & restrict(z2, domain(z1)) = z1}"
+                                       \<and> restrict(z2, domain(z1)) = z1}"
 begin
 
 (* ********************************************************************** *)
@@ -116,7 +116,7 @@ begin
 (* Define XX and RR as follows:                                           *)
 (*                                                                        *)
 (*       XX = (\<Union>n \<in> nat. {f \<in> n->X. \<forall>k \<in> n. <f``k, f`k> \<in> R})           *)
-(*       f RR g iff domain(g)=succ(domain(f)) &                           *)
+(*       f RR g iff domain(g)=succ(domain(f)) \<and>                           *)
 (*              restrict(g, domain(f)) = f                                *)
 (*                                                                        *)
 (* Then RR satisfies the hypotheses of DC.                                *)
@@ -170,8 +170,8 @@ done
 
 lemma lemma2:
      "\<lbrakk>\<forall>n \<in> nat. <f`n, f`succ(n)> \<in> RR;  f \<in> nat -> XX;  n \<in> nat\<rbrakk>   
-      \<Longrightarrow> \<exists>k \<in> nat. f`succ(n) \<in> k -> X & n \<in> k   
-                  & <f`succ(n)``n, f`succ(n)`n> \<in> R"
+      \<Longrightarrow> \<exists>k \<in> nat. f`succ(n) \<in> k -> X \<and> n \<in> k   
+                  \<and> <f`succ(n)``n, f`succ(n)`n> \<in> R"
 apply (induct_tac "n")
 apply (drule apply_type [OF _ nat_1I])
 apply (drule bspec [OF _ nat_0I])
@@ -267,10 +267,10 @@ done
     XX = (\<Union>n \<in> nat. {f \<in> succ(n)->domain(R). \<forall>k \<in> n. <f`k, f`succ(k)> \<in> R})
 
     RR = {<z1,z2>:Fin(XX)*XX. 
-           (domain(z2)=succ(\<Union>f \<in> z1. domain(f)) &
+           (domain(z2)=succ(\<Union>f \<in> z1. domain(f)) \<and>
             (\<forall>f \<in> z1. restrict(z2, domain(f)) = f)) |      
-           (\<not> (\<exists>g \<in> XX. domain(g)=succ(\<Union>f \<in> z1. domain(f)) &
-                        (\<forall>f \<in> z1. restrict(g, domain(f)) = f)) &           
+           (\<not> (\<exists>g \<in> XX. domain(g)=succ(\<Union>f \<in> z1. domain(f)) \<and>
+                        (\<forall>f \<in> z1. restrict(g, domain(f)) = f)) \<and>           
             z2={<0,x>})}                                          
                                                                           
    Then XX and RR satisfy the hypotheses of DC(omega).                    
@@ -302,20 +302,20 @@ locale imp_DC0 =
       and RR_def:
          "RR \<equiv> {<z1,z2>:Fin(XX)*XX. 
                   (domain(z2)=succ(\<Union>f \<in> z1. domain(f))  
-                    & (\<forall>f \<in> z1. restrict(z2, domain(f)) = f))
+                    \<and> (\<forall>f \<in> z1. restrict(z2, domain(f)) = f))
                   | (\<not> (\<exists>g \<in> XX. domain(g)=succ(\<Union>f \<in> z1. domain(f))  
-                     & (\<forall>f \<in> z1. restrict(g, domain(f)) = f)) & z2={<0,x>})}"
+                     \<and> (\<forall>f \<in> z1. restrict(g, domain(f)) = f)) \<and> z2={<0,x>})}"
       and allRR_def:
         "allRR \<equiv> \<forall>b<nat.
                    <f``b, f`b> \<in>  
                     {<z1,z2>\<in>Fin(XX)*XX. (domain(z2)=succ(\<Union>f \<in> z1. domain(f))
-                                    & (\<Union>f \<in> z1. domain(f)) = b  
-                                    & (\<forall>f \<in> z1. restrict(z2,domain(f)) = f))}"
+                                    \<and> (\<Union>f \<in> z1. domain(f)) = b  
+                                    \<and> (\<forall>f \<in> z1. restrict(z2,domain(f)) = f))}"
 begin
 
 lemma lemma4:
      "\<lbrakk>range(R) \<subseteq> domain(R);  x \<in> domain(R)\<rbrakk>   
-      \<Longrightarrow> RR \<subseteq> Pow(XX)*XX &   
+      \<Longrightarrow> RR \<subseteq> Pow(XX)*XX \<and>   
              (\<forall>Y \<in> Pow(XX). Y \<prec> nat \<longrightarrow> (\<exists>x \<in> XX. <Y,x>:RR))"
 apply (rule conjI)
 apply (force dest!: FinD [THEN PowI] simp add: RR_def)
@@ -323,7 +323,7 @@ apply (rule impI [THEN ballI])
 apply (drule Finite_Fin [OF lesspoll_nat_is_Finite PowD], assumption)
 apply (case_tac
        "\<exists>g \<in> XX. domain (g) =
-             succ(\<Union>f \<in> Y. domain(f)) & (\<forall>f\<in>Y. restrict(g, domain(f)) = f)")
+             succ(\<Union>f \<in> Y. domain(f)) \<and> (\<forall>f\<in>Y. restrict(g, domain(f)) = f)")
 apply (simp add: RR_def, blast)
 apply (safe del: domainE)
 apply (unfold XX_def RR_def)
@@ -436,7 +436,7 @@ done
 
 lemma lemma2: 
      "\<lbrakk>allRR; f \<in> nat->XX; range(R) \<subseteq> domain(R); x \<in> domain(R); n \<in> nat\<rbrakk>
-      \<Longrightarrow> f`n \<in> succ(n) -> domain(R) & (\<forall>i \<in> n. <f`n`i, f`n`succ(i)>:R)"
+      \<Longrightarrow> f`n \<in> succ(n) -> domain(R) \<and> (\<forall>i \<in> n. <f`n`i, f`n`succ(i)>:R)"
 apply (unfold allRR_def)
 apply (drule ospec)
 apply (erule ltI [OF _ Ord_nat])
@@ -512,7 +512,7 @@ apply (fast dest!: lesspoll_imp_ex_lt_eqpoll
 apply (erule allE impE)+
 apply (rule Card_Hartog)
 apply (erule_tac x = A in allE)
-apply (erule_tac x = "{<z1,z2> \<in> Pow (A) *A . z1 \<prec> Hartog (A) & z2 \<notin> z1}" 
+apply (erule_tac x = "{<z1,z2> \<in> Pow (A) *A . z1 \<prec> Hartog (A) \<and> z2 \<notin> z1}" 
                  in allE)
 apply simp
 apply (erule impE, fast elim: lesspoll_lemma [THEN not_emptyE])

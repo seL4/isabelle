@@ -21,21 +21,21 @@ definition
     "WO1 \<equiv> \<forall>A. \<exists>R. well_ord(A,R)"
 
 definition  
-    "WO2 \<equiv> \<forall>A. \<exists>a. Ord(a) & A\<approx>a"
+    "WO2 \<equiv> \<forall>A. \<exists>a. Ord(a) \<and> A\<approx>a"
 
 definition  
-    "WO3 \<equiv> \<forall>A. \<exists>a. Ord(a) & (\<exists>b. b \<subseteq> a & A\<approx>b)"
+    "WO3 \<equiv> \<forall>A. \<exists>a. Ord(a) \<and> (\<exists>b. b \<subseteq> a \<and> A\<approx>b)"
 
 definition  
-    "WO4(m) \<equiv> \<forall>A. \<exists>a f. Ord(a) & domain(f)=a &   
-                         (\<Union>b<a. f`b) = A & (\<forall>b<a. f`b \<lesssim> m)"
+    "WO4(m) \<equiv> \<forall>A. \<exists>a f. Ord(a) \<and> domain(f)=a \<and>   
+                         (\<Union>b<a. f`b) = A \<and> (\<forall>b<a. f`b \<lesssim> m)"
 
 definition  
-    "WO5 \<equiv> \<exists>m \<in> nat. 1\<le>m & WO4(m)"
+    "WO5 \<equiv> \<exists>m \<in> nat. 1\<le>m \<and> WO4(m)"
 
 definition  
-    "WO6 \<equiv> \<forall>A. \<exists>m \<in> nat. 1\<le>m & (\<exists>a f. Ord(a) & domain(f)=a
-                               & (\<Union>b<a. f`b) = A & (\<forall>b<a. f`b \<lesssim> m))"
+    "WO6 \<equiv> \<forall>A. \<exists>m \<in> nat. 1\<le>m \<and> (\<exists>a f. Ord(a) \<and> domain(f)=a
+                               \<and> (\<Union>b<a. f`b) = A \<and> (\<forall>b<a. f`b \<lesssim> m))"
 
 definition  
     "WO7 \<equiv> \<forall>A. Finite(A) \<longleftrightarrow> (\<forall>R. well_ord(A,R) \<longrightarrow> well_ord(A,converse(R)))"
@@ -51,7 +51,7 @@ definition
 
 definition
   sets_of_size_between :: "[i, i, i] => o"  where
-    "sets_of_size_between(A,m,n) \<equiv> \<forall>B \<in> A. m \<lesssim> B & B \<lesssim> n"
+    "sets_of_size_between(A,m,n) \<equiv> \<forall>B \<in> A. m \<lesssim> B \<and> B \<lesssim> n"
 
 
 (* Axioms of Choice *)  
@@ -62,7 +62,7 @@ definition
     "AC1 \<equiv> \<forall>A. 0\<notin>A \<longrightarrow> (\<exists>f. f \<in> (\<Prod>X \<in> A. X))"
 
 definition
-    "AC2 \<equiv> \<forall>A. 0\<notin>A & pairwise_disjoint(A)   
+    "AC2 \<equiv> \<forall>A. 0\<notin>A \<and> pairwise_disjoint(A)   
                    \<longrightarrow> (\<exists>C. \<forall>B \<in> A. \<exists>y. B \<inter> C = {y})"
 definition
     "AC3 \<equiv> \<forall>A B. \<forall>f \<in> A->B. \<exists>g. g \<in> (\<Prod>x \<in> {a \<in> A. f`a\<noteq>0}. f`x)"
@@ -77,10 +77,10 @@ definition
     "AC6 \<equiv> \<forall>A. 0\<notin>A \<longrightarrow> (\<Prod>B \<in> A. B)\<noteq>0"
 
 definition
-    "AC7 \<equiv> \<forall>A. 0\<notin>A & (\<forall>B1 \<in> A. \<forall>B2 \<in> A. B1\<approx>B2) \<longrightarrow> (\<Prod>B \<in> A. B) \<noteq> 0"
+    "AC7 \<equiv> \<forall>A. 0\<notin>A \<and> (\<forall>B1 \<in> A. \<forall>B2 \<in> A. B1\<approx>B2) \<longrightarrow> (\<Prod>B \<in> A. B) \<noteq> 0"
 
 definition
-    "AC8 \<equiv> \<forall>A. (\<forall>B \<in> A. \<exists>B1 B2. B=<B1,B2> & B1\<approx>B2)   
+    "AC8 \<equiv> \<forall>A. (\<forall>B \<in> A. \<exists>B1 B2. B=<B1,B2> \<and> B1\<approx>B2)   
                    \<longrightarrow> (\<exists>f. \<forall>B \<in> A. f`B \<in> bij(fst(B),snd(B)))"
 
 definition
@@ -89,45 +89,45 @@ definition
 
 definition
     "AC10(n) \<equiv>  \<forall>A. (\<forall>B \<in> A. \<not>Finite(B)) \<longrightarrow>   
-                   (\<exists>f. \<forall>B \<in> A. (pairwise_disjoint(f`B) &   
-                   sets_of_size_between(f`B, 2, succ(n)) & \<Union>(f`B)=B))"
+                   (\<exists>f. \<forall>B \<in> A. (pairwise_disjoint(f`B) \<and>   
+                   sets_of_size_between(f`B, 2, succ(n)) \<and> \<Union>(f`B)=B))"
 
 definition
-    "AC11 \<equiv> \<exists>n \<in> nat. 1\<le>n & AC10(n)"
+    "AC11 \<equiv> \<exists>n \<in> nat. 1\<le>n \<and> AC10(n)"
 
 definition
     "AC12 \<equiv> \<forall>A. (\<forall>B \<in> A. \<not>Finite(B)) \<longrightarrow>
-                 (\<exists>n \<in> nat. 1\<le>n & (\<exists>f. \<forall>B \<in> A. (pairwise_disjoint(f`B) &   
-                      sets_of_size_between(f`B, 2, succ(n)) & \<Union>(f`B)=B)))"
+                 (\<exists>n \<in> nat. 1\<le>n \<and> (\<exists>f. \<forall>B \<in> A. (pairwise_disjoint(f`B) \<and>   
+                      sets_of_size_between(f`B, 2, succ(n)) \<and> \<Union>(f`B)=B)))"
 
 definition
-    "AC13(m) \<equiv> \<forall>A. 0\<notin>A \<longrightarrow> (\<exists>f. \<forall>B \<in> A. f`B\<noteq>0 & f`B \<subseteq> B & f`B \<lesssim> m)"
+    "AC13(m) \<equiv> \<forall>A. 0\<notin>A \<longrightarrow> (\<exists>f. \<forall>B \<in> A. f`B\<noteq>0 \<and> f`B \<subseteq> B \<and> f`B \<lesssim> m)"
 
 definition
-    "AC14 \<equiv> \<exists>m \<in> nat. 1\<le>m & AC13(m)"
+    "AC14 \<equiv> \<exists>m \<in> nat. 1\<le>m \<and> AC13(m)"
 
 definition
     "AC15 \<equiv> \<forall>A. 0\<notin>A \<longrightarrow> 
-                 (\<exists>m \<in> nat. 1\<le>m & (\<exists>f. \<forall>B \<in> A. f`B\<noteq>0 & f`B \<subseteq> B & f`B \<lesssim> m))"
+                 (\<exists>m \<in> nat. 1\<le>m \<and> (\<exists>f. \<forall>B \<in> A. f`B\<noteq>0 \<and> f`B \<subseteq> B \<and> f`B \<lesssim> m))"
 
 definition
     "AC16(n, k)  \<equiv> 
        \<forall>A. \<not>Finite(A) \<longrightarrow>   
-           (\<exists>T. T \<subseteq> {X \<in> Pow(A). X\<approx>succ(n)} &   
-           (\<forall>X \<in> {X \<in> Pow(A). X\<approx>succ(k)}. \<exists>! Y. Y \<in> T & X \<subseteq> Y))"
+           (\<exists>T. T \<subseteq> {X \<in> Pow(A). X\<approx>succ(n)} \<and>   
+           (\<forall>X \<in> {X \<in> Pow(A). X\<approx>succ(k)}. \<exists>! Y. Y \<in> T \<and> X \<subseteq> Y))"
 
 definition
     "AC17 \<equiv> \<forall>A. \<forall>g \<in> (Pow(A)-{0} -> A) -> Pow(A)-{0}.   
                    \<exists>f \<in> Pow(A)-{0} -> A. f`(g`f) \<in> g`f"
 
 locale AC18 =
-  assumes AC18: "A\<noteq>0 & (\<forall>a \<in> A. B(a) \<noteq> 0) \<longrightarrow>
+  assumes AC18: "A\<noteq>0 \<and> (\<forall>a \<in> A. B(a) \<noteq> 0) \<longrightarrow>
     ((\<Inter>a \<in> A. \<Union>b \<in> B(a). X(a,b)) =   
       (\<Union>f \<in> \<Prod>a \<in> A. B(a). \<Inter>a \<in> A. X(a, f`a)))"
   \<comment> \<open>AC18 cannot be expressed within the object-logic\<close>
 
 definition
-    "AC19 \<equiv> \<forall>A. A\<noteq>0 & 0\<notin>A \<longrightarrow> ((\<Inter>a \<in> A. \<Union>b \<in> a. b) =   
+    "AC19 \<equiv> \<forall>A. A\<noteq>0 \<and> 0\<notin>A \<longrightarrow> ((\<Inter>a \<in> A. \<Union>b \<in> a. b) =   
                    (\<Union>f \<in> (\<Prod>B \<in> A. B). \<Inter>a \<in> A. f`a))"
 
 
@@ -196,7 +196,7 @@ lemma lepoll_m_imp_domain_lepoll_m:
      "\<lbrakk>m \<in> nat; u \<lesssim> m\<rbrakk> \<Longrightarrow> domain(u) \<lesssim> m"
 apply (unfold lepoll_def)
 apply (erule exE)
-apply (rule_tac x = "\<lambda>x \<in> domain(u). \<mu> i. \<exists>y. <x,y> \<in> u & f`<x,y> = i" 
+apply (rule_tac x = "\<lambda>x \<in> domain(u). \<mu> i. \<exists>y. <x,y> \<in> u \<and> f`<x,y> = i" 
        in exI)
 apply (rule_tac d = "%y. fst (converse(f) ` y) " in lam_injective)
 apply (fast intro: LeastI2 nat_into_Ord [THEN Ord_in_Ord] 

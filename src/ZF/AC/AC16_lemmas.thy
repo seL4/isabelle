@@ -106,7 +106,7 @@ lemma Union_eq_Un: "x \<in> X \<Longrightarrow> \<Union>(X) = x \<union> \<Union
 by fast
 
 lemma Union_in_lemma [rule_format]:
-     "n \<in> nat \<Longrightarrow> \<forall>z. (\<forall>y \<in> z. Ord(y)) & z\<approx>n & z\<noteq>0 \<longrightarrow> \<Union>(z) \<in> z"
+     "n \<in> nat \<Longrightarrow> \<forall>z. (\<forall>y \<in> z. Ord(y)) \<and> z\<approx>n \<and> z\<noteq>0 \<longrightarrow> \<Union>(z) \<in> z"
 apply (induct_tac "n")
 apply (fast dest!: eqpoll_imp_lepoll [THEN lepoll_0_is_0])
 apply (intro allI impI)
@@ -196,7 +196,7 @@ apply (fast elim!: bij_is_inj [THEN vimage_image_eq])
 apply (fast elim!: bij_is_surj [THEN image_vimage_eq])
 done
 
-lemma WO2_imp_ex_Card: "WO2 \<Longrightarrow> \<exists>a. Card(a) & X\<approx>a"
+lemma WO2_imp_ex_Card: "WO2 \<Longrightarrow> \<exists>a. Card(a) \<and> X\<approx>a"
 apply (unfold WO2_def)
 apply (drule spec [of _ X])
 apply (blast intro: Card_cardinal eqpoll_trans
@@ -220,7 +220,7 @@ apply (drule infinite_Card_is_InfCard, assumption)
 apply (blast intro: subsets_eqpoll subsets_eqpoll_X eqpoll_sym eqpoll_trans) 
 done
 
-lemma well_ord_imp_ex_Card: "well_ord(X,R) \<Longrightarrow> \<exists>a. Card(a) & X\<approx>a"
+lemma well_ord_imp_ex_Card: "well_ord(X,R) \<Longrightarrow> \<exists>a. Card(a) \<and> X\<approx>a"
 by (fast elim!: well_ord_cardinal_eqpoll [THEN eqpoll_sym] 
          intro!: Card_cardinal)
 

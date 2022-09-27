@@ -10,7 +10,7 @@ theory Cardinal imports OrderType Finite Nat Sum begin
 definition
   (*least ordinal operator*)
    Least    :: "(i=>o) => i"    (binder \<open>\<mu> \<close> 10)  where
-     "Least(P) \<equiv> THE i. Ord(i) & P(i) & (\<forall>j. j<i \<longrightarrow> \<not>P(j))"
+     "Least(P) \<equiv> THE i. Ord(i) \<and> P(i) \<and> (\<forall>j. j<i \<longrightarrow> \<not>P(j))"
 
 definition
   eqpoll   :: "[i,i] => o"     (infixl \<open>\<approx>\<close> 50)  where
@@ -22,7 +22,7 @@ definition
 
 definition
   lesspoll :: "[i,i] => o"     (infixl \<open>\<prec>\<close> 50)  where
-    "A \<prec> B \<equiv> A \<lesssim> B & \<not>(A \<approx> B)"
+    "A \<prec> B \<equiv> A \<lesssim> B \<and> \<not>(A \<approx> B)"
 
 definition
   cardinal :: "i=>i"           (\<open>|_|\<close>)  where
@@ -56,9 +56,9 @@ done
 
 lemma decomposition:
      "\<lbrakk>f \<in> X->Y;  g \<in> Y->X\<rbrakk> \<Longrightarrow>
-      \<exists>XA XB YA YB. (XA \<inter> XB = 0) & (XA \<union> XB = X) &
-                      (YA \<inter> YB = 0) & (YA \<union> YB = Y) &
-                      f``XA=YA & g``YB=XB"
+      \<exists>XA XB YA YB. (XA \<inter> XB = 0) \<and> (XA \<union> XB = X) \<and>
+                      (YA \<inter> YB = 0) \<and> (YA \<union> YB = Y) \<and>
+                      f``XA=YA \<and> g``YB=XB"
 apply (intro exI conjI)
 apply (rule_tac [6] Banach_last_equation)
 apply (rule_tac [5] refl)
@@ -134,7 +134,7 @@ lemma eqpollE:
     "\<lbrakk>X \<approx> Y; \<lbrakk>X \<lesssim> Y; Y \<lesssim> X\<rbrakk> \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
 by (blast intro: eqpoll_imp_lepoll eqpoll_sym)
 
-lemma eqpoll_iff: "X \<approx> Y \<longleftrightarrow> X \<lesssim> Y & Y \<lesssim> X"
+lemma eqpoll_iff: "X \<approx> Y \<longleftrightarrow> X \<lesssim> Y \<and> Y \<lesssim> X"
 by (blast intro: eqpollI elim!: eqpollE)
 
 lemma lepoll_0_is_0: "A \<lesssim> 0 \<Longrightarrow> A = 0"
@@ -303,13 +303,13 @@ by (blast intro: LeastI )
 
 (*If there is no such P then \<mu> is vacuously 0*)
 lemma Least_0:
-    "\<lbrakk>\<not> (\<exists>i. Ord(i) & P(i))\<rbrakk> \<Longrightarrow> (\<mu> x. P(x)) = 0"
+    "\<lbrakk>\<not> (\<exists>i. Ord(i) \<and> P(i))\<rbrakk> \<Longrightarrow> (\<mu> x. P(x)) = 0"
 apply (unfold Least_def)
 apply (rule the_0, blast)
 done
 
 lemma Ord_Least [intro,simp,TC]: "Ord(\<mu> x. P(x))"
-proof (cases "\<exists>i. Ord(i) & P(i)")
+proof (cases "\<exists>i. Ord(i) \<and> P(i)")
   case True 
   then obtain i where "P(i)" "Ord(i)"  by auto
   hence " (\<mu> x. P(x)) \<le> i"  by (rule Least_le) 
@@ -401,7 +401,7 @@ apply (rule Ord_Least)
 done
 
 text\<open>The cardinals are the initial ordinals.\<close>
-lemma Card_iff_initial: "Card(K) \<longleftrightarrow> Ord(K) & (\<forall>j. j<K \<longrightarrow> \<not> j \<approx> K)"
+lemma Card_iff_initial: "Card(K) \<longleftrightarrow> Ord(K) \<and> (\<forall>j. j<K \<longrightarrow> \<not> j \<approx> K)"
 proof -
   { fix j
     assume K: "Card(K)" "j \<approx> K"
@@ -438,7 +438,7 @@ done
 lemma Card_cardinal [iff]: "Card(|A|)"
 proof (unfold cardinal_def)
   show "Card(\<mu> i. i \<approx> A)"
-    proof (cases "\<exists>i. Ord (i) & i \<approx> A")
+    proof (cases "\<exists>i. Ord (i) \<and> i \<approx> A")
       case False thus ?thesis           \<comment> \<open>degenerate case\<close>
         by (simp add: Least_0 Card_0)
     next
@@ -620,7 +620,7 @@ lemma succ_lepoll_natE: "\<lbrakk>succ(n) \<lesssim> n;  n \<in> nat\<rbrakk> \<
 by (rule nat_lepoll_imp_le [THEN lt_irrefl], auto)
 
 lemma nat_lepoll_imp_ex_eqpoll_n:
-     "\<lbrakk>n \<in> nat;  nat \<lesssim> X\<rbrakk> \<Longrightarrow> \<exists>Y. Y \<subseteq> X & n \<approx> Y"
+     "\<lbrakk>n \<in> nat;  nat \<lesssim> X\<rbrakk> \<Longrightarrow> \<exists>Y. Y \<subseteq> X \<and> n \<approx> Y"
 apply (unfold lepoll_def eqpoll_def)
 apply (fast del: subsetI subsetCE
             intro!: subset_SIs
@@ -962,7 +962,7 @@ lemma eqpoll_succ_imp_not_empty: "x \<approx> succ(n) \<Longrightarrow> x \<note
 by (fast elim!: eqpoll_sym [THEN eqpoll_0_is_0, THEN succ_neq_0])
 
 lemma Finite_Fin_lemma [rule_format]:
-     "n \<in> nat \<Longrightarrow> \<forall>A. (A\<approx>n & A \<subseteq> X) \<longrightarrow> A \<in> Fin(X)"
+     "n \<in> nat \<Longrightarrow> \<forall>A. (A\<approx>n \<and> A \<subseteq> X) \<longrightarrow> A \<in> Fin(X)"
 apply (induct_tac n)
 apply (rule allI)
 apply (fast intro!: Fin.emptyI dest!: eqpoll_imp_lepoll [THEN lepoll_0_is_0])
@@ -1014,7 +1014,7 @@ by (blast intro!: Fin_into_Finite Fin_UnI
           intro: Un_upper1 [THEN Fin_mono, THEN subsetD]
                  Un_upper2 [THEN Fin_mono, THEN subsetD])
 
-lemma Finite_Un_iff [simp]: "Finite(A \<union> B) \<longleftrightarrow> (Finite(A) & Finite(B))"
+lemma Finite_Un_iff [simp]: "Finite(A \<union> B) \<longleftrightarrow> (Finite(A) \<and> Finite(B))"
 by (blast intro: subset_Finite Finite_Un)
 
 text\<open>The converse must hold too.\<close>
@@ -1040,7 +1040,7 @@ apply (unfold Finite_def)
 apply (case_tac "a \<in> A")
 apply (subgoal_tac [2] "A-{a}=A", auto)
 apply (rule_tac x = "succ (n) " in bexI)
-apply (subgoal_tac "cons (a, A - {a}) = A & cons (n, n) = succ (n) ")
+apply (subgoal_tac "cons (a, A - {a}) = A \<and> cons (n, n) = succ (n) ")
 apply (drule_tac a = a and b = n in cons_eqpoll_cong)
 apply (auto dest: mem_irrefl)
 done

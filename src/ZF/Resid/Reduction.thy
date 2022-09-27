@@ -214,7 +214,7 @@ done
 (*      Simulation                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-lemma simulation: "m=1=>n \<Longrightarrow> \<exists>v. m|>v = n & m \<sim> v & regular(v)"
+lemma simulation: "m=1=>n \<Longrightarrow> \<exists>v. m|>v = n \<and> m \<sim> v \<and> regular(v)"
 by (erule Spar_red1.induct, force+)
 
 

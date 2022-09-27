@@ -1,5 +1,5 @@
 (*  Title:      ZF/ex/Commutation.thy
-    Author:     Tobias Nipkow & Sidi Ould Ehmety
+    Author:     Tobias Nipkow \<and> Sidi Ould Ehmety
     Copyright   1995  TU Muenchen
 
 Commutation theory for proving the Church Rosser theorem.
@@ -10,7 +10,7 @@ theory Commutation imports ZF begin
 definition
   square  :: "[i, i, i, i] => o" where
   "square(r,s,t,u) \<equiv>
-    (\<forall>a b. <a,b> \<in> r \<longrightarrow> (\<forall>c. <a, c> \<in> s \<longrightarrow> (\<exists>x. <b,x> \<in> t & <c,x> \<in> u)))"
+    (\<forall>a b. <a,b> \<in> r \<longrightarrow> (\<forall>c. <a, c> \<in> s \<longrightarrow> (\<exists>x. <b,x> \<in> t \<and> <c,x> \<in> u)))"
 
 definition
   commute :: "[i, i] => o" where
@@ -27,7 +27,7 @@ definition
 definition
   Church_Rosser :: "i => o" where
   "Church_Rosser(r) \<equiv> (\<forall>x y. <x,y> \<in>  (r \<union> converse(r))^* \<longrightarrow>
-                        (\<exists>z. <x,z> \<in> r^* & <y,z> \<in> r^*))"
+                        (\<exists>z. <x,z> \<in> r^* \<and> <y,z> \<in> r^*))"
 
 definition
   confluent :: "i=>o" where

@@ -22,7 +22,7 @@ text \<open>\medskip
   The following are not added to the default simpset because
   (a) they duplicate the body and (b) there are no similar rules for \<open>Int\<close>.\<close>
 
-lemma ball_Un: "(\<forall>x \<in> A\<union>B. P(x)) \<longleftrightarrow> (\<forall>x \<in> A. P(x)) & (\<forall>x \<in> B. P(x))"
+lemma ball_Un: "(\<forall>x \<in> A\<union>B. P(x)) \<longleftrightarrow> (\<forall>x \<in> A. P(x)) \<and> (\<forall>x \<in> B. P(x))"
   by blast
 
 lemma bex_Un: "(\<exists>x \<in> A\<union>B. P(x)) \<longleftrightarrow> (\<exists>x \<in> A. P(x)) | (\<exists>x \<in> B. P(x))"
@@ -76,7 +76,7 @@ by blast
 lemma subset_consI: "B \<subseteq> cons(a,B)"
 by blast
 
-lemma cons_subset_iff [iff]: "cons(a,B)\<subseteq>C \<longleftrightarrow> a\<in>C & B\<subseteq>C"
+lemma cons_subset_iff [iff]: "cons(a,B)\<subseteq>C \<longleftrightarrow> a\<in>C \<and> B\<subseteq>C"
 by blast
 
 (*A safe special case of subset elimination, adding no new variables
@@ -86,7 +86,7 @@ lemmas cons_subsetE = cons_subset_iff [THEN iffD1, THEN conjE]
 lemma subset_empty_iff: "A\<subseteq>0 \<longleftrightarrow> A=0"
 by blast
 
-lemma subset_cons_iff: "C\<subseteq>cons(a,B) \<longleftrightarrow> C\<subseteq>B | (a\<in>C & C-{a} \<subseteq> B)"
+lemma subset_cons_iff: "C\<subseteq>cons(a,B) \<longleftrightarrow> C\<subseteq>B | (a\<in>C \<and> C-{a} \<subseteq> B)"
 by blast
 
 (* cons_def refers to Upair; reversing the equality LOOPS in rewriting!*)
@@ -134,7 +134,7 @@ lemma succ_subsetE:
     "\<lbrakk>succ(i) \<subseteq> j;  \<lbrakk>i\<in>j;  i\<subseteq>j\<rbrakk> \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
 by (unfold succ_def, blast)
 
-lemma succ_subset_iff: "succ(a) \<subseteq> B \<longleftrightarrow> (a \<subseteq> B & a \<in> B)"
+lemma succ_subset_iff: "succ(a) \<subseteq> B \<longleftrightarrow> (a \<subseteq> B \<and> a \<in> B)"
 by (unfold succ_def, blast)
 
 
@@ -142,7 +142,7 @@ subsection\<open>Binary Intersection\<close>
 
 (** Intersection is the greatest lower bound of two sets **)
 
-lemma Int_subset_iff: "C \<subseteq> A \<inter> B \<longleftrightarrow> C \<subseteq> A & C \<subseteq> B"
+lemma Int_subset_iff: "C \<subseteq> A \<inter> B \<longleftrightarrow> C \<subseteq> A \<and> C \<subseteq> B"
 by blast
 
 lemma Int_lower1: "A \<inter> B \<subseteq> A"
@@ -211,7 +211,7 @@ subsection\<open>Binary Union\<close>
 
 (** Union is the least upper bound of two sets *)
 
-lemma Un_subset_iff: "A \<union> B \<subseteq> C \<longleftrightarrow> A \<subseteq> C & B \<subseteq> C"
+lemma Un_subset_iff: "A \<union> B \<subseteq> C \<longleftrightarrow> A \<subseteq> C \<and> B \<subseteq> C"
 by blast
 
 lemma Un_upper1: "A \<subseteq> A \<union> B"
@@ -259,7 +259,7 @@ by (blast elim!: equalityE)
 lemma subset_Un_iff2: "A\<subseteq>B \<longleftrightarrow> B \<union> A = B"
 by (blast elim!: equalityE)
 
-lemma Un_empty [iff]: "(A \<union> B = 0) \<longleftrightarrow> (A = 0 & B = 0)"
+lemma Un_empty [iff]: "(A \<union> B = 0) \<longleftrightarrow> (A = 0 \<and> B = 0)"
 by blast
 
 lemma Un_eq_Union: "A \<union> B = \<Union>({A, B})"
@@ -273,7 +273,7 @@ by blast
 lemma Diff_contains: "\<lbrakk>C\<subseteq>A;  C \<inter> B = 0\<rbrakk> \<Longrightarrow> C \<subseteq> A-B"
 by blast
 
-lemma subset_Diff_cons_iff: "B \<subseteq> A - cons(c,C)  \<longleftrightarrow>  B\<subseteq>A-C & c \<notin> B"
+lemma subset_Diff_cons_iff: "B \<subseteq> A - cons(c,C)  \<longleftrightarrow>  B\<subseteq>A-C \<and> c \<notin> B"
 by blast
 
 lemma Diff_cancel: "A - A = 0"
@@ -571,7 +571,7 @@ lemma SUM_eq_UN: "(\<Sum>i\<in>I. A(i)) = (\<Union>i\<in>I. {i} * A(i))"
 by blast
 
 lemma times_subset_iff:
-     "(A'*B' \<subseteq> A*B) \<longleftrightarrow> (A' = 0 | B' = 0 | (A'\<subseteq>A) & (B'\<subseteq>B))"
+     "(A'*B' \<subseteq> A*B) \<longleftrightarrow> (A' = 0 | B' = 0 | (A'\<subseteq>A) \<and> (B'\<subseteq>B))"
 by blast
 
 lemma Int_Sigma_eq:
@@ -765,7 +765,7 @@ lemma image_UN: "r `` (\<Union>x\<in>A. B(x)) = (\<Union>x\<in>A. r `` B(x))"
 by blast
 
 lemma Collect_image_eq:
-     "{z \<in> Sigma(A,B). P(z)} `` C = (\<Union>x \<in> A. {y \<in> B(x). x \<in> C & P(<x,y>)})"
+     "{z \<in> Sigma(A,B). P(z)} `` C = (\<Union>x \<in> A. {y \<in> B(x). x \<in> C \<and> P(<x,y>)})"
 by blast
 
 lemma image_Int_subset: "r``(A \<inter> B) \<subseteq> (r``A) \<inter> (r``B)"
@@ -941,11 +941,11 @@ lemma Int_Collect_self_eq: "A \<inter> Collect(A,P) = Collect(A,P)"
 by blast
 
 lemma Collect_Collect_eq [simp]:
-     "Collect(Collect(A,P), Q) = Collect(A, %x. P(x) & Q(x))"
+     "Collect(Collect(A,P), Q) = Collect(A, %x. P(x) \<and> Q(x))"
 by blast
 
 lemma Collect_Int_Collect_eq:
-     "Collect(A,P) \<inter> Collect(A,Q) = Collect(A, %x. P(x) & Q(x))"
+     "Collect(A,P) \<inter> Collect(A,Q) = Collect(A, %x. P(x) \<and> Q(x))"
 by blast
 
 lemma Collect_Union_eq [simp]:
@@ -961,7 +961,7 @@ by blast
 lemma Collect_disj_eq: "{x\<in>A. P(x) | Q(x)} = Collect(A, P) \<union> Collect(A, Q)"
 by blast
 
-lemma Collect_conj_eq: "{x\<in>A. P(x) & Q(x)} = Collect(A, P) \<inter> Collect(A, Q)"
+lemma Collect_conj_eq: "{x\<in>A. P(x) \<and> Q(x)} = Collect(A, P) \<inter> Collect(A, Q)"
 by blast
 
 lemmas subset_SIs = subset_refl cons_subsetI subset_consI

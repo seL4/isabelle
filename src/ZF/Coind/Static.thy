@@ -17,9 +17,9 @@ axiomatization isof :: "[i,i] => o"
 definition
   isofenv :: "[i,i] => o"  where
    "isofenv(ve,te) \<equiv>                
-      ve_dom(ve) = te_dom(te) &            
+      ve_dom(ve) = te_dom(te) \<and>            
       (\<forall>x \<in> ve_dom(ve).                          
-        \<exists>c \<in> Const. ve_app(ve,x) = v_const(c) & isof(c,te_app(te,x)))"
+        \<exists>c \<in> Const. ve_app(ve,x) = v_const(c) \<and> isof(c,te_app(te,x)))"
   
 
 (*** Elaboration ***)

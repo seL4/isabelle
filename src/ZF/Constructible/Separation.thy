@@ -18,12 +18,12 @@ lemmas sep_rules = nth_0 nth_ConsI FOL_iff_sats function_iff_sats
 
 lemma Collect_conj_in_DPow:
      "\<lbrakk>{x\<in>A. P(x)} \<in> DPow(A);  {x\<in>A. Q(x)} \<in> DPow(A)\<rbrakk>
-      \<Longrightarrow> {x\<in>A. P(x) & Q(x)} \<in> DPow(A)"
+      \<Longrightarrow> {x\<in>A. P(x) \<and> Q(x)} \<in> DPow(A)"
 by (simp add: Int_in_DPow Collect_Int_Collect_eq [symmetric])
 
 lemma Collect_conj_in_DPow_Lset:
      "\<lbrakk>z \<in> Lset(j); {x \<in> Lset(j). P(x)} \<in> DPow(Lset(j))\<rbrakk>
-      \<Longrightarrow> {x \<in> Lset(j). x \<in> z & P(x)} \<in> DPow(Lset(j))"
+      \<Longrightarrow> {x \<in> Lset(j). x \<in> z \<and> P(x)} \<in> DPow(Lset(j))"
 apply (frule mem_Lset_imp_subset_Lset)
 apply (simp add: Collect_conj_in_DPow Collect_mem_eq
                  subset_Int_iff2 elem_subset_in_DPow)
@@ -43,7 +43,7 @@ lemma reflection_imp_L_separation:
           Ord(j);  z \<in> Lset(j)\<rbrakk> \<Longrightarrow> L({x \<in> z . P(x)})"
 apply (rule_tac i = "succ(j)" in L_I)
  prefer 2 apply simp
-apply (subgoal_tac "{x \<in> z. P(x)} = {x \<in> Lset(j). x \<in> z & (Q(x))}")
+apply (subgoal_tac "{x \<in> z. P(x)} = {x \<in> Lset(j). x \<in> z \<and> (Q(x))}")
  prefer 2
  apply (blast dest: mem_Lset_imp_subset_Lset)
 apply (simp add: Lset_succ Collect_conj_in_DPow_Lset)
@@ -118,14 +118,14 @@ done
 subsection\<open>Separation for Cartesian Product\<close>
 
 lemma cartprod_Reflects:
-     "REFLECTS[\<lambda>z. \<exists>x[L]. x\<in>A & (\<exists>y[L]. y\<in>B & pair(L,x,y,z)),
-                \<lambda>i z. \<exists>x\<in>Lset(i). x\<in>A & (\<exists>y\<in>Lset(i). y\<in>B &
+     "REFLECTS[\<lambda>z. \<exists>x[L]. x\<in>A \<and> (\<exists>y[L]. y\<in>B \<and> pair(L,x,y,z)),
+                \<lambda>i z. \<exists>x\<in>Lset(i). x\<in>A \<and> (\<exists>y\<in>Lset(i). y\<in>B \<and>
                                    pair(##Lset(i),x,y,z))]"
 by (intro FOL_reflections function_reflections)
 
 lemma cartprod_separation:
      "\<lbrakk>L(A); L(B)\<rbrakk>
-      \<Longrightarrow> separation(L, \<lambda>z. \<exists>x[L]. x\<in>A & (\<exists>y[L]. y\<in>B & pair(L,x,y,z)))"
+      \<Longrightarrow> separation(L, \<lambda>z. \<exists>x[L]. x\<in>A \<and> (\<exists>y[L]. y\<in>B \<and> pair(L,x,y,z)))"
 apply (rule gen_separation_multi [OF cartprod_Reflects, of "{A,B}"], auto)
 apply (rule_tac env="[A,B]" in DPow_LsetI)
 apply (rule sep_rules | simp)+
@@ -134,13 +134,13 @@ done
 subsection\<open>Separation for Image\<close>
 
 lemma image_Reflects:
-     "REFLECTS[\<lambda>y. \<exists>p[L]. p\<in>r & (\<exists>x[L]. x\<in>A & pair(L,x,y,p)),
-           \<lambda>i y. \<exists>p\<in>Lset(i). p\<in>r & (\<exists>x\<in>Lset(i). x\<in>A & pair(##Lset(i),x,y,p))]"
+     "REFLECTS[\<lambda>y. \<exists>p[L]. p\<in>r \<and> (\<exists>x[L]. x\<in>A \<and> pair(L,x,y,p)),
+           \<lambda>i y. \<exists>p\<in>Lset(i). p\<in>r \<and> (\<exists>x\<in>Lset(i). x\<in>A \<and> pair(##Lset(i),x,y,p))]"
 by (intro FOL_reflections function_reflections)
 
 lemma image_separation:
      "\<lbrakk>L(A); L(r)\<rbrakk>
-      \<Longrightarrow> separation(L, \<lambda>y. \<exists>p[L]. p\<in>r & (\<exists>x[L]. x\<in>A & pair(L,x,y,p)))"
+      \<Longrightarrow> separation(L, \<lambda>y. \<exists>p[L]. p\<in>r \<and> (\<exists>x[L]. x\<in>A \<and> pair(L,x,y,p)))"
 apply (rule gen_separation_multi [OF image_Reflects, of "{A,r}"], auto)
 apply (rule_tac env="[A,r]" in DPow_LsetI)
 apply (rule sep_rules | simp)+
@@ -150,14 +150,14 @@ done
 subsection\<open>Separation for Converse\<close>
 
 lemma converse_Reflects:
-  "REFLECTS[\<lambda>z. \<exists>p[L]. p\<in>r & (\<exists>x[L]. \<exists>y[L]. pair(L,x,y,p) & pair(L,y,x,z)),
-     \<lambda>i z. \<exists>p\<in>Lset(i). p\<in>r & (\<exists>x\<in>Lset(i). \<exists>y\<in>Lset(i).
-                     pair(##Lset(i),x,y,p) & pair(##Lset(i),y,x,z))]"
+  "REFLECTS[\<lambda>z. \<exists>p[L]. p\<in>r \<and> (\<exists>x[L]. \<exists>y[L]. pair(L,x,y,p) \<and> pair(L,y,x,z)),
+     \<lambda>i z. \<exists>p\<in>Lset(i). p\<in>r \<and> (\<exists>x\<in>Lset(i). \<exists>y\<in>Lset(i).
+                     pair(##Lset(i),x,y,p) \<and> pair(##Lset(i),y,x,z))]"
 by (intro FOL_reflections function_reflections)
 
 lemma converse_separation:
      "L(r) \<Longrightarrow> separation(L,
-         \<lambda>z. \<exists>p[L]. p\<in>r & (\<exists>x[L]. \<exists>y[L]. pair(L,x,y,p) & pair(L,y,x,z)))"
+         \<lambda>z. \<exists>p[L]. p\<in>r \<and> (\<exists>x[L]. \<exists>y[L]. pair(L,x,y,p) \<and> pair(L,y,x,z)))"
 apply (rule gen_separation [OF converse_Reflects], simp)
 apply (rule_tac env="[r]" in DPow_LsetI)
 apply (rule sep_rules | simp)+
@@ -167,12 +167,12 @@ done
 subsection\<open>Separation for Restriction\<close>
 
 lemma restrict_Reflects:
-     "REFLECTS[\<lambda>z. \<exists>x[L]. x\<in>A & (\<exists>y[L]. pair(L,x,y,z)),
-        \<lambda>i z. \<exists>x\<in>Lset(i). x\<in>A & (\<exists>y\<in>Lset(i). pair(##Lset(i),x,y,z))]"
+     "REFLECTS[\<lambda>z. \<exists>x[L]. x\<in>A \<and> (\<exists>y[L]. pair(L,x,y,z)),
+        \<lambda>i z. \<exists>x\<in>Lset(i). x\<in>A \<and> (\<exists>y\<in>Lset(i). pair(##Lset(i),x,y,z))]"
 by (intro FOL_reflections function_reflections)
 
 lemma restrict_separation:
-   "L(A) \<Longrightarrow> separation(L, \<lambda>z. \<exists>x[L]. x\<in>A & (\<exists>y[L]. pair(L,x,y,z)))"
+   "L(A) \<Longrightarrow> separation(L, \<lambda>z. \<exists>x[L]. x\<in>A \<and> (\<exists>y[L]. pair(L,x,y,z)))"
 apply (rule gen_separation [OF restrict_Reflects], simp)
 apply (rule_tac env="[A]" in DPow_LsetI)
 apply (rule sep_rules | simp)+
@@ -183,18 +183,18 @@ subsection\<open>Separation for Composition\<close>
 
 lemma comp_Reflects:
      "REFLECTS[\<lambda>xz. \<exists>x[L]. \<exists>y[L]. \<exists>z[L]. \<exists>xy[L]. \<exists>yz[L].
-                  pair(L,x,z,xz) & pair(L,x,y,xy) & pair(L,y,z,yz) &
-                  xy\<in>s & yz\<in>r,
+                  pair(L,x,z,xz) \<and> pair(L,x,y,xy) \<and> pair(L,y,z,yz) \<and>
+                  xy\<in>s \<and> yz\<in>r,
         \<lambda>i xz. \<exists>x\<in>Lset(i). \<exists>y\<in>Lset(i). \<exists>z\<in>Lset(i). \<exists>xy\<in>Lset(i). \<exists>yz\<in>Lset(i).
-                  pair(##Lset(i),x,z,xz) & pair(##Lset(i),x,y,xy) &
-                  pair(##Lset(i),y,z,yz) & xy\<in>s & yz\<in>r]"
+                  pair(##Lset(i),x,z,xz) \<and> pair(##Lset(i),x,y,xy) \<and>
+                  pair(##Lset(i),y,z,yz) \<and> xy\<in>s \<and> yz\<in>r]"
 by (intro FOL_reflections function_reflections)
 
 lemma comp_separation:
      "\<lbrakk>L(r); L(s)\<rbrakk>
       \<Longrightarrow> separation(L, \<lambda>xz. \<exists>x[L]. \<exists>y[L]. \<exists>z[L]. \<exists>xy[L]. \<exists>yz[L].
-                  pair(L,x,z,xz) & pair(L,x,y,xy) & pair(L,y,z,yz) &
-                  xy\<in>s & yz\<in>r)"
+                  pair(L,x,z,xz) \<and> pair(L,x,y,xy) \<and> pair(L,y,z,yz) \<and>
+                  xy\<in>s \<and> yz\<in>r)"
 apply (rule gen_separation_multi [OF comp_Reflects, of "{r,s}"], auto)
 txt\<open>Subgoals after applying general ``separation'' rule:
      @{subgoals[display,indent=0,margin=65]}\<close>
@@ -208,12 +208,12 @@ done
 subsection\<open>Separation for Predecessors in an Order\<close>
 
 lemma pred_Reflects:
-     "REFLECTS[\<lambda>y. \<exists>p[L]. p\<in>r & pair(L,y,x,p),
-                    \<lambda>i y. \<exists>p \<in> Lset(i). p\<in>r & pair(##Lset(i),y,x,p)]"
+     "REFLECTS[\<lambda>y. \<exists>p[L]. p\<in>r \<and> pair(L,y,x,p),
+                    \<lambda>i y. \<exists>p \<in> Lset(i). p\<in>r \<and> pair(##Lset(i),y,x,p)]"
 by (intro FOL_reflections function_reflections)
 
 lemma pred_separation:
-     "\<lbrakk>L(r); L(x)\<rbrakk> \<Longrightarrow> separation(L, \<lambda>y. \<exists>p[L]. p\<in>r & pair(L,y,x,p))"
+     "\<lbrakk>L(r); L(x)\<rbrakk> \<Longrightarrow> separation(L, \<lambda>y. \<exists>p[L]. p\<in>r \<and> pair(L,y,x,p))"
 apply (rule gen_separation_multi [OF pred_Reflects, of "{r,x}"], auto)
 apply (rule_tac env="[r,x]" in DPow_LsetI)
 apply (rule sep_rules | simp)+
@@ -223,12 +223,12 @@ done
 subsection\<open>Separation for the Membership Relation\<close>
 
 lemma Memrel_Reflects:
-     "REFLECTS[\<lambda>z. \<exists>x[L]. \<exists>y[L]. pair(L,x,y,z) & x \<in> y,
-            \<lambda>i z. \<exists>x \<in> Lset(i). \<exists>y \<in> Lset(i). pair(##Lset(i),x,y,z) & x \<in> y]"
+     "REFLECTS[\<lambda>z. \<exists>x[L]. \<exists>y[L]. pair(L,x,y,z) \<and> x \<in> y,
+            \<lambda>i z. \<exists>x \<in> Lset(i). \<exists>y \<in> Lset(i). pair(##Lset(i),x,y,z) \<and> x \<in> y]"
 by (intro FOL_reflections function_reflections)
 
 lemma Memrel_separation:
-     "separation(L, \<lambda>z. \<exists>x[L]. \<exists>y[L]. pair(L,x,y,z) & x \<in> y)"
+     "separation(L, \<lambda>z. \<exists>x[L]. \<exists>y[L]. pair(L,x,y,z) \<and> x \<in> y)"
 apply (rule gen_separation [OF Memrel_Reflects nonempty])
 apply (rule_tac env="[]" in DPow_LsetI)
 apply (rule sep_rules | simp)+
@@ -238,19 +238,19 @@ done
 subsection\<open>Replacement for FunSpace\<close>
 
 lemma funspace_succ_Reflects:
- "REFLECTS[\<lambda>z. \<exists>p[L]. p\<in>A & (\<exists>f[L]. \<exists>b[L]. \<exists>nb[L]. \<exists>cnbf[L].
-            pair(L,f,b,p) & pair(L,n,b,nb) & is_cons(L,nb,f,cnbf) &
+ "REFLECTS[\<lambda>z. \<exists>p[L]. p\<in>A \<and> (\<exists>f[L]. \<exists>b[L]. \<exists>nb[L]. \<exists>cnbf[L].
+            pair(L,f,b,p) \<and> pair(L,n,b,nb) \<and> is_cons(L,nb,f,cnbf) \<and>
             upair(L,cnbf,cnbf,z)),
-        \<lambda>i z. \<exists>p \<in> Lset(i). p\<in>A & (\<exists>f \<in> Lset(i). \<exists>b \<in> Lset(i).
+        \<lambda>i z. \<exists>p \<in> Lset(i). p\<in>A \<and> (\<exists>f \<in> Lset(i). \<exists>b \<in> Lset(i).
               \<exists>nb \<in> Lset(i). \<exists>cnbf \<in> Lset(i).
-                pair(##Lset(i),f,b,p) & pair(##Lset(i),n,b,nb) &
-                is_cons(##Lset(i),nb,f,cnbf) & upair(##Lset(i),cnbf,cnbf,z))]"
+                pair(##Lset(i),f,b,p) \<and> pair(##Lset(i),n,b,nb) \<and>
+                is_cons(##Lset(i),nb,f,cnbf) \<and> upair(##Lset(i),cnbf,cnbf,z))]"
 by (intro FOL_reflections function_reflections)
 
 lemma funspace_succ_replacement:
      "L(n) \<Longrightarrow>
       strong_replacement(L, \<lambda>p z. \<exists>f[L]. \<exists>b[L]. \<exists>nb[L]. \<exists>cnbf[L].
-                pair(L,f,b,p) & pair(L,n,b,nb) & is_cons(L,nb,f,cnbf) &
+                pair(L,f,b,p) \<and> pair(L,n,b,nb) \<and> is_cons(L,nb,f,cnbf) \<and>
                 upair(L,cnbf,cnbf,z))"
 apply (rule strong_replacementI)
 apply (rule_tac u="{n,B}" in gen_separation_multi [OF funspace_succ_Reflects], 
@@ -264,13 +264,13 @@ subsection\<open>Separation for a Theorem about \<^term>\<open>is_recfun\<close>
 
 lemma is_recfun_reflects:
   "REFLECTS[\<lambda>x. \<exists>xa[L]. \<exists>xb[L].
-                pair(L,x,a,xa) & xa \<in> r & pair(L,x,b,xb) & xb \<in> r &
-                (\<exists>fx[L]. \<exists>gx[L]. fun_apply(L,f,x,fx) & fun_apply(L,g,x,gx) &
+                pair(L,x,a,xa) \<and> xa \<in> r \<and> pair(L,x,b,xb) \<and> xb \<in> r \<and>
+                (\<exists>fx[L]. \<exists>gx[L]. fun_apply(L,f,x,fx) \<and> fun_apply(L,g,x,gx) \<and>
                                    fx \<noteq> gx),
    \<lambda>i x. \<exists>xa \<in> Lset(i). \<exists>xb \<in> Lset(i).
-          pair(##Lset(i),x,a,xa) & xa \<in> r & pair(##Lset(i),x,b,xb) & xb \<in> r &
-                (\<exists>fx \<in> Lset(i). \<exists>gx \<in> Lset(i). fun_apply(##Lset(i),f,x,fx) &
-                  fun_apply(##Lset(i),g,x,gx) & fx \<noteq> gx)]"
+          pair(##Lset(i),x,a,xa) \<and> xa \<in> r \<and> pair(##Lset(i),x,b,xb) \<and> xb \<in> r \<and>
+                (\<exists>fx \<in> Lset(i). \<exists>gx \<in> Lset(i). fun_apply(##Lset(i),f,x,fx) \<and>
+                  fun_apply(##Lset(i),g,x,gx) \<and> fx \<noteq> gx)]"
 by (intro FOL_reflections function_reflections fun_plus_reflections)
 
 lemma is_recfun_separation:
@@ -278,8 +278,8 @@ lemma is_recfun_separation:
      "\<lbrakk>L(r); L(f); L(g); L(a); L(b)\<rbrakk>
      \<Longrightarrow> separation(L,
             \<lambda>x. \<exists>xa[L]. \<exists>xb[L].
-                pair(L,x,a,xa) & xa \<in> r & pair(L,x,b,xb) & xb \<in> r &
-                (\<exists>fx[L]. \<exists>gx[L]. fun_apply(L,f,x,fx) & fun_apply(L,g,x,gx) &
+                pair(L,x,a,xa) \<and> xa \<in> r \<and> pair(L,x,b,xb) \<and> xb \<in> r \<and>
+                (\<exists>fx[L]. \<exists>gx[L]. fun_apply(L,f,x,fx) \<and> fun_apply(L,g,x,gx) \<and>
                                    fx \<noteq> gx))"
 apply (rule gen_separation_multi [OF is_recfun_reflects, of "{r,f,g,a,b}"], 
             auto)

@@ -17,8 +17,8 @@ definition
   (* This definition specifies weak fairness.  The rest of the theory
     is generic to all forms of fairness.*)
   transient :: "i=>i"  where
-  "transient(A) \<equiv>{F \<in> program. (\<exists>act\<in>Acts(F). A<=domain(act) &
-                               act``A \<subseteq> state-A) & st_set(A)}"
+  "transient(A) \<equiv>{F \<in> program. (\<exists>act\<in>Acts(F). A<=domain(act) \<and>
+                               act``A \<subseteq> state-A) \<and> st_set(A)}"
 
 definition
   ensures :: "[i,i] => i"       (infixl \<open>ensures\<close> 60)  where
@@ -65,7 +65,7 @@ lemma transient_type: "transient(A)<=program"
 by (unfold transient_def, auto)
 
 lemma transientD2:
-"F \<in> transient(A) \<Longrightarrow> F \<in> program & st_set(A)"
+"F \<in> transient(A) \<Longrightarrow> F \<in> program \<and> st_set(A)"
 apply (unfold transient_def, auto)
 done
 
@@ -127,7 +127,7 @@ apply (drule_tac [2] B = "A-B" in transient_strengthen)
 apply (auto simp add: ensures_def transient_type [THEN subsetD])
 done
 
-lemma ensuresD: "F \<in> A ensures B \<Longrightarrow> F:(A-B) co (A \<union> B) & F \<in> transient (A-B)"
+lemma ensuresD: "F \<in> A ensures B \<Longrightarrow> F:(A-B) co (A \<union> B) \<and> F \<in> transient (A-B)"
 by (unfold ensures_def, auto)
 
 lemma ensures_weaken_R: "\<lbrakk>F \<in> A ensures A'; A'<=B'\<rbrakk> \<Longrightarrow> F \<in> A ensures B'"
@@ -164,7 +164,7 @@ lemma leadsTo_type: "A \<longmapsto> B \<subseteq> program"
 by (unfold leadsTo_def, auto)
 
 lemma leadsToD2:
-"F \<in> A \<longmapsto> B \<Longrightarrow> F \<in> program & st_set(A) & st_set(B)"
+"F \<in> A \<longmapsto> B \<Longrightarrow> F \<in> program \<and> st_set(A) \<and> st_set(B)"
 apply (unfold leadsTo_def st_set_def)
 apply (blast dest: leads_left leads_right)
 done
@@ -240,14 +240,14 @@ done
 lemma leadsTo_refl: "\<lbrakk>F \<in> program; st_set(A)\<rbrakk> \<Longrightarrow> F \<in> A \<longmapsto> A"
 by (blast intro: subset_imp_leadsTo)
 
-lemma leadsTo_refl_iff: "F \<in> A \<longmapsto> A \<longleftrightarrow> F \<in> program & st_set(A)"
+lemma leadsTo_refl_iff: "F \<in> A \<longmapsto> A \<longleftrightarrow> F \<in> program \<and> st_set(A)"
 by (auto intro: leadsTo_refl dest: leadsToD2)
 
-lemma empty_leadsTo: "F \<in> 0 \<longmapsto> B \<longleftrightarrow> (F \<in> program & st_set(B))"
+lemma empty_leadsTo: "F \<in> 0 \<longmapsto> B \<longleftrightarrow> (F \<in> program \<and> st_set(B))"
 by (auto intro: subset_imp_leadsTo dest: leadsToD2)
 declare empty_leadsTo [iff]
 
-lemma leadsTo_state: "F \<in> A \<longmapsto> state \<longleftrightarrow> (F \<in> program & st_set(A))"
+lemma leadsTo_state: "F \<in> A \<longmapsto> state \<longleftrightarrow> (F \<in> program \<and> st_set(A))"
 by (auto intro: subset_imp_leadsTo dest: leadsToD2 st_setD)
 declare leadsTo_state [iff]
 
@@ -272,15 +272,15 @@ apply (auto simp add: transient_imp_leadsTo)
 done
 
 (*Distributes over binary unions*)
-lemma leadsTo_Un_distrib: "F:(A \<union> B) \<longmapsto> C  \<longleftrightarrow>  (F \<in> A \<longmapsto> C & F \<in> B \<longmapsto> C)"
+lemma leadsTo_Un_distrib: "F:(A \<union> B) \<longmapsto> C  \<longleftrightarrow>  (F \<in> A \<longmapsto> C \<and> F \<in> B \<longmapsto> C)"
 by (blast intro: leadsTo_Un leadsTo_weaken_L)
 
 lemma leadsTo_UN_distrib:
-"(F:(\<Union>i \<in> I. A(i)) \<longmapsto> B)\<longleftrightarrow> ((\<forall>i \<in> I. F \<in> A(i) \<longmapsto> B) & F \<in> program & st_set(B))"
+"(F:(\<Union>i \<in> I. A(i)) \<longmapsto> B)\<longleftrightarrow> ((\<forall>i \<in> I. F \<in> A(i) \<longmapsto> B) \<and> F \<in> program \<and> st_set(B))"
 apply (blast dest: leadsToD2 intro: leadsTo_UN leadsTo_weaken_L)
 done
 
-lemma leadsTo_Union_distrib: "(F \<in> \<Union>(S) \<longmapsto> B) \<longleftrightarrow>  (\<forall>A \<in> S. F \<in> A \<longmapsto> B) & F \<in> program & st_set(B)"
+lemma leadsTo_Union_distrib: "(F \<in> \<Union>(S) \<longmapsto> B) \<longleftrightarrow>  (\<forall>A \<in> S. F \<in> A \<longmapsto> B) \<and> F \<in> program \<and> st_set(B)"
 by (blast dest: leadsToD2 intro: leadsTo_Union leadsTo_weaken_L)
 
 text\<open>Set difference: maybe combine with \<open>leadsTo_weaken_L\<close>??\<close>
@@ -298,14 +298,14 @@ done
 
 (*Binary union version*)
 lemma leadsTo_Un_Un: "\<lbrakk>F \<in> A \<longmapsto> A'; F \<in> B \<longmapsto> B'\<rbrakk> \<Longrightarrow> F \<in> (A \<union> B) \<longmapsto> (A' \<union> B')"
-apply (subgoal_tac "st_set (A) & st_set (A') & st_set (B) & st_set (B') ")
+apply (subgoal_tac "st_set (A) \<and> st_set (A') \<and> st_set (B) \<and> st_set (B') ")
 prefer 2 apply (blast dest: leadsToD2)
 apply (blast intro: leadsTo_Un leadsTo_weaken_R)
 done
 
 (** The cancellation law **)
 lemma leadsTo_cancel2: "\<lbrakk>F \<in> A \<longmapsto> (A' \<union> B); F \<in> B \<longmapsto> B'\<rbrakk> \<Longrightarrow> F \<in> A \<longmapsto> (A' \<union> B')"
-apply (subgoal_tac "st_set (A) & st_set (A') & st_set (B) & st_set (B') &F \<in> program")
+apply (subgoal_tac "st_set (A) \<and> st_set (A') \<and> st_set (B) \<and> st_set (B') \<and>F \<in> program")
 prefer 2 apply (blast dest: leadsToD2)
 apply (blast intro: leadsTo_Trans leadsTo_Un_Un leadsTo_refl)
 done
@@ -397,9 +397,9 @@ lemma leadsTo_induct_pre:
   "\<lbrakk>F \<in> za \<longmapsto> zb;
       P(zb);
       \<And>A B. \<lbrakk>F \<in> A ensures B;  F \<in> B \<longmapsto> zb;  P(B); st_set(A)\<rbrakk> \<Longrightarrow> P(A);
-      \<And>S. \<forall>A \<in> S. F \<in> A \<longmapsto> zb & P(A) & st_set(A) \<Longrightarrow> P(\<Union>(S))
+      \<And>S. \<forall>A \<in> S. F \<in> A \<longmapsto> zb \<and> P(A) \<and> st_set(A) \<Longrightarrow> P(\<Union>(S))
 \<rbrakk> \<Longrightarrow> P(za)"
-apply (subgoal_tac " (F \<in> za \<longmapsto> zb) & P (za) ")
+apply (subgoal_tac " (F \<in> za \<longmapsto> zb) \<and> P (za) ")
 apply (erule conjunct2)
 apply (frule leadsToD2)
 apply (erule leadsTo_induct_pre_aux)
@@ -449,7 +449,7 @@ done
 
 lemma psp:
 "\<lbrakk>F \<in> A \<longmapsto> A'; F \<in> B co B'; st_set(B')\<rbrakk>\<Longrightarrow> F:(A \<inter> B') \<longmapsto> ((A' \<inter> B) \<union> (B' - B))"
-apply (subgoal_tac "F \<in> program & st_set (A) & st_set (A') & st_set (B) ")
+apply (subgoal_tac "F \<in> program \<and> st_set (A) \<and> st_set (A') \<and> st_set (B) ")
 prefer 2 apply (blast dest!: constrainsD2 leadsToD2)
 apply (erule leadsTo_induct)
 prefer 3 apply (blast intro: leadsTo_Union_Int)
@@ -471,7 +471,7 @@ lemma psp_unless:
    "\<lbrakk>F \<in> A \<longmapsto> A';  F \<in> B unless B'; st_set(B); st_set(B')\<rbrakk>
     \<Longrightarrow> F \<in> (A \<inter> B) \<longmapsto> ((A' \<inter> B) \<union> B')"
 apply (unfold unless_def)
-apply (subgoal_tac "st_set (A) &st_set (A') ")
+apply (subgoal_tac "st_set (A) \<and>st_set (A') ")
 prefer 2 apply (blast dest: leadsToD2)
 apply (drule psp, assumption, blast)
 apply (blast intro: leadsTo_weaken)
@@ -556,7 +556,7 @@ apply (rule wlt_type)
 done
 declare wlt_st_set [iff]
 
-lemma wlt_leadsTo_iff: "F \<in> wlt(F, B) \<longmapsto> B \<longleftrightarrow> (F \<in> program & st_set(B))"
+lemma wlt_leadsTo_iff: "F \<in> wlt(F, B) \<longmapsto> B \<longleftrightarrow> (F \<in> program \<and> st_set(B))"
 apply (unfold wlt_def)
 apply (blast dest: leadsToD2 intro!: leadsTo_Union)
 done
@@ -571,7 +571,7 @@ apply (auto simp add: st_set_def)
 done
 
 (*Misra's property W2*)
-lemma leadsTo_eq_subset_wlt: "F \<in> A \<longmapsto> B \<longleftrightarrow> (A \<subseteq> wlt(F,B) & F \<in> program & st_set(B))"
+lemma leadsTo_eq_subset_wlt: "F \<in> A \<longmapsto> B \<longleftrightarrow> (A \<subseteq> wlt(F,B) \<and> F \<in> program \<and> st_set(B))"
 apply auto
 apply (blast dest: leadsToD2 leadsTo_subset intro: leadsTo_weaken_L wlt_leadsTo)+
 done
@@ -594,7 +594,7 @@ done
 (*Lemma (1,2,3) of Misra's draft book, Chapter 4, "Progress"*)
 (* slightly different from the HOL one \<in> B here is bounded *)
 lemma leadsTo_123: "F \<in> A \<longmapsto> A'
-      \<Longrightarrow> \<exists>B \<in> Pow(state). A<=B & F \<in> B \<longmapsto> A' & F \<in> (B-A') co (B \<union> A')"
+      \<Longrightarrow> \<exists>B \<in> Pow(state). A<=B \<and> F \<in> B \<longmapsto> A' \<and> F \<in> (B-A') co (B \<union> A')"
 apply (frule leadsToD2)
 apply (erule leadsTo_induct)
   txt\<open>Basis\<close>
@@ -605,7 +605,7 @@ apply (erule leadsTo_induct)
  apply (blast intro: leadsTo_123_aux leadsTo_Un_Un leadsTo_cancel1 leadsTo_Un_duplicate, blast)
 txt\<open>Union\<close>
 apply (clarify dest!: ball_conj_distrib [THEN iffD1])
-apply (subgoal_tac "\<exists>y. y \<in> Pi (S, %A. {Ba \<in> Pow (state) . A<=Ba & F \<in> Ba \<longmapsto> B & F \<in> Ba - B co Ba \<union> B}) ")
+apply (subgoal_tac "\<exists>y. y \<in> Pi (S, %A. {Ba \<in> Pow (state) . A<=Ba \<and> F \<in> Ba \<longmapsto> B \<and> F \<in> Ba - B co Ba \<union> B}) ")
 defer 1
 apply (rule AC_ball_Pi, safe)
 apply (rotate_tac 1)
@@ -634,7 +634,7 @@ lemma completion_aux: "\<lbrakk>W = wlt(F, (B' \<union> C));
        F \<in> A \<longmapsto> (A' \<union> C);  F \<in> A' co (A' \<union> C);
        F \<in> B \<longmapsto> (B' \<union> C);  F \<in> B' co (B' \<union> C)\<rbrakk>
     \<Longrightarrow> F \<in> (A \<inter> B) \<longmapsto> ((A' \<inter> B') \<union> C)"
-apply (subgoal_tac "st_set (C) &st_set (W) &st_set (W-C) &st_set (A') &st_set (A) & st_set (B) & st_set (B') & F \<in> program")
+apply (subgoal_tac "st_set (C) \<and>st_set (W) \<and>st_set (W-C) \<and>st_set (A') \<and>st_set (A) \<and> st_set (B) \<and> st_set (B') \<and> F \<in> program")
  prefer 2
  apply simp
  apply (blast dest!: leadsToD2)

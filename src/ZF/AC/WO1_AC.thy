@@ -89,8 +89,8 @@ done
 
 lemma lemma2:
      "\<lbrakk>WO1; \<not>Finite(B); 1\<le>n\<rbrakk>   
-      \<Longrightarrow> \<exists>C \<in> Pow(Pow(B)). pairwise_disjoint(C) &   
-                sets_of_size_between(C, 2, succ(n)) &   
+      \<Longrightarrow> \<exists>C \<in> Pow(Pow(B)). pairwise_disjoint(C) \<and>   
+                sets_of_size_between(C, 2, succ(n)) \<and>   
                 \<Union>(C)=B"
 apply (drule lemma2_1 [THEN eqpoll_def [THEN def_imp_iff, THEN iffD1]], 
        assumption)

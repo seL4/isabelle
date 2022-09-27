@@ -65,7 +65,7 @@ by (simp, blast)
 
 subsection\<open>Rules for Binary Intersection, Defined via \<^term>\<open>Upair\<close>\<close>
 
-lemma Int_iff [simp]: "c \<in> A \<inter> B \<longleftrightarrow> (c \<in> A & c \<in> B)"
+lemma Int_iff [simp]: "c \<in> A \<inter> B \<longleftrightarrow> (c \<in> A \<and> c \<in> B)"
 apply (unfold Int_def)
 apply (blast intro: UpairI1 UpairI2 elim: UpairE)
 done
@@ -85,7 +85,7 @@ by simp
 
 subsection\<open>Rules for Set Difference, Defined via \<^term>\<open>Upair\<close>\<close>
 
-lemma Diff_iff [simp]: "c \<in> A-B \<longleftrightarrow> (c \<in> A & c\<notin>B)"
+lemma Diff_iff [simp]: "c \<in> A-B \<longleftrightarrow> (c \<in> A \<and> c\<notin>B)"
 by (unfold Diff_def, blast)
 
 lemma DiffI [intro!]: "\<lbrakk>c \<in> A;  c \<notin> B\<rbrakk> \<Longrightarrow> c \<in> A - B"
@@ -223,7 +223,7 @@ lemma if_not_P: "\<not>P \<Longrightarrow> (if P then a else b) = b"
 by (unfold if_def, blast)
 
 lemma split_if [split]:
-     "P(if Q then x else y) \<longleftrightarrow> ((Q \<longrightarrow> P(x)) & (\<not>Q \<longrightarrow> P(y)))"
+     "P(if Q then x else y) \<longleftrightarrow> ((Q \<longrightarrow> P(x)) \<and> (\<not>Q \<longrightarrow> P(y)))"
 by (case_tac Q, simp_all)
 
 (** Rewrite rules for boolean case-splitting: faster than split_if [split]
@@ -238,7 +238,7 @@ lemmas split_if_mem2 = split_if [of "%x. a \<in> x"] for a
 lemmas split_ifs = split_if_eq1 split_if_eq2 split_if_mem1 split_if_mem2
 
 (*Logically equivalent to split_if_mem2*)
-lemma if_iff: "a: (if P then x else y) \<longleftrightarrow> P & a \<in> x | \<not>P & a \<in> y"
+lemma if_iff: "a: (if P then x else y) \<longleftrightarrow> P \<and> a \<in> x | \<not>P \<and> a \<in> y"
 by simp
 
 lemma if_type [TC]:
@@ -247,7 +247,7 @@ by simp
 
 (** Splitting IFs in the assumptions **)
 
-lemma split_if_asm: "P(if Q then x else y) \<longleftrightarrow> (\<not>((Q & \<not>P(x)) | (\<not>Q & \<not>P(y))))"
+lemma split_if_asm: "P(if Q then x else y) \<longleftrightarrow> (\<not>((Q \<and> \<not>P(x)) | (\<not>Q \<and> \<not>P(y))))"
 by simp
 
 lemmas if_splits = split_if split_if_asm
@@ -324,19 +324,19 @@ lemmas succ_inject = succ_inject_iff [THEN iffD1, dest!]
 subsection\<open>Miniscoping of the Bounded Universal Quantifier\<close>
 
 lemma ball_simps1:
-     "(\<forall>x\<in>A. P(x) & Q)   \<longleftrightarrow> (\<forall>x\<in>A. P(x)) & (A=0 | Q)"
+     "(\<forall>x\<in>A. P(x) \<and> Q)   \<longleftrightarrow> (\<forall>x\<in>A. P(x)) \<and> (A=0 | Q)"
      "(\<forall>x\<in>A. P(x) | Q)   \<longleftrightarrow> ((\<forall>x\<in>A. P(x)) | Q)"
      "(\<forall>x\<in>A. P(x) \<longrightarrow> Q) \<longleftrightarrow> ((\<exists>x\<in>A. P(x)) \<longrightarrow> Q)"
      "(\<not>(\<forall>x\<in>A. P(x))) \<longleftrightarrow> (\<exists>x\<in>A. \<not>P(x))"
      "(\<forall>x\<in>0.P(x)) \<longleftrightarrow> True"
-     "(\<forall>x\<in>succ(i).P(x)) \<longleftrightarrow> P(i) & (\<forall>x\<in>i. P(x))"
-     "(\<forall>x\<in>cons(a,B).P(x)) \<longleftrightarrow> P(a) & (\<forall>x\<in>B. P(x))"
+     "(\<forall>x\<in>succ(i).P(x)) \<longleftrightarrow> P(i) \<and> (\<forall>x\<in>i. P(x))"
+     "(\<forall>x\<in>cons(a,B).P(x)) \<longleftrightarrow> P(a) \<and> (\<forall>x\<in>B. P(x))"
      "(\<forall>x\<in>RepFun(A,f). P(x)) \<longleftrightarrow> (\<forall>y\<in>A. P(f(y)))"
      "(\<forall>x\<in>\<Union>(A).P(x)) \<longleftrightarrow> (\<forall>y\<in>A. \<forall>x\<in>y. P(x))"
 by blast+
 
 lemma ball_simps2:
-     "(\<forall>x\<in>A. P & Q(x))   \<longleftrightarrow> (A=0 | P) & (\<forall>x\<in>A. Q(x))"
+     "(\<forall>x\<in>A. P \<and> Q(x))   \<longleftrightarrow> (A=0 | P) \<and> (\<forall>x\<in>A. Q(x))"
      "(\<forall>x\<in>A. P | Q(x))   \<longleftrightarrow> (P | (\<forall>x\<in>A. Q(x)))"
      "(\<forall>x\<in>A. P \<longrightarrow> Q(x)) \<longleftrightarrow> (P \<longrightarrow> (\<forall>x\<in>A. Q(x)))"
 by blast+
@@ -348,16 +348,16 @@ by blast+
 lemmas ball_simps [simp] = ball_simps1 ball_simps2 ball_simps3
 
 lemma ball_conj_distrib:
-    "(\<forall>x\<in>A. P(x) & Q(x)) \<longleftrightarrow> ((\<forall>x\<in>A. P(x)) & (\<forall>x\<in>A. Q(x)))"
+    "(\<forall>x\<in>A. P(x) \<and> Q(x)) \<longleftrightarrow> ((\<forall>x\<in>A. P(x)) \<and> (\<forall>x\<in>A. Q(x)))"
 by blast
 
 
 subsection\<open>Miniscoping of the Bounded Existential Quantifier\<close>
 
 lemma bex_simps1:
-     "(\<exists>x\<in>A. P(x) & Q) \<longleftrightarrow> ((\<exists>x\<in>A. P(x)) & Q)"
-     "(\<exists>x\<in>A. P(x) | Q) \<longleftrightarrow> (\<exists>x\<in>A. P(x)) | (A\<noteq>0 & Q)"
-     "(\<exists>x\<in>A. P(x) \<longrightarrow> Q) \<longleftrightarrow> ((\<forall>x\<in>A. P(x)) \<longrightarrow> (A\<noteq>0 & Q))"
+     "(\<exists>x\<in>A. P(x) \<and> Q) \<longleftrightarrow> ((\<exists>x\<in>A. P(x)) \<and> Q)"
+     "(\<exists>x\<in>A. P(x) | Q) \<longleftrightarrow> (\<exists>x\<in>A. P(x)) | (A\<noteq>0 \<and> Q)"
+     "(\<exists>x\<in>A. P(x) \<longrightarrow> Q) \<longleftrightarrow> ((\<forall>x\<in>A. P(x)) \<longrightarrow> (A\<noteq>0 \<and> Q))"
      "(\<exists>x\<in>0.P(x)) \<longleftrightarrow> False"
      "(\<exists>x\<in>succ(i).P(x)) \<longleftrightarrow> P(i) | (\<exists>x\<in>i. P(x))"
      "(\<exists>x\<in>cons(a,B).P(x)) \<longleftrightarrow> P(a) | (\<exists>x\<in>B. P(x))"
@@ -367,13 +367,13 @@ lemma bex_simps1:
 by blast+
 
 lemma bex_simps2:
-     "(\<exists>x\<in>A. P & Q(x)) \<longleftrightarrow> (P & (\<exists>x\<in>A. Q(x)))"
-     "(\<exists>x\<in>A. P | Q(x)) \<longleftrightarrow> (A\<noteq>0 & P) | (\<exists>x\<in>A. Q(x))"
+     "(\<exists>x\<in>A. P \<and> Q(x)) \<longleftrightarrow> (P \<and> (\<exists>x\<in>A. Q(x)))"
+     "(\<exists>x\<in>A. P | Q(x)) \<longleftrightarrow> (A\<noteq>0 \<and> P) | (\<exists>x\<in>A. Q(x))"
      "(\<exists>x\<in>A. P \<longrightarrow> Q(x)) \<longleftrightarrow> ((A=0 | P) \<longrightarrow> (\<exists>x\<in>A. Q(x)))"
 by blast+
 
 lemma bex_simps3:
-     "(\<exists>x\<in>Collect(A,Q).P(x)) \<longleftrightarrow> (\<exists>x\<in>A. Q(x) & P(x))"
+     "(\<exists>x\<in>Collect(A,Q).P(x)) \<longleftrightarrow> (\<exists>x\<in>A. Q(x) \<and> P(x))"
 by blast
 
 lemmas bex_simps [simp] = bex_simps1 bex_simps2 bex_simps3
@@ -391,10 +391,10 @@ by blast
 lemma bex_triv_one_point2 [simp]: "(\<exists>x\<in>A. a=x) \<longleftrightarrow> (a \<in> A)"
 by blast
 
-lemma bex_one_point1 [simp]: "(\<exists>x\<in>A. x=a & P(x)) \<longleftrightarrow> (a \<in> A & P(a))"
+lemma bex_one_point1 [simp]: "(\<exists>x\<in>A. x=a \<and> P(x)) \<longleftrightarrow> (a \<in> A \<and> P(a))"
 by blast
 
-lemma bex_one_point2 [simp]: "(\<exists>x\<in>A. a=x & P(x)) \<longleftrightarrow> (a \<in> A & P(a))"
+lemma bex_one_point2 [simp]: "(\<exists>x\<in>A. a=x \<and> P(x)) \<longleftrightarrow> (a \<in> A \<and> P(a))"
 by blast
 
 lemma ball_one_point1 [simp]: "(\<forall>x\<in>A. x=a \<longrightarrow> P(x)) \<longleftrightarrow> (a \<in> A \<longrightarrow> P(a))"

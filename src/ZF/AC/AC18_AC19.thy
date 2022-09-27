@@ -56,7 +56,7 @@ done
 (* ********************************************************************** *)
 
 lemma RepRep_conj: 
-        "\<lbrakk>A \<noteq> 0; 0 \<notin> A\<rbrakk> \<Longrightarrow> {uu(a). a \<in> A} \<noteq> 0 & 0 \<notin> {uu(a). a \<in> A}"
+        "\<lbrakk>A \<noteq> 0; 0 \<notin> A\<rbrakk> \<Longrightarrow> {uu(a). a \<in> A} \<noteq> 0 \<and> 0 \<notin> {uu(a). a \<in> A}"
 apply (unfold uu_def, auto) 
 apply (blast dest!: sym [THEN RepFun_eq_0_iff [THEN iffD1]])
 done

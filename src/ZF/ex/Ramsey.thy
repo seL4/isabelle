@@ -36,17 +36,17 @@ definition
 
 definition
   Clique  :: "[i,i,i]=>o" where
-    "Clique(C,V,E) \<equiv> (C \<subseteq> V) & (\<forall>x \<in> C. \<forall>y \<in> C. x\<noteq>y \<longrightarrow> <x,y> \<in> E)"
+    "Clique(C,V,E) \<equiv> (C \<subseteq> V) \<and> (\<forall>x \<in> C. \<forall>y \<in> C. x\<noteq>y \<longrightarrow> <x,y> \<in> E)"
 
 definition
   Indept  :: "[i,i,i]=>o" where
-    "Indept(I,V,E) \<equiv> (I \<subseteq> V) & (\<forall>x \<in> I. \<forall>y \<in> I. x\<noteq>y \<longrightarrow> <x,y> \<notin> E)"
+    "Indept(I,V,E) \<equiv> (I \<subseteq> V) \<and> (\<forall>x \<in> I. \<forall>y \<in> I. x\<noteq>y \<longrightarrow> <x,y> \<notin> E)"
   
 definition
   Ramsey  :: "[i,i,i]=>o" where
-    "Ramsey(n,i,j) \<equiv> \<forall>V E. Symmetric(E) & Atleast(n,V) \<longrightarrow>  
-         (\<exists>C. Clique(C,V,E) & Atleast(i,C)) |       
-         (\<exists>I. Indept(I,V,E) & Atleast(j,I))"
+    "Ramsey(n,i,j) \<equiv> \<forall>V E. Symmetric(E) \<and> Atleast(n,V) \<longrightarrow>  
+         (\<exists>C. Clique(C,V,E) \<and> Atleast(i,C)) |       
+         (\<exists>I. Indept(I,V,E) \<and> Atleast(j,I))"
 
 (*** Cliques and Independent sets ***)
 
@@ -147,7 +147,7 @@ done
 lemma Indept_succ: 
     "\<lbrakk>Indept(I, {z \<in> V-{a}. <a,z> \<notin> E}, E);  Symmetric(E);  a \<in> V;   
         Atleast(j,I)\<rbrakk> \<Longrightarrow>    
-     Indept(cons(a,I), V, E) & Atleast(succ(j), cons(a,I))"
+     Indept(cons(a,I), V, E) \<and> Atleast(succ(j), cons(a,I))"
 apply (unfold Symmetric_def Indept_def)
 apply (blast intro!: Atleast_succI)
 done
@@ -156,7 +156,7 @@ done
 lemma Clique_succ: 
     "\<lbrakk>Clique(C, {z \<in> V-{a}. <a,z>:E}, E);  Symmetric(E);  a \<in> V;   
         Atleast(j,C)\<rbrakk> \<Longrightarrow>    
-     Clique(cons(a,C), V, E) & Atleast(succ(j), cons(a,C))"
+     Clique(cons(a,C), V, E) \<and> Atleast(succ(j), cons(a,C))"
 apply (unfold Symmetric_def Clique_def)
 apply (blast intro!: Atleast_succI)
 done

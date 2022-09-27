@@ -199,8 +199,8 @@ done
 subsection\<open>paving theorem\<close>
 
 lemma paving: "\<lbrakk>w \<sim> u; w \<sim> v; regular(u); regular(v)\<rbrakk>\<Longrightarrow>  
-           \<exists>uv vu. (w|>u) |> vu = (w|>v) |> uv & (w|>u) \<sim> vu \<and>
-             regular(vu) & (w|>v) \<sim> uv \<and> regular(uv)"
+           \<exists>uv vu. (w|>u) |> vu = (w|>v) |> uv \<and> (w|>u) \<sim> vu \<and>
+             regular(vu) \<and> (w|>v) \<sim> uv \<and> regular(uv)"
 apply (subgoal_tac "u \<sim> v")
 apply (safe intro!: exI)
 apply (rule cube)

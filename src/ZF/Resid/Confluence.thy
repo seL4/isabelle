@@ -8,12 +8,12 @@ theory Confluence imports Reduction begin
 definition
   confluence    :: "i=>o"  where
     "confluence(R) \<equiv>   
-       \<forall>x y. <x,y> \<in> R \<longrightarrow> (\<forall>z.<x,z> \<in> R \<longrightarrow> (\<exists>u.<y,u> \<in> R & <z,u> \<in> R))"
+       \<forall>x y. <x,y> \<in> R \<longrightarrow> (\<forall>z.<x,z> \<in> R \<longrightarrow> (\<exists>u.<y,u> \<in> R \<and> <z,u> \<in> R))"
 
 definition
   strip         :: "o"  where
     "strip \<equiv> \<forall>x y. (x =\<Longrightarrow> y) \<longrightarrow> 
-                    (\<forall>z.(x =1=> z) \<longrightarrow> (\<exists>u.(y =1=> u) & (z=\<Longrightarrow>u)))" 
+                    (\<forall>z.(x =1=> z) \<longrightarrow> (\<exists>u.(y =1=> u) \<and> (z=\<Longrightarrow>u)))" 
 
 
 (* ------------------------------------------------------------------------- *)
@@ -103,7 +103,7 @@ done
 (*      Church_Rosser Theorem                                                *)
 (* ------------------------------------------------------------------------- *)
 
-lemma Church_Rosser: "m<-\<longrightarrow>n \<Longrightarrow> \<exists>p.(m -\<longrightarrow>p) & (n -\<longrightarrow> p)"
+lemma Church_Rosser: "m<-\<longrightarrow>n \<Longrightarrow> \<exists>p.(m -\<longrightarrow>p) \<and> (n -\<longrightarrow> p)"
 apply (erule Sconv.induct)
 apply (erule Sconv1.induct)
 apply (blast intro: red1D1 redD2)

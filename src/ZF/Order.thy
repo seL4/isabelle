@@ -17,7 +17,7 @@ text \<open>We adopt the following convention: \<open>ord\<close> is used for
 
 definition
   part_ord :: "[i,i]=>o"                (*Strict partial ordering*)  where
-   "part_ord(A,r) \<equiv> irrefl(A,r) & trans[A](r)"
+   "part_ord(A,r) \<equiv> irrefl(A,r) \<and> trans[A](r)"
 
 definition
   linear   :: "[i,i]=>o"                (*Strict total ordering*)  where
@@ -25,7 +25,7 @@ definition
 
 definition
   tot_ord  :: "[i,i]=>o"                (*Strict total ordering*)  where
-   "tot_ord(A,r) \<equiv> part_ord(A,r) & linear(A,r)"
+   "tot_ord(A,r) \<equiv> part_ord(A,r) \<and> linear(A,r)"
 
 definition
   "preorder_on(A, r) \<equiv> refl(A, r) \<and> trans[A](r)"
@@ -41,7 +41,7 @@ abbreviation
 
 definition
   well_ord :: "[i,i]=>o"                (*Well-ordering*)  where
-   "well_ord(A,r) \<equiv> tot_ord(A,r) & wf[A](r)"
+   "well_ord(A,r) \<equiv> tot_ord(A,r) \<and> wf[A](r)"
 
 definition
   mono_map :: "[i,i,i,i]=>i"            (*Order-preserving maps*)  where
@@ -64,7 +64,7 @@ definition
 
 definition
   first :: "[i, i, i] => o"  where
-    "first(u, X, R) \<equiv> u \<in> X & (\<forall>v\<in>X. v\<noteq>u \<longrightarrow> <u,v> \<in> R)"
+    "first(u, X, R) \<equiv> u \<in> X \<and> (\<forall>v\<in>X. v\<noteq>u \<longrightarrow> <u,v> \<in> R)"
 
 subsection\<open>Immediate Consequences of the Definitions\<close>
 
@@ -102,7 +102,7 @@ by (unfold well_ord_def tot_ord_def, blast)
 
 (** Derived rules for pred(A,x,r) **)
 
-lemma pred_iff: "y \<in> pred(A,x,r) \<longleftrightarrow> <y,x>:r & y \<in> A"
+lemma pred_iff: "y \<in> pred(A,x,r) \<longleftrightarrow> <y,x>:r \<and> y \<in> A"
 by (unfold pred_def, blast)
 
 lemmas predI = conjI [THEN pred_iff [THEN iffD2]]
@@ -474,7 +474,7 @@ lemma well_ord_iso_unique: "\<lbrakk>well_ord(A,r);
          f \<in> ord_iso(A,r, B,s);  g \<in> ord_iso(A,r, B,s)\<rbrakk> \<Longrightarrow> f = g"
 apply (rule fun_extension)
 apply (erule ord_iso_is_bij [THEN bij_is_fun])+
-apply (subgoal_tac "f`x \<in> B & g`x \<in> B & linear(B,s)")
+apply (subgoal_tac "f`x \<in> B \<and> g`x \<in> B \<and> linear(B,s)")
  apply (simp add: linear_def)
  apply (blast dest: well_ord_iso_unique_lemma)
 apply (blast intro: ord_iso_is_bij bij_is_fun apply_funtype
@@ -517,7 +517,7 @@ lemma ord_iso_map_mono_map:
 apply (unfold mono_map_def)
 apply (simp (no_asm_simp) add: ord_iso_map_fun)
 apply safe
-apply (subgoal_tac "x \<in> A & ya:A & y \<in> B & yb:B")
+apply (subgoal_tac "x \<in> A \<and> ya:A \<and> y \<in> B \<and> yb:B")
  apply (simp add: apply_equality [OF _  ord_iso_map_fun])
  apply (unfold ord_iso_map_def)
  apply (blast intro: well_ord_iso_preserving, blast)

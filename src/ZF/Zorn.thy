@@ -12,7 +12,7 @@ Proofs of Some Classical Theorems of Set Theory,'' by Abrial and Laffitte.\<clos
 
 definition
   Subset_rel :: "i=>i"  where
-   "Subset_rel(A) \<equiv> {z \<in> A*A . \<exists>x y. z=<x,y> & x<=y & x\<noteq>y}"
+   "Subset_rel(A) \<equiv> {z \<in> A*A . \<exists>x y. z=<x,y> \<and> x<=y \<and> x\<noteq>y}"
 
 definition
   chain      :: "i=>i"  where
@@ -20,7 +20,7 @@ definition
 
 definition
   super      :: "[i,i]=>i"  where
-   "super(A,c)    \<equiv> {d \<in> chain(A). c<=d & c\<noteq>d}"
+   "super(A,c)    \<equiv> {d \<in> chain(A). c<=d \<and> c\<noteq>d}"
 
 definition
   maxchain   :: "i=>i"  where

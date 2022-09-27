@@ -55,7 +55,7 @@ codatatype
 
 inductive_cases Con2E: "Con2(x, y) \<in> counit2"
 
-lemma Con2_iff: "Con2(x, y) = Con2(x', y') \<longleftrightarrow> x = x' & y = y'"
+lemma Con2_iff: "Con2(x, y) = Con2(x', y') \<longleftrightarrow> x = x' \<and> y = y'"
   \<comment> \<open>Proving freeness results.\<close>
   by (fast elim!: counit2.free_elims)
 

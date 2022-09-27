@@ -19,7 +19,7 @@ done
 
 lemma Ord_lepoll_imp_ex_well_ord:
      "\<lbrakk>Ord(a); a \<lesssim> X\<rbrakk> 
-      \<Longrightarrow> \<exists>Y. Y \<subseteq> X & (\<exists>R. well_ord(Y,R) & ordertype(Y,R)=a)"
+      \<Longrightarrow> \<exists>Y. Y \<subseteq> X \<and> (\<exists>R. well_ord(Y,R) \<and> ordertype(Y,R)=a)"
 apply (unfold lepoll_def)
 apply (erule exE)
 apply (intro exI conjI)
@@ -36,7 +36,7 @@ apply (erule ordertype_Memrel)
 done
 
 lemma Ord_lepoll_imp_eq_ordertype:
-     "\<lbrakk>Ord(a); a \<lesssim> X\<rbrakk> \<Longrightarrow> \<exists>Y. Y \<subseteq> X & (\<exists>R. R \<subseteq> X*X & ordertype(Y,R)=a)"
+     "\<lbrakk>Ord(a); a \<lesssim> X\<rbrakk> \<Longrightarrow> \<exists>Y. Y \<subseteq> X \<and> (\<exists>R. R \<subseteq> X*X \<and> ordertype(Y,R)=a)"
 apply (drule Ord_lepoll_imp_ex_well_ord, assumption, clarify)
 apply (intro exI conjI)
 apply (erule_tac [3] ordertype_Int, auto) 
@@ -45,7 +45,7 @@ done
 lemma Ords_lepoll_set_lemma:
      "(\<forall>a. Ord(a) \<longrightarrow> a \<lesssim> X) \<Longrightarrow>   
        \<forall>a. Ord(a) \<longrightarrow>   
-        a \<in> {b. Z \<in> Pow(X)*Pow(X*X), \<exists>Y R. Z=<Y,R> & ordertype(Y,R)=b}"
+        a \<in> {b. Z \<in> Pow(X)*Pow(X*X), \<exists>Y R. Z=<Y,R> \<and> ordertype(Y,R)=b}"
 apply (intro allI impI)
 apply (elim allE impE, assumption)
 apply (blast dest!: Ord_lepoll_imp_eq_ordertype intro: sym) 
@@ -54,7 +54,7 @@ done
 lemma Ords_lepoll_set: "\<forall>a. Ord(a) \<longrightarrow> a \<lesssim> X \<Longrightarrow> P"
 by (erule Ords_lepoll_set_lemma [THEN Ords_in_set])
 
-lemma ex_Ord_not_lepoll: "\<exists>a. Ord(a) & \<not>a \<lesssim> X"
+lemma ex_Ord_not_lepoll: "\<exists>a. Ord(a) \<and> \<not>a \<lesssim> X"
 apply (rule ccontr)
 apply (best intro: Ords_lepoll_set) 
 done

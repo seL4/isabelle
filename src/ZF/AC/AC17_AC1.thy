@@ -13,7 +13,7 @@ begin
 
 
 (** AC0 is equivalent to AC1.  
-    AC0 comes from Suppes, AC1 from Rubin & Rubin **)
+    AC0 comes from Suppes, AC1 from Rubin \<and> Rubin **)
 
 lemma AC0_AC1_lemma: "\<lbrakk>f:(\<Prod>X \<in> A. X); D \<subseteq> A\<rbrakk> \<Longrightarrow> \<exists>g. g:(\<Prod>X \<in> D. X)"
 by (fast intro!: lam_type apply_type)
@@ -262,7 +262,7 @@ done
 
 
 (* ********************************************************************** *)
-(* AC5 \<Longrightarrow> AC4, Rubin & Rubin, p. 11                                      *)
+(* AC5 \<Longrightarrow> AC4, Rubin \<and> Rubin, p. 11                                      *)
 (* ********************************************************************** *)
 
 lemma AC5_AC4_aux1: "R \<subseteq> A*B \<Longrightarrow> (\<lambda>x \<in> R. fst(x)) \<in> R -> A"

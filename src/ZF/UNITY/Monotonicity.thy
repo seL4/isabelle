@@ -14,7 +14,7 @@ begin
 definition
   mono1 :: "[i, i, i, i, i=>i] => o"  where
   "mono1(A, r, B, s, f) \<equiv>
-    (\<forall>x \<in> A. \<forall>y \<in> A. <x,y> \<in> r \<longrightarrow> <f(x), f(y)> \<in> s) & (\<forall>x \<in> A. f(x) \<in> B)"
+    (\<forall>x \<in> A. \<forall>y \<in> A. <x,y> \<in> r \<longrightarrow> <f(x), f(y)> \<in> s) \<and> (\<forall>x \<in> A. f(x) \<in> B)"
 
   (* monotonicity of a 2-place meta-function f *)
 
@@ -22,7 +22,7 @@ definition
   mono2 :: "[i, i, i, i, i, i, [i,i]=>i] => o"  where
   "mono2(A, r, B, s, C, t, f) \<equiv> 
     (\<forall>x \<in> A. \<forall>y \<in> A. \<forall>u \<in> B. \<forall>v \<in> B.
-              <x,y> \<in> r & <u,v> \<in> s \<longrightarrow> <f(x,u), f(y,v)> \<in> t) &
+              <x,y> \<in> r \<and> <u,v> \<in> s \<longrightarrow> <f(x,u), f(y,v)> \<in> t) \<and>
     (\<forall>x \<in> A. \<forall>y \<in> B. f(x,y) \<in> C)"
 
  (* Internalized relations on sets and multisets *)

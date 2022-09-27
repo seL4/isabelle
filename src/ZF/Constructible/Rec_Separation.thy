@@ -20,14 +20,14 @@ text\<open>First, The Defining Formula\<close>
 
 (* "rtran_closure_mem(M,A,r,p) \<equiv>
       \<exists>nnat[M]. \<exists>n[M]. \<exists>n'[M].
-       omega(M,nnat) & n\<in>nnat & successor(M,n,n') &
-       (\<exists>f[M]. typed_function(M,n',A,f) &
-        (\<exists>x[M]. \<exists>y[M]. \<exists>zero[M]. pair(M,x,y,p) & empty(M,zero) &
-          fun_apply(M,f,zero,x) & fun_apply(M,f,n,y)) &
+       omega(M,nnat) \<and> n\<in>nnat \<and> successor(M,n,n') \<and>
+       (\<exists>f[M]. typed_function(M,n',A,f) \<and>
+        (\<exists>x[M]. \<exists>y[M]. \<exists>zero[M]. pair(M,x,y,p) \<and> empty(M,zero) \<and>
+          fun_apply(M,f,zero,x) \<and> fun_apply(M,f,n,y)) \<and>
         (\<forall>j[M]. j\<in>n \<longrightarrow>
           (\<exists>fj[M]. \<exists>sj[M]. \<exists>fsj[M]. \<exists>ffp[M].
-            fun_apply(M,f,j,fj) & successor(M,j,sj) &
-            fun_apply(M,f,sj,fsj) & pair(M,fj,fsj,ffp) & ffp \<in> r)))"*)
+            fun_apply(M,f,j,fj) \<and> successor(M,j,sj) \<and>
+            fun_apply(M,f,sj,fsj) \<and> pair(M,fj,fsj,ffp) \<and> ffp \<in> r)))"*)
 definition
   rtran_closure_mem_fm :: "[i,i,i]=>i" where
  "rtran_closure_mem_fm(A,r,p) \<equiv>
@@ -120,7 +120,7 @@ done
 subsubsection\<open>Transitive Closure of a Relation, Internalized\<close>
 
 (*  "tran_closure(M,r,t) \<equiv>
-         \<exists>s[M]. rtran_closure(M,r,s) & composition(M,r,s,t)" *)
+         \<exists>s[M]. rtran_closure(M,r,s) \<and> composition(M,r,s,t)" *)
 definition
   tran_closure_fm :: "[i,i]=>i" where
   "tran_closure_fm(r,s) \<equiv>
@@ -155,9 +155,9 @@ subsubsection\<open>Separation for the Proof of \<open>wellfounded_on_trancl\<cl
 
 lemma wellfounded_trancl_reflects:
   "REFLECTS[\<lambda>x. \<exists>w[L]. \<exists>wx[L]. \<exists>rp[L].
-                 w \<in> Z & pair(L,w,x,wx) & tran_closure(L,r,rp) & wx \<in> rp,
+                 w \<in> Z \<and> pair(L,w,x,wx) \<and> tran_closure(L,r,rp) \<and> wx \<in> rp,
    \<lambda>i x. \<exists>w \<in> Lset(i). \<exists>wx \<in> Lset(i). \<exists>rp \<in> Lset(i).
-       w \<in> Z & pair(##Lset(i),w,x,wx) & tran_closure(##Lset(i),r,rp) &
+       w \<in> Z \<and> pair(##Lset(i),w,x,wx) \<and> tran_closure(##Lset(i),r,rp) \<and>
        wx \<in> rp]"
 by (intro FOL_reflections function_reflections fun_plus_reflections
           tran_closure_reflection)
@@ -166,7 +166,7 @@ lemma wellfounded_trancl_separation:
          "\<lbrakk>L(r); L(Z)\<rbrakk> \<Longrightarrow>
           separation (L, \<lambda>x.
               \<exists>w[L]. \<exists>wx[L]. \<exists>rp[L].
-               w \<in> Z & pair(L,w,x,wx) & tran_closure(L,r,rp) & wx \<in> rp)"
+               w \<in> Z \<and> pair(L,w,x,wx) \<and> tran_closure(L,r,rp) \<and> wx \<in> rp)"
 apply (rule gen_separation_multi [OF wellfounded_trancl_reflects, of "{r,Z}"],
        auto)
 apply (rule_tac env="[r,Z]" in DPow_LsetI)
@@ -218,16 +218,16 @@ done
 
 lemma list_replacement2_Reflects:
  "REFLECTS
-   [\<lambda>x. \<exists>u[L]. u \<in> B & u \<in> nat &
+   [\<lambda>x. \<exists>u[L]. u \<in> B \<and> u \<in> nat \<and>
                 is_iterates(L, is_list_functor(L, A), 0, u, x),
-    \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B & u \<in> nat &
+    \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B \<and> u \<in> nat \<and>
                is_iterates(##Lset(i), is_list_functor(##Lset(i), A), 0, u, x)]"
 by (intro FOL_reflections 
           is_iterates_reflection list_functor_reflection)
 
 lemma list_replacement2:
    "L(A) \<Longrightarrow> strong_replacement(L,
-         \<lambda>n y. n\<in>nat & is_iterates(L, is_list_functor(L,A), 0, n, y))"
+         \<lambda>n y. n\<in>nat \<and> is_iterates(L, is_list_functor(L,A), 0, n, y))"
 apply (rule strong_replacementI)
 apply (rule_tac u="{A,B,0,nat}" 
          in gen_separation_multi [OF list_replacement2_Reflects], 
@@ -245,9 +245,9 @@ subsubsection\<open>Instances of Replacement for Formulas\<close>
 need to expand iterates_replacement and wfrec_replacement*)
 lemma formula_replacement1_Reflects:
  "REFLECTS
-   [\<lambda>x. \<exists>u[L]. u \<in> B & (\<exists>y[L]. pair(L,u,y,x) &
+   [\<lambda>x. \<exists>u[L]. u \<in> B \<and> (\<exists>y[L]. pair(L,u,y,x) \<and>
          is_wfrec(L, iterates_MH(L, is_formula_functor(L), 0), memsn, u, y)),
-    \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B & (\<exists>y \<in> Lset(i). pair(##Lset(i), u, y, x) &
+    \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B \<and> (\<exists>y \<in> Lset(i). pair(##Lset(i), u, y, x) \<and>
          is_wfrec(##Lset(i),
                   iterates_MH(##Lset(i),
                           is_formula_functor(##Lset(i)), 0), memsn, u, y))]"
@@ -268,16 +268,16 @@ done
 
 lemma formula_replacement2_Reflects:
  "REFLECTS
-   [\<lambda>x. \<exists>u[L]. u \<in> B & u \<in> nat &
+   [\<lambda>x. \<exists>u[L]. u \<in> B \<and> u \<in> nat \<and>
                 is_iterates(L, is_formula_functor(L), 0, u, x),
-    \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B & u \<in> nat &
+    \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B \<and> u \<in> nat \<and>
                is_iterates(##Lset(i), is_formula_functor(##Lset(i)), 0, u, x)]"
 by (intro FOL_reflections 
           is_iterates_reflection formula_functor_reflection)
 
 lemma formula_replacement2:
    "strong_replacement(L,
-         \<lambda>n y. n\<in>nat & is_iterates(L, is_formula_functor(L), 0, n, y))"
+         \<lambda>n y. n\<in>nat \<and> is_iterates(L, is_formula_functor(L), 0, n, y))"
 apply (rule strong_replacementI)
 apply (rule_tac u="{B,0,nat}" 
          in gen_separation_multi [OF formula_replacement2_Reflects], 
@@ -293,7 +293,7 @@ for \<^term>\<open>list(A)\<close>.  It was a cut-and-paste job!\<close>
 subsubsection\<open>The Formula \<^term>\<open>is_nth\<close>, Internalized\<close>
 
 (* "is_nth(M,n,l,Z) \<equiv>
-      \<exists>X[M]. is_iterates(M, is_tl(M), l, n, X) & is_hd(M,X,Z)" *)
+      \<exists>X[M]. is_iterates(M, is_tl(M), l, n, X) \<and> is_hd(M,X,Z)" *)
 definition
   nth_fm :: "[i,i,i]=>i" where
     "nth_fm(n,l,Z) \<equiv> 
@@ -333,9 +333,9 @@ subsubsection\<open>An Instance of Replacement for \<^term>\<open>nth\<close>\<c
 need to expand iterates_replacement and wfrec_replacement*)
 lemma nth_replacement_Reflects:
  "REFLECTS
-   [\<lambda>x. \<exists>u[L]. u \<in> B & (\<exists>y[L]. pair(L,u,y,x) &
+   [\<lambda>x. \<exists>u[L]. u \<in> B \<and> (\<exists>y[L]. pair(L,u,y,x) \<and>
          is_wfrec(L, iterates_MH(L, is_tl(L), z), memsn, u, y)),
-    \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B & (\<exists>y \<in> Lset(i). pair(##Lset(i), u, y, x) &
+    \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B \<and> (\<exists>y \<in> Lset(i). pair(##Lset(i), u, y, x) \<and>
          is_wfrec(##Lset(i),
                   iterates_MH(##Lset(i),
                           is_tl(##Lset(i)), z), memsn, u, y))]"
@@ -380,9 +380,9 @@ subsubsection\<open>Instances of Replacement for \<^term>\<open>eclose\<close>\<
 
 lemma eclose_replacement1_Reflects:
  "REFLECTS
-   [\<lambda>x. \<exists>u[L]. u \<in> B & (\<exists>y[L]. pair(L,u,y,x) &
+   [\<lambda>x. \<exists>u[L]. u \<in> B \<and> (\<exists>y[L]. pair(L,u,y,x) \<and>
          is_wfrec(L, iterates_MH(L, big_union(L), A), memsn, u, y)),
-    \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B & (\<exists>y \<in> Lset(i). pair(##Lset(i), u, y, x) &
+    \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B \<and> (\<exists>y \<in> Lset(i). pair(##Lset(i), u, y, x) \<and>
          is_wfrec(##Lset(i),
                   iterates_MH(##Lset(i), big_union(##Lset(i)), A),
                   memsn, u, y))]"
@@ -403,15 +403,15 @@ done
 
 lemma eclose_replacement2_Reflects:
  "REFLECTS
-   [\<lambda>x. \<exists>u[L]. u \<in> B & u \<in> nat &
+   [\<lambda>x. \<exists>u[L]. u \<in> B \<and> u \<in> nat \<and>
                 is_iterates(L, big_union(L), A, u, x),
-    \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B & u \<in> nat &
+    \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B \<and> u \<in> nat \<and>
                is_iterates(##Lset(i), big_union(##Lset(i)), A, u, x)]"
 by (intro FOL_reflections function_reflections is_iterates_reflection)
 
 lemma eclose_replacement2:
    "L(A) \<Longrightarrow> strong_replacement(L,
-         \<lambda>n y. n\<in>nat & is_iterates(L, big_union(L), A, n, y))"
+         \<lambda>n y. n\<in>nat \<and> is_iterates(L, big_union(L), A, n, y))"
 apply (rule strong_replacementI)
 apply (rule_tac u="{A,B,nat}" 
          in gen_separation_multi [OF eclose_replacement2_Reflects],

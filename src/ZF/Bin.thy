@@ -377,7 +377,7 @@ done
 
 lemma iszero_integ_of_BIT:
      "\<lbrakk>w \<in> bin; x \<in> bool\<rbrakk>
-      \<Longrightarrow> iszero (integ_of (w BIT x)) \<longleftrightarrow> (x=0 & iszero (integ_of(w)))"
+      \<Longrightarrow> iszero (integ_of (w BIT x)) \<longleftrightarrow> (x=0 \<and> iszero (integ_of(w)))"
 apply (unfold iszero_def, simp)
 apply (subgoal_tac "integ_of (w) \<in> int")
 apply typecheck
@@ -578,7 +578,7 @@ apply (auto elim: zless_asym simp add: not_zle_iff_zless)
 apply (blast intro: zless_zle_trans)
 done
 
-lemma zless_nat_conj: "(nat_of(w) < nat_of(z)) \<longleftrightarrow> ($#0 $< z & w $< z)"
+lemma zless_nat_conj: "(nat_of(w) < nat_of(z)) \<longleftrightarrow> ($#0 $< z \<and> w $< z)"
 apply (case_tac "$#0 $< z")
 apply (auto simp add: zless_nat_conj_lemma nat_le_int0 not_zless_iff_zle)
 done

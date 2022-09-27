@@ -393,7 +393,7 @@ done
 lemma pred_0 [simp]: "pred(0) = 0"
 by (simp add: pred_def)
 
-lemma eq_succ_imp_eq_m1: "\<lbrakk>i = succ(j); i\<in>nat\<rbrakk> \<Longrightarrow> j = i #- 1 & j \<in>nat"
+lemma eq_succ_imp_eq_m1: "\<lbrakk>i = succ(j); i\<in>nat\<rbrakk> \<Longrightarrow> j = i #- 1 \<and> j \<in>nat"
 by simp
 
 lemma pred_Un_distrib:
@@ -537,7 +537,7 @@ lemmas mult_ac = mult_assoc mult_commute mult_left_commute
 
 lemma lt_succ_eq_0_disj:
      "\<lbrakk>m\<in>nat; n\<in>nat\<rbrakk>
-      \<Longrightarrow> (m < succ(n)) \<longleftrightarrow> (m = 0 | (\<exists>j\<in>nat. m = succ(j) & j < n))"
+      \<Longrightarrow> (m < succ(n)) \<longleftrightarrow> (m = 0 | (\<exists>j\<in>nat. m = succ(j) \<and> j < n))"
 by (induct_tac "m", auto)
 
 lemma less_diff_conv [rule_format]:

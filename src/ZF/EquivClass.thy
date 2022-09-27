@@ -92,7 +92,7 @@ lemma equiv_type: "equiv(A,r) \<Longrightarrow> r \<subseteq> A*A"
 by (unfold equiv_def, blast)
 
 lemma equiv_class_eq_iff:
-     "equiv(A,r) \<Longrightarrow> <x,y>: r \<longleftrightarrow> r``{x} = r``{y} & x \<in> A & y \<in> A"
+     "equiv(A,r) \<Longrightarrow> <x,y>: r \<longleftrightarrow> r``{x} = r``{y} \<and> x \<in> A \<and> y \<in> A"
 by (blast intro: eq_equiv_class equiv_class_eq dest: equiv_type)
 
 lemma eq_equiv_class_iff:

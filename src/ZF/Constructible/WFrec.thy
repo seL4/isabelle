@@ -21,7 +21,7 @@ done
 text\<open>Expresses \<open>is_recfun\<close> as a recursion equation\<close>
 lemma is_recfun_iff_equation:
      "is_recfun(r,a,H,f) \<longleftrightarrow>
-           f \<in> r -`` {a} \<rightarrow> range(f) &
+           f \<in> r -`` {a} \<rightarrow> range(f) \<and>
            (\<forall>x \<in> r-``{a}. f`x = H(x, restrict(f, r-``{x})))"  
 apply (rule iffI) 
  apply (simp add: is_recfun_type apply_recfun Ball_def vimage_singleton_iff, 
@@ -135,7 +135,7 @@ lemma (in M_basic) is_recfun_relativize:
   "\<lbrakk>M(r); M(f); \<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g))\<rbrakk> 
    \<Longrightarrow> is_recfun(r,a,H,f) \<longleftrightarrow>
        (\<forall>z[M]. z \<in> f \<longleftrightarrow> 
-        (\<exists>x[M]. <x,a> \<in> r & z = <x, H(x, restrict(f, r-``{x}))>))"
+        (\<exists>x[M]. <x,a> \<in> r \<and> z = <x, H(x, restrict(f, r-``{x}))>))"
 apply (simp add: is_recfun_def lam_def)
 apply (safe intro!: equalityI) 
    apply (drule equalityD1 [THEN subsetD], assumption) 
@@ -174,8 +174,8 @@ lemma (in M_basic) restrict_Y_lemma:
        \<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g));  M(Y);
        \<forall>b[M]. 
            b \<in> Y \<longleftrightarrow>
-           (\<exists>x[M]. <x,a1> \<in> r &
-            (\<exists>y[M]. b = \<langle>x,y\<rangle> & (\<exists>g[M]. is_recfun(r,x,H,g) \<and> y = H(x,g))));
+           (\<exists>x[M]. <x,a1> \<in> r \<and>
+            (\<exists>y[M]. b = \<langle>x,y\<rangle> \<and> (\<exists>g[M]. is_recfun(r,x,H,g) \<and> y = H(x,g))));
           \<langle>x,a1\<rangle> \<in> r; is_recfun(r,x,H,f); M(f)\<rbrakk>
        \<Longrightarrow> restrict(Y, r -`` {x}) = f"
 apply (subgoal_tac "\<forall>y \<in> r-``{x}. \<forall>z. <y,z>:Y \<longleftrightarrow> <y,z>:f") 
@@ -201,7 +201,7 @@ text\<open>For typical applications of Replacement for recursive definitions\<cl
 lemma (in M_basic) univalent_is_recfun:
      "\<lbrakk>wellfounded(M,r); trans(r); M(r)\<rbrakk>
       \<Longrightarrow> univalent (M, A, \<lambda>x p. 
-              \<exists>y[M]. p = \<langle>x,y\<rangle> & (\<exists>f[M]. is_recfun(r,x,H,f) & y = H(x,f)))"
+              \<exists>y[M]. p = \<langle>x,y\<rangle> \<and> (\<exists>f[M]. is_recfun(r,x,H,f) \<and> y = H(x,f)))"
 apply (simp add: univalent_def) 
 apply (blast dest: is_recfun_functional) 
 done
@@ -213,7 +213,7 @@ lemma (in M_basic) exists_is_recfun_indstep:
     "\<lbrakk>\<forall>y. \<langle>y, a1\<rangle> \<in> r \<longrightarrow> (\<exists>f[M]. is_recfun(r, y, H, f)); 
        wellfounded(M,r); trans(r); M(r); M(a1);
        strong_replacement(M, \<lambda>x z. 
-              \<exists>y[M]. \<exists>g[M]. pair(M,x,y,z) & is_recfun(r,x,H,g) & y = H(x,g)); 
+              \<exists>y[M]. \<exists>g[M]. pair(M,x,y,z) \<and> is_recfun(r,x,H,g) \<and> y = H(x,g)); 
        \<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g))\<rbrakk>   
       \<Longrightarrow> \<exists>f[M]. is_recfun(r,a1,H,f)"
 apply (drule_tac A="r-``{a1}" in strong_replacementD)
@@ -246,7 +246,7 @@ lemma (in M_basic) wellfounded_exists_is_recfun:
     "\<lbrakk>wellfounded(M,r);  trans(r);  
        separation(M, \<lambda>x. \<not> (\<exists>f[M]. is_recfun(r, x, H, f)));
        strong_replacement(M, \<lambda>x z. 
-          \<exists>y[M]. \<exists>g[M]. pair(M,x,y,z) & is_recfun(r,x,H,g) & y = H(x,g)); 
+          \<exists>y[M]. \<exists>g[M]. pair(M,x,y,z) \<and> is_recfun(r,x,H,g) \<and> y = H(x,g)); 
        M(r);  M(a);  
        \<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g))\<rbrakk>   
       \<Longrightarrow> \<exists>f[M]. is_recfun(r,a,H,f)"
@@ -257,7 +257,7 @@ done
 lemma (in M_basic) wf_exists_is_recfun [rule_format]:
     "\<lbrakk>wf(r);  trans(r);  M(r);  
        strong_replacement(M, \<lambda>x z. 
-         \<exists>y[M]. \<exists>g[M]. pair(M,x,y,z) & is_recfun(r,x,H,g) & y = H(x,g)); 
+         \<exists>y[M]. \<exists>g[M]. pair(M,x,y,z) \<and> is_recfun(r,x,H,g) \<and> y = H(x,g)); 
        \<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g))\<rbrakk>   
       \<Longrightarrow> M(a) \<longrightarrow> (\<exists>f[M]. is_recfun(r,a,H,f))"
 apply (rule wf_induct, assumption+)
@@ -275,20 +275,20 @@ definition
    "M_is_recfun(M,MH,r,a,f) \<equiv> 
      \<forall>z[M]. z \<in> f \<longleftrightarrow> 
             (\<exists>x[M]. \<exists>y[M]. \<exists>xa[M]. \<exists>sx[M]. \<exists>r_sx[M]. \<exists>f_r_sx[M]. 
-               pair(M,x,y,z) & pair(M,x,a,xa) & upair(M,x,x,sx) &
-               pre_image(M,r,sx,r_sx) & restriction(M,f,r_sx,f_r_sx) &
-               xa \<in> r & MH(x, f_r_sx, y))"
+               pair(M,x,y,z) \<and> pair(M,x,a,xa) \<and> upair(M,x,x,sx) \<and>
+               pre_image(M,r,sx,r_sx) \<and> restriction(M,f,r_sx,f_r_sx) \<and>
+               xa \<in> r \<and> MH(x, f_r_sx, y))"
 
 definition
   is_wfrec :: "[i=>o, [i,i,i]=>o, i, i, i] => o" where
    "is_wfrec(M,MH,r,a,z) \<equiv> 
-      \<exists>f[M]. M_is_recfun(M,MH,r,a,f) & MH(a,f,z)"
+      \<exists>f[M]. M_is_recfun(M,MH,r,a,f) \<and> MH(a,f,z)"
 
 definition
   wfrec_replacement :: "[i=>o, [i,i,i]=>o, i] => o" where
    "wfrec_replacement(M,MH,r) \<equiv>
         strong_replacement(M, 
-             \<lambda>x z. \<exists>y[M]. pair(M,x,y,z) & is_wfrec(M,MH,r,x,y))"
+             \<lambda>x z. \<exists>y[M]. pair(M,x,y,z) \<and> is_wfrec(M,MH,r,x,y))"
 
 lemma (in M_basic) is_recfun_abs:
      "\<lbrakk>\<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g));  M(r); M(a); M(f); 
@@ -309,7 +309,7 @@ lemma (in M_basic) is_wfrec_abs:
      "\<lbrakk>\<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g)); 
          relation2(M,MH,H);  M(r); M(a); M(z)\<rbrakk>
       \<Longrightarrow> is_wfrec(M,MH,r,a,z) \<longleftrightarrow> 
-          (\<exists>g[M]. is_recfun(r,a,H,g) & z = H(a,g))"
+          (\<exists>g[M]. is_recfun(r,a,H,g) \<and> z = H(a,g))"
 by (simp add: is_wfrec_def relation2_def is_recfun_abs)
 
 text\<open>Relating \<^term>\<open>wfrec_replacement\<close> to native constructs\<close>
@@ -318,7 +318,7 @@ lemma (in M_basic) wfrec_replacement':
      \<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g)); 
      relation2(M,MH,H);  M(r)\<rbrakk> 
    \<Longrightarrow> strong_replacement(M, \<lambda>x z. \<exists>y[M]. 
-                pair(M,x,y,z) & (\<exists>g[M]. is_recfun(r,x,H,g) & y = H(x,g)))"
+                pair(M,x,y,z) \<and> (\<exists>g[M]. is_recfun(r,x,H,g) \<and> y = H(x,g)))"
 by (simp add: wfrec_replacement_def is_wfrec_abs) 
 
 lemma wfrec_replacement_cong [cong]:

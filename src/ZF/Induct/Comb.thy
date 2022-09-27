@@ -78,14 +78,14 @@ definition I :: i
 
 definition diamond :: "i \<Rightarrow> o"
   where "diamond(r) \<equiv>
-    \<forall>x y. <x,y>\<in>r \<longrightarrow> (\<forall>y'. <x,y'>\<in>r \<longrightarrow> (\<exists>z. <y,z>\<in>r & <y',z> \<in> r))"
+    \<forall>x y. <x,y>\<in>r \<longrightarrow> (\<forall>y'. <x,y'>\<in>r \<longrightarrow> (\<exists>z. <y,z>\<in>r \<and> <y',z> \<in> r))"
 
 
 subsection \<open>Transitive closure preserves the Church-Rosser property\<close>
 
 lemma diamond_strip_lemmaD [rule_format]:
   "\<lbrakk>diamond(r);  <x,y>:r^+\<rbrakk> \<Longrightarrow>
-    \<forall>y'. <x,y'>:r \<longrightarrow> (\<exists>z. <y',z>: r^+ & <y,z>: r)"
+    \<forall>y'. <x,y'>:r \<longrightarrow> (\<exists>z. <y',z>: r^+ \<and> <y,z>: r)"
   apply (unfold diamond_def)
   apply (erule trancl_induct)
    apply (blast intro: r_into_trancl)
@@ -153,7 +153,7 @@ inductive_cases K_contractE [elim!]: "K \<rightarrow>\<^sup>1 r"
 lemma I_contract_E: "I \<rightarrow>\<^sup>1 r \<Longrightarrow> P"
   by (auto simp add: I_def)
 
-lemma K1_contractD: "K\<bullet>p \<rightarrow>\<^sup>1 r \<Longrightarrow> (\<exists>q. r = K\<bullet>q & p \<rightarrow>\<^sup>1 q)"
+lemma K1_contractD: "K\<bullet>p \<rightarrow>\<^sup>1 r \<Longrightarrow> (\<exists>q. r = K\<bullet>q \<and> p \<rightarrow>\<^sup>1 q)"
   by auto
 
 lemma Ap_reduce1: "\<lbrakk>p \<rightarrow> q;  r \<in> comb\<rbrakk> \<Longrightarrow> p\<bullet>r \<rightarrow> q\<bullet>r"
@@ -215,15 +215,15 @@ declare parcontract.intros [intro]
 subsection \<open>Basic properties of parallel contraction\<close>
 
 lemma K1_parcontractD [dest!]:
-    "K\<bullet>p \<Rrightarrow>\<^sup>1 r \<Longrightarrow> (\<exists>p'. r = K\<bullet>p' & p \<Rrightarrow>\<^sup>1 p')"
+    "K\<bullet>p \<Rrightarrow>\<^sup>1 r \<Longrightarrow> (\<exists>p'. r = K\<bullet>p' \<and> p \<Rrightarrow>\<^sup>1 p')"
   by auto
 
 lemma S1_parcontractD [dest!]:
-    "S\<bullet>p \<Rrightarrow>\<^sup>1 r \<Longrightarrow> (\<exists>p'. r = S\<bullet>p' & p \<Rrightarrow>\<^sup>1 p')"
+    "S\<bullet>p \<Rrightarrow>\<^sup>1 r \<Longrightarrow> (\<exists>p'. r = S\<bullet>p' \<and> p \<Rrightarrow>\<^sup>1 p')"
   by auto
 
 lemma S2_parcontractD [dest!]:
-    "S\<bullet>p\<bullet>q \<Rrightarrow>\<^sup>1 r \<Longrightarrow> (\<exists>p' q'. r = S\<bullet>p'\<bullet>q' & p \<Rrightarrow>\<^sup>1 p' & q \<Rrightarrow>\<^sup>1 q')"
+    "S\<bullet>p\<bullet>q \<Rrightarrow>\<^sup>1 r \<Longrightarrow> (\<exists>p' q'. r = S\<bullet>p'\<bullet>q' \<and> p \<Rrightarrow>\<^sup>1 p' \<and> q \<Rrightarrow>\<^sup>1 q')"
   by auto
 
 lemma diamond_parcontract: "diamond(parcontract)"

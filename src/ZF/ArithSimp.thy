@@ -303,23 +303,23 @@ lemma mult_lt_mono1: "\<lbrakk>i<j; 0<k; j:nat; k:nat\<rbrakk> \<Longrightarrow>
 apply (simp (no_asm_simp) add: mult_lt_mono2 mult_commute [of _ k])
 done
 
-lemma add_eq_0_iff [iff]: "m#+n = 0 \<longleftrightarrow> natify(m)=0 & natify(n)=0"
-apply (subgoal_tac "natify (m) #+ natify (n) = 0 \<longleftrightarrow> natify (m) =0 & natify (n) =0")
+lemma add_eq_0_iff [iff]: "m#+n = 0 \<longleftrightarrow> natify(m)=0 \<and> natify(n)=0"
+apply (subgoal_tac "natify (m) #+ natify (n) = 0 \<longleftrightarrow> natify (m) =0 \<and> natify (n) =0")
 apply (rule_tac [2] n = "natify (m) " in natE)
  apply (rule_tac [4] n = "natify (n) " in natE)
 apply auto
 done
 
-lemma zero_lt_mult_iff [iff]: "0 < m#*n \<longleftrightarrow> 0 < natify(m) & 0 < natify(n)"
-apply (subgoal_tac "0 < natify (m) #*natify (n) \<longleftrightarrow> 0 < natify (m) & 0 < natify (n) ")
+lemma zero_lt_mult_iff [iff]: "0 < m#*n \<longleftrightarrow> 0 < natify(m) \<and> 0 < natify(n)"
+apply (subgoal_tac "0 < natify (m) #*natify (n) \<longleftrightarrow> 0 < natify (m) \<and> 0 < natify (n) ")
 apply (rule_tac [2] n = "natify (m) " in natE)
  apply (rule_tac [4] n = "natify (n) " in natE)
   apply (rule_tac [3] n = "natify (n) " in natE)
 apply auto
 done
 
-lemma mult_eq_1_iff [iff]: "m#*n = 1 \<longleftrightarrow> natify(m)=1 & natify(n)=1"
-apply (subgoal_tac "natify (m) #* natify (n) = 1 \<longleftrightarrow> natify (m) =1 & natify (n) =1")
+lemma mult_eq_1_iff [iff]: "m#*n = 1 \<longleftrightarrow> natify(m)=1 \<and> natify(n)=1"
+apply (subgoal_tac "natify (m) #* natify (n) = 1 \<longleftrightarrow> natify (m) =1 \<and> natify (n) =1")
 apply (rule_tac [2] n = "natify (m) " in natE)
  apply (rule_tac [4] n = "natify (n) " in natE)
 apply auto
@@ -342,7 +342,7 @@ done
 subsection\<open>Cancellation Laws for Common Factors in Comparisons\<close>
 
 lemma mult_less_cancel_lemma:
-     "\<lbrakk>k: nat; m: nat; n: nat\<rbrakk> \<Longrightarrow> (m#*k < n#*k) \<longleftrightarrow> (0<k & m<n)"
+     "\<lbrakk>k: nat; m: nat; n: nat\<rbrakk> \<Longrightarrow> (m#*k < n#*k) \<longleftrightarrow> (0<k \<and> m<n)"
 apply (safe intro!: mult_lt_mono1)
 apply (erule natE, auto)
 apply (rule not_le_iff_lt [THEN iffD1])
@@ -351,13 +351,13 @@ prefer 5 apply (blast intro: mult_le_mono1, auto)
 done
 
 lemma mult_less_cancel2 [simp]:
-     "(m#*k < n#*k) \<longleftrightarrow> (0 < natify(k) & natify(m) < natify(n))"
+     "(m#*k < n#*k) \<longleftrightarrow> (0 < natify(k) \<and> natify(m) < natify(n))"
 apply (rule iff_trans)
 apply (rule_tac [2] mult_less_cancel_lemma, auto)
 done
 
 lemma mult_less_cancel1 [simp]:
-     "(k#*m < k#*n) \<longleftrightarrow> (0 < natify(k) & natify(m) < natify(n))"
+     "(k#*m < k#*n) \<longleftrightarrow> (0 < natify(k) \<and> natify(m) < natify(n))"
 apply (simp (no_asm) add: mult_less_cancel2 mult_commute [of k])
 done
 
@@ -374,7 +374,7 @@ done
 lemma mult_le_cancel_le1: "k \<in> nat \<Longrightarrow> k #* m \<le> k \<longleftrightarrow> (0 < k \<longrightarrow> natify(m) \<le> 1)"
 by (cut_tac k = k and m = m and n = 1 in mult_le_cancel1, auto)
 
-lemma Ord_eq_iff_le: "\<lbrakk>Ord(m); Ord(n)\<rbrakk> \<Longrightarrow> m=n \<longleftrightarrow> (m \<le> n & n \<le> m)"
+lemma Ord_eq_iff_le: "\<lbrakk>Ord(m); Ord(n)\<rbrakk> \<Longrightarrow> m=n \<longleftrightarrow> (m \<le> n \<and> n \<le> m)"
 by (blast intro: le_anti_sym)
 
 lemma mult_cancel2_lemma:
@@ -523,7 +523,7 @@ by (simp add: diff_is_0_iff le_iff)
 
 lemma raw_nat_diff_split:
      "\<lbrakk>a:nat; b:nat\<rbrakk> \<Longrightarrow>
-      (P(a #- b)) \<longleftrightarrow> ((a < b \<longrightarrow>P(0)) & (\<forall>d\<in>nat. a = b #+ d \<longrightarrow> P(d)))"
+      (P(a #- b)) \<longleftrightarrow> ((a < b \<longrightarrow>P(0)) \<and> (\<forall>d\<in>nat. a = b #+ d \<longrightarrow> P(d)))"
 apply (case_tac "a < b")
  apply (force simp add: nat_lt_imp_diff_eq_0)
 apply (rule iffI, force, simp)
@@ -533,7 +533,7 @@ done
 
 lemma nat_diff_split:
    "(P(a #- b)) \<longleftrightarrow>
-    (natify(a) < natify(b) \<longrightarrow>P(0)) & (\<forall>d\<in>nat. natify(a) = b #+ d \<longrightarrow> P(d))"
+    (natify(a) < natify(b) \<longrightarrow>P(0)) \<and> (\<forall>d\<in>nat. natify(a) = b #+ d \<longrightarrow> P(d))"
 apply (cut_tac P=P and a="natify(a)" and b="natify(b)" in raw_nat_diff_split)
 apply simp_all
 done

@@ -14,11 +14,11 @@ abbreviation "tok \<equiv> Var([2])" (* the number of available tokens *)
 
 axiomatization where
   type_assumes:
-  "type_of(ask) = list(tokbag) & type_of(giv) = list(tokbag) &
-   type_of(rel) = list(tokbag) & type_of(tok) = nat" and
+  "type_of(ask) = list(tokbag) \<and> type_of(giv) = list(tokbag) \<and>
+   type_of(rel) = list(tokbag) \<and> type_of(tok) = nat" and
   default_val_assumes:
-  "default_val(ask) = Nil & default_val(giv) = Nil &
-   default_val(rel) = Nil & default_val(tok) = 0"
+  "default_val(ask) = Nil \<and> default_val(giv) = Nil \<and>
+   default_val(rel) = Nil \<and> default_val(tok) = 0"
 
 
 (*Array indexing is translated to list indexing as A[n] \<equiv> nth(n-1,A). *)
@@ -27,9 +27,9 @@ definition
  (** Release some client_tokens **)
     "client_rel_act \<equiv>
      {<s,t> \<in> state*state.
-      \<exists>nrel \<in> nat. nrel = length(s`rel) &
-                   t = s(rel:=(s`rel)@[nth(nrel, s`giv)]) &
-                   nrel < length(s`giv) &
+      \<exists>nrel \<in> nat. nrel = length(s`rel) \<and>
+                   t = s(rel:=(s`rel)@[nth(nrel, s`giv)]) \<and>
+                   nrel < length(s`giv) \<and>
                    nth(nrel, s`ask) \<le> nth(nrel, s`giv)}"
 
   (** Choose a new token requirement **)
@@ -44,8 +44,8 @@ definition
 
 definition
   "client_prog \<equiv>
-   mk_program({s \<in> state. s`tok \<le> NbT & s`giv = Nil &
-                       s`ask = Nil & s`rel = Nil},
+   mk_program({s \<in> state. s`tok \<le> NbT \<and> s`giv = Nil \<and>
+                       s`ask = Nil \<and> s`rel = Nil},
                     {client_rel_act, client_tok_act, client_ask_act},
                    \<Union>G \<in> preserves(lift(rel)) Int
                          preserves(lift(ask)) Int
@@ -92,8 +92,8 @@ declare  client_ask_act_def [THEN def_act_simp, simp]
 
 lemma client_prog_ok_iff:
   "\<forall>G \<in> program. (client_prog ok G) \<longleftrightarrow>
-   (G \<in> preserves(lift(rel)) & G \<in> preserves(lift(ask)) &
-    G \<in> preserves(lift(tok)) &  client_prog \<in> Allowed(G))"
+   (G \<in> preserves(lift(rel)) \<and> G \<in> preserves(lift(ask)) \<and>
+    G \<in> preserves(lift(tok)) \<and>  client_prog \<in> Allowed(G))"
 by (auto simp add: ok_iff_Allowed client_prog_def [THEN def_prg_Allowed])
 
 lemma client_prog_preserves:
@@ -186,8 +186,8 @@ by auto
 
 lemma transient_lemma:
 "client_prog \<in>
-  transient({s \<in> state. s`rel = k & <k, h> \<in> strict_prefix(nat)
-   & <h, s`giv> \<in> prefix(nat) & h pfixGe s`ask})"
+  transient({s \<in> state. s`rel = k \<and> <k, h> \<in> strict_prefix(nat)
+   \<and> <h, s`giv> \<in> prefix(nat) \<and> h pfixGe s`ask})"
 apply (rule_tac act = client_rel_act in transientI)
 apply (simp (no_asm) add: client_prog_def [THEN def_prg_Acts])
 apply (simp (no_asm) add: client_rel_act_def [THEN def_act_eq, THEN act_subset])
@@ -209,7 +209,7 @@ apply (auto simp add: id_def lam_def)
 done
 
 lemma strict_prefix_is_prefix:
-    "<xs, ys> \<in> strict_prefix(A) \<longleftrightarrow>  <xs, ys> \<in> prefix(A) & xs\<noteq>ys"
+    "<xs, ys> \<in> strict_prefix(A) \<longleftrightarrow>  <xs, ys> \<in> prefix(A) \<and> xs\<noteq>ys"
 apply (unfold strict_prefix_def id_def lam_def)
 apply (auto dest: prefix_type [THEN subsetD])
 done
@@ -217,11 +217,11 @@ done
 lemma induct_lemma:
 "\<lbrakk>client_prog \<squnion> G \<in> Incr(lift(giv)); client_prog ok G; G \<in> program\<rbrakk>
   \<Longrightarrow> client_prog \<squnion> G \<in>
-  {s \<in> state. s`rel = k & <k,h> \<in> strict_prefix(nat)
-   & <h, s`giv> \<in> prefix(nat) & h pfixGe s`ask}
+  {s \<in> state. s`rel = k \<and> <k,h> \<in> strict_prefix(nat)
+   \<and> <h, s`giv> \<in> prefix(nat) \<and> h pfixGe s`ask}
         \<longmapsto>w {s \<in> state. <k, s`rel> \<in> strict_prefix(nat)
-                          & <s`rel, s`giv> \<in> prefix(nat) &
-                                  <h, s`giv> \<in> prefix(nat) &
+                          \<and> <s`rel, s`giv> \<in> prefix(nat) \<and>
+                                  <h, s`giv> \<in> prefix(nat) \<and>
                 h pfixGe s`ask}"
 apply (rule single_LeadsTo_I)
  prefer 2 apply simp
@@ -247,7 +247,7 @@ lemma rel_progress_lemma:
 "\<lbrakk>client_prog \<squnion> G  \<in> Incr(lift(giv)); client_prog ok G; G \<in> program\<rbrakk>
   \<Longrightarrow> client_prog \<squnion> G  \<in>
      {s \<in> state. <s`rel, h> \<in> strict_prefix(nat)
-           & <h, s`giv> \<in> prefix(nat) & h pfixGe s`ask}
+           \<and> <h, s`giv> \<in> prefix(nat) \<and> h pfixGe s`ask}
                       \<longmapsto>w {s \<in> state. <h, s`rel> \<in> prefix(nat)}"
 apply (rule_tac f = "\<lambda>x \<in> state. length(h) #- length(x`rel)"
        in LessThan_induct)
@@ -275,7 +275,7 @@ done
 lemma progress_lemma:
 "\<lbrakk>client_prog \<squnion> G \<in> Incr(lift(giv)); client_prog ok G; G \<in> program\<rbrakk>
  \<Longrightarrow> client_prog \<squnion> G
-       \<in> {s \<in> state. <h, s`giv> \<in> prefix(nat) & h pfixGe s`ask}
+       \<in> {s \<in> state. <h, s`giv> \<in> prefix(nat) \<and> h pfixGe s`ask}
          \<longmapsto>w  {s \<in> state. <h, s`rel> \<in> prefix(nat)}"
 apply (rule client_prog_Join_Always_rel_le_giv [THEN Always_LeadsToI],
        assumption)
@@ -290,7 +290,7 @@ done
 (*Progress property: all tokens that are given will be released*)
 lemma client_prog_progress:
 "client_prog \<in> Incr(lift(giv))  guarantees
-      (\<Inter>h \<in> list(nat). {s \<in> state. <h, s`giv> \<in> prefix(nat) &
+      (\<Inter>h \<in> list(nat). {s \<in> state. <h, s`giv> \<in> prefix(nat) \<and>
               h pfixGe s`ask} \<longmapsto>w {s \<in> state. <h, s`rel> \<in> prefix(nat)})"
 apply (rule guaranteesI)
 apply (blast intro: progress_lemma, auto)

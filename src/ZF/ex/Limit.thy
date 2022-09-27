@@ -30,23 +30,23 @@ definition
 definition
   po  :: "i=>o"  where
     "po(D) \<equiv>
-     (\<forall>x \<in> set(D). rel(D,x,x)) &
+     (\<forall>x \<in> set(D). rel(D,x,x)) \<and>
      (\<forall>x \<in> set(D). \<forall>y \<in> set(D). \<forall>z \<in> set(D).
-       rel(D,x,y) \<longrightarrow> rel(D,y,z) \<longrightarrow> rel(D,x,z)) &
+       rel(D,x,y) \<longrightarrow> rel(D,y,z) \<longrightarrow> rel(D,x,z)) \<and>
      (\<forall>x \<in> set(D). \<forall>y \<in> set(D). rel(D,x,y) \<longrightarrow> rel(D,y,x) \<longrightarrow> x = y)"
 
 definition
   chain :: "[i,i]=>o"  where
     (* Chains are object level functions nat->set(D) *)
-    "chain(D,X) \<equiv> X \<in> nat->set(D) & (\<forall>n \<in> nat. rel(D,X`n,X`(succ(n))))"
+    "chain(D,X) \<equiv> X \<in> nat->set(D) \<and> (\<forall>n \<in> nat. rel(D,X`n,X`(succ(n))))"
 
 definition
   isub :: "[i,i,i]=>o"  where
-    "isub(D,X,x) \<equiv> x \<in> set(D) & (\<forall>n \<in> nat. rel(D,X`n,x))"
+    "isub(D,X,x) \<equiv> x \<in> set(D) \<and> (\<forall>n \<in> nat. rel(D,X`n,x))"
 
 definition
   islub :: "[i,i,i]=>o"  where
-    "islub(D,X,x) \<equiv> isub(D,X,x) & (\<forall>y. isub(D,X,y) \<longrightarrow> rel(D,x,y))"
+    "islub(D,X,x) \<equiv> isub(D,X,x) \<and> (\<forall>y. isub(D,X,y) \<longrightarrow> rel(D,x,y))"
 
 definition
   lub :: "[i,i]=>i"  where
@@ -54,15 +54,15 @@ definition
 
 definition
   cpo :: "i=>o"  where
-    "cpo(D) \<equiv> po(D) & (\<forall>X. chain(D,X) \<longrightarrow> (\<exists>x. islub(D,X,x)))"
+    "cpo(D) \<equiv> po(D) \<and> (\<forall>X. chain(D,X) \<longrightarrow> (\<exists>x. islub(D,X,x)))"
 
 definition
   pcpo :: "i=>o"  where
-    "pcpo(D) \<equiv> cpo(D) & (\<exists>x \<in> set(D). \<forall>y \<in> set(D). rel(D,x,y))"
+    "pcpo(D) \<equiv> cpo(D) \<and> (\<exists>x \<in> set(D). \<forall>y \<in> set(D). rel(D,x,y))"
 
 definition
   bot :: "i=>i"  where
-    "bot(D) \<equiv> THE x. x \<in> set(D) & (\<forall>y \<in> set(D). rel(D,x,y))"
+    "bot(D) \<equiv> THE x. x \<in> set(D) \<and> (\<forall>y \<in> set(D). rel(D,x,y))"
 
 definition
   mono :: "[i,i]=>i"  where
@@ -97,16 +97,16 @@ definition
 definition
   matrix :: "[i,i]=>o"  where
     "matrix(D,M) \<equiv>
-     M \<in> nat -> (nat -> set(D)) &
-     (\<forall>n \<in> nat. \<forall>m \<in> nat. rel(D,M`n`m,M`succ(n)`m)) &
-     (\<forall>n \<in> nat. \<forall>m \<in> nat. rel(D,M`n`m,M`n`succ(m))) &
+     M \<in> nat -> (nat -> set(D)) \<and>
+     (\<forall>n \<in> nat. \<forall>m \<in> nat. rel(D,M`n`m,M`succ(n)`m)) \<and>
+     (\<forall>n \<in> nat. \<forall>m \<in> nat. rel(D,M`n`m,M`n`succ(m))) \<and>
      (\<forall>n \<in> nat. \<forall>m \<in> nat. rel(D,M`n`m,M`succ(n)`succ(m)))"
 
 definition
   projpair  :: "[i,i,i,i]=>o"  where
     "projpair(D,E,e,p) \<equiv>
-     e \<in> cont(D,E) & p \<in> cont(E,D) &
-     p O e = id(set(D)) & rel(cf(E,E),e O p,id(set(E)))"
+     e \<in> cont(D,E) \<and> p \<in> cont(E,D) \<and>
+     p O e = id(set(D)) \<and> rel(cf(E,E),e O p,id(set(E)))"
 
 definition
   emb       :: "[i,i,i]=>o"  where
@@ -133,18 +133,18 @@ definition
 definition
   subcpo    :: "[i,i]=>o"  where
     "subcpo(D,E) \<equiv>
-     set(D) \<subseteq> set(E) &
-     (\<forall>x \<in> set(D). \<forall>y \<in> set(D). rel(D,x,y) \<longleftrightarrow> rel(E,x,y)) &
+     set(D) \<subseteq> set(E) \<and>
+     (\<forall>x \<in> set(D). \<forall>y \<in> set(D). rel(D,x,y) \<longleftrightarrow> rel(E,x,y)) \<and>
      (\<forall>X. chain(D,X) \<longrightarrow> lub(E,X):set(D))"
 
 definition
   subpcpo   :: "[i,i]=>o"  where
-    "subpcpo(D,E) \<equiv> subcpo(D,E) & bot(E):set(D)"
+    "subpcpo(D,E) \<equiv> subcpo(D,E) \<and> bot(E):set(D)"
 
 definition
   emb_chain :: "[i,i]=>o"  where
     "emb_chain(DD,ee) \<equiv>
-     (\<forall>n \<in> nat. cpo(DD`n)) & (\<forall>n \<in> nat. emb(DD`n,DD`succ(n),ee`n))"
+     (\<forall>n \<in> nat. cpo(DD`n)) \<and> (\<forall>n \<in> nat. emb(DD`n,DD`succ(n),ee`n))"
 
 definition
   Dinf      :: "[i,i]=>i"  where
@@ -181,12 +181,12 @@ definition
 definition
   commute   :: "[i,i,i,i=>i]=>o"  where
     "commute(DD,ee,E,r) \<equiv>
-     (\<forall>n \<in> nat. emb(DD`n,E,r(n))) &
+     (\<forall>n \<in> nat. emb(DD`n,E,r(n))) \<and>
      (\<forall>m \<in> nat. \<forall>n \<in> nat. m \<le> n \<longrightarrow> r(n) O eps(DD,ee,m,n) = r(m))"
 
 definition
   mediating :: "[i,i,i=>i,i=>i,i]=>o"  where
-    "mediating(E,G,r,f,t) \<equiv> emb(E,G,t) & (\<forall>n \<in> nat. f(n) = t O r(n))"
+    "mediating(E,G,r,f,t) \<equiv> emb(E,G,t) \<and> (\<forall>n \<in> nat. f(n) = t O r(n))"
 
 
 lemmas nat_linear_le = Ord_linear_le [OF nat_into_Ord nat_into_Ord]
@@ -342,7 +342,7 @@ lemma pcpo_cpo [TC]: "pcpo(D) \<Longrightarrow> cpo(D)"
 by (simp add: pcpo_def)
 
 lemma pcpo_bot_ex1:
-    "pcpo(D) \<Longrightarrow> \<exists>! x. x \<in> set(D) & (\<forall>y \<in> set(D). rel(D,x,y))"
+    "pcpo(D) \<Longrightarrow> \<exists>! x. x \<in> set(D) \<and> (\<forall>y \<in> set(D). rel(D,x,y))"
 apply (simp add: pcpo_def)
 apply (blast intro: cpo_antisym)
 done
@@ -901,7 +901,7 @@ by (simp add: projpair_def)
 lemma projpair_p_cont: "projpair(D,E,e,p) \<Longrightarrow> p \<in> cont(E,D)"
 by (simp add: projpair_def)
 
-lemma projpair_ep_cont: "projpair(D,E,e,p) \<Longrightarrow> e \<in> cont(D,E) & p \<in> cont(E,D)"
+lemma projpair_ep_cont: "projpair(D,E,e,p) \<Longrightarrow> e \<in> cont(D,E) \<and> p \<in> cont(E,D)"
 by (simp add: projpair_def)
 
 lemma projpair_eq: "projpair(D,E,e,p) \<Longrightarrow> p O e = id(set(D))"
@@ -2293,7 +2293,7 @@ theorem Dinf_universal:
    mediating
     (Dinf(DD,ee),G,rho_emb(DD,ee),f,
      lub(cf(Dinf(DD,ee),G),
-         \<lambda>n \<in> nat. f(n) O Rp(DD`n,Dinf(DD,ee),rho_emb(DD,ee,n)))) &
+         \<lambda>n \<in> nat. f(n) O Rp(DD`n,Dinf(DD,ee),rho_emb(DD,ee,n)))) \<and>
    (\<forall>t. mediating(Dinf(DD,ee),G,rho_emb(DD,ee),f,t) \<longrightarrow>
      t = lub(cf(Dinf(DD,ee),G),
          \<lambda>n \<in> nat. f(n) O Rp(DD`n,Dinf(DD,ee),rho_emb(DD,ee,n))))"

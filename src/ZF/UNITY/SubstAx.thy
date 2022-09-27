@@ -153,14 +153,14 @@ apply (blast intro: LeadsTo_Un subset_imp_LeadsTo LeadsTo_weaken_L LeadsTo_Trans
 done
 
 (** Distributive laws **)
-lemma LeadsTo_Un_distrib: "(F \<in> (A \<union> B) \<longmapsto>w C)  \<longleftrightarrow> (F \<in> A \<longmapsto>w C & F \<in> B \<longmapsto>w C)"
+lemma LeadsTo_Un_distrib: "(F \<in> (A \<union> B) \<longmapsto>w C)  \<longleftrightarrow> (F \<in> A \<longmapsto>w C \<and> F \<in> B \<longmapsto>w C)"
 by (blast intro: LeadsTo_Un LeadsTo_weaken_L)
 
-lemma LeadsTo_UN_distrib: "(F \<in> (\<Union>i \<in> I. A(i)) \<longmapsto>w B) \<longleftrightarrow>  (\<forall>i \<in> I. F \<in> A(i) \<longmapsto>w B) & F \<in> program"
+lemma LeadsTo_UN_distrib: "(F \<in> (\<Union>i \<in> I. A(i)) \<longmapsto>w B) \<longleftrightarrow>  (\<forall>i \<in> I. F \<in> A(i) \<longmapsto>w B) \<and> F \<in> program"
 by (blast dest: LeadsTo_type [THEN subsetD]
              intro: LeadsTo_UN LeadsTo_weaken_L)
 
-lemma LeadsTo_Union_distrib: "(F \<in> \<Union>(S) \<longmapsto>w B)  \<longleftrightarrow>  (\<forall>A \<in> S. F \<in> A \<longmapsto>w B) & F \<in> program"
+lemma LeadsTo_Union_distrib: "(F \<in> \<Union>(S) \<longmapsto>w B)  \<longleftrightarrow>  (\<forall>A \<in> S. F \<in> A \<longmapsto>w B) \<and> F \<in> program"
 by (blast dest: LeadsTo_type [THEN subsetD]
              intro: LeadsTo_Union LeadsTo_weaken_L)
 
@@ -353,7 +353,7 @@ fun ensures_tac ctxt sact =
                 ORELSE   (*subgoal may involve LeadsTo, leadsTo or ensures*)
                 REPEAT (ares_tac ctxt [@{thm LeadsTo_Basis}, @{thm leadsTo_Basis},
                                   @{thm EnsuresI}, @{thm ensuresI}] 1),
-            (*now there are two subgoals: co & transient*)
+            (*now there are two subgoals: co \<and> transient*)
             simp_tac (ctxt addsimps (Named_Theorems.get ctxt \<^named_theorems>\<open>program\<close>)) 2,
             Rule_Insts.res_inst_tac ctxt
               [((("act", 0), Position.none), sact)] [] @{thm transientI} 2,

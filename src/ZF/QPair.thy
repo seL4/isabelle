@@ -38,7 +38,7 @@ definition
 
 definition
   qconverse :: "i => i"  where
-    "qconverse(r) \<equiv> {z. w \<in> r, \<exists>x y. w=<x;y> & z=<y;x>}"
+    "qconverse(r) \<equiv> {z. w \<in> r, \<exists>x y. w=<x;y> \<and> z=<y;x>}"
 
 definition
   QSigma    :: "[i, i => i] => i"  where
@@ -77,7 +77,7 @@ subsection\<open>Quine ordered pairing\<close>
 lemma QPair_empty [simp]: "<0;0> = 0"
 by (simp add: QPair_def)
 
-lemma QPair_iff [simp]: "<a;b> = <c;d> \<longleftrightarrow> a=c & b=d"
+lemma QPair_iff [simp]: "<a;b> = <c;d> \<longleftrightarrow> a=c \<and> b=d"
 apply (simp add: QPair_def)
 apply (rule sum_equal_iff)
 done
@@ -263,13 +263,13 @@ by blast
 (** <+> is itself injective... who cares?? **)
 
 lemma qsum_iff:
-     "u \<in> A <+> B \<longleftrightarrow> (\<exists>x. x \<in> A & u=QInl(x)) | (\<exists>y. y \<in> B & u=QInr(y))"
+     "u \<in> A <+> B \<longleftrightarrow> (\<exists>x. x \<in> A \<and> u=QInl(x)) | (\<exists>y. y \<in> B \<and> u=QInr(y))"
 by blast
 
-lemma qsum_subset_iff: "A <+> B \<subseteq> C <+> D \<longleftrightarrow> A<=C & B<=D"
+lemma qsum_subset_iff: "A <+> B \<subseteq> C <+> D \<longleftrightarrow> A<=C \<and> B<=D"
 by blast
 
-lemma qsum_equal_iff: "A <+> B = C <+> D \<longleftrightarrow> A=C & B=D"
+lemma qsum_equal_iff: "A <+> B = C <+> D \<longleftrightarrow> A=C \<and> B=D"
 apply (simp (no_asm) add: extension qsum_subset_iff)
 apply blast
 done

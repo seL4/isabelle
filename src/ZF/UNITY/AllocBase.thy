@@ -71,12 +71,12 @@ definition
 
 subsection\<open>Various simple lemmas\<close>
 
-lemma Nclients_NbT_gt_0 [simp]: "0 < Nclients & 0 < NbT"
+lemma Nclients_NbT_gt_0 [simp]: "0 < Nclients \<and> 0 < NbT"
 apply (cut_tac Nclients_pos NbT_pos)
 apply (auto intro: Ord_0_lt)
 done
 
-lemma Nclients_NbT_not_0 [simp]: "Nclients \<noteq> 0 & NbT \<noteq> 0"
+lemma Nclients_NbT_not_0 [simp]: "Nclients \<noteq> 0 \<and> NbT \<noteq> 0"
 by (cut_tac Nclients_pos NbT_pos, auto)
 
 lemma Nclients_type [simp,TC]: "Nclients\<in>nat"
@@ -94,7 +94,7 @@ lemma setsum_fun_mono [rule_format]:
       (\<forall>i\<in>nat. i<n \<longrightarrow> f(i) $\<le> g(i)) \<longrightarrow>  
       setsum(f, n) $\<le> setsum(g,n)"
 apply (induct_tac "n", simp_all)
-apply (subgoal_tac "Finite(x) & x\<notin>x")
+apply (subgoal_tac "Finite(x) \<and> x\<notin>x")
  prefer 2 apply (simp add: nat_into_Finite mem_not_refl, clarify)
 apply (simp (no_asm_simp) add: succ_def)
 apply (subgoal_tac "\<forall>i\<in>nat. i<x\<longrightarrow> f(i) $\<le> g(i) ")
@@ -135,7 +135,7 @@ apply (auto simp add: Mult_iff_multiset)
 done
 
 lemma bag_of_multiset:
-     "l\<in>list(A) \<Longrightarrow> multiset(bag_of(l)) & mset_of(bag_of(l))<=A"
+     "l\<in>list(A) \<Longrightarrow> multiset(bag_of(l)) \<and> mset_of(bag_of(l))<=A"
 apply (drule bag_of_type)
 apply (auto simp add: Mult_iff_multiset)
 done
@@ -279,7 +279,7 @@ by (unfold all_distinct_def, auto)
 
 lemma all_distinct_Cons [simp]: 
     "all_distinct(Cons(a,l)) \<longleftrightarrow>  
-      (a\<in>set_of_list(l) \<longrightarrow> False) & (a \<notin> set_of_list(l) \<longrightarrow> all_distinct(l))"
+      (a\<in>set_of_list(l) \<longrightarrow> False) \<and> (a \<notin> set_of_list(l) \<longrightarrow> all_distinct(l))"
 apply (unfold all_distinct_def)
 apply (auto elim: list.cases)
 done

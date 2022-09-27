@@ -10,7 +10,7 @@ theory Int imports EquivClass ArithSimp begin
 definition
   intrel :: i  where
     "intrel \<equiv> {p \<in> (nat*nat)*(nat*nat).
-                \<exists>x1 y1 x2 y2. p=<<x1,y1>,<x2,y2>> & x1#+y2 = x2#+y1}"
+                \<exists>x1 y1 x2 y2. p=<<x1,y1>,<x2,y2>> \<and> x1#+y2 = x2#+y1}"
 
 definition
   int :: i  where
@@ -34,7 +34,7 @@ definition
 
 definition
   znegative   ::      "i=>o"  where
-    "znegative(z) \<equiv> \<exists>x y. x<y & y\<in>nat & <x,y>\<in>z"
+    "znegative(z) \<equiv> \<exists>x y. x<y \<and> y\<in>nat \<and> <x,y>\<in>z"
 
 definition
   iszero      ::      "i=>o"  where
@@ -52,8 +52,8 @@ definition
   zmagnitude  ::      "i=>i"  where
   \<comment> \<open>could be replaced by an absolute value function from int to int?\<close>
     "zmagnitude(z) \<equiv>
-     THE m. m\<in>nat & ((\<not> znegative(z) & z = $# m) |
-                       (znegative(z) & $- z = $# m))"
+     THE m. m\<in>nat \<and> ((\<not> znegative(z) \<and> z = $# m) |
+                       (znegative(z) \<and> $- z = $# m))"
 
 definition
   raw_zmult   ::      "[i,i]=>i"  where
@@ -99,7 +99,7 @@ subsection\<open>Proving that \<^term>\<open>intrel\<close> is an equivalence re
 
 lemma intrel_iff [simp]:
     "<<x1,y1>,<x2,y2>>: intrel \<longleftrightarrow>
-     x1\<in>nat & y1\<in>nat & x2\<in>nat & y2\<in>nat & x1#+y2 = x2#+y1"
+     x1\<in>nat \<and> y1\<in>nat \<and> x2\<in>nat \<and> y2\<in>nat \<and> x1#+y2 = x2#+y1"
 by (simp add: intrel_def)
 
 lemma intrelI [intro!]:

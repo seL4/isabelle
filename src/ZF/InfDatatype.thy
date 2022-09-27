@@ -12,7 +12,7 @@ lemmas fun_Limit_VfromE =
 
 lemma fun_Vcsucc_lemma:
   assumes f: "f \<in> D -> Vfrom(A,csucc(K))" and DK: "|D| \<le> K" and ICK: "InfCard(K)"
-  shows "\<exists>j. f \<in> D -> Vfrom(A,j) & j < csucc(K)"
+  shows "\<exists>j. f \<in> D -> Vfrom(A,j) \<and> j < csucc(K)"
 proof (rule exI, rule conjI)
   show "f \<in> D \<rightarrow> Vfrom(A, \<Union>z\<in>D. \<mu> i. f`z \<in> Vfrom (A,i))"
     proof (rule Pi_type [OF f])
@@ -46,7 +46,7 @@ qed
 
 lemma subset_Vcsucc:
      "\<lbrakk>D \<subseteq> Vfrom(A,csucc(K));  |D| \<le> K;  InfCard(K)\<rbrakk>
-      \<Longrightarrow> \<exists>j. D \<subseteq> Vfrom(A,j) & j < csucc(K)"
+      \<Longrightarrow> \<exists>j. D \<subseteq> Vfrom(A,j) \<and> j < csucc(K)"
 by (simp add: subset_iff_id fun_Vcsucc_lemma)
 
 (*Version for arbitrary index sets*)

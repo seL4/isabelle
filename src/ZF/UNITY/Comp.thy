@@ -23,16 +23,16 @@ definition
 
 definition
   strict_component :: "[i,i]=>o" (infixl \<open>strict'_component\<close> 65)  where
-  "F strict_component H \<equiv> F component H & F\<noteq>H"
+  "F strict_component H \<equiv> F component H \<and> F\<noteq>H"
 
 definition
   (* A stronger form of the component relation *)
   component_of :: "[i,i]=>o"   (infixl \<open>component'_of\<close> 65)  where
-  "F component_of H  \<equiv> (\<exists>G. F ok G & F \<squnion> G = H)"
+  "F component_of H  \<equiv> (\<exists>G. F ok G \<and> F \<squnion> G = H)"
   
 definition
   strict_component_of :: "[i,i]=>o" (infixl \<open>strict'_component'_of\<close> 65)  where
-  "F strict_component_of H  \<equiv> F component_of H  & F\<noteq>H"
+  "F strict_component_of H  \<equiv> F component_of H  \<and> F\<noteq>H"
 
 definition
   (* Preserves a state function f, in particular a variable *)
@@ -61,7 +61,7 @@ done
 
 lemma component_eq_subset: 
      "G \<in> program \<Longrightarrow> (F component G) \<longleftrightarrow>  
-   (Init(G) \<subseteq> Init(F) & Acts(F) \<subseteq> Acts(G) & AllowedActs(G) \<subseteq> AllowedActs(F))"
+   (Init(G) \<subseteq> Init(F) \<and> Acts(F) \<subseteq> Acts(G) \<and> AllowedActs(G) \<subseteq> AllowedActs(F))"
 apply (unfold component_def, auto)
 apply (rule exI)
 apply (rule program_equalityI, auto)
@@ -121,7 +121,7 @@ apply (blast intro: Join_assoc [symmetric])
 done
 
 lemma component_antisym:
-     "\<lbrakk>F \<in> program; G \<in> program\<rbrakk> \<Longrightarrow>(F component G & G  component F) \<longrightarrow> F = G"
+     "\<lbrakk>F \<in> program; G \<in> program\<rbrakk> \<Longrightarrow>(F component G \<and> G  component F) \<longrightarrow> F = G"
 apply (simp (no_asm_simp) add: component_eq_subset)
 apply clarify
 apply (rule program_equalityI, auto)
@@ -129,7 +129,7 @@ done
 
 lemma Join_component_iff:
      "H \<in> program \<Longrightarrow> 
-      ((F \<squnion> G) component H) \<longleftrightarrow> (F component H & G component H)"
+      ((F \<squnion> G) component H) \<longleftrightarrow> (F component H \<and> G component H)"
 apply (simp (no_asm_simp) add: component_eq_subset)
 apply blast
 done
@@ -158,13 +158,13 @@ done
 lemma preserves_imp_eq: 
      "\<lbrakk>F \<in> preserves(f);  act \<in> Acts(F);  <s,t> \<in> act\<rbrakk> \<Longrightarrow> f(s) = f(t)"
 apply (unfold preserves_def stable_def constrains_def)
-apply (subgoal_tac "s \<in> state & t \<in> state")
+apply (subgoal_tac "s \<in> state \<and> t \<in> state")
  prefer 2 apply (blast dest!: Acts_type [THEN subsetD], force) 
 done
 
 lemma Join_preserves [iff]: 
 "(F \<squnion> G \<in> preserves(v)) \<longleftrightarrow>   
-      (programify(F) \<in> preserves(v) & programify(G) \<in> preserves(v))"
+      (programify(F) \<in> preserves(v) \<and> programify(G) \<in> preserves(v))"
 by (auto simp add: preserves_def INT_iff)
  
 lemma JOIN_preserves [iff]:
@@ -297,7 +297,7 @@ done
 lemma Increasing_preserves_Stable:
      "\<lbrakk>F \<in> stable({s \<in> state. <f(s), g(s)>:r});  G \<in> preserves(f);    
          F \<squnion> G \<in> Increasing(A, r, g);  
-         \<forall>x \<in> state. f(x):A & g(x):A\<rbrakk>      
+         \<forall>x \<in> state. f(x):A \<and> g(x):A\<rbrakk>      
       \<Longrightarrow> F \<squnion> G \<in> Stable({s \<in> state. <f(s), g(s)>:r})"
 apply (auto simp add: stable_def Stable_def Increasing_def Constrains_def all_conj_distrib)
 apply (simp_all add: constrains_type [THEN subsetD] preserves_type [THEN subsetD])

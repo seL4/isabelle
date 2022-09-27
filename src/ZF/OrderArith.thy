@@ -13,21 +13,21 @@ definition
     "radd(A,r,B,s) \<equiv>
                 {z: (A+B) * (A+B).
                     (\<exists>x y. z = <Inl(x), Inr(y)>)   |
-                    (\<exists>x' x. z = <Inl(x'), Inl(x)> & <x',x>:r)   |
-                    (\<exists>y' y. z = <Inr(y'), Inr(y)> & <y',y>:s)}"
+                    (\<exists>x' x. z = <Inl(x'), Inl(x)> \<and> <x',x>:r)   |
+                    (\<exists>y' y. z = <Inr(y'), Inr(y)> \<and> <y',y>:s)}"
 
 definition
   (*lexicographic product of two relations; underlies ordinal multiplication*)
   rmult   :: "[i,i,i,i]=>i"  where
     "rmult(A,r,B,s) \<equiv>
                 {z: (A*B) * (A*B).
-                    \<exists>x' y' x y. z = <<x',y'>, <x,y>> &
-                       (<x',x>: r | (x'=x & <y',y>: s))}"
+                    \<exists>x' y' x y. z = <<x',y'>, <x,y>> \<and>
+                       (<x',x>: r | (x'=x \<and> <y',y>: s))}"
 
 definition
   (*inverse image of a relation*)
   rvimage :: "[i,i,i]=>i"  where
-    "rvimage(A,f,r) \<equiv> {z \<in> A*A. \<exists>x y. z = <x,y> & <f`x,f`y>: r}"
+    "rvimage(A,f,r) \<equiv> {z \<in> A*A. \<exists>x y. z = <x,y> \<and> <f`x,f`y>: r}"
 
 definition
   measure :: "[i, i\<Rightarrow>i] \<Rightarrow> i"  where
@@ -39,15 +39,15 @@ subsection\<open>Addition of Relations -- Disjoint Sum\<close>
 subsubsection\<open>Rewrite rules.  Can be used to obtain introduction rules\<close>
 
 lemma radd_Inl_Inr_iff [iff]:
-    "<Inl(a), Inr(b)> \<in> radd(A,r,B,s)  \<longleftrightarrow>  a \<in> A & b \<in> B"
+    "<Inl(a), Inr(b)> \<in> radd(A,r,B,s)  \<longleftrightarrow>  a \<in> A \<and> b \<in> B"
 by (unfold radd_def, blast)
 
 lemma radd_Inl_iff [iff]:
-    "<Inl(a'), Inl(a)> \<in> radd(A,r,B,s)  \<longleftrightarrow>  a':A & a \<in> A & <a',a>:r"
+    "<Inl(a'), Inl(a)> \<in> radd(A,r,B,s)  \<longleftrightarrow>  a':A \<and> a \<in> A \<and> <a',a>:r"
 by (unfold radd_def, blast)
 
 lemma radd_Inr_iff [iff]:
-    "<Inr(b'), Inr(b)> \<in> radd(A,r,B,s) \<longleftrightarrow>  b':B & b \<in> B & <b',b>:s"
+    "<Inr(b'), Inr(b)> \<in> radd(A,r,B,s) \<longleftrightarrow>  b':B \<and> b \<in> B \<and> <b',b>:s"
 by (unfold radd_def, blast)
 
 lemma radd_Inr_Inl_iff [simp]:
@@ -164,8 +164,8 @@ subsubsection\<open>Rewrite rule.  Can be used to obtain introduction rules\<clo
 
 lemma  rmult_iff [iff]:
     "<<a',b'>, <a,b>> \<in> rmult(A,r,B,s) \<longleftrightarrow>
-            (<a',a>: r  & a':A & a \<in> A & b': B & b \<in> B) |
-            (<b',b>: s  & a'=a & a \<in> A & b': B & b \<in> B)"
+            (<a',a>: r  \<and> a':A \<and> a \<in> A \<and> b': B \<and> b \<in> B) |
+            (<b',b>: s  \<and> a'=a \<and> a \<in> A \<and> b': B \<and> b \<in> B)"
 
 by (unfold rmult_def, blast)
 
@@ -307,7 +307,7 @@ subsection\<open>Inverse Image of a Relation\<close>
 
 subsubsection\<open>Rewrite rule\<close>
 
-lemma rvimage_iff: "<a,b> \<in> rvimage(A,f,r)  \<longleftrightarrow>  <f`a,f`b>: r & a \<in> A & b \<in> A"
+lemma rvimage_iff: "<a,b> \<in> rvimage(A,f,r)  \<longleftrightarrow>  <f`a,f`b>: r \<and> a \<in> A \<and> b \<in> A"
 by (unfold rvimage_def, blast)
 
 subsubsection\<open>Type checking\<close>
@@ -361,7 +361,7 @@ subsubsection\<open>Well-foundedness\<close>
 lemma wf_rvimage [intro!]: "wf(r) \<Longrightarrow> wf(rvimage(A,f,r))"
 apply (simp (no_asm_use) add: rvimage_def wf_eq_minimal)
 apply clarify
-apply (subgoal_tac "\<exists>w. w \<in> {w: {f`x. x \<in> Q}. \<exists>x. x \<in> Q & (f`x = w) }")
+apply (subgoal_tac "\<exists>w. w \<in> {w: {f`x. x \<in> Q}. \<exists>x. x \<in> Q \<and> (f`x = w) }")
  apply (erule allE)
  apply (erule impE)
  apply assumption
@@ -440,7 +440,7 @@ done
 
 
 lemma wf_imp_subset_rvimage:
-     "\<lbrakk>wf(r); r \<subseteq> A*A\<rbrakk> \<Longrightarrow> \<exists>i f. Ord(i) & r \<subseteq> rvimage(A, f, Memrel(i))"
+     "\<lbrakk>wf(r); r \<subseteq> A*A\<rbrakk> \<Longrightarrow> \<exists>i f. Ord(i) \<and> r \<subseteq> rvimage(A, f, Memrel(i))"
 apply (rule_tac x="wftype(r)" in exI)
 apply (rule_tac x="\<lambda>x\<in>A. wfrank(r,x)" in exI)
 apply (simp add: Ord_wftype, clarify)
@@ -450,7 +450,7 @@ apply (blast intro: wftypeI)
 done
 
 theorem wf_iff_subset_rvimage:
-  "relation(r) \<Longrightarrow> wf(r) \<longleftrightarrow> (\<exists>i f A. Ord(i) & r \<subseteq> rvimage(A, f, Memrel(i)))"
+  "relation(r) \<Longrightarrow> wf(r) \<longleftrightarrow> (\<exists>i f A. Ord(i) \<and> r \<subseteq> rvimage(A, f, Memrel(i)))"
 by (blast dest!: relation_field_times_field wf_imp_subset_rvimage
           intro: wf_rvimage_Ord [THEN wf_subset])
 
@@ -496,7 +496,7 @@ done
 lemma wf_measure [iff]: "wf(measure(A,f))"
 by (simp (no_asm) add: measure_eq_rvimage_Memrel wf_Memrel wf_rvimage)
 
-lemma measure_iff [iff]: "<x,y> \<in> measure(A,f) \<longleftrightarrow> x \<in> A & y \<in> A & f(x)<f(y)"
+lemma measure_iff [iff]: "<x,y> \<in> measure(A,f) \<longleftrightarrow> x \<in> A \<and> y \<in> A \<and> f(x)<f(y)"
 by (simp (no_asm) add: measure_def)
 
 lemma linear_measure:
@@ -530,7 +530,7 @@ lemma wf_on_Union:
  assumes wfA: "wf[A](r)"
      and wfB: "\<And>a. a\<in>A \<Longrightarrow> wf[B(a)](s)"
      and ok: "\<And>a u v. \<lbrakk><u,v> \<in> s; v \<in> B(a); a \<in> A\<rbrakk>
-                       \<Longrightarrow> (\<exists>a'\<in>A. <a',a> \<in> r & u \<in> B(a')) | u \<in> B(a)"
+                       \<Longrightarrow> (\<exists>a'\<in>A. <a',a> \<in> r \<and> u \<in> B(a')) | u \<in> B(a)"
  shows "wf[\<Union>a\<in>A. B(a)](s)"
 apply (rule wf_onI2)
 apply (erule UN_E)

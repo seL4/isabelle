@@ -110,7 +110,7 @@ lemma map_lemma: "\<lbrakk>l \<in> list(A);  Ord(i);  rank(l)<i\<rbrakk>
   \<comment> \<open>\<^term>\<open>map\<close> works correctly on the underlying list of terms.\<close>
   apply (induct set: list)
    apply simp
-  apply (subgoal_tac "rank (a) <i & rank (l) < i")
+  apply (subgoal_tac "rank (a) <i \<and> rank (l) < i")
    apply (simp add: rank_of_Ord)
   apply (simp add: list.con_defs)
   apply (blast dest: rank_rls [THEN lt_trans])

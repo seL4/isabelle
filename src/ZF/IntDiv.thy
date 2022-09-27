@@ -36,8 +36,8 @@ begin
 definition
   quorem :: "[i,i] => o"  where
     "quorem \<equiv> %<a,b> <q,r>.
-                      a = b$*q $+ r &
-                      (#0$<b & #0$\<le>r & r$<b | \<not>(#0$<b) & b$<r & r $\<le> #0)"
+                      a = b$*q $+ r \<and>
+                      (#0$<b \<and> #0$\<le>r \<and> r$<b | \<not>(#0$<b) \<and> b$<r \<and> r $\<le> #0)"
 
 definition
   adjust :: "[i,i] => i"  where
@@ -298,7 +298,7 @@ done
 
 lemma zmult_zless_lemma:
      "\<lbrakk>k \<in> int; m \<in> int; n \<in> int\<rbrakk>
-      \<Longrightarrow> (m$*k $< n$*k) \<longleftrightarrow> ((#0 $< k & m$<n) | (k $< #0 & n$<m))"
+      \<Longrightarrow> (m$*k $< n$*k) \<longleftrightarrow> ((#0 $< k \<and> m$<n) | (k $< #0 \<and> n$<m))"
 apply (case_tac "k = #0")
 apply (auto simp add: neq_iff_zless zmult_zless_mono1 zmult_zless_mono1_neg)
 apply (auto simp add: not_zless_iff_zle
@@ -309,25 +309,25 @@ apply (auto elim: notE
 done
 
 lemma zmult_zless_cancel2:
-     "(m$*k $< n$*k) \<longleftrightarrow> ((#0 $< k & m$<n) | (k $< #0 & n$<m))"
+     "(m$*k $< n$*k) \<longleftrightarrow> ((#0 $< k \<and> m$<n) | (k $< #0 \<and> n$<m))"
 apply (cut_tac k = "intify (k)" and m = "intify (m)" and n = "intify (n)"
        in zmult_zless_lemma)
 apply auto
 done
 
 lemma zmult_zless_cancel1:
-     "(k$*m $< k$*n) \<longleftrightarrow> ((#0 $< k & m$<n) | (k $< #0 & n$<m))"
+     "(k$*m $< k$*n) \<longleftrightarrow> ((#0 $< k \<and> m$<n) | (k $< #0 \<and> n$<m))"
 by (simp add: zmult_commute [of k] zmult_zless_cancel2)
 
 lemma zmult_zle_cancel2:
-     "(m$*k $\<le> n$*k) \<longleftrightarrow> ((#0 $< k \<longrightarrow> m$\<le>n) & (k $< #0 \<longrightarrow> n$\<le>m))"
+     "(m$*k $\<le> n$*k) \<longleftrightarrow> ((#0 $< k \<longrightarrow> m$\<le>n) \<and> (k $< #0 \<longrightarrow> n$\<le>m))"
 by (auto simp add: not_zless_iff_zle [THEN iff_sym] zmult_zless_cancel2)
 
 lemma zmult_zle_cancel1:
-     "(k$*m $\<le> k$*n) \<longleftrightarrow> ((#0 $< k \<longrightarrow> m$\<le>n) & (k $< #0 \<longrightarrow> n$\<le>m))"
+     "(k$*m $\<le> k$*n) \<longleftrightarrow> ((#0 $< k \<longrightarrow> m$\<le>n) \<and> (k $< #0 \<longrightarrow> n$\<le>m))"
 by (auto simp add: not_zless_iff_zle [THEN iff_sym] zmult_zless_cancel1)
 
-lemma int_eq_iff_zle: "\<lbrakk>m \<in> int; n \<in> int\<rbrakk> \<Longrightarrow> m=n \<longleftrightarrow> (m $\<le> n & n $\<le> m)"
+lemma int_eq_iff_zle: "\<lbrakk>m \<in> int; n \<in> int\<rbrakk> \<Longrightarrow> m=n \<longleftrightarrow> (m $\<le> n \<and> n $\<le> m)"
 apply (blast intro: zle_refl zle_anti_sym)
 done
 
@@ -462,7 +462,7 @@ done
 
 (*FIXME: use intify in integ_of so that we always have @{term"integ_of w \<in> int"}.
     then this rewrite can work for all constants\<And>*)
-lemma intify_eq_0_iff_zle: "intify(m) = #0 \<longleftrightarrow> (m $\<le> #0 & #0 $\<le> m)"
+lemma intify_eq_0_iff_zle: "intify(m) = #0 \<longleftrightarrow> (m $\<le> #0 \<and> #0 $\<le> m)"
   by (simp add: int_eq_iff_zle)
 
 
@@ -482,7 +482,7 @@ lemma zmult_pos_neg: "\<lbrakk>#0 $< i; j $< #0\<rbrakk> \<Longrightarrow> i $* 
 
 lemma int_0_less_lemma:
      "\<lbrakk>x \<in> int; y \<in> int\<rbrakk>
-      \<Longrightarrow> (#0 $< x $* y) \<longleftrightarrow> (#0 $< x & #0 $< y | x $< #0 & y $< #0)"
+      \<Longrightarrow> (#0 $< x $* y) \<longleftrightarrow> (#0 $< x \<and> #0 $< y | x $< #0 \<and> y $< #0)"
 apply (auto simp add: zle_def not_zless_iff_zle zmult_pos zmult_neg)
 apply (rule ccontr)
 apply (rule_tac [2] ccontr)
@@ -496,30 +496,30 @@ apply (auto dest: zless_not_sym simp add: zmult_commute)
 done
 
 lemma int_0_less_mult_iff:
-     "(#0 $< x $* y) \<longleftrightarrow> (#0 $< x & #0 $< y | x $< #0 & y $< #0)"
+     "(#0 $< x $* y) \<longleftrightarrow> (#0 $< x \<and> #0 $< y | x $< #0 \<and> y $< #0)"
 apply (cut_tac x = "intify (x)" and y = "intify (y)" in int_0_less_lemma)
 apply auto
 done
 
 lemma int_0_le_lemma:
      "\<lbrakk>x \<in> int; y \<in> int\<rbrakk>
-      \<Longrightarrow> (#0 $\<le> x $* y) \<longleftrightarrow> (#0 $\<le> x & #0 $\<le> y | x $\<le> #0 & y $\<le> #0)"
+      \<Longrightarrow> (#0 $\<le> x $* y) \<longleftrightarrow> (#0 $\<le> x \<and> #0 $\<le> y | x $\<le> #0 \<and> y $\<le> #0)"
 by (auto simp add: zle_def not_zless_iff_zle int_0_less_mult_iff)
 
 lemma int_0_le_mult_iff:
-     "(#0 $\<le> x $* y) \<longleftrightarrow> ((#0 $\<le> x & #0 $\<le> y) | (x $\<le> #0 & y $\<le> #0))"
+     "(#0 $\<le> x $* y) \<longleftrightarrow> ((#0 $\<le> x \<and> #0 $\<le> y) | (x $\<le> #0 \<and> y $\<le> #0))"
 apply (cut_tac x = "intify (x)" and y = "intify (y)" in int_0_le_lemma)
 apply auto
 done
 
 lemma zmult_less_0_iff:
-     "(x $* y $< #0) \<longleftrightarrow> (#0 $< x & y $< #0 | x $< #0 & #0 $< y)"
+     "(x $* y $< #0) \<longleftrightarrow> (#0 $< x \<and> y $< #0 | x $< #0 \<and> #0 $< y)"
 apply (auto simp add: int_0_le_mult_iff not_zle_iff_zless [THEN iff_sym])
 apply (auto dest: zless_not_sym simp add: not_zle_iff_zless)
 done
 
 lemma zmult_le_0_iff:
-     "(x $* y $\<le> #0) \<longleftrightarrow> (#0 $\<le> x & y $\<le> #0 | x $\<le> #0 & #0 $\<le> y)"
+     "(x $* y $\<le> #0) \<longleftrightarrow> (#0 $\<le> x \<and> y $\<le> #0 | x $\<le> #0 \<and> #0 $\<le> y)"
 by (auto dest: zless_not_sym
          simp add: int_0_less_mult_iff not_zless_iff_zle [THEN iff_sym])
 
@@ -778,7 +778,7 @@ apply (rule_tac b = "intify (b)" in raw_zmod_zdiv_equality)
 apply auto
 done
 
-lemma pos_mod: "#0 $< b \<Longrightarrow> #0 $\<le> a zmod b & a zmod b $< b"
+lemma pos_mod: "#0 $< b \<Longrightarrow> #0 $\<le> a zmod b \<and> a zmod b $< b"
 apply (cut_tac a = "intify (a)" and b = "intify (b)" in divAlg_correct)
 apply (auto simp add: intify_eq_0_iff_zle quorem_def zmod_def split_def)
 apply (blast dest: zle_zless_trans)+
@@ -787,7 +787,7 @@ done
 lemmas pos_mod_sign = pos_mod [THEN conjunct1]
   and pos_mod_bound = pos_mod [THEN conjunct2]
 
-lemma neg_mod: "b $< #0 \<Longrightarrow> a zmod b $\<le> #0 & b $< a zmod b"
+lemma neg_mod: "b $< #0 \<Longrightarrow> a zmod b $\<le> #0 \<and> b $< a zmod b"
 apply (cut_tac a = "intify (a)" and b = "intify (b)" in divAlg_correct)
 apply (auto simp add: intify_eq_0_iff_zle quorem_def zmod_def split_def)
 apply (blast dest: zle_zless_trans)

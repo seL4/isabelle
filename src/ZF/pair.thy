@@ -18,7 +18,7 @@ setup \<open>
 
 ML \<open>val ZF_ss = simpset_of \<^context>\<close>
 
-simproc_setup defined_Bex ("\<exists>x\<in>A. P(x) & Q(x)") = \<open>
+simproc_setup defined_Bex ("\<exists>x\<in>A. P(x) \<and> Q(x)") = \<open>
   fn _ => Quantifier1.rearrange_Bex
     (fn ctxt => unfold_tac ctxt @{thms Bex_def})
 \<close>
@@ -34,10 +34,10 @@ simproc_setup defined_Ball ("\<forall>x\<in>A. P(x) \<longrightarrow> Q(x)") = \
 lemma singleton_eq_iff [iff]: "{a} = {b} \<longleftrightarrow> a=b"
 by (rule extension [THEN iff_trans], blast)
 
-lemma doubleton_eq_iff: "{a,b} = {c,d} \<longleftrightarrow> (a=c & b=d) | (a=d & b=c)"
+lemma doubleton_eq_iff: "{a,b} = {c,d} \<longleftrightarrow> (a=c \<and> b=d) | (a=d \<and> b=c)"
 by (rule extension [THEN iff_trans], blast)
 
-lemma Pair_iff [simp]: "<a,b> = <c,d> \<longleftrightarrow> a=c & b=d"
+lemma Pair_iff [simp]: "<a,b> = <c,d> \<longleftrightarrow> a=c \<and> b=d"
 by (simp add: Pair_def doubleton_eq_iff, blast)
 
 lemmas Pair_inject = Pair_iff [THEN iffD1, THEN conjE, elim!]
@@ -77,7 +77,7 @@ subsection\<open>Sigma: Disjoint Union of a Family of Sets\<close>
 
 text\<open>Generalizes Cartesian product\<close>
 
-lemma Sigma_iff [simp]: "<a,b>: Sigma(A,B) \<longleftrightarrow> a \<in> A & b \<in> B(a)"
+lemma Sigma_iff [simp]: "<a,b>: Sigma(A,B) \<longleftrightarrow> a \<in> A \<and> b \<in> B(a)"
 by (simp add: Sigma_def)
 
 lemma SigmaI [TC,intro!]: "\<lbrakk>a \<in> A;  b \<in> B(a)\<rbrakk> \<Longrightarrow> <a,b> \<in> Sigma(A,B)"

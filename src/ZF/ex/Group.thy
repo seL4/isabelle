@@ -35,7 +35,7 @@ definition
 
 definition
   m_inv :: "i => i => i" (\<open>inv\<index> _\<close> [81] 80) where
-  "inv\<^bsub>G\<^esub> x \<equiv> (THE y. y \<in> carrier(G) & y \<cdot>\<^bsub>G\<^esub> x = \<one>\<^bsub>G\<^esub> & x \<cdot>\<^bsub>G\<^esub> y = \<one>\<^bsub>G\<^esub>)"
+  "inv\<^bsub>G\<^esub> x \<equiv> (THE y. y \<in> carrier(G) \<and> y \<cdot>\<^bsub>G\<^esub> x = \<one>\<^bsub>G\<^esub> \<and> x \<cdot>\<^bsub>G\<^esub> y = \<one>\<^bsub>G\<^esub>)"
 
 locale monoid = fixes G (structure)
   assumes m_closed [intro, simp]:
@@ -87,7 +87,7 @@ text \<open>
 
 locale group = monoid +
   assumes inv_ex:
-     "\<And>x. x \<in> carrier(G) \<Longrightarrow> \<exists>y \<in> carrier(G). y \<cdot> x = \<one> & x \<cdot> y = \<one>"
+     "\<And>x. x \<in> carrier(G) \<Longrightarrow> \<exists>y \<in> carrier(G). y \<cdot> x = \<one> \<and> x \<cdot> y = \<one>"
 
 lemma (in group) is_group [simp]: "group(G)" by (rule group_axioms)
 
@@ -133,7 +133,7 @@ proof -
     with x xG show "x \<cdot> \<one> = x" by simp
   qed
   have inv_ex:
-    "\<And>x. x \<in> carrier(G) \<Longrightarrow> \<exists>y \<in> carrier(G). y \<cdot> x = \<one> & x \<cdot> y = \<one>"
+    "\<And>x. x \<in> carrier(G) \<Longrightarrow> \<exists>y \<in> carrier(G). y \<cdot> x = \<one> \<and> x \<cdot> y = \<one>"
   proof -
     fix x
     assume x: "x \<in> carrier(G)"
@@ -143,7 +143,7 @@ proof -
       by (simp add: m_assoc [symmetric] l_inv r_one)
     with x y have r_inv: "x \<cdot> y = \<one>"
       by simp
-    from x y show "\<exists>y \<in> carrier(G). y \<cdot> x = \<one> & x \<cdot> y = \<one>"
+    from x y show "\<exists>y \<in> carrier(G). y \<cdot> x = \<one> \<and> x \<cdot> y = \<one>"
       by (fast intro: l_inv r_inv)
   qed
   show ?thesis
@@ -152,7 +152,7 @@ proof -
 qed
 
 lemma (in group) inv [simp]:
-  "x \<in> carrier(G) \<Longrightarrow> inv x \<in> carrier(G) & inv x \<cdot> x = \<one> & x \<cdot> inv x = \<one>"
+  "x \<in> carrier(G) \<Longrightarrow> inv x \<in> carrier(G) \<and> inv x \<cdot> x = \<one> \<and> x \<cdot> inv x = \<one>"
   apply (frule inv_ex)
   apply (unfold Bex_def m_inv_def)
   apply (erule exE)
@@ -681,7 +681,7 @@ done
 text\<open>Alternative characterization of normal subgroups\<close>
 lemma (in group) normal_inv_iff:
      "(N \<lhd> G) \<longleftrightarrow>
-      (subgroup(N,G) & (\<forall>x \<in> carrier(G). \<forall>h \<in> N. x \<cdot> h \<cdot> (inv x) \<in> N))"
+      (subgroup(N,G) \<and> (\<forall>x \<in> carrier(G). \<forall>h \<in> N. x \<cdot> h \<cdot> (inv x) \<in> N))"
       (is "_ \<longleftrightarrow> ?rhs")
 proof
   assume N: "N \<lhd> G"
@@ -739,7 +739,7 @@ proof (simp add: l_coset_def)
   assume "\<exists>h\<in>H. y = x \<cdot> h"
     and x: "x \<in> carrier(G)"
     and sb: "subgroup(H,G)"
-  then obtain h' where h': "h' \<in> H & x \<cdot> h' = y" by blast
+  then obtain h' where h': "h' \<in> H \<and> x \<cdot> h' = y" by blast
   show "\<exists>h\<in>H. x = y \<cdot> h"
   proof
     show "x = y \<cdot> inv h'" using h' x sb

@@ -36,15 +36,15 @@ by (simp add: Pair_def Int_cons_left Int_cons_right doubleton_eq_iff, blast)
 
 text\<open>These two are cited in Benzmueller and Kohlhase's system description of
  LEO, CADE-15, 1998 (page 139-143) as theorems LEO could not prove.\<close>
-lemma "(X = Y \<union> Z) \<longleftrightarrow> (Y \<subseteq> X & Z \<subseteq> X & (\<forall>V. Y \<subseteq> V & Z \<subseteq> V \<longrightarrow> X \<subseteq> V))"
+lemma "(X = Y \<union> Z) \<longleftrightarrow> (Y \<subseteq> X \<and> Z \<subseteq> X \<and> (\<forall>V. Y \<subseteq> V \<and> Z \<subseteq> V \<longrightarrow> X \<subseteq> V))"
 by (blast intro!: equalityI)
 
 text\<open>the dual of the previous one\<close>
-lemma "(X = Y \<inter> Z) \<longleftrightarrow> (X \<subseteq> Y & X \<subseteq> Z & (\<forall>V. V \<subseteq> Y & V \<subseteq> Z \<longrightarrow> V \<subseteq> X))"
+lemma "(X = Y \<inter> Z) \<longleftrightarrow> (X \<subseteq> Y \<and> X \<subseteq> Z \<and> (\<forall>V. V \<subseteq> Y \<and> V \<subseteq> Z \<longrightarrow> V \<subseteq> X))"
 by (blast intro!: equalityI)
 
 text\<open>trivial example of term synthesis: apparently hard for some provers!\<close>
-schematic_goal "a \<noteq> b \<Longrightarrow> a:?X & b \<notin> ?X"
+schematic_goal "a \<noteq> b \<Longrightarrow> a:?X \<and> b \<notin> ?X"
 by blast
 
 text\<open>Nice blast benchmark.  Proved in 0.3s; old tactics can't manage it!\<close>
@@ -63,7 +63,7 @@ lemma "(\<forall>F. {x} \<in> F \<longrightarrow> {y} \<in> F) \<longrightarrow>
 by best
 
 text\<open>A characterization of functions suggested by Tobias Nipkow\<close>
-lemma "r \<in> domain(r)->B  \<longleftrightarrow>  r \<subseteq> domain(r)*B & (\<forall>X. r `` (r -`` X) \<subseteq> X)"
+lemma "r \<in> domain(r)->B  \<longleftrightarrow>  r \<subseteq> domain(r)*B \<and> (\<forall>X. r `` (r -`` X) \<subseteq> X)"
 by (unfold Pi_def function_def, best)
 
 
@@ -80,17 +80,17 @@ declare comp_fun [simp] SigmaI [simp] apply_funtype [simp]
 (*Force helps prove conditions of rewrites such as comp_fun_apply, since
   rewriting does not instantiate Vars.*)
 lemma "(\<forall>A f B g. hom(A,f,B,g) =  
-           {H \<in> A->B. f \<in> A*A->A & g \<in> B*B->B &  
+           {H \<in> A->B. f \<in> A*A->A \<and> g \<in> B*B->B \<and>  
                      (\<forall>x \<in> A. \<forall>y \<in> A. H`(f`<x,y>) = g`<H`x,H`y>)}) \<longrightarrow>  
-       J \<in> hom(A,f,B,g) & K \<in> hom(B,g,C,h) \<longrightarrow>   
+       J \<in> hom(A,f,B,g) \<and> K \<in> hom(B,g,C,h) \<longrightarrow>   
        (K O J) \<in> hom(A,f,C,h)"
 by force
 
 text\<open>Another version, with meta-level rewriting\<close>
 lemma "(\<And>A f B g. hom(A,f,B,g) \<equiv>  
-           {H \<in> A->B. f \<in> A*A->A & g \<in> B*B->B &  
+           {H \<in> A->B. f \<in> A*A->A \<and> g \<in> B*B->B \<and>  
                      (\<forall>x \<in> A. \<forall>y \<in> A. H`(f`<x,y>) = g`<H`x,H`y>)}) 
-       \<Longrightarrow> J \<in> hom(A,f,B,g) & K \<in> hom(B,g,C,h) \<longrightarrow> (K O J) \<in> hom(A,f,C,h)"
+       \<Longrightarrow> J \<in> hom(A,f,B,g) \<and> K \<in> hom(B,g,C,h) \<longrightarrow> (K O J) \<in> hom(A,f,C,h)"
 by force
 
 

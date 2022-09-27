@@ -32,7 +32,7 @@ lemma subset_imp_Diff_eq:
      "B \<subseteq> A \<Longrightarrow> X-(\<Union>a \<in> A. P(a)) = X-(\<Union>a \<in> A-B. P(a))-(\<Union>b \<in> B. P(b))"
 by fast
 
-lemma Ord_DiffE: "\<lbrakk>c \<in> a-b; b<a\<rbrakk> \<Longrightarrow> c=b | b<c & c<a"
+lemma Ord_DiffE: "\<lbrakk>c \<in> a-b; b<a\<rbrakk> \<Longrightarrow> c=b | b<c \<and> c<a"
 apply (erule ltE)
 apply (drule Ord_linear [of _ c])
 apply (fast elim: Ord_in_Ord)

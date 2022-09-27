@@ -28,65 +28,65 @@ abbreviation "u \<equiv> Var([0,1])"
 abbreviation "v \<equiv> Var([1,0])"
 
 axiomatization where \<comment> \<open>Type declarations\<close>
-  p_type:  "type_of(p)=bool & default_val(p)=0" and
-  m_type:  "type_of(m)=int  & default_val(m)=#0" and
-  n_type:  "type_of(n)=int  & default_val(n)=#0" and
-  u_type:  "type_of(u)=bool & default_val(u)=0" and
-  v_type:  "type_of(v)=bool & default_val(v)=0"
+  p_type:  "type_of(p)=bool \<and> default_val(p)=0" and
+  m_type:  "type_of(m)=int  \<and> default_val(m)=#0" and
+  n_type:  "type_of(n)=int  \<and> default_val(n)=#0" and
+  u_type:  "type_of(u)=bool \<and> default_val(u)=0" and
+  v_type:  "type_of(v)=bool \<and> default_val(v)=0"
 
 definition
   (** The program for process U **)
-  "U0 \<equiv> {<s,t>:state*state. t = s(u:=1, m:=#1) & s`m = #0}"
+  "U0 \<equiv> {<s,t>:state*state. t = s(u:=1, m:=#1) \<and> s`m = #0}"
 
 definition
-  "U1 \<equiv> {<s,t>:state*state. t = s(p:= s`v, m:=#2) &  s`m = #1}"
+  "U1 \<equiv> {<s,t>:state*state. t = s(p:= s`v, m:=#2) \<and>  s`m = #1}"
 
 definition
-  "U2 \<equiv> {<s,t>:state*state. t = s(m:=#3) & s`p=0 & s`m = #2}"
+  "U2 \<equiv> {<s,t>:state*state. t = s(m:=#3) \<and> s`p=0 \<and> s`m = #2}"
 
 definition
-  "U3 \<equiv> {<s,t>:state*state. t=s(u:=0, m:=#4) & s`m = #3}"
+  "U3 \<equiv> {<s,t>:state*state. t=s(u:=0, m:=#4) \<and> s`m = #3}"
 
 definition
-  "U4 \<equiv> {<s,t>:state*state. t = s(p:=1, m:=#0) & s`m = #4}"
+  "U4 \<equiv> {<s,t>:state*state. t = s(p:=1, m:=#0) \<and> s`m = #4}"
 
 
    (** The program for process V **)
 
 definition
-  "V0 \<equiv> {<s,t>:state*state. t = s (v:=1, n:=#1) & s`n = #0}"
+  "V0 \<equiv> {<s,t>:state*state. t = s (v:=1, n:=#1) \<and> s`n = #0}"
 
 definition
-  "V1 \<equiv> {<s,t>:state*state. t = s(p:=not(s`u), n:=#2) & s`n = #1}"
+  "V1 \<equiv> {<s,t>:state*state. t = s(p:=not(s`u), n:=#2) \<and> s`n = #1}"
 
 definition
-  "V2 \<equiv> {<s,t>:state*state. t  = s(n:=#3) & s`p=1 & s`n = #2}"
+  "V2 \<equiv> {<s,t>:state*state. t  = s(n:=#3) \<and> s`p=1 \<and> s`n = #2}"
 
 definition
-  "V3 \<equiv> {<s,t>:state*state. t = s (v:=0, n:=#4) & s`n = #3}"
+  "V3 \<equiv> {<s,t>:state*state. t = s (v:=0, n:=#4) \<and> s`n = #3}"
 
 definition
-  "V4 \<equiv> {<s,t>:state*state. t  = s (p:=0, n:=#0) & s`n = #4}"
+  "V4 \<equiv> {<s,t>:state*state. t  = s (p:=0, n:=#0) \<and> s`n = #4}"
 
 definition
-  "Mutex \<equiv> mk_program({s:state. s`u=0 & s`v=0 & s`m = #0 & s`n = #0},
+  "Mutex \<equiv> mk_program({s:state. s`u=0 \<and> s`v=0 \<and> s`m = #0 \<and> s`n = #0},
               {U0, U1, U2, U3, U4, V0, V1, V2, V3, V4}, Pow(state*state))"
 
   (** The correct invariants **)
 
 definition
-  "IU \<equiv> {s:state. (s`u = 1\<longleftrightarrow>(#1 $\<le> s`m & s`m $\<le> #3))
-                     & (s`m = #3 \<longrightarrow> s`p=0)}"
+  "IU \<equiv> {s:state. (s`u = 1\<longleftrightarrow>(#1 $\<le> s`m \<and> s`m $\<le> #3))
+                     \<and> (s`m = #3 \<longrightarrow> s`p=0)}"
 
 definition
-  "IV \<equiv> {s:state. (s`v = 1 \<longleftrightarrow> (#1 $\<le> s`n & s`n $\<le> #3))
-                      & (s`n = #3 \<longrightarrow> s`p=1)}"
+  "IV \<equiv> {s:state. (s`v = 1 \<longleftrightarrow> (#1 $\<le> s`n \<and> s`n $\<le> #3))
+                      \<and> (s`n = #3 \<longrightarrow> s`p=1)}"
 
   (** The faulty invariant (for U alone) **)
 
 definition
-  "bad_IU \<equiv> {s:state. (s`u = 1 \<longleftrightarrow> (#1 $\<le> s`m & s`m  $\<le> #3))&
-                   (#3 $\<le> s`m & s`m $\<le> #4 \<longrightarrow> s`p=0)}"
+  "bad_IU \<equiv> {s:state. (s`u = 1 \<longleftrightarrow> (#1 $\<le> s`m \<and> s`m  $\<le> #3))\<and>
+                   (#3 $\<le> s`m \<and> s`m $\<le> #4 \<longrightarrow> s`p=0)}"
 
 
 (** Variables' types **)
@@ -174,7 +174,7 @@ apply (unfold Mutex_def, safety)
 done
 
 (*The safety property: mutual exclusion*)
-lemma mutual_exclusion: "Mutex \<in> Always({s \<in> state. \<not>(s`m = #3 & s`n = #3)})"
+lemma mutual_exclusion: "Mutex \<in> Always({s \<in> state. \<not>(s`m = #3 \<and> s`n = #3)})"
 apply (rule Always_weaken)
 apply (rule Always_Int_I [OF IU IV], auto)
 done
@@ -206,10 +206,10 @@ lemma U_F0: "Mutex \<in> {s \<in> state. s`m=#2} Unless {s \<in> state. s`m=#3}"
 by (unfold op_Unless_def Mutex_def, safety)
 
 lemma U_F1:
-     "Mutex \<in> {s \<in> state. s`m=#1} \<longmapsto>w {s \<in> state. s`p = s`v & s`m = #2}"
+     "Mutex \<in> {s \<in> state. s`m=#1} \<longmapsto>w {s \<in> state. s`p = s`v \<and> s`m = #2}"
 by (unfold Mutex_def, ensures U1)
 
-lemma U_F2: "Mutex \<in> {s \<in> state. s`p =0 & s`m = #2} \<longmapsto>w {s \<in> state. s`m = #3}"
+lemma U_F2: "Mutex \<in> {s \<in> state. s`p =0 \<and> s`m = #2} \<longmapsto>w {s \<in> state. s`m = #3}"
 apply (cut_tac IU)
 apply (unfold Mutex_def, ensures U2)
 done
@@ -232,7 +232,7 @@ done
 lemma U_lemma1: "Mutex \<in> {s \<in> state. s`m = #1} \<longmapsto>w {s \<in> state. s`p =1}"
 by (rule LeadsTo_Trans [OF U_F1 [THEN LeadsTo_weaken_R] U_lemma2], blast)
 
-lemma eq_123: "i \<in> int \<Longrightarrow> (#1 $\<le> i & i $\<le> #3) \<longleftrightarrow> (i=#1 | i=#2 | i=#3)"
+lemma eq_123: "i \<in> int \<Longrightarrow> (#1 $\<le> i \<and> i $\<le> #3) \<longleftrightarrow> (i=#1 | i=#2 | i=#3)"
 apply auto
 apply (auto simp add: neq_iff_zless)
 apply (drule_tac [4] j = "#3" and i = i in zle_zless_trans)
@@ -243,7 +243,7 @@ apply (simp_all (no_asm_simp) add: zless_add1_iff_zle [THEN iff_sym])
 done
 
 
-lemma U_lemma123: "Mutex \<in> {s \<in> state. #1 $\<le> s`m & s`m $\<le> #3} \<longmapsto>w {s \<in> state. s`p=1}"
+lemma U_lemma123: "Mutex \<in> {s \<in> state. #1 $\<le> s`m \<and> s`m $\<le> #3} \<longmapsto>w {s \<in> state. s`p=1}"
 by (simp add: eq_123 Collect_disj_eq LeadsTo_Un_distrib U_lemma1 U_lemma2 U_F3)
 
 
@@ -257,10 +257,10 @@ by (rule Always_LeadsTo_weaken [OF IU U_lemma123], auto)
 lemma V_F0: "Mutex \<in> {s \<in> state. s`n=#2} Unless {s \<in> state. s`n=#3}"
 by (unfold op_Unless_def Mutex_def, safety)
 
-lemma V_F1: "Mutex \<in> {s \<in> state. s`n=#1} \<longmapsto>w {s \<in> state. s`p = not(s`u) & s`n = #2}"
+lemma V_F1: "Mutex \<in> {s \<in> state. s`n=#1} \<longmapsto>w {s \<in> state. s`p = not(s`u) \<and> s`n = #2}"
 by (unfold Mutex_def, ensures "V1")
 
-lemma V_F2: "Mutex \<in> {s \<in> state. s`p=1 & s`n = #2} \<longmapsto>w {s \<in> state. s`n = #3}"
+lemma V_F2: "Mutex \<in> {s \<in> state. s`p=1 \<and> s`n = #2} \<longmapsto>w {s \<in> state. s`n = #3}"
 apply (cut_tac IV)
 apply (unfold Mutex_def, ensures "V2")
 done
@@ -282,7 +282,7 @@ done
 lemma V_lemma1: "Mutex \<in> {s \<in> state. s`n = #1} \<longmapsto>w {s \<in> state. s`p = 0}"
 by (rule LeadsTo_Trans [OF V_F1 [THEN LeadsTo_weaken_R] V_lemma2], blast)
 
-lemma V_lemma123: "Mutex \<in> {s \<in> state. #1 $\<le> s`n & s`n $\<le> #3} \<longmapsto>w {s \<in> state. s`p = 0}"
+lemma V_lemma123: "Mutex \<in> {s \<in> state. #1 $\<le> s`n \<and> s`n $\<le> #3} \<longmapsto>w {s \<in> state. s`p = 0}"
 by (simp add: eq_123 Collect_disj_eq LeadsTo_Un_distrib V_lemma1 V_lemma2 V_F3)
 
 (*Misra's F4*)

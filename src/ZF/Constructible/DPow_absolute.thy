@@ -17,9 +17,9 @@ text\<open>The three arguments of \<^term>\<open>p\<close> are always 2, 1, 0.  
 
 (* is_formula_rec :: "[i=>o, [i,i,i]=>o, i, i] => o"
    "is_formula_rec(M,MH,p,z)  \<equiv>
-      \<exists>dp[M]. \<exists>i[M]. \<exists>f[M]. finite_ordinal(M,dp) & is_depth(M,p,dp) & 
+      \<exists>dp[M]. \<exists>i[M]. \<exists>f[M]. finite_ordinal(M,dp) \<and> is_depth(M,p,dp) \<and> 
        2       1      0
-             successor(M,dp,i) & fun_apply(M,f,p,z) & is_transrec(M,MH,i,f)"
+             successor(M,dp,i) \<and> fun_apply(M,f,p,z) \<and> is_transrec(M,MH,i,f)"
 *)
 
 definition
@@ -113,7 +113,7 @@ subsection \<open>Relativization of the Operator \<^term>\<open>DPow'\<close>\<c
 lemma DPow'_eq: 
   "DPow'(A) = {z . ep \<in> list(A) * formula, 
                     \<exists>env \<in> list(A). \<exists>p \<in> formula. 
-                       ep = <env,p> & z = {x\<in>A. sats(A, p, Cons(x,env))}}"
+                       ep = <env,p> \<and> z = {x\<in>A. sats(A, p, Cons(x,env))}}"
 by (simp add: DPow'_def, blast) 
 
 
@@ -192,8 +192,8 @@ locale M_DPow = M_satisfies +
  and rep: 
     "M(A)
     \<Longrightarrow> strong_replacement (M, 
-         \<lambda>ep z. \<exists>env[M]. \<exists>p[M]. mem_formula(M,p) & mem_list(M,A,env) &
-                  pair(M,env,p,ep) & 
+         \<lambda>ep z. \<exists>env[M]. \<exists>p[M]. mem_formula(M,p) \<and> mem_list(M,A,env) \<and>
+                  pair(M,env,p,ep) \<and> 
                   is_Collect(M, A, \<lambda>x. is_DPow_sats(M,A,env,p,x), z))"
 
 lemma (in M_DPow) sep':
@@ -205,7 +205,7 @@ lemma (in M_DPow) rep':
    "M(A)
     \<Longrightarrow> strong_replacement (M, 
          \<lambda>ep z. \<exists>env\<in>list(A). \<exists>p\<in>formula.
-                  ep = <env,p> & z = {x \<in> A . sats(A, p, Cons(x, env))})" 
+                  ep = <env,p> \<and> z = {x \<in> A . sats(A, p, Cons(x, env))})" 
 by (insert rep [of A], simp add: Collect_DPow_sats_abs) 
 
 
@@ -223,8 +223,8 @@ definition
   is_DPow' :: "[i=>o,i,i] => o" where
     "is_DPow'(M,A,Z) \<equiv> 
        \<forall>X[M]. X \<in> Z \<longleftrightarrow> 
-         subset(M,X,A) & 
-           (\<exists>env[M]. \<exists>p[M]. mem_formula(M,p) & mem_list(M,A,env) &
+         subset(M,X,A) \<and> 
+           (\<exists>env[M]. \<exists>p[M]. mem_formula(M,p) \<and> mem_list(M,A,env) \<and>
                     is_Collect(M, A, is_DPow_sats(M,A,env,p), X))"
 
 lemma (in M_DPow) DPow'_abs:
@@ -255,14 +255,14 @@ done
 subsubsection\<open>The Instance of Replacement\<close>
 
 lemma DPow_replacement_Reflects:
- "REFLECTS [\<lambda>x. \<exists>u[L]. u \<in> B &
+ "REFLECTS [\<lambda>x. \<exists>u[L]. u \<in> B \<and>
              (\<exists>env[L]. \<exists>p[L].
-               mem_formula(L,p) & mem_list(L,A,env) & pair(L,env,p,u) &
+               mem_formula(L,p) \<and> mem_list(L,A,env) \<and> pair(L,env,p,u) \<and>
                is_Collect (L, A, is_DPow_sats(L,A,env,p), x)),
-    \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B &
+    \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B \<and>
              (\<exists>env \<in> Lset(i). \<exists>p \<in> Lset(i).
-               mem_formula(##Lset(i),p) & mem_list(##Lset(i),A,env) & 
-               pair(##Lset(i),env,p,u) &
+               mem_formula(##Lset(i),p) \<and> mem_list(##Lset(i),A,env) \<and> 
+               pair(##Lset(i),env,p,u) \<and>
                is_Collect (##Lset(i), A, is_DPow_sats(##Lset(i),A,env,p), x))]"
 apply (unfold is_Collect_def) 
 apply (intro FOL_reflections function_reflections mem_formula_reflection
@@ -272,8 +272,8 @@ done
 lemma DPow_replacement:
     "L(A)
     \<Longrightarrow> strong_replacement (L, 
-         \<lambda>ep z. \<exists>env[L]. \<exists>p[L]. mem_formula(L,p) & mem_list(L,A,env) &
-                  pair(L,env,p,ep) & 
+         \<lambda>ep z. \<exists>env[L]. \<exists>p[L]. mem_formula(L,p) \<and> mem_list(L,A,env) \<and>
+                  pair(L,env,p,ep) \<and> 
                   is_Collect(L, A, \<lambda>x. is_DPow_sats(L,A,env,p,x), z))"
 apply (rule strong_replacementI)
 apply (rule_tac u="{A,B}" 
@@ -309,7 +309,7 @@ text\<open>The formula \<^term>\<open>is_P\<close> has one free variable, 0, and
 enclosed within a single quantifier.\<close>
 
 (* is_Collect :: "[i=>o,i,i=>o,i] => o"
-    "is_Collect(M,A,P,z) \<equiv> \<forall>x[M]. x \<in> z \<longleftrightarrow> x \<in> A & P(x)" *)
+    "is_Collect(M,A,P,z) \<equiv> \<forall>x[M]. x \<in> z \<longleftrightarrow> x \<in> A \<and> P(x)" *)
 
 definition
   Collect_fm :: "[i, i, i]=>i" where
@@ -360,7 +360,7 @@ text\<open>BEWARE!  The formula \<^term>\<open>is_P\<close> has free variables 0
  and not the usual 1, 0!  It is enclosed within two quantifiers.\<close>
 
 (*  is_Replace :: "[i=>o,i,[i,i]=>o,i] => o"
-    "is_Replace(M,A,P,z) \<equiv> \<forall>u[M]. u \<in> z \<longleftrightarrow> (\<exists>x[M]. x\<in>A & P(x,u))" *)
+    "is_Replace(M,A,P,z) \<equiv> \<forall>u[M]. u \<in> z \<longleftrightarrow> (\<exists>x[M]. x\<in>A \<and> P(x,u))" *)
 
 definition
   Replace_fm :: "[i, i, i]=>i" where
@@ -412,8 +412,8 @@ subsubsection\<open>The Operator \<^term>\<open>is_DPow'\<close>, Internalized\<
 
 (*  "is_DPow'(M,A,Z) \<equiv> 
        \<forall>X[M]. X \<in> Z \<longleftrightarrow> 
-         subset(M,X,A) & 
-           (\<exists>env[M]. \<exists>p[M]. mem_formula(M,p) & mem_list(M,A,env) &
+         subset(M,X,A) \<and> 
+           (\<exists>env[M]. \<exists>p[M]. mem_formula(M,p) \<and> mem_list(M,A,env) \<and>
                     is_Collect(M, A, is_DPow_sats(M,A,env,p), X))" *)
 
 definition
@@ -458,11 +458,11 @@ subsection\<open>A Locale for Relativizing the Operator \<^term>\<open>Lset\<clo
 definition
   transrec_body :: "[i=>o,i,i,i,i] => o" where
     "transrec_body(M,g,x) \<equiv>
-      \<lambda>y z. \<exists>gy[M]. y \<in> x & fun_apply(M,g,y,gy) & is_DPow'(M,gy,z)"
+      \<lambda>y z. \<exists>gy[M]. y \<in> x \<and> fun_apply(M,g,y,gy) \<and> is_DPow'(M,gy,z)"
 
 lemma (in M_DPow) transrec_body_abs:
      "\<lbrakk>M(x); M(g); M(z)\<rbrakk>
-    \<Longrightarrow> transrec_body(M,g,x,y,z) \<longleftrightarrow> y \<in> x & z = DPow'(g`y)"
+    \<Longrightarrow> transrec_body(M,g,x,y,z) \<longleftrightarrow> y \<in> x \<and> z = DPow'(g`y)"
 by (simp add: transrec_body_def DPow'_abs transM [of _ x])
 
 locale M_Lset = M_DPow +
@@ -470,13 +470,13 @@ locale M_Lset = M_DPow +
    "\<lbrakk>M(x); M(g)\<rbrakk> \<Longrightarrow> strong_replacement(M, \<lambda>y z. transrec_body(M,g,x,y,z))"
  and transrec_rep: 
     "M(i) \<Longrightarrow> transrec_replacement(M, \<lambda>x f u. 
-              \<exists>r[M]. is_Replace(M, x, transrec_body(M,f,x), r) & 
+              \<exists>r[M]. is_Replace(M, x, transrec_body(M,f,x), r) \<and> 
                      big_union(M, r, u), i)"
 
 
 lemma (in M_Lset) strong_rep':
    "\<lbrakk>M(x); M(g)\<rbrakk>
-    \<Longrightarrow> strong_replacement(M, \<lambda>y z. y \<in> x & z = DPow'(g`y))"
+    \<Longrightarrow> strong_replacement(M, \<lambda>y z. y \<in> x \<and> z = DPow'(g`y))"
 by (insert strong_rep [of x g], simp add: transrec_body_abs)
 
 lemma (in M_Lset) DPow_apply_closed:
@@ -535,10 +535,10 @@ subsection\<open>Instantiating the Locale \<open>M_Lset\<close>\<close>
 subsubsection\<open>The First Instance of Replacement\<close>
 
 lemma strong_rep_Reflects:
- "REFLECTS [\<lambda>u. \<exists>v[L]. v \<in> B & (\<exists>gy[L].
-                          v \<in> x & fun_apply(L,g,v,gy) & is_DPow'(L,gy,u)),
-   \<lambda>i u. \<exists>v \<in> Lset(i). v \<in> B & (\<exists>gy \<in> Lset(i).
-            v \<in> x & fun_apply(##Lset(i),g,v,gy) & is_DPow'(##Lset(i),gy,u))]"
+ "REFLECTS [\<lambda>u. \<exists>v[L]. v \<in> B \<and> (\<exists>gy[L].
+                          v \<in> x \<and> fun_apply(L,g,v,gy) \<and> is_DPow'(L,gy,u)),
+   \<lambda>i u. \<exists>v \<in> Lset(i). v \<in> B \<and> (\<exists>gy \<in> Lset(i).
+            v \<in> x \<and> fun_apply(##Lset(i),g,v,gy) \<and> is_DPow'(##Lset(i),gy,u))]"
 by (intro FOL_reflections function_reflections DPow'_reflection)
 
 lemma strong_rep:
@@ -555,18 +555,18 @@ done
 subsubsection\<open>The Second Instance of Replacement\<close>
 
 lemma transrec_rep_Reflects:
- "REFLECTS [\<lambda>x. \<exists>v[L]. v \<in> B &
-              (\<exists>y[L]. pair(L,v,y,x) &
+ "REFLECTS [\<lambda>x. \<exists>v[L]. v \<in> B \<and>
+              (\<exists>y[L]. pair(L,v,y,x) \<and>
              is_wfrec (L, \<lambda>x f u. \<exists>r[L].
                 is_Replace (L, x, \<lambda>y z. 
-                     \<exists>gy[L]. y \<in> x & fun_apply(L,f,y,gy) & 
-                      is_DPow'(L,gy,z), r) & big_union(L,r,u), mr, v, y)),
-    \<lambda>i x. \<exists>v \<in> Lset(i). v \<in> B &
-              (\<exists>y \<in> Lset(i). pair(##Lset(i),v,y,x) &
+                     \<exists>gy[L]. y \<in> x \<and> fun_apply(L,f,y,gy) \<and> 
+                      is_DPow'(L,gy,z), r) \<and> big_union(L,r,u), mr, v, y)),
+    \<lambda>i x. \<exists>v \<in> Lset(i). v \<in> B \<and>
+              (\<exists>y \<in> Lset(i). pair(##Lset(i),v,y,x) \<and>
              is_wfrec (##Lset(i), \<lambda>x f u. \<exists>r \<in> Lset(i).
                 is_Replace (##Lset(i), x, \<lambda>y z. 
-                     \<exists>gy \<in> Lset(i). y \<in> x & fun_apply(##Lset(i),f,y,gy) & 
-                      is_DPow'(##Lset(i),gy,z), r) & 
+                     \<exists>gy \<in> Lset(i). y \<in> x \<and> fun_apply(##Lset(i),f,y,gy) \<and> 
+                      is_DPow'(##Lset(i),gy,z), r) \<and> 
                       big_union(##Lset(i),r,u), mr, v, y))]" 
 apply (simp only: rex_setclass_is_bex [symmetric])
   \<comment> \<open>Convert \<open>\<exists>y\<in>Lset(i)\<close> to \<open>\<exists>y[##Lset(i)]\<close> within the body
@@ -579,7 +579,7 @@ done
 lemma transrec_rep: 
     "\<lbrakk>L(j)\<rbrakk>
     \<Longrightarrow> transrec_replacement(L, \<lambda>x f u. 
-              \<exists>r[L]. is_Replace(L, x, transrec_body(L,f,x), r) & 
+              \<exists>r[L]. is_Replace(L, x, transrec_body(L,f,x), r) \<and> 
                      big_union(L, r, u), j)"
 apply (rule L.transrec_replacementI, assumption)
 apply (unfold transrec_body_def)  
@@ -615,7 +615,7 @@ subsection\<open>The Notion of Constructible Set\<close>
 definition
   constructible :: "[i=>o,i] => o" where
     "constructible(M,x) \<equiv>
-       \<exists>i[M]. \<exists>Li[M]. ordinal(M,i) & is_Lset(M,i,Li) & x \<in> Li"
+       \<exists>i[M]. \<exists>Li[M]. ordinal(M,i) \<and> is_Lset(M,i,Li) \<and> x \<in> Li"
 
 theorem V_equals_L_in_L:
   "L(x) \<longleftrightarrow> constructible(L,x)"

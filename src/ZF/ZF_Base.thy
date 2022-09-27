@@ -49,7 +49,7 @@ subsection \<open>Variations on Replacement\<close>
    The resulting set (for functional P) is the same as with
    PrimReplace, but the rules are simpler. *)
 definition Replace :: "[i, [i, i] \<Rightarrow> o] \<Rightarrow> i"
-  where "Replace(A,P) \<equiv> PrimReplace(A, %x y. (\<exists>!z. P(x,z)) & P(x,y))"
+  where "Replace(A,P) \<equiv> PrimReplace(A, %x y. (\<exists>!z. P(x,z)) \<and> P(x,y))"
 
 syntax
   "_Replace"  :: "[pttrn, pttrn, i, o] => i"  (\<open>(1{_ ./ _ \<in> _, _})\<close>)
@@ -71,7 +71,7 @@ translations
 (* Separation and Pairing can be derived from the Replacement
    and Powerset Axioms using the following definitions. *)
 definition Collect :: "[i, i \<Rightarrow> o] \<Rightarrow> i"
-  where "Collect(A,P) \<equiv> {y . x\<in>A, x=y & P(x)}"
+  where "Collect(A,P) \<equiv> {y . x\<in>A, x=y \<and> P(x)}"
 
 syntax
   "_Collect" :: "[pttrn, i, o] \<Rightarrow> i"  (\<open>(1{_ \<in> _ ./ _})\<close>)
@@ -98,7 +98,7 @@ subsection \<open>Finite sets and binary operations\<close>
   set enumerations translate as {a,...,z} = cons(a,...,cons(z,0)...)*)
 
 definition Upair :: "[i, i] => i"
-  where "Upair(a,b) \<equiv> {y. x\<in>Pow(Pow(0)), (x=0 & y=a) | (x=Pow(0) & y=b)}"
+  where "Upair(a,b) \<equiv> {y. x\<in>Pow(Pow(0)), (x=0 \<and> y=a) | (x=Pow(0) \<and> y=b)}"
 
 definition Subset :: "[i, i] \<Rightarrow> o"  (infixl \<open>\<subseteq>\<close> 50)  \<comment> \<open>subset relation\<close>
   where subset_def: "A \<subseteq> B \<equiv> \<forall>x\<in>A. x\<in>B"
@@ -157,7 +157,7 @@ definition The :: "(i \<Rightarrow> o) \<Rightarrow> i"  (binder \<open>THE \<cl
   where the_def: "The(P)    \<equiv> \<Union>({y . x \<in> {0}, P(y)})"
 
 definition If :: "[o, i, i] \<Rightarrow> i"  (\<open>(if (_)/ then (_)/ else (_))\<close> [10] 10)
-  where if_def: "if P then a else b \<equiv> THE z. P & z=a | \<not>P & z=b"
+  where if_def: "if P then a else b \<equiv> THE z. P \<and> z=a | \<not>P \<and> z=b"
 
 abbreviation (input)
   old_if :: "[o, i, i] => i"  (\<open>if '(_,_,_')\<close>)
@@ -240,7 +240,7 @@ definition "apply" :: "[i, i] \<Rightarrow> i"  (infixl \<open>`\<close> 90)  \<
   where "f`a \<equiv> \<Union>(f``{a})"
 
 definition Pi :: "[i, i \<Rightarrow> i] \<Rightarrow> i"
-  where "Pi(A,B) \<equiv> {f\<in>Pow(Sigma(A,B)). A\<subseteq>domain(f) & function(f)}"
+  where "Pi(A,B) \<equiv> {f\<in>Pow(Sigma(A,B)). A\<subseteq>domain(f) \<and> function(f)}"
 
 abbreviation function_space :: "[i, i] \<Rightarrow> i"  (infixr \<open>\<rightarrow>\<close> 60)  \<comment> \<open>function space\<close>
   where "A \<rightarrow> B \<equiv> Pi(A, \<lambda>_. B)"
@@ -347,7 +347,7 @@ lemma bexE [elim!]: "\<lbrakk>\<exists>x\<in>A. P(x);  \<And>x. \<lbrakk>x\<in>A
 by (simp add: Bex_def, blast)
 
 (*We do not even have @{term"(\<exists>x\<in>A. True) <-> True"} unless @{term"A" is nonempty\<And>*)
-lemma bex_triv [simp]: "(\<exists>x\<in>A. P) <-> ((\<exists>x. x\<in>A) & P)"
+lemma bex_triv [simp]: "(\<exists>x\<in>A. P) <-> ((\<exists>x. x\<in>A) \<and> P)"
 by (simp add: Bex_def)
 
 lemma bex_cong [cong]:
@@ -429,7 +429,7 @@ lemma equality_iffD:
 subsection\<open>Rules for Replace -- the derived form of replacement\<close>
 
 lemma Replace_iff:
-    "b \<in> {y. x\<in>A, P(x,y)}  <->  (\<exists>x\<in>A. P(x,b) & (\<forall>y. P(x,y) \<longrightarrow> y=b))"
+    "b \<in> {y. x\<in>A, P(x,y)}  <->  (\<exists>x\<in>A. P(x,b) \<and> (\<forall>y. P(x,y) \<longrightarrow> y=b))"
 apply (unfold Replace_def)
 apply (rule replacement [THEN iff_trans], blast+)
 done
@@ -493,7 +493,7 @@ by blast
 subsection\<open>Rules for Collect -- forming a subset by separation\<close>
 
 (*Separation is derivable from Replacement*)
-lemma separation [simp]: "a \<in> {x\<in>A. P(x)} <-> a\<in>A & P(a)"
+lemma separation [simp]: "a \<in> {x\<in>A. P(x)} <-> a\<in>A \<and> P(a)"
 by (unfold Collect_def, blast)
 
 lemma CollectI [intro!]: "\<lbrakk>a\<in>A;  P(a)\<rbrakk> \<Longrightarrow> a \<in> {x\<in>A. P(x)}"
@@ -586,7 +586,7 @@ by blast
 subsection\<open>Rules for Inter\<close>
 
 (*Not obviously useful for proving InterI, InterD, InterE*)
-lemma Inter_iff: "A \<in> \<Inter>(C) <-> (\<forall>x\<in>C. A: x) & C\<noteq>0"
+lemma Inter_iff: "A \<in> \<Inter>(C) <-> (\<forall>x\<in>C. A: x) \<and> C\<noteq>0"
 by (simp add: Inter_def Ball_def, blast)
 
 (* Intersection is well-behaved only if the family is non-empty! *)
@@ -609,7 +609,7 @@ subsection\<open>Rules for Intersections of families\<close>
 
 (* @{term"\<Inter>x\<in>A. B(x)"} abbreviates @{term"\<Inter>({B(x). x\<in>A})"} *)
 
-lemma INT_iff: "b \<in> (\<Inter>x\<in>A. B(x)) <-> (\<forall>x\<in>A. b \<in> B(x)) & A\<noteq>0"
+lemma INT_iff: "b \<in> (\<Inter>x\<in>A. B(x)) <-> (\<forall>x\<in>A. b \<in> B(x)) \<and> A\<noteq>0"
 by (force simp add: Inter_def)
 
 lemma INT_I: "\<lbrakk>\<And>x. x: A \<Longrightarrow> b: B(x);  A\<noteq>0\<rbrakk> \<Longrightarrow> b: (\<Inter>x\<in>A. B(x))"

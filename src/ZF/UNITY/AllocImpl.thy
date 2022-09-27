@@ -18,31 +18,31 @@ abbreviation
 
 axiomatization where
   alloc_type_assumes [simp]:
-  "type_of(NbR) = nat & type_of(available_tok)=nat" and
+  "type_of(NbR) = nat \<and> type_of(available_tok)=nat" and
 
   alloc_default_val_assumes [simp]:
-  "default_val(NbR)  = 0 & default_val(available_tok)=0"
+  "default_val(NbR)  = 0 \<and> default_val(available_tok)=0"
 
 definition
   "alloc_giv_act \<equiv>
        {<s, t> \<in> state*state.
-        \<exists>k. k = length(s`giv) &
+        \<exists>k. k = length(s`giv) \<and>
             t = s(giv := s`giv @ [nth(k, s`ask)],
-                  available_tok := s`available_tok #- nth(k, s`ask)) &
-            k < length(s`ask) & nth(k, s`ask) \<le> s`available_tok}"
+                  available_tok := s`available_tok #- nth(k, s`ask)) \<and>
+            k < length(s`ask) \<and> nth(k, s`ask) \<le> s`available_tok}"
 
 definition
   "alloc_rel_act \<equiv>
        {<s, t> \<in> state*state.
         t = s(available_tok := s`available_tok #+ nth(s`NbR, s`rel),
-              NbR := succ(s`NbR)) &
+              NbR := succ(s`NbR)) \<and>
         s`NbR < length(s`rel)}"
 
 definition
   (*The initial condition s`giv=[] is missing from the
     original definition: S. O. Ehmety *)
   "alloc_prog \<equiv>
-       mk_program({s:state. s`available_tok=NbT & s`NbR=0 & s`giv=Nil},
+       mk_program({s:state. s`available_tok=NbT \<and> s`NbR=0 \<and> s`giv=Nil},
                   {alloc_giv_act, alloc_rel_act},
                   \<Union>G \<in> preserves(lift(available_tok)) \<inter>
                         preserves(lift(NbR)) \<inter>
@@ -74,8 +74,8 @@ declare  alloc_rel_act_def [THEN def_act_simp, simp]
 
 lemma alloc_prog_ok_iff:
 "\<forall>G \<in> program. (alloc_prog ok G) \<longleftrightarrow>
-     (G \<in> preserves(lift(giv)) & G \<in> preserves(lift(available_tok)) &
-       G \<in> preserves(lift(NbR)) &  alloc_prog \<in> Allowed(G))"
+     (G \<in> preserves(lift(giv)) \<and> G \<in> preserves(lift(available_tok)) \<and>
+       G \<in> preserves(lift(NbR)) \<and>  alloc_prog \<in> Allowed(G))"
 by (auto simp add: ok_iff_Allowed alloc_prog_def [THEN def_prg_Allowed])
 
 
@@ -151,7 +151,7 @@ apply (auto simp add: Collect_conj_eq [symmetric] alloc_prog_ok_iff)
 apply (subgoal_tac "G \<in> preserves (fun_pair (lift (available_tok), fun_pair (lift (NbR), lift (giv))))")
 apply (rotate_tac -1)
 apply (cut_tac A = "nat * nat * list(nat)"
-             and P = "%<m,n,l> y. n \<le> length(y) &
+             and P = "%<m,n,l> y. n \<le> length(y) \<and>
                                   m #+ tokens(l) = NbT #+ tokens(take(n,y))"
              and g = "lift(rel)" and F = alloc_prog
        in stable_Join_Stable)
@@ -440,7 +440,7 @@ lemma state_compl_eq [simp]: "state - {s\<in>state. P(s)} = {s\<in>state. \<not>
 by auto
 
 (*needed?*)
-lemma single_state_Diff_eq [simp]: "{s}-{x \<in> state. P(x)} = (if s\<in>state & P(s) then 0 else {s})"
+lemma single_state_Diff_eq [simp]: "{s}-{x \<in> state. P(x)} = (if s\<in>state \<and> P(s) then 0 else {s})"
 by auto
 
 
@@ -494,9 +494,9 @@ done
 lemma (in alloc_progress) length_giv_disj:
      "\<lbrakk>k \<in> tokbag; n \<in> nat\<rbrakk>
       \<Longrightarrow> alloc_prog \<squnion> G \<in>
-            {s\<in>state. length(s`giv) = n & tokens(s`giv) = k}
+            {s\<in>state. length(s`giv) = n \<and> tokens(s`giv) = k}
             \<longmapsto>w
-              {s\<in>state. (length(s`giv) = n & tokens(s`giv) = k &
+              {s\<in>state. (length(s`giv) = n \<and> tokens(s`giv) = k \<and>
                          k \<le> tokens(take(s`NbR, s`rel))) | n < length(s`giv)}"
 apply (rule single_LeadsTo_I, safe)
 apply (rule_tac a1 = "s`giv" in Increasing_imp_Stable [THEN PSP_StableI])
@@ -514,9 +514,9 @@ done
 lemma (in alloc_progress) length_giv_disj2:
      "\<lbrakk>k \<in> tokbag; n \<in> nat\<rbrakk>
       \<Longrightarrow> alloc_prog \<squnion> G \<in>
-            {s\<in>state. length(s`giv) = n & tokens(s`giv) = k}
+            {s\<in>state. length(s`giv) = n \<and> tokens(s`giv) = k}
             \<longmapsto>w
-              {s\<in>state. (length(s`giv) = n & NbT \<le> s`available_tok) |
+              {s\<in>state. (length(s`giv) = n \<and> NbT \<le> s`available_tok) |
                         n < length(s`giv)}"
 apply (rule LeadsTo_weaken_R)
 apply (rule Always_LeadsToD [OF alloc_prog_Always_lemma length_giv_disj], auto)
@@ -529,7 +529,7 @@ lemma (in alloc_progress) length_giv_disj3:
       \<Longrightarrow> alloc_prog \<squnion> G \<in>
             {s\<in>state. length(s`giv) = n}
             \<longmapsto>w
-              {s\<in>state. (length(s`giv) = n & NbT \<le> s`available_tok) |
+              {s\<in>state. (length(s`giv) = n \<and> NbT \<le> s`available_tok) |
                         n < length(s`giv)}"
 apply (rule LeadsTo_weaken_L)
 apply (rule_tac I = nat in LeadsTo_UN)
@@ -542,9 +542,9 @@ done
 lemma (in alloc_progress) length_ask_giv:
  "\<lbrakk>k \<in> nat;  n < k\<rbrakk>
   \<Longrightarrow> alloc_prog \<squnion> G \<in>
-        {s\<in>state. length(s`ask) = k & length(s`giv) = n}
+        {s\<in>state. length(s`ask) = k \<and> length(s`giv) = n}
         \<longmapsto>w
-          {s\<in>state. (NbT \<le> s`available_tok & length(s`giv) < length(s`ask) &
+          {s\<in>state. (NbT \<le> s`available_tok \<and> length(s`giv) < length(s`ask) \<and>
                      length(s`giv) = n) |
                     n < length(s`giv)}"
 apply (rule single_LeadsTo_I, safe)
@@ -565,10 +565,10 @@ done
 lemma (in alloc_progress) length_ask_giv2:
      "\<lbrakk>k \<in> nat;  n < k\<rbrakk>
       \<Longrightarrow> alloc_prog \<squnion> G \<in>
-            {s\<in>state. length(s`ask) = k & length(s`giv) = n}
+            {s\<in>state. length(s`ask) = k \<and> length(s`giv) = n}
             \<longmapsto>w
-              {s\<in>state. (nth(length(s`giv), s`ask) \<le> s`available_tok &
-                         length(s`giv) < length(s`ask) & length(s`giv) = n) |
+              {s\<in>state. (nth(length(s`giv), s`ask) \<le> s`available_tok \<and>
+                         length(s`giv) < length(s`ask) \<and> length(s`giv) = n) |
                         n < length(s`giv)}"
 apply (rule LeadsTo_weaken_R)
 apply (rule Always_LeadsToD [OF safety length_ask_giv], assumption+, clarify)
@@ -582,7 +582,7 @@ done
 lemma (in alloc_progress) extend_giv:
      "\<lbrakk>k \<in> nat;  n < k\<rbrakk>
       \<Longrightarrow> alloc_prog \<squnion> G \<in>
-            {s\<in>state. length(s`ask) = k & length(s`giv) = n}
+            {s\<in>state. length(s`ask) = k \<and> length(s`giv) = n}
             \<longmapsto>w {s\<in>state. n < length(s`giv)}"
 apply (rule LeadsTo_Un_duplicate)
 apply (rule LeadsTo_cancel1)

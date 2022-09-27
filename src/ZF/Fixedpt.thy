@@ -10,7 +10,7 @@ theory Fixedpt imports equalities begin
 definition 
   (*monotone operator from Pow(D) to itself*)
   bnd_mono :: "[i,i=>i]=>o"  where
-     "bnd_mono(D,h) \<equiv> h(D)<=D & (\<forall>W X. W<=X \<longrightarrow> X<=D \<longrightarrow> h(W) \<subseteq> h(X))"
+     "bnd_mono(D,h) \<equiv> h(D)<=D \<and> (\<forall>W X. W<=X \<longrightarrow> X<=D \<longrightarrow> h(W) \<subseteq> h(X))"
 
 definition 
   lfp      :: "[i,i=>i]=>i"  where

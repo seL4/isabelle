@@ -38,23 +38,23 @@ done
 
 definition
    ex_prop :: "i => o"  where
-   "ex_prop(X) \<equiv> X<=program &
+   "ex_prop(X) \<equiv> X<=program \<and>
     (\<forall>F \<in> program. \<forall>G \<in> program. F ok G \<longrightarrow> F \<in> X | G \<in> X \<longrightarrow> (F \<squnion> G) \<in> X)"
 
 definition
   strict_ex_prop  :: "i => o"  where
-  "strict_ex_prop(X) \<equiv> X<=program &
+  "strict_ex_prop(X) \<equiv> X<=program \<and>
    (\<forall>F \<in> program. \<forall>G \<in> program. F ok G \<longrightarrow> (F \<in> X | G \<in> X) \<longleftrightarrow> (F \<squnion> G \<in> X))"
 
 definition
   uv_prop  :: "i => o"  where
-   "uv_prop(X) \<equiv> X<=program &
-    (SKIP \<in> X & (\<forall>F \<in> program. \<forall>G \<in> program. F ok G \<longrightarrow> F \<in> X & G \<in> X \<longrightarrow> (F \<squnion> G) \<in> X))"
+   "uv_prop(X) \<equiv> X<=program \<and>
+    (SKIP \<in> X \<and> (\<forall>F \<in> program. \<forall>G \<in> program. F ok G \<longrightarrow> F \<in> X \<and> G \<in> X \<longrightarrow> (F \<squnion> G) \<in> X))"
   
 definition
  strict_uv_prop  :: "i => o"  where
-   "strict_uv_prop(X) \<equiv> X<=program &
-    (SKIP \<in> X & (\<forall>F \<in> program. \<forall>G \<in> program. F ok G \<longrightarrow>(F \<in> X & G \<in> X) \<longleftrightarrow> (F \<squnion> G \<in> X)))"
+   "strict_uv_prop(X) \<equiv> X<=program \<and>
+    (SKIP \<in> X \<and> (\<forall>F \<in> program. \<forall>G \<in> program. F ok G \<longrightarrow>(F \<in> X \<and> G \<in> X) \<longleftrightarrow> (F \<squnion> G \<in> X)))"
 
 definition
   guar :: "[i, i] => i" (infixl \<open>guarantees\<close> 55)  where
@@ -69,7 +69,7 @@ definition
 definition
   (* Weakest existential property stronger than X *)
    wx :: "i =>i"  where
-   "wx(X) \<equiv> \<Union>({Y \<in> Pow(program). Y<=X & ex_prop(Y)})"
+   "wx(X) \<equiv> \<Union>({Y \<in> Pow(program). Y<=X \<and> ex_prop(Y)})"
 
 definition
   (*Ill-defined programs can arise through "\<squnion>"*)
@@ -79,7 +79,7 @@ definition
 definition
   refines :: "[i, i, i] => o" (\<open>(3_ refines _ wrt _)\<close> [10,10,10] 10)  where
   "G refines F wrt X \<equiv>
-   \<forall>H \<in> program. (F ok H  & G ok H & F \<squnion> H \<in> welldef \<inter> X)
+   \<forall>H \<in> program. (F ok H  \<and> G ok H \<and> F \<squnion> H \<in> welldef \<inter> X)
     \<longrightarrow> (G \<squnion> H \<in> welldef \<inter> X)"
 
 definition
@@ -111,11 +111,11 @@ apply (simp_all add: OK_iff_ok)
 apply (auto intro: ok_sym)
 done
 
-(*Chandy & Sanders take this as a definition*)
+(*Chandy \<and> Sanders take this as a definition*)
 
 lemma ex_prop_finite:
-     "ex_prop(X) \<longleftrightarrow> (X\<subseteq>program &  
-  (\<forall>GG \<in> Fin(program). GG \<inter> X \<noteq> 0 & OK(GG,(%G. G))\<longrightarrow>(\<Squnion>G \<in> GG. G) \<in> X))"
+     "ex_prop(X) \<longleftrightarrow> (X\<subseteq>program \<and>  
+  (\<forall>GG \<in> Fin(program). GG \<inter> X \<noteq> 0 \<and> OK(GG,(%G. G))\<longrightarrow>(\<Squnion>G \<in> GG. G) \<in> X))"
 apply auto
 apply (blast intro: ex1 ex2 dest: ex_imp_subset_program)+
 done
@@ -123,7 +123,7 @@ done
 (* Equivalent definition of ex_prop given at the end of section 3*)
 lemma ex_prop_equiv: 
 "ex_prop(X) \<longleftrightarrow>  
-  X\<subseteq>program & (\<forall>G \<in> program. (G \<in> X \<longleftrightarrow> (\<forall>H \<in> program. (G component_of H) \<longrightarrow> H \<in> X)))"
+  X\<subseteq>program \<and> (\<forall>G \<in> program. (G \<in> X \<longleftrightarrow> (\<forall>H \<in> program. (G component_of H) \<longrightarrow> H \<in> X)))"
 apply (unfold ex_prop_def component_of_def, safe, force, force, blast) 
 apply (subst Join_commute)
 apply (blast intro: ok_sym) 
@@ -138,7 +138,7 @@ done
 
 lemma uv1 [rule_format]: 
      "GG \<in> Fin(program) \<Longrightarrow>  
-      (uv_prop(X)\<longrightarrow> GG \<subseteq> X & OK(GG, (%G. G)) \<longrightarrow> (\<Squnion>G \<in> GG. G) \<in> X)"
+      (uv_prop(X)\<longrightarrow> GG \<subseteq> X \<and> OK(GG, (%G. G)) \<longrightarrow> (\<Squnion>G \<in> GG. G) \<in> X)"
 apply (unfold uv_prop_def)
 apply (erule Fin_induct)
 apply (auto simp add: OK_cons_iff)
@@ -146,7 +146,7 @@ done
 
 lemma uv2 [rule_format]: 
      "X\<subseteq>program  \<Longrightarrow> 
-      (\<forall>GG \<in> Fin(program). GG \<subseteq> X & OK(GG,(%G. G)) \<longrightarrow> (\<Squnion>G \<in> GG. G) \<in> X)
+      (\<forall>GG \<in> Fin(program). GG \<subseteq> X \<and> OK(GG,(%G. G)) \<longrightarrow> (\<Squnion>G \<in> GG. G) \<in> X)
       \<longrightarrow> uv_prop(X)"
 apply (unfold uv_prop_def, auto)
 apply (drule_tac x = 0 in bspec, simp+) 
@@ -154,10 +154,10 @@ apply (drule_tac x = "{F,G}" in bspec, simp)
 apply (force dest: ok_sym simp add: OK_iff_ok) 
 done
 
-(*Chandy & Sanders take this as a definition*)
+(*Chandy \<and> Sanders take this as a definition*)
 lemma uv_prop_finite: 
-"uv_prop(X) \<longleftrightarrow> X\<subseteq>program &  
-  (\<forall>GG \<in> Fin(program). GG \<subseteq> X & OK(GG, %G. G) \<longrightarrow> (\<Squnion>G \<in> GG. G) \<in>  X)"
+"uv_prop(X) \<longleftrightarrow> X\<subseteq>program \<and>  
+  (\<forall>GG \<in> Fin(program). GG \<subseteq> X \<and> OK(GG, %G. G) \<longrightarrow> (\<Squnion>G \<in> GG. G) \<in>  X)"
 apply auto
 apply (blast dest: uv_imp_subset_program)
 apply (blast intro: uv1)
@@ -388,7 +388,7 @@ by (unfold welldef_def, auto)
 lemma refines_refl: "F refines F wrt X"
 by (unfold refines_def, blast)
 
-(* More results on guarantees, added by Sidi Ehmety from Chandy & Sander, section 6 *)
+(* More results on guarantees, added by Sidi Ehmety from Chandy \<and> Sander, section 6 *)
 
 lemma wg_type: "wg(F, X) \<subseteq> program"
 by (unfold wg_def, auto)
@@ -396,14 +396,14 @@ by (unfold wg_def, auto)
 lemma guarantees_type: "X guarantees Y \<subseteq> program"
 by (unfold guar_def, auto)
 
-lemma wgD2: "G \<in> wg(F, X) \<Longrightarrow> G \<in> program & F \<in> program"
+lemma wgD2: "G \<in> wg(F, X) \<Longrightarrow> G \<in> program \<and> F \<in> program"
 apply (unfold wg_def, auto)
 apply (blast dest: guarantees_type [THEN subsetD])
 done
 
 lemma guarantees_equiv: 
 "(F \<in> X guarantees Y) \<longleftrightarrow>  
-   F \<in> program & (\<forall>H \<in> program. H \<in> X \<longrightarrow> (F component_of H \<longrightarrow> H \<in> Y))"
+   F \<in> program \<and> (\<forall>H \<in> program. H \<in> X \<longrightarrow> (F component_of H \<longrightarrow> H \<in> Y))"
 by (unfold guar_def component_of_def, force) 
 
 lemma wg_weakest:
@@ -415,7 +415,7 @@ by (unfold wg_def guar_def, blast)
 
 lemma wg_equiv:
      "H \<in> wg(F,X) \<longleftrightarrow> 
-      ((F component_of H \<longrightarrow> H \<in> X) & F \<in> program & H \<in> program)"
+      ((F component_of H \<longrightarrow> H \<in> X) \<and> F \<in> program \<and> H \<in> program)"
 apply (simp add: wg_def guarantees_equiv)
 apply (rule iffI, safe)
 apply (rule_tac [4] x = "{H}" in bexI)
@@ -423,7 +423,7 @@ apply (rule_tac [3] x = "{H}" in bexI, blast+)
 done
 
 lemma component_of_wg: 
-    "F component_of H \<Longrightarrow> H \<in> wg(F,X) \<longleftrightarrow> (H \<in> X & F \<in> program & H \<in> program)"
+    "F component_of H \<Longrightarrow> H \<in> wg(F,X) \<longleftrightarrow> (H \<in> X \<and> F \<in> program \<and> H \<in> program)"
 by (simp (no_asm_simp) add: wg_equiv)
 
 lemma wg_finite [rule_format]: 
@@ -439,7 +439,7 @@ apply (auto intro: JOIN_Join_diff dest: ok_sym simp add: OK_iff_ok)
 done
 
 lemma wg_ex_prop:
-     "ex_prop(X) \<Longrightarrow> (F \<in> X) \<longleftrightarrow> (\<forall>H \<in> program. H \<in> wg(F,X) & F \<in> program)"
+     "ex_prop(X) \<Longrightarrow> (F \<in> X) \<longleftrightarrow> (\<forall>H \<in> program. H \<in> wg(F,X) \<and> F \<in> program)"
 apply (simp (no_asm_use) add: ex_prop_equiv wg_equiv)
 apply blast
 done

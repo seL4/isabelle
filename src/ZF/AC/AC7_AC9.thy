@@ -48,7 +48,7 @@ lemma AC6_AC7: "AC6 \<Longrightarrow> AC7"
 by (unfold AC6_def AC7_def, blast)
 
 (* ********************************************************************** *)
-(* AC7 \<Longrightarrow> AC6, Rubin & Rubin p. 12, Theorem 2.8                          *)
+(* AC7 \<Longrightarrow> AC6, Rubin \<and> Rubin p. 12, Theorem 2.8                          *)
 (* The case of the empty family of sets added in order to complete        *)
 (* the proof.                                                             *)
 (* ********************************************************************** *)
@@ -86,7 +86,7 @@ done
 (* ********************************************************************** *)
 
 lemma AC1_AC8_lemma1: 
-        "\<forall>B \<in> A. \<exists>B1 B2. B=<B1,B2> & B1 \<approx> B2   
+        "\<forall>B \<in> A. \<exists>B1 B2. B=<B1,B2> \<and> B1 \<approx> B2   
         \<Longrightarrow> 0 \<notin> { bij(fst(B),snd(B)). B \<in> A }"
 apply (unfold eqpoll_def, auto)
 done
@@ -104,13 +104,13 @@ done
 
 (* ********************************************************************** *)
 (* AC8 \<Longrightarrow> AC9                                                            *)
-(*  - this proof replaces the following two from Rubin & Rubin:           *)
+(*  - this proof replaces the following two from Rubin \<and> Rubin:           *)
 (*    AC8 \<Longrightarrow> AC1 and AC1 \<Longrightarrow> AC9                                         *)
 (* ********************************************************************** *)
 
 lemma AC8_AC9_lemma:
      "\<forall>B1 \<in> A. \<forall>B2 \<in> A. B1 \<approx> B2 
-      \<Longrightarrow> \<forall>B \<in> A*A. \<exists>B1 B2. B=<B1,B2> & B1 \<approx> B2"
+      \<Longrightarrow> \<forall>B \<in> A*A. \<exists>B1 B2. B=<B1,B2> \<and> B1 \<approx> B2"
 by fast
 
 lemma AC8_AC9: "AC8 \<Longrightarrow> AC9"
@@ -124,7 +124,7 @@ done
 (* ********************************************************************** *)
 (* AC9 \<Longrightarrow> AC1                                                            *)
 (* The idea of this proof comes from "Equivalents of the Axiom of Choice" *)
-(* by Rubin & Rubin. But (x * y) is not necessarily equipollent to        *)
+(* by Rubin \<and> Rubin. But (x * y) is not necessarily equipollent to        *)
 (* (x * y) \<union> {0} when y is a set of total functions acting from nat to   *)
 (* \<Union>(A) -- therefore we have used the set (y * nat) instead of y.     *)
 (* ********************************************************************** *)

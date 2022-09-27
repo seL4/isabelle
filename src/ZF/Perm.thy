@@ -16,7 +16,7 @@ definition
   (*composition of relations and functions; NOT Suppes's relative product*)
   comp     :: "[i,i]=>i"      (infixr \<open>O\<close> 60)  where
     "r O s \<equiv> {xz \<in> domain(s)*range(r) .
-               \<exists>x y z. xz=<x,z> & <x,y>:s & <y,z>:r}"
+               \<exists>x y z. xz=<x,z> \<and> <x,y>:s \<and> <y,z>:r}"
 
 definition
   (*the identity function for A*)
@@ -192,7 +192,7 @@ apply (force intro!: lam_type dest: apply_type)
 done
 
 text\<open>\<^term>\<open>id\<close> as the identity relation\<close>
-lemma id_iff [simp]: "<x,y> \<in> id(A) \<longleftrightarrow> x=y & y \<in> A"
+lemma id_iff [simp]: "<x,y> \<in> id(A) \<longleftrightarrow> x=y \<and> y \<in> A"
 by auto
 
 

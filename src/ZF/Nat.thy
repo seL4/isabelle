@@ -18,7 +18,7 @@ definition
 definition
   (*Has an unconditional succ case, which is used in "recursor" below.*)
   nat_case :: "[i, i=>i, i]=>i"  where
-    "nat_case(a,b,k) \<equiv> THE y. k=0 & y=a | (\<exists>x. k=succ(x) & y=b(x))"
+    "nat_case(a,b,k) \<equiv> THE y. k=0 \<and> y=a | (\<exists>x. k=succ(x) \<and> y=b(x))"
 
 definition
   nat_rec :: "[i, i, [i,i]=>i]=>i"  where
@@ -244,7 +244,7 @@ by (erule nat_induct, auto)
 
 lemma split_nat_case:
   "P(nat_case(a,b,k)) \<longleftrightarrow>
-   ((k=0 \<longrightarrow> P(a)) & (\<forall>x. k=succ(x) \<longrightarrow> P(b(x))) & (\<not> quasinat(k) \<longrightarrow> P(0)))"
+   ((k=0 \<longrightarrow> P(a)) \<and> (\<forall>x. k=succ(x) \<longrightarrow> P(b(x))) \<and> (\<not> quasinat(k) \<longrightarrow> P(0)))"
 apply (rule nat_cases [of k])
 apply (auto simp add: non_nat_case)
 done
@@ -291,7 +291,7 @@ apply (auto simp add: Ord_mem_iff_lt)
 apply (blast intro: lt_trans)
 done
 
-lemma Le_iff [iff]: "<x,y> \<in> Le \<longleftrightarrow> x \<le> y & x \<in> nat & y \<in> nat"
+lemma Le_iff [iff]: "<x,y> \<in> Le \<longleftrightarrow> x \<le> y \<and> x \<in> nat \<and> y \<in> nat"
 by (force simp add: Le_def)
 
 end
