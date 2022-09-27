@@ -76,7 +76,7 @@ done
 
 lemma recfunAC16_mono: 
        "i\<le>j \<Longrightarrow> recfunAC16(f, g, i, a) \<subseteq> recfunAC16(f, g, j, a)"
-apply (unfold recfunAC16_def)
+  unfolding recfunAC16_def
 apply (rule transrec2_mono, auto) 
 done
 
@@ -167,10 +167,10 @@ by (blast intro: Diff_lesspoll_eqpoll_Card)
 
 lemma Finite_lesspoll_infinite_Ord: 
       "\<lbrakk>Finite(X); \<not>Finite(a); Ord(a)\<rbrakk> \<Longrightarrow> X\<prec>a"
-apply (unfold lesspoll_def)
+  unfolding lesspoll_def
 apply (rule conjI)
 apply (drule nat_le_infinite_Ord [THEN le_imp_lepoll], assumption)
-apply (unfold Finite_def)
+  unfolding Finite_def
 apply (blast intro: leI [THEN le_imp_subset, THEN subset_imp_lepoll]
                     ltI eqpoll_imp_lepoll lepoll_trans) 
 apply (blast intro: eqpoll_sym [THEN eqpoll_trans])
@@ -256,7 +256,7 @@ lemma UN_lepoll_index:
       \<Longrightarrow> (\<Union>x<a. F(x)) \<lesssim> a"
 apply (rule lepoll_def [THEN def_imp_iff [THEN iffD2]])
 apply (rule_tac x = "\<lambda>z \<in> (\<Union>x<a. F (x)). \<mu> i. z \<in> F (i) " in exI)
-apply (unfold inj_def)
+  unfolding inj_def
 apply (rule CollectI)
 apply (rule lam_type)
 apply (erule OUN_E)
@@ -547,7 +547,7 @@ done
 (* ********************************************************************** *)
 
 theorem WO2_AC16: "\<lbrakk>WO2; 0<m; k \<in> nat; m \<in> nat\<rbrakk> \<Longrightarrow> AC16(k #+ m,k)"
-apply (unfold AC16_def)
+  unfolding AC16_def
 apply (rule allI)
 apply (rule impI)
 apply (frule WO2_infinite_subsets_eqpoll_X, assumption+)

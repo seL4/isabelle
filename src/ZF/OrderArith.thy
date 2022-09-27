@@ -69,7 +69,7 @@ by (unfold radd_def, blast)
 subsubsection\<open>Type checking\<close>
 
 lemma radd_type: "radd(A,r,B,s) \<subseteq> (A+B) * (A+B)"
-apply (unfold radd_def)
+  unfolding radd_def
 apply (rule Collect_subset)
 done
 
@@ -127,7 +127,7 @@ lemma sum_ord_iso_cong:
     "\<lbrakk>f \<in> ord_iso(A,r,A',r');  g \<in> ord_iso(B,s,B',s')\<rbrakk> \<Longrightarrow>
             (\<lambda>z\<in>A+B. case(\<lambda>x. Inl(f`x), \<lambda>y. Inr(g`y), z))
             \<in> ord_iso(A+B, radd(A,r,B,s), A'+B', radd(A',r',B',s'))"
-apply (unfold ord_iso_def)
+  unfolding ord_iso_def
 apply (safe intro!: sum_bij)
 (*Do the beta-reductions now*)
 apply (auto cong add: conj_cong simp add: bij_is_fun [THEN apply_type])
@@ -232,7 +232,7 @@ lemma prod_ord_iso_cong:
     "\<lbrakk>f \<in> ord_iso(A,r,A',r');  g \<in> ord_iso(B,s,B',s')\<rbrakk>
      \<Longrightarrow> (lam \<langle>x,y\<rangle>:A*B. \<langle>f`x, g`y\<rangle>)
          \<in> ord_iso(A*B, rmult(A,r,B,s), A'*B', rmult(A',r',B',s'))"
-apply (unfold ord_iso_def)
+  unfolding ord_iso_def
 apply (safe intro!: prod_bij)
 apply (simp_all add: bij_is_fun [THEN apply_type])
 apply (blast intro: bij_is_inj [THEN inj_apply_equality])
@@ -337,7 +337,7 @@ done
 
 lemma part_ord_rvimage:
     "\<lbrakk>f \<in> inj(A,B);  part_ord(B,r)\<rbrakk> \<Longrightarrow> part_ord(A, rvimage(A,f,r))"
-apply (unfold part_ord_def)
+  unfolding part_ord_def
 apply (blast intro!: irrefl_rvimage trans_on_rvimage)
 done
 
@@ -351,7 +351,7 @@ done
 
 lemma tot_ord_rvimage:
     "\<lbrakk>f \<in> inj(A,B);  tot_ord(B,r)\<rbrakk> \<Longrightarrow> tot_ord(A, rvimage(A,f,r))"
-apply (unfold tot_ord_def)
+  unfolding tot_ord_def
 apply (blast intro!: part_ord_rvimage linear_rvimage)
 done
 
@@ -391,7 +391,7 @@ done
 
 lemma ord_iso_rvimage:
     "f \<in> bij(A,B) \<Longrightarrow> f \<in> ord_iso(A, rvimage(A,f,s), B, s)"
-apply (unfold ord_iso_def)
+  unfolding ord_iso_def
 apply (simp add: rvimage_iff)
 done
 

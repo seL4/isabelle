@@ -799,7 +799,7 @@ by (simp add: Lset_succ empty_in_DPow cons_in_DPow)
 
 lemma Pair_in_Lset:
     "\<lbrakk>a \<in> Lset(i);  b \<in> Lset(i); Ord(i)\<rbrakk> \<Longrightarrow> \<langle>a,b\<rangle> \<in> Lset(succ(succ(i)))"
-apply (unfold Pair_def)
+  unfolding Pair_def
 apply (blast intro: doubleton_in_Lset)
 done
 
@@ -862,7 +862,7 @@ induction.\<close>
 lemma Lset_iff_lrank_lt: "Ord(i) \<Longrightarrow> x \<in> Lset(i) \<longleftrightarrow> L(x) \<and> lrank(x) < i"
 apply (simp add: L_def, auto)
  apply (blast intro: Lset_lrank_lt)
- apply (unfold lrank_def)
+   unfolding lrank_def
 apply (drule succI1 [THEN Lset_mono_mem, THEN subsetD])
 apply (drule_tac P="\<lambda>i. x \<in> Lset(succ(i))" in LeastI, assumption)
 apply (blast intro!: le_imp_subset Lset_mono [THEN subsetD])
@@ -873,7 +873,7 @@ by (simp add: Lset_iff_lrank_lt)
 
 text\<open>Kunen's VI 1.9 (a)\<close>
 lemma lrank_of_Ord: "Ord(i) \<Longrightarrow> lrank(i) = i"
-apply (unfold lrank_def)
+  unfolding lrank_def
 apply (rule Least_equality)
   apply (erule Ord_in_Lset)
  apply assumption
@@ -894,7 +894,7 @@ apply auto
 done
 
 lemma lrank_Lset: "Ord(i) \<Longrightarrow> lrank(Lset(i)) = i"
-apply (unfold lrank_def)
+  unfolding lrank_def
 apply (rule Least_equality)
   apply (rule Lset_in_Lset_succ)
  apply assumption

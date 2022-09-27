@@ -41,7 +41,7 @@ by (unfold increasing_def, blast)
 
 lemma increasingD: 
 "F \<in> increasing[A](r,f) \<Longrightarrow> F \<in> program \<and> (\<exists>a. a \<in> A) \<and> (\<forall>s \<in> state. f(s):A)"
-apply (unfold increasing_def)
+  unfolding increasing_def
 apply (subgoal_tac "\<exists>x. x \<in> state")
 apply (auto dest: stable_type [THEN subsetD] intro: st0_in_state)
 done
@@ -110,7 +110,7 @@ by (unfold Increasing_def, blast)
 
 lemma IncreasingD: 
 "F \<in> Increasing[A](r, f) \<Longrightarrow> F \<in> program \<and> (\<exists>a. a \<in> A) \<and> (\<forall>s \<in> state. f(s):A)"
-apply (unfold Increasing_def)
+  unfolding Increasing_def
 apply (subgoal_tac "\<exists>x. x \<in> state")
 apply (auto intro: st0_in_state)
 done

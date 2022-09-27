@@ -216,7 +216,7 @@ lemmas nat_times_nat_lepoll_nat =
 text\<open>Not needed--but interesting?\<close>
 theorem formula_lepoll_nat: "formula \<lesssim> nat"
 apply (insert nat_times_nat_lepoll_nat)
-apply (unfold lepoll_def)
+  unfolding lepoll_def
 apply (blast intro: Nat_Times_Nat.inj_formula_nat Nat_Times_Nat.intro)
 done
 
@@ -447,7 +447,7 @@ done
 lemma well_ord_L_r:
     "Ord(i) \<Longrightarrow> \<exists>r. well_ord(Lset(i), r)"
 apply (insert nat_times_nat_lepoll_nat)
-apply (unfold lepoll_def)
+  unfolding lepoll_def
 apply (blast intro: Nat_Times_Nat.well_ord_L_r Nat_Times_Nat.intro)
 done
 

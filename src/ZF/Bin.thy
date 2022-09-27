@@ -164,7 +164,7 @@ by (induct_tac "w", auto)
 (*This proof is complicated by the mutual recursion*)
 lemma bin_add_type [rule_format]:
      "v \<in> bin \<Longrightarrow> \<forall>w\<in>bin. bin_add(v,w) \<in> bin"
-apply (unfold bin_add_def)
+  unfolding bin_add_def
 apply (induct_tac "v")
 apply (rule_tac [3] ballI)
 apply (rename_tac [3] "w'")
@@ -215,7 +215,7 @@ lemma bin_add_Pls [simp]: "w \<in> bin \<Longrightarrow> bin_add(Pls,w) = w"
 by (unfold bin_add_def, simp)
 
 lemma bin_add_Pls_right: "w \<in> bin \<Longrightarrow> bin_add(w,Pls) = w"
-apply (unfold bin_add_def)
+  unfolding bin_add_def
 apply (erule bin.induct, auto)
 done
 
@@ -223,7 +223,7 @@ lemma bin_add_Min [simp]: "w \<in> bin \<Longrightarrow> bin_add(Min,w) = bin_pr
 by (unfold bin_add_def, simp)
 
 lemma bin_add_Min_right: "w \<in> bin \<Longrightarrow> bin_add(w,Min) = bin_pred(w)"
-apply (unfold bin_add_def)
+  unfolding bin_add_def
 apply (erule bin.induct, auto)
 done
 
@@ -252,7 +252,7 @@ done
 lemma diff_integ_of_eq:
      "\<lbrakk>v \<in> bin;  w \<in> bin\<rbrakk>
       \<Longrightarrow> integ_of(v) $- integ_of(w) = integ_of(bin_add (v, bin_minus(w)))"
-apply (unfold zdiff_def)
+  unfolding zdiff_def
 apply (simp add: integ_of_add integ_of_minus)
 done
 
@@ -362,7 +362,7 @@ lemma eq_integ_of_eq:
      "\<lbrakk>v \<in> bin;  w \<in> bin\<rbrakk>
       \<Longrightarrow> ((integ_of(v)) = integ_of(w)) \<longleftrightarrow>
           iszero (integ_of (bin_add (v, bin_minus(w))))"
-apply (unfold iszero_def)
+  unfolding iszero_def
 apply (simp add: zcompare_rls integ_of_add integ_of_minus)
 done
 
@@ -371,7 +371,7 @@ by (unfold iszero_def, simp)
 
 
 lemma nonzero_integ_of_Min: "\<not> iszero (integ_of(Min))"
-apply (unfold iszero_def)
+  unfolding iszero_def
 apply (simp add: zminus_equation)
 done
 
@@ -497,7 +497,7 @@ by (simp add: zmult_assoc [symmetric])
 lemma add_integ_of_diff1 [simp]:
     "\<lbrakk>v \<in> bin;  w \<in> bin\<rbrakk>
       \<Longrightarrow> integ_of(v) $+ (integ_of(w) $- c) = integ_of(bin_add(v,w)) $- (c)"
-apply (unfold zdiff_def)
+  unfolding zdiff_def
 apply (rule add_integ_of_left, auto)
 done
 

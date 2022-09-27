@@ -159,7 +159,7 @@ by (simp add: JOIN_def INT_extend_simps del: INT_simps)
 
 lemma Acts_JOIN [simp]:
      "Acts(JOIN(I,F)) = cons(id(state), \<Union>i \<in> I.  Acts(F(i)))"
-apply (unfold JOIN_def)
+  unfolding JOIN_def
 apply (auto simp del: INT_simps UN_simps)
 apply (rule equalityI)
 apply (auto dest: Acts_type [THEN subsetD])
@@ -325,7 +325,7 @@ lemma JOIN_transient:
      "i \<in> I \<Longrightarrow>
       (\<Squnion>i \<in> I. F(i)) \<in> transient(A) \<longleftrightarrow> (\<exists>i \<in> I. programify(F(i)) \<in> transient(A))"
 apply (auto simp add: transient_def JOIN_def)
-apply (unfold st_set_def)
+  unfolding st_set_def
 apply (drule_tac [2] x = act in bspec)
 apply (auto dest: Acts_type [THEN subsetD])
 done
@@ -357,7 +357,7 @@ lemma Join_ensures:
       (programify(F) \<in> (A-B) co (A \<union> B) \<and> programify(G) \<in> (A-B) co (A \<union> B) \<and>
        (programify(F) \<in>  transient (A-B) | programify(G) \<in> transient (A-B)))"
 
-apply (unfold ensures_def)
+  unfolding ensures_def
 apply (auto simp add: Join_transient)
 done
 
@@ -567,7 +567,7 @@ done
 lemma def_UNION_ok_iff:
 "\<lbrakk>F \<equiv> mk_program(init,acts, \<Union>G \<in> X. Acts(G)); safety_prop(X)\<rbrakk>
       \<Longrightarrow> F ok G \<longleftrightarrow> (programify(G) \<in> X \<and> acts \<inter> Pow(state*state) \<subseteq> AllowedActs(G))"
-apply (unfold ok_def)
+  unfolding ok_def
 apply (drule_tac G = G in safety_prop_Acts_iff)
 apply (cut_tac F = G in AllowedActs_type)
 apply (cut_tac F = G in Acts_type, auto)

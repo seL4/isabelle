@@ -46,7 +46,7 @@ lemmas Pair_inject1 = Pair_iff [THEN iffD1, THEN conjunct1]
 lemmas Pair_inject2 = Pair_iff [THEN iffD1, THEN conjunct2]
 
 lemma Pair_not_0: "\<langle>a,b\<rangle> \<noteq> 0"
-apply (unfold Pair_def)
+  unfolding Pair_def
 apply (blast elim: equalityE)
 done
 

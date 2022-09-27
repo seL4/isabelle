@@ -18,7 +18,7 @@ lemma lemma1:
      "\<lbrakk>Finite(A); 0<m; m \<in> nat\<rbrakk> 
       \<Longrightarrow> \<exists>a f. Ord(a) \<and> domain(f) = a \<and>   
                 (\<Union>b<a. f`b) = A \<and> (\<forall>b<a. f`b \<lesssim> m)"
-apply (unfold Finite_def)
+  unfolding Finite_def
 apply (erule bexE)
 apply (drule eqpoll_sym [THEN eqpoll_def [THEN def_imp_iff, THEN iffD1]])
 apply (erule exE)
@@ -345,7 +345,7 @@ lemma cons_cons_in:
      "\<lbrakk>z \<in> xa \<inter> (x - {u}); l \<approx> a; a \<subseteq> y; u \<in> x\<rbrakk>   
       \<Longrightarrow> \<exists>! w. w \<in> t_n \<and> cons(z, cons(u, a)) \<subseteq> w"
 apply (rule all_ex [THEN bspec])
-apply (unfold k_def)
+  unfolding k_def
 apply (fast intro!: cons_eqpoll_succ elim: eqpoll_sym)
 done
 
@@ -442,12 +442,12 @@ by (erule unique_superset_in_MM [THEN theI, THEN conjunct1])
 lemma the_in_MM_subset:
      "v \<in> LL \<Longrightarrow> (THE x. x \<in> MM \<and> v \<subseteq> x) \<subseteq> x \<union> y"
 apply (drule unique_superset1)
-apply (unfold MM_def)
+  unfolding MM_def
 apply (fast dest!: unique_superset1 "includes" [THEN subsetD])
 done
 
 lemma GG_subset: "v \<in> LL \<Longrightarrow> GG ` v \<subseteq> x"
-apply (unfold GG_def)
+  unfolding GG_def
 apply (frule the_in_MM_subset)
 apply (frule in_LL_eq_Int)
 apply (force elim: equalityE)
@@ -473,7 +473,7 @@ lemma exists_proper_in_s: "u \<in> x \<Longrightarrow> \<exists>v \<in> s(u). su
 apply (rule ccontr)
 apply (subgoal_tac "\<forall>v \<in> s (u) . k \<approx> v \<inter> y")
 prefer 2 apply (simp add: s_def, blast intro: succ_not_lepoll_imp_eqpoll)
-apply (unfold k_def)
+  unfolding k_def
 apply (insert all_ex "includes" lnat)
 apply (rule ex_subset_eqpoll_n [THEN exE], assumption)
 apply (rule noLepoll [THEN notE])
@@ -489,7 +489,7 @@ lemma exists_in_LL: "u \<in> x \<Longrightarrow> \<exists>w \<in> LL. u \<in> GG
 apply (rule exists_in_MM [THEN bexE], assumption)
 apply (rule bexI)
 apply (erule_tac [2] Int_in_LL)
-apply (unfold GG_def)
+  unfolding GG_def
 apply (simp add: Int_in_LL)
 apply (subst unique_superset_in_MM [THEN the_equality2])
 apply (fast elim!: Int_in_LL)+
@@ -516,7 +516,7 @@ done
 (* ********************************************************************** *)
 
 lemma in_MM_eqpoll_n: "w \<in> MM \<Longrightarrow> w \<approx> succ(k #+ m)"
-apply (unfold MM_def)
+  unfolding MM_def
 apply (fast dest: "includes" [THEN subsetD])
 done
 
@@ -529,7 +529,7 @@ by (erule subset_trans [OF in_LL_eq_Int [THEN equalityD1] Int_lower1])
 lemma all_in_lepoll_m: 
       "well_ord(LL,S) \<Longrightarrow>       
        \<forall>b<ordertype(LL,S). GG ` (converse(ordermap(LL,S)) ` b) \<lesssim> m"
-apply (unfold GG_def)
+  unfolding GG_def
 apply (rule oallI)
 apply (simp add: ltD ordermap_bij [THEN bij_converse_bij, THEN bij_is_fun, THEN apply_type])
 apply (insert "includes")

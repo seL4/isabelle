@@ -94,27 +94,27 @@ definition
 declare p_type [simp] u_type [simp] v_type [simp] m_type [simp] n_type [simp]
 
 lemma u_value_type: "s \<in> state \<Longrightarrow>s`u \<in> bool"
-apply (unfold state_def)
+  unfolding state_def
 apply (drule_tac a = u in apply_type, auto)
 done
 
 lemma v_value_type: "s \<in> state \<Longrightarrow> s`v \<in> bool"
-apply (unfold state_def)
+  unfolding state_def
 apply (drule_tac a = v in apply_type, auto)
 done
 
 lemma p_value_type: "s \<in> state \<Longrightarrow> s`p \<in> bool"
-apply (unfold state_def)
+  unfolding state_def
 apply (drule_tac a = p in apply_type, auto)
 done
 
 lemma m_value_type: "s \<in> state \<Longrightarrow> s`m \<in> int"
-apply (unfold state_def)
+  unfolding state_def
 apply (drule_tac a = m in apply_type, auto)
 done
 
 lemma n_value_type: "s \<in> state \<Longrightarrow>s`n \<in> int"
-apply (unfold state_def)
+  unfolding state_def
 apply (drule_tac a = n in apply_type, auto)
 done
 
@@ -216,7 +216,7 @@ done
 
 lemma U_F3: "Mutex \<in> {s \<in> state. s`m = #3} \<longmapsto>w {s \<in> state. s`p=1}"
 apply (rule_tac B = "{s \<in> state. s`m = #4}" in LeadsTo_Trans)
- apply (unfold Mutex_def)
+   unfolding Mutex_def
  apply (ensures U3)
 apply (ensures U4)
 done
@@ -267,7 +267,7 @@ done
 
 lemma V_F3: "Mutex \<in> {s \<in> state. s`n = #3} \<longmapsto>w {s \<in> state. s`p=0}"
 apply (rule_tac B = "{s \<in> state. s`n = #4}" in LeadsTo_Trans)
- apply (unfold Mutex_def)
+   unfolding Mutex_def
  apply (ensures V3)
 apply (ensures V4)
 done

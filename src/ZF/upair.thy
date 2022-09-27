@@ -66,7 +66,7 @@ by (simp, blast)
 subsection\<open>Rules for Binary Intersection, Defined via \<^term>\<open>Upair\<close>\<close>
 
 lemma Int_iff [simp]: "c \<in> A \<inter> B \<longleftrightarrow> (c \<in> A \<and> c \<in> B)"
-apply (unfold Int_def)
+  unfolding Int_def
 apply (blast intro: UpairI1 UpairI2 elim: UpairE)
 done
 
@@ -104,7 +104,7 @@ by simp
 subsection\<open>Rules for \<^term>\<open>cons\<close>\<close>
 
 lemma cons_iff [simp]: "a \<in> cons(b,A) \<longleftrightarrow> (a=b | a \<in> A)"
-apply (unfold cons_def)
+  unfolding cons_def
 apply (blast intro: UpairI1 UpairI2 elim: UpairE)
 done
 
@@ -152,7 +152,7 @@ subsection\<open>Descriptions\<close>
 
 lemma the_equality [intro]:
     "\<lbrakk>P(a);  \<And>x. P(x) \<Longrightarrow> x=a\<rbrakk> \<Longrightarrow> (THE x. P(x)) = a"
-apply (unfold the_def)
+  unfolding the_def
 apply (fast dest: subst)
 done
 
@@ -171,7 +171,7 @@ done
 
 (*If it's "undefined", it's zero!*)
 lemma the_0: "\<not> (\<exists>!x. P(x)) \<Longrightarrow> (THE x. P(x))=0"
-apply (unfold the_def)
+  unfolding the_def
 apply (blast elim!: ReplaceE)
 done
 

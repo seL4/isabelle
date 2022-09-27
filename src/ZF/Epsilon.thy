@@ -40,7 +40,7 @@ definition
 subsection\<open>Basic Closure Properties\<close>
 
 lemma arg_subset_eclose: "A \<subseteq> eclose(A)"
-apply (unfold eclose_def)
+  unfolding eclose_def
 apply (rule nat_rec_0 [THEN equalityD2, THEN subset_trans])
 apply (rule nat_0I [THEN UN_upper])
 done
@@ -86,7 +86,7 @@ subsection\<open>Leastness of \<^term>\<open>eclose\<close>\<close>
 
 lemma eclose_least_lemma:
     "\<lbrakk>Transset(X);  A<=X;  n \<in> nat\<rbrakk> \<Longrightarrow> nat_rec(n, A, \<lambda>m r. \<Union>(r)) \<subseteq> X"
-apply (unfold Transset_def)
+  unfolding Transset_def
 apply (erule nat_induct)
 apply (simp add: nat_rec_0)
 apply (simp add: nat_rec_succ, blast)
@@ -94,7 +94,7 @@ done
 
 lemma eclose_least:
      "\<lbrakk>Transset(X);  A<=X\<rbrakk> \<Longrightarrow> eclose(A) \<subseteq> X"
-apply (unfold eclose_def)
+  unfolding eclose_def
 apply (rule eclose_least_lemma [THEN UN_least], assumption+)
 done
 
@@ -106,7 +106,7 @@ lemma eclose_induct_down [consumes 1]:
 \<rbrakk> \<Longrightarrow> P(a)"
 apply (rule eclose_least [THEN subsetD, THEN CollectD2, of "eclose(b)"])
   prefer 3 apply assumption
- apply (unfold Transset_def)
+   unfolding Transset_def
  apply (blast intro: ecloseD)
 apply (blast intro: arg_subset_eclose [THEN subsetD])
 done
@@ -168,7 +168,7 @@ apply (erule arg_into_eclose_sing)
 done
 
 lemma transrec: "transrec(a,H) = H(a, \<lambda>x\<in>a. transrec(x,H))"
-apply (unfold transrec_def)
+  unfolding transrec_def
 apply (rule wfrec_ssubst)
 apply (simp add: wfrec_eclose_eq2 arg_in_eclose_sing under_Memrel_eclose)
 done
@@ -291,13 +291,13 @@ apply (erule eclose_rank_lt [THEN succ_leI])
 done
 
 lemma rank_pair1: "rank(a) < rank(\<langle>a,b\<rangle>)"
-apply (unfold Pair_def)
+  unfolding Pair_def
 apply (rule consI1 [THEN rank_lt, THEN lt_trans])
 apply (rule consI1 [THEN consI2, THEN rank_lt])
 done
 
 lemma rank_pair2: "rank(b) < rank(\<langle>a,b\<rangle>)"
-apply (unfold Pair_def)
+  unfolding Pair_def
 apply (rule consI1 [THEN consI2, THEN rank_lt, THEN lt_trans])
 apply (rule consI1 [THEN consI2, THEN rank_lt])
 done
@@ -380,12 +380,12 @@ by (rule recursor_lemma, simp)
 (** rec: old version for compatibility **)
 
 lemma rec_0 [simp]: "rec(0,a,b) = a"
-apply (unfold rec_def)
+  unfolding rec_def
 apply (rule recursor_0)
 done
 
 lemma rec_succ [simp]: "rec(succ(m),a,b) = b(m, rec(m,a,b))"
-apply (unfold rec_def)
+  unfolding rec_def
 apply (rule recursor_succ)
 done
 

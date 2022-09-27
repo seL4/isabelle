@@ -56,29 +56,29 @@ declare type_assumes [simp] default_val_assumes [simp]
 (* This part should be automated *)
 
 lemma ask_value_type [simp,TC]: "s \<in> state \<Longrightarrow> s`ask \<in> list(nat)"
-apply (unfold state_def)
+  unfolding state_def
 apply (drule_tac a = ask in apply_type, auto)
 done
 
 lemma giv_value_type [simp,TC]: "s \<in> state \<Longrightarrow> s`giv \<in> list(nat)"
-apply (unfold state_def)
+  unfolding state_def
 apply (drule_tac a = giv in apply_type, auto)
 done
 
 lemma rel_value_type [simp,TC]: "s \<in> state \<Longrightarrow> s`rel \<in> list(nat)"
-apply (unfold state_def)
+  unfolding state_def
 apply (drule_tac a = rel in apply_type, auto)
 done
 
 lemma tok_value_type [simp,TC]: "s \<in> state \<Longrightarrow> s`tok \<in> nat"
-apply (unfold state_def)
+  unfolding state_def
 apply (drule_tac a = tok in apply_type, auto)
 done
 
 (** The Client Program **)
 
 lemma client_type [simp,TC]: "client_prog \<in> program"
-apply (unfold client_prog_def)
+  unfolding client_prog_def
 apply (simp (no_asm))
 done
 
@@ -118,7 +118,7 @@ by (erule preserves_lift_imp_stable)
 (*Safety property 1 \<in> ask, rel are increasing: (24) *)
 lemma client_prog_Increasing_ask_rel:
 "client_prog: program guarantees Incr(lift(ask)) \<inter> Incr(lift(rel))"
-apply (unfold guar_def)
+  unfolding guar_def
 apply (auto intro!: increasing_imp_Increasing
             simp add: client_prog_ok_iff Increasing.increasing_def preserves_imp_prefix)
 apply (safety, force, force)+

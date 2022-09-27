@@ -9,7 +9,7 @@ imports AC_Equiv Hartog Cardinal_aux
 begin
 
 lemma RepFun_lepoll: "Ord(a) \<Longrightarrow> {P(b). b \<in> a} \<lesssim> a"
-apply (unfold lepoll_def)
+  unfolding lepoll_def
 apply (rule_tac x = "\<lambda>z \<in> RepFun (a,P) . \<mu> i. z=P (i) " in exI)
 apply (rule_tac d="\<lambda>z. P (z)" in lam_injective)
  apply (fast intro!: Least_in_Ord)
@@ -19,7 +19,7 @@ done
 
 text\<open>Trivial in the presence of AC, but here we need a wellordering of X\<close>
 lemma image_Ord_lepoll: "\<lbrakk>f \<in> X->Y; Ord(X)\<rbrakk> \<Longrightarrow> f``X \<lesssim> X"
-apply (unfold lepoll_def)
+  unfolding lepoll_def
 apply (rule_tac x = "\<lambda>x \<in> f``X. \<mu> y. f`y = x" in exI)
 apply (rule_tac d = "\<lambda>z. f`z" in lam_injective)
 apply (fast intro!: Least_in_Ord apply_equality, clarify) 
@@ -34,7 +34,7 @@ lemma range_subset_domain:
 by blast 
 
 lemma cons_fun_type: "g \<in> n->X \<Longrightarrow> cons(\<langle>n,x\<rangle>, g) \<in> succ(n) -> cons(x, X)"
-apply (unfold succ_def)
+  unfolding succ_def
 apply (fast intro!: fun_extend elim!: mem_irrefl)
 done
 
@@ -352,7 +352,7 @@ by (simp add: image_fun OrdmemD)
 lemma f_n_type:
      "\<lbrakk>domain(f`n) = succ(k); f \<in> nat -> XX;  n \<in> nat\<rbrakk>    
       \<Longrightarrow> f`n \<in> succ(k) -> domain(R)"
-apply (unfold XX_def)
+  unfolding XX_def
 apply (drule apply_type, assumption)
 apply (fast elim: domain_eq_imp_fun_type)
 done
@@ -360,7 +360,7 @@ done
 lemma f_n_pairs_in_R [rule_format]: 
      "\<lbrakk>h \<in> nat -> XX;  domain(h`n) = succ(k);  n \<in> nat\<rbrakk>   
       \<Longrightarrow> \<forall>i \<in> k. <h`n`i, h`n`succ(i)> \<in> R"
-apply (unfold XX_def)
+  unfolding XX_def
 apply (drule apply_type, assumption)
 apply (elim UN_E CollectE)
 apply (drule domain_of_fun [symmetric, THEN trans], assumption, simp)
@@ -369,7 +369,7 @@ done
 lemma restrict_cons_eq_restrict: 
      "\<lbrakk>restrict(h, domain(u))=u;  h \<in> n->X;  domain(u) \<subseteq> n\<rbrakk>   
       \<Longrightarrow> restrict(cons(\<langle>n, y\<rangle>, h), domain(u)) = u"
-apply (unfold restrict_def)
+  unfolding restrict_def
 apply (simp add: restrict_def Pi_iff)
 apply (erule sym [THEN trans, symmetric])
 apply (blast elim: mem_irrefl)  
@@ -437,13 +437,13 @@ done
 lemma lemma2: 
      "\<lbrakk>allRR; f \<in> nat->XX; range(R) \<subseteq> domain(R); x \<in> domain(R); n \<in> nat\<rbrakk>
       \<Longrightarrow> f`n \<in> succ(n) -> domain(R) \<and> (\<forall>i \<in> n. <f`n`i, f`n`succ(i)>:R)"
-apply (unfold allRR_def)
+  unfolding allRR_def
 apply (drule ospec)
 apply (erule ltI [OF _ Ord_nat])
 apply (erule CollectE, simp)
 apply (rule conjI)
 prefer 2 apply (fast elim!: f_n_pairs_in_R trans subst_context)
-apply (unfold XX_def)
+  unfolding XX_def
 apply (fast elim!: trans [THEN domain_eq_imp_fun_type] subst_context)
 done
 
@@ -451,7 +451,7 @@ lemma lemma3:
      "\<lbrakk>allRR; f \<in> nat->XX; n\<in>nat; range(R) \<subseteq> domain(R);  x \<in> domain(R)\<rbrakk>
       \<Longrightarrow> f`n`n = f`succ(n)`n"
 apply (frule lemma2 [THEN conjunct1, THEN domain_of_fun], assumption+)
-apply (unfold allRR_def)
+  unfolding allRR_def
 apply (drule ospec) 
 apply (drule ltI [OF nat_succI Ord_nat], assumption, simp)
 apply (elim conjE ballE)
@@ -497,7 +497,7 @@ lemma value_in_image: "\<lbrakk>f \<in> X->Y; A \<subseteq> X; a \<in> A\<rbrakk
 by (fast elim!: image_fun [THEN ssubst])
 
 lemma lesspoll_lemma: "\<lbrakk>\<not> A \<prec> B; C \<prec> B\<rbrakk> \<Longrightarrow> A - C \<noteq> 0"
-apply (unfold lesspoll_def)
+  unfolding lesspoll_def
 apply (fast dest!: Diff_eq_0_iff [THEN iffD1, THEN subset_imp_lepoll]
             intro!: eqpollI elim: notE
             elim!: eqpollE lepoll_trans)

@@ -20,7 +20,7 @@ done
 lemma Ord_lepoll_imp_ex_well_ord:
      "\<lbrakk>Ord(a); a \<lesssim> X\<rbrakk> 
       \<Longrightarrow> \<exists>Y. Y \<subseteq> X \<and> (\<exists>R. well_ord(Y,R) \<and> ordertype(Y,R)=a)"
-apply (unfold lepoll_def)
+  unfolding lepoll_def
 apply (erule exE)
 apply (intro exI conjI)
   apply (erule inj_is_fun [THEN fun_is_rel, THEN image_subset])
@@ -60,7 +60,7 @@ apply (best intro: Ords_lepoll_set)
 done
 
 lemma not_Hartog_lepoll_self: "\<not> Hartog(A) \<lesssim> A"
-apply (unfold Hartog_def)
+  unfolding Hartog_def
 apply (rule ex_Ord_not_lepoll [THEN exE])
 apply (rule LeastI, auto) 
 done

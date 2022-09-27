@@ -109,7 +109,7 @@ lemma wf_induct_raw:
     "\<lbrakk>wf(r);
         \<And>x.\<lbrakk>\<forall>y. \<langle>y,x\<rangle>: r \<longrightarrow> P(y)\<rbrakk> \<Longrightarrow> P(x)\<rbrakk>
      \<Longrightarrow> P(a)"
-apply (unfold wf_def)
+  unfolding wf_def
 apply (erule_tac x = "{z \<in> domain(r). \<not> P(z)}" in allE)
 apply blast
 done
@@ -132,7 +132,7 @@ lemma wf_on_induct_raw [consumes 2, induct set: wf_on]:
     "\<lbrakk>wf[A](r);  a \<in> A;
         \<And>x.\<lbrakk>x \<in> A;  \<forall>y\<in>A. \<langle>y,x\<rangle>: r \<longrightarrow> P(y)\<rbrakk> \<Longrightarrow> P(x)
 \<rbrakk>  \<Longrightarrow>  P(a)"
-apply (unfold wf_on_def)
+  unfolding wf_on_def
 apply (erule wf_induct2, assumption)
 apply (rule field_Int_square, blast)
 done
@@ -220,7 +220,7 @@ lemmas underD = vimage_singleton_iff [THEN iffD1]
 subsection\<open>The Predicate \<^term>\<open>is_recfun\<close>\<close>
 
 lemma is_recfun_type: "is_recfun(r,a,H,f) \<Longrightarrow> f \<in> r-``{a} -> range(f)"
-apply (unfold is_recfun_def)
+  unfolding is_recfun_def
 apply (erule ssubst)
 apply (rule lamI [THEN rangeI, THEN lam_type], assumption)
 done
@@ -229,7 +229,7 @@ lemmas is_recfun_imp_function = is_recfun_type [THEN fun_is_function]
 
 lemma apply_recfun:
     "\<lbrakk>is_recfun(r,a,H,f); \<langle>x,a\<rangle>:r\<rbrakk> \<Longrightarrow> f`x = H(x, restrict(f,r-``{x}))"
-apply (unfold is_recfun_def)
+  unfolding is_recfun_def
   txt\<open>replace f only on the left-hand side\<close>
 apply (erule_tac P = "\<lambda>x. t(x) = u" for t u in ssubst)
 apply (simp add: underI)
@@ -271,7 +271,7 @@ by (blast intro: fun_extension is_recfun_type is_recfun_equal)
 
 lemma the_recfun_eq:
     "\<lbrakk>is_recfun(r,a,H,f);  wf(r);  trans(r)\<rbrakk> \<Longrightarrow> the_recfun(r,a,H) = f"
-apply (unfold the_recfun_def)
+  unfolding the_recfun_def
 apply (blast intro: is_recfun_functional)
 done
 
@@ -319,7 +319,7 @@ by (blast intro: is_recfun_cut unfold_the_recfun)
 lemma wftrec:
     "\<lbrakk>wf(r);  trans(r)\<rbrakk> \<Longrightarrow>
           wftrec(r,a,H) = H(a, \<lambda>x\<in>r-``{a}. wftrec(r,x,H))"
-apply (unfold wftrec_def)
+  unfolding wftrec_def
 apply (subst unfold_the_recfun [unfolded is_recfun_def])
 apply (simp_all add: vimage_singleton_iff [THEN iff_sym] the_recfun_cut)
 done
@@ -330,7 +330,7 @@ subsubsection\<open>Removal of the Premise \<^term>\<open>trans(r)\<close>\<clos
 (*NOT SUITABLE FOR REWRITING: it is recursive!*)
 lemma wfrec:
     "wf(r) \<Longrightarrow> wfrec(r,a,H) = H(a, \<lambda>x\<in>r-``{a}. wfrec(r,x,H))"
-apply (unfold wfrec_def)
+  unfolding wfrec_def
 apply (erule wf_trancl [THEN wftrec, THEN ssubst])
  apply (rule trans_trancl)
 apply (rule vimage_pair_mono [THEN restrict_lam_eq, THEN subst_context])

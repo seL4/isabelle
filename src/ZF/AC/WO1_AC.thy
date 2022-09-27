@@ -40,7 +40,7 @@ by (unfold AC1_def WO1_def, fast elim!: ex_choice_fun)
 (* ********************************************************************** *)
 
 lemma lemma1: "\<lbrakk>WO1; \<forall>B \<in> A. \<exists>C \<in> D(B). P(C,B)\<rbrakk> \<Longrightarrow> \<exists>f. \<forall>B \<in> A. P(f`B,B)"
-apply (unfold WO1_def)
+  unfolding WO1_def
 apply (erule_tac x = "\<Union>({{C \<in> D (B) . P (C,B) }. B \<in> A}) " in allE)
 apply (erule exE, drule ex_choice_fun, fast)
 apply (erule exE)
@@ -49,7 +49,7 @@ apply (simp, blast dest!: apply_type [OF _ RepFunI])
 done
 
 lemma lemma2_1: "\<lbrakk>\<not>Finite(B); WO1\<rbrakk> \<Longrightarrow> |B| + |B| \<approx>  B"
-apply (unfold WO1_def)
+  unfolding WO1_def
 apply (rule eqpoll_trans)
 prefer 2 apply (fast elim!: well_ord_cardinal_eqpoll)
 apply (rule eqpoll_sym [THEN eqpoll_trans])
@@ -67,7 +67,7 @@ by (fast elim!: bij_is_fun [THEN apply_type])
 
 lemma lemma2_3: 
         "f \<in> bij(D+D, B) \<Longrightarrow> pairwise_disjoint({{f`Inl(i), f`Inr(i)}. i \<in> D})"
-apply (unfold pairwise_disjoint_def)
+  unfolding pairwise_disjoint_def
 apply (blast dest: bij_is_inj [THEN inj_apply_equality])
 done
 
@@ -98,7 +98,7 @@ apply (blast intro!: lemma2_2 lemma2_3 lemma2_4 lemma2_5)
 done
 
 theorem WO1_AC10: "\<lbrakk>WO1; 1\<le>n\<rbrakk> \<Longrightarrow> AC10(n)"
-apply (unfold AC10_def)
+  unfolding AC10_def
 apply (fast intro!: lemma1 elim!: lemma2)
 done
 

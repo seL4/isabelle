@@ -55,19 +55,19 @@ locale distr =
 
 
 lemma (in distr) In_value_type [simp,TC]: "s \<in> state \<Longrightarrow> s`In \<in> list(A)"
-apply (unfold state_def)
+  unfolding state_def
 apply (drule_tac a = In in apply_type, auto)
 done
 
 lemma (in distr) iIn_value_type [simp,TC]:
      "s \<in> state \<Longrightarrow> s`iIn \<in> list(nat)"
-apply (unfold state_def)
+  unfolding state_def
 apply (drule_tac a = iIn in apply_type, auto)
 done
 
 lemma (in distr) Out_value_type [simp,TC]:
      "s \<in> state \<Longrightarrow> s`Out(n):list(A)"
-apply (unfold state_def)
+  unfolding state_def
 apply (drule_tac a = "Out (n)" in apply_type)
 apply auto
 done

@@ -69,7 +69,7 @@ by (unfold Atleast_def inj_def Pi_def function_def, blast)
 
 lemma Atleast_succD: 
     "Atleast(succ(m),A) \<Longrightarrow> \<exists>x \<in> A. Atleast(m, A-{x})"
-apply (unfold Atleast_def)
+  unfolding Atleast_def
 apply (blast dest: inj_is_fun [THEN apply_type] inj_succ_restrict)
 done
 

@@ -240,7 +240,7 @@ subsection \<open>Main result\<close>
 declare list_add_type [simp]
 
 lemma SC_case: "l \<in> list(nat) \<Longrightarrow> SC ` l < ack(1, list_add(l))"
-  apply (unfold SC_def)
+    unfolding SC_def
   apply (erule list.cases)
    apply (simp add: succ_iff)
   apply (simp add: ack_1 add_le_self)
@@ -260,7 +260,7 @@ lemma CONSTANT_case:
 
 lemma PROJ_case [rule_format]:
     "l \<in> list(nat) \<Longrightarrow> \<forall>i \<in> nat. PROJ(i) ` l < ack(0, list_add(l))"
-  apply (unfold PROJ_def)
+    unfolding PROJ_def
   apply simp
   apply (erule list.induct)
    apply (simp add: nat_0_le)
@@ -322,7 +322,7 @@ lemma PREC_case_lemma:
      g \<in> prim_rec;  kg\<in>nat;
      l \<in> list(nat)\<rbrakk>
   \<Longrightarrow> PREC(f,g)`l #+ list_add(l) < ack(succ(kf#+kg), list_add(l))"
-  apply (unfold PREC_def)
+    unfolding PREC_def
   apply (erule list.cases)
    apply (simp add: lt_trans [OF nat_le_refl lt_ack2])
   apply simp

@@ -86,7 +86,7 @@ subsection \<open>Transitive closure preserves the Church-Rosser property\<close
 lemma diamond_strip_lemmaD [rule_format]:
   "\<lbrakk>diamond(r);  \<langle>x,y\<rangle>:r^+\<rbrakk> \<Longrightarrow>
     \<forall>y'. <x,y'>:r \<longrightarrow> (\<exists>z. <y',z>: r^+ \<and> \<langle>y,z\<rangle>: r)"
-  apply (unfold diamond_def)
+    unfolding diamond_def
   apply (erule trancl_induct)
    apply (blast intro: r_into_trancl)
   apply clarify
@@ -186,7 +186,7 @@ lemma KIII_contract3: "K\<bullet>I\<bullet>((K\<bullet>I)\<bullet>(K\<bullet>I))
   by (blast intro: comb_I)
 
 lemma not_diamond_contract: "\<not> diamond(contract)"
-  apply (unfold diamond_def)
+    unfolding diamond_def
   apply (blast intro: KIII_contract1 KIII_contract2 KIII_contract3
     elim!: I_contract_E)
   done
@@ -228,7 +228,7 @@ lemma S2_parcontractD [dest!]:
 
 lemma diamond_parcontract: "diamond(parcontract)"
   \<comment> \<open>Church-Rosser property for parallel contraction\<close>
-  apply (unfold diamond_def)
+    unfolding diamond_def
   apply (rule impI [THEN allI, THEN allI])
   apply (erule parcontract.induct)
      apply (blast elim!: comb.free_elims  intro: parcontract_combD2)+

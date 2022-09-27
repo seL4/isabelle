@@ -101,7 +101,7 @@ lemma rtrancl_bnd_mono:
 by (rule bnd_monoI, blast+)
 
 lemma rtrancl_mono: "r<=s \<Longrightarrow> r^* \<subseteq> s^*"
-apply (unfold rtrancl_def)
+  unfolding rtrancl_def
 apply (rule lfp_mono)
 apply (rule rtrancl_bnd_mono)+
 apply blast
@@ -172,7 +172,7 @@ done
 
 (*transitivity of transitive closure\<And>-- by induction.*)
 lemma trans_rtrancl: "trans(r^*)"
-apply (unfold trans_def)
+  unfolding trans_def
 apply (intro allI impI)
 apply (erule_tac b = z in rtrancl_induct, assumption)
 apply (blast intro: rtrancl_into_rtrancl)
@@ -208,13 +208,13 @@ lemmas trancl_trans = trans_trancl [THEN transD]
 (** Conversions between trancl and rtrancl **)
 
 lemma trancl_into_rtrancl: "\<langle>a,b\<rangle> \<in> r^+ \<Longrightarrow> \<langle>a,b\<rangle> \<in> r^*"
-apply (unfold trancl_def)
+  unfolding trancl_def
 apply (blast intro: rtrancl_into_rtrancl)
 done
 
 (*r^+ contains all pairs in r  *)
 lemma r_into_trancl: "\<langle>a,b\<rangle> \<in> r \<Longrightarrow> \<langle>a,b\<rangle> \<in> r^+"
-apply (unfold trancl_def)
+  unfolding trancl_def
 apply (blast intro!: rtrancl_refl)
 done
 
@@ -266,7 +266,7 @@ apply (blast intro: rtrancl_into_trancl1)+
 done
 
 lemma trancl_type: "r^+ \<subseteq> field(r)*field(r)"
-apply (unfold trancl_def)
+  unfolding trancl_def
 apply (blast elim: rtrancl_type [THEN subsetD, THEN SigmaE2])
 done
 

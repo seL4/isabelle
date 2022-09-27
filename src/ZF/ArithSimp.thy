@@ -82,14 +82,14 @@ lemmas div_rls =
     nat_into_Ord not_lt_iff_le [THEN iffD1]
 
 lemma raw_mod_type: "\<lbrakk>m:nat;  n:nat\<rbrakk> \<Longrightarrow> raw_mod (m, n) \<in> nat"
-apply (unfold raw_mod_def)
+  unfolding raw_mod_def
 apply (rule Ord_transrec_type)
 apply (auto simp add: nat_into_Ord [THEN Ord_0_lt_iff])
 apply (blast intro: div_rls)
 done
 
 lemma mod_type [TC,iff]: "m mod n \<in> nat"
-apply (unfold mod_def)
+  unfolding mod_def
 apply (simp (no_asm) add: mod_def raw_mod_type)
 done
 
@@ -98,13 +98,13 @@ done
     certain equations **)
 
 lemma DIVISION_BY_ZERO_DIV: "a div 0 = 0"
-apply (unfold div_def)
+  unfolding div_def
 apply (rule raw_div_def [THEN def_transrec, THEN trans])
 apply (simp (no_asm_simp))
 done  (*NOT for adding to default simpset*)
 
 lemma DIVISION_BY_ZERO_MOD: "a mod 0 = natify(a)"
-apply (unfold mod_def)
+  unfolding mod_def
 apply (rule raw_mod_def [THEN def_transrec, THEN trans])
 apply (simp (no_asm_simp))
 done  (*NOT for adding to default simpset*)
@@ -138,14 +138,14 @@ done
 subsection\<open>Division\<close>
 
 lemma raw_div_type: "\<lbrakk>m:nat;  n:nat\<rbrakk> \<Longrightarrow> raw_div (m, n) \<in> nat"
-apply (unfold raw_div_def)
+  unfolding raw_div_def
 apply (rule Ord_transrec_type)
 apply (auto simp add: nat_into_Ord [THEN Ord_0_lt_iff])
 apply (blast intro: div_rls)
 done
 
 lemma div_type [TC,iff]: "m div n \<in> nat"
-apply (unfold div_def)
+  unfolding div_def
 apply (simp (no_asm) add: div_def raw_div_type)
 done
 

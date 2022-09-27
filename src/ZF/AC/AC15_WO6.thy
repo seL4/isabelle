@@ -32,7 +32,7 @@ begin
 (* ********************************************************************** *)
 
 lemma lepoll_Sigma: "A\<noteq>0 \<Longrightarrow> B \<lesssim> A*B"
-apply (unfold lepoll_def)
+  unfolding lepoll_def
 apply (erule not_emptyE)
 apply (rule_tac x = "\<lambda>z \<in> B. \<langle>x,z\<rangle>" in exI)
 apply (fast intro!: snd_conv lam_injective)
@@ -58,14 +58,14 @@ lemma lemma3:
              sets_of_size_between(f`B, 2, n) \<and> \<Union>(f`B)=B   
      \<Longrightarrow> \<forall>B \<in> A. \<exists>! u. u \<in> f`cons(0, B*nat) \<and> u \<subseteq> cons(0, B*nat) \<and>   
              0 \<in> u \<and> 2 \<lesssim> u \<and> u \<lesssim> n"
-apply (unfold sets_of_size_between_def)
+  unfolding sets_of_size_between_def
 apply (rule ballI)
 apply (erule_tac x="cons(0, B*nat)" in ballE)
  apply (blast dest: lemma1 intro!: lemma2, blast)
 done
 
 lemma lemma4: "\<lbrakk>A \<lesssim> i; Ord(i)\<rbrakk> \<Longrightarrow> {P(a). a \<in> A} \<lesssim> i"
-apply (unfold lepoll_def)
+  unfolding lepoll_def
 apply (erule exE)
 apply (rule_tac x = "\<lambda>x \<in> RepFun(A,P). \<mu> j. \<exists>a\<in>A. x=P(a) \<and> f`a=j" 
        in exI)
@@ -227,7 +227,7 @@ done
 (* ********************************************************************** *)
 
 lemma AC13_mono: "\<lbrakk>m\<le>n; AC13(m)\<rbrakk> \<Longrightarrow> AC13(n)"
-apply (unfold AC13_def)
+  unfolding AC13_def
 apply (drule le_imp_lepoll)
 apply (fast elim!: lepoll_trans)
 done

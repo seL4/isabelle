@@ -42,17 +42,17 @@ definition
 subsection\<open>Surjective Function Space\<close>
 
 lemma surj_is_fun: "f \<in> surj(A,B) \<Longrightarrow> f \<in> A->B"
-apply (unfold surj_def)
+  unfolding surj_def
 apply (erule CollectD1)
 done
 
 lemma fun_is_surj: "f \<in> Pi(A,B) \<Longrightarrow> f \<in> surj(A,range(f))"
-apply (unfold surj_def)
+  unfolding surj_def
 apply (blast intro: apply_equality range_of_fun domain_type)
 done
 
 lemma surj_range: "f \<in> surj(A,B) \<Longrightarrow> range(f)=B"
-apply (unfold surj_def)
+  unfolding surj_def
 apply (best intro: apply_Pair elim: range_type)
 done
 
@@ -83,14 +83,14 @@ done
 subsection\<open>Injective Function Space\<close>
 
 lemma inj_is_fun: "f \<in> inj(A,B) \<Longrightarrow> f \<in> A->B"
-apply (unfold inj_def)
+  unfolding inj_def
 apply (erule CollectD1)
 done
 
 text\<open>Good for dealing with sets of pairs, but a bit ugly in use [used in AC]\<close>
 lemma inj_equality:
     "\<lbrakk>\<langle>a,b\<rangle>:f;  \<langle>c,b\<rangle>:f;  f \<in> inj(A,B)\<rbrakk> \<Longrightarrow> a=c"
-apply (unfold inj_def)
+  unfolding inj_def
 apply (blast dest: Pair_mem_PiD)
 done
 
@@ -115,12 +115,12 @@ done
 subsection\<open>Bijections\<close>
 
 lemma bij_is_inj: "f \<in> bij(A,B) \<Longrightarrow> f \<in> inj(A,B)"
-apply (unfold bij_def)
+  unfolding bij_def
 apply (erule IntD1)
 done
 
 lemma bij_is_surj: "f \<in> bij(A,B) \<Longrightarrow> f \<in> surj(A,B)"
-apply (unfold bij_def)
+  unfolding bij_def
 apply (erule IntD2)
 done
 
@@ -133,7 +133,7 @@ lemma lam_bijective:
         \<And>x. x \<in> A \<Longrightarrow> d(c(x)) = x;
         \<And>y. y \<in> B \<Longrightarrow> c(d(y)) = y
 \<rbrakk> \<Longrightarrow> (\<lambda>x\<in>A. c(x)) \<in> bij(A,B)"
-apply (unfold bij_def)
+  unfolding bij_def
 apply (blast intro!: lam_injective lam_surjective)
 done
 
@@ -147,7 +147,7 @@ done
 subsection\<open>Identity Function\<close>
 
 lemma idI [intro!]: "a \<in> A \<Longrightarrow> \<langle>a,a\<rangle> \<in> id(A)"
-apply (unfold id_def)
+  unfolding id_def
 apply (erule lamI)
 done
 
@@ -155,17 +155,17 @@ lemma idE [elim!]: "\<lbrakk>p \<in> id(A);  \<And>x.\<lbrakk>x \<in> A; p=\<lan
 by (simp add: id_def lam_def, blast)
 
 lemma id_type: "id(A) \<in> A->A"
-apply (unfold id_def)
+  unfolding id_def
 apply (rule lam_type, assumption)
 done
 
 lemma id_conv [simp]: "x \<in> A \<Longrightarrow> id(A)`x = x"
-apply (unfold id_def)
+  unfolding id_def
 apply (simp (no_asm_simp))
 done
 
 lemma id_mono: "A<=B \<Longrightarrow> id(A) \<subseteq> id(B)"
-apply (unfold id_def)
+  unfolding id_def
 apply (erule lam_mono)
 done
 
@@ -182,12 +182,12 @@ apply (simp (no_asm_simp))
 done
 
 lemma id_bij: "id(A): bij(A,A)"
-apply (unfold bij_def)
+  unfolding bij_def
 apply (blast intro: id_inj id_surj)
 done
 
 lemma subset_iff_id: "A \<subseteq> B \<longleftrightarrow> id(A) \<in> A->B"
-apply (unfold id_def)
+  unfolding id_def
 apply (force intro!: lam_type dest: apply_type)
 done
 
@@ -199,7 +199,7 @@ by auto
 subsection\<open>Converse of a Function\<close>
 
 lemma inj_converse_fun: "f \<in> inj(A,B) \<Longrightarrow> converse(f) \<in> range(f)->A"
-apply (unfold inj_def)
+  unfolding inj_def
 apply (simp (no_asm_simp) add: Pi_iff function_def)
 apply (erule CollectE)
 apply (simp (no_asm_simp) add: apply_iff)
@@ -251,7 +251,7 @@ by (blast intro: f_imp_surjective inj_converse_fun left_inverse inj_is_fun
 
 text\<open>Adding this as an intro! rule seems to cause looping\<close>
 lemma bij_converse_bij [TC]: "f \<in> bij(A,B) \<Longrightarrow> converse(f): bij(B,A)"
-apply (unfold bij_def)
+  unfolding bij_def
 apply (fast elim: surj_range [THEN subst] inj_converse_inj inj_converse_surj)
 done
 
@@ -372,13 +372,13 @@ done
 
 lemma comp_surj:
     "\<lbrakk>g \<in> surj(A,B);  f \<in> surj(B,C)\<rbrakk> \<Longrightarrow> (f O g) \<in> surj(A,C)"
-apply (unfold surj_def)
+  unfolding surj_def
 apply (blast intro!: comp_fun comp_fun_apply)
 done
 
 lemma comp_bij:
     "\<lbrakk>g \<in> bij(A,B);  f \<in> bij(B,C)\<rbrakk> \<Longrightarrow> (f O g) \<in> bij(A,C)"
-apply (unfold bij_def)
+  unfolding bij_def
 apply (blast intro: comp_inj comp_surj)
 done
 
@@ -405,7 +405,7 @@ done
 
 lemma comp_mem_surjD1:
     "\<lbrakk>(f O g): surj(A,C);  g \<in> A->B;  f \<in> B->C\<rbrakk> \<Longrightarrow> f \<in> surj(B,C)"
-apply (unfold surj_def)
+  unfolding surj_def
 apply (blast intro!: comp_fun_apply [symmetric] apply_funtype)
 done
 
@@ -452,7 +452,7 @@ done
 
 lemma fg_imp_bijective:
     "\<lbrakk>f \<in> A->B;  g \<in> B->A;  f O g = id(B);  g O f = id(A)\<rbrakk> \<Longrightarrow> f \<in> bij(A,B)"
-apply (unfold bij_def)
+  unfolding bij_def
 apply (simp add: comp_eq_id_iff)
 apply (blast intro: f_imp_injective f_imp_surjective apply_funtype)
 done
@@ -513,7 +513,7 @@ by (auto simp add: restrict_def)
 
 lemma restrict_inj:
     "\<lbrakk>f \<in> inj(A,B);  C<=A\<rbrakk> \<Longrightarrow> restrict(f,C): inj(C,B)"
-apply (unfold inj_def)
+  unfolding inj_def
 apply (safe elim!: restrict_type2, auto)
 done
 
@@ -532,14 +532,14 @@ done
 subsubsection\<open>Lemmas for Ramsey's Theorem\<close>
 
 lemma inj_weaken_type: "\<lbrakk>f \<in> inj(A,B);  B<=D\<rbrakk> \<Longrightarrow> f \<in> inj(A,D)"
-apply (unfold inj_def)
+  unfolding inj_def
 apply (blast intro: fun_weaken_type)
 done
 
 lemma inj_succ_restrict:
      "\<lbrakk>f \<in> inj(succ(m), A)\<rbrakk> \<Longrightarrow> restrict(f,m) \<in> inj(m, A-{f`m})"
 apply (rule restrict_bij [THEN bij_is_inj, THEN inj_weaken_type], assumption, blast)
-apply (unfold inj_def)
+  unfolding inj_def
 apply (fast elim: range_type mem_irrefl dest: apply_equality)
 done
 
@@ -547,7 +547,7 @@ done
 lemma inj_extend:
     "\<lbrakk>f \<in> inj(A,B);  a\<notin>A;  b\<notin>B\<rbrakk>
      \<Longrightarrow> cons(\<langle>a,b\<rangle>,f) \<in> inj(cons(a,A), cons(b,B))"
-apply (unfold inj_def)
+  unfolding inj_def
 apply (force intro: apply_type  simp add: fun_extend)
 done
 

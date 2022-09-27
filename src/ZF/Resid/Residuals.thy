@@ -85,21 +85,21 @@ by (unfold res_func_def, blast)
 
 lemma res_Fun [simp]: 
     "\<lbrakk>s \<sim> t; regular(t)\<rbrakk>\<Longrightarrow> Fun(s) |> Fun(t) = Fun(s |> t)"
-apply (unfold res_func_def)
+  unfolding res_func_def
 apply (blast intro: comp_resfuncD residuals_function) 
 done
 
 lemma res_App [simp]: 
     "\<lbrakk>s \<sim> u; regular(u); t \<sim> v; regular(v); b \<in> bool\<rbrakk>
      \<Longrightarrow> App(b,s,t) |> App(0,u,v) = App(b, s |> u, t |> v)"
-apply (unfold res_func_def) 
+  unfolding res_func_def 
 apply (blast dest!: comp_resfuncD intro: residuals_function)
 done
 
 lemma res_redex [simp]: 
     "\<lbrakk>s \<sim> u; regular(u); t \<sim> v; regular(v); b \<in> bool\<rbrakk>
      \<Longrightarrow> App(b,Fun(s),t) |> App(1,Fun(u),v) = (t |> v)/ (s |> u)"
-apply (unfold res_func_def)
+  unfolding res_func_def
 apply (blast elim!: redexes.free_elims dest!: comp_resfuncD 
              intro: residuals_function)
 done

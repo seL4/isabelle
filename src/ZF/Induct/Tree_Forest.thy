@@ -109,7 +109,7 @@ lemma tree_forest_rec_type:
 \<rbrakk> \<Longrightarrow> (\<forall>t \<in> tree(A).    tree_forest_rec(b,c,d,t) \<in> C(t)) \<and>
           (\<forall>f \<in> forest(A). tree_forest_rec(b,c,d,f) \<in> D(f))"
     \<comment> \<open>Mutually recursive version.\<close>
-  apply (unfold Ball_def)
+    unfolding Ball_def
   apply (rule tree_forest.mutual_induct)
   apply simp_all
   done

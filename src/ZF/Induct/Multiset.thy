@@ -393,7 +393,7 @@ apply (simp add: setsum_mcount_Int)
 done
 
 lemma msize_eq_succ_imp_elem: "\<lbrakk>msize(M)= $# succ(n); n \<in> nat\<rbrakk> \<Longrightarrow> \<exists>a. a \<in> mset_of(M)"
-apply (unfold msize_def)
+  unfolding msize_def
 apply (blast dest: setsum_succD)
 done
 
@@ -480,7 +480,7 @@ lemma setsum_decr:
   (\<forall>a \<in> mset_of(M). setsum(\<lambda>z. $# mcount(M(a:=M`a #- 1), z), A) =
   (if a \<in> A then setsum(\<lambda>z. $# mcount(M, z), A) $- #1
            else setsum(\<lambda>z. $# mcount(M, z), A))))"
-apply (unfold multiset_def)
+  unfolding multiset_def
 apply (erule Finite_induct)
 apply (auto simp add: multiset_fun_iff)
 apply (unfold mset_of_def mcount_def)

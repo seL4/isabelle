@@ -177,7 +177,7 @@ by simp
 theorem DPow_sats_reflection:
      "REFLECTS[\<lambda>x. is_DPow_sats(L,f(x),g(x),h(x),g'(x)),
                \<lambda>i x. is_DPow_sats(##Lset(i),f(x),g(x),h(x),g'(x))]"
-apply (unfold is_DPow_sats_def) 
+  unfolding is_DPow_sats_def 
 apply (intro FOL_reflections function_reflections extra_reflections
              satisfies_reflection)
 done
@@ -264,7 +264,7 @@ lemma DPow_replacement_Reflects:
                mem_formula(##Lset(i),p) \<and> mem_list(##Lset(i),A,env) \<and> 
                pair(##Lset(i),env,p,u) \<and>
                is_Collect (##Lset(i), A, is_DPow_sats(##Lset(i),A,env,p), x))]"
-apply (unfold is_Collect_def) 
+  unfolding is_Collect_def 
 apply (intro FOL_reflections function_reflections mem_formula_reflection
           mem_list_reflection DPow_sats_reflection)
 done
@@ -279,7 +279,7 @@ apply (rule strong_replacementI)
 apply (rule_tac u="{A,B}" 
          in gen_separation_multi [OF DPow_replacement_Reflects], 
        auto)
-apply (unfold is_Collect_def) 
+  unfolding is_Collect_def 
 apply (rule_tac env="[A,B]" in DPow_LsetI)
 apply (rule sep_rules mem_formula_iff_sats mem_list_iff_sats 
             DPow_sats_iff_sats | simp)+
@@ -543,7 +543,7 @@ by (intro FOL_reflections function_reflections DPow'_reflection)
 
 lemma strong_rep:
    "\<lbrakk>L(x); L(g)\<rbrakk> \<Longrightarrow> strong_replacement(L, \<lambda>y z. transrec_body(L,g,x,y,z))"
-apply (unfold transrec_body_def)  
+  unfolding transrec_body_def  
 apply (rule strong_replacementI) 
 apply (rule_tac u="{x,g,B}" 
          in gen_separation_multi [OF strong_rep_Reflects], auto)
@@ -582,7 +582,7 @@ lemma transrec_rep:
               \<exists>r[L]. is_Replace(L, x, transrec_body(L,f,x), r) \<and> 
                      big_union(L, r, u), j)"
 apply (rule L.transrec_replacementI, assumption)
-apply (unfold transrec_body_def)  
+  unfolding transrec_body_def  
 apply (rule strong_replacementI)
 apply (rule_tac u="{j,B,Memrel(eclose({j}))}" 
          in gen_separation_multi [OF transrec_rep_Reflects], auto)

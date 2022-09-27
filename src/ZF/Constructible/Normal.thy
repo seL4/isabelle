@@ -171,7 +171,7 @@ lemma omega_sup_greater_gt:
   done
 
 lemma Unbounded_INT: "Unbounded(\<lambda>x. \<forall>a\<in>A. P(a,x))"
-  apply (unfold Unbounded_def)  
+    unfolding Unbounded_def  
   apply (blast intro!: omega_sup_greater_gt P_omega_sup_greater) 
   done
 
@@ -367,7 +367,7 @@ done
 
 lemma iterates_omega_increasing:
      "\<lbrakk>Normal(F); Ord(a)\<rbrakk> \<Longrightarrow> a \<le> F^\<omega> (a)"   
-apply (unfold iterates_omega_def)
+  unfolding iterates_omega_def
 apply (rule UN_upper_le [of 0], simp_all)
 done
 

@@ -99,7 +99,7 @@ lemma UN_subset_split:
 by blast
 
 lemma UN_sing_lepoll: "Ord(a) \<Longrightarrow> (\<Union>x \<in> a. {P(x)}) \<lesssim> a"
-apply (unfold lepoll_def)
+  unfolding lepoll_def
 apply (rule_tac x = "\<lambda>z \<in> (\<Union>x \<in> a. {P (x) }) . (\<mu> i. P (i) =z) " in exI)
 apply (rule_tac d = "\<lambda>z. P (z) " in lam_injective)
 apply (fast intro!: Least_in_Ord)

@@ -169,7 +169,7 @@ lemma term_map [simp]:
 
 lemma term_map_type [TC]:
     "\<lbrakk>t \<in> term(A);  \<And>x. x \<in> A \<Longrightarrow> f(x): B\<rbrakk> \<Longrightarrow> term_map(f,t) \<in> term(B)"
-  apply (unfold term_map_def)
+    unfolding term_map_def
   apply (erule term_rec_simple_type)
   apply fast
   done

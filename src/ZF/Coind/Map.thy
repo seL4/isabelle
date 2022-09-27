@@ -69,7 +69,7 @@ by fast
 
 lemma MapQU_lemma: 
     "A \<subseteq> univ(X) \<Longrightarrow> Pow(A * \<Union>(quniv(X))) \<subseteq> quniv(X)"
-apply (unfold quniv_def)
+  unfolding quniv_def
 apply (rule Pow_mono)
 apply (rule subset_trans [OF Sigma_mono product_univ])
 apply (erule subset_trans)
@@ -127,7 +127,7 @@ by (unfold TMap_def map_app_def domain_def, blast)
 
 lemma pmap_appI: 
   "\<lbrakk>m \<in> PMap(A,B); a \<in> domain(m)\<rbrakk> \<Longrightarrow> map_app(m,a):B"
-apply (unfold PMap_def)
+  unfolding PMap_def
 apply (frule tmap_app_notempty, assumption)
 apply (drule tmap_appI, auto)
 done
@@ -165,7 +165,7 @@ by (unfold map_emp_def, blast)
 
 lemma map_domain_owr: 
   "b \<noteq> 0 \<Longrightarrow> domain(map_owr(f,a,b)) = {a} \<union> domain(f)"
-apply (unfold map_owr_def)
+  unfolding map_owr_def
 apply (auto simp add: domain_Sigma)
 done
 

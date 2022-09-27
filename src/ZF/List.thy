@@ -267,7 +267,7 @@ by (simp add: flat_list_def)
 (** set_of_list **)
 
 lemma set_of_list_type [TC]: "l \<in> list(A) \<Longrightarrow> set_of_list(l) \<in> Pow(A)"
-apply (unfold set_of_list_list_def)
+  unfolding set_of_list_list_def
 apply (erule list_rec_type, auto)
 done
 
@@ -463,7 +463,7 @@ done
 (** min FIXME: replace by Int! **)
 (* Min theorems are also true for i, j ordinals *)
 lemma min_sym: "\<lbrakk>i \<in> nat; j \<in> nat\<rbrakk> \<Longrightarrow> min(i,j)=min(j,i)"
-apply (unfold min_def)
+  unfolding min_def
 apply (auto dest!: not_lt_imp_le dest: lt_not_sym intro: le_anti_sym)
 done
 
@@ -471,17 +471,17 @@ lemma min_type [simp,TC]: "\<lbrakk>i \<in> nat; j \<in> nat\<rbrakk> \<Longrigh
 by (unfold min_def, auto)
 
 lemma min_0 [simp]: "i \<in> nat \<Longrightarrow> min(0,i) = 0"
-apply (unfold min_def)
+  unfolding min_def
 apply (auto dest: not_lt_imp_le)
 done
 
 lemma min_02 [simp]: "i \<in> nat \<Longrightarrow> min(i, 0) = 0"
-apply (unfold min_def)
+  unfolding min_def
 apply (auto dest: not_lt_imp_le)
 done
 
 lemma lt_min_iff: "\<lbrakk>i \<in> nat; j \<in> nat; k \<in> nat\<rbrakk> \<Longrightarrow> i<min(j,k) \<longleftrightarrow> i<j \<and> i<k"
-apply (unfold min_def)
+  unfolding min_def
 apply (auto dest!: not_lt_imp_le intro: lt_trans2 lt_trans)
 done
 
@@ -689,7 +689,7 @@ done
 (** take **)
 
 lemma take_0 [simp]: "xs:list(A) \<Longrightarrow> take(0, xs) =  Nil"
-apply (unfold take_def)
+  unfolding take_def
 apply (erule list.induct, auto)
 done
 
@@ -917,7 +917,7 @@ declare zip_type [simp,TC]
 lemma length_zip [rule_format]:
      "xs:list(A) \<Longrightarrow> \<forall>ys \<in> list(B). length(zip(xs,ys)) =
                                      min(length(xs), length(ys))"
-apply (unfold min_def)
+  unfolding min_def
 apply (induct_tac "xs", simp_all, clarify)
 apply (erule_tac a = ys in list.cases, auto)
 done
@@ -1200,7 +1200,7 @@ done
 
 lemma sublist_type [simp,TC]:
      "xs:list(B) \<Longrightarrow> sublist(xs, A):list(B)"
-apply (unfold sublist_def)
+  unfolding sublist_def
 apply (induct_tac "xs")
 apply (auto simp add: filter_append map_app_distrib)
 done
@@ -1212,7 +1212,7 @@ by (simp add: upt_add_eq_append [of 0] nat_0_le)
 lemma sublist_append:
  "\<lbrakk>xs:list(B); ys:list(B)\<rbrakk> \<Longrightarrow>
   sublist(xs@ys, A) = sublist(xs, A) @ sublist(ys, {j \<in> nat. j #+ length(xs): A})"
-apply (unfold sublist_def)
+  unfolding sublist_def
 apply (erule_tac l = ys in list_append_induct, simp)
 apply (simp (no_asm_simp) add: upt_add_eq_append2 app_assoc [symmetric])
 apply (auto simp add: sublist_shift_lemma length_type map_app_distrib app_assoc)

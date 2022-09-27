@@ -138,7 +138,7 @@ definition
 
 (* lemma for ordertype_Int *)
 lemma rvimage_id: "rvimage(A,id(A),r) = r \<inter> A*A"
-apply (unfold rvimage_def)
+  unfolding rvimage_def
 apply (rule equalityI, safe)
 apply (drule_tac P = "\<lambda>a. <id (A) `xb,a>:r" in id_conv [THEN subst],
        assumption)
@@ -194,7 +194,7 @@ by (fast elim!: well_ord_subset [THEN ex_choice_fun])
 (*Using AC we could trivially prove, for all u, domain(u) \<lesssim> u*)
 lemma lepoll_m_imp_domain_lepoll_m: 
      "\<lbrakk>m \<in> nat; u \<lesssim> m\<rbrakk> \<Longrightarrow> domain(u) \<lesssim> m"
-apply (unfold lepoll_def)
+  unfolding lepoll_def
 apply (erule exE)
 apply (rule_tac x = "\<lambda>x \<in> domain(u). \<mu> i. \<exists>y. \<langle>x,y\<rangle> \<in> u \<and> f`\<langle>x,y\<rangle> = i" 
        in exI)

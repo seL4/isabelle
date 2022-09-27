@@ -24,7 +24,7 @@ lemma FP_Orig_type: "FP_Orig(F) \<subseteq> state"
 by (unfold FP_Orig_def, blast)
 
 lemma st_set_FP_Orig [iff]: "st_set(FP_Orig(F))"
-apply (unfold st_set_def)
+  unfolding st_set_def
 apply (rule FP_Orig_type)
 done
 
@@ -32,7 +32,7 @@ lemma FP_type: "FP(F) \<subseteq> state"
 by (unfold FP_def, blast)
 
 lemma st_set_FP [iff]: "st_set(FP(F))"
-apply (unfold st_set_def)
+  unfolding st_set_def
 apply (rule FP_type)
 done
 

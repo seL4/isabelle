@@ -108,13 +108,13 @@ lemmas nat_le_refl = nat_into_Ord [THEN le_refl]
 lemma Ord_nat [iff]: "Ord(nat)"
 apply (rule OrdI)
 apply (erule_tac [2] nat_into_Ord [THEN Ord_is_Transset])
-apply (unfold Transset_def)
+  unfolding Transset_def
 apply (rule ballI)
 apply (erule nat_induct, auto)
 done
 
 lemma Limit_nat [iff]: "Limit(nat)"
-apply (unfold Limit_def)
+  unfolding Limit_def
 apply (safe intro!: ltI Ord_nat)
 apply (erule ltD)
 done

@@ -110,7 +110,7 @@ apply (blast intro: red1D1 redD2)
 apply (blast intro: red1D1 redD2)
 apply (blast intro: red1D1 redD2)
 apply (cut_tac confluence_beta_reduction)
-apply (unfold confluence_def)
+  unfolding confluence_def
 apply (blast intro: Sred.trans)
 done
 

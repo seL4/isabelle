@@ -191,7 +191,7 @@ lemma diff_type [iff,TC]: "m #- n \<in> nat"
 by (simp add: diff_def raw_diff_type)
 
 lemma diff_0_eq_0 [simp]: "0 #- n = 0"
-apply (unfold diff_def)
+  unfolding diff_def
 apply (rule natify_in_nat [THEN nat_induct], auto)
 done
 
@@ -245,7 +245,7 @@ apply auto
 done
 
 lemma add_succ_right [simp]: "m #+ succ(n) = succ(m #+ n)"
-apply (unfold add_def)
+  unfolding add_def
 apply (rule_tac n = "natify(m) " in nat_induct)
 apply (auto simp add: natify_succ)
 done
@@ -278,7 +278,7 @@ apply (induct_tac "k", auto)
 done
 
 lemma add_left_cancel_natify: "k #+ m = k #+ n \<Longrightarrow> natify(m) = natify(n)"
-apply (unfold add_def)
+  unfolding add_def
 apply (drule raw_add_left_cancel, auto)
 done
 
@@ -468,7 +468,7 @@ by (simp add: add_def mult_def natify_succ raw_mult_type)
 
 (*right annihilation in product*)
 lemma mult_0_right [simp]: "m #* 0 = 0"
-apply (unfold mult_def)
+  unfolding mult_def
 apply (rule_tac n = "natify(m) " in nat_induct)
 apply auto
 done

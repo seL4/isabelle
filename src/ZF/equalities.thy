@@ -621,7 +621,7 @@ by blast
 (** Range **)
 
 lemma rangeI [intro]: "\<langle>a,b\<rangle>\<in> r \<Longrightarrow> b \<in> range(r)"
-apply (unfold range_def)
+  unfolding range_def
 apply (erule converseI [THEN domainI])
 done
 
@@ -629,7 +629,7 @@ lemma rangeE [elim!]: "\<lbrakk>b \<in> range(r);  \<And>x. \<langle>x,b\<rangle
 by (unfold range_def, blast)
 
 lemma range_subset: "range(A*B) \<subseteq> B"
-apply (unfold range_def)
+  unfolding range_def
 apply (subst converse_prod)
 apply (rule domain_subset)
 done
@@ -682,12 +682,12 @@ lemma field_subset: "field(A*B) \<subseteq> A \<union> B"
 by blast
 
 lemma domain_subset_field: "domain(r) \<subseteq> field(r)"
-apply (unfold field_def)
+  unfolding field_def
 apply (rule Un_upper1)
 done
 
 lemma range_subset_field: "range(r) \<subseteq> field(r)"
-apply (unfold field_def)
+  unfolding field_def
 apply (rule Un_upper2)
 done
 
@@ -807,7 +807,7 @@ apply (unfold vimage_def, blast)
 done
 
 lemma vimage_subset: "r \<subseteq> A*B \<Longrightarrow> r-``C \<subseteq> A"
-apply (unfold vimage_def)
+  unfolding vimage_def
 apply (erule converse_type [THEN image_subset])
 done
 

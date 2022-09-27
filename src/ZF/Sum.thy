@@ -29,7 +29,7 @@ subsection\<open>Rules for the \<^term>\<open>Part\<close> Primitive\<close>
 
 lemma Part_iff:
     "a \<in> Part(A,h) \<longleftrightarrow> a \<in> A \<and> (\<exists>y. a=h(y))"
-apply (unfold Part_def)
+  unfolding Part_def
 apply (rule separation)
 done
 
@@ -46,7 +46,7 @@ apply (unfold Part_def, blast)
 done
 
 lemma Part_subset: "Part(A,h) \<subseteq> A"
-apply (unfold Part_def)
+  unfolding Part_def
 apply (rule Collect_subset)
 done
 

@@ -214,7 +214,7 @@ by (unfold wellfounded_on_def subset_def, blast)
 
 lemma wellordered_subset: 
     "\<lbrakk>wellordered(M, A, r); B \<subseteq> A\<rbrakk> \<Longrightarrow> wellordered(M, B, r)"
-apply (unfold wellordered_def)
+  unfolding wellordered_def
 apply (blast intro: linear_rel_subset transitive_rel_subset 
                     wellfounded_on_subset)
 done

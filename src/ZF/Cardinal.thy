@@ -79,7 +79,7 @@ done
 (** Equipollence is an equivalence relation **)
 
 lemma bij_imp_eqpoll: "f \<in> bij(A,B) \<Longrightarrow> A \<approx> B"
-apply (unfold eqpoll_def)
+  unfolding eqpoll_def
 apply (erule exI)
 done
 
@@ -87,20 +87,20 @@ done
 lemmas eqpoll_refl = id_bij [THEN bij_imp_eqpoll, simp]
 
 lemma eqpoll_sym: "X \<approx> Y \<Longrightarrow> Y \<approx> X"
-apply (unfold eqpoll_def)
+  unfolding eqpoll_def
 apply (blast intro: bij_converse_bij)
 done
 
 lemma eqpoll_trans [trans]:
     "\<lbrakk>X \<approx> Y;  Y \<approx> Z\<rbrakk> \<Longrightarrow> X \<approx> Z"
-apply (unfold eqpoll_def)
+  unfolding eqpoll_def
 apply (blast intro: comp_bij)
 done
 
 (** Le-pollence is a partial ordering **)
 
 lemma subset_imp_lepoll: "X<=Y \<Longrightarrow> X \<lesssim> Y"
-apply (unfold lepoll_def)
+  unfolding lepoll_def
 apply (rule exI)
 apply (erule id_subset_inj)
 done
@@ -113,7 +113,7 @@ lemma eqpoll_imp_lepoll: "X \<approx> Y \<Longrightarrow> X \<lesssim> Y"
 by (unfold eqpoll_def bij_def lepoll_def, blast)
 
 lemma lepoll_trans [trans]: "\<lbrakk>X \<lesssim> Y;  Y \<lesssim> Z\<rbrakk> \<Longrightarrow> X \<lesssim> Z"
-apply (unfold lepoll_def)
+  unfolding lepoll_def
 apply (blast intro: comp_inj)
 done
 
@@ -150,7 +150,7 @@ by (blast intro: lepoll_0_is_0 lepoll_refl)
 
 lemma Un_lepoll_Un:
     "\<lbrakk>A \<lesssim> B; C \<lesssim> D; B \<inter> D = 0\<rbrakk> \<Longrightarrow> A \<union> C \<lesssim> B \<union> D"
-apply (unfold lepoll_def)
+  unfolding lepoll_def
 apply (blast intro: inj_disjoint_Un)
 done
 
@@ -163,7 +163,7 @@ by (blast intro: eqpoll_0_is_0 eqpoll_refl)
 lemma eqpoll_disjoint_Un:
     "\<lbrakk>A \<approx> B;  C \<approx> D;  A \<inter> C = 0;  B \<inter> D = 0\<rbrakk>
      \<Longrightarrow> A \<union> C \<approx> B \<union> D"
-apply (unfold eqpoll_def)
+  unfolding eqpoll_def
 apply (blast intro: bij_disjoint_Un)
 done
 
@@ -180,12 +180,12 @@ lemma lesspoll_imp_lepoll: "A \<prec> B \<Longrightarrow> A \<lesssim> B"
 by (unfold lesspoll_def, blast)
 
 lemma lepoll_well_ord: "\<lbrakk>A \<lesssim> B; well_ord(B,r)\<rbrakk> \<Longrightarrow> \<exists>s. well_ord(A,s)"
-apply (unfold lepoll_def)
+  unfolding lepoll_def
 apply (blast intro: well_ord_rvimage)
 done
 
 lemma lepoll_iff_leqpoll: "A \<lesssim> B \<longleftrightarrow> A \<prec> B | A \<approx> B"
-apply (unfold lesspoll_def)
+  unfolding lesspoll_def
 apply (blast intro!: eqpollI elim!: eqpollE)
 done
 
@@ -208,19 +208,19 @@ qed
 
 lemma lesspoll_trans [trans]:
       "\<lbrakk>X \<prec> Y; Y \<prec> Z\<rbrakk> \<Longrightarrow> X \<prec> Z"
-apply (unfold lesspoll_def)
+  unfolding lesspoll_def
 apply (blast elim!: eqpollE intro: eqpollI lepoll_trans)
 done
 
 lemma lesspoll_trans1 [trans]:
       "\<lbrakk>X \<lesssim> Y; Y \<prec> Z\<rbrakk> \<Longrightarrow> X \<prec> Z"
-apply (unfold lesspoll_def)
+  unfolding lesspoll_def
 apply (blast elim!: eqpollE intro: eqpollI lepoll_trans)
 done
 
 lemma lesspoll_trans2 [trans]:
       "\<lbrakk>X \<prec> Y; Y \<lesssim> Z\<rbrakk> \<Longrightarrow> X \<prec> Z"
-apply (unfold lesspoll_def)
+  unfolding lesspoll_def
 apply (blast elim!: eqpollE intro: eqpollI lepoll_trans)
 done
 
@@ -237,7 +237,7 @@ lemma lesspoll_eq_trans [trans]:
 
 lemma Least_equality:
     "\<lbrakk>P(i);  Ord(i);  \<And>x. x<i \<Longrightarrow> \<not>P(x)\<rbrakk> \<Longrightarrow> (\<mu> x. P(x)) = i"
-apply (unfold Least_def)
+  unfolding Least_def
 apply (rule the_equality, blast)
 apply (elim conjE)
 apply (erule Ord_linear_lt, assumption, blast+)
@@ -304,7 +304,7 @@ by (blast intro: LeastI )
 (*If there is no such P then \<mu> is vacuously 0*)
 lemma Least_0:
     "\<lbrakk>\<not> (\<exists>i. Ord(i) \<and> P(i))\<rbrakk> \<Longrightarrow> (\<mu> x. P(x)) = 0"
-apply (unfold Least_def)
+  unfolding Least_def
 apply (rule the_0, blast)
 done
 
@@ -369,12 +369,12 @@ by (blast intro: cardinal_cong well_ord_cardinal_eqE)
 (** Observations from Kunen, page 28 **)
 
 lemma Ord_cardinal_le: "Ord(i) \<Longrightarrow> |i| \<le> i"
-apply (unfold cardinal_def)
+  unfolding cardinal_def
 apply (erule eqpoll_refl [THEN Least_le])
 done
 
 lemma Card_cardinal_eq: "Card(K) \<Longrightarrow> |K| = K"
-apply (unfold Card_def)
+  unfolding Card_def
 apply (erule sym)
 done
 
@@ -396,7 +396,7 @@ apply (simp (no_asm_simp) add: Card_is_Ord Card_cardinal_eq)
 done
 
 lemma Ord_cardinal [simp,intro!]: "Ord(|A|)"
-apply (unfold cardinal_def)
+  unfolding cardinal_def
 apply (rule Ord_Least)
 done
 
@@ -417,7 +417,7 @@ proof -
 qed
 
 lemma lt_Card_imp_lesspoll: "\<lbrakk>Card(a); i<a\<rbrakk> \<Longrightarrow> i \<prec> a"
-apply (unfold lesspoll_def)
+  unfolding lesspoll_def
 apply (drule Card_iff_initial [THEN iffD1])
 apply (blast intro!: leI [THEN le_imp_lepoll])
 done
@@ -536,7 +536,7 @@ lemma lepoll_Ord_imp_eqpoll: "\<lbrakk>A \<lesssim> i; Ord(i)\<rbrakk> \<Longrig
 by (blast intro: lepoll_cardinal_le well_ord_Memrel well_ord_cardinal_eqpoll dest!: lepoll_well_ord)
 
 lemma lesspoll_imp_eqpoll: "\<lbrakk>A \<prec> i; Ord(i)\<rbrakk> \<Longrightarrow> |A| \<approx> A"
-apply (unfold lesspoll_def)
+  unfolding lesspoll_def
 apply (blast intro: lepoll_Ord_imp_eqpoll)
 done
 
@@ -569,7 +569,7 @@ done
 
 (*Lemma suggested by Mike Fourman*)
 lemma succ_lepoll_succD: "succ(m) \<lesssim> succ(n) \<Longrightarrow> m \<lesssim> n"
-apply (unfold succ_def)
+  unfolding succ_def
 apply (erule cons_lepoll_consD)
 apply (rule mem_not_refl)+
 done
@@ -757,7 +757,7 @@ lemma cons_eqpoll_cons_iff:
 by (blast intro: cons_eqpoll_cong cons_eqpoll_consD)
 
 lemma singleton_eqpoll_1: "{a} \<approx> 1"
-apply (unfold succ_def)
+  unfolding succ_def
 apply (blast intro!: eqpoll_refl [THEN cons_eqpoll_cong])
 done
 
@@ -775,26 +775,26 @@ done
 
 (*Congruence law for  succ  under equipollence*)
 lemma succ_eqpoll_cong: "A \<approx> B \<Longrightarrow> succ(A) \<approx> succ(B)"
-apply (unfold succ_def)
+  unfolding succ_def
 apply (simp add: cons_eqpoll_cong mem_not_refl)
 done
 
 (*Congruence law for + under equipollence*)
 lemma sum_eqpoll_cong: "\<lbrakk>A \<approx> C;  B \<approx> D\<rbrakk> \<Longrightarrow> A+B \<approx> C+D"
-apply (unfold eqpoll_def)
+  unfolding eqpoll_def
 apply (blast intro!: sum_bij)
 done
 
 (*Congruence law for * under equipollence*)
 lemma prod_eqpoll_cong:
     "\<lbrakk>A \<approx> C;  B \<approx> D\<rbrakk> \<Longrightarrow> A*B \<approx> C*D"
-apply (unfold eqpoll_def)
+  unfolding eqpoll_def
 apply (blast intro!: prod_bij)
 done
 
 lemma inj_disjoint_eqpoll:
     "\<lbrakk>f \<in> inj(A,B);  A \<inter> B = 0\<rbrakk> \<Longrightarrow> A \<union> (B - range(f)) \<approx> B"
-apply (unfold eqpoll_def)
+  unfolding eqpoll_def
 apply (rule exI)
 apply (rule_tac c = "\<lambda>x. if x \<in> A then f`x else x"
             and d = "\<lambda>y. if y \<in> range (f) then converse (f) `y else y"
@@ -815,7 +815,7 @@ text\<open>If \<^term>\<open>A\<close> has at most \<^term>\<open>n+1\<close> el
       then \<^term>\<open>A-{a}\<close> has at most \<^term>\<open>n\<close>.\<close>
 lemma Diff_sing_lepoll:
       "\<lbrakk>a \<in> A;  A \<lesssim> succ(n)\<rbrakk> \<Longrightarrow> A - {a} \<lesssim> n"
-apply (unfold succ_def)
+  unfolding succ_def
 apply (rule cons_lepoll_consD)
 apply (rule_tac [3] mem_not_refl)
 apply (erule cons_Diff [THEN ssubst], safe)
@@ -846,7 +846,7 @@ apply (blast elim: equalityE)
 done
 
 lemma Un_lepoll_sum: "A \<union> B \<lesssim> A+B"
-apply (unfold lepoll_def)
+  unfolding lepoll_def
 apply (rule_tac x = "\<lambda>x\<in>A \<union> B. if x\<in>A then Inl (x) else Inr (x)" in exI)
 apply (rule_tac d = "\<lambda>z. snd (z)" in lam_injective)
 apply force
@@ -860,7 +860,7 @@ by (erule well_ord_radd [THEN Un_lepoll_sum [THEN lepoll_well_ord]],
 
 (*Krzysztof Grabczewski*)
 lemma disj_Un_eqpoll_sum: "A \<inter> B = 0 \<Longrightarrow> A \<union> B \<approx> A + B"
-apply (unfold eqpoll_def)
+  unfolding eqpoll_def
 apply (rule_tac x = "\<lambda>a\<in>A \<union> B. if a \<in> A then Inl (a) else Inr (a)" in exI)
 apply (rule_tac d = "\<lambda>z. case (\<lambda>x. x, \<lambda>x. x, z)" in lam_bijective)
 apply auto
@@ -870,17 +870,17 @@ done
 subsection \<open>Finite and infinite sets\<close>
 
 lemma eqpoll_imp_Finite_iff: "A \<approx> B \<Longrightarrow> Finite(A) \<longleftrightarrow> Finite(B)"
-apply (unfold Finite_def)
+  unfolding Finite_def
 apply (blast intro: eqpoll_trans eqpoll_sym)
 done
 
 lemma Finite_0 [simp]: "Finite(0)"
-apply (unfold Finite_def)
+  unfolding Finite_def
 apply (blast intro!: eqpoll_refl nat_0I)
 done
 
 lemma Finite_cons: "Finite(x) \<Longrightarrow> Finite(cons(y,x))"
-apply (unfold Finite_def)
+  unfolding Finite_def
 apply (case_tac "y \<in> x")
 apply (simp add: cons_absorb)
 apply (erule bexE)
@@ -890,7 +890,7 @@ apply (simp (no_asm_simp) add: succ_def cons_eqpoll_cong mem_not_refl)
 done
 
 lemma Finite_succ: "Finite(x) \<Longrightarrow> Finite(succ(x))"
-apply (unfold succ_def)
+  unfolding succ_def
 apply (erule Finite_cons)
 done
 
@@ -912,7 +912,7 @@ qed
 
 lemma lesspoll_nat_is_Finite:
      "A \<prec> nat \<Longrightarrow> Finite(A)"
-apply (unfold Finite_def)
+  unfolding Finite_def
 apply (blast dest: ltD lesspoll_cardinal_lt
                    lesspoll_imp_eqpoll [THEN eqpoll_sym])
 done
@@ -943,7 +943,7 @@ lemmas Finite_Diff = Diff_subset [THEN subset_Finite]
 
 lemma nat_le_infinite_Ord:
       "\<lbrakk>Ord(i);  \<not> Finite(i)\<rbrakk> \<Longrightarrow> nat \<le> i"
-apply (unfold Finite_def)
+  unfolding Finite_def
 apply (erule Ord_nat [THEN [2] Ord_linear2])
 prefer 2 apply assumption
 apply (blast intro!: eqpoll_refl elim!: ltE)
@@ -993,12 +993,12 @@ apply (rule_tac b = A in cons_Diff [THEN subst], assumption)
 apply (rule Fin.consI, blast)
 apply (blast intro: subset_consI [THEN Fin_mono, THEN subsetD])
 (*Now for the lemma assumed above*)
-apply (unfold eqpoll_def)
+  unfolding eqpoll_def
 apply (blast intro: bij_converse_bij [THEN bij_is_fun, THEN apply_type])
 done
 
 lemma Finite_into_Fin: "Finite(A) \<Longrightarrow> A \<in> Fin(A)"
-apply (unfold Finite_def)
+  unfolding Finite_def
 apply (blast intro: Fin_lemma)
 done
 
@@ -1036,7 +1036,7 @@ done
 
 (*Sidi Ehmety.  The contrapositive says \<not>Finite(A) \<Longrightarrow> \<not>Finite(A-{a}) *)
 lemma Diff_sing_Finite: "Finite(A - {a}) \<Longrightarrow> Finite(A)"
-apply (unfold Finite_def)
+  unfolding Finite_def
 apply (case_tac "a \<in> A")
 apply (subgoal_tac [2] "A-{a}=A", auto)
 apply (rule_tac x = "succ (n) " in bexI)
@@ -1154,7 +1154,7 @@ qed
 
 lemma Finite_well_ord_converse:
     "\<lbrakk>Finite(A);  well_ord(A,r)\<rbrakk> \<Longrightarrow> well_ord(A,converse(r))"
-apply (unfold Finite_def)
+  unfolding Finite_def
 apply (rule well_ord_converse, assumption)
 apply (blast dest: ordertype_eq_n intro!: nat_well_ord_converse_Memrel)
 done

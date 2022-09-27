@@ -45,7 +45,7 @@ by (unfold refl_def, blast)
 
 lemma equiv_comp_eq:
     "equiv(A,r) \<Longrightarrow> converse(r) O r = r"
-apply (unfold equiv_def)
+  unfolding equiv_def
 apply (blast del: subsetI intro!: sym_trans_comp_subset refl_comp_subset)
 done
 
@@ -66,7 +66,7 @@ by (unfold trans_def sym_def, blast)
 
 lemma equiv_class_eq:
     "\<lbrakk>equiv(A,r);  \<langle>a,b\<rangle>: r\<rbrakk> \<Longrightarrow> r``{a} = r``{b}"
-apply (unfold equiv_def)
+  unfolding equiv_def
 apply (safe del: subsetI intro!: equalityI equiv_class_subset)
 apply (unfold sym_def, blast)
 done
@@ -104,7 +104,7 @@ by (blast intro: eq_equiv_class equiv_class_eq dest: equiv_type)
 (** Introduction/elimination rules -- needed? **)
 
 lemma quotientI [TC]: "x \<in> A \<Longrightarrow> r``{x}: A//r"
-apply (unfold quotient_def)
+  unfolding quotient_def
 apply (erule RepFunI)
 done
 
@@ -118,7 +118,7 @@ by (unfold equiv_def refl_def quotient_def, blast)
 
 lemma quotient_disj:
     "\<lbrakk>equiv(A,r);  X \<in> A//r;  Y \<in> A//r\<rbrakk> \<Longrightarrow> X=Y | (X \<inter> Y \<subseteq> 0)"
-apply (unfold quotient_def)
+  unfolding quotient_def
 apply (safe intro!: equiv_class_eq, assumption)
 apply (unfold equiv_def trans_def sym_def, blast)
 done

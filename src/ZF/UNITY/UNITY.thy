@@ -165,7 +165,7 @@ by (simp add: RawInit_type Init_def)
 lemmas InitD = Init_type [THEN subsetD]
 
 lemma st_set_Init [iff]: "st_set(Init(F))"
-apply (unfold st_set_def)
+  unfolding st_set_def
 apply (rule Init_type)
 done
 
@@ -469,7 +469,7 @@ lemma unless_type: "A unless B \<subseteq> program"
 by (force simp add: unless_def constrains_def) 
 
 lemma unlessI: "\<lbrakk>F \<in> (A-B) co (A \<union> B)\<rbrakk> \<Longrightarrow> F \<in> A unless B"
-apply (unfold unless_def)
+  unfolding unless_def
 apply (blast dest: constrainsD2)
 done
 
@@ -515,34 +515,34 @@ subsection\<open>Union and Intersection with \<^term>\<open>stable\<close>\<clos
 
 lemma stable_Un:
     "\<lbrakk>F \<in> stable(A); F \<in> stable(A')\<rbrakk> \<Longrightarrow> F \<in> stable(A \<union> A')"
-apply (unfold stable_def)
+  unfolding stable_def
 apply (blast intro: constrains_Un)
 done
 
 lemma stable_UN:
      "\<lbrakk>\<And>i. i\<in>I \<Longrightarrow> F \<in> stable(A(i)); F \<in> program\<rbrakk> 
       \<Longrightarrow> F \<in> stable (\<Union>i \<in> I. A(i))"
-apply (unfold stable_def)
+  unfolding stable_def
 apply (blast intro: constrains_UN)
 done
 
 lemma stable_Int:
     "\<lbrakk>F \<in> stable(A);  F \<in> stable(A')\<rbrakk> \<Longrightarrow> F \<in> stable (A \<inter> A')"
-apply (unfold stable_def)
+  unfolding stable_def
 apply (blast intro: constrains_Int)
 done
 
 lemma stable_INT:
      "\<lbrakk>\<And>i. i \<in> I \<Longrightarrow> F \<in> stable(A(i)); F \<in> program\<rbrakk>
       \<Longrightarrow> F \<in> stable (\<Inter>i \<in> I. A(i))"
-apply (unfold stable_def)
+  unfolding stable_def
 apply (blast intro: constrains_INT)
 done
 
 lemma stable_All:
     "\<lbrakk>\<forall>z. F \<in> stable({s \<in> state. P(s, z)}); F \<in> program\<rbrakk>
      \<Longrightarrow> F \<in> stable({s \<in> state. \<forall>z. P(s, z)})"
-apply (unfold stable_def)
+  unfolding stable_def
 apply (rule constrains_All, auto)
 done
 
@@ -562,7 +562,7 @@ lemmas stable_constrains_stable = stable_constrains_Int [THEN stableI]
 subsection\<open>The Operator \<^term>\<open>invariant\<close>\<close>
 
 lemma invariant_type: "invariant(A) \<subseteq> program"
-apply (unfold invariant_def)
+  unfolding invariant_def
 apply (blast dest: stable_type [THEN subsetD])
 done
 
@@ -575,7 +575,7 @@ lemma invariantD: "F \<in> invariant(A) \<Longrightarrow> Init(F)\<subseteq>A \<
 by (unfold invariant_def initially_def, auto)
 
 lemma invariantD2: "F \<in> invariant(A) \<Longrightarrow> F \<in> program \<and> st_set(A)"
-apply (unfold invariant_def)
+  unfolding invariant_def
 apply (blast dest: stableD2)
 done
 

@@ -118,7 +118,7 @@ apply (blast intro: tokens_mono_aux)
 done
 
 lemma mono_tokens [iff]: "mono1(list(A), prefix(A), nat, Le,tokens)"
-apply (unfold mono1_def)
+  unfolding mono1_def
 apply (auto intro: tokens_mono simp add: Le_def)
 done
 
@@ -280,7 +280,7 @@ by (unfold all_distinct_def, auto)
 lemma all_distinct_Cons [simp]: 
     "all_distinct(Cons(a,l)) \<longleftrightarrow>  
       (a\<in>set_of_list(l) \<longrightarrow> False) \<and> (a \<notin> set_of_list(l) \<longrightarrow> all_distinct(l))"
-apply (unfold all_distinct_def)
+  unfolding all_distinct_def
 apply (auto elim: list.cases)
 done
 
@@ -336,14 +336,14 @@ by (induct_tac "n", auto)
 
 lemma var_infinite_lemma: 
   "(\<lambda>x\<in>nat. nat_var_inj(x))\<in>inj(nat, var)"
-apply (unfold nat_var_inj_def)
+  unfolding nat_var_inj_def
 apply (rule_tac d = var_inj in lam_injective)
 apply (auto simp add: var.intros nat_list_inj_type)
 apply (simp add: length_nat_list_inj)
 done
 
 lemma nat_lepoll_var: "nat \<lesssim> var"
-apply (unfold lepoll_def)
+  unfolding lepoll_def
 apply (rule_tac x = " (\<lambda>x\<in>nat. nat_var_inj (x))" in exI)
 apply (rule var_infinite_lemma)
 done

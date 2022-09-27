@@ -71,7 +71,7 @@ done
 
 lemma not_AC1_imp_ex:
      "\<not>AC1 \<Longrightarrow> \<exists>A. \<forall>f \<in> Pow(A)-{0} -> A. \<exists>u \<in> Pow(A)-{0}. f`u \<notin> u"
-apply (unfold AC1_def)
+  unfolding AC1_def
 apply (erule swap)
 apply (rule allI)
 apply (erule swap)
@@ -112,7 +112,7 @@ lemma AC17_AC1_aux4:
 by simp
 
 lemma AC17_AC1: "AC17 \<Longrightarrow> AC1"
-apply (unfold AC17_def)
+  unfolding AC17_def
 apply (rule classical)
 apply (erule not_AC1_imp_ex [THEN exE])
 apply (case_tac 

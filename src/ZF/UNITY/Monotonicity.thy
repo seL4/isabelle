@@ -95,7 +95,7 @@ lemmas length_mono = prefix_length_le
 
 lemma mono_length [iff]:
      "mono1(list(A), prefix(A), nat, Le, length)"
-apply (unfold mono1_def)
+  unfolding mono1_def
 apply (auto dest: prefix_length_le simp add: Le_def)
 done
 

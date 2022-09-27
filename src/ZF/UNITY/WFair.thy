@@ -116,7 +116,7 @@ by (simp add: ensures_def constrains_def, auto)
 
 lemma ensuresI:
 "\<lbrakk>F:(A-B) co (A \<union> B); F \<in> transient(A-B)\<rbrakk>\<Longrightarrow>F \<in> A ensures B"
-apply (unfold ensures_def)
+  unfolding ensures_def
 apply (auto simp add: transient_type [THEN subsetD])
 done
 
@@ -131,7 +131,7 @@ lemma ensuresD: "F \<in> A ensures B \<Longrightarrow> F:(A-B) co (A \<union> B)
 by (unfold ensures_def, auto)
 
 lemma ensures_weaken_R: "\<lbrakk>F \<in> A ensures A'; A'<=B'\<rbrakk> \<Longrightarrow> F \<in> A ensures B'"
-apply (unfold ensures_def)
+  unfolding ensures_def
 apply (blast intro: transient_strengthen constrains_weaken)
 done
 
@@ -139,7 +139,7 @@ done
 lemma stable_ensures_Int:
      "\<lbrakk>F \<in> stable(C);  F \<in> A ensures B\<rbrakk> \<Longrightarrow> F:(C \<inter> A) ensures (C \<inter> B)"
 
-apply (unfold ensures_def)
+  unfolding ensures_def
 apply (simp (no_asm) add: Int_Un_distrib [symmetric] Diff_Int_distrib [symmetric])
 apply (blast intro: transient_strengthen stable_constrains_Int constrains_weaken)
 done
@@ -182,13 +182,13 @@ declare leadsTo_Basis [intro]
 lemmas subset_imp_leadsTo = subset_imp_ensures [THEN leadsTo_Basis]
 
 lemma leadsTo_Trans: "\<lbrakk>F \<in> A \<longmapsto> B;  F \<in> B \<longmapsto> C\<rbrakk>\<Longrightarrow>F \<in> A \<longmapsto> C"
-apply (unfold leadsTo_def)
+  unfolding leadsTo_def
 apply (auto intro: leads.Trans)
 done
 
 (* Better when used in association with leadsTo_weaken_R *)
 lemma transient_imp_leadsTo: "F \<in> transient(A) \<Longrightarrow> F \<in> A \<longmapsto> (state-A)"
-apply (unfold transient_def)
+  unfolding transient_def
 apply (blast intro: ensuresI [THEN leadsTo_Basis] constrains_weaken transientI)
 done
 
@@ -424,7 +424,7 @@ text\<open>Special case of PSP: Misra's "stable conjunction"\<close>
 
 lemma psp_stable:
    "\<lbrakk>F \<in> A \<longmapsto> A'; F \<in> stable(B)\<rbrakk> \<Longrightarrow> F:(A \<inter> B) \<longmapsto> (A' \<inter> B)"
-apply (unfold stable_def)
+  unfolding stable_def
 apply (frule leadsToD2)
 apply (erule leadsTo_induct)
 prefer 3 apply (blast intro: leadsTo_Union_Int)
@@ -470,7 +470,7 @@ by (simp (no_asm_simp) add: psp Int_ac)
 lemma psp_unless:
    "\<lbrakk>F \<in> A \<longmapsto> A';  F \<in> B unless B'; st_set(B); st_set(B')\<rbrakk>
     \<Longrightarrow> F \<in> (A \<inter> B) \<longmapsto> ((A' \<inter> B) \<union> B')"
-apply (unfold unless_def)
+  unfolding unless_def
 apply (subgoal_tac "st_set (A) \<and>st_set (A') ")
 prefer 2 apply (blast dest: leadsToD2)
 apply (drule psp, assumption, blast)
@@ -511,7 +511,7 @@ apply (rule_tac b = A in subst)
 done
 
 lemma nat_measure_field: "field(measure(nat, \<lambda>x. x)) = nat"
-apply (unfold field_def)
+  unfolding field_def
 apply (simp add: measure_def)
 apply (rule equalityI, force, clarify)
 apply (erule_tac V = "x\<notin>range (y)" for y in thin_rl)
@@ -551,13 +551,13 @@ lemma wlt_type: "wlt(F,B) <=state"
 by (unfold wlt_def, auto)
 
 lemma wlt_st_set: "st_set(wlt(F, B))"
-apply (unfold st_set_def)
+  unfolding st_set_def
 apply (rule wlt_type)
 done
 declare wlt_st_set [iff]
 
 lemma wlt_leadsTo_iff: "F \<in> wlt(F, B) \<longmapsto> B \<longleftrightarrow> (F \<in> program \<and> st_set(B))"
-apply (unfold wlt_def)
+  unfolding wlt_def
 apply (blast dest: leadsToD2 intro!: leadsTo_Union)
 done
 
@@ -565,7 +565,7 @@ done
 lemmas wlt_leadsTo = conjI [THEN wlt_leadsTo_iff [THEN iffD2]]
 
 lemma leadsTo_subset: "F \<in> A \<longmapsto> B \<Longrightarrow> A \<subseteq> wlt(F, B)"
-apply (unfold wlt_def)
+  unfolding wlt_def
 apply (frule leadsToD2)
 apply (auto simp add: st_set_def)
 done
@@ -687,7 +687,7 @@ lemma stable_completion:
      "\<lbrakk>F \<in> A \<longmapsto> A';  F \<in> stable(A');
          F \<in> B \<longmapsto> B';  F \<in> stable(B')\<rbrakk>
     \<Longrightarrow> F \<in> (A \<inter> B) \<longmapsto> (A' \<inter> B')"
-apply (unfold stable_def)
+  unfolding stable_def
 apply (rule_tac C1 = 0 in completion [THEN leadsTo_weaken_R], simp+)
 apply (blast dest: leadsToD2)
 done
@@ -698,7 +698,7 @@ lemma finite_stable_completion:
          (\<And>i. i \<in> I \<Longrightarrow> F \<in> A(i) \<longmapsto> A'(i));
          (\<And>i. i \<in> I \<Longrightarrow> F \<in> stable(A'(i)));  F \<in> program\<rbrakk>
       \<Longrightarrow> F \<in> (\<Inter>i \<in> I. A(i)) \<longmapsto> (\<Inter>i \<in> I. A'(i))"
-apply (unfold stable_def)
+  unfolding stable_def
 apply (subgoal_tac "st_set (\<Inter>i \<in> I. A' (i))")
 prefer 2 apply (blast dest: leadsToD2)
 apply (rule_tac C1 = 0 in finite_completion [THEN leadsTo_weaken_R], auto)

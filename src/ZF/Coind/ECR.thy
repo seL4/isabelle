@@ -98,7 +98,7 @@ lemma consistency_fix:
       v_clos(x,e,ve_owr(ve,f,cl)) = cl;                           
       hastyenv(ve,te); <te,e_fix(f,x,e),t> \<in> ElabRel\<rbrakk> \<Longrightarrow>        
    \<langle>cl,t\<rangle> \<in> HasTyRel"
-apply (unfold hastyenv_def)
+  unfolding hastyenv_def
 apply (erule elab_fixE, safe)
 apply hypsubst_thin
 apply (rule subst, assumption) 

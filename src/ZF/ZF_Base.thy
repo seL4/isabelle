@@ -365,7 +365,7 @@ by (simp add: subset_def)
 
 (*Rule in Modus Ponens style [was called subsetE] *)
 lemma subsetD [elim]: "\<lbrakk>A \<subseteq> B;  c\<in>A\<rbrakk> \<Longrightarrow> c\<in>B"
-apply (unfold subset_def)
+  unfolding subset_def
 apply (erule bspec, assumption)
 done
 
@@ -430,7 +430,7 @@ subsection\<open>Rules for Replace -- the derived form of replacement\<close>
 
 lemma Replace_iff:
     "b \<in> {y. x\<in>A, P(x,y)}  <->  (\<exists>x\<in>A. P(x,b) \<and> (\<forall>y. P(x,y) \<longrightarrow> y=b))"
-apply (unfold Replace_def)
+  unfolding Replace_def
 apply (rule replacement [THEN iff_trans], blast+)
 done
 

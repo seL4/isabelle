@@ -85,18 +85,18 @@ locale merge =
 
 
 lemma (in merge) In_value_type [TC,simp]: "s \<in> state \<Longrightarrow> s`In(n) \<in> list(A)"
-apply (unfold state_def)
+  unfolding state_def
 apply (drule_tac a = "In (n)" in apply_type)
 apply auto
 done
 
 lemma (in merge) Out_value_type [TC,simp]: "s \<in> state \<Longrightarrow> s`Out \<in> list(A)"
-apply (unfold state_def)
+  unfolding state_def
 apply (drule_tac a = Out in apply_type, auto)
 done
 
 lemma (in merge) iOut_value_type [TC,simp]: "s \<in> state \<Longrightarrow> s`iOut \<in> list(nat)"
-apply (unfold state_def)
+  unfolding state_def
 apply (drule_tac a = iOut in apply_type, auto)
 done
 

@@ -95,7 +95,7 @@ by (simp add: ex_prop_def)
 lemma ex1 [rule_format]: 
  "GG \<in> Fin(program) 
   \<Longrightarrow> ex_prop(X) \<longrightarrow> GG \<inter> X\<noteq>0 \<longrightarrow> OK(GG, (\<lambda>G. G)) \<longrightarrow>(\<Squnion>G \<in> GG. G) \<in> X"
-apply (unfold ex_prop_def)
+  unfolding ex_prop_def
 apply (erule Fin_induct)
 apply (simp_all add: OK_cons_iff)
 apply (safe elim!: not_emptyE, auto) 
@@ -132,14 +132,14 @@ done
 (*** universal properties ***)
 
 lemma uv_imp_subset_program: "uv_prop(X)\<Longrightarrow> X\<subseteq>program"
-apply (unfold uv_prop_def)
+  unfolding uv_prop_def
 apply (simp (no_asm_simp))
 done
 
 lemma uv1 [rule_format]: 
      "GG \<in> Fin(program) \<Longrightarrow>  
       (uv_prop(X)\<longrightarrow> GG \<subseteq> X \<and> OK(GG, (\<lambda>G. G)) \<longrightarrow> (\<Squnion>G \<in> GG. G) \<in> X)"
-apply (unfold uv_prop_def)
+  unfolding uv_prop_def
 apply (erule Fin_induct)
 apply (auto simp add: OK_cons_iff)
 done
@@ -216,7 +216,7 @@ apply (drule_tac x = x in bspec, assumption, force)
 done
 
 lemma guarantees_imp: "(Y = program guarantees Y) \<Longrightarrow> ex_prop(Y)"
-apply (unfold guar_def)
+  unfolding guar_def
 apply (simp (no_asm_simp) add: ex_prop_equiv)
 apply safe
 apply (blast intro: elim: equalityE) 
@@ -231,7 +231,7 @@ by (blast intro: ex_prop_imp guarantees_imp)
 
 lemma guarantees_UN_left: 
      "i \<in> I \<Longrightarrow>(\<Union>i \<in> I. X(i)) guarantees Y = (\<Inter>i \<in> I. X(i) guarantees Y)"
-apply (unfold guar_def)
+  unfolding guar_def
 apply (rule equalityI, safe)
  prefer 2 apply force
 apply blast+
@@ -239,13 +239,13 @@ done
 
 lemma guarantees_Un_left: 
      "(X \<union> Y) guarantees Z = (X guarantees Z) \<inter> (Y guarantees Z)"
-apply (unfold guar_def)
+  unfolding guar_def
 apply (rule equalityI, safe, blast+)
 done
 
 lemma guarantees_INT_right: 
      "i \<in> I \<Longrightarrow> X guarantees (\<Inter>i \<in> I. Y(i)) = (\<Inter>i \<in> I. X guarantees Y(i))"
-apply (unfold guar_def)
+  unfolding guar_def
 apply (rule equalityI, safe, blast+)
 done
 
@@ -307,7 +307,7 @@ lemma guarantees_Join_Int:
     "\<lbrakk>F \<in> U guarantees V;  G \<in> X guarantees Y; F ok G\<rbrakk>  
      \<Longrightarrow> F \<squnion> G: (U \<inter> X) guarantees (V \<inter> Y)"
 
-apply (unfold guar_def)
+  unfolding guar_def
 apply (simp (no_asm))
 apply safe
 apply (simp add: Join_assoc)
@@ -319,7 +319,7 @@ done
 lemma guarantees_Join_Un: 
     "\<lbrakk>F \<in> U guarantees V;  G \<in> X guarantees Y; F ok G\<rbrakk>   
      \<Longrightarrow> F \<squnion> G: (U \<union> X) guarantees (V \<union> Y)"
-apply (unfold guar_def)
+  unfolding guar_def
 apply (simp (no_asm))
 apply safe
 apply (simp add: Join_assoc)
@@ -480,7 +480,7 @@ done
 
 lemma wx_equiv: 
      "wx(X) = {F \<in> program. \<forall>G \<in> program. F ok G \<longrightarrow> (F \<squnion> G) \<in> X}"
-apply (unfold wx_def)
+  unfolding wx_def
 apply (rule equalityI, safe, blast)
  apply (simp (no_asm_use) add: ex_prop_def)
 apply blast 

@@ -64,7 +64,7 @@ lemma function_apply_equality: "\<lbrakk>\<langle>a,b\<rangle>: f;  function(f)\
 by (unfold apply_def function_def, blast)
 
 lemma apply_equality: "\<lbrakk>\<langle>a,b\<rangle>: f;  f \<in> Pi(A,B)\<rbrakk> \<Longrightarrow> f`a = b"
-apply (unfold Pi_def)
+  unfolding Pi_def
 apply (blast intro: function_apply_equality)
 done
 
@@ -132,7 +132,7 @@ by (blast intro: domain_type range_type apply_equality)
 subsection\<open>Lambda Abstraction\<close>
 
 lemma lamI: "a \<in> A \<Longrightarrow> <a,b(a)> \<in> (\<lambda>x\<in>A. b(x))"
-apply (unfold lam_def)
+  unfolding lam_def
 apply (erule RepFunI)
 done
 
@@ -304,7 +304,7 @@ lemma restrict_restrict [simp]:
 by (unfold restrict_def, blast)
 
 lemma domain_restrict [simp]: "domain(restrict(f,C)) = domain(f) \<inter> C"
-apply (unfold restrict_def)
+  unfolding restrict_def
 apply (auto simp add: domain_def)
 done
 
@@ -352,7 +352,7 @@ lemma fun_Union:
     "\<lbrakk>\<forall>f\<in>S. \<exists>C D. f \<in> C->D;
              \<forall>f\<in>S. \<forall>y\<in>S. f<=y | y<=f\<rbrakk> \<Longrightarrow>
           \<Union>(S) \<in> domain(\<Union>(S)) -> range(\<Union>(S))"
-apply (unfold Pi_def)
+  unfolding Pi_def
 apply (blast intro!: rel_Union function_Union)
 done
 
@@ -468,7 +468,7 @@ apply (simp_all add: apply_0)
 done
 
 lemma update_idem: "\<lbrakk>f`x = y;  f \<in> Pi(A,B);  x \<in> A\<rbrakk> \<Longrightarrow> f(x:=y) = f"
-apply (unfold update_def)
+  unfolding update_def
 apply (simp add: domain_of_fun cons_absorb)
 apply (rule fun_extension)
 apply (best intro: apply_type if_type lam_type, assumption, simp)
@@ -482,7 +482,7 @@ lemma domain_update [simp]: "domain(f(x:=y)) = cons(x, domain(f))"
 by (unfold update_def, simp)
 
 lemma update_type: "\<lbrakk>f \<in> Pi(A,B);  x \<in> A;  y \<in> B(x)\<rbrakk> \<Longrightarrow> f(x:=y) \<in> Pi(A, B)"
-apply (unfold update_def)
+  unfolding update_def
 apply (simp add: domain_of_fun cons_absorb apply_funtype lam_type)
 done
 
@@ -539,7 +539,7 @@ lemma Pi_mono: "B<=C \<Longrightarrow> A->B \<subseteq> A->C"
 by (blast intro: lam_type elim: Pi_lamE)
 
 lemma lam_mono: "A<=B \<Longrightarrow> Lambda(A,c) \<subseteq> Lambda(B,c)"
-apply (unfold lam_def)
+  unfolding lam_def
 apply (erule RepFun_mono)
 done
 

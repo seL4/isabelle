@@ -180,7 +180,7 @@ lemma thms_notE: "\<lbrakk>H |- p\<Rightarrow>Fls;  H |- p;  q \<in> propn\<rbra
 subsubsection \<open>Soundness of the rules wrt truth-table semantics\<close>
 
 theorem soundness: "H |- p \<Longrightarrow> H |= p"
-  apply (unfold logcon_def)
+    unfolding logcon_def
   apply (induct set: thms)
       apply auto
   done

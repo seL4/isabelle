@@ -86,7 +86,7 @@ lemma lam_sets: "f \<in> A->B \<Longrightarrow> (\<lambda>x \<in> A. {f`x}): A -
 by (fast intro!: lam_type apply_type)
 
 lemma surj_imp_eq': "f \<in> surj(A,B) \<Longrightarrow> (\<Union>a \<in> A. {f`a}) = B"
-apply (unfold surj_def)
+  unfolding surj_def
 apply (fast elim!: apply_type)
 done
 
@@ -109,7 +109,7 @@ done
 (* ********************************************************************** *)
 
 lemma WO4_mono: "\<lbrakk>m\<le>n; WO4(m)\<rbrakk> \<Longrightarrow> WO4(n)"
-apply (unfold WO4_def)
+  unfolding WO4_def
 apply (blast dest!: spec intro: lepoll_trans [OF _ le_imp_lepoll])
 done
 
@@ -175,7 +175,7 @@ lemma cases:
                   (\<exists>g<a. \<exists>d<a. u(f,b,g,d) \<noteq> 0 \<and> u(f,b,g,d) \<prec> m))  
         | (\<exists>b<a. f`b \<noteq> 0 \<and> (\<forall>g<a. \<forall>d<a. u(f,b,g,d) \<noteq> 0 \<longrightarrow>   
                                         u(f,b,g,d) \<approx> m))"
-apply (unfold lesspoll_def)
+  unfolding lesspoll_def
 apply (blast del: equalityI)
 done
 
@@ -330,7 +330,7 @@ lemma UN_gg2_eq:
          \<forall>b<a. f`b \<lesssim> succ(m); y*y \<subseteq> y;                        
          (\<Union>b<a. f`b)=y;  Ord(a);  m \<in> nat;  s \<in> f`b;  b<a\<rbrakk> 
       \<Longrightarrow> (\<Union>g<a++a. gg2(f,a,b,s) ` g) = y"
-apply (unfold gg2_def)
+  unfolding gg2_def
 apply (drule sym) 
 apply (simp add: ltD UN_oadd  oadd_le_self [THEN le_imp_not_lt] 
                  lt_Ord odiff_oadd_inverse ww2_def 
@@ -346,7 +346,7 @@ by (simp add: lam_funtype [THEN domain_of_fun] gg2_def)
 (* ********************************************************************** *)
 
 lemma vv2_lepoll: "\<lbrakk>m \<in> nat; m\<noteq>0\<rbrakk> \<Longrightarrow> vv2(f,b,g,s) \<lesssim> m"
-apply (unfold vv2_def)
+  unfolding vv2_def
 apply (simp add: empty_lepollI)
 apply (fast dest!: le_imp_subset [THEN subset_imp_lepoll, THEN lepoll_0_is_0] 
        intro!: singleton_eqpoll_1 [THEN eqpoll_imp_lepoll, THEN lepoll_trans]
@@ -357,7 +357,7 @@ done
 lemma ww2_lepoll: 
     "\<lbrakk>\<forall>b<a. f`b \<lesssim> succ(m);  g<a;  m \<in> nat;  vv2(f,b,g,d) \<subseteq> f`g\<rbrakk>  
      \<Longrightarrow> ww2(f,b,g,d) \<lesssim> m"
-apply (unfold ww2_def)
+  unfolding ww2_def
 apply (case_tac "f`g = 0")
 apply (simp add: empty_lepollI)
 apply (drule ospec, assumption)
@@ -381,7 +381,7 @@ done
 (* lemma ii                                                               *)
 (* ********************************************************************** *)
 lemma lemma_ii: "\<lbrakk>succ(m) \<in> NN(y); y*y \<subseteq> y; m \<in> nat; m\<noteq>0\<rbrakk> \<Longrightarrow> m \<in> NN(y)"
-apply (unfold NN_def)
+  unfolding NN_def
 apply (elim CollectE exE conjE) 
 apply (rule quant_domain_uu_lepoll_m [THEN cases, THEN disjE], assumption)
 (* case 1 *)
@@ -472,7 +472,7 @@ apply (fast elim!: lt_Ord intro: LeastI)
 done
 
 lemma NN_imp_ex_inj: "1 \<in> NN(y) \<Longrightarrow> \<exists>a f. Ord(a) \<and> f \<in> inj(y, a)"
-apply (unfold NN_def)
+  unfolding NN_def
 apply (elim CollectE exE conjE)
 apply (rule_tac x = a in exI)
 apply (rule_tac x = "\<lambda>x \<in> y. \<mu> i. f`i = {x}" in exI)
@@ -517,12 +517,12 @@ done
 
 (* another helpful lemma *)
 lemma NN_y_0: "0 \<in> NN(y) \<Longrightarrow> y=0"
-apply (unfold NN_def) 
+  unfolding NN_def 
 apply (fast intro!: equalityI dest!: lepoll_0_is_0 elim: subst)
 done
 
 lemma WO6_imp_WO1: "WO6 \<Longrightarrow> WO1"
-apply (unfold WO1_def)
+  unfolding WO1_def
 apply (rule allI)
 apply (case_tac "A=0")
 apply (fast intro!: well_ord_Memrel nat_0I [THEN nat_into_Ord])

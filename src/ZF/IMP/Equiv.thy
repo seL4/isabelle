@@ -66,7 +66,7 @@ lemma com2 [rule_format]: "c \<in> com \<Longrightarrow> \<forall>x \<in> C(c). 
    apply safe
    apply simp_all
    apply (frule Gamma_bnd_mono [OF C_subset], erule Fixedpt.induct, assumption)
-   apply (unfold Gamma_def)
+     unfolding Gamma_def
    apply force
   txt \<open>\<open>if\<close>\<close>
   apply auto

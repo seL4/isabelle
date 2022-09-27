@@ -57,7 +57,7 @@ done
 
 lemma converse_Memrel_not_well_ord: 
     "\<lbrakk>Ord(a); \<not>Finite(a)\<rbrakk> \<Longrightarrow> \<not>well_ord(a,converse(Memrel(a)))"
-apply (unfold well_ord_def)
+  unfolding well_ord_def
 apply (blast dest: converse_Memrel_not_wf_on)
 done
 

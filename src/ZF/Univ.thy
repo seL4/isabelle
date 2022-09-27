@@ -125,7 +125,7 @@ by (rule subset_mem_Vfrom, safe)
 
 lemma Pair_in_Vfrom:
     "\<lbrakk>a \<in> Vfrom(A,i);  b \<in> Vfrom(A,i)\<rbrakk> \<Longrightarrow> \<langle>a,b\<rangle> \<in> Vfrom(A,succ(succ(i)))"
-apply (unfold Pair_def)
+  unfolding Pair_def
 apply (blast intro: doubleton_in_Vfrom)
 done
 
@@ -249,13 +249,13 @@ by (blast intro: nat_into_VLimit)
 
 lemma Inl_in_VLimit:
     "\<lbrakk>a \<in> Vfrom(A,i); Limit(i)\<rbrakk> \<Longrightarrow> Inl(a) \<in> Vfrom(A,i)"
-apply (unfold Inl_def)
+  unfolding Inl_def
 apply (blast intro: zero_in_VLimit Pair_in_VLimit)
 done
 
 lemma Inr_in_VLimit:
     "\<lbrakk>b \<in> Vfrom(A,i); Limit(i)\<rbrakk> \<Longrightarrow> Inr(b) \<in> Vfrom(A,i)"
-apply (unfold Inr_def)
+  unfolding Inr_def
 apply (blast intro: one_in_VLimit Pair_in_VLimit)
 done
 
@@ -336,7 +336,7 @@ lemma prod_in_Vfrom:
      \<Longrightarrow> a*b \<in> Vfrom(A, succ(succ(succ(j))))"
 apply (drule Transset_Vfrom)
 apply (rule subset_mem_Vfrom)
-apply (unfold Transset_def)
+  unfolding Transset_def
 apply (blast intro: Pair_in_Vfrom)
 done
 
@@ -352,10 +352,10 @@ subsubsection\<open>Disjoint Sums, or Quine Ordered Pairs\<close>
 lemma sum_in_Vfrom:
     "\<lbrakk>a \<in> Vfrom(A,j);  b \<in> Vfrom(A,j);  Transset(A);  1:j\<rbrakk>
      \<Longrightarrow> a+b \<in> Vfrom(A, succ(succ(succ(j))))"
-apply (unfold sum_def)
+  unfolding sum_def
 apply (drule Transset_Vfrom)
 apply (rule subset_mem_Vfrom)
-apply (unfold Transset_def)
+  unfolding Transset_def
 apply (blast intro: zero_in_Vfrom Pair_in_Vfrom i_subset_Vfrom [THEN subsetD])
 done
 
@@ -371,7 +371,7 @@ subsubsection\<open>Function Space!\<close>
 lemma fun_in_Vfrom:
     "\<lbrakk>a \<in> Vfrom(A,j);  b \<in> Vfrom(A,j);  Transset(A)\<rbrakk> \<Longrightarrow>
           a->b \<in> Vfrom(A, succ(succ(succ(succ(j)))))"
-apply (unfold Pi_def)
+  unfolding Pi_def
 apply (drule Transset_Vfrom)
 apply (rule subset_mem_Vfrom)
 apply (rule Collect_subset [THEN subset_trans])
@@ -380,7 +380,7 @@ apply (rule subset_trans [THEN subset_trans])
 apply (rule_tac [3] Un_upper2)
 apply (rule_tac [2] succI1 [THEN UN_upper])
 apply (rule Pow_mono)
-apply (unfold Transset_def)
+  unfolding Transset_def
 apply (blast intro: Pair_in_Vfrom)
 done
 
@@ -395,7 +395,7 @@ lemma Pow_in_Vfrom:
     "\<lbrakk>a \<in> Vfrom(A,j);  Transset(A)\<rbrakk> \<Longrightarrow> Pow(a) \<in> Vfrom(A, succ(succ(j)))"
 apply (drule Transset_Vfrom)
 apply (rule subset_mem_Vfrom)
-apply (unfold Transset_def)
+  unfolding Transset_def
 apply (subst Vfrom, blast)
 done
 
@@ -476,12 +476,12 @@ done
 subsubsection\<open>Set Up an Environment for Simplification\<close>
 
 lemma rank_Inl: "rank(a) < rank(Inl(a))"
-apply (unfold Inl_def)
+  unfolding Inl_def
 apply (rule rank_pair2)
 done
 
 lemma rank_Inr: "rank(a) < rank(Inr(a))"
-apply (unfold Inr_def)
+  unfolding Inr_def
 apply (rule rank_pair2)
 done
 
@@ -491,7 +491,7 @@ subsubsection\<open>Recursion over Vset Levels!\<close>
 
 text\<open>NOT SUITABLE FOR REWRITING: recursive!\<close>
 lemma Vrec: "Vrec(a,H) = H(a, \<lambda>x\<in>Vset(rank(a)). Vrec(x,H))"
-apply (unfold Vrec_def)
+  unfolding Vrec_def
 apply (subst transrec, simp)
 apply (rule refl [THEN lam_cong, THEN subst_context], simp add: lt_def)
 done
@@ -507,7 +507,7 @@ done
 text\<open>NOT SUITABLE FOR REWRITING: recursive!\<close>
 lemma Vrecursor:
      "Vrecursor(H,a) = H(\<lambda>x\<in>Vset(rank(a)). Vrecursor(H,x),  a)"
-apply (unfold Vrecursor_def)
+  unfolding Vrecursor_def
 apply (subst transrec, simp)
 apply (rule refl [THEN lam_cong, THEN subst_context], simp add: lt_def)
 done
@@ -523,20 +523,20 @@ done
 subsection\<open>The Datatype Universe: \<^term>\<open>univ(A)\<close>\<close>
 
 lemma univ_mono: "A<=B \<Longrightarrow> univ(A) \<subseteq> univ(B)"
-apply (unfold univ_def)
+  unfolding univ_def
 apply (erule Vfrom_mono)
 apply (rule subset_refl)
 done
 
 lemma Transset_univ: "Transset(A) \<Longrightarrow> Transset(univ(A))"
-apply (unfold univ_def)
+  unfolding univ_def
 apply (erule Transset_Vfrom)
 done
 
 subsubsection\<open>The Set \<^term>\<open>univ(A)\<close> as a Limit\<close>
 
 lemma univ_eq_UN: "univ(A) = (\<Union>i\<in>nat. Vfrom(A,i))"
-apply (unfold univ_def)
+  unfolding univ_def
 apply (rule Limit_nat [THEN Limit_Vfrom_eq])
 done
 
@@ -567,7 +567,7 @@ done
 subsection\<open>Closure Properties for \<^term>\<open>univ(A)\<close>\<close>
 
 lemma zero_in_univ: "0 \<in> univ(A)"
-apply (unfold univ_def)
+  unfolding univ_def
 apply (rule nat_0I [THEN zero_in_Vfrom])
 done
 
@@ -575,7 +575,7 @@ lemma zero_subset_univ: "{0} \<subseteq> univ(A)"
 by (blast intro: zero_in_univ)
 
 lemma A_subset_univ: "A \<subseteq> univ(A)"
-apply (unfold univ_def)
+  unfolding univ_def
 apply (rule A_subset_Vfrom)
 done
 
@@ -584,30 +584,30 @@ lemmas A_into_univ = A_subset_univ [THEN subsetD]
 subsubsection\<open>Closure under Unordered and Ordered Pairs\<close>
 
 lemma singleton_in_univ: "a: univ(A) \<Longrightarrow> {a} \<in> univ(A)"
-apply (unfold univ_def)
+  unfolding univ_def
 apply (blast intro: singleton_in_VLimit Limit_nat)
 done
 
 lemma doubleton_in_univ:
     "\<lbrakk>a: univ(A);  b: univ(A)\<rbrakk> \<Longrightarrow> {a,b} \<in> univ(A)"
-apply (unfold univ_def)
+  unfolding univ_def
 apply (blast intro: doubleton_in_VLimit Limit_nat)
 done
 
 lemma Pair_in_univ:
     "\<lbrakk>a: univ(A);  b: univ(A)\<rbrakk> \<Longrightarrow> \<langle>a,b\<rangle> \<in> univ(A)"
-apply (unfold univ_def)
+  unfolding univ_def
 apply (blast intro: Pair_in_VLimit Limit_nat)
 done
 
 lemma Union_in_univ:
      "\<lbrakk>X: univ(A);  Transset(A)\<rbrakk> \<Longrightarrow> \<Union>(X) \<in> univ(A)"
-apply (unfold univ_def)
+  unfolding univ_def
 apply (blast intro: Union_in_VLimit Limit_nat)
 done
 
 lemma product_univ: "univ(A)*univ(A) \<subseteq> univ(A)"
-apply (unfold univ_def)
+  unfolding univ_def
 apply (rule Limit_nat [THEN product_VLimit])
 done
 
@@ -615,7 +615,7 @@ done
 subsubsection\<open>The Natural Numbers\<close>
 
 lemma nat_subset_univ: "nat \<subseteq> univ(A)"
-apply (unfold univ_def)
+  unfolding univ_def
 apply (rule i_subset_Vfrom)
 done
 
@@ -625,7 +625,7 @@ lemma nat_into_univ: "n \<in> nat \<Longrightarrow> n \<in> univ(A)"
 subsubsection\<open>Instances for 1 and 2\<close>
 
 lemma one_in_univ: "1 \<in> univ(A)"
-apply (unfold univ_def)
+  unfolding univ_def
 apply (rule Limit_nat [THEN one_in_VLimit])
 done
 
@@ -634,7 +634,7 @@ lemma two_in_univ: "2 \<in> univ(A)"
 by (blast intro: nat_into_univ)
 
 lemma bool_subset_univ: "bool \<subseteq> univ(A)"
-apply (unfold bool_def)
+  unfolding bool_def
 apply (blast intro!: zero_in_univ one_in_univ)
 done
 
@@ -644,17 +644,17 @@ lemmas bool_into_univ = bool_subset_univ [THEN subsetD]
 subsubsection\<open>Closure under Disjoint Union\<close>
 
 lemma Inl_in_univ: "a: univ(A) \<Longrightarrow> Inl(a) \<in> univ(A)"
-apply (unfold univ_def)
+  unfolding univ_def
 apply (erule Inl_in_VLimit [OF _ Limit_nat])
 done
 
 lemma Inr_in_univ: "b: univ(A) \<Longrightarrow> Inr(b) \<in> univ(A)"
-apply (unfold univ_def)
+  unfolding univ_def
 apply (erule Inr_in_VLimit [OF _ Limit_nat])
 done
 
 lemma sum_univ: "univ(C)+univ(C) \<subseteq> univ(C)"
-apply (unfold univ_def)
+  unfolding univ_def
 apply (rule Limit_nat [THEN sum_VLimit])
 done
 
@@ -694,7 +694,7 @@ done
 lemmas Fin_subset_VLimit = subset_trans [OF Fin_mono Fin_VLimit]
 
 lemma Fin_univ: "Fin(univ(A)) \<subseteq> univ(A)"
-apply (unfold univ_def)
+  unfolding univ_def
 apply (rule Limit_nat [THEN Fin_VLimit])
 done
 
@@ -710,7 +710,7 @@ done
 lemmas nat_fun_subset_VLimit = subset_trans [OF Pi_mono nat_fun_VLimit]
 
 lemma nat_fun_univ: "n: nat \<Longrightarrow> n -> univ(A) \<subseteq> univ(A)"
-apply (unfold univ_def)
+  unfolding univ_def
 apply (erule nat_fun_VLimit [OF _ Limit_nat])
 done
 
@@ -726,7 +726,7 @@ apply (blast del: subsetI
 done
 
 lemma FiniteFun_univ1: "univ(A) -||> univ(A) \<subseteq> univ(A)"
-apply (unfold univ_def)
+  unfolding univ_def
 apply (rule Limit_nat [THEN FiniteFun_VLimit1])
 done
 
@@ -740,7 +740,7 @@ done
 
 lemma FiniteFun_univ:
     "W \<subseteq> univ(A) \<Longrightarrow> W -||> univ(A) \<subseteq> univ(A)"
-apply (unfold univ_def)
+  unfolding univ_def
 apply (erule FiniteFun_VLimit [OF _ Limit_nat])
 done
 
@@ -777,7 +777,7 @@ lemmas Vfrom_doubleton_D = Transset_Vfrom [THEN Transset_doubleton_D]
 lemma Pair_in_Vfrom_D:
     "\<lbrakk>\<langle>a,b\<rangle> \<in> Vfrom(X,succ(i));  Transset(X)\<rbrakk>
      \<Longrightarrow> a \<in> Vfrom(X,i)  \<and>  b \<in> Vfrom(X,i)"
-apply (unfold Pair_def)
+  unfolding Pair_def
 apply (blast dest!: doubleton_in_Vfrom_D Vfrom_doubleton_D)
 done
 

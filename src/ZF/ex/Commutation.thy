@@ -63,7 +63,7 @@ lemma commute_sym: "commute(r,s) \<Longrightarrow> commute(s,r)"
 
 lemma commute_rtrancl:
   "commute(r,s) \<Longrightarrow> field(r)=field(s) \<Longrightarrow> commute(r^*,s^*)"
-apply (unfold commute_def)
+  unfolding commute_def
 apply (rule square_rtrancl)
 apply (rule square_sym [THEN square_rtrancl, THEN square_sym])
 apply (simp_all add: rtrancl_field)
@@ -95,7 +95,7 @@ done
 lemma confluent_Un:
  "\<lbrakk>confluent(r); confluent(s); commute(r^*, s^*);
      relation(r); relation(s)\<rbrakk> \<Longrightarrow> confluent(r \<union> s)"
-apply (unfold confluent_def)
+  unfolding confluent_def
 apply (rule rtrancl_Un_rtrancl [THEN subst], auto)
 apply (blast dest: diamond_Un intro: diamond_confluent [THEN confluentD])
 done

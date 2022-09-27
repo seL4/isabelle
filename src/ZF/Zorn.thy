@@ -70,7 +70,7 @@ by blast
 subsection\<open>The Transfinite Construction\<close>
 
 lemma increasingD1: "f \<in> increasing(A) \<Longrightarrow> f \<in> Pow(A)->Pow(A)"
-apply (unfold increasing_def)
+  unfolding increasing_def
 apply (erule CollectD1)
 done
 
@@ -182,17 +182,17 @@ relation!\<close>
 text\<open>* Defining the "next" operation for Hausdorff's Theorem *\<close>
 
 lemma chain_subset_Pow: "chain(A) \<subseteq> Pow(A)"
-apply (unfold chain_def)
+  unfolding chain_def
 apply (rule Collect_subset)
 done
 
 lemma super_subset_chain: "super(A,c) \<subseteq> chain(A)"
-apply (unfold super_def)
+  unfolding super_def
 apply (rule Collect_subset)
 done
 
 lemma maxchain_subset_chain: "maxchain(A) \<subseteq> chain(A)"
-apply (unfold maxchain_def)
+  unfolding maxchain_def
 apply (rule Collect_subset)
 done
 
@@ -220,7 +220,7 @@ apply (rule_tac x="\<lambda>X\<in>Pow(S).
                    if X \<in> chain(S) - maxchain(S) then ch ` super(S, X) else X"
        in bexI)
 apply force
-apply (unfold increasing_def)
+  unfolding increasing_def
 apply (rule CollectI)
 apply (rule lam_type)
 apply (simp (no_asm_simp))
@@ -245,7 +245,7 @@ lemma TFin_chain_lemma4:
 apply (erule TFin_induct)
 apply (simp (no_asm_simp) add: chain_subset_Pow [THEN subsetD, THEN PowD]
             choice_super [THEN super_subset_chain [THEN subsetD]])
-apply (unfold chain_def)
+  unfolding chain_def
 apply (rule CollectI, blast, safe)
 apply (rule_tac m1=B and n1=Ba in TFin_subset_linear [THEN disjE], fast+)
       txt\<open>\<open>Blast_tac's\<close> slow\<close>
@@ -377,7 +377,7 @@ lemma Zermelo_next_exists:
 apply (rule_tac x="\<lambda>X\<in>Pow(S). if X=S then S else cons(ch`(S-X), X)"
        in bexI)
 apply force
-apply (unfold increasing_def)
+  unfolding increasing_def
 apply (rule CollectI)
 apply (rule lam_type)
 txt\<open>Type checking is surprisingly hard!\<close>

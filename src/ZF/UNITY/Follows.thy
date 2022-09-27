@@ -165,7 +165,7 @@ done
 
 (* Follows type *)
 lemma Follows_type: "Follows(A, r, f, g)<=program"
-apply (unfold Follows_def)
+  unfolding Follows_def
 apply (blast dest: Increasing_type [THEN subsetD])
 done
 
@@ -175,7 +175,7 @@ by (blast dest: Follows_type [THEN subsetD])
 lemma FollowsD:
 "F \<in> Follows(A, r, f, g)\<Longrightarrow>
   F \<in> program \<and> (\<exists>a. a \<in> A) \<and> (\<forall>x \<in> state. f(x):A \<and> g(x):A)"
-apply (unfold Follows_def)
+  unfolding Follows_def
 apply (blast dest: IncreasingD)
 done
 
@@ -406,7 +406,7 @@ done
 
 lemma empty_le_MultLe [simp]:
 "\<lbrakk>multiset(M); mset_of(M)<= A\<rbrakk> \<Longrightarrow> \<langle>0, M\<rangle> \<in> MultLe(A, r)"
-apply (unfold MultLe_def)
+  unfolding MultLe_def
 apply (case_tac "M=0")
 apply (auto simp add: FiniteFun.intros)
 apply (subgoal_tac "<0 +# 0, 0 +# M> \<in> multirel (A, r - id (A))")
@@ -420,7 +420,7 @@ by (simp add: Mult_iff_multiset)
 lemma munion_mono:
 "\<lbrakk>\<langle>M, N\<rangle> \<in> MultLe(A, r); \<langle>K, L\<rangle> \<in> MultLe(A, r)\<rbrakk> \<Longrightarrow>
   <M +# K, N +# L> \<in> MultLe(A, r)"
-apply (unfold MultLe_def)
+  unfolding MultLe_def
 apply (auto intro: munion_multirel_mono1 munion_multirel_mono2
        munion_multirel_mono multiset_into_Mult simp add: Mult_iff_multiset)
 done

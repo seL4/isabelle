@@ -66,7 +66,7 @@ apply (cut_tac F = F in reachable.dom_subset, blast)
 done
 
 lemma st_set_reachable: "st_set(reachable(F))"
-apply (unfold st_set_def)
+  unfolding st_set_def
 apply (rule reachable_type)
 done
 declare st_set_reachable [iff]
@@ -129,7 +129,7 @@ done
 (*Resembles the previous definition of Constrains*)
 lemma Constrains_eq_constrains: 
 "A Co B = {F \<in> program. F:(reachable(F) \<inter> A) co (reachable(F)  \<inter>  B)}"
-apply (unfold Constrains_def)
+  unfolding Constrains_def
 apply (blast dest: constrains_reachable_Int constrains_type [THEN subsetD]
              intro: constrains_weaken)
 done
@@ -137,7 +137,7 @@ done
 lemmas Constrains_def2 = Constrains_eq_constrains [THEN eq_reflection]
 
 lemma constrains_imp_Constrains: "F \<in> A co A' \<Longrightarrow> F \<in> A Co A'"
-apply (unfold Constrains_def)
+  unfolding Constrains_def
 apply (blast intro: constrains_weaken_L dest: constrainsD2)
 done
 
@@ -160,26 +160,26 @@ by (auto dest: Constrains_type [THEN subsetD]
 declare Constrains_empty [iff]
 
 lemma Constrains_state: "F \<in> A Co state \<longleftrightarrow> F \<in> program"
-apply (unfold Constrains_def)
+  unfolding Constrains_def
 apply (auto dest: Constrains_type [THEN subsetD] intro: constrains_imp_Constrains)
 done
 declare Constrains_state [iff]
 
 lemma Constrains_weaken_R: 
         "\<lbrakk>F \<in> A Co A'; A'<=B'\<rbrakk> \<Longrightarrow> F \<in> A Co B'"
-apply (unfold Constrains_def2)
+  unfolding Constrains_def2
 apply (blast intro: constrains_weaken_R)
 done
 
 lemma Constrains_weaken_L: 
     "\<lbrakk>F \<in> A Co A'; B<=A\<rbrakk> \<Longrightarrow> F \<in> B Co A'"
-apply (unfold Constrains_def2)
+  unfolding Constrains_def2
 apply (blast intro: constrains_weaken_L st_set_subset)
 done
 
 lemma Constrains_weaken: 
    "\<lbrakk>F \<in> A Co A'; B<=A; A'<=B'\<rbrakk> \<Longrightarrow> F \<in> B Co B'"
-apply (unfold Constrains_def2)
+  unfolding Constrains_def2
 apply (blast intro: constrains_weaken st_set_subset)
 done
 
@@ -202,7 +202,7 @@ by (auto intro: constrains_UN simp del: UN_simps
 
 lemma Constrains_Int: 
     "\<lbrakk>F \<in> A Co A'; F \<in> B Co B'\<rbrakk>\<Longrightarrow> F:(A \<inter> B) Co (A' \<inter> B')"
-apply (unfold Constrains_def)
+  unfolding Constrains_def
 apply (subgoal_tac "reachable (F) \<inter> (A \<inter> B) = (reachable (F) \<inter> A) \<inter> (reachable (F) \<inter> B) ")
 apply (auto intro: constrains_Int)
 done
@@ -216,19 +216,19 @@ apply (auto simp add: Constrains_def)
 done
 
 lemma Constrains_imp_subset: "F \<in> A Co A' \<Longrightarrow> reachable(F) \<inter> A \<subseteq> A'"
-apply (unfold Constrains_def)
+  unfolding Constrains_def
 apply (blast dest: constrains_imp_subset)
 done
 
 lemma Constrains_trans: 
  "\<lbrakk>F \<in> A Co B; F \<in> B Co C\<rbrakk> \<Longrightarrow> F \<in> A Co C"
-apply (unfold Constrains_def2)
+  unfolding Constrains_def2
 apply (blast intro: constrains_trans constrains_weaken)
 done
 
 lemma Constrains_cancel: 
 "\<lbrakk>F \<in> A Co (A' \<union> B); F \<in> B Co B'\<rbrakk> \<Longrightarrow> F \<in> A Co (A' \<union> B')"
-apply (unfold Constrains_def2)
+  unfolding Constrains_def2
 apply (simp (no_asm_use) add: Int_Un_distrib)
 apply (blast intro: constrains_cancel)
 done
@@ -259,27 +259,27 @@ by (unfold Stable_def, assumption)
 
 lemma Stable_Un: 
     "\<lbrakk>F \<in> Stable(A); F \<in> Stable(A')\<rbrakk> \<Longrightarrow> F \<in> Stable(A \<union> A')"
-apply (unfold Stable_def)
+  unfolding Stable_def
 apply (blast intro: Constrains_Un)
 done
 
 lemma Stable_Int: 
     "\<lbrakk>F \<in> Stable(A); F \<in> Stable(A')\<rbrakk> \<Longrightarrow> F \<in> Stable (A \<inter> A')"
-apply (unfold Stable_def)
+  unfolding Stable_def
 apply (blast intro: Constrains_Int)
 done
 
 lemma Stable_Constrains_Un: 
     "\<lbrakk>F \<in> Stable(C); F \<in> A Co (C \<union> A')\<rbrakk>    
      \<Longrightarrow> F \<in> (C \<union> A) Co (C \<union> A')"
-apply (unfold Stable_def)
+  unfolding Stable_def
 apply (blast intro: Constrains_Un [THEN Constrains_weaken_R])
 done
 
 lemma Stable_Constrains_Int: 
     "\<lbrakk>F \<in> Stable(C); F \<in> (C \<inter> A) Co A'\<rbrakk>    
      \<Longrightarrow> F \<in> (C \<inter> A) Co (C \<inter> A')"
-apply (unfold Stable_def)
+  unfolding Stable_def
 apply (blast intro: Constrains_Int [THEN Constrains_weaken])
 done
 
@@ -302,7 +302,7 @@ apply (simp (no_asm_simp) add: Stable_eq_stable Int_absorb)
 done
 
 lemma Stable_type: "Stable(A) \<subseteq> program"
-apply (unfold Stable_def)
+  unfolding Stable_def
 apply (rule Constrains_type)
 done
 
@@ -329,7 +329,7 @@ done
 (** Unless **)
 
 lemma Unless_type: "A Unless B <=program"
-apply (unfold op_Unless_def)
+  unfolding op_Unless_def
 apply (rule Constrains_type)
 done
 

@@ -32,7 +32,7 @@ lemma bnd_monoI:
 by (unfold bnd_mono_def, clarify, blast)  
 
 lemma bnd_monoD1: "bnd_mono(D,h) \<Longrightarrow> h(D) \<subseteq> D"
-apply (unfold bnd_mono_def)
+  unfolding bnd_mono_def
 apply (erule conjunct1)
 done
 
@@ -45,7 +45,7 @@ by (unfold bnd_mono_def, clarify, blast)
 
 lemma bnd_mono_Un:
      "\<lbrakk>bnd_mono(D,h);  A \<subseteq> D;  B \<subseteq> D\<rbrakk> \<Longrightarrow> h(A) \<union> h(B) \<subseteq> h(A \<union> B)"
-apply (unfold bnd_mono_def)
+  unfolding bnd_mono_def
 apply (rule Un_least, blast+)
 done
 
@@ -53,7 +53,7 @@ done
 lemma bnd_mono_UN:
      "\<lbrakk>bnd_mono(D,h);  \<forall>i\<in>I. A(i) \<subseteq> D\<rbrakk> 
       \<Longrightarrow> (\<Union>i\<in>I. h(A(i))) \<subseteq> h((\<Union>i\<in>I. A(i)))"
-apply (unfold bnd_mono_def) 
+  unfolding bnd_mono_def 
 apply (rule UN_least)
 apply (elim conjE) 
 apply (drule_tac x="A(i)" in spec)
@@ -193,7 +193,7 @@ subsection\<open>Proof of Knaster-Tarski Theorem using \<^term>\<open>gfp\<close
 
 (*gfp contains each post-fixedpoint that is contained in D*)
 lemma gfp_upperbound: "\<lbrakk>A \<subseteq> h(A);  A<=D\<rbrakk> \<Longrightarrow> A \<subseteq> gfp(D,h)"
-apply (unfold gfp_def)
+  unfolding gfp_def
 apply (rule PowI [THEN CollectI, THEN Union_upper])
 apply (assumption+)
 done
@@ -210,7 +210,7 @@ done
 lemma gfp_least: 
     "\<lbrakk>bnd_mono(D,h);  \<And>X. \<lbrakk>X \<subseteq> h(X);  X<=D\<rbrakk> \<Longrightarrow> X<=A\<rbrakk> \<Longrightarrow>  
      gfp(D,h) \<subseteq> A"
-apply (unfold gfp_def)
+  unfolding gfp_def
 apply (blast dest: bnd_monoD1) 
 done
 

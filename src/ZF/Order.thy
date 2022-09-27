@@ -142,13 +142,13 @@ by (unfold linear_def, blast)
 
 lemma tot_ord_subset:
     "\<lbrakk>tot_ord(A,r);  B<=A\<rbrakk> \<Longrightarrow> tot_ord(B,r)"
-apply (unfold tot_ord_def)
+  unfolding tot_ord_def
 apply (fast elim!: part_ord_subset linear_subset)
 done
 
 lemma well_ord_subset:
     "\<lbrakk>well_ord(A,r);  B<=A\<rbrakk> \<Longrightarrow> well_ord(B,r)"
-apply (unfold well_ord_def)
+  unfolding well_ord_def
 apply (fast elim!: tot_ord_subset wf_on_subset_A)
 done
 
@@ -162,7 +162,7 @@ lemma trans_on_Int_iff: "trans[A](r \<inter> A*A) \<longleftrightarrow> trans[A]
 by (unfold trans_on_def, blast)
 
 lemma part_ord_Int_iff: "part_ord(A,r \<inter> A*A) \<longleftrightarrow> part_ord(A,r)"
-apply (unfold part_ord_def)
+  unfolding part_ord_def
 apply (simp add: irrefl_Int_iff trans_on_Int_iff)
 done
 
@@ -170,7 +170,7 @@ lemma linear_Int_iff: "linear(A,r \<inter> A*A) \<longleftrightarrow> linear(A,r
 by (unfold linear_def, blast)
 
 lemma tot_ord_Int_iff: "tot_ord(A,r \<inter> A*A) \<longleftrightarrow> tot_ord(A,r)"
-apply (unfold tot_ord_def)
+  unfolding tot_ord_def
 apply (simp add: part_ord_Int_iff linear_Int_iff)
 done
 
@@ -179,7 +179,7 @@ apply (unfold wf_on_def wf_def, fast) (*10 times faster than blast!*)
 done
 
 lemma well_ord_Int_iff: "well_ord(A,r \<inter> A*A) \<longleftrightarrow> well_ord(A,r)"
-apply (unfold well_ord_def)
+  unfolding well_ord_def
 apply (simp add: tot_ord_Int_iff wf_on_Int_iff)
 done
 
@@ -199,7 +199,7 @@ lemma trans_on_0: "trans[0](r)"
 by (unfold trans_on_def, blast)
 
 lemma part_ord_0: "part_ord(0,r)"
-apply (unfold part_ord_def)
+  unfolding part_ord_def
 apply (simp add: irrefl_0 trans_on_0)
 done
 
@@ -207,7 +207,7 @@ lemma linear_0: "linear(0,r)"
 by (unfold linear_def, blast)
 
 lemma tot_ord_0: "tot_ord(0,r)"
-apply (unfold tot_ord_def)
+  unfolding tot_ord_def
 apply (simp add: part_ord_0 linear_0)
 done
 
@@ -215,7 +215,7 @@ lemma wf_on_0: "wf[0](r)"
 by (unfold wf_on_def wf_def, blast)
 
 lemma well_ord_0: "well_ord(0,r)"
-apply (unfold well_ord_def)
+  unfolding well_ord_def
 apply (simp add: tot_ord_0 wf_on_0)
 done
 
@@ -228,7 +228,7 @@ lemma tot_ord_unit: "tot_ord({a},0)"
 by (simp add: irrefl_def trans_on_def part_ord_def linear_def tot_ord_def)
 
 lemma well_ord_unit: "well_ord({a},0)"
-apply (unfold well_ord_def)
+  unfolding well_ord_def
 apply (simp add: tot_ord_unit wf_on_any_0)
 done
 
@@ -297,7 +297,7 @@ done
 lemma mono_map_trans:
     "\<lbrakk>g \<in> mono_map(A,r,B,s);  f \<in> mono_map(B,s,C,t)\<rbrakk>
      \<Longrightarrow> (f O g): mono_map(A,r,C,t)"
-apply (unfold mono_map_def)
+  unfolding mono_map_def
 apply (auto simp add: comp_fun)
 done
 
@@ -494,7 +494,7 @@ by (unfold ord_iso_map_def, blast)
 
 lemma converse_ord_iso_map:
     "converse(ord_iso_map(A,r,B,s)) = ord_iso_map(B,s,A,r)"
-apply (unfold ord_iso_map_def)
+  unfolding ord_iso_map_def
 apply (blast intro: ord_iso_sym)
 done
 
@@ -514,12 +514,12 @@ lemma ord_iso_map_mono_map:
      \<Longrightarrow> ord_iso_map(A,r,B,s)
            \<in> mono_map(domain(ord_iso_map(A,r,B,s)), r,
                       range(ord_iso_map(A,r,B,s)), s)"
-apply (unfold mono_map_def)
+  unfolding mono_map_def
 apply (simp (no_asm_simp) add: ord_iso_map_fun)
 apply safe
 apply (subgoal_tac "x \<in> A \<and> ya:A \<and> y \<in> B \<and> yb:B")
  apply (simp add: apply_equality [OF _  ord_iso_map_fun])
- apply (unfold ord_iso_map_def)
+   unfolding ord_iso_map_def
  apply (blast intro: well_ord_iso_preserving, blast)
 done
 
@@ -542,7 +542,7 @@ lemma domain_ord_iso_map_subset:
      "\<lbrakk>well_ord(A,r);  well_ord(B,s);
          a \<in> A;  a \<notin> domain(ord_iso_map(A,r,B,s))\<rbrakk>
       \<Longrightarrow>  domain(ord_iso_map(A,r,B,s)) \<subseteq> pred(A, a, r)"
-apply (unfold ord_iso_map_def)
+  unfolding ord_iso_map_def
 apply (safe intro!: predI)
 (*Case analysis on  xa vs a in r *)
 apply (simp (no_asm_simp))
@@ -621,7 +621,7 @@ lemma trans_on_converse: "trans[A](r) \<Longrightarrow> trans[A](converse(r))"
 by (unfold trans_on_def, blast)
 
 lemma part_ord_converse: "part_ord(A,r) \<Longrightarrow> part_ord(A,converse(r))"
-apply (unfold part_ord_def)
+  unfolding part_ord_def
 apply (blast intro!: irrefl_converse trans_on_converse)
 done
 
@@ -629,7 +629,7 @@ lemma linear_converse: "linear(A,r) \<Longrightarrow> linear(A,converse(r))"
 by (unfold linear_def, blast)
 
 lemma tot_ord_converse: "tot_ord(A,r) \<Longrightarrow> tot_ord(A,converse(r))"
-apply (unfold tot_ord_def)
+  unfolding tot_ord_def
 apply (blast intro!: part_ord_converse linear_converse)
 done
 

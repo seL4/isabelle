@@ -47,7 +47,7 @@ lemma qunivD: "X \<in> quniv(A) \<Longrightarrow> X \<subseteq> univ(eclose(A))"
 by (simp add: quniv_def)
 
 lemma quniv_mono: "A<=B \<Longrightarrow> quniv(A) \<subseteq> quniv(B)"
-apply (unfold quniv_def)
+  unfolding quniv_def
 apply (erule eclose_mono [THEN univ_mono, THEN Pow_mono])
 done
 
@@ -67,7 +67,7 @@ done
 lemmas univ_into_quniv = univ_subset_quniv [THEN subsetD]
 
 lemma Pow_univ_subset_quniv: "Pow(univ(A)) \<subseteq> quniv(A)"
-apply (unfold quniv_def)
+  unfolding quniv_def
 apply (rule arg_subset_eclose [THEN univ_mono, THEN Pow_mono])
 done
 
@@ -92,7 +92,7 @@ by (simp add: QPair_def sum_subset_univ)
 subsection\<open>Quine Disjoint Sum\<close>
 
 lemma QInl_subset_univ: "a \<subseteq> univ(A) \<Longrightarrow> QInl(a) \<subseteq> univ(A)"
-apply (unfold QInl_def)
+  unfolding QInl_def
 apply (erule empty_subsetI [THEN QPair_subset_univ])
 done
 
@@ -103,7 +103,7 @@ lemmas naturals_subset_univ =
     subset_trans [OF naturals_subset_nat nat_subset_univ]
 
 lemma QInr_subset_univ: "a \<subseteq> univ(A) \<Longrightarrow> QInr(a) \<subseteq> univ(A)"
-apply (unfold QInr_def)
+  unfolding QInr_def
 apply (erule nat_1I [THEN naturals_subset_univ, THEN QPair_subset_univ])
 done
 
@@ -178,7 +178,7 @@ subsection\<open>"Take-Lemma" Rules\<close>
 lemma QPair_Int_Vfrom_subset:
  "Transset(X) \<Longrightarrow>
        <a;b> \<inter> Vfrom(X,i)  \<subseteq>  <a \<inter> Vfrom(X,i);  b \<inter> Vfrom(X,i)>"
-apply (unfold QPair_def)
+  unfolding QPair_def
 apply (erule Transset_Vfrom [THEN Transset_sum_Int_subset])
 done
 

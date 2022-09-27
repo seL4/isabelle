@@ -144,7 +144,7 @@ done
 
 lemma (in fold_typing) fold_equality: 
      "\<langle>C,y\<rangle> \<in> fold_set(A,B,f,e) \<Longrightarrow> fold[B](f,e,C) = y"
-apply (unfold fold_def)
+  unfolding fold_def
 apply (frule fold_set.dom_subset [THEN subsetD], clarify)
 apply (rule the_equality)
  apply (rule_tac [2] A=C in fold_typing.fold_set_determ)
@@ -155,7 +155,7 @@ apply (auto dest: fold_set_lemma intro: ftype etype fcomm)
 done
 
 lemma fold_0 [simp]: "e \<in> B \<Longrightarrow> fold[B](f,e,0) = e"
-apply (unfold fold_def)
+  unfolding fold_def
 apply (blast elim!: empty_fold_setE intro: fold_set.intros)
 done
 
@@ -193,7 +193,7 @@ done
 lemma (in fold_typing) fold_cons: 
      "\<lbrakk>C\<in>Fin(A); c\<in>A; c\<notin>C\<rbrakk> 
       \<Longrightarrow> fold[B](f, e, cons(c, C)) = f(c, fold[B](f, e, C))"
-apply (unfold fold_def)
+  unfolding fold_def
 apply (simp add: fold_cons_lemma)
 apply (rule the_equality, auto) 
  apply (subgoal_tac [2] "\<langle>C, y\<rangle> \<in> fold_set(A, B, f, e)")
@@ -363,7 +363,7 @@ lemma setsum_succD:
      "\<lbrakk>setsum(f, A) = $# succ(n); n\<in>nat\<rbrakk>\<Longrightarrow> \<exists>a\<in>A. #0 $< f(a)"
 apply (case_tac "Finite (A) ")
 apply (blast intro: setsum_succD_lemma)
-apply (unfold setsum_def)
+  unfolding setsum_def
 apply (auto simp del: int_of_0 int_of_succ simp add: int_succ_int_1 [symmetric] int_of_0 [symmetric])
 done
 

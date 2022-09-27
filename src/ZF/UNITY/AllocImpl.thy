@@ -50,12 +50,12 @@ definition
 
 
 lemma available_tok_value_type [simp,TC]: "s\<in>state \<Longrightarrow> s`available_tok \<in> nat"
-apply (unfold state_def)
+  unfolding state_def
 apply (drule_tac a = available_tok in apply_type, auto)
 done
 
 lemma NbR_value_type [simp,TC]: "s\<in>state \<Longrightarrow> s`NbR \<in> nat"
-apply (unfold state_def)
+  unfolding state_def
 apply (drule_tac a = NbR in apply_type, auto)
 done
 
@@ -270,7 +270,7 @@ lemma alloc_prog_NbR_LeadsTo_lemma2 [rule_format]:
             {s\<in>state . k \<le> length(s ` rel)} \<inter> {s\<in>state . s ` NbR = n}
                \<longmapsto>w {x \<in> state. k \<le> length(x`rel)} \<inter>
                  (\<Union>m \<in> greater_than(n). {x \<in> state. x ` NbR=m})"
-apply (unfold greater_than_def)
+  unfolding greater_than_def
 apply (rule_tac A' = "{x \<in> state. k \<le> length(x`rel)} \<inter> {x \<in> state. n < x`NbR}"
        in LeadsTo_weaken_R)
 apply safe

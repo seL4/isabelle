@@ -36,7 +36,7 @@ apply (simp, fast elim!: not_emptyE dest: apply_type [OF _ RepFunI])
 done
 
 lemma AC1_AC18: "AC1 \<Longrightarrow> PROP AC18"
-apply (unfold AC1_def)
+  unfolding AC1_def
 apply (rule AC18.intro)
 apply (fast elim!: lemma_AC18 apply_type intro!: equalityI INT_I UN_I)
 done
@@ -46,7 +46,7 @@ done
 (* ********************************************************************** *)
 
 theorem (in AC18) AC19
-apply (unfold AC19_def)
+  unfolding AC19_def
 apply (intro allI impI)
 apply (rule AC18 [of _ "\<lambda>x. x", THEN mp], blast)
 done

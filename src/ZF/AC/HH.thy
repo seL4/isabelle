@@ -196,7 +196,7 @@ lemma f_sing_lam_bij:
          f \<in> (Pow(x)-{0}) -> {{z}. z \<in> x}\<rbrakk>   
       \<Longrightarrow> (\<lambda>a \<in> (\<mu> i. HH(f,x,i)={x}). HH(f,x,a))   
           \<in> bij(\<mu> i. HH(f,x,i)={x}, {{y}. y \<in> x})"
-apply (unfold bij_def)
+  unfolding bij_def
 apply (fast intro!: lam_Least_HH_inj lam_surj_sing f_sing_imp_HH_sing)
 done
 

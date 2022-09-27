@@ -12,7 +12,7 @@ lemma cons_Diff_eq: "a\<notin>A \<Longrightarrow> cons(a,A)-{a}=A"
 by fast
 
 lemma nat_1_lepoll_iff: "1\<lesssim>X \<longleftrightarrow> (\<exists>x. x \<in> X)"
-apply (unfold lepoll_def)
+  unfolding lepoll_def
 apply (rule iffI)
 apply (fast intro: inj_is_fun [THEN apply_type])
 apply (erule exE)
@@ -29,7 +29,7 @@ apply (fast intro!: singleton_eqpoll_1)
 done
 
 lemma cons_eqpoll_succ: "\<lbrakk>x\<approx>n; y\<notin>x\<rbrakk> \<Longrightarrow> cons(y,x)\<approx>succ(n)"
-apply (unfold succ_def)
+  unfolding succ_def
 apply (fast elim!: cons_eqpoll_cong mem_irrefl)
 done
 
@@ -71,7 +71,7 @@ done
 lemma subsets_lepoll_lemma1:
      "\<lbrakk>InfCard(x); n \<in> nat\<rbrakk> 
       \<Longrightarrow> {y \<in> Pow(x). y\<approx>succ(succ(n))} \<lesssim> x*{y \<in> Pow(x). y\<approx>succ(n)}"
-apply (unfold lepoll_def)
+  unfolding lepoll_def
 apply (rule_tac x = "\<lambda>y \<in> {y \<in> Pow(x) . y\<approx>succ (succ (n))}. 
                       <\<mu> i. i \<in> y, y-{\<mu> i. i \<in> y}>" in exI)
 apply (rule_tac d = "\<lambda>z. cons (fst(z), snd(z))" in lam_injective)
@@ -144,7 +144,7 @@ done
 lemma succ_lepoll_succ_succ:
      "\<lbrakk>InfCard(x); n \<in> nat\<rbrakk> 
       \<Longrightarrow> {y \<in> Pow(x). y\<approx>succ(n)} \<lesssim> {y \<in> Pow(x). y\<approx>succ(succ(n))}"
-apply (unfold lepoll_def)
+  unfolding lepoll_def
 apply (rule_tac x = "\<lambda>z \<in> {y\<in>Pow(x). y\<approx>succ(n)}. cons(succ(\<Union>(z)), z)" 
        in exI)
 apply (rule_tac d = "\<lambda>z. z-{\<Union>(z) }" in lam_injective)
@@ -173,7 +173,7 @@ done
 
 lemma image_vimage_eq:
      "\<lbrakk>f \<in> surj(A,B); y \<subseteq> B\<rbrakk> \<Longrightarrow> f``(converse(f)``y) = y"
-apply (unfold surj_def)
+  unfolding surj_def
 apply (fast dest: apply_equality2 elim: apply_iff [THEN iffD2])
 done
 
@@ -182,7 +182,7 @@ by (fast elim!: inj_is_fun [THEN apply_Pair] dest: inj_equality)
 
 lemma subsets_eqpoll:
      "A\<approx>B \<Longrightarrow> {Y \<in> Pow(A). Y\<approx>n}\<approx>{Y \<in> Pow(B). Y\<approx>n}"
-apply (unfold eqpoll_def)
+  unfolding eqpoll_def
 apply (erule exE)
 apply (rule_tac x = "\<lambda>X \<in> {Y \<in> Pow (A) . \<exists>f. f \<in> bij (Y, n) }. f``X" in exI)
 apply (rule_tac d = "\<lambda>Z. converse (f) ``Z" in lam_bijective)
@@ -197,7 +197,7 @@ apply (fast elim!: bij_is_surj [THEN image_vimage_eq])
 done
 
 lemma WO2_imp_ex_Card: "WO2 \<Longrightarrow> \<exists>a. Card(a) \<and> X\<approx>a"
-apply (unfold WO2_def)
+  unfolding WO2_def
 apply (drule spec [of _ X])
 apply (blast intro: Card_cardinal eqpoll_trans
           well_ord_Memrel [THEN well_ord_cardinal_eqpoll, THEN eqpoll_sym])
@@ -207,7 +207,7 @@ lemma lepoll_infinite: "\<lbrakk>X\<lesssim>Y; \<not>Finite(X)\<rbrakk> \<Longri
 by (blast intro: lepoll_Finite)
 
 lemma infinite_Card_is_InfCard: "\<lbrakk>\<not>Finite(X); Card(X)\<rbrakk> \<Longrightarrow> InfCard(X)"
-apply (unfold InfCard_def)
+  unfolding InfCard_def
 apply (fast elim!: Card_is_Ord [THEN nat_le_infinite_Ord])
 done
 

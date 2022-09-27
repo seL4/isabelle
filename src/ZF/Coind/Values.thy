@@ -101,7 +101,7 @@ apply (blast dest: pmap_domainD)
 done
 
 lemma ve_empI: "ve_emp \<in> ValEnv"
-apply (unfold ve_emp_def)
+  unfolding ve_emp_def
 apply (rule Val_ValEnv.intros)
 apply (rule pmap_empI)
 done

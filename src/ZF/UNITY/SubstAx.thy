@@ -26,7 +26,7 @@ definition
 (* Equivalence with the HOL-like definition *)
 lemma LeadsTo_eq:
 "st_set(B)\<Longrightarrow> A \<longmapsto>w B = {F \<in> program. F:(reachable(F) \<inter> A) \<longmapsto> B}"
-apply (unfold LeadsTo_def)
+  unfolding LeadsTo_def
 apply (blast dest: psp_stable2 leadsToD2 constrainsD2 intro: leadsTo_weaken)
 done
 
@@ -40,7 +40,7 @@ lemma Always_LeadsTo_pre: "F \<in> Always(I) \<Longrightarrow> (F:(I \<inter> A)
 by (simp add: LeadsTo_def Always_eq_includes_reachable Int_absorb2 Int_assoc [symmetric] leadsToD2)
 
 lemma Always_LeadsTo_post: "F \<in> Always(I) \<Longrightarrow> (F \<in> A \<longmapsto>w (I \<inter> A')) \<longleftrightarrow> (F \<in> A \<longmapsto>w A')"
-apply (unfold LeadsTo_def)
+  unfolding LeadsTo_def
 apply (simp add: Always_eq_includes_reachable Int_absorb2 Int_assoc [symmetric] leadsToD2)
 done
 
@@ -123,12 +123,12 @@ by (auto dest: LeadsTo_type [THEN subsetD] simp add: LeadsTo_eq)
 declare LeadsTo_state [iff]
 
 lemma LeadsTo_weaken_R: "\<lbrakk>F \<in> A \<longmapsto>w A';  A'<=B'\<rbrakk> \<Longrightarrow> F \<in> A \<longmapsto>w B'"
-apply (unfold LeadsTo_def)
+  unfolding LeadsTo_def
 apply (auto intro: leadsTo_weaken_R)
 done
 
 lemma LeadsTo_weaken_L: "\<lbrakk>F \<in> A \<longmapsto>w A'; B \<subseteq> A\<rbrakk> \<Longrightarrow> F \<in> B \<longmapsto>w A'"
-apply (unfold LeadsTo_def)
+  unfolding LeadsTo_def
 apply (auto intro: leadsTo_weaken_L)
 done
 
@@ -256,7 +256,7 @@ by (simp (no_asm_simp) add: PSP Int_ac)
 
 lemma PSP_Unless:
 "\<lbrakk>F \<in> A \<longmapsto>w A'; F \<in> B Unless B'\<rbrakk>\<Longrightarrow> F:(A \<inter> B) \<longmapsto>w ((A' \<inter> B) \<union> B')"
-apply (unfold op_Unless_def)
+  unfolding op_Unless_def
 apply (drule PSP, assumption)
 apply (blast intro: LeadsTo_Diff LeadsTo_weaken subset_imp_LeadsTo)
 done
@@ -327,7 +327,7 @@ lemma Stable_completion:
      "\<lbrakk>F \<in> A \<longmapsto>w A';  F \<in> Stable(A');
          F \<in> B \<longmapsto>w B';  F \<in> Stable(B')\<rbrakk>
     \<Longrightarrow> F \<in> (A \<inter> B) \<longmapsto>w (A' \<inter> B')"
-apply (unfold Stable_def)
+  unfolding Stable_def
 apply (rule_tac C1 = 0 in Completion [THEN LeadsTo_weaken_R])
     prefer 5
     apply blast
@@ -339,7 +339,7 @@ lemma Finite_stable_completion:
          (\<And>i. i \<in> I \<Longrightarrow> F \<in> A(i) \<longmapsto>w A'(i));
          (\<And>i. i \<in> I \<Longrightarrow>F \<in> Stable(A'(i)));   F \<in> program\<rbrakk>
       \<Longrightarrow> F \<in> (\<Inter>i \<in> I. A(i)) \<longmapsto>w (\<Inter>i \<in> I. A'(i))"
-apply (unfold Stable_def)
+  unfolding Stable_def
 apply (rule_tac C1 = 0 in Finite_completion [THEN LeadsTo_weaken_R], simp_all)
 apply (rule_tac [3] subset_refl, auto)
 done

@@ -595,7 +595,7 @@ by simp
 theorem satisfies_is_a_reflection:
      "REFLECTS[\<lambda>x. satisfies_is_a(L,f(x),g(x),h(x),g'(x)),
                \<lambda>i x. satisfies_is_a(##Lset(i),f(x),g(x),h(x),g'(x))]"
-apply (unfold satisfies_is_a_def) 
+  unfolding satisfies_is_a_def 
 apply (intro FOL_reflections is_lambda_reflection bool_of_o_reflection 
              nth_reflection is_list_reflection)
 done
@@ -644,7 +644,7 @@ by simp
 theorem satisfies_is_b_reflection:
      "REFLECTS[\<lambda>x. satisfies_is_b(L,f(x),g(x),h(x),g'(x)),
                \<lambda>i x. satisfies_is_b(##Lset(i),f(x),g(x),h(x),g'(x))]"
-apply (unfold satisfies_is_b_def) 
+  unfolding satisfies_is_b_def 
 apply (intro FOL_reflections is_lambda_reflection bool_of_o_reflection 
              nth_reflection is_list_reflection)
 done
@@ -695,7 +695,7 @@ by simp
 theorem satisfies_is_c_reflection:
      "REFLECTS[\<lambda>x. satisfies_is_c(L,f(x),g(x),h(x),g'(x),h'(x)),
                \<lambda>i x. satisfies_is_c(##Lset(i),f(x),g(x),h(x),g'(x),h'(x))]"
-apply (unfold satisfies_is_c_def) 
+  unfolding satisfies_is_c_def 
 apply (intro FOL_reflections function_reflections is_lambda_reflection
              extra_reflections nth_reflection depth_apply_reflection 
              is_list_reflection)
@@ -751,7 +751,7 @@ by simp
 theorem satisfies_is_d_reflection:
      "REFLECTS[\<lambda>x. satisfies_is_d(L,f(x),g(x),h(x),g'(x)),
                \<lambda>i x. satisfies_is_d(##Lset(i),f(x),g(x),h(x),g'(x))]"
-apply (unfold satisfies_is_d_def) 
+  unfolding satisfies_is_d_def 
 apply (intro FOL_reflections function_reflections is_lambda_reflection
              extra_reflections nth_reflection depth_apply_reflection 
              is_list_reflection)
@@ -810,7 +810,7 @@ lemmas satisfies_reflections =
 theorem satisfies_MH_reflection:
      "REFLECTS[\<lambda>x. satisfies_MH(L,f(x),g(x),h(x),g'(x)),
                \<lambda>i x. satisfies_MH(##Lset(i),f(x),g(x),h(x),g'(x))]"
-apply (unfold satisfies_MH_def) 
+  unfolding satisfies_MH_def 
 apply (intro FOL_reflections satisfies_reflections)
 done
 
@@ -925,7 +925,7 @@ lemma Forall_Reflects:
             is_Cons(##Lset(i),a,u,co) \<longrightarrow> fun_apply(##Lset(i),rp,co,rpco) \<longrightarrow> 
             number1(##Lset(i),rpco),
                        bo) \<and> pair(##Lset(i),u,bo,x))]"
-apply (unfold is_bool_of_o_def) 
+  unfolding is_bool_of_o_def 
 apply (intro FOL_reflections function_reflections Cons_reflection)
 done
 

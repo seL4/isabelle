@@ -80,7 +80,7 @@ lemma Ord_iso_implies_eq_lemma:
 apply (frule lt_pred_Memrel)
 apply (erule ltE)
 apply (rule well_ord_Memrel [THEN well_ord_iso_predE, of i f j], auto)
-apply (unfold ord_iso_def)
+  unfolding ord_iso_def
 (*Combining the two simplifications causes looping*)
 apply (simp (no_asm_simp))
 apply (blast intro: bij_is_fun [THEN apply_type] Ord_trans)
@@ -156,7 +156,7 @@ done
 
 lemma Ord_ordertype:
     "well_ord(A,r) \<Longrightarrow> Ord(ordertype(A,r))"
-apply (unfold ordertype_def)
+  unfolding ordertype_def
 apply (subst image_fun [OF ordermap_type subset_refl])
 apply (rule OrdI [OF _ Ord_is_Transset])
 prefer 2 apply (blast intro: Ord_ordermap)
@@ -201,7 +201,7 @@ subsubsection\<open>Isomorphisms involving ordertype\<close>
 lemma ordertype_ord_iso:
  "well_ord(A,r)
   \<Longrightarrow> ordermap(A,r) \<in> ord_iso(A,r, ordertype(A,r), Memrel(ordertype(A,r)))"
-apply (unfold ord_iso_def)
+  unfolding ord_iso_def
 apply (safe elim!: well_ord_is_wf
             intro!: ordermap_type [THEN apply_type] ordermap_mono ordermap_bij)
 apply (blast dest!: converse_ordermap_mono)
@@ -272,7 +272,7 @@ done
 
 lemma ordertype_unfold:
     "ordertype(A,r) = {ordermap(A,r)`y . y \<in> A}"
-apply (unfold ordertype_def)
+  unfolding ordertype_def
 apply (rule image_fun [OF ordermap_type subset_refl])
 done
 
@@ -311,7 +311,7 @@ subsection\<open>Alternative definition of ordinal\<close>
 
 (*proof by Krzysztof Grabczewski*)
 lemma Ord_is_Ord_alt: "Ord(i) \<Longrightarrow> Ord_alt(i)"
-apply (unfold Ord_alt_def)
+  unfolding Ord_alt_def
 apply (rule conjI)
 apply (erule well_ord_Memrel)
 apply (unfold Ord_def Transset_def pred_def Memrel_def, blast)
@@ -363,7 +363,7 @@ text\<open>Initial segments of radd.  Statements by Grabczewski\<close>
 lemma pred_Inl_bij:
  "a \<in> A \<Longrightarrow> (\<lambda>x\<in>pred(A,a,r). Inl(x))
           \<in> bij(pred(A,a,r), pred(A+B, Inl(a), radd(A,r,B,s)))"
-apply (unfold pred_def)
+  unfolding pred_def
 apply (rule_tac d = "case (\<lambda>x. x, \<lambda>y. y) " in lam_bijective)
 apply auto
 done
@@ -709,7 +709,7 @@ done
 
 lemma Ord_odiff [simp,TC]:
     "\<lbrakk>Ord(i);  Ord(j)\<rbrakk> \<Longrightarrow> Ord(i--j)"
-apply (unfold odiff_def)
+  unfolding odiff_def
 apply (blast intro: Ord_ordertype Diff_subset well_ord_subset well_ord_Memrel)
 done
 
@@ -750,7 +750,7 @@ subsection\<open>Ordinal Multiplication\<close>
 
 lemma Ord_omult [simp,TC]:
     "\<lbrakk>Ord(i);  Ord(j)\<rbrakk> \<Longrightarrow> Ord(i**j)"
-apply (unfold omult_def)
+  unfolding omult_def
 apply (blast intro: Ord_ordertype well_ord_rmult well_ord_Memrel)
 done
 
@@ -797,7 +797,7 @@ done
 lemma lt_omult:
  "\<lbrakk>Ord(i);  Ord(j);  k<j**i\<rbrakk>
   \<Longrightarrow> \<exists>j' i'. k = j**i' ++ j' \<and> j'<j \<and> i'<i"
-apply (unfold omult_def)
+  unfolding omult_def
 apply (simp add: ordertype_pred_unfold well_ord_rmult well_ord_Memrel)
 apply (safe elim!: ltE)
 apply (simp add: ordertype_pred_Pair_lemma ltI raw_oadd_eq_oadd
@@ -807,7 +807,7 @@ done
 
 lemma omult_oadd_lt:
      "\<lbrakk>j'<j;  i'<i\<rbrakk> \<Longrightarrow> j**i' ++ j'  <  j**i"
-apply (unfold omult_def)
+  unfolding omult_def
 apply (rule ltI)
  prefer 2
  apply (simp add: Ord_ordertype well_ord_rmult well_ord_Memrel lt_Ord2)
@@ -834,19 +834,19 @@ subsubsection\<open>Basic laws for ordinal multiplication\<close>
 text\<open>Ordinal multiplication by zero\<close>
 
 lemma omult_0 [simp]: "i**0 = 0"
-apply (unfold omult_def)
+  unfolding omult_def
 apply (simp (no_asm_simp))
 done
 
 lemma omult_0_left [simp]: "0**i = 0"
-apply (unfold omult_def)
+  unfolding omult_def
 apply (simp (no_asm_simp))
 done
 
 text\<open>Ordinal multiplication by 1\<close>
 
 lemma omult_1 [simp]: "Ord(i) \<Longrightarrow> i**1 = i"
-apply (unfold omult_def)
+  unfolding omult_def
 apply (rule_tac s1="Memrel(i)"
        in ord_isoI [THEN ordertype_eq, THEN trans])
 apply (rule_tac c = snd and d = "\<lambda>z.\<langle>0,z\<rangle>"  in lam_bijective)
@@ -854,7 +854,7 @@ apply (auto elim!: snd_type well_ord_Memrel ordertype_Memrel)
 done
 
 lemma omult_1_left [simp]: "Ord(i) \<Longrightarrow> 1**i = i"
-apply (unfold omult_def)
+  unfolding omult_def
 apply (rule_tac s1="Memrel(i)"
        in ord_isoI [THEN ordertype_eq, THEN trans])
 apply (rule_tac c = fst and d = "\<lambda>z.\<langle>z,0\<rangle>" in lam_bijective)
@@ -886,7 +886,7 @@ text\<open>Associative law\<close>
 
 lemma omult_assoc:
     "\<lbrakk>Ord(i);  Ord(j);  Ord(k)\<rbrakk> \<Longrightarrow> (i**j)**k = i**(j**k)"
-apply (unfold omult_def)
+  unfolding omult_def
 apply (rule ordertype_eq [THEN trans])
 apply (rule prod_ord_iso_cong [OF ord_iso_refl
                                   ordertype_ord_iso [THEN ord_iso_sym]])

@@ -22,7 +22,7 @@ lemma inj_lemma:
         "C \<in> A \<Longrightarrow> (\<lambda>g \<in> (nat->\<Union>(A))*C.   
                 (\<lambda>n \<in> nat. if(n=0, snd(g), fst(g)`(n #- 1))))   
                 \<in> inj((nat->\<Union>(A))*C, (nat->\<Union>(A)) ) "
-apply (unfold inj_def)
+  unfolding inj_def
 apply (rule CollectI)
 apply (fast intro!: lam_type if_type apply_type fst_type snd_type, auto) 
 apply (rule fun_extension, assumption+)

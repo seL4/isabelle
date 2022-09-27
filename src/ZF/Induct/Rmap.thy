@@ -46,7 +46,7 @@ lemma rmap_total: "A \<subseteq> domain(r) \<Longrightarrow> list(A) \<subseteq>
   done
 
 lemma rmap_functional: "function(r) \<Longrightarrow> function(rmap(r))"
-  apply (unfold function_def)
+    unfolding function_def
   apply (rule impI [THEN allI, THEN allI])
   apply (erule rmap.induct)
    apply blast+

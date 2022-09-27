@@ -40,7 +40,7 @@ lemma Transset_iff_Pow: "Transset(A) <-> A<=Pow(A)"
 by (unfold Transset_def, blast)
 
 lemma Transset_iff_Union_succ: "Transset(A) <-> \<Union>(succ(A)) = A"
-apply (unfold Transset_def)
+  unfolding Transset_def
 apply (blast elim!: equalityE)
 done
 
@@ -157,12 +157,12 @@ lemma Ord_succ_iff [iff]: "Ord(succ(i)) <-> Ord(i)"
 by (blast intro: Ord_succ dest!: Ord_succD)
 
 lemma Ord_Un [intro,simp,TC]: "\<lbrakk>Ord(i); Ord(j)\<rbrakk> \<Longrightarrow> Ord(i \<union> j)"
-apply (unfold Ord_def)
+  unfolding Ord_def
 apply (blast intro!: Transset_Un)
 done
 
 lemma Ord_Int [TC]: "\<lbrakk>Ord(i); Ord(j)\<rbrakk> \<Longrightarrow> Ord(i \<inter> j)"
-apply (unfold Ord_def)
+  unfolding Ord_def
 apply (blast intro!: Transset_Int)
 done
 
@@ -188,7 +188,7 @@ by (unfold lt_def, blast)
 
 lemma ltE:
     "\<lbrakk>i<j;  \<lbrakk>i\<in>j;  Ord(i);  Ord(j)\<rbrakk> \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
-apply (unfold lt_def)
+  unfolding lt_def
 apply (blast intro: Ord_in_Ord)
 done
 
@@ -214,7 +214,7 @@ lemma lt_trans [trans]: "\<lbrakk>i<j;  j<k\<rbrakk> \<Longrightarrow> i<k"
 by (blast intro!: ltI elim!: ltE intro: Ord_trans)
 
 lemma lt_not_sym: "i<j \<Longrightarrow> \<not> (j<i)"
-apply (unfold lt_def)
+  unfolding lt_def
 apply (blast elim: mem_asym)
 done
 
@@ -297,7 +297,7 @@ by (simp add: relation_def Memrel_def)
 (*The membership relation (as a set) is well-founded.
   Proof idea: show A<=B by applying the foundation axiom to A-B *)
 lemma wf_Memrel: "wf(Memrel(A))"
-apply (unfold wf_def)
+  unfolding wf_def
 apply (rule foundation [THEN disjE, THEN allI], erule disjI1, blast)
 done
 
@@ -630,17 +630,17 @@ by (blast intro: Ord_trans)
 subsection\<open>Limit Ordinals -- General Properties\<close>
 
 lemma Limit_Union_eq: "Limit(i) \<Longrightarrow> \<Union>(i) = i"
-apply (unfold Limit_def)
+  unfolding Limit_def
 apply (fast intro!: ltI elim!: ltE elim: Ord_trans)
 done
 
 lemma Limit_is_Ord: "Limit(i) \<Longrightarrow> Ord(i)"
-apply (unfold Limit_def)
+  unfolding Limit_def
 apply (erule conjunct1)
 done
 
 lemma Limit_has_0: "Limit(i) \<Longrightarrow> 0 < i"
-apply (unfold Limit_def)
+  unfolding Limit_def
 apply (erule conjunct2 [THEN conjunct1])
 done
 

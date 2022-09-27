@@ -155,7 +155,7 @@ done
 
 theorem Not_reflection:
      "REFLECTS[P,Q] \<Longrightarrow> REFLECTS[\<lambda>x. \<not>P(x), \<lambda>a x. \<not>Q(a,x)]"
-apply (unfold L_Reflects_def)
+  unfolding L_Reflects_def
 apply (erule meta_exE)
 apply (rule_tac x=Cl in meta_exI, simp)
 done
@@ -163,7 +163,7 @@ done
 theorem And_reflection:
      "\<lbrakk>REFLECTS[P,Q]; REFLECTS[P',Q']\<rbrakk>
       \<Longrightarrow> REFLECTS[\<lambda>x. P(x) \<and> P'(x), \<lambda>a x. Q(a,x) \<and> Q'(a,x)]"
-apply (unfold L_Reflects_def)
+  unfolding L_Reflects_def
 apply (elim meta_exE)
 apply (rule_tac x="\<lambda>a. Cl(a) \<and> Cla(a)" in meta_exI)
 apply (simp add: Closed_Unbounded_Int, blast)
@@ -172,7 +172,7 @@ done
 theorem Or_reflection:
      "\<lbrakk>REFLECTS[P,Q]; REFLECTS[P',Q']\<rbrakk>
       \<Longrightarrow> REFLECTS[\<lambda>x. P(x) \<or> P'(x), \<lambda>a x. Q(a,x) \<or> Q'(a,x)]"
-apply (unfold L_Reflects_def)
+  unfolding L_Reflects_def
 apply (elim meta_exE)
 apply (rule_tac x="\<lambda>a. Cl(a) \<and> Cla(a)" in meta_exI)
 apply (simp add: Closed_Unbounded_Int, blast)
@@ -181,7 +181,7 @@ done
 theorem Imp_reflection:
      "\<lbrakk>REFLECTS[P,Q]; REFLECTS[P',Q']\<rbrakk>
       \<Longrightarrow> REFLECTS[\<lambda>x. P(x) \<longrightarrow> P'(x), \<lambda>a x. Q(a,x) \<longrightarrow> Q'(a,x)]"
-apply (unfold L_Reflects_def)
+  unfolding L_Reflects_def
 apply (elim meta_exE)
 apply (rule_tac x="\<lambda>a. Cl(a) \<and> Cla(a)" in meta_exI)
 apply (simp add: Closed_Unbounded_Int, blast)
@@ -190,7 +190,7 @@ done
 theorem Iff_reflection:
      "\<lbrakk>REFLECTS[P,Q]; REFLECTS[P',Q']\<rbrakk>
       \<Longrightarrow> REFLECTS[\<lambda>x. P(x) \<longleftrightarrow> P'(x), \<lambda>a x. Q(a,x) \<longleftrightarrow> Q'(a,x)]"
-apply (unfold L_Reflects_def)
+  unfolding L_Reflects_def
 apply (elim meta_exE)
 apply (rule_tac x="\<lambda>a. Cl(a) \<and> Cla(a)" in meta_exI)
 apply (simp add: Closed_Unbounded_Int, blast)
@@ -223,14 +223,14 @@ done
 theorem Rex_reflection:
      "REFLECTS[ \<lambda>x. P(fst(x),snd(x)), \<lambda>a x. Q(a,fst(x),snd(x))]
       \<Longrightarrow> REFLECTS[\<lambda>x. \<exists>z[L]. P(x,z), \<lambda>a x. \<exists>z\<in>Lset(a). Q(a,x,z)]"
-apply (unfold rex_def)
+  unfolding rex_def
 apply (intro And_reflection Ex_reflection, assumption)
 done
 
 theorem Rall_reflection:
      "REFLECTS[\<lambda>x. P(fst(x),snd(x)), \<lambda>a x. Q(a,fst(x),snd(x))]
       \<Longrightarrow> REFLECTS[\<lambda>x. \<forall>z[L]. P(x,z), \<lambda>a x. \<forall>z\<in>Lset(a). Q(a,x,z)]"
-apply (unfold rall_def)
+  unfolding rall_def
 apply (intro Imp_reflection All_reflection, assumption)
 done
 

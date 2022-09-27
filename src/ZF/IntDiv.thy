@@ -688,12 +688,12 @@ apply (simp add: linear_arith_lemma integ_of_type vimage_iff)
 done
 
 lemma negateSnd_eq [simp]: "negateSnd (\<langle>q,r\<rangle>) = <q, $-r>"
-apply (unfold negateSnd_def)
+  unfolding negateSnd_def
 apply auto
 done
 
 lemma negateSnd_type: "qr \<in> int * int \<Longrightarrow> negateSnd (qr) \<in> int * int"
-apply (unfold negateSnd_def)
+  unfolding negateSnd_def
 apply auto
 done
 
@@ -735,7 +735,7 @@ lemma zdiv_intify2 [simp]: "x zdiv intify(y) = x zdiv y"
   by (simp add: zdiv_def)
 
 lemma zdiv_type [iff,TC]: "z zdiv w \<in> int"
-apply (unfold zdiv_def)
+  unfolding zdiv_def
 apply (blast intro: fst_type divAlg_type)
 done
 
@@ -746,7 +746,7 @@ lemma zmod_intify2 [simp]: "x zmod intify(y) = x zmod y"
   by (simp add: zmod_def)
 
 lemma zmod_type [iff,TC]: "z zmod w \<in> int"
-apply (unfold zmod_def)
+  unfolding zmod_def
 apply (rule snd_type)
 apply (blast intro: divAlg_type)
 done

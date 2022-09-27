@@ -470,7 +470,7 @@ done
 
 lemma matrix_chain_left:
     "\<lbrakk>matrix(D,M); n \<in> nat\<rbrakk> \<Longrightarrow> chain(D,M`n)"
-apply (unfold chain_def)
+  unfolding chain_def
 apply (auto intro: matrix_fun [THEN apply_type] matrix_in matrix_rel_0_1)
 done
 

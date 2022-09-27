@@ -68,13 +68,13 @@ apply (rule program_equalityI, auto)
 done
 
 lemma component_SKIP [simp]: "F \<in> program \<Longrightarrow> SKIP component F"
-apply (unfold component_def)
+  unfolding component_def
 apply (rule_tac x = F in exI)
 apply (force intro: Join_SKIP_left)
 done
 
 lemma component_refl [simp]: "F \<in> program \<Longrightarrow> F component F"
-apply (unfold component_def)
+  unfolding component_def
 apply (rule_tac x = F in exI)
 apply (force intro: Join_SKIP_right)
 done
@@ -88,7 +88,7 @@ lemma component_Join1: "F component (F \<squnion> G)"
 by (unfold component_def, blast)
 
 lemma component_Join2: "G component (F \<squnion> G)"
-apply (unfold component_def)
+  unfolding component_def
 apply (simp (no_asm) add: Join_commute)
 apply blast
 done
@@ -111,12 +111,12 @@ apply (blast elim!: not_emptyE)+
 done
 
 lemma component_JOIN: "i \<in> I \<Longrightarrow> F(i) component (\<Squnion>i \<in> I. (F(i)))"
-apply (unfold component_def)
+  unfolding component_def
 apply (blast intro: JOIN_absorb)
 done
 
 lemma component_trans: "\<lbrakk>F component G; G component H\<rbrakk> \<Longrightarrow> F component H"
-apply (unfold component_def)
+  unfolding component_def
 apply (blast intro: Join_assoc [symmetric])
 done
 
@@ -175,7 +175,7 @@ lemma SKIP_preserves [iff]: "SKIP \<in> preserves(v)"
 by (auto simp add: preserves_def INT_iff)
 
 lemma fun_pair_apply [simp]: "fun_pair(f,g,x) = <f(x), g(x)>"
-apply (unfold fun_pair_def)
+  unfolding fun_pair_def
 apply (simp (no_asm))
 done
 
@@ -252,7 +252,7 @@ done
 
 (* component_of satisfies many of component's properties *)
 lemma component_of_refl [simp]: "F \<in> program \<Longrightarrow> F component_of F"
-apply (unfold component_of_def)
+  unfolding component_of_def
 apply (rule_tac x = SKIP in exI, auto)
 done
 
@@ -263,7 +263,7 @@ done
 
 lemma component_of_trans: 
      "\<lbrakk>F component_of G; G component_of H\<rbrakk> \<Longrightarrow> F component_of H"
-apply (unfold component_of_def)
+  unfolding component_of_def
 apply (blast intro: Join_assoc [symmetric])
 done
 
@@ -276,7 +276,7 @@ by (unfold localize_def, simp)
 
 lemma localize_AllowedActs_eq [simp]: 
  "AllowedActs(localize(v,F)) = AllowedActs(F) \<inter> (\<Union>G \<in> preserves(v). Acts(G))"
-apply (unfold localize_def)
+  unfolding localize_def
 apply (rule equalityI)
 apply (auto dest: Acts_type [THEN subsetD])
 done

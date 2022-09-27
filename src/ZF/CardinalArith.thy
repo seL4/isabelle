@@ -73,7 +73,7 @@ lemma Card_OUN [simp,intro,TC]:
   by (auto simp add: OUnion_def Card_0)
 
 lemma in_Card_imp_lesspoll: "\<lbrakk>Card(K); b \<in> K\<rbrakk> \<Longrightarrow> b \<prec> K"
-apply (unfold lesspoll_def)
+  unfolding lesspoll_def
 apply (simp add: Card_iff_initial)
 apply (fast intro!: le_imp_lepoll ltI leI)
 done
@@ -95,14 +95,14 @@ proof (unfold eqpoll_def, rule exI)
 qed
 
 lemma cadd_commute: "i \<oplus> j = j \<oplus> i"
-apply (unfold cadd_def)
+  unfolding cadd_def
 apply (rule sum_commute_eqpoll [THEN cardinal_cong])
 done
 
 subsubsection\<open>Cardinal addition is associative\<close>
 
 lemma sum_assoc_eqpoll: "(A+B)+C \<approx> A+(B+C)"
-apply (unfold eqpoll_def)
+  unfolding eqpoll_def
 apply (rule exI)
 apply (rule sum_assoc_bij)
 done
@@ -125,13 +125,13 @@ qed
 subsubsection\<open>0 is the identity for addition\<close>
 
 lemma sum_0_eqpoll: "0+A \<approx> A"
-apply (unfold eqpoll_def)
+  unfolding eqpoll_def
 apply (rule exI)
 apply (rule bij_0_sum)
 done
 
 lemma cadd_0 [simp]: "Card(K) \<Longrightarrow> 0 \<oplus> K = K"
-apply (unfold cadd_def)
+  unfolding cadd_def
 apply (simp add: sum_0_eqpoll [THEN cardinal_cong] Card_cardinal_eq)
 done
 
@@ -161,7 +161,7 @@ subsubsection\<open>Monotonicity of addition\<close>
 
 lemma sum_lepoll_mono:
      "\<lbrakk>A \<lesssim> C;  B \<lesssim> D\<rbrakk> \<Longrightarrow> A + B \<lesssim> C + D"
-apply (unfold lepoll_def)
+  unfolding lepoll_def
 apply (elim exE)
 apply (rule_tac x = "\<lambda>z\<in>A+B. case (\<lambda>w. Inl(f`w), \<lambda>y. Inr(fa`y), z)" in exI)
 apply (rule_tac d = "case (\<lambda>w. Inl(converse(f) `w), \<lambda>y. Inr(converse(fa) ` y))"
@@ -171,7 +171,7 @@ done
 
 lemma cadd_le_mono:
     "\<lbrakk>K' \<le> K;  L' \<le> L\<rbrakk> \<Longrightarrow> (K' \<oplus> L') \<le> (K \<oplus> L)"
-apply (unfold cadd_def)
+  unfolding cadd_def
 apply (safe dest!: le_subset_iff [THEN iffD1])
 apply (rule well_ord_lepoll_imp_cardinal_le)
 apply (blast intro: well_ord_radd well_ord_Memrel)
@@ -181,7 +181,7 @@ done
 subsubsection\<open>Addition of finite cardinals is "ordinary" addition\<close>
 
 lemma sum_succ_eqpoll: "succ(A)+B \<approx> succ(A+B)"
-apply (unfold eqpoll_def)
+  unfolding eqpoll_def
 apply (rule exI)
 apply (rule_tac c = "\<lambda>z. if z=Inl (A) then A+B else z"
             and d = "\<lambda>z. if z=A+B then Inl (A) else z" in lam_bijective)
@@ -219,21 +219,21 @@ subsection\<open>Cardinal multiplication\<close>
 subsubsection\<open>Cardinal multiplication is commutative\<close>
 
 lemma prod_commute_eqpoll: "A*B \<approx> B*A"
-apply (unfold eqpoll_def)
+  unfolding eqpoll_def
 apply (rule exI)
 apply (rule_tac c = "\<lambda>\<langle>x,y\<rangle>.\<langle>y,x\<rangle>" and d = "\<lambda>\<langle>x,y\<rangle>.\<langle>y,x\<rangle>" in lam_bijective,
        auto)
 done
 
 lemma cmult_commute: "i \<otimes> j = j \<otimes> i"
-apply (unfold cmult_def)
+  unfolding cmult_def
 apply (rule prod_commute_eqpoll [THEN cardinal_cong])
 done
 
 subsubsection\<open>Cardinal multiplication is associative\<close>
 
 lemma prod_assoc_eqpoll: "(A*B)*C \<approx> A*(B*C)"
-apply (unfold eqpoll_def)
+  unfolding eqpoll_def
 apply (rule exI)
 apply (rule prod_assoc_bij)
 done
@@ -255,7 +255,7 @@ qed
 subsubsection\<open>Cardinal multiplication distributes over addition\<close>
 
 lemma sum_prod_distrib_eqpoll: "(A+B)*C \<approx> (A*C)+(B*C)"
-apply (unfold eqpoll_def)
+  unfolding eqpoll_def
 apply (rule exI)
 apply (rule sum_prod_distrib_bij)
 done
@@ -276,7 +276,7 @@ qed
 subsubsection\<open>Multiplication by 0 yields 0\<close>
 
 lemma prod_0_eqpoll: "0*A \<approx> 0"
-apply (unfold eqpoll_def)
+  unfolding eqpoll_def
 apply (rule exI)
 apply (rule lam_bijective, safe)
 done
@@ -287,7 +287,7 @@ by (simp add: cmult_def prod_0_eqpoll [THEN cardinal_cong])
 subsubsection\<open>1 is the identity for multiplication\<close>
 
 lemma prod_singleton_eqpoll: "{x}*A \<approx> A"
-apply (unfold eqpoll_def)
+  unfolding eqpoll_def
 apply (rule exI)
 apply (rule singleton_prod_bij [THEN bij_converse_bij])
 done
@@ -306,7 +306,7 @@ done
 
 (*Could probably weaken the premise to well_ord(K,r), or remove using AC*)
 lemma cmult_square_le: "Card(K) \<Longrightarrow> K \<le> K \<otimes> K"
-apply (unfold cmult_def)
+  unfolding cmult_def
 apply (rule le_trans)
 apply (rule_tac [2] well_ord_lepoll_imp_cardinal_le)
 apply (rule_tac [3] prod_square_lepoll)
@@ -324,7 +324,7 @@ done
 (*Could probably weaken the premises to well_ord(K,r), or removing using AC*)
 lemma cmult_le_self:
     "\<lbrakk>Card(K);  Ord(L);  0<L\<rbrakk> \<Longrightarrow> K \<le> (K \<otimes> L)"
-apply (unfold cmult_def)
+  unfolding cmult_def
 apply (rule le_trans [OF Card_cardinal_le well_ord_lepoll_imp_cardinal_le])
   apply assumption
  apply (blast intro: well_ord_rmult well_ord_Memrel Card_is_Ord)
@@ -335,7 +335,7 @@ subsubsection\<open>Monotonicity of multiplication\<close>
 
 lemma prod_lepoll_mono:
      "\<lbrakk>A \<lesssim> C;  B \<lesssim> D\<rbrakk> \<Longrightarrow> A * B  \<lesssim>  C * D"
-apply (unfold lepoll_def)
+  unfolding lepoll_def
 apply (elim exE)
 apply (rule_tac x = "lam \<langle>w,y\<rangle>:A*B. <f`w, fa`y>" in exI)
 apply (rule_tac d = "\<lambda>\<langle>w,y\<rangle>. <converse (f) `w, converse (fa) `y>"
@@ -345,7 +345,7 @@ done
 
 lemma cmult_le_mono:
     "\<lbrakk>K' \<le> K;  L' \<le> L\<rbrakk> \<Longrightarrow> (K' \<otimes> L') \<le> (K \<otimes> L)"
-apply (unfold cmult_def)
+  unfolding cmult_def
 apply (safe dest!: le_subset_iff [THEN iffD1])
 apply (rule well_ord_lepoll_imp_cardinal_le)
  apply (blast intro: well_ord_rmult well_ord_Memrel)
@@ -355,7 +355,7 @@ done
 subsection\<open>Multiplication of finite cardinals is "ordinary" multiplication\<close>
 
 lemma prod_succ_eqpoll: "succ(A)*B \<approx> B + A*B"
-apply (unfold eqpoll_def)
+  unfolding eqpoll_def
 apply (rule exI)
 apply (rule_tac c = "\<lambda>\<langle>x,y\<rangle>. if x=A then Inl (y) else Inr (\<langle>x,y\<rangle>)"
             and d = "case (\<lambda>y. \<langle>A,y\<rangle>, \<lambda>z. z)" in lam_bijective)
@@ -402,7 +402,7 @@ subsection\<open>Infinite Cardinals are Limit Ordinals\<close>
   and inverse \<lambda>y. if y \<in> nat then nat_case(u, \<lambda>z. z, y) else y.  \
   If f \<in> inj(nat,A) then range(f) behaves like the natural numbers.*)
 lemma nat_cons_lepoll: "nat \<lesssim> A \<Longrightarrow> cons(u,A) \<lesssim> A"
-apply (unfold lepoll_def)
+  unfolding lepoll_def
 apply (erule exE)
 apply (rule_tac x =
           "\<lambda>z\<in>cons (u,A).
@@ -426,35 +426,35 @@ done
 
 (*Specialized version required below*)
 lemma nat_succ_eqpoll: "nat \<subseteq> A \<Longrightarrow> succ(A) \<approx> A"
-apply (unfold succ_def)
+  unfolding succ_def
 apply (erule subset_imp_lepoll [THEN nat_cons_eqpoll])
 done
 
 lemma InfCard_nat: "InfCard(nat)"
-apply (unfold InfCard_def)
+  unfolding InfCard_def
 apply (blast intro: Card_nat le_refl Card_is_Ord)
 done
 
 lemma InfCard_is_Card: "InfCard(K) \<Longrightarrow> Card(K)"
-apply (unfold InfCard_def)
+  unfolding InfCard_def
 apply (erule conjunct1)
 done
 
 lemma InfCard_Un:
     "\<lbrakk>InfCard(K);  Card(L)\<rbrakk> \<Longrightarrow> InfCard(K \<union> L)"
-apply (unfold InfCard_def)
+  unfolding InfCard_def
 apply (simp add: Card_Un Un_upper1_le [THEN [2] le_trans]  Card_is_Ord)
 done
 
 (*Kunen's Lemma 10.11*)
 lemma InfCard_is_Limit: "InfCard(K) \<Longrightarrow> Limit(K)"
-apply (unfold InfCard_def)
+  unfolding InfCard_def
 apply (erule conjE)
 apply (frule Card_is_Ord)
 apply (rule ltI [THEN non_succ_LimitI])
 apply (erule le_imp_subset [THEN subsetD])
 apply (safe dest!: Limit_nat [THEN Limit_le_succD])
-apply (unfold Card_def)
+  unfolding Card_def
 apply (drule trans)
 apply (erule le_imp_subset [THEN nat_succ_eqpoll, THEN cardinal_cong])
 apply (erule Ord_cardinal_le [THEN lt_trans2, THEN lt_irrefl])
@@ -468,7 +468,7 @@ done
 (*A general fact about ordermap*)
 lemma ordermap_eqpoll_pred:
     "\<lbrakk>well_ord(A,r);  x \<in> A\<rbrakk> \<Longrightarrow> ordermap(A,r)`x \<approx> Order.pred(A,x,r)"
-apply (unfold eqpoll_def)
+  unfolding eqpoll_def
 apply (rule exI)
 apply (simp add: ordermap_eq_image well_ord_is_wf)
 apply (erule ordermap_bij [THEN bij_is_inj, THEN restrict_bij,
@@ -492,7 +492,7 @@ subsubsection\<open>Characterising initial segments of the well-ordering\<close>
 
 lemma csquareD:
  "\<lbrakk><\<langle>x,y\<rangle>, \<langle>z,z\<rangle>> \<in> csquare_rel(K);  x<K;  y<K;  z<K\<rbrakk> \<Longrightarrow> x \<le> z \<and> y \<le> z"
-apply (unfold csquare_rel_def)
+  unfolding csquare_rel_def
 apply (erule rev_mp)
 apply (elim ltE)
 apply (simp add: rvimage_iff Un_absorb Un_least_mem_iff ltD)
@@ -509,7 +509,7 @@ done
 
 lemma csquare_ltI:
  "\<lbrakk>x<z;  y<z;  z<K\<rbrakk> \<Longrightarrow>  <\<langle>x,y\<rangle>, \<langle>z,z\<rangle>> \<in> csquare_rel(K)"
-apply (unfold csquare_rel_def)
+  unfolding csquare_rel_def
 apply (subgoal_tac "x<K \<and> y<K")
  prefer 2 apply (blast intro: lt_trans)
 apply (elim ltE)
@@ -519,7 +519,7 @@ done
 (*Part of the traditional proof.  UNUSED since it's harder to prove \<and> apply *)
 lemma csquare_or_eqI:
  "\<lbrakk>x \<le> z;  y \<le> z;  z<K\<rbrakk> \<Longrightarrow> <\<langle>x,y\<rangle>, \<langle>z,z\<rangle>> \<in> csquare_rel(K) | x=z \<and> y=z"
-apply (unfold csquare_rel_def)
+  unfolding csquare_rel_def
 apply (subgoal_tac "x<K \<and> y<K")
  prefer 2 apply (blast intro: lt_trans1)
 apply (elim ltE)
@@ -731,10 +731,10 @@ subsection\<open>For Every Cardinal Number There Exists A Greater One\<close>
 text\<open>This result is Kunen's Theorem 10.16, which would be trivial using AC\<close>
 
 lemma Ord_jump_cardinal: "Ord(jump_cardinal(K))"
-apply (unfold jump_cardinal_def)
+  unfolding jump_cardinal_def
 apply (rule Ord_is_Transset [THEN [2] OrdI])
  prefer 2 apply (blast intro!: Ord_ordertype)
-apply (unfold Transset_def)
+  unfolding Transset_def
 apply (safe del: subsetI)
 apply (simp add: ordertype_pred_unfold, safe)
 apply (rule UN_I)
@@ -746,7 +746,7 @@ done
 lemma jump_cardinal_iff:
      "i \<in> jump_cardinal(K) \<longleftrightarrow>
       (\<exists>r X. r \<subseteq> K*K \<and> X \<subseteq> K \<and> well_ord(X,r) \<and> i = ordertype(X,r))"
-apply (unfold jump_cardinal_def)
+  unfolding jump_cardinal_def
 apply (blast del: subsetI)
 done
 
@@ -780,7 +780,7 @@ done
 (*The hard part of Theorem 10.16: jump_cardinal(K) is itself a cardinal*)
 lemma Card_jump_cardinal: "Card(jump_cardinal(K))"
 apply (rule Ord_jump_cardinal [THEN CardI])
-apply (unfold eqpoll_def)
+  unfolding eqpoll_def
 apply (safe dest!: ltD jump_cardinal_iff [THEN iffD1])
 apply (blast intro: Card_jump_cardinal_lemma [THEN mem_irrefl])
 done
@@ -788,7 +788,7 @@ done
 subsection\<open>Basic Properties of Successor Cardinals\<close>
 
 lemma csucc_basic: "Ord(K) \<Longrightarrow> Card(csucc(K)) \<and> K < csucc(K)"
-apply (unfold csucc_def)
+  unfolding csucc_def
 apply (rule LeastI)
 apply (blast intro: Card_jump_cardinal K_lt_jump_cardinal Ord_jump_cardinal)+
 done
@@ -801,7 +801,7 @@ lemma Ord_0_lt_csucc: "Ord(K) \<Longrightarrow> 0 < csucc(K)"
 by (blast intro: Ord_0_le lt_csucc lt_trans1)
 
 lemma csucc_le: "\<lbrakk>Card(L);  K<L\<rbrakk> \<Longrightarrow> csucc(K) \<le> L"
-apply (unfold csucc_def)
+  unfolding csucc_def
 apply (rule Least_le)
 apply (blast intro: Card_is_Ord)+
 done
