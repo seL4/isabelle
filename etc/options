@@ -19,7 +19,7 @@ option document_bibliography : bool = false
   -- "explicitly enable use of bibtex (default: according to presence of root.bib)"
 option document_build : string = "lualatex" (standard "build")
   -- "document build engine (e.g. build, lualatex, pdflatex)"
-option document_logo : string = ""
+option document_logo : string = "" (standard "_")
   -- "generate named instance of Isabelle logo (underscore means unnamed variant)"
 option document_heading_prefix : string = "isamarkup" (standard)
   -- "prefix for LaTeX macros generated from 'chapter', 'section' etc."

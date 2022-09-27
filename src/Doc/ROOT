@@ -121,7 +121,7 @@ session How_to_Prove_it (no_doc) in "How_to_Prove_it" = HOL +
     "prelude.tex"
 
 session Intro (doc) in "Intro" = Pure +
-  options [document_logo = "_", document_bibliography, document_build = "build",
+  options [document_logo, document_bibliography, document_build = "build",
     document_variants = "intro"]
   document_files (in "..")
     "pdfsetup.sty"
@@ -258,7 +258,7 @@ session Locales (doc) in "Locales" = HOL +
     "root.tex"
 
 session Logics (doc) in "Logics" = Pure +
-  options [document_logo = "_", document_bibliography, document_build = "build",
+  options [document_logo, document_bibliography, document_build = "build",
     document_variants = "logics"]
   document_files (in "..")
     "pdfsetup.sty"
@@ -352,7 +352,7 @@ session Sledgehammer (doc) in "Sledgehammer" = Pure +
     "root.tex"
 
 session System (doc) in "System" = Pure +
-  options [document_logo = "_", document_bibliography, document_variants = "system",
+  options [document_logo, document_bibliography, document_variants = "system",
     thy_output_source]
   sessions
     "HOL-Library"
