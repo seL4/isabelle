@@ -6,14 +6,14 @@
 theory Confluence imports Reduction begin
 
 definition
-  confluence    :: "i=>o"  where
+  confluence    :: "i\<Rightarrow>o"  where
     "confluence(R) \<equiv>   
-       \<forall>x y. <x,y> \<in> R \<longrightarrow> (\<forall>z.<x,z> \<in> R \<longrightarrow> (\<exists>u.<y,u> \<in> R \<and> <z,u> \<in> R))"
+       \<forall>x y. \<langle>x,y\<rangle> \<in> R \<longrightarrow> (\<forall>z.\<langle>x,z\<rangle> \<in> R \<longrightarrow> (\<exists>u.\<langle>y,u\<rangle> \<in> R \<and> \<langle>z,u\<rangle> \<in> R))"
 
 definition
   strip         :: "o"  where
     "strip \<equiv> \<forall>x y. (x =\<Longrightarrow> y) \<longrightarrow> 
-                    (\<forall>z.(x =1=> z) \<longrightarrow> (\<exists>u.(y =1=> u) \<and> (z=\<Longrightarrow>u)))" 
+                    (\<forall>z.(x =1\<Rightarrow> z) \<longrightarrow> (\<exists>u.(y =1\<Rightarrow> u) \<and> (z=\<Longrightarrow>u)))" 
 
 
 (* ------------------------------------------------------------------------- *)
@@ -69,11 +69,11 @@ consts
 
 abbreviation
   Sconv1_rel (infixl \<open><-1->\<close> 50) where
-  "a<-1->b \<equiv> <a,b> \<in> Sconv1"
+  "a<-1->b \<equiv> \<langle>a,b\<rangle> \<in> Sconv1"
 
 abbreviation
   Sconv_rel (infixl \<open><-\<longrightarrow>\<close> 50) where
-  "a<-\<longrightarrow>b \<equiv> <a,b> \<in> Sconv"
+  "a<-\<longrightarrow>b \<equiv> \<langle>a,b\<rangle> \<in> Sconv"
   
 inductive
   domains       "Sconv1" \<subseteq> "lambda*lambda"

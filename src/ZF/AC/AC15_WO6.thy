@@ -34,7 +34,7 @@ begin
 lemma lepoll_Sigma: "A\<noteq>0 \<Longrightarrow> B \<lesssim> A*B"
 apply (unfold lepoll_def)
 apply (erule not_emptyE)
-apply (rule_tac x = "\<lambda>z \<in> B. <x,z>" in exI)
+apply (rule_tac x = "\<lambda>z \<in> B. \<langle>x,z\<rangle>" in exI)
 apply (fast intro!: snd_conv lam_injective)
 done
 
@@ -69,7 +69,7 @@ apply (unfold lepoll_def)
 apply (erule exE)
 apply (rule_tac x = "\<lambda>x \<in> RepFun(A,P). \<mu> j. \<exists>a\<in>A. x=P(a) \<and> f`a=j" 
        in exI)
-apply (rule_tac d = "%y. P (converse (f) `y) " in lam_injective)
+apply (rule_tac d = "\<lambda>y. P (converse (f) `y) " in lam_injective)
 apply (erule RepFunE)
 apply (frule inj_is_fun [THEN apply_type], assumption)
 apply (fast intro: LeastI2 elim!: Ord_in_Ord inj_is_fun [THEN apply_type])

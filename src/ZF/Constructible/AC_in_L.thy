@@ -11,7 +11,7 @@ subsection\<open>Extending a Wellordering over a List -- Lexicographic Power\<cl
 text\<open>This could be moved into a library.\<close>
 
 consts
-  rlist   :: "[i,i]=>i"
+  rlist   :: "[i,i]\<Rightarrow>i"
 
 inductive
   domains "rlist(A,r)" \<subseteq> "list(A) * list(A)"
@@ -159,20 +159,20 @@ locale Nat_Times_Nat =
   assumes fn_inj: "fn \<in> inj(nat*nat, nat)"
 
 
-consts   enum :: "[i,i]=>i"
+consts   enum :: "[i,i]\<Rightarrow>i"
 primrec
-  "enum(f, Member(x,y)) = f ` <0, f ` <x,y>>"
-  "enum(f, Equal(x,y)) = f ` <1, f ` <x,y>>"
+  "enum(f, Member(x,y)) = f ` <0, f ` \<langle>x,y\<rangle>>"
+  "enum(f, Equal(x,y)) = f ` <1, f ` \<langle>x,y\<rangle>>"
   "enum(f, Nand(p,q)) = f ` <2, f ` <enum(f,p), enum(f,q)>>"
   "enum(f, Forall(p)) = f ` <succ(2), enum(f,p)>"
 
 lemma (in Nat_Times_Nat) fn_type [TC,simp]:
-    "\<lbrakk>x \<in> nat; y \<in> nat\<rbrakk> \<Longrightarrow> fn`<x,y> \<in> nat"
+    "\<lbrakk>x \<in> nat; y \<in> nat\<rbrakk> \<Longrightarrow> fn`\<langle>x,y\<rangle> \<in> nat"
 by (blast intro: inj_is_fun [OF fn_inj] apply_funtype)
 
 lemma (in Nat_Times_Nat) fn_iff:
     "\<lbrakk>x \<in> nat; y \<in> nat; u \<in> nat; v \<in> nat\<rbrakk>
-     \<Longrightarrow> (fn`<x,y> = fn`<u,v>) \<longleftrightarrow> (x=u \<and> y=v)"
+     \<Longrightarrow> (fn`\<langle>x,y\<rangle> = fn`\<langle>u,v\<rangle>) \<longleftrightarrow> (x=u \<and> y=v)"
 by (blast dest: inj_apply_equality [OF fn_inj])
 
 lemma (in Nat_Times_Nat) enum_type [TC,simp]:
@@ -230,34 +230,34 @@ formulas.  The order type of the resulting wellordering gives us a map from
 (environment, formula) pairs into the ordinals.  For each member of \<^term>\<open>DPow(A)\<close>, we take the minimum such ordinal.\<close>
 
 definition
-  env_form_r :: "[i,i,i]=>i" where
+  env_form_r :: "[i,i,i]\<Rightarrow>i" where
     \<comment> \<open>wellordering on (environment, formula) pairs\<close>
    "env_form_r(f,r,A) \<equiv>
       rmult(list(A), rlist(A, r),
             formula, measure(formula, enum(f)))"
 
 definition
-  env_form_map :: "[i,i,i,i]=>i" where
+  env_form_map :: "[i,i,i,i]\<Rightarrow>i" where
     \<comment> \<open>map from (environment, formula) pairs to ordinals\<close>
    "env_form_map(f,r,A,z)
       \<equiv> ordermap(list(A) * formula, env_form_r(f,r,A)) ` z"
 
 definition
-  DPow_ord :: "[i,i,i,i,i]=>o" where
+  DPow_ord :: "[i,i,i,i,i]\<Rightarrow>o" where
     \<comment> \<open>predicate that holds if \<^term>\<open>k\<close> is a valid index for \<^term>\<open>X\<close>\<close>
    "DPow_ord(f,r,A,X,k) \<equiv>
            \<exists>env \<in> list(A). \<exists>p \<in> formula.
              arity(p) \<le> succ(length(env)) \<and>
              X = {x\<in>A. sats(A, p, Cons(x,env))} \<and>
-             env_form_map(f,r,A,<env,p>) = k"
+             env_form_map(f,r,A,\<langle>env,p\<rangle>) = k"
 
 definition
-  DPow_least :: "[i,i,i,i]=>i" where
+  DPow_least :: "[i,i,i,i]\<Rightarrow>i" where
     \<comment> \<open>function yielding the smallest index for \<^term>\<open>X\<close>\<close>
    "DPow_least(f,r,A,X) \<equiv> \<mu> k. DPow_ord(f,r,A,X,k)"
 
 definition
-  DPow_r :: "[i,i,i]=>i" where
+  DPow_r :: "[i,i,i]\<Rightarrow>i" where
     \<comment> \<open>a wellordering on \<^term>\<open>DPow(A)\<close>\<close>
    "DPow_r(f,r,A) \<equiv> measure(DPow(A), DPow_least(f,r,A))"
 
@@ -329,7 +329,7 @@ text\<open>Now we work towards the transfinite definition of wellorderings for
 of wellorderings for smaller ordinals.\<close>
 
 definition
-  rlimit :: "[i,i=>i]=>i" where
+  rlimit :: "[i,i\<Rightarrow>i]\<Rightarrow>i" where
   \<comment> \<open>Expresses the wellordering at limit ordinals.  The conditional
       lets us remove the premise \<^term>\<open>Limit(i)\<close> from some theorems.\<close>
     "rlimit(i,r) \<equiv>
@@ -341,7 +341,7 @@ definition
        else 0"
 
 definition
-  Lset_new :: "i=>i" where
+  Lset_new :: "i\<Rightarrow>i" where
   \<comment> \<open>This constant denotes the set of elements introduced at level
       \<^term>\<open>succ(i)\<close>\<close>
     "Lset_new(i) \<equiv> {x \<in> Lset(succ(i)). lrank(x) = i}"
@@ -413,8 +413,8 @@ done
 subsection\<open>Transfinite Definition of the Wellordering on \<^term>\<open>L\<close>\<close>
 
 definition
-  L_r :: "[i, i] => i" where
-  "L_r(f) \<equiv> %i.
+  L_r :: "[i, i] \<Rightarrow> i" where
+  "L_r(f) \<equiv> \<lambda>i.
       transrec3(i, 0, \<lambda>x r. DPow_r(f, r, Lset(x)), 
                 \<lambda>x r. rlimit(x, \<lambda>y. r`y))"
 

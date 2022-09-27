@@ -31,7 +31,7 @@ lemma "\<exists>!x. f (g(x)) = x \<Longrightarrow> \<exists>!y. g (f(y)) = y"
 
 
 text\<open>A weird property of ordered pairs.\<close>
-lemma "b\<noteq>c \<Longrightarrow> <a,b> \<inter> <a,c> = <a,a>"
+lemma "b\<noteq>c \<Longrightarrow> \<langle>a,b\<rangle> \<inter> \<langle>a,c\<rangle> = \<langle>a,a\<rangle>"
 by (simp add: Pair_def Int_cons_left Int_cons_right doubleton_eq_iff, blast)
 
 text\<open>These two are cited in Benzmueller and Kohlhase's system description of
@@ -81,7 +81,7 @@ declare comp_fun [simp] SigmaI [simp] apply_funtype [simp]
   rewriting does not instantiate Vars.*)
 lemma "(\<forall>A f B g. hom(A,f,B,g) =  
            {H \<in> A->B. f \<in> A*A->A \<and> g \<in> B*B->B \<and>  
-                     (\<forall>x \<in> A. \<forall>y \<in> A. H`(f`<x,y>) = g`<H`x,H`y>)}) \<longrightarrow>  
+                     (\<forall>x \<in> A. \<forall>y \<in> A. H`(f`\<langle>x,y\<rangle>) = g`<H`x,H`y>)}) \<longrightarrow>  
        J \<in> hom(A,f,B,g) \<and> K \<in> hom(B,g,C,h) \<longrightarrow>   
        (K O J) \<in> hom(A,f,C,h)"
 by force
@@ -89,7 +89,7 @@ by force
 text\<open>Another version, with meta-level rewriting\<close>
 lemma "(\<And>A f B g. hom(A,f,B,g) \<equiv>  
            {H \<in> A->B. f \<in> A*A->A \<and> g \<in> B*B->B \<and>  
-                     (\<forall>x \<in> A. \<forall>y \<in> A. H`(f`<x,y>) = g`<H`x,H`y>)}) 
+                     (\<forall>x \<in> A. \<forall>y \<in> A. H`(f`\<langle>x,y\<rangle>) = g`<H`x,H`y>)}) 
        \<Longrightarrow> J \<in> hom(A,f,B,g) \<and> K \<in> hom(B,g,C,h) \<longrightarrow> (K O J) \<in> hom(A,f,C,h)"
 by force
 

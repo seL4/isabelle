@@ -9,10 +9,10 @@ theory Reduction imports Residuals begin
 
 consts
   lambda        :: "i"
-  unmark        :: "i=>i"
+  unmark        :: "i\<Rightarrow>i"
 
 abbreviation
-  Apl :: "[i,i]=>i" where
+  Apl :: "[i,i]\<Rightarrow>i" where
   "Apl(n,m) \<equiv> App(0,n,m)"
   
 inductive
@@ -75,19 +75,19 @@ consts
 
 abbreviation
   Sred1_rel (infixl \<open>-1->\<close> 50) where
-  "a -1-> b \<equiv> <a,b> \<in> Sred1"
+  "a -1-> b \<equiv> \<langle>a,b\<rangle> \<in> Sred1"
 
 abbreviation
   Sred_rel (infixl \<open>-\<longrightarrow>\<close> 50) where
-  "a -\<longrightarrow> b \<equiv> <a,b> \<in> Sred"
+  "a -\<longrightarrow> b \<equiv> \<langle>a,b\<rangle> \<in> Sred"
 
 abbreviation
-  Spar_red1_rel (infixl \<open>=1=>\<close> 50) where
-  "a =1=> b \<equiv> <a,b> \<in> Spar_red1"
+  Spar_red1_rel (infixl \<open>=1\<Rightarrow>\<close> 50) where
+  "a =1\<Rightarrow> b \<equiv> \<langle>a,b\<rangle> \<in> Spar_red1"
 
 abbreviation
   Spar_red_rel (infixl \<open>=\<Longrightarrow>\<close> 50) where
-  "a =\<Longrightarrow> b \<equiv> <a,b> \<in> Spar_red"
+  "a =\<Longrightarrow> b \<equiv> \<langle>a,b\<rangle> \<in> Spar_red"
   
   
 inductive
@@ -115,10 +115,10 @@ declare Sred.refl     [intro, simp]
 inductive
   domains       "Spar_red1" \<subseteq> "lambda*lambda"
   intros
-    beta:       "\<lbrakk>m =1=> m'; n =1=> n'\<rbrakk> \<Longrightarrow> Apl(Fun(m),n) =1=> n'/m'"
-    rvar:       "n \<in> nat \<Longrightarrow> Var(n) =1=> Var(n)"
-    rfun:       "m =1=> m' \<Longrightarrow> Fun(m) =1=> Fun(m')"
-    rapl:       "\<lbrakk>m =1=> m'; n =1=> n'\<rbrakk> \<Longrightarrow> Apl(m,n) =1=> Apl(m',n')"
+    beta:       "\<lbrakk>m =1\<Rightarrow> m'; n =1\<Rightarrow> n'\<rbrakk> \<Longrightarrow> Apl(Fun(m),n) =1\<Rightarrow> n'/m'"
+    rvar:       "n \<in> nat \<Longrightarrow> Var(n) =1\<Rightarrow> Var(n)"
+    rfun:       "m =1\<Rightarrow> m' \<Longrightarrow> Fun(m) =1\<Rightarrow> Fun(m')"
+    rapl:       "\<lbrakk>m =1\<Rightarrow> m'; n =1\<Rightarrow> n'\<rbrakk> \<Longrightarrow> Apl(m,n) =1\<Rightarrow> Apl(m',n')"
   type_intros    red_typechecks
 
 declare Spar_red1.intros [intro, simp]
@@ -126,7 +126,7 @@ declare Spar_red1.intros [intro, simp]
 inductive
   domains "Spar_red" \<subseteq> "lambda*lambda"
   intros
-    one_step:   "m =1=> n \<Longrightarrow> m =\<Longrightarrow> n"
+    one_step:   "m =1\<Rightarrow> n \<Longrightarrow> m =\<Longrightarrow> n"
     trans:      "\<lbrakk>m=\<Longrightarrow>n; n=\<Longrightarrow>p\<rbrakk> \<Longrightarrow> m=\<Longrightarrow>p"
   type_intros    Spar_red1.dom_subset [THEN subsetD] red_typechecks
 
@@ -150,7 +150,7 @@ lemmas par_redD2 [simp] = Spar_red.dom_subset [THEN subsetD, THEN SigmaD2]
 
 declare bool_typechecks [intro]
 
-inductive_cases  [elim!]: "Fun(t) =1=> Fun(u)"
+inductive_cases  [elim!]: "Fun(t) =1\<Rightarrow> Fun(u)"
 
 
 
@@ -190,10 +190,10 @@ done
 (* ------------------------------------------------------------------------- *)
 
 
-lemma refl_par_red1: "m \<in> lambda\<Longrightarrow> m =1=> m"
+lemma refl_par_red1: "m \<in> lambda\<Longrightarrow> m =1\<Rightarrow> m"
 by (erule lambda.induct, simp_all)
 
-lemma red1_par_red1: "m-1->n \<Longrightarrow> m=1=>n"
+lemma red1_par_red1: "m-1->n \<Longrightarrow> m=1\<Rightarrow>n"
 by (erule Sred1.induct, simp_all add: refl_par_red1)
 
 lemma red_par_red: "m-\<longrightarrow>n \<Longrightarrow> m=\<Longrightarrow>n"
@@ -214,7 +214,7 @@ done
 (*      Simulation                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-lemma simulation: "m=1=>n \<Longrightarrow> \<exists>v. m|>v = n \<and> m \<sim> v \<and> regular(v)"
+lemma simulation: "m=1\<Rightarrow>n \<Longrightarrow> \<exists>v. m|>v = n \<and> m \<sim> v \<and> regular(v)"
 by (erule Spar_red1.induct, force+)
 
 
@@ -237,12 +237,12 @@ by (erule redexes.induct, simp_all add: unmmark_lift_rec subst_Var)
 (* ------------------------------------------------------------------------- *)
 
 lemma completeness_l [rule_format]:
-     "u \<sim> v \<Longrightarrow> regular(v) \<longrightarrow> unmark(u) =1=> unmark(u|>v)"
+     "u \<sim> v \<Longrightarrow> regular(v) \<longrightarrow> unmark(u) =1\<Rightarrow> unmark(u|>v)"
 apply (erule Scomp.induct)
 apply (auto simp add: unmmark_subst_rec)
 done
 
-lemma completeness: "\<lbrakk>u \<in> lambda; u \<sim> v; regular(v)\<rbrakk> \<Longrightarrow> u =1=> unmark(u|>v)"
+lemma completeness: "\<lbrakk>u \<in> lambda; u \<sim> v; regular(v)\<rbrakk> \<Longrightarrow> u =1\<Rightarrow> unmark(u|>v)"
 by (drule completeness_l, simp_all add: lambda_unmark)
 
 end

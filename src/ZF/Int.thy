@@ -10,84 +10,84 @@ theory Int imports EquivClass ArithSimp begin
 definition
   intrel :: i  where
     "intrel \<equiv> {p \<in> (nat*nat)*(nat*nat).
-                \<exists>x1 y1 x2 y2. p=<<x1,y1>,<x2,y2>> \<and> x1#+y2 = x2#+y1}"
+                \<exists>x1 y1 x2 y2. p=<\<langle>x1,y1\<rangle>,\<langle>x2,y2\<rangle>> \<and> x1#+y2 = x2#+y1}"
 
 definition
   int :: i  where
     "int \<equiv> (nat*nat)//intrel"
 
 definition
-  int_of :: "i=>i" \<comment> \<open>coercion from nat to int\<close>    (\<open>$# _\<close> [80] 80)  where
+  int_of :: "i\<Rightarrow>i" \<comment> \<open>coercion from nat to int\<close>    (\<open>$# _\<close> [80] 80)  where
     "$# m \<equiv> intrel `` {<natify(m), 0>}"
 
 definition
-  intify :: "i=>i" \<comment> \<open>coercion from ANYTHING to int\<close>  where
+  intify :: "i\<Rightarrow>i" \<comment> \<open>coercion from ANYTHING to int\<close>  where
     "intify(m) \<equiv> if m \<in> int then m else $#0"
 
 definition
-  raw_zminus :: "i=>i"  where
-    "raw_zminus(z) \<equiv> \<Union><x,y>\<in>z. intrel``{<y,x>}"
+  raw_zminus :: "i\<Rightarrow>i"  where
+    "raw_zminus(z) \<equiv> \<Union>\<langle>x,y\<rangle>\<in>z. intrel``{\<langle>y,x\<rangle>}"
 
 definition
-  zminus :: "i=>i"                                 (\<open>$- _\<close> [80] 80)  where
+  zminus :: "i\<Rightarrow>i"                                 (\<open>$- _\<close> [80] 80)  where
     "$- z \<equiv> raw_zminus (intify(z))"
 
 definition
-  znegative   ::      "i=>o"  where
-    "znegative(z) \<equiv> \<exists>x y. x<y \<and> y\<in>nat \<and> <x,y>\<in>z"
+  znegative   ::      "i\<Rightarrow>o"  where
+    "znegative(z) \<equiv> \<exists>x y. x<y \<and> y\<in>nat \<and> \<langle>x,y\<rangle>\<in>z"
 
 definition
-  iszero      ::      "i=>o"  where
+  iszero      ::      "i\<Rightarrow>o"  where
     "iszero(z) \<equiv> z = $# 0"
 
 definition
-  raw_nat_of  :: "i=>i"  where
-  "raw_nat_of(z) \<equiv> natify (\<Union><x,y>\<in>z. x#-y)"
+  raw_nat_of  :: "i\<Rightarrow>i"  where
+  "raw_nat_of(z) \<equiv> natify (\<Union>\<langle>x,y\<rangle>\<in>z. x#-y)"
 
 definition
-  nat_of  :: "i=>i"  where
+  nat_of  :: "i\<Rightarrow>i"  where
   "nat_of(z) \<equiv> raw_nat_of (intify(z))"
 
 definition
-  zmagnitude  ::      "i=>i"  where
+  zmagnitude  ::      "i\<Rightarrow>i"  where
   \<comment> \<open>could be replaced by an absolute value function from int to int?\<close>
     "zmagnitude(z) \<equiv>
      THE m. m\<in>nat \<and> ((\<not> znegative(z) \<and> z = $# m) |
                        (znegative(z) \<and> $- z = $# m))"
 
 definition
-  raw_zmult   ::      "[i,i]=>i"  where
-    (*Cannot use UN<x1,y2> here or in zadd because of the form of congruent2.
+  raw_zmult   ::      "[i,i]\<Rightarrow>i"  where
+    (*Cannot use UN\<langle>x1,y2\<rangle> here or in zadd because of the form of congruent2.
       Perhaps a "curried" or even polymorphic congruent predicate would be
       better.*)
      "raw_zmult(z1,z2) \<equiv>
-       \<Union>p1\<in>z1. \<Union>p2\<in>z2.  split(%x1 y1. split(%x2 y2.
+       \<Union>p1\<in>z1. \<Union>p2\<in>z2.  split(\<lambda>x1 y1. split(\<lambda>x2 y2.
                    intrel``{<x1#*x2 #+ y1#*y2, x1#*y2 #+ y1#*x2>}, p2), p1)"
 
 definition
-  zmult       ::      "[i,i]=>i"      (infixl \<open>$*\<close> 70)  where
+  zmult       ::      "[i,i]\<Rightarrow>i"      (infixl \<open>$*\<close> 70)  where
      "z1 $* z2 \<equiv> raw_zmult (intify(z1),intify(z2))"
 
 definition
-  raw_zadd    ::      "[i,i]=>i"  where
+  raw_zadd    ::      "[i,i]\<Rightarrow>i"  where
      "raw_zadd (z1, z2) \<equiv>
-       \<Union>z1\<in>z1. \<Union>z2\<in>z2. let <x1,y1>=z1; <x2,y2>=z2
+       \<Union>z1\<in>z1. \<Union>z2\<in>z2. let \<langle>x1,y1\<rangle>=z1; \<langle>x2,y2\<rangle>=z2
                            in intrel``{<x1#+x2, y1#+y2>}"
 
 definition
-  zadd        ::      "[i,i]=>i"      (infixl \<open>$+\<close> 65)  where
+  zadd        ::      "[i,i]\<Rightarrow>i"      (infixl \<open>$+\<close> 65)  where
      "z1 $+ z2 \<equiv> raw_zadd (intify(z1),intify(z2))"
 
 definition
-  zdiff        ::      "[i,i]=>i"      (infixl \<open>$-\<close> 65)  where
+  zdiff        ::      "[i,i]\<Rightarrow>i"      (infixl \<open>$-\<close> 65)  where
      "z1 $- z2 \<equiv> z1 $+ zminus(z2)"
 
 definition
-  zless        ::      "[i,i]=>o"      (infixl \<open>$<\<close> 50)  where
+  zless        ::      "[i,i]\<Rightarrow>o"      (infixl \<open>$<\<close> 50)  where
      "z1 $< z2 \<equiv> znegative(z1 $- z2)"
 
 definition
-  zle          ::      "[i,i]=>o"      (infixl \<open>$\<le>\<close> 50)  where
+  zle          ::      "[i,i]\<Rightarrow>o"      (infixl \<open>$\<le>\<close> 50)  where
      "z1 $\<le> z2 \<equiv> z1 $< z2 | intify(z1)=intify(z2)"
 
 
@@ -98,18 +98,18 @@ subsection\<open>Proving that \<^term>\<open>intrel\<close> is an equivalence re
 (** Natural deduction for intrel **)
 
 lemma intrel_iff [simp]:
-    "<<x1,y1>,<x2,y2>>: intrel \<longleftrightarrow>
+    "<\<langle>x1,y1\<rangle>,\<langle>x2,y2\<rangle>>: intrel \<longleftrightarrow>
      x1\<in>nat \<and> y1\<in>nat \<and> x2\<in>nat \<and> y2\<in>nat \<and> x1#+y2 = x2#+y1"
 by (simp add: intrel_def)
 
 lemma intrelI [intro!]:
     "\<lbrakk>x1#+y2 = x2#+y1; x1\<in>nat; y1\<in>nat; x2\<in>nat; y2\<in>nat\<rbrakk>
-     \<Longrightarrow> <<x1,y1>,<x2,y2>>: intrel"
+     \<Longrightarrow> <\<langle>x1,y1\<rangle>,\<langle>x2,y2\<rangle>>: intrel"
 by (simp add: intrel_def)
 
 lemma intrelE [elim!]:
   "\<lbrakk>p \<in> intrel;
-      \<And>x1 y1 x2 y2. \<lbrakk>p = <<x1,y1>,<x2,y2>>;  x1#+y2 = x2#+y1;
+      \<And>x1 y1 x2 y2. \<lbrakk>p = <\<langle>x1,y1\<rangle>,\<langle>x2,y2\<rangle>>;  x1#+y2 = x2#+y1;
                         x1\<in>nat; y1\<in>nat; x2\<in>nat; y2\<in>nat\<rbrakk> \<Longrightarrow> Q\<rbrakk>
    \<Longrightarrow> Q"
 by (simp add: intrel_def, blast)
@@ -126,7 +126,7 @@ apply (simp add: equiv_def refl_def sym_def trans_def)
 apply (fast elim!: sym int_trans_lemma)
 done
 
-lemma image_intrel_int: "\<lbrakk>m\<in>nat; n\<in>nat\<rbrakk> \<Longrightarrow> intrel `` {<m,n>} \<in> int"
+lemma image_intrel_int: "\<lbrakk>m\<in>nat; n\<in>nat\<rbrakk> \<Longrightarrow> intrel `` {\<langle>m,n\<rangle>} \<in> int"
 by (simp add: int_def)
 
 declare equiv_intrel [THEN eq_equiv_class_iff, simp]
@@ -208,7 +208,7 @@ by (simp add: zle_def)
 
 subsection\<open>\<^term>\<open>zminus\<close>: unary negation on \<^term>\<open>int\<close>\<close>
 
-lemma zminus_congruent: "(%<x,y>. intrel``{<y,x>}) respects intrel"
+lemma zminus_congruent: "(\<lambda>\<langle>x,y\<rangle>. intrel``{\<langle>y,x\<rangle>}) respects intrel"
 by (auto simp add: congruent_def add_ac)
 
 lemma raw_zminus_type: "z \<in> int \<Longrightarrow> raw_zminus(z) \<in> int"
@@ -235,13 +235,13 @@ lemma zminus_inject: "\<lbrakk>$-z = $-w;  z \<in> int;  w \<in> int\<rbrakk> \<
 by auto
 
 lemma raw_zminus:
-    "\<lbrakk>x\<in>nat;  y\<in>nat\<rbrakk> \<Longrightarrow> raw_zminus(intrel``{<x,y>}) = intrel `` {<y,x>}"
+    "\<lbrakk>x\<in>nat;  y\<in>nat\<rbrakk> \<Longrightarrow> raw_zminus(intrel``{\<langle>x,y\<rangle>}) = intrel `` {\<langle>y,x\<rangle>}"
 apply (simp add: raw_zminus_def UN_equiv_class [OF equiv_intrel zminus_congruent])
 done
 
 lemma zminus:
     "\<lbrakk>x\<in>nat;  y\<in>nat\<rbrakk>
-     \<Longrightarrow> $- (intrel``{<x,y>}) = intrel `` {<y,x>}"
+     \<Longrightarrow> $- (intrel``{\<langle>x,y\<rangle>}) = intrel `` {\<langle>y,x\<rangle>}"
 by (simp add: zminus_def raw_zminus image_intrel_int)
 
 lemma raw_zminus_zminus: "z \<in> int \<Longrightarrow> raw_zminus (raw_zminus(z)) = z"
@@ -259,7 +259,7 @@ by simp
 
 subsection\<open>\<^term>\<open>znegative\<close>: the test for negative integers\<close>
 
-lemma znegative: "\<lbrakk>x\<in>nat; y\<in>nat\<rbrakk> \<Longrightarrow> znegative(intrel``{<x,y>}) \<longleftrightarrow> x<y"
+lemma znegative: "\<lbrakk>x\<in>nat; y\<in>nat\<rbrakk> \<Longrightarrow> znegative(intrel``{\<langle>x,y\<rangle>}) \<longleftrightarrow> x<y"
 apply (cases "x<y")
 apply (auto simp add: znegative_def not_lt_iff_le)
 apply (subgoal_tac "y #+ x2 < x #+ y2", force)
@@ -286,7 +286,7 @@ lemma nat_of_congruent: "(\<lambda>x. (\<lambda>\<langle>x,y\<rangle>. x #- y)(x
 by (auto simp add: congruent_def split: nat_diff_split)
 
 lemma raw_nat_of:
-    "\<lbrakk>x\<in>nat;  y\<in>nat\<rbrakk> \<Longrightarrow> raw_nat_of(intrel``{<x,y>}) = x#-y"
+    "\<lbrakk>x\<in>nat;  y\<in>nat\<rbrakk> \<Longrightarrow> raw_nat_of(intrel``{\<langle>x,y\<rangle>}) = x#-y"
 by (simp add: raw_nat_of_def UN_equiv_class [OF equiv_intrel nat_of_congruent])
 
 lemma raw_nat_of_int_of: "raw_nat_of($# n) = natify(n)"
@@ -375,7 +375,7 @@ subsection\<open>\<^term>\<open>zadd\<close>: addition on int\<close>
 
 text\<open>Congruence Property for Addition\<close>
 lemma zadd_congruent2:
-    "(%z1 z2. let <x1,y1>=z1; <x2,y2>=z2
+    "(\<lambda>z1 z2. let \<langle>x1,y1\<rangle>=z1; \<langle>x2,y2\<rangle>=z2
                             in intrel``{<x1#+x2, y1#+y2>})
      respects2 intrel"
 apply (simp add: congruent2_def)
@@ -400,7 +400,7 @@ by (simp add: zadd_def raw_zadd_type)
 
 lemma raw_zadd:
   "\<lbrakk>x1\<in>nat; y1\<in>nat;  x2\<in>nat; y2\<in>nat\<rbrakk>
-   \<Longrightarrow> raw_zadd (intrel``{<x1,y1>}, intrel``{<x2,y2>}) =
+   \<Longrightarrow> raw_zadd (intrel``{\<langle>x1,y1\<rangle>}, intrel``{\<langle>x2,y2\<rangle>}) =
        intrel `` {<x1#+x2, y1#+y2>}"
 apply (simp add: raw_zadd_def
              UN_equiv_class2 [OF equiv_intrel equiv_intrel zadd_congruent2])
@@ -409,7 +409,7 @@ done
 
 lemma zadd:
   "\<lbrakk>x1\<in>nat; y1\<in>nat;  x2\<in>nat; y2\<in>nat\<rbrakk>
-   \<Longrightarrow> (intrel``{<x1,y1>}) $+ (intrel``{<x2,y2>}) =
+   \<Longrightarrow> (intrel``{\<langle>x1,y1\<rangle>}) $+ (intrel``{\<langle>x2,y2\<rangle>}) =
        intrel `` {<x1#+x2, y1#+y2>}"
 by (simp add: zadd_def raw_zadd image_intrel_int)
 
@@ -489,14 +489,14 @@ subsection\<open>\<^term>\<open>zmult\<close>: Integer Multiplication\<close>
 
 text\<open>Congruence property for multiplication\<close>
 lemma zmult_congruent2:
-    "(%p1 p2. split(%x1 y1. split(%x2 y2.
+    "(\<lambda>p1 p2. split(\<lambda>x1 y1. split(\<lambda>x2 y2.
                     intrel``{<x1#*x2 #+ y1#*y2, x1#*y2 #+ y1#*x2>}, p2), p1))
      respects2 intrel"
 apply (rule equiv_intrel [THEN congruent2_commuteI], auto)
 (*Proof that zmult is congruent in one argument*)
 apply (rename_tac x y)
-apply (frule_tac t = "%u. x#*u" in sym [THEN subst_context])
-apply (drule_tac t = "%u. y#*u" in subst_context)
+apply (frule_tac t = "\<lambda>u. x#*u" in sym [THEN subst_context])
+apply (drule_tac t = "\<lambda>u. y#*u" in subst_context)
 apply (erule add_left_cancel)+
 apply (simp_all add: add_mult_distrib_left)
 done
@@ -513,14 +513,14 @@ by (simp add: zmult_def raw_zmult_type)
 
 lemma raw_zmult:
      "\<lbrakk>x1\<in>nat; y1\<in>nat;  x2\<in>nat; y2\<in>nat\<rbrakk>
-      \<Longrightarrow> raw_zmult(intrel``{<x1,y1>}, intrel``{<x2,y2>}) =
+      \<Longrightarrow> raw_zmult(intrel``{\<langle>x1,y1\<rangle>}, intrel``{\<langle>x2,y2\<rangle>}) =
           intrel `` {<x1#*x2 #+ y1#*y2, x1#*y2 #+ y1#*x2>}"
 by (simp add: raw_zmult_def
            UN_equiv_class2 [OF equiv_intrel equiv_intrel zmult_congruent2])
 
 lemma zmult:
      "\<lbrakk>x1\<in>nat; y1\<in>nat;  x2\<in>nat; y2\<in>nat\<rbrakk>
-      \<Longrightarrow> (intrel``{<x1,y1>}) $* (intrel``{<x2,y2>}) =
+      \<Longrightarrow> (intrel``{\<langle>x1,y1\<rangle>}) $* (intrel``{\<langle>x2,y2\<rangle>}) =
           intrel `` {<x1#*x2 #+ y1#*y2, x1#*y2 #+ y1#*x2>}"
 by (simp add: zmult_def raw_zmult image_intrel_int)
 
@@ -822,7 +822,7 @@ subsection\<open>Monotonicity and Cancellation Results for Instantiation
 lemma zadd_left_cancel:
      "\<lbrakk>w \<in> int; w': int\<rbrakk> \<Longrightarrow> (z $+ w' = z $+ w) \<longleftrightarrow> (w' = w)"
 apply safe
-apply (drule_tac t = "%x. x $+ ($-z) " in subst_context)
+apply (drule_tac t = "\<lambda>x. x $+ ($-z) " in subst_context)
 apply (simp add: zadd_ac)
 done
 
@@ -835,7 +835,7 @@ done
 lemma zadd_right_cancel:
      "\<lbrakk>w \<in> int; w': int\<rbrakk> \<Longrightarrow> (w' $+ z = w $+ z) \<longleftrightarrow> (w' = w)"
 apply safe
-apply (drule_tac t = "%x. x $+ ($-z) " in subst_context)
+apply (drule_tac t = "\<lambda>x. x $+ ($-z) " in subst_context)
 apply (simp add: zadd_ac)
 done
 

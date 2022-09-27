@@ -133,17 +133,17 @@ subsubsection\<open>Separation for \<^term>\<open>wfrank\<close>\<close>
 
 lemma wfrank_Reflects:
  "REFLECTS[\<lambda>x. \<forall>rplus[L]. tran_closure(L,r,rplus) \<longrightarrow>
-              \<not> (\<exists>f[L]. M_is_recfun(L, %x f y. is_range(L,f,y), rplus, x, f)),
+              \<not> (\<exists>f[L]. M_is_recfun(L, \<lambda>x f y. is_range(L,f,y), rplus, x, f)),
       \<lambda>i x. \<forall>rplus \<in> Lset(i). tran_closure(##Lset(i),r,rplus) \<longrightarrow>
          \<not> (\<exists>f \<in> Lset(i).
-            M_is_recfun(##Lset(i), %x f y. is_range(##Lset(i),f,y),
+            M_is_recfun(##Lset(i), \<lambda>x f y. is_range(##Lset(i),f,y),
                         rplus, x, f))]"
 by (intro FOL_reflections function_reflections is_recfun_reflection tran_closure_reflection)
 
 lemma wfrank_separation:
      "L(r) \<Longrightarrow>
       separation (L, \<lambda>x. \<forall>rplus[L]. tran_closure(L,r,rplus) \<longrightarrow>
-         \<not> (\<exists>f[L]. M_is_recfun(L, %x f y. is_range(L,f,y), rplus, x, f)))"
+         \<not> (\<exists>f[L]. M_is_recfun(L, \<lambda>x f y. is_range(L,f,y), rplus, x, f)))"
 apply (rule gen_separation [OF wfrank_Reflects], simp)
 apply (rule_tac env="[r]" in DPow_LsetI)
 apply (rule sep_rules tran_closure_iff_sats is_recfun_iff_sats | simp)+
@@ -156,12 +156,12 @@ lemma wfrank_replacement_Reflects:
  "REFLECTS[\<lambda>z. \<exists>x[L]. x \<in> A \<and>
         (\<forall>rplus[L]. tran_closure(L,r,rplus) \<longrightarrow>
          (\<exists>y[L]. \<exists>f[L]. pair(L,x,y,z)  \<and>
-                        M_is_recfun(L, %x f y. is_range(L,f,y), rplus, x, f) \<and>
+                        M_is_recfun(L, \<lambda>x f y. is_range(L,f,y), rplus, x, f) \<and>
                         is_range(L,f,y))),
  \<lambda>i z. \<exists>x \<in> Lset(i). x \<in> A \<and>
       (\<forall>rplus \<in> Lset(i). tran_closure(##Lset(i),r,rplus) \<longrightarrow>
        (\<exists>y \<in> Lset(i). \<exists>f \<in> Lset(i). pair(##Lset(i),x,y,z)  \<and>
-         M_is_recfun(##Lset(i), %x f y. is_range(##Lset(i),f,y), rplus, x, f) \<and>
+         M_is_recfun(##Lset(i), \<lambda>x f y. is_range(##Lset(i),f,y), rplus, x, f) \<and>
          is_range(##Lset(i),f,y)))]"
 by (intro FOL_reflections function_reflections fun_plus_reflections
              is_recfun_reflection tran_closure_reflection)
@@ -171,7 +171,7 @@ lemma wfrank_strong_replacement:
       strong_replacement(L, \<lambda>x z.
          \<forall>rplus[L]. tran_closure(L,r,rplus) \<longrightarrow>
          (\<exists>y[L]. \<exists>f[L]. pair(L,x,y,z)  \<and>
-                        M_is_recfun(L, %x f y. is_range(L,f,y), rplus, x, f) \<and>
+                        M_is_recfun(L, \<lambda>x f y. is_range(L,f,y), rplus, x, f) \<and>
                         is_range(L,f,y)))"
 apply (rule strong_replacementI)
 apply (rule_tac u="{r,B}" 

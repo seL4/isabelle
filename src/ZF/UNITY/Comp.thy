@@ -18,33 +18,33 @@ section\<open>Composition\<close>
 theory Comp imports Union Increasing begin
 
 definition
-  component :: "[i,i]=>o"  (infixl \<open>component\<close> 65)  where
+  component :: "[i,i]\<Rightarrow>o"  (infixl \<open>component\<close> 65)  where
   "F component H \<equiv> (\<exists>G. F \<squnion> G = H)"
 
 definition
-  strict_component :: "[i,i]=>o" (infixl \<open>strict'_component\<close> 65)  where
+  strict_component :: "[i,i]\<Rightarrow>o" (infixl \<open>strict'_component\<close> 65)  where
   "F strict_component H \<equiv> F component H \<and> F\<noteq>H"
 
 definition
   (* A stronger form of the component relation *)
-  component_of :: "[i,i]=>o"   (infixl \<open>component'_of\<close> 65)  where
+  component_of :: "[i,i]\<Rightarrow>o"   (infixl \<open>component'_of\<close> 65)  where
   "F component_of H  \<equiv> (\<exists>G. F ok G \<and> F \<squnion> G = H)"
   
 definition
-  strict_component_of :: "[i,i]=>o" (infixl \<open>strict'_component'_of\<close> 65)  where
+  strict_component_of :: "[i,i]\<Rightarrow>o" (infixl \<open>strict'_component'_of\<close> 65)  where
   "F strict_component_of H  \<equiv> F component_of H  \<and> F\<noteq>H"
 
 definition
   (* Preserves a state function f, in particular a variable *)
-  preserves :: "(i=>i)=>i"  where
+  preserves :: "(i\<Rightarrow>i)\<Rightarrow>i"  where
   "preserves(f) \<equiv> {F:program. \<forall>z. F: stable({s:state. f(s) = z})}"
 
 definition
-  fun_pair :: "[i=>i, i =>i] =>(i=>i)"  where
-  "fun_pair(f, g) \<equiv> %x. <f(x), g(x)>"
+  fun_pair :: "[i\<Rightarrow>i, i \<Rightarrow>i] \<Rightarrow>(i\<Rightarrow>i)"  where
+  "fun_pair(f, g) \<equiv> \<lambda>x. <f(x), g(x)>"
 
 definition
-  localize  :: "[i=>i, i] => i"  where
+  localize  :: "[i\<Rightarrow>i, i] \<Rightarrow> i"  where
   "localize(f,F) \<equiv> mk_program(Init(F), Acts(F),
                        AllowedActs(F) \<inter> (\<Union>G\<in>preserves(f). Acts(G)))"
 
@@ -156,7 +156,7 @@ apply (blast dest: stableD2)
 done
 
 lemma preserves_imp_eq: 
-     "\<lbrakk>F \<in> preserves(f);  act \<in> Acts(F);  <s,t> \<in> act\<rbrakk> \<Longrightarrow> f(s) = f(t)"
+     "\<lbrakk>F \<in> preserves(f);  act \<in> Acts(F);  \<langle>s,t\<rangle> \<in> act\<rbrakk> \<Longrightarrow> f(s) = f(t)"
 apply (unfold preserves_def stable_def constrains_def)
 apply (subgoal_tac "s \<in> state \<and> t \<in> state")
  prefer 2 apply (blast dest!: Acts_type [THEN subsetD], force) 
@@ -226,11 +226,11 @@ lemma preserves_imp_increasing:
  "\<lbrakk>F \<in> preserves(f); \<forall>x \<in> state. f(x):A\<rbrakk> \<Longrightarrow> F \<in> Increasing.increasing(A, r, f)"
 apply (unfold Increasing.increasing_def)
 apply (auto intro: preserves_into_program)
-apply (rule_tac P = "%x. <k, x>:r" in preserves_imp_stable, auto)
+apply (rule_tac P = "\<lambda>x. \<langle>k, x\<rangle>:r" in preserves_imp_stable, auto)
 done
 
 lemma preserves_id_subset_stable: 
- "st_set(A) \<Longrightarrow> preserves(%x. x) \<subseteq> stable(A)"
+ "st_set(A) \<Longrightarrow> preserves(\<lambda>x. x) \<subseteq> stable(A)"
 apply (unfold preserves_def stable_def constrains_def, auto)
 apply (drule_tac x = xb in spec)
 apply (drule_tac x = act in bspec)
@@ -238,7 +238,7 @@ apply (auto dest: ActsD)
 done
 
 lemma preserves_id_imp_stable:
-     "\<lbrakk>F \<in> preserves(%x. x); st_set(A)\<rbrakk> \<Longrightarrow> F \<in> stable(A)"
+     "\<lbrakk>F \<in> preserves(\<lambda>x. x); st_set(A)\<rbrakk> \<Longrightarrow> F \<in> stable(A)"
 by (blast intro: preserves_id_subset_stable [THEN subsetD])
 
 (** Added by Sidi **)

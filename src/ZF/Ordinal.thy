@@ -8,23 +8,23 @@ section\<open>Transitive Sets and Ordinals\<close>
 theory Ordinal imports WF Bool equalities begin
 
 definition
-  Memrel        :: "i=>i"  where
-    "Memrel(A)   \<equiv> {z\<in>A*A . \<exists>x y. z=<x,y> \<and> x\<in>y }"
+  Memrel        :: "i\<Rightarrow>i"  where
+    "Memrel(A)   \<equiv> {z\<in>A*A . \<exists>x y. z=\<langle>x,y\<rangle> \<and> x\<in>y }"
 
 definition
-  Transset  :: "i=>o"  where
+  Transset  :: "i\<Rightarrow>o"  where
     "Transset(i) \<equiv> \<forall>x\<in>i. x<=i"
 
 definition
-  Ord  :: "i=>o"  where
+  Ord  :: "i\<Rightarrow>o"  where
     "Ord(i)      \<equiv> Transset(i) \<and> (\<forall>x\<in>i. Transset(x))"
 
 definition
-  lt        :: "[i,i] => o"  (infixl \<open><\<close> 50)   (*less-than on ordinals*)  where
+  lt        :: "[i,i] \<Rightarrow> o"  (infixl \<open><\<close> 50)   (*less-than on ordinals*)  where
     "i<j         \<equiv> i\<in>j \<and> Ord(j)"
 
 definition
-  Limit         :: "i=>o"  where
+  Limit         :: "i\<Rightarrow>o"  where
     "Limit(i)    \<equiv> Ord(i) \<and> 0<i \<and> (\<forall>y. y<i \<longrightarrow> succ(y)<i)"
 
 abbreviation
@@ -54,7 +54,7 @@ lemma Transset_doubleton_D:
 by (unfold Transset_def, blast)
 
 lemma Transset_Pair_D:
-    "\<lbrakk>Transset(C); <a,b>\<in>C\<rbrakk> \<Longrightarrow> a\<in>C \<and> b\<in>C"
+    "\<lbrakk>Transset(C); \<langle>a,b\<rangle>\<in>C\<rbrakk> \<Longrightarrow> a\<in>C \<and> b\<in>C"
 apply (simp add: Pair_def)
 apply (blast dest: Transset_doubleton_D)
 done
@@ -230,7 +230,7 @@ apply (erule lt_irrefl)
 done
 
 
-text\<open>Recall that  \<^term>\<open>i \<le> j\<close>  abbreviates  \<^term>\<open>i<succ(j)\<close> \<And>\<close>
+text\<open>Recall that  \<^term>\<open>i \<le> j\<close>  abbreviates  \<^term>\<open>i<succ(j)\<close>!\<close>
 
 lemma le_iff: "i \<le> j <-> i<j | (i=j \<and> Ord(j))"
 by (unfold lt_def, blast)
@@ -267,14 +267,14 @@ lemmas le0D = le0_iff [THEN iffD1, dest!]
 subsection\<open>Natural Deduction Rules for Memrel\<close>
 
 (*The lemmas MemrelI/E give better speed than [iff] here*)
-lemma Memrel_iff [simp]: "<a,b> \<in> Memrel(A) <-> a\<in>b \<and> a\<in>A \<and> b\<in>A"
+lemma Memrel_iff [simp]: "\<langle>a,b\<rangle> \<in> Memrel(A) <-> a\<in>b \<and> a\<in>A \<and> b\<in>A"
 by (unfold Memrel_def, blast)
 
-lemma MemrelI [intro!]: "\<lbrakk>a \<in> b;  a \<in> A;  b \<in> A\<rbrakk> \<Longrightarrow> <a,b> \<in> Memrel(A)"
+lemma MemrelI [intro!]: "\<lbrakk>a \<in> b;  a \<in> A;  b \<in> A\<rbrakk> \<Longrightarrow> \<langle>a,b\<rangle> \<in> Memrel(A)"
 by auto
 
 lemma MemrelE [elim!]:
-    "\<lbrakk><a,b> \<in> Memrel(A);
+    "\<lbrakk>\<langle>a,b\<rangle> \<in> Memrel(A);
         \<lbrakk>a \<in> A;  b \<in> A;  a\<in>b\<rbrakk>  \<Longrightarrow> P\<rbrakk>
      \<Longrightarrow> P"
 by auto
@@ -313,7 +313,7 @@ by (unfold Transset_def trans_def, blast)
 
 (*If Transset(A) then Memrel(A) internalizes the membership relation below A*)
 lemma Transset_Memrel_iff:
-    "Transset(A) \<Longrightarrow> <a,b> \<in> Memrel(A) <-> a\<in>b \<and> b\<in>A"
+    "Transset(A) \<Longrightarrow> \<langle>a,b\<rangle> \<in> Memrel(A) <-> a\<in>b \<and> b\<in>A"
 by (unfold Transset_def, blast)
 
 

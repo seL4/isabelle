@@ -49,10 +49,10 @@ subsection \<open>Variations on Replacement\<close>
    The resulting set (for functional P) is the same as with
    PrimReplace, but the rules are simpler. *)
 definition Replace :: "[i, [i, i] \<Rightarrow> o] \<Rightarrow> i"
-  where "Replace(A,P) \<equiv> PrimReplace(A, %x y. (\<exists>!z. P(x,z)) \<and> P(x,y))"
+  where "Replace(A,P) \<equiv> PrimReplace(A, \<lambda>x y. (\<exists>!z. P(x,z)) \<and> P(x,y))"
 
 syntax
-  "_Replace"  :: "[pttrn, pttrn, i, o] => i"  (\<open>(1{_ ./ _ \<in> _, _})\<close>)
+  "_Replace"  :: "[pttrn, pttrn, i, o] \<Rightarrow> i"  (\<open>(1{_ ./ _ \<in> _, _})\<close>)
 translations
   "{y. x\<in>A, Q}" \<rightleftharpoons> "CONST Replace(A, \<lambda>x y. Q)"
 
@@ -63,7 +63,7 @@ definition RepFun :: "[i, i \<Rightarrow> i] \<Rightarrow> i"
   where "RepFun(A,f) \<equiv> {y . x\<in>A, y=f(x)}"
 
 syntax
-  "_RepFun" :: "[i, pttrn, i] => i"  (\<open>(1{_ ./ _ \<in> _})\<close> [51,0,51])
+  "_RepFun" :: "[i, pttrn, i] \<Rightarrow> i"  (\<open>(1{_ ./ _ \<in> _})\<close> [51,0,51])
 translations
   "{b. x\<in>A}" \<rightleftharpoons> "CONST RepFun(A, \<lambda>x. b)"
 
@@ -81,12 +81,12 @@ translations
 
 subsection \<open>General union and intersection\<close>
 
-definition Inter :: "i => i"  (\<open>\<Inter>_\<close> [90] 90)
+definition Inter :: "i \<Rightarrow> i"  (\<open>\<Inter>_\<close> [90] 90)
   where "\<Inter>(A) \<equiv> { x\<in>\<Union>(A) . \<forall>y\<in>A. x\<in>y}"
 
 syntax
-  "_UNION" :: "[pttrn, i, i] => i"  (\<open>(3\<Union>_\<in>_./ _)\<close> 10)
-  "_INTER" :: "[pttrn, i, i] => i"  (\<open>(3\<Inter>_\<in>_./ _)\<close> 10)
+  "_UNION" :: "[pttrn, i, i] \<Rightarrow> i"  (\<open>(3\<Union>_\<in>_./ _)\<close> 10)
+  "_INTER" :: "[pttrn, i, i] \<Rightarrow> i"  (\<open>(3\<Inter>_\<in>_./ _)\<close> 10)
 translations
   "\<Union>x\<in>A. B" == "CONST Union({B. x\<in>A})"
   "\<Inter>x\<in>A. B" == "CONST Inter({B. x\<in>A})"
@@ -97,7 +97,7 @@ subsection \<open>Finite sets and binary operations\<close>
 (*Unordered pairs (Upair) express binary union/intersection and cons;
   set enumerations translate as {a,...,z} = cons(a,...,cons(z,0)...)*)
 
-definition Upair :: "[i, i] => i"
+definition Upair :: "[i, i] \<Rightarrow> i"
   where "Upair(a,b) \<equiv> {y. x\<in>Pow(Pow(0)), (x=0 \<and> y=a) | (x=Pow(0) \<and> y=b)}"
 
 definition Subset :: "[i, i] \<Rightarrow> o"  (infixl \<open>\<subseteq>\<close> 50)  \<comment> \<open>subset relation\<close>
@@ -112,10 +112,10 @@ definition Un :: "[i, i] \<Rightarrow> i"  (infixl \<open>\<union>\<close> 65)  
 definition Int :: "[i, i] \<Rightarrow> i"  (infixl \<open>\<inter>\<close> 70)  \<comment> \<open>binary intersection\<close>
   where "A \<inter> B \<equiv> \<Inter>(Upair(A,B))"
 
-definition cons :: "[i, i] => i"
+definition cons :: "[i, i] \<Rightarrow> i"
   where "cons(a,A) \<equiv> Upair(a,a) \<union> A"
 
-definition succ :: "i => i"
+definition succ :: "i \<Rightarrow> i"
   where "succ(i) \<equiv> cons(i, i)"
 
 nonterminal "is"
@@ -160,14 +160,14 @@ definition If :: "[o, i, i] \<Rightarrow> i"  (\<open>(if (_)/ then (_)/ else (_
   where if_def: "if P then a else b \<equiv> THE z. P \<and> z=a | \<not>P \<and> z=b"
 
 abbreviation (input)
-  old_if :: "[o, i, i] => i"  (\<open>if '(_,_,_')\<close>)
+  old_if :: "[o, i, i] \<Rightarrow> i"  (\<open>if '(_,_,_')\<close>)
   where "if(P,a,b) \<equiv> If(P,a,b)"
 
 
 subsection \<open>Ordered Pairing\<close>
 
 (* this "symmetric" definition works better than {{a}, {a,b}} *)
-definition Pair :: "[i, i] => i"
+definition Pair :: "[i, i] \<Rightarrow> i"
   where "Pair(a,b) \<equiv> {{a,a}, {a,b}}"
 
 definition fst :: "i \<Rightarrow> i"
@@ -182,10 +182,10 @@ definition split :: "[[i, i] \<Rightarrow> 'a, i] \<Rightarrow> 'a::{}"  \<comme
 (* Patterns -- extends pre-defined type "pttrn" used in abstractions *)
 nonterminal patterns
 syntax
-  "_pattern"  :: "patterns => pttrn"         (\<open>\<langle>_\<rangle>\<close>)
-  ""          :: "pttrn => patterns"         (\<open>_\<close>)
-  "_patterns" :: "[pttrn, patterns] => patterns"  (\<open>_,/_\<close>)
-  "_Tuple"    :: "[i, is] => i"              (\<open>\<langle>(_,/ _)\<rangle>\<close>)
+  "_pattern"  :: "patterns \<Rightarrow> pttrn"         (\<open>\<langle>_\<rangle>\<close>)
+  ""          :: "pttrn \<Rightarrow> patterns"         (\<open>_\<close>)
+  "_patterns" :: "[pttrn, patterns] \<Rightarrow> patterns"  (\<open>_,/_\<close>)
+  "_Tuple"    :: "[i, is] \<Rightarrow> i"              (\<open>\<langle>(_,/ _)\<rangle>\<close>)
 translations
   "\<langle>x, y, z\<rangle>"   == "\<langle>x, \<langle>y, z\<rangle>\<rangle>"
   "\<langle>x, y\<rangle>"      == "CONST Pair(x, y)"
@@ -195,7 +195,7 @@ translations
 definition Sigma :: "[i, i \<Rightarrow> i] \<Rightarrow> i"
   where "Sigma(A,B) \<equiv> \<Union>x\<in>A. \<Union>y\<in>B(x). {\<langle>x,y\<rangle>}"
 
-abbreviation cart_prod :: "[i, i] => i"  (infixr \<open>\<times>\<close> 80)  \<comment> \<open>Cartesian product\<close>
+abbreviation cart_prod :: "[i, i] \<Rightarrow> i"  (infixr \<open>\<times>\<close> 80)  \<comment> \<open>Cartesian product\<close>
   where "A \<times> B \<equiv> Sigma(A, \<lambda>_. B)"
 
 
@@ -249,9 +249,9 @@ abbreviation function_space :: "[i, i] \<Rightarrow> i"  (infixr \<open>\<righta
 (* binder syntax *)
 
 syntax
-  "_PROD"     :: "[pttrn, i, i] => i"        (\<open>(3\<Prod>_\<in>_./ _)\<close> 10)
-  "_SUM"      :: "[pttrn, i, i] => i"        (\<open>(3\<Sum>_\<in>_./ _)\<close> 10)
-  "_lam"      :: "[pttrn, i, i] => i"        (\<open>(3\<lambda>_\<in>_./ _)\<close> 10)
+  "_PROD"     :: "[pttrn, i, i] \<Rightarrow> i"        (\<open>(3\<Prod>_\<in>_./ _)\<close> 10)
+  "_SUM"      :: "[pttrn, i, i] \<Rightarrow> i"        (\<open>(3\<Sum>_\<in>_./ _)\<close> 10)
+  "_lam"      :: "[pttrn, i, i] \<Rightarrow> i"        (\<open>(3\<lambda>_\<in>_./ _)\<close> 10)
 translations
   "\<Prod>x\<in>A. B"   == "CONST Pi(A, \<lambda>x. B)"
   "\<Sum>x\<in>A. B"   == "CONST Sigma(A, \<lambda>x. B)"
@@ -270,18 +270,18 @@ notation (ASCII)
   not_mem         (infixl \<open>\<not>:\<close> 50)
 
 syntax (ASCII)
-  "_Ball"     :: "[pttrn, i, o] => o"        (\<open>(3ALL _:_./ _)\<close> 10)
-  "_Bex"      :: "[pttrn, i, o] => o"        (\<open>(3EX _:_./ _)\<close> 10)
-  "_Collect"  :: "[pttrn, i, o] => i"        (\<open>(1{_: _ ./ _})\<close>)
-  "_Replace"  :: "[pttrn, pttrn, i, o] => i" (\<open>(1{_ ./ _: _, _})\<close>)
-  "_RepFun"   :: "[i, pttrn, i] => i"        (\<open>(1{_ ./ _: _})\<close> [51,0,51])
-  "_UNION"    :: "[pttrn, i, i] => i"        (\<open>(3UN _:_./ _)\<close> 10)
-  "_INTER"    :: "[pttrn, i, i] => i"        (\<open>(3INT _:_./ _)\<close> 10)
-  "_PROD"     :: "[pttrn, i, i] => i"        (\<open>(3PROD _:_./ _)\<close> 10)
-  "_SUM"      :: "[pttrn, i, i] => i"        (\<open>(3SUM _:_./ _)\<close> 10)
-  "_lam"      :: "[pttrn, i, i] => i"        (\<open>(3lam _:_./ _)\<close> 10)
-  "_Tuple"    :: "[i, is] => i"              (\<open><(_,/ _)>\<close>)
-  "_pattern"  :: "patterns => pttrn"         (\<open><_>\<close>)
+  "_Ball"     :: "[pttrn, i, o] \<Rightarrow> o"        (\<open>(3ALL _:_./ _)\<close> 10)
+  "_Bex"      :: "[pttrn, i, o] \<Rightarrow> o"        (\<open>(3EX _:_./ _)\<close> 10)
+  "_Collect"  :: "[pttrn, i, o] \<Rightarrow> i"        (\<open>(1{_: _ ./ _})\<close>)
+  "_Replace"  :: "[pttrn, pttrn, i, o] \<Rightarrow> i" (\<open>(1{_ ./ _: _, _})\<close>)
+  "_RepFun"   :: "[i, pttrn, i] \<Rightarrow> i"        (\<open>(1{_ ./ _: _})\<close> [51,0,51])
+  "_UNION"    :: "[pttrn, i, i] \<Rightarrow> i"        (\<open>(3UN _:_./ _)\<close> 10)
+  "_INTER"    :: "[pttrn, i, i] \<Rightarrow> i"        (\<open>(3INT _:_./ _)\<close> 10)
+  "_PROD"     :: "[pttrn, i, i] \<Rightarrow> i"        (\<open>(3PROD _:_./ _)\<close> 10)
+  "_SUM"      :: "[pttrn, i, i] \<Rightarrow> i"        (\<open>(3SUM _:_./ _)\<close> 10)
+  "_lam"      :: "[pttrn, i, i] \<Rightarrow> i"        (\<open>(3lam _:_./ _)\<close> 10)
+  "_Tuple"    :: "[i, is] \<Rightarrow> i"              (\<open><(_,/ _)>\<close>)
+  "_pattern"  :: "patterns \<Rightarrow> pttrn"         (\<open><_>\<close>)
 
 
 subsection \<open>Substitution\<close>
@@ -510,7 +510,7 @@ by (erule CollectE, assumption)
 
 lemma Collect_cong [cong]:
     "\<lbrakk>A=B;  \<And>x. x\<in>B \<Longrightarrow> P(x) <-> Q(x)\<rbrakk>
-     \<Longrightarrow> Collect(A, %x. P(x)) = Collect(B, %x. Q(x))"
+     \<Longrightarrow> Collect(A, \<lambda>x. P(x)) = Collect(B, \<lambda>x. Q(x))"
 by (simp add: Collect_def)
 
 

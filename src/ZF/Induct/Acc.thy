@@ -12,7 +12,7 @@ text \<open>
 \<close>
 
 consts
-  acc :: "i => i"
+  acc :: "i \<Rightarrow> i"
 
 inductive
   domains "acc(r)" \<subseteq> "field(r)"
@@ -28,15 +28,15 @@ text \<open>
   The intended introduction rule:
 \<close>
 
-lemma accI: "\<lbrakk>\<And>b. <b,a>:r \<Longrightarrow> b \<in> acc(r);  a \<in> field(r)\<rbrakk> \<Longrightarrow> a \<in> acc(r)"
+lemma accI: "\<lbrakk>\<And>b. \<langle>b,a\<rangle>:r \<Longrightarrow> b \<in> acc(r);  a \<in> field(r)\<rbrakk> \<Longrightarrow> a \<in> acc(r)"
   by (blast intro: acc.intros)
 
-lemma acc_downward: "\<lbrakk>b \<in> acc(r);  <a,b>: r\<rbrakk> \<Longrightarrow> a \<in> acc(r)"
+lemma acc_downward: "\<lbrakk>b \<in> acc(r);  \<langle>a,b\<rangle>: r\<rbrakk> \<Longrightarrow> a \<in> acc(r)"
   by (erule acc.cases) blast
 
 lemma acc_induct [consumes 1, case_names vimage, induct set: acc]:
     "\<lbrakk>a \<in> acc(r);
-        \<And>x. \<lbrakk>x \<in> acc(r);  \<forall>y. <y,x>:r \<longrightarrow> P(y)\<rbrakk> \<Longrightarrow> P(x)
+        \<And>x. \<lbrakk>x \<in> acc(r);  \<forall>y. \<langle>y,x\<rangle>:r \<longrightarrow> P(y)\<rbrakk> \<Longrightarrow> P(x)
 \<rbrakk> \<Longrightarrow> P(a)"
   by (erule acc.induct) (blast intro: acc.intros)
 

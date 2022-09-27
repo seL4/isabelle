@@ -14,7 +14,7 @@ text \<open>
 \<close>
 
 consts
-  data :: "[i, i] => i"
+  data :: "[i, i] \<Rightarrow> i"
 
 datatype "data(A, B)" =
     Con0

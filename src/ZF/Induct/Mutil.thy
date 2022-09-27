@@ -14,13 +14,13 @@ text \<open>
 
 consts
   domino :: i
-  tiling :: "i => i"
+  tiling :: "i \<Rightarrow> i"
 
 inductive
   domains "domino" \<subseteq> "Pow(nat \<times> nat)"
   intros
-    horiz: "\<lbrakk>i \<in> nat;  j \<in> nat\<rbrakk> \<Longrightarrow> {<i,j>, <i,succ(j)>} \<in> domino"
-    vertl: "\<lbrakk>i \<in> nat;  j \<in> nat\<rbrakk> \<Longrightarrow> {<i,j>, <succ(i),j>} \<in> domino"
+    horiz: "\<lbrakk>i \<in> nat;  j \<in> nat\<rbrakk> \<Longrightarrow> {\<langle>i,j\<rangle>, <i,succ(j)>} \<in> domino"
+    vertl: "\<lbrakk>i \<in> nat;  j \<in> nat\<rbrakk> \<Longrightarrow> {\<langle>i,j\<rangle>, <succ(i),j>} \<in> domino"
   type_intros empty_subsetI cons_subsetI PowI SigmaI nat_succI
 
 inductive
@@ -32,13 +32,13 @@ inductive
   type_elims PowD [elim_format]
 
 definition
-  evnodd :: "[i, i] => i"  where
-  "evnodd(A,b) \<equiv> {z \<in> A. \<exists>i j. z = <i,j> \<and> (i #+ j) mod 2 = b}"
+  evnodd :: "[i, i] \<Rightarrow> i"  where
+  "evnodd(A,b) \<equiv> {z \<in> A. \<exists>i j. z = \<langle>i,j\<rangle> \<and> (i #+ j) mod 2 = b}"
 
 
 subsection \<open>Basic properties of evnodd\<close>
 
-lemma evnodd_iff: "<i,j>: evnodd(A,b) \<longleftrightarrow> <i,j>: A \<and> (i#+j) mod 2 = b"
+lemma evnodd_iff: "\<langle>i,j\<rangle>: evnodd(A,b) \<longleftrightarrow> \<langle>i,j\<rangle>: A \<and> (i#+j) mod 2 = b"
   by (unfold evnodd_def) blast
 
 lemma evnodd_subset: "evnodd(A, b) \<subseteq> A"
@@ -54,8 +54,8 @@ lemma evnodd_Diff: "evnodd(A - B, b) = evnodd(A,b) - evnodd(B,b)"
   by (simp add: evnodd_def Collect_Diff)
 
 lemma evnodd_cons [simp]:
-  "evnodd(cons(<i,j>,C), b) =
-    (if (i#+j) mod 2 = b then cons(<i,j>, evnodd(C,b)) else evnodd(C,b))"
+  "evnodd(cons(\<langle>i,j\<rangle>,C), b) =
+    (if (i#+j) mod 2 = b then cons(\<langle>i,j\<rangle>, evnodd(C,b)) else evnodd(C,b))"
   by (simp add: evnodd_def Collect_cons)
 
 lemma evnodd_0 [simp]: "evnodd(0, b) = 0"
@@ -143,7 +143,7 @@ lemma eq_lt_E: "\<lbrakk>x=y; x<y\<rbrakk> \<Longrightarrow> P"
 
 theorem mutil_not_tiling: "\<lbrakk>m \<in> nat;  n \<in> nat;
          t = (succ(m)#+succ(m))*(succ(n)#+succ(n));
-         t' = t - {<0,0>} - {<succ(m#+m), succ(n#+n)>}\<rbrakk>
+         t' = t - {\<langle>0,0\<rangle>} - {<succ(m#+m), succ(n#+n)>}\<rbrakk>
       \<Longrightarrow> t' \<notin> tiling(domino)"
   apply (rule notI)
   apply (drule tiling_domino_0_1)

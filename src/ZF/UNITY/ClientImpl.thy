@@ -26,7 +26,7 @@ axiomatization where
 definition
  (** Release some client_tokens **)
     "client_rel_act \<equiv>
-     {<s,t> \<in> state*state.
+     {\<langle>s,t\<rangle> \<in> state*state.
       \<exists>nrel \<in> nat. nrel = length(s`rel) \<and>
                    t = s(rel:=(s`rel)@[nth(nrel, s`giv)]) \<and>
                    nrel < length(s`giv) \<and>
@@ -36,11 +36,11 @@ definition
   (** Including t=s suppresses fairness, allowing the non-trivial part
       of the action to be ignored **)
 definition
-  "client_tok_act \<equiv> {<s,t> \<in> state*state. t=s |
+  "client_tok_act \<equiv> {\<langle>s,t\<rangle> \<in> state*state. t=s |
                      t = s(tok:=succ(s`tok mod NbT))}"
 
 definition
-  "client_ask_act \<equiv> {<s,t> \<in> state*state. t=s | (t=s(ask:=s`ask@[s`tok]))}"
+  "client_ask_act \<equiv> {\<langle>s,t\<rangle> \<in> state*state. t=s | (t=s(ask:=s`ask@[s`tok]))}"
 
 definition
   "client_prog \<equiv>
@@ -178,15 +178,15 @@ lemma client_prog_Join_Always_rel_le_giv:
 by (force intro!: AlwaysI client_prog_Join_Stable_rel_le_giv)
 
 lemma def_act_eq:
-     "A \<equiv> {<s, t> \<in> state*state. P(s, t)} \<Longrightarrow> A={<s, t> \<in> state*state. P(s, t)}"
+     "A \<equiv> {\<langle>s, t\<rangle> \<in> state*state. P(s, t)} \<Longrightarrow> A={\<langle>s, t\<rangle> \<in> state*state. P(s, t)}"
 by auto
 
-lemma act_subset: "A={<s,t> \<in> state*state. P(s, t)} \<Longrightarrow> A<=state*state"
+lemma act_subset: "A={\<langle>s,t\<rangle> \<in> state*state. P(s, t)} \<Longrightarrow> A<=state*state"
 by auto
 
 lemma transient_lemma:
 "client_prog \<in>
-  transient({s \<in> state. s`rel = k \<and> <k, h> \<in> strict_prefix(nat)
+  transient({s \<in> state. s`rel = k \<and> \<langle>k, h\<rangle> \<in> strict_prefix(nat)
    \<and> <h, s`giv> \<in> prefix(nat) \<and> h pfixGe s`ask})"
 apply (rule_tac act = client_rel_act in transientI)
 apply (simp (no_asm) add: client_prog_def [THEN def_prg_Acts])
@@ -209,7 +209,7 @@ apply (auto simp add: id_def lam_def)
 done
 
 lemma strict_prefix_is_prefix:
-    "<xs, ys> \<in> strict_prefix(A) \<longleftrightarrow>  <xs, ys> \<in> prefix(A) \<and> xs\<noteq>ys"
+    "\<langle>xs, ys\<rangle> \<in> strict_prefix(A) \<longleftrightarrow>  \<langle>xs, ys\<rangle> \<in> prefix(A) \<and> xs\<noteq>ys"
 apply (unfold strict_prefix_def id_def lam_def)
 apply (auto dest: prefix_type [THEN subsetD])
 done
@@ -217,7 +217,7 @@ done
 lemma induct_lemma:
 "\<lbrakk>client_prog \<squnion> G \<in> Incr(lift(giv)); client_prog ok G; G \<in> program\<rbrakk>
   \<Longrightarrow> client_prog \<squnion> G \<in>
-  {s \<in> state. s`rel = k \<and> <k,h> \<in> strict_prefix(nat)
+  {s \<in> state. s`rel = k \<and> \<langle>k,h\<rangle> \<in> strict_prefix(nat)
    \<and> <h, s`giv> \<in> prefix(nat) \<and> h pfixGe s`ask}
         \<longmapsto>w {s \<in> state. <k, s`rel> \<in> strict_prefix(nat)
                           \<and> <s`rel, s`giv> \<in> prefix(nat) \<and>

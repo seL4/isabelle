@@ -14,26 +14,26 @@ section\<open>The Cumulative Hierarchy and a Small Universe for Recursive Types\
 theory Univ imports Epsilon Cardinal begin
 
 definition
-  Vfrom       :: "[i,i]=>i"  where
-    "Vfrom(A,i) \<equiv> transrec(i, %x f. A \<union> (\<Union>y\<in>x. Pow(f`y)))"
+  Vfrom       :: "[i,i]\<Rightarrow>i"  where
+    "Vfrom(A,i) \<equiv> transrec(i, \<lambda>x f. A \<union> (\<Union>y\<in>x. Pow(f`y)))"
 
 abbreviation
-  Vset :: "i=>i" where
+  Vset :: "i\<Rightarrow>i" where
   "Vset(x) \<equiv> Vfrom(0,x)"
 
 
 definition
-  Vrec        :: "[i, [i,i]=>i] =>i"  where
-    "Vrec(a,H) \<equiv> transrec(rank(a), %x g. \<lambda>z\<in>Vset(succ(x)).
+  Vrec        :: "[i, [i,i]\<Rightarrow>i] \<Rightarrow>i"  where
+    "Vrec(a,H) \<equiv> transrec(rank(a), \<lambda>x g. \<lambda>z\<in>Vset(succ(x)).
                            H(z, \<lambda>w\<in>Vset(x). g`rank(w)`w)) ` a"
 
 definition
-  Vrecursor   :: "[[i,i]=>i, i] =>i"  where
-    "Vrecursor(H,a) \<equiv> transrec(rank(a), %x g. \<lambda>z\<in>Vset(succ(x)).
+  Vrecursor   :: "[[i,i]\<Rightarrow>i, i] \<Rightarrow>i"  where
+    "Vrecursor(H,a) \<equiv> transrec(rank(a), \<lambda>x g. \<lambda>z\<in>Vset(succ(x)).
                                 H(\<lambda>w\<in>Vset(x). g`rank(w)`w, z)) ` a"
 
 definition
-  univ        :: "i=>i"  where
+  univ        :: "i\<Rightarrow>i"  where
     "univ(A) \<equiv> Vfrom(A,nat)"
 
 
@@ -124,7 +124,7 @@ lemma doubleton_in_Vfrom:
 by (rule subset_mem_Vfrom, safe)
 
 lemma Pair_in_Vfrom:
-    "\<lbrakk>a \<in> Vfrom(A,i);  b \<in> Vfrom(A,i)\<rbrakk> \<Longrightarrow> <a,b> \<in> Vfrom(A,succ(succ(i)))"
+    "\<lbrakk>a \<in> Vfrom(A,i);  b \<in> Vfrom(A,i)\<rbrakk> \<Longrightarrow> \<langle>a,b\<rangle> \<in> Vfrom(A,succ(succ(i)))"
 apply (unfold Pair_def)
 apply (blast intro: doubleton_in_Vfrom)
 done
@@ -219,7 +219,7 @@ apply (blast intro:  VfromI [OF doubleton_in_Vfrom]
 done
 
 lemma Pair_in_VLimit:
-    "\<lbrakk>a \<in> Vfrom(A,i);  b \<in> Vfrom(A,i);  Limit(i)\<rbrakk> \<Longrightarrow> <a,b> \<in> Vfrom(A,i)"
+    "\<lbrakk>a \<in> Vfrom(A,i);  b \<in> Vfrom(A,i);  Limit(i)\<rbrakk> \<Longrightarrow> \<langle>a,b\<rangle> \<in> Vfrom(A,i)"
 txt\<open>Infer that a, b occur at ordinals x,xa < i.\<close>
 apply (erule Limit_VfromE, assumption)
 apply (erule Limit_VfromE, assumption)
@@ -283,12 +283,12 @@ apply (rule A_subset_Vfrom [THEN subset_trans])
 apply (erule Transset_Vfrom [THEN Transset_iff_Pow [THEN iffD1]])
 done
 
-lemma Transset_Pair_subset: "\<lbrakk><a,b> \<subseteq> C; Transset(C)\<rbrakk> \<Longrightarrow> a: C \<and> b: C"
+lemma Transset_Pair_subset: "\<lbrakk>\<langle>a,b\<rangle> \<subseteq> C; Transset(C)\<rbrakk> \<Longrightarrow> a: C \<and> b: C"
 by (unfold Pair_def Transset_def, blast)
 
 lemma Transset_Pair_subset_VLimit:
-     "\<lbrakk><a,b> \<subseteq> Vfrom(A,i);  Transset(A);  Limit(i)\<rbrakk>
-      \<Longrightarrow> <a,b> \<in> Vfrom(A,i)"
+     "\<lbrakk>\<langle>a,b\<rangle> \<subseteq> Vfrom(A,i);  Transset(A);  Limit(i)\<rbrakk>
+      \<Longrightarrow> \<langle>a,b\<rangle> \<in> Vfrom(A,i)"
 apply (erule Transset_Pair_subset [THEN conjE])
 apply (erule Transset_Vfrom)
 apply (blast intro: Pair_in_VLimit)
@@ -496,7 +496,7 @@ apply (subst transrec, simp)
 apply (rule refl [THEN lam_cong, THEN subst_context], simp add: lt_def)
 done
 
-text\<open>This form avoids giant explosions in proofs.  NOTE USE OF \<equiv>\<close>
+text\<open>This form avoids giant explosions in proofs. NOTE the form of the premise!\<close>
 lemma def_Vrec:
     "\<lbrakk>\<And>x. h(x)\<equiv>Vrec(x,H)\<rbrakk> \<Longrightarrow>
      h(a) = H(a, \<lambda>x\<in>Vset(rank(a)). h(x))"
@@ -512,7 +512,7 @@ apply (subst transrec, simp)
 apply (rule refl [THEN lam_cong, THEN subst_context], simp add: lt_def)
 done
 
-text\<open>This form avoids giant explosions in proofs.  NOTE USE OF \<equiv>\<close>
+text\<open>This form avoids giant explosions in proofs. NOTE the form of the premise!\<close>
 lemma def_Vrecursor:
      "h \<equiv> Vrecursor(H) \<Longrightarrow> h(a) = H(\<lambda>x\<in>Vset(rank(a)). h(x),  a)"
 apply simp
@@ -595,7 +595,7 @@ apply (blast intro: doubleton_in_VLimit Limit_nat)
 done
 
 lemma Pair_in_univ:
-    "\<lbrakk>a: univ(A);  b: univ(A)\<rbrakk> \<Longrightarrow> <a,b> \<in> univ(A)"
+    "\<lbrakk>a: univ(A);  b: univ(A)\<rbrakk> \<Longrightarrow> \<langle>a,b\<rangle> \<in> univ(A)"
 apply (unfold univ_def)
 apply (blast intro: Pair_in_VLimit Limit_nat)
 done
@@ -619,8 +619,8 @@ apply (unfold univ_def)
 apply (rule i_subset_Vfrom)
 done
 
-text\<open>n:nat \<Longrightarrow> n:univ(A)\<close>
-lemmas nat_into_univ = nat_subset_univ [THEN subsetD]
+lemma nat_into_univ: "n \<in> nat \<Longrightarrow> n \<in> univ(A)"
+  by (rule nat_subset_univ [THEN subsetD])
 
 subsubsection\<open>Instances for 1 and 2\<close>
 
@@ -766,16 +766,16 @@ by (drule Transset_Vfrom_succ [THEN equalityD1, THEN subsetD, THEN PowD],
 text\<open>This weaker version says a, b exist at the same level\<close>
 lemmas Vfrom_doubleton_D = Transset_Vfrom [THEN Transset_doubleton_D]
 
-(** Using only the weaker theorem would prove <a,b> \<in> Vfrom(X,i)
+(** Using only the weaker theorem would prove \<langle>a,b\<rangle> \<in> Vfrom(X,i)
       implies a, b \<in> Vfrom(X,i), which is useless for induction.
-    Using only the stronger theorem would prove <a,b> \<in> Vfrom(X,succ(succ(i)))
+    Using only the stronger theorem would prove \<langle>a,b\<rangle> \<in> Vfrom(X,succ(succ(i)))
       implies a, b \<in> Vfrom(X,i), leaving the succ(i) case untreated.
     The combination gives a reduction by precisely one level, which is
       most convenient for proofs.
 **)
 
 lemma Pair_in_Vfrom_D:
-    "\<lbrakk><a,b> \<in> Vfrom(X,succ(i));  Transset(X)\<rbrakk>
+    "\<lbrakk>\<langle>a,b\<rangle> \<in> Vfrom(X,succ(i));  Transset(X)\<rbrakk>
      \<Longrightarrow> a \<in> Vfrom(X,i)  \<and>  b \<in> Vfrom(X,i)"
 apply (unfold Pair_def)
 apply (blast dest!: doubleton_in_Vfrom_D Vfrom_doubleton_D)

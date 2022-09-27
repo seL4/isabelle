@@ -8,14 +8,14 @@ section \<open>An operator to ``map'' a relation over a list\<close>
 theory Rmap imports ZF begin
 
 consts
-  rmap :: "i=>i"
+  rmap :: "i\<Rightarrow>i"
 
 inductive
   domains "rmap(r)" \<subseteq> "list(domain(r)) \<times> list(range(r))"
   intros
-    NilI:  "<Nil,Nil> \<in> rmap(r)"
+    NilI:  "\<langle>Nil,Nil\<rangle> \<in> rmap(r)"
 
-    ConsI: "\<lbrakk><x,y>: r;  <xs,ys> \<in> rmap(r)\<rbrakk>
+    ConsI: "\<lbrakk>\<langle>x,y\<rangle>: r;  \<langle>xs,ys\<rangle> \<in> rmap(r)\<rbrakk>
             \<Longrightarrow> <Cons(x,xs), Cons(y,ys)> \<in> rmap(r)"
 
   type_intros domainI rangeI list.intros
@@ -28,7 +28,7 @@ lemma rmap_mono: "r \<subseteq> s \<Longrightarrow> rmap(r) \<subseteq> rmap(s)"
   done
 
 inductive_cases
-      Nil_rmap_case [elim!]: "<Nil,zs> \<in> rmap(r)"
+      Nil_rmap_case [elim!]: "\<langle>Nil,zs\<rangle> \<in> rmap(r)"
   and Cons_rmap_case [elim!]: "<Cons(x,xs),zs> \<in> rmap(r)"
 
 declare rmap.intros [intro]

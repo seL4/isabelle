@@ -6,7 +6,7 @@
 (*"Difference" is subtraction of natural numbers.
   There are no negative numbers; we have
      m #- n = 0  iff  m<=n   and     m #- n = succ(k) iff m>n.
-  Also, rec(m, 0, %z w.z) is pred(m).
+  Also, rec(m, 0, \<lambda>z w.z) is pred(m).
 *)
 
 section\<open>Arithmetic Operators and Their Definitions\<close>
@@ -16,18 +16,18 @@ theory Arith imports Univ begin
 text\<open>Proofs about elementary arithmetic: addition, multiplication, etc.\<close>
 
 definition
-  pred   :: "i=>i"    (*inverse of succ*)  where
-    "pred(y) \<equiv> nat_case(0, %x. x, y)"
+  pred   :: "i\<Rightarrow>i"    (*inverse of succ*)  where
+    "pred(y) \<equiv> nat_case(0, \<lambda>x. x, y)"
 
 definition
-  natify :: "i=>i"    (*coerces non-nats to nats*)  where
-    "natify \<equiv> Vrecursor(%f a. if a = succ(pred(a)) then succ(f`pred(a))
+  natify :: "i\<Rightarrow>i"    (*coerces non-nats to nats*)  where
+    "natify \<equiv> Vrecursor(\<lambda>f a. if a = succ(pred(a)) then succ(f`pred(a))
                                                     else 0)"
 
 consts
-  raw_add  :: "[i,i]=>i"
-  raw_diff  :: "[i,i]=>i"
-  raw_mult  :: "[i,i]=>i"
+  raw_add  :: "[i,i]\<Rightarrow>i"
+  raw_diff  :: "[i,i]\<Rightarrow>i"
+  raw_mult  :: "[i,i]\<Rightarrow>i"
 
 primrec
   "raw_add (0, n) = n"
@@ -36,40 +36,40 @@ primrec
 primrec
   raw_diff_0:     "raw_diff(m, 0) = m"
   raw_diff_succ:  "raw_diff(m, succ(n)) =
-                     nat_case(0, %x. x, raw_diff(m, n))"
+                     nat_case(0, \<lambda>x. x, raw_diff(m, n))"
 
 primrec
   "raw_mult(0, n) = 0"
   "raw_mult(succ(m), n) = raw_add (n, raw_mult(m, n))"
 
 definition
-  add :: "[i,i]=>i"                    (infixl \<open>#+\<close> 65)  where
+  add :: "[i,i]\<Rightarrow>i"                    (infixl \<open>#+\<close> 65)  where
     "m #+ n \<equiv> raw_add (natify(m), natify(n))"
 
 definition
-  diff :: "[i,i]=>i"                    (infixl \<open>#-\<close> 65)  where
+  diff :: "[i,i]\<Rightarrow>i"                    (infixl \<open>#-\<close> 65)  where
     "m #- n \<equiv> raw_diff (natify(m), natify(n))"
 
 definition
-  mult :: "[i,i]=>i"                    (infixl \<open>#*\<close> 70)  where
+  mult :: "[i,i]\<Rightarrow>i"                    (infixl \<open>#*\<close> 70)  where
     "m #* n \<equiv> raw_mult (natify(m), natify(n))"
 
 definition
-  raw_div  :: "[i,i]=>i"  where
+  raw_div  :: "[i,i]\<Rightarrow>i"  where
     "raw_div (m, n) \<equiv>
-       transrec(m, %j f. if j<n | n=0 then 0 else succ(f`(j#-n)))"
+       transrec(m, \<lambda>j f. if j<n | n=0 then 0 else succ(f`(j#-n)))"
 
 definition
-  raw_mod  :: "[i,i]=>i"  where
+  raw_mod  :: "[i,i]\<Rightarrow>i"  where
     "raw_mod (m, n) \<equiv>
-       transrec(m, %j f. if j<n | n=0 then j else f`(j#-n))"
+       transrec(m, \<lambda>j f. if j<n | n=0 then j else f`(j#-n))"
 
 definition
-  div  :: "[i,i]=>i"                    (infixl \<open>div\<close> 70)  where
+  div  :: "[i,i]\<Rightarrow>i"                    (infixl \<open>div\<close> 70)  where
     "m div n \<equiv> raw_div (natify(m), natify(n))"
 
 definition
-  mod  :: "[i,i]=>i"                    (infixl \<open>mod\<close> 70)  where
+  mod  :: "[i,i]\<Rightarrow>i"                    (infixl \<open>mod\<close> 70)  where
     "m mod n \<equiv> raw_mod (natify(m), natify(n))"
 
 declare rec_type [simp]
@@ -337,7 +337,7 @@ done
 
 text\<open>\<open>\<le>\<close> monotonicity, 1st argument\<close>
 lemma add_le_mono1: "\<lbrakk>i \<le> j; j\<in>nat\<rbrakk> \<Longrightarrow> i#+k \<le> j#+k"
-apply (rule_tac f = "%j. j#+k" in Ord_lt_mono_imp_le_mono, typecheck)
+apply (rule_tac f = "\<lambda>j. j#+k" in Ord_lt_mono_imp_le_mono, typecheck)
 apply (blast intro: add_lt_mono1 add_type [THEN nat_into_Ord])+
 done
 

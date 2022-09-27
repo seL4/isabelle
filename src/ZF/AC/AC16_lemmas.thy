@@ -74,7 +74,7 @@ lemma subsets_lepoll_lemma1:
 apply (unfold lepoll_def)
 apply (rule_tac x = "\<lambda>y \<in> {y \<in> Pow(x) . y\<approx>succ (succ (n))}. 
                       <\<mu> i. i \<in> y, y-{\<mu> i. i \<in> y}>" in exI)
-apply (rule_tac d = "%z. cons (fst(z), snd(z))" in lam_injective)
+apply (rule_tac d = "\<lambda>z. cons (fst(z), snd(z))" in lam_injective)
  apply (blast intro!: Diff_sing_eqpoll intro: InfCard_Least_in)
 apply (simp, blast intro: InfCard_Least_in)
 done
@@ -147,7 +147,7 @@ lemma succ_lepoll_succ_succ:
 apply (unfold lepoll_def)
 apply (rule_tac x = "\<lambda>z \<in> {y\<in>Pow(x). y\<approx>succ(n)}. cons(succ(\<Union>(z)), z)" 
        in exI)
-apply (rule_tac d = "%z. z-{\<Union>(z) }" in lam_injective)
+apply (rule_tac d = "\<lambda>z. z-{\<Union>(z) }" in lam_injective)
 apply (blast intro!: succ_Union_in_x succ_Union_not_mem
              intro: cons_eqpoll_succ Ord_in_Ord
              dest!: InfCard_is_Card [THEN Card_is_Ord])
@@ -185,7 +185,7 @@ lemma subsets_eqpoll:
 apply (unfold eqpoll_def)
 apply (erule exE)
 apply (rule_tac x = "\<lambda>X \<in> {Y \<in> Pow (A) . \<exists>f. f \<in> bij (Y, n) }. f``X" in exI)
-apply (rule_tac d = "%Z. converse (f) ``Z" in lam_bijective)
+apply (rule_tac d = "\<lambda>Z. converse (f) ``Z" in lam_bijective)
 apply (fast intro!: bij_is_inj [THEN restrict_bij, THEN bij_converse_bij, 
                                 THEN comp_bij] 
             elim!: bij_is_fun [THEN fun_is_rel, THEN image_subset])

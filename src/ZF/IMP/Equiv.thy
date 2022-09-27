@@ -8,7 +8,7 @@ theory Equiv imports Denotation Com begin
 
 lemma aexp_iff [rule_format]:
   "\<lbrakk>a \<in> aexp; sigma: loc -> nat\<rbrakk> 
-    \<Longrightarrow> \<forall>n. <a,sigma> -a-> n \<longleftrightarrow> A(a,sigma) = n"
+    \<Longrightarrow> \<forall>n. \<langle>a,sigma\<rangle> -a-> n \<longleftrightarrow> A(a,sigma) = n"
   apply (erule aexp.induct)
      apply (force intro!: evala.intros)+
   done
@@ -17,8 +17,8 @@ declare aexp_iff [THEN iffD1, simp]
         aexp_iff [THEN iffD2, intro!]
 
 inductive_cases [elim!]:
-  "<true,sigma> -b-> x"
-  "<false,sigma> -b-> x"
+  "\<langle>true,sigma\<rangle> -b-> x"
+  "\<langle>false,sigma\<rangle> -b-> x"
   "<ROp(f,a0,a1),sigma> -b-> x"
   "<noti(b),sigma> -b-> x"
   "<b0 andi b1,sigma> -b-> x"
@@ -27,7 +27,7 @@ inductive_cases [elim!]:
 
 lemma bexp_iff [rule_format]:
   "\<lbrakk>b \<in> bexp; sigma: loc -> nat\<rbrakk> 
-    \<Longrightarrow> \<forall>w. <b,sigma> -b-> w \<longleftrightarrow> B(b,sigma) = w"
+    \<Longrightarrow> \<forall>w. \<langle>b,sigma\<rangle> -b-> w \<longleftrightarrow> B(b,sigma) = w"
   apply (erule bexp.induct) 
   apply (auto intro!: evalb.intros)
   done
@@ -35,7 +35,7 @@ lemma bexp_iff [rule_format]:
 declare bexp_iff [THEN iffD1, simp]
         bexp_iff [THEN iffD2, intro!]
 
-lemma com1: "<c,sigma> -c-> sigma' \<Longrightarrow> <sigma,sigma'> \<in> C(c)"
+lemma com1: "\<langle>c,sigma\<rangle> -c-> sigma' \<Longrightarrow> <sigma,sigma'> \<in> C(c)"
   apply (erule evalc.induct)
         apply (simp_all (no_asm_simp))
      txt \<open>\<open>assign\<close>\<close>

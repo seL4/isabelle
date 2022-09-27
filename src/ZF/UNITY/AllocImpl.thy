@@ -25,7 +25,7 @@ axiomatization where
 
 definition
   "alloc_giv_act \<equiv>
-       {<s, t> \<in> state*state.
+       {\<langle>s, t\<rangle> \<in> state*state.
         \<exists>k. k = length(s`giv) \<and>
             t = s(giv := s`giv @ [nth(k, s`ask)],
                   available_tok := s`available_tok #- nth(k, s`ask)) \<and>
@@ -33,7 +33,7 @@ definition
 
 definition
   "alloc_rel_act \<equiv>
-       {<s, t> \<in> state*state.
+       {\<langle>s, t\<rangle> \<in> state*state.
         t = s(available_tok := s`available_tok #+ nth(s`NbR, s`rel),
               NbR := succ(s`NbR)) \<and>
         s`NbR < length(s`rel)}"
@@ -202,7 +202,7 @@ lemma alloc_prog_ask_prefix_giv:
 apply (auto intro!: AlwaysI simp add: guar_def)
 apply (subgoal_tac "G \<in> preserves (lift (giv))")
  prefer 2 apply (simp add: alloc_prog_ok_iff)
-apply (rule_tac P = "%x y. <x,y> \<in> prefix(tokbag)" and A = "list(nat)"
+apply (rule_tac P = "\<lambda>x y. \<langle>x,y\<rangle> \<in> prefix(tokbag)" and A = "list(nat)"
        in stable_Join_Stable)
 apply safety
  prefer 2 apply (simp add: lift_def, clarify)
@@ -573,7 +573,7 @@ lemma (in alloc_progress) length_ask_giv2:
 apply (rule LeadsTo_weaken_R)
 apply (rule Always_LeadsToD [OF safety length_ask_giv], assumption+, clarify)
 apply (simp add: INT_iff)
-apply (drule_tac x = "length(x ` giv)" and P = "%x. f (x) \<le> NbT" for f in bspec)
+apply (drule_tac x = "length(x ` giv)" and P = "\<lambda>x. f (x) \<le> NbT" for f in bspec)
 apply simp
 apply (blast intro: le_trans)
 done

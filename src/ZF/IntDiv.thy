@@ -34,65 +34,65 @@ imports Bin OrderArith
 begin
 
 definition
-  quorem :: "[i,i] => o"  where
-    "quorem \<equiv> %<a,b> <q,r>.
+  quorem :: "[i,i] \<Rightarrow> o"  where
+    "quorem \<equiv> \<lambda>\<langle>a,b\<rangle> \<langle>q,r\<rangle>.
                       a = b$*q $+ r \<and>
                       (#0$<b \<and> #0$\<le>r \<and> r$<b | \<not>(#0$<b) \<and> b$<r \<and> r $\<le> #0)"
 
 definition
-  adjust :: "[i,i] => i"  where
-    "adjust(b) \<equiv> %<q,r>. if #0 $\<le> r$-b then <#2$*q $+ #1,r$-b>
+  adjust :: "[i,i] \<Rightarrow> i"  where
+    "adjust(b) \<equiv> \<lambda>\<langle>q,r\<rangle>. if #0 $\<le> r$-b then <#2$*q $+ #1,r$-b>
                           else <#2$*q,r>"
 
 
 (** the division algorithm **)
 
 definition
-  posDivAlg :: "i => i"  where
+  posDivAlg :: "i \<Rightarrow> i"  where
 (*for the case a>=0, b>0*)
-(*recdef posDivAlg "inv_image less_than (%(a,b). nat_of(a $- b $+ #1))"*)
+(*recdef posDivAlg "inv_image less_than (\<lambda>\<langle>a,b\<rangle>. nat_of(a $- b $+ #1))"*)
     "posDivAlg(ab) \<equiv>
-       wfrec(measure(int*int, %<a,b>. nat_of (a $- b $+ #1)),
+       wfrec(measure(int*int, \<lambda>\<langle>a,b\<rangle>. nat_of (a $- b $+ #1)),
              ab,
-             %<a,b> f. if (a$<b | b$\<le>#0) then <#0,a>
+             \<lambda>\<langle>a,b\<rangle> f. if (a$<b | b$\<le>#0) then <#0,a>
                        else adjust(b, f ` <a,#2$*b>))"
 
 
-(*for the case a<0, b>0*)
+(*for the case a\<langle>0, b\<rangle>0*)
 definition
-  negDivAlg :: "i => i"  where
-(*recdef negDivAlg "inv_image less_than (%(a,b). nat_of(- a $- b))"*)
+  negDivAlg :: "i \<Rightarrow> i"  where
+(*recdef negDivAlg "inv_image less_than (\<lambda>\<langle>a,b\<rangle>. nat_of(- a $- b))"*)
     "negDivAlg(ab) \<equiv>
-       wfrec(measure(int*int, %<a,b>. nat_of ($- a $- b)),
+       wfrec(measure(int*int, \<lambda>\<langle>a,b\<rangle>. nat_of ($- a $- b)),
              ab,
-             %<a,b> f. if (#0 $\<le> a$+b | b$\<le>#0) then <#-1,a$+b>
+             \<lambda>\<langle>a,b\<rangle> f. if (#0 $\<le> a$+b | b$\<le>#0) then <#-1,a$+b>
                        else adjust(b, f ` <a,#2$*b>))"
 
 (*for the general case @{term"b\<noteq>0"}*)
 
 definition
-  negateSnd :: "i => i"  where
-    "negateSnd \<equiv> %<q,r>. <q, $-r>"
+  negateSnd :: "i \<Rightarrow> i"  where
+    "negateSnd \<equiv> \<lambda>\<langle>q,r\<rangle>. <q, $-r>"
 
   (*The full division algorithm considers all possible signs for a, b
     including the special case a=0, b<0, because negDivAlg requires a<0*)
 definition
-  divAlg :: "i => i"  where
+  divAlg :: "i \<Rightarrow> i"  where
     "divAlg \<equiv>
-       %<a,b>. if #0 $\<le> a then
-                  if #0 $\<le> b then posDivAlg (<a,b>)
+       \<lambda>\<langle>a,b\<rangle>. if #0 $\<le> a then
+                  if #0 $\<le> b then posDivAlg (\<langle>a,b\<rangle>)
                   else if a=#0 then <#0,#0>
                        else negateSnd (negDivAlg (<$-a,$-b>))
                else
-                  if #0$<b then negDivAlg (<a,b>)
+                  if #0$<b then negDivAlg (\<langle>a,b\<rangle>)
                   else         negateSnd (posDivAlg (<$-a,$-b>))"
 
 definition
-  zdiv  :: "[i,i]=>i"                    (infixl \<open>zdiv\<close> 70)  where
+  zdiv  :: "[i,i]\<Rightarrow>i"                    (infixl \<open>zdiv\<close> 70)  where
     "a zdiv b \<equiv> fst (divAlg (<intify(a), intify(b)>))"
 
 definition
-  zmod  :: "[i,i]=>i"                    (infixl \<open>zmod\<close> 70)  where
+  zmod  :: "[i,i]\<Rightarrow>i"                    (infixl \<open>zmod\<close> 70)  where
     "a zmod b \<equiv> snd (divAlg (<intify(a), intify(b)>))"
 
 
@@ -380,7 +380,7 @@ done
 
 
 lemma unique_quotient:
-     "\<lbrakk>quorem (<a,b>, <q,r>);  quorem (<a,b>, <q',r'>);  b \<in> int; b \<noteq> #0;
+     "\<lbrakk>quorem (\<langle>a,b\<rangle>, \<langle>q,r\<rangle>);  quorem (\<langle>a,b\<rangle>, <q',r'>);  b \<in> int; b \<noteq> #0;
          q \<in> int; q' \<in> int\<rbrakk> \<Longrightarrow> q = q'"
 apply (simp add: split_ifs quorem_def neq_iff_zless)
 apply safe
@@ -391,7 +391,7 @@ apply (blast intro: zle_anti_sym
 done
 
 lemma unique_remainder:
-     "\<lbrakk>quorem (<a,b>, <q,r>);  quorem (<a,b>, <q',r'>);  b \<in> int; b \<noteq> #0;
+     "\<lbrakk>quorem (\<langle>a,b\<rangle>, \<langle>q,r\<rangle>);  quorem (\<langle>a,b\<rangle>, <q',r'>);  b \<in> int; b \<noteq> #0;
          q \<in> int; q' \<in> int;
          r \<in> int; r' \<in> int\<rbrakk> \<Longrightarrow> r = r'"
 apply (subgoal_tac "q = q'")
@@ -404,7 +404,7 @@ subsection\<open>Correctness of posDivAlg,
            the Division Algorithm for \<open>a\<ge>0\<close> and \<open>b>0\<close>\<close>
 
 lemma adjust_eq [simp]:
-     "adjust(b, <q,r>) = (let diff = r$-b in
+     "adjust(b, \<langle>q,r\<rangle>) = (let diff = r$-b in
                           if #0 $\<le> diff then <#2$*q $+ #1,diff>
                                          else <#2$*q,r>)"
 by (simp add: Let_def adjust_def)
@@ -421,7 +421,7 @@ lemmas posDivAlg_unfold = def_wfrec [OF posDivAlg_def wf_measure]
 
 lemma posDivAlg_eqn:
      "\<lbrakk>#0 $< b; a \<in> int; b \<in> int\<rbrakk> \<Longrightarrow>
-      posDivAlg(<a,b>) =
+      posDivAlg(\<langle>a,b\<rangle>) =
        (if a$<b then <#0,a> else adjust(b, posDivAlg (<a, #2$*b>)))"
 apply (rule posDivAlg_unfold [THEN trans])
 apply (simp add: vimage_iff not_zless_iff_zle [THEN iff_sym])
@@ -431,10 +431,10 @@ done
 lemma posDivAlg_induct_lemma [rule_format]:
   assumes prem:
         "\<And>a b. \<lbrakk>a \<in> int; b \<in> int;
-                   \<not> (a $< b | b $\<le> #0) \<longrightarrow> P(<a, #2 $* b>)\<rbrakk> \<Longrightarrow> P(<a,b>)"
-  shows "<u,v> \<in> int*int \<Longrightarrow> P(<u,v>)"
-using wf_measure [where A = "int*int" and f = "%<a,b>.nat_of (a $- b $+ #1)"]
-proof (induct "<u,v>" arbitrary: u v rule: wf_induct)
+                   \<not> (a $< b | b $\<le> #0) \<longrightarrow> P(<a, #2 $* b>)\<rbrakk> \<Longrightarrow> P(\<langle>a,b\<rangle>)"
+  shows "\<langle>u,v\<rangle> \<in> int*int \<Longrightarrow> P(\<langle>u,v\<rangle>)"
+using wf_measure [where A = "int*int" and f = "\<lambda>\<langle>a,b\<rangle>.nat_of (a $- b $+ #1)"]
+proof (induct "\<langle>u,v\<rangle>" arbitrary: u v rule: wf_induct)
   case (step x)
   hence uv: "u \<in> int" "v \<in> int" by auto
   thus ?case
@@ -452,7 +452,7 @@ lemma posDivAlg_induct [consumes 2]:
       and ih: "\<And>a b. \<lbrakk>a \<in> int; b \<in> int;
                      \<not> (a $< b | b $\<le> #0) \<longrightarrow> P(a, #2 $* b)\<rbrakk> \<Longrightarrow> P(a,b)"
   shows "P(u,v)"
-apply (subgoal_tac "(%<x,y>. P (x,y)) (<u,v>)")
+apply (subgoal_tac "(\<lambda>\<langle>x,y\<rangle>. P (x,y)) (\<langle>u,v\<rangle>)")
 apply simp
 apply (rule posDivAlg_induct_lemma)
 apply (simp (no_asm_use))
@@ -526,7 +526,7 @@ by (auto dest: zless_not_sym
 
 (*Typechecking for posDivAlg*)
 lemma posDivAlg_type [rule_format]:
-     "\<lbrakk>a \<in> int; b \<in> int\<rbrakk> \<Longrightarrow> posDivAlg(<a,b>) \<in> int * int"
+     "\<lbrakk>a \<in> int; b \<in> int\<rbrakk> \<Longrightarrow> posDivAlg(\<langle>a,b\<rangle>) \<in> int * int"
 apply (rule_tac u = "a" and v = "b" in posDivAlg_induct)
 apply assumption+
 apply (case_tac "#0 $< ba")
@@ -542,7 +542,7 @@ done
 (*Correctness of posDivAlg: it computes quotients correctly*)
 lemma posDivAlg_correct [rule_format]:
      "\<lbrakk>a \<in> int; b \<in> int\<rbrakk>
-      \<Longrightarrow> #0 $\<le> a \<longrightarrow> #0 $< b \<longrightarrow> quorem (<a,b>, posDivAlg(<a,b>))"
+      \<Longrightarrow> #0 $\<le> a \<longrightarrow> #0 $< b \<longrightarrow> quorem (\<langle>a,b\<rangle>, posDivAlg(\<langle>a,b\<rangle>))"
 apply (rule_tac u = "a" and v = "b" in posDivAlg_induct)
 apply auto
    apply (simp_all add: quorem_def)
@@ -576,7 +576,7 @@ lemmas negDivAlg_unfold = def_wfrec [OF negDivAlg_def wf_measure]
 
 lemma negDivAlg_eqn:
      "\<lbrakk>#0 $< b; a \<in> int; b \<in> int\<rbrakk> \<Longrightarrow>
-      negDivAlg(<a,b>) =
+      negDivAlg(\<langle>a,b\<rangle>) =
        (if #0 $\<le> a$+b then <#-1,a$+b>
                        else adjust(b, negDivAlg (<a, #2$*b>)))"
 apply (rule negDivAlg_unfold [THEN trans])
@@ -588,10 +588,10 @@ lemma negDivAlg_induct_lemma [rule_format]:
   assumes prem:
         "\<And>a b. \<lbrakk>a \<in> int; b \<in> int;
                    \<not> (#0 $\<le> a $+ b | b $\<le> #0) \<longrightarrow> P(<a, #2 $* b>)\<rbrakk>
-                \<Longrightarrow> P(<a,b>)"
-  shows "<u,v> \<in> int*int \<Longrightarrow> P(<u,v>)"
-using wf_measure [where A = "int*int" and f = "%<a,b>.nat_of ($- a $- b)"]
-proof (induct "<u,v>" arbitrary: u v rule: wf_induct)
+                \<Longrightarrow> P(\<langle>a,b\<rangle>)"
+  shows "\<langle>u,v\<rangle> \<in> int*int \<Longrightarrow> P(\<langle>u,v\<rangle>)"
+using wf_measure [where A = "int*int" and f = "\<lambda>\<langle>a,b\<rangle>.nat_of ($- a $- b)"]
+proof (induct "\<langle>u,v\<rangle>" arbitrary: u v rule: wf_induct)
   case (step x)
   hence uv: "u \<in> int" "v \<in> int" by auto
   thus ?case
@@ -609,7 +609,7 @@ lemma negDivAlg_induct [consumes 2]:
                          \<not> (#0 $\<le> a $+ b | b $\<le> #0) \<longrightarrow> P(a, #2 $* b)\<rbrakk>
                       \<Longrightarrow> P(a,b)"
   shows "P(u,v)"
-apply (subgoal_tac " (%<x,y>. P (x,y)) (<u,v>)")
+apply (subgoal_tac " (\<lambda>\<langle>x,y\<rangle>. P (x,y)) (\<langle>u,v\<rangle>)")
 apply simp
 apply (rule negDivAlg_induct_lemma)
 apply (simp (no_asm_use))
@@ -620,7 +620,7 @@ done
 
 (*Typechecking for negDivAlg*)
 lemma negDivAlg_type:
-     "\<lbrakk>a \<in> int; b \<in> int\<rbrakk> \<Longrightarrow> negDivAlg(<a,b>) \<in> int * int"
+     "\<lbrakk>a \<in> int; b \<in> int\<rbrakk> \<Longrightarrow> negDivAlg(\<langle>a,b\<rangle>) \<in> int * int"
 apply (rule_tac u = "a" and v = "b" in negDivAlg_induct)
 apply assumption+
 apply (case_tac "#0 $< ba")
@@ -638,7 +638,7 @@ done
   It doesn't work if a=0 because the 0/b=0 rather than -1*)
 lemma negDivAlg_correct [rule_format]:
      "\<lbrakk>a \<in> int; b \<in> int\<rbrakk>
-      \<Longrightarrow> a $< #0 \<longrightarrow> #0 $< b \<longrightarrow> quorem (<a,b>, negDivAlg(<a,b>))"
+      \<Longrightarrow> a $< #0 \<longrightarrow> #0 $< b \<longrightarrow> quorem (\<langle>a,b\<rangle>, negDivAlg(\<langle>a,b\<rangle>))"
 apply (rule_tac u = "a" and v = "b" in negDivAlg_induct)
   apply auto
    apply (simp_all add: quorem_def)
@@ -687,7 +687,7 @@ apply (subst negDivAlg_unfold)
 apply (simp add: linear_arith_lemma integ_of_type vimage_iff)
 done
 
-lemma negateSnd_eq [simp]: "negateSnd (<q,r>) = <q, $-r>"
+lemma negateSnd_eq [simp]: "negateSnd (\<langle>q,r\<rangle>) = <q, $-r>"
 apply (unfold negateSnd_def)
 apply auto
 done
@@ -699,7 +699,7 @@ done
 
 lemma quorem_neg:
      "\<lbrakk>quorem (<$-a,$-b>, qr);  a \<in> int;  b \<in> int;  qr \<in> int * int\<rbrakk>
-      \<Longrightarrow> quorem (<a,b>, negateSnd(qr))"
+      \<Longrightarrow> quorem (\<langle>a,b\<rangle>, negateSnd(qr))"
 apply clarify
 apply (auto elim: zless_asym simp add: quorem_def zless_zminus)
 txt\<open>linear arithmetic from here on\<close>
@@ -711,7 +711,7 @@ apply (blast dest: zle_zless_trans)+
 done
 
 lemma divAlg_correct:
-     "\<lbrakk>b \<noteq> #0;  a \<in> int;  b \<in> int\<rbrakk> \<Longrightarrow> quorem (<a,b>, divAlg(<a,b>))"
+     "\<lbrakk>b \<noteq> #0;  a \<in> int;  b \<in> int\<rbrakk> \<Longrightarrow> quorem (\<langle>a,b\<rangle>, divAlg(\<langle>a,b\<rangle>))"
 apply (auto simp add: quorem_0 divAlg_def)
 apply (safe intro!: quorem_neg posDivAlg_correct negDivAlg_correct
                     posDivAlg_type negDivAlg_type)
@@ -720,7 +720,7 @@ txt\<open>linear arithmetic from here on\<close>
 apply (auto simp add: zle_def)
 done
 
-lemma divAlg_type: "\<lbrakk>a \<in> int;  b \<in> int\<rbrakk> \<Longrightarrow> divAlg(<a,b>) \<in> int * int"
+lemma divAlg_type: "\<lbrakk>a \<in> int;  b \<in> int\<rbrakk> \<Longrightarrow> divAlg(\<langle>a,b\<rangle>) \<in> int * int"
 apply (auto simp add: divAlg_def)
 apply (auto simp add: posDivAlg_type negDivAlg_type negateSnd_type)
 done
@@ -802,20 +802,20 @@ lemmas neg_mod_sign = neg_mod [THEN conjunct1]
 
 lemma quorem_div_mod:
      "\<lbrakk>b \<noteq> #0;  a \<in> int;  b \<in> int\<rbrakk>
-      \<Longrightarrow> quorem (<a,b>, <a zdiv b, a zmod b>)"
+      \<Longrightarrow> quorem (\<langle>a,b\<rangle>, <a zdiv b, a zmod b>)"
 apply (cut_tac a = "a" and b = "b" in zmod_zdiv_equality)
 apply (auto simp add: quorem_def neq_iff_zless pos_mod_sign pos_mod_bound
                       neg_mod_sign neg_mod_bound)
 done
 
-(*Surely quorem(<a,b>,<q,r>) implies @{term"a \<in> int"}, but it doesn't matter*)
+(*Surely quorem(\<langle>a,b\<rangle>,\<langle>q,r\<rangle>) implies @{term"a \<in> int"}, but it doesn't matter*)
 lemma quorem_div:
-     "\<lbrakk>quorem(<a,b>,<q,r>);  b \<noteq> #0;  a \<in> int;  b \<in> int;  q \<in> int\<rbrakk>
+     "\<lbrakk>quorem(\<langle>a,b\<rangle>,\<langle>q,r\<rangle>);  b \<noteq> #0;  a \<in> int;  b \<in> int;  q \<in> int\<rbrakk>
       \<Longrightarrow> a zdiv b = q"
 by (blast intro: quorem_div_mod [THEN unique_quotient])
 
 lemma quorem_mod:
-     "\<lbrakk>quorem(<a,b>,<q,r>); b \<noteq> #0; a \<in> int; b \<in> int; q \<in> int; r \<in> int\<rbrakk>
+     "\<lbrakk>quorem(\<langle>a,b\<rangle>,\<langle>q,r\<rangle>); b \<noteq> #0; a \<in> int; b \<in> int; q \<in> int; r \<in> int\<rbrakk>
       \<Longrightarrow> a zmod b = r"
 by (blast intro: quorem_div_mod [THEN unique_remainder])
 
@@ -953,7 +953,7 @@ apply (cut_tac w = "#0" and z = "q" in add1_zle_iff)
 apply (simp add: int_0_less_mult_iff)
 apply (blast dest: zless_trans)
 (*linear arithmetic...*)
-apply (drule_tac t = "%x. x $- r" in subst_context)
+apply (drule_tac t = "\<lambda>x. x $- r" in subst_context)
 apply (drule sym)
 apply (simp add: zcompare_rls)
 done
@@ -963,12 +963,12 @@ apply (subgoal_tac "#0 $\<le> a$* (#1$-q)")
  apply (simp add: int_0_le_mult_iff zcompare_rls)
  apply (blast dest: zle_zless_trans)
 apply (simp add: zdiff_zmult_distrib2)
-apply (drule_tac t = "%x. x $- a $* q" in subst_context)
+apply (drule_tac t = "\<lambda>x. x $- a $* q" in subst_context)
 apply (simp add: zcompare_rls)
 done
 
 lemma self_quotient:
-     "\<lbrakk>quorem(<a,a>,<q,r>);  a \<in> int;  q \<in> int;  a \<noteq> #0\<rbrakk> \<Longrightarrow> q = #1"
+     "\<lbrakk>quorem(\<langle>a,a\<rangle>,\<langle>q,r\<rangle>);  a \<in> int;  q \<in> int;  a \<noteq> #0\<rbrakk> \<Longrightarrow> q = #1"
 apply (simp add: split_ifs quorem_def neq_iff_zless)
 apply (rule zle_anti_sym)
 apply safe
@@ -984,7 +984,7 @@ apply (force intro: self_quotient_aux1 self_quotient_aux2
 done
 
 lemma self_remainder:
-     "\<lbrakk>quorem(<a,a>,<q,r>); a \<in> int; q \<in> int; r \<in> int; a \<noteq> #0\<rbrakk> \<Longrightarrow> r = #0"
+     "\<lbrakk>quorem(\<langle>a,a\<rangle>,\<langle>q,r\<rangle>); a \<in> int; q \<in> int; r \<in> int; a \<noteq> #0\<rbrakk> \<Longrightarrow> r = #0"
 apply (frule self_quotient)
 apply (auto simp add: quorem_def)
 done
@@ -1291,7 +1291,7 @@ subsection\<open>More algebraic laws for zdiv and zmod\<close>
 (** proving (a*b) zdiv c = a $* (b zdiv c) $+ a * (b zmod c) **)
 
 lemma zmult1_lemma:
-     "\<lbrakk>quorem(<b,c>, <q,r>);  c \<in> int;  c \<noteq> #0\<rbrakk>
+     "\<lbrakk>quorem(\<langle>b,c\<rangle>, \<langle>q,r\<rangle>);  c \<in> int;  c \<noteq> #0\<rbrakk>
       \<Longrightarrow> quorem (<a$*b, c>, <a$*q $+ (a$*r) zdiv c, (a$*r) zmod c>)"
 apply (auto simp add: split_ifs quorem_def neq_iff_zless zadd_zmult_distrib2
                       pos_mod_sign pos_mod_bound neg_mod_sign neg_mod_bound)
@@ -1354,7 +1354,7 @@ lemma zmod_zmult_self2 [simp]: "(b$*a) zmod b = #0"
             a zdiv c $+ b zdiv c $+ ((a zmod c $+ b zmod c) zdiv c) **)
 
 lemma zadd1_lemma:
-     "\<lbrakk>quorem(<a,c>, <aq,ar>);  quorem(<b,c>, <bq,br>);
+     "\<lbrakk>quorem(\<langle>a,c\<rangle>, \<langle>aq,ar\<rangle>);  quorem(\<langle>b,c\<rangle>, \<langle>bq,br\<rangle>);
          c \<in> int;  c \<noteq> #0\<rbrakk>
       \<Longrightarrow> quorem (<a$+b, c>, <aq $+ bq $+ (ar$+br) zdiv c, (ar$+br) zmod c>)"
 apply (auto simp add: split_ifs quorem_def neq_iff_zless zadd_zmult_distrib2
@@ -1511,7 +1511,7 @@ apply (blast intro: zless_imp_zle dest: zle_zless_trans)
 done
 
 lemma zdiv_zmult2_lemma:
-     "\<lbrakk>quorem (<a,b>, <q,r>);  a \<in> int;  b \<in> int;  b \<noteq> #0;  #0 $< c\<rbrakk>
+     "\<lbrakk>quorem (\<langle>a,b\<rangle>, \<langle>q,r\<rangle>);  a \<in> int;  b \<in> int;  b \<noteq> #0;  #0 $< c\<rbrakk>
       \<Longrightarrow> quorem (<a,b$*c>, <q zdiv c, b$*(q zmod c) $+ r>)"
 apply (auto simp add: zmult_ac zmod_zdiv_equality [symmetric] quorem_def
                neq_iff_zless int_0_less_mult_iff

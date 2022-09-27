@@ -9,8 +9,8 @@ theory Constrains
 imports UNITY
 begin
 
-consts traces :: "[i, i] => i"
-  (* Initial states and program => (final state, reversed trace to it)... 
+consts traces :: "[i, i] \<Rightarrow> i"
+  (* Initial states and program \<Rightarrow> (final state, reversed trace to it)... 
       the domain may also be state*list(state) *)
 inductive 
   domains 
@@ -20,13 +20,13 @@ inductive
          (*Initial trace is empty*)
     Init: "s: init \<Longrightarrow> <s,[]> \<in> traces(init,acts)"
 
-    Acts: "\<lbrakk>act:acts;  <s,evs> \<in> traces(init,acts);  <s,s'>: act\<rbrakk>
+    Acts: "\<lbrakk>act:acts;  \<langle>s,evs\<rangle> \<in> traces(init,acts);  <s,s'>: act\<rbrakk>
            \<Longrightarrow> <s', Cons(s,evs)> \<in> traces(init, acts)"
   
   type_intros list.intros UnI1 UnI2 UN_I fieldI2 fieldI1
 
 
-consts reachable :: "i=>i"
+consts reachable :: "i\<Rightarrow>i"
 inductive
   domains
   "reachable(F)" \<subseteq> "Init(F) \<union> (\<Union>act\<in>Acts(F). field(act))"
@@ -40,20 +40,20 @@ inductive
 
   
 definition
-  Constrains :: "[i,i] => i"  (infixl \<open>Co\<close> 60)  where
+  Constrains :: "[i,i] \<Rightarrow> i"  (infixl \<open>Co\<close> 60)  where
   "A Co B \<equiv> {F:program. F:(reachable(F) \<inter> A) co B}"
 
 definition
-  op_Unless  :: "[i, i] => i"  (infixl \<open>Unless\<close> 60)  where
+  op_Unless  :: "[i, i] \<Rightarrow> i"  (infixl \<open>Unless\<close> 60)  where
   "A Unless B \<equiv> (A-B) Co (A \<union> B)"
 
 definition
-  Stable     :: "i => i"  where
+  Stable     :: "i \<Rightarrow> i"  where
   "Stable(A) \<equiv> A Co A"
 
 definition
   (*Always is the weak form of "invariant"*)
-  Always :: "i => i"  where
+  Always :: "i \<Rightarrow> i"  where
   "Always(A) \<equiv> initially(A) \<inter> Stable(A)"
 
 
@@ -80,7 +80,7 @@ by (cut_tac reachable_type, auto)
 declare state_Int_reachable [iff]
 
 lemma reachable_equiv_traces: 
-"F \<in> program \<Longrightarrow> reachable(F)={s \<in> state. \<exists>evs. <s,evs>:traces(Init(F), Acts(F))}"
+"F \<in> program \<Longrightarrow> reachable(F)={s \<in> state. \<exists>evs. \<langle>s,evs\<rangle>:traces(Init(F), Acts(F))}"
 apply (rule equalityI, safe)
 apply (blast dest: reachable_type [THEN subsetD])
 apply (erule_tac [2] traces.induct)

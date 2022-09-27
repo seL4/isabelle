@@ -79,7 +79,7 @@ by (blast intro: subset_Finite)
 lemma succ_not_lepoll_lemma:
      "\<lbrakk>\<not>(\<exists>x \<in> A. f`x=y); f \<in> inj(A, B); y \<in> B\<rbrakk>   
       \<Longrightarrow> (\<lambda>a \<in> succ(A). if(a=A, y, f`a)) \<in> inj(succ(A), B)"
-apply (rule_tac d = "%z. if (z=y, A, converse (f) `z) " in lam_injective)
+apply (rule_tac d = "\<lambda>z. if (z=y, A, converse (f) `z) " in lam_injective)
 apply (force simp add: inj_is_fun [THEN apply_type])
 (*this preliminary simplification prevents looping somehow*)
 apply (simp (no_asm_simp))

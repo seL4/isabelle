@@ -13,7 +13,7 @@ text\<open>Distributor specification (the number of outputs is Nclients)\<close>
 text\<open>spec (14)\<close>
 
 definition
-  distr_follows :: "[i, i, i, i =>i] =>i"  where
+  distr_follows :: "[i, i, i, i \<Rightarrow>i] \<Rightarrow>i"  where
     "distr_follows(A, In, iIn, Out) \<equiv>
      (lift(In) IncreasingWrt prefix(A)/list(A)) \<inter>
      (lift(iIn) IncreasingWrt prefix(nat)/list(nat)) \<inter>
@@ -22,17 +22,17 @@ definition
          (\<Inter>n \<in> Nclients.
           lift(Out(n))
               Fols
-          (%s. sublist(s`In, {k \<in> nat. k<length(s`iIn) \<and> nth(k, s`iIn) = n}))
+          (\<lambda>s. sublist(s`In, {k \<in> nat. k<length(s`iIn) \<and> nth(k, s`iIn) = n}))
           Wrt prefix(A)/list(A))"
 
 definition
-  distr_allowed_acts :: "[i=>i]=>i"  where
+  distr_allowed_acts :: "[i\<Rightarrow>i]\<Rightarrow>i"  where
     "distr_allowed_acts(Out) \<equiv>
      {D \<in> program. AllowedActs(D) =
      cons(id(state), \<Union>G \<in> (\<Inter>n\<in>nat. preserves(lift(Out(n)))). Acts(G))}"
 
 definition
-  distr_spec :: "[i, i, i, i =>i]=>i"  where
+  distr_spec :: "[i, i, i, i \<Rightarrow>i]\<Rightarrow>i"  where
     "distr_spec(A, In, iIn, Out) \<equiv>
      distr_follows(A, In, iIn, Out) \<inter> distr_allowed_acts(Out)"
 
@@ -105,7 +105,7 @@ lemma (in distr) distr_bag_Follows_lemma:
    D \<squnion> G \<in> Always({s \<in> state.
           \<forall>elt \<in> set_of_list(s`iIn). elt < Nclients})\<rbrakk>
   \<Longrightarrow> D \<squnion> G \<in> Always
-          ({s \<in> state. msetsum(%n. bag_of (sublist(s`In,
+          ({s \<in> state. msetsum(\<lambda>n. bag_of (sublist(s`In,
                        {k \<in> nat. k < length(s`iIn) \<and>
                           nth(k, s`iIn)= n})),
                          Nclients, A) =
@@ -131,7 +131,7 @@ apply (rename_tac m)
 apply (subgoal_tac "length (s ` iIn) \<in> nat")
 apply typecheck
 apply (subgoal_tac "m \<in> nat")
-apply (drule_tac x = "nth(m, s`iIn) " and P = "%elt. X (elt) \<longrightarrow> elt<Nclients" for X in bspec)
+apply (drule_tac x = "nth(m, s`iIn) " and P = "\<lambda>elt. X (elt) \<longrightarrow> elt<Nclients" for X in bspec)
 apply (simp add: ltI)
 apply (simp_all add: Ord_mem_iff_lt)
 apply (blast dest: ltD)
@@ -144,9 +144,9 @@ theorem (in distr) distr_bag_Follows:
         Always({s \<in> state. \<forall>elt \<in> set_of_list(s`iIn). elt < Nclients}))
       guarantees
        (\<Inter>n \<in> Nclients.
-        (%s. msetsum(%i. bag_of(s`Out(i)),  Nclients, A))
+        (\<lambda>s. msetsum(\<lambda>i. bag_of(s`Out(i)),  Nclients, A))
         Fols
-        (%s. bag_of(sublist(s`In, length(s`iIn))))
+        (\<lambda>s. bag_of(sublist(s`In, length(s`iIn))))
         Wrt MultLe(A, r)/Mult(A))"
 apply (cut_tac distr_spec)
 apply (rule guaranteesI, clarify)

@@ -10,7 +10,7 @@ theory Binary_Trees imports ZF begin
 subsection \<open>Datatype definition\<close>
 
 consts
-  bt :: "i => i"
+  bt :: "i \<Rightarrow> i"
 
 datatype "bt(A)" =
   Lf | Br ("a \<in> A", "t1 \<in> bt(A)", "t2 \<in> bt(A)")
@@ -66,7 +66,7 @@ lemma bt_rec_type:
 
 subsection \<open>Number of nodes, with an example of tail-recursion\<close>
 
-consts  n_nodes :: "i => i"
+consts  n_nodes :: "i \<Rightarrow> i"
 primrec
   "n_nodes(Lf) = 0"
   "n_nodes(Br(a, l, r)) = succ(n_nodes(l) #+ n_nodes(r))"
@@ -74,7 +74,7 @@ primrec
 lemma n_nodes_type [simp]: "t \<in> bt(A) \<Longrightarrow> n_nodes(t) \<in> nat"
   by (induct set: bt) auto
 
-consts  n_nodes_aux :: "i => i"
+consts  n_nodes_aux :: "i \<Rightarrow> i"
 primrec
   "n_nodes_aux(Lf) = (\<lambda>k \<in> nat. k)"
   "n_nodes_aux(Br(a, l, r)) =
@@ -88,7 +88,7 @@ lemma n_nodes_aux_eq:
   done
 
 definition
-  n_nodes_tail :: "i => i"  where
+  n_nodes_tail :: "i \<Rightarrow> i"  where
   "n_nodes_tail(t) \<equiv> n_nodes_aux(t) ` 0"
 
 lemma "t \<in> bt(A) \<Longrightarrow> n_nodes_tail(t) = n_nodes(t)"
@@ -98,7 +98,7 @@ lemma "t \<in> bt(A) \<Longrightarrow> n_nodes_tail(t) = n_nodes(t)"
 subsection \<open>Number of leaves\<close>
 
 consts
-  n_leaves :: "i => i"
+  n_leaves :: "i \<Rightarrow> i"
 primrec
   "n_leaves(Lf) = 1"
   "n_leaves(Br(a, l, r)) = n_leaves(l) #+ n_leaves(r)"
@@ -110,7 +110,7 @@ lemma n_leaves_type [simp]: "t \<in> bt(A) \<Longrightarrow> n_leaves(t) \<in> n
 subsection \<open>Reflecting trees\<close>
 
 consts
-  bt_reflect :: "i => i"
+  bt_reflect :: "i \<Rightarrow> i"
 primrec
   "bt_reflect(Lf) = Lf"
   "bt_reflect(Br(a, l, r)) = Br(a, bt_reflect(r), bt_reflect(l))"

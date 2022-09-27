@@ -8,24 +8,24 @@ section\<open>Equivalence Relations\<close>
 theory EquivClass imports Trancl Perm begin
 
 definition
-  quotient   :: "[i,i]=>i"    (infixl \<open>'/'/\<close> 90)  (*set of equiv classes*)  where
+  quotient   :: "[i,i]\<Rightarrow>i"    (infixl \<open>'/'/\<close> 90)  (*set of equiv classes*)  where
       "A//r \<equiv> {r``{x} . x \<in> A}"
 
 definition
-  congruent  :: "[i,i=>i]=>o"  where
-      "congruent(r,b) \<equiv> \<forall>y z. <y,z>:r \<longrightarrow> b(y)=b(z)"
+  congruent  :: "[i,i\<Rightarrow>i]\<Rightarrow>o"  where
+      "congruent(r,b) \<equiv> \<forall>y z. \<langle>y,z\<rangle>:r \<longrightarrow> b(y)=b(z)"
 
 definition
-  congruent2 :: "[i,i,[i,i]=>i]=>o"  where
+  congruent2 :: "[i,i,[i,i]\<Rightarrow>i]\<Rightarrow>o"  where
       "congruent2(r1,r2,b) \<equiv> \<forall>y1 z1 y2 z2.
-           <y1,z1>:r1 \<longrightarrow> <y2,z2>:r2 \<longrightarrow> b(y1,y2) = b(z1,z2)"
+           \<langle>y1,z1\<rangle>:r1 \<longrightarrow> \<langle>y2,z2\<rangle>:r2 \<longrightarrow> b(y1,y2) = b(z1,z2)"
 
 abbreviation
-  RESPECTS ::"[i=>i, i] => o"  (infixr \<open>respects\<close> 80) where
+  RESPECTS ::"[i\<Rightarrow>i, i] \<Rightarrow> o"  (infixr \<open>respects\<close> 80) where
   "f respects r \<equiv> congruent(r,f)"
 
 abbreviation
-  RESPECTS2 ::"[i=>i=>i, i] => o"  (infixr \<open>respects2 \<close> 80) where
+  RESPECTS2 ::"[i\<Rightarrow>i\<Rightarrow>i, i] \<Rightarrow> o"  (infixr \<open>respects2 \<close> 80) where
   "f respects2 r \<equiv> congruent2(r,r,f)"
     \<comment> \<open>Abbreviation for the common case where the relations are identical\<close>
 
@@ -54,18 +54,18 @@ lemma comp_equivI:
     "\<lbrakk>converse(r) O r = r;  domain(r) = A\<rbrakk> \<Longrightarrow> equiv(A,r)"
 apply (unfold equiv_def refl_def sym_def trans_def)
 apply (erule equalityE)
-apply (subgoal_tac "\<forall>x y. <x,y> \<in> r \<longrightarrow> <y,x> \<in> r", blast+)
+apply (subgoal_tac "\<forall>x y. \<langle>x,y\<rangle> \<in> r \<longrightarrow> \<langle>y,x\<rangle> \<in> r", blast+)
 done
 
 (** Equivalence classes **)
 
 (*Lemma for the next result*)
 lemma equiv_class_subset:
-    "\<lbrakk>sym(r);  trans(r);  <a,b>: r\<rbrakk> \<Longrightarrow> r``{a} \<subseteq> r``{b}"
+    "\<lbrakk>sym(r);  trans(r);  \<langle>a,b\<rangle>: r\<rbrakk> \<Longrightarrow> r``{a} \<subseteq> r``{b}"
 by (unfold trans_def sym_def, blast)
 
 lemma equiv_class_eq:
-    "\<lbrakk>equiv(A,r);  <a,b>: r\<rbrakk> \<Longrightarrow> r``{a} = r``{b}"
+    "\<lbrakk>equiv(A,r);  \<langle>a,b\<rangle>: r\<rbrakk> \<Longrightarrow> r``{a} = r``{b}"
 apply (unfold equiv_def)
 apply (safe del: subsetI intro!: equalityI equiv_class_subset)
 apply (unfold sym_def, blast)
@@ -77,26 +77,26 @@ by (unfold equiv_def refl_def, blast)
 
 (*Lemma for the next result*)
 lemma subset_equiv_class:
-    "\<lbrakk>equiv(A,r);  r``{b} \<subseteq> r``{a};  b \<in> A\<rbrakk> \<Longrightarrow> <a,b>: r"
+    "\<lbrakk>equiv(A,r);  r``{b} \<subseteq> r``{a};  b \<in> A\<rbrakk> \<Longrightarrow> \<langle>a,b\<rangle>: r"
 by (unfold equiv_def refl_def, blast)
 
-lemma eq_equiv_class: "\<lbrakk>r``{a} = r``{b};  equiv(A,r);  b \<in> A\<rbrakk> \<Longrightarrow> <a,b>: r"
+lemma eq_equiv_class: "\<lbrakk>r``{a} = r``{b};  equiv(A,r);  b \<in> A\<rbrakk> \<Longrightarrow> \<langle>a,b\<rangle>: r"
 by (assumption | rule equalityD2 subset_equiv_class)+
 
 (*thus r``{a} = r``{b} as well*)
 lemma equiv_class_nondisjoint:
-    "\<lbrakk>equiv(A,r);  x: (r``{a} \<inter> r``{b})\<rbrakk> \<Longrightarrow> <a,b>: r"
+    "\<lbrakk>equiv(A,r);  x: (r``{a} \<inter> r``{b})\<rbrakk> \<Longrightarrow> \<langle>a,b\<rangle>: r"
 by (unfold equiv_def trans_def sym_def, blast)
 
 lemma equiv_type: "equiv(A,r) \<Longrightarrow> r \<subseteq> A*A"
 by (unfold equiv_def, blast)
 
 lemma equiv_class_eq_iff:
-     "equiv(A,r) \<Longrightarrow> <x,y>: r \<longleftrightarrow> r``{x} = r``{y} \<and> x \<in> A \<and> y \<in> A"
+     "equiv(A,r) \<Longrightarrow> \<langle>x,y\<rangle>: r \<longleftrightarrow> r``{x} = r``{y} \<and> x \<in> A \<and> y \<in> A"
 by (blast intro: eq_equiv_class equiv_class_eq dest: equiv_type)
 
 lemma eq_equiv_class_iff:
-     "\<lbrakk>equiv(A,r);  x \<in> A;  y \<in> A\<rbrakk> \<Longrightarrow> r``{x} = r``{y} \<longleftrightarrow> <x,y>: r"
+     "\<lbrakk>equiv(A,r);  x \<in> A;  y \<in> A\<rbrakk> \<Longrightarrow> r``{x} = r``{y} \<longleftrightarrow> \<langle>x,y\<rangle>: r"
 by (blast intro: eq_equiv_class equiv_class_eq dest: equiv_type)
 
 (*** Quotients ***)
@@ -151,7 +151,7 @@ done
 lemma UN_equiv_class_inject:
     "\<lbrakk>equiv(A,r);   b respects r;
         (\<Union>x\<in>X. b(x))=(\<Union>y\<in>Y. b(y));  X \<in> A//r;  Y \<in> A//r;
-        \<And>x y. \<lbrakk>x \<in> A; y \<in> A; b(x)=b(y)\<rbrakk> \<Longrightarrow> <x,y>:r\<rbrakk>
+        \<And>x y. \<lbrakk>x \<in> A; y \<in> A; b(x)=b(y)\<rbrakk> \<Longrightarrow> \<langle>x,y\<rangle>:r\<rbrakk>
      \<Longrightarrow> X=Y"
 apply (unfold quotient_def, safe)
 apply (rule equiv_class_eq, assumption)
@@ -167,7 +167,7 @@ by (unfold congruent_def congruent2_def equiv_def refl_def, blast)
 
 lemma congruent2_implies_congruent_UN:
     "\<lbrakk>equiv(A1,r1);  equiv(A2,r2);  congruent2(r1,r2,b);  a \<in> A2\<rbrakk> \<Longrightarrow>
-     congruent(r1, %x1. \<Union>x2 \<in> r2``{a}. b(x1,x2))"
+     congruent(r1, \<lambda>x1. \<Union>x2 \<in> r2``{a}. b(x1,x2))"
 apply (unfold congruent_def, safe)
 apply (frule equiv_type [THEN subsetD], assumption)
 apply clarify
@@ -197,8 +197,8 @@ done
   than the direct proof*)
 lemma congruent2I:
     "\<lbrakk>equiv(A1,r1);  equiv(A2,r2);
-        \<And>y z w. \<lbrakk>w \<in> A2;  <y,z> \<in> r1\<rbrakk> \<Longrightarrow> b(y,w) = b(z,w);
-        \<And>y z w. \<lbrakk>w \<in> A1;  <y,z> \<in> r2\<rbrakk> \<Longrightarrow> b(w,y) = b(w,z)
+        \<And>y z w. \<lbrakk>w \<in> A2;  \<langle>y,z\<rangle> \<in> r1\<rbrakk> \<Longrightarrow> b(y,w) = b(z,w);
+        \<And>y z w. \<lbrakk>w \<in> A1;  \<langle>y,z\<rangle> \<in> r2\<rbrakk> \<Longrightarrow> b(w,y) = b(w,z)
 \<rbrakk> \<Longrightarrow> congruent2(r1,r2,b)"
 apply (unfold congruent2_def equiv_def refl_def, safe)
 apply (blast intro: trans)
@@ -207,7 +207,7 @@ done
 lemma congruent2_commuteI:
  assumes equivA: "equiv(A,r)"
      and commute: "\<And>y z. \<lbrakk>y \<in> A;  z \<in> A\<rbrakk> \<Longrightarrow> b(y,z) = b(z,y)"
-     and congt:   "\<And>y z w. \<lbrakk>w \<in> A;  <y,z>: r\<rbrakk> \<Longrightarrow> b(w,y) = b(w,z)"
+     and congt:   "\<And>y z w. \<lbrakk>w \<in> A;  \<langle>y,z\<rangle>: r\<rbrakk> \<Longrightarrow> b(w,y) = b(w,z)"
  shows "b respects2 r"
 apply (insert equivA [THEN equiv_type, THEN subsetD])
 apply (rule congruent2I [OF equivA equivA])
@@ -220,9 +220,9 @@ done
 (*Obsolete?*)
 lemma congruent_commuteI:
     "\<lbrakk>equiv(A,r);  Z \<in> A//r;
-        \<And>w. \<lbrakk>w \<in> A\<rbrakk> \<Longrightarrow> congruent(r, %z. b(w,z));
+        \<And>w. \<lbrakk>w \<in> A\<rbrakk> \<Longrightarrow> congruent(r, \<lambda>z. b(w,z));
         \<And>x y. \<lbrakk>x \<in> A;  y \<in> A\<rbrakk> \<Longrightarrow> b(y,x) = b(x,y)
-\<rbrakk> \<Longrightarrow> congruent(r, %w. \<Union>z\<in>Z. b(w,z))"
+\<rbrakk> \<Longrightarrow> congruent(r, \<lambda>w. \<Union>z\<in>Z. b(w,z))"
 apply (simp (no_asm) add: congruent_def)
 apply (safe elim!: quotientE)
 apply (frule equiv_type [THEN subsetD], assumption)

@@ -18,10 +18,10 @@ theory WO2_AC16 imports AC_Equiv AC16_lemmas Cardinal_aux begin
 (**** A recursive definition used in the proof of WO2 \<Longrightarrow> AC16 ****)
 
 definition
-  recfunAC16 :: "[i,i,i,i] => i"  where
+  recfunAC16 :: "[i,i,i,i] \<Rightarrow> i"  where
     "recfunAC16(f,h,i,a) \<equiv> 
          transrec2(i, 0, 
-              %g r. if (\<exists>y \<in> r. h`g \<subseteq> y) then r
+              \<lambda>g r. if (\<exists>y \<in> r. h`g \<subseteq> y) then r
                     else r \<union> {f`(\<mu> i. h`g \<subseteq> f`i \<and> 
                          (\<forall>b<a. (h`b \<subseteq> f`i \<longrightarrow> (\<forall>t \<in> r. \<not> h`b \<subseteq> t))))})"
 
@@ -224,7 +224,7 @@ prefer 2 apply (simp add: recfunAC16_Limit Diff_cancel
                           empty_subsetI [THEN subset_imp_lepoll])
 (*succ case*)
 apply (simp add: recfunAC16_succ
-                 Diff_UN_succ_empty [of _ "%j. recfunAC16(f,g,j,a)"]
+                 Diff_UN_succ_empty [of _ "\<lambda>j. recfunAC16(f,g,j,a)"]
                  empty_subsetI [THEN subset_imp_lepoll])
 apply (best intro: Diff_UN_succ_subset [THEN subset_imp_lepoll]
                    singleton_eqpoll_1 [THEN eqpoll_imp_lepoll] lepoll_trans)
@@ -563,7 +563,7 @@ apply (drule eqpoll_trans [THEN eqpoll_sym,
 apply (elim exE)
 apply (rename_tac h)
 apply (rule_tac x = "\<Union>j<a. recfunAC16 (h,f,j,a) " in exI)
-apply (rule_tac P="%z. Y \<and> (\<forall>x \<in> z. Z(x))"  for Y Z
+apply (rule_tac P="\<lambda>z. Y \<and> (\<forall>x \<in> z. Z(x))"  for Y Z
        in bij_is_surj [THEN surj_image_eq, THEN subst], assumption)
 apply (rule lemma_simp_induct)
 apply (blast del: conjI notI

@@ -9,7 +9,7 @@ imports AC_Equiv
 begin
 
 definition
-  uu    :: "i => i" where
+  uu    :: "i \<Rightarrow> i" where
     "uu(a) \<equiv> {c \<union> {0}. c \<in> a}"
 
 
@@ -48,7 +48,7 @@ done
 theorem (in AC18) AC19
 apply (unfold AC19_def)
 apply (intro allI impI)
-apply (rule AC18 [of _ "%x. x", THEN mp], blast)
+apply (rule AC18 [of _ "\<lambda>x. x", THEN mp], blast)
 done
 
 (* ********************************************************************** *)

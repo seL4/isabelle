@@ -33,10 +33,10 @@ text \<open>
 
 consts contract  :: i
 abbreviation contract_syntax :: "[i,i] \<Rightarrow> o"  (infixl \<open>\<rightarrow>\<^sup>1\<close> 50)
-  where "p \<rightarrow>\<^sup>1 q \<equiv> <p,q> \<in> contract"
+  where "p \<rightarrow>\<^sup>1 q \<equiv> \<langle>p,q\<rangle> \<in> contract"
 
 abbreviation contract_multi :: "[i,i] \<Rightarrow> o"  (infixl \<open>\<rightarrow>\<close> 50)
-  where "p \<rightarrow> q \<equiv> <p,q> \<in> contract^*"
+  where "p \<rightarrow> q \<equiv> \<langle>p,q\<rangle> \<in> contract^*"
 
 inductive
   domains "contract" \<subseteq> "comb \<times> comb"
@@ -54,11 +54,11 @@ text \<open>
 
 consts parcontract :: i
 
-abbreviation parcontract_syntax :: "[i,i] => o"  (infixl \<open>\<Rrightarrow>\<^sup>1\<close> 50)
-  where "p \<Rrightarrow>\<^sup>1 q \<equiv> <p,q> \<in> parcontract"
+abbreviation parcontract_syntax :: "[i,i] \<Rightarrow> o"  (infixl \<open>\<Rrightarrow>\<^sup>1\<close> 50)
+  where "p \<Rrightarrow>\<^sup>1 q \<equiv> \<langle>p,q\<rangle> \<in> parcontract"
 
-abbreviation parcontract_multi :: "[i,i] => o"  (infixl \<open>\<Rrightarrow>\<close> 50)
-  where "p \<Rrightarrow> q \<equiv> <p,q> \<in> parcontract^+"
+abbreviation parcontract_multi :: "[i,i] \<Rightarrow> o"  (infixl \<open>\<Rrightarrow>\<close> 50)
+  where "p \<Rrightarrow> q \<equiv> \<langle>p,q\<rangle> \<in> parcontract^+"
 
 inductive
   domains "parcontract" \<subseteq> "comb \<times> comb"
@@ -78,14 +78,14 @@ definition I :: i
 
 definition diamond :: "i \<Rightarrow> o"
   where "diamond(r) \<equiv>
-    \<forall>x y. <x,y>\<in>r \<longrightarrow> (\<forall>y'. <x,y'>\<in>r \<longrightarrow> (\<exists>z. <y,z>\<in>r \<and> <y',z> \<in> r))"
+    \<forall>x y. \<langle>x,y\<rangle>\<in>r \<longrightarrow> (\<forall>y'. <x,y'>\<in>r \<longrightarrow> (\<exists>z. \<langle>y,z\<rangle>\<in>r \<and> <y',z> \<in> r))"
 
 
 subsection \<open>Transitive closure preserves the Church-Rosser property\<close>
 
 lemma diamond_strip_lemmaD [rule_format]:
-  "\<lbrakk>diamond(r);  <x,y>:r^+\<rbrakk> \<Longrightarrow>
-    \<forall>y'. <x,y'>:r \<longrightarrow> (\<exists>z. <y',z>: r^+ \<and> <y,z>: r)"
+  "\<lbrakk>diamond(r);  \<langle>x,y\<rangle>:r^+\<rbrakk> \<Longrightarrow>
+    \<forall>y'. <x,y'>:r \<longrightarrow> (\<exists>z. <y',z>: r^+ \<and> \<langle>y,z\<rangle>: r)"
   apply (unfold diamond_def)
   apply (erule trancl_induct)
    apply (blast intro: r_into_trancl)

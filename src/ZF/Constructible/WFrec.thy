@@ -12,7 +12,7 @@ subsection\<open>General Lemmas\<close>
 (*Many of these might be useful in WF.thy*)
 
 lemma apply_recfun2:
-    "\<lbrakk>is_recfun(r,a,H,f); <x,i>:f\<rbrakk> \<Longrightarrow> i = H(x, restrict(f,r-``{x}))"
+    "\<lbrakk>is_recfun(r,a,H,f); \<langle>x,i\<rangle>:f\<rbrakk> \<Longrightarrow> i = H(x, restrict(f,r-``{x}))"
 apply (frule apply_recfun) 
  apply (blast dest: is_recfun_type fun_is_rel) 
 apply (simp add: function_apply_equality [OF _ is_recfun_imp_function])
@@ -36,7 +36,7 @@ lemma is_recfun_imp_in_r: "\<lbrakk>is_recfun(r,a,H,f); \<langle>x,i\<rangle> \<
 by (blast dest: is_recfun_type fun_is_rel)
 
 lemma trans_Int_eq:
-      "\<lbrakk>trans(r); <y,x> \<in> r\<rbrakk> \<Longrightarrow> r -`` {x} \<inter> r -`` {y} = r -`` {y}"
+      "\<lbrakk>trans(r); \<langle>y,x\<rangle> \<in> r\<rbrakk> \<Longrightarrow> r -`` {x} \<inter> r -`` {y} = r -`` {y}"
 by (blast intro: transD) 
 
 lemma is_recfun_restrict_idem:
@@ -91,7 +91,7 @@ lemma (in M_basic) is_recfun_equal [rule_format]:
     "\<lbrakk>is_recfun(r,a,H,f);  is_recfun(r,b,H,g);  
        wellfounded(M,r);  trans(r);
        M(f); M(g); M(r); M(x); M(a); M(b)\<rbrakk> 
-     \<Longrightarrow> <x,a> \<in> r \<longrightarrow> <x,b> \<in> r \<longrightarrow> f`x=g`x"
+     \<Longrightarrow> \<langle>x,a\<rangle> \<in> r \<longrightarrow> \<langle>x,b\<rangle> \<in> r \<longrightarrow> f`x=g`x"
 apply (frule_tac f=f in is_recfun_type) 
 apply (frule_tac f=g in is_recfun_type) 
 apply (simp add: is_recfun_def)
@@ -103,8 +103,8 @@ apply clarify
 apply (erule ssubst)+
 apply (simp (no_asm_simp) add: vimage_singleton_iff restrict_def)
 apply (rename_tac x1)
-apply (rule_tac t="%z. H(x1,z)" in subst_context) 
-apply (subgoal_tac "\<forall>y \<in> r-``{x1}. \<forall>z. <y,z>\<in>f \<longleftrightarrow> <y,z>\<in>g")
+apply (rule_tac t="\<lambda>z. H(x1,z)" in subst_context) 
+apply (subgoal_tac "\<forall>y \<in> r-``{x1}. \<forall>z. \<langle>y,z\<rangle>\<in>f \<longleftrightarrow> \<langle>y,z\<rangle>\<in>g")
  apply (blast intro: transD) 
 apply (simp add: apply_iff) 
 apply (blast intro: transD sym) 
@@ -113,7 +113,7 @@ done
 lemma (in M_basic) is_recfun_cut: 
     "\<lbrakk>is_recfun(r,a,H,f);  is_recfun(r,b,H,g);  
        wellfounded(M,r); trans(r); 
-       M(f); M(g); M(r); <b,a> \<in> r\<rbrakk>   
+       M(f); M(g); M(r); \<langle>b,a\<rangle> \<in> r\<rbrakk>   
       \<Longrightarrow> restrict(f, r-``{b}) = g"
 apply (frule_tac f=f in is_recfun_type) 
 apply (rule fun_extension) 
@@ -135,7 +135,7 @@ lemma (in M_basic) is_recfun_relativize:
   "\<lbrakk>M(r); M(f); \<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g))\<rbrakk> 
    \<Longrightarrow> is_recfun(r,a,H,f) \<longleftrightarrow>
        (\<forall>z[M]. z \<in> f \<longleftrightarrow> 
-        (\<exists>x[M]. <x,a> \<in> r \<and> z = <x, H(x, restrict(f, r-``{x}))>))"
+        (\<exists>x[M]. \<langle>x,a\<rangle> \<in> r \<and> z = <x, H(x, restrict(f, r-``{x}))>))"
 apply (simp add: is_recfun_def lam_def)
 apply (safe intro!: equalityI) 
    apply (drule equalityD1 [THEN subsetD], assumption) 
@@ -174,21 +174,21 @@ lemma (in M_basic) restrict_Y_lemma:
        \<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g));  M(Y);
        \<forall>b[M]. 
            b \<in> Y \<longleftrightarrow>
-           (\<exists>x[M]. <x,a1> \<in> r \<and>
+           (\<exists>x[M]. \<langle>x,a1\<rangle> \<in> r \<and>
             (\<exists>y[M]. b = \<langle>x,y\<rangle> \<and> (\<exists>g[M]. is_recfun(r,x,H,g) \<and> y = H(x,g))));
           \<langle>x,a1\<rangle> \<in> r; is_recfun(r,x,H,f); M(f)\<rbrakk>
        \<Longrightarrow> restrict(Y, r -`` {x}) = f"
-apply (subgoal_tac "\<forall>y \<in> r-``{x}. \<forall>z. <y,z>:Y \<longleftrightarrow> <y,z>:f") 
+apply (subgoal_tac "\<forall>y \<in> r-``{x}. \<forall>z. \<langle>y,z\<rangle>:Y \<longleftrightarrow> \<langle>y,z\<rangle>:f") 
  apply (simp (no_asm_simp) add: restrict_def) 
  apply (thin_tac "rall(M,P)" for P)+  \<comment> \<open>essential for efficiency\<close>
  apply (frule is_recfun_type [THEN fun_is_rel], blast)
 apply (frule pair_components_in_M, assumption, clarify) 
 apply (rule iffI)
- apply (frule_tac y="<y,z>" in transM, assumption)
+ apply (frule_tac y="\<langle>y,z\<rangle>" in transM, assumption)
  apply (clarsimp simp add: vimage_singleton_iff is_recfun_type [THEN apply_iff]
                            apply_recfun is_recfun_cut) 
 txt\<open>Opposite inclusion: something in f, show in Y\<close>
-apply (frule_tac y="<y,z>" in transM, assumption)  
+apply (frule_tac y="\<langle>y,z\<rangle>" in transM, assumption)  
 apply (simp add: vimage_singleton_iff) 
 apply (rule conjI) 
  apply (blast dest: transD) 
@@ -271,7 +271,7 @@ done
 subsection\<open>Relativization of the ZF Predicate \<^term>\<open>is_recfun\<close>\<close>
 
 definition
-  M_is_recfun :: "[i=>o, [i,i,i]=>o, i, i, i] => o" where
+  M_is_recfun :: "[i\<Rightarrow>o, [i,i,i]\<Rightarrow>o, i, i, i] \<Rightarrow> o" where
    "M_is_recfun(M,MH,r,a,f) \<equiv> 
      \<forall>z[M]. z \<in> f \<longleftrightarrow> 
             (\<exists>x[M]. \<exists>y[M]. \<exists>xa[M]. \<exists>sx[M]. \<exists>r_sx[M]. \<exists>f_r_sx[M]. 
@@ -280,12 +280,12 @@ definition
                xa \<in> r \<and> MH(x, f_r_sx, y))"
 
 definition
-  is_wfrec :: "[i=>o, [i,i,i]=>o, i, i, i] => o" where
+  is_wfrec :: "[i\<Rightarrow>o, [i,i,i]\<Rightarrow>o, i, i, i] \<Rightarrow> o" where
    "is_wfrec(M,MH,r,a,z) \<equiv> 
       \<exists>f[M]. M_is_recfun(M,MH,r,a,f) \<and> MH(a,f,z)"
 
 definition
-  wfrec_replacement :: "[i=>o, [i,i,i]=>o, i] => o" where
+  wfrec_replacement :: "[i\<Rightarrow>o, [i,i,i]\<Rightarrow>o, i] \<Rightarrow> o" where
    "wfrec_replacement(M,MH,r) \<equiv>
         strong_replacement(M, 
              \<lambda>x z. \<exists>y[M]. pair(M,x,y,z) \<and> is_wfrec(M,MH,r,x,y))"
@@ -324,8 +324,8 @@ by (simp add: wfrec_replacement_def is_wfrec_abs)
 lemma wfrec_replacement_cong [cong]:
      "\<lbrakk>\<And>x y z. \<lbrakk>M(x); M(y); M(z)\<rbrakk> \<Longrightarrow> MH(x,y,z) \<longleftrightarrow> MH'(x,y,z);
          r=r'\<rbrakk> 
-      \<Longrightarrow> wfrec_replacement(M, %x y. MH(x,y), r) \<longleftrightarrow> 
-          wfrec_replacement(M, %x y. MH'(x,y), r')" 
+      \<Longrightarrow> wfrec_replacement(M, \<lambda>x y. MH(x,y), r) \<longleftrightarrow> 
+          wfrec_replacement(M, \<lambda>x y. MH'(x,y), r')" 
 by (simp add: is_wfrec_def wfrec_replacement_def) 
 
 

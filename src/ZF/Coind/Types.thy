@@ -24,8 +24,8 @@ datatype
           | te_owr ("te \<in> TyEnv","x \<in> ExVar","t \<in> Ty") 
 
 consts
-  te_dom :: "i => i"
-  te_app :: "[i,i] => i"
+  te_dom :: "i \<Rightarrow> i"
+  te_app :: "[i,i] \<Rightarrow> i"
 
 
 primrec (*domain of the type environment*)

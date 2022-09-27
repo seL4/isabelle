@@ -8,28 +8,28 @@ least left-commutative.
 
 theory FoldSet imports ZF begin
 
-consts fold_set :: "[i, i, [i,i]=>i, i] => i"
+consts fold_set :: "[i, i, [i,i]\<Rightarrow>i, i] \<Rightarrow> i"
 
 inductive
   domains "fold_set(A, B, f,e)" \<subseteq> "Fin(A)*B"
   intros
-    emptyI: "e\<in>B \<Longrightarrow> <0, e>\<in>fold_set(A, B, f,e)"
-    consI:  "\<lbrakk>x\<in>A; x \<notin>C;  <C,y> \<in> fold_set(A, B,f,e); f(x,y):B\<rbrakk>
+    emptyI: "e\<in>B \<Longrightarrow> \<langle>0, e\<rangle>\<in>fold_set(A, B, f,e)"
+    consI:  "\<lbrakk>x\<in>A; x \<notin>C;  \<langle>C,y\<rangle> \<in> fold_set(A, B,f,e); f(x,y):B\<rbrakk>
                 \<Longrightarrow>  <cons(x,C), f(x,y)>\<in>fold_set(A, B, f, e)"
   type_intros Fin.intros
   
 definition
-  fold :: "[i, [i,i]=>i, i, i] => i"  (\<open>fold[_]'(_,_,_')\<close>)  where
-   "fold[B](f,e, A) \<equiv> THE x. <A, x>\<in>fold_set(A, B, f,e)"
+  fold :: "[i, [i,i]\<Rightarrow>i, i, i] \<Rightarrow> i"  (\<open>fold[_]'(_,_,_')\<close>)  where
+   "fold[B](f,e, A) \<equiv> THE x. \<langle>A, x\<rangle>\<in>fold_set(A, B, f,e)"
 
 definition
-   setsum :: "[i=>i, i] => i"  where
+   setsum :: "[i\<Rightarrow>i, i] \<Rightarrow> i"  where
    "setsum(g, C) \<equiv> if Finite(C) then
-                     fold[int](%x y. g(x) $+ y, #0, C) else #0"
+                     fold[int](\<lambda>x y. g(x) $+ y, #0, C) else #0"
 
 (** foldSet **)
 
-inductive_cases empty_fold_setE: "<0, x> \<in> fold_set(A, B, f,e)"
+inductive_cases empty_fold_setE: "\<langle>0, x\<rangle> \<in> fold_set(A, B, f,e)"
 inductive_cases cons_fold_setE: "<cons(x,C), y> \<in> fold_set(A, B, f,e)"
 
 (* add-hoc lemmas *)                                                
@@ -44,8 +44,8 @@ done
 
 (* fold_set monotonicity *)
 lemma fold_set_mono_lemma:
-     "<C, x> \<in> fold_set(A, B, f, e)  
-      \<Longrightarrow> \<forall>D. A<=D \<longrightarrow> <C, x> \<in> fold_set(D, B, f, e)"
+     "\<langle>C, x\<rangle> \<in> fold_set(A, B, f, e)  
+      \<Longrightarrow> \<forall>D. A<=D \<longrightarrow> \<langle>C, x\<rangle> \<in> fold_set(D, B, f, e)"
 apply (erule fold_set.induct)
 apply (auto intro: fold_set.intros)
 done
@@ -57,7 +57,7 @@ apply (auto dest: fold_set_mono_lemma)
 done
 
 lemma fold_set_lemma:
-     "<C, x>\<in>fold_set(A, B, f, e) \<Longrightarrow> <C, x>\<in>fold_set(C, B, f, e) \<and> C<=A"
+     "\<langle>C, x\<rangle>\<in>fold_set(A, B, f, e) \<Longrightarrow> \<langle>C, x\<rangle>\<in>fold_set(C, B, f, e) \<and> C<=A"
 apply (erule fold_set.induct)
 apply (auto intro!: fold_set.intros intro: fold_set_mono [THEN subsetD])
 done
@@ -79,7 +79,7 @@ locale fold_typing =
 
 
 lemma (in fold_typing) Fin_imp_fold_set:
-     "C\<in>Fin(A) \<Longrightarrow> (\<exists>x. <C, x> \<in> fold_set(A, B, f,e))"
+     "C\<in>Fin(A) \<Longrightarrow> (\<exists>x. \<langle>C, x\<rangle> \<in> fold_set(A, B, f,e))"
 apply (erule Fin_induct)
 apply (auto dest: fold_set.dom_subset [THEN subsetD] 
             intro: fold_set.intros etype ftype)
@@ -92,8 +92,8 @@ by (blast elim: equalityE)
 lemma (in fold_typing) fold_set_determ_lemma [rule_format]: 
 "n\<in>nat
  \<Longrightarrow> \<forall>C. |C|<n \<longrightarrow>  
-   (\<forall>x. <C, x> \<in> fold_set(A, B, f,e)\<longrightarrow> 
-           (\<forall>y. <C, y> \<in> fold_set(A, B, f,e) \<longrightarrow> y=x))"
+   (\<forall>x. \<langle>C, x\<rangle> \<in> fold_set(A, B, f,e)\<longrightarrow> 
+           (\<forall>y. \<langle>C, y\<rangle> \<in> fold_set(A, B, f,e) \<longrightarrow> y=x))"
 apply (erule nat_induct)
  apply (auto simp add: le_iff)
 apply (erule fold_set.cases)
@@ -131,8 +131,8 @@ apply (subgoal_tac "yb = f (x, xa) ")
 done
 
 lemma (in fold_typing) fold_set_determ: 
-     "\<lbrakk><C, x>\<in>fold_set(A, B, f, e);  
-         <C, y>\<in>fold_set(A, B, f, e)\<rbrakk> \<Longrightarrow> y=x"
+     "\<lbrakk>\<langle>C, x\<rangle>\<in>fold_set(A, B, f, e);  
+         \<langle>C, y\<rangle>\<in>fold_set(A, B, f, e)\<rbrakk> \<Longrightarrow> y=x"
 apply (frule fold_set.dom_subset [THEN subsetD], clarify)
 apply (drule Fin_into_Finite)
 apply (unfold Finite_def, clarify)
@@ -143,7 +143,7 @@ done
 (** The fold function **)
 
 lemma (in fold_typing) fold_equality: 
-     "<C,y> \<in> fold_set(A,B,f,e) \<Longrightarrow> fold[B](f,e,C) = y"
+     "\<langle>C,y\<rangle> \<in> fold_set(A,B,f,e) \<Longrightarrow> fold[B](f,e,C) = y"
 apply (unfold fold_def)
 apply (frule fold_set.dom_subset [THEN subsetD], clarify)
 apply (rule the_equality)
@@ -161,7 +161,7 @@ done
 
 text\<open>This result is the right-to-left direction of the subsequent result\<close>
 lemma (in fold_typing) fold_set_imp_cons: 
-     "\<lbrakk><C, y> \<in> fold_set(C, B, f, e); C \<in> Fin(A); c \<in> A; c\<notin>C\<rbrakk>
+     "\<lbrakk>\<langle>C, y\<rangle> \<in> fold_set(C, B, f, e); C \<in> Fin(A); c \<in> A; c\<notin>C\<rbrakk>
       \<Longrightarrow> <cons(c, C), f(c,y)> \<in> fold_set(cons(c, C), B, f, e)"
 apply (frule FinD [THEN fold_set_mono, THEN subsetD])
  apply assumption
@@ -172,7 +172,7 @@ done
 lemma (in fold_typing) fold_cons_lemma [rule_format]: 
 "\<lbrakk>C \<in> Fin(A); c \<in> A; c\<notin>C\<rbrakk>   
      \<Longrightarrow> <cons(c, C), v> \<in> fold_set(cons(c, C), B, f, e) \<longleftrightarrow>   
-         (\<exists>y. <C, y> \<in> fold_set(C, B, f, e) \<and> v = f(c, y))"
+         (\<exists>y. \<langle>C, y\<rangle> \<in> fold_set(C, B, f, e) \<and> v = f(c, y))"
 apply auto
  prefer 2 apply (blast intro: fold_set_imp_cons) 
  apply (frule_tac Fin.consI [of c, THEN FinD, THEN fold_set_mono, THEN subsetD], assumption+)
@@ -251,7 +251,7 @@ apply (rule_tac A = "cons (c, C)" in fold_typing.fold_cons)
 apply (auto intro: fold_typing.intro Finite_cons_lemma)
 done
 
-lemma setsum_K0: "setsum((%i. #0), C) = #0"
+lemma setsum_K0: "setsum((\<lambda>i. #0), C) = #0"
 apply (case_tac "Finite (C) ")
  prefer 2 apply (simp add: setsum_def)
 apply (erule Finite_induct, auto)
@@ -290,7 +290,7 @@ lemma setsum_UN_disjoint [rule_format (no_asm)]:
      "Finite(I)  
       \<Longrightarrow> (\<forall>i\<in>I. Finite(C(i))) \<longrightarrow>  
           (\<forall>i\<in>I. \<forall>j\<in>I. i\<noteq>j \<longrightarrow> C(i) \<inter> C(j) = 0) \<longrightarrow>  
-          setsum(f, \<Union>i\<in>I. C(i)) = setsum (%i. setsum(f, C(i)), I)"
+          setsum(f, \<Union>i\<in>I. C(i)) = setsum (\<lambda>i. setsum(f, C(i)), I)"
 apply (erule Finite_induct, auto)
 apply (subgoal_tac "\<forall>i\<in>B. x \<noteq> i")
  prefer 2 apply blast
@@ -302,7 +302,7 @@ apply (auto intro: Finite_Union Finite_RepFun)
 done
 
 
-lemma setsum_addf: "setsum(%x. f(x) $+ g(x),C) = setsum(f, C) $+ setsum(g, C)"
+lemma setsum_addf: "setsum(\<lambda>x. f(x) $+ g(x),C) = setsum(f, C) $+ setsum(g, C)"
 apply (case_tac "Finite (C) ")
  prefer 2 apply (simp add: setsum_def)
 apply (erule Finite_induct, auto)

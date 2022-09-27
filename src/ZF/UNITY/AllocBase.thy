@@ -20,13 +20,13 @@ where
   Nclients_pos: "Nclients \<in> nat-{0}"
   
 text\<open>This function merely sums the elements of a list\<close>
-consts tokens :: "i =>i"
+consts tokens :: "i \<Rightarrow>i"
        item :: i (* Items to be merged/distributed *)
 primrec 
   "tokens(Nil) = 0"
   "tokens (Cons(x,xs)) = x #+ tokens(xs)"
 
-consts bag_of :: "i => i"
+consts bag_of :: "i \<Rightarrow> i"
 primrec
   "bag_of(Nil)    = 0"
   "bag_of(Cons(x,xs)) = {#x#} +# bag_of(xs)"
@@ -34,28 +34,28 @@ primrec
 
 text\<open>Definitions needed in Client.thy.  We define a recursive predicate
 using 0 and 1 to code the truth values.\<close>
-consts all_distinct0 :: "i=>i"
+consts all_distinct0 :: "i\<Rightarrow>i"
 primrec
   "all_distinct0(Nil) = 1"
   "all_distinct0(Cons(a, l)) =
      (if a \<in> set_of_list(l) then 0 else all_distinct0(l))"
 
 definition
-  all_distinct  :: "i=>o"  where
+  all_distinct  :: "i\<Rightarrow>o"  where
    "all_distinct(l) \<equiv> all_distinct0(l)=1"
   
 definition  
-  state_of :: "i =>i" \<comment> \<open>coersion from anyting to state\<close>  where
+  state_of :: "i \<Rightarrow>i" \<comment> \<open>coersion from anyting to state\<close>  where
    "state_of(s) \<equiv> if s \<in> state then s else st0"
 
 definition
-  lift :: "i =>(i=>i)" \<comment> \<open>simplifies the expression of programs\<close>  where
-   "lift(x) \<equiv> %s. s`x"
+  lift :: "i \<Rightarrow>(i\<Rightarrow>i)" \<comment> \<open>simplifies the expression of programs\<close>  where
+   "lift(x) \<equiv> \<lambda>s. s`x"
 
 text\<open>function to show that the set of variables is infinite\<close>
 consts
-  nat_list_inj :: "i=>i"
-  var_inj      :: "i=>i"
+  nat_list_inj :: "i\<Rightarrow>i"
+  var_inj      :: "i\<Rightarrow>i"
 
 primrec
   "nat_list_inj(0) = Nil"
@@ -65,7 +65,7 @@ primrec
   "var_inj(Var(l)) = length(l)"
 
 definition
-  nat_var_inj  :: "i=>i"  where
+  nat_var_inj  :: "i\<Rightarrow>i"  where
   "nat_var_inj(n) \<equiv> Var(nat_list_inj(n))"
 
 
@@ -106,13 +106,13 @@ lemma tokens_type [simp,TC]: "l\<in>list(A) \<Longrightarrow> tokens(l)\<in>nat"
 by (erule list.induct, auto)
 
 lemma tokens_mono_aux [rule_format]:
-     "xs\<in>list(A) \<Longrightarrow> \<forall>ys\<in>list(A). <xs, ys>\<in>prefix(A)  
+     "xs\<in>list(A) \<Longrightarrow> \<forall>ys\<in>list(A). \<langle>xs, ys\<rangle>\<in>prefix(A)  
    \<longrightarrow> tokens(xs) \<le> tokens(ys)"
 apply (induct_tac "xs")
 apply (auto dest: gen_prefix.dom_subset [THEN subsetD] simp add: prefix_def)
 done
 
-lemma tokens_mono: "<xs, ys>\<in>prefix(A) \<Longrightarrow> tokens(xs) \<le> tokens(ys)"
+lemma tokens_mono: "\<langle>xs, ys\<rangle>\<in>prefix(A) \<Longrightarrow> tokens(xs) \<le> tokens(ys)"
 apply (cut_tac prefix_type)
 apply (blast intro: tokens_mono_aux)
 done
@@ -147,7 +147,7 @@ apply (auto simp add: bag_of_multiset munion_assoc)
 done
 
 lemma bag_of_mono_aux [rule_format]:
-     "xs\<in>list(A) \<Longrightarrow> \<forall>ys\<in>list(A). <xs, ys>\<in>prefix(A)  
+     "xs\<in>list(A) \<Longrightarrow> \<forall>ys\<in>list(A). \<langle>xs, ys\<rangle>\<in>prefix(A)  
       \<longrightarrow> <bag_of(xs), bag_of(ys)>\<in>MultLe(A, r)"
 apply (induct_tac "xs", simp_all, clarify) 
 apply (frule_tac l = ys in bag_of_multiset)
@@ -158,7 +158,7 @@ apply (blast dest: gen_prefix.dom_subset [THEN subsetD])
 done
 
 lemma bag_of_mono [intro]:
-     "\<lbrakk><xs, ys>\<in>prefix(A); xs\<in>list(A); ys\<in>list(A)\<rbrakk>
+     "\<lbrakk>\<langle>xs, ys\<rangle>\<in>prefix(A); xs\<in>list(A); ys\<in>list(A)\<rbrakk>
       \<Longrightarrow> <bag_of(xs), bag_of(ys)>\<in>MultLe(A, r)"
 apply (blast intro: bag_of_mono_aux)
 done
@@ -212,7 +212,7 @@ lemma bag_of_sublist_lemma2:
      "l\<in>list(A) \<Longrightarrow>  
   C \<subseteq> nat \<Longrightarrow>  
   bag_of(sublist(l, C)) =  
-      msetsum(%i. {#nth(i, l)#}, C \<inter> length(l), A)"
+      msetsum(\<lambda>i. {#nth(i, l)#}, C \<inter> length(l), A)"
 apply (erule list_append_induct)
 apply (simp (no_asm))
 apply (simp (no_asm_simp) add: sublist_append nth_append bag_of_sublist_lemma munion_commute bag_of_sublist_lemma msetsum_multiset munion_0)
@@ -227,8 +227,8 @@ done
 (*eliminating the assumption C<=nat*)
 lemma bag_of_sublist:
      "l\<in>list(A) \<Longrightarrow>  
-  bag_of(sublist(l, C)) = msetsum(%i. {#nth(i, l)#}, C \<inter> length(l), A)"
-apply (subgoal_tac " bag_of (sublist (l, C \<inter> nat)) = msetsum (%i. {#nth (i, l) #}, C \<inter> length (l), A) ")
+  bag_of(sublist(l, C)) = msetsum(\<lambda>i. {#nth(i, l)#}, C \<inter> length(l), A)"
+apply (subgoal_tac " bag_of (sublist (l, C \<inter> nat)) = msetsum (\<lambda>i. {#nth (i, l) #}, C \<inter> length (l), A) ")
 apply (simp add: sublist_Int_eq)
 apply (simp add: bag_of_sublist_lemma2 Int_lower2 Int_assoc nat_Int_length_eq)
 done
@@ -257,7 +257,7 @@ lemma bag_of_sublist_UN_disjoint [rule_format]:
      "\<lbrakk>Finite(I); \<forall>i\<in>I. \<forall>j\<in>I. i\<noteq>j \<longrightarrow> A(i) \<inter> A(j) = 0;  
         l\<in>list(B)\<rbrakk>  
       \<Longrightarrow> bag_of(sublist(l, \<Union>i\<in>I. A(i))) =   
-          (msetsum(%i. bag_of(sublist(l, A(i))), I, B)) "
+          (msetsum(\<lambda>i. bag_of(sublist(l, A(i))), I, B)) "
 apply (simp (no_asm_simp) del: UN_simps
            add: UN_simps [symmetric] bag_of_sublist)
 apply (subst  msetsum_UN_disjoint [of _ _ _ "length (l)"])
@@ -308,7 +308,7 @@ by (simp add: lift_def)
 (** Used in ClientImp **)
 
 lemma gen_Increains_state_of_eq: 
-     "Increasing(A, r, %s. f(state_of(s))) = Increasing(A, r, f)"
+     "Increasing(A, r, \<lambda>s. f(state_of(s))) = Increasing(A, r, f)"
 apply (unfold Increasing_def, auto)
 done
 
@@ -318,7 +318,7 @@ lemmas Increasing_state_ofD2 =
       gen_Increains_state_of_eq [THEN equalityD2, THEN subsetD]
 
 lemma Follows_state_of_eq: 
-     "Follows(A, r, %s. f(state_of(s)), %s. g(state_of(s))) =   
+     "Follows(A, r, \<lambda>s. f(state_of(s)), \<lambda>s. g(state_of(s))) =   
       Follows(A, r, f, g)"
 apply (unfold Follows_def Increasing_def, auto)
 done
@@ -383,7 +383,7 @@ by (insert Acts_type [of F], auto)
 
 lemma setsum_nsetsum_eq: 
      "\<lbrakk>Finite(A); \<forall>x\<in>A. g(x)\<in>nat\<rbrakk> 
-      \<Longrightarrow> setsum(%x. $#(g(x)), A) = $# nsetsum(%x. g(x), A)"
+      \<Longrightarrow> setsum(\<lambda>x. $#(g(x)), A) = $# nsetsum(\<lambda>x. g(x), A)"
 apply (erule Finite_induct)
 apply (auto simp add: int_of_add)
 done

@@ -21,53 +21,53 @@ W. V. Quine, On Ordered Pairs and Relations, in Selected Logic Papers,
 \<close>
 
 definition
-  QPair     :: "[i, i] => i"                      (\<open><(_;/ _)>\<close>)  where
+  QPair     :: "[i, i] \<Rightarrow> i"                      (\<open><(_;/ _)>\<close>)  where
     "<a;b> \<equiv> a+b"
 
 definition
-  qfst :: "i => i"  where
+  qfst :: "i \<Rightarrow> i"  where
     "qfst(p) \<equiv> THE a. \<exists>b. p=<a;b>"
 
 definition
-  qsnd :: "i => i"  where
+  qsnd :: "i \<Rightarrow> i"  where
     "qsnd(p) \<equiv> THE b. \<exists>a. p=<a;b>"
 
 definition
-  qsplit    :: "[[i, i] => 'a, i] => 'a::{}"  (*for pattern-matching*)  where
+  qsplit    :: "[[i, i] \<Rightarrow> 'a, i] \<Rightarrow> 'a::{}"  (*for pattern-matching*)  where
     "qsplit(c,p) \<equiv> c(qfst(p), qsnd(p))"
 
 definition
-  qconverse :: "i => i"  where
+  qconverse :: "i \<Rightarrow> i"  where
     "qconverse(r) \<equiv> {z. w \<in> r, \<exists>x y. w=<x;y> \<and> z=<y;x>}"
 
 definition
-  QSigma    :: "[i, i => i] => i"  where
+  QSigma    :: "[i, i \<Rightarrow> i] \<Rightarrow> i"  where
     "QSigma(A,B)  \<equiv>  \<Union>x\<in>A. \<Union>y\<in>B(x). {<x;y>}"
 
 syntax
-  "_QSUM"   :: "[idt, i, i] => i"               (\<open>(3QSUM _ \<in> _./ _)\<close> 10)
+  "_QSUM"   :: "[idt, i, i] \<Rightarrow> i"               (\<open>(3QSUM _ \<in> _./ _)\<close> 10)
 translations
-  "QSUM x \<in> A. B"  => "CONST QSigma(A, %x. B)"
+  "QSUM x \<in> A. B" => "CONST QSigma(A, \<lambda>x. B)"
 
 abbreviation
   qprod  (infixr \<open><*>\<close> 80) where
-  "A <*> B \<equiv> QSigma(A, %_. B)"
+  "A <*> B \<equiv> QSigma(A, \<lambda>_. B)"
 
 definition
-  qsum    :: "[i,i]=>i"                         (infixr \<open><+>\<close> 65)  where
+  qsum    :: "[i,i]\<Rightarrow>i"                         (infixr \<open><+>\<close> 65)  where
     "A <+> B      \<equiv> ({0} <*> A) \<union> ({1} <*> B)"
 
 definition
-  QInl :: "i=>i"  where
+  QInl :: "i\<Rightarrow>i"  where
     "QInl(a)      \<equiv> <0;a>"
 
 definition
-  QInr :: "i=>i"  where
+  QInr :: "i\<Rightarrow>i"  where
     "QInr(b)      \<equiv> <1;b>"
 
 definition
-  qcase     :: "[i=>i, i=>i, i]=>i"  where
-    "qcase(c,d)   \<equiv> qsplit(%y z. cond(y, d(z), c(z)))"
+  qcase     :: "[i\<Rightarrow>i, i\<Rightarrow>i, i]\<Rightarrow>i"  where
+    "qcase(c,d)   \<equiv> qsplit(\<lambda>y z. cond(y, d(z), c(z)))"
 
 
 subsection\<open>Quine ordered pairing\<close>
@@ -149,14 +149,14 @@ by auto
 subsubsection\<open>Eliminator: qsplit\<close>
 
 (*A META-equality, so that it applies to higher types as well...*)
-lemma qsplit [simp]: "qsplit(%x y. c(x,y), <a;b>) \<equiv> c(a,b)"
+lemma qsplit [simp]: "qsplit(\<lambda>x y. c(x,y), <a;b>) \<equiv> c(a,b)"
 by (simp add: qsplit_def)
 
 
 lemma qsplit_type [elim!]:
     "\<lbrakk>p \<in> QSigma(A,B);
          \<And>x y.\<lbrakk>x \<in> A; y \<in> B(x)\<rbrakk> \<Longrightarrow> c(x,y):C(<x;y>)
-\<rbrakk> \<Longrightarrow> qsplit(%x y. c(x,y), p) \<in> C(p)"
+\<rbrakk> \<Longrightarrow> qsplit(\<lambda>x y. c(x,y), p) \<in> C(p)"
 by auto
 
 lemma expand_qsplit:
@@ -298,7 +298,7 @@ by blast
 lemma Part_QInr: "Part(A <+> B,QInr) = {QInr(y). y \<in> B}"
 by blast
 
-lemma Part_QInr2: "Part(A <+> B, %x. QInr(h(x))) = {QInr(y). y \<in> Part(B,h)}"
+lemma Part_QInr2: "Part(A <+> B, \<lambda>x. QInr(h(x))) = {QInr(y). y \<in> Part(B,h)}"
 by blast
 
 lemma Part_qsum_equality: "C \<subseteq> A <+> B \<Longrightarrow> Part(C,QInl) \<union> Part(C,QInr) = C"

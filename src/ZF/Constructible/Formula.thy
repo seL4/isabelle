@@ -21,27 +21,27 @@ datatype
 declare formula.intros [TC]
 
 definition
-  Neg :: "i=>i" where
+  Neg :: "i\<Rightarrow>i" where
   "Neg(p) \<equiv> Nand(p,p)"
 
 definition
-  And :: "[i,i]=>i" where
+  And :: "[i,i]\<Rightarrow>i" where
   "And(p,q) \<equiv> Neg(Nand(p,q))"
 
 definition
-  Or :: "[i,i]=>i" where
+  Or :: "[i,i]\<Rightarrow>i" where
   "Or(p,q) \<equiv> Nand(Neg(p),Neg(q))"
 
 definition
-  Implies :: "[i,i]=>i" where
+  Implies :: "[i,i]\<Rightarrow>i" where
   "Implies(p,q) \<equiv> Nand(p,Neg(q))"
 
 definition
-  Iff :: "[i,i]=>i" where
+  Iff :: "[i,i]\<Rightarrow>i" where
   "Iff(p,q) \<equiv> And(Implies(p,q), Implies(q,p))"
 
 definition
-  Exists :: "i=>i" where
+  Exists :: "i\<Rightarrow>i" where
   "Exists(p) \<equiv> Neg(Forall(Neg(p)))"
 
 lemma Neg_type [TC]: "p \<in> formula \<Longrightarrow> Neg(p) \<in> formula"
@@ -65,7 +65,7 @@ lemma Exists_type [TC]: "p \<in> formula \<Longrightarrow> Exists(p) \<in> formu
 by (simp add: Exists_def)
 
 
-consts   satisfies :: "[i,i]=>i"
+consts   satisfies :: "[i,i]\<Rightarrow>i"
 primrec (*explicit lambda is required because the environment varies*)
   "satisfies(A,Member(x,y)) =
       (\<lambda>env \<in> list(A). bool_of_o (nth(x,env) \<in> nth(y,env)))"
@@ -84,7 +84,7 @@ lemma satisfies_type: "p \<in> formula \<Longrightarrow> satisfies(A,p) \<in> li
 by (induct set: formula) simp_all
 
 abbreviation
-  sats :: "[i,i,i] => o" where
+  sats :: "[i,i,i] \<Rightarrow> o" where
   "sats(A,p,env) \<equiv> satisfies(A,p)`env = 1"
 
 lemma sats_Member_iff [simp]:
@@ -195,7 +195,7 @@ lemmas FOL_iff_sats =
 
 subsection\<open>Arity of a Formula: Maximum Free de Bruijn Index\<close>
 
-consts   arity :: "i=>i"
+consts   arity :: "i\<Rightarrow>i"
 primrec
   "arity(Member(x,y)) = succ(x) \<union> succ(y)"
 
@@ -250,7 +250,7 @@ done
 subsection\<open>Renaming Some de Bruijn Variables\<close>
 
 definition
-  incr_var :: "[i,i]=>i" where
+  incr_var :: "[i,i]\<Rightarrow>i" where
   "incr_var(x,nq) \<equiv> if x<nq then x else succ(x)"
 
 lemma incr_var_lt: "x<nq \<Longrightarrow> incr_var(x,nq) = x"
@@ -261,7 +261,7 @@ apply (simp add: incr_var_def)
 apply (blast dest: lt_trans1)
 done
 
-consts   incr_bv :: "i=>i"
+consts   incr_bv :: "i\<Rightarrow>i"
 primrec
   "incr_bv(Member(x,y)) =
       (\<lambda>nq \<in> nat. Member (incr_var(x,nq), incr_var(y,nq)))"
@@ -339,7 +339,7 @@ done
 subsection\<open>Renaming all but the First de Bruijn Variable\<close>
 
 definition
-  incr_bv1 :: "i => i" where
+  incr_bv1 :: "i \<Rightarrow> i" where
   "incr_bv1(p) \<equiv> incr_bv(p)`1"
 
 
@@ -391,7 +391,7 @@ subsection\<open>Definable Powerset\<close>
 
 text\<open>The definable powerset operation: Kunen's definition VI 1.1, page 165.\<close>
 definition
-  DPow :: "i => i" where
+  DPow :: "i \<Rightarrow> i" where
   "DPow(A) \<equiv> {X \<in> Pow(A).
                \<exists>env \<in> list(A). \<exists>p \<in> formula.
                  arity(p) \<le> succ(length(env)) \<and>
@@ -514,7 +514,7 @@ locale \<open>M_trivial\<close>.  Note that the present theory does not even tak
 subsubsection\<open>The subset relation\<close>
 
 definition
-  subset_fm :: "[i,i]=>i" where
+  subset_fm :: "[i,i]\<Rightarrow>i" where
   "subset_fm(x,y) \<equiv> Forall(Implies(Member(0,succ(x)), Member(0,succ(y))))"
 
 lemma subset_type [TC]: "\<lbrakk>x \<in> nat; y \<in> nat\<rbrakk> \<Longrightarrow> subset_fm(x,y) \<in> formula"
@@ -535,7 +535,7 @@ done
 subsubsection\<open>Transitive sets\<close>
 
 definition
-  transset_fm :: "i=>i" where
+  transset_fm :: "i\<Rightarrow>i" where
   "transset_fm(x) \<equiv> Forall(Implies(Member(0,succ(x)), subset_fm(0,succ(x))))"
 
 lemma transset_type [TC]: "x \<in> nat \<Longrightarrow> transset_fm(x) \<in> formula"
@@ -556,7 +556,7 @@ done
 subsubsection\<open>Ordinals\<close>
 
 definition
-  ordinal_fm :: "i=>i" where
+  ordinal_fm :: "i\<Rightarrow>i" where
   "ordinal_fm(x) \<equiv>
     And(transset_fm(x), Forall(Implies(Member(0,succ(x)), transset_fm(0))))"
 
@@ -588,11 +588,11 @@ done
 subsection\<open>Constant Lset: Levels of the Constructible Universe\<close>
 
 definition
-  Lset :: "i=>i" where
-  "Lset(i) \<equiv> transrec(i, %x f. \<Union>y\<in>x. DPow(f`y))"
+  Lset :: "i\<Rightarrow>i" where
+  "Lset(i) \<equiv> transrec(i, \<lambda>x f. \<Union>y\<in>x. DPow(f`y))"
 
 definition
-  L :: "i=>o" where \<comment> \<open>Kunen's definition VI 1.5, page 167\<close>
+  L :: "i\<Rightarrow>o" where \<comment> \<open>Kunen's definition VI 1.5, page 167\<close>
   "L(x) \<equiv> \<exists>i. Ord(i) \<and> x \<in> Lset(i)"
 
 text\<open>NOT SUITABLE FOR REWRITING -- RECURSIVE!\<close>
@@ -798,7 +798,7 @@ lemma doubleton_in_Lset:
 by (simp add: Lset_succ empty_in_DPow cons_in_DPow)
 
 lemma Pair_in_Lset:
-    "\<lbrakk>a \<in> Lset(i);  b \<in> Lset(i); Ord(i)\<rbrakk> \<Longrightarrow> <a,b> \<in> Lset(succ(succ(i)))"
+    "\<lbrakk>a \<in> Lset(i);  b \<in> Lset(i); Ord(i)\<rbrakk> \<Longrightarrow> \<langle>a,b\<rangle> \<in> Lset(succ(succ(i)))"
 apply (unfold Pair_def)
 apply (blast intro: doubleton_in_Lset)
 done
@@ -822,7 +822,7 @@ apply (blast intro: lt_LsetI doubleton_in_LLimit Limit_is_Ord)
 done
 
 lemma Pair_in_LLimit:
-    "\<lbrakk>a \<in> Lset(i);  b \<in> Lset(i);  Limit(i)\<rbrakk> \<Longrightarrow> <a,b> \<in> Lset(i)"
+    "\<lbrakk>a \<in> Lset(i);  b \<in> Lset(i);  Limit(i)\<rbrakk> \<Longrightarrow> \<langle>a,b\<rangle> \<in> Lset(i)"
 txt\<open>Infer that a, b occur at ordinals x,xa < i.\<close>
 apply (erule Limit_LsetE, assumption)
 apply (erule Limit_LsetE, assumption)
@@ -835,7 +835,7 @@ done
 
 text\<open>The rank function for the constructible universe\<close>
 definition
-  lrank :: "i=>i" where \<comment> \<open>Kunen's definition VI 1.7\<close>
+  lrank :: "i\<Rightarrow>i" where \<comment> \<open>Kunen's definition VI 1.7\<close>
   "lrank(x) \<equiv> \<mu> i. x \<in> Lset(succ(i))"
 
 lemma L_I: "\<lbrakk>x \<in> Lset(i); Ord(i)\<rbrakk> \<Longrightarrow> L(x)"
@@ -995,7 +995,7 @@ done
 
 text\<open>A simpler version of \<^term>\<open>DPow\<close>: no arity check!\<close>
 definition
-  DPow' :: "i => i" where
+  DPow' :: "i \<Rightarrow> i" where
   "DPow'(A) \<equiv> {X \<in> Pow(A).
                 \<exists>env \<in> list(A). \<exists>p \<in> formula.
                     X = {x\<in>A. sats(A, p, Cons(x,env))}}"
@@ -1022,7 +1022,7 @@ done
 
 text\<open>And thus we can relativize \<^term>\<open>Lset\<close> without bothering with
       \<^term>\<open>arity\<close> and \<^term>\<open>length\<close>\<close>
-lemma Lset_eq_transrec_DPow': "Lset(i) = transrec(i, %x f. \<Union>y\<in>x. DPow'(f`y))"
+lemma Lset_eq_transrec_DPow': "Lset(i) = transrec(i, \<lambda>x f. \<Union>y\<in>x. DPow'(f`y))"
 apply (rule_tac a=i in eps_induct)
 apply (subst Lset)
 apply (subst transrec)

@@ -19,28 +19,28 @@ consts
 
 abbreviation
   Ssub_rel  (infixl \<open>\<Longleftarrow>\<close> 70) where
-  "a \<Longleftarrow> b \<equiv> <a,b> \<in> Ssub"
+  "a \<Longleftarrow> b \<equiv> \<langle>a,b\<rangle> \<in> Ssub"
 
 abbreviation
   Scomp_rel  (infixl \<open>\<sim>\<close> 70) where
-  "a \<sim> b \<equiv> <a,b> \<in> Scomp"
+  "a \<sim> b \<equiv> \<langle>a,b\<rangle> \<in> Scomp"
 
 abbreviation
   "regular(a) \<equiv> a \<in> Sreg"
 
-consts union_aux        :: "i=>i"
+consts union_aux        :: "i\<Rightarrow>i"
 primrec (*explicit lambda is required because both arguments of "\<squnion>" vary*)
   "union_aux(Var(n)) =
-     (\<lambda>t \<in> redexes. redexes_case(%j. Var(n), %x. 0, %b x y.0, t))"
+     (\<lambda>t \<in> redexes. redexes_case(\<lambda>j. Var(n), \<lambda>x. 0, \<lambda>b x y.0, t))"
 
   "union_aux(Fun(u)) =
-     (\<lambda>t \<in> redexes. redexes_case(%j. 0, %y. Fun(union_aux(u)`y),
-                                  %b y z. 0, t))"
+     (\<lambda>t \<in> redexes. redexes_case(\<lambda>j. 0, \<lambda>y. Fun(union_aux(u)`y),
+                                  \<lambda>b y z. 0, t))"
 
   "union_aux(App(b,f,a)) =
      (\<lambda>t \<in> redexes.
-        redexes_case(%j. 0, %y. 0,
-                     %c z u. App(b or c, union_aux(f)`z, union_aux(a)`u), t))"
+        redexes_case(\<lambda>j. 0, \<lambda>y. 0,
+                     \<lambda>c z u. App(b or c, union_aux(f)`z, union_aux(a)`u), t))"
 
 definition
   union  (infixl \<open>\<squnion>\<close> 70) where

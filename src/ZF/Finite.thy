@@ -18,8 +18,8 @@ rep_datatype
 
 
 consts
-  Fin       :: "i=>i"
-  FiniteFun :: "[i,i]=>i"         (\<open>(_ -||>/ _)\<close> [61, 60] 60)
+  Fin       :: "i\<Rightarrow>i"
+  FiniteFun :: "[i,i]\<Rightarrow>i"         (\<open>(_ -||>/ _)\<close> [61, 60] 60)
 
 inductive
   domains   "Fin(A)" \<subseteq> "Pow(A)"
@@ -34,7 +34,7 @@ inductive
   intros
     emptyI:  "0 \<in> A -||> B"
     consI:   "\<lbrakk>a \<in> A;  b \<in> B;  h \<in> A -||> B;  a \<notin> domain(h)\<rbrakk>
-              \<Longrightarrow> cons(<a,b>,h) \<in> A -||> B"
+              \<Longrightarrow> cons(\<langle>a,b\<rangle>,h) \<in> A -||> B"
   type_intros Fin.intros
 
 
@@ -200,7 +200,7 @@ done
 subsection\<open>The Contents of a Singleton Set\<close>
 
 definition
-  contents :: "i=>i"  where
+  contents :: "i\<Rightarrow>i"  where
    "contents(X) \<equiv> THE x. X = {x}"
 
 lemma contents_eq [simp]: "contents ({x}) = x"

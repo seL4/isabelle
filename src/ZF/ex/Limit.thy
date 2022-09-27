@@ -20,15 +20,15 @@ Laboratory, 1995.
 theory Limit  imports  ZF begin
 
 definition
-  rel :: "[i,i,i]=>o"  where
-    "rel(D,x,y) \<equiv> <x,y>:snd(D)"
+  rel :: "[i,i,i]\<Rightarrow>o"  where
+    "rel(D,x,y) \<equiv> \<langle>x,y\<rangle>:snd(D)"
 
 definition
-  set :: "i=>i"  where
+  set :: "i\<Rightarrow>i"  where
     "set(D) \<equiv> fst(D)"
 
 definition
-  po  :: "i=>o"  where
+  po  :: "i\<Rightarrow>o"  where
     "po(D) \<equiv>
      (\<forall>x \<in> set(D). rel(D,x,x)) \<and>
      (\<forall>x \<in> set(D). \<forall>y \<in> set(D). \<forall>z \<in> set(D).
@@ -36,66 +36,66 @@ definition
      (\<forall>x \<in> set(D). \<forall>y \<in> set(D). rel(D,x,y) \<longrightarrow> rel(D,y,x) \<longrightarrow> x = y)"
 
 definition
-  chain :: "[i,i]=>o"  where
+  chain :: "[i,i]\<Rightarrow>o"  where
     (* Chains are object level functions nat->set(D) *)
     "chain(D,X) \<equiv> X \<in> nat->set(D) \<and> (\<forall>n \<in> nat. rel(D,X`n,X`(succ(n))))"
 
 definition
-  isub :: "[i,i,i]=>o"  where
+  isub :: "[i,i,i]\<Rightarrow>o"  where
     "isub(D,X,x) \<equiv> x \<in> set(D) \<and> (\<forall>n \<in> nat. rel(D,X`n,x))"
 
 definition
-  islub :: "[i,i,i]=>o"  where
+  islub :: "[i,i,i]\<Rightarrow>o"  where
     "islub(D,X,x) \<equiv> isub(D,X,x) \<and> (\<forall>y. isub(D,X,y) \<longrightarrow> rel(D,x,y))"
 
 definition
-  lub :: "[i,i]=>i"  where
+  lub :: "[i,i]\<Rightarrow>i"  where
     "lub(D,X) \<equiv> THE x. islub(D,X,x)"
 
 definition
-  cpo :: "i=>o"  where
+  cpo :: "i\<Rightarrow>o"  where
     "cpo(D) \<equiv> po(D) \<and> (\<forall>X. chain(D,X) \<longrightarrow> (\<exists>x. islub(D,X,x)))"
 
 definition
-  pcpo :: "i=>o"  where
+  pcpo :: "i\<Rightarrow>o"  where
     "pcpo(D) \<equiv> cpo(D) \<and> (\<exists>x \<in> set(D). \<forall>y \<in> set(D). rel(D,x,y))"
 
 definition
-  bot :: "i=>i"  where
+  bot :: "i\<Rightarrow>i"  where
     "bot(D) \<equiv> THE x. x \<in> set(D) \<and> (\<forall>y \<in> set(D). rel(D,x,y))"
 
 definition
-  mono :: "[i,i]=>i"  where
+  mono :: "[i,i]\<Rightarrow>i"  where
     "mono(D,E) \<equiv>
      {f \<in> set(D)->set(E).
       \<forall>x \<in> set(D). \<forall>y \<in> set(D). rel(D,x,y) \<longrightarrow> rel(E,f`x,f`y)}"
 
 definition
-  cont :: "[i,i]=>i"  where
+  cont :: "[i,i]\<Rightarrow>i"  where
     "cont(D,E) \<equiv>
      {f \<in> mono(D,E).
       \<forall>X. chain(D,X) \<longrightarrow> f`(lub(D,X)) = lub(E,\<lambda>n \<in> nat. f`(X`n))}"
 
 definition
-  cf :: "[i,i]=>i"  where
+  cf :: "[i,i]\<Rightarrow>i"  where
     "cf(D,E) \<equiv>
      <cont(D,E),
       {y \<in> cont(D,E)*cont(D,E). \<forall>x \<in> set(D). rel(E,(fst(y))`x,(snd(y))`x)}>"
 
 definition
-  suffix :: "[i,i]=>i"  where
+  suffix :: "[i,i]\<Rightarrow>i"  where
     "suffix(X,n) \<equiv> \<lambda>m \<in> nat. X`(n #+ m)"
 
 definition
-  subchain :: "[i,i]=>o"  where
+  subchain :: "[i,i]\<Rightarrow>o"  where
     "subchain(X,Y) \<equiv> \<forall>m \<in> nat. \<exists>n \<in> nat. X`m = Y`(m #+ n)"
 
 definition
-  dominate :: "[i,i,i]=>o"  where
+  dominate :: "[i,i,i]\<Rightarrow>o"  where
     "dominate(D,X,Y) \<equiv> \<forall>m \<in> nat. \<exists>n \<in> nat. rel(D,X`m,Y`n)"
 
 definition
-  matrix :: "[i,i]=>o"  where
+  matrix :: "[i,i]\<Rightarrow>o"  where
     "matrix(D,M) \<equiv>
      M \<in> nat -> (nat -> set(D)) \<and>
      (\<forall>n \<in> nat. \<forall>m \<in> nat. rel(D,M`n`m,M`succ(n)`m)) \<and>
@@ -103,89 +103,89 @@ definition
      (\<forall>n \<in> nat. \<forall>m \<in> nat. rel(D,M`n`m,M`succ(n)`succ(m)))"
 
 definition
-  projpair  :: "[i,i,i,i]=>o"  where
+  projpair  :: "[i,i,i,i]\<Rightarrow>o"  where
     "projpair(D,E,e,p) \<equiv>
      e \<in> cont(D,E) \<and> p \<in> cont(E,D) \<and>
      p O e = id(set(D)) \<and> rel(cf(E,E),e O p,id(set(E)))"
 
 definition
-  emb       :: "[i,i,i]=>o"  where
+  emb       :: "[i,i,i]\<Rightarrow>o"  where
     "emb(D,E,e) \<equiv> \<exists>p. projpair(D,E,e,p)"
 
 definition
-  Rp        :: "[i,i,i]=>i"  where
+  Rp        :: "[i,i,i]\<Rightarrow>i"  where
     "Rp(D,E,e) \<equiv> THE p. projpair(D,E,e,p)"
 
 definition
   (* Twice, constructions on cpos are more difficult. *)
-  iprod     :: "i=>i"  where
+  iprod     :: "i\<Rightarrow>i"  where
     "iprod(DD) \<equiv>
      <(\<Prod>n \<in> nat. set(DD`n)),
       {x:(\<Prod>n \<in> nat. set(DD`n))*(\<Prod>n \<in> nat. set(DD`n)).
        \<forall>n \<in> nat. rel(DD`n,fst(x)`n,snd(x)`n)}>"
 
 definition
-  mkcpo     :: "[i,i=>o]=>i"  where
+  mkcpo     :: "[i,i\<Rightarrow>o]\<Rightarrow>i"  where
     (* Cannot use rel(D), is meta fun, need two more args *)
     "mkcpo(D,P) \<equiv>
      <{x \<in> set(D). P(x)},{x \<in> set(D)*set(D). rel(D,fst(x),snd(x))}>"
 
 definition
-  subcpo    :: "[i,i]=>o"  where
+  subcpo    :: "[i,i]\<Rightarrow>o"  where
     "subcpo(D,E) \<equiv>
      set(D) \<subseteq> set(E) \<and>
      (\<forall>x \<in> set(D). \<forall>y \<in> set(D). rel(D,x,y) \<longleftrightarrow> rel(E,x,y)) \<and>
      (\<forall>X. chain(D,X) \<longrightarrow> lub(E,X):set(D))"
 
 definition
-  subpcpo   :: "[i,i]=>o"  where
+  subpcpo   :: "[i,i]\<Rightarrow>o"  where
     "subpcpo(D,E) \<equiv> subcpo(D,E) \<and> bot(E):set(D)"
 
 definition
-  emb_chain :: "[i,i]=>o"  where
+  emb_chain :: "[i,i]\<Rightarrow>o"  where
     "emb_chain(DD,ee) \<equiv>
      (\<forall>n \<in> nat. cpo(DD`n)) \<and> (\<forall>n \<in> nat. emb(DD`n,DD`succ(n),ee`n))"
 
 definition
-  Dinf      :: "[i,i]=>i"  where
+  Dinf      :: "[i,i]\<Rightarrow>i"  where
     "Dinf(DD,ee) \<equiv>
      mkcpo(iprod(DD))
-     (%x. \<forall>n \<in> nat. Rp(DD`n,DD`succ(n),ee`n)`(x`succ(n)) = x`n)"
+     (\<lambda>x. \<forall>n \<in> nat. Rp(DD`n,DD`succ(n),ee`n)`(x`succ(n)) = x`n)"
 
 definition
-  e_less    :: "[i,i,i,i]=>i"  where
+  e_less    :: "[i,i,i,i]\<Rightarrow>i"  where
   (* Valid for m \<le> n only. *)
-    "e_less(DD,ee,m,n) \<equiv> rec(n#-m,id(set(DD`m)),%x y. ee`(m#+x) O y)"
+    "e_less(DD,ee,m,n) \<equiv> rec(n#-m,id(set(DD`m)),\<lambda>x y. ee`(m#+x) O y)"
 
 
 definition
-  e_gr      :: "[i,i,i,i]=>i"  where
+  e_gr      :: "[i,i,i,i]\<Rightarrow>i"  where
   (* Valid for n \<le> m only. *)
     "e_gr(DD,ee,m,n) \<equiv>
      rec(m#-n,id(set(DD`n)),
-         %x y. y O Rp(DD`(n#+x),DD`(succ(n#+x)),ee`(n#+x)))"
+         \<lambda>x y. y O Rp(DD`(n#+x),DD`(succ(n#+x)),ee`(n#+x)))"
 
 
 definition
-  eps       :: "[i,i,i,i]=>i"  where
+  eps       :: "[i,i,i,i]\<Rightarrow>i"  where
     "eps(DD,ee,m,n) \<equiv> if(m \<le> n,e_less(DD,ee,m,n),e_gr(DD,ee,m,n))"
 
 definition
-  rho_emb   :: "[i,i,i]=>i"  where
+  rho_emb   :: "[i,i,i]\<Rightarrow>i"  where
     "rho_emb(DD,ee,n) \<equiv> \<lambda>x \<in> set(DD`n). \<lambda>m \<in> nat. eps(DD,ee,n,m)`x"
 
 definition
-  rho_proj  :: "[i,i,i]=>i"  where
+  rho_proj  :: "[i,i,i]\<Rightarrow>i"  where
     "rho_proj(DD,ee,n) \<equiv> \<lambda>x \<in> set(Dinf(DD,ee)). x`n"
 
 definition
-  commute   :: "[i,i,i,i=>i]=>o"  where
+  commute   :: "[i,i,i,i\<Rightarrow>i]\<Rightarrow>o"  where
     "commute(DD,ee,E,r) \<equiv>
      (\<forall>n \<in> nat. emb(DD`n,E,r(n))) \<and>
      (\<forall>m \<in> nat. \<forall>n \<in> nat. m \<le> n \<longrightarrow> r(n) O eps(DD,ee,m,n) = r(m))"
 
 definition
-  mediating :: "[i,i,i=>i,i=>i,i]=>o"  where
+  mediating :: "[i,i,i\<Rightarrow>i,i\<Rightarrow>i,i]\<Rightarrow>o"  where
     "mediating(E,G,r,f,t) \<equiv> emb(E,G,t) \<and> (\<forall>n \<in> nat. f(n) = t O r(n))"
 
 
@@ -199,10 +199,10 @@ lemmas nat_linear_le = Ord_linear_le [OF nat_into_Ord nat_into_Ord]
 lemma set_I: "x \<in> fst(D) \<Longrightarrow> x \<in> set(D)"
 by (simp add: set_def)
 
-lemma rel_I: "<x,y>:snd(D) \<Longrightarrow> rel(D,x,y)"
+lemma rel_I: "\<langle>x,y\<rangle>:snd(D) \<Longrightarrow> rel(D,x,y)"
 by (simp add: rel_def)
 
-lemma rel_E: "rel(D,x,y) \<Longrightarrow> <x,y>:snd(D)"
+lemma rel_E: "rel(D,x,y) \<Longrightarrow> \<langle>x,y\<rangle>:snd(D)"
 by (simp add: rel_def)
 
 (*----------------------------------------------------------------------*)
@@ -936,7 +936,7 @@ apply (rule_tac [4] f = "p O (e' O p')" in cont_cf)
 apply (subst comp_assoc)
 apply (blast intro:  cpo_cf cont_cf comp_mono comp_pres_cont
              dest: projpair_ep_cont)
-apply (rule_tac P = "%x. rel (cf (E,D),p O e' O p',x)"
+apply (rule_tac P = "\<lambda>x. rel (cf (E,D),p O e' O p',x)"
          in projpair_p_cont [THEN cont_fun, THEN comp_id, THEN subst],
        assumption)
 apply (rule comp_mono)
@@ -959,7 +959,7 @@ apply (rule_tac [4] f = "(e O p) O e'" in cont_cf)
 apply (subst comp_assoc)
 apply (blast intro:  cpo_cf cont_cf comp_mono comp_pres_cont
              dest: projpair_ep_cont)
-apply (rule_tac P = "%x. rel (cf (D,E), (e O p) O e',x)"
+apply (rule_tac P = "\<lambda>x. rel (cf (D,E), (e O p) O e',x)"
          in projpair_e_cont [THEN cont_fun, THEN id_comp, THEN subst],
        assumption)
 apply (blast intro: cpo_cf cont_cf comp_pres_cont projpair_rel comp_mono
@@ -1108,8 +1108,8 @@ apply (rule iprodI)
 apply (blast intro: lam_type chain_iprod [THEN cpo_lub, THEN islub_in])
 apply (rule rel_iprodI, simp)
 (*looks like something should be inserted into the assumptions!*)
-apply (rule_tac P = "%t. rel (DD`na,t,lub (DD`na,\<lambda>x \<in> nat. X`x`na))"
-            and b1 = "%n. X`n`na" in beta [THEN subst])
+apply (rule_tac P = "\<lambda>t. rel (DD`na,t,lub (DD`na,\<lambda>x \<in> nat. X`x`na))"
+            and b1 = "\<lambda>n. X`n`na" in beta [THEN subst])
 apply (simp del: beta_if
             add: chain_iprod [THEN cpo_lub, THEN islub_ub] iprodE
                 chain_in)+
@@ -1832,12 +1832,12 @@ apply (rule_tac x1 = x and n1 = xa in Dinf_eq [THEN subst])
 apply (rule_tac [3] comp_fun_apply [THEN subst])
 apply (rename_tac [5] y)
 apply (rule_tac [5] P =
-         "%z. rel(DD`succ(y),
+         "\<lambda>z. rel(DD`succ(y),
                   (ee`y O Rp(DD'(y)`y,DD'(y)`succ(y),ee'(y)`y)) ` (x`succ(y)),
                   z)" for DD' ee'
        in id_conv [THEN subst])
 apply (rule_tac [6] rel_cf)
-(* Dinf and cont_fun doesn't go well together, both Pi(_,%x._). *)
+(* Dinf and cont_fun doesn't go well together, both Pi(_,\<lambda>x._). *)
 (* solves 10 of 11 subgoals *)
 apply (assumption |
        rule Dinf_prod [THEN apply_type] cont_fun Rp_cont e_less_cont

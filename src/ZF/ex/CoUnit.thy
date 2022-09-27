@@ -59,13 +59,13 @@ lemma Con2_iff: "Con2(x, y) = Con2(x', y') \<longleftrightarrow> x = x' \<and> y
   \<comment> \<open>Proving freeness results.\<close>
   by (fast elim!: counit2.free_elims)
 
-lemma Con2_bnd_mono: "bnd_mono(univ(0), %x. Con2(x, x))"
+lemma Con2_bnd_mono: "bnd_mono(univ(0), \<lambda>x. Con2(x, x))"
   apply (unfold counit2.con_defs)
   apply (rule bnd_monoI)
    apply (assumption | rule subset_refl QPair_subset_univ QPair_mono)+
   done
 
-lemma lfp_Con2_in_counit2: "lfp(univ(0), %x. Con2(x,x)) \<in> counit2"
+lemma lfp_Con2_in_counit2: "lfp(univ(0), \<lambda>x. Con2(x,x)) \<in> counit2"
   apply (rule singletonI [THEN counit2.coinduct])
   apply (rule qunivI [THEN singleton_subsetI])
   apply (rule subset_trans [OF lfp_subset empty_subsetI [THEN univ_mono]])
@@ -90,7 +90,7 @@ lemma counit2_implies_equal: "\<lbrakk>x \<in> counit2;  y \<in> counit2\<rbrakk
   apply (assumption | rule conjI counit2_Int_Vset_subset [THEN Int_Vset_subset])+
   done
 
-lemma counit2_eq_univ: "counit2 = {lfp(univ(0), %x. Con2(x,x))}"
+lemma counit2_eq_univ: "counit2 = {lfp(univ(0), \<lambda>x. Con2(x,x))}"
   apply (rule equalityI)
    apply (rule_tac [2] lfp_Con2_in_counit2 [THEN singleton_subsetI])
   apply (rule subsetI)

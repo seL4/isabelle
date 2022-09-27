@@ -9,20 +9,20 @@ theory Sum imports Bool equalities begin
 
 text\<open>And the "Part" primitive for simultaneous recursive type definitions\<close>
 
-definition sum :: "[i,i]=>i" (infixr \<open>+\<close> 65) where
+definition sum :: "[i,i]\<Rightarrow>i" (infixr \<open>+\<close> 65) where
      "A+B \<equiv> {0}*A \<union> {1}*B"
 
-definition Inl :: "i=>i" where
-     "Inl(a) \<equiv> <0,a>"
+definition Inl :: "i\<Rightarrow>i" where
+     "Inl(a) \<equiv> \<langle>0,a\<rangle>"
 
-definition Inr :: "i=>i" where
-     "Inr(b) \<equiv> <1,b>"
+definition Inr :: "i\<Rightarrow>i" where
+     "Inr(b) \<equiv> \<langle>1,b\<rangle>"
 
-definition "case" :: "[i=>i, i=>i, i]=>i" where
-     "case(c,d) \<equiv> (%<y,z>. cond(y, d(z), c(z)))"
+definition "case" :: "[i\<Rightarrow>i, i\<Rightarrow>i, i]\<Rightarrow>i" where
+     "case(c,d) \<equiv> (\<lambda>\<langle>y,z\<rangle>. cond(y, d(z), c(z)))"
 
   (*operator for selecting out the various summands*)
-definition Part :: "[i,i=>i] => i" where
+definition Part :: "[i,i\<Rightarrow>i] \<Rightarrow> i" where
      "Part(A,h) \<equiv> {x \<in> A. \<exists>z. x = h(z)}"
 
 subsection\<open>Rules for the \<^term>\<open>Part\<close> Primitive\<close>
@@ -154,8 +154,8 @@ lemma case_cong:
 by auto
 
 lemma case_case: "z \<in> A+B \<Longrightarrow>
-        case(c, d, case(%x. Inl(c'(x)), %y. Inr(d'(y)), z)) =
-        case(%x. c(c'(x)), %y. d(d'(y)), z)"
+        case(c, d, case(\<lambda>x. Inl(c'(x)), \<lambda>y. Inr(d'(y)), z)) =
+        case(\<lambda>x. c(c'(x)), \<lambda>y. d(d'(y)), z)"
 by auto
 
 
@@ -179,10 +179,10 @@ by blast
 lemma PartD1: "a \<in> Part(A,h) \<Longrightarrow> a \<in> A"
 by (simp add: Part_def)
 
-lemma Part_id: "Part(A,%x. x) = A"
+lemma Part_id: "Part(A,\<lambda>x. x) = A"
 by blast
 
-lemma Part_Inr2: "Part(A+B, %x. Inr(h(x))) = {Inr(y). y \<in> Part(B,h)}"
+lemma Part_Inr2: "Part(A+B, \<lambda>x. Inr(h(x))) = {Inr(y). y \<in> Part(B,h)}"
 by blast
 
 lemma Part_sum_equality: "C \<subseteq> A+B \<Longrightarrow> Part(C,Inl) \<union> Part(C,Inr) = C"

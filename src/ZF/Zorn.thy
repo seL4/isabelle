@@ -11,23 +11,23 @@ text\<open>Based upon the unpublished article ``Towards the Mechanization of the
 Proofs of Some Classical Theorems of Set Theory,'' by Abrial and Laffitte.\<close>
 
 definition
-  Subset_rel :: "i=>i"  where
-   "Subset_rel(A) \<equiv> {z \<in> A*A . \<exists>x y. z=<x,y> \<and> x<=y \<and> x\<noteq>y}"
+  Subset_rel :: "i\<Rightarrow>i"  where
+   "Subset_rel(A) \<equiv> {z \<in> A*A . \<exists>x y. z=\<langle>x,y\<rangle> \<and> x<=y \<and> x\<noteq>y}"
 
 definition
-  chain      :: "i=>i"  where
+  chain      :: "i\<Rightarrow>i"  where
    "chain(A)      \<equiv> {F \<in> Pow(A). \<forall>X\<in>F. \<forall>Y\<in>F. X<=Y | Y<=X}"
 
 definition
-  super      :: "[i,i]=>i"  where
+  super      :: "[i,i]\<Rightarrow>i"  where
    "super(A,c)    \<equiv> {d \<in> chain(A). c<=d \<and> c\<noteq>d}"
 
 definition
-  maxchain   :: "i=>i"  where
+  maxchain   :: "i\<Rightarrow>i"  where
    "maxchain(A)   \<equiv> {c \<in> chain(A). super(A,c)=0}"
 
 definition
-  increasing :: "i=>i"  where
+  increasing :: "i\<Rightarrow>i"  where
     "increasing(A) \<equiv> {f \<in> Pow(A)->Pow(A). \<forall>x. x<=A \<longrightarrow> x<=f`x}"
 
 
@@ -42,7 +42,7 @@ text\<open>We could make the inductive definition conditional on
     the induction rule lets us assume that condition!  Many inductive proofs
     are therefore unconditional.\<close>
 consts
-  "TFin" :: "[i,i]=>i"
+  "TFin" :: "[i,i]\<Rightarrow>i"
 
 inductive
   domains       "TFin(S,next)" \<subseteq> "Pow(S)"
@@ -396,7 +396,7 @@ lemma choice_imp_injection:
          \<forall>X \<in> Pow(S). next`X = if(X=S, S, cons(ch`(S-X), X))\<rbrakk>
       \<Longrightarrow> (\<lambda> x \<in> S. \<Union>({y \<in> TFin(S,next). x \<notin> y}))
                \<in> inj(S, TFin(S,next) - {S})"
-apply (rule_tac d = "%y. ch` (S-y) " in lam_injective)
+apply (rule_tac d = "\<lambda>y. ch` (S-y) " in lam_injective)
 apply (rule DiffI)
 apply (rule Collect_subset [THEN TFin_UnionI])
 apply (blast intro!: Collect_subset [THEN TFin_UnionI] elim: equalityE)
@@ -435,8 +435,8 @@ subsection \<open>Zorn's Lemma for Partial Orders\<close>
 text \<open>Reimported from HOL by Clemens Ballarin.\<close>
 
 
-definition Chain :: "i => i" where
-  "Chain(r) = {A \<in> Pow(field(r)). \<forall>a\<in>A. \<forall>b\<in>A. <a, b> \<in> r | <b, a> \<in> r}"
+definition Chain :: "i \<Rightarrow> i" where
+  "Chain(r) = {A \<in> Pow(field(r)). \<forall>a\<in>A. \<forall>b\<in>A. \<langle>a, b\<rangle> \<in> r | \<langle>b, a\<rangle> \<in> r}"
 
 lemma mono_Chain:
   "r \<subseteq> s \<Longrightarrow> Chain(r) \<subseteq> Chain(s)"
@@ -445,8 +445,8 @@ lemma mono_Chain:
 
 theorem Zorn_po:
   assumes po: "Partial_order(r)"
-    and u: "\<forall>C\<in>Chain(r). \<exists>u\<in>field(r). \<forall>a\<in>C. <a, u> \<in> r"
-  shows "\<exists>m\<in>field(r). \<forall>a\<in>field(r). <m, a> \<in> r \<longrightarrow> a = m"
+    and u: "\<forall>C\<in>Chain(r). \<exists>u\<in>field(r). \<forall>a\<in>C. \<langle>a, u\<rangle> \<in> r"
+  shows "\<exists>m\<in>field(r). \<forall>a\<in>field(r). \<langle>m, a\<rangle> \<in> r \<longrightarrow> a = m"
 proof -
   have "Preorder(r)" using po by (simp add: partial_order_on_def)
   \<comment> \<open>Mirror r in the set of subsets below (wrt r) elements of A (?).\<close>
@@ -477,11 +477,11 @@ proof -
       fix a b
       assume "a \<in> field(r)" "r -`` {a} \<in> C" "b \<in> field(r)" "r -`` {b} \<in> C"
       hence "r -`` {a} \<subseteq> r -`` {b} | r -`` {b} \<subseteq> r -`` {a}" using 2 by auto
-      then show "<a, b> \<in> r | <b, a> \<in> r"
+      then show "\<langle>a, b\<rangle> \<in> r | \<langle>b, a\<rangle> \<in> r"
         using \<open>Preorder(r)\<close> \<open>a \<in> field(r)\<close> \<open>b \<in> field(r)\<close>
         by (simp add: subset_vimage1_vimage1_iff)
     qed
-    then obtain u where uA: "u \<in> field(r)" "\<forall>a\<in>?A. <a, u> \<in> r"
+    then obtain u where uA: "u \<in> field(r)" "\<forall>a\<in>?A. \<langle>a, u\<rangle> \<in> r"
       using u
       apply auto
       apply (drule bspec) apply assumption
@@ -498,7 +498,7 @@ proof -
         apply (erule lamE)
         apply simp
         done
-      then show "<a, u> \<in> r" using uA aB \<open>Preorder(r)\<close>
+      then show "\<langle>a, u\<rangle> \<in> r" using uA aB \<open>Preorder(r)\<close>
         by (auto simp: preorder_on_def refl_def) (blast dest: trans_onD)+
     qed
     then show "\<exists>U\<in>field(r). \<forall>A\<in>C. A \<subseteq> r -`` {U}"
@@ -508,7 +508,7 @@ proof -
   obtain m B where "m \<in> field(r)" "B = r -`` {m}"
     "\<forall>x\<in>field(r). B \<subseteq> r -`` {x} \<longrightarrow> B = r -`` {x}"
     by (auto elim!: lamE simp: ball_image_simp)
-  then have "\<forall>a\<in>field(r). <m, a> \<in> r \<longrightarrow> a = m"
+  then have "\<forall>a\<in>field(r). \<langle>m, a\<rangle> \<in> r \<longrightarrow> a = m"
     using po \<open>Preorder(r)\<close> \<open>m \<in> field(r)\<close>
     by (auto simp: subset_vimage1_vimage1_iff Partial_order_eq_vimage1_vimage1_iff)
   then show ?thesis using \<open>m \<in> field(r)\<close> by blast

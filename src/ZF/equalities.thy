@@ -36,18 +36,18 @@ lemma bex_UN: "(\<exists>z \<in> (\<Union>x\<in>A. B(x)). P(z)) \<longleftrighta
 
 subsection\<open>Converse of a Relation\<close>
 
-lemma converse_iff [simp]: "<a,b>\<in> converse(r) \<longleftrightarrow> <b,a>\<in>r"
+lemma converse_iff [simp]: "\<langle>a,b\<rangle>\<in> converse(r) \<longleftrightarrow> \<langle>b,a\<rangle>\<in>r"
 by (unfold converse_def, blast)
 
-lemma converseI [intro!]: "<a,b>\<in>r \<Longrightarrow> <b,a>\<in>converse(r)"
+lemma converseI [intro!]: "\<langle>a,b\<rangle>\<in>r \<Longrightarrow> \<langle>b,a\<rangle>\<in>converse(r)"
 by (unfold converse_def, blast)
 
-lemma converseD: "<a,b> \<in> converse(r) \<Longrightarrow> <b,a> \<in> r"
+lemma converseD: "\<langle>a,b\<rangle> \<in> converse(r) \<Longrightarrow> \<langle>b,a\<rangle> \<in> r"
 by (unfold converse_def, blast)
 
 lemma converseE [elim!]:
     "\<lbrakk>yx \<in> converse(r);
-        \<And>x y. \<lbrakk>yx=<y,x>;  <x,y>\<in>r\<rbrakk> \<Longrightarrow> P\<rbrakk>
+        \<And>x y. \<lbrakk>yx=\<langle>y,x\<rangle>;  \<langle>x,y\<rangle>\<in>r\<rbrakk> \<Longrightarrow> P\<rbrakk>
      \<Longrightarrow> P"
 by (unfold converse_def, blast)
 
@@ -482,7 +482,7 @@ by (auto simp add: Inter_def)
 lemma INT_Union_eq:
      "0 \<notin> A \<Longrightarrow> (\<Inter>x\<in> \<Union>(A). B(x)) = (\<Inter>y\<in>A. \<Inter>x\<in>y. B(x))"
 apply (subgoal_tac "\<forall>x\<in>A. x\<noteq>0")
- prefer 2 apply blast
+   prefer 2 apply blast
 apply (force simp add: Inter_def ball_conj_distrib)
 done
 
@@ -580,14 +580,14 @@ by blast
 
 (** Domain **)
 
-lemma domain_iff: "a: domain(r) \<longleftrightarrow> (\<exists>y. <a,y>\<in> r)"
+lemma domain_iff: "a: domain(r) \<longleftrightarrow> (\<exists>y. \<langle>a,y\<rangle>\<in> r)"
 by (unfold domain_def, blast)
 
-lemma domainI [intro]: "<a,b>\<in> r \<Longrightarrow> a: domain(r)"
+lemma domainI [intro]: "\<langle>a,b\<rangle>\<in> r \<Longrightarrow> a: domain(r)"
 by (unfold domain_def, blast)
 
 lemma domainE [elim!]:
-    "\<lbrakk>a \<in> domain(r);  \<And>y. <a,y>\<in> r \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
+    "\<lbrakk>a \<in> domain(r);  \<And>y. \<langle>a,y\<rangle>\<in> r \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
 by (unfold domain_def, blast)
 
 lemma domain_subset: "domain(Sigma(A,B)) \<subseteq> A"
@@ -599,7 +599,7 @@ by blast
 lemma domain_0 [simp]: "domain(0) = 0"
 by blast
 
-lemma domain_cons [simp]: "domain(cons(<a,b>,r)) = cons(a, domain(r))"
+lemma domain_cons [simp]: "domain(cons(\<langle>a,b\<rangle>,r)) = cons(a, domain(r))"
 by blast
 
 lemma domain_Un_eq [simp]: "domain(A \<union> B) = domain(A) \<union> domain(B)"
@@ -620,12 +620,12 @@ by blast
 
 (** Range **)
 
-lemma rangeI [intro]: "<a,b>\<in> r \<Longrightarrow> b \<in> range(r)"
+lemma rangeI [intro]: "\<langle>a,b\<rangle>\<in> r \<Longrightarrow> b \<in> range(r)"
 apply (unfold range_def)
 apply (erule converseI [THEN domainI])
 done
 
-lemma rangeE [elim!]: "\<lbrakk>b \<in> range(r);  \<And>x. <x,b>\<in> r \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
+lemma rangeE [elim!]: "\<lbrakk>b \<in> range(r);  \<And>x. \<langle>x,b\<rangle>\<in> r \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
 by (unfold range_def, blast)
 
 lemma range_subset: "range(A*B) \<subseteq> B"
@@ -640,7 +640,7 @@ by blast
 lemma range_0 [simp]: "range(0) = 0"
 by blast
 
-lemma range_cons [simp]: "range(cons(<a,b>,r)) = cons(b, range(r))"
+lemma range_cons [simp]: "range(cons(\<langle>a,b\<rangle>,r)) = cons(b, range(r))"
 by blast
 
 lemma range_Un_eq [simp]: "range(A \<union> B) = range(A) \<union> range(B)"
@@ -661,21 +661,21 @@ by blast
 
 (** Field **)
 
-lemma fieldI1: "<a,b>\<in> r \<Longrightarrow> a \<in> field(r)"
+lemma fieldI1: "\<langle>a,b\<rangle>\<in> r \<Longrightarrow> a \<in> field(r)"
 by (unfold field_def, blast)
 
-lemma fieldI2: "<a,b>\<in> r \<Longrightarrow> b \<in> field(r)"
+lemma fieldI2: "\<langle>a,b\<rangle>\<in> r \<Longrightarrow> b \<in> field(r)"
 by (unfold field_def, blast)
 
 lemma fieldCI [intro]:
-    "(\<not> <c,a>\<in>r \<Longrightarrow> <a,b>\<in> r) \<Longrightarrow> a \<in> field(r)"
+    "(\<not> \<langle>c,a\<rangle>\<in>r \<Longrightarrow> \<langle>a,b\<rangle>\<in> r) \<Longrightarrow> a \<in> field(r)"
 apply (unfold field_def, blast)
 done
 
 lemma fieldE [elim!]:
      "\<lbrakk>a \<in> field(r);
-         \<And>x. <a,x>\<in> r \<Longrightarrow> P;
-         \<And>x. <x,a>\<in> r \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
+         \<And>x. \<langle>a,x\<rangle>\<in> r \<Longrightarrow> P;
+         \<And>x. \<langle>x,a\<rangle>\<in> r \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
 by (unfold field_def, blast)
 
 lemma field_subset: "field(A*B) \<subseteq> A \<union> B"
@@ -706,7 +706,7 @@ by blast
 lemma field_0 [simp]: "field(0) = 0"
 by blast
 
-lemma field_cons [simp]: "field(cons(<a,b>,r)) = cons(a, cons(b, field(r)))"
+lemma field_cons [simp]: "field(cons(\<langle>a,b\<rangle>,r)) = cons(a, cons(b, field(r)))"
 by blast
 
 lemma field_Un_eq [simp]: "field(A \<union> B) = field(A) \<union> field(B)"
@@ -730,26 +730,26 @@ by blast
 lemma rel_Un: "\<lbrakk>r \<subseteq> A*B;  s \<subseteq> C*D\<rbrakk> \<Longrightarrow> (r \<union> s) \<subseteq> (A \<union> C) * (B \<union> D)"
 by blast
 
-lemma domain_Diff_eq: "\<lbrakk><a,c> \<in> r; c\<noteq>b\<rbrakk> \<Longrightarrow> domain(r-{<a,b>}) = domain(r)"
+lemma domain_Diff_eq: "\<lbrakk>\<langle>a,c\<rangle> \<in> r; c\<noteq>b\<rbrakk> \<Longrightarrow> domain(r-{\<langle>a,b\<rangle>}) = domain(r)"
 by blast
 
-lemma range_Diff_eq: "\<lbrakk><c,b> \<in> r; c\<noteq>a\<rbrakk> \<Longrightarrow> range(r-{<a,b>}) = range(r)"
+lemma range_Diff_eq: "\<lbrakk>\<langle>c,b\<rangle> \<in> r; c\<noteq>a\<rbrakk> \<Longrightarrow> range(r-{\<langle>a,b\<rangle>}) = range(r)"
 by blast
 
 
 subsection\<open>Image of a Set under a Function or Relation\<close>
 
-lemma image_iff: "b \<in> r``A \<longleftrightarrow> (\<exists>x\<in>A. <x,b>\<in>r)"
+lemma image_iff: "b \<in> r``A \<longleftrightarrow> (\<exists>x\<in>A. \<langle>x,b\<rangle>\<in>r)"
 by (unfold image_def, blast)
 
-lemma image_singleton_iff: "b \<in> r``{a} \<longleftrightarrow> <a,b>\<in>r"
+lemma image_singleton_iff: "b \<in> r``{a} \<longleftrightarrow> \<langle>a,b\<rangle>\<in>r"
 by (rule image_iff [THEN iff_trans], blast)
 
-lemma imageI [intro]: "\<lbrakk><a,b>\<in> r;  a\<in>A\<rbrakk> \<Longrightarrow> b \<in> r``A"
+lemma imageI [intro]: "\<lbrakk>\<langle>a,b\<rangle>\<in> r;  a\<in>A\<rbrakk> \<Longrightarrow> b \<in> r``A"
 by (unfold image_def, blast)
 
 lemma imageE [elim!]:
-    "\<lbrakk>b: r``A;  \<And>x.\<lbrakk><x,b>\<in> r;  x\<in>A\<rbrakk> \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
+    "\<lbrakk>b: r``A;  \<And>x.\<lbrakk>\<langle>x,b\<rangle>\<in> r;  x\<in>A\<rbrakk> \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
 by (unfold image_def, blast)
 
 lemma image_subset: "r \<subseteq> A*B \<Longrightarrow> r``C \<subseteq> B"
@@ -765,7 +765,7 @@ lemma image_UN: "r `` (\<Union>x\<in>A. B(x)) = (\<Union>x\<in>A. r `` B(x))"
 by blast
 
 lemma Collect_image_eq:
-     "{z \<in> Sigma(A,B). P(z)} `` C = (\<Union>x \<in> A. {y \<in> B(x). x \<in> C \<and> P(<x,y>)})"
+     "{z \<in> Sigma(A,B). P(z)} `` C = (\<Union>x \<in> A. {y \<in> B(x). x \<in> C \<and> P(\<langle>x,y\<rangle>)})"
 by blast
 
 lemma image_Int_subset: "r``(A \<inter> B) \<subseteq> (r``A) \<inter> (r``B)"
@@ -792,17 +792,17 @@ by blast
 subsection\<open>Inverse Image of a Set under a Function or Relation\<close>
 
 lemma vimage_iff:
-    "a \<in> r-``B \<longleftrightarrow> (\<exists>y\<in>B. <a,y>\<in>r)"
+    "a \<in> r-``B \<longleftrightarrow> (\<exists>y\<in>B. \<langle>a,y\<rangle>\<in>r)"
 by (unfold vimage_def image_def converse_def, blast)
 
-lemma vimage_singleton_iff: "a \<in> r-``{b} \<longleftrightarrow> <a,b>\<in>r"
+lemma vimage_singleton_iff: "a \<in> r-``{b} \<longleftrightarrow> \<langle>a,b\<rangle>\<in>r"
 by (rule vimage_iff [THEN iff_trans], blast)
 
-lemma vimageI [intro]: "\<lbrakk><a,b>\<in> r;  b\<in>B\<rbrakk> \<Longrightarrow> a \<in> r-``B"
+lemma vimageI [intro]: "\<lbrakk>\<langle>a,b\<rangle>\<in> r;  b\<in>B\<rbrakk> \<Longrightarrow> a \<in> r-``B"
 by (unfold vimage_def, blast)
 
 lemma vimageE [elim!]:
-    "\<lbrakk>a: r-``B;  \<And>x.\<lbrakk><a,x>\<in> r;  x\<in>B\<rbrakk> \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
+    "\<lbrakk>a: r-``B;  \<And>x.\<lbrakk>\<langle>a,x\<rangle>\<in> r;  x\<in>B\<rbrakk> \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
 apply (unfold vimage_def, blast)
 done
 
@@ -941,11 +941,11 @@ lemma Int_Collect_self_eq: "A \<inter> Collect(A,P) = Collect(A,P)"
 by blast
 
 lemma Collect_Collect_eq [simp]:
-     "Collect(Collect(A,P), Q) = Collect(A, %x. P(x) \<and> Q(x))"
+     "Collect(Collect(A,P), Q) = Collect(A, \<lambda>x. P(x) \<and> Q(x))"
 by blast
 
 lemma Collect_Int_Collect_eq:
-     "Collect(A,P) \<inter> Collect(A,Q) = Collect(A, %x. P(x) \<and> Q(x))"
+     "Collect(A,P) \<inter> Collect(A,Q) = Collect(A, \<lambda>x. P(x) \<and> Q(x))"
 by blast
 
 lemma Collect_Union_eq [simp]:

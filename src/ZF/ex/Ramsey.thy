@@ -27,23 +27,23 @@ fun ram 0 j = 1
 theory Ramsey imports ZF begin
 
 definition
-  Symmetric :: "i=>o" where
-    "Symmetric(E) \<equiv> (\<forall>x y. <x,y>:E \<longrightarrow> <y,x>:E)"
+  Symmetric :: "i\<Rightarrow>o" where
+    "Symmetric(E) \<equiv> (\<forall>x y. \<langle>x,y\<rangle>:E \<longrightarrow> \<langle>y,x\<rangle>:E)"
 
 definition
-  Atleast :: "[i,i]=>o" where \<comment> \<open>not really necessary: ZF defines cardinality\<close>
+  Atleast :: "[i,i]\<Rightarrow>o" where \<comment> \<open>not really necessary: ZF defines cardinality\<close>
     "Atleast(n,S) \<equiv> (\<exists>f. f \<in> inj(n,S))"
 
 definition
-  Clique  :: "[i,i,i]=>o" where
-    "Clique(C,V,E) \<equiv> (C \<subseteq> V) \<and> (\<forall>x \<in> C. \<forall>y \<in> C. x\<noteq>y \<longrightarrow> <x,y> \<in> E)"
+  Clique  :: "[i,i,i]\<Rightarrow>o" where
+    "Clique(C,V,E) \<equiv> (C \<subseteq> V) \<and> (\<forall>x \<in> C. \<forall>y \<in> C. x\<noteq>y \<longrightarrow> \<langle>x,y\<rangle> \<in> E)"
 
 definition
-  Indept  :: "[i,i,i]=>o" where
-    "Indept(I,V,E) \<equiv> (I \<subseteq> V) \<and> (\<forall>x \<in> I. \<forall>y \<in> I. x\<noteq>y \<longrightarrow> <x,y> \<notin> E)"
+  Indept  :: "[i,i,i]\<Rightarrow>o" where
+    "Indept(I,V,E) \<equiv> (I \<subseteq> V) \<and> (\<forall>x \<in> I. \<forall>y \<in> I. x\<noteq>y \<longrightarrow> \<langle>x,y\<rangle> \<notin> E)"
   
 definition
-  Ramsey  :: "[i,i,i]=>o" where
+  Ramsey  :: "[i,i,i]\<Rightarrow>o" where
     "Ramsey(n,i,j) \<equiv> \<forall>V E. Symmetric(E) \<and> Atleast(n,V) \<longrightarrow>  
          (\<exists>C. Clique(C,V,E) \<and> Atleast(i,C)) |       
          (\<exists>I. Indept(I,V,E) \<and> Atleast(j,I))"
@@ -145,7 +145,7 @@ done
 
 (*For the Atleast part, proves \<not>(a \<in> I) from the second premise!*)
 lemma Indept_succ: 
-    "\<lbrakk>Indept(I, {z \<in> V-{a}. <a,z> \<notin> E}, E);  Symmetric(E);  a \<in> V;   
+    "\<lbrakk>Indept(I, {z \<in> V-{a}. \<langle>a,z\<rangle> \<notin> E}, E);  Symmetric(E);  a \<in> V;   
         Atleast(j,I)\<rbrakk> \<Longrightarrow>    
      Indept(cons(a,I), V, E) \<and> Atleast(succ(j), cons(a,I))"
 apply (unfold Symmetric_def Indept_def)
@@ -154,7 +154,7 @@ done
 
 
 lemma Clique_succ: 
-    "\<lbrakk>Clique(C, {z \<in> V-{a}. <a,z>:E}, E);  Symmetric(E);  a \<in> V;   
+    "\<lbrakk>Clique(C, {z \<in> V-{a}. \<langle>a,z\<rangle>:E}, E);  Symmetric(E);  a \<in> V;   
         Atleast(j,C)\<rbrakk> \<Longrightarrow>    
      Clique(cons(a,C), V, E) \<and> Atleast(succ(j), cons(a,C))"
 apply (unfold Symmetric_def Clique_def)
@@ -169,7 +169,7 @@ lemma Ramsey_step_lemma:
        m \<in> nat;  n \<in> nat\<rbrakk> \<Longrightarrow> Ramsey(succ(m#+n), succ(i), succ(j))"
 apply (unfold Ramsey_def, clarify)
 apply (erule Atleast_succD [THEN bexE])
-apply (erule_tac P1 = "%z.<x,z>:E" in Atleast_partition [THEN disjE],
+apply (erule_tac P1 = "\<lambda>z.\<langle>x,z\<rangle>:E" in Atleast_partition [THEN disjE],
        assumption+)
 (*case m*)
 apply (fast dest!: Indept_succ elim: Clique_superset)

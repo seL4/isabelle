@@ -8,33 +8,33 @@ section\<open>Cardinal Arithmetic Without the Axiom of Choice\<close>
 theory CardinalArith imports Cardinal OrderArith ArithSimp Finite begin
 
 definition
-  InfCard       :: "i=>o"  where
+  InfCard       :: "i\<Rightarrow>o"  where
     "InfCard(i) \<equiv> Card(i) \<and> nat \<le> i"
 
 definition
-  cmult         :: "[i,i]=>i"       (infixl \<open>\<otimes>\<close> 70)  where
+  cmult         :: "[i,i]\<Rightarrow>i"       (infixl \<open>\<otimes>\<close> 70)  where
     "i \<otimes> j \<equiv> |i*j|"
 
 definition
-  cadd          :: "[i,i]=>i"       (infixl \<open>\<oplus>\<close> 65)  where
+  cadd          :: "[i,i]\<Rightarrow>i"       (infixl \<open>\<oplus>\<close> 65)  where
     "i \<oplus> j \<equiv> |i+j|"
 
 definition
-  csquare_rel   :: "i=>i"  where
+  csquare_rel   :: "i\<Rightarrow>i"  where
     "csquare_rel(K) \<equiv>
           rvimage(K*K,
-                  lam <x,y>:K*K. <x \<union> y, x, y>,
+                  lam \<langle>x,y\<rangle>:K*K. <x \<union> y, x, y>,
                   rmult(K,Memrel(K), K*K, rmult(K,Memrel(K), K,Memrel(K))))"
 
 definition
-  jump_cardinal :: "i=>i"  where
+  jump_cardinal :: "i\<Rightarrow>i"  where
     \<comment> \<open>This definition is more complex than Kunen's but it more easily proved to
         be a cardinal\<close>
     "jump_cardinal(K) \<equiv>
          \<Union>X\<in>Pow(K). {z. r \<in> Pow(K*K), well_ord(X,r) \<and> z = ordertype(X,r)}"
 
 definition
-  csucc         :: "i=>i"  where
+  csucc         :: "i\<Rightarrow>i"  where
     \<comment> \<open>needed because \<^term>\<open>jump_cardinal(K)\<close> might not be the successor
         of \<^term>\<open>K\<close>\<close>
     "csucc(K) \<equiv> \<mu> L. Card(L) \<and> K<L"
@@ -163,8 +163,8 @@ lemma sum_lepoll_mono:
      "\<lbrakk>A \<lesssim> C;  B \<lesssim> D\<rbrakk> \<Longrightarrow> A + B \<lesssim> C + D"
 apply (unfold lepoll_def)
 apply (elim exE)
-apply (rule_tac x = "\<lambda>z\<in>A+B. case (%w. Inl(f`w), %y. Inr(fa`y), z)" in exI)
-apply (rule_tac d = "case (%w. Inl(converse(f) `w), %y. Inr(converse(fa) ` y))"
+apply (rule_tac x = "\<lambda>z\<in>A+B. case (\<lambda>w. Inl(f`w), \<lambda>y. Inr(fa`y), z)" in exI)
+apply (rule_tac d = "case (\<lambda>w. Inl(converse(f) `w), \<lambda>y. Inr(converse(fa) ` y))"
        in lam_injective)
 apply (typecheck add: inj_is_fun, auto)
 done
@@ -183,8 +183,8 @@ subsubsection\<open>Addition of finite cardinals is "ordinary" addition\<close>
 lemma sum_succ_eqpoll: "succ(A)+B \<approx> succ(A+B)"
 apply (unfold eqpoll_def)
 apply (rule exI)
-apply (rule_tac c = "%z. if z=Inl (A) then A+B else z"
-            and d = "%z. if z=A+B then Inl (A) else z" in lam_bijective)
+apply (rule_tac c = "\<lambda>z. if z=Inl (A) then A+B else z"
+            and d = "\<lambda>z. if z=A+B then Inl (A) else z" in lam_bijective)
    apply simp_all
 apply (blast dest: sym [THEN eq_imp_not_mem] elim: mem_irrefl)+
 done
@@ -221,7 +221,7 @@ subsubsection\<open>Cardinal multiplication is commutative\<close>
 lemma prod_commute_eqpoll: "A*B \<approx> B*A"
 apply (unfold eqpoll_def)
 apply (rule exI)
-apply (rule_tac c = "%<x,y>.<y,x>" and d = "%<x,y>.<y,x>" in lam_bijective,
+apply (rule_tac c = "\<lambda>\<langle>x,y\<rangle>.\<langle>y,x\<rangle>" and d = "\<lambda>\<langle>x,y\<rangle>.\<langle>y,x\<rangle>" in lam_bijective,
        auto)
 done
 
@@ -301,7 +301,7 @@ subsection\<open>Some inequalities for multiplication\<close>
 
 lemma prod_square_lepoll: "A \<lesssim> A*A"
 apply (unfold lepoll_def inj_def)
-apply (rule_tac x = "\<lambda>x\<in>A. <x,x>" in exI, simp)
+apply (rule_tac x = "\<lambda>x\<in>A. \<langle>x,x\<rangle>" in exI, simp)
 done
 
 (*Could probably weaken the premise to well_ord(K,r), or remove using AC*)
@@ -318,7 +318,7 @@ subsubsection\<open>Multiplication by a non-zero cardinal\<close>
 
 lemma prod_lepoll_self: "b \<in> B \<Longrightarrow> A \<lesssim> A*B"
 apply (unfold lepoll_def inj_def)
-apply (rule_tac x = "\<lambda>x\<in>A. <x,b>" in exI, simp)
+apply (rule_tac x = "\<lambda>x\<in>A. \<langle>x,b\<rangle>" in exI, simp)
 done
 
 (*Could probably weaken the premises to well_ord(K,r), or removing using AC*)
@@ -337,8 +337,8 @@ lemma prod_lepoll_mono:
      "\<lbrakk>A \<lesssim> C;  B \<lesssim> D\<rbrakk> \<Longrightarrow> A * B  \<lesssim>  C * D"
 apply (unfold lepoll_def)
 apply (elim exE)
-apply (rule_tac x = "lam <w,y>:A*B. <f`w, fa`y>" in exI)
-apply (rule_tac d = "%<w,y>. <converse (f) `w, converse (fa) `y>"
+apply (rule_tac x = "lam \<langle>w,y\<rangle>:A*B. <f`w, fa`y>" in exI)
+apply (rule_tac d = "\<lambda>\<langle>w,y\<rangle>. <converse (f) `w, converse (fa) `y>"
        in lam_injective)
 apply (typecheck add: inj_is_fun, auto)
 done
@@ -357,8 +357,8 @@ subsection\<open>Multiplication of finite cardinals is "ordinary" multiplication
 lemma prod_succ_eqpoll: "succ(A)*B \<approx> B + A*B"
 apply (unfold eqpoll_def)
 apply (rule exI)
-apply (rule_tac c = "%<x,y>. if x=A then Inl (y) else Inr (<x,y>)"
-            and d = "case (%y. <A,y>, %z. z)" in lam_bijective)
+apply (rule_tac c = "\<lambda>\<langle>x,y\<rangle>. if x=A then Inl (y) else Inr (\<langle>x,y\<rangle>)"
+            and d = "case (\<lambda>y. \<langle>A,y\<rangle>, \<lambda>z. z)" in lam_bijective)
 apply safe
 apply (simp_all add: succI2 if_type mem_imp_not_eq)
 done
@@ -399,7 +399,7 @@ subsection\<open>Infinite Cardinals are Limit Ordinals\<close>
 
 (*This proof is modelled upon one assuming nat<=A, with injection
   \<lambda>z\<in>cons(u,A). if z=u then 0 else if z \<in> nat then succ(z) else z
-  and inverse %y. if y \<in> nat then nat_case(u, %z. z, y) else y.  \
+  and inverse \<lambda>y. if y \<in> nat then nat_case(u, \<lambda>z. z, y) else y.  \
   If f \<in> inj(nat,A) then range(f) behaves like the natural numbers.*)
 lemma nat_cons_lepoll: "nat \<lesssim> A \<Longrightarrow> cons(u,A) \<lesssim> A"
 apply (unfold lepoll_def)
@@ -410,7 +410,7 @@ apply (rule_tac x =
              else if z \<in> range (f) then f`succ (converse (f) `z) else z"
        in exI)
 apply (rule_tac d =
-          "%y. if y \<in> range(f) then nat_case (u, %z. f`z, converse(f) `y)
+          "\<lambda>y. if y \<in> range(f) then nat_case (u, \<lambda>z. f`z, converse(f) `y)
                               else y"
        in lam_injective)
 apply (fast intro!: if_type apply_type intro: inj_is_fun inj_converse_fun)
@@ -491,7 +491,7 @@ qed
 subsubsection\<open>Characterising initial segments of the well-ordering\<close>
 
 lemma csquareD:
- "\<lbrakk><<x,y>, <z,z>> \<in> csquare_rel(K);  x<K;  y<K;  z<K\<rbrakk> \<Longrightarrow> x \<le> z \<and> y \<le> z"
+ "\<lbrakk><\<langle>x,y\<rangle>, \<langle>z,z\<rangle>> \<in> csquare_rel(K);  x<K;  y<K;  z<K\<rbrakk> \<Longrightarrow> x \<le> z \<and> y \<le> z"
 apply (unfold csquare_rel_def)
 apply (erule rev_mp)
 apply (elim ltE)
@@ -501,14 +501,14 @@ apply (simp_all add: lt_def succI2)
 done
 
 lemma pred_csquare_subset:
-    "z<K \<Longrightarrow> Order.pred(K*K, <z,z>, csquare_rel(K)) \<subseteq> succ(z)*succ(z)"
+    "z<K \<Longrightarrow> Order.pred(K*K, \<langle>z,z\<rangle>, csquare_rel(K)) \<subseteq> succ(z)*succ(z)"
 apply (unfold Order.pred_def)
 apply (safe del: SigmaI dest!: csquareD)
 apply (unfold lt_def, auto)
 done
 
 lemma csquare_ltI:
- "\<lbrakk>x<z;  y<z;  z<K\<rbrakk> \<Longrightarrow>  <<x,y>, <z,z>> \<in> csquare_rel(K)"
+ "\<lbrakk>x<z;  y<z;  z<K\<rbrakk> \<Longrightarrow>  <\<langle>x,y\<rangle>, \<langle>z,z\<rangle>> \<in> csquare_rel(K)"
 apply (unfold csquare_rel_def)
 apply (subgoal_tac "x<K \<and> y<K")
  prefer 2 apply (blast intro: lt_trans)
@@ -518,7 +518,7 @@ done
 
 (*Part of the traditional proof.  UNUSED since it's harder to prove \<and> apply *)
 lemma csquare_or_eqI:
- "\<lbrakk>x \<le> z;  y \<le> z;  z<K\<rbrakk> \<Longrightarrow> <<x,y>, <z,z>> \<in> csquare_rel(K) | x=z \<and> y=z"
+ "\<lbrakk>x \<le> z;  y \<le> z;  z<K\<rbrakk> \<Longrightarrow> <\<langle>x,y\<rangle>, \<langle>z,z\<rangle>> \<in> csquare_rel(K) | x=z \<and> y=z"
 apply (unfold csquare_rel_def)
 apply (subgoal_tac "x<K \<and> y<K")
  prefer 2 apply (blast intro: lt_trans1)
@@ -533,8 +533,8 @@ subsubsection\<open>The cardinality of initial segments\<close>
 
 lemma ordermap_z_lt:
       "\<lbrakk>Limit(K);  x<K;  y<K;  z=succ(x \<union> y)\<rbrakk> \<Longrightarrow>
-          ordermap(K*K, csquare_rel(K)) ` <x,y> <
-          ordermap(K*K, csquare_rel(K)) ` <z,z>"
+          ordermap(K*K, csquare_rel(K)) ` \<langle>x,y\<rangle> <
+          ordermap(K*K, csquare_rel(K)) ` \<langle>z,z\<rangle>"
 apply (subgoal_tac "z<K \<and> well_ord (K*K, csquare_rel (K))")
 prefer 2 apply (blast intro!: Un_least_lt Limit_has_succ
                               Limit_is_Ord [THEN well_ord_csquare], clarify)

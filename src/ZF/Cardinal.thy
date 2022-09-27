@@ -9,31 +9,31 @@ theory Cardinal imports OrderType Finite Nat Sum begin
 
 definition
   (*least ordinal operator*)
-   Least    :: "(i=>o) => i"    (binder \<open>\<mu> \<close> 10)  where
+   Least    :: "(i\<Rightarrow>o) \<Rightarrow> i"    (binder \<open>\<mu> \<close> 10)  where
      "Least(P) \<equiv> THE i. Ord(i) \<and> P(i) \<and> (\<forall>j. j<i \<longrightarrow> \<not>P(j))"
 
 definition
-  eqpoll   :: "[i,i] => o"     (infixl \<open>\<approx>\<close> 50)  where
+  eqpoll   :: "[i,i] \<Rightarrow> o"     (infixl \<open>\<approx>\<close> 50)  where
     "A \<approx> B \<equiv> \<exists>f. f \<in> bij(A,B)"
 
 definition
-  lepoll   :: "[i,i] => o"     (infixl \<open>\<lesssim>\<close> 50)  where
+  lepoll   :: "[i,i] \<Rightarrow> o"     (infixl \<open>\<lesssim>\<close> 50)  where
     "A \<lesssim> B \<equiv> \<exists>f. f \<in> inj(A,B)"
 
 definition
-  lesspoll :: "[i,i] => o"     (infixl \<open>\<prec>\<close> 50)  where
+  lesspoll :: "[i,i] \<Rightarrow> o"     (infixl \<open>\<prec>\<close> 50)  where
     "A \<prec> B \<equiv> A \<lesssim> B \<and> \<not>(A \<approx> B)"
 
 definition
-  cardinal :: "i=>i"           (\<open>|_|\<close>)  where
+  cardinal :: "i\<Rightarrow>i"           (\<open>|_|\<close>)  where
     "|A| \<equiv> (\<mu> i. i \<approx> A)"
 
 definition
-  Finite   :: "i=>o"  where
+  Finite   :: "i\<Rightarrow>o"  where
     "Finite(A) \<equiv> \<exists>n\<in>nat. A \<approx> n"
 
 definition
-  Card     :: "i=>o"  where
+  Card     :: "i\<Rightarrow>o"  where
     "Card(i) \<equiv> (i = |i|)"
 
 
@@ -42,14 +42,14 @@ text\<open>See Davey and Priestly, page 106\<close>
 
 (** Lemma: Banach's Decomposition Theorem **)
 
-lemma decomp_bnd_mono: "bnd_mono(X, %W. X - g``(Y - f``W))"
+lemma decomp_bnd_mono: "bnd_mono(X, \<lambda>W. X - g``(Y - f``W))"
 by (rule bnd_monoI, blast+)
 
 lemma Banach_last_equation:
     "g \<in> Y->X
-     \<Longrightarrow> g``(Y - f`` lfp(X, %W. X - g``(Y - f``W))) =
-         X - lfp(X, %W. X - g``(Y - f``W))"
-apply (rule_tac P = "%u. v = X-u" for v
+     \<Longrightarrow> g``(Y - f`` lfp(X, \<lambda>W. X - g``(Y - f``W))) =
+         X - lfp(X, \<lambda>W. X - g``(Y - f``W))"
+apply (rule_tac P = "\<lambda>u. v = X-u" for v
        in decomp_bnd_mono [THEN lfp_unfold, THEN ssubst])
 apply (simp add: double_complement  fun_is_rel [THEN image_subset])
 done
@@ -738,7 +738,7 @@ lemma cons_lepoll_cong:
     "\<lbrakk>A \<lesssim> B;  b \<notin> B\<rbrakk> \<Longrightarrow> cons(a,A) \<lesssim> cons(b,B)"
 apply (unfold lepoll_def, safe)
 apply (rule_tac x = "\<lambda>y\<in>cons (a,A) . if y=a then b else f`y" in exI)
-apply (rule_tac d = "%z. if z \<in> B then converse (f) `z else a" in lam_injective)
+apply (rule_tac d = "\<lambda>z. if z \<in> B then converse (f) `z else a" in lam_injective)
 apply (safe elim!: consE')
    apply simp_all
 apply (blast intro: inj_is_fun [THEN apply_type])+
@@ -769,7 +769,7 @@ done
 lemma not_0_is_lepoll_1: "A \<noteq> 0 \<Longrightarrow> 1 \<lesssim> A"
 apply (erule not_emptyE)
 apply (rule_tac a = "cons (x, A-{x}) " in subst)
-apply (rule_tac [2] a = "cons(0,0)" and P= "%y. y \<lesssim> cons (x, A-{x})" in subst)
+apply (rule_tac [2] a = "cons(0,0)" and P= "\<lambda>y. y \<lesssim> cons (x, A-{x})" in subst)
 prefer 3 apply (blast intro: cons_lepoll_cong subset_imp_lepoll, auto)
 done
 
@@ -796,8 +796,8 @@ lemma inj_disjoint_eqpoll:
     "\<lbrakk>f \<in> inj(A,B);  A \<inter> B = 0\<rbrakk> \<Longrightarrow> A \<union> (B - range(f)) \<approx> B"
 apply (unfold eqpoll_def)
 apply (rule exI)
-apply (rule_tac c = "%x. if x \<in> A then f`x else x"
-            and d = "%y. if y \<in> range (f) then converse (f) `y else y"
+apply (rule_tac c = "\<lambda>x. if x \<in> A then f`x else x"
+            and d = "\<lambda>y. if y \<in> range (f) then converse (f) `y else y"
        in lam_bijective)
 apply (blast intro!: if_type inj_is_fun [THEN apply_type])
 apply (simp (no_asm_simp) add: inj_converse_fun [THEN apply_funtype])
@@ -848,7 +848,7 @@ done
 lemma Un_lepoll_sum: "A \<union> B \<lesssim> A+B"
 apply (unfold lepoll_def)
 apply (rule_tac x = "\<lambda>x\<in>A \<union> B. if x\<in>A then Inl (x) else Inr (x)" in exI)
-apply (rule_tac d = "%z. snd (z)" in lam_injective)
+apply (rule_tac d = "\<lambda>z. snd (z)" in lam_injective)
 apply force
 apply (simp add: Inl_def Inr_def)
 done
@@ -862,7 +862,7 @@ by (erule well_ord_radd [THEN Un_lepoll_sum [THEN lepoll_well_ord]],
 lemma disj_Un_eqpoll_sum: "A \<inter> B = 0 \<Longrightarrow> A \<union> B \<approx> A + B"
 apply (unfold eqpoll_def)
 apply (rule_tac x = "\<lambda>a\<in>A \<union> B. if a \<in> A then Inl (a) else Inr (a)" in exI)
-apply (rule_tac d = "%z. case (%x. x, %x. x, z)" in lam_bijective)
+apply (rule_tac d = "\<lambda>z. case (\<lambda>x. x, \<lambda>x. x, z)" in lam_bijective)
 apply auto
 done
 

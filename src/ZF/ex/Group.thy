@@ -13,28 +13,28 @@ subsection \<open>Monoids\<close>
 (*First, we must simulate a record declaration:
 record monoid =
   carrier :: i
-  mult :: "[i,i] => i" (infixl "\<cdot>\<index>" 70)
+  mult :: "[i,i] \<Rightarrow> i" (infixl "\<cdot>\<index>" 70)
   one :: i ("\<one>\<index>")
 *)
 
 definition
-  carrier :: "i => i" where
+  carrier :: "i \<Rightarrow> i" where
   "carrier(M) \<equiv> fst(M)"
 
 definition
-  mmult :: "[i, i, i] => i" (infixl \<open>\<cdot>\<index>\<close> 70) where
-  "mmult(M,x,y) \<equiv> fst(snd(M)) ` <x,y>"
+  mmult :: "[i, i, i] \<Rightarrow> i" (infixl \<open>\<cdot>\<index>\<close> 70) where
+  "mmult(M,x,y) \<equiv> fst(snd(M)) ` \<langle>x,y\<rangle>"
 
 definition
-  one :: "i => i" (\<open>\<one>\<index>\<close>) where
+  one :: "i \<Rightarrow> i" (\<open>\<one>\<index>\<close>) where
   "one(M) \<equiv> fst(snd(snd(M)))"
 
 definition
-  update_carrier :: "[i,i] => i" where
+  update_carrier :: "[i,i] \<Rightarrow> i" where
   "update_carrier(M,A) \<equiv> <A,snd(M)>"
 
 definition
-  m_inv :: "i => i => i" (\<open>inv\<index> _\<close> [81] 80) where
+  m_inv :: "i \<Rightarrow> i \<Rightarrow> i" (\<open>inv\<index> _\<close> [81] 80) where
   "inv\<^bsub>G\<^esub> x \<equiv> (THE y. y \<in> carrier(G) \<and> y \<cdot>\<^bsub>G\<^esub> x = \<one>\<^bsub>G\<^esub> \<and> x \<cdot>\<^bsub>G\<^esub> y = \<one>\<^bsub>G\<^esub>)"
 
 locale monoid = fixes G (structure)
@@ -48,16 +48,16 @@ locale monoid = fixes G (structure)
       and r_one [simp]: "x \<in> carrier(G) \<Longrightarrow> x \<cdot> \<one> = x"
 
 text\<open>Simulating the record\<close>
-lemma carrier_eq [simp]: "carrier(<A,Z>) = A"
+lemma carrier_eq [simp]: "carrier(\<langle>A,Z\<rangle>) = A"
   by (simp add: carrier_def)
 
-lemma mult_eq [simp]: "mmult(<A,M,Z>, x, y) = M ` <x,y>"
+lemma mult_eq [simp]: "mmult(<A,M,Z>, x, y) = M ` \<langle>x,y\<rangle>"
   by (simp add: mmult_def)
 
 lemma one_eq [simp]: "one(<A,M,I,Z>) = I"
   by (simp add: one_def)
 
-lemma update_carrier_eq [simp]: "update_carrier(<A,Z>,B) = <B,Z>"
+lemma update_carrier_eq [simp]: "update_carrier(\<langle>A,Z\<rangle>,B) = \<langle>B,Z\<rangle>"
   by (simp add: update_carrier_def)
 
 lemma carrier_update_carrier [simp]: "carrier(update_carrier(M,B)) = B"
@@ -302,9 +302,9 @@ lemma subgroup_nonempty:
 subsection \<open>Direct Products\<close>
 
 definition
-  DirProdGroup :: "[i,i] => i"  (infixr \<open>\<Otimes>\<close> 80) where
+  DirProdGroup :: "[i,i] \<Rightarrow> i"  (infixr \<open>\<Otimes>\<close> 80) where
   "G \<Otimes> H \<equiv> <carrier(G) \<times> carrier(H),
-              (\<lambda><<g,h>, <g', h'>>
+              (\<lambda><\<langle>g,h\<rangle>, <g', h'>>
                    \<in> (carrier(G) \<times> carrier(H)) \<times> (carrier(G) \<times> carrier(H)).
                 <g \<cdot>\<^bsub>G\<^esub> g', h \<cdot>\<^bsub>H\<^esub> h'>),
               <\<one>\<^bsub>G\<^esub>, \<one>\<^bsub>H\<^esub>>, 0>"
@@ -329,14 +329,14 @@ lemma one_DirProdGroup [simp]:
 
 lemma mult_DirProdGroup [simp]:
      "\<lbrakk>g \<in> carrier(G); h \<in> carrier(H); g' \<in> carrier(G); h' \<in> carrier(H)\<rbrakk>
-      \<Longrightarrow> <g, h> \<cdot>\<^bsub>G \<Otimes> H\<^esub> <g', h'> = <g \<cdot>\<^bsub>G\<^esub> g', h \<cdot>\<^bsub>H\<^esub> h'>"
+      \<Longrightarrow> \<langle>g, h\<rangle> \<cdot>\<^bsub>G \<Otimes> H\<^esub> <g', h'> = <g \<cdot>\<^bsub>G\<^esub> g', h \<cdot>\<^bsub>H\<^esub> h'>"
   by (simp add: DirProdGroup_def)
 
 lemma inv_DirProdGroup [simp]:
   assumes "group(G)" and "group(H)"
   assumes g: "g \<in> carrier(G)"
       and h: "h \<in> carrier(H)"
-  shows "inv \<^bsub>G \<Otimes> H\<^esub> <g, h> = <inv\<^bsub>G\<^esub> g, inv\<^bsub>H\<^esub> h>"
+  shows "inv \<^bsub>G \<Otimes> H\<^esub> \<langle>g, h\<rangle> = <inv\<^bsub>G\<^esub> g, inv\<^bsub>H\<^esub> h>"
   apply (rule group.inv_equality [OF DirProdGroup_group])
   apply (simp_all add: assms group.l_inv)
   done
@@ -344,7 +344,7 @@ lemma inv_DirProdGroup [simp]:
 subsection \<open>Isomorphisms\<close>
 
 definition
-  hom :: "[i,i] => i" where
+  hom :: "[i,i] \<Rightarrow> i" where
   "hom(G,H) \<equiv>
     {h \<in> carrier(G) -> carrier(H).
       (\<forall>x \<in> carrier(G). \<forall>y \<in> carrier(G). h ` (x \<cdot>\<^bsub>G\<^esub> y) = (h ` x) \<cdot>\<^bsub>H\<^esub> (h ` y))}"
@@ -370,7 +370,7 @@ lemma hom_is_fun:
 subsection \<open>Isomorphisms\<close>
 
 definition
-  iso :: "[i,i] => i"  (infixr \<open>\<cong>\<close> 60) where
+  iso :: "[i,i] \<Rightarrow> i"  (infixr \<open>\<cong>\<close> 60) where
   "G \<cong> H \<equiv> hom(G,H) \<inter> bij(carrier(G), carrier(H))"
 
 lemma (in group) iso_refl: "id(carrier(G)) \<in> G \<cong> G"
@@ -392,7 +392,7 @@ lemma (in group) iso_trans:
 
 lemma DirProdGroup_commute_iso:
   assumes "group(G)" and "group(H)"
-  shows "(\<lambda><x,y> \<in> carrier(G \<Otimes> H). <y,x>) \<in> (G \<Otimes> H) \<cong> (H \<Otimes> G)"
+  shows "(\<lambda>\<langle>x,y\<rangle> \<in> carrier(G \<Otimes> H). \<langle>y,x\<rangle>) \<in> (G \<Otimes> H) \<cong> (H \<Otimes> G)"
 proof -
   interpret group G by fact
   interpret group H by fact
@@ -401,7 +401,7 @@ qed
 
 lemma DirProdGroup_assoc_iso:
   assumes "group(G)" and "group(H)" and "group(I)"
-  shows "(\<lambda><<x,y>,z> \<in> carrier((G \<Otimes> H) \<Otimes> I). <x,<y,z>>)
+  shows "(\<lambda><\<langle>x,y\<rangle>,z> \<in> carrier((G \<Otimes> H) \<Otimes> I). <x,\<langle>y,z\<rangle>>)
           \<in> ((G \<Otimes> H) \<Otimes> I) \<cong> (G \<Otimes> (H \<Otimes> I))"
 proof -
   interpret group G by fact
@@ -502,10 +502,10 @@ qed
 subsection \<open>Bijections of a Set, Permutation Groups, Automorphism Groups\<close>
 
 definition
-  BijGroup :: "i=>i" where
+  BijGroup :: "i\<Rightarrow>i" where
   "BijGroup(S) \<equiv>
     <bij(S,S),
-     \<lambda><g,f> \<in> bij(S,S) \<times> bij(S,S). g O f,
+     \<lambda>\<langle>g,f\<rangle> \<in> bij(S,S) \<times> bij(S,S). g O f,
      id(S), 0>"
 
 
@@ -537,11 +537,11 @@ by (simp add: iso_def)
 
 
 definition
-  auto :: "i=>i" where
+  auto :: "i\<Rightarrow>i" where
   "auto(G) \<equiv> iso(G,G)"
 
 definition
-  AutoGroup :: "i=>i" where
+  AutoGroup :: "i\<Rightarrow>i" where
   "AutoGroup(G) \<equiv> update_carrier(BijGroup(carrier(G)), auto(G))"
 
 
@@ -576,23 +576,23 @@ by (simp add: AutoGroup_def subgroup.is_group subgroup_auto group_BijGroup)
 subsection\<open>Cosets and Quotient Groups\<close>
 
 definition
-  r_coset  :: "[i,i,i] => i"  (infixl \<open>#>\<index>\<close> 60) where
+  r_coset  :: "[i,i,i] \<Rightarrow> i"  (infixl \<open>#>\<index>\<close> 60) where
   "H #>\<^bsub>G\<^esub> a \<equiv> \<Union>h\<in>H. {h \<cdot>\<^bsub>G\<^esub> a}"
 
 definition
-  l_coset  :: "[i,i,i] => i"  (infixl \<open><#\<index>\<close> 60) where
+  l_coset  :: "[i,i,i] \<Rightarrow> i"  (infixl \<open><#\<index>\<close> 60) where
   "a <#\<^bsub>G\<^esub> H \<equiv> \<Union>h\<in>H. {a \<cdot>\<^bsub>G\<^esub> h}"
 
 definition
-  RCOSETS  :: "[i,i] => i"  (\<open>rcosets\<index> _\<close> [81] 80) where
+  RCOSETS  :: "[i,i] \<Rightarrow> i"  (\<open>rcosets\<index> _\<close> [81] 80) where
   "rcosets\<^bsub>G\<^esub> H \<equiv> \<Union>a\<in>carrier(G). {H #>\<^bsub>G\<^esub> a}"
 
 definition
-  set_mult :: "[i,i,i] => i"  (infixl \<open><#>\<index>\<close> 60) where
+  set_mult :: "[i,i,i] \<Rightarrow> i"  (infixl \<open><#>\<index>\<close> 60) where
   "H <#>\<^bsub>G\<^esub> K \<equiv> \<Union>h\<in>H. \<Union>k\<in>K. {h \<cdot>\<^bsub>G\<^esub> k}"
 
 definition
-  SET_INV  :: "[i,i] => i"  (\<open>set'_inv\<index> _\<close> [81] 80) where
+  SET_INV  :: "[i,i] \<Rightarrow> i"  (\<open>set'_inv\<index> _\<close> [81] 80) where
   "set_inv\<^bsub>G\<^esub> H \<equiv> \<Union>h\<in>H. {inv\<^bsub>G\<^esub> h}"
 
 
@@ -860,8 +860,8 @@ lemma (in normal) rcosets_mult_eq: "M \<in> rcosets H \<Longrightarrow> H <#> M 
 subsubsection\<open>Two distinct right cosets are disjoint\<close>
 
 definition
-  r_congruent :: "[i,i] => i" (\<open>rcong\<index> _\<close> [60] 60) where
-  "rcong\<^bsub>G\<^esub> H \<equiv> {<x,y> \<in> carrier(G) * carrier(G). inv\<^bsub>G\<^esub> x \<cdot>\<^bsub>G\<^esub> y \<in> H}"
+  r_congruent :: "[i,i] \<Rightarrow> i" (\<open>rcong\<index> _\<close> [60] 60) where
+  "rcong\<^bsub>G\<^esub> H \<equiv> {\<langle>x,y\<rangle> \<in> carrier(G) * carrier(G). inv\<^bsub>G\<^esub> x \<cdot>\<^bsub>G\<^esub> y \<in> H}"
 
 
 lemma (in subgroup) equiv_rcong:
@@ -940,7 +940,7 @@ qed
 subsection \<open>Order of a Group and Lagrange's Theorem\<close>
 
 definition
-  order :: "i => i" where
+  order :: "i \<Rightarrow> i" where
   "order(S) \<equiv> |carrier(S)|"
 
 lemma (in group) rcos_self:
@@ -1020,10 +1020,10 @@ done
 subsection \<open>Quotient Groups: Factorization of a Group\<close>
 
 definition
-  FactGroup :: "[i,i] => i" (infixl \<open>Mod\<close> 65) where
+  FactGroup :: "[i,i] \<Rightarrow> i" (infixl \<open>Mod\<close> 65) where
     \<comment> \<open>Actually defined for groups rather than monoids\<close>
   "G Mod H \<equiv>
-     <rcosets\<^bsub>G\<^esub> H, \<lambda><K1,K2> \<in> (rcosets\<^bsub>G\<^esub> H) \<times> (rcosets\<^bsub>G\<^esub> H). K1 <#>\<^bsub>G\<^esub> K2, H, 0>"
+     <rcosets\<^bsub>G\<^esub> H, \<lambda>\<langle>K1,K2\<rangle> \<in> (rcosets\<^bsub>G\<^esub> H) \<times> (rcosets\<^bsub>G\<^esub> H). K1 <#>\<^bsub>G\<^esub> K2, H, 0>"
 
 lemma (in normal) setmult_closed:
      "\<lbrakk>K1 \<in> rcosets H; K2 \<in> rcosets H\<rbrakk> \<Longrightarrow> K1 <#> K2 \<in> rcosets H"
@@ -1084,7 +1084,7 @@ text\<open>The quotient by the kernel of a homomorphism is isomorphic to the
   range of that homomorphism.\<close>
 
 definition
-  kernel :: "[i,i,i] => i" where
+  kernel :: "[i,i,i] \<Rightarrow> i" where
     \<comment> \<open>the kernel of a homomorphism\<close>
   "kernel(G,H,h) \<equiv> {x \<in> carrier(G). h ` x = \<one>\<^bsub>H\<^esub>}"
 

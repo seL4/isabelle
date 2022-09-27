@@ -23,17 +23,17 @@ datatype \<subseteq> "univ(loc \<union> (nat -> nat) \<union> ((nat \<times> nat
 consts evala :: i
 
 abbreviation
-  evala_syntax :: "[i, i] => o"    (infixl \<open>-a->\<close> 50)
-  where "p -a-> n \<equiv> <p,n> \<in> evala"
+  evala_syntax :: "[i, i] \<Rightarrow> o"    (infixl \<open>-a->\<close> 50)
+  where "p -a-> n \<equiv> \<langle>p,n\<rangle> \<in> evala"
 
 inductive
   domains "evala" \<subseteq> "(aexp \<times> (loc -> nat)) \<times> nat"
   intros
     N:   "\<lbrakk>n \<in> nat;  sigma \<in> loc->nat\<rbrakk> \<Longrightarrow> <N(n),sigma> -a-> n"
     X:   "\<lbrakk>x \<in> loc;  sigma \<in> loc->nat\<rbrakk> \<Longrightarrow> <X(x),sigma> -a-> sigma`x"
-    Op1: "\<lbrakk><e,sigma> -a-> n; f \<in> nat -> nat\<rbrakk> \<Longrightarrow> <Op1(f,e),sigma> -a-> f`n"
-    Op2: "\<lbrakk><e0,sigma> -a-> n0;  <e1,sigma>  -a-> n1; f \<in> (nat\<times>nat) -> nat\<rbrakk>
-          \<Longrightarrow> <Op2(f,e0,e1),sigma> -a-> f`<n0,n1>"
+    Op1: "\<lbrakk>\<langle>e,sigma\<rangle> -a-> n; f \<in> nat -> nat\<rbrakk> \<Longrightarrow> <Op1(f,e),sigma> -a-> f`n"
+    Op2: "\<lbrakk>\<langle>e0,sigma\<rangle> -a-> n0;  \<langle>e1,sigma\<rangle>  -a-> n1; f \<in> (nat\<times>nat) -> nat\<rbrakk>
+          \<Longrightarrow> <Op2(f,e0,e1),sigma> -a-> f`\<langle>n0,n1\<rangle>"
   type_intros aexp.intros apply_funtype
 
 
@@ -53,20 +53,20 @@ datatype \<subseteq> "univ(aexp \<union> ((nat \<times> nat)->bool))"
 consts evalb :: i
 
 abbreviation
-  evalb_syntax :: "[i,i] => o"    (infixl \<open>-b->\<close> 50)
-  where "p -b-> b \<equiv> <p,b> \<in> evalb"
+  evalb_syntax :: "[i,i] \<Rightarrow> o"    (infixl \<open>-b->\<close> 50)
+  where "p -b-> b \<equiv> \<langle>p,b\<rangle> \<in> evalb"
 
 inductive
   domains "evalb" \<subseteq> "(bexp \<times> (loc -> nat)) \<times> bool"
   intros
-    true:  "\<lbrakk>sigma \<in> loc -> nat\<rbrakk> \<Longrightarrow> <true,sigma> -b-> 1"
-    false: "\<lbrakk>sigma \<in> loc -> nat\<rbrakk> \<Longrightarrow> <false,sigma> -b-> 0"
-    ROp:   "\<lbrakk><a0,sigma> -a-> n0; <a1,sigma> -a-> n1; f \<in> (nat*nat)->bool\<rbrakk>
-           \<Longrightarrow> <ROp(f,a0,a1),sigma> -b-> f`<n0,n1> "
-    noti:  "\<lbrakk><b,sigma> -b-> w\<rbrakk> \<Longrightarrow> <noti(b),sigma> -b-> not(w)"
-    andi:  "\<lbrakk><b0,sigma> -b-> w0; <b1,sigma> -b-> w1\<rbrakk>
+    true:  "\<lbrakk>sigma \<in> loc -> nat\<rbrakk> \<Longrightarrow> \<langle>true,sigma\<rangle> -b-> 1"
+    false: "\<lbrakk>sigma \<in> loc -> nat\<rbrakk> \<Longrightarrow> \<langle>false,sigma\<rangle> -b-> 0"
+    ROp:   "\<lbrakk>\<langle>a0,sigma\<rangle> -a-> n0; \<langle>a1,sigma\<rangle> -a-> n1; f \<in> (nat*nat)->bool\<rbrakk>
+           \<Longrightarrow> <ROp(f,a0,a1),sigma> -b-> f`\<langle>n0,n1\<rangle> "
+    noti:  "\<lbrakk>\<langle>b,sigma\<rangle> -b-> w\<rbrakk> \<Longrightarrow> <noti(b),sigma> -b-> not(w)"
+    andi:  "\<lbrakk>\<langle>b0,sigma\<rangle> -b-> w0; \<langle>b1,sigma\<rangle> -b-> w1\<rbrakk>
           \<Longrightarrow> <b0 andi b1,sigma> -b-> (w0 and w1)"
-    ori:   "\<lbrakk><b0,sigma> -b-> w0; <b1,sigma> -b-> w1\<rbrakk>
+    ori:   "\<lbrakk>\<langle>b0,sigma\<rangle> -b-> w0; \<langle>b1,sigma\<rangle> -b-> w1\<rbrakk>
             \<Longrightarrow> <b0 ori b1,sigma> -b-> (w0 or w1)"
   type_intros  bexp.intros
                apply_funtype and_type or_type bool_1I bool_0I not_type
@@ -87,32 +87,32 @@ datatype com =
 consts evalc :: i
 
 abbreviation
-  evalc_syntax :: "[i, i] => o"    (infixl \<open>-c->\<close> 50)
-  where "p -c-> s \<equiv> <p,s> \<in> evalc"
+  evalc_syntax :: "[i, i] \<Rightarrow> o"    (infixl \<open>-c->\<close> 50)
+  where "p -c-> s \<equiv> \<langle>p,s\<rangle> \<in> evalc"
 
 inductive
   domains "evalc" \<subseteq> "(com \<times> (loc -> nat)) \<times> (loc -> nat)"
   intros
     skip:    "\<lbrakk>sigma \<in> loc -> nat\<rbrakk> \<Longrightarrow> <\<SKIP>,sigma> -c-> sigma"
 
-    assign:  "\<lbrakk>m \<in> nat; x \<in> loc; <a,sigma> -a-> m\<rbrakk>
+    assign:  "\<lbrakk>m \<in> nat; x \<in> loc; \<langle>a,sigma\<rangle> -a-> m\<rbrakk>
               \<Longrightarrow> <x \<ASSN> a,sigma> -c-> sigma(x:=m)"
 
-    semi:    "\<lbrakk><c0,sigma> -c-> sigma2; <c1,sigma2> -c-> sigma1\<rbrakk>
+    semi:    "\<lbrakk>\<langle>c0,sigma\<rangle> -c-> sigma2; \<langle>c1,sigma2\<rangle> -c-> sigma1\<rbrakk>
               \<Longrightarrow> <c0\<SEQ> c1, sigma> -c-> sigma1"
 
     if1:     "\<lbrakk>b \<in> bexp; c1 \<in> com; sigma \<in> loc->nat;
-                 <b,sigma> -b-> 1; <c0,sigma> -c-> sigma1\<rbrakk>
+                 \<langle>b,sigma\<rangle> -b-> 1; \<langle>c0,sigma\<rangle> -c-> sigma1\<rbrakk>
               \<Longrightarrow> <\<IF> b \<THEN> c0 \<ELSE> c1, sigma> -c-> sigma1"
 
     if0:     "\<lbrakk>b \<in> bexp; c0 \<in> com; sigma \<in> loc->nat;
-                 <b,sigma> -b-> 0; <c1,sigma> -c-> sigma1\<rbrakk>
+                 \<langle>b,sigma\<rangle> -b-> 0; \<langle>c1,sigma\<rangle> -c-> sigma1\<rbrakk>
                \<Longrightarrow> <\<IF> b \<THEN> c0 \<ELSE> c1, sigma> -c-> sigma1"
 
-    while0:   "\<lbrakk>c \<in> com; <b, sigma> -b-> 0\<rbrakk>
+    while0:   "\<lbrakk>c \<in> com; \<langle>b, sigma\<rangle> -b-> 0\<rbrakk>
                \<Longrightarrow> <\<WHILE> b \<DO> c,sigma> -c-> sigma"
 
-    while1:   "\<lbrakk>c \<in> com; <b,sigma> -b-> 1; <c,sigma> -c-> sigma2;
+    while1:   "\<lbrakk>c \<in> com; \<langle>b,sigma\<rangle> -b-> 1; \<langle>c,sigma\<rangle> -c-> sigma2;
                   <\<WHILE> b \<DO> c, sigma2> -c-> sigma1\<rbrakk>
                \<Longrightarrow> <\<WHILE> b \<DO> c, sigma> -c-> sigma1"
 

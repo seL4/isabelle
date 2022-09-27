@@ -36,37 +36,37 @@ axiomatization where \<comment> \<open>Type declarations\<close>
 
 definition
   (** The program for process U **)
-  "U0 \<equiv> {<s,t>:state*state. t = s(u:=1, m:=#1) \<and> s`m = #0}"
+  "U0 \<equiv> {\<langle>s,t\<rangle>:state*state. t = s(u:=1, m:=#1) \<and> s`m = #0}"
 
 definition
-  "U1 \<equiv> {<s,t>:state*state. t = s(p:= s`v, m:=#2) \<and>  s`m = #1}"
+  "U1 \<equiv> {\<langle>s,t\<rangle>:state*state. t = s(p:= s`v, m:=#2) \<and>  s`m = #1}"
 
 definition
-  "U2 \<equiv> {<s,t>:state*state. t = s(m:=#3) \<and> s`p=0 \<and> s`m = #2}"
+  "U2 \<equiv> {\<langle>s,t\<rangle>:state*state. t = s(m:=#3) \<and> s`p=0 \<and> s`m = #2}"
 
 definition
-  "U3 \<equiv> {<s,t>:state*state. t=s(u:=0, m:=#4) \<and> s`m = #3}"
+  "U3 \<equiv> {\<langle>s,t\<rangle>:state*state. t=s(u:=0, m:=#4) \<and> s`m = #3}"
 
 definition
-  "U4 \<equiv> {<s,t>:state*state. t = s(p:=1, m:=#0) \<and> s`m = #4}"
+  "U4 \<equiv> {\<langle>s,t\<rangle>:state*state. t = s(p:=1, m:=#0) \<and> s`m = #4}"
 
 
    (** The program for process V **)
 
 definition
-  "V0 \<equiv> {<s,t>:state*state. t = s (v:=1, n:=#1) \<and> s`n = #0}"
+  "V0 \<equiv> {\<langle>s,t\<rangle>:state*state. t = s (v:=1, n:=#1) \<and> s`n = #0}"
 
 definition
-  "V1 \<equiv> {<s,t>:state*state. t = s(p:=not(s`u), n:=#2) \<and> s`n = #1}"
+  "V1 \<equiv> {\<langle>s,t\<rangle>:state*state. t = s(p:=not(s`u), n:=#2) \<and> s`n = #1}"
 
 definition
-  "V2 \<equiv> {<s,t>:state*state. t  = s(n:=#3) \<and> s`p=1 \<and> s`n = #2}"
+  "V2 \<equiv> {\<langle>s,t\<rangle>:state*state. t  = s(n:=#3) \<and> s`p=1 \<and> s`n = #2}"
 
 definition
-  "V3 \<equiv> {<s,t>:state*state. t = s (v:=0, n:=#4) \<and> s`n = #3}"
+  "V3 \<equiv> {\<langle>s,t\<rangle>:state*state. t = s (v:=0, n:=#4) \<and> s`n = #3}"
 
 definition
-  "V4 \<equiv> {<s,t>:state*state. t  = s (p:=0, n:=#0) \<and> s`n = #4}"
+  "V4 \<equiv> {\<langle>s,t\<rangle>:state*state. t  = s (p:=0, n:=#0) \<and> s`n = #4}"
 
 definition
   "Mutex \<equiv> mk_program({s:state. s`u=0 \<and> s`v=0 \<and> s`m = #0 \<and> s`n = #0},

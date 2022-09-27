@@ -37,38 +37,38 @@ done
     case, proving equivalence with Chandy and Sanders's n-ary definitions*)
 
 definition
-   ex_prop :: "i => o"  where
+   ex_prop :: "i \<Rightarrow> o"  where
    "ex_prop(X) \<equiv> X<=program \<and>
     (\<forall>F \<in> program. \<forall>G \<in> program. F ok G \<longrightarrow> F \<in> X | G \<in> X \<longrightarrow> (F \<squnion> G) \<in> X)"
 
 definition
-  strict_ex_prop  :: "i => o"  where
+  strict_ex_prop  :: "i \<Rightarrow> o"  where
   "strict_ex_prop(X) \<equiv> X<=program \<and>
    (\<forall>F \<in> program. \<forall>G \<in> program. F ok G \<longrightarrow> (F \<in> X | G \<in> X) \<longleftrightarrow> (F \<squnion> G \<in> X))"
 
 definition
-  uv_prop  :: "i => o"  where
+  uv_prop  :: "i \<Rightarrow> o"  where
    "uv_prop(X) \<equiv> X<=program \<and>
     (SKIP \<in> X \<and> (\<forall>F \<in> program. \<forall>G \<in> program. F ok G \<longrightarrow> F \<in> X \<and> G \<in> X \<longrightarrow> (F \<squnion> G) \<in> X))"
   
 definition
- strict_uv_prop  :: "i => o"  where
+ strict_uv_prop  :: "i \<Rightarrow> o"  where
    "strict_uv_prop(X) \<equiv> X<=program \<and>
     (SKIP \<in> X \<and> (\<forall>F \<in> program. \<forall>G \<in> program. F ok G \<longrightarrow>(F \<in> X \<and> G \<in> X) \<longleftrightarrow> (F \<squnion> G \<in> X)))"
 
 definition
-  guar :: "[i, i] => i" (infixl \<open>guarantees\<close> 55)  where
+  guar :: "[i, i] \<Rightarrow> i" (infixl \<open>guarantees\<close> 55)  where
               (*higher than membership, lower than Co*)
   "X guarantees Y \<equiv> {F \<in> program. \<forall>G \<in> program. F ok G \<longrightarrow> F \<squnion> G \<in> X \<longrightarrow> F \<squnion> G \<in> Y}"
   
 definition
   (* Weakest guarantees *)
-   wg :: "[i,i] => i"  where
+   wg :: "[i,i] \<Rightarrow> i"  where
   "wg(F,Y) \<equiv> \<Union>({X \<in> Pow(program). F:(X guarantees Y)})"
 
 definition
   (* Weakest existential property stronger than X *)
-   wx :: "i =>i"  where
+   wx :: "i \<Rightarrow>i"  where
    "wx(X) \<equiv> \<Union>({Y \<in> Pow(program). Y<=X \<and> ex_prop(Y)})"
 
 definition
@@ -77,13 +77,13 @@ definition
   "welldef \<equiv> {F \<in> program. Init(F) \<noteq> 0}"
   
 definition
-  refines :: "[i, i, i] => o" (\<open>(3_ refines _ wrt _)\<close> [10,10,10] 10)  where
+  refines :: "[i, i, i] \<Rightarrow> o" (\<open>(3_ refines _ wrt _)\<close> [10,10,10] 10)  where
   "G refines F wrt X \<equiv>
    \<forall>H \<in> program. (F ok H  \<and> G ok H \<and> F \<squnion> H \<in> welldef \<inter> X)
     \<longrightarrow> (G \<squnion> H \<in> welldef \<inter> X)"
 
 definition
-  iso_refines :: "[i,i, i] => o"  (\<open>(3_ iso'_refines _ wrt _)\<close> [10,10,10] 10)  where
+  iso_refines :: "[i,i, i] \<Rightarrow> o"  (\<open>(3_ iso'_refines _ wrt _)\<close> [10,10,10] 10)  where
   "G iso_refines F wrt X \<equiv>  F \<in> welldef \<inter> X \<longrightarrow> G \<in> welldef \<inter> X"
 
 
@@ -94,7 +94,7 @@ by (simp add: ex_prop_def)
 
 lemma ex1 [rule_format]: 
  "GG \<in> Fin(program) 
-  \<Longrightarrow> ex_prop(X) \<longrightarrow> GG \<inter> X\<noteq>0 \<longrightarrow> OK(GG, (%G. G)) \<longrightarrow>(\<Squnion>G \<in> GG. G) \<in> X"
+  \<Longrightarrow> ex_prop(X) \<longrightarrow> GG \<inter> X\<noteq>0 \<longrightarrow> OK(GG, (\<lambda>G. G)) \<longrightarrow>(\<Squnion>G \<in> GG. G) \<in> X"
 apply (unfold ex_prop_def)
 apply (erule Fin_induct)
 apply (simp_all add: OK_cons_iff)
@@ -103,7 +103,7 @@ done
 
 lemma ex2 [rule_format]: 
 "X \<subseteq> program \<Longrightarrow>  
- (\<forall>GG \<in> Fin(program). GG \<inter> X \<noteq> 0 \<longrightarrow> OK(GG,(%G. G))\<longrightarrow>(\<Squnion>G \<in> GG. G) \<in> X) 
+ (\<forall>GG \<in> Fin(program). GG \<inter> X \<noteq> 0 \<longrightarrow> OK(GG,(\<lambda>G. G))\<longrightarrow>(\<Squnion>G \<in> GG. G) \<in> X) 
    \<longrightarrow> ex_prop(X)"
 apply (unfold ex_prop_def, clarify)
 apply (drule_tac x = "{F,G}" in bspec)
@@ -115,7 +115,7 @@ done
 
 lemma ex_prop_finite:
      "ex_prop(X) \<longleftrightarrow> (X\<subseteq>program \<and>  
-  (\<forall>GG \<in> Fin(program). GG \<inter> X \<noteq> 0 \<and> OK(GG,(%G. G))\<longrightarrow>(\<Squnion>G \<in> GG. G) \<in> X))"
+  (\<forall>GG \<in> Fin(program). GG \<inter> X \<noteq> 0 \<and> OK(GG,(\<lambda>G. G))\<longrightarrow>(\<Squnion>G \<in> GG. G) \<in> X))"
 apply auto
 apply (blast intro: ex1 ex2 dest: ex_imp_subset_program)+
 done
@@ -138,7 +138,7 @@ done
 
 lemma uv1 [rule_format]: 
      "GG \<in> Fin(program) \<Longrightarrow>  
-      (uv_prop(X)\<longrightarrow> GG \<subseteq> X \<and> OK(GG, (%G. G)) \<longrightarrow> (\<Squnion>G \<in> GG. G) \<in> X)"
+      (uv_prop(X)\<longrightarrow> GG \<subseteq> X \<and> OK(GG, (\<lambda>G. G)) \<longrightarrow> (\<Squnion>G \<in> GG. G) \<in> X)"
 apply (unfold uv_prop_def)
 apply (erule Fin_induct)
 apply (auto simp add: OK_cons_iff)
@@ -146,7 +146,7 @@ done
 
 lemma uv2 [rule_format]: 
      "X\<subseteq>program  \<Longrightarrow> 
-      (\<forall>GG \<in> Fin(program). GG \<subseteq> X \<and> OK(GG,(%G. G)) \<longrightarrow> (\<Squnion>G \<in> GG. G) \<in> X)
+      (\<forall>GG \<in> Fin(program). GG \<subseteq> X \<and> OK(GG,(\<lambda>G. G)) \<longrightarrow> (\<Squnion>G \<in> GG. G) \<in> X)
       \<longrightarrow> uv_prop(X)"
 apply (unfold uv_prop_def, auto)
 apply (drule_tac x = 0 in bspec, simp+) 
@@ -157,7 +157,7 @@ done
 (*Chandy \<and> Sanders take this as a definition*)
 lemma uv_prop_finite: 
 "uv_prop(X) \<longleftrightarrow> X\<subseteq>program \<and>  
-  (\<forall>GG \<in> Fin(program). GG \<subseteq> X \<and> OK(GG, %G. G) \<longrightarrow> (\<Squnion>G \<in> GG. G) \<in>  X)"
+  (\<forall>GG \<in> Fin(program). GG \<subseteq> X \<and> OK(GG, \<lambda>G. G) \<longrightarrow> (\<Squnion>G \<in> GG. G) \<in>  X)"
 apply auto
 apply (blast dest: uv_imp_subset_program)
 apply (blast intro: uv1)
@@ -427,7 +427,7 @@ lemma component_of_wg:
 by (simp (no_asm_simp) add: wg_equiv)
 
 lemma wg_finite [rule_format]: 
-"\<forall>FF \<in> Fin(program). FF \<inter> X \<noteq> 0 \<longrightarrow> OK(FF, %F. F)  
+"\<forall>FF \<in> Fin(program). FF \<inter> X \<noteq> 0 \<longrightarrow> OK(FF, \<lambda>F. F)  
    \<longrightarrow> (\<forall>F \<in> FF. ((\<Squnion>F \<in> FF. F) \<in>  wg(F,X)) \<longleftrightarrow> ((\<Squnion>F \<in> FF. F) \<in> X))"
 apply clarify
 apply (subgoal_tac "F component_of (\<Squnion>F \<in> FF. F) ")

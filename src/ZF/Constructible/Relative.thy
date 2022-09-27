@@ -11,120 +11,120 @@ theory Relative imports ZF begin
 subsection\<open>Relativized versions of standard set-theoretic concepts\<close>
 
 definition
-  empty :: "[i=>o,i] => o" where
+  empty :: "[i\<Rightarrow>o,i] \<Rightarrow> o" where
     "empty(M,z) \<equiv> \<forall>x[M]. x \<notin> z"
 
 definition
-  subset :: "[i=>o,i,i] => o" where
+  subset :: "[i\<Rightarrow>o,i,i] \<Rightarrow> o" where
     "subset(M,A,B) \<equiv> \<forall>x[M]. x\<in>A \<longrightarrow> x \<in> B"
 
 definition
-  upair :: "[i=>o,i,i,i] => o" where
+  upair :: "[i\<Rightarrow>o,i,i,i] \<Rightarrow> o" where
     "upair(M,a,b,z) \<equiv> a \<in> z \<and> b \<in> z \<and> (\<forall>x[M]. x\<in>z \<longrightarrow> x = a \<or> x = b)"
 
 definition
-  pair :: "[i=>o,i,i,i] => o" where
+  pair :: "[i\<Rightarrow>o,i,i,i] \<Rightarrow> o" where
     "pair(M,a,b,z) \<equiv> \<exists>x[M]. upair(M,a,a,x) \<and>
                      (\<exists>y[M]. upair(M,a,b,y) \<and> upair(M,x,y,z))"
 
 
 definition
-  union :: "[i=>o,i,i,i] => o" where
+  union :: "[i\<Rightarrow>o,i,i,i] \<Rightarrow> o" where
     "union(M,a,b,z) \<equiv> \<forall>x[M]. x \<in> z \<longleftrightarrow> x \<in> a \<or> x \<in> b"
 
 definition
-  is_cons :: "[i=>o,i,i,i] => o" where
+  is_cons :: "[i\<Rightarrow>o,i,i,i] \<Rightarrow> o" where
     "is_cons(M,a,b,z) \<equiv> \<exists>x[M]. upair(M,a,a,x) \<and> union(M,x,b,z)"
 
 definition
-  successor :: "[i=>o,i,i] => o" where
+  successor :: "[i\<Rightarrow>o,i,i] \<Rightarrow> o" where
     "successor(M,a,z) \<equiv> is_cons(M,a,a,z)"
 
 definition
-  number1 :: "[i=>o,i] => o" where
+  number1 :: "[i\<Rightarrow>o,i] \<Rightarrow> o" where
     "number1(M,a) \<equiv> \<exists>x[M]. empty(M,x) \<and> successor(M,x,a)"
 
 definition
-  number2 :: "[i=>o,i] => o" where
+  number2 :: "[i\<Rightarrow>o,i] \<Rightarrow> o" where
     "number2(M,a) \<equiv> \<exists>x[M]. number1(M,x) \<and> successor(M,x,a)"
 
 definition
-  number3 :: "[i=>o,i] => o" where
+  number3 :: "[i\<Rightarrow>o,i] \<Rightarrow> o" where
     "number3(M,a) \<equiv> \<exists>x[M]. number2(M,x) \<and> successor(M,x,a)"
 
 definition
-  powerset :: "[i=>o,i,i] => o" where
+  powerset :: "[i\<Rightarrow>o,i,i] \<Rightarrow> o" where
     "powerset(M,A,z) \<equiv> \<forall>x[M]. x \<in> z \<longleftrightarrow> subset(M,x,A)"
 
 definition
-  is_Collect :: "[i=>o,i,i=>o,i] => o" where
+  is_Collect :: "[i\<Rightarrow>o,i,i\<Rightarrow>o,i] \<Rightarrow> o" where
     "is_Collect(M,A,P,z) \<equiv> \<forall>x[M]. x \<in> z \<longleftrightarrow> x \<in> A \<and> P(x)"
 
 definition
-  is_Replace :: "[i=>o,i,[i,i]=>o,i] => o" where
+  is_Replace :: "[i\<Rightarrow>o,i,[i,i]\<Rightarrow>o,i] \<Rightarrow> o" where
     "is_Replace(M,A,P,z) \<equiv> \<forall>u[M]. u \<in> z \<longleftrightarrow> (\<exists>x[M]. x\<in>A \<and> P(x,u))"
 
 definition
-  inter :: "[i=>o,i,i,i] => o" where
+  inter :: "[i\<Rightarrow>o,i,i,i] \<Rightarrow> o" where
     "inter(M,a,b,z) \<equiv> \<forall>x[M]. x \<in> z \<longleftrightarrow> x \<in> a \<and> x \<in> b"
 
 definition
-  setdiff :: "[i=>o,i,i,i] => o" where
+  setdiff :: "[i\<Rightarrow>o,i,i,i] \<Rightarrow> o" where
     "setdiff(M,a,b,z) \<equiv> \<forall>x[M]. x \<in> z \<longleftrightarrow> x \<in> a \<and> x \<notin> b"
 
 definition
-  big_union :: "[i=>o,i,i] => o" where
+  big_union :: "[i\<Rightarrow>o,i,i] \<Rightarrow> o" where
     "big_union(M,A,z) \<equiv> \<forall>x[M]. x \<in> z \<longleftrightarrow> (\<exists>y[M]. y\<in>A \<and> x \<in> y)"
 
 definition
-  big_inter :: "[i=>o,i,i] => o" where
+  big_inter :: "[i\<Rightarrow>o,i,i] \<Rightarrow> o" where
     "big_inter(M,A,z) \<equiv>
              (A=0 \<longrightarrow> z=0) \<and>
              (A\<noteq>0 \<longrightarrow> (\<forall>x[M]. x \<in> z \<longleftrightarrow> (\<forall>y[M]. y\<in>A \<longrightarrow> x \<in> y)))"
 
 definition
-  cartprod :: "[i=>o,i,i,i] => o" where
+  cartprod :: "[i\<Rightarrow>o,i,i,i] \<Rightarrow> o" where
     "cartprod(M,A,B,z) \<equiv>
         \<forall>u[M]. u \<in> z \<longleftrightarrow> (\<exists>x[M]. x\<in>A \<and> (\<exists>y[M]. y\<in>B \<and> pair(M,x,y,u)))"
 
 definition
-  is_sum :: "[i=>o,i,i,i] => o" where
+  is_sum :: "[i\<Rightarrow>o,i,i,i] \<Rightarrow> o" where
     "is_sum(M,A,B,Z) \<equiv>
        \<exists>A0[M]. \<exists>n1[M]. \<exists>s1[M]. \<exists>B1[M].
        number1(M,n1) \<and> cartprod(M,n1,A,A0) \<and> upair(M,n1,n1,s1) \<and>
        cartprod(M,s1,B,B1) \<and> union(M,A0,B1,Z)"
 
 definition
-  is_Inl :: "[i=>o,i,i] => o" where
+  is_Inl :: "[i\<Rightarrow>o,i,i] \<Rightarrow> o" where
     "is_Inl(M,a,z) \<equiv> \<exists>zero[M]. empty(M,zero) \<and> pair(M,zero,a,z)"
 
 definition
-  is_Inr :: "[i=>o,i,i] => o" where
+  is_Inr :: "[i\<Rightarrow>o,i,i] \<Rightarrow> o" where
     "is_Inr(M,a,z) \<equiv> \<exists>n1[M]. number1(M,n1) \<and> pair(M,n1,a,z)"
 
 definition
-  is_converse :: "[i=>o,i,i] => o" where
+  is_converse :: "[i\<Rightarrow>o,i,i] \<Rightarrow> o" where
     "is_converse(M,r,z) \<equiv>
         \<forall>x[M]. x \<in> z \<longleftrightarrow>
              (\<exists>w[M]. w\<in>r \<and> (\<exists>u[M]. \<exists>v[M]. pair(M,u,v,w) \<and> pair(M,v,u,x)))"
 
 definition
-  pre_image :: "[i=>o,i,i,i] => o" where
+  pre_image :: "[i\<Rightarrow>o,i,i,i] \<Rightarrow> o" where
     "pre_image(M,r,A,z) \<equiv>
         \<forall>x[M]. x \<in> z \<longleftrightarrow> (\<exists>w[M]. w\<in>r \<and> (\<exists>y[M]. y\<in>A \<and> pair(M,x,y,w)))"
 
 definition
-  is_domain :: "[i=>o,i,i] => o" where
+  is_domain :: "[i\<Rightarrow>o,i,i] \<Rightarrow> o" where
     "is_domain(M,r,z) \<equiv>
         \<forall>x[M]. x \<in> z \<longleftrightarrow> (\<exists>w[M]. w\<in>r \<and> (\<exists>y[M]. pair(M,x,y,w)))"
 
 definition
-  image :: "[i=>o,i,i,i] => o" where
+  image :: "[i\<Rightarrow>o,i,i,i] \<Rightarrow> o" where
     "image(M,r,A,z) \<equiv>
         \<forall>y[M]. y \<in> z \<longleftrightarrow> (\<exists>w[M]. w\<in>r \<and> (\<exists>x[M]. x\<in>A \<and> pair(M,x,y,w)))"
 
 definition
-  is_range :: "[i=>o,i,i] => o" where
+  is_range :: "[i\<Rightarrow>o,i,i] \<Rightarrow> o" where
     \<comment> \<open>the cleaner
       \<^term>\<open>\<exists>r'[M]. is_converse(M,r,r') \<and> is_domain(M,r',z)\<close>
       unfortunately needs an instance of separation in order to prove
@@ -133,41 +133,41 @@ definition
         \<forall>y[M]. y \<in> z \<longleftrightarrow> (\<exists>w[M]. w\<in>r \<and> (\<exists>x[M]. pair(M,x,y,w)))"
 
 definition
-  is_field :: "[i=>o,i,i] => o" where
+  is_field :: "[i\<Rightarrow>o,i,i] \<Rightarrow> o" where
     "is_field(M,r,z) \<equiv>
         \<exists>dr[M]. \<exists>rr[M]. is_domain(M,r,dr) \<and> is_range(M,r,rr) \<and>
                         union(M,dr,rr,z)"
 
 definition
-  is_relation :: "[i=>o,i] => o" where
+  is_relation :: "[i\<Rightarrow>o,i] \<Rightarrow> o" where
     "is_relation(M,r) \<equiv>
         (\<forall>z[M]. z\<in>r \<longrightarrow> (\<exists>x[M]. \<exists>y[M]. pair(M,x,y,z)))"
 
 definition
-  is_function :: "[i=>o,i] => o" where
+  is_function :: "[i\<Rightarrow>o,i] \<Rightarrow> o" where
     "is_function(M,r) \<equiv>
         \<forall>x[M]. \<forall>y[M]. \<forall>y'[M]. \<forall>p[M]. \<forall>p'[M].
            pair(M,x,y,p) \<longrightarrow> pair(M,x,y',p') \<longrightarrow> p\<in>r \<longrightarrow> p'\<in>r \<longrightarrow> y=y'"
 
 definition
-  fun_apply :: "[i=>o,i,i,i] => o" where
+  fun_apply :: "[i\<Rightarrow>o,i,i,i] \<Rightarrow> o" where
     "fun_apply(M,f,x,y) \<equiv>
         (\<exists>xs[M]. \<exists>fxs[M].
          upair(M,x,x,xs) \<and> image(M,f,xs,fxs) \<and> big_union(M,fxs,y))"
 
 definition
-  typed_function :: "[i=>o,i,i,i] => o" where
+  typed_function :: "[i\<Rightarrow>o,i,i,i] \<Rightarrow> o" where
     "typed_function(M,A,B,r) \<equiv>
         is_function(M,r) \<and> is_relation(M,r) \<and> is_domain(M,r,A) \<and>
         (\<forall>u[M]. u\<in>r \<longrightarrow> (\<forall>x[M]. \<forall>y[M]. pair(M,x,y,u) \<longrightarrow> y\<in>B))"
 
 definition
-  is_funspace :: "[i=>o,i,i,i] => o" where
+  is_funspace :: "[i\<Rightarrow>o,i,i,i] \<Rightarrow> o" where
     "is_funspace(M,A,B,F) \<equiv>
         \<forall>f[M]. f \<in> F \<longleftrightarrow> typed_function(M,A,B,f)"
 
 definition
-  composition :: "[i=>o,i,i,i] => o" where
+  composition :: "[i\<Rightarrow>o,i,i,i] \<Rightarrow> o" where
     "composition(M,r,s,t) \<equiv>
         \<forall>p[M]. p \<in> t \<longleftrightarrow>
                (\<exists>x[M]. \<exists>y[M]. \<exists>z[M]. \<exists>xy[M]. \<exists>yz[M].
@@ -175,104 +175,104 @@ definition
                 xy \<in> s \<and> yz \<in> r)"
 
 definition
-  injection :: "[i=>o,i,i,i] => o" where
+  injection :: "[i\<Rightarrow>o,i,i,i] \<Rightarrow> o" where
     "injection(M,A,B,f) \<equiv>
         typed_function(M,A,B,f) \<and>
         (\<forall>x[M]. \<forall>x'[M]. \<forall>y[M]. \<forall>p[M]. \<forall>p'[M].
           pair(M,x,y,p) \<longrightarrow> pair(M,x',y,p') \<longrightarrow> p\<in>f \<longrightarrow> p'\<in>f \<longrightarrow> x=x')"
 
 definition
-  surjection :: "[i=>o,i,i,i] => o" where
+  surjection :: "[i\<Rightarrow>o,i,i,i] \<Rightarrow> o" where
     "surjection(M,A,B,f) \<equiv>
         typed_function(M,A,B,f) \<and>
         (\<forall>y[M]. y\<in>B \<longrightarrow> (\<exists>x[M]. x\<in>A \<and> fun_apply(M,f,x,y)))"
 
 definition
-  bijection :: "[i=>o,i,i,i] => o" where
+  bijection :: "[i\<Rightarrow>o,i,i,i] \<Rightarrow> o" where
     "bijection(M,A,B,f) \<equiv> injection(M,A,B,f) \<and> surjection(M,A,B,f)"
 
 definition
-  restriction :: "[i=>o,i,i,i] => o" where
+  restriction :: "[i\<Rightarrow>o,i,i,i] \<Rightarrow> o" where
     "restriction(M,r,A,z) \<equiv>
         \<forall>x[M]. x \<in> z \<longleftrightarrow> (x \<in> r \<and> (\<exists>u[M]. u\<in>A \<and> (\<exists>v[M]. pair(M,u,v,x))))"
 
 definition
-  transitive_set :: "[i=>o,i] => o" where
+  transitive_set :: "[i\<Rightarrow>o,i] \<Rightarrow> o" where
     "transitive_set(M,a) \<equiv> \<forall>x[M]. x\<in>a \<longrightarrow> subset(M,x,a)"
 
 definition
-  ordinal :: "[i=>o,i] => o" where
+  ordinal :: "[i\<Rightarrow>o,i] \<Rightarrow> o" where
      \<comment> \<open>an ordinal is a transitive set of transitive sets\<close>
     "ordinal(M,a) \<equiv> transitive_set(M,a) \<and> (\<forall>x[M]. x\<in>a \<longrightarrow> transitive_set(M,x))"
 
 definition
-  limit_ordinal :: "[i=>o,i] => o" where
+  limit_ordinal :: "[i\<Rightarrow>o,i] \<Rightarrow> o" where
     \<comment> \<open>a limit ordinal is a non-empty, successor-closed ordinal\<close>
     "limit_ordinal(M,a) \<equiv>
         ordinal(M,a) \<and> \<not> empty(M,a) \<and>
         (\<forall>x[M]. x\<in>a \<longrightarrow> (\<exists>y[M]. y\<in>a \<and> successor(M,x,y)))"
 
 definition
-  successor_ordinal :: "[i=>o,i] => o" where
+  successor_ordinal :: "[i\<Rightarrow>o,i] \<Rightarrow> o" where
     \<comment> \<open>a successor ordinal is any ordinal that is neither empty nor limit\<close>
     "successor_ordinal(M,a) \<equiv>
         ordinal(M,a) \<and> \<not> empty(M,a) \<and> \<not> limit_ordinal(M,a)"
 
 definition
-  finite_ordinal :: "[i=>o,i] => o" where
+  finite_ordinal :: "[i\<Rightarrow>o,i] \<Rightarrow> o" where
     \<comment> \<open>an ordinal is finite if neither it nor any of its elements are limit\<close>
     "finite_ordinal(M,a) \<equiv>
         ordinal(M,a) \<and> \<not> limit_ordinal(M,a) \<and>
         (\<forall>x[M]. x\<in>a \<longrightarrow> \<not> limit_ordinal(M,x))"
 
 definition
-  omega :: "[i=>o,i] => o" where
+  omega :: "[i\<Rightarrow>o,i] \<Rightarrow> o" where
     \<comment> \<open>omega is a limit ordinal none of whose elements are limit\<close>
     "omega(M,a) \<equiv> limit_ordinal(M,a) \<and> (\<forall>x[M]. x\<in>a \<longrightarrow> \<not> limit_ordinal(M,x))"
 
 definition
-  is_quasinat :: "[i=>o,i] => o" where
+  is_quasinat :: "[i\<Rightarrow>o,i] \<Rightarrow> o" where
     "is_quasinat(M,z) \<equiv> empty(M,z) \<or> (\<exists>m[M]. successor(M,m,z))"
 
 definition
-  is_nat_case :: "[i=>o, i, [i,i]=>o, i, i] => o" where
+  is_nat_case :: "[i\<Rightarrow>o, i, [i,i]\<Rightarrow>o, i, i] \<Rightarrow> o" where
     "is_nat_case(M, a, is_b, k, z) \<equiv>
        (empty(M,k) \<longrightarrow> z=a) \<and>
        (\<forall>m[M]. successor(M,m,k) \<longrightarrow> is_b(m,z)) \<and>
        (is_quasinat(M,k) \<or> empty(M,z))"
 
 definition
-  relation1 :: "[i=>o, [i,i]=>o, i=>i] => o" where
+  relation1 :: "[i\<Rightarrow>o, [i,i]\<Rightarrow>o, i\<Rightarrow>i] \<Rightarrow> o" where
     "relation1(M,is_f,f) \<equiv> \<forall>x[M]. \<forall>y[M]. is_f(x,y) \<longleftrightarrow> y = f(x)"
 
 definition
-  Relation1 :: "[i=>o, i, [i,i]=>o, i=>i] => o" where
+  Relation1 :: "[i\<Rightarrow>o, i, [i,i]\<Rightarrow>o, i\<Rightarrow>i] \<Rightarrow> o" where
     \<comment> \<open>as above, but typed\<close>
     "Relation1(M,A,is_f,f) \<equiv>
         \<forall>x[M]. \<forall>y[M]. x\<in>A \<longrightarrow> is_f(x,y) \<longleftrightarrow> y = f(x)"
 
 definition
-  relation2 :: "[i=>o, [i,i,i]=>o, [i,i]=>i] => o" where
+  relation2 :: "[i\<Rightarrow>o, [i,i,i]\<Rightarrow>o, [i,i]\<Rightarrow>i] \<Rightarrow> o" where
     "relation2(M,is_f,f) \<equiv> \<forall>x[M]. \<forall>y[M]. \<forall>z[M]. is_f(x,y,z) \<longleftrightarrow> z = f(x,y)"
 
 definition
-  Relation2 :: "[i=>o, i, i, [i,i,i]=>o, [i,i]=>i] => o" where
+  Relation2 :: "[i\<Rightarrow>o, i, i, [i,i,i]\<Rightarrow>o, [i,i]\<Rightarrow>i] \<Rightarrow> o" where
     "Relation2(M,A,B,is_f,f) \<equiv>
         \<forall>x[M]. \<forall>y[M]. \<forall>z[M]. x\<in>A \<longrightarrow> y\<in>B \<longrightarrow> is_f(x,y,z) \<longleftrightarrow> z = f(x,y)"
 
 definition
-  relation3 :: "[i=>o, [i,i,i,i]=>o, [i,i,i]=>i] => o" where
+  relation3 :: "[i\<Rightarrow>o, [i,i,i,i]\<Rightarrow>o, [i,i,i]\<Rightarrow>i] \<Rightarrow> o" where
     "relation3(M,is_f,f) \<equiv>
        \<forall>x[M]. \<forall>y[M]. \<forall>z[M]. \<forall>u[M]. is_f(x,y,z,u) \<longleftrightarrow> u = f(x,y,z)"
 
 definition
-  Relation3 :: "[i=>o, i, i, i, [i,i,i,i]=>o, [i,i,i]=>i] => o" where
+  Relation3 :: "[i\<Rightarrow>o, i, i, i, [i,i,i,i]\<Rightarrow>o, [i,i,i]\<Rightarrow>i] \<Rightarrow> o" where
     "Relation3(M,A,B,C,is_f,f) \<equiv>
        \<forall>x[M]. \<forall>y[M]. \<forall>z[M]. \<forall>u[M].
          x\<in>A \<longrightarrow> y\<in>B \<longrightarrow> z\<in>C \<longrightarrow> is_f(x,y,z,u) \<longleftrightarrow> u = f(x,y,z)"
 
 definition
-  relation4 :: "[i=>o, [i,i,i,i,i]=>o, [i,i,i,i]=>i] => o" where
+  relation4 :: "[i\<Rightarrow>o, [i,i,i,i,i]\<Rightarrow>o, [i,i,i,i]\<Rightarrow>i] \<Rightarrow> o" where
     "relation4(M,is_f,f) \<equiv>
        \<forall>u[M]. \<forall>x[M]. \<forall>y[M]. \<forall>z[M]. \<forall>a[M]. is_f(u,x,y,z,a) \<longleftrightarrow> a = f(u,x,y,z)"
 
@@ -290,12 +290,12 @@ by (simp add: Relation2_def)
 subsection \<open>The relativized ZF axioms\<close>
 
 definition
-  extensionality :: "(i=>o) => o" where
+  extensionality :: "(i\<Rightarrow>o) \<Rightarrow> o" where
     "extensionality(M) \<equiv>
         \<forall>x[M]. \<forall>y[M]. (\<forall>z[M]. z \<in> x \<longleftrightarrow> z \<in> y) \<longrightarrow> x=y"
 
 definition
-  separation :: "[i=>o, i=>o] => o" where
+  separation :: "[i\<Rightarrow>o, i\<Rightarrow>o] \<Rightarrow> o" where
     \<comment> \<open>The formula \<open>P\<close> should only involve parameters
         belonging to \<open>M\<close> and all its quantifiers must be relativized
         to \<open>M\<close>.  We do not have separation as a scheme; every instance
@@ -304,36 +304,36 @@ definition
         \<forall>z[M]. \<exists>y[M]. \<forall>x[M]. x \<in> y \<longleftrightarrow> x \<in> z \<and> P(x)"
 
 definition
-  upair_ax :: "(i=>o) => o" where
+  upair_ax :: "(i\<Rightarrow>o) \<Rightarrow> o" where
     "upair_ax(M) \<equiv> \<forall>x[M]. \<forall>y[M]. \<exists>z[M]. upair(M,x,y,z)"
 
 definition
-  Union_ax :: "(i=>o) => o" where
+  Union_ax :: "(i\<Rightarrow>o) \<Rightarrow> o" where
     "Union_ax(M) \<equiv> \<forall>x[M]. \<exists>z[M]. big_union(M,x,z)"
 
 definition
-  power_ax :: "(i=>o) => o" where
+  power_ax :: "(i\<Rightarrow>o) \<Rightarrow> o" where
     "power_ax(M) \<equiv> \<forall>x[M]. \<exists>z[M]. powerset(M,x,z)"
 
 definition
-  univalent :: "[i=>o, i, [i,i]=>o] => o" where
+  univalent :: "[i\<Rightarrow>o, i, [i,i]\<Rightarrow>o] \<Rightarrow> o" where
     "univalent(M,A,P) \<equiv>
         \<forall>x[M]. x\<in>A \<longrightarrow> (\<forall>y[M]. \<forall>z[M]. P(x,y) \<and> P(x,z) \<longrightarrow> y=z)"
 
 definition
-  replacement :: "[i=>o, [i,i]=>o] => o" where
+  replacement :: "[i\<Rightarrow>o, [i,i]\<Rightarrow>o] \<Rightarrow> o" where
     "replacement(M,P) \<equiv>
       \<forall>A[M]. univalent(M,A,P) \<longrightarrow>
       (\<exists>Y[M]. \<forall>b[M]. (\<exists>x[M]. x\<in>A \<and> P(x,b)) \<longrightarrow> b \<in> Y)"
 
 definition
-  strong_replacement :: "[i=>o, [i,i]=>o] => o" where
+  strong_replacement :: "[i\<Rightarrow>o, [i,i]\<Rightarrow>o] \<Rightarrow> o" where
     "strong_replacement(M,P) \<equiv>
       \<forall>A[M]. univalent(M,A,P) \<longrightarrow>
       (\<exists>Y[M]. \<forall>b[M]. b \<in> Y \<longleftrightarrow> (\<exists>x[M]. x\<in>A \<and> P(x,b)))"
 
 definition
-  foundation_ax :: "(i=>o) => o" where
+  foundation_ax :: "(i\<Rightarrow>o) \<Rightarrow> o" where
     "foundation_ax(M) \<equiv>
         \<forall>x[M]. (\<exists>y[M]. y\<in>x) \<longrightarrow> (\<exists>y[M]. y\<in>x \<and> \<not>(\<exists>z[M]. z\<in>x \<and> z \<in> y))"
 
@@ -360,12 +360,12 @@ by (blast intro: univ0_downwards_mem)
 text\<open>Congruence rule for separation: can assume the variable is in \<open>M\<close>\<close>
 lemma separation_cong [cong]:
      "(\<And>x. M(x) \<Longrightarrow> P(x) \<longleftrightarrow> P'(x))
-      \<Longrightarrow> separation(M, %x. P(x)) \<longleftrightarrow> separation(M, %x. P'(x))"
+      \<Longrightarrow> separation(M, \<lambda>x. P(x)) \<longleftrightarrow> separation(M, \<lambda>x. P'(x))"
 by (simp add: separation_def)
 
 lemma univalent_cong [cong]:
      "\<lbrakk>A=A'; \<And>x y. \<lbrakk>x\<in>A; M(x); M(y)\<rbrakk> \<Longrightarrow> P(x,y) \<longleftrightarrow> P'(x,y)\<rbrakk>
-      \<Longrightarrow> univalent(M, A, %x y. P(x,y)) \<longleftrightarrow> univalent(M, A', %x y. P'(x,y))"
+      \<Longrightarrow> univalent(M, A, \<lambda>x y. P(x,y)) \<longleftrightarrow> univalent(M, A', \<lambda>x y. P'(x,y))"
 by (simp add: univalent_def)
 
 lemma univalent_triv [intro,simp]:
@@ -379,8 +379,8 @@ by (simp add: univalent_def, blast)
 text\<open>Congruence rule for replacement\<close>
 lemma strong_replacement_cong [cong]:
      "\<lbrakk>\<And>x y. \<lbrakk>M(x); M(y)\<rbrakk> \<Longrightarrow> P(x,y) \<longleftrightarrow> P'(x,y)\<rbrakk>
-      \<Longrightarrow> strong_replacement(M, %x y. P(x,y)) \<longleftrightarrow>
-          strong_replacement(M, %x y. P'(x,y))"
+      \<Longrightarrow> strong_replacement(M, \<lambda>x y. P(x,y)) \<longleftrightarrow>
+          strong_replacement(M, \<lambda>x y. P'(x,y))"
 by (simp add: strong_replacement_def)
 
 text\<open>The extensionality axiom\<close>
@@ -459,13 +459,13 @@ text\<open>Still missing: Replacement, Choice\<close>
 subsection\<open>Lemmas Needed to Reduce Some Set Constructions to Instances
       of Separation\<close>
 
-lemma image_iff_Collect: "r `` A = {y \<in> \<Union>(\<Union>(r)). \<exists>p\<in>r. \<exists>x\<in>A. p=<x,y>}"
+lemma image_iff_Collect: "r `` A = {y \<in> \<Union>(\<Union>(r)). \<exists>p\<in>r. \<exists>x\<in>A. p=\<langle>x,y\<rangle>}"
 apply (rule equalityI, auto)
 apply (simp add: Pair_def, blast)
 done
 
 lemma vimage_iff_Collect:
-     "r -`` A = {x \<in> \<Union>(\<Union>(r)). \<exists>p\<in>r. \<exists>y\<in>A. p=<x,y>}"
+     "r -`` A = {x \<in> \<Union>(\<Union>(r)). \<exists>p\<in>r. \<exists>y\<in>A. p=\<langle>x,y\<rangle>}"
 apply (rule equalityI, auto)
 apply (simp add: Pair_def, blast)
 done
@@ -503,7 +503,7 @@ by (simp add: separation_def)
 text\<open>More constants, for order types\<close>
 
 definition
-  order_isomorphism :: "[i=>o,i,i,i,i,i] => o" where
+  order_isomorphism :: "[i\<Rightarrow>o,i,i,i,i,i] \<Rightarrow> o" where
     "order_isomorphism(M,A,r,B,s,f) \<equiv>
         bijection(M,A,B,f) \<and>
         (\<forall>x[M]. x\<in>A \<longrightarrow> (\<forall>y[M]. y\<in>A \<longrightarrow>
@@ -512,12 +512,12 @@ definition
             pair(M,fx,fy,q) \<longrightarrow> (p\<in>r \<longleftrightarrow> q\<in>s))))"
 
 definition
-  pred_set :: "[i=>o,i,i,i,i] => o" where
+  pred_set :: "[i\<Rightarrow>o,i,i,i,i] \<Rightarrow> o" where
     "pred_set(M,A,x,r,B) \<equiv>
         \<forall>y[M]. y \<in> B \<longleftrightarrow> (\<exists>p[M]. p\<in>r \<and> y \<in> A \<and> pair(M,y,x,p))"
 
 definition
-  membership :: "[i=>o,i,i] => o" where \<comment> \<open>membership relation\<close>
+  membership :: "[i\<Rightarrow>o,i,i] \<Rightarrow> o" where \<comment> \<open>membership relation\<close>
     "membership(M,A,r) \<equiv>
         \<forall>p[M]. p \<in> r \<longleftrightarrow> (\<exists>x[M]. x\<in>A \<and> (\<exists>y[M]. y\<in>A \<and> x\<in>y \<and> pair(M,x,y,p)))"
 
@@ -628,25 +628,25 @@ lemma (in M_trivial) singleton_in_M_iff [simp]:
   by blast
 
 lemma (in M_trans) pair_abs [simp]:
-     "M(z) \<Longrightarrow> pair(M,a,b,z) \<longleftrightarrow> z=<a,b>"
+     "M(z) \<Longrightarrow> pair(M,a,b,z) \<longleftrightarrow> z=\<langle>a,b\<rangle>"
 apply (simp add: pair_def Pair_def)
 apply (blast intro: transM)
 done
 
 lemma (in M_trans) pair_in_MD [dest!]:
-     "M(<a,b>) \<Longrightarrow> M(a) \<and> M(b)"
+     "M(\<langle>a,b\<rangle>) \<Longrightarrow> M(a) \<and> M(b)"
   by (simp add: Pair_def, blast intro: transM)
 
 lemma (in M_trivial) pair_in_MI [intro!]:
-     "M(a) \<and> M(b) \<Longrightarrow> M(<a,b>)"
+     "M(a) \<and> M(b) \<Longrightarrow> M(\<langle>a,b\<rangle>)"
   by (simp add: Pair_def)
 
 lemma (in M_trivial) pair_in_M_iff [simp]:
-     "M(<a,b>) \<longleftrightarrow> M(a) \<and> M(b)"
+     "M(\<langle>a,b\<rangle>) \<longleftrightarrow> M(a) \<and> M(b)"
   by blast
 
 lemma (in M_trans) pair_components_in_M:
-     "\<lbrakk><x,y> \<in> A; M(A)\<rbrakk> \<Longrightarrow> M(x) \<and> M(y)"
+     "\<lbrakk>\<langle>x,y\<rangle> \<in> A; M(A)\<rbrakk> \<Longrightarrow> M(x) \<and> M(y)"
   by (blast dest: transM)
 
 lemma (in M_trivial) cartprod_abs [simp]:
@@ -739,8 +739,8 @@ lemma is_Replace_cong [cong]:
      "\<lbrakk>A=A';
          \<And>x y. \<lbrakk>M(x); M(y)\<rbrakk> \<Longrightarrow> P(x,y) \<longleftrightarrow> P'(x,y);
          z=z'\<rbrakk>
-      \<Longrightarrow> is_Replace(M, A, %x y. P(x,y), z) \<longleftrightarrow>
-          is_Replace(M, A', %x y. P'(x,y), z')"
+      \<Longrightarrow> is_Replace(M, A, \<lambda>x y. P(x,y), z) \<longleftrightarrow>
+          is_Replace(M, A', \<lambda>x y. P'(x,y), z')"
 by (simp add: is_Replace_def)
 
 lemma (in M_trans) univalent_Replace_iff:
@@ -795,7 +795,7 @@ text\<open>Better than \<open>RepFun_closed\<close> when having the formula \<^t
       makes relativization easier.\<close>
 lemma (in M_trans) RepFun_closed2:
      "\<lbrakk>strong_replacement(M, \<lambda>x y. x\<in>A \<and> y = f(x)); M(A); \<forall>x\<in>A. M(f(x))\<rbrakk>
-      \<Longrightarrow> M(RepFun(A, %x. f(x)))"
+      \<Longrightarrow> M(RepFun(A, \<lambda>x. f(x)))"
 apply (simp add: RepFun_def)
 apply (frule strong_replacement_closed, assumption)
 apply (auto dest: transM  simp add: Replace_conj_eq univalent_def)
@@ -804,7 +804,7 @@ done
 subsubsection \<open>Absoluteness for \<^term>\<open>Lambda\<close>\<close>
 
 definition
- is_lambda :: "[i=>o, i, [i,i]=>o, i] => o" where
+ is_lambda :: "[i\<Rightarrow>o, i, [i,i]\<Rightarrow>o, i] \<Rightarrow> o" where
     "is_lambda(M, A, is_b, z) \<equiv>
        \<forall>p[M]. p \<in> z \<longleftrightarrow>
         (\<exists>u[M]. \<exists>v[M]. u\<in>A \<and> pair(M,u,v,p) \<and> is_b(u,v))"
@@ -838,8 +838,8 @@ done
 lemma is_lambda_cong [cong]:
      "\<lbrakk>A=A';  z=z';
          \<And>x y. \<lbrakk>x\<in>A; M(x); M(y)\<rbrakk> \<Longrightarrow> is_b(x,y) \<longleftrightarrow> is_b'(x,y)\<rbrakk>
-      \<Longrightarrow> is_lambda(M, A, %x y. is_b(x,y), z) \<longleftrightarrow>
-          is_lambda(M, A', %x y. is_b'(x,y), z')"
+      \<Longrightarrow> is_lambda(M, A, \<lambda>x y. is_b(x,y), z) \<longleftrightarrow>
+          is_lambda(M, A', \<lambda>x y. is_b'(x,y), z')"
 by (simp add: is_lambda_def)
 
 lemma (in M_trans) image_abs [simp]:
@@ -1001,7 +1001,7 @@ text\<open>Kunen continued to 20...\<close>
   equations only hold for x\<in>nat (or in some other set) and not for the
   whole of the class M.
   consts
-    natnumber_aux :: "[i=>o,i] => i"
+    natnumber_aux :: "[i\<Rightarrow>o,i] \<Rightarrow> i"
 
   primrec
       "natnumber_aux(M,0) = (\<lambda>x\<in>nat. if empty(M,x) then 1 else 0)"
@@ -1010,7 +1010,7 @@ text\<open>Kunen continued to 20...\<close>
                      then 1 else 0)"
 
   definition
-    natnumber :: "[i=>o,i,i] => o"
+    natnumber :: "[i\<Rightarrow>o,i,i] \<Rightarrow> o"
       "natnumber(M,n,x) \<equiv> natnumber_aux(M,n)`x = 1"
 
   lemma (in M_trivial) [simp]:
@@ -1076,7 +1076,7 @@ lemma (in M_basic) cartprod_iff:
      "\<lbrakk>M(A); M(B); M(C)\<rbrakk>
       \<Longrightarrow> cartprod(M,A,B,C) \<longleftrightarrow>
           (\<exists>p1[M]. \<exists>p2[M]. powerset(M,A \<union> B,p1) \<and> powerset(M,p1,p2) \<and>
-                   C = {z \<in> p2. \<exists>x\<in>A. \<exists>y\<in>B. z = <x,y>})"
+                   C = {z \<in> p2. \<exists>x\<in>A. \<exists>y\<in>B. z = \<langle>x,y\<rangle>})"
 apply (simp add: Pair_def cartprod_def, safe)
 defer 1
   apply (simp add: powerset_def)
@@ -1348,15 +1348,15 @@ by (simp del: separation_closed
 
 (*???equalities*)
 lemma Collect_Un_Collect_eq:
-     "Collect(A,P) \<union> Collect(A,Q) = Collect(A, %x. P(x) \<or> Q(x))"
+     "Collect(A,P) \<union> Collect(A,Q) = Collect(A, \<lambda>x. P(x) \<or> Q(x))"
 by blast
 
 lemma Diff_Collect_eq:
-     "A - Collect(A,P) = Collect(A, %x. \<not> P(x))"
+     "A - Collect(A,P) = Collect(A, \<lambda>x. \<not> P(x))"
 by blast
 
 lemma (in M_trans) Collect_rall_eq:
-     "M(Y) \<Longrightarrow> Collect(A, %x. \<forall>y[M]. y\<in>Y \<longrightarrow> P(x,y)) =
+     "M(Y) \<Longrightarrow> Collect(A, \<lambda>x. \<forall>y[M]. y\<in>Y \<longrightarrow> P(x,y)) =
                (if Y=0 then A else (\<Inter>y \<in> Y. {x \<in> A. P(x,y)}))"
   by (simp,blast dest: transM)
 
@@ -1405,7 +1405,7 @@ done
 lemma (in M_basic) succ_fun_eq2:
      "\<lbrakk>M(B); M(n->B)\<rbrakk> \<Longrightarrow>
       succ(n) -> B =
-      \<Union>{z. p \<in> (n->B)*B, \<exists>f[M]. \<exists>b[M]. p = <f,b> \<and> z = {cons(<n,b>, f)}}"
+      \<Union>{z. p \<in> (n->B)*B, \<exists>f[M]. \<exists>b[M]. p = \<langle>f,b\<rangle> \<and> z = {cons(\<langle>n,b\<rangle>, f)}}"
 apply (simp add: succ_fun_eq)
 apply (blast dest: transM)
 done
@@ -1429,21 +1429,21 @@ done
 subsection\<open>Relativization and Absoluteness for Boolean Operators\<close>
 
 definition
-  is_bool_of_o :: "[i=>o, o, i] => o" where
+  is_bool_of_o :: "[i\<Rightarrow>o, o, i] \<Rightarrow> o" where
    "is_bool_of_o(M,P,z) \<equiv> (P \<and> number1(M,z)) \<or> (\<not>P \<and> empty(M,z))"
 
 definition
-  is_not :: "[i=>o, i, i] => o" where
+  is_not :: "[i\<Rightarrow>o, i, i] \<Rightarrow> o" where
    "is_not(M,a,z) \<equiv> (number1(M,a)  \<and> empty(M,z)) |
                      (\<not>number1(M,a) \<and> number1(M,z))"
 
 definition
-  is_and :: "[i=>o, i, i, i] => o" where
+  is_and :: "[i\<Rightarrow>o, i, i, i] \<Rightarrow> o" where
    "is_and(M,a,b,z) \<equiv> (number1(M,a)  \<and> z=b) |
                        (\<not>number1(M,a) \<and> empty(M,z))"
 
 definition
-  is_or :: "[i=>o, i, i, i] => o" where
+  is_or :: "[i\<Rightarrow>o, i, i, i] \<Rightarrow> o" where
    "is_or(M,a,b,z) \<equiv> (number1(M,a)  \<and> number1(M,z)) |
                       (\<not>number1(M,a) \<and> z=b)"
 
@@ -1485,12 +1485,12 @@ by (simp add: Bool.not_def cond_def)
 subsection\<open>Relativization and Absoluteness for List Operators\<close>
 
 definition
-  is_Nil :: "[i=>o, i] => o" where
+  is_Nil :: "[i\<Rightarrow>o, i] \<Rightarrow> o" where
      \<comment> \<open>because \<^prop>\<open>[] \<equiv> Inl(0)\<close>\<close>
     "is_Nil(M,xs) \<equiv> \<exists>zero[M]. empty(M,zero) \<and> is_Inl(M,zero,xs)"
 
 definition
-  is_Cons :: "[i=>o,i,i,i] => o" where
+  is_Cons :: "[i\<Rightarrow>o,i,i,i] \<Rightarrow> o" where
      \<comment> \<open>because \<^prop>\<open>Cons(a, l) \<equiv> Inr(\<langle>a,l\<rangle>)\<close>\<close>
     "is_Cons(M,a,l,Z) \<equiv> \<exists>p[M]. pair(M,a,l,p) \<and> is_Inr(M,p,Z)"
 
@@ -1510,21 +1510,21 @@ by (simp add: is_Cons_def Cons_def)
 
 
 definition
-  quasilist :: "i => o" where
+  quasilist :: "i \<Rightarrow> o" where
     "quasilist(xs) \<equiv> xs=Nil \<or> (\<exists>x l. xs = Cons(x,l))"
 
 definition
-  is_quasilist :: "[i=>o,i] => o" where
+  is_quasilist :: "[i\<Rightarrow>o,i] \<Rightarrow> o" where
     "is_quasilist(M,z) \<equiv> is_Nil(M,z) \<or> (\<exists>x[M]. \<exists>l[M]. is_Cons(M,x,l,z))"
 
 definition
-  list_case' :: "[i, [i,i]=>i, i] => i" where
+  list_case' :: "[i, [i,i]\<Rightarrow>i, i] \<Rightarrow> i" where
     \<comment> \<open>A version of \<^term>\<open>list_case\<close> that's always defined.\<close>
     "list_case'(a,b,xs) \<equiv>
        if quasilist(xs) then list_case(a,b,xs) else 0"
 
 definition
-  is_list_case :: "[i=>o, i, [i,i,i]=>o, i, i] => o" where
+  is_list_case :: "[i\<Rightarrow>o, i, [i,i,i]\<Rightarrow>o, i, i] \<Rightarrow> o" where
     \<comment> \<open>Returns 0 for non-lists\<close>
     "is_list_case(M, a, is_b, xs, z) \<equiv>
        (is_Nil(M,xs) \<longrightarrow> z=a) \<and>
@@ -1532,17 +1532,17 @@ definition
        (is_quasilist(M,xs) \<or> empty(M,z))"
 
 definition
-  hd' :: "i => i" where
+  hd' :: "i \<Rightarrow> i" where
     \<comment> \<open>A version of \<^term>\<open>hd\<close> that's always defined.\<close>
     "hd'(xs) \<equiv> if quasilist(xs) then hd(xs) else 0"
 
 definition
-  tl' :: "i => i" where
+  tl' :: "i \<Rightarrow> i" where
     \<comment> \<open>A version of \<^term>\<open>tl\<close> that's always defined.\<close>
     "tl'(xs) \<equiv> if quasilist(xs) then tl(xs) else 0"
 
 definition
-  is_hd :: "[i=>o,i,i] => o" where
+  is_hd :: "[i\<Rightarrow>o,i,i] \<Rightarrow> o" where
      \<comment> \<open>\<^term>\<open>hd([]) = 0\<close> no constraints if not a list.
           Avoiding implication prevents the simplifier's looping.\<close>
     "is_hd(M,xs,H) \<equiv>
@@ -1551,7 +1551,7 @@ definition
        (is_quasilist(M,xs) \<or> empty(M,H))"
 
 definition
-  is_tl :: "[i=>o,i,i] => o" where
+  is_tl :: "[i\<Rightarrow>o,i,i] \<Rightarrow> o" where
      \<comment> \<open>\<^term>\<open>tl([]) = []\<close>; see comments about \<^term>\<open>is_hd\<close>\<close>
     "is_tl(M,xs,T) \<equiv>
        (is_Nil(M,xs) \<longrightarrow> T=xs) \<and>

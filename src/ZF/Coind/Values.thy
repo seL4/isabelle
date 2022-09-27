@@ -21,9 +21,9 @@ codatatype
   type_intros  A_into_univ mapQU
 
 consts
-  ve_owr :: "[i,i,i] => i"
-  ve_dom :: "i=>i"
-  ve_app :: "[i,i] => i"
+  ve_owr :: "[i,i,i] \<Rightarrow> i"
+  ve_dom :: "i\<Rightarrow>i"
+  ve_app :: "[i,i] \<Rightarrow> i"
 
 
 primrec "ve_owr(ve_mk(m), x, v) = ve_mk(map_owr(m,x,v))"

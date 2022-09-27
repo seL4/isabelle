@@ -25,7 +25,7 @@ by (unfold Pi_def, blast)
 
 (*For upward compatibility with the former definition*)
 lemma Pi_iff_old:
-    "f \<in> Pi(A,B) \<longleftrightarrow> f<=Sigma(A,B) \<and> (\<forall>x\<in>A. \<exists>!y. <x,y>: f)"
+    "f \<in> Pi(A,B) \<longleftrightarrow> f<=Sigma(A,B) \<and> (\<forall>x\<in>A. \<exists>!y. \<langle>x,y\<rangle>: f)"
 by (unfold Pi_def function_def, blast)
 
 lemma fun_is_function: "f \<in> Pi(A,B) \<Longrightarrow> function(f)"
@@ -36,7 +36,7 @@ lemma function_imp_Pi:
 by (simp add: Pi_iff relation_def, blast)
 
 lemma functionI:
-     "\<lbrakk>\<And>x y y'. \<lbrakk><x,y>:r; <x,y'>:r\<rbrakk> \<Longrightarrow> y=y'\<rbrakk> \<Longrightarrow> function(r)"
+     "\<lbrakk>\<And>x y y'. \<lbrakk>\<langle>x,y\<rangle>:r; <x,y'>:r\<rbrakk> \<Longrightarrow> y=y'\<rbrakk> \<Longrightarrow> function(r)"
 by (simp add: function_def, blast)
 
 (*Functions are relations*)
@@ -57,13 +57,13 @@ by (unfold Pi_def, best)
 
 subsection\<open>Function Application\<close>
 
-lemma apply_equality2: "\<lbrakk><a,b>: f;  <a,c>: f;  f \<in> Pi(A,B)\<rbrakk> \<Longrightarrow> b=c"
+lemma apply_equality2: "\<lbrakk>\<langle>a,b\<rangle>: f;  \<langle>a,c\<rangle>: f;  f \<in> Pi(A,B)\<rbrakk> \<Longrightarrow> b=c"
 by (unfold Pi_def function_def, blast)
 
-lemma function_apply_equality: "\<lbrakk><a,b>: f;  function(f)\<rbrakk> \<Longrightarrow> f`a = b"
+lemma function_apply_equality: "\<lbrakk>\<langle>a,b\<rangle>: f;  function(f)\<rbrakk> \<Longrightarrow> f`a = b"
 by (unfold apply_def function_def, blast)
 
-lemma apply_equality: "\<lbrakk><a,b>: f;  f \<in> Pi(A,B)\<rbrakk> \<Longrightarrow> f`a = b"
+lemma apply_equality: "\<lbrakk>\<langle>a,b\<rangle>: f;  f \<in> Pi(A,B)\<rbrakk> \<Longrightarrow> f`a = b"
 apply (unfold Pi_def)
 apply (blast intro: function_apply_equality)
 done
@@ -96,7 +96,7 @@ by (blast intro: apply_Pair dest: fun_is_rel)
 lemma apply_funtype: "\<lbrakk>f \<in> A->B;  a \<in> A\<rbrakk> \<Longrightarrow> f`a \<in> B"
 by (blast dest: apply_type)
 
-lemma apply_iff: "f \<in> Pi(A,B) \<Longrightarrow> <a,b>: f \<longleftrightarrow> a \<in> A \<and> f`a = b"
+lemma apply_iff: "f \<in> Pi(A,B) \<Longrightarrow> \<langle>a,b\<rangle>: f \<longleftrightarrow> a \<in> A \<and> f`a = b"
 apply (frule fun_is_rel)
 apply (blast intro!: apply_Pair apply_equality)
 done
@@ -109,7 +109,7 @@ done
 
 (*Such functions arise in non-standard datatypes, ZF/ex/Ntree for instance*)
 lemma Pi_Collect_iff:
-     "(f \<in> Pi(A, %x. {y \<in> B(x). P(x,y)}))
+     "(f \<in> Pi(A, \<lambda>x. {y \<in> B(x). P(x,y)}))
       \<longleftrightarrow>  f \<in> Pi(A,B) \<and> (\<forall>x\<in>A. P(x, f`x))"
 by (blast intro: Pi_type dest: apply_type)
 
@@ -120,13 +120,13 @@ by (blast intro: Pi_type dest: apply_type)
 
 (** Elimination of membership in a function **)
 
-lemma domain_type: "\<lbrakk><a,b> \<in> f;  f \<in> Pi(A,B)\<rbrakk> \<Longrightarrow> a \<in> A"
+lemma domain_type: "\<lbrakk>\<langle>a,b\<rangle> \<in> f;  f \<in> Pi(A,B)\<rbrakk> \<Longrightarrow> a \<in> A"
 by (blast dest: fun_is_rel)
 
-lemma range_type: "\<lbrakk><a,b> \<in> f;  f \<in> Pi(A,B)\<rbrakk> \<Longrightarrow> b \<in> B(a)"
+lemma range_type: "\<lbrakk>\<langle>a,b\<rangle> \<in> f;  f \<in> Pi(A,B)\<rbrakk> \<Longrightarrow> b \<in> B(a)"
 by (blast dest: fun_is_rel)
 
-lemma Pair_mem_PiD: "\<lbrakk><a,b>: f;  f \<in> Pi(A,B)\<rbrakk> \<Longrightarrow> a \<in> A \<and> b \<in> B(a) \<and> f`a = b"
+lemma Pair_mem_PiD: "\<lbrakk>\<langle>a,b\<rangle>: f;  f \<in> Pi(A,B)\<rbrakk> \<Longrightarrow> a \<in> A \<and> b \<in> B(a) \<and> f`a = b"
 by (blast intro: domain_type range_type apply_equality)
 
 subsection\<open>Lambda Abstraction\<close>
@@ -141,7 +141,7 @@ lemma lamE:
 \<rbrakk> \<Longrightarrow>  P"
 by (simp add: lam_def, blast)
 
-lemma lamD: "\<lbrakk><a,c>: (\<lambda>x\<in>A. b(x))\<rbrakk> \<Longrightarrow> c = b(a)"
+lemma lamD: "\<lbrakk>\<langle>a,c\<rangle>: (\<lambda>x\<in>A. b(x))\<rbrakk> \<Longrightarrow> c = b(a)"
 by (simp add: lam_def)
 
 lemma lam_type [TC]:
@@ -190,7 +190,7 @@ lemma Pi_empty1 [simp]: "Pi(0,A) = {0}"
 by (unfold Pi_def function_def, blast)
 
 (*The singleton function*)
-lemma singleton_fun [simp]: "{<a,b>} \<in> {a} -> {b}"
+lemma singleton_fun [simp]: "{\<langle>a,b\<rangle>} \<in> {a} -> {b}"
 by (unfold Pi_def function_def, blast)
 
 lemma Pi_empty2 [simp]: "(A->0) = (if A=0 then {0} else 0)"
@@ -395,21 +395,21 @@ by (blast intro: Pi_type apply_rangeI)
 subsection\<open>Extensions of Functions\<close>
 
 lemma fun_extend:
-     "\<lbrakk>f \<in> A->B;  c\<notin>A\<rbrakk> \<Longrightarrow> cons(<c,b>,f) \<in> cons(c,A) -> cons(b,B)"
+     "\<lbrakk>f \<in> A->B;  c\<notin>A\<rbrakk> \<Longrightarrow> cons(\<langle>c,b\<rangle>,f) \<in> cons(c,A) -> cons(b,B)"
 apply (frule singleton_fun [THEN fun_disjoint_Un], blast)
 apply (simp add: cons_eq)
 done
 
 lemma fun_extend3:
-     "\<lbrakk>f \<in> A->B;  c\<notin>A;  b \<in> B\<rbrakk> \<Longrightarrow> cons(<c,b>,f) \<in> cons(c,A) -> B"
+     "\<lbrakk>f \<in> A->B;  c\<notin>A;  b \<in> B\<rbrakk> \<Longrightarrow> cons(\<langle>c,b\<rangle>,f) \<in> cons(c,A) -> B"
 by (blast intro: fun_extend [THEN fun_weaken_type])
 
 lemma extend_apply:
-     "c \<notin> domain(f) \<Longrightarrow> cons(<c,b>,f)`a = (if a=c then b else f`a)"
+     "c \<notin> domain(f) \<Longrightarrow> cons(\<langle>c,b\<rangle>,f)`a = (if a=c then b else f`a)"
 by (auto simp add: apply_def)
 
 lemma fun_extend_apply [simp]:
-     "\<lbrakk>f \<in> A->B;  c\<notin>A\<rbrakk> \<Longrightarrow> cons(<c,b>,f)`a = (if a=c then b else f`a)"
+     "\<lbrakk>f \<in> A->B;  c\<notin>A\<rbrakk> \<Longrightarrow> cons(\<langle>c,b\<rangle>,f)`a = (if a=c then b else f`a)"
 apply (rule extend_apply)
 apply (simp add: Pi_def, blast)
 done
@@ -418,7 +418,7 @@ lemmas singleton_apply = apply_equality [OF singletonI singleton_fun, simp]
 
 (*For Finite.ML.  Inclusion of right into left is easy*)
 lemma cons_fun_eq:
-     "c \<notin> A \<Longrightarrow> cons(c,A) -> B = (\<Union>f \<in> A->B. \<Union>b\<in>B. {cons(<c,b>, f)})"
+     "c \<notin> A \<Longrightarrow> cons(c,A) -> B = (\<Union>f \<in> A->B. \<Union>b\<in>B. {cons(\<langle>c,b\<rangle>, f)})"
 apply (rule equalityI)
 apply (safe elim!: fun_extend3)
 (*Inclusion of left into right*)
@@ -435,14 +435,14 @@ apply (rule fun_extension)
 apply (erule consE, simp_all)
 done
 
-lemma succ_fun_eq: "succ(n) -> B = (\<Union>f \<in> n->B. \<Union>b\<in>B. {cons(<n,b>, f)})"
+lemma succ_fun_eq: "succ(n) -> B = (\<Union>f \<in> n->B. \<Union>b\<in>B. {cons(\<langle>n,b\<rangle>, f)})"
 by (simp add: succ_def mem_not_refl cons_fun_eq)
 
 
 subsection\<open>Function Updates\<close>
 
 definition
-  update  :: "[i,i,i] => i"  where
+  update  :: "[i,i,i] \<Rightarrow> i"  where
    "update(f,a,b) \<equiv> \<lambda>x\<in>cons(a, domain(f)). if(x=a, b, f`x)"
 
 nonterminal updbinds and updbind
@@ -451,10 +451,10 @@ syntax
 
   (* Let expressions *)
 
-  "_updbind"    :: "[i, i] => updbind"               (\<open>(2_ :=/ _)\<close>)
-  ""            :: "updbind => updbinds"             (\<open>_\<close>)
-  "_updbinds"   :: "[updbind, updbinds] => updbinds" (\<open>_,/ _\<close>)
-  "_Update"     :: "[i, updbinds] => i"              (\<open>_/'((_)')\<close> [900,0] 900)
+  "_updbind"    :: "[i, i] \<Rightarrow> updbind"               (\<open>(2_ :=/ _)\<close>)
+  ""            :: "updbind \<Rightarrow> updbinds"             (\<open>_\<close>)
+  "_updbinds"   :: "[updbind, updbinds] \<Rightarrow> updbinds" (\<open>_,/ _\<close>)
+  "_Update"     :: "[i, updbinds] \<Rightarrow> i"              (\<open>_/'((_)')\<close> [900,0] 900)
 
 translations
   "_Update (f, _updbinds(b,bs))"  == "_Update (_Update(f,b), bs)"
@@ -568,11 +568,11 @@ by (erule field_mono [THEN subset_trans], blast)
 subsubsection\<open>Images\<close>
 
 lemma image_pair_mono:
-    "\<lbrakk>\<And>x y. <x,y>:r \<Longrightarrow> <x,y>:s;  A<=B\<rbrakk> \<Longrightarrow> r``A \<subseteq> s``B"
+    "\<lbrakk>\<And>x y. \<langle>x,y\<rangle>:r \<Longrightarrow> \<langle>x,y\<rangle>:s;  A<=B\<rbrakk> \<Longrightarrow> r``A \<subseteq> s``B"
 by blast
 
 lemma vimage_pair_mono:
-    "\<lbrakk>\<And>x y. <x,y>:r \<Longrightarrow> <x,y>:s;  A<=B\<rbrakk> \<Longrightarrow> r-``A \<subseteq> s-``B"
+    "\<lbrakk>\<And>x y. \<langle>x,y\<rangle>:r \<Longrightarrow> \<langle>x,y\<rangle>:s;  A<=B\<rbrakk> \<Longrightarrow> r-``A \<subseteq> s-``B"
 by blast
 
 lemma image_mono: "\<lbrakk>r<=s;  A<=B\<rbrakk> \<Longrightarrow> r``A \<subseteq> s``B"

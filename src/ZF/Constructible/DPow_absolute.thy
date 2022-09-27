@@ -15,7 +15,7 @@ subsubsection\<open>The Operator \<^term>\<open>is_formula_rec\<close>\<close>
 text\<open>The three arguments of \<^term>\<open>p\<close> are always 2, 1, 0.  It is buried
    within 11 quantifiers\<And>\<close>
 
-(* is_formula_rec :: "[i=>o, [i,i,i]=>o, i, i] => o"
+(* is_formula_rec :: "[i\<Rightarrow>o, [i,i,i]\<Rightarrow>o, i, i] \<Rightarrow> o"
    "is_formula_rec(M,MH,p,z)  \<equiv>
       \<exists>dp[M]. \<exists>i[M]. \<exists>f[M]. finite_ordinal(M,dp) \<and> is_depth(M,p,dp) \<and> 
        2       1      0
@@ -23,7 +23,7 @@ text\<open>The three arguments of \<^term>\<open>p\<close> are always 2, 1, 0.  
 *)
 
 definition
-  formula_rec_fm :: "[i, i, i]=>i" where
+  formula_rec_fm :: "[i, i, i]\<Rightarrow>i" where
  "formula_rec_fm(mh,p,z) \<equiv> 
     Exists(Exists(Exists(
       And(finite_ordinal_fm(2),
@@ -81,7 +81,7 @@ subsubsection\<open>The Operator \<^term>\<open>is_satisfies\<close>\<close>
 
 (* is_satisfies(M,A,p,z) \<equiv> is_formula_rec (M, satisfies_MH(M,A), p, z) *)
 definition
-  satisfies_fm :: "[i,i,i]=>i" where
+  satisfies_fm :: "[i,i,i]\<Rightarrow>i" where
     "satisfies_fm(x) \<equiv> formula_rec_fm (satisfies_MH_fm(x#+5#+6, 2, 1, 0))"
 
 lemma is_satisfies_type [TC]:
@@ -113,14 +113,14 @@ subsection \<open>Relativization of the Operator \<^term>\<open>DPow'\<close>\<c
 lemma DPow'_eq: 
   "DPow'(A) = {z . ep \<in> list(A) * formula, 
                     \<exists>env \<in> list(A). \<exists>p \<in> formula. 
-                       ep = <env,p> \<and> z = {x\<in>A. sats(A, p, Cons(x,env))}}"
+                       ep = \<langle>env,p\<rangle> \<and> z = {x\<in>A. sats(A, p, Cons(x,env))}}"
 by (simp add: DPow'_def, blast) 
 
 
 text\<open>Relativize the use of \<^term>\<open>sats\<close> within \<^term>\<open>DPow'\<close>
 (the comprehension).\<close>
 definition
-  is_DPow_sats :: "[i=>o,i,i,i,i] => o" where
+  is_DPow_sats :: "[i\<Rightarrow>o,i,i,i,i] \<Rightarrow> o" where
    "is_DPow_sats(M,A,env,p,x) \<equiv>
       \<forall>n1[M]. \<forall>e[M]. \<forall>sp[M]. 
              is_satisfies(M,A,p,sp) \<longrightarrow> is_Cons(M,x,env,e) \<longrightarrow> 
@@ -149,7 +149,7 @@ subsubsection\<open>The Operator \<^term>\<open>is_DPow_sats\<close>, Internaliz
              fun_apply(M, sp, e, n1) \<longrightarrow> number1(M, n1) *)
 
 definition
-  DPow_sats_fm :: "[i,i,i,i]=>i" where
+  DPow_sats_fm :: "[i,i,i,i]\<Rightarrow>i" where
   "DPow_sats_fm(A,env,p,x) \<equiv>
    Forall(Forall(Forall(
      Implies(satisfies_fm(A#+3,p#+3,0), 
@@ -205,7 +205,7 @@ lemma (in M_DPow) rep':
    "M(A)
     \<Longrightarrow> strong_replacement (M, 
          \<lambda>ep z. \<exists>env\<in>list(A). \<exists>p\<in>formula.
-                  ep = <env,p> \<and> z = {x \<in> A . sats(A, p, Cons(x, env))})" 
+                  ep = \<langle>env,p\<rangle> \<and> z = {x \<in> A . sats(A, p, Cons(x, env))})" 
 by (insert rep [of A], simp add: Collect_DPow_sats_abs) 
 
 
@@ -220,7 +220,7 @@ done
 
 text\<open>Relativization of the Operator \<^term>\<open>DPow'\<close>\<close>
 definition 
-  is_DPow' :: "[i=>o,i,i] => o" where
+  is_DPow' :: "[i\<Rightarrow>o,i,i] \<Rightarrow> o" where
     "is_DPow'(M,A,Z) \<equiv> 
        \<forall>X[M]. X \<in> Z \<longleftrightarrow> 
          subset(M,X,A) \<and> 
@@ -308,11 +308,11 @@ subsubsection\<open>The Operator \<^term>\<open>is_Collect\<close>\<close>
 text\<open>The formula \<^term>\<open>is_P\<close> has one free variable, 0, and it is
 enclosed within a single quantifier.\<close>
 
-(* is_Collect :: "[i=>o,i,i=>o,i] => o"
+(* is_Collect :: "[i\<Rightarrow>o,i,i\<Rightarrow>o,i] \<Rightarrow> o"
     "is_Collect(M,A,P,z) \<equiv> \<forall>x[M]. x \<in> z \<longleftrightarrow> x \<in> A \<and> P(x)" *)
 
 definition
-  Collect_fm :: "[i, i, i]=>i" where
+  Collect_fm :: "[i, i, i]\<Rightarrow>i" where
  "Collect_fm(A,is_P,z) \<equiv> 
         Forall(Iff(Member(0,succ(z)),
                    And(Member(0,succ(A)), is_P)))"
@@ -359,11 +359,11 @@ subsubsection\<open>The Operator \<^term>\<open>is_Replace\<close>\<close>
 text\<open>BEWARE!  The formula \<^term>\<open>is_P\<close> has free variables 0, 1
  and not the usual 1, 0!  It is enclosed within two quantifiers.\<close>
 
-(*  is_Replace :: "[i=>o,i,[i,i]=>o,i] => o"
+(*  is_Replace :: "[i\<Rightarrow>o,i,[i,i]\<Rightarrow>o,i] \<Rightarrow> o"
     "is_Replace(M,A,P,z) \<equiv> \<forall>u[M]. u \<in> z \<longleftrightarrow> (\<exists>x[M]. x\<in>A \<and> P(x,u))" *)
 
 definition
-  Replace_fm :: "[i, i, i]=>i" where
+  Replace_fm :: "[i, i, i]\<Rightarrow>i" where
   "Replace_fm(A,is_P,z) \<equiv> 
         Forall(Iff(Member(0,succ(z)),
                    Exists(And(Member(0,A#+2), is_P))))"
@@ -417,7 +417,7 @@ subsubsection\<open>The Operator \<^term>\<open>is_DPow'\<close>, Internalized\<
                     is_Collect(M, A, is_DPow_sats(M,A,env,p), X))" *)
 
 definition
-  DPow'_fm :: "[i,i]=>i" where
+  DPow'_fm :: "[i,i]\<Rightarrow>i" where
     "DPow'_fm(A,Z) \<equiv> 
       Forall(
        Iff(Member(0,succ(Z)),
@@ -456,7 +456,7 @@ done
 subsection\<open>A Locale for Relativizing the Operator \<^term>\<open>Lset\<close>\<close>
 
 definition
-  transrec_body :: "[i=>o,i,i,i,i] => o" where
+  transrec_body :: "[i\<Rightarrow>o,i,i,i,i] \<Rightarrow> o" where
     "transrec_body(M,g,x) \<equiv>
       \<lambda>y z. \<exists>gy[M]. y \<in> x \<and> fun_apply(M,g,y,gy) \<and> is_DPow'(M,gy,z)"
 
@@ -508,11 +508,11 @@ done
 text\<open>Relativization of the Operator \<^term>\<open>Lset\<close>\<close>
 
 definition
-  is_Lset :: "[i=>o, i, i] => o" where
+  is_Lset :: "[i\<Rightarrow>o, i, i] \<Rightarrow> o" where
    \<comment> \<open>We can use the term language below because \<^term>\<open>is_Lset\<close> will
        not have to be internalized: it isn't used in any instance of
        separation.\<close>
-   "is_Lset(M,a,z) \<equiv> is_transrec(M, %x f u. u = (\<Union>y\<in>x. DPow'(f`y)), a, z)"
+   "is_Lset(M,a,z) \<equiv> is_transrec(M, \<lambda>x f u. u = (\<Union>y\<in>x. DPow'(f`y)), a, z)"
 
 lemma (in M_Lset) Lset_abs:
   "\<lbrakk>Ord(i);  M(i);  M(z)\<rbrakk> 
@@ -613,7 +613,7 @@ lemmas Lset_closed = M_Lset.Lset_closed [OF M_Lset_L]
 subsection\<open>The Notion of Constructible Set\<close>
 
 definition
-  constructible :: "[i=>o,i] => o" where
+  constructible :: "[i\<Rightarrow>o,i] \<Rightarrow> o" where
     "constructible(M,x) \<equiv>
        \<exists>i[M]. \<exists>Li[M]. ordinal(M,i) \<and> is_Lset(M,i,Li) \<and> x \<in> Li"
 

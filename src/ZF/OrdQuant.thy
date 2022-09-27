@@ -10,22 +10,22 @@ subsection \<open>Quantifiers and union operator for ordinals\<close>
 
 definition
   (* Ordinal Quantifiers *)
-  oall :: "[i, i => o] => o"  where
+  oall :: "[i, i \<Rightarrow> o] \<Rightarrow> o"  where
     "oall(A, P) \<equiv> \<forall>x. x<A \<longrightarrow> P(x)"
 
 definition
-  oex :: "[i, i => o] => o"  where
+  oex :: "[i, i \<Rightarrow> o] \<Rightarrow> o"  where
     "oex(A, P)  \<equiv> \<exists>x. x<A \<and> P(x)"
 
 definition
   (* Ordinal Union *)
-  OUnion :: "[i, i => i] => i"  where
+  OUnion :: "[i, i \<Rightarrow> i] \<Rightarrow> i"  where
     "OUnion(i,B) \<equiv> {z: \<Union>x\<in>i. B(x). Ord(i)}"
 
 syntax
-  "_oall"     :: "[idt, i, o] => o"        (\<open>(3\<forall>_<_./ _)\<close> 10)
-  "_oex"      :: "[idt, i, o] => o"        (\<open>(3\<exists>_<_./ _)\<close> 10)
-  "_OUNION"   :: "[idt, i, i] => i"        (\<open>(3\<Union>_<_./ _)\<close> 10)
+  "_oall"     :: "[idt, i, o] \<Rightarrow> o"        (\<open>(3\<forall>_<_./ _)\<close> 10)
+  "_oex"      :: "[idt, i, o] \<Rightarrow> o"        (\<open>(3\<exists>_<_./ _)\<close> 10)
+  "_OUNION"   :: "[idt, i, i] \<Rightarrow> i"        (\<open>(3\<Union>_<_./ _)\<close> 10)
 translations
   "\<forall>x<a. P" \<rightleftharpoons> "CONST oall(a, \<lambda>x. P)"
   "\<exists>x<a. P" \<rightleftharpoons> "CONST oex(a, \<lambda>x. P)"
@@ -127,7 +127,7 @@ by blast
 (*Congruence rule for rewriting*)
 lemma oall_cong [cong]:
     "\<lbrakk>a=a';  \<And>x. x<a' \<Longrightarrow> P(x) <-> P'(x)\<rbrakk>
-     \<Longrightarrow> oall(a, %x. P(x)) <-> oall(a', %x. P'(x))"
+     \<Longrightarrow> oall(a, \<lambda>x. P(x)) <-> oall(a', \<lambda>x. P'(x))"
 by (simp add: oall_def)
 
 
@@ -151,7 +151,7 @@ done
 
 lemma oex_cong [cong]:
     "\<lbrakk>a=a';  \<And>x. x<a' \<Longrightarrow> P(x) <-> P'(x)\<rbrakk>
-     \<Longrightarrow> oex(a, %x. P(x)) <-> oex(a', %x. P'(x))"
+     \<Longrightarrow> oex(a, \<lambda>x. P(x)) <-> oex(a', \<lambda>x. P'(x))"
 apply (simp add: oex_def cong add: conj_cong)
 done
 
@@ -184,16 +184,16 @@ done
 subsection \<open>Quantification over a class\<close>
 
 definition
-  "rall"     :: "[i=>o, i=>o] => o"  where
+  "rall"     :: "[i\<Rightarrow>o, i\<Rightarrow>o] \<Rightarrow> o"  where
     "rall(M, P) \<equiv> \<forall>x. M(x) \<longrightarrow> P(x)"
 
 definition
-  "rex"      :: "[i=>o, i=>o] => o"  where
+  "rex"      :: "[i\<Rightarrow>o, i\<Rightarrow>o] \<Rightarrow> o"  where
     "rex(M, P) \<equiv> \<exists>x. M(x) \<and> P(x)"
 
 syntax
-  "_rall"     :: "[pttrn, i=>o, o] => o"        (\<open>(3\<forall>_[_]./ _)\<close> 10)
-  "_rex"      :: "[pttrn, i=>o, o] => o"        (\<open>(3\<exists>_[_]./ _)\<close> 10)
+  "_rall"     :: "[pttrn, i\<Rightarrow>o, o] \<Rightarrow> o"        (\<open>(3\<forall>_[_]./ _)\<close> 10)
+  "_rex"      :: "[pttrn, i\<Rightarrow>o, o] \<Rightarrow> o"        (\<open>(3\<exists>_[_]./ _)\<close> 10)
 translations
   "\<forall>x[M]. P" \<rightleftharpoons> "CONST rall(M, \<lambda>x. P)"
   "\<exists>x[M]. P" \<rightleftharpoons> "CONST rex(M, \<lambda>x. P)"
@@ -249,10 +249,10 @@ lemma rex_cong [cong]:
     "(\<And>x. M(x) \<Longrightarrow> P(x) <-> P'(x)) \<Longrightarrow> (\<exists>x[M]. P(x)) <-> (\<exists>x[M]. P'(x))"
 by (simp add: rex_def cong: conj_cong)
 
-lemma rall_is_ball [simp]: "(\<forall>x[%z. z\<in>A]. P(x)) <-> (\<forall>x\<in>A. P(x))"
+lemma rall_is_ball [simp]: "(\<forall>x[\<lambda>z. z\<in>A]. P(x)) <-> (\<forall>x\<in>A. P(x))"
 by blast
 
-lemma rex_is_bex [simp]: "(\<exists>x[%z. z\<in>A]. P(x)) <-> (\<exists>x\<in>A. P(x))"
+lemma rex_is_bex [simp]: "(\<exists>x[\<lambda>z. z\<in>A]. P(x)) <-> (\<exists>x\<in>A. P(x))"
 by blast
 
 lemma atomize_rall: "(\<And>x. M(x) \<Longrightarrow> P(x)) \<equiv> Trueprop (\<forall>x[M]. P(x))"
@@ -323,8 +323,8 @@ by blast
 subsubsection\<open>Sets as Classes\<close>
 
 definition
-  setclass :: "[i,i] => o"       (\<open>##_\<close> [40] 40)  where
-   "setclass(A) \<equiv> %x. x \<in> A"
+  setclass :: "[i,i] \<Rightarrow> o"       (\<open>##_\<close> [40] 40)  where
+   "setclass(A) \<equiv> \<lambda>x. x \<in> A"
 
 lemma setclass_iff [simp]: "setclass(A,x) <-> x \<in> A"
 by (simp add: setclass_def)

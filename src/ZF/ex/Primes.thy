@@ -8,22 +8,22 @@ section\<open>The Divides Relation and Euclid's algorithm for the GCD\<close>
 theory Primes imports ZF begin
 
 definition
-  divides :: "[i,i]=>o"              (infixl \<open>dvd\<close> 50)  where
+  divides :: "[i,i]\<Rightarrow>o"              (infixl \<open>dvd\<close> 50)  where
     "m dvd n \<equiv> m \<in> nat \<and> n \<in> nat \<and> (\<exists>k \<in> nat. n = m#*k)"
 
 definition
-  is_gcd  :: "[i,i,i]=>o"     \<comment> \<open>definition of great common divisor\<close>  where
+  is_gcd  :: "[i,i,i]\<Rightarrow>o"     \<comment> \<open>definition of great common divisor\<close>  where
     "is_gcd(p,m,n) \<equiv> ((p dvd m) \<and> (p dvd n))   \<and>
                        (\<forall>d\<in>nat. (d dvd m) \<and> (d dvd n) \<longrightarrow> d dvd p)"
 
 definition
-  gcd     :: "[i,i]=>i"       \<comment> \<open>Euclid's algorithm for the gcd\<close>  where
+  gcd     :: "[i,i]\<Rightarrow>i"       \<comment> \<open>Euclid's algorithm for the gcd\<close>  where
     "gcd(m,n) \<equiv> transrec(natify(n),
-                        %n f. \<lambda>m \<in> nat.
+                        \<lambda>n f. \<lambda>m \<in> nat.
                                 if n=0 then m else f`(m mod n)`n) ` natify(m)"
 
 definition
-  coprime :: "[i,i]=>o"       \<comment> \<open>the coprime relation\<close>  where
+  coprime :: "[i,i]\<Rightarrow>o"       \<comment> \<open>the coprime relation\<close>  where
     "coprime(m,n) \<equiv> gcd(m,n) = 1"
   
 definition
@@ -93,7 +93,7 @@ by (simp add: gcd_def)
 lemma gcd_non_0_raw: 
     "\<lbrakk>0<n;  n \<in> nat\<rbrakk> \<Longrightarrow> gcd(m,n) = gcd(n, m mod n)"
 apply (simp add: gcd_def)
-apply (rule_tac P = "%z. left (z) = right" for left right in transrec [THEN ssubst])
+apply (rule_tac P = "\<lambda>z. left (z) = right" for left right in transrec [THEN ssubst])
 apply (simp add: ltD [THEN mem_imp_not_eq, THEN not_sym] 
                  mod_less_divisor [THEN ltD])
 done

@@ -9,23 +9,23 @@ imports "ZF-Induct.Multiset"
 begin
 
 definition
-  lcomm :: "[i, i, [i,i]=>i]=>o"  where
+  lcomm :: "[i, i, [i,i]\<Rightarrow>i]\<Rightarrow>o"  where
   "lcomm(A, B, f) \<equiv>
    (\<forall>x \<in> A. \<forall>y \<in> A. \<forall>z \<in> B. f(x, f(y, z))= f(y, f(x, z)))  \<and>
    (\<forall>x \<in> A. \<forall>y \<in> B. f(x, y) \<in> B)"
 
 definition
-  general_setsum :: "[i,i,i, [i,i]=>i, i=>i] =>i"  where
+  general_setsum :: "[i,i,i, [i,i]\<Rightarrow>i, i\<Rightarrow>i] \<Rightarrow>i"  where
    "general_setsum(C, B, e, f, g) \<equiv>
-    if Finite(C) then fold[cons(e, B)](%x y. f(g(x), y), e, C) else e"
+    if Finite(C) then fold[cons(e, B)](\<lambda>x y. f(g(x), y), e, C) else e"
 
 definition
-  msetsum :: "[i=>i, i, i]=>i"  where
+  msetsum :: "[i\<Rightarrow>i, i, i]\<Rightarrow>i"  where
   "msetsum(g, C, B) \<equiv> normalize(general_setsum(C, Mult(B), 0, (+#), g))"
 
 
 definition  (* sum for naturals *)
-  nsetsum :: "[i=>i, i] =>i"  where
+  nsetsum :: "[i\<Rightarrow>i, i] \<Rightarrow>i"  where
   "nsetsum(g, C) \<equiv> general_setsum(C, nat, 0, (#+), g)"
 
 
@@ -121,7 +121,7 @@ lemma msetsum_UN_disjoint [rule_format (no_asm)]:
      "\<lbrakk>I \<in> Fin(K); \<forall>i \<in> K. C(i) \<in> Fin(A)\<rbrakk> \<Longrightarrow>  
       (\<forall>x \<in> A. multiset(f(x)) \<and> mset_of(f(x))\<subseteq>B) \<longrightarrow>   
       (\<forall>i \<in> I. \<forall>j \<in> I. i\<noteq>j \<longrightarrow> C(i) \<inter> C(j) = 0) \<longrightarrow>  
-        msetsum(f, \<Union>i \<in> I. C(i), B) = msetsum (%i. msetsum(f, C(i),B), I, B)"
+        msetsum(f, \<Union>i \<in> I. C(i), B) = msetsum (\<lambda>i. msetsum(f, C(i),B), I, B)"
 apply (erule Fin_induct, auto)
 apply (subgoal_tac "\<forall>i \<in> y. x \<noteq> i")
  prefer 2 apply blast
@@ -141,7 +141,7 @@ lemma msetsum_addf:
     "\<lbrakk>C \<in> Fin(A);  
       \<forall>x \<in> A. multiset(f(x)) \<and> mset_of(f(x))\<subseteq>B;  
       \<forall>x \<in> A. multiset(g(x)) \<and> mset_of(g(x))\<subseteq>B\<rbrakk> \<Longrightarrow> 
-      msetsum(%x. f(x) +# g(x), C, B) = msetsum(f, C, B) +# msetsum(g, C, B)"
+      msetsum(\<lambda>x. f(x) +# g(x), C, B) = msetsum(f, C, B) +# msetsum(g, C, B)"
 apply (subgoal_tac "\<forall>x \<in> A. multiset (f(x) +# g(x)) \<and> mset_of (f(x) +# g(x)) \<subseteq> B")
 apply (erule Fin_induct)
 apply (auto simp add: munion_ac) 

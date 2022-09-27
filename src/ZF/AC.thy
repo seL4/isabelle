@@ -26,13 +26,13 @@ apply (erule bspec, assumption)
 done
 
 lemma AC_Pi_Pow: "\<exists>f. f \<in> (\<Prod>X \<in> Pow(C)-{0}. X)"
-apply (rule_tac B1 = "%x. x" in AC_Pi [THEN exE])
+apply (rule_tac B1 = "\<lambda>x. x" in AC_Pi [THEN exE])
 apply (erule_tac [2] exI, blast)
 done
 
 lemma AC_func:
      "\<lbrakk>\<And>x. x \<in> A \<Longrightarrow> (\<exists>y. y \<in> x)\<rbrakk> \<Longrightarrow> \<exists>f \<in> A->\<Union>(A). \<forall>x \<in> A. f`x \<in> x"
-apply (rule_tac B1 = "%x. x" in AC_Pi [THEN exE])
+apply (rule_tac B1 = "\<lambda>x. x" in AC_Pi [THEN exE])
 prefer 2 apply (blast dest: apply_type intro: Pi_type, blast)
 done
 

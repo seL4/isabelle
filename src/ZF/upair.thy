@@ -229,11 +229,11 @@ by (case_tac Q, simp_all)
 (** Rewrite rules for boolean case-splitting: faster than split_if [split]
 **)
 
-lemmas split_if_eq1 = split_if [of "%x. x = b"] for b
-lemmas split_if_eq2 = split_if [of "%x. a = x"] for a
+lemmas split_if_eq1 = split_if [of "\<lambda>x. x = b"] for b
+lemmas split_if_eq2 = split_if [of "\<lambda>x. a = x"] for a
 
-lemmas split_if_mem1 = split_if [of "%x. x \<in> b"] for b
-lemmas split_if_mem2 = split_if [of "%x. a \<in> x"] for a
+lemmas split_if_mem1 = split_if [of "\<lambda>x. x \<in> b"] for b
+lemmas split_if_mem2 = split_if [of "\<lambda>x. a \<in> x"] for a
 
 lemmas split_ifs = split_if_eq1 split_if_eq2 split_if_mem1 split_if_mem2
 

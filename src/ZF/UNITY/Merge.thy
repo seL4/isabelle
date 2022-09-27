@@ -13,50 +13,50 @@ theory Merge imports AllocBase Follows  Guar GenPrefix begin
 
 definition
   (*spec (10)*)
-  merge_increasing :: "[i, i, i] =>i"  where
+  merge_increasing :: "[i, i, i] \<Rightarrow>i"  where
     "merge_increasing(A, Out, iOut) \<equiv> program guarantees
          (lift(Out) IncreasingWrt  prefix(A)/list(A)) Int
          (lift(iOut) IncreasingWrt prefix(nat)/list(nat))"
 
 definition
   (*spec (11)*)
-  merge_eq_Out :: "[i, i] =>i"  where
+  merge_eq_Out :: "[i, i] \<Rightarrow>i"  where
   "merge_eq_Out(Out, iOut) \<equiv> program guarantees
          Always({s \<in> state. length(s`Out) = length(s`iOut)})"
 
 definition
   (*spec (12)*)
-  merge_bounded :: "i=>i"  where
+  merge_bounded :: "i\<Rightarrow>i"  where
   "merge_bounded(iOut) \<equiv> program guarantees
          Always({s \<in> state. \<forall>elt \<in> set_of_list(s`iOut). elt<Nclients})"
   
 definition
   (*spec (13)*)
   (* Parameter A represents the type of tokens *)
-  merge_follows :: "[i, i=>i, i, i] =>i"  where
+  merge_follows :: "[i, i\<Rightarrow>i, i, i] \<Rightarrow>i"  where
     "merge_follows(A, In, Out, iOut) \<equiv>
      (\<Inter>n \<in> Nclients. lift(In(n)) IncreasingWrt prefix(A)/list(A))
                    guarantees
      (\<Inter>n \<in> Nclients. 
-        (%s. sublist(s`Out, {k \<in> nat. k < length(s`iOut) \<and>
+        (\<lambda>s. sublist(s`Out, {k \<in> nat. k < length(s`iOut) \<and>
                       nth(k, s`iOut) = n})) Fols lift(In(n))
          Wrt prefix(A)/list(A))"
 
 definition
   (*spec: preserves part*)
-  merge_preserves :: "[i=>i] =>i"  where
+  merge_preserves :: "[i\<Rightarrow>i] \<Rightarrow>i"  where
     "merge_preserves(In) \<equiv> \<Inter>n \<in> nat. preserves(lift(In(n)))"
 
 definition
 (* environmental constraints*)
-  merge_allowed_acts :: "[i, i] =>i"  where
+  merge_allowed_acts :: "[i, i] \<Rightarrow>i"  where
   "merge_allowed_acts(Out, iOut) \<equiv>
          {F \<in> program. AllowedActs(F) =
             cons(id(state), (\<Union>G \<in> preserves(lift(Out)) \<inter>
                                    preserves(lift(iOut)). Acts(G)))}"
   
 definition
-  merge_spec :: "[i, i =>i, i, i]=>i"  where
+  merge_spec :: "[i, i \<Rightarrow>i, i, i]\<Rightarrow>i"  where
   "merge_spec(A, In, Out, iOut) \<equiv>
    merge_increasing(A, Out, iOut) \<inter> merge_eq_Out(Out, iOut) \<inter>
    merge_bounded(iOut) \<inter>  merge_follows(A, In, Out, iOut)
@@ -146,7 +146,7 @@ lemma (in merge) merge_bag_Follows_lemma:
 "\<lbrakk>G \<in> preserves(lift(iOut));  
     G: preserves(lift(Out)); M \<in> Allowed(G)\<rbrakk>  
   \<Longrightarrow> M \<squnion> G \<in> Always  
-    ({s \<in> state. msetsum(%i. bag_of(sublist(s`Out,  
+    ({s \<in> state. msetsum(\<lambda>i. bag_of(sublist(s`Out,  
       {k \<in> nat. k < length(s`iOut) \<and> nth(k, s`iOut)=i})),  
                    Nclients, A) = bag_of(s`Out)})"
 apply (rule Always_Diff_Un_eq [THEN iffD1]) 
@@ -166,7 +166,7 @@ apply (subgoal_tac "length (x ` iOut) \<in> nat")
 apply (subgoal_tac "xa \<in> nat")
 apply (simp_all add: Ord_mem_iff_lt)
 prefer 2 apply (blast intro: lt_trans)
-apply (drule_tac x = "nth (xa, x`iOut)" and P = "%elt. X (elt) \<longrightarrow> elt<Nclients" for X in bspec)
+apply (drule_tac x = "nth (xa, x`iOut)" and P = "\<lambda>elt. X (elt) \<longrightarrow> elt<Nclients" for X in bspec)
 apply (simp add: ltI nat_into_Ord)
 apply (blast dest: ltD)
 done
@@ -174,8 +174,8 @@ done
 theorem (in merge) merge_bag_Follows: 
     "M \<in> (\<Inter>n \<in> Nclients. lift(In(n)) IncreasingWrt prefix(A)/list(A))  
             guarantees   
-      (%s. bag_of(s`Out)) Fols  
-      (%s. msetsum(%i. bag_of(s`In(i)),Nclients, A)) Wrt MultLe(A, r)/Mult(A)"
+      (\<lambda>s. bag_of(s`Out)) Fols  
+      (\<lambda>s. msetsum(\<lambda>i. bag_of(s`In(i)),Nclients, A)) Wrt MultLe(A, r)/Mult(A)"
 apply (cut_tac merge_spec)
 apply (rule merge_bag_Follows_lemma [THEN Always_Follows1, THEN guaranteesI])
      apply (simp_all add: M_ok_iff, clarify)

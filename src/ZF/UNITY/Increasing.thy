@@ -11,19 +11,19 @@ section\<open>Charpentier's "Increasing" Relation\<close>
 theory Increasing imports Constrains Monotonicity begin
 
 definition
-  increasing :: "[i, i, i=>i] => i" (\<open>increasing[_]'(_, _')\<close>)  where
+  increasing :: "[i, i, i\<Rightarrow>i] \<Rightarrow> i" (\<open>increasing[_]'(_, _')\<close>)  where
   "increasing[A](r, f) \<equiv>
     {F \<in> program. (\<forall>k \<in> A. F \<in> stable({s \<in> state. <k, f(s)> \<in> r})) \<and>
                 (\<forall>x \<in> state. f(x):A)}"
   
 definition
-  Increasing :: "[i, i, i=>i] => i" (\<open>Increasing[_]'(_, _')\<close>)  where
+  Increasing :: "[i, i, i\<Rightarrow>i] \<Rightarrow> i" (\<open>Increasing[_]'(_, _')\<close>)  where
   "Increasing[A](r, f) \<equiv>
     {F \<in> program. (\<forall>k \<in> A. F \<in> Stable({s \<in> state. <k, f(s)> \<in> r})) \<and>
                 (\<forall>x \<in> state. f(x):A)}"
 
 abbreviation (input)
-  IncWrt ::  "[i=>i, i, i] => i" (\<open>(_ IncreasingWrt _ '/ _)\<close> [60, 0, 60] 60)  where
+  IncWrt ::  "[i\<Rightarrow>i, i, i] \<Rightarrow> i" (\<open>(_ IncreasingWrt _ '/ _)\<close> [60, 0, 60] 60)  where
   "f IncreasingWrt r/A \<equiv> Increasing[A](r,f)"
 
 
@@ -47,7 +47,7 @@ apply (auto dest: stable_type [THEN subsetD] intro: st0_in_state)
 done
 
 lemma increasing_constant [simp]: 
- "F \<in> increasing[A](r, %s. c) \<longleftrightarrow> F \<in> program \<and> c \<in> A"
+ "F \<in> increasing[A](r, \<lambda>s. c) \<longleftrightarrow> F \<in> program \<and> c \<in> A"
 apply (unfold increasing_def stable_def)
 apply (subgoal_tac "\<exists>x. x \<in> state")
 apply (auto dest: stable_type [THEN subsetD] intro: st0_in_state)
@@ -116,7 +116,7 @@ apply (auto intro: st0_in_state)
 done
 
 lemma Increasing_constant [simp]: 
-     "F \<in> Increasing[A](r, %s. c) \<longleftrightarrow> F \<in> program \<and> (c \<in> A)"
+     "F \<in> Increasing[A](r, \<lambda>s. c) \<longleftrightarrow> F \<in> program \<and> (c \<in> A)"
 apply (subgoal_tac "\<exists>x. x \<in> state")
 apply (auto dest!: IncreasingD intro: st0_in_state increasing_imp_Increasing)
 done
@@ -163,7 +163,7 @@ done
 lemma imp_increasing_comp2: 
 "\<lbrakk>F \<in> increasing[A](r, f); F \<in> increasing[B](s, g);  
     mono2(A, r, B, s, C, t, h); refl(A, r); refl(B, s); trans[C](t)\<rbrakk>
- \<Longrightarrow> F \<in> increasing[C](t, %x. h(f(x), g(x)))"
+ \<Longrightarrow> F \<in> increasing[C](t, \<lambda>x. h(f(x), g(x)))"
 apply (unfold increasing_def stable_def 
        part_order_def constrains_def mono2_def, clarify, simp)
 apply clarify
@@ -195,7 +195,7 @@ done
 lemma imp_Increasing_comp2: 
 "\<lbrakk>F \<in> Increasing[A](r, f); F \<in> Increasing[B](s, g);  
   mono2(A, r, B, s, C, t, h); refl(A, r); refl(B, s); trans[C](t)\<rbrakk> \<Longrightarrow>  
-  F \<in> Increasing[C](t, %x. h(f(x), g(x)))"
+  F \<in> Increasing[C](t, \<lambda>x. h(f(x), g(x)))"
 apply (unfold Increasing_def stable_def 
        part_order_def constrains_def mono2_def Stable_def Constrains_def, safe)
 apply (simp_all add: ActsD)

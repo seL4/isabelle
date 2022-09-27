@@ -10,9 +10,9 @@ theory Tree_Forest imports ZF begin
 subsection \<open>Datatype definition\<close>
 
 consts
-  tree :: "i => i"
-  forest :: "i => i"
-  tree_forest :: "i => i"
+  tree :: "i \<Rightarrow> i"
+  forest :: "i \<Rightarrow> i"
+  tree_forest :: "i \<Rightarrow> i"
 
 datatype "tree(A)" = Tcons ("a \<in> A", "f \<in> forest(A)")
   and "forest(A)" = Fnil | Fcons ("t \<in> tree(A)", "f \<in> forest(A)")
@@ -118,12 +118,12 @@ lemma tree_forest_rec_type:
 subsection \<open>Operations\<close>
 
 consts
-  map :: "[i => i, i] => i"
-  size :: "i => i"
-  preorder :: "i => i"
-  list_of_TF :: "i => i"
-  of_list :: "i => i"
-  reflect :: "i => i"
+  map :: "[i \<Rightarrow> i, i] \<Rightarrow> i"
+  size :: "i \<Rightarrow> i"
+  preorder :: "i \<Rightarrow> i"
+  list_of_TF :: "i \<Rightarrow> i"
+  of_list :: "i \<Rightarrow> i"
+  reflect :: "i \<Rightarrow> i"
 
 primrec
   "list_of_TF (Tcons(x,f)) = [Tcons(x,f)]"

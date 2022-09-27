@@ -10,7 +10,7 @@ text\<open>these really can't be definitions without losing the abstraction\<clo
 
 axiomatization
   Const :: i  and               (* Abstract type of constants *)
-  c_app :: "[i,i] => i"         (* Abstract constructor for fun application*)
+  c_app :: "[i,i] \<Rightarrow> i"         (* Abstract constructor for fun application*)
 where
   constNEE:  "c \<in> Const \<Longrightarrow> c \<noteq> 0" and
   c_appI:    "\<lbrakk>c1 \<in> Const; c2 \<in> Const\<rbrakk> \<Longrightarrow> c_app(c1,c2) \<in> Const"

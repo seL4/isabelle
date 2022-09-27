@@ -16,7 +16,7 @@ a typing rule for it, based on some notion of "productivity..."
 theory LList imports ZF begin
 
 consts
-  llist  :: "i=>i"
+  llist  :: "i\<Rightarrow>i"
 
 codatatype
   "llist(A)" = LNil | LCons ("a \<in> A", "l \<in> llist(A)")
@@ -24,7 +24,7 @@ codatatype
 
 (*Coinductive definition of equality*)
 consts
-  lleq :: "i=>i"
+  lleq :: "i\<Rightarrow>i"
 
 (*Previously used <*> in the domain and variant pairs as elements.  But
   standard pairs work just as well.  To use variant pairs, must change prefix
@@ -32,7 +32,7 @@ consts
 coinductive
   domains "lleq(A)" \<subseteq> "llist(A) * llist(A)"
   intros
-    LNil:  "<LNil, LNil> \<in> lleq(A)"
+    LNil:  "\<langle>LNil, LNil\<rangle> \<in> lleq(A)"
     LCons: "\<lbrakk>a \<in> A; <l,l'> \<in> lleq(A)\<rbrakk> 
             \<Longrightarrow> <LCons(a,l), LCons(a,l')> \<in> lleq(A)"
   type_intros  llist.intros
@@ -40,10 +40,10 @@ coinductive
 
 (*Lazy list functions; flip is not definitional!*)
 definition
-  lconst   :: "i => i"  where
-  "lconst(a) \<equiv> lfp(univ(a), %l. LCons(a,l))"
+  lconst   :: "i \<Rightarrow> i"  where
+  "lconst(a) \<equiv> lfp(univ(a), \<lambda>l. LCons(a,l))"
 
-axiomatization flip :: "i => i"
+axiomatization flip :: "i \<Rightarrow> i"
 where
   flip_LNil:   "flip(LNil) = LNil" and
   flip_LCons:  "\<lbrakk>x \<in> bool; l \<in> llist(bool)\<rbrakk> 
@@ -170,7 +170,7 @@ done
 
 lemma equal_llist_implies_leq:
      "\<lbrakk>l=l';  l \<in> llist(A)\<rbrakk> \<Longrightarrow> <l,l'> \<in> lleq(A)"
-apply (rule_tac X = "{<l,l>. l \<in> llist (A) }" in lleq.coinduct)
+apply (rule_tac X = "{\<langle>l,l\<rangle>. l \<in> llist (A) }" in lleq.coinduct)
 apply blast
 apply safe
 apply (erule_tac a=la in llist.cases, fast+)
@@ -183,7 +183,7 @@ done
 
 (*** lconst -- defined directly using lfp, but equivalent to a LList_corec ***)
 
-lemma lconst_fun_bnd_mono: "bnd_mono(univ(a), %l. LCons(a,l))"
+lemma lconst_fun_bnd_mono: "bnd_mono(univ(a), \<lambda>l. LCons(a,l))"
 apply (unfold llist.con_defs )
 apply (rule bnd_monoI)
 apply (blast intro: A_subset_univ QInr_subset_univ)

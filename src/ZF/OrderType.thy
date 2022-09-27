@@ -12,40 +12,40 @@ Ordinal arithmetic is traditionally defined in terms of order types, as it is
 here.  But a definition by transfinite recursion would be much simpler!\<close>
 
 definition
-  ordermap  :: "[i,i]=>i"  where
-   "ordermap(A,r) \<equiv> \<lambda>x\<in>A. wfrec[A](r, x, %x f. f `` pred(A,x,r))"
+  ordermap  :: "[i,i]\<Rightarrow>i"  where
+   "ordermap(A,r) \<equiv> \<lambda>x\<in>A. wfrec[A](r, x, \<lambda>x f. f `` pred(A,x,r))"
 
 definition
-  ordertype :: "[i,i]=>i"  where
+  ordertype :: "[i,i]\<Rightarrow>i"  where
    "ordertype(A,r) \<equiv> ordermap(A,r)``A"
 
 definition
   (*alternative definition of ordinal numbers*)
-  Ord_alt   :: "i => o"  where
+  Ord_alt   :: "i \<Rightarrow> o"  where
    "Ord_alt(X) \<equiv> well_ord(X, Memrel(X)) \<and> (\<forall>u\<in>X. u=pred(X, u, Memrel(X)))"
 
 definition
   (*coercion to ordinal: if not, just 0*)
-  ordify    :: "i=>i"  where
+  ordify    :: "i\<Rightarrow>i"  where
     "ordify(x) \<equiv> if Ord(x) then x else 0"
 
 definition
   (*ordinal multiplication*)
-  omult      :: "[i,i]=>i"           (infixl \<open>**\<close> 70)  where
+  omult      :: "[i,i]\<Rightarrow>i"           (infixl \<open>**\<close> 70)  where
    "i ** j \<equiv> ordertype(j*i, rmult(j,Memrel(j),i,Memrel(i)))"
 
 definition
   (*ordinal addition*)
-  raw_oadd   :: "[i,i]=>i"  where
+  raw_oadd   :: "[i,i]\<Rightarrow>i"  where
     "raw_oadd(i,j) \<equiv> ordertype(i+j, radd(i,Memrel(i),j,Memrel(j)))"
 
 definition
-  oadd      :: "[i,i]=>i"           (infixl \<open>++\<close> 65)  where
+  oadd      :: "[i,i]\<Rightarrow>i"           (infixl \<open>++\<close> 65)  where
     "i ++ j \<equiv> raw_oadd(ordify(i),ordify(j))"
 
 definition
   (*ordinal subtraction*)
-  odiff      :: "[i,i]=>i"           (infixl \<open>--\<close> 65)  where
+  odiff      :: "[i,i]\<Rightarrow>i"           (infixl \<open>--\<close> 65)  where
     "i -- j \<equiv> ordertype(i-j, Memrel(i))"
 
 
@@ -128,14 +128,14 @@ lemmas ordermap_unfold = ordermap_pred_unfold [simplified pred_def]
 (*The theorem above is
 
 \<lbrakk>wf[A](r); x \<in> A\<rbrakk>
-\<Longrightarrow> ordermap(A,r) ` x = {ordermap(A,r) ` y . y: {y \<in> A . <y,x> \<in> r}}
+\<Longrightarrow> ordermap(A,r) ` x = {ordermap(A,r) ` y . y: {y \<in> A . \<langle>y,x\<rangle> \<in> r}}
 
 NOTE: the definition of ordermap used here delivers ordinals only if r is
 transitive.  If r is the predecessor relation on the naturals then
 ordermap(nat,predr) ` n equals {n-1} and not n.  A more complicated definition,
 like
 
-  ordermap(A,r) ` x = Union{succ(ordermap(A,r) ` y) . y: {y \<in> A . <y,x> \<in> r}},
+  ordermap(A,r) ` x = Union{succ(ordermap(A,r) ` y) . y: {y \<in> A . \<langle>y,x\<rangle> \<in> r}},
 
 might eliminate the need for r to be transitive.
 *)
@@ -169,7 +169,7 @@ done
 subsubsection\<open>ordermap preserves the orderings in both directions\<close>
 
 lemma ordermap_mono:
-     "\<lbrakk><w,x>: r;  wf[A](r);  w \<in> A; x \<in> A\<rbrakk>
+     "\<lbrakk>\<langle>w,x\<rangle>: r;  wf[A](r);  w \<in> A; x \<in> A\<rbrakk>
       \<Longrightarrow> ordermap(A,r)`w \<in> ordermap(A,r)`x"
 apply (erule_tac x1 = x in ordermap_unfold [THEN ssubst], assumption, blast)
 done
@@ -177,7 +177,7 @@ done
 (*linearity of r is crucial here*)
 lemma converse_ordermap_mono:
     "\<lbrakk>ordermap(A,r)`w \<in> ordermap(A,r)`x;  well_ord(A,r); w \<in> A; x \<in> A\<rbrakk>
-     \<Longrightarrow> <w,x>: r"
+     \<Longrightarrow> \<langle>w,x\<rangle>: r"
 apply (unfold well_ord_def tot_ord_def, safe)
 apply (erule_tac x=w and y=x in linearE, assumption+)
 apply (blast elim!: mem_not_refl [THEN notE])
@@ -333,7 +333,7 @@ subsubsection\<open>Order Type calculations for radd\<close>
 
 text\<open>Addition with 0\<close>
 
-lemma bij_sum_0: "(\<lambda>z\<in>A+0. case(%x. x, %y. y, z)) \<in> bij(A+0, A)"
+lemma bij_sum_0: "(\<lambda>z\<in>A+0. case(\<lambda>x. x, \<lambda>y. y, z)) \<in> bij(A+0, A)"
 apply (rule_tac d = Inl in lam_bijective, safe)
 apply (simp_all (no_asm_simp))
 done
@@ -345,7 +345,7 @@ prefer 2 apply assumption
 apply force
 done
 
-lemma bij_0_sum: "(\<lambda>z\<in>0+A. case(%x. x, %y. y, z)) \<in> bij(0+A, A)"
+lemma bij_0_sum: "(\<lambda>z\<in>0+A. case(\<lambda>x. x, \<lambda>y. y, z)) \<in> bij(0+A, A)"
 apply (rule_tac d = Inr in lam_bijective, safe)
 apply (simp_all (no_asm_simp))
 done
@@ -364,7 +364,7 @@ lemma pred_Inl_bij:
  "a \<in> A \<Longrightarrow> (\<lambda>x\<in>pred(A,a,r). Inl(x))
           \<in> bij(pred(A,a,r), pred(A+B, Inl(a), radd(A,r,B,s)))"
 apply (unfold pred_def)
-apply (rule_tac d = "case (%x. x, %y. y) " in lam_bijective)
+apply (rule_tac d = "case (\<lambda>x. x, \<lambda>y. y) " in lam_bijective)
 apply auto
 done
 
@@ -382,7 +382,7 @@ lemma pred_Inr_bij:
          id(A+pred(B,b,s))
          \<in> bij(A+pred(B,b,s), pred(A+B, Inr(b), radd(A,r,B,s)))"
 apply (unfold pred_def id_def)
-apply (rule_tac d = "%z. z" in lam_bijective, auto)
+apply (rule_tac d = "\<lambda>z. z" in lam_bijective, auto)
 done
 
 lemma ordertype_pred_Inr_eq:
@@ -686,7 +686,7 @@ text\<open>The difference is \<^term>\<open>ordertype(j-i, Memrel(j))\<close>.
 
 lemma bij_sum_Diff:
      "A<=B \<Longrightarrow> (\<lambda>y\<in>B. if(y \<in> A, Inl(y), Inr(y))) \<in> bij(B, A+(B-A))"
-apply (rule_tac d = "case (%x. x, %y. y) " in lam_bijective)
+apply (rule_tac d = "case (\<lambda>x. x, \<lambda>y. y) " in lam_bijective)
 apply (blast intro!: if_type)
 apply (fast intro!: case_type)
 apply (erule_tac [2] sumE)
@@ -757,14 +757,14 @@ done
 subsubsection\<open>A useful unfolding law\<close>
 
 lemma pred_Pair_eq:
- "\<lbrakk>a \<in> A;  b \<in> B\<rbrakk> \<Longrightarrow> pred(A*B, <a,b>, rmult(A,r,B,s)) =
+ "\<lbrakk>a \<in> A;  b \<in> B\<rbrakk> \<Longrightarrow> pred(A*B, \<langle>a,b\<rangle>, rmult(A,r,B,s)) =
                       pred(A,a,r)*B \<union> ({a} * pred(B,b,s))"
 apply (unfold pred_def, blast)
 done
 
 lemma ordertype_pred_Pair_eq:
      "\<lbrakk>a \<in> A;  b \<in> B;  well_ord(A,r);  well_ord(B,s)\<rbrakk> \<Longrightarrow>
-         ordertype(pred(A*B, <a,b>, rmult(A,r,B,s)), rmult(A,r,B,s)) =
+         ordertype(pred(A*B, \<langle>a,b\<rangle>, rmult(A,r,B,s)), rmult(A,r,B,s)) =
          ordertype(pred(A,a,r)*B + pred(B,b,s),
                   radd(A*B, rmult(A,r,B,s), B, s))"
 apply (simp (no_asm_simp) add: pred_Pair_eq)
@@ -849,7 +849,7 @@ lemma omult_1 [simp]: "Ord(i) \<Longrightarrow> i**1 = i"
 apply (unfold omult_def)
 apply (rule_tac s1="Memrel(i)"
        in ord_isoI [THEN ordertype_eq, THEN trans])
-apply (rule_tac c = snd and d = "%z.<0,z>"  in lam_bijective)
+apply (rule_tac c = snd and d = "\<lambda>z.\<langle>0,z\<rangle>"  in lam_bijective)
 apply (auto elim!: snd_type well_ord_Memrel ordertype_Memrel)
 done
 
@@ -857,7 +857,7 @@ lemma omult_1_left [simp]: "Ord(i) \<Longrightarrow> 1**i = i"
 apply (unfold omult_def)
 apply (rule_tac s1="Memrel(i)"
        in ord_isoI [THEN ordertype_eq, THEN trans])
-apply (rule_tac c = fst and d = "%z.<z,0>" in lam_bijective)
+apply (rule_tac c = fst and d = "\<lambda>z.\<langle>z,0\<rangle>" in lam_bijective)
 apply (auto elim!: fst_type well_ord_Memrel ordertype_Memrel)
 done
 

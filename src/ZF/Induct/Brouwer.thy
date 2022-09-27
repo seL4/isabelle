@@ -42,7 +42,7 @@ lemma brouwer_induct2 [consumes 1, case_names Zero Suc Lim]:
 subsection \<open>The Martin-Löf wellordering type\<close>
 
 consts
-  Well :: "[i, i => i] => i"
+  Well :: "[i, i \<Rightarrow> i] \<Rightarrow> i"
 
 datatype \<subseteq> "Vfrom(A \<union> (\<Union>x \<in> A. B(x)), csucc(nat \<union> |\<Union>x \<in> A. B(x)|))"
     \<comment> \<open>The union with \<open>nat\<close> ensures that the cardinal is infinite.\<close>

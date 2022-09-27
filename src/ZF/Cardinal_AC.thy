@@ -118,7 +118,7 @@ subsection\<open>Other Applications of AC\<close>
 lemma surj_implies_inj:
   assumes f: "f \<in> surj(X,Y)" shows "\<exists>g. g \<in> inj(Y,X)"
 proof -
-  from f AC_Pi [of Y "%y. f-``{y}"]
+  from f AC_Pi [of Y "\<lambda>y. f-``{y}"]
   obtain z where z: "z \<in> (\<Prod>y\<in>Y. f -`` {y})"  
     by (auto simp add: surj_def) (fast dest: apply_Pair)
   show ?thesis
@@ -161,8 +161,8 @@ proof (simp add: K InfCard_is_Card le_Card_iff)
     proof (unfold lepoll_def)
       show "\<exists>f. f \<in> inj(\<Union>RepFun(K, X), K \<times> K)"
         apply (rule exI) 
-        apply (rule_tac c = "%z. \<langle>\<mu> i. z \<in> X(i), f ` (\<mu> i. z \<in> X(i)) ` z\<rangle>"
-                    and d = "%\<langle>i,j\<rangle>. converse (f`i) ` j" in lam_injective) 
+        apply (rule_tac c = "\<lambda>z. \<langle>\<mu> i. z \<in> X(i), f ` (\<mu> i. z \<in> X(i)) ` z\<rangle>"
+                    and d = "\<lambda>\<langle>i,j\<rangle>. converse (f`i) ` j" in lam_injective) 
         apply (force intro: f inj_is_fun mems apply_type Perm.left_inverse)+
         done
     qed

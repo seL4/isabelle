@@ -27,26 +27,26 @@ consts
 datatype propn =
     Fls
   | Var ("n \<in> nat")    (\<open>#_\<close> [100] 100)
-  | Imp ("p \<in> propn", "q \<in> propn")    (infixr \<open>=>\<close> 90)
+  | Imp ("p \<in> propn", "q \<in> propn")    (infixr \<open>\<Rightarrow>\<close> 90)
 
 
 subsection \<open>The proof system\<close>
 
-consts thms     :: "i => i"
+consts thms     :: "i \<Rightarrow> i"
 
 abbreviation
-  thms_syntax :: "[i,i] => o"    (infixl \<open>|-\<close> 50)
+  thms_syntax :: "[i,i] \<Rightarrow> o"    (infixl \<open>|-\<close> 50)
   where "H |- p \<equiv> p \<in> thms(H)"
 
 inductive
   domains "thms(H)" \<subseteq> "propn"
   intros
     H:  "\<lbrakk>p \<in> H;  p \<in> propn\<rbrakk> \<Longrightarrow> H |- p"
-    K:  "\<lbrakk>p \<in> propn;  q \<in> propn\<rbrakk> \<Longrightarrow> H |- p=>q=>p"
+    K:  "\<lbrakk>p \<in> propn;  q \<in> propn\<rbrakk> \<Longrightarrow> H |- p\<Rightarrow>q\<Rightarrow>p"
     S:  "\<lbrakk>p \<in> propn;  q \<in> propn;  r \<in> propn\<rbrakk>
-         \<Longrightarrow> H |- (p=>q=>r) => (p=>q) => p=>r"
-    DN: "p \<in> propn \<Longrightarrow> H |- ((p=>Fls) => Fls) => p"
-    MP: "\<lbrakk>H |- p=>q;  H |- p;  p \<in> propn;  q \<in> propn\<rbrakk> \<Longrightarrow> H |- q"
+         \<Longrightarrow> H |- (p\<Rightarrow>q\<Rightarrow>r) \<Rightarrow> (p\<Rightarrow>q) \<Rightarrow> p\<Rightarrow>r"
+    DN: "p \<in> propn \<Longrightarrow> H |- ((p\<Rightarrow>Fls) \<Rightarrow> Fls) \<Rightarrow> p"
+    MP: "\<lbrakk>H |- p\<Rightarrow>q;  H |- p;  p \<in> propn;  q \<in> propn\<rbrakk> \<Longrightarrow> H |- q"
   type_intros "propn.intros"
 
 declare propn.intros [simp]
@@ -57,14 +57,14 @@ subsection \<open>The semantics\<close>
 subsubsection \<open>Semantics of propositional logic.\<close>
 
 consts
-  is_true_fun :: "[i,i] => i"
+  is_true_fun :: "[i,i] \<Rightarrow> i"
 primrec
   "is_true_fun(Fls, t) = 0"
   "is_true_fun(Var(v), t) = (if v \<in> t then 1 else 0)"
-  "is_true_fun(p=>q, t) = (if is_true_fun(p,t) = 1 then is_true_fun(q,t) else 1)"
+  "is_true_fun(p\<Rightarrow>q, t) = (if is_true_fun(p,t) = 1 then is_true_fun(q,t) else 1)"
 
 definition
-  is_true :: "[i,i] => o"  where
+  is_true :: "[i,i] \<Rightarrow> o"  where
   "is_true(p,t) \<equiv> is_true_fun(p,t) = 1"
   \<comment> \<open>this definition is required since predicates can't be recursive\<close>
 
@@ -74,7 +74,7 @@ lemma is_true_Fls [simp]: "is_true(Fls,t) \<longleftrightarrow> False"
 lemma is_true_Var [simp]: "is_true(#v,t) \<longleftrightarrow> v \<in> t"
   by (simp add: is_true_def)
 
-lemma is_true_Imp [simp]: "is_true(p=>q,t) \<longleftrightarrow> (is_true(p,t)\<longrightarrow>is_true(q,t))"
+lemma is_true_Imp [simp]: "is_true(p\<Rightarrow>q,t) \<longleftrightarrow> (is_true(p,t)\<longrightarrow>is_true(q,t))"
   by (simp add: is_true_def)
 
 
@@ -86,7 +86,7 @@ text \<open>
 \<close>
 
 definition
-  logcon :: "[i,i] => o"    (infixl \<open>|=\<close> 50)  where
+  logcon :: "[i,i] \<Rightarrow> o"    (infixl \<open>|=\<close> 50)  where
   "H |= p \<equiv> \<forall>t. (\<forall>q \<in> H. is_true(q,t)) \<longrightarrow> is_true(p,t)"
 
 
@@ -96,11 +96,11 @@ text \<open>
 \<close>
 
 consts
-  hyps :: "[i,i] => i"
+  hyps :: "[i,i] \<Rightarrow> i"
 primrec
   "hyps(Fls, t) = 0"
-  "hyps(Var(v), t) = (if v \<in> t then {#v} else {#v=>Fls})"
-  "hyps(p=>q, t) = hyps(p,t) \<union> hyps(q,t)"
+  "hyps(Var(v), t) = (if v \<in> t then {#v} else {#v\<Rightarrow>Fls})"
+  "hyps(p\<Rightarrow>q, t) = hyps(p,t) \<union> hyps(q,t)"
 
 
 
@@ -115,15 +115,15 @@ lemma thms_mono: "G \<subseteq> H \<Longrightarrow> thms(G) \<subseteq> thms(H)"
 
 lemmas thms_in_pl = thms.dom_subset [THEN subsetD]
 
-inductive_cases ImpE: "p=>q \<in> propn"
+inductive_cases ImpE: "p\<Rightarrow>q \<in> propn"
 
-lemma thms_MP: "\<lbrakk>H |- p=>q;  H |- p\<rbrakk> \<Longrightarrow> H |- q"
+lemma thms_MP: "\<lbrakk>H |- p\<Rightarrow>q;  H |- p\<rbrakk> \<Longrightarrow> H |- q"
   \<comment> \<open>Stronger Modus Ponens rule: no typechecking!\<close>
   apply (rule thms.MP)
      apply (erule asm_rl thms_in_pl thms_in_pl [THEN ImpE])+
   done
 
-lemma thms_I: "p \<in> propn \<Longrightarrow> H |- p=>p"
+lemma thms_I: "p \<in> propn \<Longrightarrow> H |- p\<Rightarrow>p"
   \<comment> \<open>Rule is called \<open>I\<close> for Identity Combinator, not for Introduction.\<close>
   apply (rule thms.S [THEN thms_MP, THEN thms_MP])
       apply (rule_tac [5] thms.K)
@@ -144,13 +144,13 @@ lemma weaken_left_cons: "H |- p \<Longrightarrow> cons(a,H) |- p"
 lemmas weaken_left_Un1  = Un_upper1 [THEN weaken_left]
 lemmas weaken_left_Un2  = Un_upper2 [THEN weaken_left]
 
-lemma weaken_right: "\<lbrakk>H |- q;  p \<in> propn\<rbrakk> \<Longrightarrow> H |- p=>q"
+lemma weaken_right: "\<lbrakk>H |- q;  p \<in> propn\<rbrakk> \<Longrightarrow> H |- p\<Rightarrow>q"
   by (simp_all add: thms.K [THEN thms_MP] thms_in_pl)
 
 
 subsubsection \<open>The deduction theorem\<close>
 
-theorem deduction: "\<lbrakk>cons(p,H) |- q;  p \<in> propn\<rbrakk> \<Longrightarrow>  H |- p=>q"
+theorem deduction: "\<lbrakk>cons(p,H) |- q;  p \<in> propn\<rbrakk> \<Longrightarrow>  H |- p\<Rightarrow>q"
   apply (erule thms.induct)
       apply (blast intro: thms_I thms.H [THEN weaken_right])
      apply (blast intro: thms.K [THEN weaken_right])
@@ -173,7 +173,7 @@ lemma thms_FlsE: "\<lbrakk>H |- Fls; p \<in> propn\<rbrakk> \<Longrightarrow> H 
     apply (simp_all add: propn.intros)
   done
 
-lemma thms_notE: "\<lbrakk>H |- p=>Fls;  H |- p;  q \<in> propn\<rbrakk> \<Longrightarrow> H |- q"
+lemma thms_notE: "\<lbrakk>H |- p\<Rightarrow>Fls;  H |- p;  q \<in> propn\<rbrakk> \<Longrightarrow> H |- q"
   by (erule thms_MP [THEN thms_FlsE])
 
 
@@ -190,16 +190,16 @@ subsection \<open>Completeness\<close>
 
 subsubsection \<open>Towards the completeness proof\<close>
 
-lemma Fls_Imp: "\<lbrakk>H |- p=>Fls; q \<in> propn\<rbrakk> \<Longrightarrow> H |- p=>q"
+lemma Fls_Imp: "\<lbrakk>H |- p\<Rightarrow>Fls; q \<in> propn\<rbrakk> \<Longrightarrow> H |- p\<Rightarrow>q"
   apply (frule thms_in_pl)
   apply (rule deduction)
    apply (rule weaken_left_cons [THEN thms_notE])
      apply (blast intro: thms.H elim: ImpE)+
   done
 
-lemma Imp_Fls: "\<lbrakk>H |- p;  H |- q=>Fls\<rbrakk> \<Longrightarrow> H |- (p=>q)=>Fls"
+lemma Imp_Fls: "\<lbrakk>H |- p;  H |- q\<Rightarrow>Fls\<rbrakk> \<Longrightarrow> H |- (p\<Rightarrow>q)\<Rightarrow>Fls"
   apply (frule thms_in_pl)
-  apply (frule thms_in_pl [of concl: "q=>Fls"])
+  apply (frule thms_in_pl [of concl: "q\<Rightarrow>Fls"])
   apply (rule deduction)
    apply (erule weaken_left_cons [THEN thms_MP])
    apply (rule consI1 [THEN thms.H, THEN thms_MP])
@@ -207,7 +207,7 @@ lemma Imp_Fls: "\<lbrakk>H |- p;  H |- q=>Fls\<rbrakk> \<Longrightarrow> H |- (p
   done
 
 lemma hyps_thms_if:
-    "p \<in> propn \<Longrightarrow> hyps(p,t) |- (if is_true(p,t) then p else p=>Fls)"
+    "p \<in> propn \<Longrightarrow> hyps(p,t) |- (if is_true(p,t) then p else p\<Rightarrow>Fls)"
   \<comment> \<open>Typical example of strengthening the induction statement.\<close>
   apply simp
   apply (induct_tac p)
@@ -234,14 +234,14 @@ text \<open>
 \<close>
 
 lemma thms_excluded_middle:
-    "\<lbrakk>p \<in> propn;  q \<in> propn\<rbrakk> \<Longrightarrow> H |- (p=>q) => ((p=>Fls)=>q) => q"
+    "\<lbrakk>p \<in> propn;  q \<in> propn\<rbrakk> \<Longrightarrow> H |- (p\<Rightarrow>q) \<Rightarrow> ((p\<Rightarrow>Fls)\<Rightarrow>q) \<Rightarrow> q"
   apply (rule deduction [THEN deduction])
     apply (rule thms.DN [THEN thms_MP])
      apply (best intro!: propn_SIs intro: propn_Is)+
   done
 
 lemma thms_excluded_middle_rule:
-  "\<lbrakk>cons(p,H) |- q;  cons(p=>Fls,H) |- q;  p \<in> propn\<rbrakk> \<Longrightarrow> H |- q"
+  "\<lbrakk>cons(p,H) |- q;  cons(p\<Rightarrow>Fls,H) |- q;  p \<in> propn\<rbrakk> \<Longrightarrow> H |- q"
   \<comment> \<open>Hard to prove directly because it requires cuts\<close>
   apply (rule thms_excluded_middle [THEN thms_MP, THEN thms_MP])
      apply (blast intro!: propn_SIs intro: propn_Is)+
@@ -255,16 +255,16 @@ text \<open>
 \<close>
 
 lemma hyps_Diff:
-    "p \<in> propn \<Longrightarrow> hyps(p, t-{v}) \<subseteq> cons(#v=>Fls, hyps(p,t)-{#v})"
+    "p \<in> propn \<Longrightarrow> hyps(p, t-{v}) \<subseteq> cons(#v\<Rightarrow>Fls, hyps(p,t)-{#v})"
   by (induct set: propn) auto
 
 text \<open>
-  For the case \<^prop>\<open>hyps(p,t)-cons(#v => Fls,Y) |- p\<close> we also have
-  \<^prop>\<open>hyps(p,t)-{#v=>Fls} \<subseteq> hyps(p, cons(v,t))\<close>.
+  For the case \<^prop>\<open>hyps(p,t)-cons(#v \<Rightarrow> Fls,Y) |- p\<close> we also have
+  \<^prop>\<open>hyps(p,t)-{#v\<Rightarrow>Fls} \<subseteq> hyps(p, cons(v,t))\<close>.
 \<close>
 
 lemma hyps_cons:
-    "p \<in> propn \<Longrightarrow> hyps(p, cons(v,t)) \<subseteq> cons(#v, hyps(p,t)-{#v=>Fls})"
+    "p \<in> propn \<Longrightarrow> hyps(p, cons(v,t)) \<subseteq> cons(#v, hyps(p,t)-{#v\<Rightarrow>Fls})"
   by (induct set: propn) auto
 
 text \<open>Two lemmas for use with \<open>weaken_left\<close>\<close>
@@ -277,11 +277,11 @@ lemma cons_Diff_subset2: "cons(a, B-{c}) - D \<subseteq> cons(a, B-cons(c,D))"
 
 text \<open>
   The set \<^term>\<open>hyps(p,t)\<close> is finite, and elements have the form
-  \<^term>\<open>#v\<close> or \<^term>\<open>#v=>Fls\<close>; could probably prove the stronger
+  \<^term>\<open>#v\<close> or \<^term>\<open>#v\<Rightarrow>Fls\<close>; could probably prove the stronger
   \<^prop>\<open>hyps(p,t) \<in> Fin(hyps(p,0) \<union> hyps(p,nat))\<close>.
 \<close>
 
-lemma hyps_finite: "p \<in> propn \<Longrightarrow> hyps(p,t) \<in> Fin(\<Union>v \<in> nat. {#v, #v=>Fls})"
+lemma hyps_finite: "p \<in> propn \<Longrightarrow> hyps(p,t) \<in> Fin(\<Union>v \<in> nat. {#v, #v\<Rightarrow>Fls})"
   by (induct set: propn) auto
 
 lemmas Diff_weaken_left = Diff_mono [OF _ subset_refl, THEN weaken_left]
@@ -304,7 +304,7 @@ lemma completeness_0_lemma [rule_format]:
     apply (blast intro: cons_Diff_same [THEN weaken_left])
    apply (blast intro: cons_Diff_subset2 [THEN weaken_left]
      hyps_Diff [THEN Diff_weaken_left])
-  txt \<open>Case \<^prop>\<open>hyps(p,t)-cons(#v => Fls,Y) |- p\<close>\<close>
+  txt \<open>Case \<^prop>\<open>hyps(p,t)-cons(#v \<Rightarrow> Fls,Y) |- p\<close>\<close>
   apply (rule thms_excluded_middle_rule)
     apply (erule_tac [3] propn.intros)
    apply (blast intro: cons_Diff_subset2 [THEN weaken_left]
@@ -321,7 +321,7 @@ lemma completeness_0: "\<lbrakk>p \<in> propn;  0 |= p\<rbrakk> \<Longrightarrow
   apply (blast intro: completeness_0_lemma)
   done
 
-lemma logcon_Imp: "\<lbrakk>cons(p,H) |= q\<rbrakk> \<Longrightarrow> H |= p=>q"
+lemma logcon_Imp: "\<lbrakk>cons(p,H) |= q\<rbrakk> \<Longrightarrow> H |= p\<Rightarrow>q"
   \<comment> \<open>A semantic analogue of the Deduction Theorem\<close>
   by (simp add: logcon_def)
 

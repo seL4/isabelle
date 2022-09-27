@@ -86,7 +86,7 @@ done
 (* ********************************************************************** *)
 
 lemma AC1_AC8_lemma1: 
-        "\<forall>B \<in> A. \<exists>B1 B2. B=<B1,B2> \<and> B1 \<approx> B2   
+        "\<forall>B \<in> A. \<exists>B1 B2. B=\<langle>B1,B2\<rangle> \<and> B1 \<approx> B2   
         \<Longrightarrow> 0 \<notin> { bij(fst(B),snd(B)). B \<in> A }"
 apply (unfold eqpoll_def, auto)
 done
@@ -110,7 +110,7 @@ done
 
 lemma AC8_AC9_lemma:
      "\<forall>B1 \<in> A. \<forall>B2 \<in> A. B1 \<approx> B2 
-      \<Longrightarrow> \<forall>B \<in> A*A. \<exists>B1 B2. B=<B1,B2> \<and> B1 \<approx> B2"
+      \<Longrightarrow> \<forall>B \<in> A*A. \<exists>B1 B2. B=\<langle>B1,B2\<rangle> \<and> B1 \<approx> B2"
 by fast
 
 lemma AC8_AC9: "AC8 \<Longrightarrow> AC9"
@@ -151,7 +151,7 @@ by (blast intro!: nat_lepoll_lemma Sigma_fun_space_eqpoll
 lemma AC9_AC1_lemma2:
      "\<forall>B1 \<in> {(F*B)*N. B \<in> A} \<union> {cons(0,(F*B)*N). B \<in> A}.   
       \<forall>B2 \<in> {(F*B)*N. B \<in> A} \<union> {cons(0,(F*B)*N). B \<in> A}.   
-        f`<B1,B2> \<in> bij(B1, B2)   
+        f`\<langle>B1,B2\<rangle> \<in> bij(B1, B2)   
       \<Longrightarrow> (\<lambda>B \<in> A. snd(fst((f`<cons(0,(F*B)*N),(F*B)*N>)`0))) \<in> (\<Prod>X \<in> A. X)"
 apply (intro lam_type snd_type fst_type)
 apply (rule apply_type [OF _ consI1]) 

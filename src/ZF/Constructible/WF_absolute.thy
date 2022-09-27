@@ -9,10 +9,10 @@ theory WF_absolute imports WFrec begin
 subsection\<open>Transitive closure without fixedpoints\<close>
 
 definition
-  rtrancl_alt :: "[i,i]=>i" where
+  rtrancl_alt :: "[i,i]\<Rightarrow>i" where
     "rtrancl_alt(A,r) \<equiv>
        {p \<in> A*A. \<exists>n\<in>nat. \<exists>f \<in> succ(n) -> A.
-                 (\<exists>x y. p = <x,y> \<and>  f`0 = x \<and> f`n = y) \<and>
+                 (\<exists>x y. p = \<langle>x,y\<rangle> \<and>  f`0 = x \<and> f`n = y) \<and>
                        (\<forall>i\<in>n. <f`i, f`succ(i)> \<in> r)}"
 
 lemma alt_rtrancl_lemma1 [rule_format]:
@@ -59,7 +59,7 @@ by (blast del: subsetI
 
 
 definition
-  rtran_closure_mem :: "[i=>o,i,i,i] => o" where
+  rtran_closure_mem :: "[i\<Rightarrow>o,i,i,i] \<Rightarrow> o" where
     \<comment> \<open>The property of belonging to \<open>rtran_closure(r)\<close>\<close>
     "rtran_closure_mem(M,A,r,p) \<equiv>
               \<exists>nnat[M]. \<exists>n[M]. \<exists>n'[M]. 
@@ -73,13 +73,13 @@ definition
                       fun_apply(M,f,sj,fsj) \<and> pair(M,fj,fsj,ffp) \<and> ffp \<in> r)))"
 
 definition
-  rtran_closure :: "[i=>o,i,i] => o" where
+  rtran_closure :: "[i\<Rightarrow>o,i,i] \<Rightarrow> o" where
     "rtran_closure(M,r,s) \<equiv> 
         \<forall>A[M]. is_field(M,r,A) \<longrightarrow>
          (\<forall>p[M]. p \<in> s \<longleftrightarrow> rtran_closure_mem(M,A,r,p))"
 
 definition
-  tran_closure :: "[i=>o,i,i] => o" where
+  tran_closure :: "[i\<Rightarrow>o,i,i] \<Rightarrow> o" where
     "tran_closure(M,r,t) \<equiv>
          \<exists>s[M]. rtran_closure(M,r,s) \<and> composition(M,r,s,t)"
     
@@ -98,7 +98,7 @@ lemma (in M_trancl) rtran_closure_mem_iff:
       \<Longrightarrow> rtran_closure_mem(M,A,r,p) \<longleftrightarrow>
           (\<exists>n[M]. n\<in>nat \<and> 
            (\<exists>f[M]. f \<in> succ(n) -> A \<and>
-            (\<exists>x[M]. \<exists>y[M]. p = <x,y> \<and> f`0 = x \<and> f`n = y) \<and>
+            (\<exists>x[M]. \<exists>y[M]. p = \<langle>x,y\<rangle> \<and> f`0 = x \<and> f`n = y) \<and>
                            (\<forall>i\<in>n. <f`i, f`succ(i)> \<in> r)))"
   apply (simp add: rtran_closure_mem_def Ord_succ_mem_iff nat_0_le [THEN ltD]) 
 done
@@ -137,7 +137,7 @@ lemma (in M_trancl) trancl_abs [simp]:
 by (simp add: tran_closure_def trancl_def)
 
 lemma (in M_trancl) wellfounded_trancl_separation':
-     "\<lbrakk>M(r); M(Z)\<rbrakk> \<Longrightarrow> separation (M, \<lambda>x. \<exists>w[M]. w \<in> Z \<and> <w,x> \<in> r^+)"
+     "\<lbrakk>M(r); M(Z)\<rbrakk> \<Longrightarrow> separation (M, \<lambda>x. \<exists>w[M]. w \<in> Z \<and> \<langle>w,x\<rangle> \<in> r^+)"
 by (insert wellfounded_trancl_separation [of r Z], simp) 
 
 text\<open>Alternative proof of \<open>wf_on_trancl\<close>; inspiration for the

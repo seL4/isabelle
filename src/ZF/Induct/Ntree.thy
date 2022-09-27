@@ -13,9 +13,9 @@ text \<open>
 \<close>
 
 consts
-  ntree :: "i => i"
-  maptree :: "i => i"
-  maptree2 :: "[i, i] => i"
+  ntree :: "i \<Rightarrow> i"
+  maptree :: "i \<Rightarrow> i"
+  maptree2 :: "[i, i] \<Rightarrow> i"
 
 datatype "ntree(A)" = Branch ("a \<in> A", "h \<in> (\<Union>n \<in> nat. n -> ntree(A))")
   monos UN_mono [OF subset_refl Pi_mono]  \<comment> \<open>MUST have this form\<close>
@@ -31,12 +31,12 @@ datatype "maptree2(A, B)" = Sons2 ("a \<in> A", "h \<in> B -||> maptree2(A, B)")
   type_intros FiniteFun_in_univ'
 
 definition
-  ntree_rec :: "[[i, i, i] => i, i] => i"  where
+  ntree_rec :: "[[i, i, i] \<Rightarrow> i, i] \<Rightarrow> i"  where
   "ntree_rec(b) \<equiv>
     Vrecursor(\<lambda>pr. ntree_case(\<lambda>x h. b(x, h, \<lambda>i \<in> domain(h). pr`(h`i))))"
 
 definition
-  ntree_copy :: "i => i"  where
+  ntree_copy :: "i \<Rightarrow> i"  where
   "ntree_copy(z) \<equiv> ntree_rec(\<lambda>x h r. Branch(x,r), z)"
 
 

@@ -9,7 +9,7 @@ imports AC_Equiv
 begin
 
 definition
-  Hartog :: "i => i"  where
+  Hartog :: "i \<Rightarrow> i"  where
    "Hartog(X) \<equiv> \<mu> i. \<not> i \<lesssim> X"
 
 lemma Ords_in_set: "\<forall>a. Ord(a) \<longrightarrow> a \<in> X \<Longrightarrow> P"
@@ -45,7 +45,7 @@ done
 lemma Ords_lepoll_set_lemma:
      "(\<forall>a. Ord(a) \<longrightarrow> a \<lesssim> X) \<Longrightarrow>   
        \<forall>a. Ord(a) \<longrightarrow>   
-        a \<in> {b. Z \<in> Pow(X)*Pow(X*X), \<exists>Y R. Z=<Y,R> \<and> ordertype(Y,R)=b}"
+        a \<in> {b. Z \<in> Pow(X)*Pow(X*X), \<exists>Y R. Z=\<langle>Y,R\<rangle> \<and> ordertype(Y,R)=b}"
 apply (intro allI impI)
 apply (elim allE impE, assumption)
 apply (blast dest!: Ord_lepoll_imp_eq_ordertype intro: sym) 

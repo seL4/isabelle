@@ -17,8 +17,8 @@ datatype var = Var("i \<in> list(nat)")
   type_intros  nat_subset_univ [THEN list_subset_univ, THEN subsetD]
 
 consts
-  type_of :: "i=>i"
-  default_val :: "i=>i"
+  type_of :: "i\<Rightarrow>i"
+  default_val :: "i\<Rightarrow>i"
 
 definition
   "state \<equiv> \<Prod>x \<in> var. cons(default_val(x), type_of(x))"
@@ -27,13 +27,13 @@ definition
   "st0 \<equiv> \<lambda>x \<in> var. default_val(x)"
   
 definition
-  st_set  :: "i=>o"  where
+  st_set  :: "i\<Rightarrow>o"  where
 (* To prevent typing conditions like `A<=state' from
    being used in combination with the rules `constrains_weaken', etc. *)
   "st_set(A) \<equiv> A<=state"
 
 definition
-  st_compl :: "i=>i"  where
+  st_compl :: "i\<Rightarrow>i"  where
   "st_compl(A) \<equiv> state-A"
 
 

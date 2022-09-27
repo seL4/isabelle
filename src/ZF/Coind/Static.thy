@@ -9,13 +9,13 @@ theory Static imports Values Types begin
      parameter of the proof.  A concrete version could be defined inductively.
 ***)
 
-axiomatization isof :: "[i,i] => o"
+axiomatization isof :: "[i,i] \<Rightarrow> o"
   where isof_app: "\<lbrakk>isof(c1,t_fun(t1,t2)); isof(c2,t1)\<rbrakk> \<Longrightarrow> isof(c_app(c1,c2),t2)"
 
 (*Its extension to environments*)
 
 definition
-  isofenv :: "[i,i] => o"  where
+  isofenv :: "[i,i] \<Rightarrow> o"  where
    "isofenv(ve,te) \<equiv>                
       ve_dom(ve) = te_dom(te) \<and>            
       (\<forall>x \<in> ve_dom(ve).                          

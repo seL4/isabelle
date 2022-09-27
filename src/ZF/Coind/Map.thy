@@ -8,11 +8,11 @@ Some sample proofs of inclusions for the final coalgebra "U" (by lcp).
 theory Map imports ZF begin
 
 definition
-  TMap :: "[i,i] => i"  where
+  TMap :: "[i,i] \<Rightarrow> i"  where
    "TMap(A,B) \<equiv> {m \<in> Pow(A*\<Union>(B)).\<forall>a \<in> A. m``{a} \<in> B}"
 
 definition
-  PMap :: "[i,i] => i"  where
+  PMap :: "[i,i] \<Rightarrow> i"  where
    "PMap(A,B) \<equiv> TMap(A,cons(0,B))"
 
 (* Note: 0 \<in> B \<Longrightarrow> TMap(A,B) = PMap(A,B) *)
@@ -22,11 +22,11 @@ definition
    "map_emp \<equiv> 0"
 
 definition
-  map_owr :: "[i,i,i]=>i"  where
+  map_owr :: "[i,i,i]\<Rightarrow>i"  where
    "map_owr(m,a,b) \<equiv> \<Sum>x \<in> {a} \<union> domain(m). if x=a then b else m``{x}"
 
 definition
-  map_app :: "[i,i]=>i"  where
+  map_app :: "[i,i]\<Rightarrow>i"  where
    "map_app(m,a) \<equiv> m``{a}"
   
 lemma "{0,1} \<subseteq> {1} \<union> TMap(I, {0,1})"

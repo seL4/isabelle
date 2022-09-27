@@ -8,7 +8,7 @@ theory Substitution imports Redex begin
     in the recursive calls ***)
 
 consts
-  lift_aux      :: "i=>i"
+  lift_aux      :: "i\<Rightarrow>i"
 primrec
   "lift_aux(Var(i)) = (\<lambda>k \<in> nat. if i<k then Var(i) else Var(succ(i)))"
 
@@ -17,16 +17,16 @@ primrec
   "lift_aux(App(b,f,a)) = (\<lambda>k \<in> nat. App(b, lift_aux(f)`k, lift_aux(a)`k))"
 
 definition
-  lift_rec      :: "[i,i]=> i"  where
+  lift_rec      :: "[i,i]\<Rightarrow> i"  where
     "lift_rec(r,k) \<equiv> lift_aux(r)`k"
 
 abbreviation
-  lift :: "i=>i" where
+  lift :: "i\<Rightarrow>i" where
   "lift(r) \<equiv> lift_rec(r,0)"
 
 
 consts
-  subst_aux     :: "i=>i"
+  subst_aux     :: "i\<Rightarrow>i"
 primrec
   "subst_aux(Var(i)) =
      (\<lambda>r \<in> redexes. \<lambda>k \<in> nat. if k<i then Var(i #- 1)
@@ -38,11 +38,11 @@ primrec
      (\<lambda>r \<in> redexes. \<lambda>k \<in> nat. App(b, subst_aux(f)`r`k, subst_aux(a)`r`k))"
 
 definition
-  subst_rec     :: "[i,i,i]=> i"        (**NOTE THE ARGUMENT ORDER BELOW**)  where
+  subst_rec     :: "[i,i,i]\<Rightarrow> i"        (**NOTE THE ARGUMENT ORDER BELOW**)  where
     "subst_rec(u,r,k) \<equiv> subst_aux(r)`u`k"
 
 abbreviation
-  subst :: "[i,i]=>i"  (infixl \<open>'/\<close> 70)  where
+  subst :: "[i,i]\<Rightarrow>i"  (infixl \<open>'/\<close> 70)  where
   "u/v \<equiv> subst_rec(u,v,0)"
 
 

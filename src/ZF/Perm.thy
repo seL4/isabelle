@@ -14,28 +14,28 @@ theory Perm imports func begin
 
 definition
   (*composition of relations and functions; NOT Suppes's relative product*)
-  comp     :: "[i,i]=>i"      (infixr \<open>O\<close> 60)  where
+  comp     :: "[i,i]\<Rightarrow>i"      (infixr \<open>O\<close> 60)  where
     "r O s \<equiv> {xz \<in> domain(s)*range(r) .
-               \<exists>x y z. xz=<x,z> \<and> <x,y>:s \<and> <y,z>:r}"
+               \<exists>x y z. xz=\<langle>x,z\<rangle> \<and> \<langle>x,y\<rangle>:s \<and> \<langle>y,z\<rangle>:r}"
 
 definition
   (*the identity function for A*)
-  id    :: "i=>i"  where
+  id    :: "i\<Rightarrow>i"  where
     "id(A) \<equiv> (\<lambda>x\<in>A. x)"
 
 definition
   (*one-to-one functions from A to B*)
-  inj   :: "[i,i]=>i"  where
+  inj   :: "[i,i]\<Rightarrow>i"  where
     "inj(A,B) \<equiv> { f \<in> A->B. \<forall>w\<in>A. \<forall>x\<in>A. f`w=f`x \<longrightarrow> w=x}"
 
 definition
   (*onto functions from A to B*)
-  surj  :: "[i,i]=>i"  where
+  surj  :: "[i,i]\<Rightarrow>i"  where
     "surj(A,B) \<equiv> { f \<in> A->B . \<forall>y\<in>B. \<exists>x\<in>A. f`x=y}"
 
 definition
   (*one-to-one and onto functions*)
-  bij   :: "[i,i]=>i"  where
+  bij   :: "[i,i]\<Rightarrow>i"  where
     "bij(A,B) \<equiv> inj(A,B) \<inter> surj(A,B)"
 
 
@@ -89,7 +89,7 @@ done
 
 text\<open>Good for dealing with sets of pairs, but a bit ugly in use [used in AC]\<close>
 lemma inj_equality:
-    "\<lbrakk><a,b>:f;  <c,b>:f;  f \<in> inj(A,B)\<rbrakk> \<Longrightarrow> a=c"
+    "\<lbrakk>\<langle>a,b\<rangle>:f;  \<langle>c,b\<rangle>:f;  f \<in> inj(A,B)\<rbrakk> \<Longrightarrow> a=c"
 apply (unfold inj_def)
 apply (blast dest: Pair_mem_PiD)
 done
@@ -146,12 +146,12 @@ done
 
 subsection\<open>Identity Function\<close>
 
-lemma idI [intro!]: "a \<in> A \<Longrightarrow> <a,a> \<in> id(A)"
+lemma idI [intro!]: "a \<in> A \<Longrightarrow> \<langle>a,a\<rangle> \<in> id(A)"
 apply (unfold id_def)
 apply (erule lamI)
 done
 
-lemma idE [elim!]: "\<lbrakk>p \<in> id(A);  \<And>x.\<lbrakk>x \<in> A; p=<x,x>\<rbrakk> \<Longrightarrow> P\<rbrakk> \<Longrightarrow>  P"
+lemma idE [elim!]: "\<lbrakk>p \<in> id(A);  \<And>x.\<lbrakk>x \<in> A; p=\<langle>x,x\<rangle>\<rbrakk> \<Longrightarrow> P\<rbrakk> \<Longrightarrow>  P"
 by (simp add: id_def lam_def, blast)
 
 lemma id_type: "id(A) \<in> A->A"
@@ -192,7 +192,7 @@ apply (force intro!: lam_type dest: apply_type)
 done
 
 text\<open>\<^term>\<open>id\<close> as the identity relation\<close>
-lemma id_iff [simp]: "<x,y> \<in> id(A) \<longleftrightarrow> x=y \<and> y \<in> A"
+lemma id_iff [simp]: "\<langle>x,y\<rangle> \<in> id(A) \<longleftrightarrow> x=y \<and> y \<in> A"
 by auto
 
 
@@ -261,18 +261,18 @@ subsection\<open>Composition of Two Relations\<close>
 
 text\<open>The inductive definition package could derive these theorems for \<^term>\<open>r O s\<close>\<close>
 
-lemma compI [intro]: "\<lbrakk><a,b>:s; <b,c>:r\<rbrakk> \<Longrightarrow> <a,c> \<in> r O s"
+lemma compI [intro]: "\<lbrakk>\<langle>a,b\<rangle>:s; \<langle>b,c\<rangle>:r\<rbrakk> \<Longrightarrow> \<langle>a,c\<rangle> \<in> r O s"
 by (unfold comp_def, blast)
 
 lemma compE [elim!]:
     "\<lbrakk>xz \<in> r O s;
-        \<And>x y z. \<lbrakk>xz=<x,z>;  <x,y>:s;  <y,z>:r\<rbrakk> \<Longrightarrow> P\<rbrakk>
+        \<And>x y z. \<lbrakk>xz=\<langle>x,z\<rangle>;  \<langle>x,y\<rangle>:s;  \<langle>y,z\<rangle>:r\<rbrakk> \<Longrightarrow> P\<rbrakk>
      \<Longrightarrow> P"
 by (unfold comp_def, blast)
 
 lemma compEpair:
-    "\<lbrakk><a,c> \<in> r O s;
-        \<And>y. \<lbrakk><a,y>:s;  <y,c>:r\<rbrakk> \<Longrightarrow> P\<rbrakk>
+    "\<lbrakk>\<langle>a,c\<rangle> \<in> r O s;
+        \<And>y. \<lbrakk>\<langle>a,y\<rangle>:s;  \<langle>y,c\<rangle>:r\<rbrakk> \<Longrightarrow> P\<rbrakk>
      \<Longrightarrow> P"
 by (erule compE, simp)
 
@@ -366,7 +366,7 @@ lemma comp_inj:
      "\<lbrakk>g \<in> inj(A,B);  f \<in> inj(B,C)\<rbrakk> \<Longrightarrow> (f O g) \<in> inj(A,C)"
 apply (frule inj_is_fun [of g])
 apply (frule inj_is_fun [of f])
-apply (rule_tac d = "%y. converse (g) ` (converse (f) ` y)" in f_imp_injective)
+apply (rule_tac d = "\<lambda>y. converse (g) ` (converse (f) ` y)" in f_imp_injective)
  apply (blast intro: comp_fun, simp)
 done
 
@@ -443,7 +443,7 @@ subsubsection\<open>Proving that a Function is a Bijection\<close>
 lemma comp_eq_id_iff:
     "\<lbrakk>f \<in> A->B;  g \<in> B->A\<rbrakk> \<Longrightarrow> f O g = id(B) \<longleftrightarrow> (\<forall>y\<in>B. f`(g`y)=y)"
 apply (unfold id_def, safe)
- apply (drule_tac t = "%h. h`y " in subst_context)
+ apply (drule_tac t = "\<lambda>h. h`y " in subst_context)
  apply simp
 apply (rule fun_extension)
   apply (blast intro: comp_fun lam_type)
@@ -473,7 +473,7 @@ text\<open>Theorem by KG, proof by LCP\<close>
 lemma inj_disjoint_Un:
      "\<lbrakk>f \<in> inj(A,B);  g \<in> inj(C,D);  B \<inter> D = 0\<rbrakk>
       \<Longrightarrow> (\<lambda>a\<in>A \<union> C. if a \<in> A then f`a else g`a) \<in> inj(A \<union> C, B \<union> D)"
-apply (rule_tac d = "%z. if z \<in> B then converse (f) `z else converse (g) `z"
+apply (rule_tac d = "\<lambda>z. if z \<in> B then converse (f) `z else converse (g) `z"
        in lam_injective)
 apply (auto simp add: inj_is_fun [THEN apply_type])
 done
@@ -546,7 +546,7 @@ done
 
 lemma inj_extend:
     "\<lbrakk>f \<in> inj(A,B);  a\<notin>A;  b\<notin>B\<rbrakk>
-     \<Longrightarrow> cons(<a,b>,f) \<in> inj(cons(a,A), cons(b,B))"
+     \<Longrightarrow> cons(\<langle>a,b\<rangle>,f) \<in> inj(cons(a,A), cons(b,B))"
 apply (unfold inj_def)
 apply (force intro: apply_type  simp add: fun_extend)
 done

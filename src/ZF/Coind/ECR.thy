@@ -26,7 +26,7 @@ coinductive
 (* Pointwise extension to environments *)
  
 definition
-  hastyenv :: "[i,i] => o"  where
+  hastyenv :: "[i,i] \<Rightarrow> o"  where
     "hastyenv(ve,te) \<equiv>                        
          ve_dom(ve) = te_dom(te) \<and>          
          (\<forall>x \<in> ve_dom(ve). <ve_app(ve,x),te_app(te,x)> \<in> HasTyRel)"
@@ -55,7 +55,7 @@ lemmas HasTyRel_non_zero =
        HasTyRel.dom_subset [THEN subsetD, THEN SigmaD1, THEN ValNEE]
 
 lemma hastyenv_owr: 
-  "\<lbrakk>ve \<in> ValEnv; te \<in> TyEnv; hastyenv(ve,te); <v,t> \<in> HasTyRel\<rbrakk> 
+  "\<lbrakk>ve \<in> ValEnv; te \<in> TyEnv; hastyenv(ve,te); \<langle>v,t\<rangle> \<in> HasTyRel\<rbrakk> 
    \<Longrightarrow> hastyenv(ve_owr(ve,x,v),te_owr(te,x,t))"
 by (auto simp add: hastyenv_def ve_app_owr HasTyRel_non_zero)
 
@@ -97,7 +97,7 @@ lemma consistency_fix:
   "\<lbrakk>ve \<in> ValEnv; x \<in> ExVar; e \<in> Exp; f \<in> ExVar; cl \<in> Val;                
       v_clos(x,e,ve_owr(ve,f,cl)) = cl;                           
       hastyenv(ve,te); <te,e_fix(f,x,e),t> \<in> ElabRel\<rbrakk> \<Longrightarrow>        
-   <cl,t> \<in> HasTyRel"
+   \<langle>cl,t\<rangle> \<in> HasTyRel"
 apply (unfold hastyenv_def)
 apply (erule elab_fixE, safe)
 apply hypsubst_thin
@@ -130,12 +130,12 @@ lemma consistency_app2:
      \<forall>t te. hastyenv(ve,te) \<longrightarrow>                     
             <te,e1,t> \<in> ElabRel \<longrightarrow> <v_clos(xm,em,vem),t> \<in> HasTyRel;         
      <ve,e2,v2> \<in> EvalRel;                       
-     \<forall>t te. hastyenv(ve,te) \<longrightarrow> <te,e2,t> \<in> ElabRel \<longrightarrow> <v2,t> \<in> HasTyRel;
+     \<forall>t te. hastyenv(ve,te) \<longrightarrow> <te,e2,t> \<in> ElabRel \<longrightarrow> \<langle>v2,t\<rangle> \<in> HasTyRel;
      <ve_owr(vem,xm,v2),em,v> \<in> EvalRel;         
      \<forall>t te. hastyenv(ve_owr(vem,xm,v2),te) \<longrightarrow>      
-            <te,em,t> \<in> ElabRel \<longrightarrow> <v,t> \<in> HasTyRel;
+            <te,em,t> \<in> ElabRel \<longrightarrow> \<langle>v,t\<rangle> \<in> HasTyRel;
      hastyenv(ve,te); <te,e_app(e1,e2),t> \<in> ElabRel\<rbrakk> 
-   \<Longrightarrow> <v,t> \<in> HasTyRel"
+   \<Longrightarrow> \<langle>v,t\<rangle> \<in> HasTyRel"
 apply (erule elab_appE)
 apply (drule spec [THEN spec, THEN mp, THEN mp], assumption+)
 apply (drule spec [THEN spec, THEN mp, THEN mp], assumption+)
@@ -151,7 +151,7 @@ done
 
 lemma consistency [rule_format]:
    "<ve,e,v> \<in> EvalRel 
-    \<Longrightarrow> (\<forall>t te. hastyenv(ve,te) \<longrightarrow> <te,e,t> \<in> ElabRel \<longrightarrow> <v,t> \<in> HasTyRel)"
+    \<Longrightarrow> (\<forall>t te. hastyenv(ve,te) \<longrightarrow> <te,e,t> \<in> ElabRel \<longrightarrow> \<langle>v,t\<rangle> \<in> HasTyRel)"
 apply (erule EvalRel.induct)
 apply (simp_all add: consistency_const consistency_var consistency_fn 
                      consistency_fix consistency_app1)

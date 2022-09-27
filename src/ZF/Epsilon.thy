@@ -8,32 +8,32 @@ section\<open>Epsilon Induction and Recursion\<close>
 theory Epsilon imports Nat begin
 
 definition
-  eclose    :: "i=>i"  where
-    "eclose(A) \<equiv> \<Union>n\<in>nat. nat_rec(n, A, %m r. \<Union>(r))"
+  eclose    :: "i\<Rightarrow>i"  where
+    "eclose(A) \<equiv> \<Union>n\<in>nat. nat_rec(n, A, \<lambda>m r. \<Union>(r))"
 
 definition
-  transrec  :: "[i, [i,i]=>i] =>i"  where
+  transrec  :: "[i, [i,i]\<Rightarrow>i] \<Rightarrow>i"  where
     "transrec(a,H) \<equiv> wfrec(Memrel(eclose({a})), a, H)"
 
 definition
-  rank      :: "i=>i"  where
-    "rank(a) \<equiv> transrec(a, %x f. \<Union>y\<in>x. succ(f`y))"
+  rank      :: "i\<Rightarrow>i"  where
+    "rank(a) \<equiv> transrec(a, \<lambda>x f. \<Union>y\<in>x. succ(f`y))"
 
 definition
-  transrec2 :: "[i, i, [i,i]=>i] =>i"  where
+  transrec2 :: "[i, i, [i,i]\<Rightarrow>i] \<Rightarrow>i"  where
     "transrec2(k, a, b) \<equiv>
        transrec(k,
-                %i r. if(i=0, a,
+                \<lambda>i r. if(i=0, a,
                         if(\<exists>j. i=succ(j),
                            b(THE j. i=succ(j), r`(THE j. i=succ(j))),
                            \<Union>j<i. r`j)))"
 
 definition
-  recursor  :: "[i, [i,i]=>i, i]=>i"  where
-    "recursor(a,b,k) \<equiv>  transrec(k, %n f. nat_case(a, %m. b(m, f`m), n))"
+  recursor  :: "[i, [i,i]\<Rightarrow>i, i]\<Rightarrow>i"  where
+    "recursor(a,b,k) \<equiv>  transrec(k, \<lambda>n f. nat_case(a, \<lambda>m. b(m, f`m), n))"
 
 definition
-  rec  :: "[i, i, [i,i]=>i]=>i"  where
+  rec  :: "[i, i, [i,i]\<Rightarrow>i]\<Rightarrow>i"  where
     "rec(k,a,b) \<equiv> recursor(a,b,k)"
 
 
@@ -85,7 +85,7 @@ subsection\<open>Leastness of \<^term>\<open>eclose\<close>\<close>
 (** eclose(A) is the least transitive set including A as a subset. **)
 
 lemma eclose_least_lemma:
-    "\<lbrakk>Transset(X);  A<=X;  n \<in> nat\<rbrakk> \<Longrightarrow> nat_rec(n, A, %m r. \<Union>(r)) \<subseteq> X"
+    "\<lbrakk>Transset(X);  A<=X;  n \<in> nat\<rbrakk> \<Longrightarrow> nat_rec(n, A, \<lambda>m r. \<Union>(r)) \<subseteq> X"
 apply (unfold Transset_def)
 apply (erule nat_induct)
 apply (simp add: nat_rec_0)
@@ -290,13 +290,13 @@ apply (rule Ord_rank [THEN UN_least_le])
 apply (erule eclose_rank_lt [THEN succ_leI])
 done
 
-lemma rank_pair1: "rank(a) < rank(<a,b>)"
+lemma rank_pair1: "rank(a) < rank(\<langle>a,b\<rangle>)"
 apply (unfold Pair_def)
 apply (rule consI1 [THEN rank_lt, THEN lt_trans])
 apply (rule consI1 [THEN consI2, THEN rank_lt])
 done
 
-lemma rank_pair2: "rank(b) < rank(<a,b>)"
+lemma rank_pair2: "rank(b) < rank(\<langle>a,b\<rangle>)"
 apply (unfold Pair_def)
 apply (rule consI1 [THEN consI2, THEN rank_lt, THEN lt_trans])
 apply (rule consI1 [THEN consI2, THEN rank_lt])
@@ -310,7 +310,7 @@ by (simp add: the_0 the_equality2)
 
 (*The first premise not only fixs i but ensures @{term"f\<noteq>0"}.
   The second premise is now essential.  Consider otherwise the relation
-  r = {<0,0>,<0,1>,<0,2>,...}.  Then f`0 = \<Union>(f``{0}) = \<Union>(nat) = nat,
+  r = {\<langle>0,0\<rangle>,\<langle>0,1\<rangle>,\<langle>0,2\<rangle>,...}.  Then f`0 = \<Union>(f``{0}) = \<Union>(nat) = nat,
   whose rank equals that of r.*)
 lemma rank_apply: "\<lbrakk>i \<in> domain(f); function(f)\<rbrakk> \<Longrightarrow> rank(f`i) < rank(f)"
 apply clarify

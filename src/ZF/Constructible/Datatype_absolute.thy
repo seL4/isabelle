@@ -10,11 +10,11 @@ theory Datatype_absolute imports Formula WF_absolute begin
 subsection\<open>The lfp of a continuous function can be expressed as a union\<close>
 
 definition
-  directed :: "i=>o" where
+  directed :: "i\<Rightarrow>o" where
    "directed(A) \<equiv> A\<noteq>0 \<and> (\<forall>x\<in>A. \<forall>y\<in>A. x \<union> y \<in> A)"
 
 definition
-  contin :: "(i=>i) => o" where
+  contin :: "(i\<Rightarrow>i) \<Rightarrow> o" where
    "contin(h) \<equiv> (\<forall>A. directed(A) \<longrightarrow> h(\<Union>A) = (\<Union>X\<in>A. h(X)))"
 
 lemma bnd_mono_iterates_subset: "\<lbrakk>bnd_mono(D, h); n \<in> nat\<rbrakk> \<Longrightarrow> h^n (0) \<subseteq> D"
@@ -114,19 +114,19 @@ by (simp add: contin_def)
 subsection \<open>Absoluteness for "Iterates"\<close>
 
 definition
-  iterates_MH :: "[i=>o, [i,i]=>o, i, i, i, i] => o" where
+  iterates_MH :: "[i\<Rightarrow>o, [i,i]\<Rightarrow>o, i, i, i, i] \<Rightarrow> o" where
    "iterates_MH(M,isF,v,n,g,z) \<equiv>
         is_nat_case(M, v, \<lambda>m u. \<exists>gm[M]. fun_apply(M,g,m,gm) \<and> isF(gm,u),
                     n, z)"
 
 definition
-  is_iterates :: "[i=>o, [i,i]=>o, i, i, i] => o" where
+  is_iterates :: "[i\<Rightarrow>o, [i,i]\<Rightarrow>o, i, i, i] \<Rightarrow> o" where
     "is_iterates(M,isF,v,n,Z) \<equiv> 
       \<exists>sn[M]. \<exists>msn[M]. successor(M,n,sn) \<and> membership(M,sn,msn) \<and>
                        is_wfrec(M, iterates_MH(M,isF,v), msn, n, Z)"
 
 definition
-  iterates_replacement :: "[i=>o, [i,i]=>o, i] => o" where
+  iterates_replacement :: "[i\<Rightarrow>o, [i,i]\<Rightarrow>o, i] \<Rightarrow> o" where
    "iterates_replacement(M,isF,v) \<equiv>
       \<forall>n[M]. n\<in>nat \<longrightarrow> 
          wfrec_replacement(M, iterates_MH(M,isF,v), Memrel(succ(n)))"
@@ -209,7 +209,7 @@ by (simp add: list_eq_lfp2 lfp_eq_Union list_fun_bnd_mono list_fun_contin)
 
 
 definition
-  is_list_functor :: "[i=>o,i,i,i] => o" where
+  is_list_functor :: "[i\<Rightarrow>o,i,i,i] \<Rightarrow> o" where
     "is_list_functor(M,A,X,Z) \<equiv> 
         \<exists>n1[M]. \<exists>AX[M]. 
          number1(M,n1) \<and> cartprod(M,A,X,AX) \<and> is_sum(M,n1,AX,Z)"
@@ -262,7 +262,7 @@ by (simp add: formula_eq_lfp2 lfp_eq_Union formula_fun_bnd_mono
 
 
 definition
-  is_formula_functor :: "[i=>o,i,i] => o" where
+  is_formula_functor :: "[i\<Rightarrow>o,i,i] \<Rightarrow> o" where
     "is_formula_functor(M,X,Z) \<equiv> 
         \<exists>nat'[M]. \<exists>natnat[M]. \<exists>natnatsum[M]. \<exists>XX[M]. \<exists>X3[M]. 
           omega(M,nat') \<and> cartprod(M,nat',nat',natnat) \<and> 
@@ -280,7 +280,7 @@ by (simp add: is_formula_functor_def)
 subsection\<open>\<^term>\<open>M\<close> Contains the List and Formula Datatypes\<close>
 
 definition
-  list_N :: "[i,i] => i" where
+  list_N :: "[i,i] \<Rightarrow> i" where
     "list_N(A,n) \<equiv> (\<lambda>X. {0} + A * X)^n (0)"
 
 lemma Nil_in_list_N [simp]: "[] \<in> list_N(A,succ(n))"
@@ -341,24 +341,24 @@ apply (simp add: list_imp_list_N)
 done
 
 definition
-  is_list_N :: "[i=>o,i,i,i] => o" where
+  is_list_N :: "[i\<Rightarrow>o,i,i,i] \<Rightarrow> o" where
     "is_list_N(M,A,n,Z) \<equiv> 
       \<exists>zero[M]. empty(M,zero) \<and> 
                 is_iterates(M, is_list_functor(M,A), zero, n, Z)"
 
 definition  
-  mem_list :: "[i=>o,i,i] => o" where
+  mem_list :: "[i\<Rightarrow>o,i,i] \<Rightarrow> o" where
     "mem_list(M,A,l) \<equiv> 
       \<exists>n[M]. \<exists>listn[M]. 
        finite_ordinal(M,n) \<and> is_list_N(M,A,n,listn) \<and> l \<in> listn"
 
 definition
-  is_list :: "[i=>o,i,i] => o" where
+  is_list :: "[i\<Rightarrow>o,i,i] \<Rightarrow> o" where
     "is_list(M,A,Z) \<equiv> \<forall>l[M]. l \<in> Z \<longleftrightarrow> mem_list(M,A,l)"
 
 subsubsection\<open>Towards Absoluteness of \<^term>\<open>formula_rec\<close>\<close>
 
-consts   depth :: "i=>i"
+consts   depth :: "i\<Rightarrow>i"
 primrec
   "depth(Member(x,y)) = 0"
   "depth(Equal(x,y))  = 0"
@@ -370,7 +370,7 @@ by (induct_tac p, simp_all)
 
 
 definition
-  formula_N :: "i => i" where
+  formula_N :: "i \<Rightarrow> i" where
     "formula_N(n) \<equiv> (\<lambda>X. ((nat*nat) + (nat*nat)) + (X*X + X)) ^ n (0)"
 
 lemma Member_in_formula_N [simp]:
@@ -445,20 +445,20 @@ apply (simp_all add: subset_Un_iff [THEN iffD1] subset_Un_iff2 [THEN iffD1]
 done
 
 definition
-  is_formula_N :: "[i=>o,i,i] => o" where
+  is_formula_N :: "[i\<Rightarrow>o,i,i] \<Rightarrow> o" where
     "is_formula_N(M,n,Z) \<equiv> 
       \<exists>zero[M]. empty(M,zero) \<and> 
                 is_iterates(M, is_formula_functor(M), zero, n, Z)"
 
 
 definition  
-  mem_formula :: "[i=>o,i] => o" where
+  mem_formula :: "[i\<Rightarrow>o,i] \<Rightarrow> o" where
     "mem_formula(M,p) \<equiv> 
       \<exists>n[M]. \<exists>formn[M]. 
        finite_ordinal(M,n) \<and> is_formula_N(M,n,formn) \<and> p \<in> formn"
 
 definition
-  is_formula :: "[i=>o,i] => o" where
+  is_formula :: "[i\<Rightarrow>o,i] \<Rightarrow> o" where
     "is_formula(M,Z) \<equiv> \<forall>p[M]. p \<in> Z \<longleftrightarrow> mem_formula(M,p)"
 
 locale M_datatypes = M_trancl +
@@ -473,7 +473,7 @@ locale M_datatypes = M_trancl +
    "strong_replacement(M,
          \<lambda>n y. n\<in>nat \<and> is_iterates(M, is_formula_functor(M), 0, n, y))"
   and nth_replacement:
-   "M(l) \<Longrightarrow> iterates_replacement(M, %l t. is_tl(M,l,t), l)"
+   "M(l) \<Longrightarrow> iterates_replacement(M, \<lambda>l t. is_tl(M,l,t), l)"
 
 
 subsubsection\<open>Absoluteness of the List Construction\<close>
@@ -588,17 +588,17 @@ apply (simp add: nat_rec_succ)
 done
 
 definition
-  is_eclose_n :: "[i=>o,i,i,i] => o" where
+  is_eclose_n :: "[i\<Rightarrow>o,i,i,i] \<Rightarrow> o" where
     "is_eclose_n(M,A,n,Z) \<equiv> is_iterates(M, big_union(M), A, n, Z)"
 
 definition
-  mem_eclose :: "[i=>o,i,i] => o" where
+  mem_eclose :: "[i\<Rightarrow>o,i,i] \<Rightarrow> o" where
     "mem_eclose(M,A,l) \<equiv>
       \<exists>n[M]. \<exists>eclosen[M].
        finite_ordinal(M,n) \<and> is_eclose_n(M,A,n,eclosen) \<and> l \<in> eclosen"
 
 definition
-  is_eclose :: "[i=>o,i,i] => o" where
+  is_eclose :: "[i\<Rightarrow>o,i,i] \<Rightarrow> o" where
     "is_eclose(M,A,Z) \<equiv> \<forall>u[M]. u \<in> Z \<longleftrightarrow> mem_eclose(M,A,u)"
 
 
@@ -650,14 +650,14 @@ subsection \<open>Absoluteness for \<^term>\<open>transrec\<close>\<close>
 text\<open>\<^prop>\<open>transrec(a,H) \<equiv> wfrec(Memrel(eclose({a})), a, H)\<close>\<close>
 
 definition
-  is_transrec :: "[i=>o, [i,i,i]=>o, i, i] => o" where
+  is_transrec :: "[i\<Rightarrow>o, [i,i,i]\<Rightarrow>o, i, i] \<Rightarrow> o" where
    "is_transrec(M,MH,a,z) \<equiv>
       \<exists>sa[M]. \<exists>esa[M]. \<exists>mesa[M].
        upair(M,a,a,sa) \<and> is_eclose(M,sa,esa) \<and> membership(M,esa,mesa) \<and>
        is_wfrec(M,MH,mesa,a,z)"
 
 definition
-  transrec_replacement :: "[i=>o, [i,i,i]=>o, i] => o" where
+  transrec_replacement :: "[i\<Rightarrow>o, [i,i,i]\<Rightarrow>o, i] \<Rightarrow> o" where
    "transrec_replacement(M,MH,a) \<equiv>
       \<exists>sa[M]. \<exists>esa[M]. \<exists>mesa[M].
        upair(M,a,a,sa) \<and> is_eclose(M,sa,esa) \<and> membership(M,esa,mesa) \<and>
@@ -698,7 +698,7 @@ subsection\<open>Absoluteness for the List Operator \<^term>\<open>length\<close
 text\<open>But it is never used.\<close>
 
 definition
-  is_length :: "[i=>o,i,i,i] => o" where
+  is_length :: "[i\<Rightarrow>o,i,i,i] \<Rightarrow> o" where
     "is_length(M,A,l,n) \<equiv>
        \<exists>sn[M]. \<exists>list_n[M]. \<exists>list_sn[M].
         is_list_N(M,A,n,list_n) \<and> l \<notin> list_n \<and>
@@ -746,7 +746,7 @@ apply (simp add: not_lt_iff_le nth_eq_0)
 done
 
 definition
-  is_nth :: "[i=>o,i,i,i] => o" where
+  is_nth :: "[i\<Rightarrow>o,i,i,i] \<Rightarrow> o" where
     "is_nth(M,n,l,Z) \<equiv>
       \<exists>X[M]. is_iterates(M, is_tl(M), l, n, X) \<and> is_hd(M,X,Z)"
 
@@ -764,7 +764,7 @@ done
 subsection\<open>Relativization and Absoluteness for the \<^term>\<open>formula\<close> Constructors\<close>
 
 definition
-  is_Member :: "[i=>o,i,i,i] => o" where
+  is_Member :: "[i\<Rightarrow>o,i,i,i] \<Rightarrow> o" where
      \<comment> \<open>because \<^term>\<open>Member(x,y) \<equiv> Inl(Inl(\<langle>x,y\<rangle>))\<close>\<close>
     "is_Member(M,x,y,Z) \<equiv>
         \<exists>p[M]. \<exists>u[M]. pair(M,x,y,p) \<and> is_Inl(M,p,u) \<and> is_Inl(M,u,Z)"
@@ -778,7 +778,7 @@ lemma (in M_trivial) Member_in_M_iff [iff]:
 by (simp add: Member_def)
 
 definition
-  is_Equal :: "[i=>o,i,i,i] => o" where
+  is_Equal :: "[i\<Rightarrow>o,i,i,i] \<Rightarrow> o" where
      \<comment> \<open>because \<^term>\<open>Equal(x,y) \<equiv> Inl(Inr(\<langle>x,y\<rangle>))\<close>\<close>
     "is_Equal(M,x,y,Z) \<equiv>
         \<exists>p[M]. \<exists>u[M]. pair(M,x,y,p) \<and> is_Inr(M,p,u) \<and> is_Inl(M,u,Z)"
@@ -791,7 +791,7 @@ lemma (in M_trivial) Equal_in_M_iff [iff]: "M(Equal(x,y)) \<longleftrightarrow> 
 by (simp add: Equal_def)
 
 definition
-  is_Nand :: "[i=>o,i,i,i] => o" where
+  is_Nand :: "[i\<Rightarrow>o,i,i,i] \<Rightarrow> o" where
      \<comment> \<open>because \<^term>\<open>Nand(x,y) \<equiv> Inr(Inl(\<langle>x,y\<rangle>))\<close>\<close>
     "is_Nand(M,x,y,Z) \<equiv>
         \<exists>p[M]. \<exists>u[M]. pair(M,x,y,p) \<and> is_Inl(M,p,u) \<and> is_Inr(M,u,Z)"
@@ -804,7 +804,7 @@ lemma (in M_trivial) Nand_in_M_iff [iff]: "M(Nand(x,y)) \<longleftrightarrow> M(
 by (simp add: Nand_def)
 
 definition
-  is_Forall :: "[i=>o,i,i] => o" where
+  is_Forall :: "[i\<Rightarrow>o,i,i] \<Rightarrow> o" where
      \<comment> \<open>because \<^term>\<open>Forall(x) \<equiv> Inr(Inr(p))\<close>\<close>
     "is_Forall(M,p,Z) \<equiv> \<exists>u[M]. is_Inr(M,p,u) \<and> is_Inr(M,u,Z)"
 
@@ -820,7 +820,7 @@ by (simp add: Forall_def)
 subsection \<open>Absoluteness for \<^term>\<open>formula_rec\<close>\<close>
 
 definition
-  formula_rec_case :: "[[i,i]=>i, [i,i]=>i, [i,i,i,i]=>i, [i,i]=>i, i, i] => i" where
+  formula_rec_case :: "[[i,i]\<Rightarrow>i, [i,i]\<Rightarrow>i, [i,i,i,i]\<Rightarrow>i, [i,i]\<Rightarrow>i, i, i] \<Rightarrow> i" where
     \<comment> \<open>the instance of \<^term>\<open>formula_case\<close> in \<^term>\<open>formula_rec\<close>\<close>
    "formula_rec_case(a,b,c,d,h) \<equiv>
         formula_case (a, b,
@@ -854,7 +854,7 @@ done
 subsubsection\<open>Absoluteness for the Formula Operator \<^term>\<open>depth\<close>\<close>
 
 definition
-  is_depth :: "[i=>o,i,i] => o" where
+  is_depth :: "[i\<Rightarrow>o,i,i] \<Rightarrow> o" where
     "is_depth(M,p,n) \<equiv>
        \<exists>sn[M]. \<exists>formula_n[M]. \<exists>formula_sn[M].
         is_formula_N(M,n,formula_n) \<and> p \<notin> formula_n \<and>
@@ -880,7 +880,7 @@ subsubsection\<open>\<^term>\<open>is_formula_case\<close>: relativization of \<
 
 definition
  is_formula_case ::
-    "[i=>o, [i,i,i]=>o, [i,i,i]=>o, [i,i,i]=>o, [i,i]=>o, i, i] => o" where
+    "[i\<Rightarrow>o, [i,i,i]\<Rightarrow>o, [i,i,i]\<Rightarrow>o, [i,i,i]\<Rightarrow>o, [i,i]\<Rightarrow>o, i, i] \<Rightarrow> o" where
   \<comment> \<open>no constraint on non-formulas\<close>
   "is_formula_case(M, is_a, is_b, is_c, is_d, p, z) \<equiv>
       (\<forall>x[M]. \<forall>y[M]. finite_ordinal(M,x) \<longrightarrow> finite_ordinal(M,y) \<longrightarrow>
@@ -914,7 +914,7 @@ by (erule formula.cases, simp_all)
 subsubsection \<open>Absoluteness for \<^term>\<open>formula_rec\<close>: Final Results\<close>
 
 definition
-  is_formula_rec :: "[i=>o, [i,i,i]=>o, i, i] => o" where
+  is_formula_rec :: "[i\<Rightarrow>o, [i,i,i]\<Rightarrow>o, i, i] \<Rightarrow> o" where
     \<comment> \<open>predicate to relativize the functional \<^term>\<open>formula_rec\<close>\<close>
    "is_formula_rec(M,MH,p,z)  \<equiv>
       \<exists>dp[M]. \<exists>i[M]. \<exists>f[M]. finite_ordinal(M,dp) \<and> is_depth(M,p,dp) \<and>

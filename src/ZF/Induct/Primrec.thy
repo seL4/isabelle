@@ -21,32 +21,32 @@ definition
   "SC \<equiv> \<lambda>l \<in> list(nat). list_case(0, \<lambda>x xs. succ(x), l)"
 
 definition
-  CONSTANT :: "i=>i"  where
+  CONSTANT :: "i\<Rightarrow>i"  where
   "CONSTANT(k) \<equiv> \<lambda>l \<in> list(nat). k"
 
 definition
-  PROJ :: "i=>i"  where
+  PROJ :: "i\<Rightarrow>i"  where
   "PROJ(i) \<equiv> \<lambda>l \<in> list(nat). list_case(0, \<lambda>x xs. x, drop(i,l))"
 
 definition
-  COMP :: "[i,i]=>i"  where
+  COMP :: "[i,i]\<Rightarrow>i"  where
   "COMP(g,fs) \<equiv> \<lambda>l \<in> list(nat). g ` map(\<lambda>f. f`l, fs)"
 
 definition
-  PREC :: "[i,i]=>i"  where
+  PREC :: "[i,i]\<Rightarrow>i"  where
   "PREC(f,g) \<equiv>
      \<lambda>l \<in> list(nat). list_case(0,
                       \<lambda>x xs. rec(x, f`xs, \<lambda>y r. g ` Cons(r, Cons(y, xs))), l)"
   \<comment> \<open>Note that \<open>g\<close> is applied first to \<^term>\<open>PREC(f,g)`y\<close> and then to \<open>y\<close>!\<close>
 
 consts
-  ACK :: "i=>i"
+  ACK :: "i\<Rightarrow>i"
 primrec
   "ACK(0) = SC"
   "ACK(succ(i)) = PREC (CONSTANT (ACK(i) ` [1]), COMP(ACK(i), [PROJ(0)]))"
 
 abbreviation
-  ack :: "[i,i]=>i" where
+  ack :: "[i,i]\<Rightarrow>i" where
   "ack(x,y) \<equiv> ACK(x) ` [y]"
 
 

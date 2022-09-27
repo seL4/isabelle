@@ -12,7 +12,7 @@ text \<open>
 \<close>
 
 consts
-  "term" :: "i => i"
+  "term" :: "i \<Rightarrow> i"
 
 datatype "term(A)" = Apply ("a \<in> A", "l \<in> list(term(A))")
   monos list_mono
@@ -21,28 +21,28 @@ datatype "term(A)" = Apply ("a \<in> A", "l \<in> list(term(A))")
 declare Apply [TC]
 
 definition
-  term_rec :: "[i, [i, i, i] => i] => i"  where
+  term_rec :: "[i, [i, i, i] \<Rightarrow> i] \<Rightarrow> i"  where
   "term_rec(t,d) \<equiv>
     Vrec(t, \<lambda>t g. term_case(\<lambda>x zs. d(x, zs, map(\<lambda>z. g`z, zs)), t))"
 
 definition
-  term_map :: "[i => i, i] => i"  where
+  term_map :: "[i \<Rightarrow> i, i] \<Rightarrow> i"  where
   "term_map(f,t) \<equiv> term_rec(t, \<lambda>x zs rs. Apply(f(x), rs))"
 
 definition
-  term_size :: "i => i"  where
+  term_size :: "i \<Rightarrow> i"  where
   "term_size(t) \<equiv> term_rec(t, \<lambda>x zs rs. succ(list_add(rs)))"
 
 definition
-  reflect :: "i => i"  where
+  reflect :: "i \<Rightarrow> i"  where
   "reflect(t) \<equiv> term_rec(t, \<lambda>x zs rs. Apply(x, rev(rs)))"
 
 definition
-  preorder :: "i => i"  where
+  preorder :: "i \<Rightarrow> i"  where
   "preorder(t) \<equiv> term_rec(t, \<lambda>x zs rs. Cons(x, flat(rs)))"
 
 definition
-  postorder :: "i => i"  where
+  postorder :: "i \<Rightarrow> i"  where
   "postorder(t) \<equiv> term_rec(t, \<lambda>x zs rs. flat(rs) @ [x])"
 
 lemma term_unfold: "term(A) = A * list(term(A))"

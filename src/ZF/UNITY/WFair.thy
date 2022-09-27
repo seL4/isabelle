@@ -16,26 +16,26 @@ assuming weak fairness. From Misra, "A Logic for Concurrent Programming",
 definition
   (* This definition specifies weak fairness.  The rest of the theory
     is generic to all forms of fairness.*)
-  transient :: "i=>i"  where
+  transient :: "i\<Rightarrow>i"  where
   "transient(A) \<equiv>{F \<in> program. (\<exists>act\<in>Acts(F). A<=domain(act) \<and>
                                act``A \<subseteq> state-A) \<and> st_set(A)}"
 
 definition
-  ensures :: "[i,i] => i"       (infixl \<open>ensures\<close> 60)  where
+  ensures :: "[i,i] \<Rightarrow> i"       (infixl \<open>ensures\<close> 60)  where
   "A ensures B \<equiv> ((A-B) co (A \<union> B)) \<inter> transient(A-B)"
 
 consts
 
   (*LEADS-TO constant for the inductive definition*)
-  leads :: "[i, i]=>i"
+  leads :: "[i, i]\<Rightarrow>i"
 
 inductive
   domains
      "leads(D, F)" \<subseteq> "Pow(D)*Pow(D)"
   intros
-    Basis:  "\<lbrakk>F \<in> A ensures B;  A \<in> Pow(D); B \<in> Pow(D)\<rbrakk> \<Longrightarrow> <A,B>:leads(D, F)"
-    Trans:  "\<lbrakk><A,B> \<in> leads(D, F); <B,C> \<in> leads(D, F)\<rbrakk> \<Longrightarrow>  <A,C>:leads(D, F)"
-    Union:   "\<lbrakk>S \<in> Pow({A \<in> S. <A, B>:leads(D, F)}); B \<in> Pow(D); S \<in> Pow(Pow(D))\<rbrakk> \<Longrightarrow>
+    Basis:  "\<lbrakk>F \<in> A ensures B;  A \<in> Pow(D); B \<in> Pow(D)\<rbrakk> \<Longrightarrow> \<langle>A,B\<rangle>:leads(D, F)"
+    Trans:  "\<lbrakk>\<langle>A,B\<rangle> \<in> leads(D, F); \<langle>B,C\<rangle> \<in> leads(D, F)\<rbrakk> \<Longrightarrow>  \<langle>A,C\<rangle>:leads(D, F)"
+    Union:   "\<lbrakk>S \<in> Pow({A \<in> S. \<langle>A, B\<rangle>:leads(D, F)}); B \<in> Pow(D); S \<in> Pow(Pow(D))\<rbrakk> \<Longrightarrow>
               <\<Union>(S),B>:leads(D, F)"
 
   monos        Pow_mono
@@ -43,12 +43,12 @@ inductive
 
 definition
   (* The Visible version of the LEADS-TO relation*)
-  leadsTo :: "[i, i] => i"       (infixl \<open>\<longmapsto>\<close> 60)  where
-  "A \<longmapsto> B \<equiv> {F \<in> program. <A,B>:leads(state, F)}"
+  leadsTo :: "[i, i] \<Rightarrow> i"       (infixl \<open>\<longmapsto>\<close> 60)  where
+  "A \<longmapsto> B \<equiv> {F \<in> program. \<langle>A,B\<rangle>:leads(state, F)}"
 
 definition
   (* wlt(F, B) is the largest set that leads to B*)
-  wlt :: "[i, i] => i"  where
+  wlt :: "[i, i] \<Rightarrow> i"  where
     "wlt(F, B) \<equiv> \<Union>({A \<in> Pow(state). F \<in> A \<longmapsto> B})"
 
 (** Ad-hoc set-theory rules **)
@@ -510,7 +510,7 @@ apply (rule_tac b = A in subst)
  apply (erule_tac I = I in leadsTo_wf_induct_aux, assumption+, best)
 done
 
-lemma nat_measure_field: "field(measure(nat, %x. x)) = nat"
+lemma nat_measure_field: "field(measure(nat, \<lambda>x. x)) = nat"
 apply (unfold field_def)
 apply (simp add: measure_def)
 apply (rule equalityI, force, clarify)
@@ -522,7 +522,7 @@ apply simp_all
 done
 
 
-lemma Image_inverse_lessThan: "k<A \<Longrightarrow> measure(A, %x. x) -`` {k} = k"
+lemma Image_inverse_lessThan: "k<A \<Longrightarrow> measure(A, \<lambda>x. x) -`` {k} = k"
 apply (rule equalityI)
 apply (auto simp add: measure_def)
 apply (blast intro: ltD)
@@ -538,7 +538,7 @@ lemma lessThan_induct:
      F \<in> program; st_set(A); st_set(B);
      \<forall>m \<in> nat. F:(A \<inter> f-``{m}) \<longmapsto> ((A \<inter> f -`` m) \<union> B)\<rbrakk>
       \<Longrightarrow> F \<in> A \<longmapsto> B"
-apply (rule_tac A1 = nat and f1 = "%x. x" in wf_measure [THEN leadsTo_wf_induct])
+apply (rule_tac A1 = nat and f1 = "\<lambda>x. x" in wf_measure [THEN leadsTo_wf_induct])
 apply (simp_all add: nat_measure_field)
 apply (simp add: ltI Image_inverse_lessThan vimage_def [symmetric])
 done
@@ -605,7 +605,7 @@ apply (erule leadsTo_induct)
  apply (blast intro: leadsTo_123_aux leadsTo_Un_Un leadsTo_cancel1 leadsTo_Un_duplicate, blast)
 txt\<open>Union\<close>
 apply (clarify dest!: ball_conj_distrib [THEN iffD1])
-apply (subgoal_tac "\<exists>y. y \<in> Pi (S, %A. {Ba \<in> Pow (state) . A<=Ba \<and> F \<in> Ba \<longmapsto> B \<and> F \<in> Ba - B co Ba \<union> B}) ")
+apply (subgoal_tac "\<exists>y. y \<in> Pi (S, \<lambda>A. {Ba \<in> Pow (state) . A<=Ba \<and> F \<in> Ba \<longmapsto> B \<and> F \<in> Ba - B co Ba \<union> B}) ")
 defer 1
 apply (rule AC_ball_Pi, safe)
 apply (rotate_tac 1)

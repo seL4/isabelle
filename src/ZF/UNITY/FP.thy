@@ -12,11 +12,11 @@ section\<open>Fixed Point of a Program\<close>
 theory FP imports UNITY begin
 
 definition   
-  FP_Orig :: "i=>i"  where
+  FP_Orig :: "i\<Rightarrow>i"  where
     "FP_Orig(F) \<equiv> \<Union>({A \<in> Pow(state). \<forall>B. F \<in> stable(A \<inter> B)})"
 
 definition
-  FP :: "i=>i"  where
+  FP :: "i\<Rightarrow>i"  where
     "FP(F) \<equiv> {s\<in>state. F \<in> stable({s})}"
 
 

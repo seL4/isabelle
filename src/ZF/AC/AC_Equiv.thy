@@ -46,11 +46,11 @@ definition
 
 definition
 (* Auxiliary concepts needed below *)
-  pairwise_disjoint :: "i => o"  where
+  pairwise_disjoint :: "i \<Rightarrow> o"  where
     "pairwise_disjoint(A) \<equiv> \<forall>A1 \<in> A. \<forall>A2 \<in> A. A1 \<inter> A2 \<noteq> 0 \<longrightarrow> A1=A2"
 
 definition
-  sets_of_size_between :: "[i, i, i] => o"  where
+  sets_of_size_between :: "[i, i, i] \<Rightarrow> o"  where
     "sets_of_size_between(A,m,n) \<equiv> \<forall>B \<in> A. m \<lesssim> B \<and> B \<lesssim> n"
 
 
@@ -80,12 +80,12 @@ definition
     "AC7 \<equiv> \<forall>A. 0\<notin>A \<and> (\<forall>B1 \<in> A. \<forall>B2 \<in> A. B1\<approx>B2) \<longrightarrow> (\<Prod>B \<in> A. B) \<noteq> 0"
 
 definition
-    "AC8 \<equiv> \<forall>A. (\<forall>B \<in> A. \<exists>B1 B2. B=<B1,B2> \<and> B1\<approx>B2)   
+    "AC8 \<equiv> \<forall>A. (\<forall>B \<in> A. \<exists>B1 B2. B=\<langle>B1,B2\<rangle> \<and> B1\<approx>B2)   
                    \<longrightarrow> (\<exists>f. \<forall>B \<in> A. f`B \<in> bij(fst(B),snd(B)))"
 
 definition
     "AC9 \<equiv> \<forall>A. (\<forall>B1 \<in> A. \<forall>B2 \<in> A. B1\<approx>B2) \<longrightarrow>   
-                   (\<exists>f. \<forall>B1 \<in> A. \<forall>B2 \<in> A. f`<B1,B2> \<in> bij(B1,B2))"
+                   (\<exists>f. \<forall>B1 \<in> A. \<forall>B2 \<in> A. f`\<langle>B1,B2\<rangle> \<in> bij(B1,B2))"
 
 definition
     "AC10(n) \<equiv>  \<forall>A. (\<forall>B \<in> A. \<not>Finite(B)) \<longrightarrow>   
@@ -140,21 +140,21 @@ definition
 lemma rvimage_id: "rvimage(A,id(A),r) = r \<inter> A*A"
 apply (unfold rvimage_def)
 apply (rule equalityI, safe)
-apply (drule_tac P = "%a. <id (A) `xb,a>:r" in id_conv [THEN subst],
+apply (drule_tac P = "\<lambda>a. <id (A) `xb,a>:r" in id_conv [THEN subst],
        assumption)
-apply (drule_tac P = "%a. <a,ya>:r" in id_conv [THEN subst], (assumption+))
+apply (drule_tac P = "\<lambda>a. \<langle>a,ya\<rangle>:r" in id_conv [THEN subst], (assumption+))
 apply (fast intro: id_conv [THEN ssubst])
 done
 
 (* used only in Hartog.ML *)
 lemma ordertype_Int:
      "well_ord(A,r) \<Longrightarrow> ordertype(A, r \<inter> A*A) = ordertype(A,r)"
-apply (rule_tac P = "%a. ordertype (A,a) =ordertype (A,r) " in rvimage_id [THEN subst])
+apply (rule_tac P = "\<lambda>a. ordertype (A,a) =ordertype (A,r) " in rvimage_id [THEN subst])
 apply (erule id_bij [THEN bij_ordertype_vimage])
 done
 
 lemma lam_sing_bij: "(\<lambda>x \<in> A. {x}) \<in> bij(A, {{x}. x \<in> A})"
-apply (rule_tac d = "%z. THE x. z={x}" in lam_bijective)
+apply (rule_tac d = "\<lambda>z. THE x. z={x}" in lam_bijective)
 apply (auto simp add: the_equality)
 done
 
@@ -196,9 +196,9 @@ lemma lepoll_m_imp_domain_lepoll_m:
      "\<lbrakk>m \<in> nat; u \<lesssim> m\<rbrakk> \<Longrightarrow> domain(u) \<lesssim> m"
 apply (unfold lepoll_def)
 apply (erule exE)
-apply (rule_tac x = "\<lambda>x \<in> domain(u). \<mu> i. \<exists>y. <x,y> \<in> u \<and> f`<x,y> = i" 
+apply (rule_tac x = "\<lambda>x \<in> domain(u). \<mu> i. \<exists>y. \<langle>x,y\<rangle> \<in> u \<and> f`\<langle>x,y\<rangle> = i" 
        in exI)
-apply (rule_tac d = "%y. fst (converse(f) ` y) " in lam_injective)
+apply (rule_tac d = "\<lambda>y. fst (converse(f) ` y) " in lam_injective)
 apply (fast intro: LeastI2 nat_into_Ord [THEN Ord_in_Ord] 
                            inj_is_fun [THEN apply_type])
 apply (erule domainE)

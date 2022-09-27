@@ -8,44 +8,44 @@ section\<open>Relations: Their General Properties and Transitive Closure\<close>
 theory Trancl imports Fixedpt Perm begin
 
 definition
-  refl     :: "[i,i]=>o"  where
-    "refl(A,r) \<equiv> (\<forall>x\<in>A. <x,x> \<in> r)"
+  refl     :: "[i,i]\<Rightarrow>o"  where
+    "refl(A,r) \<equiv> (\<forall>x\<in>A. \<langle>x,x\<rangle> \<in> r)"
 
 definition
-  irrefl   :: "[i,i]=>o"  where
-    "irrefl(A,r) \<equiv> \<forall>x\<in>A. <x,x> \<notin> r"
+  irrefl   :: "[i,i]\<Rightarrow>o"  where
+    "irrefl(A,r) \<equiv> \<forall>x\<in>A. \<langle>x,x\<rangle> \<notin> r"
 
 definition
-  sym      :: "i=>o"  where
-    "sym(r) \<equiv> \<forall>x y. <x,y>: r \<longrightarrow> <y,x>: r"
+  sym      :: "i\<Rightarrow>o"  where
+    "sym(r) \<equiv> \<forall>x y. \<langle>x,y\<rangle>: r \<longrightarrow> \<langle>y,x\<rangle>: r"
 
 definition
-  asym     :: "i=>o"  where
-    "asym(r) \<equiv> \<forall>x y. <x,y>:r \<longrightarrow> \<not> <y,x>:r"
+  asym     :: "i\<Rightarrow>o"  where
+    "asym(r) \<equiv> \<forall>x y. \<langle>x,y\<rangle>:r \<longrightarrow> \<not> \<langle>y,x\<rangle>:r"
 
 definition
-  antisym  :: "i=>o"  where
-    "antisym(r) \<equiv> \<forall>x y.<x,y>:r \<longrightarrow> <y,x>:r \<longrightarrow> x=y"
+  antisym  :: "i\<Rightarrow>o"  where
+    "antisym(r) \<equiv> \<forall>x y.\<langle>x,y\<rangle>:r \<longrightarrow> \<langle>y,x\<rangle>:r \<longrightarrow> x=y"
 
 definition
-  trans    :: "i=>o"  where
-    "trans(r) \<equiv> \<forall>x y z. <x,y>: r \<longrightarrow> <y,z>: r \<longrightarrow> <x,z>: r"
+  trans    :: "i\<Rightarrow>o"  where
+    "trans(r) \<equiv> \<forall>x y z. \<langle>x,y\<rangle>: r \<longrightarrow> \<langle>y,z\<rangle>: r \<longrightarrow> \<langle>x,z\<rangle>: r"
 
 definition
-  trans_on :: "[i,i]=>o"  (\<open>trans[_]'(_')\<close>)  where
+  trans_on :: "[i,i]\<Rightarrow>o"  (\<open>trans[_]'(_')\<close>)  where
     "trans[A](r) \<equiv> \<forall>x\<in>A. \<forall>y\<in>A. \<forall>z\<in>A.
-                          <x,y>: r \<longrightarrow> <y,z>: r \<longrightarrow> <x,z>: r"
+                          \<langle>x,y\<rangle>: r \<longrightarrow> \<langle>y,z\<rangle>: r \<longrightarrow> \<langle>x,z\<rangle>: r"
 
 definition
-  rtrancl :: "i=>i"  (\<open>(_^*)\<close> [100] 100)  (*refl/transitive closure*)  where
-    "r^* \<equiv> lfp(field(r)*field(r), %s. id(field(r)) \<union> (r O s))"
+  rtrancl :: "i\<Rightarrow>i"  (\<open>(_^*)\<close> [100] 100)  (*refl/transitive closure*)  where
+    "r^* \<equiv> lfp(field(r)*field(r), \<lambda>s. id(field(r)) \<union> (r O s))"
 
 definition
-  trancl  :: "i=>i"  (\<open>(_^+)\<close> [100] 100)  (*transitive closure*)  where
+  trancl  :: "i\<Rightarrow>i"  (\<open>(_^+)\<close> [100] 100)  (*transitive closure*)  where
     "r^+ \<equiv> r O r^*"
 
 definition
-  equiv    :: "[i,i]=>o"  where
+  equiv    :: "[i,i]\<Rightarrow>o"  where
     "equiv(A,r) \<equiv> r \<subseteq> A*A \<and> refl(A,r) \<and> sym(r) \<and> trans(r)"
 
 
@@ -54,37 +54,37 @@ subsection\<open>General properties of relations\<close>
 subsubsection\<open>irreflexivity\<close>
 
 lemma irreflI:
-    "\<lbrakk>\<And>x. x \<in> A \<Longrightarrow> <x,x> \<notin> r\<rbrakk> \<Longrightarrow> irrefl(A,r)"
+    "\<lbrakk>\<And>x. x \<in> A \<Longrightarrow> \<langle>x,x\<rangle> \<notin> r\<rbrakk> \<Longrightarrow> irrefl(A,r)"
 by (simp add: irrefl_def)
 
-lemma irreflE: "\<lbrakk>irrefl(A,r);  x \<in> A\<rbrakk> \<Longrightarrow>  <x,x> \<notin> r"
+lemma irreflE: "\<lbrakk>irrefl(A,r);  x \<in> A\<rbrakk> \<Longrightarrow>  \<langle>x,x\<rangle> \<notin> r"
 by (simp add: irrefl_def)
 
 subsubsection\<open>symmetry\<close>
 
 lemma symI:
-     "\<lbrakk>\<And>x y.<x,y>: r \<Longrightarrow> <y,x>: r\<rbrakk> \<Longrightarrow> sym(r)"
+     "\<lbrakk>\<And>x y.\<langle>x,y\<rangle>: r \<Longrightarrow> \<langle>y,x\<rangle>: r\<rbrakk> \<Longrightarrow> sym(r)"
 by (unfold sym_def, blast)
 
-lemma symE: "\<lbrakk>sym(r); <x,y>: r\<rbrakk>  \<Longrightarrow>  <y,x>: r"
+lemma symE: "\<lbrakk>sym(r); \<langle>x,y\<rangle>: r\<rbrakk>  \<Longrightarrow>  \<langle>y,x\<rangle>: r"
 by (unfold sym_def, blast)
 
 subsubsection\<open>antisymmetry\<close>
 
 lemma antisymI:
-     "\<lbrakk>\<And>x y.\<lbrakk><x,y>: r;  <y,x>: r\<rbrakk> \<Longrightarrow> x=y\<rbrakk> \<Longrightarrow> antisym(r)"
+     "\<lbrakk>\<And>x y.\<lbrakk>\<langle>x,y\<rangle>: r;  \<langle>y,x\<rangle>: r\<rbrakk> \<Longrightarrow> x=y\<rbrakk> \<Longrightarrow> antisym(r)"
 by (simp add: antisym_def, blast)
 
-lemma antisymE: "\<lbrakk>antisym(r); <x,y>: r;  <y,x>: r\<rbrakk>  \<Longrightarrow>  x=y"
+lemma antisymE: "\<lbrakk>antisym(r); \<langle>x,y\<rangle>: r;  \<langle>y,x\<rangle>: r\<rbrakk>  \<Longrightarrow>  x=y"
 by (simp add: antisym_def, blast)
 
 subsubsection\<open>transitivity\<close>
 
-lemma transD: "\<lbrakk>trans(r);  <a,b>:r;  <b,c>:r\<rbrakk> \<Longrightarrow> <a,c>:r"
+lemma transD: "\<lbrakk>trans(r);  \<langle>a,b\<rangle>:r;  \<langle>b,c\<rangle>:r\<rbrakk> \<Longrightarrow> \<langle>a,c\<rangle>:r"
 by (unfold trans_def, blast)
 
 lemma trans_onD:
-    "\<lbrakk>trans[A](r);  <a,b>:r;  <b,c>:r;  a \<in> A;  b \<in> A;  c \<in> A\<rbrakk> \<Longrightarrow> <a,c>:r"
+    "\<lbrakk>trans[A](r);  \<langle>a,b\<rangle>:r;  \<langle>b,c\<rangle>:r;  a \<in> A;  b \<in> A;  c \<in> A\<rbrakk> \<Longrightarrow> \<langle>a,c\<rangle>:r"
 by (unfold trans_on_def, blast)
 
 lemma trans_imp_trans_on: "trans(r) \<Longrightarrow> trans[A](r)"
@@ -97,7 +97,7 @@ by (simp add: trans_on_def trans_def, blast)
 subsection\<open>Transitive closure of a relation\<close>
 
 lemma rtrancl_bnd_mono:
-     "bnd_mono(field(r)*field(r), %s. id(field(r)) \<union> (r O s))"
+     "bnd_mono(field(r)*field(r), \<lambda>s. id(field(r)) \<union> (r O s))"
 by (rule bnd_monoI, blast+)
 
 lemma rtrancl_mono: "r<=s \<Longrightarrow> r^* \<subseteq> s^*"
@@ -122,19 +122,19 @@ apply (blast dest: rtrancl_type [THEN subsetD])
 done
 
 (*Reflexivity of rtrancl*)
-lemma rtrancl_refl: "\<lbrakk>a \<in> field(r)\<rbrakk> \<Longrightarrow> <a,a> \<in> r^*"
+lemma rtrancl_refl: "\<lbrakk>a \<in> field(r)\<rbrakk> \<Longrightarrow> \<langle>a,a\<rangle> \<in> r^*"
 apply (rule rtrancl_unfold [THEN ssubst])
 apply (erule idI [THEN UnI1])
 done
 
 (*Closure under composition with r  *)
-lemma rtrancl_into_rtrancl: "\<lbrakk><a,b> \<in> r^*;  <b,c> \<in> r\<rbrakk> \<Longrightarrow> <a,c> \<in> r^*"
+lemma rtrancl_into_rtrancl: "\<lbrakk>\<langle>a,b\<rangle> \<in> r^*;  \<langle>b,c\<rangle> \<in> r\<rbrakk> \<Longrightarrow> \<langle>a,c\<rangle> \<in> r^*"
 apply (rule rtrancl_unfold [THEN ssubst])
 apply (rule compI [THEN UnI2], assumption, assumption)
 done
 
 (*rtrancl of r contains all pairs in r  *)
-lemma r_into_rtrancl: "<a,b> \<in> r \<Longrightarrow> <a,b> \<in> r^*"
+lemma r_into_rtrancl: "\<langle>a,b\<rangle> \<in> r \<Longrightarrow> \<langle>a,b\<rangle> \<in> r^*"
 by (rule rtrancl_refl [THEN rtrancl_into_rtrancl], blast+)
 
 (*The premise ensures that r consists entirely of pairs*)
@@ -148,22 +148,22 @@ by (blast intro: r_into_rtrancl dest!: rtrancl_type [THEN subsetD])
 (** standard induction rule **)
 
 lemma rtrancl_full_induct [case_names initial step, consumes 1]:
-  "\<lbrakk><a,b> \<in> r^*;
-      \<And>x. x \<in> field(r) \<Longrightarrow> P(<x,x>);
-      \<And>x y z.\<lbrakk>P(<x,y>); <x,y>: r^*; <y,z>: r\<rbrakk>  \<Longrightarrow>  P(<x,z>)\<rbrakk>
-   \<Longrightarrow>  P(<a,b>)"
+  "\<lbrakk>\<langle>a,b\<rangle> \<in> r^*;
+      \<And>x. x \<in> field(r) \<Longrightarrow> P(\<langle>x,x\<rangle>);
+      \<And>x y z.\<lbrakk>P(\<langle>x,y\<rangle>); \<langle>x,y\<rangle>: r^*; \<langle>y,z\<rangle>: r\<rbrakk>  \<Longrightarrow>  P(\<langle>x,z\<rangle>)\<rbrakk>
+   \<Longrightarrow>  P(\<langle>a,b\<rangle>)"
 by (erule def_induct [OF rtrancl_def rtrancl_bnd_mono], blast)
 
 (*nice induction rule.
   Tried adding the typing hypotheses y,z \<in> field(r), but these
   caused expensive case splits!*)
 lemma rtrancl_induct [case_names initial step, induct set: rtrancl]:
-  "\<lbrakk><a,b> \<in> r^*;
+  "\<lbrakk>\<langle>a,b\<rangle> \<in> r^*;
       P(a);
-      \<And>y z.\<lbrakk><a,y> \<in> r^*;  <y,z> \<in> r;  P(y)\<rbrakk> \<Longrightarrow> P(z)
+      \<And>y z.\<lbrakk>\<langle>a,y\<rangle> \<in> r^*;  \<langle>y,z\<rangle> \<in> r;  P(y)\<rbrakk> \<Longrightarrow> P(z)
 \<rbrakk> \<Longrightarrow> P(b)"
 (*by induction on this formula*)
-apply (subgoal_tac "\<forall>y. <a,b> = <a,y> \<longrightarrow> P (y) ")
+apply (subgoal_tac "\<forall>y. \<langle>a,b\<rangle> = \<langle>a,y\<rangle> \<longrightarrow> P (y) ")
 (*now solve first subgoal: this formula is sufficient*)
 apply (erule spec [THEN mp], rule refl)
 (*now do the induction*)
@@ -182,10 +182,10 @@ lemmas rtrancl_trans = trans_rtrancl [THEN transD]
 
 (*elimination of rtrancl -- by induction on a special formula*)
 lemma rtranclE:
-    "\<lbrakk><a,b> \<in> r^*;  (a=b) \<Longrightarrow> P;
-        \<And>y.\<lbrakk><a,y> \<in> r^*;   <y,b> \<in> r\<rbrakk> \<Longrightarrow> P\<rbrakk>
+    "\<lbrakk>\<langle>a,b\<rangle> \<in> r^*;  (a=b) \<Longrightarrow> P;
+        \<And>y.\<lbrakk>\<langle>a,y\<rangle> \<in> r^*;   \<langle>y,b\<rangle> \<in> r\<rbrakk> \<Longrightarrow> P\<rbrakk>
      \<Longrightarrow> P"
-apply (subgoal_tac "a = b | (\<exists>y. <a,y> \<in> r^* \<and> <y,b> \<in> r) ")
+apply (subgoal_tac "a = b | (\<exists>y. \<langle>a,y\<rangle> \<in> r^* \<and> \<langle>y,b\<rangle> \<in> r) ")
 (*see HOL/trancl*)
 apply blast
 apply (erule rtrancl_induct, blast+)
@@ -207,13 +207,13 @@ lemmas trancl_trans = trans_trancl [THEN transD]
 
 (** Conversions between trancl and rtrancl **)
 
-lemma trancl_into_rtrancl: "<a,b> \<in> r^+ \<Longrightarrow> <a,b> \<in> r^*"
+lemma trancl_into_rtrancl: "\<langle>a,b\<rangle> \<in> r^+ \<Longrightarrow> \<langle>a,b\<rangle> \<in> r^*"
 apply (unfold trancl_def)
 apply (blast intro: rtrancl_into_rtrancl)
 done
 
 (*r^+ contains all pairs in r  *)
-lemma r_into_trancl: "<a,b> \<in> r \<Longrightarrow> <a,b> \<in> r^+"
+lemma r_into_trancl: "\<langle>a,b\<rangle> \<in> r \<Longrightarrow> \<langle>a,b\<rangle> \<in> r^+"
 apply (unfold trancl_def)
 apply (blast intro!: rtrancl_refl)
 done
@@ -224,12 +224,12 @@ by (simp add: relation_def, blast intro: r_into_trancl)
 
 
 (*intro rule by definition: from r^* and r  *)
-lemma rtrancl_into_trancl1: "\<lbrakk><a,b> \<in> r^*;  <b,c> \<in> r\<rbrakk>   \<Longrightarrow>  <a,c> \<in> r^+"
+lemma rtrancl_into_trancl1: "\<lbrakk>\<langle>a,b\<rangle> \<in> r^*;  \<langle>b,c\<rangle> \<in> r\<rbrakk>   \<Longrightarrow>  \<langle>a,c\<rangle> \<in> r^+"
 by (unfold trancl_def, blast)
 
 (*intro rule from r and r^*  *)
 lemma rtrancl_into_trancl2:
-    "\<lbrakk><a,b> \<in> r;  <b,c> \<in> r^*\<rbrakk>   \<Longrightarrow>  <a,c> \<in> r^+"
+    "\<lbrakk>\<langle>a,b\<rangle> \<in> r;  \<langle>b,c\<rangle> \<in> r^*\<rbrakk>   \<Longrightarrow>  \<langle>a,c\<rangle> \<in> r^+"
 apply (erule rtrancl_induct)
  apply (erule r_into_trancl)
 apply (blast intro: r_into_trancl trancl_trans)
@@ -237,14 +237,14 @@ done
 
 (*Nice induction rule for trancl*)
 lemma trancl_induct [case_names initial step, induct set: trancl]:
-  "\<lbrakk><a,b> \<in> r^+;
-      \<And>y.  \<lbrakk><a,y> \<in> r\<rbrakk> \<Longrightarrow> P(y);
-      \<And>y z.\<lbrakk><a,y> \<in> r^+;  <y,z> \<in> r;  P(y)\<rbrakk> \<Longrightarrow> P(z)
+  "\<lbrakk>\<langle>a,b\<rangle> \<in> r^+;
+      \<And>y.  \<lbrakk>\<langle>a,y\<rangle> \<in> r\<rbrakk> \<Longrightarrow> P(y);
+      \<And>y z.\<lbrakk>\<langle>a,y\<rangle> \<in> r^+;  \<langle>y,z\<rangle> \<in> r;  P(y)\<rbrakk> \<Longrightarrow> P(z)
 \<rbrakk> \<Longrightarrow> P(b)"
 apply (rule compEpair)
 apply (unfold trancl_def, assumption)
 (*by induction on this formula*)
-apply (subgoal_tac "\<forall>z. <y,z> \<in> r \<longrightarrow> P (z) ")
+apply (subgoal_tac "\<forall>z. \<langle>y,z\<rangle> \<in> r \<longrightarrow> P (z) ")
 (*now solve first subgoal: this formula is sufficient*)
  apply blast
 apply (erule rtrancl_induct)
@@ -253,11 +253,11 @@ done
 
 (*elimination of r^+ -- NOT an induction rule*)
 lemma tranclE:
-    "\<lbrakk><a,b> \<in> r^+;
-        <a,b> \<in> r \<Longrightarrow> P;
-        \<And>y.\<lbrakk><a,y> \<in> r^+; <y,b> \<in> r\<rbrakk> \<Longrightarrow> P
+    "\<lbrakk>\<langle>a,b\<rangle> \<in> r^+;
+        \<langle>a,b\<rangle> \<in> r \<Longrightarrow> P;
+        \<And>y.\<lbrakk>\<langle>a,y\<rangle> \<in> r^+; \<langle>y,b\<rangle> \<in> r\<rbrakk> \<Longrightarrow> P
 \<rbrakk> \<Longrightarrow> P"
-apply (subgoal_tac "<a,b> \<in> r | (\<exists>y. <a,y> \<in> r^+ \<and> <y,b> \<in> r) ")
+apply (subgoal_tac "\<langle>a,b\<rangle> \<in> r | (\<exists>y. \<langle>a,y\<rangle> \<in> r^+ \<and> \<langle>y,b\<rangle> \<in> r) ")
 apply blast
 apply (rule compEpair)
 apply (unfold trancl_def, assumption)
@@ -320,7 +320,7 @@ done
 
 (** rtrancl **)
 
-lemma rtrancl_converseD: "<x,y>:converse(r)^* \<Longrightarrow> <x,y>:converse(r^*)"
+lemma rtrancl_converseD: "\<langle>x,y\<rangle>:converse(r)^* \<Longrightarrow> \<langle>x,y\<rangle>:converse(r^*)"
 apply (rule converseI)
 apply (frule rtrancl_type [THEN subsetD])
 apply (erule rtrancl_induct)
@@ -328,7 +328,7 @@ apply (blast intro: rtrancl_refl)
 apply (blast intro: r_into_rtrancl rtrancl_trans)
 done
 
-lemma rtrancl_converseI: "<x,y>:converse(r^*) \<Longrightarrow> <x,y>:converse(r)^*"
+lemma rtrancl_converseI: "\<langle>x,y\<rangle>:converse(r^*) \<Longrightarrow> \<langle>x,y\<rangle>:converse(r)^*"
 apply (drule converseD)
 apply (frule rtrancl_type [THEN subsetD])
 apply (erule rtrancl_induct)
@@ -344,12 +344,12 @@ done
 
 (** trancl **)
 
-lemma trancl_converseD: "<a, b>:converse(r)^+ \<Longrightarrow> <a, b>:converse(r^+)"
+lemma trancl_converseD: "\<langle>a, b\<rangle>:converse(r)^+ \<Longrightarrow> \<langle>a, b\<rangle>:converse(r^+)"
 apply (erule trancl_induct)
 apply (auto intro: r_into_trancl trancl_trans)
 done
 
-lemma trancl_converseI: "<x,y>:converse(r^+) \<Longrightarrow> <x,y>:converse(r)^+"
+lemma trancl_converseI: "\<langle>x,y\<rangle>:converse(r^+) \<Longrightarrow> \<langle>x,y\<rangle>:converse(r)^+"
 apply (drule converseD)
 apply (erule trancl_induct)
 apply (auto intro: r_into_trancl trancl_trans)
@@ -362,8 +362,8 @@ apply (safe dest!: trancl_converseD intro!: trancl_converseI)
 done
 
 lemma converse_trancl_induct [case_names initial step, consumes 1]:
-"\<lbrakk><a, b>:r^+; \<And>y. <y, b> :r \<Longrightarrow> P(y);
-      \<And>y z. \<lbrakk><y, z> \<in> r; <z, b> \<in> r^+; P(z)\<rbrakk> \<Longrightarrow> P(y)\<rbrakk>
+"\<lbrakk>\<langle>a, b\<rangle>:r^+; \<And>y. \<langle>y, b\<rangle> :r \<Longrightarrow> P(y);
+      \<And>y z. \<lbrakk>\<langle>y, z\<rangle> \<in> r; \<langle>z, b\<rangle> \<in> r^+; P(z)\<rbrakk> \<Longrightarrow> P(y)\<rbrakk>
        \<Longrightarrow> P(a)"
 apply (drule converseI)
 apply (simp (no_asm_use) add: trancl_converse [symmetric])

@@ -13,11 +13,11 @@ begin
 
 definition
   (* The definitions below are not `conventional', but yield simpler rules *)
-  Ensures :: "[i,i] => i"            (infixl \<open>Ensures\<close> 60)  where
+  Ensures :: "[i,i] \<Rightarrow> i"            (infixl \<open>Ensures\<close> 60)  where
   "A Ensures B \<equiv> {F \<in> program. F \<in> (reachable(F) \<inter> A) ensures (reachable(F) \<inter> B) }"
 
 definition
-  LeadsTo :: "[i, i] => i"            (infixl \<open>\<longmapsto>w\<close> 60)  where
+  LeadsTo :: "[i, i] \<Rightarrow> i"            (infixl \<open>\<longmapsto>w\<close> 60)  where
   "A \<longmapsto>w B \<equiv> {F \<in> program. F:(reachable(F) \<inter> A) \<longmapsto> (reachable(F) \<inter> B)}"
 
 
@@ -280,7 +280,7 @@ done
 
 lemma LessThan_induct: "\<lbrakk>\<forall>m \<in> nat. F:(A \<inter> f-``{m}) \<longmapsto>w ((A \<inter> f-``m) \<union> B);
       A<=f-``nat; F \<in> program\<rbrakk> \<Longrightarrow> F \<in> A \<longmapsto>w B"
-apply (rule_tac A1 = nat and f1 = "%x. x" in wf_measure [THEN LeadsTo_wf_induct])
+apply (rule_tac A1 = nat and f1 = "\<lambda>x. x" in wf_measure [THEN LeadsTo_wf_induct])
 apply (simp_all add: nat_measure_field)
 apply (simp add: ltI Image_inverse_lessThan vimage_def [symmetric])
 done

@@ -16,33 +16,33 @@ text\<open>We define functions analogous to \<^term>\<open>ordermap\<close> \<^t
 subsection\<open>Wellorderings\<close>
 
 definition
-  irreflexive :: "[i=>o,i,i]=>o" where
-    "irreflexive(M,A,r) \<equiv> \<forall>x[M]. x\<in>A \<longrightarrow> <x,x> \<notin> r"
+  irreflexive :: "[i\<Rightarrow>o,i,i]\<Rightarrow>o" where
+    "irreflexive(M,A,r) \<equiv> \<forall>x[M]. x\<in>A \<longrightarrow> \<langle>x,x\<rangle> \<notin> r"
   
 definition
-  transitive_rel :: "[i=>o,i,i]=>o" where
+  transitive_rel :: "[i\<Rightarrow>o,i,i]\<Rightarrow>o" where
     "transitive_rel(M,A,r) \<equiv> 
         \<forall>x[M]. x\<in>A \<longrightarrow> (\<forall>y[M]. y\<in>A \<longrightarrow> (\<forall>z[M]. z\<in>A \<longrightarrow> 
-                          <x,y>\<in>r \<longrightarrow> <y,z>\<in>r \<longrightarrow> <x,z>\<in>r))"
+                          \<langle>x,y\<rangle>\<in>r \<longrightarrow> \<langle>y,z\<rangle>\<in>r \<longrightarrow> \<langle>x,z\<rangle>\<in>r))"
 
 definition
-  linear_rel :: "[i=>o,i,i]=>o" where
+  linear_rel :: "[i\<Rightarrow>o,i,i]\<Rightarrow>o" where
     "linear_rel(M,A,r) \<equiv> 
-        \<forall>x[M]. x\<in>A \<longrightarrow> (\<forall>y[M]. y\<in>A \<longrightarrow> <x,y>\<in>r | x=y | <y,x>\<in>r)"
+        \<forall>x[M]. x\<in>A \<longrightarrow> (\<forall>y[M]. y\<in>A \<longrightarrow> \<langle>x,y\<rangle>\<in>r | x=y | \<langle>y,x\<rangle>\<in>r)"
 
 definition
-  wellfounded :: "[i=>o,i]=>o" where
+  wellfounded :: "[i\<Rightarrow>o,i]\<Rightarrow>o" where
     \<comment> \<open>EVERY non-empty set has an \<open>r\<close>-minimal element\<close>
     "wellfounded(M,r) \<equiv> 
-        \<forall>x[M]. x\<noteq>0 \<longrightarrow> (\<exists>y[M]. y\<in>x \<and> \<not>(\<exists>z[M]. z\<in>x \<and> <z,y> \<in> r))"
+        \<forall>x[M]. x\<noteq>0 \<longrightarrow> (\<exists>y[M]. y\<in>x \<and> \<not>(\<exists>z[M]. z\<in>x \<and> \<langle>z,y\<rangle> \<in> r))"
 definition
-  wellfounded_on :: "[i=>o,i,i]=>o" where
+  wellfounded_on :: "[i\<Rightarrow>o,i,i]\<Rightarrow>o" where
     \<comment> \<open>every non-empty SUBSET OF \<open>A\<close> has an \<open>r\<close>-minimal element\<close>
     "wellfounded_on(M,A,r) \<equiv> 
-        \<forall>x[M]. x\<noteq>0 \<longrightarrow> x\<subseteq>A \<longrightarrow> (\<exists>y[M]. y\<in>x \<and> \<not>(\<exists>z[M]. z\<in>x \<and> <z,y> \<in> r))"
+        \<forall>x[M]. x\<noteq>0 \<longrightarrow> x\<subseteq>A \<longrightarrow> (\<exists>y[M]. y\<in>x \<and> \<not>(\<exists>z[M]. z\<in>x \<and> \<langle>z,y\<rangle> \<in> r))"
 
 definition
-  wellordered :: "[i=>o,i,i]=>o" where
+  wellordered :: "[i\<Rightarrow>o,i,i]\<Rightarrow>o" where
     \<comment> \<open>linear and wellfounded on \<open>A\<close>\<close>
     "wellordered(M,A,r) \<equiv> 
         transitive_rel(M,A,r) \<and> linear_rel(M,A,r) \<and> wellfounded_on(M,A,r)"
@@ -108,7 +108,7 @@ by (blast intro: wellfounded_imp_wellfounded_on
 (*Consider the least z in domain(r) such that P(z) does not hold...*)
 lemma (in M_basic) wellfounded_induct: 
      "\<lbrakk>wellfounded(M,r); M(a); M(r); separation(M, \<lambda>x. \<not>P(x));  
-         \<forall>x. M(x) \<and> (\<forall>y. <y,x> \<in> r \<longrightarrow> P(y)) \<longrightarrow> P(x)\<rbrakk>
+         \<forall>x. M(x) \<and> (\<forall>y. \<langle>y,x\<rangle> \<in> r \<longrightarrow> P(y)) \<longrightarrow> P(x)\<rbrakk>
       \<Longrightarrow> P(a)"
 apply (simp (no_asm_use) add: wellfounded_def)
 apply (drule_tac x="{z \<in> domain(r). \<not>P(z)}" in rspec)
@@ -118,7 +118,7 @@ done
 lemma (in M_basic) wellfounded_on_induct: 
      "\<lbrakk>a\<in>A;  wellfounded_on(M,A,r);  M(A);  
        separation(M, \<lambda>x. x\<in>A \<longrightarrow> \<not>P(x));  
-       \<forall>x\<in>A. M(x) \<and> (\<forall>y\<in>A. <y,x> \<in> r \<longrightarrow> P(y)) \<longrightarrow> P(x)\<rbrakk>
+       \<forall>x\<in>A. M(x) \<and> (\<forall>y\<in>A. \<langle>y,x\<rangle> \<in> r \<longrightarrow> P(y)) \<longrightarrow> P(x)\<rbrakk>
       \<Longrightarrow> P(a)"
 apply (simp (no_asm_use) add: wellfounded_on_def)
 apply (drule_tac x="{z\<in>A. z\<in>A \<longrightarrow> \<not>P(z)}" in rspec)
@@ -182,7 +182,7 @@ apply (simp add: membership_def Memrel_def, safe)
    apply (frule transM, assumption)
    apply blast
   apply clarify 
-  apply (subgoal_tac "M(<xb,ya>)", blast) 
+  apply (subgoal_tac "M(\<langle>xb,ya\<rangle>)", blast) 
   apply (blast dest: transM) 
  apply auto 
 done
@@ -220,14 +220,14 @@ apply (blast intro: linear_rel_subset transitive_rel_subset
 done
 
 lemma (in M_basic) wellfounded_on_asym:
-     "\<lbrakk>wellfounded_on(M,A,r);  <a,x>\<in>r;  a\<in>A; x\<in>A;  M(A)\<rbrakk> \<Longrightarrow> <x,a>\<notin>r"
+     "\<lbrakk>wellfounded_on(M,A,r);  \<langle>a,x\<rangle>\<in>r;  a\<in>A; x\<in>A;  M(A)\<rbrakk> \<Longrightarrow> \<langle>x,a\<rangle>\<notin>r"
 apply (simp add: wellfounded_on_def) 
 apply (drule_tac x="{x,a}" in rspec) 
 apply (blast dest: transM)+
 done
 
 lemma (in M_basic) wellordered_asym:
-     "\<lbrakk>wellordered(M,A,r);  <a,x>\<in>r;  a\<in>A; x\<in>A;  M(A)\<rbrakk> \<Longrightarrow> <x,a>\<notin>r"
+     "\<lbrakk>wellordered(M,A,r);  \<langle>a,x\<rangle>\<in>r;  a\<in>A; x\<in>A;  M(A)\<rbrakk> \<Longrightarrow> \<langle>x,a\<rangle>\<notin>r"
 by (simp add: wellordered_def, blast dest: wellfounded_on_asym)
 
 end

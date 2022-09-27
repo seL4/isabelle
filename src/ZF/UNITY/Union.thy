@@ -15,34 +15,34 @@ begin
 
 definition
   (*FIXME: conjoin Init(F) \<inter> Init(G) \<noteq> 0 *)
-  ok :: "[i, i] => o"     (infixl \<open>ok\<close> 65)  where
+  ok :: "[i, i] \<Rightarrow> o"     (infixl \<open>ok\<close> 65)  where
     "F ok G \<equiv> Acts(F) \<subseteq> AllowedActs(G) \<and>
                Acts(G) \<subseteq> AllowedActs(F)"
 
 definition
   (*FIXME: conjoin (\<Inter>i \<in> I. Init(F(i))) \<noteq> 0 *)
-  OK  :: "[i, i=>i] => o"  where
+  OK  :: "[i, i\<Rightarrow>i] \<Rightarrow> o"  where
     "OK(I,F) \<equiv> (\<forall>i \<in> I. \<forall>j \<in> I-{i}. Acts(F(i)) \<subseteq> AllowedActs(F(j)))"
 
 definition
-  JOIN  :: "[i, i=>i] => i"  where
+  JOIN  :: "[i, i\<Rightarrow>i] \<Rightarrow> i"  where
   "JOIN(I,F) \<equiv> if I = 0 then SKIP else
                  mk_program(\<Inter>i \<in> I. Init(F(i)), \<Union>i \<in> I. Acts(F(i)),
                  \<Inter>i \<in> I. AllowedActs(F(i)))"
 
 definition
-  Join :: "[i, i] => i"  (infixl \<open>\<squnion>\<close> 65)  where
+  Join :: "[i, i] \<Rightarrow> i"  (infixl \<open>\<squnion>\<close> 65)  where
   "F \<squnion> G \<equiv> mk_program (Init(F) \<inter> Init(G), Acts(F) \<union> Acts(G),
                                 AllowedActs(F) \<inter> AllowedActs(G))"
 definition
   (*Characterizes safety properties.  Used with specifying AllowedActs*)
-  safety_prop :: "i => o"  where
+  safety_prop :: "i \<Rightarrow> o"  where
   "safety_prop(X) \<equiv> X\<subseteq>program \<and>
       SKIP \<in> X \<and> (\<forall>G \<in> program. Acts(G) \<subseteq> (\<Union>F \<in> X. Acts(F)) \<longrightarrow> G \<in> X)"
 
 syntax
-  "_JOIN1"  :: "[pttrns, i] => i"     (\<open>(3\<Squnion>_./ _)\<close> 10)
-  "_JOIN"   :: "[pttrn, i, i] => i"   (\<open>(3\<Squnion>_ \<in> _./ _)\<close> 10)
+  "_JOIN1"  :: "[pttrns, i] \<Rightarrow> i"     (\<open>(3\<Squnion>_./ _)\<close> 10)
+  "_JOIN"   :: "[pttrn, i, i] \<Rightarrow> i"   (\<open>(3\<Squnion>_ \<in> _./ _)\<close> 10)
 
 translations
   "\<Squnion>x \<in> A. B" == "CONST JOIN(A, (\<lambda>x. B))"
@@ -141,10 +141,10 @@ lemmas Join_ac = Join_assoc Join_left_absorb Join_commute Join_left_commute
 
 subsection\<open>Eliminating programify form JOIN and OK expressions\<close>
 
-lemma OK_programify [iff]: "OK(I, %x. programify(F(x))) \<longleftrightarrow> OK(I, F)"
+lemma OK_programify [iff]: "OK(I, \<lambda>x. programify(F(x))) \<longleftrightarrow> OK(I, F)"
 by (simp add: OK_def)
 
-lemma JOIN_programify [iff]: "JOIN(I, %x. programify(F(x))) = JOIN(I, F)"
+lemma JOIN_programify [iff]: "JOIN(I, \<lambda>x. programify(F(x))) = JOIN(I, F)"
 by (simp add: JOIN_def)
 
 
@@ -422,7 +422,7 @@ by (auto simp add: ok_def)
 
 lemmas ok_sym = ok_commute [THEN iffD1]
 
-lemma ok_iff_OK: "OK({<0,F>,<1,G>,<2,H>}, snd) \<longleftrightarrow> (F ok G \<and> (F \<squnion> G) ok H)"
+lemma ok_iff_OK: "OK({\<langle>0,F\<rangle>,\<langle>1,G\<rangle>,\<langle>2,H\<rangle>}, snd) \<longleftrightarrow> (F ok G \<and> (F \<squnion> G) ok H)"
 by (simp add: ok_def Join_def OK_def Int_assoc cons_absorb
                  Int_Un_distrib2 Ball_def,  safe, force+)
 

@@ -26,13 +26,13 @@ datatype
         | Bit ("w \<in> bin", "b \<in> bool")     (infixl \<open>BIT\<close> 90)
 
 consts
-  integ_of  :: "i=>i"
-  NCons     :: "[i,i]=>i"
-  bin_succ  :: "i=>i"
-  bin_pred  :: "i=>i"
-  bin_minus :: "i=>i"
-  bin_adder :: "i=>i"
-  bin_mult  :: "[i,i]=>i"
+  integ_of  :: "i\<Rightarrow>i"
+  NCons     :: "[i,i]\<Rightarrow>i"
+  bin_succ  :: "i\<Rightarrow>i"
+  bin_pred  :: "i\<Rightarrow>i"
+  bin_minus :: "i\<Rightarrow>i"
+  bin_adder :: "i\<Rightarrow>i"
+  bin_mult  :: "[i,i]\<Rightarrow>i"
 
 primrec
   integ_of_Pls:  "integ_of (Pls)     = $# 0"
@@ -74,7 +74,7 @@ primrec (*sum*)
     "bin_adder (v BIT x) =
        (\<lambda>w\<in>bin.
          bin_case (v BIT x, bin_pred(v BIT x),
-                   %w y. NCons(bin_adder (v) ` cond(x and y, bin_succ(w), w),
+                   \<lambda>w y. NCons(bin_adder (v) ` cond(x and y, bin_succ(w), w),
                                x xor y),
                    w))"
 
@@ -87,7 +87,7 @@ primrec
 *)
 
 definition
-  bin_add   :: "[i,i]=>i"  where
+  bin_add   :: "[i,i]\<Rightarrow>i"  where
     "bin_add(v,w) \<equiv> bin_adder(v)`w"
 
 
@@ -114,8 +114,8 @@ translations
   "#-2" \<rightleftharpoons> "CONST integ_of(CONST Min BIT 0)"
 
 syntax
-  "_Int" :: "num_token => i"  (\<open>#_\<close> 1000)
-  "_Neg_Int" :: "num_token => i"  (\<open>#-_\<close> 1000)
+  "_Int" :: "num_token \<Rightarrow> i"  (\<open>#_\<close> 1000)
+  "_Neg_Int" :: "num_token \<Rightarrow> i"  (\<open>#-_\<close> 1000)
 
 ML_file \<open>Tools/numeral_syntax.ML\<close>
 

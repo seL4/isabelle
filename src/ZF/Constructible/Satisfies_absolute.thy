@@ -17,7 +17,7 @@ subsubsection\<open>The Formula \<^term>\<open>is_depth\<close>, Internalized\<c
         is_formula_N(M,n,formula_n) \<and> p \<notin> formula_n \<and>
         successor(M,n,sn) \<and> is_formula_N(M,sn,formula_sn) \<and> p \<in> formula_sn" *)
 definition
-  depth_fm :: "[i,i]=>i" where
+  depth_fm :: "[i,i]\<Rightarrow>i" where
   "depth_fm(p,n) \<equiv> 
      Exists(Exists(Exists(
        And(formula_N_fm(n#+3,1),
@@ -58,7 +58,7 @@ text\<open>The arguments of \<^term>\<open>is_a\<close> are always 2, 1, 0, and 
       will be enclosed by three quantifiers.\<close>
 
 (* is_formula_case :: 
-    "[i=>o, [i,i,i]=>o, [i,i,i]=>o, [i,i,i]=>o, [i,i]=>o, i, i] => o"
+    "[i\<Rightarrow>o, [i,i,i]\<Rightarrow>o, [i,i,i]\<Rightarrow>o, [i,i,i]\<Rightarrow>o, [i,i]\<Rightarrow>o, i, i] \<Rightarrow> o"
   "is_formula_case(M, is_a, is_b, is_c, is_d, v, z) \<equiv> 
       (\<forall>x[M]. \<forall>y[M]. x\<in>nat \<longrightarrow> y\<in>nat \<longrightarrow> is_Member(M,x,y,v) \<longrightarrow> is_a(x,y,z)) \<and>
       (\<forall>x[M]. \<forall>y[M]. x\<in>nat \<longrightarrow> y\<in>nat \<longrightarrow> is_Equal(M,x,y,v) \<longrightarrow> is_b(x,y,z)) \<and>
@@ -67,7 +67,7 @@ text\<open>The arguments of \<^term>\<open>is_a\<close> are always 2, 1, 0, and 
       (\<forall>x[M]. x\<in>formula \<longrightarrow> is_Forall(M,x,v) \<longrightarrow> is_d(x,z))" *)
 
 definition
-  formula_case_fm :: "[i, i, i, i, i, i]=>i" where
+  formula_case_fm :: "[i, i, i, i, i, i]\<Rightarrow>i" where
   "formula_case_fm(is_a, is_b, is_c, is_d, v, z) \<equiv> 
         And(Forall(Forall(Implies(finite_ordinal_fm(1), 
                            Implies(finite_ordinal_fm(0), 
@@ -175,7 +175,7 @@ done
 subsection \<open>Absoluteness for the Function \<^term>\<open>satisfies\<close>\<close>
 
 definition
-  is_depth_apply :: "[i=>o,i,i,i] => o" where
+  is_depth_apply :: "[i\<Rightarrow>o,i,i,i] \<Rightarrow> o" where
    \<comment> \<open>Merely a useful abbreviation for the sequel.\<close>
   "is_depth_apply(M,h,p,z) \<equiv>
     \<exists>dp[M]. \<exists>sdp[M]. \<exists>hsdp[M]. 
@@ -195,12 +195,12 @@ text\<open>There is at present some redundancy between the relativizations in
 text\<open>These constants let us instantiate the parameters \<^term>\<open>a\<close>, \<^term>\<open>b\<close>,
       \<^term>\<open>c\<close>, \<^term>\<open>d\<close>, etc., of the locale \<open>Formula_Rec\<close>.\<close>
 definition
-  satisfies_a :: "[i,i,i]=>i" where
+  satisfies_a :: "[i,i,i]\<Rightarrow>i" where
    "satisfies_a(A) \<equiv> 
     \<lambda>x y. \<lambda>env \<in> list(A). bool_of_o (nth(x,env) \<in> nth(y,env))"
 
 definition
-  satisfies_is_a :: "[i=>o,i,i,i,i]=>o" where
+  satisfies_is_a :: "[i\<Rightarrow>o,i,i,i,i]\<Rightarrow>o" where
    "satisfies_is_a(M,A) \<equiv> 
     \<lambda>x y zz. \<forall>lA[M]. is_list(M,A,lA) \<longrightarrow>
              is_lambda(M, lA, 
@@ -210,12 +210,12 @@ definition
                 zz)"
 
 definition
-  satisfies_b :: "[i,i,i]=>i" where
+  satisfies_b :: "[i,i,i]\<Rightarrow>i" where
    "satisfies_b(A) \<equiv>
     \<lambda>x y. \<lambda>env \<in> list(A). bool_of_o (nth(x,env) = nth(y,env))"
 
 definition
-  satisfies_is_b :: "[i=>o,i,i,i,i]=>o" where
+  satisfies_is_b :: "[i\<Rightarrow>o,i,i,i,i]\<Rightarrow>o" where
    \<comment> \<open>We simplify the formula to have just \<^term>\<open>nx\<close> rather than 
        introducing \<^term>\<open>ny\<close> with  \<^term>\<open>nx=ny\<close>\<close>
   "satisfies_is_b(M,A) \<equiv> 
@@ -226,11 +226,11 @@ definition
                 zz)"
 
 definition 
-  satisfies_c :: "[i,i,i,i,i]=>i" where
+  satisfies_c :: "[i,i,i,i,i]\<Rightarrow>i" where
    "satisfies_c(A) \<equiv> \<lambda>p q rp rq. \<lambda>env \<in> list(A). not(rp ` env and rq ` env)"
 
 definition
-  satisfies_is_c :: "[i=>o,i,i,i,i,i]=>o" where
+  satisfies_is_c :: "[i\<Rightarrow>o,i,i,i,i,i]\<Rightarrow>o" where
    "satisfies_is_c(M,A,h) \<equiv> 
     \<lambda>p q zz. \<forall>lA[M]. is_list(M,A,lA) \<longrightarrow>
              is_lambda(M, lA, \<lambda>env z. \<exists>hp[M]. \<exists>hq[M]. 
@@ -240,12 +240,12 @@ definition
                 zz)"
 
 definition
-  satisfies_d :: "[i,i,i]=>i" where
+  satisfies_d :: "[i,i,i]\<Rightarrow>i" where
    "satisfies_d(A) 
     \<equiv> \<lambda>p rp. \<lambda>env \<in> list(A). bool_of_o (\<forall>x\<in>A. rp ` (Cons(x,env)) = 1)"
 
 definition
-  satisfies_is_d :: "[i=>o,i,i,i,i]=>o" where
+  satisfies_is_d :: "[i\<Rightarrow>o,i,i,i,i]\<Rightarrow>o" where
    "satisfies_is_d(M,A,h) \<equiv> 
     \<lambda>p zz. \<forall>lA[M]. is_list(M,A,lA) \<longrightarrow>
              is_lambda(M, lA, 
@@ -258,7 +258,7 @@ definition
                zz)"
 
 definition
-  satisfies_MH :: "[i=>o,i,i,i,i]=>o" where
+  satisfies_MH :: "[i\<Rightarrow>o,i,i,i,i]\<Rightarrow>o" where
     \<comment> \<open>The variable \<^term>\<open>u\<close> is unused, but gives \<^term>\<open>satisfies_MH\<close> 
         the correct arity.\<close>
   "satisfies_MH \<equiv> 
@@ -271,7 +271,7 @@ definition
                z)"
 
 definition
-  is_satisfies :: "[i=>o,i,i,i]=>o" where
+  is_satisfies :: "[i\<Rightarrow>o,i,i,i]\<Rightarrow>o" where
   "is_satisfies(M,A) \<equiv> is_formula_rec (M, satisfies_MH(M,A))"
 
 
@@ -515,7 +515,7 @@ subsubsection\<open>The Operator \<^term>\<open>is_depth_apply\<close>, Internal
         finite_ordinal(M,dp) \<and> is_depth(M,p,dp) \<and> successor(M,dp,sdp) \<and>
         fun_apply(M,h,sdp,hsdp) \<and> fun_apply(M,hsdp,p,z) *)
 definition
-  depth_apply_fm :: "[i,i,i]=>i" where
+  depth_apply_fm :: "[i,i,i]\<Rightarrow>i" where
     "depth_apply_fm(h,p,z) \<equiv>
        Exists(Exists(Exists(
         And(finite_ordinal_fm(2),
@@ -559,7 +559,7 @@ subsubsection\<open>The Operator \<^term>\<open>satisfies_is_a\<close>, Internal
                 zz)  *)
 
 definition
-  satisfies_is_a_fm :: "[i,i,i,i]=>i" where
+  satisfies_is_a_fm :: "[i,i,i,i]\<Rightarrow>i" where
   "satisfies_is_a_fm(A,x,y,z) \<equiv>
    Forall(
      Implies(is_list_fm(succ(A),0),
@@ -611,7 +611,7 @@ subsubsection\<open>The Operator \<^term>\<open>satisfies_is_b\<close>, Internal
                 zz) *)
 
 definition
-  satisfies_is_b_fm :: "[i,i,i,i]=>i" where
+  satisfies_is_b_fm :: "[i,i,i,i]\<Rightarrow>i" where
  "satisfies_is_b_fm(A,x,y,z) \<equiv>
    Forall(
      Implies(is_list_fm(succ(A),0),
@@ -661,7 +661,7 @@ subsubsection\<open>The Operator \<^term>\<open>satisfies_is_c\<close>, Internal
                 zz) *)
 
 definition
-  satisfies_is_c_fm :: "[i,i,i,i,i]=>i" where
+  satisfies_is_c_fm :: "[i,i,i,i,i]\<Rightarrow>i" where
  "satisfies_is_c_fm(A,h,p,q,zz) \<equiv>
    Forall(
      Implies(is_list_fm(succ(A),0),
@@ -715,7 +715,7 @@ subsubsection\<open>The Operator \<^term>\<open>satisfies_is_d\<close>, Internal
                zz) *)
 
 definition
-  satisfies_is_d_fm :: "[i,i,i,i]=>i" where
+  satisfies_is_d_fm :: "[i,i,i,i]\<Rightarrow>i" where
  "satisfies_is_d_fm(A,h,p,zz) \<equiv>
    Forall(
      Implies(is_list_fm(succ(A),0),
@@ -770,7 +770,7 @@ subsubsection\<open>The Operator \<^term>\<open>satisfies_MH\<close>, Internaliz
                zz) *)
 
 definition
-  satisfies_MH_fm :: "[i,i,i,i]=>i" where
+  satisfies_MH_fm :: "[i,i,i,i]\<Rightarrow>i" where
  "satisfies_MH_fm(A,u,f,zz) \<equiv>
    Forall(
      Implies(is_formula_fm(0),

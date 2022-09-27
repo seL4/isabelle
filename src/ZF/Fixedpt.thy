@@ -9,15 +9,15 @@ theory Fixedpt imports equalities begin
 
 definition 
   (*monotone operator from Pow(D) to itself*)
-  bnd_mono :: "[i,i=>i]=>o"  where
+  bnd_mono :: "[i,i\<Rightarrow>i]\<Rightarrow>o"  where
      "bnd_mono(D,h) \<equiv> h(D)<=D \<and> (\<forall>W X. W<=X \<longrightarrow> X<=D \<longrightarrow> h(W) \<subseteq> h(X))"
 
 definition 
-  lfp      :: "[i,i=>i]=>i"  where
+  lfp      :: "[i,i\<Rightarrow>i]\<Rightarrow>i"  where
      "lfp(D,h) \<equiv> \<Inter>({X: Pow(D). h(X) \<subseteq> X})"
 
 definition 
-  gfp      :: "[i,i=>i]=>i"  where
+  gfp      :: "[i,i\<Rightarrow>i]\<Rightarrow>i"  where
      "gfp(D,h) \<equiv> \<Union>({X: Pow(D). X \<subseteq> h(X)})"
 
 text\<open>The theorem is proved in the lattice of subsets of \<^term>\<open>D\<close>, 
@@ -285,7 +285,7 @@ done
 
 (*The version used in the induction/coinduction package*)
 lemma def_Collect_coinduct:
-    "\<lbrakk>A \<equiv> gfp(D, %w. Collect(D,P(w)));  bnd_mono(D, %w. Collect(D,P(w)));   
+    "\<lbrakk>A \<equiv> gfp(D, \<lambda>w. Collect(D,P(w)));  bnd_mono(D, \<lambda>w. Collect(D,P(w)));   
         a: X;  X \<subseteq> D;  \<And>z. z: X \<Longrightarrow> P(X \<union> A, z)\<rbrakk> \<Longrightarrow>  
      a \<in> A"
 apply (rule def_coinduct, assumption+, blast+)

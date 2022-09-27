@@ -9,12 +9,12 @@ theory Denotation imports Com begin
 subsection \<open>Definitions\<close>
 
 consts
-  A     :: "i => i => i"
-  B     :: "i => i => i"
-  C     :: "i => i"
+  A     :: "i \<Rightarrow> i \<Rightarrow> i"
+  B     :: "i \<Rightarrow> i \<Rightarrow> i"
+  C     :: "i \<Rightarrow> i"
 
 definition
-  Gamma :: "[i,i,i] => i"  (\<open>\<Gamma>\<close>) where
+  Gamma :: "[i,i,i] \<Rightarrow> i"  (\<open>\<Gamma>\<close>) where
   "\<Gamma>(b,cden) \<equiv>
     (\<lambda>phi. {io \<in> (phi O cden). B(b,fst(io))=1} \<union>
            {io \<in> id(loc->nat). B(b,fst(io))=0})"
@@ -58,7 +58,7 @@ lemma C_subset: "c \<in> com \<Longrightarrow> C(c) \<subseteq> (loc->nat) \<tim
   done
 
 lemma C_type_D [dest]:
-    "\<lbrakk><x,y> \<in> C(c); c \<in> com\<rbrakk> \<Longrightarrow> x \<in> loc->nat \<and> y \<in> loc->nat"
+    "\<lbrakk>\<langle>x,y\<rangle> \<in> C(c); c \<in> com\<rbrakk> \<Longrightarrow> x \<in> loc->nat \<and> y \<in> loc->nat"
   by (blast dest: C_subset [THEN subsetD])
 
 lemma C_type_fst [dest]: "\<lbrakk>x \<in> C(c); c \<in> com\<rbrakk> \<Longrightarrow> fst(x) \<in> loc->nat"

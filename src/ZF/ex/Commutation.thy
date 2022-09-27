@@ -8,29 +8,29 @@ Commutation theory for proving the Church Rosser theorem.
 theory Commutation imports ZF begin
 
 definition
-  square  :: "[i, i, i, i] => o" where
+  square  :: "[i, i, i, i] \<Rightarrow> o" where
   "square(r,s,t,u) \<equiv>
-    (\<forall>a b. <a,b> \<in> r \<longrightarrow> (\<forall>c. <a, c> \<in> s \<longrightarrow> (\<exists>x. <b,x> \<in> t \<and> <c,x> \<in> u)))"
+    (\<forall>a b. \<langle>a,b\<rangle> \<in> r \<longrightarrow> (\<forall>c. \<langle>a, c\<rangle> \<in> s \<longrightarrow> (\<exists>x. \<langle>b,x\<rangle> \<in> t \<and> \<langle>c,x\<rangle> \<in> u)))"
 
 definition
-  commute :: "[i, i] => o" where
+  commute :: "[i, i] \<Rightarrow> o" where
   "commute(r,s) \<equiv> square(r,s,s,r)"
 
 definition
-  diamond :: "i=>o" where
+  diamond :: "i\<Rightarrow>o" where
   "diamond(r)   \<equiv> commute(r, r)"
 
 definition
-  strip :: "i=>o" where
+  strip :: "i\<Rightarrow>o" where
   "strip(r) \<equiv> commute(r^*, r)"
 
 definition
-  Church_Rosser :: "i => o" where
-  "Church_Rosser(r) \<equiv> (\<forall>x y. <x,y> \<in>  (r \<union> converse(r))^* \<longrightarrow>
-                        (\<exists>z. <x,z> \<in> r^* \<and> <y,z> \<in> r^*))"
+  Church_Rosser :: "i \<Rightarrow> o" where
+  "Church_Rosser(r) \<equiv> (\<forall>x y. \<langle>x,y\<rangle> \<in>  (r \<union> converse(r))^* \<longrightarrow>
+                        (\<exists>z. \<langle>x,z\<rangle> \<in> r^* \<and> \<langle>y,z\<rangle> \<in> r^*))"
 
 definition
-  confluent :: "i=>o" where
+  confluent :: "i\<Rightarrow>o" where
   "confluent(r) \<equiv> diamond(r^*)"
 
 

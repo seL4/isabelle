@@ -12,8 +12,8 @@ imports AC_Equiv Hartog
 begin
 
 definition
-  HH :: "[i, i, i] => i"  where
-    "HH(f,x,a) \<equiv> transrec(a, %b r. let z = x - (\<Union>c \<in> b. r`c)
+  HH :: "[i, i, i] \<Rightarrow> i"  where
+    "HH(f,x,a) \<equiv> transrec(a, \<lambda>b r. let z = x - (\<Union>c \<in> b. r`c)
                                     in  if f`z \<in> Pow(z)-{0} then f`z else {x})"
 
 subsection\<open>Lemmas useful in each of the three proofs\<close>
@@ -57,7 +57,7 @@ apply (rule HH_eq [THEN trans])
 prefer 2 apply assumption+
 apply (rule leI [THEN le_imp_subset, THEN subset_imp_Diff_eq, THEN ssubst], 
        assumption)
-apply (rule_tac t = "%z. z-X" for X in subst_context)
+apply (rule_tac t = "\<lambda>z. z-X" for X in subst_context)
 apply (rule Diff_UN_eq_self)
 apply (drule Ord_DiffE, assumption) 
 apply (fast elim: ltE, auto) 
@@ -82,7 +82,7 @@ done
 
 lemma HH_eq_arg_lt:
      "\<lbrakk>HH(f,x,v)=HH(f,x,w); HH(f,x,v) \<in> Pow(x)-{0}; v \<in> w\<rbrakk> \<Longrightarrow> P"
-apply (frule_tac P = "%y. y \<in> Pow (x) -{0}" in subst, assumption)
+apply (frule_tac P = "\<lambda>y. y \<in> Pow (x) -{0}" in subst, assumption)
 apply (drule_tac a = w in HH_subset_x_imp_subset_Diff_UN)
 apply (drule subst_elem, assumption)
 apply (fast intro!: singleton_iff [THEN iffD2] equals0I)

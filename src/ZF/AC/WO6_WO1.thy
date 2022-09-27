@@ -16,18 +16,18 @@ begin
 
 (* Auxiliary definitions used in proof *)
 definition
-  NN  :: "i => i"  where
+  NN  :: "i \<Rightarrow> i"  where
     "NN(y) \<equiv> {m \<in> nat. \<exists>a. \<exists>f. Ord(a) \<and> domain(f)=a  \<and>  
                         (\<Union>b<a. f`b) = y \<and> (\<forall>b<a. f`b \<lesssim> m)}"
   
 definition
-  uu  :: "[i, i, i, i] => i"  where
+  uu  :: "[i, i, i, i] \<Rightarrow> i"  where
     "uu(f, beta, gamma, delta) \<equiv> (f`beta * f`gamma) \<inter> f`delta"
 
 
 (** Definitions for case 1 **)
 definition
-  vv1 :: "[i, i, i] => i"  where
+  vv1 :: "[i, i, i] \<Rightarrow> i"  where
      "vv1(f,m,b) \<equiv>                                                
            let g = \<mu> g. (\<exists>d. Ord(d) \<and> (domain(uu(f,b,g,d)) \<noteq> 0 \<and> 
                                  domain(uu(f,b,g,d)) \<lesssim> m));      
@@ -36,26 +36,26 @@ definition
            in  if f`b \<noteq> 0 then domain(uu(f,b,g,d)) else 0"
 
 definition
-  ww1 :: "[i, i, i] => i"  where
+  ww1 :: "[i, i, i] \<Rightarrow> i"  where
      "ww1(f,m,b) \<equiv> f`b - vv1(f,m,b)"
 
 definition
-  gg1 :: "[i, i, i] => i"  where
+  gg1 :: "[i, i, i] \<Rightarrow> i"  where
      "gg1(f,a,m) \<equiv> \<lambda>b \<in> a++a. if b<a then vv1(f,m,b) else ww1(f,m,b--a)"
 
 
 (** Definitions for case 2 **)
 definition
-  vv2 :: "[i, i, i, i] => i"  where
+  vv2 :: "[i, i, i, i] \<Rightarrow> i"  where
      "vv2(f,b,g,s) \<equiv>   
            if f`g \<noteq> 0 then {uu(f, b, g, \<mu> d. uu(f,b,g,d) \<noteq> 0)`s} else 0"
 
 definition
-  ww2 :: "[i, i, i, i] => i"  where
+  ww2 :: "[i, i, i, i] \<Rightarrow> i"  where
      "ww2(f,b,g,s) \<equiv> f`g - vv2(f,b,g,s)"
 
 definition
-  gg2 :: "[i, i, i, i] => i"  where
+  gg2 :: "[i, i, i, i] \<Rightarrow> i"  where
      "gg2(f,a,b,s) \<equiv>
               \<lambda>g \<in> a++a. if g<a then vv2(f,b,g,s) else ww2(f,b,g--a,s)"
 
@@ -213,12 +213,12 @@ lemma nested_LeastI:
          Least_a = (\<mu> a. \<exists>x. Ord(x) \<and> P(a, x))\<rbrakk>   
       \<Longrightarrow> P(Least_a, \<mu> b. P(Least_a, b))"
 apply (erule ssubst)
-apply (rule_tac Q = "%z. P (z, \<mu> b. P (z, b))" in LeastI2)
+apply (rule_tac Q = "\<lambda>z. P (z, \<mu> b. P (z, b))" in LeastI2)
 apply (fast elim!: LeastI)+
 done
 
 lemmas nested_Least_instance =
-       nested_LeastI [of "%g d. domain(uu(f,b,g,d)) \<noteq> 0 \<and> 
+       nested_LeastI [of "\<lambda>g d. domain(uu(f,b,g,d)) \<noteq> 0 \<and> 
                                 domain(uu(f,b,g,d)) \<lesssim> m"] for f b m
 
 lemma gg1_lepoll_m: 
@@ -409,26 +409,26 @@ done
    (used only in the following two lemmas)                          *)
 
 lemma z_n_subset_z_succ_n:
-     "\<forall>n \<in> nat. rec(n, x, %k r. r \<union> r*r) \<subseteq> rec(succ(n), x, %k r. r \<union> r*r)"
+     "\<forall>n \<in> nat. rec(n, x, \<lambda>k r. r \<union> r*r) \<subseteq> rec(succ(n), x, \<lambda>k r. r \<union> r*r)"
 by (fast intro: rec_succ [THEN ssubst])
 
 lemma le_subsets:
      "\<lbrakk>\<forall>n \<in> nat. f(n)<=f(succ(n)); n\<le>m; n \<in> nat; m \<in> nat\<rbrakk>   
       \<Longrightarrow> f(n)<=f(m)"
 apply (erule_tac P = "n\<le>m" in rev_mp)
-apply (rule_tac P = "%z. n\<le>z \<longrightarrow> f (n) \<subseteq> f (z) " in nat_induct) 
+apply (rule_tac P = "\<lambda>z. n\<le>z \<longrightarrow> f (n) \<subseteq> f (z) " in nat_induct) 
 apply (auto simp add: le_iff) 
 done
 
 lemma le_imp_rec_subset:
      "\<lbrakk>n\<le>m; m \<in> nat\<rbrakk> 
-      \<Longrightarrow> rec(n, x, %k r. r \<union> r*r) \<subseteq> rec(m, x, %k r. r \<union> r*r)"
+      \<Longrightarrow> rec(n, x, \<lambda>k r. r \<union> r*r) \<subseteq> rec(m, x, \<lambda>k r. r \<union> r*r)"
 apply (rule z_n_subset_z_succ_n [THEN le_subsets])
 apply (blast intro: lt_nat_in_nat)+
 done
 
 lemma lemma_iv: "\<exists>y. x \<union> y*y \<subseteq> y"
-apply (rule_tac x = "\<Union>n \<in> nat. rec (n, x, %k r. r \<union> r*r) " in exI)
+apply (rule_tac x = "\<Union>n \<in> nat. rec (n, x, \<lambda>k r. r \<union> r*r) " in exI)
 apply safe
 apply (rule nat_0I [THEN UN_I], simp)
 apply (rule_tac a = "succ (n \<union> na) " in UN_I)
@@ -477,7 +477,7 @@ apply (elim CollectE exE conjE)
 apply (rule_tac x = a in exI)
 apply (rule_tac x = "\<lambda>x \<in> y. \<mu> i. f`i = {x}" in exI)
 apply (rule conjI, assumption)
-apply (rule_tac d = "%i. THE x. x \<in> f`i" in lam_injective)
+apply (rule_tac d = "\<lambda>i. THE x. x \<in> f`i" in lam_injective)
 apply (drule lemma1, assumption+)
 apply (fast elim!: Least_le [THEN lt_trans1, THEN ltD] lt_Ord)
 apply (rule lemma2 [THEN ssubst], assumption+, blast)

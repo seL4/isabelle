@@ -8,7 +8,7 @@ section\<open>Lists in Zermelo-Fraenkel Set Theory\<close>
 theory List imports Datatype ArithSimp begin
 
 consts
-  list       :: "i=>i"
+  list       :: "i\<Rightarrow>i"
 
 datatype
   "list(A)" = Nil | Cons ("a \<in> A", "l \<in> list(A)")
@@ -16,7 +16,7 @@ datatype
 
 syntax
  "_Nil" :: i  (\<open>[]\<close>)
- "_List" :: "is => i"  (\<open>[(_)]\<close>)
+ "_List" :: "is \<Rightarrow> i"  (\<open>[(_)]\<close>)
 
 translations
   "[x, xs]"     == "CONST Cons(x, [xs])"
@@ -25,9 +25,9 @@ translations
 
 
 consts
-  length :: "i=>i"
-  hd     :: "i=>i"
-  tl     :: "i=>i"
+  length :: "i\<Rightarrow>i"
+  hd     :: "i\<Rightarrow>i"
+  tl     :: "i\<Rightarrow>i"
 
 primrec
   "length([]) = 0"
@@ -43,9 +43,9 @@ primrec
 
 
 consts
-  map         :: "[i=>i, i] => i"
-  set_of_list :: "i=>i"
-  app         :: "[i,i]=>i"                        (infixr \<open>@\<close> 60)
+  map         :: "[i\<Rightarrow>i, i] \<Rightarrow> i"
+  set_of_list :: "i\<Rightarrow>i"
+  app         :: "[i,i]\<Rightarrow>i"                        (infixr \<open>@\<close> 60)
 
 (*map is a binding operator -- it applies to meta-level functions, not
 object-level functions.  This simplifies the final form of term_rec_conv,
@@ -64,9 +64,9 @@ primrec
 
 
 consts
-  rev :: "i=>i"
-  flat       :: "i=>i"
-  list_add   :: "i=>i"
+  rev :: "i\<Rightarrow>i"
+  flat       :: "i\<Rightarrow>i"
+  list_add   :: "i\<Rightarrow>i"
 
 primrec
   "rev([]) = []"
@@ -81,7 +81,7 @@ primrec
   "list_add(Cons(a,l)) = a #+ list_add(l)"
 
 consts
-  drop       :: "[i,i]=>i"
+  drop       :: "[i,i]\<Rightarrow>i"
 
 primrec
   drop_0:    "drop(0,l) = l"
@@ -92,25 +92,25 @@ primrec
 
 definition
 (* Function `take' returns the first n elements of a list *)
-  take     :: "[i,i]=>i"  where
+  take     :: "[i,i]\<Rightarrow>i"  where
   "take(n, as) \<equiv> list_rec(\<lambda>n\<in>nat. [],
-                %a l r. \<lambda>n\<in>nat. nat_case([], %m. Cons(a, r`m), n), as)`n"
+                \<lambda>a l r. \<lambda>n\<in>nat. nat_case([], \<lambda>m. Cons(a, r`m), n), as)`n"
 
 definition
-  nth :: "[i, i]=>i"  where
+  nth :: "[i, i]\<Rightarrow>i"  where
   \<comment> \<open>returns the (n+1)th element of a list, or 0 if the
    list is too short.\<close>
   "nth(n, as) \<equiv> list_rec(\<lambda>n\<in>nat. 0,
-                          %a l r. \<lambda>n\<in>nat. nat_case(a, %m. r`m, n), as) ` n"
+                          \<lambda>a l r. \<lambda>n\<in>nat. nat_case(a, \<lambda>m. r`m, n), as) ` n"
 
 definition
-  list_update :: "[i, i, i]=>i"  where
+  list_update :: "[i, i, i]\<Rightarrow>i"  where
   "list_update(xs, i, v) \<equiv> list_rec(\<lambda>n\<in>nat. Nil,
-      %u us vs. \<lambda>n\<in>nat. nat_case(Cons(v, us), %m. Cons(u, vs`m), n), xs)`i"
+      \<lambda>u us vs. \<lambda>n\<in>nat. nat_case(Cons(v, us), \<lambda>m. Cons(u, vs`m), n), xs)`i"
 
 consts
-  filter :: "[i=>o, i] => i"
-  upt :: "[i, i] =>i"
+  filter :: "[i\<Rightarrow>o, i] \<Rightarrow> i"
+  upt :: "[i, i] \<Rightarrow>i"
 
 primrec
   "filter(P, Nil) = Nil"
@@ -122,11 +122,11 @@ primrec
   "upt(i, succ(j)) = (if i \<le> j then upt(i, j)@[j] else Nil)"
 
 definition
-  min :: "[i,i] =>i"  where
+  min :: "[i,i] \<Rightarrow>i"  where
     "min(x, y) \<equiv> (if x \<le> y then x else y)"
 
 definition
-  max :: "[i, i] =>i"  where
+  max :: "[i, i] \<Rightarrow>i"  where
     "max(x, y) \<equiv> (if x \<le> y then y else x)"
 
 (*** Aspects of the datatype definition ***)
@@ -286,12 +286,12 @@ by (simp add: list_add_list_def)
 
 (*** theorems about map ***)
 
-lemma map_ident [simp]: "l \<in> list(A) \<Longrightarrow> map(%u. u, l) = l"
+lemma map_ident [simp]: "l \<in> list(A) \<Longrightarrow> map(\<lambda>u. u, l) = l"
 apply (induct_tac "l")
 apply (simp_all (no_asm_simp))
 done
 
-lemma map_compose: "l \<in> list(A) \<Longrightarrow> map(h, map(j,l)) = map(%u. h(j(u)), l)"
+lemma map_compose: "l \<in> list(A) \<Longrightarrow> map(h, map(j,l)) = map(\<lambda>u. h(j(u)), l)"
 apply (induct_tac "l")
 apply (simp_all (no_asm_simp))
 done
@@ -309,7 +309,7 @@ done
 lemma list_rec_map:
      "l \<in> list(A) \<Longrightarrow>
       list_rec(c, d, map(h,l)) =
-      list_rec(c, %x xs r. d(h(x), map(h,xs), r), l)"
+      list_rec(c, \<lambda>x xs r. d(h(x), map(h,xs), r), l)"
 apply (induct_tac "l")
 apply (simp_all (no_asm_simp))
 done
@@ -510,10 +510,10 @@ done
 lemma filter_is_subset: "xs:list(A) \<Longrightarrow> set_of_list(filter(P,xs)) \<subseteq> set_of_list(xs)"
 by (induct_tac "xs", auto)
 
-lemma filter_False [simp]: "xs:list(A) \<Longrightarrow> filter(%p. False, xs) = Nil"
+lemma filter_False [simp]: "xs:list(A) \<Longrightarrow> filter(\<lambda>p. False, xs) = Nil"
 by (induct_tac "xs", auto)
 
-lemma filter_True [simp]: "xs:list(A) \<Longrightarrow> filter(%p. True, xs) = xs"
+lemma filter_True [simp]: "xs:list(A) \<Longrightarrow> filter(\<lambda>p. True, xs) = xs"
 by (induct_tac "xs", auto)
 
 (** length **)
@@ -853,18 +853,18 @@ subsection\<open>The function zip\<close>
 text\<open>Crafty definition to eliminate a type argument\<close>
 
 consts
-  zip_aux        :: "[i,i]=>i"
+  zip_aux        :: "[i,i]\<Rightarrow>i"
 
 primrec (*explicit lambda is required because both arguments of "un" vary*)
   "zip_aux(B,[]) =
-     (\<lambda>ys \<in> list(B). list_case([], %y l. [], ys))"
+     (\<lambda>ys \<in> list(B). list_case([], \<lambda>y l. [], ys))"
 
   "zip_aux(B,Cons(x,l)) =
      (\<lambda>ys \<in> list(B).
-        list_case(Nil, %y zs. Cons(<x,y>, zip_aux(B,l)`zs), ys))"
+        list_case(Nil, \<lambda>y zs. Cons(\<langle>x,y\<rangle>, zip_aux(B,l)`zs), ys))"
 
 definition
-  zip :: "[i, i]=>i"  where
+  zip :: "[i, i]\<Rightarrow>i"  where
    "zip(xs, ys) \<equiv> zip_aux(set_of_list(ys),xs)`ys"
 
 
@@ -897,7 +897,7 @@ done
 
 lemma zip_Cons_Cons [simp]:
      "\<lbrakk>xs:list(A); ys:list(B); x \<in> A; y \<in> B\<rbrakk> \<Longrightarrow>
-      zip(Cons(x,xs), Cons(y, ys)) = Cons(<x,y>, zip(xs, ys))"
+      zip(Cons(x,xs), Cons(y, ys)) = Cons(\<langle>x,y\<rangle>, zip(xs, ys))"
 apply (simp add: zip_def, auto)
 apply (rule zip_aux_unique, auto)
 apply (simp add: list_on_set_of_list [of _ B])
@@ -967,7 +967,7 @@ declare nth_zip [simp]
 lemma set_of_list_zip [rule_format]:
      "\<lbrakk>xs:list(A); ys:list(B); i \<in> nat\<rbrakk>
       \<Longrightarrow> set_of_list(zip(xs, ys)) =
-          {<x, y>:A*B. \<exists>i\<in>nat. i < min(length(xs), length(ys))
+          {\<langle>x, y\<rangle>:A*B. \<exists>i\<in>nat. i < min(length(xs), length(ys))
           \<and> x = nth(i, xs) \<and> y = nth(i, ys)}"
 by (force intro!: Collect_cong simp add: lt_min_iff set_of_list_conv_nth)
 
@@ -1179,9 +1179,9 @@ done
 (** sublist (a generalization of nth to sets) **)
 
 definition
-  sublist :: "[i, i] => i"  where
+  sublist :: "[i, i] \<Rightarrow> i"  where
     "sublist(xs, A)\<equiv>
-     map(fst, (filter(%p. snd(p): A, zip(xs, upt(0,length(xs))))))"
+     map(fst, (filter(\<lambda>p. snd(p): A, zip(xs, upt(0,length(xs))))))"
 
 lemma sublist_0 [simp]: "xs:list(A) \<Longrightarrow>sublist(xs, 0) =Nil"
 by (unfold sublist_def, auto)
@@ -1191,8 +1191,8 @@ by (unfold sublist_def, auto)
 
 lemma sublist_shift_lemma:
  "\<lbrakk>xs:list(B); i \<in> nat\<rbrakk> \<Longrightarrow>
-  map(fst, filter(%p. snd(p):A, zip(xs, upt(i,i #+ length(xs))))) =
-  map(fst, filter(%p. snd(p):nat \<and> snd(p) #+ i \<in> A, zip(xs,upt(0,length(xs)))))"
+  map(fst, filter(\<lambda>p. snd(p):A, zip(xs, upt(i,i #+ length(xs))))) =
+  map(fst, filter(\<lambda>p. snd(p):nat \<and> snd(p) #+ i \<in> A, zip(xs,upt(0,length(xs)))))"
 apply (erule list_append_induct)
 apply (simp (no_asm_simp))
 apply (auto simp add: add_commute length_app filter_append map_app_distrib)
@@ -1250,7 +1250,7 @@ done
 
 text\<open>Repetition of a List Element\<close>
 
-consts   repeat :: "[i,i]=>i"
+consts   repeat :: "[i,i]\<Rightarrow>i"
 primrec
   "repeat(a,0) = []"
 

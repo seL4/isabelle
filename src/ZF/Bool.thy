@@ -24,15 +24,15 @@ definition "cond(b,c,d) \<equiv> if(b=1,c,d)"
 definition "not(b) \<equiv> cond(b,0,1)"
 
 definition
-  "and"       :: "[i,i]=>i"      (infixl \<open>and\<close> 70)  where
+  "and"       :: "[i,i]\<Rightarrow>i"      (infixl \<open>and\<close> 70)  where
     "a and b \<equiv> cond(a,b,0)"
 
 definition
-  or          :: "[i,i]=>i"      (infixl \<open>or\<close> 65)  where
+  or          :: "[i,i]\<Rightarrow>i"      (infixl \<open>or\<close> 65)  where
     "a or b \<equiv> cond(a,1,b)"
 
 definition
-  xor         :: "[i,i]=>i"      (infixl \<open>xor\<close> 65) where
+  xor         :: "[i,i]\<Rightarrow>i"      (infixl \<open>xor\<close> 65) where
     "a xor b \<equiv> cond(a,not(b),b)"
 
 
@@ -152,7 +152,7 @@ by (elim boolE, auto)
 
 
 definition
-  bool_of_o :: "o=>i" where
+  bool_of_o :: "o\<Rightarrow>i" where
    "bool_of_o(P) \<equiv> (if P then 1 else 0)"
 
 lemma [simp]: "bool_of_o(True) = 1"

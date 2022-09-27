@@ -10,7 +10,7 @@ section\<open>The "Follows" relation of Charpentier and Sivilotte\<close>
 theory Follows imports SubstAx Increasing begin
 
 definition
-  Follows :: "[i, i, i=>i, i=>i] => i"  where
+  Follows :: "[i, i, i\<Rightarrow>i, i\<Rightarrow>i] \<Rightarrow> i"  where
   "Follows(A, r, f, g) \<equiv>
             Increasing(A, r, g) Int
             Increasing(A, r,f) Int
@@ -18,27 +18,27 @@ definition
            (\<Inter>k \<in> A. {s \<in> state. <k, g(s)>:r} \<longmapsto>w {s \<in> state. <k,f(s)>:r})"
 
 abbreviation
-  Incr :: "[i=>i]=>i" where
+  Incr :: "[i\<Rightarrow>i]\<Rightarrow>i" where
   "Incr(f) \<equiv> Increasing(list(nat), prefix(nat), f)"
 
 abbreviation
-  n_Incr :: "[i=>i]=>i" where
+  n_Incr :: "[i\<Rightarrow>i]\<Rightarrow>i" where
   "n_Incr(f) \<equiv> Increasing(nat, Le, f)"
 
 abbreviation
-  s_Incr :: "[i=>i]=>i" where
+  s_Incr :: "[i\<Rightarrow>i]\<Rightarrow>i" where
   "s_Incr(f) \<equiv> Increasing(Pow(nat), SetLe(nat), f)"
 
 abbreviation
-  m_Incr :: "[i=>i]=>i" where
+  m_Incr :: "[i\<Rightarrow>i]\<Rightarrow>i" where
   "m_Incr(f) \<equiv> Increasing(Mult(nat), MultLe(nat, Le), f)"
 
 abbreviation
-  n_Fols :: "[i=>i, i=>i]=>i"   (infixl \<open>n'_Fols\<close> 65)  where
+  n_Fols :: "[i\<Rightarrow>i, i\<Rightarrow>i]\<Rightarrow>i"   (infixl \<open>n'_Fols\<close> 65)  where
   "f n_Fols g \<equiv> Follows(nat, Le, f, g)"
 
 abbreviation
-  Follows' :: "[i=>i, i=>i, i, i] => i"
+  Follows' :: "[i\<Rightarrow>i, i\<Rightarrow>i, i, i] \<Rightarrow> i"
         (\<open>(_ /Fols _ /Wrt (_ /'/ _))\<close> [60, 0, 0, 60] 60)  where
   "f Fols g Wrt r/A \<equiv> Follows(A,r,f,g)"
 
@@ -114,14 +114,14 @@ apply (unfold mono2_def Increasing_def)
 apply (rule single_LeadsTo_I, auto)
 apply (drule_tac x = "g (sa) " and A = B in bspec)
 apply auto
-apply (drule_tac x = "f (sa) " and P = "%j. F \<in> X(j) \<longmapsto>w Y(j)" for X Y in bspec)
+apply (drule_tac x = "f (sa) " and P = "\<lambda>j. F \<in> X(j) \<longmapsto>w Y(j)" for X Y in bspec)
 apply auto
 apply (rule PSP_Stable [THEN LeadsTo_weaken], blast, blast)
 apply auto
 apply (force simp add: part_order_def refl_def)
 apply (force simp add: part_order_def refl_def)
-apply (drule_tac x = "f1 (x)" and x1 = "f (sa) " and P2 = "%x y. \<forall>u\<in>B. P (x,y,u)" for P in bspec [THEN bspec])
-apply (drule_tac [3] x = "g (x) " and x1 = "g (sa) " and P2 = "%x y. P (x,y) \<longrightarrow> d (x,y) \<in> t" for P d in bspec [THEN bspec])
+apply (drule_tac x = "f1 (x)" and x1 = "f (sa) " and P2 = "\<lambda>x y. \<forall>u\<in>B. P (x,y,u)" for P in bspec [THEN bspec])
+apply (drule_tac [3] x = "g (x) " and x1 = "g (sa) " and P2 = "\<lambda>x y. P (x,y) \<longrightarrow> d (x,y) \<in> t" for P d in bspec [THEN bspec])
 apply auto
 apply (rule_tac b = "h (f (sa), g (sa))" and A = C in trans_onD)
 apply (auto simp add: part_order_def)
@@ -135,7 +135,7 @@ lemma imp_LeadsTo_comp_left:
   F:{x \<in> state. <k, h(f(x), g(x))> \<in> t} \<longmapsto>w {x \<in> state. <k, h(f(x), g1(x))> \<in> t}"
 apply (unfold mono2_def Increasing_def)
 apply (rule single_LeadsTo_I, auto)
-apply (drule_tac x = "f (sa) " and P = "%k. F \<in> Stable (X (k))" for X in bspec)
+apply (drule_tac x = "f (sa) " and P = "\<lambda>k. F \<in> Stable (X (k))" for X in bspec)
 apply auto
 apply (drule_tac x = "g (sa) " in bspec)
 apply auto
@@ -144,7 +144,7 @@ apply auto
 apply (force simp add: part_order_def refl_def)
 apply (force simp add: part_order_def refl_def)
 apply (drule_tac x = "f (x) " and x1 = "f (sa) " in bspec [THEN bspec])
-apply (drule_tac [3] x = "g1 (x) " and x1 = "g (sa) " and P2 = "%x y. P (x,y) \<longrightarrow> d (x,y) \<in> t" for P d in bspec [THEN bspec])
+apply (drule_tac [3] x = "g1 (x) " and x1 = "g (sa) " and P2 = "\<lambda>x y. P (x,y) \<longrightarrow> d (x,y) \<in> t" for P d in bspec [THEN bspec])
 apply auto
 apply (rule_tac b = "h (f (sa), g (sa))" and A = C in trans_onD)
 apply (auto simp add: part_order_def)
@@ -180,7 +180,7 @@ apply (blast dest: IncreasingD)
 done
 
 lemma Follows_constantI:
- "\<lbrakk>F \<in> program; c \<in> A; refl(A, r)\<rbrakk> \<Longrightarrow> F \<in> Follows(A, r, %x. c, %x. c)"
+ "\<lbrakk>F \<in> program; c \<in> A; refl(A, r)\<rbrakk> \<Longrightarrow> F \<in> Follows(A, r, \<lambda>x. c, \<lambda>x. c)"
 apply (unfold Follows_def, auto)
 apply (auto simp add: refl_def)
 done
@@ -210,7 +210,7 @@ done
 lemma imp_Follows_comp2:
 "\<lbrakk>F \<in> Follows(A, r, f1, f);  F \<in> Follows(B, s, g1, g);
    mono2(A, r, B, s, C, t, h); refl(A,r); refl(B, s); trans[C](t)\<rbrakk>
-   \<Longrightarrow> F \<in> Follows(C, t, %x. h(f1(x), g1(x)), %x. h(f(x), g(x)))"
+   \<Longrightarrow> F \<in> Follows(C, t, \<lambda>x. h(f1(x), g1(x)), \<lambda>x. h(f(x), g(x)))"
 apply (unfold Follows_def, clarify)
 apply (frule_tac f = g in IncreasingD)
 apply (frule_tac f = f in IncreasingD)
@@ -324,13 +324,13 @@ by (unfold part_order_def, auto)
 lemma increasing_Un:
      "\<lbrakk>F \<in> Increasing.increasing(Pow(A), SetLe(A), f);
          F \<in> Increasing.increasing(Pow(A), SetLe(A), g)\<rbrakk>
-     \<Longrightarrow> F \<in> Increasing.increasing(Pow(A), SetLe(A), %x. f(x) \<union> g(x))"
+     \<Longrightarrow> F \<in> Increasing.increasing(Pow(A), SetLe(A), \<lambda>x. f(x) \<union> g(x))"
 by (rule_tac h = "(Un)" in imp_increasing_comp2, auto)
 
 lemma Increasing_Un:
      "\<lbrakk>F \<in> Increasing(Pow(A), SetLe(A), f);
          F \<in> Increasing(Pow(A), SetLe(A), g)\<rbrakk>
-     \<Longrightarrow> F \<in> Increasing(Pow(A), SetLe(A), %x. f(x) \<union> g(x))"
+     \<Longrightarrow> F \<in> Increasing(Pow(A), SetLe(A), \<lambda>x. f(x) \<union> g(x))"
 by (rule_tac h = "(Un)" in imp_Increasing_comp2, auto)
 
 lemma Always_Un:
@@ -342,7 +342,7 @@ by (simp add: Always_eq_includes_reachable, blast)
 lemma Follows_Un:
 "\<lbrakk>F \<in> Follows(Pow(A), SetLe(A), f1, f);
      F \<in> Follows(Pow(A), SetLe(A), g1, g)\<rbrakk>
-     \<Longrightarrow> F \<in> Follows(Pow(A), SetLe(A), %s. f1(s) \<union> g1(s), %s. f(s) \<union> g(s))"
+     \<Longrightarrow> F \<in> Follows(Pow(A), SetLe(A), \<lambda>s. f1(s) \<union> g1(s), \<lambda>s. f(s) \<union> g(s))"
 by (rule_tac h = "(Un)" in imp_Follows_comp2, auto)
 
 (** Multiset union properties (with the MultLe ordering) **)
@@ -351,12 +351,12 @@ lemma refl_MultLe [simp]: "refl(Mult(A), MultLe(A,r))"
 by (unfold MultLe_def refl_def, auto)
 
 lemma MultLe_refl1 [simp]:
- "\<lbrakk>multiset(M); mset_of(M)<=A\<rbrakk> \<Longrightarrow> <M, M> \<in> MultLe(A, r)"
+ "\<lbrakk>multiset(M); mset_of(M)<=A\<rbrakk> \<Longrightarrow> \<langle>M, M\<rangle> \<in> MultLe(A, r)"
 apply (unfold MultLe_def id_def lam_def)
 apply (auto simp add: Mult_iff_multiset)
 done
 
-lemma MultLe_refl2 [simp]: "M \<in> Mult(A) \<Longrightarrow> <M, M> \<in> MultLe(A, r)"
+lemma MultLe_refl2 [simp]: "M \<in> Mult(A) \<Longrightarrow> \<langle>M, M\<rangle> \<in> MultLe(A, r)"
 by (unfold MultLe_def id_def lam_def, auto)
 
 
@@ -371,7 +371,7 @@ apply (drule multirel_type [THEN subsetD], auto)
 done
 
 lemma MultLe_trans:
-     "\<lbrakk><M,K> \<in> MultLe(A,r); <K,N> \<in> MultLe(A,r)\<rbrakk> \<Longrightarrow> <M,N> \<in> MultLe(A,r)"
+     "\<lbrakk>\<langle>M,K\<rangle> \<in> MultLe(A,r); \<langle>K,N\<rangle> \<in> MultLe(A,r)\<rbrakk> \<Longrightarrow> \<langle>M,N\<rangle> \<in> MultLe(A,r)"
 apply (cut_tac A=A in trans_on_MultLe)
 apply (drule trans_onD, assumption)
 apply (auto dest: MultLe_type [THEN subsetD])
@@ -405,7 +405,7 @@ apply (auto simp add: part_order_def)
 done
 
 lemma empty_le_MultLe [simp]:
-"\<lbrakk>multiset(M); mset_of(M)<= A\<rbrakk> \<Longrightarrow> <0, M> \<in> MultLe(A, r)"
+"\<lbrakk>multiset(M); mset_of(M)<= A\<rbrakk> \<Longrightarrow> \<langle>0, M\<rangle> \<in> MultLe(A, r)"
 apply (unfold MultLe_def)
 apply (case_tac "M=0")
 apply (auto simp add: FiniteFun.intros)
@@ -414,11 +414,11 @@ apply (rule_tac [2] one_step_implies_multirel)
 apply (auto simp add: Mult_iff_multiset)
 done
 
-lemma empty_le_MultLe2 [simp]: "M \<in> Mult(A) \<Longrightarrow> <0, M> \<in> MultLe(A, r)"
+lemma empty_le_MultLe2 [simp]: "M \<in> Mult(A) \<Longrightarrow> \<langle>0, M\<rangle> \<in> MultLe(A, r)"
 by (simp add: Mult_iff_multiset)
 
 lemma munion_mono:
-"\<lbrakk><M, N> \<in> MultLe(A, r); <K, L> \<in> MultLe(A, r)\<rbrakk> \<Longrightarrow>
+"\<lbrakk>\<langle>M, N\<rangle> \<in> MultLe(A, r); \<langle>K, L\<rangle> \<in> MultLe(A, r)\<rbrakk> \<Longrightarrow>
   <M +# K, N +# L> \<in> MultLe(A, r)"
 apply (unfold MultLe_def)
 apply (auto intro: munion_multirel_mono1 munion_multirel_mono2
@@ -428,13 +428,13 @@ done
 lemma increasing_munion:
      "\<lbrakk>F \<in> Increasing.increasing(Mult(A), MultLe(A,r), f);
          F \<in> Increasing.increasing(Mult(A), MultLe(A,r), g)\<rbrakk>
-     \<Longrightarrow> F \<in> Increasing.increasing(Mult(A),MultLe(A,r), %x. f(x) +# g(x))"
+     \<Longrightarrow> F \<in> Increasing.increasing(Mult(A),MultLe(A,r), \<lambda>x. f(x) +# g(x))"
 by (rule_tac h = munion in imp_increasing_comp2, auto)
 
 lemma Increasing_munion:
      "\<lbrakk>F \<in> Increasing(Mult(A), MultLe(A,r), f);
          F \<in> Increasing(Mult(A), MultLe(A,r), g)\<rbrakk>
-     \<Longrightarrow> F \<in> Increasing(Mult(A),MultLe(A,r), %x. f(x) +# g(x))"
+     \<Longrightarrow> F \<in> Increasing(Mult(A),MultLe(A,r), \<lambda>x. f(x) +# g(x))"
 by (rule_tac h = munion in imp_Increasing_comp2, auto)
 
 lemma Always_munion:
@@ -449,7 +449,7 @@ done
 lemma Follows_munion:
 "\<lbrakk>F \<in> Follows(Mult(A), MultLe(A, r), f1, f);
     F \<in> Follows(Mult(A), MultLe(A, r), g1, g)\<rbrakk>
-  \<Longrightarrow> F \<in> Follows(Mult(A), MultLe(A, r), %s. f1(s) +# g1(s), %s. f(s) +# g(s))"
+  \<Longrightarrow> F \<in> Follows(Mult(A), MultLe(A, r), \<lambda>s. f1(s) +# g1(s), \<lambda>s. f(s) +# g(s))"
 by (rule_tac h = munion in imp_Follows_comp2, auto)
 
 (** Used in ClientImp **)
@@ -460,8 +460,8 @@ lemma Follows_msetsum_UN:
                         multiset(f(i, s)) \<and> mset_of(f(i, s))<=A ;
    Finite(I); F \<in> program\<rbrakk>
         \<Longrightarrow> F \<in> Follows(Mult(A),
-                        MultLe(A, r), %x. msetsum(%i. f'(i, x), I, A),
-                                      %x. msetsum(%i. f(i,  x), I, A))"
+                        MultLe(A, r), \<lambda>x. msetsum(\<lambda>i. f'(i, x), I, A),
+                                      \<lambda>x. msetsum(\<lambda>i. f(i,  x), I, A))"
 apply (erule rev_mp)
 apply (drule Finite_into_Fin)
 apply (erule Fin_induct)

@@ -53,8 +53,8 @@ there too!*)
 
 lemma LReplace_in_Lset:
      "\<lbrakk>X \<in> Lset(i); univalent(L,X,Q); Ord(i)\<rbrakk>
-      \<Longrightarrow> \<exists>j. Ord(j) \<and> Replace(X, %x y. Q(x,y) \<and> L(y)) \<subseteq> Lset(j)"
-apply (rule_tac x="\<Union>y \<in> Replace(X, %x y. Q(x,y) \<and> L(y)). succ(lrank(y))"
+      \<Longrightarrow> \<exists>j. Ord(j) \<and> Replace(X, \<lambda>x y. Q(x,y) \<and> L(y)) \<subseteq> Lset(j)"
+apply (rule_tac x="\<Union>y \<in> Replace(X, \<lambda>x y. Q(x,y) \<and> L(y)). succ(lrank(y))"
        in exI)
 apply simp
 apply clarify
@@ -65,7 +65,7 @@ done
 
 lemma LReplace_in_L:
      "\<lbrakk>L(X); univalent(L,X,Q)\<rbrakk>
-      \<Longrightarrow> \<exists>Y. L(Y) \<and> Replace(X, %x y. Q(x,y) \<and> L(y)) \<subseteq> Y"
+      \<Longrightarrow> \<exists>Y. L(Y) \<and> Replace(X, \<lambda>x y. Q(x,y) \<and> L(y)) \<subseteq> Y"
 apply (drule L_D, clarify)
 apply (drule LReplace_in_Lset, assumption+)
 apply (blast intro: L_I Lset_in_Lset_succ)
@@ -79,7 +79,7 @@ apply (simp_all add: Replace_iff univalent_def, blast)
 done
 
 lemma strong_replacementI [rule_format]:
-    "\<lbrakk>\<forall>B[L]. separation(L, %u. \<exists>x[L]. x\<in>B \<and> P(x,u))\<rbrakk>
+    "\<lbrakk>\<forall>B[L]. separation(L, \<lambda>u. \<exists>x[L]. x\<in>B \<and> P(x,u))\<rbrakk>
      \<Longrightarrow> strong_replacement(L,P)"
 apply (simp add: strong_replacement_def, clarify)
 apply (frule replacementD [OF replacement], assumption, clarify)
@@ -126,22 +126,22 @@ subsection\<open>Instantiation of the locale \<open>reflection\<close>\<close>
 text\<open>instances of locale constants\<close>
 
 definition
-  L_F0 :: "[i=>o,i] => i" where
-    "L_F0(P,y) \<equiv> \<mu> b. (\<exists>z. L(z) \<and> P(<y,z>)) \<longrightarrow> (\<exists>z\<in>Lset(b). P(<y,z>))"
+  L_F0 :: "[i\<Rightarrow>o,i] \<Rightarrow> i" where
+    "L_F0(P,y) \<equiv> \<mu> b. (\<exists>z. L(z) \<and> P(\<langle>y,z\<rangle>)) \<longrightarrow> (\<exists>z\<in>Lset(b). P(\<langle>y,z\<rangle>))"
 
 definition
-  L_FF :: "[i=>o,i] => i" where
+  L_FF :: "[i\<Rightarrow>o,i] \<Rightarrow> i" where
     "L_FF(P)   \<equiv> \<lambda>a. \<Union>y\<in>Lset(a). L_F0(P,y)"
 
 definition
-  L_ClEx :: "[i=>o,i] => o" where
+  L_ClEx :: "[i\<Rightarrow>o,i] \<Rightarrow> o" where
     "L_ClEx(P) \<equiv> \<lambda>a. Limit(a) \<and> normalize(L_FF(P),a) = a"
 
 
 text\<open>We must use the meta-existential quantifier; otherwise the reflection
       terms become enormous!\<close>
 definition
-  L_Reflects :: "[i=>o,[i,i]=>o] => prop"  (\<open>(3REFLECTS/ [_,/ _])\<close>) where
+  L_Reflects :: "[i\<Rightarrow>o,[i,i]\<Rightarrow>o] \<Rightarrow> prop"  (\<open>(3REFLECTS/ [_,/ _])\<close>) where
     "REFLECTS[P,Q] \<equiv> (\<Or>Cl. Closed_Unbounded(Cl) \<and>
                            (\<forall>a. Cl(a) \<longrightarrow> (\<forall>x \<in> Lset(a). P(x) \<longleftrightarrow> Q(a,x))))"
 
@@ -303,7 +303,7 @@ abbreviation
 subsubsection\<open>The Empty Set, Internalized\<close>
 
 definition
-  empty_fm :: "i=>i" where
+  empty_fm :: "i\<Rightarrow>i" where
     "empty_fm(x) \<equiv> Forall(Neg(Member(0,succ(x))))"
 
 lemma empty_type [TC]:
@@ -342,7 +342,7 @@ done
 subsubsection\<open>Unordered Pairs, Internalized\<close>
 
 definition
-  upair_fm :: "[i,i,i]=>i" where
+  upair_fm :: "[i,i,i]\<Rightarrow>i" where
     "upair_fm(x,y,z) \<equiv>
        And(Member(x,z),
            And(Member(y,z),
@@ -385,7 +385,7 @@ done
 subsubsection\<open>Ordered pairs, Internalized\<close>
 
 definition
-  pair_fm :: "[i,i,i]=>i" where
+  pair_fm :: "[i,i,i]\<Rightarrow>i" where
     "pair_fm(x,y,z) \<equiv>
        Exists(And(upair_fm(succ(x),succ(x),0),
               Exists(And(upair_fm(succ(succ(x)),succ(succ(y)),0),
@@ -418,7 +418,7 @@ done
 subsubsection\<open>Binary Unions, Internalized\<close>
 
 definition
-  union_fm :: "[i,i,i]=>i" where
+  union_fm :: "[i,i,i]\<Rightarrow>i" where
     "union_fm(x,y,z) \<equiv>
        Forall(Iff(Member(0,succ(z)),
                   Or(Member(0,succ(x)),Member(0,succ(y)))))"
@@ -450,7 +450,7 @@ done
 subsubsection\<open>Set ``Cons,'' Internalized\<close>
 
 definition
-  cons_fm :: "[i,i,i]=>i" where
+  cons_fm :: "[i,i,i]\<Rightarrow>i" where
     "cons_fm(x,y,z) \<equiv>
        Exists(And(upair_fm(succ(x),succ(x),0),
                   union_fm(0,succ(y),succ(z))))"
@@ -483,7 +483,7 @@ done
 subsubsection\<open>Successor Function, Internalized\<close>
 
 definition
-  succ_fm :: "[i,i]=>i" where
+  succ_fm :: "[i,i]\<Rightarrow>i" where
     "succ_fm(x,y) \<equiv> cons_fm(x,x,y)"
 
 lemma succ_type [TC]:
@@ -514,7 +514,7 @@ subsubsection\<open>The Number 1, Internalized\<close>
 
 (* "number1(M,a) \<equiv> (\<exists>x[M]. empty(M,x) \<and> successor(M,x,a))" *)
 definition
-  number1_fm :: "i=>i" where
+  number1_fm :: "i\<Rightarrow>i" where
     "number1_fm(a) \<equiv> Exists(And(empty_fm(0), succ_fm(0,succ(a))))"
 
 lemma number1_type [TC]:
@@ -544,7 +544,7 @@ subsubsection\<open>Big Union, Internalized\<close>
 
 (*  "big_union(M,A,z) \<equiv> \<forall>x[M]. x \<in> z \<longleftrightarrow> (\<exists>y[M]. y\<in>A \<and> x \<in> y)" *)
 definition
-  big_union_fm :: "[i,i]=>i" where
+  big_union_fm :: "[i,i]\<Rightarrow>i" where
     "big_union_fm(A,z) \<equiv>
        Forall(Iff(Member(0,succ(z)),
                   Exists(And(Member(0,succ(succ(A))), Member(1,0)))))"
@@ -625,7 +625,7 @@ done
 subsubsection\<open>Membership Relation, Internalized\<close>
 
 definition
-  Memrel_fm :: "[i,i]=>i" where
+  Memrel_fm :: "[i,i]\<Rightarrow>i" where
     "Memrel_fm(A,r) \<equiv>
        Forall(Iff(Member(0,succ(r)),
                   Exists(And(Member(0,succ(succ(A))),
@@ -659,7 +659,7 @@ done
 subsubsection\<open>Predecessor Set, Internalized\<close>
 
 definition
-  pred_set_fm :: "[i,i,i,i]=>i" where
+  pred_set_fm :: "[i,i,i,i]\<Rightarrow>i" where
     "pred_set_fm(A,x,r,B) \<equiv>
        Forall(Iff(Member(0,succ(B)),
                   Exists(And(Member(0,succ(succ(r))),
@@ -698,7 +698,7 @@ subsubsection\<open>Domain of a Relation, Internalized\<close>
 (* "is_domain(M,r,z) \<equiv>
         \<forall>x[M]. (x \<in> z \<longleftrightarrow> (\<exists>w[M]. w\<in>r \<and> (\<exists>y[M]. pair(M,x,y,w))))" *)
 definition
-  domain_fm :: "[i,i]=>i" where
+  domain_fm :: "[i,i]\<Rightarrow>i" where
     "domain_fm(r,z) \<equiv>
        Forall(Iff(Member(0,succ(z)),
                   Exists(And(Member(0,succ(succ(r))),
@@ -733,7 +733,7 @@ subsubsection\<open>Range of a Relation, Internalized\<close>
 (* "is_range(M,r,z) \<equiv>
         \<forall>y[M]. (y \<in> z \<longleftrightarrow> (\<exists>w[M]. w\<in>r \<and> (\<exists>x[M]. pair(M,x,y,w))))" *)
 definition
-  range_fm :: "[i,i]=>i" where
+  range_fm :: "[i,i]\<Rightarrow>i" where
     "range_fm(r,z) \<equiv>
        Forall(Iff(Member(0,succ(z)),
                   Exists(And(Member(0,succ(succ(r))),
@@ -769,7 +769,7 @@ subsubsection\<open>Field of a Relation, Internalized\<close>
         \<exists>dr[M]. is_domain(M,r,dr) \<and>
             (\<exists>rr[M]. is_range(M,r,rr) \<and> union(M,dr,rr,z))" *)
 definition
-  field_fm :: "[i,i]=>i" where
+  field_fm :: "[i,i]\<Rightarrow>i" where
     "field_fm(r,z) \<equiv>
        Exists(And(domain_fm(succ(r),0),
               Exists(And(range_fm(succ(succ(r)),0),
@@ -805,7 +805,7 @@ subsubsection\<open>Image under a Relation, Internalized\<close>
 (* "image(M,r,A,z) \<equiv>
         \<forall>y[M]. (y \<in> z \<longleftrightarrow> (\<exists>w[M]. w\<in>r \<and> (\<exists>x[M]. x\<in>A \<and> pair(M,x,y,w))))" *)
 definition
-  image_fm :: "[i,i,i]=>i" where
+  image_fm :: "[i,i,i]\<Rightarrow>i" where
     "image_fm(r,A,z) \<equiv>
        Forall(Iff(Member(0,succ(z)),
                   Exists(And(Member(0,succ(succ(r))),
@@ -841,7 +841,7 @@ subsubsection\<open>Pre-Image under a Relation, Internalized\<close>
 (* "pre_image(M,r,A,z) \<equiv>
         \<forall>x[M]. x \<in> z \<longleftrightarrow> (\<exists>w[M]. w\<in>r \<and> (\<exists>y[M]. y\<in>A \<and> pair(M,x,y,w)))" *)
 definition
-  pre_image_fm :: "[i,i,i]=>i" where
+  pre_image_fm :: "[i,i,i]\<Rightarrow>i" where
     "pre_image_fm(r,A,z) \<equiv>
        Forall(Iff(Member(0,succ(z)),
                   Exists(And(Member(0,succ(succ(r))),
@@ -878,7 +878,7 @@ subsubsection\<open>Function Application, Internalized\<close>
         (\<exists>xs[M]. \<exists>fxs[M].
          upair(M,x,x,xs) \<and> image(M,f,xs,fxs) \<and> big_union(M,fxs,y))" *)
 definition
-  fun_apply_fm :: "[i,i,i]=>i" where
+  fun_apply_fm :: "[i,i,i]\<Rightarrow>i" where
     "fun_apply_fm(f,x,y) \<equiv>
        Exists(Exists(And(upair_fm(succ(succ(x)), succ(succ(x)), 1),
                          And(image_fm(succ(succ(f)), 1, 0),
@@ -914,7 +914,7 @@ subsubsection\<open>The Concept of Relation, Internalized\<close>
 (* "is_relation(M,r) \<equiv>
         (\<forall>z[M]. z\<in>r \<longrightarrow> (\<exists>x[M]. \<exists>y[M]. pair(M,x,y,z)))" *)
 definition
-  relation_fm :: "i=>i" where
+  relation_fm :: "i\<Rightarrow>i" where
     "relation_fm(r) \<equiv>
        Forall(Implies(Member(0,succ(r)), Exists(Exists(pair_fm(1,0,2)))))"
 
@@ -947,7 +947,7 @@ subsubsection\<open>The Concept of Function, Internalized\<close>
         \<forall>x[M]. \<forall>y[M]. \<forall>y'[M]. \<forall>p[M]. \<forall>p'[M].
            pair(M,x,y,p) \<longrightarrow> pair(M,x,y',p') \<longrightarrow> p\<in>r \<longrightarrow> p'\<in>r \<longrightarrow> y=y'" *)
 definition
-  function_fm :: "i=>i" where
+  function_fm :: "i\<Rightarrow>i" where
     "function_fm(r) \<equiv>
        Forall(Forall(Forall(Forall(Forall(
          Implies(pair_fm(4,3,1),
@@ -985,7 +985,7 @@ subsubsection\<open>Typed Functions, Internalized\<close>
         (\<forall>u[M]. u\<in>r \<longrightarrow> (\<forall>x[M]. \<forall>y[M]. pair(M,x,y,u) \<longrightarrow> y\<in>B))" *)
 
 definition
-  typed_function_fm :: "[i,i,i]=>i" where
+  typed_function_fm :: "[i,i,i]\<Rightarrow>i" where
     "typed_function_fm(A,B,r) \<equiv>
        And(function_fm(r),
          And(relation_fm(r),
@@ -1045,7 +1045,7 @@ subsubsection\<open>Composition of Relations, Internalized\<close>
                 pair(M,x,z,p) \<and> pair(M,x,y,xy) \<and> pair(M,y,z,yz) \<and>
                 xy \<in> s \<and> yz \<in> r)" *)
 definition
-  composition_fm :: "[i,i,i]=>i" where
+  composition_fm :: "[i,i,i]\<Rightarrow>i" where
   "composition_fm(r,s,t) \<equiv>
      Forall(Iff(Member(0,succ(t)),
              Exists(Exists(Exists(Exists(Exists(
@@ -1085,7 +1085,7 @@ subsubsection\<open>Injections, Internalized\<close>
         (\<forall>x[M]. \<forall>x'[M]. \<forall>y[M]. \<forall>p[M]. \<forall>p'[M].
           pair(M,x,y,p) \<longrightarrow> pair(M,x',y,p') \<longrightarrow> p\<in>f \<longrightarrow> p'\<in>f \<longrightarrow> x=x')" *)
 definition
-  injection_fm :: "[i,i,i]=>i" where
+  injection_fm :: "[i,i,i]\<Rightarrow>i" where
   "injection_fm(A,B,f) \<equiv>
     And(typed_function_fm(A,B,f),
        Forall(Forall(Forall(Forall(Forall(
@@ -1121,12 +1121,12 @@ done
 
 subsubsection\<open>Surjections, Internalized\<close>
 
-(*  surjection :: "[i=>o,i,i,i] => o"
+(*  surjection :: "[i\<Rightarrow>o,i,i,i] \<Rightarrow> o"
     "surjection(M,A,B,f) \<equiv>
         typed_function(M,A,B,f) \<and>
         (\<forall>y[M]. y\<in>B \<longrightarrow> (\<exists>x[M]. x\<in>A \<and> fun_apply(M,f,x,y)))" *)
 definition
-  surjection_fm :: "[i,i,i]=>i" where
+  surjection_fm :: "[i,i,i]\<Rightarrow>i" where
   "surjection_fm(A,B,f) \<equiv>
     And(typed_function_fm(A,B,f),
        Forall(Implies(Member(0,succ(B)),
@@ -1160,10 +1160,10 @@ done
 
 subsubsection\<open>Bijections, Internalized\<close>
 
-(*   bijection :: "[i=>o,i,i,i] => o"
+(*   bijection :: "[i\<Rightarrow>o,i,i,i] \<Rightarrow> o"
     "bijection(M,A,B,f) \<equiv> injection(M,A,B,f) \<and> surjection(M,A,B,f)" *)
 definition
-  bijection_fm :: "[i,i,i]=>i" where
+  bijection_fm :: "[i,i,i]\<Rightarrow>i" where
   "bijection_fm(A,B,f) \<equiv> And(injection_fm(A,B,f), surjection_fm(A,B,f))"
 
 lemma bijection_type [TC]:
@@ -1196,7 +1196,7 @@ subsubsection\<open>Restriction of a Relation, Internalized\<close>
 (* "restriction(M,r,A,z) \<equiv>
         \<forall>x[M]. x \<in> z \<longleftrightarrow> (x \<in> r \<and> (\<exists>u[M]. u\<in>A \<and> (\<exists>v[M]. pair(M,u,v,x))))" *)
 definition
-  restriction_fm :: "[i,i,i]=>i" where
+  restriction_fm :: "[i,i,i]\<Rightarrow>i" where
     "restriction_fm(r,A,z) \<equiv>
        Forall(Iff(Member(0,succ(z)),
                   And(Member(0,succ(r)),
@@ -1228,7 +1228,7 @@ done
 
 subsubsection\<open>Order-Isomorphisms, Internalized\<close>
 
-(*  order_isomorphism :: "[i=>o,i,i,i,i,i] => o"
+(*  order_isomorphism :: "[i\<Rightarrow>o,i,i,i,i,i] \<Rightarrow> o"
    "order_isomorphism(M,A,r,B,s,f) \<equiv>
         bijection(M,A,B,f) \<and>
         (\<forall>x[M]. x\<in>A \<longrightarrow> (\<forall>y[M]. y\<in>A \<longrightarrow>
@@ -1238,7 +1238,7 @@ subsubsection\<open>Order-Isomorphisms, Internalized\<close>
   *)
 
 definition
-  order_isomorphism_fm :: "[i,i,i,i,i]=>i" where
+  order_isomorphism_fm :: "[i,i,i,i,i]\<Rightarrow>i" where
  "order_isomorphism_fm(A,r,B,s,f) \<equiv>
    And(bijection_fm(A,B,f),
      Forall(Implies(Member(0,succ(A)),
@@ -1286,7 +1286,7 @@ text\<open>A limit ordinal is a non-empty, successor-closed ordinal\<close>
         (\<forall>x[M]. x\<in>a \<longrightarrow> (\<exists>y[M]. y\<in>a \<and> successor(M,x,y)))" *)
 
 definition
-  limit_ordinal_fm :: "i=>i" where
+  limit_ordinal_fm :: "i\<Rightarrow>i" where
     "limit_ordinal_fm(x) \<equiv>
         And(ordinal_fm(x),
             And(Neg(empty_fm(x)),
@@ -1323,7 +1323,7 @@ subsubsection\<open>Finite Ordinals: The Predicate ``Is A Natural Number''\<clos
         ordinal(M,a) \<and> \<not> limit_ordinal(M,a) \<and> 
         (\<forall>x[M]. x\<in>a \<longrightarrow> \<not> limit_ordinal(M,x))" *)
 definition
-  finite_ordinal_fm :: "i=>i" where
+  finite_ordinal_fm :: "i\<Rightarrow>i" where
     "finite_ordinal_fm(x) \<equiv>
        And(ordinal_fm(x),
           And(Neg(limit_ordinal_fm(x)),
@@ -1357,7 +1357,7 @@ subsubsection\<open>Omega: The Set of Natural Numbers\<close>
 
 (* omega(M,a) \<equiv> limit_ordinal(M,a) \<and> (\<forall>x[M]. x\<in>a \<longrightarrow> \<not> limit_ordinal(M,x)) *)
 definition
-  omega_fm :: "i=>i" where
+  omega_fm :: "i\<Rightarrow>i" where
     "omega_fm(x) \<equiv>
        And(limit_ordinal_fm(x),
            Forall(Implies(Member(0,succ(x)),

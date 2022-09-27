@@ -9,49 +9,49 @@ theory Nat imports OrdQuant Bool begin
 
 definition
   nat :: i  where
-    "nat \<equiv> lfp(Inf, %X. {0} \<union> {succ(i). i \<in> X})"
+    "nat \<equiv> lfp(Inf, \<lambda>X. {0} \<union> {succ(i). i \<in> X})"
 
 definition
-  quasinat :: "i => o"  where
+  quasinat :: "i \<Rightarrow> o"  where
     "quasinat(n) \<equiv> n=0 | (\<exists>m. n = succ(m))"
 
 definition
   (*Has an unconditional succ case, which is used in "recursor" below.*)
-  nat_case :: "[i, i=>i, i]=>i"  where
+  nat_case :: "[i, i\<Rightarrow>i, i]\<Rightarrow>i"  where
     "nat_case(a,b,k) \<equiv> THE y. k=0 \<and> y=a | (\<exists>x. k=succ(x) \<and> y=b(x))"
 
 definition
-  nat_rec :: "[i, i, [i,i]=>i]=>i"  where
+  nat_rec :: "[i, i, [i,i]\<Rightarrow>i]\<Rightarrow>i"  where
     "nat_rec(k,a,b) \<equiv>
-          wfrec(Memrel(nat), k, %n f. nat_case(a, %m. b(m, f`m), n))"
+          wfrec(Memrel(nat), k, \<lambda>n f. nat_case(a, \<lambda>m. b(m, f`m), n))"
 
   (*Internalized relations on the naturals*)
 
 definition
   Le :: i  where
-    "Le \<equiv> {<x,y>:nat*nat. x \<le> y}"
+    "Le \<equiv> {\<langle>x,y\<rangle>:nat*nat. x \<le> y}"
 
 definition
   Lt :: i  where
-    "Lt \<equiv> {<x, y>:nat*nat. x < y}"
+    "Lt \<equiv> {\<langle>x, y\<rangle>:nat*nat. x < y}"
 
 definition
   Ge :: i  where
-    "Ge \<equiv> {<x,y>:nat*nat. y \<le> x}"
+    "Ge \<equiv> {\<langle>x,y\<rangle>:nat*nat. y \<le> x}"
 
 definition
   Gt :: i  where
-    "Gt \<equiv> {<x,y>:nat*nat. y < x}"
+    "Gt \<equiv> {\<langle>x,y\<rangle>:nat*nat. y < x}"
 
 definition
-  greater_than :: "i=>i"  where
+  greater_than :: "i\<Rightarrow>i"  where
     "greater_than(n) \<equiv> {i \<in> nat. n < i}"
 
 text\<open>No need for a less-than operator: a natural number is its list of
 predecessors!\<close>
 
 
-lemma nat_bnd_mono: "bnd_mono(Inf, %X. {0} \<union> {succ(i). i \<in> X})"
+lemma nat_bnd_mono: "bnd_mono(Inf, \<lambda>X. {0} \<union> {succ(i). i \<in> X})"
 apply (rule bnd_monoI)
 apply (cut_tac infinity, blast, blast)
 done
@@ -291,7 +291,7 @@ apply (auto simp add: Ord_mem_iff_lt)
 apply (blast intro: lt_trans)
 done
 
-lemma Le_iff [iff]: "<x,y> \<in> Le \<longleftrightarrow> x \<le> y \<and> x \<in> nat \<and> y \<in> nat"
+lemma Le_iff [iff]: "\<langle>x,y\<rangle> \<in> Le \<longleftrightarrow> x \<le> y \<and> x \<in> nat \<and> y \<in> nat"
 by (force simp add: Le_def)
 
 end

@@ -19,7 +19,7 @@ definition
                id(state) \<in> acts \<and> id(state) \<in> allowed}"
 
 definition
-  mk_program :: "[i,i,i]=>i"  where
+  mk_program :: "[i,i,i]\<Rightarrow>i"  where
   \<comment> \<open>The definition yields a program thanks to the coercions
        init \<inter> state, acts \<inter> Pow(state*state), etc.\<close>
   "mk_program(init, acts, allowed) \<equiv>
@@ -32,69 +32,69 @@ definition
 
   (* Coercion from anything to program *)
 definition
-  programify :: "i=>i"  where
+  programify :: "i\<Rightarrow>i"  where
   "programify(F) \<equiv> if F \<in> program then F else SKIP"
 
 definition
-  RawInit :: "i=>i"  where
+  RawInit :: "i\<Rightarrow>i"  where
   "RawInit(F) \<equiv> fst(F)"
 
 definition
-  Init :: "i=>i"  where
+  Init :: "i\<Rightarrow>i"  where
   "Init(F) \<equiv> RawInit(programify(F))"
 
 definition
-  RawActs :: "i=>i"  where
+  RawActs :: "i\<Rightarrow>i"  where
   "RawActs(F) \<equiv> cons(id(state), fst(snd(F)))"
 
 definition
-  Acts :: "i=>i"  where
+  Acts :: "i\<Rightarrow>i"  where
   "Acts(F) \<equiv> RawActs(programify(F))"
 
 definition
-  RawAllowedActs :: "i=>i"  where
+  RawAllowedActs :: "i\<Rightarrow>i"  where
   "RawAllowedActs(F) \<equiv> cons(id(state), snd(snd(F)))"
 
 definition
-  AllowedActs :: "i=>i"  where
+  AllowedActs :: "i\<Rightarrow>i"  where
   "AllowedActs(F) \<equiv> RawAllowedActs(programify(F))"
 
 
 definition
-  Allowed :: "i =>i"  where
+  Allowed :: "i \<Rightarrow>i"  where
   "Allowed(F) \<equiv> {G \<in> program. Acts(G) \<subseteq> AllowedActs(F)}"
 
 definition
-  initially :: "i=>i"  where
+  initially :: "i\<Rightarrow>i"  where
   "initially(A) \<equiv> {F \<in> program. Init(F)\<subseteq>A}"
 
-definition "constrains" :: "[i, i] => i"  (infixl \<open>co\<close> 60)  where
+definition "constrains" :: "[i, i] \<Rightarrow> i"  (infixl \<open>co\<close> 60)  where
   "A co B \<equiv> {F \<in> program. (\<forall>act \<in> Acts(F). act``A\<subseteq>B) \<and> st_set(A)}"
     \<comment> \<open>the condition \<^term>\<open>st_set(A)\<close> makes the definition slightly
          stronger than the HOL one\<close>
 
-definition unless :: "[i, i] => i"  (infixl \<open>unless\<close> 60)  where
+definition unless :: "[i, i] \<Rightarrow> i"  (infixl \<open>unless\<close> 60)  where
   "A unless B \<equiv> (A - B) co (A \<union> B)"
 
 definition
-  stable     :: "i=>i"  where
+  stable     :: "i\<Rightarrow>i"  where
    "stable(A) \<equiv> A co A"
 
 definition
-  strongest_rhs :: "[i, i] => i"  where
+  strongest_rhs :: "[i, i] \<Rightarrow> i"  where
   "strongest_rhs(F, A) \<equiv> \<Inter>({B \<in> Pow(state). F \<in> A co B})"
 
 definition
-  invariant :: "i => i"  where
+  invariant :: "i \<Rightarrow> i"  where
   "invariant(A) \<equiv> initially(A) \<inter> stable(A)"
 
   (* meta-function composition *)
 definition
-  metacomp :: "[i=>i, i=>i] => (i=>i)" (infixl \<open>comp\<close> 65)  where
-  "f comp g \<equiv> %x. f(g(x))"
+  metacomp :: "[i\<Rightarrow>i, i\<Rightarrow>i] \<Rightarrow> (i\<Rightarrow>i)" (infixl \<open>comp\<close> 65)  where
+  "f comp g \<equiv> \<lambda>x. f(g(x))"
 
 definition
-  pg_compl :: "i=>i"  where
+  pg_compl :: "i\<Rightarrow>i"  where
   "pg_compl(X)\<equiv> program - X"
 
 text\<open>SKIP\<close>

@@ -11,7 +11,7 @@ begin
 lemma RepFun_lepoll: "Ord(a) \<Longrightarrow> {P(b). b \<in> a} \<lesssim> a"
 apply (unfold lepoll_def)
 apply (rule_tac x = "\<lambda>z \<in> RepFun (a,P) . \<mu> i. z=P (i) " in exI)
-apply (rule_tac d="%z. P (z)" in lam_injective)
+apply (rule_tac d="\<lambda>z. P (z)" in lam_injective)
  apply (fast intro!: Least_in_Ord)
 apply (rule sym) 
 apply (fast intro: LeastI Ord_in_Ord) 
@@ -21,7 +21,7 @@ text\<open>Trivial in the presence of AC, but here we need a wellordering of X\<
 lemma image_Ord_lepoll: "\<lbrakk>f \<in> X->Y; Ord(X)\<rbrakk> \<Longrightarrow> f``X \<lesssim> X"
 apply (unfold lepoll_def)
 apply (rule_tac x = "\<lambda>x \<in> f``X. \<mu> y. f`y = x" in exI)
-apply (rule_tac d = "%z. f`z" in lam_injective)
+apply (rule_tac d = "\<lambda>z. f`z" in lam_injective)
 apply (fast intro!: Least_in_Ord apply_equality, clarify) 
 apply (rule LeastI) 
  apply (erule apply_equality, assumption+) 
@@ -29,35 +29,35 @@ apply (blast intro: Ord_in_Ord)
 done
 
 lemma range_subset_domain: 
-      "\<lbrakk>R \<subseteq> X*X;   \<And>g. g \<in> X \<Longrightarrow> \<exists>u. <g,u> \<in> R\<rbrakk> 
+      "\<lbrakk>R \<subseteq> X*X;   \<And>g. g \<in> X \<Longrightarrow> \<exists>u. \<langle>g,u\<rangle> \<in> R\<rbrakk> 
        \<Longrightarrow> range(R) \<subseteq> domain(R)"
 by blast 
 
-lemma cons_fun_type: "g \<in> n->X \<Longrightarrow> cons(<n,x>, g) \<in> succ(n) -> cons(x, X)"
+lemma cons_fun_type: "g \<in> n->X \<Longrightarrow> cons(\<langle>n,x\<rangle>, g) \<in> succ(n) -> cons(x, X)"
 apply (unfold succ_def)
 apply (fast intro!: fun_extend elim!: mem_irrefl)
 done
 
 lemma cons_fun_type2:
-     "\<lbrakk>g \<in> n->X; x \<in> X\<rbrakk> \<Longrightarrow> cons(<n,x>, g) \<in> succ(n) -> X"
+     "\<lbrakk>g \<in> n->X; x \<in> X\<rbrakk> \<Longrightarrow> cons(\<langle>n,x\<rangle>, g) \<in> succ(n) -> X"
 by (erule cons_absorb [THEN subst], erule cons_fun_type)
 
-lemma cons_image_n: "n \<in> nat \<Longrightarrow> cons(<n,x>, g)``n = g``n"
+lemma cons_image_n: "n \<in> nat \<Longrightarrow> cons(\<langle>n,x\<rangle>, g)``n = g``n"
 by (fast elim!: mem_irrefl)
 
-lemma cons_val_n: "g \<in> n->X \<Longrightarrow> cons(<n,x>, g)`n = x"
+lemma cons_val_n: "g \<in> n->X \<Longrightarrow> cons(\<langle>n,x\<rangle>, g)`n = x"
 by (fast intro!: apply_equality elim!: cons_fun_type)
 
-lemma cons_image_k: "k \<in> n \<Longrightarrow> cons(<n,x>, g)``k = g``k"
+lemma cons_image_k: "k \<in> n \<Longrightarrow> cons(\<langle>n,x\<rangle>, g)``k = g``k"
 by (fast elim: mem_asym)
 
-lemma cons_val_k: "\<lbrakk>k \<in> n; g \<in> n->X\<rbrakk> \<Longrightarrow> cons(<n,x>, g)`k = g`k"
+lemma cons_val_k: "\<lbrakk>k \<in> n; g \<in> n->X\<rbrakk> \<Longrightarrow> cons(\<langle>n,x\<rangle>, g)`k = g`k"
 by (fast intro!: apply_equality consI2 elim!: cons_fun_type apply_Pair)
 
-lemma domain_cons_eq_succ: "domain(f)=x \<Longrightarrow> domain(cons(<x,y>, f)) = succ(x)"
+lemma domain_cons_eq_succ: "domain(f)=x \<Longrightarrow> domain(cons(\<langle>x,y\<rangle>, f)) = succ(x)"
 by (simp add: domain_cons succ_def)
 
-lemma restrict_cons_eq: "g \<in> n->X \<Longrightarrow> restrict(cons(<n,x>, g), n) = g"
+lemma restrict_cons_eq: "g \<in> n->X \<Longrightarrow> restrict(cons(\<langle>n,x\<rangle>, g), n) = g"
 apply (simp add: restrict_def Pi_iff)
 apply (blast intro: elim: mem_irrefl)  
 done
@@ -80,9 +80,9 @@ by (fast elim!: not_emptyE)
 
 
 definition
-  DC  :: "i => o"  where
+  DC  :: "i \<Rightarrow> o"  where
     "DC(a) \<equiv> \<forall>X R. R \<subseteq> Pow(X)*X  \<and>
-                    (\<forall>Y \<in> Pow(X). Y \<prec> a \<longrightarrow> (\<exists>x \<in> X. <Y,x> \<in> R)) 
+                    (\<forall>Y \<in> Pow(X). Y \<prec> a \<longrightarrow> (\<exists>x \<in> X. \<langle>Y,x\<rangle> \<in> R)) 
                     \<longrightarrow> (\<exists>f \<in> a->X. \<forall>b<a. <f``b,f`b> \<in> R)"
 
 definition
@@ -91,18 +91,18 @@ definition
                     \<longrightarrow> (\<exists>f \<in> nat->domain(R). \<forall>n \<in> nat. <f`n,f`succ(n)>:R)"
 
 definition
-  ff  :: "[i, i, i, i] => i"  where
+  ff  :: "[i, i, i, i] \<Rightarrow> i"  where
     "ff(b, X, Q, R) \<equiv>
-           transrec(b, %c r. THE x. first(x, {x \<in> X. <r``c, x> \<in> R}, Q))"
+           transrec(b, \<lambda>c r. THE x. first(x, {x \<in> X. <r``c, x> \<in> R}, Q))"
 
 
 locale DC0_imp =
   fixes XX and RR and X and R
 
-  assumes all_ex: "\<forall>Y \<in> Pow(X). Y \<prec> nat \<longrightarrow> (\<exists>x \<in> X. <Y, x> \<in> R)"
+  assumes all_ex: "\<forall>Y \<in> Pow(X). Y \<prec> nat \<longrightarrow> (\<exists>x \<in> X. \<langle>Y, x\<rangle> \<in> R)"
 
   defines XX_def: "XX \<equiv> (\<Union>n \<in> nat. {f \<in> n->X. \<forall>k \<in> n. <f``k, f`k> \<in> R})"
-     and RR_def:  "RR \<equiv> {<z1,z2>:XX*XX. domain(z2)=succ(domain(z1))  
+     and RR_def:  "RR \<equiv> {\<langle>z1,z2\<rangle>:XX*XX. domain(z2)=succ(domain(z1))  
                                        \<and> restrict(z2, domain(z1)) = z1}"
 begin
 
@@ -141,7 +141,7 @@ apply (rule all_ex [THEN ballE])
 apply (erule_tac [2] notE [OF _ empty_subsetI [THEN PowI]])
 apply (erule_tac impE [OF _ nat_0I [THEN n_lesspoll_nat]])
 apply (erule bexE)
-apply (rule_tac a = "<0, {<0, x>}>" in not_emptyI)
+apply (rule_tac a = "<0, {\<langle>0, x\<rangle>}>" in not_emptyI)
 apply (rule CollectI)
 apply (rule SigmaI)
 apply (rule nat_0I [THEN UN_I])
@@ -161,7 +161,7 @@ apply (erule impE[OF _ lesspoll_trans1[OF image_Ord_lepoll
                                           [OF _ nat_into_Ord] n_lesspoll_nat]],
        assumption+)
 apply (erule bexE)
-apply (rule_tac x = "cons (<n,x>, g) " in exI)
+apply (rule_tac x = "cons (\<langle>n,x\<rangle>, g) " in exI)
 apply (rule CollectI)
 apply (force elim!: cons_fun_type2 
              simp add: cons_image_n cons_val_n cons_image_k cons_val_k)
@@ -266,12 +266,12 @@ done
                                                                           
     XX = (\<Union>n \<in> nat. {f \<in> succ(n)->domain(R). \<forall>k \<in> n. <f`k, f`succ(k)> \<in> R})
 
-    RR = {<z1,z2>:Fin(XX)*XX. 
+    RR = {\<langle>z1,z2\<rangle>:Fin(XX)*XX. 
            (domain(z2)=succ(\<Union>f \<in> z1. domain(f)) \<and>
             (\<forall>f \<in> z1. restrict(z2, domain(f)) = f)) |      
            (\<not> (\<exists>g \<in> XX. domain(g)=succ(\<Union>f \<in> z1. domain(f)) \<and>
                         (\<forall>f \<in> z1. restrict(g, domain(f)) = f)) \<and>           
-            z2={<0,x>})}                                          
+            z2={\<langle>0,x\<rangle>})}                                          
                                                                           
    Then XX and RR satisfy the hypotheses of DC(omega).                    
    So applying DC:                                                        
@@ -287,7 +287,7 @@ done
 ************************************************************************* *)
 
 lemma singleton_in_funs: 
- "x \<in> X \<Longrightarrow> {<0,x>} \<in> 
+ "x \<in> X \<Longrightarrow> {\<langle>0,x\<rangle>} \<in> 
             (\<Union>n \<in> nat. {f \<in> succ(n)->X. \<forall>k \<in> n. <f`k, f`succ(k)> \<in> R})"
 apply (rule nat_0I [THEN UN_I])
 apply (force simp add: singleton_0 [symmetric]
@@ -300,15 +300,15 @@ locale imp_DC0 =
   defines XX_def: "XX \<equiv> (\<Union>n \<in> nat.
                       {f \<in> succ(n)->domain(R). \<forall>k \<in> n. <f`k, f`succ(k)> \<in> R})"
       and RR_def:
-         "RR \<equiv> {<z1,z2>:Fin(XX)*XX. 
+         "RR \<equiv> {\<langle>z1,z2\<rangle>:Fin(XX)*XX. 
                   (domain(z2)=succ(\<Union>f \<in> z1. domain(f))  
                     \<and> (\<forall>f \<in> z1. restrict(z2, domain(f)) = f))
                   | (\<not> (\<exists>g \<in> XX. domain(g)=succ(\<Union>f \<in> z1. domain(f))  
-                     \<and> (\<forall>f \<in> z1. restrict(g, domain(f)) = f)) \<and> z2={<0,x>})}"
+                     \<and> (\<forall>f \<in> z1. restrict(g, domain(f)) = f)) \<and> z2={\<langle>0,x\<rangle>})}"
       and allRR_def:
         "allRR \<equiv> \<forall>b<nat.
                    <f``b, f`b> \<in>  
-                    {<z1,z2>\<in>Fin(XX)*XX. (domain(z2)=succ(\<Union>f \<in> z1. domain(f))
+                    {\<langle>z1,z2\<rangle>\<in>Fin(XX)*XX. (domain(z2)=succ(\<Union>f \<in> z1. domain(f))
                                     \<and> (\<Union>f \<in> z1. domain(f)) = b  
                                     \<and> (\<forall>f \<in> z1. restrict(z2,domain(f)) = f))}"
 begin
@@ -316,7 +316,7 @@ begin
 lemma lemma4:
      "\<lbrakk>range(R) \<subseteq> domain(R);  x \<in> domain(R)\<rbrakk>   
       \<Longrightarrow> RR \<subseteq> Pow(XX)*XX \<and>   
-             (\<forall>Y \<in> Pow(XX). Y \<prec> nat \<longrightarrow> (\<exists>x \<in> XX. <Y,x>:RR))"
+             (\<forall>Y \<in> Pow(XX). Y \<prec> nat \<longrightarrow> (\<exists>x \<in> XX. \<langle>Y,x\<rangle>:RR))"
 apply (rule conjI)
 apply (force dest!: FinD [THEN PowI] simp add: RR_def)
 apply (rule impI [THEN ballI])
@@ -368,7 +368,7 @@ done
 
 lemma restrict_cons_eq_restrict: 
      "\<lbrakk>restrict(h, domain(u))=u;  h \<in> n->X;  domain(u) \<subseteq> n\<rbrakk>   
-      \<Longrightarrow> restrict(cons(<n, y>, h), domain(u)) = u"
+      \<Longrightarrow> restrict(cons(\<langle>n, y\<rangle>, h), domain(u)) = u"
 apply (unfold restrict_def)
 apply (simp add: restrict_def Pi_iff)
 apply (erule sym [THEN trans, symmetric])
@@ -512,7 +512,7 @@ apply (fast dest!: lesspoll_imp_ex_lt_eqpoll
 apply (erule allE impE)+
 apply (rule Card_Hartog)
 apply (erule_tac x = A in allE)
-apply (erule_tac x = "{<z1,z2> \<in> Pow (A) *A . z1 \<prec> Hartog (A) \<and> z2 \<notin> z1}" 
+apply (erule_tac x = "{\<langle>z1,z2\<rangle> \<in> Pow (A) *A . z1 \<prec> Hartog (A) \<and> z2 \<notin> z1}" 
                  in allE)
 apply simp
 apply (erule impE, fast elim: lesspoll_lemma [THEN not_emptyE])
@@ -549,15 +549,15 @@ lemma lam_type_RepFun: "(\<lambda>b \<in> a. h(b)) \<in> a -> {h(b). b \<in> a}"
 by (fast intro!: lam_type RepFunI)
 
 lemma lemmaX:
-     "\<lbrakk>\<forall>Y \<in> Pow(X). Y \<prec> K \<longrightarrow> (\<exists>x \<in> X. <Y, x> \<in> R);   
+     "\<lbrakk>\<forall>Y \<in> Pow(X). Y \<prec> K \<longrightarrow> (\<exists>x \<in> X. \<langle>Y, x\<rangle> \<in> R);   
          b \<in> K; Z \<in> Pow(X); Z \<prec> K\<rbrakk>   
-      \<Longrightarrow> {x \<in> X. <Z,x> \<in> R} \<noteq> 0"
+      \<Longrightarrow> {x \<in> X. \<langle>Z,x\<rangle> \<in> R} \<noteq> 0"
 by blast
 
 
 lemma WO1_DC_lemma:
      "\<lbrakk>Card(K); well_ord(X,Q);   
-         \<forall>Y \<in> Pow(X). Y \<prec> K \<longrightarrow> (\<exists>x \<in> X. <Y, x> \<in> R); b \<in> K\<rbrakk>   
+         \<forall>Y \<in> Pow(X). Y \<prec> K \<longrightarrow> (\<exists>x \<in> X. \<langle>Y, x\<rangle> \<in> R); b \<in> K\<rbrakk>   
       \<Longrightarrow> ff(b, X, Q, R) \<in> {x \<in> X. <(\<lambda>c \<in> b. ff(c, X, Q, R))``b, x> \<in> R}"
 apply (rule_tac P = "b \<in> K" in impE, (erule_tac [2] asm_rl)+)
 apply (rule_tac i=b in Card_is_Ord [THEN Ord_in_Ord, THEN trans_induct], 

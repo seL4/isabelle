@@ -20,7 +20,7 @@ rep_datatype
   case_eqns     qcase_QInl qcase_QInr
 
 definition
-  quniv :: "i => i"  where
+  quniv :: "i \<Rightarrow> i"  where
    "quniv(A) \<equiv> Pow(univ(eclose(A)))"
 
 
