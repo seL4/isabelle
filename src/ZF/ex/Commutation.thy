@@ -1,5 +1,5 @@
 (*  Title:      ZF/ex/Commutation.thy
-    Author:     Tobias Nipkow \<and> Sidi Ould Ehmety
+    Author:     Tobias Nipkow & Sidi Ould Ehmety
     Copyright   1995  TU Muenchen
 
 Commutation theory for proving the Church Rosser theorem.

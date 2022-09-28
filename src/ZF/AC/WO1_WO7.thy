@@ -2,7 +2,7 @@
     Author:     Lawrence C Paulson, CU Computer Laboratory
     Copyright   1998  University of Cambridge
 
-WO7 \<longleftrightarrow> LEMMA \<longleftrightarrow> WO1 (Rubin \<and> Rubin p. 5)
+WO7 \<longleftrightarrow> LEMMA \<longleftrightarrow> WO1 (Rubin & Rubin p. 5)
 LEMMA is the sentence denoted by (**)
 
 Also, WO1 \<longleftrightarrow> WO8
@@ -93,14 +93,14 @@ done
 
 
 (* ********************************************************************** *)
-(*            The proof of WO8 \<longleftrightarrow> WO1 (Rubin \<and> Rubin p. 6)               *)
+(*            The proof of WO8 \<longleftrightarrow> WO1 (Rubin & Rubin p. 6)               *)
 (* ********************************************************************** *)
 
 lemma WO1_WO8: "WO1 \<Longrightarrow> WO8"
 by (unfold WO1_def WO8_def, fast)
 
 
-(* The implication "WO8 \<Longrightarrow> WO1": a faithful image of Rubin \<and> Rubin's proof*)
+(* The implication "WO8 \<Longrightarrow> WO1": a faithful image of Rubin & Rubin's proof*)
 lemma WO8_WO1: "WO8 \<Longrightarrow> WO1"
   unfolding WO1_def WO8_def
 apply (rule allI)

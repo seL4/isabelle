@@ -1,5 +1,5 @@
 (*  Title:      ZF/Induct/PropLog.thy
-    Author:     Tobias Nipkow \<and> Lawrence C Paulson
+    Author:     Tobias Nipkow & Lawrence C Paulson
     Copyright   1993  University of Cambridge
 *)
 

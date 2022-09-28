@@ -9,7 +9,7 @@ The proof deals with three cases for ordinals: 0, succ and limit ordinal.
 The first instance is trivial, the third not difficult, but the second
 is very complicated requiring many lemmas.
 We also need to prove that at any stage gamma the set 
-(s - \<Union>(...) - k_gamma)   (Rubin \<and> Rubin page 15)
+(s - \<Union>(...) - k_gamma)   (Rubin & Rubin page 15)
 contains m distinct elements (in fact is equipollent to s)
 *)
 
@@ -148,7 +148,7 @@ done
   First quite complicated proof of the fact used in the recursive construction
   of the family T_gamma (WO2 \<Longrightarrow> AC16(k #+ m, k)) - the fact that at any stage
   gamma the set (s - \<Union>(...) - k_gamma) is equipollent to s
-  (Rubin \<and> Rubin page 15).
+  (Rubin & Rubin page 15).
 *)
 
 (* ********************************************************************** *)

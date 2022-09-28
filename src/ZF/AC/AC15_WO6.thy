@@ -16,7 +16,7 @@ AC1 \<Longrightarrow> AC13(1);  AC13(m) \<Longrightarrow> AC13(n) \<Longrightarr
 
 So we don't have to prove all implications of both cases.
 Moreover we don't need to prove AC13(1) \<Longrightarrow> AC1 and AC11 \<Longrightarrow> AC14 as
-Rubin \<and> Rubin do.
+Rubin & Rubin do.
 *)
 
 theory AC15_WO6
@@ -251,7 +251,7 @@ theorem AC14_AC15: "AC14 \<Longrightarrow> AC15"
 by (unfold AC13_def AC14_def AC15_def, fast)
 
 (* ********************************************************************** *)
-(* The redundant proofs; however cited by Rubin \<and> Rubin                   *)
+(* The redundant proofs; however cited by Rubin & Rubin                   *)
 (* ********************************************************************** *)
 
 (* ********************************************************************** *)

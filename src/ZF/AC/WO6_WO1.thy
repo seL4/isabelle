@@ -5,7 +5,7 @@ Proofs needed to state that formulations WO1,...,WO6 are all equivalent.
 The only hard one is WO6 \<Longrightarrow> WO1.
 
 Every proof (except WO6 \<Longrightarrow> WO1 and WO1 \<Longrightarrow> WO2) are described as "clear"
-by Rubin \<and> Rubin (page 2). 
+by Rubin & Rubin (page 2). 
 They refer reader to a book by Gödel to see the proof WO1 \<Longrightarrow> WO2.
 Fortunately order types made this proof also very easy.
 *)
@@ -127,7 +127,7 @@ by (unfold WO4_def WO5_def WO6_def, blast)
 (* ********************************************************************** 
     The proof of "WO6 \<Longrightarrow> WO1".  Simplified by L C Paulson.
 
-    From the book "Equivalents of the Axiom of Choice" by Rubin \<and> Rubin,
+    From the book "Equivalents of the Axiom of Choice" by Rubin & Rubin,
     pages 2-5
 ************************************************************************* *)
 
@@ -439,7 +439,7 @@ apply (auto intro: le_imp_rec_subset [THEN subsetD]
 done
 
 (* ********************************************************************** *)
-(* Rubin \<and> Rubin wrote,                                                   *)
+(* Rubin & Rubin wrote,                                                   *)
 (* "It follows from (ii) and mathematical induction that if y*y \<subseteq> y then *)
 (* y can be well-ordered"                                                 *)
 
