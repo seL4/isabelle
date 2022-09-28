@@ -150,11 +150,12 @@ next
     by (blast intro: Ord_iterates Ord_sup_greater assms)  
   moreover have "next_greater(a, sup_greater^n (x)) \<le>
              (\<Union>n\<in>nat. sup_greater^n (x))" if "n \<in> nat" for n
-    using that assms
-    apply (rule_tac a="succ(n)" in UN_upper_le)
-      apply (simp_all add: next_greater_le_sup_greater) 
-    apply (blast intro: Ord_iterates Ord_sup_greater)  
-    done
+  proof (rule UN_upper_le)
+    show "next_greater(a, sup_greater^n (x)) \<le> sup_greater^succ(n) (x)"
+      using assms by (simp add: next_greater_le_sup_greater) 
+    show "Ord(\<Union>xa\<in>nat. sup_greater^xa (x))"
+      using assms by (blast intro: Ord_iterates Ord_sup_greater)  
+  qed (use that in auto)
   ultimately
   show "(\<Union>n\<in>nat. next_greater(a, sup_greater^n (x))) \<le> sup_greater^\<omega> (x)"
     using assms unfolding iterates_omega_def by (blast intro: UN_least_le) 
@@ -189,12 +190,13 @@ end
 
 
 theorem Closed_Unbounded_INT:
-  "(\<And>a. a\<in>A \<Longrightarrow> Closed_Unbounded(P(a)))
-     \<Longrightarrow> Closed_Unbounded(\<lambda>x. \<forall>a\<in>A. P(a, x))"
-  apply (case_tac "A=0", simp)
-  apply (rule cub_family.Closed_Unbounded_INT [OF cub_family.intro])
-    apply (simp_all add: Closed_Unbounded_def)
-  done
+  assumes "\<And>a. a\<in>A \<Longrightarrow> Closed_Unbounded(P(a))"
+  shows "Closed_Unbounded(\<lambda>x. \<forall>a\<in>A. P(a, x))"
+proof (cases "A=0")
+  case False
+  with assms [unfolded Closed_Unbounded_def] show ?thesis
+    by (intro cub_family.Closed_Unbounded_INT [OF cub_family.intro]) auto
+qed auto
 
 lemma Int_iff_INT2:
   "P(x) \<and> Q(x)  \<longleftrightarrow>  (\<forall>i\<in>2. (i=0 \<longrightarrow> P(x)) \<and> (i=1 \<longrightarrow> Q(x)))"
@@ -203,9 +205,9 @@ lemma Int_iff_INT2:
 theorem Closed_Unbounded_Int:
   "\<lbrakk>Closed_Unbounded(P); Closed_Unbounded(Q)\<rbrakk> 
       \<Longrightarrow> Closed_Unbounded(\<lambda>x. P(x) \<and> Q(x))"
-  apply (simp only: Int_iff_INT2)
-  apply (rule Closed_Unbounded_INT, auto) 
-  done
+  unfolding Int_iff_INT2 
+  by (rule Closed_Unbounded_INT, auto) 
+
 
 
 subsection \<open>Normal Functions\<close> 
@@ -316,9 +318,9 @@ lemma cont_Ord_Union:
 
 lemma Normal_Union:
   "\<lbrakk>X\<noteq>0; \<forall>x\<in>X. Ord(x); Normal(F)\<rbrakk> \<Longrightarrow> F(\<Union>(X)) = (\<Union>y\<in>X. F(y))"
-  apply (simp add: Normal_def) 
-  apply (blast intro: mono_Ord_imp_le_subset cont_Ord_Union) 
-  done
+  unfolding Normal_def
+  by (blast intro: mono_Ord_imp_le_subset cont_Ord_Union) 
+
 
 lemma Normal_imp_fp_Closed: "Normal(F) \<Longrightarrow> Closed(\<lambda>i. F(i) = i)"
   apply (simp add: Closed_def ball_conj_distrib, clarify)
@@ -330,9 +332,7 @@ lemma Normal_imp_fp_Closed: "Normal(F) \<Longrightarrow> Closed(\<lambda>i. F(i)
 lemma iterates_Normal_increasing:
   "\<lbrakk>n\<in>nat;  x < F(x);  Normal(F)\<rbrakk> 
       \<Longrightarrow> F^n (x) < F^(succ(n)) (x)"  
-  apply (induct n rule: nat_induct)
-   apply (simp_all add: Normal_imp_mono)
-  done
+  by (induct n rule: nat_induct) (simp_all add: Normal_imp_mono)
 
 lemma Ord_iterates_Normal:
      "\<lbrakk>n\<in>nat;  Normal(F);  Ord(x)\<rbrakk> \<Longrightarrow> Ord(F^n (x))"  
@@ -373,9 +373,7 @@ done
 
 lemma iterates_omega_increasing:
      "\<lbrakk>Normal(F); Ord(a)\<rbrakk> \<Longrightarrow> a \<le> F^\<omega> (a)"   
-  unfolding iterates_omega_def
-apply (rule UN_upper_le [of 0], simp_all)
-done
+  by (simp add: iterates_omega_def UN_upper_le [of 0])
 
 lemma Normal_imp_fp_Unbounded: "Normal(F) \<Longrightarrow> Unbounded(\<lambda>i. F(i) = i)"
 apply (unfold Unbounded_def, clarify)
@@ -387,8 +385,7 @@ done
 
 theorem Normal_imp_fp_Closed_Unbounded: 
      "Normal(F) \<Longrightarrow> Closed_Unbounded(\<lambda>i. F(i) = i)"
-by (simp add: Closed_Unbounded_def Normal_imp_fp_Closed
-              Normal_imp_fp_Unbounded)
+  by (simp add: Closed_Unbounded_def Normal_imp_fp_Closed Normal_imp_fp_Unbounded)
 
 
 subsubsection\<open>Function \<open>normalize\<close>\<close>
@@ -405,9 +402,8 @@ definition
 
 lemma Ord_normalize [simp, intro]:
      "\<lbrakk>Ord(a); \<And>x. Ord(x) \<Longrightarrow> Ord(F(x))\<rbrakk> \<Longrightarrow> Ord(normalize(F, a))"
-apply (induct a rule: trans_induct3)
-apply (simp_all add: ltD def_transrec2 [OF normalize_def])
-done
+proof (induct a rule: trans_induct3)
+qed (simp_all add: ltD def_transrec2 [OF normalize_def])
 
 lemma normalize_increasing:
   assumes ab: "a < b" and F: "\<And>x. Ord(x) \<Longrightarrow> Ord(F(x))"
@@ -437,11 +433,13 @@ proof -
 qed
 
 theorem Normal_normalize:
-  "(\<And>x. Ord(x) \<Longrightarrow> Ord(F(x))) \<Longrightarrow> Normal(normalize(F))"
-  apply (rule NormalI) 
-   apply (blast intro!: normalize_increasing)
-  apply (simp add: def_transrec2 [OF normalize_def])
-  done
+  assumes "\<And>x. Ord(x) \<Longrightarrow> Ord(F(x))" shows "Normal(normalize(F))"
+proof (rule NormalI) 
+  show "\<And>i j. i < j \<Longrightarrow> normalize(F,i) < normalize(F,j)"
+    using assms by (blast intro!: normalize_increasing)
+  show "\<And>l. Limit(l) \<Longrightarrow> normalize(F, l) = (\<Union>i<l. normalize(F,i))"
+    by (simp add: def_transrec2 [OF normalize_def])
+qed
 
 theorem le_normalize:
   assumes a: "Ord(a)" and coF: "cont_Ord(F)" and F: "\<And>x. Ord(x) \<Longrightarrow> Ord(F(x))"
@@ -501,9 +499,11 @@ proof -
 qed
 
 theorem Normal_Aleph: "Normal(Aleph)"
-  apply (rule NormalI) 
-   apply (blast intro!: Aleph_increasing)
-  apply (simp add: def_transrec2 [OF Aleph_def])
-  done
+proof (rule NormalI) 
+  show "\<And>i j. i < j \<Longrightarrow> \<aleph>i < \<aleph>j"
+    by (blast intro!: Aleph_increasing)
+  show "\<And>l. Limit(l) \<Longrightarrow> \<aleph>l = (\<Union>i<l. \<aleph>i)"
+    by (simp add: def_transrec2 [OF Aleph_def])
+qed
 
 end
