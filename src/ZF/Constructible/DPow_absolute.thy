@@ -13,7 +13,7 @@ subsection\<open>Preliminary Internalizations\<close>
 subsubsection\<open>The Operator \<^term>\<open>is_formula_rec\<close>\<close>
 
 text\<open>The three arguments of \<^term>\<open>p\<close> are always 2, 1, 0.  It is buried
-   within 11 quantifiers\<And>\<close>
+   within 11 quantifiers!\<close>
 
 (* is_formula_rec :: "[i\<Rightarrow>o, [i,i,i]\<Rightarrow>o, i, i] \<Rightarrow> o"
    "is_formula_rec(M,MH,p,z)  \<equiv>
@@ -595,15 +595,10 @@ done
 subsubsection\<open>Actually Instantiating \<open>M_Lset\<close>\<close>
 
 lemma M_Lset_axioms_L: "M_Lset_axioms(L)"
-  apply (rule M_Lset_axioms.intro)
-       apply (assumption | rule strong_rep transrec_rep)+
-  done
+  by (blast intro: M_Lset_axioms.intro strong_rep transrec_rep)
 
 theorem M_Lset_L: "M_Lset(L)"
-  apply (rule M_Lset.intro) 
-   apply (rule M_DPow_L)
-  apply (rule M_Lset_axioms_L) 
-  done
+  by (blast intro: M_Lset.intro M_DPow_L M_Lset_axioms_L)
 
 text\<open>Finally: the point of the whole theory!\<close>
 lemmas Lset_closed = M_Lset.Lset_closed [OF M_Lset_L]
@@ -619,9 +614,12 @@ definition
 
 theorem V_equals_L_in_L:
   "L(x) \<longleftrightarrow> constructible(L,x)"
-apply (simp add: constructible_def Lset_abs Lset_closed)
-apply (simp add: L_def)
-apply (blast intro: Ord_in_L) 
-done
+proof -
+  have "L(x) \<longleftrightarrow> (\<exists>i[L]. Ord(i) \<and> x \<in> Lset(i))"
+    by (auto simp add: L_def intro: Ord_in_L)
+  moreover have "\<dots> \<longleftrightarrow> constructible(L,x)"
+    by (simp add: constructible_def Lset_abs Lset_closed)
+  ultimately show ?thesis by blast
+qed
 
 end

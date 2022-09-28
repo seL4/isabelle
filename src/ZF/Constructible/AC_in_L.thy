@@ -453,7 +453,7 @@ done
 
 
 text\<open>Every constructible set is well-ordered! Therefore the Wellordering Theorem and
-      the Axiom of Choice hold in \<^term>\<open>L\<close>\<And>\<close>
+      the Axiom of Choice hold in \<^term>\<open>L\<close>!\<close>
 theorem L_implies_AC: assumes x: "L(x)" shows "\<exists>r. well_ord(x,r)"
   using Transset_Lset x
 apply (simp add: Transset_def L_def)

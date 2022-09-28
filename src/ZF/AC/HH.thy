@@ -126,7 +126,7 @@ apply (rule less_LeastE)
 apply (erule_tac [2] ltI [OF _ Ord_Least], assumption)
 done
 
-subsection\<open>Lemmas used in the proofs of AC1 \<Longrightarrow> WO2 and AC17 \<Longrightarrow> AC1\<close>
+subsection\<open>Lemmas used in the proofs of @{term "AC1 \<Longrightarrow> WO2"} and @{term "AC17 \<Longrightarrow> AC1"}\<close>
 
 lemma lam_Least_HH_inj_Pow: 
         "(\<lambda>a \<in> (\<mu> i. HH(f,x,i)={x}). HH(f,x,a))   
@@ -213,7 +213,7 @@ lemmas bij_Least_HH_x =
               lam_sing_bij [THEN bij_converse_bij]]
 
 
-subsection\<open>The proof of AC1 \<Longrightarrow> WO2\<close>
+subsection\<open>The proof of @{term "AC1 \<Longrightarrow> WO2"}\<close>
 
 (*Establishing the existence of a bijection, namely
 converse
@@ -236,10 +236,9 @@ done
 
 lemma AC1_WO2: "AC1 \<Longrightarrow> WO2"
   unfolding AC1_def WO2_def eqpoll_def
-apply (intro allI) 
-apply (drule_tac x = "Pow(A) - {0}" in spec) 
-apply (blast dest: bijection)
-done
+  apply (intro allI) 
+  apply (drule_tac x = "Pow(A) - {0}" in spec) 
+  apply (blast dest: bijection)
+  done
 
 end
-
