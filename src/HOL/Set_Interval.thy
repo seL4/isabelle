@@ -12,7 +12,7 @@ Examples: Ico = {_ ..< _} and Ici = {_ ..}
 section \<open>Set intervals\<close>
 
 theory Set_Interval
-imports Divides
+imports Parity
 begin
 
 (* Belongs in Finite_Set but 2 is not available there *)

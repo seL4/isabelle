@@ -278,7 +278,7 @@ qed
 
 lemma cong_diff_iff_cong_0_nat:
   "[a - b = 0] (mod m) \<longleftrightarrow> [a = b] (mod m)" if "a \<ge> b" for a b :: nat
-  using that by (auto simp add: cong_def le_imp_diff_is_add dest: nat_mod_eq_lemma)
+  using that by (simp add: cong_0_iff) (simp add: cong_def mod_eq_dvd_iff_nat)
 
 lemma cong_diff_iff_cong_0_nat':
   "[nat \<bar>int a - int b\<bar> = 0] (mod m) \<longleftrightarrow> [a = b] (mod m)"
@@ -348,26 +348,12 @@ lemma cong_less_unique_int: "0 < m \<Longrightarrow> (\<exists>!b. 0 \<le> b \<a
   for a m :: int
   by (auto simp: cong_def)  (metis mod_mod_trivial pos_mod_conj)
 
-lemma cong_iff_lin_nat: "([a = b] (mod m)) \<longleftrightarrow> (\<exists>k1 k2. b + k1 * m = a + k2 * m)"
-  (is "?lhs = ?rhs")
+lemma cong_iff_lin_nat: "[a = b] (mod m) \<longleftrightarrow> (\<exists>k1 k2. b + k1 * m = a + k2 * m)"
   for a b :: nat
-proof
-  assume ?lhs
-  show ?rhs
-  proof (cases "b \<le> a")
-    case True
-    with \<open>?lhs\<close> show ?rhs
-      by (metis cong_altdef_nat dvd_def le_add_diff_inverse add_0_right mult_0 mult.commute)
-  next
-    case False
-    with \<open>?lhs\<close> show ?rhs
-      by (metis cong_def mult.commute nat_le_linear nat_mod_eq_lemma)
-  qed
-next
-  assume ?rhs
-  then show ?lhs
-    by (metis cong_def mult.commute nat_mod_eq_iff) 
-qed
+  apply (auto simp add: cong_def nat_mod_eq_iff)
+   apply (metis mult.commute)
+  apply (metis mult.commute)
+  done
 
 lemma cong_cong_mod_nat: "[a = b] (mod m) \<longleftrightarrow> [a mod m = b mod m] (mod m)"
   for a b :: nat
@@ -395,8 +381,7 @@ lemma cong_add_rcancel_0_nat: "[x + a = a] (mod n) \<longleftrightarrow> [x = 0]
 
 lemma cong_dvd_modulus_nat: "[x = y] (mod m) \<Longrightarrow> n dvd m \<Longrightarrow> [x = y] (mod n)"
   for x y :: nat
-  unfolding cong_iff_lin_nat dvd_def
-  by (metis mult.commute mult.left_commute)
+  by (auto simp add: cong_altdef_nat')
 
 lemma cong_to_1_nat:
   fixes a :: nat
@@ -428,8 +413,7 @@ lemma cong_to_1'_nat: "[a = 1] (mod n) \<longleftrightarrow> a = 0 \<and> n = 1 
 
 lemma cong_le_nat: "y \<le> x \<Longrightarrow> [x = y] (mod n) \<longleftrightarrow> (\<exists>q. x = q * n + y)"
   for x y :: nat
-  by (auto simp add: cong_altdef_nat le_imp_diff_is_add elim!: dvdE)
-
+  by (auto simp add: cong_altdef_nat le_imp_diff_is_add)
 
 lemma cong_solve_nat:
   fixes a :: nat

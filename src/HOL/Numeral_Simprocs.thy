@@ -3,7 +3,7 @@
 section \<open>Combination and Cancellation Simprocs for Numeral Expressions\<close>
 
 theory Numeral_Simprocs
-imports Divides
+imports Parity
 begin
 
 ML_file \<open>~~/src/Provers/Arith/assoc_fold.ML\<close>

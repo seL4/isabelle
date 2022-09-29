@@ -17,6 +17,7 @@ theory Main
     Conditionally_Complete_Lattices
     Binomial
     GCD
+    Divides
 begin
 
 subsection \<open>Namespace cleanup\<close>

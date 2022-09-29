@@ -69,7 +69,11 @@ declare mod_minus1_right[algebra]
 declare div_minus1_right[algebra]
 declare mod_mult_self2_is_0[algebra]
 declare mod_mult_self1_is_0[algebra]
-declare zmod_eq_0_iff[algebra]
+
+lemma zmod_eq_0_iff [algebra]:
+  \<open>m mod d = 0 \<longleftrightarrow> (\<exists>q. m = d * q)\<close> for m d :: int
+  by (auto simp add: mod_eq_0_iff_dvd)
+
 declare dvd_0_left_iff[algebra]
 declare zdvd1_eq[algebra]
 declare mod_eq_dvd_iff[algebra]

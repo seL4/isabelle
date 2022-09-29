@@ -10,11 +10,11 @@ theory Euclidean_Division
 begin
 
 subsection \<open>Euclidean (semi)rings with explicit division and remainder\<close>
-  
-class euclidean_semiring = semidom_modulo + 
+
+class euclidean_semiring = semidom_modulo +
   fixes euclidean_size :: "'a \<Rightarrow> nat"
   assumes size_0 [simp]: "euclidean_size 0 = 0"
-  assumes mod_size_less: 
+  assumes mod_size_less:
     "b \<noteq> 0 \<Longrightarrow> euclidean_size (a mod b) < euclidean_size b"
   assumes size_mult_mono:
     "b \<noteq> 0 \<Longrightarrow> euclidean_size a \<le> euclidean_size (a * b)"
@@ -46,7 +46,7 @@ lemma size_mult_mono': "b \<noteq> 0 \<Longrightarrow> euclidean_size a \<le> eu
 
 lemma dvd_euclidean_size_eq_imp_dvd:
   assumes "a \<noteq> 0" and "euclidean_size a = euclidean_size b"
-    and "b dvd a" 
+    and "b dvd a"
   shows "a dvd b"
 proof (rule ccontr)
   assume "\<not> a dvd b"
@@ -83,7 +83,7 @@ lemma euclidean_size_unit:
   "is_unit a \<Longrightarrow> euclidean_size a = euclidean_size 1"
   using euclidean_size_times_unit [of a 1] by simp
 
-lemma unit_iff_euclidean_size: 
+lemma unit_iff_euclidean_size:
   "is_unit a \<longleftrightarrow> euclidean_size a = euclidean_size 1 \<and> a \<noteq> 0"
 proof safe
   assume A: "a \<noteq> 0" and B: "euclidean_size a = euclidean_size 1"
@@ -96,7 +96,7 @@ lemma euclidean_size_times_nonunit:
   shows   "euclidean_size b < euclidean_size (a * b)"
 proof (rule ccontr)
   assume "\<not>euclidean_size b < euclidean_size (a * b)"
-  with size_mult_mono'[OF assms(1), of b] 
+  with size_mult_mono'[OF assms(1), of b]
     have eq: "euclidean_size (a * b) = euclidean_size b" by simp
   have "a * b dvd b"
     by (rule dvd_euclidean_size_eq_imp_dvd [OF _ eq])
@@ -107,12 +107,12 @@ proof (rule ccontr)
 qed
 
 lemma dvd_imp_size_le:
-  assumes "a dvd b" "b \<noteq> 0" 
+  assumes "a dvd b" "b \<noteq> 0"
   shows   "euclidean_size a \<le> euclidean_size b"
   using assms by (auto simp: size_mult_mono)
 
 lemma dvd_proper_imp_size_less:
-  assumes "a dvd b" "\<not> b dvd a" "b \<noteq> 0" 
+  assumes "a dvd b" "\<not> b dvd a" "b \<noteq> 0"
   shows   "euclidean_size a < euclidean_size b"
 proof -
   from assms(1) obtain c where "b = a * c" by (erule dvdE)
@@ -160,7 +160,7 @@ proof -
   then show ?thesis
     by simp
 qed
- 
+
 end
 
 
@@ -450,7 +450,7 @@ qed
 
 text \<open>Exponentiation respects modular equivalence.\<close>
 
-lemma power_mod [mod_simps]: 
+lemma power_mod [mod_simps]:
   "((a mod b) ^ n) mod b = (a ^ n) mod b"
 proof (induct n)
   case 0
@@ -601,10 +601,10 @@ lemma invertible_coprime:
 
 end
 
-  
+
 subsection \<open>Uniquely determined division\<close>
 
-class unique_euclidean_semiring = euclidean_semiring + 
+class unique_euclidean_semiring = euclidean_semiring +
   assumes euclidean_size_mult: \<open>euclidean_size (a * b) = euclidean_size a * euclidean_size b\<close>
   fixes division_segment :: \<open>'a \<Rightarrow> 'a\<close>
   assumes is_unit_division_segment [simp]: \<open>is_unit (division_segment a)\<close>
@@ -838,7 +838,7 @@ end
 
 class unique_euclidean_ring = euclidean_ring + unique_euclidean_semiring
 begin
-  
+
 subclass euclidean_ring_cancel ..
 
 end
@@ -923,7 +923,7 @@ instance proof
     by (auto simp add: mult_div_unfold ac_simps intro: Max.boundedI)
   then show "m div n * n + m mod n = m"
     by (simp add: modulo_nat_def)
-  assume "n \<noteq> 0" 
+  assume "n \<noteq> 0"
   show "euclidean_size (m mod n) < euclidean_size n"
   proof -
     have "m < Suc (m div n) * n"
@@ -1115,7 +1115,7 @@ lemma
   and mod_less [simp]: "m mod n = m"
   if "m < n" for m n :: nat
   using that by (auto intro: div_nat_eqI mod_nat_eqI)
- 
+
 lemma split_div:
   \<open>P (m div n) \<longleftrightarrow>
     (n = 0 \<longrightarrow> P 0) \<and>
@@ -1229,7 +1229,7 @@ proof -
   then have "m mod 2 = 0 \<or> m mod 2 = 1"
     by arith
   then show ?thesis
-    by auto     
+    by auto
 qed
 
 lemma mod_Suc_eq [mod_simps]:
@@ -1501,7 +1501,7 @@ using \<open>m < p\<close> proof (induct m)
       proof
         assume P: "P (p - Suc m)"
         with \<open>\<not> P 0\<close> have "Suc m < p"
-          by (auto intro: ccontr) 
+          by (auto intro: ccontr)
         then have "Suc (p - Suc m) = p - m"
           by arith
         moreover from \<open>0 < p\<close> have "p - Suc m < p"
@@ -1540,6 +1540,72 @@ proof -
     by simp
 qed
 
+lemma mod_eq_dvd_iff_nat:
+  \<open>m mod q = n mod q \<longleftrightarrow> q dvd m - n\<close> (is \<open>?P \<longleftrightarrow> ?Q\<close>)
+    if \<open>m \<ge> n\<close> for m n q :: nat
+proof
+  assume ?Q
+  then obtain s where \<open>m - n = q * s\<close> ..
+  with that have \<open>m = q * s + n\<close>
+    by simp
+  then show ?P
+    by simp
+next
+  assume ?P
+  have \<open>m - n = m div q * q + m mod q - (n div q * q + n mod q)\<close>
+    by simp
+  also have \<open>\<dots> = q * (m div q - n div q)\<close>
+    by (simp only: algebra_simps \<open>?P\<close>)
+  finally show ?Q ..
+qed
+
+lemma mod_eq_nat1E:
+  fixes m n q :: nat
+  assumes "m mod q = n mod q" and "m \<ge> n"
+  obtains s where "m = n + q * s"
+proof -
+  from assms have "q dvd m - n"
+    by (simp add: mod_eq_dvd_iff_nat)
+  then obtain s where "m - n = q * s" ..
+  with \<open>m \<ge> n\<close> have "m = n + q * s"
+    by simp
+  with that show thesis .
+qed
+
+lemma mod_eq_nat2E:
+  fixes m n q :: nat
+  assumes "m mod q = n mod q" and "n \<ge> m"
+  obtains s where "n = m + q * s"
+  using assms mod_eq_nat1E [of n q m] by (auto simp add: ac_simps)
+
+lemma nat_mod_eq_iff:
+  "(x::nat) mod n = y mod n \<longleftrightarrow> (\<exists>q1 q2. x + n * q1 = y + n * q2)"  (is "?lhs = ?rhs")
+proof
+  assume H: "x mod n = y mod n"
+  { assume xy: "x \<le> y"
+    from H have th: "y mod n = x mod n" by simp
+    from mod_eq_nat1E [OF th xy] obtain q where "y = x + n * q" .
+    then have "x + n * q = y + n * 0"
+      by simp
+    then have "\<exists>q1 q2. x + n * q1 = y + n * q2"
+      by blast
+  }
+  moreover
+  { assume xy: "y \<le> x"
+    from mod_eq_nat1E [OF H xy] obtain q where "x = y + n * q" .
+    then have "x + n * 0 = y + n * q"
+      by simp
+    then have "\<exists>q1 q2. x + n * q1 = y + n * q2"
+      by blast
+  }
+  ultimately show ?rhs using linear[of x y] by blast
+next
+  assume ?rhs then obtain q1 q2 where q12: "x + n * q1 = y + n * q2" by blast
+  hence "(x + n * q1) mod n = (y + n * q2) mod n" by simp
+  thus  ?lhs by simp
+qed
+
+
 
 subsection \<open>Elementary euclidean division on \<^typ>\<open>int\<close>\<close>
 
@@ -1577,7 +1643,7 @@ instance proof
 next
   fix k l :: int
   assume "l \<noteq> 0"
-  obtain n m and s t where k: "k = sgn s * int n" and l: "l = sgn t * int m" 
+  obtain n m and s t where k: "k = sgn s * int n" and l: "l = sgn t * int m"
     by (blast intro: int_sgnE elim: that)
   then have "k * l = sgn (s * t) * int (n * m)"
     by (simp add: ac_simps sgn_mult)
@@ -1586,7 +1652,7 @@ next
       (auto simp add: algebra_simps sgn_mult sgn_1_pos sgn_0_0)
 next
   fix k l :: int
-  obtain n m and s t where "k = sgn s * int n" and "l = sgn t * int m" 
+  obtain n m and s t where "k = sgn s * int n" and "l = sgn t * int m"
     by (blast intro: int_sgnE elim: that)
   then show "k div l * l + k mod l = k"
     by (simp add: divide_int_unfold modulo_int_unfold algebra_simps modulo_nat_def of_nat_diff)
@@ -1736,7 +1802,7 @@ lemma abs_division_segment [simp]:
 lemma abs_mod_less:
   "\<bar>k mod l\<bar> < \<bar>l\<bar>" if "l \<noteq> 0" for k l :: int
 proof -
-  obtain n m and s t where "k = sgn s * int n" and "l = sgn t * int m" 
+  obtain n m and s t where "k = sgn s * int n" and "l = sgn t * int m"
     by (blast intro: int_sgnE elim: that)
   with that show ?thesis
     by (auto simp add: modulo_int_unfold abs_mult mod_greater_zero_iff_not_dvd
@@ -1747,7 +1813,7 @@ qed
 lemma sgn_mod:
   "sgn (k mod l) = sgn l" if "l \<noteq> 0" "\<not> l dvd k" for k l :: int
 proof -
-  obtain n m and s t where "k = sgn s * int n" and "l = sgn t * int m" 
+  obtain n m and s t where "k = sgn s * int n" and "l = sgn t * int m"
     by (blast intro: int_sgnE elim: that)
   with that show ?thesis
     by (auto simp add: modulo_int_unfold sgn_mult mod_greater_zero_iff_not_dvd
@@ -2143,50 +2209,70 @@ lemma mod_neg_neg_trivial [simp]:
   "k mod l = k" if "k \<le> 0" and "l < k" for k l :: int
   using that by (simp add: mod_eq_self_iff_div_eq_0)
 
-lemma div_pos_neg_trivial:
-  \<open>k div l = - 1\<close> if \<open>0 < k\<close> and \<open>k + l \<le> 0\<close> for k l :: int
-proof (cases \<open>l dvd k\<close>)
-  case True
-  then obtain j where \<open>k = l * j\<close> ..
+lemma
+  div_pos_neg_trivial: \<open>k div l = - 1\<close>  (is ?Q)
+  and mod_pos_neg_trivial: \<open>k mod l = k + l\<close>  (is ?R)
+    if \<open>0 < k\<close> and \<open>k + l \<le> 0\<close> for k l :: int
+proof -
   from that have \<open>l < 0\<close>
     by simp
-  with \<open>k = l * j\<close> \<open>0 < k\<close> have \<open>j \<le> - 1\<close>
-    by (simp add: zero_less_mult_iff)
-  moreover from \<open>k + l \<le> 0\<close> \<open>k = l * j\<close> have \<open>l * (j + 1) \<le> 0\<close>
-    by (simp add: algebra_simps)
-  with \<open>l < 0\<close> have \<open>- 1 \<le> j\<close>
-    by (simp add: mult_le_0_iff)
-  ultimately have \<open>j = - 1\<close>
-    by (rule order.antisym)
-  with \<open>k = l * j\<close> \<open>l < 0\<close> show ?thesis
-    by (simp add: dvd_neg_div)
-next
-  case False
-  have \<open>k + l < 0\<close>
-  proof (rule ccontr)
-    assume \<open>\<not> k + l < 0\<close>
-    with \<open>k + l \<le> 0\<close> have \<open>k + l = 0\<close>
+  have \<open>(k div l, k mod l) = (- 1, k + l)\<close>
+  proof (cases l \<open>- 1 :: int\<close> \<open>k + l\<close> k rule: euclidean_relation_intI)
+    case by0
+    with \<open>l < 0\<close> show ?case
       by simp
-    then have \<open>k = - l\<close>
+  next
+    case divides
+    from \<open>l dvd k\<close> obtain j where \<open>k = l * j\<close> ..
+    with \<open>l < 0\<close> \<open>0 < k\<close> have \<open>j < 0\<close>
+      by (simp add: zero_less_mult_iff)
+    moreover from \<open>k + l \<le> 0\<close> \<open>k = l * j\<close> have \<open>l * (j + 1) \<le> 0\<close>
+      by (simp add: algebra_simps)
+    with \<open>l < 0\<close> have \<open>j + 1 \<ge> 0\<close>
+      by (simp add: mult_le_0_iff)
+    with \<open>j < 0\<close> have \<open>j = - 1\<close>
       by simp
-    then have \<open>l dvd k\<close>
+    with \<open>k = l * j\<close> show ?case
       by simp
-    with \<open>\<not> l dvd k\<close> show False ..
+  next
+    case euclidean_relation
+    with \<open>k + l \<le> 0\<close> have \<open>k + l < 0\<close>
+      by (auto simp add: less_le add_eq_0_iff)
+    with \<open>0 < k\<close> show ?case
+      by simp
   qed
-  with that \<open>\<not> l dvd k\<close> show ?thesis
-    by (simp add: div_eq_div_abs [of k l])
-qed
-
-lemma mod_pos_neg_trivial:
-  \<open>k mod l = k + l\<close> if \<open>0 < k\<close> and \<open>k + l \<le> 0\<close> for k l :: int
-proof -
-  from that have \<open>k mod l = k div l * l + k mod l + l\<close>
-    by (simp add: div_pos_neg_trivial)
-  then show ?thesis by simp
+  then show ?Q and ?R
+    by simp_all
 qed
 
 text \<open>There is neither \<open>div_neg_pos_trivial\<close> nor \<open>mod_neg_pos_trivial\<close>
   because \<^term>\<open>0 div l = 0\<close> would supersede it.\<close>
+
+
+subsubsection \<open>More uniqueness rules\<close>
+
+lemma
+  fixes a b q r :: int
+  assumes \<open>a = b * q + r\<close> \<open>0 \<le> r\<close> \<open>r < b\<close>
+  shows int_div_pos_eq:
+      \<open>a div b = q\<close> (is ?Q)
+    and int_mod_pos_eq:
+      \<open>a mod b = r\<close> (is ?R)
+proof -
+  from assms have \<open>(a div b, a mod b) = (q, r)\<close>
+    by (cases b q r a rule: euclidean_relation_intI)
+      (auto simp add: ac_simps dvd_add_left_iff sgn_1_pos le_less dest: zdvd_imp_le)
+  then show ?Q and ?R
+    by simp_all
+qed
+
+lemma int_div_neg_eq:
+  \<open>a div b = q\<close> if \<open>a = b * q + r\<close> \<open>r \<le> 0\<close> \<open>b < r\<close> for a b q r :: int
+  using that int_div_pos_eq [of a \<open>- b\<close> \<open>- q\<close> \<open>- r\<close>] by simp_all
+
+lemma int_mod_neg_eq:
+  \<open>a mod b = r\<close> if \<open>a = b * q + r\<close> \<open>r \<le> 0\<close> \<open>b < r\<close> for a b q r :: int
+  using that int_div_neg_eq [of a b q r] by simp
 
 
 subsubsection \<open>Laws for unary minus\<close>
@@ -2310,7 +2396,7 @@ proof -
   from * [of \<open>\<lambda>q _. P q\<close>] show ?div .
   from * [of \<open>\<lambda>_ r. Q r\<close>] show ?mod .
 qed
- 
+
 text \<open>Enable (lin)arith to deal with \<^const>\<open>divide\<close> and \<^const>\<open>modulo\<close>
   when these are applied to some constant that is of the form
   \<^term>\<open>numeral k\<close>:\<close>
@@ -2413,6 +2499,421 @@ lemma nat_div_distrib':
 lemma nat_mod_distrib: \<comment> \<open>Fails if y<0: the LHS collapses to (nat z) but the RHS doesn't\<close>
   \<open>nat (x mod y) = nat x mod nat y\<close> if \<open>0 \<le> x\<close> \<open>0 \<le> y\<close>
   using that by (simp add: modulo_int_def sgn_if)
+
+
+subsubsection \<open>Monotonicity in the First Argument (Dividend)\<close>
+
+lemma zdiv_mono1:
+  \<open>a div b \<le> a' div b\<close>
+    if \<open>a \<le> a'\<close> \<open>0 < b\<close>
+    for a b b' :: int
+proof -
+  from \<open>a \<le> a'\<close> have \<open>b * (a div b) + a mod b \<le> b * (a' div b) + a' mod b\<close>
+    by simp
+  then have \<open>b * (a div b) \<le> (a' mod b - a mod b) + b * (a' div b)\<close>
+    by (simp add: algebra_simps)
+  moreover have \<open>a' mod b < b + a mod b\<close>
+    by (rule less_le_trans [of _ b]) (use \<open>0 < b\<close> in simp_all)
+  ultimately have \<open>b * (a div b) < b * (1 + a' div b)\<close>
+    by (simp add: distrib_left)
+  with \<open>0 < b\<close> have \<open>a div b < 1 + a' div b\<close>
+    by (simp add: mult_less_cancel_left)
+  then show ?thesis
+    by simp
+qed
+
+lemma zdiv_mono1_neg:
+  \<open>a' div b \<le> a div b\<close>
+    if \<open>a \<le> a'\<close> \<open>b < 0\<close>
+    for a a' b :: int
+  using that zdiv_mono1 [of \<open>- a'\<close> \<open>- a\<close> \<open>- b\<close>] by simp
+
+
+subsubsection \<open>Monotonicity in the Second Argument (Divisor)\<close>
+
+lemma zdiv_mono2:
+  \<open>a div b \<le> a div b'\<close> if \<open>0 \<le> a\<close> \<open>0 < b'\<close> \<open>b' \<le> b\<close> for a b b' :: int
+proof -
+  define q q' r r' where **: \<open>q = a div b\<close> \<open>q' = a div b'\<close> \<open>r = a mod b\<close> \<open>r' = a mod b'\<close>
+  then have *: \<open>b * q + r = b' * q' + r'\<close> \<open>0 \<le> b' * q' + r'\<close>
+    \<open>r' < b'\<close> \<open>0 \<le> r\<close> \<open>0 < b'\<close> \<open>b' \<le> b\<close>
+    using that by simp_all
+  have \<open>0 < b' * (q' + 1)\<close>
+    using * by (simp add: distrib_left)
+  with * have \<open>0 \<le> q'\<close>
+    by (simp add: zero_less_mult_iff)
+  moreover have \<open>b * q = r' - r + b' * q'\<close>
+    using * by linarith
+  ultimately have \<open>b * q < b * (q' + 1)\<close>
+    using mult_right_mono * unfolding distrib_left by fastforce
+  with * have \<open>q \<le> q'\<close>
+    by (simp add: mult_less_cancel_left_pos)
+  with ** show ?thesis
+    by simp
+qed
+
+lemma zdiv_mono2_neg:
+  \<open>a div b' \<le> a div b\<close> if \<open>a < 0\<close> \<open>0 < b'\<close> \<open>b' \<le> b\<close> for a b b' :: int
+proof -
+  define q q' r r' where **: \<open>q = a div b\<close> \<open>q' = a div b'\<close> \<open>r = a mod b\<close> \<open>r' = a mod b'\<close>
+  then have *: \<open>b * q + r = b' * q' + r'\<close> \<open>b' * q' + r' < 0\<close>
+    \<open>r < b\<close> \<open>0 \<le> r'\<close> \<open>0 < b'\<close> \<open>b' \<le> b\<close>
+    using that by simp_all
+  have \<open>b' * q' < 0\<close>
+    using * by linarith
+  with * have \<open>q' \<le> 0\<close>
+    by (simp add: mult_less_0_iff)
+  have \<open>b * q' \<le> b' * q'\<close>
+    by (simp add: \<open>q' \<le> 0\<close> * mult_right_mono_neg)
+  then have "b * q' < b * (q + 1)"
+    using * by (simp add: distrib_left)
+  then have \<open>q' \<le> q\<close>
+    using * by (simp add: mult_less_cancel_left)
+  then show ?thesis
+    by (simp add: **)
+qed
+
+
+subsubsection \<open>Quotients of Signs\<close>
+
+lemma div_eq_minus1:
+  \<open>0 < b \<Longrightarrow> - 1 div b = - 1\<close> for b :: int
+  by (simp add: divide_int_def)
+
+lemma zmod_minus1:
+  \<open>0 < b \<Longrightarrow> - 1 mod b = b - 1\<close> for b :: int
+  by (auto simp add: modulo_int_def)
+
+lemma minus_mod_int_eq:
+  \<open>- k mod l = l - 1 - (k - 1) mod l\<close> if \<open>l \<ge> 0\<close> for k l :: int
+proof (cases \<open>l = 0\<close>)
+  case True
+  then show ?thesis
+    by simp
+next
+  case False
+  with that have \<open>l > 0\<close>
+    by simp
+  then show ?thesis
+  proof (cases \<open>l dvd k\<close>)
+    case True
+    then obtain j where \<open>k = l * j\<close> ..
+    moreover have \<open>(l * j mod l - 1) mod l = l - 1\<close>
+      using \<open>l > 0\<close> by (simp add: zmod_minus1)
+    then have \<open>(l * j - 1) mod l = l - 1\<close>
+      by (simp only: mod_simps)
+    ultimately show ?thesis
+      by simp
+  next
+    case False
+    moreover have 1: \<open>0 < k mod l\<close>
+      using \<open>0 < l\<close> False le_less by fastforce
+    moreover have 2: \<open>k mod l < 1 + l\<close>
+      using \<open>0 < l\<close> pos_mod_bound[of l k] by linarith
+    from 1 2 \<open>l > 0\<close> have \<open>(k mod l - 1) mod l = k mod l - 1\<close>
+      by (simp add: zmod_trivial_iff)
+    ultimately show ?thesis
+      by (simp only: zmod_zminus1_eq_if)
+         (simp add: mod_eq_0_iff_dvd algebra_simps mod_simps)
+  qed
+qed
+
+lemma div_neg_pos_less0:
+  \<open>a div b < 0\<close> if \<open>a < 0\<close> \<open>0 < b\<close> for a b :: int
+proof -
+  have "a div b \<le> - 1 div b"
+    using zdiv_mono1 that by auto
+  also have "... \<le> -1"
+    by (simp add: that(2) div_eq_minus1)
+  finally show ?thesis
+    by force
+qed
+
+lemma div_nonneg_neg_le0:
+  \<open>a div b \<le> 0\<close> if \<open>0 \<le> a\<close> \<open>b < 0\<close> for a b :: int
+  using that by (auto dest: zdiv_mono1_neg)
+
+lemma div_nonpos_pos_le0:
+  \<open>a div b \<le> 0\<close> if \<open>a \<le> 0\<close> \<open>0 < b\<close> for a b :: int
+  using that by (auto dest: zdiv_mono1)
+
+text\<open>Now for some equivalences of the form \<open>a div b >=< 0 \<longleftrightarrow> \<dots>\<close>
+conditional upon the sign of \<open>a\<close> or \<open>b\<close>. There are many more.
+They should all be simp rules unless that causes too much search.\<close>
+
+lemma pos_imp_zdiv_nonneg_iff:
+  \<open>0 \<le> a div b \<longleftrightarrow> 0 \<le> a\<close>
+  if \<open>0 < b\<close> for a b :: int
+proof
+  assume \<open>0 \<le> a div b\<close>
+  show \<open>0 \<le> a\<close>
+  proof (rule ccontr)
+    assume \<open>\<not> 0 \<le> a\<close>
+    then have \<open>a < 0\<close>
+      by simp
+    then have \<open>a div b < 0\<close>
+      using that by (rule div_neg_pos_less0)
+    with \<open>0 \<le> a div b\<close> show False
+      by simp
+  qed
+next
+  assume "0 \<le> a"
+  then have "0 div b \<le> a div b"
+    using zdiv_mono1 that by blast
+  then show "0 \<le> a div b"
+    by auto
+qed
+
+lemma neg_imp_zdiv_nonneg_iff:
+  \<open>0 \<le> a div b \<longleftrightarrow> a \<le> 0\<close> if \<open>b < 0\<close> for a b :: int
+  using that pos_imp_zdiv_nonneg_iff [of \<open>- b\<close> \<open>- a\<close>] by simp
+
+lemma pos_imp_zdiv_pos_iff:
+  \<open>0 < (i::int) div k \<longleftrightarrow> k \<le> i\<close> if \<open>0 < k\<close> for i k :: int
+  using that pos_imp_zdiv_nonneg_iff [of k i] zdiv_eq_0_iff [of i k] by arith
+
+lemma pos_imp_zdiv_neg_iff:
+  \<open>a div b < 0 \<longleftrightarrow> a < 0\<close> if \<open>0 < b\<close> for a b :: int
+    \<comment> \<open>But not \<^prop>\<open>a div b \<le> 0 \<longleftrightarrow> a \<le> 0\<close>; consider \<^prop>\<open>a = 1\<close>, \<^prop>\<open>b = 2\<close> when \<^prop>\<open>a div b = 0\<close>.\<close>
+  using that by (simp add: pos_imp_zdiv_nonneg_iff flip: linorder_not_le)
+
+lemma neg_imp_zdiv_neg_iff:
+    \<comment> \<open>But not \<^prop>\<open>a div b \<le> 0 \<longleftrightarrow> 0 \<le> a\<close>; consider \<^prop>\<open>a = - 1\<close>, \<^prop>\<open>b = - 2\<close> when \<^prop>\<open>a div b = 0\<close>.\<close>
+  \<open>a div b < 0 \<longleftrightarrow> 0 < a\<close> if \<open>b < 0\<close> for a b :: int
+  using that by (simp add: neg_imp_zdiv_nonneg_iff flip: linorder_not_le)
+
+lemma nonneg1_imp_zdiv_pos_iff:
+  \<open>a div b > 0 \<longleftrightarrow> a \<ge> b \<and> b > 0\<close> if \<open>0 \<le> a\<close> for a b :: int
+proof -
+  have "0 < a div b \<Longrightarrow> b \<le> a"
+    using div_pos_pos_trivial[of a b] that by arith
+  moreover have "0 < a div b \<Longrightarrow> b > 0"
+    using that div_nonneg_neg_le0[of a b] by (cases "b=0"; force)
+  moreover have "b \<le> a \<and> 0 < b \<Longrightarrow> 0 < a div b"
+    using int_one_le_iff_zero_less[of "a div b"] zdiv_mono1[of b a b] by simp
+  ultimately show ?thesis
+    by blast
+qed
+
+lemma zmod_le_nonneg_dividend:
+  \<open>m mod k \<le> m\<close> if \<open>(m::int) \<ge> 0\<close> for m k :: int
+proof -
+  from that have \<open>m > 0 \<or> m = 0\<close>
+    by auto
+  then show ?thesis proof
+    assume \<open>m = 0\<close> then show ?thesis
+      by simp
+  next
+    assume \<open>m > 0\<close> then show ?thesis
+    proof (cases k \<open>0::int\<close> rule: linorder_cases)
+      case less
+      moreover define l where \<open>l = - k\<close>
+      ultimately have \<open>l > 0\<close>
+        by simp
+      with \<open>m > 0\<close> have \<open>int (nat m mod nat l) \<le> m\<close>
+        by (simp flip: le_nat_iff)
+      then have \<open>int (nat m mod nat l) - l \<le> m\<close>
+        using \<open>l > 0\<close> by simp
+      with \<open>m > 0\<close> \<open>l > 0\<close> show ?thesis
+        by (simp add: modulo_int_def l_def flip: le_nat_iff)
+    qed (simp_all add: modulo_int_def flip: le_nat_iff)
+  qed
+qed
+
+lemma sgn_div_eq_sgn_mult:
+  \<open>sgn (k div l) = of_bool (k div l \<noteq> 0) * sgn (k * l)\<close>
+  for k l :: int
+proof (cases \<open>k div l = 0\<close>)
+  case True
+  then show ?thesis
+    by simp
+next
+  case False
+  have \<open>0 \<le> \<bar>k\<bar> div \<bar>l\<bar>\<close>
+    by (cases \<open>l = 0\<close>) (simp_all add: pos_imp_zdiv_nonneg_iff)
+  then have \<open>\<bar>k\<bar> div \<bar>l\<bar> \<noteq> 0 \<longleftrightarrow> 0 < \<bar>k\<bar> div \<bar>l\<bar>\<close>
+    by (simp add: less_le)
+  also have \<open>\<dots> \<longleftrightarrow> \<bar>k\<bar> \<ge> \<bar>l\<bar>\<close>
+    using False nonneg1_imp_zdiv_pos_iff by auto
+  finally have *: \<open>\<bar>k\<bar> div \<bar>l\<bar> \<noteq> 0 \<longleftrightarrow> \<bar>l\<bar> \<le> \<bar>k\<bar>\<close> .
+  show ?thesis
+    using \<open>0 \<le> \<bar>k\<bar> div \<bar>l\<bar>\<close> False
+  by (auto simp add: div_eq_div_abs [of k l] div_eq_sgn_abs [of k l]
+    sgn_mult sgn_1_pos sgn_1_neg sgn_eq_0_iff nonneg1_imp_zdiv_pos_iff * dest: sgn_not_eq_imp)
+qed
+
+
+subsubsection \<open>Further properties\<close>
+
+lemma div_int_pos_iff:
+  "k div l \<ge> 0 \<longleftrightarrow> k = 0 \<or> l = 0 \<or> k \<ge> 0 \<and> l \<ge> 0
+    \<or> k < 0 \<and> l < 0"
+  for k l :: int
+proof (cases "k = 0 \<or> l = 0")
+  case False
+  then have *: "k \<noteq> 0" "l \<noteq> 0"
+    by auto
+  then have "0 \<le> k div l \<Longrightarrow> \<not> k < 0 \<Longrightarrow> 0 \<le> l"
+    by (meson neg_imp_zdiv_neg_iff not_le not_less_iff_gr_or_eq)
+  then show ?thesis
+   using * by (auto simp add: pos_imp_zdiv_nonneg_iff neg_imp_zdiv_nonneg_iff)
+qed auto
+
+lemma mod_int_pos_iff:
+  \<open>k mod l \<ge> 0 \<longleftrightarrow> l dvd k \<or> l = 0 \<and> k \<ge> 0 \<or> l > 0\<close>
+  for k l :: int
+proof (cases "l > 0")
+  case False
+  then show ?thesis
+    by (simp add: dvd_eq_mod_eq_0) (use neg_mod_sign [of l k] in \<open>auto simp add: le_less not_less\<close>)
+qed auto
+
+lemma abs_div:
+  \<open>\<bar>x div y\<bar> = \<bar>x\<bar> div \<bar>y\<bar>\<close> if \<open>y dvd x\<close> for x y :: int
+  using that by (cases \<open>y = 0\<close>) (auto simp add: abs_mult)
+
+lemma int_power_div_base: \<^marker>\<open>contributor \<open>Matthias Daum\<close>\<close>
+  \<open>k ^ m div k = k ^ (m - Suc 0)\<close> if \<open>0 < m\<close> \<open>0 < k\<close> for k :: int
+  using that by (cases m) simp_all
+
+lemma int_div_less_self: \<^marker>\<open>contributor \<open>Matthias Daum\<close>\<close>
+  \<open>x div k < x\<close> if \<open>0 < x\<close> \<open>1 < k\<close> for x k :: int
+proof -
+  from that have \<open>nat (x div k) = nat x div nat k\<close>
+    by (simp add: nat_div_distrib)
+  also from that have \<open>nat x div nat k < nat x\<close>
+    by simp
+  finally show ?thesis
+    by simp
+qed
+
+
+subsubsection \<open>Computing \<open>div\<close> and \<open>mod\<close> by shifting\<close>
+
+lemma div_pos_geq:
+  \<open>k div l = (k - l) div l + 1\<close> if \<open>0 < l\<close> \<open>l \<le> k\<close> for k l :: int
+proof -
+  have "k = (k - l) + l" by simp
+  then obtain j where k: "k = j + l" ..
+  with that show ?thesis by (simp add: div_add_self2)
+qed
+
+lemma mod_pos_geq:
+  \<open>k mod l = (k - l) mod l\<close>  if \<open>0 < l\<close> \<open>l \<le> k\<close> for k l :: int
+proof -
+  have "k = (k - l) + l" by simp
+  then obtain j where k: "k = j + l" ..
+  with that show ?thesis by simp
+qed
+
+lemma pos_zdiv_mult_2: \<open>(1 + 2 * b) div (2 * a) = b div a\<close> (is ?Q)
+  and pos_zmod_mult_2: \<open>(1 + 2 * b) mod (2 * a) = 1 + 2 * (b mod a)\<close> (is ?R)
+  if \<open>0 \<le> a\<close> for a b :: int
+proof -
+  have \<open>((1 + 2 * b) div (2 * a), (1 + 2 * b) mod (2 * a)) = (b div a, 1 + 2 * (b mod a))\<close>
+  proof (cases \<open>2 * a\<close> \<open>b div a\<close> \<open>1 + 2 * (b mod a)\<close> \<open>1 + 2 * b\<close> rule: euclidean_relation_intI)
+    case by0
+    then show ?case
+      by simp
+  next
+    case divides
+    have \<open>2 dvd (2 * a)\<close>
+      by simp
+    then have \<open>2 dvd (1 + 2 * b)\<close>
+      using \<open>2 * a dvd 1 + 2 * b\<close> by (rule dvd_trans)
+    then have \<open>2 dvd (1 + b * 2)\<close>
+      by (simp add: ac_simps)
+    then have \<open>is_unit (2 :: int)\<close>
+      by simp
+    then show ?case
+      by simp
+  next
+    case euclidean_relation
+    with that have \<open>a > 0\<close>
+      by simp
+    moreover have \<open>b mod a < a\<close>
+      using \<open>a > 0\<close> by simp
+    then have \<open>1 + 2 * (b mod a) < 2 * a\<close>
+      by simp
+    moreover have \<open>2 * (b mod a) + a * (2 * (b div a)) = 2 * (b div a * a + b mod a)\<close>
+      by (simp only: algebra_simps)
+    moreover have \<open>0 \<le> 2 * (b mod a)\<close>
+      using \<open>a > 0\<close> by simp
+    ultimately show ?case
+      by (simp add: algebra_simps)
+  qed
+  then show ?Q and ?R
+    by simp_all
+qed
+
+lemma neg_zdiv_mult_2: \<open>(1 + 2 * b) div (2 * a) = (b + 1) div a\<close> (is ?Q)
+  and neg_zmod_mult_2: \<open>(1 + 2 * b) mod (2 * a) = 2 * ((b + 1) mod a) - 1\<close> (is ?R)
+  if \<open>a \<le> 0\<close> for a b :: int
+proof -
+  have \<open>((1 + 2 * b) div (2 * a), (1 + 2 * b) mod (2 * a)) = ((b + 1) div a, 2 * ((b + 1) mod a) - 1)\<close>
+  proof (cases \<open>2 * a\<close> \<open>(b + 1) div a\<close> \<open>2 * ((b + 1) mod a) - 1\<close> \<open>1 + 2 * b\<close> rule: euclidean_relation_intI)
+    case by0
+    then show ?case
+      by simp
+  next
+    case divides
+    have \<open>2 dvd (2 * a)\<close>
+      by simp
+    then have \<open>2 dvd (1 + 2 * b)\<close>
+      using \<open>2 * a dvd 1 + 2 * b\<close> by (rule dvd_trans)
+    then have \<open>2 dvd (1 + b * 2)\<close>
+      by (simp add: ac_simps)
+    then have \<open>is_unit (2 :: int)\<close>
+      by simp
+    then show ?case
+      by simp
+  next
+    case euclidean_relation
+    with that have \<open>a < 0\<close>
+      by simp
+    moreover have \<open>(b + 1) mod a > a\<close>
+      using \<open>a < 0\<close> by simp
+    then have \<open>2 * ((b + 1) mod a) > 1 + 2 * a\<close>
+      by simp
+    moreover have \<open>((1 + b) mod a) \<le> 0\<close>
+      using \<open>a < 0\<close> by simp
+    then have \<open>2 * ((1 + b) mod a) \<le> 0\<close>
+      by simp
+    moreover have \<open>2 * ((1 + b) mod a) + a * (2 * ((1 + b) div a)) =
+      2 * ((1 + b) div a * a + (1 + b) mod a)\<close>
+      by (simp only: algebra_simps)
+    ultimately show ?case
+      by (simp add: algebra_simps sgn_mult abs_mult)
+  qed
+  then show ?Q and ?R
+    by simp_all
+qed
+
+lemma zdiv_numeral_Bit0 [simp]:
+  \<open>numeral (Num.Bit0 v) div numeral (Num.Bit0 w) =
+    numeral v div (numeral w :: int)\<close>
+  unfolding numeral.simps unfolding mult_2 [symmetric]
+  by (rule div_mult_mult1) simp
+
+lemma zdiv_numeral_Bit1 [simp]:
+  \<open>numeral (Num.Bit1 v) div numeral (Num.Bit0 w) =
+    (numeral v div (numeral w :: int))\<close>
+  unfolding numeral.simps
+  unfolding mult_2 [symmetric] add.commute [of _ 1]
+  by (rule pos_zdiv_mult_2) simp
+
+lemma zmod_numeral_Bit0 [simp]:
+  \<open>numeral (Num.Bit0 v) mod numeral (Num.Bit0 w) =
+    (2::int) * (numeral v mod numeral w)\<close>
+  unfolding numeral_Bit0 [of v] numeral_Bit0 [of w]
+  unfolding mult_2 [symmetric] by (rule mod_mult_mult1)
+
+lemma zmod_numeral_Bit1 [simp]:
+  \<open>numeral (Num.Bit1 v) mod numeral (Num.Bit0 w) =
+    2 * (numeral v mod numeral w) + (1::int)\<close>
+  unfolding numeral_Bit1 [of v] numeral_Bit0 [of w]
+  unfolding mult_2 [symmetric] add.commute [of _ 1]
+  by (rule pos_zmod_mult_2) simp
 
 
 subsection \<open>Generic symbolic computations\<close>
@@ -2548,13 +3049,13 @@ lemma dvd_numeral_simp [simp]:
   "numeral m dvd numeral n \<longleftrightarrow> divides_aux (divmod n m)"
   by (simp add: divmod_def mod_eq_0_iff_dvd)
 
-text \<open>Generic computation of quotient and remainder\<close>  
+text \<open>Generic computation of quotient and remainder\<close>
 
-lemma numeral_div_numeral [simp]: 
+lemma numeral_div_numeral [simp]:
   "numeral k div numeral l = fst (divmod k l)"
   by (simp add: fst_divmod)
 
-lemma numeral_mod_numeral [simp]: 
+lemma numeral_mod_numeral [simp]:
   "numeral k mod numeral l = snd (divmod k l)"
   by (simp add: snd_divmod)
 
@@ -2622,7 +3123,7 @@ declare divmod_algorithm_code [where ?'a = int, code]
 
 context
 begin
-  
+
 qualified definition adjust_div :: "int \<times> int \<Rightarrow> int"
 where
   "adjust_div qr = (let (q, r) = qr in q + of_bool (r \<noteq> 0))"
@@ -2667,7 +3168,7 @@ proof -
   then show ?thesis
     by (auto simp add: split_def Let_def adjust_div_def divides_aux_def divide_int_def)
 qed
-  
+
 lemma numeral_mod_minus_numeral [simp]:
   "numeral m mod - numeral n = - adjust_mod n (snd (divmod m n) :: int)"
 proof (cases "snd (divmod m n) = (0::int)")
@@ -2685,7 +3186,7 @@ qed
 
 lemma minus_one_div_numeral [simp]:
   "- 1 div numeral n = - (adjust_div (divmod Num.One n) :: int)"
-  using minus_numeral_div_numeral [of Num.One n] by simp  
+  using minus_numeral_div_numeral [of Num.One n] by simp
 
 lemma minus_one_mod_numeral [simp]:
   "- 1 mod numeral n = adjust_mod n (snd (divmod Num.One n) :: int)"
@@ -2694,14 +3195,14 @@ lemma minus_one_mod_numeral [simp]:
 lemma one_div_minus_numeral [simp]:
   "1 div - numeral n = - (adjust_div (divmod Num.One n) :: int)"
   using numeral_div_minus_numeral [of Num.One n] by simp
-  
+
 lemma one_mod_minus_numeral [simp]:
   "1 mod - numeral n = - adjust_mod n (snd (divmod Num.One n) :: int)"
   using numeral_mod_minus_numeral [of Num.One n] by simp
 
 lemma [code]:
   fixes k :: int
-  shows 
+  shows
     "k div 0 = 0"
     "k mod 0 = k"
     "0 div k = 0"
@@ -2788,7 +3289,7 @@ simproc_setup numeral_divmod
 \<close> \<comment> \<open>
   There is space for improvement here: the calculation itself
   could be carried out outside the logic, and a generic simproc
-  (simplifier setup) for generic calculation would be helpful. 
+  (simplifier setup) for generic calculation would be helpful.
 \<close>
 
 
