@@ -35,8 +35,7 @@ sources = \
   src/Pure/Admin/build_verit.scala \
   src/Pure/Admin/build_zipperposition.scala \
   src/Pure/Admin/check_sources.scala \
-  src/Pure/Admin/ci_build_benchmark.scala \
-  src/Pure/Admin/ci_profile.scala \
+  src/Pure/Admin/ci_build.scala \
   src/Pure/Admin/isabelle_cronjob.scala \
   src/Pure/Admin/isabelle_devel.scala \
   src/Pure/Admin/jenkins.scala \
@@ -295,6 +294,7 @@ services = \
   isabelle.Document_Build$Build_Engine \
   isabelle.Document_Build$LuaLaTeX_Engine \
   isabelle.Document_Build$PDFLaTeX_Engine \
+  isabelle.CI_Builds \
   isabelle.ML_Statistics$Handler \
   isabelle.Print_Operation$Handler \
   isabelle.Scala$Handler \

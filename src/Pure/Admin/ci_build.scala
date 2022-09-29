@@ -7,14 +7,14 @@ Build profile for continuous integration services.
 package isabelle
 
 
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.{Properties => JProperties, Map => JMap}
 import java.nio.file.Files
 
 
-object CI_Profile {
-
-  /* Result */
+object CI_Build {
+  /* build result */
 
   case class Result(rc: Int)
   case object Result {
@@ -23,7 +23,7 @@ object CI_Profile {
   }
 
 
-  /* Profile */
+  /* executor profile */
 
   case class Profile(threads: Int, jobs: Int, numa: Boolean)
 
@@ -38,7 +38,7 @@ object CI_Profile {
   }
 
 
-  /* Build_Config */
+  /* build config */
 
   case class Build_Config(
     documents: Boolean = true,
@@ -46,12 +46,38 @@ object CI_Profile {
     include: List[Path] = Nil,
     select: List[Path] = Nil,
     pre_hook: () => Result = () => Result.ok,
-    post_hook: Build.Results => Result = _ => Result.ok,
+    post_hook: (Build.Results, Time) => Result = (_, _) => Result.ok,
     selection: Sessions.Selection = Sessions.Selection.empty
   )
 
 
-  /* Status */
+  /* ci build jobs */
+
+  sealed case class Job(name: String, description: String, profile: Profile, config: Build_Config) {
+    override def toString: String = name
+  }
+
+  private lazy val known_jobs: List[Job] =
+    Isabelle_System.make_services(classOf[Isabelle_CI_Builds]).flatMap(_.jobs)
+
+  def show_jobs: String =
+    cat_lines(known_jobs.sortBy(_.name).map(job => job.name + " - " + job.description))
+
+  def the_job(name: String): Job = known_jobs.find(job => job.name == name) getOrElse
+    error("Unknown job" + quote(name))
+
+  val timing =
+    Job(
+      "timing", "runs benchmark and timing sessions",
+      Profile(threads = 6, jobs = 1, numa = false),
+      Build_Config(
+        documents = false,
+        select = List(
+          Path.explode("$ISABELLE_HOME/src/Benchmarks")),
+        selection = Sessions.Selection(session_groups = List("timing"))))
+
+
+  /* session status */
 
   sealed abstract class Status(val str: String) {
     def merge(that: Status): Status = (this, that) match {
@@ -76,6 +102,8 @@ object CI_Profile {
   case object Skipped extends Status("skipped")
   case object Failed extends Status("failed")
 
+
+  /* ci build */
 
   private def load_properties(): JProperties = {
     val props = new JProperties
@@ -112,12 +140,16 @@ object CI_Profile {
   def print_section(title: String): Unit =
     println(s"\n=== $title ===\n")
 
-  def build(profile: Profile, config: Build_Config): Unit = {
+  def ci_build(job: Job): Unit = {
+    val profile = job.profile
+    val config = job.config
+
     val isabelle_home = Path.explode(Isabelle_System.getenv_strict("ISABELLE_HOME"))
     val isabelle_id = hg_id(isabelle_home)
 
-    val start_time =
-      Date.Format.make(List(DateTimeFormatter.RFC_1123_DATE_TIME))(Date.now())
+    val start_time = Time.now()
+    val formatted_time = start_time.instant.atZone(ZoneId.systemDefault).format(
+      DateTimeFormatter.RFC_1123_DATE_TIME)
 
     print_section("CONFIGURATION")
     println(Build_Log.Settings.show())
@@ -132,7 +164,7 @@ object CI_Profile {
     println(s"jobs = ${profile.jobs}, threads = ${profile.threads}, numa = ${profile.numa}")
 
     print_section("BUILD")
-    println(s"Build started at $start_time")
+    println(s"Build started at $formatted_time")
     println(s"Isabelle id $isabelle_id")
     val pre_result = config.pre_hook()
 
@@ -177,8 +209,36 @@ object CI_Profile {
       }
     }
 
-    val post_result = config.post_hook(results)
+    val post_result = config.post_hook(results, start_time)
 
     sys.exit(List(pre_result.rc, results.rc, post_result.rc).max)
   }
+
+
+  /* Isabelle tool wrapper */
+
+  val isabelle_tool =
+    Isabelle_Tool(
+      "ci_build", "builds Isabelle jobs in ci environments", Scala_Project.here,
+      { args =>
+        val getopts = Getopts("""
+Usage: isabelle ci_build [JOB]
+
+  Runs Isabelle builds in ci environment, with the following build jobs:
+
+""" + Library.indent_lines(4, show_jobs) + "\n")
+
+        val more_args = getopts(args)
+
+        val job = more_args match {
+          case job :: Nil => the_job(job)
+          case _ => getopts.usage()
+        }
+
+        ci_build(job)
+      })
 }
+
+class Isabelle_CI_Builds(val jobs: CI_Build.Job*) extends Isabelle_System.Service
+
+class CI_Builds extends Isabelle_CI_Builds(CI_Build.timing)
