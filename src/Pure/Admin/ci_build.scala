@@ -64,11 +64,11 @@ object CI_Build {
     cat_lines(known_jobs.sortBy(_.name).map(job => job.name + " - " + job.description))
 
   def the_job(name: String): Job = known_jobs.find(job => job.name == name) getOrElse
-    error("Unknown job" + quote(name))
+    error("Unknown job " + quote(name))
 
   val timing =
     Job(
-      "timing", "runs benchmark and timing sessions",
+      "benchmark", "runs benchmark and timing sessions",
       Profile(threads = 6, jobs = 1, numa = false),
       Build_Config(
         documents = false,
