@@ -84,6 +84,51 @@ presented session.
 by configuration option "record_sort_updates" (default: false). Some
 examples are in theory "HOL-Examples.Records".
 
+* More explanations on the new, verified order prover for partial and
+linear orders, which first appeared in Isabelle2021-1.
+
+The order prover rearranges the goal to prove False, then retrieves
+order literals (i.e. x = y, x <= y, x < y, and their negated versions)
+from the premises and finally tries to derive a contradiction. Its main
+use case is as a solver to the Simplifier, where it e.g. solves premises
+of conditional rewrite rules.
+
+The new prover (src/Provers/order_tac.ML) replaces the old prover
+(src/Provers/order.ML) and improves upon the old one in several ways:
+
+  - The completeness of the prover is verified in Isabelle (see the ATVA
+    2021 paper "A Verified Decision Procedure for Orders in
+    Isabelle/HOL").
+
+  - The new prover is complete for partial orders.
+
+  - The interface to register new orders was reworked to reduce
+    boilerplate.
+
+The prover has two configuration attributes that control its behaviour:
+
+  - order_trace (default: false) to enable tracing for the solver.
+
+  - order_split_limit (default: 8) to limit the number of order literals
+    of the form ~ x < y that are passed to the solver since those lead
+    to case splitting and thus exponential runtime. This only applies to
+    partial orders.
+
+The prover is agnostic to the object-logic, but the default setup is for
+HOL: see theory HOL.Orderings with ML structure HOL_Order_Tac. The
+structure allows us to register new orders with the functions
+HOL_Order_Tac.declare_order and HOL_Order_Tac.declare_linorder. Using
+these functions, we register the orders of the type classes order and
+linorder with the solver. If possible, one should instantiate these type
+classes instead of adding new orders to the solver. One can also
+interpret the type class locale as in src/HOL/Library/Sublist.thy, which
+contains e.g. the prefix order on lists.
+
+The proof method "order" invokes the prover in a standalone fashion.
+
+The diagnostic command 'print_orders' shows all orders known to the
+prover in the current context.
+
 * Meson: added support for polymorphic "using" facts. Minor
 INCOMPATIBILITY.
 
