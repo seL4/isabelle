@@ -527,47 +527,7 @@ targets and in any nested target built on top of a target supporting
 
 *** HOL ***
 
-* A new, verified order prover for partial and linear orders. The order
-prover rearranges the goal to prove False, then retrieves order literals
-(i.e. x = y, x <= y, x < y, and their negated versions) from the premises 
-and finally tries to derive a contradiction. Its main use case is as a
-solver to the simplifier, where it e.g. solves premises of conditional
-rewrite rules.
-
-The new prover (src/Provers/order_tac.ML) replaces the old prover
-(src/Provers/order.ML) and improves upon the old one in several ways:
-
-  - The completeness of the prover is verified in Isabelle (see the
-    ATVA 2021 paper "A Verified Decision Procedure for Orders in Isabelle/HOL").
-
-  - The new prover is complete for partial orders.
-
-  - The interface to register new orders was reworked to reduce boilerplate.
-
-The prover has two configuration attributes that control its behaviour:
-  
-  - order_trace (default: false): Enables tracing for the solver.
-
-  - order_split_limit (default: 8): Limits the number of order
-    literals of the form ~ x < y that are passed to the solver since
-    those lead to case splitting and thus exponential runtime. This
-    only applies to partial orders.
-
-The prover is agnostic to the object logic. For HOL, the setup for the
-prover is performed in src/HOL/Orderings.thy where the structure
-HOL_Order_Tac is obtained. The structure allows us to register new
-orders with the functions HOL_Order_Tac.declare_order and
-HOL_Order_Tac.declare_linorder. Using these functions, we register the
-orders of the type classes order and linorder with the solver. If
-possible, one should instantiate these type classes instead of adding
-new orders to the solver. One can also interpret the type class locale
-as in src/HOL/Library/Sublist.thy, which contains e.g. the prefix
-order on lists.
-
-The method order calls the prover in a standalone fashion.
-
-The diagnostic command print_orders shows all orders known to the prover
-in the current context.
+* New order prover.
 
 * Theorems "antisym" and "eq_iff" in class "order" have been renamed to
 "order.antisym" and "order.eq_iff", to coexist locally with "antisym"
