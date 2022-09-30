@@ -140,7 +140,7 @@ object Build {
     val store: Sessions.Store,
     val deps: Sessions.Deps,
     results: Map[String, (Option[Process_Result], Sessions.Info)],
-    val presentation_sessions: List[String]
+    val presentation_sessions: Browser_Info.Config => List[String]
   ) {
     def cache: Term.Cache = store.cache
 
@@ -458,11 +458,11 @@ object Build {
         (for ((name, result) <- build_results.iterator)
           yield (name, (result.process, result.info))).toMap
 
-      val presentation_sessions =
+      def presentation_sessions(config: Browser_Info.Config): List[String] =
         (for {
           name <- build_sessions.build_topological_order.iterator
           result <- build_results.get(name)
-          if result.ok && browser_info.enabled(result.info)
+          if result.ok && config.enabled(result.info)
         } yield name).toList
 
       new Results(store, build_deps, results, presentation_sessions)
@@ -483,8 +483,9 @@ object Build {
       }
     }
 
-    if (results.presentation_sessions.nonEmpty && !progress.stopped) {
-      Browser_Info.build(browser_info, results.store, results.deps, results.presentation_sessions,
+    val presentation_sessions = results.presentation_sessions(browser_info)
+    if (presentation_sessions.nonEmpty && !progress.stopped) {
+      Browser_Info.build(browser_info, results.store, results.deps, presentation_sessions,
         progress = progress, verbose = verbose)
     }
 
