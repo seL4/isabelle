@@ -9,9 +9,6 @@ imports HOL
 keywords "print_orders" :: diag
 begin
 
-ML_file \<open>~~/src/Provers/order_procedure.ML\<close>
-ML_file \<open>~~/src/Provers/order_tac.ML\<close>
-
 subsection \<open>Abstract ordering\<close>
 
 locale partial_preordering =
@@ -309,8 +306,6 @@ proof -
     by (rule ordering_dualI)
 qed
 
-print_theorems
-
 text \<open>Reflexivity.\<close>
 
 lemma le_less: "x \<le> y \<longleftrightarrow> x < y \<or> x = y"
@@ -530,6 +525,9 @@ qed
 
 subsection \<open>Reasoning tools setup\<close>
 
+ML_file \<open>~~/src/Provers/order_procedure.ML\<close>
+ML_file \<open>~~/src/Provers/order_tac.ML\<close>
+
 ML \<open>
 structure Logic_Signature : LOGIC_SIGNATURE = struct
   val mk_Trueprop = HOLogic.mk_Trueprop
@@ -577,14 +575,14 @@ fun print_orders ctxt0 =
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>print_orders\<close>
-    "print order structures available to transitivity reasoner"
+    "print order structures available to order reasoner"
     (Scan.succeed (Toplevel.keep (print_orders o Toplevel.context_of)))
 
 \<close>
 
 method_setup order = \<open>
   Scan.succeed (fn ctxt => SIMPLE_METHOD' (HOL_Order_Tac.tac [] ctxt))
-\<close> "transitivity reasoner"
+\<close> "partial and linear order reasoner"
 
 
 text \<open>Declarations to set up transitivity reasoner of partial and linear orders.\<close>
@@ -628,7 +626,7 @@ end
 
 setup \<open>
   map_theory_simpset (fn ctxt0 => ctxt0 addSolver
-    mk_solver "Transitivity" (fn ctxt => HOL_Order_Tac.tac (Simplifier.prems_of ctxt) ctxt))
+    mk_solver "partial and linear orders" (fn ctxt => HOL_Order_Tac.tac (Simplifier.prems_of ctxt) ctxt))
 \<close>
 
 ML \<open>
