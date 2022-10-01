@@ -7,9 +7,13 @@ theory Signed_Division
   imports Main
 begin
 
-class signed_division = comm_semiring_1_cancel +
+class signed_divide =
   fixes signed_divide :: \<open>'a \<Rightarrow> 'a \<Rightarrow> 'a\<close> (infixl \<open>sdiv\<close> 70)
-  and signed_modulo :: \<open>'a \<Rightarrow> 'a \<Rightarrow> 'a\<close> (infixl \<open>smod\<close> 70)
+
+class signed_modulo =
+  fixes signed_modulo :: \<open>'a \<Rightarrow> 'a \<Rightarrow> 'a\<close> (infixl \<open>smod\<close> 70)
+
+class signed_division = comm_semiring_1_cancel + signed_divide + signed_modulo +
   assumes sdiv_mult_smod_eq: \<open>a sdiv b * b + a smod b = a\<close>
 begin
 
