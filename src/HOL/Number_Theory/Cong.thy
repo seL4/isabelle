@@ -342,11 +342,11 @@ lemma cong_less_imp_eq_int: "0 \<le> a \<Longrightarrow> a < m \<Longrightarrow>
 
 lemma cong_less_unique_nat: "0 < m \<Longrightarrow> (\<exists>!b. 0 \<le> b \<and> b < m \<and> [a = b] (mod m))"
   for a m :: nat
-  by (auto simp: cong_def) (metis mod_less_divisor mod_mod_trivial)
+  by (auto simp: cong_def) (metis mod_mod_trivial mod_less_divisor)
 
 lemma cong_less_unique_int: "0 < m \<Longrightarrow> (\<exists>!b. 0 \<le> b \<and> b < m \<and> [a = b] (mod m))"
   for a m :: int
-  by (auto simp: cong_def)  (metis mod_mod_trivial pos_mod_conj)
+  by (auto simp add: cong_def) (metis mod_mod_trivial pos_mod_bound pos_mod_sign)
 
 lemma cong_iff_lin_nat: "[a = b] (mod m) \<longleftrightarrow> (\<exists>k1 k2. b + k1 * m = a + k2 * m)"
   for a b :: nat
@@ -518,12 +518,8 @@ lemma coprime_iff_invertible'_int:
   fixes m :: int
   assumes "m > 0"
   shows "coprime a m \<longleftrightarrow> (\<exists>x. 0 \<le> x \<and> x < m \<and> [a * x = 1] (mod m))"
-proof -
-  have "\<And>b. \<lbrakk>0 < m; [a * b = 1] (mod m)\<rbrakk> \<Longrightarrow> \<exists>b'<m. [a * b' = 1] (mod m)"
-    by (meson cong_less_unique_int cong_scalar_left cong_sym cong_trans)
-  then show ?thesis
-    by (metis assms coprime_iff_invertible_int cong_def cong_mult_lcancel mod_pos_pos_trivial pos_mod_conj)
-qed
+  using assms by (simp add: coprime_iff_invertible_int)
+    (metis assms cong_mod_left mod_mult_right_eq pos_mod_bound pos_mod_sign)
 
 lemma cong_cong_lcm_nat: "[x = y] (mod a) \<Longrightarrow> [x = y] (mod b) \<Longrightarrow> [x = y] (mod lcm a b)"
   for x y :: nat

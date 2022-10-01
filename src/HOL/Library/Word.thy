@@ -749,9 +749,8 @@ next
       from length have \<open>k * 2 mod 2 ^ LENGTH('a) = (k mod 2 ^ n) * 2\<close>
         by simp
       moreover assume \<open>take_bit LENGTH('a) k < take_bit LENGTH('a) (2 ^ (LENGTH('a) - Suc 0))\<close>
-      with \<open>LENGTH('a) = Suc n\<close>
-      have \<open>k mod 2 ^ LENGTH('a) = k mod 2 ^ n\<close>
-        by (simp add: take_bit_eq_mod divmod_digit_0)
+      with \<open>LENGTH('a) = Suc n\<close> have \<open>take_bit LENGTH('a) k = take_bit n k\<close>
+        by (auto simp add: take_bit_Suc_from_most)
       ultimately have \<open>take_bit LENGTH('a) (k * 2) = take_bit LENGTH('a) k * 2\<close>
         by (simp add: take_bit_eq_mod)
       with True show \<open>take_bit LENGTH('a) (take_bit LENGTH('a) (k * 2) div take_bit LENGTH('a) 2)
@@ -768,9 +767,8 @@ next
       from length have \<open>(1 + k * 2) mod 2 ^ LENGTH('a) = 1 + (k mod 2 ^ n) * 2\<close>
         using pos_zmod_mult_2 [of \<open>2 ^ n\<close> k] by (simp add: ac_simps)
       moreover assume \<open>take_bit LENGTH('a) k < take_bit LENGTH('a) (2 ^ (LENGTH('a) - Suc 0))\<close>
-      with \<open>LENGTH('a) = Suc n\<close>
-      have \<open>k mod 2 ^ LENGTH('a) = k mod 2 ^ n\<close>
-        by (simp add: take_bit_eq_mod divmod_digit_0)
+      with \<open>LENGTH('a) = Suc n\<close> have \<open>take_bit LENGTH('a) k = take_bit n k\<close>
+        by (auto simp add: take_bit_Suc_from_most)
       ultimately have \<open>take_bit LENGTH('a) (1 + k * 2) = 1 + take_bit LENGTH('a) k * 2\<close>
         by (simp add: take_bit_eq_mod)
       with True show \<open>take_bit LENGTH('a) (take_bit LENGTH('a) (1 + k * 2) div take_bit LENGTH('a) 2)
@@ -2926,16 +2924,7 @@ lemma uint_sub_ge: "uint (x - y) \<ge> uint x - uint y"
 
 lemma int_mod_ge: \<open>a \<le> a mod n\<close> if \<open>a < n\<close> \<open>0 < n\<close>
   for a n :: int
-proof (cases \<open>a < 0\<close>)
-  case True
-  with \<open>0 < n\<close> show ?thesis
-    by (metis less_trans not_less pos_mod_conj)
-    
-next
-  case False
-  with \<open>a < n\<close> show ?thesis
-    by simp
-qed
+  using that order.trans [of a 0 \<open>a mod n\<close>] by (cases \<open>a < 0\<close>) auto
 
 lemma mod_add_if_z:
   "\<lbrakk>x < z; y < z; 0 \<le> y; 0 \<le> x; 0 \<le> z\<rbrakk> \<Longrightarrow>

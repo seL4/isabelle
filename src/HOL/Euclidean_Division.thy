@@ -1410,10 +1410,63 @@ lemma less_eq_div_iff_mult_less_eq:
   \<open>m \<le> n div q \<longleftrightarrow> m * q \<le> n\<close> if \<open>q > 0\<close> for m n q :: nat
   using div_less_iff_less_mult [of q n m] that by auto
 
-text \<open>A fact for the mutilated chess board\<close>
+lemma div_Suc:
+  \<open>Suc m div n = (if Suc m mod n = 0 then Suc (m div n) else m div n)\<close>  (is "_ = ?rhs")
+proof (cases \<open>n = 0 \<or> n = 1\<close>)
+  case True
+  then show ?thesis by auto
+next
+  case False
+  then have \<open>n > 1\<close>
+    by simp
+  then have *: \<open>Suc 0 div n = 0\<close>
+    by (simp add: div_eq_0_iff)
+  have \<open>(m + 1) div n = ?rhs\<close>
+  proof (cases \<open>n dvd Suc m\<close>)
+    case True
+    then obtain q where \<open>Suc m = n * q\<close> ..
+    then have m: \<open>m = n * q - 1\<close>
+      by simp
+    have \<open>q > 0\<close> by (rule ccontr)
+      (use \<open>Suc m = n * q\<close> in simp)
+    from m have \<open>m mod n = (n * q - 1) mod n\<close>
+      by simp
+    also have \<open>\<dots> = (n * q - 1 + n) mod n\<close>
+      by simp
+    also have \<open>n * q - 1 + n = n * q + (n - 1)\<close>
+      using \<open>n > 1\<close> \<open>q > 0\<close> by (simp add: algebra_simps)
+    finally have \<open>m mod n = (n - 1) mod n\<close>
+      by simp
+    with \<open>n > 1\<close> have \<open>m mod n = n - 1\<close>
+      by simp
+    with True \<open>n > 1\<close> show ?thesis
+      by (subst div_add1_eq) auto
+  next
+    case False
+    have \<open>Suc (m mod n) \<noteq> n\<close>
+    proof (rule ccontr)
+      assume \<open>\<not> Suc (m mod n) \<noteq> n\<close>
+      then have \<open>m mod n = n - 1\<close>
+        by simp
+      with \<open>n > 1\<close> have \<open>(m + 1) mod n = 0\<close>
+        by (subst mod_add_left_eq [symmetric]) simp
+      then have \<open>n dvd Suc m\<close>
+        by auto
+      with False show False ..
+    qed
+    moreover have \<open>Suc (m mod n) \<le> n\<close>
+      using \<open>n > 1\<close> by (simp add: Suc_le_eq)
+    ultimately have \<open>Suc (m mod n) < n\<close>
+      by simp
+    with False \<open>n > 1\<close> show ?thesis
+      by (subst div_add1_eq) (auto simp add: div_eq_0_iff mod_greater_zero_iff_not_dvd)
+  qed
+  then show ?thesis
+    by simp
+qed
 
 lemma mod_Suc:
-  "Suc m mod n = (if Suc (m mod n) = n then 0 else Suc (m mod n))" (is "_ = ?rhs")
+  \<open>Suc m mod n = (if Suc (m mod n) = n then 0 else Suc (m mod n))\<close>  (is "_ = ?rhs")
 proof (cases "n = 0")
   case True
   then show ?thesis
@@ -1558,6 +1611,10 @@ next
     by (simp only: algebra_simps \<open>?P\<close>)
   finally show ?Q ..
 qed
+
+lemma mod_eq_iff_dvd_symdiff_nat:
+  \<open>m mod q = n mod q \<longleftrightarrow> q dvd nat \<bar>int m - int n\<bar>\<close>
+  by (auto simp add: abs_if mod_eq_dvd_iff_nat nat_diff_distrib dest: sym intro: sym)
 
 lemma mod_eq_nat1E:
   fixes m n q :: nat

@@ -691,8 +691,8 @@ proof (induction k rule: less_induct)
   next
     case 2
     from assms have "x mod 8 = 3 \<or> x mod 8 = 5" by auto
-    hence x': "x mod 16 = 3 \<or> x mod 16 = 5 \<or> x mod 16 = 11 \<or> x mod 16 = 13"
-      using mod_double_modulus[of 8 x] by auto
+    then have x': "x mod 16 = 3 \<or> x mod 16 = 5 \<or> x mod 16 = 11 \<or> x mod 16 = 13"
+      using mod_double_modulus [of 8 x] by auto
     hence "[x ^ 4 = 1] (mod 16)" using assms
       by (auto simp: cong_def simp flip: power_mod[of x])
     hence "ord 16 x dvd 2\<^sup>2" by (simp add: ord_divides')
@@ -729,11 +729,11 @@ proof (induction k rule: less_induct)
     have "2 ^ k' + 1 < 2 ^ k' + (2 ^ k' :: nat)"
       using one_less_power[of "2::nat" k'] k' by (intro add_strict_left_mono) auto
     with cong notcong have cong': "x ^ (2 ^ (k' - 2)) mod 2 ^ Suc k' = 1 + 2 ^ k'"
-      using mod_double_modulus[of "2 ^ k'" "x ^ 2 ^ (k' - 2)"] k' by (auto simp: cong_def)
+      using mod_double_modulus [of "2 ^ k'" "x ^ 2 ^ (k' - 2)"] k' by (auto simp: cong_def)
 
     hence "x ^ (2 ^ (k' - 2)) mod 2 ^ k = 1 + 2 ^ k' \<or>
            x ^ (2 ^ (k' - 2)) mod 2 ^ k = 1 + 2 ^ k' + 2 ^ Suc k'"
-      using mod_double_modulus[of "2 ^ Suc k'" "x ^ 2 ^ (k' - 2)"] by auto
+      using mod_double_modulus [of "2 ^ Suc k'" "x ^ 2 ^ (k' - 2)"] by auto
     hence eq: "[x ^ 2 ^ (k' - 1) = 1 + 2 ^ (k - 1)] (mod 2 ^ k)"
     proof
       assume *: "x ^ (2 ^ (k' - 2)) mod (2 ^ k) = 1 + 2 ^ k'"

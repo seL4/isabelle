@@ -80,10 +80,11 @@ done
 
 lemma nodeOrder_eq: 
      "[| i<N; j<N |] ==> ((next i, i) \<in> nodeOrder j) = (i \<noteq> j)"
-apply (unfold nodeOrder_def next_def)
-apply (auto simp add: mod_Suc mod_geq)
-apply (auto split: nat_diff_split simp add: linorder_neq_iff mod_geq)
-done
+  apply (cases \<open>i < j\<close>)
+   apply (auto simp add: nodeOrder_def next_def mod_Suc add.commute [of _ N])
+  apply (simp only: diff_add_assoc mod_add_self1)
+  apply simp
+  done
 
 text\<open>From "A Logic for Concurrent Programming", but not used in Chapter 4.
   Note the use of \<open>cases\<close>.  Reasoning about leadsTo takes practice!\<close>

@@ -108,7 +108,7 @@ qed
 
 
 lemma iter_unroll: "0 < length w \<Longrightarrow> w\<^sup>\<omega> = w \<frown> w\<^sup>\<omega>"
-  by (rule ext) (simp add: conc_def mod_geq)
+  by (simp add: fun_eq_iff mod_if)
 
 
 subsection \<open>Subsequence, Prefix, and Suffix\<close>
