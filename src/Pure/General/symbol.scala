@@ -211,7 +211,7 @@ object Symbol {
     case class File(name: String) extends Name
 
     def apply(text: CharSequence): Text_Chunk =
-      new Text_Chunk(Text.Range(0, text.length), Index(text))
+      new Text_Chunk(Text.Range.length(text), Index(text))
   }
 
   final class Text_Chunk private(val range: Text.Range, private val index: Index) {
