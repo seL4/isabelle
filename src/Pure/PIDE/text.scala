@@ -22,7 +22,9 @@ object Text {
 
   object Range {
     def apply(start: Offset): Range = Range(start, start)
+    def length(text: CharSequence): Range = Range(0, text.length)
 
+    val zero: Range = apply(0)
     val full: Range = apply(0, Integer.MAX_VALUE / 2)
     val offside: Range = apply(-1)
 
@@ -108,7 +110,7 @@ object Text {
   ) {
     def is_empty: Boolean = ranges.isEmpty
     def range: Range =
-      if (is_empty) Range(0)
+      if (is_empty) Range.zero
       else Range(ranges.head.start, ranges.last.stop)
 
     override def hashCode: Int = ranges.hashCode

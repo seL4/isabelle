@@ -611,7 +611,7 @@ object Document {
             val xml =
               if (Bytes(text) == bytes) {
                 val markup = command.init_markups(Command.Markup_Index.blob(blob))
-                markup.to_XML(Text.Range(0, text.length), text, elements)
+                markup.to_XML(Text.Range.length(text), text, elements)
               }
               else Nil
             blob -> xml
@@ -1161,7 +1161,7 @@ object Document {
         } yield tree).toList
       }
       else {
-        Text.Range(0, node.source.length).try_restrict(range) match {
+        Text.Range.length(node.source).try_restrict(range) match {
           case None => Nil
           case Some(node_range) =>
             val markup =

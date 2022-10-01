@@ -131,6 +131,11 @@ final class Bytes private(
 
   def text: String = UTF8.decode_permissive(this)
 
+  def wellformed_text: Option[String] = {
+    val s = text
+    if (this == Bytes(s)) Some(s) else None
+  }
+
   def encode_base64: String = {
     val b =
       if (offset == 0 && length == bytes.length) bytes
@@ -138,10 +143,11 @@ final class Bytes private(
     Base64.encode(b)
   }
 
-  def maybe_encode_base64: (Boolean, String) = {
-    val s = text
-    if (this == Bytes(s)) (false, s) else (true, encode_base64)
-  }
+  def maybe_encode_base64: (Boolean, String) =
+    wellformed_text match {
+      case Some(s) => (false, s)
+      case None => (true, encode_base64)
+    }
 
   override def toString: String = "Bytes(" + length + ")"
 
