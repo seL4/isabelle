@@ -398,12 +398,14 @@ class Rendering(
 
   /* spell checker */
 
-  private lazy val spell_checker_include =
+  lazy val spell_checker_include: Markup.Elements =
     Markup.Elements(space_explode(',', options.string("spell_checker_include")): _*)
 
-  private lazy val spell_checker_elements =
-    spell_checker_include ++
-      Markup.Elements(space_explode(',', options.string("spell_checker_exclude")): _*)
+  lazy val spell_checker_exclude: Markup.Elements =
+    Markup.Elements(space_explode(',', options.string("spell_checker_exclude")): _*)
+
+  lazy val spell_checker_elements: Markup.Elements =
+    spell_checker_include ++ spell_checker_exclude
 
   def spell_checker(range: Text.Range): List[Text.Info[Text.Range]] = {
     val result =
