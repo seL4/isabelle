@@ -11,7 +11,7 @@ object Build_Cygwin {
   val default_mirror: String = "https://isabelle.sketis.net/cygwin_2022"
 
   val packages: List[String] =
-    List("curl", "libgmp-devel", "nano", "rsync", "unzip")
+    List("curl", "libgmp-devel", "nano", "openssh", "rsync", "unzip")
 
   def build_cygwin(progress: Progress,
     mirror: String = default_mirror,
