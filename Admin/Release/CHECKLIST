@@ -73,13 +73,13 @@ Packaging
 - regular packaging:
 
   #on fast Linux machine, with access to Linux + Windows build_host
-  Admin/build_release -D ~/tmp/isadist -b HOL -R Isabelle2022 -c .../naproche-20220917.tar.gz -p linux,windows -l
+  Admin/build_release -D ~/tmp/isadist -b HOL -R Isabelle2022 -c .../naproche-20221002.tar.gz -p linux,windows -l
 
   #with access Apple ARM build_host
-  Admin/build_release -D ~/tmp/isadist -b HOL -R Isabelle2022 -c .../naproche-20220917.tar.gz -p macos
+  Admin/build_release -D ~/tmp/isadist -b HOL -R Isabelle2022 -c .../naproche-20221002.tar.gz -p macos
 
   #with access Linux ARM build_host
-  Admin/build_release -D ~/tmp/isadist -b HOL -R Isabelle2022 -c .../naproche-20220917.tar.gz -p linux_arm
+  Admin/build_release -D ~/tmp/isadist -b HOL -R Isabelle2022 -c .../naproche-20221002.tar.gz -p linux_arm
 
 - Docker image:
 
