@@ -214,8 +214,8 @@ object SSH {
     }
 
     def read_dir(path: Path): List[String] =
-      run_sftp("@ls -1 -a " + sftp_path(path)).out_lines.flatMap(s =>
-        if (s == "." || s == ".." || s.endsWith("/.") || s.endsWith("/..")) None
+      run_sftp("@cd " + sftp_path(path) + "\n@ls -1 -a").out_lines.flatMap(s =>
+        if (s == "." || s == "..") None
         else Some(Library.perhaps_unprefix("./", s)))
 
     private def get_file[A](path: Path, f: Path => A): A = {
