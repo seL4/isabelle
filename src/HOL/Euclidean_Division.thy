@@ -1411,7 +1411,7 @@ lemma less_eq_div_iff_mult_less_eq:
   using div_less_iff_less_mult [of q n m] that by auto
 
 lemma div_Suc:
-  \<open>Suc m div n = (if Suc m mod n = 0 then Suc (m div n) else m div n)\<close>  (is "_ = ?rhs")
+  \<open>Suc m div n = (if Suc m mod n = 0 then Suc (m div n) else m div n)\<close>
 proof (cases \<open>n = 0 \<or> n = 1\<close>)
   case True
   then show ?thesis by auto
@@ -1419,34 +1419,15 @@ next
   case False
   then have \<open>n > 1\<close>
     by simp
-  then have *: \<open>Suc 0 div n = 0\<close>
-    by (simp add: div_eq_0_iff)
-  have \<open>(m + 1) div n = ?rhs\<close>
+  then have \<open>Suc m div n = m div n + Suc (m mod n) div n\<close>
+    using div_add1_eq [of m 1 n] by simp
+  also have \<open>Suc (m mod n) div n = of_bool (n dvd Suc m)\<close>
   proof (cases \<open>n dvd Suc m\<close>)
-    case True
-    then obtain q where \<open>Suc m = n * q\<close> ..
-    then have m: \<open>m = n * q - 1\<close>
-      by simp
-    have \<open>q > 0\<close> by (rule ccontr)
-      (use \<open>Suc m = n * q\<close> in simp)
-    from m have \<open>m mod n = (n * q - 1) mod n\<close>
-      by simp
-    also have \<open>\<dots> = (n * q - 1 + n) mod n\<close>
-      by simp
-    also have \<open>n * q - 1 + n = n * q + (n - 1)\<close>
-      using \<open>n > 1\<close> \<open>q > 0\<close> by (simp add: algebra_simps)
-    finally have \<open>m mod n = (n - 1) mod n\<close>
-      by simp
-    with \<open>n > 1\<close> have \<open>m mod n = n - 1\<close>
-      by simp
-    with True \<open>n > 1\<close> show ?thesis
-      by (subst div_add1_eq) auto
-  next
     case False
-    have \<open>Suc (m mod n) \<noteq> n\<close>
+    moreover have \<open>Suc (m mod n) \<noteq> n\<close>
     proof (rule ccontr)
       assume \<open>\<not> Suc (m mod n) \<noteq> n\<close>
-      then have \<open>m mod n = n - 1\<close>
+      then have \<open>m mod n = n - Suc 0\<close>
         by simp
       with \<open>n > 1\<close> have \<open>(m + 1) mod n = 0\<close>
         by (subst mod_add_left_eq [symmetric]) simp
@@ -1456,28 +1437,35 @@ next
     qed
     moreover have \<open>Suc (m mod n) \<le> n\<close>
       using \<open>n > 1\<close> by (simp add: Suc_le_eq)
-    ultimately have \<open>Suc (m mod n) < n\<close>
+    ultimately show ?thesis
+      by (simp add: div_eq_0_iff)
+  next
+    case True
+    then obtain q where q: \<open>Suc m = n * q\<close> ..
+    moreover have \<open>q > 0\<close> by (rule ccontr)
+      (use q in simp)
+    ultimately have \<open>m mod n = n - Suc 0\<close>
+      using \<open>n > 1\<close> mult_le_cancel1 [of n \<open>Suc 0\<close> q]
+      by (auto intro: mod_nat_eqI)
+    with True \<open>n > 1\<close> show ?thesis
       by simp
-    with False \<open>n > 1\<close> show ?thesis
-      by (subst div_add1_eq) (auto simp add: div_eq_0_iff mod_greater_zero_iff_not_dvd)
   qed
-  then show ?thesis
-    by simp
+  finally show ?thesis
+    by (simp add: mod_greater_zero_iff_not_dvd)
 qed
 
 lemma mod_Suc:
-  \<open>Suc m mod n = (if Suc (m mod n) = n then 0 else Suc (m mod n))\<close>  (is "_ = ?rhs")
-proof (cases "n = 0")
+  \<open>Suc m mod n = (if Suc (m mod n) = n then 0 else Suc (m mod n))\<close>
+proof (cases \<open>n = 0\<close>)
   case True
   then show ?thesis
     by simp
 next
   case False
-  have "Suc m mod n = Suc (m mod n) mod n"
+  moreover have \<open>Suc m mod n = Suc (m mod n) mod n\<close>
     by (simp add: mod_simps)
-  also have "\<dots> = ?rhs"
-    using False by (auto intro!: mod_nat_eqI intro: neq_le_trans simp add: Suc_le_eq)
-  finally show ?thesis .
+  ultimately show ?thesis
+    by (auto intro!: mod_nat_eqI intro: neq_le_trans simp add: Suc_le_eq)
 qed
 
 lemma Suc_times_mod_eq:
