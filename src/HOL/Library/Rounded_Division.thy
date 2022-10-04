@@ -1,7 +1,7 @@
 (*  Author:  Florian Haftmann, TU Muenchen
 *)
 
-subsection \<open>Rounded division: modulus centered towars zero.\<close>
+subsection \<open>Rounded division: modulus centered towards zero.\<close>
 
 theory Rounded_Division
   imports Main
