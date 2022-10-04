@@ -672,7 +672,7 @@ proof
   fix a b c
   assume \<open>b \<noteq> 0\<close>
   have \<open>((a + c * b) div b, (a + c * b) mod b) = (c + a div b, a mod b)\<close>
-  proof (cases b \<open>c + a div b\<close> \<open>a mod b\<close> \<open>a + c * b\<close> rule: euclidean_relationI)
+  proof (induction rule: euclidean_relationI)
     case by0
     with \<open>b \<noteq> 0\<close>
     show ?case
@@ -698,7 +698,7 @@ next
   fix a b c
   assume \<open>c \<noteq> 0\<close>
   have \<open>((c * a) div (c * b), (c * a) mod (c * b)) = (a div b, c * (a mod b))\<close>
-  proof (cases \<open>c * b\<close> \<open>a div b\<close> \<open>c * (a mod b)\<close> \<open>c * a\<close> rule: euclidean_relationI)
+  proof (induction rule: euclidean_relationI)
     case by0
     with \<open>c \<noteq> 0\<close> show ?case
       by simp
@@ -745,7 +745,7 @@ next
   next
     assume \<open>euclidean_size a < euclidean_size b\<close>
     have \<open>(a div b, a mod b) = (0, a)\<close>
-    proof (cases b 0 a a rule: euclidean_relationI)
+    proof (induction rule: euclidean_relationI)
       case by0
       show ?case
         by simp
@@ -783,7 +783,7 @@ proof -
       by (simp add: algebra_simps)
   qed
   have \<open>((a * b) div c, (a * b) mod c) = (a * (b div c) + a * (b mod c) div c, (a * b) mod c)\<close>
-  proof (cases c \<open>a * (b div c) + a * (b mod c) div c\<close> \<open>(a * b) mod c\<close> \<open>a * b\<close> rule: euclidean_relationI)
+  proof (induction rule: euclidean_relationI)
     case by0
     then show ?case by simp
   next
@@ -817,7 +817,7 @@ proof -
       by (simp add: mod_mult_div_eq)
   qed
   have \<open>((a + b) div c, (a + b) mod c) = (a div c + b div c + (a mod c + b mod c) div c, (a + b) mod c)\<close>
-  proof (cases c \<open>a div c + b div c + (a mod c + b mod c) div c\<close> \<open>(a + b) mod c\<close> \<open>a + b\<close> rule: euclidean_relationI)
+  proof (induction rule: euclidean_relationI)
     case by0
     then show ?case
       by simp
@@ -978,7 +978,7 @@ lemma div_nat_eqI:
   \<open>m div n = q\<close> if \<open>n * q \<le> m\<close> and \<open>m < n * Suc q\<close> for m n q :: nat
 proof -
   have \<open>(m div n, m mod n) = (q, m - n * q)\<close>
-  proof (cases n q \<open>m - n * q\<close>  m rule: euclidean_relation_natI)
+  proof (induction rule: euclidean_relation_natI)
     case by0
     with that show ?case
       by simp
@@ -1004,7 +1004,7 @@ lemma mod_nat_eqI:
   \<open>m mod n = r\<close> if \<open>r < n\<close> and \<open>r \<le> m\<close> and \<open>n dvd m - r\<close> for m n r :: nat
 proof -
   have \<open>(m div n, m mod n) = ((m - r) div n, r)\<close>
-  proof (cases n \<open>(m - r) div n\<close> r  m rule: euclidean_relation_natI)
+  proof (induction rule: euclidean_relation_natI)
     case by0
     with that show ?case
       by simp
@@ -1268,7 +1268,7 @@ lemma div_mult2_eq:
   for m n q :: nat
 proof -
   have \<open>(m div (n * q), m mod (n * q)) = ((m div n) div q, n * (m div n mod q) + m mod n)\<close>
-  proof (cases \<open>n * q\<close> \<open>(m div n) div q\<close> \<open>n * (m div n mod q) + m mod n\<close> m rule: euclidean_relation_natI)
+  proof (induction rule: euclidean_relation_natI)
     case by0
     then show ?case
       by auto
@@ -1948,7 +1948,7 @@ lemma euclidean_relation_intI [case_names by0 divides euclidean_relation]:
     and divides': \<open>l \<noteq> 0 \<Longrightarrow> l dvd k \<Longrightarrow> r = 0 \<and> k = q * l\<close>
     and euclidean_relation': \<open>l \<noteq> 0 \<Longrightarrow> \<not> l dvd k \<Longrightarrow> sgn r = sgn l
       \<and> \<bar>r\<bar> < \<bar>l\<bar> \<and> k = q * l + r\<close> for k l :: int
-proof (cases l q r k rule: euclidean_relationI)
+proof (induction rule: euclidean_relationI)
   case by0
   then show ?case
     by (rule by0')
@@ -2274,7 +2274,7 @@ proof -
   from that have \<open>l < 0\<close>
     by simp
   have \<open>(k div l, k mod l) = (- 1, k + l)\<close>
-  proof (cases l \<open>- 1 :: int\<close> \<open>k + l\<close> k rule: euclidean_relation_intI)
+  proof (induction rule: euclidean_relation_intI)
     case by0
     with \<open>l < 0\<close> show ?case
       by simp
@@ -2316,9 +2316,9 @@ lemma
     and int_mod_pos_eq:
       \<open>a mod b = r\<close> (is ?R)
 proof -
-  from assms have \<open>(a div b, a mod b) = (q, r)\<close>
-    by (cases b q r a rule: euclidean_relation_intI)
-      (auto simp add: ac_simps dvd_add_left_iff sgn_1_pos le_less dest: zdvd_imp_le)
+  have \<open>(a div b, a mod b) = (q, r)\<close>
+    by (induction rule: euclidean_relation_intI)
+      (use assms in \<open>auto simp add: ac_simps dvd_add_left_iff sgn_1_pos le_less dest: zdvd_imp_le\<close>)
   then show ?Q and ?R
     by simp_all
 qed
@@ -2868,7 +2868,7 @@ lemma pos_zdiv_mult_2: \<open>(1 + 2 * b) div (2 * a) = b div a\<close> (is ?Q)
   if \<open>0 \<le> a\<close> for a b :: int
 proof -
   have \<open>((1 + 2 * b) div (2 * a), (1 + 2 * b) mod (2 * a)) = (b div a, 1 + 2 * (b mod a))\<close>
-  proof (cases \<open>2 * a\<close> \<open>b div a\<close> \<open>1 + 2 * (b mod a)\<close> \<open>1 + 2 * b\<close> rule: euclidean_relation_intI)
+  proof (induction rule: euclidean_relation_intI)
     case by0
     then show ?case
       by simp
@@ -2908,7 +2908,7 @@ lemma neg_zdiv_mult_2: \<open>(1 + 2 * b) div (2 * a) = (b + 1) div a\<close> (i
   if \<open>a \<le> 0\<close> for a b :: int
 proof -
   have \<open>((1 + 2 * b) div (2 * a), (1 + 2 * b) mod (2 * a)) = ((b + 1) div a, 2 * ((b + 1) mod a) - 1)\<close>
-  proof (cases \<open>2 * a\<close> \<open>(b + 1) div a\<close> \<open>2 * ((b + 1) mod a) - 1\<close> \<open>1 + 2 * b\<close> rule: euclidean_relation_intI)
+  proof (induction rule: euclidean_relation_intI)
     case by0
     then show ?case
       by simp
