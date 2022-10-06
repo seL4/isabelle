@@ -4,7 +4,7 @@ export PATH=/bin
 
 bash /etc/postinstall/base-files-mketc.sh.done
 
-mkpasswd -l -u "$USER" -p "$(cygpath -u "$HOMEDRIVE$HOMEPATH\\..")" >/etc/passwd
+mkpasswd -l -u "$USERNAME" -p "$(cygpath -u "$HOMEDRIVE$HOMEPATH\\..")" >/etc/passwd
 
 find -type d -exec setfacl -m default:user::rwx,default:group::r-x,default:other:r-x '{}' +
 find -type d -exec chmod 755 '{}' +
