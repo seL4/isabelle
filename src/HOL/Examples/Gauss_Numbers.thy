@@ -311,18 +311,29 @@ primcorec divide_gauss :: \<open>gauss \<Rightarrow> gauss \<Rightarrow> gauss\<
     \<open>Re (x div y) = (Re x * Re y + Im x * Im y) rdiv ((Re y)\<^sup>2 + (Im y)\<^sup>2)\<close>
   | \<open>Im (x div y) = (Im x * Re y - Re x * Im y) rdiv ((Re y)\<^sup>2 + (Im y)\<^sup>2)\<close>
 
-definition modulo_gauss :: \<open>gauss \<Rightarrow> gauss \<Rightarrow> gauss\<close>
+primcorec modulo_gauss :: \<open>gauss \<Rightarrow> gauss \<Rightarrow> gauss\<close>
   where
-    \<open>x mod y = x - x div y * y\<close> for x y :: gauss
+    \<open>Re (x mod y) = Re x -
+      ((Re x * Re y + Im x * Im y) rdiv ((Re y)\<^sup>2 + (Im y)\<^sup>2) * Re y -
+       (Im x * Re y - Re x * Im y) rdiv ((Re y)\<^sup>2 + (Im y)\<^sup>2) * Im y)\<close>
+  | \<open>Im (x mod y) = Im x -
+      ((Re x * Re y + Im x * Im y) rdiv ((Re y)\<^sup>2 + (Im y)\<^sup>2) * Im y +
+       (Im x * Re y - Re x * Im y) rdiv ((Re y)\<^sup>2 + (Im y)\<^sup>2) * Re y)\<close>
 
-instance
-  apply standard
-  apply (simp_all add: modulo_gauss_def)
-  apply (auto simp add: gauss_eq_iff algebra_simps power2_eq_square)
-           apply (simp_all only: flip: mult.assoc distrib_right)
-       apply (simp_all only: mult.assoc [of \<open>Im k\<close> \<open>Re l\<close> \<open>Re r\<close> for k l r])
-     apply (simp_all add: sum_squares_eq_zero_iff mult.commute nonzero_mult_rdiv_cancel_right flip: distrib_left)
-  done
+instance proof
+  fix x y :: gauss
+  show \<open>x div 0 = 0\<close>
+    by (simp add: gauss_eq_iff)
+  show \<open>x * y div y = x\<close> if \<open>y \<noteq> 0\<close>
+    using that
+    apply (auto simp add: gauss_eq_iff algebra_simps power2_eq_square)
+       apply (simp_all only: flip: mult.assoc distrib_right)
+    apply (simp_all add: mult.assoc [of _ \<open>Re y\<close> \<open>Re y\<close>] mult.assoc [of _ \<open>Im y\<close> \<open>Im y\<close>] mult.commute [of _ \<open>Re x\<close>] flip: distrib_left)
+       apply (simp_all add: sum_squares_eq_zero_iff mult.commute nonzero_mult_rdiv_cancel_right flip: distrib_left)
+    done
+  show \<open>x div y * y + x mod y = x\<close>
+    by (simp add: gauss_eq_iff)
+qed
 
 end
 
