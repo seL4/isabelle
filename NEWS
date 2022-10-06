@@ -202,6 +202,10 @@ INCOMPATIBILITY.
       total_on_trancl
       totalp_on_tranclp
 
+* Theory "HOL-Library.Signed_Division": class signed_division carries
+assumptions; use syntactic type classes signed_division and
+signed_modulo as alternatives.
+
 * New theory "HOL-Library.NList" of fixed length lists.
 
 * New Theory "HOL-Library.Code_Abstract_Char" implements characters by
