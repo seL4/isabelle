@@ -7,6 +7,10 @@ theory Rounded_Division
   imports Main
 begin
 
+lemma off_iff_abs_mod_2_eq_one:
+  \<open>odd l \<longleftrightarrow> \<bar>l\<bar> mod 2 = 1\<close> for l :: int
+  by (simp flip: odd_iff_mod_2_eq_one)
+
 definition rounded_divide :: \<open>int \<Rightarrow> int \<Rightarrow> int\<close>  (infixl \<open>rdiv\<close> 70)
   where \<open>k rdiv l = sgn l * ((k + \<bar>l\<bar> div 2) div \<bar>l\<bar>)\<close>
 
@@ -118,5 +122,40 @@ lemma signed_take_bit_eq_rmod:
   \<open>signed_take_bit n k = k rmod (2 ^ Suc n)\<close>
   by (simp only: rounded_modulo_def power_abs abs_numeral flip: take_bit_eq_mod)
     (simp add: signed_take_bit_eq_take_bit_shift)
+
+lemma rmod_less_divisor:
+  \<open>k rmod l < \<bar>l\<bar> - \<bar>l\<bar> div 2\<close> if \<open>l \<noteq> 0\<close>
+  using that pos_mod_bound [of \<open>\<bar>l\<bar>\<close>] by (simp add: rounded_modulo_def)
+
+lemma rmod_less_equal_divisor:
+  \<open>k rmod l \<le> \<bar>l\<bar> div 2\<close> if \<open>l \<noteq> 0\<close>
+proof -
+  from that rmod_less_divisor [of l k]
+  have \<open>k rmod l < \<bar>l\<bar> - \<bar>l\<bar> div 2\<close>
+    by simp
+  also have \<open>\<bar>l\<bar> - \<bar>l\<bar> div 2 = \<bar>l\<bar> div 2 + of_bool (odd l)\<close>
+    by auto
+  finally show ?thesis
+    by (cases \<open>even l\<close>) simp_all
+qed
+
+lemma divisor_less_equal_rmod':
+  \<open>\<bar>l\<bar> div 2 - \<bar>l\<bar> \<le> k rmod l\<close> if \<open>l \<noteq> 0\<close>
+proof -
+  have \<open>0 \<le> (k + \<bar>l\<bar> div 2) mod \<bar>l\<bar>\<close>
+    using that pos_mod_sign [of \<open>\<bar>l\<bar>\<close>] by simp
+  then show ?thesis
+    by (simp_all add: rounded_modulo_def)
+qed
+
+lemma divisor_less_equal_rmod:
+  \<open>- (\<bar>l\<bar> div 2) \<le> k rmod l\<close> if \<open>l \<noteq> 0\<close>
+  using that divisor_less_equal_rmod' [of l k]
+  by (simp add: rounded_modulo_def)
+
+lemma abs_rmod_less_equal:
+  \<open>\<bar>k rmod l\<bar> \<le> \<bar>l\<bar> div 2\<close> if \<open>l \<noteq> 0\<close>
+  using that divisor_less_equal_rmod [of l k]
+  by (simp add: abs_le_iff rmod_less_equal_divisor)
 
 end
