@@ -208,7 +208,7 @@ lemma surj_id: "surj id"
 lemma bij_id[simp]: "bij id"
   by (simp add: bij_betw_def)
 
-lemma bij_uminus: "bij (uminus :: 'a \<Rightarrow> 'a::ab_group_add)"
+lemma bij_uminus: "bij (uminus :: 'a \<Rightarrow> 'a::group_add)"
   unfolding bij_betw_def inj_on_def
   by (force intro: minus_minus [symmetric])
 
@@ -591,7 +591,7 @@ lemma inj_vimage_singleton: "inj f \<Longrightarrow> f -` {a} \<subseteq> {THE x
 lemma inj_on_vimage_singleton: "inj_on f A \<Longrightarrow> f -` {a} \<inter> A \<subseteq> {THE x. x \<in> A \<and> f x = a}"
   by (auto simp add: inj_on_def intro: the_equality [symmetric])
 
-lemma (in ordered_ab_group_add) inj_uminus[simp, intro]: "inj_on uminus A"
+lemma (in group_add) inj_uminus[simp, intro]: "inj_on uminus A"
   by (auto intro!: inj_onI)
 
 lemma bij_betw_byWitness:
@@ -719,26 +719,55 @@ lemma bij_betw_add [simp]:
 
 end
 
-context ab_group_add
+context group_add
 begin
 
 lemma surj_plus [simp]:
   "surj ((+) a)"
-  by (auto intro!: range_eqI [of b "(+) a" "b - a" for b]) (simp add: algebra_simps)
+proof (standard, simp, standard, simp)
+  fix x
+  have "x = a + (-a + x)" by (simp add: add.assoc)
+  thus "x \<in> range ((+) a)" by blast
+qed
 
 lemma inj_diff_right [simp]:
   \<open>inj (\<lambda>b. b - a)\<close>
-proof -
-  have \<open>inj ((+) (- a))\<close>
-    by (fact inj_add_left)
-  also have \<open>(+) (- a) = (\<lambda>b. b - a)\<close>
-    by (simp add: fun_eq_iff)
-  finally show ?thesis .
-qed
+by (auto intro: injI simp add: algebra_simps)
 
 lemma surj_diff_right [simp]:
   "surj (\<lambda>x. x - a)"
-  using surj_plus [of "- a"] by (simp cong: image_cong_simp)
+proof (standard, simp, standard, simp)
+  fix x
+  have "x = x + a - a" by simp
+  thus "x \<in> range (\<lambda>x. x - a)" by fast
+qed
+
+lemma translation_subtract_Compl:
+  "(\<lambda>x. x - a) ` (- t) = - ((\<lambda>x. x - a) ` t)"
+by(rule bij_image_Compl_eq)
+  (auto simp add: bij_def surj_def inj_def diff_eq_eq intro!: add_diff_cancel[symmetric])
+
+lemma translation_diff:
+  "(+) a ` (s - t) = ((+) a ` s) - ((+) a ` t)"
+  by auto
+
+lemma translation_subtract_diff:
+  "(\<lambda>x. x - a) ` (s - t) = ((\<lambda>x. x - a) ` s) - ((\<lambda>x. x - a) ` t)"
+by(rule image_set_diff)(simp add: inj_on_def diff_eq_eq)
+
+lemma translation_Int:
+  "(+) a ` (s \<inter> t) = ((+) a ` s) \<inter> ((+) a ` t)"
+  by auto
+
+lemma translation_subtract_Int:
+  "(\<lambda>x. x - a) ` (s \<inter> t) = ((\<lambda>x. x - a) ` s) \<inter> ((\<lambda>x. x - a) ` t)"
+by(rule image_Int)(simp add: inj_on_def diff_eq_eq)
+
+end
+
+(* TODO: prove in group_add *)
+context ab_group_add
+begin
 
 lemma translation_Compl:
   "(+) a ` (- t) = - ((+) a ` t)"
@@ -747,26 +776,6 @@ proof (rule set_eqI)
   show "b \<in> (+) a ` (- t) \<longleftrightarrow> b \<in> - (+) a ` t"
     by (auto simp: image_iff algebra_simps intro!: bexI [of _ "b - a"])
 qed
-
-lemma translation_subtract_Compl:
-  "(\<lambda>x. x - a) ` (- t) = - ((\<lambda>x. x - a) ` t)"
-  using translation_Compl [of "- a" t] by (simp cong: image_cong_simp)
-
-lemma translation_diff:
-  "(+) a ` (s - t) = ((+) a ` s) - ((+) a ` t)"
-  by auto
-
-lemma translation_subtract_diff:
-  "(\<lambda>x. x - a) ` (s - t) = ((\<lambda>x. x - a) ` s) - ((\<lambda>x. x - a) ` t)"
-  using translation_diff [of "- a"] by (simp cong: image_cong_simp)
-
-lemma translation_Int:
-  "(+) a ` (s \<inter> t) = ((+) a ` s) \<inter> ((+) a ` t)"
-  by auto
-
-lemma translation_subtract_Int:
-  "(\<lambda>x. x - a) ` (s \<inter> t) = ((\<lambda>x. x - a) ` s) \<inter> ((\<lambda>x. x - a) ` t)"
-  using translation_Int [of " -a"] by (simp cong: image_cong_simp)
 
 end
 
