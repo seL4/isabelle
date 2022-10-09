@@ -7,6 +7,12 @@ Isabelle NEWS -- history of user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** HOL ***
+
+* Theory "HOL.Relation":
+  - Strengthened total_on_singleton. Minor INCOMPATIBILITY.
+  - Added lemma.
+      totalp_on_singleton[simp]
 
 
 New in Isabelle2022 (October 2022)

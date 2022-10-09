@@ -555,10 +555,13 @@ lemma total_on_empty [simp]: "total_on {} r"
   by (simp add: total_on_def)
 
 lemma totalp_on_empty [simp]: "totalp_on {} R"
-  by (auto intro: totalp_onI)
+  by (simp add: totalp_on_def)
 
-lemma total_on_singleton [simp]: "total_on {x} {(x, x)}"
-  unfolding total_on_def by blast
+lemma total_on_singleton [simp]: "total_on {x} r"
+  by (simp add: total_on_def)
+
+lemma totalp_on_singleton [simp]: "totalp_on {x} R"
+  by (simp add: totalp_on_def)
 
 
 subsubsection \<open>Single valued relations\<close>
