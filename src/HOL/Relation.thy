@@ -423,6 +423,12 @@ lemma antisym_singleton [simp]:
   "antisym {x}"
   by (blast intro: antisymI)
 
+lemma antisym_if_asym: "asym r \<Longrightarrow> antisym r"
+  by (auto intro: antisymI elim: asym.cases)
+
+lemma antisymp_if_asymp: "asymp R \<Longrightarrow> antisymp R"
+  by (rule antisym_if_asym[to_pred])
+
 
 subsubsection \<open>Transitivity\<close>
 

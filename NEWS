@@ -11,7 +11,9 @@ New in this Isabelle version
 
 * Theory "HOL.Relation":
   - Strengthened total_on_singleton. Minor INCOMPATIBILITY.
-  - Added lemma.
+  - Added lemmas.
+      antisym_if_asymp
+      antisymp_if_asymp
       totalp_on_singleton[simp]
 
 
