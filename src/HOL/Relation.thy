@@ -173,7 +173,7 @@ lemma refl_onI [intro?]: "r \<subseteq> A \<times> A \<Longrightarrow> (\<And>x.
   unfolding refl_on_def by (iprover intro!: ballI)
 
 lemma reflp_onI:
-  "(\<And>x y. x \<in> A \<Longrightarrow> R x x) \<Longrightarrow> reflp_on A R"
+  "(\<And>x. x \<in> A \<Longrightarrow> R x x) \<Longrightarrow> reflp_on A R"
   by (simp add: reflp_on_def)
 
 lemma reflpI[intro?]: "(\<And>x. R x x) \<Longrightarrow> reflp R"
