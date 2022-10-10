@@ -274,6 +274,12 @@ lemma irreflI [intro?]: "(\<And>a. (a, a) \<notin> R) \<Longrightarrow> irrefl R
 lemma irreflpI [intro?]: "(\<And>a. \<not> R a a) \<Longrightarrow> irreflp R"
   by (fact irreflI [to_pred])
 
+lemma irreflD: "irrefl r \<Longrightarrow> (x, x) \<notin> r"
+  unfolding irrefl_def by simp
+
+lemma irreflpD: "irreflp R \<Longrightarrow> \<not> R x x"
+  unfolding irreflp_def by simp
+
 lemma irrefl_distinct [code]: "irrefl r \<longleftrightarrow> (\<forall>(a, b) \<in> r. a \<noteq> b)"
   by (auto simp add: irrefl_def)
 
