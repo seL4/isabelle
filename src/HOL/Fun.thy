@@ -705,10 +705,6 @@ lemma inj_on_add [simp]:
   "inj_on ((+) a) A"
   by (rule inj_onI) simp
 
-lemma inj_add_left:
-  \<open>inj ((+) a)\<close>
-  by simp
-
 lemma inj_on_add' [simp]:
   "inj_on (\<lambda>b. b + a) A"
   by (rule inj_onI) simp
