@@ -441,6 +441,18 @@ lemma antisym_if_asym: "asym r \<Longrightarrow> antisym r"
 lemma antisymp_if_asymp: "asymp R \<Longrightarrow> antisymp R"
   by (rule antisym_if_asym[to_pred])
 
+lemma (in preorder) antisymp_less[simp]: "antisymp (<)"
+  by (rule antisymp_if_asymp[OF asymp_less])
+
+lemma (in preorder) antisymp_greater[simp]: "antisymp (>)"
+  by (rule antisymp_if_asymp[OF asymp_greater])
+
+lemma (in order) antisymp_le[simp]: "antisymp (\<le>)"
+  by (simp add: antisympI)
+
+lemma (in order) antisymp_ge[simp]: "antisymp (\<ge>)"
+  by (simp add: antisympI)
+
 
 subsubsection \<open>Transitivity\<close>
 

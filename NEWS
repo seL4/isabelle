@@ -13,7 +13,11 @@ New in this Isabelle version
   - Strengthened lemma total_on_singleton. Minor INCOMPATIBILITY.
   - Added lemmas.
       antisym_if_asymp
+      antisymp_ge[simp]
+      antisymp_greater[simp]
       antisymp_if_asymp
+      antisymp_le[simp]
+      antisymp_less[simp]
       irreflD
       irreflpD
       reflp_ge[simp]
