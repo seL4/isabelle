@@ -952,6 +952,16 @@ lemma bex_imageD: "\<exists>x\<in>f ` A. P x \<Longrightarrow> \<exists>x\<in>A.
 lemma image_add_0 [simp]: "(+) (0::'a::comm_monoid_add) ` S = S"
   by auto
 
+theorem Cantors_paradox: "\<nexists>f. f ` A = Pow A"
+proof
+  assume "\<exists>f. f ` A = Pow A"
+  then obtain f where f: "f ` A = Pow A" ..
+  let ?X = "{a \<in> A. a \<notin> f a}"
+  have "?X \<in> Pow A" by blast
+  then have "?X \<in> f ` A" by (simp only: f)
+  then obtain x where "x \<in> A" and "f x = ?X" by blast
+  then show False by blast
+qed
 
 text \<open>\<^medskip> Range of a function -- just an abbreviation for image!\<close>
 
