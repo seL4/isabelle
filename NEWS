@@ -16,6 +16,8 @@ New in this Isabelle version
       antisymp_if_asymp
       irreflD
       irreflpD
+      reflp_ge[simp]
+      reflp_le[simp]
       totalp_on_singleton[simp]
 
 
