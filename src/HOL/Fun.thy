@@ -591,9 +591,6 @@ lemma inj_vimage_singleton: "inj f \<Longrightarrow> f -` {a} \<subseteq> {THE x
 lemma inj_on_vimage_singleton: "inj_on f A \<Longrightarrow> f -` {a} \<inter> A \<subseteq> {THE x. x \<in> A \<and> f x = a}"
   by (auto simp add: inj_on_def intro: the_equality [symmetric])
 
-lemma (in group_add) inj_uminus[simp, intro]: "inj_on uminus A"
-  by (auto intro!: inj_onI)
-
 lemma bij_betw_byWitness:
   assumes left: "\<forall>a \<in> A. f' (f a) = a"
     and right: "\<forall>a' \<in> A'. f (f' a') = a'"
@@ -696,7 +693,7 @@ proof (rule bijI)
 qed
 
 
-subsubsection \<open>Important examples\<close>
+subsubsection \<open>Inj/surj/bij of Algebraic Operations\<close>
 
 context cancel_semigroup_add
 begin
@@ -704,10 +701,6 @@ begin
 lemma inj_on_add [simp]:
   "inj_on ((+) a) A"
   by (rule inj_onI) simp
-
-lemma inj_add_left:
-  \<open>inj ((+) a)\<close>
-  by simp
 
 lemma inj_on_add' [simp]:
   "inj_on (\<lambda>b. b + a) A"
@@ -722,6 +715,13 @@ end
 context group_add
 begin
 
+lemma diff_left_imp_eq: "a - b = a - c \<Longrightarrow> b = c"
+unfolding add_uminus_conv_diff[symmetric]
+by(drule local.add_left_imp_eq) simp
+
+lemma inj_uminus[simp, intro]: "inj_on uminus A"
+  by (auto intro!: inj_onI)
+
 lemma surj_plus [simp]:
   "surj ((+) a)"
 proof (standard, simp, standard, simp)
@@ -730,9 +730,28 @@ proof (standard, simp, standard, simp)
   thus "x \<in> range ((+) a)" by blast
 qed
 
-lemma inj_diff_right [simp]:
-  \<open>inj (\<lambda>b. b - a)\<close>
-by (auto intro: injI simp add: algebra_simps)
+lemma surj_plus_right [simp]:
+  "surj (\<lambda>b. b+a)"
+proof (standard, simp, standard, simp)
+  fix b show "b \<in> range (\<lambda>b. b+a)"
+    using diff_add_cancel[of b a, symmetric] by blast
+qed
+
+lemma inj_on_diff_left [simp]:
+  \<open>inj_on ((-) a) A\<close>
+by (auto intro: inj_onI dest!: diff_left_imp_eq)
+
+lemma inj_on_diff_right [simp]:
+  \<open>inj_on (\<lambda>b. b - a) A\<close>
+by (auto intro: inj_onI simp add: algebra_simps)
+
+lemma surj_diff [simp]:
+  "surj ((-) a)"
+proof (standard, simp, standard, simp)
+  fix x
+  have "x = a - (- x + a)" by (simp add: algebra_simps)
+  thus "x \<in> range ((-) a)" by blast
+qed
 
 lemma surj_diff_right [simp]:
   "surj (\<lambda>x. x - a)"
@@ -741,6 +760,10 @@ proof (standard, simp, standard, simp)
   have "x = x + a - a" by simp
   thus "x \<in> range (\<lambda>x. x - a)" by fast
 qed
+
+lemma shows bij_plus: "bij ((+) a)" and bij_plus_right: "bij (\<lambda>x. x + a)"
+  and bij_diff: "bij ((-) a)" and bij_diff_right: "bij (\<lambda>x. x - a)"
+by(simp_all add: bij_def)
 
 lemma translation_subtract_Compl:
   "(\<lambda>x. x - a) ` (- t) = - ((\<lambda>x. x - a) ` t)"
@@ -925,20 +948,6 @@ abbreviation the_inv :: "('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> '
 
 lemma the_inv_f_f: "the_inv f (f x) = x" if "inj f"
   using that UNIV_I by (rule the_inv_into_f_f)
-
-
-subsection \<open>Cantor's Paradox\<close>
-
-theorem Cantors_paradox: "\<nexists>f. f ` A = Pow A"
-proof
-  assume "\<exists>f. f ` A = Pow A"
-  then obtain f where f: "f ` A = Pow A" ..
-  let ?X = "{a \<in> A. a \<notin> f a}"
-  have "?X \<in> Pow A" by blast
-  then have "?X \<in> f ` A" by (simp only: f)
-  then obtain x where "x \<in> A" and "f x = ?X" by blast
-  then show False by blast
-qed
 
 
 subsection \<open>Monotonicity\<close>
