@@ -163,12 +163,6 @@ proof -
     by (auto simp add: B_def inj_on_def A_def) metis
 qed
 
-lemma inj_on_pminusx_E: "inj_on (\<lambda>x. p - x) E"
-  apply (auto simp add: E_def C_def B_def A_def)
-  apply (rule inj_on_inverseI [where g = "(-) (int p)"])
-  apply auto
-  done
-
 lemma nonzero_mod_p: "0 < x \<Longrightarrow> x < int p \<Longrightarrow> [x \<noteq> 0](mod p)"
   for x :: int
   by (simp add: cong_def)
@@ -241,7 +235,7 @@ lemma B_card_eq: "card B = nat ((int p - 1) div 2)"
   by (simp add: B_card_eq_A A_card_eq)
 
 lemma F_card_eq_E: "card F = card E"
-  using finite_E by (simp add: F_def inj_on_pminusx_E card_image)
+  using finite_E by (simp add: F_def card_image)
 
 lemma C_card_eq_B: "card C = card B"
 proof -
@@ -312,11 +306,7 @@ lemma prod_D_F_eq_prod_A: "prod id D * prod id F = prod id A"
 lemma prod_F_zcong: "[prod id F = ((-1) ^ (card E)) * prod id E] (mod p)"
 proof -
   have FE: "prod id F = prod ((-) p) E"
-    apply (auto simp add: F_def)
-    apply (insert finite_E inj_on_pminusx_E)
-    apply (drule prod.reindex)
-    apply auto
-    done
+    using finite_E prod.reindex[OF inj_on_diff_left] by (auto simp add: F_def)
   then have "\<forall>x \<in> E. [(p-x) mod p = - x](mod p)"
     by (metis cong_def minus_mod_self1 mod_mod_trivial)
   then have "[prod ((\<lambda>x. x mod p) \<circ> ((-) p)) E = prod (uminus) E](mod p)"
@@ -356,7 +346,7 @@ proof -
     by simp
   then have "[prod id A = ((-1)^(card E) * a^(card A) * prod id A)](mod p)"
     by (rule cong_trans)
-      (simp add: cong_scalar_left cong_scalar_right finite_A prod_constant ac_simps)
+      (simp add: cong_scalar_left cong_scalar_right finite_A ac_simps)
   then have a: "[prod id A * (-1)^(card E) =
       ((-1)^(card E) * a^(card A) * prod id A * (-1)^(card E))](mod p)"
     by (rule cong_scalar_right)
