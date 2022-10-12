@@ -24,6 +24,12 @@ New in this Isabelle version
       reflp_le[simp]
       totalp_on_singleton[simp]
 
+* Theory "HOL.Wellfounded":
+  - Added lemmas.
+      wfP_if_convertible_to_nat
+      wfP_if_convertible_to_wfP
+      wf_if_convertible_to_wf
+
 
 New in Isabelle2022 (October 2022)
 ----------------------------------
