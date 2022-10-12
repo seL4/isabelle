@@ -722,6 +722,9 @@ by(drule local.add_left_imp_eq) simp
 lemma inj_uminus[simp, intro]: "inj_on uminus A"
   by (auto intro!: inj_onI)
 
+lemma surj_uminus[simp]: "surj uminus"
+using surjI minus_minus by blast
+
 lemma surj_plus [simp]:
   "surj ((+) a)"
 proof (standard, simp, standard, simp)
@@ -762,6 +765,7 @@ proof (standard, simp, standard, simp)
 qed
 
 lemma shows bij_plus: "bij ((+) a)" and bij_plus_right: "bij (\<lambda>x. x + a)"
+  and bij_uminus: "bij uminus"
   and bij_diff: "bij ((-) a)" and bij_diff_right: "bij (\<lambda>x. x - a)"
 by(simp_all add: bij_def)
 
