@@ -30,6 +30,9 @@ New in this Isabelle version
       wfP_if_convertible_to_wfP
       wf_if_convertible_to_wf
 
+* Theory "HOL-Library.FSet":
+  - Added lemma wfP_pfsubset.
+
 
 New in Isabelle2022 (October 2022)
 ----------------------------------
