@@ -316,8 +316,8 @@ object Server_Commands {
 
     override val command_body: Server.Command_Body =
       { case (context, Purge_Theories(args)) =>
-        val session = context.server.the_session(args.session_id)
-        command(args, session)._1
+          val session = context.server.the_session(args.session_id)
+          command(args, session)._1
       }
   }
 }
