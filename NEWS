@@ -416,6 +416,11 @@ command-line options $ISABELLE_MLTON_OPTIONS, which need to fit
 together. Potential INCOMPATIBILITY for existing
 $ISABELLE_HOME_USER/etc/settings.
 
+* The system option "ML_system_apple" controls the use of native
+Apple/ARM64 for Poly/ML: default "true". Like "ML_system_64" this only
+works when saved in "$ISABELLE_HOME_USER/etc/preferences" (e.g. after
+shutdown of Isabelle/jEdit).
+
 
 
 New in Isabelle2021-1 (December 2021)

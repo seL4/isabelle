@@ -2,7 +2,17 @@
 
 POLYML_HOME="$COMPONENT"
 
-ML_PLATFORM="${ISABELLE_APPLE_PLATFORM64:-${ISABELLE_WINDOWS_PLATFORM64:-${ISABELLE_PLATFORM64}}}"
+if [ -n "$ISABELLE_APPLE_PLATFORM64" ]
+then
+  if grep "ML_system_apple.*=.*false" "$ISABELLE_HOME_USER/etc/preferences" >/dev/null 2>/dev/null
+  then
+    ML_PLATFORM="$ISABELLE_PLATFORM64"
+  else
+    ML_PLATFORM="$ISABELLE_APPLE_PLATFORM64"
+  fi
+else
+  ML_PLATFORM="${ISABELLE_WINDOWS_PLATFORM64:-$ISABELLE_PLATFORM64}"
+fi
 
 if grep "ML_system_64.*=.*true" "$ISABELLE_HOME_USER/etc/preferences" >/dev/null 2>/dev/null
 then
