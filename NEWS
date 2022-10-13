@@ -20,6 +20,10 @@ New in this Isabelle version
       antisymp_if_asymp
       irreflD
       irreflpD
+      linorder.totalp_ge[simp]
+      linorder.totalp_greater[simp]
+      linorder.totalp_le[simp]
+      linorder.totalp_less[simp]
       order.antisymp_ge[simp]
       order.antisymp_le[simp]
       preorder.antisymp_greater[simp]

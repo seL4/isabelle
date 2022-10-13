@@ -593,6 +593,18 @@ lemma total_on_singleton [simp]: "total_on {x} r"
 lemma totalp_on_singleton [simp]: "totalp_on {x} R"
   by (simp add: totalp_on_def)
 
+lemma (in linorder) totalp_less[simp]: "totalp_on A (<)"
+  by (auto intro: totalp_onI)
+
+lemma (in linorder) totalp_greater[simp]: "totalp_on A (>)"
+  by (auto intro: totalp_onI)
+
+lemma (in linorder) totalp_le[simp]: "totalp_on A (\<le>)"
+  by (rule totalp_onI, rule linear)
+
+lemma (in linorder) totalp_ge[simp]: "totalp_on A (\<ge>)"
+  by (rule totalp_onI, rule linear)
+
 
 subsubsection \<open>Single valued relations\<close>
 
