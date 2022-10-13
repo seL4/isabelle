@@ -270,27 +270,27 @@ lemma authKeys_not_insert:
    ev \<noteq> Says Kas A (Crypt (shrK A) \<lbrace>akey, Agent Peer, Ta,
               (Crypt (shrK Peer) \<lbrace>Agent A, Agent Peer, akey, Ta\<rbrace>)\<rbrace>))
        \<Longrightarrow> authKeys (ev # evs) = authKeys evs"
-  unfolding authKeys_def by (auto)
+  unfolding authKeys_def by auto
 
 lemma authKeys_insert:
   "authKeys
      (Says Kas A (Crypt (shrK A) \<lbrace>Key K, Agent Peer, Number Ta,
       (Crypt (shrK Peer) \<lbrace>Agent A, Agent Peer, Key K, Number Ta\<rbrace>)\<rbrace>) # evs)
        = insert K (authKeys evs)"
-  unfolding authKeys_def by (auto)
+  unfolding authKeys_def by auto
 
 lemma authKeys_simp:
    "K \<in> authKeys
     (Says Kas A (Crypt (shrK A) \<lbrace>Key K', Agent Peer, Number Ta,
      (Crypt (shrK Peer) \<lbrace>Agent A, Agent Peer, Key K', Number Ta\<rbrace>)\<rbrace>) # evs)
         \<Longrightarrow> K = K' | K \<in> authKeys evs"
-  unfolding authKeys_def by (auto)
+  unfolding authKeys_def by auto
 
 lemma authKeysI:
    "Says Kas A (Crypt (shrK A) \<lbrace>Key K, Agent Tgs, Number Ta,
      (Crypt (shrK Tgs) \<lbrace>Agent A, Agent Tgs, Key K, Number Ta\<rbrace>)\<rbrace>) \<in> set evs
         \<Longrightarrow> K \<in> authKeys evs"
-  unfolding authKeys_def by (auto)
+  unfolding authKeys_def by auto
 
 lemma authKeys_used: "K \<in> authKeys evs \<Longrightarrow> Key K \<in> used evs"
 by (simp add: authKeys_def, blast)
@@ -905,7 +905,7 @@ done
   (with respect to a given trace). *)
 lemma Serv_fresh_not_AKcryptSK:
  "Key servK \<notin> used evs \<Longrightarrow> \<not> AKcryptSK authK servK evs"
-  unfolding AKcryptSK_def by (blast)
+  unfolding AKcryptSK_def by blast
 
 lemma authK_not_AKcryptSK:
      "\<lbrakk> Crypt (shrK Tgs) \<lbrace>Agent A, Agent Tgs, Key authK, tk\<rbrace>

@@ -95,7 +95,7 @@ lemma symKeys_neq_imp_neq: "(K \<in> symKeys) \<noteq> (K' \<in> symKeys) \<Long
 by blast
 
 lemma symKeys_invKey_iff [iff]: "(invKey K \<in> symKeys) = (K \<in> symKeys)"
-  unfolding symKeys_def by (auto)
+  unfolding symKeys_def by auto
 
 lemma analz_symKeys_Decrypt:
      "\<lbrakk>Crypt K X \<in> analz H;  K \<in> symKeys;  Key K \<in> analz H\<rbrakk>  
