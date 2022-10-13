@@ -14,7 +14,10 @@ New in this Isabelle version
     Minor INCOMPATIBILITY.
 
 * Theory "HOL.Relation":
-  - Strengthened lemma total_on_singleton. Minor INCOMPATIBILITY.
+  - Strengthened lemmas. Minor INCOMPATIBILITY.
+      preorder.reflp_ge
+      preorder.reflp_le
+      total_on_singleton
   - Added lemmas.
       antisym_if_asymp
       antisymp_if_asymp

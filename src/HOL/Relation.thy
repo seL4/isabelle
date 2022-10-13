@@ -256,11 +256,11 @@ lemma reflp_on_mono:
 lemma reflp_mono: "reflp R \<Longrightarrow> (\<And>x y. R x y \<Longrightarrow> Q x y) \<Longrightarrow> reflp Q"
   by (rule reflp_on_mono[of UNIV R Q]) simp_all
 
-lemma (in preorder) reflp_le[simp]: "reflp (\<le>)"
-  by (simp add: reflpI)
+lemma (in preorder) reflp_le[simp]: "reflp_on A (\<le>)"
+  by (simp add: reflp_onI)
 
-lemma (in preorder) reflp_ge[simp]: "reflp (\<ge>)"
-  by (simp add: reflpI)
+lemma (in preorder) reflp_ge[simp]: "reflp_on A (\<ge>)"
+  by (simp add: reflp_onI)
 
 
 subsubsection \<open>Irreflexivity\<close>
