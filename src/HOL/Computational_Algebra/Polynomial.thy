@@ -3985,9 +3985,9 @@ proof -
       by simp
   next
     case False
-    then show ?thesis
-      by (cases y \<open>smult a (x div y)\<close> \<open>smult a (x mod y)\<close> \<open>smult a x\<close> rule: euclidean_relation_polyI)
-        (simp_all add: dvd_smult_iff degree_mod_less_degree flip: smult_add_right)
+    show ?thesis
+      by (rule euclidean_relation_polyI)
+        (use False in \<open>simp_all add: dvd_smult_iff degree_mod_less_degree flip: smult_add_right\<close>)
   qed
   then show ?Q and ?R
     by simp_all
@@ -4006,7 +4006,7 @@ lemma poly_div_add_left: \<open>(x + y) div z = x div z + y div z\<close> (is ?Q
   for x y z :: \<open>'a::field poly\<close>
 proof -
   have \<open>((x + y) div z, (x + y) mod z) = (x div z + y div z, x mod z + y mod z)\<close>
-  proof (cases z \<open>x div z + y div z\<close> \<open>x mod z + y mod z\<close> \<open>x + y\<close> rule: euclidean_relation_polyI)
+  proof (induction rule: euclidean_relation_polyI)
     case by0
     then show ?case by simp
   next
@@ -4045,7 +4045,7 @@ lemma div_smult_right: \<open>x div smult a y = smult (inverse a) (x div y)\<clo
   and mod_smult_right: \<open>x mod smult a y = (if a = 0 then x else x mod y)\<close> (is ?R)
 proof -
   have \<open>(x div smult a y, x mod smult a y) = (smult (inverse a) (x div y), (if a = 0 then x else x mod y))\<close>
-  proof (cases \<open>smult a y\<close> \<open>smult (inverse a) (x div y)\<close> \<open>(if a = 0 then x else x mod y)\<close> x rule: euclidean_relation_polyI)
+  proof (induction rule: euclidean_relation_polyI)
     case by0
     then show ?case by auto
   next
@@ -4077,7 +4077,7 @@ lemma poly_div_mult_right: \<open>x div (y * z) = (x div y) div z\<close> (is ?Q
   for x y z :: \<open>'a::field poly\<close>
 proof -
   have \<open>(x div (y * z), x mod (y * z)) = ((x div y) div z, y * (x div y mod z) + x mod y)\<close>
-  proof (cases \<open>y * z\<close> \<open>(x div y) div z\<close> \<open>y * (x div y mod z) + x mod y\<close> x rule: euclidean_relation_polyI)
+  proof (induction rule: euclidean_relation_polyI)
     case by0
     then show ?case by auto
   next
@@ -4143,7 +4143,7 @@ proof -
     define b where \<open>b = coeff (pCons a (p mod q)) (degree q) / lead_coeff q\<close>
     have \<open>(pCons a p div q, pCons a p mod q) =
       (pCons b (p div q), (pCons a (p mod q) - smult b q))\<close> (is \<open>_ = (?q, ?r)\<close>)
-    proof (cases q ?q ?r \<open>pCons a p\<close> rule: euclidean_relation_polyI)
+    proof (induction rule: euclidean_relation_polyI)
       case by0
       with \<open>q \<noteq> 0\<close> show ?case by simp
     next

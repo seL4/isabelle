@@ -173,7 +173,7 @@ lemma refl_onI [intro?]: "r \<subseteq> A \<times> A \<Longrightarrow> (\<And>x.
   unfolding refl_on_def by (iprover intro!: ballI)
 
 lemma reflp_onI:
-  "(\<And>x y. x \<in> A \<Longrightarrow> R x x) \<Longrightarrow> reflp_on A R"
+  "(\<And>x. x \<in> A \<Longrightarrow> R x x) \<Longrightarrow> reflp_on A R"
   by (simp add: reflp_on_def)
 
 lemma reflpI[intro?]: "(\<And>x. R x x) \<Longrightarrow> reflp R"
@@ -256,6 +256,12 @@ lemma reflp_on_mono:
 lemma reflp_mono: "reflp R \<Longrightarrow> (\<And>x y. R x y \<Longrightarrow> Q x y) \<Longrightarrow> reflp Q"
   by (rule reflp_on_mono[of UNIV R Q]) simp_all
 
+lemma (in preorder) reflp_le[simp]: "reflp (\<le>)"
+  by (simp add: reflpI)
+
+lemma (in preorder) reflp_ge[simp]: "reflp (\<ge>)"
+  by (simp add: reflpI)
+
 
 subsubsection \<open>Irreflexivity\<close>
 
@@ -273,6 +279,12 @@ lemma irreflI [intro?]: "(\<And>a. (a, a) \<notin> R) \<Longrightarrow> irrefl R
 
 lemma irreflpI [intro?]: "(\<And>a. \<not> R a a) \<Longrightarrow> irreflp R"
   by (fact irreflI [to_pred])
+
+lemma irreflD: "irrefl r \<Longrightarrow> (x, x) \<notin> r"
+  unfolding irrefl_def by simp
+
+lemma irreflpD: "irreflp R \<Longrightarrow> \<not> R x x"
+  unfolding irreflp_def by simp
 
 lemma irrefl_distinct [code]: "irrefl r \<longleftrightarrow> (\<forall>(a, b) \<in> r. a \<noteq> b)"
   by (auto simp add: irrefl_def)
@@ -423,6 +435,24 @@ lemma antisym_singleton [simp]:
   "antisym {x}"
   by (blast intro: antisymI)
 
+lemma antisym_if_asym: "asym r \<Longrightarrow> antisym r"
+  by (auto intro: antisymI elim: asym.cases)
+
+lemma antisymp_if_asymp: "asymp R \<Longrightarrow> antisymp R"
+  by (rule antisym_if_asym[to_pred])
+
+lemma (in preorder) antisymp_less[simp]: "antisymp (<)"
+  by (rule antisymp_if_asymp[OF asymp_less])
+
+lemma (in preorder) antisymp_greater[simp]: "antisymp (>)"
+  by (rule antisymp_if_asymp[OF asymp_greater])
+
+lemma (in order) antisymp_le[simp]: "antisymp (\<le>)"
+  by (simp add: antisympI)
+
+lemma (in order) antisymp_ge[simp]: "antisymp (\<ge>)"
+  by (simp add: antisympI)
+
 
 subsubsection \<open>Transitivity\<close>
 
@@ -555,10 +585,13 @@ lemma total_on_empty [simp]: "total_on {} r"
   by (simp add: total_on_def)
 
 lemma totalp_on_empty [simp]: "totalp_on {} R"
-  by (auto intro: totalp_onI)
+  by (simp add: totalp_on_def)
 
-lemma total_on_singleton [simp]: "total_on {x} {(x, x)}"
-  unfolding total_on_def by blast
+lemma total_on_singleton [simp]: "total_on {x} r"
+  by (simp add: total_on_def)
+
+lemma totalp_on_singleton [simp]: "totalp_on {x} R"
+  by (simp add: totalp_on_def)
 
 
 subsubsection \<open>Single valued relations\<close>

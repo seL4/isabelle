@@ -4,6 +4,38 @@ Isabelle NEWS -- history of user-relevant changes
 (Note: Isabelle/jEdit shows a tree-view of the NEWS file in Sidekick.)
 
 
+New in this Isabelle version
+----------------------------
+
+*** HOL ***
+
+* Theory "HOL.Relation":
+  - Strengthened lemma total_on_singleton. Minor INCOMPATIBILITY.
+  - Added lemmas.
+      antisym_if_asymp
+      antisymp_ge[simp]
+      antisymp_greater[simp]
+      antisymp_if_asymp
+      antisymp_le[simp]
+      antisymp_less[simp]
+      irreflD
+      irreflpD
+      reflp_ge[simp]
+      reflp_le[simp]
+      totalp_on_singleton[simp]
+
+* Theory "HOL.Wellfounded":
+  - Added lemmas.
+      wfP_if_convertible_to_nat
+      wfP_if_convertible_to_wfP
+      wf_if_convertible_to_wf
+
+* Theory "HOL-Library.FSet":
+  - Added lemmas.
+      fimage_strict_mono
+      inj_on_strict_fsubset
+
+
 New in Isabelle2022 (October 2022)
 ----------------------------------
 
