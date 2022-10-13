@@ -89,7 +89,7 @@ lemma or_is_Gets_correct [iff]: "Gets_correct or"
 by (auto simp: Gets_correct_def dest: or_has_no_Gets)
 
 lemma or_is_one_step [iff]: "one_step or"
-by (unfold one_step_def, clarify, ind_cases "ev#evs \<in> or" for ev evs, auto)
+  unfolding one_step_def by (clarify, ind_cases "ev#evs \<in> or" for ev evs, auto)
 
 lemma or_has_only_Says' [rule_format]: "evs \<in> or \<Longrightarrow>
 ev \<in> set evs \<longrightarrow> (\<exists>A B X. ev=Says A B X)"

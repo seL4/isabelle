@@ -14,7 +14,7 @@ begin
 
 (*Needed occasionally with spy_analz_tac, e.g. in analz_insert_Key_newK*)
 lemma [simp] : "A \<union> (B \<union> A) = B \<union> A"
-by blast
+  by blast
 
 type_synonym
   key = nat
@@ -78,72 +78,72 @@ inductive_set
 
 
 text\<open>Monotonicity\<close>
+lemma parts_mono_aux: "\<lbrakk>G \<subseteq> H; x \<in> parts G\<rbrakk> \<Longrightarrow> x \<in> parts H"
+  by (erule parts.induct) (auto dest: parts.Fst parts.Snd parts.Body)
+
 lemma parts_mono: "G \<subseteq> H \<Longrightarrow> parts(G) \<subseteq> parts(H)"
-apply auto
-apply (erule parts.induct) 
-apply (blast dest: parts.Fst parts.Snd parts.Body)+
-done
+  using parts_mono_aux by blast
 
 
 text\<open>Equations hold because constructors are injective.\<close>
 lemma Friend_image_eq [simp]: "(Friend x \<in> Friend`A) = (x\<in>A)"
-by auto
+  by auto
 
 lemma Key_image_eq [simp]: "(Key x \<in> Key`A) = (x\<in>A)"
-by auto
+  by auto
 
 lemma Nonce_Key_image_eq [simp]: "(Nonce x \<notin> Key`A)"
-by auto
+  by auto
 
 
 subsubsection\<open>Inverse of keys\<close>
 
 lemma invKey_eq [simp]: "(invKey K = invKey K') = (K=K')"
-by (metis invKey)
+  by (metis invKey)
 
 
 subsection\<open>keysFor operator\<close>
 
 lemma keysFor_empty [simp]: "keysFor {} = {}"
-by (unfold keysFor_def, blast)
+    unfolding keysFor_def by (blast)
 
 lemma keysFor_Un [simp]: "keysFor (H \<union> H') = keysFor H \<union> keysFor H'"
-by (unfold keysFor_def, blast)
+    unfolding keysFor_def by (blast)
 
 lemma keysFor_UN [simp]: "keysFor (\<Union>i\<in>A. H i) = (\<Union>i\<in>A. keysFor (H i))"
-by (unfold keysFor_def, blast)
+    unfolding keysFor_def by (blast)
 
 text\<open>Monotonicity\<close>
 lemma keysFor_mono: "G \<subseteq> H \<Longrightarrow> keysFor(G) \<subseteq> keysFor(H)"
-by (unfold keysFor_def, blast)
+  unfolding keysFor_def by (blast)
 
 lemma keysFor_insert_Agent [simp]: "keysFor (insert (Agent A) H) = keysFor H"
-by (unfold keysFor_def, auto)
+  unfolding keysFor_def by (auto)
 
 lemma keysFor_insert_Nonce [simp]: "keysFor (insert (Nonce N) H) = keysFor H"
-by (unfold keysFor_def, auto)
+  unfolding keysFor_def by (auto)
 
 lemma keysFor_insert_Number [simp]: "keysFor (insert (Number N) H) = keysFor H"
-by (unfold keysFor_def, auto)
+  unfolding keysFor_def by (auto)
 
 lemma keysFor_insert_Key [simp]: "keysFor (insert (Key K) H) = keysFor H"
-by (unfold keysFor_def, auto)
+  unfolding keysFor_def by (auto)
 
 lemma keysFor_insert_Hash [simp]: "keysFor (insert (Hash X) H) = keysFor H"
-by (unfold keysFor_def, auto)
+  unfolding keysFor_def by (auto)
 
 lemma keysFor_insert_MPair [simp]: "keysFor (insert \<lbrace>X,Y\<rbrace> H) = keysFor H"
-by (unfold keysFor_def, auto)
+  unfolding keysFor_def by (auto)
 
 lemma keysFor_insert_Crypt [simp]: 
     "keysFor (insert (Crypt K X) H) = insert (invKey K) (keysFor H)"
-by (unfold keysFor_def, auto)
+  unfolding keysFor_def by (auto)
 
 lemma keysFor_image_Key [simp]: "keysFor (Key`E) = {}"
-by (unfold keysFor_def, auto)
+  unfolding keysFor_def by (auto)
 
 lemma Crypt_imp_invKey_keysFor: "Crypt K X \<in> H \<Longrightarrow> invKey K \<in> keysFor H"
-by (unfold keysFor_def, blast)
+  unfolding keysFor_def by (blast)
 
 
 subsection\<open>Inductive relation "parts"\<close>
@@ -627,7 +627,7 @@ by blast
 
 lemma keysFor_synth [simp]: 
     "keysFor (synth H) = keysFor H \<union> invKey`{K. Key K \<in> H}"
-by (unfold keysFor_def, blast)
+  unfolding keysFor_def by (blast)
 
 
 subsubsection\<open>Combinations of parts, analz and synth\<close>

@@ -80,7 +80,7 @@ lemma ya_is_Gets_correct [iff]: "Gets_correct ya"
 by (auto simp: Gets_correct_def dest: ya_has_no_Gets)
 
 lemma ya_is_one_step [iff]: "one_step ya"
-by (unfold one_step_def, clarify, ind_cases "ev#evs \<in> ya" for ev evs, auto)
+  unfolding one_step_def by (clarify, ind_cases "ev#evs \<in> ya" for ev evs, auto)
 
 lemma ya_has_only_Says' [rule_format]: "evs \<in> ya \<Longrightarrow>
 ev \<in> set evs \<longrightarrow> (\<exists>A B X. ev=Says A B X)"

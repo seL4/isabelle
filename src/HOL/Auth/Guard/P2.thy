@@ -265,7 +265,7 @@ lemma p2_is_Gets_correct [iff]: "Gets_correct p2"
 by (auto simp: Gets_correct_def dest: p2_has_no_Gets)
 
 lemma p2_is_one_step [iff]: "one_step p2"
-by (unfold one_step_def, clarify, ind_cases "ev#evs \<in> p2" for ev evs, auto)
+  unfolding one_step_def by (clarify, ind_cases "ev#evs \<in> p2" for ev evs, auto)
 
 lemma p2_has_only_Says' [rule_format]: "evs \<in> p2 \<Longrightarrow>
 ev \<in> set evs \<longrightarrow> (\<exists>A B X. ev=Says A B X)"

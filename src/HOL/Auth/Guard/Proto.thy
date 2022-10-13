@@ -164,12 +164,12 @@ definition fresh :: "proto \<Rightarrow> rule \<Rightarrow> subs \<Rightarrow> n
 lemma freshD: "fresh p R s n Ks evs \<Longrightarrow> (\<exists>evs1 evs2.
 evs = evs2 @ ap' s R # evs1 \<and> Nonce n \<notin> used evs1 \<and> R \<in> p \<and> ok evs1 R s
 \<and> Nonce n \<in> parts {apm' s R} \<and> apm' s R \<in> guard n Ks)"
-by (unfold fresh_def, blast)
+  unfolding fresh_def by (blast)
 
 lemma freshI [intro]: "\<lbrakk>Nonce n \<notin> used evs1; R \<in> p; Nonce n \<in> parts {apm' s R};
 ok evs1 R s; apm' s R \<in> guard n Ks\<rbrakk>
 \<Longrightarrow> fresh p R s n Ks (list @ ap' s R # evs1)"
-by (unfold fresh_def, blast)
+  unfolding fresh_def by (blast)
 
 lemma freshI': "\<lbrakk>Nonce n \<notin> used evs1; (l,r) \<in> p;
 Nonce n \<in> parts {apm s (msg r)}; ok evs1 (l,r) s; apm s (msg r) \<in> guard n Ks\<rbrakk>
@@ -220,10 +220,10 @@ definition safe :: "key set \<Rightarrow> msg set \<Rightarrow> bool" where
 "safe Ks G \<equiv> \<forall>K. K \<in> Ks \<longrightarrow> Key K \<notin> analz G"
 
 lemma safeD [dest]: "\<lbrakk>safe Ks G; K \<in> Ks\<rbrakk> \<Longrightarrow> Key K \<notin> analz G"
-by (unfold safe_def, blast)
+  unfolding safe_def by (blast)
 
 lemma safe_insert: "safe Ks (insert X G) \<Longrightarrow> safe Ks G"
-by (unfold safe_def, blast)
+  unfolding safe_def by (blast)
 
 lemma Guard_safe: "\<lbrakk>Guard n Ks G; safe Ks G\<rbrakk> \<Longrightarrow> Nonce n \<notin> analz G"
 by (blast dest: Guard_invKey)
@@ -238,7 +238,7 @@ keys R' s' n evs \<subseteq> Ks \<longrightarrow> R \<in> p \<longrightarrow> ok
 lemma preservD: "\<lbrakk>preserv p keys n Ks; evs \<in> tr p; Guard n Ks (spies evs);
 safe Ks (spies evs); fresh p R' s' n Ks evs; R \<in> p; ok evs R s;
 keys R' s' n evs \<subseteq> Ks\<rbrakk> \<Longrightarrow> apm' s R \<in> guard n Ks"
-by (unfold preserv_def, blast)
+  unfolding preserv_def by (blast)
 
 lemma preservD': "\<lbrakk>preserv p keys n Ks; evs \<in> tr p; Guard n Ks (spies evs);
 safe Ks (spies evs); fresh p R' s' n Ks evs; (l,Says A B X) \<in> p;
@@ -253,7 +253,7 @@ keys R' s' n evs \<subseteq> keys R' s' n (ev # evs)"
 
 lemma monotonD [dest]: "\<lbrakk>keys R' s' n (ev # evs) \<subseteq> Ks; monoton p keys;
 ev # evs \<in> tr p\<rbrakk> \<Longrightarrow> keys R' s' n evs \<subseteq> Ks"
-by (unfold monoton_def, blast)
+  unfolding monoton_def by (blast)
 
 subsection\<open>guardedness theorem\<close>
 
@@ -328,13 +328,13 @@ Nonce (nonce s n) \<in> parts {apm' s R}; Nonce (nonce s n) \<in> parts {apm' s'
 secret R n s Ks \<in> parts (spies evs); secret R' n' s' Ks \<in> parts (spies evs);
 apm' s R \<in> guard (nonce s n) Ks; apm' s' R' \<in> guard (nonce s n) Ks\<rbrakk> \<Longrightarrow>
 secret R n s Ks = secret R' n' s' Ks"
-by (unfold uniq_def, blast)
+  unfolding uniq_def by (blast)
 
 definition ord :: "proto \<Rightarrow> (rule \<Rightarrow> rule \<Rightarrow> bool) \<Rightarrow> bool" where
 "ord p inff \<equiv> \<forall>R R'. R \<in> p \<longrightarrow> R' \<in> p \<longrightarrow> \<not> inff R R' \<longrightarrow> inff R' R"
 
 lemma ordD: "\<lbrakk>ord p inff; \<not> inff R R'; R \<in> p; R' \<in> p\<rbrakk> \<Longrightarrow> inff R' R"
-by (unfold ord_def, blast)
+  unfolding ord_def by (blast)
 
 definition uniq' :: "proto \<Rightarrow> (rule \<Rightarrow> rule \<Rightarrow> bool) \<Rightarrow> secfun \<Rightarrow> bool" where
 "uniq' p inff secret \<equiv> \<forall>evs R R' n n' Ks s s'. R \<in> p \<longrightarrow> R' \<in> p \<longrightarrow>

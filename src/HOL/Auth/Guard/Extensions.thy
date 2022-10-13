@@ -306,7 +306,7 @@ definition one_step :: "event list set => bool" where
 "one_step p == \<forall>evs ev. ev#evs \<in> p \<longrightarrow> evs \<in> p"
 
 lemma one_step_Cons [dest]: "\<lbrakk>one_step p; ev#evs \<in> p\<rbrakk> \<Longrightarrow> evs \<in> p"
-by (unfold one_step_def, blast)
+  unfolding one_step_def by (blast)
 
 lemma one_step_app: "\<lbrakk>evs@evs' \<in> p; one_step p; [] \<in> p\<rbrakk> \<Longrightarrow> evs' \<in> p"
 by (induct evs, auto)
@@ -320,7 +320,7 @@ definition has_only_Says :: "event list set => bool" where
 
 lemma has_only_SaysD: "\<lbrakk>ev \<in> set evs; evs \<in> p; has_only_Says p\<rbrakk>
 \<Longrightarrow> \<exists>A B X. ev = Says A B X"
-by (unfold has_only_Says_def, blast)
+  unfolding has_only_Says_def by (blast)
 
 lemma in_has_only_Says [dest]: "\<lbrakk>has_only_Says p; evs \<in> p; ev \<in> set evs\<rbrakk>
 \<Longrightarrow> \<exists>A B X. ev = Says A B X"
