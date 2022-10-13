@@ -186,7 +186,7 @@ done
 text\<open>What agents DIFFERENT FROM Spy know 
   was either said, or noted, or got, or known initially\<close>
 lemma knows_imp_Says_Gets_Notes_initState [rule_format]:
-     "[| X \<in> knows A evs; A \<noteq> Spy |] ==> \<exists> B.
+     "\<lbrakk>X \<in> knows A evs; A \<noteq> Spy\<rbrakk> \<Longrightarrow> \<exists> B.
   Says A B X \<in> set evs \<or> Gets A X \<in> set evs \<or> Notes A X \<in> set evs \<or> X \<in> initState A"
 apply (erule rev_mp)
 apply (induct_tac "evs")
@@ -258,8 +258,8 @@ done
 
 text\<open>For proving \<open>new_keys_not_used\<close>\<close>
 lemma keysFor_parts_insert:
-     "[| K \<in> keysFor (parts (insert X G));  X \<in> synth (analz H) |] 
-      ==> K \<in> keysFor (parts (G \<union> H)) | Key (invKey K) \<in> parts H"
+     "\<lbrakk>K \<in> keysFor (parts (insert X G));  X \<in> synth (analz H)\<rbrakk> 
+      \<Longrightarrow> K \<in> keysFor (parts (G \<union> H)) | Key (invKey K) \<in> parts H"
 by (force 
     dest!: parts_insert_subset_Un [THEN keysFor_mono, THEN [2] rev_subsetD]
            analz_subset_parts [THEN keysFor_mono, THEN [2] rev_subsetD]

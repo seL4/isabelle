@@ -39,14 +39,14 @@ where
 
   Nil: "[] \<in> nsp"
 
-| Fake: "[| evs \<in> nsp; X \<in> synth (analz (spies evs)) |] ==> Says Spy B X # evs \<in> nsp"
+| Fake: "\<lbrakk>evs \<in> nsp; X \<in> synth (analz (spies evs))\<rbrakk> \<Longrightarrow> Says Spy B X # evs \<in> nsp"
 
-| NS1: "[| evs1 \<in> nsp; Nonce NA \<notin> used evs1 |] ==> ns1 A B NA # evs1 \<in> nsp"
+| NS1: "\<lbrakk>evs1 \<in> nsp; Nonce NA \<notin> used evs1\<rbrakk> \<Longrightarrow> ns1 A B NA # evs1 \<in> nsp"
 
-| NS2: "[| evs2 \<in> nsp; Nonce NB \<notin> used evs2; ns1' A' A B NA \<in> set evs2 |] ==>
+| NS2: "\<lbrakk>evs2 \<in> nsp; Nonce NB \<notin> used evs2; ns1' A' A B NA \<in> set evs2\<rbrakk> \<Longrightarrow>
   ns2 B A NA NB # evs2 \<in> nsp"
 
-| NS3: "\<And>A B B' NA NB evs3. [| evs3 \<in> nsp; ns1 A B NA \<in> set evs3; ns2' B' B A NA NB \<in> set evs3 |] ==>
+| NS3: "\<And>A B B' NA NB evs3. \<lbrakk>evs3 \<in> nsp; ns1 A B NA \<in> set evs3; ns2' B' B A NA NB \<in> set evs3\<rbrakk> \<Longrightarrow>
   ns3 A B NB # evs3 \<in> nsp"
 
 subsection\<open>declarations for tactics\<close>
@@ -94,9 +94,9 @@ apply (erule nsp.induct, simp_all)
 by (blast intro: analz_insertI)+
 
 lemma no_Nonce_NS1_NS2' [rule_format]:
-"[| Crypt (pubK B') \<lbrace>Nonce NA', Nonce NA, Agent A'\<rbrace> \<in> parts (spies evs);
-Crypt (pubK B) \<lbrace>Nonce NA, Agent A\<rbrace> \<in> parts (spies evs); evs \<in> nsp |]
-==> Nonce NA \<in> analz (spies evs)"
+"\<lbrakk>Crypt (pubK B') \<lbrace>Nonce NA', Nonce NA, Agent A'\<rbrace> \<in> parts (spies evs);
+Crypt (pubK B) \<lbrace>Nonce NA, Agent A\<rbrace> \<in> parts (spies evs); evs \<in> nsp\<rbrakk>
+\<Longrightarrow> Nonce NA \<in> analz (spies evs)"
 by (rule no_Nonce_NS1_NS2, auto)
  
 lemma NB_is_uniq [rule_format]: "evs \<in> nsp \<Longrightarrow>
@@ -108,7 +108,7 @@ by (blast intro: analz_insertI)+
 
 subsection\<open>guardedness of NA\<close>
 
-lemma ns1_imp_Guard [rule_format]: "[| evs \<in> nsp; A \<notin> bad; B \<notin> bad |] ==>
+lemma ns1_imp_Guard [rule_format]: "\<lbrakk>evs \<in> nsp; A \<notin> bad; B \<notin> bad\<rbrakk> \<Longrightarrow>
 ns1 A B NA \<in> set evs \<longrightarrow> Guard NA {priK A,priK B} (spies evs)"
 apply (erule nsp.induct)
 (* Nil *)
@@ -135,7 +135,7 @@ by (drule no_Nonce_NS1_NS2, auto)
 
 subsection\<open>guardedness of NB\<close>
 
-lemma ns2_imp_Guard [rule_format]: "[| evs \<in> nsp; A \<notin> bad; B \<notin> bad |] ==>
+lemma ns2_imp_Guard [rule_format]: "\<lbrakk>evs \<in> nsp; A \<notin> bad; B \<notin> bad\<rbrakk> \<Longrightarrow>
 ns2 B A NA NB \<in> set evs \<longrightarrow> Guard NB {priK A,priK B} (spies evs)" 
 apply (erule nsp.induct)
 (* Nil *)
@@ -165,13 +165,13 @@ done
 
 subsection\<open>Agents' Authentication\<close>
 
-lemma B_trusts_NS1: "[| evs \<in> nsp; A \<notin> bad; B \<notin> bad |] ==>
+lemma B_trusts_NS1: "\<lbrakk>evs \<in> nsp; A \<notin> bad; B \<notin> bad\<rbrakk> \<Longrightarrow>
 Crypt (pubK B) \<lbrace>Nonce NA, Agent A\<rbrace> \<in> parts (spies evs)
 \<longrightarrow> Nonce NA \<notin> analz (spies evs) \<longrightarrow> ns1 A B NA \<in> set evs"
 apply (erule nsp.induct, simp_all)
 by (blast intro: analz_insertI)+
 
-lemma A_trusts_NS2: "[| evs \<in> nsp; A \<notin> bad; B \<notin> bad |] ==> ns1 A B NA \<in> set evs
+lemma A_trusts_NS2: "\<lbrakk>evs \<in> nsp; A \<notin> bad; B \<notin> bad\<rbrakk> \<Longrightarrow> ns1 A B NA \<in> set evs
 \<longrightarrow> Crypt (pubK A) \<lbrace>Nonce NA, Nonce NB, Agent B\<rbrace> \<in> parts (spies evs)
 \<longrightarrow> ns2 B A NA NB \<in> set evs"
 apply (erule nsp.induct, simp_all, safe)
@@ -182,7 +182,7 @@ apply (drule Guard_Nonce_analz, simp+, blast)
 apply (frule_tac B=B in ns1_imp_Guard, simp+)
 by (drule Guard_Nonce_analz, simp+, blast+)
 
-lemma B_trusts_NS3: "[| evs \<in> nsp; A \<notin> bad; B \<notin> bad |] ==> ns2 B A NA NB \<in> set evs
+lemma B_trusts_NS3: "\<lbrakk>evs \<in> nsp; A \<notin> bad; B \<notin> bad\<rbrakk> \<Longrightarrow> ns2 B A NA NB \<in> set evs
 \<longrightarrow> Crypt (pubK B) (Nonce NB) \<in> parts (spies evs) \<longrightarrow> ns3 A B NB \<in> set evs"
 apply (erule nsp.induct, simp_all, safe)
 apply (frule_tac B=B in ns2_imp_Guard, simp+)

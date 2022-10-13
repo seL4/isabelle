@@ -11,7 +11,7 @@ theory Public
 imports Event
 begin
 
-lemma invKey_K: "K \<in> symKeys ==> invKey K = K"
+lemma invKey_K: "K \<in> symKeys \<Longrightarrow> invKey K = K"
 by (simp add: symKeys_def)
 
 subsection\<open>Asymmetric Keys\<close>
@@ -59,7 +59,7 @@ text\<open>By freeness of agents, no two agents have the same key.  Since
   \<^term>\<open>True\<noteq>False\<close>, no agent has identical signing and encryption keys\<close>
 specification (publicKey)
   injective_publicKey:
-    "publicKey b A = publicKey c A' ==> b=c \<and> A=A'"
+    "publicKey b A = publicKey c A' \<Longrightarrow> b=c \<and> A=A'"
    apply (rule exI [of _ 
        "\<lambda>b A. 2 * case_agent 0 (\<lambda>n. n + 2) 1 A + case_keymode 0 1 b"])
    apply (auto simp add: inj_on_def split: agent.split keymode.split)
@@ -88,18 +88,18 @@ by (simp add: symKeys_def)
 lemma not_symKeys_priK [iff]: "privateKey b A \<notin> symKeys"
 by (simp add: symKeys_def)
 
-lemma symKey_neq_priEK: "K \<in> symKeys ==> K \<noteq> priEK A"
+lemma symKey_neq_priEK: "K \<in> symKeys \<Longrightarrow> K \<noteq> priEK A"
 by auto
 
-lemma symKeys_neq_imp_neq: "(K \<in> symKeys) \<noteq> (K' \<in> symKeys) ==> K \<noteq> K'"
+lemma symKeys_neq_imp_neq: "(K \<in> symKeys) \<noteq> (K' \<in> symKeys) \<Longrightarrow> K \<noteq> K'"
 by blast
 
 lemma symKeys_invKey_iff [iff]: "(invKey K \<in> symKeys) = (K \<in> symKeys)"
 by (unfold symKeys_def, auto)
 
 lemma analz_symKeys_Decrypt:
-     "[| Crypt K X \<in> analz H;  K \<in> symKeys;  Key K \<in> analz H |]  
-      ==> X \<in> analz H"
+     "\<lbrakk>Crypt K X \<in> analz H;  K \<in> symKeys;  Key K \<in> analz H\<rbrakk>  
+      \<Longrightarrow> X \<in> analz H"
 by (auto simp add: symKeys_def)
 
 
@@ -152,11 +152,11 @@ lemma invKey_shrK [simp]: "invKey (shrK A) = shrK A"
 by (simp add: invKey_K) 
 
 lemma analz_shrK_Decrypt:
-     "[| Crypt (shrK A) X \<in> analz H; Key(shrK A) \<in> analz H |] ==> X \<in> analz H"
+     "\<lbrakk>Crypt (shrK A) X \<in> analz H; Key(shrK A) \<in> analz H\<rbrakk> \<Longrightarrow> X \<in> analz H"
 by auto
 
 lemma analz_Decrypt':
-     "[| Crypt K X \<in> analz H; K \<in> symKeys; Key K \<in> analz H |] ==> X \<in> analz H"
+     "\<lbrakk>Crypt K X \<in> analz H; K \<in> symKeys; Key K \<in> analz H\<rbrakk> \<Longrightarrow> X \<in> analz H"
 by (auto simp add: invKey_K)
 
 lemma priK_neq_shrK [iff]: "shrK A \<noteq> privateKey b C"
@@ -239,15 +239,15 @@ txt\<open>Base case\<close>
 apply (auto dest!: parts_cut simp add: used_Nil) 
 done
 
-lemma MPair_used_D: "\<lbrace>X,Y\<rbrace> \<in> used H ==> X \<in> used H \<and> Y \<in> used H"
+lemma MPair_used_D: "\<lbrace>X,Y\<rbrace> \<in> used H \<Longrightarrow> X \<in> used H \<and> Y \<in> used H"
 by (drule used_parts_subset_parts, simp, blast)
 
 text\<open>There was a similar theorem in Event.thy, so perhaps this one can
   be moved up if proved directly by induction.\<close>
 lemma MPair_used [elim!]:
-     "[| \<lbrace>X,Y\<rbrace> \<in> used H;
-         [| X \<in> used H; Y \<in> used H |] ==> P |] 
-      ==> P"
+     "\<lbrakk>\<lbrace>X,Y\<rbrace> \<in> used H;
+         \<lbrakk>X \<in> used H; Y \<in> used H\<rbrakk> \<Longrightarrow> P\<rbrakk> 
+      \<Longrightarrow> P"
 by (blast dest: MPair_used_D) 
 
 
@@ -283,10 +283,10 @@ by (rule initState_into_used, blast)
 
 (*Used in parts_induct_tac and analz_Fake_tac to distinguish session keys
   from long-term shared keys*)
-lemma Key_not_used [simp]: "Key K \<notin> used evs ==> K \<notin> range shrK"
+lemma Key_not_used [simp]: "Key K \<notin> used evs \<Longrightarrow> K \<notin> range shrK"
 by blast
 
-lemma shrK_neq: "Key K \<notin> used evs ==> shrK B \<noteq> K"
+lemma shrK_neq: "Key K \<notin> used evs \<Longrightarrow> shrK B \<noteq> K"
 by blast
 
 lemmas neq_shrK = shrK_neq [THEN not_sym]
@@ -317,14 +317,14 @@ declare analz_spies_pubK [iff]
 
 text\<open>Spy sees private keys of bad agents!\<close>
 lemma Spy_spies_bad_privateKey [intro!]:
-     "A \<in> bad ==> Key (privateKey b A) \<in> spies evs"
+     "A \<in> bad \<Longrightarrow> Key (privateKey b A) \<in> spies evs"
 apply (induct_tac "evs")
 apply (auto simp add: imageI knows_Cons split: event.split)
 done
 
 text\<open>Spy sees long-term shared keys of bad agents!\<close>
 lemma Spy_spies_bad_shrK [intro!]:
-     "A \<in> bad ==> Key (shrK A) \<in> spies evs"
+     "A \<in> bad \<Longrightarrow> Key (shrK A) \<in> spies evs"
 apply (induct_tac "evs")
 apply (simp_all add: imageI knows_Cons split: event.split)
 done
@@ -341,8 +341,8 @@ done
 
 (*For case analysis on whether or not an agent is compromised*)
 lemma Crypt_Spy_analz_bad:
-     "[| Crypt (shrK A) X \<in> analz (knows Spy evs);  A \<in> bad |]  
-      ==> X \<in> analz (knows Spy evs)"
+     "\<lbrakk>Crypt (shrK A) X \<in> analz (knows Spy evs);  A \<in> bad\<rbrakk>  
+      \<Longrightarrow> X \<in> analz (knows Spy evs)"
 by force
 
 
@@ -383,13 +383,13 @@ lemma insert_Key_image: "insert (Key K) (Key`KK \<union> C) = Key ` (insert K KK
 by blast
 
 
-lemma Crypt_imp_keysFor :"[|Crypt K X \<in> H; K \<in> symKeys|] ==> K \<in> keysFor H"
+lemma Crypt_imp_keysFor :"\<lbrakk>Crypt K X \<in> H; K \<in> symKeys\<rbrakk> \<Longrightarrow> K \<in> keysFor H"
 by (drule Crypt_imp_invKey_keysFor, simp)
 
 text\<open>Lemma for the trivial direction of the if-and-only-if of the 
 Session Key Compromise Theorem\<close>
 lemma analz_image_freshK_lemma:
-     "(Key K \<in> analz (Key`nE \<union> H)) \<longrightarrow> (K \<in> nE | Key K \<in> analz H)  ==>  
+     "(Key K \<in> analz (Key`nE \<union> H)) \<longrightarrow> (K \<in> nE | Key K \<in> analz H)  \<Longrightarrow>  
          (Key K \<in> analz (Key`nE \<union> H)) = (K \<in> nE | Key K \<in> analz H)"
 by (blast intro: analz_mono [THEN [2] rev_subsetD])
 

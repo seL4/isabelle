@@ -52,8 +52,8 @@ lemma Nonce_apm [rule_format]: "Nonce n \<in> parts {apm s X} \<Longrightarrow>
 (\<exists>k. Nonce k \<in> parts {X} \<and> nonce s k = n)"
 by (induct X, simp_all, blast)
 
-lemma wdef_Nonce: "[| Nonce n \<in> parts {apm s X}; R \<in> p; msg' R = X; wdef p;
-Nonce n \<notin> parts (apm s `(msg `(fst R))) |] ==>
+lemma wdef_Nonce: "\<lbrakk>Nonce n \<in> parts {apm s X}; R \<in> p; msg' R = X; wdef p;
+Nonce n \<notin> parts (apm s `(msg `(fst R)))\<rbrakk> \<Longrightarrow>
 (\<exists>k. Nonce k \<in> parts {X} \<and> nonce s k = n)"
 apply (erule Nonce_apm, unfold wdef_def)
 apply (drule_tac x=R in spec, drule_tac x=k in spec, clarsimp)
@@ -103,10 +103,10 @@ where
 
   Nil [intro]: "[] \<in> tr p"
 
-| Fake [intro]: "[| evsf \<in> tr p; X \<in> synth (analz (spies evsf)) |]
-  ==> Says Spy B X # evsf \<in> tr p"
+| Fake [intro]: "\<lbrakk>evsf \<in> tr p; X \<in> synth (analz (spies evsf))\<rbrakk>
+  \<Longrightarrow> Says Spy B X # evsf \<in> tr p"
 
-| Proto [intro]: "[| evs \<in> tr p; R \<in> p; ok evs R s |] ==> ap' s R # evs \<in> tr p"
+| Proto [intro]: "\<lbrakk>evs \<in> tr p; R \<in> p; ok evs R s\<rbrakk> \<Longrightarrow> ap' s R # evs \<in> tr p"
 
 subsection\<open>general properties\<close>
 
@@ -117,29 +117,29 @@ by (ind_cases "ev # evs \<in> tr p" for ev evs, auto)
 definition has_only_Says' :: "proto => bool" where
 "has_only_Says' p \<equiv> \<forall>R. R \<in> p \<longrightarrow> is_Says (snd R)"
 
-lemma has_only_Says'D: "[| R \<in> p; has_only_Says' p |]
-==> (\<exists>A B X. snd R = Says A B X)"
+lemma has_only_Says'D: "\<lbrakk>R \<in> p; has_only_Says' p\<rbrakk>
+\<Longrightarrow> (\<exists>A B X. snd R = Says A B X)"
 by (unfold has_only_Says'_def is_Says_def, blast)
 
-lemma has_only_Says_tr [simp]: "has_only_Says' p ==> has_only_Says (tr p)"
+lemma has_only_Says_tr [simp]: "has_only_Says' p \<Longrightarrow> has_only_Says (tr p)"
 apply (unfold has_only_Says_def)
 apply (rule allI, rule allI, rule impI)
 apply (erule tr.induct)
 apply (auto simp: has_only_Says'_def ok_def)
 by (drule_tac x=a in spec, auto simp: is_Says_def)
 
-lemma has_only_Says'_in_trD: "[| has_only_Says' p; list @ ev # evs1 \<in> tr p |]
-==> (\<exists>A B X. ev = Says A B X)"
+lemma has_only_Says'_in_trD: "\<lbrakk>has_only_Says' p; list @ ev # evs1 \<in> tr p\<rbrakk>
+\<Longrightarrow> (\<exists>A B X. ev = Says A B X)"
 by (drule has_only_Says_tr, auto)
 
-lemma ok_not_used: "[| Nonce n \<notin> used evs; ok evs R s;
-\<forall>x. x \<in> fst R \<longrightarrow> is_Says x |] ==> Nonce n \<notin> parts (apm s `(msg `(fst R)))"
+lemma ok_not_used: "\<lbrakk>Nonce n \<notin> used evs; ok evs R s;
+\<forall>x. x \<in> fst R \<longrightarrow> is_Says x\<rbrakk> \<Longrightarrow> Nonce n \<notin> parts (apm s `(msg `(fst R)))"
 apply (unfold ok_def, clarsimp)
 apply (drule_tac x=x in spec, drule_tac x=x in spec)
 by (auto simp: is_Says_def dest: Says_imp_spies not_used_not_spied parts_parts)
 
-lemma ok_is_Says: "[| evs' @ ev # evs \<in> tr p; ok evs R s; has_only_Says' p;
-R \<in> p; x \<in> fst R |] ==> is_Says x"
+lemma ok_is_Says: "\<lbrakk>evs' @ ev # evs \<in> tr p; ok evs R s; has_only_Says' p;
+R \<in> p; x \<in> fst R\<rbrakk> \<Longrightarrow> is_Says x"
 apply (unfold ok_def is_Says_def, clarify)
 apply (drule_tac x=x in spec, simp)
 apply (subgoal_tac "one_step (tr p)")
@@ -166,25 +166,25 @@ evs = evs2 @ ap' s R # evs1 \<and> Nonce n \<notin> used evs1 \<and> R \<in> p \
 \<and> Nonce n \<in> parts {apm' s R} \<and> apm' s R \<in> guard n Ks)"
 by (unfold fresh_def, blast)
 
-lemma freshI [intro]: "[| Nonce n \<notin> used evs1; R \<in> p; Nonce n \<in> parts {apm' s R};
-ok evs1 R s; apm' s R \<in> guard n Ks |]
-==> fresh p R s n Ks (list @ ap' s R # evs1)"
+lemma freshI [intro]: "\<lbrakk>Nonce n \<notin> used evs1; R \<in> p; Nonce n \<in> parts {apm' s R};
+ok evs1 R s; apm' s R \<in> guard n Ks\<rbrakk>
+\<Longrightarrow> fresh p R s n Ks (list @ ap' s R # evs1)"
 by (unfold fresh_def, blast)
 
-lemma freshI': "[| Nonce n \<notin> used evs1; (l,r) \<in> p;
-Nonce n \<in> parts {apm s (msg r)}; ok evs1 (l,r) s; apm s (msg r) \<in> guard n Ks |]
-==> fresh p (l,r) s n Ks (evs2 @ ap s r # evs1)"
+lemma freshI': "\<lbrakk>Nonce n \<notin> used evs1; (l,r) \<in> p;
+Nonce n \<in> parts {apm s (msg r)}; ok evs1 (l,r) s; apm s (msg r) \<in> guard n Ks\<rbrakk>
+\<Longrightarrow> fresh p (l,r) s n Ks (evs2 @ ap s r # evs1)"
 by (drule freshI, simp+)
 
-lemma fresh_used: "[| fresh p R' s' n Ks evs; has_only_Says' p |]
-==> Nonce n \<in> used evs"
+lemma fresh_used: "\<lbrakk>fresh p R' s' n Ks evs; has_only_Says' p\<rbrakk>
+\<Longrightarrow> Nonce n \<in> used evs"
 apply (unfold fresh_def, clarify)
 apply (drule has_only_Says'D)
 by (auto intro: parts_used_app)
 
-lemma fresh_newn: "[| evs' @ ap' s R # evs \<in> tr p; wdef p; has_only_Says' p;
-Nonce n \<notin> used evs; R \<in> p; ok evs R s; Nonce n \<in> parts {apm' s R} |]
-==> \<exists>k. k \<in> newn R \<and> nonce s k = n"
+lemma fresh_newn: "\<lbrakk>evs' @ ap' s R # evs \<in> tr p; wdef p; has_only_Says' p;
+Nonce n \<notin> used evs; R \<in> p; ok evs R s; Nonce n \<in> parts {apm' s R}\<rbrakk>
+\<Longrightarrow> \<exists>k. k \<in> newn R \<and> nonce s k = n"
 apply (drule wdef_Nonce, simp+)
 apply (frule ok_not_used, simp+)
 apply (clarify, erule ok_is_Says, simp+)
@@ -193,15 +193,15 @@ apply (clarify, drule_tac Y="msg x" and s=s in apm_parts)
 apply (drule ok_not_used, simp+)
 by (clarify, erule ok_is_Says, simp_all)
 
-lemma fresh_rule: "[| evs' @ ev # evs \<in> tr p; wdef p; Nonce n \<notin> used evs;
-Nonce n \<in> parts {msg ev} |] ==> \<exists>R s. R \<in> p \<and> ap' s R = ev"
+lemma fresh_rule: "\<lbrakk>evs' @ ev # evs \<in> tr p; wdef p; Nonce n \<notin> used evs;
+Nonce n \<in> parts {msg ev}\<rbrakk> \<Longrightarrow> \<exists>R s. R \<in> p \<and> ap' s R = ev"
 apply (drule trunc, simp, ind_cases "ev # evs \<in> tr p", simp)
 by (drule_tac x=X in in_sub, drule parts_sub, simp, simp, blast+)
 
-lemma fresh_ruleD: "[| fresh p R' s' n Ks evs; keys R' s' n evs \<subseteq> Ks; wdef p;
+lemma fresh_ruleD: "\<lbrakk>fresh p R' s' n Ks evs; keys R' s' n evs \<subseteq> Ks; wdef p;
 has_only_Says' p; evs \<in> tr p; \<forall>R k s. nonce s k = n \<longrightarrow> Nonce n \<in> used evs \<longrightarrow>
 R \<in> p \<longrightarrow> k \<in> newn R \<longrightarrow> Nonce n \<in> parts {apm' s R} \<longrightarrow> apm' s R \<in> guard n Ks \<longrightarrow>
-apm' s R \<in> parts (spies evs) \<longrightarrow> keys R s n evs \<subseteq> Ks \<longrightarrow> P |] ==> P"
+apm' s R \<in> parts (spies evs) \<longrightarrow> keys R s n evs \<subseteq> Ks \<longrightarrow> P\<rbrakk> \<Longrightarrow> P"
 apply (frule fresh_used, simp)
 apply (unfold fresh_def, clarify)
 apply (drule_tac x=R' in spec)
@@ -219,13 +219,13 @@ subsection\<open>safe keys\<close>
 definition safe :: "key set \<Rightarrow> msg set \<Rightarrow> bool" where
 "safe Ks G \<equiv> \<forall>K. K \<in> Ks \<longrightarrow> Key K \<notin> analz G"
 
-lemma safeD [dest]: "[| safe Ks G; K \<in> Ks |] ==> Key K \<notin> analz G"
+lemma safeD [dest]: "\<lbrakk>safe Ks G; K \<in> Ks\<rbrakk> \<Longrightarrow> Key K \<notin> analz G"
 by (unfold safe_def, blast)
 
-lemma safe_insert: "safe Ks (insert X G) ==> safe Ks G"
+lemma safe_insert: "safe Ks (insert X G) \<Longrightarrow> safe Ks G"
 by (unfold safe_def, blast)
 
-lemma Guard_safe: "[| Guard n Ks G; safe Ks G |] ==> Nonce n \<notin> analz G"
+lemma Guard_safe: "\<lbrakk>Guard n Ks G; safe Ks G\<rbrakk> \<Longrightarrow> Nonce n \<notin> analz G"
 by (blast dest: Guard_invKey)
 
 subsection\<open>guardedness preservation\<close>
@@ -235,14 +235,14 @@ definition preserv :: "proto \<Rightarrow> keyfun \<Rightarrow> nat \<Rightarrow
 Guard n Ks (spies evs) \<longrightarrow> safe Ks (spies evs) \<longrightarrow> fresh p R' s' n Ks evs \<longrightarrow>
 keys R' s' n evs \<subseteq> Ks \<longrightarrow> R \<in> p \<longrightarrow> ok evs R s \<longrightarrow> apm' s R \<in> guard n Ks)"
 
-lemma preservD: "[| preserv p keys n Ks; evs \<in> tr p; Guard n Ks (spies evs);
+lemma preservD: "\<lbrakk>preserv p keys n Ks; evs \<in> tr p; Guard n Ks (spies evs);
 safe Ks (spies evs); fresh p R' s' n Ks evs; R \<in> p; ok evs R s;
-keys R' s' n evs \<subseteq> Ks |] ==> apm' s R \<in> guard n Ks"
+keys R' s' n evs \<subseteq> Ks\<rbrakk> \<Longrightarrow> apm' s R \<in> guard n Ks"
 by (unfold preserv_def, blast)
 
-lemma preservD': "[| preserv p keys n Ks; evs \<in> tr p; Guard n Ks (spies evs);
+lemma preservD': "\<lbrakk>preserv p keys n Ks; evs \<in> tr p; Guard n Ks (spies evs);
 safe Ks (spies evs); fresh p R' s' n Ks evs; (l,Says A B X) \<in> p;
-ok evs (l,Says A B X) s; keys R' s' n evs \<subseteq> Ks |] ==> apm s X \<in> guard n Ks"
+ok evs (l,Says A B X) s; keys R' s' n evs \<subseteq> Ks\<rbrakk> \<Longrightarrow> apm s X \<in> guard n Ks"
 by (drule preservD, simp+)
 
 subsection\<open>monotonic keyfun\<close>
@@ -251,14 +251,14 @@ definition monoton :: "proto => keyfun => bool" where
 "monoton p keys \<equiv> \<forall>R' s' n ev evs. ev # evs \<in> tr p \<longrightarrow>
 keys R' s' n evs \<subseteq> keys R' s' n (ev # evs)"
 
-lemma monotonD [dest]: "[| keys R' s' n (ev # evs) \<subseteq> Ks; monoton p keys;
-ev # evs \<in> tr p |] ==> keys R' s' n evs \<subseteq> Ks"
+lemma monotonD [dest]: "\<lbrakk>keys R' s' n (ev # evs) \<subseteq> Ks; monoton p keys;
+ev # evs \<in> tr p\<rbrakk> \<Longrightarrow> keys R' s' n evs \<subseteq> Ks"
 by (unfold monoton_def, blast)
 
 subsection\<open>guardedness theorem\<close>
 
-lemma Guard_tr [rule_format]: "[| evs \<in> tr p; has_only_Says' p;
-preserv p keys n Ks; monoton p keys; Guard n Ks (initState Spy) |] ==>
+lemma Guard_tr [rule_format]: "\<lbrakk>evs \<in> tr p; has_only_Says' p;
+preserv p keys n Ks; monoton p keys; Guard n Ks (initState Spy)\<rbrakk> \<Longrightarrow>
 safe Ks (spies evs) \<longrightarrow> fresh p R' s' n Ks evs \<longrightarrow> keys R' s' n evs \<subseteq> Ks \<longrightarrow>
 Guard n Ks (spies evs)"
 apply (erule tr.induct)
@@ -297,18 +297,18 @@ by (blast, simp, simp, blast)
 
 subsection\<open>useful properties for guardedness\<close>
 
-lemma newn_neq_used: "[| Nonce n \<in> used evs; ok evs R s; k \<in> newn R |]
-==> n \<noteq> nonce s k"
+lemma newn_neq_used: "\<lbrakk>Nonce n \<in> used evs; ok evs R s; k \<in> newn R\<rbrakk>
+\<Longrightarrow> n \<noteq> nonce s k"
 by (auto simp: ok_def)
 
-lemma ok_Guard: "[| ok evs R s; Guard n Ks (spies evs); x \<in> fst R; is_Says x |]
-==> apm s (msg x) \<in> parts (spies evs) \<and> apm s (msg x) \<in> guard n Ks"
+lemma ok_Guard: "\<lbrakk>ok evs R s; Guard n Ks (spies evs); x \<in> fst R; is_Says x\<rbrakk>
+\<Longrightarrow> apm s (msg x) \<in> parts (spies evs) \<and> apm s (msg x) \<in> guard n Ks"
 apply (unfold ok_def is_Says_def, clarify)
 apply (drule_tac x="Says A B X" in spec, simp)
 by (drule Says_imp_spies, auto intro: parts_parts)
 
-lemma ok_parts_not_new: "[| Y \<in> parts (spies evs); Nonce (nonce s n) \<in> parts {Y};
-ok evs R s |] ==> n \<notin> newn R"
+lemma ok_parts_not_new: "\<lbrakk>Y \<in> parts (spies evs); Nonce (nonce s n) \<in> parts {Y};
+ok evs R s\<rbrakk> \<Longrightarrow> n \<notin> newn R"
 by (auto simp: ok_def dest: not_used_not_spied parts_parts)
 
 subsection\<open>unicity\<close>
@@ -322,18 +322,18 @@ evs \<in> tr p \<longrightarrow> Nonce (nonce s n) \<notin> analz (spies evs) \<
 secret R n s Ks \<in> parts (spies evs) \<longrightarrow> secret R' n' s' Ks \<in> parts (spies evs) \<longrightarrow>
 secret R n s Ks = secret R' n' s' Ks"
 
-lemma uniqD: "[| uniq p secret; evs \<in> tr p; R \<in> p; R' \<in> p; n \<in> newn R; n' \<in> newn R';
+lemma uniqD: "\<lbrakk>uniq p secret; evs \<in> tr p; R \<in> p; R' \<in> p; n \<in> newn R; n' \<in> newn R';
 nonce s n = nonce s' n'; Nonce (nonce s n) \<notin> analz (spies evs);
 Nonce (nonce s n) \<in> parts {apm' s R}; Nonce (nonce s n) \<in> parts {apm' s' R'};
 secret R n s Ks \<in> parts (spies evs); secret R' n' s' Ks \<in> parts (spies evs);
-apm' s R \<in> guard (nonce s n) Ks; apm' s' R' \<in> guard (nonce s n) Ks |] ==>
+apm' s R \<in> guard (nonce s n) Ks; apm' s' R' \<in> guard (nonce s n) Ks\<rbrakk> \<Longrightarrow>
 secret R n s Ks = secret R' n' s' Ks"
 by (unfold uniq_def, blast)
 
 definition ord :: "proto \<Rightarrow> (rule \<Rightarrow> rule \<Rightarrow> bool) \<Rightarrow> bool" where
 "ord p inff \<equiv> \<forall>R R'. R \<in> p \<longrightarrow> R' \<in> p \<longrightarrow> \<not> inff R R' \<longrightarrow> inff R' R"
 
-lemma ordD: "[| ord p inff; \<not> inff R R'; R \<in> p; R' \<in> p |] ==> inff R' R"
+lemma ordD: "\<lbrakk>ord p inff; \<not> inff R R'; R \<in> p; R' \<in> p\<rbrakk> \<Longrightarrow> inff R' R"
 by (unfold ord_def, blast)
 
 definition uniq' :: "proto \<Rightarrow> (rule \<Rightarrow> rule \<Rightarrow> bool) \<Rightarrow> secfun \<Rightarrow> bool" where
@@ -345,15 +345,15 @@ evs \<in> tr p \<longrightarrow> Nonce (nonce s n) \<notin> analz (spies evs) \<
 secret R n s Ks \<in> parts (spies evs) \<longrightarrow> secret R' n' s' Ks \<in> parts (spies evs) \<longrightarrow>
 secret R n s Ks = secret R' n' s' Ks"
 
-lemma uniq'D: "[| uniq' p inff secret; evs \<in> tr p; inff R R'; R \<in> p; R' \<in> p; n \<in> newn R;
+lemma uniq'D: "\<lbrakk>uniq' p inff secret; evs \<in> tr p; inff R R'; R \<in> p; R' \<in> p; n \<in> newn R;
 n' \<in> newn R'; nonce s n = nonce s' n'; Nonce (nonce s n) \<notin> analz (spies evs);
 Nonce (nonce s n) \<in> parts {apm' s R}; Nonce (nonce s n) \<in> parts {apm' s' R'};
 secret R n s Ks \<in> parts (spies evs); secret R' n' s' Ks \<in> parts (spies evs);
-apm' s R \<in> guard (nonce s n) Ks; apm' s' R' \<in> guard (nonce s n) Ks |] ==>
+apm' s R \<in> guard (nonce s n) Ks; apm' s' R' \<in> guard (nonce s n) Ks\<rbrakk> \<Longrightarrow>
 secret R n s Ks = secret R' n' s' Ks"
 by (unfold uniq'_def, blast)
 
-lemma uniq'_imp_uniq: "[| uniq' p inff secret; ord p inff |] ==> uniq p secret"
+lemma uniq'_imp_uniq: "\<lbrakk>uniq' p inff secret; ord p inff\<rbrakk> \<Longrightarrow> uniq p secret"
 apply (unfold uniq_def)
 apply (rule allI)+
 apply (case_tac "inff R R'")
@@ -441,7 +441,7 @@ by (auto simp: wdef_def elim: ns.cases)
 
 subsection\<open>guardedness for NSL\<close>
 
-lemma "uniq ns secret ==> preserv ns keys n Ks"
+lemma "uniq ns secret \<Longrightarrow> preserv ns keys n Ks"
 apply (unfold preserv_def)
 apply (rule allI)+
 apply (rule impI, rule impI, rule impI, rule impI, rule impI)

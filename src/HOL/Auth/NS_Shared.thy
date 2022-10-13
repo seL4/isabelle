@@ -89,8 +89,8 @@ declare analz_into_parts [dest]
 
 
 text\<open>A "possibility property": there are traces that reach the end\<close>
-lemma "[| A \<noteq> Server; Key K \<notin> used []; K \<in> symKeys |]
-       ==> \<exists>N. \<exists>evs \<in> ns_shared.
+lemma "\<lbrakk>A \<noteq> Server; Key K \<notin> used []; K \<in> symKeys\<rbrakk>
+       \<Longrightarrow> \<exists>N. \<exists>evs \<in> ns_shared.
                     Says A B (Crypt K \<lbrace>Nonce N, Nonce N\<rbrace>) \<in> set evs"
 apply (intro exI bexI)
 apply (rule_tac [2] ns_shared.Nil
@@ -136,8 +136,8 @@ by auto
 
 text\<open>Nobody can have used non-existent keys!\<close>
 lemma new_keys_not_used [simp]:
-    "[|Key K \<notin> used evs; K \<in> symKeys; evs \<in> ns_shared|]
-     ==> K \<notin> keysFor (parts (spies evs))"
+    "\<lbrakk>Key K \<notin> used evs; K \<in> symKeys; evs \<in> ns_shared\<rbrakk>
+     \<Longrightarrow> K \<notin> keysFor (parts (spies evs))"
 apply (erule rev_mp)
 apply (erule ns_shared.induct, force, drule_tac [4] NS3_msg_in_parts_spies, simp_all)
 txt\<open>Fake, NS2, NS4, NS5\<close>

@@ -146,7 +146,7 @@ lemma Spy_analz_shrK [simp]:
 by auto
 
 lemma Spy_see_shrK_D [dest!]:
-     "[|Key (shrK A) \<in> parts (knows Spy evs);  evs \<in> orb|] ==> A \<in> bad"
+     "\<lbrakk>Key (shrK A) \<in> parts (knows Spy evs);  evs \<in> orb\<rbrakk> \<Longrightarrow> A \<in> bad"
 by (blast dest: Spy_see_shrK)
 
 lemma new_keys_not_used [simp]:

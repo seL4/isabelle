@@ -122,7 +122,7 @@ app (J, del (Agent B, I)), cons (chain B ofr A L C) L\<rbrace>"
 
 lemma prom_inj [dest]: "prom B ofr A r I L J C
 = prom B' ofr' A' r' I' L' J' C'
-==> B=B' & ofr=ofr' & A=A' & r=r' & L=L' & C=C'"
+\<Longrightarrow> B=B' & ofr=ofr' & A=A' & r=r' & L=L' & C=C'"
 by (auto simp: prom_def)
 
 lemma Nonce_in_prom [iff]: "Nonce ofr \<in> parts {prom B ofr A r I L J C}"
@@ -133,7 +133,7 @@ msg => agent => event" where
 "pro B ofr A r I L J C == Says B C (prom B ofr A r I L J C)"
 
 lemma pro_inj [dest]: "pro B ofr A r I L J C = pro B' ofr' A' r' I' L' J' C'
-==> B=B' & ofr=ofr' & A=A' & r=r' & L=L' & C=C'"
+\<Longrightarrow> B=B' & ofr=ofr' & A=A' & r=r' & L=L' & C=C'"
 by (auto simp: pro_def dest: prom_inj)
 
 subsubsection\<open>protocol\<close>
@@ -143,13 +143,13 @@ where
 
   Nil: "[] \<in> p1"
 
-| Fake: "[| evsf \<in> p1; X \<in> synth (analz (spies evsf)) |] ==> Says Spy B X # evsf \<in> p1"
+| Fake: "\<lbrakk>evsf \<in> p1; X \<in> synth (analz (spies evsf))\<rbrakk> \<Longrightarrow> Says Spy B X # evsf \<in> p1"
 
-| Request: "[| evsr \<in> p1; Nonce n \<notin> used evsr; I \<in> agl |] ==> req A r n I B # evsr \<in> p1"
+| Request: "\<lbrakk>evsr \<in> p1; Nonce n \<notin> used evsr; I \<in> agl\<rbrakk> \<Longrightarrow> req A r n I B # evsr \<in> p1"
 
-| Propose: "[| evsp \<in> p1; Says A' B \<lbrace>Agent A,Number r,I,cons M L\<rbrace> \<in> set evsp;
+| Propose: "\<lbrakk>evsp \<in> p1; Says A' B \<lbrace>Agent A,Number r,I,cons M L\<rbrace> \<in> set evsp;
   I \<in> agl; J \<in> agl; isin (Agent C, app (J, del (Agent B, I)));
-  Nonce ofr \<notin> used evsp |] ==> pro B ofr A r I (cons M L) J C # evsp \<in> p1"
+  Nonce ofr \<notin> used evsp\<rbrakk> \<Longrightarrow> pro B ofr A r I (cons M L) J C # evsp \<in> p1"
 
 subsubsection\<open>Composition of Traces\<close>
 
@@ -373,8 +373,8 @@ by (auto dest: no_Key_in_agl no_Key_in_appdel parts_trans)
 subsubsection\<open>private keys are safe\<close>
 
 lemma priK_parts_Friend_imp_bad [rule_format,dest]:
-     "[| evs \<in> p1; Friend B \<noteq> A |]
-      ==> (Key (priK A) \<in> parts (knows (Friend B) evs)) \<longrightarrow> (A \<in> bad)"
+     "\<lbrakk>evs \<in> p1; Friend B \<noteq> A\<rbrakk>
+      \<Longrightarrow> (Key (priK A) \<in> parts (knows (Friend B) evs)) \<longrightarrow> (A \<in> bad)"
 apply (erule p1.induct)
 apply (simp_all add: initState.simps knows.simps pro_def prom_def
                 req_def reqm_def anchor_def chain_def sign_def)
@@ -384,12 +384,12 @@ apply (auto del: parts_invKey disjE  dest: parts_trans
 done
 
 lemma priK_analz_Friend_imp_bad [rule_format,dest]:
-     "[| evs \<in> p1; Friend B \<noteq> A |]
-==> (Key (priK A) \<in> analz (knows (Friend B) evs)) \<longrightarrow> (A \<in> bad)"
+     "\<lbrakk>evs \<in> p1; Friend B \<noteq> A\<rbrakk>
+\<Longrightarrow> (Key (priK A) \<in> analz (knows (Friend B) evs)) \<longrightarrow> (A \<in> bad)"
 by auto
 
-lemma priK_notin_knows_max_Friend: "[| evs \<in> p1; A \<notin> bad; A \<noteq> Friend C |]
-==> Key (priK A) \<notin> analz (knows_max (Friend C) evs)"
+lemma priK_notin_knows_max_Friend: "\<lbrakk>evs \<in> p1; A \<notin> bad; A \<noteq> Friend C\<rbrakk>
+\<Longrightarrow> Key (priK A) \<notin> analz (knows_max (Friend C) evs)"
 apply (rule not_parts_not_analz, simp add: knows_max_def, safe)
 apply (drule_tac H="spies' evs" in parts_sub)
 apply (rule_tac p=p1 in knows_max'_sub_spies', simp+)
@@ -401,16 +401,16 @@ subsubsection\<open>general guardedness properties\<close>
 lemma agl_guard [intro]: "I \<in> agl \<Longrightarrow> I \<in> guard n Ks"
 by (erule agl.induct, auto)
 
-lemma Says_to_knows_max'_guard: "[| Says A' C \<lbrace>A'',r,I,L\<rbrace> \<in> set evs;
-Guard n Ks (knows_max' C evs) |] ==> L \<in> guard n Ks"
+lemma Says_to_knows_max'_guard: "\<lbrakk>Says A' C \<lbrace>A'',r,I,L\<rbrace> \<in> set evs;
+Guard n Ks (knows_max' C evs)\<rbrakk> \<Longrightarrow> L \<in> guard n Ks"
 by (auto dest: Says_to_knows_max')
 
-lemma Says_from_knows_max'_guard: "[| Says C A' \<lbrace>A'',r,I,L\<rbrace> \<in> set evs;
-Guard n Ks (knows_max' C evs) |] ==> L \<in> guard n Ks"
+lemma Says_from_knows_max'_guard: "\<lbrakk>Says C A' \<lbrace>A'',r,I,L\<rbrace> \<in> set evs;
+Guard n Ks (knows_max' C evs)\<rbrakk> \<Longrightarrow> L \<in> guard n Ks"
 by (auto dest: Says_from_knows_max')
 
-lemma Says_Nonce_not_used_guard: "[| Says A' B \<lbrace>A'',r,I,L\<rbrace> \<in> set evs;
-Nonce n \<notin> used evs |] ==> L \<in> guard n Ks"
+lemma Says_Nonce_not_used_guard: "\<lbrakk>Says A' B \<lbrace>A'',r,I,L\<rbrace> \<in> set evs;
+Nonce n \<notin> used evs\<rbrakk> \<Longrightarrow> L \<in> guard n Ks"
 by (drule not_used_not_parts, auto)
 
 subsubsection\<open>guardedness of messages\<close>
@@ -432,16 +432,16 @@ by (auto simp: anchor_def)
 lemma reqm_guard [intro]: "I \<in> agl \<Longrightarrow> reqm A r n' I B \<in> guard n {priK A}"
 by (case_tac "n'=n", auto simp: reqm_def)
 
-lemma reqm_guard_Nonce_neq [intro]: "[| n \<noteq> n'; I \<in> agl |]
-==> reqm A' r n' I B \<in> guard n {priK A}"
+lemma reqm_guard_Nonce_neq [intro]: "\<lbrakk>n \<noteq> n'; I \<in> agl\<rbrakk>
+\<Longrightarrow> reqm A' r n' I B \<in> guard n {priK A}"
 by (auto simp: reqm_def)
 
-lemma prom_guard [intro]: "[| I \<in> agl; J \<in> agl; L \<in> guard n {priK A} |]
-==> prom B ofr A r I L J C \<in> guard n {priK A}"
+lemma prom_guard [intro]: "\<lbrakk>I \<in> agl; J \<in> agl; L \<in> guard n {priK A}\<rbrakk>
+\<Longrightarrow> prom B ofr A r I L J C \<in> guard n {priK A}"
 by (auto simp: prom_def)
 
-lemma prom_guard_Nonce_neq [intro]: "[| n \<noteq> ofr; I \<in> agl; J \<in> agl;
-L \<in> guard n {priK A} |] ==> prom B ofr A' r I L J C \<in> guard n {priK A}"
+lemma prom_guard_Nonce_neq [intro]: "\<lbrakk>n \<noteq> ofr; I \<in> agl; J \<in> agl;
+L \<in> guard n {priK A}\<rbrakk> \<Longrightarrow> prom B ofr A' r I L J C \<in> guard n {priK A}"
 by (auto simp: prom_def)
 
 subsubsection\<open>Nonce uniqueness\<close>
@@ -452,25 +452,25 @@ by (auto simp: chain_def sign_def)
 lemma uniq_Nonce_in_anchor [dest]: "Nonce k \<in> parts {anchor A n B} \<Longrightarrow> k=n"
 by (auto simp: anchor_def chain_def sign_def)
 
-lemma uniq_Nonce_in_reqm [dest]: "[| Nonce k \<in> parts {reqm A r n I B};
-I \<in> agl |] ==> k=n"
+lemma uniq_Nonce_in_reqm [dest]: "\<lbrakk>Nonce k \<in> parts {reqm A r n I B};
+I \<in> agl\<rbrakk> \<Longrightarrow> k=n"
 by (auto simp: reqm_def dest: no_Nonce_in_agl)
 
-lemma uniq_Nonce_in_prom [dest]: "[| Nonce k \<in> parts {prom B ofr A r I L J C};
-I \<in> agl; J \<in> agl; Nonce k \<notin> parts {L} |] ==> k=ofr"
+lemma uniq_Nonce_in_prom [dest]: "\<lbrakk>Nonce k \<in> parts {prom B ofr A r I L J C};
+I \<in> agl; J \<in> agl; Nonce k \<notin> parts {L}\<rbrakk> \<Longrightarrow> k=ofr"
 by (auto simp: prom_def dest: no_Nonce_in_agl no_Nonce_in_appdel)
 
 subsubsection\<open>requests are guarded\<close>
 
-lemma req_imp_Guard [rule_format]: "[| evs \<in> p1; A \<notin> bad |] ==>
+lemma req_imp_Guard [rule_format]: "\<lbrakk>evs \<in> p1; A \<notin> bad\<rbrakk> \<Longrightarrow>
 req A r n I B \<in> set evs \<longrightarrow> Guard n {priK A} (spies evs)"
 apply (erule p1.induct, simp)
 apply (simp add: req_def knows.simps, safe)
 apply (erule in_synth_Guard, erule Guard_analz, simp)
 by (auto simp: req_def pro_def dest: Says_imp_knows_Spy)
 
-lemma req_imp_Guard_Friend: "[| evs \<in> p1; A \<notin> bad; req A r n I B \<in> set evs |]
-==> Guard n {priK A} (knows_max (Friend C) evs)"
+lemma req_imp_Guard_Friend: "\<lbrakk>evs \<in> p1; A \<notin> bad; req A r n I B \<in> set evs\<rbrakk>
+\<Longrightarrow> Guard n {priK A} (knows_max (Friend C) evs)"
 apply (rule Guard_knows_max')
 apply (rule_tac H="spies evs" in Guard_mono)
 apply (rule req_imp_Guard, simp+)
@@ -480,7 +480,7 @@ by (rule knows'_sub_knows)
 
 subsubsection\<open>propositions are guarded\<close>
 
-lemma pro_imp_Guard [rule_format]: "[| evs \<in> p1; B \<notin> bad; A \<notin> bad |] ==>
+lemma pro_imp_Guard [rule_format]: "\<lbrakk>evs \<in> p1; B \<notin> bad; A \<notin> bad\<rbrakk> \<Longrightarrow>
 pro B ofr A r I (cons M L) J C \<in> set evs \<longrightarrow> Guard ofr {priK A} (spies evs)"
 supply [[simproc del: defined_all]]
 apply (erule p1.induct) (* +3 subgoals *)
@@ -518,9 +518,9 @@ apply (blast dest: prom_inj Says_Nonce_not_used_guard)
 apply (simp add: pro_def)
 by (blast dest: Says_imp_knows_Spy)
 
-lemma pro_imp_Guard_Friend: "[| evs \<in> p1; B \<notin> bad; A \<notin> bad;
-pro B ofr A r I (cons M L) J C \<in> set evs |]
-==> Guard ofr {priK A} (knows_max (Friend D) evs)"
+lemma pro_imp_Guard_Friend: "\<lbrakk>evs \<in> p1; B \<notin> bad; A \<notin> bad;
+pro B ofr A r I (cons M L) J C \<in> set evs\<rbrakk>
+\<Longrightarrow> Guard ofr {priK A} (knows_max (Friend D) evs)"
 apply (rule Guard_knows_max')
 apply (rule_tac H="spies evs" in Guard_mono)
 apply (rule pro_imp_Guard, simp+)
@@ -531,23 +531,23 @@ by (rule knows'_sub_knows)
 subsubsection\<open>data confidentiality:
 no one other than the originator can decrypt the offers\<close>
 
-lemma Nonce_req_notin_spies: "[| evs \<in> p1; req A r n I B \<in> set evs; A \<notin> bad |]
-==> Nonce n \<notin> analz (spies evs)"
+lemma Nonce_req_notin_spies: "\<lbrakk>evs \<in> p1; req A r n I B \<in> set evs; A \<notin> bad\<rbrakk>
+\<Longrightarrow> Nonce n \<notin> analz (spies evs)"
 by (frule req_imp_Guard, simp+, erule Guard_Nonce_analz, simp+)
 
-lemma Nonce_req_notin_knows_max_Friend: "[| evs \<in> p1; req A r n I B \<in> set evs;
-A \<notin> bad; A \<noteq> Friend C |] ==> Nonce n \<notin> analz (knows_max (Friend C) evs)"
+lemma Nonce_req_notin_knows_max_Friend: "\<lbrakk>evs \<in> p1; req A r n I B \<in> set evs;
+A \<notin> bad; A \<noteq> Friend C\<rbrakk> \<Longrightarrow> Nonce n \<notin> analz (knows_max (Friend C) evs)"
 apply (clarify, frule_tac C=C in req_imp_Guard_Friend, simp+)
 apply (simp add: knows_max_def, drule Guard_invKey_keyset, simp+)
 by (drule priK_notin_knows_max_Friend, auto simp: knows_max_def)
 
-lemma Nonce_pro_notin_spies: "[| evs \<in> p1; B \<notin> bad; A \<notin> bad;
-pro B ofr A r I (cons M L) J C \<in> set evs |] ==> Nonce ofr \<notin> analz (spies evs)"
+lemma Nonce_pro_notin_spies: "\<lbrakk>evs \<in> p1; B \<notin> bad; A \<notin> bad;
+pro B ofr A r I (cons M L) J C \<in> set evs\<rbrakk> \<Longrightarrow> Nonce ofr \<notin> analz (spies evs)"
 by (frule pro_imp_Guard, simp+, erule Guard_Nonce_analz, simp+)
 
-lemma Nonce_pro_notin_knows_max_Friend: "[| evs \<in> p1; B \<notin> bad; A \<notin> bad;
-A \<noteq> Friend D; pro B ofr A r I (cons M L) J C \<in> set evs |]
-==> Nonce ofr \<notin> analz (knows_max (Friend D) evs)"
+lemma Nonce_pro_notin_knows_max_Friend: "\<lbrakk>evs \<in> p1; B \<notin> bad; A \<notin> bad;
+A \<noteq> Friend D; pro B ofr A r I (cons M L) J C \<in> set evs\<rbrakk>
+\<Longrightarrow> Nonce ofr \<notin> analz (knows_max (Friend D) evs)"
 apply (clarify, frule_tac A=A in pro_imp_Guard_Friend, simp+)
 apply (simp add: knows_max_def, drule Guard_invKey_keyset, simp+)
 by (drule priK_notin_knows_max_Friend, auto simp: knows_max_def)
@@ -555,15 +555,15 @@ by (drule priK_notin_knows_max_Friend, auto simp: knows_max_def)
 subsubsection\<open>non repudiability:
 an offer signed by B has been sent by B\<close>
 
-lemma Crypt_reqm: "[| Crypt (priK A) X \<in> parts {reqm A' r n I B}; I \<in> agl |] ==> A=A'"
+lemma Crypt_reqm: "\<lbrakk>Crypt (priK A) X \<in> parts {reqm A' r n I B}; I \<in> agl\<rbrakk> \<Longrightarrow> A=A'"
 by (auto simp: reqm_def anchor_def chain_def sign_def dest: no_Crypt_in_agl)
 
-lemma Crypt_prom: "[| Crypt (priK A) X \<in> parts {prom B ofr A' r I L J C};
-I \<in> agl; J \<in> agl |] ==> A=B \<or> Crypt (priK A) X \<in> parts {L}"
+lemma Crypt_prom: "\<lbrakk>Crypt (priK A) X \<in> parts {prom B ofr A' r I L J C};
+I \<in> agl; J \<in> agl\<rbrakk> \<Longrightarrow> A=B \<or> Crypt (priK A) X \<in> parts {L}"
 apply (simp add: prom_def anchor_def chain_def sign_def)
 by (blast dest: no_Crypt_in_agl no_Crypt_in_appdel)
 
-lemma Crypt_safeness: "[| evs \<in> p1; A \<notin> bad |] ==> Crypt (priK A) X \<in> parts (spies evs)
+lemma Crypt_safeness: "\<lbrakk>evs \<in> p1; A \<notin> bad\<rbrakk> \<Longrightarrow> Crypt (priK A) X \<in> parts (spies evs)
 \<longrightarrow> (\<exists>B Y. Says A B Y \<in> set evs \<and> Crypt (priK A) X \<in> parts {Y})"
 apply (erule p1.induct)
 (* Nil *)
@@ -593,7 +593,7 @@ apply (drule Says_imp_spies, rotate_tac -1, drule parts.Inj)
 apply (drule parts.Snd, drule parts.Snd, drule parts.Snd)
 by auto
 
-lemma Crypt_Hash_imp_sign: "[| evs \<in> p1; A \<notin> bad |] ==>
+lemma Crypt_Hash_imp_sign: "\<lbrakk>evs \<in> p1; A \<notin> bad\<rbrakk> \<Longrightarrow>
 Crypt (priK A) (Hash X) \<in> parts (spies evs)
 \<longrightarrow> (\<exists>B Y. Says A B Y \<in> set evs \<and> sign A X \<in> parts {Y})"
 apply (erule p1.induct)
@@ -630,7 +630,7 @@ apply (blast dest: get_ML parts_sub)
 apply (blast del: MPair_parts)+
 done
 
-lemma sign_safeness: "[| evs \<in> p1; A \<notin> bad |] ==> sign A X \<in> parts (spies evs)
+lemma sign_safeness: "\<lbrakk>evs \<in> p1; A \<notin> bad\<rbrakk> \<Longrightarrow> sign A X \<in> parts (spies evs)
 \<longrightarrow> (\<exists>B Y. Says A B Y \<in> set evs \<and> sign A X \<in> parts {Y})"
 apply (clarify, simp add: sign_def, frule parts.Snd)
 apply (blast dest: Crypt_Hash_imp_sign [unfolded sign_def])

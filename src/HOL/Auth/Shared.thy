@@ -48,7 +48,7 @@ done
 
 
 lemma analz_Decrypt' [dest]:
-     "[| Crypt K X \<in> analz H;  Key K  \<in> analz H |] ==> X \<in> analz H"
+     "\<lbrakk>Crypt K X \<in> analz H;  Key K  \<in> analz H\<rbrakk> \<Longrightarrow> X \<in> analz H"
 by auto
 
 text\<open>Now cancel the \<open>dest\<close> attribute given to
@@ -65,11 +65,11 @@ done
 
 (*Specialized to shared-key model: no @{term invKey}*)
 lemma keysFor_parts_insert:
-     "[| K \<in> keysFor (parts (insert X G));  X \<in> synth (analz H) |]
-      ==> K \<in> keysFor (parts (G \<union> H)) | Key K \<in> parts H"
+     "\<lbrakk>K \<in> keysFor (parts (insert X G));  X \<in> synth (analz H)\<rbrakk>
+      \<Longrightarrow> K \<in> keysFor (parts (G \<union> H)) | Key K \<in> parts H"
 by (metis invKey_K keysFor_parts_insert)
 
-lemma Crypt_imp_keysFor: "Crypt K X \<in> H ==> K \<in> keysFor H"
+lemma Crypt_imp_keysFor: "Crypt K X \<in> H \<Longrightarrow> K \<in> keysFor H"
 by (metis Crypt_imp_invKey_keysFor invKey_K)
 
 
@@ -82,8 +82,8 @@ apply (simp_all (no_asm_simp) add: imageI knows_Cons split: event.split)
 done
 
 (*For case analysis on whether or not an agent is compromised*)
-lemma Crypt_Spy_analz_bad: "[| Crypt (shrK A) X \<in> analz (knows Spy evs);  A \<in> bad |]  
-      ==> X \<in> analz (knows Spy evs)"
+lemma Crypt_Spy_analz_bad: "\<lbrakk>Crypt (shrK A) X \<in> analz (knows Spy evs);  A \<in> bad\<rbrakk>  
+      \<Longrightarrow> X \<in> analz (knows Spy evs)"
 by (metis Spy_knows_Spy_bad analz.Inj analz_Decrypt')
 
 
@@ -98,10 +98,10 @@ by (rule initState_into_used, blast)
 
 (*Used in parts_induct_tac and analz_Fake_tac to distinguish session keys
   from long-term shared keys*)
-lemma Key_not_used [simp]: "Key K \<notin> used evs ==> K \<notin> range shrK"
+lemma Key_not_used [simp]: "Key K \<notin> used evs \<Longrightarrow> K \<notin> range shrK"
 by blast
 
-lemma shrK_neq [simp]: "Key K \<notin> used evs ==> shrK B \<noteq> K"
+lemma shrK_neq [simp]: "Key K \<notin> used evs \<Longrightarrow> shrK B \<noteq> K"
 by blast
 
 lemmas shrK_sym_neq = shrK_neq [THEN not_sym]
@@ -153,7 +153,7 @@ apply (rule someI, blast)
 done
 
 text\<open>Unlike the corresponding property of nonces, we cannot prove
-    \<^term>\<open>finite KK ==> \<exists>K. K \<notin> KK \<and> Key K \<notin> used evs\<close>.
+    \<^term>\<open>finite KK \<Longrightarrow> \<exists>K. K \<notin> KK \<and> Key K \<notin> used evs\<close>.
     We have infinitely many agents and there is nothing to stop their
     long-term keys from exhausting all the natural numbers.  Instead,
     possibility theorems must assume the existence of a few keys.\<close>
@@ -184,7 +184,7 @@ lemmas analz_image_freshK_simps =
 
 (*Lemma for the trivial direction of the if-and-only-if*)
 lemma analz_image_freshK_lemma:
-     "(Key K \<in> analz (Key`nE \<union> H)) \<longrightarrow> (K \<in> nE | Key K \<in> analz H)  ==>  
+     "(Key K \<in> analz (Key`nE \<union> H)) \<longrightarrow> (K \<in> nE | Key K \<in> analz H)  \<Longrightarrow>  
          (Key K \<in> analz (Key`nE \<union> H)) = (K \<in> nE | Key K \<in> analz H)"
 by (blast intro: analz_mono [THEN [2] rev_subsetD])
 
