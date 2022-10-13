@@ -556,6 +556,31 @@ subsubsection \<open>\<open>fimage\<close>\<close>
 lemma subset_fimage_iff: "(B |\<subseteq>| f|`|A) = (\<exists> AA. AA |\<subseteq>| A \<and> B = f|`|AA)"
 by transfer (metis mem_Collect_eq rev_finite_subset subset_image_iff)
 
+lemma fimage_strict_mono:
+  assumes "inj_on f (fset B)" and "A |\<subset>| B"
+  shows "f |`| A |\<subset>| f |`| B"
+  \<comment> \<open>TODO: Configure transfer framework to lift @{thm Fun.inj_on_strict_subset}.\<close>
+proof (rule pfsubsetI)
+  from \<open>A |\<subset>| B\<close> have "A |\<subseteq>| B"
+    by (rule pfsubset_imp_fsubset)
+  thus "f |`| A |\<subseteq>| f |`| B"
+    by (rule fimage_mono)
+next
+  from \<open>A |\<subset>| B\<close> have "A |\<subseteq>| B" and "A \<noteq> B"
+    by (simp_all add: pfsubset_eq)
+
+  have "fset A \<noteq> fset B"
+    using \<open>A \<noteq> B\<close>
+    by (simp add: fset_cong)
+  hence "f ` fset A \<noteq> f ` fset B"
+    using \<open>A |\<subseteq>| B\<close>
+    by (simp add: inj_on_image_eq_iff[OF \<open>inj_on f (fset B)\<close>] less_eq_fset.rep_eq)
+  hence "fset (f |`| A) \<noteq> fset (f |`| B)"
+    by (simp add: fimage.rep_eq)
+  thus "f |`| A \<noteq> f |`| B"
+    by (simp add: fset_cong)
+qed
+
 
 subsubsection \<open>bounded quantification\<close>
 
