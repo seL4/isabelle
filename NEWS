@@ -17,15 +17,15 @@ New in this Isabelle version
   - Strengthened lemma total_on_singleton. Minor INCOMPATIBILITY.
   - Added lemmas.
       antisym_if_asymp
-      antisymp_ge[simp]
-      antisymp_greater[simp]
       antisymp_if_asymp
-      antisymp_le[simp]
-      antisymp_less[simp]
       irreflD
       irreflpD
-      reflp_ge[simp]
-      reflp_le[simp]
+      order.antisymp_ge[simp]
+      order.antisymp_le[simp]
+      preorder.antisymp_greater[simp]
+      preorder.antisymp_less[simp]
+      preorder.reflp_ge[simp]
+      preorder.reflp_le[simp]
       totalp_on_singleton[simp]
 
 * Theory "HOL.Wellfounded":
