@@ -238,6 +238,10 @@ INCOMPATIBILITY.
       total_on_trancl
       totalp_on_tranclp
 
+* Theory "HOL-Library.Signed_Division": class signed_division carries
+assumptions; use syntactic type classes signed_division and
+signed_modulo as alternatives.
+
 * New theory "HOL-Library.NList" of fixed length lists.
 
 * New Theory "HOL-Library.Code_Abstract_Char" implements characters by
@@ -447,6 +451,11 @@ The Isabelle settings refer to an executable "$ISABELLE_MLTON" and
 command-line options $ISABELLE_MLTON_OPTIONS, which need to fit
 together. Potential INCOMPATIBILITY for existing
 $ISABELLE_HOME_USER/etc/settings.
+
+* The system option "ML_system_apple" controls the use of native
+Apple/ARM64 for Poly/ML: default "true". Like "ML_system_64" this only
+works when saved in "$ISABELLE_HOME_USER/etc/preferences" (e.g. after
+shutdown of Isabelle/jEdit).
 
 
 

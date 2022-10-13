@@ -276,10 +276,11 @@ object HTTP {
   }
 
   def server(
+    port: Int = 0,
     name: String = UUID.random().toString,
     services: List[Service] = isabelle_services
   ): Server = {
-    val http_server = HttpServer.create(new InetSocketAddress(isabelle.Server.localhost, 0), 0)
+    val http_server = HttpServer.create(new InetSocketAddress(isabelle.Server.localhost, port), 0)
     http_server.setExecutor(null)
 
     val server = new Server(name, http_server)

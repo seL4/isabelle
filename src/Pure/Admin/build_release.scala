@@ -249,7 +249,8 @@ directory individually.
               "cd " + File.bash_path(remote_dir),
               "tar -xf tmp.tar",
               build_command,
-              """perl -pi -e "s/ISABELLE_APPLE_PLATFORM64/ISABELLE_WINDOWS_PLATFORM64/g;" "$(bin/isabelle getenv -b POLYML_HOME)/etc/settings" """,
+              """mkdir -p "$(bin/isabelle getenv -b ISABELLE_HOME_USER)/etc" """,
+              """{ echo "ML_system_apple = false" > "$(bin/isabelle getenv -b ISABELLE_HOME_USER)/etc/preferences"; }""",
               build_command,
               "tar -cf tmp.tar heaps")
           ssh.execute(build_script.mkString(" && "), settings = false).check
