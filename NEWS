@@ -37,7 +37,7 @@ New in this Isabelle version
 * Theory "HOL-Library.FSet":
   - Added lemmas.
       fimage_strict_mono
-      inj_on_strict_fsubset
+      wfP_pfsubset
 
 
 New in Isabelle2022 (October 2022)
