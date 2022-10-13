@@ -559,7 +559,7 @@ by transfer (metis mem_Collect_eq rev_finite_subset subset_image_iff)
 lemma fimage_strict_mono:
   assumes "inj_on f (fset B)" and "A |\<subset>| B"
   shows "f |`| A |\<subset>| f |`| B"
-  \<comment> \<open>TODO: Configure transfer framework to lift @{thm Fun.inj_on_strict_subset}.\<close>
+  \<comment> \<open>TODO: Configure transfer framework to lift @{thm Fun.image_strict_mono}.\<close>
 proof (rule pfsubsetI)
   from \<open>A |\<subset>| B\<close> have "A |\<subseteq>| B"
     by (rule pfsubset_imp_fsubset)

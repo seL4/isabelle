@@ -9,6 +9,10 @@ New in this Isabelle version
 
 *** HOL ***
 
+* Theory "HOL.Fun":
+  - Renamed lemma inj_on_strict_subset to image_strict_mono.
+    Minor INCOMPATIBILITY.
+
 * Theory "HOL.Relation":
   - Strengthened lemma total_on_singleton. Minor INCOMPATIBILITY.
   - Added lemmas.

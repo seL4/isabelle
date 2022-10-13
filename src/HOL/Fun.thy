@@ -178,7 +178,7 @@ lemma inj_on_eq_iff: "inj_on f A \<Longrightarrow> x \<in> A \<Longrightarrow> y
 lemma inj_on_cong: "(\<And>a. a \<in> A \<Longrightarrow> f a = g a) \<Longrightarrow> inj_on f A \<longleftrightarrow> inj_on g A"
   by (auto simp: inj_on_def)
 
-lemma inj_on_strict_subset: "inj_on f B \<Longrightarrow> A \<subset> B \<Longrightarrow> f ` A \<subset> f ` B"
+lemma image_strict_mono: "inj_on f B \<Longrightarrow> A \<subset> B \<Longrightarrow> f ` A \<subset> f ` B"
   unfolding inj_on_def by blast
 
 lemma inj_compose: "inj f \<Longrightarrow> inj g \<Longrightarrow> inj (f \<circ> g)"
