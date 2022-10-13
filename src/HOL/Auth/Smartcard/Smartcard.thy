@@ -118,7 +118,7 @@ lemma parts_image_Nonce [simp]: "parts (Nonce`N) = Nonce`N"
   by auto
 
 lemma keysFor_parts_initState [simp]: "keysFor (parts (initState C)) = {}"
-apply (unfold keysFor_def)
+unfolding keysFor_def
 apply (induct_tac "C", auto)
 done
 

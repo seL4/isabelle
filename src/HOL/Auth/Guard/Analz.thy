@@ -16,9 +16,9 @@ inductive_set
   pparts :: "msg set => msg set"
   for H :: "msg set"
 where
-  Inj [intro]: "[| X \<in> H; is_MPair X |] ==> X \<in> pparts H"
-| Fst [dest]: "[| \<lbrace>X,Y\<rbrace> \<in> pparts H; is_MPair X |] ==> X \<in> pparts H"
-| Snd [dest]: "[| \<lbrace>X,Y\<rbrace> \<in> pparts H; is_MPair Y |] ==> Y \<in> pparts H"
+  Inj [intro]: "\<lbrakk>X \<in> H; is_MPair X\<rbrakk> \<Longrightarrow> X \<in> pparts H"
+| Fst [dest]: "\<lbrakk>\<lbrace>X,Y\<rbrace> \<in> pparts H; is_MPair X\<rbrakk> \<Longrightarrow> X \<in> pparts H"
+| Snd [dest]: "\<lbrakk>\<lbrace>X,Y\<rbrace> \<in> pparts H; is_MPair Y\<rbrakk> \<Longrightarrow> Y \<in> pparts H"
 
 subsection\<open>basic facts about \<^term>\<open>pparts\<close>\<close>
 
@@ -46,7 +46,7 @@ by (auto, erule pparts.induct, auto)
 lemma pparts_insertI [intro]: "X \<in> pparts H \<Longrightarrow> X \<in> pparts (insert Y H)"
 by (erule pparts.induct, auto)
 
-lemma pparts_sub: "[| X \<in> pparts G; G \<subseteq> H |] ==> X \<in> pparts H"
+lemma pparts_sub: "\<lbrakk>X \<in> pparts G; G \<subseteq> H\<rbrakk> \<Longrightarrow> X \<in> pparts H"
 by (erule pparts.induct, auto)
 
 lemma pparts_insert2 [iff]: "pparts (insert X (insert Y H))
@@ -100,8 +100,8 @@ by (erule pparts.induct, auto)
 
 subsection\<open>facts about \<^term>\<open>pparts\<close> and \<^term>\<open>parts\<close>\<close>
 
-lemma pparts_no_Nonce [dest]: "[| X \<in> pparts {Y}; Nonce n \<notin> parts {Y} |]
-==> Nonce n \<notin> parts {X}"
+lemma pparts_no_Nonce [dest]: "\<lbrakk>X \<in> pparts {Y}; Nonce n \<notin> parts {Y}\<rbrakk>
+\<Longrightarrow> Nonce n \<notin> parts {X}"
 by (erule pparts.induct, simp_all)
 
 subsection\<open>facts about \<^term>\<open>pparts\<close> and \<^term>\<open>analz\<close>\<close>
@@ -109,7 +109,7 @@ subsection\<open>facts about \<^term>\<open>pparts\<close> and \<^term>\<open>an
 lemma pparts_analz: "X \<in> pparts H \<Longrightarrow> X \<in> analz H"
 by (erule pparts.induct, auto)
 
-lemma pparts_analz_sub: "[| X \<in> pparts G; G \<subseteq> H |] ==> X \<in> analz H"
+lemma pparts_analz_sub: "\<lbrakk>X \<in> pparts G; G \<subseteq> H\<rbrakk> \<Longrightarrow> X \<in> analz H"
 by (auto dest: pparts_sub pparts_analz)
 
 subsection\<open>messages that contribute to analz\<close>
@@ -118,9 +118,9 @@ inductive_set
   kparts :: "msg set => msg set"
   for H :: "msg set"
 where
-  Inj [intro]: "[| X \<in> H; not_MPair X |] ==> X \<in> kparts H"
-| Fst [intro]: "[| \<lbrace>X,Y\<rbrace> \<in> pparts H; not_MPair X |] ==> X \<in> kparts H"
-| Snd [intro]: "[| \<lbrace>X,Y\<rbrace> \<in> pparts H; not_MPair Y |] ==> Y \<in> kparts H"
+  Inj [intro]: "\<lbrakk>X \<in> H; not_MPair X\<rbrakk> \<Longrightarrow> X \<in> kparts H"
+| Fst [intro]: "\<lbrakk>\<lbrace>X,Y\<rbrace> \<in> pparts H; not_MPair X\<rbrakk> \<Longrightarrow> X \<in> kparts H"
+| Snd [intro]: "\<lbrakk>\<lbrace>X,Y\<rbrace> \<in> pparts H; not_MPair Y\<rbrakk> \<Longrightarrow> Y \<in> kparts H"
 
 subsection\<open>basic facts about \<^term>\<open>kparts\<close>\<close>
 
@@ -172,7 +172,7 @@ lemma kparts_insert_fst [rule_format,dest]: "X \<in> kparts (insert Z H) \<Longr
 X \<notin> kparts H \<longrightarrow> X \<in> kparts {Z}"
 by (erule kparts.induct, (blast dest: pparts_insert)+)
 
-lemma kparts_sub: "[| X \<in> kparts G; G \<subseteq> H |] ==> X \<in> kparts H"
+lemma kparts_sub: "\<lbrakk>X \<in> kparts G; G \<subseteq> H\<rbrakk> \<Longrightarrow> X \<in> kparts H"
 by (erule kparts.induct, auto dest: pparts_sub)
 
 lemma kparts_Un [iff]: "kparts (G \<union> H) = kparts G \<union> kparts H"
@@ -197,8 +197,8 @@ by auto
 
 subsection\<open>facts about \<^term>\<open>kparts\<close> and \<^term>\<open>parts\<close>\<close>
 
-lemma kparts_no_Nonce [dest]: "[| X \<in> kparts {Y}; Nonce n \<notin> parts {Y} |]
-==> Nonce n \<notin> parts {X}"
+lemma kparts_no_Nonce [dest]: "\<lbrakk>X \<in> kparts {Y}; Nonce n \<notin> parts {Y}\<rbrakk>
+\<Longrightarrow> Nonce n \<notin> parts {X}"
 by (erule kparts.induct, auto)
 
 lemma kparts_parts: "X \<in> kparts H \<Longrightarrow> X \<in> parts H"
@@ -208,8 +208,8 @@ lemma parts_kparts: "X \<in> parts (kparts H) \<Longrightarrow> X \<in> parts H"
 by (erule parts.induct, auto dest: kparts_parts
 intro: parts.Fst parts.Snd parts.Body)
 
-lemma Crypt_kparts_Nonce_parts [dest]: "[| Crypt K Y \<in> kparts {Z};
-Nonce n \<in> parts {Y} |] ==> Nonce n \<in> parts {Z}"
+lemma Crypt_kparts_Nonce_parts [dest]: "\<lbrakk>Crypt K Y \<in> kparts {Z};
+Nonce n \<in> parts {Y}\<rbrakk> \<Longrightarrow> Nonce n \<in> parts {Z}"
 by auto
 
 subsection\<open>facts about \<^term>\<open>kparts\<close> and \<^term>\<open>analz\<close>\<close>
@@ -217,7 +217,7 @@ subsection\<open>facts about \<^term>\<open>kparts\<close> and \<^term>\<open>an
 lemma kparts_analz: "X \<in> kparts H \<Longrightarrow> X \<in> analz H"
 by (erule kparts.induct, auto dest: pparts_analz)
 
-lemma kparts_analz_sub: "[| X \<in> kparts G; G \<subseteq> H |] ==> X \<in> analz H"
+lemma kparts_analz_sub: "\<lbrakk>X \<in> kparts G; G \<subseteq> H\<rbrakk> \<Longrightarrow> X \<in> analz H"
 by (erule kparts.induct, auto dest: pparts_analz_sub)
 
 lemma analz_kparts [rule_format,dest]: "X \<in> analz H \<Longrightarrow>
@@ -234,16 +234,16 @@ lemma Nonce_kparts_synth [rule_format]: "Y \<in> synth (analz G)
 \<Longrightarrow> Nonce n \<in> kparts {Y} \<longrightarrow> Nonce n \<in> analz G"
 by (erule synth.induct, auto)
 
-lemma kparts_insert_synth: "[| Y \<in> parts (insert X G); X \<in> synth (analz G);
-Nonce n \<in> kparts {Y}; Nonce n \<notin> analz G |] ==> Y \<in> parts G"
+lemma kparts_insert_synth: "\<lbrakk>Y \<in> parts (insert X G); X \<in> synth (analz G);
+Nonce n \<in> kparts {Y}; Nonce n \<notin> analz G\<rbrakk> \<Longrightarrow> Y \<in> parts G"
 apply (drule parts_insert_substD, clarify)
 apply (drule in_sub, drule_tac X=Y in parts_sub, simp)
 apply (auto dest: Nonce_kparts_synth)
 done
 
 lemma Crypt_insert_synth:
-  "[| Crypt K Y \<in> parts (insert X G); X \<in> synth (analz G); Nonce n \<in> kparts {Y}; Nonce n \<notin> analz G |] 
-   ==> Crypt K Y \<in> parts G"
+  "\<lbrakk>Crypt K Y \<in> parts (insert X G); X \<in> synth (analz G); Nonce n \<in> kparts {Y}; Nonce n \<notin> analz G\<rbrakk> 
+   \<Longrightarrow> Crypt K Y \<in> parts G"
 by (metis Fake_parts_insert_in_Un Nonce_kparts_synth UnE analz_conj_parts synth_simps(5))
 
 

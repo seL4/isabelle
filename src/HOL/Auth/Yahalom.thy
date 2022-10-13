@@ -332,7 +332,7 @@ lemma KeyWithNonceI:
  "Says Server A
           \<lbrace>Crypt (shrK A) \<lbrace>Agent B, Key K, na, Nonce NB\<rbrace>, X\<rbrace>
         \<in> set evs \<Longrightarrow> KeyWithNonce K NB evs"
-by (unfold KeyWithNonce_def, blast)
+  unfolding KeyWithNonce_def by blast
 
 lemma KeyWithNonce_Says [simp]:
    "KeyWithNonce K NB (Says S A X # evs) =
@@ -354,7 +354,7 @@ text\<open>A fresh key cannot be associated with any nonce
   (with respect to a given trace).\<close>
 lemma fresh_not_KeyWithNonce:
      "Key K \<notin> used evs \<Longrightarrow> \<not> KeyWithNonce K NB evs"
-by (unfold KeyWithNonce_def, blast)
+  unfolding KeyWithNonce_def by blast
 
 text\<open>The Server message associates K with NB' and therefore not with any
   other nonce NB.\<close>
@@ -363,7 +363,7 @@ lemma Says_Server_KeyWithNonce:
        \<in> set evs;
      NB \<noteq> NB';  evs \<in> yahalom\<rbrakk>
   \<Longrightarrow> \<not> KeyWithNonce K NB evs"
-by (unfold KeyWithNonce_def, blast dest: unique_session_keys)
+  unfolding KeyWithNonce_def by (blast dest: unique_session_keys)
 
 
 text\<open>The only nonces that can be found with the help of session keys are

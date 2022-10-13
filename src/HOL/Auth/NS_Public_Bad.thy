@@ -78,9 +78,7 @@ lemma no_nonce_NS1_NS2 [rule_format]:
        \<Longrightarrow> Crypt (pubEK C) \<lbrace>NA', Nonce NA\<rbrace> \<in> parts (spies evs) \<longrightarrow>
            Crypt (pubEK B) \<lbrace>Nonce NA, Agent A\<rbrace> \<in> parts (spies evs) \<longrightarrow>  
            Nonce NA \<in> analz (spies evs)"
-apply (erule ns_public.induct, simp_all)
-apply (blast intro: analz_insertI)+
-done
+  by (induct rule: ns_public.induct) (auto intro: analz_insertI)
 
 
 (*Unicity for NS1: nonce NA identifies agents A and B*)
@@ -90,9 +88,7 @@ lemma unique_NA:
        Nonce NA \<notin> analz (spies evs); evs \<in> ns_public\<rbrakk>
       \<Longrightarrow> A=A' \<and> B=B'"
 apply (erule rev_mp, erule rev_mp, erule rev_mp)   
-apply (erule ns_public.induct, simp_all)
-(*Fake, NS1*)
-apply (blast intro!: analz_insertI)+
+apply (erule ns_public.induct, auto intro: analz_insertI)
 done
 
 
@@ -116,9 +112,7 @@ lemma A_trusts_NS2_lemma [rule_format]:
     \<Longrightarrow> Crypt (pubEK A) \<lbrace>Nonce NA, Nonce NB\<rbrace> \<in> parts (spies evs) \<longrightarrow>
         Says A B (Crypt(pubEK B) \<lbrace>Nonce NA, Agent A\<rbrace>) \<in> set evs \<longrightarrow>
         Says B A (Crypt(pubEK A) \<lbrace>Nonce NA, Nonce NB\<rbrace>) \<in> set evs"
-apply (erule ns_public.induct)
-apply (auto dest: Spy_not_see_NA unique_NA)
-done
+  by (erule ns_public.induct) (auto dest: Spy_not_see_NA unique_NA)
 
 theorem A_trusts_NS2: 
      "\<lbrakk>Says A  B (Crypt(pubEK B) \<lbrace>Nonce NA, Agent A\<rbrace>) \<in> set evs;   
@@ -134,10 +128,7 @@ lemma B_trusts_NS1 [rule_format]:
       \<Longrightarrow> Crypt (pubEK B) \<lbrace>Nonce NA, Agent A\<rbrace> \<in> parts (spies evs) \<longrightarrow>
           Nonce NA \<notin> analz (spies evs) \<longrightarrow>
           Says A B (Crypt (pubEK B) \<lbrace>Nonce NA, Agent A\<rbrace>) \<in> set evs"
-apply (erule ns_public.induct, simp_all)
-(*Fake*)
-apply (blast intro!: analz_insertI)
-done
+  by (induction evs rule: ns_public.induct) (use analz_insertI in auto)
 
 
 

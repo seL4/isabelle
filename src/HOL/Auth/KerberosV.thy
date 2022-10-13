@@ -778,7 +778,7 @@ by (auto simp add: AKcryptSK_def)
 lemma Auth_fresh_not_AKcryptSK:
      "\<lbrakk> Key authK \<notin> used evs; evs \<in> kerbV \<rbrakk>
       \<Longrightarrow> \<not> AKcryptSK authK servK evs"
-apply (unfold AKcryptSK_def)
+unfolding AKcryptSK_def
 apply (erule rev_mp)
 apply (erule kerbV.induct)
 apply (frule_tac [7] Says_ticket_parts)
@@ -821,7 +821,7 @@ done
 text\<open>Long term keys are not issued as servKeys\<close>
 lemma shrK_not_AKcryptSK:
      "evs \<in> kerbV \<Longrightarrow> \<not> AKcryptSK K (shrK A) evs"
-apply (unfold AKcryptSK_def)
+unfolding AKcryptSK_def
 apply (erule kerbV.induct)
 apply (frule_tac [7] Says_ticket_parts)
 apply (frule_tac [5] Says_ticket_parts, auto)

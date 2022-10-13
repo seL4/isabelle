@@ -17,8 +17,8 @@ abbreviation (input)
 
 subsubsection\<open>induction principle\<close>
 
-lemma lmsg_induct: "[| !!x. not_MPair x ==> P x; !!x l. P l ==> P (cons x l) |]
-==> P l"
+lemma lmsg_induct: "\<lbrakk>!!x. not_MPair x \<Longrightarrow> P x; !!x l. P l \<Longrightarrow> P (cons x l)\<rbrakk>
+\<Longrightarrow> P l"
 by (induct l) auto
 
 subsubsection\<open>head\<close>
@@ -52,7 +52,7 @@ fun del :: "msg * msg => msg" where
 "del (x, cons y l) = (if x=y then l else cons y (del (x,l)))" |
 "del (x, other) = other"
 
-lemma notin_del [simp]: "~ isin (x,l) ==> del (x,l) = l"
+lemma notin_del [simp]: "~ isin (x,l) \<Longrightarrow> del (x,l) = l"
 by (induct l) auto
 
 lemma isin_del [rule_format]: "isin (y, del (x,l)) --> isin (y,l)"
@@ -81,7 +81,7 @@ fun ith :: "msg * nat => msg" where
 "ith (cons x l, 0) = x" |
 "ith (other, i) = other"
 
-lemma ith_head: "0 < len l ==> ith (l,0) = head l"
+lemma ith_head: "0 < len l \<Longrightarrow> ith (l,0) = head l"
 by (cases l) auto
 
 subsubsection\<open>insertion\<close>
@@ -114,14 +114,14 @@ abbreviation
 inductive_set agl :: "msg set"
 where
   Nil[intro]: "nil \<in> agl"
-| Cons[intro]: "[| A \<in> agent; I \<in> agl |] ==> cons (Agent A) I \<in> agl"
+| Cons[intro]: "\<lbrakk>A \<in> agent; I \<in> agl\<rbrakk> \<Longrightarrow> cons (Agent A) I \<in> agl"
 
 subsubsection\<open>basic facts about agent lists\<close>
 
 lemma del_in_agl [intro]: "I \<in> agl \<Longrightarrow> del (a,I) \<in> agl"
 by (erule agl.induct, auto)
 
-lemma app_in_agl [intro]: "[| I \<in> agl; J \<in> agl |] ==> app (I,J) \<in> agl"
+lemma app_in_agl [intro]: "\<lbrakk>I \<in> agl; J \<in> agl\<rbrakk> \<Longrightarrow> app (I,J) \<in> agl"
 by (erule agl.induct, auto)
 
 lemma no_Key_in_agl: "I \<in> agl \<Longrightarrow> Key K \<notin> parts {I}"
@@ -130,18 +130,18 @@ by (erule agl.induct, auto)
 lemma no_Nonce_in_agl: "I \<in> agl \<Longrightarrow> Nonce n \<notin> parts {I}"
 by (erule agl.induct, auto)
 
-lemma no_Key_in_appdel: "[| I \<in> agl; J \<in> agl |] ==>
+lemma no_Key_in_appdel: "\<lbrakk>I \<in> agl; J \<in> agl\<rbrakk> \<Longrightarrow>
 Key K \<notin> parts {app (J, del (Agent B, I))}"
 by (rule no_Key_in_agl, auto)
 
-lemma no_Nonce_in_appdel: "[| I \<in> agl; J \<in> agl |] ==>
+lemma no_Nonce_in_appdel: "\<lbrakk>I \<in> agl; J \<in> agl\<rbrakk> \<Longrightarrow>
 Nonce n \<notin> parts {app (J, del (Agent B, I))}"
 by (rule no_Nonce_in_agl, auto)
 
 lemma no_Crypt_in_agl: "I \<in> agl \<Longrightarrow> Crypt K X \<notin> parts {I}"
 by (erule agl.induct, auto)
 
-lemma no_Crypt_in_appdel: "[| I \<in> agl; J \<in> agl |] ==>
+lemma no_Crypt_in_appdel: "\<lbrakk>I \<in> agl; J \<in> agl\<rbrakk> \<Longrightarrow>
 Crypt K X \<notin> parts {app (J, del (Agent B,I))}"
 by (rule no_Crypt_in_agl, auto)
 
