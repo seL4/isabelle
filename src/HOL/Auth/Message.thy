@@ -820,9 +820,11 @@ lemma parts_keyfree: "parts (keyfree) \<subseteq> keyfree"
 
 (*The key-free part of a set of messages can be removed from the scope of the analz operator.*)
 lemma analz_keyfree_into_Un: "\<lbrakk>X \<in> analz (G \<union> H); G \<subseteq> keyfree\<rbrakk> \<Longrightarrow> X \<in> parts G \<union> analz H"
-  apply (erule analz.induct, auto dest: parts.Body)
-  apply (metis Un_absorb2 keyfree_KeyE parts_Un parts_keyfree UnI2)
-  done
+proof (induction rule: analz.induct)
+  case (Decrypt K X)
+  then show ?case
+    by (metis Un_iff analz.Decrypt in_mono keyfree_KeyE parts.Body parts_keyfree parts_mono)
+qed (auto dest: parts.Body)
 
 subsection\<open>Tactics useful for many protocol proofs\<close>
 ML
@@ -890,12 +892,14 @@ lemma gen_analz_insert_eq [rule_format]:
   "X \<in> analz H \<Longrightarrow> \<forall>G. H \<subseteq> G \<longrightarrow> analz (insert X G) = analz G"
   by (blast intro: analz_cut analz_insertI analz_mono [THEN [2] rev_subsetD])
 
-lemma synth_analz_insert_eq [rule_format]:
-  "X \<in> synth (analz H) 
-      \<Longrightarrow> \<forall>G. H \<subseteq> G \<longrightarrow> (Key K \<in> analz (insert X G)) = (Key K \<in> analz G)"
-  apply (erule synth.induct) 
-       apply (simp_all add: gen_analz_insert_eq subset_trans [OF _ subset_insertI]) 
-  done
+lemma synth_analz_insert_eq:
+  "\<lbrakk>X \<in> synth (analz H); H \<subseteq> G\<rbrakk>
+      \<Longrightarrow> (Key K \<in> analz (insert X G)) \<longleftrightarrow> (Key K \<in> analz G)"
+proof (induction arbitrary: G rule: synth.induct)
+  case (Inj X)
+  then show ?case
+    using gen_analz_insert_eq by presburger 
+qed (simp_all add: subset_eq)
 
 lemma Fake_parts_sing:
   "X \<in> synth (analz H) \<Longrightarrow> parts{X} \<subseteq> synth (analz H) \<union> parts H"
