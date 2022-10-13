@@ -340,48 +340,42 @@ inductive_set
 
 
 text\<open>Monotonicity; Lemma 1 of Lowe's paper\<close>
+lemma analz_mono_aux: "\<lbrakk>G \<subseteq> H; X \<in> analz G\<rbrakk> \<Longrightarrow> X \<in> analz H"
+  by (erule analz.induct) (auto dest: analz.Fst analz.Snd) 
+
 lemma analz_mono: "G\<subseteq>H \<Longrightarrow> analz(G) \<subseteq> analz(H)"
-  apply auto
-  apply (erule analz.induct) 
-     apply (auto dest: analz.Fst analz.Snd) 
-  done
+  using analz_mono_aux by blast
 
 text\<open>Making it safe speeds up proofs\<close>
 lemma MPair_analz [elim!]:
   "\<lbrakk>\<lbrace>X,Y\<rbrace> \<in> analz H;        
-             \<lbrakk>X \<in> analz H; Y \<in> analz H\<rbrakk> \<Longrightarrow> P   
-\<rbrakk> \<Longrightarrow> P"
+    \<lbrakk>X \<in> analz H; Y \<in> analz H\<rbrakk> \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
   by (blast dest: analz.Fst analz.Snd)
 
 lemma analz_increasing: "H \<subseteq> analz(H)"
   by blast
 
-lemma analz_subset_parts: "analz H \<subseteq> parts H"
-  apply (rule subsetI)
-  apply (erule analz.induct, blast+)
-  done
+lemma analz_into_parts: "X \<in> analz H \<Longrightarrow> X \<in> parts H"
+  by (erule analz.induct) auto
 
-lemmas analz_into_parts = analz_subset_parts [THEN subsetD]
+lemma analz_subset_parts: "analz H \<subseteq> parts H"
+  using analz_into_parts by blast
+
+lemma analz_parts [simp]: "analz (parts H) = parts H"
+  using analz_subset_parts by blast
 
 lemmas not_parts_not_analz = analz_subset_parts [THEN contra_subsetD]
 
 
 lemma parts_analz [simp]: "parts (analz H) = parts H"
-  by (metis analz_increasing analz_subset_parts equalityI parts_mono parts_subset_iff)
-
-lemma analz_parts [simp]: "analz (parts H) = parts H"
-  apply auto
-  apply (erule analz.induct, auto)
-  done
+  by (metis analz_increasing analz_subset_parts parts_idem parts_mono subset_antisym)
 
 lemmas analz_insertI = subset_insertI [THEN analz_mono, THEN [2] rev_subsetD]
 
 subsubsection\<open>General equational properties\<close>
 
 lemma analz_empty [simp]: "analz{} = {}"
-  apply safe
-  apply (erule analz.induct, blast+)
-  done
+  using analz_parts by fastforce
 
 text\<open>Converse fails: we can analz more from the union than from the 
   separate parts, as a key in one might decrypt a message in the other\<close>
@@ -423,7 +417,7 @@ text\<open>Can only pull out Keys if they are not needed to decrypt the rest\<cl
 lemma analz_insert_Key [simp]: 
   "K \<notin> keysFor (analz H) \<Longrightarrow>   
           analz (insert (Key K) H) = insert (Key K) (analz H)"
-  apply (unfold keysFor_def)
+  unfolding keysFor_def
   apply (rule analz_insert_eq_I) 
   apply (erule analz.induct, auto) 
   done

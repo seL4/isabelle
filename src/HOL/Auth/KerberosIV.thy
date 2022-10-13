@@ -295,7 +295,7 @@ lemmas parts_spies_takeWhile_mono = spies_takeWhile [THEN parts_mono]
 subsection\<open>Lemmas about \<^term>\<open>authKeys\<close>\<close>
 
 lemma authKeys_empty: "authKeys [] = {}"
-apply (unfold authKeys_def)
+unfolding authKeys_def
 apply (simp (no_asm))
 done
 
@@ -478,7 +478,7 @@ lemma Says_Kas_message_form:
   Ta = CT (before 
            Says Kas A (Crypt K \<lbrace>Key authK, Agent Peer, Number Ta, authTicket\<rbrace>)
            on evs)"
-apply (unfold before_def)
+unfolding before_def
 apply (erule rev_mp)
 apply (erule kerbIV.induct)
 apply (simp_all (no_asm) add: authKeys_def authKeys_insert, blast, blast)
@@ -550,7 +550,7 @@ lemma Says_Tgs_message_form:
       Ts = CT(before 
         Says Tgs A (Crypt authK \<lbrace>Key servK, Agent B, Number Ts, servTicket\<rbrace>)
               on evs) "
-apply (unfold before_def)
+unfolding before_def
 apply (erule rev_mp)
 apply (erule kerbIV.induct)
 apply (simp_all add: authKeys_insert authKeys_not_insert authKeys_empty authKeys_simp, blast)
@@ -1014,7 +1014,7 @@ by (simp add: AKcryptSK_def)
 lemma AKcryptSKI:
  "\<lbrakk> Says Tgs A (Crypt authK \<lbrace>Key servK, Agent B, Number Ts, X \<rbrace>) \<in> set evs;
      evs \<in> kerbIV \<rbrakk> \<Longrightarrow> AKcryptSK authK servK evs"
-apply (unfold AKcryptSK_def)
+unfolding AKcryptSK_def
 apply (blast dest: Says_Tgs_message_form)
 done
 
@@ -1033,7 +1033,7 @@ by (auto simp add: AKcryptSK_def)
 lemma Auth_fresh_not_AKcryptSK:
      "\<lbrakk> Key authK \<notin> used evs; evs \<in> kerbIV \<rbrakk>
       \<Longrightarrow> \<not> AKcryptSK authK servK evs"
-apply (unfold AKcryptSK_def)
+unfolding AKcryptSK_def
 apply (erule rev_mp)
 apply (erule kerbIV.induct)
 apply (frule_tac [7] K5_msg_in_parts_spies)
@@ -1080,7 +1080,7 @@ done
 text\<open>Long term keys are not issued as servKeys\<close>
 lemma shrK_not_AKcryptSK:
      "evs \<in> kerbIV \<Longrightarrow> \<not> AKcryptSK K (shrK A) evs"
-apply (unfold AKcryptSK_def)
+unfolding AKcryptSK_def
 apply (erule kerbIV.induct)
 apply (frule_tac [7] K5_msg_in_parts_spies)
 apply (frule_tac [5] K3_msg_in_parts_spies, auto)
@@ -1093,7 +1093,7 @@ lemma Says_Tgs_AKcryptSK:
            \<in> set evs;
          authK' \<noteq> authK;  evs \<in> kerbIV \<rbrakk>
       \<Longrightarrow> \<not> AKcryptSK authK' servK evs"
-apply (unfold AKcryptSK_def)
+unfolding AKcryptSK_def
 apply (blast dest: unique_servKeys)
 done
 

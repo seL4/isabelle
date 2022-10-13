@@ -122,7 +122,7 @@ lemma has_only_Says'D: "\<lbrakk>R \<in> p; has_only_Says' p\<rbrakk>
 by (unfold has_only_Says'_def is_Says_def, blast)
 
 lemma has_only_Says_tr [simp]: "has_only_Says' p \<Longrightarrow> has_only_Says (tr p)"
-apply (unfold has_only_Says_def)
+unfolding has_only_Says_def
 apply (rule allI, rule allI, rule impI)
 apply (erule tr.induct)
 apply (auto simp: has_only_Says'_def ok_def)
@@ -354,7 +354,7 @@ secret R n s Ks = secret R' n' s' Ks"
 by (unfold uniq'_def, blast)
 
 lemma uniq'_imp_uniq: "\<lbrakk>uniq' p inff secret; ord p inff\<rbrakk> \<Longrightarrow> uniq p secret"
-apply (unfold uniq_def)
+unfolding uniq_def
 apply (rule allI)+
 apply (case_tac "inff R R'")
 apply (blast dest: uniq'D)
@@ -442,7 +442,7 @@ by (auto simp: wdef_def elim: ns.cases)
 subsection\<open>guardedness for NSL\<close>
 
 lemma "uniq ns secret \<Longrightarrow> preserv ns keys n Ks"
-apply (unfold preserv_def)
+unfolding preserv_def
 apply (rule allI)+
 apply (rule impI, rule impI, rule impI, rule impI, rule impI)
 apply (erule fresh_ruleD, simp, simp, simp, simp)

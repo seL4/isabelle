@@ -876,7 +876,7 @@ by (simp add: AKcryptSK_def)
 lemma AKcryptSKI:
  "\<lbrakk> Says Tgs A (Crypt authK \<lbrace>Key servK, Agent B, Number Ts, X \<rbrace>) \<in> set evs;
      evs \<in> kerbIV_gets \<rbrakk> \<Longrightarrow> AKcryptSK authK servK evs"
-apply (unfold AKcryptSK_def)
+unfolding AKcryptSK_def
 apply (blast dest: Says_Tgs_message_form)
 done
 
@@ -894,7 +894,7 @@ by (auto simp add: AKcryptSK_def)
 lemma Auth_fresh_not_AKcryptSK:
      "\<lbrakk> Key authK \<notin> used evs; evs \<in> kerbIV_gets \<rbrakk>
       \<Longrightarrow> \<not> AKcryptSK authK servK evs"
-apply (unfold AKcryptSK_def)
+unfolding AKcryptSK_def
 apply (erule rev_mp)
 apply (erule kerbIV_gets.induct)
 apply (frule_tac [8] Gets_ticket_parts)
@@ -948,7 +948,7 @@ by (force dest!: Crypt_imp_invKey_keysFor simp add: AKcryptSK_def)
 text\<open>Long term keys are not issued as servKeys\<close>
 lemma shrK_not_AKcryptSK:
      "evs \<in> kerbIV_gets \<Longrightarrow> \<not> AKcryptSK K (shrK A) evs"
-apply (unfold AKcryptSK_def)
+unfolding AKcryptSK_def
 apply (erule kerbIV_gets.induct)
 apply (frule_tac [8] Gets_ticket_parts)
 by (frule_tac [6] Gets_ticket_parts, auto)
@@ -960,7 +960,7 @@ lemma Says_Tgs_AKcryptSK:
            \<in> set evs;
          authK' \<noteq> authK;  evs \<in> kerbIV_gets \<rbrakk>
       \<Longrightarrow> \<not> AKcryptSK authK' servK evs"
-apply (unfold AKcryptSK_def)
+unfolding AKcryptSK_def
 by (blast dest: unique_servKeys)
 
 text\<open>Equivalently\<close>

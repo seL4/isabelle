@@ -59,7 +59,7 @@ text\<open>Rewrites should not refer to  \<^term>\<open>initState(Friend i)\<clo
   that expression is not in normal form.\<close>
 
 lemma keysFor_parts_initState [simp]: "keysFor (parts (initState C)) = {}"
-apply (unfold keysFor_def)
+unfolding keysFor_def
 apply (induct_tac "C", auto)
 done
 

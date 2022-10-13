@@ -445,7 +445,7 @@ lemma Hash_auth_sender [rule_format]:
      "\<lbrakk>Hash \<lbrace>Key(shrK A), Agent A, Agent B, NA, P\<rbrace> \<in> parts(spies evs);
          A \<notin> bad;  evs \<in> recur\<rbrakk>
       \<Longrightarrow> Says A B (Hash[Key(shrK A)] \<lbrace>Agent A, Agent B, NA, P\<rbrace>) \<in> set evs"
-apply (unfold HPair_def)
+unfolding HPair_def
 apply (erule rev_mp)
 apply (erule recur.induct,
        drule_tac [6] RA4_parts_spies,
