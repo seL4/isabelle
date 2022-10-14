@@ -588,7 +588,7 @@ lemma u_NotexpiredSK_NotexpiredAK:
       \<Longrightarrow> \<not> expiredAK Ta evs"
 by (metis order_le_less_trans)
 
-subsection\<open>Reliability: friendly agents send somthing if something else happened\<close>
+subsection\<open>Reliability: friendly agents send something if something else happened\<close>
 
 lemma K3_imp_K2:
      "\<lbrakk> Says A Tgs
@@ -1168,7 +1168,8 @@ by (blast dest: u_servTicket_authentic u_NotexpiredSK_NotexpiredAK Confidentiali
 
 
 
-subsection\<open>Parties authentication: each party verifies "the identity of
+subsection\<open>Authentication\<close>
+text\<open>Each party verifies "the identity of
        another party who generated some data" (quoted from Neuman and Ts'o).\<close>
 
 text\<open>These guarantees don't assess whether two parties agree on
@@ -1243,8 +1244,8 @@ done
 
 
 
-subsection\<open>Parties' knowledge of session keys. 
-       An agent knows a session key if he used it to issue a cipher. These
+subsection\<open>Parties' knowledge of session keys\<close>
+text\<open>An agent knows a session key if he used it to issue a cipher. These
        guarantees can be interpreted both in terms of key distribution
        and of non-injective agreement on the session key.\<close>
 
@@ -1253,7 +1254,7 @@ lemma Kas_Issues_A:
       evs \<in> kerbV \<rbrakk>
   \<Longrightarrow> Kas Issues A with (Crypt (shrK A) \<lbrace>Key authK, Peer, Ta\<rbrace>)
           on evs"
-apply (simp (no_asm) add: Issues_def)
+unfolding Issues_def
 apply (rule exI)
 apply (rule conjI, assumption)
 apply (simp (no_asm))
@@ -1280,7 +1281,7 @@ lemma Tgs_Issues_A:
        Key authK \<notin> analz (spies evs);  evs \<in> kerbV \<rbrakk>
   \<Longrightarrow> Tgs Issues A with 
           (Crypt authK \<lbrace>Key servK, Agent B, Number Ts\<rbrace>) on evs"
-apply (simp (no_asm) add: Issues_def)
+unfolding Issues_def
 apply (rule exI)
 apply (rule conjI, assumption)
 apply (simp (no_asm))
@@ -1310,7 +1311,7 @@ lemma B_Issues_A:
          Key servK \<notin> analz (spies evs);
          A \<notin> bad;  B \<notin> bad; B \<noteq> Tgs; evs \<in> kerbV \<rbrakk>
       \<Longrightarrow> B Issues A with (Crypt servK (Number T3)) on evs"
-apply (simp (no_asm) add: Issues_def)
+unfolding Issues_def
 apply (rule exI)
 apply (rule conjI, assumption)
 apply (simp (no_asm))
@@ -1384,7 +1385,7 @@ lemma A_Issues_B:
          Key servK \<notin> analz (spies evs);
          B \<noteq> Tgs; A \<notin> bad;  B \<notin> bad;  evs \<in> kerbV \<rbrakk>
    \<Longrightarrow> A Issues B with (Crypt servK \<lbrace>Agent A, Number T3\<rbrace>) on evs"
-apply (simp (no_asm) add: Issues_def)
+unfolding Issues_def
 apply (rule exI)
 apply (rule conjI, assumption)
 apply (simp (no_asm))
@@ -1434,8 +1435,8 @@ by (blast dest: B_authenticates_A A_Issues_B)
 
 
 
-subsection\<open>
-Novel guarantees, never studied before. Because honest agents always say
+subsection\<open>Novel guarantees, never studied before\<close>
+text\<open> Because honest agents always say
 the right timestamp in authenticators, we can prove unicity guarantees based 
 exactly on timestamps. Classical unicity guarantees are based on nonces.
 Of course assuming the agent to be different from the Spy, rather than not in 

@@ -1,9 +1,9 @@
 (*  Title:      HOL/Auth/NS_Shared.thy
-    Author:     Lawrence C Paulson and Giampaolo Bella 
+    Author:     Lawrence C Paulson and Giampaolo Bella
     Copyright   1996  University of Cambridge
 *)
 
-section\<open>Needham-Schroeder Shared-Key Protocol and the Issues Property\<close>
+section\<open>Needham-Schroeder Shared-Key Protocol\<close>
 
 theory NS_Shared imports Public begin
 
@@ -231,7 +231,7 @@ apply (erule ns_shared.induct)
 apply (drule_tac [8] Says_Server_message_form)
 apply (erule_tac [5] Says_S_message_form [THEN disjE], analz_freshK, spy_analz)
 txt\<open>NS2, NS3\<close>
-apply blast+ 
+apply blast+
 done
 
 
@@ -429,7 +429,7 @@ lemma B_Issues_A:
          Key K \<notin> analz (spies evs);
          A \<notin> bad;  B \<notin> bad; evs \<in> ns_shared \<rbrakk>
       \<Longrightarrow> B Issues A with (Crypt K (Nonce Nb)) on evs"
-apply (simp (no_asm) add: Issues_def)
+unfolding Issues_def
 apply (rule exI)
 apply (rule conjI, assumption)
 apply (simp (no_asm))
@@ -489,7 +489,7 @@ lemma A_Issues_B:
         Key K \<notin> analz (spies evs);
         A \<notin> bad;  B \<notin> bad; evs \<in> ns_shared \<rbrakk>
     \<Longrightarrow> A Issues B with (Crypt K \<lbrace>Nonce NB, Nonce NB\<rbrace>) on evs"
-apply (simp (no_asm) add: Issues_def)
+unfolding Issues_def
 apply (rule exI)
 apply (rule conjI, assumption)
 apply (simp (no_asm))

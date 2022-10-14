@@ -65,7 +65,7 @@ definition keysFor :: "msg set \<Rightarrow> key set" where
   "keysFor H == invKey ` {K. \<exists>X. Crypt K X \<in> H}"
 
 
-subsubsection\<open>Inductive Definition of All Parts" of a Message\<close>
+subsection\<open>Inductive Definition of All Parts of a Message\<close>
 
 inductive_set
   parts :: "msg set \<Rightarrow> msg set"
@@ -96,13 +96,13 @@ lemma Nonce_Key_image_eq [simp]: "(Nonce x \<notin> Key`A)"
   by auto
 
 
-subsubsection\<open>Inverse of keys\<close>
+subsection\<open>Inverse of keys\<close>
 
 lemma invKey_eq [simp]: "(invKey K = invKey K') = (K=K')"
   by (metis invKey)
 
 
-subsection\<open>keysFor operator\<close>
+subsection\<open>The @{term keysFor} operator\<close>
 
 lemma keysFor_empty [simp]: "keysFor {} = {}"
     unfolding keysFor_def by blast

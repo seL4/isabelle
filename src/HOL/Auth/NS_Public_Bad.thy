@@ -3,7 +3,7 @@
     Copyright   1996  University of Cambridge
 *)
 
-section\<open>Verifying the Needham-Schroeder Public-Key Protocol\<close>
+section\<open>The Needham-Schroeder Public-Key Protocol (Flawed)\<close>
 
 text \<open>Flawed version, vulnerable to Lowe's attack.
 From Burrows, Abadi and Needham.  A Logic of Authentication.

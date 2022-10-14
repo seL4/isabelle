@@ -280,8 +280,7 @@ method_setup analz_mono_contra = \<open>
     Scan.succeed (fn ctxt => SIMPLE_METHOD (REPEAT_FIRST (analz_mono_contra_tac ctxt)))\<close>
     "for proving theorems of the form X \<notin> analz (knows Spy evs) \<longrightarrow> P"
 
-subsubsection\<open>Useful for case analysis on whether a hash is a spoof or not\<close>
-
+text\<open>Useful for case analysis on whether a hash is a spoof or not\<close>
 lemmas syan_impI = impI [where P = "Y \<notin> synth (analz (knows Spy evs))"] for Y evs
 
 ML

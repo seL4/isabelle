@@ -267,7 +267,7 @@ by auto
   nonces.
 
 lemma Nonce_notin_used_empty [simp]: "Nonce N \<notin> used []"
-apply (simp (no_asm) add: used_Nil)
+unfolding used_Nil
 done
 
 So, we must use old-style supply fresh nonce theorems relying on the appropriate axiom*)

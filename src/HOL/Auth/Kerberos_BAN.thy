@@ -666,7 +666,7 @@ lemma B_Issues_A:
          Key K \<notin> analz (spies evs);
          A \<notin> bad;  B \<notin> bad; evs \<in> bankerberos \<rbrakk>
       \<Longrightarrow> B Issues A with (Crypt K (Number Ta)) on evs"
-apply (simp (no_asm) add: Issues_def)
+unfolding Issues_def
 apply (rule exI)
 apply (rule conjI, assumption)
 apply (simp (no_asm))
@@ -697,7 +697,7 @@ lemma A_Issues_B:
          Key K \<notin> analz (spies evs);
          A \<notin> bad;  B \<notin> bad;  evs \<in> bankerberos \<rbrakk>
    \<Longrightarrow> A Issues B with (Crypt K \<lbrace>Agent A, Number Ta\<rbrace>) on evs"
-apply (simp (no_asm) add: Issues_def)
+unfolding Issues_def
 apply (rule exI)
 apply (rule conjI, assumption)
 apply (simp (no_asm))

@@ -1,9 +1,9 @@
-(*  Title:      HOL/Auth/NS_PublicX.thy
+(*  Title:      HOL/Auth/NS_Public.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1996  University of Cambridge
 *)
 
-section\<open>Verifying the Needham-Schroeder Public-Key Protocol\<close>
+section\<open>The Needham-Schroeder Public-Key Protocol\<close>
 
 text \<open>Flawed version, vulnerable to Lowe's attack.
 From Burrows, Abadi and Needham.  A Logic of Authentication.

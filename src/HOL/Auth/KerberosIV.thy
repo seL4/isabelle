@@ -1574,7 +1574,7 @@ lemma Kas_Issues_A:
       evs \<in> kerbIV \<rbrakk>
   \<Longrightarrow> Kas Issues A with (Crypt (shrK A) \<lbrace>Key authK, Peer, Ta, authTicket\<rbrace>) 
           on evs"
-apply (simp (no_asm) add: Issues_def)
+unfolding Issues_def
 apply (rule exI)
 apply (rule conjI, assumption)
 apply (simp (no_asm))
@@ -1628,7 +1628,7 @@ lemma A_Issues_Tgs:
      Key authK \<notin> analz (spies evs);  
      A \<notin> bad; evs \<in> kerbIV \<rbrakk>
  \<Longrightarrow> A Issues Tgs with (Crypt authK \<lbrace>Agent A, Number T2\<rbrace>) on evs"
-apply (simp (no_asm) add: Issues_def)
+unfolding Issues_def
 apply (rule exI)
 apply (rule conjI, assumption)
 apply (simp (no_asm))
@@ -1668,7 +1668,7 @@ lemma Tgs_Issues_A:
        Key authK \<notin> analz (spies evs);  evs \<in> kerbIV \<rbrakk>
   \<Longrightarrow> Tgs Issues A with 
           (Crypt authK \<lbrace>Key servK, Agent B, Number Ts, servTicket \<rbrace>) on evs"
-apply (simp (no_asm) add: Issues_def)
+unfolding Issues_def
 apply (rule exI)
 apply (rule conjI, assumption)
 apply (simp (no_asm))
@@ -1698,7 +1698,7 @@ lemma B_Issues_A:
          Key servK \<notin> analz (spies evs);
          A \<notin> bad;  B \<notin> bad; B \<noteq> Tgs; evs \<in> kerbIV \<rbrakk>
       \<Longrightarrow> B Issues A with (Crypt servK (Number T3)) on evs"
-apply (simp (no_asm) add: Issues_def)
+unfolding Issues_def
 apply (rule exI)
 apply (rule conjI, assumption)
 apply (simp (no_asm))
@@ -1765,7 +1765,7 @@ lemma A_Issues_B:
          Key servK \<notin> analz (spies evs);
          B \<noteq> Tgs; A \<notin> bad;  B \<notin> bad;  evs \<in> kerbIV \<rbrakk>
    \<Longrightarrow> A Issues B with (Crypt servK \<lbrace>Agent A, Number T3\<rbrace>) on evs"
-apply (simp (no_asm) add: Issues_def)
+unfolding Issues_def
 apply (rule exI)
 apply (rule conjI, assumption)
 apply (simp (no_asm))
