@@ -11,7 +11,7 @@ begin
 
 subsection\<open>Extensions to Theory \<open>Set\<close>\<close>
 
-lemma eq: "[| \<And>x. x\<in>A \<Longrightarrow> x\<in>B; \<And>x. x\<in>B \<Longrightarrow> x\<in>A |] ==> A=B"
+lemma eq: "\<lbrakk>\<And>x. x\<in>A \<Longrightarrow> x\<in>B; \<And>x. x\<in>B \<Longrightarrow> x\<in>A\<rbrakk> \<Longrightarrow> A=B"
 by auto
 
 lemma insert_Un: "P ({x} \<union> A) \<Longrightarrow> P (insert x A)"
@@ -80,7 +80,7 @@ abbreviation
   not_MPair :: "msg => bool" where
   "not_MPair X == ~ is_MPair X"
 
-lemma is_MPairE: "[| is_MPair X ==> P; not_MPair X ==> P |] ==> P"
+lemma is_MPairE: "\<lbrakk>is_MPair X \<Longrightarrow> P; not_MPair X \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
 by auto
 
 declare is_MPair_def [simp del]
@@ -109,7 +109,7 @@ subsubsection\<open>lemmas on keysFor\<close>
 definition usekeys :: "msg set => key set" where
 "usekeys G \<equiv> {K. \<exists>Y. Crypt K Y \<in> G}"
 
-lemma finite_keysFor [intro]: "finite G ==> finite (keysFor G)"
+lemma finite_keysFor [intro]: "finite G \<Longrightarrow> finite (keysFor G)"
 apply (simp add: keysFor_def)
 apply (rule finite_imageI)
 apply (induct G rule: finite_induct)
@@ -122,14 +122,14 @@ auto simp: usekeys_def)
 
 subsubsection\<open>lemmas on parts\<close>
 
-lemma parts_sub: "[| X \<in> parts G; G \<subseteq> H |] ==> X \<in> parts H"
+lemma parts_sub: "\<lbrakk>X \<in> parts G; G \<subseteq> H\<rbrakk> \<Longrightarrow> X \<in> parts H"
 by (auto dest: parts_mono)
 
 lemma parts_Diff [dest]: "X \<in> parts (G - H) \<Longrightarrow> X \<in> parts G"
 by (erule parts_sub, auto)
 
-lemma parts_Diff_notin: "[| Y \<notin> H; Nonce n \<notin> parts (H - {Y}) |]
-==> Nonce n \<notin> parts H"
+lemma parts_Diff_notin: "\<lbrakk>Y \<notin> H; Nonce n \<notin> parts (H - {Y})\<rbrakk>
+\<Longrightarrow> Nonce n \<notin> parts H"
 by simp
 
 lemmas parts_insert_substI = parts_insert [THEN ssubst]
@@ -142,32 +142,32 @@ lemma finite_parts [intro]: "finite H \<Longrightarrow> finite (parts H)"
 apply (erule finite_induct, simp)
 by (rule parts_insert_substI, simp)
 
-lemma parts_parts: "[| X \<in> parts {Y}; Y \<in> parts G |] ==> X \<in> parts G"
+lemma parts_parts: "\<lbrakk>X \<in> parts {Y}; Y \<in> parts G\<rbrakk> \<Longrightarrow> X \<in> parts G"
 by (frule parts_cut, auto) 
 
 
-lemma parts_parts_parts: "[| X \<in> parts {Y}; Y \<in> parts {Z}; Z \<in> parts G |] ==> X \<in> parts G"
+lemma parts_parts_parts: "\<lbrakk>X \<in> parts {Y}; Y \<in> parts {Z}; Z \<in> parts G\<rbrakk> \<Longrightarrow> X \<in> parts G"
 by (auto dest: parts_parts)
 
-lemma parts_parts_Crypt: "[| Crypt K X \<in> parts G; Nonce n \<in> parts {X} |]
-==> Nonce n \<in> parts G"
+lemma parts_parts_Crypt: "\<lbrakk>Crypt K X \<in> parts G; Nonce n \<in> parts {X}\<rbrakk>
+\<Longrightarrow> Nonce n \<in> parts G"
 by (blast intro: parts.Body dest: parts_parts)
 
 subsubsection\<open>lemmas on synth\<close>
 
-lemma synth_sub: "[| X \<in> synth G; G \<subseteq> H |] ==> X \<in> synth H"
+lemma synth_sub: "\<lbrakk>X \<in> synth G; G \<subseteq> H\<rbrakk> \<Longrightarrow> X \<in> synth H"
 by (auto dest: synth_mono)
 
-lemma Crypt_synth [rule_format]: "[| X \<in> synth G; Key K \<notin> G |] ==>
+lemma Crypt_synth [rule_format]: "\<lbrakk>X \<in> synth G; Key K \<notin> G\<rbrakk> \<Longrightarrow>
 Crypt K Y \<in> parts {X} \<longrightarrow> Crypt K Y \<in> parts G"
 by (erule synth.induct, auto dest: parts_sub)
 
 subsubsection\<open>lemmas on analz\<close>
 
-lemma analz_UnI1 [intro]: "X \<in> analz G ==> X \<in> analz (G \<union> H)"
+lemma analz_UnI1 [intro]: "X \<in> analz G \<Longrightarrow> X \<in> analz (G \<union> H)"
   by (subgoal_tac "G <= G Un H") (blast dest: analz_mono)+
 
-lemma analz_sub: "[| X \<in> analz G; G \<subseteq> H |] ==> X \<in> analz H"
+lemma analz_sub: "\<lbrakk>X \<in> analz G; G \<subseteq> H\<rbrakk> \<Longrightarrow> X \<in> analz H"
 by (auto dest: analz_mono)
 
 lemma analz_Diff [dest]: "X \<in> analz (G - H) \<Longrightarrow> X \<in> analz G"
@@ -175,16 +175,16 @@ by (erule analz.induct, auto)
 
 lemmas in_analz_subset_cong = analz_subset_cong [THEN subsetD]
 
-lemma analz_eq: "A=A' ==> analz A = analz A'"
+lemma analz_eq: "A=A' \<Longrightarrow> analz A = analz A'"
 by auto
 
 lemmas insert_commute_substI = insert_commute [THEN ssubst]
 
 lemma analz_insertD:
-     "[| Crypt K Y \<in> H; Key (invKey K) \<in> H |] ==> analz (insert Y H) = analz H"
+     "\<lbrakk>Crypt K Y \<in> H; Key (invKey K) \<in> H\<rbrakk> \<Longrightarrow> analz (insert Y H) = analz H"
 by (blast intro: analz.Decrypt analz_insert_eq)  
 
-lemma must_decrypt [rule_format,dest]: "[| X \<in> analz H; has_no_pair H |] ==>
+lemma must_decrypt [rule_format,dest]: "\<lbrakk>X \<in> analz H; has_no_pair H\<rbrakk> \<Longrightarrow>
 X \<notin> H \<longrightarrow> (\<exists>K Y. Crypt K Y \<in> H \<and> Key (invKey K) \<in> H)"
 by (erule analz.induct, auto)
 
@@ -205,8 +205,8 @@ by (erule analz.induct, auto intro: parts.Fst parts.Snd parts.Body)
 
 lemmas in_analz_subset_parts = analz_subset_parts [THEN subsetD]
 
-lemma Crypt_synth_insert: "[| Crypt K X \<in> parts (insert Y H);
-Y \<in> synth (analz H); Key K \<notin> analz H |] ==> Crypt K X \<in> parts H"
+lemma Crypt_synth_insert: "\<lbrakk>Crypt K X \<in> parts (insert Y H);
+Y \<in> synth (analz H); Key K \<notin> analz H\<rbrakk> \<Longrightarrow> Crypt K X \<in> parts H"
 apply (drule parts_insert_substD, clarify)
 apply (frule in_sub)
 apply (frule parts_mono)
@@ -230,10 +230,10 @@ subsubsection\<open>sets of keys\<close>
 definition keyset :: "msg set => bool" where
 "keyset G \<equiv> \<forall>X. X \<in> G \<longrightarrow> (\<exists>K. X = Key K)"
 
-lemma keyset_in [dest]: "[| keyset G; X \<in> G |] ==> \<exists>K. X = Key K"
+lemma keyset_in [dest]: "\<lbrakk>keyset G; X \<in> G\<rbrakk> \<Longrightarrow> \<exists>K. X = Key K"
 by (auto simp: keyset_def)
 
-lemma MPair_notin_keyset [simp]: "keyset G ==> \<lbrace>X,Y\<rbrace> \<notin> G"
+lemma MPair_notin_keyset [simp]: "keyset G \<Longrightarrow> \<lbrace>X,Y\<rbrace> \<notin> G"
 by auto
 
 lemma Crypt_notin_keyset [simp]: "keyset G \<Longrightarrow> Crypt K X \<notin> G"
@@ -242,7 +242,7 @@ by auto
 lemma Nonce_notin_keyset [simp]: "keyset G \<Longrightarrow> Nonce n \<notin> G"
 by auto
 
-lemma parts_keyset [simp]: "keyset G ==> parts G = G"
+lemma parts_keyset [simp]: "keyset G \<Longrightarrow> parts G = G"
 by (auto, erule parts.induct, auto)
 
 subsubsection\<open>keys a priori necessary for decrypting the messages of G\<close>
@@ -253,7 +253,7 @@ definition keysfor :: "msg set => msg set" where
 lemma keyset_keysfor [iff]: "keyset (keysfor G)"
 by (simp add: keyset_def keysfor_def, blast)
 
-lemma keyset_Diff_keysfor [simp]: "keyset H ==> keyset (H - keysfor G)"
+lemma keyset_Diff_keysfor [simp]: "keyset H \<Longrightarrow> keyset (H - keysfor G)"
 by (auto simp: keyset_def)
 
 lemma keysfor_Crypt: "Crypt K X \<in> parts G \<Longrightarrow> Key (invKey K) \<in> keysfor G"
@@ -262,12 +262,12 @@ by (auto simp: keysfor_def Crypt_imp_invKey_keysFor)
 lemma no_key_no_Crypt: "Key K \<notin> keysfor G \<Longrightarrow> Crypt (invKey K) X \<notin> parts G"
 by (auto dest: keysfor_Crypt)
 
-lemma finite_keysfor [intro]: "finite G ==> finite (keysfor G)"
+lemma finite_keysfor [intro]: "finite G \<Longrightarrow> finite (keysfor G)"
 by (auto simp: keysfor_def intro: finite_UN_I)
 
 subsubsection\<open>only the keys necessary for G are useful in analz\<close>
 
-lemma analz_keyset: "keyset H ==>
+lemma analz_keyset: "keyset H \<Longrightarrow>
 analz (G Un H) = H - keysfor G Un (analz (G Un (H Int keysfor G)))"
 apply (rule eq)
 apply (erule analz.induct, blast)
@@ -297,37 +297,37 @@ definition Gets_correct :: "event list set => bool" where
 "Gets_correct p == \<forall>evs B X. evs \<in> p \<longrightarrow> Gets B X \<in> set evs
 \<longrightarrow> (\<exists>A. Says A B X \<in> set evs)"
 
-lemma Gets_correct_Says: "[| Gets_correct p; Gets B X # evs \<in> p |]
-==> \<exists>A. Says A B X \<in> set evs"
+lemma Gets_correct_Says: "\<lbrakk>Gets_correct p; Gets B X # evs \<in> p\<rbrakk>
+\<Longrightarrow> \<exists>A. Says A B X \<in> set evs"
 apply (simp add: Gets_correct_def)
 by (drule_tac x="Gets B X # evs" in spec, auto)
 
 definition one_step :: "event list set => bool" where
 "one_step p == \<forall>evs ev. ev#evs \<in> p \<longrightarrow> evs \<in> p"
 
-lemma one_step_Cons [dest]: "[| one_step p; ev#evs \<in> p |] ==> evs \<in> p"
-by (unfold one_step_def, blast)
+lemma one_step_Cons [dest]: "\<lbrakk>one_step p; ev#evs \<in> p\<rbrakk> \<Longrightarrow> evs \<in> p"
+  unfolding one_step_def by blast
 
-lemma one_step_app: "[| evs@evs' \<in> p; one_step p; [] \<in> p |] ==> evs' \<in> p"
+lemma one_step_app: "\<lbrakk>evs@evs' \<in> p; one_step p; [] \<in> p\<rbrakk> \<Longrightarrow> evs' \<in> p"
 by (induct evs, auto)
 
-lemma trunc: "[| evs @ evs' \<in> p; one_step p |] ==> evs' \<in> p"
+lemma trunc: "\<lbrakk>evs @ evs' \<in> p; one_step p\<rbrakk> \<Longrightarrow> evs' \<in> p"
 by (induct evs, auto)
 
 definition has_only_Says :: "event list set => bool" where
 "has_only_Says p \<equiv> \<forall>evs ev. evs \<in> p \<longrightarrow> ev \<in> set evs
 \<longrightarrow> (\<exists>A B X. ev = Says A B X)"
 
-lemma has_only_SaysD: "[| ev \<in> set evs; evs \<in> p; has_only_Says p |]
-==> \<exists>A B X. ev = Says A B X"
-by (unfold has_only_Says_def, blast)
+lemma has_only_SaysD: "\<lbrakk>ev \<in> set evs; evs \<in> p; has_only_Says p\<rbrakk>
+\<Longrightarrow> \<exists>A B X. ev = Says A B X"
+  unfolding has_only_Says_def by blast
 
-lemma in_has_only_Says [dest]: "[| has_only_Says p; evs \<in> p; ev \<in> set evs |]
-==> \<exists>A B X. ev = Says A B X"
+lemma in_has_only_Says [dest]: "\<lbrakk>has_only_Says p; evs \<in> p; ev \<in> set evs\<rbrakk>
+\<Longrightarrow> \<exists>A B X. ev = Says A B X"
 by (auto simp: has_only_Says_def)
 
 lemma has_only_Says_imp_Gets_correct [simp]: "has_only_Says p
-==> Gets_correct p"
+\<Longrightarrow> Gets_correct p"
 by (auto simp: has_only_Says_def Gets_correct_def)
 
 subsubsection\<open>lemma on knows\<close>
@@ -335,8 +335,8 @@ subsubsection\<open>lemma on knows\<close>
 lemma Says_imp_spies2: "Says A B \<lbrace>X,Y\<rbrace> \<in> set evs \<Longrightarrow> Y \<in> parts (spies evs)"
 by (drule Says_imp_spies, drule parts.Inj, drule parts.Snd, simp)
 
-lemma Says_not_parts: "[| Says A B X \<in> set evs; Y \<notin> parts (spies evs) |]
-==> Y \<notin> parts {X}"
+lemma Says_not_parts: "\<lbrakk>Says A B X \<in> set evs; Y \<notin> parts (spies evs)\<rbrakk>
+\<Longrightarrow> Y \<notin> parts {X}"
 by (auto dest: Says_imp_spies parts_parts)
 
 subsubsection\<open>knows without initState\<close>
@@ -390,8 +390,8 @@ done
 lemmas knows_Cons_substI = knows_Cons [THEN ssubst]
 lemmas knows_Cons_substD = knows_Cons [THEN sym, THEN ssubst]
 
-lemma knows'_sub_spies': "[| evs \<in> p; has_only_Says p; one_step p |]
-==> knows' A evs \<subseteq> spies' evs"
+lemma knows'_sub_spies': "\<lbrakk>evs \<in> p; has_only_Says p; one_step p\<rbrakk>
+\<Longrightarrow> knows' A evs \<subseteq> spies' evs"
 by (induct evs, auto split: event.splits)
 
 subsubsection\<open>knows' is finite\<close>
@@ -466,12 +466,12 @@ lemmas knows_max_Cons_substD = knows_max_Cons [THEN sym, THEN ssubst]
 lemma finite_knows_max' [iff]: "finite (knows_max' A evs)"
 by (induct evs, auto split: event.split)
 
-lemma knows_max'_sub_spies': "[| evs \<in> p; has_only_Says p; one_step p |]
-==> knows_max' A evs \<subseteq> spies' evs"
+lemma knows_max'_sub_spies': "\<lbrakk>evs \<in> p; has_only_Says p; one_step p\<rbrakk>
+\<Longrightarrow> knows_max' A evs \<subseteq> spies' evs"
 by (induct evs, auto split: event.splits)
 
-lemma knows_max'_in_spies' [dest]: "[| evs \<in> p; X \<in> knows_max' A evs;
-has_only_Says p; one_step p |] ==> X \<in> spies' evs"
+lemma knows_max'_in_spies' [dest]: "\<lbrakk>evs \<in> p; X \<in> knows_max' A evs;
+has_only_Says p; one_step p\<rbrakk> \<Longrightarrow> X \<in> spies' evs"
 by (rule knows_max'_sub_spies' [THEN subsetD], auto)
 
 lemma knows_max'_app: "knows_max' A (evs @ evs')
@@ -537,11 +537,11 @@ by (induct evs', auto intro: used_ConsI)
 lemma used_appIR: "X \<in> used evs \<Longrightarrow> X \<in> used (evs @ evs')"
 by (erule used_sub_app [THEN subsetD])
 
-lemma used_parts: "[| X \<in> parts {Y}; Y \<in> used evs |] ==> X \<in> used evs"
+lemma used_parts: "\<lbrakk>X \<in> parts {Y}; Y \<in> used evs\<rbrakk> \<Longrightarrow> X \<in> used evs"
 apply (auto simp: used_decomp dest: used'_parts)
 by (auto simp: init_def used_Nil dest: parts_trans)
 
-lemma parts_Says_used: "[| Says A B X \<in> set evs; Y \<in> parts {X} |] ==> Y \<in> used evs"
+lemma parts_Says_used: "\<lbrakk>Says A B X \<in> set evs; Y \<in> parts {X}\<rbrakk> \<Longrightarrow> Y \<in> used evs"
 by (induct evs, simp_all, safe, auto intro: used_ConsI)
 
 lemma parts_used_app: "X \<in> parts {Y} \<Longrightarrow> X \<in> used (evs @ Says A B Y # evs')"
@@ -561,16 +561,16 @@ by (induct evs, auto intro: used_ConsI)
 lemma not_used_not_spied: "X \<notin> used evs \<Longrightarrow> X \<notin> parts (spies evs)"
 by (induct evs, auto simp: used_Nil)
 
-lemma not_used_not_parts: "[| Y \<notin> used evs; Says A B X \<in> set evs |]
-==> Y \<notin> parts {X}"
+lemma not_used_not_parts: "\<lbrakk>Y \<notin> used evs; Says A B X \<in> set evs\<rbrakk>
+\<Longrightarrow> Y \<notin> parts {X}"
 by (induct evs, auto intro: used_ConsI)
 
-lemma not_used_parts_false: "[| X \<notin> used evs; Y \<in> parts (spies evs) |]
-==> X \<notin> parts {Y}"
+lemma not_used_parts_false: "\<lbrakk>X \<notin> used evs; Y \<in> parts (spies evs)\<rbrakk>
+\<Longrightarrow> X \<notin> parts {Y}"
 by (auto dest: parts_parts)
 
-lemma known_used [rule_format]: "[| evs \<in> p; Gets_correct p; one_step p |]
-==> X \<in> parts (knows A evs) \<longrightarrow> X \<in> used evs"
+lemma known_used [rule_format]: "\<lbrakk>evs \<in> p; Gets_correct p; one_step p\<rbrakk>
+\<Longrightarrow> X \<in> parts (knows A evs) \<longrightarrow> X \<in> used evs"
 apply (case_tac "A=Spy", blast)
 apply (induct evs)
 apply (simp add: used.simps, blast)
@@ -583,8 +583,8 @@ apply (rename_tac msg)
 apply (drule_tac B=A and X=msg and evs=evs in Gets_correct_Says)
 by (auto dest: Says_imp_used intro: used_ConsI)
 
-lemma known_max_used [rule_format]: "[| evs \<in> p; Gets_correct p; one_step p |]
-==> X \<in> parts (knows_max A evs) \<longrightarrow> X \<in> used evs"
+lemma known_max_used [rule_format]: "\<lbrakk>evs \<in> p; Gets_correct p; one_step p\<rbrakk>
+\<Longrightarrow> X \<in> parts (knows_max A evs) \<longrightarrow> X \<in> used evs"
 apply (case_tac "A=Spy")
 apply force
 apply (induct evs)
@@ -597,22 +597,22 @@ apply (rename_tac msg)
 apply (drule_tac B=A and X=msg and evs=evs in Gets_correct_Says)
 by (auto simp: knows_max'_Cons dest: Says_imp_used intro: used_ConsI)
 
-lemma not_used_not_known: "[| evs \<in> p; X \<notin> used evs;
-Gets_correct p; one_step p |] ==> X \<notin> parts (knows A evs)"
+lemma not_used_not_known: "\<lbrakk>evs \<in> p; X \<notin> used evs;
+Gets_correct p; one_step p\<rbrakk> \<Longrightarrow> X \<notin> parts (knows A evs)"
 by (case_tac "A=Spy", auto dest: not_used_not_spied known_used)
 
-lemma not_used_not_known_max: "[| evs \<in> p; X \<notin> used evs;
-Gets_correct p; one_step p |] ==> X \<notin> parts (knows_max A evs)"
+lemma not_used_not_known_max: "\<lbrakk>evs \<in> p; X \<notin> used evs;
+Gets_correct p; one_step p\<rbrakk> \<Longrightarrow> X \<notin> parts (knows_max A evs)"
 by (case_tac "A=Spy", auto dest: not_used_not_spied known_max_used)
 
 subsubsection\<open>a nonce or key in a message cannot equal a fresh nonce or key\<close>
 
-lemma Nonce_neq [dest]: "[| Nonce n' \<notin> used evs;
-Says A B X \<in> set evs; Nonce n \<in> parts {X} |] ==> n \<noteq> n'"
+lemma Nonce_neq [dest]: "\<lbrakk>Nonce n' \<notin> used evs;
+Says A B X \<in> set evs; Nonce n \<in> parts {X}\<rbrakk> \<Longrightarrow> n \<noteq> n'"
 by (drule not_used_not_spied, auto dest: Says_imp_knows_Spy parts_sub)
 
-lemma Key_neq [dest]: "[| Key n' \<notin> used evs;
-Says A B X \<in> set evs; Key n \<in> parts {X} |] ==> n ~= n'"
+lemma Key_neq [dest]: "\<lbrakk>Key n' \<notin> used evs;
+Says A B X \<in> set evs; Key n \<in> parts {X}\<rbrakk> \<Longrightarrow> n ~= n'"
 by (drule not_used_not_spied, auto dest: Says_imp_knows_Spy parts_sub)
 
 subsubsection\<open>message of an event\<close>
@@ -623,7 +623,7 @@ where
 | "msg (Gets A X) = X"
 | "msg (Notes A X) = X"
 
-lemma used_sub_parts_used: "X \<in> used (ev # evs) ==> X \<in> parts {msg ev} \<union> used evs"
+lemma used_sub_parts_used: "X \<in> used (ev # evs) \<Longrightarrow> X \<in> parts {msg ev} \<union> used evs"
 by (induct ev, auto)
 
 end

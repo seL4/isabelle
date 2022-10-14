@@ -54,7 +54,7 @@ subsubsection\<open>sets of private keys\<close>
 definition priK_set :: "key set => bool" where
 "priK_set Ks \<equiv> \<forall>K. K \<in> Ks \<longrightarrow> (\<exists>A. K = priK A)"
 
-lemma in_priK_set: "[| priK_set Ks; K \<in> Ks |] ==> \<exists>A. K = priK A"
+lemma in_priK_set: "\<lbrakk>priK_set Ks; K \<in> Ks\<rbrakk> \<Longrightarrow> \<exists>A. K = priK A"
 by (simp add: priK_set_def)
 
 lemma priK_set1 [iff]: "priK_set {priK A}"
@@ -68,13 +68,13 @@ subsubsection\<open>sets of good keys\<close>
 definition good :: "key set => bool" where
 "good Ks == \<forall>K. K \<in> Ks \<longrightarrow> agt K \<notin> bad"
 
-lemma in_good: "[| good Ks; K \<in> Ks |] ==> agt K \<notin> bad"
+lemma in_good: "\<lbrakk>good Ks; K \<in> Ks\<rbrakk> \<Longrightarrow> agt K \<notin> bad"
 by (simp add: good_def)
 
 lemma good1 [simp]: "A \<notin> bad \<Longrightarrow> good {priK A}"
 by (simp add: good_def)
 
-lemma good2 [simp]: "[| A \<notin> bad; B \<notin> bad |] ==> good {priK A, priK B}"
+lemma good2 [simp]: "\<lbrakk>A \<notin> bad; B \<notin> bad\<rbrakk> \<Longrightarrow> good {priK A, priK B}"
 by (simp add: good_def)
 
 subsubsection\<open>greatest nonce used in a trace, 0 if there is no nonce\<close>
@@ -122,23 +122,23 @@ lemma Guard_init [iff]: "Guard n Ks (initState B)"
 by (induct B, auto simp: Guard_def initState.simps)
 
 lemma Guard_knows_max': "Guard n Ks (knows_max' C evs)
-==> Guard n Ks (knows_max C evs)"
+\<Longrightarrow> Guard n Ks (knows_max C evs)"
 by (simp add: knows_max_def)
 
 lemma Nonce_not_used_Guard_spies [dest]: "Nonce n \<notin> used evs
 \<Longrightarrow> Guard n Ks (spies evs)"
 by (auto simp: Guard_def dest: not_used_not_known parts_sub)
 
-lemma Nonce_not_used_Guard [dest]: "[| evs \<in> p; Nonce n \<notin> used evs;
-Gets_correct p; one_step p |] ==> Guard n Ks (knows (Friend C) evs)"
+lemma Nonce_not_used_Guard [dest]: "\<lbrakk>evs \<in> p; Nonce n \<notin> used evs;
+Gets_correct p; one_step p\<rbrakk> \<Longrightarrow> Guard n Ks (knows (Friend C) evs)"
 by (auto simp: Guard_def dest: known_used parts_trans)
 
-lemma Nonce_not_used_Guard_max [dest]: "[| evs \<in> p; Nonce n \<notin> used evs;
-Gets_correct p; one_step p |] ==> Guard n Ks (knows_max (Friend C) evs)"
+lemma Nonce_not_used_Guard_max [dest]: "\<lbrakk>evs \<in> p; Nonce n \<notin> used evs;
+Gets_correct p; one_step p\<rbrakk> \<Longrightarrow> Guard n Ks (knows_max (Friend C) evs)"
 by (auto simp: Guard_def dest: known_max_used parts_trans)
 
-lemma Nonce_not_used_Guard_max' [dest]: "[| evs \<in> p; Nonce n \<notin> used evs;
-Gets_correct p; one_step p |] ==> Guard n Ks (knows_max' (Friend C) evs)"
+lemma Nonce_not_used_Guard_max' [dest]: "\<lbrakk>evs \<in> p; Nonce n \<notin> used evs;
+Gets_correct p; one_step p\<rbrakk> \<Longrightarrow> Guard n Ks (knows_max' (Friend C) evs)"
 apply (rule_tac H="knows_max (Friend C) evs" in Guard_mono)
 by (auto simp: knows_max_def)
 
@@ -147,16 +147,16 @@ subsubsection\<open>regular protocols\<close>
 definition regular :: "event list set \<Rightarrow> bool" where
 "regular p \<equiv> \<forall>evs A. evs \<in> p \<longrightarrow> (Key (priK A) \<in> parts (spies evs)) = (A \<in> bad)"
 
-lemma priK_parts_iff_bad [simp]: "[| evs \<in> p; regular p |] ==>
+lemma priK_parts_iff_bad [simp]: "\<lbrakk>evs \<in> p; regular p\<rbrakk> \<Longrightarrow>
 (Key (priK A) \<in> parts (spies evs)) = (A \<in> bad)"
 by (auto simp: regular_def)
 
-lemma priK_analz_iff_bad [simp]: "[| evs \<in> p; regular p |] ==>
+lemma priK_analz_iff_bad [simp]: "\<lbrakk>evs \<in> p; regular p\<rbrakk> \<Longrightarrow>
 (Key (priK A) \<in> analz (spies evs)) = (A \<in> bad)"
 by auto
 
-lemma Guard_Nonce_analz: "[| Guard n Ks (spies evs); evs \<in> p;
-priK_set Ks; good Ks; regular p |] ==> Nonce n \<notin> analz (spies evs)"
+lemma Guard_Nonce_analz: "\<lbrakk>Guard n Ks (spies evs); evs \<in> p;
+priK_set Ks; good Ks; regular p\<rbrakk> \<Longrightarrow> Nonce n \<notin> analz (spies evs)"
 apply (clarify, simp only: knows_decomp)
 apply (drule Guard_invKey_keyset, simp+, safe)
 apply (drule in_good, simp)
