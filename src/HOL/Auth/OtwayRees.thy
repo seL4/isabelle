@@ -148,8 +148,8 @@ by (blast dest: Spy_see_shrK)
 
 subsection\<open>Towards Secrecy: Proofs Involving \<^term>\<open>analz\<close>\<close>
 
-(*Describes the form of K and NA when the Server sends this message.  Also
-  for Oops case.*)
+text \<open>Describes the form of K and NA when the Server sends this message.  Also
+  for Oops case.\<close>
 lemma Says_Server_message_form:
      "\<lbrakk>Says Server B \<lbrace>NA, X, Crypt (shrK B) \<lbrace>NB, Key K\<rbrace>\<rbrace> \<in> set evs;
          evs \<in> otway\<rbrakk>
