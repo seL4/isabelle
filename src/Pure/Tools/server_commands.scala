@@ -140,7 +140,7 @@ object Server_Commands {
       val res =
         JSON.Object(
           "session_id" -> id.toString,
-          "tmp_dir" -> File.path(session.tmp_dir).implode)
+          "tmp_dir" -> session.tmp_dir_name)
 
       (res, id -> session)
     }
