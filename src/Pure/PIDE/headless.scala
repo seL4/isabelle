@@ -100,17 +100,17 @@ object Headless {
     ) {
       def next(
         dep_graph: Document.Node.Name.Graph[Unit],
-        finished: Document.Node.Name => Boolean
+        consolidated: Document.Node.Name => Boolean
       ): (List[Document.Node.Name], Load_State) = {
         def load_requirements(
           pending1: List[Document.Node.Name],
           rest1: List[Document.Node.Name]
         ) : (List[Document.Node.Name], Load_State) = {
-          val load_theories = dep_graph.all_preds_rev(pending1).filterNot(finished)
+          val load_theories = dep_graph.all_preds_rev(pending1)
           (load_theories, Load_State(pending1, rest1, load_limit))
         }
 
-        if (!pending.forall(finished)) (Nil, this)
+        if (!pending.forall(consolidated)) (Nil, this)
         else if (rest.isEmpty) (Nil, Load_State.finished)
         else if (load_limit == 0) load_requirements(rest, Nil)
         else {
@@ -202,16 +202,18 @@ object Headless {
               }
           }
 
-        def finished_theory(name: Document.Node.Name): Boolean =
+        def consolidated(name: Document.Node.Name): Boolean =
           loaded_theory(name) ||
+          nodes_status.quasi_consolidated(name) ||
           (if (commit.isDefined) already_committed1.isDefinedAt(name)
            else state.node_consolidated(version, name))
 
+        def committed(name: Document.Node.Name): Boolean =
+          loaded_theory(name) || already_committed1.isDefinedAt(name)
+
         val result1 =
           if (!finished_result &&
-            (beyond_limit || watchdog ||
-              dep_graph.keys_iterator.forall(name =>
-                finished_theory(name) || nodes_status.quasi_consolidated(name)))) {
+              (beyond_limit || watchdog || dep_graph.keys_iterator.forall(consolidated))) {
             val nodes =
               (for {
                 name <- dep_graph.keys_iterator
@@ -226,9 +228,9 @@ object Headless {
           }
           else result
 
-        val (load_theories, load_state1) = load_state.next(dep_graph, finished_theory)
+        val (load_theories, load_state1) = load_state.next(dep_graph, consolidated)
 
-        (load_theories,
+        (load_theories.filterNot(committed),
           copy(already_committed = already_committed1, result = result1, load_state = load_state1))
       }
     }
