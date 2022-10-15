@@ -46,6 +46,9 @@ New in this Isabelle version
       fimage_strict_mono
       wfP_pfsubset
 
+* Theory "HOL-Library.Multiset":
+  - Added lemma wfP_subset_mset[simp].
+
 
 New in Isabelle2022 (October 2022)
 ----------------------------------
