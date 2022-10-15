@@ -350,8 +350,9 @@ object Headless {
               check_state()
 
               if (commit.isDefined && commit_cleanup_delay > Time.zero) {
-                if (use_theories_state.value.finished_result)
+                if (use_theories_state.value.finished_result) {
                   delay_commit_clean.revoke()
+                }
                 else delay_commit_clean.invoke()
               }
             }
