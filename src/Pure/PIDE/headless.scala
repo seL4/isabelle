@@ -438,7 +438,7 @@ object Headless {
       def purge_edits: List[Document.Edit_Text] =
         make_edits(Text.Edit.removes(0, text))
 
-      def required(required: Boolean): Theory =
+      def set_required(required: Boolean): Theory =
         if (required == node_required) this
         else new Theory(node_name, node_header, text, required)
     }
@@ -526,7 +526,7 @@ object Headless {
             theory <- st1.theories.get(node_name)
           }
           yield {
-            val theory1 = theory.required(st1.is_required(node_name))
+            val theory1 = theory.set_required(st1.is_required(node_name))
             val edits = theory1.node_edits(Some(theory))
             (edits, (node_name, theory1))
           }
@@ -613,7 +613,7 @@ object Headless {
           for (theory <- loaded_theories)
           yield {
             val node_name = theory.node_name
-            val theory1 = theory.required(st1.is_required(node_name))
+            val theory1 = theory.set_required(st1.is_required(node_name))
             val edits = theory1.node_edits(st1.theories.get(node_name))
             (edits, (node_name, theory1))
           }
