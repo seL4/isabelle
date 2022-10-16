@@ -289,7 +289,7 @@ object Headless {
         } resources.load_theories(session, id, load_theories, dep_files, unicode_symbols, progress)
       }
 
-      val check_progress = {
+      lazy val check_progress = {
         var check_count = 0
         Event_Timer.request(Time.now(), repeat = Some(check_delay)) {
           if (progress.stopped) use_theories_state.change(_.cancel_result)
@@ -363,7 +363,7 @@ object Headless {
 
       try {
         session.commands_changed += consumer
-        check_state()
+        check_progress
         use_theories_state.guarded_access(_.join_result)
         check_progress.cancel()
       }
