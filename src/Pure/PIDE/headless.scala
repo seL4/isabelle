@@ -247,7 +247,7 @@ object Headless {
         val (load_theories, load_state1) =
           load_state.next(dep_graph, consolidated(state, version, _))
 
-        (load_theories.filterNot(committed), copy(result = result1, load_state = load_state1))
+        (load_theories.filterNot(committed), st1.copy(result = result1, load_state = load_state1))
       }
     }
 
