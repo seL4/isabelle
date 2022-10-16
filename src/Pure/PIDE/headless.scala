@@ -613,8 +613,9 @@ object Headless {
           for (theory <- loaded_theories)
           yield {
             val node_name = theory.node_name
+            val old_theory = st.theories.get(node_name)
             val theory1 = theory.set_required(st1.is_required(node_name))
-            val edits = theory1.node_edits(st1.theories.get(node_name))
+            val edits = theory1.node_edits(old_theory)
             (edits, (node_name, theory1))
           }
         val file_edits =
