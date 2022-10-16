@@ -130,6 +130,8 @@ object Headless {
       last_update: Time = Time.now(),
       nodes_status: Document_Status.Nodes_Status = Document_Status.Nodes_Status.empty,
       already_committed: Map[Document.Node.Name, Document_Status.Node_Status] = Map.empty,
+      changed_nodes: Set[Document.Node.Name] = Set.empty,
+      changed_assignment: Boolean = false,
       result: Option[Exn.Result[Use_Theories_Result]] = None
     ) {
       def nodes_status_update(state: Document.State, version: Document.Version,
@@ -141,6 +143,19 @@ object Headless {
         val st1 = copy(last_update = Time.now(), nodes_status = nodes_status1)
         (nodes_status_changed, st1)
       }
+
+      def changed(
+        nodes: IterableOnce[Document.Node.Name],
+        assignment: Boolean
+      ): Use_Theories_State = {
+        copy(
+          changed_nodes = changed_nodes ++ nodes,
+          changed_assignment = changed_assignment || assignment)
+      }
+
+      def reset_changed: Use_Theories_State =
+        if (changed_nodes.isEmpty && !changed_assignment) this
+        else copy(changed_nodes = Set.empty, changed_assignment = false)
 
       def watchdog: Boolean =
         watchdog_timeout > Time.zero && Time.now() - last_update > watchdog_timeout
@@ -224,24 +239,38 @@ object Headless {
         def committed(name: Document.Node.Name): Boolean =
           loaded_theory(name) || st1.already_committed.isDefinedAt(name)
 
-        val result1 =
+        val result1 = {
+          val stopped = beyond_limit || watchdog
           if (!finished_result &&
-              (beyond_limit || watchdog ||
-                dep_graph.keys_iterator.forall(consolidated(state, version, _)))
+              (stopped || dep_graph.keys_iterator.forall(consolidated(state, version, _)))
           ) {
-            val nodes =
-              (for {
-                name <- dep_graph.keys_iterator
-                if !loaded_theory(name)
-              } yield name -> Document_Status.Node_Status.make(state, version, name)).toList
-            val nodes_committed =
-              (for {
-                name <- dep_graph.keys_iterator
-                status <- st1.already_committed.get(name)
-              } yield name -> status).toList
-            Some(Exn.Res(new Use_Theories_Result(state, version, nodes, nodes_committed)))
+            @tailrec def make_nodes(
+              input: List[Document.Node.Name],
+              output: List[(Document.Node.Name, Document_Status.Node_Status)]
+            ): Option[List[(Document.Node.Name, Document_Status.Node_Status)]] = {
+              input match {
+                case name :: rest =>
+                  if (loaded_theory(name)) make_nodes(rest, output)
+                  else {
+                    val status = Document_Status.Node_Status.make(state, version, name)
+                    if (stopped || status.consolidated) make_nodes(rest, (name -> status) :: output)
+                    else None
+                  }
+                case Nil => Some(output)
+              }
+            }
+
+            for (nodes <- make_nodes(dep_graph.topological_order.reverse, Nil)) yield {
+              val nodes_committed =
+                (for {
+                  name <- dep_graph.keys_iterator
+                  status <- st1.already_committed.get(name)
+                } yield name -> status).toList
+              Exn.Res(new Use_Theories_Result(state, version, nodes, nodes_committed))
+            }
           }
           else result
+        }
 
         val (load_theories, load_state1) =
           load_state.next(dep_graph, consolidated(state, version, _))
@@ -295,8 +324,10 @@ object Headless {
         Synchronized(Use_Theories_State(dep_graph, load_state, watchdog_timeout, commit))
       }
 
-      def check_state(beyond_limit: Boolean = false): Unit = {
-        val state = session.get_state()
+      def check_state(
+        beyond_limit: Boolean = false,
+        state: Document.State = session.get_state()
+      ): Unit = {
         for {
           version <- state.stable_tip_version
           load_theories = use_theories_state.change_result(_.check(state, version, beyond_limit))
@@ -330,22 +361,26 @@ object Headless {
             }
           }
 
-        isabelle.Session.Consumer[isabelle.Session.Commands_Changed](getClass.getName) {
-          changed =>
-            if (changed.nodes.exists(dep_theories_set)) {
-              val snapshot = session.snapshot()
-              val state = snapshot.state
-              val version = snapshot.version
+        isabelle.Session.Consumer[isabelle.Session.Commands_Changed](getClass.getName) { changed =>
+          val state = session.get_state()
 
-              val theory_progress =
+          def apply_changed(st: Use_Theories_State): Use_Theories_State =
+            st.changed(changed.nodes.iterator.filter(dep_theories_set), changed.assignment)
+
+          state.stable_tip_version match {
+            case None => use_theories_state.change(apply_changed)
+            case Some(version) =>
+              val (theory_progress, finished_result) =
                 use_theories_state.change_result { st =>
+                  val changed_st = apply_changed(st)
+
                   val domain =
                     if (st.nodes_status.is_empty) dep_theories_set
-                    else changed.nodes.iterator.filter(dep_theories_set).toSet
+                    else changed_st.changed_nodes
 
                   val (nodes_status_changed, st1) =
-                    st.nodes_status_update(state, version,
-                      domain = Some(domain), trim = changed.assignment)
+                    st.reset_changed.nodes_status_update(state, version,
+                      domain = Some(domain), trim = changed_st.changed_assignment)
 
                   if (nodes_status_delay >= Time.zero && nodes_status_changed) {
                     delay_nodes_status.invoke()
@@ -354,25 +389,23 @@ object Headless {
                   val theory_progress =
                     (for {
                       (name, node_status) <- st1.nodes_status.present.iterator
-                      if changed.nodes.contains(name) && !st.already_committed.isDefinedAt(name)
+                      if changed_st.changed_nodes(name) && !st.already_committed.isDefinedAt(name)
                       p1 = node_status.percentage
                       if p1 > 0 && !st.nodes_status.get(name).map(_.percentage).contains(p1)
                     } yield Progress.Theory(name.theory, percentage = Some(p1))).toList
 
-                  (theory_progress, st1)
+                  ((theory_progress, st1.finished_result), st1)
                 }
 
               theory_progress.foreach(progress.theory)
 
-              check_state()
+              check_state(state = state)
 
               if (commit.isDefined && commit_cleanup_delay > Time.zero) {
-                if (use_theories_state.value.finished_result) {
-                  delay_commit_clean.revoke()
-                }
+                if (finished_result) delay_commit_clean.revoke()
                 else delay_commit_clean.invoke()
               }
-            }
+          }
         }
       }
 
