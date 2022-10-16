@@ -132,8 +132,8 @@ object Headless {
       already_committed: Map[Document.Node.Name, Document_Status.Node_Status] = Map.empty,
       result: Option[Exn.Result[Use_Theories_Result]] = None
     ) {
-      def update(new_nodes_status: Document_Status.Nodes_Status): Use_Theories_State =
-        copy(last_update = Time.now(), nodes_status = new_nodes_status)
+      def update(nodes_status1: Document_Status.Nodes_Status): Use_Theories_State =
+        copy(last_update = Time.now(), nodes_status = nodes_status1)
 
       def watchdog: Boolean =
         watchdog_timeout > Time.zero && Time.now() - last_update > watchdog_timeout
