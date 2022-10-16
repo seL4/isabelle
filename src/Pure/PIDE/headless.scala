@@ -134,12 +134,11 @@ object Headless {
     ) {
       def nodes_status_update(state: Document.State, version: Document.Version,
         domain: Option[Set[Document.Node.Name]] = None,
-        trim: Boolean = false,
-        tick: Boolean = false
+        trim: Boolean = false
       ): (Boolean, Use_Theories_State) = {
         val (nodes_status_changed, nodes_status1) =
           nodes_status.update(resources, state, version, domain = domain, trim = trim)
-        val st1 = copy(last_update = if (tick) Time.now() else last_update, nodes_status = nodes_status1)
+        val st1 = copy(last_update = Time.now(), nodes_status = nodes_status1)
         (nodes_status_changed, st1)
       }
 
@@ -346,7 +345,7 @@ object Headless {
 
                   val (nodes_status_changed, st1) =
                     st.nodes_status_update(state, version,
-                      domain = Some(domain), trim = changed.assignment, tick = true)
+                      domain = Some(domain), trim = changed.assignment)
 
                   if (nodes_status_delay >= Time.zero && nodes_status_changed) {
                     delay_nodes_status.invoke()
