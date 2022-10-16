@@ -177,43 +177,51 @@ object Headless {
         }
       }
 
+      private def consolidated(
+        state: Document.State,
+        version: Document.Version,
+        name: Document.Node.Name
+      ): Boolean = {
+        loaded_theory(name) ||
+        nodes_status.quasi_consolidated(name) ||
+        (if (commit.isDefined) already_committed.isDefinedAt(name)
+         else state.node_consolidated(version, name))
+      }
+
       def check(
         state: Document.State,
         version: Document.Version,
         beyond_limit: Boolean
       ) : (List[Document.Node.Name], Use_Theories_State) = {
-        val already_committed1 =
+        val st1 =
           commit match {
-            case None => already_committed
+            case None => this
             case Some(commit_fn) =>
-              dep_graph.topological_order.foldLeft(already_committed) {
-                case (committed, name) =>
-                  def parents_committed: Boolean =
-                    version.nodes(name).header.imports.forall(parent =>
-                      loaded_theory(parent) || committed.isDefinedAt(parent))
-                  if (!committed.isDefinedAt(name) && parents_committed &&
-                      state.node_consolidated(version, name)) {
-                    val snapshot = stable_snapshot(state, version, name)
-                    val status = Document_Status.Node_Status.make(state, version, name)
-                    commit_fn(snapshot, status)
-                    committed + (name -> status)
-                  }
-                  else committed
-              }
+              copy(already_committed =
+                dep_graph.topological_order.foldLeft(already_committed) {
+                  case (committed, name) =>
+                    def parents_committed: Boolean =
+                      version.nodes(name).header.imports.forall(parent =>
+                        loaded_theory(parent) || committed.isDefinedAt(parent))
+                    if (!committed.isDefinedAt(name) && parents_committed &&
+                        state.node_consolidated(version, name)) {
+                      val snapshot = stable_snapshot(state, version, name)
+                      val status = Document_Status.Node_Status.make(state, version, name)
+                      commit_fn(snapshot, status)
+                      committed + (name -> status)
+                    }
+                    else committed
+                })
           }
 
-        def consolidated(name: Document.Node.Name): Boolean =
-          loaded_theory(name) ||
-          nodes_status.quasi_consolidated(name) ||
-          (if (commit.isDefined) already_committed1.isDefinedAt(name)
-           else state.node_consolidated(version, name))
-
         def committed(name: Document.Node.Name): Boolean =
-          loaded_theory(name) || already_committed1.isDefinedAt(name)
+          loaded_theory(name) || st1.already_committed.isDefinedAt(name)
 
         val result1 =
           if (!finished_result &&
-              (beyond_limit || watchdog || dep_graph.keys_iterator.forall(consolidated))) {
+              (beyond_limit || watchdog ||
+                dep_graph.keys_iterator.forall(consolidated(state, version, _)))
+          ) {
             val nodes =
               (for {
                 name <- dep_graph.keys_iterator
@@ -222,16 +230,16 @@ object Headless {
             val nodes_committed =
               (for {
                 name <- dep_graph.keys_iterator
-                status <- already_committed1.get(name)
+                status <- st1.already_committed.get(name)
               } yield name -> status).toList
             Some(Exn.Res(new Use_Theories_Result(state, version, nodes, nodes_committed)))
           }
           else result
 
-        val (load_theories, load_state1) = load_state.next(dep_graph, consolidated)
+        val (load_theories, load_state1) =
+          load_state.next(dep_graph, consolidated(state, version, _))
 
-        (load_theories.filterNot(committed),
-          copy(already_committed = already_committed1, result = result1, load_state = load_state1))
+        (load_theories.filterNot(committed), copy(result = result1, load_state = load_state1))
       }
     }
 
