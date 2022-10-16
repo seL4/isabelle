@@ -132,8 +132,16 @@ object Headless {
       already_committed: Map[Document.Node.Name, Document_Status.Node_Status] = Map.empty,
       result: Option[Exn.Result[Use_Theories_Result]] = None
     ) {
-      def update(nodes_status1: Document_Status.Nodes_Status): Use_Theories_State =
-        copy(last_update = Time.now(), nodes_status = nodes_status1)
+      def nodes_status_update(state: Document.State, version: Document.Version,
+        domain: Option[Set[Document.Node.Name]] = None,
+        trim: Boolean = false,
+        tick: Boolean = false
+      ): (Boolean, Use_Theories_State) = {
+        val (nodes_status_changed, nodes_status1) =
+          nodes_status.update(resources, state, version, domain = domain, trim = trim)
+        val st1 = copy(last_update = if (tick) Time.now() else last_update, nodes_status = nodes_status1)
+        (nodes_status_changed, st1)
+      }
 
       def watchdog: Boolean =
         watchdog_timeout > Time.zero && Time.now() - last_update > watchdog_timeout
@@ -336,9 +344,9 @@ object Headless {
                     if (st.nodes_status.is_empty) dep_theories_set
                     else changed.nodes.iterator.filter(dep_theories_set).toSet
 
-                  val (nodes_status_changed, nodes_status1) =
-                    st.nodes_status.update(resources, state, version,
-                      domain = Some(domain), trim = changed.assignment)
+                  val (nodes_status_changed, st1) =
+                    st.nodes_status_update(state, version,
+                      domain = Some(domain), trim = changed.assignment, tick = true)
 
                   if (nodes_status_delay >= Time.zero && nodes_status_changed) {
                     delay_nodes_status.invoke()
@@ -346,13 +354,13 @@ object Headless {
 
                   val theory_progress =
                     (for {
-                      (name, node_status) <- nodes_status1.present.iterator
+                      (name, node_status) <- st1.nodes_status.present.iterator
                       if changed.nodes.contains(name) && !st.already_committed.isDefinedAt(name)
                       p1 = node_status.percentage
                       if p1 > 0 && !st.nodes_status.get(name).map(_.percentage).contains(p1)
                     } yield Progress.Theory(name.theory, percentage = Some(p1))).toList
 
-                  (theory_progress, st.update(nodes_status1))
+                  (theory_progress, st1)
                 }
 
               theory_progress.foreach(progress.theory)
