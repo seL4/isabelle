@@ -516,13 +516,13 @@ object Headless {
       def remove_required(id: UUID.T, names: List[Document.Node.Name]): State =
         copy(required = names.foldLeft(required)(_.remove(_, id)))
 
-      def update_theories(update: List[(Document.Node.Name, Theory)]): State =
+      def update_theories(update: List[Theory]): State =
         copy(theories =
           update.foldLeft(theories) {
-            case (thys, (name, thy)) =>
-              thys.get(name) match {
+            case (thys, thy) =>
+              thys.get(thy.node_name) match {
                 case Some(thy1) if thy1 == thy => thys
-                case _ => thys + (name -> thy)
+                case _ => thys + (thy.node_name -> thy)
               }
           })
 
@@ -544,9 +544,9 @@ object Headless {
           yield {
             val theory1 = theory.set_required(st1.is_required(node_name))
             val edits = theory1.node_edits(Some(theory))
-            (edits, (node_name, theory1))
+            (theory1, edits)
           }
-        (theory_edits.flatMap(_._1), st1.update_theories(theory_edits.map(_._2)))
+        (theory_edits.flatMap(_._2), st1.update_theories(theory_edits.map(_._1)))
       }
 
       def purge_theories(
@@ -632,14 +632,14 @@ object Headless {
             val old_theory = st.theories.get(node_name)
             val theory1 = theory.set_required(st1.is_required(node_name))
             val edits = theory1.node_edits(old_theory)
-            (edits, (node_name, theory1))
+            (theory1, edits)
           }
         val file_edits =
           for { node_name <- files if doc_blobs1.changed(node_name) }
           yield st1.blob_edits(node_name, st.blobs.get(node_name))
 
-        session.update(doc_blobs1, theory_edits.flatMap(_._1) ::: file_edits.flatten)
-        st1.update_theories(theory_edits.map(_._2))
+        session.update(doc_blobs1, theory_edits.flatMap(_._2) ::: file_edits.flatten)
+        st1.update_theories(theory_edits.map(_._1))
       }
     }
 
