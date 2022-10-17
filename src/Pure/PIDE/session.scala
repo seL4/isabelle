@@ -255,7 +255,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
     def flush(): Unit = synchronized {
       if (assignment || nodes.nonEmpty || commands.nonEmpty)
         commands_changed.post(Session.Commands_Changed(assignment, nodes, commands))
-      if (nodes.nonEmpty) consolidation.update(nodes)
+      if (nodes.nonEmpty) consolidation.update(more_nodes = nodes)
       assignment = false
       nodes = Set.empty
       commands = Set.empty
@@ -312,10 +312,10 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
       state.change(_ => None)
     }
 
-    def update(new_nodes: Set[Document.Node.Name] = Set.empty): Unit = {
+    def update(more_nodes: Set[Document.Node.Name] = Set.empty): Unit = {
       val active =
         state.change_result(st =>
-          (st.isDefined, st.map(nodes => if (nodes.isEmpty) new_nodes else nodes ++ new_nodes)))
+          (st.isDefined, st.map(nodes => if (nodes.isEmpty) more_nodes else nodes ++ more_nodes)))
       if (active) delay.invoke()
     }
 
