@@ -239,9 +239,14 @@ object Headless {
         def committed(name: Document.Node.Name): Boolean =
           loaded_theory(name) || st1.already_committed.isDefinedAt(name)
 
+        val (load_theories0, load_state1) =
+          load_state.next(dep_graph, consolidated(state, version, _))
+
+        val load_theories = load_theories0.filterNot(committed)
+
         val result1 = {
           val stopped = beyond_limit || watchdog
-          if (!finished_result &&
+          if (!finished_result && load_theories.isEmpty &&
               (stopped || dep_graph.keys_iterator.forall(consolidated(state, version, _)))
           ) {
             @tailrec def make_nodes(
@@ -272,10 +277,7 @@ object Headless {
           else result
         }
 
-        val (load_theories, load_state1) =
-          load_state.next(dep_graph, consolidated(state, version, _))
-
-        (load_theories.filterNot(committed), st1.copy(result = result1, load_state = load_state1))
+        (load_theories, st1.copy(result = result1, load_state = load_state1))
       }
     }
 
