@@ -123,11 +123,24 @@ SCALA_INTERFACES="$SCALA_HOME/lib/""" + interfaces + """"
 """ + terminate_lines(classpath.map(jar => "classpath \"$SCALA_HOME/lib/" + jar + "\"")))
 
 
+    /* adhoc changes */
+
+    val patched_scripts = List("bin/scala", "bin/scalac")
+    for (name <- patched_scripts) {
+      File.change(component_dir + Path.explode(name)) {
+        _.replace(""""-Dscala.home=$PROG_HOME"""", """"-Dscala.home=\"$PROG_HOME\""""")
+      }
+    }
+
+
     /* README */
 
     File.write(component_dir + Path.basic("README"),
       "This distribution of Scala integrates the following parts:\n\n" +
       (main_download :: lib_downloads).map(_.print).mkString("\n\n") + """
+
+Minor changes to """ + patched_scripts.mkString(" and ") + """ allow an installation location
+with spaces in the directory name.
 
 
         Makarius
