@@ -372,7 +372,7 @@ object Headless {
           state.stable_tip_version match {
             case None => use_theories_state.change(apply_changed)
             case Some(version) =>
-              val (theory_progress, finished_result) =
+              val theory_progress =
                 use_theories_state.change_result { st =>
                   val changed_st = apply_changed(st)
 
@@ -396,17 +396,17 @@ object Headless {
                       if p1 > 0 && !st.nodes_status.get(name).map(_.percentage).contains(p1)
                     } yield Progress.Theory(name.theory, percentage = Some(p1))).toList
 
-                  ((theory_progress, st1.finished_result), st1)
+                  if (commit.isDefined && commit_cleanup_delay > Time.zero) {
+                    if (st1.finished_result) delay_commit_clean.revoke()
+                    else delay_commit_clean.invoke()
+                  }
+
+                  (theory_progress, st1)
                 }
 
               theory_progress.foreach(progress.theory)
 
               check_state(state = state)
-
-              if (commit.isDefined && commit_cleanup_delay > Time.zero) {
-                if (finished_result) delay_commit_clean.revoke()
-                else delay_commit_clean.invoke()
-              }
           }
         }
       }
