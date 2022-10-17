@@ -258,8 +258,8 @@ object Headless {
                   if (loaded_theory(name)) make_nodes(rest, output)
                   else {
                     val status = Document_Status.Node_Status.make(state, version, name)
-                    if (stopped || status.consolidated) make_nodes(rest, (name -> status) :: output)
-                    else None
+                    val ok = if (commit.isDefined) committed(name) else status.consolidated
+                    if (stopped || ok) make_nodes(rest, (name -> status) :: output) else None
                   }
                 case Nil => Some(output)
               }
