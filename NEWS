@@ -421,6 +421,19 @@ Apple/ARM64 for Poly/ML: default "true". Like "ML_system_64" this only
 works when saved in "$ISABELLE_HOME_USER/etc/preferences" (e.g. after
 shutdown of Isabelle/jEdit).
 
+* The headless PIDE session now supports adhoc editing of theories via
+repeated "use_theories" on changed files. This functionality was
+originally intended (e.g. see Isabelle2018), but it got lost due to
+later improvements of "isabelle dump". Now it should work again, e.g. as
+follows for "isabelle server &" and "isabelle client":
+
+  session_start {"session": "HOL", "options": ["headless_consolidate_delay=0.5", "headless_prune_delay=5"]}
+  use_theories {"session_id": "...", "theories": ["/home/makarius/tmp/Test"]}
+  use_theories {"session_id": "...", "theories": ["/home/makarius/tmp/Test"]}
+  purge_theories {"session_id":"...", "all": true}
+  session_stop {"session_id": "..."}
+  shutdown
+
 
 
 New in Isabelle2021-1 (December 2021)
