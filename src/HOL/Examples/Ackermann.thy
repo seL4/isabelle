@@ -4,7 +4,7 @@
 
 section \<open>A Tail-Recursive, Stack-Based Ackermann's Function\<close>
 
-theory Ackermann imports Main
+theory Ackermann imports "HOL-Library.Multiset_Order" "HOL-Library.Product_Lexorder" 
 
 begin
 
@@ -17,7 +17,9 @@ fun ack :: "[nat,nat] \<Rightarrow> nat" where
 | "ack (Suc m) 0       = ack m 1"
 | "ack (Suc m) (Suc n) = ack m (ack (Suc m) n)"
 
-text\<open>Here is the stack-based version, which uses lists.\<close>
+subsection \<open>Example of proving termination by reasoning about the domain\<close>
+
+text\<open>The stack-based version uses lists.\<close>
 
 function (domintros) ackloop :: "nat list \<Rightarrow> nat" where
   "ackloop (n # 0 # l)         = ackloop (Suc n # l)"
@@ -85,5 +87,54 @@ lemma ackloop_acklist: "ackloop l = acklist l"
 
 theorem ack: "ack m n = ackloop [n,m]"
   by (simp add: ackloop_acklist)
+
+subsection \<open>Example of proving termination using a multiset ordering\<close>
+
+text \<open>This termination proof uses the argument from
+Nachum Dershowitz and Zohar Manna. Proving termination with multiset orderings.
+Communications of the ACM 22 (8) 1979, 465–476.\<close>
+
+text\<open>Setting up the termination proof. Note that Dershowitz had @{term z} as a global variable.
+The top two stack elements are treated differently from the rest.\<close>
+
+fun ack_mset :: "nat list \<Rightarrow> (nat\<times>nat) multiset" where
+  "ack_mset [] = {#}"
+| "ack_mset [x] = {#}"
+| "ack_mset (z#y#l) = mset ((y,z) # map (\<lambda>x. (Suc x, 0)) l)"
+
+lemma base: "ack_mset (Suc n # l) < add_mset (0,n) {# (Suc x, 0). x \<in># mset l #}"
+proof (cases l)
+  case (Cons m list)
+  have "{#(m, Suc n)#} < {#(Suc m, 0)#}"
+    by auto
+  also have "\<dots> \<le> {#(Suc m, 0), (0,n)#}"
+    by auto
+  finally show ?thesis  
+    by (simp add: Cons)
+qed auto
+
+text\<open>The stack-based version again. We need a fresh copy because 
+  we've already proved the termination of @{term ackloop}.\<close>
+
+function Ackloop :: "nat list \<Rightarrow> nat" where
+  "Ackloop (n # 0 # l)         = Ackloop (Suc n # l)"
+| "Ackloop (0 # Suc m # l)     = Ackloop (1 # m # l)"
+| "Ackloop (Suc n # Suc m # l) = Ackloop (n # Suc m # m # l)"
+| "Ackloop [m] = m"
+| "Ackloop [] =  0"
+  by pat_completeness auto
+
+
+text \<open>In each recursive call, the function @{term ack_mset} decreases according to the multiset
+ordering.\<close>
+termination
+  by (relation "inv_image {(x,y). x<y} ack_mset") (auto simp: wf base)
+
+text \<open>Another shortcut compared with before: equivalence follows directly from this lemma.\<close>
+lemma Ackloop_ack: "Ackloop (n # m # l) = Ackloop (ack m n # l)"
+  by (induction m n arbitrary: l rule: ack.induct) auto
+
+theorem "ack m n = Ackloop [n,m]"
+  by (simp add: Ackloop_ack)
 
 end
