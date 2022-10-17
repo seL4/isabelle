@@ -102,7 +102,7 @@ fun ack_mset :: "nat list \<Rightarrow> (nat\<times>nat) multiset" where
 | "ack_mset [x] = {#}"
 | "ack_mset (z#y#l) = mset ((y,z) # map (\<lambda>x. (Suc x, 0)) l)"
 
-lemma base: "ack_mset (Suc n # l) < add_mset (0,n) {# (Suc x, 0). x \<in># mset l #}"
+lemma case1: "ack_mset (Suc n # l) < add_mset (0,n) {# (Suc x, 0). x \<in># mset l #}"
 proof (cases l)
   case (Cons m list)
   have "{#(m, Suc n)#} < {#(Suc m, 0)#}"
@@ -128,7 +128,7 @@ function Ackloop :: "nat list \<Rightarrow> nat" where
 text \<open>In each recursive call, the function @{term ack_mset} decreases according to the multiset
 ordering.\<close>
 termination
-  by (relation "inv_image {(x,y). x<y} ack_mset") (auto simp: wf base)
+  by (relation "inv_image {(x,y). x<y} ack_mset") (auto simp: wf case1)
 
 text \<open>Another shortcut compared with before: equivalence follows directly from this lemma.\<close>
 lemma Ackloop_ack: "Ackloop (n # m # l) = Ackloop (ack m n # l)"
