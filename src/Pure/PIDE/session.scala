@@ -332,7 +332,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
     def defined: Boolean = variable.value.isDefined
     def get: Prover = variable.value.get
     def set(p: Prover): Unit = variable.change(_ => Some(p))
-    def reset: Unit = variable.change(_ => None)
+    def reset(): Unit = variable.change(_ => None)
     def await_reset(): Unit = variable.guarded_access({ case None => Some((), None) case _ => None })
   }
 
@@ -557,7 +557,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
               }
               file_formats.stop_session
               phase = Session.Terminated(result)
-              prover.reset
+              prover.reset()
 
             case _ =>
               raw_output_messages.post(output)
