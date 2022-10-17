@@ -173,7 +173,7 @@ object Server {
         writer_lock = out_lock)
 
     def read_password(password: String): Boolean =
-      try { Byte_Message.read_line(in).map(_.text) == Some(password) }
+      try { Byte_Message.read_line(in).map(_.text).contains(password) }
       catch { case _: IOException => false }
 
     def read_line_message(): Option[String] =
