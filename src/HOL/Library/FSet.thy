@@ -173,6 +173,9 @@ translations
 lift_definition fmember :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" (infix "|\<in>|" 50) is Set.member
   parametric member_transfer .
 
+lemma fmember_iff_member_fset: "x |\<in>| A \<longleftrightarrow> x \<in> fset A"
+  by (rule fmember.rep_eq)
+
 abbreviation notin_fset :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" (infix "|\<notin>|" 50) where "x |\<notin>| S \<equiv> \<not> (x |\<in>| S)"
 
 context includes lifting_syntax
@@ -494,7 +497,8 @@ lemma filter_fset [simp]:
   shows "fset (ffilter P xs) = Collect P \<inter> fset xs"
   by transfer auto
 
-lemma notin_fset: "x |\<notin>| S \<longleftrightarrow> x \<notin> fset S" by (simp add: fmember.rep_eq)
+lemma notin_fset: "x |\<notin>| S \<longleftrightarrow> x \<notin> fset S"
+  by (simp add: fmember_iff_member_fset)
 
 lemmas inter_fset[simp] = inf_fset.rep_eq
 
