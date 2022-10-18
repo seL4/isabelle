@@ -313,13 +313,13 @@ by blast
 lemma rev_bspec: "\<lbrakk>x: A;  \<forall>x\<in>A. P(x)\<rbrakk> \<Longrightarrow> P(x)"
 by (simp add: Ball_def)
 
-(*Trival rewrite rule;   @{term"(\<forall>x\<in>A.P)<->P"} holds only if A is nonempty!*)
-lemma ball_triv [simp]: "(\<forall>x\<in>A. P) <-> ((\<exists>x. x\<in>A) \<longrightarrow> P)"
+(*Trival rewrite rule;   @{term"(\<forall>x\<in>A.P)\<longleftrightarrow>P"} holds only if A is nonempty!*)
+lemma ball_triv [simp]: "(\<forall>x\<in>A. P) \<longleftrightarrow> ((\<exists>x. x\<in>A) \<longrightarrow> P)"
 by (simp add: Ball_def)
 
 (*Congruence rule for rewriting*)
 lemma ball_cong [cong]:
-    "\<lbrakk>A=A';  \<And>x. x\<in>A' \<Longrightarrow> P(x) <-> P'(x)\<rbrakk> \<Longrightarrow> (\<forall>x\<in>A. P(x)) <-> (\<forall>x\<in>A'. P'(x))"
+    "\<lbrakk>A=A';  \<And>x. x\<in>A' \<Longrightarrow> P(x) \<longleftrightarrow> P'(x)\<rbrakk> \<Longrightarrow> (\<forall>x\<in>A. P(x)) \<longleftrightarrow> (\<forall>x\<in>A'. P'(x))"
 by (simp add: Ball_def)
 
 lemma atomize_ball:
@@ -346,13 +346,13 @@ by blast
 lemma bexE [elim!]: "\<lbrakk>\<exists>x\<in>A. P(x);  \<And>x. \<lbrakk>x\<in>A; P(x)\<rbrakk> \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
 by (simp add: Bex_def, blast)
 
-(*We do not even have @{term"(\<exists>x\<in>A. True) <-> True"} unless @{term"A" is nonempty\<And>*)
-lemma bex_triv [simp]: "(\<exists>x\<in>A. P) <-> ((\<exists>x. x\<in>A) \<and> P)"
+(*We do not even have @{term"(\<exists>x\<in>A. True) \<longleftrightarrow> True"} unless @{term"A" is nonempty\<And>*)
+lemma bex_triv [simp]: "(\<exists>x\<in>A. P) \<longleftrightarrow> ((\<exists>x. x\<in>A) \<and> P)"
 by (simp add: Bex_def)
 
 lemma bex_cong [cong]:
-    "\<lbrakk>A=A';  \<And>x. x\<in>A' \<Longrightarrow> P(x) <-> P'(x)\<rbrakk>
-     \<Longrightarrow> (\<exists>x\<in>A. P(x)) <-> (\<exists>x\<in>A'. P'(x))"
+    "\<lbrakk>A=A';  \<And>x. x\<in>A' \<Longrightarrow> P(x) \<longleftrightarrow> P'(x)\<rbrakk>
+     \<Longrightarrow> (\<exists>x\<in>A. P(x)) \<longleftrightarrow> (\<exists>x\<in>A'. P'(x))"
 by (simp add: Bex_def cong: conj_cong)
 
 
@@ -375,27 +375,25 @@ lemma subsetCE [elim]:
 by (simp add: subset_def, blast)
 
 (*Sometimes useful with premises in this order*)
-lemma rev_subsetD: "\<lbrakk>c\<in>A; A<=B\<rbrakk> \<Longrightarrow> c\<in>B"
+lemma rev_subsetD: "\<lbrakk>c\<in>A; A\<subseteq>B\<rbrakk> \<Longrightarrow> c\<in>B"
 by blast
 
 lemma contra_subsetD: "\<lbrakk>A \<subseteq> B; c \<notin> B\<rbrakk> \<Longrightarrow> c \<notin> A"
-by blast
+  by blast
 
 lemma rev_contra_subsetD: "\<lbrakk>c \<notin> B;  A \<subseteq> B\<rbrakk> \<Longrightarrow> c \<notin> A"
-by blast
+  by blast
 
 lemma subset_refl [simp]: "A \<subseteq> A"
-by blast
+  by blast
 
-lemma subset_trans: "\<lbrakk>A<=B;  B<=C\<rbrakk> \<Longrightarrow> A<=C"
-by blast
+lemma subset_trans: "\<lbrakk>A\<subseteq>B;  B\<subseteq>C\<rbrakk> \<Longrightarrow> A\<subseteq>C"
+  by blast
 
-(*Useful for proving A<=B by rewriting in some cases*)
+(*Useful for proving A\<subseteq>B by rewriting in some cases*)
 lemma subset_iff:
-     "A<=B <-> (\<forall>x. x\<in>A \<longrightarrow> x\<in>B)"
-  unfolding subset_def Ball_def
-apply (rule iff_refl)
-done
+     "A\<subseteq>B \<longleftrightarrow> (\<forall>x. x\<in>A \<longrightarrow> x\<in>B)"
+  by auto
 
 text\<open>For calculations\<close>
 declare subsetD [trans] rev_subsetD [trans] subset_trans [trans]
@@ -405,34 +403,33 @@ subsection\<open>Rules for equality\<close>
 
 (*Anti-symmetry of the subset relation*)
 lemma equalityI [intro]: "\<lbrakk>A \<subseteq> B;  B \<subseteq> A\<rbrakk> \<Longrightarrow> A = B"
-by (rule extension [THEN iffD2], rule conjI)
+  by (rule extension [THEN iffD2], rule conjI)
 
 
-lemma equality_iffI: "(\<And>x. x\<in>A <-> x\<in>B) \<Longrightarrow> A = B"
-by (rule equalityI, blast+)
+lemma equality_iffI: "(\<And>x. x\<in>A \<longleftrightarrow> x\<in>B) \<Longrightarrow> A = B"
+  by (rule equalityI, blast+)
 
 lemmas equalityD1 = extension [THEN iffD1, THEN conjunct1]
 lemmas equalityD2 = extension [THEN iffD1, THEN conjunct2]
 
-lemma equalityE: "\<lbrakk>A = B;  \<lbrakk>A<=B; B<=A\<rbrakk> \<Longrightarrow> P\<rbrakk>  \<Longrightarrow>  P"
-by (blast dest: equalityD1 equalityD2)
+lemma equalityE: "\<lbrakk>A = B;  \<lbrakk>A\<subseteq>B; B\<subseteq>A\<rbrakk> \<Longrightarrow> P\<rbrakk>  \<Longrightarrow>  P"
+  by (blast dest: equalityD1 equalityD2)
 
 lemma equalityCE:
-    "\<lbrakk>A = B;  \<lbrakk>c\<in>A; c\<in>B\<rbrakk> \<Longrightarrow> P;  \<lbrakk>c\<notin>A; c\<notin>B\<rbrakk> \<Longrightarrow> P\<rbrakk>  \<Longrightarrow>  P"
-by (erule equalityE, blast)
+  "\<lbrakk>A = B;  \<lbrakk>c\<in>A; c\<in>B\<rbrakk> \<Longrightarrow> P;  \<lbrakk>c\<notin>A; c\<notin>B\<rbrakk> \<Longrightarrow> P\<rbrakk>  \<Longrightarrow>  P"
+  by (erule equalityE, blast)
 
 lemma equality_iffD:
-  "A = B \<Longrightarrow> (\<And>x. x \<in> A <-> x \<in> B)"
+  "A = B \<Longrightarrow> (\<And>x. x \<in> A \<longleftrightarrow> x \<in> B)"
   by auto
 
 
 subsection\<open>Rules for Replace -- the derived form of replacement\<close>
 
 lemma Replace_iff:
-    "b \<in> {y. x\<in>A, P(x,y)}  <->  (\<exists>x\<in>A. P(x,b) \<and> (\<forall>y. P(x,y) \<longrightarrow> y=b))"
+    "b \<in> {y. x\<in>A, P(x,y)}  \<longleftrightarrow>  (\<exists>x\<in>A. P(x,b) \<and> (\<forall>y. P(x,y) \<longrightarrow> y=b))"
   unfolding Replace_def
-apply (rule replacement [THEN iff_trans], blast+)
-done
+  by (rule replacement [THEN iff_trans], blast+)
 
 (*Introduction; there must be a unique y such that P(x,y), namely y=b. *)
 lemma ReplaceI [intro]:
@@ -449,17 +446,16 @@ by (rule Replace_iff [THEN iffD1, THEN bexE], simp+)
 
 (*As above but without the (generally useless) 3rd assumption*)
 lemma ReplaceE2 [elim!]:
-    "\<lbrakk>b \<in> {y. x\<in>A, P(x,y)};
+  "\<lbrakk>b \<in> {y. x\<in>A, P(x,y)};
         \<And>x. \<lbrakk>x: A;  P(x,b)\<rbrakk> \<Longrightarrow> R
-\<rbrakk> \<Longrightarrow> R"
-by (erule ReplaceE, blast)
+   \<rbrakk> \<Longrightarrow> R"
+  by (erule ReplaceE, blast)
 
 lemma Replace_cong [cong]:
-    "\<lbrakk>A=B;  \<And>x y. x\<in>B \<Longrightarrow> P(x,y) <-> Q(x,y)\<rbrakk> \<Longrightarrow>
-     Replace(A,P) = Replace(B,Q)"
-apply (rule equality_iffI)
-apply (simp add: Replace_iff)
-done
+  "\<lbrakk>A=B;  \<And>x y. x\<in>B \<Longrightarrow> P(x,y) \<longleftrightarrow> Q(x,y)\<rbrakk> \<Longrightarrow> Replace(A,P) = Replace(B,Q)"
+  apply (rule equality_iffI)
+  apply (simp add: Replace_iff)
+  done
 
 
 subsection\<open>Rules for RepFun\<close>
@@ -469,49 +465,44 @@ by (simp add: RepFun_def Replace_iff, blast)
 
 (*Useful for coinduction proofs*)
 lemma RepFun_eqI [intro]: "\<lbrakk>b=f(a);  a \<in> A\<rbrakk> \<Longrightarrow> b \<in> {f(x). x\<in>A}"
-apply (erule ssubst)
-apply (erule RepFunI)
-done
+  by (blast intro: RepFunI)
 
 lemma RepFunE [elim!]:
-    "\<lbrakk>b \<in> {f(x). x\<in>A};
+  "\<lbrakk>b \<in> {f(x). x\<in>A};
         \<And>x.\<lbrakk>x\<in>A;  b=f(x)\<rbrakk> \<Longrightarrow> P\<rbrakk> \<Longrightarrow>
      P"
-by (simp add: RepFun_def Replace_iff, blast)
+  by (simp add: RepFun_def Replace_iff, blast)
 
 lemma RepFun_cong [cong]:
-    "\<lbrakk>A=B;  \<And>x. x\<in>B \<Longrightarrow> f(x)=g(x)\<rbrakk> \<Longrightarrow> RepFun(A,f) = RepFun(B,g)"
-by (simp add: RepFun_def)
+  "\<lbrakk>A=B;  \<And>x. x\<in>B \<Longrightarrow> f(x)=g(x)\<rbrakk> \<Longrightarrow> RepFun(A,f) = RepFun(B,g)"
+  by (simp add: RepFun_def)
 
-lemma RepFun_iff [simp]: "b \<in> {f(x). x\<in>A} <-> (\<exists>x\<in>A. b=f(x))"
-by (unfold Bex_def, blast)
+lemma RepFun_iff [simp]: "b \<in> {f(x). x\<in>A} \<longleftrightarrow> (\<exists>x\<in>A. b=f(x))"
+  by (unfold Bex_def, blast)
 
 lemma triv_RepFun [simp]: "{x. x\<in>A} = A"
-by blast
+  by blast
 
 
 subsection\<open>Rules for Collect -- forming a subset by separation\<close>
 
 (*Separation is derivable from Replacement*)
-lemma separation [simp]: "a \<in> {x\<in>A. P(x)} <-> a\<in>A \<and> P(a)"
-by (unfold Collect_def, blast)
+lemma separation [simp]: "a \<in> {x\<in>A. P(x)} \<longleftrightarrow> a\<in>A \<and> P(a)"
+  by (auto simp: Collect_def)
 
 lemma CollectI [intro!]: "\<lbrakk>a\<in>A;  P(a)\<rbrakk> \<Longrightarrow> a \<in> {x\<in>A. P(x)}"
-by simp
+  by simp
 
 lemma CollectE [elim!]: "\<lbrakk>a \<in> {x\<in>A. P(x)};  \<lbrakk>a\<in>A; P(a)\<rbrakk> \<Longrightarrow> R\<rbrakk> \<Longrightarrow> R"
-by simp
+  by simp
 
-lemma CollectD1: "a \<in> {x\<in>A. P(x)} \<Longrightarrow> a\<in>A"
-by (erule CollectE, assumption)
-
-lemma CollectD2: "a \<in> {x\<in>A. P(x)} \<Longrightarrow> P(a)"
-by (erule CollectE, assumption)
+lemma CollectD1: "a \<in> {x\<in>A. P(x)} \<Longrightarrow> a\<in>A" and CollectD2: "a \<in> {x\<in>A. P(x)} \<Longrightarrow> P(a)"
+  by auto
 
 lemma Collect_cong [cong]:
-    "\<lbrakk>A=B;  \<And>x. x\<in>B \<Longrightarrow> P(x) <-> Q(x)\<rbrakk>
+  "\<lbrakk>A=B;  \<And>x. x\<in>B \<Longrightarrow> P(x) \<longleftrightarrow> Q(x)\<rbrakk>
      \<Longrightarrow> Collect(A, \<lambda>x. P(x)) = Collect(B, \<lambda>x. Q(x))"
-by (simp add: Collect_def)
+  by (simp add: Collect_def)
 
 
 subsection\<open>Rules for Unions\<close>
@@ -520,30 +511,30 @@ declare Union_iff [simp]
 
 (*The order of the premises presupposes that C is rigid; A may be flexible*)
 lemma UnionI [intro]: "\<lbrakk>B: C;  A: B\<rbrakk> \<Longrightarrow> A: \<Union>(C)"
-by (simp, blast)
+  by auto
 
 lemma UnionE [elim!]: "\<lbrakk>A \<in> \<Union>(C);  \<And>B.\<lbrakk>A: B;  B: C\<rbrakk> \<Longrightarrow> R\<rbrakk> \<Longrightarrow> R"
-by (simp, blast)
+  by auto
 
 
 subsection\<open>Rules for Unions of families\<close>
 (* @{term"\<Union>x\<in>A. B(x)"} abbreviates @{term"\<Union>({B(x). x\<in>A})"} *)
 
-lemma UN_iff [simp]: "b \<in> (\<Union>x\<in>A. B(x)) <-> (\<exists>x\<in>A. b \<in> B(x))"
-by (simp add: Bex_def, blast)
+lemma UN_iff [simp]: "b \<in> (\<Union>x\<in>A. B(x)) \<longleftrightarrow> (\<exists>x\<in>A. b \<in> B(x))"
+  by blast
 
 (*The order of the premises presupposes that A is rigid; b may be flexible*)
 lemma UN_I: "\<lbrakk>a: A;  b: B(a)\<rbrakk> \<Longrightarrow> b: (\<Union>x\<in>A. B(x))"
-by (simp, blast)
+  by force
 
 
 lemma UN_E [elim!]:
-    "\<lbrakk>b \<in> (\<Union>x\<in>A. B(x));  \<And>x.\<lbrakk>x: A;  b: B(x)\<rbrakk> \<Longrightarrow> R\<rbrakk> \<Longrightarrow> R"
-by blast
+  "\<lbrakk>b \<in> (\<Union>x\<in>A. B(x));  \<And>x.\<lbrakk>x: A;  b: B(x)\<rbrakk> \<Longrightarrow> R\<rbrakk> \<Longrightarrow> R"
+  by blast
 
 lemma UN_cong:
-    "\<lbrakk>A=B;  \<And>x. x\<in>B \<Longrightarrow> C(x)=D(x)\<rbrakk> \<Longrightarrow> (\<Union>x\<in>A. C(x)) = (\<Union>x\<in>B. D(x))"
-by simp
+  "\<lbrakk>A=B;  \<And>x. x\<in>B \<Longrightarrow> C(x)=D(x)\<rbrakk> \<Longrightarrow> (\<Union>x\<in>A. C(x)) = (\<Union>x\<in>B. D(x))"
+  by simp
 
 
 (*No "Addcongs [UN_cong]" because @{term\<Union>} is a combination of constants*)
@@ -558,69 +549,67 @@ subsection\<open>Rules for the empty set\<close>
 (*The set @{term"{x\<in>0. False}"} is empty; by foundation it equals 0
   See Suppes, page 21.*)
 lemma not_mem_empty [simp]: "a \<notin> 0"
-apply (cut_tac foundation)
-apply (best dest: equalityD2)
-done
+  using foundation by (best dest: equalityD2)
 
 lemmas emptyE [elim!] = not_mem_empty [THEN notE]
 
 
 lemma empty_subsetI [simp]: "0 \<subseteq> A"
-by blast
+  by blast
 
 lemma equals0I: "\<lbrakk>\<And>y. y\<in>A \<Longrightarrow> False\<rbrakk> \<Longrightarrow> A=0"
-by blast
+  by blast
 
 lemma equals0D [dest]: "A=0 \<Longrightarrow> a \<notin> A"
-by blast
+  by blast
 
 declare sym [THEN equals0D, dest]
 
 lemma not_emptyI: "a\<in>A \<Longrightarrow> A \<noteq> 0"
-by blast
+  by blast
 
 lemma not_emptyE:  "\<lbrakk>A \<noteq> 0;  \<And>x. x\<in>A \<Longrightarrow> R\<rbrakk> \<Longrightarrow> R"
-by blast
+  by blast
 
 
 subsection\<open>Rules for Inter\<close>
 
 (*Not obviously useful for proving InterI, InterD, InterE*)
-lemma Inter_iff: "A \<in> \<Inter>(C) <-> (\<forall>x\<in>C. A: x) \<and> C\<noteq>0"
-by (simp add: Inter_def Ball_def, blast)
+lemma Inter_iff: "A \<in> \<Inter>(C) \<longleftrightarrow> (\<forall>x\<in>C. A: x) \<and> C\<noteq>0"
+  by (force simp: Inter_def)
 
 (* Intersection is well-behaved only if the family is non-empty! *)
 lemma InterI [intro!]:
-    "\<lbrakk>\<And>x. x: C \<Longrightarrow> A: x;  C\<noteq>0\<rbrakk> \<Longrightarrow> A \<in> \<Inter>(C)"
-by (simp add: Inter_iff)
+  "\<lbrakk>\<And>x. x: C \<Longrightarrow> A: x;  C\<noteq>0\<rbrakk> \<Longrightarrow> A \<in> \<Inter>(C)"
+  by (simp add: Inter_iff)
 
 (*A "destruct" rule -- every B in C contains A as an element, but
   A\<in>B can hold when B\<in>C does not!  This rule is analogous to "spec". *)
 lemma InterD [elim, Pure.elim]: "\<lbrakk>A \<in> \<Inter>(C);  B \<in> C\<rbrakk> \<Longrightarrow> A \<in> B"
-by (unfold Inter_def, blast)
+  by (force simp: Inter_def)
 
 (*"Classical" elimination rule -- does not require exhibiting @{term"B\<in>C"} *)
 lemma InterE [elim]:
-    "\<lbrakk>A \<in> \<Inter>(C);  B\<notin>C \<Longrightarrow> R;  A\<in>B \<Longrightarrow> R\<rbrakk> \<Longrightarrow> R"
-by (simp add: Inter_def, blast)
+  "\<lbrakk>A \<in> \<Inter>(C);  B\<notin>C \<Longrightarrow> R;  A\<in>B \<Longrightarrow> R\<rbrakk> \<Longrightarrow> R"
+  by (auto simp: Inter_def)
 
 
 subsection\<open>Rules for Intersections of families\<close>
 
 (* @{term"\<Inter>x\<in>A. B(x)"} abbreviates @{term"\<Inter>({B(x). x\<in>A})"} *)
 
-lemma INT_iff: "b \<in> (\<Inter>x\<in>A. B(x)) <-> (\<forall>x\<in>A. b \<in> B(x)) \<and> A\<noteq>0"
-by (force simp add: Inter_def)
+lemma INT_iff: "b \<in> (\<Inter>x\<in>A. B(x)) \<longleftrightarrow> (\<forall>x\<in>A. b \<in> B(x)) \<and> A\<noteq>0"
+  by (force simp add: Inter_def)
 
 lemma INT_I: "\<lbrakk>\<And>x. x: A \<Longrightarrow> b: B(x);  A\<noteq>0\<rbrakk> \<Longrightarrow> b: (\<Inter>x\<in>A. B(x))"
-by blast
+  by blast
 
 lemma INT_E: "\<lbrakk>b \<in> (\<Inter>x\<in>A. B(x));  a: A\<rbrakk> \<Longrightarrow> b \<in> B(a)"
-by blast
+  by blast
 
 lemma INT_cong:
-    "\<lbrakk>A=B;  \<And>x. x\<in>B \<Longrightarrow> C(x)=D(x)\<rbrakk> \<Longrightarrow> (\<Inter>x\<in>A. C(x)) = (\<Inter>x\<in>B. D(x))"
-by simp
+  "\<lbrakk>A=B;  \<And>x. x\<in>B \<Longrightarrow> C(x)=D(x)\<rbrakk> \<Longrightarrow> (\<Inter>x\<in>A. C(x)) = (\<Inter>x\<in>B. D(x))"
+  by simp
 
 (*No "Addcongs [INT_cong]" because @{term\<Inter>} is a combination of constants*)
 
@@ -628,10 +617,10 @@ by simp
 subsection\<open>Rules for Powersets\<close>
 
 lemma PowI: "A \<subseteq> B \<Longrightarrow> A \<in> Pow(B)"
-by (erule Pow_iff [THEN iffD2])
+  by (erule Pow_iff [THEN iffD2])
 
-lemma PowD: "A \<in> Pow(B)  \<Longrightarrow>  A<=B"
-by (erule Pow_iff [THEN iffD1])
+lemma PowD: "A \<in> Pow(B)  \<Longrightarrow>  A\<subseteq>B"
+  by (erule Pow_iff [THEN iffD1])
 
 declare Pow_iff [iff]
 
@@ -645,6 +634,6 @@ subsection\<open>Cantor's Theorem: There is no surjection from a set to its powe
   make it diverge.  Variable b represents ANY map, such as
   (lam x\<in>A.b(x)): A->Pow(A). *)
 lemma cantor: "\<exists>S \<in> Pow(A). \<forall>x\<in>A. b(x) \<noteq> S"
-by (best elim!: equalityCE del: ReplaceI RepFun_eqI)
+  by (best elim!: equalityCE del: ReplaceI RepFun_eqI)
 
 end
