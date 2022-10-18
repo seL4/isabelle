@@ -295,7 +295,7 @@ lemmas parts_spies_takeWhile_mono = spies_takeWhile [THEN parts_mono]
 subsection\<open>Lemmas about \<^term>\<open>authKeys\<close>\<close>
 
 lemma authKeys_empty: "authKeys [] = {}"
-apply (unfold authKeys_def)
+unfolding authKeys_def
 apply (simp (no_asm))
 done
 
@@ -304,27 +304,27 @@ lemma authKeys_not_insert:
    ev \<noteq> Says Kas A (Crypt (shrK A) \<lbrace>akey, Agent Peer, Ta,
               (Crypt (shrK Peer) \<lbrace>Agent A, Agent Peer, akey, Ta\<rbrace>)\<rbrace>))
        \<Longrightarrow> authKeys (ev # evs) = authKeys evs"
-by (unfold authKeys_def, auto)
+  unfolding authKeys_def by auto
 
 lemma authKeys_insert:
   "authKeys
      (Says Kas A (Crypt (shrK A) \<lbrace>Key K, Agent Peer, Number Ta,
       (Crypt (shrK Peer) \<lbrace>Agent A, Agent Peer, Key K, Number Ta\<rbrace>)\<rbrace>) # evs)
        = insert K (authKeys evs)"
-by (unfold authKeys_def, auto)
+  unfolding authKeys_def by auto
 
 lemma authKeys_simp:
    "K \<in> authKeys
     (Says Kas A (Crypt (shrK A) \<lbrace>Key K', Agent Peer, Number Ta,
      (Crypt (shrK Peer) \<lbrace>Agent A, Agent Peer, Key K', Number Ta\<rbrace>)\<rbrace>) # evs)
         \<Longrightarrow> K = K' | K \<in> authKeys evs"
-by (unfold authKeys_def, auto)
+  unfolding authKeys_def by auto
 
 lemma authKeysI:
    "Says Kas A (Crypt (shrK A) \<lbrace>Key K, Agent Tgs, Number Ta,
      (Crypt (shrK Tgs) \<lbrace>Agent A, Agent Tgs, Key K, Number Ta\<rbrace>)\<rbrace>) \<in> set evs
         \<Longrightarrow> K \<in> authKeys evs"
-by (unfold authKeys_def, auto)
+  unfolding authKeys_def by auto
 
 lemma authKeys_used: "K \<in> authKeys evs \<Longrightarrow> Key K \<in> used evs"
 by (simp add: authKeys_def, blast)
@@ -478,7 +478,7 @@ lemma Says_Kas_message_form:
   Ta = CT (before 
            Says Kas A (Crypt K \<lbrace>Key authK, Agent Peer, Number Ta, authTicket\<rbrace>)
            on evs)"
-apply (unfold before_def)
+unfolding before_def
 apply (erule rev_mp)
 apply (erule kerbIV.induct)
 apply (simp_all (no_asm) add: authKeys_def authKeys_insert, blast, blast)
@@ -550,7 +550,7 @@ lemma Says_Tgs_message_form:
       Ts = CT(before 
         Says Tgs A (Crypt authK \<lbrace>Key servK, Agent B, Number Ts, servTicket\<rbrace>)
               on evs) "
-apply (unfold before_def)
+unfolding before_def
 apply (erule rev_mp)
 apply (erule kerbIV.induct)
 apply (simp_all add: authKeys_insert authKeys_not_insert authKeys_empty authKeys_simp, blast)
@@ -1014,7 +1014,7 @@ by (simp add: AKcryptSK_def)
 lemma AKcryptSKI:
  "\<lbrakk> Says Tgs A (Crypt authK \<lbrace>Key servK, Agent B, Number Ts, X \<rbrace>) \<in> set evs;
      evs \<in> kerbIV \<rbrakk> \<Longrightarrow> AKcryptSK authK servK evs"
-apply (unfold AKcryptSK_def)
+unfolding AKcryptSK_def
 apply (blast dest: Says_Tgs_message_form)
 done
 
@@ -1033,7 +1033,7 @@ by (auto simp add: AKcryptSK_def)
 lemma Auth_fresh_not_AKcryptSK:
      "\<lbrakk> Key authK \<notin> used evs; evs \<in> kerbIV \<rbrakk>
       \<Longrightarrow> \<not> AKcryptSK authK servK evs"
-apply (unfold AKcryptSK_def)
+unfolding AKcryptSK_def
 apply (erule rev_mp)
 apply (erule kerbIV.induct)
 apply (frule_tac [7] K5_msg_in_parts_spies)
@@ -1044,7 +1044,7 @@ done
   (with respect to a given trace). *)
 lemma Serv_fresh_not_AKcryptSK:
  "Key servK \<notin> used evs \<Longrightarrow> \<not> AKcryptSK authK servK evs"
-by (unfold AKcryptSK_def, blast)
+  unfolding AKcryptSK_def by blast
 
 lemma authK_not_AKcryptSK:
      "\<lbrakk> Crypt (shrK Tgs) \<lbrace>Agent A, Agent Tgs, Key authK, tk\<rbrace>
@@ -1080,7 +1080,7 @@ done
 text\<open>Long term keys are not issued as servKeys\<close>
 lemma shrK_not_AKcryptSK:
      "evs \<in> kerbIV \<Longrightarrow> \<not> AKcryptSK K (shrK A) evs"
-apply (unfold AKcryptSK_def)
+unfolding AKcryptSK_def
 apply (erule kerbIV.induct)
 apply (frule_tac [7] K5_msg_in_parts_spies)
 apply (frule_tac [5] K3_msg_in_parts_spies, auto)
@@ -1093,7 +1093,7 @@ lemma Says_Tgs_AKcryptSK:
            \<in> set evs;
          authK' \<noteq> authK;  evs \<in> kerbIV \<rbrakk>
       \<Longrightarrow> \<not> AKcryptSK authK' servK evs"
-apply (unfold AKcryptSK_def)
+unfolding AKcryptSK_def
 apply (blast dest: unique_servKeys)
 done
 
@@ -1574,7 +1574,7 @@ lemma Kas_Issues_A:
       evs \<in> kerbIV \<rbrakk>
   \<Longrightarrow> Kas Issues A with (Crypt (shrK A) \<lbrace>Key authK, Peer, Ta, authTicket\<rbrace>) 
           on evs"
-apply (simp (no_asm) add: Issues_def)
+unfolding Issues_def
 apply (rule exI)
 apply (rule conjI, assumption)
 apply (simp (no_asm))
@@ -1628,7 +1628,7 @@ lemma A_Issues_Tgs:
      Key authK \<notin> analz (spies evs);  
      A \<notin> bad; evs \<in> kerbIV \<rbrakk>
  \<Longrightarrow> A Issues Tgs with (Crypt authK \<lbrace>Agent A, Number T2\<rbrace>) on evs"
-apply (simp (no_asm) add: Issues_def)
+unfolding Issues_def
 apply (rule exI)
 apply (rule conjI, assumption)
 apply (simp (no_asm))
@@ -1668,7 +1668,7 @@ lemma Tgs_Issues_A:
        Key authK \<notin> analz (spies evs);  evs \<in> kerbIV \<rbrakk>
   \<Longrightarrow> Tgs Issues A with 
           (Crypt authK \<lbrace>Key servK, Agent B, Number Ts, servTicket \<rbrace>) on evs"
-apply (simp (no_asm) add: Issues_def)
+unfolding Issues_def
 apply (rule exI)
 apply (rule conjI, assumption)
 apply (simp (no_asm))
@@ -1698,7 +1698,7 @@ lemma B_Issues_A:
          Key servK \<notin> analz (spies evs);
          A \<notin> bad;  B \<notin> bad; B \<noteq> Tgs; evs \<in> kerbIV \<rbrakk>
       \<Longrightarrow> B Issues A with (Crypt servK (Number T3)) on evs"
-apply (simp (no_asm) add: Issues_def)
+unfolding Issues_def
 apply (rule exI)
 apply (rule conjI, assumption)
 apply (simp (no_asm))
@@ -1765,7 +1765,7 @@ lemma A_Issues_B:
          Key servK \<notin> analz (spies evs);
          B \<noteq> Tgs; A \<notin> bad;  B \<notin> bad;  evs \<in> kerbIV \<rbrakk>
    \<Longrightarrow> A Issues B with (Crypt servK \<lbrace>Agent A, Number T3\<rbrace>) on evs"
-apply (simp (no_asm) add: Issues_def)
+unfolding Issues_def
 apply (rule exI)
 apply (rule conjI, assumption)
 apply (simp (no_asm))

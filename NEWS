@@ -4,6 +4,52 @@ Isabelle NEWS -- history of user-relevant changes
 (Note: Isabelle/jEdit shows a tree-view of the NEWS file in Sidekick.)
 
 
+New in this Isabelle version
+----------------------------
+
+*** HOL ***
+
+* Theory "HOL.Fun":
+  - Renamed lemma inj_on_strict_subset to image_strict_mono.
+    Minor INCOMPATIBILITY.
+
+* Theory "HOL.Relation":
+  - Strengthened lemmas. Minor INCOMPATIBILITY.
+      preorder.reflp_ge
+      preorder.reflp_le
+      total_on_singleton
+  - Added lemmas.
+      antisym_if_asymp
+      antisymp_if_asymp
+      irreflD
+      irreflpD
+      linorder.totalp_ge[simp]
+      linorder.totalp_greater[simp]
+      linorder.totalp_le[simp]
+      linorder.totalp_less[simp]
+      order.antisymp_ge[simp]
+      order.antisymp_le[simp]
+      preorder.antisymp_greater[simp]
+      preorder.antisymp_less[simp]
+      preorder.reflp_ge[simp]
+      preorder.reflp_le[simp]
+      totalp_on_singleton[simp]
+
+* Theory "HOL.Wellfounded":
+  - Added lemmas.
+      wfP_if_convertible_to_nat
+      wfP_if_convertible_to_wfP
+      wf_if_convertible_to_wf
+
+* Theory "HOL-Library.FSet":
+  - Added lemmas.
+      fimage_strict_mono
+      wfP_pfsubset
+
+* Theory "HOL-Library.Multiset":
+  - Added lemma wfP_subset_mset[simp].
+
+
 New in Isabelle2022 (October 2022)
 ----------------------------------
 

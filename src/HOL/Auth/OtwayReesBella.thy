@@ -146,7 +146,7 @@ lemma Spy_analz_shrK [simp]:
 by auto
 
 lemma Spy_see_shrK_D [dest!]:
-     "[|Key (shrK A) \<in> parts (knows Spy evs);  evs \<in> orb|] ==> A \<in> bad"
+     "\<lbrakk>Key (shrK A) \<in> parts (knows Spy evs);  evs \<in> orb\<rbrakk> \<Longrightarrow> A \<in> bad"
 by (blast dest: Spy_see_shrK)
 
 lemma new_keys_not_used [simp]:
@@ -185,7 +185,7 @@ lemma A_trusts_OR1:
     A \<notin> bad; evs \<in> orb\<rbrakk>                   
  \<Longrightarrow> Says A B \<lbrace>Nonce M, Agent A, Agent B, Crypt (shrK A) \<lbrace>Nonce Na, Nonce M, Agent A, Agent B\<rbrace>\<rbrace> \<in> set evs"
 apply (erule rev_mp, erule orb.induct, parts_explicit, simp_all)
-apply (blast)
+apply blast
 done
 
 
@@ -312,7 +312,7 @@ apply blast
 txt\<open>Oops\<close>
 prefer 4 apply (blast dest: analz_insert_freshCryptK)
 txt\<open>OR4 - ii\<close>
-prefer 3 apply (blast)
+prefer 3 apply blast
 txt\<open>OR3\<close>
 (*adding Gets_imp_ and Says_imp_ for efficiency*)
 apply (blast dest: 

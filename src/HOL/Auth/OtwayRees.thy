@@ -15,27 +15,18 @@ This is the original version, which encrypts Nonce NB.\<close>
 
 inductive_set otway :: "event list set"
   where
-         (*Initial trace is empty*)
    Nil:  "[] \<in> otway"
-
-         (*The spy MAY say anything he CAN say.  We do not expect him to
-           invent new nonces here, but he can also use NS1.  Common to
-           all similar protocols.*)
+   \<comment> \<open>Initial trace is empty\<close>
  | Fake: "\<lbrakk>evsf \<in> otway;  X \<in> synth (analz (knows Spy evsf)) \<rbrakk>
           \<Longrightarrow> Says Spy B X  # evsf \<in> otway"
-
-         (*A message that has been sent can be received by the
-           intended recipient.*)
- | Reception: "\<lbrakk>evsr \<in> otway;  Says A B X \<in>set evsr\<rbrakk>
-               \<Longrightarrow> Gets B X # evsr \<in> otway"
-
-         (*Alice initiates a protocol run*)
+   \<comment> \<open>The spy can say almost anything.\<close>
+ | Reception: "\<lbrakk>evsr \<in> otway;  Says A B X \<in>set evsr\<rbrakk> \<Longrightarrow> Gets B X # evsr \<in> otway"
+   \<comment> \<open>A message that has been sent can be received by the intended recipient.\<close>
  | OR1:  "\<lbrakk>evs1 \<in> otway;  Nonce NA \<notin> used evs1\<rbrakk>
           \<Longrightarrow> Says A B \<lbrace>Nonce NA, Agent A, Agent B,
                          Crypt (shrK A) \<lbrace>Nonce NA, Agent A, Agent B\<rbrace> \<rbrace>
                  # evs1 \<in> otway"
-
-         (*Bob's response to Alice's message.  Note that NB is encrypted.*)
+  \<comment> \<open>Alice initiates a protocol run\<close>
  | OR2:  "\<lbrakk>evs2 \<in> otway;  Nonce NB \<notin> used evs2;
              Gets B \<lbrace>Nonce NA, Agent A, Agent B, X\<rbrace> \<in> set evs2\<rbrakk>
           \<Longrightarrow> Says B Server
@@ -43,10 +34,7 @@ inductive_set otway :: "event list set"
                     Crypt (shrK B)
                       \<lbrace>Nonce NA, Nonce NB, Agent A, Agent B\<rbrace>\<rbrace>
                  # evs2 \<in> otway"
-
-         (*The Server receives Bob's message and checks that the three NAs
-           match.  Then he sends a new session key to Bob with a packet for
-           forwarding to Alice.*)
+   \<comment> \<open>Bob's response to Alice's message.  Note that NB is encrypted.\<close>
  | OR3:  "\<lbrakk>evs3 \<in> otway;  Key KAB \<notin> used evs3;
              Gets Server
                   \<lbrace>Nonce NA, Agent A, Agent B,
@@ -58,10 +46,8 @@ inductive_set otway :: "event list set"
                     Crypt (shrK A) \<lbrace>Nonce NA, Key KAB\<rbrace>,
                     Crypt (shrK B) \<lbrace>Nonce NB, Key KAB\<rbrace>\<rbrace>
                  # evs3 \<in> otway"
-
-         (*Bob receives the Server's (?) message and compares the Nonces with
-           those in the message he previously sent the Server.
-           Need B \<noteq> Server because we allow messages to self.*)
+   \<comment> \<open>The Server receives Bob's message and checks that the three NAs
+       match.  Then he sends a new session key to Bob with a packet for forwarding to Alice\<close>
  | OR4:  "\<lbrakk>evs4 \<in> otway;  B \<noteq> Server;
              Says B Server \<lbrace>Nonce NA, Agent A, Agent B, X',
                              Crypt (shrK B)
@@ -70,14 +56,14 @@ inductive_set otway :: "event list set"
              Gets B \<lbrace>Nonce NA, X, Crypt (shrK B) \<lbrace>Nonce NB, Key K\<rbrace>\<rbrace>
                \<in> set evs4\<rbrakk>
           \<Longrightarrow> Says B A \<lbrace>Nonce NA, X\<rbrace> # evs4 \<in> otway"
-
-         (*This message models possible leaks of session keys.  The nonces
-           identify the protocol run.*)
+   \<comment> \<open>Bob receives the Server's (?) message and compares the Nonces with
+       those in the message he previously sent the Server.
+       Need @{term"B \<noteq> Server"} because we allow messages to self.\<close>
  | Oops: "\<lbrakk>evso \<in> otway;
              Says Server B \<lbrace>Nonce NA, X, Crypt (shrK B) \<lbrace>Nonce NB, Key K\<rbrace>\<rbrace>
                \<in> set evso\<rbrakk>
           \<Longrightarrow> Notes Spy \<lbrace>Nonce NA, Nonce NB, Key K\<rbrace> # evso \<in> otway"
-
+   \<comment> \<open>This message models possible leaks of session keys.  The nonces identify the protocol run\<close>
 
 declare Says_imp_analz_Spy [dest]
 declare parts.Body  [dest]
@@ -110,12 +96,12 @@ done
 lemma OR2_analz_knows_Spy:
      "\<lbrakk>Gets B \<lbrace>N, Agent A, Agent B, X\<rbrace> \<in> set evs;  evs \<in> otway\<rbrakk>
       \<Longrightarrow> X \<in> analz (knows Spy evs)"
-by blast
+  by blast
 
 lemma OR4_analz_knows_Spy:
      "\<lbrakk>Gets B \<lbrace>N, X, Crypt (shrK B) X'\<rbrace> \<in> set evs;  evs \<in> otway\<rbrakk>
       \<Longrightarrow> X \<in> analz (knows Spy evs)"
-by blast
+  by blast
 
 (*These lemmas assist simplification by removing forwarded X-variables.
   We can replace them by rewriting with parts_insert2 and proving using
@@ -148,8 +134,8 @@ by (blast dest: Spy_see_shrK)
 
 subsection\<open>Towards Secrecy: Proofs Involving \<^term>\<open>analz\<close>\<close>
 
-(*Describes the form of K and NA when the Server sends this message.  Also
-  for Oops case.*)
+text \<open>Describes the form of K and NA when the Server sends this message.  Also
+  for Oops case.\<close>
 lemma Says_Server_message_form:
      "\<lbrakk>Says Server B \<lbrace>NA, X, Crypt (shrK B) \<lbrace>NB, Key K\<rbrace>\<rbrace> \<in> set evs;
          evs \<in> otway\<rbrakk>

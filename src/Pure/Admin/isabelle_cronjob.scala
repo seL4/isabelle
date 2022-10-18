@@ -344,7 +344,7 @@ object Isabelle_Cronjob {
           options = "-m32 -M4 -t skip_proofs -p pide_session=false", args = "-a -o skip_proofs",
           detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("skip_proofs"))),
       List(
-        Remote_Build("macOS 10.15 Catalina", "monterey", user = "makarius",
+        Remote_Build("macOS 12 Monterey", "monterey", user = "makarius",
           options = "-m32 -M4 -e ISABELLE_GHC_SETUP=true -p pide_session=false",
           args = "-a -d '~~/src/Benchmarks'")),
       List(

@@ -24,9 +24,9 @@ inductive_set
   for n :: nat and Ks :: "key set"
 where
   No_Key [intro]: "Key n \<notin> parts {X} \<Longrightarrow> X \<in> guardK n Ks"
-| Guard_Key [intro]: "invKey K \<in> Ks ==> Crypt K X \<in> guardK n Ks"
+| Guard_Key [intro]: "invKey K \<in> Ks \<Longrightarrow> Crypt K X \<in> guardK n Ks"
 | Crypt [intro]: "X \<in> guardK n Ks \<Longrightarrow> Crypt K X \<in> guardK n Ks"
-| Pair [intro]: "[| X \<in> guardK n Ks; Y \<in> guardK n Ks |] ==> \<lbrace>X,Y\<rbrace> \<in> guardK n Ks"
+| Pair [intro]: "\<lbrakk>X \<in> guardK n Ks; Y \<in> guardK n Ks\<rbrakk> \<Longrightarrow> \<lbrace>X,Y\<rbrace> \<in> guardK n Ks"
 
 subsection\<open>basic facts about \<^term>\<open>guardK\<close>\<close>
 
@@ -62,7 +62,7 @@ lemma guardK_kparts [rule_format]: "X \<in> guardK n Ks \<Longrightarrow>
 Y \<in> kparts {X} \<longrightarrow> Y \<in> guardK n Ks"
 by (erule guardK.induct, auto dest: kparts_parts parts_sub)
 
-lemma guardK_Crypt: "[| Crypt K Y \<in> guardK n Ks; K \<notin> invKey`Ks |] ==> Y \<in> guardK n Ks"
+lemma guardK_Crypt: "\<lbrakk>Crypt K Y \<in> guardK n Ks; K \<notin> invKey`Ks\<rbrakk> \<Longrightarrow> Y \<in> guardK n Ks"
   by (ind_cases "Crypt K Y \<in> guardK n Ks") (auto intro!: image_eqI)
 
 lemma guardK_MPair [iff]: "(\<lbrace>X,Y\<rbrace> \<in> guardK n Ks)
@@ -73,8 +73,8 @@ lemma guardK_not_guardK [rule_format]: "X \<in>guardK n Ks \<Longrightarrow>
 Crypt K Y \<in> kparts {X} \<longrightarrow> Key n \<in> kparts {Y} \<longrightarrow> Y \<notin> guardK n Ks"
 by (erule guardK.induct, auto dest: guardK_kparts)
 
-lemma guardK_extand: "[| X \<in> guardK n Ks; Ks \<subseteq> Ks';
-[| K \<in> Ks'; K \<notin> Ks |] ==> Key K \<notin> parts {X} |] ==> X \<in> guardK n Ks'"
+lemma guardK_extand: "\<lbrakk>X \<in> guardK n Ks; Ks \<subseteq> Ks';
+\<lbrakk>K \<in> Ks'; K \<notin> Ks\<rbrakk> \<Longrightarrow> Key K \<notin> parts {X}\<rbrakk> \<Longrightarrow> X \<in> guardK n Ks'"
 by (erule guardK.induct, auto)
 
 subsection\<open>guarded sets\<close>
@@ -90,7 +90,7 @@ by (simp add: GuardK_def)
 lemma Key_notin_kparts [simplified]: "GuardK n Ks H \<Longrightarrow> Key n \<notin> kparts H"
 by (auto simp: GuardK_def dest: in_kparts Key_notin_kparts_msg)
 
-lemma GuardK_must_decrypt: "[| GuardK n Ks H; Key n \<in> analz H |] ==>
+lemma GuardK_must_decrypt: "\<lbrakk>GuardK n Ks H; Key n \<in> analz H\<rbrakk> \<Longrightarrow>
 \<exists>K Y. Crypt K Y \<in> kparts H \<and> Key (invKey K) \<in> kparts H"
 apply (drule_tac P="\<lambda>G. Key n \<in> G" in analz_pparts_kparts_substD, simp)
 by (drule must_decrypt, auto dest: Key_notin_kparts)
@@ -98,7 +98,7 @@ by (drule must_decrypt, auto dest: Key_notin_kparts)
 lemma GuardK_kparts [intro]: "GuardK n Ks H \<Longrightarrow> GuardK n Ks (kparts H)"
 by (auto simp: GuardK_def dest: in_kparts guardK_kparts)
 
-lemma GuardK_mono: "[| GuardK n Ks H; G \<subseteq> H |] ==> GuardK n Ks G"
+lemma GuardK_mono: "\<lbrakk>GuardK n Ks H; G \<subseteq> H\<rbrakk> \<Longrightarrow> GuardK n Ks G"
 by (auto simp: GuardK_def)
 
 lemma GuardK_insert [iff]: "GuardK n Ks (insert X H)
@@ -111,45 +111,45 @@ by (auto simp: GuardK_def)
 lemma GuardK_synth [intro]: "GuardK n Ks G \<Longrightarrow> GuardK n Ks (synth G)"
 by (auto simp: GuardK_def, erule synth.induct, auto)
 
-lemma GuardK_analz [intro]: "[| GuardK n Ks G; \<forall>K. K \<in> Ks \<longrightarrow> Key K \<notin> analz G |]
-==> GuardK n Ks (analz G)"
+lemma GuardK_analz [intro]: "\<lbrakk>GuardK n Ks G; \<forall>K. K \<in> Ks \<longrightarrow> Key K \<notin> analz G\<rbrakk>
+\<Longrightarrow> GuardK n Ks (analz G)"
 apply (auto simp: GuardK_def)
 apply (erule analz.induct, auto)
 by (ind_cases "Crypt K Xa \<in> guardK n Ks" for K Xa, auto)
 
-lemma in_GuardK [dest]: "[| X \<in> G; GuardK n Ks G |] ==> X \<in> guardK n Ks"
+lemma in_GuardK [dest]: "\<lbrakk>X \<in> G; GuardK n Ks G\<rbrakk> \<Longrightarrow> X \<in> guardK n Ks"
 by (auto simp: GuardK_def)
 
-lemma in_synth_GuardK: "[| X \<in> synth G; GuardK n Ks G |] ==> X \<in> guardK n Ks"
+lemma in_synth_GuardK: "\<lbrakk>X \<in> synth G; GuardK n Ks G\<rbrakk> \<Longrightarrow> X \<in> guardK n Ks"
 by (drule GuardK_synth, auto)
 
-lemma in_analz_GuardK: "[| X \<in> analz G; GuardK n Ks G;
-\<forall>K. K \<in> Ks \<longrightarrow> Key K \<notin> analz G |] ==> X \<in> guardK n Ks"
+lemma in_analz_GuardK: "\<lbrakk>X \<in> analz G; GuardK n Ks G;
+\<forall>K. K \<in> Ks \<longrightarrow> Key K \<notin> analz G\<rbrakk> \<Longrightarrow> X \<in> guardK n Ks"
 by (drule GuardK_analz, auto)
 
-lemma GuardK_keyset [simp]: "[| keyset G; Key n \<notin> G |] ==> GuardK n Ks G"
+lemma GuardK_keyset [simp]: "\<lbrakk>keyset G; Key n \<notin> G\<rbrakk> \<Longrightarrow> GuardK n Ks G"
 by (simp only: GuardK_def, clarify, drule keyset_in, auto)
 
-lemma GuardK_Un_keyset: "[| GuardK n Ks G; keyset H; Key n \<notin> H |]
-==> GuardK n Ks (G Un H)"
+lemma GuardK_Un_keyset: "\<lbrakk>GuardK n Ks G; keyset H; Key n \<notin> H\<rbrakk>
+\<Longrightarrow> GuardK n Ks (G Un H)"
 by auto
 
-lemma in_GuardK_kparts: "[| X \<in> G; GuardK n Ks G; Y \<in> kparts {X} |] ==> Y \<in> guardK n Ks"
+lemma in_GuardK_kparts: "\<lbrakk>X \<in> G; GuardK n Ks G; Y \<in> kparts {X}\<rbrakk> \<Longrightarrow> Y \<in> guardK n Ks"
 by blast
 
-lemma in_GuardK_kparts_neq: "[| X \<in> G; GuardK n Ks G; Key n' \<in> kparts {X} |]
-==> n \<noteq> n'"
+lemma in_GuardK_kparts_neq: "\<lbrakk>X \<in> G; GuardK n Ks G; Key n' \<in> kparts {X}\<rbrakk>
+\<Longrightarrow> n \<noteq> n'"
 by (blast dest: in_GuardK_kparts)
 
-lemma in_GuardK_kparts_Crypt: "[| X \<in> G; GuardK n Ks G; is_MPair X;
-Crypt K Y \<in> kparts {X}; Key n \<in> kparts {Y} |] ==> invKey K \<in> Ks"
+lemma in_GuardK_kparts_Crypt: "\<lbrakk>X \<in> G; GuardK n Ks G; is_MPair X;
+Crypt K Y \<in> kparts {X}; Key n \<in> kparts {Y}\<rbrakk> \<Longrightarrow> invKey K \<in> Ks"
 apply (drule in_GuardK, simp)
 apply (frule guardK_not_guardK, simp+)
 apply (drule guardK_kparts, simp)
 by (ind_cases "Crypt K Y \<in> guardK n Ks", auto)
 
-lemma GuardK_extand: "[| GuardK n Ks G; Ks \<subseteq> Ks';
-[| K \<in> Ks'; K \<notin> Ks |] ==> Key K \<notin> parts G |] ==> GuardK n Ks' G"
+lemma GuardK_extand: "\<lbrakk>GuardK n Ks G; Ks \<subseteq> Ks';
+\<lbrakk>K \<in> Ks'; K \<notin> Ks\<rbrakk> \<Longrightarrow> Key K \<notin> parts G\<rbrakk> \<Longrightarrow> GuardK n Ks' G"
 by (auto simp: GuardK_def dest: guardK_extand parts_sub)
 
 subsection\<open>set obtained by decrypting a message\<close>
@@ -158,14 +158,14 @@ abbreviation (input)
   decrypt :: "msg set \<Rightarrow> key \<Rightarrow> msg \<Rightarrow> msg set" where
   "decrypt H K Y \<equiv> insert Y (H - {Crypt K Y})"
 
-lemma analz_decrypt: "[| Crypt K Y \<in> H; Key (invKey K) \<in> H; Key n \<in> analz H |]
-==> Key n \<in> analz (decrypt H K Y)"
+lemma analz_decrypt: "\<lbrakk>Crypt K Y \<in> H; Key (invKey K) \<in> H; Key n \<in> analz H\<rbrakk>
+\<Longrightarrow> Key n \<in> analz (decrypt H K Y)"
 apply (drule_tac P="\<lambda>H. Key n \<in> analz H" in ssubst [OF insert_Diff])
 apply assumption 
 apply (simp only: analz_Crypt_if, simp)
 done
 
-lemma parts_decrypt: "[| Crypt K Y \<in> H; X \<in> parts (decrypt H K Y) |] ==> X \<in> parts H"
+lemma parts_decrypt: "\<lbrakk>Crypt K Y \<in> H; X \<in> parts (decrypt H K Y)\<rbrakk> \<Longrightarrow> X \<in> parts H"
 by (erule parts.induct, auto intro: parts.Fst parts.Snd parts.Body)
 
 subsection\<open>number of Crypt's in a message\<close>
@@ -191,12 +191,12 @@ subsection\<open>basic facts about \<^term>\<open>cnb\<close>\<close>
 lemma cnb_app [simp]: "cnb (l @ l') = cnb l + cnb l'"
 by (induct l, auto)
 
-lemma mem_cnb_minus: "x \<in> set l ==> cnb l = crypt_nb x + (cnb l - crypt_nb x)"
+lemma mem_cnb_minus: "x \<in> set l \<Longrightarrow> cnb l = crypt_nb x + (cnb l - crypt_nb x)"
 by (induct l, auto)
 
 lemmas mem_cnb_minus_substI = mem_cnb_minus [THEN ssubst]
 
-lemma cnb_minus [simp]: "x \<in> set l ==> cnb (remove l x) = cnb l - crypt_nb x"
+lemma cnb_minus [simp]: "x \<in> set l \<Longrightarrow> cnb (remove l x) = cnb l - crypt_nb x"
 apply (induct l, auto)
 by (erule_tac l=l and x=x in mem_cnb_minus_substI, simp)
 
@@ -280,20 +280,20 @@ apply (rule GuardK_kparts, simp, simp)
 apply (rule_tac B="set l'" in subset_trans, rule set_remove, blast)
 by (rule kparts_set)
 
-lemma GuardK_invKey_finite: "[| Key n \<in> analz G; GuardK n Ks G; finite G |]
-==> \<exists>K. K \<in> Ks \<and> Key K \<in> analz G"
+lemma GuardK_invKey_finite: "\<lbrakk>Key n \<in> analz G; GuardK n Ks G; finite G\<rbrakk>
+\<Longrightarrow> \<exists>K. K \<in> Ks \<and> Key K \<in> analz G"
 apply (drule finite_list, clarify)
 by (rule GuardK_invKey_by_list, auto)
 
-lemma GuardK_invKey: "[| Key n \<in> analz G; GuardK n Ks G |]
-==> \<exists>K. K \<in> Ks \<and> Key K \<in> analz G"
+lemma GuardK_invKey: "\<lbrakk>Key n \<in> analz G; GuardK n Ks G\<rbrakk>
+\<Longrightarrow> \<exists>K. K \<in> Ks \<and> Key K \<in> analz G"
 by (auto dest: analz_needs_only_finite GuardK_invKey_finite)
 
 text\<open>if the analyse of a finite guarded set and a (possibly infinite) set of
 keys gives n then it must also gives Ks\<close>
 
-lemma GuardK_invKey_keyset: "[| Key n \<in> analz (G \<union> H); GuardK n Ks G; finite G;
-keyset H; Key n \<notin> H |] ==> \<exists>K. K \<in> Ks \<and> Key K \<in> analz (G \<union> H)"
+lemma GuardK_invKey_keyset: "\<lbrakk>Key n \<in> analz (G \<union> H); GuardK n Ks G; finite G;
+keyset H; Key n \<notin> H\<rbrakk> \<Longrightarrow> \<exists>K. K \<in> Ks \<and> Key K \<in> analz (G \<union> H)"
 apply (frule_tac P="\<lambda>G. Key n \<in> G" and G=G in analz_keyset_substD, simp_all)
 apply (drule_tac G="G Un (H Int keysfor G)" in GuardK_invKey_finite)
 apply (auto simp: GuardK_def intro: analz_sub)

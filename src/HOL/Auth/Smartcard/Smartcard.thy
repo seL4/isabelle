@@ -118,7 +118,7 @@ lemma parts_image_Nonce [simp]: "parts (Nonce`N) = Nonce`N"
   by auto
 
 lemma keysFor_parts_initState [simp]: "keysFor (parts (initState C)) = {}"
-apply (unfold keysFor_def)
+unfolding keysFor_def
 apply (induct_tac "C", auto)
 done
 
@@ -267,7 +267,7 @@ by auto
   nonces.
 
 lemma Nonce_notin_used_empty [simp]: "Nonce N \<notin> used []"
-apply (simp (no_asm) add: used_Nil)
+unfolding used_Nil
 done
 
 So, we must use old-style supply fresh nonce theorems relying on the appropriate axiom*)
