@@ -114,8 +114,8 @@ fun run_atp mode name
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
 
-    val {exec, arguments, proof_delims, known_failures, prem_role, good_max_mono_iters,
-      good_max_new_mono_instances, ...} = get_atp thy name ()
+    val {exec, arguments, proof_delims, known_failures, prem_role, generate_isabelle_info,
+      good_max_mono_iters, good_max_new_mono_instances, ...} = get_atp thy name ()
 
     val full_proofs = isar_proofs |> the_default (mode = Minimize)
     val local_name = perhaps (try (unprefix remote_prefix)) name
@@ -188,7 +188,6 @@ fun run_atp mode name
         val generous_run_timeout = if mode = MaSh then one_day else run_timeout
         val ({elapsed, ...}, atp_problem_data as (atp_problem, _, _, _)) = Timing.timing (fn () =>
           let
-            val generate_info = (case good_format of DFG _ => true | _ => false)
             val readable_names = not (Config.get ctxt atp_full_names)
           in
             facts
@@ -196,8 +195,8 @@ fun run_atp mode name
               filter_out (is_dangerous_prop ctxt o Thm.prop_of o snd)
             |> not (is_type_enc_polymorphic type_enc) ? monomorphize_facts
             |> map (apsnd Thm.prop_of)
-            |> generate_atp_problem ctxt generate_info good_format prem_role type_enc atp_mode
-              good_lam_trans good_uncurried_aliases readable_names true hyp_ts concl_t
+            |> generate_atp_problem ctxt generate_isabelle_info good_format prem_role type_enc
+              atp_mode good_lam_trans good_uncurried_aliases readable_names true hyp_ts concl_t
           end) ()
 
         val () = spying spy (fn () =>

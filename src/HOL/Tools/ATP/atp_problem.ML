@@ -294,8 +294,6 @@ val minimum_rank = 0
 val default_rank = 1000
 val default_term_order_weight = 1
 
-(* Currently, only SPASS 3.8ds and (to a lesser extent) Metis can process Isabelle
-   metainformation. *)
 fun isabelle_info generate_info status rank =
   if generate_info then
     [] |> rank <> default_rank
@@ -608,11 +606,11 @@ fun tptp_string_of_line format (Type_Decl (ident, ty, ary)) =
     tptp_string_of_role kind ^ "," ^ "\n    (" ^
     tptp_string_of_formula format phi ^ ")" ^
     (case source of
-      SOME tm => ", " ^ tptp_string_of_term format tm
+      SOME tm => ", " ^ tptp_string_of_term FOF tm
     | NONE => if null info then "" else ", []") ^
     (case info of
       [] => ""
-    | tms => ", [" ^ commas (map (tptp_string_of_term format) tms) ^ "]") ^
+    | tms => ", [" ^ commas (map (tptp_string_of_term FOF) tms) ^ "]") ^
     ")." ^ maybe_alt alt ^ "\n"
 
 fun tptp_lines format =
