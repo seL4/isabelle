@@ -1149,6 +1149,7 @@ object Sessions {
             info_roots += make_info(chapter_defs, options, select, dir, chapter, entry)
           case _ =>
         }
+        chapter = UNSORTED
       }
       info_roots.toList
     }
