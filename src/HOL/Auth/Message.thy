@@ -86,10 +86,10 @@ lemma parts_mono: "G \<subseteq> H \<Longrightarrow> parts(G) \<subseteq> parts(
 
 
 text\<open>Equations hold because constructors are injective.\<close>
-lemma Friend_image_eq [simp]: "(Friend x \<in> Friend`A) = (x\<in>A)"
+lemma Friend_image_eq [simp]: "(Friend x \<in> Friend`A) = (x \<in>A)"
   by auto
 
-lemma Key_image_eq [simp]: "(Key x \<in> Key`A) = (x\<in>A)"
+lemma Key_image_eq [simp]: "(Key x \<in> Key`A) = (x \<in>A)"
   by auto
 
 lemma Nonce_Key_image_eq [simp]: "(Nonce x \<notin> Key`A)"
@@ -110,7 +110,7 @@ lemma keysFor_empty [simp]: "keysFor {} = {}"
 lemma keysFor_Un [simp]: "keysFor (H \<union> H') = keysFor H \<union> keysFor H'"
     unfolding keysFor_def by blast
 
-lemma keysFor_UN [simp]: "keysFor (\<Union>i\<in>A. H i) = (\<Union>i\<in>A. keysFor (H i))"
+lemma keysFor_UN [simp]: "keysFor (\<Union>i \<in>A. H i) = (\<Union>i \<in>A. keysFor (H i))"
     unfolding keysFor_def by blast
 
 text\<open>Monotonicity\<close>
@@ -170,11 +170,11 @@ lemma parts_empty_aux: "X \<in> parts{} \<Longrightarrow> False"
 lemma parts_empty [simp]: "parts{} = {}"
   using parts_empty_aux by blast
 
-lemma parts_emptyE [elim!]: "X\<in> parts{} \<Longrightarrow> P"
+lemma parts_emptyE [elim!]: "X \<in> parts{} \<Longrightarrow> P"
   by simp
 
 text\<open>WARNING: loops if H = {Y}, therefore must not be repeated!\<close>
-lemma parts_singleton: "X \<in> parts H \<Longrightarrow> \<exists>Y\<in>H. X \<in> parts {Y}"
+lemma parts_singleton: "X \<in> parts H \<Longrightarrow> \<exists>Y \<in>H. X \<in> parts {Y}"
   by (erule parts.induct, fast+)
 
 
@@ -200,20 +200,20 @@ lemma parts_insert2:
   "parts (insert X (insert Y H)) = parts {X} \<union> parts {Y} \<union> parts H"
   by (metis Un_commute Un_empty_right Un_insert_right insert_is_Un parts_Un)
 
-lemma parts_UN_subset1: "(\<Union>x\<in>A. parts(H x)) \<subseteq> parts(\<Union>x\<in>A. H x)"
+lemma parts_UN_subset1: "(\<Union>x \<in>A. parts(H x)) \<subseteq> parts(\<Union>x \<in>A. H x)"
   by (intro UN_least parts_mono UN_upper)
 
-lemma parts_UN_subset2: "parts(\<Union>x\<in>A. H x) \<subseteq> (\<Union>x\<in>A. parts(H x))"
+lemma parts_UN_subset2: "parts(\<Union>x \<in>A. H x) \<subseteq> (\<Union>x \<in>A. parts(H x))"
   apply (rule subsetI)
   apply (erule parts.induct, blast+)
   done
 
 lemma parts_UN [simp]:
-  "parts (\<Union>x\<in>A. H x) = (\<Union>x\<in>A. parts (H x))"
+  "parts (\<Union>x \<in>A. H x) = (\<Union>x \<in>A. parts (H x))"
   by (intro equalityI parts_UN_subset1 parts_UN_subset2)
 
 lemma parts_image [simp]:
-  "parts (f ` A) = (\<Union>x\<in>A. parts {f x})"
+  "parts (f ` A) = (\<Union>x \<in>A. parts {f x})"
   apply auto
    apply (metis (mono_tags, opaque_lifting) image_iff parts_singleton)
   apply (metis empty_subsetI image_eqI insert_absorb insert_subset parts_mono)
@@ -234,7 +234,7 @@ lemma parts_insert_subset: "insert X (parts H) \<subseteq> parts(insert X H)"
 
 subsubsection\<open>Idempotence and transitivity\<close>
 
-lemma parts_partsD [dest!]: "X\<in> parts (parts H) \<Longrightarrow> X\<in> parts H"
+lemma parts_partsD [dest!]: "X \<in> parts (parts H) \<Longrightarrow> X \<in> parts H"
   by (erule parts.induct, blast+)
 
 lemma parts_idem [simp]: "parts (parts H) = parts H"
@@ -243,15 +243,15 @@ lemma parts_idem [simp]: "parts (parts H) = parts H"
 lemma parts_subset_iff [simp]: "(parts G \<subseteq> parts H) = (G \<subseteq> parts H)"
   by (metis parts_idem parts_increasing parts_mono subset_trans)
 
-lemma parts_trans: "\<lbrakk>X\<in> parts G;  G \<subseteq> parts H\<rbrakk> \<Longrightarrow> X\<in> parts H"
+lemma parts_trans: "\<lbrakk>X \<in> parts G;  G \<subseteq> parts H\<rbrakk> \<Longrightarrow> X \<in> parts H"
   by (metis parts_subset_iff subsetD)
 
 text\<open>Cut\<close>
 lemma parts_cut:
-  "\<lbrakk>Y\<in> parts (insert X G);  X\<in> parts H\<rbrakk> \<Longrightarrow> Y\<in> parts (G \<union> H)" 
+  "\<lbrakk>Y \<in> parts (insert X G);  X \<in> parts H\<rbrakk> \<Longrightarrow> Y \<in> parts (G \<union> H)" 
   by (blast intro: parts_trans) 
 
-lemma parts_cut_eq [simp]: "X\<in> parts H \<Longrightarrow> parts (insert X H) = parts H"
+lemma parts_cut_eq [simp]: "X \<in> parts H \<Longrightarrow> parts (insert X H) = parts H"
   by (metis insert_absorb parts_idem parts_insert)
 
 
@@ -491,7 +491,7 @@ lemma analz_image_Key [simp]: "analz (Key`N) = Key`N"
 
 subsubsection\<open>Idempotence and transitivity\<close>
 
-lemma analz_analzD [dest!]: "X\<in> analz (analz H) \<Longrightarrow> X\<in> analz H"
+lemma analz_analzD [dest!]: "X \<in> analz (analz H) \<Longrightarrow> X \<in> analz H"
   by (erule analz.induct, blast+)
 
 lemma analz_idem [simp]: "analz (analz H) = analz H"
@@ -500,11 +500,11 @@ lemma analz_idem [simp]: "analz (analz H) = analz H"
 lemma analz_subset_iff [simp]: "(analz G \<subseteq> analz H) = (G \<subseteq> analz H)"
   by (metis analz_idem analz_increasing analz_mono subset_trans)
 
-lemma analz_trans: "\<lbrakk>X\<in> analz G;  G \<subseteq> analz H\<rbrakk> \<Longrightarrow> X\<in> analz H"
+lemma analz_trans: "\<lbrakk>X \<in> analz G;  G \<subseteq> analz H\<rbrakk> \<Longrightarrow> X \<in> analz H"
   by (drule analz_mono, blast)
 
 text\<open>Cut; Lemma 2 of Lowe\<close>
-lemma analz_cut: "\<lbrakk>Y\<in> analz (insert X H);  X\<in> analz H\<rbrakk> \<Longrightarrow> Y\<in> analz H"
+lemma analz_cut: "\<lbrakk>Y \<in> analz (insert X H);  X \<in> analz H\<rbrakk> \<Longrightarrow> Y \<in> analz H"
   by (erule analz_trans, blast)
 
 (*Cut can be proved easily by induction on
@@ -514,7 +514,7 @@ lemma analz_cut: "\<lbrakk>Y\<in> analz (insert X H);  X\<in> analz H\<rbrakk> \
 text\<open>This rewrite rule helps in the simplification of messages that involve
   the forwarding of unknown components (X).  Without it, removing occurrences
   of X can be very complicated.\<close>
-lemma analz_insert_eq: "X\<in> analz H \<Longrightarrow> analz (insert X H) = analz H"
+lemma analz_insert_eq: "X \<in> analz H \<Longrightarrow> analz (insert X H) = analz H"
   by (metis analz_cut analz_insert_eq_I insert_absorb)
 
 
@@ -540,16 +540,6 @@ lemma analz_trivial:
   apply safe
    apply (erule analz.induct, blast+)
   done
-
-text\<open>These two are obsolete (with a single Spy) but cost little to prove...\<close>
-lemma analz_UN_analz_lemma:
-  "X\<in> analz (\<Union>i\<in>A. analz (H i)) \<Longrightarrow> X\<in> analz (\<Union>i\<in>A. H i)"
-  apply (erule analz.induct)
-     apply (blast intro: analz_mono [THEN [2] rev_subsetD])+
-  done
-
-lemma analz_UN_analz [simp]: "analz (\<Union>i\<in>A. analz (H i)) = analz (\<Union>i\<in>A. H i)"
-  by (blast intro: analz_UN_analz_lemma analz_mono [THEN [2] rev_subsetD])
 
 
 subsection\<open>Inductive relation "synth"\<close>
@@ -599,7 +589,7 @@ lemma synth_insert: "insert X (synth H) \<subseteq> synth(insert X H)"
 
 subsubsection\<open>Idempotence and transitivity\<close>
 
-lemma synth_synthD [dest!]: "X\<in> synth (synth H) \<Longrightarrow> X\<in> synth H"
+lemma synth_synthD [dest!]: "X \<in> synth (synth H) \<Longrightarrow> X \<in> synth H"
   by (erule synth.induct, auto)
 
 lemma synth_idem: "synth (synth H) = synth H"
@@ -608,11 +598,11 @@ lemma synth_idem: "synth (synth H) = synth H"
 lemma synth_subset_iff [simp]: "(synth G \<subseteq> synth H) = (G \<subseteq> synth H)"
   by (metis subset_trans synth_idem synth_increasing synth_mono)
 
-lemma synth_trans: "\<lbrakk>X\<in> synth G;  G \<subseteq> synth H\<rbrakk> \<Longrightarrow> X\<in> synth H"
+lemma synth_trans: "\<lbrakk>X \<in> synth G;  G \<subseteq> synth H\<rbrakk> \<Longrightarrow> X \<in> synth H"
   by (drule synth_mono, blast)
 
 text\<open>Cut; Lemma 2 of Lowe\<close>
-lemma synth_cut: "\<lbrakk>Y\<in> synth (insert X H);  X\<in> synth H\<rbrakk> \<Longrightarrow> Y\<in> synth H"
+lemma synth_cut: "\<lbrakk>Y \<in> synth (insert X H);  X \<in> synth H\<rbrakk> \<Longrightarrow> Y \<in> synth H"
   by (erule synth_trans, blast)
 
 lemma Crypt_synth_eq [simp]:
@@ -628,25 +618,23 @@ lemma keysFor_synth [simp]:
 subsubsection\<open>Combinations of parts, analz and synth\<close>
 
 lemma parts_synth [simp]: "parts (synth H) = parts H \<union> synth H"
-  apply (rule equalityI)
-   apply (rule subsetI)
-   apply (erule parts.induct)
-      apply (blast intro: synth_increasing [THEN parts_mono, THEN subsetD] 
-      parts.Fst parts.Snd parts.Body)+
-  done
+proof -
+  have "X \<in> parts (synth H) \<Longrightarrow> X \<in> parts H \<union> synth H" for X
+    by (induction X rule: parts.induct) (auto intro: parts.intros)
+  then show ?thesis
+    by (meson parts_increasing parts_mono subsetI antisym sup_least synth_increasing)
+qed
 
 lemma analz_analz_Un [simp]: "analz (analz G \<union> H) = analz (G \<union> H)"
-  apply (intro equalityI analz_subset_cong)+
-     apply simp_all
-  done
+  using analz_cong by blast
 
 lemma analz_synth_Un [simp]: "analz (synth G \<union> H) = analz (G \<union> H) \<union> synth G"
-  apply (rule equalityI)
-   apply (rule subsetI)
-   apply (erule analz.induct)
-      prefer 5 apply (blast intro: analz_mono [THEN [2] rev_subsetD])
-     apply (blast intro: analz.Fst analz.Snd analz.Decrypt)+
-  done
+proof -
+  have "X \<in> analz (synth G \<union> H) \<Longrightarrow> X \<in> analz (G \<union> H) \<union> synth G" for X
+    by (induction X rule: analz.induct) (auto intro: analz.intros)
+  then show ?thesis
+    by (metis analz_subset_iff le_sup_iff subsetI subset_antisym synth_subset_iff)
+qed
 
 lemma analz_synth [simp]: "analz (synth H) = analz H \<union> synth H"
   by (metis Un_empty_right analz_synth_Un)
@@ -654,7 +642,7 @@ lemma analz_synth [simp]: "analz (synth H) = analz H \<union> synth H"
 
 subsubsection\<open>For reasoning about the Fake rule in traces\<close>
 
-lemma parts_insert_subset_Un: "X\<in> G \<Longrightarrow> parts(insert X H) \<subseteq> parts G \<union> parts H"
+lemma parts_insert_subset_Un: "X \<in> G \<Longrightarrow> parts(insert X H) \<subseteq> parts G \<union> parts H"
   by (metis UnCI Un_upper2 insert_subset parts_Un parts_mono)
 
 text\<open>More specifically for Fake. See also \<open>Fake_parts_sing\<close> below\<close>
@@ -672,7 +660,7 @@ lemma Fake_parts_insert_in_Un:
 text\<open>\<^term>\<open>H\<close> is sometimes \<^term>\<open>Key ` KK \<union> spies evs\<close>, so can't put 
   \<^term>\<open>G=H\<close>.\<close>
 lemma Fake_analz_insert:
-  "X\<in> synth (analz G) \<Longrightarrow>  
+  "X \<in> synth (analz G) \<Longrightarrow>  
       analz (insert X H) \<subseteq> synth (analz G) \<union> analz (G \<union> H)"
   by (metis UnCI Un_commute Un_upper1 analz_analz_Un analz_mono analz_synth_Un insert_subset)
 

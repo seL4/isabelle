@@ -19,9 +19,9 @@ lemma Un_absorb3 [simp] : "A \<union> (B \<union> A) = B \<union> A"
 by blast
 
 text\<open>Collapses redundant cases in the huge protocol proofs\<close>
-lemmas disj_simps = disj_comms disj_left_absorb disj_assoc 
+lemmas disj_simps = disj_comms disj_left_absorb disj_assoc
 
-text\<open>Effective with assumptions like \<^term>\<open>K \<notin> range pubK\<close> and 
+text\<open>Effective with assumptions like \<^term>\<open>K \<notin> range pubK\<close> and
    \<^term>\<open>K \<notin> invKey`range pubK\<close>\<close>
 lemma notin_image_iff: "(y \<notin> f`I) = (\<forall>i\<in>I. f i \<noteq> y)"
 by blast
@@ -85,7 +85,7 @@ definition nat_of_agent :: "agent \<Rightarrow> nat" where
 
 text\<open>The function is indeed injective\<close>
 lemma inj_nat_of_agent: "inj nat_of_agent"
-by (simp add: nat_of_agent_def inj_on_def curry_def prod_encode_eq split: agent.split) 
+by (simp add: nat_of_agent_def inj_on_def curry_def prod_encode_eq split: agent.split)
 
 
 definition
@@ -620,16 +620,6 @@ apply safe
 apply (erule analz.induct, blast+)
 done
 
-(*These two are obsolete (with a single Spy) but cost little to prove...*)
-lemma analz_UN_analz_lemma:
-     "X\<in> analz (\<Union>i\<in>A. analz (H i)) ==> X\<in> analz (\<Union>i\<in>A. H i)"
-apply (erule analz.induct)
-apply (blast intro: analz_mono [THEN [2] rev_subsetD])+
-done
-
-lemma analz_UN_analz [simp]: "analz (\<Union>i\<in>A. analz (H i)) = analz (\<Union>i\<in>A. H i)"
-by (blast intro: analz_UN_analz_lemma analz_mono [THEN [2] rev_subsetD])
-
 
 subsection\<open>Inductive relation "synth"\<close>
 
@@ -760,7 +750,7 @@ apply blast
 done
 
 lemma Fake_parts_insert_in_Un:
-     "[|Z \<in> parts (insert X H);  X \<in> synth (analz H)|] 
+     "[|Z \<in> parts (insert X H);  X \<in> synth (analz H)|]
       ==> Z \<in>  synth (analz H) \<union> parts H"
 by (blast dest: Fake_parts_insert [THEN subsetD, dest])
 
