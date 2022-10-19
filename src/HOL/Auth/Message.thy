@@ -180,16 +180,13 @@ lemma parts_singleton: "X \<in> parts H \<Longrightarrow> \<exists>Y \<in>H. X \
 
 subsubsection\<open>Unions\<close>
 
-lemma parts_Un_subset1: "parts(G) \<union> parts(H) \<subseteq> parts(G \<union> H)"
-  by (intro Un_least parts_mono Un_upper1 Un_upper2)
-
-lemma parts_Un_subset2: "parts(G \<union> H) \<subseteq> parts(G) \<union> parts(H)"
-  apply (rule subsetI)
-  apply (erule parts.induct, blast+)
-  done
-
 lemma parts_Un [simp]: "parts(G \<union> H) = parts(G) \<union> parts(H)"
-  by (intro equalityI parts_Un_subset1 parts_Un_subset2)
+proof -
+  have "X \<in> parts (G \<union> H) \<Longrightarrow> X \<in> parts G \<union> parts H" for X
+    by (induction rule: parts.induct) auto
+  then show ?thesis
+    by (simp add: order_antisym parts_mono subsetI)
+qed
 
 lemma parts_insert: "parts (insert X H) = parts {X} \<union> parts H"
   by (metis insert_is_Un parts_Un)
@@ -200,18 +197,6 @@ lemma parts_insert2:
   "parts (insert X (insert Y H)) = parts {X} \<union> parts {Y} \<union> parts H"
   by (metis Un_commute Un_empty_right Un_insert_right insert_is_Un parts_Un)
 
-lemma parts_UN_subset1: "(\<Union>x \<in>A. parts(H x)) \<subseteq> parts(\<Union>x \<in>A. H x)"
-  by (intro UN_least parts_mono UN_upper)
-
-lemma parts_UN_subset2: "parts(\<Union>x \<in>A. H x) \<subseteq> (\<Union>x \<in>A. parts(H x))"
-  apply (rule subsetI)
-  apply (erule parts.induct, blast+)
-  done
-
-lemma parts_UN [simp]:
-  "parts (\<Union>x \<in>A. H x) = (\<Union>x \<in>A. parts (H x))"
-  by (intro equalityI parts_UN_subset1 parts_UN_subset2)
-
 lemma parts_image [simp]:
   "parts (f ` A) = (\<Union>x \<in>A. parts {f x})"
   apply auto
@@ -219,9 +204,7 @@ lemma parts_image [simp]:
   apply (metis empty_subsetI image_eqI insert_absorb insert_subset parts_mono)
   done
 
-text\<open>Added to simplify arguments to parts, analz and synth.
-  NOTE: the UN versions are no longer used!\<close>
-
+text\<open>Added to simplify arguments to parts, analz and synth.\<close>
 
 text\<open>This allows \<open>blast\<close> to simplify occurrences of 
   \<^term>\<open>parts(G\<union>H)\<close> in the assumption.\<close>
@@ -292,20 +275,21 @@ lemma parts_insert_Hash [simp]:
 
 lemma parts_insert_Crypt [simp]:
   "parts (insert (Crypt K X) H) = insert (Crypt K X) (parts (insert X H))"
-  apply (rule equalityI)
-   apply (rule subsetI)
-   apply (erule parts.induct, auto)
-  apply (blast intro: parts.Body)
-  done
+proof -
+  have "Y \<in> parts (insert (Crypt K X) H) \<Longrightarrow> Y \<in> insert (Crypt K X) (parts (insert X H))" for Y
+    by (induction rule: parts.induct) auto
+  then show ?thesis
+    by (smt (verit) insertI1 insert_commute parts.simps parts_cut_eq parts_insert_eq_I)
+qed
 
 lemma parts_insert_MPair [simp]:
-  "parts (insert \<lbrace>X,Y\<rbrace> H) =  
-          insert \<lbrace>X,Y\<rbrace> (parts (insert X (insert Y H)))"
-  apply (rule equalityI)
-   apply (rule subsetI)
-   apply (erule parts.induct, auto)
-   apply (blast intro: parts.Fst parts.Snd)+
-  done
+  "parts (insert \<lbrace>X,Y\<rbrace> H) = insert \<lbrace>X,Y\<rbrace> (parts (insert X (insert Y H)))"
+proof -
+  have "Z \<in> parts (insert \<lbrace>X, Y\<rbrace> H) \<Longrightarrow> Z \<in> insert \<lbrace>X, Y\<rbrace> (parts (insert X (insert Y H)))" for Z
+    by (induction rule: parts.induct) auto
+  then show ?thesis
+    by (smt (verit) insertI1 insert_commute parts.simps parts_cut_eq parts_insert_eq_I)
+qed
 
 lemma parts_image_Key [simp]: "parts (Key`N) = Key`N"
   by auto
@@ -423,44 +407,40 @@ lemma analz_insert_Key [simp]:
   done
 
 lemma analz_insert_MPair [simp]:
-  "analz (insert \<lbrace>X,Y\<rbrace> H) =  
-          insert \<lbrace>X,Y\<rbrace> (analz (insert X (insert Y H)))"
-  apply (rule equalityI)
-   apply (rule subsetI)
-   apply (erule analz.induct, auto)
-  apply (erule analz.induct)
-     apply (blast intro: analz.Fst analz.Snd)+
-  done
+  "analz (insert \<lbrace>X,Y\<rbrace> H) = insert \<lbrace>X,Y\<rbrace> (analz (insert X (insert Y H)))"
+proof -
+  have "Z \<in> analz (insert \<lbrace>X, Y\<rbrace> H) \<Longrightarrow> Z \<in> insert \<lbrace>X, Y\<rbrace> (analz (insert X (insert Y H)))" for Z
+    by (induction rule: analz.induct) auto
+  moreover have "Z \<in> analz (insert X (insert Y H)) \<Longrightarrow> Z \<in> analz (insert \<lbrace>X, Y\<rbrace> H)" for Z
+    by (induction rule: analz.induct) (use analz.Inj in blast)+
+  ultimately show ?thesis
+    by auto
+qed
 
-text\<open>Can pull out enCrypted message if the Key is not known\<close>
+text\<open>Can pull out encrypted message if the Key is not known\<close>
 lemma analz_insert_Crypt:
   "Key (invKey K) \<notin> analz H 
       \<Longrightarrow> analz (insert (Crypt K X) H) = insert (Crypt K X) (analz H)"
   apply (rule analz_insert_eq_I) 
   apply (erule analz.induct, auto) 
-
-  done
-
-lemma lemma1: "Key (invKey K) \<in> analz H \<Longrightarrow>   
-               analz (insert (Crypt K X) H) \<subseteq>  
-               insert (Crypt K X) (analz (insert X H))"
-  apply (rule subsetI)
-  apply (erule_tac x = x in analz.induct, auto)
-  done
-
-lemma lemma2: "Key (invKey K) \<in> analz H \<Longrightarrow>   
-               insert (Crypt K X) (analz (insert X H)) \<subseteq>  
-               analz (insert (Crypt K X) H)"
-  apply auto
-  apply (erule_tac x = x in analz.induct, auto)
-  apply (blast intro: analz_insertI analz.Decrypt)
   done
 
 lemma analz_insert_Decrypt:
-  "Key (invKey K) \<in> analz H \<Longrightarrow>   
-               analz (insert (Crypt K X) H) =  
-               insert (Crypt K X) (analz (insert X H))"
-  by (intro equalityI lemma1 lemma2)
+  assumes "Key (invKey K) \<in> analz H"
+  shows "analz (insert (Crypt K X) H) = insert (Crypt K X) (analz (insert X H))"
+proof -
+  have "Y \<in> analz (insert (Crypt K X) H) \<Longrightarrow> Y \<in> insert (Crypt K X) (analz (insert X H))" for Y
+    by (induction rule: analz.induct) auto
+  moreover
+  have "Y \<in> analz (insert X H) \<Longrightarrow> Y \<in> analz (insert (Crypt K X) H)" for Y
+  proof (induction rule: analz.induct)
+    case (Inj X)
+    then show ?case
+      by (metis analz.Decrypt analz.Inj analz_insertI assms insert_iff)
+  qed auto
+  ultimately show ?thesis
+    by auto
+qed
 
 text\<open>Case analysis: either the message is secure, or it is not! Effective,
 but can cause subgoals to blow up! Use with \<open>if_split\<close>; apparently

@@ -247,19 +247,7 @@ apply (simp add: Un_assoc)
 apply (simp add: parts_insert [symmetric])
 done
 
-lemma parts_UN_subset1: "(\<Union>x\<in>A. parts(H x)) \<subseteq> parts(\<Union>x\<in>A. H x)"
-by (intro UN_least parts_mono UN_upper)
-
-lemma parts_UN_subset2: "parts(\<Union>x\<in>A. H x) \<subseteq> (\<Union>x\<in>A. parts(H x))"
-apply (rule subsetI)
-apply (erule parts.induct, blast+)
-done
-
-lemma parts_UN [simp]: "parts(\<Union>x\<in>A. H x) = (\<Union>x\<in>A. parts(H x))"
-by (intro equalityI parts_UN_subset1 parts_UN_subset2)
-
-(*Added to simplify arguments to parts, analz and synth.
-  NOTE: the UN versions are no longer used!*)
+(*Added to simplify arguments to parts, analz and synth.*)
 
 
 text\<open>This allows \<open>blast\<close> to simplify occurrences of

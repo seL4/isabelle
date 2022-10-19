@@ -209,12 +209,6 @@ apply (rule subsetI)
 apply (erule parts.induct, blast+)
 done
 
-lemma parts_UN [simp]: "parts(\<Union>x\<in>A. H x) = (\<Union>x\<in>A. parts(H x))"
-by (intro equalityI parts_UN_subset1 parts_UN_subset2)
-
-text\<open>Added to simplify arguments to parts, analz and synth.
-  NOTE: the UN versions are no longer used!\<close>
-
 
 text\<open>This allows \<open>blast\<close> to simplify occurrences of
   \<^term>\<open>parts(G\<union>H)\<close> in the assumption.\<close>
