@@ -542,16 +542,6 @@ apply safe
 apply (erule analz.induct, blast+)
 done
 
-text\<open>These two are obsolete (with a single Spy) but cost little to prove...\<close>
-lemma analz_UN_analz_lemma:
-     "X\<in> analz (\<Union>i\<in>A. analz (H i)) ==> X\<in> analz (\<Union>i\<in>A. H i)"
-apply (erule analz.induct)
-apply (blast intro: analz_mono [THEN [2] rev_subsetD])+
-done
-
-lemma analz_UN_analz [simp]: "analz (\<Union>i\<in>A. analz (H i)) = analz (\<Union>i\<in>A. H i)"
-by (blast intro: analz_UN_analz_lemma analz_mono [THEN [2] rev_subsetD])
-
 
 subsection\<open>Inductive relation "synth"\<close>
 
