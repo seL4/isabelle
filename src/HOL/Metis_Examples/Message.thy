@@ -209,12 +209,6 @@ apply (rule subsetI)
 apply (erule parts.induct, blast+)
 done
 
-lemma parts_UN [simp]: "parts(\<Union>x\<in>A. H x) = (\<Union>x\<in>A. parts(H x))"
-by (intro equalityI parts_UN_subset1 parts_UN_subset2)
-
-text\<open>Added to simplify arguments to parts, analz and synth.
-  NOTE: the UN versions are no longer used!\<close>
-
 
 text\<open>This allows \<open>blast\<close> to simplify occurrences of
   \<^term>\<open>parts(G\<union>H)\<close> in the assumption.\<close>
@@ -541,16 +535,6 @@ lemma analz_trivial:
 apply safe
 apply (erule analz.induct, blast+)
 done
-
-text\<open>These two are obsolete (with a single Spy) but cost little to prove...\<close>
-lemma analz_UN_analz_lemma:
-     "X\<in> analz (\<Union>i\<in>A. analz (H i)) ==> X\<in> analz (\<Union>i\<in>A. H i)"
-apply (erule analz.induct)
-apply (blast intro: analz_mono [THEN [2] rev_subsetD])+
-done
-
-lemma analz_UN_analz [simp]: "analz (\<Union>i\<in>A. analz (H i)) = analz (\<Union>i\<in>A. H i)"
-by (blast intro: analz_UN_analz_lemma analz_mono [THEN [2] rev_subsetD])
 
 
 subsection\<open>Inductive relation "synth"\<close>

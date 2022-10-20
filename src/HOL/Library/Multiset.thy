@@ -1575,6 +1575,9 @@ apply (rule wf_measure [THEN wf_subset, where f1=size])
 apply (clarsimp simp: measure_def inv_image_def mset_subset_size)
 done
 
+lemma wfP_subset_mset[simp]: "wfP (\<subset>#)"
+  by (rule wf_subset_mset_rel[to_pred])
+
 lemma full_multiset_induct [case_names less]:
 assumes ih: "\<And>B. \<forall>(A::'a multiset). A \<subset># B \<longrightarrow> P A \<Longrightarrow> P B"
 shows "P B"

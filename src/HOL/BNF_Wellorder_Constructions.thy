@@ -708,7 +708,7 @@ proof-
   moreover have "inj_on f23 ?A2"
   using EMB23 0 by (simp add: wo_rel_def embed_inj_on)
   ultimately
-  have "f23 ` (f12 ` ?A1) < f23 ` ?A2" by (simp add: inj_on_strict_subset)
+  have "f23 ` (f12 ` ?A1) < f23 ` ?A2" by (simp add: image_strict_mono)
   moreover
   {have "embed r1 r3 (f23 \<circ> f12)"
    using 1 EMB23 0 by (auto simp add: comp_embed)

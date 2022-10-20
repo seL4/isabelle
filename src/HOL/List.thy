@@ -4557,6 +4557,10 @@ by auto
 lemma in_set_replicate[simp]: "(x \<in> set (replicate n y)) = (x = y \<and> n \<noteq> 0)"
 by (simp add: set_replicate_conv_if)
 
+lemma card_set_1_iff_replicate:
+  "card(set xs) = Suc 0 \<longleftrightarrow> xs \<noteq> [] \<and> (\<exists>x. xs = replicate (length xs) x)"
+by (metis card_1_singleton_iff empty_iff insert_iff replicate_eqI set_empty2 set_replicate)      
+
 lemma Ball_set_replicate[simp]:
   "(\<forall>x \<in> set(replicate n a). P x) = (P a \<or> n=0)"
 by(simp add: set_replicate_conv_if)
@@ -4812,6 +4816,9 @@ lemma set_rotate1[simp]: "set(rotate1 xs) = set xs"
 lemma set_rotate[simp]: "set(rotate n xs) = set xs"
   by (induct n) (simp_all add:rotate_def)
 
+lemma rotate1_replicate[simp]: "rotate1 (replicate n a) = replicate n a"
+by (cases n) (simp_all add: replicate_append_same)
+
 lemma rotate1_is_Nil_conv[simp]: "(rotate1 xs = []) = (xs = [])"
   by (cases xs) auto
 
@@ -4848,6 +4855,32 @@ lemma nth_rotate:
 lemma nth_rotate1:
   \<open>rotate1 xs ! n = xs ! (Suc n mod length xs)\<close> if \<open>n < length xs\<close>
   using that nth_rotate [of n xs 1] by simp
+
+lemma inj_rotate1: "inj rotate1"
+proof
+  fix xs ys :: "'a list" show "rotate1 xs = rotate1 ys \<Longrightarrow> xs = ys"
+    by (cases xs; cases ys; simp)
+qed
+
+lemma surj_rotate1: "surj rotate1"
+proof (safe, simp_all)
+  fix xs :: "'a list" show "xs \<in> range rotate1"
+  proof (cases xs rule: rev_exhaust)
+    case Nil
+    hence "xs = rotate1 []" by auto
+    thus ?thesis by fast
+  next
+    case (snoc as a)
+    hence "xs = rotate1 (a#as)" by force
+    thus ?thesis by fast
+  qed
+qed
+
+lemma bij_rotate1: "bij (rotate1 :: 'a list \<Rightarrow> 'a list)"
+using bijI inj_rotate1 surj_rotate1 by blast
+
+lemma rotate1_fixpoint_card: "rotate1 xs = xs \<Longrightarrow> xs = [] \<or> card(set xs) = 1"
+by(induction xs) (auto simp: card_insert_if[OF finite_set] append_eq_Cons_conv)
 
 
 subsubsection \<open>\<^const>\<open>nths\<close> --- a generalization of \<^const>\<open>nth\<close> to sets\<close>

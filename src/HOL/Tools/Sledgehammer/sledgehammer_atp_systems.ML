@@ -19,6 +19,7 @@ sig
      proof_delims : (string * string) list,
      known_failures : (atp_failure * string) list,
      prem_role : atp_formula_role,
+     generate_isabelle_info : bool,
      good_slices : Proof.context -> (base_slice * atp_slice) list,
      good_max_mono_iters : int,
      good_max_new_mono_instances : int}
@@ -33,8 +34,8 @@ sig
   val spass_H2SOS : string
   val isabelle_scala_function: string list * string list
   val remote_atp : string -> string -> string list -> (string * string) list ->
-    (atp_failure * string) list -> atp_formula_role -> (Proof.context -> base_slice * atp_slice) ->
-    string * (unit -> atp_config)
+    (atp_failure * string) list -> atp_formula_role -> bool ->
+    (Proof.context -> base_slice * atp_slice) -> string * (unit -> atp_config)
   val add_atp : string * (unit -> atp_config) -> theory -> theory
   val get_atp : theory -> string -> (unit -> atp_config)
   val is_atp_installed : theory -> string -> bool
@@ -79,6 +80,7 @@ type atp_config =
    proof_delims : (string * string) list,
    known_failures : (atp_failure * string) list,
    prem_role : atp_formula_role,
+   generate_isabelle_info : bool,
    good_slices : Proof.context -> (base_slice * atp_slice) list,
    good_max_mono_iters : int,
    good_max_new_mono_instances : int}
@@ -137,6 +139,7 @@ val agsyhol_config : atp_config =
    proof_delims = tstp_proof_delims,
    known_failures = known_szs_status_failures,
    prem_role = Hypothesis,
+   generate_isabelle_info = false,
    good_slices =
      (* FUDGE *)
      K [((2, 60, meshN), (THF (Monomorphic, {with_ite = false, with_let = false}, THF_Without_Choice), "mono_native_higher", keep_lamsN, false, ""))],
@@ -159,6 +162,7 @@ val alt_ergo_config : atp_config =
       (TimedOut, ": Timeout"),
       (GaveUp, ": Unknown")],
    prem_role = Hypothesis,
+   generate_isabelle_info = false,
    good_slices =
      (* FUDGE *)
      K [((1000 (* infinity *), 100, meshN), (TF1, "poly_native", liftingN, false, ""))],
@@ -184,6 +188,7 @@ val e_config : atp_config =
       (TimedOut, "time limit exceeded")] @
      known_szs_status_failures,
    prem_role = Conjecture,
+   generate_isabelle_info = false,
    good_slices =
      let
        val (format, type_enc, lam_trans, extra_options) =
@@ -221,6 +226,7 @@ val iprover_config : atp_config =
      [(ProofIncomplete, "% SZS output start CNFRefutation")] @
      known_szs_status_failures,
    prem_role = Hypothesis,
+   generate_isabelle_info = false,
    good_slices =
      (* FUDGE *)
      K [((2, 32, meshN), (TF0, "mono_native", liftingN, false, "")),
@@ -250,6 +256,7 @@ val leo2_config : atp_config =
       (GaveUp, "No.of.Axioms")] @
      known_szs_status_failures,
    prem_role = Hypothesis,
+   generate_isabelle_info = false,
    good_slices =
      (* FUDGE *)
      K [((2, 40, meshN), (THF (Monomorphic, {with_ite = false, with_let = false}, THF_Without_Choice), "mono_native_higher", keep_lamsN, false, ""))],
@@ -271,6 +278,7 @@ val leo3_config : atp_config =
    proof_delims = tstp_proof_delims,
    known_failures = known_szs_status_failures,
    prem_role = Hypothesis,
+   generate_isabelle_info = false,
    good_slices =
      (* FUDGE *)
      K [((6, 512, meshN), (TH0, "mono_native_higher", keep_lamsN, false, "")),
@@ -295,6 +303,7 @@ val satallax_config : atp_config =
      [("% SZS output start Proof", "% SZS output end Proof")],
    known_failures = known_szs_status_failures,
    prem_role = Hypothesis,
+   generate_isabelle_info = false,
    good_slices =
      (* FUDGE *)
      K [((12, 256, meshN), (THF (Monomorphic, {with_ite = false, with_let = false}, THF_Without_Choice), "mono_native_higher", keep_lamsN, false, ""))],
@@ -314,37 +323,34 @@ val spass_H2NuVS0Red2 = "-Heuristic=2 -RNuV=1 -Sorts=0 -RFRew=2 -RBRew=2 -RTaut=
 val spass_H2SOS = "-Heuristic=2 -SOS"
 
 val spass_config : atp_config =
-  let
-    val format = DFG Monomorphic
-  in
-    {exec = (["SPASS_HOME"], ["SPASS"]),
-     arguments = fn _ => fn full_proofs => fn extra_options => fn timeout => fn problem =>
-       ["-Isabelle=1 " ^ (if full_proofs then "-CNFRenaming=0 -Splits=0 " else "") ^
-        "-TimeLimit=" ^ string_of_int (to_secs 1 timeout) ^ " " ^ File.bash_path problem
-        |> extra_options <> "" ? prefix (extra_options ^ " ")],
-     proof_delims = [("Here is a proof", "Formulae used in the proof")],
-     known_failures =
-       [(GaveUp, "SPASS beiseite: Completion found"),
-        (TimedOut, "SPASS beiseite: Ran out of time"),
-        (OutOfResources, "SPASS beiseite: Maximal number of loops exceeded"),
-        (MalformedInput, "Undefined symbol"),
-        (MalformedInput, "Free Variable"),
-        (Unprovable, "No formulae and clauses found in input file"),
-        (InternalError, "Please report this error")],
-     prem_role = Conjecture,
-     good_slices =
-       (* FUDGE *)
-       K [((2, 150, meshN), (format, "mono_native", combsN, true, "")),
-        ((2, 500, meshN), (format, "mono_native", liftingN, true, spass_H2SOS)),
-        ((2, 50, meshN), (format,  "mono_native", liftingN, true, spass_H2LR0LT0)),
-        ((2, 250, meshN), (format, "mono_native", combsN, true, spass_H2NuVS0)),
-        ((2, 1000, mepoN), (format, "mono_native", liftingN, true, spass_H1SOS)),
-        ((2, 150, meshN), (format, "poly_guards??", liftingN, false, spass_H2NuVS0Red2)),
-        ((2, 300, meshN), (format, "mono_native", combsN, true, spass_H2SOS)),
-        ((2, 100, meshN), (format, "mono_native", combs_and_liftingN, true, spass_H2))],
-     good_max_mono_iters = default_max_mono_iters,
-     good_max_new_mono_instances = default_max_new_mono_instances}
-  end
+  {exec = (["SPASS_HOME"], ["SPASS"]),
+   arguments = fn _ => fn full_proofs => fn extra_options => fn timeout => fn problem =>
+     ["-Isabelle=1 " ^ (if full_proofs then "-CNFRenaming=0 -Splits=0 " else "") ^
+      "-TimeLimit=" ^ string_of_int (to_secs 1 timeout) ^ " " ^ File.bash_path problem
+      |> extra_options <> "" ? prefix (extra_options ^ " ")],
+   proof_delims = [("Here is a proof", "Formulae used in the proof")],
+   known_failures =
+     [(GaveUp, "SPASS beiseite: Completion found"),
+      (TimedOut, "SPASS beiseite: Ran out of time"),
+      (OutOfResources, "SPASS beiseite: Maximal number of loops exceeded"),
+      (MalformedInput, "Undefined symbol"),
+      (MalformedInput, "Free Variable"),
+      (Unprovable, "No formulae and clauses found in input file"),
+      (InternalError, "Please report this error")],
+   prem_role = Conjecture,
+   generate_isabelle_info = true,
+   good_slices =
+     (* FUDGE *)
+     K [((2, 150, meshN), (DFG Monomorphic, "mono_native", combsN, true, "")),
+      ((2, 500, meshN), (DFG Monomorphic, "mono_native", liftingN, true, spass_H2SOS)),
+      ((2, 50, meshN), (DFG Monomorphic,  "mono_native", liftingN, true, spass_H2LR0LT0)),
+      ((2, 250, meshN), (DFG Monomorphic, "mono_native", combsN, true, spass_H2NuVS0)),
+      ((2, 1000, mepoN), (DFG Monomorphic, "mono_native", liftingN, true, spass_H1SOS)),
+      ((2, 150, meshN), (DFG Monomorphic, "poly_guards??", liftingN, false, spass_H2NuVS0Red2)),
+      ((2, 300, meshN), (DFG Monomorphic, "mono_native", combsN, true, spass_H2SOS)),
+      ((2, 100, meshN), (DFG Monomorphic, "mono_native", combs_and_liftingN, true, spass_H2))],
+   good_max_mono_iters = default_max_mono_iters,
+   good_max_new_mono_instances = default_max_new_mono_instances}
 
 val spass = (spassN, fn () => spass_config)
 
@@ -378,6 +384,7 @@ val vampire_config : atp_config =
       (Interrupted, "Aborted by signal SIGINT")] @
      known_szs_status_failures,
    prem_role = Hypothesis,
+   generate_isabelle_info = false,
    good_slices =
      (* FUDGE *)
      K [((2, 512, meshN), (TX1, "mono_native_fool", combsN, false, sosN)),
@@ -410,6 +417,7 @@ val zipperposition_config : atp_config =
        [(TimedOut, "SZS status ResourceOut")] @   (* odd way of timing out *)
        known_szs_status_failures,
      prem_role = Hypothesis,
+     generate_isabelle_info = true,
      good_slices =
        K [((1, 512, meshN), (format, "mono_native_higher_fool", keep_lamsN, false, "--mode=ho-pragmatic --tptp-def-as-rewrite --rewrite-before-cnf=true --max-inferences=1 --ho-unif-max-depth=1 --ho-max-elims=0 --ho-max-app-projections=0 --ho-max-rigid-imitations=1 --ho-max-identifications=0 --boolean-reasoning=bool-hoist --bool-hoist-simpl=true --bool-select=LI --recognize-injectivity=true --ext-rules=ext-family --ext-rules-max-depth=1 --ho-choice-inst=true --ho-prim-enum=none --ho-elim-leibniz=0 --interpret-bool-funs=true --try-e=\"$E_HOME/eprover\" --tmp-dir=\"$ISABELLE_TMP_PREFIX\" --ho-unif-level=pragmatic-framework --select=bb+e-selection2 --post-cnf-lambda-lifting=true -q \"4|prefer-sos|pnrefined(2,1,1,1,2,2,2)\" -q \"6|prefer-processed|conjecture-relative-struct(1.5,3.5,2,3)\" -q \"1|const|fifo\" -q \"4|prefer-ground|orient-lmax(2,1,2,1,1)\" -q \"4|defer-sos|conjecture-relative-struct(1,5,2,3)\" --avatar=off --recognize-injectivity=true --ho-neg-ext=true --e-timeout=2 --ho-pattern-decider=true --ho-fixpoint-decider=true --e-max-derived=50 --ignore-orphans=true --e-auto=true --presaturate=true --e-call-point=0.1")),  (* sh5_sh1.sh *)
           ((1, 1024, meshN), (format, "mono_native_higher_fool", keep_lamsN, false, "--mode=ho-pragmatic --tptp-def-as-rewrite --rewrite-before-cnf=true --mode=ho-competitive --boolean-reasoning=simpl-only --ext-rules=ext-family --ext-rules-max-depth=1 --ho-prim-enum=none --avatar=off --recognize-injectivity=true --ho-elim-leibniz=1 --ho-unif-level=pragmatic-framework --no-max-vars --max-inferences=2 --ho-unif-max-depth=1 -q \"6|prefer-sos|pnrefined(1,1,1,2,2,2,0.5)\" -q \"6|const|conjecture-relative-var(1.02,l,f)\" -q \"1|prefer-processed|fifo\" -q \"1|prefer-non-goals|conjecture-relative-var(1,l,f)\" -q \"4|prefer-easy-ho|conjecture-relative-var(1.01,s,f)\" --select=e-selection16 --ho-choice-inst=true --try-e=\"$E_HOME/eprover\" --tmp-dir=\"$ISABELLE_TMP_PREFIX\" --e-timeout=3 --e-auto=true --sine=50 --sine-tolerance=1.0 --sine-depth-max=3 --sine-depth-min=1 --sine-trim-implications=true --ho-unif-level=pragmatic-framework --e-encode-lambdas=lift --scan-clause-ac=false --kbo-weight-fun=lambda-def-invfreqrank --e-call-point=0.1")),  (* sh8_shallow_sine.sh *)
@@ -472,7 +480,8 @@ val max_remote_secs = 1000   (* give Geoff Sutcliffe's servers a break *)
 
 val isabelle_scala_function = (["SCALA_HOME"], ["bin/scala"])
 
-fun remote_config system_name system_versions proof_delims known_failures prem_role good_slice =
+fun remote_config system_name system_versions proof_delims known_failures prem_role
+    generate_isabelle_info good_slice =
   {exec = isabelle_scala_function,
    arguments = fn _ => fn _ => fn command => fn timeout => fn problem =>
      [the_remote_system system_name system_versions,
@@ -481,17 +490,21 @@ fun remote_config system_name system_versions proof_delims known_failures prem_r
    proof_delims = union (op =) tstp_proof_delims proof_delims,
    known_failures = known_failures @ known_says_failures,
    prem_role = prem_role,
+   generate_isabelle_info = generate_isabelle_info,
    good_slices = fn ctxt => [good_slice ctxt],
    good_max_mono_iters = default_max_mono_iters,
    good_max_new_mono_instances = default_max_new_mono_instances} : atp_config
 
 fun remotify_config system_name system_versions good_slice
-    ({proof_delims, known_failures, prem_role, ...} : atp_config) =
-  remote_config system_name system_versions proof_delims known_failures prem_role good_slice
+    ({proof_delims, known_failures, prem_role, generate_isabelle_info, ...} : atp_config) =
+  remote_config system_name system_versions proof_delims known_failures prem_role
+    generate_isabelle_info good_slice
 
-fun remote_atp name system_name system_versions proof_delims known_failures prem_role good_slice =
+fun remote_atp name system_name system_versions proof_delims known_failures prem_role
+    generate_isabelle_info good_slice =
   (remote_prefix ^ name, fn () =>
-     remote_config system_name system_versions proof_delims known_failures prem_role good_slice)
+     remote_config system_name system_versions proof_delims known_failures prem_role
+       generate_isabelle_info good_slice)
 fun remotify_atp (name, config) system_name system_versions good_slice =
   (remote_prefix ^ name, remotify_config system_name system_versions good_slice o config)
 
@@ -501,7 +514,7 @@ fun gen_remote_waldmeister name type_enc =
       (Inappropriate, "****  Unexpected end of file."),
       (Crashed, "Unrecoverable Segmentation Fault")]
      @ known_szs_status_failures)
-    Hypothesis
+    Hypothesis false
     (K ((1000 (* infinity *), 50, meshN), (CNF_UEQ, type_enc, combsN, false, "")) (* FUDGE *))
 
 val remote_agsyhol =
@@ -536,6 +549,7 @@ fun dummy_config prem_role format type_enc uncurried_aliases : atp_config =
    proof_delims = [],
    known_failures = known_szs_status_failures,
    prem_role = prem_role,
+   generate_isabelle_info = false,
    good_slices =
      K [((2, 256, "mepo"), (format, type_enc,
       if is_format_higher_order format then keep_lamsN else combsN, uncurried_aliases, ""))],

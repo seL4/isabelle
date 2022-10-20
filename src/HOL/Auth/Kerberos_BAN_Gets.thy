@@ -283,7 +283,7 @@ lemma Says_Server_message_form:
           Tk = CT(before 
                   Says Server A (Crypt K' \<lbrace>Number Tk, Agent B, Key K, Ticket\<rbrace>)
                   on evs)"
-apply (unfold before_def)
+unfolding before_def
 apply (erule rev_mp)
 apply (erule bankerb_gets.induct, simp_all)
 txt\<open>We need this simplification only for Message 2\<close>

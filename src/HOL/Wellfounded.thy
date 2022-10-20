@@ -772,7 +772,35 @@ proof -
     by (clarsimp simp: inv_image_def wf_eq_minimal)
 qed
 
-text \<open>Measure functions into \<^typ>\<open>nat\<close>\<close>
+
+subsubsection \<open>Conversion to a known well-founded relation\<close>
+
+lemma wf_if_convertible_to_wf:
+  fixes r :: "'a rel" and s :: "'b rel" and f :: "'a \<Rightarrow> 'b"
+  assumes "wf s" and convertible: "\<And>x y. (x, y) \<in> r \<Longrightarrow> (f x, f y) \<in> s"
+  shows "wf r"
+proof (rule wfI_min[of r])
+  fix x :: 'a and Q :: "'a set"
+  assume "x \<in> Q"
+  then obtain y where "y \<in> Q" and "\<And>z. (f z, f y) \<in> s \<Longrightarrow> z \<notin> Q"
+    by (auto elim: wfE_min[OF wf_inv_image[of s f, OF \<open>wf s\<close>], unfolded in_inv_image])
+  thus "\<exists>z \<in> Q. \<forall>y. (y, z) \<in> r \<longrightarrow> y \<notin> Q"
+    by (auto intro: convertible)
+qed
+
+lemma wfP_if_convertible_to_wfP: "wfP S \<Longrightarrow> (\<And>x y. R x y \<Longrightarrow> S (f x) (f y)) \<Longrightarrow> wfP R"
+  using wf_if_convertible_to_wf[to_pred, of S R f] by simp
+
+text \<open>Converting to @{typ nat} is a very common special case that might be found more easily by
+  Sledgehammer.\<close>
+
+lemma wfP_if_convertible_to_nat:
+  fixes f :: "_ \<Rightarrow> nat"
+  shows "(\<And>x y. R x y \<Longrightarrow> f x < f y) \<Longrightarrow> wfP R"
+  by (rule wfP_if_convertible_to_wfP[of "(<) :: nat \<Rightarrow> nat \<Rightarrow> bool", simplified])
+
+
+subsubsection \<open>Measure functions into \<^typ>\<open>nat\<close>\<close>
 
 definition measure :: "('a \<Rightarrow> nat) \<Rightarrow> ('a \<times> 'a) set"
   where "measure = inv_image less_than"
