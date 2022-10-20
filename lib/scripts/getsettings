@@ -41,7 +41,7 @@ then
   ISABELLE_ROOT="$(platform_path "$ISABELLE_HOME")"
 
   ISABELLE_CLASSPATH="$(cygpath -i -u -p "$CLASSPATH")"
-  unset CLASSPATH
+  export CLASSPATH=""
 else
   if [ -z "$USER_HOME" ]; then
     USER_HOME="$HOME"
@@ -50,7 +50,7 @@ else
   ISABELLE_ROOT="$ISABELLE_HOME"
 
   ISABELLE_CLASSPATH="$CLASSPATH"
-  unset CLASSPATH
+  export CLASSPATH=""
 fi
 
 #init cumulative settings
