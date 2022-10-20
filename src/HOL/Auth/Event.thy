@@ -12,7 +12,7 @@ section\<open>Theory of Events for Security Protocols\<close>
 
 theory Event imports Message begin
 
-consts  (*Initial states of agents -- parameter of the construction*)
+consts  \<comment> \<open>Initial states of agents --- a parameter of the construction\<close>
   initState :: "agent \<Rightarrow> msg set"
 
 datatype
@@ -58,12 +58,10 @@ text\<open>The constant "spies" is retained for compatibility's sake\<close>
 
 abbreviation (input)
   spies  :: "event list \<Rightarrow> msg set" where
-  "spies == knows Spy"
+  "spies \<equiv> knows Spy"
 
 
-(*Set of items that might be visible to somebody:
-    complement of the set of fresh items*)
-
+text \<open>Set of items that might be visible to somebody: complement of the set of fresh items\<close>
 primrec used :: "event list \<Rightarrow> msg set"
 where
   used_Nil:   "used []         = (UN B. parts (initState B))"
@@ -76,15 +74,11 @@ where
         follows \<^term>\<open>Says\<close> in real protocols.  Seems difficult to change.
         See \<open>Gets_correct\<close> in theory \<open>Guard/Extensions.thy\<close>.\<close>
 
-lemma Notes_imp_used [rule_format]: "Notes A X \<in> set evs \<longrightarrow> X \<in> used evs"
-apply (induct_tac evs)
-apply (auto split: event.split) 
-done
+lemma Notes_imp_used: "Notes A X \<in> set evs \<Longrightarrow> X \<in> used evs"
+  by (induct evs) (auto split: event.split) 
 
-lemma Says_imp_used [rule_format]: "Says A B X \<in> set evs \<longrightarrow> X \<in> used evs"
-apply (induct_tac evs)
-apply (auto split: event.split) 
-done
+lemma Says_imp_used: "Says A B X \<in> set evs \<Longrightarrow> X \<in> used evs"
+  by (induct evs) (auto split: event.split) 
 
 
 subsection\<open>Function \<^term>\<open>knows\<close>\<close>
@@ -95,43 +89,39 @@ subsection\<open>Function \<^term>\<open>knows\<close>\<close>
 lemmas parts_insert_knows_A = parts_insert [of _ "knows A evs"] for A evs
 
 lemma knows_Spy_Says [simp]:
-     "knows Spy (Says A B X # evs) = insert X (knows Spy evs)"
-by simp
+  "knows Spy (Says A B X # evs) = insert X (knows Spy evs)"
+  by simp
 
 text\<open>Letting the Spy see "bad" agents' notes avoids redundant case-splits
       on whether \<^term>\<open>A=Spy\<close> and whether \<^term>\<open>A\<in>bad\<close>\<close>
 lemma knows_Spy_Notes [simp]:
-     "knows Spy (Notes A X # evs) =  
+  "knows Spy (Notes A X # evs) =  
           (if A\<in>bad then insert X (knows Spy evs) else knows Spy evs)"
-by simp
+  by simp
 
 lemma knows_Spy_Gets [simp]: "knows Spy (Gets A X # evs) = knows Spy evs"
-by simp
+  by simp
 
 lemma knows_Spy_subset_knows_Spy_Says:
-     "knows Spy evs \<subseteq> knows Spy (Says A B X # evs)"
-by (simp add: subset_insertI)
+  "knows Spy evs \<subseteq> knows Spy (Says A B X # evs)"
+  by (simp add: subset_insertI)
 
 lemma knows_Spy_subset_knows_Spy_Notes:
-     "knows Spy evs \<subseteq> knows Spy (Notes A X # evs)"
-by force
+  "knows Spy evs \<subseteq> knows Spy (Notes A X # evs)"
+  by force
 
 lemma knows_Spy_subset_knows_Spy_Gets:
-     "knows Spy evs \<subseteq> knows Spy (Gets A X # evs)"
-by (simp add: subset_insertI)
+  "knows Spy evs \<subseteq> knows Spy (Gets A X # evs)"
+  by (simp add: subset_insertI)
 
 text\<open>Spy sees what is sent on the traffic\<close>
-lemma Says_imp_knows_Spy [rule_format]:
-     "Says A B X \<in> set evs \<longrightarrow> X \<in> knows Spy evs"
-apply (induct_tac "evs")
-apply (simp_all (no_asm_simp) split: event.split)
-done
+lemma Says_imp_knows_Spy:
+     "Says A B X \<in> set evs \<Longrightarrow> X \<in> knows Spy evs"
+  by (induct evs) (auto split: event.split) 
 
 lemma Notes_imp_knows_Spy [rule_format]:
-     "Notes A X \<in> set evs \<longrightarrow> A \<in> bad \<longrightarrow> X \<in> knows Spy evs"
-apply (induct_tac "evs")
-apply (simp_all (no_asm_simp) split: event.split)
-done
+     "Notes A X \<in> set evs \<Longrightarrow> A \<in> bad \<Longrightarrow> X \<in> knows Spy evs"
+  by (induct evs) (auto split: event.split) 
 
 
 text\<open>Elimination rules: derive contradictions from old Says events containing
@@ -153,85 +143,64 @@ lemmas parts_insert_spies = parts_insert_knows_A [of _ Spy]
 subsection\<open>Knowledge of Agents\<close>
 
 lemma knows_subset_knows_Says: "knows A evs \<subseteq> knows A (Says A' B X # evs)"
-by (simp add: subset_insertI)
+  by (simp add: subset_insertI)
 
 lemma knows_subset_knows_Notes: "knows A evs \<subseteq> knows A (Notes A' X # evs)"
-by (simp add: subset_insertI)
+  by (simp add: subset_insertI)
 
 lemma knows_subset_knows_Gets: "knows A evs \<subseteq> knows A (Gets A' X # evs)"
-by (simp add: subset_insertI)
+  by (simp add: subset_insertI)
 
 text\<open>Agents know what they say\<close>
-lemma Says_imp_knows [rule_format]: "Says A B X \<in> set evs \<longrightarrow> X \<in> knows A evs"
-apply (induct_tac "evs")
-apply (simp_all (no_asm_simp) split: event.split)
-apply blast
-done
+lemma Says_imp_knows [rule_format]: "Says A B X \<in> set evs \<Longrightarrow> X \<in> knows A evs"
+  by (induct evs) (force split: event.split)+
 
 text\<open>Agents know what they note\<close>
-lemma Notes_imp_knows [rule_format]: "Notes A X \<in> set evs \<longrightarrow> X \<in> knows A evs"
-apply (induct_tac "evs")
-apply (simp_all (no_asm_simp) split: event.split)
-apply blast
-done
+lemma Notes_imp_knows [rule_format]: "Notes A X \<in> set evs \<Longrightarrow> X \<in> knows A evs"
+  by (induct evs) (force split: event.split)+
 
 text\<open>Agents know what they receive\<close>
 lemma Gets_imp_knows_agents [rule_format]:
-     "A \<noteq> Spy \<longrightarrow> Gets A X \<in> set evs \<longrightarrow> X \<in> knows A evs"
-apply (induct_tac "evs")
-apply (simp_all (no_asm_simp) split: event.split)
-done
-
+     "A \<noteq> Spy \<Longrightarrow> Gets A X \<in> set evs \<Longrightarrow> X \<in> knows A evs"
+  by (induct evs) (force split: event.split)+
 
 text\<open>What agents DIFFERENT FROM Spy know 
   was either said, or noted, or got, or known initially\<close>
-lemma knows_imp_Says_Gets_Notes_initState [rule_format]:
-     "\<lbrakk>X \<in> knows A evs; A \<noteq> Spy\<rbrakk> \<Longrightarrow> \<exists> B.
-  Says A B X \<in> set evs \<or> Gets A X \<in> set evs \<or> Notes A X \<in> set evs \<or> X \<in> initState A"
-apply (erule rev_mp)
-apply (induct_tac "evs")
-apply (simp_all (no_asm_simp) split: event.split)
-apply blast
-done
+lemma knows_imp_Says_Gets_Notes_initState:
+  "\<lbrakk>X \<in> knows A evs; A \<noteq> Spy\<rbrakk> \<Longrightarrow> 
+     \<exists>B. Says A B X \<in> set evs \<or> Gets A X \<in> set evs \<or> Notes A X \<in> set evs \<or> X \<in> initState A"
+  by(induct evs) (auto split: event.split_asm if_split_asm)
 
 text\<open>What the Spy knows -- for the time being --
   was either said or noted, or known initially\<close>
-lemma knows_Spy_imp_Says_Notes_initState [rule_format]:
-     "X \<in> knows Spy evs \<Longrightarrow> \<exists>A B.
-  Says A B X \<in> set evs \<or> Notes A X \<in> set evs \<or> X \<in> initState Spy"
-apply (erule rev_mp)
-apply (induct_tac "evs")
-apply (simp_all (no_asm_simp) split: event.split)
-apply blast
-done
+lemma knows_Spy_imp_Says_Notes_initState:
+  "X \<in> knows Spy evs \<Longrightarrow> 
+    \<exists>A B. Says A B X \<in> set evs \<or> Notes A X \<in> set evs \<or> X \<in> initState Spy"
+  by(induct evs) (auto split: event.split_asm if_split_asm)
 
 lemma parts_knows_Spy_subset_used: "parts (knows Spy evs) \<subseteq> used evs"
-apply (induct_tac "evs", force)  
-apply (simp add: parts_insert_knows_A knows_Cons add: event.split, blast) 
-done
+  by (induct evs) (auto simp: parts_insert_knows_A split: event.split_asm if_split_asm)
 
 lemmas usedI = parts_knows_Spy_subset_used [THEN subsetD, intro]
 
 lemma initState_into_used: "X \<in> parts (initState B) \<Longrightarrow> X \<in> used evs"
-apply (induct_tac "evs")
-apply (simp_all add: parts_insert_knows_A split: event.split, blast)
-done
+  by (induct evs) (auto simp: parts_insert_knows_A split: event.split)
+
+text \<open>New simprules to replace the primitive ones for @{term used} and @{term knows}\<close>
 
 lemma used_Says [simp]: "used (Says A B X # evs) = parts{X} \<union> used evs"
-by simp
+  by simp
 
 lemma used_Notes [simp]: "used (Notes A X # evs) = parts{X} \<union> used evs"
-by simp
+  by simp
 
 lemma used_Gets [simp]: "used (Gets A X # evs) = used evs"
-by simp
+  by simp
 
 lemma used_nil_subset: "used [] \<subseteq> used evs"
-apply simp
-apply (blast intro: initState_into_used)
-done
+  using initState_into_used by auto
 
-text\<open>NOTE REMOVAL--laws above are cleaner, as they don't involve "case"\<close>
+text\<open>NOTE REMOVAL: the laws above are cleaner, as they don't involve "case"\<close>
 declare knows_Cons [simp del]
         used_Nil [simp del] used_Cons [simp del]
 
@@ -248,13 +217,10 @@ lemmas analz_mono_contra =
 
 
 lemma knows_subset_knows_Cons: "knows A evs \<subseteq> knows A (e # evs)"
-by (cases e, auto simp: knows_Cons)
+  by (cases e, auto simp: knows_Cons)
 
 lemma initState_subset_knows: "initState A \<subseteq> knows A evs"
-apply (induct_tac evs, simp) 
-apply (blast intro: knows_subset_knows_Cons [THEN subsetD])
-done
-
+  by (induct evs) (use knows_subset_knows_Cons in fastforce)+
 
 text\<open>For proving \<open>new_keys_not_used\<close>\<close>
 lemma keysFor_parts_insert:
