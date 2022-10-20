@@ -2002,13 +2002,12 @@ lemma mset_rev [simp]:
   by (induct xs) simp_all
 
 lemma surj_mset: "surj mset"
-apply (unfold surj_def)
-apply (rule allI)
-apply (rule_tac M = y in multiset_induct)
- apply auto
-apply (rule_tac x = "x # xa" in exI)
-apply auto
-done
+  unfolding surj_def
+proof (rule allI)
+  fix M
+  show "\<exists>xs. M = mset xs"
+    by (induction M) (auto intro: exI[of _ "_ # _"])
+qed
 
 lemma distinct_count_atmost_1:
   "distinct x = (\<forall>a. count (mset x) a = (if a \<in> set x then 1 else 0))"
