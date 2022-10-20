@@ -29,7 +29,7 @@ object Session_Build {
       }
       catch {
         case exn: Throwable =>
-          GUI.dialog(view, "Isabelle", GUI.scrollable_text(Exn.message(exn)))
+          GUI.dialog(view, "Isabelle build", GUI.scrollable_text(Exn.print(exn)))
       }
     }
   }
