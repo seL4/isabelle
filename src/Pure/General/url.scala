@@ -64,8 +64,8 @@ object Url {
 
   /* strings */
 
-  def decode(s: String): String = URLDecoder.decode(s, UTF8.charset_name)
-  def encode(s: String): String = URLEncoder.encode(s, UTF8.charset_name)
+  def decode(s: String): String = URLDecoder.decode(s, UTF8.charset)
+  def encode(s: String): String = URLEncoder.encode(s, UTF8.charset)
 
 
   /* read */

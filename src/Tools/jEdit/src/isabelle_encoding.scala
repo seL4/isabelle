@@ -52,7 +52,7 @@ class Isabelle_Encoding extends Encoding {
   override def getTextWriter(out: OutputStream): Writer = {
     val buffer = new ByteArrayOutputStream(BUFSIZE) {
       override def flush(): Unit = {
-        val text = Symbol.encode(toString(UTF8.charset_name))
+        val text = Symbol.encode(toString(UTF8.charset))
         out.write(UTF8.bytes(text))
         out.flush()
       }
