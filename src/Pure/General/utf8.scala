@@ -13,8 +13,7 @@ import java.nio.charset.Charset
 object UTF8 {
   /* charset */
 
-  val charset_name: String = "UTF-8"
-  val charset: Charset = Charset.forName(charset_name)
+  val charset: Charset = Charset.forName("UTF-8")
 
   def bytes(s: String): Array[Byte] = s.getBytes(charset)
 
