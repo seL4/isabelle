@@ -192,7 +192,7 @@ final class Bytes private(
 
   /* XZ / Zstd data compression */
 
-  private def detect_xz: Boolean =
+  def detect_xz: Boolean =
     length >= 6 &&
       bytes(offset)     == 0xFD.toByte &&
       bytes(offset + 1) == 0x37.toByte &&
@@ -201,46 +201,45 @@ final class Bytes private(
       bytes(offset + 4) == 0x5A.toByte &&
       bytes(offset + 5) == 0x00.toByte
 
-  private def detect_zstd: Boolean =
+  def detect_zstd: Boolean =
     length >= 4 &&
       bytes(offset)     == 0x28.toByte &&
       bytes(offset + 1) == 0xB5.toByte &&
       bytes(offset + 2) == 0x2F.toByte &&
       bytes(offset + 3) == 0xFD.toByte
 
-  private def detect_error(name: String = ""): Nothing =
-    error("Cannot detect compression scheme" + (if (name.isEmpty) "" else " " + name))
+  def uncompress_xz(cache: Compress.Cache = Compress.Cache.none): Bytes =
+    using(new xz.XZInputStream(stream(), cache.for_xz))(Bytes.read_stream(_, hint = length))
+
+  def uncompress_zstd(cache: Compress.Cache = Compress.Cache.none): Bytes = {
+    Zstd.init()
+    val n = zstd.Zstd.decompressedSize(bytes, offset, length)
+    if (n > 0 && n < Integer.MAX_VALUE) {
+      Bytes(zstd.Zstd.decompress(array, n.toInt))
+    }
+    else {
+      using(new zstd.ZstdInputStream(stream(), cache.for_zstd))(Bytes.read_stream(_, hint = length))
+    }
+  }
 
   def uncompress(cache: Compress.Cache = Compress.Cache.none): Bytes =
-    using(
-      if (detect_xz) new xz.XZInputStream(stream(), cache.for_xz)
-      else if (detect_zstd) {
-        Zstd.init()
-        new zstd.ZstdInputStream(stream(), cache.for_zstd)
-      }
-      else detect_error()
-    )(Bytes.read_stream(_, hint = length))
-
-  def uncompress_xz(cache: Compress.Cache = Compress.Cache.none): Bytes =
-    if (detect_xz) uncompress(cache = cache) else detect_error("XZ")
-
-  def uncompress_zstd(cache: Compress.Cache = Compress.Cache.none): Bytes =
-    if (detect_zstd) uncompress(cache = cache) else detect_error("Zstd")
+    if (detect_xz) uncompress_xz(cache = cache)
+    else if (detect_zstd) uncompress_zstd(cache = cache)
+    else error("Cannot detect compression scheme")
 
   def compress(
     options: Compress.Options = Compress.Options(),
     cache: Compress.Cache = Compress.Cache.none
   ): Bytes = {
-    val result = new ByteArrayOutputStream(length)
-    using(
-      options match {
-        case options_xz: Compress.Options_XZ =>
-          new xz.XZOutputStream(result, options_xz.make, cache.for_xz)
-        case options_zstd: Compress.Options_Zstd =>
-          Zstd.init()
-          new zstd.ZstdOutputStream(result, cache.for_zstd, options_zstd.level)
-      })(write_stream)
-    new Bytes(result.toByteArray, 0, result.size)
+    options match {
+      case options_xz: Compress.Options_XZ =>
+        val result = new ByteArrayOutputStream(length)
+        using(new xz.XZOutputStream(result, options_xz.make, cache.for_xz))(write_stream)
+        new Bytes(result.toByteArray, 0, result.size)
+      case options_zstd: Compress.Options_Zstd =>
+        Zstd.init()
+        Bytes(zstd.Zstd.compress(array, options_zstd.level))
+    }
   }
 
   def maybe_compress(
