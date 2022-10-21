@@ -28,7 +28,6 @@ object XZ {
 
   object Cache {
     def none: ArrayCache = ArrayCache.getDummyCache()
-    def apply(): ArrayCache = ArrayCache.getDefaultCache()
     def make(): ArrayCache = new BasicArrayCache
   }
 

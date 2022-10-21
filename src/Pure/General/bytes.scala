@@ -193,10 +193,10 @@ final class Bytes private(
 
   /* XZ data compression */
 
-  def uncompress(cache: XZ.Cache = XZ.Cache()): Bytes =
+  def uncompress(cache: XZ.Cache = XZ.Cache.none): Bytes =
     using(new XZInputStream(stream(), cache))(Bytes.read_stream(_, hint = length))
 
-  def compress(options: XZ.Options = XZ.options(), cache: XZ.Cache = XZ.Cache()): Bytes = {
+  def compress(options: XZ.Options = XZ.options(), cache: XZ.Cache = XZ.Cache.none): Bytes = {
     val result = new ByteArrayOutputStream(length)
     using(new XZOutputStream(result, options, cache))(write_stream(_))
     new Bytes(result.toByteArray, 0, result.size)
@@ -204,7 +204,7 @@ final class Bytes private(
 
   def maybe_compress(
     options: XZ.Options = XZ.options(),
-    cache: XZ.Cache = XZ.Cache()
+    cache: XZ.Cache = XZ.Cache.none
   ) : (Boolean, Bytes) = {
     val compressed = compress(options = options, cache = cache)
     if (compressed.length < length) (true, compressed) else (false, this)

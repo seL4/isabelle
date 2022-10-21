@@ -55,7 +55,7 @@ object Properties {
 
   def compress(ps: List[T],
     options: XZ.Options = XZ.options(),
-    cache: XZ.Cache = XZ.Cache()
+    cache: XZ.Cache = XZ.Cache.none
   ): Bytes = {
     if (ps.isEmpty) Bytes.empty
     else {

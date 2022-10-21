@@ -616,7 +616,7 @@ object Build_Log {
       errors = log_file.filter(Protocol.Error_Message_Marker))
   }
 
-  def compress_errors(errors: List[String], cache: XZ.Cache = XZ.Cache()): Option[Bytes] =
+  def compress_errors(errors: List[String], cache: XZ.Cache = XZ.Cache.none): Option[Bytes] =
     if (errors.isEmpty) None
     else {
       Some(Bytes(YXML.string_of_body(XML.Encode.list(XML.Encode.string)(errors))).
