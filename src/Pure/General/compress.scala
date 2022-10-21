@@ -35,7 +35,11 @@ object Compress {
 
   object Cache {
     def none: Cache = { Zstd.init(); new Cache(ArrayCache.getDummyCache(), NoPool.INSTANCE) }
-    def make(): Cache = { Zstd.init(); new Cache(new BasicArrayCache, RecyclingBufferPool.INSTANCE) } // FIXME new pool
+    def make(): Cache = {
+      Zstd.init()
+      val pool = Untyped.constructor(classOf[RecyclingBufferPool]).newInstance()
+      new Cache(new BasicArrayCache, pool)
+    }
   }
 
 
