@@ -7,9 +7,8 @@ Support for generic data compression.
 package isabelle
 
 
-import org.tukaani.xz.{LZMA2Options, ArrayCache, BasicArrayCache}
-import com.github.luben.zstd.{BufferPool, NoPool, RecyclingBufferPool,
-  ZstdInputStream, ZstdOutputStream}
+import org.tukaani.xz
+import com.github.luben.zstd
 
 
 object Compress {
@@ -20,8 +19,8 @@ object Compress {
   }
   sealed abstract class Options
   case class Options_XZ(level: Int = 3) extends Options {
-    def make: LZMA2Options = {
-      val opts = new LZMA2Options
+    def make: xz.LZMA2Options = {
+      val opts = new xz.LZMA2Options
       opts.setPreset(level)
       opts
     }
@@ -31,14 +30,17 @@ object Compress {
 
   /* cache */
 
-  class Cache private(val xz: ArrayCache, val zstd: BufferPool)
+  class Cache private(val for_xz: xz.ArrayCache, val for_zstd: zstd.BufferPool)
 
   object Cache {
-    def none: Cache = { Zstd.init(); new Cache(ArrayCache.getDummyCache(), NoPool.INSTANCE) }
+    def none: Cache = {
+      Zstd.init()
+      new Cache(xz.ArrayCache.getDummyCache(), zstd.NoPool.INSTANCE)
+  }
     def make(): Cache = {
       Zstd.init()
-      val pool = Untyped.constructor(classOf[RecyclingBufferPool]).newInstance()
-      new Cache(new BasicArrayCache, pool)
+      val pool = Untyped.constructor(classOf[zstd.RecyclingBufferPool]).newInstance()
+      new Cache(new xz.BasicArrayCache, pool)
     }
   }
 

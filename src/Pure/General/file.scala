@@ -17,9 +17,8 @@ import java.net.{URI, URL, MalformedURLException}
 import java.util.zip.{GZIPInputStream, GZIPOutputStream}
 import java.util.EnumSet
 
-import org.tukaani.xz.{XZInputStream, XZOutputStream}
-
-import com.github.luben.zstd.{ZstdInputStream, ZstdOutputStream}
+import org.tukaani.xz
+import com.github.luben.zstd
 
 import scala.collection.mutable
 
@@ -197,12 +196,12 @@ object File {
   def read_gzip(path: Path): String = read_gzip(path.file)
 
   def read_xz(file: JFile): String =
-    read_stream(new XZInputStream(new BufferedInputStream(new FileInputStream(file))))
+    read_stream(new xz.XZInputStream(new BufferedInputStream(new FileInputStream(file))))
   def read_xz(path: Path): String = read_xz(path.file)
 
   def read_zstd(file: JFile): String = {
     Zstd.init()
-    read_stream(new ZstdInputStream(new BufferedInputStream(new FileInputStream(file))))
+    read_stream(new zstd.ZstdInputStream(new BufferedInputStream(new FileInputStream(file))))
   }
   def read_zstd(path: Path): String = read_zstd(path.file)
 
@@ -250,7 +249,8 @@ object File {
   def write_gzip(path: Path, text: String): Unit = write_gzip(path.file, text)
 
   def write_xz(file: JFile, text: String, options: Compress.Options_XZ): Unit =
-    File.write_file(file, text, s => new XZOutputStream(new BufferedOutputStream(s), options.make))
+    File.write_file(file, text,
+      s => new xz.XZOutputStream(new BufferedOutputStream(s), options.make))
   def write_xz(file: JFile, text: String): Unit = write_xz(file, text, Compress.Options_XZ())
   def write_xz(path: Path, text: String, options: Compress.Options_XZ): Unit =
     write_xz(path.file, text, options)
@@ -258,7 +258,8 @@ object File {
 
   def write_zstd(file: JFile, text: String, options: Compress.Options_Zstd): Unit = {
     Zstd.init()
-    File.write_file(file, text, s => new ZstdOutputStream(new BufferedOutputStream(s), options.level))
+    File.write_file(file, text,
+      s => new zstd.ZstdOutputStream(new BufferedOutputStream(s), options.level))
   }
   def write_zstd(file: JFile, text: String): Unit =
     write_zstd(file, text, Compress.Options_Zstd())

@@ -7,11 +7,10 @@ Immutable byte vectors versus UTF8 strings.
 package isabelle
 
 
-import com.github.luben.zstd.{ZstdInputStream, ZstdOutputStream}
-
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, FileInputStream, FileOutputStream, InputStream, OutputStream, File as JFile}
 import java.net.URL
-import org.tukaani.xz.{XZInputStream, XZOutputStream}
+import org.tukaani.xz
+import com.github.luben.zstd
 
 
 object Bytes {
@@ -214,8 +213,11 @@ final class Bytes private(
 
   def uncompress(cache: Compress.Cache = Compress.Cache.none): Bytes =
     using(
-      if (detect_xz) new XZInputStream(stream(), cache.xz)
-      else if (detect_zstd) { Zstd.init(); new ZstdInputStream(stream(), cache.zstd) }
+      if (detect_xz) new xz.XZInputStream(stream(), cache.for_xz)
+      else if (detect_zstd) {
+        Zstd.init()
+        new zstd.ZstdInputStream(stream(), cache.for_zstd)
+      }
       else detect_error()
     )(Bytes.read_stream(_, hint = length))
 
@@ -233,10 +235,10 @@ final class Bytes private(
     using(
       options match {
         case options_xz: Compress.Options_XZ =>
-          new XZOutputStream(result, options_xz.make, cache.xz)
+          new xz.XZOutputStream(result, options_xz.make, cache.for_xz)
         case options_zstd: Compress.Options_Zstd =>
           Zstd.init()
-          new ZstdOutputStream(result, cache.zstd, options_zstd.level)
+          new zstd.ZstdOutputStream(result, cache.for_zstd, options_zstd.level)
       })(write_stream)
     new Bytes(result.toByteArray, 0, result.size)
   }
