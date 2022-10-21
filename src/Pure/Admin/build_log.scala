@@ -616,7 +616,10 @@ object Build_Log {
       errors = log_file.filter(Protocol.Error_Message_Marker))
   }
 
-  def compress_errors(errors: List[String], cache: XZ.Cache = XZ.Cache.none): Option[Bytes] =
+  def compress_errors(
+    errors: List[String],
+    cache: Compress.Cache = Compress.Cache.none
+  ): Option[Bytes] =
     if (errors.isEmpty) None
     else {
       Some(Bytes(YXML.string_of_body(XML.Encode.list(XML.Encode.string)(errors))).
@@ -627,7 +630,7 @@ object Build_Log {
     if (bytes.is_empty) Nil
     else {
       XML.Decode.list(YXML.string_of_body)(
-        YXML.parse_body(bytes.uncompress(cache = cache.xz).text, cache = cache))
+        YXML.parse_body(bytes.uncompress(cache = cache.compress).text, cache = cache))
     }
 
 
@@ -954,7 +957,7 @@ object Build_Log {
           stmt.double(13) = session.ml_timing.factor
           stmt.long(14) = session.heap_size
           stmt.string(15) = session.status.map(_.toString)
-          stmt.bytes(16) = compress_errors(session.errors, cache = cache.xz)
+          stmt.bytes(16) = compress_errors(session.errors, cache = cache.compress)
           stmt.string(17) = session.sources
           stmt.execute()
         }
@@ -988,7 +991,7 @@ object Build_Log {
       db.using_statement(db.insert_permissive(table)) { stmt =>
         val ml_stats: List[(String, Option[Bytes])] =
           Par_List.map[(String, Session_Entry), (String, Option[Bytes])](
-            { case (a, b) => (a, Properties.compress(b.ml_statistics, cache = cache.xz).proper) },
+            { case (a, b) => (a, Properties.compress(b.ml_statistics, cache = cache.compress).proper) },
             build_info.sessions.iterator.filter(p => p._2.ml_statistics.nonEmpty).toList)
         val entries = if (ml_stats.nonEmpty) ml_stats else List("" -> None)
         for ((session_name, ml_statistics) <- entries) {

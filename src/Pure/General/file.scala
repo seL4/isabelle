@@ -249,18 +249,23 @@ object File {
     write_file(file, text, (s: OutputStream) => new GZIPOutputStream(new BufferedOutputStream(s)))
   def write_gzip(path: Path, text: String): Unit = write_gzip(path.file, text)
 
-  def write_xz(file: JFile, text: String, options: XZ.Options): Unit =
-    File.write_file(file, text, s => new XZOutputStream(new BufferedOutputStream(s), options))
-  def write_xz(file: JFile, text: String): Unit = write_xz(file, text, XZ.options())
-  def write_xz(path: Path, text: String, options: XZ.Options): Unit =
+  def write_xz(file: JFile, text: String, options: Compress.Options_XZ): Unit =
+    File.write_file(file, text, s => new XZOutputStream(new BufferedOutputStream(s), options.make))
+  def write_xz(file: JFile, text: String): Unit = write_xz(file, text, Compress.Options_XZ())
+  def write_xz(path: Path, text: String, options: Compress.Options_XZ): Unit =
     write_xz(path.file, text, options)
-  def write_xz(path: Path, text: String): Unit = write_xz(path, text, XZ.options())
+  def write_xz(path: Path, text: String): Unit = write_xz(path, text, Compress.Options_XZ())
 
-  def write_zstd(file: JFile, text: String): Unit = {
+  def write_zstd(file: JFile, text: String, options: Compress.Options_Zstd): Unit = {
     Zstd.init()
-    write_file(file, text, (s: OutputStream) => new ZstdOutputStream(new BufferedOutputStream(s)))
+    File.write_file(file, text, s => new ZstdOutputStream(new BufferedOutputStream(s), options.level))
   }
-  def write_zstd(path: Path, text: String): Unit = write_zstd(path.file, text)
+  def write_zstd(file: JFile, text: String): Unit =
+    write_zstd(file, text, Compress.Options_Zstd())
+  def write_zstd(path: Path, text: String, options: Compress.Options_Zstd): Unit =
+    write_zstd(path.file, text, options)
+  def write_zstd(path: Path, text: String): Unit =
+    write_zstd(path, text, Compress.Options_Zstd())
 
   def write_backup(path: Path, text: String): Unit = {
     if (path.is_file) Isabelle_System.move_file(path, path.backup)

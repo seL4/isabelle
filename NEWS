@@ -50,6 +50,22 @@ New in this Isabelle version
   - Added lemma wfP_subset_mset[simp].
 
 
+*** ML ***
+
+* Operations for Zstd compression (via Isabelle/Scala):
+
+  Zstd.compress: Bytes.T -> Bytes.T
+  Zstd.uncompress: Bytes.T -> Bytes.T
+
+
+*** System ***
+
+* Isabelle/Scala provides generic support for XZ and Zstd compression,
+via Compress.Options and Compress.Cache. Bytes.uncompress automatically
+detects the compression scheme.
+
+
+
 New in Isabelle2022 (October 2022)
 ----------------------------------
 
