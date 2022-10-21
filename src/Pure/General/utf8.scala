@@ -8,7 +8,6 @@ package isabelle
 
 
 import java.nio.charset.Charset
-import scala.io.Codec
 
 
 object UTF8 {
@@ -16,7 +15,6 @@ object UTF8 {
 
   val charset_name: String = "UTF-8"
   val charset: Charset = Charset.forName(charset_name)
-  def codec(): Codec = Codec(charset)
 
   def bytes(s: String): Array[Byte] = s.getBytes(charset)
 
