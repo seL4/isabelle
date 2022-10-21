@@ -19,6 +19,8 @@ import java.util.EnumSet
 
 import org.tukaani.xz.{XZInputStream, XZOutputStream}
 
+import com.github.luben.zstd.{ZstdInputStream, ZstdOutputStream}
+
 import scala.collection.mutable
 
 
@@ -85,6 +87,7 @@ object File {
   def is_thy(s: String): Boolean = s.endsWith(".thy")
   def is_xz(s: String): Boolean = s.endsWith(".xz")
   def is_zip(s: String): Boolean = s.endsWith(".zip")
+  def is_zst(s: String): Boolean = s.endsWith(".zst")
 
   def is_backup(s: String): Boolean = s.endsWith("~") || s.endsWith(".orig")
 
@@ -197,6 +200,12 @@ object File {
     read_stream(new XZInputStream(new BufferedInputStream(new FileInputStream(file))))
   def read_xz(path: Path): String = read_xz(path.file)
 
+  def read_zstd(file: JFile): String = {
+    Zstd.init_jni
+    read_stream(new ZstdInputStream(new BufferedInputStream(new FileInputStream(file))))
+  }
+  def read_zstd(path: Path): String = read_zstd(path.file)
+
 
   /* read lines */
 
@@ -246,6 +255,12 @@ object File {
   def write_xz(path: Path, text: String, options: XZ.Options): Unit =
     write_xz(path.file, text, options)
   def write_xz(path: Path, text: String): Unit = write_xz(path, text, XZ.options())
+
+  def write_zstd(file: JFile, text: String): Unit = {
+    Zstd.init_jni
+    write_file(file, text, (s: OutputStream) => new ZstdOutputStream(new BufferedOutputStream(s)))
+  }
+  def write_zstd(path: Path, text: String): Unit = write_zstd(path.file, text)
 
   def write_backup(path: Path, text: String): Unit = {
     if (path.is_file) Isabelle_System.move_file(path, path.backup)
