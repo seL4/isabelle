@@ -201,7 +201,7 @@ object File {
   def read_xz(path: Path): String = read_xz(path.file)
 
   def read_zstd(file: JFile): String = {
-    Zstd.init_jni
+    Zstd.init()
     read_stream(new ZstdInputStream(new BufferedInputStream(new FileInputStream(file))))
   }
   def read_zstd(path: Path): String = read_zstd(path.file)
@@ -257,7 +257,7 @@ object File {
   def write_xz(path: Path, text: String): Unit = write_xz(path, text, XZ.options())
 
   def write_zstd(file: JFile, text: String): Unit = {
-    Zstd.init_jni
+    Zstd.init()
     write_file(file, text, (s: OutputStream) => new ZstdOutputStream(new BufferedOutputStream(s)))
   }
   def write_zstd(path: Path, text: String): Unit = write_zstd(path.file, text)
