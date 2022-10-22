@@ -15,7 +15,7 @@ object Compress {
   /* options */
 
   object Options {
-    def apply(): Options = Options_XZ()
+    def apply(): Options = Options_Zstd()
   }
   sealed abstract class Options
   case class Options_XZ(level: Int = 3) extends Options {
