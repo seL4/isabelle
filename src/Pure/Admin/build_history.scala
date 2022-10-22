@@ -227,6 +227,8 @@ object Build_History {
       Isabelle_System.rm_tree(isabelle_output)
       Isabelle_System.make_directory(isabelle_output)
 
+      (other_isabelle.isabelle_home_user + Path.explode("mash_state")).file.delete
+
       val log_path =
         other_isabelle.isabelle_home_user +
           Build_Log.log_subdir(build_history_date) +
