@@ -123,18 +123,22 @@ object Build_History {
   ): List[(Process_Result, Path)] = {
     /* sanity checks */
 
-    if (File.eq(Path.ISABELLE_HOME, root))
+    if (File.eq(Path.ISABELLE_HOME, root)) {
       error("Repository coincides with ISABELLE_HOME=" + Path.ISABELLE_HOME.expand)
+    }
 
-    for ((threads, _) <- multicore_list if threads < 1)
+    for ((threads, _) <- multicore_list if threads < 1) {
       error("Bad threads value < 1: " + threads)
-    for ((_, processes) <- multicore_list if processes < 1)
+    }
+    for ((_, processes) <- multicore_list if processes < 1) {
       error("Bad processes value < 1: " + processes)
+    }
 
     if (heap < 100) error("Bad heap value < 100: " + heap)
 
-    if (max_heap.isDefined && max_heap.get < heap)
+    if (max_heap.isDefined && max_heap.get < heap) {
       error("Bad max_heap value < heap: " + max_heap.get)
+    }
 
     System.getenv("ISABELLE_SETTINGS_PRESENT") match {
       case null | "" =>
@@ -204,8 +208,9 @@ object Build_History {
       if (first_build) {
         other_isabelle.resolve_components(echo = verbose)
 
-        if (fresh)
+        if (fresh) {
           Isabelle_System.rm_tree(other_isabelle.isabelle_home + Path.explode("lib/classes"))
+        }
         other_isabelle.bash(
           "env PATH=\"" + File.bash_path(Path.explode("~~/lib/dummy_stty").expand) + ":$PATH\" " +
             "bin/isabelle jedit -b", redirect = true, echo = verbose).check
@@ -237,8 +242,9 @@ object Build_History {
 
       /* build */
 
-      if (multicore_base && !first_build && isabelle_base_log.is_dir)
+      if (multicore_base && !first_build && isabelle_base_log.is_dir) {
         Isabelle_System.copy_dir(isabelle_base_log, isabelle_output_log)
+      }
 
       val build_start = Date.now()
       val build_args1 = List("-v", "-j" + processes) ::: afp_build_args ::: build_args
@@ -347,8 +353,9 @@ object Build_History {
       val heap_sizes =
         build_info.finished_sessions.flatMap { session_name =>
           val heap = isabelle_output + Path.explode(session_name)
-          if (heap.is_file)
+          if (heap.is_file) {
             Some("Heap " + session_name + " (" + Value.Long(heap.file.length) + " bytes)")
+          }
           else None
         }
 
@@ -364,8 +371,9 @@ object Build_History {
 
       /* next build */
 
-      if (multicore_base && first_build && isabelle_output_log.is_dir)
+      if (multicore_base && first_build && isabelle_output_log.is_dir) {
         Isabelle_System.copy_dir(isabelle_output_log, isabelle_base_log)
+      }
 
       Isabelle_System.rm_tree(isabelle_output)
 
