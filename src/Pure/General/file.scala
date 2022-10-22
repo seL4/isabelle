@@ -17,7 +17,8 @@ import java.net.{URI, URL, MalformedURLException}
 import java.util.zip.{GZIPInputStream, GZIPOutputStream}
 import java.util.EnumSet
 
-import org.tukaani.xz.{XZInputStream, XZOutputStream}
+import org.tukaani.xz
+import com.github.luben.zstd
 
 import scala.collection.mutable
 
@@ -85,6 +86,7 @@ object File {
   def is_thy(s: String): Boolean = s.endsWith(".thy")
   def is_xz(s: String): Boolean = s.endsWith(".xz")
   def is_zip(s: String): Boolean = s.endsWith(".zip")
+  def is_zst(s: String): Boolean = s.endsWith(".zst")
 
   def is_backup(s: String): Boolean = s.endsWith("~") || s.endsWith(".orig")
 
@@ -194,8 +196,14 @@ object File {
   def read_gzip(path: Path): String = read_gzip(path.file)
 
   def read_xz(file: JFile): String =
-    read_stream(new XZInputStream(new BufferedInputStream(new FileInputStream(file))))
+    read_stream(new xz.XZInputStream(new BufferedInputStream(new FileInputStream(file))))
   def read_xz(path: Path): String = read_xz(path.file)
+
+  def read_zstd(file: JFile): String = {
+    Zstd.init()
+    read_stream(new zstd.ZstdInputStream(new BufferedInputStream(new FileInputStream(file))))
+  }
+  def read_zstd(path: Path): String = read_zstd(path.file)
 
 
   /* read lines */
@@ -240,12 +248,25 @@ object File {
     write_file(file, text, (s: OutputStream) => new GZIPOutputStream(new BufferedOutputStream(s)))
   def write_gzip(path: Path, text: String): Unit = write_gzip(path.file, text)
 
-  def write_xz(file: JFile, text: String, options: XZ.Options): Unit =
-    File.write_file(file, text, s => new XZOutputStream(new BufferedOutputStream(s), options))
-  def write_xz(file: JFile, text: String): Unit = write_xz(file, text, XZ.options())
-  def write_xz(path: Path, text: String, options: XZ.Options): Unit =
+  def write_xz(file: JFile, text: String, options: Compress.Options_XZ): Unit =
+    File.write_file(file, text,
+      s => new xz.XZOutputStream(new BufferedOutputStream(s), options.make))
+  def write_xz(file: JFile, text: String): Unit = write_xz(file, text, Compress.Options_XZ())
+  def write_xz(path: Path, text: String, options: Compress.Options_XZ): Unit =
     write_xz(path.file, text, options)
-  def write_xz(path: Path, text: String): Unit = write_xz(path, text, XZ.options())
+  def write_xz(path: Path, text: String): Unit = write_xz(path, text, Compress.Options_XZ())
+
+  def write_zstd(file: JFile, text: String, options: Compress.Options_Zstd): Unit = {
+    Zstd.init()
+    File.write_file(file, text,
+      s => new zstd.ZstdOutputStream(new BufferedOutputStream(s), options.level))
+  }
+  def write_zstd(file: JFile, text: String): Unit =
+    write_zstd(file, text, Compress.Options_Zstd())
+  def write_zstd(path: Path, text: String, options: Compress.Options_Zstd): Unit =
+    write_zstd(path.file, text, options)
+  def write_zstd(path: Path, text: String): Unit =
+    write_zstd(path, text, Compress.Options_Zstd())
 
   def write_backup(path: Path, text: String): Unit = {
     if (path.is_file) Isabelle_System.move_file(path, path.backup)

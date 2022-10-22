@@ -7,7 +7,7 @@
 isabelle scala_build || exit $?
 
 classpath "$ISABELLE_SETUP_CLASSPATH"; unset ISABELLE_SETUP_CLASSPATH
-classpath "$CLASSPATH"; unset CLASSPATH
+classpath "$CLASSPATH"; export CLASSPATH=""
 
 isabelle_scala scalac -Dfile.encoding=UTF-8 \
   -classpath "$(platform_path "$ISABELLE_CLASSPATH")" "$@"

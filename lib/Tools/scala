@@ -7,7 +7,7 @@
 isabelle scala_build || exit $?
 
 classpath "$ISABELLE_SETUP_CLASSPATH"; unset ISABELLE_SETUP_CLASSPATH
-classpath "$CLASSPATH"; unset CLASSPATH
+classpath "$CLASSPATH"; export CLASSPATH=""
 
 export jvm_cp_args="$(platform_path "$ISABELLE_CLASSPATH")"
 export JAVA_OPTS="$ISABELLE_JAVA_SYSTEM_OPTIONS -J-Dscala.usejavacp=true"

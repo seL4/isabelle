@@ -240,6 +240,7 @@ final class Path private(
   def orig: Path = ext("orig")
   def patch: Path = ext("patch")
   def shasum: Path = ext("shasum")
+  def zst: Path = ext("zst")
 
   def backup: Path = {
     val (prfx, s) = split_path

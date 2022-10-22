@@ -7,11 +7,10 @@ Immutable byte vectors versus UTF8 strings.
 package isabelle
 
 
-import java.io.{File => JFile, ByteArrayOutputStream, ByteArrayInputStream,
-  OutputStream, InputStream, FileInputStream, FileOutputStream}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, FileInputStream, FileOutputStream, InputStream, OutputStream, File as JFile}
 import java.net.URL
-
-import org.tukaani.xz.{XZInputStream, XZOutputStream}
+import org.tukaani.xz
+import com.github.luben.zstd
 
 
 object Bytes {
@@ -191,20 +190,61 @@ final class Bytes private(
   def write_stream(stream: OutputStream): Unit = stream.write(bytes, offset, length)
 
 
-  /* XZ data compression */
+  /* XZ / Zstd data compression */
 
-  def uncompress(cache: XZ.Cache = XZ.Cache()): Bytes =
-    using(new XZInputStream(stream(), cache))(Bytes.read_stream(_, hint = length))
+  def detect_xz: Boolean =
+    length >= 6 &&
+      bytes(offset)     == 0xFD.toByte &&
+      bytes(offset + 1) == 0x37.toByte &&
+      bytes(offset + 2) == 0x7A.toByte &&
+      bytes(offset + 3) == 0x58.toByte &&
+      bytes(offset + 4) == 0x5A.toByte &&
+      bytes(offset + 5) == 0x00.toByte
 
-  def compress(options: XZ.Options = XZ.options(), cache: XZ.Cache = XZ.Cache()): Bytes = {
-    val result = new ByteArrayOutputStream(length)
-    using(new XZOutputStream(result, options, cache))(write_stream(_))
-    new Bytes(result.toByteArray, 0, result.size)
+  def detect_zstd: Boolean =
+    length >= 4 &&
+      bytes(offset)     == 0x28.toByte &&
+      bytes(offset + 1) == 0xB5.toByte &&
+      bytes(offset + 2) == 0x2F.toByte &&
+      bytes(offset + 3) == 0xFD.toByte
+
+  def uncompress_xz(cache: Compress.Cache = Compress.Cache.none): Bytes =
+    using(new xz.XZInputStream(stream(), cache.for_xz))(Bytes.read_stream(_, hint = length))
+
+  def uncompress_zstd(cache: Compress.Cache = Compress.Cache.none): Bytes = {
+    Zstd.init()
+    val n = zstd.Zstd.decompressedSize(bytes, offset, length)
+    if (n > 0 && n < Integer.MAX_VALUE) {
+      Bytes(zstd.Zstd.decompress(array, n.toInt))
+    }
+    else {
+      using(new zstd.ZstdInputStream(stream(), cache.for_zstd))(Bytes.read_stream(_, hint = length))
+    }
+  }
+
+  def uncompress(cache: Compress.Cache = Compress.Cache.none): Bytes =
+    if (detect_xz) uncompress_xz(cache = cache)
+    else if (detect_zstd) uncompress_zstd(cache = cache)
+    else error("Cannot detect compression scheme")
+
+  def compress(
+    options: Compress.Options = Compress.Options(),
+    cache: Compress.Cache = Compress.Cache.none
+  ): Bytes = {
+    options match {
+      case options_xz: Compress.Options_XZ =>
+        val result = new ByteArrayOutputStream(length)
+        using(new xz.XZOutputStream(result, options_xz.make, cache.for_xz))(write_stream)
+        new Bytes(result.toByteArray, 0, result.size)
+      case options_zstd: Compress.Options_Zstd =>
+        Zstd.init()
+        Bytes(zstd.Zstd.compress(array, options_zstd.level))
+    }
   }
 
   def maybe_compress(
-    options: XZ.Options = XZ.options(),
-    cache: XZ.Cache = XZ.Cache()
+    options: Compress.Options = Compress.Options(),
+    cache: Compress.Cache = Compress.Cache.none
   ) : (Boolean, Bytes) = {
     val compressed = compress(options = options, cache = cache)
     if (compressed.length < length) (true, compressed) else (false, this)

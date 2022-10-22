@@ -64,7 +64,7 @@ export ISABELLE_HOME="$(cd "$(dirname "$0")"; cd "$(pwd -P)"; cd ..; pwd)"
     exit 127
   else
     unset ISABELLE_HOME
-    unset CLASSPATH
+    export CLASSPATH=""
     exec "$JAVA_HOME/bin/java" "${JAVA_ARGS[@]}" \
       -classpath "$ISABELLE_CLASSPATH" "$@"
   fi

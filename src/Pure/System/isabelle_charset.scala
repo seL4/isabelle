@@ -22,7 +22,7 @@ object Isabelle_Charset {
 
 class Isabelle_Charset extends Charset(Isabelle_Charset.name, null) {
   override def contains(cs: Charset): Boolean =
-    cs.name.equalsIgnoreCase(UTF8.charset_name) || UTF8.charset.contains(cs)
+    cs.name.equalsIgnoreCase(UTF8.charset.name) || UTF8.charset.contains(cs)
 
   override def newDecoder(): CharsetDecoder = UTF8.charset.newDecoder
 

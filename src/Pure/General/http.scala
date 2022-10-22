@@ -22,7 +22,7 @@ object HTTP {
     val mime_type_html: String = "text/html; charset=utf-8"
 
     val default_mime_type: String = mime_type_bytes
-    val default_encoding: String = UTF8.charset_name
+    val default_encoding: String = UTF8.charset.name
 
     def apply(
         bytes: Bytes,

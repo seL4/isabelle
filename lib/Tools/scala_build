@@ -57,7 +57,7 @@ rm -rf \
   "$ISABELLE_HOME/lib/classes/Pure.shasum" \
   "$ISABELLE_HOME/src/Tools/jEdit/dist"
 
-classpath "$CLASSPATH"; unset CLASSPATH
+classpath "$CLASSPATH"; export CLASSPATH=""
 
 eval "declare -a JAVA_ARGS=($ISABELLE_TOOL_JAVA_OPTIONS)"
 

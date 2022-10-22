@@ -9,6 +9,7 @@ package isabelle.setup;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -179,6 +180,11 @@ public class Environment
 
     /* raw process */
 
+    private static read_file(path: Path): String =
+    {
+        return new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
+    }
+
     public static ProcessBuilder process_builder(
         List<String> cmd, File cwd, Map<String,String> env, boolean redirect)
     {
@@ -242,8 +248,8 @@ public class Environment
             }
 
             int rc = proc.exitValue();
-            String out = Files.readString(out_file);
-            String err = Files.readString(err_file);
+            String out = read_file(out_file);
+            String err = read_file(err_file);
             res = new Exec_Result(rc, out, err);
         }
         finally {
@@ -388,7 +394,7 @@ public class Environment
                 Exec_Result res = exec_process(cmd, null, env, true);
                 if (!res.ok()) throw new RuntimeException(res.out());
 
-                for (String s : Files.readString(settings_file).split("\u0000", -1)) {
+                for (String s : read_file(settings_file).split("\u0000", -1)) {
                     int i = s.indexOf('=');
                     if (i > 0) { settings.put(s.substring(0, i), s.substring(i + 1)); }
                     else if (i < 0 && !s.isEmpty()) { settings.put(s, ""); }

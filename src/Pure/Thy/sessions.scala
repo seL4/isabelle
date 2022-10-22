@@ -1149,6 +1149,7 @@ object Sessions {
             info_roots += make_info(chapter_defs, options, select, dir, chapter, entry)
           case _ =>
         }
+        chapter = UNSORTED
       }
       info_roots.toList
     }
@@ -1487,11 +1488,11 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
         db.using_statement(table.insert()) { stmt =>
           stmt.string(1) = name
           stmt.bytes(2) = Properties.encode(build_log.session_timing)
-          stmt.bytes(3) = Properties.compress(build_log.command_timings, cache = cache.xz)
-          stmt.bytes(4) = Properties.compress(build_log.theory_timings, cache = cache.xz)
-          stmt.bytes(5) = Properties.compress(build_log.ml_statistics, cache = cache.xz)
-          stmt.bytes(6) = Properties.compress(build_log.task_statistics, cache = cache.xz)
-          stmt.bytes(7) = Build_Log.compress_errors(build_log.errors, cache = cache.xz)
+          stmt.bytes(3) = Properties.compress(build_log.command_timings, cache = cache.compress)
+          stmt.bytes(4) = Properties.compress(build_log.theory_timings, cache = cache.compress)
+          stmt.bytes(5) = Properties.compress(build_log.ml_statistics, cache = cache.compress)
+          stmt.bytes(6) = Properties.compress(build_log.task_statistics, cache = cache.compress)
+          stmt.bytes(7) = Build_Log.compress_errors(build_log.errors, cache = cache.compress)
           stmt.string(8) = build.sources
           stmt.string(9) = cat_lines(build.input_heaps)
           stmt.string(10) = build.output_heap getOrElse ""

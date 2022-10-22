@@ -134,7 +134,7 @@ object Export {
 
     def uncompressed: Bytes = {
       val (compressed, bytes) = body.join
-      if (compressed) bytes.uncompress(cache = cache.xz) else bytes
+      if (compressed) bytes.uncompress(cache = cache.compress) else bytes
     }
 
     def uncompressed_yxml: XML.Body =
@@ -183,7 +183,7 @@ object Export {
     cache: XML.Cache
   ): Entry = {
     val body =
-      if (args.compress) Future.fork(bytes.maybe_compress(cache = cache.xz))
+      if (args.compress) Future.fork(bytes.maybe_compress(cache = cache.compress))
       else Future.value((false, bytes))
     val entry_name = Entry_Name(session = session_name, theory = args.theory_name, name = args.name)
     Entry(entry_name, args.executable, body, cache)

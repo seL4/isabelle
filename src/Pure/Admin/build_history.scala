@@ -359,7 +359,7 @@ object Build_History {
           session_build_info :::
           ml_statistics.map(Protocol.ML_Statistics_Marker.apply) :::
           session_errors.map(Protocol.Error_Message_Marker.apply) :::
-          heap_sizes), XZ.options(6))
+          heap_sizes), Compress.Options_XZ(6))
 
 
       /* next build */

@@ -128,7 +128,7 @@ object JEdit_Main {
         catch {
           case exn: Throwable =>
             GUI.init_laf()
-            GUI.dialog(null, "Isabelle", GUI.scrollable_text(Exn.message(exn)))
+            GUI.dialog(null, "Isabelle main", GUI.scrollable_text(Exn.print(exn)))
             sys.exit(Process_Result.RC.failure)
         }
       }

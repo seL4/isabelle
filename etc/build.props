@@ -34,6 +34,7 @@ sources = \
   src/Pure/Admin/build_vampire.scala \
   src/Pure/Admin/build_verit.scala \
   src/Pure/Admin/build_zipperposition.scala \
+  src/Pure/Admin/build_zstd.scala \
   src/Pure/Admin/check_sources.scala \
   src/Pure/Admin/ci_build.scala \
   src/Pure/Admin/isabelle_cronjob.scala \
@@ -62,6 +63,7 @@ sources = \
   src/Pure/General/codepoint.scala \
   src/Pure/General/comment.scala \
   src/Pure/General/completion.scala \
+  src/Pure/General/compress.scala \
   src/Pure/General/csv.scala \
   src/Pure/General/date.scala \
   src/Pure/General/exn.scala \
@@ -99,7 +101,7 @@ sources = \
   src/Pure/General/uuid.scala \
   src/Pure/General/value.scala \
   src/Pure/General/word.scala \
-  src/Pure/General/xz.scala \
+  src/Pure/General/zstd.scala \
   src/Pure/Isar/document_structure.scala \
   src/Pure/Isar/keyword.scala \
   src/Pure/Isar/line_structure.scala \
