@@ -238,7 +238,7 @@ final class Bytes private(
         new Bytes(result.toByteArray, 0, result.size)
       case options_zstd: Compress.Options_Zstd =>
         Zstd.init()
-        Bytes(zstd.Zstd.compress(array, options_zstd.level))
+        Bytes(zstd.Zstd.compress(if (offset == 0) bytes else array, options_zstd.level))
     }
   }
 
