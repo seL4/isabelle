@@ -506,9 +506,8 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
           more_preferences = more_preferences, verbose = verbose, build_tags = build_tags,
           build_args = build_args)
 
-      if (output_file == "") {
-        for ((_, log_path) <- results)
-          Output.writeln(log_path.implode, stdout = true)
+      if (output_file.isEmpty) {
+        for ((_, log_path) <- results) Output.writeln(log_path.implode, stdout = true)
       }
       else {
         File.write(Path.explode(output_file),
