@@ -287,6 +287,8 @@ object SQL {
   trait Database extends AutoCloseable {
     db =>
 
+    def is_server: Boolean
+
 
     /* types */
 
@@ -387,6 +389,7 @@ object SQLite {
 
   class Database private[SQLite](name: String, val connection: Connection) extends SQL.Database {
     override def toString: String = name
+    override def is_server: Boolean = false
 
     def sql_type(T: SQL.Type.Value): SQL.Source = SQL.sql_type_sqlite(T)
 
@@ -461,6 +464,7 @@ object PostgreSQL {
     port_forwarding: Option[SSH.Port_Forwarding]
   ) extends SQL.Database {
     override def toString: String = name
+    override def is_server: Boolean = true
 
     def sql_type(T: SQL.Type.Value): SQL.Source = SQL.sql_type_postgresql(T)
 
