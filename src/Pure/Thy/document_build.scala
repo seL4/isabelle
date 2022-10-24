@@ -124,7 +124,7 @@ object Document_Build {
   ): Context = new Context(session_context, document_session, progress)
 
   final class Context private[Document_Build](
-    session_context: Export.Session_Context,
+    val session_context: Export.Session_Context,
     document_session: Option[Sessions.Base],
     val progress: Progress = new Progress
   ) {
