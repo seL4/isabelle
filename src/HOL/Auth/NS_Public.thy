@@ -63,11 +63,11 @@ subsection \<open>Authenticity properties obtained from {term NS1}\<close>
 
 text \<open>It is impossible to re-use a nonce in both {term NS1} and {term NS2}, provided the nonce
   is secret.  (Honest users generate fresh nonces.)\<close>
-lemma no_nonce_NS1_NS2 [rule_format]:
-      "evs \<in> ns_public
-       \<Longrightarrow> Crypt (pubEK C) \<lbrace>NA', Nonce NA, Agent D\<rbrace> \<in> parts (spies evs) \<longrightarrow>
-           Crypt (pubEK B) \<lbrace>Nonce NA, Agent A\<rbrace> \<in> parts (spies evs) \<longrightarrow>
-           Nonce NA \<in> analz (spies evs)"
+lemma no_nonce_NS1_NS2: 
+      "\<lbrakk>evs \<in> ns_public;
+        Crypt (pubEK C) \<lbrace>NA', Nonce NA, Agent D\<rbrace> \<in> parts (spies evs);
+        Crypt (pubEK B) \<lbrace>Nonce NA, Agent A\<rbrace> \<in> parts (spies evs)\<rbrakk>  
+       \<Longrightarrow> Nonce NA \<in> analz (spies evs)"
   by (induct rule: ns_public.induct) (auto intro: analz_insertI)
 
 
@@ -107,12 +107,13 @@ qed auto
 
 text \<open>Authentication for {term A}: if she receives message 2 and has used {term NA}
   to start a run, then {term B} has sent message 2.\<close>
-lemma A_trusts_NS2_lemma [rule_format]:
-   "\<lbrakk>A \<notin> bad;  B \<notin> bad;  evs \<in> ns_public\<rbrakk>
-    \<Longrightarrow> Crypt (pubEK A) \<lbrace>Nonce NA, Nonce NB, Agent B\<rbrace> \<in> parts (spies evs) \<longrightarrow>
-        Says A B (Crypt(pubEK B) \<lbrace>Nonce NA, Agent A\<rbrace>) \<in> set evs \<longrightarrow>
-        Says B A (Crypt(pubEK A) \<lbrace>Nonce NA, Nonce NB, Agent B\<rbrace>) \<in> set evs"
-  by (erule ns_public.induct) (auto dest: Spy_not_see_NA unique_NA)
+lemma A_trusts_NS2_lemma: 
+    "\<lbrakk>evs \<in> ns_public;            
+      Crypt (pubEK A) \<lbrace>Nonce NA, Nonce NB, Agent B\<rbrace> \<in> parts (spies evs);
+      Says A B (Crypt(pubEK B) \<lbrace>Nonce NA, Agent A\<rbrace>) \<in> set evs;
+      A \<notin> bad; B \<notin> bad\<rbrakk>
+     \<Longrightarrow> Says B A (Crypt(pubEK A) \<lbrace>Nonce NA, Nonce NB, Agent B\<rbrace>) \<in> set evs"
+  by (induct rule: ns_public.induct) (auto dest: Spy_not_see_NA unique_NA)
 
 theorem A_trusts_NS2:
      "\<lbrakk>Says A  B (Crypt(pubEK B) \<lbrace>Nonce NA, Agent A\<rbrace>) \<in> set evs;
@@ -123,12 +124,12 @@ theorem A_trusts_NS2:
 
 
 text \<open>If the encrypted message appears then it originated with Alice in {term NS1}\<close>
-lemma B_trusts_NS1 [rule_format]:
-     "evs \<in> ns_public
-      \<Longrightarrow> Crypt (pubEK B) \<lbrace>Nonce NA, Agent A\<rbrace> \<in> parts (spies evs) \<longrightarrow>
-          Nonce NA \<notin> analz (spies evs) \<longrightarrow>
-          Says A B (Crypt (pubEK B) \<lbrace>Nonce NA, Agent A\<rbrace>) \<in> set evs"
-  by (induction evs rule: ns_public.induct) (use analz_insertI in auto)
+lemma B_trusts_NS1:
+     "\<lbrakk>evs \<in> ns_public;                                     
+       Crypt (pubEK B) \<lbrace>Nonce NA, Agent A\<rbrace> \<in> parts (spies evs);
+       Nonce NA \<notin> analz (spies evs)\<rbrakk>
+      \<Longrightarrow> Says A B (Crypt (pubEK B) \<lbrace>Nonce NA, Agent A\<rbrace>) \<in> set evs"
+  by (induct evs rule: ns_public.induct) (use analz_insertI in \<open>auto split: if_split_asm\<close>)
 
 
 subsection \<open>Authenticity properties obtained from {term NS2}\<close>
@@ -165,7 +166,7 @@ qed auto
 
 text \<open>Authentication for {term B}: if he receives message 3 and has used {term NB}
   in message 2, then {term A} has sent message 3.\<close>
-lemma B_trusts_NS3_lemma [rule_format]:
+lemma B_trusts_NS3_lemma:
      "\<lbrakk>evs \<in> ns_public;
        Crypt (pubEK B) (Nonce NB) \<in> parts (spies evs);
        Says B A (Crypt (pubEK A) \<lbrace>Nonce NA, Nonce NB, Agent B\<rbrace>) \<in> set evs;
