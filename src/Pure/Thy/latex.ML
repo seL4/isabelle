@@ -14,6 +14,7 @@ sig
   val macro0: string -> text
   val macro: string -> text -> text
   val environment: string -> text -> text
+  val output_name: string -> string
   val output_ascii: string -> string
   val output_ascii_breakable: string -> string -> string
   val output_symbols: Symbol.symbol list -> string
