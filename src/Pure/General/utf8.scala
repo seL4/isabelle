@@ -7,16 +7,13 @@ Variations on UTF-8.
 package isabelle
 
 
-import java.nio.charset.Charset
-import scala.io.Codec
+import java.nio.charset.{Charset, StandardCharsets}
 
 
 object UTF8 {
   /* charset */
 
-  val charset_name: String = "UTF-8"
-  val charset: Charset = Charset.forName(charset_name)
-  def codec(): Codec = Codec(charset)
+  val charset: Charset = StandardCharsets.UTF_8
 
   def bytes(s: String): Array[Byte] = s.getBytes(charset)
 

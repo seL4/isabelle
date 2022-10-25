@@ -344,7 +344,7 @@ object Isabelle_Cronjob {
           options = "-m32 -M4 -t skip_proofs -p pide_session=false", args = "-a -o skip_proofs",
           detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("skip_proofs"))),
       List(
-        Remote_Build("macOS 10.15 Catalina", "monterey", user = "makarius",
+        Remote_Build("macOS 12 Monterey", "monterey", user = "makarius",
           options = "-m32 -M4 -e ISABELLE_GHC_SETUP=true -p pide_session=false",
           args = "-a -d '~~/src/Benchmarks'")),
       List(
@@ -453,9 +453,10 @@ object Isabelle_Cronjob {
     val hostname: String = Isabelle_System.hostname()
 
     def log(date: Date, task_name: String, msg: String): Unit =
-      if (task_name != "")
+      if (task_name != "") {
         thread.send(
           "[" + Build_Log.print_date(date) + ", " + hostname + ", " + task_name + "]: " + msg)
+      }
 
     def start_logger(start_date: Date, task_name: String): Logger =
       new Logger(this, start_date, task_name)
@@ -537,8 +538,7 @@ object Isabelle_Cronjob {
     /* structured tasks */
 
     def SEQ(tasks: List[Logger_Task]): Logger_Task = Logger_Task(body = _ =>
-      for (task <- tasks.iterator if !exclude_task(task.name) || task.name == "")
-        run_now(task))
+      for (task <- tasks.iterator if !exclude_task(task.name) || task.name == "") run_now(task))
 
     def PAR(tasks: List[Logger_Task]): Logger_Task =
       Logger_Task(body =

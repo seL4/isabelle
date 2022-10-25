@@ -2256,7 +2256,7 @@ fun string_of_status General = ""
 (* Each fact is given a unique fact number to avoid name clashes (e.g., because
    of monomorphization). The TPTP forbids name clashes, and some of the remote
    provers might care. *)
-fun line_of_fact ctxt generate_info prefix encode alt freshen pos mono type_enc rank
+fun line_of_fact ctxt generate_isabelle_info prefix encode alt freshen pos mono type_enc rank
         (j, {name, stature = (_, status), role, iformula, atomic_types}) =
   Formula ((prefix ^ (if freshen then string_of_int j ^ "_" else "") ^
             encode name, alt name),
@@ -2266,22 +2266,22 @@ fun line_of_fact ctxt generate_info prefix encode alt freshen pos mono type_enc 
                   should_guard_var_in_formula (if pos then SOME true else NONE)
            |> close_formula_universally
            |> bound_tvars type_enc true atomic_types,
-           NONE, isabelle_info generate_info (string_of_status status) (rank j))
+           NONE, isabelle_info generate_isabelle_info (string_of_status status) (rank j))
 
-fun lines_of_subclass generate_info type_enc sub super =
+fun lines_of_subclass generate_isabelle_info type_enc sub super =
   Formula ((subclass_prefix ^ ascii_of sub ^ "___" ^ ascii_of super, ""), Axiom,
            AConn (AImplies,
                   [sub, super] |> map (fn s => class_atom type_enc (s, tvar_a)))
            |> bound_tvars type_enc false [tvar_a],
-           NONE, isabelle_info generate_info inductiveN helper_rank)
+           NONE, isabelle_info generate_isabelle_info inductiveN helper_rank)
 
-fun lines_of_subclass_pair generate_info type_enc (sub, supers) =
+fun lines_of_subclass_pair generate_isabelle_info type_enc (sub, supers) =
   if polymorphism_of_type_enc type_enc = Type_Class_Polymorphic then
     [Class_Decl (class_decl_prefix ^ ascii_of sub, `make_class sub, map (`make_class) supers)]
   else
-    map (lines_of_subclass generate_info type_enc sub) supers
+    map (lines_of_subclass generate_isabelle_info type_enc sub) supers
 
-fun line_of_tcon_clause generate_info type_enc (name, prems, (cl, T)) =
+fun line_of_tcon_clause generate_isabelle_info type_enc (name, prems, (cl, T)) =
   if polymorphism_of_type_enc type_enc = Type_Class_Polymorphic then
     Class_Memb (class_memb_prefix ^ name,
       map (fn (cls, T) => (T |> dest_TVar |> tvar_name, map (`make_class) cls)) prems,
@@ -2291,7 +2291,7 @@ fun line_of_tcon_clause generate_info type_enc (name, prems, (cl, T)) =
              mk_ahorn (maps (class_atoms type_enc) prems)
                       (class_atom type_enc (cl, T))
              |> bound_tvars type_enc true (snd (dest_Type T)),
-             NONE, isabelle_info generate_info inductiveN helper_rank)
+             NONE, isabelle_info generate_isabelle_info inductiveN helper_rank)
 
 fun line_of_conjecture ctxt mono type_enc ({name, role, iformula, atomic_types, ...} : ifact) =
   Formula ((conjecture_prefix ^ name, ""), role,
@@ -2486,7 +2486,7 @@ fun monotonic_types_of_facts ctxt mono type_enc facts =
           ? fold (add_fact_monotonic_types ctxt mono type_enc) facts
   end
 
-fun line_of_guards_mono_type ctxt generate_info mono type_enc T =
+fun line_of_guards_mono_type ctxt generate_isabelle_info mono type_enc T =
   Formula ((guards_sym_formula_prefix ^ ascii_of (mangled_type type_enc T), ""),
            Axiom,
            IConst (`make_bound_var "X", T, [])
@@ -2496,21 +2496,21 @@ fun line_of_guards_mono_type ctxt generate_info mono type_enc T =
                                   (SOME true)
            |> close_formula_universally
            |> bound_tvars type_enc true (atomic_types_of T),
-           NONE, isabelle_info generate_info inductiveN helper_rank)
+           NONE, isabelle_info generate_isabelle_info inductiveN helper_rank)
 
-fun line_of_tags_mono_type ctxt generate_info mono type_enc T =
+fun line_of_tags_mono_type ctxt generate_isabelle_info mono type_enc T =
   let val x_var = ATerm ((`make_bound_var "X", []), []) in
     Formula ((tags_sym_formula_prefix ^ ascii_of (mangled_type type_enc T), ""), Axiom,
              eq_formula type_enc (atomic_types_of T) [] false
                   (tag_with_type ctxt mono type_enc NONE T x_var) x_var,
-             NONE, isabelle_info generate_info non_rec_defN helper_rank)
+             NONE, isabelle_info generate_isabelle_info non_rec_defN helper_rank)
   end
 
-fun lines_of_mono_types ctxt generate_info mono type_enc =
+fun lines_of_mono_types ctxt generate_isabelle_info mono type_enc =
   (case type_enc of
     Native _ => K []
-  | Guards _ => map (line_of_guards_mono_type ctxt generate_info mono type_enc)
-  | Tags _ => map (line_of_tags_mono_type ctxt generate_info mono type_enc))
+  | Guards _ => map (line_of_guards_mono_type ctxt generate_isabelle_info mono type_enc)
+  | Tags _ => map (line_of_tags_mono_type ctxt generate_isabelle_info mono type_enc))
 
 fun decl_line_of_sym ctxt type_enc s (s', T_args, T, pred_sym, ary, _) =
   let
@@ -2534,7 +2534,7 @@ fun decl_line_of_sym ctxt type_enc s (s', T_args, T, pred_sym, ary, _) =
 
 fun honor_conj_sym_role in_conj = (if in_conj then Hypothesis else Axiom, I)
 
-fun line_of_guards_sym_decl ctxt generate_info mono type_enc n s j
+fun line_of_guards_sym_decl ctxt generate_isabelle_info mono type_enc n s j
     (s', T_args, T, _, ary, in_conj) =
   let
     val thy = Proof_Context.theory_of ctxt
@@ -2563,10 +2563,10 @@ fun line_of_guards_sym_decl ctxt generate_info mono type_enc n s j
              |> close_formula_universally
              |> bound_tvars type_enc (n > 1) (atomic_types_of T)
              |> maybe_negate,
-             NONE, isabelle_info generate_info inductiveN helper_rank)
+             NONE, isabelle_info generate_isabelle_info inductiveN helper_rank)
   end
 
-fun lines_of_tags_sym_decl ctxt generate_info mono type_enc n s
+fun lines_of_tags_sym_decl ctxt generate_isabelle_info mono type_enc n s
     (j, (s', T_args, T, pred_sym, ary, in_conj)) =
   let
     val thy = Proof_Context.theory_of ctxt
@@ -2583,7 +2583,7 @@ fun lines_of_tags_sym_decl ctxt generate_info mono type_enc n s
     val tag_with = tag_with_type ctxt mono type_enc NONE
     fun formula c =
       [Formula ((ident, ""), role, eq (tag_with res_T c) c, NONE,
-                isabelle_info generate_info non_rec_defN helper_rank)]
+                isabelle_info generate_isabelle_info non_rec_defN helper_rank)]
   in
     if pred_sym orelse not (should_encode_type ctxt mono level res_T) then
       []
@@ -2608,7 +2608,7 @@ fun rationalize_decls thy (decls as decl :: (decls' as _ :: _)) =
     end
   | rationalize_decls _ decls = decls
 
-fun lines_of_sym_decls ctxt generate_info mono type_enc (s, decls) =
+fun lines_of_sym_decls ctxt generate_isabelle_info mono type_enc (s, decls) =
   (case type_enc of
     Native _ => [decl_line_of_sym ctxt type_enc s (hd decls)]
   | Guards (_, level) =>
@@ -2618,7 +2618,7 @@ fun lines_of_sym_decls ctxt generate_info mono type_enc (s, decls) =
       val n = length decls
       val decls = decls |> filter (should_encode_type ctxt mono level o result_type_of_decl)
     in
-      map_index (uncurry (line_of_guards_sym_decl ctxt generate_info mono type_enc n s)) decls
+      map_index (uncurry (line_of_guards_sym_decl ctxt generate_isabelle_info mono type_enc n s)) decls
     end
   | Tags (_, level) =>
     if is_type_level_uniform level then
@@ -2626,14 +2626,14 @@ fun lines_of_sym_decls ctxt generate_info mono type_enc (s, decls) =
     else
       let val n = length decls in
         map_index I decls
-        |> maps (lines_of_tags_sym_decl ctxt generate_info mono type_enc n s)
+        |> maps (lines_of_tags_sym_decl ctxt generate_isabelle_info mono type_enc n s)
       end)
 
-fun lines_of_sym_decl_table ctxt generate_info mono type_enc mono_Ts sym_decl_tab =
+fun lines_of_sym_decl_table ctxt generate_isabelle_info mono type_enc mono_Ts sym_decl_tab =
   let
     val syms = sym_decl_tab |> Symtab.dest |> sort_by fst
-    val mono_lines = lines_of_mono_types ctxt generate_info mono type_enc mono_Ts
-    val decl_lines = maps (lines_of_sym_decls ctxt generate_info mono type_enc) syms
+    val mono_lines = lines_of_mono_types ctxt generate_isabelle_info mono type_enc mono_Ts
+    val decl_lines = maps (lines_of_sym_decls ctxt generate_isabelle_info mono type_enc) syms
   in mono_lines @ decl_lines end
 
 fun datatypes_of_sym_table ctxt ctrss (DFG Polymorphic) (type_enc as Native _) uncurried_aliases
@@ -2680,8 +2680,8 @@ fun decl_line_of_datatype (ty as AType (((_, s'), _), ty_args), ctrs, exhaust) =
 
 fun pair_append (xs1, xs2) (ys1, ys2) = (xs1 @ ys1, xs2 @ ys2)
 
-fun do_uncurried_alias_lines_of_sym ctxt generate_info ctrss mono type_enc sym_tab0 sym_tab base_s0
-    types in_conj =
+fun do_uncurried_alias_lines_of_sym ctxt generate_isabelle_info ctrss mono type_enc sym_tab0 sym_tab
+    base_s0 types in_conj =
   let
     fun do_alias ary =
       let
@@ -2717,31 +2717,32 @@ fun do_uncurried_alias_lines_of_sym ctxt generate_info ctrss mono type_enc sym_t
       in
         ([tm1, tm2],
          [Formula ((uncurried_alias_eq_prefix ^ s2, ""), role, eq |> maybe_negate, NONE,
-            isabelle_info generate_info non_rec_defN helper_rank)])
+            isabelle_info generate_isabelle_info non_rec_defN helper_rank)])
         |> (if ary - 1 = base_ary orelse Symtab.defined sym_tab s1 then I
             else pair_append (do_alias (ary - 1)))
       end
   in do_alias end
 
-fun uncurried_alias_lines_of_sym ctxt generate_info ctrss mono type_enc sym_tab0 sym_tab
+fun uncurried_alias_lines_of_sym ctxt generate_isabelle_info ctrss mono type_enc sym_tab0 sym_tab
         (s, {min_ary, types, in_conj, ...} : sym_info) =
   (case unprefix_and_unascii const_prefix s of
     SOME mangled_s =>
     if String.isSubstring uncurried_alias_sep mangled_s then
       let val base_s0 = mangled_s |> unmangled_invert_const in
-        do_uncurried_alias_lines_of_sym ctxt generate_info ctrss mono type_enc sym_tab0 sym_tab
-          base_s0 types in_conj min_ary
+        do_uncurried_alias_lines_of_sym ctxt generate_isabelle_info ctrss mono type_enc sym_tab0
+          sym_tab base_s0 types in_conj min_ary
       end
     else
       ([], [])
   | NONE => ([], []))
 
-fun uncurried_alias_lines_of_sym_table ctxt generate_info ctrss mono type_enc uncurried_aliases
-    sym_tab0 sym_tab =
+fun uncurried_alias_lines_of_sym_table ctxt generate_isabelle_info ctrss mono type_enc
+    uncurried_aliases sym_tab0 sym_tab =
   ([], [])
   |> uncurried_aliases
     ? Symtab.fold_rev (pair_append
-        o uncurried_alias_lines_of_sym ctxt generate_info ctrss mono type_enc sym_tab0 sym_tab)
+        o uncurried_alias_lines_of_sym ctxt generate_isabelle_info ctrss mono type_enc sym_tab0
+          sym_tab)
       sym_tab
 
 val implicit_declsN = "Could-be-implicit typings"
@@ -2820,7 +2821,7 @@ val all_ctrss_of_datatypes = map (map_filter (try dest_Const) o #ctrs) o Ctr_Sug
 
 val app_op_and_predicator_threshold = 45
 
-fun generate_atp_problem ctxt generate_info format prem_role type_enc mode lam_trans
+fun generate_atp_problem ctxt generate_isabelle_info format prem_role type_enc mode lam_trans
     uncurried_aliases readable_names presimp hyp_ts concl_t facts =
   let
     val thy = Proof_Context.theory_of ctxt
@@ -2857,8 +2858,8 @@ fun generate_atp_problem ctxt generate_info format prem_role type_enc mode lam_t
     val (ho_stuff, sym_tab) =
       sym_table_of_facts ctxt type_enc Min_App_Op conjs facts
     val (uncurried_alias_eq_tms, uncurried_alias_eq_lines) =
-      uncurried_alias_lines_of_sym_table ctxt generate_info ctrss mono type_enc uncurried_aliases
-        sym_tab0 sym_tab
+      uncurried_alias_lines_of_sym_table ctxt generate_isabelle_info ctrss mono type_enc
+        uncurried_aliases sym_tab0 sym_tab
     val (_, sym_tab) =
       (ho_stuff, sym_tab)
       |> fold (add_iterm_syms_to_sym_table ctxt Min_App_Op false false)
@@ -2873,7 +2874,7 @@ fun generate_atp_problem ctxt generate_info format prem_role type_enc mode lam_t
     val sym_decl_lines =
       (conjs, helpers @ facts, uncurried_alias_eq_tms)
       |> sym_decl_table_of_facts thy type_enc sym_tab
-      |> lines_of_sym_decl_table ctxt generate_info mono type_enc mono_Ts
+      |> lines_of_sym_decl_table ctxt generate_isabelle_info mono type_enc mono_Ts
     val datatype_decl_lines = map decl_line_of_datatype datatypes
     val decl_lines = class_decl_lines @ sym_decl_lines @ datatype_decl_lines
     val num_facts = length facts
@@ -2881,14 +2882,14 @@ fun generate_atp_problem ctxt generate_info format prem_role type_enc mode lam_t
     val pos = mode <> Exporter
     val rank_of = rank_of_fact_num num_facts
     val fact_lines = facts
-      |> map_index (line_of_fact ctxt generate_info fact_prefix ascii_of I freshen pos mono type_enc
-         rank_of)
+      |> map_index (line_of_fact ctxt generate_isabelle_info fact_prefix ascii_of I freshen pos mono
+        type_enc rank_of)
 
-    val subclass_lines = maps (lines_of_subclass_pair generate_info type_enc) subclass_pairs
-    val tcon_lines = map (line_of_tcon_clause generate_info type_enc) tcon_clauses
+    val subclass_lines = maps (lines_of_subclass_pair generate_isabelle_info type_enc) subclass_pairs
+    val tcon_lines = map (line_of_tcon_clause generate_isabelle_info type_enc) tcon_clauses
     val helper_lines = helpers
-      |> map_index (line_of_fact ctxt generate_info helper_prefix I (K "") false true mono type_enc
-         (K default_rank))
+      |> map_index (line_of_fact ctxt generate_isabelle_info helper_prefix I (K "") false true mono
+        type_enc (K default_rank))
     val free_type_lines = lines_of_free_types type_enc (facts @ conjs)
     val conj_lines = map (line_of_conjecture ctxt mono type_enc) conjs
     (* Reordering these might confuse the proof reconstruction code. *)

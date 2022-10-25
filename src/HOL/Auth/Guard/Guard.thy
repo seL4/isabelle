@@ -19,7 +19,7 @@ where
   No_Nonce [intro]: "Nonce n \<notin> parts {X} \<Longrightarrow> X \<in> guard n Ks"
 | Guard_Nonce [intro]: "invKey K \<in> Ks \<Longrightarrow> Crypt K X \<in> guard n Ks"
 | Crypt [intro]: "X \<in> guard n Ks \<Longrightarrow> Crypt K X \<in> guard n Ks"
-| Pair [intro]: "[| X \<in> guard n Ks; Y \<in> guard n Ks |] ==> \<lbrace>X,Y\<rbrace> \<in> guard n Ks"
+| Pair [intro]: "\<lbrakk>X \<in> guard n Ks; Y \<in> guard n Ks\<rbrakk> \<Longrightarrow> \<lbrace>X,Y\<rbrace> \<in> guard n Ks"
 
 subsection\<open>basic facts about \<^term>\<open>guard\<close>\<close>
 
@@ -38,7 +38,7 @@ by (erule guard.induct, auto)
 lemma Nonce_notin_guard_iff [iff]: "Nonce n \<notin> guard n Ks"
 by (auto dest: Nonce_notin_guard)
 
-lemma guard_has_Crypt [rule_format]: "X \<in> guard n Ks ==> Nonce n \<in> parts {X}
+lemma guard_has_Crypt [rule_format]: "X \<in> guard n Ks \<Longrightarrow> Nonce n \<in> parts {X}
 \<longrightarrow> (\<exists>K Y. Crypt K Y \<in> kparts {X} \<and> Nonce n \<in> parts {Y})"
 by (erule guard.induct, auto)
 
@@ -55,7 +55,7 @@ lemma guard_kparts [rule_format]: "X \<in> guard n Ks \<Longrightarrow>
 Y \<in> kparts {X} \<longrightarrow> Y \<in> guard n Ks"
 by (erule guard.induct, auto)
 
-lemma guard_Crypt: "[| Crypt K Y \<in> guard n Ks; K \<notin> invKey`Ks |] ==> Y \<in> guard n Ks"
+lemma guard_Crypt: "\<lbrakk>Crypt K Y \<in> guard n Ks; K \<notin> invKey`Ks\<rbrakk> \<Longrightarrow> Y \<in> guard n Ks"
   by (ind_cases "Crypt K Y \<in> guard n Ks") (auto intro!: image_eqI)
 
 lemma guard_MPair [iff]: "(\<lbrace>X,Y\<rbrace> \<in> guard n Ks) = (X \<in> guard n Ks \<and> Y \<in> guard n Ks)"
@@ -65,7 +65,7 @@ lemma guard_not_guard [rule_format]: "X \<in> guard n Ks \<Longrightarrow>
 Crypt K Y \<in> kparts {X} \<longrightarrow> Nonce n \<in> kparts {Y} \<longrightarrow> Y \<notin> guard n Ks"
 by (erule guard.induct, auto dest: guard_kparts)
 
-lemma guard_extand: "[| X \<in> guard n Ks; Ks \<subseteq> Ks' |] ==> X \<in> guard n Ks'"
+lemma guard_extand: "\<lbrakk>X \<in> guard n Ks; Ks \<subseteq> Ks'\<rbrakk> \<Longrightarrow> X \<in> guard n Ks'"
 by (erule guard.induct, auto)
 
 subsection\<open>guarded sets\<close>
@@ -86,15 +86,15 @@ by (auto dest: parts_sub)
 lemma Nonce_notin_kparts [simplified]: "Guard n Ks H \<Longrightarrow> Nonce n \<notin> kparts H"
 by (auto simp: Guard_def dest: in_kparts Nonce_notin_kparts_msg)
 
-lemma Guard_must_decrypt: "[| Guard n Ks H; Nonce n \<in> analz H |] ==>
+lemma Guard_must_decrypt: "\<lbrakk>Guard n Ks H; Nonce n \<in> analz H\<rbrakk> \<Longrightarrow>
 \<exists>K Y. Crypt K Y \<in> kparts H \<and> Key (invKey K) \<in> kparts H"
 apply (drule_tac P="\<lambda>G. Nonce n \<in> G" in analz_pparts_kparts_substD, simp)
 by (drule must_decrypt, auto dest: Nonce_notin_kparts)
 
-lemma Guard_kparts [intro]: "Guard n Ks H ==> Guard n Ks (kparts H)"
+lemma Guard_kparts [intro]: "Guard n Ks H \<Longrightarrow> Guard n Ks (kparts H)"
 by (auto simp: Guard_def dest: in_kparts guard_kparts)
 
-lemma Guard_mono: "[| Guard n Ks H; G <= H |] ==> Guard n Ks G"
+lemma Guard_mono: "\<lbrakk>Guard n Ks H; G <= H\<rbrakk> \<Longrightarrow> Guard n Ks G"
 by (auto simp: Guard_def)
 
 lemma Guard_insert [iff]: "Guard n Ks (insert X H)
@@ -104,54 +104,54 @@ by (auto simp: Guard_def)
 lemma Guard_Un [iff]: "Guard n Ks (G Un H) = (Guard n Ks G & Guard n Ks H)"
 by (auto simp: Guard_def)
 
-lemma Guard_synth [intro]: "Guard n Ks G ==> Guard n Ks (synth G)"
+lemma Guard_synth [intro]: "Guard n Ks G \<Longrightarrow> Guard n Ks (synth G)"
 by (auto simp: Guard_def, erule synth.induct, auto)
 
-lemma Guard_analz [intro]: "[| Guard n Ks G; \<forall>K. K \<in> Ks \<longrightarrow> Key K \<notin> analz G |]
-==> Guard n Ks (analz G)"
+lemma Guard_analz [intro]: "\<lbrakk>Guard n Ks G; \<forall>K. K \<in> Ks \<longrightarrow> Key K \<notin> analz G\<rbrakk>
+\<Longrightarrow> Guard n Ks (analz G)"
 apply (auto simp: Guard_def)
 apply (erule analz.induct, auto)
 by (ind_cases "Crypt K Xa \<in> guard n Ks" for K Xa, auto)
 
-lemma in_Guard [dest]: "[| X \<in> G; Guard n Ks G |] ==> X \<in> guard n Ks"
+lemma in_Guard [dest]: "\<lbrakk>X \<in> G; Guard n Ks G\<rbrakk> \<Longrightarrow> X \<in> guard n Ks"
 by (auto simp: Guard_def)
 
-lemma in_synth_Guard: "[| X \<in> synth G; Guard n Ks G |] ==> X \<in> guard n Ks"
+lemma in_synth_Guard: "\<lbrakk>X \<in> synth G; Guard n Ks G\<rbrakk> \<Longrightarrow> X \<in> guard n Ks"
 by (drule Guard_synth, auto)
 
-lemma in_analz_Guard: "[| X \<in> analz G; Guard n Ks G;
-\<forall>K. K \<in> Ks \<longrightarrow> Key K \<notin> analz G |] ==> X \<in> guard n Ks"
+lemma in_analz_Guard: "\<lbrakk>X \<in> analz G; Guard n Ks G;
+\<forall>K. K \<in> Ks \<longrightarrow> Key K \<notin> analz G\<rbrakk> \<Longrightarrow> X \<in> guard n Ks"
 by (drule Guard_analz, auto)
 
-lemma Guard_keyset [simp]: "keyset G ==> Guard n Ks G"
+lemma Guard_keyset [simp]: "keyset G \<Longrightarrow> Guard n Ks G"
 by (auto simp: Guard_def)
 
-lemma Guard_Un_keyset: "[| Guard n Ks G; keyset H |] ==> Guard n Ks (G \<union> H)"
+lemma Guard_Un_keyset: "\<lbrakk>Guard n Ks G; keyset H\<rbrakk> \<Longrightarrow> Guard n Ks (G \<union> H)"
 by auto
 
-lemma in_Guard_kparts: "[| X \<in> G; Guard n Ks G; Y \<in> kparts {X} |] ==> Y \<in> guard n Ks"
+lemma in_Guard_kparts: "\<lbrakk>X \<in> G; Guard n Ks G; Y \<in> kparts {X}\<rbrakk> \<Longrightarrow> Y \<in> guard n Ks"
 by blast
 
-lemma in_Guard_kparts_neq: "[| X \<in> G; Guard n Ks G; Nonce n' \<in> kparts {X} |]
-==> n \<noteq> n'"
+lemma in_Guard_kparts_neq: "\<lbrakk>X \<in> G; Guard n Ks G; Nonce n' \<in> kparts {X}\<rbrakk>
+\<Longrightarrow> n \<noteq> n'"
 by (blast dest: in_Guard_kparts)
 
-lemma in_Guard_kparts_Crypt: "[| X \<in> G; Guard n Ks G; is_MPair X;
-Crypt K Y \<in> kparts {X}; Nonce n \<in> kparts {Y} |] ==> invKey K \<in> Ks"
+lemma in_Guard_kparts_Crypt: "\<lbrakk>X \<in> G; Guard n Ks G; is_MPair X;
+Crypt K Y \<in> kparts {X}; Nonce n \<in> kparts {Y}\<rbrakk> \<Longrightarrow> invKey K \<in> Ks"
 apply (drule in_Guard, simp)
 apply (frule guard_not_guard, simp+)
 apply (drule guard_kparts, simp)
 by (ind_cases "Crypt K Y \<in> guard n Ks", auto)
 
-lemma Guard_extand: "[| Guard n Ks G; Ks \<subseteq> Ks' |] ==> Guard n Ks' G"
+lemma Guard_extand: "\<lbrakk>Guard n Ks G; Ks \<subseteq> Ks'\<rbrakk> \<Longrightarrow> Guard n Ks' G"
 by (auto simp: Guard_def dest: guard_extand)
 
-lemma guard_invKey [rule_format]: "[| X \<in> guard n Ks; Nonce n \<in> kparts {Y} |] ==>
+lemma guard_invKey [rule_format]: "\<lbrakk>X \<in> guard n Ks; Nonce n \<in> kparts {Y}\<rbrakk> \<Longrightarrow>
 Crypt K Y \<in> kparts {X} \<longrightarrow> invKey K \<in> Ks"
 by (erule guard.induct, auto)
 
-lemma Crypt_guard_invKey [rule_format]: "[| Crypt K Y \<in> guard n Ks;
-Nonce n \<in> kparts {Y} |] ==> invKey K \<in> Ks"
+lemma Crypt_guard_invKey [rule_format]: "\<lbrakk>Crypt K Y \<in> guard n Ks;
+Nonce n \<in> kparts {Y}\<rbrakk> \<Longrightarrow> invKey K \<in> Ks"
 by (auto dest: guard_invKey)
 
 subsection\<open>set obtained by decrypting a message\<close>
@@ -160,14 +160,14 @@ abbreviation (input)
   decrypt :: "msg set => key => msg => msg set" where
   "decrypt H K Y == insert Y (H - {Crypt K Y})"
 
-lemma analz_decrypt: "[| Crypt K Y \<in> H; Key (invKey K) \<in> H; Nonce n \<in> analz H |]
-==> Nonce n \<in> analz (decrypt H K Y)"
+lemma analz_decrypt: "\<lbrakk>Crypt K Y \<in> H; Key (invKey K) \<in> H; Nonce n \<in> analz H\<rbrakk>
+\<Longrightarrow> Nonce n \<in> analz (decrypt H K Y)"
 apply (drule_tac P="\<lambda>H. Nonce n \<in> analz H" in ssubst [OF insert_Diff])
 apply assumption
 apply (simp only: analz_Crypt_if, simp)
 done
 
-lemma parts_decrypt: "[| Crypt K Y \<in> H; X \<in> parts (decrypt H K Y) |] ==> X \<in> parts H"
+lemma parts_decrypt: "\<lbrakk>Crypt K Y \<in> H; X \<in> parts (decrypt H K Y)\<rbrakk> \<Longrightarrow> X \<in> parts H"
 by (erule parts.induct, auto intro: parts.Fst parts.Snd parts.Body)
 
 subsection\<open>number of Crypt's in a message\<close>
@@ -195,12 +195,12 @@ subsection\<open>basic facts about \<^term>\<open>cnb\<close>\<close>
 lemma cnb_app [simp]: "cnb (l @ l') = cnb l + cnb l'"
 by (induct l, auto)
 
-lemma mem_cnb_minus: "x \<in> set l ==> cnb l = crypt_nb x + (cnb l - crypt_nb x)"
+lemma mem_cnb_minus: "x \<in> set l \<Longrightarrow> cnb l = crypt_nb x + (cnb l - crypt_nb x)"
   by (induct l) auto
 
 lemmas mem_cnb_minus_substI = mem_cnb_minus [THEN ssubst]
 
-lemma cnb_minus [simp]: "x \<in> set l ==> cnb (remove l x) = cnb l - crypt_nb x"
+lemma cnb_minus [simp]: "x \<in> set l \<Longrightarrow> cnb (remove l x) = cnb l - crypt_nb x"
 apply (induct l, auto)
 apply (erule_tac l=l and x=x in mem_cnb_minus_substI)
 apply simp
@@ -286,20 +286,20 @@ apply (rule Guard_kparts, simp, simp)
 apply (rule_tac B="set l'" in subset_trans, rule set_remove, blast)
 by (rule kparts_set)
 
-lemma Guard_invKey_finite: "[| Nonce n \<in> analz G; Guard n Ks G; finite G |]
-==> \<exists>K. K \<in> Ks \<and> Key K \<in> analz G"
+lemma Guard_invKey_finite: "\<lbrakk>Nonce n \<in> analz G; Guard n Ks G; finite G\<rbrakk>
+\<Longrightarrow> \<exists>K. K \<in> Ks \<and> Key K \<in> analz G"
 apply (drule finite_list, clarify)
 by (rule Guard_invKey_by_list, auto)
 
-lemma Guard_invKey: "[| Nonce n \<in> analz G; Guard n Ks G |]
-==> \<exists>K. K \<in> Ks \<and> Key K \<in> analz G"
+lemma Guard_invKey: "\<lbrakk>Nonce n \<in> analz G; Guard n Ks G\<rbrakk>
+\<Longrightarrow> \<exists>K. K \<in> Ks \<and> Key K \<in> analz G"
 by (auto dest: analz_needs_only_finite Guard_invKey_finite)
 
 subsection\<open>if the analyse of a finite guarded set and a (possibly infinite) set of keys
 gives n then it must also gives Ks\<close>
 
-lemma Guard_invKey_keyset: "[| Nonce n \<in> analz (G \<union> H); Guard n Ks G; finite G;
-keyset H |] ==> \<exists>K. K \<in> Ks \<and> Key K \<in> analz (G \<union> H)"
+lemma Guard_invKey_keyset: "\<lbrakk>Nonce n \<in> analz (G \<union> H); Guard n Ks G; finite G;
+keyset H\<rbrakk> \<Longrightarrow> \<exists>K. K \<in> Ks \<and> Key K \<in> analz (G \<union> H)"
 apply (frule_tac P="\<lambda>G. Nonce n \<in> G" and G=G in analz_keyset_substD, simp_all)
 apply (drule_tac G="G Un (H Int keysfor G)" in Guard_invKey_finite)
 by (auto simp: Guard_def intro: analz_sub)

@@ -177,16 +177,16 @@ object Term {
 
   object Cache {
     def make(
-        xz: XZ.Cache = XZ.Cache.make(),
+        compress: Compress.Cache = Compress.Cache.make(),
         max_string: Int = isabelle.Cache.default_max_string,
         initial_size: Int = isabelle.Cache.default_initial_size): Cache =
-      new Cache(xz, initial_size, max_string)
+      new Cache(compress, initial_size, max_string)
 
     val none: Cache = make(max_string = 0)
   }
 
-  class Cache(xz: XZ.Cache, max_string: Int, initial_size: Int)
-  extends XML.Cache(xz, max_string, initial_size) {
+  class Cache(compress: Compress.Cache, max_string: Int, initial_size: Int)
+  extends XML.Cache(compress, max_string, initial_size) {
     protected def cache_indexname(x: Indexname): Indexname =
       lookup(x) getOrElse store(Indexname(cache_string(x.name), x.index))
 

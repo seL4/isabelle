@@ -40,10 +40,10 @@ class Isabelle_Encoding extends Encoding {
   }
 
   override def getTextReader(in: InputStream): Reader =
-    text_reader(in, UTF8.codec(), true)
+    text_reader(in, Codec(UTF8.charset), true)
 
   override def getPermissiveTextReader(in: InputStream): Reader = {
-    val codec = UTF8.codec()
+    val codec = Codec(UTF8.charset)
     codec.onMalformedInput(CodingErrorAction.REPLACE)
     codec.onUnmappableCharacter(CodingErrorAction.REPLACE)
     text_reader(in, codec, false)
@@ -52,7 +52,7 @@ class Isabelle_Encoding extends Encoding {
   override def getTextWriter(out: OutputStream): Writer = {
     val buffer = new ByteArrayOutputStream(BUFSIZE) {
       override def flush(): Unit = {
-        val text = Symbol.encode(toString(UTF8.charset_name))
+        val text = Symbol.encode(toString(UTF8.charset))
         out.write(UTF8.bytes(text))
         out.flush()
       }

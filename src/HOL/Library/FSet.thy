@@ -173,6 +173,9 @@ translations
 lift_definition fmember :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" (infix "|\<in>|" 50) is Set.member
   parametric member_transfer .
 
+lemma fmember_iff_member_fset: "x |\<in>| A \<longleftrightarrow> x \<in> fset A"
+  by (rule fmember.rep_eq)
+
 abbreviation notin_fset :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" (infix "|\<notin>|" 50) where "x |\<notin>| S \<equiv> \<not> (x |\<in>| S)"
 
 context includes lifting_syntax
@@ -494,7 +497,8 @@ lemma filter_fset [simp]:
   shows "fset (ffilter P xs) = Collect P \<inter> fset xs"
   by transfer auto
 
-lemma notin_fset: "x |\<notin>| S \<longleftrightarrow> x \<notin> fset S" by (simp add: fmember.rep_eq)
+lemma notin_fset: "x |\<notin>| S \<longleftrightarrow> x \<notin> fset S"
+  by (simp add: fmember_iff_member_fset)
 
 lemmas inter_fset[simp] = inf_fset.rep_eq
 
@@ -555,6 +559,31 @@ subsubsection \<open>\<open>fimage\<close>\<close>
 
 lemma subset_fimage_iff: "(B |\<subseteq>| f|`|A) = (\<exists> AA. AA |\<subseteq>| A \<and> B = f|`|AA)"
 by transfer (metis mem_Collect_eq rev_finite_subset subset_image_iff)
+
+lemma fimage_strict_mono:
+  assumes "inj_on f (fset B)" and "A |\<subset>| B"
+  shows "f |`| A |\<subset>| f |`| B"
+  \<comment> \<open>TODO: Configure transfer framework to lift @{thm Fun.image_strict_mono}.\<close>
+proof (rule pfsubsetI)
+  from \<open>A |\<subset>| B\<close> have "A |\<subseteq>| B"
+    by (rule pfsubset_imp_fsubset)
+  thus "f |`| A |\<subseteq>| f |`| B"
+    by (rule fimage_mono)
+next
+  from \<open>A |\<subset>| B\<close> have "A |\<subseteq>| B" and "A \<noteq> B"
+    by (simp_all add: pfsubset_eq)
+
+  have "fset A \<noteq> fset B"
+    using \<open>A \<noteq> B\<close>
+    by (simp add: fset_cong)
+  hence "f ` fset A \<noteq> f ` fset B"
+    using \<open>A |\<subseteq>| B\<close>
+    by (simp add: inj_on_image_eq_iff[OF \<open>inj_on f (fset B)\<close>] less_eq_fset.rep_eq)
+  hence "fset (f |`| A) \<noteq> fset (f |`| B)"
+    by (simp add: fimage.rep_eq)
+  thus "f |`| A \<noteq> f |`| B"
+    by (simp add: fset_cong)
+qed
 
 
 subsubsection \<open>bounded quantification\<close>
@@ -743,6 +772,15 @@ begin
     by (transfer fixing: f) (rule fold_insert_idem2)
 
 end
+
+
+subsubsection \<open>@{term fsubset}\<close>
+
+lemma wfP_pfsubset: "wfP (|\<subset>|)"
+proof (rule wfP_if_convertible_to_nat)
+  show "\<And>x y. x |\<subset>| y \<Longrightarrow> fcard x < fcard y"
+    by (rule pfsubset_fcard_mono)
+qed
 
 
 subsubsection \<open>Group operations\<close>

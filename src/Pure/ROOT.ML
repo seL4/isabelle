@@ -348,6 +348,7 @@ subsection "Miscellaneous tools and packages for Pure Isabelle";
 
 ML_file "General/base64.ML";
 ML_file "General/xz.ML";
+ML_file "General/zstd.ML";
 ML_file "Tools/build.ML";
 ML_file "Tools/named_thms.ML";
 ML_file "Tools/print_operation.ML";
@@ -364,4 +365,3 @@ ML_file "Tools/doc.ML";
 ML_file "Tools/jedit.ML";
 ML_file "Tools/ghc.ML";
 ML_file "Tools/generated_files.ML";
-
