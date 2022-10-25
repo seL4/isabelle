@@ -42,7 +42,9 @@ Official platforms:
                     macOS 12 Monterey (laramac01 Macmini8,1)
                     macOS 13 Ventura (???)
 
-  arm64-darwin      macOS 11 Big Sur
+  arm64-darwin      macOS 11 Big Sur (???)
+                    macOS 12 Monterey (???)
+                    macOS 13 Ventura (???)
 
   x86_64-windows    Windows 10
   x86_64-cygwin     Cygwin 3.3.x https://isabelle.sketis.net/cygwin_2022 (x86_64/release)
