@@ -103,6 +103,8 @@ Packaging
 Post-release
 ============
 
+- update .hgtags
+
 - update Admin/Release/official
 
 - update /p/home/isabelle and /p/home/isabelle/html-data
