@@ -244,13 +244,17 @@ directory individually.
 
           val build_command =
             "bin/isabelle build -o system_heaps -b -- " + Bash.strings(build_sessions)
+          def system_apple(b: Boolean): String =
+            """{ echo "ML_system_apple = """ + b + """" > "$(bin/isabelle getenv -b ISABELLE_HOME_USER)/etc/preferences"; }"""
+
           val build_script =
             List(
               "cd " + File.bash_path(remote_dir),
               "tar -xf tmp.tar",
-              build_command,
               """mkdir -p "$(bin/isabelle getenv -b ISABELLE_HOME_USER)/etc" """,
-              """{ echo "ML_system_apple = false" > "$(bin/isabelle getenv -b ISABELLE_HOME_USER)/etc/preferences"; }""",
+              system_apple(false),
+              build_command,
+              system_apple(true),
               build_command,
               "tar -cf tmp.tar heaps")
           ssh.execute(build_script.mkString(" && "), settings = false).check
