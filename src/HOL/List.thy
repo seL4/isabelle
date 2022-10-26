@@ -1743,7 +1743,6 @@ lemma nth_tl: "n < length (tl xs) \<Longrightarrow> tl xs ! n = xs ! Suc n"
 lemma hd_conv_nth: "xs \<noteq> [] \<Longrightarrow> hd xs = xs!0"
   by(cases xs) simp_all
 
-
 lemma list_eq_iff_nth_eq:
   "(xs = ys) = (length xs = length ys \<and> (\<forall>i<length xs. xs!i = ys!i))"
 proof (induct xs arbitrary: ys)
@@ -1751,10 +1750,13 @@ proof (induct xs arbitrary: ys)
   show ?case
   proof (cases ys)
     case (Cons y ys)
-    then show ?thesis
-      using Cons.hyps by fastforce
+    with Cons.hyps show ?thesis by fastforce
   qed simp
 qed force
+
+lemma map_equality_iff:
+  "map f xs = map g ys \<longleftrightarrow> length xs = length ys \<and> (\<forall>i<length ys. f (xs!i) = g (ys!i))"
+  by (fastforce simp: list_eq_iff_nth_eq)
 
 lemma set_conv_nth: "set xs = {xs!i | i. i < length xs}"
 proof (induct xs)

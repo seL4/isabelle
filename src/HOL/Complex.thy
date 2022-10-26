@@ -143,13 +143,22 @@ end
 
 subsection \<open>Numerals, Arithmetic, and Embedding from R\<close>
 
-abbreviation complex_of_real :: "real \<Rightarrow> complex"
-  where "complex_of_real \<equiv> of_real"
-
 declare [[coercion "of_real :: real \<Rightarrow> complex"]]
 declare [[coercion "of_rat :: rat \<Rightarrow> complex"]]
 declare [[coercion "of_int :: int \<Rightarrow> complex"]]
 declare [[coercion "of_nat :: nat \<Rightarrow> complex"]]
+
+abbreviation complex_of_nat::"nat \<Rightarrow> complex"
+  where "complex_of_nat \<equiv> of_nat"
+
+abbreviation complex_of_int::"int \<Rightarrow> complex"
+  where "complex_of_int \<equiv> of_int"
+
+abbreviation complex_of_rat::"rat \<Rightarrow> complex"
+  where "complex_of_rat \<equiv> of_rat"
+
+abbreviation complex_of_real :: "real \<Rightarrow> complex"
+  where "complex_of_real \<equiv> of_real"
 
 lemma complex_Re_of_nat [simp]: "Re (of_nat n) = of_nat n"
   by (induct n) simp_all
@@ -1311,5 +1320,29 @@ lemma legacy_Complex_simps:
 
 lemma Complex_in_Reals: "Complex x 0 \<in> \<real>"
   by (metis Reals_of_real complex_of_real_def)
+
+text \<open>Express a complex number as a linear combination of two others, not collinear with the origin\<close>
+lemma complex_axes:
+  assumes "Im (y/x) \<noteq> 0"
+  obtains a b where "z = of_real a * x + of_real b * y"
+proof -
+  define dd where "dd \<equiv> Re y * Im x -  Im y * Re x"
+  define a where "a = (Im z * Re y - Re z * Im y) / dd"
+  define b where "b = (Re z * Im x - Im z * Re x) / dd"
+  have "dd \<noteq> 0" 
+    using assms by (auto simp: dd_def Im_complex_div_eq_0)
+  have "a * Re x + b * Re y = Re z"
+    using \<open>dd \<noteq> 0\<close>  
+    apply (simp add: a_def b_def field_simps)
+    by (metis dd_def diff_add_cancel distrib_right mult.assoc mult.commute)
+  moreover have "a * Im x + b * Im y = Im z"
+    using \<open>dd \<noteq> 0\<close> 
+    apply (simp add: a_def b_def field_simps)
+    by (metis (no_types) dd_def diff_add_cancel distrib_right mult.assoc mult.commute)
+  ultimately have "z = of_real a * x + of_real b * y"
+    by (simp add: complex_eqI)
+  then show ?thesis using that by simp
+qed
+
 
 end
