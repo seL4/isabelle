@@ -17,47 +17,43 @@ typedecl t
 typedecl o
 
 consts
-  \<comment> \<open>Types\<close>
+  \<comment> \<open>Judgments\<close>
+  Type      :: "t \<Rightarrow> prop"          ("(_ type)" [10] 5)
+  Eqtype    :: "[t,t]\<Rightarrow>prop"        ("(_ =/ _)" [10,10] 5)
+  Elem      :: "[i, t]\<Rightarrow>prop"       ("(_ /: _)" [10,10] 5)
+  Eqelem    :: "[i,i,t]\<Rightarrow>prop"      ("(_ =/ _ :/ _)" [10,10,10] 5)
+  Reduce    :: "[i,i]\<Rightarrow>prop"        ("Reduce[_,_]")
+  \<comment> \<open>Types for truth values\<close>
   F         :: "t"
   T         :: "t"          \<comment> \<open>\<open>F\<close> is empty, \<open>T\<close> contains one element\<close>
   contr     :: "i\<Rightarrow>i"
   tt        :: "i"
   \<comment> \<open>Natural numbers\<close>
   N         :: "t"
+  Zero      :: "i"                  ("0")
   succ      :: "i\<Rightarrow>i"
   rec       :: "[i, i, [i,i]\<Rightarrow>i] \<Rightarrow> i"
-  \<comment> \<open>Unions\<close>
+  \<comment> \<open>Binary sum\<close>
+  Plus      :: "[t,t]\<Rightarrow>t"           (infixr "+" 40)
   inl       :: "i\<Rightarrow>i"
   inr       :: "i\<Rightarrow>i"
   "when"    :: "[i, i\<Rightarrow>i, i\<Rightarrow>i]\<Rightarrow>i"
-  \<comment> \<open>General Sum and Binary Product\<close>
+  \<comment> \<open>General sum and binary product\<close>
   Sum       :: "[t, i\<Rightarrow>t]\<Rightarrow>t"
+  pair      :: "[i,i]\<Rightarrow>i"           ("(1<_,/_>)")
   fst       :: "i\<Rightarrow>i"
   snd       :: "i\<Rightarrow>i"
   split     :: "[i, [i,i]\<Rightarrow>i] \<Rightarrow>i"
-  \<comment> \<open>General Product and Function Space\<close>
+  \<comment> \<open>General product and function space\<close>
   Prod      :: "[t, i\<Rightarrow>t]\<Rightarrow>t"
-  \<comment> \<open>Types\<close>
-  Plus      :: "[t,t]\<Rightarrow>t"           (infixr "+" 40)
+  lambda    :: "(i \<Rightarrow> i) \<Rightarrow> i"      (binder "\<^bold>\<lambda>" 10)
+  app       :: "[i,i]\<Rightarrow>i"           (infixl "`" 60)
   \<comment> \<open>Equality type\<close>
   Eq        :: "[t,i,i]\<Rightarrow>t"
   eq        :: "i"
-  \<comment> \<open>Judgements\<close>
-  Type      :: "t \<Rightarrow> prop"          ("(_ type)" [10] 5)
-  Eqtype    :: "[t,t]\<Rightarrow>prop"        ("(_ =/ _)" [10,10] 5)
-  Elem      :: "[i, t]\<Rightarrow>prop"       ("(_ /: _)" [10,10] 5)
-  Eqelem    :: "[i,i,t]\<Rightarrow>prop"      ("(_ =/ _ :/ _)" [10,10,10] 5)
-  Reduce    :: "[i,i]\<Rightarrow>prop"        ("Reduce[_,_]")
 
-  \<comment> \<open>Types\<close>
-
-  \<comment> \<open>Functions\<close>
-  lambda    :: "(i \<Rightarrow> i) \<Rightarrow> i"      (binder "\<^bold>\<lambda>" 10)
-  app       :: "[i,i]\<Rightarrow>i"           (infixl "`" 60)
-  \<comment> \<open>Natural numbers\<close>
-  Zero      :: "i"                  ("0")
-  \<comment> \<open>Pairing\<close>
-  pair      :: "[i,i]\<Rightarrow>i"           ("(1<_,/_>)")
+text \<open>Some inexplicable syntactic dependencies; in particular, "0"
+ must be introduced after the judgment forms.\<close>
 
 syntax
   "_PROD"   :: "[idt,t,t]\<Rightarrow>t"       ("(3\<Prod>_:_./ _)" 10)
@@ -78,7 +74,7 @@ text \<open>
     that \<open>a\<close> and \<open>b\<close> are textually identical.
 
   Does not verify \<open>a:A\<close>!  Sound because only \<open>trans_red\<close> uses a \<open>Reduce\<close>
-  premise. No new theorems can be proved about the standard judgements.
+  premise. No new theorems can be proved about the standard judgments.
 \<close>
 axiomatization
 where
@@ -275,7 +271,7 @@ lemmas elim_rls = NE ProdE SumE PlusE FE
 text \<open>OMITTED: \<open>eqC\<close> are \<open>TC\<close> because they make rewriting loop: \<open>p = un = un = \<dots>\<close>\<close>
 lemmas comp_rls = NC0 NC_succ ProdC SumC PlusC_inl PlusC_inr
 
-text \<open>Rules with conclusion \<open>a:A\<close>, an elem judgement.\<close>
+text \<open>Rules with conclusion \<open>a:A\<close>, an elem judgment.\<close>
 lemmas element_rls = intr_rls elim_rls
 
 text \<open>Definitions are (meta)equality axioms.\<close>
@@ -398,7 +394,7 @@ fun eqintr_tac ctxt =
 
 (** Tactics that instantiate CTT-rules.
     Vars in the given terms will be incremented!
-    The (rtac EqE i) lets them apply to equality judgements. **)
+    The (rtac EqE i) lets them apply to equality judgments. **)
 
 fun NE_tac ctxt sp i =
   TRY (resolve_tac ctxt @{thms EqE} i) THEN
@@ -463,7 +459,7 @@ method_setup hyp_rew = \<open>Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD
 subsection \<open>The elimination rules for fst/snd\<close>
 
 lemma SumE_fst: "p : Sum(A,B) \<Longrightarrow> fst(p) : A"
-  apply (unfold basic_defs)
+  unfolding basic_defs
   apply (erule SumE)
   apply assumption
   done
@@ -474,7 +470,7 @@ lemma SumE_snd:
     and "A type"
     and "\<And>x. x:A \<Longrightarrow> B(x) type"
   shows "snd(p) : B(fst(p))"
-  apply (unfold basic_defs)
+  unfolding basic_defs
   apply (rule major [THEN SumE])
   apply (rule SumC [THEN subst_eqtyparg, THEN replace_type])
       apply (typechk assms)
@@ -631,9 +627,7 @@ text \<open>Note: \<open>rec(a, 0, \<lambda>z w.z)\<close> is \<open>pred(a).\<c
 
 lemma diff_0_eq_0: "b:N \<Longrightarrow> 0 - b = 0 : N"
   unfolding arith_defs
-  apply (NE b)
-    apply hyp_rew
-  done
+  by (NE b) hyp_rew
 
 text \<open>
   Essential to simplify FIRST!!  (Else we get a critical pair)
@@ -692,9 +686,7 @@ subsection \<open>Addition\<close>
 
 text \<open>Associative law for addition.\<close>
 lemma add_assoc: "\<lbrakk>a:N; b:N; c:N\<rbrakk> \<Longrightarrow> (a #+ b) #+ c = a #+ (b #+ c) : N"
-  apply (NE a)
-    apply hyp_arith_rew
-  done
+  by (NE a) hyp_arith_rew
 
 text \<open>Commutative law for addition.  Can be proved using three inductions.
   Must simplify after first induction!  Orientation of rewrites is delicate.\<close>
@@ -821,9 +813,7 @@ lemma absdiff_succ_succ: "\<lbrakk>a:N; b:N\<rbrakk> \<Longrightarrow> succ(a) |
 text \<open>Note how easy using commutative laws can be?  ...not always...\<close>
 lemma absdiff_commute: "\<lbrakk>a:N; b:N\<rbrakk> \<Longrightarrow> a |-| b = b |-| a : N"
   unfolding absdiff_def
-  apply (rule add_commute)
-   apply (typechk diff_typing)
-  done
+  by (rule add_commute) (typechk diff_typing)
 
 text \<open>If \<open>a + b = 0\<close> then \<open>a = 0\<close>. Surprisingly tedious.\<close>
 schematic_goal add_eq0_lemma: "\<lbrakk>a:N; b:N\<rbrakk> \<Longrightarrow> ?c : Eq(N,a#+b,0) \<longrightarrow> Eq(N,a,0)"
@@ -850,7 +840,7 @@ lemma add_eq0: "\<lbrakk>a:N; b:N; a #+ b = 0 : N\<rbrakk> \<Longrightarrow> a =
 text \<open>Here is a lemma to infer \<open>a - b = 0\<close> and \<open>b - a = 0\<close> from \<open>a |-| b = 0\<close>, below.\<close>
 schematic_goal absdiff_eq0_lem:
   "\<lbrakk>a:N; b:N; a |-| b = 0 : N\<rbrakk> \<Longrightarrow> ?a : Eq(N, a-b, 0) \<times> Eq(N, b-a, 0)"
-  apply (unfold absdiff_def)
+  unfolding absdiff_def
   apply intr
    apply eqintr
    apply (rule_tac [2] add_eq0)
