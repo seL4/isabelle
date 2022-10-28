@@ -20,11 +20,6 @@ import org.gjt.sp.jedit.{jEdit, AbstractOptionPane}
 
 
 object JEdit_Options {
-  /* sections */
-
-  val RENDERING_SECTION = "Rendering of Document Content"
-
-
   /* typed access and GUI components */
 
   class Access[A](access: Options.Access_Variable[A], val name: String) {
@@ -107,7 +102,6 @@ object JEdit_Options {
     }
   }
 
-
   class Isabelle_General_Options extends Isabelle_Options("isabelle-general") {
     val options: JEdit_Options = PIDE.options
 
@@ -120,12 +114,11 @@ object JEdit_Options {
         (for ((name, opt) <- options.value.opt_iterator if opt.public) yield name).toSet)
   }
 
-
   class Isabelle_Rendering_Options extends Isabelle_Options("isabelle-rendering") {
     private val predefined =
       (for {
         (name, opt) <- PIDE.options.value.opt_iterator
-        if (name.endsWith("_color") && opt.section == JEdit_Options.RENDERING_SECTION)
+        if name.endsWith("_color") && opt.section == "Rendering of Document Content"
       } yield PIDE.options.make_color_component(opt)).toList
 
     assert(predefined.nonEmpty)
