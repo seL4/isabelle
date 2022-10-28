@@ -16,6 +16,7 @@ import javax.swing.text.JTextComponent
 import scala.swing.{Component, CheckBox, TextArea}
 
 import org.gjt.sp.jedit.gui.ColorWellButton
+import org.gjt.sp.jedit.{jEdit, AbstractOptionPane}
 
 
 trait Option_Component extends Component {
@@ -80,6 +81,57 @@ object JEdit_Options {
     class GUI extends Bool_GUI(this, "Proof state") {
       tooltip = "Output of proof state (normally shown on State panel)"
     }
+  }
+
+
+  /* editor pane for plugin options */
+
+  abstract class Isabelle_Options(name: String) extends AbstractOptionPane(name) {
+    protected val components: List[(String, List[Option_Component])]
+
+    override def _init(): Unit = {
+      val dummy_property = "options.isabelle.dummy"
+
+      for ((s, cs) <- components) {
+        if (s.nonEmpty) {
+          jEdit.setProperty(dummy_property, s)
+          addSeparator(dummy_property)
+          jEdit.setProperty(dummy_property, null)
+        }
+        for (c <- cs) addComponent(c.title, c.peer)
+      }
+    }
+
+    override def _save(): Unit = {
+      for ((_, cs) <- components; c <- cs) c.save()
+    }
+  }
+
+
+  class Isabelle_General_Options extends Isabelle_Options("isabelle-general") {
+    val options: JEdit_Options = PIDE.options
+
+    private val predefined =
+      List(JEdit_Sessions.logic_selector(options),
+        JEdit_Spell_Checker.dictionaries_selector())
+
+    protected val components: List[(String, List[Option_Component])] =
+      options.make_components(predefined,
+        (for ((name, opt) <- options.value.opt_iterator if opt.public) yield name).toSet)
+  }
+
+
+  class Isabelle_Rendering_Options extends Isabelle_Options("isabelle-rendering") {
+    private val predefined =
+      (for {
+        (name, opt) <- PIDE.options.value.opt_iterator
+        if (name.endsWith("_color") && opt.section == JEdit_Options.RENDERING_SECTION)
+      } yield PIDE.options.make_color_component(opt)).toList
+
+    assert(predefined.nonEmpty)
+
+    protected val components: List[(String, List[Option_Component])] =
+      PIDE.options.make_components(predefined, _ => false)
   }
 }
 
@@ -162,4 +214,3 @@ class JEdit_Options(init_options: Options) extends Options_Variable(init_options
       .filterNot(_._2.isEmpty)
   }
 }
-
