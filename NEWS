@@ -47,7 +47,10 @@ New in this Isabelle version
       wfP_pfsubset
 
 * Theory "HOL-Library.Multiset":
-  - Added lemma wfP_subset_mset[simp].
+  - Added lemmas.
+      mult_mono_strong
+      multp_mono_strong
+      wfP_subset_mset[simp]
 
 
 *** ML ***
