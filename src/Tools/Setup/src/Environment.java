@@ -180,7 +180,7 @@ public class Environment
 
     /* raw process */
 
-    private static read_file(path: Path): String =
+    private static String read_file(Path path) throws IOException
     {
         return new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
     }
