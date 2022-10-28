@@ -41,7 +41,7 @@ class Isabelle_Options1 extends Isabelle_Options("isabelle-general") {
     List(JEdit_Sessions.logic_selector(options),
       JEdit_Spell_Checker.dictionaries_selector())
 
-  protected val components =
+  protected val components: List[(String, List[Option_Component])] =
     options.make_components(predefined,
       (for ((name, opt) <- options.value.opt_iterator if opt.public) yield name).toSet)
 }
@@ -56,5 +56,6 @@ class Isabelle_Options2 extends Isabelle_Options("isabelle-rendering") {
 
   assert(predefined.nonEmpty)
 
-  protected val components = PIDE.options.make_components(predefined, _ => false)
+  protected val components: List[(String, List[Option_Component])] =
+    PIDE.options.make_components(predefined, _ => false)
 }
