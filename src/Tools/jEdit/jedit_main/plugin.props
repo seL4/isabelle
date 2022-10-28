@@ -37,6 +37,7 @@ plugin.isabelle.jedit_main.Plugin.menu= \
   isabelle.java-monitor \
   - \
   isabelle-debugger \
+  isabelle-document \
   isabelle-documentation \
   isabelle-monitor \
   isabelle-output \
