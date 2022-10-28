@@ -19,17 +19,17 @@ abstract class Isabelle_Options(name: String) extends AbstractOptionPane(name) {
     val dummy_property = "options.isabelle.dummy"
 
     for ((s, cs) <- components) {
-      if (s != "") {
+      if (s.nonEmpty) {
         jEdit.setProperty(dummy_property, s)
         addSeparator(dummy_property)
         jEdit.setProperty(dummy_property, null)
       }
-      cs.foreach(c => addComponent(c.title, c.peer))
+      for (c <- cs) addComponent(c.title, c.peer)
     }
   }
 
   override def _save(): Unit = {
-    for ((_, cs) <- components) cs.foreach(_.save())
+    for ((_, cs) <- components; c <- cs) c.save()
   }
 }
 
