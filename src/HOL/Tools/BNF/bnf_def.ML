@@ -1077,21 +1077,28 @@ fun define_bnf_consts const_policy fact_policy internal Ds_opt map_b rel_b pred_
       in bs ~~ set_rhss end;
     val bd_bind_def = (fn () => def_qualify (mk_prefix_binding bdN), bd_rhs);
 
-    val ((((bnf_map_term, raw_map_def),
+    val (((bnf_map_term, raw_map_def),
       (bnf_set_terms, raw_set_defs)),
-      (bnf_bd_term, raw_bd_def)), (lthy, lthy_old)) =
+      (lthy, lthy_old)) =
         no_defs_lthy
         |> (snd o Local_Theory.begin_nested)
         |> maybe_define true map_bind_def
         ||>> apfst split_list o fold_map (maybe_define true) set_binds_defs
-        ||>> maybe_define true bd_bind_def
         ||> `Local_Theory.end_nested;
 
     val phi = Proof_Context.export_morphism lthy_old lthy;
 
+    val ((bnf_bd_term, raw_bd_def), (lthy, lthy_old)) =
+      lthy
+      |> (snd o Local_Theory.begin_nested)
+      |> maybe_define true bd_bind_def
+      ||> `Local_Theory.end_nested;
+
+    val phi' = Proof_Context.export_morphism lthy_old lthy;
+
     val bnf_map_def = Morphism.thm phi raw_map_def;
     val bnf_set_defs = map (Morphism.thm phi) raw_set_defs;
-    val bnf_bd_def = Morphism.thm phi raw_bd_def;
+    val bnf_bd_def = Morphism.thm phi' raw_bd_def;
 
     val bnf_map = Morphism.term phi bnf_map_term;
 
@@ -1115,7 +1122,7 @@ fun define_bnf_consts const_policy fact_policy internal Ds_opt map_b rel_b pred_
       map2 (normalize_set Calpha_params) alphas (map (Morphism.term phi) bnf_set_terms);
     val bnf_bd =
       Term.subst_TVars (Term.add_tvar_namesT bnf_T [] ~~ Calpha_params)
-        (Morphism.term phi bnf_bd_term);
+        (Morphism.term phi' bnf_bd_term);
 
     (*TODO: assert Ds = (TVars of bnf_map) \ (alphas @ betas) as sets*)
     val deads = (case Ds_opt of
