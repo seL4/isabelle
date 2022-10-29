@@ -250,7 +250,6 @@ sig
   val session_timing: Properties.entry
   val loading_theory: string -> Properties.T
   val build_session_finished: Properties.T
-  val print_operationsN: string
   val print_operations: Properties.T
   val exportN: string
   type export_args =
@@ -773,12 +772,11 @@ val theory_timing = (functionN, "theory_timing");
 
 val session_timing = (functionN, "session_timing");
 
-fun loading_theory name = [("function", "loading_theory"), (nameN, name)];
+fun loading_theory name = [(functionN, "loading_theory"), (nameN, name)];
 
-val build_session_finished = [("function", "build_session_finished")];
+val build_session_finished = [(functionN, "build_session_finished")];
 
-val print_operationsN = "print_operations";
-val print_operations = [(functionN, print_operationsN)];
+val print_operations = [(functionN, "print_operations")];
 
 
 (* export *)
