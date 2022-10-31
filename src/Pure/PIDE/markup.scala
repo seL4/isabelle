@@ -612,13 +612,13 @@ object Markup {
   val FUNCTION = "function"
 
   class Function(val name: String) {
-    val PROPERTY: Properties.Entry = (FUNCTION, name)
+    val THIS: Properties.Entry = (FUNCTION, name)
   }
 
   class Properties_Function(name: String) extends Function(name) {
     def unapply(props: Properties.T): Option[Properties.T] =
       props match {
-        case PROPERTY :: args => Some(args)
+        case THIS :: args => Some(args)
         case _ => None
       }
   }
@@ -626,7 +626,7 @@ object Markup {
   class Name_Function(name: String) extends Function(name) {
     def unapply(props: Properties.T): Option[String] =
       props match {
-        case List(PROPERTY, (NAME, a)) => Some(a)
+        case List(THIS, (NAME, a)) => Some(a)
         case _ => None
       }
   }
@@ -634,7 +634,7 @@ object Markup {
   object ML_Statistics extends Function("ML_statistics") {
     def unapply(props: Properties.T): Option[(Long, String)] =
       props match {
-        case List(PROPERTY, ("pid", Value.Long(pid)), ("stats_dir", stats_dir)) =>
+        case List(THIS, ("pid", Value.Long(pid)), ("stats_dir", stats_dir)) =>
           Some((pid, stats_dir))
         case _ => None
       }
@@ -660,7 +660,7 @@ object Markup {
   object Invoke_Scala extends Function("invoke_scala") {
     def unapply(props: Properties.T): Option[(String, String)] =
       props match {
-        case List(PROPERTY, (NAME, name), (ID, id)) => Some((name, id))
+        case List(THIS, (NAME, name), (ID, id)) => Some((name, id))
         case _ => None
       }
   }
@@ -668,7 +668,7 @@ object Markup {
   object Cancel_Scala extends Function("cancel_scala") {
     def unapply(props: Properties.T): Option[String] =
       props match {
-        case List(PROPERTY, (ID, id)) => Some(id)
+        case List(THIS, (ID, id)) => Some(id)
         case _ => None
       }
   }

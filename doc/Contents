@@ -18,8 +18,14 @@ Isabelle Reference Manuals!
   system          The Isabelle System Manual
   jedit           Isabelle/jEdit
 
+Demo Documents
+  demo_easychair  Demo for Easychair style
+  demo_foiltex    Demo for FoilTeX: slides in LaTeX
+  demo_lipics     Demo for Dagstuhl LIPIcs style
+
 Old Isabelle Manuals
   tutorial        Tutorial on Isabelle/HOL
   intro           Old Introduction to Isabelle
   logics          Isabelle's Logics: HOL and misc logics
   logics-ZF       Isabelle's Logics: FOL and ZF
+

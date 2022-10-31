@@ -487,7 +487,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
                 try { global_state.change(_.begin_theory(node_name, id, msg.text, blobs_info)) }
                 catch { case _: Document.State.Fail => bad_output() }
 
-              case List(Markup.Commands_Accepted.PROPERTY) =>
+              case List(Markup.Commands_Accepted.THIS) =>
                 msg.text match {
                   case Protocol.Commands_Accepted(ids) =>
                     ids.foreach(id =>
@@ -495,7 +495,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
                   case _ => bad_output()
                 }
 
-              case List(Markup.Assign_Update.PROPERTY) =>
+              case List(Markup.Assign_Update.THIS) =>
                 msg.text match {
                   case Protocol.Assign_Update(id, edited, update) =>
                     try {
@@ -509,7 +509,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
                 }
                 delay_prune.invoke()
 
-              case List(Markup.Removed_Versions.PROPERTY) =>
+              case List(Markup.Removed_Versions.THIS) =>
                 msg.text match {
                   case Protocol.Removed(removed) =>
                     try {

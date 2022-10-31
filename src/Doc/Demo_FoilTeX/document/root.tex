@@ -1,0 +1,65 @@
+\documentclass[a4paper,landscape]{foils}
+\usepackage[utf8]{inputenc}
+\usepackage{amssymb}
+\usepackage[svgnames]{xcolor}
+\usepackage{graphicx}
+\usepackage{isabelle,isabellesym}
+\usepackage{pdfsetup}
+
+
+\makeatletter
+
+%colors
+\newcommand{\titlestyle}{\color{DarkGreen}}
+\newcommand{\hilitecolor}{\color{Blue}}
+\newcommand{\hilite}[1]{{\hilitecolor#1}}
+\newcommand{\red}[1]{{\color{Red}#1}}
+\newcommand{\green}[1]{{\color{DarkGreen}#1}}
+
+%headings
+\renewcommand{\isamarkupchapter}[1]{\newpage\thispagestyle{empty}\MyLogo{\let\\=\relax #1}\vspace*{0.4\textheight}\begin{center}\LARGE\bf\color{DarkGreen} #1\end{center}}
+\renewcommand{\isamarkupsection}[1]{\foilhead{\color{DarkGreen}#1}}
+\renewcommand\isamarkupparagraph{\@startsection{paragraph}{4}{0pt}{\bigskipamount}{0.5ex \@plus .1ex}{\normalsize\bf\color{DarkBlue}}}
+
+%item spacing
+\renewcommand\@listIa{\leftmargin\leftmargini
+\topsep 0\p@ \@plus 0.5\p@ \@minus 1\p@
+\parsep 2\p@ \@plus 1\p@ \@minus 1\p@
+\itemsep 2\p@ \@plus 1\p@ \@minus 0.5\p@}
+
+\makeatother
+
+
+\parindent 0pt\parskip 0.5ex
+
+\urlstyle{sf}
+\isabellestyle{it}
+\MyLogo{}
+
+\newcommand{\plainstyle}{\normalsize\sf\color{black}}
+\renewcommand{\isastyletext}{\normalsize\sf}
+\renewcommand{\isastyletxt}{\sf}
+\renewcommand{\isastylecmt}{\sf}
+
+\isadroptag{theory}
+\isafoldtag{proof}
+
+
+\begin{document}
+
+\title{\titlestyle Simple slides with with FoilTeX}
+\author{Makarius Wenzel, Augsburg \\ \url{https://sketis.net}}
+\date{}
+\maketitle
+
+\vfill
+
+\begin{center}
+  \includegraphics[width=0.15\textwidth]{isabelle_logo}
+\end{center}
+
+\vfill
+
+\input{session}
+
+\end{document}

@@ -23,9 +23,9 @@ plugin.isabelle.jedit_main.Plugin.depend.5=plugin isabelle.jedit_base.Plugin 1.0
 #options
 plugin.isabelle.jedit_main.Plugin.option-group=isabelle-general isabelle-rendering
 options.isabelle-general.label=General
-options.isabelle-general.code=new isabelle.jedit.Isabelle_Options1();
+options.isabelle-general.code=new isabelle.jedit.JEdit_Options$Isabelle_General_Options();
 options.isabelle-rendering.label=Rendering
-options.isabelle-rendering.code=new isabelle.jedit.Isabelle_Options2();
+options.isabelle-rendering.code=new isabelle.jedit.JEdit_Options$Isabelle_Rendering_Options();
 
 #menu actions and dockables
 plugin.isabelle.jedit_main.Plugin.menu.label=Isabelle

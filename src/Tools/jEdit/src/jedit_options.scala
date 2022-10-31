@@ -16,20 +16,10 @@ import javax.swing.text.JTextComponent
 import scala.swing.{Component, CheckBox, TextArea}
 
 import org.gjt.sp.jedit.gui.ColorWellButton
+import org.gjt.sp.jedit.{jEdit, AbstractOptionPane}
 
-
-trait Option_Component extends Component {
-  val title: String
-  def load(): Unit
-  def save(): Unit
-}
 
 object JEdit_Options {
-  /* sections */
-
-  val RENDERING_SECTION = "Rendering of Document Content"
-
-
   /* typed access and GUI components */
 
   class Access[A](access: Options.Access_Variable[A], val name: String) {
@@ -81,30 +71,86 @@ object JEdit_Options {
       tooltip = "Output of proof state (normally shown on State panel)"
     }
   }
+
+
+  /* editor pane for plugin options */
+
+  trait Entry extends Component {
+    val title: String
+    def load(): Unit
+    def save(): Unit
+  }
+
+  abstract class Isabelle_Options(name: String) extends AbstractOptionPane(name) {
+    protected val components: List[(String, List[Entry])]
+
+    override def _init(): Unit = {
+      val dummy_property = "options.isabelle.dummy"
+
+      for ((s, cs) <- components) {
+        if (s.nonEmpty) {
+          jEdit.setProperty(dummy_property, s)
+          addSeparator(dummy_property)
+          jEdit.setProperty(dummy_property, null)
+        }
+        for (c <- cs) addComponent(c.title, c.peer)
+      }
+    }
+
+    override def _save(): Unit = {
+      for ((_, cs) <- components; c <- cs) c.save()
+    }
+  }
+
+  class Isabelle_General_Options extends Isabelle_Options("isabelle-general") {
+    val options: JEdit_Options = PIDE.options
+
+    private val predefined =
+      List(JEdit_Sessions.logic_selector(options),
+        JEdit_Spell_Checker.dictionaries_selector())
+
+    protected val components: List[(String, List[Entry])] =
+      options.make_components(predefined,
+        (for ((name, opt) <- options.value.opt_iterator if opt.public) yield name).toSet)
+  }
+
+  class Isabelle_Rendering_Options extends Isabelle_Options("isabelle-rendering") {
+    private val predefined =
+      (for {
+        (name, opt) <- PIDE.options.value.opt_iterator
+        if name.endsWith("_color") && opt.section == "Rendering of Document Content"
+      } yield PIDE.options.make_color_component(opt)).toList
+
+    assert(predefined.nonEmpty)
+
+    protected val components: List[(String, List[Entry])] =
+      PIDE.options.make_components(predefined, _ => false)
+  }
 }
 
 class JEdit_Options(init_options: Options) extends Options_Variable(init_options) {
   def color_value(s: String): Color = Color_Value(string(s))
 
-  def make_color_component(opt: Options.Opt): Option_Component = {
+  def make_color_component(opt: Options.Opt): JEdit_Options.Entry = {
     GUI_Thread.require {}
 
     val opt_name = opt.name
     val opt_title = opt.title("jedit")
 
     val button = new ColorWellButton(Color_Value(opt.value))
-    val component = new Component with Option_Component {
-      override lazy val peer: JComponent = button
-      name = opt_name
-      val title: String = opt_title
-      def load(): Unit = button.setSelectedColor(Color_Value(string(opt_name)))
-      def save(): Unit = string(opt_name) = Color_Value.print(button.getSelectedColor)
-    }
+    val component =
+      new Component with JEdit_Options.Entry {
+        override lazy val peer: JComponent = button
+        name = opt_name
+        val title: String = opt_title
+        def load(): Unit = button.setSelectedColor(Color_Value(string(opt_name)))
+        def save(): Unit = string(opt_name) = Color_Value.print(button.getSelectedColor)
+      }
     component.tooltip = GUI.tooltip_lines(opt.print_default)
     component
   }
 
-  def make_component(opt: Options.Opt): Option_Component = {
+  def make_component(opt: Options.Opt): JEdit_Options.Entry = {
     GUI_Thread.require {}
 
     val opt_name = opt.name
@@ -112,7 +158,7 @@ class JEdit_Options(init_options: Options) extends Options_Variable(init_options
 
     val component =
       if (opt.typ == Options.Bool)
-        new CheckBox with Option_Component {
+        new CheckBox with JEdit_Options.Entry {
           name = opt_name
           val title: String = opt_title
           def load(): Unit = selected = bool(opt_name)
@@ -121,7 +167,7 @@ class JEdit_Options(init_options: Options) extends Options_Variable(init_options
       else {
         val default_font = GUI.copy_font(UIManager.getFont("TextField.font"))
         val text_area =
-          new TextArea with Option_Component {
+          new TextArea with JEdit_Options.Entry {
             if (default_font != null) font = default_font
             name = opt_name
             val title: String = opt_title
@@ -149,10 +195,10 @@ class JEdit_Options(init_options: Options) extends Options_Variable(init_options
   }
 
   def make_components(
-    predefined: List[Option_Component],
+    predefined: List[JEdit_Options.Entry],
     filter: String => Boolean
-  ) : List[(String, List[Option_Component])] = {
-    def mk_component(opt: Options.Opt): List[Option_Component] =
+  ) : List[(String, List[JEdit_Options.Entry])] = {
+    def mk_component(opt: Options.Opt): List[JEdit_Options.Entry] =
       predefined.find(opt.name == _.name) match {
         case Some(c) => List(c)
         case None => if (filter(opt.name)) List(make_component(opt)) else Nil
@@ -162,4 +208,3 @@ class JEdit_Options(init_options: Options) extends Options_Variable(init_options
       .filterNot(_._2.isEmpty)
   }
 }
-

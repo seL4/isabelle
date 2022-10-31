@@ -73,7 +73,7 @@ object JEdit_Sessions {
     override def toString: String = proper_string(description) getOrElse name
   }
 
-  def logic_selector(options: Options_Variable, autosave: Boolean = false): Option_Component = {
+  def logic_selector(options: Options_Variable, autosave: Boolean = false): JEdit_Options.Entry = {
     GUI_Thread.require {}
 
     val default_entry = Logic_Entry(description = "default (" + logic_name(options.value) + ")")
@@ -85,7 +85,8 @@ object JEdit_Sessions {
       (main_sessions.sorted ::: other_sessions.sorted).map(name => Logic_Entry(name = name))
     }
 
-    new GUI.Selector[Logic_Entry](default_entry :: session_entries) with Option_Component {
+    new GUI.Selector[Logic_Entry](default_entry :: session_entries)
+    with JEdit_Options.Entry {
       name = jedit_logic_option
       tooltip = "Logic session name (change requires restart)"
       val title = "Logic"

@@ -79,13 +79,13 @@ object JEdit_Spell_Checker {
 
   /* dictionaries */
 
-  def dictionaries_selector(): Option_Component = {
+  def dictionaries_selector(): JEdit_Options.Entry = {
     GUI_Thread.require {}
 
     val option_name = "spell_checker_dictionary"
     val opt = PIDE.options.value.check_name(option_name)
 
-    new GUI.Selector[Spell_Checker.Dictionary](Spell_Checker.dictionaries) with Option_Component {
+    new GUI.Selector[Spell_Checker.Dictionary](Spell_Checker.dictionaries) with JEdit_Options.Entry {
       name = option_name
       tooltip = GUI.tooltip_lines(opt.print_default)
       val title = opt.title()
