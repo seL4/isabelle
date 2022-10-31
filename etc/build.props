@@ -17,6 +17,7 @@ sources = \
   src/Pure/Admin/build_doc.scala \
   src/Pure/Admin/build_e.scala \
   src/Pure/Admin/build_easychair.scala \
+  src/Pure/Admin/build_foiltex.scala \
   src/Pure/Admin/build_fonts.scala \
   src/Pure/Admin/build_history.scala \
   src/Pure/Admin/build_jcef.scala \

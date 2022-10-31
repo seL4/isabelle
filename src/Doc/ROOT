@@ -499,6 +499,18 @@ session Demo_Easychair (doc) in "Demo_Easychair" = HOL +
     "root.bib"
     "root.tex"
 
+session Demo_FoilTeX (doc) in "Demo_FoilTeX" = HOL +
+  options [document_variants = "demo_foiltex",
+    document_build = "pdflatex", document_logo = "FoilTeX"]
+  theories
+    Document
+  document_files (in "$ISABELLE_FOILTEX_HOME")
+    "fltfonts.def"
+    "foil20.clo"
+    "foils.cls"
+  document_files
+    "root.tex"
+
 session Demo_LIPIcs (doc) in "Demo_LIPIcs" = HOL +
   options [document_variants = "demo_lipics",
     document_build = "pdflatex", document_heading_prefix = "", document_comment_latex]
