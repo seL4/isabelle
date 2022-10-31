@@ -18,6 +18,9 @@ Isabelle Reference Manuals!
   system          The Isabelle System Manual
   jedit           Isabelle/jEdit
 
+Demo Documents
+  demo_lipics     Demo for Dagstuhl LIPIcs style
+
 Old Isabelle Manuals
   tutorial        Tutorial on Isabelle/HOL
   intro           Old Introduction to Isabelle

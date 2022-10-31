@@ -488,3 +488,16 @@ session Typeclass_Hierarchy (doc) in "Typeclass_Hierarchy" = HOL +
   document_files
     "root.tex"
     "style.sty"
+
+session Demo_LIPIcs (doc) in "Demo_LIPIcs" = HOL +
+  options [document_variants = "demo_lipics",
+    document_build = "pdflatex", document_heading_prefix = "", document_comment_latex]
+  theories
+    Document
+  document_files (in "$ISABELLE_LIPICS_HOME")
+    "cc-by.pdf"
+    "lipics-logo-bw.pdf"
+    "lipics-v2021.cls"
+  document_files
+    "root.bib"
+    "root.tex"

@@ -11,8 +11,8 @@ sources = \
   src/HOL/Tools/Mirabelle/mirabelle.scala \
   src/HOL/Tools/Nitpick/kodkod.scala \
   src/Pure/Admin/afp.scala \
-  src/Pure/Admin/build_cvc5.scala \
   src/Pure/Admin/build_csdp.scala \
+  src/Pure/Admin/build_cvc5.scala \
   src/Pure/Admin/build_cygwin.scala \
   src/Pure/Admin/build_doc.scala \
   src/Pure/Admin/build_e.scala \
@@ -21,6 +21,7 @@ sources = \
   src/Pure/Admin/build_jcef.scala \
   src/Pure/Admin/build_jdk.scala \
   src/Pure/Admin/build_jedit.scala \
+  src/Pure/Admin/build_lipics.scala \
   src/Pure/Admin/build_log.scala \
   src/Pure/Admin/build_minisat.scala \
   src/Pure/Admin/build_pdfjs.scala \
