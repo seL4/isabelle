@@ -3,7 +3,7 @@
 
 Build Isabelle component for Easychair style.
 
-See also: https://easychair.org/publications/for_authors
+See also https://easychair.org/publications/for_authors
 */
 
 package isabelle
