@@ -1,0 +1,31 @@
+\documentclass[a4paper,11pt]{easychair}
+\usepackage{amssymb}
+\usepackage{hyperref}\urlstyle{rm}
+
+\usepackage{isabelle,isabellesym}\isabellestyle{it}
+
+\isadroptag{theory}
+\isafoldtag{proof}
+
+
+\begin{document}
+
+\title{Isabelle document preparation with Easychair style}
+\titlerunning{Easychair style}
+\author{Makarius Wenzel}
+\authorrunning{M. Wenzel}
+\institute{\url{https://sketis.net}}
+\maketitle
+
+\begin{abstract}
+Isabelle is a formal document preparation system. This example shows how to
+use it together with the Easychair style. See
+\url{https://easychair.org/publications/for_authors} for further information.
+\end{abstract}
+
+\input{session}
+
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}

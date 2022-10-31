@@ -159,6 +159,7 @@ class Admin_Tools extends Isabelle_Scala_Tools(
   Build_Cygwin.isabelle_tool,
   Build_Doc.isabelle_tool,
   Build_E.isabelle_tool,
+  Build_Easychair.isabelle_tool,
   Build_Fonts.isabelle_tool,
   Build_JCEF.isabelle_tool,
   Build_JDK.isabelle_tool,

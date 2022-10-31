@@ -9,9 +9,11 @@ New in this Isabelle version
 
 *** Document preparation ***
 
-* The Dagstuhl LIPIcs style is included as Isabelle component. The
-session "Demo_LIPIcs" provides an example document, which is also
-included in the regular Isabelle documentation as "demo_lipics".
+* Various well-known LaTeX styles are included as Isabelle components,
+with demo documents in the regular Isabelle "doc" space:
+
+  - Easychair as session "Demo_Easychair" / doc "demo_easychair"
+  - Dagstuhl LIPIcs style as session "Demo_LIPIcs" / doc "demo_lipics"
 
 
 *** HOL ***
