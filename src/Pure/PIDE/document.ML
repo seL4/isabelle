@@ -123,8 +123,6 @@ fun set_keywords keywords =
   map_node (fn (header, _, perspective, entries, result, consolidated) =>
     (header, keywords, perspective, entries, result, consolidated));
 
-fun get_keywords (Node {keywords, ...}) = keywords;
-
 fun read_header node span =
   let
     val {header, errors, ...} = get_header node;
@@ -208,6 +206,21 @@ fun default_node name = String_Graph.default_node (name, empty_node);
 fun update_node name f = default_node name #> String_Graph.map_node name f;
 
 
+(* outer syntax keywords *)
+
+val pure_keywords = Thy_Header.get_keywords o Theory.get_pure;
+
+fun theory_keywords name =
+  (case Thy_Info.lookup_theory name of
+    SOME thy => Thy_Header.get_keywords thy
+  | None => Keyword.empty_keywords);
+
+fun node_keywords name node =
+  (case node of
+    Node {keywords = SOME keywords, ...} => keywords
+  | _ => theory_keywords name);
+
+
 (* node edits and associated executions *)
 
 type overlay = Document_ID.command * (string * string list);
@@ -279,9 +292,8 @@ fun update_keywords name nodes =
     else
       let
         val {master, header, errors} = get_header node;
-        val imports_keywords = map_filter (get_keywords o get_node nodes o #1) (#imports header);
-        val keywords =
-          Library.foldl Keyword.merge_keywords (Session.get_keywords (), imports_keywords);
+        val imports_keywords = map (node_keywords name o get_node nodes o #1) (#imports header);
+        val keywords = Library.foldl Keyword.merge_keywords (pure_keywords (), imports_keywords);
         val (keywords', errors') =
           (Keyword.add_keywords (#keywords header) keywords, errors)
             handle ERROR msg =>
@@ -827,7 +839,7 @@ fun update old_version_id new_version_id edits consolidate state =
                 Runtime.exn_trace_system (fn () =>
                   let
                     val root_theory = check_root_theory node;
-                    val keywords = the_default (Session.get_keywords ()) (get_keywords node);
+                    val keywords = node_keywords name node;
 
                     val maybe_consolidate = consolidate name andalso could_consolidate node;
                     val imports = map (apsnd Future.join) deps;
