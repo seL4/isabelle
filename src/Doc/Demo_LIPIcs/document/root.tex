@@ -1,0 +1,59 @@
+\documentclass[a4paper,UKenglish,cleveref,autoref]{lipics-v2021}
+
+\usepackage{isabelle,isabellesym}
+\isabellestyle{it}
+
+\isadroptag{theory}
+\isafoldtag{proof}
+
+
+\bibliographystyle{plainurl}% the mandatory bibstyle (e.g. from texlive-bibtex-extra)
+
+\title{Isabelle document preparation with Dagstuhl LIPIcs style}
+
+\author{Makarius Wenzel}{Augsburg, Germany \and \url{https://sketis.net}}{}{https://orcid.org/0000-0002-3753-8280}{}
+\authorrunning{M. Wenzel}
+
+\Copyright{}
+
+\ccsdesc[100]{General and reference~General literature}
+\ccsdesc[100]{General and reference}
+
+\keywords{Document preparation}
+
+\category{}
+
+\nolinenumbers
+
+%\hideLIPIcs  %uncomment to remove references to LIPIcs series (logo, DOI, ...), e.g. when preparing a pre-final version to be uploaded to arXiv or another public repository
+
+%Editor-only macros:: begin (do not touch as author)%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\EventEditors{John Q. Open and Joan R. Access}
+\EventNoEds{2}
+\EventLongTitle{42nd Conference on Very Important Topics (CVIT 2016)}
+\EventShortTitle{CVIT 2016}
+\EventAcronym{CVIT}
+\EventYear{2016}
+\EventDate{December 24--27, 2016}
+\EventLocation{Little Whinging, United Kingdom}
+\EventLogo{}
+\SeriesVolume{42}
+\ArticleNo{23}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Isabelle is a formal document preparation system. This example shows how to
+use it together with the Dagstuhl LIPIcs style. See
+\url{https://www.dagstuhl.de/en/publications/lipics/instructions-for-authors}
+for further information.
+\end{abstract}
+
+\input{session}
+
+\bibliography{root}
+
+\end{document}

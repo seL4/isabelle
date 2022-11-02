@@ -20,7 +20,12 @@ object Build_Docker {
   val package_collections: Map[String, List[String]] =
     Map("X11" -> List("libx11-6", "libxext6", "libxrender1", "libxtst6", "libxi6"),
       "latex" ->
-        List("texlive-fonts-extra", "texlive-font-utils", "texlive-latex-extra", "texlive-science"))
+        List(
+          "texlive-bibtex-extra",
+          "texlive-fonts-extra",
+          "texlive-font-utils",
+          "texlive-latex-extra",
+          "texlive-science"))
 
   def all_packages: List[String] =
     packages ::: package_collections.valuesIterator.flatten.toList

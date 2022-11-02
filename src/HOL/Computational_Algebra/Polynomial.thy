@@ -4064,6 +4064,25 @@ proof -
     by simp_all
 qed
 
+lemma mod_mult_unit_eq:
+  \<open>x mod (z * y) = x mod y\<close>
+  if \<open>is_unit z\<close>
+  for x y z :: \<open>'a::field poly\<close>
+proof (cases \<open>y = 0\<close>)
+  case True
+  then show ?thesis
+    by simp
+next
+  case False
+  moreover have \<open>z \<noteq> 0\<close>
+    using that by auto
+  moreover define a where \<open>a = lead_coeff z\<close>
+  ultimately have \<open>z = [:a:]\<close> \<open>a \<noteq> 0\<close>
+    using that monom_0 [of a] by (simp_all add: is_unit_monom_trivial)
+  then show ?thesis
+    by (simp add: mod_smult_right)
+qed
+
 lemma poly_div_minus_right [simp]: "x div (- y) = - (x div y)"
   for x y :: "'a::field poly"
   using div_smult_right [of _ "- 1::'a"] by (simp add: nonzero_inverse_minus_eq)

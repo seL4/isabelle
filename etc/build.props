@@ -11,16 +11,19 @@ sources = \
   src/HOL/Tools/Mirabelle/mirabelle.scala \
   src/HOL/Tools/Nitpick/kodkod.scala \
   src/Pure/Admin/afp.scala \
-  src/Pure/Admin/build_cvc5.scala \
   src/Pure/Admin/build_csdp.scala \
+  src/Pure/Admin/build_cvc5.scala \
   src/Pure/Admin/build_cygwin.scala \
   src/Pure/Admin/build_doc.scala \
   src/Pure/Admin/build_e.scala \
+  src/Pure/Admin/build_easychair.scala \
+  src/Pure/Admin/build_foiltex.scala \
   src/Pure/Admin/build_fonts.scala \
   src/Pure/Admin/build_history.scala \
   src/Pure/Admin/build_jcef.scala \
   src/Pure/Admin/build_jdk.scala \
   src/Pure/Admin/build_jedit.scala \
+  src/Pure/Admin/build_lipics.scala \
   src/Pure/Admin/build_log.scala \
   src/Pure/Admin/build_minisat.scala \
   src/Pure/Admin/build_pdfjs.scala \
@@ -251,7 +254,6 @@ sources = \
   src/Tools/jEdit/src/isabelle.scala \
   src/Tools/jEdit/src/isabelle_encoding.scala \
   src/Tools/jEdit/src/isabelle_export.scala \
-  src/Tools/jEdit/src/isabelle_options.scala \
   src/Tools/jEdit/src/isabelle_session.scala \
   src/Tools/jEdit/src/isabelle_vfs.scala \
   src/Tools/jEdit/src/jedit_bibtex.scala \

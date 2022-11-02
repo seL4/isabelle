@@ -237,7 +237,7 @@ sig
   val padding_command: Properties.entry
   val dialogN: string val dialog: serial -> string -> T
   val jedit_actionN: string
-  val functionN: string
+  val function: string -> Properties.entry
   val ML_statistics: {pid: int, stats_dir: string} -> Properties.T
   val commands_accepted: Properties.T
   val assign_update: Properties.T
@@ -250,7 +250,6 @@ sig
   val session_timing: Properties.entry
   val loading_theory: string -> Properties.T
   val build_session_finished: Properties.T
-  val print_operationsN: string
   val print_operations: Properties.T
   val exportN: string
   type export_args =
@@ -751,34 +750,33 @@ val jedit_actionN = "jedit_action";
 
 (* protocol message functions *)
 
-val functionN = "function"
+fun function name = ("function", name);
 
 fun ML_statistics {pid, stats_dir} =
-  [(functionN, "ML_statistics"), ("pid", Value.print_int pid), ("stats_dir", stats_dir)];
+  [function "ML_statistics", ("pid", Value.print_int pid), ("stats_dir", stats_dir)];
 
-val commands_accepted = [(functionN, "commands_accepted")];
+val commands_accepted = [function "commands_accepted"];
 
-val assign_update = [(functionN, "assign_update")];
-val removed_versions = [(functionN, "removed_versions")];
+val assign_update = [function "assign_update"];
+val removed_versions = [function "removed_versions"];
 
-fun invoke_scala name id = [(functionN, "invoke_scala"), (nameN, name), (idN, id)];
+fun invoke_scala name id = [function "invoke_scala", (nameN, name), (idN, id)];
 
-fun cancel_scala id = [(functionN, "cancel_scala"), (idN, id)];
+fun cancel_scala id = [function "cancel_scala", (idN, id)];
 
-val task_statistics = (functionN, "task_statistics");
+val task_statistics = function "task_statistics";
 
-val command_timing = (functionN, "command_timing");
+val command_timing = function "command_timing";
 
-val theory_timing = (functionN, "theory_timing");
+val theory_timing = function "theory_timing";
 
-val session_timing = (functionN, "session_timing");
+val session_timing = function "session_timing";
 
-fun loading_theory name = [("function", "loading_theory"), (nameN, name)];
+fun loading_theory name = [function "loading_theory", (nameN, name)];
 
-val build_session_finished = [("function", "build_session_finished")];
+val build_session_finished = [function "build_session_finished"];
 
-val print_operationsN = "print_operations";
-val print_operations = [(functionN, print_operationsN)];
+val print_operations = [function "print_operations"];
 
 
 (* export *)
@@ -795,7 +793,7 @@ type export_args =
   strict: bool};
 
 fun export ({id, serial, theory_name, name, executable, compress, strict}: export_args) =
- [(functionN, exportN),
+ [function exportN,
   (idN, the_default "" id),
   (serialN, Value.print_int serial),
   ("theory_name", theory_name),
@@ -807,8 +805,8 @@ fun export ({id, serial, theory_name, name, executable, compress, strict}: expor
 
 (* debugger *)
 
-fun debugger_state name = [(functionN, "debugger_state"), (nameN, name)];
-fun debugger_output name = [(functionN, "debugger_output"), (nameN, name)];
+fun debugger_state name = [function "debugger_state", (nameN, name)];
+fun debugger_output name = [function "debugger_output", (nameN, name)];
 
 
 (* simplifier trace *)
@@ -821,7 +819,7 @@ val simp_trace_recurseN = "simp_trace_recurse";
 val simp_trace_hintN = "simp_trace_hint";
 val simp_trace_ignoreN = "simp_trace_ignore";
 
-fun simp_trace_cancel i = [(functionN, "simp_trace_cancel"), (serialN, Value.print_int i)];
+fun simp_trace_cancel i = [function "simp_trace_cancel", (serialN, Value.print_int i)];
 
 
 
