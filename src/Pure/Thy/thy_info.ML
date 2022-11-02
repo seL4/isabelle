@@ -15,6 +15,7 @@ sig
   val add_presentation: (presentation_context -> theory -> unit) -> theory -> theory
   val get_names: unit -> string list
   val lookup_theory: string -> theory option
+  val defined_theory: string -> bool
   val get_theory: string -> theory
   val master_directory: string -> Path.T
   val remove_thy: string -> unit
@@ -137,6 +138,8 @@ fun lookup_theory name =
   (case lookup_thy name of
     SOME (_, SOME theory) => SOME theory
   | _ => NONE);
+
+val defined_theory = is_some o lookup_theory;
 
 fun get_theory name =
   (case lookup_theory name of

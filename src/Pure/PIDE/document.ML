@@ -534,7 +534,7 @@ fun start_execution state = state |> map_state (fn (versions, blobs, commands, e
         |> map_filter (Command.exec_parallel_prints execution_id [delay]);
 
       fun finished_import (name, (node, _)) =
-        finished_result node orelse is_some (Thy_Info.lookup_theory name);
+        finished_result node orelse Thy_Info.defined_theory name;
 
       val nodes = nodes_of (the_version state version_id);
       val required = make_required nodes;
@@ -642,7 +642,7 @@ fun check_root_theory node =
   in parent |> Option.map (fn thy => Resources.begin_theory master_dir header [thy]) end;
 
 fun check_theory full name node =
-  is_some (Thy_Info.lookup_theory name) orelse
+  Thy_Info.defined_theory name orelse
   null (#errors (get_header node)) andalso (not full orelse is_some (get_result node));
 
 fun last_common keywords state node_required node0 node =
