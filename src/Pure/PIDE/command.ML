@@ -419,25 +419,6 @@ fun no_print_function name =
 
 end;
 
-val _ =
-  print_function "Execution.print"
-    (fn {args, exec_id, ...} =>
-      if null args then
-        SOME {delay = NONE, pri = Task_Queue.urgent_pri + 2, persistent = false, strict = false,
-          print_fn = fn _ => fn _ => Execution.fork_prints exec_id}
-      else NONE);
-
-val _ =
-  print_function "print_state"
-    (fn {keywords, command_name, ...} =>
-      if Options.default_bool "editor_output_state" andalso Keyword.is_printed keywords command_name
-      then
-        SOME {delay = NONE, pri = Task_Queue.urgent_pri + 1, persistent = false, strict = false,
-          print_fn = fn _ => fn st =>
-            if Toplevel.is_proof st then Output.state (Toplevel.string_of_state st)
-            else ()}
-      else NONE);
-
 
 (* combined execution *)
 
@@ -502,3 +483,25 @@ fun exec_parallel_prints execution_id deps (exec as (Eval {eval_process, ...}, p
 end;
 
 end;
+
+
+(* common print functions *)
+
+val _ =
+  Command.print_function "Execution.print"
+    (fn {args, exec_id, ...} =>
+      if null args then
+        SOME {delay = NONE, pri = Task_Queue.urgent_pri + 2, persistent = false, strict = false,
+          print_fn = fn _ => fn _ => Execution.fork_prints exec_id}
+      else NONE);
+
+val _ =
+  Command.print_function "print_state"
+    (fn {keywords, command_name, ...} =>
+      if Options.default_bool "editor_output_state" andalso Keyword.is_printed keywords command_name
+      then
+        SOME {delay = NONE, pri = Task_Queue.urgent_pri + 1, persistent = false, strict = false,
+          print_fn = fn _ => fn st =>
+            if Toplevel.is_proof st then Output.state (Toplevel.string_of_state st)
+            else ()}
+      else NONE);
