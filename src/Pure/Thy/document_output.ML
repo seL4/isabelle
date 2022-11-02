@@ -16,7 +16,7 @@ sig
   type segment =
     {span: Command_Span.span, command: Toplevel.transition,
      prev_state: Toplevel.state, state: Toplevel.state}
-  val present_thy: Options.T -> theory -> segment list -> Latex.text
+  val present_thy: Options.T -> Keyword.keywords -> segment list -> Latex.text
   val pretty_term: Proof.context -> term -> Pretty.T
   val pretty_thm: Proof.context -> thm -> Pretty.T
   val isabelle: Proof.context -> Latex.text -> Latex.text
@@ -401,11 +401,8 @@ val ignore =
 
 in
 
-fun present_thy options thy (segments: segment list) =
+fun present_thy options keywords (segments: segment list) =
   let
-    val keywords = Thy_Header.get_keywords thy;
-
-
     (* tokens *)
 
     val ignored = Scan.state --| ignore

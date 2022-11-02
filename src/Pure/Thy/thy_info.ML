@@ -58,7 +58,7 @@ val _ =
     if exists (Toplevel.is_skipped_proof o #state) segments then ()
     else
       let
-        val body = Document_Output.present_thy options thy segments;
+        val body = Document_Output.present_thy options (Thy_Header.get_keywords thy) segments;
       in
         if Options.string options "document" = "false" then ()
         else
