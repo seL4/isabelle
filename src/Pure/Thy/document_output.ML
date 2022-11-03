@@ -293,22 +293,20 @@ fun make_command_tag options keywords =
     val document_tags_default = map_filter #1 document_tags;
     val document_tags_command = map_filter #2 document_tags;
   in
-    fn cmd_name => fn state => fn state' => fn active_tag =>
+    fn name => fn st => fn st' => fn active_tag =>
       let
         val keyword_tags =
-          if Keyword.is_theory_end keywords cmd_name andalso Toplevel.is_end_theory state'
-          then ["theory"]
-          else Keyword.command_tags keywords cmd_name;
+          if Keyword.is_theory_end keywords name andalso Toplevel.is_end_theory st' then ["theory"]
+          else Keyword.command_tags keywords name;
         val command_tags =
-          the_list (AList.lookup (op =) document_tags_command cmd_name) @
+          the_list (AList.lookup (op =) document_tags_command name) @
           keyword_tags @ document_tags_default;
         val active_tag' =
           (case command_tags of
             default_tag :: _ => SOME default_tag
           | [] =>
-              if Keyword.is_vacuous keywords cmd_name andalso Toplevel.is_proof state
-              then active_tag
-              else NONE);
+              if Keyword.is_vacuous keywords name andalso Toplevel.is_proof st
+              then active_tag else NONE);
       in active_tag' end
   end;
 
