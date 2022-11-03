@@ -367,7 +367,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
 
   /* manager thread */
 
-  private val delay_prune =
+  private lazy val delay_prune =
     Delay.first(prune_delay) { manager.send(Prune_History) }
 
   private val manager: Consumer_Thread[Any] = {

@@ -15,6 +15,7 @@ sig
   val add_presentation: (presentation_context -> theory -> unit) -> theory -> theory
   val get_names: unit -> string list
   val lookup_theory: string -> theory option
+  val defined_theory: string -> bool
   val get_theory: string -> theory
   val master_directory: string -> Path.T
   val remove_thy: string -> unit
@@ -58,7 +59,7 @@ val _ =
     if exists (Toplevel.is_skipped_proof o #state) segments then ()
     else
       let
-        val body = Document_Output.present_thy options thy segments;
+        val body = Document_Output.present_thy options (Thy_Header.get_keywords thy) segments;
       in
         if Options.string options "document" = "false" then ()
         else
@@ -137,6 +138,8 @@ fun lookup_theory name =
   (case lookup_thy name of
     SOME (_, SOME theory) => SOME theory
   | _ => NONE);
+
+val defined_theory = is_some o lookup_theory;
 
 fun get_theory name =
   (case lookup_theory name of
@@ -289,7 +292,7 @@ fun eval_thy options master_dir header text_pos text parents =
           in (results, (st', pos')) end;
 
         val (results, (end_state, end_pos)) =
-          fold_map element_result elements (Toplevel.init_toplevel (), Position.none);
+          fold_map element_result elements (Toplevel.make_state NONE, Position.none);
 
         val thy = Toplevel.end_theory end_pos end_state;
       in (results, thy) end;
@@ -431,7 +434,7 @@ fun script_thy pos txt thy =
   let
     val trs = Outer_Syntax.parse_text thy (K thy) pos txt;
     val end_pos = if null trs then pos else Toplevel.pos_of (List.last trs);
-    val end_state = fold (Toplevel.command_exception true) trs (Toplevel.init_toplevel ());
+    val end_state = fold (Toplevel.command_exception true) trs (Toplevel.make_state NONE);
   in Toplevel.end_theory end_pos end_state end;
 
 

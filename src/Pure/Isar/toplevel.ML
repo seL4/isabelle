@@ -8,8 +8,7 @@ signature TOPLEVEL =
 sig
   exception UNDEF
   type state
-  val init_toplevel: unit -> state
-  val theory_toplevel: theory -> state
+  val make_state: theory option -> state
   val is_toplevel: state -> bool
   val is_theory: state -> bool
   val is_proof: state -> bool
@@ -149,8 +148,9 @@ fun node_of (State ((node, _), _)) = node;
 fun previous_theory_of (State (_, (prev_thy, _))) = prev_thy;
 fun output_of (State (_, (_, output))) = output;
 
-fun init_toplevel () = State (node_presentation Toplevel, (NONE, NONE));
-fun theory_toplevel thy = State (node_presentation (Theory (Context.Theory thy)), (NONE, NONE));
+fun make_state opt_thy =
+  let val node = (case opt_thy of NONE => Toplevel | SOME thy => Theory (Context.Theory thy))
+  in State (node_presentation node, (NONE, NONE)) end;
 
 fun level state =
   (case node_of state of
@@ -270,7 +270,7 @@ datatype trans =
   Init of unit -> theory |
   (*formal exit of theory*)
   Exit |
-  (*peek at state*)
+  (*keep state unchanged*)
   Keep of bool -> presentation |
   (*node transaction and presentation*)
   Transaction of (bool -> node -> node_presentation) * presentation;
@@ -717,7 +717,7 @@ fun join_results result =
   let
     fun add (tr, st') res =
       (case res of
-        [] => [(init_toplevel (), tr, st')]
+        [] => [(make_state NONE, tr, st')]
       | (_, _, st) :: _ => (st, tr, st') :: res);
     fun acc (Result r) = add r
       | acc (Result_List rs) = fold acc rs

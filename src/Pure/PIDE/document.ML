@@ -123,8 +123,6 @@ fun set_keywords keywords =
   map_node (fn (header, _, perspective, entries, result, consolidated) =>
     (header, keywords, perspective, entries, result, consolidated));
 
-fun get_keywords (Node {keywords, ...}) = keywords;
-
 fun read_header node span =
   let
     val {header, errors, ...} = get_header node;
@@ -190,22 +188,35 @@ fun finished_result_theory node =
     in SOME (result_id, Toplevel.end_theory Position.none st) handle ERROR _ => NONE end
   else NONE;
 
+fun get_consolidated (Node {consolidated, ...}) = consolidated;
+
 val reset_consolidated =
   map_node (fn (header, keywords, perspective, entries, result, _) =>
     (header, keywords, perspective, entries, result, Lazy.lazy I));
 
-fun commit_consolidated (Node {consolidated, ...}) =
-  (Lazy.force consolidated; Output.status [Markup.markup_only Markup.consolidated]);
-
-fun consolidated_node (Node {consolidated, ...}) = Lazy.is_finished consolidated;
-
 fun could_consolidate node =
-  not (consolidated_node node) andalso is_some (finished_result_theory node);
+  not (Lazy.is_finished (get_consolidated node)) andalso
+  is_some (finished_result_theory node);
 
 fun get_node nodes name = String_Graph.get_node nodes name
   handle String_Graph.UNDEF _ => empty_node;
 fun default_node name = String_Graph.default_node (name, empty_node);
 fun update_node name f = default_node name #> String_Graph.map_node name f;
+
+
+(* outer syntax keywords *)
+
+val pure_keywords = Thy_Header.get_keywords o Theory.get_pure;
+
+fun theory_keywords name =
+  (case Thy_Info.lookup_theory name of
+    SOME thy => Thy_Header.get_keywords thy
+  | NONE => Keyword.empty_keywords);
+
+fun node_keywords name node =
+  (case node of
+    Node {keywords = SOME keywords, ...} => keywords
+  | _ => theory_keywords name);
 
 
 (* node edits and associated executions *)
@@ -279,9 +290,8 @@ fun update_keywords name nodes =
     else
       let
         val {master, header, errors} = get_header node;
-        val imports_keywords = map_filter (get_keywords o get_node nodes o #1) (#imports header);
-        val keywords =
-          Library.foldl Keyword.merge_keywords (Session.get_keywords (), imports_keywords);
+        val imports_keywords = map (node_keywords name o get_node nodes o #1) (#imports header);
+        val keywords = Library.foldl Keyword.merge_keywords (pure_keywords (), imports_keywords);
         val (keywords', errors') =
           (Keyword.add_keywords (#keywords header) keywords, errors)
             handle ERROR msg =>
@@ -534,7 +544,7 @@ fun start_execution state = state |> map_state (fn (versions, blobs, commands, e
         |> map_filter (Command.exec_parallel_prints execution_id [delay]);
 
       fun finished_import (name, (node, _)) =
-        finished_result node orelse is_some (Thy_Info.lookup_theory name);
+        finished_result node orelse Thy_Info.defined_theory name;
 
       val nodes = nodes_of (the_version state version_id);
       val required = make_required nodes;
@@ -582,7 +592,7 @@ type assign_update = Command.exec option Inttab.table;  (*command id -> exec*)
 
 val assign_update_empty: assign_update = Inttab.empty;
 fun assign_update_defined (tab: assign_update) command_id = Inttab.defined tab command_id;
-fun assign_update_change entry (tab: assign_update) = Inttab.update entry tab;
+fun assign_update_change entry (tab: assign_update) : assign_update = Inttab.update entry tab;
 fun assign_update_apply (tab: assign_update) node = Inttab.fold assign_entry tab node;
 
 fun assign_update_new upd (tab: assign_update) =
@@ -604,7 +614,7 @@ fun init_theory deps node span =
     val imports = #imports header;
 
     fun maybe_eval_result eval = Command.eval_result_state eval
-      handle Fail _ => Toplevel.init_toplevel ();
+      handle Fail _ => Toplevel.make_state NONE;
 
     fun maybe_end_theory pos st = SOME (Toplevel.end_theory pos st)
       handle ERROR msg => (Output.error_message msg; NONE);
@@ -615,7 +625,7 @@ fun init_theory deps node span =
           NONE =>
             maybe_end_theory pos
               (case get_result (snd (the (AList.lookup (op =) deps import))) of
-                NONE => Toplevel.init_toplevel ()
+                NONE => Toplevel.make_state NONE
               | SOME (_, eval) => maybe_eval_result eval)
             |> Option.map (fn thy => (thy, (pos, Theory.get_markup thy)))
         | SOME thy => SOME (thy, (Position.none, Markup.empty))));
@@ -642,7 +652,7 @@ fun check_root_theory node =
   in parent |> Option.map (fn thy => Resources.begin_theory master_dir header [thy]) end;
 
 fun check_theory full name node =
-  is_some (Thy_Info.lookup_theory name) orelse
+  Thy_Info.defined_theory name orelse
   null (#errors (get_header node)) andalso (not full orelse is_some (get_result node));
 
 fun last_common keywords state node_required node0 node =
@@ -673,10 +683,10 @@ fun last_common keywords state node_required node0 node =
                   val command_visible = visible_command node command_id;
                   val command_overlays = overlays node command_id;
                   val command_name = the_command_name state command_id;
+                  val command_print =
+                    Command.print command_visible command_overlays keywords command_name eval prints;
                 in
-                  (case
-                    Command.print command_visible command_overlays keywords command_name eval prints
-                   of
+                  (case command_print of
                     SOME prints' => assign_update_new (command_id, SOME (eval, prints'))
                   | NONE => I)
                 end
@@ -721,81 +731,85 @@ fun removed_execs node0 (command_id, exec_ids) =
 fun print_consolidation options the_command_span node_name (assign_update, node) =
   (case finished_result_theory node of
     SOME (result_id, thy) =>
-      let
-        val active_tasks =
-          (node, false) |-> iterate_entries (fn (_, opt_exec) => fn active =>
-            if active then NONE
-            else
-              (case opt_exec of
-                NONE => NONE
-              | SOME (eval, _) =>
-                  SOME (not (null (Execution.snapshot [Command.eval_exec_id eval])))));
-      in
-        if not active_tasks then
-          let
-            val consolidation =
-              if Options.bool options "editor_presentation" then
-                let
-                  val (_, offsets, rev_segments) =
-                    iterate_entries (fn ((prev, _), opt_exec) => fn (offset, offsets, segments) =>
-                      (case opt_exec of
-                        SOME (eval, _) =>
-                          let
-                            val command_id = Command.eval_command_id eval;
-                            val span = the_command_span command_id;
-
-                            val st =
-                              (case try (#1 o the o the_entry node o the) prev of
-                                NONE => Toplevel.init_toplevel ()
-                              | SOME prev_eval => Command.eval_result_state prev_eval);
-
-                            val exec_id = Command.eval_exec_id eval;
-                            val tr = Command.eval_result_command eval;
-                            val st' = Command.eval_result_state eval;
-
-                            val offset' = offset + the_default 0 (Command_Span.symbol_length span);
-                            val offsets' = offsets
-                              |> Inttab.update (command_id, offset)
-                              |> Inttab.update (exec_id, offset);
-                            val segments' = (span, (st, tr, st')) :: segments;
-                          in SOME (offset', offsets', segments') end
-                      | NONE => NONE)) node (0, Inttab.empty, []);
-
-                  val adjust = Inttab.lookup offsets;
-                  val segments =
-                    rev rev_segments |> map (fn (span, (st, tr, st')) =>
-                      {span = Command_Span.adjust_offsets adjust span,
-                       prev_state = st, command = tr, state = st'});
-
-                  val presentation_context: Thy_Info.presentation_context =
-                   {options = options,
-                    file_pos = Position.file node_name,
-                    adjust_pos = Position.adjust_offsets adjust,
-                    segments = segments};
-                in
-                  fn _ =>
-                    let
-                      val _ = Output.status [Markup.markup_only Markup.consolidating];
-                      val res = Exn.capture (Thy_Info.apply_presentation presentation_context) thy;
-                      val _ = commit_consolidated node;
-                    in Exn.release res end
-                end
-              else fn _ => commit_consolidated node;
-
-            val result_entry =
-              (case lookup_entry node result_id of
-                NONE => err_undef "result command entry" result_id
-              | SOME (eval, prints) =>
+      timeit "Document.print_consolidation" (fn () =>
+        let
+          val active_tasks =
+            (node, false) |-> iterate_entries (fn (_, opt_exec) => fn active =>
+              if active then NONE
+              else
+                (case opt_exec of
+                  NONE => NONE
+                | SOME (eval, _) =>
+                    SOME (not (null (Execution.snapshot [Command.eval_exec_id eval])))));
+        in
+          if not active_tasks then
+            let
+              fun commit_consolidated () =
+                (Lazy.force (get_consolidated node);
+                 Output.status [Markup.markup_only Markup.consolidated]);
+              val consolidation =
+                if Options.bool options "editor_presentation" then
                   let
-                    val print = eval |> Command.print0
-                      {pri = Task_Queue.urgent_pri + 1, print_fn = K consolidation};
-                  in (result_id, SOME (eval, print :: prints)) end);
+                    val (_, offsets, rev_segments) =
+                      iterate_entries (fn ((prev, _), opt_exec) => fn (offset, offsets, segments) =>
+                        (case opt_exec of
+                          SOME (eval, _) =>
+                            let
+                              val command_id = Command.eval_command_id eval;
+                              val span = the_command_span command_id;
 
-            val assign_update' = assign_update |> assign_update_change result_entry;
-            val node' = node |> assign_entry result_entry;
-          in (assign_update', node') end
-        else (assign_update, node)
-      end
+                              val st =
+                                (case try (#1 o the o the_entry node o the) prev of
+                                  NONE => Toplevel.make_state NONE
+                                | SOME prev_eval => Command.eval_result_state prev_eval);
+
+                              val exec_id = Command.eval_exec_id eval;
+                              val tr = Command.eval_result_command eval;
+                              val st' = Command.eval_result_state eval;
+
+                              val offset' = offset + the_default 0 (Command_Span.symbol_length span);
+                              val offsets' = offsets
+                                |> Inttab.update (command_id, offset)
+                                |> Inttab.update (exec_id, offset);
+                              val segments' = (span, (st, tr, st')) :: segments;
+                            in SOME (offset', offsets', segments') end
+                        | NONE => NONE)) node (0, Inttab.empty, []);
+
+                    val adjust = Inttab.lookup offsets;
+                    val segments =
+                      rev rev_segments |> map (fn (span, (st, tr, st')) =>
+                        {span = Command_Span.adjust_offsets adjust span,
+                         prev_state = st, command = tr, state = st'});
+
+                    val presentation_context: Thy_Info.presentation_context =
+                     {options = options,
+                      file_pos = Position.file node_name,
+                      adjust_pos = Position.adjust_offsets adjust,
+                      segments = segments};
+                  in
+                    fn _ =>
+                      let
+                        val _ = Output.status [Markup.markup_only Markup.consolidating];
+                        val res = Exn.capture (Thy_Info.apply_presentation presentation_context) thy;
+                        val _ = commit_consolidated ();
+                      in Exn.release res end
+                  end
+                else fn _ => commit_consolidated ();
+
+              val result_entry =
+                (case lookup_entry node result_id of
+                  NONE => err_undef "result command entry" result_id
+                | SOME (eval, prints) =>
+                    let
+                      val print = eval |> Command.print0
+                        {pri = Task_Queue.urgent_pri + 1, print_fn = K consolidation};
+                    in (result_id, SOME (eval, print :: prints)) end);
+
+              val assign_update' = assign_update |> assign_update_change result_entry;
+              val node' = node |> assign_entry result_entry;
+            in (assign_update', node') end
+          else (assign_update, node)
+        end)
   | NONE => (assign_update, node));
 in
 
@@ -827,7 +841,7 @@ fun update old_version_id new_version_id edits consolidate state =
                 Runtime.exn_trace_system (fn () =>
                   let
                     val root_theory = check_root_theory node;
-                    val keywords = the_default (Session.get_keywords ()) (get_keywords node);
+                    val keywords = node_keywords name node;
 
                     val maybe_consolidate = consolidate name andalso could_consolidate node;
                     val imports = map (apsnd Future.join) deps;

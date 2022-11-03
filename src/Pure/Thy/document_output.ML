@@ -16,7 +16,7 @@ sig
   type segment =
     {span: Command_Span.span, command: Toplevel.transition,
      prev_state: Toplevel.state, state: Toplevel.state}
-  val present_thy: Options.T -> theory -> segment list -> Latex.text
+  val present_thy: Options.T -> Keyword.keywords -> segment list -> Latex.text
   val pretty_term: Proof.context -> term -> Pretty.T
   val pretty_thm: Proof.context -> thm -> Pretty.T
   val isabelle: Proof.context -> Latex.text -> Latex.text
@@ -293,21 +293,20 @@ fun make_command_tag options keywords =
     val document_tags_default = map_filter #1 document_tags;
     val document_tags_command = map_filter #2 document_tags;
   in
-    fn cmd_name => fn state => fn state' => fn active_tag =>
+    fn name => fn st => fn st' => fn active_tag =>
       let
         val keyword_tags =
-          if cmd_name = "end" andalso Toplevel.is_end_theory state' then ["theory"]
-          else Keyword.command_tags keywords cmd_name;
+          if Keyword.is_theory_end keywords name andalso Toplevel.is_end_theory st' then ["theory"]
+          else Keyword.command_tags keywords name;
         val command_tags =
-          the_list (AList.lookup (op =) document_tags_command cmd_name) @
+          the_list (AList.lookup (op =) document_tags_command name) @
           keyword_tags @ document_tags_default;
         val active_tag' =
           (case command_tags of
             default_tag :: _ => SOME default_tag
           | [] =>
-              if Keyword.is_vacuous keywords cmd_name andalso Toplevel.is_proof state
-              then active_tag
-              else NONE);
+              if Keyword.is_vacuous keywords name andalso Toplevel.is_proof st
+              then active_tag else NONE);
       in active_tag' end
   end;
 
@@ -401,11 +400,8 @@ val ignore =
 
 in
 
-fun present_thy options thy (segments: segment list) =
+fun present_thy options keywords (segments: segment list) =
   let
-    val keywords = Thy_Header.get_keywords thy;
-
-
     (* tokens *)
 
     val ignored = Scan.state --| ignore
@@ -480,7 +476,7 @@ fun present_thy options thy (segments: segment list) =
   in
     if length command_results = length spans then
       (([], []), NONE, true, [], (I, I))
-      |> present (Toplevel.init_toplevel ()) (spans ~~ command_results)
+      |> present (Toplevel.make_state NONE) (spans ~~ command_results)
       |> present_trailer
       |> rev
     else error "Messed-up outer syntax for presentation"

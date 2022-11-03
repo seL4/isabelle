@@ -39,14 +39,13 @@ fun register {name, pri} f =
           in () end)}
     | _ => NONE);
 
+end;
 
 (* print_state *)
 
 val _ =
-  register {name = "print_state", pri = Task_Queue.urgent_pri}
+  Query_Operation.register {name = "print_state", pri = Task_Queue.urgent_pri}
     (fn {state = st, output_result, ...} =>
       if Toplevel.is_proof st
       then output_result (Markup.markup Markup.state (Toplevel.string_of_state st))
       else ());
-
-end;

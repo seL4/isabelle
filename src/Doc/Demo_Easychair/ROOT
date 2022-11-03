@@ -1,0 +1,9 @@
+session Demo_Easychair (doc) = HOL +
+  options [document_variants = "demo_easychair"]
+  theories
+    Document
+  document_files (in "$ISABELLE_EASYCHAIR_HOME")
+    "easychair.cls"
+  document_files
+    "root.bib"
+    "root.tex"

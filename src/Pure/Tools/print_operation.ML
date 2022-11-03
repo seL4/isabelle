@@ -52,22 +52,23 @@ val _ =
 
 end;
 
+end;
+
 
 (* common print operations *)
 
 val _ =
-  register "context" "context of local theory target" Toplevel.pretty_context;
+  Print_Operation.register "context" "context of local theory target"
+    Toplevel.pretty_context;
 
 val _ =
-  register "cases" "cases of proof context"
+  Print_Operation.register "cases" "cases of proof context"
     (Proof_Context.pretty_cases o Toplevel.context_of);
 
 val _ =
-  register "terms" "term bindings of proof context"
+  Print_Operation.register "terms" "term bindings of proof context"
     (Proof_Context.pretty_term_bindings o Toplevel.context_of);
 
 val _ =
-  register "theorems" "theorems of local theory or proof context"
+  Print_Operation.register "theorems" "theorems of local theory or proof context"
     (Isar_Cmd.pretty_theorems false);
-
-end;

@@ -170,10 +170,7 @@ type eval_state = {failed: bool, command: Toplevel.transition, state: Toplevel.s
 fun init_eval_state opt_thy =
  {failed = false,
   command = Toplevel.empty,
-  state =
-    (case opt_thy of
-      NONE => Toplevel.init_toplevel ()
-    | SOME thy => Toplevel.theory_toplevel thy)};
+  state = Toplevel.make_state opt_thy};
 
 datatype eval =
   Eval of
@@ -312,6 +309,7 @@ datatype print = Print of
 
 fun print_exec_id (Print {exec_id, ...}) = exec_id;
 val print_eq = op = o apply2 print_exec_id;
+fun print_equiv (name', args') (Print {name, args, ...}) = name' = name andalso args' = args;
 
 type print_fn = Toplevel.transition -> Toplevel.state -> unit;
 
@@ -383,7 +381,7 @@ fun print command_visible command_overlays keywords command_name eval old_prints
       end;
 
     fun get_print (name, args) =
-      (case find_first (fn Print print => (#name print, #args print) = (name, args)) old_prints of
+      (case find_first (print_equiv (name, args)) old_prints of
         NONE =>
           (case AList.lookup (op =) print_functions name of
             NONE =>
@@ -409,34 +407,16 @@ fun parallel_print (Print {pri, ...}) =
 
 fun print_function name f =
   Synchronized.change print_functions (fn funs =>
-   (if name = "" then error "Unnamed print function" else ();
-    if not (AList.defined (op =) funs name) then ()
-    else warning ("Redefining command print function: " ^ quote name);
+   (if name = "" then error "Unnamed print function"
+    else if AList.defined (op =) funs name then
+      warning ("Redefining command print function: " ^ quote name)
+    else ();
     AList.update (op =) (name, f) funs));
 
 fun no_print_function name =
   Synchronized.change print_functions (filter_out (equal name o #1));
 
 end;
-
-val _ =
-  print_function "Execution.print"
-    (fn {args, exec_id, ...} =>
-      if null args then
-        SOME {delay = NONE, pri = Task_Queue.urgent_pri + 2, persistent = false, strict = false,
-          print_fn = fn _ => fn _ => Execution.fork_prints exec_id}
-      else NONE);
-
-val _ =
-  print_function "print_state"
-    (fn {keywords, command_name, ...} =>
-      if Options.default_bool "editor_output_state" andalso Keyword.is_printed keywords command_name
-      then
-        SOME {delay = NONE, pri = Task_Queue.urgent_pri + 1, persistent = false, strict = false,
-          print_fn = fn _ => fn st =>
-            if Toplevel.is_proof st then Output.state (Toplevel.string_of_state st)
-            else ()}
-      else NONE);
 
 
 (* combined execution *)
@@ -502,3 +482,25 @@ fun exec_parallel_prints execution_id deps (exec as (Eval {eval_process, ...}, p
 end;
 
 end;
+
+
+(* common print functions *)
+
+val _ =
+  Command.print_function "Execution.print"
+    (fn {args, exec_id, ...} =>
+      if null args then
+        SOME {delay = NONE, pri = Task_Queue.urgent_pri + 2, persistent = false, strict = false,
+          print_fn = fn _ => fn _ => Execution.fork_prints exec_id}
+      else NONE);
+
+val _ =
+  Command.print_function "print_state"
+    (fn {keywords, command_name, ...} =>
+      if Options.default_bool "editor_output_state" andalso Keyword.is_printed keywords command_name
+      then
+        SOME {delay = NONE, pri = Task_Queue.urgent_pri + 1, persistent = false, strict = false,
+          print_fn = fn _ => fn st =>
+            if Toplevel.is_proof st then Output.state (Toplevel.string_of_state st)
+            else ()}
+      else NONE);
