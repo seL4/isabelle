@@ -270,7 +270,7 @@ datatype trans =
   Init of unit -> theory |
   (*formal exit of theory*)
   Exit |
-  (*peek at state*)
+  (*keep state unchanged*)
   Keep of bool -> presentation |
   (*node transaction and presentation*)
   Transaction of (bool -> node -> node_presentation) * presentation;
