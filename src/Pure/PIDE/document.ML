@@ -188,17 +188,15 @@ fun finished_result_theory node =
     in SOME (result_id, Toplevel.end_theory Position.none st) handle ERROR _ => NONE end
   else NONE;
 
+fun get_consolidated (Node {consolidated, ...}) = consolidated;
+
 val reset_consolidated =
   map_node (fn (header, keywords, perspective, entries, result, _) =>
     (header, keywords, perspective, entries, result, Lazy.lazy I));
 
-fun commit_consolidated (Node {consolidated, ...}) =
-  (Lazy.force consolidated; Output.status [Markup.markup_only Markup.consolidated]);
-
-fun consolidated_node (Node {consolidated, ...}) = Lazy.is_finished consolidated;
-
 fun could_consolidate node =
-  not (consolidated_node node) andalso is_some (finished_result_theory node);
+  not (Lazy.is_finished (get_consolidated node)) andalso
+  is_some (finished_result_theory node);
 
 fun get_node nodes name = String_Graph.get_node nodes name
   handle String_Graph.UNDEF _ => empty_node;
@@ -745,6 +743,9 @@ fun print_consolidation options the_command_span node_name (assign_update, node)
       in
         if not active_tasks then
           let
+            fun commit_consolidated () =
+              (Lazy.force (get_consolidated node);
+               Output.status [Markup.markup_only Markup.consolidated]);
             val consolidation =
               if Options.bool options "editor_presentation" then
                 let
@@ -789,10 +790,10 @@ fun print_consolidation options the_command_span node_name (assign_update, node)
                     let
                       val _ = Output.status [Markup.markup_only Markup.consolidating];
                       val res = Exn.capture (Thy_Info.apply_presentation presentation_context) thy;
-                      val _ = commit_consolidated node;
+                      val _ = commit_consolidated ();
                     in Exn.release res end
                 end
-              else fn _ => commit_consolidated node;
+              else fn _ => commit_consolidated ();
 
             val result_entry =
               (case lookup_entry node result_id of
