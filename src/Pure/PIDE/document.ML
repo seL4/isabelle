@@ -211,7 +211,7 @@ val pure_keywords = Thy_Header.get_keywords o Theory.get_pure;
 fun theory_keywords name =
   (case Thy_Info.lookup_theory name of
     SOME thy => Thy_Header.get_keywords thy
-  | None => Keyword.empty_keywords);
+  | NONE => Keyword.empty_keywords);
 
 fun node_keywords name node =
   (case node of
