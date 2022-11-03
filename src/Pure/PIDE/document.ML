@@ -683,10 +683,10 @@ fun last_common keywords state node_required node0 node =
                   val command_visible = visible_command node command_id;
                   val command_overlays = overlays node command_id;
                   val command_name = the_command_name state command_id;
+                  val command_print =
+                    Command.print command_visible command_overlays keywords command_name eval prints;
                 in
-                  (case
-                    Command.print command_visible command_overlays keywords command_name eval prints
-                   of
+                  (case command_print of
                     SOME prints' => assign_update_new (command_id, SOME (eval, prints'))
                   | NONE => I)
                 end
