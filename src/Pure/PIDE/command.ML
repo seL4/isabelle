@@ -309,6 +309,7 @@ datatype print = Print of
 
 fun print_exec_id (Print {exec_id, ...}) = exec_id;
 val print_eq = op = o apply2 print_exec_id;
+fun print_equiv (name', args') (Print {name, args, ...}) = name' = name andalso args' = args;
 
 type print_fn = Toplevel.transition -> Toplevel.state -> unit;
 
@@ -380,7 +381,7 @@ fun print command_visible command_overlays keywords command_name eval old_prints
       end;
 
     fun get_print (name, args) =
-      (case find_first (fn Print print => (#name print, #args print) = (name, args)) old_prints of
+      (case find_first (print_equiv (name, args)) old_prints of
         NONE =>
           (case AList.lookup (op =) print_functions name of
             NONE =>
