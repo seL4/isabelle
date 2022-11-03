@@ -406,9 +406,10 @@ fun parallel_print (Print {pri, ...}) =
 
 fun print_function name f =
   Synchronized.change print_functions (fn funs =>
-   (if name = "" then error "Unnamed print function" else ();
-    if not (AList.defined (op =) funs name) then ()
-    else warning ("Redefining command print function: " ^ quote name);
+   (if name = "" then error "Unnamed print function"
+    else if AList.defined (op =) funs name then
+      warning ("Redefining command print function: " ^ quote name)
+    else ();
     AList.update (op =) (name, f) funs));
 
 fun no_print_function name =
