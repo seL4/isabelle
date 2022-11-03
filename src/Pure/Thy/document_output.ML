@@ -476,7 +476,7 @@ fun present_thy options keywords (segments: segment list) =
   in
     if length command_results = length spans then
       (([], []), NONE, true, [], (I, I))
-      |> present (Toplevel.init_toplevel ()) (spans ~~ command_results)
+      |> present (Toplevel.make_state NONE) (spans ~~ command_results)
       |> present_trailer
       |> rev
     else error "Messed-up outer syntax for presentation"
