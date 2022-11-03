@@ -594,7 +594,7 @@ type assign_update = Command.exec option Inttab.table;  (*command id -> exec*)
 
 val assign_update_empty: assign_update = Inttab.empty;
 fun assign_update_defined (tab: assign_update) command_id = Inttab.defined tab command_id;
-fun assign_update_change entry (tab: assign_update) = Inttab.update entry tab;
+fun assign_update_change entry (tab: assign_update) : assign_update = Inttab.update entry tab;
 fun assign_update_apply (tab: assign_update) node = Inttab.fold assign_entry tab node;
 
 fun assign_update_new upd (tab: assign_update) =
