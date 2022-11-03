@@ -193,6 +193,35 @@ qed
 lemma finite_subset: "A \<subseteq> B \<Longrightarrow> finite B \<Longrightarrow> finite A"
   by (rule rev_finite_subset)
 
+simproc_setup finite ("finite A") = \<open>fn _ =>
+let
+  val finite_subset = @{thm finite_subset}
+  val Eq_TrueI = @{thm Eq_TrueI}
+
+  fun is_subset A th = case Thm.prop_of th of
+        (_ $ (Const (\<^const_name>\<open>less_eq\<close>, Type (\<^type_name>\<open>fun\<close>, [Type (\<^type_name>\<open>set\<close>, _), _])) $ A' $ B))
+        => if A aconv A' then SOME(B,th) else NONE
+      | _ => NONE;
+
+  fun is_finite th = case Thm.prop_of th of
+        (_ $ (Const (\<^const_name>\<open>finite\<close>, _) $ A)) => SOME(A,th)
+      |  _ => NONE;
+
+  fun comb (A,sub_th) (A',fin_th) ths = if A aconv A' then (sub_th,fin_th) :: ths else ths
+
+  fun proc ss ct =
+    (let
+       val _ $ A = Thm.term_of ct
+       val prems = Simplifier.prems_of ss
+       val fins = map_filter is_finite prems
+       val subsets = map_filter (is_subset A) prems
+     in case fold_product comb subsets fins [] of
+          (sub_th,fin_th) :: _ => SOME((fin_th RS (sub_th RS finite_subset)) RS Eq_TrueI)
+        | _ => NONE
+     end)
+in proc end
+\<close>
+
 lemma finite_UnI:
   assumes "finite F" and "finite G"
   shows "finite (F \<union> G)"
