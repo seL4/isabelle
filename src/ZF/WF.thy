@@ -361,12 +361,11 @@ lemma wfrec_on:
          wfrec[A](r,a,H) = H(a, \<lambda>x\<in>(r-``{a}) \<inter> A. wfrec[A](r,x,H))"
   unfolding wf_on_def wfrec_on_def
 apply (erule wfrec [THEN trans])
-apply (simp add: vimage_Int_square cons_subset_iff)
+apply (simp add: vimage_Int_square)
 done
 
 text\<open>Minimal-element characterization of well-foundedness\<close>
-lemma wf_eq_minimal:
-     "wf(r) \<longleftrightarrow> (\<forall>Q x. x \<in> Q \<longrightarrow> (\<exists>z\<in>Q. \<forall>y. \<langle>y,z\<rangle>:r \<longrightarrow> y\<notin>Q))"
-by (unfold wf_def, blast)
+lemma wf_eq_minimal: "wf(r) \<longleftrightarrow> (\<forall>Q x. x \<in> Q \<longrightarrow> (\<exists>z\<in>Q. \<forall>y. \<langle>y,z\<rangle>:r \<longrightarrow> y\<notin>Q))"
+  unfolding wf_def by blast
 
 end
