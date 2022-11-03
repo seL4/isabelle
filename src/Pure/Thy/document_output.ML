@@ -296,7 +296,8 @@ fun make_command_tag options keywords =
     fn cmd_name => fn state => fn state' => fn active_tag =>
       let
         val keyword_tags =
-          if cmd_name = "end" andalso Toplevel.is_end_theory state' then ["theory"]
+          if Keyword.is_theory_end keywords cmd_name andalso Toplevel.is_end_theory state'
+          then ["theory"]
           else Keyword.command_tags keywords cmd_name;
         val command_tags =
           the_list (AList.lookup (op =) document_tags_command cmd_name) @
