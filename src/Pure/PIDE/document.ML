@@ -731,84 +731,85 @@ fun removed_execs node0 (command_id, exec_ids) =
 fun print_consolidation options the_command_span node_name (assign_update, node) =
   (case finished_result_theory node of
     SOME (result_id, thy) =>
-      let
-        val active_tasks =
-          (node, false) |-> iterate_entries (fn (_, opt_exec) => fn active =>
-            if active then NONE
-            else
-              (case opt_exec of
-                NONE => NONE
-              | SOME (eval, _) =>
-                  SOME (not (null (Execution.snapshot [Command.eval_exec_id eval])))));
-      in
-        if not active_tasks then
-          let
-            fun commit_consolidated () =
-              (Lazy.force (get_consolidated node);
-               Output.status [Markup.markup_only Markup.consolidated]);
-            val consolidation =
-              if Options.bool options "editor_presentation" then
-                let
-                  val (_, offsets, rev_segments) =
-                    iterate_entries (fn ((prev, _), opt_exec) => fn (offset, offsets, segments) =>
-                      (case opt_exec of
-                        SOME (eval, _) =>
-                          let
-                            val command_id = Command.eval_command_id eval;
-                            val span = the_command_span command_id;
-
-                            val st =
-                              (case try (#1 o the o the_entry node o the) prev of
-                                NONE => Toplevel.init_toplevel ()
-                              | SOME prev_eval => Command.eval_result_state prev_eval);
-
-                            val exec_id = Command.eval_exec_id eval;
-                            val tr = Command.eval_result_command eval;
-                            val st' = Command.eval_result_state eval;
-
-                            val offset' = offset + the_default 0 (Command_Span.symbol_length span);
-                            val offsets' = offsets
-                              |> Inttab.update (command_id, offset)
-                              |> Inttab.update (exec_id, offset);
-                            val segments' = (span, (st, tr, st')) :: segments;
-                          in SOME (offset', offsets', segments') end
-                      | NONE => NONE)) node (0, Inttab.empty, []);
-
-                  val adjust = Inttab.lookup offsets;
-                  val segments =
-                    rev rev_segments |> map (fn (span, (st, tr, st')) =>
-                      {span = Command_Span.adjust_offsets adjust span,
-                       prev_state = st, command = tr, state = st'});
-
-                  val presentation_context: Thy_Info.presentation_context =
-                   {options = options,
-                    file_pos = Position.file node_name,
-                    adjust_pos = Position.adjust_offsets adjust,
-                    segments = segments};
-                in
-                  fn _ =>
-                    let
-                      val _ = Output.status [Markup.markup_only Markup.consolidating];
-                      val res = Exn.capture (Thy_Info.apply_presentation presentation_context) thy;
-                      val _ = commit_consolidated ();
-                    in Exn.release res end
-                end
-              else fn _ => commit_consolidated ();
-
-            val result_entry =
-              (case lookup_entry node result_id of
-                NONE => err_undef "result command entry" result_id
-              | SOME (eval, prints) =>
+      timeit "Document.print_consolidation" (fn () =>
+        let
+          val active_tasks =
+            (node, false) |-> iterate_entries (fn (_, opt_exec) => fn active =>
+              if active then NONE
+              else
+                (case opt_exec of
+                  NONE => NONE
+                | SOME (eval, _) =>
+                    SOME (not (null (Execution.snapshot [Command.eval_exec_id eval])))));
+        in
+          if not active_tasks then
+            let
+              fun commit_consolidated () =
+                (Lazy.force (get_consolidated node);
+                 Output.status [Markup.markup_only Markup.consolidated]);
+              val consolidation =
+                if Options.bool options "editor_presentation" then
                   let
-                    val print = eval |> Command.print0
-                      {pri = Task_Queue.urgent_pri + 1, print_fn = K consolidation};
-                  in (result_id, SOME (eval, print :: prints)) end);
+                    val (_, offsets, rev_segments) =
+                      iterate_entries (fn ((prev, _), opt_exec) => fn (offset, offsets, segments) =>
+                        (case opt_exec of
+                          SOME (eval, _) =>
+                            let
+                              val command_id = Command.eval_command_id eval;
+                              val span = the_command_span command_id;
 
-            val assign_update' = assign_update |> assign_update_change result_entry;
-            val node' = node |> assign_entry result_entry;
-          in (assign_update', node') end
-        else (assign_update, node)
-      end
+                              val st =
+                                (case try (#1 o the o the_entry node o the) prev of
+                                  NONE => Toplevel.init_toplevel ()
+                                | SOME prev_eval => Command.eval_result_state prev_eval);
+
+                              val exec_id = Command.eval_exec_id eval;
+                              val tr = Command.eval_result_command eval;
+                              val st' = Command.eval_result_state eval;
+
+                              val offset' = offset + the_default 0 (Command_Span.symbol_length span);
+                              val offsets' = offsets
+                                |> Inttab.update (command_id, offset)
+                                |> Inttab.update (exec_id, offset);
+                              val segments' = (span, (st, tr, st')) :: segments;
+                            in SOME (offset', offsets', segments') end
+                        | NONE => NONE)) node (0, Inttab.empty, []);
+
+                    val adjust = Inttab.lookup offsets;
+                    val segments =
+                      rev rev_segments |> map (fn (span, (st, tr, st')) =>
+                        {span = Command_Span.adjust_offsets adjust span,
+                         prev_state = st, command = tr, state = st'});
+
+                    val presentation_context: Thy_Info.presentation_context =
+                     {options = options,
+                      file_pos = Position.file node_name,
+                      adjust_pos = Position.adjust_offsets adjust,
+                      segments = segments};
+                  in
+                    fn _ =>
+                      let
+                        val _ = Output.status [Markup.markup_only Markup.consolidating];
+                        val res = Exn.capture (Thy_Info.apply_presentation presentation_context) thy;
+                        val _ = commit_consolidated ();
+                      in Exn.release res end
+                  end
+                else fn _ => commit_consolidated ();
+
+              val result_entry =
+                (case lookup_entry node result_id of
+                  NONE => err_undef "result command entry" result_id
+                | SOME (eval, prints) =>
+                    let
+                      val print = eval |> Command.print0
+                        {pri = Task_Queue.urgent_pri + 1, print_fn = K consolidation};
+                    in (result_id, SOME (eval, print :: prints)) end);
+
+              val assign_update' = assign_update |> assign_update_change result_entry;
+              val node' = node |> assign_entry result_entry;
+            in (assign_update', node') end
+          else (assign_update, node)
+        end)
   | NONE => (assign_update, node));
 in
 
