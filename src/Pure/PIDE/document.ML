@@ -147,10 +147,10 @@ fun set_perspective args =
     (header, keywords, make_perspective args, entries, result, consolidated));
 
 val required_node = #required o get_perspective;
-val visible_command = Inttab.defined o #visible o get_perspective;
+val command_overlays = Inttab.lookup_list o #overlays o get_perspective;
+val command_visible = Inttab.defined o #visible o get_perspective;
 val visible_last = #visible_last o get_perspective;
 val visible_node = is_some o visible_last
-val overlays = Inttab.lookup_list o #overlays o get_perspective;
 
 fun map_entries f =
   map_node (fn (header, keywords, perspective, entries, result, consolidated) =>
@@ -680,13 +680,11 @@ fun last_common keywords state node_required node0 node =
             (case opt_exec of
               SOME (eval, prints) =>
                 let
-                  val command_visible = visible_command node command_id;
-                  val command_overlays = overlays node command_id;
+                  val visible = command_visible node command_id;
+                  val overlays = command_overlays node command_id;
                   val command_name = the_command_name state command_id;
-                  val command_print =
-                    Command.print command_visible command_overlays keywords command_name eval prints;
                 in
-                  (case command_print of
+                  (case Command.print visible overlays keywords command_name eval prints of
                     SOME prints' => assign_update_new (command_id, SOME (eval, prints'))
                   | NONE => I)
                 end
@@ -708,8 +706,8 @@ fun new_exec keywords state node proper_init command_id' (assign_update, command
   if not proper_init andalso is_none init then NONE
   else
     let
-      val command_visible = visible_command node command_id';
-      val command_overlays = overlays node command_id';
+      val visible = command_visible node command_id';
+      val overlays = command_overlays node command_id';
       val (command_name, blob_digests, blobs_index, span0) = the_command state command_id';
       val blobs = map (resolve_blob state) blob_digests;
       val span = Lazy.force span0;
@@ -717,8 +715,7 @@ fun new_exec keywords state node proper_init command_id' (assign_update, command
       val eval' =
         Command.eval keywords (master_directory node) (fn () => the_default illegal_init init span)
           (blobs, blobs_index) command_id' span (#1 (#2 command_exec));
-      val prints' =
-        perhaps (Command.print command_visible command_overlays keywords command_name eval') [];
+      val prints' = perhaps (Command.print visible overlays keywords command_name eval') [];
       val exec' = (eval', prints');
 
       val assign_update' = assign_update_new (command_id', SOME exec') assign_update;

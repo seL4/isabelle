@@ -362,7 +362,7 @@ fun print0 {pri, print_fn} =
   make_print ("", [serial_string ()])
     {delay = NONE, pri = pri, persistent = true, strict = true, print_fn = print_fn};
 
-fun print command_visible command_overlays keywords command_name eval old_prints =
+fun print visible overlays keywords command_name eval old_prints =
   let
     val print_functions = Synchronized.value print_functions;
 
@@ -392,8 +392,8 @@ fun print command_visible command_overlays keywords command_name eval old_prints
     val retained_prints =
       filter (fn print => print_finished print andalso print_persistent print) old_prints;
     val visible_prints =
-      if command_visible then
-        fold (fn (name, _) => cons (name, [])) print_functions command_overlays
+      if visible then
+        fold (fn (name, _) => cons (name, [])) print_functions overlays
         |> sort_distinct overlay_ord
         |> map_filter get_print
       else [];
