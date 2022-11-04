@@ -824,7 +824,7 @@ fun update old_version_id new_version_id edits consolidate state =
     val nodes = nodes_of new_version;
     val required = make_required nodes;
     val required0 = make_required (nodes_of old_version);
-    val edited = Symtab.build (edits |> fold (fn (name, _) => Symtab.update (name, ())));
+    val edited = Symtab.build (edits |> fold (Symtab.insert_set o #1));
 
     val updated = timeit "Document.update" (fn () =>
       nodes |> String_Graph.schedule
