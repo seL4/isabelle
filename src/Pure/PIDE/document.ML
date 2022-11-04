@@ -679,7 +679,7 @@ fun last_common keywords the_command_name node_required node0 node =
                   val overlays = command_overlays node command_id;
                   val command_name = the_command_name command_id;
                 in
-                  (case Command.print visible overlays keywords command_name eval prints of
+                  (case Command.print keywords visible overlays command_name eval prints of
                     SOME prints' => assign_update_new (command_id, SOME (eval, prints'))
                   | NONE => I)
                 end
@@ -710,7 +710,7 @@ fun new_exec keywords state node proper_init command_id' (assign_update, command
       val eval' =
         Command.eval keywords (master_directory node) (fn () => the_default illegal_init init span)
           (blobs, blobs_index) command_id' span (#1 (#2 command_exec));
-      val prints' = perhaps (Command.print visible overlays keywords command_name eval') [];
+      val prints' = perhaps (Command.print keywords visible overlays command_name eval') [];
       val exec' = (eval', prints');
 
       val assign_update' = assign_update_new (command_id', SOME exec') assign_update;

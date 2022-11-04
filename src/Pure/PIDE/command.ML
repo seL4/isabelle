@@ -26,7 +26,7 @@ sig
   type print
   type print_fn = Toplevel.transition -> Toplevel.state -> unit
   val print0: {pri: int, print_fn: print_fn} -> eval -> print
-  val print: bool -> (string * string list) list -> Keyword.keywords -> string ->
+  val print: Keyword.keywords -> bool -> (string * string list) list -> string ->
     eval -> print list -> print list option
   val parallel_print: print -> bool
   type print_function =
@@ -362,7 +362,7 @@ fun print0 {pri, print_fn} =
   make_print ("", [serial_string ()])
     {delay = NONE, pri = pri, persistent = true, strict = true, print_fn = print_fn};
 
-fun print visible overlays keywords command_name eval old_prints =
+fun print keywords visible overlays command_name eval old_prints =
   let
     val print_functions = Synchronized.value print_functions;
 
