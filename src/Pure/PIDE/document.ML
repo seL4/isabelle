@@ -470,8 +470,6 @@ fun the_command (State {commands, ...}) command_id =
     NONE => err_undef "command" command_id
   | SOME command => command);
 
-val the_command_name = #1 oo the_command;
-
 
 (* execution *)
 
@@ -652,7 +650,7 @@ fun check_theory full name node =
   Thy_Info.defined_theory name orelse
   null (#errors (get_header node)) andalso (not full orelse is_some (get_result node));
 
-fun last_common keywords state node_required node0 node =
+fun last_common keywords the_command_name node_required node0 node =
   let
     fun update_flags prev (visible, initial) =
       let
@@ -660,7 +658,7 @@ fun last_common keywords state node_required node0 node =
         val initial' = initial andalso
           (case prev of
             NONE => true
-          | SOME command_id => the_command_name state command_id <> Thy_Header.theoryN);
+          | SOME command_id => the_command_name command_id <> Thy_Header.theoryN);
       in (visible', initial') end;
 
     fun get_common ((prev, command_id), opt_exec) (_, ok, flags, assign_update) =
@@ -679,7 +677,7 @@ fun last_common keywords state node_required node0 node =
                 let
                   val visible = command_visible node command_id;
                   val overlays = command_overlays node command_id;
-                  val command_name = the_command_name state command_id;
+                  val command_name = the_command_name command_id;
                 in
                   (case Command.print visible overlays keywords command_name eval prints of
                     SOME prints' => assign_update_new (command_id, SOME (eval, prints'))
@@ -813,6 +811,7 @@ fun update old_version_id new_version_id edits consolidate state =
   Runtime.exn_trace_system (fn () =>
   let
     val options = Options.default ();
+    val the_command_name = #1 o the_command state;
     val the_command_span = Outer_Syntax.make_span o Lazy.force o #4 o the_command state;
 
     val old_version = the_version state old_version_id;
@@ -859,7 +858,7 @@ fun update old_version_id new_version_id edits consolidate state =
                         val (print_execs, common, (still_visible, initial)) =
                           if imports_result_changed
                           then (assign_update_empty, NONE, (true, true))
-                          else last_common keywords state node_required node0 node;
+                          else last_common keywords the_command_name node_required node0 node;
 
                         val common_command_exec =
                           (case common of
