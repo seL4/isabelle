@@ -1,3 +1,5 @@
+chapter Doc
+
 session Demo_Easychair (doc) = HOL +
   options [document_variants = "demo_easychair"]
   theories

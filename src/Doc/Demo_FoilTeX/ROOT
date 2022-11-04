@@ -1,3 +1,5 @@
+chapter Doc
+
 session Demo_FoilTeX (doc) = HOL +
   options [document_variants = "demo_foiltex",
     document_build = "pdflatex", document_logo = "FoilTeX"]

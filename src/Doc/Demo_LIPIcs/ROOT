@@ -1,3 +1,5 @@
+chapter Doc
+
 session Demo_LIPIcs (doc) = HOL +
   options [document_variants = "demo_lipics",
     document_build = "pdflatex", document_heading_prefix = "", document_comment_latex]
