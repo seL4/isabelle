@@ -102,8 +102,8 @@ object Dump {
           options0 +
             "parallel_proofs=0" +
             "completion_limit=0" +
-            "editor_tracing_messages=0" +
-            "editor_presentation"
+            "pide_presentation" +
+            "editor_tracing_messages=0"
         aspects.foldLeft(options1) { case (opts, aspect) => aspect.options.foldLeft(opts)(_ + _) }
       }
 

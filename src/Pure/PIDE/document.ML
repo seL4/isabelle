@@ -784,7 +784,7 @@ fun print_consolidation options the_command_span node_name (assign_update, node)
                 (Lazy.force (get_consolidated node);
                  Output.status [Markup.markup_only Markup.consolidated]);
               val consolidation =
-                if Options.bool options "editor_presentation" then
+                if Options.bool options "pide_presentation" then
                   let val context = presentation_context options the_command_span node_name node in
                     fn _ =>
                       let
