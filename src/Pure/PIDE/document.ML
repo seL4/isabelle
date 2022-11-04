@@ -725,7 +725,7 @@ fun node_active node =
     if active then NONE
     else
       (case opt_exec of
-        NONE => NONE
+        NONE => SOME true
       | SOME (eval, _) => SOME (not (null (Execution.snapshot [Command.eval_exec_id eval])))));
 
 fun presentation_context options the_command_span node_name node : Thy_Info.presentation_context =
