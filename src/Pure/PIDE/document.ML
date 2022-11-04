@@ -720,13 +720,16 @@ fun new_exec keywords state node proper_init command_id' (assign_update, command
 fun removed_execs node0 (command_id, exec_ids) =
   subtract (op =) exec_ids (Command.exec_ids (lookup_entry node0 command_id));
 
-fun node_active node =
-  (node, false) |-> iterate_entries (fn (_, opt_exec) => fn active =>
-    if active then NONE
-    else
-      (case opt_exec of
-        NONE => SOME true
-      | SOME (eval, _) => SOME (not (null (Execution.snapshot [Command.eval_exec_id eval])))));
+fun finished_eval node =
+  let
+    val active =
+      (node, false) |-> iterate_entries (fn (_, opt_exec) => fn active =>
+        if active then NONE
+        else
+          (case opt_exec of
+            NONE => SOME true
+          | SOME (eval, _) => SOME (not (null (Execution.snapshot [Command.eval_exec_id eval])))));
+  in not active end;
 
 fun presentation_context options the_command_span node_name node : Thy_Info.presentation_context =
   let
@@ -769,39 +772,41 @@ fun presentation_context options the_command_span node_name node : Thy_Info.pres
   end;
 
 fun print_consolidation options the_command_span node_name (assign_update, node) =
-  (case finished_result_theory node of
-    NONE => (assign_update, node)
-  | SOME (result_id, thy) => timeit "Document.print_consolidation" (fn () =>
-      if node_active node then (assign_update, node)
-      else
-        let
-          fun commit_consolidated () =
-            (Lazy.force (get_consolidated node);
-             Output.status [Markup.markup_only Markup.consolidated]);
-          val consolidation =
-            if Options.bool options \<^system_option>\<open>pide_presentation\<close> then
-              let val context = presentation_context options the_command_span node_name node in
-                fn _ =>
+  timeit "Document.print_consolidation" (fn () =>
+    (case finished_result_theory node of
+      SOME (result_id, thy) =>
+        if finished_eval node then
+          let
+            fun commit_consolidated () =
+              (Lazy.force (get_consolidated node);
+               Output.status [Markup.markup_only Markup.consolidated]);
+            val consolidation =
+              if Options.bool options \<^system_option>\<open>pide_presentation\<close> then
+                let val context = presentation_context options the_command_span node_name node in
+                  fn _ =>
+                    let
+                      val _ = Output.status [Markup.markup_only Markup.consolidating];
+                      val res = Exn.capture (Thy_Info.apply_presentation context) thy;
+                      val _ = commit_consolidated ();
+                    in Exn.release res end
+                end
+              else fn _ => commit_consolidated ();
+
+            val result_entry =
+              (case lookup_entry node result_id of
+                NONE => err_undef "result command entry" result_id
+              | SOME (eval, prints) =>
                   let
-                    val _ = Output.status [Markup.markup_only Markup.consolidating];
-                    val res = Exn.capture (Thy_Info.apply_presentation context) thy;
-                    val _ = commit_consolidated ();
-                  in Exn.release res end
-              end
-            else fn _ => commit_consolidated ();
+                    val print = eval |> Command.print0
+                      {pri = Task_Queue.urgent_pri + 1, print_fn = K consolidation};
+                  in (result_id, SOME (eval, print :: prints)) end);
 
-          val result_entry =
-            (case lookup_entry node result_id of
-              NONE => err_undef "result command entry" result_id
-            | SOME (eval, prints) =>
-                let
-                  val print = eval |> Command.print0
-                    {pri = Task_Queue.urgent_pri + 1, print_fn = K consolidation};
-                in (result_id, SOME (eval, print :: prints)) end);
+            val assign_update' = assign_update |> assign_update_change result_entry;
+            val node' = node |> assign_entry result_entry;
+          in (assign_update', node') end
+        else (assign_update, node)
+    | NONE => (assign_update, node)));
 
-          val assign_update' = assign_update |> assign_update_change result_entry;
-          val node' = node |> assign_entry result_entry;
-        in (assign_update', node') end));
 in
 
 fun update old_version_id new_version_id edits consolidate state =
