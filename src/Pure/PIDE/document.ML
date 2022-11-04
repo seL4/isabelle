@@ -725,6 +725,45 @@ fun new_exec keywords state node proper_init command_id' (assign_update, command
 fun removed_execs node0 (command_id, exec_ids) =
   subtract (op =) exec_ids (Command.exec_ids (lookup_entry node0 command_id));
 
+fun presentation_context options the_command_span node_name node : Thy_Info.presentation_context =
+  let
+    val (_, offsets, rev_segments) =
+      iterate_entries (fn ((prev, _), opt_exec) => fn (offset, offsets, segments) =>
+        (case opt_exec of
+          SOME (eval, _) =>
+            let
+              val command_id = Command.eval_command_id eval;
+              val span = the_command_span command_id;
+
+              val st =
+                (case try (#1 o the o the_entry node o the) prev of
+                  NONE => Toplevel.make_state NONE
+                | SOME prev_eval => Command.eval_result_state prev_eval);
+
+              val exec_id = Command.eval_exec_id eval;
+              val tr = Command.eval_result_command eval;
+              val st' = Command.eval_result_state eval;
+
+              val offset' = offset + the_default 0 (Command_Span.symbol_length span);
+              val offsets' = offsets
+                |> Inttab.update (command_id, offset)
+                |> Inttab.update (exec_id, offset);
+              val segments' = (span, (st, tr, st')) :: segments;
+            in SOME (offset', offsets', segments') end
+        | NONE => NONE)) node (0, Inttab.empty, []);
+
+    val adjust = Inttab.lookup offsets;
+    val segments =
+      rev rev_segments |> map (fn (span, (st, tr, st')) =>
+        {span = Command_Span.adjust_offsets adjust span,
+         prev_state = st, command = tr, state = st'});
+  in
+   {options = options,
+    file_pos = Position.file node_name,
+    adjust_pos = Position.adjust_offsets adjust,
+    segments = segments}
+  end;
+
 fun print_consolidation options the_command_span node_name (assign_update, node) =
   (case finished_result_theory node of
     SOME (result_id, thy) =>
@@ -746,48 +785,11 @@ fun print_consolidation options the_command_span node_name (assign_update, node)
                  Output.status [Markup.markup_only Markup.consolidated]);
               val consolidation =
                 if Options.bool options "editor_presentation" then
-                  let
-                    val (_, offsets, rev_segments) =
-                      iterate_entries (fn ((prev, _), opt_exec) => fn (offset, offsets, segments) =>
-                        (case opt_exec of
-                          SOME (eval, _) =>
-                            let
-                              val command_id = Command.eval_command_id eval;
-                              val span = the_command_span command_id;
-
-                              val st =
-                                (case try (#1 o the o the_entry node o the) prev of
-                                  NONE => Toplevel.make_state NONE
-                                | SOME prev_eval => Command.eval_result_state prev_eval);
-
-                              val exec_id = Command.eval_exec_id eval;
-                              val tr = Command.eval_result_command eval;
-                              val st' = Command.eval_result_state eval;
-
-                              val offset' = offset + the_default 0 (Command_Span.symbol_length span);
-                              val offsets' = offsets
-                                |> Inttab.update (command_id, offset)
-                                |> Inttab.update (exec_id, offset);
-                              val segments' = (span, (st, tr, st')) :: segments;
-                            in SOME (offset', offsets', segments') end
-                        | NONE => NONE)) node (0, Inttab.empty, []);
-
-                    val adjust = Inttab.lookup offsets;
-                    val segments =
-                      rev rev_segments |> map (fn (span, (st, tr, st')) =>
-                        {span = Command_Span.adjust_offsets adjust span,
-                         prev_state = st, command = tr, state = st'});
-
-                    val presentation_context: Thy_Info.presentation_context =
-                     {options = options,
-                      file_pos = Position.file node_name,
-                      adjust_pos = Position.adjust_offsets adjust,
-                      segments = segments};
-                  in
+                  let val context = presentation_context options the_command_span node_name node in
                     fn _ =>
                       let
                         val _ = Output.status [Markup.markup_only Markup.consolidating];
-                        val res = Exn.capture (Thy_Info.apply_presentation presentation_context) thy;
+                        val res = Exn.capture (Thy_Info.apply_presentation context) thy;
                         val _ = commit_consolidated ();
                       in Exn.release res end
                   end
