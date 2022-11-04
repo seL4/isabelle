@@ -125,20 +125,18 @@ fun set_keywords keywords =
 
 fun read_header node span =
   let
-    val {header, errors, ...} = get_header node;
-    val _ =
-      if null errors then ()
-      else
-        cat_lines errors |>
-        (case Position.id_of (Position.thread_data ()) of
-          NONE => I
-        | SOME id => Protocol_Message.command_positions_yxml id)
-        |> error;
-    val {name = (name, _), imports, ...} = header;
-    val {name = (_, pos), imports = imports', keywords} =
-      Thy_Header.read_tokens Position.none span;
-    val imports'' = (map #1 imports ~~ map #2 imports') handle ListPair.UnequalLengths => imports;
-  in Thy_Header.make (name, pos) imports'' keywords end;
+    val (name, imports0) =
+      (case get_header node of
+        {errors = [], header = {name = (name, _), imports, ...}, ...} => (name, imports)
+      | {errors, ...} =>
+          cat_lines errors |>
+          (case Position.id_of (Position.thread_data ()) of
+            NONE => I
+          | SOME id => Protocol_Message.command_positions_yxml id)
+          |> error);
+    val {name = (_, pos), imports = imports1, keywords} = Thy_Header.read_tokens Position.none span;
+    val imports = (map #1 imports0 ~~ map #2 imports1) handle ListPair.UnequalLengths => imports0;
+  in Thy_Header.make (name, pos) imports keywords end;
 
 fun get_perspective (Node {perspective, ...}) = perspective;
 
@@ -638,15 +636,14 @@ fun init_theory deps node span =
     val _ = Output.status [Markup.markup_only Markup.initialized];
   in thy end;
 
-fun check_root_theory node =
+fun get_special_parent node =
   let
     val master_dir = master_directory node;
-    val header = #header (get_header node);
-    val header_name = #1 (#name header);
+    val header as {name = (name, _), ...} = #header (get_header node);
     val parent =
-      if header_name = Sessions.root_name then
+      if name = Sessions.root_name then
         SOME (Thy_Info.get_theory Sessions.theory_name)
-      else if member (op =) Thy_Header.ml_roots header_name then
+      else if member (op =) Thy_Header.ml_roots name then
         SOME (Thy_Info.get_theory Thy_Header.ml_bootstrapN)
       else NONE;
   in parent |> Option.map (fn thy => Resources.begin_theory master_dir header [thy]) end;
@@ -839,7 +836,7 @@ fun update old_version_id new_version_id edits consolidate state =
               timeit ("Document.update " ^ name) (fn () =>
                 Runtime.exn_trace_system (fn () =>
                   let
-                    val root_theory = check_root_theory node;
+                    val special_parent = get_special_parent node;
                     val keywords = node_keywords name node;
 
                     val maybe_consolidate = consolidate name andalso could_consolidate node;
@@ -855,7 +852,7 @@ fun update old_version_id new_version_id edits consolidate state =
                         val node0 = node_of old_version name;
                         val init = init_theory imports node;
                         val proper_init =
-                          is_some root_theory orelse
+                          is_some special_parent orelse
                             check_theory false name node andalso
                             forall (fn (name, (_, node)) => check_theory true name node) imports;
 
@@ -867,7 +864,7 @@ fun update old_version_id new_version_id edits consolidate state =
                         val common_command_exec =
                           (case common of
                             SOME id => (id, the_default Command.no_exec (the_entry node id))
-                          | NONE => (Document_ID.none, Command.init_exec root_theory));
+                          | NONE => (Document_ID.none, Command.init_exec special_parent));
 
                         val (updated_execs, (command_id', exec'), _) =
                           (print_execs, common_command_exec, if initial then SOME init else NONE)
