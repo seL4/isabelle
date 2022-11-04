@@ -16,7 +16,7 @@ sig
   type segment =
     {span: Command_Span.span, command: Toplevel.transition,
      prev_state: Toplevel.state, state: Toplevel.state}
-  val present_thy: Options.T -> Keyword.keywords -> segment list -> Latex.text
+  val present_thy: Options.T -> Keyword.keywords -> string -> segment list -> Latex.text
   val pretty_term: Proof.context -> term -> Pretty.T
   val pretty_thm: Proof.context -> thm -> Pretty.T
   val isabelle: Proof.context -> Latex.text -> Latex.text
@@ -400,7 +400,7 @@ val ignore =
 
 in
 
-fun present_thy options keywords (segments: segment list) =
+fun present_thy options keywords thy_name (segments: segment list) =
   let
     (* tokens *)
 
@@ -479,6 +479,7 @@ fun present_thy options keywords (segments: segment list) =
       |> present (Toplevel.make_state NONE) (spans ~~ command_results)
       |> present_trailer
       |> rev
+      |> Latex.isabelle_body thy_name
     else error "Messed-up outer syntax for presentation"
   end;
 

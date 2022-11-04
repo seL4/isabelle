@@ -26,7 +26,7 @@ sig
   type print
   type print_fn = Toplevel.transition -> Toplevel.state -> unit
   val print0: {pri: int, print_fn: print_fn} -> eval -> print
-  val print: bool -> (string * string list) list -> Keyword.keywords -> string ->
+  val print: Keyword.keywords -> bool -> (string * string list) list -> string ->
     eval -> print list -> print list option
   val parallel_print: print -> bool
   type print_function =
@@ -362,7 +362,7 @@ fun print0 {pri, print_fn} =
   make_print ("", [serial_string ()])
     {delay = NONE, pri = pri, persistent = true, strict = true, print_fn = print_fn};
 
-fun print command_visible command_overlays keywords command_name eval old_prints =
+fun print keywords visible overlays command_name eval old_prints =
   let
     val print_functions = Synchronized.value print_functions;
 
@@ -392,8 +392,8 @@ fun print command_visible command_overlays keywords command_name eval old_prints
     val retained_prints =
       filter (fn print => print_finished print andalso print_persistent print) old_prints;
     val visible_prints =
-      if command_visible then
-        fold (fn (name, _) => cons (name, [])) print_functions command_overlays
+      if visible then
+        fold (fn (name, _) => cons (name, [])) print_functions overlays
         |> sort_distinct overlay_ord
         |> map_filter get_print
       else [];
@@ -403,7 +403,7 @@ fun print command_visible command_overlays keywords command_name eval old_prints
   end;
 
 fun parallel_print (Print {pri, ...}) =
-  pri <= 0 orelse (Future.enabled () andalso Options.default_bool "parallel_print");
+  pri <= 0 orelse (Future.enabled () andalso Options.default_bool \<^system_option>\<open>parallel_print\<close>);
 
 fun print_function name f =
   Synchronized.change print_functions (fn funs =>
@@ -497,7 +497,8 @@ val _ =
 val _ =
   Command.print_function "print_state"
     (fn {keywords, command_name, ...} =>
-      if Options.default_bool "editor_output_state" andalso Keyword.is_printed keywords command_name
+      if Options.default_bool \<^system_option>\<open>editor_output_state\<close>
+        andalso Keyword.is_printed keywords command_name
       then
         SOME {delay = NONE, pri = Task_Queue.urgent_pri + 1, persistent = false, strict = false,
           print_fn = fn _ => fn st =>

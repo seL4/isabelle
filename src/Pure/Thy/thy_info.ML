@@ -59,14 +59,12 @@ val _ =
     if exists (Toplevel.is_skipped_proof o #state) segments then ()
     else
       let
-        val body = Document_Output.present_thy options (Thy_Header.get_keywords thy) segments;
+        val keywords = Thy_Header.get_keywords thy;
+        val thy_name = Context.theory_name thy;
+        val latex = Document_Output.present_thy options keywords thy_name segments;
       in
         if Options.string options "document" = "false" then ()
-        else
-          let
-            val thy_name = Context.theory_name thy;
-            val latex = Latex.isabelle_body thy_name body;
-          in Export.export thy \<^path_binding>\<open>document/latex\<close> latex end
+        else Export.export thy \<^path_binding>\<open>document/latex\<close> latex
       end));
 
 
