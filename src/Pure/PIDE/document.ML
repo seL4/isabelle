@@ -723,29 +723,30 @@ fun removed_execs node0 (command_id, exec_ids) =
 fun presentation_context options the_command_span node_name node : Thy_Info.presentation_context =
   let
     val (_, offsets, rev_segments) =
-      iterate_entries (fn ((prev, _), opt_exec) => fn (offset, offsets, segments) =>
-        (case opt_exec of
-          SOME (eval, _) =>
-            let
-              val command_id = Command.eval_command_id eval;
-              val span = the_command_span command_id;
+      (node, (0, Inttab.empty, [])) |-> iterate_entries
+        (fn ((prev, _), opt_exec) => fn (offset, offsets, segments) =>
+          (case opt_exec of
+            SOME (eval, _) =>
+              let
+                val command_id = Command.eval_command_id eval;
+                val span = the_command_span command_id;
 
-              val st =
-                (case try (#1 o the o the_entry node o the) prev of
-                  NONE => Toplevel.make_state NONE
-                | SOME prev_eval => Command.eval_result_state prev_eval);
+                val st =
+                  (case try (#1 o the o the_entry node o the) prev of
+                    NONE => Toplevel.make_state NONE
+                  | SOME prev_eval => Command.eval_result_state prev_eval);
 
-              val exec_id = Command.eval_exec_id eval;
-              val tr = Command.eval_result_command eval;
-              val st' = Command.eval_result_state eval;
+                val exec_id = Command.eval_exec_id eval;
+                val tr = Command.eval_result_command eval;
+                val st' = Command.eval_result_state eval;
 
-              val offset' = offset + the_default 0 (Command_Span.symbol_length span);
-              val offsets' = offsets
-                |> Inttab.update (command_id, offset)
-                |> Inttab.update (exec_id, offset);
-              val segments' = (span, (st, tr, st')) :: segments;
-            in SOME (offset', offsets', segments') end
-        | NONE => NONE)) node (0, Inttab.empty, []);
+                val offset' = offset + the_default 0 (Command_Span.symbol_length span);
+                val offsets' = offsets
+                  |> Inttab.update (command_id, offset)
+                  |> Inttab.update (exec_id, offset);
+                val segments' = (span, (st, tr, st')) :: segments;
+              in SOME (offset', offsets', segments') end
+          | NONE => NONE));
 
     val adjust = Inttab.lookup offsets;
     val segments =
