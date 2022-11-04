@@ -15,6 +15,7 @@ with demo documents in the regular Isabelle "doc" space:
   - Easychair as session "Demo_Easychair" / doc "demo_easychair"
   - FoilTeX as session "Demo_FoilTeX" / doc "demo_foiltex"
   - Dagstuhl LIPIcs style as session "Demo_LIPIcs" / doc "demo_lipics"
+  - Springer LaTeX LNCS style as session "Demo_LLNCS" / doc "demo_llncs"
 
 
 *** HOL ***

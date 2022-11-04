@@ -1,0 +1,37 @@
+\documentclass[runningheads]{llncs}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amssymb}
+
+\usepackage{isabelle,isabellesym}
+\isabellestyle{it}
+
+\isadroptag{theory}
+\isafoldtag{proof}
+
+
+\title{Isabelle document preparation with Springer {\LaTeX} LNCS style}
+\author{Makarius Wenzel\inst{1}\orcidID{https://orcid.org/0000-0002-3753-8280}}
+\authorrunning{M. Wenzel}
+\institute{Augsburg, Germany \\ \url{https://sketis.net}}
+
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Isabelle is a formal document preparation system. This example shows how to
+use it together with the Springer {\LaTeX} LNCS style. See
+\url{https://www.springer.com/gp/computer-science/lncs/conference-proceedings-guidelines}
+for further information.
+
+\keywords{Document preparation}
+\end{abstract}
+
+\input{session}
+
+\bibliographystyle{splncs04}
+\bibliography{root}
+
+\end{document}

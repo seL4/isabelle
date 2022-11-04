@@ -1,0 +1,13 @@
+chapter Doc
+
+session Demo_LLNCS (doc) = HOL +
+  options [document_variants = "demo_llncs",
+    document_build = "pdflatex", document_heading_prefix = "", document_comment_latex]
+  theories
+    Document
+  document_files (in "$ISABELLE_LLNCS_HOME")
+    "llncs.cls"
+    "splncs04.bst"
+  document_files
+    "root.bib"
+    "root.tex"

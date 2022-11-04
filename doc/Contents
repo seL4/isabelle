@@ -22,6 +22,7 @@ Demo Documents
   demo_easychair  Demo for Easychair style
   demo_foiltex    Demo for FoilTeX: slides in LaTeX
   demo_lipics     Demo for Dagstuhl LIPIcs style
+  demo_llncs      Demo for Springer LaTeX LNCS style
 
 Old Isabelle Manuals
   tutorial        Tutorial on Isabelle/HOL

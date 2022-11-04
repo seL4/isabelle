@@ -24,6 +24,7 @@ sources = \
   src/Pure/Admin/build_jdk.scala \
   src/Pure/Admin/build_jedit.scala \
   src/Pure/Admin/build_lipics.scala \
+  src/Pure/Admin/build_llncs.scala \
   src/Pure/Admin/build_log.scala \
   src/Pure/Admin/build_minisat.scala \
   src/Pure/Admin/build_pdfjs.scala \
