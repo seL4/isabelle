@@ -403,7 +403,7 @@ fun print keywords visible overlays command_name eval old_prints =
   end;
 
 fun parallel_print (Print {pri, ...}) =
-  pri <= 0 orelse (Future.enabled () andalso Options.default_bool "parallel_print");
+  pri <= 0 orelse (Future.enabled () andalso Options.default_bool \<^system_option>\<open>parallel_print\<close>);
 
 fun print_function name f =
   Synchronized.change print_functions (fn funs =>
@@ -497,7 +497,8 @@ val _ =
 val _ =
   Command.print_function "print_state"
     (fn {keywords, command_name, ...} =>
-      if Options.default_bool "editor_output_state" andalso Keyword.is_printed keywords command_name
+      if Options.default_bool \<^system_option>\<open>editor_output_state\<close>
+        andalso Keyword.is_printed keywords command_name
       then
         SOME {delay = NONE, pri = Task_Queue.urgent_pri + 1, persistent = false, strict = false,
           print_fn = fn _ => fn st =>

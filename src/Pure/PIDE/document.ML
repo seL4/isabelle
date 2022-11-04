@@ -530,7 +530,7 @@ fun start_execution state = state |> map_state (fn (versions, blobs, commands, e
     let
       val {version_id, execution_id, delay_request, parallel_prints} = execution;
 
-      val delay = seconds (Options.default_real "editor_execution_delay");
+      val delay = seconds (Options.default_real \<^system_option>\<open>editor_execution_delay\<close>);
 
       val _ = Future.cancel delay_request;
       val delay_request' = Event_Timer.future {physical = true} (Time.now () + delay);
@@ -779,7 +779,7 @@ fun print_consolidation options the_command_span node_name (assign_update, node)
             (Lazy.force (get_consolidated node);
              Output.status [Markup.markup_only Markup.consolidated]);
           val consolidation =
-            if Options.bool options "pide_presentation" then
+            if Options.bool options \<^system_option>\<open>pide_presentation\<close> then
               let val context = presentation_context options the_command_span node_name node in
                 fn _ =>
                   let
