@@ -724,7 +724,7 @@ fun presentation_context options the_command_span node_name node : Thy_Info.pres
   let
     val (_, offsets, rev_segments) =
       (node, (0, Inttab.empty, [])) |-> iterate_entries
-        (fn ((prev, _), opt_exec) => fn (offset, offsets, segments) =>
+        (fn ((prev, id), opt_exec) => fn (offset, offsets, segments) =>
           (case opt_exec of
             SOME (eval, _) =>
               let
@@ -746,7 +746,7 @@ fun presentation_context options the_command_span node_name node : Thy_Info.pres
                   |> Inttab.update (exec_id, offset);
                 val segments' = (span, (st, tr, st')) :: segments;
               in SOME (offset', offsets', segments') end
-          | NONE => NONE));
+          | NONE => raise Fail ("Unassigned exec " ^ Value.print_int id)));
 
     val adjust = Inttab.lookup offsets;
     val segments =
