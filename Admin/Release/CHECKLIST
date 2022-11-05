@@ -3,6 +3,9 @@ Checklist for official releases
 
 - check latest updates of polyml, jdk, scala, jedit;
 
+- check isabelle.Dotnet_Setup.default_version:
+    $ isabelle dotnet_setup -n -v -V "" | grep invocation
+
 - check Admin/components;
 
 - test "isabelle dump -b Pure ZF";
