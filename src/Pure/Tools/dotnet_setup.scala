@@ -43,7 +43,13 @@ object Dotnet_Setup {
 
   /* dotnet download and setup */
 
-  def default_platform: String = Platform.Family.native(Platform.family)
+  def default_platform: String = {
+    val self = Isabelle_Platform.self
+    proper_string(self.ISABELLE_WINDOWS_PLATFORM64).getOrElse(
+      proper_string(self.ISABELLE_APPLE_PLATFORM64).getOrElse(
+        self.ISABELLE_PLATFORM64))
+  }
+
   def default_target_dir: Path = Path.explode("$ISABELLE_COMPONENTS_BASE")
   def default_install_url: String = "https://dot.net/v1/dotnet-install"
   def default_version: String = "6.0.402"
