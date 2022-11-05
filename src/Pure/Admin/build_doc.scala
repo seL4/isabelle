@@ -95,7 +95,7 @@ object Build_Doc {
 Usage: isabelle build_doc [OPTIONS] [DOCS ...]
 
   Options are:
-    -V           view resulting documents
+    -V           view explicitly given documents
     -a           select all documentation sessions
     -j INT       maximum number of parallel jobs (default 1)
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
