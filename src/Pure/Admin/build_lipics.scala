@@ -14,6 +14,13 @@ package isabelle
 
 
 object Build_LIPIcs {
+  /* files for document preparation */
+
+  val document_files: List[Path] =
+    for (name <- List("cc-by.pdf", "lipics-logo-bw.pdf", "lipics-v2021.cls"))
+      yield Path.explode("$ISABELLE_LIPICS_HOME/" + name)
+
+
   /* build lipics component */
 
   val default_url = "https://github.com/dagstuhl-publishing/styles/archive/refs/tags/v2021.1.2.tar.gz"

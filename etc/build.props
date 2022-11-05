@@ -297,6 +297,7 @@ services = \
   isabelle.Bash$Handler \
   isabelle.Bibtex$File_Format \
   isabelle.Document_Build$Build_Engine \
+  isabelle.Document_Build$LIPIcs_Engine \
   isabelle.Document_Build$LuaLaTeX_Engine \
   isabelle.Document_Build$PDFLaTeX_Engine \
   isabelle.CI_Builds \

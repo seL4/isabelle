@@ -217,12 +217,15 @@ object Document_Build {
 
     /* document directory */
 
+    def make_directory(dir: Path, doc: Document_Variant): Path =
+      Isabelle_System.make_directory(dir + Path.basic(doc.name))
+
     def prepare_directory(
       dir: Path,
       doc: Document_Variant,
       latex_output: Latex.Output
     ): Directory = {
-      val doc_dir = Isabelle_System.make_directory(dir + Path.basic(doc.name))
+      val doc_dir = make_directory(dir, doc)
 
 
       /* actual sources: with SHA1 digest */
@@ -382,6 +385,21 @@ object Document_Build {
   class LuaLaTeX_Engine extends Bash_Engine("lualatex")
   class PDFLaTeX_Engine extends Bash_Engine("pdflatex") { override def use_pdflatex: Boolean = true }
   class Build_Engine extends Bash_Engine("build") { override def use_build_script: Boolean = true }
+
+  class LIPIcs_Engine extends Bash_Engine("lipics") {
+    def lipics_options(options: Options): Options =
+      options + "document_heading_prefix=" + "document_comment_latex"
+
+    override def use_pdflatex: Boolean = true
+
+    override def prepare_directory(context: Context, dir: Path, doc: Document_Variant): Directory = {
+      val doc_dir = context.make_directory(dir, doc)
+      Build_LIPIcs.document_files.foreach(Isabelle_System.copy_file(_, doc_dir))
+
+      val latex_output = new Latex.Output(lipics_options(context.options))
+      context.prepare_directory(dir, doc, latex_output)
+    }
+  }
 
 
   /* build documents */
