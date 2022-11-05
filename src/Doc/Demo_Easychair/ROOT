@@ -1,7 +1,7 @@
-chapter Doc
+chapter Doc  (*Isabelle documentation*)
 
 session Demo_Easychair (doc) = HOL +
-  options [document_variants = "demo_easychair"]
+  options [document_variants = "demo_easychair"]  (*Isabelle documentation*)
   theories
     Document
   document_files (in "$ISABELLE_EASYCHAIR_HOME")
