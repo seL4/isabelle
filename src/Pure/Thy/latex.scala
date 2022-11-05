@@ -157,7 +157,7 @@ object Latex {
     if (file_pos.isEmpty) Nil
     else List("\\endinput\n", position(Markup.FILE, file_pos))
 
-  class Output(options: Options) {
+  class Output(val options: Options) {
     def latex_output(latex_text: Text): String = apply(latex_text)
 
     def latex_macro0(name: String, optional_argument: String = ""): Text =

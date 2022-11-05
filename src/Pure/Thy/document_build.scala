@@ -229,7 +229,7 @@ object Document_Build {
 
       isabelle_styles.foreach(Isabelle_System.copy_file(_, doc_dir))
 
-      val comment_latex = options.bool("document_comment_latex")
+      val comment_latex = latex_output.options.bool("document_comment_latex")
       if (!comment_latex) {
         Isabelle_System.copy_file(texinputs + Path.basic("comment.sty"), doc_dir)
       }
