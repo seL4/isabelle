@@ -63,6 +63,8 @@ elif [ -n "$ISABELLE_APPLE_PLATFORM64" -a -d "$COMPONENT/$ISABELLE_APPLE_PLATFOR
 elif [ -d "$COMPONENT/$ISABELLE_PLATFORM64" ]; then
   ISABELLE_DOTNET="$COMPONENT/$ISABELLE_PLATFORM64/dotnet"
 fi
+
+DOTNET_CLI_TELEMETRY_OPTOUT="true"
 """
 
   def dotnet_setup(
@@ -166,6 +168,7 @@ Usage: isabelle dotnet_setup [OPTIONS]
   See also:
     https://fsharp.org
     https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-install-script
+    https://learn.microsoft.com/en-us/dotnet/core/tools/telemetry
 """,
           "D:" -> (arg => target_dir = Path.explode(arg)),
           "I:" -> (arg => install_url = arg),
