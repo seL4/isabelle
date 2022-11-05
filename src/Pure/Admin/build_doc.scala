@@ -16,7 +16,8 @@ object Build_Doc {
     all_docs: Boolean = false,
     max_jobs: Int = 1,
     sequential: Boolean = false,
-    docs: List[String] = Nil
+    docs: List[String] = Nil,
+    view: Boolean = false
   ): Unit = {
     val sessions_structure = Sessions.load_structure(options)
     val selected =
@@ -69,6 +70,12 @@ object Build_Doc {
       }, selected, sequential = sequential).flatten
 
     if (errs.nonEmpty) error(cat_lines(errs))
+
+    if (view) {
+      for (doc <- Doc.main_contents().docs if docs.contains(doc.name)) {
+        Doc.view(doc.path)
+      }
+    }
   }
 
 
@@ -77,6 +84,7 @@ object Build_Doc {
   val isabelle_tool =
     Isabelle_Tool("build_doc", "build Isabelle documentation", Scala_Project.here,
       { args =>
+        var view = false
         var all_docs = false
         var max_jobs = 1
         var sequential = false
@@ -87,6 +95,7 @@ object Build_Doc {
 Usage: isabelle build_doc [OPTIONS] [DOCS ...]
 
   Options are:
+    -V           view resulting documents
     -a           select all documentation sessions
     -j INT       maximum number of parallel jobs (default 1)
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
@@ -95,6 +104,7 @@ Usage: isabelle build_doc [OPTIONS] [DOCS ...]
   Build Isabelle documentation from documentation sessions with
   suitable document_variants entry.
 """,
+            "V" -> (_ => view = true),
             "a" -> (_ => all_docs = true),
             "j:" -> (arg => max_jobs = Value.Int.parse(arg)),
             "o:" -> (arg => options = options + arg),
@@ -108,7 +118,7 @@ Usage: isabelle build_doc [OPTIONS] [DOCS ...]
 
         progress.interrupt_handler {
           build_doc(options, progress = progress, all_docs = all_docs, max_jobs = max_jobs,
-            sequential = sequential, docs = docs)
+            sequential = sequential, docs = docs, view = view)
         }
       })
 }
