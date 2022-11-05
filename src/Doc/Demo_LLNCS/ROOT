@@ -1,7 +1,10 @@
-chapter Doc
+chapter Doc  (*Isabelle documentation*)
 
 session Demo_LLNCS (doc) = HOL +
-  options [document_variants = "demo_llncs"]
+  options [
+    document_variants = "demo_llncs",  (*Isabelle documentation*)
+    document_build = "pdflatex"  (*or: omit option for LuaLaTeX*)
+  ]
   theories
     Document
   document_files (in "$ISABELLE_LLNCS_HOME")

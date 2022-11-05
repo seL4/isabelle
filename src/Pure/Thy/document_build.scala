@@ -386,7 +386,7 @@ object Document_Build {
   class PDFLaTeX_Engine extends Bash_Engine("pdflatex") { override def use_pdflatex: Boolean = true }
   class Build_Engine extends Bash_Engine("build") { override def use_build_script: Boolean = true }
 
-  class LIPIcs_Engine extends Bash_Engine("lipics") {
+  class LIPIcs_Engine(name: String) extends Bash_Engine(name) {
     def lipics_options(options: Options): Options =
       options + "document_heading_prefix=" + "document_comment_latex"
 
@@ -399,6 +399,10 @@ object Document_Build {
       val latex_output = new Latex.Output(lipics_options(context.options))
       context.prepare_directory(dir, doc, latex_output)
     }
+  }
+  class LIPIcs_LuaLaTeX_Engine extends LIPIcs_Engine("lipics")
+  class LIPIcs_PDFLaTeX_Engine extends LIPIcs_Engine("lipics_pdflatex") {
+    override def use_pdflatex: Boolean = true
   }
 
 
