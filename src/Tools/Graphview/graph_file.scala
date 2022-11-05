@@ -33,11 +33,12 @@ object Graph_File {
   }
 
   def write(options: Options, file: JFile, graph: Graph_Display.Graph): Unit = {
-    val the_options = options
+    val graphview_options = options
     val graphview =
-      new Graphview(graph.transitive_reduction_acyclic) { def options = the_options }
+      new Graphview(graph.transitive_reduction_acyclic) {
+        def options: Options = graphview_options
+      }
     graphview.update_layout()
-
     write(file, graphview)
   }
 
