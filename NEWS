@@ -83,6 +83,13 @@ support the Dotnet platform (.NET), which includes Fsharp (F#). This
 works uniformly on all Isabelle OS platforms, even as cross-platform
 installation: "isabelle dotnet_setup -p linux_arm,linux,macos,windows".
 
+Example:
+
+  isabelle dotnet_setup
+  isabelle dotnet fsi
+  > 1 + 1;;
+  > #quit;;
+
 
 
 New in Isabelle2022 (October 2022)
