@@ -166,10 +166,6 @@ Usage: isabelle dotnet_setup [OPTIONS]
   See also:
     https://fsharp.org
     https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-install-script
-
-  Example:
-    isabelle dotnet_setup
-    isabelle dotnet fsi
 """,
           "D:" -> (arg => target_dir = Path.explode(arg)),
           "I:" -> (arg => install_url = arg),
