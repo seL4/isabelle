@@ -222,6 +222,9 @@ let
 in proc end
 \<close>
 
+(* Needs to be used with care *)
+declare [[simproc del: finite]]
+
 lemma finite_UnI:
   assumes "finite F" and "finite G"
   shows "finite (F \<union> G)"
