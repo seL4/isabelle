@@ -184,6 +184,7 @@ sources = \
   src/Pure/Tools/check_keywords.scala \
   src/Pure/Tools/debugger.scala \
   src/Pure/Tools/doc.scala \
+  src/Pure/Tools/dotnet_setup.scala \
   src/Pure/Tools/dump.scala \
   src/Pure/Tools/flarum.scala \
   src/Pure/Tools/fontforge.scala \

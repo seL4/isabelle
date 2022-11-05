@@ -78,6 +78,11 @@ with demo documents in the regular Isabelle "doc" space:
 via Compress.Options and Compress.Cache. Bytes.uncompress automatically
 detects the compression scheme.
 
+* The command-line tools "isabelle dotnet_setup" and "isabelle dotnet"
+support the Dotnet platform (.NET), which includes Fsharp (F#). This
+works uniformly on all Isabelle OS platforms, even as cross-platform
+installation: "isabelle dotnet_setup -p linux_arm,linux,macos,windows".
+
 
 
 New in Isabelle2022 (October 2022)

@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+#
+# Author: Makarius
+#
+# DESCRIPTION: invoke the dotnet CLI driver within the Isabelle environment
+
+if [ -z "$ISABELLE_DOTNET" ]; then
+  echo "Missing dotnet installation: use \"isabelle dotnet_setup\" first" >&2
+  exit 2
+else
+  exec "$ISABELLE_DOTNET" "$@"
+fi
