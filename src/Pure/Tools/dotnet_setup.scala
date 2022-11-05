@@ -81,7 +81,6 @@ fi
       if platform.family.toString == platform_spec || platform.name == platform_spec
     } {
       progress.expose_interrupt()
-      platform.check()
 
 
       /* component directory */
@@ -119,6 +118,7 @@ fi
         }
         else {
           progress.echo("Platform " + platform.name + " ...")
+          platform.check()
           val script =
             platform.exec + " " + File.bash_platform_path(install) +
               (if (version.nonEmpty) " -Version " + Bash.string(version) else "") +
