@@ -10,7 +10,7 @@ package isabelle
 object Build_Zstd {
   /* platforms */
 
-  sealed case class Platform(name: String, template: String, exe: Boolean = false) {
+  sealed case class Platform_Info(name: String, template: String, exe: Boolean = false) {
     def install(jar_dir: Path, component_dir: Path, version: String): Unit = {
       val source = jar_dir + Path.explode(template.replace("{V}", version))
       val target = Isabelle_System.make_directory(component_dir + Path.basic(name))
@@ -21,11 +21,11 @@ object Build_Zstd {
 
   private val platforms =
     List(
-      Platform("arm64-darwin", "darwin/aarch64/libzstd-jni-{V}.dylib"),
-      Platform("x86_64-darwin", "darwin/x86_64/libzstd-jni-{V}.dylib"),
-      Platform("arm64-linux", "linux/aarch64/libzstd-jni-{V}.so"),
-      Platform("x86_64-linux", "linux/amd64/libzstd-jni-{V}.so"),
-      Platform("x86_64-windows", "win/amd64/libzstd-jni-{V}.dll", exe = true))
+      Platform_Info("arm64-darwin", "darwin/aarch64/libzstd-jni-{V}.dylib"),
+      Platform_Info("x86_64-darwin", "darwin/x86_64/libzstd-jni-{V}.dylib"),
+      Platform_Info("arm64-linux", "linux/aarch64/libzstd-jni-{V}.so"),
+      Platform_Info("x86_64-linux", "linux/amd64/libzstd-jni-{V}.so"),
+      Platform_Info("x86_64-windows", "win/amd64/libzstd-jni-{V}.dll", exe = true))
 
 
   /* build zstd */
