@@ -96,6 +96,7 @@ elif [ -d "$ISABELLE_DOTNET_ROOT/$ISABELLE_PLATFORM64" ]; then
 fi
 
 DOTNET_CLI_TELEMETRY_OPTOUT="true"
+DOTNET_CLI_HOME="$(platform_path "$ISABELLE_HOME_USER/dotnet")"
 """)
 
         File.write(component_dir + Path.explode("README"),
