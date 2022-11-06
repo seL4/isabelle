@@ -54,19 +54,6 @@ object Dotnet_Setup {
   def default_install_url: String = "https://dot.net/v1/dotnet-install"
   def default_version: String = "6.0.402"
 
-  private val settings = """# -*- shell-script -*- :mode=shellscript:
-
-if [ -n "$ISABELLE_WINDOWS_PLATFORM64" -a -d "$COMPONENT/$ISABELLE_WINDOWS_PLATFORM64" ]; then
-  ISABELLE_DOTNET="$COMPONENT/$ISABELLE_WINDOWS_PLATFORM64/dotnet.exe"
-elif [ -n "$ISABELLE_APPLE_PLATFORM64" -a -d "$COMPONENT/$ISABELLE_APPLE_PLATFORM64" ]; then
-  ISABELLE_DOTNET="$COMPONENT/$ISABELLE_APPLE_PLATFORM64/dotnet"
-elif [ -d "$COMPONENT/$ISABELLE_PLATFORM64" ]; then
-  ISABELLE_DOTNET="$COMPONENT/$ISABELLE_PLATFORM64/dotnet"
-fi
-
-DOTNET_CLI_TELEMETRY_OPTOUT="true"
-"""
-
   def dotnet_setup(
     platform_spec: String = default_platform,
     target_dir: Path = default_target_dir,
@@ -91,12 +78,24 @@ DOTNET_CLI_TELEMETRY_OPTOUT="true"
         target_dir + Path.explode(if (version.isEmpty) "dotnet-latest" else "dotnet-" + version)
 
       if (!dry_run) {
-        val etc_dir = Isabelle_System.make_directory(component_dir + Path.explode("etc"))
-        val settings_path = etc_dir + Path.explode("settings")
-        if (!settings_path.is_file) {
-          progress.echo("Component " + component_dir.expand)
-          File.write(settings_path, settings)
-        }
+        progress.echo("Component " + component_dir.expand)
+
+        val settings_path = component_dir + Path.explode("etc/settings")
+        Isabelle_System.make_directory(settings_path.dir)
+        File.write(settings_path, """# -*- shell-script -*- :mode=shellscript:
+
+ISABELLE_DOTNET_ROOT="$COMPONENT"
+
+if [ -n "$ISABELLE_WINDOWS_PLATFORM64" -a -d "$ISABELLE_DOTNET_ROOT/$ISABELLE_WINDOWS_PLATFORM64" ]; then
+  ISABELLE_DOTNET="$ISABELLE_DOTNET_ROOT/$ISABELLE_WINDOWS_PLATFORM64/dotnet.exe"
+elif [ -n "$ISABELLE_APPLE_PLATFORM64" -a -d "$ISABELLE_DOTNET_ROOT/$ISABELLE_APPLE_PLATFORM64" ]; then
+  ISABELLE_DOTNET="$ISABELLE_DOTNET_ROOT/$ISABELLE_APPLE_PLATFORM64/dotnet"
+elif [ -d "$ISABELLE_DOTNET_ROOT/$ISABELLE_PLATFORM64" ]; then
+  ISABELLE_DOTNET="$ISABELLE_DOTNET_ROOT/$ISABELLE_PLATFORM64/dotnet"
+fi
+
+DOTNET_CLI_TELEMETRY_OPTOUT="true"
+""")
 
         File.write(component_dir + Path.explode("README"),
           """This installation of Dotnet has been produced via "isabelle dotnet_setup".
@@ -104,6 +103,10 @@ DOTNET_CLI_TELEMETRY_OPTOUT="true"
 
         Makarius
         """ + Date.Format.date(Date.now()) + "\n")
+
+        for (old <- proper_string(Isabelle_System.getenv("ISABELLE_DOTNET_ROOT"))) {
+          Components.update_components(false, Path.explode(old))
+        }
 
         Components.update_components(true, component_dir)
       }
