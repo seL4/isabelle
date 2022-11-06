@@ -774,32 +774,22 @@ fun presentation_context options the_command_span node_name node : Thy_Info.pres
 fun print_consolidation options the_command_span node_name (assign_update, node) =
   timeit "Document.print_consolidation" (fn () =>
     (case finished_result_theory node of
-      SOME (result_id, thy) =>
+      SOME (id, thy) =>
         if finished_eval node then
           let
-            fun commit_consolidated () =
-              (Lazy.force (get_consolidated node);
-               Output.status [Markup.markup_only Markup.consolidated]);
-            val consolidation =
-              if Options.bool options \<^system_option>\<open>pide_presentation\<close> then
-                let val context = presentation_context options the_command_span node_name node in
-                  fn _ =>
-                    let
-                      val _ = Output.status [Markup.markup_only Markup.consolidating];
-                      val res = Exn.capture (Thy_Info.apply_presentation context) thy;
-                      val _ = commit_consolidated ();
-                    in Exn.release res end
-                end
-              else fn _ => commit_consolidated ();
-
+            val context = presentation_context options the_command_span node_name node;
+            val pr =
+              {pri = Task_Queue.urgent_pri + 1, print_fn = fn _ => fn _ =>
+                let
+                  val _ = Output.status [Markup.markup_only Markup.consolidating];
+                  val res = Exn.capture (Thy_Info.apply_presentation context) thy;
+                  val _ = Lazy.force (get_consolidated node);
+                  val _ = Output.status [Markup.markup_only Markup.consolidated];
+                in Exn.release res end};
             val result_entry =
-              (case lookup_entry node result_id of
-                NONE => err_undef "result command entry" result_id
-              | SOME (eval, prints) =>
-                  let
-                    val print = eval |> Command.print0
-                      {pri = Task_Queue.urgent_pri + 1, print_fn = K consolidation};
-                  in (result_id, SOME (eval, print :: prints)) end);
+              (case lookup_entry node id of
+                NONE => err_undef "result command entry" id
+              | SOME (eval, prints) => (id, SOME (eval, Command.print0 pr eval :: prints)));
 
             val assign_update' = assign_update |> assign_update_change result_entry;
             val node' = node |> assign_entry result_entry;
