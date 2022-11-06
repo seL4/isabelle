@@ -162,12 +162,13 @@ Usage: isabelle dotnet_setup [OPTIONS]
 
   Options are:
     -D DIR       target directory (default: """ + default_target_dir.expand + """)
-    -I URL       URL for install script without extension (default: """ + quote(default_install_url) + """)
+    -I URL       URL for install script without extension
+                 (default: """ + quote(default_install_url) + """)
     -V VERSION   version (empty means "latest", default: """ + quote(default_version) + """)
     -f           force fresh installation of specified platforms
     -n           dry run: try download without installation
-    -p PLATFORMS list of platforms as family or formal name, separated by commas
-                 (default: """ + quote(default_platform) + """)
+    -p PLATFORMS comma-separated list of platform specifications,
+                 as family or formal name (default: """ + quote(default_platform) + """)
     -v           verbose
 
   Download the Dotnet / Fsharp platform and configure it as Isabelle component.
