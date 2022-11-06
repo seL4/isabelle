@@ -778,8 +778,8 @@ fun print_consolidation options the_command_span node_name (assign_update, node)
         if finished_eval node then
           let
             val context = presentation_context options the_command_span node_name node;
-            val pr =
-              {pri = Task_Queue.urgent_pri + 1, print_fn = fn _ => fn _ =>
+            val consolidate =
+              Command.print0 {pri = Task_Queue.urgent_pri + 1, print_fn = fn _ => fn _ =>
                 let
                   val _ = Output.status [Markup.markup_only Markup.consolidating];
                   val res = Exn.capture (Thy_Info.apply_presentation context) thy;
@@ -789,7 +789,7 @@ fun print_consolidation options the_command_span node_name (assign_update, node)
             val result_entry =
               (case lookup_entry node id of
                 NONE => err_undef "result command entry" id
-              | SOME (eval, prints) => (id, SOME (eval, Command.print0 pr eval :: prints)));
+              | SOME (eval, prints) => (id, SOME (eval, consolidate eval :: prints)));
 
             val assign_update' = assign_update |> assign_update_change result_entry;
             val node' = node |> assign_entry result_entry;
