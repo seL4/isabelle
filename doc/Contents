@@ -20,6 +20,7 @@ Isabelle Reference Manuals!
 
 Demo Documents
   demo_easychair  Demo for Easychair style
+  demo_eptcs      Demo for EPTCS style
   demo_foiltex    Demo for FoilTeX: slides in LaTeX
   demo_lipics     Demo for Dagstuhl LIPIcs style
   demo_llncs      Demo for Springer LaTeX LNCS style

@@ -1,0 +1,15 @@
+chapter Doc  (*Isabelle documentation*)
+
+session Demo_EPTCS (doc) = HOL +
+  options [
+    document_variants = "demo_eptcs",  (*Isabelle documentation*)
+    document_build = "pdflatex"  (*or: omit option for LuaLaTeX*)
+  ]
+  theories
+    Document
+  document_files (in "$ISABELLE_EPTCS_HOME")
+    "eptcs.bst"
+    "eptcs.cls"
+  document_files
+    "root.bib"
+    "root.tex"
