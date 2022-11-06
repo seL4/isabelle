@@ -119,6 +119,8 @@ object Session {
 class Session(_session_options: => Options, val resources: Resources) extends Document.Session {
   session =>
 
+  val init_time: Time = Time.now()
+
   val cache: Term.Cache = Term.Cache.make()
 
   def build_blobs_info(name: Document.Node.Name): Command.Blobs_Info =
