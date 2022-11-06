@@ -293,7 +293,9 @@ object Build {
     }
 
     def sleep(): Unit =
-      Isabelle_Thread.interrupt_handler(_ => progress.stop()) { Time.seconds(0.5).sleep() }
+      Isabelle_Thread.interrupt_handler(_ => progress.stop()) {
+        build_options.seconds("editor_input_delay").sleep()
+      }
 
     val log =
       build_options.string("system_log") match {
