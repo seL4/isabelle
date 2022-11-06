@@ -213,9 +213,9 @@ object Command {
     exports: Exports = Exports.empty,
     markups: Markups = Markups.empty
   ) {
-    def initialized: Boolean = status.exists(markup => markup.name == Markup.INITIALIZED)
-    def consolidating: Boolean = status.exists(markup => markup.name == Markup.CONSOLIDATING)
-    def consolidated: Boolean = status.exists(markup => markup.name == Markup.CONSOLIDATED)
+    lazy val initialized: Boolean = status.exists(markup => markup.name == Markup.INITIALIZED)
+    lazy val consolidating: Boolean = status.exists(markup => markup.name == Markup.CONSOLIDATING)
+    lazy val consolidated: Boolean = status.exists(markup => markup.name == Markup.CONSOLIDATED)
 
     lazy val maybe_consolidated: Boolean = {
       var touched = false
