@@ -121,7 +121,7 @@ Usage: isabelle build_cvc5 [OPTIONS]
     -U URL       download URL (default: """" + default_url + """")
     -V VERSION   version (default: """" + default_version + """")
 
-  Build component for Java Chromium Embedded Framework.
+  Build component for cvc5 solver.
 """,
           "D:" -> (arg => target_dir = Path.explode(arg)),
           "U:" -> (arg => base_url = arg),
