@@ -1,7 +1,7 @@
 /*  Title:      Pure/Admin/build_eptcs.scala
     Author:     Makarius
 
-Build Isabelle component for EPTCS style.
+Build Isabelle component for EPTCS LaTeX style.
 
 See also:
   - http://style.eptcs.org
@@ -69,7 +69,7 @@ ISABELLE_EPTCS_HOME="$COMPONENT"
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("build_eptcs", "build component for EPTCS style",
+    Isabelle_Tool("build_eptcs", "build component for EPTCS LaTeX style",
       Scala_Project.here,
       { args =>
         var target_dir = Path.current
@@ -84,7 +84,7 @@ Usage: isabelle build_eptcs [OPTIONS]
     -U URL       download URL (default: """" + default_url + """")
     -V VERSION   version (default: """" + default_version + """")
 
-  Build component for EPTCS style.
+  Build component for EPTCS LaTeX style.
 """,
           "D:" -> (arg => target_dir = Path.explode(arg)),
           "U:" -> (arg => base_url = arg),

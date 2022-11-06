@@ -1,7 +1,7 @@
 /*  Title:      Pure/Admin/build_easychair.scala
     Author:     Makarius
 
-Build Isabelle component for Easychair style.
+Build Isabelle component for Easychair LaTeX style.
 
 See also https://easychair.org/publications/for_authors
 */
@@ -80,7 +80,7 @@ ISABELLE_EASYCHAIR_HOME="$COMPONENT"
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("build_easychair", "build component for Easychair style",
+    Isabelle_Tool("build_easychair", "build component for Easychair LaTeX style",
       Scala_Project.here,
       { args =>
         var target_dir = Path.current
@@ -93,7 +93,7 @@ Usage: isabelle build_easychair [OPTIONS]
     -D DIR       target directory (default ".")
     -U URL       download URL (default: """" + default_url + """")
 
-  Build component for Easychair style.
+  Build component for Easychair LaTeX style.
 """,
           "D:" -> (arg => target_dir = Path.explode(arg)),
           "U:" -> (arg => download_url = arg))
