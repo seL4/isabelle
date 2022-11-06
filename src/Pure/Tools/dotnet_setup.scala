@@ -59,6 +59,7 @@ object Dotnet_Setup {
     target_dir: Path = default_target_dir,
     install_url: String = default_install_url,
     version: String = default_version,
+    force: Boolean = false,
     dry_run: Boolean = false,
     verbose: Boolean = false,
     progress: Progress = new Progress
@@ -118,12 +119,13 @@ DOTNET_CLI_TELEMETRY_OPTOUT="true"
         Isabelle_System.download_file(install_url + "." + platform.ext, install)
 
         val platform_dir = component_dir + Path.explode(platform.name)
-        if (platform_dir.is_dir) {
+        if (platform_dir.is_dir && !force) {
           progress.echo_warning("Platform " + platform.name + " already installed")
         }
         else {
           progress.echo("Platform " + platform.name + " ...")
           platform.check()
+          if (platform_dir.is_dir && force) Isabelle_System.rm_tree(platform_dir)
           val script =
             platform.exec + " " + File.bash_platform_path(install) +
               (if (version.nonEmpty) " -Version " + Bash.string(version) else "") +
@@ -150,6 +152,7 @@ DOTNET_CLI_TELEMETRY_OPTOUT="true"
         var target_dir = default_target_dir
         var install_url = default_install_url
         var version = default_version
+        var force = false
         var dry_run = false
         var platforms = List(default_platform)
         var verbose = false
@@ -161,9 +164,10 @@ Usage: isabelle dotnet_setup [OPTIONS]
     -D DIR       target directory (default: """ + default_target_dir.expand + """)
     -I URL       URL for install script without extension (default: """ + quote(default_install_url) + """)
     -V VERSION   version (empty means "latest", default: """ + quote(default_version) + """)
+    -f           force fresh installation of specified platforms
     -n           dry run: try download without installation
     -p PLATFORMS list of platforms as family or formal name, separated by commas
-                 (default: """ + quote(default_platform) + """
+                 (default: """ + quote(default_platform) + """)
     -v           verbose
 
   Download the Dotnet / Fsharp platform and configure it as Isabelle component.
@@ -176,6 +180,7 @@ Usage: isabelle dotnet_setup [OPTIONS]
           "D:" -> (arg => target_dir = Path.explode(arg)),
           "I:" -> (arg => install_url = arg),
           "V:" -> (arg => version = arg),
+          "f" -> (_ => force = true),
           "n" -> (_ => dry_run = true),
           "p:" -> (arg => platforms = Library.space_explode(',', arg).map(check_platform_spec)),
           "v" -> (_ => verbose = true))
@@ -187,7 +192,7 @@ Usage: isabelle dotnet_setup [OPTIONS]
 
         for (platform <- platforms) {
           dotnet_setup(platform_spec = platform, target_dir = target_dir, install_url = install_url,
-            version = version, dry_run = dry_run, verbose = verbose, progress = progress)
+            version = version, force = force, dry_run = dry_run, verbose = verbose, progress = progress)
         }
       })
 }
