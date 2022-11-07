@@ -10,7 +10,7 @@ package isabelle.jedit
 import isabelle._
 
 import scala.swing.{Button, TextArea, Label, ListView, Alignment,
-  ScrollPane, Component, CheckBox, BorderPanel}
+  ScrollPane, Component, CheckBox, BorderPanel, BoxPanel, Orientation}
 import scala.swing.event.{MouseClicked, MouseMoved}
 
 import java.awt.{BorderLayout, Graphics2D, Color, Point, Dimension}
@@ -214,9 +214,12 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
           BorderFactory.createEmptyBorder(thickness2, thickness2, thickness2, thickness2))
     }
 
-    layout(theory_required) = BorderPanel.Position.West
+    val required = new BoxPanel(Orientation.Horizontal)
+    required.contents += theory_required
+    required.contents += document_required
+
+    layout(required) = BorderPanel.Position.West
     layout(label) = BorderPanel.Position.Center
-    layout(document_required) = BorderPanel.Position.East
   }
 
   private class Node_Renderer extends ListView.Renderer[Document.Node.Name] {
