@@ -35,17 +35,26 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
       case MouseClicked(_, point, _, clicks, _) =>
         val index = peer.locationToIndex(point)
         if (index >= 0) {
-          if (in_checkbox(peer.indexToLocation(index), point)) {
-            if (clicks == 1) Document_Model.node_required(listData(index), toggle = true)
+          val index_location = peer.indexToLocation(index)
+          val a = in_required(index_location, point)
+          val b = in_required(index_location, point, document = true)
+          if (a || b) {
+            if (clicks == 1) {
+              Document_Model.node_required(listData(index), toggle = true, document = b)
+            }
           }
           else if (clicks == 2) PIDE.editor.goto_file(true, view, listData(index).node)
         }
       case MouseMoved(_, point, _) =>
         val index = peer.locationToIndex(point)
         val index_location = peer.indexToLocation(index)
-        if (index >= 0 && in_checkbox(index_location, point)) {
+        if (index >= 0 && in_required(index_location, point)) {
           tooltip = "Mark as required for continuous checking"
-        } else if (index >= 0 && in_label(index_location, point)) {
+        }
+        else if (index >= 0 && in_required(index_location, point, document = true)) {
+          tooltip = "Mark as required for continuous checking, with inclusion in document"
+        }
+        else if (index >= 0 && in_label(index_location, point)) {
           val name = listData(index)
           val st = nodes_status.overall_node_status(name)
           tooltip =
@@ -94,17 +103,20 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
   /* component state -- owned by GUI thread */
 
   private var nodes_status = Document_Status.Nodes_Status.empty
-  private var nodes_required: Set[Document.Node.Name] = Document_Model.required_nodes()
+  private var theory_required: Set[Document.Node.Name] = Document_Model.required_nodes(false)
+  private var document_required: Set[Document.Node.Name] = Document_Model.required_nodes(true)
 
   private class Geometry {
     private var location: Point = null
     private var size: Dimension = null
 
-    def in(location0: Point, p: Point): Boolean = {
-      location != null && size != null &&
-        location0.x + location.x <= p.x && p.x < location0.x + size.width &&
-        location0.y + location.y <= p.y && p.y < location0.y + size.height
-    }
+    def in(location0: Point, p: Point): Boolean =
+      location != null && size != null && location0 != null && p != null && {
+        val x = location0.x + location.x
+        val y = location0.y + location.y
+        x <= p.x && p.x < x + size.width &&
+        y <= p.y && p.y < y + size.height
+      }
 
     def update(new_location: Point, new_size: Dimension): Unit = {
       if (new_location != null && new_size != null) {
@@ -114,12 +126,25 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
     }
   }
 
-  private def in_checkbox(location0: Point, p: Point): Boolean =
-    Node_Renderer_Component != null && Node_Renderer_Component.checkbox_geometry.in(location0, p)
+  private def in_required(location0: Point, p: Point, document: Boolean = false): Boolean =
+    Node_Renderer_Component != null && {
+      val required =
+        if (document) Node_Renderer_Component.document_required
+        else Node_Renderer_Component.theory_required
+      required.geometry.in(location0, p)
+    }
 
   private def in_label(location0: Point, p: Point): Boolean =
     Node_Renderer_Component != null && Node_Renderer_Component.label_geometry.in(location0, p)
 
+  private class Required extends CheckBox {
+    val geometry = new Geometry
+    opaque = false
+    override def paintComponent(gfx: Graphics2D): Unit = {
+      super.paintComponent(gfx)
+      geometry.update(location, size)
+    }
+  }
 
   private object Node_Renderer_Component extends BorderPanel {
     opaque = true
@@ -127,14 +152,8 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
 
     var node_name: Document.Node.Name = Document.Node.Name.empty
 
-    val checkbox_geometry = new Geometry
-    val checkbox: CheckBox = new CheckBox {
-      opaque = false
-      override def paintComponent(gfx: Graphics2D): Unit = {
-        super.paintComponent(gfx)
-        checkbox_geometry.update(location, size)
-      }
-    }
+    val theory_required = new Required
+    val document_required = new Required
 
     val label_geometry = new Geometry
     val label: Label = new Label {
@@ -195,8 +214,9 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
           BorderFactory.createEmptyBorder(thickness2, thickness2, thickness2, thickness2))
     }
 
-    layout(checkbox) = BorderPanel.Position.West
+    layout(theory_required) = BorderPanel.Position.West
     layout(label) = BorderPanel.Position.Center
+    layout(document_required) = BorderPanel.Position.East
   }
 
   private class Node_Renderer extends ListView.Renderer[Document.Node.Name] {
@@ -209,7 +229,8 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
     ): Component = {
       val component = Node_Renderer_Component
       component.node_name = name
-      component.checkbox.selected = nodes_required.contains(name)
+      component.theory_required.selected = theory_required.contains(name)
+      component.document_required.selected = document_required.contains(name)
       component.label_border(name)
       component.label.text = name.theory_base_name
       component
@@ -251,7 +272,8 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
         GUI_Thread.later {
           continuous_checking.load()
           logic.load ()
-          nodes_required = Document_Model.required_nodes()
+          theory_required = Document_Model.required_nodes(false)
+          document_required = Document_Model.required_nodes(true)
           status.repaint()
         }
 

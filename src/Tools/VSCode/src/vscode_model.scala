@@ -59,7 +59,7 @@ object VSCode_Model {
     node_name: Document.Node.Name
   ): VSCode_Model = {
     VSCode_Model(session, editor, node_name, Content.empty,
-      node_required = File_Format.registry.is_theory(node_name))
+      theory_required = File_Format.registry.is_theory(node_name))
   }
 }
 
@@ -70,13 +70,19 @@ sealed case class VSCode_Model(
   content: VSCode_Model.Content,
   version: Option[Long] = None,
   external_file: Boolean = false,
-  node_required: Boolean = false,
+  theory_required: Boolean = false,
+  document_required: Boolean = false,
   last_perspective: Document.Node.Perspective_Text = Document.Node.no_perspective_text,
   pending_edits: List[Text.Edit] = Nil,
   published_diagnostics: List[Text.Info[Command.Results]] = Nil,
   published_decorations: List[VSCode_Model.Decoration] = Nil
 ) extends Document.Model {
   model =>
+
+  /* required */
+
+  def get_required(document: Boolean): Boolean =
+    if (document) document_required else theory_required
 
 
   /* content */

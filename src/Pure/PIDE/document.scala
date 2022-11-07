@@ -761,7 +761,9 @@ object Document {
 
     def get_text(range: Text.Range): Option[String]
 
-    def node_required: Boolean
+    def get_required(document: Boolean): Boolean
+    def node_required: Boolean = get_required(false) || get_required(true)
+
     def get_blob: Option[Blob]
     def bibtex_entries: List[Text.Info[String]]
 
