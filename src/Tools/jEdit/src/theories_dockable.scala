@@ -216,7 +216,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
 
     val required = new BoxPanel(Orientation.Horizontal)
     required.contents += theory_required
-    required.contents += document_required
+    // FIXME required.contents += document_required
 
     layout(required) = BorderPanel.Position.West
     layout(label) = BorderPanel.Position.Center
