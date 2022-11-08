@@ -5881,8 +5881,12 @@ by (induction xs) simp_all
 lemma insort_is_Cons: "\<forall>x\<in>set xs. f a \<le> f x \<Longrightarrow> insort_key f a xs = a # xs"
 by (cases xs) auto
 
+lemma sort_key_id_if_sorted: "sorted (map f xs) \<Longrightarrow> sort_key f xs = xs"
+by (induction xs) (auto simp add: insort_is_Cons)
+
+text \<open>Subsumed by @{thm sort_key_id_if_sorted} but easier to find:\<close>
 lemma sorted_sort_id: "sorted xs \<Longrightarrow> sort xs = xs"
-by (induct xs) (auto simp add: insort_is_Cons)
+by (simp add: sort_key_id_if_sorted)
 
 lemma insort_key_remove1:
   assumes "a \<in> set xs" and "sorted (map f xs)" and "hd (filter (\<lambda>x. f a = f x) xs) = a"
@@ -5978,10 +5982,10 @@ lemma remove1_insort_key [simp]:
 end
 
 lemma sort_upt [simp]: "sort [m..<n] = [m..<n]"
-by (rule sorted_sort_id) simp
+by (rule sort_key_id_if_sorted) simp
 
 lemma sort_upto [simp]: "sort [i..j] = [i..j]"
-by (rule sorted_sort_id) simp
+by (rule sort_key_id_if_sorted) simp
 
 lemma sorted_find_Min:
   "sorted xs \<Longrightarrow> \<exists>x \<in> set xs. P x \<Longrightarrow> List.find P xs = Some (Min {x\<in>set xs. P x})"

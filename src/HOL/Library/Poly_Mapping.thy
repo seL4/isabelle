@@ -1487,7 +1487,7 @@ lemma items_the_value:
   shows "items (the_value xs) = xs"
 proof -
   from assms have "sorted_list_of_set (set (List.map fst xs)) = List.map fst xs"
-    unfolding sorted_list_of_set_sort_remdups by (simp add: distinct_remdups_id sorted_sort_id)
+    unfolding sorted_list_of_set_sort_remdups by (simp add: distinct_remdups_id sort_key_id_if_sorted)
   moreover from assms have "keys (the_value xs) = fst ` set xs"
     by transfer (auto simp add: image_def split: option.split dest: set_map_of_compr)
   ultimately show ?thesis
