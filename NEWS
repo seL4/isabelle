@@ -51,6 +51,7 @@ with demo documents in the regular Isabelle "doc" space:
   - Strengthened lemma reflp_rtranclp and renamed to reflp_on_rtranclp.
     Minor INCOMPATIBILITY.
   - Added lemmas.
+      reflclp_ident_if_reflp[simp]
       reflp_on_reflclp[simp]
 
 * Theory "HOL.Wellfounded":

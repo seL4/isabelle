@@ -82,6 +82,9 @@ lemma trans_reflclI[simp]: "trans r \<Longrightarrow> trans (r\<^sup>=)"
 lemma reflclp_idemp [simp]: "(P\<^sup>=\<^sup>=)\<^sup>=\<^sup>= = P\<^sup>=\<^sup>="
   by blast
 
+lemma reflclp_ident_if_reflp[simp]: "reflp R \<Longrightarrow> R\<^sup>=\<^sup>= = R"
+  by (auto dest: reflpD)
+
 
 subsection \<open>Reflexive-transitive closure\<close>
 
