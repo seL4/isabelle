@@ -80,8 +80,8 @@ object JEdit_Sessions {
       val all_sessions = sessions.imports_topological_order
       val main_sessions = all_sessions.filter(name => sessions(name).main_group)
 
-      main_sessions.map(GUI.Selector.item) ::: List(GUI.Selector.separator) :::
-      all_sessions.sorted.map(GUI.Selector.item)
+      main_sessions.map(GUI.Selector.item(_)) ::: List(GUI.Selector.separator()) :::
+      all_sessions.sorted.map(GUI.Selector.item(_, batch = 1))
     }
 
     new GUI.Selector(default_entry :: session_entries) with JEdit_Options.Entry {
@@ -90,7 +90,10 @@ object JEdit_Sessions {
       val title = "Logic"
       def load(): Unit = {
         val logic = options.string(jedit_logic_option)
-        entries.find { case GUI.Selector.Item(item, _) => item == logic case _ => false } match {
+        entries.find {
+          case item: GUI.Selector.Item[_] => item.item == logic
+          case _ => false
+        } match {
           case Some(entry) => selection.item = entry
           case None =>
         }

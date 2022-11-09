@@ -192,8 +192,8 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     val all_sessions = sessions.build_topological_order.sorted
     val doc_sessions = all_sessions.filter(name => sessions(name).doc_group)
     new GUI.Selector(
-      doc_sessions.map(GUI.Selector.item) ::: List(GUI.Selector.separator) :::
-      all_sessions.map(GUI.Selector.item)
+      doc_sessions.map(GUI.Selector.item(_)) ::: List(GUI.Selector.separator()) :::
+      all_sessions.map(GUI.Selector.item(_, batch = 1))
     ) {
       val title = "Session"
     }
