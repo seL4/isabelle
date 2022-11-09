@@ -951,6 +951,9 @@ lemma converse_Id_on [simp]: "(Id_on A)\<inverse> = Id_on A"
 lemma refl_on_converse [simp]: "refl_on A (converse r) = refl_on A r"
   by (auto simp: refl_on_def)
 
+lemma reflp_on_conversp [simp]: "reflp_on A R\<inverse>\<inverse> \<longleftrightarrow> reflp_on A R"
+  by (auto simp: reflp_on_def)
+
 lemma sym_converse [simp]: "sym (converse r) = sym r"
   unfolding sym_def by blast
 
