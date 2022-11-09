@@ -18,8 +18,10 @@ import org.gjt.sp.jedit.{jEdit, View}
 
 
 object Document_Dockable {
-  def document_output(): Path =
-    Path.explode("$ISABELLE_HOME_USER/document/root.pdf")
+  def document_output(name: String = "document"): Path = {
+    val dir = Path.explode("$ISABELLE_HOME_USER/document_output")
+    if (name.isEmpty) dir else dir + Path.explode(name)
+  }
 
   object Status extends Enumeration {
     val WAITING = Value("waiting")
@@ -162,7 +164,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
   }
 
   private def view_document(): Unit = {
-    val path = Document_Dockable.document_output()
+    val path = Document_Dockable.document_output().pdf
     if (path.is_file) Isabelle_System.pdf_viewer(path)
   }
 
