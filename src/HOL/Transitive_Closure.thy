@@ -79,6 +79,9 @@ lemma antisym_reflcl[simp]: "antisym (r\<^sup>=) = antisym r"
 lemma trans_reflclI[simp]: "trans r \<Longrightarrow> trans (r\<^sup>=)"
   unfolding trans_def by blast
 
+lemma transp_reflclp[simp]: "transp R \<Longrightarrow> transp R\<^sup>=\<^sup>="
+  unfolding transp_def by blast
+
 lemma reflclp_idemp [simp]: "(P\<^sup>=\<^sup>=)\<^sup>=\<^sup>= = P\<^sup>=\<^sup>="
   by blast
 
