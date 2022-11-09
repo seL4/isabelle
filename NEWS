@@ -50,6 +50,8 @@ with demo documents in the regular Isabelle "doc" space:
 * Theory "HOL.Transitive_Closure":
   - Strengthened lemma reflp_rtranclp and renamed to reflp_on_rtranclp.
     Minor INCOMPATIBILITY.
+  - Added lemmas.
+      reflp_on_reflclp[simp]
 
 * Theory "HOL.Wellfounded":
   - Added lemmas.

@@ -70,6 +70,9 @@ subsection \<open>Reflexive closure\<close>
 lemma refl_reflcl[simp]: "refl (r\<^sup>=)"
   by (simp add: refl_on_def)
 
+lemma reflp_on_reflclp[simp]: "reflp_on A R\<^sup>=\<^sup>="
+  by (simp add: reflp_on_def)
+
 lemma antisym_reflcl[simp]: "antisym (r\<^sup>=) = antisym r"
   by (simp add: antisym_def)
 
