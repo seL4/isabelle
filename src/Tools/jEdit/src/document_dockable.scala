@@ -94,27 +94,32 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
 
   /* progress log */
 
-  private val log_area = new TextArea {
-    editable = false
-    columns = 60
-    rows = 24
-  }
-  log_area.font = GUI.copy_font((new Label).font)
-
+  private val log_area =
+    new TextArea {
+      editable = false
+      font = GUI.copy_font((new Label).font)
+    }
   private val scroll_log_area = new ScrollPane(log_area)
 
-  private def init_progress() = {
-    GUI_Thread.later { log_area.text = "" }
-    new Progress {
-      override def echo(txt: String): Unit =
-        GUI_Thread.later {
-          log_area.append(txt + "\n")
-          val vertical = scroll_log_area.peer.getVerticalScrollBar
-          vertical.setValue(vertical.getMaximum)
-        }
+  private class Log_Progress extends Progress {
+    private val syslog = PIDE.session.make_syslog()
 
-      override def theory(theory: Progress.Theory): Unit = echo(theory.message)
+    private def update(): Unit = {
+      val text = syslog.content()
+      if (text != log_area.text) {
+        log_area.text = text
+        val vertical = scroll_log_area.peer.getVerticalScrollBar
+        vertical.setValue(vertical.getMaximum)
+      }
     }
+    update()
+
+    private val delay =
+      Delay.first(PIDE.options.seconds("editor_update_delay"), gui = true) { update() }
+
+    override def echo(msg: String): Unit = { syslog += msg; delay.invoke() }
+
+    override def theory(theory: Progress.Theory): Unit = echo(theory.message)
   }
 
 
@@ -126,14 +131,17 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
   private def build_document(): Unit = {
     current_state.change { st =>
       if (st.process.is_finished) {
-        val progress = init_progress()
+        val progress = new Log_Progress()
         val process =
           Future.thread[Unit](name = "document_build") {
             show_page(log_page)
             val res =
               Exn.capture {
                 progress.echo("Start " + Date.now())
-                Time.seconds(2.0).sleep()
+                for (i <- 1 to 200) {
+                  progress.echo("message " + i)
+                  Time.seconds(0.1).sleep()
+                }
                 progress.echo("Stop " + Date.now())
               }
             val msg =
@@ -206,7 +214,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
 
   private val log_page =
     new TabbedPane.Page("Log", new BorderPanel {
-      layout(log_area) = BorderPanel.Position.Center
+      layout(scroll_log_area) = BorderPanel.Position.Center
     }, "Raw log of build process")
 
   message_pane.pages ++= List(log_page, output_page)
