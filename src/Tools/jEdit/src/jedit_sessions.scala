@@ -81,7 +81,7 @@ object JEdit_Sessions {
       val main_sessions = all_sessions.filter(name => sessions(name).main_group)
 
       main_sessions.map(GUI.Selector.item) ::: List(GUI.Selector.separator) :::
-      all_sessions.map(GUI.Selector.item)
+      all_sessions.sorted.map(GUI.Selector.item)
     }
 
     new GUI.Selector(default_entry :: session_entries) with JEdit_Options.Entry {
