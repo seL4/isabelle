@@ -85,20 +85,22 @@ object Session {
 
   /* syslog */
 
-  private[Session] class Syslog(limit: Int) {
-    private var queue = Queue.empty[XML.Elem]
+  class Syslog(limit: Int) {
+    private var queue = Queue.empty[String]
     private var length = 0
 
-    def += (msg: XML.Elem): Unit = synchronized {
+    def += (msg: String): Unit = synchronized {
       queue = queue.enqueue(msg)
       length += 1
       if (length > limit) queue = queue.dequeue._2
     }
 
-    def content: String = synchronized {
-      cat_lines(queue.iterator.map(XML.content)) +
+    def content(): String = synchronized {
+      cat_lines(queue.iterator) +
       (if (length > limit) "\n(A total of " + length + " messages...)" else "")
     }
+
+    override def toString: String = "Syslog(" + length + ")"
   }
 
 
@@ -221,8 +223,9 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
 
   /* syslog */
 
-  private val syslog = new Session.Syslog(syslog_limit)
-  def syslog_content(): String = syslog.content
+  def make_syslog(): Session.Syslog = new Session.Syslog(syslog_limit)
+
+  val syslog: Session.Syslog = make_syslog()
 
 
   /* pipelined change parsing */
@@ -577,7 +580,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
         arg match {
           case output: Prover.Output =>
             if (output.is_syslog) {
-              syslog += output.message
+              syslog += XML.content(output.message)
               syslog_messages.post(output)
             }
 

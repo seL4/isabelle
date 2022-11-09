@@ -56,7 +56,7 @@ class Isabelle_Process private(session: Session, process: Bash.Process) {
         startup.fulfill("")
       case Session.Terminated(result) =>
         if (!result.ok && !startup.is_finished) {
-          val syslog = session.syslog_content()
+          val syslog = session.syslog.content()
           val err = "Session startup failed" + (if (syslog.isEmpty) "" else ":\n" + syslog)
           startup.fulfill(err)
         }
