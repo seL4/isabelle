@@ -85,11 +85,13 @@ object Spell_Checker {
     }
   }
 
-  def dictionaries: List[Dictionary] =
+  lazy val dictionaries: List[Dictionary] =
     for {
       path <- Path.split(Isabelle_System.getenv("JORTHO_DICTIONARIES"))
       if path.is_file
     } yield new Dictionary(path)
+
+  def get_dictionary(lang: String): Option[Dictionary] = dictionaries.find(_.lang == lang)
 
 
   /* create spell checker */
@@ -260,7 +262,7 @@ class Spell_Checker_Variable {
     if (options.bool("spell_checker")) {
       val lang = options.string("spell_checker_dictionary")
       if (current_spell_checker._1 != lang) {
-        Spell_Checker.dictionaries.find(_.lang == lang) match {
+        Spell_Checker.get_dictionary(lang) match {
           case Some(dictionary) =>
             val spell_checker =
               Exn.capture { Spell_Checker(dictionary) } match {
