@@ -762,8 +762,9 @@ lemma rtranclp_symclp_sym [sym]: "(symclp r)\<^sup>*\<^sup>* x y \<Longrightarro
 lemma symclp_idem [simp]: "symclp (symclp r) = symclp r"
   by(simp add: symclp_pointfree sup_commute converse_join)
 
-lemma reflp_rtranclp [simp]: "reflp R\<^sup>*\<^sup>*"
-  using refl_rtrancl[to_pred, of R] reflp_refl_eq[of "{(x, y). R\<^sup>*\<^sup>* x y}"] by simp
+lemma reflp_on_rtranclp [simp]: "reflp_on A R\<^sup>*\<^sup>*"
+  by (simp add: reflp_on_def)
+
 
 subsection \<open>The power operation on relations\<close>
 

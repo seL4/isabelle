@@ -47,6 +47,10 @@ with demo documents in the regular Isabelle "doc" space:
       preorder.reflp_le[simp]
       totalp_on_singleton[simp]
 
+* Theory "HOL.Transitive_Closure":
+  - Strengthened lemma reflp_rtranclp and renamed to reflp_on_rtranclp.
+    Minor INCOMPATIBILITY.
+
 * Theory "HOL.Wellfounded":
   - Added lemmas.
       wfP_if_convertible_to_nat
