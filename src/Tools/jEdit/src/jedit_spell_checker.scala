@@ -97,7 +97,7 @@ object JEdit_Spell_Checker {
         }
       }
       def save(): Unit =
-        for (item <- selection.item.get_item) PIDE.options.string(option_name) = item.lang
+        for (item <- selection.item.get_value) PIDE.options.string(option_name) = item.lang
 
       load()
     }

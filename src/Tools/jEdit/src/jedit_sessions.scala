@@ -91,7 +91,7 @@ object JEdit_Sessions {
       def load(): Unit = {
         val logic = options.string(jedit_logic_option)
         entries.find {
-          case item: GUI.Selector.Item[_] => item.item == logic
+          case item: GUI.Selector.Item[_] => item.value == logic
           case _ => false
         } match {
           case Some(entry) => selection.item = entry
@@ -99,7 +99,7 @@ object JEdit_Sessions {
         }
       }
       def save(): Unit =
-        for (item <- selection.item.get_item) options.string(jedit_logic_option) = item
+        for (item <- selection.item.get_value) options.string(jedit_logic_option) = item
 
       override def changed(): Unit = if (autosave) save()
 

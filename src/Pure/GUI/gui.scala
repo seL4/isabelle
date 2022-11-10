@@ -135,14 +135,14 @@ object GUI {
 
   object Selector {
     sealed abstract class Entry[A] {
-      def get_item: Option[A] =
+      def get_value: Option[A] =
         this match {
-          case item: Item[_] => Some(item.item)
+          case item: Item[_] => Some(item.value)
           case _ => None
         }
     }
-    case class Item[A](item: A, description: String = "", batch: Int = 0) extends Entry[A] {
-      override def toString: String = proper_string(description) getOrElse item.toString
+    case class Item[A](value: A, description: String = "", batch: Int = 0) extends Entry[A] {
+      override def toString: String = proper_string(description) getOrElse value.toString
     }
     case class Separator[A](name: String = "", batch: Int = 0) extends Entry[A] {
       override def toString: String = "<b>" + name + "</b>"
