@@ -134,6 +134,7 @@ object GUI {
   /* list selector */
 
   object Selector {
+    sealed abstract class Entry[A] { def get_value: Option[A] = Value.unapply(this) }
     object Value {
       def unapply[A](entry: Entry[A]): Option[A] =
         entry match {
@@ -141,7 +142,9 @@ object GUI {
           case _ => None
         }
     }
-    sealed abstract class Entry[A] { def get_value: Option[A] = Value.unapply(this) }
+    def item[A](value: A): Entry[A] = Item(value, "", 0)
+    def item_description[A](value: A, description: String): Entry[A] = Item(value, description, 0)
+
     private case class Item[A](value: A, description: String, batch: Int) extends Entry[A] {
       override def toString: String = proper_string(description) getOrElse value.toString
     }
@@ -149,11 +152,8 @@ object GUI {
       override def toString: String = "---"
     }
 
-    def item[A](value: A): Entry[A] = Item(value, "", 0)
-    def item_description[A](value: A, description: String): Entry[A] = Item(value, description, 0)
-
-    def make_entries[A](batches: List[List[Entry[A]]]): List[Entry[A]] = {
-      val item_batches: List[List[Item[A]]] =
+    private def make_entries[A](batches: List[List[Entry[A]]]): List[Entry[A]] = {
+      val item_batches =
         batches.map(_.flatMap(
           { case item: Item[_] => Some(item.asInstanceOf[Item[A]]) case _ => None }))
       val sep_entries: List[Entry[A]] =
