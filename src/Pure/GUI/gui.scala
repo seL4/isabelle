@@ -144,8 +144,8 @@ object GUI {
     case class Item[A](value: A, description: String = "", batch: Int = 0) extends Entry[A] {
       override def toString: String = proper_string(description) getOrElse value.toString
     }
-    case class Separator[A](name: String = "", batch: Int = 0) extends Entry[A] {
-      override def toString: String = "<b>" + name + "</b>"
+    case class Separator[A](batch: Int = 0) extends Entry[A] {
+      override def toString: String = "---"
     }
 
     def item(name: String, batch: Int = 0): Item[String] = Item(name, batch = batch)
@@ -187,13 +187,10 @@ object GUI {
 
     private val default_renderer = renderer
     private val render_separator = new Separator
-    private val render_label = new Label
     renderer =
       (list: ListView[_ <: Selector.Entry[A]], selected: Boolean, focus: Boolean, entry: Selector.Entry[A], i: Int) => {
         entry match {
-          case sep: Selector.Separator[_] =>
-            if (sep.name.isEmpty) render_separator
-            else { render_label.text = entry.toString; render_label }
+          case _: Selector.Separator[_] => render_separator
           case _ => default_renderer.componentFor(list, selected, focus, entry, i)
         }
       }
