@@ -18,8 +18,40 @@ import org.gjt.sp.jedit.{jEdit, View}
 
 
 object Document_Dockable {
-  def document_output(): Path =
-    Path.explode("$ISABELLE_HOME_USER/document/root.pdf")
+  /* document output */
+
+  def document_name: String = "document"
+  def document_output_dir(): Path = Path.explode("$ISABELLE_HOME_USER/document_output")
+  def document_output(): Path = document_output_dir() + Path.basic(document_name)
+
+  def view_document(): Unit = {
+    val path = Document_Dockable.document_output().pdf
+    if (path.is_file) Isabelle_System.pdf_viewer(path)
+  }
+
+  class Log_Progress extends Progress {
+    def show(text: String): Unit = {}
+
+    private val syslog = PIDE.session.make_syslog()
+
+    private def update(text: String = syslog.content()): Unit = GUI_Thread.require { show(text) }
+    private val delay =
+      Delay.first(PIDE.options.seconds("editor_update_delay"), gui = true) { update() }
+
+    override def echo(msg: String): Unit = { syslog += msg; delay.invoke() }
+    override def theory(theory: Progress.Theory): Unit = echo(theory.message)
+
+    def load(): Unit = {
+      val path = document_output().log
+      val text = if (path.is_file) File.read(path) else ""
+      GUI_Thread.later { delay.revoke(); update(text) }
+    }
+
+    update()
+  }
+
+
+  /* state */
 
   object Status extends Enumeration {
     val WAITING = Value("waiting")
@@ -32,16 +64,15 @@ object Document_Dockable {
   }
 
   object State {
-    val empty: State = State()
+    def empty(): State = State()
     def finish(result: Result): State = State(output = result.output)
   }
 
   sealed case class State(
-    progress: Progress = new Progress,
+    progress: Log_Progress = new Log_Progress,
     process: Future[Unit] = Future.value(()),
     output: List[XML.Tree] = Nil,
-    status: Status.Value = Status.FINISHED
-  )
+    status: Status.Value = Status.FINISHED)
 }
 
 class Document_Dockable(view: View, position: String) extends Dockable(view, position) {
@@ -50,7 +81,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
 
   /* component state -- owned by GUI thread */
 
-  private val current_state = Synchronized(Document_Dockable.State.empty)
+  private val current_state = Synchronized(Document_Dockable.State.empty())
 
   private val process_indicator = new Process_Indicator
   private val pretty_text_area = new Pretty_Text_Area(view)
@@ -94,34 +125,31 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
 
   /* progress log */
 
-  private val log_area = new TextArea {
-    editable = false
-    columns = 60
-    rows = 24
-  }
-  log_area.font = GUI.copy_font((new Label).font)
-
+  private val log_area =
+    new TextArea {
+      editable = false
+      font = GUI.copy_font((new Label).font)
+    }
   private val scroll_log_area = new ScrollPane(log_area)
 
-  private def init_progress() = {
-    GUI_Thread.later { log_area.text = "" }
-    new Progress {
-      override def echo(txt: String): Unit =
-        GUI_Thread.later {
-          log_area.append(txt + "\n")
+  def init_progress(): Document_Dockable.Log_Progress =
+    new Document_Dockable.Log_Progress {
+      override def show(text: String): Unit =
+        if (text != log_area.text) {
+          log_area.text = text
           val vertical = scroll_log_area.peer.getVerticalScrollBar
           vertical.setValue(vertical.getMaximum)
         }
-
-      override def theory(theory: Progress.Theory): Unit = echo(theory.message)
     }
-  }
 
 
   /* document build process */
 
   private def cancel(): Unit =
     current_state.change { st => st.process.cancel(); st }
+
+  private def init_state(): Unit =
+    current_state.change { _ => Document_Dockable.State(progress = init_progress()) }
 
   private def build_document(): Unit = {
     current_state.change { st =>
@@ -133,7 +161,10 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
             val res =
               Exn.capture {
                 progress.echo("Start " + Date.now())
-                Time.seconds(2.0).sleep()
+                for (i <- 1 to 200) {
+                  progress.echo("message " + i)
+                  Time.seconds(0.1).sleep()
+                }
                 progress.echo("Stop " + Date.now())
               }
             val msg =
@@ -153,18 +184,20 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     show_state()
   }
 
-  private def view_document(): Unit = {
-    val path = Document_Dockable.document_output()
-    if (path.is_file) Isabelle_System.pdf_viewer(path)
-  }
-
 
   /* controls */
 
-  private val document_session: GUI.Selector[String] =
-    new GUI.Selector(JEdit_Sessions.sessions_structure().build_topological_order.sorted) {
+  private val document_session: GUI.Selector[String] = {
+    val sessions = JEdit_Sessions.sessions_structure()
+    val all_sessions = sessions.build_topological_order.sorted
+    val doc_sessions = all_sessions.filter(name => sessions(name).doc_group)
+    new GUI.Selector(
+      doc_sessions.map(GUI.Selector.item(_)) ::: List(GUI.Selector.separator()) :::
+      all_sessions.map(GUI.Selector.item(_, batch = 1))
+    ) {
       val title = "Session"
     }
+  }
 
   private val build_button =
     new GUI.Button("<html><b>Build</b></html>") {
@@ -181,7 +214,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
   private val view_button =
     new GUI.Button("View") {
       tooltip = "View document"
-      override def clicked(): Unit = view_document()
+      override def clicked(): Unit = Document_Dockable.view_document()
     }
 
   private val controls =
@@ -204,9 +237,19 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
       layout(Component.wrap(pretty_text_area)) = BorderPanel.Position.Center
     }, "Output from build process")
 
+  private val load_button =
+    new GUI.Button("Load") {
+      tooltip = "Load final log file"
+      override def clicked(): Unit = current_state.value.progress.load()
+    }
+
+  private val log_controls =
+    Wrap_Panel(List(load_button))
+
   private val log_page =
     new TabbedPane.Page("Log", new BorderPanel {
-      layout(log_area) = BorderPanel.Position.Center
+      layout(log_controls) = BorderPanel.Position.North
+      layout(scroll_log_area) = BorderPanel.Position.Center
     }, "Raw log of build process")
 
   message_pane.pages ++= List(log_page, output_page)
@@ -223,6 +266,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     }
 
   override def init(): Unit = {
+    init_state()
     PIDE.session.global_options += main
     handle_resize()
   }

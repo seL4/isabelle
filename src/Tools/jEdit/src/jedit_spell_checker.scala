@@ -85,18 +85,19 @@ object JEdit_Spell_Checker {
     val option_name = "spell_checker_dictionary"
     val opt = PIDE.options.value.check_name(option_name)
 
-    new GUI.Selector[Spell_Checker.Dictionary](Spell_Checker.dictionaries) with JEdit_Options.Entry {
+    new GUI.Selector(Spell_Checker.dictionaries.map(GUI.Selector.Item(_))) with JEdit_Options.Entry {
       name = option_name
       tooltip = GUI.tooltip_lines(opt.print_default)
       val title = opt.title()
       def load(): Unit = {
         val lang = PIDE.options.string(option_name)
-        entries.find(_.lang == lang) match {
-          case Some(entry) => selection.item = entry
+        Spell_Checker.get_dictionary(lang) match {
+          case Some(dict) => selection.item = GUI.Selector.Item(dict)
           case None =>
         }
       }
-      def save(): Unit = PIDE.options.string(option_name) = selection.item.lang
+      def save(): Unit =
+        for (item <- selection.item.get_item) PIDE.options.string(option_name) = item.lang
 
       load()
     }

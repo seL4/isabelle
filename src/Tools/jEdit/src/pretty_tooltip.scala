@@ -60,12 +60,12 @@ object Pretty_Tooltip {
                 case Some(tip) => hierarchy(tip).getOrElse((stack, Nil))
                 case None => (stack, Nil)
               }
-            old.foreach(_.hide_popup)
+            old.foreach(_.hide_popup())
 
             val loc = SwingUtilities.convertPoint(parent, location, layered)
             val tip = new Pretty_Tooltip(view, layered, parent, loc, rendering, results, info)
             stack = tip :: rest
-            tip.show_popup
+            tip.show_popup()
         }
     }
   }
@@ -123,7 +123,7 @@ object Pretty_Tooltip {
       case (Nil, _) =>
       case (unfocused, rest) =>
         deactivate()
-        unfocused.foreach(_.hide_popup)
+        unfocused.foreach(_.hide_popup())
         stack = rest
     }
   }
@@ -133,11 +133,11 @@ object Pretty_Tooltip {
     hierarchy(tip) match {
       case Some((old, _ :: rest)) =>
         rest match {
-          case top :: _ => top.request_focus
+          case top :: _ => top.request_focus()
           case Nil => JEdit_Lib.request_focus_view()
         }
-        old.foreach(_.hide_popup)
-        tip.hide_popup
+        old.foreach(_.hide_popup())
+        tip.hide_popup()
         stack = rest
       case _ =>
     }
@@ -151,7 +151,7 @@ object Pretty_Tooltip {
     if (stack.isEmpty) false
     else {
       JEdit_Lib.request_focus_view()
-      stack.foreach(_.hide_popup)
+      stack.foreach(_.hide_popup())
       stack = Nil
       true
     }
@@ -202,7 +202,7 @@ class Pretty_Tooltip private(
 
   val pretty_text_area: Pretty_Text_Area =
     new Pretty_Text_Area(view, () => Pretty_Tooltip.dismiss(tip), true) {
-      override def get_background() = Some(rendering.tooltip_color)
+      override def get_background(): Option[Color] = Some(rendering.tooltip_color)
     }
 
   pretty_text_area.addFocusListener(new FocusAdapter {
@@ -269,14 +269,14 @@ class Pretty_Tooltip private(
     new Popup(layered, tip, screen.relative(layered, size), size)
   }
 
-  private def show_popup: Unit = {
+  private def show_popup(): Unit = {
     popup.show
     pretty_text_area.requestFocus()
     pretty_text_area.update(rendering.snapshot, results, info.info)
   }
 
-  private def hide_popup: Unit = popup.hide
+  private def hide_popup(): Unit = popup.hide
 
-  private def request_focus: Unit = pretty_text_area.requestFocus()
+  private def request_focus(): Unit = pretty_text_area.requestFocus()
 }
 

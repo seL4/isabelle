@@ -507,6 +507,9 @@ object Sessions {
 
     def dirs: List[Path] = dir :: directories
 
+    def main_group: Boolean = groups.contains("main")
+    def doc_group: Boolean = groups.contains("doc")
+
     def timeout_ignored: Boolean =
       !options.bool("timeout_build") || Time.seconds(options.real("timeout")) < Time.ms(1)
 

@@ -183,7 +183,7 @@ class Main_Plugin extends EBPlugin {
     case Session.Terminated(result) if !result.ok =>
       GUI_Thread.later {
         GUI.error_dialog(jEdit.getActiveView, "Prover process terminated with error",
-          "Isabelle Syslog", GUI.scrollable_text(session.syslog_content()))
+          "Isabelle Syslog", GUI.scrollable_text(session.syslog.content()))
       }
 
     case Session.Ready if !shutting_down.value =>

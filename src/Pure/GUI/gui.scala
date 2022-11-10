@@ -9,11 +9,14 @@ package isabelle
 import java.util.{Map => JMap}
 import java.awt.{Component, Container, Font, Image, Insets, KeyboardFocusManager, Window, Point,
   Rectangle, Dimension, GraphicsEnvironment, MouseInfo, Toolkit}
+import java.awt.event.{KeyAdapter, KeyEvent, ItemListener, ItemEvent}
 import java.awt.font.{FontRenderContext, LineMetrics, TextAttribute, TransformAttribute}
 import java.awt.geom.AffineTransform
 import javax.swing.{ImageIcon, JButton, JDialog, JFrame, JLabel, JLayeredPane, JOptionPane,
-  JTextField, JWindow, LookAndFeel, UIManager, SwingUtilities}
-import scala.swing.{CheckBox, ComboBox, ScrollPane, TextArea}
+  JTextField, JWindow, JComboBox, LookAndFeel, UIManager, SwingUtilities}
+
+import scala.swing.{CheckBox, ComboBox, ScrollPane, TextArea, ListView, Label, Separator,
+  Orientation}
 import scala.swing.event.{ButtonClicked, SelectionChanged}
 
 
@@ -127,8 +130,73 @@ object GUI {
     reactions += { case ButtonClicked(_) => clicked(selected); clicked() }
   }
 
-  class Selector[A](val entries: List[A]) extends ComboBox[A](entries) {
+
+  /* list selector */
+
+  object Selector {
+    sealed abstract class Entry[A] {
+      def get_item: Option[A] =
+        this match {
+          case item: Item[_] => Some(item.item)
+          case _ => None
+        }
+    }
+    case class Item[A](item: A, description: String = "", batch: Int = 0) extends Entry[A] {
+      override def toString: String = proper_string(description) getOrElse item.toString
+    }
+    case class Separator[A](name: String = "", batch: Int = 0) extends Entry[A] {
+      override def toString: String = "<b>" + name + "</b>"
+    }
+
+    def item(name: String, batch: Int = 0): Item[String] = Item(name, batch = batch)
+    def separator(batch: Int = 0): Separator[String] = Separator(batch = batch)
+  }
+
+  class Selector[A](val entries: List[Selector.Entry[A]])
+  extends ComboBox[Selector.Entry[A]](entries) {
     def changed(): Unit = {}
+
+    override lazy val peer: JComboBox[Selector.Entry[A]] =
+      new JComboBox[Selector.Entry[A]](ComboBox.newConstantModel(entries)) with SuperMixin {
+        private var key_released = false
+        private var sep_selected = false
+
+        addKeyListener(new KeyAdapter {
+          override def keyPressed(e: KeyEvent): Unit = { key_released = false }
+          override def keyReleased(e: KeyEvent): Unit = { key_released = true }
+        })
+
+        override def setSelectedIndex(i: Int): Unit = {
+          getItemAt(i) match {
+            case _: Selector.Separator[_] =>
+              if (key_released) { sep_selected = true }
+              else {
+                val k = getSelectedIndex()
+                val j = if (i > k) i + 1 else i - 1
+                if (0 <= j && j < dataModel.getSize()) super.setSelectedIndex(j)
+              }
+            case _ => super.setSelectedIndex(i)
+          }
+        }
+
+        override def setPopupVisible(visible: Boolean): Unit = {
+          if (sep_selected) { sep_selected = false}
+          else super.setPopupVisible(visible)
+        }
+      }
+
+    private val default_renderer = renderer
+    private val render_separator = new Separator
+    private val render_label = new Label
+    renderer =
+      (list: ListView[_ <: Selector.Entry[A]], selected: Boolean, focus: Boolean, entry: Selector.Entry[A], i: Int) => {
+        entry match {
+          case sep: Selector.Separator[_] =>
+            if (sep.name.isEmpty) render_separator
+            else { render_label.text = entry.toString; render_label }
+          case _ => default_renderer.componentFor(list, selected, focus, entry, i)
+        }
+      }
 
     listenTo(selection)
     reactions += { case SelectionChanged(_) => changed() }
@@ -141,8 +209,9 @@ object GUI {
 
   class Zoom extends Selector[String](
     List("50%", "70%", "85%", "100%", "125%", "150%", "175%", "200%", "300%", "400%")
+      .map(GUI.Selector.item(_))
   ) {
-    def factor: Int = parse(selection.item)
+    def factor: Int = parse(selection.item.toString)
 
     private def parse(text: String): Int =
       text match {
@@ -161,7 +230,8 @@ object GUI {
       }
     }
 
-    makeEditable()(c => new ComboBox.BuiltInEditor(c)(text => print(parse(text)), x => x))
+    makeEditable()(c =>
+      new ComboBox.BuiltInEditor(c)(text => Selector.Item(print(parse(text))), _.toString))
     peer.getEditor.getEditorComponent match {
       case text: JTextField => text.setColumns(4)
       case _ =>
