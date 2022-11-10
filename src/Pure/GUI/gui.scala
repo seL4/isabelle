@@ -134,27 +134,46 @@ object GUI {
   /* list selector */
 
   object Selector {
-    sealed abstract class Entry[A] {
-      def get_item: Option[A] =
-        this match {
-          case item: Item[_] => Some(item.item)
+    sealed abstract class Entry[A] { def get_value: Option[A] = Value.unapply(this) }
+    object Value {
+      def unapply[A](entry: Entry[A]): Option[A] =
+        entry match {
+          case item: Item[_] => Some(item.value)
           case _ => None
         }
     }
-    case class Item[A](item: A, description: String = "", batch: Int = 0) extends Entry[A] {
-      override def toString: String = proper_string(description) getOrElse item.toString
+    def item[A](value: A): Entry[A] = Item(value, "", 0)
+    def item_description[A](value: A, description: String): Entry[A] = Item(value, description, 0)
+
+    private case class Item[A](value: A, description: String, batch: Int) extends Entry[A] {
+      override def toString: String = proper_string(description) getOrElse value.toString
     }
-    case class Separator[A](name: String = "", batch: Int = 0) extends Entry[A] {
-      override def toString: String = "<b>" + name + "</b>"
+    private case class Separator[A](batch: Int) extends Entry[A] {
+      override def toString: String = "---"
     }
 
-    def item(name: String, batch: Int = 0): Item[String] = Item(name, batch = batch)
-    def separator(batch: Int = 0): Separator[String] = Separator(batch = batch)
+    private def make_entries[A](batches: List[List[Entry[A]]]): List[Entry[A]] = {
+      val item_batches =
+        batches.map(_.flatMap(
+          { case item: Item[_] => Some(item.asInstanceOf[Item[A]]) case _ => None }))
+      val sep_entries: List[Entry[A]] =
+        item_batches.filter(_.nonEmpty).zipWithIndex.flatMap({ case (batch, i) =>
+          Separator[A](i) :: batch.map(_.copy(batch = i))
+        })
+      sep_entries.tail
+    }
   }
 
-  class Selector[A](val entries: List[Selector.Entry[A]])
-  extends ComboBox[Selector.Entry[A]](entries) {
+  class Selector[A](batches: List[Selector.Entry[A]]*)
+  extends ComboBox[Selector.Entry[A]](Selector.make_entries(batches.toList)) {
     def changed(): Unit = {}
+
+    lazy val entries: List[Selector.Entry[A]] = Selector.make_entries(batches.toList)
+
+    def find_value(pred: A => Boolean): Option[Selector.Entry[A]] =
+      entries.find({ case item: Selector.Item[A] => pred(item.value) case _ => false })
+
+    def selection_value: Option[A] = selection.item.get_value
 
     override lazy val peer: JComboBox[Selector.Entry[A]] =
       new JComboBox[Selector.Entry[A]](ComboBox.newConstantModel(entries)) with SuperMixin {
@@ -187,13 +206,10 @@ object GUI {
 
     private val default_renderer = renderer
     private val render_separator = new Separator
-    private val render_label = new Label
     renderer =
       (list: ListView[_ <: Selector.Entry[A]], selected: Boolean, focus: Boolean, entry: Selector.Entry[A], i: Int) => {
         entry match {
-          case sep: Selector.Separator[_] =>
-            if (sep.name.isEmpty) render_separator
-            else { render_label.text = entry.toString; render_label }
+          case _: Selector.Separator[_] => render_separator
           case _ => default_renderer.componentFor(list, selected, focus, entry, i)
         }
       }
@@ -209,7 +225,7 @@ object GUI {
 
   class Zoom extends Selector[String](
     List("50%", "70%", "85%", "100%", "125%", "150%", "175%", "200%", "300%", "400%")
-      .map(GUI.Selector.item(_))
+      .map(GUI.Selector.item)
   ) {
     def factor: Int = parse(selection.item.toString)
 
@@ -231,7 +247,7 @@ object GUI {
     }
 
     makeEditable()(c =>
-      new ComboBox.BuiltInEditor(c)(text => Selector.Item(print(parse(text))), _.toString))
+      new ComboBox.BuiltInEditor(c)(text => Selector.item(print(parse(text))), _.toString))
     peer.getEditor.getEditorComponent match {
       case text: JTextField => text.setColumns(4)
       case _ =>

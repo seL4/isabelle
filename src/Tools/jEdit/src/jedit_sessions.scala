@@ -72,34 +72,26 @@ object JEdit_Sessions {
   def logic_selector(options: Options_Variable, autosave: Boolean = false): JEdit_Options.Entry = {
     GUI_Thread.require {}
 
+    val sessions = sessions_structure(options = options.value)
+    val all_sessions = sessions.imports_topological_order
+    val main_sessions = all_sessions.filter(name => sessions(name).main_group)
+
     val default_entry =
-      GUI.Selector.Item("", description = "default (" + logic_name(options.value) + ")")
+      GUI.Selector.item_description("", "default (" + logic_name(options.value) + ")")
 
-    val session_entries = {
-      val sessions = sessions_structure(options = options.value)
-      val all_sessions = sessions.imports_topological_order
-      val main_sessions = all_sessions.filter(name => sessions(name).main_group)
-
-      main_sessions.map(GUI.Selector.item(_)) ::: List(GUI.Selector.separator()) :::
-      all_sessions.sorted.map(GUI.Selector.item(_, batch = 1))
-    }
-
-    new GUI.Selector(default_entry :: session_entries) with JEdit_Options.Entry {
+    new GUI.Selector[String](
+      default_entry :: main_sessions.map(GUI.Selector.item),
+      all_sessions.sorted.map(GUI.Selector.item)
+    ) with JEdit_Options.Entry {
       name = jedit_logic_option
       tooltip = "Logic session name (change requires restart)"
       val title = "Logic"
       def load(): Unit = {
         val logic = options.string(jedit_logic_option)
-        entries.find {
-          case item: GUI.Selector.Item[_] => item.item == logic
-          case _ => false
-        } match {
-          case Some(entry) => selection.item = entry
-          case None =>
-        }
+        for (entry <- find_value(_ == logic)) selection.item = entry
       }
       def save(): Unit =
-        for (item <- selection.item.get_item) options.string(jedit_logic_option) = item
+        for (logic <- selection_value) options.string(jedit_logic_option) = logic
 
       override def changed(): Unit = if (autosave) save()
 
