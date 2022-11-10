@@ -517,7 +517,8 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
         val comment = (if unsound then "unsound" else "sound") ^ "\n" ^
                       multiline_string_for_scope scope
         val kodkod_sat_solver =
-          Kodkod_SAT.sat_solver_spec actual_sat_solver |> snd
+          Kodkod_SAT.sat_solver_spec (deadline - Time.now ()) actual_sat_solver
+          |> snd
         val bit_width = if bits = 0 then 16 else bits + 1
         val delay =
           if unsound then
@@ -629,8 +630,6 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
           got_all_user_axioms andalso none_true wfs andalso
           sound_finitizes andalso total_consts <> SOME true andalso
           codatatypes_ok
-        fun assms_prop () =
-          Logic.mk_conjunction_list (neg_t :: def_assm_ts @ nondef_assm_ts)
       in
         (pprint_a (Pretty.chunks
              [Pretty.blk (0,

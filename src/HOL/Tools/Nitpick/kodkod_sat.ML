@@ -9,7 +9,7 @@ signature KODKOD_SAT =
 sig
   val configured_sat_solvers : bool -> string list
   val smart_sat_solver_name : bool -> string
-  val sat_solver_spec : string -> string * string list
+  val sat_solver_spec : Time.time -> string -> string * string list
 end;
 
 structure Kodkod_SAT : KODKOD_SAT =
@@ -24,24 +24,25 @@ datatype mode = Batch | Incremental
 datatype sat_solver_info =
   Internal of availability * mode * string list |
   External of string * string * string list |
-  ExternalV2 of sink * string * string * string list * string * string * string
+  ExternalV2 of sink * string * string * string * string * string * (Time.time -> string list)
+
+fun to_secs min time = Int.max (min, (Time.toMilliseconds time + 999) div 1000)
 
 (* for compatibility with "SAT_Solver" *)
 val berkmin_exec = getenv "BERKMIN_EXE"
 
 val static_list =
   [("CryptoMiniSat", External ("CRYPTOMINISAT_HOME", "cryptominisat", [])),
-   ("MiniSat", ExternalV2 (ToFile, "MINISAT_HOME", "minisat", [], "SAT", "", "UNSAT")),
-   ("zChaff", ExternalV2 (ToStdout, "ZCHAFF_HOME", "zchaff", [],
-                          "Instance Satisfiable", "",
-                          "Instance Unsatisfiable")),
-   ("RSat", ExternalV2 (ToStdout, "RSAT_HOME", "rsat", ["-s"],
-                        "s SATISFIABLE", "v ", "s UNSATISFIABLE")),
+   ("MiniSat", ExternalV2 (ToFile, "MINISAT_HOME", "minisat", "SAT", "", "UNSAT",
+      fn timeout => ["-cpu-lim=" ^ string_of_int (to_secs 1 timeout)])),
+   ("zChaff", ExternalV2 (ToStdout, "ZCHAFF_HOME", "zchaff",
+      "Instance Satisfiable", "", "Instance Unsatisfiable", K [])),
+   ("RSat", ExternalV2 (ToStdout, "RSAT_HOME", "rsat",
+      "s SATISFIABLE", "v ", "s UNSATISFIABLE", K ["-s"])),
    ("Riss3g", External ("RISS3G_HOME", "riss3g", [])),
    ("BerkMin", ExternalV2 (ToStdout, "BERKMIN_HOME",
-                           if berkmin_exec = "" then "BerkMin561"
-                           else berkmin_exec, [], "Satisfiable          !!",
-                           "solution =", "UNSATISFIABLE          !!")),
+      if berkmin_exec = "" then "BerkMin561" else berkmin_exec, "Satisfiable          !!",
+      "solution =", "UNSATISFIABLE          !!", K [])),
    ("BerkMin_Alloy", External ("BERKMINALLOY_HOME", "berkmin", [])),
    ("SAT4J", Internal (Java, Incremental, ["DefaultSAT4J"])),
    ("SAT4J_Light", Internal (Java, Incremental, ["LightSAT4J"])),
@@ -60,27 +61,27 @@ fun dynamic_entry_for_external name dev home exec args markers =
       end
   in if getenv home = "" then NONE else SOME (name, make_args) end
 
-fun dynamic_entry_for_info incremental (name, Internal (Java, mode, ss)) =
+fun dynamic_entry_for_info _ incremental (name, Internal (Java, mode, ss)) =
     if incremental andalso mode = Batch then NONE else SOME (name, K ss)
-  | dynamic_entry_for_info incremental (name, Internal (JNI, mode, ss)) =
+  | dynamic_entry_for_info _ incremental (name, Internal (JNI, mode, ss)) =
     if incremental andalso mode = Batch then NONE
     else if exists File.is_dir (Path.split (getenv "KODKODI_JAVA_LIBRARY_PATH"))
     then SOME (name, K ss) else NONE
-  | dynamic_entry_for_info false (name, External (home, exec, args)) =
+  | dynamic_entry_for_info _ false (name, External (home, exec, args)) =
     dynamic_entry_for_external name ToStdout home exec args []
-  | dynamic_entry_for_info false (name, ExternalV2 (dev, home, exec, args, m1, m2, m3)) =
-    dynamic_entry_for_external name dev home exec args [m1, m2, m3]
-  | dynamic_entry_for_info true _ = NONE
+  | dynamic_entry_for_info timeout false (name, ExternalV2 (dev, home, exec, m1, m2, m3, args)) =
+    dynamic_entry_for_external name dev home exec (args timeout) [m1, m2, m3]
+  | dynamic_entry_for_info _ true _ = NONE
 
-fun dynamic_list incremental =
-  map_filter (dynamic_entry_for_info incremental) static_list
+fun dynamic_list timeout incremental =
+  map_filter (dynamic_entry_for_info timeout incremental) static_list
 
-val configured_sat_solvers = map fst o dynamic_list
-val smart_sat_solver_name = fst o hd o dynamic_list
+val configured_sat_solvers = map fst o dynamic_list Time.zeroTime
+val smart_sat_solver_name = fst o hd o dynamic_list Time.zeroTime
 
-fun sat_solver_spec name =
+fun sat_solver_spec timeout name =
   let
-    val dyns = dynamic_list false
+    val dyns = dynamic_list timeout false
     fun enum_solvers solvers =
       commas (distinct (op =) (map (quote o fst) solvers))
   in
