@@ -35,5 +35,5 @@ object JS {
     string(File.standard_path(p) + (if (dir) "/" else ""))
 
   def platform_path(p: Path, dir: Boolean = false): Source =
-    string(File.platform_path(p) + (if (dir) File.platform_path(Path.root) else ""))
+    string(File.platform_path(p) + (if (dir) "/" else ""))
 }
