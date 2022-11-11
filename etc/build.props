@@ -78,6 +78,7 @@ sources = \
   src/Pure/General/graph_display.scala \
   src/Pure/General/graphics_file.scala \
   src/Pure/General/http.scala \
+  src/Pure/General/js.scala \
   src/Pure/General/json.scala \
   src/Pure/General/json_api.scala \
   src/Pure/General/linear_set.scala \
@@ -158,6 +159,7 @@ sources = \
   src/Pure/System/java_statistics.scala \
   src/Pure/System/linux.scala \
   src/Pure/System/mingw.scala \
+  src/Pure/System/nodejs.scala \
   src/Pure/System/numa.scala \
   src/Pure/System/options.scala \
   src/Pure/System/platform.scala \
