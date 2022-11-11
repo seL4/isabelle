@@ -31,6 +31,7 @@ sources = \
   src/Pure/Admin/build_pdfjs.scala \
   src/Pure/Admin/build_polyml.scala \
   src/Pure/Admin/build_postgresql.scala \
+  src/Pure/Admin/build_prismjs.scala \
   src/Pure/Admin/build_release.scala \
   src/Pure/Admin/build_scala.scala \
   src/Pure/Admin/build_spass.scala \
@@ -196,6 +197,7 @@ sources = \
   src/Pure/Tools/mkroot.scala \
   src/Pure/Tools/phabricator.scala \
   src/Pure/Tools/print_operation.scala \
+  src/Pure/Tools/prismjs.scala \
   src/Pure/Tools/profiling_report.scala \
   src/Pure/Tools/scala_build.scala \
   src/Pure/Tools/scala_project.scala \
