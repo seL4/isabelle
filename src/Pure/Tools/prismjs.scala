@@ -40,17 +40,23 @@ object Prismjs {
       JS.function("prismjs.load", lang),
       """
 function prismjs_content(t) {
-  if (Array.isArray(t)) { return t.map(prismjs_content).join() }
-  else if (t instanceof prismjs.Token) { return prismjs_content(t.content) }
+  if (t instanceof prismjs.Token) { return prismjs_content(t.content) }
+  else if (Array.isArray(t)) { return t.map(prismjs_content).join() }
   else { return t }
 }
 
 function prismjs_tokenize(text, lang) {
   return prismjs.tokenize(text, prismjs.languages[lang]).map(function (t) {
+    var types = []
+    var content = ""
     if (t instanceof prismjs.Token) {
-      return {"kind": t.type, "content": prismjs_content(t)}
+      types.push(t.type)
+      if (Array.isArray(t.alias)) { for (a of t.alias) { types.push(a) } }
+      else if (t.alias !== undefined) { types.push(t.alias) }
+      content = prismjs_content(t)
     }
-    else { return {"kind": "", "content": t} }
+    else { content = t }
+    return {"types": types, "content": content}
   })
 }
 """))
@@ -59,9 +65,9 @@ function prismjs_tokenize(text, lang) {
   /* tokenize */
 
   sealed case class Token(
-    kind: String,
+    types: List[String],
     content: String,
-    range: Text.Range = Text.Range.zero)
+    range: Text.Range)
 
   def tokenize(text: String, language: String): List[Token] = {
     if (!available_languages.contains(language)) {
@@ -83,9 +89,10 @@ function prismjs_tokenize(text, lang) {
 
     def parse_token(t: JSON.T): Token =
       (for {
-        kind <- JSON.string(t, "kind")
+        types <- JSON.strings(t, "types")
         content <- JSON.string(t, "content")
-      } yield Token(kind, content)).getOrElse(error("Malformed JSON token: " + t))
+      } yield Token(types, content, Text.Range.zero))
+        .getOrElse(error("Malformed JSON token: " + t))
 
     val tokens0 =
       JSON.Value.List.unapply(json, t => Some(parse_token(t)))
@@ -96,9 +103,7 @@ function prismjs_tokenize(text, lang) {
     for (tok <- tokens0) {
       val start = stop
       stop += tok.content.length
-      if (tok.kind.nonEmpty) {
-        tokens += tok.copy(range = Text.Range(start, stop))
-      }
+      tokens += tok.copy(range = Text.Range(start, stop))
     }
     tokens.toList
   }
