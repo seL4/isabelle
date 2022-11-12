@@ -13,13 +13,13 @@ object Nodejs {
   /* require modules */
 
   def require_module(name: JS.Source, module: JS.Source): JS.Source =
-    "const " + name + " = require(" + module + ")"
-
-  def require_builtin(name: JS.Source): JS.Source =
-    require_module(name, JS.string(name))
+    name + " = require(" + module + ")"
 
   def require_path(name: JS.Source, path: Path, dir: Boolean = false): JS.Source =
     require_module(name, JS.platform_path(path, dir = dir))
+
+  def require_builtin(name: String): JS.Source =
+    require_module("const " + name, JS.string(name))
 
 
   /* file-system operations */

@@ -35,9 +35,9 @@ object Prismjs {
   def prelude(lang: JS.Source): JS.Source =
     cat_lines(List(
       Nodejs.require_fs,
-      Nodejs.require_path("prismjs", HOME),
-      Nodejs.require_path("prismjs_load", HOME + Path.explode("components"), dir = true),
-      JS.function("prismjs_load", lang),
+      Nodejs.require_path("const prismjs", HOME),
+      Nodejs.require_path("prismjs.load", HOME + Path.explode("components"), dir = true),
+      JS.function("prismjs.load", lang),
       """
 function prismjs_content(t) {
   if (Array.isArray(t)) { return t.map(prismjs_content).join() }
