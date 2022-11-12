@@ -41,7 +41,7 @@ object Prismjs {
       """
 function prismjs_content(t) {
   if (t instanceof prismjs.Token) { return prismjs_content(t.content) }
-  else if (Array.isArray(t)) { return t.map(prismjs_content).join() }
+  else if (Array.isArray(t)) { return t.map(prismjs_content).join("") }
   else { return t }
 }
 
