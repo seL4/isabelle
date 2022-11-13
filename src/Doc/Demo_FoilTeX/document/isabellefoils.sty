@@ -1,0 +1,23 @@
+%styles
+\newcommand{\plainstyle}{\normalsize\sf\color{black}}
+\renewcommand{\isastyletext}{\normalsize\sf}
+\renewcommand{\isastyletxt}{\sf}
+\renewcommand{\isastylecmt}{\sf}
+
+%colors
+\newcommand{\titlestyle}{\color{DarkGreen}}
+\newcommand{\hilitecolor}{\color{Blue}}
+\newcommand{\hilite}[1]{{\hilitecolor#1}}
+\newcommand{\red}[1]{{\color{Red}#1}}
+\newcommand{\green}[1]{{\color{DarkGreen}#1}}
+
+%headings
+\renewcommand{\isamarkupchapter}[1]{\newpage\thispagestyle{empty}\MyLogo{\let\\=\relax #1}\vspace*{0.4\textheight}\begin{center}\LARGE\bf\color{DarkGreen} #1\end{center}}
+\renewcommand{\isamarkupsection}[1]{\foilhead{\color{DarkGreen}#1}}
+\renewcommand\isamarkupparagraph{\@startsection{paragraph}{4}{0pt}{\bigskipamount}{0.5ex \@plus .1ex}{\normalsize\bf\color{DarkBlue}}}
+
+%item spacing
+\renewcommand\@listIa{\leftmargin\leftmargini
+\topsep 0\p@ \@plus 0.5\p@ \@minus 1\p@
+\parsep 2\p@ \@plus 1\p@ \@minus 1\p@
+\itemsep 2\p@ \@plus 1\p@ \@minus 0.5\p@}

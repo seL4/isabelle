@@ -10,4 +10,5 @@ session Demo_FoilTeX (doc) = HOL +
     "foil20.clo"
     "foils.cls"
   document_files
+    "isabellefoils.sty"
     "root.tex"
