@@ -383,4 +383,6 @@ class Scala_Functions extends Scala.Functions(
   Isabelle_System.Isabelle_Id,
   Isabelle_Tool.Isabelle_Tools,
   isabelle.atp.SystemOnTPTP.List_Systems,
-  isabelle.atp.SystemOnTPTP.Run_System)
+  isabelle.atp.SystemOnTPTP.Run_System,
+  Prismjs.Languages,
+  Prismjs.Tokenize)

@@ -141,6 +141,7 @@ sig
   val ML_antiquotationN: string
   val document_antiquotationN: string
   val document_antiquotation_optionN: string
+  val prismjs_languageN: string
   val raw_textN: string val raw_text: T
   val plain_textN: string val plain_text: T
   val paragraphN: string val paragraph: T
@@ -566,6 +567,8 @@ val document_antiquotation_optionN = "document_antiquotation_option";
 
 
 (* document text *)
+
+val prismjs_languageN = "prismjs_language";
 
 val (raw_textN, raw_text) = markup_elem "raw_text";
 val (plain_textN, plain_text) = markup_elem "plain_text";

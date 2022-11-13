@@ -75,11 +75,24 @@ function prismjs_tokenize(text, lang) {
 
   sealed case class Token(types: List[String], content: Content) {
     def string: String = content.string
+    def yxml: String = YXML.string_of_body(Encode.token(this))
   }
   sealed abstract class Content { def string: String }
   case class Atom(string: String) extends Content
   case class Nested(tokens: List[Token]) extends Content {
-    def string: String = tokens.map(_.content.string).mkString
+    def string: String = tokens.map(_.string).mkString
+  }
+
+  object Encode {
+    import XML.Encode._
+    def token(tok: Token): XML.Body =
+      pair(list(string), content)(tok.types, tok.content)
+    def content: T[Content] = {
+      variant[Content](List(
+        { case Atom(a) => (List(a), Nil) },
+        { case Nested(a) => (Nil, list(token)(a)) }
+      ))
+    }
   }
 
   def decode(json: JSON.T): Option[Token] =
@@ -106,5 +119,23 @@ function prismjs_tokenize(text, lang) {
       }
 
     JSON.Value.List.unapply(json, decode).getOrElse(error("Malformed JSON: " + json))
+  }
+
+
+  /* Scala functions in ML */
+
+  object Languages extends Scala.Fun_Strings("Prismjs.languages") {
+    val here = Scala_Project.here
+    def apply(args: List[String]): List[String] =
+      languages.map(language => cat_lines(language.names))
+  }
+
+  object Tokenize extends Scala.Fun_Strings("Prismjs.tokenize", thread = true) {
+    val here = Scala_Project.here
+    def apply(args: List[String]): List[String] =
+      args match {
+        case List(text, language) => tokenize(text, language).map(_.yxml)
+        case _ => error("Bad arguments")
+      }
   }
 }
