@@ -32,7 +32,7 @@ object Prismjs {
             JSON.Value.List.unapply(info.getOrElse("alias", Nil), JSON.Value.String.unapply)
               .getOrElse(Nil)
           Language(name :: alias)
-        }).toList
+        }).toList.sortBy(_.name)
       case _ => error("Failed to determine languages from " + components_path)
     }
   }
