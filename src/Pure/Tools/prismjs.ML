@@ -50,6 +50,8 @@ fun check_language ctxt arg =
 
 end;
 
+val _ = ML_system_pp (fn _ => fn _ => Pretty.to_polyml o Pretty.str o quote o language_name);
+
 
 (* tokenize *)
 
