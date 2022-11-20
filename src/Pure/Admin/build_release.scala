@@ -177,7 +177,7 @@ directory individually.
         List(platform.toString, "bundled-" + platform.toString).
           map((_, new Bundled(platform = Some(platform)))))
 
-    File.append(Components.components(dir),
+    File.append(Components.Directory(dir).components,
       terminate_lines("#bundled components" ::
         (for {
           (catalog, bundled) <- catalogs.iterator
@@ -191,7 +191,7 @@ directory individually.
   def get_bundled_components(dir: Path, platform: Platform.Family.Value): (List[String], String) = {
     val Bundled = new Bundled(platform = Some(platform))
     val components =
-      for { Bundled(name) <- Components.read_components(dir) } yield name
+      for { Bundled(name) <- Components.Directory(dir).read_components() } yield name
     val jdk_component =
       components.find(_.startsWith("jdk")) getOrElse error("Missing jdk component")
     (components, jdk_component)
@@ -203,11 +203,12 @@ directory individually.
       Components.contrib(name = name).implode
 
     val Bundled = new Bundled(platform = Some(platform))
-    Components.write_components(dir,
-      Components.read_components(dir).flatMap(line =>
+    val component_dir = Components.Directory(dir)
+    component_dir.write_components(
+      component_dir.read_components().flatMap(line =>
         line match {
           case Bundled(name) =>
-            if (Components.check_dir(Components.contrib(dir, name))) Some(contrib_name(name))
+            if (Components.Directory(Components.contrib(dir, name)).check) Some(contrib_name(name))
             else None
           case _ => if (Bundled.detect(line)) None else Some(line)
         }) ::: more_names.map(contrib_name))

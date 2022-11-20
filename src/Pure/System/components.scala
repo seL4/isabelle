@@ -125,19 +125,14 @@ object Components {
     def build_props: Path = etc + Path.basic("build.props")
     def README: Path = path + Path.basic("README")
     def LICENSE: Path = path + Path.basic("LICENSE")
+
+    def check: Boolean = settings.is_file || components.is_file
+
+    def read_components(): List[String] =
+      split_lines(File.read(components)).filter(_.nonEmpty)
+    def write_components(lines: List[String]): Unit =
+      File.write(components, terminate_lines(lines))
   }
-
-  def settings(dir: Path = Path.current): Path = dir + Path.explode("etc/settings")
-  def components(dir: Path = Path.current): Path = dir + Path.explode("etc/components")
-
-  def check_dir(dir: Path): Boolean =
-    settings(dir).is_file || components(dir).is_file
-
-  def read_components(dir: Path): List[String] =
-    split_lines(File.read(components(dir))).filter(_.nonEmpty)
-
-  def write_components(dir: Path, lines: List[String]): Unit =
-    File.write(components(dir), terminate_lines(lines))
 
 
   /* component repository content */
@@ -175,7 +170,9 @@ object Components {
 
   def update_components(add: Boolean, path0: Path, progress: Progress = new Progress): Unit = {
     val path = path0.expand.absolute
-    if (!check_dir(path) && !Sessions.is_session_dir(path)) error("Bad component directory: " + path)
+    if (!Directory(path).check && !Sessions.is_session_dir(path)) {
+      error("Bad component directory: " + path)
+    }
 
     val lines1 = read_components()
     val lines2 =
@@ -222,9 +219,9 @@ object Components {
           case Archive(_) => path
           case name =>
             if (!path.is_dir) error("Bad component directory: " + path)
-            else if (!check_dir(path)) {
+            else if (!Directory(path).check) {
               error("Malformed component directory: " + path +
-                "\n  (requires " + settings() + " or " + Components.components() + ")")
+                "\n  (requires etc/settings or etc/components)")
             }
             else {
               val component_path = path.expand
@@ -275,7 +272,7 @@ object Components {
             val is_standard_component =
               Isabelle_System.with_tmp_dir("component") { tmp_dir =>
                 Isabelle_System.gnutar("-xzf " + File.bash_path(archive), dir = tmp_dir).check
-                check_dir(tmp_dir + Path.explode(name))
+                Directory(tmp_dir + Path.explode(name)).check
               }
             if (is_standard_component) {
               if (ssh.is_dir(remote_contrib)) {
