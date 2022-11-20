@@ -36,13 +36,13 @@ object Build_PostgreSQL {
 
     /* component */
 
-    val component_dir = Isabelle_System.new_directory(target_dir + Path.basic(download_name))
-    progress.echo("Component " + component_dir)
+    val component_dir =
+      Components.Directory.create(target_dir + Path.basic(download_name), progress = progress)
 
 
     /* LICENSE */
 
-    File.write(component_dir + Path.basic("LICENSE"),
+    File.write(component_dir.LICENSE,
 """Copyright (c) 1997, PostgreSQL Global Development Group
 All rights reserved.
 
@@ -71,7 +71,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
     /* README */
 
-    File.write(component_dir + Path.basic("README"),
+    File.write(component_dir.README,
 """This is PostgreSQL JDBC """ + download_version + """ from
 """ + notable_urls.mkString(" and ") + """
 
@@ -81,9 +81,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
     /* settings */
 
-    val etc_dir = Isabelle_System.make_directory(component_dir + Path.basic("etc"))
-
-    File.write(etc_dir + Path.basic("settings"),
+    File.write(component_dir.settings,
 """# -*- shell-script -*- :mode=shellscript:
 
 classpath "$COMPONENT/""" + download_name + """.jar"
@@ -92,7 +90,7 @@ classpath "$COMPONENT/""" + download_name + """.jar"
 
     /* jar */
 
-    val jar = component_dir + Path.basic(download_name).ext("jar")
+    val jar = component_dir.path + Path.basic(download_name).ext("jar")
     Isabelle_System.download_file(download_url, jar, progress = progress)
   }
 

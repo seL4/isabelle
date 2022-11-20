@@ -27,8 +27,8 @@ object Build_Prismjs {
     /* component name */
 
     val component = "prismjs-" + version
-    val component_dir = Isabelle_System.new_directory(target_dir + Path.basic(component))
-    progress.echo("Component " + component_dir)
+    val component_dir =
+      Components.Directory.create(target_dir + Path.basic(component), progress = progress)
 
 
     /* download */
@@ -37,16 +37,16 @@ object Build_Prismjs {
       Isabelle_System.bash("npm init -y && npm install prismjs@" + Bash.string(version),
         cwd = tmp_dir.file).check
 
-      component_dir.file.delete()
+      Isabelle_System.rm_tree(component_dir.path)
       Isabelle_System.copy_dir(tmp_dir + Path.explode("node_modules/prismjs"),
-        component_dir)
+        component_dir.path)
+      Isabelle_System.make_directory(component_dir.etc)
     }
 
 
     /* settings */
 
-    val etc_dir = Isabelle_System.make_directory(component_dir + Path.basic("etc"))
-    File.write(etc_dir + Path.basic("settings"),
+    File.write(component_dir.settings,
       """# -*- shell-script -*- :mode=shellscript:
 
 ISABELLE_PRISMJS_HOME="$COMPONENT"
@@ -55,7 +55,7 @@ ISABELLE_PRISMJS_HOME="$COMPONENT"
 
     /* README */
 
-    File.write(component_dir + Path.basic("README"),
+    File.write(component_dir.README,
       """This is Prism.js """ + version + """ from https://www.npmjs.com/package/prismjs
 
 

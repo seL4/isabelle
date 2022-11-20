@@ -172,17 +172,16 @@ esac
 
       val jdk_name = "jdk-" + jdk_version
       val jdk_path = Path.explode(jdk_name)
-      val component_dir = dir + jdk_path
+      val component_dir = Components.Directory.create(dir + jdk_path, progress = progress)
 
-      Isabelle_System.make_directory(component_dir + Path.explode("etc"))
-      File.write(Components.settings(component_dir), settings)
-      File.write(component_dir + Path.explode("README"), readme(jdk_version))
+      File.write(component_dir.settings, settings)
+      File.write(component_dir.README, readme(jdk_version))
 
       for (platform <- platforms) {
-        Isabelle_System.move_file(dir + platform.platform_path, component_dir)
+        Isabelle_System.move_file(dir + platform.platform_path, component_dir.path)
       }
 
-      for (file <- File.find_files(component_dir.file, include_dirs = true)) {
+      for (file <- File.find_files(component_dir.path.file, include_dirs = true)) {
         val path = file.toPath
         val perms = Files.getPosixFilePermissions(path)
         perms.add(PosixFilePermission.OWNER_READ)

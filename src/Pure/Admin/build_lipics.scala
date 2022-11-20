@@ -53,16 +53,15 @@ object Build_LIPIcs {
         }
 
         val component = "lipics-" + version
-        val component_dir = Isabelle_System.new_directory(target_dir + Path.basic(component))
-        progress.echo("Component " + component_dir)
+        val component_dir =
+          Components.Directory.create(target_dir + Path.basic(component), progress = progress)
 
-        Isabelle_System.copy_dir(lipics_dir, component_dir)
+        Isabelle_System.copy_dir(lipics_dir, component_dir.path)
 
 
         /* settings */
 
-        val etc_dir = Isabelle_System.make_directory(component_dir + Path.basic("etc"))
-        File.write(etc_dir + Path.basic("settings"),
+        File.write(component_dir.settings,
           """# -*- shell-script -*- :mode=shellscript:
 
 ISABELLE_LIPICS_HOME="$COMPONENT/authors"
@@ -71,7 +70,7 @@ ISABELLE_LIPICS_HOME="$COMPONENT/authors"
 
         /* README */
 
-        File.write(component_dir + Path.basic("README"),
+        File.write(component_dir.README,
           """This is the Dagstuhl LIPIcs style for authors from
 """ + download_url + """
 

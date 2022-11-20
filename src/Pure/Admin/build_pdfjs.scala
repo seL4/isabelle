@@ -31,8 +31,8 @@ object Build_PDFjs {
     /* component name */
 
     val component = "pdfjs-" + version
-    val component_dir = Isabelle_System.new_directory(target_dir + Path.basic(component))
-    progress.echo("Component " + component_dir)
+    val component_dir =
+      Components.Directory.create(target_dir + Path.basic(component), progress = progress)
 
 
     /* download */
@@ -42,14 +42,13 @@ object Build_PDFjs {
       Isabelle_System.download_file(download_url + "/pdfjs-" + version + "-legacy-dist.zip",
         archive_file, progress = progress)
       Isabelle_System.bash("unzip -x " + File.bash_path(archive_file),
-        cwd = component_dir.file).check
+        cwd = component_dir.path.file).check
     }
 
 
     /* settings */
 
-    val etc_dir = Isabelle_System.make_directory(component_dir + Path.basic("etc"))
-    File.write(etc_dir + Path.basic("settings"),
+    File.write(component_dir.settings,
       """# -*- shell-script -*- :mode=shellscript:
 
 ISABELLE_PDFJS_HOME="$COMPONENT"
@@ -58,7 +57,7 @@ ISABELLE_PDFJS_HOME="$COMPONENT"
 
     /* README */
 
-    File.write(component_dir + Path.basic("README"),
+    File.write(component_dir.README,
       """This is PDF.js from
 """ + download_url + """
 

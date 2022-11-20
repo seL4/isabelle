@@ -75,8 +75,8 @@ object Build_CSDP {
         }
 
       val component_name = "csdp-" + version
-      val component_dir = Isabelle_System.new_directory(target_dir + Path.basic(component_name))
-      progress.echo("Component " + component_dir)
+      val component_dir =
+        Components.Directory.create(target_dir + Path.basic(component_name), progress = progress)
 
 
       /* platform */
@@ -86,7 +86,8 @@ object Build_CSDP {
         proper_string(Isabelle_System.getenv("ISABELLE_PLATFORM64")) getOrElse
         error("No 64bit platform")
 
-      val platform_dir = Isabelle_System.make_directory(component_dir + Path.basic(platform_name))
+      val platform_dir =
+        Isabelle_System.make_directory(component_dir.path + Path.basic(platform_name))
 
 
       /* download source */
@@ -99,7 +100,7 @@ object Build_CSDP {
 
       Isabelle_System.bash(
         "tar xzf " + archive_path + " && mv " + Bash.string(source_name) + " src",
-        cwd = component_dir.file).check
+        cwd = component_dir.path.file).check
 
 
       /* build */
@@ -119,7 +120,7 @@ object Build_CSDP {
 
       /* install */
 
-      Isabelle_System.copy_file(build_dir + Path.explode("LICENSE"), component_dir)
+      Isabelle_System.copy_file(build_dir + Path.explode("LICENSE"), component_dir.path)
       Isabelle_System.copy_file(build_dir + Path.explode("solver/csdp").platform_exe, platform_dir)
 
       if (Platform.is_windows) {
@@ -132,8 +133,7 @@ object Build_CSDP {
 
       /* settings */
 
-      val etc_dir = Isabelle_System.make_directory(component_dir + Path.basic("etc"))
-      File.write(etc_dir + Path.basic("settings"),
+      File.write(component_dir.settings,
         """# -*- shell-script -*- :mode=shellscript:
 
 ISABELLE_CSDP="$COMPONENT/${ISABELLE_WINDOWS_PLATFORM64:-$ISABELLE_PLATFORM64}/csdp"
@@ -142,7 +142,7 @@ ISABELLE_CSDP="$COMPONENT/${ISABELLE_WINDOWS_PLATFORM64:-$ISABELLE_PLATFORM64}/c
 
       /* README */
 
-      File.write(component_dir + Path.basic("README"),
+      File.write(component_dir.README,
 """This is CSDP """ + version + """ from
 """ + download_url + """
 

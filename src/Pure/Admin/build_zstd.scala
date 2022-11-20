@@ -43,21 +43,20 @@ object Build_Zstd {
     /* component */
 
     val component_name = "zstd-jni-" + version
-    val component_dir = Isabelle_System.new_directory(target_dir + Path.basic(component_name))
-    progress.echo("Component " + component_dir)
+    val component_dir =
+      Components.Directory.create(target_dir + Path.basic(component_name), progress = progress)
 
-    File.write(component_dir + Path.basic("README"),
+    File.write(component_dir.README,
       "This is " + component_name + " from\n" + download_url +
         "\n\n        Makarius\n        " + Date.Format.date(Date.now()) + "\n")
 
-    Isabelle_System.download_file(
-      license_url, component_dir + Path.basic("LICENSE"), progress = progress)
+    Isabelle_System.download_file(license_url, component_dir.LICENSE, progress = progress)
 
 
     /* jar */
 
     val jar_name = component_name + ".jar"
-    val jar = component_dir + Path.basic(jar_name)
+    val jar = component_dir.path + Path.basic(jar_name)
     Isabelle_System.download_file(
       download_url + "/" + version + "/" + jar_name, jar, progress = progress)
 
@@ -65,15 +64,13 @@ object Build_Zstd {
       progress.echo("Unpacking " + jar)
       Isabelle_System.bash("isabelle_jdk jar xf " + File.bash_path(jar.absolute),
         cwd = jar_dir.file).check
-      for (platform <- platforms) platform.install(jar_dir, component_dir, version)
+      for (platform <- platforms) platform.install(jar_dir, component_dir.path, version)
     }
 
 
     /* settings */
 
-    val etc_dir = Isabelle_System.make_directory(component_dir + Path.basic("etc"))
-
-    File.write(etc_dir + Path.basic("settings"),
+    File.write(component_dir.settings,
 """# -*- shell-script -*- :mode=shellscript:
 
 ISABELLE_ZSTD_HOME="$COMPONENT"

@@ -46,17 +46,17 @@ object Build_Easychair {
             .getOrElse("Failed to detect version from " + quote(easychair_dir.file_name))
 
         val component = "easychair-" + version
-        val component_dir = Isabelle_System.new_directory(target_dir + Path.basic(component))
-        progress.echo("Component " + component_dir)
+        val component_dir =
+          Components.Directory.create(target_dir + Path.basic(component), progress = progress)
 
-        component_dir.file.delete
-        Isabelle_System.copy_dir(easychair_dir, component_dir)
+        Isabelle_System.rm_tree(component_dir.path)
+        Isabelle_System.copy_dir(easychair_dir, component_dir.path)
+        Isabelle_System.make_directory(component_dir.etc)
 
 
         /* settings */
 
-        val etc_dir = Isabelle_System.make_directory(component_dir + Path.basic("etc"))
-        File.write(etc_dir + Path.basic("settings"),
+        File.write(component_dir.settings,
           """# -*- shell-script -*- :mode=shellscript:
 
 ISABELLE_EASYCHAIR_HOME="$COMPONENT"
@@ -65,7 +65,7 @@ ISABELLE_EASYCHAIR_HOME="$COMPONENT"
 
         /* README */
 
-        File.write(component_dir + Path.basic("README"),
+        File.write(component_dir.README,
           """This is the Easychair style for authors from
 """ + download_url + """
 

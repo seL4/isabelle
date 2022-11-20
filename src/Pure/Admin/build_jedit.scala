@@ -103,7 +103,7 @@ object Build_JEdit {
     name == "installer"
 
   def build_jedit(
-    component_dir: Path,
+    component_path: Path,
     version: String,
     original: Boolean = false,
     java_home: Path = default_java_home,
@@ -113,9 +113,7 @@ object Build_JEdit {
     Isabelle_System.require_command("patch")
     Isabelle_System.require_command("unzip", test = "-h")
 
-    Isabelle_System.new_directory(component_dir)
-
-    val etc_dir = Isabelle_System.make_directory(component_dir + Path.explode("etc"))
+    val component_dir = Components.Directory.create(component_path, progress = progress)
 
 
     /* jEdit directory */
@@ -123,8 +121,8 @@ object Build_JEdit {
     val jedit = "jedit" + version
     val jedit_patched = jedit + "-patched"
 
-    val jedit_dir = Isabelle_System.make_directory(component_dir + Path.basic(jedit))
-    val jedit_patched_dir = component_dir + Path.basic(jedit_patched)
+    val jedit_dir = Isabelle_System.make_directory(component_path + Path.basic(jedit))
+    val jedit_patched_dir = component_path + Path.basic(jedit_patched)
 
     def download_jedit(dir: Path, name: String, target_name: String = ""): Path = {
       val jedit_name = jedit + name
@@ -184,9 +182,9 @@ isabelle_java java -Duser.home=""" + File.bash_platform_path(tmp_dir) +
           file <- File.find_files(org_source_dir.file, file => File.is_java(file.getName))
           package_name <- Scala_Project.package_name(File.path(file))
           if !exclude_package(package_name)
-        } yield File.path(component_dir.java_path.relativize(file.toPath).toFile).implode
+        } yield File.path(component_path.java_path.relativize(file.toPath).toFile).implode
 
-      File.write(etc_dir + Path.explode("build.props"),
+      File.write(component_dir.build_props,
         "module = " + jedit_patched + "/jedit.jar\n" +
         "no_build = true\n" +
         "requirements = env:JEDIT_JARS\n" +
@@ -464,15 +462,15 @@ xml-insert-closing-tag.shortcut=
 
     /* make patch */
 
-    File.write(component_dir + Path.basic(jedit).patch,
-      Isabelle_System.make_patch(component_dir, Path.basic(jedit), Path.basic(jedit_patched)))
+    File.write(component_path + Path.basic(jedit).patch,
+      Isabelle_System.make_patch(component_path, Path.basic(jedit), Path.basic(jedit_patched)))
 
     if (!original) Isabelle_System.rm_tree(jedit_dir)
 
 
     /* settings */
 
-    File.write(etc_dir + Path.explode("settings"),
+    File.write(component_dir.settings,
       """# -*- shell-script -*- :mode=shellscript:
 
 JEDIT_HOME="$COMPONENT/""" + jedit_patched + """"
@@ -491,7 +489,7 @@ ISABELLE_DOCS="$ISABELLE_DOCS:$JEDIT_HOME/doc"
 
     /* README */
 
-    File.write(component_dir + Path.basic("README"),
+    File.write(component_dir.README,
 """This is a slightly patched version of jEdit """ + version + """ from
 https://sourceforge.net/projects/jedit/files/jedit with some
 additional plugins jars from

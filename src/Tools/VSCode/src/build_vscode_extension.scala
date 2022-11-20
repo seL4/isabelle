@@ -150,8 +150,8 @@ object Build_VSCode {
     /* component */
 
     val component_name = "vscode_extension-" + Date.Format.alt_date(Date.now())
-    val component_dir = Isabelle_System.new_directory(target_dir + Path.basic(component_name))
-    progress.echo("Component " + component_dir)
+    val component_dir =
+      Components.Directory.create(target_dir + Path.basic(component_name), progress = progress)
 
 
     /* build */
@@ -183,15 +183,14 @@ object Build_VSCode {
           result.out_lines.collectFirst({ case Pattern(name) => name })
             .getOrElse(error("Failed to guess resulting .vsix file name"))
 
-        Isabelle_System.copy_file(build_dir + Path.basic(vsix_name), component_dir)
+        Isabelle_System.copy_file(build_dir + Path.basic(vsix_name), component_dir.path)
         vsix_name
       }
 
 
     /* settings */
 
-    val etc_dir = Isabelle_System.make_directory(component_dir + Path.basic("etc"))
-    File.write(etc_dir + Path.basic("settings"),
+    File.write(component_dir.settings,
       """# -*- shell-script -*- :mode=shellscript:
 
 ISABELLE_VSCODE_VSIX="$COMPONENT/""" + vsix_name + "\"\n")
@@ -199,7 +198,7 @@ ISABELLE_VSCODE_VSIX="$COMPONENT/""" + vsix_name + "\"\n")
 
     /* README */
 
-    File.write(component_dir + Path.basic("README"),
+    File.write(component_dir.README,
       """This the Isabelle/VSCode extension as VSIX package
 
 It has been produced from the sources in $ISABELLE_HOME/src/Tools/extension/.

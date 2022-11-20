@@ -26,8 +26,8 @@ object Build_Zipperposition {
       /* component */
 
       val component_name = "zipperposition-" + version
-      val component_dir = Isabelle_System.new_directory(target_dir + Path.basic(component_name))
-      progress.echo("Component " + component_dir)
+      val component_dir =
+        Components.Directory.create(target_dir + Path.basic(component_name), progress = progress)
 
 
       /* platform */
@@ -36,7 +36,8 @@ object Build_Zipperposition {
         proper_string(Isabelle_System.getenv("ISABELLE_PLATFORM64")) getOrElse
         error("No 64bit platform")
 
-      val platform_dir = Isabelle_System.make_directory(component_dir + Path.basic(platform_name))
+      val platform_dir =
+        Isabelle_System.make_directory(component_dir.path + Path.basic(platform_name))
 
 
       /* build */
@@ -53,7 +54,7 @@ object Build_Zipperposition {
       /* install */
 
       Isabelle_System.copy_file(build_dir + Path.explode("doc/zipperposition/LICENSE"),
-        component_dir)
+        component_dir.path)
 
       val prg_path = Path.basic("zipperposition")
       val exe_path = prg_path.platform_exe
@@ -67,8 +68,7 @@ object Build_Zipperposition {
 
       /* settings */
 
-      val etc_dir = Isabelle_System.make_directory(component_dir + Path.basic("etc"))
-      File.write(etc_dir + Path.basic("settings"),
+      File.write(component_dir.settings,
         """# -*- shell-script -*- :mode=shellscript:
 
 ZIPPERPOSITION_HOME="$COMPONENT/$ISABELLE_PLATFORM64"
@@ -77,7 +77,7 @@ ZIPPERPOSITION_HOME="$COMPONENT/$ISABELLE_PLATFORM64"
 
       /* README */
 
-      File.write(component_dir + Path.basic("README"),
+      File.write(component_dir.README,
 """This is Zipperposition """ + version + """ from the OCaml/OPAM repository.
 
 

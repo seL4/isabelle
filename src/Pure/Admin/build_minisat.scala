@@ -41,8 +41,8 @@ object Build_Minisat {
         }
 
       val component = proper_string(component_name) getOrElse make_component_name(version)
-      val component_dir = Isabelle_System.new_directory(target_dir + Path.basic(component))
-      progress.echo("Component " + component_dir)
+      val component_dir =
+        Components.Directory.create(target_dir + Path.basic(component), progress = progress)
 
 
       /* platform */
@@ -51,7 +51,8 @@ object Build_Minisat {
         proper_string(Isabelle_System.getenv("ISABELLE_PLATFORM64")) getOrElse
           error("No 64bit platform")
 
-      val platform_dir = Isabelle_System.make_directory(component_dir + Path.basic(platform_name))
+      val platform_dir =
+        Isabelle_System.make_directory(component_dir.path + Path.basic(platform_name))
 
 
       /* download source */
@@ -64,7 +65,7 @@ object Build_Minisat {
 
       Isabelle_System.bash(
         "tar xzf " + archive_path + " && mv " + Bash.string(source_name) + " src",
-        cwd = component_dir.file).check
+        cwd = component_dir.path.file).check
 
 
       /* build */
@@ -72,7 +73,7 @@ object Build_Minisat {
       progress.echo("Building Minisat for " + platform_name + " ...")
 
       val build_dir = tmp_dir + Path.basic(source_name)
-      Isabelle_System.copy_file(build_dir + Path.explode("LICENSE"), component_dir)
+      Isabelle_System.copy_file(build_dir + Path.explode("LICENSE"), component_dir.path)
 
       if (Platform.is_macos) {
         File.change(build_dir + Path.explode("Makefile")) {
@@ -91,8 +92,7 @@ object Build_Minisat {
 
       /* settings */
 
-      val etc_dir = Isabelle_System.make_directory(component_dir + Path.basic("etc"))
-      File.write(etc_dir + Path.basic("settings"),
+      File.write(component_dir.settings,
         """# -*- shell-script -*- :mode=shellscript:
 
 MINISAT_HOME="$COMPONENT/$ISABELLE_PLATFORM64"
@@ -103,7 +103,7 @@ ISABELLE_MINISAT="$MINISAT_HOME/minisat"
 
       /* README */
 
-      File.write(component_dir + Path.basic("README"),
+      File.write(component_dir.README,
         "This Isabelle component provides Minisat " + version + """ using the
 sources from """.stripMargin + download_url + """
 

@@ -25,22 +25,20 @@ object Build_SQLite {
 
     /* component */
 
-    val component_dir = Isabelle_System.new_directory(target_dir + Path.basic(download_name))
-    progress.echo("Component " + component_dir)
+    val component_dir =
+      Components.Directory.create(target_dir + Path.basic(download_name), progress = progress)
 
 
     /* README */
 
-    File.write(component_dir + Path.basic("README"),
+    File.write(component_dir.README,
       "This is " + download_name + " from\n" + download_url +
         "\n\n        Makarius\n        " + Date.Format.date(Date.now()) + "\n")
 
 
     /* settings */
 
-    val etc_dir = Isabelle_System.make_directory(component_dir + Path.basic("etc"))
-
-    File.write(etc_dir + Path.basic("settings"),
+    File.write(component_dir.settings,
 """# -*- shell-script -*- :mode=shellscript:
 
 ISABELLE_SQLITE_HOME="$COMPONENT"
@@ -51,7 +49,7 @@ classpath "$ISABELLE_SQLITE_HOME/""" + download_name + """.jar"
 
     /* jar */
 
-    val jar = component_dir + Path.basic(download_name).ext("jar")
+    val jar = component_dir.path + Path.basic(download_name).ext("jar")
     Isabelle_System.download_file(download_url, jar, progress = progress)
 
     Isabelle_System.with_tmp_dir("build") { jar_dir =>
@@ -70,11 +68,11 @@ classpath "$ISABELLE_SQLITE_HOME/""" + download_name + """.jar"
           "org/sqlite/native/Windows/x86_64/sqlitejdbc.dll" -> "x86_64-windows")
 
       for ((file, dir) <- jar_files) {
-        val target = Isabelle_System.make_directory(component_dir + Path.explode(dir))
+        val target = Isabelle_System.make_directory(component_dir.path + Path.explode(dir))
         Isabelle_System.copy_file(jar_dir + Path.explode(file), target)
       }
 
-      File.set_executable(component_dir + Path.explode("x86_64-windows/sqlitejdbc.dll"), true)
+      File.set_executable(component_dir.path + Path.explode("x86_64-windows/sqlitejdbc.dll"), true)
     }
   }
 

@@ -52,8 +52,8 @@ object Build_JCEF {
     /* component name */
 
     val component = "jcef-" + version
-    val component_dir = Isabelle_System.new_directory(target_dir + Path.basic(component))
-    progress.echo("Component " + component_dir)
+    val component_dir =
+      Components.Directory.create(target_dir + Path.basic(component), progress = progress)
 
 
     /* download and assemble platforms */
@@ -64,7 +64,7 @@ object Build_JCEF {
           val url = base_url + "/" + version + "/" + platform.archive
           Isabelle_System.download_file(url, archive_file, progress = progress)
 
-          val platform_dir = component_dir + Path.explode(platform.platform_name)
+          val platform_dir = component_dir.path + Path.explode(platform.platform_name)
           Isabelle_System.make_directory(platform_dir)
           Isabelle_System.gnutar("-xzf " + File.bash_path(archive_file), dir = platform_dir).check
 
@@ -91,8 +91,7 @@ object Build_JCEF {
 
     /* settings */
 
-    val etc_dir = Isabelle_System.make_directory(component_dir + Path.basic("etc"))
-    File.write(etc_dir + Path.basic("settings"),
+    File.write(component_dir.settings,
       """# -*- shell-script -*- :mode=shellscript:
 
 ISABELLE_JCEF_PLATFORM="${ISABELLE_WINDOWS_PLATFORM64:-${ISABELLE_APPLE_PLATFORM64:-$ISABELLE_PLATFORM64}}"
@@ -109,7 +108,7 @@ fi
 
     /* README */
 
-    File.write(component_dir + Path.basic("README"),
+    File.write(component_dir.README,
       """This distribution of Java Chromium Embedded Framework (JCEF)
 has been assembled from the binary builds from
 https://github.com/jcefmaven/jcefbuild/releases/tag/""" +version + """

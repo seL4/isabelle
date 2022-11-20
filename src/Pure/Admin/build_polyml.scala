@@ -178,20 +178,19 @@ not affect the running ML session. *)
 
   def build_polyml_component(
     source_archive: Path,
-    component_dir: Path,
+    component_path: Path,
     sha1_root: Option[Path] = None
   ): Unit = {
-    Isabelle_System.new_directory(component_dir)
-    extract_sources(source_archive, component_dir)
+    val component_dir = Components.Directory.create(component_path)
+    extract_sources(source_archive, component_path)
 
-    Isabelle_System.copy_file(Path.explode("~~/Admin/polyml/README"), component_dir)
-
-    val etc_dir = Isabelle_System.make_directory(component_dir + Path.explode("etc"))
-    Isabelle_System.copy_file(Path.explode("~~/Admin/polyml/settings"), etc_dir)
+    Isabelle_System.copy_file(Path.explode("~~/Admin/polyml/settings"), component_dir.etc)
+    Isabelle_System.copy_file(Path.explode("~~/Admin/polyml/README"), component_dir.path)
 
     sha1_root match {
       case Some(dir) =>
-        Mercurial.repository(dir).archive(File.standard_path(component_dir + Path.explode("sha1")))
+        Mercurial.repository(dir)
+          .archive(File.standard_path(component_dir.path + Path.explode("sha1")))
       case None =>
     }
   }

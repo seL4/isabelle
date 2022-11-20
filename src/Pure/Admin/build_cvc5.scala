@@ -39,8 +39,8 @@ object Build_CVC5 {
     /* component name */
 
     val component = "cvc5-" + version
-    val component_dir = Isabelle_System.new_directory(target_dir + Path.basic(component))
-    progress.echo("Component " + component_dir)
+    val component_dir =
+      Components.Directory.create(target_dir + Path.basic(component), progress = progress)
 
 
     /* download executables */
@@ -48,7 +48,7 @@ object Build_CVC5 {
     for (platform <- platforms) {
       val url = base_url + "/cvc5-" + version + "/" + platform.download_name
 
-      val platform_dir = component_dir + Path.explode(platform.platform_name)
+      val platform_dir = component_dir.path + Path.explode(platform.platform_name)
       val platform_exe = platform_dir + Path.explode("cvc5").exe_if(platform.is_windows)
 
       Isabelle_System.make_directory(platform_dir)
@@ -59,8 +59,7 @@ object Build_CVC5 {
 
     /* settings */
 
-    val etc_dir = Isabelle_System.make_directory(component_dir + Path.basic("etc"))
-    File.write(etc_dir + Path.basic("settings"),
+    File.write(component_dir.settings,
       """# -*- shell-script -*- :mode=shellscript:
 
 CVC5_HOME="$COMPONENT/${ISABELLE_WINDOWS_PLATFORM64:-${ISABELLE_APPLE_PLATFORM64:-$ISABELLE_PLATFORM64}}"
@@ -77,7 +76,7 @@ fi
 
     /* README */
 
-    File.write(component_dir + Path.basic("README"),
+    File.write(component_dir.README,
       """This distribution of cvc5 was assembled from the official downloads
 from """ + base_url + """ for 64bit macOS,
 Linux, and Windows. There is native support for macOS ARM64, but
@@ -97,7 +96,7 @@ The downloaded files were renamed and made executable.
     // download "latest" versions as reasonable approximation
     def raw_download(name: String): Unit =
       Isabelle_System.download_file("https://raw.githubusercontent.com/cvc5/cvc5/main/" + name,
-        component_dir + Path.explode(name))
+        component_dir.path + Path.explode(name))
 
     raw_download("AUTHORS")
     raw_download("COPYING")

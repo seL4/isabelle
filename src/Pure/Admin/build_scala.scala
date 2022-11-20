@@ -71,19 +71,18 @@ object Build_Scala {
     /* component */
 
     val component_name = main_download.name + "-" + main_download.version
-    val component_dir = Isabelle_System.new_directory(target_dir + Path.basic(component_name))
-    progress.echo("Component " + component_dir)
+    val component_dir =
+      Components.Directory.create(target_dir + Path.basic(component_name), progress = progress)
 
 
     /* download */
 
-    main_download.get_unpacked(component_dir, strip = 1, progress = progress)
+    main_download.get_unpacked(component_dir.path, strip = 1, progress = progress)
 
-    val lib_dir = component_dir + Path.explode("lib")
     lib_downloads.foreach(download =>
-      download.get(lib_dir + Path.basic(download.artifact), progress = progress))
+      download.get(component_dir.lib + Path.basic(download.artifact), progress = progress))
 
-    File.write(component_dir + Path.basic("LICENSE"),
+    File.write(component_dir.LICENSE,
       Url.read(Url("https://www.apache.org/licenses/LICENSE-2.0.txt")))
 
 
@@ -95,8 +94,8 @@ object Build_Scala {
         cat_lines(List(
           no_function("stty"),
           no_function("tput"),
-          "PROG_HOME=" + File.bash_path(component_dir),
-          File.read(component_dir + Path.explode("bin/common"))
+          "PROG_HOME=" + File.bash_path(component_dir.path),
+          File.read(component_dir.path + Path.explode("bin/common"))
             .replace("scala_exit_status=127", "scala_exit_status=0"),
           "compilerJavaClasspathArgs",
           "echo \"$jvm_cp_args\""))
@@ -114,8 +113,7 @@ object Build_Scala {
 
     /* settings */
 
-    val etc_dir = Isabelle_System.make_directory(component_dir + Path.basic("etc"))
-    File.write(etc_dir + Path.basic("settings"),
+    File.write(component_dir.settings,
       """# -*- shell-script -*- :mode=shellscript:
 
 SCALA_HOME="$COMPONENT"
@@ -127,7 +125,7 @@ SCALA_INTERFACES="$SCALA_HOME/lib/""" + interfaces + """"
 
     val patched_scripts = List("bin/scala", "bin/scalac")
     for (name <- patched_scripts) {
-      File.change(component_dir + Path.explode(name)) {
+      File.change(component_dir.path + Path.explode(name)) {
         _.replace(""""-Dscala.home=$PROG_HOME"""", """"-Dscala.home=\"$PROG_HOME\""""")
       }
     }
@@ -135,7 +133,7 @@ SCALA_INTERFACES="$SCALA_HOME/lib/""" + interfaces + """"
 
     /* README */
 
-    File.write(component_dir + Path.basic("README"),
+    File.write(component_dir.README,
       "This distribution of Scala integrates the following parts:\n\n" +
       (main_download :: lib_downloads).map(_.print).mkString("\n\n") + """
 

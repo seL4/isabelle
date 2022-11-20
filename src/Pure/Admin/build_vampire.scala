@@ -46,8 +46,8 @@ object Build_Vampire {
         }
 
       val component = proper_string(component_name) getOrElse make_component_name(version)
-      val component_dir = Isabelle_System.new_directory(target_dir + Path.basic(component))
-      progress.echo("Component " + component_dir)
+      val component_dir =
+        Components.Directory.create(target_dir + Path.basic(component), progress = progress)
 
 
       /* platform */
@@ -56,7 +56,8 @@ object Build_Vampire {
         proper_string(Isabelle_System.getenv("ISABELLE_PLATFORM64")) getOrElse
           error("No 64bit platform")
 
-      val platform_dir = Isabelle_System.make_directory(component_dir + Path.basic(platform_name))
+      val platform_dir =
+        Isabelle_System.make_directory(component_dir.path + Path.basic(platform_name))
 
 
       /* download source */
@@ -69,7 +70,7 @@ object Build_Vampire {
 
       Isabelle_System.bash(
         "tar xzf " + archive_path + " && mv " + Bash.string(source_name) + " src",
-        cwd = component_dir.file).check
+        cwd = component_dir.path.file).check
 
 
       /* build */
@@ -77,7 +78,7 @@ object Build_Vampire {
       progress.echo("Building Vampire for " + platform_name + " ...")
 
       val build_dir = tmp_dir + Path.basic(source_name)
-      Isabelle_System.copy_file(build_dir + Path.explode("LICENCE"), component_dir)
+      Isabelle_System.copy_file(build_dir + Path.explode("LICENCE"), component_dir.path)
 
       val cmake_opts = if (Platform.is_linux) "-DBUILD_SHARED_LIBS=0 " else ""
       val cmake_out =
@@ -97,8 +98,7 @@ object Build_Vampire {
 
       /* settings */
 
-      val etc_dir = Isabelle_System.make_directory(component_dir + Path.basic("etc"))
-      File.write(etc_dir + Path.basic("settings"),
+      File.write(component_dir.settings,
         """# -*- shell-script -*- :mode=shellscript:
 
 VAMPIRE_HOME="$COMPONENT/$ISABELLE_PLATFORM64"
@@ -109,7 +109,7 @@ ISABELLE_VAMPIRE="$VAMPIRE_HOME/vampire"
 
       /* README */
 
-      File.write(component_dir + Path.basic("README"),
+      File.write(component_dir.README,
         "This Isabelle component provides Vampire " + version + """using the
 original sources from """.stripMargin + download_url + """
 

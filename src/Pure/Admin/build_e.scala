@@ -24,14 +24,15 @@ object Build_E {
       /* component */
 
       val component_name = "e-" + version
-      val component_dir = Isabelle_System.new_directory(target_dir + Path.basic(component_name))
-      progress.echo("Component " + component_dir)
+      val component_dir =
+        Components.Directory.create(target_dir + Path.basic(component_name), progress = progress)
 
       val platform_name =
         proper_string(Isabelle_System.getenv("ISABELLE_PLATFORM64"))
           .getOrElse(error("No 64bit platform"))
 
-      val platform_dir = Isabelle_System.make_directory(component_dir + Path.basic(platform_name))
+      val platform_dir =
+        Isabelle_System.make_directory(component_dir.path + Path.basic(platform_name))
 
 
       /* download source */
@@ -41,7 +42,8 @@ object Build_E {
       Isabelle_System.download_file(archive_url, archive_path, progress = progress)
 
       Isabelle_System.bash("tar xzf " + archive_path, cwd = tmp_dir.file).check
-      Isabelle_System.bash("tar xzf " + archive_path + " && mv E src", cwd = component_dir.file).check
+      Isabelle_System.bash("tar xzf " + archive_path + " && mv E src",
+        cwd = component_dir.path.file).check
 
 
       /* build */
@@ -63,8 +65,7 @@ object Build_E {
 
       /* install */
 
-      Isabelle_System.copy_file(build_dir + Path.basic("COPYING"),
-        component_dir + Path.basic("LICENSE"))
+      Isabelle_System.copy_file(build_dir + Path.basic("COPYING"), component_dir.LICENSE)
 
       val install_files = List("epclextract", "eprover", "eprover-ho")
       for (name <- install_files ::: install_files.map(_ + ".exe")) {
@@ -77,8 +78,7 @@ object Build_E {
 
       /* settings */
 
-      val etc_dir = Isabelle_System.make_directory(component_dir + Path.basic("etc"))
-      File.write(etc_dir + Path.basic("settings"),
+      File.write(component_dir.settings,
         """# -*- shell-script -*- :mode=shellscript:
 
 E_HOME="$COMPONENT/$ISABELLE_PLATFORM64"
@@ -87,7 +87,7 @@ E_VERSION=""" + quote(version) + """
 
       /* README */
 
-      File.write(component_dir + Path.basic("README"),
+      File.write(component_dir.README,
         "This is E prover " + version + " from\n" + archive_url + """
 
 The distribution has been built like this:

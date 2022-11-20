@@ -76,14 +76,14 @@ object Dotnet_Setup {
       /* component directory */
 
       val component_dir =
-        target_dir + Path.explode(if (version.isEmpty) "dotnet-latest" else "dotnet-" + version)
+        Components.Directory(
+          target_dir + Path.explode(if (version.isEmpty) "dotnet-latest" else "dotnet-" + version))
 
       if (!dry_run) {
-        progress.echo("Component " + component_dir.expand)
+        progress.echo("Component " + component_dir)
+        Isabelle_System.make_directory(component_dir.etc)
 
-        val settings_path = component_dir + Path.explode("etc/settings")
-        Isabelle_System.make_directory(settings_path.dir)
-        File.write(settings_path, """# -*- shell-script -*- :mode=shellscript:
+        File.write(component_dir.settings, """# -*- shell-script -*- :mode=shellscript:
 
 ISABELLE_DOTNET_ROOT="$COMPONENT"
 
@@ -99,7 +99,7 @@ DOTNET_CLI_TELEMETRY_OPTOUT="true"
 DOTNET_CLI_HOME="$(platform_path "$ISABELLE_HOME_USER/dotnet")"
 """)
 
-        File.write(component_dir + Path.explode("README"),
+        File.write(component_dir.README,
           """This installation of Dotnet has been produced via "isabelle dotnet_setup".
 
 
@@ -110,7 +110,7 @@ DOTNET_CLI_HOME="$(platform_path "$ISABELLE_HOME_USER/dotnet")"
           Components.update_components(false, Path.explode(old))
         }
 
-        Components.update_components(true, component_dir)
+        Components.update_components(true, component_dir.path)
       }
 
 
@@ -119,7 +119,7 @@ DOTNET_CLI_HOME="$(platform_path "$ISABELLE_HOME_USER/dotnet")"
       Isabelle_System.with_tmp_file("install", ext = platform.ext) { install =>
         Isabelle_System.download_file(install_url + "." + platform.ext, install)
 
-        val platform_dir = component_dir + Path.explode(platform.name)
+        val platform_dir = component_dir.path + Path.explode(platform.name)
         if (platform_dir.is_dir && !force) {
           progress.echo_warning("Platform " + platform.name + " already installed")
         }
@@ -136,7 +136,7 @@ DOTNET_CLI_HOME="$(platform_path "$ISABELLE_HOME_USER/dotnet")"
               (if (dry_run) " -DryRun" else "") +
               " -NoPath"
           progress.bash(script, echo = verbose,
-            cwd = if (dry_run) null else component_dir.file).check
+            cwd = if (dry_run) null else component_dir.path.file).check
           for (exe <- File.find_files(platform_dir.file, pred = _.getName.endsWith(".exe"))) {
             File.set_executable(File.path(exe), true)
           }

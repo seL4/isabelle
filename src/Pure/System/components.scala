@@ -102,6 +102,31 @@ object Components {
 
   /* component directory content */
 
+  object Directory {
+    def apply(path: Path): Directory = new Directory(path.absolute)
+
+    def create(path: Path, progress: Progress = new Progress): Directory = {
+      val component_dir = new Directory(path.absolute)
+      progress.echo("Creating component directory " + component_dir.path)
+      Isabelle_System.new_directory(component_dir.path)
+      Isabelle_System.make_directory(component_dir.etc)
+      component_dir
+    }
+  }
+
+  class Directory private(val path: Path) {
+    override def toString: String = path.toString
+
+    def etc: Path = path + Path.basic("etc")
+    def src: Path = path + Path.basic("src")
+    def lib: Path = path + Path.basic("lib")
+    def settings: Path = etc + Path.basic("settings")
+    def components: Path = etc + Path.basic("components")
+    def build_props: Path = etc + Path.basic("build.props")
+    def README: Path = path + Path.basic("README")
+    def LICENSE: Path = path + Path.basic("LICENSE")
+  }
+
   def settings(dir: Path = Path.current): Path = dir + Path.explode("etc/settings")
   def components(dir: Path = Path.current): Path = dir + Path.explode("etc/components")
 

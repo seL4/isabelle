@@ -326,15 +326,15 @@ object Build_VSCodium {
     /* component */
 
     val component_name = "vscodium-" + version
-    val component_dir = Isabelle_System.new_directory(target_dir + Path.explode(component_name))
-    progress.echo("Component " + component_dir)
+    val component_dir =
+      Components.Directory.create(target_dir + Path.explode(component_name), progress = progress)
 
 
     /* patches */
 
     progress.echo("\n* Building patches:")
 
-    val patches_dir = Isabelle_System.new_directory(component_dir + Path.explode("patches"))
+    val patches_dir = Isabelle_System.new_directory(component_dir.path + Path.explode("patches"))
 
     def write_patch(name: String, patch: String): Unit =
       File.write(patches_dir + Path.explode(name).patch, patch)
@@ -360,10 +360,10 @@ object Build_VSCodium {
           cwd = build_dir.file, echo = verbose).check
 
         if (platform_info.is_linux) {
-          Isabelle_System.copy_file(build_dir + Path.explode("LICENSE"), component_dir)
+          Isabelle_System.copy_file(build_dir + Path.explode("LICENSE"), component_dir.path)
         }
 
-        val platform_dir = platform_info.platform_dir(component_dir)
+        val platform_dir = platform_info.platform_dir(component_dir.path)
         Isabelle_System.copy_dir(platform_info.build_dir(build_dir), platform_dir)
         platform_info.setup_node(platform_dir, progress)
         platform_info.setup_electron(platform_dir)
@@ -384,8 +384,7 @@ object Build_VSCodium {
 
     /* settings */
 
-    val etc_dir = Isabelle_System.make_directory(component_dir + Path.explode("etc"))
-    File.write(etc_dir + Path.explode("settings"),
+    File.write(component_dir.settings,
       """# -*- shell-script -*- :mode=shellscript:
 
 ISABELLE_VSCODIUM_HOME="$COMPONENT/${ISABELLE_WINDOWS_PLATFORM64:-$ISABELLE_PLATFORM64}"
@@ -402,7 +401,7 @@ fi
 
     /* README */
 
-    File.write(component_dir + Path.explode("README"),
+    File.write(component_dir.README,
       "This is VSCodium " + version + " from " + vscodium_repository +
 """
 
