@@ -146,6 +146,28 @@ schematic_goal
        apply (typechk SumE_fst assms)
   done
 
+text \<open>A structured proof of AC\<close>
+lemma Axiom_of_Choice:
+  assumes "A type"
+    and "\<And>x. x:A \<Longrightarrow> B(x) type"
+    and "\<And>x y. \<lbrakk>x:A; y:B(x)\<rbrakk> \<Longrightarrow> C(x,y) type"
+  shows "(\<^bold>\<lambda>f. <\<^bold>\<lambda>x. fst(f`x), \<^bold>\<lambda>x. snd(f`x)>) 
+        : (\<Prod>x:A. \<Sum>y:B(x). C(x,y)) \<longrightarrow> (\<Sum>f: (\<Prod>x:A. B(x)). \<Prod>x:A. C(x, f`x))"
+proof (intr assms)
+  fix f a
+  assume f: "f : \<Prod>x:A. Sum(B(x), C(x))" and "a : A" 
+  then have fa: "f`a : Sum(B(a), C(a))"
+    by (rule ProdE)
+  then show "fst(f ` a) : B(a)" 
+    by (rule SumE_fst)
+  have "snd(f ` a) : C(a, fst(f ` a))"
+    by (rule SumE_snd [OF fa]) (typechk SumE_fst assms \<open>a : A\<close>)
+  moreover have "(\<^bold>\<lambda>x. fst(f ` x)) ` a = fst(f ` a) : B(a)"
+    by (rule ProdC [OF \<open>a : A\<close>]) (typechk SumE_fst f)
+  ultimately show "snd(f`a) : C(a, (\<^bold>\<lambda>x. fst(f ` x)) ` a)"
+    by (intro replace_type [OF subst_eqtyparg]) (typechk SumE_fst assms \<open>a : A\<close>)
+qed
+
 text "Axiom of choice.  Proof without fst, snd.  Harder still!"
 schematic_goal [folded basic_defs]:
   assumes "A type"
