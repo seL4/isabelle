@@ -90,10 +90,10 @@ lemma bot_empty_eq [pred_set_conv]: "\<bottom> = (\<lambda>x. x \<in> {})"
 lemma bot_empty_eq2 [pred_set_conv]: "\<bottom> = (\<lambda>x y. (x, y) \<in> {})"
   by (auto simp add: fun_eq_iff)
 
-lemma top_empty_eq [pred_set_conv]: "\<top> = (\<lambda>x. x \<in> UNIV)"
+lemma top_empty_eq: "\<top> = (\<lambda>x. x \<in> UNIV)"
   by (auto simp add: fun_eq_iff)
 
-lemma top_empty_eq2 [pred_set_conv]: "\<top> = (\<lambda>x y. (x, y) \<in> UNIV)"
+lemma top_empty_eq2: "\<top> = (\<lambda>x y. (x, y) \<in> UNIV)"
   by (auto simp add: fun_eq_iff)
 
 lemma inf_Int_eq [pred_set_conv]: "(\<lambda>x. x \<in> R) \<sqinter> (\<lambda>x. x \<in> S) = (\<lambda>x. x \<in> R \<inter> S)"
