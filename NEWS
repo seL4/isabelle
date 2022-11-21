@@ -26,8 +26,9 @@ with demo documents in the regular Isabelle "doc" space:
     Minor INCOMPATIBILITY.
 
 * Theory "HOL.Relation":
-  - Strengthened lemmas. Minor INCOMPATIBILITY.
+  - Strengthened (and renamed) lemmas. Minor INCOMPATIBILITY.
       total_on_singleton
+      reflp_equality[simp] ~> reflp_on_equality[simp]
   - Added lemmas.
       antisym_if_asymp
       antisymp_if_asymp
