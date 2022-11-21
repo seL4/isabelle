@@ -246,8 +246,8 @@ lemma refl_on_def' [nitpick_unfold, code]:
   "refl_on A r \<longleftrightarrow> (\<forall>(x, y) \<in> r. x \<in> A \<and> y \<in> A) \<and> (\<forall>x \<in> A. (x, x) \<in> r)"
   by (auto intro: refl_onI dest: refl_onD refl_onD1 refl_onD2)
 
-lemma reflp_equality [simp]: "reflp (=)"
-  by (simp add: reflp_def)
+lemma reflp_on_equality [simp]: "reflp_on A (=)"
+  by (simp add: reflp_on_def)
 
 lemma reflp_on_mono:
   "reflp_on A R \<Longrightarrow> (\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> R x y \<Longrightarrow> Q x y) \<Longrightarrow> reflp_on A Q"
@@ -256,10 +256,10 @@ lemma reflp_on_mono:
 lemma reflp_mono: "reflp R \<Longrightarrow> (\<And>x y. R x y \<Longrightarrow> Q x y) \<Longrightarrow> reflp Q"
   by (rule reflp_on_mono[of UNIV R Q]) simp_all
 
-lemma (in preorder) reflp_le[simp]: "reflp_on A (\<le>)"
+lemma (in preorder) reflp_on_le[simp]: "reflp_on A (\<le>)"
   by (simp add: reflp_onI)
 
-lemma (in preorder) reflp_ge[simp]: "reflp_on A (\<ge>)"
+lemma (in preorder) reflp_on_ge[simp]: "reflp_on A (\<ge>)"
   by (simp add: reflp_onI)
 
 
@@ -593,16 +593,16 @@ lemma total_on_singleton [simp]: "total_on {x} r"
 lemma totalp_on_singleton [simp]: "totalp_on {x} R"
   by (simp add: totalp_on_def)
 
-lemma (in linorder) totalp_less[simp]: "totalp_on A (<)"
+lemma (in linorder) totalp_on_less[simp]: "totalp_on A (<)"
   by (auto intro: totalp_onI)
 
-lemma (in linorder) totalp_greater[simp]: "totalp_on A (>)"
+lemma (in linorder) totalp_on_greater[simp]: "totalp_on A (>)"
   by (auto intro: totalp_onI)
 
-lemma (in linorder) totalp_le[simp]: "totalp_on A (\<le>)"
+lemma (in linorder) totalp_on_le[simp]: "totalp_on A (\<le>)"
   by (rule totalp_onI, rule linear)
 
-lemma (in linorder) totalp_ge[simp]: "totalp_on A (\<ge>)"
+lemma (in linorder) totalp_on_ge[simp]: "totalp_on A (\<ge>)"
   by (rule totalp_onI, rule linear)
 
 
