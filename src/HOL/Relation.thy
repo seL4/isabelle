@@ -326,11 +326,11 @@ lemma irrefl_on_subset: "irrefl_on A r \<Longrightarrow> B \<subseteq> A \<Longr
 lemma irreflp_on_subset: "irreflp_on A R \<Longrightarrow> B \<subseteq> A \<Longrightarrow> irreflp_on B R"
   by (auto simp: irreflp_on_def)
 
-lemma (in preorder) irreflp_less[simp]: "irreflp (<)"
-  by (simp add: irreflpI)
+lemma (in preorder) irreflp_on_less[simp]: "irreflp_on A (<)"
+  by (simp add: irreflp_onI)
 
-lemma (in preorder) irreflp_greater[simp]: "irreflp (>)"
-  by (simp add: irreflpI)
+lemma (in preorder) irreflp_on_greater[simp]: "irreflp_on A (>)"
+  by (simp add: irreflp_onI)
 
 subsubsection \<open>Asymmetry\<close>
 
