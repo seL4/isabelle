@@ -19,7 +19,7 @@ sig
   type prover_problem = Sledgehammer_Prover.prover_problem
   type prover_result = Sledgehammer_Prover.prover_result
 
-  type preplay_result = proof_method * play_outcome * (string * stature) list
+  type preplay_result = proof_method * (play_outcome * (string * stature) list)
 
   datatype sledgehammer_outcome =
     SH_Some of prover_result * preplay_result list
@@ -52,7 +52,7 @@ open Sledgehammer_Prover_ATP
 open Sledgehammer_Prover_Minimize
 open Sledgehammer_MaSh
 
-type preplay_result = proof_method * play_outcome * (string * stature) list
+type preplay_result = proof_method * (play_outcome * (string * stature) list)
 
 datatype sledgehammer_outcome =
   SH_Some of prover_result * preplay_result list
@@ -129,19 +129,21 @@ fun play_one_line_proofs minimize timeout used_facts state i methss =
      in
        try_methss [] methss
      end)
-  |> map (fn (meth, play_outcome, used_facts) => (meth, play_outcome, filter_out (fn (_, (sc, _)) => sc = Chained) used_facts))
-  |> sort (play_outcome_ord o apply2 (fn (_, play_outcome, _) => play_outcome))
+  |> map (fn (meth, play_outcome, used_facts) =>
+    (meth, (play_outcome, filter_out (fn (_, (sc, _)) => sc = Chained) used_facts)))
+  |> sort (play_outcome_ord o apply2 (fn (_, (play_outcome, _)) => play_outcome))
 
 fun select_one_line_proof used_facts preferred_meth preplay_results =
   (case preplay_results of
     (* Select best method if preplay succeeded *)
-    (best_meth, best_outcome as Played _, best_used_facts) :: _ =>
+    (best_meth, (best_outcome as Played _, best_used_facts)) :: _ =>
     (best_used_facts, (best_meth, best_outcome))
     (* Otherwise select preferred method *)
-  | (fst_meth, fst_outcome, _) :: _ =>
+  | _ =>
     (used_facts, (preferred_meth,
-       if fst_meth = preferred_meth then fst_outcome else Play_Timed_Out Time.zeroTime))
-  | [] => (used_facts, (preferred_meth, Play_Timed_Out Time.zeroTime)))
+       (case AList.lookup (op =) preplay_results preferred_meth of
+         SOME (outcome, _) => outcome
+       | NONE => Play_Timed_Out Time.zeroTime))))
   |> apfst (filter_out (fn (_, (sc, _)) => sc = Chained))
 
 fun launch_prover (params as {verbose, spy, slices, timeout, ...}) mode learn
@@ -243,7 +245,7 @@ fun check_expected_outcome ctxt prover_name expect outcome =
       (case (expect, outcome) of
         ("some", SH_Some _) => ()
       | ("some_preplayed", SH_Some (_, preplay_results)) =>
-          if exists (fn (_, Played _, _) => true | _ => false) preplay_results then
+          if exists (fn (_, (Played _, _)) => true | _ => false) preplay_results then
             ()
           else
             error ("Unexpected outcome: the external prover found a some proof but preplay failed")
