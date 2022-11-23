@@ -1021,6 +1021,9 @@ lemma sym_Int_converse: "sym (r \<inter> r\<inverse>)"
 lemma total_on_converse [simp]: "total_on A (r\<inverse>) = total_on A r"
   by (auto simp: total_on_def)
 
+lemma totalp_on_converse [simp]: "totalp_on A R\<inverse>\<inverse> = totalp_on A R"
+  by (rule total_on_converse[to_pred])
+
 lemma finite_converse [iff]: "finite (r\<inverse>) = finite r"
 unfolding converse_def conversep_iff using [[simproc add: finite_Collect]]
 by (auto elim: finite_imageD simp: inj_on_def)
