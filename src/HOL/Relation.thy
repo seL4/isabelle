@@ -988,11 +988,17 @@ lemma converse_Id [simp]: "Id\<inverse> = Id"
 lemma converse_Id_on [simp]: "(Id_on A)\<inverse> = Id_on A"
   by blast
 
-lemma refl_on_converse [simp]: "refl_on A (converse r) = refl_on A r"
+lemma refl_on_converse [simp]: "refl_on A (r\<inverse>) = refl_on A r"
   by (auto simp: refl_on_def)
 
 lemma reflp_on_conversp [simp]: "reflp_on A R\<inverse>\<inverse> \<longleftrightarrow> reflp_on A R"
   by (auto simp: reflp_on_def)
+
+lemma irrefl_on_converse [simp]: "irrefl_on A (r\<inverse>) = irrefl_on A r"
+  by (simp add: irrefl_on_def)
+
+lemma irreflp_on_converse [simp]: "irreflp_on A (r\<inverse>\<inverse>) = irreflp_on A r"
+  by (rule irrefl_on_converse[to_pred])
 
 lemma sym_converse [simp]: "sym (converse r) = sym r"
   unfolding sym_def by blast
