@@ -340,7 +340,7 @@ fun run_sledgehammer (params as {provers, ...}) output_dir keep_probs keep_proof
             if exhaustive_preplay then
               preplay_results
               |> map
-                (fn (meth, play_outcome, used_facts) =>
+                (fn (meth, (play_outcome, used_facts)) =>
                     "Preplay: " ^
                     Sledgehammer_Proof_Methods.string_of_proof_method (map fst used_facts) meth ^
                     " (" ^ Sledgehammer_Proof_Methods.string_of_play_outcome play_outcome ^ ")")
