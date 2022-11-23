@@ -580,26 +580,29 @@ end
 
 subsubsection \<open>Totality\<close>
 
-definition total_on :: "'a set \<Rightarrow> 'a rel \<Rightarrow> bool"
-  where "total_on A r \<longleftrightarrow> (\<forall>x\<in>A. \<forall>y\<in>A. x \<noteq> y \<longrightarrow> (x, y) \<in> r \<or> (y, x) \<in> r)"
+definition total_on :: "'a set \<Rightarrow> 'a rel \<Rightarrow> bool" where
+  "total_on A r \<longleftrightarrow> (\<forall>x\<in>A. \<forall>y\<in>A. x \<noteq> y \<longrightarrow> (x, y) \<in> r \<or> (y, x) \<in> r)"
 
-lemma total_onI [intro?]:
-  "(\<And>x y. \<lbrakk>x \<in> A; y \<in> A; x \<noteq> y\<rbrakk> \<Longrightarrow> (x, y) \<in> r \<or> (y, x) \<in> r) \<Longrightarrow> total_on A r"
-  unfolding total_on_def by blast
+abbreviation total :: "'a rel \<Rightarrow> bool" where
+  "total \<equiv> total_on UNIV"
 
-abbreviation "total \<equiv> total_on UNIV"
-
-definition totalp_on where
+definition totalp_on :: "'a set \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
   "totalp_on A R \<longleftrightarrow> (\<forall>x \<in> A. \<forall>y \<in> A. x \<noteq> y \<longrightarrow> R x y \<or> R y x)"
 
-abbreviation totalp where
+abbreviation totalp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
   "totalp \<equiv> totalp_on UNIV"
 
 lemma totalp_on_refl_on_eq[pred_set_conv]: "totalp_on A (\<lambda>x y. (x, y) \<in> r) \<longleftrightarrow> total_on A r"
   by (simp add: totalp_on_def total_on_def)
 
-lemma totalp_onI:
-  "(\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> x \<noteq> y \<Longrightarrow> R x y \<or> R y x) \<Longrightarrow> totalp_on A R"
+lemma total_onI [intro?]:
+  "(\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> x \<noteq> y \<Longrightarrow> (x, y) \<in> r \<or> (y, x) \<in> r) \<Longrightarrow> total_on A r"
+  unfolding total_on_def by blast
+
+lemma totalI: "(\<And>x y. x \<noteq> y \<Longrightarrow> (x, y) \<in> r \<or> (y, x) \<in> r) \<Longrightarrow> total r"
+  by (rule total_onI)
+
+lemma totalp_onI: "(\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> x \<noteq> y \<Longrightarrow> R x y \<or> R y x) \<Longrightarrow> totalp_on A R"
   by (simp add: totalp_on_def)
 
 lemma totalpI: "(\<And>x y. x \<noteq> y \<Longrightarrow> R x y \<or> R y x) \<Longrightarrow> totalp R"

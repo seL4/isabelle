@@ -56,6 +56,7 @@ with demo documents in the regular Isabelle "doc" space:
       preorder.reflp_on_ge[simp]
       preorder.reflp_on_le[simp]
       reflp_on_conversp[simp]
+      totalI
       totalp_on_singleton[simp]
 
 * Theory "HOL.Transitive_Closure":
