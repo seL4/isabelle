@@ -320,6 +320,12 @@ lemma irrefl_on_distinct [code]: "irrefl_on A r \<longleftrightarrow> (\<forall>
 
 lemmas irrefl_distinct = irrefl_on_distinct \<comment> \<open>For backward compatibility\<close>
 
+lemma irrefl_on_subset: "irrefl_on A r \<Longrightarrow> B \<subseteq> A \<Longrightarrow> irrefl_on B r"
+  by (auto simp: irrefl_on_def)
+
+lemma irreflp_on_subset: "irreflp_on A R \<Longrightarrow> B \<subseteq> A \<Longrightarrow> irreflp_on B R"
+  by (auto simp: irreflp_on_def)
+
 lemma (in preorder) irreflp_less[simp]: "irreflp (<)"
   by (simp add: irreflpI)
 
