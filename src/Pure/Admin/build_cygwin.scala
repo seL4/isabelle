@@ -13,9 +13,11 @@ object Build_Cygwin {
   val packages: List[String] =
     List("curl", "libgmp-devel", "nano", "openssh", "rsync", "unzip")
 
-  def build_cygwin(progress: Progress,
+  def build_cygwin(
+    target_dir: Path = Path.current,
     mirror: String = default_mirror,
-    more_packages: List[String] = Nil
+    more_packages: List[String] = Nil,
+    progress: Progress = new Progress
   ): Unit = {
     require(Platform.is_windows, "Windows platform expected")
 
@@ -50,8 +52,9 @@ object Build_Cygwin {
 
         (cygwin + Path.explode("Cygwin.bat")).file.delete
 
-        val archive = "cygwin-" + Date.Format.alt_date(Date.now()) + ".tar.gz"
-        Isabelle_System.gnutar("-czf " + Bash.string(archive) + " cygwin", dir = tmp_dir).check
+        val archive =
+          target_dir + Path.explode("cygwin-" + Date.Format.alt_date(Date.now()) + ".tar.gz")
+        Isabelle_System.gnutar("-czf " + File.bash_path(archive) + " cygwin", dir = tmp_dir).check
       }
   }
 
@@ -62,6 +65,7 @@ object Build_Cygwin {
     Isabelle_Tool("build_cygwin", "produce pre-canned Cygwin distribution for Isabelle",
       Scala_Project.here,
       { args =>
+        var target_dir = Path.current
         var mirror = default_mirror
         var more_packages: List[String] = Nil
 
@@ -70,18 +74,23 @@ object Build_Cygwin {
 Usage: isabelle build_cygwin [OPTIONS]
 
   Options are:
+    -D DIR       target directory (default ".")
     -R MIRROR    Cygwin mirror site (default """ + quote(default_mirror) + """)
     -p NAME      additional Cygwin package
 
   Produce pre-canned Cygwin distribution for Isabelle: this requires
   Windows administrator mode.
 """,
+            "D:" -> (arg => target_dir = Path.explode(arg)),
             "R:" -> (arg => mirror = arg),
             "p:" -> (arg => more_packages ::= arg))
 
         val more_args = getopts(args)
         if (more_args.nonEmpty) getopts.usage()
 
-        build_cygwin(new Console_Progress(), mirror = mirror, more_packages = more_packages)
+        val progress = new Console_Progress()
+
+        build_cygwin(target_dir = target_dir, mirror = mirror, more_packages = more_packages,
+          progress = progress)
       })
 }
