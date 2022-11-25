@@ -204,124 +204,138 @@ object Build_Fonts {
     }
   }
 
+  val default_download_url =
+    "https://github.com/dejavu-fonts/dejavu-fonts/releases/download/version_2_37/dejavu-fonts-ttf-2.37.zip"
+
   val default_sources: List[Family] =
     List(Family.deja_vu_sans_mono, Family.deja_vu_sans, Family.deja_vu_serif)
 
   def build_fonts(
+    download_url: String = default_download_url,
     target_dir: Path = Path.current,
     target_prefix: String = "Isabelle",
     sources: List[Family] = default_sources,
-    source_dirs: List[Path] = Nil,
     progress: Progress = new Progress
   ): Unit = {
     Isabelle_System.require_command("ttfautohint")
 
-
-    /* component */
-
-    val component_date = Date.Format.alt_date(Date.now())
-    val component_name = "isabelle_fonts-" + component_date
-    val component_dir =
-      Components.Directory.create(target_dir + Path.basic(component_name), progress = progress)
-
-    for (hinted <- hinting) {
-      Isabelle_System.make_directory(component_dir.path + make_path(hinted = hinted))
-    }
-
-    val font_dirs = source_dirs ::: List(Path.explode("~~/Admin/isabelle_fonts"))
-    for (dir <- font_dirs if !dir.is_dir) error("Bad source directory: " + dir)
+    Isabelle_System.with_tmp_file("download", ext = "zip") { download_file =>
+      Isabelle_System.with_tmp_dir("download") { download_dir =>
 
 
-    // Isabelle fonts
+        /* download */
 
-    val fonts =
-      for { source <- sources; (source_font, index) <- source.fonts.zipWithIndex }
-      yield {
-        val isabelle_file = find_file(font_dirs, Family.isabelle_symbols.get(index))
+        Isabelle_System.download_file(download_url, download_file, progress = progress)
+        Isabelle_System.extract(download_file, download_dir)
 
-        val source_file = find_file(font_dirs, source_font)
-        val source_names = Fontforge.font_names(source_file)
+        val dejavu_dir = File.get_dir(download_dir, title = download_url) + Path.basic("ttf")
 
-        val font_names = source_names.update(prefix = target_prefix, version = component_date)
 
-        Isabelle_System.with_tmp_file("font", "ttf") { tmp_file =>
-          for (hinted <- hinting) {
-            val font_file = component_dir.path + make_path(hinted = hinted) + font_names.ttf
-            progress.echo("Font " + font_file + " ...")
+        /* component */
 
-            if (hinted) auto_hint(source_file, tmp_file)
-            else Isabelle_System.copy_file(source_file, tmp_file)
+        val component_date = Date.Format.alt_date(Date.now())
+        val component_name = "isabelle_fonts-" + component_date
+        val component_dir =
+          Components.Directory.create(target_dir + Path.basic(component_name), progress = progress)
 
-            Fontforge.execute(
-              Fontforge.commands(
-                Fontforge.open(isabelle_file),
-                Fontforge.select(Range.isabelle_font),
-                Fontforge.copy,
-                Fontforge.close,
-
-                Fontforge.open(tmp_file),
-                Fontforge.select(Range.base_font),
-                Fontforge.select_invert,
-                Fontforge.clear,
-                Fontforge.select(Range.isabelle_font),
-                Fontforge.paste,
-
-                font_names.set,
-                Fontforge.generate(font_file),
-                Fontforge.close)
-            ).check
-          }
+        for (hinted <- hinting) {
+          Isabelle_System.make_directory(component_dir.path + make_path(hinted = hinted))
         }
 
-        (font_names.ttf, index)
-      }
+        val font_dirs = List(dejavu_dir, Path.explode("~~/Admin/isabelle_fonts"))
+        for (dir <- font_dirs if !dir.is_dir) error("Bad source directory: " + dir)
 
 
-    // Vacuous font
+        // Isabelle fonts
 
-    {
-      val vacuous_file = find_file(font_dirs, Family.vacuous.get(0))
+        val fonts =
+          for { source <- sources; (source_font, index) <- source.fonts.zipWithIndex }
+          yield {
+            val isabelle_file = find_file(font_dirs, Family.isabelle_symbols.get(index))
 
-      val font_dir = component_dir.path + make_path()
-      val font_names = Fontforge.font_names(vacuous_file)
-      val font_file = font_dir + font_names.ttf
+            val source_file = find_file(font_dirs, source_font)
+            val source_names = Fontforge.font_names(source_file)
 
-      progress.echo("Font " + font_file + " ...")
+            val font_names = source_names.update(prefix = target_prefix, version = component_date)
 
-      val domain =
-        (for ((name, index) <- fonts if index == 0)
-          yield Fontforge.font_domain(font_dir + name))
-        .flatten.distinct.sorted
+            Isabelle_System.with_tmp_file("font", "ttf") { tmp_file =>
+              for (hinted <- hinting) {
+                val font_file = component_dir.path + make_path(hinted = hinted) + font_names.ttf
+                progress.echo("Font " + font_file + " ...")
 
-      Fontforge.execute(
-        Fontforge.commands(
-          Fontforge.open(vacuous_file),
-          Fontforge.select(Range.vacuous_font),
-          Fontforge.copy) +
+                if (hinted) auto_hint(source_file, tmp_file)
+                else Isabelle_System.copy_file(source_file, tmp_file)
 
-        domain.map(code =>
+                Fontforge.execute(
+                  Fontforge.commands(
+                    Fontforge.open(isabelle_file),
+                    Fontforge.select(Range.isabelle_font),
+                    Fontforge.copy,
+                    Fontforge.close,
+
+                    Fontforge.open(tmp_file),
+                    Fontforge.select(Range.base_font),
+                    Fontforge.select_invert,
+                    Fontforge.clear,
+                    Fontforge.select(Range.isabelle_font),
+                    Fontforge.paste,
+
+                    font_names.set,
+                    Fontforge.generate(font_file),
+                    Fontforge.close)
+                ).check
+              }
+            }
+
+            (font_names.ttf, index)
+          }
+
+
+        // Vacuous font
+
+        {
+          val vacuous_file = find_file(font_dirs, Family.vacuous.get(0))
+
+          val font_dir = component_dir.path + make_path()
+          val font_names = Fontforge.font_names(vacuous_file)
+          val font_file = font_dir + font_names.ttf
+
+          progress.echo("Font " + font_file + " ...")
+
+          val domain =
+            (for ((name, index) <- fonts if index == 0)
+              yield Fontforge.font_domain(font_dir + name))
+            .flatten.distinct.sorted
+
+          Fontforge.execute(
             Fontforge.commands(
-              Fontforge.select(Seq(code)),
-              Fontforge.paste))
-          .mkString("\n", "\n", "\n") +
+              Fontforge.open(vacuous_file),
+              Fontforge.select(Range.vacuous_font),
+              Fontforge.copy) +
 
-        Fontforge.commands(
-          Fontforge.generate(font_file),
-          Fontforge.close)
-      ).check
-    }
+            domain.map(code =>
+                Fontforge.commands(
+                  Fontforge.select(Seq(code)),
+                  Fontforge.paste))
+              .mkString("\n", "\n", "\n") +
+
+            Fontforge.commands(
+              Fontforge.generate(font_file),
+              Fontforge.close)
+          ).check
+        }
 
 
-    /* settings */
+        /* settings */
 
-    def make_settings(hinted: Boolean = false): String =
-      "\n  isabelle_fonts \\\n" +
-      (for ((ttf, _) <- fonts) yield
-        """    "$COMPONENT/""" + make_path(hinted = hinted).file_name + "/" + ttf.file_name + "\"")
-      .mkString(" \\\n")
+        def make_settings(hinted: Boolean = false): String =
+          "\n  isabelle_fonts \\\n" +
+          (for ((ttf, _) <- fonts) yield
+            """    "$COMPONENT/""" + make_path(hinted = hinted).file_name + "/" + ttf.file_name + "\"")
+          .mkString(" \\\n")
 
-    File.write(component_dir.settings,
-      """# -*- shell-script -*- :mode=shellscript:
+        File.write(component_dir.settings,
+          """# -*- shell-script -*- :mode=shellscript:
 
 if grep "isabelle_fonts_hinted.*=.*false" "$ISABELLE_HOME_USER/etc/preferences" >/dev/null 2>/dev/null
 then""" + make_settings() + """
@@ -332,9 +346,12 @@ isabelle_fonts_hidden "$COMPONENT/""" + make_path().file_name + """/Vacuous.ttf"
 """)
 
 
-    /* README */
+        /* README */
 
-    Isabelle_System.copy_file(Path.explode("~~/Admin/isabelle_fonts/README"), component_dir.README)
+        Isabelle_System.copy_file(
+          Path.explode("~~/Admin/isabelle_fonts/README"), component_dir.README)
+      }
+    }
   }
 
 
@@ -344,25 +361,25 @@ isabelle_fonts_hidden "$COMPONENT/""" + make_path().file_name + """/Vacuous.ttf"
     Isabelle_Tool("build_fonts", "construct Isabelle fonts", Scala_Project.here,
       { args =>
         var target_dir = Path.current
-        var source_dirs: List[Path] = Nil
+        var download_url = default_download_url
 
         val getopts = Getopts("""
 Usage: isabelle build_fonts [OPTIONS]
 
   Options are:
     -D DIR       target directory (default ".")
-    -d DIR       additional source directory
+    -U URL       download URL (default: """" + default_download_url + """")
 
   Construct Isabelle fonts from DejaVu font families and Isabelle symbols.
 """,
           "D:" -> (arg => target_dir = Path.explode(arg)),
-          "d:" -> (arg => source_dirs = source_dirs ::: List(Path.explode(arg))))
+          "U:" -> (arg => download_url = arg))
 
         val more_args = getopts(args)
         if (more_args.nonEmpty) getopts.usage()
 
         val progress = new Console_Progress
 
-        build_fonts(target_dir = target_dir, source_dirs = source_dirs, progress = progress)
+        build_fonts(download_url = download_url, target_dir = target_dir, progress = progress)
       })
 }
