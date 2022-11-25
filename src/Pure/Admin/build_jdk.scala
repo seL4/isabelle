@@ -113,13 +113,7 @@ esac
     try {
       val tmp_dir = Isabelle_System.make_directory(dir + Path.explode("tmp"))
 
-      if (archive.get_ext == "zip") {
-        Isabelle_System.bash(
-          "unzip -x " + File.bash_path(archive.absolute), cwd = tmp_dir.file).check
-      }
-      else {
-        Isabelle_System.gnutar("-xzf " + File.bash_path(archive), dir = tmp_dir).check
-      }
+      Isabelle_System.extract(archive, tmp_dir)
 
       val jdk_dir = File.get_dir(tmp_dir, title = archive.file_name)
 

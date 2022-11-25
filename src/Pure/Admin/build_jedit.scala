@@ -111,7 +111,6 @@ object Build_JEdit {
   ): Unit = {
     Isabelle_System.require_command("ant", test = "-version")
     Isabelle_System.require_command("patch")
-    Isabelle_System.require_command("unzip", test = "-h")
 
     val component_dir = Components.Directory.create(component_path, progress = progress)
 
@@ -206,7 +205,7 @@ isabelle_java java -Duser.home=""" + File.bash_platform_path(tmp_dir) +
           "https://sourceforge.net/projects/jedit-plugins/files/" + name + "/" + vers + "/" +
             name + "-" + vers + "-bin.zip/download"
         Isabelle_System.download_file(url, zip_path, progress = progress)
-        Isabelle_System.bash("unzip -x " + File.bash_path(zip_path), cwd = jars_dir.file).check
+        Isabelle_System.extract(zip_path, jars_dir)
       }
     }
 

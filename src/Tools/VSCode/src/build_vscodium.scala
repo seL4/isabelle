@@ -69,19 +69,12 @@ object Build_VSCodium {
     def download_zip: Boolean = File.is_zip(download_name)
 
     def download(dir: Path, progress: Progress = new Progress): Unit = {
-      if (download_zip) Isabelle_System.require_command("unzip", test = "-h")
-
       Isabelle_System.with_tmp_file("download") { download_file =>
         Isabelle_System.download_file(vscodium_download + "/" + version + "/" + download_name,
           download_file, progress = progress)
 
         progress.echo("Extract ...")
-        if (download_zip) {
-          Isabelle_System.bash("unzip -x " + File.bash_path(download_file), cwd = dir.file).check
-        }
-        else {
-          Isabelle_System.gnutar("-xzf " + File.bash_path(download_file), dir = dir).check
-        }
+        Isabelle_System.extract(download_file, dir)
       }
     }
 

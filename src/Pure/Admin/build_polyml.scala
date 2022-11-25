@@ -146,13 +146,7 @@ object Build_PolyML {
   /** skeleton for component **/
 
   private def extract_sources(source_archive: Path, component_dir: Path): Unit = {
-    if (source_archive.get_ext == "zip") {
-      Isabelle_System.bash(
-        "unzip -x " + File.bash_path(source_archive.absolute), cwd = component_dir.file).check
-    }
-    else {
-      Isabelle_System.gnutar("-xzf " + File.bash_path(source_archive), dir = component_dir).check
-    }
+    Isabelle_System.extract(source_archive, component_dir)
 
     val src_dir = component_dir + Path.explode("src")
     File.read_dir(component_dir) match {

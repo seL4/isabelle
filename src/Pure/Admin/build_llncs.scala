@@ -22,16 +22,13 @@ object Build_LLNCS {
     target_dir: Path = Path.current,
     progress: Progress = new Progress
   ): Unit = {
-    Isabelle_System.require_command("unzip", test = "-h")
-
     Isabelle_System.with_tmp_file("download", ext = "zip") { download_file =>
       Isabelle_System.with_tmp_dir("download") { download_dir =>
 
         /* download */
 
         Isabelle_System.download_file(download_url, download_file, progress = progress)
-        Isabelle_System.bash("unzip -x " + File.bash_path(download_file),
-          cwd = download_dir.file).check
+        Isabelle_System.extract(download_file, download_dir)
 
         val llncs_dir = File.get_dir(download_dir, title = download_url)
 

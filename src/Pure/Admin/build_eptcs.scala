@@ -23,9 +23,6 @@ object Build_EPTCS {
     target_dir: Path = Path.current,
     progress: Progress = new Progress
   ): Unit = {
-    Isabelle_System.require_command("unzip", test = "-h")
-
-
     /* component */
 
     val component = "eptcs-" + version
@@ -39,8 +36,7 @@ object Build_EPTCS {
 
     Isabelle_System.with_tmp_file("download", ext = "zip") { download_file =>
       Isabelle_System.download_file(download_url, download_file, progress = progress)
-      Isabelle_System.bash("unzip -x " + File.bash_path(download_file),
-        cwd = component_dir.path.file).check
+      Isabelle_System.extract(download_file, component_dir.path)
     }
 
 

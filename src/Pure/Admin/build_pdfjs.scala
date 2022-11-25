@@ -25,9 +25,6 @@ object Build_PDFjs {
     target_dir: Path = Path.current,
     progress: Progress = new Progress
   ): Unit = {
-    Isabelle_System.require_command("unzip", test = "-h")
-
-
     /* component name */
 
     val component = "pdfjs-" + version
@@ -41,8 +38,7 @@ object Build_PDFjs {
     Isabelle_System.with_tmp_file("archive", ext = "zip") { archive_file =>
       Isabelle_System.download_file(download_url + "/pdfjs-" + version + "-legacy-dist.zip",
         archive_file, progress = progress)
-      Isabelle_System.bash("unzip -x " + File.bash_path(archive_file),
-        cwd = component_dir.path.file).check
+      Isabelle_System.extract(archive_file, component_dir.path)
     }
 
 
