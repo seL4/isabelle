@@ -1,89 +1,95 @@
 /*  Title:      Pure/Admin/build_jdk.scala
     Author:     Makarius
 
-Build Isabelle jdk component from original platform installations.
+Build Isabelle jdk component using downloads from Azul.
 */
 
 package isabelle
 
 
-import java.io.{File => JFile}
 import java.nio.file.Files
 import java.nio.file.attribute.PosixFilePermission
 
-import scala.util.matching.Regex
-
 
 object Build_JDK {
-  /* platform and version information */
+  /* platform information */
 
-  sealed case class JDK_Platform(
-    platform_name: String,
-    platform_regex: Regex,
-    exe: String = "java",
-    macos_home: Boolean = false,
-    jdk_version: String = ""
-  ) {
-    override def toString: String = platform_name
+  sealed case class JDK_Platform(name: String, url_template: String) {
+    override def toString: String = name
 
-    def platform_path: Path = Path.explode(platform_name)
-
-    def detect(jdk_dir: Path): Option[JDK_Platform] = {
-      val major_version = {
-        val Major_Version = """.*jdk(\d+).*$""".r
-        val jdk_name = jdk_dir.file.getName
-        jdk_name match {
-          case Major_Version(s) => s
-          case _ => error("Cannot determine major version from " + quote(jdk_name))
-        }
-      }
-
-      val path = jdk_dir + Path.explode("bin") + Path.explode(exe)
-      if (path.is_file) {
-        val file_descr = Isabelle_System.bash("file -b " + File.bash_path(path)).check.out
-        if (platform_regex.matches(file_descr)) {
-          val Version = ("^(" + major_version + """[0-9.+]+)(?:-LTS)?$""").r
-          val version_lines =
-            Isabelle_System.bash("strings " + File.bash_path(path)).check
-              .out_lines.flatMap({ case Version(s) => Some(s) case _ => None })
-          version_lines match {
-            case List(jdk_version) => Some(copy(jdk_version = jdk_version))
-            case _ => error("Expected unique version within executable " + path)
-          }
-        }
-        else None
-      }
-      else None
-    }
+    def url(base_url: String, jdk_version: String, zulu_version: String): String =
+      base_url + "/" + url_template.replace("{V}", jdk_version).replace("{Z}", zulu_version)
   }
 
-  val templates: List[JDK_Platform] =
+  val platforms: List[JDK_Platform] =
     List(
-      JDK_Platform("arm64-darwin", """.*Mach-O 64-bit.*arm64.*""".r, macos_home = true),
-      JDK_Platform("arm64-linux", """.*ELF 64-bit.*ARM aarch64.*""".r),
-      JDK_Platform("x86_64-darwin", """.*Mach-O 64-bit.*x86[-_]64.*""".r, macos_home = true),
-      JDK_Platform("x86_64-linux", """.*ELF 64-bit.*x86[-_]64.*""".r),
-      JDK_Platform("x86_64-windows", """.*PE32\+ executable.*x86[-_]64.*""".r, exe = "java.exe"))
+      JDK_Platform("arm64-darwin", "zulu{Z}-jdk{V}-macosx_aarch64.tar.gz"),
+      JDK_Platform("arm64-linux", "zulu{Z}-jdk{V}-linux_aarch64.tar.gz"),
+      JDK_Platform("x86_64-darwin", "zulu{Z}-jdk{V}-macosx_x64.tar.gz"),
+      JDK_Platform("x86_64-linux", "zulu{Z}-jdk{V}-linux_x64.tar.gz"),
+      JDK_Platform("x86_64-windows", "zulu{Z}-jdk{V}-win_x64.zip"))
 
 
-  /* README */
+  /* build jdk */
 
-  def readme(jdk_version: String): String =
-    """This is OpenJDK """ + jdk_version + """ based on downloads by Azul, see also
-https://www.azul.com/downloads/zulu-community/?package=jdk
+  val default_base_url = "https://cdn.azul.com/zulu/bin"
+  val default_jdk_version = "17.0.5"
+  val default_zulu_version = "17.38.21-ca"
 
-The main license is GPL2, but some modules are covered by other (more liberal)
-licenses, see legal/* for details.
+  def build_jdk(
+    target_dir: Path = Path.current,
+    base_url: String = default_base_url,
+    jdk_version: String = default_jdk_version,
+    zulu_version: String = default_zulu_version,
+    progress: Progress = new Progress,
+  ): Unit = {
+    /* component */
 
-Linux, Windows, macOS all work uniformly, depending on platform-specific
-subdirectories.
-"""
+    val component = "jdk-" + jdk_version
+    val component_dir =
+      Components.Directory.create(target_dir + Path.basic(component), progress = progress)
 
 
-  /* settings */
+    /* download */
 
-  val settings: String =
-    """# -*- shell-script -*- :mode=shellscript:
+    for (platform <- platforms) {
+      Isabelle_System.with_tmp_dir("download", component_dir.path.file) { dir =>
+        val url = platform.url(base_url, jdk_version, zulu_version)
+        val name = Library.take_suffix(_ != '/', url.toList)._2.mkString
+        val file = dir + Path.basic(name)
+        Isabelle_System.download_file(url, file, progress = progress)
+        Isabelle_System.extract(file, dir)
+
+        val jdk_dir = File.get_dir(dir, title = url)
+        val platform_dir = component_dir.path + Path.basic(platform.name)
+        Isabelle_System.move_file(jdk_dir, platform_dir)
+      }
+    }
+
+
+    /* permissions */
+
+    for (file <- File.find_files(component_dir.path.file, include_dirs = true)) {
+      val path = file.toPath
+      val perms = Files.getPosixFilePermissions(path)
+      perms.add(PosixFilePermission.OWNER_READ)
+      perms.add(PosixFilePermission.GROUP_READ)
+      perms.add(PosixFilePermission.OTHERS_READ)
+      perms.add(PosixFilePermission.OWNER_WRITE)
+      if (file.isDirectory) {
+        perms.add(PosixFilePermission.OWNER_WRITE)
+        perms.add(PosixFilePermission.OWNER_EXECUTE)
+        perms.add(PosixFilePermission.GROUP_EXECUTE)
+        perms.add(PosixFilePermission.OTHERS_EXECUTE)
+      }
+      Files.setPosixFilePermissions(path, perms)
+    }
+
+
+    /* settings */
+
+    File.write(component_dir.settings,
+      """# -*- shell-script -*- :mode=shellscript:
 
 case "$ISABELLE_PLATFORM_FAMILY" in
   linux)
@@ -104,120 +110,57 @@ case "$ISABELLE_PLATFORM_FAMILY" in
     ISABELLE_JDK_HOME="$COMPONENT/$ISABELLE_JAVA_PLATFORM"
     ;;
 esac
-"""
+""")
 
 
-  /* extract archive */
+    /* README */
 
-  def extract_archive(dir: Path, archive: Path): JDK_Platform = {
-    try {
-      val tmp_dir = Isabelle_System.make_directory(dir + Path.explode("tmp"))
+    File.write(component_dir.README,
+      """This is OpenJDK """ + jdk_version + """ based on downloads by Azul, see also
+https://www.azul.com/downloads/?package=jdk
 
-      Isabelle_System.extract(archive, tmp_dir)
+The main license is GPL2, but some modules are covered by other (more liberal)
+licenses, see legal/* for details.
 
-      val jdk_dir = File.get_dir(tmp_dir, title = archive.file_name)
-
-      val platform =
-        templates.view.flatMap(_.detect(jdk_dir))
-          .headOption.getOrElse(error("Failed to detect JDK platform"))
-
-      val platform_dir = dir + platform.platform_path
-      if (platform_dir.is_dir) error("Directory already exists: " + platform_dir)
-
-      Isabelle_System.move_file(jdk_dir, platform_dir)
-
-      platform
-    }
-    catch { case ERROR(msg) => cat_error(msg, "The error(s) above occurred for " + archive) }
-  }
-
-
-  /* build jdk */
-
-  def build_jdk(
-    archives: List[Path],
-    progress: Progress = new Progress,
-    target_dir: Path = Path.current
-  ): Unit = {
-    if (Platform.is_windows) error("Cannot build jdk on Windows")
-
-    Isabelle_System.with_tmp_dir("jdk") { dir =>
-      progress.echo("Extracting ...")
-      val platforms = archives.map(extract_archive(dir, _))
-
-      val jdk_version =
-        platforms.map(_.jdk_version).distinct match {
-          case List(version) => version
-          case Nil => error("No archives")
-          case versions =>
-            error("Archives contain multiple JDK versions: " + commas_quote(versions))
-        }
-
-      templates.filterNot(p1 => platforms.exists(p2 => p1.platform_name == p2.platform_name))
-      match {
-        case Nil =>
-        case missing => error("Missing platforms: " + commas_quote(missing.map(_.platform_name)))
-      }
-
-      val jdk_name = "jdk-" + jdk_version
-      val jdk_path = Path.explode(jdk_name)
-      val component_dir = Components.Directory.create(dir + jdk_path, progress = progress)
-
-      File.write(component_dir.settings, settings)
-      File.write(component_dir.README, readme(jdk_version))
-
-      for (platform <- platforms) {
-        Isabelle_System.move_file(dir + platform.platform_path, component_dir.path)
-      }
-
-      for (file <- File.find_files(component_dir.path.file, include_dirs = true)) {
-        val path = file.toPath
-        val perms = Files.getPosixFilePermissions(path)
-        perms.add(PosixFilePermission.OWNER_READ)
-        perms.add(PosixFilePermission.GROUP_READ)
-        perms.add(PosixFilePermission.OTHERS_READ)
-        perms.add(PosixFilePermission.OWNER_WRITE)
-        if (file.isDirectory) {
-          perms.add(PosixFilePermission.OWNER_WRITE)
-          perms.add(PosixFilePermission.OWNER_EXECUTE)
-          perms.add(PosixFilePermission.GROUP_EXECUTE)
-          perms.add(PosixFilePermission.OTHERS_EXECUTE)
-        }
-        Files.setPosixFilePermissions(path, perms)
-      }
-
-      progress.echo("Archiving ...")
-      Isabelle_System.gnutar(
-        "-czf " + File.bash_path(target_dir + jdk_path.tar.gz) + " " + jdk_name, dir = dir).check
-    }
+Linux, Windows, macOS all work uniformly, depending on platform-specific
+subdirectories.
+""")
   }
 
 
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("build_jdk", "build Isabelle jdk component from original archives",
+    Isabelle_Tool("build_jdk", "build Isabelle jdk component using downloads from Azul",
       Scala_Project.here,
       { args =>
         var target_dir = Path.current
+        var base_url = default_base_url
+        var jdk_version = default_jdk_version
+        var zulu_version = default_zulu_version
 
         val getopts = Getopts("""
-Usage: isabelle build_jdk [OPTIONS] ARCHIVES...
+Usage: isabelle build_jdk [OPTIONS]
 
   Options are:
     -D DIR       target directory (default ".")
+    -U URL       base URL (default: """" + default_base_url + """")
+    -V NAME      JDK version (default: """" + default_jdk_version + """")
+    -Z NAME      Zulu version (default: """" + default_zulu_version + """")
 
-  Build jdk component from tar.gz archives, with original jdk archives
-  for Linux, Windows, and macOS.
+  Build Isabelle jdk component using downloads from Azul.
 """,
-          "D:" -> (arg => target_dir = Path.explode(arg)))
+          "D:" -> (arg => target_dir = Path.explode(arg)),
+          "U:" -> (arg => base_url = arg),
+          "V:" -> (arg => jdk_version = arg),
+          "Z:" -> (arg => zulu_version = arg))
 
         val more_args = getopts(args)
-        if (more_args.isEmpty) getopts.usage()
+        if (more_args.nonEmpty) getopts.usage()
 
-        val archives = more_args.map(Path.explode)
         val progress = new Console_Progress()
 
-        build_jdk(archives = archives, progress = progress, target_dir = target_dir)
+        build_jdk(target_dir = target_dir, base_url = base_url,
+          jdk_version = jdk_version, zulu_version = zulu_version, progress = progress)
       })
 }
