@@ -43,6 +43,9 @@ object Build_JDK {
     zulu_version: String = default_zulu_version,
     progress: Progress = new Progress,
   ): Unit = {
+    if (Platform.is_windows) error("Cannot build on Windows")
+
+
     /* component */
 
     val component = "jdk-" + jdk_version
