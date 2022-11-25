@@ -83,6 +83,7 @@ object File {
   def is_node(s: String): Boolean = s.endsWith(".node")
   def is_pdf(s: String): Boolean = s.endsWith(".pdf")
   def is_png(s: String): Boolean = s.endsWith(".png")
+  def is_tar_gz(s: String): Boolean = s.endsWith(".tar.gz")
   def is_thy(s: String): Boolean = s.endsWith(".thy")
   def is_xz(s: String): Boolean = s.endsWith(".xz")
   def is_zip(s: String): Boolean = s.endsWith(".zip")

@@ -433,14 +433,16 @@ object Isabelle_System {
     else error("Expected to find GNU tar executable")
   }
 
-  def extract(archive: Path, dir: Path): Unit =
-    archive.get_ext match {
-      case "zip" =>
-        Isabelle_System.bash("unzip -x " + File.bash_path(archive.absolute), cwd = dir.file).check
-      case "tar.gz" | "tgz" =>
-        Isabelle_System.gnutar("-xzf " + File.bash_path(archive), dir = dir).check
-      case _ => error("Cannot extract " + archive)
+  def extract(archive: Path, dir: Path): Unit = {
+    val name = archive.file_name
+    if (File.is_zip(name)) {
+      Isabelle_System.bash("unzip -x " + File.bash_path(archive.absolute), cwd = dir.file).check
     }
+    else if (File.is_tar_gz(name)) {
+      Isabelle_System.gnutar("-xzf " + File.bash_path(archive), dir = dir).check
+    }
+    else error("Cannot extract " + archive)
+  }
 
   def make_patch(base_dir: Path, src: Path, dst: Path, diff_options: String = ""): String = {
     with_tmp_file("patch") { patch =>
