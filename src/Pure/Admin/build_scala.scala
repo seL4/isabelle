@@ -43,7 +43,7 @@ object Build_Scala {
   }
 
   val main_download: Download =
-    Download("scala", "3.2.0", base_version = "",
+    Download("scala", "3.2.1", base_version = "",
       url = "https://github.com/lampepfl/dotty/releases/download/{V}/scala3-{V}.tar.gz")
 
   val lib_downloads: List[Download] = List(

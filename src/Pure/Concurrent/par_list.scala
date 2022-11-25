@@ -52,7 +52,9 @@ object Par_List {
     val results =
       managed_results(
         (x: A) => f(x) match { case None => () case Some(y) => throw new Found(y) }, xs)
-    results.collectFirst({ case Exn.Exn(found: Found) => found.res }) match {
+    results.collectFirst({
+      case Exn.Exn(found) if found.isInstanceOf[Found] => found.asInstanceOf[Found].res
+    }) match {
       case None => Exn.release_first(results); None
       case some => some
     }

@@ -184,7 +184,8 @@ object Scala {
       def compile(source: String, state: repl.State = init_state): Result = {
         out.flush()
         out_stream.reset()
-        val state1 = driver.run(source)(state)
+        given repl.State = state
+        val state1 = driver.run(source)
         out.flush()
         val messages = Message.split(out_stream.toString(UTF8.charset))
         out_stream.reset()
