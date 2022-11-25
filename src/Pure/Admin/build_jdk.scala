@@ -121,13 +121,8 @@ esac
         Isabelle_System.gnutar("-xzf " + File.bash_path(archive), dir = tmp_dir).check
       }
 
-      val dir_entry =
-        File.read_dir(tmp_dir) match {
-          case List(s) => s
-          case _ => error("Archive contains multiple directories")
-        }
+      val jdk_dir = File.get_dir(tmp_dir, title = archive.file_name)
 
-      val jdk_dir = tmp_dir + Path.explode(dir_entry)
       val platform =
         templates.view.flatMap(_.detect(jdk_dir))
           .headOption.getOrElse(error("Failed to detect JDK platform"))

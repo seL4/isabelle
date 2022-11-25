@@ -66,10 +66,10 @@ object Build_Vampire {
       Isabelle_System.download_file(download_url, archive_path, progress = progress)
 
       Isabelle_System.bash("tar xzf " + File.bash_path(archive_path), cwd = tmp_dir.file).check
-      val source_name = File.get_dir(tmp_dir)
+      val source_dir = File.get_dir(tmp_dir, title = download_url)
 
       Isabelle_System.bash(
-        "tar xzf " + archive_path + " && mv " + Bash.string(source_name) + " src",
+        "tar xzf " + archive_path + " && mv " + File.bash_path(source_dir.base) + " src",
         cwd = component_dir.path.file).check
 
 
@@ -77,22 +77,21 @@ object Build_Vampire {
 
       progress.echo("Building Vampire for " + platform_name + " ...")
 
-      val build_dir = tmp_dir + Path.basic(source_name)
-      Isabelle_System.copy_file(build_dir + Path.explode("LICENCE"), component_dir.path)
+      Isabelle_System.copy_file(source_dir + Path.explode("LICENCE"), component_dir.path)
 
       val cmake_opts = if (Platform.is_linux) "-DBUILD_SHARED_LIBS=0 " else ""
       val cmake_out =
         progress.bash("cmake " + cmake_opts + """-G "Unix Makefiles" .""",
-          cwd = build_dir.file, echo = verbose).check.out
+          cwd = source_dir.file, echo = verbose).check.out
 
       val Pattern = """-- Setting binary name to '?([^\s']*)'?""".r
       val binary =
         split_lines(cmake_out).collectFirst({ case Pattern(name) => name })
           .getOrElse(error("Failed to determine binary name from cmake output:\n" + cmake_out))
 
-      progress.bash("make -j" + jobs, cwd = build_dir.file, echo = verbose).check
+      progress.bash("make -j" + jobs, cwd = source_dir.file, echo = verbose).check
 
-      Isabelle_System.copy_file(build_dir + Path.basic("bin") + Path.basic(binary).platform_exe,
+      Isabelle_System.copy_file(source_dir + Path.basic("bin") + Path.basic(binary).platform_exe,
         platform_dir + Path.basic("vampire").platform_exe)
 
 

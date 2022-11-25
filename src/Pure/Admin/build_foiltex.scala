@@ -30,13 +30,7 @@ object Build_Foiltex {
         Isabelle_System.bash("unzip -x " + File.bash_path(download_file),
           cwd = download_dir.file).check
 
-        val foiltex_dir =
-          File.read_dir(download_dir) match {
-            case List(name) => download_dir + Path.explode(name)
-            case bad =>
-              error("Expected exactly one directory entry in " + download_file +
-                bad.mkString("\n", "\n  ", ""))
-          }
+        val foiltex_dir = File.get_dir(download_dir, title = download_url)
 
         val README = Path.explode("README")
         val README_flt = Path.explode("README.flt")

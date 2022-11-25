@@ -205,7 +205,7 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
         else Path.explode(mercurial_source)
 
       Isabelle_System.gnutar("-xzf " + File.bash_path(archive), dir = tmp_dir).check
-      val build_dir = tmp_dir + Path.basic(File.get_dir(tmp_dir))
+      val build_dir = File.get_dir(tmp_dir, title = mercurial_source)
 
       progress.bash("make all && make install", cwd = build_dir.file, echo = true).check
     }

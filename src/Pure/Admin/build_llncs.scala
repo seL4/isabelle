@@ -33,13 +33,7 @@ object Build_LLNCS {
         Isabelle_System.bash("unzip -x " + File.bash_path(download_file),
           cwd = download_dir.file).check
 
-        val llncs_dir =
-          File.read_dir(download_dir) match {
-            case List(name) => download_dir + Path.explode(name)
-            case bad =>
-              error("Expected exactly one directory entry in " + download_file +
-                bad.mkString("\n", "\n  ", ""))
-          }
+        val llncs_dir = File.get_dir(download_dir, title = download_url)
 
         val readme = Path.explode("README.md")
         File.change(llncs_dir + readme)(_.replace("&nbsp;", "\u00a0"))

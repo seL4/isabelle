@@ -96,10 +96,10 @@ object Build_CSDP {
       Isabelle_System.download_file(download_url, archive_path, progress = progress)
 
       Isabelle_System.bash("tar xzf " + File.bash_path(archive_path), cwd = tmp_dir.file).check
-      val source_name = File.get_dir(tmp_dir)
+      val source_dir = File.get_dir(tmp_dir, title = archive_name)
 
       Isabelle_System.bash(
-        "tar xzf " + archive_path + " && mv " + Bash.string(source_name) + " src",
+        "tar xzf " + archive_path + " && mv " + File.bash_path(source_dir.base) + " src",
         cwd = component_dir.path.file).check
 
 
@@ -107,21 +107,20 @@ object Build_CSDP {
 
       progress.echo("Building CSDP for " + platform_name + " ...")
 
-      val build_dir = tmp_dir + Path.basic(source_name)
       build_flags.find(flags => flags.platform == platform_name) match {
         case None => error("No build flags for platform " + quote(platform_name))
         case Some(flags) =>
-          File.find_files(build_dir.file, pred = file => file.getName == "Makefile").
+          File.find_files(source_dir.file, pred = file => file.getName == "Makefile").
             foreach(file => flags.change(File.path(file)))
       }
 
-      progress.bash(mingw.bash_script("make"), cwd = build_dir.file, echo = verbose).check
+      progress.bash(mingw.bash_script("make"), cwd = source_dir.file, echo = verbose).check
 
 
       /* install */
 
-      Isabelle_System.copy_file(build_dir + Path.explode("LICENSE"), component_dir.path)
-      Isabelle_System.copy_file(build_dir + Path.explode("solver/csdp").platform_exe, platform_dir)
+      Isabelle_System.copy_file(source_dir + Path.explode("LICENSE"), component_dir.path)
+      Isabelle_System.copy_file(source_dir + Path.explode("solver/csdp").platform_exe, platform_dir)
 
       if (Platform.is_windows) {
         Executable.libraries_closure(platform_dir + Path.explode("csdp.exe"), mingw = mingw,

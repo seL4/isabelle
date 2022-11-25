@@ -62,10 +62,10 @@ object Build_VeriT {
       Isabelle_System.download_file(download_url, archive_path, progress = progress)
 
       Isabelle_System.bash("tar xzf " + File.bash_path(archive_path), cwd = tmp_dir.file).check
-      val source_name = File.get_dir(tmp_dir)
+      val source_dir = File.get_dir(tmp_dir, title = download_url)
 
       Isabelle_System.bash(
-        "tar xzf " + archive_path + " && mv " + Bash.string(source_name) + " src",
+        "tar xzf " + archive_path + " && mv " + File.bash_path(source_dir.base) + " src",
         cwd = component_dir.path.file).check
 
 
@@ -76,17 +76,16 @@ object Build_VeriT {
       val configure_options =
         if (Platform.is_linux) "LDFLAGS=-Wl,-rpath,_DUMMY_" else ""
 
-      val build_dir = tmp_dir + Path.basic(source_name)
       progress.bash(mingw.bash_script("set -e\n./configure " + configure_options + "\nmake"),
-        cwd = build_dir.file, echo = verbose).check
+        cwd = source_dir.file, echo = verbose).check
 
 
       /* install */
 
-      Isabelle_System.copy_file(build_dir + Path.explode("LICENSE"), component_dir.path)
+      Isabelle_System.copy_file(source_dir + Path.explode("LICENSE"), component_dir.path)
 
       val exe_path = Path.basic("veriT").platform_exe
-      Isabelle_System.copy_file(build_dir + exe_path, platform_dir)
+      Isabelle_System.copy_file(source_dir + exe_path, platform_dir)
       Executable.libraries_closure(platform_dir + exe_path, filter = Set("libgmp"), mingw = mingw)
 
 

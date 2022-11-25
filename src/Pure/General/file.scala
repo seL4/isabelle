@@ -128,12 +128,25 @@ object File {
     else files.toList.map(_.getName).sorted
   }
 
-  def get_dir(dir: Path): String =
-    read_dir(dir).filter(name => (dir + Path.basic(name)).is_dir) match {
-      case List(entry) => entry
-      case dirs =>
-        error("Exactly one directory entry expected: " + commas_quote(dirs.sorted))
+  def get_entry(
+    dir: Path,
+    pred: Path => Boolean = _ => true,
+    title: String = ""
+  ): Path =
+    read_dir(dir).filter(name => pred(dir + Path.basic(name))) match {
+      case List(entry) => dir + Path.basic(entry)
+      case bad =>
+        error("Bad directory content in " + (if (title.nonEmpty) title else dir.toString) +
+          "\nexpected a single entry, but found" +
+          (if (bad.isEmpty) " nothing"
+           else bad.sorted.map(quote).mkString(":\n  ", "\n  ", "")))
     }
+
+  def get_file(dir: Path, title: String = ""): Path =
+    get_entry(dir, pred = _.is_file, title = title)
+
+  def get_dir(dir: Path, title: String = ""): Path =
+    get_entry(dir, pred = _.is_dir, title = title)
 
   def find_files(
     start: JFile,

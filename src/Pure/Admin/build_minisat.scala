@@ -61,10 +61,10 @@ object Build_Minisat {
       Isabelle_System.download_file(download_url, archive_path, progress = progress)
 
       Isabelle_System.bash("tar xzf " + File.bash_path(archive_path), cwd = tmp_dir.file).check
-      val source_name = File.get_dir(tmp_dir)
+      val source_dir = File.get_dir(tmp_dir, title = download_url)
 
       Isabelle_System.bash(
-        "tar xzf " + archive_path + " && mv " + Bash.string(source_name) + " src",
+        "tar xzf " + archive_path + " && mv " + File.bash_path(source_dir.base) + " src",
         cwd = component_dir.path.file).check
 
 
@@ -72,18 +72,17 @@ object Build_Minisat {
 
       progress.echo("Building Minisat for " + platform_name + " ...")
 
-      val build_dir = tmp_dir + Path.basic(source_name)
-      Isabelle_System.copy_file(build_dir + Path.explode("LICENSE"), component_dir.path)
+      Isabelle_System.copy_file(source_dir + Path.explode("LICENSE"), component_dir.path)
 
       if (Platform.is_macos) {
-        File.change(build_dir + Path.explode("Makefile")) {
+        File.change(source_dir + Path.explode("Makefile")) {
           _.replaceAll("--static", "").replaceAll("-Wl,-soname\\S+", "")
         }
       }
-      progress.bash("make r", build_dir.file, echo = verbose).check
+      progress.bash("make r", source_dir.file, echo = verbose).check
 
       Isabelle_System.copy_file(
-        build_dir + Path.explode("build/release/bin/minisat").platform_exe, platform_dir)
+        source_dir + Path.explode("build/release/bin/minisat").platform_exe, platform_dir)
 
       if (Platform.is_windows) {
         Isabelle_System.copy_file(Path.explode("/bin/cygwin1.dll"), platform_dir)

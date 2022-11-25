@@ -367,11 +367,8 @@ object SQLite {
 
   lazy val init_jdbc: Unit = {
     val lib_path = Path.explode("$ISABELLE_SQLITE_HOME/" + Platform.jvm_platform)
-    val lib_name =
-      File.find_files(lib_path.file) match {
-        case List(file) => file.getName
-        case _ => error("Exactly one file expected in directory " + lib_path.expand)
-      }
+    val lib_name = File.get_file(lib_path).file_name
+
     System.setProperty("org.sqlite.lib.path", File.platform_path(lib_path))
     System.setProperty("org.sqlite.lib.name", lib_name)
 
