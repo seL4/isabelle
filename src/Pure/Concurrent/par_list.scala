@@ -47,13 +47,15 @@ object Par_List {
   def map[A, B](f: A => B, xs: List[A], sequential: Boolean = false): List[B] =
     Exn.release_first(managed_results(f, xs, sequential = sequential))
 
+  private class Found(val res: Any) extends Exception
+
   def get_some[A, B](f: A => Option[B], xs: List[A]): Option[B] = {
-    class Found(val res: B) extends Exception
     val results =
       managed_results(
         (x: A) => f(x) match { case None => () case Some(y) => throw new Found(y) }, xs)
     results.collectFirst({
-      case Exn.Exn(found) if found.isInstanceOf[Found] => found.asInstanceOf[Found].res
+      case Exn.Exn(found) if found.isInstanceOf[Found] =>
+        found.asInstanceOf[Found].res.asInstanceOf[B]
     }) match {
       case None => Exn.release_first(results); None
       case some => some
