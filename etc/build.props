@@ -21,7 +21,6 @@ sources = \
   src/Pure/Admin/build_foiltex.scala \
   src/Pure/Admin/build_fonts.scala \
   src/Pure/Admin/build_history.scala \
-  src/Pure/Admin/build_jcef.scala \
   src/Pure/Admin/build_jdk.scala \
   src/Pure/Admin/build_jedit.scala \
   src/Pure/Admin/build_lipics.scala \

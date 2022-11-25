@@ -164,7 +164,6 @@ class Admin_Tools extends Isabelle_Scala_Tools(
   Build_EPTCS.isabelle_tool,
   Build_Foiltex.isabelle_tool,
   Build_Fonts.isabelle_tool,
-  Build_JCEF.isabelle_tool,
   Build_JDK.isabelle_tool,
   Build_JEdit.isabelle_tool,
   Build_LIPIcs.isabelle_tool,
