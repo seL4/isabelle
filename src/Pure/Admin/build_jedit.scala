@@ -157,7 +157,7 @@ isabelle_java java -Duser.home=""" + File.bash_platform_path(tmp_dir) +
 
       progress.echo("Patching jEdit sources ...")
       for {
-        file <- File.find_files(Path.explode("~~/src/Tools/jEdit/patches").file).iterator
+        file <- File.find_files(Path.explode("~~/src/Tools/jEdit/patches").file).sortBy(_.getName)
         name = file.getName
         if !File.is_backup(name)
       } {
@@ -178,11 +178,11 @@ isabelle_java java -Duser.home=""" + File.bash_platform_path(tmp_dir) +
       Isabelle_System.copy_file(tmp_source_dir + Path.explode("build/jedit.jar"), jedit_patched_dir)
 
       val java_sources =
-        for {
+        (for {
           file <- File.find_files(org_source_dir.file, file => File.is_java(file.getName))
           package_name <- Scala_Project.package_name(File.path(file))
           if !exclude_package(package_name)
-        } yield File.path(component_path.java_path.relativize(file.toPath).toFile).implode
+        } yield File.path(component_path.java_path.relativize(file.toPath).toFile).implode).sorted
 
       File.write(component_dir.build_props,
         "module = " + jedit_patched + "/jedit.jar\n" +

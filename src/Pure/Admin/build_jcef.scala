@@ -77,7 +77,7 @@ object Build_JCEF {
           val classpath =
             File.find_files(platform_dir.file, pred = file => File.is_jar(file.getName))
               .flatMap(file => File.relative_path(platform_dir, File.path(file)))
-              .map(jar => "        " + quote("$ISABELLE_JCEF_HOME/" + jar.implode))
+              .map(_.implode).sorted.map(jar => "        " + quote("$ISABELLE_JCEF_HOME/" + jar))
               .mkString(" \\\n")
 
           "    " + platform.platform_name + ")\n" +

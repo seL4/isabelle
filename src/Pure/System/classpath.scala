@@ -29,7 +29,8 @@ object Classpath {
       } yield File.absolute(new JFile(s))
 
     val jar_files1 =
-      jar_files.flatMap(start => File.find_files(start, file => File.is_jar(file.getName)))
+      jar_files.flatMap(start =>
+          File.find_files(start, file => File.is_jar(file.getName)).sortBy(_.getName))
         .map(File.absolute)
 
     val tmp_jars =
