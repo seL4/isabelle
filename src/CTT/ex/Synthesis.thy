@@ -3,13 +3,13 @@
     Copyright   1991  University of Cambridge
 *)
 
-section "Synthesis examples, using a crude form of narrowing"
+section \<open>Synthesis examples, using a crude form of narrowing\<close>
 
 theory Synthesis
   imports "../CTT"
 begin
 
-text "discovery of predecessor function"
+text \<open>discovery of predecessor function\<close>
 schematic_goal "?a : \<Sum>pred:?A . Eq(N, pred`0, 0) \<times> (\<Prod>n:N. Eq(N, pred ` succ(n), n))"
   apply intr
     apply eqintr
@@ -18,7 +18,7 @@ schematic_goal "?a : \<Sum>pred:?A . Eq(N, pred`0, 0) \<times> (\<Prod>n:N. Eq(N
         apply rew
   done
 
-text "the function fst as an element of a function type"
+text \<open>the function fst as an element of a function type\<close>
 schematic_goal [folded basic_defs]:
   "A type \<Longrightarrow> ?a: \<Sum>f:?B . \<Prod>i:A. \<Prod>j:A. Eq(A, f ` <i,j>, i)"
   apply intr
@@ -30,7 +30,7 @@ schematic_goal [folded basic_defs]:
    apply assumption+
   done
 
-text "An interesting use of the eliminator, when"
+text \<open>An interesting use of the eliminator, when\<close>
   (*The early implementation of unification caused non-rigid path in occur check
   See following example.*)
 schematic_goal "?a : \<Prod>i:N. Eq(?A, ?b(inl(i)), <0    ,   i>)
@@ -49,7 +49,7 @@ schematic_goal "?a : \<Prod>i:N. Eq(?A(i), ?b(inl(i)), <0   ,   i>)
                   \<times>  Eq(?A(i), ?b(inr(i)), <succ(0),i>)"
   oops
 
-  text "A tricky combination of when and split"
+  text \<open>A tricky combination of when and split\<close>
     (*Now handled easily, but caused great problems once*)
 schematic_goal [folded basic_defs]:
   "?a : \<Prod>i:N. \<Prod>j:N. Eq(?A, ?b(inl(<i,j>)), i)
@@ -74,7 +74,7 @@ schematic_goal "?a : \<Prod>i:N. \<Prod>j:N. Eq(N, ?b(inl(<i,j>)), i)
   oops
 
 
-  text "Deriving the addition operator"
+  text \<open>Deriving the addition operator\<close>
 schematic_goal [folded arith_defs]:
   "?c : \<Prod>n:N. Eq(N, ?f(0,n), n)
                   \<times>  (\<Prod>m:N. Eq(N, ?f(succ(m), n), succ(?f(m,n))))"
@@ -84,7 +84,7 @@ schematic_goal [folded arith_defs]:
     apply rew
   done
 
-text "The addition function -- using explicit lambdas"
+text \<open>The addition function -- using explicit lambdas\<close>
 schematic_goal [folded arith_defs]:
   "?c : \<Sum>plus : ?A .
          \<Prod>x:N. Eq(N, plus`0`x, x)

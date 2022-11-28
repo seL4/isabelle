@@ -6,13 +6,13 @@ Some examples taken from P. Martin-Löf, Intuitionistic type theory
 (Bibliopolis, 1984).
 *)
 
-section "Examples with elimination rules"
+section \<open>Examples with elimination rules\<close>
 
 theory Elimination
 imports "../CTT"
 begin
 
-text "This finds the functions fst and snd!"
+text \<open>This finds the functions fst and snd!\<close>
 
 schematic_goal [folded basic_defs]: "A type \<Longrightarrow> ?a : (A \<times> A) \<longrightarrow> A"
 apply pc
@@ -23,7 +23,7 @@ schematic_goal [folded basic_defs]: "A type \<Longrightarrow> ?a : (A \<times> A
   back
   done
 
-text "Double negation of the Excluded Middle"
+text \<open>Double negation of the Excluded Middle\<close>
 schematic_goal "A type \<Longrightarrow> ?a : ((A + (A\<longrightarrow>F)) \<longrightarrow> F) \<longrightarrow> F"
   apply intr
   apply (rule ProdE)
@@ -31,13 +31,25 @@ schematic_goal "A type \<Longrightarrow> ?a : ((A + (A\<longrightarrow>F)) \<lon
   apply pc
   done
 
+text \<open>Experiment: the proof above in Isar\<close>
+lemma
+  assumes "A type" shows "(\<^bold>\<lambda>f. f ` inr(\<^bold>\<lambda>y. f ` inl(y))) : ((A + (A\<longrightarrow>F)) \<longrightarrow> F) \<longrightarrow> F"
+proof intr
+  fix f
+  assume f: "f : A + (A \<longrightarrow> F) \<longrightarrow> F" 
+  with assms have "inr(\<^bold>\<lambda>y. f ` inl(y)) : A + (A \<longrightarrow> F)"
+    by pc
+  then show "f ` inr(\<^bold>\<lambda>y. f ` inl(y)) : F" 
+    by (rule ProdE [OF f])
+qed (rule assms)+
+
 schematic_goal "\<lbrakk>A type; B type\<rbrakk> \<Longrightarrow> ?a : (A \<times> B) \<longrightarrow> (B \<times> A)"
 apply pc
 done
 (*The sequent version (ITT) could produce an interesting alternative
   by backtracking.  No longer.*)
 
-text "Binary sums and products"
+text \<open>Binary sums and products\<close>
 schematic_goal "\<lbrakk>A type; B type; C type\<rbrakk> \<Longrightarrow> ?a : (A + B \<longrightarrow> C) \<longrightarrow> (A \<longrightarrow> C) \<times> (B \<longrightarrow> C)"
   apply pc
   done
@@ -55,7 +67,7 @@ schematic_goal
   apply (pc assms)
   done
 
-text "Construction of the currying functional"
+text \<open>Construction of the currying functional\<close>
 schematic_goal "\<lbrakk>A type; B type; C type\<rbrakk> \<Longrightarrow> ?a : (A \<times> B \<longrightarrow> C) \<longrightarrow> (A \<longrightarrow> (B \<longrightarrow> C))"
   apply pc
   done
@@ -70,7 +82,7 @@ schematic_goal
   apply (pc assms)
   done
 
-text "Martin-Löf (1984), page 48: axiom of sum-elimination (uncurry)"
+text \<open>Martin-Löf (1984), page 48: axiom of sum-elimination (uncurry)\<close>
 schematic_goal "\<lbrakk>A type; B type; C type\<rbrakk> \<Longrightarrow> ?a : (A \<longrightarrow> (B \<longrightarrow> C)) \<longrightarrow> (A \<times> B \<longrightarrow> C)"
   apply pc
   done
@@ -85,12 +97,12 @@ schematic_goal
   apply (pc assms)
   done
 
-text "Function application"
+text \<open>Function application\<close>
 schematic_goal "\<lbrakk>A type; B type\<rbrakk> \<Longrightarrow> ?a : ((A \<longrightarrow> B) \<times> A) \<longrightarrow> B"
   apply pc
   done
 
-text "Basic test of quantifier reasoning"
+text \<open>Basic test of quantifier reasoning\<close>
 schematic_goal
   assumes "A type"
     and "B type"
@@ -101,7 +113,7 @@ schematic_goal
   apply (pc assms)
   done
 
-text "Martin-Löf (1984) pages 36-7: the combinator S"
+text \<open>Martin-Löf (1984) pages 36-7: the combinator S\<close>
 schematic_goal
   assumes "A type"
     and "\<And>x. x:A \<Longrightarrow> B(x) type"
@@ -111,7 +123,7 @@ schematic_goal
   apply (pc assms)
   done
 
-text "Martin-Löf (1984) page 58: the axiom of disjunction elimination"
+text \<open>Martin-Löf (1984) page 58: the axiom of disjunction elimination\<close>
 schematic_goal
   assumes "A type"
     and "B type"
@@ -129,7 +141,7 @@ schematic_goal [folded basic_defs]:
 
 
 (*Martin-Löf (1984) page 50*)
-text "AXIOM OF CHOICE!  Delicate use of elimination rules"
+text \<open>AXIOM OF CHOICE!  Delicate use of elimination rules\<close>
 schematic_goal
   assumes "A type"
     and "\<And>x. x:A \<Longrightarrow> B(x) type"
@@ -168,7 +180,7 @@ proof (intr assms)
     by (intro replace_type [OF subst_eqtyparg]) (typechk SumE_fst assms \<open>a : A\<close>)
 qed
 
-text "Axiom of choice.  Proof without fst, snd.  Harder still!"
+text \<open>Axiom of choice.  Proof without fst, snd.  Harder still!\<close>
 schematic_goal [folded basic_defs]:
   assumes "A type"
     and "\<And>x. x:A \<Longrightarrow> B(x) type"
@@ -192,7 +204,7 @@ schematic_goal [folded basic_defs]:
   apply assumption
   done
 
-text "Example of sequent-style deduction"
+text \<open>Example of sequent-style deduction\<close>
   (*When splitting z:A \<times> B, the assumption C(z) is affected;  ?a becomes
     \<^bold>\<lambda>u. split(u,\<lambda>v w.split(v,\<lambda>x y.\<^bold> \<lambda>z. <x,<y,z>>) ` w)     *)
 schematic_goal

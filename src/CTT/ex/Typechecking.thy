@@ -3,7 +3,7 @@
     Copyright   1991  University of Cambridge
 *)
 
-section "Easy examples: type checking and type deduction"
+section \<open>Easy examples: type checking and type deduction\<close>
 
 theory Typechecking
 imports "../CTT"
@@ -44,15 +44,15 @@ schematic_goal "\<Prod>w:N . Eq(?A,w,w) type"
 schematic_goal "\<Prod>x:N . \<Prod>y:N . Eq(?A,x,y) type"
   apply typechk done
 
-text "typechecking an application of fst"
+text \<open>typechecking an application of fst\<close>
 schematic_goal "(\<^bold>\<lambda>u. split(u, \<lambda>v w. v)) ` <0, succ(0)> : ?A"
   apply typechk done
 
-text "typechecking the predecessor function"
+text \<open>typechecking the predecessor function\<close>
 schematic_goal "\<^bold>\<lambda>n. rec(n, 0, \<lambda>x y. x) : ?A"
   apply typechk done
 
-text "typechecking the addition function"
+text \<open>typechecking the addition function\<close>
 schematic_goal "\<^bold>\<lambda>n. \<^bold>\<lambda>m. rec(n, m, \<lambda>x y. succ(y)) : ?A"
   apply typechk done
 
@@ -71,7 +71,7 @@ schematic_goal "\<^bold>\<lambda>x. \<^bold>\<lambda>y. x : ?A"
    apply N
   done
 
-text "typechecking fst (as a function object)"
+text \<open>typechecking fst (as a function object)\<close>
 schematic_goal "\<^bold>\<lambda>i. split(i, \<lambda>j k. j) : ?A"
   apply typechk 
    apply N
