@@ -435,6 +435,7 @@ object Isabelle_System {
 
   def extract(archive: Path, dir: Path, strip: Boolean = false): Unit = {
     val name = archive.file_name
+    make_directory(dir)
     if (File.is_zip(name)) {
       require(!strip, "Cannot use unzip with strip")
       Isabelle_System.bash("unzip -x " + File.bash_path(archive.absolute), cwd = dir.file).check

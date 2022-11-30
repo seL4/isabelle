@@ -61,11 +61,9 @@ object Build_JDK {
         val name = Library.take_suffix(_ != '/', url.toList)._2.mkString
         val file = dir + Path.basic(name)
         Isabelle_System.download_file(url, file, progress = progress)
-        Isabelle_System.extract(file, dir)
 
-        val jdk_dir = File.get_dir(dir, title = url)
         val platform_dir = component_dir.path + Path.basic(platform.name)
-        Isabelle_System.move_file(jdk_dir, platform_dir)
+        Isabelle_System.extract(file, platform_dir, strip = true)
       }
     }
 

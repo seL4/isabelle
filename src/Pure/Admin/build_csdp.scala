@@ -98,8 +98,7 @@ object Build_CSDP {
       Isabelle_System.extract(archive_path, tmp_dir)
       val source_dir = File.get_dir(tmp_dir, title = download_url)
 
-      Isabelle_System.extract(archive_path, component_dir.path)
-      Isabelle_System.move_file(component_dir.path + source_dir.base, component_dir.src)
+      Isabelle_System.extract(archive_path, component_dir.src, strip = true)
 
 
       /* build */
