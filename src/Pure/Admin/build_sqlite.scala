@@ -11,7 +11,7 @@ object Build_SQLite {
   /* build sqlite */
 
   val default_download_url =
-    "https://repo1.maven.org/maven2/org/xerial/sqlite-jdbc/3.36.0.3/sqlite-jdbc-3.36.0.3.jar"
+    "https://repo1.maven.org/maven2/org/xerial/sqlite-jdbc/3.39.4.1/sqlite-jdbc-3.39.4.1.jar"
 
   def build_sqlite(
     download_url: String = default_download_url,
@@ -46,13 +46,14 @@ object Build_SQLite {
 
 ISABELLE_SQLITE_HOME="$COMPONENT"
 
-classpath "$ISABELLE_SQLITE_HOME/""" + download_name + """.jar"
+classpath "$ISABELLE_SQLITE_HOME/lib/""" + download_name + """.jar"
 """)
 
 
     /* jar */
 
-    val jar = component_dir.path + Path.basic(download_name).ext("jar")
+    val jar = component_dir.lib + Path.basic(download_name).ext("jar")
+    Isabelle_System.make_directory(jar.dir)
     Isabelle_System.download_file(download_url, jar, progress = progress)
 
     Isabelle_System.with_tmp_dir("build") { jar_dir =>
