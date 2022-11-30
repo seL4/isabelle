@@ -68,9 +68,7 @@ object Build_Zstd {
 
     /* settings */
 
-    File.write(component_dir.settings,
-"""# -*- shell-script -*- :mode=shellscript:
-
+    component_dir.write_settings("""
 ISABELLE_ZSTD_HOME="$COMPONENT"
 
 classpath "$ISABELLE_ZSTD_HOME/""" + jar_name + """"

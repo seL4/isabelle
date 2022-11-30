@@ -52,9 +52,7 @@ object Build_Foiltex {
 
         /* settings */
 
-        File.write(component_dir.settings,
-          """# -*- shell-script -*- :mode=shellscript:
-
+        component_dir.write_settings("""
 ISABELLE_FOILTEX_HOME="$COMPONENT"
 """)
 

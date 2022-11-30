@@ -59,9 +59,7 @@ object Build_CVC5 {
 
     /* settings */
 
-    File.write(component_dir.settings,
-      """# -*- shell-script -*- :mode=shellscript:
-
+    component_dir.write_settings("""
 CVC5_HOME="$COMPONENT/${ISABELLE_WINDOWS_PLATFORM64:-${ISABELLE_APPLE_PLATFORM64:-$ISABELLE_PLATFORM64}}"
 CVC5_VERSION=""" + Bash.string(version) + """
 

@@ -372,9 +372,7 @@ object Build_VSCodium {
 
     /* settings */
 
-    File.write(component_dir.settings,
-      """# -*- shell-script -*- :mode=shellscript:
-
+    component_dir.write_settings("""
 ISABELLE_VSCODIUM_HOME="$COMPONENT/${ISABELLE_WINDOWS_PLATFORM64:-$ISABELLE_PLATFORM64}"
 
 if [ "$ISABELLE_PLATFORM_FAMILY" = "macos" ]; then

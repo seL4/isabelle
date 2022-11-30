@@ -108,9 +108,7 @@ object Build_Scala {
 
     /* settings */
 
-    File.write(component_dir.settings,
-      """# -*- shell-script -*- :mode=shellscript:
-
+    component_dir.write_settings("""
 SCALA_HOME="$COMPONENT"
 SCALA_INTERFACES="$SCALA_HOME/lib/""" + interfaces + """"
 """ + terminate_lines(classpath.map(jar => "classpath \"$SCALA_HOME/lib/" + jar + "\"")))

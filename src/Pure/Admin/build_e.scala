@@ -77,12 +77,11 @@ object Build_E {
 
       /* settings */
 
-      File.write(component_dir.settings,
-        """# -*- shell-script -*- :mode=shellscript:
-
+      component_dir.write_settings("""
 E_HOME="$COMPONENT/$ISABELLE_PLATFORM64"
 E_VERSION=""" + quote(version) + """
 """)
+
 
       /* README */
 

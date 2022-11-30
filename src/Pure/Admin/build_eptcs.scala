@@ -42,9 +42,7 @@ object Build_EPTCS {
 
     /* settings */
 
-    File.write(component_dir.settings,
-      """# -*- shell-script -*- :mode=shellscript:
-
+    component_dir.write_settings("""
 ISABELLE_EPTCS_HOME="$COMPONENT"
 """)
 

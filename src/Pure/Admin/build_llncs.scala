@@ -52,9 +52,7 @@ object Build_LLNCS {
 
         /* settings */
 
-        File.write(component_dir.settings,
-          """# -*- shell-script -*- :mode=shellscript:
-
+        component_dir.write_settings("""
 ISABELLE_LLNCS_HOME="$COMPONENT"
 """)
 

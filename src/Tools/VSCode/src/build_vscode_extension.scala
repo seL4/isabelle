@@ -190,9 +190,7 @@ object Build_VSCode {
 
     /* settings */
 
-    File.write(component_dir.settings,
-      """# -*- shell-script -*- :mode=shellscript:
-
+    component_dir.write_settings("""
 ISABELLE_VSCODE_VSIX="$COMPONENT/""" + vsix_name + "\"\n")
 
 

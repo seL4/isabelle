@@ -89,9 +89,7 @@ object Build_JDK {
 
     /* settings */
 
-    File.write(component_dir.settings,
-      """# -*- shell-script -*- :mode=shellscript:
-
+    component_dir.write_settings("""
 case "$ISABELLE_PLATFORM_FAMILY" in
   linux)
     ISABELLE_JAVA_PLATFORM="$ISABELLE_PLATFORM64"

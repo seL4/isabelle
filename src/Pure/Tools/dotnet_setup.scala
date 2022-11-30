@@ -83,8 +83,7 @@ object Dotnet_Setup {
         progress.echo("Component " + component_dir)
         Isabelle_System.make_directory(component_dir.etc)
 
-        File.write(component_dir.settings, """# -*- shell-script -*- :mode=shellscript:
-
+        component_dir.write_settings("""
 ISABELLE_DOTNET_ROOT="$COMPONENT"
 
 if [ -n "$ISABELLE_WINDOWS_PLATFORM64" -a -d "$ISABELLE_DOTNET_ROOT/$ISABELLE_WINDOWS_PLATFORM64" ]; then

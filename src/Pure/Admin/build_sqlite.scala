@@ -41,9 +41,7 @@ object Build_SQLite {
 
     /* settings */
 
-    File.write(component_dir.settings,
-"""# -*- shell-script -*- :mode=shellscript:
-
+    component_dir.write_settings("""
 ISABELLE_SQLITE_HOME="$COMPONENT"
 
 classpath "$ISABELLE_SQLITE_HOME/lib/""" + download_name + """.jar"

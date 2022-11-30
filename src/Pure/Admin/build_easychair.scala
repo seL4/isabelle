@@ -45,9 +45,7 @@ object Build_Easychair {
 
         /* settings */
 
-        File.write(component_dir.settings,
-          """# -*- shell-script -*- :mode=shellscript:
-
+        component_dir.write_settings("""
 ISABELLE_EASYCHAIR_HOME="$COMPONENT"
 """)
 

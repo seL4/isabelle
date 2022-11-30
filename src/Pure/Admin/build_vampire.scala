@@ -95,9 +95,7 @@ object Build_Vampire {
 
       /* settings */
 
-      File.write(component_dir.settings,
-        """# -*- shell-script -*- :mode=shellscript:
-
+      component_dir.write_settings("""
 VAMPIRE_HOME="$COMPONENT/$ISABELLE_PLATFORM64"
 
 ISABELLE_VAMPIRE="$VAMPIRE_HOME/vampire"

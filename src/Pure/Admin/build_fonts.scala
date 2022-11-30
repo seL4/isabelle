@@ -334,9 +334,7 @@ object Build_Fonts {
             """    "$COMPONENT/""" + make_path(hinted = hinted).file_name + "/" + ttf.file_name + "\"")
           .mkString(" \\\n")
 
-        File.write(component_dir.settings,
-          """# -*- shell-script -*- :mode=shellscript:
-
+        component_dir.write_settings("""
 if grep "isabelle_fonts_hinted.*=.*false" "$ISABELLE_HOME_USER/etc/preferences" >/dev/null 2>/dev/null
 then""" + make_settings() + """
 else""" + make_settings(hinted = true) + """

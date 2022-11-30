@@ -469,9 +469,7 @@ xml-insert-closing-tag.shortcut=
 
     /* settings */
 
-    File.write(component_dir.settings,
-      """# -*- shell-script -*- :mode=shellscript:
-
+    component_dir.write_settings("""
 JEDIT_HOME="$COMPONENT/""" + jedit_patched + """"
 JEDIT_JARS=""" + quote(File.read_dir(jars_dir).map("$JEDIT_HOME/jars/" + _).mkString(":")) + """
 JEDIT_JAR="$JEDIT_HOME/jedit.jar"

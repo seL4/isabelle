@@ -102,12 +102,11 @@ object Build_SPASS {
 
       /* settings */
 
-      File.write(component_dir.settings,
-        """# -*- shell-script -*- :mode=shellscript:
-
+      component_dir.write_settings("""
 SPASS_HOME="$COMPONENT/$ISABELLE_PLATFORM64"
 SPASS_VERSION=""" + quote(version) + """
 """)
+
 
       /* README */
 

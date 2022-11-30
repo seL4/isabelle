@@ -131,6 +131,9 @@ object Components {
       split_lines(File.read(components)).filter(_.nonEmpty)
     def write_components(lines: List[String]): Unit =
       File.write(components, terminate_lines(lines))
+
+    def write_settings(text: String): Unit =
+      File.write(settings, "# -*- shell-script -*- :mode=shellscript:\n" + text)
   }
 
 
