@@ -13,7 +13,7 @@ object Build_Release {
   private def execute(dir: Path, script: String): Unit =
     Isabelle_System.bash(script, cwd = dir.file).check
 
-  private def execute_tar(dir: Path, args: String, strip: Int = 0): Process_Result =
+  private def execute_tar(dir: Path, args: String, strip: Boolean = false): Process_Result =
     Isabelle_System.gnutar(args, dir = dir, strip = strip).check
 
   private def bash_java_opens(args: String*): String =
@@ -107,7 +107,7 @@ directory individually.
           val isabelle_dir = Isabelle_System.make_directory(dir + ISABELLE)
 
           Bytes.write(archive_path, bytes)
-          execute_tar(isabelle_dir, "-xzf " + File.bash_path(archive_path), strip = 1)
+          execute_tar(isabelle_dir, "-xzf " + File.bash_path(archive_path), strip = true)
 
           val id = File.read(isabelle_dir + ISABELLE_ID)
           val tags = File.read(isabelle_dir + ISABELLE_TAGS)

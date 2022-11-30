@@ -41,35 +41,35 @@ object Build_E {
       val archive_path = tmp_dir + Path.explode("E.tgz")
       Isabelle_System.download_file(archive_url, archive_path, progress = progress)
 
-      Isabelle_System.bash("tar xzf " + archive_path, cwd = tmp_dir.file).check
-      Isabelle_System.bash("tar xzf " + archive_path + " && mv E src",
-        cwd = component_dir.path.file).check
+      Isabelle_System.extract(archive_path, tmp_dir)
+      val source_dir = File.get_dir(tmp_dir, title = archive_url)
+
+      Isabelle_System.extract(archive_path, component_dir.path)
+      Isabelle_System.move_file(component_dir.path + source_dir.base, component_dir.src)
 
 
       /* build */
 
       progress.echo("Building E prover for " + platform_name + " ...")
 
-      val build_dir = tmp_dir + Path.basic("E")
       val build_options = {
-        val result = Isabelle_System.bash("./configure --help", cwd = build_dir.file)
+        val result = Isabelle_System.bash("./configure --help", cwd = source_dir.file)
         if (result.check.out.containsSlice("--enable-ho")) " --enable-ho" else ""
       }
 
       val build_script = "./configure" + build_options + " && make"
-      Isabelle_System.bash(build_script,
-        cwd = build_dir.file,
+      Isabelle_System.bash(build_script, cwd = source_dir.file,
         progress_stdout = progress.echo_if(verbose, _),
         progress_stderr = progress.echo_if(verbose, _)).check
 
 
       /* install */
 
-      Isabelle_System.copy_file(build_dir + Path.basic("COPYING"), component_dir.LICENSE)
+      Isabelle_System.copy_file(source_dir + Path.basic("COPYING"), component_dir.LICENSE)
 
       val install_files = List("epclextract", "eprover", "eprover-ho")
       for (name <- install_files ::: install_files.map(_ + ".exe")) {
-        val path = build_dir + Path.basic("PROVER") + Path.basic(name)
+        val path = source_dir + Path.basic("PROVER") + Path.basic(name)
         if (path.is_file) Isabelle_System.copy_file(path, platform_dir)
       }
       Isabelle_System.bash("if [ -f eprover-ho ]; then mv eprover-ho eprover; fi",

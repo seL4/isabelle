@@ -36,8 +36,7 @@ object Build_LIPIcs {
         /* download */
 
         Isabelle_System.download_file(download_url, download_file, progress = progress)
-        Isabelle_System.gnutar("-xzf " + File.bash_path(download_file),
-          dir = download_dir, strip = 1).check
+        Isabelle_System.extract(download_file, download_dir, strip = true)
 
         val lipics_dir = download_dir + Path.explode("LIPIcs/authors")
 

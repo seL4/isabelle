@@ -74,7 +74,7 @@ object Mercurial {
         Bytes.write(archive_path, content.bytes)
         progress.echo("Unpacking " + rev + ".tar.gz")
         Isabelle_System.gnutar("-xzf " + File.bash_path(archive_path),
-          dir = dir, original_owner = true, strip = 1).check
+          dir = dir, original_owner = true, strip = true).check
       }
     }
   }

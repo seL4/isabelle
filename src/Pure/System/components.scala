@@ -48,7 +48,7 @@ object Components {
   def unpack(dir: Path, archive: Path, progress: Progress = new Progress): String = {
     val name = Archive.get_name(archive.file_name)
     progress.echo("Unpacking " + name)
-    Isabelle_System.gnutar("-xzf " + File.bash_path(archive), dir = dir).check
+    Isabelle_System.extract(archive, dir)
     name
   }
 
@@ -271,7 +271,7 @@ object Components {
             // contrib directory
             val is_standard_component =
               Isabelle_System.with_tmp_dir("component") { tmp_dir =>
-                Isabelle_System.gnutar("-xzf " + File.bash_path(archive), dir = tmp_dir).check
+                Isabelle_System.extract(archive, tmp_dir)
                 Directory(tmp_dir + Path.explode(name)).check
               }
             if (is_standard_component) {

@@ -65,12 +65,11 @@ object Build_Vampire {
       val archive_path = tmp_dir + Path.basic(archive_name)
       Isabelle_System.download_file(download_url, archive_path, progress = progress)
 
-      Isabelle_System.bash("tar xzf " + File.bash_path(archive_path), cwd = tmp_dir.file).check
+      Isabelle_System.extract(archive_path, tmp_dir)
       val source_dir = File.get_dir(tmp_dir, title = download_url)
 
-      Isabelle_System.bash(
-        "tar xzf " + archive_path + " && mv " + File.bash_path(source_dir.base) + " src",
-        cwd = component_dir.path.file).check
+      Isabelle_System.extract(archive_path, component_dir.path)
+      Isabelle_System.move_file(component_dir.path + source_dir.base, component_dir.src)
 
 
       /* build */

@@ -143,7 +143,7 @@ isabelle_java java -Duser.home=""" + File.bash_platform_path(tmp_dir) +
         File.bash_platform_path(jedit_dir) + " unix-script=off unix-man=off").check
 
       val source_path = download_jedit(tmp_dir, "source.tar.bz2")
-      Isabelle_System.gnutar("-xjf " + File.bash_path(source_path), dir = jedit_dir).check
+      Isabelle_System.extract(source_path, jedit_dir)
 
 
       /* patched version */

@@ -421,25 +421,27 @@ object Isabelle_System {
     args: String,
     dir: Path = Path.current,
     original_owner: Boolean = false,
-    strip: Int = 0,
+    strip: Boolean = false,
     redirect: Boolean = false
   ): Process_Result = {
     val options =
       (if (dir.is_current) "" else "-C " + File.bash_path(dir) + " ") +
       (if (original_owner) "" else "--owner=root --group=staff ") +
-      (if (strip <= 0) "" else "--strip-components=" + strip + " ")
+      (if (!strip) "" else "--strip-components=1 ")
 
     if (gnutar_check) bash("tar " + options + args, redirect = redirect)
     else error("Expected to find GNU tar executable")
   }
 
-  def extract(archive: Path, dir: Path): Unit = {
+  def extract(archive: Path, dir: Path, strip: Boolean = false): Unit = {
     val name = archive.file_name
     if (File.is_zip(name)) {
+      require(!strip, "Cannot use unzip with strip")
       Isabelle_System.bash("unzip -x " + File.bash_path(archive.absolute), cwd = dir.file).check
     }
-    else if (File.is_tar_gz(name)) {
-      Isabelle_System.gnutar("-xzf " + File.bash_path(archive), dir = dir).check
+    else if (File.is_tar_bz2(name) || File.is_tgz(name) || File.is_tar_gz(name)) {
+      val flags = if (File.is_tar_bz2(name)) "-xjf " else "-xzf "
+      Isabelle_System.gnutar(flags + File.bash_path(archive), dir = dir, strip = strip).check
     }
     else error("Cannot extract " + archive)
   }
