@@ -28,13 +28,6 @@ object Build_Scala {
     def get(path: Path, progress: Progress = new Progress): Unit =
       Isabelle_System.download_file(proper_url, path, progress = progress)
 
-    def get_unpacked(dir: Path, strip: Boolean = false, progress: Progress = new Progress): Unit =
-      Isabelle_System.with_tmp_file("archive", ext = "tar.gz"){ archive_path =>
-        get(archive_path, progress = progress)
-        progress.echo("Unpacking " + artifact)
-        Isabelle_System.extract(archive_path, dir, strip = strip)
-      }
-
     def print: String =
       "  * " + name + " " + version +
         (if (base_version.nonEmpty) " for Scala " + base_version else "") +
@@ -76,7 +69,10 @@ object Build_Scala {
 
     /* download */
 
-    main_download.get_unpacked(component_dir.path, strip = true, progress = progress)
+    Isabelle_System.with_tmp_file("archive", ext = "tar.gz") { archive_path =>
+      main_download.get(archive_path, progress = progress)
+      Isabelle_System.extract(archive_path, component_dir.path, strip = true)
+    }
 
     lib_downloads.foreach(download =>
       download.get(component_dir.lib + Path.basic(download.artifact), progress = progress))
