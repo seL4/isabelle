@@ -437,8 +437,13 @@ object Isabelle_System {
     val name = archive.file_name
     make_directory(dir)
     if (File.is_zip(name)) {
-      require(!strip, "Cannot use unzip with strip")
+      require(!strip, "Cannot extract/strip zip archive")
       Isabelle_System.bash("unzip -x " + File.bash_path(archive.absolute), cwd = dir.file).check
+    }
+    else if (File.is_jar(name)) {
+      require(!strip, "Cannot extract/strip jar archive")
+      Isabelle_System.bash("isabelle_jdk jar xf " + File.bash_platform_path(archive.absolute),
+        cwd = dir.file).check
     }
     else if (File.is_tar_bz2(name) || File.is_tgz(name) || File.is_tar_gz(name)) {
       val flags = if (File.is_tar_bz2(name)) "-xjf " else "-xzf "

@@ -61,9 +61,7 @@ object Build_Zstd {
       download_url + "/" + version + "/" + jar_name, jar, progress = progress)
 
     Isabelle_System.with_tmp_dir("build") { jar_dir =>
-      progress.echo("Unpacking " + jar)
-      Isabelle_System.bash("isabelle_jdk jar xf " + File.bash_path(jar.absolute),
-        cwd = jar_dir.file).check
+      Isabelle_System.extract(jar, jar_dir)
       for (platform <- platforms) platform.install(jar_dir, component_dir.path, version)
     }
 
