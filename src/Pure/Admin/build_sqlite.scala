@@ -10,8 +10,11 @@ package isabelle
 object Build_SQLite {
   /* build sqlite */
 
+  val default_download_url =
+    "https://repo1.maven.org/maven2/org/xerial/sqlite-jdbc/3.36.0.3/sqlite-jdbc-3.36.0.3.jar"
+
   def build_sqlite(
-    download_url: String,
+    download_url: String = default_download_url,
     progress: Progress = new Progress,
     target_dir: Path = Path.current
   ): Unit = {
@@ -82,28 +85,28 @@ classpath "$ISABELLE_SQLITE_HOME/""" + download_name + """.jar"
       Scala_Project.here,
       { args =>
         var target_dir = Path.current
+        var download_url = default_download_url
 
         val getopts = Getopts("""
 Usage: isabelle build_sqlite [OPTIONS] DOWNLOAD
 
   Options are:
     -D DIR       target directory (default ".")
+    -U URL       download URL
+                 (default: """" + default_download_url + """")
 
   Build sqlite-jdbc component from the specified download URL (JAR), see also
   https://github.com/xerial/sqlite-jdbc and
   https://oss.sonatype.org/content/repositories/releases/org/xerial/sqlite-jdbc
 """,
-          "D:" -> (arg => target_dir = Path.explode(arg)))
+          "D:" -> (arg => target_dir = Path.explode(arg)),
+          "U:" -> (arg => download_url = arg))
 
         val more_args = getopts(args)
-        val download_url =
-          more_args match {
-            case List(download_url) => download_url
-            case _ => getopts.usage()
-          }
+        if (more_args.nonEmpty) getopts.usage()
 
         val progress = new Console_Progress()
 
-        build_sqlite(download_url, progress = progress, target_dir = target_dir)
+        build_sqlite(download_url = download_url, progress = progress, target_dir = target_dir)
       })
 }
