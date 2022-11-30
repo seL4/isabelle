@@ -44,7 +44,7 @@ object Build_Zstd {
 
     val component_name = "zstd-jni-" + version
     val component_dir =
-      Components.Directory.create(target_dir + Path.basic(component_name), progress = progress)
+      Components.Directory(target_dir + Path.basic(component_name)).create(progress = progress)
 
     File.write(component_dir.README,
       "This is " + component_name + " from\n" + download_url +

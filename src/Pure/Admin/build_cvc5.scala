@@ -40,7 +40,7 @@ object Build_CVC5 {
 
     val component = "cvc5-" + version
     val component_dir =
-      Components.Directory.create(target_dir + Path.basic(component), progress = progress)
+      Components.Directory(target_dir + Path.basic(component)).create(progress = progress)
 
 
     /* download executables */

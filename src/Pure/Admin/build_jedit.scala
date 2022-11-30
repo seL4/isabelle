@@ -112,7 +112,7 @@ object Build_JEdit {
     Isabelle_System.require_command("ant", test = "-version")
     Isabelle_System.require_command("patch")
 
-    val component_dir = Components.Directory.create(component_path, progress = progress)
+    val component_dir = Components.Directory(component_path).create(progress = progress)
 
 
     /* jEdit directory */

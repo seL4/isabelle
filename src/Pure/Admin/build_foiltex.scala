@@ -42,7 +42,7 @@ object Build_Foiltex {
 
         val component = "foiltex-" + version
         val component_dir =
-          Components.Directory.create(target_dir + Path.basic(component), progress = progress)
+          Components.Directory(target_dir + Path.basic(component)).create(progress = progress)
 
         Isabelle_System.extract(download_file, component_dir.path, strip = true)
 

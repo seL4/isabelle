@@ -175,7 +175,7 @@ not affect the running ML session. *)
     component_path: Path,
     sha1_root: Option[Path] = None
   ): Unit = {
-    val component_dir = Components.Directory.create(component_path)
+    val component_dir = Components.Directory(component_path).create()
     extract_sources(source_archive, component_path)
 
     Isabelle_System.copy_file(Path.explode("~~/Admin/polyml/settings"), component_dir.etc)

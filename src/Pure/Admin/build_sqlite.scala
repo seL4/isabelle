@@ -29,7 +29,7 @@ object Build_SQLite {
     /* component */
 
     val component_dir =
-      Components.Directory.create(target_dir + Path.basic(download_name), progress = progress)
+      Components.Directory(target_dir + Path.basic(download_name)).create(progress = progress)
 
 
     /* README */

@@ -42,7 +42,7 @@ object Build_Minisat {
 
       val component = proper_string(component_name) getOrElse make_component_name(version)
       val component_dir =
-        Components.Directory.create(target_dir + Path.basic(component), progress = progress)
+        Components.Directory(target_dir + Path.basic(component)).create(progress = progress)
 
 
       /* platform */

@@ -53,7 +53,7 @@ object Build_LIPIcs {
 
         val component = "lipics-" + version
         val component_dir =
-          Components.Directory.create(target_dir + Path.basic(component), progress = progress)
+          Components.Directory(target_dir + Path.basic(component)).create(progress = progress)
 
         Isabelle_System.copy_dir(lipics_dir, component_dir.path)
 

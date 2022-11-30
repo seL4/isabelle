@@ -315,7 +315,7 @@ object Build_VSCodium {
 
     val component_name = "vscodium-" + version
     val component_dir =
-      Components.Directory.create(target_dir + Path.explode(component_name), progress = progress)
+      Components.Directory(target_dir + Path.explode(component_name)).create(progress = progress)
 
 
     /* patches */

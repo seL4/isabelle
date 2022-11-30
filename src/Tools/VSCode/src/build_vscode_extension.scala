@@ -151,7 +151,7 @@ object Build_VSCode {
 
     val component_name = "vscode_extension-" + Date.Format.alt_date(Date.now())
     val component_dir =
-      Components.Directory.create(target_dir + Path.basic(component_name), progress = progress)
+      Components.Directory(target_dir + Path.basic(component_name)).create(progress = progress)
 
 
     /* build */

@@ -27,7 +27,7 @@ object Build_Zipperposition {
 
       val component_name = "zipperposition-" + version
       val component_dir =
-        Components.Directory.create(target_dir + Path.basic(component_name), progress = progress)
+        Components.Directory(target_dir + Path.basic(component_name)).create(progress = progress)
 
 
       /* platform */

@@ -25,7 +25,7 @@ object Build_E {
 
       val component_name = "e-" + version
       val component_dir =
-        Components.Directory.create(target_dir + Path.basic(component_name), progress = progress)
+        Components.Directory(target_dir + Path.basic(component_name)).create(progress = progress)
 
       val platform_name =
         proper_string(Isabelle_System.getenv("ISABELLE_PLATFORM64"))

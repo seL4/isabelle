@@ -236,7 +236,7 @@ object Build_Fonts {
         val component_date = Date.Format.alt_date(Date.now())
         val component_name = "isabelle_fonts-" + component_date
         val component_dir =
-          Components.Directory.create(target_dir + Path.basic(component_name), progress = progress)
+          Components.Directory(target_dir + Path.basic(component_name)).create(progress = progress)
 
         for (hinted <- hinting) {
           Isabelle_System.make_directory(component_dir.path + make_path(hinted = hinted))

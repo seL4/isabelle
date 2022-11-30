@@ -104,14 +104,6 @@ object Components {
 
   object Directory {
     def apply(path: Path): Directory = new Directory(path.absolute)
-
-    def create(path: Path, progress: Progress = new Progress): Directory = {
-      val component_dir = new Directory(path.absolute)
-      progress.echo("Creating component directory " + component_dir.path)
-      Isabelle_System.new_directory(component_dir.path)
-      Isabelle_System.make_directory(component_dir.etc)
-      component_dir
-    }
   }
 
   class Directory private(val path: Path) {
@@ -125,6 +117,13 @@ object Components {
     def build_props: Path = etc + Path.basic("build.props")
     def README: Path = path + Path.basic("README")
     def LICENSE: Path = path + Path.basic("LICENSE")
+
+    def create(progress: Progress = new Progress): Directory = {
+      progress.echo("Creating component directory " + path)
+      Isabelle_System.new_directory(path)
+      Isabelle_System.make_directory(etc)
+      this
+    }
 
     def check: Boolean = settings.is_file || components.is_file
 
