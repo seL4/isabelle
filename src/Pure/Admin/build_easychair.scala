@@ -40,9 +40,7 @@ object Build_Easychair {
         val component_dir =
           Components.Directory.create(target_dir + Path.basic(component), progress = progress)
 
-        Isabelle_System.rm_tree(component_dir.path)
-        Isabelle_System.copy_dir(easychair_dir, component_dir.path)
-        Isabelle_System.make_directory(component_dir.etc)
+        Isabelle_System.extract(download_file, component_dir.path, strip = true)
 
 
         /* settings */

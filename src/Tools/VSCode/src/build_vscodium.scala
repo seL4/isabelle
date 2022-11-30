@@ -66,7 +66,6 @@ object Build_VSCodium {
     def is_linux: Boolean = platform == Platform.Family.linux
 
     def download_name: String = "VSCodium-" + download_template.replace("{VERSION}", version)
-    def download_zip: Boolean = File.is_zip(download_name)
 
     def download(dir: Path, progress: Progress = new Progress): Unit = {
       Isabelle_System.with_tmp_file("download") { download_file =>
@@ -269,10 +268,6 @@ object Build_VSCodium {
 
     if (platforms.contains(Platform.Family.windows)) {
       Isabelle_System.require_command("wine")
-    }
-
-    if (platforms.exists(platform => the_platform_info(platform).download_zip)) {
-      Isabelle_System.require_command("unzip", test = "-h")
     }
   }
 

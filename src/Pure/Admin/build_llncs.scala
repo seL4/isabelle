@@ -32,26 +32,22 @@ object Build_LLNCS {
 
         val llncs_dir = File.get_dir(download_dir, title = download_url)
 
-        val readme = Path.explode("README.md")
-        File.change(llncs_dir + readme)(_.replace("&nbsp;", "\u00a0"))
-
 
         /* component */
 
+        val README_md = Path.explode("README.md")
         val version = {
           val Version = """^_.* v(.*)_$""".r
-          split_lines(File.read(llncs_dir + readme))
+          split_lines(File.read(llncs_dir + README_md))
             .collectFirst({ case Version(v) => v })
-            .getOrElse(error("Failed to detect version in " + readme))
+            .getOrElse(error("Failed to detect version in " + README_md))
         }
 
         val component = "llncs-" + version
         val component_dir =
           Components.Directory.create(target_dir + Path.basic(component), progress = progress)
 
-        Isabelle_System.rm_tree(component_dir.path)
-        Isabelle_System.copy_dir(llncs_dir, component_dir.path)
-        Isabelle_System.make_directory(component_dir.etc)
+        Isabelle_System.extract(download_file, component_dir.path, strip = true)
 
 
         /* settings */
@@ -64,6 +60,8 @@ ISABELLE_LLNCS_HOME="$COMPONENT"
 
 
         /* README */
+
+        File.change(component_dir.path + README_md)(_.replace("&nbsp;", "\u00a0"))
 
         File.write(component_dir.README,
           """This is the Springer LaTeX LNCS style for authors from

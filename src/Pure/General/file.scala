@@ -61,6 +61,8 @@ object File {
   def canonical_name(file: JFile): String = canonical(file).getPath
 
   def path(file: JFile): Path = Path.explode(standard_path(file))
+  def path(java_path: JPath): Path = path(java_path.toFile)
+
   def pwd(): Path = path(Path.current.absolute_file)
 
   def uri(file: JFile): URI = file.toURI

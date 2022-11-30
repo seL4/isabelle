@@ -29,29 +29,25 @@ object Build_Foiltex {
 
         val foiltex_dir = File.get_dir(download_dir, title = download_url)
 
-        val README = Path.explode("README")
-        val README_flt = Path.explode("README.flt")
-        Isabelle_System.move_file(foiltex_dir + README, foiltex_dir + README_flt)
-
-        Isabelle_System.bash("pdflatex foiltex.ins", cwd = foiltex_dir.file).check
-
 
         /* component */
 
+        val README = Path.explode("README")
         val version = {
           val Version = """^.*Instructions for FoilTeX Version\s*(.*)$""".r
-          split_lines(File.read(foiltex_dir + README_flt))
+          split_lines(File.read(foiltex_dir + README))
             .collectFirst({ case Version(v) => v })
-            .getOrElse(error("Failed to detect version in " + README_flt))
+            .getOrElse(error("Failed to detect version in " + README))
         }
 
         val component = "foiltex-" + version
         val component_dir =
           Components.Directory.create(target_dir + Path.basic(component), progress = progress)
 
-        Isabelle_System.rm_tree(component_dir.path)
-        Isabelle_System.copy_dir(foiltex_dir, component_dir.path)
-        Isabelle_System.make_directory(component_dir.etc)
+        Isabelle_System.extract(download_file, component_dir.path, strip = true)
+
+        Isabelle_System.bash("pdflatex foiltex.ins", cwd = component_dir.path.file).check
+        (component_dir.path + Path.basic("foiltex.log")).file.delete()
 
 
         /* settings */
@@ -64,6 +60,9 @@ ISABELLE_FOILTEX_HOME="$COMPONENT"
 
 
         /* README */
+
+        Isabelle_System.move_file(component_dir.README,
+          component_dir.path + Path.basic("README.flt"))
 
         File.write(component_dir.README,
           """This is FoilTeX from

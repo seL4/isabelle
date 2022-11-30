@@ -8,11 +8,14 @@ package isabelle
 
 
 import java.util.{Map => JMap, HashMap}
+import java.util.zip.ZipFile
 import java.io.{File => JFile, IOException}
 import java.net.ServerSocket
 import java.nio.file.{Path => JPath, Files, SimpleFileVisitor, FileVisitResult,
   StandardCopyOption, FileSystemException}
 import java.nio.file.attribute.BasicFileAttributes
+
+import scala.jdk.CollectionConverters._
 
 
 object Isabelle_System {
@@ -436,14 +439,34 @@ object Isabelle_System {
   def extract(archive: Path, dir: Path, strip: Boolean = false): Unit = {
     val name = archive.file_name
     make_directory(dir)
-    if (File.is_zip(name)) {
-      require(!strip, "Cannot extract/strip zip archive")
-      Isabelle_System.bash("unzip -x " + File.bash_path(archive.absolute), cwd = dir.file).check
-    }
-    else if (File.is_jar(name)) {
-      require(!strip, "Cannot extract/strip jar archive")
-      Isabelle_System.bash("isabelle_jdk jar xf " + File.bash_platform_path(archive.absolute),
-        cwd = dir.file).check
+    if (File.is_zip(name) || File.is_jar(name)) {
+      using(new ZipFile(archive.file)) { zip_file =>
+        val items =
+          for (entry <- zip_file.entries().asScala.toList)
+          yield {
+            val input = JPath.of(entry.getName)
+            val count = input.getNameCount
+            val output =
+              if (strip && count <= 1) None
+              else if (strip) Some(input.subpath(1, count))
+              else Some(input)
+            val result = output.map(dir.java_path.resolve(_))
+            for (res <- result) {
+              if (entry.isDirectory) Files.createDirectories(res)
+              else {
+                val bytes = using(zip_file.getInputStream(entry))(Bytes.read_stream(_))
+                Files.createDirectories(res.getParent)
+                Files.write(res, bytes.array)
+              }
+            }
+            (entry, result)
+          }
+        for {
+          (entry, Some(res)) <- items
+          if !entry.isDirectory
+          t <- Option(entry.getLastModifiedTime)
+        } Files.setLastModifiedTime(res, t)
+      }
     }
     else if (File.is_tar_bz2(name) || File.is_tgz(name) || File.is_tar_gz(name)) {
       val flags = if (File.is_tar_bz2(name)) "-xjf " else "-xzf "
