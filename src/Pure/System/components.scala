@@ -125,7 +125,15 @@ object Components {
       this
     }
 
-    def check: Boolean = settings.is_file || components.is_file
+    def ok: Boolean = settings.is_file || components.is_file || Sessions.is_session_dir(path)
+
+    def check: Directory =
+      if (!path.is_dir) error("Bad component directory: " + path)
+      else if (!ok) {
+        error("Malformed component directory: " + path +
+          "\n  (missing \"etc/settings\" or \"etc/components\" or \"ROOT\" or \"ROOTS\")")
+      }
+      else this
 
     def read_components(): List[String] =
       split_lines(File.read(components)).filter(_.nonEmpty)
@@ -172,9 +180,7 @@ object Components {
 
   def update_components(add: Boolean, path0: Path, progress: Progress = new Progress): Unit = {
     val path = path0.expand.absolute
-    if (!Directory(path).check && !Sessions.is_session_dir(path)) {
-      error("Bad component directory: " + path)
-    }
+    Directory(path).check
 
     val lines1 = read_components()
     val lines2 =
@@ -220,27 +226,21 @@ object Components {
         path.file_name match {
           case Archive(_) => path
           case name =>
-            if (!path.is_dir) error("Bad component directory: " + path)
-            else if (!Directory(path).check) {
-              error("Malformed component directory: " + path +
-                "\n  (requires etc/settings or etc/components)")
+            Directory(path).check
+            val component_path = path.expand
+            val archive_dir = component_path.dir
+            val archive_name = Archive(name)
+
+            val archive = archive_dir + Path.explode(archive_name)
+            if (archive.is_file && !force) {
+              error("Component archive already exists: " + archive)
             }
-            else {
-              val component_path = path.expand
-              val archive_dir = component_path.dir
-              val archive_name = Archive(name)
 
-              val archive = archive_dir + Path.explode(archive_name)
-              if (archive.is_file && !force) {
-                error("Component archive already exists: " + archive)
-              }
+            progress.echo("Packaging " + archive_name)
+            Isabelle_System.gnutar("-czf " + File.bash_path(archive) + " " + Bash.string(name),
+              dir = archive_dir).check
 
-              progress.echo("Packaging " + archive_name)
-              Isabelle_System.gnutar("-czf " + File.bash_path(archive) + " " + Bash.string(name),
-                dir = archive_dir).check
-
-              archive
-            }
+            archive
         }
       }
 
@@ -274,7 +274,7 @@ object Components {
             val is_standard_component =
               Isabelle_System.with_tmp_dir("component") { tmp_dir =>
                 Isabelle_System.extract(archive, tmp_dir)
-                Directory(tmp_dir + Path.explode(name)).check
+                Directory(tmp_dir + Path.explode(name)).ok
               }
             if (is_standard_component) {
               if (ssh.is_dir(remote_contrib)) {

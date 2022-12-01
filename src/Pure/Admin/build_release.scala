@@ -208,7 +208,7 @@ directory individually.
       component_dir.read_components().flatMap(line =>
         line match {
           case Bundled(name) =>
-            if (Components.Directory(Components.contrib(dir, name)).check) Some(contrib_name(name))
+            if (Components.Directory(Components.contrib(dir, name)).ok) Some(contrib_name(name))
             else None
           case _ => if (Bundled.detect(line)) None else Some(line)
         }) ::: more_names.map(contrib_name))
