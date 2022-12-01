@@ -1075,7 +1075,10 @@ object Sessions {
 
   def check_session_dir(dir: Path): Path =
     if (is_session_dir(dir)) File.pwd() + dir.expand
-    else error("Bad session root directory (missing ROOT or ROOTS): " + dir.expand.toString)
+    else {
+      error("Bad session root directory: " + dir.expand.toString +
+        "\n  (missing \"ROOT\" or \"ROOTS\")")
+    }
 
   def directories(dirs: List[Path], select_dirs: List[Path]): List[(Boolean, Path)] = {
     val default_dirs = Components.directories().filter(is_session_dir)
