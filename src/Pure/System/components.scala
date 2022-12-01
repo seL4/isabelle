@@ -180,7 +180,7 @@ object Components {
 
   def update_components(add: Boolean, path0: Path, progress: Progress = new Progress): Unit = {
     val path = path0.expand.absolute
-    Directory(path).check
+    if (add) Directory(path).check
 
     val lines1 = read_components()
     val lines2 =
