@@ -30,29 +30,17 @@ fun parse_dockables (XML.Elem (("DOCKABLES", _), body)) =
   | parse_dockables _ = [];
 
 
-(* XML resources *)
-
-val xml_file = XML.parse o File.read;
-
-fun xml_resource name =
-  let
-    val res =
-      Isabelle_System.bash_process (Bash.script ("unzip -p \"$JEDIT_JAR\" " ^ Bash.string name));
-    val rc = Process_Result.rc res;
-  in
-    res |> Process_Result.check |> Process_Result.out |> XML.parse
-      handle ERROR _ => error ("Cannot unzip jedit.jar\nreturn code = " ^ string_of_int rc)
-  end;
-
-
 (* actions *)
+
+fun parse_resources [actions, dockables] =
+  parse_actions (XML.parse actions) @ parse_dockables (XML.parse dockables);
 
 val lazy_actions =
   Lazy.lazy (fn () =>
-    (parse_actions (xml_file \<^file>\<open>~~/src/Tools/jEdit/jedit_main/actions.xml\<close>) @
-      parse_dockables (xml_file \<^file>\<open>~~/src/Tools/jEdit/jedit_main/dockables.xml\<close>) @
-      parse_actions (xml_resource "org/gjt/sp/jedit/actions.xml") @
-      parse_dockables (xml_resource "org/gjt/sp/jedit/dockables.xml"))
+    (parse_resources o map File.read)
+      [\<^file>\<open>~~/src/Tools/jEdit/jedit_main/actions.xml\<close>,
+       \<^file>\<open>~~/src/Tools/jEdit/jedit_main/dockables.xml\<close>] @
+    (parse_resources o \<^scala>\<open>jEdit.resources\<close>) ["actions.xml", "dockables.xml"]
     |> sort_strings);
 
 fun get_actions () = Lazy.force lazy_actions;

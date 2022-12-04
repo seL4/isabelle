@@ -264,6 +264,7 @@ sources = \
   src/Tools/jEdit/src/isabelle_vfs.scala \
   src/Tools/jEdit/src/jedit_bibtex.scala \
   src/Tools/jEdit/src/jedit_editor.scala \
+  src/Tools/jEdit/src/jedit_jar.scala \
   src/Tools/jEdit/src/jedit_lib.scala \
   src/Tools/jEdit/src/jedit_main.scala \
   src/Tools/jEdit/src/jedit_options.scala \
@@ -317,6 +318,7 @@ services = \
   isabelle.Tools \
   isabelle.jedit.JEdit_Plugin0 \
   isabelle.jedit.JEdit_Plugin1 \
+  isabelle.jedit.JEdit_JAR$Scala_Functions \
   isabelle.nitpick.Kodkod$Handler \
   isabelle.nitpick.Scala_Functions \
   isabelle.spark.SPARK$Load_Command1 \
