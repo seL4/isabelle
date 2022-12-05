@@ -41,7 +41,9 @@ object Mkroot {
     val root_tex = session_dir + Path.explode("document/root.tex")
 
 
-    progress.echo("\nCreating session " + quote(name) + " in " + session_dir.absolute)
+    progress.echo(
+      (if (quiet) "" else "\n") +
+      "Creating session " + quote(name) + " in " + session_dir.absolute)
 
 
     /* ROOT */
