@@ -26,14 +26,23 @@ with demo documents in the regular Isabelle "doc" space:
     Minor INCOMPATIBILITY.
 
 * Theory "HOL.Relation":
+  - Added predicates irrefl_on and irreflp_on and redefined irrefl and
+    irreflp to be abbreviations. Lemmas irrefl_def and irreflp_def are
+    explicitly provided for backward compatibility but their usage is
+    discouraged. Minor INCOMPATIBILITY.
   - Strengthened (and renamed) lemmas. Minor INCOMPATIBILITY.
       total_on_singleton
       reflp_equality[simp] ~> reflp_on_equality[simp]
   - Added lemmas.
       antisym_if_asymp
       antisymp_if_asymp
-      irreflD
-      irreflpD
+      irrefl_onD
+      irrefl_onI
+      irrefl_on_subset
+      irreflp_onD
+      irreflp_onI
+      irreflp_on_irrefl_on_eq[pred_set_conv]
+      irreflp_on_subset
       linorder.totalp_on_ge[simp]
       linorder.totalp_on_greater[simp]
       linorder.totalp_on_le[simp]

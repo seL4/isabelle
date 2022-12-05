@@ -75,7 +75,7 @@ lemma wf_imp_irrefl:
   using wf_irrefl [OF assms] by (auto simp add: irrefl_def)
 
 lemma wfP_imp_irreflp: "wfP r \<Longrightarrow> irreflp r"
-  by (rule wf_imp_irrefl[to_pred])
+  by (rule wf_imp_irrefl[to_pred, folded top_set_def])
 
 lemma wf_wellorderI:
   assumes wf: "wf {(x::'a::ord, y). x < y}"

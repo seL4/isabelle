@@ -1,6 +1,7 @@
 (*  Title:      HOL/Relation.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Author:     Stefan Berghofer, TU Muenchen
+    Author:     Martin Desharnais, MPI-INF Saarbruecken
 *)
 
 section \<open>Relations -- as sets of pairs, and binary predicates\<close>
@@ -265,29 +266,65 @@ lemma (in preorder) reflp_on_ge[simp]: "reflp_on A (\<ge>)"
 
 subsubsection \<open>Irreflexivity\<close>
 
-definition irrefl :: "'a rel \<Rightarrow> bool"
-  where "irrefl r \<longleftrightarrow> (\<forall>a. (a, a) \<notin> r)"
+definition irrefl_on :: "'a set \<Rightarrow> 'a rel \<Rightarrow> bool" where
+  "irrefl_on A r \<longleftrightarrow> (\<forall>a \<in> A. (a, a) \<notin> r)"
 
-definition irreflp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool"
-  where "irreflp R \<longleftrightarrow> (\<forall>a. \<not> R a a)"
+abbreviation irrefl :: "'a rel \<Rightarrow> bool" where
+  "irrefl \<equiv> irrefl_on UNIV"
 
-lemma irreflp_irrefl_eq [pred_set_conv]: "irreflp (\<lambda>a b. (a, b) \<in> R) \<longleftrightarrow> irrefl R"
-  by (simp add: irrefl_def irreflp_def)
+definition irreflp_on :: "'a set \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
+  "irreflp_on A R \<longleftrightarrow> (\<forall>a \<in> A. \<not> R a a)"
 
-lemma irreflI [intro?]: "(\<And>a. (a, a) \<notin> R) \<Longrightarrow> irrefl R"
-  by (simp add: irrefl_def)
+abbreviation irreflp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
+  "irreflp \<equiv> irreflp_on UNIV"
 
-lemma irreflpI [intro?]: "(\<And>a. \<not> R a a) \<Longrightarrow> irreflp R"
-  by (fact irreflI [to_pred])
+lemma irrefl_def[no_atp]: "irrefl r \<longleftrightarrow> (\<forall>a. (a, a) \<notin> r)"
+  by (simp add: irrefl_on_def)
+
+lemma irreflp_def[no_atp]: "irreflp R \<longleftrightarrow> (\<forall>a. \<not> R a a)"
+  by (simp add: irreflp_on_def)
+
+text \<open>@{thm [source] irrefl_def} and @{thm [source] irreflp_def} are for backward compatibility.\<close>
+
+lemma irreflp_on_irrefl_on_eq [pred_set_conv]: "irreflp_on A (\<lambda>a b. (a, b) \<in> r) \<longleftrightarrow> irrefl_on A r"
+  by (simp add: irrefl_on_def irreflp_on_def)
+
+lemmas irreflp_irrefl_eq = irreflp_on_irrefl_on_eq[of UNIV]
+
+lemma irrefl_onI: "(\<And>a. a \<in> A \<Longrightarrow> (a, a) \<notin> r) \<Longrightarrow> irrefl_on A r"
+  by (simp add: irrefl_on_def)
+
+lemma irreflI[intro?]: "(\<And>a. (a, a) \<notin> r) \<Longrightarrow> irrefl r"
+  by (rule irrefl_onI[of UNIV, simplified])
+
+lemma irreflp_onI: "(\<And>a. a \<in> A \<Longrightarrow> \<not> R a a) \<Longrightarrow> irreflp_on A R"
+  by (simp add: irreflp_on_def)
+
+lemma irreflpI[intro?]: "(\<And>a. \<not> R a a) \<Longrightarrow> irreflp R"
+  by (rule irreflp_onI[of UNIV, simplified])
+
+lemma irrefl_onD: "irrefl_on A r \<Longrightarrow> a \<in> A \<Longrightarrow> (a, a) \<notin> r"
+  by (simp add: irrefl_on_def)
 
 lemma irreflD: "irrefl r \<Longrightarrow> (x, x) \<notin> r"
-  unfolding irrefl_def by simp
+  by (rule irrefl_onD[of UNIV, simplified])
+
+lemma irreflp_onD: "irreflp_on A R \<Longrightarrow> a \<in> A \<Longrightarrow> \<not> R a a"
+  by (simp add: irreflp_on_def)
 
 lemma irreflpD: "irreflp R \<Longrightarrow> \<not> R x x"
-  unfolding irreflp_def by simp
+  by (rule irreflp_onD[of UNIV, simplified])
 
-lemma irrefl_distinct [code]: "irrefl r \<longleftrightarrow> (\<forall>(a, b) \<in> r. a \<noteq> b)"
-  by (auto simp add: irrefl_def)
+lemma irrefl_on_distinct [code]: "irrefl_on A r \<longleftrightarrow> (\<forall>(a, b) \<in> r. a \<in> A \<longrightarrow> b \<in> A \<longrightarrow> a \<noteq> b)"
+  by (auto simp add: irrefl_on_def)
+
+lemmas irrefl_distinct = irrefl_on_distinct \<comment> \<open>For backward compatibility\<close>
+
+lemma irrefl_on_subset: "irrefl_on A r \<Longrightarrow> B \<subseteq> A \<Longrightarrow> irrefl_on B r"
+  by (auto simp: irrefl_on_def)
+
+lemma irreflp_on_subset: "irreflp_on A R \<Longrightarrow> B \<subseteq> A \<Longrightarrow> irreflp_on B R"
+  by (auto simp: irreflp_on_def)
 
 lemma (in preorder) irreflp_less[simp]: "irreflp (<)"
   by (simp add: irreflpI)
