@@ -175,6 +175,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
             current_state.change(_ => Document_Dockable.State.finish(result))
             show_state()
             show_page(output_page)
+            GUI_Thread.later { progress.load() }
           }
         st.copy(progress = progress, process = process, status = Document_Dockable.Status.RUNNING)
       }
@@ -236,18 +237,8 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
       layout(Component.wrap(pretty_text_area)) = BorderPanel.Position.Center
     }, "Output from build process")
 
-  private val load_button =
-    new GUI.Button("Load") {
-      tooltip = "Load final log file"
-      override def clicked(): Unit = current_state.value.progress.load()
-    }
-
-  private val log_controls =
-    Wrap_Panel(List(load_button))
-
   private val log_page =
     new TabbedPane.Page("Log", new BorderPanel {
-      layout(log_controls) = BorderPanel.Position.North
       layout(scroll_log_area) = BorderPanel.Position.Center
     }, "Raw log of build process")
 
