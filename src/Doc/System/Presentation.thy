@@ -65,7 +65,7 @@ text \<open>
 \<close>
 
 
-section \<open>Preparing session root directories \label{sec:tool-mkroot}\<close>
+section \<open>Creating session root directories \label{sec:tool-mkroot}\<close>
 
 text \<open>
   The @{tool_def mkroot} tool configures a given directory as session root,
@@ -78,8 +78,9 @@ text \<open>
     -I           init Mercurial repository and add generated files
     -T LATEX     provide title in LaTeX notation (default: session name)
     -n NAME      alternative session name (default: directory base name)
+    -q           quiet mode: less verbosity
 
-  Prepare session root directory (default: current directory).
+  Create session root directory (default: current directory).
 \<close>}
 
   The results are placed in the given directory \<open>dir\<close>, which refers to the
@@ -100,6 +101,8 @@ text \<open>
   Option \<^verbatim>\<open>-n\<close> specifies an alternative session name; otherwise the base name
   of the given directory is used.
 
+  Option \<^verbatim>\<open>-q\<close> reduces verbosity.
+
   \<^medskip>
   The implicit Isabelle settings variable @{setting ISABELLE_LOGIC} specifies
   the parent session.
@@ -110,12 +113,12 @@ subsubsection \<open>Examples\<close>
 
 text \<open>
   Produce session \<^verbatim>\<open>Test\<close> within a separate directory of the same name:
-  @{verbatim [display] \<open>isabelle mkroot Test && isabelle build -D Test\<close>}
+  @{verbatim [display] \<open>isabelle mkroot -q Test && isabelle build -D Test\<close>}
 
   \<^medskip>
   Upgrade the current directory into a session ROOT with document preparation,
   and build it:
-  @{verbatim [display] \<open>isabelle mkroot && isabelle build -D .\<close>}
+  @{verbatim [display] \<open>isabelle mkroot -q && isabelle build -D .\<close>}
 \<close>
 
 

@@ -1,7 +1,7 @@
 /*  Title:      Pure/Tools/mkroot.scala
     Author:     Makarius
 
-Prepare session root directory.
+Create session root directory.
 */
 
 package isabelle
@@ -24,6 +24,7 @@ object Mkroot {
     init_repos: Boolean = false,
     title: String = "",
     author: String = "",
+    quiet: Boolean = false,
     progress: Progress = new Progress
   ): Unit = {
     Isabelle_System.make_directory(session_dir)
@@ -40,12 +41,12 @@ object Mkroot {
     val root_tex = session_dir + Path.explode("document/root.tex")
 
 
-    progress.echo("\nPreparing session " + quote(name) + " in " + session_dir)
+    progress.echo("\nCreating session " + quote(name) + " in " + session_dir.absolute)
 
 
     /* ROOT */
 
-    progress.echo("  creating " + root_path)
+    progress.echo_if(!quiet, "  creating " + root_path)
 
     File.write(root_path,
       "session " + root_name(name) + " = " + root_name(parent) + """ +
@@ -64,7 +65,7 @@ object Mkroot {
     /* document directory */
 
     {
-      progress.echo("  creating " + root_tex)
+      progress.echo_if(!quiet, "  creating " + root_tex)
 
       Isabelle_System.make_directory(root_tex.dir)
 
@@ -136,7 +137,7 @@ object Mkroot {
     /* Mercurial repository */
 
     if (init_repos) {
-      progress.echo("  \nInitializing Mercurial repository " + session_dir)
+      progress.echo_if(!quiet, "  \nInitializing Mercurial repository " + session_dir)
 
       val hg = Mercurial.init_repository(session_dir)
 
@@ -164,7 +165,7 @@ syntax: regexp
 
     {
       val print_dir = session_dir.implode
-      progress.echo("""
+      progress.echo_if(!quiet, """
 Now use the following command line to build the session:
 
   isabelle build -D """ +
@@ -176,13 +177,14 @@ Now use the following command line to build the session:
 
   /** Isabelle tool wrapper **/
 
-  val isabelle_tool = Isabelle_Tool("mkroot", "prepare session root directory",
+  val isabelle_tool = Isabelle_Tool("mkroot", "create session root directory",
     Scala_Project.here,
     { args =>
       var author = ""
       var init_repos = false
       var title = ""
       var session_name = ""
+      var quiet = false
 
       val getopts = Getopts("""
 Usage: isabelle mkroot [OPTIONS] [DIRECTORY]
@@ -192,13 +194,15 @@ Usage: isabelle mkroot [OPTIONS] [DIRECTORY]
     -I           init Mercurial repository and add generated files
     -T LATEX     provide title in LaTeX notation (default: session name)
     -n NAME      alternative session name (default: directory base name)
+    -q           quiet mode: less verbosity
 
-  Prepare session root directory (default: current directory).
+  Create session root directory (default: current directory).
 """,
         "A:" -> (arg => author = arg),
-        "I" -> (arg => init_repos = true),
+        "I" -> (_ => init_repos = true),
         "T:" -> (arg => title = arg),
-        "n:" -> (arg => session_name = arg))
+        "n:" -> (arg => session_name = arg),
+        "q" -> (_ => quiet = true))
 
       val more_args = getopts(args)
 
@@ -209,7 +213,9 @@ Usage: isabelle mkroot [OPTIONS] [DIRECTORY]
           case _ => getopts.usage()
         }
 
+      val progress = new Console_Progress
+
       mkroot(session_name = session_name, session_dir = session_dir, init_repos = init_repos,
-        author = author, title = title, progress = new Console_Progress)
+        author = author, title = title, quiet = quiet, progress = progress)
     })
 }
