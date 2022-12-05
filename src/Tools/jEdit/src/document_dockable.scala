@@ -39,7 +39,6 @@ object Document_Dockable {
       Delay.first(PIDE.options.seconds("editor_update_delay"), gui = true) { update() }
 
     override def echo(msg: String): Unit = { syslog += msg; delay.invoke() }
-    override def theory(theory: Progress.Theory): Unit = echo(theory.message)
 
     def load(): Unit = {
       val path = document_output().log
