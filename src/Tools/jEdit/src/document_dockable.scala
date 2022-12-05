@@ -177,7 +177,8 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
             val result = Document_Dockable.Result(output = List(msg))
             current_state.change(_ => Document_Dockable.State.finish(result))
             show_state()
-            show_page(output_page)
+
+            show_page(if (Exn.is_interrupt_exn(res)) theories_page else output_page)
             GUI_Thread.later { progress.load() }
           }
         st.copy(progress = progress, process = process, status = Document_Dockable.Status.RUNNING)
