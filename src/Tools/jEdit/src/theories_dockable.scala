@@ -23,7 +23,7 @@ import org.gjt.sp.jedit.{View, jEdit}
 class Theories_Dockable(view: View, position: String) extends Dockable(view, position) {
   /* status */
 
-  private val status = new ListView(List.empty[Document.Node.Name]) {
+  private val status = new ListView[Document.Node.Name](Nil) {
     background = {
       // enforce default value
       val c = UIManager.getDefaults.getColor("Panel.background")
