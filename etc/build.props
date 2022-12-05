@@ -297,6 +297,7 @@ sources = \
   src/Tools/jEdit/src/text_overview.scala \
   src/Tools/jEdit/src/text_structure.scala \
   src/Tools/jEdit/src/theories_dockable.scala \
+  src/Tools/jEdit/src/theories_status.scala \
   src/Tools/jEdit/src/timing_dockable.scala \
   src/Tools/jEdit/src/token_markup.scala
 services = \

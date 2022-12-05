@@ -78,6 +78,12 @@ object Exn {
   def failure_rc(exn: Throwable): Int =
     isabelle.setup.Exn.failure_rc(exn)
 
+  def is_interrupt_exn[A](result: Result[A]): Boolean =
+    result match {
+      case Exn(exn) if is_interrupt(exn) => true
+      case _ => false
+    }
+
   def interruptible_capture[A](e: => A): Result[A] =
     try { Res(e) }
     catch { case exn: Throwable if !is_interrupt(exn) => Exn[A](exn) }
