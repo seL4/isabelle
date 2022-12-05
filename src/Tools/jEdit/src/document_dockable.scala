@@ -34,19 +34,19 @@ object Document_Dockable {
 
     private val syslog = PIDE.session.make_syslog()
 
-    private def update(text: String = syslog.content()): Unit = GUI_Thread.require { show(text) }
+    private def update(text: String = syslog.content()): Unit = show(text)
     private val delay =
       Delay.first(PIDE.options.seconds("editor_update_delay"), gui = true) { update() }
 
     override def echo(msg: String): Unit = { syslog += msg; delay.invoke() }
 
-    def load(): Unit = {
+    def load(): Unit = GUI_Thread.require {
       val path = document_output().log
       val text = if (path.is_file) File.read(path) else ""
       GUI_Thread.later { delay.revoke(); update(text) }
     }
 
-    update()
+    GUI_Thread.later { update() }
   }
 
 
