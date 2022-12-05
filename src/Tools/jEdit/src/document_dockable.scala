@@ -156,6 +156,9 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
         val progress = init_progress()
         val process =
           Future.thread[Unit](name = "document_build") {
+            show_page(theories_page)
+            Time.seconds(2.0).sleep()
+
             show_page(log_page)
             val res =
               Exn.capture {
@@ -228,6 +231,13 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
 
   /* message pane with pages */
 
+  private val theories = new Theories_Status(view)
+
+  private val theories_page =
+    new TabbedPane.Page("Theories", new BorderPanel {
+      layout(theories.gui) = BorderPanel.Position.Center
+    }, "Selection and status of document theories")
+
   private val output_controls =
     Wrap_Panel(List(pretty_text_area.search_label, pretty_text_area.search_field, zoom))
 
@@ -242,7 +252,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
       layout(scroll_log_area) = BorderPanel.Position.Center
     }, "Raw log of build process")
 
-  message_pane.pages ++= List(log_page, output_page)
+  message_pane.pages ++= List(theories_page, log_page, output_page)
 
   set_content(message_pane)
 
@@ -250,19 +260,29 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
   /* main */
 
   private val main =
-    Session.Consumer[Session.Global_Options](getClass.getName) {
+    Session.Consumer[Any](getClass.getName) {
       case _: Session.Global_Options =>
-        GUI_Thread.later { handle_resize() }
+        GUI_Thread.later {
+          handle_resize()
+          theories.reinit()
+        }
+      case changed: Session.Commands_Changed =>
+        GUI_Thread.later {
+          theories.update(domain = Some(changed.nodes), trim = changed.assignment)
+        }
     }
 
   override def init(): Unit = {
     init_state()
     PIDE.session.global_options += main
+    PIDE.session.commands_changed += main
+    theories.update()
     handle_resize()
   }
 
   override def exit(): Unit = {
     PIDE.session.global_options -= main
+    PIDE.session.commands_changed -= main
     delay_resize.revoke()
   }
 }
