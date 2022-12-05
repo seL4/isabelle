@@ -43,7 +43,7 @@ object Mkroot {
 
     progress.echo(
       (if (quiet) "" else "\n") +
-      "Creating session " + quote(name) + " in " + session_dir.absolute)
+      "Initializing session " + quote(name) + " in " + session_dir.absolute)
 
 
     /* ROOT */
@@ -139,7 +139,9 @@ object Mkroot {
     /* Mercurial repository */
 
     if (init_repos) {
-      progress.echo_if(!quiet, "  \nInitializing Mercurial repository " + session_dir)
+      progress.echo(
+        (if (quiet) "" else "\n") +
+        "Initializing Mercurial repository " + session_dir.absolute)
 
       val hg = Mercurial.init_repository(session_dir)
 
