@@ -193,14 +193,11 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
 
   private val document_session: GUI.Selector[String] = {
     val sessions = JEdit_Sessions.sessions_structure()
-    val all_sessions = sessions.build_topological_order.sorted
-    val doc_sessions = all_sessions.filter(name => sessions(name).doc_group)
-    new GUI.Selector[String](
-      doc_sessions.map(GUI.Selector.item),
-      all_sessions.map(GUI.Selector.item)
-    ) {
-      val title = "Session"
-    }
+    val all_sessions = sessions.build_topological_order.sorted.map(GUI.Selector.item)
+    val doc_sessions =
+      for (entry <- all_sessions; name <- entry.get_value if sessions(name).doc_group)
+        yield entry
+    new GUI.Selector[String](doc_sessions, all_sessions) { val title = "Session" }
   }
 
   private val build_button =

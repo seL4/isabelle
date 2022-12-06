@@ -65,7 +65,7 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
   /* controls */
 
   private val select_data =
-    new GUI.Selector(ML_Statistics.all_fields.map { case (a, _) => GUI.Selector.item(a) }) {
+    new GUI.Selector(ML_Statistics.all_fields.map(p => GUI.Selector.item(p._1))) {
       tooltip = "Select visualized data collection"
       override def changed(): Unit = { data_name = selection.item.toString; update_chart() }
     }
