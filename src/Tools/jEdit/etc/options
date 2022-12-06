@@ -1,7 +1,7 @@
 (* :mode=isabelle-options: *)
 
 public option jedit_logic : string = ""
-  -- "default logic session"
+  -- "logic session name (change requires restart)"
 
 public option jedit_print_mode : string = ""
   -- "default print modes for output, separated by commas (change requires restart)"

@@ -67,37 +67,55 @@ object JEdit_Sessions {
     else Position.none
 
 
-  /* logic selector */
+  /* session selectors */
 
-  def logic_selector(options: Options_Variable, autosave: Boolean = false): JEdit_Options.Entry = {
-    GUI_Thread.require {}
+  class Selector(
+    val options: Options_Variable,
+    val option_name: String,
+    autosave: Boolean,
+    batches: List[GUI.Selector.Entry[String]]*)
+  extends GUI.Selector[String](batches: _*) with JEdit_Options.Entry {
+    name = option_name
+    tooltip = Word.capitalize(options.value.description(option_name))
 
-    val sessions = sessions_structure(options = options.value)
-    val all_sessions = sessions.imports_topological_order
-    val main_sessions = all_sessions.filter(name => sessions(name).main_group)
-
-    val default_entry =
-      GUI.Selector.item_description("", "default (" + logic_name(options.value) + ")")
-
-    new GUI.Selector[String](
-      default_entry :: main_sessions.map(GUI.Selector.item),
-      all_sessions.sorted.map(GUI.Selector.item)
-    ) with JEdit_Options.Entry {
-      name = jedit_logic_option
-      tooltip = "Logic session name (change requires restart)"
-      val title = "Logic"
-      def load(): Unit = {
-        val logic = options.string(jedit_logic_option)
-        for (entry <- find_value(_ == logic)) selection.item = entry
-      }
-      def save(): Unit =
-        for (logic <- selection_value) options.string(jedit_logic_option) = logic
-
-      override def changed(): Unit = if (autosave) save()
-
-      load()
+    override val title: String =
+      options.value.check_name(option_name).title("jedit")
+    override def load(): Unit = {
+      val value = options.string(option_name)
+      for (entry <- find_value(_ == value)) selection.item = entry
     }
+    override def save(): Unit =
+      for (value <- selection_value) options.string(option_name) = value
+
+    override def changed(): Unit = if (autosave) save()
+
+    load()
   }
+
+  def logic_selector(options: Options_Variable, autosave: Boolean = false): JEdit_Options.Entry =
+    GUI_Thread.require {
+      val sessions = sessions_structure(options = options.value)
+      val all_sessions = sessions.imports_topological_order
+      val main_sessions = all_sessions.filter(name => sessions(name).main_group)
+
+      val default_entry =
+        GUI.Selector.item_description("", "default (" + logic_name(options.value) + ")")
+
+      new Selector(options, jedit_logic_option, autosave,
+        default_entry :: main_sessions.map(GUI.Selector.item),
+        all_sessions.sorted.map(GUI.Selector.item))
+    }
+
+  def document_selector(options: Options_Variable, autosave: Boolean = false): JEdit_Options.Entry =
+    GUI_Thread.require {
+      val sessions = sessions_structure(options = options.value)
+      val all_sessions = sessions.build_topological_order.sorted
+      val doc_sessions = all_sessions.filter(name => sessions(name).doc_group)
+
+      new Selector(options, "editor_document_session", autosave,
+        doc_sessions.map(GUI.Selector.item),
+        all_sessions.map(GUI.Selector.item))
+    }
 
 
   /* session build process */

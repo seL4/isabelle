@@ -106,7 +106,9 @@ object JEdit_Options {
     val options: JEdit_Options = PIDE.options
 
     private val predefined =
-      List(JEdit_Sessions.logic_selector(options),
+      List(
+        JEdit_Sessions.logic_selector(options),
+        JEdit_Sessions.document_selector(options),
         JEdit_Spell_Checker.dictionaries_selector())
 
     protected val components: List[(String, List[Entry])] =

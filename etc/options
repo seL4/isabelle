@@ -220,6 +220,9 @@ public option editor_continuous_checking : bool = true
 public option editor_output_state : bool = false
   -- "implicit output of proof state"
 
+public option editor_document_session : string = ""
+  -- "session for interactive document preparation"
+
 option editor_execution_delay : real = 0.02
   -- "delay for start of execution process after document update (seconds)"
 
