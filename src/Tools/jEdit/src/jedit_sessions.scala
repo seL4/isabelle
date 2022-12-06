@@ -79,7 +79,7 @@ object JEdit_Sessions {
     tooltip = Word.capitalize(options.value.description(option_name))
 
     override val title: String =
-      options.value.check_name(option_name).title("jedit")
+      options.value.check_name(option_name).title_jedit
     override def load(): Unit = {
       val value = options.string(option_name)
       for (entry <- find_value(_ == value)) selection.item = entry

@@ -137,7 +137,7 @@ class JEdit_Options(init_options: Options) extends Options_Variable(init_options
     GUI_Thread.require {}
 
     val opt_name = opt.name
-    val opt_title = opt.title("jedit")
+    val opt_title = opt.title_jedit
 
     val button = new ColorWellButton(Color_Value(opt.value))
     val component =
@@ -156,7 +156,7 @@ class JEdit_Options(init_options: Options) extends Options_Variable(init_options
     GUI_Thread.require {}
 
     val opt_name = opt.name
-    val opt_title = opt.title("jedit")
+    val opt_title = opt.title_jedit
 
     val component =
       if (opt.typ == Options.Bool)
@@ -206,7 +206,7 @@ class JEdit_Options(init_options: Options) extends Options_Variable(init_options
         case None => if (filter(opt.name)) List(make_component(opt)) else Nil
       }
     value.sections.sortBy(_._1).map(
-        { case (a, opts) => (a, opts.sortBy(_.title("jedit")).flatMap(mk_component)) })
+        { case (a, opts) => (a, opts.sortBy(_.title_jedit).flatMap(mk_component)) })
       .filterNot(_._2.isEmpty)
   }
 }

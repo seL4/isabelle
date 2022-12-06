@@ -79,6 +79,7 @@ object Options {
         }
       Word.implode(words1.map(Word.perhaps_capitalize))
     }
+    def title_jedit: String = title("jedit")
 
     def unknown: Boolean = typ == Unknown
   }
