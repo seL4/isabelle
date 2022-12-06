@@ -208,26 +208,12 @@ extends Resources(
     file_watcher: File_Watcher
   ): (Boolean, Boolean) = {
     state.change_result { st =>
-      /* theory files */
-
-      val thys =
-        (for ((_, model) <- st.models.iterator if model.is_theory)
-         yield (model.node_name, Position.none)).toList
-
-      val thy_files1 = resources.dependencies(thys).theories
-
-      val thy_files2 =
-        (for {
-          (_, model) <- st.models.iterator
-          thy_name <- resources.make_theory_name(model.node_name)
-        } yield thy_name).toList
-
-
-      /* auxiliary files */
+      val thy_files = resources.resolve_dependencies(st.models, Nil)
 
       val stable_tip_version =
-        if (st.models.forall(entry => entry._2.is_stable))
+        if (st.models.valuesIterator.forall(_.is_stable)) {
           session.get_state().stable_tip_version
+        }
         else None
 
       val aux_files =
@@ -236,12 +222,9 @@ extends Resources(
           case None => Nil
         }
 
-
-      /* loaded models */
-
       val loaded_models =
         (for {
-          node_name <- thy_files1.iterator ++ thy_files2.iterator ++ aux_files.iterator
+          node_name <- thy_files.iterator ++ aux_files.iterator
           file = node_file(node_name)
           if !st.models.isDefinedAt(file)
           text <- { file_watcher.register_parent(file); read_file_content(node_name) }

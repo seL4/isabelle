@@ -114,21 +114,12 @@ class Main_Plugin extends EBPlugin {
     val required_files = {
       val models = Document_Model.get_models()
 
-      val thys =
-        (for ((node_name, model) <- models.iterator if model.is_theory)
-          yield (node_name, Position.none)).toList
-      val thy_files1 = resources.dependencies(thys).theories
-
-      val thy_files2 =
-        (for {
-          (node_name, _) <- models.iterator
-          thy_name <- resources.make_theory_name(node_name)
-        } yield thy_name).toList
+      val thy_files = resources.resolve_dependencies(models, Nil)
 
       val aux_files =
         if (options.bool("jedit_auto_resolve")) {
           val stable_tip_version =
-            if (models.forall(p => p._2.is_stable)) {
+            if (models.valuesIterator.forall(_.is_stable)) {
               session.get_state().stable_tip_version
             }
             else None
@@ -139,7 +130,7 @@ class Main_Plugin extends EBPlugin {
         }
         else Nil
 
-      (thy_files1 ::: thy_files2 ::: aux_files).filterNot(models.isDefinedAt)
+      (thy_files ::: aux_files).filterNot(models.isDefinedAt)
     }
     if (required_files.nonEmpty) {
       try {
