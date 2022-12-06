@@ -88,15 +88,16 @@ object JEdit_Spell_Checker {
     new GUI.Selector(Spell_Checker.dictionaries.map(GUI.Selector.item)) with JEdit_Options.Entry {
       name = option_name
       tooltip = GUI.tooltip_lines(opt.print_default)
-      val title = opt.title()
-      def load(): Unit = {
+
+      override val title: String = opt.title_jedit
+      override def load(): Unit = {
         val lang = PIDE.options.string(option_name)
         Spell_Checker.get_dictionary(lang) match {
           case Some(dict) => selection.item = GUI.Selector.item(dict)
           case None =>
         }
       }
-      def save(): Unit =
+      override def save(): Unit =
         for (dict <- selection_value) PIDE.options.string(option_name) = dict.lang
 
       load()
