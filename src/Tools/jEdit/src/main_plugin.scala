@@ -121,15 +121,16 @@ class Main_Plugin extends EBPlugin {
 
       val thy_files2 =
         (for {
-          (name, _) <- models.iterator
-          thy_name <- resources.make_theory_name(name)
+          (node_name, _) <- models.iterator
+          thy_name <- resources.make_theory_name(node_name)
         } yield thy_name).toList
 
       val aux_files =
         if (options.bool("jedit_auto_resolve")) {
           val stable_tip_version =
-            if (models.forall(p => p._2.is_stable))
+            if (models.forall(p => p._2.is_stable)) {
               session.get_state().stable_tip_version
+            }
             else None
           stable_tip_version match {
             case Some(version) => resources.undefined_blobs(version.nodes)
