@@ -86,8 +86,20 @@ with demo documents in the regular Isabelle "doc" space:
       wfP_pfsubset
 
 * Theory "HOL-Library.Multiset":
+  - Strengthened lemmas. Minor INCOMPATIBILITIES.
+      mult_cancel
+      mult_cancel_add_mset
+      mult_cancel_max
+      mult_cancel_max0
+      multeqp_code_iff_reflcl_mult
+      multp_cancel
+      multp_cancel_add_mset
+      multp_cancel_max
+      multp_code_iff_mult
   - Added lemmas.
       mult_mono_strong
+      multeqp_code_iff_reflclp_multp
+      multp_code_iff_multp
       multp_mono_strong
       wfP_subset_mset[simp]
 
