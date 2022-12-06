@@ -92,10 +92,7 @@ object JEdit_Spell_Checker {
       override val title: String = opt.title_jedit
       override def load(): Unit = {
         val lang = PIDE.options.string(option_name)
-        Spell_Checker.get_dictionary(lang) match {
-          case Some(dict) => selection.item = GUI.Selector.item(dict)
-          case None =>
-        }
+        for (dict <- Spell_Checker.get_dictionary(lang)) selection.item = GUI.Selector.item(dict)
       }
       override def save(): Unit =
         for (dict <- selection_value) PIDE.options.string(option_name) = dict.lang
