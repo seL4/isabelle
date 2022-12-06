@@ -192,7 +192,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
   /* controls */
 
   private val document_session =
-    JEdit_Sessions.document_selector(PIDE.options, autosave = true)
+    JEdit_Sessions.document_selector(PIDE.options, standalone = true)
 
   private val build_button =
     new GUI.Button("<html><b>Build</b></html>") {

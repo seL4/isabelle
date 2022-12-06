@@ -72,7 +72,7 @@ object JEdit_Sessions {
   class Selector(
     val options: Options_Variable,
     val option_name: String,
-    autosave: Boolean,
+    standalone: Boolean,
     batches: List[GUI.Selector.Entry[String]]*)
   extends GUI.Selector[String](batches: _*) with JEdit_Options.Entry {
     name = option_name
@@ -87,12 +87,12 @@ object JEdit_Sessions {
     override def save(): Unit =
       for (value <- selection_value) options.string(option_name) = value
 
-    override def changed(): Unit = if (autosave) save()
+    override def changed(): Unit = if (standalone) save()
 
     load()
   }
 
-  def logic_selector(options: Options_Variable, autosave: Boolean = false): JEdit_Options.Entry =
+  def logic_selector(options: Options_Variable, standalone: Boolean = false): JEdit_Options.Entry =
     GUI_Thread.require {
       val sessions = sessions_structure(options = options.value)
       val all_sessions = sessions.imports_topological_order
@@ -101,18 +101,18 @@ object JEdit_Sessions {
       val default_entry =
         GUI.Selector.item_description("", "default (" + logic_name(options.value) + ")")
 
-      new Selector(options, jedit_logic_option, autosave,
+      new Selector(options, jedit_logic_option, standalone,
         default_entry :: main_sessions.map(GUI.Selector.item),
         all_sessions.sorted.map(GUI.Selector.item))
     }
 
-  def document_selector(options: Options_Variable, autosave: Boolean = false): JEdit_Options.Entry =
+  def document_selector(options: Options_Variable, standalone: Boolean = false): JEdit_Options.Entry =
     GUI_Thread.require {
       val sessions = sessions_structure(options = options.value)
       val all_sessions = sessions.build_topological_order.sorted
       val doc_sessions = all_sessions.filter(name => sessions(name).doc_group)
 
-      new Selector(options, "editor_document_session", autosave,
+      new Selector(options, "editor_document_session", standalone,
         doc_sessions.map(GUI.Selector.item),
         all_sessions.map(GUI.Selector.item))
     }
