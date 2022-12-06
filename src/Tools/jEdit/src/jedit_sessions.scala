@@ -76,7 +76,9 @@ object JEdit_Sessions {
     batches: List[GUI.Selector.Entry[String]]*)
   extends GUI.Selector[String](batches: _*) with JEdit_Options.Entry {
     name = option_name
-    tooltip = Word.capitalize(options.value.description(option_name))
+    tooltip =
+      if (standalone) Word.capitalize(options.value.description(option_name))
+      else options.value.check_name(option_name).print_default
 
     override val title: String =
       options.value.check_name(option_name).title_jedit
