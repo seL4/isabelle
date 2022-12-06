@@ -106,8 +106,10 @@ class Main_Plugin extends EBPlugin {
     }
 
   private val delay_load_active = Synchronized(false)
+  private def delay_load_finished(): Unit = delay_load_active.change(_ => false)
   private def delay_load_activated(): Boolean =
     delay_load_active.guarded_access(a => Some((!a, true)))
+
   private def delay_load_action(): Unit = {
     if (JEdit_Options.continuous_checking() && delay_load_activated() &&
         PerspectiveManager.isPerspectiveEnabled) {
@@ -156,13 +158,13 @@ class Main_Plugin extends EBPlugin {
                   Document_Model.provide_files(session, loaded_files)
                   delay_init.invoke()
                 }
-                finally { delay_load_active.change(_ => false) }
+                finally { delay_load_finished() }
               }
             }
           }
-          catch { case _: Throwable => delay_load_active.change(_ => false) }
+          catch { case _: Throwable => delay_load_finished() }
         }
-        else delay_load_active.change(_ => false)
+        else delay_load_finished()
       }
     }
   }
