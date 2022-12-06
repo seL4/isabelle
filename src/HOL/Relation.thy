@@ -298,10 +298,10 @@ lemma irreflI[intro?]: "(\<And>a. (a, a) \<notin> r) \<Longrightarrow> irrefl r"
   by (rule irrefl_onI[of UNIV, simplified])
 
 lemma irreflp_onI: "(\<And>a. a \<in> A \<Longrightarrow> \<not> R a a) \<Longrightarrow> irreflp_on A R"
-  by (simp add: irreflp_on_def)
+  by (rule irrefl_onI[to_pred])
 
 lemma irreflpI[intro?]: "(\<And>a. \<not> R a a) \<Longrightarrow> irreflp R"
-  by (rule irreflp_onI[of UNIV, simplified])
+  by (rule irreflI[to_pred])
 
 lemma irrefl_onD: "irrefl_on A r \<Longrightarrow> a \<in> A \<Longrightarrow> (a, a) \<notin> r"
   by (simp add: irrefl_on_def)
@@ -310,10 +310,10 @@ lemma irreflD: "irrefl r \<Longrightarrow> (x, x) \<notin> r"
   by (rule irrefl_onD[of UNIV, simplified])
 
 lemma irreflp_onD: "irreflp_on A R \<Longrightarrow> a \<in> A \<Longrightarrow> \<not> R a a"
-  by (simp add: irreflp_on_def)
+  by (rule irrefl_onD[to_pred])
 
 lemma irreflpD: "irreflp R \<Longrightarrow> \<not> R x x"
-  by (rule irreflp_onD[of UNIV, simplified])
+  by (rule irreflD[to_pred])
 
 lemma irrefl_on_distinct [code]: "irrefl_on A r \<longleftrightarrow> (\<forall>(a, b) \<in> r. a \<in> A \<longrightarrow> b \<in> A \<longrightarrow> a \<noteq> b)"
   by (auto simp add: irrefl_on_def)
@@ -609,10 +609,10 @@ lemma totalI: "(\<And>x y. x \<noteq> y \<Longrightarrow> (x, y) \<in> r \<or> (
   by (rule total_onI)
 
 lemma totalp_onI: "(\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> x \<noteq> y \<Longrightarrow> R x y \<or> R y x) \<Longrightarrow> totalp_on A R"
-  by (simp add: totalp_on_def)
+  by (rule total_onI[to_pred])
 
 lemma totalpI: "(\<And>x y. x \<noteq> y \<Longrightarrow> R x y \<or> R y x) \<Longrightarrow> totalp R"
-  by (rule totalp_onI)
+  by (rule totalI[to_pred])
 
 lemma totalp_onD:
   "totalp_on A R \<Longrightarrow> x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> x \<noteq> y \<Longrightarrow> R x y \<or> R y x"
