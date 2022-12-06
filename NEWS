@@ -31,8 +31,8 @@ with demo documents in the regular Isabelle "doc" space:
     explicitly provided for backward compatibility but their usage is
     discouraged. Minor INCOMPATIBILITY.
   - Strengthened (and renamed) lemmas. Minor INCOMPATIBILITY.
-      preorder.irreflp_greater[simp] ~> irreflp_on_greater[simp]
-      preorder.irreflp_less[simp] ~> irreflp_on_less[simp]
+      preorder.irreflp_greater[simp] ~> preorder.irreflp_on_greater[simp]
+      preorder.irreflp_less[simp] ~> preorder.irreflp_on_less[simp]
       reflp_equality[simp] ~> reflp_on_equality[simp]
       total_on_singleton
   - Added lemmas.
@@ -40,10 +40,12 @@ with demo documents in the regular Isabelle "doc" space:
       antisymp_if_asymp
       asym_if_irrefl_and_trans
       asymp_if_irreflp_and_transp
+      irreflD
       irrefl_onD
       irrefl_onI
       irrefl_on_converse[simp]
       irrefl_on_subset
+      irreflpD
       irreflp_onD
       irreflp_onI
       irreflp_on_converse[simp]
