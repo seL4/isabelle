@@ -110,67 +110,68 @@ class Main_Plugin extends EBPlugin {
   private def delay_load_activated(): Boolean =
     delay_load_active.guarded_access(a => Some((!a, true)))
 
-  private def delay_load_action(): Unit = {
-    if (JEdit_Options.continuous_checking() && delay_load_activated() &&
-        PerspectiveManager.isPerspectiveEnabled) {
-      if (JEdit_Lib.jedit_buffers().exists(_.isLoading)) delay_load.invoke()
-      else {
-        val required_files = {
-          val models = Document_Model.get_models()
+  private def delay_load_body(): Unit = {
+    val required_files = {
+      val models = Document_Model.get_models()
 
-          val thys =
-            (for ((node_name, model) <- models.iterator if model.is_theory)
-              yield (node_name, Position.none)).toList
-          val thy_files1 = resources.dependencies(thys).theories
+      val thys =
+        (for ((node_name, model) <- models.iterator if model.is_theory)
+          yield (node_name, Position.none)).toList
+      val thy_files1 = resources.dependencies(thys).theories
 
-          val thy_files2 =
-            (for {
-              (name, _) <- models.iterator
-              thy_name <- resources.make_theory_name(name)
-            } yield thy_name).toList
+      val thy_files2 =
+        (for {
+          (name, _) <- models.iterator
+          thy_name <- resources.make_theory_name(name)
+        } yield thy_name).toList
 
-          val aux_files =
-            if (options.bool("jedit_auto_resolve")) {
-              val stable_tip_version =
-                if (models.forall(p => p._2.is_stable))
-                  session.get_state().stable_tip_version
-                else None
-              stable_tip_version match {
-                case Some(version) => resources.undefined_blobs(version.nodes)
-                case None => delay_load.invoke(); Nil
-              }
-            }
-            else Nil
-
-          (thy_files1 ::: thy_files2 ::: aux_files).filterNot(models.isDefinedAt)
-        }
-        if (required_files.nonEmpty) {
-          try {
-            Isabelle_Thread.fork(name = "resolve_dependencies") {
-              val loaded_files =
-                for {
-                  name <- required_files
-                  text <- resources.read_file_content(name)
-                } yield (name, text)
-
-              GUI_Thread.later {
-                try {
-                  Document_Model.provide_files(session, loaded_files)
-                  delay_init.invoke()
-                }
-                finally { delay_load_finished() }
-              }
-            }
+      val aux_files =
+        if (options.bool("jedit_auto_resolve")) {
+          val stable_tip_version =
+            if (models.forall(p => p._2.is_stable))
+              session.get_state().stable_tip_version
+            else None
+          stable_tip_version match {
+            case Some(version) => resources.undefined_blobs(version.nodes)
+            case None => delay_load.invoke(); Nil
           }
-          catch { case _: Throwable => delay_load_finished() }
         }
-        else delay_load_finished()
-      }
+        else Nil
+
+      (thy_files1 ::: thy_files2 ::: aux_files).filterNot(models.isDefinedAt)
     }
+    if (required_files.nonEmpty) {
+      try {
+        Isabelle_Thread.fork(name = "resolve_dependencies") {
+          val loaded_files =
+            for {
+              name <- required_files
+              text <- resources.read_file_content(name)
+            } yield (name, text)
+
+          GUI_Thread.later {
+            try {
+              Document_Model.provide_files(session, loaded_files)
+              delay_init.invoke()
+            }
+            finally { delay_load_finished() }
+          }
+        }
+      }
+      catch { case _: Throwable => delay_load_finished() }
+    }
+    else delay_load_finished()
   }
 
-  private lazy val delay_load =
-    Delay.last(options.seconds("editor_load_delay"), gui = true) { delay_load_action() }
+  private lazy val delay_load: Delay =
+    Delay.last(options.seconds("editor_load_delay"), gui = true) {
+      if (JEdit_Options.continuous_checking()) {
+        if (!PerspectiveManager.isPerspectiveEnabled ||
+            JEdit_Lib.jedit_buffers().exists(_.isLoading)) delay_load.invoke()
+        else if (delay_load_activated()) delay_load_body()
+        else delay_load.invoke()
+      }
+    }
 
   private def file_watcher_action(changed: Set[JFile]): Unit =
     if (Document_Model.sync_files(changed)) PIDE.editor.invoke_generated()
