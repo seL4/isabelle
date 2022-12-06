@@ -326,11 +326,11 @@ lemma irrefl_on_subset: "irrefl_on A r \<Longrightarrow> B \<subseteq> A \<Longr
 lemma irreflp_on_subset: "irreflp_on A R \<Longrightarrow> B \<subseteq> A \<Longrightarrow> irreflp_on B R"
   by (auto simp: irreflp_on_def)
 
-lemma (in preorder) irreflp_less[simp]: "irreflp (<)"
-  by (simp add: irreflpI)
+lemma (in preorder) irreflp_on_less[simp]: "irreflp_on A (<)"
+  by (simp add: irreflp_onI)
 
-lemma (in preorder) irreflp_greater[simp]: "irreflp (>)"
-  by (simp add: irreflpI)
+lemma (in preorder) irreflp_on_greater[simp]: "irreflp_on A (>)"
+  by (simp add: irreflp_onI)
 
 subsubsection \<open>Asymmetry\<close>
 
@@ -561,6 +561,12 @@ lemma trans_singleton [simp]: "trans {(a, a)}"
 lemma transp_singleton [simp]: "transp (\<lambda>x y. x = a \<and> y = a)"
   by (simp add: transp_def)
 
+lemma asym_if_irrefl_and_trans: "irrefl R \<Longrightarrow> trans R \<Longrightarrow> asym R"
+  by (auto intro: asymI dest: transD irreflD)
+
+lemma asymp_if_irreflp_and_transp: "irreflp R \<Longrightarrow> transp R \<Longrightarrow> asymp R"
+  by (rule asym_if_irrefl_and_trans[to_pred])
+
 context preorder
 begin
 
@@ -580,26 +586,29 @@ end
 
 subsubsection \<open>Totality\<close>
 
-definition total_on :: "'a set \<Rightarrow> 'a rel \<Rightarrow> bool"
-  where "total_on A r \<longleftrightarrow> (\<forall>x\<in>A. \<forall>y\<in>A. x \<noteq> y \<longrightarrow> (x, y) \<in> r \<or> (y, x) \<in> r)"
+definition total_on :: "'a set \<Rightarrow> 'a rel \<Rightarrow> bool" where
+  "total_on A r \<longleftrightarrow> (\<forall>x\<in>A. \<forall>y\<in>A. x \<noteq> y \<longrightarrow> (x, y) \<in> r \<or> (y, x) \<in> r)"
 
-lemma total_onI [intro?]:
-  "(\<And>x y. \<lbrakk>x \<in> A; y \<in> A; x \<noteq> y\<rbrakk> \<Longrightarrow> (x, y) \<in> r \<or> (y, x) \<in> r) \<Longrightarrow> total_on A r"
-  unfolding total_on_def by blast
+abbreviation total :: "'a rel \<Rightarrow> bool" where
+  "total \<equiv> total_on UNIV"
 
-abbreviation "total \<equiv> total_on UNIV"
-
-definition totalp_on where
+definition totalp_on :: "'a set \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
   "totalp_on A R \<longleftrightarrow> (\<forall>x \<in> A. \<forall>y \<in> A. x \<noteq> y \<longrightarrow> R x y \<or> R y x)"
 
-abbreviation totalp where
+abbreviation totalp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
   "totalp \<equiv> totalp_on UNIV"
 
 lemma totalp_on_refl_on_eq[pred_set_conv]: "totalp_on A (\<lambda>x y. (x, y) \<in> r) \<longleftrightarrow> total_on A r"
   by (simp add: totalp_on_def total_on_def)
 
-lemma totalp_onI:
-  "(\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> x \<noteq> y \<Longrightarrow> R x y \<or> R y x) \<Longrightarrow> totalp_on A R"
+lemma total_onI [intro?]:
+  "(\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> x \<noteq> y \<Longrightarrow> (x, y) \<in> r \<or> (y, x) \<in> r) \<Longrightarrow> total_on A r"
+  unfolding total_on_def by blast
+
+lemma totalI: "(\<And>x y. x \<noteq> y \<Longrightarrow> (x, y) \<in> r \<or> (y, x) \<in> r) \<Longrightarrow> total r"
+  by (rule total_onI)
+
+lemma totalp_onI: "(\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> x \<noteq> y \<Longrightarrow> R x y \<or> R y x) \<Longrightarrow> totalp_on A R"
   by (simp add: totalp_on_def)
 
 lemma totalpI: "(\<And>x y. x \<noteq> y \<Longrightarrow> R x y \<or> R y x) \<Longrightarrow> totalp R"
@@ -985,11 +994,17 @@ lemma converse_Id [simp]: "Id\<inverse> = Id"
 lemma converse_Id_on [simp]: "(Id_on A)\<inverse> = Id_on A"
   by blast
 
-lemma refl_on_converse [simp]: "refl_on A (converse r) = refl_on A r"
+lemma refl_on_converse [simp]: "refl_on A (r\<inverse>) = refl_on A r"
   by (auto simp: refl_on_def)
 
 lemma reflp_on_conversp [simp]: "reflp_on A R\<inverse>\<inverse> \<longleftrightarrow> reflp_on A R"
   by (auto simp: reflp_on_def)
+
+lemma irrefl_on_converse [simp]: "irrefl_on A (r\<inverse>) = irrefl_on A r"
+  by (simp add: irrefl_on_def)
+
+lemma irreflp_on_converse [simp]: "irreflp_on A (r\<inverse>\<inverse>) = irreflp_on A r"
+  by (rule irrefl_on_converse[to_pred])
 
 lemma sym_converse [simp]: "sym (converse r) = sym r"
   unfolding sym_def by blast
@@ -1011,6 +1026,9 @@ lemma sym_Int_converse: "sym (r \<inter> r\<inverse>)"
 
 lemma total_on_converse [simp]: "total_on A (r\<inverse>) = total_on A r"
   by (auto simp: total_on_def)
+
+lemma totalp_on_converse [simp]: "totalp_on A R\<inverse>\<inverse> = totalp_on A R"
+  by (rule total_on_converse[to_pred])
 
 lemma finite_converse [iff]: "finite (r\<inverse>) = finite r"
 unfolding converse_def conversep_iff using [[simproc add: finite_Collect]]
