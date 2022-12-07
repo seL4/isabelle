@@ -13,26 +13,25 @@ import java.util.Locale
 object Timing {
   val zero: Timing = Timing(Time.zero, Time.zero, Time.zero)
 
-  def timeit[A](
-    message: String = "",
+  def timeit[A](body: => A,
+    message: Exn.Result[A] => String = null,
     enabled: Boolean = true,
     output: String => Unit = Output.warning(_)
-  )(e: => A): A = {
+  ): A = {
     if (enabled) {
       val start = Time.now()
-      val result = Exn.capture(e)
+      val result = Exn.capture(body)
       val stop = Time.now()
 
       val timing = stop - start
       if (timing.is_relevant) {
-        output(
-          (if (message == null || message == "") "" else message + ": ") +
-            timing.message + " elapsed time")
+        val msg = if (message == null) null else message(result)
+        output((if (msg == null || msg == "") "" else msg + ": ") + timing.message + " elapsed time")
       }
 
       Exn.release(result)
     }
-    else e
+    else body
   }
 
   def factor_format(f: Double): String =

@@ -18,8 +18,10 @@ object Logger {
 trait Logger {
   def apply(msg: => String): Unit
 
-  def timeit[A](message: String = "", enabled: Boolean = true)(e: => A): A =
-    Timing.timeit(message, enabled, apply(_))(e)
+  def timeit[A](body: => A,
+    message: Exn.Result[A] => String = null,
+    enabled: Boolean = true
+  ): A = Timing.timeit(body, message = message, enabled = enabled, output = apply(_))
 }
 
 object No_Logger extends Logger {

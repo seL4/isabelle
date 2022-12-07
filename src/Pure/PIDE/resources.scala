@@ -267,9 +267,9 @@ class Resources(
 
   /* blobs */
 
-  def undefined_blobs(nodes: Document.Nodes): List[Document.Node.Name] =
+  def undefined_blobs(version: Document.Version): List[Document.Node.Name] =
     (for {
-      (node_name, node) <- nodes.iterator
+      (node_name, node) <- version.nodes.iterator
       if !session_base.loaded_theory(node_name)
       cmd <- node.load_commands.iterator
       name <- cmd.blobs_undefined.iterator
