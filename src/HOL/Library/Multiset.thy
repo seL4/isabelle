@@ -2951,6 +2951,8 @@ definition mult :: "('a \<times> 'a) set \<Rightarrow> ('a multiset \<times> 'a 
 definition multp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" where
   "multp r M N \<longleftrightarrow> (M, N) \<in> mult {(x, y). r x y}"
 
+declare multp_def[pred_set_conv]
+
 lemma mult1I:
   assumes "M = add_mset a M0" and "N = M0 + K" and "\<And>b. b \<in># K \<Longrightarrow> (b, a) \<in> r"
   shows "(N, M) \<in> mult1 r"
@@ -3138,8 +3140,9 @@ next
   qed
 qed
 
-lemmas multp_implies_one_step =
-  mult_implies_one_step[of "{(x, y). r x y}" for r, folded multp_def transp_trans, simplified]
+lemma multp_implies_one_step:
+  "transp R \<Longrightarrow> multp R M N \<Longrightarrow> \<exists>I J K. N = I + J \<and> M = I + K \<and> J \<noteq> {#} \<and> (\<forall>k\<in>#K. \<exists>x\<in>#J. R k x)"
+  by (rule mult_implies_one_step[to_pred])
 
 lemma one_step_implies_mult:
   assumes
@@ -3173,8 +3176,9 @@ next
   qed
 qed
 
-lemmas one_step_implies_multp =
-  one_step_implies_mult[of _ _ "{(x, y). r x y}" for r, folded multp_def, simplified]
+lemma one_step_implies_multp:
+  "J \<noteq> {#} \<Longrightarrow> \<forall>k\<in>#K. \<exists>j\<in>#J. R k j \<Longrightarrow> multp R (I + K) (I + J)"
+  by (rule one_step_implies_mult[of _ _ "{(x, y). r x y}" for r, folded multp_def, simplified])
 
 lemma subset_implies_mult:
   assumes sub: "A \<subset># B"
@@ -3188,7 +3192,8 @@ proof -
     by (rule one_step_implies_mult[of "B - A" "{#}" _ A, unfolded ApBmA, simplified])
 qed
 
-lemmas subset_implies_multp = subset_implies_mult[of _ _ "{(x, y). r x y}" for r, folded multp_def]
+lemma subset_implies_multp: "A \<subset># B \<Longrightarrow> multp r A B"
+  by (rule subset_implies_mult[of _ _ "{(x, y). r x y}" for r, folded multp_def])
 
 
 subsubsection \<open>Monotonicity\<close>
@@ -3342,16 +3347,17 @@ next
   thus ?L using one_step_implies_mult[of J K s "I + Z"] by (auto simp: ac_simps)
 qed
 
-lemmas multp_cancel =
-  mult_cancel[of "{(x, y). r x y}" for r,
-    folded multp_def transp_trans irreflp_irrefl_eq, simplified]
+lemma multp_cancel:
+  "transp R \<Longrightarrow> irreflp R \<Longrightarrow> multp R (X + Z) (Y + Z) \<longleftrightarrow> multp R X Y"
+  by (rule mult_cancel[to_pred])
 
-lemmas mult_cancel_add_mset =
-  mult_cancel[of _ _ "{#_#}", unfolded union_mset_add_mset_right add.comm_neutral]
+lemma mult_cancel_add_mset:
+  "trans r \<Longrightarrow> irrefl r \<Longrightarrow> ((add_mset z X, add_mset z Y) \<in> mult r) = ((X, Y) \<in> mult r)"
+  by (rule mult_cancel[of _ _ "{#_#}", unfolded union_mset_add_mset_right add.comm_neutral])
 
-lemmas multp_cancel_add_mset =
-  mult_cancel_add_mset[of "{(x, y). r x y}" for r,
-    folded multp_def transp_trans irreflp_irrefl_eq, simplified]
+lemma multp_cancel_add_mset:
+  "transp R \<Longrightarrow> irreflp R \<Longrightarrow> multp R (add_mset z X) (add_mset z Y) = multp R X Y"
+  by (rule mult_cancel_add_mset[to_pred])
 
 lemma mult_cancel_max0:
   assumes "trans s" and "irrefl s"
@@ -3363,9 +3369,8 @@ qed
 
 lemmas mult_cancel_max = mult_cancel_max0[simplified]
 
-lemmas multp_cancel_max =
-  mult_cancel_max[of "{(x, y). r x y}" for r,
-    folded multp_def transp_trans irreflp_irrefl_eq, simplified]
+lemma multp_cancel_max: "transp R \<Longrightarrow> irreflp R \<Longrightarrow> multp R X Y = multp R (X - Y) (Y - X)"
+  by (rule mult_cancel_max[to_pred])
 
 
 subsubsection \<open>Partial-order properties\<close>
@@ -3416,9 +3421,9 @@ proof (intro irreflI notI)
   with * show False by simp
 qed
 
-lemmas irreflp_multp =
-  irrefl_mult[of "{(x, y). r x y}" for r,
-    folded transp_trans_eq irreflp_irrefl_eq, simplified, folded multp_def]
+lemma irreflp_multp: "transp R \<Longrightarrow> irreflp R \<Longrightarrow> irreflp (multp R)"
+  by (rule irrefl_mult[of "{(x, y). r x y}" for r,
+    folded transp_trans_eq irreflp_irrefl_eq, simplified, folded multp_def])
 
 instantiation multiset :: (preorder) order begin
 
