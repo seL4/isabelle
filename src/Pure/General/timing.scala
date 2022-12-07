@@ -13,8 +13,8 @@ import java.util.Locale
 object Timing {
   val zero: Timing = Timing(Time.zero, Time.zero, Time.zero)
 
-  def timeit[A](
-    message: String = "",
+  def timeit_result[A](
+    message: Exn.Result[A] => String = null,
     enabled: Boolean = true,
     output: String => Unit = Output.warning(_)
   )(e: => A): A = {
@@ -25,15 +25,20 @@ object Timing {
 
       val timing = stop - start
       if (timing.is_relevant) {
-        output(
-          (if (message == null || message == "") "" else message + ": ") +
-            timing.message + " elapsed time")
+        val msg = if (message == null) null else message(result)
+        output((if (msg == null || msg == "") "" else msg + ": ") + timing.message + " elapsed time")
       }
 
       Exn.release(result)
     }
     else e
   }
+
+  def timeit[A](
+    message: String = "",
+    enabled: Boolean = true,
+    output: String => Unit = Output.warning(_)
+  )(e: => A): A = timeit_result[A](_ => message, enabled, output)(e)
 
   def factor_format(f: Double): String =
     String.format(Locale.ROOT, ", factor %.2f", java.lang.Double.valueOf(f))

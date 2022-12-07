@@ -31,8 +31,15 @@ class Progress {
   def echo_warning(msg: String): Unit = echo(Output.warning_text(msg))
   def echo_error_message(msg: String): Unit = echo(Output.error_message_text(msg))
 
-  def timeit[A](message: String = "", enabled: Boolean = true)(e: => A): A =
-    Timing.timeit(message, enabled, echo)(e)
+  def timeit_result[A](
+    message: Exn.Result[A] => String = null,
+    enabled: Boolean = true
+  )(e: => A): A = Timing.timeit_result(message, enabled, echo)(e)
+
+  def timeit[A](
+    message: String = "",
+    enabled: Boolean = true
+  )(e: => A): A = timeit_result[A](_ => message, enabled)(e)
 
   @volatile protected var is_stopped = false
   def stop(): Unit = { is_stopped = true }
