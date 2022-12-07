@@ -208,9 +208,9 @@ extends Resources(
     file_watcher: File_Watcher
   ): (Boolean, Boolean) = {
     state.change_result { st =>
-      val thy_files = resources.resolve_dependencies(st.models, Nil)
-
       val stable_tip_version = session.stable_tip_version(st.models)
+
+      val thy_files = resources.resolve_dependencies(st.models, Nil)
       val aux_files = stable_tip_version.toList.flatMap(undefined_blobs)
 
       val loaded_models =
