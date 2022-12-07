@@ -118,13 +118,8 @@ class Main_Plugin extends EBPlugin {
 
       val aux_files =
         if (options.bool("jedit_auto_resolve")) {
-          val stable_tip_version =
-            if (models.valuesIterator.forall(_.is_stable)) {
-              session.get_state().stable_tip_version
-            }
-            else None
-          stable_tip_version match {
-            case Some(version) => resources.undefined_blobs(version.nodes)
+          session.stable_tip_version(models) match {
+            case Some(version) => resources.undefined_blobs(version)
             case None => delay_load.invoke(); Nil
           }
         }

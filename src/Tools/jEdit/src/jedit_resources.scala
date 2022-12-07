@@ -133,7 +133,7 @@ extends Resources(session_base_info.sessions_structure, session_base_info.base) 
     if (change.syntax_changed.nonEmpty)
       GUI_Thread.later { Document_Model.syntax_changed(change.syntax_changed) }
     if (change.deps_changed ||
-        PIDE.options.bool("jedit_auto_resolve") && undefined_blobs(change.version.nodes).nonEmpty)
+        PIDE.options.bool("jedit_auto_resolve") && undefined_blobs(change.version).nonEmpty)
       PIDE.plugin.deps_changed()
   }
 }
