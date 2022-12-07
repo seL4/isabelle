@@ -65,10 +65,12 @@ sealed case class Timing(elapsed: Time, cpu: Time, gc: Time) {
         case Some(f) => Timing.factor_format(f)
         case None => ""
       }
-    if (resources.seconds >= 3.0)
+    if (resources.seconds >= 3.0) {
       elapsed.message_hms + " elapsed time, " + resources.message_hms + " cpu time" + factor_text
-    else
+    }
+    else {
       elapsed.message_hms + " elapsed time" + factor_text
+    }
   }
 
   override def toString: String = message
