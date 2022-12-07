@@ -241,9 +241,10 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
     case Text_Edits(previous, doc_blobs, text_edits, consolidate, version_result) =>
       val prev = previous.get_finished
       val change =
-        Timing.timeit("parse_change", timing) {
-          resources.parse_change(reparse_limit, prev, doc_blobs, text_edits, consolidate)
-        }
+        Timing.timeit(
+          resources.parse_change(reparse_limit, prev, doc_blobs, text_edits, consolidate),
+          message = _ => "parse_change",
+          enabled = timing)
       version_result.fulfill(change.version)
       manager.send(change)
       true
