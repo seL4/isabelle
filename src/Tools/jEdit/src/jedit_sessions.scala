@@ -144,7 +144,7 @@ object JEdit_Sessions {
   def session_start(options0: Options): Unit = {
     val session = PIDE.session
     val options = session_options(options0)
-    val sessions_structure = PIDE.resources.session_base_info.sessions_structure
+    val sessions_structure = PIDE.resources.sessions_structure
     val store = Sessions.store(options)
 
     session.phase_changed += PIDE.plugin.session_phase_changed
