@@ -44,6 +44,8 @@ object Document_Dockable {
 }
 
 class Document_Dockable(view: View, position: String) extends Dockable(view, position) {
+  dockable =>
+
   GUI_Thread.require {}
 
 
@@ -243,6 +245,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     }
 
   override def init(): Unit = {
+    PIDE.editor.document_editor_init(dockable)
     init_state()
     PIDE.session.global_options += main
     PIDE.session.commands_changed += main
@@ -255,5 +258,6 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     PIDE.session.global_options -= main
     PIDE.session.commands_changed -= main
     delay_resize.revoke()
+    PIDE.editor.document_editor_exit(dockable)
   }
 }

@@ -15,6 +15,19 @@ abstract class Editor[Context] {
   def invoke(): Unit
 
 
+  /* document editor */
+
+  protected val document_editor: Synchronized[Document_Editor.State] =
+    Synchronized(Document_Editor.State())
+
+  def document_editor_active: Boolean =
+    document_editor.value.is_active
+  def document_editor_init(id: AnyRef): Unit =
+    document_editor.change(_.register_view(id))
+  def document_editor_exit(id: AnyRef): Unit =
+    document_editor.change(_.unregister_view(id))
+
+
   /* current situation */
 
   def current_node(context: Context): Option[Document.Node.Name]
