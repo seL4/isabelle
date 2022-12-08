@@ -117,7 +117,7 @@ class Main_Plugin extends EBPlugin {
       val thy_files = resources.resolve_dependencies(models, Nil)
 
       val aux_files =
-        if (options.bool("jedit_auto_resolve")) {
+        if (resources.auto_resolve) {
           session.stable_tip_version(models) match {
             case Some(version) => resources.undefined_blobs(version)
             case None => delay_load.invoke(); Nil

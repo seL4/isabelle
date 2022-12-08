@@ -131,12 +131,13 @@ extends Resources(session_base_info.sessions_structure, session_base_info.base) 
 
   /* theory text edits */
 
+  def auto_resolve: Boolean = PIDE.options.bool("jedit_auto_resolve")
+
   override def commit(change: Session.Change): Unit = {
     if (change.syntax_changed.nonEmpty) {
       GUI_Thread.later { Document_Model.syntax_changed(change.syntax_changed) }
     }
-    if (change.deps_changed ||
-        PIDE.options.bool("jedit_auto_resolve") && undefined_blobs(change.version).nonEmpty) {
+    if (change.deps_changed || auto_resolve && undefined_blobs(change.version).nonEmpty) {
       PIDE.plugin.deps_changed()
     }
   }
