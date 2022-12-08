@@ -55,14 +55,16 @@ extends Resources(session_base_info.sessions_structure, session_base_info.base) 
 
   override def append(dir: String, source_path: Path): String = {
     val path = source_path.expand
-    if (dir == "" || path.is_absolute)
+    if (dir == "" || path.is_absolute) {
       MiscUtilities.resolveSymlinks(File.platform_path(path))
+    }
     else if (path.is_current) dir
     else {
       val vfs = VFSManager.getVFSForPath(dir)
-      if (vfs.isInstanceOf[FileVFS])
+      if (vfs.isInstanceOf[FileVFS]) {
         MiscUtilities.resolveSymlinks(
           vfs.constructPath(dir, File.platform_path(path)))
+      }
       else vfs.constructPath(dir, File.standard_path(path))
     }
   }
@@ -130,10 +132,12 @@ extends Resources(session_base_info.sessions_structure, session_base_info.base) 
   /* theory text edits */
 
   override def commit(change: Session.Change): Unit = {
-    if (change.syntax_changed.nonEmpty)
+    if (change.syntax_changed.nonEmpty) {
       GUI_Thread.later { Document_Model.syntax_changed(change.syntax_changed) }
+    }
     if (change.deps_changed ||
-        PIDE.options.bool("jedit_auto_resolve") && undefined_blobs(change.version).nonEmpty)
+        PIDE.options.bool("jedit_auto_resolve") && undefined_blobs(change.version).nonEmpty) {
       PIDE.plugin.deps_changed()
+    }
   }
 }
