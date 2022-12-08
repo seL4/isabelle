@@ -827,7 +827,7 @@ object Sessions {
         val exclude_group_sessions =
           (for {
             (name, (info, _)) <- imports_graph.iterator
-            if imports_graph.get_node(name).groups.exists(exclude_group)
+            if info.groups.exists(exclude_group)
           } yield name).toList
         imports_graph.all_succs(exclude_group_sessions ::: sel.exclude_sessions).toSet
       }
