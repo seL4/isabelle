@@ -48,7 +48,7 @@ object Debugger {
   /* debugger state */
 
   sealed case class State(
-    active: Int = 0,  // active views
+    active: Set[AnyRef] = Set.empty,  // active views
     break: Boolean = false,  // break at next possible breakpoint
     active_breakpoints: Set[Long] = Set.empty,  // explicit breakpoint state
     threads: Threads = SortedMap.empty,  // thread name ~> stack of debug states
@@ -57,9 +57,9 @@ object Debugger {
   ) {
     def set_break(b: Boolean): State = copy(break = b)
 
-    def is_active: Boolean = active > 0
-    def inc_active: State = copy(active = active + 1)
-    def dec_active: State = copy(active = active - 1)
+    def is_active: Boolean = active.nonEmpty
+    def register_active(id: AnyRef): State = copy(active = active + id)
+    def unregister_active(id: AnyRef): State = copy(active = active - id)
 
     def toggle_breakpoint(breakpoint: Long): (Boolean, State) = {
       val active_breakpoints1 =
@@ -167,18 +167,18 @@ class Debugger private(session: Session) {
   def ready(): Unit =
     if (is_active()) session.protocol_command("Debugger.init")
 
-  def init(): Unit =
+  def init(id: AnyRef): Unit =
     state.change { st =>
-      val st1 = st.inc_active
+      val st1 = st.register_active(id)
       if (session.is_ready && !st.is_active && st1.is_active) {
         session.protocol_command("Debugger.init")
       }
       st1
     }
 
-  def exit(): Unit =
+  def exit(id: AnyRef): Unit =
     state.change { st =>
-      val st1 = st.dec_active
+      val st1 = st.unregister_active(id)
       if (session.is_ready && st.is_active && !st1.is_active) {
         session.protocol_command("Debugger.exit")
       }

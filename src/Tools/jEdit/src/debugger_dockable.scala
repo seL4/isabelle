@@ -53,6 +53,8 @@ object Debugger_Dockable {
 }
 
 class Debugger_Dockable(view: View, position: String) extends Dockable(view, position) {
+  dockable =>
+
   GUI_Thread.require {}
 
   private val debugger = PIDE.session.debugger
@@ -320,7 +322,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   override def init(): Unit = {
     PIDE.session.global_options += main
     PIDE.session.debugger_updates += main
-    debugger.init()
+    debugger.init(dockable)
     handle_update()
     jEdit.propertiesChanged()
   }
@@ -329,7 +331,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     PIDE.session.global_options -= main
     PIDE.session.debugger_updates -= main
     delay_resize.revoke()
-    debugger.exit()
+    debugger.exit(dockable)
     jEdit.propertiesChanged()
   }
 
