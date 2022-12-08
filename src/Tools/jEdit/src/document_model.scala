@@ -457,7 +457,7 @@ case class File_Model(
   def flush_edits(
     doc_blobs: Document.Blobs,
     hidden: Boolean
-  ) : Option[(List[Document.Edit_Text], File_Model)] = {
+  ): Option[(List[Document.Edit_Text], File_Model)] = {
     val (reparse, perspective) = node_perspective(doc_blobs, hidden)
     if (reparse || pending_edits.nonEmpty || last_perspective != perspective) {
       val edits = node_edits(node_header, pending_edits, perspective)
