@@ -168,6 +168,7 @@ class Theories_Status(view: View) {
   /* GUI component */
 
   val gui: ListView[Document.Node.Name] = new ListView[Document.Node.Name](Nil) {
+    renderer = new Node_Renderer
     background = {
       // enforce default value
       val c = UIManager.getDefaults.getColor("Panel.background")
@@ -207,12 +208,11 @@ class Theories_Status(view: View) {
         }
         else tooltip = null
     }
-  }
 
-  gui.renderer = new Node_Renderer
-  gui.peer.setLayoutOrientation(JList.HORIZONTAL_WRAP)
-  gui.peer.setVisibleRowCount(0)
-  gui.selection.intervalMode = ListView.IntervalMode.Single
+    peer.setLayoutOrientation(JList.HORIZONTAL_WRAP)
+    peer.setVisibleRowCount(0)
+    selection.intervalMode = ListView.IntervalMode.Single
+  }
 
 
   /* update */
