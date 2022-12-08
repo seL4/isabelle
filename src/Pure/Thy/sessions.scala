@@ -54,7 +54,7 @@ object Sessions {
   }
 
 
-  /* base info and source dependencies */
+  /* base info */
 
   sealed case class Base(
     session_name: String = "",
@@ -96,8 +96,109 @@ object Sessions {
 
   val bootstrap_base: Base = Base(overall_syntax = Thy_Header.bootstrap_syntax)
 
+  sealed case class Base_Info(
+    base: Base,
+    sessions_structure: Structure = Structure.empty,
+    errors: List[String] = Nil,
+    infos: List[Info] = Nil
+  ) {
+    def session_name: String = base.session_name
+
+    def check_errors: Base_Info =
+      if (errors.isEmpty) this
+      else error(cat_lines(errors))
+  }
+
+  def base_info0(session: String): Base_Info =
+    Base_Info(Base(session_name = session))
+
+  def base_info(options: Options,
+    session: String,
+    progress: Progress = new Progress,
+    dirs: List[Path] = Nil,
+    include_sessions: List[String] = Nil,
+    session_ancestor: Option[String] = None,
+    session_requirements: Boolean = false
+  ): Base_Info = {
+    val full_sessions = load_structure(options, dirs = dirs)
+
+    val selected_sessions =
+      full_sessions.selection(Selection(sessions = session :: session_ancestor.toList))
+    val info = selected_sessions(session)
+    val ancestor = session_ancestor orElse info.parent
+
+    val (session1, infos1) =
+      if (session_requirements && ancestor.isDefined) {
+        val deps = Sessions.deps(selected_sessions, progress = progress)
+        val base = deps(session)
+
+        val ancestor_loaded =
+          deps.get(ancestor.get) match {
+            case Some(ancestor_base)
+            if !selected_sessions.imports_requirements(List(ancestor.get)).contains(session) =>
+              ancestor_base.loaded_theories.defined _
+            case _ =>
+              error("Bad ancestor " + quote(ancestor.get) + " for session " + quote(session))
+          }
+
+        val required_theories =
+          for {
+            thy <- base.loaded_theories.keys
+            if !ancestor_loaded(thy) && selected_sessions.theory_qualifier(thy) != session
+          }
+          yield thy
+
+        if (required_theories.isEmpty) (ancestor.get, Nil)
+        else {
+          val other_name = info.name + "_requirements(" + ancestor.get + ")"
+          Isabelle_System.isabelle_tmp_prefix()
+
+          (other_name,
+            List(
+              make_info(
+                Chapter_Defs.empty,
+                info.options,
+                dir_selected = false,
+                dir = Path.explode("$ISABELLE_TMP_PREFIX"),
+                chapter = info.chapter,
+                Session_Entry(
+                  pos = info.pos,
+                  name = other_name,
+                  groups = info.groups,
+                  path = ".",
+                  parent = ancestor,
+                  description = "Required theory imports from other sessions",
+                  options = Nil,
+                  imports = info.deps,
+                  directories = Nil,
+                  theories = List((Nil, required_theories.map(thy => ((thy, Position.none), false)))),
+                  document_theories = Nil,
+                  document_files = Nil,
+                  export_files = Nil,
+                  export_classpath = Nil))))
+        }
+      }
+      else (session, Nil)
+
+    val full_sessions1 =
+      if (infos1.isEmpty) full_sessions
+      else load_structure(options, dirs = dirs, infos = infos1)
+
+    val selected_sessions1 =
+      full_sessions1.selection(Selection(sessions = session1 :: session :: include_sessions))
+
+    val deps1 = Sessions.deps(selected_sessions1, progress = progress)
+
+    Base_Info(deps1(session1), sessions_structure = full_sessions1,
+      errors = deps1.errors, infos = infos1)
+  }
+
+
+  /* source dependencies */
+
   sealed case class Deps(sessions_structure: Structure, session_bases: Map[String, Base]) {
-    override def toString: String = "Sessions.Deps(" + sessions_structure + ")"
+    def base_info(session: String): Base_Info =
+      Base_Info(base = apply(session), sessions_structure = sessions_structure, errors = errors)
 
     def is_empty: Boolean = session_bases.keysIterator.forall(_.isEmpty)
     def apply(name: String): Base = session_bases(name)
@@ -123,8 +224,7 @@ object Sessions {
         case errs => error(cat_lines(errs))
       }
 
-    def base_info(session: String): Base_Info =
-      Base_Info(base = apply(session), sessions_structure = sessions_structure, errors = errors)
+    override def toString: String = "Sessions.Deps(" + sessions_structure + ")"
   }
 
   def deps(sessions_structure: Structure,
@@ -356,106 +456,6 @@ object Sessions {
       }
 
     Deps(sessions_structure, session_bases)
-  }
-
-
-  /* base info */
-
-  sealed case class Base_Info(
-    base: Base,
-    sessions_structure: Structure = Structure.empty,
-    errors: List[String] = Nil,
-    infos: List[Info] = Nil
-  ) {
-    def session_name: String = base.session_name
-
-    def check_errors: Base_Info =
-      if (errors.isEmpty) this
-      else error(cat_lines(errors))
-  }
-
-  def base_info0(session: String): Base_Info =
-    Base_Info(Base(session_name = session))
-
-  def base_info(options: Options,
-    session: String,
-    progress: Progress = new Progress,
-    dirs: List[Path] = Nil,
-    include_sessions: List[String] = Nil,
-    session_ancestor: Option[String] = None,
-    session_requirements: Boolean = false
-  ): Base_Info = {
-    val full_sessions = load_structure(options, dirs = dirs)
-
-    val selected_sessions =
-      full_sessions.selection(Selection(sessions = session :: session_ancestor.toList))
-    val info = selected_sessions(session)
-    val ancestor = session_ancestor orElse info.parent
-
-    val (session1, infos1) =
-      if (session_requirements && ancestor.isDefined) {
-        val deps = Sessions.deps(selected_sessions, progress = progress)
-        val base = deps(session)
-
-        val ancestor_loaded =
-          deps.get(ancestor.get) match {
-            case Some(ancestor_base)
-            if !selected_sessions.imports_requirements(List(ancestor.get)).contains(session) =>
-              ancestor_base.loaded_theories.defined _
-            case _ =>
-              error("Bad ancestor " + quote(ancestor.get) + " for session " + quote(session))
-          }
-
-        val required_theories =
-          for {
-            thy <- base.loaded_theories.keys
-            if !ancestor_loaded(thy) && selected_sessions.theory_qualifier(thy) != session
-          }
-          yield thy
-
-        if (required_theories.isEmpty) (ancestor.get, Nil)
-        else {
-          val other_name = info.name + "_requirements(" + ancestor.get + ")"
-          Isabelle_System.isabelle_tmp_prefix()
-
-          (other_name,
-            List(
-              make_info(
-                Chapter_Defs.empty,
-                info.options,
-                dir_selected = false,
-                dir = Path.explode("$ISABELLE_TMP_PREFIX"),
-                chapter = info.chapter,
-                Session_Entry(
-                  pos = info.pos,
-                  name = other_name,
-                  groups = info.groups,
-                  path = ".",
-                  parent = ancestor,
-                  description = "Required theory imports from other sessions",
-                  options = Nil,
-                  imports = info.deps,
-                  directories = Nil,
-                  theories = List((Nil, required_theories.map(thy => ((thy, Position.none), false)))),
-                  document_theories = Nil,
-                  document_files = Nil,
-                  export_files = Nil,
-                  export_classpath = Nil))))
-        }
-      }
-      else (session, Nil)
-
-    val full_sessions1 =
-      if (infos1.isEmpty) full_sessions
-      else load_structure(options, dirs = dirs, infos = infos1)
-
-    val selected_sessions1 =
-      full_sessions1.selection(Selection(sessions = session1 :: session :: include_sessions))
-
-    val deps1 = Sessions.deps(selected_sessions1, progress = progress)
-
-    Base_Info(deps1(session1), sessions_structure = full_sessions1,
-      errors = deps1.errors, infos = infos1)
   }
 
 
