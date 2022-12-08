@@ -26,7 +26,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
   private val abbrevs_panel = new Abbrevs_Panel
 
   private val abbrevs_refresh_delay =
-    Delay.last(PIDE.options.seconds("editor_update_delay"), gui = true) { abbrevs_panel.refresh() }
+    Delay.last(PIDE.session.update_delay, gui = true) { abbrevs_panel.refresh() }
 
   private class Abbrev_Component(txt: String, abbrs: List[String]) extends Button {
     def update_font(): Unit = { font = GUI.font(size = font_size) }
@@ -124,7 +124,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
       for (entry <- Symbol.symbols.entries if entry.code.isDefined)
         yield entry.symbol -> Word.lowercase(entry.symbol)
     val search_delay: Delay =
-      Delay.last(PIDE.options.seconds("editor_input_delay"), gui = true) {
+      Delay.last(PIDE.session.input_delay, gui = true) {
         val search_words = Word.explode(Word.lowercase(search_field.text))
         val search_limit = PIDE.options.int("jedit_symbols_search_limit") max 0
         val results =

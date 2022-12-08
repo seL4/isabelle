@@ -85,7 +85,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
   private def handle_resize(): Unit = GUI_Thread.require { pretty_text_area.zoom(zoom) }
 
   private val delay_resize: Delay =
-    Delay.first(PIDE.options.seconds("editor_update_delay"), gui = true) { handle_resize() }
+    Delay.first(PIDE.session.update_delay, gui = true) { handle_resize() }
 
   addComponentListener(new ComponentAdapter {
     override def componentResized(e: ComponentEvent): Unit = delay_resize.invoke()
@@ -163,7 +163,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
   /* controls */
 
   private lazy val delay_load: Delay =
-    Delay.last(PIDE.options.seconds("editor_load_delay"), gui = true) {
+    Delay.last(PIDE.session.load_delay, gui = true) {
       val models = Document_Model.get_models()
       val thy_files = PIDE.resources.resolve_dependencies(models, Nil)
     }

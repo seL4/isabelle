@@ -367,7 +367,7 @@ sealed abstract class Document_Model extends Document.Model {
   @tailrec final def await_stable_snapshot(): Document.Snapshot = {
     val snapshot = this.snapshot()
     if (snapshot.is_outdated) {
-      PIDE.options.seconds("editor_output_delay").sleep()
+      PIDE.session.output_delay.sleep()
       await_stable_snapshot()
     }
     else snapshot

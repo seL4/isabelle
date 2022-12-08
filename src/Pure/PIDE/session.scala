@@ -139,10 +139,15 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
 
   def session_options: Options = _session_options
 
+  def load_delay: Time = session_options.seconds("editor_load_delay")
+  def input_delay: Time = session_options.seconds("editor_input_delay")
+  def generated_input_delay: Time = session_options.seconds("editor_generated_input_delay")
   def output_delay: Time = session_options.seconds("editor_output_delay")
   def consolidate_delay: Time = session_options.seconds("editor_consolidate_delay")
   def prune_delay: Time = session_options.seconds("editor_prune_delay")
   def prune_size: Int = session_options.int("editor_prune_size")
+  def update_delay: Time = session_options.seconds("editor_update_delay")
+  def chart_delay: Time = session_options.seconds("editor_chart_delay")
   def syslog_limit: Int = session_options.int("editor_syslog_limit")
   def reparse_limit: Int = session_options.int("editor_reparse_limit")
 

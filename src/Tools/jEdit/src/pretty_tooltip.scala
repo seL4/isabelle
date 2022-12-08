@@ -114,9 +114,7 @@ object Pretty_Tooltip {
   /* dismiss */
 
   private lazy val focus_delay =
-    Delay.last(PIDE.options.seconds("editor_input_delay"), gui = true) {
-      dismiss_unfocused()
-    }
+    Delay.last(PIDE.session.input_delay, gui = true) { dismiss_unfocused() }
 
   def dismiss_unfocused(): Unit = {
     stack.span(tip => !tip.pretty_text_area.isFocusOwner) match {

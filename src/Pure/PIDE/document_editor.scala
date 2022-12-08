@@ -28,8 +28,7 @@ object Document_Editor {
     private val syslog = session.make_syslog()
 
     private def update(text: String = syslog.content()): Unit = show(text)
-    private val delay =
-      Delay.first(session.session_options.seconds("editor_update_delay"), gui = true) { update() }
+    private val delay = Delay.first(session.update_delay, gui = true) { update() }
 
     override def echo(msg: String): Unit = { syslog += msg; delay.invoke() }
 
