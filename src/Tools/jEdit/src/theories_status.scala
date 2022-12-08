@@ -58,7 +58,7 @@ class Theories_Status(view: View, document: Boolean = false) {
       var node_name: Document.Node.Name = Document.Node.Name.empty
 
       val required_geometry = new Geometry
-      val required = new CheckBox {
+      val required: CheckBox = new CheckBox {
         opaque = false
         override def paintComponent(gfx: Graphics2D): Unit = {
           super.paintComponent(gfx)
