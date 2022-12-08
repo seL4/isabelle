@@ -26,8 +26,7 @@ object Debugger {
     def thread_state: Option[Debug_State] = debug_states.headOption
 
     def stack_state: Option[Debug_State] =
-      if (1 <= index && index <= debug_states.length)
-        Some(debug_states(index - 1))
+      if (1 <= index && index <= debug_states.length) Some(debug_states(index - 1))
       else None
 
     def debug_index: Option[Int] =
@@ -165,24 +164,24 @@ class Debugger private(session: Session) {
 
   def is_active(): Boolean = session.is_ready && state.value.is_active
 
-  def ready(): Unit = {
-    if (is_active())
-      session.protocol_command("Debugger.init")
-  }
+  def ready(): Unit =
+    if (is_active()) session.protocol_command("Debugger.init")
 
   def init(): Unit =
     state.change { st =>
       val st1 = st.inc_active
-      if (session.is_ready && !st.is_active && st1.is_active)
+      if (session.is_ready && !st.is_active && st1.is_active) {
         session.protocol_command("Debugger.init")
+      }
       st1
     }
 
   def exit(): Unit =
     state.change { st =>
       val st1 = st.dec_active
-      if (session.is_ready && st.is_active && !st1.is_active)
+      if (session.is_ready && st.is_active && !st1.is_active) {
         session.protocol_command("Debugger.exit")
+      }
       st1
     }
 
