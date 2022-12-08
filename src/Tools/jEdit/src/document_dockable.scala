@@ -13,6 +13,7 @@ import java.awt.BorderLayout
 import java.awt.event.{ComponentEvent, ComponentAdapter}
 
 import scala.swing.{ScrollPane, TextArea, Label, TabbedPane, BorderPanel, Component}
+import scala.swing.event.SelectionChanged
 
 import org.gjt.sp.jedit.{jEdit, View}
 
@@ -191,8 +192,16 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
 
   /* controls */
 
+  private lazy val delay_load: Delay =
+    Delay.last(PIDE.options.seconds("editor_load_delay"), gui = true) {
+      val models = Document_Model.get_models()
+      val thy_files = PIDE.resources.resolve_dependencies(models, Nil)
+    }
+
   private val document_session =
     JEdit_Sessions.document_selector(PIDE.options, standalone = true)
+
+  document_session.reactions += { case SelectionChanged(_) => delay_load.invoke() }
 
   private val build_button =
     new GUI.Button("<html><b>Build</b></html>") {
@@ -223,7 +232,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
 
   /* message pane with pages */
 
-  private val theories = new Theories_Status(view)
+  private val theories = new Theories_Status(view, document = true)
 
   private val theories_page =
     new TabbedPane.Page("Theories", new BorderPanel {
@@ -271,6 +280,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     PIDE.session.commands_changed += main
     theories.update()
     handle_resize()
+    delay_load.invoke()
   }
 
   override def exit(): Unit = {

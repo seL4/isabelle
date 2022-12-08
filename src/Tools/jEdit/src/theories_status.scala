@@ -20,7 +20,7 @@ import javax.swing.{JList, BorderFactory, UIManager}
 import org.gjt.sp.jedit.View
 
 
-class Theories_Status(view: View) {
+class Theories_Status(view: View, document: Boolean = false) {
   /* component state -- owned by GUI thread */
 
   private var nodes_status = Document_Status.Nodes_Status.empty
@@ -50,23 +50,20 @@ class Theories_Status(view: View) {
     }
   }
 
-  private class Required extends CheckBox {
-    val geometry = new Geometry
-    opaque = false
-    override def paintComponent(gfx: Graphics2D): Unit = {
-      super.paintComponent(gfx)
-      geometry.update(location, size)
-    }
-  }
-
   private object Node_Renderer_Component extends BorderPanel {
     opaque = true
     border = BorderFactory.createEmptyBorder(2, 2, 2, 2)
 
     var node_name: Document.Node.Name = Document.Node.Name.empty
 
-    val theory_required = new Required
-    val document_required = new Required
+    val required_geometry = new Geometry
+    val required = new CheckBox {
+      opaque = false
+      override def paintComponent(gfx: Graphics2D): Unit = {
+        super.paintComponent(gfx)
+        required_geometry.update(location, size)
+      }
+    }
 
     val label_geometry = new Geometry
     val label: Label = new Label {
@@ -127,21 +124,12 @@ class Theories_Status(view: View) {
           BorderFactory.createEmptyBorder(thickness2, thickness2, thickness2, thickness2))
     }
 
-    val required = new BoxPanel(Orientation.Horizontal)
-    required.contents += theory_required
-    // FIXME required.contents += document_required
-
     layout(required) = BorderPanel.Position.West
     layout(label) = BorderPanel.Position.Center
   }
 
-  private def in_required(location0: Point, p: Point, document: Boolean = false): Boolean =
-    Node_Renderer_Component != null && {
-      val required =
-        if (document) Node_Renderer_Component.document_required
-        else Node_Renderer_Component.theory_required
-      required.geometry.in(location0, p)
-    }
+  private def in_required(location0: Point, p: Point): Boolean =
+    Node_Renderer_Component != null && Node_Renderer_Component.required_geometry.in(location0, p)
 
   private def in_label(location0: Point, p: Point): Boolean =
     Node_Renderer_Component != null && Node_Renderer_Component.label_geometry.in(location0, p)
@@ -156,8 +144,8 @@ class Theories_Status(view: View) {
     ): Component = {
       val component = Node_Renderer_Component
       component.node_name = name
-      component.theory_required.selected = theory_required.contains(name)
-      component.document_required.selected = document_required.contains(name)
+      component.required.selected =
+        (if (document) document_required else theory_required).contains(name)
       component.label_border(name)
       component.label.text = name.theory_base_name
       component
@@ -181,11 +169,9 @@ class Theories_Status(view: View) {
         val index = peer.locationToIndex(point)
         if (index >= 0) {
           val index_location = peer.indexToLocation(index)
-          val a = in_required(index_location, point)
-          val b = in_required(index_location, point, document = true)
-          if (a || b) {
+          if (in_required(index_location, point)) {
             if (clicks == 1) {
-              Document_Model.node_required(listData(index), toggle = true, document = b)
+              Document_Model.node_required(listData(index), toggle = true, document = document)
             }
           }
           else if (clicks == 2) PIDE.editor.goto_file(true, view, listData(index).node)
@@ -194,10 +180,9 @@ class Theories_Status(view: View) {
         val index = peer.locationToIndex(point)
         val index_location = peer.indexToLocation(index)
         if (index >= 0 && in_required(index_location, point)) {
-          tooltip = "Mark as required for continuous checking"
-        }
-        else if (index >= 0 && in_required(index_location, point, document = true)) {
-          tooltip = "Mark as required for continuous checking, with inclusion in document"
+          tooltip =
+            if (document) "Mark for inclusion in document"
+            else "Mark as required for continuous checking"
         }
         else if (index >= 0 && in_label(index_location, point)) {
           val name = listData(index)
