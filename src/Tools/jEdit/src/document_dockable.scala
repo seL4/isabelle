@@ -19,38 +19,6 @@ import org.gjt.sp.jedit.{jEdit, View}
 
 
 object Document_Dockable {
-  /* document output */
-
-  def document_name: String = "document"
-  def document_output_dir(): Path = Path.explode("$ISABELLE_HOME_USER/document_output")
-  def document_output(): Path = document_output_dir() + Path.basic(document_name)
-
-  def view_document(): Unit = {
-    val path = Document_Dockable.document_output().pdf
-    if (path.is_file) Isabelle_System.pdf_viewer(path)
-  }
-
-  class Log_Progress extends Progress {
-    def show(text: String): Unit = {}
-
-    private val syslog = PIDE.session.make_syslog()
-
-    private def update(text: String = syslog.content()): Unit = show(text)
-    private val delay =
-      Delay.first(PIDE.options.seconds("editor_update_delay"), gui = true) { update() }
-
-    override def echo(msg: String): Unit = { syslog += msg; delay.invoke() }
-
-    def load(): Unit = GUI_Thread.require {
-      val path = document_output().log
-      val text = if (path.is_file) File.read(path) else ""
-      GUI_Thread.later { delay.revoke(); update(text) }
-    }
-
-    GUI_Thread.later { update() }
-  }
-
-
   /* state */
 
   object Status extends Enumeration {
@@ -69,7 +37,7 @@ object Document_Dockable {
   }
 
   sealed case class State(
-    progress: Log_Progress = new Log_Progress,
+    progress: Progress = new Progress,
     process: Future[Unit] = Future.value(()),
     output: List[XML.Tree] = Nil,
     status: Status.Value = Status.FINISHED)
@@ -132,8 +100,8 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     }
   private val scroll_log_area = new ScrollPane(log_area)
 
-  def init_progress(): Document_Dockable.Log_Progress =
-    new Document_Dockable.Log_Progress {
+  def log_progress(): Document_Editor.Log_Progress =
+    new Document_Editor.Log_Progress(PIDE.session) {
       override def show(text: String): Unit =
         if (text != log_area.text) {
           log_area.text = text
@@ -149,12 +117,12 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     current_state.change { st => st.process.cancel(); st }
 
   private def init_state(): Unit =
-    current_state.change { _ => Document_Dockable.State(progress = init_progress()) }
+    current_state.change { _ => Document_Dockable.State(progress = log_progress()) }
 
   private def build_document(): Unit = {
     current_state.change { st =>
       if (st.process.is_finished) {
-        val progress = init_progress()
+        val progress = log_progress()
         val process =
           Future.thread[Unit](name = "document_build") {
             show_page(theories_page)
@@ -218,7 +186,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
   private val view_button =
     new GUI.Button("View") {
       tooltip = "View document"
-      override def clicked(): Unit = Document_Dockable.view_document()
+      override def clicked(): Unit = Document_Editor.view_document()
     }
 
   private val controls =
