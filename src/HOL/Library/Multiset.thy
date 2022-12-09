@@ -3315,10 +3315,11 @@ qed
 subsubsection \<open>The multiset extension is cancellative for multiset union\<close>
 
 lemma mult_cancel:
-  assumes "trans s" and "irrefl s"
+  assumes "trans s" and "irrefl_on (set_mset Z) s"
   shows "(X + Z, Y + Z) \<in> mult s \<longleftrightarrow> (X, Y) \<in> mult s" (is "?L \<longleftrightarrow> ?R")
 proof
   assume ?L thus ?R
+    using \<open>irrefl_on (set_mset Z) s\<close>
   proof (induct Z)
     case (add z Z)
     obtain X' Y' Z' where *: "add_mset z X + Z = Z' + X'" "add_mset z Y + Z = Z' + Y'" "Y' \<noteq> {#}"
@@ -3328,16 +3329,20 @@ proof
       using *(1,2) by (metis add_mset_remove_trivial_If insert_iff set_mset_add_mset_insert union_iff)
     thus ?case
     proof (cases)
-      case 1 thus ?thesis using * one_step_implies_mult[of Y' X' s Z2]
-        by (auto simp: add.commute[of _ "{#_#}"] add.assoc intro: add(1))
+      case 1 thus ?thesis
+        using * one_step_implies_mult[of Y' X' s Z2] add(3)
+        by (auto simp: add.commute[of _ "{#_#}"] add.assoc intro: add(1) elim: irrefl_on_subset)
     next
-      case 2 then obtain y where "y \<in> set_mset Y2" "(z, y) \<in> s" using *(4) \<open>irrefl s\<close>
-        by (auto simp: irrefl_def)
+      case 2 then obtain y where "y \<in> set_mset Y2" "(z, y) \<in> s"
+        using *(4) \<open>irrefl_on (set_mset (add_mset z Z)) s\<close>
+        by (auto simp: irrefl_on_def)
       moreover from this transD[OF \<open>trans s\<close> _ this(2)]
       have "x' \<in> set_mset X2 \<Longrightarrow> \<exists>y \<in> set_mset Y2. (x', y) \<in> s" for x'
         using 2 *(4)[rule_format, of x'] by auto
-      ultimately show ?thesis using  * one_step_implies_mult[of Y2 X2 s Z'] 2
-        by (force simp: add.commute[of "{#_#}"] add.assoc[symmetric] intro: add(1))
+      ultimately show ?thesis
+        using * one_step_implies_mult[of Y2 X2 s Z'] 2 add(3)
+        by (force simp: add.commute[of "{#_#}"] add.assoc[symmetric] intro: add(1)
+            elim: irrefl_on_subset)
     qed
   qed auto
 next
@@ -3348,28 +3353,43 @@ next
 qed
 
 lemma multp_cancel:
-  "transp R \<Longrightarrow> irreflp R \<Longrightarrow> multp R (X + Z) (Y + Z) \<longleftrightarrow> multp R X Y"
+  "transp R \<Longrightarrow> irreflp_on (set_mset Z) R \<Longrightarrow> multp R (X + Z) (Y + Z) \<longleftrightarrow> multp R X Y"
   by (rule mult_cancel[to_pred])
 
 lemma mult_cancel_add_mset:
-  "trans r \<Longrightarrow> irrefl r \<Longrightarrow> ((add_mset z X, add_mset z Y) \<in> mult r) = ((X, Y) \<in> mult r)"
-  by (rule mult_cancel[of _ _ "{#_#}", unfolded union_mset_add_mset_right add.comm_neutral])
+  "trans r \<Longrightarrow> irrefl_on {z} r \<Longrightarrow>
+    ((add_mset z X, add_mset z Y) \<in> mult r) = ((X, Y) \<in> mult r)"
+  by (rule mult_cancel[of _ "{#_#}", simplified])
 
 lemma multp_cancel_add_mset:
-  "transp R \<Longrightarrow> irreflp R \<Longrightarrow> multp R (add_mset z X) (add_mset z Y) = multp R X Y"
-  by (rule mult_cancel_add_mset[to_pred])
+  "transp R \<Longrightarrow> irreflp_on {z} R \<Longrightarrow> multp R (add_mset z X) (add_mset z Y) = multp R X Y"
+  by (rule mult_cancel_add_mset[to_pred, folded bot_set_def])
 
 lemma mult_cancel_max0:
-  assumes "trans s" and "irrefl s"
+  assumes "trans s" and "irrefl_on (set_mset X \<inter> set_mset Y) s"
   shows "(X, Y) \<in> mult s \<longleftrightarrow> (X - X \<inter># Y, Y - X \<inter># Y) \<in> mult s" (is "?L \<longleftrightarrow> ?R")
 proof -
-  have "X - X \<inter># Y + X \<inter># Y = X" "Y - X \<inter># Y + X \<inter># Y = Y" by (auto simp flip: count_inject)
-  thus ?thesis using mult_cancel[OF assms, of "X - X \<inter># Y"  "X \<inter># Y" "Y - X \<inter># Y"] by auto
+  have "(X - X \<inter># Y + X \<inter># Y, Y - X \<inter># Y + X \<inter># Y) \<in> mult s \<longleftrightarrow> (X - X \<inter># Y, Y - X \<inter># Y) \<in> mult s"
+  proof (rule mult_cancel)
+    from assms show "trans s"
+      by simp
+  next
+    from assms show "irrefl_on (set_mset (X \<inter># Y)) s"
+      by simp
+  qed
+  moreover have "X - X \<inter># Y + X \<inter># Y = X" "Y - X \<inter># Y + X \<inter># Y = Y"
+    by (auto simp flip: count_inject)
+  ultimately show ?thesis
+    by simp
 qed
 
-lemmas mult_cancel_max = mult_cancel_max0[simplified]
+lemma mult_cancel_max:
+  "trans r \<Longrightarrow> irrefl_on (set_mset X \<inter> set_mset Y) r \<Longrightarrow>
+    (X, Y) \<in> mult r \<longleftrightarrow> (X - Y, Y - X) \<in> mult r"
+  by (rule mult_cancel_max0[simplified])
 
-lemma multp_cancel_max: "transp R \<Longrightarrow> irreflp R \<Longrightarrow> multp R X Y = multp R (X - Y) (Y - X)"
+lemma multp_cancel_max:
+  "transp R \<Longrightarrow> irreflp_on (set_mset X \<inter> set_mset Y) R \<Longrightarrow> multp R X Y \<longleftrightarrow> multp R (X - Y) (Y - X)"
   by (rule mult_cancel_max[to_pred])
 
 
@@ -3493,7 +3513,8 @@ definition multeqp_code :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarro
     (\<forall>y \<in> set_mset Y. \<exists>x \<in> set_mset X. P y x))"
 
 lemma multp_code_iff_mult:
-  assumes "irrefl R" and "trans R" and [simp]: "\<And>x y. P x y \<longleftrightarrow> (x, y) \<in> R"
+  assumes "irrefl_on (set_mset N \<inter> set_mset M) R" and "trans R" and
+    [simp]: "\<And>x y. P x y \<longleftrightarrow> (x, y) \<in> R"
   shows "multp_code P N M \<longleftrightarrow> (N, M) \<in> mult R" (is "?L \<longleftrightarrow> ?R")
 proof -
   have *: "M \<inter># N + (N - M \<inter># N) = N" "M \<inter># N + (M - M \<inter># N) = M"
@@ -3508,18 +3529,33 @@ proof -
       then have "I = {#}" by (metis inter_union_distrib_right union_eq_empty)
     } note [dest!] = this
     assume ?R thus ?L
+      using mult_cancel_max
       using mult_implies_one_step[OF assms(2), of "N - M \<inter># N" "M - M \<inter># N"]
-        mult_cancel_max[OF assms(2,1), of "N" "M"] * by (auto simp: multp_code_def)
+        mult_cancel_max[OF assms(2,1)] * by (auto simp: multp_code_def)
   qed
 qed
 
-lemma multp_code_eq_multp: "irreflp r \<Longrightarrow> transp r \<Longrightarrow> multp_code r = multp r"
-  using multp_code_iff_mult[of "{(x, y). r x y}" r for r,
-    folded irreflp_irrefl_eq transp_trans multp_def, simplified]
-  by blast
+lemma multp_code_iff_multp:
+  "irreflp_on (set_mset M \<inter> set_mset N) R \<Longrightarrow> transp R \<Longrightarrow> multp_code R M N \<longleftrightarrow> multp R M N"
+  using multp_code_iff_mult[simplified, to_pred, of M N R R] by simp
+
+lemma multp_code_eq_multp:
+  assumes "irreflp R" and "transp R"
+  shows "multp_code R = multp R"
+proof (intro ext)
+  fix M N
+  show "multp_code R M N = multp R M N"
+  proof (rule multp_code_iff_multp)
+    from assms show "irreflp_on (set_mset M \<inter> set_mset N) R"
+      by (auto intro: irreflp_on_subset)
+  next
+    from assms show "transp R"
+      by simp
+  qed
+qed
 
 lemma multeqp_code_iff_reflcl_mult:
-  assumes "irrefl R" and "trans R" and "\<And>x y. P x y \<longleftrightarrow> (x, y) \<in> R"
+  assumes "irrefl_on (set_mset N \<inter> set_mset M) R" and "trans R" and "\<And>x y. P x y \<longleftrightarrow> (x, y) \<in> R"
   shows "multeqp_code P N M \<longleftrightarrow> (N, M) \<in> (mult R)\<^sup>="
 proof -
   { assume "N \<noteq> M" "M - M \<inter># N = {#}"
@@ -3529,13 +3565,28 @@ proof -
   }
   then have "multeqp_code P N M \<longleftrightarrow> multp_code P N M \<or> N = M"
     by (auto simp: multeqp_code_def multp_code_def Let_def in_diff_count)
-  thus ?thesis using multp_code_iff_mult[OF assms] by simp
+  thus ?thesis
+    using multp_code_iff_mult[OF assms] by simp
 qed
 
-lemma multeqp_code_eq_reflclp_multp: "irreflp r \<Longrightarrow> transp r \<Longrightarrow> multeqp_code r = (multp r)\<^sup>=\<^sup>="
-  using multeqp_code_iff_reflcl_mult[of "{(x, y). r x y}" r for r,
-    folded irreflp_irrefl_eq transp_trans, simplified, folded multp_def]
-  by blast
+lemma multeqp_code_iff_reflclp_multp:
+  "irreflp_on (set_mset M \<inter> set_mset N) R \<Longrightarrow> transp R \<Longrightarrow> multeqp_code R M N \<longleftrightarrow> (multp R)\<^sup>=\<^sup>= M N"
+  using multeqp_code_iff_reflcl_mult[simplified, to_pred, of M N R R] by simp
+
+lemma multeqp_code_eq_reflclp_multp:
+  assumes "irreflp R" and "transp R"
+  shows "multeqp_code R = (multp R)\<^sup>=\<^sup>="
+proof (intro ext)
+  fix M N
+  show "multeqp_code R M N \<longleftrightarrow> (multp R)\<^sup>=\<^sup>= M N"
+  proof (rule multeqp_code_iff_reflclp_multp)
+    from assms show "irreflp_on (set_mset M \<inter> set_mset N) R"
+      by (auto intro: irreflp_on_subset)
+  next
+    from assms show "transp R"
+      by simp
+  qed
+qed
 
 
 subsubsection \<open>Monotonicity of multiset union\<close>
