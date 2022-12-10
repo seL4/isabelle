@@ -66,7 +66,7 @@ object Parse {
     def document_source: Parser[String] = atom("document source", _.is_embedded)
 
     def opt_keyword(s: String): Parser[Boolean] =
-      ($$$("(") ~! $$$(s) ~ $$$(")")) ^^ { case _ => true } | success(false)
+      ($$$("(") ~! $$$(s) ~ $$$(")")) ^^ (_ => true) | success(false)
 
     def path: Parser[String] =
       atom("file name/path specification", tok => tok.is_embedded && Path.is_wellformed(tok.content))
@@ -85,7 +85,7 @@ object Parse {
 
     def marker: Parser[String] = token("marker", _.is_marker) ^^ (_.content)
 
-    def annotation: Parser[Unit] = rep(tag | marker) ^^ { case _ => () }
+    def annotation: Parser[Unit] = rep(tag | marker) ^^ (_ => ())
 
 
     /* wrappers */
@@ -100,4 +100,3 @@ object Parse {
     }
   }
 }
-
