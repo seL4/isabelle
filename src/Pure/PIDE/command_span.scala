@@ -38,10 +38,10 @@ object Command_Span {
       }
   }
 
-  object Load_Command_Default extends Load_Command("", Scala_Project.here)
+  object Load_Default extends Load_Command("", Scala_Project.here)
 
   lazy val load_commands: List[Load_Command] =
-    Load_Command_Default :: Isabelle_System.make_services(classOf[Load_Command])
+    Load_Default :: Isabelle_System.make_services(classOf[Load_Command])
 
 
   /* span kind */
