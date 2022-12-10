@@ -893,7 +893,6 @@ object Sessions {
   private val CHAPTER_DEFINITION = "chapter_definition"
   private val CHAPTER = "chapter"
   private val SESSION = "session"
-  private val IN = "in"
   private val DESCRIPTION = "description"
   private val DIRECTORIES = "directories"
   private val OPTIONS = "options"
@@ -906,8 +905,8 @@ object Sessions {
   private val EXPORT_CLASSPATH = "export_classpath"
 
   val root_syntax: Outer_Syntax =
-    Outer_Syntax.empty + "(" + ")" + "+" + "," + "=" + "[" + "]" +
-      GLOBAL + IN +
+    Outer_Syntax.empty + "(" + ")" + "+" + "," + "=" + "[" + "]" + "in" +
+      GLOBAL +
       (CHAPTER_DEFINITION, Keyword.THY_DECL) +
       (CHAPTER, Keyword.THY_DECL) +
       (SESSION, Keyword.THY_DECL) +
@@ -1007,19 +1006,17 @@ object Sessions {
           ((options | success(Nil)) ~ rep1(theory_entry)) ^^
           { case _ ~ (x ~ y) => (x, y) }
 
-      val in_path = $$$("(") ~! ($$$(IN) ~ path ~ $$$(")")) ^^ { case _ ~ (_ ~ x ~ _) => x }
-
       val document_theories =
         $$$(DOCUMENT_THEORIES) ~! rep1(position(name)) ^^ { case _ ~ x => x }
 
       val document_files =
-        $$$(DOCUMENT_FILES) ~!
-          ((in_path | success("document")) ~ rep1(path)) ^^ { case _ ~ (x ~ y) => y.map((x, _)) }
+        $$$(DOCUMENT_FILES) ~! (in_path_parens("document") ~ rep1(path)) ^^
+          { case _ ~ (x ~ y) => y.map((x, _)) }
 
       val prune = $$$("[") ~! (nat ~ $$$("]")) ^^ { case _ ~ (x ~ _) => x } | success(0)
 
       val export_files =
-        $$$(EXPORT_FILES) ~! ((in_path | success("export")) ~ prune ~ rep1(embedded)) ^^
+        $$$(EXPORT_FILES) ~! (in_path_parens("export") ~ prune ~ rep1(embedded)) ^^
           { case _ ~ (x ~ y ~ z) => (x, y, z) }
 
       val export_classpath =
@@ -1027,8 +1024,7 @@ object Sessions {
           { case _ ~ x => x }
 
       command(SESSION) ~!
-        (position(session_name) ~ groups ~
-          (($$$(IN) ~! path ^^ { case _ ~ x => x }) | success(".")) ~
+        (position(session_name) ~ groups ~ in_path(".") ~
           ($$$("=") ~!
             (opt(session_name ~! $$$("+") ^^ { case x ~ _ => x }) ~ description ~
               (($$$(OPTIONS) ~! options ^^ { case _ ~ x => x }) | success(Nil)) ~

@@ -31,22 +31,19 @@ val theory_entry = Parse.input Parse.theory_name --| Parse.opt_keyword "global";
 val theories =
   Parse.$$$ "theories" |-- Parse.!!! (Scan.optional Parse.options [] -- Scan.repeat1 theory_entry);
 
-val in_path =
-  Parse.$$$ "(" |-- Parse.!!! (Parse.$$$ "in" |-- Parse.path_input --| Parse.$$$ ")");
-
 val document_theories =
   Parse.$$$ "document_theories" |-- Scan.repeat1 (Parse.input Parse.theory_name);
 
 val document_files =
   Parse.$$$ "document_files" |--
-    Parse.!!! (Scan.optional in_path (Input.string "document") -- Scan.repeat1 Parse.path_input);
+    Parse.!!! (Parse.in_path_parens "document" -- Scan.repeat1 Parse.path_input);
 
 val prune =
   Scan.optional (Parse.$$$ "[" |-- Parse.!!! (Parse.nat --| Parse.$$$ "]")) 0;
 
 val export_files =
   Parse.$$$ "export_files" |--
-    Parse.!!! (Scan.optional in_path (Input.string "export") -- prune -- Scan.repeat1 Parse.embedded);
+    Parse.!!! (Parse.in_path_parens "export" -- prune -- Scan.repeat1 Parse.embedded);
 
 val export_classpath =
   Parse.$$$ "export_classpath" |-- Scan.repeat Parse.embedded;
@@ -68,8 +65,7 @@ val chapter_definition_parser =
       in () end));
 
 val session_parser =
-  Parse.session_name -- groups --
-  Scan.optional (Parse.$$$ "in" |-- Parse.!!! Parse.path_input) (Input.string ".") --
+  Parse.session_name -- groups -- Parse.in_path "." --
   (Parse.$$$ "=" |--
     Parse.!!! (Scan.option (Parse.session_name --| Parse.!!! (Parse.$$$ "+")) -- description --
       Scan.optional (Parse.$$$ "options" |-- Parse.!!! Parse.options) [] --
