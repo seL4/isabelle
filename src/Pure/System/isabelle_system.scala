@@ -175,11 +175,9 @@ object Isabelle_System {
   }
 
   def with_copy_dir[A](dir1: Path, dir2: Path)(body: => A): A = {
-    if (dir2.is_file || dir2.is_dir) error("Directory already exists: " + dir2.absolute)
-    else {
-      try { copy_dir(dir1, dir2); body }
-      finally { rm_tree(dir2) }
-    }
+    new_directory(dir2)
+    try { copy_dir(dir1, dir2, direct = true); body }
+    finally { rm_tree(dir2) }
   }
 
 
