@@ -169,7 +169,7 @@ object Isabelle_System {
     }
     val p1 = make_path(dir1)
     val p2 = make_path(dir2)
-    if (direct) make_directory(dir2)
+    make_directory(if (direct) dir2.absolute else dir2.absolute.dir)
     val res = bash("cp -a " + Bash.string(p1) + " " + Bash.string(p2))
     if (!res.ok) cat_error("Failed to copy " + quote(p1) + " to " + quote(p2), res.err)
   }
