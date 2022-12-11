@@ -100,4 +100,16 @@ object Url {
 
   def canonical_file(uri: String): JFile = File.canonical(parse_file(uri))
   def canonical_file_name(uri: String): String = canonical_file(uri).getPath
+
+
+  /* generic path notation: local, ssh, rsync, http */
+
+  def direct_path(prefix: String): String =
+    if (prefix.endsWith(":") || prefix.endsWith("/")) prefix + "."
+    else if (prefix.endsWith(":.") || prefix.endsWith("/.")) prefix
+    else prefix + "/."
+
+  def append_path(prefix: String, suffix: String): String =
+    if (prefix.endsWith(":") || prefix.endsWith("/")) prefix + suffix
+    else prefix + "/" + suffix
 }

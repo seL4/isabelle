@@ -64,7 +64,7 @@ object Sync {
 
     for (hg <- afp_hg) {
       context.progress.echo_if(verbose, "\n* AFP repository:")
-      sync(hg, Rsync.append(target, "AFP"), afp_rev)
+      sync(hg, Url.append_path(target, "AFP"), afp_rev)
     }
 
     val images =
@@ -72,8 +72,9 @@ object Sync {
         dirs = afp_root.map(_ + Path.explode("thys")).toList)
     if (images.nonEmpty) {
       context.progress.echo_if(verbose, "\n* Session images:")
+      val heaps = Url.append_path(target, "heaps/")
       Rsync.exec(context, verbose = verbose, thorough = thorough, dry_run = dry_run,
-        args = List("--relative", "--") ::: images ::: List(Rsync.append(target, "heaps/"))).check
+        args = List("--relative", "--") ::: images ::: List(heaps)).check
     }
   }
 

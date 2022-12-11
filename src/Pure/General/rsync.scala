@@ -58,13 +58,4 @@ object Rsync {
           List(if (contents.nonEmpty) "--archive" else "--dirs",
             File.bash_path(init_dir) + "/.", target)).check
     }
-
-  def direct(prefix: String): String =
-    if (prefix.endsWith(":") || prefix.endsWith("/")) prefix + "."
-    else if (prefix.endsWith(":.") || prefix.endsWith("/.")) prefix
-    else prefix + "/."
-
-  def append(prefix: String, suffix: String): String =
-    if (prefix.endsWith(":") || prefix.endsWith("/")) prefix + suffix
-    else prefix + "/" + suffix
 }
