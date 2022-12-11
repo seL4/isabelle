@@ -162,12 +162,14 @@ object Isabelle_System {
     if (path.is_dir) error("Directory already exists: " + path.absolute)
     else make_directory(path)
 
-  def copy_dir(dir1: Path, dir2: Path): Unit = {
+  def copy_dir(dir1: Path, dir2: Path, direct: Boolean = false): Unit = {
     def make_path(dir: Path): String = {
-      File.standard_path(dir.absolute)
+      val s = File.standard_path(dir.absolute)
+      if (direct) Url.direct_path(s) else s
     }
     val p1 = make_path(dir1)
     val p2 = make_path(dir2)
+    if (direct) make_directory(dir2)
     val res = bash("cp -a " + Bash.string(p1) + " " + Bash.string(p2))
     if (!res.ok) cat_error("Failed to copy " + quote(p1) + " to " + quote(p2), res.err)
   }
@@ -188,7 +190,7 @@ object Isabelle_System {
 
   object Copy_Dir extends Scala.Fun_Strings("copy_dir") {
     val here = Scala_Project.here
-    def apply(args: List[String]): List[String] = apply_paths2(args, copy_dir)
+    def apply(args: List[String]): List[String] = apply_paths2(args, copy_dir(_, _))
   }
 
 
