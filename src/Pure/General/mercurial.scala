@@ -309,7 +309,7 @@ object Mercurial {
         Rsync.init(context0, target)
 
         val list =
-          Rsync.exec(context0, list = true, args = List("--", Rsync.terminate(target)))
+          Rsync.exec(context0, list = true, args = List("--", Rsync.direct(target)))
             .check.out_lines.filterNot(_.endsWith(" ."))
         if (list.nonEmpty && !list.exists(_.endsWith(Hg_Sync._NAME))) {
           error("No .hg_sync meta data in " + quote(target))
@@ -355,7 +355,7 @@ object Mercurial {
           prune_empty_dirs = true,
           filter = protect ::: filter,
           args = List("--exclude-from=" + exclude_path.implode, "--",
-            Rsync.terminate(source), target)
+            Rsync.direct(source), target)
         ).check
       }
     }
