@@ -173,7 +173,7 @@ object Isabelle_System {
     if (dir2.is_file || dir2.is_dir) error("Directory already exists: " + dir2.absolute)
     else {
       try { copy_dir(dir1, dir2); body }
-      finally { rm_tree(dir2 ) }
+      finally { rm_tree(dir2) }
     }
   }
 
