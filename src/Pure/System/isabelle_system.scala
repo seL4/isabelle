@@ -217,7 +217,9 @@ object Isabelle_System {
   def copy_file_base(base_dir: Path, src: Path, target_dir: Path): Unit = {
     val src1 = src.expand
     val src1_dir = src1.dir
-    if (!src1.starts_basic) error("Illegal path specification " + src1 + " beyond base directory")
+    if (!src1.starts_basic) {
+      error("Illegal path specification " + src1 + " beyond base directory " + base_dir.absolute)
+    }
     copy_file(base_dir + src1, Isabelle_System.make_directory(target_dir + src1_dir))
   }
 
