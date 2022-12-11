@@ -104,15 +104,12 @@ object Url {
 
   /* generic path notation: local, ssh, rsync, ftp, http */
 
-  def direct_path(prefix: String): String =
-    if (prefix.endsWith(":") || prefix.endsWith("/") || prefix.isEmpty) prefix + "."
-    else if (prefix.endsWith(":.") || prefix.endsWith("/.") || prefix == ".") prefix
-    else prefix + "/."
-
   def append_path(prefix: String, suffix: String): String =
     if (prefix.endsWith(":") || prefix.endsWith("/") || prefix.isEmpty) prefix + suffix
     else if (prefix.endsWith(":.") || prefix.endsWith("/.") || prefix == ".") {
       prefix.substring(0, prefix.length - 1) + suffix
     }
     else prefix + "/" + suffix
+
+  def direct_path(prefix: String): String = append_path(prefix, ".")
 }
