@@ -163,10 +163,13 @@ object Isabelle_System {
     else make_directory(path)
 
   def copy_dir(dir1: Path, dir2: Path): Unit = {
-    val res = bash("cp -a " + File.bash_path(dir1) + " " + File.bash_path(dir2))
-    if (!res.ok) {
-      cat_error("Failed to copy directory " + dir1.absolute + " to " + dir2.absolute, res.err)
+    def make_path(dir: Path): String = {
+      File.standard_path(dir.absolute)
     }
+    val p1 = make_path(dir1)
+    val p2 = make_path(dir2)
+    val res = bash("cp -a " + Bash.string(p1) + " " + Bash.string(p2))
+    if (!res.ok) cat_error("Failed to copy " + quote(p1) + " to " + quote(p2), res.err)
   }
 
   def with_copy_dir[A](dir1: Path, dir2: Path)(body: => A): A = {
