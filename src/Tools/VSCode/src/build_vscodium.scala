@@ -66,9 +66,10 @@ object Build_VSCodium {
     def is_linux: Boolean = platform == Platform.Family.linux
 
     def download_name: String = "VSCodium-" + download_template.replace("{VERSION}", version)
+    def download_ext: String = if (download_template.endsWith(".zip")) "zip" else "tar.gz"
 
     def download(dir: Path, progress: Progress = new Progress): Unit = {
-      Isabelle_System.with_tmp_file("download") { download_file =>
+      Isabelle_System.with_tmp_file("download", ext = download_ext) { download_file =>
         Isabelle_System.download_file(vscodium_download + "/" + version + "/" + download_name,
           download_file, progress = progress)
 
