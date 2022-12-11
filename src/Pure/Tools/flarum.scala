@@ -17,9 +17,7 @@ object Flarum {
   def server(url: URL): Server = new Server(url)
 
   class Server private[Flarum](url: URL) extends JSON_API.Service(url) {
-    def get_api(route: String): JSON_API.Root =
-      get_root("api" + (if (route.isEmpty) "" else "/" + route))
-
+    def get_api(route: String): JSON_API.Root = get_root(Url.append_path("api", route))
     val root: JSON_API.Root = get_api("")
     def users: JSON_API.Root = get_api("users")
     def groups: JSON_API.Root = get_api("groups")

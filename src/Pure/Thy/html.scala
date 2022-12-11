@@ -429,10 +429,8 @@ object HTML {
       .mkString("", "\n\n", "\n")
   }
 
-  def fonts_css_dir(prefix: String = ""): String = {
-    val prefix1 = if (prefix.isEmpty || prefix.endsWith("/")) prefix else prefix + "/"
-    fonts_css(fonts_dir(prefix1 + fonts_path.implode))
-  }
+  def fonts_css_dir(prefix: String = ""): String =
+    fonts_css(fonts_dir(Url.append_path(prefix, fonts_path.implode)))
 
 
   /* document directory context (fonts + css) */
