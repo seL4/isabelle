@@ -379,9 +379,13 @@ object Sessions {
                       if (proper_session_theories.contains(name)) {
                         err("Redundant document theory from this session:")
                       }
-                      else if (build_hierarchy.contains(qualifier)) None
-                      else if (dependencies.theories.contains(name)) None
-                      else err("Document theory from other session not imported properly:")
+                      else if (
+                        !build_hierarchy.contains(qualifier) &&
+                        !dependencies.theories.contains(name)
+                      ) {
+                        err("Document theory from other session not imported properly:")
+                      }
+                      else None
                   }
               })
             val document_theories =
