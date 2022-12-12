@@ -165,13 +165,11 @@ object Document_Build {
 
     def documents: List[Document_Variant] = info.documents
 
-    def proper_session_theories: List[Document.Node.Name] = base.proper_session_theories
-
-    def document_theories: List[Document.Node.Name] =
-      proper_session_theories ::: base.document_theories
+    def session_document_theories: List[Document.Node.Name] = base.proper_session_theories
+    def all_document_theories: List[Document.Node.Name] = base.all_document_theories
 
     lazy val document_latex: List[File.Content_XML] =
-      for (name <- document_theories)
+      for (name <- all_document_theories)
       yield {
         val path = Path.basic(tex_name(name))
         val entry = session_context(name.theory, Export.DOCUMENT_LATEX, permissive = true)
@@ -189,7 +187,7 @@ object Document_Build {
       val path = Path.basic("session.tex")
       val content =
         Library.terminate_lines(
-          base.proper_session_theories.map(name => "\\input{" + tex_name(name) + "}"))
+          session_document_theories.map(name => "\\input{" + tex_name(name) + "}"))
       File.content(path, content)
     }
 

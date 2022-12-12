@@ -79,6 +79,9 @@ object Sessions {
         ", loaded_theories = " + loaded_theories.size +
         ", used_theories = " + used_theories.length + ")"
 
+    def all_document_theories: List[Document.Node.Name] =
+      proper_session_theories ::: document_theories
+
     def loaded_theory(name: String): Boolean = loaded_theories.defined(name)
     def loaded_theory(name: Document.Node.Name): Boolean = loaded_theory(name.theory)
 
