@@ -1089,21 +1089,32 @@ object Sessions {
     yield (select, dir.canonical)
   }
 
-  def load_structure(
-    options: Options,
-    dirs: List[Path] = Nil,
-    select_dirs: List[Path] = Nil,
-    infos: List[Info] = Nil
-  ): Structure = {
-    def load_dir(select: Boolean, dir: Path): List[(Boolean, Path)] =
-      load_root(select, dir) ::: load_roots(select, dir)
+  sealed case class Root_File(path: Path, select: Boolean) {
+    val key: JFile = path.canonical_file
+    def dir: Path = path.dir
 
-    def load_root(select: Boolean, dir: Path): List[(Boolean, Path)] = {
-      val root = dir + ROOT
-      if (root.is_file) List((select, root)) else Nil
+    def || (that: Root_File): Root_File = {
+      require(key == that.key)
+      val select1 = select || that.select
+      if (select1 == select) this else copy(select = select1)
     }
 
-    def load_roots(select: Boolean, dir: Path): List[(Boolean, Path)] = {
+    lazy val entries: List[Entry] = Parsers.parse_root(path)
+  }
+
+  def load_root_files(
+    dirs: List[Path] = Nil,
+    select_dirs: List[Path] = Nil
+  ): List[Root_File] = {
+    def load_dir(select: Boolean, dir: Path): List[Root_File] =
+      load_root(select, dir) ::: load_roots(select, dir)
+
+    def load_root(select: Boolean, dir: Path): List[Root_File] = {
+      val root = dir + ROOT
+      if (root.is_file) List(Root_File(root, select)) else Nil
+    }
+
+    def load_roots(select: Boolean, dir: Path): List[Root_File] = {
       val roots = dir + ROOTS
       if (roots.is_file) {
         for {
@@ -1120,42 +1131,48 @@ object Sessions {
       else Nil
     }
 
-    val raw_roots: List[(Boolean, Path)] =
+    val raw_roots: List[Root_File] =
       for {
         (select, dir) <- directories(dirs, select_dirs)
-        res <- load_dir(select, check_session_dir(dir))
-      } yield res
+        root <- load_dir(select, check_session_dir(dir))
+      } yield root
 
-    val unique_roots: List[(Boolean, Path, List[Entry])] =
-      raw_roots.foldLeft(Map.empty[JFile, (Boolean, Path, List[Entry])]) {
-        case (m, (select, path)) =>
-          val file = path.canonical_file
-          m.get(file) match {
-            case None =>
-              val entries = parse_root(path)
-              m + (file -> (select, path.dir, entries))
-            case Some((select1, dir1, entries1)) =>
-              m + (file -> (select1 || select, dir1, entries1))
-          }
-      }.valuesIterator.toList
+    var next_root = 0
+    var seen_roots = Map.empty[JFile, (Root_File, Int)]
+    for (root <- raw_roots) {
+      seen_roots.get(root.key) match {
+        case None =>
+          seen_roots += (root.key -> (root, next_root))
+          next_root += 1
+        case Some((root1, next1)) =>
+          seen_roots += (root.key -> (root || root1, next1))
+      }
+    }
+    seen_roots.valuesIterator.toList.sortBy(_._2).map(_._1)
+  }
 
+  def make_structure(
+    options: Options,
+    roots: List[Root_File] = Nil,
+    infos: List[Info] = Nil
+  ): Structure = {
     val chapter_defs: Chapter_Defs =
-      unique_roots.foldLeft(Chapter_Defs.empty) {
-        case (defs1, (_, _, entries)) =>
-          entries.foldLeft(defs1) {
-            case ((defs2, entry: Chapter_Def)) => defs2 + entry
-            case ((defs2, _)) => defs2
+      roots.foldLeft(Chapter_Defs.empty) {
+        case (defs1, root) =>
+          root.entries.foldLeft(defs1) {
+            case (defs2, entry: Chapter_Def) => defs2 + entry
+            case (defs2, _) => defs2
           }
       }
 
     val info_roots = {
       var chapter = UNSORTED
       val info_roots = new mutable.ListBuffer[Info]
-      for ((select, dir, entries) <- unique_roots) {
-        entries.foreach {
+      for (root <- roots) {
+        root.entries.foreach {
           case entry: Chapter_Entry => chapter = entry.name
           case entry: Session_Entry =>
-            info_roots += make_info(chapter_defs, options, select, dir, chapter, entry)
+            info_roots += make_info(chapter_defs, options, root.select, root.dir, chapter, entry)
           case _ =>
         }
         chapter = UNSORTED
@@ -1164,6 +1181,16 @@ object Sessions {
     }
 
     Structure.make(chapter_defs, info_roots ::: infos)
+  }
+
+  def load_structure(
+    options: Options,
+    dirs: List[Path] = Nil,
+    select_dirs: List[Path] = Nil,
+    infos: List[Info] = Nil
+  ): Structure = {
+    val roots = load_root_files(dirs = dirs, select_dirs = select_dirs)
+    make_structure(options, roots = roots, infos = infos)
   }
 
 
