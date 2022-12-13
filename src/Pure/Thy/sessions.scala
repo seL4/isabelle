@@ -688,17 +688,17 @@ object Sessions {
 
       val root_infos = {
         var chapter = UNSORTED
-        val info_roots = new mutable.ListBuffer[Info]
+        val root_infos = new mutable.ListBuffer[Info]
         for (root <- roots) {
           root.entries.foreach {
             case entry: Chapter_Entry => chapter = entry.name
             case entry: Session_Entry =>
-              info_roots += Info.make(chapter_defs, options, root.select, root.dir, chapter, entry)
+              root_infos += Info.make(chapter_defs, options, root.select, root.dir, chapter, entry)
             case _ =>
           }
           chapter = UNSORTED
         }
-        info_roots.toList
+        root_infos.toList
       }
 
       val info_graph =
