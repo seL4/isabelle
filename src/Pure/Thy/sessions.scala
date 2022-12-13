@@ -670,8 +670,8 @@ object Sessions {
   object Structure {
     val empty: Structure = make(Chapter_Defs.empty, Nil)
 
-    def make(chapter_defs: Chapter_Defs, infos: List[Info]): Structure = {
-      def add_edges(
+    def make(chapter_defs: Chapter_Defs, all_infos: List[Info]): Structure = {
+      def augment_graph(
         graph: Graph[String, Info],
         kind: String,
         edges: Info => Iterable[String]
@@ -697,7 +697,7 @@ object Sessions {
       }
 
       val info_graph =
-        infos.foldLeft(Graph.string[Info]) {
+        all_infos.foldLeft(Graph.string[Info]) {
           case (graph, info) =>
             if (graph.defined(info.name)) {
               error("Duplicate session " + quote(info.name) + Position.here(info.pos) +
@@ -705,8 +705,8 @@ object Sessions {
             }
             else graph.new_node(info.name, info)
         }
-      val build_graph = add_edges(info_graph, "parent", _.parent)
-      val imports_graph = add_edges(build_graph, "imports", _.imports)
+      val build_graph = augment_graph(info_graph, "parent", _.parent)
+      val imports_graph = augment_graph(build_graph, "imports", _.imports)
 
       val session_positions: List[(String, Position.T)] =
         (for ((name, (info, _)) <- info_graph.iterator) yield (name, info.pos)).toList
@@ -735,7 +735,8 @@ object Sessions {
           session <- imports_graph.topological_order.iterator
           info = info_graph.get_node(session)
           thy <- info.global_theories.iterator }
-          yield (info, thy)).foldLeft(Thy_Header.bootstrap_global_theories.toMap) {
+          yield (info, thy)
+        ).foldLeft(Thy_Header.bootstrap_global_theories.toMap) {
             case (global, (info, thy)) =>
               val qualifier = info.name
               global.get(thy) match {
@@ -1165,7 +1166,7 @@ object Sessions {
           }
       }
 
-    val info_roots = {
+    val root_infos = {
       var chapter = UNSORTED
       val info_roots = new mutable.ListBuffer[Info]
       for (root <- roots) {
@@ -1180,7 +1181,7 @@ object Sessions {
       info_roots.toList
     }
 
-    Structure.make(chapter_defs, info_roots ::: infos)
+    Structure.make(chapter_defs, root_infos ::: infos)
   }
 
   def load_structure(
