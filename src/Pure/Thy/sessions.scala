@@ -1176,8 +1176,8 @@ object Sessions {
         case None =>
           seen_roots += (root.key -> (root, next_root))
           next_root += 1
-        case Some((root1, next1)) =>
-          seen_roots += (root.key -> (root || root1, next1))
+        case Some((root0, next0)) =>
+          seen_roots += (root0.key -> (root0 || root, next0))
       }
     }
     seen_roots.valuesIterator.toList.sortBy(_._2).map(_._1)
