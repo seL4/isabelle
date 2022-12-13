@@ -158,7 +158,7 @@ object Sessions {
 
           (other_name,
             List(
-              make_info(
+              Info.make(
                 Chapter_Defs.empty,
                 info.options,
                 dir_selected = false,
@@ -476,6 +476,81 @@ object Sessions {
     sessions: List[String]
   )
 
+  object Info {
+    def make(
+      chapter_defs: Chapter_Defs,
+      options: Options,
+      dir_selected: Boolean,
+      dir: Path,
+      chapter: String,
+      entry: Session_Entry
+    ): Info = {
+      try {
+        val name = entry.name
+
+        if (illegal_session(name)) error("Illegal session name " + quote(name))
+        if (is_pure(name) && entry.parent.isDefined) error("Illegal parent session")
+        if (!is_pure(name) && !entry.parent.isDefined) error("Missing parent session")
+
+        val session_path = dir + Path.explode(entry.path)
+        val directories = entry.directories.map(dir => session_path + Path.explode(dir))
+
+        val session_options = options ++ entry.options
+
+        val theories =
+          entry.theories.map({ case (opts, thys) =>
+            (session_options ++ opts,
+              thys.map({ case ((thy, pos), _) =>
+                val thy_name = Thy_Header.import_name(thy)
+                if (illegal_theory(thy_name)) {
+                  error("Illegal theory name " + quote(thy_name) + Position.here(pos))
+                }
+                else (thy, pos) })) })
+
+        val global_theories =
+          for { (_, thys) <- entry.theories; ((thy, pos), global) <- thys if global }
+          yield {
+            val thy_name = Path.explode(thy).file_name
+            if (Long_Name.is_qualified(thy_name)) {
+              error("Bad qualified name for global theory " +
+                quote(thy_name) + Position.here(pos))
+            }
+            else thy_name
+          }
+
+        val conditions =
+          theories.flatMap(thys => space_explode(',', thys._1.string("condition"))).distinct.sorted.
+            map(x => (x, Isabelle_System.getenv(x) != ""))
+
+        val document_files =
+          entry.document_files.map({ case (s1, s2) => (Path.explode(s1), Path.explode(s2)) })
+
+        val export_files =
+          entry.export_files.map({ case (dir, prune, pats) => (Path.explode(dir), prune, pats) })
+
+        val meta_digest =
+          SHA1.digest(
+            (name, chapter, entry.parent, entry.directories, entry.options, entry.imports,
+              entry.theories_no_position, conditions, entry.document_theories_no_position,
+              entry.document_files)
+            .toString)
+
+        val chapter_groups = chapter_defs(chapter).groups
+        val groups = chapter_groups ::: entry.groups.filterNot(chapter_groups.contains)
+
+        Info(name, chapter, dir_selected, entry.pos, groups, session_path,
+          entry.parent, entry.description, directories, session_options,
+          entry.imports, theories, global_theories, entry.document_theories, document_files,
+          export_files, entry.export_classpath, meta_digest)
+      }
+      catch {
+        case ERROR(msg) =>
+          error(msg + "\nThe error(s) above occurred in session entry " +
+            quote(entry.name) + Position.here(entry.pos))
+      }
+    }
+  }
+
   sealed case class Info(
     name: String,
     chapter: String,
@@ -568,79 +643,6 @@ object Sessions {
     def is_afp_bulky: Boolean = is_afp && groups.exists(AFP.groups_bulky.contains)
   }
 
-  def make_info(
-    chapter_defs: Chapter_Defs,
-    options: Options,
-    dir_selected: Boolean,
-    dir: Path,
-    chapter: String,
-    entry: Session_Entry
-  ): Info = {
-    try {
-      val name = entry.name
-
-      if (illegal_session(name)) error("Illegal session name " + quote(name))
-      if (is_pure(name) && entry.parent.isDefined) error("Illegal parent session")
-      if (!is_pure(name) && !entry.parent.isDefined) error("Missing parent session")
-
-      val session_path = dir + Path.explode(entry.path)
-      val directories = entry.directories.map(dir => session_path + Path.explode(dir))
-
-      val session_options = options ++ entry.options
-
-      val theories =
-        entry.theories.map({ case (opts, thys) =>
-          (session_options ++ opts,
-            thys.map({ case ((thy, pos), _) =>
-              val thy_name = Thy_Header.import_name(thy)
-              if (illegal_theory(thy_name)) {
-                error("Illegal theory name " + quote(thy_name) + Position.here(pos))
-              }
-              else (thy, pos) })) })
-
-      val global_theories =
-        for { (_, thys) <- entry.theories; ((thy, pos), global) <- thys if global }
-        yield {
-          val thy_name = Path.explode(thy).file_name
-          if (Long_Name.is_qualified(thy_name)) {
-            error("Bad qualified name for global theory " +
-              quote(thy_name) + Position.here(pos))
-          }
-          else thy_name
-        }
-
-      val conditions =
-        theories.flatMap(thys => space_explode(',', thys._1.string("condition"))).distinct.sorted.
-          map(x => (x, Isabelle_System.getenv(x) != ""))
-
-      val document_files =
-        entry.document_files.map({ case (s1, s2) => (Path.explode(s1), Path.explode(s2)) })
-
-      val export_files =
-        entry.export_files.map({ case (dir, prune, pats) => (Path.explode(dir), prune, pats) })
-
-      val meta_digest =
-        SHA1.digest(
-          (name, chapter, entry.parent, entry.directories, entry.options, entry.imports,
-            entry.theories_no_position, conditions, entry.document_theories_no_position,
-            entry.document_files)
-          .toString)
-
-      val chapter_groups = chapter_defs(chapter).groups
-      val groups = chapter_groups ::: entry.groups.filterNot(chapter_groups.contains)
-
-      Info(name, chapter, dir_selected, entry.pos, groups, session_path,
-        entry.parent, entry.description, directories, session_options,
-        entry.imports, theories, global_theories, entry.document_theories, document_files,
-        export_files, entry.export_classpath, meta_digest)
-    }
-    catch {
-      case ERROR(msg) =>
-        error(msg + "\nThe error(s) above occurred in session entry " +
-          quote(entry.name) + Position.here(entry.pos))
-    }
-  }
-
   object Selection {
     val empty: Selection = Selection()
     val all: Selection = Selection(all_sessions = true)
@@ -691,7 +693,7 @@ object Sessions {
           root.entries.foreach {
             case entry: Chapter_Entry => chapter = entry.name
             case entry: Session_Entry =>
-              info_roots += make_info(chapter_defs, options, root.select, root.dir, chapter, entry)
+              info_roots += Info.make(chapter_defs, options, root.select, root.dir, chapter, entry)
             case _ =>
           }
           chapter = UNSORTED
