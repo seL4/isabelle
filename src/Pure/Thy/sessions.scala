@@ -668,9 +668,47 @@ object Sessions {
   }
 
   object Structure {
-    val empty: Structure = make(Chapter_Defs.empty, Nil)
+    val empty: Structure = make(Options.empty)
 
-    def make(chapter_defs: Chapter_Defs, all_infos: List[Info]): Structure = {
+    def make(
+      options: Options,
+      roots: List[Root_File] = Nil,
+      infos: List[Info] = Nil
+    ): Structure = {
+      val chapter_defs: Chapter_Defs =
+        roots.foldLeft(Chapter_Defs.empty) {
+          case (defs1, root) =>
+            root.entries.foldLeft(defs1) {
+              case (defs2, entry: Chapter_Def) => defs2 + entry
+              case (defs2, _) => defs2
+            }
+        }
+
+      val root_infos = {
+        var chapter = UNSORTED
+        val info_roots = new mutable.ListBuffer[Info]
+        for (root <- roots) {
+          root.entries.foreach {
+            case entry: Chapter_Entry => chapter = entry.name
+            case entry: Session_Entry =>
+              info_roots += make_info(chapter_defs, options, root.select, root.dir, chapter, entry)
+            case _ =>
+          }
+          chapter = UNSORTED
+        }
+        info_roots.toList
+      }
+
+      val info_graph =
+        (root_infos ::: infos).foldLeft(Graph.string[Info]) {
+          case (graph, info) =>
+            if (graph.defined(info.name)) {
+              error("Duplicate session " + quote(info.name) + Position.here(info.pos) +
+                Position.here(graph.get_node(info.name).pos))
+            }
+            else graph.new_node(info.name, info)
+        }
+
       def augment_graph(
         graph: Graph[String, Info],
         kind: String,
@@ -696,15 +734,6 @@ object Sessions {
         }
       }
 
-      val info_graph =
-        all_infos.foldLeft(Graph.string[Info]) {
-          case (graph, info) =>
-            if (graph.defined(info.name)) {
-              error("Duplicate session " + quote(info.name) + Position.here(info.pos) +
-                Position.here(graph.get_node(info.name).pos))
-            }
-            else graph.new_node(info.name, info)
-        }
       val build_graph = augment_graph(info_graph, "parent", _.parent)
       val imports_graph = augment_graph(build_graph, "imports", _.imports)
 
@@ -1152,38 +1181,6 @@ object Sessions {
     seen_roots.valuesIterator.toList.sortBy(_._2).map(_._1)
   }
 
-  def make_structure(
-    options: Options,
-    roots: List[Root_File] = Nil,
-    infos: List[Info] = Nil
-  ): Structure = {
-    val chapter_defs: Chapter_Defs =
-      roots.foldLeft(Chapter_Defs.empty) {
-        case (defs1, root) =>
-          root.entries.foldLeft(defs1) {
-            case (defs2, entry: Chapter_Def) => defs2 + entry
-            case (defs2, _) => defs2
-          }
-      }
-
-    val root_infos = {
-      var chapter = UNSORTED
-      val info_roots = new mutable.ListBuffer[Info]
-      for (root <- roots) {
-        root.entries.foreach {
-          case entry: Chapter_Entry => chapter = entry.name
-          case entry: Session_Entry =>
-            info_roots += make_info(chapter_defs, options, root.select, root.dir, chapter, entry)
-          case _ =>
-        }
-        chapter = UNSORTED
-      }
-      info_roots.toList
-    }
-
-    Structure.make(chapter_defs, root_infos ::: infos)
-  }
-
   def load_structure(
     options: Options,
     dirs: List[Path] = Nil,
@@ -1191,7 +1188,7 @@ object Sessions {
     infos: List[Info] = Nil
   ): Structure = {
     val roots = load_root_files(dirs = dirs, select_dirs = select_dirs)
-    make_structure(options, roots = roots, infos = infos)
+    Structure.make(options, roots = roots, infos = infos)
   }
 
 
