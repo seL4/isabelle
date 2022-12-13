@@ -1125,12 +1125,6 @@ object Sessions {
     val key: JFile = path.canonical_file
     def dir: Path = path.dir
 
-    def || (that: Root_File): Root_File = {
-      require(key == that.key)
-      val select1 = select || that.select
-      if (select1 == select) this else copy(select = select1)
-    }
-
     lazy val entries: List[Entry] = Parsers.parse_root(path)
   }
 
@@ -1177,7 +1171,8 @@ object Sessions {
           seen_roots += (root.key -> (root, next_root))
           next_root += 1
         case Some((root0, next0)) =>
-          seen_roots += (root0.key -> (root0 || root, next0))
+          val root1 = root0.copy(select = root0.select || root.select)
+          seen_roots += (root0.key -> (root1, next0))
       }
     }
     seen_roots.valuesIterator.toList.sortBy(_._2).map(_._1)
