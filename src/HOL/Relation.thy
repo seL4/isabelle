@@ -517,11 +517,11 @@ lemma (in preorder) antisymp_less[simp]: "antisymp (<)"
 lemma (in preorder) antisymp_greater[simp]: "antisymp (>)"
   by (rule antisymp_if_asymp[OF asymp_greater])
 
-lemma (in order) antisymp_le[simp]: "antisymp (\<le>)"
-  by (simp add: antisympI)
+lemma (in order) antisymp_on_le[simp]: "antisymp_on A (\<le>)"
+  by (simp add: antisymp_onI)
 
-lemma (in order) antisymp_ge[simp]: "antisymp (\<ge>)"
-  by (simp add: antisympI)
+lemma (in order) antisymp_on_ge[simp]: "antisymp_on A (\<ge>)"
+  by (simp add: antisymp_onI)
 
 
 subsubsection \<open>Transitivity\<close>

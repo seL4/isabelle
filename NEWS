@@ -35,6 +35,8 @@ with demo documents in the regular Isabelle "doc" space:
     explicitly provided for backward compatibility but their usage is
     discouraged. Minor INCOMPATIBILITY.
   - Strengthened (and renamed) lemmas. Minor INCOMPATIBILITY.
+      order.antisymp_ge[simp] ~> order.antisymp_on_ge[simp]
+      order.antisymp_le[simp] ~> order.antisymp_on_le[simp]
       preorder.irreflp_greater[simp] ~> preorder.irreflp_on_greater[simp]
       preorder.irreflp_less[simp] ~> preorder.irreflp_on_less[simp]
       reflp_equality[simp] ~> reflp_on_equality[simp]
