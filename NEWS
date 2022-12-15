@@ -41,8 +41,10 @@ with demo documents in the regular Isabelle "doc" space:
       total_on_singleton
   - Added lemmas.
       antisym_if_asymp
+      antisym_onD
       antisym_onI
       antisymp_if_asymp
+      antisymp_onD
       antisymp_onI
       antisymp_on_antisym_on_eq[pred_set_conv]
       asym_if_irrefl_and_trans

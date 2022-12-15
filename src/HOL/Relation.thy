@@ -465,13 +465,21 @@ lemma antisympI [intro?]:
   "(\<And>x y. R x y \<Longrightarrow> R y x \<Longrightarrow> x = y) \<Longrightarrow> antisymp R"
   by (rule antisymI[to_pred])
     
+lemma antisym_onD:
+  "antisym_on A r \<Longrightarrow> x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> (x, y) \<in> r \<Longrightarrow> (y, x) \<in> r \<Longrightarrow> x = y"
+  by (simp add: antisym_on_def)
+
 lemma antisymD [dest?]:
-  "antisym r \<Longrightarrow> (a, b) \<in> r \<Longrightarrow> (b, a) \<in> r \<Longrightarrow> a = b"
-  unfolding antisym_def by iprover
+  "antisym r \<Longrightarrow> (x, y) \<in> r \<Longrightarrow> (y, x) \<in> r \<Longrightarrow> x = y"
+  by (simp add: antisym_onD)
+
+lemma antisymp_onD:
+  "antisymp_on A R \<Longrightarrow> x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> R x y \<Longrightarrow> R y x \<Longrightarrow> x = y"
+  by (rule antisym_onD[to_pred])
 
 lemma antisympD [dest?]:
-  "antisymp r \<Longrightarrow> r a b \<Longrightarrow> r b a \<Longrightarrow> a = b"
-  by (fact antisymD [to_pred])
+  "antisymp R \<Longrightarrow> R x y \<Longrightarrow> R y x \<Longrightarrow> x = y"
+  by (rule antisymD[to_pred])
 
 lemma antisym_subset:
   "r \<subseteq> s \<Longrightarrow> antisym s \<Longrightarrow> antisym r"
