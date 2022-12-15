@@ -447,7 +447,13 @@ lemma antisymp_on_antisym_on_eq[pred_set_conv]:
   "antisymp_on A (\<lambda>x y. (x, y) \<in> r) \<longleftrightarrow> antisym_on A r"
   by (simp add: antisym_on_def antisymp_on_def)
 
-lemmas antisymp_antisym_eq = antisymp_on_antisym_on_eq[of UNIV]
+lemmas antisymp_antisym_eq = antisymp_on_antisym_on_eq[of UNIV] \<comment> \<open>For backward compatibility\<close>
+
+lemma antisym_on_subset: "antisym_on A r \<Longrightarrow> B \<subseteq> A \<Longrightarrow> antisym_on B r"
+  by (auto simp: antisym_on_def)
+
+lemma antisymp_on_subset: "antisymp_on A R \<Longrightarrow> B \<subseteq> A \<Longrightarrow> antisymp_on B R"
+  by (auto simp: antisymp_on_def)
 
 lemma antisym_onI:
   "(\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> (x, y) \<in> r \<Longrightarrow> (y, x) \<in> r \<Longrightarrow> x = y) \<Longrightarrow> antisym_on A r"
