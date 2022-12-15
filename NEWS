@@ -42,6 +42,7 @@ with demo documents in the regular Isabelle "doc" space:
   - Added lemmas.
       antisym_if_asymp
       antisymp_if_asymp
+      antisymp_on_antisym_on_eq[pred_set_conv]
       asym_if_irrefl_and_trans
       asymp_if_irreflp_and_transp
       irreflD

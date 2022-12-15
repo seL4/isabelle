@@ -443,8 +443,11 @@ lemma antisymp_def[no_atp]: "antisymp R \<longleftrightarrow> (\<forall>x y. R x
 
 text \<open>@{thm [source] antisym_def} and @{thm [source] antisymp_def} are for backward compatibility.\<close>
 
-lemma antisymp_antisym_eq [pred_set_conv]: "antisymp (\<lambda>x y. (x, y) \<in> r) \<longleftrightarrow> antisym r"
-  by (simp add: antisym_def antisymp_def)
+lemma antisymp_on_antisym_on_eq[pred_set_conv]:
+  "antisymp_on A (\<lambda>x y. (x, y) \<in> r) \<longleftrightarrow> antisym_on A r"
+  by (simp add: antisym_on_def antisymp_on_def)
+
+lemmas antisymp_antisym_eq = antisymp_on_antisym_on_eq[of UNIV]
 
 lemma antisymI [intro?]:
   "(\<And>x y. (x, y) \<in> r \<Longrightarrow> (y, x) \<in> r \<Longrightarrow> x = y) \<Longrightarrow> antisym r"
