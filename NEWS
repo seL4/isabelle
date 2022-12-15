@@ -72,9 +72,11 @@ with demo documents in the regular Isabelle "doc" space:
       totalp_on_singleton[simp]
 
 * Theory "HOL.Transitive_Closure":
-  - Strengthened lemma reflp_rtranclp and renamed to reflp_on_rtranclp.
-    Minor INCOMPATIBILITY.
+  - Strengthened (and renamed) lemmas. Minor INCOMPATIBILITY.
+      antisym_reflcl[simp] ~> antisym_on_reflcl[simp]
+      reflp_rtranclp[simp] ~> reflp_on_rtranclp[simp]
   - Added lemmas.
+      antisymp_on_reflcp[simp]
       reflclp_ident_if_reflp[simp]
       reflp_on_reflclp[simp]
       transp_reflclp[simp]

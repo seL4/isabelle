@@ -67,14 +67,20 @@ notation (ASCII)
 
 subsection \<open>Reflexive closure\<close>
 
+lemma reflcl_set_eq [pred_set_conv]: "(sup (\<lambda>x y. (x, y) \<in> r) (=)) = (\<lambda>x y. (x, y) \<in> r \<union> Id)"
+  by (auto simp: fun_eq_iff)
+
 lemma refl_reflcl[simp]: "refl (r\<^sup>=)"
   by (simp add: refl_on_def)
 
 lemma reflp_on_reflclp[simp]: "reflp_on A R\<^sup>=\<^sup>="
   by (simp add: reflp_on_def)
 
-lemma antisym_reflcl[simp]: "antisym (r\<^sup>=) = antisym r"
-  by (simp add: antisym_def)
+lemma antisym_on_reflcl[simp]: "antisym_on A (r\<^sup>=) \<longleftrightarrow> antisym_on A r"
+  by (simp add: antisym_on_def)
+
+lemma antisymp_on_reflcp[simp]: "antisymp_on A R\<^sup>=\<^sup>= \<longleftrightarrow> antisymp_on A R"
+  by (rule antisym_on_reflcl[to_pred])
 
 lemma trans_reflclI[simp]: "trans r \<Longrightarrow> trans (r\<^sup>=)"
   unfolding trans_def by blast
@@ -90,9 +96,6 @@ lemma reflclp_ident_if_reflp[simp]: "reflp R \<Longrightarrow> R\<^sup>=\<^sup>=
 
 
 subsection \<open>Reflexive-transitive closure\<close>
-
-lemma reflcl_set_eq [pred_set_conv]: "(sup (\<lambda>x y. (x, y) \<in> r) (=)) = (\<lambda>x y. (x, y) \<in> r \<union> Id)"
-  by (auto simp: fun_eq_iff)
 
 lemma r_into_rtrancl [intro]: "\<And>p. p \<in> r \<Longrightarrow> p \<in> r\<^sup>*"
   \<comment> \<open>\<open>rtrancl\<close> of \<open>r\<close> contains \<open>r\<close>\<close>
