@@ -423,11 +423,25 @@ lemma symp_SUP: "\<forall>x\<in>S. symp (r x) \<Longrightarrow> symp (\<Squnion>
 
 subsubsection \<open>Antisymmetry\<close>
 
-definition antisym :: "'a rel \<Rightarrow> bool"
-  where "antisym r \<longleftrightarrow> (\<forall>x y. (x, y) \<in> r \<longrightarrow> (y, x) \<in> r \<longrightarrow> x = y)"
+definition antisym_on :: "'a set \<Rightarrow> 'a rel \<Rightarrow> bool" where
+  "antisym_on A r \<longleftrightarrow> (\<forall>x \<in> A. \<forall>y \<in> A. (x, y) \<in> r \<longrightarrow> (y, x) \<in> r \<longrightarrow> x = y)"
 
-definition antisymp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool"
-  where "antisymp r \<longleftrightarrow> (\<forall>x y. r x y \<longrightarrow> r y x \<longrightarrow> x = y)"
+abbreviation antisym :: "'a rel \<Rightarrow> bool" where
+  "antisym \<equiv> antisym_on UNIV"
+
+definition antisymp_on :: "'a set \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
+  "antisymp_on A R \<longleftrightarrow> (\<forall>x \<in> A. \<forall>y \<in> A. R x y \<longrightarrow> R y x \<longrightarrow> x = y)"
+
+abbreviation antisymp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
+  "antisymp \<equiv> antisymp_on UNIV"
+
+lemma antisym_def[no_atp]: "antisym r \<longleftrightarrow> (\<forall>x y. (x, y) \<in> r \<longrightarrow> (y, x) \<in> r \<longrightarrow> x = y)"
+  by (simp add: antisym_on_def)
+
+lemma antisymp_def[no_atp]: "antisymp R \<longleftrightarrow> (\<forall>x y. R x y \<longrightarrow> R y x \<longrightarrow> x = y)"
+  by (simp add: antisymp_on_def)
+
+text \<open>@{thm [source] antisym_def} and @{thm [source] antisymp_def} are for backward compatibility.\<close>
 
 lemma antisymp_antisym_eq [pred_set_conv]: "antisymp (\<lambda>x y. (x, y) \<in> r) \<longleftrightarrow> antisym r"
   by (simp add: antisym_def antisymp_def)
