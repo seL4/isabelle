@@ -449,13 +449,21 @@ lemma antisymp_on_antisym_on_eq[pred_set_conv]:
 
 lemmas antisymp_antisym_eq = antisymp_on_antisym_on_eq[of UNIV]
 
+lemma antisym_onI:
+  "(\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> (x, y) \<in> r \<Longrightarrow> (y, x) \<in> r \<Longrightarrow> x = y) \<Longrightarrow> antisym_on A r"
+  unfolding antisym_on_def by simp
+
 lemma antisymI [intro?]:
   "(\<And>x y. (x, y) \<in> r \<Longrightarrow> (y, x) \<in> r \<Longrightarrow> x = y) \<Longrightarrow> antisym r"
-  unfolding antisym_def by iprover
+  by (simp add: antisym_onI)
+
+lemma antisymp_onI:
+  "(\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> R x y \<Longrightarrow> R y x \<Longrightarrow> x = y) \<Longrightarrow> antisymp_on A R"
+  by (rule antisym_onI[to_pred])
 
 lemma antisympI [intro?]:
-  "(\<And>x y. r x y \<Longrightarrow> r y x \<Longrightarrow> x = y) \<Longrightarrow> antisymp r"
-  by (fact antisymI [to_pred])
+  "(\<And>x y. R x y \<Longrightarrow> R y x \<Longrightarrow> x = y) \<Longrightarrow> antisymp R"
+  by (rule antisymI[to_pred])
     
 lemma antisymD [dest?]:
   "antisym r \<Longrightarrow> (a, b) \<in> r \<Longrightarrow> (b, a) \<in> r \<Longrightarrow> a = b"
