@@ -101,7 +101,7 @@ object Sessions {
       nodes(name).syntax orElse loaded_theory_syntax(name) getOrElse overall_syntax
   }
 
-  sealed case class Base_Info(
+  sealed case class Background(
     base: Base,
     sessions_structure: Structure = Structure.empty,
     errors: List[String] = Nil,
@@ -109,22 +109,22 @@ object Sessions {
   ) {
     def session_name: String = base.session_name
 
-    def check_errors: Base_Info =
+    def check_errors: Background =
       if (errors.isEmpty) this
       else error(cat_lines(errors))
   }
 
-  def base_info0(session: String): Base_Info =
-    Base_Info(Base(session_name = session))
+  def background0(session: String): Background =
+    Background(Base(session_name = session))
 
-  def base_info(options: Options,
+  def background(options: Options,
     session: String,
     progress: Progress = new Progress,
     dirs: List[Path] = Nil,
     include_sessions: List[String] = Nil,
     session_ancestor: Option[String] = None,
     session_requirements: Boolean = false
-  ): Base_Info = {
+  ): Background = {
     val full_sessions = load_structure(options, dirs = dirs)
 
     val selected_sessions =
@@ -194,7 +194,7 @@ object Sessions {
 
     val deps1 = Sessions.deps(selected_sessions1, progress = progress)
 
-    Base_Info(deps1(session1), sessions_structure = full_sessions1,
+    Background(deps1(session1), sessions_structure = full_sessions1,
       errors = deps1.errors, infos = infos1)
   }
 
@@ -202,8 +202,8 @@ object Sessions {
   /* source dependencies */
 
   sealed case class Deps(sessions_structure: Structure, session_bases: Map[String, Base]) {
-    def base_info(session: String): Base_Info =
-      Base_Info(base = apply(session), sessions_structure = sessions_structure, errors = errors)
+    def background(session: String): Background =
+      Background(base = apply(session), sessions_structure = sessions_structure, errors = errors)
 
     def is_empty: Boolean = session_bases.keysIterator.forall(_.isEmpty)
     def apply(name: String): Base = session_bases(name)

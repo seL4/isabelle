@@ -251,11 +251,11 @@ object Export {
 
   def open_session_context(
     store: Sessions.Store,
-    session_base_info: Sessions.Base_Info,
+    session_background: Sessions.Background,
     document_snapshot: Option[Document.Snapshot] = None
   ): Session_Context = {
     open_database_context(store).open_session(
-      session_base_info, document_snapshot = document_snapshot, close_database_context = true)
+      session_background, document_snapshot = document_snapshot, close_database_context = true)
   }
 
   class Database_Context private[Export](
@@ -287,15 +287,15 @@ object Export {
       }
 
     def open_session0(session: String, close_database_context: Boolean = false): Session_Context =
-      open_session(Sessions.base_info0(session), close_database_context = close_database_context)
+      open_session(Sessions.background0(session), close_database_context = close_database_context)
 
     def open_session(
-      session_base_info: Sessions.Base_Info,
+      session_background: Sessions.Background,
       document_snapshot: Option[Document.Snapshot] = None,
       close_database_context: Boolean = false
     ): Session_Context = {
-      val session_name = session_base_info.check_errors.session_name
-      val session_hierarchy = session_base_info.sessions_structure.build_hierarchy(session_name)
+      val session_name = session_background.check_errors.session_name
+      val session_hierarchy = session_background.sessions_structure.build_hierarchy(session_name)
       val session_databases =
         database_server match {
           case Some(db) => session_hierarchy.map(name => new Session_Database(name, db))
@@ -312,7 +312,8 @@ object Export {
                 }
             }
         }
-      new Session_Context(database_context, session_base_info, session_databases, document_snapshot) {
+      new Session_Context(
+          database_context, session_background, session_databases, document_snapshot) {
         override def close(): Unit = {
           session_databases.foreach(_.close())
           if (close_database_context) database_context.close()
@@ -331,7 +332,7 @@ object Export {
 
   class Session_Context private[Export](
     val database_context: Database_Context,
-    session_base_info: Sessions.Base_Info,
+    session_background: Sessions.Background,
     db_hierarchy: List[Session_Database],
     document_snapshot: Option[Document.Snapshot]
   ) extends AutoCloseable {
@@ -341,9 +342,9 @@ object Export {
 
     def cache: Term.Cache = database_context.cache
 
-    def sessions_structure: Sessions.Structure = session_base_info.sessions_structure
+    def sessions_structure: Sessions.Structure = session_background.sessions_structure
 
-    def session_base: Sessions.Base = session_base_info.base
+    def session_base: Sessions.Base = session_background.base
 
     def session_name: String =
       if (document_snapshot.isDefined) Sessions.DRAFT

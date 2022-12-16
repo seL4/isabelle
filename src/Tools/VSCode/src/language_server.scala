@@ -259,19 +259,20 @@ class Language_Server(
 
     val try_session =
       try {
-        val base_info =
-          Sessions.base_info(
+        val session_background =
+          Sessions.background(
             options, session_name, dirs = session_dirs,
             include_sessions = include_sessions, session_ancestor = session_ancestor,
             session_requirements = session_requirements).check_errors
 
         def build(no_build: Boolean = false): Build.Results =
           Build.build(options,
-            selection = Sessions.Selection.session(base_info.session_name),
-            build_heap = true, no_build = no_build, dirs = session_dirs, infos = base_info.infos)
+            selection = Sessions.Selection.session(session_background.session_name),
+            build_heap = true, no_build = no_build, dirs = session_dirs,
+            infos = session_background.infos)
 
         if (!session_no_build && !build(no_build = true).ok) {
-          val start_msg = "Build started for Isabelle/" + base_info.session_name + " ..."
+          val start_msg = "Build started for Isabelle/" + session_background.session_name + " ..."
           val fail_msg = "Session build failed -- prover process remains inactive!"
 
           val progress = channel.progress(verbose = true)
@@ -281,7 +282,7 @@ class Language_Server(
         }
 
         val resources =
-          new VSCode_Resources(options, base_info, log) {
+          new VSCode_Resources(options, session_background, log) {
             override def commit(change: Session.Change): Unit =
               if (change.deps_changed || undefined_blobs(change.version).nonEmpty) {
                 delay_load.invoke()
@@ -291,11 +292,11 @@ class Language_Server(
         val session_options = options.bool("editor_output_state") = true
         val session = new Session(session_options, resources)
 
-        Some((base_info, session))
+        Some((session_background, session))
       }
       catch { case ERROR(msg) => reply_error(msg); None }
 
-    for ((base_info, session) <- try_session) {
+    for ((session_background, session) <- try_session) {
       val store = Sessions.store(options)
 
       session_.change(_ => Some(session))
@@ -306,9 +307,11 @@ class Language_Server(
       dynamic_output.init()
 
       try {
-        Isabelle_Process.start(session, options, base_info, store,
-          modes = modes, logic = base_info.session_name).await_startup()
-        reply_ok("Welcome to Isabelle/" + base_info.session_name + Isabelle_System.isabelle_heading())
+        Isabelle_Process.start(session, options, session_background, store,
+          modes = modes, logic = session_background.session_name).await_startup()
+        reply_ok(
+          "Welcome to Isabelle/" + session_background.session_name +
+          Isabelle_System.isabelle_heading())
       }
       catch { case ERROR(msg) => reply_error(msg) }
     }

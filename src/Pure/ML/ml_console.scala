@@ -60,20 +60,20 @@ Usage: isabelle console [OPTIONS]
         if (rc != Process_Result.RC.ok) sys.exit(rc)
       }
 
-      val base_info =
+      val background =
         if (raw_ml_system) {
-          Sessions.Base_Info(
+          Sessions.Background(
             base = Sessions.Base.bootstrap,
             sessions_structure = Sessions.load_structure(options, dirs = dirs))
         }
         else {
-          Sessions.base_info(
+          Sessions.background(
             options, logic, dirs = dirs, include_sessions = include_sessions).check_errors
         }
 
       // process loop
       val process =
-        ML_Process(options, base_info, store,
+        ML_Process(options, background, store,
           logic = logic, args = List("-i"), redirect = true,
           modes = if (raw_ml_system) Nil else modes ::: List("ASCII"),
           raw_ml_system = raw_ml_system)

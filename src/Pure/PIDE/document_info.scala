@@ -113,7 +113,7 @@ object Document_Info {
     def read_session(session_name: String): Document_Info.Session = {
       val static_theories = deps(session_name).used_theories.map(_._1.theory)
       val (thys, build_uuid) = {
-        using(database_context.open_session(deps.base_info(session_name))) { session_context =>
+        using(database_context.open_session(deps.background(session_name))) { session_context =>
           val thys =
             for {
               theory_name <- static_theories

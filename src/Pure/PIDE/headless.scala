@@ -443,8 +443,11 @@ object Headless {
   /** resources **/
 
   object Resources {
-    def apply(options: Options, base_info: Sessions.Base_Info, log: Logger = No_Logger): Resources =
-      new Resources(options, base_info, log = log)
+    def apply(
+      options: Options,
+      background: Sessions.Background,
+      log: Logger = No_Logger
+    ): Resources = new Resources(options, background, log = log)
 
     def make(
       options: Options,
@@ -454,10 +457,10 @@ object Headless {
       progress: Progress = new Progress,
       log: Logger = No_Logger
     ): Resources = {
-      val base_info =
-        Sessions.base_info(options, session_name, dirs = session_dirs,
+      val background =
+        Sessions.background(options, session_name, dirs = session_dirs,
           include_sessions = include_sessions, progress = progress)
-      apply(options, base_info, log = log)
+      apply(options, background, log = log)
     }
 
     final class Theory private[Headless](
@@ -600,11 +603,11 @@ object Headless {
 
   class Resources private[Headless](
       val options: Options,
-      val session_base_info: Sessions.Base_Info,
+      val session_background: Sessions.Background,
       log: Logger = No_Logger)
     extends isabelle.Resources(
-      session_base_info.sessions_structure,
-      session_base_info.check_errors.base,
+      session_background.sessions_structure,
+      session_background.check_errors.base,
       log = log
     ) {
     resources =>
@@ -618,11 +621,11 @@ object Headless {
       print_mode: List[String] = Nil,
       progress: Progress = new Progress
     ): Session = {
-      val session_name = session_base_info.session_name
+      val session_name = session_background.session_name
       val session = new Session(session_name, options, resources)
 
       progress.echo("Starting session " + session_name + " ...")
-      Isabelle_Process.start(session, options, session_base_info, store,
+      Isabelle_Process.start(session, options, session_background, store,
         logic = session_name, modes = print_mode).await_startup()
 
       session

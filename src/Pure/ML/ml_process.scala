@@ -13,7 +13,7 @@ import java.io.{File => JFile}
 
 object ML_Process {
   def apply(options: Options,
-    base_info: Sessions.Base_Info,
+    background: Sessions.Background,
     store: Sessions.Store,
     logic: String = "",
     raw_ml_system: Boolean = false,
@@ -31,7 +31,7 @@ object ML_Process {
     val heaps: List[String] =
       if (raw_ml_system) Nil
       else {
-        base_info.sessions_structure.selection(logic_name).
+        background.sessions_structure.selection(logic_name).
           build_requirements(List(logic_name)).
           map(a => File.platform_path(store.the_heap(a)))
       }
@@ -80,7 +80,7 @@ object ML_Process {
     val eval_init_session = if (raw_ml_system) Nil else List("Resources.init_session_env ()")
     val init_session = Isabelle_System.tmp_file("init_session")
     Isabelle_System.chmod("600", File.path(init_session))
-    val resources = new Resources(base_info.sessions_structure, base_info.base)
+    val resources = new Resources(background.sessions_structure, background.base)
     File.write(init_session, resources.init_session_yxml)
 
     // process
@@ -169,10 +169,10 @@ Usage: isabelle process [OPTIONS]
       val more_args = getopts(args)
       if (args.isEmpty || more_args.nonEmpty) getopts.usage()
 
-      val base_info = Sessions.base_info(options, logic, dirs = dirs).check_errors
+      val background = Sessions.background(options, logic, dirs = dirs).check_errors
       val store = Sessions.store(options)
       val result =
-        ML_Process(options, base_info, store, logic = logic, args = eval_args, modes = modes)
+        ML_Process(options, background, store, logic = logic, args = eval_args, modes = modes)
           .result(
             progress_stdout = Output.writeln(_, stdout = true),
             progress_stderr = Output.writeln(_))
