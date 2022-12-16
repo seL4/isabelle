@@ -26,11 +26,8 @@ object JEdit_Resources {
     new JEdit_Resources(JEdit_Sessions.session_background(options))
 }
 
-class JEdit_Resources private(val session_background: Sessions.Background)
-extends Resources(session_background.sessions_structure, session_background.base) {
-  def session_errors: List[String] = session_background.errors
-
-
+class JEdit_Resources private(session_background: Sessions.Background)
+extends Resources(session_background) {
   /* document node name */
 
   def node_name(path: String): Document.Node.Name =

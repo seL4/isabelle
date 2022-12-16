@@ -266,7 +266,9 @@ object Sessions {
           val info = sessions_structure(session_name)
           try {
             val deps_base = info.deps_base(session_bases)
-            val resources = new Resources(sessions_structure, deps_base)
+            val session_background =
+              Sessions.Background(base = deps_base, sessions_structure = sessions_structure)
+            val resources = new Resources(session_background)
 
             if (verbose || list_files) {
               val groups =

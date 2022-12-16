@@ -274,8 +274,7 @@ class Build_Job(progress: Progress,
         else Nil
 
       val resources =
-        new Resources(session_background.sessions_structure, session_background.base, log = log,
-          command_timings = command_timings0)
+        new Resources(session_background, log = log, command_timings = command_timings0)
       val session =
         new Session(options, resources) {
           override val cache: Term.Cache = store.cache

@@ -445,9 +445,9 @@ object Headless {
   object Resources {
     def apply(
       options: Options,
-      background: Sessions.Background,
+      session_background: Sessions.Background,
       log: Logger = No_Logger
-    ): Resources = new Resources(options, background, log = log)
+    ): Resources = new Resources(options, session_background, log = log)
 
     def make(
       options: Options,
@@ -457,10 +457,10 @@ object Headless {
       progress: Progress = new Progress,
       log: Logger = No_Logger
     ): Resources = {
-      val background =
+      val session_background =
         Sessions.background(options, session_name, dirs = session_dirs,
           include_sessions = include_sessions, progress = progress)
-      apply(options, background, log = log)
+      apply(options, session_background, log = log)
     }
 
     final class Theory private[Headless](
@@ -603,14 +603,12 @@ object Headless {
 
   class Resources private[Headless](
       val options: Options,
-      val session_background: Sessions.Background,
+      session_background: Sessions.Background,
       log: Logger = No_Logger)
-    extends isabelle.Resources(
-      session_background.sessions_structure,
-      session_background.check_errors.base,
-      log = log
-    ) {
+    extends isabelle.Resources(session_background, log = log) {
     resources =>
+
+    session_background.check_errors
 
     val store: Sessions.Store = Sessions.store(options)
 

@@ -71,11 +71,7 @@ class VSCode_Resources(
   val options: Options,
   session_background: Sessions.Background,
   log: Logger = No_Logger)
-extends Resources(
-  session_background.sessions_structure,
-  session_background.check_errors.base,
-  log = log
-) {
+extends Resources(session_background, log = log) {
   resources =>
 
   private val state = Synchronized(VSCode_Resources.State())
