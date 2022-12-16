@@ -80,7 +80,7 @@ object ML_Process {
     // session base
     val (init_session_base, eval_init_session) =
       session_base match {
-        case None => (Sessions.bootstrap_base, Nil)
+        case None => (Sessions.Base.bootstrap, Nil)
         case Some(base) => (base, List("Resources.init_session_env ()"))
       }
     val init_session = Isabelle_System.tmp_file("init_session")

@@ -99,7 +99,7 @@ object Build_Job {
     unicode_symbols: Boolean = false
   ): Unit = {
     val store = Sessions.store(options)
-    val session = new Session(options, Resources.empty)
+    val session = new Session(options, Resources.bootstrap)
 
     def check(filter: List[Regex], make_string: => String): Boolean =
       filter.isEmpty || {

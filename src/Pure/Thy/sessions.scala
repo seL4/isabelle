@@ -56,6 +56,10 @@ object Sessions {
 
   /* base info */
 
+  object Base {
+    val bootstrap: Base = Base(overall_syntax = Thy_Header.bootstrap_syntax)
+  }
+
   sealed case class Base(
     session_name: String = "",
     session_pos: Position.T = Position.none,
@@ -96,8 +100,6 @@ object Sessions {
     def node_syntax(nodes: Document.Nodes, name: Document.Node.Name): Outer_Syntax =
       nodes(name).syntax orElse loaded_theory_syntax(name) getOrElse overall_syntax
   }
-
-  val bootstrap_base: Base = Base(overall_syntax = Thy_Header.bootstrap_syntax)
 
   sealed case class Base_Info(
     base: Base,
@@ -257,7 +259,7 @@ object Sessions {
 
     val session_bases =
       sessions_structure.imports_topological_order.foldLeft(
-          Map(Sessions.bootstrap_base.session_entry)) {
+          Map(Sessions.Base.bootstrap.session_entry)) {
         case (session_bases, session_name) =>
           progress.expose_interrupt()
 
