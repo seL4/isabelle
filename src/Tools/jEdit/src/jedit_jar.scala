@@ -19,10 +19,10 @@ object JEdit_JAR {
     else using(s)(File.read_stream)
   }
 
-  object JEdit_Resources extends Scala.Fun_Strings("jEdit.resources") {
+  object JEdit_Resource extends Scala.Fun_Strings("jEdit.resource") {
     val here = Scala_Project.here
     def apply(args: List[String]): List[String] = args.map(get_resource)
   }
 
-  class Scala_Functions extends Scala.Functions(JEdit_Resources)
+  class Scala_Functions extends Scala.Functions(JEdit_Resource)
 }
