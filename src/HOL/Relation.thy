@@ -408,15 +408,17 @@ lemma sympE:
   obtains "r a b"
   using assms by (rule symE [to_pred])
 
-lemma symD [dest?]:
-  assumes "sym r" and "(b, a) \<in> r"
-  shows "(a, b) \<in> r"
-  using assms by (rule symE)
+lemma sym_onD: "sym_on A r \<Longrightarrow> x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> (x, y) \<in> r \<Longrightarrow> (y, x) \<in> r"
+  by (simp add: sym_on_def)
 
-lemma sympD [dest?]:
-  assumes "symp r" and "r b a"
-  shows "r a b"
-  using assms by (rule symD [to_pred])
+lemma symD [dest?]: "sym r \<Longrightarrow> (x, y) \<in> r \<Longrightarrow> (y, x) \<in> r"
+  by (simp add: sym_onD)
+
+lemma symp_onD: "symp_on A R \<Longrightarrow> x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> R x y \<Longrightarrow> R y x"
+  by (rule sym_onD[to_pred])
+
+lemma sympD [dest?]: "symp R \<Longrightarrow> R x y \<Longrightarrow> R y x"
+  by (rule symD[to_pred])
 
 lemma sym_Int: "sym r \<Longrightarrow> sym s \<Longrightarrow> sym (r \<inter> s)"
   by (fast intro: symI elim: symE)

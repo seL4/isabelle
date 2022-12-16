@@ -79,7 +79,9 @@ with demo documents in the regular Isabelle "doc" space:
       preorder.reflp_on_ge[simp]
       preorder.reflp_on_le[simp]
       reflp_on_conversp[simp]
+      sym_onD
       sym_onI
+      symp_onD
       symp_onI
       symp_on_sym_on_eq[pred_set_conv]
       totalI
