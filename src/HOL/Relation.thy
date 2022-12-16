@@ -386,11 +386,17 @@ lemma symp_on_sym_on_eq[pred_set_conv]: "symp_on A (\<lambda>x y. (x, y) \<in> r
 
 lemmas symp_sym_eq = symp_on_sym_on_eq[of UNIV] \<comment> \<open>For backward compatibility\<close>
 
-lemma symI [intro?]: "(\<And>a b. (a, b) \<in> r \<Longrightarrow> (b, a) \<in> r) \<Longrightarrow> sym r"
-  by (unfold sym_def) iprover
+lemma sym_onI: "(\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> (x, y) \<in> r \<Longrightarrow> (y, x) \<in> r) \<Longrightarrow> sym_on A r"
+  by (simp add: sym_on_def)
 
-lemma sympI [intro?]: "(\<And>a b. r a b \<Longrightarrow> r b a) \<Longrightarrow> symp r"
-  by (fact symI [to_pred])
+lemma symI [intro?]: "(\<And>x y. (x, y) \<in> r \<Longrightarrow> (y, x) \<in> r) \<Longrightarrow> sym r"
+  by (simp add: sym_onI)
+
+lemma symp_onI: "(\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> R x y \<Longrightarrow> R y x) \<Longrightarrow> symp_on A R"
+  by (rule sym_onI[to_pred])
+
+lemma sympI [intro?]: "(\<And>x y. R x y \<Longrightarrow> R y x) \<Longrightarrow> symp R"
+  by (rule symI[to_pred])
 
 lemma symE:
   assumes "sym r" and "(b, a) \<in> r"
