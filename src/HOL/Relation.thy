@@ -361,11 +361,25 @@ lemma (in preorder) asymp_greater[simp]: "asymp (>)"
 
 subsubsection \<open>Symmetry\<close>
 
-definition sym :: "'a rel \<Rightarrow> bool"
-  where "sym r \<longleftrightarrow> (\<forall>x y. (x, y) \<in> r \<longrightarrow> (y, x) \<in> r)"
+definition sym_on :: "'a set \<Rightarrow> 'a rel \<Rightarrow> bool" where
+  "sym_on A r \<longleftrightarrow> (\<forall>x \<in> A. \<forall>y \<in> A. (x, y) \<in> r \<longrightarrow> (y, x) \<in> r)"
 
-definition symp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool"
-  where "symp r \<longleftrightarrow> (\<forall>x y. r x y \<longrightarrow> r y x)"
+abbreviation sym :: "'a rel \<Rightarrow> bool" where
+  "sym \<equiv> sym_on UNIV"
+
+definition symp_on :: "'a set \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
+  "symp_on A R \<longleftrightarrow> (\<forall>x \<in> A. \<forall>y \<in> A. R x y \<longrightarrow> R y x)"
+
+abbreviation symp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
+  "symp \<equiv> symp_on UNIV"
+
+lemma sym_def[no_atp]: "sym r \<longleftrightarrow> (\<forall>x y. (x, y) \<in> r \<longrightarrow> (y, x) \<in> r)"
+  by (simp add: sym_on_def)
+
+lemma symp_def[no_atp]: "symp R \<longleftrightarrow> (\<forall>x y. R x y \<longrightarrow> R y x)"
+  by (simp add: symp_on_def)
+
+text \<open>@{thm [source] sym_def} and @{thm [source] symp_def} are for backward compatibility.\<close>
 
 lemma symp_sym_eq [pred_set_conv]: "symp (\<lambda>x y. (x, y) \<in> r) \<longleftrightarrow> sym r"
   by (simp add: sym_def symp_def)
