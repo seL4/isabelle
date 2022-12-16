@@ -792,8 +792,6 @@ object Sessions {
   ) {
     sessions_structure =>
 
-    def bootstrap: Base = Base(overall_syntax = Thy_Header.bootstrap_syntax)
-
     def dest_session_directories: List[(String, String)] =
       for ((file, session) <- session_directories.toList)
         yield (File.standard_path(file), session)

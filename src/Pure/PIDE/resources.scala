@@ -13,8 +13,7 @@ import java.io.{File => JFile}
 
 
 object Resources {
-  def empty: Resources =
-    new Resources(Sessions.Structure.empty, Sessions.Structure.empty.bootstrap)
+  def empty: Resources = new Resources(Sessions.Structure.empty, Sessions.bootstrap_base)
 
   def hidden_node(name: Document.Node.Name): Boolean =
     !name.is_theory || name.theory == Sessions.root_name || File_Format.registry.is_theory(name)
