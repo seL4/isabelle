@@ -694,7 +694,7 @@ object Browser_Info {
       context1.update_root()
 
       Par_List.map({ (session: String) =>
-        using(database_context.open_session(deps.base_info(session))) { session_context =>
+        using(database_context.open_session(deps.background(session))) { session_context =>
           build_session(context1, session_context, progress = progress, verbose = verbose)
         }
       }, sessions1)

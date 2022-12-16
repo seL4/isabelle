@@ -48,7 +48,6 @@ Usage: isabelle console [OPTIONS]
       if (more_args.nonEmpty) getopts.usage()
 
 
-      val sessions_structure = Sessions.load_structure(options, dirs = dirs)
       val store = Sessions.store(options)
 
       // build logic
@@ -61,16 +60,23 @@ Usage: isabelle console [OPTIONS]
         if (rc != Process_Result.RC.ok) sys.exit(rc)
       }
 
+      val background =
+        if (raw_ml_system) {
+          Sessions.Background(
+            base = Sessions.Base.bootstrap,
+            sessions_structure = Sessions.load_structure(options, dirs = dirs))
+        }
+        else {
+          Sessions.background(
+            options, logic, dirs = dirs, include_sessions = include_sessions).check_errors
+        }
+
       // process loop
       val process =
-        ML_Process(options, sessions_structure, store,
+        ML_Process(options, background, store,
           logic = logic, args = List("-i"), redirect = true,
           modes = if (raw_ml_system) Nil else modes ::: List("ASCII"),
-          raw_ml_system = raw_ml_system,
-          session_base =
-            if (raw_ml_system) None
-            else Some(Sessions.base_info(
-              options, logic, dirs = dirs, include_sessions = include_sessions).check_errors.base))
+          raw_ml_system = raw_ml_system)
 
       POSIX_Interrupt.handler { process.interrupt() } {
         new TTY_Loop(process.stdin, process.stdout).join()

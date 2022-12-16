@@ -54,7 +54,7 @@ object Build_Doc {
             progress.expose_interrupt()
             progress.echo("Documentation " + quote(doc) + " ...")
 
-            using(Export.open_session_context(build_results.store, deps.base_info(session))) {
+            using(Export.open_session_context(build_results.store, deps.background(session))) {
               session_context =>
                 Document_Build.build_documents(
                   Document_Build.context(session_context),

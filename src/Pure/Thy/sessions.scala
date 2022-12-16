@@ -56,6 +56,10 @@ object Sessions {
 
   /* base info */
 
+  object Base {
+    val bootstrap: Base = Base(overall_syntax = Thy_Header.bootstrap_syntax)
+  }
+
   sealed case class Base(
     session_name: String = "",
     session_pos: Position.T = Position.none,
@@ -97,9 +101,7 @@ object Sessions {
       nodes(name).syntax orElse loaded_theory_syntax(name) getOrElse overall_syntax
   }
 
-  val bootstrap_base: Base = Base(overall_syntax = Thy_Header.bootstrap_syntax)
-
-  sealed case class Base_Info(
+  sealed case class Background(
     base: Base,
     sessions_structure: Structure = Structure.empty,
     errors: List[String] = Nil,
@@ -107,22 +109,22 @@ object Sessions {
   ) {
     def session_name: String = base.session_name
 
-    def check_errors: Base_Info =
+    def check_errors: Background =
       if (errors.isEmpty) this
       else error(cat_lines(errors))
   }
 
-  def base_info0(session: String): Base_Info =
-    Base_Info(Base(session_name = session))
+  def background0(session: String): Background =
+    Background(Base(session_name = session))
 
-  def base_info(options: Options,
+  def background(options: Options,
     session: String,
     progress: Progress = new Progress,
     dirs: List[Path] = Nil,
     include_sessions: List[String] = Nil,
     session_ancestor: Option[String] = None,
     session_requirements: Boolean = false
-  ): Base_Info = {
+  ): Background = {
     val full_sessions = load_structure(options, dirs = dirs)
 
     val selected_sessions =
@@ -192,7 +194,7 @@ object Sessions {
 
     val deps1 = Sessions.deps(selected_sessions1, progress = progress)
 
-    Base_Info(deps1(session1), sessions_structure = full_sessions1,
+    Background(deps1(session1), sessions_structure = full_sessions1,
       errors = deps1.errors, infos = infos1)
   }
 
@@ -200,8 +202,8 @@ object Sessions {
   /* source dependencies */
 
   sealed case class Deps(sessions_structure: Structure, session_bases: Map[String, Base]) {
-    def base_info(session: String): Base_Info =
-      Base_Info(base = apply(session), sessions_structure = sessions_structure, errors = errors)
+    def background(session: String): Background =
+      Background(base = apply(session), sessions_structure = sessions_structure, errors = errors)
 
     def is_empty: Boolean = session_bases.keysIterator.forall(_.isEmpty)
     def apply(name: String): Base = session_bases(name)
@@ -257,14 +259,16 @@ object Sessions {
 
     val session_bases =
       sessions_structure.imports_topological_order.foldLeft(
-          Map(Sessions.bootstrap_base.session_entry)) {
+          Map(Sessions.Base.bootstrap.session_entry)) {
         case (session_bases, session_name) =>
           progress.expose_interrupt()
 
           val info = sessions_structure(session_name)
           try {
             val deps_base = info.deps_base(session_bases)
-            val resources = new Resources(sessions_structure, deps_base)
+            val session_background =
+              Sessions.Background(base = deps_base, sessions_structure = sessions_structure)
+            val resources = new Resources(session_background)
 
             if (verbose || list_files) {
               val groups =
@@ -791,8 +795,6 @@ object Sessions {
     val imports_graph: Graph[String, Info]
   ) {
     sessions_structure =>
-
-    def bootstrap: Base = Base(overall_syntax = Thy_Header.bootstrap_syntax)
 
     def dest_session_directories: List[(String, String)] =
       for ((file, session) <- session_directories.toList)

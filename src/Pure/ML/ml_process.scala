@@ -13,7 +13,7 @@ import java.io.{File => JFile}
 
 object ML_Process {
   def apply(options: Options,
-    sessions_structure: Sessions.Structure,
+    session_background: Sessions.Background,
     store: Sessions.Store,
     logic: String = "",
     raw_ml_system: Boolean = false,
@@ -24,15 +24,14 @@ object ML_Process {
     cwd: JFile = null,
     env: JMap[String, String] = Isabelle_System.settings(),
     redirect: Boolean = false,
-    cleanup: () => Unit = () => (),
-    session_base: Option[Sessions.Base] = None
+    cleanup: () => Unit = () => ()
   ): Bash.Process = {
     val logic_name = Isabelle_System.default_logic(logic)
 
     val heaps: List[String] =
       if (raw_ml_system) Nil
       else {
-        sessions_structure.selection(logic_name).
+        session_background.sessions_structure.selection(logic_name).
           build_requirements(List(logic_name)).
           map(a => File.platform_path(store.the_heap(a)))
       }
@@ -77,15 +76,11 @@ object ML_Process {
     Isabelle_System.chmod("600", File.path(isabelle_process_options))
     File.write(isabelle_process_options, YXML.string_of_body(options.encode))
 
-    // session base
-    val (init_session_base, eval_init_session) =
-      session_base match {
-        case None => (Sessions.bootstrap_base, Nil)
-        case Some(base) => (base, List("Resources.init_session_env ()"))
-      }
+    // session resources
+    val eval_init_session = if (raw_ml_system) Nil else List("Resources.init_session_env ()")
     val init_session = Isabelle_System.tmp_file("init_session")
     Isabelle_System.chmod("600", File.path(init_session))
-    File.write(init_session, new Resources(sessions_structure, init_session_base).init_session_yxml)
+    File.write(init_session, new Resources(session_background).init_session_yxml)
 
     // process
     val eval_process =
@@ -173,11 +168,11 @@ Usage: isabelle process [OPTIONS]
       val more_args = getopts(args)
       if (args.isEmpty || more_args.nonEmpty) getopts.usage()
 
-      val base_info = Sessions.base_info(options, logic, dirs = dirs).check_errors
+      val session_background = Sessions.background(options, logic, dirs = dirs).check_errors
       val store = Sessions.store(options)
       val result =
-        ML_Process(options, base_info.sessions_structure, store, logic = logic, args = eval_args,
-          modes = modes, session_base = Some(base_info.base)).result(
+        ML_Process(options, session_background, store,
+          logic = logic, args = eval_args, modes = modes).result(
             progress_stdout = Output.writeln(_, stdout = true),
             progress_stderr = Output.writeln(_))
 

@@ -13,8 +13,7 @@ import java.io.{File => JFile}
 
 
 object Resources {
-  def empty: Resources =
-    new Resources(Sessions.Structure.empty, Sessions.Structure.empty.bootstrap)
+  def bootstrap: Resources = new Resources(Sessions.Background(base = Sessions.Base.bootstrap))
 
   def hidden_node(name: Document.Node.Name): Boolean =
     !name.is_theory || name.theory == Sessions.root_name || File_Format.registry.is_theory(name)
@@ -24,13 +23,15 @@ object Resources {
 }
 
 class Resources(
-  val sessions_structure: Sessions.Structure,
-  val session_base: Sessions.Base,
+  val session_background: Sessions.Background,
   val log: Logger = No_Logger,
   command_timings: List[Properties.T] = Nil
 ) {
   resources =>
 
+  def sessions_structure: Sessions.Structure = session_background.sessions_structure
+  def session_base: Sessions.Base = session_background.base
+  def session_errors: List[String] = session_background.errors
 
   override def toString: String = "Resources(" + session_base.toString + ")"
 

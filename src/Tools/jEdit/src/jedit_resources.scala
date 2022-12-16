@@ -23,14 +23,11 @@ import org.gjt.sp.jedit.bufferio.BufferIORequest
 
 object JEdit_Resources {
   def apply(options: Options): JEdit_Resources =
-    new JEdit_Resources(JEdit_Sessions.session_base_info(options))
+    new JEdit_Resources(JEdit_Sessions.session_background(options))
 }
 
-class JEdit_Resources private(val session_base_info: Sessions.Base_Info)
-extends Resources(session_base_info.sessions_structure, session_base_info.base) {
-  def session_errors: List[String] = session_base_info.errors
-
-
+class JEdit_Resources private(session_background: Sessions.Background)
+extends Resources(session_background) {
   /* document node name */
 
   def node_name(path: String): Document.Node.Name =

@@ -40,7 +40,7 @@ val lazy_actions =
     (parse_resources o map File.read)
       [\<^file>\<open>~~/src/Tools/jEdit/jedit_main/actions.xml\<close>,
        \<^file>\<open>~~/src/Tools/jEdit/jedit_main/dockables.xml\<close>] @
-    (parse_resources o \<^scala>\<open>jEdit.resources\<close>) ["actions.xml", "dockables.xml"]
+    (parse_resources o \<^scala>\<open>jEdit.resource\<close>) ["actions.xml", "dockables.xml"]
     |> sort_strings);
 
 fun get_actions () = Lazy.force lazy_actions;

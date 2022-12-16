@@ -62,12 +62,12 @@ object Server_Commands {
     def command(
       args: Args,
       progress: Progress = new Progress
-    ) : (JSON.Object.T, Build.Results, Options, Sessions.Base_Info) = {
+    ) : (JSON.Object.T, Build.Results, Options, Sessions.Background) = {
       val options = Options.init(prefs = args.preferences, opts = args.options)
       val dirs = args.dirs.map(Path.explode)
 
-      val base_info =
-        Sessions.base_info(options, args.session, progress = progress, dirs = dirs,
+      val session_background =
+        Sessions.background(options, args.session, progress = progress, dirs = dirs,
           include_sessions = args.include_sessions).check_errors
 
       val results =
@@ -76,11 +76,11 @@ object Server_Commands {
           progress = progress,
           build_heap = true,
           dirs = dirs,
-          infos = base_info.infos,
+          infos = session_background.infos,
           verbose = args.verbose)
 
       val sessions_order =
-        base_info.sessions_structure.imports_topological_order.zipWithIndex.
+        session_background.sessions_structure.imports_topological_order.zipWithIndex.
           toMap.withDefaultValue(-1)
 
       val results_json =
@@ -98,7 +98,7 @@ object Server_Commands {
                 "timing" -> result.timing.json)
             })
 
-      if (results.ok) (results_json, results, options, base_info)
+      if (results.ok) (results_json, results, options, session_background)
       else {
         throw new Server.Error("Session build failed: " + Process_Result.RC.print(results.rc),
           results_json)
@@ -127,11 +127,11 @@ object Server_Commands {
       progress: Progress = new Progress,
       log: Logger = No_Logger
     ) : (JSON.Object.T, (UUID.T, Headless.Session)) = {
-      val (_, _, options, base_info) =
+      val (_, _, options, session_background) =
         try { Session_Build.command(args.build, progress = progress) }
         catch { case exn: Server.Error => error(exn.message) }
 
-      val resources = Headless.Resources(options, base_info, log = log)
+      val resources = Headless.Resources(options, session_background, log = log)
 
       val session = resources.start_session(print_mode = args.print_mode, progress = progress)
 

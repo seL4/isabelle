@@ -511,13 +511,13 @@ Usage: isabelle document [OPTIONS] SESSION
             Sessions.load_structure(options + "document=pdf", dirs = dirs).
               selection_deps(Sessions.Selection.session(session))
 
-          val session_base_info = deps.base_info(session)
+          val session_background = deps.background(session)
 
           if (output_sources.isEmpty && output_pdf.isEmpty) {
             progress.echo_warning("No output directory")
           }
 
-          using(Export.open_session_context(build_results.store, session_base_info)) {
+          using(Export.open_session_context(build_results.store, session_background)) {
             session_context =>
               build_documents(
                 context(session_context, progress = progress),
