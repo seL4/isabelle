@@ -81,8 +81,10 @@ with demo documents in the regular Isabelle "doc" space:
       reflp_on_conversp[simp]
       sym_onD
       sym_onI
+      sym_on_subset
       symp_onD
       symp_onI
+      symp_on_subset
       symp_on_sym_on_eq[pred_set_conv]
       totalI
       totalp_on_converse[simp]
