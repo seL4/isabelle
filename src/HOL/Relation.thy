@@ -381,8 +381,10 @@ lemma symp_def[no_atp]: "symp R \<longleftrightarrow> (\<forall>x y. R x y \<lon
 
 text \<open>@{thm [source] sym_def} and @{thm [source] symp_def} are for backward compatibility.\<close>
 
-lemma symp_sym_eq [pred_set_conv]: "symp (\<lambda>x y. (x, y) \<in> r) \<longleftrightarrow> sym r"
-  by (simp add: sym_def symp_def)
+lemma symp_on_sym_on_eq[pred_set_conv]: "symp_on A (\<lambda>x y. (x, y) \<in> r) \<longleftrightarrow> sym_on A r"
+  by (simp add: sym_on_def symp_on_def)
+
+lemmas symp_sym_eq = symp_on_sym_on_eq[of UNIV] \<comment> \<open>For backward compatibility\<close>
 
 lemma symI [intro?]: "(\<And>a b. (a, b) \<in> r \<Longrightarrow> (b, a) \<in> r) \<Longrightarrow> sym r"
   by (unfold sym_def) iprover
