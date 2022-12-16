@@ -59,6 +59,14 @@ lemma vars_iff_occseq: "x \<in> vars_of t \<longleftrightarrow> Var x \<prec> t 
 lemma occs_vars_subset: "M \<prec> N \<Longrightarrow> vars_of M \<subseteq> vars_of N"
   by (induct N) auto
 
+lemma size_less_size_if_occs: "t \<prec> u \<Longrightarrow> size t < size u"
+proof (induction u arbitrary: t)
+  case (Comb u1 u2)
+  thus ?case by fastforce
+qed simp_all
+
+corollary neq_if_occs: "t \<prec> u \<Longrightarrow> t \<noteq> u"
+  using size_less_size_if_occs by auto
 
 subsection \<open>Substitutions\<close>
 
@@ -151,7 +159,17 @@ lemma domain_comp: "fst ` set (\<sigma> \<lozenge> \<theta>) = fst ` (set \<sigm
 subsection \<open>Unifiers and Most General Unifiers\<close>
 
 definition Unifier :: "'a subst \<Rightarrow> 'a trm \<Rightarrow> 'a trm \<Rightarrow> bool"
-where "Unifier \<sigma> t u \<longleftrightarrow> (t \<lhd> \<sigma> = u \<lhd> \<sigma>)"
+  where "Unifier \<sigma> t u \<longleftrightarrow> (t \<lhd> \<sigma> = u \<lhd> \<sigma>)"
+
+lemma not_occs_if_Unifier:
+  assumes "Unifier \<sigma> t u"
+  shows "\<not> (t \<prec> u) \<and> \<not> (u \<prec> t)"
+proof -
+  from assms have "t \<lhd> \<sigma> = u \<lhd> \<sigma>"
+    unfolding Unifier_def by simp
+  thus ?thesis
+    using neq_if_occs subst_mono by metis
+qed
 
 definition MGU :: "'a subst \<Rightarrow> 'a trm \<Rightarrow> 'a trm \<Rightarrow> bool" where
   "MGU \<sigma> t u \<longleftrightarrow> 
@@ -718,5 +736,176 @@ lemma IMGU_iff_Idem_and_MGU: "IMGU \<mu> t u \<longleftrightarrow> Idem \<mu> \<
 lemma unify_computes_IMGU:
   "unify M N = Some \<sigma> \<Longrightarrow> IMGU \<sigma> M N"
   by (simp add: IMGU_iff_Idem_and_MGU unify_computes_MGU unify_gives_Idem)
+
+
+subsection \<open>Unification is complete\<close>
+
+lemma unify_eq_Some_if_Unifier:
+  assumes "Unifier \<sigma> t u"
+  shows "\<exists>\<tau>. unify t u = Some \<tau>"
+  using assms
+proof (induction t u rule: unify.induct)
+  case (1 c M N)
+  thus ?case
+    by (simp add: Unifier_def)
+next
+  case (2 M N c)
+  thus ?case
+    by (simp add: Unifier_def)
+next
+  case (3 c v)
+  thus ?case
+    by simp
+next
+  case (4 M N v)
+  hence "\<not> (Var v \<prec> M \<cdot> N)"
+    by (auto dest: not_occs_if_Unifier)
+  thus ?case
+    by simp
+next
+  case (5 v M)
+  thus ?case
+    by (auto dest: not_occs_if_Unifier)
+next
+  case (6 c d)
+  thus ?case
+    by (simp add: Unifier_def)
+next
+  case (7 M N M' N')
+  from "7.prems" have "Unifier \<sigma> M M'"
+    by (simp add: Unifier_def)
+  with "7.IH"(1) obtain \<tau> where "unify M M' = Some \<tau>"
+    by auto
+  moreover have "Unifier \<sigma> (N \<lhd> \<tau>) (N' \<lhd> \<tau>)"
+    by (smt (verit, ccfv_threshold) "7.prems" IMGU_def Unifier_def calculation subst.simps(3)
+        subst_comp subst_eq_def trm.inject(3) unify_computes_IMGU)
+  ultimately show ?case
+    using "7.IH"(2) by auto
+qed
+
+definition subst_domain where
+  "subst_domain \<sigma> = {x. Var x \<lhd> \<sigma> \<noteq> Var x}"
+
+lemma subst_domain_subset_list_domain: "subst_domain \<sigma> \<subseteq> fst ` set \<sigma>"
+proof (rule Set.subsetI)
+  fix x assume "x \<in> subst_domain \<sigma>"
+  hence "Var x \<lhd> \<sigma> \<noteq> Var x"
+    by (simp add: subst_domain_def)
+  then show "x \<in> fst ` set \<sigma>"
+  proof (induction \<sigma>)
+    case Nil
+    thus ?case
+      by simp
+  next
+    case (Cons p \<sigma>)
+    show ?case
+    proof (cases "x = fst p")
+      case True
+      thus ?thesis
+        by simp
+    next
+      case False
+      with Cons.IH Cons.prems show ?thesis
+        by (cases p) simp
+    qed
+  qed
+qed
+
+lemma subst_apply_eq_Var:
+  assumes "s \<lhd> \<sigma> = Var x"
+  obtains y where "s = Var y" and "Var y \<lhd> \<sigma> = Var x"
+  using assms by (induct s) auto
+
+lemma mem_range_varsI:
+  assumes "Var x \<lhd> \<sigma> = Var y" and "x \<noteq> y"
+  shows "y \<in> range_vars \<sigma>"
+  using assms unfolding range_vars_def
+  by (metis (mono_tags, lifting) UnionI mem_Collect_eq trm.inject(1) vars_iff_occseq)
+
+lemma IMGU_subst_domain_subset:
+  assumes "IMGU \<mu> t u"
+  shows "subst_domain \<mu> \<subseteq> vars_of t \<union> vars_of u"
+proof (rule Set.subsetI)
+  from assms have "Unifier \<mu> t u"
+    by (simp add: IMGU_def)
+  then obtain \<upsilon> where "unify t u = Some \<upsilon>"
+    using unify_eq_Some_if_Unifier by metis
+  hence "Unifier \<upsilon> t u"
+    using MGU_def unify_computes_MGU by blast
+  with assms have "\<upsilon> \<doteq> \<mu> \<lozenge> \<upsilon>"
+    by (simp add: IMGU_def)
+
+  fix x assume "x \<in> subst_domain \<mu>"
+  hence "Var x \<lhd> \<mu> \<noteq> Var x"
+    by (simp add: subst_domain_def)
+
+  show "x \<in> vars_of t \<union> vars_of u"
+  proof (cases "x \<in> subst_domain \<upsilon>")
+    case True
+    hence "x \<in> fst ` set \<upsilon>"
+      using subst_domain_subset_list_domain by fast
+    thus ?thesis
+      using unify_gives_minimal_domain[OF \<open>unify t u = Some \<upsilon>\<close>] by auto
+  next
+    case False
+    hence "Var x \<lhd> \<upsilon> = Var x"
+      by (simp add: subst_domain_def)
+    hence "Var x \<lhd> \<mu> \<lhd> \<upsilon> = Var x"
+      using \<open>\<upsilon> \<doteq> \<mu> \<lozenge> \<upsilon>\<close>
+      by (metis subst_comp subst_eq_dest)
+    then show ?thesis
+      apply (rule subst_apply_eq_Var)
+      using \<open>Var x \<lhd> \<mu> \<noteq> Var x\<close>
+      using unify_gives_minimal_range[OF \<open>unify t u = Some \<upsilon>\<close>]
+      using mem_range_varsI
+      by force
+  qed
+qed
+
+lemma IMGU_range_vars_subset:
+  assumes "IMGU \<mu> t u"
+  shows "range_vars \<mu> \<subseteq> vars_of t \<union> vars_of u"
+proof (rule Set.subsetI)
+  from assms have "Unifier \<mu> t u"
+    by (simp add: IMGU_def)
+  then obtain \<upsilon> where "unify t u = Some \<upsilon>"
+    using unify_eq_Some_if_Unifier by metis
+  hence "Unifier \<upsilon> t u"
+    using MGU_def unify_computes_MGU by blast
+  with assms have "\<upsilon> \<doteq> \<mu> \<lozenge> \<upsilon>"
+    by (simp add: IMGU_def)
+
+  have ball_subst_dom: "\<forall>x \<in> subst_domain \<upsilon>. vars_of (Var x \<lhd> \<upsilon>) \<subseteq> vars_of t \<union> vars_of u"
+    using unify_gives_minimal_range[OF \<open>unify t u = Some \<upsilon>\<close>]
+    using range_vars_def subst_domain_def by fastforce
+
+  fix x assume "x \<in> range_vars \<mu>"
+  then obtain y where "x \<in> vars_of (Var y \<lhd> \<mu>)" and "Var y \<lhd> \<mu> \<noteq> Var y"
+    by (auto simp: range_vars_def)
+
+  have vars_of_y_\<upsilon>: "vars_of (Var y \<lhd> \<upsilon>) \<subseteq> vars_of t \<union> vars_of u"
+    using ball_subst_dom
+    by (metis (mono_tags, lifting) IMGU_subst_domain_subset \<open>Var y \<lhd> \<mu> \<noteq> Var y\<close> assms empty_iff
+        insert_iff mem_Collect_eq subset_eq subst_domain_def vars_of.simps(1))
+
+  show "x \<in> vars_of t \<union> vars_of u"
+  proof (rule ccontr)
+    assume "x \<notin> vars_of t \<union> vars_of u"
+    hence "x \<notin> vars_of (Var y \<lhd> \<upsilon>)"
+      using vars_of_y_\<upsilon> by blast
+    moreover have "x \<in> vars_of (Var y \<lhd> \<mu> \<lhd> \<upsilon>)"
+    proof -
+      have "Var x \<lhd> \<upsilon> = Var x"
+        using \<open>x \<notin> vars_of t \<union> vars_of u\<close>
+        using IMGU_subst_domain_subset \<open>unify t u = Some \<upsilon>\<close> subst_domain_def unify_computes_IMGU
+        by fastforce
+      thus ?thesis
+        by (metis \<open>x \<in> vars_of (Var y \<lhd> \<mu>)\<close> subst_mono vars_iff_occseq)
+    qed
+    ultimately show False
+      using \<open>\<upsilon> \<doteq> \<mu> \<lozenge> \<upsilon>\<close>
+      by (metis subst_comp subst_eq_dest)
+  qed
+qed
 
 end
