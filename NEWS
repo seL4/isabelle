@@ -94,6 +94,7 @@ with demo documents in the regular Isabelle "doc" space:
   - Strengthened (and renamed) lemmas. Minor INCOMPATIBILITY.
       antisym_reflcl[simp] ~> antisym_on_reflcl[simp]
       reflp_rtranclp[simp] ~> reflp_on_rtranclp[simp]
+      symp_symclp[simp] ~> symp_on_symclp[simp]
   - Added lemmas.
       antisymp_on_reflcp[simp]
       reflclp_ident_if_reflp[simp]
