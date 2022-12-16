@@ -750,7 +750,7 @@ by auto
 termination by (relation "{}") simp
 
 
-section \<open>Partiality\<close>
+section \<open>Partiality \label{sec:partiality}\<close>
 
 text \<open>
   In HOL, all functions are total. A function \<^term>\<open>f\<close> applied to

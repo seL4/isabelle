@@ -43,8 +43,6 @@ The \qt{new} concept of general wellfounded recursion is completely reduced
 to existing principles.
 
 
-
-
 The new \cmd{function} command, and its short form \cmd{fun} have mostly
 replaced the traditional \cmd{recdef} command \cite{slind-tfl}. They solve
 a few of technical issues around \cmd{recdef}, and allow definitions
@@ -52,6 +50,10 @@ which were not previously possible.
 
 In addition there is also the \cmd{partial\_function} command
 (see \cite{isabelle-isar-ref}) that supports the definition of partial
-and tail recursive functions.
+and tail recursive functions. This command is particulary relevant if one wants to
+generate executable code. This is covered in detail in the Code Generation
+tutorial~\cite{Haftmann-codegen}.
+The approach to partial function presented in Section~\ref{sec:partiality}
+of this tutorial does not support code generation.
 
 
