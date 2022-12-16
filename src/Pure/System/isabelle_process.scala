@@ -15,7 +15,7 @@ object Isabelle_Process {
   def start(
     session: Session,
     options: Options,
-    sessions_structure: Sessions.Structure,
+    base_info: Sessions.Base_Info,
     store: Sessions.Store,
     logic: String = "",
     raw_ml_system: Boolean = false,
@@ -31,7 +31,7 @@ object Isabelle_Process {
         val channel_options =
           options.string.update("system_channel_address", channel.address).
             string.update("system_channel_password", channel.password)
-        ML_Process(channel_options, sessions_structure, store,
+        ML_Process(channel_options, base_info, store,
           logic = logic, raw_ml_system = raw_ml_system,
           use_prelude = use_prelude, eval_main = eval_main,
           modes = modes, cwd = cwd, env = env)

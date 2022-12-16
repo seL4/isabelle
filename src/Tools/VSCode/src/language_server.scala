@@ -296,6 +296,8 @@ class Language_Server(
       catch { case ERROR(msg) => reply_error(msg); None }
 
     for ((base_info, session) <- try_session) {
+      val store = Sessions.store(options)
+
       session_.change(_ => Some(session))
 
       session.commands_changed += prover_output
@@ -304,8 +306,8 @@ class Language_Server(
       dynamic_output.init()
 
       try {
-        Isabelle_Process.start(session, options, base_info.sessions_structure,
-          Sessions.store(options), modes = modes, logic = base_info.session_name).await_startup()
+        Isabelle_Process.start(session, options, base_info, store,
+          modes = modes, logic = base_info.session_name).await_startup()
         reply_ok("Welcome to Isabelle/" + base_info.session_name + Isabelle_System.isabelle_heading())
       }
       catch { case ERROR(msg) => reply_error(msg) }

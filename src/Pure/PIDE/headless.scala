@@ -622,7 +622,7 @@ object Headless {
       val session = new Session(session_name, options, resources)
 
       progress.echo("Starting session " + session_name + " ...")
-      Isabelle_Process.start(session, options, session_base_info.sessions_structure, store,
+      Isabelle_Process.start(session, options, session_base_info, store,
         logic = session_name, modes = print_mode).await_startup()
 
       session

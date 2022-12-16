@@ -144,12 +144,12 @@ object JEdit_Sessions {
   def session_start(options0: Options): Unit = {
     val session = PIDE.session
     val options = session_options(options0)
-    val sessions_structure = PIDE.resources.sessions_structure
+    val base_info = PIDE.resources.session_base_info
     val store = Sessions.store(options)
 
     session.phase_changed += PIDE.plugin.session_phase_changed
 
-    Isabelle_Process.start(session, options, sessions_structure, store,
+    Isabelle_Process.start(session, options, base_info, store,
       logic = PIDE.resources.session_base.session_name,
       modes =
         (space_explode(',', options.string("jedit_print_mode")) :::

@@ -249,7 +249,7 @@ class Build_Job(progress: Progress,
 ) {
   val options: Options = NUMA.policy_options(info.options, numa_node)
 
-  private val sessions_structure = deps.sessions_structure
+  private val base_info = deps.base_info(session_name)
 
   private val future_result: Future[Process_Result] =
     Future.thread("build", uninterruptible = true) {
@@ -274,7 +274,8 @@ class Build_Job(progress: Progress,
         else Nil
 
       val resources =
-        new Resources(sessions_structure, base, log = log, command_timings = command_timings0)
+        new Resources(base_info.sessions_structure, base_info.base, log = log,
+          command_timings = command_timings0)
       val session =
         new Session(options, resources) {
           override val cache: Term.Cache = store.cache
@@ -450,7 +451,7 @@ class Build_Job(progress: Progress,
       val eval_main = Command_Line.ML_tool("Isabelle_Process.init_build ()" :: eval_store)
 
       val process =
-        Isabelle_Process.start(session, options, sessions_structure, store,
+        Isabelle_Process.start(session, options, base_info, store,
           logic = parent, raw_ml_system = is_pure,
           use_prelude = use_prelude, eval_main = eval_main,
           cwd = info.dir.file, env = env)
