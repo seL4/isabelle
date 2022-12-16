@@ -222,6 +222,9 @@ text \<open>
       dramatically by applying refinement techniques, which are
       introduced in \secref{sec:refinement}.
 
+    \item How to define partial functions such that code can be generated
+      is explained in \secref{sec:partial}.
+
     \item Inductive predicates can be turned executable using an
       extension of the code generator \secref{sec:inductive}.
 

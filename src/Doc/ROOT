@@ -26,6 +26,7 @@ session Codegen (doc) in "Codegen" = HOL +
     Introduction
     Foundations
     Refinement
+    Partial_Functions
     Inductive_Predicate
     Evaluation
     Computations
