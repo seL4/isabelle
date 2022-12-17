@@ -254,7 +254,6 @@ class Build_Job(progress: Progress,
   private val future_result: Future[Process_Result] =
     Future.thread("build", uninterruptible = true) {
       val parent = info.parent.getOrElse("")
-      val base = deps(parent)
       val result_base = deps(session_name)
 
       val env =
