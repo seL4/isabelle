@@ -240,8 +240,6 @@ object Build {
       else deps0
     }
 
-    val build_sessions = build_deps.sessions_structure
-
 
     /* check unknown files */
 
@@ -264,7 +262,7 @@ object Build {
 
     /* main build process */
 
-    val queue = Queue(progress, build_sessions, store)
+    val queue = Queue(progress, build_deps.sessions_structure, store)
 
     store.prepare_output_dir()
 
@@ -380,7 +378,7 @@ object Build {
             pending.dequeue(running.isDefinedAt) match {
               case Some((session_name, info)) =>
                 val ancestor_results =
-                  build_sessions.build_requirements(List(session_name)).
+                  build_deps.sessions_structure.build_requirements(List(session_name)).
                     filterNot(_ == session_name).map(results(_))
                 val ancestor_heaps = ancestor_results.flatMap(_.heap_digest)
 
@@ -462,7 +460,7 @@ object Build {
 
       def presentation_sessions(config: Browser_Info.Config): List[String] =
         (for {
-          name <- build_sessions.build_topological_order.iterator
+          name <- build_deps.sessions_structure.build_topological_order.iterator
           result <- build_results.get(name)
           if result.ok && config.enabled(result.info)
         } yield name).toList
