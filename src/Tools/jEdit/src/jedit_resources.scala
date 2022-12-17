@@ -74,7 +74,7 @@ extends Resources(session_background) {
       val name = node_name.node
       try {
         val text =
-          if (Url.is_wellformed(name)) Url.read(Url(name))
+          if (Url.is_wellformed(name)) Url.read(name)
           else File.read(new JFile(name))
         Some(Symbol.decode(Line.normalize(text)))
       }

@@ -78,7 +78,7 @@ object Build_Scala {
       download.get(component_dir.lib + Path.basic(download.artifact), progress = progress))
 
     File.write(component_dir.LICENSE,
-      Url.read(Url("https://www.apache.org/licenses/LICENSE-2.0.txt")))
+      Url.read("https://www.apache.org/licenses/LICENSE-2.0.txt"))
 
 
     /* classpath */
