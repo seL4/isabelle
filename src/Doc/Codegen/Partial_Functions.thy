@@ -1,10 +1,11 @@
 theory Partial_Functions
-imports Main "HOL-Library.Monad_Syntax"
+imports Setup "HOL-Library.Monad_Syntax"
 begin
 
 section \<open>Partial Functions \label{sec:partial}\<close>
 
-text \<open>We demonstrate three approaches to defining executable partial recursive functions.
+text \<open>We demonstrate three approaches to defining executable partial recursive functions,
+i.e.\ functions that do not terminate for all inputs.
 The main points are the definitions of the functions and the inductive proofs about them.
 
 Our concrete example represents a typical termination problem: following a data structure that
@@ -23,7 +24,7 @@ definition rel :: "nat list \<Rightarrow> (nat * nat) set" where
 lemma finite_rel[simp]: "finite(rel ns)"
 (*<*)by(simp add: rel_def)(*>*)
 
-text \<open>This relation should be acyclic
+text \<open>\noindent This relation should be acyclic
  to guarantee termination of the partial functions defined below.\<close>
 
 
@@ -83,7 +84,7 @@ partial_function (option) count :: "nat list \<Rightarrow> nat \<Rightarrow> nat
 "count ns n
 = (if n < length ns then do {k \<leftarrow> count ns (ns!n); Some (k+1)} else Some 0)"
 
-text \<open>We use a Haskell-like \<open>do\<close> notation (import @{theory "HOL-Library.Monad_Syntax"})
+text \<open>\noindent We use a Haskell-like \<open>do\<close> notation (import @{theory "HOL-Library.Monad_Syntax"})
 to abbreviate the clumsy explicit
 
 \noindent
@@ -123,8 +124,13 @@ typedef acyc = "{ns. acyclic(rel ns)}"
 morphisms rep_acyc abs_acyc
 using acyclic_rel_Nil by auto
 
-text \<open>This defines two functions \<open>rep_acyc :: acyc \<Rightarrow> nat list\<close> and \<open>abs_acyc :: nat list \<Rightarrow> acyc\<close>.
-Function @{const abs_acyc} is only defined on acyclic lists and not executable for that reason.\<close>
+text \<open>\noindent This defines two functions @{term [source] "rep_acyc :: acyc \<Rightarrow> nat list"}
+and @{const abs_acyc} \<open>::\<close> \mbox{@{typ "nat list \<Rightarrow> acyc"}}.
+Function @{const abs_acyc} is only defined on acyclic lists and not executable for that reason.
+Type \<open>dlist\<close> in Section~\ref{sec:partiality} is defined in the same manner.
+
+The following command sets up infrastructure for lifting functions on @{typ "nat list"}
+to @{typ acyc} (used by @{command_def lift_definition} below) \cite{isabelle-isar-ref}.\<close>
 
 setup_lifting type_definition_acyc
 
@@ -135,7 +141,7 @@ function follow2 :: "acyc \<Rightarrow> nat \<Rightarrow> nat" where
 = (let ns = rep_acyc ac in if n < length ns then follow2 ac (ns!n) else n)"
 by pat_completeness auto
 
-text \<open>Now we prepare for termination proof.
+text \<open>Now we prepare for the termination proof.
  Relation \<open>rel_follow2\<close> is almost identical to @{const rel_follow}.\<close>
 
 definition "rel_follow2 = same_fst (acyclic o rel o rep_acyc) (rel o rep_acyc)"
@@ -188,7 +194,7 @@ lift_definition is_acyc :: "nat list \<Rightarrow> acyc" is
   "\<lambda>ns. if acyclic(rel ns) then ns else []"
 (*<*)by (auto simp: acyclic_rel_Nil)(*>*)
 
-text \<open>This works because we can easily prove that for any \<open>ns\<close>,
+text \<open>\noindent This works because we can easily prove that for any \<open>ns\<close>,
  the \<open>\<lambda>\<close>-term produces an acyclic list.
 But it requires the possibly expensive check @{prop "acyclic(rel ns)"}.\<close>
 

@@ -263,8 +263,9 @@ text \<open>
 subsection \<open>Explicit partiality \label{sec:partiality}\<close>
 
 text \<open>
-  Partiality usually enters the game by partial patterns, as
-  in the following example, again for amortised queues:
+  Explicit partiality is caused by missing patterns
+ (in contrast to partiality caused by nontermination, which is covered in Section~\ref{sec:partial}).
+ Here is an example, again for amortised queues:
 \<close>
 
 definition %quote strict_dequeue :: "'a queue \<Rightarrow> 'a \<times> 'a queue" where
