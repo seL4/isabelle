@@ -78,10 +78,11 @@ object Sessions {
   ) {
     def session_entry: (String, Base) = session_name -> this
 
-    override def toString: String =
-      "Sessions.Base(session_name = " + quote(session_name) +
-        ", loaded_theories = " + loaded_theories.size +
-        ", used_theories = " + used_theories.length + ")"
+    override def toString: String = "Sessions.Base(" + print_body + ")"
+    def print_body: String =
+      "session_name = " + quote(session_name) +
+      ", loaded_theories = " + loaded_theories.size +
+      ", used_theories = " + used_theories.length
 
     def all_document_theories: List[Document.Node.Name] =
       proper_session_theories ::: document_theories

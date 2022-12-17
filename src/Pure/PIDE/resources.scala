@@ -33,7 +33,7 @@ class Resources(
   def session_base: Sessions.Base = session_background.base
   def session_errors: List[String] = session_background.errors
 
-  override def toString: String = "Resources(" + session_base.toString + ")"
+  override def toString: String = "Resources(" + session_base.print_body + ")"
 
 
   /* init session */
