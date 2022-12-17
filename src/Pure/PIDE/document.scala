@@ -91,6 +91,9 @@ object Document {
     def bad_header(msg: String): Header = Header(errors = List(msg))
 
     object Name {
+      def apply(node: String, master_dir: String = "", theory: String = ""): Name =
+        new Name(node, master_dir, theory)
+
       val empty: Name = Name("")
 
       object Ordering extends scala.math.Ordering[Name] {
@@ -103,7 +106,7 @@ object Document {
         Graph.make(entries, symmetric = true)(Ordering)
     }
 
-    sealed case class Name(node: String, master_dir: String = "", theory: String = "") {
+    final class Name private(val node: String, val master_dir: String, val theory: String) {
       override def hashCode: Int = node.hashCode
       override def equals(that: Any): Boolean =
         that match {
@@ -123,8 +126,8 @@ object Document {
 
       override def toString: String = if (is_theory) theory else node
 
-      def map(f: String => String): Name = copy(f(node), f(master_dir), theory)
-      def map_theory(f: String => String): Name = copy(node, master_dir, f(theory))
+      def map(f: String => String): Name =
+        new Name(f(node), f(master_dir), theory)
 
       def json: JSON.Object.T =
         JSON.Object("node_name" -> node, "theory_name" -> theory)
