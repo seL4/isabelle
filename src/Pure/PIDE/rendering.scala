@@ -348,7 +348,7 @@ class Rendering(
           if (text == "" || text.endsWith("/")) (path, "")
           else (path.dir, path.file_name)
 
-        val directory = new JFile(session.resources.append(snapshot.node_name, dir))
+        val directory = new JFile(session.resources.append(snapshot.node_name.master_dir, dir))
         val files = directory.listFiles
         if (files == null) Nil
         else {
@@ -616,7 +616,8 @@ class Rendering(
   }
 
   def perhaps_append_file(node_name: Document.Node.Name, name: String): String =
-    if (Path.is_valid(name)) session.resources.append(node_name, Path.explode(name)) else name
+    if (Path.is_valid(name)) session.resources.append(node_name.master_dir, Path.explode(name))
+    else name
 
   def tooltips(elements: Markup.Elements, range: Text.Range): Option[Text.Info[List[XML.Tree]]] = {
     val results =

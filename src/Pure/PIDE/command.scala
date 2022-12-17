@@ -464,7 +464,7 @@ object Command {
           loaded_files.files.map(file =>
             (Exn.capture {
               val src_path = Path.explode(file)
-              val name = Document.Node.Name(resources.append(node_name, src_path))
+              val name = Document.Node.Name(resources.append(node_name.master_dir, src_path))
               val content = get_blob(name).map(blob => (blob.bytes.sha1_digest, blob.chunk))
               Blob(name, src_path, content)
             }).user_error)

@@ -74,9 +74,6 @@ class Resources(
   def append(dir: String, source_path: Path): String =
     (Path.explode(dir) + source_path).expand.implode
 
-  def append(node_name: Document.Node.Name, source_path: Path): String =
-    append(node_name.master_dir, source_path)
-
   def file_node(file: Path, dir: String = "", theory: String = ""): Document.Node.Name = {
     val node = append(dir, file)
     val master_dir = append(dir, file.dir)
