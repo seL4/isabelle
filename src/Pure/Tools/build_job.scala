@@ -237,9 +237,7 @@ Usage: isabelle log [OPTIONS] [SESSIONS ...]
 }
 
 class Build_Job(progress: Progress,
-  session_name: String,
-  val info: Sessions.Info,
-  deps: Sessions.Deps,
+  session_background: Sessions.Background,
   store: Sessions.Store,
   do_store: Boolean,
   log: Logger,
@@ -247,14 +245,13 @@ class Build_Job(progress: Progress,
   val numa_node: Option[Int],
   command_timings0: List[Properties.T]
 ) {
+  def session_name: String = session_background.session_name
+  val info: Sessions.Info = session_background.sessions_structure(session_name)
   val options: Options = NUMA.policy_options(info.options, numa_node)
-
-  private val session_background = deps.background(session_name)
 
   private val future_result: Future[Process_Result] =
     Future.thread("build", uninterruptible = true) {
       val parent = info.parent.getOrElse("")
-      val result_base = deps(session_name)
 
       val env =
         Isabelle_System.settings(
@@ -279,9 +276,9 @@ class Build_Job(progress: Progress,
           override val cache: Term.Cache = store.cache
 
           override def build_blobs_info(name: Document.Node.Name): Command.Blobs_Info = {
-            result_base.load_commands.get(name.expand) match {
+            session_background.base.load_commands.get(name.expand) match {
               case Some(spans) =>
-                val syntax = result_base.theory_syntax(name)
+                val syntax = session_background.base.theory_syntax(name)
                 Command.build_blobs_info(syntax, name, spans)
               case None => Command.Blobs_Info.none
             }
@@ -487,7 +484,7 @@ class Build_Job(progress: Progress,
           if (build_errors.isInstanceOf[Exn.Res[_]] && process_result.ok && info.documents.nonEmpty) {
             using(Export.open_database_context(store)) { database_context =>
               val documents =
-                using(database_context.open_session(deps.background(session_name))) {
+                using(database_context.open_session(session_background)) {
                   session_context =>
                     Document_Build.build_documents(
                       Document_Build.context(session_context, progress = progress),
@@ -514,7 +511,7 @@ class Build_Job(progress: Progress,
               case _ => None
             }).toMap
         val used_theory_timings =
-          for { (name, _) <- deps(session_name).used_theories }
+          for { (name, _) <- session_background.base.used_theories }
             yield theory_timing.getOrElse(name.theory, Markup.Name(name.theory))
 
         val more_output =

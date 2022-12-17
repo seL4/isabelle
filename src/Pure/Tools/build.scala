@@ -428,7 +428,7 @@ object Build {
 
                   val numa_node = numa_nodes.next(used_node)
                   val job =
-                    new Build_Job(progress, session_name, info, build_deps, store, do_store,
+                    new Build_Job(progress, build_deps.background(session_name), store, do_store,
                       log, session_setup, numa_node, queue.command_timings(session_name))
                   loop(pending, running + (session_name -> (ancestor_heaps, job)), results)
                 }
