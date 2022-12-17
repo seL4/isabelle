@@ -241,7 +241,7 @@ text \<open>
 subsection \<open>Pitfalls concerning input terms\<close>
 
 text \<open>
-    \<^descr> \<open>No polymorphims.\<close> Input terms must be monomorphic: compilation
+    \<^descr> \<open>No polymorphism.\<close> Input terms must be monomorphic: compilation
       to ML requires dedicated choice of monomorphic types.
 
     \<^descr> \<open>No abstractions.\<close> Only constants and applications are admissible
