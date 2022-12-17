@@ -8,8 +8,6 @@ theory ML_Bootstrap
 imports Pure
 begin
 
-external_file "$POLYML_EXE"
-
 ML \<open>
   #allStruct ML_Name_Space.global () |> List.app (fn (name, _) =>
     if member (op =) ML_Name_Space.hidden_structures name then

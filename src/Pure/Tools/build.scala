@@ -249,13 +249,11 @@ object Build {
           (_, base) <- build_deps.session_bases.iterator
           (path, _) <- base.session_sources.iterator
         } yield path).toList
-      val exclude_files = List(Path.explode("$POLYML_EXE")).map(_.canonical_file)
-      val unknown_files =
-        Mercurial.check_files(source_files)._2.
-          filterNot(path => exclude_files.contains(path.canonical_file))
-      if (unknown_files.nonEmpty) {
-        progress.echo_warning("Unknown files (not part of the underlying Mercurial repository):" +
-          unknown_files.map(path => path.expand.implode).sorted.mkString("\n  ", "\n  ", ""))
+      Mercurial.check_files(source_files)._2 match {
+        case Nil =>
+        case unknown_files =>
+          progress.echo_warning("Unknown files (not part of the underlying Mercurial repository):" +
+            unknown_files.map(path => path.expand.implode).sorted.mkString("\n  ", "\n  ", ""))
       }
     }
 
