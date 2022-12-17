@@ -31,7 +31,6 @@ class Resources(
 
   def sessions_structure: Sessions.Structure = session_background.sessions_structure
   def session_base: Sessions.Base = session_background.base
-  def session_errors: List[String] = session_background.errors
 
   override def toString: String = "Resources(" + session_base.print_body + ")"
 

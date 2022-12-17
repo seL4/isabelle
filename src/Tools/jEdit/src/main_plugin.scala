@@ -298,10 +298,12 @@ class Main_Plugin extends EBPlugin {
     if (startup_failure.isEmpty) {
       message match {
         case _: EditorStarted =>
-          if (resources.session_errors.nonEmpty) {
-            GUI.warning_dialog(jEdit.getActiveView,
-              "Bad session structure: may cause problems with theory imports",
-              GUI.scrollable_text(cat_lines(resources.session_errors)))
+          try { resources.session_background.check_errors }
+          catch {
+            case ERROR(msg) =>
+              GUI.warning_dialog(jEdit.getActiveView,
+                "Bad session structure: may cause problems with theory imports",
+                GUI.scrollable_text(msg))
           }
 
           jEdit.propertiesChanged()
