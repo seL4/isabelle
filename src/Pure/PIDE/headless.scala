@@ -602,10 +602,10 @@ object Headless {
   }
 
   class Resources private[Headless](
-      val options: Options,
-      session_background: Sessions.Background,
-      log: Logger = No_Logger)
-    extends isabelle.Resources(session_background.check_errors, log = log) {
+    val options: Options,
+    session_background: Sessions.Background,
+    log: Logger = No_Logger)
+  extends isabelle.Resources(session_background.check_errors, log = log) {
     resources =>
 
     val store: Sessions.Store = Sessions.store(options)
