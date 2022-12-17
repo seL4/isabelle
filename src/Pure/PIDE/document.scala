@@ -117,9 +117,6 @@ object Document {
       def path: Path = Path.explode(File.standard_path(node))
       def master_dir_path: Path = Path.explode(File.standard_path(master_dir))
 
-      def expand: Name =
-        Name(path.expand.implode, master_dir_path.expand.implode, theory)
-
       def is_theory: Boolean = theory.nonEmpty
 
       def theory_base_name: String = Long_Name.base_name(theory)
