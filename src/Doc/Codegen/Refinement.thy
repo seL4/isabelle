@@ -261,7 +261,7 @@ text \<open>
 \<close>
 
 text %quote \<open>
-  @{code_stmts Dlist.empty Dlist.insert Dlist.remove list_of_dlist (Haskell)}
+  @{code_stmts Dlist.empty Dlist.insert Dlist.remove list_of_dlist (SML)}
 \<close>
 
 text \<open>
