@@ -605,10 +605,8 @@ object Headless {
       val options: Options,
       session_background: Sessions.Background,
       log: Logger = No_Logger)
-    extends isabelle.Resources(session_background, log = log) {
+    extends isabelle.Resources(session_background.check_errors, log = log) {
     resources =>
-
-    session_background.check_errors
 
     val store: Sessions.Store = Sessions.store(options)
 
