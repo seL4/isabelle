@@ -45,10 +45,10 @@ object Document_Editor {
   /* global state */
 
   sealed case class State(
-    session_info: Option[Sessions.Info] = None,
+    session_background: Option[Sessions.Background] = None,
     views: Set[AnyRef] = Set.empty,
   ) {
-    def is_active: Boolean = session_info.isDefined && views.nonEmpty
+    def is_active: Boolean = session_background.isDefined && views.nonEmpty
 
     def register_view(id: AnyRef): State = copy(views = views + id)
     def unregister_view(id: AnyRef): State = copy(views = views - id)
