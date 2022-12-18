@@ -32,15 +32,21 @@ object Document_Dockable {
   }
 
   object State {
-    def empty(): State = State()
-    def finish(result: Result): State = State(output = result.output)
+    def init(): State = State()
   }
 
   sealed case class State(
     progress: Progress = new Progress,
     process: Future[Unit] = Future.value(()),
-    output: List[XML.Tree] = Nil,
-    status: Status.Value = Status.FINISHED)
+    status: Status.Value = Status.FINISHED,
+    output: List[XML.Tree] = Nil
+  ) {
+    def run(progress: Progress, process: Future[Unit]): State =
+      copy(progress = progress, process = process, status = Status.RUNNING)
+
+    def finish(result: Result): State = State(output = result.output)
+    def finish(msg: XML.Tree): State = finish(Result(output = List(msg)))
+  }
 }
 
 class Document_Dockable(view: View, position: String) extends Dockable(view, position) {
@@ -51,7 +57,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
 
   /* component state -- owned by GUI thread */
 
-  private val current_state = Synchronized(Document_Dockable.State.empty())
+  private val current_state = Synchronized(Document_Dockable.State.init())
 
   private val process_indicator = new Process_Indicator
   private val pretty_text_area = new Pretty_Text_Area(view)
@@ -121,12 +127,38 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
   private def init_state(): Unit =
     current_state.change { _ => Document_Dockable.State(progress = log_progress()) }
 
+  private def load_document(session: String): Boolean = {
+    current_state.change_result { st =>
+      if (st.process.is_finished) {
+        val options = PIDE.options.value
+        val progress = log_progress()
+        val process =
+          Future.thread[Unit](name = "Document_Dockable.load_document") {
+            try {
+              val session_background =
+                Document_Build.session_background(
+                  options, session, dirs = JEdit_Sessions.session_dirs)
+              PIDE.editor.document_editor_setup(Some(session_background))
+              GUI_Thread.later { show_state(); show_page(theories_page) }
+            }
+            catch {
+              case exn: Throwable if !Exn.is_interrupt(exn) =>
+                current_state.change(_.finish(Protocol.error_message(Exn.message(exn))))
+                GUI_Thread.later { show_state(); show_page(output_page) }
+            }
+          }
+        (true, st.run(progress, process))
+      }
+      else (false, st)
+    }
+  }
+
   private def build_document(): Unit = {
     current_state.change { st =>
       if (st.process.is_finished) {
         val progress = log_progress()
         val process =
-          Future.thread[Unit](name = "document_build") {
+          Future.thread[Unit](name = "Document_Dockable.build_document") {
             show_page(theories_page)
             Time.seconds(2.0).sleep()
 
@@ -145,14 +177,13 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
                 case Exn.Res(_) => Protocol.writeln_message("OK")
                 case Exn.Exn(exn) => Protocol.error_message(Exn.message(exn))
               }
-            val result = Document_Dockable.Result(output = List(msg))
-            current_state.change(_ => Document_Dockable.State.finish(result))
+            current_state.change(_.finish(msg))
             show_state()
 
             show_page(if (Exn.is_interrupt_exn(res)) theories_page else output_page)
             GUI_Thread.later { progress.load() }
           }
-        st.copy(progress = progress, process = process, status = Document_Dockable.Status.RUNNING)
+        st.run(progress, process)
       }
       else st
     }
@@ -162,14 +193,15 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
 
   /* controls */
 
-  private lazy val delay_load: Delay =
-    Delay.last(PIDE.session.load_delay, gui = true) {
-      val models = Document_Model.get_models()
-      val thy_files = PIDE.resources.resolve_dependencies(models, Nil)
-    }
-
   private val document_session =
     JEdit_Sessions.document_selector(PIDE.options, standalone = true)
+
+  private lazy val delay_load: Delay =
+    Delay.last(PIDE.session.load_delay, gui = true) {
+      for (session <- document_session.selection_value) {
+        if (!load_document(session)) delay_load.invoke()
+      }
+    }
 
   document_session.reactions += { case SelectionChanged(_) => delay_load.invoke() }
 
