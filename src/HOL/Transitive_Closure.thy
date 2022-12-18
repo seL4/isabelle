@@ -759,8 +759,8 @@ lemma symclp_greater: "r \<le> symclp r"
 lemma symclp_conversep [simp]: "symclp r\<inverse>\<inverse> = symclp r"
   by(simp add: symclp_pointfree sup.commute)
 
-lemma symp_symclp [simp]: "symp (symclp r)"
-  by(auto simp add: symp_def elim: symclpE intro: symclpI)
+lemma symp_on_symclp [simp]: "symp_on A (symclp R)"
+  by(auto simp add: symp_on_def elim: symclpE intro: symclpI)
 
 lemma symp_symclp_eq: "symp r \<Longrightarrow> symclp r = r"
   by(simp add: symclp_pointfree symp_conv_conversep_eq)

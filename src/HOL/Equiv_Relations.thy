@@ -486,7 +486,7 @@ lemma equivp_transp: "equivp R \<Longrightarrow> R x y \<Longrightarrow> R y z \
 lemma equivp_rtranclp: "symp r \<Longrightarrow> equivp r\<^sup>*\<^sup>*"
   by(intro equivpI reflpI sympI transpI)(auto dest: sympD[OF symp_rtranclp])
 
-lemmas equivp_rtranclp_symclp [simp] = equivp_rtranclp[OF symp_symclp]
+lemmas equivp_rtranclp_symclp [simp] = equivp_rtranclp[OF symp_on_symclp]
 
 lemma equivp_vimage2p: "equivp R \<Longrightarrow> equivp (vimage2p f f R)"
   by(auto simp add: equivp_def vimage2p_def dest: fun_cong)
