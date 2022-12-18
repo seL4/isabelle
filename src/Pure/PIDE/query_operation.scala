@@ -119,7 +119,7 @@ class Query_Operation[Editor_Context](
         XML.Elem(_, List(XML.Elem(markup, body))) <- results
         if Markup.messages.contains(markup.name)
         body1 = resolve_sendback(body)
-      } yield Protocol.make_message(body1, kind = markup.name, props = markup.properties)
+      } yield Protocol.make_message(body1, markup.name, props = markup.properties)
 
 
     /* status */

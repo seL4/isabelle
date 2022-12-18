@@ -202,13 +202,16 @@ object Protocol {
     text1 + text2
   }
 
-  def make_message(body: XML.Body,
-    kind: String = Markup.WRITELN,
-    props: Properties.T = Nil
-  ): XML.Elem = XML.Elem(Markup(Markup.message(kind), props), body)
+  def make_message(body: XML.Body, kind: String, props: Properties.T = Nil): XML.Elem =
+    XML.Elem(Markup(Markup.message(kind), props), body)
 
-  def warning_message(body: XML.Body): XML.Elem = make_message(body, kind = Markup.WARNING)
-  def error_message(body: XML.Body): XML.Elem = make_message(body, kind = Markup.ERROR)
+  def writeln_message(body: XML.Body): XML.Elem = make_message(body, Markup.WRITELN)
+  def warning_message(body: XML.Body): XML.Elem = make_message(body, Markup.WARNING)
+  def error_message(body: XML.Body): XML.Elem = make_message(body, Markup.ERROR)
+
+  def writeln_message(msg: String): XML.Elem = writeln_message(XML.string(msg))
+  def warning_message(msg: String): XML.Elem = warning_message(XML.string(msg))
+  def error_message(msg: String): XML.Elem = error_message(XML.string(msg))
 
 
   /* ML profiling */

@@ -142,8 +142,8 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
               }
             val msg =
               res match {
-                case Exn.Res(_) => Protocol.make_message(XML.string("OK"))
-                case Exn.Exn(exn) => Protocol.error_message(XML.string(Exn.message(exn)))
+                case Exn.Res(_) => Protocol.writeln_message("OK")
+                case Exn.Exn(exn) => Protocol.error_message(Exn.message(exn))
               }
             val result = Document_Dockable.Result(output = List(msg))
             current_state.change(_ => Document_Dockable.State.finish(result))

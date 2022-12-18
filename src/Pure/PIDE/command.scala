@@ -340,7 +340,7 @@ object Command {
           props match {
             case Markup.Serial(i) =>
               val markup_message =
-                cache.elem(Protocol.make_message(body, kind = name, props = props))
+                cache.elem(Protocol.make_message(body, name, props = props))
               val message_markup =
                 cache.elem(XML.elem(Markup(name, props.filter(p => p._1 == Markup.SERIAL))))
 
