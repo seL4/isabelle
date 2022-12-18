@@ -94,7 +94,7 @@ object JEdit_Sessions {
     load()
   }
 
-  def logic_selector(options: Options_Variable, standalone: Boolean = false): JEdit_Options.Entry =
+  def logic_selector(options: Options_Variable, standalone: Boolean = false): Selector =
     GUI_Thread.require {
       val sessions = sessions_structure(options = options.value)
       val all_sessions = sessions.imports_topological_order
@@ -108,7 +108,7 @@ object JEdit_Sessions {
         all_sessions.sorted.map(GUI.Selector.item))
     }
 
-  def document_selector(options: Options_Variable, standalone: Boolean = false): JEdit_Options.Entry =
+  def document_selector(options: Options_Variable, standalone: Boolean = false): Selector =
     GUI_Thread.require {
       val sessions = sessions_structure(options = options.value)
       val all_sessions = sessions.build_topological_order.sorted
