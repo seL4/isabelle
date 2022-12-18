@@ -102,6 +102,9 @@ object Sessions {
       nodes(name).syntax orElse loaded_theory_syntax(name) getOrElse overall_syntax
   }
 
+
+  /* background context */
+
   sealed case class Background(
     base: Base,
     sessions_structure: Structure = Structure.empty,

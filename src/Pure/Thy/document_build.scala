@@ -109,7 +109,21 @@ object Document_Build {
   }
 
 
-  /* context */
+  /* background context */
+
+  def session_background(
+    options: Options,
+    session: String,
+    dirs: List[Path] = Nil,
+    progress: Progress = new Progress
+  ): Sessions.Background = {
+      Sessions.load_structure(options + "document=pdf", dirs = dirs).
+        selection_deps(Sessions.Selection.session(session), progress = progress).
+        background(session)
+  }
+
+
+  /* document context */
 
   val texinputs: Path = Path.explode("~~/lib/texinputs")
 
@@ -507,17 +521,12 @@ Usage: isabelle document [OPTIONS] SESSION
               dirs = dirs, progress = progress, verbose = verbose_build)
           if (!build_results.ok) error("Failed to build session " + quote(session))
 
-          val deps =
-            Sessions.load_structure(options + "document=pdf", dirs = dirs).
-              selection_deps(Sessions.Selection.session(session))
-
-          val session_background = deps.background(session)
-
           if (output_sources.isEmpty && output_pdf.isEmpty) {
             progress.echo_warning("No output directory")
           }
 
-          using(Export.open_session_context(build_results.store, session_background)) {
+          val background = session_background(options, session, dirs = dirs)
+          using(Export.open_session_context(build_results.store, background)) {
             session_context =>
               build_documents(
                 context(session_context, progress = progress),
