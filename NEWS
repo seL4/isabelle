@@ -34,6 +34,8 @@ with demo documents in the regular Isabelle "doc" space:
     symp to be abbreviations. Lemmas sym_def and symp_def are explicitly
     provided for backward compatibility but their usage is discouraged.
     Minor INCOMPATIBILITY.
+  - Added predicates asym_on and asymp_on and redefined asym and
+    asymp to be abbreviations. INCOMPATIBILITY.
   - Added predicates antisym_on and antisymp_on and redefined antisym and
     antisymp to be abbreviations. Lemmas antisym_def and antisymp_def are
     explicitly provided for backward compatibility but their usage is

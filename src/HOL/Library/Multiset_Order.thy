@@ -55,7 +55,7 @@ next
     using \<open>asymp r\<close> by (auto elim: mult1_lessE)
   from \<open>M \<noteq> N\<close> ** *(1,2,3) have "M \<noteq> P"
     using *(4) \<open>asymp r\<close>
-    by (metis asymp.cases add_cancel_right_right add_diff_cancel_left' add_mset_add_single count_inI
+    by (metis asympD add_cancel_right_right add_diff_cancel_left' add_mset_add_single count_inI
         count_union diff_diff_add_mset diff_single_trivial in_diff_count multi_member_last)
   moreover
   { assume "count P a \<le> count M a"
@@ -65,7 +65,7 @@ next
         by blast
       with * have "count N z \<le> count P z"
         using \<open>asymp r\<close>
-        by (metis add_diff_cancel_left' add_mset_add_single asymp.cases diff_diff_add_mset
+        by (metis add_diff_cancel_left' add_mset_add_single asympD diff_diff_add_mset
             diff_single_trivial in_diff_count not_le_imp_less)
       with z have "\<exists>z. r a z \<and> count M z < count P z" by auto
   } note count_a = this

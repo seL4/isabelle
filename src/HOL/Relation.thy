@@ -332,19 +332,32 @@ lemma (in preorder) irreflp_on_less[simp]: "irreflp_on A (<)"
 lemma (in preorder) irreflp_on_greater[simp]: "irreflp_on A (>)"
   by (simp add: irreflp_onI)
 
+
 subsubsection \<open>Asymmetry\<close>
 
-inductive asym :: "'a rel \<Rightarrow> bool"
-  where asymI: "(\<And>a b. (a, b) \<in> R \<Longrightarrow> (b, a) \<notin> R) \<Longrightarrow> asym R"
+definition asym_on :: "'a set \<Rightarrow> 'a rel \<Rightarrow> bool" where
+  "asym_on A r \<longleftrightarrow> (\<forall>x \<in> A. \<forall>y \<in> A. (x, y) \<in> r \<longrightarrow> (y, x) \<notin> r)"
 
-inductive asymp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool"
-  where asympI: "(\<And>a b. R a b \<Longrightarrow> \<not> R b a) \<Longrightarrow> asymp R"
+abbreviation asym :: "'a rel \<Rightarrow> bool" where
+  "asym \<equiv> asym_on UNIV"
+
+definition asymp_on :: "'a set \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
+  "asymp_on A R \<longleftrightarrow> (\<forall>x \<in> A. \<forall>y \<in> A. R x y \<longrightarrow> \<not> R y x)"
+
+abbreviation asymp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
+  "asymp \<equiv> asymp_on UNIV"
+
+lemma asymI[intro]: "(\<And>x y. (x, y) \<in> R \<Longrightarrow> (y, x) \<notin> R) \<Longrightarrow> asym R"
+  by (simp add: asym_on_def)
+
+lemma asympI[intro]: "(\<And>x y. R x y \<Longrightarrow> \<not> R y x) \<Longrightarrow> asymp R"
+  by (simp add: asymp_on_def)
 
 lemma asymp_asym_eq [pred_set_conv]: "asymp (\<lambda>a b. (a, b) \<in> R) \<longleftrightarrow> asym R"
-  by (auto intro!: asymI asympI elim: asym.cases asymp.cases simp add: irreflp_irrefl_eq)
+  by (simp add: asymp_on_def asym_on_def)
 
 lemma asymD: "\<lbrakk>asym R; (x,y) \<in> R\<rbrakk> \<Longrightarrow> (y,x) \<notin> R"
-  by (simp add: asym.simps)
+  by (simp add: asym_on_def)
 
 lemma asympD: "asymp R \<Longrightarrow> R x y \<Longrightarrow> \<not> R y x"
   by (rule asymD[to_pred])
@@ -542,7 +555,7 @@ lemma antisym_singleton [simp]:
   by (blast intro: antisymI)
 
 lemma antisym_if_asym: "asym r \<Longrightarrow> antisym r"
-  by (auto intro: antisymI elim: asym.cases)
+  by (auto intro: antisymI dest: asymD)
 
 lemma antisymp_if_asymp: "asymp R \<Longrightarrow> antisymp R"
   by (rule antisym_if_asym[to_pred])

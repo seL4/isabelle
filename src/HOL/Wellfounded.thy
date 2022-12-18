@@ -604,7 +604,7 @@ lemma irrefl_less_than: "irrefl less_than"
   using irrefl_def by blast
 
 lemma asym_less_than: "asym less_than"
-  by (simp add: asym.simps irrefl_less_than)
+  by (rule asymI) simp
 
 lemma total_less_than: "total less_than" and total_on_less_than [simp]: "total_on A less_than"
   using total_on_def by force+

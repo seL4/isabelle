@@ -3403,7 +3403,7 @@ proof -
   from assms obtain a M0 K where "M = add_mset a M0" "N = M0 + K" and
     *: "b \<in># K \<Longrightarrow> r b a" for b by (blast elim: mult1E)
   moreover from * [of a] have "a \<notin># K"
-    using \<open>asymp r\<close> by (meson asymp.cases)
+    using \<open>asymp r\<close> by (meson asympD)
   ultimately show thesis by (auto intro: that)
 qed
 
