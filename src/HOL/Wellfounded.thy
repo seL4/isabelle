@@ -849,18 +849,26 @@ proof (rule wfI)
     by (simp add: zeq)
 qed auto
 
+lemma irrefl_on_lex_prod[simp]:
+  "irrefl_on A r\<^sub>A \<Longrightarrow> irrefl_on B r\<^sub>B \<Longrightarrow> irrefl_on (A \<times> B) (r\<^sub>A <*lex*> r\<^sub>B)"
+  by (auto intro!: irrefl_onI dest: irrefl_onD)
+
+lemma irrefl_lex_prod[simp]: "irrefl r\<^sub>A \<Longrightarrow> irrefl r\<^sub>B \<Longrightarrow> irrefl (r\<^sub>A <*lex*> r\<^sub>B)"
+  by (rule irrefl_on_lex_prod[of UNIV _ UNIV, unfolded UNIV_Times_UNIV])
+
 text \<open>\<open><*lex*>\<close> preserves transitivity\<close>
 lemma trans_lex_prod [simp,intro!]: "trans R1 \<Longrightarrow> trans R2 \<Longrightarrow> trans (R1 <*lex*> R2)"
   unfolding trans_def lex_prod_def by blast
 
-lemma total_on_lex_prod [simp]: "total_on A r \<Longrightarrow> total_on B s \<Longrightarrow> total_on (A \<times> B) (r <*lex*> s)"
+lemma total_on_lex_prod[simp]:
+  "total_on A r\<^sub>A \<Longrightarrow> total_on B r\<^sub>B \<Longrightarrow> total_on (A \<times> B) (r\<^sub>A <*lex*> r\<^sub>B)"
   by (auto simp: total_on_def)
+
+lemma total_lex_prod[simp]: "total r\<^sub>A \<Longrightarrow> total r\<^sub>B \<Longrightarrow> total (r\<^sub>A <*lex*> r\<^sub>B)"
+  by (rule total_on_lex_prod[of UNIV _ UNIV, unfolded UNIV_Times_UNIV])
 
 lemma asym_lex_prod: "\<lbrakk>asym R; asym S\<rbrakk> \<Longrightarrow> asym (R <*lex*> S)"
   by (auto simp add: asym_iff lex_prod_def)
-
-lemma total_lex_prod [simp]: "total r \<Longrightarrow> total s \<Longrightarrow> total (r <*lex*> s)"
-  by (auto simp: total_on_def)
 
 text \<open>lexicographic combinations with measure functions\<close>
 

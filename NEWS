@@ -118,6 +118,8 @@ with demo documents in the regular Isabelle "doc" space:
 
 * Theory "HOL.Wellfounded":
   - Added lemmas.
+      irrefl_lex_prod[simp]
+      irrefl_on_lex_prod[simp]
       wfP_if_convertible_to_nat
       wfP_if_convertible_to_wfP
       wf_if_convertible_to_wf
