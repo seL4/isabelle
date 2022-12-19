@@ -385,11 +385,11 @@ lemma asym_on_subset: "asym_on A r \<Longrightarrow> B \<subseteq> A \<Longright
 lemma asymp_on_subset: "asymp_on A R \<Longrightarrow> B \<subseteq> A \<Longrightarrow> asymp_on B R"
   by (auto simp: asymp_on_def)
 
-lemma (in preorder) asymp_less[simp]: "asymp (<)"
-  by (auto intro: asympI dual_order.asym)
+lemma (in preorder) asymp_on_less[simp]: "asymp_on A (<)"
+  by (auto intro: dual_order.asym)
 
-lemma (in preorder) asymp_greater[simp]: "asymp (>)"
-  by (auto intro: asympI dual_order.asym)
+lemma (in preorder) asymp_on_greater[simp]: "asymp_on A (>)"
+  by (auto intro: dual_order.asym)
 
 
 subsubsection \<open>Symmetry\<close>
@@ -581,10 +581,10 @@ lemma antisymp_if_asymp: "asymp R \<Longrightarrow> antisymp R"
   by (rule antisym_if_asym[to_pred])
 
 lemma (in preorder) antisymp_less[simp]: "antisymp (<)"
-  by (rule antisymp_if_asymp[OF asymp_less])
+  by (rule antisymp_if_asymp[OF asymp_on_less])
 
 lemma (in preorder) antisymp_greater[simp]: "antisymp (>)"
-  by (rule antisymp_if_asymp[OF asymp_greater])
+  by (rule antisymp_if_asymp[OF asymp_on_greater])
 
 lemma (in order) antisymp_on_le[simp]: "antisymp_on A (\<le>)"
   by (simp add: antisymp_onI)
