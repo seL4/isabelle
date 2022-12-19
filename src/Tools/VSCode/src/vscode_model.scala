@@ -84,6 +84,8 @@ sealed case class VSCode_Model(
   def get_required(document: Boolean): Boolean =
     if (document) document_required else theory_required
 
+  def node_required: Boolean = get_required(false)
+
 
   /* content */
 

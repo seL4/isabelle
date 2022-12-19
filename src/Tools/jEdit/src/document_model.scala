@@ -337,6 +337,9 @@ sealed abstract class Document_Model extends Document.Model {
 
   def document_view_ranges(snapshot: Document.Snapshot): List[Text.Range] = Nil
 
+  def node_required: Boolean =
+    get_required(false) || PIDE.editor.document_active && get_required(true)
+
   def node_perspective(
     doc_blobs: Document.Blobs,
     hidden: Boolean
