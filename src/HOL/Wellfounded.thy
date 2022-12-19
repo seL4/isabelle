@@ -856,6 +856,14 @@ lemma irrefl_on_lex_prod[simp]:
 lemma irrefl_lex_prod[simp]: "irrefl r\<^sub>A \<Longrightarrow> irrefl r\<^sub>B \<Longrightarrow> irrefl (r\<^sub>A <*lex*> r\<^sub>B)"
   by (rule irrefl_on_lex_prod[of UNIV _ UNIV, unfolded UNIV_Times_UNIV])
 
+lemma sym_on_lex_prod[simp]:
+  "sym_on A r\<^sub>A \<Longrightarrow> sym_on B r\<^sub>B \<Longrightarrow> sym_on (A \<times> B) (r\<^sub>A <*lex*> r\<^sub>B)"
+  by (auto intro!: sym_onI dest: sym_onD)
+
+lemma sym_lex_prod[simp]:
+  "sym r\<^sub>A \<Longrightarrow> sym r\<^sub>B \<Longrightarrow> sym (r\<^sub>A <*lex*> r\<^sub>B)"
+  by (rule sym_on_lex_prod[of UNIV _ UNIV, unfolded UNIV_Times_UNIV])
+
 text \<open>\<open><*lex*>\<close> preserves transitivity\<close>
 lemma trans_lex_prod [simp,intro!]: "trans R1 \<Longrightarrow> trans R2 \<Longrightarrow> trans (R1 <*lex*> R2)"
   unfolding trans_def lex_prod_def by blast
