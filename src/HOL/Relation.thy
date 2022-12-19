@@ -1179,8 +1179,11 @@ lemma antisym_on_converse [simp]: "antisym_on A (r\<inverse>) = antisym_on A r"
 lemma antisymp_on_conversep [simp]: "antisymp_on A R\<inverse>\<inverse> = antisymp_on A R"
   by (rule antisym_on_converse[to_pred])
 
-lemma trans_converse [simp]: "trans (converse r) = trans r"
-  unfolding trans_def by blast
+lemma trans_on_converse [simp]: "trans_on A (r\<inverse>) = trans_on A r"
+  by (auto intro: trans_onI dest: trans_onD)
+
+lemma transp_on_conversep [simp]: "transp_on A R\<inverse>\<inverse> = transp_on A R"
+  by (rule trans_on_converse[to_pred])
 
 lemma sym_conv_converse_eq: "sym r \<longleftrightarrow> r\<inverse> = r"
   unfolding sym_def by fast

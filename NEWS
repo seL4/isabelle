@@ -45,6 +45,7 @@ with demo documents in the regular Isabelle "doc" space:
     for backward compatibility but their usage is discouraged.
     Minor INCOMPATIBILITY.
   - Strengthened (and renamed) lemmas. Minor INCOMPATIBILITY.
+      antisym_converse[simp] ~> antisym_on_converse[simp]
       order.antisymp_ge[simp] ~> order.antisymp_on_ge[simp]
       order.antisymp_le[simp] ~> order.antisymp_on_le[simp]
       preorder.asymp_greater[simp] ~> preorder.asymp_on_greater[simp]
@@ -56,9 +57,9 @@ with demo documents in the regular Isabelle "doc" space:
       preorder.transp_le[simp] ~> preorder.transp_on_le[simp]
       preorder.transp_less[simp] ~> preorder.transp_on_less[simp]
       reflp_equality[simp] ~> reflp_on_equality[simp]
-      total_on_singleton
       sym_converse[simp] ~> sym_on_converse[simp]
-      antisym_converse[simp] ~> antisym_on_converse[simp]
+      total_on_singleton
+      trans_converse[simp] ~> trans_on_converse[simp]
   - Added lemmas.
       antisym_onD
       antisym_onI
@@ -119,6 +120,7 @@ with demo documents in the regular Isabelle "doc" space:
       trans_on_subset
       transp_onD
       transp_onI
+      transp_on_conversep
       transp_on_subset
       transp_on_trans_on_eq[pred_set_conv]
 
