@@ -623,8 +623,10 @@ lemma transp_def: "transp R \<longleftrightarrow> (\<forall>x y z. R x y \<longr
 
 text \<open>@{thm [source] trans_def} and @{thm [source] transp_def} are for backward compatibility.\<close>
 
-lemma transp_trans_eq [pred_set_conv]: "transp (\<lambda>x y. (x, y) \<in> r) \<longleftrightarrow> trans r"
-  by (simp add: trans_def transp_def)
+lemma transp_on_trans_on_eq[pred_set_conv]: "transp_on A (\<lambda>x y. (x, y) \<in> r) \<longleftrightarrow> trans_on A r"
+  by (simp add: trans_on_def transp_on_def)
+
+lemmas transp_trans_eq = transp_on_trans_on_eq[of UNIV] \<comment> \<open>For backward compatibility\<close>
 
 lemma transI [intro?]: "(\<And>x y z. (x, y) \<in> r \<Longrightarrow> (y, z) \<in> r \<Longrightarrow> (x, z) \<in> r) \<Longrightarrow> trans r"
   by (unfold trans_def) iprover
