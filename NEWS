@@ -34,6 +34,8 @@ with demo documents in the regular Isabelle "doc" space:
     symp to be abbreviations. Lemmas sym_def and symp_def are explicitly
     provided for backward compatibility but their usage is discouraged.
     Minor INCOMPATIBILITY.
+  - Added predicates asym_on and asymp_on and redefined asym and
+    asymp to be abbreviations. INCOMPATIBILITY.
   - Added predicates antisym_on and antisymp_on and redefined antisym and
     antisymp to be abbreviations. Lemmas antisym_def and antisymp_def are
     explicitly provided for backward compatibility but their usage is
@@ -41,22 +43,34 @@ with demo documents in the regular Isabelle "doc" space:
   - Strengthened (and renamed) lemmas. Minor INCOMPATIBILITY.
       order.antisymp_ge[simp] ~> order.antisymp_on_ge[simp]
       order.antisymp_le[simp] ~> order.antisymp_on_le[simp]
+      preorder.asymp_greater[simp] ~> preorder.asymp_on_greater[simp]
+      preorder.asymp_less[simp] ~> preorder.asymp_on_less[simp]
       preorder.irreflp_greater[simp] ~> preorder.irreflp_on_greater[simp]
       preorder.irreflp_less[simp] ~> preorder.irreflp_on_less[simp]
       reflp_equality[simp] ~> reflp_on_equality[simp]
       total_on_singleton
+      sym_converse[simp] ~> sym_on_converse[simp]
+      antisym_converse[simp] ~> antisym_on_converse[simp]
   - Added lemmas.
-      antisym_if_asymp
       antisym_onD
       antisym_onI
+      antisym_on_if_asymp_on
       antisym_on_subset
-      antisymp_if_asymp
       antisymp_onD
       antisymp_onI
       antisymp_on_antisym_on_eq[pred_set_conv]
+      antisymp_on_conversep[simp]
+      antisymp_on_if_asymp_on
       antisymp_on_subset
-      asym_if_irrefl_and_trans
-      asymp_if_irreflp_and_transp
+      asym_on_iff_irrefl_on_if_trans
+      asym_onD
+      asym_onI
+      asym_on_converse[simp]
+      asymp_on_iff_irreflp_on_if_transp
+      asymp_onD
+      asymp_onI
+      asymp_on_asym_on_eq[pred_set_conv]
+      asymp_on_conversep[simp]
       irreflD
       irrefl_onD
       irrefl_onI
@@ -74,16 +88,19 @@ with demo documents in the regular Isabelle "doc" space:
       linorder.totalp_on_less[simp]
       order.antisymp_ge[simp]
       order.antisymp_le[simp]
-      preorder.antisymp_greater[simp]
-      preorder.antisymp_less[simp]
+      preorder.antisymp_on_greater[simp]
+      preorder.antisymp_on_less[simp]
       preorder.reflp_on_ge[simp]
       preorder.reflp_on_le[simp]
+      reflD
+      reflI
       reflp_on_conversp[simp]
       sym_onD
       sym_onI
       sym_on_subset
       symp_onD
       symp_onI
+      symp_on_conversep[simp]
       symp_on_subset
       symp_on_sym_on_eq[pred_set_conv]
       totalI
@@ -103,6 +120,13 @@ with demo documents in the regular Isabelle "doc" space:
 
 * Theory "HOL.Wellfounded":
   - Added lemmas.
+      asym_lex_prod[simp]
+      asym_on_lex_prod[simp]
+      irrefl_lex_prod[simp]
+      irrefl_on_lex_prod[simp]
+      refl_lex_prod[simp]
+      sym_lex_prod[simp]
+      sym_on_lex_prod[simp]
       wfP_if_convertible_to_nat
       wfP_if_convertible_to_wfP
       wf_if_convertible_to_wf

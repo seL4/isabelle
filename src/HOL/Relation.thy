@@ -173,6 +173,9 @@ lemma reflp_refl_eq [pred_set_conv]: "reflp (\<lambda>x y. (x, y) \<in> r) \<lon
 lemma refl_onI [intro?]: "r \<subseteq> A \<times> A \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> (x, x) \<in> r) \<Longrightarrow> refl_on A r"
   unfolding refl_on_def by (iprover intro!: ballI)
 
+lemma reflI: "(\<And>x. (x, x) \<in> r) \<Longrightarrow> refl r"
+  by (auto intro: refl_onI)
+
 lemma reflp_onI:
   "(\<And>x. x \<in> A \<Longrightarrow> R x x) \<Longrightarrow> reflp_on A R"
   by (simp add: reflp_on_def)
@@ -187,6 +190,9 @@ lemma refl_onD1: "refl_on A r \<Longrightarrow> (x, y) \<in> r \<Longrightarrow>
   unfolding refl_on_def by blast
 
 lemma refl_onD2: "refl_on A r \<Longrightarrow> (x, y) \<in> r \<Longrightarrow> y \<in> A"
+  unfolding refl_on_def by blast
+
+lemma reflD: "refl r \<Longrightarrow> (a, a) \<in> r"
   unfolding refl_on_def by blast
 
 lemma reflp_onD:
@@ -332,31 +338,66 @@ lemma (in preorder) irreflp_on_less[simp]: "irreflp_on A (<)"
 lemma (in preorder) irreflp_on_greater[simp]: "irreflp_on A (>)"
   by (simp add: irreflp_onI)
 
+
 subsubsection \<open>Asymmetry\<close>
 
-inductive asym :: "'a rel \<Rightarrow> bool"
-  where asymI: "(\<And>a b. (a, b) \<in> R \<Longrightarrow> (b, a) \<notin> R) \<Longrightarrow> asym R"
+definition asym_on :: "'a set \<Rightarrow> 'a rel \<Rightarrow> bool" where
+  "asym_on A r \<longleftrightarrow> (\<forall>x \<in> A. \<forall>y \<in> A. (x, y) \<in> r \<longrightarrow> (y, x) \<notin> r)"
 
-inductive asymp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool"
-  where asympI: "(\<And>a b. R a b \<Longrightarrow> \<not> R b a) \<Longrightarrow> asymp R"
+abbreviation asym :: "'a rel \<Rightarrow> bool" where
+  "asym \<equiv> asym_on UNIV"
 
-lemma asymp_asym_eq [pred_set_conv]: "asymp (\<lambda>a b. (a, b) \<in> R) \<longleftrightarrow> asym R"
-  by (auto intro!: asymI asympI elim: asym.cases asymp.cases simp add: irreflp_irrefl_eq)
+definition asymp_on :: "'a set \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
+  "asymp_on A R \<longleftrightarrow> (\<forall>x \<in> A. \<forall>y \<in> A. R x y \<longrightarrow> \<not> R y x)"
 
-lemma asymD: "\<lbrakk>asym R; (x,y) \<in> R\<rbrakk> \<Longrightarrow> (y,x) \<notin> R"
-  by (simp add: asym.simps)
+abbreviation asymp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
+  "asymp \<equiv> asymp_on UNIV"
+
+lemma asymp_on_asym_on_eq[pred_set_conv]: "asymp_on A (\<lambda>x y. (x, y) \<in> r) \<longleftrightarrow> asym_on A r"
+  by (simp add: asymp_on_def asym_on_def)
+
+lemmas asymp_asym_eq = asymp_on_asym_on_eq[of UNIV] \<comment> \<open>For backward compatibility\<close>
+
+lemma asym_onI[intro]:
+  "(\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> (x, y) \<in> r \<Longrightarrow> (y, x) \<notin> r) \<Longrightarrow> asym_on A r"
+  by (simp add: asym_on_def)
+
+lemma asymI[intro]: "(\<And>x y. (x, y) \<in> r \<Longrightarrow> (y, x) \<notin> r) \<Longrightarrow> asym r"
+  by (simp add: asym_onI)
+
+lemma asymp_onI[intro]:
+  "(\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> R x y \<Longrightarrow> \<not> R y x) \<Longrightarrow> asymp_on A R"
+  by (rule asym_onI[to_pred])
+
+lemma asympI[intro]: "(\<And>x y. R x y \<Longrightarrow> \<not> R y x) \<Longrightarrow> asymp R"
+  by (rule asymI[to_pred])
+
+lemma asym_onD: "asym_on A r \<Longrightarrow> x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> (x, y) \<in> r \<Longrightarrow> (y, x) \<notin> r"
+  by (simp add: asym_on_def)
+
+lemma asymD: "asym r \<Longrightarrow> (x, y) \<in> r \<Longrightarrow> (y, x) \<notin> r"
+  by (simp add: asym_onD)
+
+lemma asymp_onD: "asymp_on A R \<Longrightarrow> x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> R x y \<Longrightarrow> \<not> R y x"
+  by (rule asym_onD[to_pred])
 
 lemma asympD: "asymp R \<Longrightarrow> R x y \<Longrightarrow> \<not> R y x"
   by (rule asymD[to_pred])
 
-lemma asym_iff: "asym R \<longleftrightarrow> (\<forall>x y. (x,y) \<in> R \<longrightarrow> (y,x) \<notin> R)"
-  by (blast intro: asymI dest: asymD)
+lemma asym_iff: "asym r \<longleftrightarrow> (\<forall>x y. (x,y) \<in> r \<longrightarrow> (y,x) \<notin> r)"
+  by (blast dest: asymD)
 
-lemma (in preorder) asymp_less[simp]: "asymp (<)"
-  by (auto intro: asympI dual_order.asym)
+lemma asym_on_subset: "asym_on A r \<Longrightarrow> B \<subseteq> A \<Longrightarrow> asym_on B r"
+  by (auto simp: asym_on_def)
 
-lemma (in preorder) asymp_greater[simp]: "asymp (>)"
-  by (auto intro: asympI dual_order.asym)
+lemma asymp_on_subset: "asymp_on A R \<Longrightarrow> B \<subseteq> A \<Longrightarrow> asymp_on B R"
+  by (auto simp: asymp_on_def)
+
+lemma (in preorder) asymp_on_less[simp]: "asymp_on A (<)"
+  by (auto intro: dual_order.asym)
+
+lemma (in preorder) asymp_on_greater[simp]: "asymp_on A (>)"
+  by (auto intro: dual_order.asym)
 
 
 subsubsection \<open>Symmetry\<close>
@@ -541,17 +582,17 @@ lemma antisym_singleton [simp]:
   "antisym {x}"
   by (blast intro: antisymI)
 
-lemma antisym_if_asym: "asym r \<Longrightarrow> antisym r"
-  by (auto intro: antisymI elim: asym.cases)
+lemma antisym_on_if_asym_on: "asym_on A r \<Longrightarrow> antisym_on A r"
+  by (auto intro: antisym_onI dest: asym_onD)
 
-lemma antisymp_if_asymp: "asymp R \<Longrightarrow> antisymp R"
-  by (rule antisym_if_asym[to_pred])
+lemma antisymp_on_if_asymp_on: "asymp_on A R \<Longrightarrow> antisymp_on A R"
+  by (rule antisym_on_if_asym_on[to_pred])
 
-lemma (in preorder) antisymp_less[simp]: "antisymp (<)"
-  by (rule antisymp_if_asymp[OF asymp_less])
+lemma (in preorder) antisymp_on_less[simp]: "antisymp_on A (<)"
+  by (rule antisymp_on_if_asymp_on[OF asymp_on_less])
 
-lemma (in preorder) antisymp_greater[simp]: "antisymp (>)"
-  by (rule antisymp_if_asymp[OF asymp_greater])
+lemma (in preorder) antisymp_on_greater[simp]: "antisymp_on A (>)"
+  by (rule antisymp_on_if_asymp_on[OF asymp_on_greater])
 
 lemma (in order) antisymp_on_le[simp]: "antisymp_on A (\<le>)"
   by (simp add: antisymp_onI)
@@ -630,11 +671,11 @@ lemma trans_singleton [simp]: "trans {(a, a)}"
 lemma transp_singleton [simp]: "transp (\<lambda>x y. x = a \<and> y = a)"
   by (simp add: transp_def)
 
-lemma asym_if_irrefl_and_trans: "irrefl R \<Longrightarrow> trans R \<Longrightarrow> asym R"
-  by (auto intro: asymI dest: transD irreflD)
+lemma asym_on_iff_irrefl_on_if_trans: "trans r \<Longrightarrow> asym_on A r \<longleftrightarrow> irrefl_on A r"
+  by (auto intro: irrefl_onI dest: transD asym_onD irrefl_onD)
 
-lemma asymp_if_irreflp_and_transp: "irreflp R \<Longrightarrow> transp R \<Longrightarrow> asymp R"
-  by (rule asym_if_irrefl_and_trans[to_pred])
+lemma asymp_on_iff_irreflp_on_if_transp: "transp R \<Longrightarrow> asymp_on A R \<longleftrightarrow> irreflp_on A R"
+  by (rule asym_on_iff_irrefl_on_if_trans[to_pred])
 
 context preorder
 begin
@@ -1075,11 +1116,23 @@ lemma irrefl_on_converse [simp]: "irrefl_on A (r\<inverse>) = irrefl_on A r"
 lemma irreflp_on_converse [simp]: "irreflp_on A (r\<inverse>\<inverse>) = irreflp_on A r"
   by (rule irrefl_on_converse[to_pred])
 
-lemma sym_converse [simp]: "sym (converse r) = sym r"
-  unfolding sym_def by blast
+lemma sym_on_converse [simp]: "sym_on A (r\<inverse>) = sym_on A r"
+  by (auto intro: sym_onI dest: sym_onD)
 
-lemma antisym_converse [simp]: "antisym (converse r) = antisym r"
-  unfolding antisym_def by blast
+lemma symp_on_conversep [simp]: "symp_on A R\<inverse>\<inverse> = symp_on A R"
+  by (rule sym_on_converse[to_pred])
+
+lemma asym_on_converse [simp]: "asym_on A (r\<inverse>) = asym_on A r"
+  by (auto dest: asym_onD)
+
+lemma asymp_on_conversep [simp]: "asymp_on A R\<inverse>\<inverse> = asymp_on A R"
+  by (rule asym_on_converse[to_pred])
+
+lemma antisym_on_converse [simp]: "antisym_on A (r\<inverse>) = antisym_on A r"
+  by (auto intro: antisym_onI dest: antisym_onD)
+
+lemma antisymp_on_conversep [simp]: "antisymp_on A R\<inverse>\<inverse> = antisymp_on A R"
+  by (rule antisym_on_converse[to_pred])
 
 lemma trans_converse [simp]: "trans (converse r) = trans r"
   unfolding trans_def by blast

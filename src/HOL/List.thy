@@ -6986,7 +6986,7 @@ proof
   next
     case (Cons x xs)
     then obtain z zs where ys: "ys = z # zs" by (cases ys) auto
-    with assms Cons show ?case by (auto elim: asym.cases)
+    with assms Cons show ?case by (auto dest: asymD)
   qed
 qed
 
@@ -6996,11 +6996,11 @@ lemma lexord_asymmetric:
   shows "(b, a) \<notin> lexord R"
 proof -
   from \<open>asym R\<close> have "asym (lexord R)" by (rule lexord_asym)
-  then show ?thesis by (rule asym.cases) (auto simp add: hyp)
+  then show ?thesis by (auto simp: hyp dest: asymD)
 qed
 
 lemma asym_lex: "asym R \<Longrightarrow> asym (lex R)"
-  by (meson asym.simps irrefl_lex lexord_asym lexord_lex)
+  by (meson asymI asymD irrefl_lex lexord_asym lexord_lex)
 
 lemma asym_lenlex: "asym R \<Longrightarrow> asym (lenlex R)"
   by (simp add: lenlex_def asym_inv_image asym_less_than asym_lex asym_lex_prod)
