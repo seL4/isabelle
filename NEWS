@@ -118,6 +118,8 @@ with demo documents in the regular Isabelle "doc" space:
 
 * Theory "HOL.Wellfounded":
   - Added lemmas.
+      asym_lex_prod[simp]
+      asym_on_lex_prod[simp]
       irrefl_lex_prod[simp]
       irrefl_on_lex_prod[simp]
       sym_lex_prod[simp]
