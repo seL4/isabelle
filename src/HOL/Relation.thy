@@ -665,11 +665,11 @@ lemma trans_singleton [simp]: "trans {(a, a)}"
 lemma transp_singleton [simp]: "transp (\<lambda>x y. x = a \<and> y = a)"
   by (simp add: transp_def)
 
-lemma asym_if_irrefl_and_trans: "irrefl R \<Longrightarrow> trans R \<Longrightarrow> asym R"
-  by (auto intro: asymI dest: transD irreflD)
+lemma asym_on_iff_irrefl_on_if_trans: "trans r \<Longrightarrow> asym_on A r \<longleftrightarrow> irrefl_on A r"
+  by (auto intro: irrefl_onI dest: transD asym_onD irrefl_onD)
 
-lemma asymp_if_irreflp_and_transp: "irreflp R \<Longrightarrow> transp R \<Longrightarrow> asymp R"
-  by (rule asym_if_irrefl_and_trans[to_pred])
+lemma asymp_on_iff_irreflp_on_if_transp: "transp R \<Longrightarrow> asymp_on A R \<longleftrightarrow> irreflp_on A R"
+  by (rule asym_on_iff_irrefl_on_if_trans[to_pred])
 
 context preorder
 begin
