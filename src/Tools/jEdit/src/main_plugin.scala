@@ -101,6 +101,8 @@ class Main_Plugin extends EBPlugin {
       }
     }
 
+  def deps_changed(): Unit = delay_load.invoke()
+
   private val delay_load_active = Synchronized(false)
   private def delay_load_finished(): Unit = delay_load_active.change(_ => false)
   private def delay_load_activated(): Boolean =
@@ -151,18 +153,6 @@ class Main_Plugin extends EBPlugin {
 
   lazy val file_watcher: File_Watcher =
     File_Watcher(file_watcher_action, session.load_delay)
-
-
-  /* global changes */
-
-  def options_changed(): Unit = {
-    session.global_options.post(Session.Global_Options(options.value))
-    delay_load.invoke()
-  }
-
-  def deps_changed(): Unit = {
-    delay_load.invoke()
-  }
 
 
   /* session phase */

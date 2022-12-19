@@ -53,12 +53,15 @@ class JEdit_Editor extends Editor[View] {
     } yield doc_view.model.node_name).contains(name)
 
 
-  /* document editor */
+  /* global changes */
 
-  override def document_active_changed(): Unit = {
-    PIDE.plugin.options_changed()
+  def state_changed(): Unit = {
     flush()
+    PIDE.plugin.deps_changed()
+    session.global_options.post(Session.Global_Options(PIDE.options.value))
   }
+
+  override def document_active_changed(): Unit = state_changed()
 
 
   /* current situation */

@@ -211,10 +211,7 @@ object Document_Model {
               case _ => (false, st)
             }
         })
-    if (changed) {
-      PIDE.plugin.options_changed()
-      PIDE.editor.flush()
-    }
+    if (changed) PIDE.editor.state_changed()
   }
 
   def view_node_required(
