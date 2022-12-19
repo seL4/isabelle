@@ -138,7 +138,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
               val session_background =
                 Document_Build.session_background(
                   options, session, dirs = JEdit_Sessions.session_dirs)
-              PIDE.editor.document_editor_setup(Some(session_background))
+              PIDE.editor.document_setup(Some(session_background))
               GUI_Thread.later { show_state(); show_page(theories_page) }
             }
             catch {
@@ -277,7 +277,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     }
 
   override def init(): Unit = {
-    PIDE.editor.document_editor_init(dockable)
+    PIDE.editor.document_init(dockable)
     init_state()
     PIDE.session.global_options += main
     PIDE.session.commands_changed += main
@@ -290,6 +290,6 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     PIDE.session.global_options -= main
     PIDE.session.commands_changed -= main
     delay_resize.revoke()
-    PIDE.editor.document_editor_exit(dockable)
+    PIDE.editor.document_exit(dockable)
   }
 }

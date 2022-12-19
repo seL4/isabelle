@@ -20,16 +20,12 @@ abstract class Editor[Context] {
   protected val document_editor: Synchronized[Document_Editor.State] =
     Synchronized(Document_Editor.State())
 
-  def document_editor_session: Option[Sessions.Background] =
-    document_editor.value.session_background
-  def document_editor_active: Boolean =
-    document_editor.value.is_active
-  def document_editor_setup(background: Option[Sessions.Background]): Unit =
+  def document_session: Option[Sessions.Background] = document_editor.value.session_background
+  def document_active: Boolean = document_editor.value.is_active
+  def document_setup(background: Option[Sessions.Background]): Unit =
     document_editor.change(_.copy(session_background = background))
-  def document_editor_init(id: AnyRef): Unit =
-    document_editor.change(_.register_view(id))
-  def document_editor_exit(id: AnyRef): Unit =
-    document_editor.change(_.unregister_view(id))
+  def document_init(id: AnyRef): Unit = document_editor.change(_.register_view(id))
+  def document_exit(id: AnyRef): Unit = document_editor.change(_.unregister_view(id))
 
 
   /* current situation */
