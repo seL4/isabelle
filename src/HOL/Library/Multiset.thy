@@ -3458,7 +3458,7 @@ proof intro_classes
   fix M N :: "'a multiset"
   show "(M < N) = (M \<le> N \<and> \<not> N \<le> M)"
     unfolding less_eq_multiset_def less_multiset_def
-    by (metis irreflp_def irreflp_on_less irreflp_multp transpE transp_less transp_multp)
+    by (metis irreflp_def irreflp_on_less irreflp_multp transpE transp_on_less transp_multp)
 next
   fix M :: "'a multiset"
   show "M \<le> M"
@@ -3468,14 +3468,14 @@ next
   fix M1 M2 M3 :: "'a multiset"
   show "M1 \<le> M2 \<Longrightarrow> M2 \<le> M3 \<Longrightarrow> M1 \<le> M3"
     unfolding less_eq_multiset_def less_multiset_def
-    using transp_multp[OF transp_less, THEN transpD]
+    using transp_multp[OF transp_on_less, THEN transpD]
     by blast
 next
   fix M N :: "'a multiset"
   show "M \<le> N \<Longrightarrow> N \<le> M \<Longrightarrow> M = N"
     unfolding less_eq_multiset_def less_multiset_def
-    using transp_multp[OF transp_less, THEN transpD]
-    using irreflp_multp[OF transp_less irreflp_on_less, unfolded irreflp_def, rule_format]
+    using transp_multp[OF transp_on_less, THEN transpD]
+    using irreflp_multp[OF transp_on_less irreflp_on_less, unfolded irreflp_def, rule_format]
     by blast
 qed
 

@@ -5535,7 +5535,7 @@ proof
 next
   assume ?R
   have "i < j \<Longrightarrow> j < length xs \<Longrightarrow> P (xs ! i) (xs ! j)" for i j
-    by(induct i j rule: less_Suc_induct)(simp add: \<open>?R\<close>, meson assms transpE transp_less)
+    by(induct i j rule: less_Suc_induct)(simp add: \<open>?R\<close>, meson assms transpE transp_on_less)
   thus ?L
     by (simp add: sorted_wrt_iff_nth_less)
 qed

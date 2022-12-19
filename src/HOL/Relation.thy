@@ -718,22 +718,26 @@ lemma asym_on_iff_irrefl_on_if_trans: "trans r \<Longrightarrow> asym_on A r \<l
 lemma asymp_on_iff_irreflp_on_if_transp: "transp R \<Longrightarrow> asymp_on A R \<longleftrightarrow> irreflp_on A R"
   by (rule asym_on_iff_irrefl_on_if_trans[to_pred])
 
-context preorder
-begin
+lemma (in preorder) transp_on_le[simp]: "transp_on A (\<le>)"
+  by (auto intro: transp_onI order_trans)
 
-lemma transp_le[simp]: "transp (\<le>)"
-by(auto simp add: transp_def intro: order_trans)
+lemmas (in preorder) transp_le = transp_on_le[of UNIV]
 
-lemma transp_less[simp]: "transp (<)"
-by(auto simp add: transp_def intro: less_trans)
+lemma (in preorder) transp_on_less[simp]: "transp_on A (<)"
+  by (auto intro: transp_onI less_trans)
 
-lemma transp_ge[simp]: "transp (\<ge>)"
-by(auto simp add: transp_def intro: order_trans)
+lemmas (in preorder) transp_less = transp_on_less[of UNIV]
 
-lemma transp_gr[simp]: "transp (>)"
-by(auto simp add: transp_def intro: less_trans)
+lemma (in preorder) transp_on_ge[simp]: "transp_on A (\<ge>)"
+  by (auto intro: transp_onI order_trans)
 
-end
+lemmas (in preorder) transp_ge = transp_on_ge[of UNIV]
+
+lemma (in preorder) transp_on_greater[simp]: "transp_on A (>)"
+  by (auto intro: transp_onI less_trans)
+
+lemmas (in preorder) transp_gr = transp_on_greater[of UNIV]
+
 
 subsubsection \<open>Totality\<close>
 

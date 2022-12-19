@@ -20,7 +20,7 @@ This causes a blowup of the formulas. Thus we simplify matters by only comparing
 
 declare
   sorted_wrt.simps(2)[simp del]
-  sorted_wrt1[simp] sorted_wrt2[OF transp_less, simp]
+  sorted_wrt1[simp] sorted_wrt2[OF transp_on_less, simp]
 
 lemma sorted_cons: "sorted (x#xs) \<Longrightarrow> sorted xs"
 by(simp add: sorted_wrt_Cons)

@@ -432,7 +432,7 @@ by(auto simp add: monotone_def fun_ord_def)
 
 context preorder begin
 
-declare transp_le[cont_intro]
+declare transp_on_le[cont_intro]
 
 lemma monotone_const [simp, cont_intro]: "monotone ord (\<le>) (\<lambda>_. c)"
 by(rule monotoneI) simp
@@ -441,7 +441,7 @@ end
 
 lemma transp_le [cont_intro, simp]:
   "class.preorder ord (mk_less ord) \<Longrightarrow> transp ord"
-by(rule preorder.transp_le)
+by(rule preorder.transp_on_le)
 
 context partial_function_definitions begin
 
@@ -561,7 +561,7 @@ lemma mcont2mcont':
      \<And>y. mcont lub ord Sup (\<le>) (\<lambda>x. f x y);
      mcont lub ord lub' ord' (\<lambda>y. t y) \<rbrakk>
   \<Longrightarrow> mcont lub ord Sup (\<le>) (\<lambda>x. f x (t x))"
-unfolding mcont_def by(blast intro: transp_le monotone2monotone cont_apply)
+unfolding mcont_def by(blast intro: transp_on_le monotone2monotone cont_apply)
 
 lemma mcont2mcont:
   "\<lbrakk>mcont lub' ord' Sup (\<le>) (\<lambda>x. f x); mcont lub ord lub' ord' (\<lambda>x. t x)\<rbrakk> 
