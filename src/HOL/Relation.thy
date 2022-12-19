@@ -379,6 +379,12 @@ lemma asympD: "asymp R \<Longrightarrow> R x y \<Longrightarrow> \<not> R y x"
 lemma asym_iff: "asym R \<longleftrightarrow> (\<forall>x y. (x,y) \<in> R \<longrightarrow> (y,x) \<notin> R)"
   by (blast dest: asymD)
 
+lemma asym_on_subset: "asym_on A r \<Longrightarrow> B \<subseteq> A \<Longrightarrow> asym_on B r"
+  by (auto simp: asym_on_def)
+
+lemma asymp_on_subset: "asymp_on A R \<Longrightarrow> B \<subseteq> A \<Longrightarrow> asymp_on B R"
+  by (auto simp: asymp_on_def)
+
 lemma (in preorder) asymp_less[simp]: "asymp (<)"
   by (auto intro: asympI dual_order.asym)
 
