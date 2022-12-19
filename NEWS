@@ -58,7 +58,11 @@ with demo documents in the regular Isabelle "doc" space:
       antisymp_on_antisym_on_eq[pred_set_conv]
       antisymp_on_subset
       asym_if_irrefl_and_trans
+      asym_onD
+      asym_onI
       asymp_if_irreflp_and_transp
+      asymp_onD
+      asymp_onI
       irreflD
       irrefl_onD
       irrefl_onI

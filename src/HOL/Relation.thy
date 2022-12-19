@@ -347,23 +347,37 @@ definition asymp_on :: "'a set \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> 
 abbreviation asymp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
   "asymp \<equiv> asymp_on UNIV"
 
-lemma asymI[intro]: "(\<And>x y. (x, y) \<in> R \<Longrightarrow> (y, x) \<notin> R) \<Longrightarrow> asym R"
-  by (simp add: asym_on_def)
-
-lemma asympI[intro]: "(\<And>x y. R x y \<Longrightarrow> \<not> R y x) \<Longrightarrow> asymp R"
-  by (simp add: asymp_on_def)
-
 lemma asymp_asym_eq [pred_set_conv]: "asymp (\<lambda>a b. (a, b) \<in> R) \<longleftrightarrow> asym R"
   by (simp add: asymp_on_def asym_on_def)
 
-lemma asymD: "\<lbrakk>asym R; (x,y) \<in> R\<rbrakk> \<Longrightarrow> (y,x) \<notin> R"
+lemma asym_onI[intro]:
+  "(\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> (x, y) \<in> r \<Longrightarrow> (y, x) \<notin> r) \<Longrightarrow> asym_on A r"
   by (simp add: asym_on_def)
+
+lemma asymI[intro]: "(\<And>x y. (x, y) \<in> r \<Longrightarrow> (y, x) \<notin> r) \<Longrightarrow> asym r"
+  by (simp add: asym_onI)
+
+lemma asymp_onI[intro]:
+  "(\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> R x y \<Longrightarrow> \<not> R y x) \<Longrightarrow> asymp_on A R"
+  by (simp add: asymp_on_def)
+
+lemma asympI[intro]: "(\<And>x y. R x y \<Longrightarrow> \<not> R y x) \<Longrightarrow> asymp R"
+  by (simp add: asymp_onI)
+
+lemma asym_onD: "asym_on A r \<Longrightarrow> x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> (x, y) \<in> r \<Longrightarrow> (y, x) \<notin> r"
+  by (simp add: asym_on_def)
+
+lemma asymD: "asym r \<Longrightarrow> (x, y) \<in> r \<Longrightarrow> (y, x) \<notin> r"
+  by (simp add: asym_onD)
+
+lemma asymp_onD: "asymp_on A R \<Longrightarrow> x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> R x y \<Longrightarrow> \<not> R y x"
+  by (simp add: asymp_on_def)
 
 lemma asympD: "asymp R \<Longrightarrow> R x y \<Longrightarrow> \<not> R y x"
   by (rule asymD[to_pred])
 
 lemma asym_iff: "asym R \<longleftrightarrow> (\<forall>x y. (x,y) \<in> R \<longrightarrow> (y,x) \<notin> R)"
-  by (blast intro: asymI dest: asymD)
+  by (blast dest: asymD)
 
 lemma (in preorder) asymp_less[simp]: "asymp (<)"
   by (auto intro: asympI dual_order.asym)
