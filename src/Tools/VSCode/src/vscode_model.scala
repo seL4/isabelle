@@ -72,7 +72,7 @@ sealed case class VSCode_Model(
   external_file: Boolean = false,
   theory_required: Boolean = false,
   document_required: Boolean = false,
-  last_perspective: Document.Node.Perspective_Text = Document.Node.no_perspective_text,
+  last_perspective: Document.Node.Perspective_Text.T = Document.Node.Perspective_Text.empty,
   pending_edits: List[Text.Edit] = Nil,
   published_diagnostics: List[Text.Info[Command.Results]] = Nil,
   published_decorations: List[VSCode_Model.Decoration] = Nil
@@ -111,7 +111,7 @@ sealed case class VSCode_Model(
   def node_perspective(
     doc_blobs: Document.Blobs,
     caret: Option[Line.Position]
-  ): (Boolean, Document.Node.Perspective_Text) = {
+  ): (Boolean, Document.Node.Perspective_Text.T) = {
     if (is_theory) {
       val snapshot = model.snapshot()
 
@@ -144,7 +144,7 @@ sealed case class VSCode_Model(
       (snapshot.node.load_commands_changed(doc_blobs),
         Document.Node.Perspective(node_required, text_perspective, overlays))
     }
-    else (false, Document.Node.no_perspective_text)
+    else (false, Document.Node.Perspective_Text.empty)
   }
 
 

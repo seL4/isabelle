@@ -340,7 +340,7 @@ sealed abstract class Document_Model extends Document.Model {
   def node_perspective(
     doc_blobs: Document.Blobs,
     hidden: Boolean
-  ): (Boolean, Document.Node.Perspective_Text) = {
+  ): (Boolean, Document.Node.Perspective_Text.T) = {
     GUI_Thread.require {}
 
     if (JEdit_Options.continuous_checking() && is_theory) {
@@ -358,7 +358,7 @@ sealed abstract class Document_Model extends Document.Model {
 
       (reparse, Document.Node.Perspective(node_required, perspective, overlays))
     }
-    else (false, Document.Node.no_perspective_text)
+    else (false, Document.Node.Perspective_Text.empty)
   }
 
 
@@ -377,14 +377,14 @@ sealed abstract class Document_Model extends Document.Model {
 object File_Model {
   def empty(session: Session): File_Model =
     File_Model(session, Document.Node.Name.empty, None, Document_Model.File_Content(""),
-      false, false, Document.Node.no_perspective_text, Nil)
+      false, false, Document.Node.Perspective_Text.empty, Nil)
 
   def init(session: Session,
     node_name: Document.Node.Name,
     text: String,
     theory_required: Boolean = false,
     document_required: Boolean = false,
-    last_perspective: Document.Node.Perspective_Text = Document.Node.no_perspective_text,
+    last_perspective: Document.Node.Perspective_Text.T = Document.Node.Perspective_Text.empty,
     pending_edits: List[Text.Edit] = Nil
   ): File_Model = {
     val file = JEdit_Lib.check_file(node_name.node)
@@ -404,7 +404,7 @@ case class File_Model(
   content: Document_Model.File_Content,
   theory_required: Boolean,
   document_required: Boolean,
-  last_perspective: Document.Node.Perspective_Text,
+  last_perspective: Document.Node.Perspective_Text.T,
   pending_edits: List[Text.Edit]
 ) extends Document_Model {
   /* required */
@@ -469,10 +469,10 @@ case class File_Model(
   def purge_edits(doc_blobs: Document.Blobs): Option[List[Document.Edit_Text]] =
     if (pending_edits.nonEmpty ||
         !File_Format.registry.is_theory(node_name) &&
-          (node_required || !Document.Node.is_no_perspective_text(last_perspective))) None
+          (node_required || !Document.Node.Perspective_Text.is_empty(last_perspective))) None
     else {
       val text_edits = List(Text.Edit.remove(0, content.text))
-      Some(node_edits(Document.Node.no_header, text_edits, Document.Node.no_perspective_text))
+      Some(node_edits(Document.Node.no_header, text_edits, Document.Node.Perspective_Text.empty))
     }
 
 
@@ -586,12 +586,12 @@ extends Document_Model {
 
   private object pending_edits {
     private val pending = new mutable.ListBuffer[Text.Edit]
-    private var last_perspective = Document.Node.no_perspective_text
+    private var last_perspective = Document.Node.Perspective_Text.empty
 
     def nonEmpty: Boolean = synchronized { pending.nonEmpty }
     def get_edits: List[Text.Edit] = synchronized { pending.toList }
-    def get_last_perspective: Document.Node.Perspective_Text = synchronized { last_perspective }
-    def set_last_perspective(perspective: Document.Node.Perspective_Text): Unit =
+    def get_last_perspective: Document.Node.Perspective_Text.T = synchronized { last_perspective }
+    def set_last_perspective(perspective: Document.Node.Perspective_Text.T): Unit =
       synchronized { last_perspective = perspective }
 
     def flush_edits(doc_blobs: Document.Blobs, hidden: Boolean): List[Document.Edit_Text] =

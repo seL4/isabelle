@@ -471,7 +471,7 @@ object Headless {
     ) {
       override def toString: String = node_name.toString
 
-      def node_perspective: Document.Node.Perspective_Text =
+      def node_perspective: Document.Node.Perspective_Text.T =
         Document.Node.Perspective(node_required, Text.Perspective.empty, Document.Node.Overlays.empty)
 
       def make_edits(text_edits: List[Text.Edit]): List[Document.Edit_Text] =
