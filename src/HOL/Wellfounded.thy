@@ -849,6 +849,9 @@ proof (rule wfI)
     by (simp add: zeq)
 qed auto
 
+lemma refl_lex_prod[simp]: "refl r\<^sub>B \<Longrightarrow> refl (r\<^sub>A <*lex*> r\<^sub>B)"
+  by (auto intro!: reflI dest: refl_onD)
+
 lemma irrefl_on_lex_prod[simp]:
   "irrefl_on A r\<^sub>A \<Longrightarrow> irrefl_on B r\<^sub>B \<Longrightarrow> irrefl_on (A \<times> B) (r\<^sub>A <*lex*> r\<^sub>B)"
   by (auto intro!: irrefl_onI dest: irrefl_onD)

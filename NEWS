@@ -124,6 +124,7 @@ with demo documents in the regular Isabelle "doc" space:
       asym_on_lex_prod[simp]
       irrefl_lex_prod[simp]
       irrefl_on_lex_prod[simp]
+      refl_lex_prod[simp]
       sym_lex_prod[simp]
       sym_on_lex_prod[simp]
       wfP_if_convertible_to_nat
