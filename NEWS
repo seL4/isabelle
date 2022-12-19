@@ -110,7 +110,9 @@ with demo documents in the regular Isabelle "doc" space:
       totalI
       totalp_on_converse[simp]
       totalp_on_singleton[simp]
+      trans_onD
       trans_onI
+      transp_onD
       transp_onI
       transp_on_trans_on_eq[pred_set_conv]
 

@@ -654,15 +654,19 @@ lemma transpE:
   obtains "r x z"
   using assms by (rule transE [to_pred])
 
-lemma transD [dest?]:
-  assumes "trans r" and "(x, y) \<in> r" and "(y, z) \<in> r"
-  shows "(x, z) \<in> r"
-  using assms by (rule transE)
+lemma trans_onD:
+  "trans_on A r \<Longrightarrow> x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> z \<in> A \<Longrightarrow> (x, y) \<in> r \<Longrightarrow> (y, z) \<in> r \<Longrightarrow> (x, z) \<in> r"
+  unfolding trans_on_def
+  by (elim ballE) iprover+
 
-lemma transpD [dest?]:
-  assumes "transp r" and "r x y" and "r y z"
-  shows "r x z"
-  using assms by (rule transD [to_pred])
+lemma transD[dest?]: "trans r \<Longrightarrow> (x, y) \<in> r \<Longrightarrow> (y, z) \<in> r \<Longrightarrow> (x, z) \<in> r"
+  by (simp add: trans_onD[of UNIV r x y z])
+
+lemma transp_onD: "transp_on A R \<Longrightarrow> x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> z \<in> A \<Longrightarrow> R x y \<Longrightarrow> R y z \<Longrightarrow> R x z"
+  by (rule trans_onD[to_pred])
+
+lemma transpD[dest?]: "transp R \<Longrightarrow> R x y \<Longrightarrow> R y z \<Longrightarrow> R x z"
+  by (rule transD[to_pred])
 
 lemma trans_Int: "trans r \<Longrightarrow> trans s \<Longrightarrow> trans (r \<inter> s)"
   by (fast intro: transI elim: transE)
