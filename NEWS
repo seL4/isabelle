@@ -50,11 +50,11 @@ with demo documents in the regular Isabelle "doc" space:
       reflp_equality[simp] ~> reflp_on_equality[simp]
       total_on_singleton
   - Added lemmas.
-      antisym_if_asymp
+      antisym_on_if_asymp_on
       antisym_onD
       antisym_onI
       antisym_on_subset
-      antisymp_if_asymp
+      antisymp_on_if_asymp_on
       antisymp_onD
       antisymp_onI
       antisymp_on_antisym_on_eq[pred_set_conv]

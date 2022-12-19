@@ -576,17 +576,17 @@ lemma antisym_singleton [simp]:
   "antisym {x}"
   by (blast intro: antisymI)
 
-lemma antisym_if_asym: "asym r \<Longrightarrow> antisym r"
-  by (auto intro: antisymI dest: asymD)
+lemma antisym_on_if_asym_on: "asym_on A r \<Longrightarrow> antisym_on A r"
+  by (auto intro: antisym_onI dest: asym_onD)
 
-lemma antisymp_if_asymp: "asymp R \<Longrightarrow> antisymp R"
-  by (rule antisym_if_asym[to_pred])
+lemma antisymp_on_if_asymp_on: "asymp_on A R \<Longrightarrow> antisymp_on A R"
+  by (rule antisym_on_if_asym_on[to_pred])
 
 lemma (in preorder) antisymp_less[simp]: "antisymp (<)"
-  by (rule antisymp_if_asymp[OF asymp_on_less])
+  by (rule antisymp_on_if_asymp_on[OF asymp_on_less])
 
 lemma (in preorder) antisymp_greater[simp]: "antisymp (>)"
-  by (rule antisymp_if_asymp[OF asymp_on_greater])
+  by (rule antisymp_on_if_asymp_on[OF asymp_on_greater])
 
 lemma (in order) antisymp_on_le[simp]: "antisymp_on A (\<le>)"
   by (simp add: antisymp_onI)
