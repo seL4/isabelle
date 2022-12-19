@@ -628,11 +628,21 @@ lemma transp_on_trans_on_eq[pred_set_conv]: "transp_on A (\<lambda>x y. (x, y) \
 
 lemmas transp_trans_eq = transp_on_trans_on_eq[of UNIV] \<comment> \<open>For backward compatibility\<close>
 
-lemma transI [intro?]: "(\<And>x y z. (x, y) \<in> r \<Longrightarrow> (y, z) \<in> r \<Longrightarrow> (x, z) \<in> r) \<Longrightarrow> trans r"
-  by (unfold trans_def) iprover
+lemma trans_onI:
+  "(\<And>x y z. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> z \<in> A \<Longrightarrow> (x, y) \<in> r \<Longrightarrow> (y, z) \<in> r \<Longrightarrow> (x, z) \<in> r) \<Longrightarrow>
+  trans_on A r"
+  unfolding trans_on_def
+  by (intro ballI) iprover
 
-lemma transpI [intro?]: "(\<And>x y z. r x y \<Longrightarrow> r y z \<Longrightarrow> r x z) \<Longrightarrow> transp r"
-  by (fact transI [to_pred])
+lemma transI [intro?]: "(\<And>x y z. (x, y) \<in> r \<Longrightarrow> (y, z) \<in> r \<Longrightarrow> (x, z) \<in> r) \<Longrightarrow> trans r"
+  by (rule trans_onI)
+
+lemma transp_onI:
+  "(\<And>x y z. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> z \<in> A \<Longrightarrow> R x y \<Longrightarrow> R y z \<Longrightarrow> R x z) \<Longrightarrow> transp_on A R"
+  by (rule trans_onI[to_pred])
+
+lemma transpI [intro?]: "(\<And>x y z. R x y \<Longrightarrow> R y z \<Longrightarrow> R x z) \<Longrightarrow> transp R"
+  by (rule transI[to_pred])
 
 lemma transE:
   assumes "trans r" and "(x, y) \<in> r" and "(y, z) \<in> r"
