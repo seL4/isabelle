@@ -92,6 +92,8 @@ with demo documents in the regular Isabelle "doc" space:
       preorder.antisymp_on_less[simp]
       preorder.reflp_on_ge[simp]
       preorder.reflp_on_le[simp]
+      reflD
+      reflI
       reflp_on_conversp[simp]
       sym_onD
       sym_onI

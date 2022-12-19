@@ -173,6 +173,9 @@ lemma reflp_refl_eq [pred_set_conv]: "reflp (\<lambda>x y. (x, y) \<in> r) \<lon
 lemma refl_onI [intro?]: "r \<subseteq> A \<times> A \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> (x, x) \<in> r) \<Longrightarrow> refl_on A r"
   unfolding refl_on_def by (iprover intro!: ballI)
 
+lemma reflI: "(\<And>x. (x, x) \<in> r) \<Longrightarrow> refl r"
+  by (auto intro: refl_onI)
+
 lemma reflp_onI:
   "(\<And>x. x \<in> A \<Longrightarrow> R x x) \<Longrightarrow> reflp_on A R"
   by (simp add: reflp_on_def)
@@ -187,6 +190,9 @@ lemma refl_onD1: "refl_on A r \<Longrightarrow> (x, y) \<in> r \<Longrightarrow>
   unfolding refl_on_def by blast
 
 lemma refl_onD2: "refl_on A r \<Longrightarrow> (x, y) \<in> r \<Longrightarrow> y \<in> A"
+  unfolding refl_on_def by blast
+
+lemma reflD: "refl r \<Longrightarrow> (a, a) \<in> r"
   unfolding refl_on_def by blast
 
 lemma reflp_onD:
