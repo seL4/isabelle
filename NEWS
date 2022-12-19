@@ -50,6 +50,7 @@ with demo documents in the regular Isabelle "doc" space:
       reflp_equality[simp] ~> reflp_on_equality[simp]
       total_on_singleton
       sym_converse[simp] ~> sym_on_converse[simp]
+      antisym_converse[simp] ~> antisym_on_converse[simp]
   - Added lemmas.
       antisym_onD
       antisym_onI
@@ -58,6 +59,7 @@ with demo documents in the regular Isabelle "doc" space:
       antisymp_onD
       antisymp_onI
       antisymp_on_antisym_on_eq[pred_set_conv]
+      antisymp_on_conversep[simp]
       antisymp_on_if_asymp_on
       antisymp_on_subset
       asym_if_irrefl_and_trans
