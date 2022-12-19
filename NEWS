@@ -127,6 +127,7 @@ with demo documents in the regular Isabelle "doc" space:
       antisym_reflcl[simp] ~> antisym_on_reflcl[simp]
       reflp_rtranclp[simp] ~> reflp_on_rtranclp[simp]
       symp_symclp[simp] ~> symp_on_symclp[simp]
+      trans_reflclI[simp] ~> trans_on_reflcl[simp]
   - Added lemmas.
       antisymp_on_reflcp[simp]
       reflclp_ident_if_reflp[simp]
