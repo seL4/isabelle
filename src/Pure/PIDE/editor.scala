@@ -22,10 +22,19 @@ abstract class Editor[Context] {
 
   def document_session: Option[Sessions.Background] = document_editor.value.session_background
   def document_active: Boolean = document_editor.value.is_active
+  def document_active_changed(): Unit = {}
+  private def document_editor_change(f: Document_Editor.State => Document_Editor.State): Unit = {
+    val changed =
+      document_editor.change_result { st =>
+        val st1 = f(st)
+        (st.is_active != st1.is_active, st1)
+      }
+    if (changed) document_active_changed()
+  }
   def document_setup(background: Option[Sessions.Background]): Unit =
-    document_editor.change(_.copy(session_background = background))
-  def document_init(id: AnyRef): Unit = document_editor.change(_.register_view(id))
-  def document_exit(id: AnyRef): Unit = document_editor.change(_.unregister_view(id))
+    document_editor_change(_.copy(session_background = background))
+  def document_init(id: AnyRef): Unit = document_editor_change(_.register_view(id))
+  def document_exit(id: AnyRef): Unit = document_editor_change(_.unregister_view(id))
 
 
   /* current situation */
