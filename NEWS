@@ -112,8 +112,10 @@ with demo documents in the regular Isabelle "doc" space:
       totalp_on_singleton[simp]
       trans_onD
       trans_onI
+      trans_on_subset
       transp_onD
       transp_onI
+      transp_on_subset
       transp_on_trans_on_eq[pred_set_conv]
 
 * Theory "HOL.Transitive_Closure":

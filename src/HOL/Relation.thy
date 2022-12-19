@@ -668,6 +668,12 @@ lemma transp_onD: "transp_on A R \<Longrightarrow> x \<in> A \<Longrightarrow> y
 lemma transpD[dest?]: "transp R \<Longrightarrow> R x y \<Longrightarrow> R y z \<Longrightarrow> R x z"
   by (rule transD[to_pred])
 
+lemma trans_on_subset: "trans_on A r \<Longrightarrow> B \<subseteq> A \<Longrightarrow> trans_on B r"
+  by (auto simp: trans_on_def)
+
+lemma transp_on_subset: "transp_on A R \<Longrightarrow> B \<subseteq> A \<Longrightarrow> transp_on B R"
+  by (auto simp: transp_on_def)
+
 lemma trans_Int: "trans r \<Longrightarrow> trans s \<Longrightarrow> trans (r \<inter> s)"
   by (fast intro: transI elim: transE)
 
