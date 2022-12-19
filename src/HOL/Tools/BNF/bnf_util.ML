@@ -400,7 +400,7 @@ fun mk_pred name R =
   Const (name, uncurry mk_pred2T (fastype_of R |> dest_pred2T) --> HOLogic.boolT) $ R;
 val mk_reflp = mk_pred \<^const_abbrev>\<open>reflp\<close>;
 val mk_symp = mk_pred \<^const_abbrev>\<open>symp\<close>;
-val mk_transp =  mk_pred \<^const_name>\<open>transp\<close>;
+val mk_transp =  mk_pred \<^const_abbrev>\<open>transp\<close>;
 
 fun mk_trans thm1 thm2 = trans OF [thm1, thm2];
 fun mk_sym thm = thm RS sym;

@@ -603,11 +603,25 @@ lemma (in order) antisymp_on_ge[simp]: "antisymp_on A (\<ge>)"
 
 subsubsection \<open>Transitivity\<close>
 
-definition trans :: "'a rel \<Rightarrow> bool"
-  where "trans r \<longleftrightarrow> (\<forall>x y z. (x, y) \<in> r \<longrightarrow> (y, z) \<in> r \<longrightarrow> (x, z) \<in> r)"
+definition trans_on :: "'a set \<Rightarrow> 'a rel \<Rightarrow> bool" where
+  "trans_on A r \<longleftrightarrow> (\<forall>x \<in> A. \<forall>y \<in> A. \<forall>z \<in> A. (x, y) \<in> r \<longrightarrow> (y, z) \<in> r \<longrightarrow> (x, z) \<in> r)"
 
-definition transp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool"
-  where "transp r \<longleftrightarrow> (\<forall>x y z. r x y \<longrightarrow> r y z \<longrightarrow> r x z)"
+abbreviation trans :: "'a rel \<Rightarrow> bool" where
+  "trans \<equiv> trans_on UNIV"
+
+definition transp_on :: "'a set \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
+  "transp_on A R \<longleftrightarrow> (\<forall>x \<in> A. \<forall>y \<in> A. \<forall>z \<in> A. R x y \<longrightarrow> R y z \<longrightarrow> R x z)"
+
+abbreviation transp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
+  "transp \<equiv> transp_on UNIV"
+
+lemma trans_def[no_atp]: "trans r \<longleftrightarrow> (\<forall>x y z. (x, y) \<in> r \<longrightarrow> (y, z) \<in> r \<longrightarrow> (x, z) \<in> r)"
+  by (simp add: trans_on_def)
+
+lemma transp_def: "transp R \<longleftrightarrow> (\<forall>x y z. R x y \<longrightarrow> R y z \<longrightarrow> R x z)"
+  by (simp add: transp_on_def)
+
+text \<open>@{thm [source] trans_def} and @{thm [source] transp_def} are for backward compatibility.\<close>
 
 lemma transp_trans_eq [pred_set_conv]: "transp (\<lambda>x y. (x, y) \<in> r) \<longleftrightarrow> trans r"
   by (simp add: trans_def transp_def)

@@ -40,6 +40,10 @@ with demo documents in the regular Isabelle "doc" space:
     antisymp to be abbreviations. Lemmas antisym_def and antisymp_def are
     explicitly provided for backward compatibility but their usage is
     discouraged. Minor INCOMPATIBILITY.
+  - Added predicates trans_on and transp_on and redefined trans and transp to
+    be abbreviations. Lemmas trans_def and transp_def are explicitly provided
+    for backward compatibility but their usage is discouraged.
+    Minor INCOMPATIBILITY.
   - Strengthened (and renamed) lemmas. Minor INCOMPATIBILITY.
       order.antisymp_ge[simp] ~> order.antisymp_on_ge[simp]
       order.antisymp_le[simp] ~> order.antisymp_on_le[simp]
