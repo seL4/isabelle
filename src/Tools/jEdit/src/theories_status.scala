@@ -24,8 +24,13 @@ class Theories_Status(view: View, document: Boolean = false) {
   /* component state -- owned by GUI thread */
 
   private var nodes_status = Document_Status.Nodes_Status.empty
-  private var theory_required: Set[Document.Node.Name] = Document_Model.required_nodes(false)
-  private var document_required: Set[Document.Node.Name] = Document_Model.required_nodes(true)
+  private var theory_required = Set.empty[Document.Node.Name]
+  private var document_required = Set.empty[Document.Node.Name]
+
+  private def init_state(): Unit = GUI_Thread.require {
+    theory_required = Document_Model.required_nodes(false)
+    document_required = Document_Model.required_nodes(true)
+  }
 
 
   /* node renderer */
@@ -231,11 +236,10 @@ class Theories_Status(view: View, document: Boolean = false) {
 
   /* refresh */
 
-  def refresh(): Unit = {
-    GUI_Thread.require {}
-
-    theory_required = Document_Model.required_nodes(false)
-    document_required = Document_Model.required_nodes(true)
+  def refresh(): Unit = GUI_Thread.require {
+    init_state()
     gui.repaint()
   }
+
+  init_state()
 }
