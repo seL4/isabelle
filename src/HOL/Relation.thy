@@ -1110,8 +1110,11 @@ lemma irrefl_on_converse [simp]: "irrefl_on A (r\<inverse>) = irrefl_on A r"
 lemma irreflp_on_converse [simp]: "irreflp_on A (r\<inverse>\<inverse>) = irreflp_on A r"
   by (rule irrefl_on_converse[to_pred])
 
-lemma sym_converse [simp]: "sym (converse r) = sym r"
-  unfolding sym_def by blast
+lemma sym_on_converse [simp]: "sym_on A (r\<inverse>) = sym_on A r"
+  by (auto intro: sym_onI dest: sym_onD)
+
+lemma symp_on_conversep [simp]: "symp_on A R\<inverse>\<inverse> = symp_on A R"
+  by (rule sym_on_converse[to_pred])
 
 lemma antisym_converse [simp]: "antisym (converse r) = antisym r"
   unfolding antisym_def by blast

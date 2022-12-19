@@ -49,6 +49,7 @@ with demo documents in the regular Isabelle "doc" space:
       preorder.irreflp_less[simp] ~> preorder.irreflp_on_less[simp]
       reflp_equality[simp] ~> reflp_on_equality[simp]
       total_on_singleton
+      sym_converse[simp] ~> sym_on_converse[simp]
   - Added lemmas.
       antisym_on_if_asymp_on
       antisym_onD
@@ -93,6 +94,7 @@ with demo documents in the regular Isabelle "doc" space:
       sym_on_subset
       symp_onD
       symp_onI
+      symp_on_conversep[simp]
       symp_on_subset
       symp_on_sym_on_eq[pred_set_conv]
       totalI
