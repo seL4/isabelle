@@ -582,10 +582,10 @@ lemma antisym_on_if_asym_on: "asym_on A r \<Longrightarrow> antisym_on A r"
 lemma antisymp_on_if_asymp_on: "asymp_on A R \<Longrightarrow> antisymp_on A R"
   by (rule antisym_on_if_asym_on[to_pred])
 
-lemma (in preorder) antisymp_less[simp]: "antisymp (<)"
+lemma (in preorder) antisymp_on_less[simp]: "antisymp_on A (<)"
   by (rule antisymp_on_if_asymp_on[OF asymp_on_less])
 
-lemma (in preorder) antisymp_greater[simp]: "antisymp (>)"
+lemma (in preorder) antisymp_on_greater[simp]: "antisymp_on A (>)"
   by (rule antisymp_on_if_asymp_on[OF asymp_on_greater])
 
 lemma (in order) antisymp_on_le[simp]: "antisymp_on A (\<le>)"
