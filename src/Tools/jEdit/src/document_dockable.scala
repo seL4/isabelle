@@ -268,7 +268,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
         GUI_Thread.later {
           document_session.load()
           handle_resize()
-          theories.reinit()
+          theories.refresh()
         }
       case changed: Session.Commands_Changed =>
         GUI_Thread.later {

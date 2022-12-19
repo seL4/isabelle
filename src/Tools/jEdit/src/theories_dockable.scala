@@ -60,7 +60,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
         GUI_Thread.later {
           continuous_checking.load()
           logic.load()
-          status.reinit()
+          status.refresh()
         }
 
       case changed: Session.Commands_Changed =>

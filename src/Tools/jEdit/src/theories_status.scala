@@ -229,9 +229,9 @@ class Theories_Status(view: View, document: Boolean = false) {
   }
 
 
-  /* reinit */
+  /* refresh */
 
-  def reinit(): Unit = {
+  def refresh(): Unit = {
     GUI_Thread.require {}
 
     theory_required = Document_Model.required_nodes(false)
