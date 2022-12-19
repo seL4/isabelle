@@ -143,7 +143,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
             }
             catch {
               case exn: Throwable if !Exn.is_interrupt(exn) =>
-                current_state.change(_.finish(Protocol.error_message(Exn.message(exn))))
+                current_state.change(_.finish(Protocol.error_message(Exn.print(exn))))
                 GUI_Thread.later { show_state(); show_page(output_page) }
             }
           }
@@ -175,7 +175,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
             val msg =
               res match {
                 case Exn.Res(_) => Protocol.writeln_message("OK")
-                case Exn.Exn(exn) => Protocol.error_message(Exn.message(exn))
+                case Exn.Exn(exn) => Protocol.error_message(Exn.print(exn))
               }
             current_state.change(_.finish(msg))
             show_state()
