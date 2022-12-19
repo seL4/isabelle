@@ -100,7 +100,8 @@ object Document_Status {
     def make(
       state: Document.State,
       version: Document.Version,
-      name: Document.Node.Name): Node_Status = {
+      name: Document.Node.Name
+    ): Node_Status = {
       val node = version.nodes(name)
 
       var unprocessed = 0
