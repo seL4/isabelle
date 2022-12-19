@@ -875,9 +875,20 @@ lemma asym_lex_prod[simp]:
   "asym r\<^sub>A \<Longrightarrow> asym r\<^sub>B \<Longrightarrow> asym (r\<^sub>A <*lex*> r\<^sub>B)"
   by (rule asym_on_lex_prod[of UNIV _ UNIV, unfolded UNIV_Times_UNIV])
 
-text \<open>\<open><*lex*>\<close> preserves transitivity\<close>
-lemma trans_lex_prod [simp,intro!]: "trans R1 \<Longrightarrow> trans R2 \<Longrightarrow> trans (R1 <*lex*> R2)"
-  unfolding trans_def lex_prod_def by blast
+lemma trans_on_lex_prod[simp]:
+  assumes "trans_on A r\<^sub>A" and "trans_on B r\<^sub>B"
+  shows "trans_on (A \<times> B) (r\<^sub>A <*lex*> r\<^sub>B)"
+proof (rule trans_onI)
+  fix x y z
+  show "x \<in> A \<times> B \<Longrightarrow> y \<in> A \<times> B \<Longrightarrow> z \<in> A \<times> B \<Longrightarrow>
+       (x, y) \<in> r\<^sub>A <*lex*> r\<^sub>B \<Longrightarrow> (y, z) \<in> r\<^sub>A <*lex*> r\<^sub>B \<Longrightarrow> (x, z) \<in> r\<^sub>A <*lex*> r\<^sub>B"
+  using trans_onD[OF \<open>trans_on A r\<^sub>A\<close>, of "fst x" "fst y" "fst z"]
+  using trans_onD[OF \<open>trans_on B r\<^sub>B\<close>, of "snd x" "snd y" "snd z"]
+  by auto
+qed
+
+lemma trans_lex_prod [simp,intro!]: "trans r\<^sub>A \<Longrightarrow> trans r\<^sub>B \<Longrightarrow> trans (r\<^sub>A <*lex*> r\<^sub>B)"
+  by (rule trans_on_lex_prod[of UNIV _ UNIV, unfolded UNIV_Times_UNIV])
 
 lemma total_on_lex_prod[simp]:
   "total_on A r\<^sub>A \<Longrightarrow> total_on B r\<^sub>B \<Longrightarrow> total_on (A \<times> B) (r\<^sub>A <*lex*> r\<^sub>B)"
