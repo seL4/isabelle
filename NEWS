@@ -51,22 +51,24 @@ with demo documents in the regular Isabelle "doc" space:
       total_on_singleton
       sym_converse[simp] ~> sym_on_converse[simp]
   - Added lemmas.
-      antisym_on_if_asymp_on
       antisym_onD
       antisym_onI
+      antisym_on_if_asymp_on
       antisym_on_subset
-      antisymp_on_if_asymp_on
       antisymp_onD
       antisymp_onI
       antisymp_on_antisym_on_eq[pred_set_conv]
+      antisymp_on_if_asymp_on
       antisymp_on_subset
       asym_if_irrefl_and_trans
       asym_onD
       asym_onI
+      asym_on_converse[simp]
       asymp_if_irreflp_and_transp
       asymp_onD
       asymp_onI
       asymp_on_asym_on_eq[pred_set_conv]
+      asymp_on_conversep[simp]
       irreflD
       irrefl_onD
       irrefl_onI
