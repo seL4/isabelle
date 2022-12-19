@@ -65,6 +65,7 @@ with demo documents in the regular Isabelle "doc" space:
       asymp_if_irreflp_and_transp
       asymp_onD
       asymp_onI
+      asymp_on_asym_on_eq[pred_set_conv]
       irreflD
       irrefl_onD
       irrefl_onI

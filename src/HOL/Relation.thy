@@ -347,8 +347,10 @@ definition asymp_on :: "'a set \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> 
 abbreviation asymp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
   "asymp \<equiv> asymp_on UNIV"
 
-lemma asymp_asym_eq [pred_set_conv]: "asymp (\<lambda>a b. (a, b) \<in> R) \<longleftrightarrow> asym R"
+lemma asymp_on_asym_on_eq[pred_set_conv]: "asymp_on A (\<lambda>x y. (x, y) \<in> r) \<longleftrightarrow> asym_on A r"
   by (simp add: asymp_on_def asym_on_def)
+
+lemmas asymp_asym_eq = asymp_on_asym_on_eq[of UNIV] \<comment> \<open>For backward compatibility\<close>
 
 lemma asym_onI[intro]:
   "(\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> (x, y) \<in> r \<Longrightarrow> (y, x) \<notin> r) \<Longrightarrow> asym_on A r"
@@ -359,10 +361,10 @@ lemma asymI[intro]: "(\<And>x y. (x, y) \<in> r \<Longrightarrow> (y, x) \<notin
 
 lemma asymp_onI[intro]:
   "(\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> R x y \<Longrightarrow> \<not> R y x) \<Longrightarrow> asymp_on A R"
-  by (simp add: asymp_on_def)
+  by (rule asym_onI[to_pred])
 
 lemma asympI[intro]: "(\<And>x y. R x y \<Longrightarrow> \<not> R y x) \<Longrightarrow> asymp R"
-  by (simp add: asymp_onI)
+  by (rule asymI[to_pred])
 
 lemma asym_onD: "asym_on A r \<Longrightarrow> x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> (x, y) \<in> r \<Longrightarrow> (y, x) \<notin> r"
   by (simp add: asym_on_def)
@@ -371,7 +373,7 @@ lemma asymD: "asym r \<Longrightarrow> (x, y) \<in> r \<Longrightarrow> (y, x) \
   by (simp add: asym_onD)
 
 lemma asymp_onD: "asymp_on A R \<Longrightarrow> x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> R x y \<Longrightarrow> \<not> R y x"
-  by (simp add: asymp_on_def)
+  by (rule asym_onD[to_pred])
 
 lemma asympD: "asymp R \<Longrightarrow> R x y \<Longrightarrow> \<not> R y x"
   by (rule asymD[to_pred])
