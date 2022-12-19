@@ -85,8 +85,8 @@ lemma antisymp_on_reflcp[simp]: "antisymp_on A R\<^sup>=\<^sup>= \<longleftright
 lemma trans_reflclI[simp]: "trans r \<Longrightarrow> trans (r\<^sup>=)"
   unfolding trans_def by blast
 
-lemma transp_reflclp[simp]: "transp R \<Longrightarrow> transp R\<^sup>=\<^sup>="
-  unfolding transp_def by blast
+lemma transp_on_reflclp[simp]: "transp_on A R \<Longrightarrow> transp_on A R\<^sup>=\<^sup>="
+  by (auto intro: transp_onI dest: transp_onD)
 
 lemma reflclp_idemp [simp]: "(P\<^sup>=\<^sup>=)\<^sup>=\<^sup>= = P\<^sup>=\<^sup>="
   by blast
