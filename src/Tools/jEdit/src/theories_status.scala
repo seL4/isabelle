@@ -51,6 +51,9 @@ class Theories_Status(view: View, document: Boolean = false) {
   }
 
   private class Node_Renderer extends ListView.Renderer[Document.Node.Name] {
+    private val document_marker = Symbol.decode(" \\<^file>")
+    private val no_document_marker = "   "
+
     private object component extends BorderPanel {
       opaque = true
       border = BorderFactory.createEmptyBorder(2, 2, 2, 2)
@@ -146,7 +149,10 @@ class Theories_Status(view: View, document: Boolean = false) {
       component.required.selected =
         (if (document) document_required else theory_required).contains(name)
       component.label_border(name)
-      component.label.text = name.theory_base_name
+      component.label.text =
+        name.theory_base_name +
+        (if (!document && PIDE.editor.document_active && document_required.contains(name))
+          document_marker else no_document_marker)
       component
     }
   }
