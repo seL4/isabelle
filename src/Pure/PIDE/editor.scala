@@ -47,6 +47,9 @@ abstract class Editor[Context] {
     toggle: Boolean = false
   ): Unit = document_state_change(_.select(names, set = set, toggle = toggle))
 
+  def document_select_all(set: Boolean = false): Unit =
+    document_state_change(st => st.select(st.active_document_theories, set = set))
+
   def document_init(id: AnyRef): Unit = document_state_change(_.register_view(id))
   def document_exit(id: AnyRef): Unit = document_state_change(_.unregister_view(id))
 

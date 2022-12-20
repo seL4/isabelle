@@ -250,10 +250,26 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
 
   /* message pane with pages */
 
+  private val select_all_button =
+    new GUI.Button("All") {
+      tooltip = "Select all document theories"
+      override def clicked(): Unit = PIDE.editor.document_select_all(set = true)
+    }
+
+  private val select_none_button =
+    new GUI.Button("None") {
+      tooltip = "Deselect all document theories"
+      override def clicked(): Unit = PIDE.editor.document_select_all(set = false)
+    }
+
+  private val theories_controls =
+    Wrap_Panel(List(select_all_button, select_none_button))
+
   private val theories = new Theories_Status(view, document = true)
 
   private val theories_page =
     new TabbedPane.Page("Theories", new BorderPanel {
+      layout(theories_controls) = BorderPanel.Position.North
       layout(theories.gui) = BorderPanel.Position.Center
     }, "Selection and status of document theories")
 
