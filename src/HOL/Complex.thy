@@ -6,7 +6,7 @@
 section \<open>Complex Numbers: Rectangular and Polar Representations\<close>
 
 theory Complex
-imports Transcendental
+imports Transcendental Real_Vector_Spaces
 begin
 
 text \<open>
@@ -195,6 +195,12 @@ lemma Re_divide_of_nat [simp]: "Re (z / of_nat n) = Re z / of_nat n"
 
 lemma Im_divide_of_nat [simp]: "Im (z / of_nat n) = Im z / of_nat n"
   by (cases n) (simp_all add: Im_divide field_split_simps power2_eq_square del: of_nat_Suc)
+
+lemma Re_inverse [simp]: "r \<in> \<real> \<Longrightarrow> Re (inverse r) = inverse (Re r)"
+  by (metis Re_complex_of_real Reals_cases of_real_inverse)
+
+lemma Im_inverse [simp]: "r \<in> \<real> \<Longrightarrow> Im (inverse r) = 0"
+  by (metis Im_complex_of_real Reals_cases of_real_inverse)
 
 lemma of_real_Re [simp]: "z \<in> \<real> \<Longrightarrow> of_real (Re z) = z"
   by (auto simp: Reals_def)
