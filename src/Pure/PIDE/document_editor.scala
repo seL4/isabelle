@@ -46,9 +46,35 @@ object Document_Editor {
 
   sealed case class State(
     session_background: Option[Sessions.Background] = None,
+    selection: Set[Document.Node.Name] = Set.empty,
     views: Set[AnyRef] = Set.empty,
   ) {
     def is_active: Boolean = session_background.isDefined && views.nonEmpty
+
+    def is_required(name: Document.Node.Name): Boolean =
+      is_active && selection.contains(name) && all_document_theories.contains(name)
+
+    def required: List[Document.Node.Name] =
+      if (is_active) all_document_theories.filter(selection) else Nil
+
+    def all_document_theories: List[Document.Node.Name] =
+      session_background match {
+        case Some(background) => background.base.all_document_theories
+        case None => Nil
+      }
+
+    def select(
+      names: Iterable[Document.Node.Name],
+      set: Boolean = false,
+      toggle: Boolean = false
+    ): State = {
+      copy(selection =
+        names.foldLeft(selection) {
+          case (sel, name) =>
+            val b = if (toggle) !selection(name) else set
+            if (b) sel + name else sel - name
+        })
+    }
 
     def register_view(id: AnyRef): State = copy(views = views + id)
     def unregister_view(id: AnyRef): State = copy(views = views - id)

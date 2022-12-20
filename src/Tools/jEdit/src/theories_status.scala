@@ -28,8 +28,8 @@ class Theories_Status(view: View, document: Boolean = false) {
   private var document_required = Set.empty[Document.Node.Name]
 
   private def init_state(): Unit = GUI_Thread.require {
-    theory_required = Document_Model.required_nodes(false)
-    document_required = Document_Model.required_nodes(true)
+    theory_required = Document_Model.nodes_required()
+    document_required = PIDE.editor.document_required().toSet
   }
 
 
@@ -156,8 +156,8 @@ class Theories_Status(view: View, document: Boolean = false) {
       component.label_border(name)
       component.label.text =
         name.theory_base_name +
-        (if (!document && PIDE.editor.document_active && document_required.contains(name))
-          document_marker else no_document_marker)
+        (if (!document && PIDE.editor.document_node_required(name)) document_marker
+         else no_document_marker)
       component
     }
   }
@@ -183,7 +183,9 @@ class Theories_Status(view: View, document: Boolean = false) {
           val index_location = peer.indexToLocation(index)
           if (node_renderer.in_required(index_location, point)) {
             if (clicks == 1) {
-              Document_Model.node_required(listData(index), toggle = true, document = document)
+              val name = listData(index)
+              if (document) PIDE.editor.document_select(Set(name), toggle = true)
+              else Document_Model.node_required(name, toggle = true)
             }
           }
           else if (clicks == 2) PIDE.editor.goto_file(true, view, listData(index).node)

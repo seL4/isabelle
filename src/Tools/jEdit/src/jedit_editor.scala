@@ -61,7 +61,7 @@ class JEdit_Editor extends Editor[View] {
     session.global_options.post(Session.Global_Options(PIDE.options.value))
   }
 
-  override def document_active_changed(): Unit = state_changed()
+  override def document_state_changed(): Unit = state_changed()
 
 
   /* current situation */

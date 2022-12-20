@@ -760,7 +760,6 @@ object Document {
 
     def get_text(range: Text.Range): Option[String]
 
-    def get_required(document: Boolean): Boolean
     def node_required: Boolean
 
     def get_blob: Option[Blob]

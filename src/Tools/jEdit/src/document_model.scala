@@ -182,15 +182,14 @@ object Document_Model {
 
   /* required nodes */
 
-  def required_nodes(document: Boolean): Set[Document.Node.Name] =
+  def nodes_required(): Set[Document.Node.Name] =
     (for {
       (node_name, model) <- state.value.models.iterator
-      if model.get_required(document)
+      if model.node_required
     } yield node_name).toSet
 
   def node_required(
     name: Document.Node.Name,
-    document: Boolean = false,
     toggle: Boolean = false,
     set: Boolean = false
   ) : Unit = {
@@ -201,13 +200,13 @@ object Document_Model {
         st.models.get(name) match {
           case None => (false, st)
           case Some(model) =>
-            val a = model.get_required(document)
+            val a = model.node_required
             val b = if (toggle) !a else set
             model match {
               case m: File_Model if a != b =>
-                (true, st.copy(models = st.models + (name -> m.set_required(document, b))))
+                (true, st.copy(models = st.models + (name -> m.set_node_required(b))))
               case m: Buffer_Model if a != b =>
-                m.set_required(document, b); (true, st)
+                m.set_node_required(b); (true, st)
               case _ => (false, st)
             }
         })
@@ -216,12 +215,11 @@ object Document_Model {
 
   def view_node_required(
     view: View,
-    document: Boolean = false,
     toggle: Boolean = false,
     set: Boolean = false
   ): Unit =
     Document_Model.get(view.getBuffer).foreach(model =>
-      node_required(model.node_name, document = document, toggle = toggle, set = set))
+      node_required(model.node_name, toggle = toggle, set = set))
 
 
   /* flushed edits */
@@ -334,9 +332,6 @@ sealed abstract class Document_Model extends Document.Model {
 
   def document_view_ranges(snapshot: Document.Snapshot): List[Text.Range] = Nil
 
-  def node_required: Boolean =
-    get_required(false) || PIDE.editor.document_active && get_required(true)
-
   def node_perspective(
     doc_blobs: Document.Blobs,
     hidden: Boolean
@@ -345,6 +340,8 @@ sealed abstract class Document_Model extends Document.Model {
 
     if (JEdit_Options.continuous_checking() && is_theory) {
       val snapshot = this.snapshot()
+
+      val required = node_required || PIDE.editor.document_node_required(node_name)
 
       val reparse = snapshot.node.load_commands_changed(doc_blobs)
       val perspective =
@@ -356,7 +353,7 @@ sealed abstract class Document_Model extends Document.Model {
         }
       val overlays = PIDE.editor.node_overlays(node_name)
 
-      (reparse, Document.Node.Perspective(node_required, perspective, overlays))
+      (reparse, Document.Node.Perspective(required, perspective, overlays))
     }
     else (false, Document.Node.Perspective_Text.empty)
   }
@@ -377,13 +374,12 @@ sealed abstract class Document_Model extends Document.Model {
 object File_Model {
   def empty(session: Session): File_Model =
     File_Model(session, Document.Node.Name.empty, None, Document_Model.File_Content(""),
-      false, false, Document.Node.Perspective_Text.empty, Nil)
+      false, Document.Node.Perspective_Text.empty, Nil)
 
   def init(session: Session,
     node_name: Document.Node.Name,
     text: String,
-    theory_required: Boolean = false,
-    document_required: Boolean = false,
+    node_required: Boolean = false,
     last_perspective: Document.Node.Perspective_Text.T = Document.Node.Perspective_Text.empty,
     pending_edits: List[Text.Edit] = Nil
   ): File_Model = {
@@ -391,9 +387,8 @@ object File_Model {
     file.foreach(PIDE.plugin.file_watcher.register_parent(_))
 
     val content = Document_Model.File_Content(text)
-    val theory_required1 = theory_required || File_Format.registry.is_theory(node_name)
-    File_Model(session, node_name, file, content, theory_required1, document_required,
-      last_perspective, pending_edits)
+    val node_required1 = node_required || File_Format.registry.is_theory(node_name)
+    File_Model(session, node_name, file, content, node_required1, last_perspective, pending_edits)
   }
 }
 
@@ -402,18 +397,13 @@ case class File_Model(
   node_name: Document.Node.Name,
   file: Option[JFile],
   content: Document_Model.File_Content,
-  theory_required: Boolean,
-  document_required: Boolean,
+  node_required: Boolean,
   last_perspective: Document.Node.Perspective_Text.T,
   pending_edits: List[Text.Edit]
 ) extends Document_Model {
   /* required */
 
-  def get_required(document: Boolean): Boolean =
-    if (document) document_required else theory_required
-
-  def set_required(document: Boolean, b: Boolean): File_Model =
-    if (document) copy(document_required = b) else copy(theory_required = b)
+  def set_node_required(b: Boolean): File_Model = copy(node_required = b)
 
 
   /* text */
@@ -505,13 +495,9 @@ extends Document_Model {
   /* perspective */
 
   // owned by GUI thread
-  private var _theory_required = false
-  private var _document_required = false
-
-  def get_required(document: Boolean): Boolean =
-    if (document) _document_required else _theory_required
-  def set_required(document: Boolean, b: Boolean): Unit =
-    GUI_Thread.require { if (document) _document_required = b else _theory_required = b }
+  private var _node_required = false
+  def node_required: Boolean = _node_required
+  def set_node_required(b: Boolean): Unit = GUI_Thread.require { _node_required = b }
 
   def document_view_iterator: Iterator[Document_View] =
     for {
@@ -683,8 +669,7 @@ extends Document_Model {
       case None =>
         pending_edits.edit(List(Text.Edit.insert(0, JEdit_Lib.buffer_text(buffer))))
       case Some(file_model) =>
-        set_required(false, file_model.theory_required)
-        set_required(true, file_model.document_required)
+        set_node_required(file_model.node_required)
         pending_edits.set_last_perspective(file_model.last_perspective)
         pending_edits.edit(
           file_model.pending_edits :::
@@ -707,8 +692,7 @@ extends Document_Model {
     init_token_marker()
 
     File_Model.init(session, node_name, JEdit_Lib.buffer_text(buffer),
-      theory_required = _theory_required,
-      document_required = _document_required,
+      node_required = _node_required,
       last_perspective = pending_edits.get_last_perspective,
       pending_edits = pending_edits.get_edits)
   }
