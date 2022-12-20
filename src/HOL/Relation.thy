@@ -663,8 +663,13 @@ lemma trans_INTER: "\<forall>x\<in>S. trans (r x) \<Longrightarrow> trans (\<Int
 
 lemma transp_INF: "\<forall>x\<in>S. transp (r x) \<Longrightarrow> transp (\<Sqinter>(r ` S))"
   by (fact trans_INTER [to_pred])
-    
-lemma trans_join [code]: "trans r \<longleftrightarrow> (\<forall>(x, y1) \<in> r. \<forall>(y2, z) \<in> r. y1 = y2 \<longrightarrow> (x, z) \<in> r)"
+
+lemma trans_on_join [code]:
+  "trans_on A r \<longleftrightarrow> (\<forall>(x, y1) \<in> r. x \<in> A \<longrightarrow> y1 \<in> A \<longrightarrow>
+    (\<forall>(y2, z) \<in> r. y1 = y2 \<longrightarrow> z \<in> A \<longrightarrow> (x, z) \<in> r))"
+  by (auto simp: trans_on_def)
+
+lemma trans_join: "trans r \<longleftrightarrow> (\<forall>(x, y1) \<in> r. \<forall>(y2, z) \<in> r. y1 = y2 \<longrightarrow> (x, z) \<in> r)"
   by (auto simp add: trans_def)
 
 lemma transp_trans: "transp r \<longleftrightarrow> trans {(x, y). r x y}"
