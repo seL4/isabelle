@@ -1614,8 +1614,7 @@ context begin
 
 qualified lemma
   assumes
-    (* FIXME: Replace by transp_on (set_mset M) R if it gets introduced. *)
-    "\<forall>x \<in> set_mset M. \<forall>y \<in> set_mset M. \<forall>z \<in> set_mset M. R x y \<longrightarrow> R y z \<longrightarrow> R x z" and
+    "transp_on (set_mset M) R" and
     "totalp_on (set_mset M) R" and
     "M \<noteq> {#}"
   shows
@@ -1629,12 +1628,10 @@ proof (induction M rule: multiset_induct)
   thus ?case ..
 next
   case (add x M)
-  from add.prems(1) have transp_on_x_M_raw: "\<forall>y\<in>#M. \<forall>z\<in>#M. R x y \<and> R y z \<longrightarrow> R x z"
-    by (metis insert_iff set_mset_add_mset_insert)
-
-  from add.prems(1) have transp_on_R_M:
-    "\<forall>x \<in> set_mset M. \<forall>y \<in> set_mset M. \<forall>z \<in> set_mset M. R x y \<longrightarrow> R y z \<longrightarrow> R x z"
-    by (meson mset_subsetD multi_psub_of_add_self)
+  from add.prems(1) have
+    transp_on_x_M_raw: "\<forall>y\<in>#M. \<forall>z\<in>#M. R x y \<and> R y z \<longrightarrow> R x z" and
+    transp_on_R_M: "transp_on (set_mset M) R"
+    by (auto intro: transp_onI dest: transp_onD)
 
   from add.prems(2) have
     totalp_on_x_M_raw: "\<forall>y \<in># M. x \<noteq> y \<longrightarrow> R x y \<or> R y x" and
