@@ -115,10 +115,11 @@ object Document_Build {
     options: Options,
     session: String,
     dirs: List[Path] = Nil,
-    progress: Progress = new Progress
+    progress: Progress = new Progress,
+    verbose: Boolean = false
   ): Sessions.Background = {
       Sessions.load_structure(options + "document=pdf", dirs = dirs).
-        selection_deps(Sessions.Selection.session(session), progress = progress).
+        selection_deps(Sessions.Selection.session(session), progress = progress, verbose = verbose).
         background(session)
   }
 

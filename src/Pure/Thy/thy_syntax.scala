@@ -258,7 +258,7 @@ object Thy_Syntax {
 
       case (name, Document.Node.Perspective(required, text_perspective, overlays)) =>
         val (visible, visible_overlay) = command_perspective(node, text_perspective, overlays)
-        val perspective: Document.Node.Perspective_Command =
+        val perspective: Document.Node.Perspective_Command.T =
           Document.Node.Perspective(required, visible_overlay, overlays)
         if (node.same_perspective(text_perspective, perspective)) node
         else {

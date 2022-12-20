@@ -85,12 +85,13 @@ fun make_perspective (required, command_ids, overlays) : perspective =
 
 val no_header: node_header =
   {master = "", header = Thy_Header.make ("", Position.none) [] [], errors = []};
-val no_perspective = make_perspective (false, [], []);
+
+val empty_perspective = make_perspective (false, [], []);
 
 val empty_node =
-  make_node (no_header, NONE, no_perspective, Entries.empty, NONE, Lazy.value ());
+  make_node (no_header, NONE, empty_perspective, Entries.empty, NONE, Lazy.value ());
 
-fun is_no_perspective ({required, visible, visible_last, overlays}: perspective) =
+fun is_empty_perspective ({required, visible, visible_last, overlays}: perspective) =
   not required andalso
   Inttab.is_empty visible andalso
   is_none visible_last andalso
@@ -99,7 +100,7 @@ fun is_no_perspective ({required, visible, visible_last, overlays}: perspective)
 fun is_empty_node (Node {header, keywords, perspective, entries, result, consolidated}) =
   header = no_header andalso
   is_none keywords andalso
-  is_no_perspective perspective andalso
+  is_empty_perspective perspective andalso
   Entries.is_empty entries andalso
   is_none result andalso
   Lazy.is_finished consolidated;

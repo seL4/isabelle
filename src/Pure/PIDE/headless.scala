@@ -390,8 +390,9 @@ object Headless {
 
                   val theory_progress =
                     (for {
-                      (name, node_status) <- st1.nodes_status.present.iterator
-                      if changed_st.changed_nodes(name) && !st.already_committed.isDefinedAt(name)
+                      (name, node_status) <- st1.nodes_status.present().iterator
+                      if !node_status.is_empty && changed_st.changed_nodes(name) &&
+                        !st.already_committed.isDefinedAt(name)
                       p1 = node_status.percentage
                       if p1 > 0 && !st.nodes_status.get(name).map(_.percentage).contains(p1)
                     } yield Progress.Theory(name.theory, percentage = Some(p1))).toList
@@ -471,7 +472,7 @@ object Headless {
     ) {
       override def toString: String = node_name.toString
 
-      def node_perspective: Document.Node.Perspective_Text =
+      def node_perspective: Document.Node.Perspective_Text.T =
         Document.Node.Perspective(node_required, Text.Perspective.empty, Document.Node.Overlays.empty)
 
       def make_edits(text_edits: List[Text.Edit]): List[Document.Edit_Text] =

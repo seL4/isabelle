@@ -20,16 +20,38 @@ abstract class Editor[Context] {
   protected val document_editor: Synchronized[Document_Editor.State] =
     Synchronized(Document_Editor.State())
 
-  def document_editor_session: Option[Sessions.Background] =
-    document_editor.value.session_background
-  def document_editor_active: Boolean =
-    document_editor.value.is_active
-  def document_editor_setup(background: Option[Sessions.Background]): Unit =
-    document_editor.change(_.copy(session_background = background))
-  def document_editor_init(id: AnyRef): Unit =
-    document_editor.change(_.register_view(id))
-  def document_editor_exit(id: AnyRef): Unit =
-    document_editor.change(_.unregister_view(id))
+  protected def document_state(): Document_Editor.State = document_editor.value
+
+  protected def document_state_changed(): Unit = {}
+  private def document_state_change(f: Document_Editor.State => Document_Editor.State): Unit = {
+    val changed =
+      document_editor.change_result { st =>
+        val st1 = f(st)
+        (st.required != st1.required, st1)
+      }
+    if (changed) document_state_changed()
+  }
+
+  def document_session(): Option[Sessions.Background] = document_state().session_background
+  def document_required(): List[Document.Node.Name] = document_state().required
+  def document_node_required(name: Document.Node.Name): Boolean = document_state().is_required(name)
+
+  def document_theories(): List[Document.Node.Name] = document_state().active_document_theories
+
+  def document_setup(background: Option[Sessions.Background]): Unit =
+    document_state_change(_.copy(session_background = background))
+
+  def document_select(
+    names: Iterable[Document.Node.Name],
+    set: Boolean = false,
+    toggle: Boolean = false
+  ): Unit = document_state_change(_.select(names, set = set, toggle = toggle))
+
+  def document_select_all(set: Boolean = false): Unit =
+    document_state_change(st => st.select(st.active_document_theories, set = set))
+
+  def document_init(id: AnyRef): Unit = document_state_change(_.register_view(id))
+  def document_exit(id: AnyRef): Unit = document_state_change(_.unregister_view(id))
 
 
   /* current situation */

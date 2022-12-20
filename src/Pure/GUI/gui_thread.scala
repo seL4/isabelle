@@ -13,13 +13,15 @@ import javax.swing.SwingUtilities
 object GUI_Thread {
   /* context check */
 
+  def check(): Boolean = SwingUtilities.isEventDispatchThread()
+
   def assert[A](body: => A): A = {
-    Predef.assert(SwingUtilities.isEventDispatchThread)
+    Predef.assert(check())
     body
   }
 
   def require[A](body: => A): A = {
-    Predef.require(SwingUtilities.isEventDispatchThread, "GUI thread expected")
+    Predef.require(check(), "GUI thread expected")
     body
   }
 
@@ -27,7 +29,7 @@ object GUI_Thread {
   /* event dispatch queue */
 
   def now[A](body: => A): A = {
-    if (SwingUtilities.isEventDispatchThread) body
+    if (check()) body
     else {
       lazy val result = assert { Exn.capture(body) }
       SwingUtilities.invokeAndWait(() => result)
@@ -36,12 +38,12 @@ object GUI_Thread {
   }
 
   def later(body: => Unit): Unit = {
-    if (SwingUtilities.isEventDispatchThread) body
+    if (check()) body
     else SwingUtilities.invokeLater(() => body)
   }
 
   def future[A](body: => A): Future[A] = {
-    if (SwingUtilities.isEventDispatchThread) Future.value(body)
+    if (check()) Future.value(body)
     else {
       val promise = Future.promise[A]
       later { promise.fulfill_result(Exn.capture(body)) }

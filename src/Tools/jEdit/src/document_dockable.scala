@@ -27,10 +27,6 @@ object Document_Dockable {
     val FINISHED = Value("finished")
   }
 
-  sealed case class Result(output: List[XML.Tree] = Nil) {
-    def failed: Boolean = output.exists(Protocol.is_error)
-  }
-
   object State {
     def init(): State = State()
   }
@@ -44,8 +40,10 @@ object Document_Dockable {
     def run(progress: Progress, process: Future[Unit]): State =
       copy(progress = progress, process = process, status = Status.RUNNING)
 
-    def finish(result: Result): State = State(output = result.output)
-    def finish(msg: XML.Tree): State = finish(Result(output = List(msg)))
+    def finish(output: List[XML.Tree]): State =
+      copy(process = Future.value(()), status = Status.FINISHED, output = output)
+
+    def ok: Boolean = !output.exists(Protocol.is_error)
   }
 }
 
@@ -121,73 +119,91 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
 
   /* document build process */
 
-  private def cancel(): Unit =
-    current_state.change { st => st.process.cancel(); st }
-
   private def init_state(): Unit =
     current_state.change { _ => Document_Dockable.State(progress = log_progress()) }
 
-  private def load_document(session: String): Boolean = {
-    current_state.change_result { st =>
-      if (st.process.is_finished) {
-        val options = PIDE.options.value
-        val progress = log_progress()
-        val process =
-          Future.thread[Unit](name = "Document_Dockable.load_document") {
-            try {
-              val session_background =
-                Document_Build.session_background(
-                  options, session, dirs = JEdit_Sessions.session_dirs)
-              PIDE.editor.document_editor_setup(Some(session_background))
-              GUI_Thread.later { show_state(); show_page(theories_page) }
+  private def cancel_process(): Unit =
+    current_state.change { st => st.process.cancel(); st }
+
+  private def await_process(): Unit =
+    current_state.guarded_access(st => if (st.process.is_finished) None else Some((), st))
+
+  private def finish_process(output: List[XML.Tree]): Unit =
+    current_state.change(_.finish(output))
+
+  private def run_process(body: Document_Editor.Log_Progress => Unit): Boolean = {
+    val started =
+      current_state.change_result { st =>
+        if (st.process.is_finished) {
+          val progress = log_progress()
+          val process =
+            Future.thread[Unit](name = "Document_Dockable.process") {
+              await_process()
+              body(progress)
             }
-            catch {
-              case exn: Throwable if !Exn.is_interrupt(exn) =>
-                current_state.change(_.finish(Protocol.error_message(Exn.message(exn))))
-                GUI_Thread.later { show_state(); show_page(output_page) }
-            }
-          }
-        (true, st.run(progress, process))
+          (true, st.run(progress, process))
+        }
+        else (false, st)
       }
-      else (false, st)
+    show_state()
+    started
+  }
+
+  private def load_document(session: String): Boolean = {
+    val options = PIDE.options.value
+    run_process { progress =>
+      try {
+        val session_background =
+          Document_Build.session_background(
+            options, session, dirs = JEdit_Sessions.session_dirs)
+        PIDE.editor.document_setup(Some(session_background))
+
+        finish_process(Nil)
+        GUI_Thread.later {
+          val domain = PIDE.editor.document_theories().toSet
+          theories.update(domain = Some(domain), trim = true, force = true)
+          show_state()
+          show_page(theories_page)
+        }
+      }
+      catch {
+        case exn: Throwable if !Exn.is_interrupt(exn) =>
+          finish_process(List(Protocol.error_message(Exn.print(exn))))
+          GUI_Thread.later {
+            show_state()
+            show_page(output_page)
+          }
+      }
     }
   }
 
   private def build_document(): Unit = {
-    current_state.change { st =>
-      if (st.process.is_finished) {
-        val progress = log_progress()
-        val process =
-          Future.thread[Unit](name = "Document_Dockable.build_document") {
-            show_page(theories_page)
-            Time.seconds(2.0).sleep()
+    run_process { progress =>
+      show_page(theories_page)
+      Time.seconds(2.0).sleep()
 
-            show_page(log_page)
-            val res =
-              Exn.capture {
-                progress.echo("Start " + Date.now())
-                for (i <- 1 to 200) {
-                  progress.echo("message " + i)
-                  Time.seconds(0.1).sleep()
-                }
-                progress.echo("Stop " + Date.now())
-              }
-            val msg =
-              res match {
-                case Exn.Res(_) => Protocol.writeln_message("OK")
-                case Exn.Exn(exn) => Protocol.error_message(Exn.message(exn))
-              }
-            current_state.change(_.finish(msg))
-            show_state()
-
-            show_page(if (Exn.is_interrupt_exn(res)) theories_page else output_page)
-            GUI_Thread.later { progress.load() }
+      show_page(log_page)
+      val res =
+        Exn.capture {
+          progress.echo("Start " + Date.now())
+          for (i <- 1 to 200) {
+            progress.echo("message " + i)
+            Time.seconds(0.1).sleep()
           }
-        st.run(progress, process)
-      }
-      else st
+          progress.echo("Stop " + Date.now())
+        }
+      val msg =
+        res match {
+          case Exn.Res(_) => Protocol.writeln_message("OK")
+          case Exn.Exn(exn) => Protocol.error_message(Exn.print(exn))
+        }
+      finish_process(List(msg))
+
+      show_state()
+
+      show_page(if (Exn.is_interrupt_exn(res)) theories_page else output_page)
+      GUI_Thread.later { progress.load() }
     }
-    show_state()
   }
 
 
@@ -214,7 +230,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
   private val cancel_button =
     new GUI.Button("Cancel") {
       tooltip = "Cancel build process"
-      override def clicked(): Unit = cancel()
+      override def clicked(): Unit = cancel_process()
     }
 
   private val view_button =
@@ -234,10 +250,26 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
 
   /* message pane with pages */
 
+  private val select_all_button =
+    new GUI.Button("All") {
+      tooltip = "Select all document theories"
+      override def clicked(): Unit = PIDE.editor.document_select_all(set = true)
+    }
+
+  private val select_none_button =
+    new GUI.Button("None") {
+      tooltip = "Deselect all document theories"
+      override def clicked(): Unit = PIDE.editor.document_select_all(set = false)
+    }
+
+  private val theories_controls =
+    Wrap_Panel(List(select_all_button, select_none_button))
+
   private val theories = new Theories_Status(view, document = true)
 
   private val theories_page =
     new TabbedPane.Page("Theories", new BorderPanel {
+      layout(theories_controls) = BorderPanel.Position.North
       layout(theories.gui) = BorderPanel.Position.Center
     }, "Selection and status of document theories")
 
@@ -268,20 +300,20 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
         GUI_Thread.later {
           document_session.load()
           handle_resize()
-          theories.reinit()
+          theories.refresh()
         }
       case changed: Session.Commands_Changed =>
         GUI_Thread.later {
-          theories.update(domain = Some(changed.nodes), trim = changed.assignment)
+          val domain = PIDE.editor.document_theories().filter(changed.nodes).toSet
+          if (domain.nonEmpty) theories.update(domain = Some(domain))
         }
     }
 
   override def init(): Unit = {
-    PIDE.editor.document_editor_init(dockable)
+    PIDE.editor.document_init(dockable)
     init_state()
     PIDE.session.global_options += main
     PIDE.session.commands_changed += main
-    theories.update()
     handle_resize()
     delay_load.invoke()
   }
@@ -290,6 +322,6 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     PIDE.session.global_options -= main
     PIDE.session.commands_changed -= main
     delay_resize.revoke()
-    PIDE.editor.document_editor_exit(dockable)
+    PIDE.editor.document_exit(dockable)
   }
 }

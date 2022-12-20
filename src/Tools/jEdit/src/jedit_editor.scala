@@ -53,6 +53,17 @@ class JEdit_Editor extends Editor[View] {
     } yield doc_view.model.node_name).contains(name)
 
 
+  /* global changes */
+
+  def state_changed(): Unit = {
+    GUI_Thread.later { flush() }
+    PIDE.plugin.deps_changed()
+    session.global_options.post(Session.Global_Options(PIDE.options.value))
+  }
+
+  override def document_state_changed(): Unit = state_changed()
+
+
   /* current situation */
 
   override def current_node(view: View): Option[Document.Node.Name] =
