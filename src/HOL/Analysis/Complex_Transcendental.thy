@@ -1526,6 +1526,47 @@ proof -
 qed
 
 
+lemma norm_Ln_le:
+  fixes z :: complex
+  assumes "norm z < 1/2"
+  shows   "norm (Ln(1+z)) \<le> 2 * norm z"
+proof -
+  have sums: "(\<lambda>n. - ((- z) ^ n) / of_nat n) sums ln (1 + z)"
+    by (intro Ln_series') (use assms in auto)
+  have summable: "summable (\<lambda>n. norm (- ((- z) ^ n / of_nat n)))"
+    using ln_series'[of "-norm z"] assms
+    by (simp add: sums_iff summable_minus_iff norm_power norm_divide)
+
+  have "norm (ln (1 + z)) = norm (\<Sum>n. -((-z) ^ n / of_nat n))"
+    using sums by (simp add: sums_iff)
+  also have "\<dots> \<le> (\<Sum>n. norm (-((-z) ^ n / of_nat n)))"
+    using summable by (rule summable_norm)
+  also have "\<dots> = (\<Sum>n. norm (-((-z) ^ Suc n / of_nat (Suc n))))"
+    using summable by (subst suminf_split_head) auto
+  also have "\<dots> \<le> (\<Sum>n. norm z * (1 / 2) ^ n)"
+  proof (rule suminf_le)
+    show "summable (\<lambda>n. norm z * (1 / 2) ^ n)"
+      by (intro summable_mult summable_geometric) auto
+  next
+    show "summable (\<lambda>n. norm (- ((- z) ^ Suc n / of_nat (Suc n))))"
+      using summable by (subst summable_Suc_iff)
+  next
+    fix n
+    have "norm (-((-z) ^ Suc n / of_nat (Suc n))) = norm z * (norm z ^ n / real (Suc n))"
+      by (simp add: norm_power norm_divide norm_mult del: of_nat_Suc)
+    also have "\<dots> \<le> norm z * ((1 / 2) ^ n / 1)"
+      using assms by (intro mult_left_mono frac_le power_mono) auto
+    finally show "norm (- ((- z) ^ Suc n / of_nat (Suc n))) \<le> norm z * (1 / 2) ^ n"
+      by simp
+  qed
+  also have "\<dots> = norm z * (\<Sum>n. (1 / 2) ^ n)"
+    by (subst suminf_mult) (auto intro: summable_geometric)
+  also have "(\<Sum>n. (1 / 2 :: real) ^ n) = 2"
+    using geometric_sums[of "1 / 2 :: real"] by (simp add: sums_iff)
+  finally show ?thesis
+    by (simp add: mult_ac)
+qed
+
 subsection\<^marker>\<open>tag unimportant\<close>\<open>Quadrant-type results for Ln\<close>
 
 lemma cos_lt_zero_pi: "pi/2 < x \<Longrightarrow> x < 3*pi/2 \<Longrightarrow> cos x < 0"
@@ -1794,6 +1835,218 @@ proof -
   also from assms have "\<dots> = of_real (ln (of_nat m) - ln (of_nat n))"
     by (simp add: ln_div)
   finally show ?thesis .
+qed
+
+lemma norm_Ln_times_le:
+  assumes "w \<noteq> 0" "z \<noteq> 0"
+  shows  "cmod (Ln(w * z)) \<le> cmod (Ln(w) + Ln(z))"
+proof (cases "- pi < Im(Ln w + Ln z) \<and> Im(Ln w + Ln z) \<le> pi")
+  case True
+  then show ?thesis
+    by (simp add: Ln_times_simple assms)
+next
+  case False
+  then show ?thesis
+    by (smt (verit) Im_Ln_le_pi assms cmod_Im_le_iff exp_Ln exp_add ln_unique mpi_less_Im_Ln mult_eq_0_iff norm_exp_eq_Re)
+qed
+
+corollary norm_Ln_prod_le:
+  fixes f :: "'a \<Rightarrow> complex"
+  assumes "\<And>x. x \<in> A \<Longrightarrow> f x \<noteq> 0"
+  shows "cmod (Ln (prod f A)) \<le> (\<Sum>x \<in> A. cmod (Ln (f x)))"
+  using assms
+proof (induction A rule: infinite_finite_induct)
+  case (insert x A)
+  then show ?case
+    by simp (smt (verit) norm_Ln_times_le norm_triangle_ineq prod_zero_iff)
+qed auto
+
+lemma norm_Ln_exp_le: "norm (Ln (exp z)) \<le> norm z"
+  by (smt (verit) Im_Ln_le_pi Ln_exp Re_Ln cmod_Im_le_iff exp_not_eq_zero ln_exp mpi_less_Im_Ln norm_exp_eq_Re)
+
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Uniform convergence and products\<close>
+
+(* TODO: could be generalised perhaps, but then one would have to do without the ln *)
+lemma uniformly_convergent_on_prod_aux:
+  fixes f :: "nat \<Rightarrow> complex \<Rightarrow> complex"
+  assumes norm_f: "\<And>n x. x \<in> A \<Longrightarrow> norm (f n x) < 1"
+  assumes cont: "\<And>n. continuous_on A (f n)"
+  assumes conv: "uniformly_convergent_on A (\<lambda>N x. \<Sum>n<N. ln (1 + f n x))"
+  assumes A: "compact A"
+  shows "uniformly_convergent_on A (\<lambda>N x. \<Prod>n<N. 1 + f n x)"
+proof -
+  from conv obtain S where S: "uniform_limit A (\<lambda>N x. \<Sum>n<N. ln (1 + f n x)) S sequentially"
+    by (auto simp: uniformly_convergent_on_def)
+  have cont': "continuous_on A S"
+  proof (rule uniform_limit_theorem[OF _ S])
+    have "f n x + 1 \<notin> \<real>\<^sub>\<le>\<^sub>0" if "x \<in> A" for n x
+    proof
+      assume "f n x + 1 \<in> \<real>\<^sub>\<le>\<^sub>0"
+      then obtain t where t: "t \<le> 0" "f n x + 1 = of_real t"
+        by (auto elim!: nonpos_Reals_cases)
+      hence "f n x = of_real (t - 1)"
+        by (simp add: algebra_simps)
+      also have "norm \<dots> \<ge> 1"
+        using t by (subst norm_of_real) auto
+      finally show False
+        using norm_f[of x n] that by auto
+    qed
+    thus "\<forall>\<^sub>F n in sequentially. continuous_on A (\<lambda>x. \<Sum>n<n. Ln (1 + f n x))"
+      by (auto intro!: always_eventually continuous_intros cont simp: add_ac)
+  qed auto
+
+  define B where "B = {x + y |x y. x \<in> S ` A \<and> y \<in> cball 0 1}"
+  have "compact B"
+    unfolding B_def by (intro compact_sums compact_continuous_image cont' A) auto
+
+  have "uniformly_convergent_on A (\<lambda>N x. exp ((\<Sum>n<N. ln (1 + f n x))))"
+    using conv
+  proof (rule uniformly_convergent_on_compose_uniformly_continuous_on)
+    show "closed B"
+      using \<open>compact B\<close> by (auto dest: compact_imp_closed)
+    show "uniformly_continuous_on B exp"
+      by (intro compact_uniformly_continuous continuous_intros \<open>compact B\<close>)
+
+    have "eventually (\<lambda>N. \<forall>x\<in>A. dist (\<Sum>n<N. Ln (1 + f n x)) (S x) < 1) sequentially"
+      using S unfolding uniform_limit_iff by simp
+    thus "eventually (\<lambda>N. \<forall>x\<in>A. (\<Sum>n<N. Ln (1 + f n x)) \<in> B) sequentially"
+    proof eventually_elim
+      case (elim N)
+      show "\<forall>x\<in>A. (\<Sum>n<N. Ln (1 + f n x)) \<in> B"
+      proof safe
+        fix x assume x: "x \<in> A"
+        have "(\<Sum>n<N. Ln (1 + f n x)) = S x + ((\<Sum>n<N. Ln (1 + f n x)) - S x)"
+          by auto
+        moreover have "((\<Sum>n<N. Ln (1 + f n x)) - S x) \<in> ball 0 1"
+          using elim x by (auto simp: dist_norm norm_minus_commute)
+        ultimately show "(\<Sum>n<N. Ln (1 + f n x)) \<in> B"
+          unfolding B_def using x by fastforce
+      qed
+    qed
+  qed
+  also have "?this \<longleftrightarrow> uniformly_convergent_on A (\<lambda>N x. \<Prod>n<N. 1 + f n x)"
+  proof (intro uniformly_convergent_cong refl always_eventually allI ballI)
+    fix N :: nat and x assume x: "x \<in> A"
+    have "exp (\<Sum>n<N. ln (1 + f n x)) = (\<Prod>n<N. exp (ln (1 + f n x)))"
+      by (simp add: exp_sum)
+    also have "\<dots> = (\<Prod>n<N. 1 + f n x)"
+    proof (rule prod.cong)
+      fix n assume "n \<in> {..<N}"
+      have "f n x \<noteq> -1"
+        using norm_f[of x n] x by auto
+      thus "exp (ln (1 + f n x)) = 1 + f n x"
+        by (simp add: add_eq_0_iff)
+    qed auto
+    finally show "exp (\<Sum>n<N. ln (1 + f n x)) = (\<Prod>n<N. 1 + f n x)" .
+  qed
+  finally show ?thesis .
+qed
+
+(* Theorem 17.6 by Bak & Newman, roughly *)
+lemma uniformly_convergent_on_prod:
+  fixes f :: "nat \<Rightarrow> complex \<Rightarrow> complex"
+  assumes cont: "\<And>n. continuous_on A (f n)"
+  assumes A: "compact A"
+  assumes conv_sum: "uniformly_convergent_on A (\<lambda>N x. \<Sum>n<N. norm (f n x))"
+  shows   "uniformly_convergent_on A (\<lambda>N x. \<Prod>n<N. 1 + f n x)"
+proof -
+  obtain M where M: "\<And>n x. n \<ge> M \<Longrightarrow> x \<in> A \<Longrightarrow> norm (f n x) < 1 / 2"
+  proof -
+    from conv_sum have "uniformly_Cauchy_on A (\<lambda>N x. \<Sum>n<N. norm (f n x))"
+      using uniformly_convergent_Cauchy by blast
+    moreover have "(1 / 2 :: real) > 0"
+      by simp
+    ultimately obtain M where M:
+      "\<And>x m n. x \<in> A \<Longrightarrow> m \<ge> M \<Longrightarrow> n \<ge> M \<Longrightarrow> dist (\<Sum>k<m. norm (f k x)) (\<Sum>k<n. norm (f k x)) < 1 / 2"
+      unfolding uniformly_Cauchy_on_def by fast
+    show ?thesis
+    proof (rule that[of M])
+      fix n x assume nx: "n \<ge> M" "x \<in> A"
+      have "dist (\<Sum>k<Suc n. norm (f k x)) (\<Sum>k<n. norm (f k x)) < 1 / 2"
+        by (rule M) (use nx in auto)
+      also have "dist (\<Sum>k<Suc n. norm (f k x)) (\<Sum>k<n. norm (f k x)) = norm (f n x)"
+        by (simp add: dist_norm)
+      finally show "norm (f n x) < 1 / 2" .
+    qed
+  qed
+
+  have conv: "uniformly_convergent_on A (\<lambda>N x. \<Sum>n<N. ln (1 + f (n + M) x))"
+  proof (rule uniformly_summable_comparison_test)
+    show "norm (ln (1 + f (n + M) x)) \<le> 2 * norm (f (n + M) x)" if "x \<in> A" for n x
+      by (rule norm_Ln_le) (use M[of "n + M" x] that in auto)
+    have *: "filterlim (\<lambda>n. n + M) at_top at_top"
+      by (rule filterlim_add_const_nat_at_top)
+    have "uniformly_convergent_on A (\<lambda>N x. 2 * ((\<Sum>n<N+M. norm (f n x)) - (\<Sum>n<M. norm (f n x))))"
+      by (intro uniformly_convergent_mult uniformly_convergent_minus
+                uniformly_convergent_on_compose[OF conv_sum *] uniformly_convergent_on_const)
+    also have "(\<lambda>N x. 2 * ((\<Sum>n<N+M. norm (f n x)) - (\<Sum>n<M. norm (f n x)))) =
+               (\<lambda>N x. \<Sum>n<N. 2 * norm (f (n + M) x))" (is "?lhs = ?rhs")
+    proof (intro ext)
+      fix N x
+      have "(\<Sum>n<N+M. norm (f n x)) - (\<Sum>n<M. norm (f n x)) = (\<Sum>n\<in>{..<N+M}-{..<M}. norm (f n x))"
+        by (subst sum_diff) auto
+      also have "\<dots> = (\<Sum>n<N. norm (f (n + M) x))"
+        by (intro sum.reindex_bij_witness[of _ "\<lambda>n. n + M" "\<lambda>n. n - M"]) auto
+      finally show "?lhs N x = ?rhs N x"
+        by (simp add: sum_distrib_left)
+    qed
+    finally show "uniformly_convergent_on A (\<lambda>N x. \<Sum>n<N. 2 * cmod (f (n + M) x))" .
+  qed
+
+  have conv': "uniformly_convergent_on A (\<lambda>N x. \<Prod>n<N. 1 + f (n + M) x)"
+  proof (rule uniformly_convergent_on_prod_aux)
+    show "norm (f (n + M) x) < 1" if "x \<in> A" for n x
+      using M[of "n + M" x] that by simp
+  qed (use M assms conv in auto)
+
+  then obtain S where S: "uniform_limit A (\<lambda>N x. \<Prod>n<N. 1 + f (n + M) x) S sequentially"
+    by (auto simp: uniformly_convergent_on_def)
+  have cont':  "continuous_on A S"
+    by (intro uniform_limit_theorem[OF _ S] always_eventually ballI allI continuous_intros cont) auto
+
+  have "uniform_limit A (\<lambda>N x. (\<Prod>n<M. 1 + f n x) * (\<Prod>n<N. 1 + f (n + M) x)) (\<lambda>x. (\<Prod>n<M. 1 + f n x) * S x) sequentially"
+  proof (rule uniform_lim_mult[OF uniform_limit_const S])
+    show "bounded (S ` A)"
+      by (intro compact_imp_bounded compact_continuous_image A cont')
+    show "bounded ((\<lambda>x. \<Prod>n<M. 1 + f n x) ` A)"
+      by (intro compact_imp_bounded compact_continuous_image A continuous_intros cont)
+  qed
+  hence "uniformly_convergent_on A (\<lambda>N x. (\<Prod>n<M. 1 + f n x) * (\<Prod>n<N. 1 + f (n + M) x))"
+    by (auto simp: uniformly_convergent_on_def)
+  also have "(\<lambda>N x. (\<Prod>n<M. 1 + f n x) * (\<Prod>n<N. 1 + f (n + M) x)) = (\<lambda>N x. (\<Prod>n<M+N. 1 + f n x))"
+  proof (intro ext)
+    fix N :: nat and x :: complex
+    have "(\<Prod>n<N. 1 + f (n + M) x) = (\<Prod>n\<in>{M..<M+N}. 1 + f n x)"
+      by (intro prod.reindex_bij_witness[of _ "\<lambda>n. n - M" "\<lambda>n. n + M"]) auto
+    also have "(\<Prod>n<M. 1 + f n x) * \<dots> = (\<Prod>n\<in>{..<M}\<union>{M..<M+N}. 1 + f n x)"
+      by (subst prod.union_disjoint) auto
+    also have "{..<M} \<union> {M..<M+N} = {..<M+N}"
+      by auto
+    finally show "(\<Prod>n<M. 1 + f n x) * (\<Prod>n<N. 1 + f (n + M) x) = (\<Prod>n<M+N. 1 + f n x)" .
+  qed
+  finally have "uniformly_convergent_on A (\<lambda>N x. \<Prod>n<M + N. 1 + f n x)"
+    by simp
+  hence "uniformly_convergent_on A (\<lambda>N x. \<Prod>n<M + (N - M). 1 + f n x)"
+    by (rule uniformly_convergent_on_compose) (rule filterlim_minus_const_nat_at_top)
+  also have "?this \<longleftrightarrow> ?thesis"
+  proof (rule uniformly_convergent_cong)
+    show "eventually (\<lambda>x. \<forall>y\<in>A. (\<Prod>n<M + (x - M). 1 + f n y) = (\<Prod>n<x. 1 + f n y)) at_top"
+      using eventually_ge_at_top[of M] by eventually_elim auto
+  qed auto
+  finally show ?thesis .
+qed
+
+lemma uniformly_convergent_on_prod':
+  fixes f :: "nat \<Rightarrow> complex \<Rightarrow> complex"
+  assumes cont: "\<And>n. continuous_on A (f n)"
+  assumes A: "compact A"
+  assumes conv_sum: "uniformly_convergent_on A (\<lambda>N x. \<Sum>n<N. norm (f n x - 1))"
+  shows "uniformly_convergent_on A (\<lambda>N x. \<Prod>n<N. f n x)"
+proof -
+  have "uniformly_convergent_on A (\<lambda>N x. \<Prod>n<N. 1 + (f n x - 1))"
+    by (rule uniformly_convergent_on_prod) (use assms in \<open>auto intro!: continuous_intros\<close>)
+  thus ?thesis
+    by simp
 qed
 
 subsection\<open>The Argument of a Complex Number\<close>
@@ -2622,7 +2875,6 @@ proof
       by (auto intro!: tendsto_powr_complex_0 simp: continuous_on_def)
   qed
 qed
-
 
 subsection\<^marker>\<open>tag unimportant\<close>\<open>Some Limits involving Logarithms\<close>
 

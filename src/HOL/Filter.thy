@@ -1519,6 +1519,24 @@ proof (safe, goal_cases)
     by eventually_elim (insert n, auto)
 qed
 
+lemma filterlim_minus_const_nat_at_top:
+  "filterlim (\<lambda>n. n - c) sequentially sequentially"
+  unfolding filterlim_at_top
+proof
+  fix a :: nat
+  show "eventually (\<lambda>n. n - c \<ge> a) at_top"
+    using eventually_ge_at_top[of "a + c"] by eventually_elim auto
+qed
+
+lemma filterlim_add_const_nat_at_top:
+  "filterlim (\<lambda>n. n + c) sequentially sequentially"
+  unfolding filterlim_at_top
+proof
+  fix a :: nat
+  show "eventually (\<lambda>n. n + c \<ge> a) at_top"
+    using eventually_ge_at_top[of a] by eventually_elim auto
+qed
+
 subsection \<open>Setup \<^typ>\<open>'a filter\<close> for lifting and transfer\<close>
 
 lemma filtermap_id [simp, id_simps]: "filtermap id = id"

@@ -118,6 +118,48 @@ lemma has_prod_unique:
   shows "f has_prod s \<Longrightarrow> s = prodinf f"
   by (simp add: has_prod_unique2 prodinf_def the_equality)
 
+lemma has_prod_eq_0_iff:
+  fixes f :: "nat \<Rightarrow> 'a :: {semidom, comm_semiring_1, t2_space}"
+  assumes "f has_prod P"
+  shows   "P = 0 \<longleftrightarrow> 0 \<in> range f"
+proof
+  assume "0 \<in> range f"
+  then obtain N where N: "f N = 0"
+    by auto
+  have "eventually (\<lambda>n. n > N) at_top"
+    by (rule eventually_gt_at_top)
+  hence "eventually (\<lambda>n. (\<Prod>k<n. f k) = 0) at_top"
+    by eventually_elim (use N in auto)
+  hence "(\<lambda>n. \<Prod>k<n. f k) \<longlonglongrightarrow> 0"
+    by (simp add: tendsto_eventually)
+  moreover have "(\<lambda>n. \<Prod>k<n. f k) \<longlonglongrightarrow> P"
+    using assms by (metis N calculation prod_defs(2) raw_has_prod_eq_0 zero_le)
+  ultimately show "P = 0"
+    using tendsto_unique by force
+qed (use assms in \<open>auto simp: has_prod_def\<close>)
+
+lemma has_prod_0D:
+  fixes f :: "nat \<Rightarrow> 'a :: {semidom, comm_semiring_1, t2_space}"
+  shows "f has_prod 0 \<Longrightarrow> 0 \<in> range f"
+  using has_prod_eq_0_iff[of f 0] by auto
+
+lemma has_prod_zeroI:
+  fixes f :: "nat \<Rightarrow> 'a :: {semidom, comm_semiring_1, t2_space}"
+  assumes "f has_prod P" "f n = 0"
+  shows   "P = 0"
+  using assms by (auto simp: has_prod_eq_0_iff)  
+
+lemma raw_has_prod_in_Reals:
+  assumes "raw_has_prod (complex_of_real \<circ> z) M p"
+  shows "p \<in> \<real>"
+  using assms by (auto simp: raw_has_prod_def real_lim_sequentially)
+
+lemma raw_has_prod_of_real_iff: "raw_has_prod (complex_of_real \<circ> z) M (of_real p) \<longleftrightarrow> raw_has_prod z M p"
+  by (auto simp: raw_has_prod_def tendsto_of_real_iff simp flip: of_real_prod)
+
+lemma convergent_prod_of_real_iff: "convergent_prod (complex_of_real \<circ> z) \<longleftrightarrow> convergent_prod z"
+  by (smt (verit, best) Reals_cases convergent_prod_def raw_has_prod_in_Reals raw_has_prod_of_real_iff)
+
 lemma convergent_prod_altdef:
   fixes f :: "nat \<Rightarrow> 'a :: {t2_space,comm_semiring_1}"
   shows "convergent_prod f \<longleftrightarrow> (\<exists>M L. (\<forall>n\<ge>M. f n \<noteq> 0) \<and> (\<lambda>n. \<Prod>i\<le>n. f (i+M)) \<longlonglongrightarrow> L \<and> L \<noteq> 0)"
@@ -1394,6 +1436,25 @@ lemma prodinf_split_head:
   shows "(\<Prod>n. f (Suc n)) = prodinf f / f 0"
   using prodinf_split_initial_segment[of 1] assms by simp
 
+lemma has_prod_ignore_initial_segment':
+  assumes "convergent_prod f"
+  shows   "f has_prod ((\<Prod>k<n. f k) * (\<Prod>k. f (k + n)))"
+proof (cases "\<exists>k<n. f k = 0")
+  case True
+  hence [simp]: "(\<Prod>k<n. f k) = 0"
+    by (meson finite_lessThan lessThan_iff prod_zero)
+  thus ?thesis using True assms
+    by (metis convergent_prod_has_prod_iff has_prod_zeroI mult_not_zero)
+next
+  case False
+  hence "(\<lambda>i. f (i + n)) has_prod (prodinf f / prod f {..<n})"
+    using assms by (intro has_prod_split_initial_segment) (auto simp: convergent_prod_has_prod_iff)
+  hence "prodinf f = prod f {..<n} * (\<Prod>k. f (k + n))"
+    using False by (simp add: has_prod_iff divide_simps mult_ac)
+  thus ?thesis
+    using assms by (simp add: convergent_prod_has_prod_iff)
+qed
+
 end
 
 context 
@@ -1745,51 +1806,27 @@ proposition summable_imp_convergent_prod_complex:
   assumes z: "summable (\<lambda>k. norm (z k))" and non0: "\<And>k. z k \<noteq> -1"
   shows "convergent_prod (\<lambda>k. 1 + z k)" 
 proof -
-  note if_cong [cong] power_Suc [simp del]
-  obtain N where N: "\<And>k. k\<ge>N \<Longrightarrow> norm (z k) < 1/2"
+  obtain N where "\<And>k. k\<ge>N \<Longrightarrow> norm (z k) < 1/2"
     using summable_LIMSEQ_zero [OF z]
     by (metis diff_zero dist_norm half_gt_zero_iff less_numeral_extra(1) lim_sequentially tendsto_norm_zero_iff)
-  have "norm (Ln (1 + z k)) \<le> 2 * norm (z k)" if "k \<ge> N" for k
-  proof (cases "z k = 0")
-    case False
-    let ?f = "\<lambda>i. cmod ((- 1) ^ i * z k ^ i / of_nat (Suc i))"
-    have normf: "norm (?f n) \<le> (1 / 2) ^ n" for n
-    proof -
-      have "norm (?f n) = cmod (z k) ^ n / cmod (1 + of_nat n)"
-        by (auto simp: norm_divide norm_mult norm_power)
-      also have "\<dots> \<le> cmod (z k) ^ n"
-        by (auto simp: field_split_simps mult_le_cancel_left1 in_Reals_norm)
-      also have "\<dots> \<le> (1 / 2) ^ n"
-        using N [OF that] by (simp add: power_mono)
-      finally show "norm (?f n) \<le> (1 / 2) ^ n" .
-    qed
-    have summablef: "summable ?f"
-      by (intro normf summable_comparison_test' [OF summable_geometric [of "1/2"]]) auto
-    have "(\<lambda>n. (- 1) ^ Suc n / of_nat n * z k ^ n) sums Ln (1 + z k)"
-      using Ln_series [of "z k"] N that by fastforce
-    then have *: "(\<lambda>i. z k * (((- 1) ^ i * z k ^ i) / (Suc i))) sums Ln (1 + z k)"
-      using sums_split_initial_segment [where n= 1]  by (force simp: power_Suc mult_ac)
-    then have "norm (Ln (1 + z k)) = norm (suminf (\<lambda>i. z k * (((- 1) ^ i * z k ^ i) / (Suc i))))"
-      using sums_unique by force
-    also have "\<dots> = norm (z k * suminf (\<lambda>i. ((- 1) ^ i * z k ^ i) / (Suc i)))"
-      apply (subst suminf_mult)
-      using * False
-      by (auto simp: sums_summable intro: summable_mult_D [of "z k"])
-    also have "\<dots> = norm (z k) * norm (suminf (\<lambda>i. ((- 1) ^ i * z k ^ i) / (Suc i)))"
-      by (simp add: norm_mult)
-    also have "\<dots> \<le> norm (z k) * suminf (\<lambda>i. norm (((- 1) ^ i * z k ^ i) / (Suc i)))"
-      by (intro mult_left_mono summable_norm summablef) auto
-    also have "\<dots> \<le> norm (z k) * suminf (\<lambda>i. (1/2) ^ i)"
-      by (intro mult_left_mono suminf_le) (use summable_geometric [of "1/2"] summablef normf in auto)
-    also have "\<dots> \<le> norm (z k) * 2"
-      using suminf_geometric [of "1/2::real"] by simp
-    finally show ?thesis
-      by (simp add: mult_ac)
-  qed simp
   then have "summable (\<lambda>k. Ln (1 + z k))"
-    by (metis summable_comparison_test summable_mult z)
+    by (metis norm_Ln_le summable_comparison_test summable_mult z)
   with non0 show ?thesis
     by (simp add: add_eq_0_iff convergent_prod_iff_summable_complex)
+qed
+
+corollary summable_imp_convergent_prod_real:
+  fixes z :: "nat \<Rightarrow> real"
+  assumes z: "summable (\<lambda>k. \<bar>z k\<bar>)" and non0: "\<And>k. z k \<noteq> -1"
+  shows "convergent_prod (\<lambda>k. 1 + z k)" 
+proof -
+  have "\<And>k. (complex_of_real \<circ> z) k \<noteq> - 1"
+    by (metis non0 o_apply of_real_1 of_real_eq_iff of_real_minus)
+  with z 
+  have "convergent_prod (\<lambda>k. 1 + (complex_of_real \<circ> z) k)"
+    by (auto intro: summable_imp_convergent_prod_complex)
+  then show ?thesis 
+    using convergent_prod_of_real_iff [of "\<lambda>k. 1 + z k"] by (simp add: o_def)
 qed
 
 lemma summable_Ln_complex:
