@@ -4413,6 +4413,9 @@ lemma size_Diff1_le: "size (M - {#x#}) \<le> size M"
 lemma size_psubset: "M \<subseteq># M' \<Longrightarrow> size M < size M' \<Longrightarrow> M \<subset># M'"
   using less_irrefl subset_mset_def by blast
 
+lifting_update multiset.lifting
+lifting_forget multiset.lifting
+
 hide_const (open) wcount
 
 end
