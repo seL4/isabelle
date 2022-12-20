@@ -63,6 +63,9 @@ object Document_Editor {
         case None => Nil
       }
 
+    def active_document_theories: List[Document.Node.Name] =
+      if (is_active) all_document_theories else Nil
+
     def select(
       names: Iterable[Document.Node.Name],
       set: Boolean = false,

@@ -121,11 +121,17 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
 
   /* document build process */
 
+  private def document_theories(): List[Document.Node.Name] =
+    PIDE.editor.document_theories()
+
   private def cancel(): Unit =
     current_state.change { st => st.process.cancel(); st }
 
   private def init_state(): Unit =
     current_state.change { _ => Document_Dockable.State(progress = log_progress()) }
+
+  private def process_finished(): Unit =
+    current_state.change(_.copy(process = Future.value(())))
 
   private def load_document(session: String): Boolean = {
     current_state.change_result { st =>
@@ -139,11 +145,19 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
                 Document_Build.session_background(
                   options, session, dirs = JEdit_Sessions.session_dirs)
               PIDE.editor.document_setup(Some(session_background))
-              GUI_Thread.later { show_state(); show_page(theories_page) }
+
+              process_finished()
+              GUI_Thread.later {
+                theories.update(domain = Some(document_theories().toSet), trim = true)
+                show_state()
+                show_page(theories_page)
+              }
             }
             catch {
               case exn: Throwable if !Exn.is_interrupt(exn) =>
                 current_state.change(_.finish(Protocol.error_message(Exn.print(exn))))
+
+                process_finished()
                 GUI_Thread.later { show_state(); show_page(output_page) }
             }
           }
@@ -178,6 +192,8 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
                 case Exn.Exn(exn) => Protocol.error_message(Exn.print(exn))
               }
             current_state.change(_.finish(msg))
+            process_finished()
+
             show_state()
 
             show_page(if (Exn.is_interrupt_exn(res)) theories_page else output_page)
@@ -272,7 +288,8 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
         }
       case changed: Session.Commands_Changed =>
         GUI_Thread.later {
-          theories.update(domain = Some(changed.nodes), trim = changed.assignment)
+          val domain = document_theories().filter(changed.nodes).toSet
+          if (domain.nonEmpty) theories.update(domain = Some(domain))
         }
     }
 
@@ -281,7 +298,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     init_state()
     PIDE.session.global_options += main
     PIDE.session.commands_changed += main
-    theories.update()
+    theories.update(domain = Some(document_theories().toSet), force = true)
     handle_resize()
     delay_load.invoke()
   }

@@ -97,6 +97,20 @@ object Document_Status {
   /* node status */
 
   object Node_Status {
+    val empty: Node_Status =
+      Node_Status(
+        is_suppressed = false,
+        unprocessed = 0,
+        running = 0,
+        warned = 0,
+        failed = 0,
+        finished = 0,
+        canceled = false,
+        terminated = false,
+        initialized = false,
+        finalized = false,
+        consolidated = false)
+
     def make(
       state: Document.State,
       version: Document.Version,
@@ -157,6 +171,8 @@ object Document_Status {
     finalized: Boolean,
     consolidated: Boolean
   ) {
+    def is_empty: Boolean = this == Node_Status.empty
+
     def ok: Boolean = failed == 0
     def total: Int = unprocessed + running + warned + failed + finished
 
@@ -230,11 +246,12 @@ object Document_Status {
     def apply(name: Document.Node.Name): Node_Status = rep(name)
     def get(name: Document.Node.Name): Option[Node_Status] = rep.get(name)
 
-    def present: List[(Document.Node.Name, Node_Status)] =
-      (for {
-        name <- nodes.topological_order.iterator
-        node_status <- get(name)
-      } yield (name, node_status)).toList
+    def present(
+      domain: Option[List[Document.Node.Name]] = None
+    ): List[(Document.Node.Name, Node_Status)] = {
+      for (name <- domain.getOrElse(nodes.topological_order))
+        yield name -> get(name).getOrElse(Node_Status.empty)
+    }
 
     def quasi_consolidated(name: Document.Node.Name): Boolean =
       rep.get(name) match {

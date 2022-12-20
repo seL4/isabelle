@@ -24,12 +24,19 @@ class Theories_Status(view: View, document: Boolean = false) {
   /* component state -- owned by GUI thread */
 
   private var nodes_status = Document_Status.Nodes_Status.empty
-  private var theory_required = Set.empty[Document.Node.Name]
+  private var nodes_required = Set.empty[Document.Node.Name]
   private var document_required = Set.empty[Document.Node.Name]
+  private var document_theories = List.empty[Document.Node.Name]
 
   private def init_state(): Unit = GUI_Thread.require {
-    theory_required = Document_Model.nodes_required()
-    document_required = PIDE.editor.document_required().toSet
+    if (document) {
+      nodes_required = PIDE.editor.document_required().toSet
+      document_theories = PIDE.editor.document_theories()
+    }
+    else {
+      nodes_required = Document_Model.nodes_required()
+      document_required = PIDE.editor.document_required().toSet
+    }
   }
 
 
@@ -151,13 +158,11 @@ class Theories_Status(view: View, document: Boolean = false) {
       index: Int
     ): Component = {
       component.node_name = name
-      component.required.selected =
-        (if (document) document_required else theory_required).contains(name)
+      component.required.selected = nodes_required.contains(name)
       component.label_border(name)
       component.label.text =
         name.theory_base_name +
-        (if (!document && PIDE.editor.document_node_required(name)) document_marker
-         else no_document_marker)
+        (if (document_required.contains(name)) document_marker else no_document_marker)
       component
     }
   }
@@ -216,7 +221,11 @@ class Theories_Status(view: View, document: Boolean = false) {
 
   /* update */
 
-  def update(domain: Option[Set[Document.Node.Name]] = None, trim: Boolean = false): Unit = {
+  def update(
+    domain: Option[Set[Document.Node.Name]] = None,
+    trim: Boolean = false,
+    force: Boolean = false
+  ): Unit = {
     GUI_Thread.require {}
 
     val snapshot = PIDE.session.snapshot()
@@ -226,12 +235,15 @@ class Theories_Status(view: View, document: Boolean = false) {
         PIDE.resources, snapshot.state, snapshot.version, domain = domain, trim = trim)
 
     nodes_status = nodes_status1
-    if (nodes_status_changed) {
+    if (nodes_status_changed || force) {
       gui.listData =
-        (for {
-          (name, node_status) <- nodes_status1.present.iterator
-          if !node_status.is_suppressed && node_status.total > 0
-        } yield name).toList
+        if (document) nodes_status1.present(domain = Some(document_theories)).map(_._1)
+        else {
+          (for {
+            (name, node_status) <- nodes_status1.present().iterator
+            if !node_status.is_empty && !node_status.is_suppressed && node_status.total > 0
+          } yield name).toList
+        }
     }
   }
 

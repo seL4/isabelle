@@ -390,8 +390,9 @@ object Headless {
 
                   val theory_progress =
                     (for {
-                      (name, node_status) <- st1.nodes_status.present.iterator
-                      if changed_st.changed_nodes(name) && !st.already_committed.isDefinedAt(name)
+                      (name, node_status) <- st1.nodes_status.present().iterator
+                      if !node_status.is_empty && changed_st.changed_nodes(name) &&
+                        !st.already_committed.isDefinedAt(name)
                       p1 = node_status.percentage
                       if p1 > 0 && !st.nodes_status.get(name).map(_.percentage).contains(p1)
                     } yield Progress.Theory(name.theory, percentage = Some(p1))).toList
