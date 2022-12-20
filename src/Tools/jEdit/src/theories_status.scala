@@ -26,12 +26,10 @@ class Theories_Status(view: View, document: Boolean = false) {
   private var nodes_status = Document_Status.Nodes_Status.empty
   private var nodes_required = Set.empty[Document.Node.Name]
   private var document_required = Set.empty[Document.Node.Name]
-  private var document_theories = List.empty[Document.Node.Name]
 
   private def init_state(): Unit = GUI_Thread.require {
     if (document) {
       nodes_required = PIDE.editor.document_required().toSet
-      document_theories = PIDE.editor.document_theories()
     }
     else {
       nodes_required = Document_Model.nodes_required()
@@ -237,7 +235,9 @@ class Theories_Status(view: View, document: Boolean = false) {
     nodes_status = nodes_status1
     if (nodes_status_changed || force) {
       gui.listData =
-        if (document) nodes_status1.present(domain = Some(document_theories)).map(_._1)
+        if (document) {
+          nodes_status1.present(domain = Some(PIDE.editor.document_theories())).map(_._1)
+        }
         else {
           (for {
             (name, node_status) <- nodes_status1.present().iterator

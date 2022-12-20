@@ -119,9 +119,6 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
 
   /* document build process */
 
-  private def document_theories(): List[Document.Node.Name] =
-    PIDE.editor.document_theories()
-
   private def init_state(): Unit =
     current_state.change { _ => Document_Dockable.State(progress = log_progress()) }
 
@@ -163,7 +160,8 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
 
         finish_process(Nil)
         GUI_Thread.later {
-          theories.update(domain = Some(document_theories().toSet), trim = true)
+          val domain = PIDE.editor.document_theories().toSet
+          theories.update(domain = Some(domain), trim = true, force = true)
           show_state()
           show_page(theories_page)
         }
@@ -290,7 +288,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
         }
       case changed: Session.Commands_Changed =>
         GUI_Thread.later {
-          val domain = document_theories().filter(changed.nodes).toSet
+          val domain = PIDE.editor.document_theories().filter(changed.nodes).toSet
           if (domain.nonEmpty) theories.update(domain = Some(domain))
         }
     }
@@ -300,7 +298,6 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     init_state()
     PIDE.session.global_options += main
     PIDE.session.commands_changed += main
-    theories.update(domain = Some(document_theories().toSet), force = true)
     handle_resize()
     delay_load.invoke()
   }
