@@ -31,7 +31,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
   }
 
   private val purge = new GUI.Button("Purge") {
-    tooltip = "Restrict document model to theories required for open editor buffers"
+    tooltip = "Remove theories that are no longer required"
     override def clicked(): Unit = PIDE.editor.purge()
   }
 

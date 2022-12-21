@@ -220,6 +220,12 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
 
   document_session.reactions += { case SelectionChanged(_) => delay_load.invoke() }
 
+  private val load_button =
+    new GUI.Button("Load") {
+      tooltip = "Load document theories"
+      override def clicked(): Unit = PIDE.editor.document_select_all(set = true)
+    }
+
   private val build_button =
     new GUI.Button("<html><b>Build</b></html>") {
       tooltip = "Build document"
@@ -239,8 +245,8 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     }
 
   private val controls =
-    Wrap_Panel(List(document_session, process_indicator.component, build_button,
-      view_button, cancel_button))
+    Wrap_Panel(List(document_session, process_indicator.component, load_button,
+      build_button, view_button, cancel_button))
 
   add(controls.peer, BorderLayout.NORTH)
 
@@ -249,20 +255,19 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
 
   /* message pane with pages */
 
-  private val select_all_button =
-    new GUI.Button("All") {
-      tooltip = "Select all document theories"
-      override def clicked(): Unit = PIDE.editor.document_select_all(set = true)
-    }
-
-  private val select_none_button =
-    new GUI.Button("None") {
-      tooltip = "Deselect all document theories"
+  private val reset_button =
+    new GUI.Button("Reset") {
+      tooltip = "Deselect document theories"
       override def clicked(): Unit = PIDE.editor.document_select_all(set = false)
     }
 
+  private val purge_button = new GUI.Button("Purge") {
+    tooltip = "Remove theories that are no longer required"
+    override def clicked(): Unit = PIDE.editor.purge()
+  }
+
   private val theories_controls =
-    Wrap_Panel(List(select_all_button, select_none_button))
+    Wrap_Panel(List(reset_button, purge_button))
 
   private val theories = new Theories_Status(view, document = true)
 
