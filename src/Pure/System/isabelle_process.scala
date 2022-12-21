@@ -13,10 +13,10 @@ import java.io.{File => JFile}
 
 object Isabelle_Process {
   def start(
-    session: Session,
-    options: Options,
-    session_background: Sessions.Background,
     store: Sessions.Store,
+    options: Options,
+    session: Session,
+    session_background: Sessions.Background,
     logic: String = "",
     raw_ml_system: Boolean = false,
     use_prelude: List[String] = Nil,
@@ -28,10 +28,11 @@ object Isabelle_Process {
     val channel = System_Channel()
     val process =
       try {
-        val channel_options =
-          options.string.update("system_channel_address", channel.address).
+        val ml_options =
+          options.
+            string.update("system_channel_address", channel.address).
             string.update("system_channel_password", channel.password)
-        ML_Process(channel_options, session_background, store,
+        ML_Process(store, ml_options, session_background,
           logic = logic, raw_ml_system = raw_ml_system,
           use_prelude = use_prelude, eval_main = eval_main,
           modes = modes, cwd = cwd, env = env)

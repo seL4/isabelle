@@ -12,9 +12,10 @@ import java.io.{File => JFile}
 
 
 object ML_Process {
-  def apply(options: Options,
-    session_background: Sessions.Background,
+  def apply(
     store: Sessions.Store,
+    options: Options,
+    session_background: Sessions.Background,
     logic: String = "",
     raw_ml_system: Boolean = false,
     use_prelude: List[String] = Nil,
@@ -168,10 +169,10 @@ Usage: isabelle process [OPTIONS]
       val more_args = getopts(args)
       if (args.isEmpty || more_args.nonEmpty) getopts.usage()
 
-      val session_background = Sessions.background(options, logic, dirs = dirs).check_errors
       val store = Sessions.store(options)
+      val session_background = Sessions.background(options, logic, dirs = dirs).check_errors
       val result =
-        ML_Process(options, session_background, store,
+        ML_Process(store, options, session_background,
           logic = logic, args = eval_args, modes = modes).result(
             progress_stdout = Output.writeln(_, stdout = true),
             progress_stderr = Output.writeln(_))

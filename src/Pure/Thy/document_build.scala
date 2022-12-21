@@ -135,13 +135,15 @@ object Document_Build {
   def context(
     session_context: Export.Session_Context,
     document_session: Option[Sessions.Base] = None,
+    document_selection: Document.Node.Name => Boolean = _ => true,
     progress: Progress = new Progress
-  ): Context = new Context(session_context, document_session, progress)
+  ): Context = new Context(session_context, document_session, document_selection, progress)
 
   final class Context private[Document_Build](
     val session_context: Export.Session_Context,
     document_session: Option[Sessions.Base],
-    val progress: Progress = new Progress
+    document_selection: Document.Node.Name => Boolean,
+    val progress: Progress
   ) {
     context =>
 
@@ -187,8 +189,12 @@ object Document_Build {
       for (name <- all_document_theories)
       yield {
         val path = Path.basic(tex_name(name))
-        val entry = session_context(name.theory, Export.DOCUMENT_LATEX, permissive = true)
-        val content = YXML.parse_body(entry.text)
+        val content =
+          if (document_selection(name)) {
+            val entry = session_context(name.theory, Export.DOCUMENT_LATEX, permissive = true)
+            YXML.parse_body(entry.text)
+          }
+          else Nil
         File.content(path, content)
       }
 
@@ -526,8 +532,8 @@ Usage: isabelle document [OPTIONS] SESSION
             progress.echo_warning("No output directory")
           }
 
-          val background = session_background(options, session, dirs = dirs)
-          using(Export.open_session_context(build_results.store, background)) {
+          val session_background = Document_Build.session_background(options, session, dirs = dirs)
+          using(Export.open_session_context(build_results.store, session_background)) {
             session_context =>
               build_documents(
                 context(session_context, progress = progress),

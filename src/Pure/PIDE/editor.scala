@@ -27,7 +27,10 @@ abstract class Editor[Context] {
     val changed =
       document_editor.change_result { st =>
         val st1 = f(st)
-        (st.required != st1.required, st1)
+        val changed =
+          st.active_document_theories != st1.active_document_theories ||
+          st.required != st1.required
+        (changed, st1)
       }
     if (changed) document_state_changed()
   }
@@ -37,6 +40,7 @@ abstract class Editor[Context] {
   def document_node_required(name: Document.Node.Name): Boolean = document_state().is_required(name)
 
   def document_theories(): List[Document.Node.Name] = document_state().active_document_theories
+  def document_selection(): Set[Document.Node.Name] = document_state().selection
 
   def document_setup(background: Option[Sessions.Background]): Unit =
     document_state_change(_.copy(session_background = background))

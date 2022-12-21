@@ -112,6 +112,7 @@ object Sessions {
     infos: List[Info] = Nil
   ) {
     def session_name: String = base.session_name
+    def info: Info = sessions_structure(session_name)
 
     def check_errors: Background =
       if (errors.isEmpty) this
