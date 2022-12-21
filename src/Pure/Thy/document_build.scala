@@ -141,7 +141,7 @@ object Document_Build {
   final class Context private[Document_Build](
     val session_context: Export.Session_Context,
     document_session: Option[Sessions.Base],
-    val progress: Progress = new Progress
+    val progress: Progress
   ) {
     context =>
 
@@ -526,8 +526,8 @@ Usage: isabelle document [OPTIONS] SESSION
             progress.echo_warning("No output directory")
           }
 
-          val background = session_background(options, session, dirs = dirs)
-          using(Export.open_session_context(build_results.store, background)) {
+          val session_background = Document_Build.session_background(options, session, dirs = dirs)
+          using(Export.open_session_context(build_results.store, session_background)) {
             session_context =>
               build_documents(
                 context(session_context, progress = progress),
