@@ -14,7 +14,7 @@ begin
 text \<open>Lemmas related to shifting/scaling\<close>
 lemma range_add [simp]:
   fixes a::"'a::group_add" shows "range ((+) a) = UNIV"
-  by (metis add_minus_cancel surjI)
+  by simp
 
 lemma range_diff [simp]:
   fixes a::"'a::group_add" shows "range ((-) a) = UNIV"
@@ -1059,6 +1059,21 @@ lemma tendsto_one_prod':
   assumes "\<And>i. i \<in> I \<Longrightarrow> ((\<lambda>x. f x i) \<longlongrightarrow> 1) F"
   shows "((\<lambda>i. prod (f i) I) \<longlongrightarrow> 1) F"
   using tendsto_prod' [of I "\<lambda>x y. f y x" "\<lambda>x. 1"] assms by simp
+
+lemma LIMSEQ_prod_0: 
+  fixes f :: "nat \<Rightarrow> 'a::{semidom,topological_space}"
+  assumes "f i = 0"
+  shows "(\<lambda>n. prod f {..n}) \<longlonglongrightarrow> 0"
+proof (subst tendsto_cong)
+  show "\<forall>\<^sub>F n in sequentially. prod f {..n} = 0"
+    using assms eventually_at_top_linorder by auto
+qed auto
+
+lemma LIMSEQ_prod_nonneg: 
+  fixes f :: "nat \<Rightarrow> 'a::{linordered_semidom,linorder_topology}"
+  assumes 0: "\<And>n. 0 \<le> f n" and a: "(\<lambda>n. prod f {..n}) \<longlonglongrightarrow> a"
+  shows "a \<ge> 0"
+  by (simp add: "0" prod_nonneg LIMSEQ_le_const [OF a])
 
 lemma continuous_prod' [continuous_intros]:
   fixes f :: "'a \<Rightarrow> 'b::t2_space \<Rightarrow> 'c::topological_comm_monoid_mult"

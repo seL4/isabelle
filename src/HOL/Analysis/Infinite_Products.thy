@@ -710,6 +710,24 @@ lemma prodinf_eq_lim:
   using assms convergent_prod_offset_0 [OF assms]
   by (simp add: prod_defs lim_def) (metis (no_types) assms(1) convergent_prod_to_zero_iff)
 
+lemma prodinf_eq_lim':
+  fixes f :: "nat \<Rightarrow> 'a :: {idom,topological_semigroup_mult,t2_space}"
+  assumes "convergent_prod f" "\<And>i. f i \<noteq> 0"
+  shows "prodinf f = lim (\<lambda>n. \<Prod>i<n. f i)"
+  by (metis assms prodinf_eq_lim LIMSEQ_lessThan_iff_atMost convergent_prod_iff_nz_lim limI)
+
+lemma prodinf_eq_prod_lim:
+  fixes a:: "'a :: {topological_semigroup_mult,t2_space,idom}"
+  assumes "(\<lambda>n. \<Prod>k\<le>n. f k) \<longlonglongrightarrow> a" "a \<noteq> 0"
+  shows"(\<Prod>k. f k) = a"
+  by (metis LIMSEQ_prod_0 LIMSEQ_unique assms convergent_prod_iff_nz_lim limI prodinf_eq_lim)
+
+lemma prodinf_eq_prod_lim':
+  fixes a:: "'a :: {topological_semigroup_mult,t2_space,idom}"
+  assumes "(\<lambda>n. \<Prod>k<n. f k) \<longlonglongrightarrow> a" "a \<noteq> 0"
+  shows"(\<Prod>k. f k) = a"
+  using LIMSEQ_lessThan_iff_atMost assms prodinf_eq_prod_lim by blast
+
 lemma has_prod_one[simp, intro]: "(\<lambda>n. 1) has_prod 1"
   unfolding prod_defs by auto
 
@@ -875,6 +893,34 @@ lemma has_prod_single:
   shows "(\<lambda>r. if r = i then f r else 1) has_prod f i"
   using has_prod_If_finite[of "\<lambda>r. r = i"] by simp
 
+text \<open>The ge1 assumption can probably be weakened, at the expense of extra work\<close>
+lemma uniform_limit_prodinf:
+  fixes f:: "nat \<Rightarrow> real \<Rightarrow> real"
+  assumes "uniformly_convergent_on X (\<lambda>n x. \<Prod>k<n. f k x)" 
+    and ge1: "\<And>x k . x \<in> X \<Longrightarrow> f k x \<ge> 1"
+  shows "uniform_limit X (\<lambda>n x. \<Prod>k<n. f k x) (\<lambda>x. \<Prod>k. f k x) sequentially"
+proof -
+  have ul: "uniform_limit X (\<lambda>n x. \<Prod>k<n. f k x) (\<lambda>x. lim (\<lambda>n. \<Prod>k<n. f k x)) sequentially"
+    using assms uniformly_convergent_uniform_limit_iff by blast
+  moreover have "(\<Prod>k. f k x) = lim (\<lambda>n. \<Prod>k<n. f k x)" if "x \<in> X" for x
+  proof (intro prodinf_eq_lim')
+    have tends: "(\<lambda>n. \<Prod>k<n. f k x) \<longlonglongrightarrow> lim (\<lambda>n. \<Prod>k<n. f k x)"
+      using tendsto_uniform_limitI [OF ul] that by metis
+    moreover have "(\<Prod>k<n. f k x) \<ge> 1" for n
+      using ge1 by (simp add: prod_ge_1 that)
+    ultimately have "lim (\<lambda>n. \<Prod>k<n. f k x) \<ge> 1"
+      by (meson LIMSEQ_le_const)
+    then have "raw_has_prod (\<lambda>k. f k x) 0 (lim (\<lambda>n. \<Prod>k<n. f k x))"
+      using LIMSEQ_lessThan_iff_atMost tends by (auto simp: raw_has_prod_def)
+    then show "convergent_prod (\<lambda>k. f k x)"
+      unfolding convergent_prod_def by blast
+    show "\<And>k. f k x \<noteq> 0"
+      by (smt (verit) ge1 that)
+  qed
+  ultimately show ?thesis
+    by (metis (mono_tags, lifting) uniform_limit_cong')
+qed
+
 context
   fixes f :: "nat \<Rightarrow> 'a :: real_normed_field"
 begin
@@ -944,28 +990,14 @@ end
 
 subsection\<^marker>\<open>tag unimportant\<close> \<open>Infinite products on ordered topological monoids\<close>
 
-lemma LIMSEQ_prod_0: 
-  fixes f :: "nat \<Rightarrow> 'a::{semidom,topological_space}"
-  assumes "f i = 0"
-  shows "(\<lambda>n. prod f {..n}) \<longlonglongrightarrow> 0"
-proof (subst tendsto_cong)
-  show "\<forall>\<^sub>F n in sequentially. prod f {..n} = 0"
-  proof
-    show "prod f {..n} = 0" if "n \<ge> i" for n
-      using that assms by auto
-  qed
-qed auto
-
-lemma LIMSEQ_prod_nonneg: 
-  fixes f :: "nat \<Rightarrow> 'a::{linordered_semidom,linorder_topology}"
-  assumes 0: "\<And>n. 0 \<le> f n" and a: "(\<lambda>n. prod f {..n}) \<longlonglongrightarrow> a"
-  shows "a \<ge> 0"
-  by (simp add: "0" prod_nonneg LIMSEQ_le_const [OF a])
-
-
 context
   fixes f :: "nat \<Rightarrow> 'a::{linordered_semidom,linorder_topology}"
 begin
+
+lemma has_prod_nonzero:
+  assumes "f has_prod a" "a \<noteq> 0"
+  shows "f k \<noteq> 0"
+  using assms by (auto simp: has_prod_def raw_has_prod_def LIMSEQ_prod_0 LIMSEQ_unique)
 
 lemma has_prod_le:
   assumes f: "f has_prod a" and g: "g has_prod b" and le: "\<And>n. 0 \<le> f n \<and> f n \<le> g n"
@@ -1024,9 +1056,9 @@ lemma prodinf_nonneg:
 
 lemma prodinf_le_const:
   fixes f :: "nat \<Rightarrow> real"
-  assumes "convergent_prod f" "\<And>n. prod f {..<n} \<le> x" 
+  assumes "convergent_prod f" "\<And>n. n \<ge> N \<Longrightarrow> prod f {..<n} \<le> x" 
   shows "prodinf f \<le> x"
-  by (metis lessThan_Suc_atMost assms convergent_prod_LIMSEQ LIMSEQ_le_const2)
+  by (metis lessThan_Suc_atMost assms convergent_prod_LIMSEQ LIMSEQ_le_const2 atMost_iff lessThan_iff less_le)
 
 lemma prodinf_eq_one_iff [simp]: 
   fixes f :: "nat \<Rightarrow> real"

@@ -2049,6 +2049,48 @@ proof -
     by simp
 qed
 
+text\<open>Prop 17.6 of Bak and Newman, Complex Analysis, p. 243. 
+     Only this version is for the reals. Can the two proofs be consolidated?\<close>
+lemma uniformly_convergent_on_prod_real:
+  fixes u :: "nat \<Rightarrow> real \<Rightarrow> real"
+  assumes contu: "\<And>k. continuous_on K (u k)" 
+     and uconv: "uniformly_convergent_on K (\<lambda>n x. \<Sum>k<n. \<bar>u k x\<bar>)"
+     and K: "compact K"
+   shows "uniformly_convergent_on K (\<lambda>n x. \<Prod>k<n. 1 + u k x)"
+proof -
+  define f where "f \<equiv> \<lambda>k. complex_of_real \<circ> u k \<circ> Re"
+  define L where "L \<equiv> complex_of_real ` K"
+  have "compact L"
+    by (simp add: \<open>compact K\<close> L_def compact_continuous_image)
+  have "Re ` complex_of_real ` X = X" for X
+    by (auto simp: image_iff)
+  with contu have contf: "\<And>k. continuous_on L (f k)"
+    unfolding f_def L_def by (intro continuous_intros) auto
+  obtain S where S: "\<And>\<epsilon>. \<epsilon>>0 \<Longrightarrow> \<forall>\<^sub>F n in sequentially. \<forall>x\<in>K. dist (\<Sum>k<n. \<bar>u k x\<bar>) (S x) < \<epsilon>"
+    using uconv unfolding uniformly_convergent_on_def uniform_limit_iff by presburger 
+  have "\<forall>\<^sub>F n in sequentially. \<forall>z\<in>L. dist (\<Sum>k<n. cmod (f k z)) ((of_real \<circ> S \<circ> Re) z) < \<epsilon>" 
+    if "\<epsilon>>0" for \<epsilon>
+    using S [OF that] by eventually_elim (simp add: L_def f_def)
+  then have uconvf: "uniformly_convergent_on L (\<lambda>n z. \<Sum>k<n. norm (f k z))"
+    unfolding uniformly_convergent_on_def uniform_limit_iff by blast
+  obtain P where P: "\<And>\<epsilon>. \<epsilon>>0 \<Longrightarrow> \<forall>\<^sub>F n in sequentially. \<forall>z\<in>L. dist (\<Prod>k<n. 1 + f k z) (P z) < \<epsilon>"
+    using uniformly_convergent_on_prod [OF contf \<open>compact L\<close> uconvf]
+    unfolding uniformly_convergent_on_def uniform_limit_iff by blast
+  have \<section>: "\<bar>(\<Prod>k<n. 1 + u k x) - Re (P x)\<bar> \<le> cmod ((\<Prod>k<n. 1 + of_real (u k x)) - P x)" for n x
+  proof -
+    have "(\<Prod>k\<in>N. of_real (1 + u k x)) = (\<Prod>k\<in>N. 1 + of_real (u k x))" for N
+      by force
+    then show ?thesis
+      by (metis Re_complex_of_real abs_Re_le_cmod minus_complex.sel(1) of_real_prod)
+  qed
+  have "\<forall>\<^sub>F n in sequentially. \<forall>x\<in>K. dist (\<Prod>k<n. 1 + u k x) ((Re \<circ> P \<circ> of_real) x) < \<epsilon>" 
+    if "\<epsilon>>0" for \<epsilon>
+    using P [OF that] by eventually_elim (simp add: L_def f_def dist_norm le_less_trans [OF \<section>])
+  then show ?thesis
+    unfolding uniformly_convergent_on_def uniform_limit_iff by blast 
+qed
+
+
 subsection\<open>The Argument of a Complex Number\<close>
 
 text\<open>Unlike in HOL Light, it's defined for the same interval as the complex logarithm: \<open>(-\<pi>,\<pi>]\<close>.\<close>

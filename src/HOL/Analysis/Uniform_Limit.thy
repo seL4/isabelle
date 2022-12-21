@@ -361,6 +361,19 @@ proof
   qed
 qed (metis uniformly_convergent_on_sum_E)
 
+lemma uniform_limit_suminf:
+  fixes f:: "nat \<Rightarrow> 'a::{metric_space, comm_monoid_add} \<Rightarrow> 'a"
+  assumes "uniformly_convergent_on X (\<lambda>n x. \<Sum>k<n. f k x)" 
+  shows "uniform_limit X (\<lambda>n x. \<Sum>k<n. f k x) (\<lambda>x. \<Sum>k. f k x) sequentially"
+proof -
+  obtain S where S: "uniform_limit X (\<lambda>n x. \<Sum>k<n. f k x) S sequentially"
+    using assms uniformly_convergent_on_def by blast
+  then have "(\<Sum>k. f k x) = S x" if "x \<in> X" for x
+    using that sums_iff sums_def by (blast intro: tendsto_uniform_limitI [OF S])
+  with S show ?thesis
+    by (simp cong: uniform_limit_cong')
+qed
+
 text \<open>TODO: remove explicit formulations
   @{thm uniformly_convergent_eq_cauchy uniformly_cauchy_imp_uniformly_convergent}?!\<close>
 
