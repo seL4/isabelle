@@ -1,7 +1,7 @@
 /*  Title:      Pure/PIDE/document_editor.scala
     Author:     Makarius
 
-Central resources for interactive document preparation.
+Central resources and configuration for interactive document preparation.
 */
 
 package isabelle
@@ -42,7 +42,7 @@ object Document_Editor {
   }
 
 
-  /* global state */
+  /* configuration state */
 
   sealed case class State(
     session_background: Option[Sessions.Background] = None,
