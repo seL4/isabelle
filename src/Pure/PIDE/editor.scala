@@ -27,7 +27,10 @@ abstract class Editor[Context] {
     val changed =
       document_editor.change_result { st =>
         val st1 = f(st)
-        (st.required != st1.required, st1)
+        val changed =
+          st.active_document_theories != st1.active_document_theories ||
+          st.required != st1.required
+        (changed, st1)
       }
     if (changed) document_state_changed()
   }

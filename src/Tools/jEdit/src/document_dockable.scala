@@ -160,8 +160,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
 
         finish_process(Nil)
         GUI_Thread.later {
-          val domain = PIDE.editor.document_theories().toSet
-          theories.update(domain = Some(domain), trim = true, force = true)
+          refresh_theories()
           show_state()
           show_page(theories_page)
         }
@@ -267,6 +266,12 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
 
   private val theories = new Theories_Status(view, document = true)
 
+  private def refresh_theories(): Unit = {
+    val domain = PIDE.editor.document_theories().toSet
+    theories.update(domain = Some(domain), trim = true, force = true)
+    theories.refresh()
+  }
+
   private val theories_page =
     new TabbedPane.Page("Theories", new BorderPanel {
       layout(theories_controls) = BorderPanel.Position.North
@@ -300,7 +305,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
         GUI_Thread.later {
           document_session.load()
           handle_resize()
-          theories.refresh()
+          refresh_theories()
         }
       case changed: Session.Commands_Changed =>
         GUI_Thread.later {
