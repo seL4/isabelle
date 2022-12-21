@@ -75,11 +75,13 @@ with demo documents in the regular Isabelle "doc" space:
       irrefl_onD
       irrefl_onI
       irrefl_on_converse[simp]
+      irrefl_on_if_asym_on[simp]
       irrefl_on_subset
       irreflpD
       irreflp_onD
       irreflp_onI
       irreflp_on_converse[simp]
+      irreflp_on_if_asymp_on[simp]
       irreflp_on_irrefl_on_eq[pred_set_conv]
       irreflp_on_subset
       linorder.totalp_on_ge[simp]
