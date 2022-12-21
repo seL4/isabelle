@@ -151,7 +151,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
 
   private def load_document(session: String): Boolean = {
     val options = PIDE.options.value
-    run_process { progress =>
+    run_process { _ =>
       try {
         val session_background =
           Document_Build.session_background(
