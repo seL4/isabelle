@@ -18,6 +18,9 @@ with demo documents in the regular Isabelle "doc" space:
   - Dagstuhl LIPIcs style as session "Demo_LIPIcs" / doc "demo_lipics"
   - Springer LaTeX LNCS style as session "Demo_LLNCS" / doc "demo_llncs"
 
+* Support for interactive document preparation in PIDE, notably via the
+Isabelle/jEdit Document panel.
+
 
 *** HOL ***
 
