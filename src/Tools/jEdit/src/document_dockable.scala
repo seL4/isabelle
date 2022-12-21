@@ -176,32 +176,57 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     }
   }
 
+  private def document_build(
+    session_background: Sessions.Background,
+    progress: Document_Editor.Log_Progress
+  ): Unit = {
+    val store = JEdit_Sessions.sessions_store(PIDE.options.value)
+    val document_selection = PIDE.editor.document_selection()
+
+    val snapshot = PIDE.session.await_stable_snapshot()
+    val session_context =
+      Export.open_session_context(store, session_background,
+        document_snapshot = Some(snapshot))
+    try {
+      val context =
+        Document_Build.context(session_context,
+          document_session = Some(session_background.base),
+          document_selection = document_selection,
+          progress = progress)
+      val variant = session_background.info.documents.head
+
+      Isabelle_System.make_directory(Document_Editor.document_output_dir())
+      val doc = context.build_document(variant, verbose = true)
+
+      // log
+      File.write(Document_Editor.document_output().log, doc.log)
+      GUI_Thread.later { progress.finish(doc.log) }
+
+      // pdf
+      Bytes.write(Document_Editor.document_output().pdf, doc.pdf)
+      Document_Editor.view_document()
+    }
+    finally { session_context.close() }
+  }
+
   private def build_document(): Unit = {
-    run_process { progress =>
-      show_page(theories_page)
-      Time.seconds(2.0).sleep()
+    PIDE.editor.document_session() match {
+      case Some(session_background) if session_background.info.documents.nonEmpty =>
+        run_process { progress =>
+          show_page(log_page)
+          val res = Exn.capture { document_build(session_background, progress) }
+          val msg =
+            res match {
+              case Exn.Res(_) => Protocol.writeln_message("OK")
+              case Exn.Exn(exn) => Protocol.error_message(Exn.print(exn))
+            }
 
-      show_page(log_page)
-      val res =
-        Exn.capture {
-          progress.echo("Start " + Date.now())
-          for (i <- 1 to 200) {
-            progress.echo("message " + i)
-            Time.seconds(0.1).sleep()
-          }
-          progress.echo("Stop " + Date.now())
+          finish_process(List(msg))
+
+          show_state()
+          show_page(if (Exn.is_interrupt_exn(res)) theories_page else output_page)
         }
-      val msg =
-        res match {
-          case Exn.Res(_) => Protocol.writeln_message("OK")
-          case Exn.Exn(exn) => Protocol.error_message(Exn.print(exn))
-        }
-      finish_process(List(msg))
-
-      show_state()
-
-      show_page(if (Exn.is_interrupt_exn(res)) theories_page else output_page)
-      GUI_Thread.later { progress.load() }
+      case _ =>
     }
   }
 

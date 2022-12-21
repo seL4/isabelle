@@ -40,6 +40,7 @@ abstract class Editor[Context] {
   def document_node_required(name: Document.Node.Name): Boolean = document_state().is_required(name)
 
   def document_theories(): List[Document.Node.Name] = document_state().active_document_theories
+  def document_selection(): Set[Document.Node.Name] = document_state().selection
 
   def document_setup(background: Option[Sessions.Background]): Unit =
     document_state_change(_.copy(session_background = background))
