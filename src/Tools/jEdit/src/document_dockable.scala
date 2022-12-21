@@ -214,17 +214,21 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
       case Some(session_background) if session_background.info.documents.nonEmpty =>
         run_process { progress =>
           show_page(log_page)
-          val res = Exn.capture { document_build(session_background, progress) }
-          val msg =
-            res match {
-              case Exn.Res(_) => Protocol.writeln_message("OK")
-              case Exn.Exn(exn) => Protocol.error_message(Exn.print(exn))
+          val result = Exn.capture { document_build(session_background, progress) }
+          val msgs =
+            result match {
+              case Exn.Res(_) =>
+                List(Protocol.writeln_message("OK"))
+              case Exn.Exn(exn: Document_Build.Build_Error) =>
+                exn.log_errors.map(s => Protocol.error_message(YXML.parse_body(s)))
+              case Exn.Exn(exn) =>
+                List(Protocol.error_message(YXML.parse_body(Exn.print(exn))))
             }
 
-          finish_process(List(msg))
+          finish_process(Pretty.separate(msgs))
 
           show_state()
-          show_page(if (Exn.is_interrupt_exn(res)) theories_page else output_page)
+          show_page(if (Exn.is_interrupt_exn(result)) theories_page else output_page)
         }
       case _ =>
     }

@@ -319,12 +319,12 @@ object Document_Build {
       val result_pdf = doc_dir + root_pdf
 
       if (errors.nonEmpty) {
-        val errors1 = errors ::: List("Failed to build document " + quote(doc.name))
-        throw new Build_Error(log, Exn.cat_message(errors1: _*))
+        val message = "Failed to build document " + quote(doc.name)
+        throw new Build_Error(log, errors ::: List(message))
       }
       else if (!result_pdf.is_file) {
         val message = "Bad document result: expected to find " + root_pdf
-        throw new Build_Error(log, message)
+        throw new Build_Error(log, List(message))
       }
       else {
         val log_xz = Bytes(cat_lines(log)).compress()
@@ -396,8 +396,15 @@ object Document_Build {
           watchdog = Time.seconds(0.5))
 
       val log = result.out_lines ::: result.err_lines
-      val errors = (if (result.ok) Nil else List(result.err)) ::: directory.log_errors()
-      directory.make_document(log, errors)
+      val err = result.err
+
+      val errors1 = directory.log_errors()
+      val errors2 =
+        if (result.ok) errors1
+        else if (err.nonEmpty) err :: errors1
+        else if (errors1.nonEmpty) errors1
+        else List("Error")
+      directory.make_document(log, errors2)
     }
   }
 
@@ -429,8 +436,8 @@ object Document_Build {
 
   def tex_name(name: Document.Node.Name): String = name.theory_base_name + ".tex"
 
-  class Build_Error(val log_lines: List[String], val message: String)
-    extends Exn.User_Error(message)
+  class Build_Error(val log_lines: List[String], val log_errors: List[String])
+    extends Exn.User_Error(Exn.cat_message(log_errors: _*))
 
   def build_documents(
     context: Context,

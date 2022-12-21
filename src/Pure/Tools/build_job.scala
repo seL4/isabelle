@@ -500,7 +500,7 @@ class Build_Job(progress: Progress,
           else (Nil, Nil)
         }
         catch {
-          case exn: Document_Build.Build_Error => (exn.log_lines, List(exn.message))
+          case exn: Document_Build.Build_Error => (exn.log_lines, exn.log_errors)
           case Exn.Interrupt.ERROR(msg) => (Nil, List(msg))
         }
 
