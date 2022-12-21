@@ -185,7 +185,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
 
     val snapshot = PIDE.session.await_stable_snapshot()
     val session_context =
-      Export.open_session_context(store, session_background,
+      Export.open_session_context(store, PIDE.resources.session_background,
         document_snapshot = Some(snapshot))
     try {
       val context =
