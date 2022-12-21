@@ -307,7 +307,7 @@ class Language_Server(
       dynamic_output.init()
 
       try {
-        Isabelle_Process.start(session, options, session_background, store,
+        Isabelle_Process.start(store, options, session, session_background,
           modes = modes, logic = session_background.session_name).await_startup()
         reply_ok(
           "Welcome to Isabelle/" + session_background.session_name +
