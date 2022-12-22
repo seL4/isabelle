@@ -118,7 +118,7 @@ object Document_Build {
     progress: Progress = new Progress,
     verbose: Boolean = false
   ): Sessions.Background = {
-      Sessions.load_structure(options + "document=pdf", dirs = dirs).
+      Sessions.load_structure(options + "document", dirs = dirs).
         selection_deps(Sessions.Selection.session(session), progress = progress, verbose = verbose).
         background(session)
   }
