@@ -181,24 +181,23 @@ object Document {
 
     /* perspective */
 
-    type Perspective_Text = Perspective[Text.Edit, Text.Perspective]
-    type Perspective_Command = Perspective[Command.Edit, Command.Perspective]
+    object Perspective_Text {
+      type T = Perspective[Text.Edit, Text.Perspective]
+      val empty: T = Perspective(false, Text.Perspective.empty, Overlays.empty)
+      def is_empty(perspective: T): Boolean =
+        !perspective.required &&
+        perspective.visible.is_empty &&
+        perspective.overlays.is_empty
+    }
 
-    val no_perspective_text: Perspective_Text =
-      Perspective(false, Text.Perspective.empty, Overlays.empty)
-
-    val no_perspective_command: Perspective_Command =
-      Perspective(false, Command.Perspective.empty, Overlays.empty)
-
-    def is_no_perspective_text(perspective: Perspective_Text): Boolean =
-      !perspective.required &&
-      perspective.visible.is_empty &&
-      perspective.overlays.is_empty
-
-    def is_no_perspective_command(perspective: Perspective_Command): Boolean =
-      !perspective.required &&
-      perspective.visible.is_empty &&
-      perspective.overlays.is_empty
+    object Perspective_Command {
+      type T = Perspective[Command.Edit, Command.Perspective]
+      val empty: T = Perspective(false, Command.Perspective.empty, Overlays.empty)
+      def is_empty(perspective: T): Boolean =
+        !perspective.required &&
+        perspective.visible.is_empty &&
+        perspective.overlays.is_empty
+    }
 
 
     /* commands */
@@ -272,14 +271,14 @@ object Document {
     val header: Node.Header = Node.no_header,
     val syntax: Option[Outer_Syntax] = None,
     val text_perspective: Text.Perspective = Text.Perspective.empty,
-    val perspective: Node.Perspective_Command = Node.no_perspective_command,
+    val perspective: Node.Perspective_Command.T = Node.Perspective_Command.empty,
     _commands: Node.Commands = Node.Commands.empty
   ) {
     def is_empty: Boolean =
       get_blob.isEmpty &&
       header == Node.no_header &&
       text_perspective.is_empty &&
-      Node.is_no_perspective_command(perspective) &&
+      Node.Perspective_Command.is_empty(perspective) &&
       commands.isEmpty
 
     def has_header: Boolean = header != Node.no_header
@@ -304,7 +303,7 @@ object Document {
 
     def update_perspective(
         new_text_perspective: Text.Perspective,
-        new_perspective: Node.Perspective_Command): Node =
+        new_perspective: Node.Perspective_Command.T): Node =
       new Node(get_blob, header, syntax, new_text_perspective, new_perspective, _commands)
 
     def edit_perspective: Node.Edit[Text.Edit, Text.Perspective] =
@@ -312,7 +311,7 @@ object Document {
 
     def same_perspective(
         other_text_perspective: Text.Perspective,
-        other_perspective: Node.Perspective_Command): Boolean =
+        other_perspective: Node.Perspective_Command.T): Boolean =
       text_perspective == other_text_perspective &&
       perspective.required == other_perspective.required &&
       perspective.visible.same(other_perspective.visible) &&
@@ -761,8 +760,7 @@ object Document {
 
     def get_text(range: Text.Range): Option[String]
 
-    def get_required(document: Boolean): Boolean
-    def node_required: Boolean = get_required(false) || get_required(true)
+    def node_required: Boolean
 
     def get_blob: Option[Blob]
     def bibtex_entries: List[Text.Info[String]]
@@ -770,7 +768,7 @@ object Document {
     def node_edits(
       node_header: Node.Header,
       text_edits: List[Text.Edit],
-      perspective: Node.Perspective_Text
+      perspective: Node.Perspective_Text.T
     ): List[Edit_Text] = {
       val edits: List[Node.Edit[Text.Edit, Text.Perspective]] =
         get_blob match {

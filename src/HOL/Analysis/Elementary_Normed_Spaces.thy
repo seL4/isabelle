@@ -1130,6 +1130,12 @@ lemma uniformly_continuous_on_diff[continuous_intros]:
   using assms uniformly_continuous_on_add [of s f "- g"]
     by (simp add: fun_Compl_def uniformly_continuous_on_minus)
 
+lemma uniformly_continuous_on_sum [continuous_intros]:
+  fixes f :: "'a \<Rightarrow> 'b::metric_space \<Rightarrow> 'c::real_normed_vector"
+  shows "(\<And>i. i \<in> I \<Longrightarrow> uniformly_continuous_on S (f i)) \<Longrightarrow> uniformly_continuous_on S (\<lambda>x. \<Sum>i\<in>I. f i x)"
+  by (induction I rule: infinite_finite_induct)
+     (auto simp: uniformly_continuous_on_add uniformly_continuous_on_const)
+
 
 subsection\<^marker>\<open>tag unimportant\<close> \<open>Arithmetic Preserves Topological Properties\<close>
 

@@ -60,7 +60,7 @@ Usage: isabelle console [OPTIONS]
         if (rc != Process_Result.RC.ok) sys.exit(rc)
       }
 
-      val background =
+      val session_background =
         if (raw_ml_system) {
           Sessions.Background(
             base = Sessions.Base.bootstrap,
@@ -73,7 +73,7 @@ Usage: isabelle console [OPTIONS]
 
       // process loop
       val process =
-        ML_Process(options, background, store,
+        ML_Process(store, options, session_background,
           logic = logic, args = List("-i"), redirect = true,
           modes = if (raw_ml_system) Nil else modes ::: List("ASCII"),
           raw_ml_system = raw_ml_system)

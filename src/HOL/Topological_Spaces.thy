@@ -3440,7 +3440,7 @@ lemma uniformly_continuous_on_const[continuous_intros]: "uniformly_continuous_on
 lemma uniformly_continuous_on_id[continuous_intros]: "uniformly_continuous_on s (\<lambda>x. x)"
   by (auto simp: uniformly_continuous_on_uniformity filterlim_def)
 
-lemma uniformly_continuous_on_compose[continuous_intros]:
+lemma uniformly_continuous_on_compose:
   "uniformly_continuous_on s g \<Longrightarrow> uniformly_continuous_on (g`s) f \<Longrightarrow>
     uniformly_continuous_on s (\<lambda>x. f (g x))"
   using filterlim_compose[of "\<lambda>(x, y). (f x, f y)" uniformity

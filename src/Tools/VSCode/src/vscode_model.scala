@@ -59,7 +59,7 @@ object VSCode_Model {
     node_name: Document.Node.Name
   ): VSCode_Model = {
     VSCode_Model(session, editor, node_name, Content.empty,
-      theory_required = File_Format.registry.is_theory(node_name))
+      node_required = File_Format.registry.is_theory(node_name))
   }
 }
 
@@ -70,20 +70,13 @@ sealed case class VSCode_Model(
   content: VSCode_Model.Content,
   version: Option[Long] = None,
   external_file: Boolean = false,
-  theory_required: Boolean = false,
-  document_required: Boolean = false,
-  last_perspective: Document.Node.Perspective_Text = Document.Node.no_perspective_text,
+  node_required: Boolean = false,
+  last_perspective: Document.Node.Perspective_Text.T = Document.Node.Perspective_Text.empty,
   pending_edits: List[Text.Edit] = Nil,
   published_diagnostics: List[Text.Info[Command.Results]] = Nil,
   published_decorations: List[VSCode_Model.Decoration] = Nil
 ) extends Document.Model {
   model =>
-
-  /* required */
-
-  def get_required(document: Boolean): Boolean =
-    if (document) document_required else theory_required
-
 
   /* content */
 
@@ -111,9 +104,11 @@ sealed case class VSCode_Model(
   def node_perspective(
     doc_blobs: Document.Blobs,
     caret: Option[Line.Position]
-  ): (Boolean, Document.Node.Perspective_Text) = {
+  ): (Boolean, Document.Node.Perspective_Text.T) = {
     if (is_theory) {
       val snapshot = model.snapshot()
+
+      val required = node_required || editor.document_node_required(node_name)
 
       val caret_perspective = resources.options.int("vscode_caret_perspective") max 0
       val caret_range =
@@ -142,9 +137,9 @@ sealed case class VSCode_Model(
       val overlays = editor.node_overlays(node_name)
 
       (snapshot.node.load_commands_changed(doc_blobs),
-        Document.Node.Perspective(node_required, text_perspective, overlays))
+        Document.Node.Perspective(required, text_perspective, overlays))
     }
-    else (false, Document.Node.no_perspective_text)
+    else (false, Document.Node.Perspective_Text.empty)
   }
 
 

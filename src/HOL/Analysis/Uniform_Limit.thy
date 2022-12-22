@@ -198,6 +198,19 @@ lemma uniformly_convergent_cong:
   unfolding uniformly_convergent_on_def assms(2) [symmetric]
   by (intro iff_exI uniform_limit_cong eventually_mono [OF assms(1)]) auto
 
+lemma uniformly_convergent_on_compose:
+  assumes "uniformly_convergent_on A f"
+  assumes "filterlim g sequentially sequentially"
+  shows   "uniformly_convergent_on A (\<lambda>n. f (g n))"
+proof -
+  from assms(1) obtain f' where "uniform_limit A f f' sequentially"
+    by (auto simp: uniformly_convergent_on_def)
+  hence "uniform_limit A (\<lambda>n. f (g n)) f' sequentially"
+    by (rule filterlim_compose) fact
+  thus ?thesis
+    by (auto simp: uniformly_convergent_on_def)
+qed    
+
 lemma uniformly_convergent_uniform_limit_iff:
   "uniformly_convergent_on X f \<longleftrightarrow> uniform_limit X f (\<lambda>x. lim (\<lambda>n. f n x)) sequentially"
 proof
@@ -308,6 +321,59 @@ proof -
   ultimately show ?thesis by auto
 qed
 
+lemma uniformly_convergent_on_sum_E:
+  fixes \<epsilon>::real and f :: "nat \<Rightarrow> 'a \<Rightarrow> 'b::{complete_space,real_normed_vector}"
+  assumes uconv: "uniformly_convergent_on K (\<lambda>n z. \<Sum>k<n. f k z)" and "\<epsilon>>0"
+  obtains N where "\<And>m n z. \<lbrakk>N \<le> m; m \<le> n; z\<in>K\<rbrakk> \<Longrightarrow> norm(\<Sum>k=m..<n. f k z) < \<epsilon>"
+proof -
+  obtain N where N: "\<And>m n z. \<lbrakk>N \<le> m; N \<le> n; z\<in>K\<rbrakk> \<Longrightarrow> dist (\<Sum>k<m. f k z) (\<Sum>k<n. f k z) < \<epsilon>"
+    using uconv \<open>\<epsilon>>0\<close> unfolding uniformly_Cauchy_on_def uniformly_convergent_eq_Cauchy by meson
+  show thesis
+  proof
+    fix m n z
+    assume "N \<le> m" "m \<le> n" "z \<in> K"
+    moreover have "(\<Sum>k = m..<n. f k z) = (\<Sum>k<n. f k z) - (\<Sum>k<m. f k z)"
+      by (metis atLeast0LessThan le0 sum_diff_nat_ivl \<open>m \<le> n\<close>)
+    ultimately show "norm(\<Sum>k = m..<n. f k z) < \<epsilon>"
+      using N  by (simp add: dist_norm)
+  qed
+qed
+
+lemma uniformly_convergent_on_sum_iff:
+  fixes f :: "nat \<Rightarrow> 'a \<Rightarrow> 'b::{complete_space,real_normed_vector}"
+  shows "uniformly_convergent_on K (\<lambda>n z. \<Sum>k<n. f k z) 
+     \<longleftrightarrow> (\<forall>\<epsilon>>0. \<exists>N. \<forall>m n z. N\<le>m \<longrightarrow> m\<le>n \<longrightarrow> z\<in>K \<longrightarrow> norm (\<Sum>k=m..<n. f k z) < \<epsilon>)" (is "?lhs=?rhs")
+proof
+  assume R: ?rhs
+  show ?lhs
+    unfolding uniformly_Cauchy_on_def uniformly_convergent_eq_Cauchy
+  proof (intro strip)
+    fix \<epsilon>::real
+    assume "\<epsilon>>0"
+    then obtain N where "\<And>m n z. \<lbrakk>N \<le> m; m \<le> n; z\<in>K\<rbrakk> \<Longrightarrow> norm(\<Sum>k = m..<n. f k z) < \<epsilon>"
+      using R by blast
+    then have "\<forall>x\<in>K. \<forall>m\<ge>N. \<forall>n\<ge>m. norm ((\<Sum>k<m. f k x) - (\<Sum>k<n. f k x)) < \<epsilon>"
+      by (metis atLeast0LessThan le0 sum_diff_nat_ivl norm_minus_commute)
+    then have "\<forall>x\<in>K. \<forall>m\<ge>N. \<forall>n\<ge>N. norm ((\<Sum>k<m. f k x) - (\<Sum>k<n. f k x)) < \<epsilon>"
+      by (metis linorder_le_cases norm_minus_commute)
+    then show "\<exists>M. \<forall>x\<in>K. \<forall>m\<ge>M. \<forall>n\<ge>M. dist (\<Sum>k<m. f k x) (\<Sum>k<n. f k x) < \<epsilon>"
+      by (metis dist_norm)
+  qed
+qed (metis uniformly_convergent_on_sum_E)
+
+lemma uniform_limit_suminf:
+  fixes f:: "nat \<Rightarrow> 'a::{metric_space, comm_monoid_add} \<Rightarrow> 'a"
+  assumes "uniformly_convergent_on X (\<lambda>n x. \<Sum>k<n. f k x)" 
+  shows "uniform_limit X (\<lambda>n x. \<Sum>k<n. f k x) (\<lambda>x. \<Sum>k. f k x) sequentially"
+proof -
+  obtain S where S: "uniform_limit X (\<lambda>n x. \<Sum>k<n. f k x) S sequentially"
+    using assms uniformly_convergent_on_def by blast
+  then have "(\<Sum>k. f k x) = S x" if "x \<in> X" for x
+    using that sums_iff sums_def by (blast intro: tendsto_uniform_limitI [OF S])
+  with S show ?thesis
+    by (simp cong: uniform_limit_cong')
+qed
+
 text \<open>TODO: remove explicit formulations
   @{thm uniformly_convergent_eq_cauchy uniformly_cauchy_imp_uniformly_convergent}?!\<close>
 
@@ -316,6 +382,102 @@ lemma uniformly_convergent_imp_convergent:
   unfolding uniformly_convergent_on_def convergent_def
   by (auto dest: tendsto_uniform_limitI)
 
+subsection \<open>Comparison Test\<close>
+
+lemma uniformly_summable_comparison_test:
+  fixes f :: "nat \<Rightarrow> 'a \<Rightarrow> 'b :: banach"
+  assumes "uniformly_convergent_on A (\<lambda>N x. \<Sum>n<N. g n x)"
+  assumes "\<And>n x. x \<in> A \<Longrightarrow> norm (f n x) \<le> g n x"
+  shows   "uniformly_convergent_on A (\<lambda>N x. \<Sum>n<N. f n x)"
+proof -
+  have "uniformly_Cauchy_on A (\<lambda>N x. \<Sum>n<N. f n x)"
+  proof (rule uniformly_Cauchy_onI')
+    fix e :: real assume e: "e > 0"
+    obtain M where M: "\<And>x m n. x \<in> A \<Longrightarrow> m \<ge> M \<Longrightarrow> n \<ge> M \<Longrightarrow> dist (\<Sum>k<m. g k x) (\<Sum>k<n. g k x) < e"
+      using assms(1) e unfolding uniformly_convergent_eq_Cauchy uniformly_Cauchy_on_def by metis
+    show "\<exists>M. \<forall>x\<in>A. \<forall>m\<ge>M. \<forall>n>m. dist (\<Sum>k<m. f k x) (\<Sum>k<n. f k x) < e"
+    proof (rule exI[of _ M], safe)
+      fix x m n assume xmn: "x \<in> A" "m \<ge> M" "m < n"
+      have nonneg: "g k x \<ge> 0" for k
+        by (rule order.trans[OF _ assms(2)]) (use xmn in auto)
+      have "dist (\<Sum>k<m. f k x) (\<Sum>k<n. f k x) = norm (\<Sum>k\<in>{..<n}-{..<m}. f k x)"
+        using xmn by (subst sum_diff) (auto simp: dist_norm norm_minus_commute)
+      also have "{..<n}-{..<m} = {m..<n}"
+        by auto
+      also have "norm (\<Sum>k\<in>{m..<n}. f k x) \<le> (\<Sum>k\<in>{m..<n}. norm (f k x))"
+        using norm_sum by blast
+      also have "\<dots> \<le> (\<Sum>k\<in>{m..<n}. g k x)"
+        by (intro sum_mono assms xmn)
+      also have "\<dots> = \<bar>\<Sum>k\<in>{m..<n}. g k x\<bar>"
+        by (subst abs_of_nonneg) (auto simp: nonneg intro!: sum_nonneg)
+      also have "{m..<n} = {..<n} - {..<m}"
+        by auto
+      also have "\<bar>\<Sum>k\<in>\<dots>. g k x\<bar> = dist (\<Sum>k<m. g k x) (\<Sum>k<n. g k x)"
+        using xmn by (subst sum_diff) (auto simp: abs_minus_commute dist_norm)
+      also have "\<dots> < e"
+        by (rule M) (use xmn in auto)
+      finally show "dist (\<Sum>k<m. f k x) (\<Sum>k<n. f k x) < e" .
+    qed
+  qed
+  thus ?thesis
+    unfolding uniformly_convergent_eq_Cauchy .
+qed
+
+lemma uniform_limit_compose_uniformly_continuous_on:
+  fixes f :: "'a :: metric_space \<Rightarrow> 'b :: metric_space"
+  assumes lim: "uniform_limit A g g' F"
+  assumes cont: "uniformly_continuous_on B f"
+  assumes ev: "eventually (\<lambda>x. \<forall>y\<in>A. g x y \<in> B) F" and "closed B"
+  shows   "uniform_limit A (\<lambda>x y. f (g x y)) (\<lambda>y. f (g' y)) F"
+proof (cases "F = bot")
+  case [simp]: False
+  show ?thesis
+    unfolding uniform_limit_iff
+  proof safe
+    fix e :: real assume e: "e > 0"
+
+    have g'_in_B: "g' y \<in> B" if "y \<in> A" for y
+    proof (rule Lim_in_closed_set)
+      show "eventually (\<lambda>x. g x y \<in> B) F"
+        using ev by eventually_elim (use that in auto)
+      show "((\<lambda>x. g x y) \<longlongrightarrow> g' y) F"
+        using lim that by (metis tendsto_uniform_limitI)
+    qed (use \<open>closed B\<close> in auto)
+  
+    obtain d where d: "d > 0" "\<And>x y. x \<in> B \<Longrightarrow> y \<in> B \<Longrightarrow> dist x y < d \<Longrightarrow> dist (f x) (f y) < e"
+      using e cont unfolding uniformly_continuous_on_def by metis
+    from lim have "eventually (\<lambda>x. \<forall>y\<in>A. dist (g x y) (g' y) < d) F"
+      unfolding uniform_limit_iff using \<open>d > 0\<close>  by meson
+    thus "eventually (\<lambda>x. \<forall>y\<in>A. dist (f (g x y)) (f (g' y)) < e) F"
+      using assms(3)
+    proof eventually_elim
+      case (elim x)
+      show "\<forall>y\<in>A. dist (f (g x y)) (f (g' y)) < e"
+      proof safe
+        fix y assume y: "y \<in> A"
+        show "dist (f (g x y)) (f (g' y)) < e"
+        proof (rule d)
+          show "dist (g x y) (g' y) < d"
+            using elim y by blast
+        qed (use y elim g'_in_B in auto)
+      qed
+    qed
+  qed
+qed (auto simp: filterlim_def)
+
+lemma uniformly_convergent_on_compose_uniformly_continuous_on:
+  fixes f :: "'a :: metric_space \<Rightarrow> 'b :: metric_space"
+  assumes lim: "uniformly_convergent_on A g"
+  assumes cont: "uniformly_continuous_on B f"
+  assumes ev: "eventually (\<lambda>x. \<forall>y\<in>A. g x y \<in> B) sequentially" and "closed B"
+  shows   "uniformly_convergent_on A (\<lambda>x y. f (g x y))"
+proof -
+  from lim obtain g' where g': "uniform_limit A g g' sequentially"
+    by (auto simp: uniformly_convergent_on_def)
+  thus ?thesis
+    using uniform_limit_compose_uniformly_continuous_on[OF g' cont ev \<open>closed B\<close>]
+    by (auto simp: uniformly_convergent_on_def)
+qed
 
 subsection \<open>Weierstrass M-Test\<close>
 

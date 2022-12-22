@@ -206,7 +206,10 @@ extends Resources(session_background, log = log) {
     state.change_result { st =>
       val stable_tip_version = session.stable_tip_version(st.models)
 
-      val thy_files = resources.resolve_dependencies(st.models, Nil)
+      val thy_files =
+        resources.resolve_dependencies(st.models,
+          editor.document_required().map((_, Position.none)))
+
       val aux_files = stable_tip_version.toList.flatMap(undefined_blobs)
 
       val loaded_models =

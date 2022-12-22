@@ -115,10 +115,11 @@ object Document_Build {
     options: Options,
     session: String,
     dirs: List[Path] = Nil,
-    progress: Progress = new Progress
+    progress: Progress = new Progress,
+    verbose: Boolean = false
   ): Sessions.Background = {
       Sessions.load_structure(options + "document=pdf", dirs = dirs).
-        selection_deps(Sessions.Selection.session(session), progress = progress).
+        selection_deps(Sessions.Selection.session(session), progress = progress, verbose = verbose).
         background(session)
   }
 
@@ -134,13 +135,15 @@ object Document_Build {
   def context(
     session_context: Export.Session_Context,
     document_session: Option[Sessions.Base] = None,
+    document_selection: Document.Node.Name => Boolean = _ => true,
     progress: Progress = new Progress
-  ): Context = new Context(session_context, document_session, progress)
+  ): Context = new Context(session_context, document_session, document_selection, progress)
 
   final class Context private[Document_Build](
     val session_context: Export.Session_Context,
     document_session: Option[Sessions.Base],
-    val progress: Progress = new Progress
+    document_selection: Document.Node.Name => Boolean,
+    val progress: Progress
   ) {
     context =>
 
@@ -186,8 +189,12 @@ object Document_Build {
       for (name <- all_document_theories)
       yield {
         val path = Path.basic(tex_name(name))
-        val entry = session_context(name.theory, Export.DOCUMENT_LATEX, permissive = true)
-        val content = YXML.parse_body(entry.text)
+        val content =
+          if (document_selection(name)) {
+            val entry = session_context(name.theory, Export.DOCUMENT_LATEX, permissive = true)
+            YXML.parse_body(entry.text)
+          }
+          else Nil
         File.content(path, content)
       }
 
@@ -312,12 +319,12 @@ object Document_Build {
       val result_pdf = doc_dir + root_pdf
 
       if (errors.nonEmpty) {
-        val errors1 = errors ::: List("Failed to build document " + quote(doc.name))
-        throw new Build_Error(log, Exn.cat_message(errors1: _*))
+        val message = "Failed to build document " + quote(doc.name)
+        throw new Build_Error(log, errors ::: List(message))
       }
       else if (!result_pdf.is_file) {
         val message = "Bad document result: expected to find " + root_pdf
-        throw new Build_Error(log, message)
+        throw new Build_Error(log, List(message))
       }
       else {
         val log_xz = Bytes(cat_lines(log)).compress()
@@ -389,8 +396,15 @@ object Document_Build {
           watchdog = Time.seconds(0.5))
 
       val log = result.out_lines ::: result.err_lines
-      val errors = (if (result.ok) Nil else List(result.err)) ::: directory.log_errors()
-      directory.make_document(log, errors)
+      val err = result.err
+
+      val errors1 = directory.log_errors()
+      val errors2 =
+        if (result.ok) errors1
+        else if (err.nonEmpty) err :: errors1
+        else if (errors1.nonEmpty) errors1
+        else List("Error")
+      directory.make_document(log, errors2)
     }
   }
 
@@ -422,8 +436,8 @@ object Document_Build {
 
   def tex_name(name: Document.Node.Name): String = name.theory_base_name + ".tex"
 
-  class Build_Error(val log_lines: List[String], val message: String)
-    extends Exn.User_Error(message)
+  class Build_Error(val log_lines: List[String], val log_errors: List[String])
+    extends Exn.User_Error(Exn.cat_message(log_errors: _*))
 
   def build_documents(
     context: Context,
@@ -525,8 +539,8 @@ Usage: isabelle document [OPTIONS] SESSION
             progress.echo_warning("No output directory")
           }
 
-          val background = session_background(options, session, dirs = dirs)
-          using(Export.open_session_context(build_results.store, background)) {
+          val session_background = Document_Build.session_background(options, session, dirs = dirs)
+          using(Export.open_session_context(build_results.store, session_background)) {
             session_context =>
               build_documents(
                 context(session_context, progress = progress),

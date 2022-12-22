@@ -86,22 +86,22 @@ class Main_Plugin extends EBPlugin {
   val spell_checker = new Spell_Checker_Variable
 
 
-  /* global changes */
-
-  def options_changed(): Unit = {
-    session.global_options.post(Session.Global_Options(options.value))
-    delay_load.invoke()
-  }
-
-  def deps_changed(): Unit = {
-    delay_load.invoke()
-  }
-
-
   /* theory files */
 
-  lazy val delay_init: Delay =
+  private lazy val delay_init: Delay =
     Delay.last(PIDE.session.load_delay, gui = true) { init_models() }
+
+  private lazy val delay_load: Delay =
+    Delay.last(session.load_delay, gui = true) {
+      if (JEdit_Options.continuous_checking()) {
+        if (!PerspectiveManager.isPerspectiveEnabled ||
+            JEdit_Lib.jedit_buffers().exists(_.isLoading)) delay_load.invoke()
+        else if (delay_load_activated()) delay_load_body()
+        else delay_load.invoke()
+      }
+    }
+
+  def deps_changed(): Unit = delay_load.invoke()
 
   private val delay_load_active = Synchronized(false)
   private def delay_load_finished(): Unit = delay_load_active.change(_ => false)
@@ -112,7 +112,9 @@ class Main_Plugin extends EBPlugin {
     val required_files = {
       val models = Document_Model.get_models()
 
-      val thy_files = resources.resolve_dependencies(models, Nil)
+      val thy_files =
+        resources.resolve_dependencies(models,
+          PIDE.editor.document_required().map((_, Position.none)))
 
       val aux_files =
         if (resources.auto_resolve) {
@@ -147,16 +149,6 @@ class Main_Plugin extends EBPlugin {
     }
     else delay_load_finished()
   }
-
-  private lazy val delay_load: Delay =
-    Delay.last(session.load_delay, gui = true) {
-      if (JEdit_Options.continuous_checking()) {
-        if (!PerspectiveManager.isPerspectiveEnabled ||
-            JEdit_Lib.jedit_buffers().exists(_.isLoading)) delay_load.invoke()
-        else if (delay_load_activated()) delay_load_body()
-        else delay_load.invoke()
-      }
-    }
 
   private def file_watcher_action(changed: Set[JFile]): Unit =
     if (Document_Model.sync_files(changed)) PIDE.editor.invoke_generated()

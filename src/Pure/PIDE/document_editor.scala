@@ -1,7 +1,7 @@
 /*  Title:      Pure/PIDE/document_editor.scala
     Author:     Makarius
 
-Central resources for interactive document preparation.
+Central resources and configuration for interactive document preparation.
 */
 
 package isabelle
@@ -32,23 +32,51 @@ object Document_Editor {
 
     override def echo(msg: String): Unit = { syslog += msg; delay.invoke() }
 
-    def load(): Unit = GUI_Thread.require {
-      val path = document_output().log
-      val text = if (path.is_file) File.read(path) else ""
-      GUI_Thread.later { delay.revoke(); update(text) }
+    def finish(text: String): Unit = GUI_Thread.require {
+      delay.revoke()
+      update(text)
     }
 
     GUI_Thread.later { update() }
   }
 
 
-  /* global state */
+  /* configuration state */
 
   sealed case class State(
     session_background: Option[Sessions.Background] = None,
+    selection: Set[Document.Node.Name] = Set.empty,
     views: Set[AnyRef] = Set.empty,
   ) {
     def is_active: Boolean = session_background.isDefined && views.nonEmpty
+
+    def is_required(name: Document.Node.Name): Boolean =
+      is_active && selection.contains(name) && all_document_theories.contains(name)
+
+    def required: List[Document.Node.Name] =
+      if (is_active) all_document_theories.filter(selection) else Nil
+
+    def all_document_theories: List[Document.Node.Name] =
+      session_background match {
+        case Some(background) => background.base.all_document_theories
+        case None => Nil
+      }
+
+    def active_document_theories: List[Document.Node.Name] =
+      if (is_active) all_document_theories else Nil
+
+    def select(
+      names: Iterable[Document.Node.Name],
+      set: Boolean = false,
+      toggle: Boolean = false
+    ): State = {
+      copy(selection =
+        names.foldLeft(selection) {
+          case (sel, name) =>
+            val b = if (toggle) !selection(name) else set
+            if (b) sel + name else sel - name
+        })
+    }
 
     def register_view(id: AnyRef): State = copy(views = views + id)
     def unregister_view(id: AnyRef): State = copy(views = views - id)

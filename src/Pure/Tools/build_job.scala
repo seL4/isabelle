@@ -447,7 +447,7 @@ class Build_Job(progress: Progress,
       val eval_main = Command_Line.ML_tool("Isabelle_Process.init_build ()" :: eval_store)
 
       val process =
-        Isabelle_Process.start(session, options, session_background, store,
+        Isabelle_Process.start(store, options, session, session_background,
           logic = parent, raw_ml_system = is_pure,
           use_prelude = use_prelude, eval_main = eval_main,
           cwd = info.dir.file, env = env)
@@ -500,7 +500,7 @@ class Build_Job(progress: Progress,
           else (Nil, Nil)
         }
         catch {
-          case exn: Document_Build.Build_Error => (exn.log_lines, List(exn.message))
+          case exn: Document_Build.Build_Error => (exn.log_lines, exn.log_errors)
           case Exn.Interrupt.ERROR(msg) => (Nil, List(msg))
         }
 

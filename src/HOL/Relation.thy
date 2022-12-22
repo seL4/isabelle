@@ -393,6 +393,12 @@ lemma asym_on_subset: "asym_on A r \<Longrightarrow> B \<subseteq> A \<Longright
 lemma asymp_on_subset: "asymp_on A R \<Longrightarrow> B \<subseteq> A \<Longrightarrow> asymp_on B R"
   by (auto simp: asymp_on_def)
 
+lemma irrefl_on_if_asym_on[simp]: "asym_on A r \<Longrightarrow> irrefl_on A r"
+  by (auto intro: irrefl_onI dest: asym_onD)
+
+lemma irreflp_on_if_asymp_on[simp]: "asymp_on A r \<Longrightarrow> irreflp_on A r"
+  by (rule irrefl_on_if_asym_on[to_pred])
+
 lemma (in preorder) asymp_on_less[simp]: "asymp_on A (<)"
   by (auto intro: dual_order.asym)
 

@@ -11,6 +11,8 @@ imports
   "HOL-Library.Multiset"
 begin
 
+unbundle multiset.lifting
+
 subsection \<open>Irreducible and prime elements\<close>
 
 context comm_semiring_1
@@ -2256,5 +2258,8 @@ proof -
 qed
 
 end
+
+lifting_update multiset.lifting
+lifting_forget multiset.lifting
 
 end

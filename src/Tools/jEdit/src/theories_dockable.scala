@@ -31,7 +31,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
   }
 
   private val purge = new GUI.Button("Purge") {
-    tooltip = "Restrict document model to theories required for open editor buffers"
+    tooltip = "Remove theories that are no longer required"
     override def clicked(): Unit = PIDE.editor.purge()
   }
 
@@ -48,8 +48,8 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
 
   /* main */
 
-  val status = new Theories_Status(view)
-  set_content(new ScrollPane(status.gui))
+  private val theories = new Theories_Status(view)
+  set_content(new ScrollPane(theories.gui))
 
   private val main =
     Session.Consumer[Any](getClass.getName) {
@@ -60,11 +60,11 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
         GUI_Thread.later {
           continuous_checking.load()
           logic.load()
-          status.reinit()
+          theories.refresh()
         }
 
       case changed: Session.Commands_Changed =>
-        GUI_Thread.later { status.update(domain = Some(changed.nodes), trim = changed.assignment) }
+        GUI_Thread.later { theories.update(domain = Some(changed.nodes), trim = changed.assignment) }
     }
 
   override def init(): Unit = {
@@ -73,7 +73,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
     PIDE.session.commands_changed += main
 
     handle_phase(PIDE.session.phase)
-    status.update()
+    theories.update()
   }
 
   override def exit(): Unit = {
