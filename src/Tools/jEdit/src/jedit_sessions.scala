@@ -113,8 +113,9 @@ object JEdit_Sessions {
 
   def document_selector(options: Options_Variable, standalone: Boolean = false): Selector =
     GUI_Thread.require {
-      val sessions = sessions_structure(options = options.value)
-      val all_sessions = sessions.build_topological_order.sorted
+      val sessions = sessions_structure(options = options.value + "document")
+      val all_sessions =
+        sessions.build_topological_order.filter(name => sessions(name).documents.nonEmpty).sorted
       val doc_sessions = all_sessions.filter(name => sessions(name).doc_group)
 
       new Selector(options, "editor_document_session", standalone,
