@@ -29,17 +29,36 @@ abstract class Editor[Context] {
         val st1 = f(st)
         val changed =
           st.active_document_theories != st1.active_document_theories ||
-          st.required != st1.required
+          st.selection != st1.selection
         (changed, st1)
       }
     if (changed) document_state_changed()
   }
 
   def document_session(): Option[Sessions.Background] = document_state().session_background
-  def document_required(): List[Document.Node.Name] = document_state().required
-  def document_node_required(name: Document.Node.Name): Boolean = document_state().is_required(name)
 
-  def document_theories(): List[Document.Node.Name] = document_state().active_document_theories
+  def document_required(): List[Document.Node.Name] = {
+    val st = document_state()
+    if (st.is_active) {
+      for {
+        a <- st.all_document_theories
+        b = session.resources.migrate_name(a)
+        if st.selection(b)
+      } yield b
+    }
+    else Nil
+  }
+
+  def document_node_required(name: Document.Node.Name): Boolean = {
+    val st = document_state()
+    st.is_active &&
+    st.selection.contains(name) &&
+    st.all_document_theories.exists(a => session.resources.migrate_name(a) == name)
+  }
+
+  def document_theories(): List[Document.Node.Name] =
+    document_state().active_document_theories.map(session.resources.migrate_name)
+
   def document_selection(): Set[Document.Node.Name] = document_state().selection
 
   def document_setup(background: Option[Sessions.Background]): Unit =
@@ -52,7 +71,10 @@ abstract class Editor[Context] {
   ): Unit = document_state_change(_.select(names, set = set, toggle = toggle))
 
   def document_select_all(set: Boolean = false): Unit =
-    document_state_change(st => st.select(st.active_document_theories, set = set))
+    document_state_change { st =>
+      val domain = st.active_document_theories.map(session.resources.migrate_name)
+      st.select(domain, set = set)
+    }
 
   def document_init(id: AnyRef): Unit = document_state_change(_.register_view(id))
   def document_exit(id: AnyRef): Unit = document_state_change(_.unregister_view(id))

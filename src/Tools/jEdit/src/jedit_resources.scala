@@ -50,6 +50,9 @@ extends Resources(session_background) {
     if (name.is_theory) Some(name) else None
   }
 
+  override def migrate_name(standard_name: Document.Node.Name): Document.Node.Name =
+    node_name(File.platform_path(Path.explode(standard_name.node).canonical))
+
   override def append(dir: String, source_path: Path): String = {
     val path = source_path.expand
     if (dir == "" || path.is_absolute) {
