@@ -185,7 +185,7 @@ object Document_Build {
     def session_document_theories: List[Document.Node.Name] = base.proper_session_theories
     def all_document_theories: List[Document.Node.Name] = base.all_document_theories
 
-    lazy val document_latex: List[File.Content_XML] =
+    lazy val document_latex: List[(File.Content_XML, String)] =
       for (name <- all_document_theories)
       yield {
         val path = Path.basic(tex_name(name))
@@ -195,7 +195,8 @@ object Document_Build {
             YXML.parse_body(entry.text)
           }
           else Nil
-        File.content(path, content)
+        val file_pos = name.path.implode_symbolic
+        (File.content(path, content), file_pos)
       }
 
     lazy val session_graph: File.Content = {
@@ -263,8 +264,8 @@ object Document_Build {
 
       session_tex.write(doc_dir)
 
-      for (content <- document_latex) {
-        content.output(latex_output(_, file_pos = content.path.implode_symbolic))
+      for ((content, file_pos) <- document_latex) {
+        content.output(latex_output(_, file_pos = file_pos))
           .write(doc_dir)
       }
 
