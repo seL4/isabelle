@@ -459,13 +459,14 @@ class Resources(
 
   def resolve_dependencies[A](
     models: Iterable[Document.Model],
-    theories: List[(Document.Node.Name, Position.T)]
+    theories: List[Document.Node.Name]
   ): List[Document.Node.Name] = {
     val model_theories =
       (for (model <- models.iterator if model.is_theory)
         yield (model.node_name, Position.none)).toList
 
-    val thy_files1 = dependencies(model_theories ::: theories).theories
+    val thy_files1 =
+      dependencies(model_theories ::: theories.map((_, Position.none))).theories
 
     val thy_files2 =
       (for {

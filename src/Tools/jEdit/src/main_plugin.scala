@@ -113,8 +113,7 @@ class Main_Plugin extends EBPlugin {
       val models = Document_Model.get_models()
 
       val thy_files =
-        resources.resolve_dependencies(models.values,
-          PIDE.editor.document_required().map((_, Position.none)))
+        resources.resolve_dependencies(models.values, PIDE.editor.document_required())
 
       val aux_files =
         if (resources.auto_resolve) {

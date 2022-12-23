@@ -238,8 +238,7 @@ extends Resources(session_background, log = log) {
       val stable_tip_version = session.stable_tip_version(st.models.values)
 
       val thy_files =
-        resources.resolve_dependencies(st.models.values,
-          editor.document_required().map((_, Position.none)))
+        resources.resolve_dependencies(st.models.values, editor.document_required())
 
       val aux_files = stable_tip_version.toList.flatMap(undefined_blobs)
 
