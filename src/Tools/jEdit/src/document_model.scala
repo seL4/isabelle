@@ -601,8 +601,9 @@ extends Document_Model {
       reset_blob()
       reset_bibtex_entries()
 
-      for (doc_view <- document_view_iterator)
+      for (doc_view <- document_view_iterator) {
         doc_view.rich_text_area.active_reset()
+      }
 
       pending ++= edits
       PIDE.editor.invoke()
@@ -646,9 +647,10 @@ extends Document_Model {
 
   def syntax_changed(): Unit = {
     JEdit_Lib.buffer_line_manager(buffer).setFirstInvalidLineContext(0)
-    for (text_area <- JEdit_Lib.jedit_text_areas(buffer))
+    for (text_area <- JEdit_Lib.jedit_text_areas(buffer)) {
       Untyped.method(Class.forName("org.gjt.sp.jedit.textarea.TextArea"), "foldStructureChanged").
         invoke(text_area)
+    }
     buffer.invalidateCachedFoldLevels()
   }
 
