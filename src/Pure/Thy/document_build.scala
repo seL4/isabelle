@@ -132,6 +132,13 @@ object Document_Build {
     List("isabelle.sty", "isabellesym.sty", "pdfsetup.sty", "railsetup.sty").
       map(name => texinputs + Path.basic(name))
 
+  sealed case class Document_Latex(name: Document.Node.Name, body: XML.Body) {
+    def content: File.Content_XML = File.content(Path.basic(tex_name(name)), body)
+    def file_pos: String = name.path.implode_symbolic
+    def write(latex_output: Latex.Output, dir: Path): Unit =
+      content.output(latex_output(_, file_pos = file_pos)).write(dir)
+  }
+
   def context(
     session_context: Export.Session_Context,
     document_session: Option[Sessions.Base] = None,
@@ -185,18 +192,16 @@ object Document_Build {
     def session_document_theories: List[Document.Node.Name] = base.proper_session_theories
     def all_document_theories: List[Document.Node.Name] = base.all_document_theories
 
-    lazy val document_latex: List[(File.Content_XML, String)] =
+    lazy val document_latex: List[Document_Latex] =
       for (name <- all_document_theories)
       yield {
-        val path = Path.basic(tex_name(name))
-        val content =
+        val body =
           if (document_selection(name)) {
             val entry = session_context(name.theory, Export.DOCUMENT_LATEX, permissive = true)
             YXML.parse_body(entry.text)
           }
           else Nil
-        val file_pos = name.path.implode_symbolic
-        (File.content(path, content), file_pos)
+        Document_Latex(name, body)
       }
 
     lazy val session_graph: File.Content = {
@@ -263,11 +268,7 @@ object Document_Build {
       }
 
       session_tex.write(doc_dir)
-
-      for ((content, file_pos) <- document_latex) {
-        content.output(latex_output(_, file_pos = file_pos))
-          .write(doc_dir)
-      }
+      document_latex.foreach(_.write(latex_output, doc_dir))
 
       val root_name1 = "root_" + doc.name
       val root_name = if ((doc_dir + Path.explode(root_name1).tex).is_file) root_name1 else "root"
