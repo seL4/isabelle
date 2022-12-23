@@ -690,7 +690,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
 
   def snapshot(name: Document.Node.Name = Document.Node.Name.empty,
       pending_edits: List[Text.Edit] = Nil): Document.Snapshot =
-    get_state().snapshot(name, pending_edits)
+    get_state().snapshot(name, pending_edits = pending_edits)
 
   def recent_syntax(name: Document.Node.Name): Outer_Syntax =
     get_state().recent_finished.version.get_finished.nodes(name).syntax getOrElse

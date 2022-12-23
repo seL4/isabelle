@@ -469,7 +469,8 @@ case class File_Model(
   /* snapshot */
 
   def is_stable: Boolean = pending_edits.isEmpty
-  def snapshot(): Document.Snapshot = session.snapshot(node_name, pending_edits)
+  def snapshot(): Document.Snapshot =
+    session.snapshot(node_name, pending_edits = pending_edits)
 }
 
 case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer: Buffer)
@@ -609,7 +610,8 @@ extends Document_Model {
   }
 
   def is_stable: Boolean = !pending_edits.nonEmpty
-  def snapshot(): Document.Snapshot = session.snapshot(node_name, pending_edits.get_edits)
+  def snapshot(): Document.Snapshot =
+    session.snapshot(node_name, pending_edits = pending_edits.get_edits)
 
   def flush_edits(doc_blobs: Document.Blobs, hidden: Boolean): List[Document.Edit_Text] =
     pending_edits.flush_edits(doc_blobs, hidden)

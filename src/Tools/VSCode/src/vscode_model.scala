@@ -231,7 +231,8 @@ sealed case class VSCode_Model(
   def resources: VSCode_Resources = session.resources.asInstanceOf[VSCode_Resources]
 
   def is_stable: Boolean = pending_edits.isEmpty
-  def snapshot(): Document.Snapshot = session.snapshot(node_name, pending_edits)
+  def snapshot(): Document.Snapshot =
+    session.snapshot(node_name, pending_edits = pending_edits)
 
   def rendering(snapshot: Document.Snapshot): VSCode_Rendering =
     new VSCode_Rendering(snapshot, model)
