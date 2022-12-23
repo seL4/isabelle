@@ -113,12 +113,12 @@ class Main_Plugin extends EBPlugin {
       val models = Document_Model.get_models()
 
       val thy_files =
-        resources.resolve_dependencies(models,
+        resources.resolve_dependencies(models.values,
           PIDE.editor.document_required().map((_, Position.none)))
 
       val aux_files =
         if (resources.auto_resolve) {
-          session.stable_tip_version(models) match {
+          session.stable_tip_version(models.values) match {
             case Some(version) => resources.undefined_blobs(version)
             case None => delay_load.invoke(); Nil
           }

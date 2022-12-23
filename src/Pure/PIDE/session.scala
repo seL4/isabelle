@@ -697,8 +697,8 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
     get_state().recent_finished.version.get_finished.nodes(name).syntax getOrElse
     resources.session_base.overall_syntax
 
-  def stable_tip_version[A](models: Map[A, Document.Model]): Option[Document.Version] =
-    if (models.forall(p => p._2.pending_edits.isEmpty)) get_state().stable_tip_version
+  def stable_tip_version[A](models: Iterable[Document.Model]): Option[Document.Version] =
+    if (models.forall(model => model.pending_edits.isEmpty)) get_state().stable_tip_version
     else None
 
   @tailrec final def await_stable_snapshot(): Document.Snapshot = {

@@ -235,10 +235,10 @@ extends Resources(session_background, log = log) {
     file_watcher: File_Watcher
   ): (Boolean, Boolean) = {
     state.change_result { st =>
-      val stable_tip_version = session.stable_tip_version(st.models)
+      val stable_tip_version = session.stable_tip_version(st.models.values)
 
       val thy_files =
-        resources.resolve_dependencies(st.models,
+        resources.resolve_dependencies(st.models.values,
           editor.document_required().map((_, Position.none)))
 
       val aux_files = stable_tip_version.toList.flatMap(undefined_blobs)
