@@ -82,11 +82,19 @@ object Document_Model {
 
   def reset(): Unit = state.change(_ => State())
 
+  def document_blobs(): Document.Blobs = state.value.document_blobs
+
   def get_models(): Map[Document.Node.Name, Document_Model] = state.value.models
   def get(name: Document.Node.Name): Option[Document_Model] = get_models().get(name)
   def get(buffer: JEditBuffer): Option[Buffer_Model] = state.value.buffer_models.get(buffer)
 
-  def document_blobs(): Document.Blobs = state.value.document_blobs
+  def snapshot(model: Document_Model): Document.Snapshot =
+    PIDE.session.snapshot(
+      node_name = model.node_name,
+      pending_edits = Document.Pending_Edits.make(get_models().values))
+
+  def get_snapshot(name: Document.Node.Name): Option[Document.Snapshot] = get(name).map(snapshot)
+  def get_snapshot(buffer: JEditBuffer): Option[Document.Snapshot] = get(buffer).map(snapshot)
 
 
   /* bibtex */
@@ -328,6 +336,9 @@ object Document_Model {
 }
 
 sealed abstract class Document_Model extends Document.Model {
+  model =>
+
+
   /* perspective */
 
   def document_view_ranges(snapshot: Document.Snapshot): List[Text.Range] = Nil
@@ -339,7 +350,7 @@ sealed abstract class Document_Model extends Document.Model {
     GUI_Thread.require {}
 
     if (JEdit_Options.continuous_checking() && is_theory) {
-      val snapshot = this.snapshot()
+      val snapshot = Document_Model.snapshot(model)
 
       val required = node_required || PIDE.editor.document_node_required(node_name)
 
@@ -362,7 +373,7 @@ sealed abstract class Document_Model extends Document.Model {
   /* snapshot */
 
   @tailrec final def await_stable_snapshot(): Document.Snapshot = {
-    val snapshot = this.snapshot()
+    val snapshot = Document_Model.snapshot(model)
     if (snapshot.is_outdated) {
       PIDE.session.output_delay.sleep()
       await_stable_snapshot()
@@ -465,12 +476,7 @@ case class File_Model(
       Some(node_edits(Document.Node.no_header, text_edits, Document.Node.Perspective_Text.empty))
     }
 
-
-  /* snapshot */
-
   def is_stable: Boolean = pending_edits.isEmpty
-  def snapshot(): Document.Snapshot =
-    session.snapshot(node_name, pending_edits = pending_edits)
 }
 
 case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer: Buffer)
@@ -611,10 +617,7 @@ extends Document_Model {
   }
 
   def is_stable: Boolean = buffer_edits.is_empty
-  def pending_edits(): List[Text.Edit] = buffer_edits.get_edits
-
-  def snapshot(): Document.Snapshot =
-    session.snapshot(node_name, pending_edits = pending_edits())
+  def pending_edits: List[Text.Edit] = buffer_edits.get_edits
 
   def flush_edits(doc_blobs: Document.Blobs, hidden: Boolean): List[Document.Edit_Text] =
     buffer_edits.flush_edits(doc_blobs, hidden)
@@ -700,6 +703,6 @@ extends Document_Model {
     File_Model.init(session, node_name, JEdit_Lib.buffer_text(buffer),
       node_required = _node_required,
       last_perspective = buffer_edits.get_last_perspective,
-      pending_edits = pending_edits())
+      pending_edits = pending_edits)
   }
 }

@@ -33,7 +33,7 @@ object Debugger_Dockable {
 
     Document_View.get(text_area) match {
       case Some(doc_view) =>
-        val rendering = doc_view.get_rendering()
+        val rendering = Document_View.rendering(doc_view)
         val range = JEdit_Lib.point_range(text_area.getBuffer, offset)
         rendering.breakpoint(range)
       case None => None

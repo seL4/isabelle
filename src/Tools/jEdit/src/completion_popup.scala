@@ -281,7 +281,7 @@ object Completion_Popup {
 
       if (buffer.isEditable) {
         val caret = text_area.getCaretPosition
-        val opt_rendering = Document_View.get(text_area).map(_.get_rendering())
+        val opt_rendering = Document_View.get_rendering(text_area)
         val result0 = syntax_completion(history, explicit, opt_rendering)
         val (no_completion, semantic_completion) = {
           opt_rendering match {

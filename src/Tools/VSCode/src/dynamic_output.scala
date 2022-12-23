@@ -21,7 +21,7 @@ object Dynamic_Output {
         resources.get_caret() match {
           case None => copy(output = Nil)
           case Some(caret) =>
-            val snapshot = caret.model.snapshot()
+            val snapshot = resources.snapshot(caret.model)
             if (do_update && !snapshot.is_outdated) {
               snapshot.current_command(caret.node_name, caret.offset) match {
                 case None => copy(output = Nil)

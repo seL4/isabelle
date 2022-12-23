@@ -38,8 +38,7 @@ object JEdit_Spell_Checker {
     val result =
       for {
         spell_checker <- PIDE.plugin.spell_checker.get
-        doc_view <- Document_View.get(text_area)
-        rendering = doc_view.get_rendering()
+        rendering <- Document_View.get_rendering(text_area)
         range = JEdit_Lib.point_range(text_area.getBuffer, offset)
         Text.Info(_, word) <- Spell_Checker.current_word(rendering, range)
       } yield (spell_checker, word)

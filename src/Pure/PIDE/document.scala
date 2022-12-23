@@ -504,6 +504,36 @@ object Document {
 
   /* snapshot: persistent user-view of document state */
 
+  object Pending_Edits {
+    val empty: Pending_Edits = make(Nil)
+
+    def make(models: Iterable[Model]): Pending_Edits =
+      new Pending_Edits(
+        (for {
+          model <- models.iterator
+          edits = model.pending_edits if edits.nonEmpty
+        } yield model.node_name -> edits).toMap)
+  }
+
+  final class Pending_Edits(pending_edits: Map[Node.Name, List[Text.Edit]]) {
+    def is_stable: Boolean = pending_edits.isEmpty
+
+    def + (entry: (Document.Node.Name, List[Text.Edit])): Pending_Edits = {
+      val (name, es) = entry
+      if (es.isEmpty) this
+      else new Pending_Edits(pending_edits + (name -> (es ::: edits(name))))
+    }
+
+    def edits(name: Document.Node.Name): List[Text.Edit] =
+      pending_edits.getOrElse(name, Nil)
+
+    def reverse_edits(name: Document.Node.Name): List[Text.Edit] =
+      reverse_pending_edits.getOrElse(name, Nil)
+
+    private lazy val reverse_pending_edits =
+      (for ((name, es) <- pending_edits.iterator) yield (name, es.reverse)).toMap
+  }
+
   object Snapshot {
     val init: Snapshot = State.init.snapshot()
   }
@@ -512,12 +542,16 @@ object Document {
     val state: State,
     val version: Version,
     val node_name: Node.Name,
-    edits: List[Text.Edit],
+    pending_edits: Pending_Edits,
     val snippet_command: Option[Command]
   ) {
     override def toString: String =
       "Snapshot(node = " + node_name.node + ", version = " + version.id +
         (if (is_outdated) ", outdated" else "") + ")"
+
+    def switch(name: Node.Name): Snapshot =
+      if (name == node_name) this
+      else new Snapshot(state, version, name, pending_edits, None)
 
 
     /* nodes */
@@ -539,16 +573,14 @@ object Document {
       }
 
 
-    /* edits */
+    /* pending edits */
 
-    def is_outdated: Boolean = edits.nonEmpty
-
-    private lazy val reverse_edits = edits.reverse
+    def is_outdated: Boolean = !pending_edits.is_stable
 
     def convert(offset: Text.Offset): Text.Offset =
-      edits.foldLeft(offset) { case (i, edit) => edit.convert(i) }
+      pending_edits.edits(node_name).foldLeft(offset) { case (i, edit) => edit.convert(i) }
     def revert(offset: Text.Offset): Text.Offset =
-      reverse_edits.foldLeft(offset) { case (i, edit) => edit.revert(i) }
+      pending_edits.reverse_edits(node_name).foldLeft(offset) { case (i, edit) => edit.revert(i) }
 
     def convert(range: Text.Range): Text.Range = range.map(convert)
     def revert(range: Text.Range): Text.Range = range.map(revert)
@@ -753,7 +785,7 @@ object Document {
   trait Model {
     def session: Session
     def is_stable: Boolean
-    def snapshot(): Snapshot
+    def pending_edits: List[Text.Edit]
 
     def node_name: Node.Name
     def is_theory: Boolean = node_name.is_theory
@@ -1202,26 +1234,19 @@ object Document {
 
     def snapshot(
       node_name: Node.Name = Node.Name.empty,
-      pending_edits: List[Text.Edit] = Nil,
+      pending_edits: Pending_Edits = Pending_Edits.empty,
       snippet_command: Option[Command] = None
     ): Snapshot = {
       val stable = recent_stable
       val version = stable.version.get_finished
 
-      val rev_pending_changes =
-        for {
+      val pending_edits1 =
+        (for {
           change <- history.undo_list.takeWhile(_ != stable)
-          (name, edits) <- change.rev_edits
-          if name == node_name
-        } yield edits
+          (name, Node.Edits(es)) <- change.rev_edits
+        } yield (name -> es)).foldLeft(pending_edits)(_ + _)
 
-      val edits =
-        rev_pending_changes.foldLeft(pending_edits) {
-          case (edits, Node.Edits(es)) => es ::: edits
-          case (edits, _) => edits
-        }
-
-      new Snapshot(this, version, node_name, edits, snippet_command)
+      new Snapshot(this, version, node_name, pending_edits1, snippet_command)
     }
 
     def snippet(command: Command): Snapshot =

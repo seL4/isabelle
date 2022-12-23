@@ -688,16 +688,17 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
     else Document.State.init
   }
 
-  def snapshot(name: Document.Node.Name = Document.Node.Name.empty,
-      pending_edits: List[Text.Edit] = Nil): Document.Snapshot =
-    get_state().snapshot(name, pending_edits = pending_edits)
+  def snapshot(
+    node_name: Document.Node.Name = Document.Node.Name.empty,
+    pending_edits: Document.Pending_Edits = Document.Pending_Edits.empty
+  ): Document.Snapshot = get_state().snapshot(node_name = node_name, pending_edits = pending_edits)
 
   def recent_syntax(name: Document.Node.Name): Outer_Syntax =
     get_state().recent_finished.version.get_finished.nodes(name).syntax getOrElse
     resources.session_base.overall_syntax
 
   def stable_tip_version[A](models: Map[A, Document.Model]): Option[Document.Version] =
-    if (models.valuesIterator.forall(_.is_stable)) get_state().stable_tip_version
+    if (models.forall(p => p._2.pending_edits.isEmpty)) get_state().stable_tip_version
     else None
 
   @tailrec final def await_stable_snapshot(): Document.Snapshot = {

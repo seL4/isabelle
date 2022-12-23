@@ -121,9 +121,8 @@ class Language_Server(
 
   def rendering_offset(node_pos: Line.Node_Position): Option[(VSCode_Rendering, Text.Offset)] =
     for {
-      model <- resources.get_model(new JFile(node_pos.name))
-      rendering = model.rendering()
-      offset <- model.content.doc.offset(node_pos.pos)
+      rendering <- resources.get_rendering(new JFile(node_pos.name))
+      offset <- rendering.model.content.doc.offset(node_pos.pos)
     } yield (rendering, offset)
 
   private val dynamic_output = Dynamic_Output(server)
@@ -366,7 +365,7 @@ class Language_Server(
     for {
       spell_checker <- resources.spell_checker.get
       caret <- resources.get_caret()
-      rendering = caret.model.rendering()
+      rendering = resources.rendering(caret.model)
       range = rendering.before_caret_range(caret.offset)
       Text.Info(_, word) <- Spell_Checker.current_word(rendering, range)
     } {
@@ -493,11 +492,11 @@ class Language_Server(
     override def current_node(context: Unit): Option[Document.Node.Name] =
       resources.get_caret().map(_.model.node_name)
     override def current_node_snapshot(context: Unit): Option[Document.Snapshot] =
-      resources.get_caret().map(_.model.snapshot())
+      resources.get_caret().map(caret => resources.snapshot(caret.model))
 
     override def node_snapshot(name: Document.Node.Name): Document.Snapshot = {
-      resources.get_model(name) match {
-        case Some(model) => model.snapshot()
+      resources.get_snapshot(name) match {
+        case Some(snapshot) => snapshot
         case None => session.snapshot(name)
       }
     }

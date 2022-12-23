@@ -49,17 +49,25 @@ object Document_View {
     doc_view.activate()
     doc_view
   }
+
+  def rendering(doc_view: Document_View): JEdit_Rendering = {
+    val model = doc_view.model
+    val snapshot = Document_Model.snapshot(model)
+    val options = PIDE.options.value
+    JEdit_Rendering(snapshot, model, options)
+  }
+
+  def get_rendering(text_area: TextArea): Option[JEdit_Rendering] = get(text_area).map(rendering)
 }
 
-
 class Document_View(val model: Buffer_Model, val text_area: JEditTextArea) {
+  doc_view =>
+
   private val session = model.session
 
-  def get_rendering(): JEdit_Rendering =
-    JEdit_Rendering(model.snapshot(), model, PIDE.options.value)
-
-  val rich_text_area =
-    new Rich_Text_Area(text_area.getView, text_area, get_rendering _, () => (), () => None,
+  val rich_text_area: Rich_Text_Area =
+    new Rich_Text_Area(text_area.getView, text_area,
+      () => Document_View.rendering(doc_view), () => (), () => None,
       () => delay_caret_update.invoke(), caret_visible = true, enable_hovering = false)
 
 
@@ -138,7 +146,7 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea) {
 
         val buffer = model.buffer
         JEdit_Lib.buffer_lock(buffer) {
-          val rendering = get_rendering()
+          val rendering = Document_View.rendering(doc_view)
 
           for (i <- physical_lines.indices) {
             if (physical_lines(i) != -1) {
@@ -199,7 +207,7 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea) {
   /* text status overview left of scrollbar */
 
   private val text_overview: Option[Text_Overview] =
-    if (PIDE.options.bool("jedit_text_overview")) Some(new Text_Overview(this)) else None
+    if (PIDE.options.bool("jedit_text_overview")) Some(new Text_Overview(doc_view)) else None
 
 
   /* main */
@@ -214,7 +222,7 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea) {
         GUI_Thread.later {
           JEdit_Lib.buffer_lock(buffer) {
             if (model.buffer == text_area.getBuffer) {
-              val snapshot = model.snapshot()
+              val snapshot = Document_Model.snapshot(model)
 
               if (changed.assignment ||
                   (changed.nodes.contains(model.node_name) &&

@@ -70,15 +70,10 @@ class JEdit_Editor extends Editor[View] {
     GUI_Thread.require { Document_Model.get(view.getBuffer).map(_.node_name) }
 
   override def current_node_snapshot(view: View): Option[Document.Snapshot] =
-    GUI_Thread.require { Document_Model.get(view.getBuffer).map(_.snapshot()) }
+    GUI_Thread.require { Document_Model.get_snapshot(view.getBuffer) }
 
-  override def node_snapshot(name: Document.Node.Name): Document.Snapshot = {
-    GUI_Thread.require {}
-    Document_Model.get(name) match {
-      case Some(model) => model.snapshot()
-      case None => session.snapshot(name)
-    }
-  }
+  override def node_snapshot(name: Document.Node.Name): Document.Snapshot =
+    GUI_Thread.require { Document_Model.get_snapshot(name) getOrElse session.snapshot(name) }
 
   override def current_command(view: View, snapshot: Document.Snapshot): Option[Command] = {
     GUI_Thread.require {}

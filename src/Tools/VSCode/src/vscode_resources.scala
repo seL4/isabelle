@@ -113,9 +113,37 @@ extends Resources(session_background, log = log) {
     else File.absolute_name(new JFile(dir + JFile.separator + File.platform_path(path)))
   }
 
-  def get_models: Map[JFile, VSCode_Model] = state.value.models
-  def get_model(file: JFile): Option[VSCode_Model] = get_models.get(file)
+  def get_models(): Map[JFile, VSCode_Model] = state.value.models
+  def get_model(file: JFile): Option[VSCode_Model] = get_models().get(file)
   def get_model(name: Document.Node.Name): Option[VSCode_Model] = get_model(node_file(name))
+
+
+  /* snapshot */
+
+  def snapshot(model: VSCode_Model): Document.Snapshot =
+    model.session.snapshot(
+      node_name = model.node_name,
+      pending_edits = Document.Pending_Edits.make(get_models().values))
+
+  def get_snapshot(file: JFile): Option[Document.Snapshot] =
+    get_model(file).map(snapshot)
+
+  def get_snapshot(name: Document.Node.Name): Option[Document.Snapshot] =
+    get_model(name).map(snapshot)
+
+
+  /* rendering */
+
+  def rendering(snapshot: Document.Snapshot, model: VSCode_Model): VSCode_Rendering =
+    new VSCode_Rendering(snapshot, model)
+
+  def rendering(model: VSCode_Model): VSCode_Rendering = rendering(snapshot(model), model)
+
+  def get_rendering(file: JFile): Option[VSCode_Rendering] =
+    get_model(file).map(rendering)
+
+  def get_rendering(name: Document.Node.Name): Option[VSCode_Rendering] =
+    get_model(name).map(rendering)
 
 
   /* file content */
@@ -275,7 +303,7 @@ extends Resources(session_background, log = log) {
         (for {
           file <- st.pending_output.iterator
           model <- st.models.get(file)
-        } yield (file, model, model.rendering())).toList.partition(_._3.snapshot.is_outdated)
+        } yield (file, model, rendering(model))).toList.partition(_._3.snapshot.is_outdated)
 
       val changed_iterator =
         for {

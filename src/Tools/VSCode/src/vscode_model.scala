@@ -78,6 +78,7 @@ sealed case class VSCode_Model(
 ) extends Document.Model {
   model =>
 
+
   /* content */
 
   def get_text(range: Text.Range): Option[String] = content.doc.get_text(range)
@@ -106,7 +107,7 @@ sealed case class VSCode_Model(
     caret: Option[Line.Position]
   ): (Boolean, Document.Node.Perspective_Text.T) = {
     if (is_theory) {
-      val snapshot = model.snapshot()
+      val snapshot = resources.snapshot(model)
 
       val required = node_required || editor.document_node_required(node_name)
 
@@ -231,12 +232,6 @@ sealed case class VSCode_Model(
   def resources: VSCode_Resources = session.resources.asInstanceOf[VSCode_Resources]
 
   def is_stable: Boolean = pending_edits.isEmpty
-  def snapshot(): Document.Snapshot =
-    session.snapshot(node_name, pending_edits = pending_edits)
-
-  def rendering(snapshot: Document.Snapshot): VSCode_Rendering =
-    new VSCode_Rendering(snapshot, model)
-  def rendering(): VSCode_Rendering = rendering(snapshot())
 
 
   /* syntax */

@@ -82,7 +82,7 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout) {
 
     doc_view.rich_text_area.robust_body(()) {
       JEdit_Lib.buffer_lock(buffer) {
-        val rendering = doc_view.get_rendering()
+        val rendering = Document_View.rendering(doc_view)
         val overview = get_overview()
 
         if (rendering.snapshot.is_outdated || overview != current_overview) {
@@ -118,7 +118,7 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout) {
       if (!doc_view.rich_text_area.check_robust_body) invoke()
       else {
         JEdit_Lib.buffer_lock(buffer) {
-          val rendering = doc_view.get_rendering()
+          val rendering = Document_View.rendering(doc_view)
           val overview = get_overview()
 
           if (rendering.snapshot.is_outdated || is_running()) invoke()

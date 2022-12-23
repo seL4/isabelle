@@ -365,16 +365,14 @@ object Isabelle {
   def goto_entity(view: View): Unit = {
     val text_area = view.getTextArea
     for {
-      doc_view <- Document_View.get(text_area)
-      rendering = doc_view.get_rendering()
+      rendering <- Document_View.get_rendering(text_area)
       caret_range = JEdit_Lib.caret_range(text_area)
       link <- rendering.hyperlink_entity(caret_range)
     } link.info.follow(view)
   }
 
   def select_entity(text_area: JEditTextArea): Unit = {
-    for (doc_view <- Document_View.get(text_area)) {
-      val rendering = doc_view.get_rendering()
+    for (rendering <- Document_View.get_rendering(text_area)) {
       val caret_range = JEdit_Lib.caret_range(text_area)
       val buffer_range = JEdit_Lib.buffer_range(text_area.getBuffer)
       val active_focus = rendering.caret_focus_ranges(caret_range, buffer_range)
@@ -431,8 +429,7 @@ object Isabelle {
   def antiquoted_cartouche(text_area: TextArea): Unit = {
     val buffer = text_area.getBuffer
     for {
-      doc_view <- Document_View.get(text_area)
-      rendering = doc_view.get_rendering()
+      rendering <- Document_View.get_rendering(text_area)
       caret_range = JEdit_Lib.caret_range(text_area)
       antiq_range <- rendering.antiquoted(caret_range)
       antiq_text <- JEdit_Lib.get_text(buffer, antiq_range)
@@ -461,8 +458,7 @@ object Isabelle {
   def update_dictionary(text_area: JEditTextArea, include: Boolean, permanent: Boolean): Unit = {
     for {
       spell_checker <- PIDE.plugin.spell_checker.get
-      doc_view <- Document_View.get(text_area)
-      rendering = doc_view.get_rendering()
+      rendering <- Document_View.get_rendering(text_area)
       range = JEdit_Lib.caret_range(text_area)
       Text.Info(_, word) <- Spell_Checker.current_word(rendering, range)
     } {
@@ -527,8 +523,7 @@ object Isabelle {
     val painter = text_area.getPainter
     val caret_range = JEdit_Lib.caret_range(text_area)
     for {
-      doc_view <- Document_View.get(text_area)
-      rendering = doc_view.get_rendering()
+      rendering <- Document_View.get_rendering(text_area)
       tip <- rendering.tooltip(caret_range, control)
       loc0 <- Option(text_area.offsetToXY(caret_range.start))
     } {
@@ -551,8 +546,7 @@ object Isabelle {
     GUI_Thread.require {}
 
     val text_area = view.getTextArea
-    for (doc_view <- Document_View.get(text_area)) {
-      val rendering = doc_view.get_rendering()
+    for (rendering <- Document_View.get_rendering(text_area)) {
       val errs = rendering.errors(range).filterNot(_.range.overlaps(avoid_range))
       get(errs) match {
         case Some(err) =>

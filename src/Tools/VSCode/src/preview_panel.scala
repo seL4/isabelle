@@ -25,7 +25,7 @@ class Preview_Panel(resources: VSCode_Resources) {
           case (m, (file, column)) =>
             resources.get_model(file) match {
               case Some(model) =>
-                val snapshot = model.snapshot()
+                val snapshot = resources.snapshot(model)
                 if (snapshot.is_outdated) m
                 else {
                   val context =

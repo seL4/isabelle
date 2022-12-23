@@ -27,12 +27,12 @@ object PIDE {
 
   def maybe_snapshot(view: View = null): Option[Document.Snapshot] = GUI_Thread.now {
     val buffer = JEdit_Lib.jedit_view(view).getBuffer
-    Document_Model.get(buffer).map(_.snapshot())
+    Document_Model.get_snapshot(buffer)
   }
 
   def maybe_rendering(view: View = null): Option[JEdit_Rendering] = GUI_Thread.now {
     val text_area = JEdit_Lib.jedit_view(view).getTextArea
-    Document_View.get(text_area).map(_.get_rendering())
+    Document_View.get_rendering(text_area)
   }
 
   def snapshot(view: View = null): Document.Snapshot =

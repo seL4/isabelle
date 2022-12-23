@@ -28,7 +28,7 @@ object Active {
     Document_View.get(view.getTextArea) match {
       case Some(doc_view) =>
         doc_view.rich_text_area.robust_body(()) {
-          val snapshot = doc_view.model.snapshot()
+          val snapshot = Document_Model.snapshot(doc_view.model)
           if (!snapshot.is_outdated) {
             handlers.find(_.handle(view, text, elem, doc_view, snapshot))
           }
