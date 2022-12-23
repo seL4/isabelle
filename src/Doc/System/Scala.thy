@@ -152,7 +152,7 @@ text \<open>
 
   \<^medskip>
   The syntax of \<^path>\<open>etc/build.props\<close> follows a regular Java properties
-  file\<^footnote>\<open>\<^url>\<open>https://docs.oracle.com/en/java/javase/15/docs/api/java.base/java/util/Properties.html#load(java.io.Reader)\<close>\<close>,
+  file\<^footnote>\<open>\<^url>\<open>https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Properties.html#load(java.io.Reader)\<close>\<close>,
   but the encoding is \<^verbatim>\<open>UTF-8\<close>, instead of historic \<^verbatim>\<open>ISO 8859-1\<close> from the API
   documentation.
 
