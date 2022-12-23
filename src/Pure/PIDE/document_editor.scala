@@ -50,12 +50,6 @@ object Document_Editor {
   ) {
     def is_active: Boolean = session_background.isDefined && views.nonEmpty
 
-    def is_required(name: Document.Node.Name): Boolean =
-      is_active && selection.contains(name) && all_document_theories.contains(name)
-
-    def required: List[Document.Node.Name] =
-      if (is_active) all_document_theories.filter(selection) else Nil
-
     def all_document_theories: List[Document.Node.Name] =
       session_background match {
         case Some(background) => background.base.all_document_theories

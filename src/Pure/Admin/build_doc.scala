@@ -43,8 +43,7 @@ object Build_Doc {
     if (!build_results.ok) error("Build failed")
 
     progress.echo("Build started for documentation " + commas_quote(documents))
-    val doc_options = options + "document=pdf"
-    val deps = Sessions.load_structure(doc_options).selection_deps(selection)
+    val deps = Sessions.load_structure(options + "document").selection_deps(selection)
 
     val errs =
       Par_List.map[(String, String), Option[String]](

@@ -70,6 +70,8 @@ class Resources(
 
   /* file-system operations */
 
+  def migrate_name(name: Document.Node.Name): Document.Node.Name = name
+
   def append(dir: String, source_path: Path): String =
     (Path.explode(dir) + source_path).expand.implode
 
