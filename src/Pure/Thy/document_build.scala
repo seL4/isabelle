@@ -192,17 +192,15 @@ object Document_Build {
     def session_document_theories: List[Document.Node.Name] = base.proper_session_theories
     def all_document_theories: List[Document.Node.Name] = base.all_document_theories
 
-    lazy val document_latex: List[Document_Latex] =
-      for (name <- all_document_theories)
-      yield {
-        val body =
-          if (document_selection(name)) {
-            val entry = session_context(name.theory, Export.DOCUMENT_LATEX, permissive = true)
-            YXML.parse_body(entry.text)
-          }
-          else Nil
-        Document_Latex(name, body)
-      }
+    lazy val isabelle_logo: Option[File.Content] = {
+      document_logo.map(logo_name =>
+        Isabelle_System.with_tmp_file("logo", ext = "pdf") { tmp_path =>
+          Logo.create_logo(logo_name, output_file = tmp_path, quiet = true)
+          val path = Path.basic("isabelle_logo.pdf")
+          val content = Bytes.read(tmp_path)
+          File.content(path, content)
+        })
+    }
 
     lazy val session_graph: File.Content = {
       val path = Browser_Info.session_graph_path
@@ -218,15 +216,17 @@ object Document_Build {
       File.content(path, content)
     }
 
-    lazy val isabelle_logo: Option[File.Content] = {
-      document_logo.map(logo_name =>
-        Isabelle_System.with_tmp_file("logo", ext = "pdf") { tmp_path =>
-          Logo.create_logo(logo_name, output_file = tmp_path, quiet = true)
-          val path = Path.basic("isabelle_logo.pdf")
-          val content = Bytes.read(tmp_path)
-          File.content(path, content)
-        })
-    }
+    lazy val document_latex: List[Document_Latex] =
+      for (name <- all_document_theories)
+      yield {
+        val body =
+          if (document_selection(name)) {
+            val entry = session_context(name.theory, Export.DOCUMENT_LATEX, permissive = true)
+            YXML.parse_body(entry.text)
+          }
+          else Nil
+        Document_Latex(name, body)
+      }
 
 
     /* build document */
@@ -281,7 +281,6 @@ object Document_Build {
       /* derived material: without SHA1 digest */
 
       isabelle_logo.foreach(_.write(doc_dir))
-
       session_graph.write(doc_dir)
 
       Directory(doc_dir, doc, root_name, sources)
