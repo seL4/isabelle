@@ -319,9 +319,10 @@ object Document {
 
     def update_commands(new_commands: Linear_Set[Command]): Node =
       if (new_commands eq _commands.commands) this
-      else
+      else {
         new Node(get_blob, header, syntax, text_perspective, perspective,
           Node.Commands(new_commands))
+      }
 
     def command_iterator(i: Text.Offset = 0): Iterator[(Command, Text.Offset)] =
       _commands.iterator(i)
@@ -993,9 +994,12 @@ object Document {
       val edited_nodes =
         (for { (name, _) <- version.nodes.iterator if edited_set(name.node) } yield name).toList
 
-      def upd(exec_id: Document_ID.Exec, st: Command.State)
-          : Option[(Document_ID.Exec, Command.State)] =
+      def upd(
+        exec_id: Document_ID.Exec,
+        st: Command.State
+      ): Option[(Document_ID.Exec, Command.State)] = {
         if (execs.isDefinedAt(exec_id)) None else Some(exec_id -> st)
+      }
 
       val (changed_commands, new_execs) =
         update.foldLeft((List.empty[Command], execs)) {
@@ -1071,12 +1075,14 @@ object Document {
           blobs1 += digest
         }
 
-        if (!commands1.isDefinedAt(command.id))
+        if (!commands1.isDefinedAt(command.id)) {
           commands.get(command.id).foreach(st => commands1 += (command.id -> st))
+        }
 
         for (exec_id <- command_execs.getOrElse(command.id, Nil)) {
-          if (!execs1.isDefinedAt(exec_id))
+          if (!execs1.isDefinedAt(exec_id)) {
             execs.get(exec_id).foreach(st => execs1 += (exec_id -> st))
+          }
         }
       }
 
