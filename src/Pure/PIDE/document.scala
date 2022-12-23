@@ -1079,11 +1079,11 @@ object Document {
           commands.get(command.id).foreach(st => commands1 += (command.id -> st))
         }
 
-        for (exec_id <- command_execs.getOrElse(command.id, Nil)) {
-          if (!execs1.isDefinedAt(exec_id)) {
-            execs.get(exec_id).foreach(st => execs1 += (exec_id -> st))
-          }
-        }
+        for {
+          exec_id <- command_execs.getOrElse(command.id, Nil)
+          if !execs1.isDefinedAt(exec_id)
+          st <- execs.get(exec_id)
+        } execs1 += (exec_id -> st)
       }
 
       copy(
