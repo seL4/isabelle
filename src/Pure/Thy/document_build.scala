@@ -132,6 +132,10 @@ object Document_Build {
     List("isabelle.sty", "isabellesym.sty", "pdfsetup.sty", "railsetup.sty").
       map(name => texinputs + Path.basic(name))
 
+  def running_script(title: String): String = "echo 'Running " + quote(title) + " ...'; "
+  def is_running_script(msg: String): Boolean =
+    msg.startsWith("Running \"") && msg.endsWith("\" ...")
+
   sealed case class Document_Latex(name: Document.Node.Name, body: XML.Body) {
     def content: File.Content_XML = File.content(Path.basic(tex_name(name)), body)
     def file_pos: String = name.path.implode_symbolic
@@ -304,12 +308,16 @@ object Document_Build {
     def root_name_script(ext: String = ""): String =
       Bash.string(if (ext.isEmpty) root_name else root_name + "." + ext)
 
-    def conditional_script(ext: String, exe: String, after: String = ""): String =
+    def conditional_script(
+      ext: String, exe: String, title: String = "", after: String = ""
+    ): String = {
       "if [ -f " + root_name_script(ext) + " ]\n" +
       "then\n" +
-      "  " + exe + " " + root_name_script() + "\n" +
+      "  " + (if (title.nonEmpty) running_script(title) else "") +
+        exe + " " + root_name_script() + "\n" +
       (if (after.isEmpty) "" else "  " + after) +
       "fi\n"
+    }
 
     def log_errors(): List[String] =
       Latex.latex_errors(doc_dir, root_name) :::
@@ -350,18 +358,19 @@ object Document_Build {
       context.prepare_directory(dir, doc, new Latex.Output(context.options))
 
     def use_pdflatex: Boolean = false
+    def running_latex: String = running_script(if (use_pdflatex) "pdflatex" else "lualatex")
     def latex_script(context: Context, directory: Directory): String =
-      (if (use_pdflatex) "$ISABELLE_PDFLATEX" else "$ISABELLE_LUALATEX") +
+      running_latex + (if (use_pdflatex) "$ISABELLE_PDFLATEX" else "$ISABELLE_LUALATEX") +
         " " + directory.root_name_script() + "\n"
 
     def bibtex_script(context: Context, directory: Directory, latex: Boolean = false): String = {
       val ext = if (context.document_bibliography) "aux" else "bib"
-      directory.conditional_script(ext, "$ISABELLE_BIBTEX",
+      directory.conditional_script(ext, "$ISABELLE_BIBTEX", title = "bibtex",
         after = if (latex) latex_script(context, directory) else "")
     }
 
     def makeindex_script(context: Context, directory: Directory, latex: Boolean = false): String =
-      directory.conditional_script("idx", "$ISABELLE_MAKEINDEX",
+      directory.conditional_script("idx", "$ISABELLE_MAKEINDEX", title = "makeindex",
         after = if (latex) latex_script(context, directory) else "")
 
     def use_build_script: Boolean = false

@@ -106,7 +106,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     }
   private val scroll_log_area = new ScrollPane(log_area)
 
-  def log_progress(): Document_Editor.Log_Progress =
+  def log_progress(only_running: Boolean = false): Document_Editor.Log_Progress =
     new Document_Editor.Log_Progress(PIDE.session) {
       override def show(text: String): Unit =
         if (text != log_area.text) {
@@ -114,6 +114,8 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
           val vertical = scroll_log_area.peer.getVerticalScrollBar
           vertical.setValue(vertical.getMaximum)
         }
+      override def echo(msg: String): Unit =
+        if (!only_running || Document_Build.is_running_script(msg)) super.echo(msg)
     }
 
 
@@ -131,11 +133,13 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
   private def finish_process(output: List[XML.Tree]): Unit =
     current_state.change(_.finish(output))
 
-  private def run_process(body: Document_Editor.Log_Progress => Unit): Boolean = {
+  private def run_process(only_running: Boolean = false)(
+    body: Document_Editor.Log_Progress => Unit
+  ): Boolean = {
     val started =
       current_state.change_result { st =>
         if (st.process.is_finished) {
-          val progress = log_progress()
+          val progress = log_progress(only_running = only_running)
           val process =
             Future.thread[Unit](name = "Document_Dockable.process") {
               await_process()
@@ -151,7 +155,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
 
   private def load_document(session: String): Boolean = {
     val options = PIDE.options.value
-    run_process { _ =>
+    run_process() { _ =>
       try {
         val session_background =
           Document_Build.session_background(
@@ -212,7 +216,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
   private def build_document(): Unit = {
     PIDE.editor.document_session() match {
       case Some(session_background) if session_background.info.documents.nonEmpty =>
-        run_process { progress =>
+        run_process(only_running = true) { progress =>
           show_page(log_page)
           val result = Exn.capture { document_build(session_background, progress) }
           val msgs =
