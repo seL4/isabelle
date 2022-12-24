@@ -617,6 +617,74 @@ lemma ex_gt_or_lt: "\<exists>b. a < b \<or> b < a"
 
 end
 
+
+context
+  fixes f::"'a \<Rightarrow> 'b::{conditionally_complete_linorder,ordered_ab_group_add}"
+begin
+
+lemma bdd_above_uminus_image: "bdd_above ((\<lambda>x. - f x) ` A) \<longleftrightarrow> bdd_below (f ` A)"
+  by (metis bdd_above_uminus image_image)
+
+lemma bdd_below_uminus_image: "bdd_below ((\<lambda>x. - f x) ` A) \<longleftrightarrow> bdd_above (f ` A)"
+  by (metis bdd_below_uminus image_image)
+
+lemma uminus_cSUP:
+  assumes "bdd_above (f ` A)" "A \<noteq> {}"
+  shows  "- (SUP x\<in>A. f x) = (INF x\<in>A. - f x)"
+proof (rule antisym)
+  show "(INF x\<in>A. - f x) \<le> - Sup (f ` A)"
+    by (metis cINF_lower cSUP_least bdd_below_uminus_image assms le_minus_iff)
+  have *: "\<And>x. x \<in>A \<Longrightarrow> f x \<le> Sup (f ` A)"
+    by (simp add: assms cSup_upper)
+  then show "- Sup (f ` A) \<le> (INF x\<in>A. - f x)"
+    by (simp add: assms cINF_greatest)
+qed
+
+end
+
+context
+  fixes f::"'a \<Rightarrow> 'b::{conditionally_complete_linorder,ordered_ab_group_add}"
+begin
+
+lemma uminus_cINF:
+  assumes "bdd_below (f ` A)" "A \<noteq> {}"
+  shows  "- (INF x\<in>A. f x) = (SUP x\<in>A. - f x)"
+  by (metis (mono_tags, lifting) INF_cong uminus_cSUP assms bdd_above_uminus_image minus_equation_iff)
+
+lemma Sup_add_eq:
+  assumes "bdd_above (f ` A)" "A \<noteq> {}"
+  shows  "(SUP x\<in>A. a + f x) = a + (SUP x\<in>A. f x)" (is "?L=?R")
+proof (rule antisym)
+  have bdd: "bdd_above ((\<lambda>x. a + f x) ` A)"
+    by (metis assms bdd_above_image_mono image_image mono_add)
+  with assms show "?L \<le> ?R"
+    by (simp add: assms cSup_le_iff cSUP_upper)
+  have "\<And>x. x \<in> A \<Longrightarrow> f x \<le> (SUP x\<in>A. a + f x) - a"
+    by (simp add: bdd cSup_upper le_diff_eq)
+  with \<open>A \<noteq> {}\<close> have "\<Squnion> (f ` A) \<le> (\<Squnion>x\<in>A. a + f x) - a"
+    by (simp add: cSUP_least)
+  then show "?R \<le> ?L"
+    by (metis add.commute le_diff_eq)
+qed 
+
+lemma Inf_add_eq: \<comment>\<open>you don't get a shorter proof by duality\<close>
+  assumes "bdd_below (f ` A)" "A \<noteq> {}"
+  shows  "(INF x\<in>A. a + f x) = a + (INF x\<in>A. f x)" (is "?L=?R")
+proof (rule antisym)
+  show "?R \<le> ?L"
+    using assms mono_add mono_cINF by blast
+  have bdd: "bdd_below ((\<lambda>x. a + f x) ` A)"
+    by (metis add_left_mono assms(1) bdd_below.E bdd_below.I2 imageI)
+  with assms have "\<And>x. x \<in> A \<Longrightarrow> f x \<ge> (INF x\<in>A. a + f x) - a"
+    by (simp add: cInf_lower diff_le_eq)
+  with \<open>A \<noteq> {}\<close> have "(\<Sqinter>x\<in>A. a + f x) - a \<le> \<Sqinter> (f ` A)"
+    by (simp add: cINF_greatest)
+  with assms show "?L \<le> ?R"
+    by (metis add.commute diff_le_eq)
+qed 
+
+end
+
 instantiation nat :: conditionally_complete_linorder
 begin
 
