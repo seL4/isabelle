@@ -60,7 +60,7 @@ object Isabelle {
   def buffer_syntax(buffer: JEditBuffer): Option[Outer_Syntax] =
     if (buffer == null) None
     else
-      (JEdit_Lib.buffer_mode(buffer), Document_Model.get(buffer)) match {
+      (JEdit_Lib.buffer_mode(buffer), Document_Model.get_model(buffer)) match {
         case ("isabelle", Some(model)) =>
           Some(PIDE.session.recent_syntax(model.node_name))
         case (mode, _) => mode_syntax(mode)
@@ -328,7 +328,7 @@ object Isabelle {
   ): Unit = {
     val buffer = text_area.getBuffer
     if (!snapshot.is_outdated && text != "") {
-      (snapshot.find_command(id), Document_Model.get(buffer)) match {
+      (snapshot.find_command(id), Document_Model.get_model(buffer)) match {
         case (Some((node, command)), Some(model)) if command.node_name == model.node_name =>
           node.command_start(command) match {
             case Some(start) =>

@@ -86,7 +86,7 @@ extends Resources(session_background) {
   }
 
   def get_file_content(node_name: Document.Node.Name): Option[String] =
-    Document_Model.get(node_name) match {
+    Document_Model.get_model(node_name) match {
       case Some(model: Buffer_Model) => Some(JEdit_Lib.buffer_text(model.buffer))
       case Some(model: File_Model) => Some(model.content.text)
       case None => read_file_content(node_name)
@@ -94,7 +94,7 @@ extends Resources(session_background) {
 
   override def with_thy_reader[A](name: Document.Node.Name, f: Reader[Char] => A): A = {
     GUI_Thread.now {
-      Document_Model.get(name) match {
+      Document_Model.get_model(name) match {
         case Some(model: Buffer_Model) =>
           JEdit_Lib.buffer_lock(model.buffer) { Some(f(JEdit_Lib.buffer_reader(model.buffer))) }
         case Some(model: File_Model) => Some(f(Scan.char_reader(model.content.text)))

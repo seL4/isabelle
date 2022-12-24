@@ -235,7 +235,7 @@ class Main_Plugin extends EBPlugin {
   def init_view(buffer: Buffer, text_area: JEditTextArea): Unit =
     GUI_Thread.now {
       JEdit_Lib.buffer_lock(buffer) {
-        Document_Model.get(buffer) match {
+        Document_Model.get_model(buffer) match {
           case Some(model) => Document_View.init(model, text_area)
           case None =>
         }

@@ -85,16 +85,17 @@ object Document_Model {
   def document_blobs(): Document.Blobs = state.value.document_blobs
 
   def get_models(): Map[Document.Node.Name, Document_Model] = state.value.models
-  def get(name: Document.Node.Name): Option[Document_Model] = get_models().get(name)
-  def get(buffer: JEditBuffer): Option[Buffer_Model] = state.value.buffer_models.get(buffer)
+  def get_model(name: Document.Node.Name): Option[Document_Model] = get_models().get(name)
+  def get_model(buffer: JEditBuffer): Option[Buffer_Model] =
+    state.value.buffer_models.get(buffer)
 
   def snapshot(model: Document_Model): Document.Snapshot =
     PIDE.session.snapshot(
       node_name = model.node_name,
       pending_edits = Document.Pending_Edits.make(get_models().values))
 
-  def get_snapshot(name: Document.Node.Name): Option[Document.Snapshot] = get(name).map(snapshot)
-  def get_snapshot(buffer: JEditBuffer): Option[Document.Snapshot] = get(buffer).map(snapshot)
+  def get_snapshot(name: Document.Node.Name): Option[Document.Snapshot] = get_model(name).map(snapshot)
+  def get_snapshot(buffer: JEditBuffer): Option[Document.Snapshot] = get_model(buffer).map(snapshot)
 
 
   /* bibtex */
@@ -226,7 +227,7 @@ object Document_Model {
     toggle: Boolean = false,
     set: Boolean = false
   ): Unit =
-    Document_Model.get(view.getBuffer).foreach(model =>
+    Document_Model.get_model(view.getBuffer).foreach(model =>
       node_required(model.node_name, toggle = toggle, set = set))
 
 
@@ -298,7 +299,7 @@ object Document_Model {
   /* HTTP preview */
 
   def open_preview(view: View, plain_text: Boolean): Unit = {
-    Document_Model.get(view.getBuffer) match {
+    Document_Model.get_model(view.getBuffer) match {
       case Some(model) =>
         val url = Preview_Service.server_url(plain_text, model.node_name)
         PIDE.editor.hyperlink_url(url).follow(view)
@@ -319,7 +320,7 @@ object Document_Model {
       for {
         query <- request.decode_query
         name = Library.perhaps_unprefix(plain_text_prefix, query)
-        model <- get(PIDE.resources.node_name(name))
+        model <- get_model(PIDE.resources.node_name(name))
       }
       yield {
         val snapshot = model.await_stable_snapshot()

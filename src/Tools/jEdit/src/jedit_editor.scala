@@ -67,7 +67,7 @@ class JEdit_Editor extends Editor[View] {
   /* current situation */
 
   override def current_node(view: View): Option[Document.Node.Name] =
-    GUI_Thread.require { Document_Model.get(view.getBuffer).map(_.node_name) }
+    GUI_Thread.require { Document_Model.get_model(view.getBuffer).map(_.node_name) }
 
   override def current_node_snapshot(view: View): Option[Document.Snapshot] =
     GUI_Thread.require { Document_Model.get_snapshot(view.getBuffer) }
@@ -85,7 +85,7 @@ class JEdit_Editor extends Editor[View] {
       case Some(doc_view) if doc_view.model.is_theory =>
         snapshot.current_command(doc_view.model.node_name, text_area.getCaretPosition)
       case _ =>
-        Document_Model.get(buffer) match {
+        Document_Model.get_model(buffer) match {
           case Some(model) if !model.is_theory =>
             snapshot.version.nodes.commands_loading(model.node_name).headOption
           case _ => None
