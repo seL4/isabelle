@@ -439,9 +439,7 @@ object Sessions {
               try { Path.check_case_insensitive(session_files ::: imported_files); Nil }
               catch { case ERROR(msg) => List(msg) }
 
-            val bibtex_errors =
-              try { info.bibtex_entries; Nil }
-              catch { case ERROR(msg) => List(msg) }
+            val bibtex_errors = info.bibtex_entries.errors
 
             val base =
               Base(
@@ -640,12 +638,13 @@ object Sessions {
     def browser_info: Boolean = options.bool("browser_info")
 
     lazy val bibtex_entries: Bibtex.Entries =
-      Bibtex.Entries(
-        (for {
-          (document_dir, file) <- document_files.iterator
-          if File.is_bib(file.file_name)
-          info <- Bibtex.Entries.parse(File.read(dir + document_dir + file)).iterator
-        } yield info).toList)
+      (for {
+        (document_dir, file) <- document_files.iterator
+        if File.is_bib(file.file_name)
+      } yield {
+        val path = dir + document_dir + file
+        Bibtex.Entries.parse(File.read(path))
+      }).foldRight(Bibtex.Entries.empty)(_ ::: _)
 
     def record_proofs: Boolean = options.int("record_proofs") >= 2
 

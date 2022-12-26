@@ -38,7 +38,7 @@ object VSCode_Model {
 
     lazy val bytes: Bytes = Bytes(Symbol.encode(text))
     lazy val chunk: Symbol.Text_Chunk = Symbol.Text_Chunk(text)
-    lazy val bibtex_entries: Bibtex.Entries = Bibtex.Entries.try_parse(text)
+    lazy val bibtex_entries: Bibtex.Entries = Bibtex.Entries.parse(text)
 
     def recode_symbols: List[LSP.TextEdit] =
       (for {

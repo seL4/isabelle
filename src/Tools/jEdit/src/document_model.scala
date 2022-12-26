@@ -291,7 +291,7 @@ object Document_Model {
   sealed case class File_Content(text: String) {
     lazy val bytes: Bytes = Bytes(Symbol.encode(text))
     lazy val chunk: Symbol.Text_Chunk = Symbol.Text_Chunk(text)
-    lazy val bibtex_entries: Bibtex.Entries = Bibtex.Entries.try_parse(text)
+    lazy val bibtex_entries: Bibtex.Entries = Bibtex.Entries.parse(text)
   }
 
 
@@ -595,9 +595,8 @@ extends Document_Model {
       if (File.is_bib(node_name.node)) {
         bibtex_entries getOrElse {
           val text = JEdit_Lib.buffer_text(buffer)
-          val entries =
-            try { Bibtex.Entries.parse(text) }
-            catch { case ERROR(msg) => Output.warning(msg); Bibtex.Entries.empty }
+          val entries = Bibtex.Entries.parse(text)
+          if (entries.errors.nonEmpty) Output.warning(cat_lines(entries.errors))
           bibtex_entries = Some(entries)
           entries
         }

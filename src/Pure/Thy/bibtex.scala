@@ -157,34 +157,36 @@ object Bibtex {
   object Entries {
     val empty: Entries = apply(Nil)
 
-    def apply(entries: List[Text.Info[String]]): Entries = new Entries(entries)
+    def apply(entries: List[Text.Info[String]], errors: List[String] = Nil): Entries =
+      new Entries(entries, errors)
 
     def parse(text: String): Entries = {
-      val result = new mutable.ListBuffer[Text.Info[String]]
+      val entries = new mutable.ListBuffer[Text.Info[String]]
       var offset = 0
-      for (chunk <- Bibtex.parse(text)) {
-        val end_offset = offset + chunk.source.length
-        if (chunk.name != "" && !chunk.is_command)
-          result += Text.Info(Text.Range(offset, end_offset), chunk.name)
-        offset = end_offset
-      }
-      apply(result.toList)
-    }
 
-    def try_parse(text: String): Entries =
-      try { parse(text) }
-      catch { case ERROR(_) => empty }
+      try {
+        for (chunk <- Bibtex.parse(text)) {
+          val end_offset = offset + chunk.source.length
+          if (chunk.name != "" && !chunk.is_command) {
+            entries += Text.Info(Text.Range(offset, end_offset), chunk.name)
+          }
+          offset = end_offset
+        }
+        apply(entries.toList)
+      }
+      catch { case ERROR(msg) => apply(Nil, errors = List(msg)) }
+    }
 
     def iterator[A <: Document.Model](models: Iterable[A]): Iterator[Text.Info[(String, A)]] =
       for {
         model <- models.iterator
-        info <- model.bibtex_entries
+        info <- model.bibtex_entries.entries.iterator
       } yield info.map((_, model))
   }
 
-  final class Entries private(val entries: List[Text.Info[String]])
-  extends Iterable[Text.Info[String]] {
-    def iterator: Iterator[Text.Info[String]] = entries.iterator
+  final class Entries private(val entries: List[Text.Info[String]], val errors: List[String]) {
+    def ::: (other: Entries): Entries =
+      new Entries(entries ::: other.entries, errors ::: other.errors)
   }
 
 
