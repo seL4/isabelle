@@ -132,7 +132,7 @@ object Document_Model {
           text <- PIDE.resources.read_file_content(node_name)
           if model.content.text != text
         } yield {
-          val content = Document_Model.File_Content(text)
+          val content = Document_Model.File_Content(node_name, text)
           val edits = Text.Edit.replace(0, model.content.text, text)
           (node_name, model.copy(content = content, pending_edits = model.pending_edits ::: edits))
         }).toList
@@ -288,10 +288,18 @@ object Document_Model {
 
   /* file content */
 
-  sealed case class File_Content(text: String) {
+  object File_Content {
+    val empty: File_Content = apply(Document.Node.Name.empty, "")
+
+    def apply(node_name: Document.Node.Name, text: String): File_Content =
+      new File_Content(node_name, text)
+  }
+
+  final class File_Content private(val node_name: Document.Node.Name, val text: String) {
+    override def toString: String = "Document_Model.File_Content(" + node_name.node + ")"
     lazy val bytes: Bytes = Bytes(Symbol.encode(text))
     lazy val chunk: Symbol.Text_Chunk = Symbol.Text_Chunk(text)
-    lazy val bibtex_entries: Bibtex.Entries = Bibtex.Entries.parse(text)
+    lazy val bibtex_entries: Bibtex.Entries = Bibtex.Entries.parse(text, file_pos = node_name.node)
   }
 
 
@@ -384,7 +392,7 @@ sealed abstract class Document_Model extends Document.Model {
 
 object File_Model {
   def empty(session: Session): File_Model =
-    File_Model(session, Document.Node.Name.empty, None, Document_Model.File_Content(""),
+    File_Model(session, None, Document_Model.File_Content.empty,
       false, Document.Node.Perspective_Text.empty, Nil)
 
   def init(session: Session,
@@ -397,30 +405,31 @@ object File_Model {
     val file = JEdit_Lib.check_file(node_name.node)
     file.foreach(PIDE.plugin.file_watcher.register_parent(_))
 
-    val content = Document_Model.File_Content(text)
+    val content = Document_Model.File_Content(node_name, text)
     val node_required1 = node_required || File_Format.registry.is_theory(node_name)
-    File_Model(session, node_name, file, content, node_required1, last_perspective, pending_edits)
+    File_Model(session, file, content, node_required1, last_perspective, pending_edits)
   }
 }
 
 case class File_Model(
   session: Session,
-  node_name: Document.Node.Name,
   file: Option[JFile],
   content: Document_Model.File_Content,
   node_required: Boolean,
   last_perspective: Document.Node.Perspective_Text.T,
   pending_edits: List[Text.Edit]
 ) extends Document_Model {
-  /* required */
+  /* content */
 
-  def set_node_required(b: Boolean): File_Model = copy(node_required = b)
-
-
-  /* text */
+  def node_name: Document.Node.Name = content.node_name
 
   def get_text(range: Text.Range): Option[String] =
     range.try_substring(content.text)
+
+
+  /* required */
+
+  def set_node_required(b: Boolean): File_Model = copy(node_required = b)
 
 
   /* header */
@@ -450,7 +459,7 @@ case class File_Model(
     Text.Edit.replace(0, content.text, text) match {
       case Nil => None
       case edits =>
-        val content1 = Document_Model.File_Content(text)
+        val content1 = Document_Model.File_Content(node_name, text)
         val pending_edits1 = pending_edits ::: edits
         Some(copy(content = content1, pending_edits = pending_edits1))
     }
@@ -595,7 +604,7 @@ extends Document_Model {
       if (File.is_bib(node_name.node)) {
         bibtex_entries getOrElse {
           val text = JEdit_Lib.buffer_text(buffer)
-          val entries = Bibtex.Entries.parse(text)
+          val entries = Bibtex.Entries.parse(text, file_pos = node_name.node)
           if (entries.errors.nonEmpty) Output.warning(cat_lines(entries.errors))
           bibtex_entries = Some(entries)
           entries
