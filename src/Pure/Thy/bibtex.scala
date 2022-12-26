@@ -160,9 +160,11 @@ object Bibtex {
     def apply(entries: List[Text.Info[String]], errors: List[String] = Nil): Entries =
       new Entries(entries, errors)
 
-    def parse(text: String): Entries = {
+    def parse(text: String, file_pos: String = ""): Entries = {
       val entries = new mutable.ListBuffer[Text.Info[String]]
       var offset = 0
+      var line = 1
+      var err_line = 0
 
       try {
         for (chunk <- Bibtex.parse(text)) {
@@ -170,9 +172,19 @@ object Bibtex {
           if (chunk.name != "" && !chunk.is_command) {
             entries += Text.Info(Text.Range(offset, end_offset), chunk.name)
           }
+          if (chunk.is_malformed && err_line == 0) { err_line = line }
           offset = end_offset
+          line += chunk.source.count(_ == '\n')
         }
-        apply(entries.toList)
+
+        val err_pos =
+          if (err_line == 0 || file_pos.isEmpty) Position.none
+          else Position.Line_File(err_line, file_pos)
+        val errors =
+          if (err_line == 0) Nil
+          else List("Malformed bibtex file" + Position.here(err_pos))
+
+        apply(entries.toList, errors = errors)
       }
       catch { case ERROR(msg) => apply(Nil, errors = List(msg)) }
     }
@@ -396,7 +408,7 @@ object Bibtex {
       }
 
     def is_ignored: Boolean = kind == "" && tokens.forall(_.is_ignored)
-    def is_malformed: Boolean = kind == "" || tokens.exists(_.is_malformed)
+    def is_malformed: Boolean = tokens.exists(_.is_malformed)
     def is_command: Boolean = Bibtex.is_command(kind) && name != "" && content.isDefined
     def is_entry: Boolean = Bibtex.is_entry(kind) && name != "" && content.isDefined
   }

@@ -643,7 +643,7 @@ object Sessions {
         if File.is_bib(file.file_name)
       } yield {
         val path = dir + document_dir + file
-        Bibtex.Entries.parse(File.read(path))
+        Bibtex.Entries.parse(File.read(path), file_pos = path.expand.implode)
       }).foldRight(Bibtex.Entries.empty)(_ ::: _)
 
     def record_proofs: Boolean = options.int("record_proofs") >= 2
