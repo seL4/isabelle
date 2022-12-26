@@ -718,11 +718,11 @@ lemma trans_singleton [simp]: "trans {(a, a)}"
 lemma transp_singleton [simp]: "transp (\<lambda>x y. x = a \<and> y = a)"
   by (simp add: transp_def)
 
-lemma asym_on_iff_irrefl_on_if_trans: "trans r \<Longrightarrow> asym_on A r \<longleftrightarrow> irrefl_on A r"
-  by (auto intro: irrefl_onI dest: transD asym_onD irrefl_onD)
+lemma asym_on_iff_irrefl_on_if_trans_on: "trans_on A r \<Longrightarrow> asym_on A r \<longleftrightarrow> irrefl_on A r"
+  by (auto intro: irrefl_on_if_asym_on dest: trans_onD irrefl_onD)
 
-lemma asymp_on_iff_irreflp_on_if_transp: "transp R \<Longrightarrow> asymp_on A R \<longleftrightarrow> irreflp_on A R"
-  by (rule asym_on_iff_irrefl_on_if_trans[to_pred])
+lemma asymp_on_iff_irreflp_on_if_transp_on: "transp_on A R \<Longrightarrow> asymp_on A R \<longleftrightarrow> irreflp_on A R"
+  by (rule asym_on_iff_irrefl_on_if_trans_on[to_pred])
 
 lemma (in preorder) transp_on_le[simp]: "transp_on A (\<le>)"
   by (auto intro: transp_onI order_trans)
