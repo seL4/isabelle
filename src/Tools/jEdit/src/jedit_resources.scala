@@ -116,7 +116,7 @@ extends Resources(session_background) {
     def content(): Bytes = Bytes(this.buf, 0, this.count)
   }
 
-  private class File_Content(buffer: Buffer)
+  private class File_Content_Request(buffer: Buffer)
   extends BufferIORequest(null, buffer, null, VFSManager.getVFSForPath(buffer.getPath), buffer.getPath) {
     def _run(): Unit = {}
     def content(): Bytes = {
@@ -126,7 +126,7 @@ extends Resources(session_background) {
     }
   }
 
-  def make_file_content(buffer: Buffer): Bytes = (new File_Content(buffer)).content()
+  def make_file_content(buffer: Buffer): Bytes = (new File_Content_Request(buffer)).content()
 
 
   /* theory text edits */

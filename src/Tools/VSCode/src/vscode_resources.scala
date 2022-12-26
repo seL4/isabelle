@@ -113,8 +113,8 @@ extends Resources(session_background, log = log) {
     else File.absolute_name(new JFile(dir + JFile.separator + File.platform_path(path)))
   }
 
-  def get_models(): Map[JFile, VSCode_Model] = state.value.models
-  def get_model(file: JFile): Option[VSCode_Model] = get_models().get(file)
+  def get_models(): Iterable[VSCode_Model] = state.value.models.values
+  def get_model(file: JFile): Option[VSCode_Model] = state.value.models.get(file)
   def get_model(name: Document.Node.Name): Option[VSCode_Model] = get_model(node_file(name))
 
 
@@ -123,7 +123,7 @@ extends Resources(session_background, log = log) {
   def snapshot(model: VSCode_Model): Document.Snapshot =
     model.session.snapshot(
       node_name = model.node_name,
-      pending_edits = Document.Pending_Edits.make(get_models().values))
+      pending_edits = Document.Pending_Edits.make(get_models()))
 
   def get_snapshot(file: JFile): Option[Document.Snapshot] =
     get_model(file).map(snapshot)

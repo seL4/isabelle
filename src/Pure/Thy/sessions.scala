@@ -439,9 +439,7 @@ object Sessions {
               try { Path.check_case_insensitive(session_files ::: imported_files); Nil }
               catch { case ERROR(msg) => List(msg) }
 
-            val bibtex_errors =
-              try { info.bibtex_entries; Nil }
-              catch { case ERROR(msg) => List(msg) }
+            val bibtex_errors = info.bibtex_entries.errors
 
             val base =
               Base(
@@ -639,12 +637,14 @@ object Sessions {
 
     def browser_info: Boolean = options.bool("browser_info")
 
-    lazy val bibtex_entries: List[Text.Info[String]] =
+    lazy val bibtex_entries: Bibtex.Entries =
       (for {
         (document_dir, file) <- document_files.iterator
         if File.is_bib(file.file_name)
-        info <- Bibtex.entries(File.read(dir + document_dir + file)).iterator
-      } yield info).toList
+      } yield {
+        val path = dir + document_dir + file
+        Bibtex.Entries.parse(File.read(path), file_pos = path.expand.implode)
+      }).foldRight(Bibtex.Entries.empty)(_ ::: _)
 
     def record_proofs: Boolean = options.int("record_proofs") >= 2
 
@@ -923,11 +923,12 @@ object Sessions {
     def imports_topological_order: List[String] = imports_graph.topological_order
 
     def bibtex_entries: List[(String, List[String])] =
-      build_topological_order.flatMap(name =>
-        apply(name).bibtex_entries match {
+      build_topological_order.flatMap { name =>
+        apply(name).bibtex_entries.entries match {
           case Nil => None
           case entries => Some(name -> entries.map(_.info))
-        })
+        }
+      }
 
     override def toString: String =
       imports_graph.keys_iterator.mkString("Sessions.Structure(", ", ", ")")

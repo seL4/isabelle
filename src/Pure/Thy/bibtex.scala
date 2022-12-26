@@ -154,35 +154,61 @@ object Bibtex {
 
   /* entries */
 
-  def entries(text: String): List[Text.Info[String]] = {
-    val result = new mutable.ListBuffer[Text.Info[String]]
-    var offset = 0
-    for (chunk <- Bibtex.parse(text)) {
-      val end_offset = offset + chunk.source.length
-      if (chunk.name != "" && !chunk.is_command)
-        result += Text.Info(Text.Range(offset, end_offset), chunk.name)
-      offset = end_offset
+  object Entries {
+    val empty: Entries = apply(Nil)
+
+    def apply(entries: List[Text.Info[String]], errors: List[String] = Nil): Entries =
+      new Entries(entries, errors)
+
+    def parse(text: String, file_pos: String = ""): Entries = {
+      val entries = new mutable.ListBuffer[Text.Info[String]]
+      var offset = 0
+      var line = 1
+      var err_line = 0
+
+      try {
+        for (chunk <- Bibtex.parse(text)) {
+          val end_offset = offset + chunk.source.length
+          if (chunk.name != "" && !chunk.is_command) {
+            entries += Text.Info(Text.Range(offset, end_offset), chunk.name)
+          }
+          if (chunk.is_malformed && err_line == 0) { err_line = line }
+          offset = end_offset
+          line += chunk.source.count(_ == '\n')
+        }
+
+        val err_pos =
+          if (err_line == 0 || file_pos.isEmpty) Position.none
+          else Position.Line_File(err_line, file_pos)
+        val errors =
+          if (err_line == 0) Nil
+          else List("Malformed bibtex file" + Position.here(err_pos))
+
+        apply(entries.toList, errors = errors)
+      }
+      catch { case ERROR(msg) => apply(Nil, errors = List(msg)) }
     }
-    result.toList
+
+    def iterator[A <: Document.Model](models: Iterable[A]): Iterator[Text.Info[(String, A)]] =
+      for {
+        model <- models.iterator
+        info <- model.bibtex_entries.entries.iterator
+      } yield info.map((_, model))
   }
 
-  def entries_iterator[A, B <: Document.Model](
-    models: Map[A, B]
-  ): Iterator[Text.Info[(String, B)]] = {
-    for {
-      (_, model) <- models.iterator
-      info <- model.bibtex_entries.iterator
-    } yield info.map((_, model))
+  final class Entries private(val entries: List[Text.Info[String]], val errors: List[String]) {
+    def ::: (other: Entries): Entries =
+      new Entries(entries ::: other.entries, errors ::: other.errors)
   }
 
 
   /* completion */
 
-  def completion[A, B <: Document.Model](
+  def completion[A <: Document.Model](
     history: Completion.History,
     rendering: Rendering,
     caret: Text.Offset,
-    models: Map[A, B]
+    models: Iterable[A]
   ): Option[Completion.Result] = {
     for {
       Text.Info(r, name) <- rendering.citations(rendering.before_caret_range(caret)).headOption
@@ -193,7 +219,7 @@ object Bibtex {
 
       entries =
         (for {
-          Text.Info(_, (entry, _)) <- entries_iterator(models)
+          Text.Info(_, (entry, _)) <- Entries.iterator(models)
           if entry.toLowerCase.containsSlice(name1.toLowerCase) && entry != original1
         } yield entry).toList
       if entries.nonEmpty
@@ -382,7 +408,7 @@ object Bibtex {
       }
 
     def is_ignored: Boolean = kind == "" && tokens.forall(_.is_ignored)
-    def is_malformed: Boolean = kind == "" || tokens.exists(_.is_malformed)
+    def is_malformed: Boolean = tokens.exists(_.is_malformed)
     def is_command: Boolean = Bibtex.is_command(kind) && name != "" && content.isDefined
     def is_entry: Boolean = Bibtex.is_entry(kind) && name != "" && content.isDefined
   }

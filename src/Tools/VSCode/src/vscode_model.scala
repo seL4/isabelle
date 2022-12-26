@@ -26,11 +26,7 @@ object VSCode_Model {
 
   /* content */
 
-  object Content {
-    val empty: Content = Content(Line.Document.empty)
-  }
-
-  sealed case class Content(doc: Line.Document) {
+  sealed case class Content(node_name: Document.Node.Name, doc: Line.Document) {
     override def toString: String = doc.toString
     def text_length: Text.Offset = doc.text_length
     def text_range: Text.Range = doc.text_range
@@ -38,9 +34,7 @@ object VSCode_Model {
 
     lazy val bytes: Bytes = Bytes(Symbol.encode(text))
     lazy val chunk: Symbol.Text_Chunk = Symbol.Text_Chunk(text)
-    lazy val bibtex_entries: List[Text.Info[String]] =
-      try { Bibtex.entries(text) }
-      catch { case ERROR(_) => Nil }
+    lazy val bibtex_entries: Bibtex.Entries = Bibtex.Entries.parse(text, file_pos = node_name.node)
 
     def recode_symbols: List[LSP.TextEdit] =
       (for {
@@ -58,15 +52,15 @@ object VSCode_Model {
     editor: Language_Server.Editor,
     node_name: Document.Node.Name
   ): VSCode_Model = {
-    VSCode_Model(session, editor, node_name, Content.empty,
-      node_required = File_Format.registry.is_theory(node_name))
+    val content = Content(node_name, Line.Document.empty)
+    val is_theory = File_Format.registry.is_theory(node_name)
+    VSCode_Model(session, editor, content, node_required = is_theory)
   }
 }
 
 sealed case class VSCode_Model(
   session: Session,
   editor: Language_Server.Editor,
-  node_name: Document.Node.Name,
   content: VSCode_Model.Content,
   version: Option[Long] = None,
   external_file: Boolean = false,
@@ -80,6 +74,8 @@ sealed case class VSCode_Model(
 
 
   /* content */
+
+  def node_name: Document.Node.Name = content.node_name
 
   def get_text(range: Text.Range): Option[String] = content.doc.get_text(range)
 
@@ -153,8 +149,7 @@ sealed case class VSCode_Model(
 
   /* bibtex entries */
 
-  def bibtex_entries: List[Text.Info[String]] =
-    model.content.bibtex_entries
+  def bibtex_entries: Bibtex.Entries = model.content.bibtex_entries
 
 
   /* edits */
@@ -166,7 +161,7 @@ sealed case class VSCode_Model(
         Text.Edit.replace(0, content.text, insert) match {
           case Nil => None
           case edits =>
-            val content1 = VSCode_Model.Content(Line.Document(insert))
+            val content1 = VSCode_Model.Content(node_name, Line.Document(insert))
             Some(copy(content = content1, pending_edits = pending_edits ::: edits))
         }
       case Some(remove) =>
@@ -174,7 +169,7 @@ sealed case class VSCode_Model(
           case None => error("Failed to apply document change: " + remove)
           case Some((Nil, _)) => None
           case Some((edits, doc1)) =>
-            val content1 = VSCode_Model.Content(doc1)
+            val content1 = VSCode_Model.Content(node_name, doc1)
             Some(copy(content = content1, pending_edits = pending_edits ::: edits))
         }
     }
