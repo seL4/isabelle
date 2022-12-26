@@ -78,10 +78,10 @@ extends Rendering(snapshot, model.resources.options, model.session) {
   /* bibtex */
 
   def bibtex_entries_iterator(): Iterator[Text.Info[(String, VSCode_Model)]] =
-    Bibtex.entries_iterator(resources.get_models())
+    Bibtex.Entries.iterator(resources.get_models().values)
 
   def bibtex_completion(history: Completion.History, caret: Text.Offset): Option[Completion.Result] =
-    Bibtex.completion(history, rendering, caret, resources.get_models())
+    Bibtex.completion(history, rendering, caret, resources.get_models().values)
 
 
   /* completion */

@@ -639,12 +639,13 @@ object Sessions {
 
     def browser_info: Boolean = options.bool("browser_info")
 
-    lazy val bibtex_entries: List[Text.Info[String]] =
-      (for {
-        (document_dir, file) <- document_files.iterator
-        if File.is_bib(file.file_name)
-        info <- Bibtex.entries(File.read(dir + document_dir + file)).iterator
-      } yield info).toList
+    lazy val bibtex_entries: Bibtex.Entries =
+      Bibtex.Entries(
+        (for {
+          (document_dir, file) <- document_files.iterator
+          if File.is_bib(file.file_name)
+          info <- Bibtex.Entries.parse(File.read(dir + document_dir + file)).iterator
+        } yield info).toList)
 
     def record_proofs: Boolean = options.int("record_proofs") >= 2
 
@@ -923,11 +924,12 @@ object Sessions {
     def imports_topological_order: List[String] = imports_graph.topological_order
 
     def bibtex_entries: List[(String, List[String])] =
-      build_topological_order.flatMap(name =>
-        apply(name).bibtex_entries match {
+      build_topological_order.flatMap { name =>
+        apply(name).bibtex_entries.entries match {
           case Nil => None
           case entries => Some(name -> entries.map(_.info))
-        })
+        }
+      }
 
     override def toString: String =
       imports_graph.keys_iterator.mkString("Sessions.Structure(", ", ", ")")

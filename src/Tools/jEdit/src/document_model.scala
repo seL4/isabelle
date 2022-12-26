@@ -101,11 +101,11 @@ object Document_Model {
   /* bibtex */
 
   def bibtex_entries_iterator(): Iterator[Text.Info[(String, Document_Model)]] =
-    Bibtex.entries_iterator(state.value.models)
+    Bibtex.Entries.iterator(get_models().values)
 
   def bibtex_completion(history: Completion.History, rendering: Rendering, caret: Text.Offset)
       : Option[Completion.Result] =
-    Bibtex.completion(history, rendering, caret, state.value.models)
+    Bibtex.completion(history, rendering, caret, get_models().values)
 
 
   /* overlays */
@@ -290,9 +290,7 @@ object Document_Model {
   sealed case class File_Content(text: String) {
     lazy val bytes: Bytes = Bytes(Symbol.encode(text))
     lazy val chunk: Symbol.Text_Chunk = Symbol.Text_Chunk(text)
-    lazy val bibtex_entries: List[Text.Info[String]] =
-      try { Bibtex.entries(text) }
-      catch { case ERROR(_) => Nil }
+    lazy val bibtex_entries: Bibtex.Entries = Bibtex.Entries.try_parse(text)
   }
 
 
@@ -441,8 +439,8 @@ case class File_Model(
     if (is_theory) None
     else Some(Document.Blob(content.bytes, content.text, content.chunk, pending_edits.nonEmpty))
 
-  def bibtex_entries: List[Text.Info[String]] =
-    if (File.is_bib(node_name.node)) content.bibtex_entries else Nil
+  def bibtex_entries: Bibtex.Entries =
+    if (File.is_bib(node_name.node)) content.bibtex_entries else Bibtex.Entries.empty
 
 
   /* edits */
@@ -588,22 +586,22 @@ extends Document_Model {
 
     // bibtex entries
 
-    private var bibtex_entries: Option[List[Text.Info[String]]] = None
+    private var bibtex_entries: Option[Bibtex.Entries] = None
 
     def reset_bibtex_entries(): Unit = GUI_Thread.require { bibtex_entries = None }
 
-    def get_bibtex_entries: List[Text.Info[String]] = GUI_Thread.require {
+    def get_bibtex_entries: Bibtex.Entries = GUI_Thread.require {
       if (File.is_bib(node_name.node)) {
         bibtex_entries getOrElse {
           val text = JEdit_Lib.buffer_text(buffer)
           val entries =
-            try { Bibtex.entries(text) }
-            catch { case ERROR(msg) => Output.warning(msg); Nil }
+            try { Bibtex.Entries.parse(text) }
+            catch { case ERROR(msg) => Output.warning(msg); Bibtex.Entries.empty }
           bibtex_entries = Some(entries)
           entries
         }
       }
-      else Nil
+      else Bibtex.Entries.empty
     }
   }
 
@@ -617,7 +615,7 @@ extends Document_Model {
 
   def get_blob: Option[Document.Blob] = buffer_state.get_blob
 
-  def bibtex_entries: List[Text.Info[String]] = buffer_state.get_bibtex_entries
+  def bibtex_entries: Bibtex.Entries = buffer_state.get_bibtex_entries
 
 
   /* buffer listener */

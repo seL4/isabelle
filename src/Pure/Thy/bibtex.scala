@@ -154,35 +154,47 @@ object Bibtex {
 
   /* entries */
 
-  def entries(text: String): List[Text.Info[String]] = {
-    val result = new mutable.ListBuffer[Text.Info[String]]
-    var offset = 0
-    for (chunk <- Bibtex.parse(text)) {
-      val end_offset = offset + chunk.source.length
-      if (chunk.name != "" && !chunk.is_command)
-        result += Text.Info(Text.Range(offset, end_offset), chunk.name)
-      offset = end_offset
+  object Entries {
+    val empty: Entries = apply(Nil)
+
+    def apply(entries: List[Text.Info[String]]): Entries = new Entries(entries)
+
+    def parse(text: String): Entries = {
+      val result = new mutable.ListBuffer[Text.Info[String]]
+      var offset = 0
+      for (chunk <- Bibtex.parse(text)) {
+        val end_offset = offset + chunk.source.length
+        if (chunk.name != "" && !chunk.is_command)
+          result += Text.Info(Text.Range(offset, end_offset), chunk.name)
+        offset = end_offset
+      }
+      apply(result.toList)
     }
-    result.toList
+
+    def try_parse(text: String): Entries =
+      try { parse(text) }
+      catch { case ERROR(_) => empty }
+
+    def iterator[A <: Document.Model](models: Iterable[A]): Iterator[Text.Info[(String, A)]] =
+      for {
+        model <- models.iterator
+        info <- model.bibtex_entries
+      } yield info.map((_, model))
   }
 
-  def entries_iterator[A, B <: Document.Model](
-    models: Map[A, B]
-  ): Iterator[Text.Info[(String, B)]] = {
-    for {
-      (_, model) <- models.iterator
-      info <- model.bibtex_entries.iterator
-    } yield info.map((_, model))
+  final class Entries private(val entries: List[Text.Info[String]])
+  extends Iterable[Text.Info[String]] {
+    def iterator: Iterator[Text.Info[String]] = entries.iterator
   }
 
 
   /* completion */
 
-  def completion[A, B <: Document.Model](
+  def completion[A <: Document.Model](
     history: Completion.History,
     rendering: Rendering,
     caret: Text.Offset,
-    models: Map[A, B]
+    models: Iterable[A]
   ): Option[Completion.Result] = {
     for {
       Text.Info(r, name) <- rendering.citations(rendering.before_caret_range(caret)).headOption
@@ -193,7 +205,7 @@ object Bibtex {
 
       entries =
         (for {
-          Text.Info(_, (entry, _)) <- entries_iterator(models)
+          Text.Info(_, (entry, _)) <- Entries.iterator(models)
           if entry.toLowerCase.containsSlice(name1.toLowerCase) && entry != original1
         } yield entry).toList
       if entries.nonEmpty

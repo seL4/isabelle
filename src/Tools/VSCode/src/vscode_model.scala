@@ -38,9 +38,7 @@ object VSCode_Model {
 
     lazy val bytes: Bytes = Bytes(Symbol.encode(text))
     lazy val chunk: Symbol.Text_Chunk = Symbol.Text_Chunk(text)
-    lazy val bibtex_entries: List[Text.Info[String]] =
-      try { Bibtex.entries(text) }
-      catch { case ERROR(_) => Nil }
+    lazy val bibtex_entries: Bibtex.Entries = Bibtex.Entries.try_parse(text)
 
     def recode_symbols: List[LSP.TextEdit] =
       (for {
@@ -153,8 +151,7 @@ sealed case class VSCode_Model(
 
   /* bibtex entries */
 
-  def bibtex_entries: List[Text.Info[String]] =
-    model.content.bibtex_entries
+  def bibtex_entries: Bibtex.Entries = model.content.bibtex_entries
 
 
   /* edits */
