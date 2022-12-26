@@ -59,10 +59,10 @@ object JEdit_Lib {
   }
 
 
-  /* files */
+  /* plain files */
 
   def is_file(name: String): Boolean =
-    VFSManager.getVFSForPath(name).isInstanceOf[FileVFS]
+    name != null && name.nonEmpty && VFSManager.getVFSForPath(name).isInstanceOf[FileVFS]
 
   def check_file(name: String): Option[JFile] =
     if (is_file(name)) Some(new JFile(name)) else None
