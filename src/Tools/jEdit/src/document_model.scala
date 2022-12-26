@@ -73,7 +73,8 @@ object Document_Model {
       if (models.isDefinedAt(node_name)) this
       else {
         val edit = Text.Edit.insert(0, text)
-        val model = File_Model.init(session, node_name, text, pending_edits = List(edit))
+        val content = File_Content(node_name, text)
+        val model = File_Model.init(session, content = content, pending_edits = List(edit))
         copy(models = models + (node_name -> model))
       }
   }
@@ -391,21 +392,17 @@ sealed abstract class Document_Model extends Document.Model {
 }
 
 object File_Model {
-  def empty(session: Session): File_Model =
-    File_Model(session, None, Document_Model.File_Content.empty,
-      false, Document.Node.Perspective_Text.empty, Nil)
-
   def init(session: Session,
-    node_name: Document.Node.Name,
-    text: String,
+    content: Document_Model.File_Content = Document_Model.File_Content.empty,
     node_required: Boolean = false,
     last_perspective: Document.Node.Perspective_Text.T = Document.Node.Perspective_Text.empty,
     pending_edits: List[Text.Edit] = Nil
   ): File_Model = {
+    val node_name = content.node_name
+
     val file = JEdit_Lib.check_file(node_name.node)
     file.foreach(PIDE.plugin.file_watcher.register_parent(_))
 
-    val content = Document_Model.File_Content(node_name, text)
     val node_required1 = node_required || File_Format.registry.is_theory(node_name)
     File_Model(session, file, content, node_required1, last_perspective, pending_edits)
   }
@@ -700,7 +697,8 @@ extends Document_Model {
     buffer.removeBufferListener(buffer_listener)
     init_token_marker()
 
-    File_Model.init(session, node_name, JEdit_Lib.buffer_text(buffer),
+    File_Model.init(session,
+      content = Document_Model.File_Content(node_name, JEdit_Lib.buffer_text(buffer)),
       node_required = node_required,
       last_perspective = buffer_state.get_last_perspective,
       pending_edits = pending_edits)
