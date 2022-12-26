@@ -44,6 +44,7 @@ sig
   val mk_type: typ -> term
   val dest_type: term -> typ
   val type_map: (term -> term) -> typ -> typ
+  val class_suffix: string
   val const_of_class: class -> string
   val class_of_const: string -> class
   val mk_of_class: typ * class -> term
@@ -288,11 +289,11 @@ fun type_map f = dest_type o f o mk_type;
 
 (* const names *)
 
-val classN = "_class";
+val class_suffix = "_class";
 
-val const_of_class = suffix classN;
+val const_of_class = suffix class_suffix;
 
-fun class_of_const c = unsuffix classN c
+fun class_of_const c = unsuffix class_suffix c
   handle Fail _ => raise TERM ("class_of_const: bad name " ^ quote c, []);
 
 
