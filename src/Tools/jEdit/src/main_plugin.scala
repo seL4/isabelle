@@ -110,7 +110,7 @@ class Main_Plugin extends EBPlugin {
 
   private def delay_load_body(): Unit = {
     val required_files = {
-      val models = Document_Model.get_models()
+      val models = Document_Model.get_models_map()
 
       val thy_files =
         resources.resolve_dependencies(models.values, PIDE.editor.document_required())
@@ -124,7 +124,7 @@ class Main_Plugin extends EBPlugin {
         }
         else Nil
 
-      (thy_files ::: aux_files).filterNot(models.isDefinedAt)
+      (thy_files ::: aux_files).filterNot(models.keySet)
     }
     if (required_files.nonEmpty) {
       try {

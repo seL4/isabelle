@@ -84,15 +84,16 @@ object Document_Model {
 
   def document_blobs(): Document.Blobs = state.value.document_blobs
 
-  def get_models(): Map[Document.Node.Name, Document_Model] = state.value.models
-  def get_model(name: Document.Node.Name): Option[Document_Model] = get_models().get(name)
+  def get_models_map(): Map[Document.Node.Name, Document_Model] = state.value.models
+  def get_models(): Iterable[Document_Model] = get_models_map().values
+  def get_model(name: Document.Node.Name): Option[Document_Model] = get_models_map().get(name)
   def get_model(buffer: JEditBuffer): Option[Buffer_Model] =
     state.value.buffer_models.get(buffer)
 
   def snapshot(model: Document_Model): Document.Snapshot =
     PIDE.session.snapshot(
       node_name = model.node_name,
-      pending_edits = Document.Pending_Edits.make(get_models().values))
+      pending_edits = Document.Pending_Edits.make(get_models()))
 
   def get_snapshot(name: Document.Node.Name): Option[Document.Snapshot] = get_model(name).map(snapshot)
   def get_snapshot(buffer: JEditBuffer): Option[Document.Snapshot] = get_model(buffer).map(snapshot)
@@ -101,11 +102,11 @@ object Document_Model {
   /* bibtex */
 
   def bibtex_entries_iterator(): Iterator[Text.Info[(String, Document_Model)]] =
-    Bibtex.Entries.iterator(get_models().values)
+    Bibtex.Entries.iterator(get_models())
 
   def bibtex_completion(history: Completion.History, rendering: Rendering, caret: Text.Offset)
       : Option[Completion.Result] =
-    Bibtex.completion(history, rendering, caret, get_models().values)
+    Bibtex.completion(history, rendering, caret, get_models())
 
 
   /* overlays */
