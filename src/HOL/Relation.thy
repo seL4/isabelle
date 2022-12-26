@@ -727,22 +727,14 @@ lemma asymp_on_iff_irreflp_on_if_transp: "transp R \<Longrightarrow> asymp_on A 
 lemma (in preorder) transp_on_le[simp]: "transp_on A (\<le>)"
   by (auto intro: transp_onI order_trans)
 
-lemmas (in preorder) transp_le = transp_on_le[of UNIV]
-
 lemma (in preorder) transp_on_less[simp]: "transp_on A (<)"
   by (auto intro: transp_onI less_trans)
-
-lemmas (in preorder) transp_less = transp_on_less[of UNIV]
 
 lemma (in preorder) transp_on_ge[simp]: "transp_on A (\<ge>)"
   by (auto intro: transp_onI order_trans)
 
-lemmas (in preorder) transp_ge = transp_on_ge[of UNIV]
-
 lemma (in preorder) transp_on_greater[simp]: "transp_on A (>)"
   by (auto intro: transp_onI less_trans)
-
-lemmas (in preorder) transp_gr = transp_on_greater[of UNIV]
 
 
 subsubsection \<open>Totality\<close>
