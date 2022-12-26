@@ -502,11 +502,6 @@ extends Document_Model {
 
   /* perspective */
 
-  // owned by GUI thread
-  private var _node_required = false
-  def node_required: Boolean = _node_required
-  def set_node_required(b: Boolean): Unit = GUI_Thread.require { _node_required = b }
-
   def document_view_iterator: Iterator[Document_View] =
     for {
       text_area <- JEdit_Lib.jedit_text_areas(buffer)
@@ -523,88 +518,38 @@ extends Document_Model {
   }
 
 
-  /* blob */
+  /* mutable buffer state: owned by GUI thread */
 
-  // owned by GUI thread
-  private var _blob: Option[(Bytes, String, Symbol.Text_Chunk)] = None
+  private object buffer_state {
+    // perspective and edits
 
-  private def reset_blob(): Unit = GUI_Thread.require { _blob = None }
-
-  def get_blob: Option[Document.Blob] =
-    GUI_Thread.require {
-      if (is_theory) None
-      else {
-        val (bytes, text, chunk) =
-          _blob match {
-            case Some(x) => x
-            case None =>
-              val bytes = PIDE.resources.make_file_content(buffer)
-              val text = buffer.getText(0, buffer.getLength)
-              val chunk = Symbol.Text_Chunk(text)
-              val x = (bytes, text, chunk)
-              _blob = Some(x)
-              x
-          }
-        val changed = !buffer_edits.is_empty
-        Some(Document.Blob(bytes, text, chunk, changed))
-      }
-    }
-
-
-  /* bibtex entries */
-
-  // owned by GUI thread
-  private var _bibtex_entries: Option[List[Text.Info[String]]] = None
-
-  private def reset_bibtex_entries(): Unit = GUI_Thread.require { _bibtex_entries = None }
-
-  def bibtex_entries: List[Text.Info[String]] =
-    GUI_Thread.require {
-      if (File.is_bib(node_name.node)) {
-        _bibtex_entries match {
-          case Some(entries) => entries
-          case None =>
-            val text = JEdit_Lib.buffer_text(buffer)
-            val entries =
-              try { Bibtex.entries(text) }
-              catch { case ERROR(msg) => Output.warning(msg); Nil }
-            _bibtex_entries = Some(entries)
-            entries
-        }
-      }
-      else Nil
-    }
-
-
-  /* pending buffer edits */
-
-  private object buffer_edits {
-    private val pending = new mutable.ListBuffer[Text.Edit]
     private var last_perspective = Document.Node.Perspective_Text.empty
-
-    def is_empty: Boolean = synchronized { pending.isEmpty }
-    def get_edits: List[Text.Edit] = synchronized { pending.toList }
-    def get_last_perspective: Document.Node.Perspective_Text.T = synchronized { last_perspective }
+    def get_last_perspective: Document.Node.Perspective_Text.T =
+      GUI_Thread.require { last_perspective }
     def set_last_perspective(perspective: Document.Node.Perspective_Text.T): Unit =
-      synchronized { last_perspective = perspective }
+      GUI_Thread.require { last_perspective = perspective }
+
+    private var node_required = false
+    def get_node_required: Boolean = GUI_Thread.require { node_required }
+    def set_node_required(b: Boolean): Unit = GUI_Thread.require { node_required = b }
+
+    private val pending_edits = new mutable.ListBuffer[Text.Edit]
+    def is_stable: Boolean = GUI_Thread.require { pending_edits.isEmpty }
+    def get_pending_edits: List[Text.Edit] = GUI_Thread.require { pending_edits.toList }
 
     def flush_edits(doc_blobs: Document.Blobs, hidden: Boolean): List[Document.Edit_Text] =
-      synchronized {
-        GUI_Thread.require {}
-
-        val edits = get_edits
+      GUI_Thread.require {
+        val edits = get_pending_edits
         val (reparse, perspective) = node_perspective(doc_blobs, hidden)
         if (reparse || edits.nonEmpty || last_perspective != perspective) {
-          pending.clear()
+          pending_edits.clear()
           last_perspective = perspective
           node_edits(node_header(), edits, perspective)
         }
         else Nil
       }
 
-    def edit(edits: List[Text.Edit]): Unit = synchronized {
-      GUI_Thread.require {}
-
+    def edit(edits: List[Text.Edit]): Unit = GUI_Thread.require {
       reset_blob()
       reset_bibtex_entries()
 
@@ -612,16 +557,67 @@ extends Document_Model {
         doc_view.rich_text_area.active_reset()
       }
 
-      pending ++= edits
+      pending_edits ++= edits
       PIDE.editor.invoke()
+    }
+
+
+    // blob
+
+    private var blob: Option[(Bytes, String, Symbol.Text_Chunk)] = None
+
+    def reset_blob(): Unit = GUI_Thread.require { blob = None }
+
+    def get_blob: Option[Document.Blob] = GUI_Thread.require {
+      if (is_theory) None
+      else {
+        val (bytes, text, chunk) =
+          blob getOrElse {
+            val bytes = PIDE.resources.make_file_content(buffer)
+            val text = buffer.getText(0, buffer.getLength)
+            val chunk = Symbol.Text_Chunk(text)
+            val x = (bytes, text, chunk)
+            blob = Some(x)
+            x
+          }
+        val changed = !is_stable
+        Some(Document.Blob(bytes, text, chunk, changed))
+      }
+    }
+
+
+    // bibtex entries
+
+    private var bibtex_entries: Option[List[Text.Info[String]]] = None
+
+    def reset_bibtex_entries(): Unit = GUI_Thread.require { bibtex_entries = None }
+
+    def get_bibtex_entries: List[Text.Info[String]] = GUI_Thread.require {
+      if (File.is_bib(node_name.node)) {
+        bibtex_entries getOrElse {
+          val text = JEdit_Lib.buffer_text(buffer)
+          val entries =
+            try { Bibtex.entries(text) }
+            catch { case ERROR(msg) => Output.warning(msg); Nil }
+          bibtex_entries = Some(entries)
+          entries
+        }
+      }
+      else Nil
     }
   }
 
-  def is_stable: Boolean = buffer_edits.is_empty
-  def pending_edits: List[Text.Edit] = buffer_edits.get_edits
-
+  def is_stable: Boolean = buffer_state.is_stable
+  def pending_edits: List[Text.Edit] = buffer_state.get_pending_edits
   def flush_edits(doc_blobs: Document.Blobs, hidden: Boolean): List[Document.Edit_Text] =
-    buffer_edits.flush_edits(doc_blobs, hidden)
+    buffer_state.flush_edits(doc_blobs, hidden)
+
+  def node_required: Boolean = buffer_state.get_node_required
+  def set_node_required(b: Boolean): Unit = buffer_state.set_node_required(b)
+
+  def get_blob: Option[Document.Blob] = buffer_state.get_blob
+
+  def bibtex_entries: List[Text.Info[String]] = buffer_state.get_bibtex_entries
 
 
   /* buffer listener */
@@ -634,7 +630,7 @@ extends Document_Model {
       num_lines: Int,
       length: Int
     ): Unit = {
-      buffer_edits.edit(List(Text.Edit.insert(offset, buffer.getText(offset, length))))
+      buffer_state.edit(List(Text.Edit.insert(offset, buffer.getText(offset, length))))
     }
 
     override def preContentRemoved(
@@ -644,7 +640,7 @@ extends Document_Model {
       num_lines: Int,
       removed_length: Int
     ): Unit = {
-      buffer_edits.edit(List(Text.Edit.remove(offset, buffer.getText(offset, removed_length))))
+      buffer_state.edit(List(Text.Edit.remove(offset, buffer.getText(offset, removed_length))))
     }
   }
 
@@ -672,16 +668,14 @@ extends Document_Model {
 
   /* init */
 
-  def init(old_model: Option[File_Model]): Buffer_Model = {
-    GUI_Thread.require {}
-
+  def init(old_model: Option[File_Model]): Buffer_Model = GUI_Thread.require {
     old_model match {
       case None =>
-        buffer_edits.edit(List(Text.Edit.insert(0, JEdit_Lib.buffer_text(buffer))))
+        buffer_state.edit(List(Text.Edit.insert(0, JEdit_Lib.buffer_text(buffer))))
       case Some(file_model) =>
         set_node_required(file_model.node_required)
-        buffer_edits.set_last_perspective(file_model.last_perspective)
-        buffer_edits.edit(
+        buffer_state.set_last_perspective(file_model.last_perspective)
+        buffer_state.edit(
           file_model.pending_edits :::
             Text.Edit.replace(0, file_model.content.text, JEdit_Lib.buffer_text(buffer)))
     }
@@ -695,15 +689,13 @@ extends Document_Model {
 
   /* exit */
 
-  def exit(): File_Model = {
-    GUI_Thread.require {}
-
+  def exit(): File_Model = GUI_Thread.require {
     buffer.removeBufferListener(buffer_listener)
     init_token_marker()
 
     File_Model.init(session, node_name, JEdit_Lib.buffer_text(buffer),
-      node_required = _node_required,
-      last_perspective = buffer_edits.get_last_perspective,
+      node_required = node_required,
+      last_perspective = buffer_state.get_last_perspective,
       pending_edits = pending_edits)
   }
 }
