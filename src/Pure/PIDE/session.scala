@@ -356,10 +356,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
   private val protocol_handlers = Protocol_Handlers.init(session)
 
   def get_protocol_handler[C <: Session.Protocol_Handler](c: Class[C]): Option[C] =
-    protocol_handlers.get(c.getName) match {
-      case Some(h) if Library.is_subclass(h.getClass, c) => Some(h.asInstanceOf[C])
-      case _ => None
-    }
+    protocol_handlers.get(c.getName).flatMap(Library.as_subclass(c))
 
   def init_protocol_handler(handler: Session.Protocol_Handler): Unit =
     protocol_handlers.init(handler)
