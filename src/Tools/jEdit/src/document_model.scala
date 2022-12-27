@@ -53,7 +53,7 @@ object Document_Model {
           case Some(buffer_model: Buffer_Model) => Some(buffer_model.exit())
           case _ => None
         }
-      val buffer_model = Buffer_Model(session, node_name, buffer).init(old_model)
+      val buffer_model = Buffer_Model.init(old_model, session, node_name, buffer)
       (buffer_model,
         copy(models = models + (node_name -> buffer_model),
           buffer_models = buffer_models + (buffer -> buffer_model)))
@@ -485,8 +485,20 @@ case class File_Model(
   def is_stable: Boolean = pending_edits.isEmpty
 }
 
-case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer: Buffer)
-extends Document_Model {
+object Buffer_Model {
+  def init(
+    old_model: Option[File_Model],
+    session: Session,
+    node_name: Document.Node.Name,
+    buffer: Buffer
+  ): Buffer_Model = (new Buffer_Model(session, node_name, buffer)).init(old_model)
+}
+
+class Buffer_Model private(
+  val session: Session,
+  val node_name: Document.Node.Name,
+  val buffer: Buffer
+) extends Document_Model {
   /* text */
 
   def get_text(range: Text.Range): Option[String] =
