@@ -8,7 +8,9 @@ package isabelle
 
 
 object File_Format {
-  object No_Data extends AnyRef
+  object No_Data extends AnyRef {
+    override def toString: String = "File_Format.No_Data"
+  }
 
   sealed case class Theory_Context(name: Document.Node.Name, content: String)
 

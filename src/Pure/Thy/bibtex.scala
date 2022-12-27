@@ -201,6 +201,8 @@ object Bibtex {
   }
 
   final class Entries private(val entries: List[Text.Info[String]], val errors: List[String]) {
+    override def toString: String = "Bibtex.Entries(" + entries.length + ")"
+
     def ::: (other: Entries): Entries =
       new Entries(entries ::: other.entries, errors ::: other.errors)
   }
