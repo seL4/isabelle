@@ -122,7 +122,7 @@ object Completion_Popup {
                   Completion.Result.merge(Completion.History.empty,
                     syntax_completion(Completion.History.empty, true, Some(rendering)),
                     rendering.path_completion(caret),
-                    Document_Model.bibtex_completion(Completion.History.empty, rendering, caret))
+                    PIDE.editor.bibtex_completion(Completion.History.empty, rendering, caret))
                   .map(_.range)
                 rendering.semantic_completion(range0, range) match {
                   case None => range0
@@ -304,7 +304,7 @@ object Completion_Popup {
                   result1,
                   JEdit_Spell_Checker.completion(rendering, explicit, caret),
                   rendering.path_completion(caret),
-                  Document_Model.bibtex_completion(history, rendering, caret))
+                  PIDE.editor.bibtex_completion(history, rendering, caret))
             }
           }
           result match {

@@ -75,15 +75,6 @@ extends Rendering(snapshot, model.resources.options, model.session) {
   override def get_text(range: Text.Range): Option[String] = model.get_text(range)
 
 
-  /* bibtex */
-
-  def bibtex_entries_iterator(): Iterator[Text.Info[(String, VSCode_Model)]] =
-    Bibtex.Entries.iterator(resources.get_models())
-
-  def bibtex_completion(history: Completion.History, caret: Text.Offset): Option[Completion.Result] =
-    Bibtex.completion(history, rendering, caret, resources.get_models())
-
-
   /* completion */
 
   def completion(node_pos: Line.Node_Position, caret: Text.Offset): List[LSP.CompletionItem] = {
@@ -114,7 +105,7 @@ extends Rendering(snapshot, model.resources.options, model.session) {
               syntax_completion,
               VSCode_Spell_Checker.completion(rendering, caret),
               path_completion(caret),
-              bibtex_completion(history, caret))
+              model.editor.bibtex_completion(history, rendering, caret))
           val items =
             results match {
               case None => Nil
@@ -323,7 +314,8 @@ extends Rendering(snapshot, model.resources.options, model.session) {
           case (links, Text.Info(info_range, XML.Elem(Markup.Citation(name), _))) =>
             val iterator =
               for {
-                Text.Info(entry_range, (entry, model)) <- bibtex_entries_iterator()
+                Text.Info(entry_range, (entry, model: VSCode_Model)) <-
+                  model.editor.bibtex_entries_iterator()
                 if entry == name
               } yield Line.Node_Range(model.node_name.node, model.content.doc.range(entry_range))
             if (iterator.isEmpty) None else Some(iterator.foldLeft(links)(_ :+ _))

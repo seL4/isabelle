@@ -272,8 +272,8 @@ extends Rendering(snapshot, options, PIDE.session) {
 
           case (links, Text.Info(info_range, XML.Elem(Markup.Citation(name), _))) =>
             val opt_link =
-              Document_Model.bibtex_entries_iterator().collectFirst(
-                { case Text.Info(entry_range, (entry, model)) if entry == name =>
+              PIDE.editor.bibtex_entries_iterator().collectFirst(
+                { case Text.Info(entry_range, (entry, model: Document_Model)) if entry == name =>
                     PIDE.editor.hyperlink_model(true, model, entry_range.start) })
             opt_link.map(link => links :+ Text.Info(snapshot.convert(info_range), link))
 

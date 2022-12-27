@@ -100,16 +100,6 @@ object Document_Model {
   def get_snapshot(buffer: JEditBuffer): Option[Document.Snapshot] = get_model(buffer).map(snapshot)
 
 
-  /* bibtex */
-
-  def bibtex_entries_iterator(): Iterator[Text.Info[(String, Document_Model)]] =
-    Bibtex.Entries.iterator(get_models())
-
-  def bibtex_completion(history: Completion.History, rendering: Rendering, caret: Text.Offset)
-      : Option[Completion.Result] =
-    Bibtex.completion(history, rendering, caret, get_models())
-
-
   /* overlays */
 
   def node_overlays(name: Document.Node.Name): Document.Node.Overlays =

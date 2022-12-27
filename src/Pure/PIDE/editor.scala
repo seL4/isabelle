@@ -8,11 +8,23 @@ package isabelle
 
 
 abstract class Editor[Context] {
-  /* session */
+  /* PIDE session and document model */
 
   def session: Session
   def flush(): Unit
   def invoke(): Unit
+
+  def get_models(): Iterable[Document.Model]
+
+
+  /* bibtex */
+
+  def bibtex_entries_iterator(): Iterator[Text.Info[(String, Document.Model)]] =
+    Bibtex.Entries.iterator(get_models())
+
+  def bibtex_completion(history: Completion.History, rendering: Rendering, caret: Text.Offset)
+      : Option[Completion.Result] =
+    Bibtex.completion(history, rendering, caret, get_models())
 
 
   /* document editor */
