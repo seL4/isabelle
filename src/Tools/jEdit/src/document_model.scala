@@ -32,8 +32,8 @@ object Document_Model {
     def file_models_iterator: Iterator[(Document.Node.Name, File_Model)] =
       for {
         (node_name, model) <- models.iterator
-        if model.isInstanceOf[File_Model]
-      } yield (node_name, model.asInstanceOf[File_Model])
+        file_model <- Library.as_subclass(classOf[File_Model])(model)
+      } yield (node_name, file_model)
 
     def document_blobs: Document.Blobs =
       Document.Blobs(
