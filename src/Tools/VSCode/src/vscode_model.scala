@@ -34,7 +34,7 @@ object VSCode_Model {
 
     lazy val bytes: Bytes = Bytes(Symbol.encode(text))
     lazy val chunk: Symbol.Text_Chunk = Symbol.Text_Chunk(text)
-    lazy val bibtex_entries: Bibtex.Entries = Bibtex.Entries.parse(text, file_pos = node_name.node)
+    lazy val data: AnyRef = File_Format.registry.parse_data(node_name, text)
 
     def recode_symbols: List[LSP.TextEdit] =
       (for {
@@ -147,9 +147,9 @@ sealed case class VSCode_Model(
     else Some(Document.Blob(content.bytes, content.text, content.chunk, pending_edits.nonEmpty))
 
 
-  /* bibtex entries */
+  /* data */
 
-  def bibtex_entries: Bibtex.Entries = model.content.bibtex_entries
+  def untyped_data: AnyRef = model.content.data
 
 
   /* edits */

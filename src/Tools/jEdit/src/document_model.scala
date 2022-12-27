@@ -300,7 +300,7 @@ object Document_Model {
     override def toString: String = "Document_Model.File_Content(" + node_name.node + ")"
     lazy val bytes: Bytes = Bytes(Symbol.encode(text))
     lazy val chunk: Symbol.Text_Chunk = Symbol.Text_Chunk(text)
-    lazy val bibtex_entries: Bibtex.Entries = Bibtex.Entries.parse(text, file_pos = node_name.node)
+    lazy val data: AnyRef = File_Format.registry.parse_data(node_name, text)
   }
 
 
@@ -446,8 +446,7 @@ case class File_Model(
     if (is_theory) None
     else Some(Document.Blob(content.bytes, content.text, content.chunk, pending_edits.nonEmpty))
 
-  def bibtex_entries: Bibtex.Entries =
-    if (File.is_bib(node_name.node)) content.bibtex_entries else Bibtex.Entries.empty
+  def untyped_data: AnyRef = content.data
 
 
   /* edits */
@@ -568,7 +567,7 @@ class Buffer_Model private(
 
     def edit(edits: List[Text.Edit]): Unit = GUI_Thread.require {
       reset_blob()
-      reset_bibtex_entries()
+      reset_data()
 
       for (doc_view <- document_view_iterator) {
         doc_view.rich_text_area.active_reset()
@@ -603,22 +602,19 @@ class Buffer_Model private(
     }
 
 
-    // bibtex entries
+    // parsed data
 
-    private var bibtex_entries: Option[Bibtex.Entries] = None
+    private var data: Option[AnyRef] = None
 
-    def reset_bibtex_entries(): Unit = GUI_Thread.require { bibtex_entries = None }
+    def reset_data(): Unit = GUI_Thread.require { data = None }
 
-    def get_bibtex_entries: Bibtex.Entries = GUI_Thread.require {
-      if (File.is_bib(node_name.node)) {
-        bibtex_entries getOrElse {
-          val text = JEdit_Lib.buffer_text(buffer)
-          val entries = Bibtex.Entries.parse(text, file_pos = node_name.node)
-          bibtex_entries = Some(entries)
-          entries
-        }
+    def untyped_data: AnyRef = GUI_Thread.require {
+      data getOrElse {
+        val text = JEdit_Lib.buffer_text(buffer)
+        val res = File_Format.registry.parse_data(node_name, text)
+        data = Some(res)
+        res
       }
-      else Bibtex.Entries.empty
     }
   }
 
@@ -631,8 +627,7 @@ class Buffer_Model private(
   def set_node_required(b: Boolean): Unit = buffer_state.set_node_required(b)
 
   def get_blob: Option[Document.Blob] = buffer_state.get_blob
-
-  def bibtex_entries: Bibtex.Entries = buffer_state.get_bibtex_entries
+  def untyped_data: AnyRef = buffer_state.untyped_data
 
 
   /* buffer listener */

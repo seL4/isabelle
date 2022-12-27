@@ -8,6 +8,8 @@ package isabelle
 
 
 object File_Format {
+  object No_Data extends AnyRef
+
   sealed case class Theory_Context(name: Document.Node.Name, content: String)
 
 
@@ -23,6 +25,13 @@ object File_Format {
     def get(name: Document.Node.Name): Option[File_Format] = get(name.node)
     def get_theory(name: Document.Node.Name): Option[File_Format] = get(name.theory)
     def is_theory(name: Document.Node.Name): Boolean = get_theory(name).isDefined
+
+    def parse_data(name: String, text: String): AnyRef =
+      get(name) match {
+        case Some(file_format) => file_format.parse_data(name, text)
+        case None => No_Data
+      }
+    def parse_data(name: Document.Node.Name, text: String): AnyRef = parse_data(name.node, text)
 
     def start_session(session: isabelle.Session): Session =
       new Session(file_formats.map(_.start(session)).filterNot(_ == No_Agent))
@@ -55,6 +64,8 @@ abstract class File_Format extends Isabelle_System.Service {
 
   def file_ext: String
   def detect(name: String): Boolean = name.endsWith("." + file_ext)
+
+  def parse_data(name: String, text: String): AnyRef = File_Format.No_Data
 
 
   /* implicit theory context: name and content */
