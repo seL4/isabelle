@@ -614,7 +614,6 @@ class Buffer_Model private(
         bibtex_entries getOrElse {
           val text = JEdit_Lib.buffer_text(buffer)
           val entries = Bibtex.Entries.parse(text, file_pos = node_name.node)
-          if (entries.errors.nonEmpty) Output.warning(cat_lines(entries.errors))
           bibtex_entries = Some(entries)
           entries
         }
