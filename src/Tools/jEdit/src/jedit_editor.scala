@@ -18,7 +18,7 @@ import org.gjt.sp.jedit.io.{VFSManager, VFSFile}
 
 
 class JEdit_Editor extends Editor[View] {
-  /* session */
+  /* PIDE session and document model */
 
   override def session: Session = PIDE.session
 
@@ -51,6 +51,9 @@ class JEdit_Editor extends Editor[View] {
       text_area <- JEdit_Lib.jedit_text_areas()
       doc_view <- Document_View.get(text_area)
     } yield doc_view.model.node_name).contains(name)
+
+
+  override def get_models(): Iterable[Document.Model] = Document_Model.get_models()
 
 
   /* global changes */

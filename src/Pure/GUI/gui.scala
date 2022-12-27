@@ -153,9 +153,7 @@ object GUI {
     }
 
     private def make_entries[A](batches: List[List[Entry[A]]]): List[Entry[A]] = {
-      val item_batches =
-        batches.map(_.flatMap(
-          { case item: Item[_] => Some(item.asInstanceOf[Item[A]]) case _ => None }))
+      val item_batches = batches.map(_.flatMap(Library.as_subclass(classOf[Item[A]])))
       val sep_entries: List[Entry[A]] =
         item_batches.filter(_.nonEmpty).zipWithIndex.flatMap({ case (batch, i) =>
           Separator[A](i) :: batch.map(_.copy(batch = i))

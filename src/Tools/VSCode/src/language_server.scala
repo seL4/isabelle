@@ -480,11 +480,13 @@ class Language_Server(
   /* abstract editor operations */
 
   object editor extends Language_Server.Editor {
-    /* session */
+    /* PIDE session and document model */
 
     override def session: Session = server.session
     override def flush(): Unit = resources.flush_input(session, channel)
     override def invoke(): Unit = delay_input.invoke()
+
+    override def get_models(): Iterable[Document.Model] = resources.get_models()
 
 
     /* current situation */

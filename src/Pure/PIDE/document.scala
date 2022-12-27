@@ -796,7 +796,9 @@ object Document {
     def node_required: Boolean
 
     def get_blob: Option[Blob]
-    def bibtex_entries: Bibtex.Entries
+
+    def untyped_data: AnyRef
+    def get_data[C](c: Class[C]): Option[C] = Library.as_subclass(c)(untyped_data)
 
     def node_edits(
       node_header: Node.Header,

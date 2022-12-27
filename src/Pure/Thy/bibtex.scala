@@ -21,6 +21,9 @@ object Bibtex {
     val format_name: String = "bibtex"
     val file_ext: String = "bib"
 
+    override def parse_data(name: String, text: String): Bibtex.Entries =
+      Bibtex.Entries.parse(text, file_pos = name)
+
     override def theory_suffix: String = "bibtex_file"
     override def theory_content(name: String): String =
       """theory "bib" imports Pure begin bibtex_file """ +
@@ -192,11 +195,14 @@ object Bibtex {
     def iterator[A <: Document.Model](models: Iterable[A]): Iterator[Text.Info[(String, A)]] =
       for {
         model <- models.iterator
-        info <- model.bibtex_entries.entries.iterator
+        bibtex_entries <- model.get_data(classOf[Entries]).iterator
+        info <- bibtex_entries.entries.iterator
       } yield info.map((_, model))
   }
 
   final class Entries private(val entries: List[Text.Info[String]], val errors: List[String]) {
+    override def toString: String = "Bibtex.Entries(" + entries.length + ")"
+
     def ::: (other: Entries): Entries =
       new Entries(entries ::: other.entries, errors ::: other.errors)
   }
