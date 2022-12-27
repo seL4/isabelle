@@ -145,11 +145,8 @@ next
         proof cases
           assume "?R"
           with \<open>j \<in> S\<close> psubset.prems have "{u..v} \<subseteq> (\<Union>i\<in>S-{j}. {l i<..< r i})"
-            apply (auto simp: subset_eq Ball_def)
-            apply (metis Diff_iff less_le_trans leD linear singletonD)
-            apply (metis Diff_iff less_le_trans leD linear singletonD)
-            apply (metis order_trans less_le_not_le linear)
-            done
+            apply (simp add: subset_eq Ball_def Bex_def)
+            by (metis order_le_less_trans order_less_le_trans order_less_not_sym)
           with \<open>j \<in> S\<close> have "F v - F u \<le> (\<Sum>i\<in>S - {j}. F (r i) - F (l i))"
             by (intro psubset) auto
           also have "\<dots> \<le> (\<Sum>i\<in>S. F (r i) - F (l i))"
@@ -162,19 +159,14 @@ next
             by (auto simp: not_less)
           let ?S1 = "{i \<in> S. l i < l j}"
           let ?S2 = "{i \<in> S. r i > r j}"
-
+          have *: "?S1 \<inter> ?S2 = {}"
+            using j by (fastforce simp add: disjoint_iff)
           have "(\<Sum>i\<in>S. F (r i) - F (l i)) \<ge> (\<Sum>i\<in>?S1 \<union> ?S2 \<union> {j}. F (r i) - F (l i))"
             using \<open>j \<in> S\<close> \<open>finite S\<close> psubset.prems j
             by (intro sum_mono2) (auto intro: less_imp_le)
           also have "(\<Sum>i\<in>?S1 \<union> ?S2 \<union> {j}. F (r i) - F (l i)) =
             (\<Sum>i\<in>?S1. F (r i) - F (l i)) + (\<Sum>i\<in>?S2 . F (r i) - F (l i)) + (F (r j) - F (l j))"
-            using psubset(1) psubset.prems(1) j
-            apply (subst sum.union_disjoint)
-            apply simp_all
-            apply (subst sum.union_disjoint)
-            apply auto
-            apply (metis less_le_not_le)
-            done
+            using psubset(1) by (simp add: * sum.union_disjoint disjoint_iff_not_equal)
           also (xtrans) have "(\<Sum>i\<in>?S1. F (r i) - F (l i)) \<ge> F (l j) - F u"
             using \<open>j \<in> S\<close> \<open>finite S\<close> psubset.prems j
             apply (intro psubset.IH psubset)
@@ -202,31 +194,24 @@ next
     proof
       fix i
       note right_cont_F [of "r i"]
+      then have "\<exists>d>0. F (r i + d) - F (r i) < epsilon / 2 ^ (i + 2)"
+        by (simp add: continuous_at_right_real_increasing egt0)
       thus "\<exists>d>0. F (r i + d) < F (r i) + epsilon / 2^(i+2)"
-        apply -
-        apply (subst (asm) continuous_at_right_real_increasing)
-        apply (rule mono_F, assumption)
-        apply (drule_tac x = "epsilon / 2 ^ (i + 2)" in spec)
-        apply (erule impE)
-        using egt0 by (auto simp add: field_simps)
+        by force
     qed
     then obtain delta where
         deltai_gt0: "\<And>i. delta i > 0" and
         deltai_prop: "\<And>i. F (r i + delta i) < F (r i) + epsilon / 2^(i+2)"
       by metis
     have "\<exists>a' > a. F a' - F a < epsilon / 2"
-      apply (insert right_cont_F [of a])
-      apply (subst (asm) continuous_at_right_real_increasing)
-      using mono_F apply force
-      apply (drule_tac x = "epsilon / 2" in spec)
-      using egt0 unfolding mult.commute [of 2] by force
+      using right_cont_F [of a]
+      by (metis continuous_at_right_real_increasing egt0 half_gt_zero less_add_same_cancel1 mono_F)
     then obtain a' where a'lea [arith]: "a' > a" and
       a_prop: "F a' - F a < epsilon / 2"
       by auto
     define S' where "S' = {i. l i < r i}"
-    obtain S :: "nat set" where
-      "S \<subseteq> S'" and finS: "finite S" and
-      Sprop: "{a'..b} \<subseteq> (\<Union>i \<in> S. {l i<..<r i + delta i})"
+    obtain S :: "nat set" where "S \<subseteq> S'" and finS: "finite S" 
+      and Sprop: "{a'..b} \<subseteq> (\<Union>i \<in> S. {l i<..<r i + delta i})"
     proof (rule compactE_image)
       show "compact {a'..b}"
         by (rule compact_Icc)
@@ -236,58 +221,34 @@ next
       also have "{a <.. b} = (\<Union>i\<in>S'. {l i<..r i})"
         unfolding lr_eq_ab[symmetric] by (fastforce simp add: S'_def intro: less_le_trans)
       also have "\<dots> \<subseteq> (\<Union>i \<in> S'. {l i<..<r i + delta i})"
-        apply (intro UN_mono)
-        apply (auto simp: S'_def)
-        apply (cut_tac i=i in deltai_gt0)
-        apply simp
-        done
+        by (intro UN_mono; simp add: add.commute add_strict_increasing deltai_gt0 subset_iff)
       finally show "{a'..b} \<subseteq> (\<Union>i \<in> S'. {l i<..<r i + delta i})" .
     qed
     with S'_def have Sprop2: "\<And>i. i \<in> S \<Longrightarrow> l i < r i" by auto
-    from finS have "\<exists>n. \<forall>i \<in> S. i \<le> n"
-      by (subst finite_nat_set_iff_bounded_le [symmetric])
-    then obtain n where Sbound [rule_format]: "\<forall>i \<in> S. i \<le> n" ..
-    have "F b - F a' \<le> (\<Sum>i\<in>S. F (r i + delta i) - F (l i))"
-      apply (rule claim2 [rule_format])
-      using finS Sprop apply auto
-      apply (frule Sprop2)
-      apply (subgoal_tac "delta i > 0")
-      apply arith
-      by (rule deltai_gt0)
-    also have "... \<le> (\<Sum>i \<in> S. F(r i) - F(l i) + epsilon / 2^(i+2))"
-      apply (rule sum_mono)
-      apply simp
-      apply (rule order_trans)
-      apply (rule less_imp_le)
-      apply (rule deltai_prop)
-      by auto
-    also have "... = (\<Sum>i \<in> S. F(r i) - F(l i)) +
-        (epsilon / 4) * (\<Sum>i \<in> S. (1 / 2)^i)" (is "_ = ?t + _")
-      by (subst sum.distrib) (simp add: field_simps sum_distrib_left)
-    also have "... \<le> ?t + (epsilon / 4) * (\<Sum> i < Suc n. (1 / 2)^i)"
-      apply (rule add_left_mono)
-      apply (rule mult_left_mono)
-      apply (rule sum_mono2)
-      using egt0 apply auto
-      by (frule Sbound, auto)
-    also have "... \<le> ?t + (epsilon / 2)"
-      apply (rule add_left_mono)
-      apply (subst geometric_sum)
-      apply auto
-      apply (rule mult_left_mono)
-      using egt0 apply auto
-      done
-    finally have aux2: "F b - F a' \<le> (\<Sum>i\<in>S. F (r i) - F (l i)) + epsilon / 2"
-      by simp
-
+    obtain n where Sbound: "\<And>i. i \<in> S \<Longrightarrow> i \<le> n"
+      using Max_ge finS by blast
     have "F b - F a = (F b - F a') + (F a' - F a)"
       by auto
     also have "... \<le> (F b - F a') + epsilon / 2"
       using a_prop by (intro add_left_mono) simp
     also have "... \<le> (\<Sum>i\<in>S. F (r i) - F (l i)) + epsilon / 2 + epsilon / 2"
-      apply (intro add_right_mono)
-      apply (rule aux2)
-      done
+    proof -
+      have "F b - F a' \<le> (\<Sum>i\<in>S. F (r i + delta i) - F (l i))"
+        using claim2 l_r Sprop by (simp add: deltai_gt0 finS add.commute add_strict_increasing)
+      also have "... \<le> (\<Sum>i \<in> S. F(r i) - F(l i) + epsilon / 2^(i+2))"
+        by (smt (verit) sum_mono deltai_prop)
+      also have "... = (\<Sum>i \<in> S. F(r i) - F(l i)) +
+        (epsilon / 4) * (\<Sum>i \<in> S. (1 / 2)^i)" (is "_ = ?t + _")
+        by (subst sum.distrib) (simp add: field_simps sum_distrib_left)
+      also have "... \<le> ?t + (epsilon / 4) * (\<Sum> i < Suc n. (1 / 2)^i)"
+        using egt0 Sbound by (intro add_left_mono mult_left_mono sum_mono2) force+
+      also have "... \<le> ?t + (epsilon / 2)"
+        using egt0 by (simp add: geometric_sum add_left_mono mult_left_mono)
+      finally have "F b - F a' \<le> (\<Sum>i\<in>S. F (r i) - F (l i)) + epsilon / 2"
+        by simp
+      then show ?thesis
+        by linarith
+    qed
     also have "... = (\<Sum>i\<in>S. F (r i) - F (l i)) + epsilon"
       by auto
     also have "... \<le> (\<Sum>i\<le>n. F (r i) - F (l i)) + epsilon"
@@ -316,12 +277,8 @@ lemma emeasure_interval_measure_Ioc_eq:
 
 lemma\<^marker>\<open>tag important\<close> sets_interval_measure [simp, measurable_cong]:
     "sets (interval_measure F) = sets borel"
-  apply (simp add: sets_extend_measure interval_measure_def borel_sigma_sets_Ioc)
-  apply (rule sigma_sets_eqI)
-  apply auto
-  apply (case_tac "a \<le> ba")
-  apply (auto intro: sigma_sets.Empty)
-  done
+  apply (simp add: sets_extend_measure interval_measure_def borel_sigma_sets_Ioc image_def split: prod.split)
+  by (metis greaterThanAtMost_empty nle_le)
 
 lemma space_interval_measure [simp]: "space (interval_measure F) = UNIV"
   by (simp add: interval_measure_def space_extend_measure)
@@ -342,21 +299,16 @@ proof (rule tendsto_unique)
   show "((\<lambda>a. F b - F a) \<longlongrightarrow> emeasure ?F {a..b}) (at_left a)"
   proof (rule tendsto_at_left_sequentially)
     show "a - 1 < a" by simp
-    fix X assume "\<And>n. X n < a" "incseq X" "X \<longlonglongrightarrow> a"
-    with \<open>a \<le> b\<close> have "(\<lambda>n. emeasure ?F {X n<..b}) \<longlonglongrightarrow> emeasure ?F (\<Inter>n. {X n <..b})"
-      apply (intro Lim_emeasure_decseq)
-      apply (auto simp: decseq_def incseq_def emeasure_interval_measure_Ioc *)
-      apply force
-      apply (subst (asm ) *)
-      apply (auto intro: less_le_trans less_imp_le)
-      done
+    fix X assume X: "\<And>n. X n < a" "incseq X" "X \<longlonglongrightarrow> a"
+    then have "emeasure (interval_measure F) {X n<..b} \<noteq> \<infinity>" for n
+      by (smt (verit) "*" \<open>a \<le> b\<close> ennreal_neq_top infinity_ennreal_def)
+    with X have "(\<lambda>n. emeasure ?F {X n<..b}) \<longlonglongrightarrow> emeasure ?F (\<Inter>n. {X n <..b})"
+      by (intro Lim_emeasure_decseq; force simp: decseq_def incseq_def emeasure_interval_measure_Ioc *)
     also have "(\<Inter>n. {X n <..b}) = {a..b}"
-      using \<open>\<And>n. X n < a\<close>
       apply auto
       apply (rule LIMSEQ_le_const2[OF \<open>X \<longlonglongrightarrow> a\<close>])
-      apply (auto intro: less_imp_le)
-      apply (auto intro: less_le_trans)
-      done
+      using less_eq_real_def apply presburger
+      using X(1) order_less_le_trans by blast
     also have "(\<lambda>n. emeasure ?F {X n<..b}) = (\<lambda>n. F b - F (X n))"
       using \<open>\<And>n. X n < a\<close> \<open>a \<le> b\<close> by (subst *) (auto intro: less_imp_le less_le_trans)
     finally show "(\<lambda>n. F b - F (X n)) \<longlonglongrightarrow> emeasure ?F {a..b}" .
@@ -426,12 +378,7 @@ lemma measurable_lebesgue_cong:
   by (metis (mono_tags, lifting) IntD1 assms measurable_cong_simp space_restrict_space)
 
 lemma lebesgue_on_UNIV_eq: "lebesgue_on UNIV = lebesgue"
-proof -
-  have "measure_of UNIV (sets lebesgue) (emeasure lebesgue) = lebesgue"
-    by (metis measure_of_of_measure space_borel space_completion space_lborel)
-  then show ?thesis
-    by (auto simp: restrict_space_def)
-qed
+  by (simp add: emeasure_restrict_space measure_eqI)
 
 lemma integral_restrict_Int:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
@@ -528,11 +475,7 @@ lemma borel_measurable_if_D:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "(\<lambda>x. if x \<in> S then f x else 0) \<in> borel_measurable lebesgue"
   shows "f \<in> borel_measurable (lebesgue_on S)"
-  using assms
-  apply (simp add: in_borel_measurable_borel Ball_def)
-  apply (elim all_forward imp_forward asm_rl)
-  apply (force simp: space_restrict_space sets_restrict_space image_iff intro: rev_bexI)
-  done
+  using assms by (smt (verit) measurable_lebesgue_cong measurable_restrict_space1)
 
 lemma borel_measurable_if:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
@@ -557,33 +500,25 @@ qed
 lemma borel_measurable_vimage_halfspace_component_lt:
      "f \<in> borel_measurable (lebesgue_on S) \<longleftrightarrow>
       (\<forall>a i. i \<in> Basis \<longrightarrow> {x \<in> S. f x \<bullet> i < a} \<in> sets (lebesgue_on S))"
-  apply (rule trans [OF borel_measurable_iff_halfspace_less])
-  apply (fastforce simp add: space_restrict_space)
-  done
+  by (force simp add: space_restrict_space trans [OF borel_measurable_iff_halfspace_less])
 
 lemma borel_measurable_vimage_halfspace_component_ge:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   shows "f \<in> borel_measurable (lebesgue_on S) \<longleftrightarrow>
          (\<forall>a i. i \<in> Basis \<longrightarrow> {x \<in> S. f x \<bullet> i \<ge> a} \<in> sets (lebesgue_on S))"
-  apply (rule trans [OF borel_measurable_iff_halfspace_ge])
-  apply (fastforce simp add: space_restrict_space)
-  done
+  by (force simp add: space_restrict_space trans [OF borel_measurable_iff_halfspace_ge])
 
 lemma borel_measurable_vimage_halfspace_component_gt:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   shows "f \<in> borel_measurable (lebesgue_on S) \<longleftrightarrow>
          (\<forall>a i. i \<in> Basis \<longrightarrow> {x \<in> S. f x \<bullet> i > a} \<in> sets (lebesgue_on S))"
-  apply (rule trans [OF borel_measurable_iff_halfspace_greater])
-  apply (fastforce simp add: space_restrict_space)
-  done
+  by (force simp add: space_restrict_space trans [OF borel_measurable_iff_halfspace_greater])
 
 lemma borel_measurable_vimage_halfspace_component_le:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   shows "f \<in> borel_measurable (lebesgue_on S) \<longleftrightarrow>
          (\<forall>a i. i \<in> Basis \<longrightarrow> {x \<in> S. f x \<bullet> i \<le> a} \<in> sets (lebesgue_on S))"
-  apply (rule trans [OF borel_measurable_iff_halfspace_le])
-  apply (fastforce simp add: space_restrict_space)
-  done
+  by (force simp add: space_restrict_space trans [OF borel_measurable_iff_halfspace_le])
 
 lemma
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
@@ -630,16 +565,12 @@ lemma borel_measurable_vimage_closed:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   shows "f \<in> borel_measurable (lebesgue_on S) \<longleftrightarrow>
          (\<forall>T. closed T \<longrightarrow> {x \<in> S. f x \<in> T} \<in> sets (lebesgue_on S))"
-        (is "?lhs = ?rhs")
 proof -
-  have eq: "{x \<in> S. f x \<in> T} = S - {x \<in> S. f x \<in> (- T)}" for T
+  have eq: "{x \<in> S. f x \<in> T} = S - (S \<inter> f -` (- T))" for T
     by auto
   show ?thesis
-    apply (simp add: borel_measurable_vimage_open, safe)
-     apply (simp_all (no_asm) add: eq)
-     apply (intro sets.Diff sets_lebesgue_on_refl, force simp: closed_open)
-    apply (intro sets.Diff sets_lebesgue_on_refl, force simp: open_closed)
-    done
+    unfolding borel_measurable_vimage_open eq
+    by (metis Diff_Diff_Int closed_Compl diff_eq open_Compl sets.Diff sets_lebesgue_on_refl vimage_Compl)
 qed
 
 lemma borel_measurable_vimage_closed_interval:
@@ -689,9 +620,7 @@ lemma borel_measurable_lebesgue_preimage_borel:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   shows "f \<in> borel_measurable lebesgue \<longleftrightarrow>
          (\<forall>T. T \<in> sets borel \<longrightarrow> {x. f x \<in> T} \<in> sets lebesgue)"
-  apply (intro iffI allI impI lebesgue_measurable_vimage_borel)
-    apply (auto simp: in_borel_measurable_borel vimage_def)
-  done
+  by (smt (verit, best) Collect_cong UNIV_I borel_measurable_vimage_borel lebesgue_on_UNIV_eq)
 
 
 subsection \<^marker>\<open>tag unimportant\<close> \<open>Measurability of continuous functions\<close>
@@ -699,13 +628,9 @@ subsection \<^marker>\<open>tag unimportant\<close> \<open>Measurability of cont
 lemma continuous_imp_measurable_on_sets_lebesgue:
   assumes f: "continuous_on S f" and S: "S \<in> sets lebesgue"
   shows "f \<in> borel_measurable (lebesgue_on S)"
-proof -
-  have "sets (restrict_space borel S) \<subseteq> sets (lebesgue_on S)"
-    by (simp add: mono_restrict_space subsetI)
-  then show ?thesis
-    by (simp add: borel_measurable_continuous_on_restrict [OF f] borel_measurable_subalgebra 
-                  space_restrict_space)
-qed
+  by (metis borel_measurable_continuous_on_restrict borel_measurable_subalgebra f 
+      lebesgue_on_UNIV_eq mono_restrict_space sets_completionI_sets sets_lborel space_borel 
+      space_lebesgue_on space_restrict_space subsetI)
 
 lemma id_borel_measurable_lebesgue [iff]: "id \<in> borel_measurable lebesgue"
   by (simp add: measurable_completion)
@@ -741,12 +666,7 @@ lemma emeasure_lborel_Icc[simp]:
   fixes l u :: real
   assumes [simp]: "l \<le> u"
   shows "emeasure lborel {l .. u} = u - l"
-proof -
-  have "((\<lambda>f. f 1) -` {l..u} \<inter> space (Pi\<^sub>M {1} (\<lambda>b. interval_measure (\<lambda>x. x)))) = {1::real} \<rightarrow>\<^sub>E {l..u}"
-    by (auto simp: space_PiM)
-  then show ?thesis
-    by (simp add: lborel_def emeasure_distr emeasure_PiM emeasure_interval_measure_Icc)
-qed
+  by (simp add: emeasure_interval_measure_Icc lborel_eq_real)
 
 lemma emeasure_lborel_Icc_eq: "emeasure lborel {l .. u} = ennreal (if l \<le> u then u - l else 0)"
   by simp
@@ -781,12 +701,7 @@ qed
 lemma emeasure_lborel_Ioc[simp]:
   assumes [simp]: "l \<le> u"
   shows "emeasure lborel {l <.. u} = ennreal (u - l)"
-proof -
-  have "emeasure lborel {l <.. u} = emeasure lborel {l .. u}"
-    using AE_lborel_singleton[of u] AE_lborel_singleton[of l] by (intro emeasure_eq_AE) auto
-  then show ?thesis
-    by simp
-qed
+  by (simp add: emeasure_interval_measure_Ioc lborel_eq_real)
 
 lemma emeasure_lborel_Ico[simp]:
   assumes [simp]: "l \<le> u"
@@ -830,26 +745,12 @@ lemma emeasure_lborel_box_finite: "emeasure lborel (box a b) < \<infinity>"
   by (auto simp: emeasure_lborel_box_eq)
 
 lemma emeasure_lborel_ball_finite: "emeasure lborel (ball c r) < \<infinity>"
-proof -
-  have "bounded (ball c r)" by simp
-  from bounded_subset_cbox_symmetric[OF this] obtain a where a: "ball c r \<subseteq> cbox (-a) a"
-    by auto
-  hence "emeasure lborel (ball c r) \<le> emeasure lborel (cbox (-a) a)"
-    by (intro emeasure_mono) auto
-  also have "\<dots> < \<infinity>" by (simp add: emeasure_lborel_cbox_eq)
-  finally show ?thesis .
-qed
+  by (metis bounded_ball bounded_subset_cbox_symmetric cbox_borel emeasure_lborel_cbox_finite
+      emeasure_mono order_le_less_trans sets_lborel)
 
 lemma emeasure_lborel_cball_finite: "emeasure lborel (cball c r) < \<infinity>"
-proof -
-  have "bounded (cball c r)" by simp
-  from bounded_subset_cbox_symmetric[OF this] obtain a where a: "cball c r \<subseteq> cbox (-a) a"
-    by auto
-  hence "emeasure lborel (cball c r) \<le> emeasure lborel (cbox (-a) a)"
-    by (intro emeasure_mono) auto
-  also have "\<dots> < \<infinity>" by (simp add: emeasure_lborel_cbox_eq)
-  finally show ?thesis .
-qed
+  by (metis bounded_cball bounded_subset_cbox_symmetric cbox_borel emeasure_lborel_cbox_finite 
+            emeasure_mono order_le_less_trans sets_lborel)
 
 lemma fmeasurable_cbox [iff]: "cbox a b \<in> fmeasurable lborel"
   and fmeasurable_box [iff]: "box a b \<in> fmeasurable lborel"
@@ -924,7 +825,7 @@ proof -
   also have "emeasure lborel (\<Union>i. {from_nat_into A i}) = 0"
     by (rule emeasure_UN_eq_0) auto
   finally show ?thesis
-    by (auto simp add: )
+    by simp
 qed
 
 lemma countable_imp_null_set_lborel: "countable A \<Longrightarrow> A \<in> null_sets lborel"
@@ -934,30 +835,18 @@ lemma finite_imp_null_set_lborel: "finite A \<Longrightarrow> A \<in> null_sets 
   by (intro countable_imp_null_set_lborel countable_finite)
 
 lemma insert_null_sets_iff [simp]: "insert a N \<in> null_sets lebesgue \<longleftrightarrow> N \<in> null_sets lebesgue"     
-    (is "?lhs = ?rhs")
-proof
-  assume ?lhs then show ?rhs
-    by (meson completion.complete2 subset_insertI)
-next
-  assume ?rhs then show ?lhs
-  by (simp add: null_sets.insert_in_sets null_setsI)
-qed
+  by (meson completion.complete2 finite.simps finite_imp_null_set_lborel null_sets.insert_in_sets 
+      null_sets_completionI subset_insertI)
 
 lemma insert_null_sets_lebesgue_on_iff [simp]:
   assumes "a \<in> S" "S \<in> sets lebesgue"
   shows "insert a N \<in> null_sets (lebesgue_on S) \<longleftrightarrow> N \<in> null_sets (lebesgue_on S)"     
   by (simp add: assms null_sets_restrict_space)
 
-lemma lborel_neq_count_space[simp]: "lborel \<noteq> count_space (A::('a::ordered_euclidean_space) set)"
-proof
-  assume asm: "lborel = count_space A"
-  have "space lborel = UNIV" by simp
-  hence [simp]: "A = UNIV" by (subst (asm) asm) (simp only: space_count_space)
-  have "emeasure lborel {undefined::'a} = 1"
-      by (subst asm, subst emeasure_count_space_finite) auto
-  moreover have "emeasure lborel {undefined} \<noteq> 1" by simp
-  ultimately show False by contradiction
-qed
+lemma lborel_neq_count_space[simp]: 
+  fixes A :: "('a::ordered_euclidean_space) set"
+  shows "lborel \<noteq> count_space A"
+  by (metis finite.simps finite_imp_null_set_lborel insert_not_empty null_sets_count_space singleton_iff)
 
 lemma mem_closed_if_AE_lebesgue_open:
   assumes "open S" "closed C"
@@ -1004,13 +893,9 @@ proof (rule measure_eqI_generator_eq)
   let ?A = "\<lambda>n::nat. box (- (real n *\<^sub>R One)) (real n *\<^sub>R One) :: 'a set"
   show "range ?A \<subseteq> ?E" "(\<Union>i. ?A i) = UNIV"
     unfolding UN_box_eq_UNIV by auto
-
-  { fix i show "emeasure lborel (?A i) \<noteq> \<infinity>" by auto }
-  { fix X assume "X \<in> ?E" then show "emeasure lborel X = emeasure M X"
-      apply (auto simp: emeasure_eq emeasure_lborel_box_eq)
-      apply (subst box_eq_empty(1)[THEN iffD2])
-      apply (auto intro: less_imp_le simp: not_le)
-      done }
+  show "emeasure lborel (?A i) \<noteq> \<infinity>" for i by auto 
+  show "emeasure lborel X = emeasure M X" if "X \<in> ?E" for X
+    using that box_eq_empty(1) by (fastforce simp: emeasure_eq emeasure_lborel_box_eq)
 qed
 
 lemma\<^marker>\<open>tag important\<close> lborel_affine_euclidean:
@@ -1102,7 +987,7 @@ proof -
     by (auto simp: null_sets_def)
 
   show "T \<in> lebesgue \<rightarrow>\<^sub>M lebesgue"
-    by (rule completion.measurable_completion2) (auto simp: eq measurable_completion)
+    by (simp add: completion.measurable_completion2 eq measurable_completion)
 
   have "lebesgue = completion (density (distr lborel borel T) (\<lambda>_. (\<Prod>j\<in>Basis. \<bar>c j\<bar>)))"
     using c by (subst lborel_affine_euclidean[of c t]) (simp_all add: T_def[abs_def])
@@ -1135,7 +1020,7 @@ qed
 
 lemma lebesgue_measurable_scaling[measurable]: "(*\<^sub>R) x \<in> lebesgue \<rightarrow>\<^sub>M lebesgue"
 proof cases
-  assume "x = 0"
+  assume "x = 0" 
   then have "(*\<^sub>R) x = (\<lambda>x. 0::'a)"
     by (auto simp: fun_eq_iff)
   then show ?thesis by auto
@@ -1352,8 +1237,7 @@ lemma lmeasurable_cbox [iff]: "cbox a b \<in> lmeasurable"
 lemma
   fixes a::real
   shows lmeasurable_interval [iff]: "{a..b} \<in> lmeasurable" "{a<..<b} \<in> lmeasurable"
-  apply (metis box_real(2) lmeasurable_cbox)
-  by (metis box_real(1) lmeasurable_box)
+  by (metis box_real lmeasurable_box lmeasurable_cbox)+
 
 lemma fmeasurable_compact: "compact S \<Longrightarrow> S \<in> fmeasurable lborel"
   using emeasure_compact_finite[of S] by (intro fmeasurableI) (auto simp: borel_compact)
@@ -1387,14 +1271,7 @@ lemma lmeasurable_interior: "bounded S \<Longrightarrow> interior S \<in> lmeasu
   by (simp add: bounded_interior lmeasurable_open)
 
 lemma null_sets_cbox_Diff_box: "cbox a b - box a b \<in> null_sets lborel"
-proof -
-  have "emeasure lborel (cbox a b - box a b) = 0"
-    by (subst emeasure_Diff) (auto simp: emeasure_lborel_cbox_eq emeasure_lborel_box_eq box_subset_cbox)
-  then have "cbox a b - box a b \<in> null_sets lborel"
-    by (auto simp: null_sets_def)
-  then show ?thesis
-    by (auto dest!: AE_not_in)
-qed
+  by (simp add: emeasure_Diff emeasure_lborel_box_eq emeasure_lborel_cbox_eq null_setsI subset_box)
 
 lemma bounded_set_imp_lmeasurable:
   assumes "bounded S" "S \<in> sets lebesgue" shows "S \<in> lmeasurable"
@@ -1423,10 +1300,8 @@ next
     by (simp add: sigma_sets.Empty)
 next
   case (Compl a)
-  then have "\<Omega> - a \<subseteq> \<Omega>" "a \<subseteq> \<Omega>"
-    by (auto simp: sigma_sets_into_sp [OF \<open>M \<subseteq> Pow \<Omega>\<close>])
-  then show ?case
-    by (auto simp: inj_on_image_set_diff [OF \<open>inj_on f \<Omega>\<close>] assms intro: Compl sigma_sets.Compl)
+  with assms show ?case
+    by (metis inj_on_image_set_diff sigma_sets.Compl sigma_sets_into_sp)
 next
   case (Union a) then show ?case
     by (metis image_UN sigma_sets.simps)
@@ -1475,9 +1350,8 @@ qed
 lemma measurable_translation:
    "S \<in> lmeasurable \<Longrightarrow> ((+) a ` S) \<in> lmeasurable"
   using emeasure_lebesgue_affine [of 1 a S]
-  apply (auto intro: lebesgue_sets_translation simp add: fmeasurable_def cong: image_cong_simp)
-  apply (simp add: ac_simps)
-  done
+  by (smt (verit, best) add.commute ennreal_1 fmeasurable_def image_cong lambda_one 
+          lebesgue_sets_translation mem_Collect_eq power_one scaleR_one)
 
 lemma measurable_translation_subtract:
    "S \<in> lmeasurable \<Longrightarrow> ((\<lambda>x. x - a) ` S) \<in> lmeasurable"
@@ -1508,11 +1382,10 @@ proof -
 
   let ?f = "\<lambda>n. root DIM('a) (Suc n)"
 
-  have vimage_eq_image: "(*\<^sub>R) (?f n) -` S = (*\<^sub>R) (1 / ?f n) ` S" for n
-    apply safe
-    subgoal for x by (rule image_eqI[of _ _ "?f n *\<^sub>R x"]) auto
-    subgoal by auto
-    done
+  have "?f n *\<^sub>R x \<in> S \<Longrightarrow> x \<in> (*\<^sub>R) (1 / ?f n) ` S" for x n
+    by (rule image_eqI[of _ _ "?f n *\<^sub>R x"]) auto
+  then have vimage_eq_image: "(*\<^sub>R) (?f n) -` S = (*\<^sub>R) (1 / ?f n) ` S" for n
+    by auto
 
   have eq: "(1 / ?f n) ^ DIM('a) = 1 / Suc n" for n
     by (simp add: field_simps)
@@ -1642,12 +1515,12 @@ lemma completion_upper:
                    "emeasure (completion M) A = emeasure M A'"
 proof -
   from AE_notin_null_part[OF A] obtain N where N: "N \<in> null_sets M" "null_part M A \<subseteq> N"
-    unfolding eventually_ae_filter using null_part_null_sets[OF A, THEN null_setsD2, THEN sets.sets_into_space] by auto
+    by (meson assms null_part)
   let ?A' = "main_part M A \<union> N"
   show ?thesis
   proof
     show "A \<subseteq> ?A'"
-      using \<open>null_part M A \<subseteq> N\<close> by (subst main_part_null_part_Un[symmetric, OF A]) auto
+      using \<open>null_part M A \<subseteq> N\<close> assms main_part_null_part_Un by blast
     have "main_part M A \<subseteq> A"
       using assms main_part_null_part_Un by auto
     then have "?A' - A \<subseteq> N"

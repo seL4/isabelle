@@ -42,49 +42,22 @@ definition bigo :: "('a \<Rightarrow> 'b::linordered_idom) \<Rightarrow> ('a \<R
 lemma bigo_pos_const:
   "(\<exists>c::'a::linordered_idom. \<forall>x. \<bar>h x\<bar> \<le> c * \<bar>f x\<bar>) \<longleftrightarrow>
     (\<exists>c. 0 < c \<and> (\<forall>x. \<bar>h x\<bar> \<le> c * \<bar>f x\<bar>))"
-  apply auto
-  apply (case_tac "c = 0")
-   apply simp
-   apply (rule_tac x = "1" in exI)
-   apply simp
-  apply (rule_tac x = "\<bar>c\<bar>" in exI)
-  apply auto
-  apply (subgoal_tac "c * \<bar>f x\<bar> \<le> \<bar>c\<bar> * \<bar>f x\<bar>")
-   apply (erule_tac x = x in allE)
-   apply force
-  apply (rule mult_right_mono)
-   apply (rule abs_ge_self)
-  apply (rule abs_ge_zero)
-  done
+  by (metis (no_types, opaque_lifting) abs_ge_zero abs_not_less_zero abs_of_nonneg dual_order.trans 
+        mult_1 zero_less_abs_iff zero_less_mult_iff zero_less_one)
 
 lemma bigo_alt_def: "O(f) = {h. \<exists>c. 0 < c \<and> (\<forall>x. \<bar>h x\<bar> \<le> c * \<bar>f x\<bar>)}"
   by (auto simp add: bigo_def bigo_pos_const)
 
 lemma bigo_elt_subset [intro]: "f \<in> O(g) \<Longrightarrow> O(f) \<le> O(g)"
   apply (auto simp add: bigo_alt_def)
-  apply (rule_tac x = "ca * c" in exI)
-  apply (rule conjI)
-   apply simp
-  apply (rule allI)
-  apply (drule_tac x = "xa" in spec)+
-  apply (subgoal_tac "ca * \<bar>f xa\<bar> \<le> ca * (c * \<bar>g xa\<bar>)")
-   apply (erule order_trans)
-   apply (simp add: ac_simps)
-  apply (rule mult_left_mono, assumption)
-  apply (rule order_less_imp_le, assumption)
-  done
+  by (metis (no_types, opaque_lifting) mult.assoc mult_le_cancel_iff2 order.trans 
+      zero_less_mult_iff)
 
 lemma bigo_refl [intro]: "f \<in> O(f)"
-  apply (auto simp add: bigo_def)
-  apply (rule_tac x = 1 in exI)
-  apply simp
-  done
+  using bigo_def comm_monoid_mult_class.mult_1 dual_order.eq_iff by blast
 
 lemma bigo_zero: "0 \<in> O(g)"
-  apply (auto simp add: bigo_def func_zero)
-  apply (rule_tac x = 0 in exI)
-  apply auto
-  done
+  using bigo_def mult_le_cancel_left1 by fastforce
 
 lemma bigo_zero2: "O(\<lambda>x. 0) = {\<lambda>x. 0}"
   by (auto simp add: bigo_def)
@@ -92,21 +65,10 @@ lemma bigo_zero2: "O(\<lambda>x. 0) = {\<lambda>x. 0}"
 lemma bigo_plus_self_subset [intro]: "O(f) + O(f) \<subseteq> O(f)"
   apply (auto simp add: bigo_alt_def set_plus_def)
   apply (rule_tac x = "c + ca" in exI)
-  apply auto
-  apply (simp add: ring_distribs func_plus)
-  apply (rule order_trans)
-   apply (rule abs_triangle_ineq)
-  apply (rule add_mono)
-   apply force
-  apply force
-  done
+  by (smt (verit, best) abs_triangle_ineq add_mono add_pos_pos comm_semiring_class.distrib dual_order.trans)
 
 lemma bigo_plus_idemp [simp]: "O(f) + O(f) = O(f)"
-  apply (rule equalityI)
-   apply (rule bigo_plus_self_subset)
-  apply (rule set_zero_plus2)
-  apply (rule bigo_zero)
-  done
+  by (simp add: antisym bigo_plus_self_subset bigo_zero set_zero_plus2)
 
 lemma bigo_plus_subset [intro]: "O(f + g) \<subseteq> O(f) + O(g)"
   apply (rule subsetI)
@@ -117,37 +79,22 @@ lemma bigo_plus_subset [intro]: "O(f + g) \<subseteq> O(f) + O(g)"
    apply (rule_tac x = "c + c" in exI)
    apply (clarsimp)
    apply (subgoal_tac "c * \<bar>f xa + g xa\<bar> \<le> (c + c) * \<bar>f xa\<bar>")
-    apply (erule_tac x = xa in allE)
-    apply (erule order_trans)
-    apply (simp)
+    apply (metis mult_2 order_trans)
    apply (subgoal_tac "c * \<bar>f xa + g xa\<bar> \<le> c * (\<bar>f xa\<bar> + \<bar>g xa\<bar>)")
-    apply (erule order_trans)
-    apply (simp add: ring_distribs)
-   apply (rule mult_left_mono)
-    apply (simp add: abs_triangle_ineq)
-   apply (simp add: order_less_le)
+    apply auto[1]
+  using abs_triangle_ineq mult_le_cancel_iff2 apply blast
+  apply (simp add: order_less_le)
   apply (rule_tac x = "\<lambda>n. if \<bar>f n\<bar> < \<bar>g n\<bar> then x n else 0" in exI)
   apply (rule conjI)
    apply (rule_tac x = "c + c" in exI)
    apply auto
   apply (subgoal_tac "c * \<bar>f xa + g xa\<bar> \<le> (c + c) * \<bar>g xa\<bar>")
-   apply (erule_tac x = xa in allE)
-   apply (erule order_trans)
-   apply simp
-  apply (subgoal_tac "c * \<bar>f xa + g xa\<bar> \<le> c * (\<bar>f xa\<bar> + \<bar>g xa\<bar>)")
-   apply (erule order_trans)
-   apply (simp add: ring_distribs)
-  apply (rule mult_left_mono)
-   apply (rule abs_triangle_ineq)
-  apply (simp add: order_less_le)
+   apply (metis mult_2 order.trans)
+  apply simp
   done
 
 lemma bigo_plus_subset2 [intro]: "A \<subseteq> O(f) \<Longrightarrow> B \<subseteq> O(f) \<Longrightarrow> A + B \<subseteq> O(f)"
-  apply (subgoal_tac "A + B \<subseteq> O(f) + O(f)")
-   apply (erule order_trans)
-   apply simp
-  apply (auto del: subsetI simp del: bigo_plus_idemp)
-  done
+  using bigo_plus_idemp set_plus_mono2 by blast
 
 lemma bigo_plus_eq: "\<forall>x. 0 \<le> f x \<Longrightarrow> \<forall>x. 0 \<le> g x \<Longrightarrow> O(f + g) = O(f) + O(g)"
   apply (rule equalityI)
@@ -157,8 +104,7 @@ lemma bigo_plus_eq: "\<forall>x. 0 \<le> f x \<Longrightarrow> \<forall>x. 0 \<l
   apply (rule_tac x = "max c ca" in exI)
   apply (rule conjI)
    apply (subgoal_tac "c \<le> max c ca")
-    apply (erule order_less_le_trans)
-    apply assumption
+    apply linarith
    apply (rule max.cobounded1)
   apply clarify
   apply (drule_tac x = "xa" in spec)+
@@ -167,21 +113,9 @@ lemma bigo_plus_eq: "\<forall>x. 0 \<le> f x \<Longrightarrow> \<forall>x. 0 \<l
    apply (subgoal_tac "\<bar>a xa + b xa\<bar> \<le> \<bar>a xa\<bar> + \<bar>b xa\<bar>")
     apply (subgoal_tac "\<bar>a xa\<bar> + \<bar>b xa\<bar> \<le> max c ca * f xa + max c ca * g xa")
      apply force
-    apply (rule add_mono)
-     apply (subgoal_tac "c * f xa \<le> max c ca * f xa")
-      apply force
-     apply (rule mult_right_mono)
-      apply (rule max.cobounded1)
-     apply assumption
-    apply (subgoal_tac "ca * g xa \<le> max c ca * g xa")
-     apply force
-    apply (rule mult_right_mono)
-     apply (rule max.cobounded2)
-    apply assumption
-   apply (rule abs_triangle_ineq)
-  apply (rule add_nonneg_nonneg)
-   apply assumption+
-  done
+    apply (metis add_mono le_max_iff_disj max_mult_distrib_right)
+  using abs_triangle_ineq apply blast
+  using add_nonneg_nonneg by blast
 
 lemma bigo_bounded_alt: "\<forall>x. 0 \<le> f x \<Longrightarrow> \<forall>x. f x \<le> c * g x \<Longrightarrow> f \<in> O(g)"
   apply (auto simp add: bigo_def)
