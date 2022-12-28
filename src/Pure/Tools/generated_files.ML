@@ -285,10 +285,9 @@ fun export_generated_files_cmd ctxt args =
 fun check_external_files ctxt (raw_files, raw_base_dir) =
   let
     val base_dir = Resources.check_dir ctxt NONE raw_base_dir;
-    fun check source =
+    val files = raw_files |> map (fn source =>
      (Resources.check_file ctxt (SOME base_dir) source;
-      Path.explode (Input.string_of source));
-    val files = map check raw_files;
+      Path.explode (Input.string_of source)));
   in (files, base_dir) end;
 
 fun get_external_files dir (files, base_dir) =
