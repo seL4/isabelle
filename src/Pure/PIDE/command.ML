@@ -77,12 +77,14 @@ fun resolve_files master_dir (blobs, blobs_index) toks =
             val pos = Input.pos_of source;
             val delimited = Input.is_delimited source;
 
-            fun make_file (Exn.Res {file_node, src_path, content = NONE}) =
-                  Exn.interruptible_capture (fn () =>
-                    Resources.read_file_node file_node master_dir pos delimited src_path) ()
-              | make_file (Exn.Res {file_node, src_path, content = SOME (digest, lines)}) =
-                  (Position.report pos (Markup.language_path delimited);
-                    Exn.Res (blob_file src_path lines digest file_node))
+            fun make_file (Exn.Res {file_node, src_path, content}) =
+                  let val _ = Position.report pos (Markup.language_path delimited) in
+                    case content of
+                      NONE =>
+                        Exn.interruptible_capture (fn () =>
+                          Resources.read_file_node file_node master_dir (src_path, pos)) ()
+                    | SOME (digest, lines) => Exn.Res (blob_file src_path lines digest file_node)
+                  end
               | make_file (Exn.Exn e) = Exn.Exn e;
             val files = map make_file blobs;
           in

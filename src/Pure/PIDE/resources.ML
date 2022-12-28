@@ -37,7 +37,7 @@ sig
   val check_thy: Path.T -> string ->
    {master: Path.T * SHA1.digest, text: string, theory_pos: Position.T,
     imports: (string * Position.T) list, keywords: Thy_Header.keywords}
-  val read_file_node: string -> Path.T -> Position.T -> bool -> Path.T -> Token.file
+  val read_file_node: string -> Path.T -> Path.T * Position.T -> Token.file
   val parse_files: (Path.T -> Path.T list) -> (theory -> Token.file list) parser
   val parse_file: (theory -> Token.file) parser
   val provide: Path.T * SHA1.digest -> theory -> theory
@@ -330,10 +330,8 @@ fun check_thy dir thy_name =
 
 (* read_file_node *)
 
-fun read_file_node file_node master_dir pos delimited src_path =
+fun read_file_node file_node master_dir (src_path, pos) =
   let
-    val _ = Position.report pos (Markup.language_path delimited);
-
     fun read_local () =
       let
         val path = File.check_file (File.full_path master_dir src_path);
@@ -372,10 +370,11 @@ fun parse_files make_paths =
           val delimited = Input.is_delimited source;
           val src_paths = make_paths (Path.explode name);
           val reports =
-            src_paths |> map (fn src_path =>
-              (pos, Markup.path (Path.implode_symbolic (master_dir + src_path))));
+            src_paths |> maps (fn src_path =>
+              [(pos, Markup.path (Path.implode_symbolic (master_dir + src_path))),
+               (pos, Markup.language_path delimited)]);
           val _ = Position.reports reports;
-        in map (read_file_node "" master_dir pos delimited) src_paths end
+        in map (read_file_node "" master_dir o rpair pos) src_paths end
     | files => map Exn.release files));
 
 val parse_file = parse_files single >> (fn f => f #> the_single);
