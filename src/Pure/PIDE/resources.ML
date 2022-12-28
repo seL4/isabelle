@@ -333,7 +333,7 @@ fun check_thy dir thy_name =
 fun read_file_node file_node master_dir pos delimited src_path =
   let
     val _ =
-      if Context_Position.pide_reports ()
+      if Context_Position.reports_enabled0 ()
       then Position.report pos (Markup.language_path delimited) else ();
 
     fun read_local () =
