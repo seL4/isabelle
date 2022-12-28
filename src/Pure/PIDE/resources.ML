@@ -360,7 +360,7 @@ fun provide_parse_files make_paths =
   parse_files make_paths >> (fn files => fn thy =>
     let
       val fs = files thy;
-      val thy' = fold (fn {src_path, digest, ...} => provide (src_path, digest)) fs thy;
+      val thy' = fold provide_file fs thy;
     in (fs, thy') end);
 
 val provide_parse_file = provide_parse_files single >> (fn f => f #>> the_single);
