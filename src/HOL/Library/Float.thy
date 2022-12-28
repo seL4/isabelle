@@ -100,22 +100,11 @@ proof (safe, simp)
 qed
 
 lemma uminus_float[simp]: "x \<in> float \<Longrightarrow> -x \<in> float"
-  apply (auto simp: float_def)
-  apply hypsubst_thin
-  apply (rename_tac m e)
-  apply (rule_tac x="-m" in exI)
-  apply (rule_tac x="e" in exI)
-  apply (simp add: field_simps)
-  done
+  by (simp add: float_def) (metis mult_minus_left of_int_minus)
 
 lemma times_float[simp]: "x \<in> float \<Longrightarrow> y \<in> float \<Longrightarrow> x * y \<in> float"
-  apply (auto simp: float_def)
-  apply hypsubst_thin
-  apply (rename_tac mx my ex ey)
-  apply (rule_tac x="mx * my" in exI)
-  apply (rule_tac x="ex + ey" in exI)
-  apply (simp add: powr_add)
-  done
+  apply (clarsimp simp: float_def)
+  by (metis (no_types, opaque_lifting) of_int_add powr_add mult.assoc mult.left_commute of_int_mult)
 
 lemma minus_float[simp]: "x \<in> float \<Longrightarrow> y \<in> float \<Longrightarrow> x - y \<in> float"
   using plus_float [of x "- y"] by simp
@@ -126,23 +115,11 @@ lemma abs_float[simp]: "x \<in> float \<Longrightarrow> \<bar>x\<bar> \<in> floa
 lemma sgn_of_float[simp]: "x \<in> float \<Longrightarrow> sgn x \<in> float"
   by (cases x rule: linorder_cases[of 0]) (auto intro!: uminus_float)
 
-lemma div_power_2_float[simp]: "x \<in> float \<Longrightarrow> x / 2^d \<in> float"
-  apply (auto simp add: float_def)
-  apply hypsubst_thin
-  apply (rename_tac m e)
-  apply (rule_tac x="m" in exI)
-  apply (rule_tac x="e - d" in exI)
-  apply (simp flip: powr_realpow powr_add add: field_simps)
-  done
+lemma div_power_2_float[simp]: "x \<in> float \<Longrightarrow> x / 2^d \<in> float" 
+  by (simp add: float_def) (metis of_int_diff of_int_of_nat_eq powr_diff powr_realpow zero_less_numeral times_divide_eq_right)
 
 lemma div_power_2_int_float[simp]: "x \<in> float \<Longrightarrow> x / (2::int)^d \<in> float"
-  apply (auto simp add: float_def)
-  apply hypsubst_thin
-  apply (rename_tac m e)
-  apply (rule_tac x="m" in exI)
-  apply (rule_tac x="e - d" in exI)
-  apply (simp flip: powr_realpow powr_add add: field_simps)
-  done
+  by simp
 
 lemma div_numeral_Bit0_float[simp]:
   assumes "x / numeral n \<in> float"
@@ -158,13 +135,7 @@ qed
 lemma div_neg_numeral_Bit0_float[simp]:
   assumes "x / numeral n \<in> float"
   shows "x / (- numeral (Num.Bit0 n)) \<in> float"
-proof -
-  have "- (x / numeral (Num.Bit0 n)) \<in> float"
-    using assms by simp
-  also have "- (x / numeral (Num.Bit0 n)) = x / - numeral (Num.Bit0 n)"
-    by simp
-  finally show ?thesis .
-qed
+  using assms by force
 
 lemma power_float[simp]:
   assumes "a \<in> float"
@@ -251,15 +222,9 @@ instance float :: unbounded_dense_linorder
 proof
   fix a b :: float
   show "\<exists>c. a < c"
-    apply (intro exI[of _ "a + 1"])
-    apply transfer
-    apply simp
-    done
+    by (metis Float.real_of_float less_float.rep_eq reals_Archimedean2)
   show "\<exists>c. c < a"
-    apply (intro exI[of _ "a - 1"])
-    apply transfer
-    apply simp
-    done
+    by (metis add_0 add_strict_right_mono neg_less_0_iff_less zero_less_one)
   show "\<exists>c. a < c \<and> c < b" if "a < b"
     apply (rule exI[of _ "(a + b) * Float 1 (- 1)"])
     using that
@@ -283,11 +248,10 @@ instance
 end
 
 lemma float_numeral[simp]: "real_of_float (numeral x :: float) = numeral x"
-  apply (induct x)
-  apply simp
-  apply (simp_all only: numeral_Bit0 numeral_Bit1 real_of_float_eq float_of_inverse
-          plus_float.rep_eq one_float.rep_eq plus_float numeral_float one_float)
-  done
+proof (induct x)
+  case One
+  then show ?case by simp
+qed (metis of_int_numeral real_of_float_of_int_eq)+
 
 lemma transfer_numeral [transfer_rule]:
   "rel_fun (=) pcr_float (numeral :: _ \<Rightarrow> real) (numeral :: _ \<Rightarrow> float)"
@@ -837,11 +801,11 @@ proof (cases "p + e < 0")
   finally show ?thesis
     using \<open>p + e < 0\<close>
     apply transfer
-    apply (simp add: round_down_def field_simps flip: floor_divide_of_int_eq)
+    apply (simp add: round_down_def field_simps flip: floor_divide_of_int_eq powr_add)
     apply (metis (no_types, opaque_lifting) Float.rep_eq
       add.inverse_inverse compute_real_of_float diff_minus_eq_add
       floor_divide_of_int_eq int_of_reals(1) linorder_not_le
-      minus_add_distrib of_int_eq_numeral_power_cancel_iff powr_add)
+      minus_add_distrib of_int_eq_numeral_power_cancel_iff )
     done
 next
   case False
@@ -885,10 +849,7 @@ next
     have "real_of_int \<lfloor>real_of_int a / real_of_int b\<rfloor> \<le> real_of_int a / real_of_int b"
       by simp
     moreover have "real_of_int \<lfloor>real_of_int a / real_of_int b\<rfloor> \<noteq> real_of_int a / real_of_int b"
-      apply (subst (2) real_of_int_div_aux)
-      unfolding floor_divide_of_int_eq
-      using ne \<open>b \<noteq> 0\<close> apply auto
-      done
+      by (smt (verit) floor_divide_of_int_eq ne real_of_int_div_aux)
     ultimately show "real_of_int \<lfloor>real_of_int a / real_of_int b\<rfloor> < real_of_int a / real_of_int b" by arith
   qed
   then show ?thesis
@@ -1254,12 +1215,7 @@ lemma truncate_down_eq_truncate_up: "truncate_down p x = - truncate_up p (-x)"
   by (auto simp: truncate_up_uminus_eq truncate_down_uminus_eq)
 
 lemma truncate_down_mono: "x \<le> y \<Longrightarrow> truncate_down p x \<le> truncate_down p y"
-  apply (cases "0 \<le> x")
-  apply (rule truncate_down_nonneg_mono, assumption+)
-  apply (simp add: truncate_down_eq_truncate_up)
-  apply (cases "0 \<le> y")
-  apply (auto intro: truncate_up_nonneg_mono truncate_up_switch_sign_mono)
-  done
+  by (smt (verit) truncate_down_nonneg_mono truncate_up_nonneg_mono truncate_up_uminus_eq)
 
 lemma truncate_up_mono: "x \<le> y \<Longrightarrow> truncate_up p x \<le> truncate_up p y"
   by (simp add: truncate_up_eq_truncate_down truncate_down_mono)
@@ -1271,22 +1227,7 @@ lemma truncate_up_pos: "0 < truncate_up p x" if "0 < x"
   by (meson less_le_trans that truncate_up)
 
 lemma truncate_up_less_zero_iff[simp]: "truncate_up p x < 0 \<longleftrightarrow> x < 0"
-proof -
-  have f1: "\<forall>n r. truncate_up n r + truncate_down n (- 1 * r) = 0"
-    by (simp add: truncate_down_uminus_eq)
-  have f2: "(\<forall>v0 v1. truncate_up v0 v1 + truncate_down v0 (- 1 * v1) = 0) = (\<forall>v0 v1. truncate_up v0 v1 = - 1 * truncate_down v0 (- 1 * v1))"
-    by (auto simp: truncate_up_eq_truncate_down)
-  have f3: "\<forall>x1. ((0::real) < x1) = (\<not> x1 \<le> 0)"
-    by fastforce
-  have "(- 1 * x \<le> 0) = (0 \<le> x)"
-    by force
-  then have "0 \<le> x \<or> \<not> truncate_down p (- 1 * x) \<le> 0"
-    using f3 by (meson truncate_down_pos)
-  then have "(0 \<le> truncate_up p x) \<noteq> (\<not> 0 \<le> x)"
-    using f2 f1 truncate_up_nonneg by force
-  then show ?thesis
-    by linarith
-qed
+  by (smt (verit) truncate_down_pos truncate_down_uminus_eq truncate_up_nonneg)
 
 lemma truncate_up_nonneg_iff[simp]: "truncate_up p x \<ge> 0 \<longleftrightarrow> x \<ge> 0"
   using truncate_up_less_zero_iff[of p x] truncate_up_nonneg[of x]
@@ -1913,7 +1854,6 @@ lemma mult_mono_nonpos_nonpos: "a * b \<le> c * d"
   by (meson dual_order.trans mult_left_mono_neg mult_right_mono_neg that)
 
 lemma mult_float_mono1:
-  notes mono_rules = plus_down_mono add_mono nprt_mono nprt_le_zero zero_le_pprt pprt_mono
   shows "a \<le> b \<Longrightarrow> ab \<le> bb \<Longrightarrow>
        aa \<le> a \<Longrightarrow>
        b \<le> ba \<Longrightarrow>
@@ -1927,20 +1867,10 @@ lemma mult_float_mono1:
            (plus_down prec (nprt b * nprt bb)
              (plus_down prec (pprt a * pprt ab)
                (pprt b * nprt ab)))"
-  apply (rule order_trans)
-   apply (rule mono_rules | assumption)+
-    apply (rule mult_mono_nonpos_nonneg)
-       apply (rule mono_rules | assumption)+
-    apply (rule mult_mono_nonpos_nonpos)
-       apply (rule mono_rules | assumption)+
-    apply (rule mult_mono)
-       apply (rule mono_rules | assumption)+
-   apply (rule mult_mono_nonneg_nonpos)
-      apply (rule mono_rules | assumption)+
-  by (rule order_refl)+
+  by (smt (verit, del_insts) mult_mono plus_down_mono add_mono nprt_mono nprt_le_zero zero_le_pprt 
+pprt_mono mult_mono_nonpos_nonneg mult_mono_nonpos_nonpos mult_mono_nonneg_nonpos)
 
 lemma mult_float_mono2:
-  notes mono_rules = plus_up_mono add_mono nprt_mono nprt_le_zero zero_le_pprt pprt_mono
   shows "a \<le> b \<Longrightarrow>
        ab \<le> bb \<Longrightarrow>
        aa \<le> a \<Longrightarrow>
@@ -1955,17 +1885,8 @@ lemma mult_float_mono2:
            (plus_up prec (pprt aa * nprt bc)
              (plus_up prec (nprt ba * pprt ac)
                (nprt aa * nprt ac)))"
-  apply (rule order_trans)
-   apply (rule mono_rules | assumption)+
-    apply (rule mult_mono)
-       apply (rule mono_rules | assumption)+
-    apply (rule mult_mono_nonneg_nonpos)
-       apply (rule mono_rules | assumption)+
-    apply (rule mult_mono_nonpos_nonneg)
-       apply (rule mono_rules | assumption)+
-   apply (rule mult_mono_nonpos_nonpos)
-      apply (rule mono_rules | assumption)+
-  by (rule order_refl)+
+  by (smt (verit, del_insts) plus_up_mono add_mono mult_mono nprt_mono nprt_le_zero zero_le_pprt pprt_mono 
+      mult_mono_nonpos_nonneg mult_mono_nonpos_nonpos mult_mono_nonneg_nonpos)
 
 
 subsection \<open>Approximate Power\<close>
@@ -2132,24 +2053,21 @@ proof (induction n arbitrary: a b rule: less_induct)
       assume [simp]: "odd j"
       have "power_down prec 0 (Suc (j div 2)) \<le> - power_down prec b (Suc (j div 2))"
         if "b < 0" "even (j div 2)"
-        apply (rule order_trans[where y=0])
-        using IH that by (auto simp: div2_less_self)
+        by (metis even_Suc le_minus_iff Suc_neq_Zero neg_equal_zero power_down_eq_zero_iff
+              power_down_nonpos_iff that)
       then have "truncate_down (Suc prec) ((power_down prec a (Suc (j div 2)))\<^sup>2)
         \<le> truncate_down (Suc prec) ((power_down prec b (Suc (j div 2)))\<^sup>2)"
-        using IH
-        by (auto intro!: truncate_down_mono intro: order_trans[where y=0]
-            simp: abs_le_square_iff[symmetric] abs_real_def
-            div2_less_self)
+        by (smt (verit) IH Suc_less_eq \<open>odd j\<close> div2_less_self mult_mono_nonpos_nonpos 
+            Suc_neq_Zero power2_eq_square power_down_neg_iff power_down_nonpos_iff power_mono truncate_down_mono)
       then show ?thesis
-        unfolding j
-        by (simp add: power_down_simp)
+        unfolding j by (simp add: power_down_simp)
     qed
   qed simp
 qed
 
 lemma power_up_even_nonneg: "even n \<Longrightarrow> 0 \<le> power_up p x n"
   by (induct p x n rule: power_up.induct)
-    (auto simp: power_up.simps simp del: odd_Suc_div_two intro!: )
+    (auto simp: power_up.simps simp del: odd_Suc_div_two)
 
 lemma power_up_eq_zero_iff[simp]: "power_up prec b n = 0 \<longleftrightarrow> b = 0 \<and> n \<noteq> 0"
 proof (induction n arbitrary: b rule: less_induct)
@@ -2253,18 +2171,7 @@ lemma mult_div_le:
   fixes a b :: int
   assumes "b > 0"
   shows "a \<ge> b * (a div b)"
-proof -
-  from minus_div_mult_eq_mod [symmetric, of a b] have "a = b * (a div b) + a mod b"
-    by simp
-  also have "\<dots> \<ge> b * (a div b) + 0"
-    apply (rule add_left_mono)
-    apply (rule pos_mod_sign)
-    using assms
-    apply simp
-    done
-  finally show ?thesis
-    by simp
-qed
+  by (smt (verit, ccfv_threshold) assms minus_div_mult_eq_mod mod_int_pos_iff mult.commute)
 
 lemma lapprox_rat_nonneg:
   assumes "0 \<le> x" and "0 \<le> y"
@@ -2393,9 +2300,8 @@ lift_definition int_floor_fl :: "float \<Rightarrow> int" is floor .
 qualified lemma compute_int_floor_fl[code]:
   "int_floor_fl (Float m e) = (if 0 \<le> e then m * 2 ^ nat e else m div (2 ^ (nat (-e))))"
   apply transfer
-  apply (simp add: powr_int floor_divide_of_int_eq)
-  apply (metis (no_types, opaque_lifting)floor_divide_of_int_eq of_int_numeral of_int_power floor_of_int of_int_mult)
-  done
+  by (smt (verit, ccfv_threshold) Float.rep_eq compute_real_of_float floor_divide_of_int_eq 
+      floor_of_int of_int_1 of_int_add of_int_mult of_int_power)
 
 lift_definition floor_fl :: "float \<Rightarrow> float" is "\<lambda>x. real_of_int \<lfloor>x\<rfloor>"
   by simp
@@ -2404,8 +2310,7 @@ qualified lemma compute_floor_fl[code]:
   "floor_fl (Float m e) = (if 0 \<le> e then Float m e else Float (m div (2 ^ (nat (-e)))) 0)"
   apply transfer
   apply (simp add: powr_int floor_divide_of_int_eq)
-  apply (metis (no_types, opaque_lifting)floor_divide_of_int_eq of_int_numeral of_int_power of_int_mult)
-  done
+  by (smt (z3) floor_divide_of_int_eq of_int_1 of_int_add of_int_power)
 
 end
 
