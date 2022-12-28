@@ -7,7 +7,6 @@ Prover command execution: read -- eval -- print.
 signature COMMAND =
 sig
   type blob = {file_node: string, src_path: Path.T, content: (SHA1.digest * string list) option}
-  val read_file: Path.T -> Position.T -> bool -> Path.T -> Token.file
   val read_thy: Toplevel.state -> theory
   val read: Keyword.keywords -> theory -> Path.T-> (unit -> theory) ->
     blob Exn.result list * int -> Token.T list -> Toplevel.transition
@@ -57,38 +56,6 @@ fun task_context group f =
 
 type blob = {file_node: string, src_path: Path.T, content: (SHA1.digest * string list) option};
 
-fun read_file_node file_node master_dir pos delimited src_path =
-  let
-    val _ =
-      if Context_Position.pide_reports ()
-      then Position.report pos (Markup.language_path delimited) else ();
-
-    fun read_local () =
-      let
-        val path = File.check_file (File.full_path master_dir src_path);
-        val text = File.read path;
-        val file_pos = Path.position path;
-      in (text, file_pos) end;
-
-    fun read_remote () =
-      let
-        val text = Bytes.content (Isabelle_System.download file_node);
-        val file_pos = Position.file file_node;
-      in (text, file_pos) end;
-
-    val (text, file_pos) =
-      (case try Url.explode file_node of
-        NONE => read_local ()
-      | SOME (Url.File _) => read_local ()
-      | _ => read_remote ());
-
-    val lines = split_lines text;
-    val digest = SHA1.digest text;
-  in {src_path = src_path, lines = lines, digest = digest, pos = Position.copy_id pos file_pos} end
-  handle ERROR msg => error (msg ^ Position.here pos);
-
-val read_file = read_file_node "";
-
 local
 
 fun blob_file src_path lines digest file_node =
@@ -112,7 +79,7 @@ fun resolve_files master_dir (blobs, blobs_index) toks =
 
             fun make_file (Exn.Res {file_node, src_path, content = NONE}) =
                   Exn.interruptible_capture (fn () =>
-                    read_file_node file_node master_dir pos delimited src_path) ()
+                    Resources.read_file_node file_node master_dir pos delimited src_path) ()
               | make_file (Exn.Res {file_node, src_path, content = SOME (digest, lines)}) =
                   (Position.report pos (Markup.language_path delimited);
                     Exn.Res (blob_file src_path lines digest file_node))

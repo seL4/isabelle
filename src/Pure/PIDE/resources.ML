@@ -37,6 +37,7 @@ sig
   val check_thy: Path.T -> string ->
    {master: Path.T * SHA1.digest, text: string, theory_pos: Position.T,
     imports: (string * Position.T) list, keywords: Thy_Header.keywords}
+  val read_file_node: string -> Path.T -> Position.T -> bool -> Path.T -> Token.file
   val parse_files: (Path.T -> Path.T list) -> (theory -> Token.file list) parser
   val parse_file: (theory -> Token.file) parser
   val provide: Path.T * SHA1.digest -> theory -> theory
@@ -327,6 +328,39 @@ fun check_thy dir thy_name =
   end;
 
 
+(* read_file_node *)
+
+fun read_file_node file_node master_dir pos delimited src_path =
+  let
+    val _ =
+      if Context_Position.pide_reports ()
+      then Position.report pos (Markup.language_path delimited) else ();
+
+    fun read_local () =
+      let
+        val path = File.check_file (File.full_path master_dir src_path);
+        val text = File.read path;
+        val file_pos = Path.position path;
+      in (text, file_pos) end;
+
+    fun read_remote () =
+      let
+        val text = Bytes.content (Isabelle_System.download file_node);
+        val file_pos = Position.file file_node;
+      in (text, file_pos) end;
+
+    val (text, file_pos) =
+      (case try Url.explode file_node of
+        NONE => read_local ()
+      | SOME (Url.File _) => read_local ()
+      | _ => read_remote ());
+
+    val lines = split_lines text;
+    val digest = SHA1.digest text;
+  in {src_path = src_path, lines = lines, digest = digest, pos = Position.copy_id pos file_pos} end
+  handle ERROR msg => error (msg ^ Position.here pos);
+
+
 (* load files *)
 
 fun parse_files make_paths =
@@ -343,7 +377,7 @@ fun parse_files make_paths =
             src_paths |> map (fn src_path =>
               (pos, Markup.path (Path.implode_symbolic (master_dir + src_path))));
           val _ = Position.reports reports;
-        in map (Command.read_file master_dir pos delimited) src_paths end
+        in map (read_file_node "" master_dir pos delimited) src_paths end
     | files => map Exn.release files));
 
 val parse_file = parse_files single >> (fn f => f #> the_single);
