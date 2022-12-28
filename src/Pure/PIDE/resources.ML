@@ -41,6 +41,7 @@ sig
   val parse_file: (theory -> Token.file) parser
   val provide: Path.T * SHA1.digest -> theory -> theory
   val provide_file: Token.file -> theory -> theory
+  val provide_file': Token.file -> theory -> Token.file * theory
   val provide_parse_files: (Path.T -> Path.T list) -> (theory -> Token.file list * theory) parser
   val provide_parse_file: (theory -> Token.file * theory) parser
   val loaded_files_current: theory -> bool
@@ -355,13 +356,10 @@ fun provide (src_path, id) =
     else (master_dir, imports, (src_path, id) :: provided));
 
 fun provide_file (file: Token.file) = provide (#src_path file, #digest file);
+fun provide_file' file thy = (file, provide_file file thy);
 
 fun provide_parse_files make_paths =
-  parse_files make_paths >> (fn files => fn thy =>
-    let
-      val fs = files thy;
-      val thy' = fold provide_file fs thy;
-    in (fs, thy') end);
+  parse_files make_paths >> (fn files => fn thy => fold_map provide_file' (files thy) thy);
 
 val provide_parse_file = provide_parse_files single >> (fn f => f #>> the_single);
 
