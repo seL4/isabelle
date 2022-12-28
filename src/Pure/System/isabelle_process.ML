@@ -118,7 +118,7 @@ fun init_protocol modes = Thread_Attributes.uninterruptible (fn _ => fn (address
         in message name pos_props [XML.blob ss] end;
 
     fun report_message ss =
-      if Context_Position.pide_reports ()
+      if Context_Position.reports_enabled0 ()
       then standard_message [] Markup.reportN ss else ();
 
     val serial_props = Markup.serial_properties o serial;

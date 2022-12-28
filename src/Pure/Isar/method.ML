@@ -667,7 +667,7 @@ fun reports_of ((text, (pos, _)): text_range) =
       (keyword_positions text);
 
 fun report text_range =
-  if Context_Position.pide_reports ()
+  if Context_Position.reports_enabled0 ()
   then Position.reports (reports_of text_range) else ();
 
 end;

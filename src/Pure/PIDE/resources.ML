@@ -37,10 +37,14 @@ sig
   val check_thy: Path.T -> string ->
    {master: Path.T * SHA1.digest, text: string, theory_pos: Position.T,
     imports: (string * Position.T) list, keywords: Thy_Header.keywords}
+  val read_file_node: string -> Path.T -> Path.T * Position.T -> Token.file
+  val parsed_files: (Path.T -> Path.T list) ->
+    Token.file Exn.result list * Input.source -> theory -> Token.file list
   val parse_files: (Path.T -> Path.T list) -> (theory -> Token.file list) parser
   val parse_file: (theory -> Token.file) parser
   val provide: Path.T * SHA1.digest -> theory -> theory
   val provide_file: Token.file -> theory -> theory
+  val provide_file': Token.file -> theory -> Token.file * theory
   val provide_parse_files: (Path.T -> Path.T list) -> (theory -> Token.file list * theory) parser
   val provide_parse_file: (theory -> Token.file * theory) parser
   val loaded_files_current: theory -> bool
@@ -326,24 +330,55 @@ fun check_thy dir thy_name =
   end;
 
 
+(* read_file_node *)
+
+fun read_file_node file_node master_dir (src_path, pos) =
+  let
+    fun read_local () =
+      let
+        val path = File.check_file (File.full_path master_dir src_path);
+        val text = File.read path;
+        val file_pos = Path.position path;
+      in (text, file_pos) end;
+
+    fun read_remote () =
+      let
+        val text = Bytes.content (Isabelle_System.download file_node);
+        val file_pos = Position.file file_node;
+      in (text, file_pos) end;
+
+    val (text, file_pos) =
+      (case try Url.explode file_node of
+        NONE => read_local ()
+      | SOME (Url.File _) => read_local ()
+      | _ => read_remote ());
+
+    val lines = split_lines text;
+    val digest = SHA1.digest text;
+  in {src_path = src_path, lines = lines, digest = digest, pos = Position.copy_id pos file_pos} end
+  handle ERROR msg => error (msg ^ Position.here pos);
+
+
 (* load files *)
 
+fun parsed_files make_paths (files, source) thy =
+  if null files then
+    let
+      val master_dir = master_directory thy;
+      val name = Input.string_of source;
+      val pos = Input.pos_of source;
+      val delimited = Input.is_delimited source;
+      val src_paths = make_paths (Path.explode name);
+      val reports =
+        src_paths |> maps (fn src_path =>
+          [(pos, Markup.path (Path.implode_symbolic (master_dir + src_path))),
+           (pos, Markup.language_path delimited)]);
+      val _ = Position.reports reports;
+    in map (read_file_node "" master_dir o rpair pos) src_paths end
+  else map Exn.release files;
+
 fun parse_files make_paths =
-  Scan.ahead Parse.not_eof -- Parse.path_input >> (fn (tok, source) => fn thy =>
-    (case Token.get_files tok of
-      [] =>
-        let
-          val master_dir = master_directory thy;
-          val name = Input.string_of source;
-          val pos = Input.pos_of source;
-          val delimited = Input.is_delimited source;
-          val src_paths = make_paths (Path.explode name);
-          val reports =
-            src_paths |> map (fn src_path =>
-              (pos, Markup.path (Path.implode_symbolic (master_dir + src_path))));
-          val _ = Position.reports reports;
-        in map (Command.read_file master_dir pos delimited) src_paths end
-    | files => map Exn.release files));
+  (Scan.ahead Parse.not_eof >> Token.get_files) -- Parse.path_input >> parsed_files make_paths;
 
 val parse_file = parse_files single >> (fn f => f #> the_single);
 
@@ -355,13 +390,10 @@ fun provide (src_path, id) =
     else (master_dir, imports, (src_path, id) :: provided));
 
 fun provide_file (file: Token.file) = provide (#src_path file, #digest file);
+fun provide_file' file thy = (file, provide_file file thy);
 
 fun provide_parse_files make_paths =
-  parse_files make_paths >> (fn files => fn thy =>
-    let
-      val fs = files thy;
-      val thy' = fold (fn {src_path, digest, ...} => provide (src_path, digest)) fs thy;
-    in (fs, thy') end);
+  parse_files make_paths >> (fn files => fn thy => fold_map provide_file' (files thy) thy);
 
 val provide_parse_file = provide_parse_files single >> (fn f => f #>> the_single);
 
@@ -383,7 +415,7 @@ fun loaded_files_current thy =
 
 (* formal check *)
 
-fun formal_check check_file ctxt opt_dir source =
+fun formal_check (check: Path.T -> Path.T) ctxt opt_dir source =
   let
     val name = Input.string_of source;
     val pos = Input.pos_of source;
@@ -399,7 +431,7 @@ fun formal_check check_file ctxt opt_dir source =
     val path = dir + Path.explode name handle ERROR msg => err msg;
     val _ = Path.expand path handle ERROR msg => err msg;
     val _ = Context_Position.report ctxt pos (Markup.path (Path.implode_symbolic path));
-    val _ : Path.T = check_file path handle ERROR msg => err msg;
+    val _ = check path handle ERROR msg => err msg;
   in path end;
 
 val check_path = formal_check I;

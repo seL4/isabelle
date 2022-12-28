@@ -21,7 +21,15 @@ object Command_Span {
 
   abstract class Load_Command(val name: String, val here: Scala_Project.Here)
   extends Isabelle_System.Service {
-    override def toString: String = name
+    override def toString: String = print("")
+
+    def print(body: String): String =
+      if (body.nonEmpty) "Load_Command(" + body + ")"
+      else if (name.nonEmpty) print("name = " + quote(name))
+      else "Load_Command"
+
+    def print_extensions: String =
+      print("name = " + quote(name) + ", extensions = " + commas_quote(extensions))
 
     def position: Position.T = here.position
 

@@ -17,7 +17,7 @@ sig
   val restore_visible_generic: Context.generic -> Context.generic -> Context.generic
   val restore_visible: Proof.context -> Proof.context -> Proof.context
   val restore_visible_global: theory -> theory -> theory
-  val pide_reports: unit -> bool
+  val reports_enabled0: unit -> bool
   val reports_enabled_generic: Context.generic -> bool
   val reports_enabled: Proof.context -> bool
   val reports_enabled_global: theory -> bool
@@ -64,9 +64,8 @@ val restore_visible_global = Context.theory_map o restore_visible_generic o Cont
 
 (* PIDE reports *)
 
-fun pide_reports () = Options.default_bool "pide_reports";
-
-fun reports_enabled_generic context = pide_reports () andalso is_visible_generic context;
+fun reports_enabled0 () = Options.default_bool "pide_reports";
+fun reports_enabled_generic context = reports_enabled0 () andalso is_visible_generic context;
 val reports_enabled = reports_enabled_generic o Context.Proof;
 val reports_enabled_global = reports_enabled_generic o Context.Theory;
 
