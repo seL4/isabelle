@@ -383,7 +383,7 @@ fun loaded_files_current thy =
 
 (* formal check *)
 
-fun formal_check check_file ctxt opt_dir source =
+fun formal_check (check: Path.T -> Path.T) ctxt opt_dir source =
   let
     val name = Input.string_of source;
     val pos = Input.pos_of source;
@@ -399,7 +399,7 @@ fun formal_check check_file ctxt opt_dir source =
     val path = dir + Path.explode name handle ERROR msg => err msg;
     val _ = Path.expand path handle ERROR msg => err msg;
     val _ = Context_Position.report ctxt pos (Markup.path (Path.implode_symbolic path));
-    val _ : Path.T = check_file path handle ERROR msg => err msg;
+    val _ = check path handle ERROR msg => err msg;
   in path end;
 
 val check_path = formal_check I;
