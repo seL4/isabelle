@@ -328,7 +328,7 @@ fun apply_union _ [] state = raise FAILURE (state, UNDEF)
   | apply_union int (tr :: trs) state =
       apply_union int trs state
         handle Runtime.UNDEF => apply_tr int tr state
-          | FAILURE (alt_state, UNDEF) => apply_tr int tr alt_state
+          | FAILURE (alt_state, Runtime.UNDEF) => apply_tr int tr alt_state
           | exn as FAILURE _ => raise exn
           | exn => raise FAILURE (state, exn);
 
@@ -644,7 +644,7 @@ fun show_state (st', opt_err) =
 fun app int (tr as Transition {name, markers, trans, ...}) =
   setmp_thread_position tr
     (Timing.protocol (name_of tr) (pos_of tr) (apply_trans int name markers trans)
-      ##> Option.map (fn UNDEF => ERROR (type_error tr) | exn => exn)
+      ##> Option.map (fn Runtime.UNDEF => ERROR (type_error tr) | exn => exn)
       #> show_state);
 
 in
