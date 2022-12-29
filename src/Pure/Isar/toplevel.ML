@@ -277,8 +277,6 @@ datatype trans =
 
 local
 
-exception FAILURE of state * exn;
-
 fun apply_presentation g (st as State (node, (prev_thy, _))) =
   State (node, (prev_thy, g st));
 
@@ -292,18 +290,9 @@ fun no_update f node state =
 
 fun update f g node =
   let
-    val node_pr = node_presentation node;
     val context = cases_proper_node I (Context.Proof o Proof.context_of) node;
-    fun make_state node_pr' = State (node_pr', (get_theory node, NONE));
-
-    val (st', err) =
-      (Runtime.controlled_execution (SOME context) (f #> make_state #> apply_presentation g) node,
-        NONE) handle exn => (make_state node_pr, SOME exn);
-  in
-    (case err of
-      NONE => st'
-    | SOME exn => raise FAILURE (st', exn))
-  end;
+    fun next_state node_pr' = State (node_pr', (get_theory node, NONE));
+  in Runtime.controlled_execution (SOME context) (f #> next_state #> apply_presentation g) node end;
 
 fun apply_tr int trans state =
   (case (trans, node_of state) of
@@ -324,27 +313,23 @@ fun apply_tr int trans state =
   | (Transaction (f, g), node) => update (fn x => f int x) g node
   | _ => raise UNDEF);
 
-fun apply_union _ [] state = raise FAILURE (state, UNDEF)
+fun apply_union _ [] _ = raise UNDEF
   | apply_union int (tr :: trs) state =
       apply_union int trs state
-        handle Runtime.UNDEF => apply_tr int tr state
-          | FAILURE (alt_state, Runtime.UNDEF) => apply_tr int tr alt_state
-          | exn as FAILURE _ => raise exn
-          | exn => raise FAILURE (state, exn);
+        handle Runtime.UNDEF => apply_tr int tr state;
 
 fun apply_markers name markers (state as State ((node, pr_ctxt), prev_thy)) =
   let
     val state' =
       Runtime.controlled_execution (try generic_theory_of state)
         (fn () => State ((node, fold (Document_Marker.evaluate name) markers pr_ctxt), prev_thy)) ();
-  in (state', NONE) end
-  handle exn => (state, SOME exn);
+  in (state', NONE) end;
 
 in
 
-fun apply_trans int name markers trans state =
+fun apply_capture int name markers trans state =
   (apply_union int trans state |> apply_markers name markers)
-  handle FAILURE (alt_state, exn) => (alt_state, SOME exn) | exn => (state, SOME exn);
+    handle exn => (state, SOME exn);
 
 end;
 
@@ -643,7 +628,7 @@ fun show_state (st', opt_err) =
 
 fun app int (tr as Transition {name, markers, trans, ...}) =
   setmp_thread_position tr
-    (Timing.protocol (name_of tr) (pos_of tr) (apply_trans int name markers trans)
+    (Timing.protocol (name_of tr) (pos_of tr) (apply_capture int name markers trans)
       ##> Option.map (fn Runtime.UNDEF => ERROR (type_error tr) | exn => exn)
       #> show_state);
 
