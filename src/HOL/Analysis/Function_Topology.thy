@@ -118,12 +118,7 @@ proof -
           have *: "f \<in> U"
             if "U \<in> \<U>" and "\<forall>V\<in>\<U>. \<forall>i. i \<in> I \<and> Y V i \<noteq> topspace (X i) \<longrightarrow> f i \<in> Y V i"
               and "\<forall>i\<in>I. f i \<in> topspace (X i)" and "f \<in> extensional I" for f U
-          proof -
-            have "Pi\<^sub>E I (Y U) = U"
-              using Y \<open>U \<in> \<U>\<close> by blast
-            then show "f \<in> U"
-              using that unfolding PiE_def Pi_def by blast
-          qed
+            by (smt (verit) PiE_iff Y that)
           show "?TOP \<inter> \<Inter>(\<Union>U\<in>\<U>. ?F U) \<subseteq> \<Inter>\<U>"
             by (auto simp: PiE_iff *)
           show "\<Inter>\<U> \<subseteq> ?TOP \<inter> \<Inter>(\<Union>U\<in>\<U>. ?F U)"
@@ -158,18 +153,16 @@ proof -
           using Y by force
         show "?G ` \<U> \<subseteq> {Pi\<^sub>E I Y |Y. (\<forall>i. openin (X i) (Y i)) \<and> finite {i. Y i \<noteq> topspace (X i)}}"
           apply clarsimp
-          apply (rule_tac x=" (\<lambda>i. if i = J U then Y U else topspace (X i))" in exI)
+          apply (rule_tac x= "(\<lambda>i. if i = J U then Y U else topspace (X i))" in exI)
           apply (auto simp: *)
           done
       next
         show "(\<Inter>U\<in>\<U>. ?G U) = ?TOP \<inter> \<Inter>\<U>"
         proof
           have "(\<Pi>\<^sub>E i\<in>I. if i = J U then Y U else topspace (X i)) \<subseteq> (\<Pi>\<^sub>E i\<in>I. topspace (X i))"
-            apply (clarsimp simp: PiE_iff Ball_def all_conj_distrib split: if_split_asm)
-            using Y \<open>U \<in> \<U>\<close> openin_subset by blast+
+            by (simp add: PiE_mono Y \<open>U \<in> \<U>\<close> openin_subset)
           then have "(\<Inter>U\<in>\<U>. ?G U) \<subseteq> ?TOP"
-            using \<open>U \<in> \<U>\<close>
-            by fastforce
+            using \<open>U \<in> \<U>\<close> by fastforce
           moreover have "(\<Inter>U\<in>\<U>. ?G U) \<subseteq> \<Inter>\<U>"
             using PiE_mem Y by fastforce
           ultimately show "(\<Inter>U\<in>\<U>. ?G U) \<subseteq> ?TOP \<inter> \<Inter>\<U>"
@@ -211,24 +204,25 @@ proposition product_topology_open_contains_basis:
   assumes "openin (product_topology T I) U" "x \<in> U"
   shows "\<exists>X. x \<in> (\<Pi>\<^sub>E i\<in>I. X i) \<and> (\<forall>i. openin (T i) (X i)) \<and> finite {i. X i \<noteq> topspace (T i)} \<and> (\<Pi>\<^sub>E i\<in>I. X i) \<subseteq> U"
 proof -
-  have "generate_topology_on {(\<Pi>\<^sub>E i\<in>I. X i) |X. (\<forall>i. openin (T i) (X i)) \<and> finite {i. X i \<noteq> topspace (T i)}} U"
-    using assms unfolding product_topology_def by (intro openin_topology_generated_by) auto
-  then have "\<And>x. x\<in>U \<Longrightarrow> \<exists>X. x \<in> (\<Pi>\<^sub>E i\<in>I. X i) \<and> (\<forall>i. openin (T i) (X i)) \<and> finite {i. X i \<noteq> topspace (T i)} \<and> (\<Pi>\<^sub>E i\<in>I. X i) \<subseteq> U"
+  define IT where "IT \<equiv> \<lambda>X. {i. X i \<noteq> topspace (T i)}"
+  have "generate_topology_on {(\<Pi>\<^sub>E i\<in>I. X i) |X. (\<forall>i. openin (T i) (X i)) \<and> finite (IT X)} U"
+    using assms unfolding product_topology_def IT_def by (intro openin_topology_generated_by) auto
+  then have "\<And>x. x\<in>U \<Longrightarrow> \<exists>X. x \<in> (\<Pi>\<^sub>E i\<in>I. X i) \<and> (\<forall>i. openin (T i) (X i)) \<and> finite (IT X) \<and> (\<Pi>\<^sub>E i\<in>I. X i) \<subseteq> U"
   proof induction
     case (Int U V x)
     then obtain XU XV where H:
-      "x \<in> Pi\<^sub>E I XU" "(\<forall>i. openin (T i) (XU i))" "finite {i. XU i \<noteq> topspace (T i)}" "Pi\<^sub>E I XU \<subseteq> U"
-      "x \<in> Pi\<^sub>E I XV" "(\<forall>i. openin (T i) (XV i))" "finite {i. XV i \<noteq> topspace (T i)}" "Pi\<^sub>E I XV \<subseteq> V"
-      by auto meson
+      "x \<in> Pi\<^sub>E I XU" "\<And>i. openin (T i) (XU i)" "finite (IT XU)" "Pi\<^sub>E I XU \<subseteq> U"
+      "x \<in> Pi\<^sub>E I XV" "\<And>i. openin (T i) (XV i)" "finite (IT XV)" "Pi\<^sub>E I XV \<subseteq> V"
+      by (meson Int_iff)
     define X where "X = (\<lambda>i. XU i \<inter> XV i)"
     have "Pi\<^sub>E I X \<subseteq> Pi\<^sub>E I XU \<inter> Pi\<^sub>E I XV"
-      unfolding X_def by (auto simp add: PiE_iff)
+      by (auto simp add: PiE_iff X_def)
     then have "Pi\<^sub>E I X \<subseteq> U \<inter> V" using H by auto
     moreover have "\<forall>i. openin (T i) (X i)"
       unfolding X_def using H by auto
-    moreover have "finite {i. X i \<noteq> topspace (T i)}"
-      apply (rule rev_finite_subset[of "{i. XU i \<noteq> topspace (T i)} \<union> {i. XV i \<noteq> topspace (T i)}"])
-      unfolding X_def using H by auto
+    moreover have "finite (IT X)"
+      apply (rule rev_finite_subset[of "IT XU \<union> IT XV"])
+      using H by (auto simp: X_def IT_def)
     moreover have "x \<in> Pi\<^sub>E I X"
       unfolding X_def using H by auto
     ultimately show ?case
@@ -236,16 +230,10 @@ proof -
   next
     case (UN K x)
     then obtain k where "k \<in> K" "x \<in> k" by auto
-    with UN have "\<exists>X. x \<in> Pi\<^sub>E I X \<and> (\<forall>i. openin (T i) (X i)) \<and> finite {i. X i \<noteq> topspace (T i)} \<and> Pi\<^sub>E I X \<subseteq> k"
-      by simp
-    then obtain X where "x \<in> Pi\<^sub>E I X \<and> (\<forall>i. openin (T i) (X i)) \<and> finite {i. X i \<noteq> topspace (T i)} \<and> Pi\<^sub>E I X \<subseteq> k"
-      by blast
-    then have "x \<in> Pi\<^sub>E I X \<and> (\<forall>i. openin (T i) (X i)) \<and> finite {i. X i \<noteq> topspace (T i)} \<and> Pi\<^sub>E I X \<subseteq> (\<Union>K)"
-      using \<open>k \<in> K\<close> by auto
-    then show ?case
-      by auto
+    with \<open>k \<in> K\<close> UN show ?case
+      by (meson Sup_upper2)
   qed auto
-  then show ?thesis using \<open>x \<in> U\<close> by auto
+  then show ?thesis using \<open>x \<in> U\<close> IT_def by blast
 qed
 
 lemma product_topology_empty_discrete:
@@ -257,9 +245,7 @@ lemma openin_product_topology:
     arbitrary union_of
           ((finite intersection_of (\<lambda>F. (\<exists>i U. F = {f. f i \<in> U} \<and> i \<in> I \<and> openin (X i) U)))
            relative_to topspace (product_topology X I))"
-  apply (subst product_topology)
-  apply (simp add: topology_inverse' [OF istopology_subbase])
-  done
+  by (simp add: istopology_subbase product_topology)
 
 lemma subtopology_PiE:
   "subtopology (product_topology X I) (\<Pi>\<^sub>E i\<in>I. (S i)) = product_topology (\<lambda>i. subtopology (X i) (S i)) I"
@@ -349,6 +335,7 @@ corollary openin_product_topology_alt:
   "openin (product_topology X I) S \<longleftrightarrow>
     (\<forall>x \<in> S. \<exists>U. finite {i \<in> I. U i \<noteq> topspace(X i)} \<and>
                  (\<forall>i \<in> I. openin (X i) (U i)) \<and> x \<in> Pi\<^sub>E I U \<and> Pi\<^sub>E I U \<subseteq> S)"
+sledgehammer [isar_proofs, provers = "cvc4 z3 spass e vampire verit", timeout = 77]
   unfolding openin_product_topology arbitrary_union_of_alt product_topology_base_alt topspace_product_topology
   apply safe
   apply (drule bspec; blast)+
@@ -438,9 +425,7 @@ qed
 
 corollary closedin_product_topology:
    "closedin (product_topology X I) (PiE I S) \<longleftrightarrow> PiE I S = {} \<or> (\<forall>i \<in> I. closedin (X i) (S i))"
-  apply (simp add: PiE_eq PiE_eq_empty_iff closure_of_product_topology flip: closure_of_eq)
-  apply (metis closure_of_empty)
-  done
+  by (smt (verit, best) PiE_eq closedin_empty closure_of_eq closure_of_product_topology)
 
 corollary closedin_product_topology_singleton:
    "f \<in> extensional I \<Longrightarrow> closedin (product_topology X I) {f} \<longleftrightarrow> (\<forall>i \<in> I. closedin (X i) {f i})"
@@ -501,17 +486,13 @@ proof (rule continuous_on_generated_topo)
   also have "... = (\<Inter>i\<in>J. (\<lambda>x. f x i)-`(X i) \<inter> topspace T1) \<inter> (topspace T1)"
     using * \<open>J \<subseteq> I\<close> by auto
   also have "openin T1 (...)"
-    apply (rule openin_INT)
-    apply (simp add: \<open>finite J\<close>)
-    using H(2) assms(1) \<open>J \<subseteq> I\<close> by auto
+    using H(2) \<open>J \<subseteq> I\<close> \<open>finite J\<close> assms(1) by blast
   ultimately show "openin T1 (f-`U \<inter> topspace T1)" by simp
 next
-  show "f `topspace T1 \<subseteq> \<Union>{Pi\<^sub>E I X |X. (\<forall>i. openin (T i) (X i)) \<and> finite {i. X i \<noteq> topspace (T i)}}"
-    apply (subst topology_generated_by_topspace[symmetric])
-    apply (subst product_topology_def[symmetric])
-    apply (simp only: topspace_product_topology)
-    apply (auto simp add: PiE_iff)
-    using assms unfolding continuous_map_def by auto
+  have "f ` topspace T1 \<subseteq> topspace (product_topology T I)"
+    using assms continuous_map_def by fastforce
+  then show "f `topspace T1 \<subseteq> \<Union>{Pi\<^sub>E I X |X. (\<forall>i. openin (T i) (X i)) \<and> finite {i. X i \<noteq> topspace (T i)}}"
+    by (simp add: product_topology_def)
 qed
 
 lemma continuous_map_product_then_coordinatewise [intro]:
@@ -522,8 +503,7 @@ proof -
   fix i assume "i \<in> I"
   have "(\<lambda>x. f x i) = (\<lambda>y. y i) o f" by auto
   also have "continuous_map T1 (T i) (...)"
-    apply (rule continuous_map_compose[of _ "product_topology T I"])
-    using assms \<open>i \<in> I\<close> by auto
+    by (metis \<open>i \<in> I\<close> assms continuous_map_compose continuous_map_product_coordinates)
   ultimately show "continuous_map T1 (T i) (\<lambda>x. f x i)"
     by simp
 next
@@ -583,28 +563,14 @@ proposition product_topology_basis':
   assumes "finite I" "\<And>i. i \<in> I \<Longrightarrow> open (U i)"
   shows "open {f. \<forall>i\<in>I. f (x i) \<in> U i}"
 proof -
-  define J where "J = x`I"
-  define V where "V = (\<lambda>y. if y \<in> J then \<Inter>{U i|i. i\<in>I \<and> x i = y} else UNIV)"
-  define X where "X = (\<lambda>y. if y \<in> J then V y else UNIV)"
+  define V where "V \<equiv> (\<lambda>y. if y \<in> x`I then \<Inter>{U i|i. i\<in>I \<and> x i = y} else UNIV)"
+  define X where "X \<equiv> (\<lambda>y. if y \<in> x`I then V y else UNIV)"
   have *: "open (X i)" for i
     unfolding X_def V_def using assms by auto
-  have **: "finite {i. X i \<noteq> UNIV}"
-    unfolding X_def V_def J_def using assms(1) by auto
-  have "open (Pi\<^sub>E UNIV X)"
-    by (simp add: "*" "**" open_PiE)
+  then have "open (Pi\<^sub>E UNIV X)"
+    by (simp add: X_def assms(1) open_PiE)
   moreover have "Pi\<^sub>E UNIV X = {f. \<forall>i\<in>I. f (x i) \<in> U i}"
-    apply (auto simp add: PiE_iff) unfolding X_def V_def J_def
-    proof (auto)
-      fix f :: "'a \<Rightarrow> 'b" and i :: 'i
-      assume a1: "i \<in> I"
-      assume a2: "\<forall>i. f i \<in> (if i \<in> x`I then if i \<in> x`I then \<Inter>{U ia |ia. ia \<in> I \<and> x ia = i} else UNIV else UNIV)"
-      have f3: "x i \<in> x`I"
-        using a1 by blast
-      have "U i \<in> {U ia |ia. ia \<in> I \<and> x ia = x i}"
-        using a1 by blast
-      then show "f (x i) \<in> U i"
-        using f3 a2 by (meson Inter_iff)
-    qed
+    by (fastforce simp add: PiE_iff X_def V_def split: if_split_asm)
   ultimately show ?thesis by simp
 qed
 
@@ -620,25 +586,13 @@ lemma continuous_on_coordinatewise_then_product [continuous_intros]:
   fixes f :: "'a::topological_space \<Rightarrow> 'b \<Rightarrow> 'c::topological_space"
   assumes "\<And>i. continuous_on S (\<lambda>x. f x i)"
   shows "continuous_on S f"
-  using continuous_map_coordinatewise_then_product [of UNIV, where T = "\<lambda>i. euclidean"]
-  by (metis UNIV_I assms continuous_map_iff_continuous euclidean_product_topology)
-
-lemma continuous_on_product_then_coordinatewise_UNIV:
-  assumes "continuous_on UNIV f"
-  shows "continuous_on UNIV (\<lambda>x. f x i)"
-  unfolding continuous_map_iff_continuous2 [symmetric]
-  by (rule continuous_map_product_then_coordinatewise [where I=UNIV]) (use assms in \<open>auto simp: euclidean_product_topology\<close>)
+  by (metis UNIV_I assms continuous_map_iff_continuous euclidean_product_topology
+      continuous_map_coordinatewise_then_product)
 
 lemma continuous_on_product_then_coordinatewise:
   assumes "continuous_on S f"
   shows "continuous_on S (\<lambda>x. f x i)"
-proof -
-  have "continuous_on S ((\<lambda>q. q i) \<circ> f)"
-    by (metis assms continuous_on_compose continuous_on_id
-        continuous_on_product_then_coordinatewise_UNIV continuous_on_subset subset_UNIV)
-  then show ?thesis
-    by auto
-qed
+  by (metis UNIV_I assms continuous_map_iff_continuous continuous_map_product_then_coordinatewise(1) euclidean_product_topology)
 
 lemma continuous_on_coordinatewise_iff:
   fixes f :: "('a \<Rightarrow> real) \<Rightarrow> 'b \<Rightarrow> real"
@@ -679,16 +633,15 @@ proof -
   next
     case (Suc N)
     define f::"((nat \<Rightarrow> 'a) \<times> 'a) \<Rightarrow> (nat \<Rightarrow> 'a)"
-      where "f = (\<lambda>(x, b). (\<lambda>i. if i = N then b else x i))"
+      where "f = (\<lambda>(x, b). x(N:=b))"
     have "{x. (\<forall>i. x i \<in> F) \<and> (\<forall>i\<ge>Suc N. x i = a)} \<subseteq> f`({x. (\<forall>i. x i \<in> F) \<and> (\<forall>i\<ge>N. x i = a)} \<times> F)"
     proof (auto)
       fix x assume H: "\<forall>i::nat. x i \<in> F" "\<forall>i\<ge>Suc N. x i = a"
-      define y where "y = (\<lambda>i. if i = N then a else x i)"
-      have "f (y, x N) = x"
-        unfolding f_def y_def by auto
-      moreover have "(y, x N) \<in> {x. (\<forall>i. x i \<in> F) \<and> (\<forall>i\<ge>N. x i = a)} \<times> F"
-        unfolding y_def using H \<open>a \<in> F\<close> by auto
-      ultimately show "x \<in> f`({x. (\<forall>i. x i \<in> F) \<and> (\<forall>i\<ge>N. x i = a)} \<times> F)"
+      have "f (x(N:=a), x N) = x"
+        unfolding f_def by auto
+      moreover have "(x(N:=a), x N) \<in> {x. (\<forall>i. x i \<in> F) \<and> (\<forall>i\<ge>N. x i = a)} \<times> F"
+        using H \<open>a \<in> F\<close> by auto
+      ultimately show "x \<in> f ` ({x. (\<forall>i. x i \<in> F) \<and> (\<forall>i\<ge>N. x i = a)} \<times> F)"
         by (metis (no_types, lifting) image_eqI)
     qed
     moreover have "countable ({x. (\<forall>i. x i \<in> F) \<and> (\<forall>i\<ge>N. x i = a)} \<times> F)"
@@ -742,7 +695,7 @@ proof
     by metis
   text \<open>\<open>B i\<close> is a countable basis of neighborhoods of \<open>x\<^sub>i\<close>.\<close>
   define B where "B = (\<lambda>i. (A (x i))`UNIV \<union> {UNIV})"
-  have "countable (B i)" for i unfolding B_def by auto
+  have countB: "countable (B i)" for i unfolding B_def by auto
   have open_B: "\<And>X i. X \<in> B i \<Longrightarrow> open X"
     by (auto simp: B_def A)
   define K where "K = {Pi\<^sub>E UNIV X | X. (\<forall>i. X i \<in> B i) \<and> finite {i. X i \<noteq> UNIV}}"
@@ -750,14 +703,14 @@ proof
     unfolding K_def B_def by auto
   then have "K \<noteq> {}" by auto
   have "countable {X. (\<forall>i. X i \<in> B i) \<and> finite {i. X i \<noteq> UNIV}}"
-    apply (rule countable_product_event_const) using \<open>\<And>i. countable (B i)\<close> by auto
+    by (simp add: countB countable_product_event_const)
   moreover have "K = (\<lambda>X. Pi\<^sub>E UNIV X)`{X. (\<forall>i. X i \<in> B i) \<and> finite {i. X i \<noteq> UNIV}}"
     unfolding K_def by auto
   ultimately have "countable K" by auto
-  have "x \<in> k" if "k \<in> K" for k
+  have I: "x \<in> k" if "k \<in> K" for k
     using that unfolding K_def B_def apply auto using A(1) by auto
-  have "open k" if "k \<in> K" for k
-    using that unfolding K_def  by (blast intro: open_B open_PiE elim: )
+  have II: "open k" if "k \<in> K" for k
+    using that unfolding K_def by (blast intro: open_B open_PiE)
   have Inc: "\<exists>k\<in>K. k \<subseteq> U" if "open U \<and> x \<in> U" for U
   proof -
     have "openin (product_topology (\<lambda>i. euclidean) UNIV) U" "x \<in> U"
@@ -775,31 +728,28 @@ proof
     have *: "\<exists>y. y \<in> B i \<and> y \<subseteq> X i" for i
       unfolding B_def using A(3)[OF H(2)] H(1) by (metis PiE_E UNIV_I UnCI image_iff)
     have **: "Y i \<in> B i \<and> Y i \<subseteq> X i" for i
-      apply (cases "i \<in> I")
-      unfolding Y_def using * that apply (auto)
-      apply (metis (no_types, lifting) someI, metis (no_types, lifting) someI_ex subset_iff)
-      unfolding B_def apply simp
-      unfolding I_def apply auto
-      done
+    proof (cases "i \<in> I")
+      case True
+      then show ?thesis  
+        by (metis (mono_tags, lifting) "*" Nitpick.Eps_psimp Y_def)
+    next
+      case False
+      then show ?thesis by (simp add: B_def I_def Y_def)
+    qed
     have "{i. Y i \<noteq> UNIV} \<subseteq> I"
       unfolding Y_def by auto
-    then have ***: "finite {i. Y i \<noteq> UNIV}"
-      unfolding I_def using H(3) rev_finite_subset by blast
-    have "(\<forall>i. Y i \<in> B i) \<and> finite {i. Y i \<noteq> UNIV}"
-      using ** *** by auto
+    with ** have "(\<forall>i. Y i \<in> B i) \<and> finite {i. Y i \<noteq> UNIV}"
+      using H(3) I_def finite_subset by blast
     then have "Pi\<^sub>E UNIV Y \<in> K"
       unfolding K_def by auto
-
     have "Y i \<subseteq> X i" for i
-      apply (cases "i \<in> I") using ** apply simp unfolding Y_def I_def by auto
-    then have "Pi\<^sub>E UNIV Y \<subseteq> Pi\<^sub>E UNIV X" by auto
-    then have "Pi\<^sub>E UNIV Y \<subseteq> U" using H(4) by auto
+      using "**" by auto
+    then have "Pi\<^sub>E UNIV Y \<subseteq> U"
+      by (metis H(4) PiE_mono subset_trans)
     then show ?thesis using \<open>Pi\<^sub>E UNIV Y \<in> K\<close> by auto
   qed
-
   show "\<exists>L. (\<forall>(i::nat). x \<in> L i \<and> open (L i)) \<and> (\<forall>U. open U \<and> x \<in> U \<longrightarrow> (\<exists>i. L i \<subseteq> U))"
-    apply (rule first_countableI[of K])
-    using \<open>countable K\<close> \<open>\<And>k. k \<in> K \<Longrightarrow> x \<in> k\<close> \<open>\<And>k. k \<in> K \<Longrightarrow> open k\<close> Inc by auto
+    using \<open>countable K\<close> I II Inc by (simp add: first_countableI) 
 qed
 
 proposition product_topology_countable_basis:
@@ -821,7 +771,7 @@ proof -
     unfolding K_def using \<open>\<And>U. U \<in> B2 \<Longrightarrow> open U\<close> by auto
 
   have "countable {X. (\<forall>(i::'a). X i \<in> B2) \<and> finite {i. X i \<noteq> UNIV}}"
-    apply (rule countable_product_event_const) using \<open>countable B2\<close> by auto
+    using \<open>countable B2\<close>  by (intro countable_product_event_const) auto
   moreover have "K = (\<lambda>X. Pi\<^sub>E UNIV X)`{X. (\<forall>i. X i \<in> B2) \<and> finite {i. X i \<noteq> UNIV}}"
     unfolding K_def by auto
   ultimately have ii: "countable K" by auto
@@ -832,9 +782,7 @@ proof -
     then have "openin (product_topology (\<lambda>i. euclidean) UNIV) U"
       unfolding open_fun_def by auto
     with product_topology_open_contains_basis[OF this \<open>x \<in> U\<close>]
-    have "\<exists>X. x \<in> (\<Pi>\<^sub>E i\<in>UNIV. X i) \<and> (\<forall>i. open (X i)) \<and> finite {i. X i \<noteq> UNIV} \<and> (\<Pi>\<^sub>E i\<in>UNIV. X i) \<subseteq> U"
-      by simp
-    then obtain X where H: "x \<in> (\<Pi>\<^sub>E i\<in>UNIV. X i)"
+    obtain X where H: "x \<in> (\<Pi>\<^sub>E i\<in>UNIV. X i)"
                            "\<And>i. open (X i)"
                            "finite {i. X i \<noteq> UNIV}"
                            "(\<Pi>\<^sub>E i\<in>UNIV. X i) \<subseteq> U"
@@ -845,29 +793,15 @@ proof -
     have *: "\<exists>y. y \<in> B2 \<and> y \<subseteq> X i \<and> x i \<in> y" for i
       unfolding B2_def using B \<open>open (X i)\<close> \<open>x i \<in> X i\<close> by (meson UnCI topological_basisE)
     have **: "Y i \<in> B2 \<and> Y i \<subseteq> X i \<and> x i \<in> Y i" for i
-      using someI_ex[OF *]
-      apply (cases "i \<in> I")
-      unfolding Y_def using * apply (auto)
-      unfolding B2_def I_def by auto
+      using someI_ex[OF *] by (simp add: B2_def I_def Y_def)
     have "{i. Y i \<noteq> UNIV} \<subseteq> I"
       unfolding Y_def by auto
-    then have ***: "finite {i. Y i \<noteq> UNIV}"
-      unfolding I_def using H(3) rev_finite_subset by blast
-    have "(\<forall>i. Y i \<in> B2) \<and> finite {i. Y i \<noteq> UNIV}"
-      using ** *** by auto
+    then have "(\<forall>i. Y i \<in> B2) \<and> finite {i. Y i \<noteq> UNIV}"
+      using "**" H(3) I_def finite_subset by blast
     then have "Pi\<^sub>E UNIV Y \<in> K"
       unfolding K_def by auto
-
-    have "Y i \<subseteq> X i" for i
-      apply (cases "i \<in> I") using ** apply simp unfolding Y_def I_def by auto
-    then have "Pi\<^sub>E UNIV Y \<subseteq> Pi\<^sub>E UNIV X" by auto
-    then have "Pi\<^sub>E UNIV Y \<subseteq> U" using H(4) by auto
-
-    have "x \<in> Pi\<^sub>E UNIV Y"
-      using ** by auto
-
-    show "\<exists>V\<in>K. x \<in> V \<and> V \<subseteq> U"
-      using \<open>Pi\<^sub>E UNIV Y \<in> K\<close> \<open>Pi\<^sub>E UNIV Y \<subseteq> U\<close> \<open>x \<in> Pi\<^sub>E UNIV Y\<close> by auto
+    then show "\<exists>V\<in>K. x \<in> V \<and> V \<subseteq> U"
+      by (meson "**" H(4) PiE_I PiE_mono UNIV_I order.trans)
   next
     fix U assume "U \<in> K"
     show "open U"
@@ -878,9 +812,11 @@ proof -
 qed
 
 instance "fun" :: (countable, second_countable_topology) second_countable_topology
-  apply standard
-  using product_topology_countable_basis topological_basis_imp_subbasis by auto
-
+proof
+  show "\<exists>B::('a \<Rightarrow> 'b) set set. countable B \<and> open = generate_topology B"
+    using product_topology_countable_basis topological_basis_imp_subbasis 
+    by auto
+qed
 
 subsection\<open>The Alexander subbase theorem\<close>
 
@@ -1106,11 +1042,7 @@ proof (cases "\<forall>x \<in> topspace X. f x \<in> extensional I")
   qed
   ultimately show ?thesis
     by metis
-next
-  case False
-  then show ?thesis
-    by (auto simp: continuous_map_def PiE_def)
-qed
+qed (auto simp: continuous_map_def PiE_def)
 
 
 lemma continuous_map_componentwise_UNIV:
@@ -1147,8 +1079,7 @@ proof clarify
       fix x f
       assume "f \<in> V"
       let ?T = "{a \<in> topspace(Y i).
-                   (\<lambda>j. if j = i then a
-                        else if j \<in> I then f j else undefined) \<in> (\<Pi>\<^sub>E i\<in>I. topspace (Y i)) \<inter> \<Inter>\<F>}"
+                   (\<lambda>j\<in>I. f j)(i:=a) \<in> (\<Pi>\<^sub>E i\<in>I. topspace (Y i)) \<inter> \<Inter>\<F>}"
       show "\<exists>T. openin (Y i) T \<and> f i \<in> T \<and> T \<subseteq> (\<lambda>f. f i) ` V"
       proof (intro exI conjI)
         show "openin (Y i) ?T"
@@ -1164,8 +1095,8 @@ proof clarify
               by simp (metis IntD1 PiE_iff V \<open>f \<in> V\<close> that)
           qed
           then show "continuous_map (Y i) (product_topology Y I)
-                  (\<lambda>x j. if j = i then x else if j \<in> I then f j else undefined)"
-            by (auto simp: continuous_map_componentwise assms extensional_def)
+                  (\<lambda>x. (\<lambda>j\<in>I. f j)(i:=x))"
+            by (auto simp: continuous_map_componentwise assms extensional_def restrict_def)
         next
           have "openin (product_topology Y I) (\<Pi>\<^sub>E i\<in>I. topspace (Y i))"
             by (metis openin_topspace topspace_product_topology)
@@ -1177,18 +1108,15 @@ proof clarify
               show "\<And>X. X \<in> (\<inter>) (\<Pi>\<^sub>E i\<in>I. topspace (Y i)) ` \<F> \<Longrightarrow> openin (product_topology Y I) X"
                 unfolding openin_product_topology relative_to_def
                 apply (clarify intro!: arbitrary_union_of_inc)
-                apply (rename_tac F)
-                apply (rule_tac x=F in exI)
                 using subsetD [OF \<F>]
-                apply (force intro: finite_intersection_of_inc)
-                done
+                by (metis (mono_tags, lifting) finite_intersection_of_inc mem_Collect_eq topspace_product_topology)
             qed (use \<open>finite \<F>\<close> \<open>\<F> \<noteq> {}\<close> in auto)
           qed
           ultimately show "openin (product_topology Y I) ((\<Pi>\<^sub>E i\<in>I. topspace (Y i)) \<inter> \<Inter>\<F>)"
             by (auto simp only: Int_Inter_eq split: if_split)
         qed
       next
-        have eqf: "(\<lambda>j. if j = i then f i else if j \<in> I then f j else undefined) = f"
+        have eqf: "(\<lambda>j\<in>I. f j)(i:=f i) = f"
           using PiE_arb V \<open>f \<in> V\<close> by force
         show "f i \<in> ?T"
           using V assms \<open>f \<in> V\<close> by (auto simp: PiE_iff eqf)
@@ -1273,10 +1201,8 @@ proof (cases "PiE I S = {}")
   next
     assume ?rhs
     then show ?lhs
-      apply (simp only: openin_product_topology)
-      apply (rule arbitrary_union_of_inc)
-      apply (auto simp: product_topology_base_alt)
-      done
+      unfolding openin_product_topology
+      by (intro arbitrary_union_of_inc) (auto simp: product_topology_base_alt)
   qed
   ultimately show ?thesis
     by simp
@@ -1306,9 +1232,7 @@ proof (cases "topspace(product_topology X I) = {}")
         by (simp add: continuous_map_product_projection)
       moreover
       have "\<And>x. x \<in> topspace (X i) \<Longrightarrow> x \<in> (\<lambda>f. f i) ` (\<Pi>\<^sub>E i\<in>I. topspace (X i))"
-        using \<open>i \<in> I\<close> z
-        apply (rule_tac x="\<lambda>j. if j = i then x else if j \<in> I then z j else undefined" in image_eqI, auto)
-        done
+        using \<open>i \<in> I\<close> z by (rule_tac x="z(i:=x)" in image_eqI) auto
       then have "(\<lambda>f. f i) ` (\<Pi>\<^sub>E i\<in>I. topspace (X i)) = topspace (X i)"
         using \<open>i \<in> I\<close> z by auto
       ultimately show "compactin (X i) (topspace (X i))"
@@ -1461,7 +1385,7 @@ proof (cases ?eq)
             then have "(\<lambda>x. x k) ` {x. x j \<in> V} = UNIV" if "k \<noteq> j" for k
               using that
               apply (clarsimp simp add: set_eq_iff)
-              apply (rule_tac x="\<lambda>m. if m = k then x else f m" in image_eqI, auto)
+              apply (rule_tac x="f(k:=x)" in image_eqI, auto)
               done
             then have "{i. (\<lambda>x. x i) ` C \<subset> topspace (X i)} \<subseteq> {j}"
               using Ceq by auto
@@ -1493,7 +1417,7 @@ proof (cases ?eq)
               using PiE_ext \<open>g \<in> U\<close> gin by force
           next
             case (insert i M)
-            define f where "f \<equiv> \<lambda>j. if j = i then g i else h j"
+            define f where "f \<equiv> h(i:=g i)"
             have fin: "f \<in> PiE I (topspace \<circ> X)"
               unfolding f_def using gin insert.prems(1) by auto
             have subM: "{j \<in> I. f j \<noteq> g j} \<subseteq> M"
@@ -1506,13 +1430,13 @@ proof (cases ?eq)
               show ?thesis
               proof (cases "i \<in> I")
                 case True
-                let ?U = "{x \<in> topspace(X i). (\<lambda>j. if j = i then x else h j) \<in> U}"
-                let ?V = "{x \<in> topspace(X i). (\<lambda>j. if j = i then x else h j) \<in> V}"
+                let ?U = "{x \<in> topspace(X i). h(i:=x) \<in> U}"
+                let ?V = "{x \<in> topspace(X i). h(i:=x) \<in> V}"
                 have False
                 proof (rule connected_spaceD [OF cs [OF \<open>i \<in> I\<close>]])
                   have "\<And>k. k \<in> I \<Longrightarrow> continuous_map (X i) (X k) (\<lambda>x. if k = i then x else h k)"
                     using continuous_map_eq_topcontinuous_at insert.prems(1) topcontinuous_at_def by fastforce
-                  then have cm: "continuous_map (X i) (product_topology X I) (\<lambda>x j. if j = i then x else h j)"
+                  then have cm: "continuous_map (X i) (product_topology X I) (\<lambda>x. h(i:=x))"
                     using \<open>i \<in> I\<close> insert.prems(1)
                     by (auto simp: continuous_map_componentwise extensional_def)
                   show "openin (X i) ?U"
@@ -1522,45 +1446,23 @@ proof (cases ?eq)
                   show "topspace (X i) \<subseteq> ?U \<union> ?V"
                   proof clarsimp
                     fix x
-                    assume "x \<in> topspace (X i)" and "(\<lambda>j. if j = i then x else h j) \<notin> V"
+                    assume "x \<in> topspace (X i)" and "h(i:=x) \<notin> V"
                     with True subUV \<open>h \<in> Pi\<^sub>E I (topspace \<circ> X)\<close>
-                    show "(\<lambda>j. if j = i then x else h j) \<in> U"
-                      by (drule_tac c="(\<lambda>j. if j = i then x else h j)" in subsetD) auto
+                    show "h(i:=x) \<in> U"
+                      by (force dest: subsetD [where c="h(i:=x)"])
                   qed
                   show "?U \<inter> ?V = {}"
                     using disj by blast
                   show "?U \<noteq> {}"
-                    using \<open>U \<noteq> {}\<close> f_def
-                  proof -
-                    have "(\<lambda>j. if j = i then g i else h j) \<in> U"
-                      using \<open>f \<in> U\<close> f_def by blast
-                    moreover have "f i \<in> topspace (X i)"
-                      by (metis PiE_iff True comp_apply fin)
-                    ultimately have "\<exists>b. b \<in> topspace (X i) \<and> (\<lambda>a. if a = i then b else h a) \<in> U"
-                      using f_def by auto
-                    then show ?thesis
-                      by blast
-                  qed
-                  have "(\<lambda>j. if j = i then h i else h j) = h"
-                    by force
-                  moreover have "h i \<in> topspace (X i)"
-                    using True insert.prems(1) by auto
-                  ultimately show "?V \<noteq> {}"
-                    using \<open>h \<in> V\<close>  by force
+                    using True \<open>f \<in> U\<close> f_def gin by auto
+                  show "?V \<noteq> {}"
+                    using True \<open>h \<in> V\<close> V openin_subset by fastforce
                 qed
                 then show ?thesis ..
               next
                 case False
                 show ?thesis
-                proof (cases "h = f")
-                  case True
-                  show ?thesis
-                    by (rule insert.IH [OF insert.prems(1)]) (simp add: True subM)
-                next
-                  case False
-                  then show ?thesis
-                    using gin insert.prems(1) \<open>i \<notin> I\<close> unfolding f_def by fastforce
-                qed
+                  using insert.prems(1) by (metis False gin PiE_E \<open>f \<in> U\<close> f_def fun_upd_triv)
               qed
             next
               case False
@@ -1640,14 +1542,8 @@ lemma quotient_map_product_projection:
   assumes "i \<in> I"
   shows "quotient_map(product_topology X I) (X i) (\<lambda>x. x i) \<longleftrightarrow>
            (topspace(product_topology X I) = {} \<longrightarrow> topspace(X i) = {})"
-         (is "?lhs = ?rhs")
-proof
-  assume ?lhs with assms show ?rhs
-    by (auto simp: continuous_open_quotient_map open_map_product_projection)
-next
-  assume ?rhs with assms show ?lhs
-    by (auto simp: Abstract_Topology.retraction_imp_quotient_map retraction_map_product_projection)
-qed
+  by (metis assms image_empty quotient_imp_surjective_map retraction_imp_quotient_map 
+      retraction_map_product_projection)
 
 lemma product_topology_homeomorphic_component:
   assumes "i \<in> I" "\<And>j. \<lbrakk>j \<in> I; j \<noteq> i\<rbrakk> \<Longrightarrow> \<exists>a. topspace(X j) = {a}"
@@ -1676,9 +1572,8 @@ proof -
     from that obtain f where f: "f \<in> (\<Pi>\<^sub>E i\<in>I. topspace (X i))" 
       by force
     have "?SX f i homeomorphic_space X i"
-      apply (simp add: subtopology_PiE )
-      using product_topology_homeomorphic_component [OF \<open>i \<in> I\<close>, of "\<lambda>j. subtopology (X j) (if j = i then topspace (X i) else {f j})"]
-      using f by fastforce
+      using f product_topology_homeomorphic_component [OF \<open>i \<in> I\<close>, of "\<lambda>j. subtopology (X j) (if j = i then topspace (X i) else {f j})"]
+      by (force simp add: subtopology_PiE)
     then show ?thesis
       using minor [OF f major \<open>i \<in> I\<close>] PQ by auto
   qed
