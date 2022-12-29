@@ -313,9 +313,10 @@ fun apply_tr int trans state =
   | (Transaction (f, g), node) => update (fn x => f int x) g node
   | _ => raise UNDEF);
 
-fun apply_union _ [] _ = raise UNDEF
-  | apply_union int (tr :: trs) state =
-      apply_union int trs state
+fun apply_body _ [] _ = raise UNDEF
+  | apply_body int [tr] state = apply_tr int tr state
+  | apply_body int (tr :: trs) state =
+      apply_body int trs state
         handle Runtime.UNDEF => apply_tr int tr state;
 
 fun apply_markers name markers (state as State ((node, pr_ctxt), prev_thy)) =
@@ -328,7 +329,7 @@ fun apply_markers name markers (state as State ((node, pr_ctxt), prev_thy)) =
 in
 
 fun apply_capture int name markers trans state =
-  (apply_union int trans state |> apply_markers name markers)
+  (apply_body int trans state |> apply_markers name markers)
     handle exn => (state, SOME exn);
 
 end;
