@@ -280,37 +280,39 @@ local
 fun apply_presentation g (st as State (node, (prev_thy, _))) =
   State (node, (prev_thy, g st));
 
-fun no_update f node state =
+fun no_update g state =
   Runtime.controlled_execution (try generic_theory_of state)
     (fn () =>
       let
         val prev_thy = previous_theory_of state;
-        val state' = State (node_presentation node, (prev_thy, NONE));
-      in apply_presentation f state' end) ()
+        val state' = State (node_presentation (node_of state), (prev_thy, NONE));
+      in apply_presentation g state' end) ()
 
-fun update f g node =
-  let
-    val context = cases_proper_node I (Context.Proof o Proof.context_of) node;
-    fun next_state node_pr' = State (node_pr', (get_theory node, NONE));
-  in Runtime.controlled_execution (SOME context) (f #> next_state #> apply_presentation g) node end;
+fun update f g state =
+  Runtime.controlled_execution (try generic_theory_of state)
+    (fn () =>
+      let
+        val prev_thy = previous_theory_of state;
+        val state' = State (f (node_of state), (prev_thy, NONE));
+      in apply_presentation g state' end) ();
 
 fun apply_tr int trans state =
   (case (trans, node_of state) of
     (Init f, Toplevel) =>
       Runtime.controlled_execution NONE (fn () =>
         State (node_presentation (Theory (Context.Theory (f ()))), (NONE, NONE))) ()
-  | (Exit, node as Theory (Context.Theory thy)) =>
+  | (Exit, Theory (Context.Theory thy)) =>
       let
         val State ((node', pr_ctxt), _) =
-          node |> update
+          state |> update
             (fn _ =>
               node_presentation
                 (Theory (Context.Theory (tap Thm.expose_theory (Theory.end_theory thy)))))
             no_presentation;
       in State ((Toplevel, pr_ctxt), (get_theory node', NONE)) end
-  | (Keep f, node) => no_update (fn x => f int x) node state
+  | (Keep f, _) => no_update (fn x => f int x) state
   | (Transaction _, Toplevel) => raise UNDEF
-  | (Transaction (f, g), node) => update (fn x => f int x) g node
+  | (Transaction (f, g), _) => update (fn x => f int x) g state
   | _ => raise UNDEF);
 
 fun apply_body _ [] _ = raise UNDEF
