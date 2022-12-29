@@ -271,7 +271,7 @@ datatype trans =
   (*formal exit of theory*)
   Exit |
   (*keep state unchanged*)
-  Keep of bool -> presentation |
+  Keep of (bool -> state -> unit) * presentation |
   (*node transaction and presentation*)
   Transaction of (bool -> node -> node_presentation) * presentation;
 
@@ -280,11 +280,12 @@ local
 fun apply_presentation g (st as State (node, (prev_thy, _))) =
   State (node, (prev_thy, g st));
 
-fun no_update g state =
+fun no_update f g state =
   Runtime.controlled_execution (try generic_theory_of state)
     (fn () =>
       let
         val prev_thy = previous_theory_of state;
+        val () = f state;
         val state' = State (node_presentation (node_of state), (prev_thy, NONE));
       in apply_presentation g state' end) ()
 
@@ -310,7 +311,7 @@ fun apply_tr int trans state =
                 (Theory (Context.Theory (tap Thm.expose_theory (Theory.end_theory thy)))))
             no_presentation;
       in State ((Toplevel, pr_ctxt), (get_theory node', NONE)) end
-  | (Keep f, _) => no_update (fn x => f int x) state
+  | (Keep (f, g), _) => no_update (fn x => f int x) g state
   | (Transaction _, Toplevel) => raise UNDEF
   | (Transaction (f, g), _) => update (fn x => f int x) g state
   | _ => raise UNDEF);
@@ -405,9 +406,9 @@ fun present_transaction f g = add_trans (Transaction (f, g));
 fun transaction f = present_transaction f no_presentation;
 fun transaction0 f = present_transaction (node_presentation oo f) no_presentation;
 
-fun present f = add_trans (Keep (K (presentation f)));
-fun keep f = add_trans (Keep (fn _ => fn st => let val () = f st in NONE end));
-fun keep' f = add_trans (Keep (fn int => fn st => let val () = f int st in NONE end));
+fun present g = add_trans (Keep (fn _ => fn _ => (), presentation g));
+fun keep f = add_trans (Keep (K f, K NONE));
+fun keep' f = add_trans (Keep (f, K NONE));
 
 fun keep_proof f =
   keep (fn st =>
