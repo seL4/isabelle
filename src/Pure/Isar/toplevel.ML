@@ -29,9 +29,7 @@ sig
   val pretty_state: state -> Pretty.T list
   val string_of_state: state -> string
   val pretty_abstract: state -> Pretty.T
-  type presentation = state -> Latex.text option
-  val presentation: (state -> Latex.text) -> presentation
-  val no_presentation: presentation
+  type presentation = state -> Latex.text
   type transition
   val empty: transition
   val name_of: transition -> string
@@ -46,7 +44,7 @@ sig
   val is_init: transition -> bool
   val modify_init: (unit -> theory) -> transition -> transition
   val exit: transition -> transition
-  val present: (state -> Latex.text) -> transition -> transition
+  val present: presentation -> transition -> transition
   val keep: (state -> unit) -> transition -> transition
   val keep': (bool -> state -> unit) -> transition -> transition
   val keep_proof: (state -> unit) -> transition -> transition
@@ -55,17 +53,17 @@ sig
   val ignored: Position.T -> transition
   val malformed: Position.T -> string -> transition
   val generic_theory: (generic_theory -> generic_theory) -> transition -> transition
-  val theory': (bool -> theory -> theory) -> presentation -> transition -> transition
+  val theory': (bool -> theory -> theory) -> presentation option -> transition -> transition
   val theory: (theory -> theory) -> transition -> transition
   val begin_main_target: bool -> (theory -> local_theory) -> transition -> transition
   val end_main_target: transition -> transition
   val begin_nested_target: (Context.generic -> local_theory) -> transition -> transition
   val end_nested_target: transition -> transition
   val local_theory': (bool * Position.T) option -> (xstring * Position.T) option ->
-    (bool -> local_theory -> local_theory) -> presentation -> transition -> transition
+    (bool -> local_theory -> local_theory) -> presentation option -> transition -> transition
   val local_theory: (bool * Position.T) option -> (xstring * Position.T) option ->
     (local_theory -> local_theory) -> transition -> transition
-  val present_local_theory: (xstring * Position.T) option -> (state -> Latex.text) ->
+  val present_local_theory: (xstring * Position.T) option -> presentation ->
     transition -> transition
   val local_theory_to_proof': (bool * Position.T) option -> (xstring * Position.T) option ->
     (bool -> local_theory -> Proof.state) -> transition -> transition
@@ -256,14 +254,9 @@ val _ = ML_system_pp (fn _ => fn _ => Pretty.to_polyml o pretty_abstract);
 
 (** toplevel transitions **)
 
-(* presentation *)
-
-type presentation = state -> Latex.text option;
-fun presentation g : presentation = SOME o g;
-val no_presentation: presentation = K NONE;
-
-
 (* primitive transitions *)
+
+type presentation = state -> Latex.text;
 
 datatype trans =
   (*init theory*)
@@ -271,14 +264,17 @@ datatype trans =
   (*formal exit of theory*)
   Exit |
   (*keep state unchanged*)
-  Keep of (bool -> state -> unit) * presentation |
+  Keep of (bool -> state -> unit) * presentation option |
   (*node transaction and presentation*)
-  Transaction of (bool -> node -> node_presentation) * presentation;
+  Transaction of (bool -> node -> node_presentation) * presentation option;
 
 local
 
-fun apply_presentation g (st as State (node, (prev_thy, _))) =
-  State (node, (prev_thy, g st));
+fun present_state g node_pr prev_thy =
+  let
+    val state = State (node_pr, (prev_thy, NONE));
+    val state' = State (node_pr, (prev_thy, Option.map (fn pr => pr state) g));
+  in state' end;
 
 fun no_update f g state =
   Runtime.controlled_execution (try generic_theory_of state)
@@ -286,16 +282,16 @@ fun no_update f g state =
       let
         val prev_thy = previous_theory_of state;
         val () = f state;
-        val state' = State (node_presentation (node_of state), (prev_thy, NONE));
-      in apply_presentation g state' end) ()
+        val node_pr = node_presentation (node_of state);
+      in present_state g node_pr prev_thy end) ()
 
 fun update f g state =
   Runtime.controlled_execution (try generic_theory_of state)
     (fn () =>
       let
         val prev_thy = previous_theory_of state;
-        val state' = State (f (node_of state), (prev_thy, NONE));
-      in apply_presentation g state' end) ();
+        val node_pr' = f (node_of state);
+      in present_state g node_pr' prev_thy end) ();
 
 fun apply_tr int trans state =
   (case (trans, node_of state) of
@@ -309,7 +305,7 @@ fun apply_tr int trans state =
             (fn _ =>
               node_presentation
                 (Theory (Context.Theory (tap Thm.expose_theory (Theory.end_theory thy)))))
-            no_presentation;
+            NONE;
       in State ((Toplevel, pr_ctxt), (get_theory node', NONE)) end
   | (Keep (f, g), _) => no_update (fn x => f int x) g state
   | (Transaction _, Toplevel) => raise UNDEF
@@ -403,12 +399,12 @@ fun modify_init f tr = if is_init tr then init_theory f (reset_trans tr) else tr
 val exit = add_trans Exit;
 
 fun present_transaction f g = add_trans (Transaction (f, g));
-fun transaction f = present_transaction f no_presentation;
-fun transaction0 f = present_transaction (node_presentation oo f) no_presentation;
+fun transaction f = present_transaction f NONE;
+fun transaction0 f = present_transaction (node_presentation oo f) NONE;
 
-fun present g = add_trans (Keep (fn _ => fn _ => (), presentation g));
-fun keep f = add_trans (Keep (K f, K NONE));
-fun keep' f = add_trans (Keep (f, K NONE));
+fun present g = add_trans (Keep (fn _ => fn _ => (), SOME g));
+fun keep f = add_trans (Keep (K f, NONE));
+fun keep' f = add_trans (Keep (f, NONE));
 
 fun keep_proof f =
   keep (fn st =>
@@ -444,7 +440,7 @@ fun theory' f = present_transaction (fn int =>
       in node_presentation (Theory (Context.Theory thy')) end
     | _ => raise UNDEF));
 
-fun theory f = theory' (K f) no_presentation;
+fun theory f = theory' (K f) NONE;
 
 fun begin_main_target begin f = transaction (fn _ =>
   (fn Theory (Context.Theory thy) =>
@@ -496,14 +492,14 @@ fun local_theory' restricted target f = present_transaction (fn int =>
     | _ => raise UNDEF));
 
 fun local_theory restricted target f =
-  local_theory' restricted target (K f) no_presentation;
+  local_theory' restricted target (K f) NONE;
 
 fun present_local_theory target g = present_transaction (fn _ =>
   (fn Theory gthy =>
         let val (finish, lthy) = Target_Context.switch_named_cmd target gthy;
         in (Theory (finish lthy), lthy) end
     | _ => raise UNDEF))
-  (presentation g);
+  (SOME g);
 
 
 (* proof transitions *)
