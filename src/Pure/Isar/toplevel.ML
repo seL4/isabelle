@@ -777,8 +777,7 @@ fun element_result keywords (Thy_Element.Element (tr, NONE)) st = atom_result ke
 
             val future_proof =
               Proof.future_proof (fn state =>
-                Execution.fork
-                  {name = "Toplevel.future_proof", pos = pos_of head_tr, pri = ~1}
+                Execution.fork {name = "Toplevel.future_proof", pos = pos_of head_tr, pri = ~1}
                   (fn () =>
                     let
                       val State ((Proof (prf, (_, orig_gthy)), _), prev_thy) = st';
