@@ -5477,6 +5477,64 @@ proof -
     using that by metis
 qed
 
+lemma arccos_arctan:
+  assumes "-1 < x" "x < 1"
+  shows "arccos x = pi/2 - arctan(x / sqrt(1 - x\<^sup>2))"
+proof -
+  have "arctan(x / sqrt(1 - x\<^sup>2)) - (pi/2 - arccos x) = 0"
+  proof (rule sin_eq_0_pi)
+    show "- pi < arctan (x / sqrt (1 - x\<^sup>2)) - (pi / 2 - arccos x)"
+      using arctan_lbound [of "x / sqrt(1 - x\<^sup>2)"]  arccos_bounded [of x] assms
+      by (simp add: algebra_simps)
+  next
+    show "arctan (x / sqrt (1 - x\<^sup>2)) - (pi / 2 - arccos x) < pi"
+      using arctan_ubound [of "x / sqrt(1 - x\<^sup>2)"]  arccos_bounded [of x] assms
+      by (simp add: algebra_simps)
+  next
+    show "sin (arctan (x / sqrt (1 - x\<^sup>2)) - (pi / 2 - arccos x)) = 0"
+      using assms
+      by (simp add: algebra_simps sin_diff cos_add sin_arccos sin_arctan cos_arctan
+                    power2_eq_square square_eq_1_iff)
+  qed
+  then show ?thesis
+    by simp
+qed
+
+lemma arcsin_plus_arccos:
+  assumes "-1 \<le> x" "x \<le> 1"
+    shows "arcsin x + arccos x = pi/2"
+proof -
+  have "arcsin x = pi/2 - arccos x"
+    apply (rule sin_inj_pi)
+    using assms arcsin [OF assms] arccos [OF assms]
+    by (auto simp: algebra_simps sin_diff)
+  then show ?thesis
+    by (simp add: algebra_simps)
+qed
+
+lemma arcsin_arccos_eq: "-1 \<le> x \<Longrightarrow> x \<le> 1 \<Longrightarrow> arcsin x = pi/2 - arccos x"
+  using arcsin_plus_arccos by force
+
+lemma arccos_arcsin_eq: "-1 \<le> x \<Longrightarrow> x \<le> 1 \<Longrightarrow> arccos x = pi/2 - arcsin x"
+  using arcsin_plus_arccos by force
+
+lemma arcsin_arctan: "-1 < x \<Longrightarrow> x < 1 \<Longrightarrow> arcsin x = arctan(x / sqrt(1 - x\<^sup>2))"
+  by (simp add: arccos_arctan arcsin_arccos_eq)
+
+lemma arcsin_arccos_sqrt_pos: "0 \<le> x \<Longrightarrow> x \<le> 1 \<Longrightarrow> arcsin x = arccos(sqrt(1 - x\<^sup>2))"
+  by (smt (verit, del_insts) arccos_cos arcsin_0 arcsin_le_arcsin arcsin_pi cos_arcsin)
+
+lemma arcsin_arccos_sqrt_neg: "-1 \<le> x \<Longrightarrow> x \<le> 0 \<Longrightarrow> arcsin x = -arccos(sqrt(1 - x\<^sup>2))"
+  using arcsin_arccos_sqrt_pos [of "-x"]
+  by (simp add: arcsin_minus)
+
+lemma arccos_arcsin_sqrt_pos: "0 \<le> x \<Longrightarrow> x \<le> 1 \<Longrightarrow> arccos x = arcsin(sqrt(1 - x\<^sup>2))"
+  by (smt (verit, del_insts) arccos_lbound arccos_le_pi2 arcsin_sin sin_arccos)
+
+lemma arccos_arcsin_sqrt_neg: "-1 \<le> x \<Longrightarrow> x \<le> 0 \<Longrightarrow> arccos x = pi - arcsin(sqrt(1 - x\<^sup>2))"
+  using arccos_arcsin_sqrt_pos [of "-x"]
+  by (simp add: arccos_minus)
+
 lemma cos_limit_1:
   assumes "(\<lambda>j. cos (\<theta> j)) \<longlonglongrightarrow> 1"
   shows "\<exists>k. (\<lambda>j. \<theta> j - of_int (k j) * (2 * pi)) \<longlonglongrightarrow> 0"
