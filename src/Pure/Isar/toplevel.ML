@@ -139,12 +139,12 @@ fun node_presentation node =
   (node, cases_node init_presentation Context.proof_of Proof.context_of node);
 
 datatype state =
-  State of node_presentation * (theory option * Latex.text option);
+  State of node_presentation * (theory option * Latex.text future option);
     (*current node with presentation context, previous theory, document output*)
 
 fun node_of (State ((node, _), _)) = node;
 fun previous_theory_of (State (_, (prev_thy, _))) = prev_thy;
-fun output_of (State (_, (_, output))) = output;
+fun output_of (State (_, (_, output))) = Option.map Future.join output;
 
 fun make_state opt_thy =
   let val node = (case opt_thy of NONE => Toplevel | SOME thy => Theory (Context.Theory thy))
@@ -270,11 +270,15 @@ datatype trans =
 
 local
 
-fun present_state g node_pr prev_thy =
+fun present_state fork g node_pr prev_thy =
   let
     val state = State (node_pr, (prev_thy, NONE));
-    val state' = State (node_pr, (prev_thy, Option.map (fn pr => pr state) g));
-  in state' end;
+    fun present pr =
+      if fork andalso Future.proofs_enabled 1 then
+        Execution.fork {name = "Toplevel.present_state", pos = Position.thread_data (), pri = ~1}
+          (fn () => pr state)
+      else Future.value (pr state);
+  in State (node_pr, (prev_thy, Option.map present g)) end;
 
 fun no_update f g state =
   Runtime.controlled_execution (try generic_theory_of state)
@@ -283,7 +287,7 @@ fun no_update f g state =
         val prev_thy = previous_theory_of state;
         val () = f state;
         val node_pr = node_presentation (node_of state);
-      in present_state g node_pr prev_thy end) ()
+      in present_state false g node_pr prev_thy end) ()
 
 fun update f g state =
   Runtime.controlled_execution (try generic_theory_of state)
@@ -291,7 +295,7 @@ fun update f g state =
       let
         val prev_thy = previous_theory_of state;
         val node_pr' = f (node_of state);
-      in present_state g node_pr' prev_thy end) ();
+      in present_state true g node_pr' prev_thy end) ();
 
 fun apply_tr int trans state =
   (case (trans, node_of state) of
