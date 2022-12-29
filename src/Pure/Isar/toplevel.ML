@@ -282,7 +282,15 @@ exception FAILURE of state * exn;
 fun apply_presentation g (st as State (node, (prev_thy, _))) =
   State (node, (prev_thy, g st));
 
-fun apply f g node =
+fun no_update f node state =
+  Runtime.controlled_execution (try generic_theory_of state)
+    (fn () =>
+      let
+        val prev_thy = previous_theory_of state;
+        val state' = State (node_presentation node, (prev_thy, NONE));
+      in apply_presentation f state' end) ()
+
+fun update f g node =
   let
     val node_pr = node_presentation node;
     val context = cases_proper_node I (Context.Proof o Proof.context_of) node;
@@ -305,21 +313,15 @@ fun apply_tr int trans state =
   | (Exit, node as Theory (Context.Theory thy)) =>
       let
         val State ((node', pr_ctxt), _) =
-          node |> apply
+          node |> update
             (fn _ =>
               node_presentation
                 (Theory (Context.Theory (tap Thm.expose_theory (Theory.end_theory thy)))))
             no_presentation;
       in State ((Toplevel, pr_ctxt), (get_theory node', NONE)) end
-  | (Keep f, node) =>
-      Runtime.controlled_execution (try generic_theory_of state)
-        (fn () =>
-          let
-            val prev_thy = previous_theory_of state;
-            val state' = State (node_presentation node, (prev_thy, NONE));
-          in apply_presentation (fn st => f int st) state' end) ()
+  | (Keep f, node) => no_update (fn x => f int x) node state
   | (Transaction _, Toplevel) => raise UNDEF
-  | (Transaction (f, g), node) => apply (fn x => f int x) g node
+  | (Transaction (f, g), node) => update (fn x => f int x) g node
   | _ => raise UNDEF);
 
 fun apply_union _ [] state = raise FAILURE (state, UNDEF)
