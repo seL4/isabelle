@@ -38,6 +38,7 @@ sig
    {master: Path.T * SHA1.digest, text: string, theory_pos: Position.T,
     imports: (string * Position.T) list, keywords: Thy_Header.keywords}
   val read_file_node: string -> Path.T -> Path.T * Position.T -> Token.file
+  val read_file: Path.T -> Path.T * Position.T -> Token.file
   val parsed_files: (Path.T -> Path.T list) ->
     Token.file Exn.result list * Input.source -> theory -> Token.file list
   val parse_files: (Path.T -> Path.T list) -> (theory -> Token.file list) parser
@@ -330,7 +331,7 @@ fun check_thy dir thy_name =
   end;
 
 
-(* read_file_node *)
+(* read_file *)
 
 fun read_file_node file_node master_dir (src_path, pos) =
   let
@@ -358,6 +359,8 @@ fun read_file_node file_node master_dir (src_path, pos) =
   in {src_path = src_path, lines = lines, digest = digest, pos = Position.copy_id pos file_pos} end
   handle ERROR msg => error (msg ^ Position.here pos);
 
+val read_file = read_file_node "";
+
 
 (* load files *)
 
@@ -374,7 +377,7 @@ fun parsed_files make_paths (files, source) thy =
           [(pos, Markup.path (Path.implode_symbolic (master_dir + src_path))),
            (pos, Markup.language_path delimited)]);
       val _ = Position.reports reports;
-    in map (read_file_node "" master_dir o rpair pos) src_paths end
+    in map (read_file master_dir o rpair pos) src_paths end
   else map Exn.release files;
 
 fun parse_files make_paths =
