@@ -312,8 +312,6 @@ final class Path private(
       } catch { case ERROR(_) => None }).headOption.getOrElse(implode)
   }
 
-  def position: Position.T = Position.File(implode_symbolic)
-
 
   /* platform files */
 
