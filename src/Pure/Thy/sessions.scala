@@ -426,8 +426,10 @@ object Sessions {
                   name <- proper_session_theories.iterator
                   name1 <- resources.find_theory_node(name.theory)
                   if name.node != name1.node
-                } yield "Incoherent theory file import:\n  " + name.path + " vs. \n  " + name1.path)
-                .toList
+                } yield {
+                  "Incoherent theory file import:\n  " + quote(name.node) +
+                    " vs. \n  " + quote(name1.node)
+                }).toList
 
               errs1 ::: errs2 ::: errs3 ::: errs4
             }

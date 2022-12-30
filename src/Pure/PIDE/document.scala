@@ -114,6 +114,8 @@ object Document {
           case _ => false
         }
 
+      def file_name: String = Url.get_base_name(node).getOrElse("")
+
       def path: Path = Path.explode(File.standard_path(node))
       def master_dir_path: Path = Path.explode(File.standard_path(master_dir))
 

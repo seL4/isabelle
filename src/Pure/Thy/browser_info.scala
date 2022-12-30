@@ -264,7 +264,7 @@ object Browser_Info {
 
       val name = snapshot.node_name
       if (plain_text) {
-        val title = "File " + Symbol.cartouche_decoded(name.path.file_name)
+        val title = "File " + Symbol.cartouche_decoded(name.file_name)
         val body = HTML.text(snapshot.source)
         html_document(title, body, fonts_css)
       }
@@ -272,7 +272,7 @@ object Browser_Info {
         Resources.html_document(snapshot) getOrElse {
           val title =
             if (name.is_theory) "Theory " + quote(name.theory_base_name)
-            else "File " + Symbol.cartouche_decoded(name.path.file_name)
+            else "File " + Symbol.cartouche_decoded(name.file_name)
           val xml = snapshot.xml_markup(elements = elements.html)
           val body = Node_Context.empty.make_html(elements, xml)
           html_document(title, body, fonts_css)

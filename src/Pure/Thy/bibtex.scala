@@ -32,7 +32,7 @@ object Bibtex {
     override def html_document(snapshot: Document.Snapshot): Option[Browser_Info.HTML_Document] = {
       val name = snapshot.node_name
       if (detect(name.node)) {
-        val title = "Bibliography " + quote(snapshot.node_name.path.file_name)
+        val title = "Bibliography " + quote(snapshot.node_name.file_name)
         val content =
           Isabelle_System.with_tmp_file("bib", "bib") { bib =>
             File.write(bib, snapshot.source)
