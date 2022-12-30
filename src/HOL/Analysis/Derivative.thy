@@ -47,8 +47,7 @@ lemma has_derivative_componentwise_within:
     (\<forall>i \<in> Basis. ((\<lambda>x. f x \<bullet> i) has_derivative (\<lambda>x. f' x \<bullet> i)) (at a within S))"
   apply (simp add: has_derivative_within)
   apply (subst tendsto_componentwise_iff)
-  apply (simp add: bounded_linear_componentwise_iff [symmetric] ball_conj_distrib)
-  apply (simp add: algebra_simps)
+  apply (simp add: ball_conj_distrib  inner_diff_left inner_left_distrib flip: bounded_linear_componentwise_iff)
   done
 
 lemma has_derivative_at_withinI:
@@ -1181,9 +1180,7 @@ lemma has_field_derivative_inverse_basic:
         (\<And>z. z \<in> t \<Longrightarrow> f (g z) = z)
         \<Longrightarrow> DERIV g y :> inverse (f')"
   unfolding has_field_derivative_def
-  apply (rule has_derivative_inverse_basic)
-  apply (auto simp:  bounded_linear_mult_right)
-  done
+  by (rule has_derivative_inverse_basic) (auto simp: bounded_linear_mult_right)
 
 text \<open>Simply rewrite that based on the domain point x.\<close>
 
@@ -1205,20 +1202,13 @@ text \<open>This is the version in Dieudonne', assuming continuity of f and g.\<
 lemma has_derivative_inverse_dieudonne:
   fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
   assumes "open S"
-    and "open (f ` S)"
-    and "continuous_on S f"
-    and "continuous_on (f ` S) g"
-    and "\<And>x. x \<in> S \<Longrightarrow> g (f x) = x"
-    and "x \<in> S"
-    and "(f has_derivative f') (at x)"
-    and "bounded_linear g'"
-    and "g' \<circ> f' = id"
+    and fS: "open (f ` S)"
+    and A: "continuous_on S f" "continuous_on (f ` S) g" 
+           "\<And>x. x \<in> S \<Longrightarrow> g (f x) = x" "x \<in> S"
+    and B: "(f has_derivative f') (at x)" "bounded_linear g'" "g' \<circ> f' = id"
   shows "(g has_derivative g') (at (f x))"
-  apply (rule has_derivative_inverse_basic_x[OF assms(7-9) _ _ assms(2)])
-  using assms(3-6)
-  unfolding continuous_on_eq_continuous_at[OF assms(1)] continuous_on_eq_continuous_at[OF assms(2)]
-  apply auto
-  done
+  using A fS continuous_on_eq_continuous_at
+  by (intro has_derivative_inverse_basic_x[OF B _ _ fS]) force+
 
 text \<open>Here's the simplest way of not assuming much about g.\<close>
 
@@ -1229,19 +1219,14 @@ proposition has_derivative_inverse:
     and fx: "f x \<in> interior (f ` S)"
     and "continuous_on S f"
     and gf: "\<And>y. y \<in> S \<Longrightarrow> g (f y) = y"
-    and "(f has_derivative f') (at x)"
-    and "bounded_linear g'"
-    and "g' \<circ> f' = id"
+    and B: "(f has_derivative f') (at x)" "bounded_linear g'" "g' \<circ> f' = id"
   shows "(g has_derivative g') (at (f x))"
 proof -
   have *: "\<And>y. y \<in> interior (f ` S) \<Longrightarrow> f (g y) = y"
     by (metis gf image_iff interior_subset subsetCE)
   show ?thesis
-    apply (rule has_derivative_inverse_basic_x[OF assms(6-8), where T = "interior (f ` S)"])
-    apply (rule continuous_on_interior[OF _ fx])
-    apply (rule continuous_on_inv)
-    apply (simp_all add: assms *)
-    done
+    using assms * continuous_on_interior continuous_on_inv fx 
+    by (intro has_derivative_inverse_basic_x[OF B, where T = "interior (f`S)"]) blast+
 qed
 
 
@@ -1316,7 +1301,8 @@ proof -
         also have "\<dots> \<le> onorm g' * k"
           apply (rule mult_left_mono)
           using d1(2)[of u]
-          using onorm_neg[where f="\<lambda>x. f' u x - f' a x"] d u onorm_pos_le[OF bling] apply (auto simp: algebra_simps)
+          using onorm_neg[where f="\<lambda>x. f' u x - f' a x"] d u onorm_pos_le[OF bling] 
+           apply (auto simp: algebra_simps)
           done
         also have "\<dots> \<le> 1 / 2"
           unfolding k_def by auto
@@ -1498,17 +1484,16 @@ proof -
       fix x' y z :: 'a
       fix c :: real
       note lin = assms(2)[rule_format,OF \<open>x\<in>S\<close>,THEN has_derivative_bounded_linear]
-      show "g' x (c *\<^sub>R x') = c *\<^sub>R g' x x'"
-        apply (rule tendsto_unique[OF trivial_limit_sequentially tog'])
+      have "(\<lambda>n. f' n x (c *\<^sub>R x')) \<longlonglongrightarrow> c *\<^sub>R g' x x'"
         unfolding lin[THEN bounded_linear.linear, THEN linear_cmul]
-        apply (intro tendsto_intros tog')
-        done
-      show "g' x (y + z) = g' x y + g' x z"
-        apply (rule tendsto_unique[OF trivial_limit_sequentially tog'])
+        by (intro tendsto_intros tog')
+      then show "g' x (c *\<^sub>R x') = c *\<^sub>R g' x x'"
+        using LIMSEQ_unique tog' by blast
+      have "(\<lambda>n. f' n x (y + z)) \<longlonglongrightarrow> g' x y + g' x z"
         unfolding lin[THEN bounded_linear.linear, THEN linear_add]
-        apply (rule tendsto_add)
-        apply (rule tog')+
-        done
+        by (simp add: tendsto_add tog')
+      then show "g' x (y + z) = g' x y + g' x z"
+        using LIMSEQ_unique tog' by blast
       obtain N where N: "\<forall>h. norm (f' N x h - g' x h) \<le> 1 * norm h"
         using nle \<open>x \<in> S\<close> unfolding eventually_sequentially by (fast intro: zero_less_one)
       have "bounded_linear (f' N x)"
@@ -1621,9 +1606,8 @@ proof -
       fix n x h
       assume n: "N \<le> n" and x: "x \<in> S"
       have *: "inverse (real (Suc n)) \<le> e"
-        apply (rule order_trans[OF _ N[THEN less_imp_le]])
-        using n apply (auto simp add: field_simps)
-        done
+        using n N
+        by (smt (verit, best) le_imp_inverse_le of_nat_0_less_iff of_nat_Suc of_nat_le_iff zero_less_Suc)
       show "norm (f' n x h - g' x h) \<le> e * norm h"
         by (meson "*" mult_right_mono norm_ge_zero order.trans x f')
     qed
@@ -1822,12 +1806,19 @@ lemma has_real_derivative_iff:
 lemma has_vector_derivative_cong_ev:
   assumes *: "eventually (\<lambda>x. x \<in> S \<longrightarrow> f x = g x) (nhds x)" "f x = g x"
   shows "(f has_vector_derivative f') (at x within S) = (g has_vector_derivative f') (at x within S)"
+proof (cases "at x within S = bot")
+  case True
+  then show ?thesis   
+    by (simp add: has_derivative_def has_vector_derivative_def)
+next
+  case False
+  then show ?thesis
   unfolding has_vector_derivative_def has_derivative_def
   using *
-  apply (cases "at x within S \<noteq> bot")
   apply (intro refl conj_cong filterlim_cong)
   apply (auto simp: Lim_ident_at eventually_at_filter elim: eventually_mono)
   done
+qed
 
 lemma vector_derivative_cong_eq:
   assumes "eventually (\<lambda>x. x \<in> A \<longrightarrow> f x = g x) (nhds x)" "x = y" "A = B" "x \<in> A"
@@ -1900,18 +1891,15 @@ lemma vector_derivative_mult_at [simp]:
 lemma vector_derivative_scaleR_at [simp]:
     "\<lbrakk>f differentiable at a; g differentiable at a\<rbrakk>
    \<Longrightarrow> vector_derivative (\<lambda>x. f x *\<^sub>R g x) (at a) = f a *\<^sub>R vector_derivative g (at a) + vector_derivative f (at a) *\<^sub>R g a"
-apply (rule vector_derivative_at)
-apply (rule has_vector_derivative_scaleR)
-apply (auto simp: vector_derivative_works has_vector_derivative_def has_field_derivative_def mult_commute_abs)
-done
+  apply (intro vector_derivative_at has_vector_derivative_scaleR)
+   apply (auto simp: vector_derivative_works has_vector_derivative_def has_field_derivative_def mult_commute_abs)
+  done
 
 lemma vector_derivative_within_cbox:
   assumes ab: "a < b" "x \<in> cbox a b"
   assumes f: "(f has_vector_derivative f') (at x within cbox a b)"
   shows "vector_derivative f (at x within cbox a b) = f'"
-  by (intro vector_derivative_unique_within_closed_interval[OF ab _ f]
-            vector_derivative_works[THEN iffD1] differentiableI_vector)
-     fact
+  by (metis assms box_real(2) f islimpt_Icc trivial_limit_within vector_derivative_within)
 
 lemma vector_derivative_within_closed_interval:
   fixes f::"real \<Rightarrow> 'a::euclidean_space"
@@ -2328,8 +2316,8 @@ by (simp add: field_differentiable_def DERIV_deriv_iff_has_field_derivative)
 lemma vector_derivative_chain_at_general:
   assumes "f differentiable at x" "g field_differentiable at (f x)"
   shows "vector_derivative (g \<circ> f) (at x) = vector_derivative f (at x) * deriv g (f x)"
-  apply (rule vector_derivative_at [OF field_vector_diff_chain_at])
-  using assms vector_derivative_works by (auto simp: field_differentiable_derivI)
+  using assms field_differentiable_derivI field_vector_diff_chain_at 
+      vector_derivative_at vector_derivative_works by blast
 
 lemma deriv_chain:
   "f field_differentiable at x \<Longrightarrow> g field_differentiable at (f x)
@@ -2409,10 +2397,14 @@ lemma deriv_sum [simp]:
   by (auto intro!: DERIV_imp_deriv derivative_intros)
 
 lemma deriv_compose_linear:
-  "f field_differentiable at (c * z) \<Longrightarrow> deriv (\<lambda>w. f (c * w)) z = c * deriv f (c * z)"
-apply (rule DERIV_imp_deriv)
-  unfolding DERIV_deriv_iff_field_differentiable [symmetric]
-  by (metis (full_types) DERIV_chain2 DERIV_cmult_Id mult.commute)
+  assumes "f field_differentiable at (c * z)"
+  shows "deriv (\<lambda>w. f (c * w)) z = c * deriv f (c * z)"
+proof -
+  have "deriv (\<lambda>a. f (c * a)) z = deriv f (c * z) * c"
+    using assms by (simp add: DERIV_chain2 DERIV_deriv_iff_field_differentiable DERIV_imp_deriv)
+  then show ?thesis
+    by simp
+qed
 
 
 lemma nonzero_deriv_nonconstant:
@@ -2624,8 +2616,7 @@ proof (safe intro!: has_derivativeI tendstoI, goal_cases)
             norm ((f x' y' - f x y - (fx (x' - x) + fy x y (y' - y))) /\<^sub>R
               norm ((x', y') - (x, y)))
             < e'"
-    apply eventually_elim
-  proof safe
+  proof (eventually_elim, safe)
     fix x' y'
     have "norm (f x' y' - f x y - (fx (x' - x) + fy x y (y' - y))) \<le>
         norm (f x' y' - f x' y - fy x' y (y' - y)) +
@@ -2727,12 +2718,10 @@ lemma has_vector_derivative_If_within_closures:
   shows "((\<lambda>x. if x \<in> S then f x else g x) has_vector_derivative
     (if x \<in> S then f' x else g' x)) (at x within u)"
   unfolding has_vector_derivative_def assms
-  using x_in
-  apply (intro has_derivative_If_within_closures[where ?f' = "\<lambda>x a. a *\<^sub>R f' x" and ?g' = "\<lambda>x a. a *\<^sub>R g' x",
-        THEN has_derivative_eq_rhs])
-  subgoal by (rule f'[unfolded has_vector_derivative_def]; assumption)
-  subgoal by (rule g'[unfolded has_vector_derivative_def]; assumption)
-  by (auto simp: assms)
+  using x_in f' g'
+  by (intro has_derivative_If_within_closures[where ?f' = "\<lambda>x a. a *\<^sub>R f' x" and ?g' = "\<lambda>x a. a *\<^sub>R g' x",
+        THEN has_derivative_eq_rhs]; force simp: assms has_vector_derivative_def)
+
 
 subsection\<^marker>\<open>tag important\<close>\<open>The Inverse Function Theorem\<close>
 
@@ -3100,17 +3089,12 @@ by (simp add: piecewise_differentiable_on_def)
 lemma piecewise_differentiable_on_subset:
     "f piecewise_differentiable_on S \<Longrightarrow> T \<le> S \<Longrightarrow> f piecewise_differentiable_on T"
   using continuous_on_subset
-  unfolding piecewise_differentiable_on_def
-  apply safe
-  apply (blast elim: continuous_on_subset)
-  by (meson Diff_iff differentiable_within_subset subsetCE)
+  by (smt (verit) Diff_iff differentiable_within_subset in_mono piecewise_differentiable_on_def)
 
 lemma differentiable_on_imp_piecewise_differentiable:
   fixes a:: "'a::{linorder_topology,real_normed_vector}"
   shows "f differentiable_on {a..b} \<Longrightarrow> f piecewise_differentiable_on {a..b}"
-  apply (simp add: piecewise_differentiable_on_def differentiable_imp_continuous_on)
-  apply (rule_tac x="{a,b}" in exI, simp add: differentiable_on_def)
-  done
+  using differentiable_imp_continuous_on differentiable_onD piecewise_differentiable_on_def by fastforce
 
 lemma differentiable_imp_piecewise_differentiable:
     "(\<And>x. x \<in> S \<Longrightarrow> f differentiable (at x within S))
