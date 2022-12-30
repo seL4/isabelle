@@ -127,12 +127,10 @@ proof
         by (force simp: SOME_Basis dist_norm)
     next
       case False
-      have "norm (a' - (a + (r / norm (a - a')) *\<^sub>R (a - a'))) = norm (a' - a - (r / norm (a - a')) *\<^sub>R (a - a'))"
-        by (simp add: algebra_simps)
-      also have "... = norm ((-1 - (r / norm (a - a'))) *\<^sub>R (a - a'))"
+      have "norm (a' - (a + (r / norm (a - a')) *\<^sub>R (a - a'))) = norm ((-1 - (r / norm (a - a'))) *\<^sub>R (a - a'))"
         by (simp add: algebra_simps)
       also from \<open>a \<noteq> a'\<close> have "... = \<bar>- norm (a - a') - r\<bar>"
-        by simp (simp add: field_simps)
+        by (simp add: divide_simps)
       finally have [simp]: "norm (a' - (a + (r / norm (a - a')) *\<^sub>R (a - a'))) = \<bar>norm (a - a') + r\<bar>"
         by linarith
       from \<open>a \<noteq> a'\<close> show ?thesis
@@ -167,8 +165,7 @@ proof
       have False if "norm (a - a') + r \<ge> r'"
       proof -
         from that have "\<bar>r' - norm (a - a')\<bar> \<le> r"
-          by (simp split: abs_split)
-            (metis \<open>0 \<le> r\<close> \<open>?lhs\<close> centre_in_cball dist_commute dist_norm less_asym mem_ball subset_eq)
+          by (smt (verit, best) \<open>0 \<le> r\<close> \<open>?lhs\<close> ball_subset_cball cball_subset_cball_iff dist_norm order_trans)
         then show ?thesis
           using subsetD [where c = "a + (r' / norm(a - a') - 1) *\<^sub>R (a - a')", OF \<open>?lhs\<close>] \<open>a \<noteq> a'\<close>
           apply (simp add: dist_norm)
@@ -222,8 +219,8 @@ next
     assume ?lhs
     then have "0 < r'"
       using False by metric
-    then have "(cball a r \<subseteq> cball a' r')"
-      by (metis False\<open>?lhs\<close> closure_ball closure_mono not_less)
+    then have "cball a r \<subseteq> cball a' r'"
+      by (metis False \<open>?lhs\<close> closure_ball closure_mono not_less)
     then show ?rhs
       using False cball_subset_cball_iff by fastforce
   qed metric
@@ -233,65 +230,17 @@ qed
 lemma ball_eq_ball_iff:
   fixes x :: "'a :: euclidean_space"
   shows "ball x d = ball y e \<longleftrightarrow> d \<le> 0 \<and> e \<le> 0 \<or> x=y \<and> d=e"
-        (is "?lhs = ?rhs")
-proof
-  assume ?lhs
-  then show ?rhs
-  proof (cases "d \<le> 0 \<or> e \<le> 0")
-    case True
-      with \<open>?lhs\<close> show ?rhs
-        by safe (simp_all only: ball_eq_empty [of y e, symmetric] ball_eq_empty [of x d, symmetric])
-  next
-    case False
-    with \<open>?lhs\<close> show ?rhs
-      apply (auto simp: set_eq_subset ball_subset_ball_iff dist_norm norm_minus_commute algebra_simps)
-      apply (metis add_le_same_cancel1 le_add_same_cancel1 norm_ge_zero norm_pths(2) order_trans)
-      apply (metis add_increasing2 add_le_imp_le_right eq_iff norm_ge_zero)
-      done
-  qed
-next
-  assume ?rhs then show ?lhs
-    by (auto simp: set_eq_subset ball_subset_ball_iff)
-qed
+  by (smt (verit, del_insts) ball_empty ball_subset_cball_iff dist_norm norm_pths(2))
 
 lemma cball_eq_cball_iff:
   fixes x :: "'a :: euclidean_space"
   shows "cball x d = cball y e \<longleftrightarrow> d < 0 \<and> e < 0 \<or> x=y \<and> d=e"
-        (is "?lhs = ?rhs")
-proof
-  assume ?lhs
-  then show ?rhs
-  proof (cases "d < 0 \<or> e < 0")
-    case True
-      with \<open>?lhs\<close> show ?rhs
-        by safe (simp_all only: cball_eq_empty [of y e, symmetric] cball_eq_empty [of x d, symmetric])
-  next
-    case False
-    with \<open>?lhs\<close> show ?rhs
-      apply (auto simp: set_eq_subset cball_subset_cball_iff dist_norm norm_minus_commute algebra_simps)
-      apply (metis add_le_same_cancel1 le_add_same_cancel1 norm_ge_zero norm_pths(2) order_trans)
-      apply (metis add_increasing2 add_le_imp_le_right eq_iff norm_ge_zero)
-      done
-  qed
-next
-  assume ?rhs then show ?lhs
-    by (auto simp: set_eq_subset cball_subset_cball_iff)
-qed
+  by (smt (verit, ccfv_SIG) cball_empty cball_subset_cball_iff dist_norm norm_pths(2) zero_le_dist)
 
 lemma ball_eq_cball_iff:
   fixes x :: "'a :: euclidean_space"
   shows "ball x d = cball y e \<longleftrightarrow> d \<le> 0 \<and> e < 0" (is "?lhs = ?rhs")
-proof
-  assume ?lhs
-  then show ?rhs
-    apply (auto simp: set_eq_subset ball_subset_cball_iff cball_subset_ball_iff algebra_simps)
-    apply (metis add_increasing2 add_le_cancel_right add_less_same_cancel1 dist_not_less_zero less_le_trans zero_le_dist)
-    apply (metis add_less_same_cancel1 dist_not_less_zero less_le_trans not_le)
-    using \<open>?lhs\<close> ball_eq_empty cball_eq_empty apply blast+
-    done
-next
-  assume ?rhs then show ?lhs by auto
-qed
+  by (smt (verit) ball_eq_empty ball_subset_cball_iff cball_eq_empty cball_subset_ball_iff order.refl)
 
 lemma cball_eq_ball_iff:
   fixes x :: "'a :: euclidean_space"
@@ -308,9 +257,8 @@ proof -
   obtain e2 where "0 < e2" and "\<forall>x\<in>X. x \<noteq> p \<longrightarrow> e2 \<le> dist p x"
     using finite_set_avoid[OF \<open>finite X\<close>,of p] by auto
   hence "\<forall>w\<in>ball p (min e1 e2). w\<in>S \<and> (w\<noteq>p \<longrightarrow> w\<notin>X)" using e1_b by auto
-  thus "\<exists>e>0. \<forall>w\<in>ball p e. w \<in> S \<and> (w \<noteq> p \<longrightarrow> w \<notin> X)" using \<open>e2>0\<close> \<open>e1>0\<close>
-    apply (rule_tac x="min e1 e2" in exI)
-    by auto
+  thus "\<exists>e>0. \<forall>w\<in>ball p e. w \<in> S \<and> (w \<noteq> p \<longrightarrow> w \<notin> X)" 
+    using \<open>e2>0\<close> \<open>e1>0\<close> by (rule_tac x="min e1 e2" in exI) auto
 qed
 
 lemma finite_cball_avoid:
@@ -391,9 +339,7 @@ lemma cbox_Pair_iff [iff]: "(x, y) \<in> cbox (a, c) (b, d) \<longleftrightarrow
   by (force simp: cbox_Pair_eq)
 
 lemma cbox_Complex_eq: "cbox (Complex a c) (Complex b d) = (\<lambda>(x,y). Complex x y) ` (cbox a b \<times> cbox c d)"
-  apply (auto simp: cbox_def Basis_complex_def)
-  apply (rule_tac x = "(Re x, Im x)" in image_eqI)
-  using complex_eq by auto
+  by (force simp: cbox_def Basis_complex_def)
 
 lemma cbox_Pair_eq_0: "cbox (a, c) (b, d) = {} \<longleftrightarrow> cbox a b = {} \<or> cbox c d = {}"
   by (force simp: cbox_Pair_eq)
@@ -425,22 +371,14 @@ proof -
   define e' where "e' = e / (2 * sqrt (real (DIM ('a))))"
   then have e: "e' > 0"
     using assms by (auto)
-  have "\<forall>i. \<exists>y. y \<in> \<rat> \<and> y < x \<bullet> i \<and> x \<bullet> i - y < e'" (is "\<forall>i. ?th i")
-  proof
-    fix i
-    from Rats_dense_in_real[of "x \<bullet> i - e'" "x \<bullet> i"] e
-    show "?th i" by auto
-  qed
-  from choice[OF this] obtain a where
-    a: "\<forall>xa. a xa \<in> \<rat> \<and> a xa < x \<bullet> xa \<and> x \<bullet> xa - a xa < e'" ..
-  have "\<forall>i. \<exists>y. y \<in> \<rat> \<and> x \<bullet> i < y \<and> y - x \<bullet> i < e'" (is "\<forall>i. ?th i")
-  proof
-    fix i
-    from Rats_dense_in_real[of "x \<bullet> i" "x \<bullet> i + e'"] e
-    show "?th i" by auto
-  qed
-  from choice[OF this] obtain b where
-    b: "\<forall>xa. b xa \<in> \<rat> \<and> x \<bullet> xa < b xa \<and> b xa - x \<bullet> xa < e'" ..
+  have "\<exists>y. y \<in> \<rat> \<and> y < x \<bullet> i \<and> x \<bullet> i - y < e'" for i
+    using Rats_dense_in_real[of "x \<bullet> i - e'" "x \<bullet> i"] e by force
+  then obtain a where
+    a: "\<And>u. a u \<in> \<rat> \<and> a u < x \<bullet> u \<and> x \<bullet> u - a u < e'" by metis
+  have "\<exists>y. y \<in> \<rat> \<and> x \<bullet> i < y \<and> y - x \<bullet> i < e'" for i
+    using Rats_dense_in_real[of "x \<bullet> i" "x \<bullet> i + e'"] e by force
+  then obtain b where
+    b: "\<And>u. b u \<in> \<rat> \<and> x \<bullet> u < b u \<and> b u - x \<bullet> u < e'" by metis
   let ?a = "\<Sum>i\<in>Basis. a i *\<^sub>R i" and ?b = "\<Sum>i\<in>Basis. b i *\<^sub>R i"
   show ?thesis
   proof (rule exI[of _ ?a], rule exI[of _ ?b], safe)
@@ -454,10 +392,8 @@ proof -
       assume i: "i \<in> Basis"
       have "a i < y\<bullet>i \<and> y\<bullet>i < b i"
         using * i by (auto simp: box_def)
-      moreover have "a i < x\<bullet>i" "x\<bullet>i - a i < e'"
-        using a by auto
-      moreover have "x\<bullet>i < b i" "b i - x\<bullet>i < e'"
-        using b by auto
+      moreover have "a i < x\<bullet>i" "x\<bullet>i - a i < e'" "x\<bullet>i < b i" "b i - x\<bullet>i < e'"
+        using a b by auto
       ultimately have "\<bar>x\<bullet>i - y\<bullet>i\<bar> < 2 * e'"
         by auto
       then have "dist (x \<bullet> i) (y \<bullet> i) < e/sqrt (real (DIM('a)))"
@@ -471,7 +407,7 @@ proof -
       using \<open>0 < e\<close> by simp
     finally show "y \<in> ball x e"
       by (auto simp: ball_def)
-  qed (insert a b, auto simp: box_def)
+  qed (use a b in \<open>auto simp: box_def\<close>)
 qed
 
 lemma open_UNION_box:
@@ -527,22 +463,14 @@ proof -
   define e' where "e' = e / (2 * sqrt (real (DIM ('a))))"
   then have e: "e' > 0"
     using assms by auto
-  have "\<forall>i. \<exists>y. y \<in> \<rat> \<and> y < x \<bullet> i \<and> x \<bullet> i - y < e'" (is "\<forall>i. ?th i")
-  proof
-    fix i
-    from Rats_dense_in_real[of "x \<bullet> i - e'" "x \<bullet> i"] e
-    show "?th i" by auto
-  qed
-  from choice[OF this] obtain a where
-    a: "\<forall>u. a u \<in> \<rat> \<and> a u < x \<bullet> u \<and> x \<bullet> u - a u < e'" ..
-  have "\<forall>i. \<exists>y. y \<in> \<rat> \<and> x \<bullet> i < y \<and> y - x \<bullet> i < e'" (is "\<forall>i. ?th i")
-  proof
-    fix i
-    from Rats_dense_in_real[of "x \<bullet> i" "x \<bullet> i + e'"] e
-    show "?th i" by auto
-  qed
-  from choice[OF this] obtain b where
-    b: "\<forall>u. b u \<in> \<rat> \<and> x \<bullet> u < b u \<and> b u - x \<bullet> u < e'" ..
+  have "\<exists>y. y \<in> \<rat> \<and> y < x \<bullet> i \<and> x \<bullet> i - y < e'" for i
+    using Rats_dense_in_real[of "x \<bullet> i - e'" "x \<bullet> i"] e by force
+  then obtain a where
+    a: "\<forall>u. a u \<in> \<rat> \<and> a u < x \<bullet> u \<and> x \<bullet> u - a u < e'" by metis
+  have "\<exists>y. y \<in> \<rat> \<and> x \<bullet> i < y \<and> y - x \<bullet> i < e'" for i
+    using Rats_dense_in_real[of "x \<bullet> i" "x \<bullet> i + e'"] e by force
+  then obtain b where
+    b: "\<forall>u. b u \<in> \<rat> \<and> x \<bullet> u < b u \<and> b u - x \<bullet> u < e'" by metis
   let ?a = "\<Sum>i\<in>Basis. a i *\<^sub>R i" and ?b = "\<Sum>i\<in>Basis. b i *\<^sub>R i"
   show ?thesis
   proof (rule exI[of _ ?a], rule exI[of _ ?b], safe)
@@ -556,10 +484,8 @@ proof -
       assume i: "i \<in> Basis"
       have "a i \<le> y\<bullet>i \<and> y\<bullet>i \<le> b i"
         using * i by (auto simp: cbox_def)
-      moreover have "a i < x\<bullet>i" "x\<bullet>i - a i < e'"
-        using a by auto
-      moreover have "x\<bullet>i < b i" "b i - x\<bullet>i < e'"
-        using b by auto
+      moreover have "a i < x\<bullet>i" "x\<bullet>i - a i < e'" "x\<bullet>i < b i" "b i - x\<bullet>i < e'"
+        using a b by auto
       ultimately have "\<bar>x\<bullet>i - y\<bullet>i\<bar> < 2 * e'"
         by auto
       then have "dist (x \<bullet> i) (y \<bullet> i) < e/sqrt (real (DIM('a)))"
@@ -626,54 +552,28 @@ lemma box_eq_empty:
   shows "(box a b = {} \<longleftrightarrow> (\<exists>i\<in>Basis. b\<bullet>i \<le> a\<bullet>i))" (is ?th1)
     and "(cbox a b = {} \<longleftrightarrow> (\<exists>i\<in>Basis. b\<bullet>i < a\<bullet>i))" (is ?th2)
 proof -
-  {
-    fix i x
-    assume i: "i\<in>Basis" and as:"b\<bullet>i \<le> a\<bullet>i" and x:"x\<in>box a b"
-    then have "a \<bullet> i < x \<bullet> i \<and> x \<bullet> i < b \<bullet> i"
-      unfolding mem_box by (auto simp: box_def)
-    then have "a\<bullet>i < b\<bullet>i" by auto
-    then have False using as by auto
-  }
+  have False if "i \<in> Basis" and "b\<bullet>i \<le> a\<bullet>i" and "x \<in> box a b" for i x
+    by (smt (verit, ccfv_SIG) mem_box(1) that)
   moreover
-  {
-    assume as: "\<forall>i\<in>Basis. \<not> (b\<bullet>i \<le> a\<bullet>i)"
+  { assume as: "\<forall>i\<in>Basis. \<not> (b\<bullet>i \<le> a\<bullet>i)"
     let ?x = "(1/2) *\<^sub>R (a + b)"
-    {
-      fix i :: 'a
+    { fix i :: 'a
       assume i: "i \<in> Basis"
       have "a\<bullet>i < b\<bullet>i"
-        using as[THEN bspec[where x=i]] i by auto
+        using as i by fastforce
       then have "a\<bullet>i < ((1/2) *\<^sub>R (a+b)) \<bullet> i" "((1/2) *\<^sub>R (a+b)) \<bullet> i < b\<bullet>i"
         by (auto simp: inner_add_left)
     }
     then have "box a b \<noteq> {}"
-      using mem_box(1)[of "?x" a b] by auto
+      by (metis (no_types, opaque_lifting) emptyE mem_box(1))
   }
   ultimately show ?th1 by blast
 
-  {
-    fix i x
-    assume i: "i \<in> Basis" and as:"b\<bullet>i < a\<bullet>i" and x:"x\<in>cbox a b"
-    then have "a \<bullet> i \<le> x \<bullet> i \<and> x \<bullet> i \<le> b \<bullet> i"
-      unfolding mem_box by auto
-    then have "a\<bullet>i \<le> b\<bullet>i" by auto
-    then have False using as by auto
-  }
+  have False if "i\<in>Basis" and "b\<bullet>i < a\<bullet>i" and "x \<in> cbox a b" for i x
+    using mem_box(2) that by force
   moreover
-  {
-    assume as:"\<forall>i\<in>Basis. \<not> (b\<bullet>i < a\<bullet>i)"
-    let ?x = "(1/2) *\<^sub>R (a + b)"
-    {
-      fix i :: 'a
-      assume i:"i \<in> Basis"
-      have "a\<bullet>i \<le> b\<bullet>i"
-        using as[THEN bspec[where x=i]] i by auto
-      then have "a\<bullet>i \<le> ((1/2) *\<^sub>R (a+b)) \<bullet> i" "((1/2) *\<^sub>R (a+b)) \<bullet> i \<le> b\<bullet>i"
-        by (auto simp: inner_add_left)
-    }
-    then have "cbox a b \<noteq> {}"
-      using mem_box(2)[of "?x" a b] by auto
-  }
+  have "cbox a b \<noteq> {}" if "\<forall>i\<in>Basis. \<not> (b\<bullet>i < a\<bullet>i)"
+    by (metis emptyE linorder_linear mem_box(2) order.strict_iff_not that)
   ultimately show ?th2 by blast
 qed
 
@@ -685,11 +585,9 @@ lemma box_ne_empty:
 
 lemma
   fixes a :: "'a::euclidean_space"
-  shows cbox_sing [simp]: "cbox a a = {a}"
-    and box_sing [simp]: "box a a = {}"
-  unfolding set_eq_iff mem_box eq_iff [symmetric]
-  by (auto intro!: euclidean_eqI[where 'a='a])
-     (metis all_not_in_conv nonempty_Basis)
+  shows cbox_idem [simp]: "cbox a a = {a}"
+    and box_idem [simp]: "box a a = {}"
+  unfolding set_eq_iff mem_box eq_iff [symmetric] using euclidean_eq_iff by fastforce+
 
 lemma subset_box_imp:
   fixes a :: "'a::euclidean_space"
@@ -765,11 +663,7 @@ proof
     by auto
   then show ?rhs
     by (force simp: subset_box box_eq_empty intro: antisym euclidean_eqI)
-next
-  assume ?rhs
-  then show ?lhs
-    by force
-qed
+qed auto
 
 lemma eq_cbox_box [simp]: "cbox a b = box c d \<longleftrightarrow> cbox a b = {} \<and> box c d = {}"
   (is "?lhs \<longleftrightarrow> ?rhs")
@@ -777,10 +671,8 @@ proof
   assume L: ?lhs
   then have "cbox a b \<subseteq> box c d" "box c d \<subseteq> cbox a b"
     by auto
-  then show ?rhs
-    apply (simp add: subset_box)
-    using L box_ne_empty box_sing apply (fastforce simp add:)
-    done
+  with L subset_box show ?rhs
+    by (smt (verit) SOME_Basis box_ne_empty(1))
 qed force
 
 lemma eq_box_cbox [simp]: "box a b = cbox c d \<longleftrightarrow> box a b = {} \<and> cbox c d = {}"
@@ -793,11 +685,7 @@ proof
   then have "box a b \<subseteq> box c d" "box c d \<subseteq> box a b"
     by auto
   then show ?rhs
-    apply (simp add: subset_box)
-    using box_ne_empty(2) L
-    apply auto
-     apply (meson euclidean_eqI less_eq_real_def not_less)+
-    done
+    unfolding subset_box by (smt (verit) box_ne_empty(2) euclidean_eq_iff)+
 qed force
 
 lemma subset_box_complex:
@@ -895,27 +783,30 @@ proof (cases "m = 0")
       by (simp add: dual_order.antisym euclidean_eqI)
   }
   moreover have "c \<in> cbox (m *\<^sub>R a + c) (m *\<^sub>R b + c)"
-    unfolding True by (auto)
+    unfolding True by auto
   ultimately show ?thesis using True by (auto simp: cbox_def)
 next
   case False
   {
     fix y
     assume "\<forall>i\<in>Basis. a \<bullet> i \<le> y \<bullet> i" "\<forall>i\<in>Basis. y \<bullet> i \<le> b \<bullet> i" "m > 0"
-    then have "\<forall>i\<in>Basis. (m *\<^sub>R a + c) \<bullet> i \<le> (m *\<^sub>R y + c) \<bullet> i" and "\<forall>i\<in>Basis. (m *\<^sub>R y + c) \<bullet> i \<le> (m *\<^sub>R b + c) \<bullet> i"
+    then have "\<forall>i\<in>Basis. (m *\<^sub>R a + c) \<bullet> i \<le> (m *\<^sub>R y + c) \<bullet> i" 
+          and "\<forall>i\<in>Basis. (m *\<^sub>R y + c) \<bullet> i \<le> (m *\<^sub>R b + c) \<bullet> i"
       by (auto simp: inner_distrib)
   }
   moreover
   {
     fix y
     assume "\<forall>i\<in>Basis. a \<bullet> i \<le> y \<bullet> i" "\<forall>i\<in>Basis. y \<bullet> i \<le> b \<bullet> i" "m < 0"
-    then have "\<forall>i\<in>Basis. (m *\<^sub>R b + c) \<bullet> i \<le> (m *\<^sub>R y + c) \<bullet> i" and "\<forall>i\<in>Basis. (m *\<^sub>R y + c) \<bullet> i \<le> (m *\<^sub>R a + c) \<bullet> i"
+    then have "\<forall>i\<in>Basis. (m *\<^sub>R b + c) \<bullet> i \<le> (m *\<^sub>R y + c) \<bullet> i"
+         and  "\<forall>i\<in>Basis. (m *\<^sub>R y + c) \<bullet> i \<le> (m *\<^sub>R a + c) \<bullet> i"
       by (auto simp: mult_left_mono_neg inner_distrib)
   }
   moreover
   {
     fix y
-    assume "m > 0" and "\<forall>i\<in>Basis. (m *\<^sub>R a + c) \<bullet> i \<le> y \<bullet> i" and "\<forall>i\<in>Basis. y \<bullet> i \<le> (m *\<^sub>R b + c) \<bullet> i"
+    assume "m > 0" and "\<forall>i\<in>Basis. (m *\<^sub>R a + c) \<bullet> i \<le> y \<bullet> i"
+      and  "\<forall>i\<in>Basis. y \<bullet> i \<le> (m *\<^sub>R b + c) \<bullet> i"
     then have "y \<in> (\<lambda>x. m *\<^sub>R x + c) ` cbox a b"
       unfolding image_iff Bex_def mem_box
       apply (intro exI[where x="(1 / m) *\<^sub>R (y - c)"])
@@ -946,11 +837,7 @@ proof -
   have "(\<lambda>(x, y). f y x) = (\<lambda>(x, y). f x y) \<circ> prod.swap"
     by auto
   then show ?thesis
-    apply (rule ssubst)
-    apply (rule continuous_on_compose)
-    apply (simp add: split_def)
-    apply (rule continuous_intros | simp add: assms)+
-    done
+    by (metis assms continuous_on_compose continuous_on_swap swap_cbox_Pair)
 qed
 
 
@@ -979,11 +866,11 @@ lemma is_interval_univ [iff]: "is_interval UNIV"
   unfolding is_interval_def  by simp
 
 lemma mem_is_intervalI:
-  assumes "is_interval s"
-    and "a \<in> s" "b \<in> s"
+  assumes "is_interval S"
+    and "a \<in> S" "b \<in> S"
     and "\<And>i. i \<in> Basis \<Longrightarrow> a \<bullet> i \<le> x \<bullet> i \<and> x \<bullet> i \<le> b \<bullet> i \<or> b \<bullet> i \<le> x \<bullet> i \<and> x \<bullet> i \<le> a \<bullet> i"
-  shows "x \<in> s"
-  by (rule assms(1)[simplified is_interval_def, rule_format, OF assms(2,3,4)])
+  shows "x \<in> S"
+  using assms is_interval_def by force
 
 lemma interval_subst:
   fixes S::"'a::euclidean_space set"
@@ -1016,11 +903,15 @@ proof -
     by (induct bs) (auto simp: y_def euclidean_representation intro!: euclidean_eqI[where 'a='a])
   also have "y bs \<in> S"
     using bs(1)[THEN equalityD1]
-    apply (induct bs)
-     apply (auto simp: y_def j)
-    apply (rule interval_subst[OF assms(1)])
-      apply (auto simp: s)
-    done
+  proof (induction bs)
+    case Nil
+    then show ?case
+      by (simp add: j y_def)
+  next
+    case (Cons a bs)
+    then show ?case
+      using interval_subst[OF assms(1)] s by (simp add: y_def)
+  qed
   finally show ?thesis .
 qed
 
@@ -1042,9 +933,8 @@ proof
 next
   assume ?rhs
   have "cbox a b \<subseteq> S" if "a \<in> S" "b \<in> S"
-    using assms unfolding is_interval_def
-    apply (clarsimp simp add: mem_box)
-    using that by blast
+    using assms that 
+    by (force simp: mem_box intro: mem_is_intervalI)
   with \<open>?rhs\<close> show ?lhs
     by blast
 qed
@@ -1091,8 +981,7 @@ proof safe
     "\<forall>i\<in>Basis. (- b) \<bullet> i \<le> e \<bullet> i \<and> e \<bullet> i \<le> (- d) \<bullet> i \<or>
        (- d) \<bullet> i \<le> e \<bullet> i \<and> e \<bullet> i \<le> (- b) \<bullet> i"
   hence "- e \<in> X"
-    by (intro mem_is_intervalI[OF assms \<open>b \<in> X\<close> \<open>d \<in> X\<close>, of "- e"])
-      (auto simp: algebra_simps)
+    by (smt (verit, ccfv_threshold) assms inner_minus_left mem_is_intervalI)
   thus "e \<in> uminus ` X" by force
 qed
 
@@ -1266,7 +1155,7 @@ lemma closure_halfspace_lt [simp]:
     shows "closure {x. a \<bullet> x < b} = {x. a \<bullet> x \<le> b}"
 proof -
   have [simp]: "-{x. a \<bullet> x < b} = {x. a \<bullet> x \<ge> b}"
-    by (force simp:)
+    by force
   then show ?thesis
     using interior_halfspace_ge [of a b] assms
     by (force simp: closure_interior)
@@ -1281,7 +1170,7 @@ lemma interior_hyperplane [simp]:
     shows "interior {x. a \<bullet> x = b} = {}"
 proof -
   have [simp]: "{x. a \<bullet> x = b} = {x. a \<bullet> x \<le> b} \<inter> {x. a \<bullet> x \<ge> b}"
-    by (force simp:)
+    by force
   then show ?thesis
     by (auto simp: assms)
 qed
@@ -1340,9 +1229,8 @@ proof (rule ccontr)
   moreover have "?A \<inter> ?B = {}" by auto
   moreover have "S \<subseteq> ?A \<union> ?B" using as by auto
   ultimately show False
-    using \<open>connected S\<close>[unfolded connected_def not_ex,
-      THEN spec[where x="?A"], THEN spec[where x="?B"]]
-    using xy b by auto
+    using \<open>connected S\<close> unfolding connected_def
+    by (smt (verit, del_insts) as b disjoint_iff empty_iff mem_Collect_eq xy)
 qed
 
 lemma connected_ivt_component:

@@ -300,15 +300,15 @@ proof
       done
   }
   ultimately show ?l
-    unfolding division_of_def cbox_sing by auto
+    unfolding division_of_def cbox_idem by auto
 next
   assume ?l
   have "x = {a}" if  "x \<in> s" for x
-    by (metis \<open>s division_of cbox a a\<close> cbox_sing division_ofD(2) division_ofD(3) subset_singletonD that)
+    by (metis \<open>s division_of cbox a a\<close> cbox_idem division_ofD(2) division_ofD(3) subset_singletonD that)
   moreover have "s \<noteq> {}"
     using \<open>s division_of cbox a a\<close> by auto
   ultimately show ?r
-    unfolding cbox_sing by auto
+    unfolding cbox_idem by auto
 qed
 
 lemma elementary_empty: obtains p where "p division_of {}"
@@ -2316,7 +2316,7 @@ proposition covering_lemma:
     "S \<subseteq> \<Union>\<D>"
 proof -
   have aibi: "\<And>i. i \<in> Basis \<Longrightarrow> a \<bullet> i \<le> b \<bullet> i" and normab: "0 < norm(b - a)"
-    using \<open>box a b \<noteq> {}\<close> box_eq_empty box_sing by fastforce+
+    using \<open>box a b \<noteq> {}\<close> box_eq_empty box_idem by fastforce+
   let ?K0 = "\<lambda>(n, f::'a\<Rightarrow>nat).
                     cbox (\<Sum>i \<in> Basis. (a \<bullet> i + (f i / 2^n) * (b \<bullet> i - a \<bullet> i)) *\<^sub>R i)
                          (\<Sum>i \<in> Basis. (a \<bullet> i + ((f i + 1) / 2^n) * (b \<bullet> i - a \<bullet> i)) *\<^sub>R i)"

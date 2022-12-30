@@ -1586,7 +1586,7 @@ proof -
 qed
 
 lemma
-  shows space_measure_of_conv [simp]: "space (measure_of \<Omega> A \<mu>) = \<Omega>" (is ?space)
+  shows space_measure_of_conv: "space (measure_of \<Omega> A \<mu>) = \<Omega>" (is ?space)
   and sets_measure_of_conv:
   "sets (measure_of \<Omega> A \<mu>) = (if A \<subseteq> Pow \<Omega> then sigma_sets \<Omega> A else {{}, \<Omega>})" (is ?sets)
   and emeasure_measure_of_conv:
