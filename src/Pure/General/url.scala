@@ -104,6 +104,25 @@ object Url {
 
   /* generic path notation: local, ssh, rsync, ftp, http */
 
+  private val separators1 = "/\\"
+  private val separators2 = ":/\\"
+
+  def is_base_name(s: String, suffix: String = ""): Boolean =
+    s.nonEmpty && !s.exists(separators2.contains) && s.endsWith(suffix)
+
+  def get_base_name(s: String, suffix: String = ""): Option[String] = {
+    val i = s.lastIndexWhere(separators2.contains)
+    if (i + 1 >= s.length) None else Library.try_unsuffix(suffix, s.substring(i + 1))
+  }
+
+  def strip_base_name(s: String, suffix: String = ""): Option[String] = {
+    val i = s.lastIndexWhere(separators2.contains)
+    val j = s.lastIndexWhere(c => !separators1.contains(c), end = i)
+    if (i + 1 >= s.length || !s.endsWith(suffix)) None
+    else if (j < 0) Some(s.substring(0, i + 1))
+    else Some(s.substring(0, j + 1))
+  }
+
   def append_path(prefix: String, suffix: String): String =
     if (prefix.endsWith(":") || prefix.endsWith("/") || prefix.endsWith("\\") || prefix.isEmpty) {
       prefix + suffix

@@ -31,10 +31,8 @@ object Build_Job {
     }
     yield {
       val master_dir =
-        Thy_Header.split_file_name(thy_file) match {
-          case Some((dir, _)) => dir
-          case None => error("Cannot determine theory master directory: " + quote(thy_file))
-        }
+        Url.strip_base_name(thy_file).getOrElse(
+          error("Cannot determine theory master directory: " + quote(thy_file)))
       val node_name =
         Document.Node.Name(thy_file, master_dir = master_dir, theory = theory_context.theory)
 

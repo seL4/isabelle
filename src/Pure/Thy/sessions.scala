@@ -42,8 +42,8 @@ object Sessions {
     val file_ext = ""
 
     override def detect(name: String): Boolean =
-      Thy_Header.split_file_name(name) match {
-        case Some((_, file_name)) => file_name == roots_name
+      Url.get_base_name(name) match {
+        case Some(base_name) => base_name == roots_name
         case None => false
       }
 

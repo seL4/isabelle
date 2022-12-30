@@ -172,7 +172,7 @@ class Resources(
     val theory = theory_name(qualifier, Thy_Header.import_name(s))
     val literal_import =
       literal_theory(theory) && qualifier != sessions_structure.theory_qualifier(theory)
-    if (literal_import && !Thy_Header.is_base_name(s)) {
+    if (literal_import && !Url.is_base_name(s)) {
       error("Bad import of theory from other session via file-path: " + quote(s))
     }
     if (session_base.loaded_theory(theory)) loaded_theory_node(theory)
@@ -180,7 +180,7 @@ class Resources(
       find_theory_node(theory) match {
         case Some(node_name) => node_name
         case None =>
-          if (Thy_Header.is_base_name(s) && literal_theory(s)) loaded_theory_node(theory)
+          if (Url.is_base_name(s) && literal_theory(s)) loaded_theory_node(theory)
           else file_node(Path.explode(s).thy, dir = dir, theory = theory)
       }
     }
@@ -210,7 +210,7 @@ class Resources(
     (for {
       (session, (info, _))  <- sessions_structure.imports_graph.iterator
       dir <- (if (session == context_session) context_dir.toList else info.dirs).iterator
-      theory <- Thy_Header.try_read_dir(dir).iterator
+      theory <- Thy_Header.list_thy_names(dir).iterator
       if Completion.completed(s)(theory)
     } yield {
       if (session == context_session || global_theory(theory)) theory

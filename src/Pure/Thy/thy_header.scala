@@ -76,32 +76,31 @@ object Thy_Header {
   val bootstrap_global_theories =
     (Sessions.root_name :: (ml_roots ::: bootstrap_thys).map(_._2)).map(_ -> PURE)
 
-  private val Thy_File_Name = new Regex(""".*?([^/\\:]+)\.thy""")
-  private val Split_File_Name = new Regex("""(.*?)[/\\]*([^/\\:]+)""")
-  private val File_Name = new Regex(""".*?([^/\\:]+)""")
-
-  def is_base_name(s: String): Boolean =
-    s != "" && !s.exists("/\\:".contains(_))
-
-  def split_file_name(s: String): Option[(String, String)] =
-    s match {
-      case Split_File_Name(s1, s2) => Some((s1, s2))
-      case _ => None
-    }
-
   def import_name(s: String): String =
-    s match {
-      case File_Name(name) if !File.is_thy(name) => name
+    Url.get_base_name(s) match {
+      case Some(name) if !File.is_thy(name) => name
       case _ => error("Malformed theory import: " + quote(s))
     }
 
+  def get_thy_name(s: String): Option[String] = Url.get_base_name(s, suffix = ".thy")
+
+  def list_thy_names(dir: Path): List[String] = {
+    val files =
+      try { File.read_dir(dir) }
+      catch { case ERROR(_) => Nil }
+    files.flatMap(get_thy_name)
+  }
+
   def theory_name(s: String): String =
-    s match {
-      case Thy_File_Name(name) => bootstrap_name(name)
-      case File_Name(name) =>
-        if (name == Sessions.root_name) name
-        else ml_roots.collectFirst({ case (a, b) if a == name => b }).getOrElse("")
-      case _ => ""
+    get_thy_name(s) match {
+      case Some(name) => bootstrap_name(name)
+      case None =>
+        Url.get_base_name(s) match {
+          case Some(name) =>
+            if (name == Sessions.root_name) name
+            else ml_roots.collectFirst({ case (a, b) if a == name => b }).getOrElse("")
+          case None => ""
+        }
     }
 
   def is_ml_root(theory: String): Boolean =
@@ -112,13 +111,6 @@ object Thy_Header {
 
   def bootstrap_name(theory: String): String =
     bootstrap_thys.collectFirst({ case (a, b) if a == theory => b }).getOrElse(theory)
-
-  def try_read_dir(dir: Path): List[String] = {
-    val files =
-      try { File.read_dir(dir) }
-      catch { case ERROR(_) => Nil }
-    for { Thy_File_Name(name) <- files } yield name
-  }
 
 
   /* parser */

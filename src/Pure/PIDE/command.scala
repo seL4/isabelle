@@ -450,7 +450,7 @@ object Command {
           for { ((import_name, pos), s) <- imports_pos zip raw_imports if !can_import(import_name) }
           yield {
             val completion =
-              if (Thy_Header.is_base_name(s)) resources.complete_import_name(node_name, s) else Nil
+              if (Url.is_base_name(s)) resources.complete_import_name(node_name, s) else Nil
             "Bad theory import " +
               Markup.Path(import_name.node).markup(quote(import_name.toString)) +
               Position.here(pos) + Completion.report_theories(pos, completion)

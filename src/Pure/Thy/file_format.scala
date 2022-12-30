@@ -80,7 +80,7 @@ abstract class File_Format extends Isabelle_System.Service {
     name: Document.Node.Name
   ): Option[Document.Node.Name] = {
     for {
-      (_, thy) <- Thy_Header.split_file_name(name.node)
+      thy <- Url.get_base_name(name.node)
       if detect(name.node) && theory_suffix.nonEmpty
     }
     yield {
@@ -91,9 +91,10 @@ abstract class File_Format extends Isabelle_System.Service {
 
   def make_theory_content(resources: Resources, thy_name: Document.Node.Name): Option[String] = {
     for {
-      (prefix, suffix) <- Thy_Header.split_file_name(thy_name.node)
+      prefix <- Url.strip_base_name(thy_name.node)
+      suffix <- Url.get_base_name(thy_name.node)
       if detect(prefix) && suffix == theory_suffix
-      (_, thy) <- Thy_Header.split_file_name(prefix)
+      thy <- Url.get_base_name(prefix)
       s <- proper_string(theory_content(thy))
     } yield s
   }
