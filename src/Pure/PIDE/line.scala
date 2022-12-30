@@ -34,7 +34,9 @@ object Line {
   sealed case class Position(line: Int = 0, column: Int = 0) {
     def line1: Int = line + 1
     def column1: Int = column + 1
-    def print: String = line1.toString + ":" + column1.toString
+    def print: String =
+      if (column == 0) line1.toString
+      else line1.toString + ":" + column1.toString
 
     def compare(that: Position): Int =
       line compare that.line match {
