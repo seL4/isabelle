@@ -314,7 +314,7 @@ object Document_Model {
       PIDE.plugin.http_server.url + "/" + service.name + "?" +
         (if (plain_text) plain_text_prefix else "") + Url.encode(node_name.node)
 
-    def apply(request: HTTP.Request): Option[HTTP.Response] =
+    def apply(request: HTTP.Request): Option[HTTP.Response] = GUI_Thread.now {
       for {
         query <- request.decode_query
         name = Library.perhaps_unprefix(plain_text_prefix, query)
@@ -331,6 +331,7 @@ object Document_Model {
             fonts_css = HTML.fonts_css_dir(HTTP.url_path(request.server_name)))
         HTTP.Response.html(document.content)
       }
+    }
   }
 }
 
