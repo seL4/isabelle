@@ -140,7 +140,7 @@ object Document_Build {
     def content: File.Content_XML = File.content(Path.basic(tex_name(name)), body)
     def file_pos: String = name.path.implode_symbolic
     def write(latex_output: Latex.Output, dir: Path): Unit =
-      content.output(latex_output(_, file_pos = file_pos)).write(dir)
+      content.output(latex_output.make(_, file_pos = file_pos)).write(dir)
   }
 
   def context(

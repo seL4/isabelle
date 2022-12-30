@@ -158,7 +158,7 @@ object Latex {
     else List("\\endinput\n", position(Markup.FILE, file_pos))
 
   class Output(val options: Options) {
-    def latex_output(latex_text: Text): String = apply(latex_text)
+    def latex_output(latex_text: Text): String = make(latex_text)
 
     def latex_macro0(name: String, optional_argument: String = ""): Text =
       XML.string("\\" + name + optional_argument)
@@ -214,7 +214,7 @@ object Latex {
       error("Unknown latex markup element " + quote(elem.name) + Position.here(pos) +
         ":\n" + XML.string_of_tree(elem))
 
-    def apply(latex_text: Text, file_pos: String = ""): String = {
+    def make(latex_text: Text, file_pos: String = ""): String = {
       var line = 1
       val result = new mutable.ListBuffer[String]
       val positions = new mutable.ListBuffer[String] ++= init_position(file_pos)
