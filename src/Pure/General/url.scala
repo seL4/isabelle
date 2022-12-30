@@ -105,9 +105,14 @@ object Url {
   /* generic path notation: local, ssh, rsync, ftp, http */
 
   def append_path(prefix: String, suffix: String): String =
-    if (prefix.endsWith(":") || prefix.endsWith("/") || prefix.isEmpty) prefix + suffix
-    else if (prefix.endsWith(":.") || prefix.endsWith("/.") || prefix == ".") {
+    if (prefix.endsWith(":") || prefix.endsWith("/") || prefix.endsWith("\\") || prefix.isEmpty) {
+      prefix + suffix
+    }
+    else if (prefix.endsWith(":.") || prefix.endsWith("/.") || prefix.endsWith("\\.") || prefix == ".") {
       prefix.substring(0, prefix.length - 1) + suffix
+    }
+    else if (prefix.contains('\\') || suffix.contains('\\')) {
+      prefix + "\\" + suffix
     }
     else prefix + "/" + suffix
 
