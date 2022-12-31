@@ -33,12 +33,12 @@ object Sessions {
 
   def illegal_session(name: String): Boolean = name == "" || name == DRAFT
   def illegal_theory(name: String): Boolean =
-    name == root_name || isabelle.File_Format.registry.theory_excluded(name)
+    name == root_name || File_Format.registry.theory_excluded(name)
 
 
   /* ROOTS file format */
 
-  class File_Format extends isabelle.File_Format {
+  class ROOTS_File_Format extends File_Format {
     val format_name: String = roots_name
     val file_ext = ""
 
