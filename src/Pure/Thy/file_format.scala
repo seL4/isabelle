@@ -49,7 +49,7 @@ object File_Format {
     def prover_options(options: Options): Options =
       agents.foldLeft(options) { case (opts, agent) => agent.prover_options(opts) }
 
-    def stop_session: Unit = agents.foreach(_.stop())
+    def stop_session(): Unit = agents.foreach(_.stop())
   }
 
   trait Agent {

@@ -563,7 +563,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
                 val snapshot = global_state.change_result(_.end_theory(id))
                 finished_theories.post(snapshot)
               }
-              file_formats.stop_session
+              file_formats.stop_session()
               phase = Session.Terminated(result)
               prover.reset()
 
