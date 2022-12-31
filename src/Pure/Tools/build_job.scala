@@ -22,7 +22,7 @@ object Build_Job {
 
     def read_xml(name: String): XML.Body =
       YXML.parse_body(
-        Symbol.output(unicode_symbols, UTF8.decode_permissive(read(name).uncompressed)),
+        Symbol.output(unicode_symbols, UTF8.decode_permissive(read(name).bytes)),
         cache = theory_context.cache)
 
     for {

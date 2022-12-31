@@ -156,25 +156,24 @@ object Export {
     def name_extends(elems: List[String]): Boolean =
       name_elems.startsWith(elems) && name_elems != elems
 
-    def text: String = uncompressed.text
-
-    def uncompressed: Bytes = {
-      val (compressed, bytes) = body.join
-      if (compressed) bytes.uncompress(cache = cache.compress) else bytes
+    def bytes: Bytes = {
+      val (compressed, bs) = body.join
+      if (compressed) bs.uncompress(cache = cache.compress) else bs
     }
 
-    def uncompressed_yxml: XML.Body =
-      YXML.parse_body(UTF8.decode_permissive(uncompressed), cache = cache)
+    def text: String = bytes.text
+
+    def yxml: XML.Body = YXML.parse_body(UTF8.decode_permissive(bytes), cache = cache)
 
     def write(db: SQL.Database): Unit = {
-      val (compressed, bytes) = body.join
+      val (compressed, bs) = body.join
       db.using_statement(Data.table.insert()) { stmt =>
         stmt.string(1) = session_name
         stmt.string(2) = theory_name
         stmt.string(3) = name
         stmt.bool(4) = executable
         stmt.bool(5) = compressed
-        stmt.bytes(6) = bytes
+        stmt.bytes(6) = bs
         stmt.execute()
       }
     }
@@ -433,7 +432,7 @@ object Export {
         entry_name <- entry_names(session = session).iterator
         if matcher(entry_name)
         entry <- get(entry_name.theory, entry_name.name).iterator
-      } yield File.content(entry.entry_name.make_path(), entry.uncompressed)).toList
+      } yield File.content(entry.entry_name.make_path(), entry.bytes)).toList
     }
 
     override def toString: String =
@@ -453,7 +452,7 @@ object Export {
 
     def uncompressed_yxml(name: String): XML.Body =
       get(name) match {
-        case Some(entry) => entry.uncompressed_yxml
+        case Some(entry) => entry.yxml
         case None => Nil
       }
 
@@ -505,7 +504,7 @@ object Export {
           val path = export_dir + entry_name.make_path(prune = export_prune)
           progress.echo("export " + path + (if (entry.executable) " (executable)" else ""))
           Isabelle_System.make_directory(path.dir)
-          val bytes = entry.uncompressed
+          val bytes = entry.bytes
           if (!path.is_file || Bytes.read(path) != bytes) Bytes.write(path, bytes)
           File.set_executable(path, entry.executable)
         }
