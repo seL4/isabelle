@@ -103,7 +103,7 @@ object Document {
       type Graph[A] = isabelle.Graph[Node.Name, A]
 
       def make_graph[A](entries: List[((Name, A), List[Name])]): Graph[A] =
-        Graph.make(entries, symmetric = true)(Ordering)
+        Graph.make(entries, converse = true)(Ordering)
     }
 
     final class Name private(val node: String, val master_dir: String, val theory: String) {
