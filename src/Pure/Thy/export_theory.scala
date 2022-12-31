@@ -233,7 +233,7 @@ object Export_Theory {
         case _ => err()
       }
     }
-    theory_context.uncompressed_yxml(export_name).map(decode_entity)
+    theory_context.yxml(export_name).map(decode_entity)
   }
 
 
@@ -539,7 +539,7 @@ object Export_Theory {
   }
 
   def read_classrel(theory_context: Export.Theory_Context): List[Classrel] = {
-    val body = theory_context.uncompressed_yxml(Export.THEORY_PREFIX + "classrel")
+    val body = theory_context.yxml(Export.THEORY_PREFIX + "classrel")
     val classrel = {
       import XML.Decode._
       list(pair(decode_prop, pair(string, string)))(body)
@@ -559,7 +559,7 @@ object Export_Theory {
   }
 
   def read_arities(theory_context: Export.Theory_Context): List[Arity] = {
-    val body = theory_context.uncompressed_yxml(Export.THEORY_PREFIX + "arities")
+    val body = theory_context.yxml(Export.THEORY_PREFIX + "arities")
     val arities = {
       import XML.Decode._
       import Term_XML.Decode._
@@ -577,7 +577,7 @@ object Export_Theory {
   }
 
   def read_constdefs(theory_context: Export.Theory_Context): List[Constdef] = {
-    val body = theory_context.uncompressed_yxml(Export.THEORY_PREFIX + "constdefs")
+    val body = theory_context.yxml(Export.THEORY_PREFIX + "constdefs")
     val constdefs = {
       import XML.Decode._
       list(pair(string, string))(body)
@@ -606,7 +606,7 @@ object Export_Theory {
   }
 
   def read_typedefs(theory_context: Export.Theory_Context): List[Typedef] = {
-    val body = theory_context.uncompressed_yxml(Export.THEORY_PREFIX + "typedefs")
+    val body = theory_context.yxml(Export.THEORY_PREFIX + "typedefs")
     val typedefs = {
       import XML.Decode._
       import Term_XML.Decode._
@@ -640,7 +640,7 @@ object Export_Theory {
   }
 
   def read_datatypes(theory_context: Export.Theory_Context): List[Datatype] = {
-    val body = theory_context.uncompressed_yxml(Export.THEORY_PREFIX + "datatypes")
+    val body = theory_context.yxml(Export.THEORY_PREFIX + "datatypes")
     val datatypes = {
       import XML.Decode._
       import Term_XML.Decode._
@@ -730,7 +730,7 @@ object Export_Theory {
   }
 
   def read_spec_rules(theory_context: Export.Theory_Context): List[Spec_Rule] = {
-    val body = theory_context.uncompressed_yxml(Export.THEORY_PREFIX + "spec_rules")
+    val body = theory_context.yxml(Export.THEORY_PREFIX + "spec_rules")
     val spec_rules = {
       import XML.Decode._
       import Term_XML.Decode._

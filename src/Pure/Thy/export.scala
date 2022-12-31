@@ -450,7 +450,7 @@ object Export {
     def apply(name: String, permissive: Boolean = false): Entry =
       session_context.apply(theory, name, permissive = permissive)
 
-    def uncompressed_yxml(name: String): XML.Body =
+    def yxml(name: String): XML.Body =
       get(name) match {
         case Some(entry) => entry.yxml
         case None => Nil
