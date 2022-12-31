@@ -32,7 +32,8 @@ object Sessions {
   def is_pure(name: String): Boolean = name == Thy_Header.PURE
 
   def illegal_session(name: String): Boolean = name == "" || name == DRAFT
-  def illegal_theory(name: String): Boolean = name == root_name || name == "bib"
+  def illegal_theory(name: String): Boolean =
+    name == root_name || isabelle.File_Format.registry.theory_excluded(name)
 
 
   /* ROOTS file format */
@@ -51,6 +52,7 @@ object Sessions {
     override def theory_content(name: String): String =
       """theory "ROOTS" imports Pure begin ROOTS_file """ +
         Outer_Syntax.quote_string(name) + """ end"""
+    override def theory_excluded(name: String): Boolean = name == "ROOTS"
   }
 
 

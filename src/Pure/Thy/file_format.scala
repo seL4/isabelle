@@ -28,6 +28,8 @@ object File_Format {
     def get_theory(name: Document.Node.Name): Option[File_Format] = get(name.theory)
     def is_theory(name: Document.Node.Name): Boolean = get_theory(name).isDefined
 
+    def theory_excluded(name: String): Boolean = file_formats.exists(_.theory_excluded(name))
+
     def parse_data(name: String, text: String): AnyRef =
       get(name) match {
         case Some(file_format) => file_format.parse_data(name, text)
@@ -74,6 +76,7 @@ abstract class File_Format extends Isabelle_System.Service {
 
   def theory_suffix: String = ""
   def theory_content(name: String): String = ""
+  def theory_excluded(name: String): Boolean = false
 
   def make_theory_name(
     resources: Resources,
