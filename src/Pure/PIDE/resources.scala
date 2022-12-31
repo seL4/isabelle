@@ -81,9 +81,6 @@ class Resources(
     Document.Node.Name(node, master_dir = master_dir, theory = theory)
   }
 
-  def loaded_theory_node(theory: String): Document.Node.Name =
-    Document.Node.Name(theory, theory = theory)
-
 
   /* source files of Isabelle/ML bootstrap */
 
@@ -175,12 +172,12 @@ class Resources(
     if (literal_import && !Url.is_base_name(s)) {
       error("Bad import of theory from other session via file-path: " + quote(s))
     }
-    if (session_base.loaded_theory(theory)) loaded_theory_node(theory)
+    if (session_base.loaded_theory(theory)) Document.Node.Name.loaded_theory(theory)
     else {
       find_theory_node(theory) match {
         case Some(node_name) => node_name
         case None =>
-          if (Url.is_base_name(s) && literal_theory(s)) loaded_theory_node(theory)
+          if (Url.is_base_name(s) && literal_theory(s)) Document.Node.Name.loaded_theory(theory)
           else file_node(Path.explode(s).thy, dir = dir, theory = theory)
       }
     }

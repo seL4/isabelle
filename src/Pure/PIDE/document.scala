@@ -96,6 +96,9 @@ object Document {
 
       val empty: Name = Name("")
 
+      def loaded_theory(theory: String): Document.Node.Name =
+        Document.Node.Name(theory, theory = theory)
+
       object Ordering extends scala.math.Ordering[Name] {
         def compare(name1: Name, name2: Name): Int = name1.node compare name2.node
       }
