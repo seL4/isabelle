@@ -3611,7 +3611,7 @@ proof (intro antisym SUP_least)
   proof (intro less_eq_measure.intros(3))
     show "space (sigma \<Omega> (\<Union>M)) = space (SUP m\<in>M. sigma \<Omega> m)"
          "sets (sigma \<Omega> (\<Union>M)) = sets (SUP m\<in>M. sigma \<Omega> m)"
-      by (auto simp add: M sets_Sup_sigma sets_eq_imp_space_eq)
+      by (auto simp add: M sets_Sup_sigma sets_eq_imp_space_eq space_measure_of_conv)
   qed (simp add: emeasure_sigma le_fun_def)
   fix m assume "m \<in> M" then show "sigma \<Omega> m \<le> sigma \<Omega> (\<Union>M)"
     by (subst sigma_le_iff) (auto simp add: M *)
