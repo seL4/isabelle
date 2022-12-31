@@ -128,16 +128,11 @@ object Document {
 
       override def toString: String = if (is_theory) theory else node
 
-      def map(f: String => String): Name =
-        new Name(f(node), f(master_dir), theory)
-
       def json: JSON.Object.T =
         JSON.Object("node_name" -> node, "theory_name" -> theory)
     }
 
     sealed case class Entry(name: Node.Name, header: Node.Header) {
-      def map(f: String => String): Entry = copy(name = name.map(f))
-
       override def toString: String = name.toString
     }
 
