@@ -103,7 +103,7 @@ object Export_Theory {
 
   def read_theory_parents(theory_context: Export.Theory_Context): Option[List[String]] =
     theory_context.get(Export.THEORY_PREFIX + "parents")
-      .map(entry => Library.trim_split_lines(entry.bytes.text))
+      .map(entry => Library.trim_split_lines(entry.text))
 
   def theory_names(
     session_context: Export.Session_Context,
@@ -753,7 +753,7 @@ object Export_Theory {
   def read_others(theory_context: Export.Theory_Context): Map[String, List[Entity[Other]]] = {
     val kinds =
       theory_context.get(Export.THEORY_PREFIX + "other_kinds") match {
-        case Some(entry) => split_lines(entry.bytes.text)
+        case Some(entry) => split_lines(entry.text)
         case None => Nil
       }
     val other = Other()
