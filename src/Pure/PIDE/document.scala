@@ -94,10 +94,10 @@ object Document {
       def apply(node: String, master_dir: String = "", theory: String = ""): Name =
         new Name(node, master_dir, theory)
 
-      val empty: Name = Name("")
-
       def loaded_theory(theory: String): Document.Node.Name =
-        Document.Node.Name(theory, theory = theory)
+        Name(theory, theory = theory)
+
+      val empty: Name = Name("")
 
       object Ordering extends scala.math.Ordering[Name] {
         def compare(name1: Name, name2: Name): Int = name1.node compare name2.node
