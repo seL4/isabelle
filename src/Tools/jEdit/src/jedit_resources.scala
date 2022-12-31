@@ -38,7 +38,7 @@ extends Resources(session_background) {
       if (session_base.loaded_theory(theory)) loaded_theory_node(theory)
       else {
         val master_dir = vfs.getParentOfPath(path)
-        Document.Node.Name(node, master_dir, theory)
+        Document.Node.Name(node, master_dir = master_dir, theory = theory)
       }
     }
 

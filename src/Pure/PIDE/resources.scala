@@ -78,11 +78,11 @@ class Resources(
   def file_node(file: Path, dir: String = "", theory: String = ""): Document.Node.Name = {
     val node = append(dir, file)
     val master_dir = append(dir, file.dir)
-    Document.Node.Name(node, master_dir, theory)
+    Document.Node.Name(node, master_dir = master_dir, theory = theory)
   }
 
   def loaded_theory_node(theory: String): Document.Node.Name =
-    Document.Node.Name(theory, "", theory)
+    Document.Node.Name(theory, theory = theory)
 
 
   /* source files of Isabelle/ML bootstrap */
@@ -141,7 +141,7 @@ class Resources(
     for {
       (name, theory) <- Thy_Header.ml_roots
       path = (pure_dir + Path.explode(name)).expand
-      node_name = Document.Node.Name(path.implode, path.dir.implode, theory)
+      node_name = Document.Node.Name(path.implode, master_dir = path.dir.implode, theory = theory)
       file <- loaded_files(syntax, node_name, load_commands(syntax, node_name)())
     } yield file
   }

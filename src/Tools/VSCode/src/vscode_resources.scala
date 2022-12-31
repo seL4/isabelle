@@ -96,7 +96,7 @@ extends Resources(session_background, log = log) {
       if (session_base.loaded_theory(theory)) loaded_theory_node(theory)
       else {
         val master_dir = file.getParent
-        Document.Node.Name(node, master_dir, theory)
+        Document.Node.Name(node, master_dir = master_dir, theory = theory)
       }
     }
 
