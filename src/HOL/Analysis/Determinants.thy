@@ -1026,7 +1026,7 @@ proof -
       using \<open>A *v axis k 1 = a\<close> that by auto
   next
     from obtain_subset_with_card_n[OF 2] obtain h i::'n where "h \<noteq> i"
-      by (auto simp add: eval_nat_numeral card_Suc_eq)
+      by (fastforce simp add: eval_nat_numeral card_Suc_eq)
     then obtain j where "j \<noteq> k"
       by (metis (full_types))
     let ?TA = "transpose A"
