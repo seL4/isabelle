@@ -249,7 +249,7 @@ object Sessions {
     var cache_sources = Map.empty[JFile, SHA1.Digest]
     def check_sources(paths: List[Path]): List[(Path, SHA1.Digest)] = {
       for {
-        path <- paths
+        path <- Library.distinct(paths)
         file = path.file
         if cache_sources.isDefinedAt(file) || file.isFile
       }
