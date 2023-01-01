@@ -2497,7 +2497,7 @@ proof -
       by (simp add: inner_commute)
   qed
   obtain S :: "'a set" where "S \<subseteq> Basis" and "card S = Suc (Suc 0)"
-    using ex_card[OF assms]
+    using obtain_subset_with_card_n[OF assms]
     by auto
   then obtain b0 b1 :: 'a where "b0 \<in> Basis" and "b1 \<in> Basis" and "b0 \<noteq> b1"
     unfolding card_Suc_eq by auto

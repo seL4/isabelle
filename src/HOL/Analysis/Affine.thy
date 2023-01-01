@@ -51,7 +51,7 @@ proof -
     using dim_unique[of B B "card B"] assms span_superset[of B] by auto
   have "dim B \<le> card (Basis :: 'a set)"
     using dim_subset_UNIV[of B] by simp
-  from ex_card[OF this] obtain d :: "'a set" where d: "d \<subseteq> Basis" and t: "card d = dim B"
+  from obtain_subset_with_card_n[OF this] obtain d :: "'a set" where d: "d \<subseteq> Basis" and t: "card d = dim B"
     by auto
   let ?t = "{x::'a::euclidean_space. \<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x\<bullet>i = 0}"
   have "\<exists>f. linear f \<and> f ` B = d \<and> f ` span B = ?t \<and> inj_on f (span B)"

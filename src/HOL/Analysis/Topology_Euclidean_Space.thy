@@ -1307,18 +1307,11 @@ proof(rule subset_antisym)
       assume i: "i \<in> Basis"
       have "dist (x - (e / 2) *\<^sub>R i) x < e"
         and "dist (x + (e / 2) *\<^sub>R i) x < e"
-        unfolding dist_norm
-        apply auto
-        unfolding norm_minus_cancel
-        using norm_Basis[OF i] \<open>e>0\<close>
-        apply auto
-        done
+         using norm_Basis[OF i] \<open>e>0\<close> by (auto simp: dist_norm)
       then have "a \<bullet> i \<le> (x - (e / 2) *\<^sub>R i) \<bullet> i" and "(x + (e / 2) *\<^sub>R i) \<bullet> i \<le> b \<bullet> i"
         using e[THEN spec[where x="x - (e/2) *\<^sub>R i"]]
           and e[THEN spec[where x="x + (e/2) *\<^sub>R i"]]
-        unfolding mem_box
-        using i
-        by blast+
+        unfolding mem_box using i by blast+
       then have "a \<bullet> i < x \<bullet> i" and "x \<bullet> i < b \<bullet> i"
         using \<open>e>0\<close> i
         by (auto simp: inner_diff_left inner_Basis inner_add_left)
@@ -1349,8 +1342,7 @@ qed
 lemma bounded_box [simp]:
   fixes a :: "'a::euclidean_space"
   shows "bounded (box a b)"
-  using bounded_cbox[of a b] box_subset_cbox[of a b] bounded_subset[of "cbox a b" "box a b"]
-  by simp
+  by (metis bounded_cbox bounded_interior interior_cbox)
 
 lemma not_interval_UNIV [simp]:
   fixes a :: "'a::euclidean_space"
@@ -1385,12 +1377,7 @@ proof -
     have "a \<bullet> i = e * (a \<bullet> i) + (1 - e) * (a \<bullet> i)"
       unfolding left_diff_distrib by simp
     also have "\<dots> < e * (x \<bullet> i) + (1 - e) * (y \<bullet> i)"
-    proof (rule add_less_le_mono)
-      show "e * (a \<bullet> i) < e * (x \<bullet> i)"
-        using \<open>0 < e\<close> i mem_box(1) x by auto
-      show "(1 - e) * (a \<bullet> i) \<le> (1 - e) * (y \<bullet> i)"
-        by (meson diff_ge_0_iff_ge \<open>e \<le> 1\<close> i mem_box(2) mult_left_mono y)
-    qed
+      by (smt (verit, best) e i mem_box mult_le_cancel_left_pos mult_left_mono x y)
     finally have "a \<bullet> i < (e *\<^sub>R x + (1 - e) *\<^sub>R y) \<bullet> i"
       unfolding inner_simps by auto
     moreover
@@ -1398,12 +1385,7 @@ proof -
       have "b \<bullet> i = e * (b\<bullet>i) + (1 - e) * (b\<bullet>i)"
         unfolding left_diff_distrib by simp
       also have "\<dots> > e * (x \<bullet> i) + (1 - e) * (y \<bullet> i)"
-      proof (rule add_less_le_mono)
-        show "e * (x \<bullet> i) < e * (b \<bullet> i)"
-          using \<open>0 < e\<close> i mem_box(1) x by auto
-        show "(1 - e) * (y \<bullet> i) \<le> (1 - e) * (b \<bullet> i)"
-          by (meson diff_ge_0_iff_ge \<open>e \<le> 1\<close> i mem_box(2) mult_left_mono y)
-      qed
+        by (smt (verit, best) e i mem_box mult_le_cancel_left_pos mult_left_mono x y)
       finally have "(e *\<^sub>R x + (1 - e) *\<^sub>R y) \<bullet> i < b \<bullet> i"
         unfolding inner_simps by auto
     }
@@ -1427,7 +1409,7 @@ proof -
   let ?c = "(1 / 2) *\<^sub>R (a + b)"
   {
     fix x
-    assume as:"x \<in> cbox a b"
+    assume as: "x \<in> cbox a b"
     define f where [abs_def]: "f n = x + (inverse (real n + 1)) *\<^sub>R (?c - x)" for n
     {
       fix n
@@ -1445,22 +1427,16 @@ proof -
     }
     moreover
     {
-      assume "\<not> (f \<longlongrightarrow> x) sequentially"
-      {
-        fix e :: real
-        assume "e > 0"
-        then obtain N :: nat where N: "inverse (real (N + 1)) < e"
-          using reals_Archimedean by auto
-        have "inverse (real n + 1) < e" if "N \<le> n" for n
-          by (auto intro!: that le_less_trans [OF _ N])
-        then have "\<exists>N::nat. \<forall>n\<ge>N. inverse (real n + 1) < e" by auto
-      }
-      then have "((\<lambda>n. inverse (real n + 1)) \<longlongrightarrow> 0) sequentially"
+      have "\<exists>N::nat. \<forall>n\<ge>N. inverse (real n + 1) < \<epsilon>" if "\<epsilon> > 0" for \<epsilon>
+          using reals_Archimedean [of \<epsilon>] that
+          by (metis inverse_inverse_eq inverse_less_imp_less nat_le_real_less order_less_trans 
+                  reals_Archimedean2)
+      then have "(\<lambda>n. inverse (real n + 1)) \<longlonglongrightarrow> 0"
         unfolding lim_sequentially by(auto simp: dist_norm)
-      then have "(f \<longlongrightarrow> x) sequentially"
+      then have "f \<longlonglongrightarrow> x"
         unfolding f_def
-        using tendsto_add[OF tendsto_const, of "\<lambda>n::nat. (inverse (real n + 1)) *\<^sub>R ((1 / 2) *\<^sub>R (a + b) - x)" 0 sequentially x]
-        using tendsto_scaleR [OF _ tendsto_const, of "\<lambda>n::nat. inverse (real n + 1)" 0 sequentially "((1 / 2) *\<^sub>R (a + b) - x)"]
+        using tendsto_add[OF tendsto_const, of "\<lambda>n. (inverse (real n + 1)) *\<^sub>R ((1 / 2) *\<^sub>R (a + b) - x)" 0 sequentially x]
+        using tendsto_scaleR [OF _ tendsto_const, of "\<lambda>n. inverse (real n + 1)" 0 sequentially "((1 / 2) *\<^sub>R (a + b) - x)"]
         by auto
     }
     ultimately have "x \<in> closure (box a b)"
@@ -1491,12 +1467,7 @@ lemma bounded_subset_cbox_symmetric:
   fixes S :: "('a::euclidean_space) set"
   assumes "bounded S"
   obtains a where "S \<subseteq> cbox (-a) a"
-proof -
-  obtain a where "S \<subseteq> box (-a) a"
-    using bounded_subset_box_symmetric[OF assms] by auto
-  then show ?thesis
-    by (meson box_subset_cbox dual_order.trans that)
-qed
+  by (meson assms bounded_subset_box_symmetric box_subset_cbox order.trans)
 
 lemma frontier_cbox:
   fixes a b :: "'a::euclidean_space"
@@ -1506,16 +1477,7 @@ lemma frontier_cbox:
 lemma frontier_box:
   fixes a b :: "'a::euclidean_space"
   shows "frontier (box a b) = (if box a b = {} then {} else cbox a b - box a b)"
-proof (cases "box a b = {}")
-  case True
-  then show ?thesis
-    using frontier_empty by auto
-next
-  case False
-  then show ?thesis
-    unfolding frontier_def and closure_box[OF False] and interior_open[OF open_box]
-    by auto
-qed
+  by (simp add: frontier_def interior_open open_box)
 
 lemma Int_interval_mixed_eq_empty:
   fixes a :: "'a::euclidean_space"
@@ -1549,28 +1511,21 @@ proof
     with l have "eventually (\<lambda>n. \<forall>i\<in>Basis. dist (f (r n) \<bullet> i) (l \<bullet> i) < e / (real_of_nat DIM('a))) sequentially"
       by simp
     moreover
-    {
-      fix n
+    { fix n
       assume n: "\<forall>i\<in>Basis. dist (f (r n) \<bullet> i) (l \<bullet> i) < e / (real_of_nat DIM('a))"
       have "dist (f (r n)) l \<le> (\<Sum>i\<in>Basis. dist (f (r n) \<bullet> i) (l \<bullet> i))"
-        apply (subst euclidean_dist_l2)
-        using zero_le_dist
-        apply (rule L2_set_le_sum)
-        done
+        using L2_set_le_sum [OF zero_le_dist] by (subst euclidean_dist_l2)
       also have "\<dots> < (\<Sum>i\<in>(Basis::'a set). e / (real_of_nat DIM('a)))"
-        apply (rule sum_strict_mono)
-        using n
-        apply auto
-        done
+        by (meson eucl.finite_Basis n nonempty_Basis sum_strict_mono)
       finally have "dist (f (r n)) l < e"
         by auto
     }
-    ultimately have "eventually (\<lambda>n. dist (f (r n)) l < e) sequentially"
+    ultimately have "\<forall>\<^sub>F n in sequentially. dist (f (r n)) l < e"
       by (rule eventually_mono)
   }
-  then have *: "((f \<circ> r) \<longlongrightarrow> l) sequentially"
+  then have *: "(f \<circ> r) \<longlonglongrightarrow> l"
     unfolding o_def tendsto_iff by simp
-  with r show "\<exists>l r. strict_mono r \<and> ((f \<circ> r) \<longlongrightarrow> l) sequentially"
+  with r show "\<exists>l r. strict_mono r \<and> (f \<circ> r) \<longlonglongrightarrow> l"
     by auto
 qed
 
@@ -1592,10 +1547,8 @@ proof
     fix A::"'a set"
     assume "open A"
     show "\<exists>B'\<subseteq>B. \<Union>B' = A"
-      apply (rule exI[of _ "{b\<in>B. b \<subseteq> A}"])
-      apply (subst (3) open_UNION_box[OF \<open>open A\<close>])
-      apply (auto simp: a b B_def)
-      done
+      using open_UNION_box[OF \<open>open A\<close>]
+      by (smt (verit, ccfv_threshold) B_def a b image_iff mem_Collect_eq subsetI)
   qed
   ultimately
   have "topological_basis B"
@@ -1658,10 +1611,11 @@ next
         by (simp add: False b cSUP_least)
       finally have bi: "x \<bullet> i \<le> b \<bullet> i" .
       show "x \<bullet> i \<in> (\<lambda>x. x \<bullet> i) ` S"
-        apply (rule_tac x="\<Sum>j\<in>Basis. (if j = i then x \<bullet> i else a \<bullet> j) *\<^sub>R j" in image_eqI)
+        apply (rule_tac x="\<Sum>j\<in>Basis. (((\<bullet>)a)(i := x \<bullet> j))j *\<^sub>R j" in image_eqI)
         apply (simp add: i)
         apply (rule mem_is_intervalI [OF \<open>is_interval S\<close> \<open>a \<in> S\<close> \<open>b \<in> S\<close>])
-        using i ai bi apply force
+        using i ai bi 
+        apply force
         done
     qed
     have "S = cbox a b"
@@ -1714,10 +1668,7 @@ proof
   assume ?lhs
   then show ?rhs
     unfolding tendsto_def
-    apply clarify
-    apply (drule_tac x="{s. s \<bullet> i \<in> S}" in spec)
-    apply (auto simp: open_preimage_inner)
-    done
+    by (smt (verit) eventually_elim2 mem_Collect_eq open_preimage_inner)
 next
   assume R: ?rhs
   then have "\<And>e. e > 0 \<Longrightarrow> \<forall>i\<in>Basis. \<forall>\<^sub>F x in F. dist (f x \<bullet> i) (l \<bullet> i) < e"
@@ -1735,19 +1686,15 @@ next
       have "L2_set (\<lambda>i. dist (f x \<bullet> i) (l \<bullet> i)) Basis \<le> sum (\<lambda>i. dist (f x \<bullet> i) (l \<bullet> i)) Basis"
         by (simp add: L2_set_le_sum)
       also have "... < DIM('b) * (e / real DIM('b))"
-        apply (rule sum_bounded_above_strict)
-        using that by auto
+        by (meson DIM_positive sum_bounded_above_strict that)
       also have "... = e"
         by (simp add: field_simps)
       finally show "L2_set (\<lambda>i. dist (f x \<bullet> i) (l \<bullet> i)) Basis < e" .
     qed
     have "\<forall>\<^sub>F x in F. \<forall>i\<in>Basis. dist (f x \<bullet> i) (l \<bullet> i) < e / DIM('b)"
-      apply (rule R')
-      using \<open>0 < e\<close> by simp
+      by (simp add: R' \<open>0 < e\<close>)
     then show "\<forall>\<^sub>F x in F. dist (f x) l < e"
-      apply (rule eventually_mono)
-      apply (subst euclidean_dist_l2)
-      using * by blast
+      by eventually_elim (metis (full_types) "*" euclidean_dist_l2)
   qed
 qed
 
@@ -1759,22 +1706,21 @@ by (simp add: continuous_def tendsto_componentwise_iff [symmetric])
 corollary continuous_on_componentwise:
   fixes S :: "'a :: t2_space set"
   shows "continuous_on S f \<longleftrightarrow> (\<forall>i \<in> Basis. continuous_on S (\<lambda>x. (f x \<bullet> i)))"
-  apply (simp add: continuous_on_eq_continuous_within)
-  using continuous_componentwise by blast
+  by (metis continuous_componentwise continuous_on_eq_continuous_within)
 
 lemma linear_componentwise_iff:
-     "(linear f') \<longleftrightarrow> (\<forall>i\<in>Basis. linear (\<lambda>x. f' x \<bullet> i))"
-  apply (auto simp: linear_iff inner_left_distrib)
-   apply (metis inner_left_distrib euclidean_eq_iff)
-  by (metis euclidean_eqI inner_scaleR_left)
+     "linear f' \<longleftrightarrow> (\<forall>i\<in>Basis. linear (\<lambda>x. f' x \<bullet> i))" (is "?lhs \<longleftrightarrow> ?rhs")
+proof
+  show "?lhs \<Longrightarrow> ?rhs"
+    by (simp add: Real_Vector_Spaces.linear_iff inner_left_distrib)
+  show "?rhs \<Longrightarrow> ?lhs"
+    by (simp add: linear_iff) (metis euclidean_eqI inner_left_distrib inner_scaleR_left)
+qed
 
 lemma bounded_linear_componentwise_iff:
      "(bounded_linear f') \<longleftrightarrow> (\<forall>i\<in>Basis. bounded_linear (\<lambda>x. f' x \<bullet> i))"
      (is "?lhs = ?rhs")
 proof
-  assume ?lhs then show ?rhs
-    by (simp add: bounded_linear_inner_left_comp)
-next
   assume ?rhs
   then have "(\<forall>i\<in>Basis. \<exists>K. \<forall>x. \<bar>f' x \<bullet> i\<bar> \<le> norm x * K)" "linear f'"
     by (auto simp: bounded_linear_def bounded_linear_axioms_def linear_componentwise_iff [symmetric] ball_conj_distrib)
@@ -1792,7 +1738,7 @@ next
   qed
   then show ?lhs
     by (force simp: bounded_linear_def bounded_linear_axioms_def \<open>linear f'\<close>)
-qed
+qed (simp add: bounded_linear_inner_left_comp)
 
 subsection\<^marker>\<open>tag unimportant\<close> \<open>Continuous Extension\<close>
 
@@ -1853,8 +1799,7 @@ proof cases
     obtain d where d: "0 < d"
       "\<And>x'. x' \<in> cbox a b \<Longrightarrow> dist x' (clamp a b x) < d \<Longrightarrow> dist (f x') (f (clamp a b x)) < e"
       by force
-    show "\<exists>d>0. \<forall>x'. dist x' x < d \<longrightarrow>
-      dist (f (clamp a b x')) (f (clamp a b x)) < e"
+    show "\<exists>d>0. \<forall>x'. dist x' x < d \<longrightarrow> dist (f (clamp a b x')) (f (clamp a b x)) < e"
       using le
       by (auto intro!: d clamp_in_interval dist_clamps_le_dist_args[THEN le_less_trans])
   qed
@@ -1876,8 +1821,7 @@ proof cases
   from bounded obtain c where f_bound: "\<forall>x\<in>f ` cbox a b. dist undefined x \<le> c"
     by (auto simp: bounded_any_center[where a=undefined])
   then show ?thesis
-    by (auto intro!: exI[where x=c] clamp_in_interval[OF le[rule_format]]
-        simp: bounded_any_center[where a=undefined])
+    by (metis bounded bounded_subset clamp_in_interval image_mono image_subsetI le range_composition)
 qed (auto simp: clamp_empty_interval image_def)
 
 
@@ -1888,9 +1832,7 @@ lemma ext_cont_cancel_cbox[simp]:
   fixes x a b :: "'a::euclidean_space"
   assumes x: "x \<in> cbox a b"
   shows "ext_cont f a b x = f x"
-  using assms
-  unfolding ext_cont_def
-  by (auto simp: clamp_def mem_box intro!: euclidean_eqI[where 'a='a] arg_cong[where f=f])
+  using assms by (simp add: ext_cont_def)
 
 lemma continuous_on_ext_cont[continuous_intros]:
   "continuous_on (cbox a b) f \<Longrightarrow> continuous_on S (ext_cont f a b)"
@@ -1909,18 +1851,16 @@ proof -
     and Un: "\<And>S. open S \<Longrightarrow> \<exists>U. U \<subseteq> \<B> \<and> S = \<Union>U"
     using univ_second_countable by blast
   have *: "infinite (range (\<lambda>n. ball (0::'a) (inverse(Suc n))))"
-    apply (rule Infinite_Set.range_inj_infinite)
-    apply (simp add: inj_on_def ball_eq_ball_iff)
-    done
+    by (simp add: inj_on_def ball_eq_ball_iff Infinite_Set.range_inj_infinite)
   have "infinite \<B>"
   proof
     assume "finite \<B>"
     then have "finite (Union ` (Pow \<B>))"
       by simp
-    then have "finite (range (\<lambda>n. ball (0::'a) (inverse(Suc n))))"
-      apply (rule rev_finite_subset)
+    moreover have "range (\<lambda>n. ball 0 (inverse (real (Suc n)))) \<subseteq> \<Union> ` Pow \<B>"
       by (metis (no_types, lifting) PowI image_eqI image_subset_iff Un [OF open_ball])
-    with * show False by simp
+    ultimately show False
+      by (metis finite_subset *)
   qed
   obtain f :: "nat \<Rightarrow> 'a set" where "\<B> = range f" "inj f"
     by (blast intro: countable_as_injective_image [OF \<open>countable \<B>\<close> \<open>infinite \<B>\<close>])
@@ -1931,9 +1871,7 @@ proof -
     using \<open>inj f\<close> \<open>\<B> = range f\<close> apply force
     done
   show ?thesis
-    apply (rule that [OF \<open>inj f\<close> _ *])
-    apply (auto simp: \<open>\<B> = range f\<close> opn)
-    done
+    using "*" \<open>\<B> = range f\<close> \<open>inj f\<close> opn that by force
 qed
 
 proposition separable:
@@ -1969,14 +1907,8 @@ proof -
           using \<open>0 < e\<close>  \<U> \<open>x \<in> S\<close> by auto
       next
         case False
-        then obtain C where "C \<in> \<U>" by blast
-        show ?thesis
-        proof
-          show "dist (f C) x < e"
-            by (metis Int_iff Union_iff \<U> \<open>C \<in> \<U>\<close> dist_commute f mem_ball subsetCE)
-          show "C \<in> \<B>"
-            using \<open>\<U> \<subseteq> \<B>\<close> \<open>C \<in> \<U>\<close> by blast
-        qed
+        then show ?thesis
+          by (metis IntI Union_iff \<U> \<open>0 < e\<close> \<open>x \<in> S\<close> dist_commute dist_self f inf_le2 mem_ball subset_eq)
       qed
     qed
   qed
@@ -2001,8 +1933,7 @@ proof -
       then show "norm (x - y) \<le> 2*r" by simp
     qed (simp add: that)
     have "2*r = dist (a + r *\<^sub>R (SOME i. i \<in> Basis)) (a - r *\<^sub>R (SOME i. i \<in> Basis))"
-      apply (simp add: dist_norm)
-      by (metis abs_of_nonneg mult.right_neutral norm_numeral norm_scaleR norm_some_Basis real_norm_def scaleR_2 that)
+      using \<open>0 \<le> r\<close> that by (simp add: dist_norm flip: scaleR_2)
     also have "... \<le> diameter (cball a r)"
       apply (rule diameter_bounded_bound)
       using that by (auto simp: dist_norm)
@@ -2023,8 +1954,8 @@ qed
 
 lemma diameter_closed_interval [simp]: "diameter {a..b} = (if b < a then 0 else b-a)"
 proof -
-  have "{a .. b} = cball ((a+b)/2) ((b-a)/2)"
-    by (auto simp: dist_norm abs_if field_split_simps split: if_split_asm)
+  have "{a..b} = cball ((a+b)/2) ((b-a)/2)"
+    using atLeastAtMost_eq_cball by blast
   then show ?thesis
     by simp
 qed
@@ -2032,7 +1963,7 @@ qed
 lemma diameter_open_interval [simp]: "diameter {a<..<b} = (if b < a then 0 else b-a)"
 proof -
   have "{a <..< b} = ball ((a+b)/2) ((b-a)/2)"
-    by (auto simp: dist_norm abs_if field_split_simps split: if_split_asm)
+    using greaterThanLessThan_eq_ball by blast
   then show ?thesis
     by simp
 qed
@@ -2101,10 +2032,8 @@ corollary open_bijective_linear_image_eq:
     shows "open(f ` A) \<longleftrightarrow> open A"
 proof
   assume "open(f ` A)"
-  then have "open(f -` (f ` A))"
-    using assms by (force simp: linear_continuous_at linear_conv_bounded_linear continuous_open_vimage)
   then show "open A"
-    by (simp add: assms bij_is_inj inj_vimage_image_eq)
+    by (metis assms bij_is_inj continuous_open_vimage inj_vimage_image_eq linear_continuous_at linear_linear)
 next
   assume "open A"
   then show "open(f ` A)"
@@ -2114,20 +2043,9 @@ qed
 corollary interior_bijective_linear_image:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "linear f" "bij f"
-  shows "interior (f ` S) = f ` interior S"  (is "?lhs = ?rhs")
-proof safe
-  fix x
-  assume x: "x \<in> ?lhs"
-  then obtain T where "open T" and "x \<in> T" and "T \<subseteq> f ` S"
-    by (metis interiorE)
-  then show "x \<in> ?rhs"
-    by (metis (no_types, opaque_lifting) assms subsetD interior_maximal open_bijective_linear_image_eq subset_image_iff)
-next
-  fix x
-  assume x: "x \<in> interior S"
-  then show "f x \<in> interior (f ` S)"
-    by (meson assms imageI image_mono interiorI interior_subset open_bijective_linear_image_eq open_interior)
-qed
+  shows "interior (f ` S) = f ` interior S" 
+  by (smt (verit) assms bij_is_inj inj_image_subset_iff interior_maximal interior_subset 
+      open_bijective_linear_image_eq open_interior subset_antisym subset_imageE)
 
 lemma interior_injective_linear_image:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'a::euclidean_space"
@@ -2234,10 +2152,9 @@ proposition closed_injective_image_subspace:
   shows "closed(f ` s)"
 proof -
   obtain e where "e > 0" and e: "\<forall>x\<in>s. e * norm x \<le> norm (f x)"
-    using injective_imp_isometric[OF assms(4,1,2,3)] by auto
-  show ?thesis
-    using complete_isometric_image[OF \<open>e>0\<close> assms(1,2) e] and assms(4)
-    unfolding complete_eq_closed[symmetric] by auto
+    using assms injective_imp_isometric by blast
+  with assms show ?thesis
+    by (meson complete_eq_closed complete_isometric_image)
 qed
                                
 
@@ -2274,9 +2191,8 @@ proof -
     show "closedin (top_of_set (range f)) (f ` S)"
       using continuous_closedin_preimage [OF confg cgf] by simp
     show "closed (range f)"
-      apply (rule closed_injective_image_subspace)
-      using f apply (auto simp: linear_linear linear_injective_0)
-      done
+      using closed_injective_image_subspace f linear_conv_bounded_linear 
+          linear_injective_0 subspace_UNIV by blast
   qed
 qed
 
@@ -2289,25 +2205,28 @@ lemma closed_injective_linear_image_eq:
 lemma closure_injective_linear_image:
     fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
     shows "\<lbrakk>linear f; inj f\<rbrakk> \<Longrightarrow> f ` (closure S) = closure (f ` S)"
-  apply (rule subset_antisym)
-  apply (simp add: closure_linear_image_subset)
-  by (simp add: closure_minimal closed_injective_linear_image closure_subset image_mono)
+  by (simp add: closed_injective_linear_image closure_linear_image_subset 
+        closure_minimal closure_subset image_mono subset_antisym)
 
 lemma closure_bounded_linear_image:
-    fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
-    shows "\<lbrakk>linear f; bounded S\<rbrakk> \<Longrightarrow> f ` (closure S) = closure (f ` S)"
-  apply (rule subset_antisym, simp add: closure_linear_image_subset)
-  apply (rule closure_minimal, simp add: closure_subset image_mono)
-  by (meson bounded_closure closed_closure compact_continuous_image compact_eq_bounded_closed linear_continuous_on linear_conv_bounded_linear)
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "linear f" "bounded S"
+    shows "f ` (closure S) = closure (f ` S)"  (is "?lhs = ?rhs")
+proof
+  show "?lhs \<subseteq> ?rhs"
+    using assms closure_linear_image_subset by blast
+  show "?rhs \<subseteq> ?lhs"
+    using assms by (meson closure_minimal closure_subset compact_closure compact_eq_bounded_closed
+                      compact_continuous_image image_mono linear_continuous_on linear_linear)
+qed
 
 lemma closure_scaleR:
   fixes S :: "'a::real_normed_vector set"
-  shows "((*\<^sub>R) c) ` (closure S) = closure (((*\<^sub>R) c) ` S)"
+  shows "((*\<^sub>R) c) ` (closure S) = closure (((*\<^sub>R) c) ` S)"  (is "?lhs = ?rhs")
 proof
-  show "((*\<^sub>R) c) ` (closure S) \<subseteq> closure (((*\<^sub>R) c) ` S)"
-    using bounded_linear_scaleR_right
-    by (rule closure_bounded_linear_image_subset)
-  show "closure (((*\<^sub>R) c) ` S) \<subseteq> ((*\<^sub>R) c) ` (closure S)"
+  show "?lhs \<subseteq> ?rhs"
+    using bounded_linear_scaleR_right by (rule closure_bounded_linear_image_subset)
+  show "?rhs \<subseteq> ?lhs"
     by (intro closure_minimal image_mono closure_subset closed_scaling closed_closure)
 qed
 
@@ -2326,73 +2245,55 @@ proof -
 qed
 
 lemma closed_subspace:
-  fixes s :: "'a::euclidean_space set"
-  assumes "subspace s"
-  shows "closed s"
+  fixes S :: "'a::euclidean_space set"
+  assumes "subspace S"
+  shows "closed S"
 proof -
-  have "dim s \<le> card (Basis :: 'a set)"
+  have "dim S \<le> card (Basis :: 'a set)"
     using dim_subset_UNIV by auto
-  with ex_card[OF this] obtain d :: "'a set" where t: "card d = dim s" and d: "d \<subseteq> Basis"
-    by auto
+  with obtain_subset_with_card_n 
+  obtain d :: "'a set" where cd: "card d = dim S" and d: "d \<subseteq> Basis"
+    by metis
   let ?t = "{x::'a. \<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x\<bullet>i = 0}"
-  have "\<exists>f. linear f \<and> f ` {x::'a. \<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x \<bullet> i = 0} = s \<and>
+  have "\<exists>f. linear f \<and> f ` {x::'a. \<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x \<bullet> i = 0} = S \<and>
       inj_on f {x::'a. \<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x \<bullet> i = 0}"
-    using dim_substandard[of d] t d assms
+    using dim_substandard[of d] cd d assms
     by (intro subspace_isomorphism[OF subspace_substandard[of "\<lambda>i. i \<notin> d"]]) (auto simp: inner_Basis)
   then obtain f where f:
       "linear f"
-      "f ` {x. \<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x \<bullet> i = 0} = s"
+      "f ` {x. \<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x \<bullet> i = 0} = S"
       "inj_on f {x. \<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x \<bullet> i = 0}"
     by blast
   interpret f: bounded_linear f
     using f by (simp add: linear_conv_bounded_linear)
   have "x \<in> ?t \<Longrightarrow> f x = 0 \<Longrightarrow> x = 0" for x
     using f.zero d f(3)[THEN inj_onD, of x 0] by auto
-  moreover have "closed ?t" by (rule closed_substandard)
-  moreover have "subspace ?t" by (rule subspace_substandard)
-  ultimately show ?thesis
-    using closed_injective_image_subspace[of ?t f]
-    unfolding f(2) using f(1) unfolding linear_conv_bounded_linear by auto
+  then show ?thesis
+    using closed_injective_image_subspace[of ?t f] closed_substandard subspace_substandard
+    using f(2) f.bounded_linear_axioms by force
 qed
 
-lemma complete_subspace: "subspace s \<Longrightarrow> complete s"
-  for s :: "'a::euclidean_space set"
+lemma complete_subspace: "subspace S \<Longrightarrow> complete S"
+  for S :: "'a::euclidean_space set"
   using complete_eq_closed closed_subspace by auto
 
-lemma closed_span [iff]: "closed (span s)"
-  for s :: "'a::euclidean_space set"
+lemma closed_span [iff]: "closed (span S)"
+  for S :: "'a::euclidean_space set"
   by (simp add: closed_subspace)
 
-lemma dim_closure [simp]: "dim (closure s) = dim s" (is "?dc = ?d")
-  for s :: "'a::euclidean_space set"
-proof -
-  have "?dc \<le> ?d"
-    using closure_minimal[OF span_superset, of s]
-    using closed_subspace[OF subspace_span, of s]
-    using dim_subset[of "closure s" "span s"]
-    by simp
-  then show ?thesis
-    using dim_subset[OF closure_subset, of s]
-    by simp
-qed
+lemma dim_closure [simp]: "dim (closure S) = dim S" (is "?dc = ?d")
+  for S :: "'a::euclidean_space set"
+  by (metis closed_span closure_minimal closure_subset dim_eq_span span_eq_dim span_superset subset_le_dim)
 
 
 subsection \<open>Set Distance\<close>
 
 lemma setdist_compact_closed:
   fixes A :: "'a::heine_borel set"
-  assumes A: "compact A" and B: "closed B"
+  assumes "compact A" "closed B"
     and "A \<noteq> {}" "B \<noteq> {}"
   shows "\<exists>x \<in> A. \<exists>y \<in> B. dist x y = setdist A B"
-proof -
-  obtain x where "x \<in> A" "setdist A B = infdist x B"
-    by (metis A assms(3) setdist_attains_inf setdist_sym)
-  moreover
-  obtain y where"y \<in> B" "infdist x B = dist x y"
-    using B \<open>B \<noteq> {}\<close> infdist_attains_inf by blast
-  ultimately show ?thesis
-    using \<open>x \<in> A\<close> \<open>y \<in> B\<close> by auto
-qed
+  by (metis assms infdist_attains_inf setdist_attains_inf setdist_sym)
 
 lemma setdist_closed_compact:
   fixes S :: "'a::heine_borel set"
@@ -2406,14 +2307,10 @@ lemma setdist_eq_0_compact_closed:
   assumes S: "compact S" and T: "closed T"
     shows "setdist S T = 0 \<longleftrightarrow> S = {} \<or> T = {} \<or> S \<inter> T \<noteq> {}"
 proof (cases "S = {} \<or> T = {}")
-  case True
-  then show ?thesis
-    by force
-next
   case False
   then show ?thesis
-    by (metis S T disjoint_iff_not_equal in_closed_iff_infdist_zero setdist_attains_inf setdist_eq_0I setdist_sym)
-qed
+    by (metis S T disjoint_iff in_closed_iff_infdist_zero setdist_attains_inf setdist_eq_0I setdist_sym)
+qed auto
 
 corollary setdist_gt_0_compact_closed:
   assumes S: "compact S" and T: "closed T"
