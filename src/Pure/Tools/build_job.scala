@@ -22,7 +22,7 @@ object Build_Job {
 
     def read_xml(name: String): XML.Body =
       YXML.parse_body(
-        Symbol.output(unicode_symbols, UTF8.decode_permissive(read(name).uncompressed)),
+        Symbol.output(unicode_symbols, UTF8.decode_permissive(read(name).bytes)),
         cache = theory_context.cache)
 
     for {
@@ -274,8 +274,8 @@ class Build_Job(progress: Progress,
           override val cache: Term.Cache = store.cache
 
           override def build_blobs_info(name: Document.Node.Name): Command.Blobs_Info = {
-            val name1 = name.map(s => Path.explode(s).expand.implode)
-            session_background.base.load_commands.get(name1) match {
+            val expand_node = Document.Node.Name(Path.explode(name.node).expand.implode)
+            session_background.base.load_commands.get(expand_node) match {
               case Some(spans) =>
                 val syntax = session_background.base.theory_syntax(name)
                 Command.build_blobs_info(syntax, name, spans)

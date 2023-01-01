@@ -107,13 +107,36 @@ object Export {
   def message(msg: String, theory_name: String, name: String): String =
     msg + " " + quote(name) + " for theory " + quote(theory_name)
 
-  def empty_entry(theory_name: String, name: String): Entry =
-    Entry(Entry_Name(theory = theory_name, name = name),
-      false, Future.value(false, Bytes.empty), XML.Cache.none)
+  object Entry {
+    def apply(
+      entry_name: Entry_Name,
+      executable: Boolean,
+      body: Future[(Boolean, Bytes)],
+      cache: XML.Cache
+    ): Entry = new Entry(entry_name, executable, body, cache)
 
-  sealed case class Entry(
-    entry_name: Entry_Name,
-    executable: Boolean,
+    def empty(theory_name: String, name: String): Entry =
+      Entry(Entry_Name(theory = theory_name, name = name),
+        false, Future.value(false, Bytes.empty), XML.Cache.none)
+
+    def make(
+      session_name: String,
+      args: Protocol.Export.Args,
+      bytes: Bytes,
+      cache: XML.Cache
+    ): Entry = {
+      val body =
+        if (args.compress) Future.fork(bytes.maybe_compress(cache = cache.compress))
+        else Future.value((false, bytes))
+      val entry_name =
+        Entry_Name(session = session_name, theory = args.theory_name, name = args.name)
+      Entry(entry_name, args.executable, body, cache)
+    }
+  }
+
+  final class Entry private(
+    val entry_name: Entry_Name,
+    val executable: Boolean,
     body: Future[(Boolean, Bytes)],
     cache: XML.Cache
   ) {
@@ -121,6 +144,9 @@ object Export {
     def theory_name: String = entry_name.theory
     def name: String = entry_name.name
     override def toString: String = name
+
+    def is_finished: Boolean = body.is_finished
+    def cancel(): Unit = body.cancel()
 
     def compound_name: String = entry_name.compound_name
 
@@ -130,25 +156,24 @@ object Export {
     def name_extends(elems: List[String]): Boolean =
       name_elems.startsWith(elems) && name_elems != elems
 
-    def text: String = uncompressed.text
-
-    def uncompressed: Bytes = {
-      val (compressed, bytes) = body.join
-      if (compressed) bytes.uncompress(cache = cache.compress) else bytes
+    def bytes: Bytes = {
+      val (compressed, bs) = body.join
+      if (compressed) bs.uncompress(cache = cache.compress) else bs
     }
 
-    def uncompressed_yxml: XML.Body =
-      YXML.parse_body(UTF8.decode_permissive(uncompressed), cache = cache)
+    def text: String = bytes.text
+
+    def yxml: XML.Body = YXML.parse_body(UTF8.decode_permissive(bytes), cache = cache)
 
     def write(db: SQL.Database): Unit = {
-      val (compressed, bytes) = body.join
+      val (compressed, bs) = body.join
       db.using_statement(Data.table.insert()) { stmt =>
         stmt.string(1) = session_name
         stmt.string(2) = theory_name
         stmt.string(3) = name
         stmt.bool(4) = executable
         stmt.bool(5) = compressed
-        stmt.bytes(6) = bytes
+        stmt.bytes(6) = bs
         stmt.execute()
       }
     }
@@ -176,19 +201,6 @@ object Export {
     (entry_name: Entry_Name) => regs.exists(_.matches(entry_name.compound_name))
   }
 
-  def make_entry(
-    session_name: String,
-    args: Protocol.Export.Args,
-    bytes: Bytes,
-    cache: XML.Cache
-  ): Entry = {
-    val body =
-      if (args.compress) Future.fork(bytes.maybe_compress(cache = cache.compress))
-      else Future.value((false, bytes))
-    val entry_name = Entry_Name(session = session_name, theory = args.theory_name, name = args.name)
-    Entry(entry_name, args.executable, body, cache)
-  }
-
 
   /* database consumer thread */
 
@@ -200,7 +212,7 @@ object Export {
 
     private val consumer =
       Consumer_Thread.fork_bulk[(Entry, Boolean)](name = "export")(
-        bulk = { case (entry, _) => entry.body.is_finished },
+        bulk = { case (entry, _) => entry.is_finished },
         consume =
           { (args: List[(Entry, Boolean)]) =>
             val results =
@@ -208,7 +220,7 @@ object Export {
                 for ((entry, strict) <- args)
                 yield {
                   if (progress.stopped) {
-                    entry.body.cancel()
+                    entry.cancel()
                     Exn.Res(())
                   }
                   else if (entry.entry_name.readable(db)) {
@@ -227,7 +239,7 @@ object Export {
     def make_entry(session_name: String, args0: Protocol.Export.Args, body: Bytes): Unit = {
       if (!progress.stopped && !body.is_empty) {
         val args = if (db.is_server) args0.copy(compress = false) else args0
-        consumer.send(Export.make_entry(session_name, args, body, cache) -> args.strict)
+        consumer.send(Entry.make(session_name, args, body, cache) -> args.strict)
       }
     }
 
@@ -403,13 +415,27 @@ object Export {
 
     def apply(theory: String, name: String, permissive: Boolean = false): Entry =
       get(theory, name) match {
-        case None if permissive => empty_entry(theory, name)
+        case None if permissive => Entry.empty(theory, name)
         case None => error("Missing export entry " + quote(compound_name(theory, name)))
         case Some(entry) => entry
       }
 
     def theory(theory: String, other_cache: Option[Term.Cache] = None): Theory_Context =
       new Theory_Context(session_context, theory, other_cache)
+
+    def node_source(name: Document.Node.Name): String = {
+      def snapshot_source: Option[String] =
+        for {
+          snapshot <- document_snapshot
+          node = snapshot.get_node(name)
+          text = node.source if text.nonEmpty
+        } yield text
+      def db_source: Option[String] =
+        db_hierarchy.view.map(database =>
+            database_context.store.read_sources(database.db, database.session, name.node))
+          .collectFirst({ case Some(bytes) => bytes.text })
+      snapshot_source orElse db_source getOrElse ""
+    }
 
     def classpath(): List[File.Content] = {
       (for {
@@ -420,7 +446,7 @@ object Export {
         entry_name <- entry_names(session = session).iterator
         if matcher(entry_name)
         entry <- get(entry_name.theory, entry_name.name).iterator
-      } yield File.content(entry.entry_name.make_path(), entry.uncompressed)).toList
+      } yield File.content(entry.entry_name.make_path(), entry.bytes)).toList
     }
 
     override def toString: String =
@@ -438,9 +464,9 @@ object Export {
     def apply(name: String, permissive: Boolean = false): Entry =
       session_context.apply(theory, name, permissive = permissive)
 
-    def uncompressed_yxml(name: String): XML.Body =
+    def yxml(name: String): XML.Body =
       get(name) match {
-        case Some(entry) => entry.uncompressed_yxml
+        case Some(entry) => entry.yxml
         case None => Nil
       }
 
@@ -492,7 +518,7 @@ object Export {
           val path = export_dir + entry_name.make_path(prune = export_prune)
           progress.echo("export " + path + (if (entry.executable) " (executable)" else ""))
           Isabelle_System.make_directory(path.dir)
-          val bytes = entry.uncompressed
+          val bytes = entry.bytes
           if (!path.is_file || Bytes.read(path) != bytes) Bytes.write(path, bytes)
           File.set_executable(path, entry.executable)
         }

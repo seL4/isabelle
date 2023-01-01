@@ -28,6 +28,7 @@ object Bibtex {
     override def theory_content(name: String): String =
       """theory "bib" imports Pure begin bibtex_file """ +
         Outer_Syntax.quote_string(name) + """ end"""
+    override def theory_excluded(name: String): Boolean = name == "bib"
 
     override def html_document(snapshot: Document.Snapshot): Option[Browser_Info.HTML_Document] = {
       val name = snapshot.node_name

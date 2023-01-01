@@ -94,6 +94,9 @@ object Document {
       def apply(node: String, master_dir: String = "", theory: String = ""): Name =
         new Name(node, master_dir, theory)
 
+      def loaded_theory(theory: String): Document.Node.Name =
+        Name(theory, theory = theory)
+
       val empty: Name = Name("")
 
       object Ordering extends scala.math.Ordering[Name] {
@@ -103,7 +106,7 @@ object Document {
       type Graph[A] = isabelle.Graph[Node.Name, A]
 
       def make_graph[A](entries: List[((Name, A), List[Name])]): Graph[A] =
-        Graph.make(entries, symmetric = true)(Ordering)
+        Graph.make(entries, converse = true)(Ordering)
     }
 
     final class Name private(val node: String, val master_dir: String, val theory: String) {
@@ -125,16 +128,11 @@ object Document {
 
       override def toString: String = if (is_theory) theory else node
 
-      def map(f: String => String): Name =
-        new Name(f(node), f(master_dir), theory)
-
       def json: JSON.Object.T =
         JSON.Object("node_name" -> node, "theory_name" -> theory)
     }
 
     sealed case class Entry(name: Node.Name, header: Node.Header) {
-      def map(f: String => String): Entry = copy(name = name.map(f))
-
       override def toString: String = name.toString
     }
 

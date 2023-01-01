@@ -28,6 +28,8 @@ object File_Format {
     def get_theory(name: Document.Node.Name): Option[File_Format] = get(name.theory)
     def is_theory(name: Document.Node.Name): Boolean = get_theory(name).isDefined
 
+    def theory_excluded(name: String): Boolean = file_formats.exists(_.theory_excluded(name))
+
     def parse_data(name: String, text: String): AnyRef =
       get(name) match {
         case Some(file_format) => file_format.parse_data(name, text)
@@ -49,7 +51,7 @@ object File_Format {
     def prover_options(options: Options): Options =
       agents.foldLeft(options) { case (opts, agent) => agent.prover_options(opts) }
 
-    def stop_session: Unit = agents.foreach(_.stop())
+    def stop_session(): Unit = agents.foreach(_.stop())
   }
 
   trait Agent {
@@ -74,18 +76,19 @@ abstract class File_Format extends Isabelle_System.Service {
 
   def theory_suffix: String = ""
   def theory_content(name: String): String = ""
+  def theory_excluded(name: String): Boolean = false
 
   def make_theory_name(
     resources: Resources,
     name: Document.Node.Name
   ): Option[Document.Node.Name] = {
     for {
-      thy <- Url.get_base_name(name.node)
+      theory <- Url.get_base_name(name.node)
       if detect(name.node) && theory_suffix.nonEmpty
     }
     yield {
-      val thy_node = resources.append(name.node, Path.explode(theory_suffix))
-      Document.Node.Name(thy_node, name.master_dir, thy)
+      val node = resources.append(name.node, Path.explode(theory_suffix))
+      Document.Node.Name(node, master_dir = name.master_dir, theory = theory)
     }
   }
 

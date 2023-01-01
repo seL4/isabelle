@@ -93,7 +93,8 @@ object Thy_Header {
 
   def theory_name(s: String): String =
     get_thy_name(s) match {
-      case Some(name) => bootstrap_name(name)
+      case Some(name) =>
+        bootstrap_thys.collectFirst({ case (a, b) if a == name => b }).getOrElse(name)
       case None =>
         Url.get_base_name(s) match {
           case Some(name) =>
@@ -108,9 +109,6 @@ object Thy_Header {
 
   def is_bootstrap(theory: String): Boolean =
     bootstrap_thys.exists({ case (_, b) => b == theory })
-
-  def bootstrap_name(theory: String): String =
-    bootstrap_thys.collectFirst({ case (a, b) if a == theory => b }).getOrElse(theory)
 
 
   /* parser */

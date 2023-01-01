@@ -487,7 +487,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
               case Protocol.Export(args)
               if args.id.isDefined && Value.Long.unapply(args.id.get).isDefined =>
                 val id = Value.Long.unapply(args.id.get).get
-                val entry = Export.make_entry(Sessions.DRAFT, args, msg.chunk, cache)
+                val entry = Export.Entry.make(Sessions.DRAFT, args, msg.chunk, cache)
                 change_command(_.add_export(id, (args.serial, entry)))
 
               case Protocol.Loading_Theory(node_name, id) =>
@@ -563,7 +563,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
                 val snapshot = global_state.change_result(_.end_theory(id))
                 finished_theories.post(snapshot)
               }
-              file_formats.stop_session
+              file_formats.stop_session()
               phase = Session.Terminated(result)
               prover.reset()
 

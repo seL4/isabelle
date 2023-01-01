@@ -27,7 +27,7 @@ object Graph {
 
   def make[Key, A](
     entries: List[((Key, A), List[Key])],
-    symmetric: Boolean = false)(
+    converse: Boolean = false)(
     implicit ord: Ordering[Key]
   ): Graph[Key, A] = {
     val graph1 =
@@ -38,7 +38,7 @@ object Graph {
       entries.foldLeft(graph1) {
         case (graph, ((x, _), ys)) =>
           ys.foldLeft(graph) {
-            case (g, y) => if (symmetric) g.add_edge(y, x) else g.add_edge(x, y)
+            case (g, y) => if (converse) g.add_edge(y, x) else g.add_edge(x, y)
           }
       }
     graph2

@@ -315,7 +315,7 @@ services = \
   isabelle.Scala$Handler \
   isabelle.Scala_Functions \
   isabelle.Server_Commands \
-  isabelle.Sessions$File_Format \
+  isabelle.Sessions$ROOTS_File_Format \
   isabelle.Simplifier_Trace$Handler \
   isabelle.Tools \
   isabelle.jedit.JEdit_Plugin0 \

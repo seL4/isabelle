@@ -78,11 +78,8 @@ class Resources(
   def file_node(file: Path, dir: String = "", theory: String = ""): Document.Node.Name = {
     val node = append(dir, file)
     val master_dir = append(dir, file.dir)
-    Document.Node.Name(node, master_dir, theory)
+    Document.Node.Name(node, master_dir = master_dir, theory = theory)
   }
-
-  def loaded_theory_node(theory: String): Document.Node.Name =
-    Document.Node.Name(theory, "", theory)
 
 
   /* source files of Isabelle/ML bootstrap */
@@ -141,7 +138,7 @@ class Resources(
     for {
       (name, theory) <- Thy_Header.ml_roots
       path = (pure_dir + Path.explode(name)).expand
-      node_name = Document.Node.Name(path.implode, path.dir.implode, theory)
+      node_name = Document.Node.Name(path.implode, master_dir = path.dir.implode, theory = theory)
       file <- loaded_files(syntax, node_name, load_commands(syntax, node_name)())
     } yield file
   }
@@ -175,12 +172,12 @@ class Resources(
     if (literal_import && !Url.is_base_name(s)) {
       error("Bad import of theory from other session via file-path: " + quote(s))
     }
-    if (session_base.loaded_theory(theory)) loaded_theory_node(theory)
+    if (session_base.loaded_theory(theory)) Document.Node.Name.loaded_theory(theory)
     else {
       find_theory_node(theory) match {
         case Some(node_name) => node_name
         case None =>
-          if (Url.is_base_name(s) && literal_theory(s)) loaded_theory_node(theory)
+          if (Url.is_base_name(s) && literal_theory(s)) Document.Node.Name.loaded_theory(theory)
           else file_node(Path.explode(s).thy, dir = dir, theory = theory)
       }
     }

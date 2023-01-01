@@ -28,7 +28,7 @@ object Protocol {
         case (Markup.Name(name), Position.File(file), Position.Id(id))
         if Path.is_wellformed(file) =>
           val master_dir = Path.explode(file).dir.implode
-          Some((Document.Node.Name(file, master_dir, name), id))
+          Some((Document.Node.Name(file, master_dir = master_dir, theory = name), id))
         case _ => None
       }
   }
