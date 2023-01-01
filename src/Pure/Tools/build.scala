@@ -348,7 +348,7 @@ object Build {
 
             // write database
             using(store.open_database(session_name, output = true))(db =>
-              store.write_session_info(db, session_name,
+              store.write_session_info(db, build_deps(session_name),
                 build_log =
                   if (process_result.timeout) build_log.error("Timeout") else build_log,
                 build =

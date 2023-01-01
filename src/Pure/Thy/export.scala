@@ -423,6 +423,20 @@ object Export {
     def theory(theory: String, other_cache: Option[Term.Cache] = None): Theory_Context =
       new Theory_Context(session_context, theory, other_cache)
 
+    def node_source(name: Document.Node.Name): String = {
+      def snapshot_source: Option[String] =
+        for {
+          snapshot <- document_snapshot
+          node = snapshot.get_node(name)
+          text = node.source if text.nonEmpty
+        } yield text
+      def db_source: Option[String] =
+        db_hierarchy.view.map(database =>
+            database_context.store.read_sources(database.db, database.session, name.node))
+          .collectFirst({ case Some(bytes) => bytes.text })
+      snapshot_source orElse db_source getOrElse ""
+    }
+
     def classpath(): List[File.Content] = {
       (for {
         session <- session_stack.iterator
