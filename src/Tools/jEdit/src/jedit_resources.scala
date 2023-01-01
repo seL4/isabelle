@@ -53,7 +53,7 @@ extends Resources(session_background) {
   override def migrate_name(standard_name: Document.Node.Name): Document.Node.Name =
     node_name(File.platform_path(Path.explode(standard_name.node).canonical))
 
-  override def append(dir: String, source_path: Path): String = {
+  override def append_path(dir: String, source_path: Path): String = {
     val path = source_path.expand
     if (dir == "" || path.is_absolute) {
       MiscUtilities.resolveSymlinks(File.platform_path(path))

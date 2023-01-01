@@ -87,7 +87,7 @@ abstract class File_Format extends Isabelle_System.Service {
       if detect(name.node) && theory_suffix.nonEmpty
     }
     yield {
-      val node = resources.append(name.node, Path.explode(theory_suffix))
+      val node = resources.append_path(name.node, Path.explode(theory_suffix))
       Document.Node.Name(node, master_dir = name.master_dir, theory = theory)
     }
   }

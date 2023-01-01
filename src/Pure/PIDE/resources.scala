@@ -72,12 +72,12 @@ class Resources(
 
   def migrate_name(name: Document.Node.Name): Document.Node.Name = name
 
-  def append(dir: String, source_path: Path): String =
+  def append_path(dir: String, source_path: Path): String =
     (Path.explode(dir) + source_path).expand.implode
 
   def file_node(file: Path, dir: String = "", theory: String = ""): Document.Node.Name = {
-    val node = append(dir, file)
-    val master_dir = append(dir, file.dir)
+    val node = append_path(dir, file)
+    val master_dir = append_path(dir, file.dir)
     Document.Node.Name(node, master_dir = master_dir, theory = theory)
   }
 

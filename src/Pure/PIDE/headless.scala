@@ -306,7 +306,7 @@ object Headless {
       val dep_theories_set = dep_theories.toSet
       val dep_files =
         for (path <- dependencies.loaded_files)
-          yield Document.Node.Name(resources.append("", path))
+          yield Document.Node.Name(resources.append_path("", path))
 
       val use_theories_state = {
         val dep_graph = dependencies.theory_graph
