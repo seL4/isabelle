@@ -335,11 +335,8 @@ corollary openin_product_topology_alt:
   "openin (product_topology X I) S \<longleftrightarrow>
     (\<forall>x \<in> S. \<exists>U. finite {i \<in> I. U i \<noteq> topspace(X i)} \<and>
                  (\<forall>i \<in> I. openin (X i) (U i)) \<and> x \<in> Pi\<^sub>E I U \<and> Pi\<^sub>E I U \<subseteq> S)"
-sledgehammer [isar_proofs, provers = "cvc4 z3 spass e vampire verit", timeout = 77]
   unfolding openin_product_topology arbitrary_union_of_alt product_topology_base_alt topspace_product_topology
-  apply safe
-  apply (drule bspec; blast)+
-  done
+  by (smt (verit, best))
 
 lemma closure_of_product_topology:
   "(product_topology X I) closure_of (PiE I S) = PiE I (\<lambda>i. (X i) closure_of (S i))"
