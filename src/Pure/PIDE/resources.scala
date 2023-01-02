@@ -75,9 +75,6 @@ class Resources(
   def append_path(dir: String, source_path: Path): String =
     (Path.explode(dir) + source_path).expand.implode
 
-  def file_node(file: Path, dir: String = "", theory: String = ""): Document.Node.Name =
-    Document.Node.Name(append_path(dir, file), theory = theory)
-
 
   /* source files of Isabelle/ML bootstrap */
 
@@ -158,8 +155,8 @@ class Resources(
         case Some(info) => info.dirs
         case None => Nil
       }
-    dirs.collectFirst({
-      case dir if (dir + thy_file).is_file => file_node(dir + thy_file, theory = theory) })
+    dirs.collectFirst { case dir if (dir + thy_file).is_file =>
+      Document.Node.Name(append_path("", dir + thy_file), theory = theory) }
   }
 
   def import_name(qualifier: String, dir: String, s: String): Document.Node.Name = {
@@ -175,7 +172,7 @@ class Resources(
         case Some(node_name) => node_name
         case None =>
           if (Url.is_base_name(s) && literal_theory(s)) Document.Node.Name.loaded_theory(theory)
-          else file_node(Path.explode(s).thy, dir = dir, theory = theory)
+          else Document.Node.Name(append_path(dir, Path.explode(s).thy), theory = theory)
       }
     }
   }
