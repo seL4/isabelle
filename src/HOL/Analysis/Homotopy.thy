@@ -4294,7 +4294,7 @@ proof -
   have "g 0 \<in> path_image g" "g (1/2) \<in> path_image g"
     by (simp_all add: path_defs)
   moreover have "g 0 \<noteq> g (1/2)"
-    using assms by (fastforce simp add: simple_path_def)
+    using assms by (fastforce simp add: simple_path_def loop_free_def)
   ultimately have "\<forall>a. \<not> path_image g \<subseteq> {a}"
     by blast
   then show ?thesis
