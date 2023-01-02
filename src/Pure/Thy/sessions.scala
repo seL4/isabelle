@@ -122,7 +122,7 @@ object Sessions {
     document_theories: List[Document.Node.Name] = Nil,
     loaded_theories: Graph[String, Outer_Syntax] = Graph.string,  // cumulative imports
     used_theories: List[(Document.Node.Name, Options)] = Nil,  // new imports
-    load_commands: Map[Document.Node.Name, List[Command_Span.Span]] = Map.empty,
+    theory_load_commands: Map[String, List[Command_Span.Span]] = Map.empty,
     known_theories: Map[String, Document.Node.Entry] = Map.empty,
     known_loaded_files: Map[String, List[Path]] = Map.empty,
     overall_syntax: Outer_Syntax = Outer_Syntax.empty,
@@ -351,6 +351,9 @@ object Sessions {
               try { if (inlined_files) (dependencies.load_commands, Nil) else (Nil, Nil) }
               catch { case ERROR(msg) => (Nil, List(msg)) }
 
+            val theory_load_commands =
+              (for ((name, span) <- load_commands.iterator) yield name.theory -> span).toMap
+
             val loaded_files =
               load_commands.map({ case (name, spans) => dependencies.loaded_files(name, spans) })
 
@@ -506,7 +509,7 @@ object Sessions {
                 document_theories = document_theories,
                 loaded_theories = dependencies.loaded_theories,
                 used_theories = dependencies.theories_adjunct,
-                load_commands = load_commands.toMap,
+                theory_load_commands = theory_load_commands,
                 known_theories = known_theories,
                 known_loaded_files = known_loaded_files,
                 overall_syntax = overall_syntax,

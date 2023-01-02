@@ -276,8 +276,7 @@ class Build_Job(progress: Progress,
           override val cache: Term.Cache = store.cache
 
           override def build_blobs_info(name: Document.Node.Name): Command.Blobs_Info = {
-            val expand_node = Document.Node.Name(Path.explode(name.node).expand.implode)
-            session_background.base.load_commands.get(expand_node) match {
+            session_background.base.theory_load_commands.get(name.theory) match {
               case Some(spans) =>
                 val syntax = session_background.base.theory_syntax(name)
                 Command.build_blobs_info(syntax, name, spans)
