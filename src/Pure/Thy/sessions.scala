@@ -50,8 +50,7 @@ object Sessions {
 
     override def theory_suffix: String = "ROOTS_file"
     override def theory_content(name: String): String =
-      """theory "ROOTS" imports Pure begin ROOTS_file """ +
-        Outer_Syntax.quote_string(name) + """ end"""
+      """theory "ROOTS" imports Pure begin ROOTS_file "." end"""
     override def theory_excluded(name: String): Boolean = name == "ROOTS"
   }
 

@@ -88,7 +88,8 @@ abstract class File_Format extends Isabelle_System.Service {
     }
     yield {
       val node = resources.append_path(name.node, Path.explode(theory_suffix))
-      Document.Node.Name(node, master_dir = name.master_dir, theory = theory)
+      val master_dir = Url.strip_base_name(node).getOrElse("")
+      Document.Node.Name(node, master_dir = master_dir, theory = theory)
     }
   }
 
