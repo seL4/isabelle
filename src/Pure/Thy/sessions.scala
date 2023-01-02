@@ -1536,12 +1536,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
             Session_Info.session_name.where_equal(name)))(stmt => stmt.execute_query().next())
       }
 
-    def write_session_info(
-      db: SQL.Database,
-      session_base: Base,
-      build_log: Build_Log.Session_Info,
-      build: Build.Session_Info
-    ): Unit = {
+    def write_session_sources(db: SQL.Database, session_base: Base): Unit = {
       val sources =
         for ((path, digest) <- session_base.session_sources) yield {
           val bytes = Bytes.read(path)
@@ -1551,7 +1546,6 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
             bytes.maybe_compress(Compress.Options_Zstd(), cache = cache.compress)
           (name, digest, compressed, body)
         }
-
       db.transaction {
         for ((name, digest, compressed, body) <- sources) {
           db.using_statement(Sources.table.insert()) { stmt =>
@@ -1563,8 +1557,18 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
             stmt.execute()
           }
         }
+      }
+    }
+
+    def write_session_info(
+      db: SQL.Database,
+      session_name: String,
+      build_log: Build_Log.Session_Info,
+      build: Build.Session_Info
+    ): Unit = {
+      db.transaction {
         db.using_statement(Session_Info.table.insert()) { stmt =>
-          stmt.string(1) = session_base.session_name
+          stmt.string(1) = session_name
           stmt.bytes(2) = Properties.encode(build_log.session_timing)
           stmt.bytes(3) = Properties.compress(build_log.command_timings, cache = cache.compress)
           stmt.bytes(4) = Properties.compress(build_log.theory_timings, cache = cache.compress)
