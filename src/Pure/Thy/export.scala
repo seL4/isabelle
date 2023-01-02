@@ -430,10 +430,14 @@ object Export {
           node = snapshot.get_node(name)
           text = node.source if text.nonEmpty
         } yield text
+
+      val store = database_context.store
       def db_source: Option[String] =
-        db_hierarchy.view.map(database =>
-            database_context.store.read_sources(database.db, database.session, name.node))
-          .collectFirst({ case Some(file) => file.text })
+        (for {
+          database <- db_hierarchy.iterator
+          file <- store.read_sources(database.db, database.session, name = name.node).iterator
+        } yield file.text).nextOption()
+
       snapshot_source orElse db_source getOrElse ""
     }
 

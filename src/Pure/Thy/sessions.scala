@@ -1661,18 +1661,22 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
       }
     }
 
-    def read_sources(db: SQL.Database, session_name: String, name: String): Option[Source_File] = {
-      val sql =
-        Sources.table.select(Nil, Sources.where_equal(session_name, name = name))
-      db.using_statement(sql) { stmt =>
-        val res = stmt.execute_query()
-        if (!res.next()) None
-        else {
+    def read_sources(
+      db: SQL.Database,
+      session_name: String,
+      name: String = ""
+    ): List[Source_File] = {
+      val select =
+        Sources.table.select(Nil,
+          Sources.where_equal(session_name, name = name) + " ORDER BY " + Sources.name)
+      db.using_statement(select) { stmt =>
+        (stmt.execute_query().iterator { res =>
+          val res_name = res.string(Sources.name)
           val digest = SHA1.fake_digest(res.string(Sources.digest))
           val compressed = res.bool(Sources.compressed)
           val body = res.bytes(Sources.body)
-          Some(Source_File(name, digest, compressed, body, cache.compress))
-        }
+          Source_File(res_name, digest, compressed, body, cache.compress)
+        }).toList
       }
     }
   }
