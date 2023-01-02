@@ -55,6 +55,49 @@ object Sessions {
   }
 
 
+  /* source files */
+
+  sealed case class Source_File(name: String, digest: SHA1.Digest, compressed: Boolean, body: Bytes)
+
+  object Sources {
+    val session_name = SQL.Column.string("session_name").make_primary_key
+    val name = SQL.Column.string("name").make_primary_key
+    val digest = SQL.Column.string("digest")
+    val compressed = SQL.Column.bool("compressed")
+    val body = SQL.Column.bytes("body")
+
+    val table =
+      SQL.Table("isabelle_sources", List(session_name, name, digest, compressed, body))
+
+    def where_equal(session_name: String, name: String = ""): SQL.Source =
+      "WHERE " + Sources.session_name.equal(session_name) +
+        (if (name == "") "" else " AND " + Sources.name.equal(name))
+
+
+    type T = Map[String, Source_File]
+
+    def read_files(session_base: Base, cache: Compress.Cache = Compress.Cache.none): T = {
+      def err(path: Path): Nothing = error("Incoherent digest for source file: " + path)
+
+      session_base.session_sources.foldLeft(Map.empty[String, Source_File]) {
+        case (sources, (path, digest)) =>
+          val name = path.implode_symbolic
+          sources.get(name) match {
+            case Some(source_file) => if (source_file.digest == digest) sources else err(path)
+            case None =>
+              val bytes = Bytes.read(path)
+              if (bytes.sha1_digest == digest) {
+                val (compressed, body) = bytes.maybe_compress(Compress.Options_Zstd(), cache = cache)
+                val file = Source_File(name, digest, compressed, body)
+                sources + (name -> file)
+              }
+              else err(path)
+          }
+      }
+    }
+  }
+
+
   /* base info */
 
   object Base {
@@ -248,7 +291,7 @@ object Sessions {
     var cache_sources = Map.empty[JFile, SHA1.Digest]
     def check_sources(paths: List[Path]): List[(Path, SHA1.Digest)] = {
       for {
-        path <- Library.distinct(paths)
+        path <- paths
         file = path.file
         if cache_sources.isDefinedAt(file) || file.isFile
       }
@@ -1336,21 +1379,6 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
       " ADD COLUMN IF NOT EXISTS " + uuid.decl(SQL.sql_type_postgresql)
   }
 
-  object Sources {
-    val session_name = SQL.Column.string("session_name").make_primary_key
-    val name = SQL.Column.string("name").make_primary_key
-    val digest = SQL.Column.string("digest")
-    val compressed = SQL.Column.bool("compressed")
-    val body = SQL.Column.bytes("body")
-
-    val table =
-      SQL.Table("isabelle_sources", List(session_name, name, digest, compressed, body))
-
-    def where_equal(session_name: String, name: String = ""): SQL.Source =
-      "WHERE " + Sources.session_name.equal(session_name) +
-        (if (name == "") "" else " AND " + Sources.name.equal(name))
-  }
-
   def store(options: Options, cache: Term.Cache = Term.Cache.make()): Store =
     new Store(options, cache)
 
@@ -1536,30 +1564,6 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
             Session_Info.session_name.where_equal(name)))(stmt => stmt.execute_query().next())
       }
 
-    def write_session_sources(db: SQL.Database, session_base: Base): Unit = {
-      val sources =
-        for ((path, digest) <- session_base.session_sources) yield {
-          val bytes = Bytes.read(path)
-          if (bytes.sha1_digest != digest) error("Erratic change of file content: " + path)
-          val name = path.implode_symbolic
-          val (compressed, body) =
-            bytes.maybe_compress(Compress.Options_Zstd(), cache = cache.compress)
-          (name, digest, compressed, body)
-        }
-      db.transaction {
-        for ((name, digest, compressed, body) <- sources) {
-          db.using_statement(Sources.table.insert()) { stmt =>
-            stmt.string(1) = session_base.session_name
-            stmt.string(2) = name
-            stmt.string(3) = digest.toString
-            stmt.bool(4) = compressed
-            stmt.bytes(5) = body
-            stmt.execute()
-          }
-        }
-      }
-    }
-
     def write_session_info(
       db: SQL.Database,
       session_name: String,
@@ -1627,6 +1631,25 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
         }
       }
       else None
+    }
+
+
+    /* session sources */
+
+    def write_sources(db: SQL.Database, session_base: Base): Unit = {
+      val files = Sources.read_files(session_base, cache = cache.compress)
+      db.transaction {
+        for ((name, file) <- files) {
+          db.using_statement(Sources.table.insert()) { stmt =>
+            stmt.string(1) = session_base.session_name
+            stmt.string(2) = name
+            stmt.string(3) = file.digest.toString
+            stmt.bool(4) = file.compressed
+            stmt.bytes(5) = file.body
+            stmt.execute()
+          }
+        }
+      }
     }
 
     def read_sources(db: SQL.Database, session_name: String, name: String): Option[Bytes] = {
