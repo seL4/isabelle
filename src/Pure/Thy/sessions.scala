@@ -1578,10 +1578,12 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     def write_session_info(
       db: SQL.Database,
       session_name: String,
+      sources: Sources.T,
       build_log: Build_Log.Session_Info,
       build: Build.Session_Info
     ): Unit = {
       db.transaction {
+        write_sources(db, session_name, sources)
         db.using_statement(Session_Info.table.insert()) { stmt =>
           stmt.string(1) = session_name
           stmt.bytes(2) = Properties.encode(build_log.session_timing)
@@ -1647,18 +1649,15 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
     /* session sources */
 
-    def write_sources(db: SQL.Database, session_base: Base): Unit = {
-      val files = Sources.read_files(session_base, cache = cache.compress)
-      db.transaction {
-        for ((name, file) <- files) {
-          db.using_statement(Sources.table.insert()) { stmt =>
-            stmt.string(1) = session_base.session_name
-            stmt.string(2) = name
-            stmt.string(3) = file.digest.toString
-            stmt.bool(4) = file.compressed
-            stmt.bytes(5) = file.body
-            stmt.execute()
-          }
+    def write_sources(db: SQL.Database, session_name: String, files: Sources.T): Unit = {
+      for ((name, file) <- files) {
+        db.using_statement(Sources.table.insert()) { stmt =>
+          stmt.string(1) = session_name
+          stmt.string(2) = name
+          stmt.string(3) = file.digest.toString
+          stmt.bool(4) = file.compressed
+          stmt.bytes(5) = file.body
+          stmt.execute()
         }
       }
     }

@@ -348,7 +348,7 @@ object Build {
 
             // write database
             using(store.open_database(session_name, output = true))(db =>
-              store.write_session_info(db, session_name,
+              store.write_session_info(db, session_name, job.session_sources,
                 build_log =
                   if (process_result.timeout) build_log.error("Timeout") else build_log,
                 build =
@@ -418,17 +418,13 @@ object Build {
                 else if (ancestor_results.forall(_.ok) && !progress.stopped) {
                   progress.echo((if (do_store) "Building " else "Running ") + session_name + " ...")
 
-                  val session_background = build_deps.background(session_name)
-
                   store.clean_output(session_name)
-                  using(store.open_database(session_name, output = true)) { db =>
-                    store.init_session_info(db, session_name)
-                    store.write_sources(db, session_background.base)
-                  }
+                  using(store.open_database(session_name, output = true))(
+                    store.init_session_info(_, session_name))
 
                   val numa_node = numa_nodes.next(used_node)
                   val job =
-                    new Build_Job(progress, session_background, store, do_store,
+                    new Build_Job(progress, build_deps.background(session_name), store, do_store,
                       log, session_setup, numa_node, queue.command_timings(session_name))
                   loop(pending, running + (session_name -> (ancestor_heaps, job)), results)
                 }
