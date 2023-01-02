@@ -13,30 +13,32 @@ begin
 subsection \<open>Paths and Arcs\<close>
 
 definition\<^marker>\<open>tag important\<close> path :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> bool"
-  where "path g \<longleftrightarrow> continuous_on {0..1} g"
+  where "path g \<equiv> continuous_on {0..1} g"
 
 definition\<^marker>\<open>tag important\<close> pathstart :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> 'a"
-  where "pathstart g = g 0"
+  where "pathstart g \<equiv> g 0"
 
 definition\<^marker>\<open>tag important\<close> pathfinish :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> 'a"
-  where "pathfinish g = g 1"
+  where "pathfinish g \<equiv> g 1"
 
 definition\<^marker>\<open>tag important\<close> path_image :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> 'a set"
-  where "path_image g = g ` {0 .. 1}"
+  where "path_image g \<equiv> g ` {0 .. 1}"
 
 definition\<^marker>\<open>tag important\<close> reversepath :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> real \<Rightarrow> 'a"
-  where "reversepath g = (\<lambda>x. g(1 - x))"
+  where "reversepath g \<equiv> (\<lambda>x. g(1 - x))"
 
 definition\<^marker>\<open>tag important\<close> joinpaths :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> (real \<Rightarrow> 'a) \<Rightarrow> real \<Rightarrow> 'a"
     (infixr "+++" 75)
-  where "g1 +++ g2 = (\<lambda>x. if x \<le> 1/2 then g1 (2 * x) else g2 (2 * x - 1))"
+  where "g1 +++ g2 \<equiv> (\<lambda>x. if x \<le> 1/2 then g1 (2 * x) else g2 (2 * x - 1))"
+
+definition\<^marker>\<open>tag important\<close> loop_free :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> bool"
+  where "loop_free g \<equiv> \<forall>x\<in>{0..1}. \<forall>y\<in>{0..1}. g x = g y \<longrightarrow> x = y \<or> x = 0 \<and> y = 1 \<or> x = 1 \<and> y = 0"
 
 definition\<^marker>\<open>tag important\<close> simple_path :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> bool"
-  where "simple_path g \<longleftrightarrow>
-     path g \<and> (\<forall>x\<in>{0..1}. \<forall>y\<in>{0..1}. g x = g y \<longrightarrow> x = y \<or> x = 0 \<and> y = 1 \<or> x = 1 \<and> y = 0)"
+  where "simple_path g \<equiv> path g \<and> loop_free g"
 
 definition\<^marker>\<open>tag important\<close> arc :: "(real \<Rightarrow> 'a :: topological_space) \<Rightarrow> bool"
-  where "arc g \<longleftrightarrow> path g \<and> inj_on g {0..1}"
+  where "arc g \<equiv> path g \<and> inj_on g {0..1}"
 
 
 subsection\<^marker>\<open>tag unimportant\<close>\<open>Invariance theorems\<close>
@@ -71,12 +73,8 @@ proof -
   from linear_injective_left_inverse [OF assms]
   obtain h where h: "linear h" "h \<circ> f = id"
     by blast
-  then have g: "g = h \<circ> (f \<circ> g)"
-    by (metis comp_assoc id_comp)
-  show ?thesis
-    unfolding path_def
-    using h assms
-    by (metis g continuous_on_compose linear_continuous_on linear_conv_bounded_linear)
+  with assms show ?thesis
+    by (metis comp_assoc id_comp linear_continuous_on linear_linear path_continuous_image)
 qed
 
 lemma pathstart_translation: "pathstart((\<lambda>x. a + x) \<circ> g) = a + pathstart g"
@@ -110,21 +108,32 @@ lemma joinpaths_translation:
 lemma joinpaths_linear_image: "linear f \<Longrightarrow> (f \<circ> g1) +++ (f \<circ> g2) = f \<circ> (g1 +++ g2)"
   by (rule ext) (simp add: joinpaths_def)
 
+lemma loop_free_translation_eq:
+  fixes g :: "real \<Rightarrow> 'a::euclidean_space"
+  shows "loop_free((\<lambda>x. a + x) \<circ> g) = loop_free g"
+  by (simp add: loop_free_def)
+
 lemma simple_path_translation_eq:
   fixes g :: "real \<Rightarrow> 'a::euclidean_space"
   shows "simple_path((\<lambda>x. a + x) \<circ> g) = simple_path g"
-  by (simp add: simple_path_def path_translation_eq)
+  by (simp add: simple_path_def loop_free_translation_eq path_translation_eq)
+
+lemma loop_free_linear_image_eq:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "linear f" "inj f"
+    shows "loop_free(f \<circ> g) = loop_free g"
+  using assms inj_on_eq_iff [of f] by (auto simp: loop_free_def)
 
 lemma simple_path_linear_image_eq:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "linear f" "inj f"
     shows "simple_path(f \<circ> g) = simple_path g"
-  using assms inj_on_eq_iff [of f]
-  by (auto simp: path_linear_image_eq simple_path_def path_translation_eq)
+  using assms
+  by (simp add: loop_free_linear_image_eq path_linear_image_eq simple_path_def)
 
 lemma arc_translation_eq:
   fixes g :: "real \<Rightarrow> 'a::euclidean_space"
-  shows "arc((\<lambda>x. a + x) \<circ> g) = arc g"
+  shows "arc((\<lambda>x. a + x) \<circ> g) \<longleftrightarrow> arc g"
   by (auto simp: arc_def inj_on_def path_translation_eq)
 
 lemma arc_linear_image_eq:
@@ -161,8 +170,11 @@ lemma pathin_iff_path_real [simp]: "pathin euclideanreal g \<longleftrightarrow>
 lemma continuous_on_path: "path f \<Longrightarrow> t \<subseteq> {0..1} \<Longrightarrow> continuous_on t f"
   using continuous_on_subset path_def by blast
 
+lemma inj_on_imp_loop_free: "inj_on g {0..1} \<Longrightarrow> loop_free g"
+  by (simp add: inj_onD loop_free_def)
+
 lemma arc_imp_simple_path: "arc g \<Longrightarrow> simple_path g"
-  by (simp add: arc_def inj_on_def simple_path_def)
+  by (simp add: arc_def inj_on_imp_loop_free simple_path_def)
 
 lemma arc_imp_path: "arc g \<Longrightarrow> path g"
   using arc_def by blast
@@ -173,9 +185,11 @@ lemma arc_imp_inj_on: "arc g \<Longrightarrow> inj_on g {0..1}"
 lemma simple_path_imp_path: "simple_path g \<Longrightarrow> path g"
   using simple_path_def by blast
 
+lemma loop_free_cases: "loop_free g \<Longrightarrow> inj_on g {0..1} \<or> pathfinish g = pathstart g"
+  by (force simp: inj_on_def loop_free_def pathfinish_def pathstart_def)
+
 lemma simple_path_cases: "simple_path g \<Longrightarrow> arc g \<or> pathfinish g = pathstart g"
-  unfolding simple_path_def arc_def inj_on_def pathfinish_def pathstart_def
-  by force
+  using arc_def loop_free_cases simple_path_def by blast
 
 lemma simple_path_imp_arc: "simple_path g \<Longrightarrow> pathfinish g \<noteq> pathstart g \<Longrightarrow> arc g"
   using simple_path_cases by auto
@@ -250,12 +264,9 @@ qed
 lemma path_reversepath [simp]: "path (reversepath g) \<longleftrightarrow> path g"
 proof -
   have *: "\<And>g. path g \<Longrightarrow> path (reversepath g)"
-    unfolding path_def reversepath_def
-    apply (rule continuous_on_compose[unfolded o_def, of _ "\<lambda>x. 1 - x"])
-    apply (auto intro: continuous_intros continuous_on_subset[of "{0..1}"])
-    done
-  show ?thesis
-    using "*" by force
+    by (metis cancel_comm_monoid_add_class.diff_cancel continuous_on_compose 
+        continuous_on_op_minus diff_zero image_diff_atLeastAtMost path_def reversepath_o)
+  then show ?thesis by force
 qed
 
 lemma arc_reversepath:
@@ -270,10 +281,12 @@ proof -
     using assms  by (clarsimp simp: arc_def intro!: inj_onI) (simp add: inj_onD reversepath_def **)
 qed
 
+lemma loop_free_reversepath:
+  assumes "loop_free g" shows "loop_free(reversepath g)"
+  using assms by (simp add: reversepath_def loop_free_def Ball_def) (smt (verit))
+
 lemma simple_path_reversepath: "simple_path g \<Longrightarrow> simple_path (reversepath g)"
-  apply (simp add: simple_path_def)
-  apply (force simp: reversepath_def)
-  done
+  by (simp add: loop_free_reversepath simple_path_def)
 
 lemmas reversepath_simps =
   path_reversepath path_image_reversepath pathstart_reversepath pathfinish_reversepath
@@ -362,8 +375,7 @@ lemma path_image_join_subset: "path_image (g1 +++ g2) \<subseteq> path_image g1 
   by auto
 
 lemma subset_path_image_join:
-  assumes "path_image g1 \<subseteq> s"
-    and "path_image g2 \<subseteq> s"
+  assumes "path_image g1 \<subseteq> s" and "path_image g2 \<subseteq> s"
   shows "path_image (g1 +++ g2) \<subseteq> s"
   using path_image_join_subset[of g1 g2] and assms
   by auto
@@ -394,8 +406,7 @@ proof -
 qed
 
 lemma not_in_path_image_join:
-  assumes "x \<notin> path_image g1"
-    and "x \<notin> path_image g2"
+  assumes "x \<notin> path_image g1" and "x \<notin> path_image g2"
   shows "x \<notin> path_image (g1 +++ g2)"
   using assms and path_image_join_subset[of g1 g2]
   by auto
@@ -421,8 +432,11 @@ lemma joinpaths_eq:
    \<Longrightarrow>  t \<in> {0..1} \<Longrightarrow> (p +++ q) t = (p' +++ q') t"
   by (auto simp: joinpaths_def)
 
+lemma loop_free_inj_on: "loop_free g \<Longrightarrow> inj_on g {0<..<1}"
+  by (force simp: inj_on_def loop_free_def)
+
 lemma simple_path_inj_on: "simple_path g \<Longrightarrow> inj_on g {0<..<1}"
-  by (auto simp: simple_path_def path_image_def inj_on_def less_eq_real_def Ball_def)
+  using loop_free_inj_on simple_path_def by auto
 
 
 subsection\<^marker>\<open>tag unimportant\<close>\<open>Simple paths with the endpoints removed\<close>
@@ -435,8 +449,8 @@ proof
     using less_eq_real_def by (auto simp: path_image_def pathstart_def pathfinish_def)
   show "?rhs \<subseteq> ?lhs"
     using assms 
-    apply (auto simp: simple_path_def path_image_def pathstart_def pathfinish_def Ball_def)
-    using less_eq_real_def zero_le_one by blast+
+    apply (simp add: image_subset_iff path_image_def pathstart_def pathfinish_def simple_path_def loop_free_def Ball_def)
+    by (smt (verit))
 qed
 
 lemma connected_simple_path_endless:
@@ -470,65 +484,10 @@ lemma half_bounded_equal: "1 \<le> x * 2 \<Longrightarrow> x * 2 \<le> 1 \<longl
 lemma continuous_on_joinpaths:
   assumes "continuous_on {0..1} g1" "continuous_on {0..1} g2" "pathfinish g1 = pathstart g2"
     shows "continuous_on {0..1} (g1 +++ g2)"
-proof -
-  have "{0..1::real} = {0..1/2} \<union> {1/2..1}"
-    by auto
-  then show ?thesis
-    using assms by (metis path_def path_join)
-qed
+  using assms path_def path_join by blast
 
 lemma path_join_imp: "\<lbrakk>path g1; path g2; pathfinish g1 = pathstart g2\<rbrakk> \<Longrightarrow> path(g1 +++ g2)"
   by simp
-
-lemma simple_path_join_loop:
-  assumes "arc g1" "arc g2"
-          "pathfinish g1 = pathstart g2"  "pathfinish g2 = pathstart g1"
-          "path_image g1 \<inter> path_image g2 \<subseteq> {pathstart g1, pathstart g2}"
-  shows "simple_path(g1 +++ g2)"
-proof -
-  have injg1: "inj_on g1 {0..1}"
-    using assms
-    by (simp add: arc_def)
-  have injg2: "inj_on g2 {0..1}"
-    using assms
-    by (simp add: arc_def)
-  have g12: "g1 1 = g2 0"
-   and g21: "g2 1 = g1 0"
-   and sb:  "g1 ` {0..1} \<inter> g2 ` {0..1} \<subseteq> {g1 0, g2 0}"
-    using assms
-    by (simp_all add: arc_def pathfinish_def pathstart_def path_image_def)
-  { fix x and y::real
-    assume g2_eq: "g2 (2 * x - 1) = g1 (2 * y)"
-      and xyI: "x \<noteq> 1 \<or> y \<noteq> 0"
-      and xy: "x \<le> 1" "0 \<le> y" " y * 2 \<le> 1" "\<not> x * 2 \<le> 1" 
-    then consider "g1 (2 * y) = g1 0" | "g1 (2 * y) = g2 0"
-      using sb by force
-    then have False
-    proof cases
-      case 1
-      then have "y = 0"
-        using xy g2_eq by (auto dest!: inj_onD [OF injg1])
-      then show ?thesis
-        using xy g2_eq xyI by (auto dest: inj_onD [OF injg2] simp flip: g21)
-    next
-      case 2
-      then have "2*x = 1"
-        using g2_eq g12 inj_onD [OF injg2] atLeastAtMost_iff xy(1) xy(4) by fastforce
-      with xy show False by auto
-    qed
-  } note * = this
-  { fix x and y::real
-    assume xy: "g1 (2 * x) = g2 (2 * y - 1)" "y \<le> 1" "0 \<le> x" "\<not> y * 2 \<le> 1" "x * 2 \<le> 1" 
-    then have "x = 0 \<and> y = 1"
-      using * xy by force
-   } note ** = this
-  show ?thesis
-    using assms
-    apply (simp add: arc_def simple_path_def)
-    apply (auto simp: joinpaths_def split: if_split_asm 
-                dest!: * ** dest: inj_onD [OF injg1] inj_onD [OF injg2])
-    done
-qed
 
 lemma arc_join:
   assumes "arc g1" "arc g2"
@@ -553,12 +512,51 @@ proof -
     then have False
       using xy inj_onD injg2 by fastforce
    } note * = this
-  show ?thesis
+  have "inj_on (g1 +++ g2) {0..1}"
+    using inj_onD [OF injg1] inj_onD [OF injg2] *
+    by (simp add: inj_on_def joinpaths_def Ball_def) (smt (verit))
+  then show ?thesis
+    using arc_def assms path_join_imp by blast
+qed
+
+lemma simple_path_join_loop:
+  assumes "arc g1" "arc g2"
+          "pathfinish g1 = pathstart g2"  "pathfinish g2 = pathstart g1"
+          "path_image g1 \<inter> path_image g2 \<subseteq> {pathstart g1, pathstart g2}"
+        shows "simple_path(g1 +++ g2)"
+proof -
+  have injg1: "inj_on g1 {0..1}" and injg2: "inj_on g2 {0..1}"
+    using assms by (auto simp add: arc_def)
+  have g12: "g1 1 = g2 0"
+   and g21: "g2 1 = g1 0"
+   and sb:  "g1 ` {0..1} \<inter> g2 ` {0..1} \<subseteq> {g1 0, g2 0}"
     using assms
-    apply (simp add: arc_def inj_on_def)
-    apply (auto simp: joinpaths_def arc_imp_path split: if_split_asm 
-                dest: * *[OF sym] inj_onD [OF injg1] inj_onD [OF injg2])
-    done
+    by (simp_all add: arc_def pathfinish_def pathstart_def path_image_def)
+  { fix x and y::real
+    assume g2_eq: "g2 (2 * x - 1) = g1 (2 * y)"
+      and xyI: "x \<noteq> 1 \<or> y \<noteq> 0"
+      and xy: "x \<le> 1" "0 \<le> y" " y * 2 \<le> 1" "\<not> x * 2 \<le> 1" 
+    then consider "g1 (2 * y) = g1 0" | "g1 (2 * y) = g2 0"
+      using sb by force
+    then have False
+    proof cases
+      case 1
+      then have "y = 0"
+        using xy g2_eq by (auto dest!: inj_onD [OF injg1])
+      then show ?thesis
+        using xy g2_eq xyI by (auto dest: inj_onD [OF injg2] simp flip: g21)
+    next
+      case 2
+      then have "2*x = 1"
+        using g2_eq g12 inj_onD [OF injg2] atLeastAtMost_iff xy(1) xy(4) by fastforce
+      with xy show False by auto
+    qed
+  } note * = this 
+  have "loop_free(g1 +++ g2)"
+    using inj_onD [OF injg1] inj_onD [OF injg2] *
+    by (simp add: loop_free_def joinpaths_def Ball_def) (smt (verit))
+  then show ?thesis
+    by (simp add: arc_imp_path assms simple_path_def)
 qed
 
 lemma reversepath_joinpaths:
@@ -625,7 +623,7 @@ lemma simple_path_joinE:
 proof -
   have *: "\<And>x y. \<lbrakk>0 \<le> x; x \<le> 1; 0 \<le> y; y \<le> 1; (g1 +++ g2) x = (g1 +++ g2) y\<rbrakk>
                \<Longrightarrow> x = y \<or> x = 0 \<and> y = 1 \<or> x = 1 \<and> y = 0"
-    using assms by (simp add: simple_path_def)
+    using assms by (simp add: simple_path_def loop_free_def)
   have "path g1"
     using assms path_join simple_path_imp_path by blast
   moreover have "inj_on g1 {0..1}"
@@ -646,7 +644,7 @@ proof -
     fix x y
     assume "g2 x = g2 y" "0 \<le> x" "x \<le> 1" "0 \<le> y" "y \<le> 1"
     then show "x = y"
-      using * [of "(x + 1) / 2" "(y + 1) / 2"]
+      using * [of "(x+1) / 2" "(y+1) / 2"]
       by (force simp: joinpaths_def split_ifs field_split_simps)
   qed
   ultimately have "arc g2"
@@ -672,19 +670,10 @@ lemma arc_join_eq:
            arc g1 \<and> arc g2 \<and> path_image g1 \<inter> path_image g2 \<subseteq> {pathstart g2}"
            (is "?lhs = ?rhs")
 proof
-  assume ?lhs
-  then have "simple_path(g1 +++ g2)" by (rule arc_imp_simple_path)
-  then have *: "\<And>x y. \<lbrakk>0 \<le> x; x \<le> 1; 0 \<le> y; y \<le> 1; (g1 +++ g2) x = (g1 +++ g2) y\<rbrakk>
-               \<Longrightarrow> x = y \<or> x = 0 \<and> y = 1 \<or> x = 1 \<and> y = 0"
-    using assms by (simp add: simple_path_def)
-  have False if "g1 0 = g2 u" "0 \<le> u" "u \<le> 1" for u
-    using * [of 0 "(u + 1) / 2"] that assms arc_distinct_ends [OF \<open>?lhs\<close>]
-    by (auto simp: joinpaths_def pathstart_def pathfinish_def split_ifs field_split_simps)
-  then have n1: "pathstart g1 \<notin> path_image g2"
-    unfolding pathstart_def path_image_def
-    using atLeastAtMost_iff by blast
-  show ?rhs using \<open>?lhs\<close>
-    using \<open>simple_path (g1 +++ g2)\<close> assms n1 simple_path_joinE by auto
+  assume ?lhs then show ?rhs 
+    using reversepath_simps assms
+    by (smt (verit, ccfv_threshold) Int_commute arc_distinct_ends arc_imp_simple_path arc_reversepath 
+            in_mono insertE pathfinish_join reversepath_joinpaths simple_path_joinE subsetI)
 next
   assume ?rhs then show ?lhs
     using assms
@@ -694,8 +683,7 @@ qed
 lemma arc_join_eq_alt:
         "pathfinish g1 = pathstart g2
         \<Longrightarrow> (arc(g1 +++ g2) \<longleftrightarrow>
-             arc g1 \<and> arc g2 \<and>
-             path_image g1 \<inter> path_image g2 = {pathstart g2})"
+             arc g1 \<and> arc g2 \<and> path_image g1 \<inter> path_image g2 = {pathstart g2})"
 using pathfinish_in_path_image by (fastforce simp: arc_join_eq)
 
 
@@ -791,11 +779,10 @@ lemma path_subpath [simp]:
   assumes "path g" "u \<in> {0..1}" "v \<in> {0..1}"
     shows "path(subpath u v g)"
 proof -
-  have "continuous_on {0..1} (g \<circ> (\<lambda>x. ((v-u) * x+ u)))"
-    using assms
-    apply (intro continuous_intros; simp add: image_affinity_atLeastAtMost [where c=u])
-    apply (auto simp: path_def continuous_on_subset)
-    done
+  have "continuous_on {u..v} g" "continuous_on {v..u} g"
+    using assms continuous_on_path by fastforce+
+  then have "continuous_on {0..1} (g \<circ> (\<lambda>x. ((v-u) * x+ u)))"
+    by (intro continuous_intros; simp add: image_affinity_atLeastAtMost [where c=u])
   then show ?thesis
     by (simp add: path_def subpath_def)
 qed
@@ -847,7 +834,7 @@ proof
   then have p: "path (\<lambda>x. g ((v - u) * x + u))"
         and sim: "(\<And>x y. \<lbrakk>x\<in>{0..1}; y\<in>{0..1}; g ((v - u) * x + u) = g ((v - u) * y + u)\<rbrakk>
                   \<Longrightarrow> x = y \<or> x = 0 \<and> y = 1 \<or> x = 1 \<and> y = 0)"
-    by (auto simp: simple_path_def subpath_def)
+    by (auto simp: simple_path_def loop_free_def subpath_def)
   { fix x y
     assume "x \<in> closed_segment u v" "y \<in> closed_segment u v" "g x = g y"
     then have "x = y \<or> x = u \<and> y = v \<or> x = v \<and> y = u"
@@ -871,45 +858,13 @@ next
   have [simp]: "\<And>x. u + x * v = v + x * u \<longleftrightarrow> u=v \<or> x=1"
     by algebra
   show ?lhs using psp ne
-    unfolding simple_path_def subpath_def
+    unfolding simple_path_def loop_free_def subpath_def
     by (fastforce simp add: algebra_simps affine_ineq mult_left_mono crossproduct_eq dest: d1 d2)
 qed
 
 lemma arc_subpath_eq:
   "arc(subpath u v g) \<longleftrightarrow> path(subpath u v g) \<and> u\<noteq>v \<and> inj_on g (closed_segment u v)"
-    (is "?lhs = ?rhs")
-proof 
-  assume ?lhs
-  then have p: "path (\<lambda>x. g ((v - u) * x + u))"
-        and sim: "(\<And>x y. \<lbrakk>x\<in>{0..1}; y\<in>{0..1}; g ((v - u) * x + u) = g ((v - u) * y + u)\<rbrakk>
-                  \<Longrightarrow> x = y)"
-    by (auto simp: arc_def inj_on_def subpath_def)
-  { fix x y
-    assume "x \<in> closed_segment u v" "y \<in> closed_segment u v" "g x = g y"
-    then have "x = y"
-      using sim [of "(x-u)/(v-u)" "(y-u)/(v-u)"] p
-      by (cases "v = u")
-        (simp_all split: if_split_asm add: inj_on_def closed_segment_real_eq image_affinity_atLeastAtMost,
-           simp add: field_simps)
-  } moreover
-  have "path(subpath u v g) \<and> u\<noteq>v"
-    using sim [of "1/3" "2/3"] p
-    by (auto simp: subpath_def)
-  ultimately show ?rhs
-    unfolding inj_on_def
-    by metis
-next
-  assume ?rhs
-  then
-  have d1: "\<And>x y. \<lbrakk>g x = g y; u \<le> x; x \<le> v; u \<le> y; y \<le> v\<rbrakk> \<Longrightarrow> x = y"
-   and d2: "\<And>x y. \<lbrakk>g x = g y; v \<le> x; x \<le> u; v \<le> y; y \<le> u\<rbrakk> \<Longrightarrow> x = y"
-   and ne: "u < v \<or> v < u"
-   and psp: "path (subpath u v g)"
-    by (auto simp: inj_on_def closed_segment_real_eq image_affinity_atLeastAtMost)
-  show ?lhs using psp ne
-    unfolding arc_def subpath_def inj_on_def
-    by (auto simp: algebra_simps affine_ineq mult_left_mono crossproduct_eq dest: d1 d2)
-qed
+  by (smt (verit, best) arc_simple_path closed_segment_commute ends_in_segment(2) inj_on_def pathfinish_subpath pathstart_subpath simple_path_subpath_eq)
 
 
 lemma simple_path_subpath:
@@ -917,7 +872,7 @@ lemma simple_path_subpath:
   shows "simple_path(subpath u v g)"
   using assms
   apply (simp add: simple_path_subpath_eq simple_path_imp_path)
-  apply (simp add: simple_path_def closed_segment_real_eq image_affinity_atLeastAtMost, fastforce)
+  apply (simp add: simple_path_def loop_free_def closed_segment_real_eq image_affinity_atLeastAtMost, fastforce)
   done
 
 lemma arc_simple_path_subpath:
@@ -930,7 +885,7 @@ lemma arc_subpath_arc:
 
 lemma arc_simple_path_subpath_interior:
     "\<lbrakk>simple_path g; u \<in> {0..1}; v \<in> {0..1}; u \<noteq> v; \<bar>u-v\<bar> < 1\<rbrakk> \<Longrightarrow> arc(subpath u v g)"
-  by (force simp: simple_path_def intro: arc_simple_path_subpath)
+  by (force simp: simple_path_def loop_free_def intro: arc_simple_path_subpath)
 
 lemma path_image_subpath_subset:
     "\<lbrakk>u \<in> {0..1}; v \<in> {0..1}\<rbrakk> \<Longrightarrow> path_image(subpath u v g) \<subseteq> path_image g"
@@ -1065,17 +1020,8 @@ lemma exists_path_subpath_to_frontier_closed:
     assumes S: "closed S" and g: "path g" and g0: "pathstart g \<in> S" and g1: "pathfinish g \<notin> S"
     obtains h where "path h" "pathstart h = pathstart g" "path_image h \<subseteq> path_image g \<inter> S"
                     "pathfinish h \<in> frontier S"
-proof -
-  obtain h where h: "path h" "pathstart h = pathstart g" "path_image h \<subseteq> path_image g"
-                    "path_image h - {pathfinish h} \<subseteq> interior S"
-                    "pathfinish h \<in> frontier S"
-    using exists_path_subpath_to_frontier [OF g _ g1] closure_closed [OF S] g0 by auto
-  show ?thesis
-  proof
-    show "path_image h \<subseteq> path_image g \<inter> S"
-      using assms h interior_subset [of S] by (auto simp: frontier_def)
-  qed (use h in auto)
-qed
+  by (smt (verit, del_insts) Diff_iff Int_iff S closure_closed exists_path_subpath_to_frontier 
+      frontier_def g g0 g1 interior_subset singletonD subset_eq)
 
 
 subsection \<open>Shift Path to Start at Some Given Point\<close>
@@ -1121,8 +1067,7 @@ proof -
   have *: "{0 .. 1} = {0 .. 1-a} \<union> {1-a .. 1}"
     using assms(3) by auto
   have **: "\<And>x. x + a = 1 \<Longrightarrow> g (x + a - 1) = g (x + a)"
-    using assms(2)[unfolded pathfinish_def pathstart_def]
-    by auto
+    by (smt (verit, best) assms(2) pathfinish_def pathstart_def)
   show ?thesis
     unfolding path_def shiftpath_def *
   proof (rule continuous_on_closed_Un)
@@ -1175,20 +1120,21 @@ proof -
     by (auto simp: image_iff)
 qed
 
-lemma simple_path_shiftpath:
-  assumes "simple_path g" "pathfinish g = pathstart g" and a: "0 \<le> a" "a \<le> 1"
-    shows "simple_path (shiftpath a g)"
-  unfolding simple_path_def
+lemma loop_free_shiftpath:
+  assumes "loop_free g" "pathfinish g = pathstart g" and a: "0 \<le> a" "a \<le> 1"
+    shows "loop_free (shiftpath a g)"
+  unfolding loop_free_def
 proof (intro conjI impI ballI)
-  show "path (shiftpath a g)"
-    by (simp add: assms path_shiftpath simple_path_imp_path)
-  have *: "\<And>x y. \<lbrakk>g x = g y; x \<in> {0..1}; y \<in> {0..1}\<rbrakk> \<Longrightarrow> x = y \<or> x = 0 \<and> y = 1 \<or> x = 1 \<and> y = 0"
-    using assms by (simp add:  simple_path_def)
   show "x = y \<or> x = 0 \<and> y = 1 \<or> x = 1 \<and> y = 0"
     if "x \<in> {0..1}" "y \<in> {0..1}" "shiftpath a g x = shiftpath a g y" for x y
-    using that a unfolding shiftpath_def
-    by (force split: if_split_asm dest!: *)
+    using that a assms unfolding shiftpath_def loop_free_def
+    by (smt (verit, ccfv_threshold) atLeastAtMost_iff)
 qed
+
+lemma simple_path_shiftpath:
+  assumes "simple_path g" "pathfinish g = pathstart g" and a: "0 \<le> a" "a \<le> 1"
+  shows "simple_path (shiftpath a g)"
+  using assms loop_free_shiftpath path_shiftpath simple_path_def by fastforce
 
 
 subsection \<open>Straight-Line Paths\<close>
@@ -1281,14 +1227,7 @@ lemma of_real_linepath: "of_real (linepath a b x) = linepath (of_real a) (of_rea
 
 lemma inj_on_linepath:
   assumes "a \<noteq> b" shows "inj_on (linepath a b) {0..1}"
-proof (clarsimp simp: inj_on_def linepath_def)
-  fix x y
-  assume "(1 - x) *\<^sub>R a + x *\<^sub>R b = (1 - y) *\<^sub>R a + y *\<^sub>R b" "0 \<le> x" "x \<le> 1" "0 \<le> y" "y \<le> 1"
-  then have "x *\<^sub>R (a - b) = y *\<^sub>R (a - b)"
-    by (auto simp: algebra_simps)
-  then show "x=y"
-    using assms by auto
-qed
+  using arc_imp_inj_on arc_linepath assms by blast
 
 lemma linepath_le_1:
   fixes a::"'a::linordered_idom" shows "\<lbrakk>a \<le> 1; b \<le> 1; 0 \<le> u; u \<le> 1\<rbrakk> \<Longrightarrow> (1 - u) * a + u * b \<le> 1"
@@ -1303,16 +1242,11 @@ lemma linepath_image_01: "linepath a b ` {0..1} = closed_segment a b"
 
 lemma linepath_in_convex_hull:
   fixes x::real
-  assumes a: "a \<in> convex hull S"
-    and b: "b \<in> convex hull S"
-    and x: "0\<le>x" "x\<le>1"
+  assumes "a \<in> convex hull S"
+    and "b \<in> convex hull S"
+    and "0\<le>x" "x\<le>1"
   shows "linepath a b x \<in> convex hull S"
-proof -
-  have "linepath a b x \<in> closed_segment a b"
-    using x by (auto simp flip: linepath_image_01)
-  then show ?thesis
-    using a b convex_contains_segment by blast
-qed
+  by (meson assms atLeastAtMost_iff convex_contains_segment convex_convex_hull linepath_in_path subset_eq)
 
 lemma Re_linepath: "Re(linepath (of_real a) (of_real b) x) = (1 - x)*a + x*b"
   by (simp add: linepath_def)
@@ -1358,12 +1292,7 @@ by (auto simp: segment_convex_hull linepath_of_real  elim!: rev_subsetD [OF _ hu
 lemma midpoints_in_convex_hull:
   assumes "x \<in> convex hull s" "y \<in> convex hull s"
     shows "midpoint x y \<in> convex hull s"
-proof -
-  have "(1 - inverse(2)) *\<^sub>R x + inverse(2) *\<^sub>R y \<in> convex hull s"
-    by (rule convexD_alt) (use assms in auto)
-  then show ?thesis
-    by (simp add: midpoint_def algebra_simps)
-qed
+  using assms closed_segment_subset_convex_hull csegment_midpoint_subset by blast
 
 lemma not_in_interior_convex_hull_3:
   fixes a :: "complex"
@@ -1381,27 +1310,18 @@ lemma midpoint_in_open_segment [simp]: "midpoint a b \<in> open_segment a b \<lo
 lemma continuous_IVT_local_extremum:
   fixes f :: "'a::euclidean_space \<Rightarrow> real"
   assumes contf: "continuous_on (closed_segment a b) f"
-      and "a \<noteq> b" "f a = f b"
+      and ab: "a \<noteq> b" "f a = f b"
   obtains z where "z \<in> open_segment a b"
                   "(\<forall>w \<in> closed_segment a b. (f w) \<le> (f z)) \<or>
                    (\<forall>w \<in> closed_segment a b. (f z) \<le> (f w))"
 proof -
   obtain c where "c \<in> closed_segment a b" and c: "\<And>y. y \<in> closed_segment a b \<Longrightarrow> f y \<le> f c"
     using continuous_attains_sup [of "closed_segment a b" f] contf by auto
+  moreover
   obtain d where "d \<in> closed_segment a b" and d: "\<And>y. y \<in> closed_segment a b \<Longrightarrow> f d \<le> f y"
     using continuous_attains_inf [of "closed_segment a b" f] contf by auto
-  show ?thesis
-  proof (cases "c \<in> open_segment a b \<or> d \<in> open_segment a b")
-    case True
-    then show ?thesis
-      using c d that by blast
-  next
-    case False
-    then have "(c = a \<or> c = b) \<and> (d = a \<or> d = b)"
-      by (simp add: \<open>c \<in> closed_segment a b\<close> \<open>d \<in> closed_segment a b\<close> open_segment_def)
-    with \<open>a \<noteq> b\<close> \<open>f a = f b\<close> c d show ?thesis
-      by (rule_tac z = "midpoint a b" in that) (fastforce+)
-  qed
+  ultimately show ?thesis
+    by (smt (verit) UnE ab closed_segment_eq_open empty_iff insert_iff midpoint_in_open_segment that)
 qed
 
 text\<open>An injective map into R is also an open map w.r.T. the universe, and conversely. \<close>
@@ -1483,14 +1403,8 @@ lemma not_on_path_cball:
   assumes "path g"
     and "z \<notin> path_image g"
   shows "\<exists>e>0. cball z e \<inter> (path_image g) = {}"
-proof -
-  obtain e where "ball z e \<inter> path_image g = {}" "e > 0"
-    using not_on_path_ball[OF assms] by auto
-  moreover have "cball z (e/2) \<subseteq> ball z e"
-    using \<open>e > 0\<close> by auto
-  ultimately show ?thesis
-    by (rule_tac x="e/2" in exI) auto
-qed
+  by (smt (verit, ccfv_threshold) open_ball assms centre_in_ball inf.orderE inf_assoc
+      inf_bot_right not_on_path_ball open_contains_cball_eq)
 
 subsection \<open>Path component\<close>
 
@@ -1538,8 +1452,7 @@ lemma path_component_of_subset: "S \<subseteq> T \<Longrightarrow> path_componen
 lemma path_component_linepath:
     fixes S :: "'a::real_normed_vector set"
     shows "closed_segment a b \<subseteq> S \<Longrightarrow> path_component S a b"
-  unfolding path_component_def
-  by (rule_tac x="linepath a b" in exI, auto)
+  unfolding path_component_def by fastforce
 
 subsubsection\<^marker>\<open>tag unimportant\<close> \<open>Path components as sets\<close>
 
@@ -1605,7 +1518,7 @@ proof (rule connectedI)
   assume as: "open e1" "open e2" "S \<subseteq> e1 \<union> e2" "e1 \<inter> e2 \<inter> S = {}" "e1 \<inter> S \<noteq> {}" "e2 \<inter> S \<noteq> {}"
   then obtain x1 x2 where obt:"x1 \<in> e1 \<inter> S" "x2 \<in> e2 \<inter> S"
     by auto
-  then obtain g where g: "path g" "path_image g \<subseteq> S" "pathstart g = x1" "pathfinish g = x2"
+  then obtain g where g: "path g" "path_image g \<subseteq> S" and pg: "pathstart g = x1" "pathfinish g = x2"
     using assms[unfolded path_connected_def,rule_format,of x1 x2] by auto
   have *: "connected {0..1::real}"
     by (auto intro!: convex_connected)
@@ -1616,9 +1529,7 @@ proof (rule connectedI)
     unfolding subset_eq
     by auto
   moreover have "{x \<in> {0..1}. g x \<in> e1} \<noteq> {} \<and> {x \<in> {0..1}. g x \<in> e2} \<noteq> {}"
-    using g(3,4)[unfolded path_defs]
-    using obt
-    by (simp add: ex_in_conv [symmetric], metis zero_le_one order_refl)
+    by (smt (verit, ccfv_threshold) IntE atLeastAtMost_iff empty_iff pg mem_Collect_eq obt pathfinish_def pathstart_def)
   ultimately show False
     using *[unfolded connected_local not_ex, rule_format,
       of "{0..1} \<inter> g -` e1" "{0..1} \<inter> g -` e2"]
@@ -1632,18 +1543,8 @@ lemma open_path_component:
   assumes "open S"
   shows "open (path_component_set S x)"
   unfolding open_contains_ball
-proof
-  fix y
-  assume as: "y \<in> path_component_set S x"
-  then have "y \<in> S"
-    by (simp add: path_component_mem(2))
-  then obtain e where e: "e > 0" "ball y e \<subseteq> S"
-    using assms openE by blast
-have "\<And>u. dist y u < e \<Longrightarrow> path_component S x u"
-      by (metis (full_types) as centre_in_ball convex_ball convex_imp_path_connected e mem_Collect_eq mem_ball path_component_eq path_component_of_subset path_connected_component)
-  then show "\<exists>e > 0. ball y e \<subseteq> path_component_set S x"
-    using \<open>e>0\<close> by auto
-qed
+  by (metis assms centre_in_ball convex_ball convex_imp_path_connected equals0D openE 
+      path_component_eq path_component_eq_empty path_component_maximal)
 
 lemma open_non_path_component:
   fixes S :: "'a::real_normed_vector set"
@@ -1660,14 +1561,8 @@ proof
     show "\<And>x. x \<in> ball y e \<Longrightarrow> x \<in> S"
       using e by blast
     show False if "z \<in> ball y e" "z \<in> path_component_set S x" for z
-    proof -
-      have "y \<in> path_component_set S z"
-        by (meson assms convex_ball convex_imp_path_connected e open_contains_ball_eq open_path_component path_component_maximal that(1))
-      then have "y \<in> path_component_set S x"
-        using path_component_eq that(2) by blast
-      then show False
-        using y by blast
-    qed
+      by (metis (no_types, lifting) Diff_iff centre_in_ball convex_ball convex_imp_path_connected  
+          path_component_eq path_component_maximal subsetD that y e)
   qed (use e in auto)
 qed
 
@@ -1688,8 +1583,8 @@ proof (rule, rule, rule path_component_subset, rule)
       by auto
     ultimately
     show False
-      using \<open>y \<in> S\<close> open_non_path_component[OF assms(1)] open_path_component[OF assms(1)]
-      using assms(2)[unfolded connected_def not_ex, rule_format,
+      using \<open>y \<in> S\<close> open_non_path_component[OF \<open>open S\<close>] open_path_component[OF \<open>open S\<close>]
+      using \<open>connected S\<close>[unfolded connected_def not_ex, rule_format,
         of "path_component_set S x" "S - path_component_set S x"]
       by auto
   qed
@@ -1700,16 +1595,14 @@ lemma path_connected_continuous_image:
     and "path_connected S"
   shows "path_connected (f ` S)"
   unfolding path_connected_def
-proof (rule, rule)
-  fix x' y'
-  assume "x' \<in> f ` S" "y' \<in> f ` S"
-  then obtain x y where x: "x \<in> S" and y: "y \<in> S" and x': "x' = f x" and y': "y' = f y"
-    by auto
-  from x y obtain g where "path g \<and> path_image g \<subseteq> S \<and> pathstart g = x \<and> pathfinish g = y"
-    using assms(2)[unfolded path_connected_def] by fast
-  then show "\<exists>g. path g \<and> path_image g \<subseteq> f ` S \<and> pathstart g = x' \<and> pathfinish g = y'"
-    unfolding x' y' path_defs
-    by (fastforce intro: continuous_on_compose continuous_on_subset[OF contf])
+proof clarsimp
+  fix x y 
+  assume x: "x \<in> S" and y: "y \<in> S" 
+  with \<open>path_connected S\<close> 
+  show "\<exists>g. path g \<and> path_image g \<subseteq> f ` S \<and> pathstart g = f x \<and> pathfinish g = f y"
+    unfolding path_defs path_connected_def
+    using continuous_on_subset[OF contf]
+    by (smt (verit, ccfv_threshold) continuous_on_compose2 image_eqI image_subset_iff)
 qed
 
 lemma path_connected_translationI:
@@ -1759,25 +1652,9 @@ proof (intro ballI)
   assume x: "x \<in> S \<union> T" and y: "y \<in> S \<union> T"
   from assms obtain z where z: "z \<in> S" "z \<in> T"
     by auto
-  show "path_component (S \<union> T) x y"
-    using x y
-  proof safe
-    assume "x \<in> S" "y \<in> S"
-    then show "path_component (S \<union> T) x y"
-      by (meson Un_upper1 \<open>path_connected S\<close> path_component_of_subset path_connected_component)
-  next
-    assume "x \<in> S" "y \<in> T"
-    then show "path_component (S \<union> T) x y"
-      by (metis z assms(1-2) le_sup_iff order_refl path_component_of_subset path_component_trans path_connected_component)
-  next
-  assume "x \<in> T" "y \<in> S"
-    then show "path_component (S \<union> T) x y"
-      by (metis z assms(1-2) le_sup_iff order_refl path_component_of_subset path_component_trans path_connected_component)
-  next
-    assume "x \<in> T" "y \<in> T"
-    then show "path_component (S \<union> T) x y"
-      by (metis Un_upper1 assms(2) path_component_of_subset path_connected_component sup_commute)
-  qed
+  with x y show "path_component (S \<union> T) x y"
+    by (smt (verit) assms(1,2) in_mono mem_Collect_eq path_component_eq path_component_maximal 
+        sup.bounded_iff sup.cobounded2 sup_ge1)
 qed
 
 lemma path_connected_UNION:
@@ -1791,7 +1668,7 @@ proof clarify
   then have "path_component (S i) x z" and "path_component (S j) z y"
     using assms by (simp_all add: path_connected_component)
   then have "path_component (\<Union>i\<in>A. S i) x z" and "path_component (\<Union>i\<in>A. S i) z y"
-    using *(1,3) by (auto elim!: path_component_of_subset [rotated])
+    using *(1,3) by (meson SUP_upper path_component_of_subset)+
   then show "path_component (\<Union>i\<in>A. S i) x y"
     by (rule path_component_trans)
 qed
@@ -1821,26 +1698,31 @@ lemma path_connected_path_image: "path p \<Longrightarrow> path_connected(path_i
   by (meson path_component_path_image_pathstart path_component_sym path_component_trans)
 
 lemma path_connected_path_component [simp]:
-   "path_connected (path_component_set s x)"
-proof -
-  { fix y z
-    assume pa: "path_component s x y" "path_component s x z"
-    then have pae: "path_component_set s x = path_component_set s y"
-      using path_component_eq by auto
-    have yz: "path_component s y z"
-      using pa path_component_sym path_component_trans by blast
-    then have "\<exists>g. path g \<and> path_image g \<subseteq> path_component_set s x \<and> pathstart g = y \<and> pathfinish g = z"
-      apply (simp add: path_component_def)
-      by (metis pae path_component_maximal path_connected_path_image pathstart_in_path_image)
-  }
-  then show ?thesis
-    by (simp add: path_connected_def)
+  "path_connected (path_component_set S x)"
+proof (clarsimp simp: path_connected_def)
+  fix y z
+  assume pa: "path_component S x y" "path_component S x z"
+  then have pae: "path_component_set S x = path_component_set S y"
+    using path_component_eq by auto
+  obtain g where g: "path g \<and> path_image g \<subseteq> S \<and> pathstart g = y \<and> pathfinish g = z"
+    using pa path_component_sym path_component_trans path_component_def by metis
+  then have "path_image g \<subseteq> path_component_set S x"
+    using pae path_component_maximal path_connected_path_image by blast
+  then show "\<exists>g. path g \<and> path_image g \<subseteq> path_component_set S x \<and>
+                 pathstart g = y \<and> pathfinish g = z"
+    using g by blast
 qed
 
-lemma path_component: "path_component S x y \<longleftrightarrow> (\<exists>t. path_connected t \<and> t \<subseteq> S \<and> x \<in> t \<and> y \<in> t)"
-  apply (intro iffI)
-  apply (metis path_connected_path_image path_defs(5) pathfinish_in_path_image pathstart_in_path_image)
-  using path_component_of_subset path_connected_component by blast
+lemma path_component: 
+  "path_component S x y \<longleftrightarrow> (\<exists>t. path_connected t \<and> t \<subseteq> S \<and> x \<in> t \<and> y \<in> t)"
+    (is "?lhs = ?rhs")
+proof 
+  assume ?lhs then show ?rhs
+    by (metis path_component_def path_connected_path_image pathfinish_in_path_image pathstart_in_path_image)
+next
+  assume ?rhs then show ?lhs
+    by (meson path_component_of_subset path_connected_component)
+qed
 
 lemma path_component_path_component [simp]:
    "path_component_set (path_component_set S x) x = path_component_set S x"
@@ -1976,9 +1858,7 @@ subsection\<^marker>\<open>tag unimportant\<close>\<open>Path components\<close>
 
 lemma Union_path_component [simp]:
    "Union {path_component_set S x |x. x \<in> S} = S"
-apply (rule subset_antisym)
-using path_component_subset apply force
-using path_component_refl by auto
+  using path_component_subset path_component_refl by blast
 
 lemma path_component_disjoint:
    "disjnt (path_component_set S a) (path_component_set S b) \<longleftrightarrow>
@@ -2244,27 +2124,21 @@ lemma Union_path_components_of:
 
 lemma path_components_of_maximal:
    "\<lbrakk>C \<in> path_components_of X; path_connectedin X S; ~disjnt C S\<rbrakk> \<Longrightarrow> S \<subseteq> C"
-  apply (auto simp: path_components_of_def path_component_of_equiv)
-  using path_component_of_maximal path_connectedin_def apply fastforce
-  by (meson disjnt_subset2 path_component_of_disjoint path_component_of_equiv path_component_of_maximal)
+  by (smt (verit, ccfv_SIG) disjnt_iff imageE mem_Collect_eq path_component_of_equiv 
+      path_component_of_maximal path_components_of_def)
 
 lemma pairwise_disjoint_path_components_of:
      "pairwise disjnt (path_components_of X)"
   by (auto simp: path_components_of_def pairwise_def path_component_of_disjoint path_component_of_equiv)
 
 lemma complement_path_components_of_Union:
-   "C \<in> path_components_of X
-        \<Longrightarrow> topspace X - C = \<Union>(path_components_of X - {C})"
-  by (metis Diff_cancel Diff_subset Union_path_components_of cSup_singleton diff_Union_pairwise_disjoint insert_subset pairwise_disjoint_path_components_of)
+   "C \<in> path_components_of X \<Longrightarrow> topspace X - C = \<Union>(path_components_of X - {C})"
+  by (metis Union_path_components_of bot.extremum ccpo_Sup_singleton diff_Union_pairwise_disjoint 
+        insert_subsetI pairwise_disjoint_path_components_of)
 
 lemma nonempty_path_components_of:
   assumes "C \<in> path_components_of X" shows "C \<noteq> {}"
-proof -
-  have "C \<in> path_component_of_set X ` topspace X"
-    using assms path_components_of_def by blast
-  then show ?thesis
-    using path_component_of_refl by fastforce
-qed
+  by (metis assms imageE path_component_of_eq_empty path_components_of_def)
 
 lemma path_components_of_subset: "C \<in> path_components_of X \<Longrightarrow> C \<subseteq> topspace X"
   by (auto simp: path_components_of_def path_component_of_equiv)
@@ -2324,18 +2198,8 @@ proof (cases "topspace X = {}")
 next
   case False
   have "(path_components_of X = {S}) \<longleftrightarrow> (path_connected_space X \<and> topspace X = S)"
-  proof (intro iffI conjI)
-    assume L: "path_components_of X = {S}"
-    then show "path_connected_space X"
-      by (simp add: path_connected_space_iff_components_eq)
-    show "topspace X = S"
-      by (metis L ccpo_Sup_singleton [of S] Union_path_components_of)
-  next
-    assume R: "path_connected_space X \<and> topspace X = S"
-    then show "path_components_of X = {S}"
-      using ccpo_Sup_singleton [of S]
-      by (metis False all_not_in_conv insert_iff mk_disjoint_insert path_component_in_path_components_of path_connected_space_iff_components_eq path_connected_space_path_component_set)
-  qed
+    by (metis False Set.set_insert ex_in_conv insert_iff path_component_in_path_components_of 
+        path_connected_space_iff_components_eq path_connected_space_path_component_set)
   with False show ?thesis
     by (simp add: path_components_of_eq_empty subset_singleton_iff)
 qed
@@ -2367,22 +2231,7 @@ qed
 lemma exists_path_component_of_superset:
   assumes S: "path_connectedin X S" and ne: "topspace X \<noteq> {}"
   obtains C where "C \<in> path_components_of X" "S \<subseteq> C"
-proof (cases "S = {}")
-  case True
-  then show ?thesis
-    using ne path_components_of_eq_empty that by fastforce
-next
-  case False
-  then obtain a where "a \<in> S"
-    by blast
-  show ?thesis
-  proof
-    show "Collect (path_component_of X a) \<in> path_components_of X"
-      by (meson \<open>a \<in> S\<close> S subsetD path_component_in_path_components_of path_connectedin_subset_topspace)
-    show "S \<subseteq> Collect (path_component_of X a)"
-      by (simp add: S \<open>a \<in> S\<close> path_component_of_maximal)
-  qed
-qed
+    by (metis S ne ex_in_conv path_component_in_path_components_of path_component_of_maximal path_component_of_subset_topspace subset_eq that)
 
 lemma path_component_of_eq_overlap:
    "path_component_of X x = path_component_of X y \<longleftrightarrow>
@@ -2444,8 +2293,8 @@ proof -
     have "Collect (path_component_of Y (f x)) \<subseteq> topspace Y"
       by (simp add: path_component_of_subset_topspace)
     moreover have "g ` Collect(path_component_of Y (f x)) \<subseteq> Collect (path_component_of X (g (f x)))"
-      using g x unfolding homeomorphic_maps_def
-      by (metis f homeomorphic_imp_surjective_map imageI mem_Collect_eq path_component_of_maximal path_component_of_refl path_connectedin_continuous_map_image path_connectedin_path_component_of)
+      using f g x unfolding homeomorphic_maps_def
+      by (metis image_Collect_subsetI image_eqI mem_Collect_eq path_component_of_equiv path_component_of_maximal path_connectedin_continuous_map_image path_connectedin_path_component_of)
     ultimately show "Collect (path_component_of Y (f x)) \<subseteq> f ` Collect (path_component_of X x)"
       using g x unfolding homeomorphic_maps_def continuous_map_def image_iff subset_iff
       by metis
@@ -2460,7 +2309,6 @@ qed
 lemma homeomorphic_map_path_components_of:
   assumes "homeomorphic_map X Y f"
   shows "path_components_of Y = (image f) ` (path_components_of X)"
-    (is "?lhs = ?rhs")
   unfolding path_components_of_def homeomorphic_imp_surjective_map [OF assms, symmetric]
   using assms homeomorphic_map_path_component_of by fastforce
 
@@ -2527,11 +2375,11 @@ proposition path_connected_sphere:
 proof (cases r "0::real" rule: linorder_cases)
   case less
   then show ?thesis
-    by (simp)
+    by simp
 next
   case equal
   then show ?thesis
-    by (simp)
+    by simp
 next
   case greater
   then have eq: "(sphere (0::'a) r) = (\<lambda>x. (r / norm x) *\<^sub>R x) ` (- {0::'a})"
@@ -2712,10 +2560,13 @@ proof (induct T)
   case empty
   show ?case using \<open>connected S\<close> by simp
 next
-  case (insert x F)
-  then have "connected (S-F)" by auto
-  moreover have "open (S - F)" using finite_imp_closed[OF \<open>finite F\<close>] \<open>open S\<close> by auto
-  ultimately have "connected (S - F - {x})" using connected_open_delete[OF _ _ 2] by auto
+  case (insert x T)
+  then have "connected (S-T)" 
+    by auto
+  moreover have "open (S - T)" 
+    using finite_imp_closed[OF \<open>finite T\<close>] \<open>open S\<close> by auto
+  ultimately have "connected (S - T - {x})" 
+    using connected_open_delete[OF _ _ 2] by auto
   thus ?case by (metis Diff_insert)
 qed
 
@@ -2755,13 +2606,8 @@ lemma sphere_1D_doubleton:
   fixes a :: "'a :: euclidean_space"
   assumes "DIM('a) = 1" and "r > 0"
   obtains x y where "sphere a r = {x,y} \<and> dist x y = 2*r"
-proof -
-  have "sphere a r = (+) a ` sphere 0 r"
-    by (metis add.right_neutral sphere_translation)
-  then show ?thesis
-    using sphere_1D_doubleton_zero [OF assms]
-    by (metis (mono_tags, lifting) dist_add_cancel image_empty image_insert that)
-qed
+  using sphere_1D_doubleton_zero [OF assms] dist_add_cancel image_empty image_insert
+  by (metis (no_types, opaque_lifting) add.right_neutral sphere_translation)
 
 lemma psubset_sphere_Compl_connected:
   fixes S :: "'a::euclidean_space set"
@@ -2779,8 +2625,7 @@ proof -
   moreover have "connected {x. dist a x \<le> r \<and> x \<notin> S}"
     using assms
     by (force intro: connected_intermediate_closure [of "ball a r"])
-  moreover
-  have "connected {x. r \<le> dist a x \<and> x \<notin> S}"
+  moreover have "connected {x. r \<le> dist a x \<and> x \<notin> S}"
   proof (rule connected_intermediate_closure [of "- cball a r"])
     show "{x. r \<le> dist a x \<and> x \<notin> S} \<subseteq> closure (- cball a r)"
       using interior_closure by (force intro: connected_complement_bounded_convex)
@@ -2871,12 +2716,8 @@ lemma in_closure_connected_component:
   assumes x: "x \<in> S" and S: "open S"
   shows "x \<in> closure (connected_component_set S y) \<longleftrightarrow>  x \<in> connected_component_set S y"
 proof -
-  { assume "x \<in> closure (connected_component_set S y)"
-    moreover have "x \<in> connected_component_set S x"
-      using x by simp
-    ultimately have "x \<in> connected_component_set S y"
-      using S by (meson Compl_disjoint closure_iff_nhds_not_empty connected_component_disjoint disjoint_eq_subset_Compl open_connected_component)
-  }
+  have "x islimpt connected_component_set S y \<Longrightarrow> connected_component S y x"
+    by (metis (no_types, lifting) S connected_component_eq connected_component_refl islimptE mem_Collect_eq open_connected_component x)
   then show ?thesis
     by (auto simp: closure_def)
 qed
@@ -2902,10 +2743,8 @@ proof -
   from connectedD [OF \<open>connected S\<close> 1 2 4 3]
   have "S \<inter> \<Union>(B-{T}) = {}"
     by (auto simp: Int_commute \<open>S \<inter> T \<noteq> {}\<close>)
-  with \<open>T \<in> B\<close> have "S \<subseteq> T"
-    using "3" by auto
-  show ?thesis
-    using \<open>S \<inter> \<Union>(B - {T}) = {}\<close> \<open>S \<subseteq> T\<close> \<open>T \<in> B\<close> that by auto
+  with \<open>T \<in> B\<close> 3 that show ?thesis
+    by (metis IntI UnE empty_iff subsetD subsetI)
 qed
 
 lemma connected_disjoint_Union_open_subset:
@@ -2934,7 +2773,7 @@ lemma connected_disjoint_Union_open_unique:
       and SB: "\<And>S. S \<in> B \<Longrightarrow> open S \<and> connected S \<and> S \<noteq> {}"
       and eq [simp]: "\<Union>A = \<Union>B"
     shows "A = B"
-by (rule subset_antisym; metis connected_disjoint_Union_open_subset assms)
+by (metis subset_antisym connected_disjoint_Union_open_subset assms)
 
 proposition components_open_unique:
  fixes S :: "'a::real_normed_vector set"
@@ -2997,11 +2836,9 @@ proof -
   then have *: "\<And>x. B \<le> norm x \<Longrightarrow> x \<in> S"
     by (force simp: ball_def dist_norm)
   obtain x' where x': "connected_component S x x'" "norm x' > B"
-    using bo [unfolded bounded_def dist_norm, simplified, rule_format]
-    by (metis diff_zero norm_minus_commute not_less)
+    using B(1) bo(1) bounded_pos by force
   obtain y' where y': "connected_component S y y'" "norm y' > B"
-    using bo [unfolded bounded_def dist_norm, simplified, rule_format]
-    by (metis diff_zero norm_minus_commute not_less)
+    using B(1) bo(2) bounded_pos by force
   have x'y': "connected_component S x' y'"
     unfolding connected_component_def
   proof (intro exI conjI)
@@ -3009,11 +2846,8 @@ proof -
       using assms by (auto intro: connected_complement_bounded_convex)
   qed (use x' y' dist_norm * in auto)
   show ?thesis
-  proof (rule connected_component_eq)
-    show "x \<in> connected_component_set S y"
       using x' y' x'y'
-      by (metis (no_types) connected_component_eq_eq connected_component_in mem_Collect_eq)
-  qed
+      by (metis connected_component_eq mem_Collect_eq)
 qed
 
 lemma cobounded_unbounded_components:
@@ -3087,12 +2921,8 @@ lemma segment_bound_lemma:
   fixes u::real
   assumes "x \<ge> B" "y \<ge> B" "0 \<le> u" "u \<le> 1"
   shows "(1 - u) * x + u * y \<ge> B"
-proof -
-  obtain dx dy where "dx \<ge> 0" "dy \<ge> 0" "x = B + dx" "y = B + dy"
-    using assms by auto (metis add.commute diff_add_cancel)
-  with \<open>0 \<le> u\<close> \<open>u \<le> 1\<close> show ?thesis
-    by (simp add: add_increasing2 mult_left_le field_simps)
-qed
+  by (smt (verit) assms convex_bound_le ge_iff_diff_ge_0 minus_add_distrib 
+      mult_minus_right neg_le_iff_le)
 
 lemma cobounded_outside:
   fixes S :: "'a :: real_normed_vector set"
@@ -3150,7 +2980,7 @@ lemma bounded_inside:
 lemma connected_outside:
     fixes S :: "'a::euclidean_space set"
     assumes "bounded S" "2 \<le> DIM('a)"
-      shows "connected(outside S)"
+    shows "connected(outside S)"
   apply (clarsimp simp add: connected_iff_connected_component outside)
   apply (rule_tac S="connected_component_set (- S) x" in connected_component_of_subset)
   apply (metis (no_types) assms cobounded_unbounded_component cobounded_unique_unbounded_component connected_component_eq_eq connected_component_idemp double_complement mem_Collect_eq)
@@ -3158,9 +2988,14 @@ lemma connected_outside:
 
 lemma outside_connected_component_lt:
   "outside S = {x. \<forall>B. \<exists>y. B < norm(y) \<and> connected_component (- S) x y}"
-  apply (auto simp: outside bounded_def dist_norm)
-   apply (metis diff_0 norm_minus_cancel not_less)
-  by (metis less_diff_eq norm_minus_commute norm_triangle_ineq2 order.trans pinf(6))
+proof -
+  have "\<And>x B. x \<in> outside S \<Longrightarrow> \<exists>y. B < norm y \<and> connected_component (- S) x y"
+    by (metis boundedI linorder_not_less mem_Collect_eq outside)
+  moreover
+  have "\<And>x. \<forall>B. \<exists>y. B < norm y \<and> connected_component (- S) x y \<Longrightarrow> x \<in> outside S"
+    by (metis bounded_pos linorder_not_less mem_Collect_eq outside)
+  ultimately show ?thesis by auto
+qed
 
 lemma outside_connected_component_le:
   "outside S = {x. \<forall>B. \<exists>y. B \<le> norm(y) \<and> connected_component (- S) x y}"
@@ -3174,14 +3009,15 @@ lemma not_outside_connected_component_lt:
 proof -
   obtain B::real where B: "0 < B" and Bno: "\<And>x. x \<in> S \<Longrightarrow> norm x \<le> B"
     using S [simplified bounded_pos] by auto
-  { fix y::'a and z::'a
-    assume yz: "B < norm z" "B < norm y"
+  have cyz: "connected_component (- S) y z" 
+    if yz: "B < norm z" "B < norm y" for y::'a and z::'a
+  proof -
     have "connected_component (- cball 0 B) y z"
       using assms yz
       by (force simp: dist_norm intro: connected_componentI [OF _ subset_refl] connected_complement_bounded_convex)
-    then have "connected_component (- S) y z"
+    then show ?thesis
       by (metis connected_component_of_subset Bno Compl_anti_mono mem_cball_0 subset_iff)
-  } note cyz = this
+  qed
   show ?thesis
     apply (auto simp: outside bounded_pos)
     apply (metis Compl_iff bounded_iff cobounded_imp_unbounded mem_Collect_eq not_le)
@@ -3210,9 +3046,8 @@ lemma inside_connected_component_le:
 lemma inside_subset:
   assumes "connected U" and "\<not> bounded U" and "T \<union> U = - S"
   shows "inside S \<subseteq> T"
-  apply (auto simp: inside_def)
-  by (metis bounded_subset [of "connected_component_set (- S) _"] connected_component_maximal
-      Compl_iff Un_iff assms subsetI)
+  using bounded_subset [of "connected_component_set (- S) _" U] assms
+  by (metis (no_types, lifting) ComplI Un_iff connected_component_maximal inside_def mem_Collect_eq subsetI)
 
 lemma frontier_not_empty:
   fixes S :: "'a :: real_normed_vector set"
@@ -3263,23 +3098,12 @@ proof -
       by (metis Diff_iff Sup_upper closure_subset contra_subsetD dist_self frontier_def interior_mono)
   next
     case False
-    have 1: "closed_segment x y \<inter> T \<noteq> {}" 
-      using \<open>y \<in> T\<close> by blast
-    have 2: "closed_segment x y - T \<noteq> {}"
-      using False by blast
+    have \<section>: "closed_segment x y \<inter> T \<noteq> {}" "closed_segment x y - T \<noteq> {}"
+      using \<open>y \<in> T\<close> False by blast+
     obtain c where "c \<in> closed_segment x y" "c \<in> frontier T"
-       using False connected_Int_frontier [OF connected_segment 1 2] by auto
-    then show ?thesis
-    proof -
-      have "norm (y - x) < e"
-        by (metis dist_norm \<open>dist y x < e\<close>)
-      moreover have "norm (c - x) \<le> norm (y - x)"
-        by (simp add: \<open>c \<in> closed_segment x y\<close> segment_bound(1))
-      ultimately have "norm (c - x) < e"
-        by linarith
-      then show ?thesis
-        by (metis (no_types) \<open>c \<in> frontier T\<close> dist_norm that(1))
-    qed
+       using False connected_Int_frontier [OF connected_segment \<section>] by auto
+     with that show ?thesis
+       by (smt (verit) dist_norm segment_bound1)
   qed
   then show ?thesis
     by (fastforce simp add: frontier_def closure_approachable)
@@ -3288,8 +3112,7 @@ qed
 lemma frontier_Union_subset:
   fixes F :: "'a::real_normed_vector set set"
   shows "finite F \<Longrightarrow> frontier(\<Union>F) \<subseteq> (\<Union>t \<in> F. frontier t)"
-by (rule order_trans [OF frontier_Union_subset_closure])
-   (auto simp: closure_subset_eq)
+  by (metis closed_UN closure_closed frontier_Union_subset_closure frontier_closed)
 
 lemma frontier_of_components_subset:
   fixes S :: "'a::real_normed_vector set"
@@ -3328,7 +3151,7 @@ proof (rule ccontr)
     show "- frontier C \<subseteq> C \<union> - closure C"
       by (simp add: \<open>open C\<close> closed_Compl frontier_closures)
     then show "- closure C \<inter> - frontier C \<noteq> {}"
-      by (metis (no_types, lifting) C Compl_subset_Compl_iff \<open>frontier C \<subset> S\<close> compl_sup frontier_closures in_components_subset psubsetE sup.absorb_iff2 sup.boundedE sup_bot.right_neutral sup_inf_absorb)
+      by (metis C Compl_Diff_eq Un_Int_eq(4) Un_commute \<open>frontier C \<subset> S\<close> \<open>open C\<close> compl_le_compl_iff frontier_def in_components_subset interior_eq leD sup_bot.right_neutral)
   qed
   then show False
     using \<open>connected (- frontier C)\<close> by blast
@@ -3367,10 +3190,8 @@ proof -
       using connected_component_in by auto
   }
   then show ?thesis
-    apply (auto simp: inside_def frontier_def)
-    apply (rule classical)
-    apply (rule bounded_subset [OF assms], blast)
-    done
+    using bounded_subset [OF assms]
+    by (metis (no_types, lifting) Diff_iff frontier_def inside_def mem_Collect_eq subsetI)
 qed
 
 lemma inside_empty [simp]: "inside {} = ({} :: 'a :: {real_normed_vector, perfect_space} set)"
@@ -3482,17 +3303,7 @@ lemma outside_frontier_misses_closure:
     fixes S :: "'a::real_normed_vector set"
     assumes "bounded S"
     shows  "outside(frontier S) \<subseteq> - closure S"
-  unfolding outside_inside boolean_algebra_class.compl_le_compl_iff
-proof -
-  { assume "interior S \<subseteq> inside (frontier S)"
-    hence "interior S \<union> inside (frontier S) = inside (frontier S)"
-      by (simp add: subset_Un_eq)
-    then have "closure S \<subseteq> frontier S \<union> inside (frontier S)"
-      using frontier_def by auto
-  }
-  then show "closure S \<subseteq> frontier S \<union> inside (frontier S)"
-    using interior_inside_frontier [OF assms] by blast
-qed
+  using assms frontier_def interior_inside_frontier outside_inside by fastforce
 
 lemma outside_frontier_eq_complement_closure:
   fixes S :: "'a :: {real_normed_vector, perfect_space} set"
@@ -3556,18 +3367,7 @@ lemma frontier_inside_subset:
     fixes S :: "'a::real_normed_vector set"
     assumes "closed S"
       shows "frontier(inside S) \<subseteq> S"
-proof -
-  have "closure (inside S) \<inter> - inside S = closure (inside S) - interior (inside S)"
-    by (metis (no_types) Diff_Compl assms closure_closed interior_closure open_closed open_inside)
-  moreover have "- inside S \<inter> - outside S = S"
-    by (metis (no_types) compl_sup double_compl inside_Un_outside)
-  moreover have "closure (inside S) \<subseteq> - outside S"
-    by (metis (no_types) assms closure_inside_subset union_with_inside)
-  ultimately have "closure (inside S) - interior (inside S) \<subseteq> S"
-    by blast
-  then show ?thesis
-    by (simp add: frontier_def open_inside interior_open)
-qed
+  using assms closure_inside_subset frontier_closures frontier_disjoint_eq open_inside by fastforce
 
 lemma closure_outside_subset:
     fixes S :: "'a::real_normed_vector set"
@@ -3623,10 +3423,8 @@ lemma inside_outside_intersect_connected:
 
 lemma outside_bounded_nonempty:
   fixes S :: "'a :: {real_normed_vector, perfect_space} set"
-    assumes "bounded S" shows "outside S \<noteq> {}"
-  by (metis (no_types, lifting) Collect_empty_eq Collect_mem_eq Compl_eq_Diff_UNIV Diff_cancel
-                   Diff_disjoint UNIV_I assms ball_eq_empty bounded_diff cobounded_outside convex_ball
-                   double_complement order_refl outside_convex outside_def)
+  assumes "bounded S" shows "outside S \<noteq> {}"
+  using assms unbounded_outside by force
 
 lemma outside_compact_in_open:
     fixes S :: "'a :: {real_normed_vector,perfect_space} set"
@@ -3700,14 +3498,7 @@ next
     then obtain r where "0 < r" and r: "S \<union> T \<subseteq> ball 0 r"
       using bounded_subset_ballD by blast
     have outst: "outside S \<inter> outside T \<noteq> {}"
-    proof -
-      have "- ball 0 r \<subseteq> outside S"
-        by (meson convex_ball le_supE outside_subset_convex r)
-      moreover have "- ball 0 r \<subseteq> outside T"
-        by (meson convex_ball le_supE outside_subset_convex r)
-      ultimately show ?thesis
-        by (metis Compl_subset_Compl_iff Int_subset_iff bounded_ball inf.orderE outside_bounded_nonempty outside_no_overlap)
-    qed
+      by (metis bounded_Un bounded_subset bst cobounded_outside disjoint_eq_subset_Compl unbounded_outside)
     have "S \<inter> T = {}" using assms
       by (metis disjoint_iff_not_equal inside_no_overlap subsetCE)
     moreover have "outside S \<inter> inside T \<noteq> {}"
@@ -3734,27 +3525,29 @@ next
     using that 
   proof
     assume "a \<in> S" then show ?thesis
-      by (rule_tac x=a in exI, rule_tac x="{a}" in exI, simp)
+      using cons by blast
   next
     assume a: "a \<in> inside S"
     then have ain: "a \<in> closure (inside S)"
       by (simp add: closure_def)
-    show ?thesis
-      apply (rule exists_path_subpath_to_frontier [OF path_linepath [of a b], of "inside S"])
-        apply (simp_all add: ain b)
-      subgoal for h
-        apply (rule_tac x="pathfinish h" in exI)
-        apply (simp add: subsetD [OF frontier_inside_subset[OF S]])
-        apply (rule_tac x="path_image h" in exI)
-        apply (simp add: pathfinish_in_path_image connected_path_image, auto)
-        by (metis Diff_single_insert S frontier_inside_subset insert_iff interior_subset subsetD)
-      done
+    obtain h where h: "path h" "pathstart h = a" 
+                   "path_image h - {pathfinish h} \<subseteq> interior (inside S)"
+                   "pathfinish h \<in> frontier (inside S)"
+      using ain b
+      by (metis exists_path_subpath_to_frontier path_linepath pathfinish_linepath pathstart_linepath)
+    moreover
+    have h1S: "pathfinish h \<in> S"  
+      using S h frontier_inside_subset by blast
+    moreover 
+    have "path_image h \<subseteq> S \<union> inside S"
+      using IntD1 S h1S h interior_eq open_inside by fastforce
+    ultimately show ?thesis by blast
   qed
   show ?thesis
     apply (simp add: connected_iff_connected_component)
     apply (clarsimp simp add: connected_component_def dest!: *)
     subgoal for x y u u' T t'
-      by (rule_tac x="(S \<union> T \<union> t')" in exI) (auto intro!: connected_Un cons)
+      by (rule_tac x = "S \<union> T \<union> t'" in exI) (auto intro!: connected_Un cons)
     done
 qed
 
@@ -3776,16 +3569,19 @@ next
     assume a: "a \<in> outside S"
     then have ain: "a \<in> closure (outside S)"
       by (simp add: closure_def)
-    show ?thesis
-      apply (rule exists_path_subpath_to_frontier [OF path_linepath [of a b], of "outside S"])
-        apply (simp_all add: ain b)
-      subgoal for h
-      apply (rule_tac x="pathfinish h" in exI)
-        apply (simp add: subsetD [OF frontier_outside_subset[OF S]])
-      apply (rule_tac x="path_image h" in exI)
-      apply (simp add: pathfinish_in_path_image connected_path_image, auto)
-        by (metis (no_types, lifting) frontier_outside_subset insertE insert_Diff interior_eq open_outside pathfinish_in_path_image S subsetCE)
-      done
+    obtain h where h: "path h" "pathstart h = a" 
+                   "path_image h - {pathfinish h} \<subseteq> interior (outside S)"
+                   "pathfinish h \<in> frontier (outside S)"
+      using ain b
+      by (metis exists_path_subpath_to_frontier path_linepath pathfinish_linepath pathstart_linepath)
+    moreover 
+    have h1S: "pathfinish h \<in> S"
+      using S frontier_outside_subset h(4) by blast
+    moreover 
+    have "path_image h \<subseteq> S \<union> outside S"
+      using IntD1 S h1S h interior_eq open_outside by fastforce
+    ultimately show ?thesis
+      by blast
   qed
   show ?thesis
     apply (simp add: connected_iff_connected_component)
@@ -3798,9 +3594,13 @@ qed
 lemma inside_inside_eq_empty [simp]:
     fixes S :: "'a :: {real_normed_vector, perfect_space} set"
     assumes S: "closed S" and cons: "connected S"
-      shows "inside (inside S) = {}"
-  by (metis (no_types) unbounded_outside connected_with_outside [OF assms] bounded_Un
-           inside_complement_unbounded_connected_empty unbounded_outside union_with_outside)
+    shows "inside (inside S) = {}"
+proof -
+  have "connected (- inside S)"
+    by (metis S connected_with_outside cons union_with_outside)
+  then show ?thesis
+    by (metis bounded_Un inside_complement_unbounded_connected_empty unbounded_outside union_with_outside)
+qed
 
 lemma inside_in_components:
      "inside S \<in> components (- S) \<longleftrightarrow> connected(inside S) \<and> inside S \<noteq> {}" (is "?lhs = ?rhs")
@@ -3828,9 +3628,10 @@ qed (simp add: in_components_maximal)
 lemma bounded_unique_outside:
   fixes S :: "'a :: euclidean_space set"
   assumes "bounded S" "DIM('a) \<ge> 2"
-  shows "(c \<in> components (- S) \<and> \<not> bounded c \<longleftrightarrow> c = outside S)" 
+  shows "(c \<in> components (- S) \<and> \<not> bounded c) \<longleftrightarrow> c = outside S" 
   using assms
-  by (metis cobounded_unique_unbounded_components connected_outside double_compl outside_bounded_nonempty outside_in_components unbounded_outside)
+  by (metis cobounded_unique_unbounded_components connected_outside double_compl outside_bounded_nonempty
+      outside_in_components unbounded_outside)
 
 
 subsection\<open>Condition for an open map's image to contain a ball\<close>
@@ -3868,21 +3669,20 @@ next
     then have "(\<xi> \<circ> K) \<longlonglongrightarrow> f y"
       by (metis (no_types) Klim zKs y contf comp_assoc continuous_on_closure_sequentially)
     with fz have wy: "w = f y" using fz LIMSEQ_unique ftendsw by auto
-    have rle: "r \<le> norm (f y - f a)"
+    have "r \<le> norm (f y - f a)"
     proof (rule le_no)
       show "y \<in> frontier S"
         using w wy oint by (force simp: imageI image_mono interiorI interior_subset frontier_def y)
     qed
-    have **: "(b \<inter> (- S) \<noteq> {} \<and> b - (- S) \<noteq> {} \<Longrightarrow> b \<inter> f \<noteq> {})
-              \<Longrightarrow> (b \<inter> S \<noteq> {}) \<Longrightarrow> b \<inter> f = {} \<Longrightarrow> b \<subseteq> S" 
-             for b f and S :: "'b set"
-      by blast
-    have \<section>: "\<And>y. \<lbrakk>norm (f a - y) < r; y \<in> frontier (f ` S)\<rbrakk> \<Longrightarrow> False"
-      by (metis dw_le norm_minus_commute not_less order_trans rle wy)
-    show ?thesis
-      apply (rule ** [OF connected_Int_frontier [where t = "f`S", OF connected_ball]])
-        (*such a horrible mess*)
-      using \<open>a \<in> S\<close> \<open>0 < r\<close> by (auto simp: disjoint_iff_not_equal dist_norm dest: \<section>)
+    then have "\<And>y. \<lbrakk>norm (f a - y) < r; y \<in> frontier (f ` S)\<rbrakk> \<Longrightarrow> False"
+      by (metis dw_le norm_minus_commute not_less order_trans wy)
+    then have "ball (f a) r \<inter> frontier (f ` S) = {}"
+      by (metis disjoint_iff_not_equal dist_norm mem_ball)
+    moreover
+    have "ball (f a) r \<inter> f ` S \<noteq> {}"
+      using \<open>a \<in> S\<close> \<open>0 < r\<close> centre_in_ball by blast
+    ultimately show ?thesis
+      by (meson connected_Int_frontier connected_ball diff_shunt_var)
 qed
 
 
@@ -3891,8 +3691,7 @@ subsubsection\<open>Special characterizations of classes of functions into and o
 lemma Hausdorff_space_euclidean [simp]: "Hausdorff_space (euclidean :: 'a::metric_space topology)"
 proof -
   have "\<exists>U V. open U \<and> open V \<and> x \<in> U \<and> y \<in> V \<and> disjnt U V"
-    if "x \<noteq> y"
-    for x y :: 'a
+    if "x \<noteq> y" for x y :: 'a
   proof (intro exI conjI)
     let ?r = "dist x y / 2"
     have [simp]: "?r > 0"
@@ -4139,7 +3938,6 @@ lemma path_image_rectpath_inter_box:
 lemma path_image_rectpath_cbox_minus_box:
   assumes "Re a \<le> Re b" "Im a \<le> Im b"
   shows   "path_image (rectpath a b) = cbox a b - box a b"
-  using assms by (auto simp: path_image_rectpath in_cbox_complex_iff
-                             in_box_complex_iff)
+  using assms by (auto simp: path_image_rectpath in_cbox_complex_iff in_box_complex_iff)
 
 end

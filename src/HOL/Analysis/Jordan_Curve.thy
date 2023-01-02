@@ -203,14 +203,15 @@ proof -
       by (metis \<open>pathfinish h = g u\<close> pathfinish_def pathfinish_subpath u(3))
     show "path_image (subpath 0 v h) \<inter> path_image (subpath v 1 h) = {a, b}"
     proof
-      show "path_image (subpath 0 v h) \<inter> path_image (subpath v 1 h) \<subseteq> {a, b}"
-        using v  \<open>pathfinish (subpath v 1 h) = a\<close> \<open>simple_path h\<close>
-          apply (auto simp: simple_path_def path_image_subpath image_iff Ball_def)
-        by (metis (full_types) less_eq_real_def less_irrefl less_le_trans)
+      have "loop_free h"
+        using \<open>simple_path h\<close> simple_path_def by blast
+      then show "path_image (subpath 0 v h) \<inter> path_image (subpath v 1 h) \<subseteq> {a, b}"
+        using v \<open>pathfinish (subpath v 1 h) = a\<close>
+        apply (clarsimp simp add: loop_free_def path_image_subpath Ball_def)
+        by (smt (verit))
       show "{a, b} \<subseteq> path_image (subpath 0 v h) \<inter> path_image (subpath v 1 h)"
         using v \<open>pathstart (subpath 0 v h) = a\<close> \<open>pathfinish (subpath v 1 h) = a\<close>
-        apply (auto simp: path_image_subpath image_iff)
-        by (metis atLeastAtMost_iff order_refl)
+        by (auto simp: path_image_subpath image_iff Bex_def)
     qed
     show "path_image (subpath 0 v h) \<union> path_image (subpath v 1 h) = path_image g"
       using v apply (simp add: path_image_subpath pihg [symmetric])

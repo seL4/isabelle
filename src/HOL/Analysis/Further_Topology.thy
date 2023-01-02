@@ -2936,7 +2936,8 @@ proof -
         have "(Arg2pi x / (2*pi)) \<in> {0..1}" "(Arg2pi y / (2*pi)) \<in> {0..1}"
           using Arg2pi_ge_0 Arg2pi_lt_2pi dual_order.strict_iff_order by fastforce+
         with eq show ?thesis
-          using \<open>simple_path \<gamma>\<close> Arg2pi_lt_2pi unfolding simple_path_def o_def
+          using \<open>simple_path \<gamma>\<close> Arg2pi_lt_2pi 
+          unfolding simple_path_def loop_free_def o_def
           by (metis eq_divide_eq_1 not_less_iff_gr_or_eq)
       qed
       with xy show "x = y"
