@@ -72,8 +72,8 @@ class Resources(
 
   def migrate_name(name: Document.Node.Name): Document.Node.Name = name
 
-  def append_path(dir: String, source_path: Path): String =
-    (Path.explode(dir) + source_path).expand.implode
+  def append_path(prefix: String, source_path: Path): String =
+    (Path.explode(prefix) + source_path).expand.implode
 
 
   /* source files of Isabelle/ML bootstrap */
@@ -159,7 +159,7 @@ class Resources(
       Document.Node.Name(append_path("", dir + thy_file), theory = theory) }
   }
 
-  def import_name(qualifier: String, dir: String, s: String): Document.Node.Name = {
+  def import_name(qualifier: String, prefix: String, s: String): Document.Node.Name = {
     val theory = theory_name(qualifier, Thy_Header.import_name(s))
     val literal_import =
       literal_theory(theory) && qualifier != sessions_structure.theory_qualifier(theory)
@@ -172,7 +172,7 @@ class Resources(
         case Some(node_name) => node_name
         case None =>
           if (Url.is_base_name(s) && literal_theory(s)) Document.Node.Name.loaded_theory(theory)
-          else Document.Node.Name(append_path(dir, Path.explode(s).thy), theory = theory)
+          else Document.Node.Name(append_path(prefix, Path.explode(s).thy), theory = theory)
       }
     }
   }

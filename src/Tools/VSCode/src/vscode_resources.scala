@@ -100,14 +100,14 @@ extends Resources(session_background, log = log) {
   override def migrate_name(standard_name: Document.Node.Name): Document.Node.Name =
     node_name(Path.explode(standard_name.node).canonical_file)
 
-  override def append_path(dir: String, source_path: Path): String = {
+  override def append_path(prefix: String, source_path: Path): String = {
     val path = source_path.expand
-    if (dir == "" || path.is_absolute) File.platform_path(path)
-    else if (path.is_current) dir
-    else if (path.is_basic && !dir.endsWith("/") && !dir.endsWith(JFile.separator))
-      dir + JFile.separator + File.platform_path(path)
-    else if (path.is_basic) dir + File.platform_path(path)
-    else File.absolute_name(new JFile(dir + JFile.separator + File.platform_path(path)))
+    if (prefix == "" || path.is_absolute) File.platform_path(path)
+    else if (path.is_current) prefix
+    else if (path.is_basic && !prefix.endsWith("/") && !prefix.endsWith(JFile.separator))
+      prefix + JFile.separator + File.platform_path(path)
+    else if (path.is_basic) prefix + File.platform_path(path)
+    else File.absolute_name(new JFile(prefix + JFile.separator + File.platform_path(path)))
   }
 
   def get_models(): Iterable[VSCode_Model] = state.value.models.values

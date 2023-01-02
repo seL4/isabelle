@@ -50,19 +50,19 @@ extends Resources(session_background) {
   override def migrate_name(standard_name: Document.Node.Name): Document.Node.Name =
     node_name(File.platform_path(Path.explode(standard_name.node).canonical))
 
-  override def append_path(dir: String, source_path: Path): String = {
+  override def append_path(prefix: String, source_path: Path): String = {
     val path = source_path.expand
-    if (dir == "" || path.is_absolute) {
+    if (prefix == "" || path.is_absolute) {
       MiscUtilities.resolveSymlinks(File.platform_path(path))
     }
-    else if (path.is_current) dir
+    else if (path.is_current) prefix
     else {
-      val vfs = VFSManager.getVFSForPath(dir)
+      val vfs = VFSManager.getVFSForPath(prefix)
       if (vfs.isInstanceOf[FileVFS]) {
         MiscUtilities.resolveSymlinks(
-          vfs.constructPath(dir, File.platform_path(path)))
+          vfs.constructPath(prefix, File.platform_path(path)))
       }
-      else vfs.constructPath(dir, File.standard_path(path))
+      else vfs.constructPath(prefix, File.standard_path(path))
     }
   }
 
