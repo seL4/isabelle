@@ -25,8 +25,8 @@ object Protocol {
   object Loading_Theory {
     def unapply(props: Properties.T): Option[(Document.Node.Name, Document_ID.Exec)] =
       (props, props, props) match {
-        case (Markup.Name(name), Position.File(file), Position.Id(id))
-        if Path.is_wellformed(file) => Some((Document.Node.Name(file, theory = name), id))
+        case (Markup.Name(theory), Position.File(file), Position.Id(id))
+        if Path.is_wellformed(file) => Some((Document.Node.Name(file, theory = theory), id))
         case _ => None
       }
   }
