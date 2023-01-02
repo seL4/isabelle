@@ -1670,7 +1670,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     ): List[Source_File] = {
       val select =
         Sources.table.select(Nil,
-          Sources.where_equal(session_name, name = name) + " ORDER BY " + Sources.name)
+          Sources.where_equal(session_name, name = name) + SQL.order_by(List(Sources.name)))
       db.using_statement(select) { stmt =>
         (stmt.execute_query().iterator { res =>
           val res_name = res.string(Sources.name)

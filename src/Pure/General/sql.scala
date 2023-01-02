@@ -127,6 +127,9 @@ object SQL {
     override def toString: Source = ident
   }
 
+  def order_by(columns: List[Column], descending: Boolean = false): Source =
+    " ORDER BY " + columns.mkString(", ") + (if (descending) " DESC" else "")
+
 
   /* tables */
 

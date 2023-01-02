@@ -772,7 +772,7 @@ object Build_Log {
       SQL.select(columns, distinct = true) +
         table1.query_named + SQL.join_outer + aux_table.query_named +
         " ON " + version(table1) + " = " + version(aux_table) +
-        " ORDER BY " + pull_date(afp)(table1) + " DESC"
+        SQL.order_by(List(pull_date(afp)(table1)), descending = true)
     }
 
 

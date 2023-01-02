@@ -88,7 +88,7 @@ object Export {
   def read_theory_names(db: SQL.Database, session_name: String): List[String] = {
     val select =
       Data.table.select(List(Data.theory_name), Data.where_equal(session_name), distinct = true) +
-      " ORDER BY " + Data.theory_name
+      SQL.order_by(List(Data.theory_name))
     db.using_statement(select)(stmt =>
       stmt.execute_query().iterator(_.string(Data.theory_name)).toList)
   }
@@ -96,7 +96,7 @@ object Export {
   def read_entry_names(db: SQL.Database, session_name: String): List[Entry_Name] = {
     val select =
       Data.table.select(List(Data.theory_name, Data.name), Data.where_equal(session_name)) +
-      " ORDER BY " + Data.theory_name + ", " + Data.name
+      SQL.order_by(List(Data.theory_name, Data.name))
     db.using_statement(select)(stmt =>
       stmt.execute_query().iterator(res =>
         Entry_Name(session = session_name,
