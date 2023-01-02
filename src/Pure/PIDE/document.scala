@@ -91,11 +91,9 @@ object Document {
     def bad_header(msg: String): Header = Header(errors = List(msg))
 
     object Name {
-      def apply(node: String, master_dir: String = "", theory: String = ""): Name =
-        new Name(node, master_dir, theory)
+      def apply(node: String, theory: String = ""): Name = new Name(node, theory)
 
-      def loaded_theory(theory: String): Document.Node.Name =
-        Name(theory, theory = theory)
+      def loaded_theory(theory: String): Document.Node.Name = Name(theory, theory = theory)
 
       val empty: Name = Name("")
 
@@ -109,7 +107,7 @@ object Document {
         Graph.make(entries, converse = true)(Ordering)
     }
 
-    final class Name private(val node: String, val master_dir: String, val theory: String) {
+    final class Name private(val node: String, val theory: String) {
       override def hashCode: Int = node.hashCode
       override def equals(that: Any): Boolean =
         that match {
@@ -120,6 +118,8 @@ object Document {
       def file_name: String = Url.get_base_name(node).getOrElse("")
 
       def path: Path = Path.explode(File.standard_path(node))
+
+      def master_dir: String = Url.strip_base_name(node).getOrElse("")
       def master_dir_path: Path = Path.explode(File.standard_path(master_dir))
 
       def is_theory: Boolean = theory.nonEmpty

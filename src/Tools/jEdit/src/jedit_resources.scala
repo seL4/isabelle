@@ -36,10 +36,7 @@ extends Resources(session_background) {
       val node = if (vfs.isInstanceOf[FileVFS]) MiscUtilities.resolveSymlinks(path) else path
       val theory = theory_name(Sessions.DRAFT, Thy_Header.theory_name(node))
       if (session_base.loaded_theory(theory)) Document.Node.Name.loaded_theory(theory)
-      else {
-        val master_dir = vfs.getParentOfPath(path)
-        Document.Node.Name(node, master_dir = master_dir, theory = theory)
-      }
+      else Document.Node.Name(node, theory = theory)
     }
 
   def node_name(buffer: Buffer): Document.Node.Name =

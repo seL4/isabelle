@@ -94,10 +94,7 @@ extends Resources(session_background, log = log) {
       val node = file.getPath
       val theory = theory_name(Sessions.DRAFT, Thy_Header.theory_name(node))
       if (session_base.loaded_theory(theory)) Document.Node.Name.loaded_theory(theory)
-      else {
-        val master_dir = file.getParent
-        Document.Node.Name(node, master_dir = master_dir, theory = theory)
-      }
+      else Document.Node.Name(node, theory = theory)
     }
 
   override def migrate_name(standard_name: Document.Node.Name): Document.Node.Name =

@@ -26,9 +26,7 @@ object Protocol {
     def unapply(props: Properties.T): Option[(Document.Node.Name, Document_ID.Exec)] =
       (props, props, props) match {
         case (Markup.Name(name), Position.File(file), Position.Id(id))
-        if Path.is_wellformed(file) =>
-          val master_dir = Path.explode(file).dir.implode
-          Some((Document.Node.Name(file, master_dir = master_dir, theory = name), id))
+        if Path.is_wellformed(file) => Some((Document.Node.Name(file, theory = name), id))
         case _ => None
       }
   }
