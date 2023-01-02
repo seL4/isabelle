@@ -246,8 +246,8 @@ class Build_Job(progress: Progress,
   val info: Sessions.Info = session_background.sessions_structure(session_name)
   val options: Options = NUMA.policy_options(info.options, numa_node)
 
-  val session_sources: Sessions.Sources.T =
-    Sessions.Sources.read_files(session_background.base, cache = store.cache.compress)
+  val session_sources: Sessions.Sources =
+    Sessions.Sources.load(session_background.base, cache = store.cache.compress)
 
   private val future_result: Future[Process_Result] =
     Future.thread("build", uninterruptible = true) {

@@ -84,28 +84,31 @@ object Sessions {
       "WHERE " + Sources.session_name.equal(session_name) +
         (if (name == "") "" else " AND " + Sources.name.equal(name))
 
+    def load(session_base: Base, cache: Compress.Cache = Compress.Cache.none): Sources =
+      new Sources(
+        session_base.session_sources.foldLeft(Map.empty) {
+          case (sources, (path, digest)) =>
+            def err(): Nothing = error("Incoherent digest for source file: " + path)
+            val name = path.implode_symbolic
+            sources.get(name) match {
+              case Some(source_file) =>
+                if (source_file.digest == digest) sources else err()
+              case None =>
+                val bytes = Bytes.read(path)
+                if (bytes.sha1_digest == digest) {
+                  val (compressed, body) =
+                    bytes.maybe_compress(Compress.Options_Zstd(), cache = cache)
+                  val file = Source_File(name, digest, compressed, body, cache)
+                  sources + (name -> file)
+                }
+                else err()
+            }
+        })
+  }
 
-    type T = Map[String, Source_File]
-
-    def read_files(session_base: Base, cache: Compress.Cache = Compress.Cache.none): T = {
-      def err(path: Path): Nothing = error("Incoherent digest for source file: " + path)
-
-      session_base.session_sources.foldLeft(Map.empty[String, Source_File]) {
-        case (sources, (path, digest)) =>
-          val name = path.implode_symbolic
-          sources.get(name) match {
-            case Some(source_file) => if (source_file.digest == digest) sources else err(path)
-            case None =>
-              val bytes = Bytes.read(path)
-              if (bytes.sha1_digest == digest) {
-                val (compressed, body) = bytes.maybe_compress(Compress.Options_Zstd(), cache = cache)
-                val file = Source_File(name, digest, compressed, body, cache)
-                sources + (name -> file)
-              }
-              else err(path)
-          }
-      }
-    }
+  class Sources private(rep: Map[String, Source_File]) extends Iterable[Source_File] {
+    override def toString: String = rep.values.toList.sortBy(_.name).mkString("Sources(", ", ", ")")
+    override def iterator: Iterator[Source_File] = rep.valuesIterator
   }
 
 
@@ -1581,7 +1584,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     def write_session_info(
       db: SQL.Database,
       session_name: String,
-      sources: Sources.T,
+      sources: Sources,
       build_log: Build_Log.Session_Info,
       build: Build.Session_Info
     ): Unit = {
@@ -1652,14 +1655,14 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
     /* session sources */
 
-    def write_sources(db: SQL.Database, session_name: String, files: Sources.T): Unit = {
-      for ((name, file) <- files) {
+    def write_sources(db: SQL.Database, session_name: String, sources: Sources): Unit = {
+      for (source_file <- sources) {
         db.using_statement(Sources.table.insert()) { stmt =>
           stmt.string(1) = session_name
-          stmt.string(2) = name
-          stmt.string(3) = file.digest.toString
-          stmt.bool(4) = file.compressed
-          stmt.bytes(5) = file.body
+          stmt.string(2) = source_file.name
+          stmt.string(3) = source_file.digest.toString
+          stmt.bool(4) = source_file.compressed
+          stmt.bytes(5) = source_file.body
           stmt.execute()
         }
       }
