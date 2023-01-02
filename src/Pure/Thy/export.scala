@@ -433,7 +433,7 @@ object Export {
       def db_source: Option[String] =
         db_hierarchy.view.map(database =>
             database_context.store.read_sources(database.db, database.session, name.node))
-          .collectFirst({ case Some(bytes) => bytes.text })
+          .collectFirst({ case Some(file) => file.text })
       snapshot_source orElse db_source getOrElse ""
     }
 

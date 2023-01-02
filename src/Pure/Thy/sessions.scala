@@ -57,7 +57,16 @@ object Sessions {
 
   /* source files */
 
-  sealed case class Source_File(name: String, digest: SHA1.Digest, compressed: Boolean, body: Bytes)
+  sealed case class Source_File(
+    name: String,
+    digest: SHA1.Digest,
+    compressed: Boolean,
+    body: Bytes,
+    cache: Compress.Cache
+  ) {
+    def bytes: Bytes = if (compressed) body.uncompress(cache = cache) else body
+    def text: String = bytes.text
+  }
 
   object Sources {
     val session_name = SQL.Column.string("session_name").make_primary_key
@@ -88,7 +97,7 @@ object Sessions {
               val bytes = Bytes.read(path)
               if (bytes.sha1_digest == digest) {
                 val (compressed, body) = bytes.maybe_compress(Compress.Options_Zstd(), cache = cache)
-                val file = Source_File(name, digest, compressed, body)
+                val file = Source_File(name, digest, compressed, body, cache)
                 sources + (name -> file)
               }
               else err(path)
@@ -1652,17 +1661,17 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
       }
     }
 
-    def read_sources(db: SQL.Database, session_name: String, name: String): Option[Bytes] = {
+    def read_sources(db: SQL.Database, session_name: String, name: String): Option[Source_File] = {
       val sql =
-        Sources.table.select(List(Sources.compressed, Sources.body),
-          Sources.where_equal(session_name, name = name))
+        Sources.table.select(Nil, Sources.where_equal(session_name, name = name))
       db.using_statement(sql) { stmt =>
         val res = stmt.execute_query()
         if (!res.next()) None
         else {
+          val digest = SHA1.fake_digest(res.string(Sources.digest))
           val compressed = res.bool(Sources.compressed)
-          val bs = res.bytes(Sources.body)
-          Some(if (compressed) bs.uncompress(cache = cache.compress) else bs)
+          val body = res.bytes(Sources.body)
+          Some(Source_File(name, digest, compressed, body, cache.compress))
         }
       }
     }
