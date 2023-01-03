@@ -74,11 +74,11 @@ Isabelle/jEdit Document panel.
       antisymp_on_conversep[simp]
       antisymp_on_if_asymp_on
       antisymp_on_subset
-      asym_on_iff_irrefl_on_if_trans
+      asym_on_iff_irrefl_on_if_trans_on
       asym_onD
       asym_onI
       asym_on_converse[simp]
-      asymp_on_iff_irreflp_on_if_transp
+      asymp_on_iff_irreflp_on_if_transp_on
       asymp_onD
       asymp_onI
       asymp_on_asym_on_eq[pred_set_conv]
