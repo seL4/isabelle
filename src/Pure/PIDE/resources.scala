@@ -196,7 +196,7 @@ class Resources(
       try { Some(context_name.master_dir_path) }
       catch { case ERROR(_) => None }
     (for {
-      (session, (info, _))  <- sessions_structure.imports_graph.iterator
+      (session, (info, _)) <- sessions_structure.imports_graph.iterator
       dir <- (if (session == context_session) context_dir.toList else info.dirs).iterator
       theory <- Thy_Header.list_thy_names(dir).iterator
       if Completion.completed(s)(theory)
