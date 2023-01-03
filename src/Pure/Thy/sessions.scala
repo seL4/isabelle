@@ -472,7 +472,7 @@ object Sessions {
               val bad =
                 (for {
                   name <- proper_session_theories.iterator
-                  path = name.master_dir_path
+                  path = Path.explode(name.master_dir)
                   if !ok(path.canonical_file)
                   path1 = File.relative_path(info.dir.canonical, path).getOrElse(path)
                 } yield (path1, name)).toList
