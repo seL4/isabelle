@@ -66,6 +66,12 @@ extends Resources(session_background) {
     }
   }
 
+  override def read_dir(dir: String): List[String] = {
+    val vfs = VFSManager.getVFSForPath(dir)
+    if (vfs.isInstanceOf[FileVFS]) File.read_dir(Path.explode(File.standard_path(dir)))
+    else Nil
+  }
+
 
   /* file content */
 

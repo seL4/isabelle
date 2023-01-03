@@ -23,7 +23,7 @@ object Logo {
       Isabelle_System.bash(
         "\"$ISABELLE_EPSTOPDF\" --filter < " + File.bash_path(tmp_file) +
           " > " + File.bash_path(output_file)).check
-      if (!quiet) Output.writeln(output_file.expand.implode)
+      if (!quiet) Output.writeln(File.standard_path(output_file))
     }
   }
 

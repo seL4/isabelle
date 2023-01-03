@@ -73,7 +73,14 @@ class Resources(
   def migrate_name(name: Document.Node.Name): Document.Node.Name = name
 
   def append_path(prefix: String, source_path: Path): String =
-    (Path.explode(prefix) + source_path).expand.implode
+    File.standard_path(Path.explode(prefix) + source_path)
+
+  def read_dir(dir: String): List[String] = File.read_dir(Path.explode(dir))
+
+  def list_thys(dir: String): List[String] = {
+    val entries = try { read_dir(dir) } catch { case ERROR(_) => Nil }
+    entries.flatMap(Thy_Header.get_thy_name)
+  }
 
 
   /* source files of Isabelle/ML bootstrap */
@@ -121,21 +128,18 @@ class Resources(
     syntax: Outer_Syntax,
     name: Document.Node.Name,
     spans: List[Command_Span.Span]
-  ) : List[Path] = {
-    val dir = name.master_dir_path
-    for { span <- spans; file <- span.loaded_files(syntax).files }
-      yield (dir + Path.explode(file)).expand
+  ) : List[Document.Node.Name] = {
+    for (span <- spans; file <- span.loaded_files(syntax).files)
+      yield Document.Node.Name(append_path(name.master_dir, Path.explode(file)))
   }
 
-  def pure_files(syntax: Outer_Syntax): List[Path] = {
-    val pure_dir = Path.explode("~~/src/Pure")
-    for {
-      (name, theory) <- Thy_Header.ml_roots
-      path = (pure_dir + Path.explode(name)).expand
-      node_name = Document.Node.Name(path.implode, theory = theory)
-      file <- loaded_files(syntax, node_name, load_commands(syntax, node_name)())
-    } yield file
-  }
+  def pure_files(syntax: Outer_Syntax): List[Document.Node.Name] =
+    (for {
+      (file, theory) <- Thy_Header.ml_roots.iterator
+      node = append_path("~~/src/Pure", Path.explode(file))
+      node_name = Document.Node.Name(node, theory = theory)
+      name <- loaded_files(syntax, node_name, load_commands(syntax, node_name)()).iterator
+    } yield name).toList
 
   def global_theory(theory: String): Boolean =
     sessions_structure.global_theories.isDefinedAt(theory)
@@ -195,13 +199,11 @@ class Resources(
 
   def complete_import_name(context_name: Document.Node.Name, s: String): List[String] = {
     val context_session = sessions_structure.theory_qualifier(context_name)
-    val context_dir =
-      try { Some(context_name.master_dir_path) }
-      catch { case ERROR(_) => None }
+    def context_dir(): List[String] = list_thys(context_name.master_dir)
+    def session_dir(info: Sessions.Info): List[String] = info.dirs.flatMap(Thy_Header.list_thys)
     (for {
-      (session, (info, _))  <- sessions_structure.imports_graph.iterator
-      dir <- (if (session == context_session) context_dir.toList else info.dirs).iterator
-      theory <- Thy_Header.list_thy_names(dir).iterator
+      (session, (info, _)) <- sessions_structure.imports_graph.iterator
+      theory <- (if (session == context_session) context_dir() else session_dir(info)).iterator
       if Completion.completed(s)(theory)
     } yield {
       if (session == context_session || global_theory(theory)) theory
@@ -416,7 +418,7 @@ class Resources(
     def loaded_files(
       name: Document.Node.Name,
       spans: List[Command_Span.Span]
-    ) : (String, List[Path]) = {
+    ) : (String, List[Document.Node.Name]) = {
       val theory = name.theory
       val syntax = get_syntax(name)
       val files1 = resources.loaded_files(syntax, name, spans)
@@ -424,7 +426,7 @@ class Resources(
       (theory, files1 ::: files2)
     }
 
-    def loaded_files: List[Path] =
+    def loaded_files: List[Document.Node.Name] =
       for {
         (name, spans) <- load_commands
         file <- loaded_files(name, spans)._2

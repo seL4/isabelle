@@ -37,8 +37,6 @@ sig
   val exe: T -> T
   val expand: T -> T
   val file_name: T -> string
-  val implode_symbolic: T -> string
-  val position: T -> Position.T
   eqtype binding
   val binding: T * Position.T -> binding
   val binding0: T -> binding
@@ -236,30 +234,6 @@ fun eval (Variable s) =
 val expand = rep #> maps eval #> norm #> Path;
 
 val file_name = implode_path o base o expand;
-
-
-(* implode wrt. given directories *)
-
-fun implode_symbolic path =
-  let
-    val directories = rev (space_explode ":" (getenv "ISABELLE_DIRECTORIES"));
-    val full_name = implode_path (expand path);
-    fun fold_path a =
-      (case try (implode_path o expand o explode_path) a of
-        SOME b =>
-          if full_name = b then SOME a
-          else
-            (case try (unprefix (b ^ "/")) full_name of
-              SOME name => SOME (a ^ "/" ^ name)
-            | NONE => NONE)
-      | NONE => NONE);
-  in
-    (case get_first fold_path directories of
-      SOME name => name
-    | NONE => implode_path path)
-  end;
-
-val position = Position.file o implode_symbolic;
 
 
 (* binding: strictly monotonic path with position *)

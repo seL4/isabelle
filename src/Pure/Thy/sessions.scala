@@ -89,7 +89,7 @@ object Sessions {
         session_base.session_sources.foldLeft(Map.empty) {
           case (sources, (path, digest)) =>
             def err(): Nothing = error("Incoherent digest for source file: " + path)
-            val name = path.implode_symbolic
+            val name = File.symbolic_path(path)
             sources.get(name) match {
               case Some(source_file) =>
                 if (source_file.digest == digest) sources else err()
@@ -357,12 +357,18 @@ object Sessions {
             val theory_load_commands =
               (for ((name, span) <- load_commands.iterator) yield name.theory -> span).toMap
 
-            val loaded_files =
-              load_commands.map({ case (name, spans) => dependencies.loaded_files(name, spans) })
+            val loaded_files: List[(String, List[Path])] =
+              for ((name, spans) <- load_commands) yield {
+                val (theory, files) = dependencies.loaded_files(name, spans)
+                theory -> files.map(file => Path.explode(file.node))
+              }
+
+            val document_files =
+              for ((path1, path2) <- info.document_files)
+                yield info.dir + path1 + path2
 
             val session_files =
-              (theory_files ::: loaded_files.flatMap(_._2) :::
-                info.document_files.map(file => info.dir + file._1 + file._2)).map(_.expand)
+              (theory_files ::: loaded_files.flatMap(_._2) ::: document_files).map(_.expand)
 
             val imported_files = if (inlined_files) dependencies.imported_files else Nil
 
@@ -469,7 +475,7 @@ object Sessions {
               val bad =
                 (for {
                   name <- proper_session_theories.iterator
-                  path = name.master_dir_path
+                  path = Path.explode(name.master_dir)
                   if !ok(path.canonical_file)
                   path1 = File.relative_path(info.dir.canonical, path).getOrElse(path)
                 } yield (path1, name)).toList
@@ -706,7 +712,7 @@ object Sessions {
         if File.is_bib(file.file_name)
       } yield {
         val path = dir + document_dir + file
-        Bibtex.Entries.parse(File.read(path), file_pos = path.expand.implode)
+        Bibtex.Entries.parse(File.read(path), file_pos = File.standard_path(path))
       }).foldRight(Bibtex.Entries.empty)(_ ::: _)
 
     def record_proofs: Boolean = options.int("record_proofs") >= 2
@@ -1450,7 +1456,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     def the_heap(name: String): Path =
       find_heap(name) getOrElse
         error("Missing heap image for session " + quote(name) + " -- expected in:\n" +
-          cat_lines(input_dirs.map(dir => "  " + dir.expand.implode)))
+          cat_lines(input_dirs.map(dir => "  " + File.standard_path(dir))))
 
 
     /* database */

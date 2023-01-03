@@ -53,7 +53,7 @@ object Mercurial {
       root + (if (raw) "/raw-rev/" else "/rev/") + rev
 
     def file(path: Path, rev: String = "tip", raw: Boolean = false): String =
-      root + (if (raw) "/raw-file/" else "/file/") + rev + "/" + path.expand.implode
+      root + (if (raw) "/raw-file/" else "/file/") + rev + "/" + File.standard_path(path)
 
     def archive(rev: String = "tip"): String =
       root + "/archive/" + rev + ".tar.gz"

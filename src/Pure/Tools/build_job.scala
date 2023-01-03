@@ -30,21 +30,20 @@ object Build_Job {
       (thy_file, blobs_files) <- theory_context.files(permissive = true)
     }
     yield {
-      val master_dir =
-        Url.strip_base_name(thy_file).getOrElse(
-          error("Cannot determine theory master directory: " + quote(thy_file)))
-      val node_name = Document.Node.Name(thy_file, theory = theory_context.theory)
-
       val results =
         Command.Results.make(
           for (elem @ XML.Elem(Markup(_, Markup.Serial(i)), _) <- read_xml(Export.MESSAGES))
             yield i -> elem)
 
+      val master_dir =
+        Path.explode(Url.strip_base_name(thy_file).getOrElse(
+          error("Cannot determine theory master directory: " + quote(thy_file))))
+
       val blobs =
         blobs_files.map { file =>
           val name = Document.Node.Name(file)
           val path = Path.explode(file)
-          val src_path = File.relative_path(node_name.master_dir_path, path).getOrElse(path)
+          val src_path = File.relative_path(master_dir, path).getOrElse(path)
           Command.Blob(name, src_path, None)
         }
       val blobs_xml =
@@ -72,7 +71,8 @@ object Build_Job {
           yield index -> Markup_Tree.from_XML(xml))
 
       val command =
-        Command.unparsed(thy_source, theory = true, id = id, node_name = node_name,
+        Command.unparsed(thy_source, theory = true, id = id,
+          node_name = Document.Node.Name(thy_file, theory = theory_context.theory),
           blobs_info = blobs_info, results = results, markups = markups)
 
       Document.State.init.snippet(command)
@@ -275,11 +275,21 @@ class Build_Job(progress: Progress,
         new Session(options, resources) {
           override val cache: Term.Cache = store.cache
 
-          override def build_blobs_info(name: Document.Node.Name): Command.Blobs_Info = {
-            session_background.base.theory_load_commands.get(name.theory) match {
+          override def build_blobs_info(node_name: Document.Node.Name): Command.Blobs_Info = {
+            session_background.base.theory_load_commands.get(node_name.theory) match {
               case Some(spans) =>
-                val syntax = session_background.base.theory_syntax(name)
-                Command.build_blobs_info(syntax, name, spans)
+                val syntax = session_background.base.theory_syntax(node_name)
+                val blobs =
+                  for (span <- spans; file <- span.loaded_files(syntax).files)
+                  yield {
+                    (Exn.capture {
+                      val master_dir = Path.explode(node_name.master_dir)
+                      val src_path = Path.explode(file)
+                      val node = File.symbolic_path(master_dir + src_path)
+                      Command.Blob.read_file(Document.Node.Name(node), src_path)
+                    }).user_error
+                  }
+                Command.Blobs_Info(blobs)
               case None => Command.Blobs_Info.none
             }
           }
@@ -405,7 +415,8 @@ class Build_Job(progress: Progress,
             }
 
             export_text(Export.FILES,
-              cat_lines(snapshot.node_files.map(_.path.implode_symbolic)), compress = false)
+              cat_lines(snapshot.node_files.map(name => File.symbolic_path(name.path))),
+              compress = false)
 
             for (((_, xml), i) <- snapshot.xml_markup_blobs().zipWithIndex) {
               export_(Export.MARKUP + (i + 1), xml)

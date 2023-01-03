@@ -316,8 +316,8 @@ fun main () =
         {environment = ML_Env.SML, redirect = false, verbose = false, debug = NONE,
           writeln = writeln, warning = warning}
         Position.none
-        (ML_Lex.read_text (code, Path.position code_path) @
-         ML_Lex.read_text (driver, Path.position driver_path) @
+        (ML_Lex.read_text (code, Position.file (File.symbolic_path code_path)) @
+         ML_Lex.read_text (driver, Position.file (File.symbolic_path driver_path)) @
          ML_Lex.read "main ()")
       handle ERROR msg => error ("Evaluation for " ^ polymlN ^ " failed:\n" ^ msg)
   in File.read out_path end
@@ -503,7 +503,7 @@ fun evaluate_in_scala (_: Proof.context) (code_files, value_name) dir =
         case (false, Some(t)) => "False" + t(()) + "\n"
       }).mkString
   isabelle.File.write(
-    isabelle.Path.explode(\<close> ^ quote (Path.implode (Path.expand out_path)) ^ \<^verbatim>\<open>),
+    isabelle.Path.explode(\<close> ^ quote (File.standard_path out_path) ^ \<^verbatim>\<open>),
     \<close> ^ quote start_marker ^ \<^verbatim>\<open> + result_text + \<close> ^ quote end_marker ^ \<^verbatim>\<open>)
 }\<close>
     val _ = File.write code_path code

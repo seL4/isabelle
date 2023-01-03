@@ -52,6 +52,26 @@ object File {
   def platform_file(path: Path): JFile = new JFile(platform_path(path))
 
 
+  /* symbolic path representation, e.g. "~~/src/Pure/ROOT.ML" */
+
+  def symbolic_path(path: Path): String = {
+    val directories =
+      Library.space_explode(':', Isabelle_System.getenv("ISABELLE_DIRECTORIES")).reverse
+    val full_name = standard_path(path)
+    directories.view.flatMap(a =>
+      try {
+        val b = standard_path(Path.explode(a))
+        if (full_name == b) Some(a)
+        else {
+          Library.try_unprefix(b + "/", full_name) match {
+            case Some(name) => Some(a + "/" + name)
+            case None => None
+          }
+        }
+      } catch { case ERROR(_) => None }).headOption.getOrElse(path.implode)
+  }
+
+
   /* platform files */
 
   def absolute(file: JFile): JFile = file.toPath.toAbsolutePath.normalize.toFile

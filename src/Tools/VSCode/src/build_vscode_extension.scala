@@ -24,7 +24,7 @@ object Build_VSCode {
       Sessions.background(options, logic, dirs = dirs).check_errors.base.overall_syntax.keywords
 
     val output_path = build_dir + Path.explode("isabelle-grammar.json")
-    progress.echo(output_path.expand.implode)
+    progress.echo(File.standard_path(output_path))
 
     val (minor_keywords, operators) =
       keywords.minor.iterator.toList.partition(Symbol.is_ascii_identifier)

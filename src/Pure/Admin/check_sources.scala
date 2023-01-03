@@ -10,7 +10,7 @@ package isabelle
 object Check_Sources {
   def check_file(path: Path): Unit = {
     val file_name = path.implode
-    val file_pos = Position.File(path.implode_symbolic)
+    val file_pos = Position.File(File.symbolic_path(path))
     def line_pos(i: Int) = Position.Line_File(i + 1, file_name)
 
     if (space_explode('/', Word.lowercase(path.expand.drop_ext.implode)).contains("aux"))

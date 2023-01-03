@@ -101,7 +101,7 @@ object Jenkins {
       val log_path = log_dir + log_filename.xz
 
       if (!log_path.is_file) {
-        progress.echo(log_path.expand.implode)
+        progress.echo(File.standard_path(log_path))
         Isabelle_System.make_directory(log_dir)
 
         val ml_statistics =

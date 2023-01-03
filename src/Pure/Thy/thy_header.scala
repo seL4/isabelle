@@ -84,11 +84,9 @@ object Thy_Header {
 
   def get_thy_name(s: String): Option[String] = Url.get_base_name(s, suffix = ".thy")
 
-  def list_thy_names(dir: Path): List[String] = {
-    val files =
-      try { File.read_dir(dir) }
-      catch { case ERROR(_) => Nil }
-    files.flatMap(get_thy_name)
+  def list_thys(dir: Path): List[String] = {
+    val entries = try { File.read_dir(dir) } catch { case ERROR(_) => Nil }
+    entries.flatMap(get_thy_name)
   }
 
   def theory_name(s: String): String =
