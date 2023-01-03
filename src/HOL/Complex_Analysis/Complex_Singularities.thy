@@ -43,16 +43,14 @@ proof -
   hence "continuous_on (s-{z}) (inverse o f)" unfolding comp_def
     by (auto elim!:continuous_on_inverse simp add:non_z)
   hence "continuous_on (s-{z}) g" unfolding g_def
-    apply (subst continuous_on_cong[where t="s-{z}" and g="inverse o f"])
-    by auto
+    using continuous_on_eq by fastforce
   ultimately have "continuous_on s g" using open_delete[OF \<open>open s\<close>] \<open>open s\<close>
     by (auto simp add:continuous_on_eq_continuous_at)
   moreover have "(inverse o f) holomorphic_on (s-{z})"
     unfolding comp_def using f_holo
     by (auto elim!:holomorphic_on_inverse simp add:non_z)
   hence "g holomorphic_on (s-{z})"
-    apply (subst holomorphic_cong[where t="s-{z}" and g="inverse o f"])
-    by (auto simp add:g_def)
+    using g_def holomorphic_transform by force
   ultimately show ?thesis unfolding g_def using \<open>open s\<close>
     by (auto elim!: no_isolated_singularity)
 qed
@@ -82,9 +80,8 @@ lemma is_pole_divide:
   shows   "is_pole (\<lambda>z. f z / g z) z"
 proof -
   have "filterlim (\<lambda>z. f z * inverse (g z)) at_infinity (at z)"
-    by (intro tendsto_mult_filterlim_at_infinity[of _ "f z"]
-                 filterlim_compose[OF filterlim_inverse_at_infinity])+
-       (insert assms, auto simp: isCont_def)
+    using assms filterlim_compose filterlim_inverse_at_infinity isCont_def 
+      tendsto_mult_filterlim_at_infinity by blast
   thus ?thesis by (simp add: field_split_simps is_pole_def)
 qed
 
@@ -132,9 +129,7 @@ proof -
     have "(h \<longlongrightarrow> 0) (at z within ball z r)"
     proof (rule Lim_transform_within[OF _ \<open>r>0\<close>, where f="\<lambda>w. (w - z) powr (n - m) * g w"])
       have "\<forall>w\<in>ball z r-{z}. h w = (w-z)powr(n-m) * g w"
-        using \<open>n>m\<close> asm \<open>r>0\<close>
-        apply (auto simp add:field_simps powr_diff)
-        by force
+        using \<open>n>m\<close> asm \<open>r>0\<close> by (simp add: field_simps powr_diff) force
       then show "\<lbrakk>x' \<in> ball z r; 0 < dist x' z;dist x' z < r\<rbrakk>
             \<Longrightarrow> (x' - z) powr (n - m) * g x' = h x'" for x' by auto
     next
@@ -142,8 +137,8 @@ proof -
       define f' where "f' \<equiv> \<lambda>x. (x - z) powr (n-m)"
       have "f' z=0" using \<open>n>m\<close> unfolding f'_def by auto
       moreover have "continuous F f'" unfolding f'_def F_def continuous_def
-        apply (subst Lim_ident_at)
-        using \<open>n>m\<close> by (auto intro!:tendsto_powr_complex_0 tendsto_eq_intros)
+        using \<open>n>m\<close> 
+          by (auto simp add: Lim_ident_at  intro!:tendsto_powr_complex_0 tendsto_eq_intros)
       ultimately have "(f' \<longlongrightarrow> 0) F" unfolding F_def
         by (simp add: continuous_within)
       moreover have "(g \<longlongrightarrow> g z) F"
@@ -162,8 +157,7 @@ proof -
     have "(g \<longlongrightarrow> 0) (at z within ball z r)"
     proof (rule Lim_transform_within[OF _ \<open>r>0\<close>, where f="\<lambda>w. (w - z) powr (m - n) * h w"])
       have "\<forall>w\<in>ball z r -{z}. g w = (w-z) powr (m-n) * h w" using \<open>m>n\<close> asm
-        apply (auto simp add:field_simps powr_diff)
-        by force
+        by (simp add:field_simps powr_diff) force
       then show "\<lbrakk>x' \<in> ball z r; 0 < dist x' z;dist x' z < r\<rbrakk>
             \<Longrightarrow> (x' - z) powr (m - n) * h x' = g x'" for x' by auto
     next
@@ -171,8 +165,8 @@ proof -
       define f' where "f' \<equiv>\<lambda>x. (x - z) powr (m-n)"
       have "f' z=0" using \<open>m>n\<close> unfolding f'_def by auto
       moreover have "continuous F f'" unfolding f'_def F_def continuous_def
-        apply (subst Lim_ident_at)
-        using \<open>m>n\<close> by (auto intro!:tendsto_powr_complex_0 tendsto_eq_intros)
+        using \<open>m>n\<close> 
+        by (auto simp: Lim_ident_at intro!:tendsto_powr_complex_0 tendsto_eq_intros)
       ultimately have "(f' \<longlongrightarrow> 0) F" unfolding F_def
         by (simp add: continuous_within)
       moreover have "(h \<longlongrightarrow> h z) F"
@@ -222,22 +216,22 @@ proof -
       "\<exists>z'. (h \<longlongrightarrow> z') (at z)" "isolated_singularity_at h z"  "\<exists>\<^sub>Fw in (at z). h w\<noteq>0"
     for h
   proof -
-    from that(2) obtain r where "r>0" "h analytic_on ball z r - {z}"
+    from that(2) obtain r where "r>0" and r: "h analytic_on ball z r - {z}"
       unfolding isolated_singularity_at_def by auto
     obtain z' where "(h \<longlongrightarrow> z') (at z)" using \<open>\<exists>z'. (h \<longlongrightarrow> z') (at z)\<close> by auto
     define h' where "h'=(\<lambda>x. if x=z then z' else h x)"
     have "h' holomorphic_on ball z r"
-      apply (rule no_isolated_singularity'[of "{z}"])
-      subgoal by (metis LIM_equal Lim_at_imp_Lim_at_within \<open>h \<midarrow>z\<rightarrow> z'\<close> empty_iff h'_def insert_iff)
-      subgoal using \<open>h analytic_on ball z r - {z}\<close> analytic_imp_holomorphic h'_def holomorphic_transform
-        by fastforce
-      by auto
+    proof (rule no_isolated_singularity'[of "{z}"])
+      show "\<And>w. w \<in> {z} \<Longrightarrow> (h' \<longlongrightarrow> h' w) (at w within ball z r)"
+        by (simp add: LIM_cong Lim_at_imp_Lim_at_within \<open>h \<midarrow>z\<rightarrow> z'\<close> h'_def)
+      show "h' holomorphic_on ball z r - {z}"
+        using r analytic_imp_holomorphic h'_def holomorphic_transform by fastforce
+    qed auto
     have ?thesis when "z'=0"
     proof -
       have "h' z=0" using that unfolding h'_def by auto
       moreover have "\<not> h' constant_on ball z r"
         using \<open>\<exists>\<^sub>Fw in (at z). h w\<noteq>0\<close> unfolding constant_on_def frequently_def eventually_at h'_def
-        apply simp
         by (metis \<open>0 < r\<close> centre_in_ball dist_commute mem_ball that)
       moreover note \<open>h' holomorphic_on ball z r\<close>
       ultimately obtain g r1 n where "0 < n" "0 < r1" "ball z r1 \<subseteq> ball z r" and
@@ -278,7 +272,7 @@ proof -
     ultimately show ?thesis by auto
   qed
 
-  have ?thesis when "\<exists>x. (f \<longlongrightarrow> x) (at z)"
+  have ?thesis when "\<exists>x. (f \<longlongrightarrow> x) (at z)"  
     apply (rule_tac imp_unique[unfolded P_def])
     using P_exist[OF that(1) f_iso non_zero] unfolding P_def .
   moreover have ?thesis when "is_pole f z"
@@ -292,29 +286,23 @@ proof -
         using that eventually_at[of "\<lambda>x. f x\<noteq>0" z UNIV,simplified] by (auto simp add:dist_commute)
       obtain e2 where e2:"e2>0" "f holomorphic_on ball z e2 - {z}"
         using f_iso analytic_imp_holomorphic unfolding isolated_singularity_at_def by auto
-      define e where "e=min e1 e2"
       show ?thesis
-        apply (rule that[of e])
-        using  e1 e2 unfolding e_def by auto
+        using e1 e2 by (force intro: that[of "min e1 e2"])
     qed
 
     define h where "h \<equiv> \<lambda>x. inverse (f x)"
-
     have "\<exists>n g r. P h n g r"
     proof -
-      have "h \<midarrow>z\<rightarrow> 0"
+      have "(\<lambda>x. inverse (f x)) analytic_on ball z e - {z}"
+        by (metis e_holo e_nz open_ball analytic_on_open holomorphic_on_inverse open_delete)
+      moreover have "h \<midarrow>z\<rightarrow> 0"
         using Lim_transform_within_open assms(2) h_def is_pole_tendsto that by fastforce
       moreover have "\<exists>\<^sub>Fw in (at z). h w\<noteq>0"
-        using non_zero
-        apply (elim frequently_rev_mp)
-        unfolding h_def eventually_at by (auto intro:exI[where x=1])
-      moreover have "isolated_singularity_at h z"
-        unfolding isolated_singularity_at_def h_def
-        apply (rule exI[where x=e])
-        using e_holo e_nz \<open>e>0\<close> by (metis open_ball analytic_on_open
-            holomorphic_on_inverse open_delete)
+        using non_zero by (simp add: h_def)
       ultimately show ?thesis
-        using P_exist[of h] by auto
+        using P_exist[of h] \<open>e > 0\<close>
+        unfolding isolated_singularity_at_def h_def
+        by blast
     qed
     then obtain n g r
       where "0 < r" and
@@ -324,9 +312,8 @@ proof -
     have "P f (-n) (inverse o g) r"
     proof -
       have "f w = inverse (g w) * (w - z) powr of_int (- n)" when "w\<in>cball z r - {z}" for w
-        using g_fac[rule_format,of w] that unfolding h_def
-        apply (auto simp add:powr_minus )
-        by (metis inverse_inverse_eq inverse_mult_distrib)
+        by (metis g_fac h_def inverse_inverse_eq inverse_mult_distrib of_int_minus 
+            powr_minus that)
       then show ?thesis
         unfolding P_def comp_def
         using \<open>r>0\<close> g_holo g_fac \<open>g z\<noteq>0\<close> by (auto intro:holomorphic_intros)
@@ -378,33 +365,31 @@ proof -
     have "(\<lambda>w.  (f w) ^ (nat n)) \<midarrow>z\<rightarrow> x ^ nat n"
       using that assms unfolding filterlim_at by (auto intro!:tendsto_eq_intros)
     then have "fp \<midarrow>z\<rightarrow> x ^ nat n" unfolding fp_def
-      apply (elim Lim_transform_within[where d=1],simp)
-      by (metis less_le powr_0 powr_of_int that zero_less_nat_eq zero_power)
+      by (smt (verit, best) LIM_equal of_int_of_nat power_eq_0_iff powr_nat that zero_less_nat_eq)
     then show ?thesis unfolding not_essential_def fp_def by auto
   qed
   moreover have ?thesis when "n=0"
   proof -
-    have "fp \<midarrow>z\<rightarrow> 1 "
-      apply (subst tendsto_cong[where g="\<lambda>_.1"])
-      using that filterlim_at_within_not_equal[OF assms,of 0] unfolding fp_def by auto
+    have "\<forall>\<^sub>F x in at z. fp x = 1"
+      using that filterlim_at_within_not_equal[OF assms] by (auto simp: fp_def)
+    then have "fp \<midarrow>z\<rightarrow> 1"
+      by (simp add: tendsto_eventually)
     then show ?thesis unfolding fp_def not_essential_def by auto
   qed
   moreover have ?thesis when "n<0"
   proof (cases "x=0")
     case True
-    have "LIM w (at z). inverse ((f w) ^ (nat (-n))) :> at_infinity"
-      apply (subst filterlim_inverse_at_iff[symmetric],simp)
-      apply (rule filterlim_atI)
-      subgoal using assms True that unfolding filterlim_at by (auto intro!:tendsto_eq_intros)
-      subgoal using filterlim_at_within_not_equal[OF assms,of 0]
-        by (eventually_elim,insert that,auto)
-      done
+    have "(\<lambda>x. f x ^ nat (- n)) \<midarrow>z\<rightarrow> 0"
+      using assms True that unfolding filterlim_at by (auto intro!:tendsto_eq_intros)
+    moreover have "\<forall>\<^sub>F x in at z. f x ^ nat (- n) \<noteq> 0"
+      by (smt (verit) True assms eventually_at_topological filterlim_at power_eq_0_iff)
+    ultimately have "LIM w (at z). inverse ((f w) ^ (nat (-n))) :> at_infinity"
+      by (metis filterlim_atI filterlim_compose filterlim_inverse_at_infinity)
     then have "LIM w (at z). fp w :> at_infinity"
     proof (elim filterlim_mono_eventually)
       show "\<forall>\<^sub>F x in at z. inverse (f x ^ nat (- n)) = fp x"
         using filterlim_at_within_not_equal[OF assms,of 0] unfolding fp_def
-        apply eventually_elim
-        using powr_of_int that by auto
+        by (smt (verit, ccfv_threshold) eventually_mono powr_of_int that)
     qed auto
     then show ?thesis unfolding fp_def not_essential_def is_pole_def by auto
   next
@@ -412,10 +397,9 @@ proof -
     let ?xx= "inverse (x ^ (nat (-n)))"
     have "(\<lambda>w. inverse ((f w) ^ (nat (-n)))) \<midarrow>z\<rightarrow>?xx"
       using assms False unfolding filterlim_at by (auto intro!:tendsto_eq_intros)
-    then have "fp \<midarrow>z\<rightarrow>?xx"
-      apply (elim Lim_transform_within[where d=1],simp)
-      unfolding fp_def by (metis inverse_zero nat_mono_iff nat_zero_as_int neg_0_less_iff_less
-          not_le power_eq_0_iff powr_0 powr_of_int that)
+    then have "fp \<midarrow>z\<rightarrow> ?xx"
+      by (smt (verit) LIM_cong fp_def inverse_nonzero_iff_nonzero power_eq_0_iff powr_eq_0_iff 
+          powr_of_int that zero_less_nat_eq)
     then show ?thesis unfolding fp_def not_essential_def by auto
   qed
   ultimately show ?thesis by linarith
@@ -433,14 +417,10 @@ proof -
     using assms(2) unfolding eventually_at by auto
   define r3 where "r3=min r1 r2"
   have "(\<lambda>w. (f w) powr of_int n) holomorphic_on ball z r3 - {z}"
-    apply (rule holomorphic_on_powr_of_int)
-    subgoal unfolding r3_def using r1 by auto
-    subgoal unfolding r3_def using r2 by (auto simp add:dist_commute)
-    done
+    by (intro holomorphic_on_powr_of_int) (use r1 r2 in \<open>auto simp: dist_commute r3_def\<close>)
   moreover have "r3>0" unfolding r3_def using \<open>0 < r1\<close> \<open>0 < r2\<close> by linarith
-  ultimately show ?thesis unfolding isolated_singularity_at_def
-    apply (subst (asm) analytic_on_open[symmetric])
-    by auto
+  ultimately show ?thesis
+    by (meson open_ball analytic_on_open isolated_singularity_at_def open_delete)
 qed
 
 lemma non_zero_neighbour:
@@ -478,19 +458,17 @@ proof (cases "f z = 0")
   case True
   from isolated_zeros[OF holo \<open>open S\<close> \<open>connected S\<close> \<open>z \<in> S\<close> True \<open>\<beta> \<in> S\<close> \<open>f \<beta> \<noteq> 0\<close>]
   obtain r where "0 < r" "ball z r \<subseteq> S" "\<forall>w \<in> ball z r - {z}.f w \<noteq> 0" by metis
-  then show ?thesis unfolding eventually_at
-    apply (rule_tac x=r in exI)
-    by (auto simp add:dist_commute)
+  then show ?thesis
+    by (smt (verit) open_ball centre_in_ball eventually_at_topological insertE insert_Diff subsetD)
 next
   case False
   obtain r1 where r1:"r1>0" "\<forall>y. dist z y < r1 \<longrightarrow> f y \<noteq> 0"
     using continuous_at_avoid[of z f, OF _ False] assms(2,4) continuous_on_eq_continuous_at
       holo holomorphic_on_imp_continuous_on by blast
   obtain r2 where r2:"r2>0" "ball z r2 \<subseteq> S"
-    using assms(2) assms(4) openE by blast
+    using assms openE by blast
   show ?thesis unfolding eventually_at
-    apply (rule_tac x="min r1 r2" in exI)
-    using r1 r2 by (auto simp add:dist_commute)
+    by (metis (no_types) dist_commute dual_order.strict_trans linorder_less_linear mem_ball r1 r2 subsetD)
 qed
 
 lemma not_essential_times[singularity_intros]:
@@ -541,10 +519,9 @@ proof -
       have "(\<lambda>w. (fp w * gp w) * (w - z) ^ (nat (fn+gn))) \<midarrow>z\<rightarrow>0"
         using that by (auto intro!:tendsto_eq_intros)
       then have "fg \<midarrow>z\<rightarrow> 0"
-        apply (elim Lim_transform_within[OF _ \<open>r1>0\<close>])
-        by (metis (no_types, opaque_lifting) Diff_iff cball_trivial dist_commute dist_self
-              eq_iff_diff_eq_0 fg_times less_le linorder_not_le mem_ball mem_cball powr_of_int
-              that)
+        using Lim_transform_within[OF _ \<open>r1>0\<close>]
+        by (smt (verit, ccfv_SIG) DiffI dist_commute dist_nz fg_times mem_ball powr_of_int right_minus_eq 
+            singletonD that)
       then show ?thesis unfolding not_essential_def fg_def by auto
     qed
     moreover have ?thesis when "fn+gn=0"
