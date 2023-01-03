@@ -757,8 +757,8 @@ proof -
       have "N > C" if "u N \<ge> n" for N
       proof (rule ccontr)
         assume "\<not>(N > C)"
-        have "u N \<le> Max {u n| n. n \<le> C}"
-          apply (rule Max_ge) using \<open>\<not>(N > C)\<close> by auto
+        then have "u N \<le> Max {u n| n. n \<le> C}"
+          using Max_ge by (simp add: setcompr_eq_image not_less)
         then show False using \<open>u N \<ge> n\<close> \<open>n \<ge> M\<close> unfolding M_def by auto
       qed
       then have **: "{N. u N \<ge> n} \<subseteq> {C..}" by fastforce
@@ -782,7 +782,7 @@ proof -
   then obtain N1 where N1: "\<And>N. N \<ge> N1 \<Longrightarrow> u N \<ge> n + 1"
     using eventually_sequentially by auto
   have "{N. u N \<le> n} \<subseteq> {..<N1}"
-    apply auto using N1 by (metis Suc_eq_plus1 not_less not_less_eq_eq)
+    by (metis (no_types, lifting) N1 Suc_eq_plus1 lessThan_iff less_le_not_le mem_Collect_eq nle_le not_less_eq_eq subset_eq)
   then show "finite {N. u N \<le> n}" by (simp add: finite_subset)
 qed
 
@@ -794,7 +794,7 @@ proof -
   {
     fix N0::nat
     have "N0 \<le> Max {N. u N \<le> n}" if "n \<ge> u N0" for n
-      apply (rule Max.coboundedI) using pseudo_inverse_finite_set[OF assms] that by auto
+      by (simp add: assms pseudo_inverse_finite_set that)
     then have "eventually (\<lambda>n. N0 \<le> Max {N. u N \<le> n}) sequentially"
       using eventually_sequentially by blast
   }
@@ -895,12 +895,12 @@ lemma continuous_ereal_abs:
   "continuous_on (UNIV::ereal set) abs"
 proof -
   have "continuous_on ({..0} \<union> {(0::ereal)..}) abs"
-    apply (rule continuous_on_closed_Un, auto)
-    apply (rule iffD1[OF continuous_on_cong, of "{..0}" _ "\<lambda>x. -x"])
-    using less_eq_ereal_def apply (auto simp: continuous_uminus_ereal)
-    apply (rule iffD1[OF continuous_on_cong, of "{0..}" _ "\<lambda>x. x"])
-      apply (auto)
-    done
+  proof (intro continuous_on_closed_Un continuous_intros)
+    show "continuous_on {..0::ereal} abs"
+      by (metis abs_ereal_ge0 abs_ereal_less0 continuous_on_eq antisym_conv1 atMost_iff continuous_uminus_ereal ereal_uminus_zero)
+    show "continuous_on {0::ereal..} abs"
+      by (metis abs_ereal_ge0 atLeast_iff continuous_on_eq continuous_on_id)
+  qed
   moreover have "(UNIV::ereal set) = {..0} \<union> {(0::ereal)..}" by auto
   ultimately show ?thesis by auto
 qed
@@ -926,7 +926,7 @@ lemma tendsto_diff_ennreal_general [tendsto_intros]:
   shows "((\<lambda>n. u n - v n) \<longlongrightarrow> l - m) F"
 proof -
   have "((\<lambda>n. e2ennreal(enn2ereal(u n) - enn2ereal(v n))) \<longlongrightarrow> e2ennreal(enn2ereal l - enn2ereal m)) F"
-    apply (intro tendsto_intros) using assms by  auto
+    by (intro tendsto_intros) (use assms in auto)
   then show ?thesis by auto
 qed
 
@@ -936,8 +936,7 @@ lemma tendsto_mult_ennreal [tendsto_intros]:
   shows "((\<lambda>n. u n * v n) \<longlongrightarrow> l * m) F"
 proof -
   have "((\<lambda>n. e2ennreal(enn2ereal (u n) * enn2ereal (v n))) \<longlongrightarrow> e2ennreal(enn2ereal l * enn2ereal m)) F"
-    apply (intro tendsto_intros) using assms apply auto
-    using enn2ereal_inject zero_ennreal.rep_eq by fastforce+
+    by (intro tendsto_intros) (use assms enn2ereal_inject zero_ennreal.rep_eq in fastforce)+
   moreover have "e2ennreal(enn2ereal (u n) * enn2ereal (v n)) = u n * v n" for n
     by (subst times_ennreal.abs_eq[symmetric], auto simp: eq_onp_same_args)
   moreover have "e2ennreal(enn2ereal l * enn2ereal m)  = l * m"
@@ -1095,25 +1094,8 @@ next
   {
     fix S :: "ereal set"
     assume om: "open S" "mono_set S" "x0 \<in> S"
-    {
-      assume "S = UNIV"
-      then have "\<exists>N. \<forall>n\<ge>N. x n \<in> S"
-        by auto
-    }
-    moreover
-    {
-      assume "S \<noteq> UNIV"
-      then obtain B where B: "S = {B<..}"
-        using om ereal_open_mono_set by auto
-      then have "B < x0"
-        using om by auto
-      then have "\<exists>N. \<forall>n\<ge>N. x n \<in> S"
-        unfolding B
-        using \<open>x0 \<le> liminf x\<close> liminf_bounded_iff
-        by auto
-    }
-    ultimately have "\<exists>N. \<forall>n\<ge>N. x n \<in> S"
-      by auto
+    then have "\<exists>N. \<forall>n\<ge>N. x n \<in> S"
+        by (metis \<open>x0 \<le> liminf x\<close> ereal_open_mono_set greaterThan_iff liminf_bounded_iff om UNIV_I)
   }
   then show "?P x0"
     by auto
@@ -1126,9 +1108,9 @@ lemma limsup_finite_then_bounded:
 proof -
   obtain C where C: "limsup u < C" "C < \<infinity>" using assms ereal_dense2 by blast
   then have "C = ereal(real_of_ereal C)" using ereal_real by force
-  have "eventually (\<lambda>n. u n < C) sequentially" using C(1) unfolding Limsup_def
-    apply (auto simp: INF_less_iff)
-    using SUP_lessD eventually_mono by fastforce
+  have "eventually (\<lambda>n. u n < C) sequentially" 
+    using SUP_lessD eventually_mono C(1)
+    by (fastforce simp: INF_less_iff Limsup_def)
   then obtain N where N: "\<And>n. n \<ge> N \<Longrightarrow> u n < C" using eventually_sequentially by auto
   define D where "D = max (real_of_ereal C) (Max {u n |n. n \<le> N})"
   have "\<And>n. u n \<le> D"
@@ -1156,9 +1138,9 @@ lemma liminf_finite_then_bounded_below:
 proof -
   obtain C where C: "liminf u > C" "C > -\<infinity>" using assms using ereal_dense2 by blast
   then have "C = ereal(real_of_ereal C)" using ereal_real by force
-  have "eventually (\<lambda>n. u n > C) sequentially" using C(1) unfolding Liminf_def
-    apply (auto simp: less_SUP_iff)
-    using eventually_elim2 less_INF_D by fastforce
+  have "eventually (\<lambda>n. u n > C) sequentially" 
+    using eventually_elim2 less_INF_D C(1) 
+    by (fastforce simp: less_SUP_iff Liminf_def)
   then obtain N where N: "\<And>n. n \<ge> N \<Longrightarrow> u n > C" using eventually_sequentially by auto
   define D where "D = min (real_of_ereal C) (Min {u n |n. n \<le> N})"
   have "\<And>n. u n \<ge> D"
@@ -1172,7 +1154,8 @@ proof -
       assume "\<not>(n \<le> N)"
       then have "n \<ge> N" by simp
       then have "u n > C" using N by auto
-      then have "u n > real_of_ereal C" using \<open>C = ereal(real_of_ereal C)\<close> less_ereal.simps(1) by fastforce
+      then have "u n > real_of_ereal C" 
+        using \<open>C = ereal(real_of_ereal C)\<close> less_ereal.simps(1) by fastforce
       then show "u n \<ge> D" unfolding D_def by linarith
     qed
   qed
@@ -1189,12 +1172,12 @@ lemma limsup_shift:
   "limsup (\<lambda>n. u (n+1)) = limsup u"
 proof -
   have "(SUP m\<in>{n+1..}. u m) = (SUP m\<in>{n..}. u (m + 1))" for n
-    apply (rule SUP_eq) using Suc_le_D by auto
+    by (rule SUP_eq) (use Suc_le_D in auto)
   then have a: "(INF n. SUP m\<in>{n..}. u (m + 1)) = (INF n. (SUP m\<in>{n+1..}. u m))" by auto
   have b: "(INF n. (SUP m\<in>{n+1..}. u m)) = (INF n\<in>{1..}. (SUP m\<in>{n..}. u m))"
-    apply (rule INF_eq) using Suc_le_D by auto
+    by (rule INF_eq) (use Suc_le_D in auto)
   have "(INF n\<in>{1..}. v n) = (INF n. v n)" if "decseq v" for v::"nat \<Rightarrow> 'a"
-    apply (rule INF_eq) using \<open>decseq v\<close> decseq_Suc_iff by auto
+    by (rule INF_eq) (use \<open>decseq v\<close> decseq_Suc_iff in auto)
   moreover have "decseq (\<lambda>n. (SUP m\<in>{n..}. u m))" by (simp add: SUP_subset_mono decseq_def)
   ultimately have c: "(INF n\<in>{1..}. (SUP m\<in>{n..}. u m)) = (INF n. (SUP m\<in>{n..}. u m))" by simp
   have "(INF n. Sup (u ` {n..})) = (INF n. SUP m\<in>{n..}. u (m + 1))" using a b c by simp
@@ -1213,12 +1196,12 @@ lemma liminf_shift:
   "liminf (\<lambda>n. u (n+1)) = liminf u"
 proof -
   have "(INF m\<in>{n+1..}. u m) = (INF m\<in>{n..}. u (m + 1))" for n
-    apply (rule INF_eq) using Suc_le_D by (auto)
+    by (rule INF_eq) (use Suc_le_D in auto)
   then have a: "(SUP n. INF m\<in>{n..}. u (m + 1)) = (SUP n. (INF m\<in>{n+1..}. u m))" by auto
   have b: "(SUP n. (INF m\<in>{n+1..}. u m)) = (SUP n\<in>{1..}. (INF m\<in>{n..}. u m))"
-    apply (rule SUP_eq) using Suc_le_D by (auto)
+    by (rule SUP_eq) (use Suc_le_D in auto)
   have "(SUP n\<in>{1..}. v n) = (SUP n. v n)" if "incseq v" for v::"nat \<Rightarrow> 'a"
-    apply (rule SUP_eq) using \<open>incseq v\<close> incseq_Suc_iff by auto
+    by (rule SUP_eq) (use \<open>incseq v\<close> incseq_Suc_iff in auto)
   moreover have "incseq (\<lambda>n. (INF m\<in>{n..}. u m))" by (simp add: INF_superset_mono mono_def)
   ultimately have c: "(SUP n\<in>{1..}. (INF m\<in>{n..}. u m)) = (SUP n. (INF m\<in>{n..}. u m))" by simp
   have "(SUP n. Inf (u ` {n..})) = (SUP n. INF m\<in>{n..}. u (m + 1))" using a b c by simp
@@ -1229,7 +1212,8 @@ lemma liminf_shift_k:
   "liminf (\<lambda>n. u (n+k)) = liminf u"
 proof (induction k)
   case (Suc k)
-  have "liminf (\<lambda>n. u (n+k+1)) = liminf (\<lambda>n. u (n+k))" using liminf_shift[where ?u="\<lambda>n. u(n+k)"] by simp
+  have "liminf (\<lambda>n. u (n+k+1)) = liminf (\<lambda>n. u (n+k))" 
+    using liminf_shift[where ?u="\<lambda>n. u(n+k)"] by simp
   then show ?case using Suc.IH by simp
 qed (auto)
 
@@ -1392,8 +1376,7 @@ next
         have "u i \<ge> u p"
         proof (cases)
           assume "i \<le> x"
-          then have "i \<in> {N<..x}" using i by simp
-          then show ?thesis using a by simp
+          then show ?thesis using a \<open>i \<in> {N<..y}\<close> by force
         next
           assume "\<not>(i \<le> x)"
           then have "i > x" by simp
@@ -1608,7 +1591,7 @@ proof -
     unfolding w_def using that by (auto simp: ereal_divide_eq)
   ultimately have "eventually (\<lambda>n. (w o s) n / (u o s) n = (v o s) n) sequentially" using eventually_elim2 by force
   moreover have "(\<lambda>n. (w o s) n / (u o s) n) \<longlonglongrightarrow> (liminf w) / a"
-    apply (rule tendsto_divide_ereal[OF s(2) *]) using assms(2) assms(3) by auto
+    using "*" assms s tendsto_divide_ereal by fastforce
   ultimately have "(v o s) \<longlonglongrightarrow> (liminf w) / a" using Lim_transform_eventually by fastforce
   then have "liminf (v o s) = (liminf w) / a" by (simp add: tendsto_iff_Liminf_eq_Limsup)
   then have "liminf v \<le> (liminf w) / a" by (metis liminf_subseq_mono s(1))
@@ -1628,7 +1611,7 @@ proof -
   then have **: "abs(liminf (\<lambda>n. -u n)) \<noteq> \<infinity>" using assms(2) by auto
 
   have "liminf (\<lambda>n. u n + v n) \<ge> liminf u + liminf v"
-    apply (rule ereal_liminf_add_mono) using * by auto
+    using abs_ereal.simps by (metis (full_types) "*" ereal_liminf_add_mono)
   then have up: "liminf (\<lambda>n. u n + v n) \<ge> a + liminf v" using \<open>liminf u = a\<close> by simp
 
   have a: "liminf (\<lambda>n. (u n + v n) + (-u n)) \<ge> liminf (\<lambda>n. u n + v n) + liminf (\<lambda>n. -u n)"
