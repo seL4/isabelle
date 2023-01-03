@@ -326,7 +326,7 @@ fun load_thy options initiators deps text (name, header_pos) keywords parents =
       Execution.running Document_ID.none exec_id [] orelse
         raise Fail ("Failed to register execution: " ^ id);
 
-    val text_pos = put_id (Path.position thy_path);
+    val text_pos = put_id (Position.file (Path.implode_symbolic thy_path));
     val text_props = Position.properties_of text_pos;
 
     val _ = remove_thy name;

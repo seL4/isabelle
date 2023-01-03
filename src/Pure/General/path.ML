@@ -38,7 +38,6 @@ sig
   val expand: T -> T
   val file_name: T -> string
   val implode_symbolic: T -> string
-  val position: T -> Position.T
   eqtype binding
   val binding: T * Position.T -> binding
   val binding0: T -> binding
@@ -258,8 +257,6 @@ fun implode_symbolic path =
       SOME name => name
     | NONE => implode_path path)
   end;
-
-val position = Position.file o implode_symbolic;
 
 
 (* binding: strictly monotonic path with position *)

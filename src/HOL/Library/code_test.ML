@@ -316,8 +316,8 @@ fun main () =
         {environment = ML_Env.SML, redirect = false, verbose = false, debug = NONE,
           writeln = writeln, warning = warning}
         Position.none
-        (ML_Lex.read_text (code, Path.position code_path) @
-         ML_Lex.read_text (driver, Path.position driver_path) @
+        (ML_Lex.read_text (code, Position.file (Path.implode_symbolic code_path)) @
+         ML_Lex.read_text (driver, Position.file (Path.implode_symbolic driver_path)) @
          ML_Lex.read "main ()")
       handle ERROR msg => error ("Evaluation for " ^ polymlN ^ " failed:\n" ^ msg)
   in File.read out_path end

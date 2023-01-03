@@ -320,7 +320,7 @@ fun check_thy dir thy_name =
     val text = File.read master_file;
 
     val {name = (name, pos), imports, keywords} =
-      Thy_Header.read (Path.position master_file) text;
+      Thy_Header.read (Position.file (Path.implode_symbolic master_file)) text;
     val _ =
       thy_base_name <> name andalso
         error ("Bad theory name " ^ quote name ^
@@ -339,7 +339,7 @@ fun read_file_node file_node master_dir (src_path, pos) =
       let
         val path = File.check_file (File.full_path master_dir src_path);
         val text = File.read path;
-        val file_pos = Path.position path;
+        val file_pos = Position.file (Path.implode_symbolic path);
       in (text, file_pos) end;
 
     fun read_remote () =
