@@ -110,6 +110,9 @@ extends Resources(session_background, log = log) {
     else File.absolute_name(new JFile(prefix + JFile.separator + File.platform_path(path)))
   }
 
+  override def read_dir(dir: String): List[String] =
+    File.read_dir(Path.explode(File.standard_path(dir)))
+
   def get_models(): Iterable[VSCode_Model] = state.value.models.values
   def get_model(file: JFile): Option[VSCode_Model] = state.value.models.get(file)
   def get_model(name: Document.Node.Name): Option[VSCode_Model] = get_model(node_file(name))

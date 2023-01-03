@@ -75,6 +75,13 @@ class Resources(
   def append_path(prefix: String, source_path: Path): String =
     File.standard_path(Path.explode(prefix) + source_path)
 
+  def read_dir(dir: String): List[String] = File.read_dir(Path.explode(dir))
+
+  def list_thys(dir: String): List[String] = {
+    val entries = try { read_dir(dir) } catch { case ERROR(_) => Nil }
+    entries.flatMap(Thy_Header.get_thy_name)
+  }
+
 
   /* source files of Isabelle/ML bootstrap */
 
@@ -192,13 +199,11 @@ class Resources(
 
   def complete_import_name(context_name: Document.Node.Name, s: String): List[String] = {
     val context_session = sessions_structure.theory_qualifier(context_name)
-    val context_dir =
-      try { Some(context_name.master_dir_path) }
-      catch { case ERROR(_) => None }
+    def context_dir(): List[String] = list_thys(context_name.master_dir)
+    def session_dir(info: Sessions.Info): List[String] = info.dirs.flatMap(Thy_Header.list_thys)
     (for {
       (session, (info, _)) <- sessions_structure.imports_graph.iterator
-      dir <- (if (session == context_session) context_dir.toList else info.dirs).iterator
-      theory <- Thy_Header.list_thy_names(dir).iterator
+      theory <- (if (session == context_session) context_dir() else session_dir(info)).iterator
       if Completion.completed(s)(theory)
     } yield {
       if (session == context_session || global_theory(theory)) theory
