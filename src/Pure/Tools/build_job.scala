@@ -30,21 +30,20 @@ object Build_Job {
       (thy_file, blobs_files) <- theory_context.files(permissive = true)
     }
     yield {
-      val master_dir =
-        Url.strip_base_name(thy_file).getOrElse(
-          error("Cannot determine theory master directory: " + quote(thy_file)))
-      val node_name = Document.Node.Name(thy_file, theory = theory_context.theory)
-
       val results =
         Command.Results.make(
           for (elem @ XML.Elem(Markup(_, Markup.Serial(i)), _) <- read_xml(Export.MESSAGES))
             yield i -> elem)
 
+      val master_dir =
+        Path.explode(Url.strip_base_name(thy_file).getOrElse(
+          error("Cannot determine theory master directory: " + quote(thy_file))))
+
       val blobs =
         blobs_files.map { file =>
           val name = Document.Node.Name(file)
           val path = Path.explode(file)
-          val src_path = File.relative_path(node_name.master_dir_path, path).getOrElse(path)
+          val src_path = File.relative_path(master_dir, path).getOrElse(path)
           Command.Blob(name, src_path, None)
         }
       val blobs_xml =
@@ -72,7 +71,8 @@ object Build_Job {
           yield index -> Markup_Tree.from_XML(xml))
 
       val command =
-        Command.unparsed(thy_source, theory = true, id = id, node_name = node_name,
+        Command.unparsed(thy_source, theory = true, id = id,
+          node_name = Document.Node.Name(thy_file, theory = theory_context.theory),
           blobs_info = blobs_info, results = results, markups = markups)
 
       Document.State.init.snippet(command)
@@ -283,10 +283,10 @@ class Build_Job(progress: Progress,
                   for (span <- spans; file <- span.loaded_files(syntax).files)
                   yield {
                     (Exn.capture {
-                      val dir = node_name.master_dir_path
+                      val master_dir = Path.explode(node_name.master_dir)
                       val src_path = Path.explode(file)
-                      val name = Document.Node.Name((dir + src_path).expand.implode_symbolic)
-                      Command.Blob.read_file(name, src_path)
+                      val node = (master_dir + src_path).expand.implode_symbolic
+                      Command.Blob.read_file(Document.Node.Name(node), src_path)
                     }).user_error
                   }
                 Command.Blobs_Info(blobs)
