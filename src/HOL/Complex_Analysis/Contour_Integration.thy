@@ -1413,7 +1413,7 @@ lemma simple_path_part_circlepath:
 proof (cases "r = 0 \<or> s = t")
   case True
   then show ?thesis
-    unfolding part_circlepath_def simple_path_def
+    unfolding part_circlepath_def simple_path_def loop_free_def
     by (rule disjE) (force intro: bexI [where x = "1/4"] bexI [where x = "1/3"])+
 next
   case False then have "r \<noteq> 0" "s \<noteq> t" by auto
@@ -1445,7 +1445,7 @@ next
   have abs_away: "\<And>P. (\<forall>x\<in>{0..1}. \<forall>y\<in>{0..1}. P \<bar>x - y\<bar>) \<longleftrightarrow> (\<forall>x::real. 0 \<le> x \<and> x \<le> 1 \<longrightarrow> P x)"
     by force
   show ?thesis using False
-    apply (simp add: simple_path_def)
+    apply (simp add: simple_path_def loop_free_def)
     apply (simp add: part_circlepath_def linepath_def exp_eq  * ** abs01 del: Set.insert_iff)
     apply (subst abs_away)
     apply (auto simp: 1)

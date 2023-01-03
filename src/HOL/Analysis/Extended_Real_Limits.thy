@@ -175,45 +175,12 @@ qed
 lemma ereal_open_closed:
   fixes S :: "ereal set"
   shows "open S \<and> closed S \<longleftrightarrow> S = {} \<or> S = UNIV"
-proof -
-  {
-    assume lhs: "open S \<and> closed S"
-    {
-      assume "-\<infinity> \<notin> S"
-      then have "S = {}"
-        using lhs ereal_open_closed_aux by auto
-    }
-    moreover
-    {
-      assume "-\<infinity> \<in> S"
-      then have "- S = {}"
-        using lhs ereal_open_closed_aux[of "-S"] by auto
-    }
-    ultimately have "S = {} \<or> S = UNIV"
-      by auto
-  }
-  then show ?thesis
-    by auto
-qed
+  using ereal_open_closed_aux open_closed by auto
 
 lemma ereal_open_atLeast:
   fixes x :: ereal
   shows "open {x..} \<longleftrightarrow> x = -\<infinity>"
-proof
-  assume "x = -\<infinity>"
-  then have "{x..} = UNIV"
-    by auto
-  then show "open {x..}"
-    by auto
-next
-  assume "open {x..}"
-  then have "open {x..} \<and> closed {x..}"
-    by auto
-  then have "{x..} = UNIV"
-    unfolding ereal_open_closed by auto
-  then show "x = -\<infinity>"
-    by (simp add: bot_ereal_def atLeast_eq_UNIV_iff)
-qed
+  by (metis atLeast_eq_UNIV_iff bot_ereal_def closed_atLeast ereal_open_closed not_Ici_eq_empty)
 
 lemma mono_closed_real:
   fixes S :: "real set"
@@ -227,10 +194,7 @@ proof -
       then have *: "\<forall>x\<in>S. Inf S \<le> x"
         using cInf_lower[of _ S] ex by (metis bdd_below_def)
       then have "Inf S \<in> S"
-        apply (subst closed_contains_Inf)
-        using ex \<open>S \<noteq> {}\<close> \<open>closed S\<close>
-        apply auto
-        done
+        by (meson \<open>S \<noteq> {}\<close> assms(2) bdd_belowI closed_contains_Inf)
       then have "\<forall>x. Inf S \<le> x \<longleftrightarrow> x \<in> S"
         using mono[rule_format, of "Inf S"] *
         by auto
@@ -267,33 +231,18 @@ lemma mono_closed_ereal:
     and "closed S"
   shows "\<exists>a. S = {x. a \<le> ereal x}"
 proof -
-  {
-    assume "S = {}"
-    then have ?thesis
-      apply (rule_tac x=PInfty in exI)
-      apply auto
-      done
-  }
-  moreover
-  {
-    assume "S = UNIV"
-    then have ?thesis
-      apply (rule_tac x="-\<infinity>" in exI)
-      apply auto
-      done
-  }
-  moreover
-  {
-    assume "\<exists>a. S = {a ..}"
-    then obtain a where "S = {a ..}"
-      by auto
-    then have ?thesis
-      apply (rule_tac x="ereal a" in exI)
-      apply auto
-      done
-  }
-  ultimately show ?thesis
-    using mono_closed_real[of S] assms by auto
+  consider "S = {} \<or> S = UNIV" | "(\<exists>a. S = {a..})"
+    using assms(2) mono mono_closed_real by blast
+  then show ?thesis
+  proof cases
+    case 1
+    then show ?thesis
+      by (meson PInfty_neq_ereal(1) UNIV_eq_I bot.extremum empty_Collect_eq ereal_infty_less_eq(1) mem_Collect_eq)
+  next
+    case 2
+    then show ?thesis
+      by (metis atLeast_iff ereal_less_eq(3) mem_Collect_eq subsetI subset_antisym)
+  qed
 qed
 
 lemma Liminf_within:
@@ -349,10 +298,7 @@ lemma Limsup_at:
 lemma min_Liminf_at:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::complete_linorder"
   shows "min (f x) (Liminf (at x) f) = (SUP e\<in>{0<..}. INF y\<in>ball x e. f y)"
-  apply (simp add: inf_min [symmetric] Liminf_at)
-  apply (subst inf_commute)
-  apply (subst SUP_inf)
-  apply auto
+  apply (simp add: inf_min [symmetric] Liminf_at inf_commute [of "f x"] SUP_inf)
   apply (metis (no_types, lifting) INF_insert centre_in_ball greaterThan_iff image_cong inf_commute insert_Diff)
   done
 
@@ -362,9 +308,11 @@ subsection \<open>Extended-Real.thy\<close> (*FIX ME change title *)
 lemma sum_constant_ereal:
   fixes a::ereal
   shows "(\<Sum>i\<in>I. a) = a * card I"
-apply (cases "finite I", induct set: finite, simp_all)
-apply (cases a, auto, metis (no_types, opaque_lifting) add.commute mult.commute semiring_normalization_rules(3))
-done
+proof (induction I rule: infinite_finite_induct)
+  case (insert i I)
+  then show ?case
+    by (simp add: ereal_right_distrib flip: plus_ereal.simps)
+qed auto
 
 lemma real_lim_then_eventually_real:
   assumes "(u \<longlongrightarrow> ereal l) F"
@@ -381,13 +329,13 @@ lemma ereal_Inf_cmult:
   assumes "c>(0::real)"
   shows "Inf {ereal c * x |x. P x} = ereal c * Inf {x. P x}"
 proof -
-  have "(\<lambda>x::ereal. c * x) (Inf {x::ereal. P x}) = Inf ((\<lambda>x::ereal. c * x)`{x::ereal. P x})"
-    apply (rule mono_bij_Inf)
-    apply (simp add: assms ereal_mult_left_mono less_imp_le mono_def)
-    apply (rule bij_betw_byWitness[of _ "\<lambda>x. (x::ereal) / c"], auto simp add: assms ereal_mult_divide)
-    using assms ereal_divide_eq apply auto
-    done
-  then show ?thesis by (simp only: setcompr_eq_image[symmetric])
+  have "bij ((*) (ereal c))"
+    apply (rule bij_betw_byWitness[of _ "\<lambda>x. (x::ereal) / c"], auto simp: assms ereal_mult_divide)
+    using assms ereal_divide_eq by auto
+  then have "ereal c * Inf {x. P x} = Inf ((*) (ereal c) ` {x. P x})"
+    by (simp add: assms ereal_mult_left_mono less_imp_le mono_def mono_bij_Inf)
+  then show ?thesis
+    by (simp add: setcompr_eq_image)
 qed
 
 
@@ -425,7 +373,7 @@ proof -
     fix M::real
     have "eventually (\<lambda>x. f x > ereal(M - C)) F" using f by (simp add: tendsto_PInfty)
     then have "eventually (\<lambda>x. (f x > ereal (M-C)) \<and> (g x > ereal C)) F"
-      by (auto simp add: ge eventually_conj_iff)
+      by (auto simp: ge eventually_conj_iff)
     moreover have "\<And>x. ((f x > ereal (M-C)) \<and> (g x > ereal C)) \<Longrightarrow> (f x + g x > ereal M)"
       using ereal_add_strict_mono2 by fastforce
     ultimately have "eventually (\<lambda>x. f x + g x > ereal M) F" using eventually_mono by force
@@ -462,7 +410,7 @@ proof -
     fix M::real
     have "eventually (\<lambda>x. f x < ereal(M - C)) F" using f by (simp add: tendsto_MInfty)
     then have "eventually (\<lambda>x. (f x < ereal (M- C)) \<and> (g x < ereal C)) F"
-      by (auto simp add: ge eventually_conj_iff)
+      by (auto simp: ge eventually_conj_iff)
     moreover have "\<And>x. ((f x < ereal (M-C)) \<and> (g x < ereal C)) \<Longrightarrow> (f x + g x < ereal M)"
       using ereal_add_strict_mono2 by fastforce
     ultimately have "eventually (\<lambda>x. f x + g x < ereal M) F" using eventually_mono by force
@@ -495,7 +443,7 @@ lemma tendsto_add_ereal_general2:
   shows "((\<lambda>x. f x + g x) \<longlongrightarrow> x + y) F"
 proof -
   have "((\<lambda>x. g x + f x) \<longlongrightarrow> x + y) F"
-    using tendsto_add_ereal_general1[OF x, OF g, OF f] add.commute[of "y", of "x"] by simp
+    by (metis (full_types) add.commute f g tendsto_add_ereal_general1 x)
   moreover have "\<And>x. g x + f x = f x + g x" using add.commute by auto
   ultimately show ?thesis by simp
 qed
@@ -511,7 +459,8 @@ lemma tendsto_add_ereal_general [tendsto_intros]:
 proof (cases x)
   case (real r)
   show ?thesis
-    apply (rule tendsto_add_ereal_general2) using real assms by auto
+    using real assms
+    by (intro tendsto_add_ereal_general2; auto)
 next
   case (PInf)
   then have "y \<noteq> -\<infinity>" using assms by simp
@@ -519,7 +468,8 @@ next
 next
   case (MInf)
   then have "y \<noteq> \<infinity>" using assms by simp
-  then show ?thesis using tendsto_add_ereal_MInf MInf f g by (metis ereal_MInfty_eq_plus)
+  then show ?thesis 
+    by (metis ereal_MInfty_eq_plus tendsto_add_ereal_MInf MInf f g)
 qed
 
 subsubsection\<^marker>\<open>tag important\<close> \<open>Continuity of multiplication\<close>
@@ -541,13 +491,16 @@ proof -
 
   {
     fix n assume "u n = ereal(real_of_ereal(u n))" "v n = ereal(real_of_ereal(v n))"
-    then have "ereal(real_of_ereal(u n) * real_of_ereal(v n)) = u n * v n" by (metis times_ereal.simps(1))
+    then have "ereal(real_of_ereal(u n) * real_of_ereal(v n)) = u n * v n" 
+      by (metis times_ereal.simps(1))
   }
   then have *: "eventually (\<lambda>n. ereal(real_of_ereal(u n) * real_of_ereal(v n)) = u n * v n) F"
     using eventually_elim2[OF ureal vreal] by auto
 
-  have "((\<lambda>n. real_of_ereal(u n) * real_of_ereal(v n)) \<longlongrightarrow> l * m) F" using tendsto_mult[OF limu limv] by auto
-  then have "((\<lambda>n. ereal(real_of_ereal(u n)) * real_of_ereal(v n)) \<longlongrightarrow> ereal(l * m)) F" by auto
+  have "((\<lambda>n. real_of_ereal(u n) * real_of_ereal(v n)) \<longlongrightarrow> l * m) F" 
+    using tendsto_mult[OF limu limv] by auto
+  then have "((\<lambda>n. ereal(real_of_ereal(u n)) * real_of_ereal(v n)) \<longlongrightarrow> ereal(l * m)) F" 
+    by auto
   then show ?thesis using * filterlim_cong by fastforce
 qed
 
@@ -556,8 +509,10 @@ lemma tendsto_mult_ereal_PInf:
   assumes "(f \<longlongrightarrow> l) F" "l>0" "(g \<longlongrightarrow> \<infinity>) F"
   shows "((\<lambda>x. f x * g x) \<longlongrightarrow> \<infinity>) F"
 proof -
-  obtain a::real where "0 < ereal a" "a < l" using assms(2) using ereal_dense2 by blast
-  have *: "eventually (\<lambda>x. f x > a) F" using \<open>a < l\<close> assms(1) by (simp add: order_tendsto_iff)
+  obtain a::real where "0 < ereal a" "a < l" 
+    using assms(2) using ereal_dense2 by blast
+  have *: "eventually (\<lambda>x. f x > a) F" 
+    using \<open>a < l\<close> assms(1) by (simp add: order_tendsto_iff)
   {
     fix K::real
     define M where "M = max K 1"
@@ -573,10 +528,10 @@ proof -
 
     have "eventually (\<lambda>x. g x > M/a) F" using assms(3) by (simp add: tendsto_PInfty)
     then have "eventually (\<lambda>x. (f x > a) \<and> (g x > M/a)) F"
-      using * by (auto simp add: eventually_conj_iff)
+      using * by (auto simp: eventually_conj_iff)
     then have "eventually (\<lambda>x. f x * g x > K) F" using eventually_mono Imp by force
   }
-  then show ?thesis by (auto simp add: tendsto_PInfty)
+  then show ?thesis by (auto simp: tendsto_PInfty)
 qed
 
 lemma tendsto_mult_ereal_pos:
@@ -611,12 +566,12 @@ give the bare minimum we need.\<close>
 lemma ereal_sgn_abs:
   fixes l::ereal
   shows "sgn(l) * l = abs(l)"
-apply (cases l) by (auto simp add: sgn_if ereal_less_uminus_reorder)
+    by (cases l, auto simp: sgn_if ereal_less_uminus_reorder)
 
 lemma sgn_squared_ereal:
   assumes "l \<noteq> (0::ereal)"
   shows "sgn(l) * sgn(l) = 1"
-apply (cases l) using assms by (auto simp add: one_ereal_def sgn_if)
+  using assms by (cases l, auto simp: one_ereal_def sgn_if)
 
 lemma tendsto_mult_ereal [tendsto_intros]:
   fixes f g::"_ \<Rightarrow> ereal"
@@ -638,13 +593,13 @@ next
     by (metis abs_ereal_ge0 abs_ereal_less0 abs_ereal_pos ereal_uminus_uminus ereal_uminus_zero less_le not_less)+
   then have "sgn(l) * l > 0" "sgn(m) * m > 0" using ereal_sgn_abs by auto
   moreover have "((\<lambda>x. sgn(l) * f x) \<longlongrightarrow> (sgn(l) * l)) F"
-    by (rule tendsto_cmult_ereal, auto simp add: sgn_finite assms(1))
+    by (rule tendsto_cmult_ereal, auto simp: sgn_finite assms(1))
   moreover have "((\<lambda>x. sgn(m) * g x) \<longlongrightarrow> (sgn(m) * m)) F"
-    by (rule tendsto_cmult_ereal, auto simp add: sgn_finite assms(2))
+    by (rule tendsto_cmult_ereal, auto simp: sgn_finite assms(2))
   ultimately have *: "((\<lambda>x. (sgn(l) * f x) * (sgn(m) * g x)) \<longlongrightarrow> (sgn(l) * l) * (sgn(m) * m)) F"
     using tendsto_mult_ereal_pos by force
   have "((\<lambda>x. (sgn(l) * sgn(m)) * ((sgn(l) * f x) * (sgn(m) * g x))) \<longlongrightarrow> (sgn(l) * sgn(m)) * ((sgn(l) * l) * (sgn(m) * m))) F"
-    by (rule tendsto_cmult_ereal, auto simp add: sgn_finite2 *)
+    by (rule tendsto_cmult_ereal, auto simp: sgn_finite2 *)
   moreover have "\<And>x. (sgn(l) * sgn(m)) * ((sgn(l) * f x) * (sgn(m) * g x)) = f x * g x"
     by (metis mult.left_neutral sgn_squared_ereal[OF \<open>l \<noteq> 0\<close>] sgn_squared_ereal[OF \<open>m \<noteq> 0\<close>] mult.assoc mult.commute)
   moreover have "(sgn(l) * sgn(m)) * ((sgn(l) * l) * (sgn(m) * m)) = l * m"
@@ -656,7 +611,7 @@ lemma tendsto_cmult_ereal_general [tendsto_intros]:
   fixes f::"_ \<Rightarrow> ereal" and c::ereal
   assumes "(f \<longlongrightarrow> l) F" "\<not> (l=0 \<and> abs(c) = \<infinity>)"
   shows "((\<lambda>x. c * f x) \<longlongrightarrow> c * l) F"
-by (cases "c = 0", auto simp add: assms tendsto_mult_ereal)
+by (cases "c = 0", auto simp: assms tendsto_mult_ereal)
 
 
 subsubsection\<^marker>\<open>tag important\<close> \<open>Continuity of division\<close>
@@ -675,13 +630,15 @@ proof -
       fix z::ereal assume "z>1/e"
       then have "z>0" using \<open>e>0\<close> using less_le_trans not_le by fastforce
       then have "1/z \<ge> 0" by auto
-      moreover have "1/z < e" using \<open>e>0\<close> \<open>z>1/e\<close>
-        apply (cases z) apply auto
-        by (metis (mono_tags, opaque_lifting) less_ereal.simps(2) less_ereal.simps(4) divide_less_eq ereal_divide_less_pos ereal_less(4)
-            ereal_less_eq(4) less_le_trans mult_eq_0_iff not_le not_one_less_zero times_ereal.simps(1))
+      moreover have "1/z < e" 
+      proof (cases z)
+        case (real r)
+        then show ?thesis
+          using \<open>0 < e\<close> \<open>0 < z\<close> \<open>ereal (1 / e) < z\<close> divide_less_eq ereal_divide_less_pos by fastforce 
+      qed (use \<open>0 < e\<close> \<open>0 < z\<close> in auto)
       ultimately have "1/z \<ge> 0" "1/z < e" by auto
     }
-    ultimately have "eventually (\<lambda>n. 1/u n<e) F" "eventually (\<lambda>n. 1/u n\<ge>0) F" by (auto simp add: eventually_mono)
+    ultimately have "eventually (\<lambda>n. 1/u n<e) F" "eventually (\<lambda>n. 1/u n\<ge>0) F" by (auto simp: eventually_mono)
   } note * = this
   show ?thesis
   proof (subst order_tendsto_iff, auto)
@@ -755,7 +712,7 @@ proof -
   define h where "h = (\<lambda>x. 1/ g x)"
   have *: "(h \<longlongrightarrow> 1/m) F" unfolding h_def using assms(2) assms(3) tendsto_inverse_ereal by auto
   have "((\<lambda>x. f x * h x) \<longlongrightarrow> l * (1/m)) F"
-    apply (rule tendsto_mult_ereal[OF assms(1) *]) using assms(3) assms(4) by (auto simp add: divide_ereal_def)
+    apply (rule tendsto_mult_ereal[OF assms(1) *]) using assms(3) assms(4) by (auto simp: divide_ereal_def)
   moreover have "f x * h x = f x / g x" for x unfolding h_def by (simp add: divide_ereal_def)
   moreover have "l * (1/m) = l/m" by (simp add: divide_ereal_def)
   ultimately show ?thesis unfolding h_def using Lim_transform_eventually by auto
@@ -771,9 +728,12 @@ lemma tendsto_diff_ereal_general [tendsto_intros]:
   assumes "(u \<longlongrightarrow> l) F" "(v \<longlongrightarrow> m) F" "\<not>((l = \<infinity> \<and> m = \<infinity>) \<or> (l = -\<infinity> \<and> m = -\<infinity>))"
   shows "((\<lambda>n. u n - v n) \<longlongrightarrow> l - m) F"
 proof -
-  have "((\<lambda>n. u n + (-v n)) \<longlongrightarrow> l + (-m)) F"
-    apply (intro tendsto_intros assms) using assms by (auto simp add: ereal_uminus_eq_reorder)
-  then show ?thesis by (simp add: minus_ereal_def)
+  have "\<infinity> = l \<longrightarrow> ((\<lambda>a. u a + - v a) \<longlongrightarrow> l + - m) F"
+      by (metis (no_types) assms ereal_uminus_uminus tendsto_add_ereal_general tendsto_uminus_ereal)
+  then have "((\<lambda>n. u n + (-v n)) \<longlongrightarrow> l + (-m)) F"
+    by (simp add: assms ereal_uminus_eq_reorder tendsto_add_ereal_general)
+  then show ?thesis 
+    by (simp add: minus_ereal_def)
 qed
 
 lemma id_nat_ereal_tendsto_PInf [tendsto_intros]:
@@ -852,11 +812,11 @@ proof (cases x)
   then show ?thesis by (simp add: tendsto_eventually)
 next
   case (PInf)
-  then have "min x n = n" for n::nat by (auto simp add: min_def)
+  then have "min x n = n" for n::nat by (auto simp: min_def)
   then show ?thesis using id_nat_ereal_tendsto_PInf PInf by auto
 next
   case (MInf)
-  then have "min x n = x" for n::nat by (auto simp add: min_def)
+  then have "min x n = x" for n::nat by (auto simp: min_def)
   then show ?thesis by auto
 qed
 
@@ -874,7 +834,7 @@ proof (cases x)
   then show ?thesis using real by auto
 next
   case (PInf)
-  then have "real_of_ereal(min x n) = n" for n::nat by (auto simp add: min_def)
+  then have "real_of_ereal(min x n) = n" for n::nat by (auto simp: min_def)
   then show ?thesis using id_nat_ereal_tendsto_PInf PInf by auto
 qed (simp add: assms)
 
@@ -889,13 +849,13 @@ proof (cases x)
   then show ?thesis by (simp add: tendsto_eventually)
 next
   case (MInf)
-  then have "max x (-real n) = (-1)* ereal(real n)" for n::nat by (auto simp add: max_def)
+  then have "max x (-real n) = (-1)* ereal(real n)" for n::nat by (auto simp: max_def)
   moreover have "(\<lambda>n. (-1)* ereal(real n)) \<longlonglongrightarrow> -\<infinity>"
     using tendsto_cmult_ereal[of "-1", OF _ id_nat_ereal_tendsto_PInf] by (simp add: one_ereal_def)
   ultimately show ?thesis using MInf by auto
 next
   case (PInf)
-  then have "max x (-real n) = x" for n::nat by (auto simp add: max_def)
+  then have "max x (-real n) = x" for n::nat by (auto simp: max_def)
   then show ?thesis by auto
 qed
 
@@ -913,7 +873,7 @@ proof (cases x)
   then show ?thesis using real by auto
 next
   case (MInf)
-  then have "real_of_ereal(max x (-real n)) = (-1)* ereal(real n)" for n::nat by (auto simp add: max_def)
+  then have "real_of_ereal(max x (-real n)) = (-1)* ereal(real n)" for n::nat by (auto simp: max_def)
   moreover have "(\<lambda>n. (-1)* ereal(real n)) \<longlonglongrightarrow> -\<infinity>"
     using tendsto_cmult_ereal[of "-1", OF _ id_nat_ereal_tendsto_PInf] by (simp add: one_ereal_def)
   ultimately show ?thesis using MInf by auto
@@ -937,7 +897,7 @@ proof -
   have "continuous_on ({..0} \<union> {(0::ereal)..}) abs"
     apply (rule continuous_on_closed_Un, auto)
     apply (rule iffD1[OF continuous_on_cong, of "{..0}" _ "\<lambda>x. -x"])
-    using less_eq_ereal_def apply (auto simp add: continuous_uminus_ereal)
+    using less_eq_ereal_def apply (auto simp: continuous_uminus_ereal)
     apply (rule iffD1[OF continuous_on_cong, of "{0..}" _ "\<lambda>x. x"])
       apply (auto)
     done
@@ -979,9 +939,9 @@ proof -
     apply (intro tendsto_intros) using assms apply auto
     using enn2ereal_inject zero_ennreal.rep_eq by fastforce+
   moreover have "e2ennreal(enn2ereal (u n) * enn2ereal (v n)) = u n * v n" for n
-    by (subst times_ennreal.abs_eq[symmetric], auto simp add: eq_onp_same_args)
+    by (subst times_ennreal.abs_eq[symmetric], auto simp: eq_onp_same_args)
   moreover have "e2ennreal(enn2ereal l * enn2ereal m)  = l * m"
-    by (subst times_ennreal.abs_eq[symmetric], auto simp add: eq_onp_same_args)
+    by (subst times_ennreal.abs_eq[symmetric], auto simp: eq_onp_same_args)
   ultimately show ?thesis
     by auto
 qed
@@ -1167,7 +1127,7 @@ proof -
   obtain C where C: "limsup u < C" "C < \<infinity>" using assms ereal_dense2 by blast
   then have "C = ereal(real_of_ereal C)" using ereal_real by force
   have "eventually (\<lambda>n. u n < C) sequentially" using C(1) unfolding Limsup_def
-    apply (auto simp add: INF_less_iff)
+    apply (auto simp: INF_less_iff)
     using SUP_lessD eventually_mono by fastforce
   then obtain N where N: "\<And>n. n \<ge> N \<Longrightarrow> u n < C" using eventually_sequentially by auto
   define D where "D = max (real_of_ereal C) (Max {u n |n. n \<le> N})"
@@ -1176,7 +1136,7 @@ proof -
     fix n show "u n \<le> D"
     proof (cases)
       assume *: "n \<le> N"
-      have "u n \<le> Max {u n |n. n \<le> N}" by (rule Max_ge, auto simp add: *)
+      have "u n \<le> Max {u n |n. n \<le> N}" by (rule Max_ge, auto simp: *)
       then show "u n \<le> D" unfolding D_def by linarith
     next
       assume "\<not>(n \<le> N)"
@@ -1197,7 +1157,7 @@ proof -
   obtain C where C: "liminf u > C" "C > -\<infinity>" using assms using ereal_dense2 by blast
   then have "C = ereal(real_of_ereal C)" using ereal_real by force
   have "eventually (\<lambda>n. u n > C) sequentially" using C(1) unfolding Liminf_def
-    apply (auto simp add: less_SUP_iff)
+    apply (auto simp: less_SUP_iff)
     using eventually_elim2 less_INF_D by fastforce
   then obtain N where N: "\<And>n. n \<ge> N \<Longrightarrow> u n > C" using eventually_sequentially by auto
   define D where "D = min (real_of_ereal C) (Min {u n |n. n \<le> N})"
@@ -1206,7 +1166,7 @@ proof -
     fix n show "u n \<ge> D"
     proof (cases)
       assume *: "n \<le> N"
-      have "u n \<ge> Min {u n |n. n \<le> N}" by (rule Min_le, auto simp add: *)
+      have "u n \<ge> Min {u n |n. n \<le> N}" by (rule Min_le, auto simp: *)
       then show "u n \<ge> D" unfolding D_def by linarith
     next
       assume "\<not>(n \<le> N)"
@@ -1615,7 +1575,7 @@ proof -
   have "eventually (\<lambda>n. (u o s) n > 0) sequentially" using assms(2) * order_tendsto_iff by blast
   moreover have "eventually (\<lambda>n. (u o s) n < \<infinity>) sequentially" using assms(3) * order_tendsto_iff by blast
   moreover have "(w o s) n / (u o s) n = (v o s) n" if "(u o s) n > 0" "(u o s) n < \<infinity>" for n
-    unfolding w_def using that by (auto simp add: ereal_divide_eq)
+    unfolding w_def using that by (auto simp: ereal_divide_eq)
   ultimately have "eventually (\<lambda>n. (w o s) n / (u o s) n = (v o s) n) sequentially" using eventually_elim2 by force
   moreover have "(\<lambda>n. (w o s) n / (u o s) n) \<longlonglongrightarrow> (limsup w) / a"
     apply (rule tendsto_divide_ereal[OF s(2) *]) using assms(2) assms(3) by auto
@@ -1645,7 +1605,7 @@ proof -
   have "eventually (\<lambda>n. (u o s) n > 0) sequentially" using assms(2) * order_tendsto_iff by blast
   moreover have "eventually (\<lambda>n. (u o s) n < \<infinity>) sequentially" using assms(3) * order_tendsto_iff by blast
   moreover have "(w o s) n / (u o s) n = (v o s) n" if "(u o s) n > 0" "(u o s) n < \<infinity>" for n
-    unfolding w_def using that by (auto simp add: ereal_divide_eq)
+    unfolding w_def using that by (auto simp: ereal_divide_eq)
   ultimately have "eventually (\<lambda>n. (w o s) n / (u o s) n = (v o s) n) sequentially" using eventually_elim2 by force
   moreover have "(\<lambda>n. (w o s) n / (u o s) n) \<longlonglongrightarrow> (liminf w) / a"
     apply (rule tendsto_divide_ereal[OF s(2) *]) using assms(2) assms(3) by auto

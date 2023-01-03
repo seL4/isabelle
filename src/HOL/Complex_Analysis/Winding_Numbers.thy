@@ -1932,7 +1932,7 @@ proof -
     proof (rule simple_path_join_loop, simp_all add: qt q01)
       have "inj_on q (closed_segment t 0)"
         using \<open>0 \<le> t\<close> \<open>simple_path q\<close> \<open>t \<le> 1\<close> \<open>t \<noteq> 0\<close> \<open>t \<noteq> 1\<close>
-        by (fastforce simp: simple_path_def inj_on_def closed_segment_eq_real_ivl)
+        by (fastforce simp: simple_path_def loop_free_def inj_on_def closed_segment_eq_real_ivl)
       then show "arc (subpath t 0 q)"
         using \<open>0 \<le> t\<close> \<open>simple_path q\<close> \<open>t \<le> 1\<close> \<open>t \<noteq> 0\<close>
         by (simp add: arc_subpath_eq simple_path_imp_path)
@@ -1972,7 +1972,7 @@ proof -
     proof
       show "?lhs \<subseteq> ?rhs"
         using \<open>0 \<le> t\<close> \<open>simple_path q\<close> \<open>t \<le> 1\<close> \<open>t \<noteq> 1\<close> q_ends qt q01
-        by (force simp: pathfinish_def qt simple_path_def path_image_subpath)
+        by (force simp: pathfinish_def qt simple_path_def loop_free_def path_image_subpath)
       show "?rhs \<subseteq> ?lhs"
         using \<open>0 \<le> t\<close> \<open>t \<le> 1\<close> q01 qt by (force simp: path_image_subpath)
     qed
