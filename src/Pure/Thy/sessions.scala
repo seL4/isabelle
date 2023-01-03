@@ -363,9 +363,12 @@ object Sessions {
                 theory -> files.map(file => Path.explode(file.node))
               }
 
+            val document_files =
+              for ((path1, path2) <- info.document_files)
+                yield info.dir + path1 + path2
+
             val session_files =
-              (theory_files ::: loaded_files.flatMap(_._2) :::
-                info.document_files.map(file => info.dir + file._1 + file._2)).map(_.expand)
+              (theory_files ::: loaded_files.flatMap(_._2) ::: document_files).map(_.expand)
 
             val imported_files = if (inlined_files) dependencies.imported_files else Nil
 
