@@ -127,15 +127,13 @@ class Resources(
       yield (dir + Path.explode(file)).expand
   }
 
-  def pure_files(syntax: Outer_Syntax): List[Path] = {
-    val pure_dir = Path.explode("~~/src/Pure")
-    for {
-      (name, theory) <- Thy_Header.ml_roots
-      path = (pure_dir + Path.explode(name)).expand
-      node_name = Document.Node.Name(path.implode, theory = theory)
-      file <- loaded_files(syntax, node_name, load_commands(syntax, node_name)())
-    } yield file
-  }
+  def pure_files(syntax: Outer_Syntax): List[Path] =
+    (for {
+      (name, theory) <- Thy_Header.ml_roots.iterator
+      node = append_path("~~/src/Pure", Path.explode(name))
+      node_name = Document.Node.Name(node, theory = theory)
+      file <- loaded_files(syntax, node_name, load_commands(syntax, node_name)()).iterator
+    } yield file).toList
 
   def global_theory(theory: String): Boolean =
     sessions_structure.global_theories.isDefinedAt(theory)
