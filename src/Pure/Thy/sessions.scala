@@ -357,8 +357,11 @@ object Sessions {
             val theory_load_commands =
               (for ((name, span) <- load_commands.iterator) yield name.theory -> span).toMap
 
-            val loaded_files =
-              load_commands.map({ case (name, spans) => dependencies.loaded_files(name, spans) })
+            val loaded_files: List[(String, List[Path])] =
+              for ((name, spans) <- load_commands) yield {
+                val (theory, files) = dependencies.loaded_files(name, spans)
+                theory -> files.map(file => Path.explode(file.node))
+              }
 
             val session_files =
               (theory_files ::: loaded_files.flatMap(_._2) :::

@@ -121,19 +121,18 @@ class Resources(
     syntax: Outer_Syntax,
     name: Document.Node.Name,
     spans: List[Command_Span.Span]
-  ) : List[Path] = {
-    val dir = name.master_dir_path
-    for { span <- spans; file <- span.loaded_files(syntax).files }
-      yield (dir + Path.explode(file)).expand
+  ) : List[Document.Node.Name] = {
+    for (span <- spans; file <- span.loaded_files(syntax).files)
+      yield Document.Node.Name(append_path(name.master_dir, Path.explode(file)))
   }
 
-  def pure_files(syntax: Outer_Syntax): List[Path] =
+  def pure_files(syntax: Outer_Syntax): List[Document.Node.Name] =
     (for {
-      (name, theory) <- Thy_Header.ml_roots.iterator
-      node = append_path("~~/src/Pure", Path.explode(name))
+      (file, theory) <- Thy_Header.ml_roots.iterator
+      node = append_path("~~/src/Pure", Path.explode(file))
       node_name = Document.Node.Name(node, theory = theory)
-      file <- loaded_files(syntax, node_name, load_commands(syntax, node_name)()).iterator
-    } yield file).toList
+      name <- loaded_files(syntax, node_name, load_commands(syntax, node_name)()).iterator
+    } yield name).toList
 
   def global_theory(theory: String): Boolean =
     sessions_structure.global_theories.isDefinedAt(theory)
@@ -414,7 +413,7 @@ class Resources(
     def loaded_files(
       name: Document.Node.Name,
       spans: List[Command_Span.Span]
-    ) : (String, List[Path]) = {
+    ) : (String, List[Document.Node.Name]) = {
       val theory = name.theory
       val syntax = get_syntax(name)
       val files1 = resources.loaded_files(syntax, name, spans)
@@ -422,7 +421,7 @@ class Resources(
       (theory, files1 ::: files2)
     }
 
-    def loaded_files: List[Path] =
+    def loaded_files: List[Document.Node.Name] =
       for {
         (name, spans) <- load_commands
         file <- loaded_files(name, spans)._2
