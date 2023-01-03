@@ -120,7 +120,6 @@ object Document {
       def path: Path = Path.explode(File.standard_path(node))
 
       def master_dir: String = Url.strip_base_name(node).getOrElse("")
-      def master_dir_path: Path = Path.explode(File.standard_path(master_dir))
 
       def is_theory: Boolean = theory.nonEmpty
 
