@@ -275,11 +275,21 @@ class Build_Job(progress: Progress,
         new Session(options, resources) {
           override val cache: Term.Cache = store.cache
 
-          override def build_blobs_info(name: Document.Node.Name): Command.Blobs_Info = {
-            session_background.base.theory_load_commands.get(name.theory) match {
+          override def build_blobs_info(node_name: Document.Node.Name): Command.Blobs_Info = {
+            session_background.base.theory_load_commands.get(node_name.theory) match {
               case Some(spans) =>
-                val syntax = session_background.base.theory_syntax(name)
-                Command.build_blobs_info(syntax, name, spans)
+                val syntax = session_background.base.theory_syntax(node_name)
+                val blobs =
+                  for (span <- spans; file <- span.loaded_files(syntax).files)
+                  yield {
+                    (Exn.capture {
+                      val dir = node_name.master_dir_path
+                      val src_path = Path.explode(file)
+                      val name = Document.Node.Name((dir + src_path).expand.implode_symbolic)
+                      Command.Blob.read_file(name, src_path)
+                    }).user_error
+                  }
+                Command.Blobs_Info(blobs)
               case None => Command.Blobs_Info.none
             }
           }

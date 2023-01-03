@@ -471,26 +471,6 @@ object Command {
         Blobs_Info(blobs, index = loaded_files.index)
     }
   }
-
-  def build_blobs_info(
-    syntax: Outer_Syntax,
-    node_name: Document.Node.Name,
-    load_commands: List[Command_Span.Span]
-  ): Blobs_Info = {
-    val blobs =
-      for {
-        span <- load_commands
-        file <- span.loaded_files(syntax).files
-      } yield {
-        (Exn.capture {
-          val dir = node_name.master_dir_path
-          val src_path = Path.explode(file)
-          val name = Document.Node.Name((dir + src_path).expand.implode_symbolic)
-          Blob.read_file(name, src_path)
-        }).user_error
-      }
-    Blobs_Info(blobs)
-  }
 }
 
 
