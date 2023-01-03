@@ -706,7 +706,7 @@ object Sessions {
         if File.is_bib(file.file_name)
       } yield {
         val path = dir + document_dir + file
-        Bibtex.Entries.parse(File.read(path), file_pos = path.expand.implode)
+        Bibtex.Entries.parse(File.read(path), file_pos = File.standard_path(path))
       }).foldRight(Bibtex.Entries.empty)(_ ::: _)
 
     def record_proofs: Boolean = options.int("record_proofs") >= 2
@@ -1450,7 +1450,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     def the_heap(name: String): Path =
       find_heap(name) getOrElse
         error("Missing heap image for session " + quote(name) + " -- expected in:\n" +
-          cat_lines(input_dirs.map(dir => "  " + dir.expand.implode)))
+          cat_lines(input_dirs.map(dir => "  " + File.standard_path(dir))))
 
 
     /* database */

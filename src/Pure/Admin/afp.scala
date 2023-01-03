@@ -93,7 +93,7 @@ class AFP private(options: Options, val base_dir: Path) {
 
     for ((line, i) <- split_lines(File.read(metadata_file)).zipWithIndex) {
       def err(msg: String): Nothing =
-        error(msg + Position.here(Position.Line_File(i + 1, metadata_file.expand.implode)))
+        error(msg + Position.here(Position.Line_File(i + 1, File.standard_path(metadata_file))))
 
       line match {
         case Section(name) => flush(); section = name

@@ -253,7 +253,7 @@ object Build {
         case Nil =>
         case unknown_files =>
           progress.echo_warning("Unknown files (not part of the underlying Mercurial repository):" +
-            unknown_files.map(path => path.expand.implode).sorted.mkString("\n  ", "\n  ", ""))
+            unknown_files.map(File.standard_path).sorted.mkString("\n  ", "\n  ", ""))
       }
     }
 

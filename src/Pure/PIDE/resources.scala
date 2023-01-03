@@ -73,7 +73,7 @@ class Resources(
   def migrate_name(name: Document.Node.Name): Document.Node.Name = name
 
   def append_path(prefix: String, source_path: Path): String =
-    (Path.explode(prefix) + source_path).expand.implode
+    File.standard_path(Path.explode(prefix) + source_path)
 
 
   /* source files of Isabelle/ML bootstrap */

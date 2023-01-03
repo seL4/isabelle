@@ -35,7 +35,8 @@ object Check_Keywords {
     check: Set[String],
     paths: List[Path]
   ): Unit = {
-    val parallel_args = paths.map(path => (File.read(path), Token.Pos.file(path.expand.implode)))
+    val parallel_args =
+      paths.map(path => (File.read(path), Token.Pos.file(File.standard_path(path))))
 
     val bad =
       Par_List.map({ (arg: (String, Token.Pos)) =>
