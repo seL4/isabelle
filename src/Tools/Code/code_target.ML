@@ -541,7 +541,7 @@ fun prep_destination (location, source) =
               Markup.markup Markup.keyword2 "file" ^ " argument" ^ Position.here pos);
         val _ = Position.report pos (Markup.language_path delimited);
         val path = #1 (Path.explode_pos (s, pos));
-        val _ = Position.report pos (Markup.path (Path.implode_symbolic path));
+        val _ = Position.report pos (Markup.path (File.symbolic_path path));
       in (location, (path, pos)) end
   end;
 

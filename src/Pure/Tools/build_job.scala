@@ -285,7 +285,7 @@ class Build_Job(progress: Progress,
                     (Exn.capture {
                       val master_dir = Path.explode(node_name.master_dir)
                       val src_path = Path.explode(file)
-                      val node = (master_dir + src_path).expand.implode_symbolic
+                      val node = File.symbolic_path(master_dir + src_path)
                       Command.Blob.read_file(Document.Node.Name(node), src_path)
                     }).user_error
                   }
@@ -415,7 +415,8 @@ class Build_Job(progress: Progress,
             }
 
             export_text(Export.FILES,
-              cat_lines(snapshot.node_files.map(_.path.implode_symbolic)), compress = false)
+              cat_lines(snapshot.node_files.map(name => File.symbolic_path(name.path))),
+              compress = false)
 
             for (((_, xml), i) <- snapshot.xml_markup_blobs().zipWithIndex) {
               export_(Export.MARKUP + (i + 1), xml)

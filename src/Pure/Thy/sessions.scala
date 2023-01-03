@@ -89,7 +89,7 @@ object Sessions {
         session_base.session_sources.foldLeft(Map.empty) {
           case (sources, (path, digest)) =>
             def err(): Nothing = error("Incoherent digest for source file: " + path)
-            val name = path.implode_symbolic
+            val name = File.symbolic_path(path)
             sources.get(name) match {
               case Some(source_file) =>
                 if (source_file.digest == digest) sources else err()

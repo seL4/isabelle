@@ -17,7 +17,7 @@ struct
 
 fun symbolic_file (a, b) =
   if a = Markup.fileN
-  then (a, Path.explode b |> Path.implode_symbolic)
+  then (a, File.symbolic_path (Path.explode b))
   else (a, b);
 
 fun isabelle_tools () =

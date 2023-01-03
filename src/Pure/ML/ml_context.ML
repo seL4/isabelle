@@ -205,7 +205,7 @@ end;
 (* derived versions *)
 
 fun eval_file flags path =
-  let val pos = Position.file (Path.implode_symbolic path)
+  let val pos = Position.file (File.symbolic_path path)
   in eval flags pos (ML_Lex.read_text (File.read path, pos)) end;
 
 fun eval_source flags source =

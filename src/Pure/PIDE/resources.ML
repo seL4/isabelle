@@ -245,7 +245,7 @@ fun begin_theory master_dir {name, imports, keywords} parents =
   let
     val thy =
       Theory.begin_theory name parents
-      |> map_files (fn _ => (Path.explode (Path.implode_symbolic master_dir), imports, []))
+      |> map_files (fn _ => (Path.explode (File.symbolic_path master_dir), imports, []))
       |> Thy_Header.add_keywords keywords;
     val ctxt = Proof_Context.init_global thy;
     val _ = List.app (ignore o check_load_command ctxt o #load_command o #2) keywords;
@@ -320,7 +320,7 @@ fun check_thy dir thy_name =
     val text = File.read master_file;
 
     val {name = (name, pos), imports, keywords} =
-      Thy_Header.read (Position.file (Path.implode_symbolic master_file)) text;
+      Thy_Header.read (Position.file (File.symbolic_path master_file)) text;
     val _ =
       thy_base_name <> name andalso
         error ("Bad theory name " ^ quote name ^
@@ -339,7 +339,7 @@ fun read_file_node file_node master_dir (src_path, pos) =
       let
         val path = File.check_file (File.full_path master_dir src_path);
         val text = File.read path;
-        val file_pos = Position.file (Path.implode_symbolic path);
+        val file_pos = Position.file (File.symbolic_path path);
       in (text, file_pos) end;
 
     fun read_remote () =
@@ -374,7 +374,7 @@ fun parsed_files make_paths (files, source) thy =
       val src_paths = make_paths (Path.explode name);
       val reports =
         src_paths |> maps (fn src_path =>
-          [(pos, Markup.path (Path.implode_symbolic (master_dir + src_path))),
+          [(pos, Markup.path (File.symbolic_path (master_dir + src_path))),
            (pos, Markup.language_path delimited)]);
       val _ = Position.reports reports;
     in map (read_file master_dir o rpair pos) src_paths end
@@ -433,7 +433,7 @@ fun formal_check (check: Path.T -> Path.T) ctxt opt_dir source =
       | NONE => master_directory (Proof_Context.theory_of ctxt));
     val path = dir + Path.explode name handle ERROR msg => err msg;
     val _ = Path.expand path handle ERROR msg => err msg;
-    val _ = Context_Position.report ctxt pos (Markup.path (Path.implode_symbolic path));
+    val _ = Context_Position.report ctxt pos (Markup.path (File.symbolic_path path));
     val _ = check path handle ERROR msg => err msg;
   in path end;
 

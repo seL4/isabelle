@@ -11,6 +11,7 @@ sig
   val bash_path: Path.T -> string
   val bash_paths: Path.T list -> string
   val bash_platform_path: Path.T -> string
+  val symbolic_path: Path.T -> string
   val absolute_path: Path.T -> Path.T
   val full_path: Path.T -> Path.T -> Path.T
   val tmp_path: Path.T -> Path.T
@@ -43,6 +44,28 @@ val bash_path = Bash.string o standard_path;
 val bash_paths = Bash.strings o map standard_path;
 
 val bash_platform_path = Bash.string o platform_path;
+
+
+(* symbolic path representation, e.g. "~~/src/Pure/ROOT.ML" *)
+
+fun symbolic_path path =
+  let
+    val directories = rev (space_explode ":" (getenv "ISABELLE_DIRECTORIES"));
+    val full_name = standard_path path;
+    fun fold_path a =
+      (case try (standard_path o Path.explode) a of
+        SOME b =>
+          if full_name = b then SOME a
+          else
+            (case try (unprefix (b ^ "/")) full_name of
+              SOME name => SOME (a ^ "/" ^ name)
+            | NONE => NONE)
+      | NONE => NONE);
+  in
+    (case get_first fold_path directories of
+      SOME name => name
+    | NONE => Path.implode path)
+  end;
 
 
 (* full_path *)

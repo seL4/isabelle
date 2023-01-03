@@ -138,7 +138,7 @@ object Document_Build {
 
   sealed case class Document_Latex(name: Document.Node.Name, body: XML.Body) {
     def content: File.Content_XML = File.content(Path.basic(tex_name(name)), body)
-    def file_pos: String = name.path.implode_symbolic
+    def file_pos: String = File.symbolic_path(name.path)
     def write(latex_output: Latex.Output, dir: Path): Unit =
       content.output(latex_output.make(_, file_pos = file_pos)).write(dir)
   }
