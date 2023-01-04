@@ -1156,40 +1156,40 @@ proof -
     then have "?gg holomorphic_on ball z r-{z}"
       using \<open>g holomorphic_on s\<close> r by (auto intro!: holomorphic_intros)
     then have "f holomorphic_on ball z r - {z}"
-      apply (elim holomorphic_transform)
-      using fg_eq \<open>ball z r-{z} \<subseteq> s\<close> by auto
+      by (smt (verit, best) DiffD2 \<open>ball z r-{z} \<subseteq> s\<close> fg_eq holomorphic_cong singleton_iff subset_iff)
     then show "isolated_singularity_at f z" unfolding isolated_singularity_at_def
       using analytic_on_open open_delete r(1) by blast
   next
     have "not_essential ?gg z"
     proof (intro singularity_intros)
       show "not_essential g z"
-        by (meson \<open>continuous_on s g\<close> assms(1) assms(2) continuous_on_eq_continuous_at
+        by (meson \<open>continuous_on s g\<close> assms continuous_on_eq_continuous_at
             isCont_def not_essential_def)
       show " \<forall>\<^sub>F w in at z. w - z \<noteq> 0" by (simp add: eventually_at_filter)
       then show "LIM w at z. w - z :> at 0"
         unfolding filterlim_at by (auto intro:tendsto_eq_intros)
       show "isolated_singularity_at g z"
         by (meson Diff_subset open_ball analytic_on_holomorphic
-            assms(1,2,3) holomorphic_on_subset isolated_singularity_at_def openE)
+            assms holomorphic_on_subset isolated_singularity_at_def openE)
     qed
-    then show "not_essential f z"
-      apply (elim not_essential_transform)
-      unfolding eventually_at using assms(1,2) assms(5)[symmetric]
-      by (metis dist_commute mem_ball openE subsetCE)
+    moreover
+    have "\<forall>\<^sub>F w in at z. g w * (w - z) powr n = f w"
+      unfolding eventually_at_topological using assms fg_eq by force
+    ultimately show "not_essential f z"
+      using not_essential_transform by blast
     show "\<exists>\<^sub>F w in at z. f w \<noteq> 0" unfolding frequently_at
-    proof (rule,rule)
+    proof (intro strip)
       fix d::real assume "0 < d"
-      define z' where "z'=z+min d r / 2"
+      define z' where "z' \<equiv> z+min d r / 2"
       have "z' \<noteq> z" " dist z' z < d "
-        unfolding z'_def using \<open>d>0\<close> \<open>r>0\<close>
-        by (auto simp add:dist_norm)
+        unfolding z'_def using \<open>d>0\<close> \<open>r>0\<close> by (auto simp add:dist_norm)
       moreover have "f z' \<noteq> 0"
       proof (subst fg_eq[OF _ \<open>z'\<noteq>z\<close>])
-        have "z' \<in> cball z r" unfolding z'_def using \<open>r>0\<close> \<open>d>0\<close> by (auto simp add:dist_norm)
+        have "z' \<in> cball z r" 
+          unfolding z'_def using \<open>r>0\<close> \<open>d>0\<close> by (auto simp add:dist_norm)
         then show " z' \<in> s" using r(2) by blast
         show "g z' * (z' - z) powr of_int n \<noteq> 0"
-          using P_def \<open>P n g r\<close> \<open>z' \<in> cball z r\<close> calculation(1) by auto
+          using P_def \<open>P n g r\<close> \<open>z' \<in> cball z r\<close> \<open>z' \<noteq> z\<close> by auto
       qed
       ultimately show "\<exists>x\<in>UNIV. x \<noteq> z \<and> dist x z < d \<and> f x \<noteq> 0" by auto
     qed
@@ -1203,7 +1203,7 @@ lemma simple_zeroI:
   assumes "open s" "z \<in> s" "g holomorphic_on s" "g z \<noteq> 0"
   assumes "\<And>w. w \<in> s \<Longrightarrow> f w = g w * (w - z)"
   shows   "zorder f z = 1"
-  using assms(1-4) by (rule zorder_eqI) (use assms(5) in auto)
+  using assms zorder_eqI by force
 
 lemma higher_deriv_power:
   shows   "(deriv ^^ j) (\<lambda>w. (w - z) ^ n) w =
@@ -1245,9 +1245,7 @@ proof -
   proof (rule ccontr)
     assume "\<not> (\<exists>w\<in>ball z r. f w \<noteq> 0)"
     then have "eventually (\<lambda>u. f u = 0) (nhds z)"
-      using \<open>r>0\<close> unfolding eventually_nhds
-      apply (rule_tac x="ball z r" in exI)
-      by auto
+      using open_ball \<open>0 < r\<close> centre_in_ball eventually_nhds by blast
     then have "(deriv ^^ nat n) f z = (deriv ^^ nat n) (\<lambda>_. 0) z"
       by (intro higher_deriv_cong_ev) auto
     also have "(deriv ^^ nat n) (\<lambda>_. 0) z = 0"
@@ -1266,19 +1264,16 @@ proof -
     from that zorder_exist_zero[of f "ball z r" z,simplified,OF this nz',folded zn_def g_def]
     show ?thesis by blast
   qed
-  from this(1,2,5) have "zn\<ge>0" "g z\<noteq>0"
-    subgoal by (auto split:if_splits)
-    subgoal using \<open>0 < e\<close> ball_subset_cball centre_in_ball e_fac by blast
-    done
+  then obtain "zn \<ge> 0" "g z\<noteq>0"
+    by (metis centre_in_cball less_le_not_le order_refl)
 
-  define A where "A = (\<lambda>i. of_nat (i choose (nat zn)) * fact (nat zn) * (deriv ^^ (i - nat zn)) g z)"
+  define A where "A \<equiv> (\<lambda>i. of_nat (i choose (nat zn)) * fact (nat zn) * (deriv ^^ (i - nat zn)) g z)"
   have deriv_A:"(deriv ^^ i) f z = (if zn \<le> int i then A i else 0)" for i
   proof -
     have "eventually (\<lambda>w. w \<in> ball z e) (nhds z)"
       using \<open>cball z e \<subseteq> ball z r\<close> \<open>e>0\<close> by (intro eventually_nhds_in_open) auto
     hence "eventually (\<lambda>w. f w = (w - z) ^ (nat zn) * g w) (nhds z)"
-      apply eventually_elim
-      by (use e_fac in auto)
+      using e_fac eventually_mono by fastforce
     hence "(deriv ^^ i) f z = (deriv ^^ i) (\<lambda>w. (w - z) ^ nat zn * g w) z"
       by (intro higher_deriv_cong_ev) auto
     also have "\<dots> = (\<Sum>j=0..i. of_nat (i choose j) *
@@ -1360,11 +1355,9 @@ proof -
 qed
 
 lemma zorder_nonzero_div_power:
-  assumes "open s" "z \<in> s" "f holomorphic_on s" "f z \<noteq> 0" "n > 0"
+  assumes sz: "open s" "z \<in> s" "f holomorphic_on s" "f z \<noteq> 0" and "n > 0"
   shows  "zorder (\<lambda>w. f w / (w - z) ^ n) z = - n"
-  apply (rule zorder_eqI[OF \<open>open s\<close> \<open>z\<in>s\<close> \<open>f holomorphic_on s\<close> \<open>f z\<noteq>0\<close>])
-  apply (subst powr_of_int)
-  using \<open>n>0\<close> by (auto simp add:field_simps)
+  using zorder_eqI [OF sz] by (simp add: powr_minus_divide)
 
 lemma zor_poly_eq:
   assumes "isolated_singularity_at f z" "not_essential f z" "\<exists>\<^sub>F w in at z. f w \<noteq> 0"
