@@ -513,8 +513,8 @@ object Headless {
               Document.Blob(bytes, text, Symbol.Text_Chunk(text), changed = true)
             }
             blobs.get(name) match {
-              case Some(blob) => if (blob.bytes == bytes) None else Some(name -> new_blob)
-              case None => Some(name -> new_blob)
+              case Some(blob) if blob.bytes == bytes => None
+              case _ => Some(name -> new_blob)
             }
           }
         val blobs1 = new_blobs.foldLeft(blobs)(_ + _)
