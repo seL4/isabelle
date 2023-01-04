@@ -15,8 +15,7 @@ object Command {
   /* blobs */
 
   object Blob {
-    def read_file(name: Document.Node.Name, src_path: Path): Blob = {
-      val bytes = Bytes.read(name.path)
+    def make(name: Document.Node.Name, src_path: Path, bytes: Bytes): Blob = {
       val chunk = Symbol.Text_Chunk(bytes.text)
       Blob(name, src_path, Some((bytes.sha1_digest, chunk)))
     }
