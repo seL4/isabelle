@@ -245,7 +245,7 @@ object Thy_Syntax {
     }
 
     edit match {
-      case (_, Document.Node.Blob(blob)) => node.init_blob(blob)
+      case (_, Document.Node.Blob(blob)) => Document.Node.init_blob(blob)
 
       case (name, Document.Node.Edits(text_edits)) =>
         if (name.is_theory) {

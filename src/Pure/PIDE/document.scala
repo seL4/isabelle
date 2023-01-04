@@ -263,6 +263,8 @@ object Document {
     }
 
     val empty: Node = new Node()
+
+    def init_blob(blob: Document.Blob): Node = new Node(get_blob = Some(blob.unchanged))
   }
 
   final class Node private(
@@ -291,8 +293,6 @@ object Document {
     def load_commands: List[Command] = _commands.load_commands
     def load_commands_changed(doc_blobs: Blobs): Boolean =
       load_commands.exists(_.blobs_changed(doc_blobs))
-
-    def init_blob(blob: Blob): Node = new Node(get_blob = Some(blob.unchanged))
 
     def update_header(new_header: Node.Header): Node =
       new Node(get_blob, new_header, syntax, text_perspective, perspective, _commands)
