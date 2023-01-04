@@ -428,7 +428,7 @@ object Command {
   def blobs_info(
     resources: Resources,
     syntax: Outer_Syntax,
-    get_blob: Document.Node.Name => Option[Document.Blob],
+    get_blob: Document.Node.Name => Option[Document.Blobs.Item],
     can_import: Document.Node.Name => Boolean,
     node_name: Document.Node.Name,
     span: Command_Span.Span

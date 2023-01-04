@@ -496,7 +496,7 @@ object Headless {
     }
 
     sealed case class State(
-      blobs: Map[Document.Node.Name, Document.Blob] = Map.empty,
+      blobs: Map[Document.Node.Name, Document.Blobs.Item] = Map.empty,
       theories: Map[Document.Node.Name, Theory] = Map.empty,
       required: Multi_Map[Document.Node.Name, UUID.T] = Multi_Map.empty
     ) {
@@ -508,9 +508,9 @@ object Headless {
         val new_blobs =
           names.flatMap { name =>
             val bytes = Bytes.read(name.path)
-            def new_blob: Document.Blob = {
+            def new_blob: Document.Blobs.Item = {
               val text = bytes.text
-              Document.Blob(bytes, text, Symbol.Text_Chunk(text), changed = true)
+              Document.Blobs.Item(bytes, text, Symbol.Text_Chunk(text), changed = true)
             }
             blobs.get(name) match {
               case Some(blob) if blob.bytes == bytes => None
@@ -524,7 +524,7 @@ object Headless {
 
       def blob_edits(
         name: Document.Node.Name,
-        old_blob: Option[Document.Blob]
+        old_blob: Option[Document.Blobs.Item]
       ) : List[Document.Edit_Text] = {
         val blob = blobs.getOrElse(name, error("Missing blob " + quote(name.toString)))
         val text_edits =

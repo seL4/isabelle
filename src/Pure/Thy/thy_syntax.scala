@@ -166,7 +166,7 @@ object Thy_Syntax {
   private def reparse_spans(
     resources: Resources,
     syntax: Outer_Syntax,
-    get_blob: Document.Node.Name => Option[Document.Blob],
+    get_blob: Document.Node.Name => Option[Document.Blobs.Item],
     can_import: Document.Node.Name => Boolean,
     node_name: Document.Node.Name,
     commands: Linear_Set[Command],
@@ -213,7 +213,7 @@ object Thy_Syntax {
   private def text_edit(
     resources: Resources,
     syntax: Outer_Syntax,
-    get_blob: Document.Node.Name => Option[Document.Blob],
+    get_blob: Document.Node.Name => Option[Document.Blobs.Item],
     can_import: Document.Node.Name => Boolean,
     reparse_limit: Int,
     node: Document.Node,
@@ -303,7 +303,7 @@ object Thy_Syntax {
   ): Session.Change = {
     val (syntax_changed, nodes0, doc_edits0) = header_edits(resources, previous, edits)
 
-    def get_blob(name: Document.Node.Name): Option[Document.Blob] =
+    def get_blob(name: Document.Node.Name): Option[Document.Blobs.Item] =
       doc_blobs.get(name) orElse previous.nodes(name).get_blob
 
     def can_import(name: Document.Node.Name): Boolean =

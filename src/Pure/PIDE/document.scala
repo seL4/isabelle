@@ -41,17 +41,17 @@ object Document {
 
   /* document blobs: auxiliary files */
 
-  sealed case class Blob(bytes: Bytes, source: String, chunk: Symbol.Text_Chunk, changed: Boolean) {
-    def unchanged: Blob = copy(changed = false)
-  }
-
   object Blobs {
-    def apply(blobs: Map[Node.Name, Blob]): Blobs = new Blobs(blobs)
+    sealed case class Item(bytes: Bytes, source: String, chunk: Symbol.Text_Chunk, changed: Boolean) {
+      def unchanged: Item = copy(changed = false)
+    }
+
+    def apply(blobs: Map[Node.Name, Item]): Blobs = new Blobs(blobs)
     val empty: Blobs = apply(Map.empty)
   }
 
-  final class Blobs private(blobs: Map[Node.Name, Blob]) {
-    def get(name: Node.Name): Option[Blob] = blobs.get(name)
+  final class Blobs private(blobs: Map[Node.Name, Blobs.Item]) {
+    def get(name: Node.Name): Option[Blobs.Item] = blobs.get(name)
 
     def changed(name: Node.Name): Boolean =
       get(name) match {
@@ -171,7 +171,7 @@ object Document {
           case _ => false
         }
     }
-    case class Blob[A, B](blob: Document.Blob) extends Edit[A, B]
+    case class Blob[A, B](blob: Blobs.Item) extends Edit[A, B]
 
     case class Edits[A, B](edits: List[A]) extends Edit[A, B]
     case class Deps[A, B](header: Header) extends Edit[A, B]
@@ -264,11 +264,12 @@ object Document {
 
     val empty: Node = new Node()
 
-    def init_blob(blob: Document.Blob): Node = new Node(get_blob = Some(blob.unchanged))
+    def init_blob(blob: Blobs.Item): Node =
+      new Node(get_blob = Some(blob.unchanged))
   }
 
   final class Node private(
-    val get_blob: Option[Document.Blob] = None,
+    val get_blob: Option[Blobs.Item] = None,
     val header: Node.Header = Node.no_header,
     val syntax: Option[Outer_Syntax] = None,
     val text_perspective: Text.Perspective = Text.Perspective.empty,
@@ -794,7 +795,7 @@ object Document {
 
     def node_required: Boolean
 
-    def get_blob: Option[Blob]
+    def get_blob: Option[Blobs.Item]
 
     def untyped_data: AnyRef
     def get_data[C](c: Class[C]): Option[C] = Library.as_subclass(c)(untyped_data)
