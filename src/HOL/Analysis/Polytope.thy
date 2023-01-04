@@ -474,10 +474,7 @@ proof (cases "\<forall>F'. finite F' \<and> F' \<subseteq> T \<and> card F' \<le
     using order.trans by fastforce
 next
   case False
-  then show ?thesis
-    apply simp
-    apply (erule ex_forward)
-    by blast
+  then show ?thesis by fastforce
 qed
 
 lemma faces_of_translation:
@@ -661,23 +658,16 @@ lemma exposed_face_of_refl: "convex S \<Longrightarrow> S exposed_face_of S"
 
 lemma exposed_face_of:
     "T exposed_face_of S \<longleftrightarrow>
-     T face_of S \<and>
-     (T = {} \<or> T = S \<or>
+     T face_of S \<and> (T = {} \<or> T = S \<or>
       (\<exists>a b. a \<noteq> 0 \<and> S \<subseteq> {x. a \<bullet> x \<le> b} \<and> T = S \<inter> {x. a \<bullet> x = b}))"
-proof (cases "T = {}")
-  case False
-  show ?thesis
-  proof (cases "T = S")
-    case True then show ?thesis
-      by (simp add: face_of_refl_eq)
-  next
-    case False
-    with \<open>T \<noteq> {}\<close> show ?thesis
-      apply (auto simp: exposed_face_of_def)
-      apply (metis inner_zero_left)
-      done
-  qed
-qed auto
+     (is "?lhs = ?rhs")
+proof
+  show "?lhs \<Longrightarrow> ?rhs"
+    by (smt (verit) Collect_cong exposed_face_of_def hyperplane_eq_empty inf.absorb_iff1
+                    inf_bot_right inner_zero_left)
+  show "?rhs \<Longrightarrow> ?lhs"
+    using exposed_face_of_def face_of_imp_convex by fastforce
+qed
 
 lemma exposed_face_of_Int_supporting_hyperplane_le:
    "\<lbrakk>convex S; \<And>x. x \<in> S \<Longrightarrow> a \<bullet> x \<le> b\<rbrakk> \<Longrightarrow> (S \<inter> {x. a \<bullet> x = b}) exposed_face_of S"
@@ -780,10 +770,7 @@ next
     proof -
       have "\<And>x y. \<lbrakk>z = u \<bullet> (x + y); x \<in> S; y \<in> T\<rbrakk>
            \<Longrightarrow> u \<bullet> x = u \<bullet> a0 \<and> u \<bullet> y = u \<bullet> b0"
-        using z p \<open>a0 \<in> S\<close> \<open>b0 \<in> T\<close>
-        apply (simp add: inner_right_distrib)
-        apply (metis add_le_cancel_right antisym lez [unfolded inner_right_distrib] add.commute)
-        done
+        by (smt (verit, best) z p \<open>a0 \<in> S\<close> \<open>b0 \<in> T\<close> inner_right_distrib lez)
       then show ?thesis
         using feq by blast
     qed
@@ -815,18 +802,18 @@ proof
       then show ?thesis
       proof
         assume "affine hull S \<inter> {x. - a \<bullet> x \<le> - b} = {}"
-       then show ?thesis
-         apply (rule_tac x="0" in exI)
-         apply (rule_tac x="1" in exI)
-         using hull_subset by fastforce
+        then show ?thesis
+          apply (rule_tac x="0" in exI)
+          apply (rule_tac x="1" in exI)
+          using hull_subset by fastforce
+      next
+        assume "affine hull S \<subseteq> {x. - a \<bullet> x \<le> - b}"
+        then show ?thesis
+          apply (rule_tac x="0" in exI)
+          apply (rule_tac x="0" in exI)
+          using Ssub hull_subset by fastforce
+      qed
     next
-      assume "affine hull S \<subseteq> {x. - a \<bullet> x \<le> - b}"
-      then show ?thesis
-         apply (rule_tac x="0" in exI)
-         apply (rule_tac x="0" in exI)
-        using Ssub hull_subset by fastforce
-    qed
-  next
     case False
     then obtain a' b' where "a' \<noteq> 0" 
       and le: "affine hull S \<inter> {x. a' \<bullet> x \<le> b'} = affine hull S \<inter> {x. - a \<bullet> x \<le> - b}" 
@@ -1472,9 +1459,8 @@ proof
   have "\<not> affine_dependent c"
     using \<open>c \<subseteq> S\<close> affine_dependent_subset assms by blast
   with affs have "card (S - c) = 1"
-    apply (simp add: aff_dim_affine_independent [symmetric] aff_dim_convex_hull)
-    by (metis aff_dim_affine_independent aff_independent_finite One_nat_def \<open>c \<subseteq> S\<close> add.commute
-                add_diff_cancel_right' assms card_Diff_subset card_mono of_nat_1 of_nat_diff of_nat_eq_iff)
+    by (smt (verit) \<open>c \<subseteq> S\<close> aff_dim_affine_independent aff_independent_finite assms card_Diff_subset 
+        card_mono of_nat_diff of_nat_eq_1_iff)
   then obtain u where u: "u \<in> S - c"
     by (metis DiffI \<open>c \<subseteq> S\<close> aff_independent_finite assms cancel_comm_monoid_add_class.diff_cancel
                 card_Diff_subset subsetI subset_antisym zero_neq_one)
@@ -3361,11 +3347,9 @@ proof (induction n arbitrary: \<M> rule: less_induct)
                 ultimately show "convex hull (J - {?z}) \<in> \<U> \<inter> Pow (rel_frontier C)" by auto
                 let ?F = "convex hull insert ?z (convex hull (J - {?z}))"
                 have "F \<subseteq> ?F"
-                  apply (clarsimp simp: \<open>F = convex hull J\<close>)
-                  by (metis True subsetD hull_mono hull_subset subset_insert_iff)
+                  by (simp add: \<open>F = convex hull J\<close> hull_mono hull_subset subset_insert_iff)
                 moreover have "?F \<subseteq> F"
-                  apply (clarsimp simp: \<open>F = convex hull J\<close>)
-                  by (metis (no_types, lifting) True convex_hull_eq_empty convex_hull_insert_segments hull_hull insert_Diff)
+                  by (metis True \<open>F = convex hull J\<close> hull_insert insert_Diff set_eq_subset)
                 ultimately
                 show "F \<in> {?F}" by auto
               qed
