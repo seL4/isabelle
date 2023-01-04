@@ -287,7 +287,8 @@ class Build_Job(progress: Progress,
                       val src_path = Path.explode(file)
                       val node = File.symbolic_path(master_dir + src_path)
                       val bytes = session_sources(node).bytes
-                      Command.Blob.make(Document.Node.Name(node), src_path, bytes)
+                      val content = (SHA1.digest(bytes), Symbol.Text_Chunk(bytes.text))
+                      Command.Blob(Document.Node.Name(node), src_path, Some(content))
                     }).user_error
                   }
                 Command.Blobs_Info(blobs)
