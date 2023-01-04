@@ -508,13 +508,12 @@ object Headless {
         val new_blobs =
           names.flatMap { name =>
             val bytes = Bytes.read(name.path)
-            def new_blob: Document.Blobs.Item = {
-              val text = bytes.text
-              Document.Blobs.Item(bytes, text, Symbol.Text_Chunk(text), changed = true)
-            }
             blobs.get(name) match {
               case Some(blob) if blob.bytes == bytes => None
-              case _ => Some(name -> new_blob)
+              case _ =>
+                val text = bytes.text
+                val blob = Document.Blobs.Item(bytes, text, Symbol.Text_Chunk(text), changed = true)
+                Some(name -> blob)
             }
           }
         val blobs1 = new_blobs.foldLeft(blobs)(_ + _)
