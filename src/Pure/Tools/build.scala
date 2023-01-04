@@ -139,8 +139,8 @@ object Build {
   class Results private[Build](
     val store: Sessions.Store,
     val deps: Sessions.Deps,
-    results: Map[String, (Option[Process_Result], Sessions.Info)],
-    val presentation_sessions: Browser_Info.Config => List[String]
+    val sessions_ok: List[String],
+    results: Map[String, (Option[Process_Result], Sessions.Info)]
   ) {
     def cache: Term.Cache = store.cache
 
@@ -452,18 +452,18 @@ object Build {
         }
         else Isabelle_Thread.uninterruptible { loop(queue, Map.empty, Map.empty) }
 
+      val sessions_ok: List[String] =
+        (for {
+          name <- build_deps.sessions_structure.build_topological_order.iterator
+          result <- build_results.get(name)
+          if result.ok
+        } yield name).toList
+
       val results =
         (for ((name, result) <- build_results.iterator)
           yield (name, (result.process, result.info))).toMap
 
-      def presentation_sessions(config: Browser_Info.Config): List[String] =
-        (for {
-          name <- build_deps.sessions_structure.build_topological_order.iterator
-          result <- build_results.get(name)
-          if result.ok && config.enabled(result.info)
-        } yield name).toList
-
-      new Results(store, build_deps, results, presentation_sessions)
+      new Results(store, build_deps, sessions_ok, results)
     }
 
     if (export_files) {
@@ -481,7 +481,8 @@ object Build {
       }
     }
 
-    val presentation_sessions = results.presentation_sessions(browser_info)
+    val presentation_sessions =
+      results.sessions_ok.filter(name => browser_info.enabled(results.info(name)))
     if (presentation_sessions.nonEmpty && !progress.stopped) {
       Browser_Info.build(browser_info, results.store, results.deps, presentation_sessions,
         progress = progress, verbose = verbose)
