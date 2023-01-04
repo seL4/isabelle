@@ -19,8 +19,9 @@ object Thy_Syntax {
     perspective: Text.Perspective,
     overlays: Document.Node.Overlays
   ): (Command.Perspective, Command.Perspective) = {
-    if (perspective.is_empty && overlays.is_empty)
+    if (perspective.is_empty && overlays.is_empty) {
       (Command.Perspective.empty, Command.Perspective.empty)
+    }
     else {
       val has_overlay = overlays.commands
       val visible = new mutable.ListBuffer[Command]
@@ -215,7 +216,8 @@ object Thy_Syntax {
     get_blob: Document.Node.Name => Option[Document.Blob],
     can_import: Document.Node.Name => Boolean,
     reparse_limit: Int,
-    node: Document.Node, edit: Document.Edit_Text
+    node: Document.Node,
+    edit: Document.Edit_Text
   ): Document.Node = {
     /* recover command spans after edits */
     // FIXME somewhat slow
@@ -313,8 +315,9 @@ object Thy_Syntax {
         val reparse =
           nodes0.iterator.foldLeft(syntax_changed) {
             case (reparse, (name, node)) =>
-              if (node.load_commands_changed(doc_blobs) && !reparse.contains(name))
+              if (node.load_commands_changed(doc_blobs) && !reparse.contains(name)) {
                 name :: reparse
+              }
               else reparse
           }
         val reparse_set = reparse.toSet
@@ -333,22 +336,25 @@ object Thy_Syntax {
             val commands = node.commands
 
             val node1 =
-              if (reparse_set(name) && commands.nonEmpty)
+              if (reparse_set(name) && commands.nonEmpty) {
                 node.update_commands(
                   reparse_spans(resources, syntax, get_blob, can_import, name,
                     commands, commands.head, commands.last))
+              }
               else node
             val node2 =
               edits.foldLeft(node1)(
                 text_edit(resources, syntax, get_blob, can_import, reparse_limit, _, _))
             val node3 =
-              if (reparse_set.contains(name))
+              if (reparse_set.contains(name)) {
                 text_edit(resources, syntax, get_blob, can_import, reparse_limit,
                   node2, (name, node2.edit_perspective))
+              }
               else node2
 
-            if (!node.same_perspective(node3.text_perspective, node3.perspective))
+            if (!node.same_perspective(node3.text_perspective, node3.perspective)) {
               doc_edits += (name -> node3.perspective)
+            }
 
             doc_edits += (name -> Document.Node.Edits(diff_commands(commands, node3.commands)))
 
