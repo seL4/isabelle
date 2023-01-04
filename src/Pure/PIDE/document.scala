@@ -93,7 +93,7 @@ object Document {
     object Name {
       def apply(node: String, theory: String = ""): Name = new Name(node, theory)
 
-      def loaded_theory(theory: String): Document.Node.Name = Name(theory, theory = theory)
+      def loaded_theory(theory: String): Name = Name(theory, theory = theory)
 
       val empty: Name = Name("")
 
@@ -518,16 +518,16 @@ object Document {
   final class Pending_Edits(pending_edits: Map[Node.Name, List[Text.Edit]]) {
     def is_stable: Boolean = pending_edits.isEmpty
 
-    def + (entry: (Document.Node.Name, List[Text.Edit])): Pending_Edits = {
+    def + (entry: (Node.Name, List[Text.Edit])): Pending_Edits = {
       val (name, es) = entry
       if (es.isEmpty) this
       else new Pending_Edits(pending_edits + (name -> (es ::: edits(name))))
     }
 
-    def edits(name: Document.Node.Name): List[Text.Edit] =
+    def edits(name: Node.Name): List[Text.Edit] =
       pending_edits.getOrElse(name, Nil)
 
-    def reverse_edits(name: Document.Node.Name): List[Text.Edit] =
+    def reverse_edits(name: Node.Name): List[Text.Edit] =
       reverse_pending_edits.getOrElse(name, Nil)
 
     private lazy val reverse_pending_edits =
@@ -608,7 +608,7 @@ object Document {
 
       val nodes0 = version.nodes
       val nodes1 = nodes0 + (node_name -> nodes0(node_name).update_commands(Linear_Set(command)))
-      val version1 = Document.Version.make(nodes1)
+      val version1 = Version.make(nodes1)
 
       val edits: List[Edit_Text] =
         List(node_name -> Node.Edits(List(Text.Edit.insert(0, command.source))))
@@ -657,8 +657,7 @@ object Document {
     lazy val messages: List[(XML.Elem, Position.T)] =
       (for {
         (command, start) <-
-          Document.Node.Commands.starts_pos(
-            node.commands.iterator, Token.Pos.file(node_name.node))
+          Node.Commands.starts_pos(node.commands.iterator, Token.Pos.file(node_name.node))
         pos = command.span.keyword_pos(start).position(command.span.name)
         (_, elem) <- state.command_results(version, command).iterator
        } yield (elem, pos)).toList
