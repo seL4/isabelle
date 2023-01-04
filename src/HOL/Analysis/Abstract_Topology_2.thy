@@ -17,9 +17,7 @@ text \<open>Combination of Elementary and Abstract Topology\<close>
 
 lemma approachable_lt_le2: 
     "(\<exists>(d::real) > 0. \<forall>x. Q x \<longrightarrow> f x < d \<longrightarrow> P x) \<longleftrightarrow> (\<exists>d>0. \<forall>x. f x \<le> d \<longrightarrow> Q x \<longrightarrow> P x)"
-  apply auto
-  apply (rule_tac x="d/2" in exI, auto)
-  done
+by (meson dense less_eq_real_def order_le_less_trans)
 
 lemma triangle_lemma:
   fixes x y z :: real
@@ -88,13 +86,18 @@ next
   qed
 qed
 
+lemma islimpt_closure:
+  "\<lbrakk>S \<subseteq> T; \<And>x. \<lbrakk>x islimpt S; x \<in> T\<rbrakk> \<Longrightarrow> x \<in> S\<rbrakk> \<Longrightarrow> S = T \<inter> closure S"
+  using closure_def by fastforce
+
 lemma closedin_limpt:
   "closedin (top_of_set T) S \<longleftrightarrow> S \<subseteq> T \<and> (\<forall>x. x islimpt S \<and> x \<in> T \<longrightarrow> x \<in> S)"
-  apply (simp add: closedin_closed, safe)
-   apply (simp add: closed_limpt islimpt_subset)
-  apply (rule_tac x="closure S" in exI, simp)
-  apply (force simp: closure_def)
-  done
+proof -
+  have "\<And>U x. \<lbrakk>closed U; S = T \<inter> U; x islimpt S; x \<in> T\<rbrakk> \<Longrightarrow> x \<in> S"
+    by (meson IntI closed_limpt inf_le2 islimpt_subset)
+  then show ?thesis
+    by (metis closed_closure closedin_closed closedin_imp_subset islimpt_closure)
+qed
 
 lemma closedin_closed_eq: "closed S \<Longrightarrow> closedin (top_of_set S) T \<longleftrightarrow> closed T \<and> T \<subseteq> S"
   by (meson closedin_limpt closed_subset closedin_closed_trans)
@@ -104,8 +107,8 @@ lemma connected_closed_set:
     \<Longrightarrow> connected S \<longleftrightarrow> (\<nexists>A B. closed A \<and> closed B \<and> A \<noteq> {} \<and> B \<noteq> {} \<and> A \<union> B = S \<and> A \<inter> B = {})"
   unfolding connected_closedin_eq closedin_closed_eq connected_closedin_eq by blast
 
-text \<open>If a connnected set is written as the union of two nonempty closed sets, then these sets
-have to intersect.\<close>
+text \<open>If a connnected set is written as the union of two nonempty closed sets, 
+  then these sets have to intersect.\<close>
 
 lemma connected_as_closed_union:
   assumes "connected C" "C = A \<union> B" "closed A" "closed B" "A \<noteq> {}" "B \<noteq> {}"
@@ -128,10 +131,7 @@ by (metis closedin_closed compact_Int_closed)
 
 lemma closedin_compact_eq:
   fixes S :: "'a::t2_space set"
-  shows
-   "compact S
-         \<Longrightarrow> (closedin (top_of_set S) T \<longleftrightarrow>
-              compact T \<and> T \<subseteq> S)"
+  shows "compact S \<Longrightarrow> (closedin (top_of_set S) T \<longleftrightarrow> compact T \<and> T \<subseteq> S)"
 by (metis closedin_imp_subset closedin_compact closed_subset compact_imp_closed)
 
 
@@ -174,12 +174,11 @@ proof (clarsimp simp: closure_iff_nhds_not_empty)
   fix x and A and V
   assume "x \<in> S" "V \<subseteq> A" "open V" "x \<in> V" "T \<inter> A = {}"
   then have "openin (top_of_set S) (A \<inter> V \<inter> S)"
-    by (auto simp: openin_open intro!: exI[where x="V"])
+    by (simp add: inf_absorb2 openin_subtopology_Int)
   moreover have "A \<inter> V \<inter> S \<noteq> {}" using \<open>x \<in> V\<close> \<open>V \<subseteq> A\<close> \<open>x \<in> S\<close>
     by auto
-  ultimately have "T \<inter> (A \<inter> V \<inter> S) \<noteq> {}"
-    by (rule assms)
-  with \<open>T \<inter> A = {}\<close> show False by auto
+  ultimately show False
+    using \<open>T \<inter> A = {}\<close> assms by fastforce
 qed
 
 
@@ -192,10 +191,10 @@ lemma euclidean_frontier_of [simp]: "euclidean frontier_of S = frontier S"
   by (auto simp: frontier_of_def frontier_def)
 
 lemma connected_Int_frontier:
-     "\<lbrakk>connected s; s \<inter> t \<noteq> {}; s - t \<noteq> {}\<rbrakk> \<Longrightarrow> (s \<inter> frontier t \<noteq> {})"
+     "\<lbrakk>connected S; S \<inter> T \<noteq> {}; S - T \<noteq> {}\<rbrakk> \<Longrightarrow> S \<inter> frontier T \<noteq> {}"
   apply (simp add: frontier_interiors connected_openin, safe)
-  apply (drule_tac x="s \<inter> interior t" in spec, safe)
-   apply (drule_tac [2] x="s \<inter> interior (-t)" in spec)
+  apply (drule_tac x="S \<inter> interior T" in spec, safe)
+   apply (drule_tac [2] x="S \<inter> interior (-T)" in spec)
    apply (auto simp: disjoint_eq_subset_Compl dest: interior_subset [THEN subsetD])
   done
 
@@ -203,8 +202,7 @@ subsection \<open>Compactness\<close>
 
 lemma openin_delete:
   fixes a :: "'a :: t1_space"
-  shows "openin (top_of_set u) s
-         \<Longrightarrow> openin (top_of_set u) (s - {a})"
+  shows "openin (top_of_set u) S \<Longrightarrow> openin (top_of_set u) (S - {a})"
 by (metis Int_Diff open_delete openin_open)
 
 lemma compact_eq_openin_cover:
@@ -241,8 +239,7 @@ next
       from \<open>finite D\<close> show "finite ?D"
         by (rule finite_imageI)
       from \<open>S \<subseteq> \<Union>D\<close> show "S \<subseteq> \<Union>?D"
-        apply (rule subset_trans)
-        by (metis Int_Union Int_lower2 \<open>D \<subseteq> (\<inter>) S ` C\<close> image_inv_into_cancel)
+        by (metis \<open>D \<subseteq> (\<inter>) S ` C\<close> image_inv_into_cancel inf_Sup le_infE)
     qed
     then show "\<exists>D\<subseteq>C. finite D \<and> S \<subseteq> \<Union>D" ..
   qed
@@ -332,49 +329,47 @@ by metis
 subsection\<^marker>\<open>tag unimportant\<close> \<open>Continuity relative to a union.\<close>
 
 lemma continuous_on_Un_local:
-    "\<lbrakk>closedin (top_of_set (s \<union> t)) s; closedin (top_of_set (s \<union> t)) t;
-      continuous_on s f; continuous_on t f\<rbrakk>
-     \<Longrightarrow> continuous_on (s \<union> t) f"
+    "\<lbrakk>closedin (top_of_set (S \<union> T)) S; closedin (top_of_set (S \<union> T)) T;
+      continuous_on S f; continuous_on T f\<rbrakk>
+     \<Longrightarrow> continuous_on (S \<union> T) f"
   unfolding continuous_on closedin_limpt
   by (metis Lim_trivial_limit Lim_within_union Un_iff trivial_limit_within)
 
 lemma continuous_on_cases_local:
-     "\<lbrakk>closedin (top_of_set (s \<union> t)) s; closedin (top_of_set (s \<union> t)) t;
-       continuous_on s f; continuous_on t g;
-       \<And>x. \<lbrakk>x \<in> s \<and> \<not>P x \<or> x \<in> t \<and> P x\<rbrakk> \<Longrightarrow> f x = g x\<rbrakk>
-      \<Longrightarrow> continuous_on (s \<union> t) (\<lambda>x. if P x then f x else g x)"
+     "\<lbrakk>closedin (top_of_set (S \<union> T)) S; closedin (top_of_set (S \<union> T)) T;
+       continuous_on S f; continuous_on T g;
+       \<And>x. \<lbrakk>x \<in> S \<and> \<not>P x \<or> x \<in> T \<and> P x\<rbrakk> \<Longrightarrow> f x = g x\<rbrakk>
+      \<Longrightarrow> continuous_on (S \<union> T) (\<lambda>x. if P x then f x else g x)"
   by (rule continuous_on_Un_local) (auto intro: continuous_on_eq)
 
 lemma continuous_on_cases_le:
   fixes h :: "'a :: topological_space \<Rightarrow> real"
-  assumes "continuous_on {t \<in> s. h t \<le> a} f"
-      and "continuous_on {t \<in> s. a \<le> h t} g"
-      and h: "continuous_on s h"
-      and "\<And>t. \<lbrakk>t \<in> s; h t = a\<rbrakk> \<Longrightarrow> f t = g t"
-    shows "continuous_on s (\<lambda>t. if h t \<le> a then f(t) else g(t))"
+  assumes "continuous_on {x \<in> S. h x \<le> a} f"
+      and "continuous_on {x \<in> S. a \<le> h x} g"
+      and h: "continuous_on S h"
+      and "\<And>x. \<lbrakk>x \<in> S; h x = a\<rbrakk> \<Longrightarrow> f x = g x"
+    shows "continuous_on S (\<lambda>x. if h x \<le> a then f(x) else g(x))"
 proof -
-  have s: "s = (s \<inter> h -` atMost a) \<union> (s \<inter> h -` atLeast a)"
+  have S: "S = (S \<inter> h -` atMost a) \<union> (S \<inter> h -` atLeast a)"
     by force
-  have 1: "closedin (top_of_set s) (s \<inter> h -` atMost a)"
+  have 1: "closedin (top_of_set S) (S \<inter> h -` atMost a)"
     by (rule continuous_closedin_preimage [OF h closed_atMost])
-  have 2: "closedin (top_of_set s) (s \<inter> h -` atLeast a)"
+  have 2: "closedin (top_of_set S) (S \<inter> h -` atLeast a)"
     by (rule continuous_closedin_preimage [OF h closed_atLeast])
-  have eq: "s \<inter> h -` {..a} = {t \<in> s. h t \<le> a}" "s \<inter> h -` {a..} = {t \<in> s. a \<le> h t}"
+  have [simp]: "S \<inter> h -` {..a} = {x \<in> S. h x \<le> a}" "S \<inter> h -` {a..} = {x \<in> S. a \<le> h x}"
     by auto
-  show ?thesis
-    apply (rule continuous_on_subset [of s, OF _ order_refl])
-    apply (subst s)
-    apply (rule continuous_on_cases_local)
-    using 1 2 s assms apply (auto simp: eq)
-    done
+  have "continuous_on (S \<inter> h -` {..a} \<union> S \<inter> h -` {a..}) (\<lambda>x. if h x \<le> a then f x else g x)"
+    by (intro continuous_on_cases_local) (use 1 2 S assms in auto)
+  then show ?thesis
+    using S by force
 qed
 
 lemma continuous_on_cases_1:
-  fixes s :: "real set"
-  assumes "continuous_on {t \<in> s. t \<le> a} f"
-      and "continuous_on {t \<in> s. a \<le> t} g"
-      and "a \<in> s \<Longrightarrow> f a = g a"
-    shows "continuous_on s (\<lambda>t. if t \<le> a then f(t) else g(t))"
+  fixes S :: "real set"
+  assumes "continuous_on {t \<in> S. t \<le> a} f"
+      and "continuous_on {t \<in> S. a \<le> t} g"
+      and "a \<in> S \<Longrightarrow> f a = g a"
+    shows "continuous_on S (\<lambda>t. if t \<le> a then f(t) else g(t))"
 using assms
 by (auto intro: continuous_on_cases_le [where h = id, simplified])
 
@@ -504,8 +499,7 @@ proof -
     show "\<exists>\<U>\<subseteq>\<B> - {{}}. T = \<Union>\<U>" if "openin (top_of_set S) T" for T
       using \<B> [OF that]
       apply clarify
-      apply (rule_tac x="\<U> - {{}}" in exI, auto)
-        done
+      by (rule_tac x="\<U> - {{}}" in exI, auto)
   qed auto
 qed
 
@@ -666,16 +660,15 @@ lemma continuous_left_inverse_imp_quotient_map:
       and "U \<subseteq> f ` S"
     shows "openin (top_of_set S) (S \<inter> f -` U) \<longleftrightarrow>
            openin (top_of_set (f ` S)) U"
-apply (rule continuous_right_inverse_imp_quotient_map)
-using assms apply force+
-done
+  using assms 
+  by (intro continuous_right_inverse_imp_quotient_map) auto
 
 lemma continuous_imp_quotient_map:
   fixes f :: "'a::t2_space \<Rightarrow> 'b::t2_space"
   assumes "continuous_on S f" "f ` S = T" "compact S" "U \<subseteq> T"
     shows "openin (top_of_set S) (S \<inter> f -` U) \<longleftrightarrow>
            openin (top_of_set T) U"
-  by (metis (no_types, lifting) assms closed_map_imp_quotient_map continuous_imp_closed_map)
+  by (simp add: assms closed_map_imp_quotient_map continuous_imp_closed_map)
 
 subsection\<^marker>\<open>tag unimportant\<close>\<open>Pasting lemmas for functions, for of casewise definitions\<close>
 
@@ -747,14 +740,11 @@ next
     by auto
   have 1: "(\<Union>i\<in>I. T i \<inter> f i -` U) \<subseteq> topspace X"
     using T by blast
-  then have lf: "locally_finite_in X ((\<lambda>i. T i \<inter> f i -` U) ` I)"
+  then have "locally_finite_in X ((\<lambda>i. T i \<inter> f i -` U) ` I)"
     unfolding locally_finite_in_def
     using finite_subset [OF sub] fin by force
-  show "closedin X (topspace X \<inter> g -` U)"
-    apply (subst *)
-    apply (rule closedin_locally_finite_Union)
-     apply (auto intro: cTf lf)
-    done
+  then show "closedin X (topspace X \<inter> g -` U)"
+    by (smt (verit, best) * cTf closedin_locally_finite_Union image_iff)
 qed
 
 subsubsection\<open>Likewise on closed sets, with a finiteness assumption\<close>
@@ -784,10 +774,8 @@ proof
 next
   fix x i
   assume "i \<in> I" and "x \<in> topspace X \<inter> T i"
-  show "f (SOME i. i \<in> I \<and> x \<in> T i) x = f i x"
-    apply (rule someI2_ex)
-    using \<open>i \<in> I\<close> \<open>x \<in> topspace X \<inter> T i\<close> apply blast
-    by (meson Int_iff \<open>i \<in> I\<close> \<open>x \<in> topspace X \<inter> T i\<close> f)
+  then show "f (SOME i. i \<in> I \<and> x \<in> T i) x = f i x"
+    by (metis (mono_tags, lifting) IntE IntI f someI2)
 qed
 
 lemma pasting_lemma_exists_closed:
@@ -824,26 +812,19 @@ proof (rule pasting_lemma_closed)
   show "?f i x = ?f j x"
     if "i \<in> {True,False}" "j \<in> {True,False}" and x: "x \<in> topspace X \<inter> ?T i \<inter> ?T j" for i j x
   proof -
-    have "f x = g x"
-      if "i" "\<not> j"
-      apply (rule fg)
-      unfolding frontier_of_closures eq
-      using x that closure_of_restrict by fastforce
+    have "f x = g x" if "i" "\<not> j"
+      by (smt (verit, best) Diff_Diff_Int closure_of_interior_of closure_of_restrict eq fg 
+          frontier_of_closures interior_of_complement that x)
     moreover
     have "g x = f x"
       if "x \<in> X closure_of {x. \<not> P x}" "x \<in> X closure_of Collect P" "\<not> i" "j" for x
-        apply (rule fg [symmetric])
-        unfolding frontier_of_closures eq
-        using x that closure_of_restrict by fastforce
+      by (metis IntI closure_of_restrict eq fg frontier_of_closures that)
     ultimately show ?thesis
       using that by (auto simp flip: closure_of_restrict)
   qed
   show "\<exists>j. j \<in> {True,False} \<and> x \<in> ?T j \<and> (if P x then f x else g x) = ?f j x"
     if "x \<in> topspace X" for x
-    apply simp
-    apply safe
-    apply (metis Int_iff closure_of inf_sup_absorb mem_Collect_eq that)
-    by (metis DiffI eq closure_of_subset_Int contra_subsetD mem_Collect_eq that)
+    by simp (metis in_closure_of mem_Collect_eq that)
 qed (auto simp: f g)
 
 lemma continuous_map_cases_alt:
@@ -877,8 +858,7 @@ proof (rule continuous_map_cases_alt)
     show "continuous_map (subtopology X ?T) Y g"
       by (simp add: contg)
     have "X closure_of {x \<in> topspace X. p x \<notin> U} \<subseteq> X closure_of {x \<in> topspace X. p x \<in> topspace Z - U}"
-      apply (rule closure_of_mono)
-      using continuous_map_closedin contp by fastforce
+      by (smt (verit, del_insts) DiffI mem_Collect_eq subset_iff closure_of_mono continuous_map_closedin contp) 
     then show "X closure_of {x \<in> topspace X. p x \<notin> U} \<subseteq> ?T"
       by (rule order_trans [OF _ continuous_map_closure_preimage_subset [OF contp]])
   qed
@@ -1047,10 +1027,8 @@ lemma retract_of_singleton [iff]: "({x} retract_of S) \<longleftrightarrow> x \<
   unfolding retract_of_def retraction_def by force
 
 lemma retraction_comp:
-   "\<lbrakk>retraction S T f; retraction T U g\<rbrakk>
-        \<Longrightarrow> retraction S U (g \<circ> f)"
-apply (auto simp: retraction_def intro: continuous_on_compose2)
-by blast
+   "\<lbrakk>retraction S T f; retraction T U g\<rbrakk> \<Longrightarrow> retraction S U (g \<circ> f)"
+  by (smt (verit, best) comp_apply continuous_on_compose image_comp retraction subset_iff)
 
 lemma retract_of_trans [trans]:
   assumes "S retract_of T" and "T retract_of U"
@@ -1092,12 +1070,15 @@ lemma retract_of_connected:
   by (metis Topological_Spaces.connected_continuous_image retract_of_def retraction)
 
 lemma retraction_openin_vimage_iff:
-  "openin (top_of_set S) (S \<inter> r -` U) \<longleftrightarrow> openin (top_of_set T) U"
-  if retraction: "retraction S T r" and "U \<subseteq> T"
-  using retraction apply (rule retractionE)
-  apply (rule continuous_right_inverse_imp_quotient_map [where g=r])
-  using \<open>U \<subseteq> T\<close> apply (auto elim: continuous_on_subset)
-  done
+  assumes r: "retraction S T r" and "U \<subseteq> T"
+  shows "openin (top_of_set S) (S \<inter> r -` U) \<longleftrightarrow> openin (top_of_set T) U" (is "?lhs = ?rhs")
+proof
+  show "?lhs \<Longrightarrow> ?rhs"
+    using r retraction_def retractionE
+    by (smt (verit, best) continuous_right_inverse_imp_quotient_map retraction_subset \<open>U \<subseteq> T\<close>)
+  show "?rhs \<Longrightarrow> ?lhs"
+    by (meson continuous_openin_preimage r retraction_def)
+qed
 
 lemma retract_of_Times:
    "\<lbrakk>S retract_of s'; T retract_of t'\<rbrakk> \<Longrightarrow> (S \<times> T) retract_of (s' \<times> t')"
@@ -1317,11 +1298,13 @@ proof -
 qed
 
 lemma path_connectedin_discrete_topology:
-  "path_connectedin (discrete_topology U) S \<longleftrightarrow> S \<subseteq> U \<and> (\<exists>a. S \<subseteq> {a})"
-  apply safe
-  using path_connectedin_subset_topspace apply fastforce
-   apply (meson connectedin_discrete_topology path_connectedin_imp_connectedin)
-  using subset_singletonD by fastforce
+  "path_connectedin (discrete_topology U) S \<longleftrightarrow> S \<subseteq> U \<and> (\<exists>a. S \<subseteq> {a})" (is "?lhs = ?rhs")
+proof
+  show "?lhs \<Longrightarrow> ?rhs"
+    by (meson connectedin_discrete_topology path_connectedin_imp_connectedin)
+  show "?rhs \<Longrightarrow> ?lhs"
+    using subset_singletonD by fastforce
+qed
 
 lemma path_connected_space_discrete_topology:
    "path_connected_space (discrete_topology U) \<longleftrightarrow> (\<exists>a. U \<subseteq> {a})"
@@ -1444,17 +1427,14 @@ proof -
   have "connected_component_of_set X x = \<Union> {T. connectedin X T \<and> x \<in> T}"
     by (auto simp: connected_component_of_def)
   then show ?thesis
-    apply (rule ssubst)
-    by (blast intro: connectedin_Union)
+    by (metis (no_types, lifting) InterI connectedin_Union emptyE mem_Collect_eq)
 qed
 
 
 lemma Union_connected_components_of:
    "\<Union>(connected_components_of X) = topspace X"
   unfolding connected_components_of_def
-  apply (rule equalityI)
-  apply (simp add: SUP_least connected_component_of_subset_topspace)
-  using connected_component_of_refl by fastforce
+  using connected_component_in_topspace connected_component_of_refl by fastforce
 
 lemma connected_components_of_maximal:
    "\<lbrakk>C \<in> connected_components_of X; connectedin X S; ~disjnt C S\<rbrakk> \<Longrightarrow> S \<subseteq> C"
@@ -1465,15 +1445,13 @@ lemma connected_components_of_maximal:
 lemma pairwise_disjoint_connected_components_of:
    "pairwise disjnt (connected_components_of X)"
   unfolding connected_components_of_def pairwise_def
-  apply clarify
-  by (metis connected_component_of_disjoint connected_component_of_equiv)
+  by (smt (verit, best) connected_component_of_disjoint connected_component_of_eq imageE)
 
 lemma complement_connected_components_of_Union:
    "C \<in> connected_components_of X
       \<Longrightarrow> topspace X - C = \<Union> (connected_components_of X - {C})"
-  apply (rule equalityI)
-  using Union_connected_components_of apply fastforce
-  by (metis Diff_cancel Diff_subset Union_connected_components_of cSup_singleton diff_Union_pairwise_disjoint equalityE insert_subsetI pairwise_disjoint_connected_components_of)
+  by (metis Union_connected_components_of bot.extremum ccpo_Sup_singleton diff_Union_pairwise_disjoint
+      insert_subset pairwise_disjoint_connected_components_of)
 
 lemma nonempty_connected_components_of:
    "C \<in> connected_components_of X \<Longrightarrow> C \<noteq> {}"
@@ -1495,16 +1473,18 @@ then show ?thesis
 qed
 
 lemma connected_component_in_connected_components_of:
-   "connected_component_of_set X a \<in> connected_components_of X \<longleftrightarrow> a \<in> topspace X"
-  apply (rule iffI)
-  using connected_component_of_eq_empty nonempty_connected_components_of apply fastforce
-  by (simp add: connected_components_of_def)
+  "connected_component_of_set X a \<in> connected_components_of X \<longleftrightarrow> a \<in> topspace X"
+  by (metis (no_types, lifting) connected_component_of_eq_empty connected_components_of_def image_iff)
 
 lemma connected_space_iff_components_eq:
    "connected_space X \<longleftrightarrow> (\<forall>C \<in> connected_components_of X. \<forall>C' \<in> connected_components_of X. C = C')"
-  apply (rule iffI)
-  apply (force simp: connected_components_of_def connected_space_connected_component_set image_iff)
-  by (metis connected_component_in_connected_components_of connected_component_of_refl connected_space_iff_connected_component mem_Collect_eq)
+          (is "?lhs = ?rhs")
+proof
+  show "?lhs \<Longrightarrow> ?rhs"
+    by (simp add: connected_components_of_def connected_space_connected_component_set)
+  show "?rhs \<Longrightarrow> ?lhs"
+    by (metis Union_connected_components_of Union_iff connected_space_subconnected connectedin_connected_components_of)
+qed
 
 lemma connected_components_of_eq_empty:
    "connected_components_of X = {} \<longleftrightarrow> topspace X = {}"
@@ -1522,10 +1502,11 @@ proof (cases "topspace X = {}")
     by (simp add: connected_components_of_empty_space connected_space_topspace_empty)
 next
   case False
-  then show ?thesis
-    by (metis (no_types, opaque_lifting) Union_connected_components_of ccpo_Sup_singleton
-        connected_components_of_eq_empty connected_space_iff_components_eq insertI1 singletonD
-        subsetI subset_singleton_iff)
+  then have "\<lbrakk>connected_components_of X \<subseteq> {S}\<rbrakk> \<Longrightarrow> topspace X = S"
+    by (metis Sup_empty Union_connected_components_of ccpo_Sup_singleton subset_singleton_iff)
+  with False show ?thesis
+    unfolding connected_components_of_def
+    by (metis connected_space_connected_component_set empty_iff image_subset_iff insert_iff)
 qed
 
 lemma connected_space_iff_components_subset_singleton:
