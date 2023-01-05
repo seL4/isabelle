@@ -26,6 +26,9 @@ object Command {
   object Blobs_Info {
     val none: Blobs_Info = Blobs_Info(Nil)
 
+    def make(blobs: List[(Blob, Document.Blobs.Item)]): Blobs_Info =
+      if (blobs.isEmpty) none else Blobs_Info(for ((a, _) <- blobs) yield Exn.Res(a))
+
     def errors(msgs: List[String]): Blobs_Info =
       Blobs_Info(msgs.map(msg => Exn.Exn[Blob](ERROR(msg))))
   }

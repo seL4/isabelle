@@ -71,10 +71,10 @@ object Build_Job {
       val command =
         Command.unparsed(thy_source, theory = true, id = id,
           node_name = Document.Node.Name(thy_file, theory = theory_context.theory),
-          blobs_info = Command.Blobs_Info(for ((a, _) <- blobs) yield Exn.Res(a)),
+          blobs_info = Command.Blobs_Info.make(blobs),
           markups = markups, results = results)
 
-      val doc_blobs = Document.Blobs((for ((a, b) <- blobs.iterator) yield a.name -> b).toMap)
+      val doc_blobs = Document.Blobs.make(blobs)
 
       Document.State.init.snippet(command, doc_blobs)
     }
@@ -298,16 +298,10 @@ class Build_Job(progress: Progress,
           override val cache: Term.Cache = store.cache
 
           override def build_blobs_info(node_name: Document.Node.Name): Command.Blobs_Info =
-            session_blobs(node_name) match {
-              case Nil => Command.Blobs_Info.none
-              case blobs => Command.Blobs_Info(for ((a, _) <- blobs) yield Exn.Res(a))
-            }
+            Command.Blobs_Info.make(session_blobs(node_name))
 
           override def build_blobs(node_name: Document.Node.Name): Document.Blobs =
-            session_blobs(node_name) match {
-              case Nil => Document.Blobs.empty
-              case blobs => Document.Blobs((for ((a, b) <- blobs.iterator) yield a.name -> b).toMap)
-            }
+            Document.Blobs.make(session_blobs(node_name))
         }
 
       object Build_Session_Errors {

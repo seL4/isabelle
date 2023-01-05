@@ -48,6 +48,10 @@ object Document {
 
     def apply(blobs: Map[Node.Name, Item]): Blobs = new Blobs(blobs)
     val empty: Blobs = apply(Map.empty)
+
+    def make(blobs: List[(Command.Blob, Item)]): Blobs =
+      if (blobs.isEmpty) empty
+      else apply((for ((a, b) <- blobs.iterator) yield a.name -> b).toMap)
   }
 
   final class Blobs private(blobs: Map[Node.Name, Blobs.Item]) {
