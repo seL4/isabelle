@@ -42,7 +42,13 @@ object Document {
   /* document blobs: auxiliary files */
 
   object Blobs {
-    sealed case class Item(bytes: Bytes, source: String, chunk: Symbol.Text_Chunk, changed: Boolean) {
+    sealed case class Item(
+      bytes: Bytes,
+      source: String,
+      chunk: Symbol.Text_Chunk,
+      changed: Boolean
+    ) {
+      def is_wellformed_text: Boolean = bytes.wellformed_text.nonEmpty
       def unchanged: Item = copy(changed = false)
     }
 
@@ -336,6 +342,12 @@ object Document {
 
     def command_start(cmd: Command): Option[Text.Offset] =
       Node.Commands.starts(commands.iterator).find(_._1 == cmd).map(_._2)
+
+    lazy val is_wellformed_text: Boolean =
+      get_blob match {
+        case Some(blob) => blob.is_wellformed_text
+        case None => true
+      }
 
     lazy val source: String =
       get_blob match {
@@ -644,9 +656,13 @@ object Document {
       snippet_command match {
         case None => Nil
         case Some(command) =>
-          for (Exn.Res(blob) <- command.blobs)
+          for {
+            Exn.Res(blob) <- command.blobs
+            blob_node = get_node(blob.name)
+            if blob_node.is_wellformed_text
+          }
           yield {
-            val text = get_node(blob.name).source
+            val text = blob_node.source
             val markup = command.init_markups(Command.Markup_Index.blob(blob))
             blob -> markup.to_XML(Text.Range.length(text), text, elements)
           }
