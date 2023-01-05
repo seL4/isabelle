@@ -19,8 +19,6 @@ object Command {
     src_path: Path,
     content: Option[(SHA1.Digest, Symbol.Text_Chunk)]
   ) {
-    def read_file: Bytes = Bytes.read(name.path)
-
     def chunk_file: Symbol.Text_Chunk.File =
       Symbol.Text_Chunk.File(name.node)
   }
@@ -111,6 +109,7 @@ object Command {
   object Markup_Index {
     val markup: Markup_Index = Markup_Index(false, Symbol.Text_Chunk.Default)
     def blob(blob: Blob): Markup_Index = Markup_Index(false, blob.chunk_file)
+    def make(blobs: List[Blob]): List[Markup_Index] = markup :: blobs.map(blob)
   }
 
   sealed case class Markup_Index(status: Boolean, chunk_name: Symbol.Text_Chunk.Name)

@@ -125,8 +125,8 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
 
   val cache: Term.Cache = Term.Cache.make()
 
-  def build_blobs_info(name: Document.Node.Name): Command.Blobs_Info =
-    Command.Blobs_Info.none
+  def build_blobs_info(name: Document.Node.Name): Command.Blobs_Info = Command.Blobs_Info.none
+  def build_blobs(name: Document.Node.Name): Document.Blobs = Document.Blobs.empty
 
 
   /* global flags */
@@ -560,7 +560,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
             case Markup.Process_Result(result) if output.is_exit =>
               if (prover.defined) protocol_handlers.exit()
               for (id <- global_state.value.theories.keys) {
-                val snapshot = global_state.change_result(_.end_theory(id))
+                val snapshot = global_state.change_result(_.end_theory(id, build_blobs))
                 finished_theories.post(snapshot)
               }
               file_formats.stop_session()

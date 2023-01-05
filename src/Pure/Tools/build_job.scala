@@ -25,6 +25,9 @@ object Build_Job {
         Symbol.output(unicode_symbols, UTF8.decode_permissive(read(name).bytes)),
         cache = theory_context.cache)
 
+    def read_source_file(name: String): Sessions.Source_File =
+      theory_context.session_context.source_file(name)
+
     for {
       id <- theory_context.document_id()
       (thy_file, blobs_files) <- theory_context.files(permissive = true)
@@ -35,31 +38,26 @@ object Build_Job {
           error("Cannot determine theory master directory: " + quote(thy_file))))
 
       val blobs =
-        blobs_files.map { file =>
-          val name = Document.Node.Name(file)
-          val path = Path.explode(file)
+        blobs_files.map { name =>
+          val path = Path.explode(name)
           val src_path = File.relative_path(master_dir, path).getOrElse(path)
-          Command.Blob(name, src_path, None)
+
+          val file = read_source_file(name)
+          val bytes = file.bytes
+          val text = bytes.text
+          val chunk = Symbol.Text_Chunk(text)
+
+          Command.Blob(Document.Node.Name(name), src_path, Some((file.digest, chunk))) ->
+            Document.Blobs.Item(bytes, text, chunk, changed = false)
         }
+
+      val thy_source = read_source_file(thy_file).text
+      val thy_xml = read_xml(Export.MARKUP)
       val blobs_xml =
         for (i <- (1 to blobs.length).toList)
           yield read_xml(Export.MARKUP + i)
 
-      val blobs_info =
-        Command.Blobs_Info(
-          for { (Command.Blob(name, src_path, _), xml) <- blobs zip blobs_xml }
-            yield {
-              val text = XML.content(xml)
-              val chunk = Symbol.Text_Chunk(text)
-              val digest = SHA1.digest(Symbol.encode(text))
-              Exn.Res(Command.Blob(name, src_path, Some((digest, chunk))))
-            })
-
-      val thy_xml = read_xml(Export.MARKUP)
-      val thy_source = XML.content(thy_xml)
-
-      val markups_index =
-        Command.Markup_Index.markup :: blobs.map(Command.Markup_Index.blob)
+      val markups_index = Command.Markup_Index.make(blobs.map(_._1))
       val markups =
         Command.Markups.make(
           for ((index, xml) <- markups_index.zip(thy_xml :: blobs_xml))
@@ -73,9 +71,12 @@ object Build_Job {
       val command =
         Command.unparsed(thy_source, theory = true, id = id,
           node_name = Document.Node.Name(thy_file, theory = theory_context.theory),
-          blobs_info = blobs_info, markups = markups, results = results)
+          blobs_info = Command.Blobs_Info(for ((a, _) <- blobs) yield Exn.Res(a)),
+          markups = markups, results = results)
 
-      Document.State.init.snippet(command)
+      val doc_blobs = Document.Blobs((for ((a, b) <- blobs.iterator) yield a.name -> b).toMap)
+
+      Document.State.init.snippet(command, doc_blobs)
     }
   }
 
@@ -269,32 +270,44 @@ class Build_Job(progress: Progress,
         }
         else Nil
 
+      def session_blobs(node_name: Document.Node.Name): List[(Command.Blob, Document.Blobs.Item)] =
+        session_background.base.theory_load_commands.get(node_name.theory) match {
+          case None => Nil
+          case Some(spans) =>
+            val syntax = session_background.base.theory_syntax(node_name)
+            val master_dir = Path.explode(node_name.master_dir)
+            for (span <- spans; file <- span.loaded_files(syntax).files)
+              yield {
+                val src_path = Path.explode(file)
+                val blob_name = Document.Node.Name(File.symbolic_path(master_dir + src_path))
+
+                val bytes = session_sources(blob_name.node).bytes
+                val text = bytes.text
+                val chunk = Symbol.Text_Chunk(text)
+
+                Command.Blob(blob_name, src_path, Some((SHA1.digest(bytes), chunk))) ->
+                  Document.Blobs.Item(bytes, text, chunk, changed = false)
+              }
+        }
+
       val resources =
         new Resources(session_background, log = log, command_timings = command_timings0)
+
       val session =
         new Session(options, resources) {
           override val cache: Term.Cache = store.cache
 
-          override def build_blobs_info(node_name: Document.Node.Name): Command.Blobs_Info = {
-            session_background.base.theory_load_commands.get(node_name.theory) match {
-              case Some(spans) =>
-                val syntax = session_background.base.theory_syntax(node_name)
-                val blobs =
-                  for (span <- spans; file <- span.loaded_files(syntax).files)
-                  yield {
-                    (Exn.capture {
-                      val master_dir = Path.explode(node_name.master_dir)
-                      val src_path = Path.explode(file)
-                      val node = File.symbolic_path(master_dir + src_path)
-                      val bytes = session_sources(node).bytes
-                      val content = (SHA1.digest(bytes), Symbol.Text_Chunk(bytes.text))
-                      Command.Blob(Document.Node.Name(node), src_path, Some(content))
-                    }).user_error
-                  }
-                Command.Blobs_Info(blobs)
-              case None => Command.Blobs_Info.none
+          override def build_blobs_info(node_name: Document.Node.Name): Command.Blobs_Info =
+            session_blobs(node_name) match {
+              case Nil => Command.Blobs_Info.none
+              case blobs => Command.Blobs_Info(for ((a, _) <- blobs) yield Exn.Res(a))
             }
-          }
+
+          override def build_blobs(node_name: Document.Node.Name): Document.Blobs =
+            session_blobs(node_name) match {
+              case Nil => Document.Blobs.empty
+              case blobs => Document.Blobs((for ((a, b) <- blobs.iterator) yield a.name -> b).toMap)
+            }
         }
 
       object Build_Session_Errors {

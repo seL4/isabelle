@@ -603,7 +603,7 @@ object Document {
 
     /* command as add-on snippet */
 
-    def snippet(command: Command): Snapshot = {
+    def snippet(command: Command, doc_blobs: Blobs): Snapshot = {
       val node_name = command.node_name
 
       val nodes0 = version.nodes
@@ -611,7 +611,9 @@ object Document {
       val version1 = Version.make(nodes1)
 
       val edits: List[Edit_Text] =
-        List(node_name -> Node.Edits(List(Text.Edit.insert(0, command.source))))
+        List(node_name -> Node.Edits(List(Text.Edit.insert(0, command.source)))) :::
+        (for (blob_name <- command.blobs_names; blob <- doc_blobs.get(blob_name))
+          yield blob_name -> Node.Blob(blob))
 
       val state0 = state.define_command(command)
       val state1 =
@@ -638,15 +640,9 @@ object Document {
         case Some(command) =>
           for (Exn.Res(blob) <- command.blobs)
           yield {
-            val bytes = blob.read_file
-            val text = bytes.text
-            val xml =
-              if (Bytes(text) == bytes) {
-                val markup = command.init_markups(Command.Markup_Index.blob(blob))
-                markup.to_XML(Text.Range.length(text), text, elements)
-              }
-              else Nil
-            blob -> xml
+            val text = get_node(blob.name).source
+            val markup = command.init_markups(Command.Markup_Index.blob(blob))
+            blob -> markup.to_XML(Text.Range.length(text), text, elements)
           }
       }
     }
@@ -1003,17 +999,18 @@ object Document {
       }
     }
 
-    def end_theory(id: Document_ID.Exec): (Snapshot, State) =
+    def end_theory(id: Document_ID.Exec, document_blobs: Node.Name => Blobs): (Snapshot, State) =
       theories.get(id) match {
         case None => fail
         case Some(st) =>
           val command = st.command
           val node_name = command.node_name
+          val doc_blobs = document_blobs(node_name)
           val command1 =
             Command.unparsed(command.source, theory = true, id = id, node_name = node_name,
               blobs_info = command.blobs_info, results = st.results, markups = st.markups)
           val state1 = copy(theories = theories - id)
-          (state1.snippet(command1), state1)
+          (state1.snippet(command1, doc_blobs), state1)
       }
 
     def assign(
@@ -1250,7 +1247,7 @@ object Document {
       new Snapshot(this, version, node_name, pending_edits1, snippet_command)
     }
 
-    def snippet(command: Command): Snapshot =
-      snapshot().snippet(command)
+    def snippet(command: Command, doc_blobs: Blobs): Snapshot =
+      snapshot().snippet(command, doc_blobs)
   }
 }
