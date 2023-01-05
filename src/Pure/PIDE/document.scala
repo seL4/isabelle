@@ -48,7 +48,7 @@ object Document {
       chunk: Symbol.Text_Chunk,
       changed: Boolean
     ) {
-      def is_wellformed_text: Boolean = bytes.wellformed_text.nonEmpty
+      def source_wellformed: Boolean = bytes.wellformed_text.nonEmpty
       def unchanged: Item = copy(changed = false)
     }
 
@@ -343,9 +343,9 @@ object Document {
     def command_start(cmd: Command): Option[Text.Offset] =
       Node.Commands.starts(commands.iterator).find(_._1 == cmd).map(_._2)
 
-    lazy val is_wellformed_text: Boolean =
+    lazy val source_wellformed: Boolean =
       get_blob match {
-        case Some(blob) => blob.is_wellformed_text
+        case Some(blob) => blob.source_wellformed
         case None => true
       }
 
@@ -659,7 +659,7 @@ object Document {
           for {
             Exn.Res(blob) <- command.blobs
             blob_node = get_node(blob.name)
-            if blob_node.is_wellformed_text
+            if blob_node.source_wellformed
           }
           yield {
             val text = blob_node.source
@@ -1218,7 +1218,7 @@ object Document {
           tree <- markup.to_XML(command_range, command.source, elements).iterator
         } yield tree).toList
       }
-      else if (node.is_wellformed_text) {
+      else if (node.source_wellformed) {
         Text.Range.length(node.source).try_restrict(range) match {
           case Some(node_range) =>
             val markup =

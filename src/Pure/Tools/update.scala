@@ -85,7 +85,7 @@ object Update {
               theory_snapshot <- Build_Job.read_theory(theory_context)
               node_name <- theory_snapshot.node_files
               snapshot = theory_snapshot.switch(node_name)
-              if snapshot.node.is_wellformed_text
+              if snapshot.node.source_wellformed
             } {
               progress.expose_interrupt()
               val source1 =
