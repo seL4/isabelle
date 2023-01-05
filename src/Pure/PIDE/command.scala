@@ -14,27 +14,20 @@ import scala.collection.immutable.SortedMap
 object Command {
   /* blobs */
 
-  object Blob {
-    def read_file(name: Document.Node.Name, src_path: Path): Blob = {
-      val bytes = Bytes.read(name.path)
-      val chunk = Symbol.Text_Chunk(bytes.text)
-      Blob(name, src_path, Some((bytes.sha1_digest, chunk)))
-    }
-  }
-
   sealed case class Blob(
     name: Document.Node.Name,
     src_path: Path,
     content: Option[(SHA1.Digest, Symbol.Text_Chunk)]
   ) {
-    def read_file: Bytes = Bytes.read(name.path)
-
     def chunk_file: Symbol.Text_Chunk.File =
       Symbol.Text_Chunk.File(name.node)
   }
 
   object Blobs_Info {
-    val none: Blobs_Info = Blobs_Info(Nil)
+    val empty: Blobs_Info = Blobs_Info(Nil)
+
+    def make(blobs: List[(Blob, Document.Blobs.Item)]): Blobs_Info =
+      if (blobs.isEmpty) empty else Blobs_Info(for ((a, _) <- blobs) yield Exn.Res(a))
 
     def errors(msgs: List[String]): Blobs_Info =
       Blobs_Info(msgs.map(msg => Exn.Exn[Blob](ERROR(msg))))
@@ -119,6 +112,7 @@ object Command {
   object Markup_Index {
     val markup: Markup_Index = Markup_Index(false, Symbol.Text_Chunk.Default)
     def blob(blob: Blob): Markup_Index = Markup_Index(false, blob.chunk_file)
+    def make(blobs: List[Blob]): List[Markup_Index] = markup :: blobs.map(blob)
   }
 
   sealed case class Markup_Index(status: Boolean, chunk_name: Symbol.Text_Chunk.Name)
@@ -377,14 +371,14 @@ object Command {
   }
 
   val empty: Command =
-    Command(Document_ID.none, Document.Node.Name.empty, Blobs_Info.none, Command_Span.empty)
+    Command(Document_ID.none, Document.Node.Name.empty, Blobs_Info.empty, Command_Span.empty)
 
   def unparsed(
     source: String,
     theory: Boolean = false,
     id: Document_ID.Command = Document_ID.none,
     node_name: Document.Node.Name = Document.Node.Name.empty,
-    blobs_info: Blobs_Info = Blobs_Info.none,
+    blobs_info: Blobs_Info = Blobs_Info.empty,
     results: Results = Results.empty,
     markups: Markups = Markups.empty
   ): Command = {
@@ -428,7 +422,7 @@ object Command {
   def blobs_info(
     resources: Resources,
     syntax: Outer_Syntax,
-    get_blob: Document.Node.Name => Option[Document.Blob],
+    get_blob: Document.Node.Name => Option[Document.Blobs.Item],
     can_import: Document.Node.Name => Boolean,
     node_name: Document.Node.Name,
     span: Command_Span.Span

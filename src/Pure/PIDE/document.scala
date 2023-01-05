@@ -41,17 +41,27 @@ object Document {
 
   /* document blobs: auxiliary files */
 
-  sealed case class Blob(bytes: Bytes, source: String, chunk: Symbol.Text_Chunk, changed: Boolean) {
-    def unchanged: Blob = copy(changed = false)
-  }
-
   object Blobs {
-    def apply(blobs: Map[Node.Name, Blob]): Blobs = new Blobs(blobs)
+    sealed case class Item(
+      bytes: Bytes,
+      source: String,
+      chunk: Symbol.Text_Chunk,
+      changed: Boolean
+    ) {
+      def is_wellformed_text: Boolean = bytes.wellformed_text.nonEmpty
+      def unchanged: Item = copy(changed = false)
+    }
+
+    def apply(blobs: Map[Node.Name, Item]): Blobs = new Blobs(blobs)
     val empty: Blobs = apply(Map.empty)
+
+    def make(blobs: List[(Command.Blob, Item)]): Blobs =
+      if (blobs.isEmpty) empty
+      else apply((for ((a, b) <- blobs.iterator) yield a.name -> b).toMap)
   }
 
-  final class Blobs private(blobs: Map[Node.Name, Blob]) {
-    def get(name: Node.Name): Option[Blob] = blobs.get(name)
+  final class Blobs private(blobs: Map[Node.Name, Blobs.Item]) {
+    def get(name: Node.Name): Option[Blobs.Item] = blobs.get(name)
 
     def changed(name: Node.Name): Boolean =
       get(name) match {
@@ -93,7 +103,7 @@ object Document {
     object Name {
       def apply(node: String, theory: String = ""): Name = new Name(node, theory)
 
-      def loaded_theory(theory: String): Document.Node.Name = Name(theory, theory = theory)
+      def loaded_theory(theory: String): Name = Name(theory, theory = theory)
 
       val empty: Name = Name("")
 
@@ -171,7 +181,7 @@ object Document {
           case _ => false
         }
     }
-    case class Blob[A, B](blob: Document.Blob) extends Edit[A, B]
+    case class Blob[A, B](blob: Blobs.Item) extends Edit[A, B]
 
     case class Edits[A, B](edits: List[A]) extends Edit[A, B]
     case class Deps[A, B](header: Header) extends Edit[A, B]
@@ -263,10 +273,13 @@ object Document {
     }
 
     val empty: Node = new Node()
+
+    def init_blob(blob: Blobs.Item): Node =
+      new Node(get_blob = Some(blob.unchanged))
   }
 
   final class Node private(
-    val get_blob: Option[Document.Blob] = None,
+    val get_blob: Option[Blobs.Item] = None,
     val header: Node.Header = Node.no_header,
     val syntax: Option[Outer_Syntax] = None,
     val text_perspective: Text.Perspective = Text.Perspective.empty,
@@ -291,8 +304,6 @@ object Document {
     def load_commands: List[Command] = _commands.load_commands
     def load_commands_changed(doc_blobs: Blobs): Boolean =
       load_commands.exists(_.blobs_changed(doc_blobs))
-
-    def init_blob(blob: Blob): Node = new Node(get_blob = Some(blob.unchanged))
 
     def update_header(new_header: Node.Header): Node =
       new Node(get_blob, new_header, syntax, text_perspective, perspective, _commands)
@@ -331,6 +342,12 @@ object Document {
 
     def command_start(cmd: Command): Option[Text.Offset] =
       Node.Commands.starts(commands.iterator).find(_._1 == cmd).map(_._2)
+
+    lazy val is_wellformed_text: Boolean =
+      get_blob match {
+        case Some(blob) => blob.is_wellformed_text
+        case None => true
+      }
 
     lazy val source: String =
       get_blob match {
@@ -517,16 +534,16 @@ object Document {
   final class Pending_Edits(pending_edits: Map[Node.Name, List[Text.Edit]]) {
     def is_stable: Boolean = pending_edits.isEmpty
 
-    def + (entry: (Document.Node.Name, List[Text.Edit])): Pending_Edits = {
+    def + (entry: (Node.Name, List[Text.Edit])): Pending_Edits = {
       val (name, es) = entry
       if (es.isEmpty) this
       else new Pending_Edits(pending_edits + (name -> (es ::: edits(name))))
     }
 
-    def edits(name: Document.Node.Name): List[Text.Edit] =
+    def edits(name: Node.Name): List[Text.Edit] =
       pending_edits.getOrElse(name, Nil)
 
-    def reverse_edits(name: Document.Node.Name): List[Text.Edit] =
+    def reverse_edits(name: Node.Name): List[Text.Edit] =
       reverse_pending_edits.getOrElse(name, Nil)
 
     private lazy val reverse_pending_edits =
@@ -602,15 +619,19 @@ object Document {
 
     /* command as add-on snippet */
 
-    def snippet(command: Command): Snapshot = {
+    def snippet(command: Command, doc_blobs: Blobs): Snapshot = {
       val node_name = command.node_name
+
+      val blobs = for (a <- command.blobs_names; b <- doc_blobs.get(a)) yield a -> b
 
       val nodes0 = version.nodes
       val nodes1 = nodes0 + (node_name -> nodes0(node_name).update_commands(Linear_Set(command)))
-      val version1 = Document.Version.make(nodes1)
+      val nodes2 = blobs.foldLeft(nodes1) { case (ns, (a, b)) => ns + (a -> Node.init_blob(b)) }
+      val version1 = Version.make(nodes2)
 
       val edits: List[Edit_Text] =
-        List(node_name -> Node.Edits(List(Text.Edit.insert(0, command.source))))
+        List(node_name -> Node.Edits(List(Text.Edit.insert(0, command.source)))) :::
+        blobs.map({ case (a, b) => a -> Node.Blob(b) })
 
       val state0 = state.define_command(command)
       val state1 =
@@ -635,17 +656,15 @@ object Document {
       snippet_command match {
         case None => Nil
         case Some(command) =>
-          for (Exn.Res(blob) <- command.blobs)
+          for {
+            Exn.Res(blob) <- command.blobs
+            blob_node = get_node(blob.name)
+            if blob_node.is_wellformed_text
+          }
           yield {
-            val bytes = blob.read_file
-            val text = bytes.text
-            val xml =
-              if (Bytes(text) == bytes) {
-                val markup = command.init_markups(Command.Markup_Index.blob(blob))
-                markup.to_XML(Text.Range.length(text), text, elements)
-              }
-              else Nil
-            blob -> xml
+            val text = blob_node.source
+            val markup = command.init_markups(Command.Markup_Index.blob(blob))
+            blob -> markup.to_XML(Text.Range.length(text), text, elements)
           }
       }
     }
@@ -656,8 +675,7 @@ object Document {
     lazy val messages: List[(XML.Elem, Position.T)] =
       (for {
         (command, start) <-
-          Document.Node.Commands.starts_pos(
-            node.commands.iterator, Token.Pos.file(node_name.node))
+          Node.Commands.starts_pos(node.commands.iterator, Token.Pos.file(node_name.node))
         pos = command.span.keyword_pos(start).position(command.span.name)
         (_, elem) <- state.command_results(version, command).iterator
        } yield (elem, pos)).toList
@@ -794,7 +812,7 @@ object Document {
 
     def node_required: Boolean
 
-    def get_blob: Option[Blob]
+    def get_blob: Option[Blobs.Item]
 
     def untyped_data: AnyRef
     def get_data[C](c: Class[C]): Option[C] = Library.as_subclass(c)(untyped_data)
@@ -1003,17 +1021,18 @@ object Document {
       }
     }
 
-    def end_theory(id: Document_ID.Exec): (Snapshot, State) =
+    def end_theory(id: Document_ID.Exec, document_blobs: Node.Name => Blobs): (Snapshot, State) =
       theories.get(id) match {
         case None => fail
         case Some(st) =>
           val command = st.command
           val node_name = command.node_name
+          val doc_blobs = document_blobs(node_name)
           val command1 =
             Command.unparsed(command.source, theory = true, id = id, node_name = node_name,
               blobs_info = command.blobs_info, results = st.results, markups = st.markups)
           val state1 = copy(theories = theories - id)
-          (state1.snippet(command1), state1)
+          (state1.snippet(command1, doc_blobs), state1)
       }
 
     def assign(
@@ -1199,9 +1218,8 @@ object Document {
           tree <- markup.to_XML(command_range, command.source, elements).iterator
         } yield tree).toList
       }
-      else {
+      else if (node.is_wellformed_text) {
         Text.Range.length(node.source).try_restrict(range) match {
-          case None => Nil
           case Some(node_range) =>
             val markup =
               version.nodes.commands_loading(node_name).headOption match {
@@ -1212,8 +1230,10 @@ object Document {
                   command_markup(version, command, markup_index, node_range, elements)
               }
             markup.to_XML(node_range, node.source, elements)
+          case None => Nil
         }
       }
+      else Nil
     }
 
     def node_initialized(version: Version, name: Node.Name): Boolean =
@@ -1250,7 +1270,7 @@ object Document {
       new Snapshot(this, version, node_name, pending_edits1, snippet_command)
     }
 
-    def snippet(command: Command): Snapshot =
-      snapshot().snippet(command)
+    def snippet(command: Command, doc_blobs: Blobs): Snapshot =
+      snapshot().snippet(command, doc_blobs)
   }
 }

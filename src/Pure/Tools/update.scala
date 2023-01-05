@@ -8,20 +8,48 @@ package isabelle
 
 
 object Update {
-  def update(options: Options, logic: String,
+  def update(options: Options,
+    selection: Sessions.Selection = Sessions.Selection.empty,
+    base_logics: List[String] = Nil,
     progress: Progress = new Progress,
-    log: Logger = No_Logger,
     dirs: List[Path] = Nil,
     select_dirs: List[Path] = Nil,
-    selection: Sessions.Selection = Sessions.Selection.empty
-  ): Unit = {
-    val context =
-      Dump.Context(options, progress = progress, dirs = dirs, select_dirs = select_dirs,
-        selection = selection, skip_base = true)
+    numa_shuffling: Boolean = false,
+    max_jobs: Int = 1,
+    no_build: Boolean = false,
+    verbose: Boolean = false
+  ): Build.Results = {
+    /* excluded sessions */
 
-    context.build_logic(logic)
+    val exclude: Set[String] =
+      if (base_logics.isEmpty) Set.empty
+      else {
+        val sessions =
+          Sessions.load_structure(options, dirs = dirs, select_dirs = select_dirs)
+            .selection(selection)
 
-    val path_cartouches = context.options.bool("update_path_cartouches")
+        for (name <- base_logics if !sessions.defined(name)) {
+          error("Base logic " + quote(name) + " outside of session selection")
+        }
+
+        sessions.build_requirements(base_logics).toSet
+      }
+
+
+    /* build */
+
+    val build_results =
+      Build.build(options, progress = progress, dirs = dirs, select_dirs = select_dirs,
+        selection = selection, numa_shuffling = numa_shuffling, max_jobs = max_jobs,
+        no_build = no_build, verbose = verbose)
+
+    val store = build_results.store
+    val sessions_structure = build_results.deps.sessions_structure
+
+
+    /* update */
+
+    val path_cartouches = options.bool("update_path_cartouches")
 
     def update_xml(xml: XML.Body): XML.Body =
       xml flatMap {
@@ -37,25 +65,44 @@ object Update {
         case t => List(t)
       }
 
-    context.sessions(logic, log = log).foreach(_.process { (args: Dump.Args) =>
-      progress.echo("Processing theory " + args.print_node + " ...")
+    var seen_theory = Set.empty[String]
 
-      val snapshot = args.snapshot
-      for (node_name <- snapshot.node_files) {
-        val node = snapshot.get_node(node_name)
-        val xml =
-          snapshot.state.xml_markup(snapshot.version, node_name,
-            elements = Markup.Elements(Markup.UPDATE, Markup.LANGUAGE))
-
-        val source1 = Symbol.encode(XML.content(update_xml(xml)))
-        if (source1 != Symbol.encode(node.source)) {
-          progress.echo("Updating " + node_name.path)
-          File.write(node_name.path, source1)
+    using(Export.open_database_context(store)) { database_context =>
+      for {
+        session <- sessions_structure.build_topological_order
+        if build_results(session).ok && !exclude(session)
+      } {
+        progress.echo("Session " + session + " ...")
+        using(database_context.open_session0(session)) { session_context =>
+          for {
+            db <- session_context.session_db()
+            theory <- store.read_theories(db, session)
+            if !seen_theory(theory)
+          } {
+            seen_theory += theory
+            val theory_context = session_context.theory(theory)
+            for {
+              theory_snapshot <- Build_Job.read_theory(theory_context)
+              node_name <- theory_snapshot.node_files
+              snapshot = theory_snapshot.switch(node_name)
+              if snapshot.node.is_wellformed_text
+            } {
+              progress.expose_interrupt()
+              val source1 =
+                XML.content(update_xml(
+                  snapshot.xml_markup(elements = Markup.Elements(Markup.UPDATE, Markup.LANGUAGE))))
+              if (source1 != snapshot.node.source) {
+                val path = Path.explode(node_name.node)
+                progress.echo("Updating " + quote(File.standard_path(path)))
+                File.write(path, source1)
+              }
+            }
+          }
         }
       }
-    })
+    }
 
-    context.check_errors
+    build_results
   }
 
 
@@ -66,12 +113,15 @@ object Update {
       { args =>
         var base_sessions: List[String] = Nil
         var select_dirs: List[Path] = Nil
+        var numa_shuffling = false
         var requirements = false
         var exclude_session_groups: List[String] = Nil
         var all_sessions = false
         var dirs: List[Path] = Nil
         var session_groups: List[String] = Nil
-        var logic = Dump.default_logic
+        var base_logics: List[String] = Nil
+        var max_jobs = 1
+        var no_build = false
         var options = Options.init()
         var verbose = false
         var exclude_sessions: List[String] = Nil
@@ -85,9 +135,11 @@ Usage: isabelle update [OPTIONS] [SESSIONS ...]
     -R           refer to requirements of selected sessions
     -X NAME      exclude sessions from group NAME and all descendants
     -a           select all sessions
-    -b NAME      base logic image (default """ + isabelle.quote(Dump.default_logic) + """)
+    -b NAME      additional base logic
     -d DIR       include session directory
     -g NAME      select session group NAME
+    -j INT       maximum number of parallel jobs (default 1)
+    -n           no build -- take existing build databases
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -u OPT       override "update" option: shortcut for "-o update_OPT"
     -v           verbose
@@ -97,12 +149,15 @@ Usage: isabelle update [OPTIONS] [SESSIONS ...]
 """,
         "B:" -> (arg => base_sessions = base_sessions ::: List(arg)),
         "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
+        "N" -> (_ => numa_shuffling = true),
         "R" -> (_ => requirements = true),
         "X:" -> (arg => exclude_session_groups = exclude_session_groups ::: List(arg)),
         "a" -> (_ => all_sessions = true),
-        "b:" -> (arg => logic = arg),
+        "b:" -> (arg => base_logics ::= arg),
         "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
         "g:" -> (arg => session_groups = session_groups ::: List(arg)),
+        "j:" -> (arg => max_jobs = Value.Int.parse(arg)),
+        "n" -> (_ => no_build = true),
         "o:" -> (arg => options = options + arg),
         "u:" -> (arg => options = options + ("update_" + arg)),
         "v" -> (_ => verbose = true),
@@ -112,19 +167,27 @@ Usage: isabelle update [OPTIONS] [SESSIONS ...]
 
         val progress = new Console_Progress(verbose = verbose)
 
-        progress.interrupt_handler {
-          update(options, logic,
-            progress = progress,
-            dirs = dirs,
-            select_dirs = select_dirs,
-            selection = Sessions.Selection(
-              requirements = requirements,
-              all_sessions = all_sessions,
-              base_sessions = base_sessions,
-              exclude_session_groups = exclude_session_groups,
-              exclude_sessions = exclude_sessions,
-              session_groups = session_groups,
-              sessions = sessions))
-        }
+        val results =
+          progress.interrupt_handler {
+            update(options,
+              selection = Sessions.Selection(
+                requirements = requirements,
+                all_sessions = all_sessions,
+                base_sessions = base_sessions,
+                exclude_session_groups = exclude_session_groups,
+                exclude_sessions = exclude_sessions,
+                session_groups = session_groups,
+                sessions = sessions),
+              base_logics = base_logics,
+              progress = progress,
+              dirs = dirs,
+              select_dirs = select_dirs,
+              numa_shuffling = NUMA.enabled_warning(progress, numa_shuffling),
+              max_jobs = max_jobs,
+              no_build = no_build,
+              verbose = verbose)
+          }
+
+        sys.exit(results.rc)
       })
 }

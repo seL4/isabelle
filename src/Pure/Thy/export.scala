@@ -423,6 +423,17 @@ object Export {
     def theory(theory: String, other_cache: Option[Term.Cache] = None): Theory_Context =
       new Theory_Context(session_context, theory, other_cache)
 
+    def get_source_file(name: String): Option[Sessions.Source_File] = {
+      val store = database_context.store
+      (for {
+        database <- db_hierarchy.iterator
+        file <- store.read_sources(database.db, database.session, name = name).iterator
+      } yield file).nextOption()
+    }
+
+    def source_file(name: String): Sessions.Source_File =
+      get_source_file(name).getOrElse(error("Missing session source file " + quote(name)))
+
     def node_source(name: Document.Node.Name): String = {
       def snapshot_source: Option[String] =
         for {
@@ -431,14 +442,13 @@ object Export {
           text = node.source if text.nonEmpty
         } yield text
 
-      val store = database_context.store
-      def db_source: Option[String] =
-        (for {
-          database <- db_hierarchy.iterator
-          file <- store.read_sources(database.db, database.session, name = name.node).iterator
-        } yield file.text).nextOption()
+      def db_source: String =
+        get_source_file(name.node) match {
+          case Some(file) => file.text
+          case None => ""
+        }
 
-      snapshot_source orElse db_source getOrElse ""
+      snapshot_source getOrElse db_source
     }
 
     def classpath(): List[File.Content] = {

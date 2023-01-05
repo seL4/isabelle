@@ -433,9 +433,9 @@ case class File_Model(
     Line.Node_Position(node_name.node,
       Line.Position.zero.advance(content.text.substring(0, offset)))
 
-  def get_blob: Option[Document.Blob] =
+  def get_blob: Option[Document.Blobs.Item] =
     if (is_theory) None
-    else Some(Document.Blob(content.bytes, content.text, content.chunk, pending_edits.nonEmpty))
+    else Some(Document.Blobs.Item(content.bytes, content.text, content.chunk, pending_edits.nonEmpty))
 
   def untyped_data: AnyRef = content.data
 
@@ -575,7 +575,7 @@ class Buffer_Model private(
 
     def reset_blob(): Unit = GUI_Thread.require { blob = None }
 
-    def get_blob: Option[Document.Blob] = GUI_Thread.require {
+    def get_blob: Option[Document.Blobs.Item] = GUI_Thread.require {
       if (is_theory) None
       else {
         val (bytes, text, chunk) =
@@ -588,7 +588,7 @@ class Buffer_Model private(
             x
           }
         val changed = !is_stable
-        Some(Document.Blob(bytes, text, chunk, changed))
+        Some(Document.Blobs.Item(bytes, text, chunk, changed))
       }
     }
 
@@ -617,7 +617,7 @@ class Buffer_Model private(
   def node_required: Boolean = buffer_state.get_node_required
   def set_node_required(b: Boolean): Unit = buffer_state.set_node_required(b)
 
-  def get_blob: Option[Document.Blob] = buffer_state.get_blob
+  def get_blob: Option[Document.Blobs.Item] = buffer_state.get_blob
   def untyped_data: AnyRef = buffer_state.untyped_data
 
 

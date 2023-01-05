@@ -375,7 +375,7 @@ text \<open>
     -j INT       maximum number of parallel jobs (default 1)
     -k KEYWORD   check theory sources for conflicts with proposed keywords
     -l           list session source files
-    -n           no build -- test dependencies only
+    -n           no build -- take existing build databases
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -v           verbose
     -x NAME      exclude session NAME and all descendants
@@ -774,8 +774,8 @@ section \<open>Update theory sources based on PIDE markup \label{sec:tool-update
 
 text \<open>
   The @{tool_def "update"} tool updates theory sources based on markup that is
-  produced from a running PIDE session (similar to @{tool dump}
-  \secref{sec:tool-dump}). Its command-line usage is: @{verbatim [display]
+  produced by the regular @{tool build} process \secref{sec:tool-build}). Its
+  command-line usage is: @{verbatim [display]
 \<open>Usage: isabelle update [OPTIONS] [SESSIONS ...]
 
   Options are:
@@ -784,9 +784,11 @@ text \<open>
     -R           refer to requirements of selected sessions
     -X NAME      exclude sessions from group NAME and all descendants
     -a           select all sessions
-    -b NAME      base logic image (default "Pure")
+    -b NAME      additional base logic
     -d DIR       include session directory
     -g NAME      select session group NAME
+    -j INT       maximum number of parallel jobs (default 1)
+    -n           no build -- take existing build databases
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -u OPT       override "update" option: shortcut for "-o update_OPT"
     -v           verbose
@@ -796,11 +798,15 @@ text \<open>
 
   \<^medskip> Options \<^verbatim>\<open>-B\<close>, \<^verbatim>\<open>-D\<close>, \<^verbatim>\<open>-R\<close>, \<^verbatim>\<open>-X\<close>, \<^verbatim>\<open>-a\<close>, \<^verbatim>\<open>-d\<close>, \<^verbatim>\<open>-g\<close>, \<^verbatim>\<open>-x\<close> and the
   remaining command-line arguments specify sessions as in @{tool build}
-  (\secref{sec:tool-build}) or @{tool dump} (\secref{sec:tool-dump}).
+  (\secref{sec:tool-build}).
 
-  \<^medskip> Option \<^verbatim>\<open>-b\<close> specifies an optional base logic image, for improved
-  scalability of the PIDE session. Its theories are only processed if it is
-  included in the overall session selection.
+  \<^medskip> Options \<^verbatim>\<open>-N\<close> and \<^verbatim>\<open>-j\<close> specify multicore parameters as in @{tool build}.
+
+  \<^medskip> Option \<^verbatim>\<open>-n\<close> suppresses the actual build process, but existing build
+  databases are used nonetheless.
+
+  \<^medskip> Option \<^verbatim>\<open>-b\<close> specifies one or more base logics: these sessions and their
+  ancestors are \<^emph>\<open>excluded\<close> from the update.
 
   \<^medskip> Option \<^verbatim>\<open>-v\<close> increases the general level of verbosity.
 
@@ -850,20 +856,14 @@ text \<open>
 
   @{verbatim [display] \<open>  isabelle update -u mixfix_cartouches HOL-Analysis\<close>}
 
-  \<^smallskip> Update the same for all application sessions based on \<^verbatim>\<open>HOL-Analysis\<close> ---
-  using its image as starting point (for reduced resource requirements):
+  \<^smallskip> Update the same for all application sessions based on \<^verbatim>\<open>HOL-Analysis\<close>, but
+  do not change the underlying \<^verbatim>\<open>HOL\<close> (and \<^verbatim>\<open>Pure\<close>) session:
 
-  @{verbatim [display] \<open>  isabelle update -u mixfix_cartouches -b HOL-Analysis -B HOL-Analysis\<close>}
+  @{verbatim [display] \<open>  isabelle update -u mixfix_cartouches -b HOL -B HOL-Analysis\<close>}
 
-  \<^smallskip> Update sessions that build on \<^verbatim>\<open>HOL-Proofs\<close>, which need to be run
-  separately with special options as follows:
+  \<^smallskip> Update all sessions that happen to be properly built beforehand:
 
-  @{verbatim [display] \<open>  isabelle update -u mixfix_cartouches -l HOL-Proofs -B HOL-Proofs
-  -o record_proofs=2\<close>}
-
-  \<^smallskip> See also the end of \secref{sec:tool-dump} for hints on increasing
-  Isabelle/ML heap sizes for very big PIDE processes that include many
-  sessions, notably from the Archive of Formal Proofs.
+  @{verbatim [display] \<open>  isabelle update -u mixfix_cartouches -n -a\<close>}
 \<close>
 
 
