@@ -30,11 +30,6 @@ object Build_Job {
       (thy_file, blobs_files) <- theory_context.files(permissive = true)
     }
     yield {
-      val results =
-        Command.Results.make(
-          for (elem @ XML.Elem(Markup(_, Markup.Serial(i)), _) <- read_xml(Export.MESSAGES))
-            yield i -> elem)
-
       val master_dir =
         Path.explode(Url.strip_base_name(thy_file).getOrElse(
           error("Cannot determine theory master directory: " + quote(thy_file))))
@@ -70,10 +65,15 @@ object Build_Job {
           for ((index, xml) <- markups_index.zip(thy_xml :: blobs_xml))
           yield index -> Markup_Tree.from_XML(xml))
 
+      val results =
+        Command.Results.make(
+          for (elem @ XML.Elem(Markup(_, Markup.Serial(i)), _) <- read_xml(Export.MESSAGES))
+            yield i -> elem)
+
       val command =
         Command.unparsed(thy_source, theory = true, id = id,
           node_name = Document.Node.Name(thy_file, theory = theory_context.theory),
-          blobs_info = blobs_info, results = results, markups = markups)
+          blobs_info = blobs_info, markups = markups, results = results)
 
       Document.State.init.snippet(command)
     }
