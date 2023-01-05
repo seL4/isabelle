@@ -610,14 +610,16 @@ object Document {
     def snippet(command: Command, doc_blobs: Blobs): Snapshot = {
       val node_name = command.node_name
 
+      val blobs = for (a <- command.blobs_names; b <- doc_blobs.get(a)) yield a -> b
+
       val nodes0 = version.nodes
       val nodes1 = nodes0 + (node_name -> nodes0(node_name).update_commands(Linear_Set(command)))
-      val version1 = Version.make(nodes1)
+      val nodes2 = blobs.foldLeft(nodes1) { case (ns, (a, b)) => ns + (a -> Node.init_blob(b)) }
+      val version1 = Version.make(nodes2)
 
       val edits: List[Edit_Text] =
         List(node_name -> Node.Edits(List(Text.Edit.insert(0, command.source)))) :::
-        (for (blob_name <- command.blobs_names; blob <- doc_blobs.get(blob_name))
-          yield blob_name -> Node.Blob(blob))
+        blobs.map({ case (a, b) => a -> Node.Blob(b) })
 
       val state0 = state.define_command(command)
       val state1 =
