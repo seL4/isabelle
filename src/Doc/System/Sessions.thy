@@ -375,7 +375,7 @@ text \<open>
     -j INT       maximum number of parallel jobs (default 1)
     -k KEYWORD   check theory sources for conflicts with proposed keywords
     -l           list session source files
-    -n           no build -- test dependencies only
+    -n           no build -- take existing build databases
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -v           verbose
     -x NAME      exclude session NAME and all descendants
