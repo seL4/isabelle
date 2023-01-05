@@ -784,10 +784,10 @@ text \<open>
     -R           refer to requirements of selected sessions
     -X NAME      exclude sessions from group NAME and all descendants
     -a           select all sessions
-    -b NAME      additional base logic
     -d DIR       include session directory
     -g NAME      select session group NAME
     -j INT       maximum number of parallel jobs (default 1)
+    -l NAME      additional base logic
     -n           no build -- take existing build databases
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -u OPT       override "update" option: shortcut for "-o update_OPT"
@@ -805,7 +805,7 @@ text \<open>
   \<^medskip> Option \<^verbatim>\<open>-n\<close> suppresses the actual build process, but existing build
   databases are used nonetheless.
 
-  \<^medskip> Option \<^verbatim>\<open>-b\<close> specifies one or more base logics: these sessions and their
+  \<^medskip> Option \<^verbatim>\<open>-l\<close> specifies one or more base logics: these sessions and their
   ancestors are \<^emph>\<open>excluded\<close> from the update.
 
   \<^medskip> Option \<^verbatim>\<open>-v\<close> increases the general level of verbosity.
@@ -859,7 +859,7 @@ text \<open>
   \<^smallskip> Update the same for all application sessions based on \<^verbatim>\<open>HOL-Analysis\<close>, but
   do not change the underlying \<^verbatim>\<open>HOL\<close> (and \<^verbatim>\<open>Pure\<close>) session:
 
-  @{verbatim [display] \<open>  isabelle update -u mixfix_cartouches -b HOL -B HOL-Analysis\<close>}
+  @{verbatim [display] \<open>  isabelle update -u mixfix_cartouches -l HOL -B HOL-Analysis\<close>}
 
   \<^smallskip> Update all sessions that happen to be properly built beforehand:
 

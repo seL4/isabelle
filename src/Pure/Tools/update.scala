@@ -119,8 +119,8 @@ object Update {
         var all_sessions = false
         var dirs: List[Path] = Nil
         var session_groups: List[String] = Nil
-        var base_logics: List[String] = Nil
         var max_jobs = 1
+        var base_logics: List[String] = Nil
         var no_build = false
         var options = Options.init()
         var verbose = false
@@ -135,10 +135,10 @@ Usage: isabelle update [OPTIONS] [SESSIONS ...]
     -R           refer to requirements of selected sessions
     -X NAME      exclude sessions from group NAME and all descendants
     -a           select all sessions
-    -b NAME      additional base logic
     -d DIR       include session directory
     -g NAME      select session group NAME
     -j INT       maximum number of parallel jobs (default 1)
+    -l NAME      additional base logic
     -n           no build -- take existing build databases
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -u OPT       override "update" option: shortcut for "-o update_OPT"
@@ -153,10 +153,10 @@ Usage: isabelle update [OPTIONS] [SESSIONS ...]
         "R" -> (_ => requirements = true),
         "X:" -> (arg => exclude_session_groups = exclude_session_groups ::: List(arg)),
         "a" -> (_ => all_sessions = true),
-        "b:" -> (arg => base_logics ::= arg),
         "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
         "g:" -> (arg => session_groups = session_groups ::: List(arg)),
         "j:" -> (arg => max_jobs = Value.Int.parse(arg)),
+        "l:" -> (arg => base_logics ::= arg),
         "n" -> (_ => no_build = true),
         "o:" -> (arg => options = options + arg),
         "u:" -> (arg => options = options + ("update_" + arg)),
