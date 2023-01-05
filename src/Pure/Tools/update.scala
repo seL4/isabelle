@@ -9,11 +9,15 @@ package isabelle
 
 object Update {
   def update(options: Options,
+    selection: Sessions.Selection = Sessions.Selection.empty,
     base_logics: List[String] = Nil,
     progress: Progress = new Progress,
     dirs: List[Path] = Nil,
     select_dirs: List[Path] = Nil,
-    selection: Sessions.Selection = Sessions.Selection.empty
+    numa_shuffling: Boolean = false,
+    max_jobs: Int = 1,
+    no_build: Boolean = false,
+    verbose: Boolean = false
   ): Build.Results = {
     /* excluded sessions */
 
@@ -36,9 +40,8 @@ object Update {
 
     val build_results =
       Build.build(options, progress = progress, dirs = dirs, select_dirs = select_dirs,
-        selection = selection)
-
-    if (!build_results.ok) error("Build failed")
+        selection = selection, numa_shuffling = numa_shuffling, max_jobs = max_jobs,
+        no_build = no_build, verbose = verbose)
 
     val store = build_results.store
     val sessions_structure = build_results.deps.sessions_structure
@@ -65,7 +68,11 @@ object Update {
     var seen_theory = Set.empty[String]
 
     using(Export.open_database_context(store)) { database_context =>
-      for (session <- sessions_structure.build_topological_order if !exclude(session)) {
+      for {
+        session <- sessions_structure.build_topological_order
+        if build_results(session).ok && !exclude(session)
+      } {
+        progress.echo("Session " + session + " ...")
         using(database_context.open_session0(session)) { session_context =>
           for {
             db <- session_context.session_db()
@@ -106,12 +113,15 @@ object Update {
       { args =>
         var base_sessions: List[String] = Nil
         var select_dirs: List[Path] = Nil
+        var numa_shuffling = false
         var requirements = false
         var exclude_session_groups: List[String] = Nil
         var all_sessions = false
         var dirs: List[Path] = Nil
         var session_groups: List[String] = Nil
         var base_logics: List[String] = Nil
+        var max_jobs = 1
+        var no_build = false
         var options = Options.init()
         var verbose = false
         var exclude_sessions: List[String] = Nil
@@ -128,6 +138,8 @@ Usage: isabelle update [OPTIONS] [SESSIONS ...]
     -b NAME      additional base logic
     -d DIR       include session directory
     -g NAME      select session group NAME
+    -j INT       maximum number of parallel jobs (default 1)
+    -n           no build -- take existing build databases
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -u OPT       override "update" option: shortcut for "-o update_OPT"
     -v           verbose
@@ -137,12 +149,15 @@ Usage: isabelle update [OPTIONS] [SESSIONS ...]
 """,
         "B:" -> (arg => base_sessions = base_sessions ::: List(arg)),
         "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
+        "N" -> (_ => numa_shuffling = true),
         "R" -> (_ => requirements = true),
         "X:" -> (arg => exclude_session_groups = exclude_session_groups ::: List(arg)),
         "a" -> (_ => all_sessions = true),
         "b:" -> (arg => base_logics ::= arg),
         "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
         "g:" -> (arg => session_groups = session_groups ::: List(arg)),
+        "j:" -> (arg => max_jobs = Value.Int.parse(arg)),
+        "n" -> (_ => no_build = true),
         "o:" -> (arg => options = options + arg),
         "u:" -> (arg => options = options + ("update_" + arg)),
         "v" -> (_ => verbose = true),
@@ -155,10 +170,6 @@ Usage: isabelle update [OPTIONS] [SESSIONS ...]
         val results =
           progress.interrupt_handler {
             update(options,
-              base_logics = base_logics,
-              progress = progress,
-              dirs = dirs,
-              select_dirs = select_dirs,
               selection = Sessions.Selection(
                 requirements = requirements,
                 all_sessions = all_sessions,
@@ -166,7 +177,15 @@ Usage: isabelle update [OPTIONS] [SESSIONS ...]
                 exclude_session_groups = exclude_session_groups,
                 exclude_sessions = exclude_sessions,
                 session_groups = session_groups,
-                sessions = sessions))
+                sessions = sessions),
+              base_logics = base_logics,
+              progress = progress,
+              dirs = dirs,
+              select_dirs = select_dirs,
+              numa_shuffling = NUMA.enabled_warning(progress, numa_shuffling),
+              max_jobs = max_jobs,
+              no_build = no_build,
+              verbose = verbose)
           }
 
         sys.exit(results.rc)
