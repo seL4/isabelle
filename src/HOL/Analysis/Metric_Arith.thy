@@ -105,7 +105,7 @@ theorem metric_eq_thm [THEN HOL.eq_reflection]:
   "x \<in> s \<Longrightarrow> y \<in> s \<Longrightarrow> x = y \<longleftrightarrow> (\<forall>a\<in>s. dist x a = dist y a)"
   by auto
 
-ML_file "metric_arith.ML"
+ML_file \<open>metric_arith.ML\<close>
 
 method_setup metric = \<open>
   Scan.succeed (SIMPLE_METHOD' o Metric_Arith.metric_arith_tac)

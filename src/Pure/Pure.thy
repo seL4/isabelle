@@ -202,8 +202,8 @@ local
               (Toplevel.context_of st) args external)));
 in end\<close>
 
-external_file "ROOT0.ML"
-external_file "ROOT.ML"
+external_file \<open>ROOT0.ML\<close>
+external_file \<open>ROOT.ML\<close>
 
 
 subsection \<open>Embedded ML text\<close>

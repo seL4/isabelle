@@ -1324,8 +1324,8 @@ text \<open>
   files as for \<^theory_text>\<open>export_generated_files\<close> and writes them into a temporary
   directory, which is taken as starting point for build process of
   Isabelle/Scala/Java modules (see @{cite "isabelle-system"}). The
-  corresponding @{path build.props} file is expected directly in the toplevel
-  directory, instead of @{path "etc/build.props"} for Isabelle system
+  corresponding @{path \<open>build.props\<close>} file is expected directly in the toplevel
+  directory, instead of @{path \<open>etc/build.props\<close>} for Isabelle system
   components. These properties need to specify sources, resources, services
   etc. as usual. The resulting JAR module becomes an export artefact of the
   session database, with a name of the form

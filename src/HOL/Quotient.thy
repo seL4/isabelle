@@ -870,7 +870,7 @@ lemma Quotient_eq_onp_type_copy:
   unfolding Quotient_def eq_onp_def
   by unfold_locales auto
 
-ML_file "Tools/BNF/bnf_lift.ML"
+ML_file \<open>Tools/BNF/bnf_lift.ML\<close>
 
 hide_fact
   sum_insert_Inl_unit lift_sum_unit_vimage_commute insert_Inl_int_map_sum_unit
