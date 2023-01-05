@@ -24,10 +24,10 @@ object Command {
   }
 
   object Blobs_Info {
-    val none: Blobs_Info = Blobs_Info(Nil)
+    val empty: Blobs_Info = Blobs_Info(Nil)
 
     def make(blobs: List[(Blob, Document.Blobs.Item)]): Blobs_Info =
-      if (blobs.isEmpty) none else Blobs_Info(for ((a, _) <- blobs) yield Exn.Res(a))
+      if (blobs.isEmpty) empty else Blobs_Info(for ((a, _) <- blobs) yield Exn.Res(a))
 
     def errors(msgs: List[String]): Blobs_Info =
       Blobs_Info(msgs.map(msg => Exn.Exn[Blob](ERROR(msg))))
@@ -371,14 +371,14 @@ object Command {
   }
 
   val empty: Command =
-    Command(Document_ID.none, Document.Node.Name.empty, Blobs_Info.none, Command_Span.empty)
+    Command(Document_ID.none, Document.Node.Name.empty, Blobs_Info.empty, Command_Span.empty)
 
   def unparsed(
     source: String,
     theory: Boolean = false,
     id: Document_ID.Command = Document_ID.none,
     node_name: Document.Node.Name = Document.Node.Name.empty,
-    blobs_info: Blobs_Info = Blobs_Info.none,
+    blobs_info: Blobs_Info = Blobs_Info.empty,
     results: Results = Results.empty,
     markups: Markups = Markups.empty
   ): Command = {

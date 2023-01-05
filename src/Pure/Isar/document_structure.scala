@@ -99,7 +99,7 @@ object Document_Structure {
     /* result structure */
 
     val spans = syntax.parse_spans(text)
-    spans.foreach(span => add(Command(Document_ID.none, node_name, Command.Blobs_Info.none, span)))
+    spans.foreach(span => add(Command(Document_ID.none, node_name, Command.Blobs_Info.empty, span)))
     result()
   }
 
@@ -166,7 +166,7 @@ object Document_Structure {
     for { span <- syntax.parse_spans(text) } {
       sections.add(
         new Command_Item(syntax.keywords,
-          Command(Document_ID.none, node_name, Command.Blobs_Info.none, span)))
+          Command(Document_ID.none, node_name, Command.Blobs_Info.empty, span)))
     }
     sections.result()
   }
