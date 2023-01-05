@@ -1218,9 +1218,8 @@ object Document {
           tree <- markup.to_XML(command_range, command.source, elements).iterator
         } yield tree).toList
       }
-      else {
+      else if (node.is_wellformed_text) {
         Text.Range.length(node.source).try_restrict(range) match {
-          case None => Nil
           case Some(node_range) =>
             val markup =
               version.nodes.commands_loading(node_name).headOption match {
@@ -1231,8 +1230,10 @@ object Document {
                   command_markup(version, command, markup_index, node_range, elements)
               }
             markup.to_XML(node_range, node.source, elements)
+          case None => Nil
         }
       }
+      else Nil
     }
 
     def node_initialized(version: Version, name: Node.Name): Boolean =
