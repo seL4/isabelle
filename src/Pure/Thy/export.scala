@@ -434,23 +434,6 @@ object Export {
     def source_file(name: String): Sessions.Source_File =
       get_source_file(name).getOrElse(error("Missing session source file " + quote(name)))
 
-    def node_source(name: Document.Node.Name): String = {
-      def snapshot_source: Option[String] =
-        for {
-          snapshot <- document_snapshot
-          node = snapshot.get_node(name)
-          text = node.source if text.nonEmpty
-        } yield text
-
-      def db_source: String =
-        get_source_file(name.node) match {
-          case Some(file) => file.text
-          case None => ""
-        }
-
-      snapshot_source getOrElse db_source
-    }
-
     def classpath(): List[File.Content] = {
       (for {
         session <- session_stack.iterator
