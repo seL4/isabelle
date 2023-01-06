@@ -188,6 +188,7 @@ object Build {
     soft_build: Boolean = false,
     verbose: Boolean = false,
     export_files: Boolean = false,
+    augment_options: String => List[Options.Spec] = _ => Nil,
     session_setup: (String, Session) => Unit = (_, _) => ()
   ): Results = {
     val build_options =
@@ -204,7 +205,8 @@ object Build {
     /* session selection and dependencies */
 
     val full_sessions =
-      Sessions.load_structure(build_options, dirs = dirs, select_dirs = select_dirs, infos = infos)
+      Sessions.load_structure(build_options, dirs = dirs, select_dirs = select_dirs, infos = infos,
+        augment_options = augment_options)
     val full_sessions_selection = full_sessions.imports_selection(selection)
 
     def sources_stamp(deps: Sessions.Deps, session_name: String): String = {

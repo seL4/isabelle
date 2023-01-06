@@ -230,6 +230,7 @@ object Sessions {
               Info.make(
                 Chapter_Defs.empty,
                 info.options,
+                augment_options = _ => Nil,
                 dir_selected = false,
                 dir = Path.explode("$ISABELLE_TMP_PREFIX"),
                 chapter = info.chapter,
@@ -560,6 +561,7 @@ object Sessions {
     def make(
       chapter_defs: Chapter_Defs,
       options: Options,
+      augment_options: String => List[Options.Spec],
       dir_selected: Boolean,
       dir: Path,
       chapter: String,
@@ -575,7 +577,8 @@ object Sessions {
         val session_path = dir + Path.explode(entry.path)
         val directories = entry.directories.map(dir => session_path + Path.explode(dir))
 
-        val session_options = options ++ entry.options
+        val entry_options = entry.options ::: augment_options(name)
+        val session_options = options ++ entry_options
 
         val theories =
           entry.theories.map({ case (opts, thys) =>
@@ -610,7 +613,7 @@ object Sessions {
 
         val meta_digest =
           SHA1.digest(
-            (name, chapter, entry.parent, entry.directories, entry.options, entry.imports,
+            (name, chapter, entry.parent, entry.directories, entry_options, entry.imports,
               entry.theories_no_position, conditions, entry.document_theories_no_position,
               entry.document_files)
             .toString)
@@ -756,6 +759,7 @@ object Sessions {
 
     def make(
       options: Options,
+      augment_options: String => List[Options.Spec] = _ => Nil,
       roots: List[Root_File] = Nil,
       infos: List[Info] = Nil
     ): Structure = {
@@ -775,7 +779,9 @@ object Sessions {
           root.entries.foreach {
             case entry: Chapter_Entry => chapter = entry.name
             case entry: Session_Entry =>
-              root_infos += Info.make(chapter_defs, options, root.select, root.dir, chapter, entry)
+              root_infos +=
+                Info.make(chapter_defs, options, augment_options,
+                  root.select, root.dir, chapter, entry)
             case _ =>
           }
           chapter = UNSORTED
@@ -1262,10 +1268,11 @@ object Sessions {
     options: Options,
     dirs: List[Path] = Nil,
     select_dirs: List[Path] = Nil,
-    infos: List[Info] = Nil
+    infos: List[Info] = Nil,
+    augment_options: String => List[Options.Spec] = _ => Nil
   ): Structure = {
     val roots = load_root_files(dirs = dirs, select_dirs = select_dirs)
-    Structure.make(options, roots = roots, infos = infos)
+    Structure.make(options, augment_options, roots = roots, infos = infos)
   }
 
 

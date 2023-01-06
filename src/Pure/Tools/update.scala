@@ -9,6 +9,7 @@ package isabelle
 
 object Update {
   def update(options: Options,
+    update_options: List[Options.Spec],
     selection: Sessions.Selection = Sessions.Selection.empty,
     base_logics: List[String] = Nil,
     progress: Progress = new Progress,
@@ -38,13 +39,19 @@ object Update {
         sessions.build_requirements(base_logics).toSet
       }
 
+    // test
+    options ++ update_options
+
+    def augment_options(name: String): List[Options.Spec] =
+      if (exclude(name)) Nil else update_options
+
 
     /* build */
 
     val build_results =
       Build.build(options, progress = progress, dirs = dirs, select_dirs = select_dirs,
         selection = selection, numa_shuffling = numa_shuffling, max_jobs = max_jobs,
-        no_build = no_build, verbose = verbose)
+        no_build = no_build, verbose = verbose, augment_options = augment_options)
 
     val store = build_results.store
     val sessions_structure = build_results.deps.sessions_structure
@@ -129,6 +136,7 @@ object Update {
         var base_logics: List[String] = Nil
         var no_build = false
         var options = Options.init()
+        var update_options: List[Options.Spec] = Nil
         var verbose = false
         var exclude_sessions: List[String] = Nil
 
@@ -150,7 +158,7 @@ Usage: isabelle update [OPTIONS] [SESSIONS ...]
     -l NAME      additional base logic
     -n           no build -- take existing build databases
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
-    -u OPT       override "update" option: shortcut for "-o update_OPT"
+    -u OPT       override "update" option for selected sessions
     -v           verbose
     -x NAME      exclude session NAME and all descendants
 
@@ -171,7 +179,7 @@ Usage: isabelle update [OPTIONS] [SESSIONS ...]
         "l:" -> (arg => base_logics ::= arg),
         "n" -> (_ => no_build = true),
         "o:" -> (arg => options = options + arg),
-        "u:" -> (arg => options = options + ("update_" + arg)),
+        "u:" -> (arg => update_options = update_options ::: List(("update_" + arg, None))),
         "v" -> (_ => verbose = true),
         "x:" -> (arg => exclude_sessions = exclude_sessions ::: List(arg)))
 
@@ -181,7 +189,7 @@ Usage: isabelle update [OPTIONS] [SESSIONS ...]
 
         val results =
           progress.interrupt_handler {
-            update(options,
+            update(options, update_options,
               selection = Sessions.Selection(
                 requirements = requirements,
                 all_sessions = all_sessions,

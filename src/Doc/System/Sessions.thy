@@ -793,7 +793,7 @@ text \<open>
     -l NAME      additional base logic
     -n           no build -- take existing build databases
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
-    -u OPT       override "update" option: shortcut for "-o update_OPT"
+    -u OPT       override "update" option for selected sessions
     -v           verbose
     -x NAME      exclude session NAME and all descendants
 
