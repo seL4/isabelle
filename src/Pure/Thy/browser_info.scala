@@ -616,13 +616,14 @@ object Browser_Info {
 
       val files =
         for {
-          (blob, xml) <- snapshot.xml_markup_blobs(elements = thy_elements.html)
+          blob_name <- snapshot.node_files.tail
+          xml = snapshot.switch(blob_name).xml_markup(elements = thy_elements.html)
           if xml.nonEmpty
         }
         yield {
           progress.expose_interrupt()
 
-          val file_name = blob.name.node
+          val file_name = blob_name.node
           if (verbose) progress.echo("Presenting file " + quote(file_name))
 
           val file_html = session_dir + context.file_html(file_name)
@@ -630,7 +631,7 @@ object Browser_Info {
           val html_link = HTML.relative_href(file_html, base = Some(session_dir))
           val html = context.source(node_context(file_name, file_dir).make_html(thy_elements, xml))
 
-          val file_title = "File " + Symbol.cartouche_decoded(blob.src_path.implode_short)
+          val file_title = "File " + Symbol.cartouche_decoded(file_name)
           HTML.write_document(file_dir, file_html.file_name,
             List(HTML.title(file_title)), List(context.head(file_title), html),
             root = Some(context.root_dir))

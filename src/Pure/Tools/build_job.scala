@@ -427,7 +427,8 @@ class Build_Job(progress: Progress,
               cat_lines(snapshot.node_files.map(name => File.symbolic_path(name.path))),
               compress = false)
 
-            for (((_, xml), i) <- snapshot.xml_markup_blobs().zipWithIndex) {
+            for ((blob_name, i) <- snapshot.node_files.tail.zipWithIndex) {
+              val xml = snapshot.switch(blob_name).xml_markup()
               export_(Export.MARKUP + (i + 1), xml)
             }
             export_(Export.MARKUP, snapshot.xml_markup())
