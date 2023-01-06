@@ -35,7 +35,7 @@ object Bibtex {
         val title = "Bibliography " + quote(snapshot.node_name.file_name)
         val content =
           Isabelle_System.with_tmp_file("bib", "bib") { bib =>
-            File.write(bib, snapshot.source)
+            File.write(bib, snapshot.node.source)
             Bibtex.html_output(List(bib), style = "unsort", title = title)
           }
         Some(Browser_Info.HTML_Document(title, content))

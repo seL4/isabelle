@@ -580,15 +580,6 @@ object Document {
       node_name :: node.load_commands.flatMap(_.blobs_names)
 
 
-    /* source text */
-
-    def source: String =
-      snippet_command match {
-        case Some(command) => command.source
-        case None => node.source
-      }
-
-
     /* pending edits */
 
     def is_outdated: Boolean = !pending_edits.is_stable

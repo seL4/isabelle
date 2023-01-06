@@ -135,7 +135,7 @@ object Build_Job {
                     rendering.text_messages(Text.Range.full)
                       .filter(message => verbose || Protocol.is_exported(message.info))
                   if (messages.nonEmpty) {
-                    val line_document = Line.Document(snapshot.source)
+                    val line_document = Line.Document(snapshot.node.source)
                     val buffer = new mutable.ListBuffer[String]
                     for (Text.Info(range, elem) <- messages) {
                       val line = line_document.position(range.start).line1
