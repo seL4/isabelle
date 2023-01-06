@@ -476,10 +476,10 @@ text \<open>
   Option \<^verbatim>\<open>-f\<close> forces a fresh build of all selected sessions and their
   requirements.
 
-  \<^medskip>
-  Option \<^verbatim>\<open>-n\<close> omits the actual build process after the preparatory stage
-  (including optional cleanup). Note that the return code always indicates the
-  status of the set of selected sessions.
+  \<^medskip> Option \<^verbatim>\<open>-n\<close> omits the actual build process after the preparatory stage
+  (including optional cleanup). The overall return code always the status of
+  the set of selected sessions. Add-on builds (like presentation) are run for
+  successful sessions, i.e.\ already finished ones.
 
   \<^medskip>
   Option \<^verbatim>\<open>-j\<close> specifies the maximum number of parallel build jobs (prover
@@ -784,7 +784,10 @@ text \<open>
     -R           refer to requirements of selected sessions
     -X NAME      exclude sessions from group NAME and all descendants
     -a           select all sessions
+    -b           build heap images
+    -c           clean build
     -d DIR       include session directory
+    -f           fresh build
     -g NAME      select session group NAME
     -j INT       maximum number of parallel jobs (default 1)
     -l NAME      additional base logic
@@ -794,26 +797,15 @@ text \<open>
     -v           verbose
     -x NAME      exclude session NAME and all descendants
 
-  Update theory sources based on PIDE markup.\<close>}
+  Update theory sources based on PIDE markup produced by "isabelle build".\<close>}
 
-  \<^medskip> Options \<^verbatim>\<open>-B\<close>, \<^verbatim>\<open>-D\<close>, \<^verbatim>\<open>-R\<close>, \<^verbatim>\<open>-X\<close>, \<^verbatim>\<open>-a\<close>, \<^verbatim>\<open>-d\<close>, \<^verbatim>\<open>-g\<close>, \<^verbatim>\<open>-x\<close> and the
-  remaining command-line arguments specify sessions as in @{tool build}
-  (\secref{sec:tool-build}).
-
-  \<^medskip> Options \<^verbatim>\<open>-N\<close> and \<^verbatim>\<open>-j\<close> specify multicore parameters as in @{tool build}.
-
-  \<^medskip> Option \<^verbatim>\<open>-n\<close> suppresses the actual build process, but existing build
-  databases are used nonetheless.
+  \<^medskip> Most options are the same as for @{tool build} (\secref{sec:tool-build}).
 
   \<^medskip> Option \<^verbatim>\<open>-l\<close> specifies one or more base logics: these sessions and their
   ancestors are \<^emph>\<open>excluded\<close> from the update.
 
-  \<^medskip> Option \<^verbatim>\<open>-v\<close> increases the general level of verbosity.
-
-  \<^medskip> Option \<^verbatim>\<open>-o\<close> overrides Isabelle system options as for @{tool build}
-  (\secref{sec:tool-build}). Option \<^verbatim>\<open>-u\<close> refers to specific \<^verbatim>\<open>update\<close>
-  options, by relying on naming convention: ``\<^verbatim>\<open>-u\<close>~\<open>OPT\<close>'' is a shortcut for
-  ``\<^verbatim>\<open>-o\<close>~\<^verbatim>\<open>update_\<close>\<open>OPT\<close>''.
+  \<^medskip> Option \<^verbatim>\<open>-u\<close> refers to specific \<^verbatim>\<open>update\<close> options, by relying on naming
+  convention: ``\<^verbatim>\<open>-u\<close>~\<open>OPT\<close>'' is a shortcut for ``\<^verbatim>\<open>-o\<close>~\<^verbatim>\<open>update_\<close>\<open>OPT\<close>''.
 
   \<^medskip> The following \<^verbatim>\<open>update\<close> options are supported:
 

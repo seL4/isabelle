@@ -12,10 +12,13 @@ object Update {
     selection: Sessions.Selection = Sessions.Selection.empty,
     base_logics: List[String] = Nil,
     progress: Progress = new Progress,
+    build_heap: Boolean = false,
+    clean_build: Boolean = false,
     dirs: List[Path] = Nil,
     select_dirs: List[Path] = Nil,
     numa_shuffling: Boolean = false,
     max_jobs: Int = 1,
+    fresh_build: Boolean = false,
     no_build: Boolean = false,
     verbose: Boolean = false
   ): Build.Results = {
@@ -117,7 +120,10 @@ object Update {
         var requirements = false
         var exclude_session_groups: List[String] = Nil
         var all_sessions = false
+        var build_heap = false
+        var clean_build = false
         var dirs: List[Path] = Nil
+        var fresh_build = false
         var session_groups: List[String] = Nil
         var max_jobs = 1
         var base_logics: List[String] = Nil
@@ -135,7 +141,10 @@ Usage: isabelle update [OPTIONS] [SESSIONS ...]
     -R           refer to requirements of selected sessions
     -X NAME      exclude sessions from group NAME and all descendants
     -a           select all sessions
+    -b           build heap images
+    -c           clean build
     -d DIR       include session directory
+    -f           fresh build
     -g NAME      select session group NAME
     -j INT       maximum number of parallel jobs (default 1)
     -l NAME      additional base logic
@@ -145,7 +154,7 @@ Usage: isabelle update [OPTIONS] [SESSIONS ...]
     -v           verbose
     -x NAME      exclude session NAME and all descendants
 
-  Update theory sources based on PIDE markup.
+  Update theory sources based on PIDE markup produced by "isabelle build".
 """,
         "B:" -> (arg => base_sessions = base_sessions ::: List(arg)),
         "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
@@ -153,7 +162,10 @@ Usage: isabelle update [OPTIONS] [SESSIONS ...]
         "R" -> (_ => requirements = true),
         "X:" -> (arg => exclude_session_groups = exclude_session_groups ::: List(arg)),
         "a" -> (_ => all_sessions = true),
+        "b" -> (_ => build_heap = true),
+        "c" -> (_ => clean_build = true),
         "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
+        "f" -> (_ => fresh_build = true),
         "g:" -> (arg => session_groups = session_groups ::: List(arg)),
         "j:" -> (arg => max_jobs = Value.Int.parse(arg)),
         "l:" -> (arg => base_logics ::= arg),
@@ -180,10 +192,13 @@ Usage: isabelle update [OPTIONS] [SESSIONS ...]
                 sessions = sessions),
               base_logics = base_logics,
               progress = progress,
+              build_heap,
+              clean_build,
               dirs = dirs,
               select_dirs = select_dirs,
               numa_shuffling = NUMA.enabled_warning(progress, numa_shuffling),
               max_jobs = max_jobs,
+              fresh_build,
               no_build = no_build,
               verbose = verbose)
           }

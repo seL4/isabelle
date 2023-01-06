@@ -193,8 +193,8 @@ Isabelle/jEdit Document panel.
 
 * The command-line tool "isabelle update" is now directly based on
 "isabelle build" instead of "isabelle dump". Thus it has become more
-scalable, and supports a few additional options from "isabelle build".
-Partial builds are supported as well, e.g. "isabelle update -n -a".
+scalable, and supports most options from "isabelle build". Partial
+builds are supported as well, e.g. "isabelle update -n -a".
 
 * Isabelle/Scala provides generic support for XZ and Zstd compression,
 via Compress.Options and Compress.Cache. Bytes.uncompress automatically
