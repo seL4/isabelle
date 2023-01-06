@@ -650,25 +650,6 @@ object Document {
         elements: Markup.Elements = Markup.Elements.full): XML.Body =
       state.xml_markup(version, node_name, range = range, elements = elements)
 
-    def xml_markup_blobs(
-      elements: Markup.Elements = Markup.Elements.full
-    ) : List[(Command.Blob, XML.Body)] = {
-      snippet_command match {
-        case None => Nil
-        case Some(command) =>
-          for {
-            Exn.Res(blob) <- command.blobs
-            blob_node = get_node(blob.name)
-            if blob_node.source_wellformed
-          }
-          yield {
-            val text = blob_node.source
-            val markup = command.init_markups(Command.Markup_Index.blob(blob))
-            blob -> markup.to_XML(Text.Range.length(text), text, elements)
-          }
-      }
-    }
-
 
     /* messages */
 
