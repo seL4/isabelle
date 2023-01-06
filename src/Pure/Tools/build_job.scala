@@ -18,12 +18,13 @@ object Build_Job {
     theory_context: Export.Theory_Context,
     unicode_symbols: Boolean = false
   ): Option[Document.Snapshot] = {
+    def decode_bytes(bytes: Bytes): String =
+      Symbol.output(unicode_symbols, UTF8.decode_permissive(bytes))
+
     def read(name: String): Export.Entry = theory_context(name, permissive = true)
 
     def read_xml(name: String): XML.Body =
-      YXML.parse_body(
-        Symbol.output(unicode_symbols, UTF8.decode_permissive(read(name).bytes)),
-        cache = theory_context.cache)
+      YXML.parse_body(decode_bytes(read(name).bytes), cache = theory_context.cache)
 
     def read_source_file(name: String): Sessions.Source_File =
       theory_context.session_context.source_file(name)
@@ -44,14 +45,14 @@ object Build_Job {
 
           val file = read_source_file(name)
           val bytes = file.bytes
-          val text = bytes.text
+          val text = decode_bytes(bytes)
           val chunk = Symbol.Text_Chunk(text)
 
           Command.Blob(Document.Node.Name(name), src_path, Some((file.digest, chunk))) ->
             Document.Blobs.Item(bytes, text, chunk, changed = false)
         }
 
-      val thy_source = read_source_file(thy_file).bytes.text
+      val thy_source = decode_bytes(read_source_file(thy_file).bytes)
       val thy_xml = read_xml(Export.MARKUP)
       val blobs_xml =
         for (i <- (1 to blobs.length).toList)
