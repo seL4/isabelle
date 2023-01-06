@@ -614,6 +614,8 @@ object Browser_Info {
           node_context(theory.thy_file, session_dir).
             make_html(thy_elements, snapshot.xml_markup(elements = thy_elements.html)))
 
+      val master_dir = Path.explode(snapshot.node_name.master_dir)
+
       val files =
         for {
           blob_name <- snapshot.node_files.tail
@@ -623,15 +625,18 @@ object Browser_Info {
         yield {
           progress.expose_interrupt()
 
-          val file_name = blob_name.node
-          if (verbose) progress.echo("Presenting file " + quote(file_name))
+          val file = blob_name.node
+          if (verbose) progress.echo("Presenting file " + quote(file))
 
-          val file_html = session_dir + context.file_html(file_name)
+          val file_html = session_dir + context.file_html(file)
           val file_dir = file_html.dir
           val html_link = HTML.relative_href(file_html, base = Some(session_dir))
-          val html = context.source(node_context(file_name, file_dir).make_html(thy_elements, xml))
+          val html = context.source(node_context(file, file_dir).make_html(thy_elements, xml))
 
-          val file_title = "File " + Symbol.cartouche_decoded(file_name)
+          val path = Path.explode(file)
+          val src_path = File.relative_path(master_dir, path).getOrElse(path)
+
+          val file_title = "File " + Symbol.cartouche_decoded(src_path.implode_short)
           HTML.write_document(file_dir, file_html.file_name,
             List(HTML.title(file_title)), List(context.head(file_title), html),
             root = Some(context.root_dir))
