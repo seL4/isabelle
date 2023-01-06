@@ -643,15 +643,12 @@ object Document {
     }
 
 
-    /* XML markup */
+    /* markup and messages */
 
     def xml_markup(
         range: Text.Range = Text.Range.full,
         elements: Markup.Elements = Markup.Elements.full): XML.Body =
       state.xml_markup(version, node_name, range = range, elements = elements)
-
-
-    /* messages */
 
     lazy val messages: List[(XML.Elem, Position.T)] =
       (for {
