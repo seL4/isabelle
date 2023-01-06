@@ -84,11 +84,13 @@ object Update {
         if build_results(session).ok && !exclude(session)
       } {
         progress.echo("Session " + session + " ...")
+        val proper_session_theory =
+          build_results.deps(session).proper_session_theories.map(_.theory).toSet
         using(database_context.open_session0(session)) { session_context =>
           for {
             db <- session_context.session_db()
             theory <- store.read_theories(db, session)
-            if !seen_theory(theory)
+            if proper_session_theory(theory) && !seen_theory(theory)
           } {
             seen_theory += theory
             val theory_context = session_context.theory(theory)
