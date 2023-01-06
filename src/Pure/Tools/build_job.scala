@@ -51,7 +51,7 @@ object Build_Job {
             Document.Blobs.Item(bytes, text, chunk, changed = false)
         }
 
-      val thy_source = read_source_file(thy_file).text
+      val thy_source = read_source_file(thy_file).bytes.text
       val thy_xml = read_xml(Export.MARKUP)
       val blobs_xml =
         for (i <- (1 to blobs.length).toList)

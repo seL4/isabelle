@@ -67,7 +67,6 @@ object Sessions {
     override def toString: String = name
 
     def bytes: Bytes = if (compressed) body.uncompress(cache = cache) else body
-    def text: String = bytes.text
   }
 
   object Sources {
