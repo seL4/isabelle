@@ -369,7 +369,7 @@ next
     with \<open>\<not> s \<le> 0\<close> have "r > 0" "s > 0" by auto
     show thesis
       using inessential_spheremap_lowdim_gen [of "cball a r" "cball b s" f]
-      using  \<open>0 < r\<close> \<open>0 < s\<close> assms(1) that by (auto simp add: f aff_dim_cball)
+      using \<open>0 < r\<close> \<open>0 < s\<close> assms(1) that by (auto simp add: f aff_dim_cball)
   qed
 qed
 
@@ -1538,8 +1538,7 @@ next
       then have "\<not> bounded (\<Union>{C \<in> components (T - S). \<not> bounded C})"
         by (metis (no_types, lifting) Sup_upper bounded_subset mem_Collect_eq that)
       then show ?thesis
-        apply (clarsimp simp: LU_def Int_Un_distrib Diff_Int_distrib Int_UN_distrib)
-        by (metis (no_types, lifting) False Sup_upper bounded_cbox bounded_subset inf.orderE mem_Collect_eq that)
+        by (simp add: LU_def disjoint_iff) (meson False bounded_cbox bounded_subset subset_iff that)
     qed
   qed blast
   have *: False if "x \<in> cbox (- b - m *\<^sub>R One) (b + m *\<^sub>R One)"
@@ -1611,10 +1610,11 @@ next
       then show ?thesis
         using cT_ne clo_cT closest_point_in_set by blast
     qed
-    show "continuous_on (T - K \<inter> cbox (- (b + One)) (b + One)) (g \<circ> closest_point (cbox (-c) c \<inter> T))"
-      using cloTK
-      apply (intro continuous_on_compose continuous_on_closest_point continuous_on_subset [OF contg])
-      by (auto simp add: clo_cT affine_imp_convex \<open>affine T\<close> convex_Int cT_ne)
+    have "convex (cbox (- c) c \<inter> T)"
+      by (simp add: affine_imp_convex assms(4) convex_Int)
+    then show "continuous_on (T - K \<inter> cbox (- (b + One)) (b + One)) (g \<circ> closest_point (cbox (-c) c \<inter> T))"
+      using cloTK clo_cT cT_ne
+      by (intro continuous_on_compose continuous_on_closest_point continuous_on_subset [OF contg]; force)
     have "g (closest_point (cbox (- c) c \<inter> T) x) \<in> rel_frontier U"
          if "x \<in> T" "x \<in> K \<longrightarrow> x \<notin> cbox (- b - One) (b + One)" for x
       using gim [THEN subsetD] that cloTK by blast
@@ -1646,10 +1646,9 @@ next
   then have "aff_dim T \<le> aff_dim (cball a r)"
     by (simp add: aff aff_dim_cball)
   then show ?thesis
-    apply (rule extend_map_affine_to_sphere_cofinite_gen
-            [OF \<open>compact S\<close> convex_cball bounded_cball \<open>affine T\<close> \<open>S \<subseteq> T\<close> _ contf])
-    using fim apply (auto simp: assms False that dest: dis)
-    done
+    using extend_map_affine_to_sphere_cofinite_gen
+            [OF \<open>compact S\<close> convex_cball bounded_cball \<open>affine T\<close> \<open>S \<subseteq> T\<close> _ contf]
+    using fim by (fastforce simp: assms False that dest: dis)
 qed
 
 corollary extend_map_UNIV_to_sphere_cofinite:
@@ -1673,9 +1672,9 @@ corollary extend_map_UNIV_to_sphere_no_bounded_component:
       and fim: "f ` S \<subseteq> sphere a r"
       and dis: "\<And>C. C \<in> components(- S) \<Longrightarrow> \<not> bounded C"
   obtains g where "continuous_on UNIV g" "g ` UNIV \<subseteq> sphere a r" "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
-  apply (rule extend_map_UNIV_to_sphere_cofinite [OF aff \<open>0 \<le> r\<close> \<open>compact S\<close> contf fim, of "{}"])
-   apply (auto dest: dis)
-done
+  using extend_map_UNIV_to_sphere_cofinite [OF aff \<open>0 \<le> r\<close> \<open>compact S\<close> contf fim, of "{}"]
+  by (metis Compl_empty_eq dis subset_empty)
+
 
 theorem Borsuk_separation_theorem_gen:
   fixes S :: "'a::euclidean_space set"
@@ -1739,11 +1738,10 @@ proof
   qed
 next
   assume R: ?rhs
-  then show ?lhs
-    apply (simp add: Borsuk_separation_theorem_gen [OF \<open>compact S\<close>, symmetric])
-    apply (auto simp: components_def connected_iff_eq_connected_component_set)
-    using connected_component_in apply fastforce
-    using cobounded_unique_unbounded_component [OF _ 2, of "-S"] \<open>compact S\<close> compact_eq_bounded_closed by fastforce
+  then have "\<forall>c\<in>components (- S). \<not> bounded c \<Longrightarrow> connected (- S)"
+    by (metis "2" assms(1) cobounded_has_bounded_component compact_imp_bounded double_complement)
+  with R show ?lhs
+    by (simp add: Borsuk_separation_theorem_gen [OF \<open>compact S\<close>])
 qed
 
 
@@ -2017,8 +2015,7 @@ proof -
     show "open (k ` U)"
       by (simp add: ope_iff homeomorphism_imp_open_map [OF homkh ope])
     show "inj_on (k \<circ> f \<circ> h) (k ` U)"
-      apply (clarsimp simp: inj_on_def)
-      by (metis \<open>U \<subseteq> S\<close> fim homeomorphism_apply2 homhk image_subset_iff inj_onD injf subsetD)
+      by (smt (verit) comp_apply inj_on_def \<open>U \<subseteq> S\<close> fim homeomorphism_apply2 homhk image_iff injf subsetD)
   qed
   moreover
   have eq: "f ` U = h ` (k \<circ> f \<circ> h \<circ> k) ` U"
@@ -2102,8 +2099,7 @@ proof -
       show "continuous_on S (h \<circ> f)"
         by (meson contf continuous_on_compose continuous_on_subset fim homeomorphism_cont1 homhk)
       show "inj_on (h \<circ> f) S"
-        apply (clarsimp simp: inj_on_def)
-        by (metis fim homeomorphism_apply2 [OF homkh] image_subset_iff inj_onD injf)
+        by (smt (verit, ccfv_SIG) comp_apply fim inj_on_def homeomorphism_apply2 [OF homkh] image_subset_iff injf)
       show "(h \<circ> f) ` S \<subseteq> U"
         using \<open>V' \<subseteq> U\<close> hfV' by auto
       qed (auto simp: assms)
@@ -2134,8 +2130,7 @@ proof -
     moreover have "(h \<circ> f) ` S \<subseteq> U"
       using \<open>T \<subseteq> U\<close> fim homeomorphism_image1 homhk by fastforce
     moreover have "inj_on (h \<circ> f) S"
-      apply (clarsimp simp: inj_on_def)
-      by (metis fim homeomorphism_apply1 homhk image_subset_iff inj_onD injf)
+      by (smt (verit, best) comp_apply inj_on_def fim homeomorphism_apply1 homhk image_subset_iff injf)
     ultimately have ope_hf: "openin (top_of_set U) ((h \<circ> f) ` S)"
       using invariance_of_domain_subspaces [OF ope \<open>subspace U\<close> \<open>subspace U\<close>] by blast
     have "(h \<circ> f) ` S \<subseteq> T"
@@ -2298,9 +2293,13 @@ lemma invariance_of_domain_gen:
 lemma injective_into_1d_imp_open_map_UNIV:
   fixes f :: "'a::euclidean_space \<Rightarrow> real"
   assumes "open T" "continuous_on S f" "inj_on f S" "T \<subseteq> S"
-    shows "open (f ` T)"
-  apply (rule invariance_of_domain_gen [OF \<open>open T\<close>])
-  using assms by (auto simp: elim: continuous_on_subset subset_inj_on)
+  shows "open (f ` T)"
+proof -
+  have "DIM(real) \<le> DIM('a)"
+    by simp
+  then show ?thesis
+    using invariance_of_domain_gen assms continuous_on_subset subset_inj_on by metis
+qed
 
 lemma continuous_on_inverse_open:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
@@ -2402,7 +2401,7 @@ lemma homeomorphic_open_imp_same_dimension:
   fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
   assumes "S homeomorphic T" "open S" "S \<noteq> {}" "open T" "T \<noteq> {}"
   shows "DIM('a) = DIM('b)"
-    using assms
+    using assms 
     apply (simp add: homeomorphic_minimal)
     apply (rule order_antisym; metis inj_onI invariance_of_dimension)
     done
@@ -2412,9 +2411,6 @@ proposition homeomorphic_interiors:
   assumes "S homeomorphic T" "interior S = {} \<longleftrightarrow> interior T = {}"
     shows "(interior S) homeomorphic (interior T)"
 proof (cases "interior T = {}")
-  case True
-  with assms show ?thesis by auto
-next
   case False
   then have "DIM('a) = DIM('b)"
     using assms
@@ -2423,7 +2419,7 @@ next
     done
   then show ?thesis
     by (rule homeomorphic_interiors_same_dimension [OF \<open>S homeomorphic T\<close>])
-qed
+qed (use assms in auto)
 
 lemma homeomorphic_frontiers_same_dimension:
   fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
@@ -2659,7 +2655,7 @@ next
   obtain f g
     where S: "\<forall>x\<in>S. f x \<in> T \<and> g (f x) = x" and T: "\<forall>y\<in>T. g y \<in> S \<and> f (g y) = y"
       and contf: "continuous_on S f" and contg: "continuous_on T g"
-    using  assms [unfolded homeomorphic_minimal] by auto
+    using assms by (auto simp: homeomorphic_minimal)
   have "aff_dim (affine hull S) \<le> aff_dim (affine hull T)"
     using False assms homeomorphic_aff_dim_le by blast
   moreover have "aff_dim (affine hull T) \<le> aff_dim (affine hull S)"
@@ -2762,16 +2758,14 @@ proof -
         using Arg2pi_eq that h01 by (force simp: j_def)
       have eq:  "S = S \<inter> (UNIV \<times> {z. 0 \<le> Im z}) \<union> S \<inter> (UNIV \<times> {z. Im z \<le> 0})" for S :: "(real*complex)set"
         by auto
+      have \<section>: "Arg2pi z \<le> 2 * pi" for z
+        by (simp add: Arg2pi order_le_less)
       have c1: "continuous_on ({0..1} \<times> sphere 0 1 \<inter> UNIV \<times> {z. 0 \<le> Im z}) (\<lambda>x. h (fst x, Arg2pi (snd x) / (2 * pi)))"
         apply (intro continuous_intros continuous_on_compose2 [OF conth]  continuous_on_compose2 [OF continuous_on_upperhalf_Arg2pi])
-            apply (auto simp: Arg2pi)
-        apply (meson Arg2pi_lt_2pi linear not_le)
-        done
+        by (auto simp: Arg2pi \<section>)
       have c2: "continuous_on ({0..1} \<times> sphere 0 1 \<inter> UNIV \<times> {z. Im z \<le> 0}) (\<lambda>x. h (fst x, 1 - Arg2pi (cnj (snd x)) / (2 * pi)))"
         apply (intro continuous_intros continuous_on_compose2 [OF conth]  continuous_on_compose2 [OF continuous_on_upperhalf_Arg2pi])
-            apply (auto simp: Arg2pi)
-        apply (meson Arg2pi_lt_2pi linear not_le)
-        done
+        by (auto simp: Arg2pi \<section>)
       show "continuous_on ({0..1} \<times> sphere 0 1) j"
         apply (simp add: j_def)
         apply (subst eq)
@@ -2800,10 +2794,11 @@ lemma simply_connected_eq_homotopic_circlemaps1:
       and contg: "continuous_on (sphere 0 1) g" and gim: "g ` (sphere 0 1) \<subseteq> S"
     shows "homotopic_with_canon (\<lambda>h. True) (sphere 0 1) S f g"
 proof -
-  have "homotopic_loops S (f \<circ> exp \<circ> (\<lambda>t. of_real(2 * pi * t) * \<i>)) (g \<circ> exp \<circ> (\<lambda>t. of_real(2 * pi *  t) * \<i>))"
-    apply (rule S [unfolded simply_connected_homotopic_loops, rule_format])
-    apply (simp add: homotopic_circlemaps_imp_homotopic_loops contf fim contg gim)
-    done
+  let ?h = "(\<lambda>t. complex_of_real (2 * pi * t) * \<i>)"
+  have "homotopic_loops S (f \<circ> exp \<circ> ?h) (f \<circ> exp \<circ> ?h) \<and> homotopic_loops S (g \<circ> exp \<circ> ?h) (g \<circ> exp \<circ> ?h)"
+    by (simp add: homotopic_circlemaps_imp_homotopic_loops contf fim contg gim)
+  then have "homotopic_loops S (f \<circ> exp \<circ> ?h) (g \<circ> exp \<circ> ?h)"
+    using S simply_connected_homotopic_loops by blast
   then show ?thesis
     apply (rule homotopic_with_eq [OF homotopic_loops_imp_homotopic_circlemaps])
       apply (auto simp: o_def complex_norm_eq_1_exp mult.commute)
@@ -2818,9 +2813,7 @@ lemma simply_connected_eq_homotopic_circlemaps2a:
                 continuous_on (sphere 0 1) g; g ` (sphere 0 1) \<subseteq> S\<rbrakk>
                 \<Longrightarrow> homotopic_with_canon (\<lambda>h. True) (sphere 0 1) S f g"
             shows "\<exists>a. homotopic_with_canon (\<lambda>h. True) (sphere 0 1) S h (\<lambda>x. a)"
-    apply (rule_tac x="h 1" in exI)
-    apply (rule hom)
-    using assms by (auto)
+  by (metis conth continuous_on_const him hom image_subset_iff)
 
 lemma simply_connected_eq_homotopic_circlemaps2b:
   fixes S :: "'a::real_normed_vector set"
@@ -2874,9 +2867,8 @@ proposition simply_connected_eq_homotopic_circlemaps:
               continuous_on (sphere 0 1) f \<and> f ` (sphere 0 1) \<subseteq> S \<and>
               continuous_on (sphere 0 1) g \<and> g ` (sphere 0 1) \<subseteq> S
               \<longrightarrow> homotopic_with_canon (\<lambda>h. True) (sphere 0 1) S f g)"
-  apply (rule iffI)
-   apply (blast dest: simply_connected_eq_homotopic_circlemaps1)
-  by (simp add: simply_connected_eq_homotopic_circlemaps2a simply_connected_eq_homotopic_circlemaps2b simply_connected_eq_homotopic_circlemaps3)
+  by (metis simply_connected_eq_homotopic_circlemaps1 simply_connected_eq_homotopic_circlemaps2a 
+      simply_connected_eq_homotopic_circlemaps2b simply_connected_eq_homotopic_circlemaps3)
 
 proposition simply_connected_eq_contractible_circlemap:
   fixes S :: "'a::real_normed_vector set"
@@ -2885,9 +2877,8 @@ proposition simply_connected_eq_contractible_circlemap:
          (\<forall>f::complex \<Rightarrow> 'a.
               continuous_on (sphere 0 1) f \<and> f `(sphere 0 1) \<subseteq> S
               \<longrightarrow> (\<exists>a. homotopic_with_canon (\<lambda>h. True) (sphere 0 1) S f (\<lambda>x. a)))"
-  apply (rule iffI)
-   apply (simp add: simply_connected_eq_homotopic_circlemaps1 simply_connected_eq_homotopic_circlemaps2a simply_connected_eq_homotopic_circlemaps2b)
-  using simply_connected_eq_homotopic_circlemaps3 by blast
+  by (metis simply_connected_eq_homotopic_circlemaps simply_connected_eq_homotopic_circlemaps2a 
+      simply_connected_eq_homotopic_circlemaps3 simply_connected_imp_path_connected)
 
 corollary homotopy_eqv_simple_connectedness:
   fixes S :: "'a::real_normed_vector set" and T :: "'b::real_normed_vector set"
@@ -3004,8 +2995,12 @@ lemma homeomorphic_hyperplanes_eq:
   fixes a :: "'a::euclidean_space" and c :: "'b::euclidean_space"
   assumes "a \<noteq> 0" "c \<noteq> 0"
   shows "({x. a \<bullet> x = b} homeomorphic {x. c \<bullet> x = d} \<longleftrightarrow> DIM('a) = DIM('b))"
-  apply (auto simp: homeomorphic_affine_sets_eq affine_hyperplane assms)
-  by (metis DIM_positive Suc_pred)
+proof -
+  have "DIM('a) - Suc 0 = DIM('b) - Suc 0 \<Longrightarrow> DIM('a) = DIM('b)"
+    by (metis DIM_positive Suc_pred)
+  then show ?thesis
+    by (auto simp: homeomorphic_affine_sets_eq affine_hyperplane assms)
+qed
 
 lemma homeomorphic_UNIV_UNIV:
   shows "(UNIV::'a set) homeomorphic (UNIV::'b set) \<longleftrightarrow>
@@ -3028,9 +3023,7 @@ proof -
       by (rule convex_cball)
     then obtain c where "homotopic_with_canon (\<lambda>z. True) (sphere (0::complex) 1) (rel_frontier S) f (\<lambda>x. c)"
       apply (rule inessential_spheremap_lowdim_gen [OF _ bounded_cball \<open>convex S\<close> \<open>bounded S\<close>, where f=f])
-      using f 3
-         apply (auto simp: aff_dim_cball)
-      done
+      using f 3 by (auto simp: aff_dim_cball)
     then show "\<exists>a. homotopic_with_canon (\<lambda>h. True) (sphere 0 1) (rel_frontier S) f (\<lambda>x. a)"
       by blast
   qed
@@ -3086,9 +3079,7 @@ next
         by (meson Diff_mono SU homeomorphism_def homeomorphism_of_subsets gh set_eq_subset)
     qed (use contf continuous_on_subset hgsub in blast)
     show "inj_on (f \<circ> h) (g ` (S - {b}))"
-      using kjsub
-      apply (clarsimp simp add: inj_on_def)
-      by (metis SU b homeomorphism_def inj_onD injf insert_Diff insert_iff gh rev_subsetD)
+      by (smt (verit, del_insts) SU homeomorphism_def inj_on_def injf gh Diff_iff comp_apply imageE subset_iff)
     show "(f \<circ> h) ` g ` (S - {b}) \<subseteq> T"
       by (metis fim image_comp image_mono hgsub subset_trans)
   qed (auto simp: assms)
@@ -3103,9 +3094,7 @@ next
         by (meson Diff_mono SU homeomorphism_def homeomorphism_of_subsets jk set_eq_subset)
     qed (use contf continuous_on_subset kjsub in blast)
     show "inj_on (f \<circ> k) (j ` (S - {c}))"
-      using kjsub
-      apply (clarsimp simp add: inj_on_def)
-      by (metis SU c homeomorphism_def inj_onD injf insert_Diff insert_iff jk rev_subsetD)
+      by (smt (verit, del_insts) SU homeomorphism_def inj_on_def injf jk Diff_iff comp_apply imageE subset_iff)
     show "(f \<circ> k) ` j ` (S - {c}) \<subseteq> T"
       by (metis fim image_comp image_mono kjsub subset_trans)
   qed (auto simp: assms)
@@ -3116,11 +3105,9 @@ next
     have "h ` g ` (S - {b}) = (S - {b})"
     proof
       show "h ` g ` (S - {b}) \<subseteq> S - {b}"
-        using homeomorphism_apply1 [OF gh] SU
-        by (fastforce simp add: image_iff image_subset_iff)
+        using homeomorphism_apply1 [OF gh] SU by (fastforce simp add: image_iff image_subset_iff)
       show "S - {b} \<subseteq> h ` g ` (S - {b})"
-        apply clarify
-        by  (metis SU subsetD homeomorphism_apply1 [OF gh] image_iff member_remove remove_def)
+        by (metis Diff_mono SU gh homeomorphism_image2 homeomorphism_of_subsets set_eq_subset)
     qed
     then show ?thesis
       by (metis image_comp)
@@ -3128,14 +3115,8 @@ next
   moreover have "(f \<circ> k) ` j ` (S - {c}) = f ` (S - {c})"
   proof -
     have "k ` j ` (S - {c}) = (S - {c})"
-    proof
-      show "k ` j ` (S - {c}) \<subseteq> S - {c}"
-        using homeomorphism_apply1 [OF jk] SU
-        by (fastforce simp add: image_iff image_subset_iff)
-      show "S - {c} \<subseteq> k ` j ` (S - {c})"
-        apply clarify
-        by  (metis SU subsetD homeomorphism_apply1 [OF jk] image_iff member_remove remove_def)
-    qed
+      using homeomorphism_apply1 [OF jk] SU
+      by (meson Diff_mono homeomorphism_def homeomorphism_of_subsets jk subset_refl)
     then show ?thesis
       by (metis image_comp)
   qed
@@ -3237,8 +3218,7 @@ next
         using contractible_sphere contractible_def not_one_le_zero by blast
     qed
     with False show ?rhs
-      apply simp
-      by (metis DIM_ge_Suc0 le_antisym not_less_eq_eq numeral_2_eq_2 numeral_3_eq_3)
+      by (metis DIM_ge_Suc0 One_nat_def Suc_1 not_less_eq_eq numeral_3_eq_3 order_antisym_conv)
   next
     assume ?rhs
     with False show ?lhs by (simp add: simply_connected_sphere)
@@ -3595,7 +3575,10 @@ proof (simp add: covering_space_def, intro conjI ballI)
       using pi_ge_two by (simp add: ball_subset_ball_iff)
     then have inj_exp: "inj_on exp (ball (Ln z) 1)"
       using inj_on_exp_pi inj_on_subset by blast
-    define \<V> where "\<V> \<equiv> range (\<lambda>n. (\<lambda>x. x + of_real (2 * of_int n * pi) * \<i>) ` (ball(Ln z) 1))"
+    define twopi where "twopi \<equiv> \<lambda>n. of_real (2 * of_int n * pi) * \<i>"
+    define \<V> where "\<V> \<equiv> range (\<lambda>n. (\<lambda>x. x + twopi n) ` (ball(Ln z) 1))"
+    have exp_eq': "exp w = exp z \<longleftrightarrow> (\<exists>n::int. w = z + twopi n)" for z w
+      by (simp add: exp_eq twopi_def)
     show ?thesis
     proof (intro exI conjI)
       show "z \<in> exp ` (ball(Ln z) 1)"
@@ -3604,80 +3587,73 @@ proof (simp add: covering_space_def, intro conjI ballI)
         by blast
       with inj_exp show "openin (top_of_set (- {0})) (exp ` ball (Ln z) 1)"
         by (auto simp: openin_open_eq invariance_of_domain continuous_on_exp [OF continuous_on_id])
-      show "\<Union>\<V> = exp -` exp ` ball (Ln z) 1"
-        by (force simp: \<V>_def Complex_Transcendental.exp_eq image_iff)
+      show UV: "\<Union>\<V> = exp -` exp ` ball (Ln z) 1"
+        by (force simp: \<V>_def twopi_def Complex_Transcendental.exp_eq image_iff)
       show "\<forall>V\<in>\<V>. open V"
         by (auto simp: \<V>_def inj_on_def continuous_intros invariance_of_domain)
-      have xy: "2 \<le> cmod (2 * of_int x * of_real pi * \<i> - 2 * of_int y * of_real pi * \<i>)"
-               if "x < y" for x y
+      have "2 \<le> cmod (twopi m -twopi n)" if "m \<noteq> n" for m n
       proof -
-        have "1 \<le> abs (x - y)"
+        have "1 \<le> abs (m - n)"
           using that by linarith
-        then have "1 \<le> cmod (of_int x - of_int y) * 1"
+        then have "1 \<le> cmod (of_int m - of_int n) * 1"
           by (metis mult.right_neutral norm_of_int of_int_1_le_iff of_int_abs of_int_diff)
-        also have "... \<le> cmod (of_int x - of_int y) * of_real pi"
+        also have "... \<le> cmod (of_int m - of_int n) * of_real pi"
           using pi_ge_two
            by (intro mult_left_mono) auto
-        also have "... \<le> cmod ((of_int x - of_int y) * of_real pi * \<i>)"
+        also have "... \<le> cmod ((of_int m - of_int n) * of_real pi * \<i>)"
           by (simp add: norm_mult)
-        also have "... \<le> cmod (of_int x * of_real pi * \<i> - of_int y * of_real pi * \<i>)"
+        also have "... \<le> cmod (of_int m * of_real pi * \<i> - of_int n * of_real pi * \<i>)"
           by (simp add: algebra_simps)
-        finally have "1 \<le> cmod (of_int x * of_real pi * \<i> - of_int y * of_real pi * \<i>)" .
-        then have "2 * 1 \<le> cmod (2 * (of_int x * of_real pi * \<i> - of_int y * of_real pi * \<i>))"
+        finally have "1 \<le> cmod (of_int m * of_real pi * \<i> - of_int n * of_real pi * \<i>)" .
+        then have "2 * 1 \<le> cmod (2 * (of_int m * of_real pi * \<i> - of_int n * of_real pi * \<i>))"
           by (metis mult_le_cancel_left_pos norm_mult_numeral1 zero_less_numeral)
         then show ?thesis
-          by (simp add: algebra_simps)
+          by (simp add: algebra_simps twopi_def)
       qed
-      show "disjoint \<V>"
-        apply (clarsimp simp add: \<V>_def pairwise_def disjnt_def add.commute [of _ "x*y" for x y]
-                        ball_eq_ball_iff intro!: disjoint_ballI)
-        apply (auto simp: dist_norm neq_iff)
-        by (metis norm_minus_commute xy)+
+      then show "disjoint \<V>"
+        unfolding \<V>_def pairwise_def disjnt_iff
+        by (smt (verit, best) add.commute add_diff_cancel_left' add_diff_eq dist_commute dist_complex_def dist_triangle imageE mem_ball)
       show "\<forall>u\<in>\<V>. \<exists>q. homeomorphism u (exp ` ball (Ln z) 1) exp q"
       proof
         fix u
         assume "u \<in> \<V>"
-        then obtain n where n: "u = (\<lambda>x. x + of_real (2 * of_int n * pi) * \<i>) ` (ball(Ln z) 1)"
+        then obtain n where n: "u = (\<lambda>x. x + twopi n) ` (ball(Ln z) 1)"
           by (auto simp: \<V>_def)
         have "compact (cball (Ln z) 1)"
           by simp
         moreover have "continuous_on (cball (Ln z) 1) exp"
           by (rule continuous_on_exp [OF continuous_on_id])
         moreover have "inj_on exp (cball (Ln z) 1)"
-          apply (rule inj_on_subset [OF inj_on_exp_pi [of "Ln z"]])
-          using pi_ge_two by (simp add: cball_subset_ball_iff)
+          using pi_ge_two inj_on_subset [OF inj_on_exp_pi [of "Ln z"]]
+          by (simp add: subset_iff)
         ultimately obtain \<gamma> where hom: "homeomorphism (cball (Ln z) 1) (exp ` cball (Ln z) 1) exp \<gamma>"
           using homeomorphism_compact  by blast
         have eq1: "exp ` u = exp ` ball (Ln z) 1"
-          apply (auto simp: algebra_simps n)
-          apply (rule_tac x = "_ + \<i> * (of_int n * (of_real pi * 2))" in image_eqI)
-          apply (auto simp: image_iff)
-          done
-        have \<gamma>exp: "\<gamma> (exp x) + 2 * of_int n * of_real pi * \<i> = x" if "x \<in> u" for x
+          by (smt (verit) n exp_eq' image_cong image_image)
+        have \<gamma>exp: "\<gamma> (exp x) + twopi n = x" if "x \<in> u" for x
         proof -
-          have "exp x = exp (x - 2 * of_int n * of_real pi * \<i>)"
-            by (simp add: exp_eq)
-          then have "\<gamma> (exp x) = \<gamma> (exp (x - 2 * of_int n * of_real pi * \<i>))"
+          have "exp x = exp (x - twopi n)"
+            using exp_eq' by auto
+          then have "\<gamma> (exp x) = \<gamma> (exp (x - twopi n))"
             by simp
-          also have "... = x - 2 * of_int n * of_real pi * \<i>"
+          also have "... = x - twopi n"
             using \<open>x \<in> u\<close> by (auto simp: n intro: homeomorphism_apply1 [OF hom])
           finally show ?thesis
             by simp
         qed
-        have exp2n: "exp (\<gamma> (exp x) + 2 * of_int n * complex_of_real pi * \<i>) = exp x"
-                if "dist (Ln z) x < 1" for x
-          using that by (auto simp: exp_eq homeomorphism_apply1 [OF hom])
+        have exp2n: "exp (\<gamma> (exp x) + twopi n) = exp x" if "dist (Ln z) x < 1" for x
+          by (metis \<gamma>exp exp_eq' imageI mem_ball n that)
         have "continuous_on (exp ` ball (Ln z) 1) \<gamma>"
           by (meson ball_subset_cball continuous_on_subset hom homeomorphism_cont2 image_mono)
-        then have cont: "continuous_on (exp ` ball (Ln z) 1) (\<lambda>x. \<gamma> x + 2 * of_int n * complex_of_real pi * \<i>)"
+        then have cont: "continuous_on (exp ` ball (Ln z) 1) (\<lambda>x. \<gamma> x + twopi n)"
           by (intro continuous_intros)
-        show "\<exists>q. homeomorphism u (exp ` ball (Ln z) 1) exp q"
-          apply (rule_tac x="(\<lambda>x. x + of_real(2 * n * pi) * \<i>) \<circ> \<gamma>" in exI)
+        have "homeomorphism u (exp ` ball (Ln z) 1) exp ((\<lambda>x. x + twopi n) \<circ> \<gamma>)"
           unfolding homeomorphism_def
           apply (intro conjI ballI eq1 continuous_on_exp [OF continuous_on_id])
              apply (auto simp: \<gamma>exp exp2n cont n)
            apply (force simp: image_iff homeomorphism_apply1 [OF hom])+
           done
+        then show "\<exists>q. homeomorphism u (exp ` ball (Ln z) 1) exp q" by metis
       qed
     qed
   qed
@@ -3772,7 +3748,7 @@ proof -
     using hom by (auto simp: homotopic_with_def)
   show ?thesis
     apply (simp add: homotopic_with)
-    apply (rule_tac x="\<lambda>z. k z*(h \<circ> snd)z" in exI)
+    apply (rule_tac x="\<lambda>z. k z * (h \<circ> snd)z" in exI)
     using kim hin by (fastforce simp: conth norm_mult k0 k1 intro!: contk continuous_intros)+
 qed
 
@@ -3817,10 +3793,10 @@ proof -
     have [simp]: "\<And>x. x \<in> S \<Longrightarrow> g x \<noteq> 0"
       using geq1 by fastforce
     have "homotopic_with_canon (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. f x / g x) (\<lambda>x. 1)"
-      apply (rule homotopic_with_eq [OF homotopic_with_sphere_times [OF L cont]])
+      using homotopic_with_eq [OF homotopic_with_sphere_times [OF L cont]]
       by (auto simp: divide_inverse norm_inverse)
     with L show ?rhs
-      by (auto simp: homotopic_with_imp_continuous dest: homotopic_with_imp_subset1 homotopic_with_imp_subset2)
+      by (simp add: homotopic_with_imp_continuous homotopic_with_imp_subset1 homotopic_with_imp_subset2)
   next
     assume ?rhs then show ?lhs
       by (elim conjE homotopic_with_eq [OF homotopic_with_sphere_times]; force)
@@ -3983,15 +3959,13 @@ proof -
     by (force simp: openin_euclidean_subtopology_iff dest: fST)
   have oo: "\<And>U. openin (top_of_set T) U \<Longrightarrow>
                  openin (top_of_set S) {x \<in> S. f x \<inter> U \<noteq> {}}"
-    apply (rule lower_hemicontinuous [THEN iffD1, rule_format])
-    using fST clo by auto
+    using lower_hemicontinuous fST clo by blast
   have "compact (closure(f x))"
     by (simp add: bofx)
   moreover have "closure(f x) \<subseteq> (\<Union>a \<in> f x. ball a (e/2))"
     using \<open>0 < e\<close> by (force simp: closure_approachable simp del: divide_const_simps)
   ultimately obtain C where "C \<subseteq> f x" "finite C" "closure(f x) \<subseteq> (\<Union>a \<in> C. ball a (e/2))"
-    apply (rule compactE, force)
-    by (metis finite_subset_image)
+    by (meson compactE finite_subset_image Elementary_Metric_Spaces.open_ball compactE_image)
   then have fx_cover: "f x \<subseteq> (\<Union>a \<in> C. ball a (e/2))"
     by (meson closure_subset order_trans)
   with fx_ne have "C \<noteq> {}"
@@ -4158,9 +4132,10 @@ next
   qed auto
   then have "homotopic_with_canon (\<lambda>f. True) (sphere a r) (sphere b s) (k \<circ> (h \<circ> f)) (k \<circ> (\<lambda>x. c))"
     by (rule homotopic_with_compose_continuous_left [OF _ contk kim])
-  then have "homotopic_with_canon (\<lambda>z. True) (sphere a r) (sphere b s) f (\<lambda>x. k c)"
-    apply (rule homotopic_with_eq, auto)
+  moreover have "\<And>x. r = dist a x \<Longrightarrow> f x = k (h (f x))"
     by (metis fim hk homeomorphism_def image_subset_iff mem_sphere)
+  ultimately have "homotopic_with_canon (\<lambda>z. True) (sphere a r) (sphere b s) f (\<lambda>x. k c)"
+    by (auto intro: homotopic_with_eq)
   then show ?thesis
     by (metis that)
 qed
@@ -4303,9 +4278,8 @@ proof -
         by (simp add: exp_minus fgeq that)
       finally have "f z = exp (- h z) + \<i>*g z"
         by (simp add: diff_eq_eq)
-      then show ?thesis
-        apply (simp add: cos_exp_eq)
-        by (metis fgeq add.assoc mult_2_right that)
+      with that show ?thesis
+        by (simp add: cos_exp_eq flip: fgeq)
     qed
   qed
 qed
@@ -4376,11 +4350,7 @@ proof -
 qed
 
 lemma retract_of_Borsukian: "\<lbrakk>Borsukian T; S retract_of T\<rbrakk> \<Longrightarrow> Borsukian S"
-  apply (auto simp: retract_of_def retraction_def)
-  apply (erule (1) Borsukian_retraction_gen)
-  apply (meson retraction retraction_def)
-    apply (auto)
-    done
+  by (smt (verit) Borsukian_retraction_gen retract_of_def retraction retraction_def retraction_subset)
 
 lemma homeomorphic_Borsukian: "\<lbrakk>Borsukian S; S homeomorphic T\<rbrakk> \<Longrightarrow> Borsukian T"
   using Borsukian_retraction_gen order_refl
@@ -4565,12 +4535,7 @@ proof (clarsimp simp add: Borsukian_continuous_logarithm)
     have "(\<lambda>x. g x - h x) constant_on S \<inter> T"
     proof (rule continuous_discrete_range_constant [OF ST])
       show "continuous_on (S \<inter> T) (\<lambda>x. g x - h x)"
-      proof (intro continuous_intros)
-        show "continuous_on (S \<inter> T) g"
-          by (meson contg continuous_on_subset inf_le1)
-        show "continuous_on (S \<inter> T) h"
-          by (meson conth continuous_on_subset inf_sup_ord(2))
-      qed
+        by (metis contg conth continuous_on_diff continuous_on_subset inf_le1 inf_le2)
       show "\<exists>e>0. \<forall>y. y \<in> S \<inter> T \<and> g y - h y \<noteq> g x - h x \<longrightarrow> e \<le> cmod (g y - h y - (g x - h x))"
            if "x \<in> S \<inter> T" for x
       proof -
@@ -4748,7 +4713,7 @@ proof (clarsimp simp add: Borsukian_continuous_logarithm_circle_real)
         by (simp add: Abstract_Topology_2.continuous_imp_closed_map \<open>compact S\<close> contf fim)
       show "\<And>U. closedin (top_of_set S) U \<Longrightarrow>
                  closedin (top_of_set T) {x \<in> T. {z \<in> S. f z = x} \<subseteq> U}"
-        using  ope open_map_iff_lower_hemicontinuous_preimage [OF fim [THEN equalityD1]]
+        using ope open_map_iff_lower_hemicontinuous_preimage [OF fim [THEN equalityD1]]
         by meson
       show "bounded {z \<in> S. f z = y}"
         by (metis (no_types, lifting) compact_imp_bounded [OF \<open>compact S\<close>] bounded_subset mem_Collect_eq subsetI)
@@ -4768,7 +4733,7 @@ proof (clarsimp simp add: Borsukian_continuous_logarithm_circle_real)
         by (fastforce simp: dist_norm abs_diff_less_iff algebra_simps)
     qed
     then show "\<exists>d>0. \<forall>x'\<in>T. dist x' y < d \<longrightarrow> dist (h (k x')) (h (k y)) < e"
-      using  \<open>0 < \<delta>\<close> by (auto simp: dist_commute)
+      using \<open>0 < \<delta>\<close> by (auto simp: dist_commute)
   qed
   then show "\<exists>h. continuous_on T h \<and> (\<forall>x\<in>T. g x = exp (\<i> * complex_of_real (h x)))"
     using fk gfh kTS by force
@@ -5522,10 +5487,6 @@ next
       by (simp_all add: assms)
     show "homotopic_with_canon (\<lambda>x. True) S T f (\<lambda>x. a)" if "S \<in> \<F>" for S
     proof (cases "S = {}")
-      case True
-      then show ?thesis
-        by auto
-    next
       case False
       then obtain b where "b \<in> S"
         by blast
@@ -5534,11 +5495,10 @@ next
       then have "c \<in> T"
         using \<open>b \<in> S\<close> homotopic_with_imp_subset2 by blast
       then have "homotopic_with_canon (\<lambda>x. True) S T (\<lambda>x. a) (\<lambda>x. c)"
-        using T \<open>a \<in> T\<close> homotopic_constant_maps path_connected_component
-        by (simp add: homotopic_constant_maps path_connected_component)
+        using T \<open>a \<in> T\<close> by (simp add: homotopic_constant_maps path_connected_component)
       then show ?thesis
         using c homotopic_with_symD homotopic_with_trans by blast
-    qed
+    qed auto
   qed
   then show ?thesis ..
 qed
@@ -5553,7 +5513,7 @@ proof -
     by (simp add: assms compact_Un)
   with Borsukian_imp_unicoherent [of "S \<union> T"] ST assms
   show ?thesis
-    by (auto simp: closed_subset compact_imp_closed Borsukian_separation_compact unicoherent_def)
+    by (simp add: Borsukian_separation_compact closed_subset compact_imp_closed unicoherentD)
 qed
 
 end
