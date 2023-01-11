@@ -168,8 +168,7 @@ proof -
     by (simp add: \<open>subspace S\<close> closed_subspace compact_Int_closed)
   then obtain g where pfg: "polynomial_function g" and gim: "g ` (sphere 0 1 \<inter> S) \<subseteq> T"
                 and g12: "\<And>x. x \<in> sphere 0 1 \<inter> S \<Longrightarrow> norm(f x - g x) < 1/2"
-    apply (rule Stone_Weierstrass_polynomial_function_subspace [OF _ contf _ \<open>subspace T\<close>, of "1/2"])
-    using fim by auto
+    using Stone_Weierstrass_polynomial_function_subspace [OF _ contf _ \<open>subspace T\<close>, of "1/2"] fim by auto
   have gnz: "g x \<noteq> 0" if "x \<in> sphere 0 1 \<inter> S" for x
   proof -
     have "norm (f x) = 1"
@@ -326,8 +325,8 @@ next
     obtain T':: "'a set"
       where "subspace T'" and affT': "aff_dim T' = aff_dim T"
         and homT: "rel_frontier T homeomorphic sphere 0 1 \<inter> T'"
-      apply (rule spheremap_lemma3 [OF \<open>bounded T\<close> \<open>convex T\<close> subspace_UNIV, where 'b='a])
-      using \<open>T \<noteq> {}\<close>  by (auto simp add: aff_dim_le_DIM)
+      using \<open>T \<noteq> {}\<close>  spheremap_lemma3 [OF \<open>bounded T\<close> \<open>convex T\<close> subspace_UNIV, where 'b='a] 
+      by (force simp add: aff_dim_le_DIM)
     with homeomorphic_imp_homotopy_eqv
     have relT: "sphere 0 1 \<inter> T'  homotopy_eqv rel_frontier T"
       using homotopy_equivalent_space_sym by blast
@@ -344,10 +343,9 @@ next
     have dimST': "dim S' < dim T'"
       by (metis \<open>S' \<subseteq> T'\<close> \<open>subspace S'\<close> \<open>subspace T'\<close> affS' affST affT' less_irrefl not_le subspace_dim_equal)
     have "\<exists>c. homotopic_with_canon (\<lambda>z. True) (rel_frontier S) (rel_frontier T) f (\<lambda>x. c)"
-      apply (rule homotopy_eqv_homotopic_triviality_null_imp [OF relT contf fim])
-      apply (rule homotopy_eqv_cohomotopic_triviality_null[OF relS, THEN iffD1, rule_format])
-       apply (metis dimST' \<open>subspace S'\<close>  \<open>subspace T'\<close>  \<open>S' \<subseteq> T'\<close> spheremap_lemma2, blast)
-      done
+      using spheremap_lemma2 homotopy_eqv_cohomotopic_triviality_null[OF relS] 
+      using homotopy_eqv_homotopic_triviality_null_imp [OF relT contf fim]
+      by (metis \<open>S' \<subseteq> T'\<close> \<open>subspace S'\<close> \<open>subspace T'\<close> dimST')
     with that show ?thesis by blast
   qed
 qed
@@ -370,8 +368,8 @@ next
     case False
     with \<open>\<not> s \<le> 0\<close> have "r > 0" "s > 0" by auto
     show thesis
-      apply (rule inessential_spheremap_lowdim_gen [of "cball a r" "cball b s" f])
-      using  \<open>0 < r\<close> \<open>0 < s\<close> assms(1) that by (simp_all add: f aff_dim_cball)
+      using inessential_spheremap_lowdim_gen [of "cball a r" "cball b s" f]
+      using  \<open>0 < r\<close> \<open>0 < s\<close> assms(1) that by (auto simp add: f aff_dim_cball)
   qed
 qed
 
@@ -401,12 +399,10 @@ next
     then show ?thesis
       using UnionI feq geq \<open>S \<notin> \<F>\<close> subsetD that by fastforce
   qed
-  show ?case
-    apply (rule_tac x="\<lambda>x. if x \<in> S then f x else g x" in exI, simp)
-    apply (intro conjI continuous_on_cases)
-    using fim gim feq geq
-    apply (force simp: insert closed_Union contf contg inf_commute intro: fg)+
-    done
+  moreover have "continuous_on (S \<union> \<Union> \<F>) (\<lambda>x. if x \<in> S then f x else g x)"
+    by (auto simp: insert closed_Union contf contg  intro: fg continuous_on_cases)
+  ultimately show ?case
+    by (smt (verit, del_insts) Int_iff UnE complete_lattice_class.Sup_insert feq fim geq gim image_subset_iff)
 qed
 
 lemma extending_maps_Union:
@@ -573,13 +569,10 @@ next
       have ff: "X \<inter> Y face_of X \<and> X \<inter> Y face_of Y"
         if XY: "X face_of D" "Y face_of E" and DE: "D \<in> \<F>" "E \<in> \<F>" for D E
         by (rule face_of_Int_subface [OF _ _ XY]) (auto simp: face' DE)
-      show ?thesis
-        using that
-        apply auto
-        apply (drule_tac x="X \<inter> Y" in spec, safe)
-        using ff face_of_imp_convex [of X] face_of_imp_convex [of Y]
-        apply (fastforce dest: face_of_aff_dim_lt)
-        by (meson face_of_trans ff)
+     show ?thesis
+       using that
+        apply clarsimp
+        by (smt (verit, ccfv_SIG) IntI face_of_aff_dim_lt face_of_imp_convex [of X] face_of_imp_convex [of Y] face_of_trans ff)
     qed
     obtain g where "continuous_on (\<Union>(\<G> \<union> ?Faces)) g"
                    "g ` \<Union>(\<G> \<union> ?Faces) \<subseteq> rel_frontier T"
@@ -711,10 +704,7 @@ proof -
   have face': "\<And>S T. \<lbrakk>S \<in> \<F>; T \<in> \<F>\<rbrakk> \<Longrightarrow> (S \<inter> T) face_of S \<and> (S \<inter> T) face_of T"
     by (metis face inf_commute)
   have *: "\<And>X Y. \<lbrakk>X \<in> \<H>; Y \<in> \<H>\<rbrakk> \<Longrightarrow> X \<inter> Y face_of X"
-    unfolding \<H>_def
-    using subsetD [OF \<open>\<G> \<subseteq> \<F>\<close>] apply (auto simp add: face)
-    apply (meson face' face_of_Int_subface face_of_refl_eq poly polytope_imp_convex)+
-    done
+    by (simp add: \<H>_def) (smt (verit) \<open>\<G> \<subseteq> \<F>\<close> DiffE face' face_of_Int_subface in_mono inf.idem)
   obtain h where conth: "continuous_on (\<Union>\<H>) h" and him: "h ` (\<Union>\<H>) \<subseteq> rel_frontier T"
              and hf: "\<And>x. x \<in> \<Union>\<G> \<Longrightarrow> h x = f x" 
   proof (rule extend_map_lemma [OF \<open>finite \<H>\<close> [unfolded \<H>_def] Un_upper1 T])
@@ -1143,7 +1133,7 @@ lemma extend_map_affine_to_sphere1:
 proof (cases "K = {}")
   case True
   then show ?thesis
-    by (metis Diff_empty Diff_subset contf fim continuous_on_subset image_subsetI rev_image_eqI subset_iff that)
+    by (metis Diff_empty Diff_subset contf fim continuous_on_subset image_subsetI image_eqI subset_iff that)
 next
   case False
   have "S \<subseteq> U"
@@ -1166,12 +1156,7 @@ next
       by (simp_all add: in_components_subset comps that)
     then obtain a where a: "a \<in> C" "a \<in> L" by auto
     have opeUC: "openin (top_of_set U) C"
-    proof (rule openin_trans)
-      show "openin (top_of_set (U-S)) C"
-        by (simp add: \<open>locally connected U\<close> clo locally_diff_closed openin_components_locally_connected [OF _ C])
-      show "openin (top_of_set U) (U - S)"
-        by (simp add: clo openin_diff)
-    qed
+      by (metis C \<open>locally connected U\<close> clo closedin_def locally_connected_open_component topspace_euclidean_subtopology)
     then obtain d where "C \<subseteq> U" "0 < d" and d: "cball a d \<inter> U \<subseteq> C"
       using openin_contains_cball by (metis \<open>a \<in> C\<close>)
     then have "ball a d \<inter> U \<subseteq> C"
@@ -1190,7 +1175,7 @@ next
       show "finite (C \<inter> K)"
         by (simp add: \<open>finite K\<close>)
       show "S \<union> C \<subseteq> affine hull C"
-        by (metis \<open>C \<subseteq> U\<close> \<open>S \<subseteq> U\<close> \<open>a \<in> C\<close> opeUC affine_hull_eq affine_hull_openin all_not_in_conv assms(2) sup.bounded_iff)
+        by (metis \<open>S \<subseteq> U\<close> \<open>a \<in> C\<close> affine_hull_eq affine_hull_openin assms(2) empty_iff hull_subset le_sup_iff opeUC)
       show "connected C"
         by (metis C in_components_connected)
     qed auto
@@ -1360,15 +1345,15 @@ next
   proof (rule closedin_closed_subset [OF _ SU'])
     have *: "\<And>C. C \<in> F \<Longrightarrow> openin (top_of_set U) C"
       unfolding F_def
-      by clarify (metis (no_types, lifting) \<open>locally connected U\<close> clo closedin_def locally_diff_closed openin_components_locally_connected openin_trans topspace_euclidean_subtopology)
+      by (metis (no_types, lifting) \<open>locally connected U\<close> clo closedin_def locally_connected_open_component mem_Collect_eq topspace_euclidean_subtopology)
     show "closedin (top_of_set U) (U - UF)"
-      unfolding UF_def
-      by (force intro: openin_delete *)
-    show "S \<union> \<Union>G = (U - UF) \<inter> (S \<union> \<Union>G \<union> (S \<union> UF))"
-      using \<open>S \<subseteq> U\<close> apply (auto simp: F_def G_def UF_def)
-        apply (metis Diff_iff UnionI Union_components)
-       apply (metis DiffD1 UnionI Union_components)
-      by (metis (no_types, lifting) IntI components_nonoverlap empty_iff)
+      unfolding UF_def by (force intro: openin_delete *)
+    have "(\<Union>x\<in>F. x - {a x}) \<inter> S = {}" "\<Union> G \<subseteq> U"
+      using in_components_subset by (auto simp: F_def G_def)
+    moreover have "\<Union> G \<inter> UF = {}"
+      using components_nonoverlap by (fastforce simp: F_def G_def UF_def)
+    ultimately show "S \<union> \<Union>G = (U - UF) \<inter> (S \<union> \<Union>G \<union> (S \<union> UF))"
+      using UF_def \<open>S \<subseteq> U\<close> by auto
   qed
   have clo2: "closedin (top_of_set (S \<union> \<Union>G \<union> (S \<union> UF))) (S \<union> UF)"
   proof (rule closedin_closed_subset [OF _ SU'])
@@ -1378,13 +1363,14 @@ next
         using F_def \<open>locally connected U\<close> clo closedin_Un_complement_component by blast
     qed (simp add: \<open>finite F\<close>)
     show "S \<union> UF = (\<Union>C\<in>F. S \<union> C) \<inter> (S \<union> \<Union>G \<union> (S \<union> UF))"
-      using \<open>S \<subseteq> U\<close> apply (auto simp: F_def G_def UF_def)
-      using C0 apply blast
-      by (metis components_nonoverlap disjoint_iff)
+    proof
+      show "\<Union> ((\<union>) S ` F) \<inter> (S \<union> \<Union> G \<union> (S \<union> UF)) \<subseteq> S \<union> UF"
+        using components_eq [of _ "U-S"]
+        by (auto simp add: F_def G_def UF_def disjoint_iff_not_equal)
+    qed (use UF_def \<open>C0 \<in> F\<close> in blast)
   qed
   have SUG: "S \<union> \<Union>G \<subseteq> U - K"
-    using \<open>S \<subseteq> U\<close> K apply (auto simp: G_def disjnt_iff)
-    by (meson Diff_iff subsetD in_components_subset)
+    using \<open>S \<subseteq> U\<close> K in_components_subset[of _ "U-S"] by (force simp: G_def disjnt_iff)
   then have contf': "continuous_on (S \<union> \<Union>G) f"
     by (rule continuous_on_subset [OF contf])
   have contg': "continuous_on (S \<union> UF) g"
@@ -1392,8 +1378,7 @@ next
   have  "\<And>x. \<lbrakk>S \<subseteq> U; x \<in> S\<rbrakk> \<Longrightarrow> f x = g x"
     by (subst gh) (auto simp: ah C0 intro: \<open>C0 \<in> F\<close>)
   then have f_eq_g: "\<And>x. x \<in> S \<union> UF \<and> x \<in> S \<union> \<Union>G \<Longrightarrow> f x = g x"
-    using \<open>S \<subseteq> U\<close> apply (auto simp: F_def G_def UF_def dest: in_components_subset)
-    using components_eq by blast
+    using \<open>S \<subseteq> U\<close> components_eq [of _ "U-S"] by (fastforce simp add: F_def G_def UF_def)
   have cont: "continuous_on (S \<union> \<Union>G \<union> (S \<union> UF)) (\<lambda>x. if x \<in> S \<union> \<Union>G then f x else g x)"
     by (blast intro: continuous_on_cases_local [OF clo1 clo2 contf' contg' f_eq_g, of "\<lambda>x. x \<in> S \<union> \<Union>G"])
   show ?thesis
