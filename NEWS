@@ -180,6 +180,9 @@ Isabelle/jEdit Document panel.
       multp_mono_strong
       wfP_subset_mset[simp]
 
+* Mirabelle:
+  - Added session to output directory structure. Minor INCOMPATIBILITY.
+
 
 *** ML ***
 
