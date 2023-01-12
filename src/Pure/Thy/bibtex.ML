@@ -42,8 +42,8 @@ val _ =
   Theory.setup
    (Document_Antiquotation.setup_option \<^binding>\<open>cite_macro\<close> (Config.put cite_macro) #>
     Document_Output.antiquotation_raw \<^binding>\<open>cite\<close>
-      (Scan.lift (Scan.option Parse.cartouche -- Parse.and_list1 Args.name_position))
-      (fn ctxt => fn (opt, citations) =>
+      (Scan.lift (Scan.optional Parse.cartouche "" -- Parse.and_list1 Args.name_position))
+      (fn ctxt => fn (location, citations) =>
         let
           val _ =
             Context_Position.reports ctxt
@@ -58,8 +58,7 @@ val _ =
                 if member (op =) bibtex_entries name then ()
                 else error ("Unknown Bibtex entry " ^ quote name ^ Position.here pos));
 
-          val opt_arg = (case opt of NONE => "" | SOME s => "[" ^ s ^ "]");
-          val arg = "{" ^ space_implode "," (map #1 citations) ^ "}";
-        in Latex.string ("\\" ^ Config.get ctxt cite_macro ^ opt_arg ^ arg) end));
+          val kind = Config.get ctxt cite_macro;
+        in Latex.cite {kind = kind, location = location, citations = citations} end));
 
 end;

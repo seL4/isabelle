@@ -362,6 +362,9 @@ object Markup {
   val Latex_Delim = new Markup_String("latex_delim", NAME)
   val Latex_Tag = new Markup_String("latex_tag", NAME)
 
+  val Latex_Cite = new Markup_Elem("latex_cite")
+  val Cite_Location = new Properties.String("cite_location")
+
   val Latex_Index_Item = new Markup_Elem("latex_index_item")
   val Latex_Index_Entry = new Markup_String("latex_index_entry", KIND)
 

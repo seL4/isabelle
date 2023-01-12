@@ -46,6 +46,22 @@ object Latex {
     else name
 
 
+  /* cite: references to bibliography */
+
+  object Cite {
+    sealed case class Value(kind: String, location: String, citations: String)
+    def unapply(tree: XML.Tree): Option[Value] =
+      tree match {
+        case XML.Elem(Markup(Markup.Latex_Cite.name, props), body) =>
+          val kind = Markup.Kind.unapply(props).getOrElse("cite")
+          val location = Markup.Cite_Location.unapply(props).getOrElse("")
+          val citations = XML.content(body)
+          Some(Value(kind, location, citations))
+        case _ => None
+      }
+  }
+
+
   /* index entries */
 
   def index_escape(str: String): String = {
@@ -244,6 +260,13 @@ object Latex {
                 case Markup.Latex_Body(kind) => latex_body(kind, body, a)
                 case Markup.Latex_Delim(name) => latex_tag(name, body, delim = true)
                 case Markup.Latex_Tag(name) => latex_tag(name, body)
+                case Markup.Latex_Cite(_) =>
+                  elem match {
+                    case Cite(cite) =>
+                      val opt = if (cite.location.isEmpty) "" else "[" + cite.location + "]"
+                      latex_macro(cite.kind, XML.string(cite.citations), optional_argument = opt)
+                    case _ => unknown_elem(elem, file_position)
+                  }
                 case Markup.Latex_Index_Entry(_) =>
                   elem match {
                     case Index_Entry(entry) => index_entry(entry)

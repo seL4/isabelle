@@ -23,6 +23,7 @@ sig
   val symbols_output: Symbol_Pos.T list -> text
   val isabelle_body: string -> text -> text
   val theory_entry: string -> string
+  val cite: {kind: string, location: string, citations: (string * Position.T) list} -> text
   type index_item = {text: text, like: string}
   type index_entry = {items: index_item list, def: bool}
   val index_entry: index_entry -> text
@@ -194,6 +195,20 @@ fun isabelle_body name =
    "%\n\\end{isabellebody}%\n";
 
 fun theory_entry name = "\\input{" ^ name ^ ".tex}\n\n";
+
+
+(* cite: references to bibliography *)
+
+fun cite {kind, location, citations} =
+  let
+    val markup = Markup.latex_cite {kind = kind, location = location};
+    val _ =
+      citations |> List.app (fn (s, pos) =>
+        if exists_string (fn c => c = ",") s
+        then error ("Single citation expected, without commas" ^ Position.here pos)
+        else ());
+    val args = space_implode "," (map #1 citations);
+  in [XML.Elem (markup, XML.string args)] end;
 
 
 (* index entries *)
