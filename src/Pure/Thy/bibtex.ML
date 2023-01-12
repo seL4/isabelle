@@ -42,12 +42,14 @@ val _ =
   Theory.setup
    (Document_Antiquotation.setup_option \<^binding>\<open>cite_macro\<close> (Config.put cite_macro) #>
     Document_Output.antiquotation_raw \<^binding>\<open>cite\<close>
-      (Scan.lift (Scan.optional Parse.cartouche "" -- Parse.and_list1 Args.name_position))
-      (fn ctxt => fn (location, citations) =>
+      (Scan.lift (Scan.option Args.cartouche_input -- Parse.and_list1 Args.name_position))
+      (fn ctxt => fn (opt_loc, citations) =>
         let
+          val loc = the_default Input.empty opt_loc;
           val _ =
             Context_Position.reports ctxt
-              (map (fn (name, pos) => (pos, Markup.citation name)) citations);
+              (Document_Output.document_reports loc @
+                map (fn (name, pos) => (pos, Markup.citation name)) citations);
 
           val thy_name = Context.theory_long_name (Proof_Context.theory_of ctxt);
           val bibtex_entries = Resources.theory_bibtex_entries thy_name;
@@ -59,6 +61,7 @@ val _ =
                 else error ("Unknown Bibtex entry " ^ quote name ^ Position.here pos));
 
           val kind = Config.get ctxt cite_macro;
-        in Latex.cite {kind = kind, location = location, citations = citations} end));
+          val location = Document_Output.output_document ctxt {markdown = false} loc;
+        in Latex.cite {kind = kind, citations = citations, location = location} end));
 
 end;

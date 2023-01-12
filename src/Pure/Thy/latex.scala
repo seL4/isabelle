@@ -49,14 +49,13 @@ object Latex {
   /* cite: references to bibliography */
 
   object Cite {
-    sealed case class Value(kind: String, location: String, citations: String)
+    sealed case class Value(kind: String, citation: String, location: XML.Body)
     def unapply(tree: XML.Tree): Option[Value] =
       tree match {
         case XML.Elem(Markup(Markup.Latex_Cite.name, props), body) =>
           val kind = Markup.Kind.unapply(props).getOrElse("cite")
-          val location = Markup.Cite_Location.unapply(props).getOrElse("")
-          val citations = XML.content(body)
-          Some(Value(kind, location, citations))
+          val citation = Markup.Citation_.unapply(props).getOrElse("")
+          Some(Value(kind, citation, body))
         case _ => None
       }
   }
@@ -211,6 +210,13 @@ object Latex {
       }
     }
 
+    def cite(value: Cite.Value): Text = {
+      latex_macro0(value.kind) :::
+      (if (value.location.isEmpty) Nil
+       else XML.string("[") ::: value.location ::: XML.string("]")) :::
+      XML.string("{" + value.citation + "}")
+    }
+
     def index_item(item: Index_Item.Value): String = {
       val like = if (item.like.isEmpty) "" else index_escape(item.like) + "@"
       val text = index_escape(latex_output(item.text))
@@ -262,9 +268,7 @@ object Latex {
                 case Markup.Latex_Tag(name) => latex_tag(name, body)
                 case Markup.Latex_Cite(_) =>
                   elem match {
-                    case Cite(cite) =>
-                      val opt = if (cite.location.isEmpty) "" else "[" + cite.location + "]"
-                      latex_macro(cite.kind, XML.string(cite.citations), optional_argument = opt)
+                    case Cite(value) => cite(value)
                     case _ => unknown_elem(elem, file_position)
                   }
                 case Markup.Latex_Index_Entry(_) =>

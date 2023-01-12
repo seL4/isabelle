@@ -155,7 +155,7 @@ sig
   val latex_environmentN: string val latex_environment: string -> T
   val latex_headingN: string val latex_heading: string -> T
   val latex_bodyN: string val latex_body: string -> T
-  val latex_citeN: string val latex_cite: {kind: string, location: string} -> T
+  val latex_citeN: string val latex_cite: {kind: string, citation: string} -> T
   val latex_index_itemN: string val latex_index_item: T
   val latex_index_entryN: string val latex_index_entry: string -> T
   val latex_delimN: string val latex_delim: string -> T
@@ -592,10 +592,10 @@ val (latex_environmentN, latex_environment) = markup_string "latex_environment" 
 val (latex_headingN, latex_heading) = markup_string "latex_heading" kindN;
 val (latex_bodyN, latex_body) = markup_string "latex_body" kindN;
 val (latex_citeN, _) = markup_elem "latex_cite";
-fun latex_cite {kind, location} =
+fun latex_cite {kind, citation} =
   (latex_citeN,
     (if kind = "" then [] else [(kindN, kind)]) @
-    (if location = "" then [] else [("cite_location", location)]));
+    (if citation = "" then [] else [("citation", citation)]));
 val (latex_index_itemN, latex_index_item) = markup_elem "latex_index_item";
 val (latex_index_entryN, latex_index_entry) = markup_string "latex_index_entry" kindN;
 val (latex_delimN, latex_delim) = markup_string "latex_delim" nameN;
