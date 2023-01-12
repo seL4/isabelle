@@ -54,8 +54,8 @@ object Latex {
       tree match {
         case XML.Elem(Markup(Markup.Latex_Cite.name, props), body) =>
           val kind = Markup.Kind.unapply(props).getOrElse("cite")
-          val citation = Markup.Citation_.unapply(props).getOrElse("")
-          Some(Value(kind, citation, body))
+          val citations = Markup.Citations.unapply(props).getOrElse("")
+          Some(Value(kind, citations, body))
         case _ => None
       }
   }

@@ -363,7 +363,7 @@ object Markup {
   val Latex_Tag = new Markup_String("latex_tag", NAME)
 
   val Latex_Cite = new Markup_Elem("latex_cite")
-  val Citation_ = new Properties.String("citation")
+  val Citations = new Properties.String("citations")
 
   val Latex_Index_Item = new Markup_Elem("latex_index_item")
   val Latex_Index_Entry = new Markup_String("latex_index_entry", KIND)

@@ -206,8 +206,8 @@ fun cite {kind, location, citations} =
         if exists_string (fn c => c = ",") s
         then error ("Single citation expected, without commas" ^ Position.here pos)
         else ());
-    val citation = space_implode "," (map #1 citations);
-    val markup = Markup.latex_cite {kind = kind, citation = citation};
+    val citations' = space_implode "," (map #1 citations);
+    val markup = Markup.latex_cite {kind = kind, citations = citations'};
   in [XML.Elem (markup, location)] end;
 
 
