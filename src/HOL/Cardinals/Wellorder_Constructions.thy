@@ -357,10 +357,9 @@ proof(rule ccontr, simp)
 qed
 
 lemma (in wo_rel) in_underS_supr:
-  assumes j: "j \<in> underS i" and i: "i \<in> A" and A: "A \<subseteq> Field r" and AA: "Above A \<noteq> {}"
+  assumes "j \<in> underS i" and "i \<in> A" and "A \<subseteq> Field r" and "Above A \<noteq> {}"
   shows "j \<in> underS (supr A)"
-  using supr_greater[OF A AA i]
-  by (metis FieldI1 j max2_equals1 max2_equals2 max2_iff underS_E underS_I)
+  by (meson assms LIN in_mono supr_greater supr_inField underS_incl_iff)
 
 lemma inj_on_Field:
   assumes A: "A \<subseteq> Field r" and f: "\<And> a b. \<lbrakk>a \<in> A; b \<in> A; a \<in> underS b\<rbrakk> \<Longrightarrow> f a \<noteq> f b"
