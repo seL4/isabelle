@@ -66,8 +66,8 @@ object Update {
       xml flatMap {
         case XML.Wrapped_Elem(markup, body1, body2) =>
           if (markup.name == Markup.UPDATE) update_xml(body1) else update_xml(body2)
-        case XML.Elem(Markup.Language.Path(_), body)
-        if path_cartouches =>
+        case XML.Elem(Markup.Language(lang), body)
+        if lang.is_path && path_cartouches =>
           Token.read_embedded(Keyword.Keywords.empty, XML.content(body)) match {
             case Some(tok) => List(XML.Text(Symbol.cartouche(tok.content)))
             case None => update_xml(body)
