@@ -38,6 +38,10 @@ fun check_database_output pos0 database =
 (* document antiquotations *)
 
 val cite_macro = Attrib.setup_config_string \<^binding>\<open>cite_macro\<close> (K "");
+fun get_cite_macro ctxt = Config.get ctxt cite_macro;
+
+val _ =
+  Theory.setup (Document_Antiquotation.setup_option \<^binding>\<open>cite_macro\<close> (Config.put cite_macro));
 
 fun cite_antiquotation binding get_kind =
   Document_Output.antiquotation_raw binding
@@ -65,8 +69,7 @@ fun cite_antiquotation binding get_kind =
 
 val _ =
   Theory.setup
-   (Document_Antiquotation.setup_option \<^binding>\<open>cite_macro\<close> (Config.put cite_macro) #>
-    cite_antiquotation \<^binding>\<open>cite\<close> (fn ctxt => Config.get ctxt cite_macro) #>
+   (cite_antiquotation \<^binding>\<open>cite\<close> get_cite_macro #>
     cite_antiquotation \<^binding>\<open>nocite\<close> (K "nocite") #>
     cite_antiquotation \<^binding>\<open>citet\<close> (K "citet") #>
     cite_antiquotation \<^binding>\<open>citep\<close> (K "citep"));
