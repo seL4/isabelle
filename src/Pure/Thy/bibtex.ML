@@ -57,7 +57,7 @@ val _ =
             if null bibtex_entries andalso thy_name <> Context.PureN then ()
             else
               citations |> List.app (fn (name, pos) =>
-                if member (op =) bibtex_entries name then ()
+                if member (op =) bibtex_entries name orelse name = "*" then ()
                 else error ("Unknown Bibtex entry " ^ quote name ^ Position.here pos));
 
           val kind = Config.get ctxt cite_macro;
