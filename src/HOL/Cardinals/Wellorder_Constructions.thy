@@ -182,7 +182,7 @@ qed
 
 subsection \<open>The maxim among a finite set of ordinals\<close>
 
-text \<open>The correct phrasing would be ``a maxim of \<dots>", as \<open>\<le>o\<close> is only a preorder.\<close>
+text \<open>The correct phrasing would be ``a maxim of ...", as \<open>\<le>o\<close> is only a preorder.\<close>
 
 definition isOmax :: "'a rel set \<Rightarrow> 'a rel \<Rightarrow> bool"
   where
@@ -211,23 +211,19 @@ proof-
     next
       case False
       then obtain p where p: "isOmax R p" using IH by auto
-      hence 1: "Well_order p" using **** unfolding isOmax_def by simp
-      {assume Case21: "r \<le>o p"
-        hence "isOmax ?R' p" using p unfolding isOmax_def by simp
-        hence ?thesis by auto
-      }
-      moreover
-      {assume Case22: "p \<le>o r"
-        { fix r' assume "r' \<in> ?R'"
-          then have "r' \<le>o r"
-            by (metis "***" Case22 insert_iff isOmax_def ordLeq_transitive p ordLeq_reflexive)
-        }
-        hence "isOmax ?R' r" unfolding isOmax_def by simp
-        hence ?thesis by auto
-      }
-      moreover have "r \<le>o p \<or> p \<le>o r"
-        using 1 *** ordLeq_total by auto
-      ultimately show ?thesis by blast
+      hence  "Well_order p" using **** unfolding isOmax_def by simp
+      then consider  "r \<le>o p" | "p \<le>o r"
+        using *** ordLeq_total by auto
+      then show ?thesis 
+      proof cases
+        case 1
+        then show ?thesis
+         using p unfolding isOmax_def by auto
+      next
+        case 2
+        then show ?thesis
+          by (metis "***" insert_iff isOmax_def ordLeq_reflexive ordLeq_transitive p)
+      qed
     qed
   qed
   thus ?thesis using assms by auto
