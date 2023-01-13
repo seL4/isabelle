@@ -37,7 +37,7 @@ fun check_database_output pos0 database =
 
 (* document antiquotations *)
 
-val cite_macro = Attrib.setup_config_string \<^binding>\<open>cite_macro\<close> (K "cite");
+val cite_macro = Attrib.setup_config_string \<^binding>\<open>cite_macro\<close> (K "");
 
 fun cite_antiquotation binding get_kind =
   Document_Output.antiquotation_raw binding
