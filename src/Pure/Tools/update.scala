@@ -62,7 +62,7 @@ object Update {
 
     val path_cartouches = options.bool("update_path_cartouches")
 
-    def update_xml(lang: Markup.Language.Value, xml: XML.Body): XML.Body =
+    def update_xml(lang: Markup.Language, xml: XML.Body): XML.Body =
       xml flatMap {
         case XML.Wrapped_Elem(markup, body1, body2) =>
           val body = if (markup.name == Markup.UPDATE) body1 else body2

@@ -231,7 +231,7 @@ object Completion {
     val ML_inner = Language_Context(Markup.Language.ML, true, false)
     val SML_outer = Language_Context(Markup.Language.SML, false, false)
 
-    def apply(lang: Markup.Language.Value): Language_Context =
+    def apply(lang: Markup.Language): Language_Context =
       Language_Context(lang.name, lang.symbols, lang.antiquotes)
   }
 

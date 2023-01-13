@@ -193,23 +193,32 @@ object Markup {
     val PATH = "path"
     val UNKNOWN = "unknown"
 
-    sealed case class Value(name: String, symbols: Boolean, antiquotes: Boolean, delimited: Boolean) {
-      def is_path: Boolean = name == PATH
-      def description: String = Word.implode(Word.explode('_', name))
-    }
+    def apply(name: String, symbols: Boolean, antiquotes: Boolean, delimited: Boolean): Language =
+      new Language(name, symbols, antiquotes, delimited)
 
-    val outer: Value = Value("", true, false, false)
+    val outer: Language = apply("", true, false, false)
 
-    def unapply(markup: Markup): Option[Value] =
+    def unapply(markup: Markup): Option[Language] =
       markup match {
         case Markup(LANGUAGE, props) =>
           (props, props, props, props) match {
             case (Name(name), Symbols(symbols), Antiquotes(antiquotes), Delimited(delimited)) =>
-              Some(Value(name, symbols, antiquotes, delimited))
+              Some(apply(name, symbols, antiquotes, delimited))
             case _ => None
           }
         case _ => None
       }
+  }
+  class Language private(
+    val name: String,
+    val symbols: Boolean,
+    val antiquotes: Boolean,
+    val delimited: Boolean
+  ) {
+    override def toString: String = name
+
+    def is_path: Boolean = name == PATH
+    def description: String = Word.implode(Word.explode('_', name))
   }
 
 
