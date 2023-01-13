@@ -43,29 +43,52 @@ fun get_cite_macro ctxt = Config.get ctxt cite_macro;
 val _ =
   Theory.setup (Document_Antiquotation.setup_option \<^binding>\<open>cite_macro\<close> (Config.put cite_macro));
 
+
+local
+
+val parse_citations = Parse.and_list1 Args.name_position;
+
+fun cite_command ctxt get_kind (opt_loc, citations) =
+  let
+    val loc = the_default Input.empty opt_loc;
+    val _ =
+      Context_Position.reports ctxt
+        (Document_Output.document_reports loc @
+          map (fn (name, pos) => (pos, Markup.citation name)) citations);
+
+    val thy_name = Context.theory_long_name (Proof_Context.theory_of ctxt);
+    val bibtex_entries = Resources.theory_bibtex_entries thy_name;
+    val _ =
+      if null bibtex_entries andalso thy_name <> Context.PureN then ()
+      else
+        citations |> List.app (fn (name, pos) =>
+          if member (op =) bibtex_entries name orelse name = "*" then ()
+          else error ("Unknown Bibtex entry " ^ quote name ^ Position.here pos));
+
+    val kind = get_kind ctxt;
+    val location = Document_Output.output_document ctxt {markdown = false} loc;
+  in Latex.cite {kind = kind, citations = citations, location = location} end;
+
+fun cite_command_embedded ctxt get_kind input =
+  let
+    val keywords = Keyword.no_major_keywords (Thy_Header.get_keywords' ctxt);
+    val parser = Scan.option (Parse.embedded_input --| Parse.$$$ "in") -- parse_citations;
+    val args = Parse.read_embedded ctxt keywords parser input;
+  in cite_command ctxt get_kind args end;
+
+fun cite_command_parser get_kind =
+  Scan.option Args.cartouche_input -- parse_citations
+    >> (fn args => fn ctxt => cite_command ctxt get_kind args) ||
+  Parse.embedded_input
+    >> (fn arg => fn ctxt => cite_command_embedded ctxt get_kind arg);
+
+in
+
 fun cite_antiquotation binding get_kind =
-  Document_Output.antiquotation_raw binding
-    (Scan.lift (Scan.option Args.cartouche_input -- Parse.and_list1 Args.name_position))
-    (fn ctxt => fn (opt_loc, citations) =>
-      let
-        val loc = the_default Input.empty opt_loc;
-        val _ =
-          Context_Position.reports ctxt
-            (Document_Output.document_reports loc @
-              map (fn (name, pos) => (pos, Markup.citation name)) citations);
+  Document_Output.antiquotation_raw binding (Scan.lift (cite_command_parser get_kind))
+    (fn ctxt => fn cmd => cmd ctxt);
 
-        val thy_name = Context.theory_long_name (Proof_Context.theory_of ctxt);
-        val bibtex_entries = Resources.theory_bibtex_entries thy_name;
-        val _ =
-          if null bibtex_entries andalso thy_name <> Context.PureN then ()
-          else
-            citations |> List.app (fn (name, pos) =>
-              if member (op =) bibtex_entries name orelse name = "*" then ()
-              else error ("Unknown Bibtex entry " ^ quote name ^ Position.here pos));
-
-        val kind = get_kind ctxt;
-        val location = Document_Output.output_document ctxt {markdown = false} loc;
-      in Latex.cite {kind = kind, citations = citations, location = location} end);
+end;
 
 val _ =
   Theory.setup
