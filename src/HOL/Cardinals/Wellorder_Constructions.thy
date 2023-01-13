@@ -93,12 +93,7 @@ lemmas ord_trans = ordIso_transitive ordLeq_transitive ordLess_transitive
 lemma ofilter_ordLeq:
   assumes "Well_order r" and "ofilter r A"
   shows "Restr r A \<le>o r"
-proof-
-  have "A \<le> Field r" using assms by (auto simp add: wo_rel_def wo_rel.ofilter_def)
-  thus ?thesis using assms
-    by (simp add: ofilter_subset_ordLeq wo_rel.Field_ofilter
-        wo_rel_def Restr_Field)
-qed
+by (metis assms inf.orderE ofilter_embed ofilter_subset_ordLeq refl_on_def wo_rel.Field_ofilter wo_rel.REFL wo_rel.intro)
 
 corollary under_Restr_ordLeq:
   "Well_order r \<Longrightarrow> Restr r (under r a) \<le>o r"
@@ -122,20 +117,7 @@ proof
     using assms unfolding dir_image_def inj_on_def by auto
 next
   show "(dir_image r1 f) Int (dir_image r2 f) \<le> dir_image (r1 Int r2) f"
-  proof(clarify)
-    fix a' b'
-    assume "(a',b') \<in> dir_image r1 f" "(a',b') \<in> dir_image r2 f"
-    then obtain a1 b1 a2 b2
-      where 1: "a' = f a1 \<and> b' = f b1 \<and> a' = f a2 \<and> b' = f b2" and
-        2: "(a1,b1) \<in> r1 \<and> (a2,b2) \<in> r2" and
-        3: "{a1,b1} \<le> Field r1 \<and> {a2,b2} \<le> Field r2"
-      unfolding dir_image_def Field_def by blast
-    hence "a1 = a2 \<and> b1 = b2" using assms unfolding inj_on_def by auto
-    hence "a' = f a1 \<and> b' = f b1 \<and> (a1,b1) \<in> r1 Int r2 \<and> (a2,b2) \<in> r1 Int r2"
-      using 1 2 by auto
-    thus "(a',b') \<in> dir_image (r1 \<inter> r2) f"
-      unfolding dir_image_def by blast
-  qed
+    by (clarsimp simp: dir_image_def) (metis FieldI1 FieldI2 UnCI assms inj_on_def)
 qed
 
 (* More facts on ordinal sum: *)
@@ -154,21 +136,8 @@ proof-
   have "inj_on id (Field r)" by simp
   moreover
   have "ofilter (r Osum r') (Field r)"
-    using 1 proof(auto simp add: wo_rel_def wo_rel.ofilter_def
-      Field_Osum under_def)
-    fix a b assume 2: "a \<in> Field r" and 3: "(b,a) \<in> r Osum r'"
-    moreover
-    {assume "(b,a) \<in> r'"
-      hence "a \<in> Field r'" using Field_def[of r'] by blast
-      hence False using 2 FLD by blast
-    }
-    moreover
-    {assume "a \<in> Field r'"
-      hence False using 2 FLD by blast
-    }
-    ultimately
-    show "b \<in> Field r" by (auto simp add: Osum_def Field_def)
-  qed
+    using 1 FLD
+    by (auto simp add: wo_rel_def wo_rel.ofilter_def Osum_def under_def Field_iff disjoint_iff)
   ultimately show ?thesis
     using assms by (auto simp add: embed_iff_compat_inj_on_ofilter)
 qed
@@ -237,8 +206,8 @@ proof-
     show "\<exists>p'. (isOmax ?R' p')"
     proof(cases "R = {}")
       case True
-      thus ?thesis unfolding isOmax_def using ***
-        by (simp add: ordLeq_reflexive)
+      thus ?thesis
+        by (simp add: "***" isOmax_def ordLeq_reflexive)
     next
       case False
       then obtain p where p: "isOmax R p" using IH by auto
@@ -249,14 +218,9 @@ proof-
       }
       moreover
       {assume Case22: "p \<le>o r"
-        {fix r' assume "r' \<in> ?R'"
-          moreover
-          {assume "r' \<in> R"
-            hence "r' \<le>o p" using p unfolding isOmax_def by simp
-            hence "r' \<le>o r" using Case22 by(rule ordLeq_transitive)
-          }
-          moreover have "r \<le>o r" using *** by(rule ordLeq_reflexive)
-          ultimately have "r' \<le>o r" by auto
+        { fix r' assume "r' \<in> ?R'"
+          then have "r' \<le>o r"
+            by (metis "***" Case22 insert_iff isOmax_def ordLeq_transitive p ordLeq_reflexive)
         }
         hence "isOmax ?R' r" unfolding isOmax_def by simp
         hence ?thesis by auto
@@ -374,7 +338,8 @@ proof(rule ccontr, simp)
     by simp (metis REFL in_mono max2_def max2_greater refl_on_domain)
   have "(supr A, b) \<in> r"
     by (simp add: "0" A bb supr_least)
-  thus False using bA unfolding underS_def by simp (metis ANTISYM antisymD)
+  thus False
+    by (metis antisymD bA underS_E wo_rel.ANTISYM wo_rel_axioms)
 qed
 
 lemma underS_suc:
@@ -387,17 +352,15 @@ proof(rule ccontr, simp)
     by (metis bb in_mono max2_def max2_greater mem_Collect_eq underS_I under_def)
   have "(suc A, b) \<in> r"
     by (metis "0" A bb suc_least underS_E)
-  thus False using bA unfolding underS_def by simp (metis ANTISYM antisymD)
+  thus False
+    by (metis antisymD bA underS_E wo_rel.ANTISYM wo_rel_axioms)
 qed
 
 lemma (in wo_rel) in_underS_supr:
   assumes j: "j \<in> underS i" and i: "i \<in> A" and A: "A \<subseteq> Field r" and AA: "Above A \<noteq> {}"
   shows "j \<in> underS (supr A)"
-proof-
-  have "(i,supr A) \<in> r" using supr_greater[OF A AA i] .
-  thus ?thesis using j unfolding underS_def
-    by simp (metis REFL TRANS max2_def max2_equals1 refl_on_domain transD)
-qed
+  using supr_greater[OF A AA i]
+  by (metis FieldI1 j max2_equals1 max2_equals2 max2_iff underS_E underS_I)
 
 lemma inj_on_Field:
   assumes A: "A \<subseteq> Field r" and f: "\<And> a b. \<lbrakk>a \<in> A; b \<in> A; a \<in> underS b\<rbrakk> \<Longrightarrow> f a \<noteq> f b"
@@ -412,29 +375,13 @@ lemma ofilter_init_seg_of:
 lemma underS_init_seg_of_Collect:
   assumes "\<And>j1 j2. \<lbrakk>j2 \<in> underS i; (j1, j2) \<in> r\<rbrakk> \<Longrightarrow> R j1 initial_segment_of R j2"
   shows "{R j |j. j \<in> underS i} \<in> Chains init_seg_of"
-  unfolding Chains_def proof safe
-  fix j ja assume jS: "j \<in> underS i" and jaS: "ja \<in> underS i"
-    and init: "(R ja, R j) \<notin> init_seg_of"
-  hence jja: "{j,ja} \<subseteq> Field r" and j: "j \<in> Field r" and ja: "ja \<in> Field r"
-    and jjai: "(j,i) \<in> r" "(ja,i) \<in> r"
-    and i: "i \<notin> {j,ja}" unfolding Field_def underS_def by auto
-  have jj: "(j,j) \<in> r" and jaja: "(ja,ja) \<in> r" using j ja by (metis in_notinI)+
-  show "R j initial_segment_of R ja"
-    using jja init TOTALS assms jS jaS by auto
-qed
+  using TOTALS assms 
+  by (clarsimp simp: Chains_def) (meson BNF_Least_Fixpoint.underS_Field)
 
 lemma (in wo_rel) Field_init_seg_of_Collect:
   assumes "\<And>j1 j2. \<lbrakk>j2 \<in> Field r; (j1, j2) \<in> r\<rbrakk> \<Longrightarrow> R j1 initial_segment_of R j2"
   shows "{R j |j. j \<in> Field r} \<in> Chains init_seg_of"
-  unfolding Chains_def proof safe
-  fix j ja assume jS: "j \<in> Field r" and jaS: "ja \<in> Field r"
-    and init: "(R ja, R j) \<notin> init_seg_of"
-  hence jja: "{j,ja} \<subseteq> Field r" and j: "j \<in> Field r" and ja: "ja \<in> Field r"
-    unfolding Field_def underS_def by auto
-  have jj: "(j,j) \<in> r" and jaja: "(ja,ja) \<in> r" using j ja by (metis in_notinI)+
-  show "R j initial_segment_of R ja"
-    using TOTALS assms init jS jaS by blast
-qed
+  using TOTALS assms by (auto simp: Chains_def)
 
 subsubsection \<open>Successor and limit elements of an ordinal\<close>
 
@@ -448,8 +395,7 @@ definition "isLim i \<equiv> \<not> isSucc i"
 
 lemma zero_smallest[simp]:
   assumes "j \<in> Field r" shows "(zero, j) \<in> r"
-  unfolding zero_def
-  by (metis AboveS_Field assms subset_AboveS_UnderS subset_antisym subset_refl suc_def suc_least_AboveS)
+  by (simp add: assms wo_rel.ofilter_linord wo_rel_axioms zero_def)
 
 lemma zero_in_Field: assumes "Field r \<noteq> {}"  shows "zero \<in> Field r"
   using assms unfolding zero_def by (metis Field_ofilter minim_in ofilter_def)
@@ -496,8 +442,7 @@ lemma isLim_zero[simp]: "isLim zero"
 lemma succ_smallest:
   assumes "(i,j) \<in> r" and "i \<noteq> j"
   shows "(succ i, j) \<in> r"
-  unfolding succ_def apply(rule suc_least)
-  using assms unfolding Field_def by auto
+  by (metis Field_iff assms empty_subsetI insert_subset singletonD suc_least succ_def)
 
 lemma isLim_supr:
   assumes f: "i \<in> Field r" and l: "isLim i"
@@ -755,44 +700,19 @@ proof-
         moreover have "f a1 \<in> underS s (f a)" using f[OF a] a1 by auto
         ultimately have "g a1 \<in> underS s (f a)" by (metis s.ANTISYM s.TRANS under_underS_trans)
       }
-      hence "f a \<in> AboveS s (g ` underS r a)" unfolding AboveS_def
+      hence fa_in: "f a \<in> AboveS s (g ` underS r a)" unfolding AboveS_def
         using fa by simp (metis (lifting, full_types) mem_Collect_eq underS_def)
       hence A: "AboveS s (g ` underS r a) \<noteq> {}" by auto
-      have B: "\<And> a1. a1 \<in> underS r a \<Longrightarrow> g a1 \<in> underS s (g a)"
-        unfolding g apply(rule s.suc_underS[OF A0 A]) by auto
-      {fix a1 a2 assume a2: "a2 \<in> underS r a" and 1: "a1 \<in> underS r a2"
-        hence a12: "{a1,a2} \<subseteq> under r a2" and "a1 \<noteq> a2" using r.REFL a
-          unfolding underS_def under_def refl_on_def Field_def by auto
-        hence "g a1 \<noteq> g a2" using IH1a[OF a2] unfolding inj_on_def by auto
-        hence "g a1 \<in> underS s (g a2)" using IH1b[OF a2] a12
-          unfolding underS_def under_def by auto
-      } note C = this
       have ga: "g a \<in> Field s" unfolding g using s.suc_inField[OF A0 A] .
-      have aa: "a \<in> under r a"
-        using a r.REFL unfolding under_def underS_def refl_on_def by auto
-      show ?case proof safe
-        show "bij_betw g (under r a) (under s (g a))" unfolding bij_betw_def proof safe
-          show "inj_on g (under r a)"
-            by (metis A IH1a IH1b a bij_betw_def g ga r s s.suc_greater subsetI wellorders_totally_ordered_aux) 
-        next
-          fix a1 assume a1: "a1 \<in> under r a"
-          show "g a1 \<in> under s (g a)"
-            by (metis (mono_tags, lifting) B a1 ga mem_Collect_eq s.in_notinI underS_def under_def)
-        next
-          fix b1 assume b1: "b1 \<in> under s (g a)"
-          show "b1 \<in> g ` under r a"
-          proof(cases "b1 = g a")
-            case True thus ?thesis using aa by auto
-          next
-            case False
-            show ?thesis 
-              by (metis b1 A IH1a IH1b a bij_betw_def g ga r s s.suc_greater subsetI wellorders_totally_ordered_aux)
-          qed
-        qed
-      next
-        have "(g a, f a) \<in> s" unfolding g
-          using \<open>f a \<in> s.AboveS (g ` r.underS a)\<close> s.suc_least_AboveS by blast 
-        thus "g a \<in> under s (f a)" unfolding under_def by auto
+      show ?case
+        unfolding bij_betw_def
+      proof (intro conjI)
+        show "inj_on g (r.under a)"
+          by (metis A IH1a IH1b a bij_betw_def g ga r s s.suc_greater subsetI wellorders_totally_ordered_aux)
+        show "g ` r.under a = s.under (g a)"
+          by (metis A A0 IH1a IH1b a bij_betw_def g ga r s s.suc_greater wellorders_totally_ordered_aux)
+        show "g a \<in> s.under (f a)"
+          by (simp add: fa_in g s.suc_least_AboveS under_def)
       qed
     qed
   }
@@ -808,8 +728,7 @@ corollary ordLeq_def2:
 lemma iso_oproj:
   assumes r: "Well_order r" and s: "Well_order s" and f: "iso r s f"
   shows "oproj r s f"
-  using assms unfolding oproj_def
-  by (metis iso_Field iso_iff3 order_refl)
+  by (metis embed_Field f iso_Field iso_iff iso_iff3 oproj_def r s)
 
 theorem oproj_embed:
   assumes r: "Well_order r" and s: "Well_order s" and f: "oproj r s f"
@@ -843,6 +762,6 @@ qed
 corollary oproj_ordLeq:
   assumes r: "Well_order r" and s: "Well_order s" and f: "oproj r s f"
   shows "s \<le>o r"
-  using oproj_embed[OF assms] r s unfolding ordLeq_def by auto
+  using f oproj_embed ordLess_iff ordLess_or_ordLeq r s by blast
 
 end

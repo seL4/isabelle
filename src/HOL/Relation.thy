@@ -1247,6 +1247,9 @@ inductive_cases RangepE [elim!]: "Rangep r b"
 definition Field :: "'a rel \<Rightarrow> 'a set"
   where "Field r = Domain r \<union> Range r"
 
+lemma Field_iff: "x \<in> Field r \<longleftrightarrow> (\<exists>y. (x,y) \<in> r \<or> (y,x) \<in> r)"
+  by (auto simp: Field_def)
+
 lemma FieldI1: "(i, j) \<in> R \<Longrightarrow> i \<in> Field R"
   unfolding Field_def by blast
 

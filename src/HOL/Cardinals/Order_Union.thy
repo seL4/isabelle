@@ -85,9 +85,7 @@ lemma Osum_trans:
   assumes FLD: "Field r Int Field r' = {}" and
     TRANS: "trans r" and TRANS': "trans r'"
   shows "trans (r Osum r')"
-  using assms
-  apply (clarsimp simp: trans_def disjoint_iff)
-  by (smt (verit) Domain.DomainI Field_def Osum_def Pair_inject Range.intros Un_iff case_prodE case_prodI mem_Collect_eq)
+  using assms unfolding Osum_def trans_def disjoint_iff Field_iff by blast
 
 lemma Osum_Preorder:
   "\<lbrakk>Field r Int Field r' = {}; Preorder r; Preorder r'\<rbrakk> \<Longrightarrow> Preorder (r Osum r')"
@@ -97,66 +95,7 @@ lemma Osum_antisym:
   assumes FLD: "Field r Int Field r' = {}" and
     AN: "antisym r" and AN': "antisym r'"
   shows "antisym (r Osum r')"
-proof(unfold antisym_def, auto)
-  fix x y assume *: "(x, y) \<in> r \<union>o r'" and **: "(y, x) \<in> r \<union>o r'"
-  show  "x = y"
-  proof-
-    {assume Case1: "(x,y) \<in> r"
-      hence 1: "x \<in> Field r \<and> y \<in> Field r" unfolding Field_def by auto
-      have ?thesis
-      proof-
-        have "(y,x) \<in> r \<Longrightarrow> ?thesis"
-          using Case1 AN antisym_def[of r] by blast
-        moreover
-        {assume "(y,x) \<in> r'"
-          hence "y \<in> Field r'" unfolding Field_def by auto
-          hence False using FLD 1 by auto
-        }
-        moreover
-        have "x \<in> Field r' \<Longrightarrow> False" using FLD 1 by auto
-        ultimately show ?thesis using ** unfolding Osum_def by blast
-      qed
-    }
-    moreover
-    {assume Case2: "(x,y) \<in> r'"
-      hence 2: "x \<in> Field r' \<and> y \<in> Field r'" unfolding Field_def by auto
-      have ?thesis
-      proof-
-        {assume "(y,x) \<in> r"
-          hence "y \<in> Field r" unfolding Field_def by auto
-          hence False using FLD 2 by auto
-        }
-        moreover
-        have "(y,x) \<in> r' \<Longrightarrow> ?thesis"
-          using Case2 AN' antisym_def[of r'] by blast
-        moreover
-        {assume "y \<in> Field r"
-          hence False using FLD 2 by auto
-        }
-        ultimately show ?thesis using ** unfolding Osum_def by blast
-      qed
-    }
-    moreover
-    {assume Case3: "x \<in> Field r \<and> y \<in> Field r'"
-      have ?thesis
-      proof-
-        {assume "(y,x) \<in> r"
-          hence "y \<in> Field r" unfolding Field_def by auto
-          hence False using FLD Case3 by auto
-        }
-        moreover
-        {assume Case32: "(y,x) \<in> r'"
-          hence "x \<in> Field r'" unfolding Field_def by blast
-          hence False using FLD Case3 by auto
-        }
-        moreover
-        have "\<not> y \<in> Field r" using FLD Case3 by auto
-        ultimately show ?thesis using ** unfolding Osum_def by blast
-      qed
-    }
-    ultimately show ?thesis using * unfolding Osum_def by blast
-  qed
-qed
+  using assms by (auto simp: disjoint_iff antisym_def Osum_def Field_def)
 
 lemma Osum_Partial_order:
   "\<lbrakk>Field r Int Field r' = {}; Partial_order r; Partial_order r'\<rbrakk> \<Longrightarrow>
@@ -171,74 +110,24 @@ lemma Osum_Total:
   unfolding total_on_def  Field_Osum unfolding Osum_def by blast
 
 lemma Osum_Linear_order:
-  "\<lbrakk>Field r Int Field r' = {}; Linear_order r; Linear_order r'\<rbrakk> \<Longrightarrow>
- Linear_order (r Osum r')"
-  unfolding linear_order_on_def using Osum_Partial_order Osum_Total by blast
+  "\<lbrakk>Field r Int Field r' = {}; Linear_order r; Linear_order r'\<rbrakk> \<Longrightarrow> Linear_order (r Osum r')"
+  by (simp add: Osum_Partial_order Osum_Total linear_order_on_def)
 
 lemma Osum_minus_Id1:
   assumes "r \<le> Id"
   shows "(r Osum r') - Id \<le> (r' - Id) \<union> (Field r \<times> Field r')"
-proof-
-  let ?Left = "(r Osum r') - Id"
-  let ?Right = "(r' - Id) \<union> (Field r \<times> Field r')"
-  {fix a::'a and b assume *: "(a,b) \<notin> Id"
-    {assume "(a,b) \<in> r"
-      with * have False using assms by auto
-    }
-    moreover
-    {assume "(a,b) \<in> r'"
-      with * have "(a,b) \<in> r' - Id" by auto
-    }
-    ultimately
-    have "(a,b) \<in> ?Left \<Longrightarrow> (a,b) \<in> ?Right"
-      unfolding Osum_def by auto
-  }
-  thus ?thesis by auto
-qed
+using assms by (force simp: Osum_def)
 
 lemma Osum_minus_Id2:
   assumes "r' \<le> Id"
   shows "(r Osum r') - Id \<le> (r - Id) \<union> (Field r \<times> Field r')"
-proof-
-  let ?Left = "(r Osum r') - Id"
-  let ?Right = "(r - Id) \<union> (Field r \<times> Field r')"
-  {fix a::'a and b assume *: "(a,b) \<notin> Id"
-    {assume "(a,b) \<in> r'"
-      with * have False using assms by auto
-    }
-    moreover
-    {assume "(a,b) \<in> r"
-      with * have "(a,b) \<in> r - Id" by auto
-    }
-    ultimately
-    have "(a,b) \<in> ?Left \<Longrightarrow> (a,b) \<in> ?Right"
-      unfolding Osum_def by auto
-  }
-  thus ?thesis by auto
-qed
+using assms by (force simp: Osum_def)
 
 lemma Osum_minus_Id:
   assumes TOT: "Total r" and TOT': "Total r'" and
     NID: "\<not> (r \<le> Id)" and NID': "\<not> (r' \<le> Id)"
   shows "(r Osum r') - Id \<le> (r - Id) Osum (r' - Id)"
-proof-
-  {fix a a' assume *: "(a,a') \<in> (r Osum r')" and **: "a \<noteq> a'"
-    have "(a,a') \<in> (r - Id) Osum (r' - Id)"
-    proof-
-      {assume "(a,a') \<in> r \<or> (a,a') \<in> r'"
-        with ** have ?thesis unfolding Osum_def by auto
-      }
-      moreover
-      {assume "a \<in> Field r \<and> a' \<in> Field r'"
-        hence "a \<in> Field(r - Id) \<and> a' \<in> Field (r' - Id)"
-          using assms Total_Id_Field by blast
-        hence ?thesis unfolding Osum_def by auto
-      }
-      ultimately show ?thesis using * unfolding Osum_def by fast
-    qed
-  }
-  thus ?thesis by(auto simp add: Osum_def)
-qed
+  using assms Total_Id_Field by (force simp: Osum_def)
 
 lemma wf_Int_Times:
   assumes "A Int B = {}"
@@ -253,11 +142,9 @@ lemma Osum_wf_Id:
 proof(cases "r \<le> Id \<or> r' \<le> Id")
   assume Case1: "\<not>(r \<le> Id \<or> r' \<le> Id)"
   have "Field(r - Id) Int Field(r' - Id) = {}"
-    using FLD mono_Field[of "r - Id" r]  mono_Field[of "r' - Id" r']
-      Diff_subset[of r Id] Diff_subset[of r' Id] by blast
+    using Case1 FLD TOT TOT' Total_Id_Field by blast
   thus ?thesis
-    using Case1 Osum_minus_Id[of r r'] assms Osum_wf[of "r - Id" "r' - Id"]
-      wf_subset[of "(r - Id) \<union>o (r' - Id)" "(r Osum r') - Id"] by auto
+    by (meson Case1 Osum_minus_Id Osum_wf TOT TOT' WF WF' wf_subset)
 next
   have 1: "wf(Field r \<times> Field r')"
     using FLD by (auto simp add: wf_Int_Times)
