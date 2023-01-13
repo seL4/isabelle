@@ -198,6 +198,8 @@ object Markup {
       def description: String = Word.implode(Word.explode('_', name))
     }
 
+    val outer: Value = Value("", true, false, false)
+
     def unapply(markup: Markup): Option[Value] =
       markup match {
         case Markup(LANGUAGE, props) =>

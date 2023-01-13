@@ -62,17 +62,20 @@ object Update {
 
     val path_cartouches = options.bool("update_path_cartouches")
 
-    def update_xml(xml: XML.Body): XML.Body =
+    def update_xml(lang: Markup.Language.Value, xml: XML.Body): XML.Body =
       xml flatMap {
         case XML.Wrapped_Elem(markup, body1, body2) =>
-          if (markup.name == Markup.UPDATE) update_xml(body1) else update_xml(body2)
-        case XML.Elem(Markup.Language(lang), body)
-        if lang.is_path && path_cartouches =>
-          Token.read_embedded(Keyword.Keywords.empty, XML.content(body)) match {
-            case Some(tok) => List(XML.Text(Symbol.cartouche(tok.content)))
-            case None => update_xml(body)
+          val body = if (markup.name == Markup.UPDATE) body1 else body2
+          update_xml(lang, body)
+        case XML.Elem(Markup.Language(lang), body) =>
+          if (lang.is_path && path_cartouches) {
+            Token.read_embedded(Keyword.Keywords.empty, XML.content(body)) match {
+              case Some(tok) => List(XML.Text(Symbol.cartouche(tok.content)))
+              case None => update_xml(lang, body)
+            }
           }
-        case XML.Elem(_, body) => update_xml(body)
+          else update_xml(lang, body)
+        case XML.Elem(_, body) => update_xml(lang, body)
         case t => List(t)
       }
 
@@ -102,7 +105,7 @@ object Update {
             } {
               progress.expose_interrupt()
               val source1 =
-                XML.content(update_xml(
+                XML.content(update_xml(Markup.Language.outer,
                   snapshot.xml_markup(elements = Markup.Elements(Markup.UPDATE, Markup.LANGUAGE))))
               if (source1 != snapshot.node.source) {
                 val path = Path.explode(node_name.node)
