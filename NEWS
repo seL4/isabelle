@@ -21,6 +21,9 @@ with demo documents in the regular Isabelle "doc" space:
 * Support for interactive document preparation in PIDE, notably via the
 Isabelle/jEdit Document panel.
 
+* Support for more "cite" antiquotations, notably for \nocite and
+natbib's \citet / \citep.
+
 
 *** HOL ***
 

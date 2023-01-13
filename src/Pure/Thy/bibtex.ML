@@ -66,6 +66,9 @@ fun cite_antiquotation binding get_kind =
 val _ =
   Theory.setup
    (Document_Antiquotation.setup_option \<^binding>\<open>cite_macro\<close> (Config.put cite_macro) #>
-    cite_antiquotation \<^binding>\<open>cite\<close> (fn ctxt => Config.get ctxt cite_macro));
+    cite_antiquotation \<^binding>\<open>cite\<close> (fn ctxt => Config.get ctxt cite_macro) #>
+    cite_antiquotation \<^binding>\<open>nocite\<close> (K "nocite") #>
+    cite_antiquotation \<^binding>\<open>citet\<close> (K "citet") #>
+    cite_antiquotation \<^binding>\<open>citep\<close> (K "citep"));
 
 end;
