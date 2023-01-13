@@ -8,44 +8,20 @@ More on injections, bijections and inverses.
 section \<open>More on Injections, Bijections and Inverses\<close>
 
 theory Fun_More
-imports Main
+  imports Main
 begin
 
 subsection \<open>Purely functional properties\<close>
 
 (* unused *)
-(*1*)lemma notIn_Un_bij_betw2:
-assumes NIN: "b \<notin> A" and NIN': "b' \<notin> A'" and
-        BIJ: "bij_betw f A A'"
-shows "bij_betw f (A \<union> {b}) (A' \<union> {b'}) = (f b = b')"
-proof
-  assume "f b = b'"
-  thus "bij_betw f (A \<union> {b}) (A' \<union> {b'})"
-  using assms notIn_Un_bij_betw[of b A f A'] by auto
-next
-  assume *: "bij_betw f (A \<union> {b}) (A' \<union> {b'})"
-  hence "f b \<in> A' \<union> {b'}"
-  unfolding bij_betw_def by auto
-  moreover
-  {assume "f b \<in> A'"
-   then obtain b1 where 1: "b1 \<in> A" and 2: "f b1 = f b" using BIJ
-   by (auto simp add: bij_betw_def)
-   hence "b = b1" using *
-   by (auto simp add: bij_betw_def inj_on_def)
-   with 1 NIN have False by auto
-  }
-  ultimately show "f b = b'" by blast
-qed
-
-(* unused *)
 (*1*)lemma bij_betw_diff_singl:
-assumes BIJ: "bij_betw f A A'" and IN: "a \<in> A"
-shows "bij_betw f (A - {a}) (A' - {f a})"
+  assumes BIJ: "bij_betw f A A'" and IN: "a \<in> A"
+  shows "bij_betw f (A - {a}) (A' - {f a})"
 proof-
   let ?B = "A - {a}"   let ?B' = "A' - {f a}"
   have "f a \<in> A'" using IN BIJ unfolding bij_betw_def by blast
   hence "a \<notin> ?B \<and> f a \<notin> ?B' \<and> A = ?B \<union> {a} \<and> A' = ?B' \<union> {f a}"
-  using IN by blast
+    using IN by blast
   thus ?thesis using notIn_Un_bij_betw3[of a ?B f ?B'] BIJ by simp
 qed
 
@@ -54,120 +30,62 @@ subsection \<open>Properties involving finite and infinite sets\<close>
 
 (* unused *)
 (*1*)lemma bij_betw_inv_into_RIGHT:
-assumes BIJ: "bij_betw f A A'" and SUB: "B' \<le> A'"
-shows "f `((inv_into A f)`B') = B'"
-using assms
-proof(auto simp add: bij_betw_inv_into_right)
-  let ?f' = "(inv_into A f)"
-  fix a' assume *: "a' \<in> B'"
-  hence "a' \<in> A'" using SUB by auto
-  hence "a' = f (?f' a')"
-  using BIJ by (auto simp add: bij_betw_inv_into_right)
-  thus "a' \<in> f ` (?f' ` B')" using * by blast
-qed
+  assumes BIJ: "bij_betw f A A'" and SUB: "B' \<le> A'"
+  shows "f `((inv_into A f)`B') = B'"
+  by (metis BIJ SUB bij_betw_imp_surj_on image_inv_into_cancel)
+
 
 (* unused *)
 (*1*)lemma bij_betw_inv_into_RIGHT_LEFT:
-assumes BIJ: "bij_betw f A A'" and SUB: "B' \<le> A'" and
-        IM: "(inv_into A f) ` B' = B"
-shows "f ` B = B'"
-proof-
-  have "f`((inv_into A f)` B') = B'"
-  using assms bij_betw_inv_into_RIGHT[of f A A' B'] by auto
-  thus ?thesis using IM by auto
-qed
+  assumes BIJ: "bij_betw f A A'" and SUB: "B' \<le> A'" and
+    IM: "(inv_into A f) ` B' = B"
+  shows "f ` B = B'"
+  by (metis BIJ IM SUB bij_betw_inv_into_RIGHT)
 
 (* unused *)
 (*2*)lemma bij_betw_inv_into_twice:
-assumes "bij_betw f A A'"
-shows "\<forall>a \<in> A. inv_into A' (inv_into A f) a = f a"
-proof
-  let ?f' = "inv_into A f"   let ?f'' = "inv_into A' ?f'"
-  have 1: "bij_betw ?f' A' A" using assms
-  by (auto simp add: bij_betw_inv_into)
-  fix a assume *: "a \<in> A"
-  then obtain a' where 2: "a' \<in> A'" and 3: "?f' a' = a"
-  using 1 unfolding bij_betw_def by force
-  hence "?f'' a = a'"
-  using * 1 3 by (auto simp add: bij_betw_inv_into_left)
-  moreover have "f a = a'" using assms 2 3
-  by (auto simp add: bij_betw_inv_into_right)
-  ultimately show "?f'' a = f a" by simp
-qed
+  assumes "bij_betw f A A'"
+  shows "\<forall>a \<in> A. inv_into A' (inv_into A f) a = f a"
+  by (simp add: assms inv_into_inv_into_eq)
 
 
 subsection \<open>Properties involving Hilbert choice\<close>
 
 (*1*)lemma bij_betw_inv_into_LEFT:
-assumes BIJ: "bij_betw f A A'" and SUB: "B \<le> A"
-shows "(inv_into A f)`(f ` B) = B"
-using assms unfolding bij_betw_def using inv_into_image_cancel by force
+  assumes BIJ: "bij_betw f A A'" and SUB: "B \<le> A"
+  shows "(inv_into A f)`(f ` B) = B"
+  using assms unfolding bij_betw_def using inv_into_image_cancel by force
 
 (*1*)lemma bij_betw_inv_into_LEFT_RIGHT:
-assumes BIJ: "bij_betw f A A'" and SUB: "B \<le> A" and
-        IM: "f ` B = B'"
-shows "(inv_into A f) ` B' = B"
-using assms bij_betw_inv_into_LEFT[of f A A' B] by fast
+  assumes BIJ: "bij_betw f A A'" and SUB: "B \<le> A" and
+    IM: "f ` B = B'"
+  shows "(inv_into A f) ` B' = B"
+  using assms bij_betw_inv_into_LEFT[of f A A' B] by fast
 
 
 subsection \<open>Other facts\<close>
 
 (*3*)lemma atLeastLessThan_injective:
-assumes "{0 ..< m::nat} = {0 ..< n}"
-shows "m = n"
-proof-
-  {assume "m < n"
-   hence "m \<in> {0 ..< n}" by auto
-   hence "{0 ..< m} < {0 ..< n}" by auto
-   hence False using assms by blast
-  }
-  moreover
-  {assume "n < m"
-   hence "n \<in> {0 ..< m}" by auto
-   hence "{0 ..< n} < {0 ..< m}" by auto
-   hence False using assms by blast
-  }
-  ultimately show ?thesis by force
-qed
+  assumes "{0 ..< m::nat} = {0 ..< n}"
+  shows "m = n"
+  using assms atLeast0LessThan by force
 
 (*2*)lemma atLeastLessThan_injective2:
-"bij_betw f {0 ..< m::nat} {0 ..< n} \<Longrightarrow> m = n"
-using finite_atLeastLessThan[of m] finite_atLeastLessThan[of n]
-      card_atLeastLessThan[of m] card_atLeastLessThan[of n]
-      bij_betw_iff_card[of "{0 ..< m}" "{0 ..< n}"] by auto
+  "bij_betw f {0 ..< m::nat} {0 ..< n} \<Longrightarrow> m = n"
+  using bij_betw_same_card by fastforce
 
 (*2*)lemma atLeastLessThan_less_eq:
-"({0..<m} \<le> {0..<n}) = ((m::nat) \<le> n)"
-unfolding ivl_subset by arith
+  "({0..<m} \<le> {0..<n}) = ((m::nat) \<le> n)"
+  by auto
 
 (*2*)lemma atLeastLessThan_less_eq2:
-assumes "inj_on f {0..<(m::nat)} \<and> f ` {0..<m} \<le> {0..<n}"
-shows "m \<le> n"
-using assms
-using finite_atLeastLessThan[of m] finite_atLeastLessThan[of n]
-      card_atLeastLessThan[of m] card_atLeastLessThan[of n]
-      card_inj_on_le[of f "{0 ..< m}" "{0 ..< n}"] by fastforce
-
-(* unused *)
-(*2*)lemma atLeastLessThan_less_eq3:
-"(\<exists>f. inj_on f {0..<(m::nat)} \<and> f ` {0..<m} \<le> {0..<n}) = (m \<le> n)"
-using atLeastLessThan_less_eq2
-proof(auto)
-  assume "m \<le> n"
-  hence "inj_on id {0..<m} \<and> id ` {0..<m} \<subseteq> {0..<n}" unfolding inj_on_def by force
-  thus "\<exists>f. inj_on f {0..<m} \<and> f ` {0..<m} \<subseteq> {0..<n}" by blast
-qed
+  assumes "inj_on f {0..<(m::nat)}" "f ` {0..<m} \<le> {0..<n}"
+  shows "m \<le> n"
+  by (metis assms card_inj_on_le card_lessThan finite_lessThan lessThan_atLeast0)
 
 (* unused *)
 (*3*)lemma atLeastLessThan_less:
-"({0..<m} < {0..<n}) = ((m::nat) < n)"
-proof-
-  have "({0..<m} < {0..<n}) = ({0..<m} \<le> {0..<n} \<and> {0..<m} ~= {0..<n})"
-  using subset_iff_psubset_eq by blast
-  also have "\<dots> = (m \<le> n \<and> m ~= n)"
-  using atLeastLessThan_less_eq atLeastLessThan_injective by blast
-  also have "\<dots> = (m < n)" by auto
-  finally show ?thesis .
-qed
+  "({0..<m} < {0..<n}) = ((m::nat) < n)"
+  by auto
 
 end
