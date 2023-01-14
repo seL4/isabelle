@@ -67,14 +67,14 @@ object Update {
         case XML.Wrapped_Elem(markup, body1, body2) =>
           val body = if (markup.name == Markup.UPDATE) body1 else body2
           update_xml(lang, body)
-        case XML.Elem(Markup.Language(lang), body) =>
-          if (lang.is_path && path_cartouches) {
+        case XML.Elem(Markup.Language(lang1), body) =>
+          if (lang1.is_path && path_cartouches) {
             Token.read_embedded(Keyword.Keywords.empty, XML.content(body)) match {
               case Some(tok) => List(XML.Text(Symbol.cartouche(tok.content)))
-              case None => update_xml(lang, body)
+              case None => update_xml(lang1, body)
             }
           }
-          else update_xml(lang, body)
+          else update_xml(lang1, body)
         case XML.Elem(_, body) => update_xml(lang, body)
         case t => List(t)
       }
