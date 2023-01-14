@@ -93,6 +93,7 @@ object Update {
         if build_results(session).ok && !exclude(session)
       } {
         progress.echo("Session " + session + " ...")
+        val session_options = sessions_structure(session).options
         val proper_session_theory =
           build_results.deps(session).proper_session_theories.map(_.theory).toSet
         using(database_context.open_session0(session)) { session_context =>
@@ -111,7 +112,7 @@ object Update {
             } {
               progress.expose_interrupt()
               val xml = snapshot.xml_markup(elements = update_elements)
-              val source1 = XML.content(update_xml(options, xml))
+              val source1 = XML.content(update_xml(session_options, xml))
               if (source1 != snapshot.node.source) {
                 val path = Path.explode(node_name.node)
                 progress.echo("Updating " + quote(File.standard_path(path)))
