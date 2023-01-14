@@ -217,7 +217,9 @@ object Markup {
   ) {
     override def toString: String = name
 
-    def is_path: Boolean = name == PATH
+    def is_document: Boolean = name == Language.DOCUMENT
+    def is_path: Boolean = name == Language.PATH
+
     def description: String = Word.implode(Word.explode('_', name))
   }
 
