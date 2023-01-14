@@ -29,7 +29,7 @@ object Update {
           }
           else upd(lang1, body)
         case XML.Elem(_, body) => upd(lang, body)
-        case XML.Text(s) if lang.is_document && cite_commands =>
+        case XML.Text(s) if (lang.is_document || lang.is_antiquotation) && cite_commands =>
           List(XML.Text(Bibtex.update_cite(s)))
         case t => List(t)
       }
@@ -108,7 +108,7 @@ object Update {
               if snapshot.node.source_wellformed
             } {
               progress.expose_interrupt()
-              val xml = snapshot.xml_markup(elements = update_elements)
+              val xml = YXML.parse_body(YXML.string_of_body(snapshot.xml_markup(elements = update_elements)))
               val source1 = XML.content(update_xml(session_options, xml))
               if (source1 != snapshot.node.source) {
                 val path = Path.explode(node_name.node)

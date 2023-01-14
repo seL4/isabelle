@@ -188,6 +188,7 @@ object Markup {
   val LANGUAGE = "language"
   object Language {
     val DOCUMENT = "document"
+    val ANTIQUOTATION = "antiquotation"
     val ML = "ML"
     val SML = "SML"
     val PATH = "path"
@@ -218,6 +219,7 @@ object Markup {
     override def toString: String = name
 
     def is_document: Boolean = name == Language.DOCUMENT
+    def is_antiquotation: Boolean = name == Language.ANTIQUOTATION
     def is_path: Boolean = name == Language.PATH
 
     def description: String = Word.implode(Word.explode('_', name))
