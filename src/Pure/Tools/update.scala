@@ -12,8 +12,8 @@ object Update {
     Markup.Elements(Markup.UPDATE, Markup.LANGUAGE)
 
   def update_xml(options: Options, xml: XML.Body): XML.Body = {
-    val path_cartouches = options.bool("update_path_cartouches")
-    val cite_commands = options.bool("update_cite_commands")
+    val update_path_cartouches = options.bool("update_path_cartouches")
+    val update_cite_commands = options.bool("update_cite_commands")
 
     def upd(lang: Markup.Language, ts: XML.Body): XML.Body =
       ts flatMap {
@@ -21,7 +21,7 @@ object Update {
           val body = if (markup.name == Markup.UPDATE) body1 else body2
           upd(lang, body)
         case XML.Elem(Markup.Language(lang1), body) =>
-          if (lang1.is_path && path_cartouches) {
+          if (update_path_cartouches && lang1.is_path) {
             Token.read_embedded(Keyword.Keywords.empty, XML.content(body)) match {
               case Some(tok) => List(XML.Text(Symbol.cartouche(tok.content)))
               case None => upd(lang1, body)
@@ -29,7 +29,8 @@ object Update {
           }
           else upd(lang1, body)
         case XML.Elem(_, body) => upd(lang, body)
-        case XML.Text(s) if (lang.is_document || lang.is_antiquotation) && cite_commands =>
+        case XML.Text(s)
+        if update_cite_commands && (lang.is_document || lang.is_antiquotation) =>
           List(XML.Text(Bibtex.update_cite(s)))
         case t => List(t)
       }
