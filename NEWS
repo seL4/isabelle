@@ -22,7 +22,20 @@ with demo documents in the regular Isabelle "doc" space:
 Isabelle/jEdit Document panel.
 
 * Support for more "cite" antiquotations, notably for \nocite and
-natbib's \citet / \citep.
+natbib's \citet / \citep. The antiquotation syntax now supports
+control-symbol-cartouche form, with an embedded argument:
+\<^cite>\<open>arg\<close>. The embedded argument syntax supports both the optional
+and mandatory argument of the underlying \cite-like macro.
+
+Examples:
+
+  \<^cite>\<open>\<open>\S1.2\<close> in "isabelle-system"\<close>
+  \<^cite>\<open>"isabelle-system" and "isabelle-jedit"\<close>
+  \<^nocite>\<open>"isabelle-isar-ref"\<close>
+
+The command-line tool "isabelle update -u cite_commands -l HOL" helps to
+update former uses of raw \cite commands or old @{cite "name"}
+antiquotations.
 
 
 *** HOL ***
