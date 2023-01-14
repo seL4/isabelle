@@ -73,7 +73,7 @@ object Update {
     val build_results =
       Build.build(options, progress = progress, dirs = dirs, select_dirs = select_dirs,
         selection = selection, build_heap = build_heap, clean_build = clean_build,
-        numa_shuffling = numa_shuffling, max_jobs = max_jobs,  fresh_build = fresh_build,
+        numa_shuffling = numa_shuffling, max_jobs = max_jobs, fresh_build = fresh_build,
         no_build = no_build, verbose = verbose, augment_options = augment_options)
 
     val store = build_results.store
