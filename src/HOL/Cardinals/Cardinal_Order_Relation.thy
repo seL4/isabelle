@@ -23,7 +23,6 @@ declare
   card_of_mono1[simp]
   card_of_mono2[simp]
   card_of_cong[simp]
-  card_of_Field_ordLess[simp]
   card_of_Field_ordIso[simp]
   card_of_underS[simp]
   ordLess_Field[simp]
