@@ -56,15 +56,9 @@ object Update {
     val exclude: Set[String] =
       if (base_logics.isEmpty) Set.empty
       else {
-        val sessions =
-          Sessions.load_structure(options, dirs = dirs, select_dirs = select_dirs)
-            .selection(selection)
-
-        for (name <- base_logics if !sessions.defined(name)) {
-          error("Base logic " + quote(name) + " outside of session selection")
-        }
-
-        sessions.build_requirements(base_logics).toSet
+        Sessions.load_structure(options, dirs = dirs, select_dirs = select_dirs)
+          .selection(Sessions.Selection(sessions = base_logics))
+          .build_topological_order.toSet
       }
 
     // test
