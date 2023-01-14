@@ -13,6 +13,7 @@ object Update {
 
   def update_xml(options: Options, xml: XML.Body): XML.Body = {
     val path_cartouches = options.bool("update_path_cartouches")
+    val cite_commands = options.bool("update_cite_commands")
 
     def upd(lang: Markup.Language, ts: XML.Body): XML.Body =
       ts flatMap {
@@ -28,6 +29,8 @@ object Update {
           }
           else upd(lang1, body)
         case XML.Elem(_, body) => upd(lang, body)
+        case XML.Text(s) if lang.is_document && cite_commands =>
+          List(XML.Text(Bibtex.update_cite(s)))
         case t => List(t)
       }
     upd(Markup.Language.outer, xml)

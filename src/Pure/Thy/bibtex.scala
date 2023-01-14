@@ -12,6 +12,7 @@ import java.io.{File => JFile}
 import scala.collection.mutable
 import scala.util.parsing.combinator.RegexParsers
 import scala.util.parsing.input.Reader
+import scala.util.matching.Regex
 
 
 object Bibtex {
@@ -714,5 +715,48 @@ object Bibtex {
       }
       else html
     }
+  }
+
+
+
+  /** cite commands and antiquotations **/
+
+  def cite_antiquotation(name: String, body: String): String =
+    """\<^""" + name + """>\<open>""" + body + """\<close>"""
+
+  def cite_antiquotation(name: String, location: String, citations: List[String]): String = {
+    val body =
+      (if (location.isEmpty) "" else Symbol.cartouche(location) + " in ") +
+      citations.map(quote).mkString(" and ")
+    cite_antiquotation(name, body)
+  }
+
+  private val Cite_Command = """\\(cite|nocite|citet|citep)((?:\[[^\]]*\])?)\{([^}]*)\}""".r
+  private val Cite_Antiq = """@\{cite\s*([^}]*)\}""".r
+  private val Cite_Macro = """\[\s*cite_macro\s*=\s*"?(\w+)"?\]\s*""".r
+
+  def update_cite(str: String): String = {
+    val str1 =
+      Cite_Command.replaceAllIn(str, { m =>
+        val name = m.group(1)
+        val loc = m.group(2)
+        val location =
+          if (loc.startsWith("[") && loc.endsWith("]")) loc.substring(1, loc.length - 1)
+          else loc
+        val citations = Library.space_explode(',', m.group(3)).map(_.trim)
+        Regex.quoteReplacement(cite_antiquotation(name, location, citations))
+      })
+    val str2 =
+      Cite_Antiq.replaceAllIn(str1, { m =>
+        val body0 = m.group(1)
+        val (name, body1) =
+          Cite_Macro.findFirstMatchIn(body0) match {
+            case None => ("cite", body0)
+            case Some(m1) => (m1.group(1), Cite_Macro.replaceAllIn(body0, ""))
+          }
+        val body2 = body1.replace("""\<close>""", """\<close> in""")
+        Regex.quoteReplacement(cite_antiquotation(name, body2))
+      })
+    str2
   }
 }

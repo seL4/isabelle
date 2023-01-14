@@ -346,6 +346,9 @@ option update_control_cartouches : bool = false
 option update_path_cartouches : bool = false
   -- "update file-system paths to use cartouches"
 
+option update_cite_commands : bool = false
+  -- "update cite commands and antiquotations"
+
 
 section "Build Database"
 
