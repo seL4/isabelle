@@ -242,6 +242,16 @@ final class Markup_Tree private(val branches: Markup_Tree.Branches.T) {
           else List(XML.Wrapped_Elem(elem.markup, elem.body, b))
       }
 
+    @tailrec def normal_body(trees: List[XML.Tree], res: XML.Body = Nil): XML.Body =
+      if (trees.isEmpty) res.reverse
+      else {
+        val (texts, trees1) = Library.take_prefix[XML.Tree](_.isInstanceOf[XML.Text], trees)
+        val (elems, trees2) = Library.take_prefix[XML.Tree](_.isInstanceOf[XML.Elem], trees1)
+        val res1 = XML.content(texts) match { case "" => res case txt => XML.Text(txt) :: res }
+        val res2 = elems.foldLeft(res1)({ case (ts, t) => t :: ts })
+        normal_body(trees2, res2)
+      }
+
     def make_body(
       elem_range: Text.Range,
       elem_markup: List[XML.Elem],
@@ -256,7 +266,7 @@ final class Markup_Tree private(val branches: Markup_Tree.Branches.T) {
         last = subrange.stop
       }
       body ++= make_text(last, elem_range.stop)
-      make_elems(elem_markup, body.toList)
+      make_elems(elem_markup, normal_body(body.toList))
     }
     make_body(root_range, Nil, overlapping(root_range))
   }
