@@ -172,6 +172,10 @@ lemma Cinfinite_csum:
 lemma Cinfinite_csum1: "Cinfinite r1 \<Longrightarrow> Cinfinite (r1 +c r2)"
   by (blast intro!: Cinfinite_csum elim: )
 
+lemma Cinfinite_csum_weak:
+  "\<lbrakk>Cinfinite r1; Cinfinite r2\<rbrakk> \<Longrightarrow> Cinfinite (r1 +c r2)"
+by (erule Cinfinite_csum1)
+
 lemma csum_cong: "\<lbrakk>p1 =o r1; p2 =o r2\<rbrakk> \<Longrightarrow> p1 +c p2 =o r1 +c r2"
   by (simp only: csum_def ordIso_Plus_cong)
 
