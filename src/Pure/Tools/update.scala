@@ -8,6 +8,31 @@ package isabelle
 
 
 object Update {
+  val update_elements: Markup.Elements =
+    Markup.Elements(Markup.UPDATE, Markup.LANGUAGE)
+
+  def update_xml(options: Options, xml: XML.Body): XML.Body = {
+    val path_cartouches = options.bool("update_path_cartouches")
+
+    def upd(lang: Markup.Language, ts: XML.Body): XML.Body =
+      ts flatMap {
+        case XML.Wrapped_Elem(markup, body1, body2) =>
+          val body = if (markup.name == Markup.UPDATE) body1 else body2
+          upd(lang, body)
+        case XML.Elem(Markup.Language(lang1), body) =>
+          if (lang1.is_path && path_cartouches) {
+            Token.read_embedded(Keyword.Keywords.empty, XML.content(body)) match {
+              case Some(tok) => List(XML.Text(Symbol.cartouche(tok.content)))
+              case None => upd(lang1, body)
+            }
+          }
+          else upd(lang1, body)
+        case XML.Elem(_, body) => upd(lang, body)
+        case t => List(t)
+      }
+    upd(Markup.Language.outer, xml)
+  }
+
   def update(options: Options,
     update_options: List[Options.Spec],
     selection: Sessions.Selection = Sessions.Selection.empty,
@@ -60,25 +85,6 @@ object Update {
 
     /* update */
 
-    val path_cartouches = options.bool("update_path_cartouches")
-
-    def update_xml(lang: Markup.Language, xml: XML.Body): XML.Body =
-      xml flatMap {
-        case XML.Wrapped_Elem(markup, body1, body2) =>
-          val body = if (markup.name == Markup.UPDATE) body1 else body2
-          update_xml(lang, body)
-        case XML.Elem(Markup.Language(lang1), body) =>
-          if (lang1.is_path && path_cartouches) {
-            Token.read_embedded(Keyword.Keywords.empty, XML.content(body)) match {
-              case Some(tok) => List(XML.Text(Symbol.cartouche(tok.content)))
-              case None => update_xml(lang1, body)
-            }
-          }
-          else update_xml(lang1, body)
-        case XML.Elem(_, body) => update_xml(lang, body)
-        case t => List(t)
-      }
-
     var seen_theory = Set.empty[String]
 
     using(Export.open_database_context(store)) { database_context =>
@@ -104,9 +110,8 @@ object Update {
               if snapshot.node.source_wellformed
             } {
               progress.expose_interrupt()
-              val source1 =
-                XML.content(update_xml(Markup.Language.outer,
-                  snapshot.xml_markup(elements = Markup.Elements(Markup.UPDATE, Markup.LANGUAGE))))
+              val xml = snapshot.xml_markup(elements = update_elements)
+              val source1 = XML.content(update_xml(options, xml))
               if (source1 != snapshot.node.source) {
                 val path = Path.explode(node_name.node)
                 progress.echo("Updating " + quote(File.standard_path(path)))
