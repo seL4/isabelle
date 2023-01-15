@@ -69,6 +69,15 @@ fun cite_command ctxt get_kind (opt_loc, citations) =
     val location = Document_Output.output_document ctxt {markdown = false} loc;
   in Latex.cite {kind = kind, citations = citations, location = location} end;
 
+fun cite_command_old ctxt get_kind args =
+  let
+    val _ =
+      if Context_Position.is_visible ctxt then
+        legacy_feature ("Old antiquotation syntax, better use \"isabelle update -u cite\"" ^
+          Position.here_list (map snd (snd args)))
+      else ();
+  in cite_command ctxt get_kind args end;
+
 fun cite_command_embedded ctxt get_kind input =
   let
     val keywords = Keyword.no_major_keywords (Thy_Header.get_keywords' ctxt);
@@ -78,7 +87,7 @@ fun cite_command_embedded ctxt get_kind input =
 
 fun cite_command_parser get_kind =
   Scan.option Args.cartouche_input -- parse_citations
-    >> (fn args => fn ctxt => cite_command ctxt get_kind args) ||
+    >> (fn args => fn ctxt => cite_command_old ctxt get_kind args) ||
   Parse.embedded_input
     >> (fn arg => fn ctxt => cite_command_embedded ctxt get_kind arg);
 
