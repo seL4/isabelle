@@ -48,11 +48,9 @@ object ML_Heap {
   }
 
   def write_digest(heap: Path): String =
-    read_digest(heap) match {
-      case None =>
-        val s = SHA1.digest(heap).toString
-        File.append(heap, sha1_prefix + s)
-        s
-      case Some(s) => s
+    read_digest(heap) getOrElse {
+      val s = SHA1.digest(heap).toString
+      File.append(heap, sha1_prefix + s)
+      s
     }
 }
