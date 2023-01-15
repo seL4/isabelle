@@ -348,18 +348,17 @@ text \<open>
   \<^descr> \<open>@{cite arg}\<close> produces the Bib{\TeX} citation macro \<^verbatim>\<open>\cite[...]{...}\<close>
   with its optional and mandatory argument. The analogous \<^verbatim>\<open>\nocite\<close>, and the
   \<^verbatim>\<open>\citet\<close> and \<^verbatim>\<open>\citep\<close> variants from the \<^verbatim>\<open>natbib\<close>
-  package\<^footnote>\<open>\<^url>\<open>https://ctan.org/pkg/natbib\<close>\<close> are supported as well. Further
-  versions can be defined easily in Isabelle/ML, by imitating the ML
-  definitions behind the existing antiquotations.
+  package\<^footnote>\<open>\<^url>\<open>https://ctan.org/pkg/natbib\<close>\<close> are supported as well.
 
   The argument syntax is uniform for all variants and is usually presented in
   control-symbol-cartouche form: \<open>\<^cite>\<open>arg\<close>\<close>. The formal syntax of the
   nested argument language is defined as follows: \<^rail>\<open>arg: (embedded
-  @'in')? (name + 'and')\<close>
+  @'in')? (name + 'and') \<newline> (@'using' name)?\<close>
 
   Here the embedded text is free-form {\LaTeX}, which becomes the optional
   argument of the \<^verbatim>\<open>\cite\<close> macro. The named items are Bib{\TeX} database
-  entries and become the mandatory argument (separated by comma).
+  entries and become the mandatory argument (separated by comma). The optional
+  part ``\<^theory_text>\<open>using name\<close>'' specifies an alternative {\LaTeX} macro name.
 
   The validity of Bib{\TeX} database entries is only partially checked in
   Isabelle/PIDE, when the corresponding \<^verbatim>\<open>.bib\<close> files are open. Ultimately,

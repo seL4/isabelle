@@ -48,7 +48,7 @@ local
 
 val parse_citations = Parse.and_list1 Args.name_position;
 
-fun cite_command ctxt get_kind (opt_loc, citations) =
+fun cite_command ctxt get_kind ((opt_loc, citations), macro_name) =
   let
     val loc = the_default Input.empty opt_loc;
     val _ =
@@ -65,7 +65,7 @@ fun cite_command ctxt get_kind (opt_loc, citations) =
           if member (op =) bibtex_entries name orelse name = "*" then ()
           else error ("Unknown Bibtex entry " ^ quote name ^ Position.here pos));
 
-    val kind = get_kind ctxt;
+    val kind = if macro_name = "" then get_kind ctxt else macro_name;
     val location = Document_Output.output_document ctxt {markdown = false} loc;
   in Latex.cite {kind = kind, citations = citations, location = location} end;
 
@@ -76,12 +76,14 @@ fun cite_command_old ctxt get_kind args =
         legacy_feature ("Old antiquotation syntax, better use \"isabelle update -u cite\"" ^
           Position.here_list (map snd (snd args)))
       else ();
-  in cite_command ctxt get_kind args end;
+  in cite_command ctxt get_kind (args, "") end;
 
 fun cite_command_embedded ctxt get_kind input =
   let
-    val keywords = Keyword.no_major_keywords (Thy_Header.get_keywords' ctxt);
-    val parser = Scan.option (Parse.embedded_input --| Parse.$$$ "in") -- parse_citations;
+    val keywords = Thy_Header.get_keywords' ctxt;
+    val parser =
+      Scan.option (Parse.embedded_input --| Parse.$$$ "in") -- parse_citations --
+        Scan.optional (Parse.command_name "using" |-- Parse.!!! Parse.name) "";
     val args = Parse.read_embedded ctxt keywords parser input;
   in cite_command ctxt get_kind args end;
 

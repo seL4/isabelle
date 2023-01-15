@@ -733,6 +733,7 @@ object Bibtex {
 
   private val Cite_Command = """\\(cite|nocite|citet|citep)((?:\[[^\]]*\])?)\{([^}]*)\}""".r
   private val Cite_Macro = """\[\s*cite_macro\s*=\s*"?(\w+)"?\]\s*""".r
+  private val CITE = "cite"
 
   def update_cite_commands(str: String): String =
     Cite_Command.replaceAllIn(str, { m =>
@@ -745,7 +746,7 @@ object Bibtex {
       Regex.quoteReplacement(cite_antiquotation(name, location, citations))
     })
 
-  def update_cite_antiquotation(str: String): String = {
+  def update_cite_antiquotation(cite_commands: List[String], str: String): String = {
     val opt_body =
       for {
         str1 <- Library.try_unprefix("@{cite", str)
@@ -757,11 +758,12 @@ object Bibtex {
       case Some(body0) =>
         val (name, body1) =
           Cite_Macro.findFirstMatchIn(body0) match {
-            case None => ("cite", body0)
+            case None => (CITE, body0)
             case Some(m) => (m.group(1), Cite_Macro.replaceAllIn(body0, ""))
           }
         val body2 = body1.replace("""\<close>""", """\<close> in""")
-        cite_antiquotation(name, body2)
+        if (cite_commands.contains(name)) cite_antiquotation(name, body2)
+        else cite_antiquotation(CITE, body2 + " using " + quote(name))
     }
   }
 }

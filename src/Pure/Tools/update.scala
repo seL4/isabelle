@@ -14,6 +14,7 @@ object Update {
   def update_xml(options: Options, xml: XML.Body): XML.Body = {
     val update_path_cartouches = options.bool("update_path_cartouches")
     val update_cite = options.bool("update_cite")
+    val cite_commands = Library.space_explode(',', options.string("document_cite_commands"))
 
     def upd(lang: Markup.Language, ts: XML.Body): XML.Body =
       ts flatMap {
@@ -28,7 +29,7 @@ object Update {
             }
           }
           else if (update_cite && lang1.is_antiquotation) {
-            List(XML.Text(Bibtex.update_cite_antiquotation(XML.content(body))))
+            List(XML.Text(Bibtex.update_cite_antiquotation(cite_commands, XML.content(body))))
           }
           else upd(lang1, body)
         case XML.Elem(_, body) => upd(lang, body)

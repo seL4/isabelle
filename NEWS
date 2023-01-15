@@ -33,6 +33,9 @@ Examples:
   \<^cite>\<open>"isabelle-system" and "isabelle-jedit"\<close>
   \<^nocite>\<open>"isabelle-isar-ref"\<close>
 
+The old antiquotation option "cite_macro" has been superseded by
+explicit syntax: \<^cite>\<open>\<dots> using macro_name\<close>.
+
 The command-line tool "isabelle update -u cite" helps to update former
 uses of LaTeX \cite commands and old-style @{cite "name"} document
 antiquotations.
