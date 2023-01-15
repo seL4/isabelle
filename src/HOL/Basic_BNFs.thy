@@ -130,7 +130,7 @@ lemma pred_prod_inject [code, simp]:
 
 lemma rel_prod_conv:
   "rel_prod R1 R2 = (\<lambda>(a, b) (c, d). R1 a c \<and> R2 b d)"
-  by (rule ext, rule ext) auto
+  by force
 
 definition
   pred_fun :: "('a \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool"
@@ -198,27 +198,22 @@ lemma Cinfinite_bd_fun: "Cinfinite (natLeq +c card_suc ( |UNIV| ))"
 
 lemma regularCard_bd_fun: "regularCard (natLeq +c card_suc ( |UNIV| ))"
   (is "regularCard (_ +c card_suc ?U)")
-  apply (cases "Cinfinite ?U")
-   apply (rule regularCard_csum)
-      apply (rule natLeq_Cinfinite)
-     apply (rule Cinfinite_card_suc)
-      apply assumption
-     apply (rule card_of_card_order_on)
-    apply (rule regularCard_natLeq)
-   apply (rule regularCard_card_suc)
-    apply (rule card_of_card_order_on)
-   apply assumption
-  apply (rule regularCard_ordIso[of natLeq])
-    apply (rule csum_absorb1[THEN ordIso_symmetric])
-     apply (rule natLeq_Cinfinite)
-    apply (rule card_suc_least)
-      apply (rule card_of_card_order_on)
-     apply (rule natLeq_Card_order)
-    apply (subst finite_iff_ordLess_natLeq[symmetric])
-    apply (simp add: cinfinite_def Field_card_of card_of_card_order_on)
-   apply (rule natLeq_Cinfinite)
-  apply (rule regularCard_natLeq)
-  done
+proof (cases "Cinfinite ?U")
+  case True
+  then show ?thesis 
+    by (intro regularCard_csum natLeq_Cinfinite Cinfinite_card_suc 
+              card_of_card_order_on regularCard_natLeq regularCard_card_suc)
+next
+  case False
+  then have "card_suc ?U \<le>o natLeq"
+    unfolding cinfinite_def Field_card_of
+    by (intro card_suc_least; 
+        simp add: natLeq_Card_order card_of_card_order_on flip: finite_iff_ordLess_natLeq)
+  then have "natLeq =o natLeq +c card_suc ?U"
+    using natLeq_Cinfinite csum_absorb1 ordIso_symmetric by blast
+  then show ?thesis 
+    by (intro regularCard_ordIso[OF _ natLeq_Cinfinite regularCard_natLeq])
+qed
 
 lemma ordLess_bd_fun: "|UNIV::'a set| <o natLeq +c card_suc ( |UNIV::'a set| )"
   (is "_ <o (_ +c card_suc (?U :: 'a rel))")
