@@ -8,9 +8,9 @@ section \<open>Primitive Recursive Functions: the inductive definition\<close>
 theory Primrec imports ZF begin
 
 text \<open>
-  Proof adopted from @{cite szasz93}.
+  Proof adopted from \<^cite>\<open>szasz93\<close>.
 
-  See also @{cite \<open>page 250, exercise 11\<close> mendelson}.
+  See also \<^cite>\<open>\<open>page 250, exercise 11\<close> in mendelson\<close>.
 \<close>
 
 

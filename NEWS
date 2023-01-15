@@ -21,6 +21,25 @@ with demo documents in the regular Isabelle "doc" space:
 * Support for interactive document preparation in PIDE, notably via the
 Isabelle/jEdit Document panel.
 
+* Support for more "cite" antiquotations, notably for \nocite and
+natbib's \citet / \citep. The antiquotation syntax now supports
+control-symbol-cartouche form, with an embedded argument:
+\<^cite>\<open>arg\<close>. The embedded argument syntax supports both the optional
+and mandatory argument of the underlying \cite-like macro.
+
+Examples:
+
+  \<^cite>\<open>\<open>\S1.2\<close> in "isabelle-system"\<close>
+  \<^cite>\<open>"isabelle-system" and "isabelle-jedit"\<close>
+  \<^nocite>\<open>"isabelle-isar-ref"\<close>
+
+The old antiquotation option "cite_macro" has been superseded by
+explicit syntax: \<^cite>\<open>\<dots> using macro_name\<close>.
+
+The command-line tool "isabelle update -u cite" helps to update former
+uses of LaTeX \cite commands and old-style @{cite "name"} document
+antiquotations.
+
 
 *** HOL ***
 

@@ -463,8 +463,7 @@ text \<open>
   string, id?: long}\<close> describes a source position within Isabelle text. Only
   the \<open>line\<close> and \<open>file\<close> fields make immediate sense to external programs.
   Detailed \<open>offset\<close> and \<open>end_offset\<close> positions are counted according to
-  Isabelle symbols, see \<^ML_type>\<open>Symbol.symbol\<close> in Isabelle/ML @{cite
-  "isabelle-implementation"}. The position \<open>id\<close> belongs to the representation
+  Isabelle symbols, see \<^ML_type>\<open>Symbol.symbol\<close> in Isabelle/ML \<^cite>\<open>"isabelle-implementation"\<close>. The position \<open>id\<close> belongs to the representation
   of command transactions in the Isabelle/PIDE protocol: it normally does not
   occur in externalized positions.
 
@@ -732,7 +731,7 @@ subsubsection \<open>Intermediate output\<close>
 text \<open>
   The asynchronous notifications of command \<^verbatim>\<open>session_build\<close> mainly serve as
   progress indicator: the output resembles that of the session build window of
-  Isabelle/jEdit after startup @{cite "isabelle-jedit"}.
+  Isabelle/jEdit after startup \<^cite>\<open>"isabelle-jedit"\<close>.
 
   For the client it is usually sufficient to print the messages in plain text,
   but note that \<open>theory_progress\<close> also reveals formal \<open>theory\<close> and
@@ -1012,7 +1011,7 @@ text \<open>
   \<^item> \<open>theory_name\<close>: the logical theory name;
 
   \<^item> \<open>status\<close>: the overall node status, e.g.\ see the visualization in the
-  \<open>Theories\<close> panel of Isabelle/jEdit @{cite "isabelle-jedit"};
+  \<open>Theories\<close> panel of Isabelle/jEdit \<^cite>\<open>"isabelle-jedit"\<close>;
 
   \<^item> \<open>messages\<close>: the main bulk of prover messages produced in this theory
   (with kind \<^verbatim>\<open>writeln\<close>, \<^verbatim>\<open>warning\<close>, \<^verbatim>\<open>error\<close>).

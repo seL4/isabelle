@@ -6,7 +6,7 @@ begin
 
 text \<open>
   \<^emph>\<open>Eisbach\<close> is a collection of tools which form the basis for defining new
-  proof methods in Isabelle/Isar~@{cite "Wenzel-PhD"}. It can be thought of as
+  proof methods in Isabelle/Isar~\<^cite>\<open>"Wenzel-PhD"\<close>. It can be thought of as
   a ``proof method language'', but is more precisely an infrastructure for
   defining new proof methods out of existing ones.
 

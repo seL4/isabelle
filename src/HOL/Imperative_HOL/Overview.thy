@@ -20,8 +20,8 @@ syntax (output)
 text \<open>
   \<open>Imperative HOL\<close> is a lightweight framework for reasoning
   about imperative data structures in \<open>Isabelle/HOL\<close>
-  @{cite "Nipkow-et-al:2002:tutorial"}.  Its basic ideas are described in
-  @{cite "Bulwahn-et-al:2008:imp_HOL"}.  However their concrete
+  \<^cite>\<open>"Nipkow-et-al:2002:tutorial"\<close>.  Its basic ideas are described in
+  \<^cite>\<open>"Bulwahn-et-al:2008:imp_HOL"\<close>.  However their concrete
   realisation has changed since, due to both extensions and
   refinements.  Therefore this overview wants to present the framework
   \qt{as it is} by now.  It focusses on the user-view, less on matters

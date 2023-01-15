@@ -10,8 +10,7 @@ begin
 
 text \<open>
   The following theory development illustrates the foundations of Higher-Order
-  Logic. The ``HOL'' logic that is given here resembles @{cite
-  "Gordon:1985:HOL"} and its predecessor @{cite "church40"}, but the order of
+  Logic. The ``HOL'' logic that is given here resembles \<^cite>\<open>"Gordon:1985:HOL"\<close> and its predecessor \<^cite>\<open>"church40"\<close>, but the order of
   axiomatizations and defined connectives has be adapted to modern
   presentations of \<open>\<lambda>\<close>-calculus and Constructive Type Theory. Thus it fits
   nicely to the underlying Natural Deduction framework of Isabelle/Pure and

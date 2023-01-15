@@ -23,7 +23,7 @@ text \<open>
 We will now explain the usage of the \SPARK{} verification environment by proving
 the correctness of an example program. As an example, we use a program for computing
 the \emph{greatest common divisor} of two natural numbers shown in \figref{fig:gcd-prog},
-which has been taken from the book about \SPARK{} by Barnes @{cite \<open>\S 11.6\<close> Barnes}.
+which has been taken from the book about \SPARK{} by Barnes \<^cite>\<open>\<open>\S 11.6\<close> in Barnes\<close>.
 \<close>
 
 section \<open>Importing \SPARK{} VCs into Isabelle\<close>
@@ -228,7 +228,7 @@ numbers are non-negative by construction, the values computed by the algorithm
 are trivially proved to be non-negative. Since we are working with non-negative
 numbers, we can also just use \SPARK{}'s \textbf{mod} operator instead of
 \textbf{rem}, which spares us an application of theorems \<open>minus_div_mult_eq_mod [symmetric]\<close>
-and \<open>sdiv_pos_pos\<close>. Finally, as noted by Barnes @{cite \<open>\S 11.5\<close> Barnes},
+and \<open>sdiv_pos_pos\<close>. Finally, as noted by Barnes \<^cite>\<open>\<open>\S 11.5\<close> in Barnes\<close>,
 we can simplify matters by placing the \textbf{assert} statement between
 \textbf{while} and \textbf{loop} rather than directly after the \textbf{loop}.
 In the former case, the loop invariant has to be proved only once, whereas in

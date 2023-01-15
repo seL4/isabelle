@@ -16,7 +16,7 @@ unbundle lattice_syntax
 subsection \<open>Prose version\<close>
 
 text \<open>
-  According to the textbook @{cite \<open>pages 93--94\<close> "davey-priestley"}, the
+  According to the textbook \<^cite>\<open>\<open>pages 93--94\<close> in "davey-priestley"\<close>, the
   Knaster-Tarski fixpoint theorem is as follows.\<^footnote>\<open>We have dualized the
   argument, and tuned the notation a little bit.\<close>
 

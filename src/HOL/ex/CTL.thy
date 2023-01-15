@@ -9,8 +9,7 @@ imports Main
 begin
 
 text \<open>
-  We formalize basic concepts of Computational Tree Logic (CTL) @{cite
-  "McMillan-PhDThesis" and "McMillan-LectureNotes"} within the simply-typed
+  We formalize basic concepts of Computational Tree Logic (CTL) \<^cite>\<open>"McMillan-PhDThesis" and "McMillan-LectureNotes"\<close> within the simply-typed
   set theory of HOL.
 
   By using the common technique of ``shallow embedding'', a CTL formula is
@@ -51,7 +50,7 @@ text \<open>
   holds in a state \<open>s\<close>, iff there is a path, starting from \<open>s\<close>, such that for
   all states \<open>s'\<close> on the path, \<open>p\<close> holds in \<open>s'\<close>. It is easy to see that \<open>\<^bold>E\<^bold>F
   p\<close> and \<open>\<^bold>E\<^bold>G p\<close> may be expressed using least and greatest fixed points
-  @{cite "McMillan-PhDThesis"}.
+  \<^cite>\<open>"McMillan-PhDThesis"\<close>.
 \<close>
 
 definition EX  ("\<^bold>E\<^bold>X _" [80] 90)

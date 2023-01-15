@@ -25,6 +25,8 @@ option document_heading_prefix : string = "isamarkup" (standard)
   -- "prefix for LaTeX macros generated from 'chapter', 'section' etc."
 option document_comment_latex : bool = false
   -- "use regular LaTeX version of comment.sty, instead of historic plain TeX version"
+option document_cite_commands : string = "cite,nocite,citet,citep"
+  -- "antiquotation commands to determine the structure of bibliography"
 
 option thy_output_display : bool = false
   -- "indicate output as multi-line display-style material"
@@ -345,6 +347,9 @@ option update_control_cartouches : bool = false
 
 option update_path_cartouches : bool = false
   -- "update file-system paths to use cartouches"
+
+option update_cite : bool = false
+  -- "update cite commands and antiquotations"
 
 
 section "Build Database"

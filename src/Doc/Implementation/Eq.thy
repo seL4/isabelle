@@ -74,10 +74,10 @@ text %mlref \<open>
 section \<open>Conversions \label{sec:conv}\<close>
 
 text \<open>
-  The classic article @{cite "paulson:1983"} introduces the concept of
+  The classic article \<^cite>\<open>"paulson:1983"\<close> introduces the concept of
   conversion for Cambridge LCF. This was historically important to implement
   all kinds of ``simplifiers'', but the Isabelle Simplifier is done quite
-  differently, see @{cite \<open>\S9.3\<close> "isabelle-isar-ref"}.
+  differently, see \<^cite>\<open>\<open>\S9.3\<close> in "isabelle-isar-ref"\<close>.
 \<close>
 
 text %mlref \<open>

@@ -67,7 +67,7 @@ text \<open>
   simplification as we just do not intend to discuss a model of multiple
   groups and group membership, but pretend that everyone is member of a single
   global group.\<^footnote>\<open>A general HOL model of user group structures and related
-  issues is given in @{cite "Naraschewski:2001"}.\<close>
+  issues is given in \<^cite>\<open>"Naraschewski:2001"\<close>.\<close>
 \<close>
 
 datatype perm =
@@ -104,7 +104,7 @@ subsection \<open>Files\<close>
 text \<open>
   In order to model the general tree structure of a Unix file-system we use
   the arbitrarily branching datatype \<^typ>\<open>('a, 'b, 'c) env\<close> from the
-  standard library of Isabelle/HOL @{cite "Bauer-et-al:2002:HOL-Library"}.
+  standard library of Isabelle/HOL \<^cite>\<open>"Bauer-et-al:2002:HOL-Library"\<close>.
   This type provides constructors \<^term>\<open>Val\<close> and \<^term>\<open>Env\<close> as follows:
 
   \<^medskip>
@@ -142,15 +142,14 @@ text \<open>
   @{thm [display, indent = 2, eta_contract = false] lookup_eq [no_vars]}
   @{thm [display, indent = 2, eta_contract = false] update_eq [no_vars]}
 
-  Several further properties of these operations are proven in @{cite
-  "Bauer-et-al:2002:HOL-Library"}. These will be routinely used later on
+  Several further properties of these operations are proven in \<^cite>\<open>"Bauer-et-al:2002:HOL-Library"\<close>. These will be routinely used later on
   without further notice.
 
   \<^bigskip>
   Apparently, the elements of type \<^typ>\<open>file\<close> contain an \<^typ>\<open>att\<close>
   component in either case. We now define a few auxiliary operations to
   manipulate this field uniformly, following the conventions for record types
-  in Isabelle/HOL @{cite "Nipkow-et-al:2000:HOL"}.
+  in Isabelle/HOL \<^cite>\<open>"Nipkow-et-al:2000:HOL"\<close>.
 \<close>
 
 definition
@@ -208,8 +207,7 @@ text \<open>
   access was granted according to the permissions recorded within the
   file-system.
 
-  Note that by the rules of Unix file-system security (e.g.\ @{cite
-  "Tanenbaum:1992"}) both the super-user and owner may always access a file
+  Note that by the rules of Unix file-system security (e.g.\ \<^cite>\<open>"Tanenbaum:1992"\<close>) both the super-user and owner may always access a file
   unconditionally (in our simplified model).
 \<close>
 
@@ -264,8 +262,7 @@ section \<open>File-system transitions \label{sec:unix-trans}\<close>
 subsection \<open>Unix system calls \label{sec:unix-syscall}\<close>
 
 text \<open>
-  According to established operating system design (cf.\ @{cite
-  "Tanenbaum:1992"}) user space processes may only initiate system operations
+  According to established operating system design (cf.\ \<^cite>\<open>"Tanenbaum:1992"\<close>) user space processes may only initiate system operations
   by a fixed set of \<^emph>\<open>system-calls\<close>. This enables the kernel to enforce
   certain security policies in the first place.\<^footnote>\<open>Incidently, this is the very
   same principle employed by any ``LCF-style'' theorem proving system
@@ -388,7 +385,7 @@ text \<open>
 
   If in doubt, one may consider to compare our definition with the informal
   specifications given the corresponding Unix man pages, or even peek at an
-  actual implementation such as @{cite "Torvalds-et-al:Linux"}. Another common
+  actual implementation such as \<^cite>\<open>"Torvalds-et-al:Linux"\<close>. Another common
   way to gain confidence into the formal model is to run simple simulations
   (see \secref{sec:unix-examples}), and check the results with that of
   experiments performed on a real Unix system.

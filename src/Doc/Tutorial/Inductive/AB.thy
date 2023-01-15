@@ -17,7 +17,7 @@ A &\to& a S \mid b A A \nonumber\\
 B &\to& b S \mid a B B \nonumber
 \end{eqnarray}
 At the end we say a few words about the relationship between
-the original proof @{cite \<open>p.\ts81\<close> HopcroftUllman} and our formal version.
+the original proof \<^cite>\<open>\<open>p.\ts81\<close> in HopcroftUllman\<close> and our formal version.
 
 We start by fixing the alphabet, which consists only of \<^term>\<open>a\<close>'s
 and~\<^term>\<open>b\<close>'s:
@@ -278,7 +278,7 @@ by(force simp add: min_less_iff_disj split: nat_diff_split)
 text\<open>
 We conclude this section with a comparison of our proof with 
 Hopcroft\index{Hopcroft, J. E.} and Ullman's\index{Ullman, J. D.}
-@{cite \<open>p.\ts81\<close> HopcroftUllman}.
+\<^cite>\<open>\<open>p.\ts81\<close> in HopcroftUllman\<close>.
 For a start, the textbook
 grammar, for no good reason, excludes the empty word, thus complicating
 matters just a little bit: they have 8 instead of our 7 productions.

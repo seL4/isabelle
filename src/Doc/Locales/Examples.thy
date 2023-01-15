@@ -292,7 +292,7 @@ text \<open>The syntax of the locale commands discussed in this tutorial is
   exception of the context elements \isakeyword{constrains} and
   \isakeyword{defines}, which are provided for backward
   compatibility.  See the Isabelle/Isar Reference
-  Manual @{cite IsarRef} for full documentation.\<close>
+  Manual \<^cite>\<open>IsarRef\<close> for full documentation.\<close>
 
 
 section \<open>Import \label{sec:import}\<close>
@@ -757,7 +757,7 @@ text \<open>
   The sublocale relation is transitive --- that is, propagation takes
   effect along chains of sublocales.  Even cycles in the sublocale relation are
   supported, as long as these cycles do not lead to infinite chains.
-  Details are discussed in the technical report @{cite Ballarin2006a}.
+  Details are discussed in the technical report \<^cite>\<open>Ballarin2006a\<close>.
   See also Section~\ref{sec:infinite-chains} of this tutorial.\<close>
 
 end

@@ -311,9 +311,8 @@ class Rendering(
   def language_context(range: Text.Range): Option[Completion.Language_Context] =
     snapshot.select(range, Rendering.language_context_elements, _ =>
       {
-        case Text.Info(_, XML.Elem(Markup.Language(language, symbols, antiquotes, delimited), _)) =>
-          if (delimited) Some(Completion.Language_Context(language, symbols, antiquotes))
-          else None
+        case Text.Info(_, XML.Elem(Markup.Language(lang), _)) =>
+          if (lang.delimited) Some(Completion.Language_Context(lang)) else None
         case Text.Info(_, elem)
         if elem.name == Markup.ML_STRING || elem.name == Markup.ML_COMMENT =>
           Some(Completion.Language_Context.ML_inner)
@@ -335,8 +334,8 @@ class Rendering(
   def language_path(range: Text.Range): Option[Text.Info[Boolean]] =
     snapshot.select(range, Rendering.language_elements, _ =>
       {
-        case Text.Info(info_range, XML.Elem(Markup.Language.Path(delimited), _)) =>
-          Some((delimited, snapshot.convert(info_range)))
+        case Text.Info(info_range, XML.Elem(Markup.Language(lang), _)) if lang.is_path =>
+          Some((lang.delimited, snapshot.convert(info_range)))
         case _ => None
       }).headOption.map({ case Text.Info(_, (delimited, range)) => Text.Info(range, delimited) })
 
@@ -672,9 +671,8 @@ class Rendering(
                 if (session.debugger.breakpoint_state(breakpoint)) "breakpoint (enabled)"
                 else "breakpoint (disabled)"
               Some(info + (r0, true, XML.Text(text)))
-          case (info, Text.Info(r0, XML.Elem(Markup.Language(language, _, _, _), _))) =>
-            val lang = Word.implode(Word.explode('_', language))
-            Some(info + (r0, true, XML.Text("language: " + lang)))
+          case (info, Text.Info(r0, XML.Elem(Markup.Language(lang), _))) =>
+            Some(info + (r0, true, XML.Text("language: " + lang.description)))
 
           case (info, Text.Info(r0, XML.Elem(Markup.Expression(kind), _))) =>
             val descr = if (kind == "") "expression" else "expression: " + kind

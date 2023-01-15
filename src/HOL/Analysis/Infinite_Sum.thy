@@ -9,6 +9,13 @@
 section \<open>Infinite sums\<close>
 \<^latex>\<open>\label{section:Infinite_Sum}\<close>
 
+theory Infinite_Sum
+  imports
+    Elementary_Topology
+    "HOL-Library.Extended_Nonnegative_Real"
+    "HOL-Library.Complex_Order"
+begin
+
 text \<open>In this theory, we introduce the definition of infinite sums, i.e., sums ranging over an
 infinite, potentially uncountable index set with no particular ordering.
 (This is different from series. Those are sums indexed by natural numbers,
@@ -17,17 +24,11 @@ and the order of the index set matters.)
 Our definition is quite standard: $s:=\sum_{x\in A} f(x)$ is the limit of finite sums $s_F:=\sum_{x\in F} f(x)$ for increasing $F$.
 That is, $s$ is the limit of the net $s_F$ where $F$ are finite subsets of $A$ ordered by inclusion.
 We believe that this is the standard definition for such sums.
-See, e.g., Definition 4.11 in \cite{conway2013course}.
+See, e.g., Definition 4.11 in \<^cite>\<open>"conway2013course"\<close>.
 This definition is quite general: it is well-defined whenever $f$ takes values in some
 commutative monoid endowed with a Hausdorff topology.
 (Examples are reals, complex numbers, normed vector spaces, and more.)\<close>
 
-theory Infinite_Sum
-  imports
-    Elementary_Topology
-    "HOL-Library.Extended_Nonnegative_Real"
-    "HOL-Library.Complex_Order"
-begin
 
 subsection \<open>Definition and syntax\<close>
 

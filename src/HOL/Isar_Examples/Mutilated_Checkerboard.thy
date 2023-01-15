@@ -10,8 +10,7 @@ theory Mutilated_Checkerboard
 begin
 
 text \<open>
-  The Mutilated Checker Board Problem, formalized inductively. See @{cite
-  "paulson-mutilated-board"} for the original tactic script version.
+  The Mutilated Checker Board Problem, formalized inductively. See \<^cite>\<open>"paulson-mutilated-board"\<close> for the original tactic script version.
 \<close>
 
 subsection \<open>Tilings\<close>

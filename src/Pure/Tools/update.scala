@@ -8,6 +8,40 @@ package isabelle
 
 
 object Update {
+  val update_elements: Markup.Elements =
+    Markup.Elements(Markup.UPDATE, Markup.LANGUAGE)
+
+  def update_xml(options: Options, xml: XML.Body): XML.Body = {
+    val update_path_cartouches = options.bool("update_path_cartouches")
+    val update_cite = options.bool("update_cite")
+    val cite_commands = Library.space_explode(',', options.string("document_cite_commands"))
+
+    def upd(lang: Markup.Language, ts: XML.Body): XML.Body =
+      ts flatMap {
+        case XML.Wrapped_Elem(markup, body1, body2) =>
+          val body = if (markup.name == Markup.UPDATE) body1 else body2
+          upd(lang, body)
+        case XML.Elem(Markup.Language(lang1), body) =>
+          if (update_path_cartouches && lang1.is_path) {
+            Token.read_embedded(Keyword.Keywords.empty, XML.content(body)) match {
+              case Some(tok) => List(XML.Text(Symbol.cartouche(tok.content)))
+              case None => upd(lang1, body)
+            }
+          }
+          else if (update_cite && lang1.is_antiquotation) {
+            List(XML.Text(Bibtex.update_cite_antiquotation(cite_commands, XML.content(body))))
+          }
+          else upd(lang1, body)
+        case XML.Elem(_, body) => upd(lang, body)
+        case XML.Text(s) if update_cite && lang.is_document =>
+          List(XML.Text(Bibtex.update_cite_commands(s)))
+        case t => List(t)
+      }
+    upd(Markup.Language.outer, xml)
+  }
+
+  def default_base_logic: String = Isabelle_System.getenv("ISABELLE_LOGIC")
+
   def update(options: Options,
     update_options: List[Options.Spec],
     selection: Sessions.Selection = Sessions.Selection.empty,
@@ -28,15 +62,9 @@ object Update {
     val exclude: Set[String] =
       if (base_logics.isEmpty) Set.empty
       else {
-        val sessions =
-          Sessions.load_structure(options, dirs = dirs, select_dirs = select_dirs)
-            .selection(selection)
-
-        for (name <- base_logics if !sessions.defined(name)) {
-          error("Base logic " + quote(name) + " outside of session selection")
-        }
-
-        sessions.build_requirements(base_logics).toSet
+        Sessions.load_structure(options, dirs = dirs, select_dirs = select_dirs)
+          .selection(Sessions.Selection(sessions = base_logics))
+          .build_graph.domain
       }
 
     // test
@@ -51,7 +79,7 @@ object Update {
     val build_results =
       Build.build(options, progress = progress, dirs = dirs, select_dirs = select_dirs,
         selection = selection, build_heap = build_heap, clean_build = clean_build,
-        numa_shuffling = numa_shuffling, max_jobs = max_jobs,  fresh_build = fresh_build,
+        numa_shuffling = numa_shuffling, max_jobs = max_jobs, fresh_build = fresh_build,
         no_build = no_build, verbose = verbose, augment_options = augment_options)
 
     val store = build_results.store
@@ -59,22 +87,6 @@ object Update {
 
 
     /* update */
-
-    val path_cartouches = options.bool("update_path_cartouches")
-
-    def update_xml(xml: XML.Body): XML.Body =
-      xml flatMap {
-        case XML.Wrapped_Elem(markup, body1, body2) =>
-          if (markup.name == Markup.UPDATE) update_xml(body1) else update_xml(body2)
-        case XML.Elem(Markup.Language.Path(_), body)
-        if path_cartouches =>
-          Token.read_embedded(Keyword.Keywords.empty, XML.content(body)) match {
-            case Some(tok) => List(XML.Text(Symbol.cartouche(tok.content)))
-            case None => update_xml(body)
-          }
-        case XML.Elem(_, body) => update_xml(body)
-        case t => List(t)
-      }
 
     var seen_theory = Set.empty[String]
 
@@ -84,6 +96,7 @@ object Update {
         if build_results(session).ok && !exclude(session)
       } {
         progress.echo("Session " + session + " ...")
+        val session_options = sessions_structure(session).options
         val proper_session_theory =
           build_results.deps(session).proper_session_theories.map(_.theory).toSet
         using(database_context.open_session0(session)) { session_context =>
@@ -101,9 +114,8 @@ object Update {
               if snapshot.node.source_wellformed
             } {
               progress.expose_interrupt()
-              val source1 =
-                XML.content(update_xml(
-                  snapshot.xml_markup(elements = Markup.Elements(Markup.UPDATE, Markup.LANGUAGE))))
+              val xml = YXML.parse_body(YXML.string_of_body(snapshot.xml_markup(elements = update_elements)))
+              val source1 = XML.content(update_xml(session_options, xml))
               if (source1 != snapshot.node.source) {
                 val path = Path.explode(node_name.node)
                 progress.echo("Updating " + quote(File.standard_path(path)))
@@ -136,7 +148,7 @@ object Update {
         var fresh_build = false
         var session_groups: List[String] = Nil
         var max_jobs = 1
-        var base_logics: List[String] = Nil
+        var base_logics: List[String] = List(default_base_logic)
         var no_build = false
         var options = Options.init()
         var update_options: List[Options.Spec] = Nil
@@ -158,7 +170,8 @@ Usage: isabelle update [OPTIONS] [SESSIONS ...]
     -f           fresh build
     -g NAME      select session group NAME
     -j INT       maximum number of parallel jobs (default 1)
-    -l NAME      additional base logic
+    -l NAMES     comma-separated list of base logics, to remain unchanged
+                 (default: """ + quote(default_base_logic) + """)
     -n           no build -- take existing build databases
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -u OPT       override "update" option for selected sessions
@@ -179,7 +192,7 @@ Usage: isabelle update [OPTIONS] [SESSIONS ...]
         "f" -> (_ => fresh_build = true),
         "g:" -> (arg => session_groups = session_groups ::: List(arg)),
         "j:" -> (arg => max_jobs = Value.Int.parse(arg)),
-        "l:" -> (arg => base_logics ::= arg),
+        "l:" -> (arg => base_logics = space_explode(',', arg)),
         "n" -> (_ => no_build = true),
         "o:" -> (arg => options = options + arg),
         "u:" -> (arg => update_options = update_options ::: List(("update_" + arg, None))),

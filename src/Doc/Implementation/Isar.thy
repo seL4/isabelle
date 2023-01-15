@@ -7,7 +7,7 @@ begin
 chapter \<open>Isar language elements\<close>
 
 text \<open>
-  The Isar proof language (see also @{cite \<open>\S2\<close> "isabelle-isar-ref"})
+  The Isar proof language (see also \<^cite>\<open>\<open>\S2\<close> in "isabelle-isar-ref"\<close>)
   consists of three main categories of language elements:
 
   \<^enum> Proof \<^emph>\<open>commands\<close> define the primary language of transactions of the
@@ -86,7 +86,7 @@ text %mlref \<open>
   \<^descr> \<^ML>\<open>Proof.assert_forward\<close>, \<^ML>\<open>Proof.assert_chain\<close>, \<^ML>\<open>Proof.assert_backward\<close> are partial identity functions that fail unless a
   certain linguistic mode is active, namely ``\<open>proof(state)\<close>'',
   ``\<open>proof(chain)\<close>'', ``\<open>proof(prove)\<close>'', respectively (using the terminology
-  of @{cite "isabelle-isar-ref"}).
+  of \<^cite>\<open>"isabelle-isar-ref"\<close>).
 
   It is advisable study the implementations of existing proof commands for
   suitable modes to be asserted.
@@ -308,7 +308,7 @@ text %mlref \<open>
 \<close>
 
 text %mlex \<open>
-  See also @{command method_setup} in @{cite "isabelle-isar-ref"} which
+  See also @{command method_setup} in \<^cite>\<open>"isabelle-isar-ref"\<close> which
   includes some abstract examples.
 
   \<^medskip>
@@ -358,7 +358,7 @@ text \<open>
 
   The \<^ML>\<open>Attrib.thms\<close> parser produces a list of theorems from the usual Isar
   syntax involving attribute expressions etc.\ (syntax category @{syntax
-  thms}) @{cite "isabelle-isar-ref"}. The resulting \<^ML_text>\<open>thms\<close> are
+  thms}) \<^cite>\<open>"isabelle-isar-ref"\<close>. The resulting \<^ML_text>\<open>thms\<close> are
   added to \<^ML>\<open>HOL_basic_ss\<close> which already contains the basic Simplifier
   setup for HOL.
 
@@ -540,7 +540,7 @@ text %mlantiq \<open>
 \<close>
 
 text %mlex \<open>
-  See also @{command attribute_setup} in @{cite "isabelle-isar-ref"} which
+  See also @{command attribute_setup} in \<^cite>\<open>"isabelle-isar-ref"\<close> which
   includes some abstract examples.
 \<close>
 

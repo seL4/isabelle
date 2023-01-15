@@ -11,12 +11,12 @@ section \<open>Introduction\<close>
 text \<open>
   This tutorial introduces the code generator facilities of \<open>Isabelle/HOL\<close>.  It allows to turn (a certain class of) HOL
   specifications into corresponding executable code in the programming
-  languages \<open>SML\<close> @{cite SML}, \<open>OCaml\<close> @{cite OCaml},
-  \<open>Haskell\<close> @{cite "haskell-revised-report"} and \<open>Scala\<close>
-  @{cite "scala-overview-tech-report"}.
+  languages \<open>SML\<close> \<^cite>\<open>SML\<close>, \<open>OCaml\<close> \<^cite>\<open>OCaml\<close>,
+  \<open>Haskell\<close> \<^cite>\<open>"haskell-revised-report"\<close> and \<open>Scala\<close>
+  \<^cite>\<open>"scala-overview-tech-report"\<close>.
 
   To profit from this tutorial, some familiarity and experience with
-  Isabelle/HOL @{cite "isa-tutorial"} and its basic theories is assumed.
+  Isabelle/HOL \<^cite>\<open>"isa-tutorial"\<close> and its basic theories is assumed.
 \<close>
 
 
@@ -31,7 +31,7 @@ text \<open>
   a generated program as an implementation of a higher-order rewrite
   system, then every rewrite step performed by the program can be
   simulated in the logic, which guarantees partial correctness
-  @{cite "Haftmann-Nipkow:2010:code"}.
+  \<^cite>\<open>"Haftmann-Nipkow:2010:code"\<close>.
 \<close>
 
 
@@ -235,11 +235,11 @@ text \<open>
     \item You may want to skim over the more technical sections
       \secref{sec:adaptation} and \secref{sec:further}.
 
-    \item The target language Scala @{cite "scala-overview-tech-report"}
+    \item The target language Scala \<^cite>\<open>"scala-overview-tech-report"\<close>
       comes with some specialities discussed in \secref{sec:scala}.
 
     \item For exhaustive syntax diagrams etc. you should visit the
-      Isabelle/Isar Reference Manual @{cite "isabelle-isar-ref"}.
+      Isabelle/Isar Reference Manual \<^cite>\<open>"isabelle-isar-ref"\<close>.
 
   \end{itemize}
 

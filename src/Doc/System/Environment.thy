@@ -8,10 +8,8 @@ chapter \<open>The Isabelle system environment\<close>
 
 text \<open>
   This manual describes Isabelle together with related tools as seen from a
-  system oriented view. See also the \<^emph>\<open>Isabelle/Isar Reference Manual\<close> @{cite
-  "isabelle-isar-ref"} for the actual Isabelle input language and related
-  concepts, and \<^emph>\<open>The Isabelle/Isar Implementation Manual\<close> @{cite
-  "isabelle-implementation"} for the main concepts of the underlying
+  system oriented view. See also the \<^emph>\<open>Isabelle/Isar Reference Manual\<close> \<^cite>\<open>"isabelle-isar-ref"\<close> for the actual Isabelle input language and related
+  concepts, and \<^emph>\<open>The Isabelle/Isar Implementation Manual\<close> \<^cite>\<open>"isabelle-implementation"\<close> for the main concepts of the underlying
   implementation in Isabelle/ML.
 \<close>
 

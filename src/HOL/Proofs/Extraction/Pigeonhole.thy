@@ -12,7 +12,7 @@ text \<open>
   We formalize two proofs of the pigeonhole principle, which lead
   to extracted programs of quite different complexity. The original
   formalization of these proofs in {\sc Nuprl} is due to
-  Aleksey Nogin @{cite "Nogin-ENTCS-2000"}.
+  Aleksey Nogin \<^cite>\<open>"Nogin-ENTCS-2000"\<close>.
 
   This proof yields a polynomial program.
 \<close>

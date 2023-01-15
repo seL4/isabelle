@@ -15,7 +15,7 @@ text \<open>
 
   \<^medskip>
   The syntax diagram below refers to some syntactic categories that are
-  further defined in @{cite "isabelle-isar-ref"}.
+  further defined in \<^cite>\<open>"isabelle-isar-ref"\<close>.
 
   \<^rail>\<open>
     @@{command method} name args @'=' method
@@ -281,7 +281,7 @@ text \<open>
 
   \<^medskip>
   The syntax diagram below refers to some syntactic categories that are
-  further defined in @{cite "isabelle-isar-ref"}.
+  further defined in \<^cite>\<open>"isabelle-isar-ref"\<close>.
 
   \<^rail>\<open>
     @@{method match} kind @'in' (pattern '\<Rightarrow>' @{syntax text} + '\<bar>')

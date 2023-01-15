@@ -6,7 +6,7 @@ theory Sylow
   imports Coset Exponent
 begin
 
-text \<open>See also @{cite "Kammueller-Paulson:1999"}.\<close>
+text \<open>See also \<^cite>\<open>"Kammueller-Paulson:1999"\<close>.\<close>
 
 text \<open>The combinatorial argument is in theory \<open>Exponent\<close>.\<close>
 

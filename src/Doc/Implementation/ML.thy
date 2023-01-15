@@ -658,7 +658,7 @@ text \<open>
   \<close>
 
   Here @{syntax name} and @{syntax args} are outer syntax categories, as
-  defined in @{cite "isabelle-isar-ref"}.
+  defined in \<^cite>\<open>"isabelle-isar-ref"\<close>.
 
   \<^medskip>
   A regular antiquotation \<open>@{name args}\<close> processes its arguments by the usual
@@ -966,8 +966,7 @@ text \<open>
   different text styles or colours. The standard output for batch sessions
   prefixes each line of warnings by \<^verbatim>\<open>###\<close> and errors by \<^verbatim>\<open>***\<close>, but leaves
   anything else unchanged. The message body may contain further markup and
-  formatting, which is routinely used in the Prover IDE @{cite
-  "isabelle-jedit"}.
+  formatting, which is routinely used in the Prover IDE \<^cite>\<open>"isabelle-jedit"\<close>.
 
   Messages are associated with the transaction context of the running Isar
   command. This enables the front-end to manage commands and resulting
@@ -1316,8 +1315,7 @@ text %mlref \<open>
 
   \<^descr> \<^ML>\<open>Symbol.is_letter\<close>, \<^ML>\<open>Symbol.is_digit\<close>,
   \<^ML>\<open>Symbol.is_quasi\<close>, \<^ML>\<open>Symbol.is_blank\<close> classify standard symbols
-  according to fixed syntactic conventions of Isabelle, cf.\ @{cite
-  "isabelle-isar-ref"}.
+  according to fixed syntactic conventions of Isabelle, cf.\ \<^cite>\<open>"isabelle-isar-ref"\<close>.
 
   \<^descr> Type \<^ML_type>\<open>Symbol.sym\<close> is a concrete datatype that represents the
   different kinds of symbols explicitly, with constructors
@@ -1387,7 +1385,7 @@ text %mlref \<open>
     \<^enum> sequence of Isabelle symbols (see also \secref{sec:symbols}), with
     \<^ML>\<open>Symbol.explode\<close> as key operation;
   
-    \<^enum> XML tree structure via YXML (see also @{cite "isabelle-system"}), with
+    \<^enum> XML tree structure via YXML (see also \<^cite>\<open>"isabelle-system"\<close>), with
     \<^ML>\<open>YXML.parse_body\<close> as key operation.
 
   Note that Isabelle/ML string literals may refer Isabelle symbols like
@@ -1675,14 +1673,14 @@ text \<open>
   exponential speedup of CPU performance due to ``Moore's Law'' follows
   different rules: clock frequency has reached its peak around 2005, and
   applications need to be parallelized in order to avoid a perceived loss of
-  performance. See also @{cite "Sutter:2005"}.\<close>
+  performance. See also \<^cite>\<open>"Sutter:2005"\<close>.\<close>
 
   Isabelle/Isar exploits the inherent structure of theories and proofs to
   support \<^emph>\<open>implicit parallelism\<close> to a large extent. LCF-style theorem proving
-  provides almost ideal conditions for that, see also @{cite "Wenzel:2009"}.
+  provides almost ideal conditions for that, see also \<^cite>\<open>"Wenzel:2009"\<close>.
   This means, significant parts of theory and proof checking is parallelized
   by default. In Isabelle2013, a maximum speedup-factor of 3.5 on 4 cores and
-  6.5 on 8 cores can be expected @{cite "Wenzel:2013:ITP"}.
+  6.5 on 8 cores can be expected \<^cite>\<open>"Wenzel:2013:ITP"\<close>.
 
   \<^medskip>
   ML threads lack the memory protection of separate processes, and operate
@@ -2064,7 +2062,7 @@ subsection \<open>Futures \label{sec:futures}\<close>
 text \<open>
   Futures help to organize parallel execution in a value-oriented manner, with
   \<open>fork\<close>~/ \<open>join\<close> as the main pair of operations, and some further variants;
-  see also @{cite "Wenzel:2009" and "Wenzel:2013:ITP"}. Unlike lazy values,
+  see also \<^cite>\<open>"Wenzel:2009" and "Wenzel:2013:ITP"\<close>. Unlike lazy values,
   futures are evaluated strictly and spontaneously on separate worker threads.
   Futures may be canceled, which leads to interrupts on running evaluation
   attempts, and forces structurally related futures to fail for all time;

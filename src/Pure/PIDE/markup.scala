@@ -188,29 +188,41 @@ object Markup {
   val LANGUAGE = "language"
   object Language {
     val DOCUMENT = "document"
+    val ANTIQUOTATION = "antiquotation"
     val ML = "ML"
     val SML = "SML"
     val PATH = "path"
     val UNKNOWN = "unknown"
 
-    def unapply(markup: Markup): Option[(String, Boolean, Boolean, Boolean)] =
+    def apply(name: String, symbols: Boolean, antiquotes: Boolean, delimited: Boolean): Language =
+      new Language(name, symbols, antiquotes, delimited)
+
+    val outer: Language = apply("", true, false, false)
+
+    def unapply(markup: Markup): Option[Language] =
       markup match {
         case Markup(LANGUAGE, props) =>
           (props, props, props, props) match {
             case (Name(name), Symbols(symbols), Antiquotes(antiquotes), Delimited(delimited)) =>
-              Some((name, symbols, antiquotes, delimited))
+              Some(apply(name, symbols, antiquotes, delimited))
             case _ => None
           }
         case _ => None
       }
+  }
+  class Language private(
+    val name: String,
+    val symbols: Boolean,
+    val antiquotes: Boolean,
+    val delimited: Boolean
+  ) {
+    override def toString: String = name
 
-    object Path {
-      def unapply(markup: Markup): Option[Boolean] =
-        markup match {
-          case Language(PATH, _, _, delimited) => Some(delimited)
-          case _ => None
-        }
-    }
+    def is_document: Boolean = name == Language.DOCUMENT
+    def is_antiquotation: Boolean = name == Language.ANTIQUOTATION
+    def is_path: Boolean = name == Language.PATH
+
+    def description: String = Word.implode(Word.explode('_', name))
   }
 
 
@@ -361,6 +373,9 @@ object Markup {
   val Latex_Body = new Markup_String("latex_body", KIND)
   val Latex_Delim = new Markup_String("latex_delim", NAME)
   val Latex_Tag = new Markup_String("latex_tag", NAME)
+
+  val Latex_Cite = new Markup_Elem("latex_cite")
+  val Citations = new Properties.String("citations")
 
   val Latex_Index_Item = new Markup_Elem("latex_index_item")
   val Latex_Index_Entry = new Markup_String("latex_index_entry", KIND)

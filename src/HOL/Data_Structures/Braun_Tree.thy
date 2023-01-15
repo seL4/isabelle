@@ -6,8 +6,8 @@ theory Braun_Tree
 imports "HOL-Library.Tree_Real"
 begin
 
-text \<open>Braun Trees were studied by Braun and Rem~\cite{BraunRem}
-and later Hoogerwoord~\cite{Hoogerwoord}.\<close>
+text \<open>Braun Trees were studied by Braun and Rem~\<^cite>\<open>"BraunRem"\<close>
+and later Hoogerwoord~\<^cite>\<open>"Hoogerwoord"\<close>.\<close>
 
 fun braun :: "'a tree \<Rightarrow> bool" where
 "braun Leaf = True" |

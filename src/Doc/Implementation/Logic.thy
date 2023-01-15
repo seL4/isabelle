@@ -8,9 +8,9 @@ chapter \<open>Primitive logic \label{ch:logic}\<close>
 
 text \<open>
   The logical foundations of Isabelle/Isar are that of the Pure logic, which
-  has been introduced as a Natural Deduction framework in @{cite paulson700}.
+  has been introduced as a Natural Deduction framework in \<^cite>\<open>paulson700\<close>.
   This is essentially the same logic as ``\<open>\<lambda>HOL\<close>'' in the more abstract
-  setting of Pure Type Systems (PTS) @{cite "Barendregt-Geuvers:2001"},
+  setting of Pure Type Systems (PTS) \<^cite>\<open>"Barendregt-Geuvers:2001"\<close>,
   although there are some key differences in the specific treatment of simple
   types in Isabelle/Pure.
 
@@ -97,7 +97,7 @@ text \<open>
   sorts \<open>(s\<^sub>1, \<dots>, s\<^sub>k)\<close> such that a type scheme \<open>(\<alpha>\<^bsub>s\<^sub>1\<^esub>, \<dots>, \<alpha>\<^bsub>s\<^sub>k\<^esub>)\<kappa>\<close> is of
   sort \<open>s\<close>. Consequently, type unification has most general solutions (modulo
   equivalence of sorts), so type-inference produces primary types as expected
-  @{cite "nipkow-prehofer"}.
+  \<^cite>\<open>"nipkow-prehofer"\<close>.
 \<close>
 
 text %mlref \<open>
@@ -255,8 +255,7 @@ section \<open>Terms \label{sec:terms}\<close>
 
 text \<open>
   The language of terms is that of simply-typed \<open>\<lambda>\<close>-calculus with de-Bruijn
-  indices for bound variables (cf.\ @{cite debruijn72} or @{cite
-  "paulson-ml2"}), with the types being determined by the corresponding
+  indices for bound variables (cf.\ \<^cite>\<open>debruijn72\<close> or \<^cite>\<open>"paulson-ml2"\<close>), with the types being determined by the corresponding
   binders. In contrast, free variables and constants have an explicit name and
   type in each occurrence.
 
@@ -598,15 +597,13 @@ text \<open>
   occur within propositions. The system provides a runtime option to record
   explicit proof terms for primitive inferences, see also
   \secref{sec:proof-terms}. Thus all three levels of \<open>\<lambda>\<close>-calculus become
-  explicit: \<open>\<Rightarrow>\<close> for terms, and \<open>\<And>/\<Longrightarrow>\<close> for proofs (cf.\ @{cite
-  "Berghofer-Nipkow:2000:TPHOL"}).
+  explicit: \<open>\<Rightarrow>\<close> for terms, and \<open>\<And>/\<Longrightarrow>\<close> for proofs (cf.\ \<^cite>\<open>"Berghofer-Nipkow:2000:TPHOL"\<close>).
 
   Observe that locally fixed parameters (as in \<open>\<And>\<hyphen>intro\<close>) need not be recorded
   in the hypotheses, because the simple syntactic types of Pure are always
   inhabitable. ``Assumptions'' \<open>x :: \<tau>\<close> for type-membership are only present
   as long as some \<open>x\<^sub>\<tau>\<close> occurs in the statement body.\<^footnote>\<open>This is the key
-  difference to ``\<open>\<lambda>HOL\<close>'' in the PTS framework @{cite
-  "Barendregt-Geuvers:2001"}, where hypotheses \<open>x : A\<close> are treated uniformly
+  difference to ``\<open>\<lambda>HOL\<close>'' in the PTS framework \<^cite>\<open>"Barendregt-Geuvers:2001"\<close>, where hypotheses \<open>x : A\<close> are treated uniformly
   for propositions and types.\<close>
 
   \<^medskip>
@@ -665,8 +662,8 @@ text \<open>
   previously defined constants as above, or arbitrary constants \<open>d(\<alpha>\<^sub>i)\<close> for
   some \<open>\<alpha>\<^sub>i\<close> projected from \<open>\<^vec>\<alpha>\<close>. Thus overloaded definitions
   essentially work by primitive recursion over the syntactic structure of a
-  single type argument. See also @{cite \<open>\S4.3\<close>
-  "Haftmann-Wenzel:2006:classes"}.
+  single type argument. See also \<^cite>\<open>\<open>\S4.3\<close> in
+  "Haftmann-Wenzel:2006:classes"\<close>.
 \<close>
 
 text %mlref \<open>
@@ -1000,8 +997,8 @@ subsection \<open>Hereditary Harrop Formulae\<close>
 
 text \<open>
   The idea of object-level rules is to model Natural Deduction inferences in
-  the style of Gentzen @{cite "Gentzen:1935"}, but we allow arbitrary nesting
-  similar to @{cite "Schroeder-Heister:1984"}. The most basic rule format is
+  the style of Gentzen \<^cite>\<open>"Gentzen:1935"\<close>, but we allow arbitrary nesting
+  similar to \<^cite>\<open>"Schroeder-Heister:1984"\<close>. The most basic rule format is
   that of a \<^emph>\<open>Horn Clause\<close>:
   \[
   \infer{\<open>A\<close>}{\<open>A\<^sub>1\<close> & \<open>\<dots>\<close> & \<open>A\<^sub>n\<close>}
@@ -1022,7 +1019,7 @@ text \<open>
 
   Nesting of rules means that the positions of \<open>A\<^sub>i\<close> may again hold compound
   rules, not just atomic propositions. Propositions of this format are called
-  \<^emph>\<open>Hereditary Harrop Formulae\<close> in the literature @{cite "Miller:1991"}. Here
+  \<^emph>\<open>Hereditary Harrop Formulae\<close> in the literature \<^cite>\<open>"Miller:1991"\<close>. Here
   we give an inductive characterization as follows:
 
   \<^medskip>
@@ -1186,7 +1183,7 @@ text \<open>
   \<open>\<lambda>\<close>-calculus are added, which correspond to \<open>\<And>x :: \<alpha>. B x\<close> and \<open>A \<Longrightarrow> B\<close>
   according to the propositions-as-types principle. The resulting 3-level
   \<open>\<lambda>\<close>-calculus resembles ``\<open>\<lambda>HOL\<close>'' in the more abstract setting of Pure Type
-  Systems (PTS) @{cite "Barendregt-Geuvers:2001"}, if some fine points like
+  Systems (PTS) \<^cite>\<open>"Barendregt-Geuvers:2001"\<close>, if some fine points like
   schematic polymorphism and type classes are ignored.
 
   \<^medskip>
@@ -1243,8 +1240,8 @@ text \<open>
   abstractions, and some argument terms of applications \<open>p \<cdot> t\<close> (if possible).
 
   There are separate operations to reconstruct the full proof term later on,
-  using \<^emph>\<open>higher-order pattern unification\<close> @{cite "nipkow-patterns" and
-  "Berghofer-Nipkow:2000:TPHOL"}.
+  using \<^emph>\<open>higher-order pattern unification\<close> \<^cite>\<open>"nipkow-patterns" and
+  "Berghofer-Nipkow:2000:TPHOL"\<close>.
 
   The \<^emph>\<open>proof checker\<close> expects a fully reconstructed proof term, and can turn
   it into a theorem by replaying its primitive inferences within the kernel.
@@ -1255,7 +1252,7 @@ subsection \<open>Concrete syntax of proof terms\<close>
 
 text \<open>
   The concrete syntax of proof terms is a slight extension of the regular
-  inner syntax of Isabelle/Pure @{cite "isabelle-isar-ref"}. Its main
+  inner syntax of Isabelle/Pure \<^cite>\<open>"isabelle-isar-ref"\<close>. Its main
   syntactic category @{syntax (inner) proof} is defined as follows:
 
   \begin{center}

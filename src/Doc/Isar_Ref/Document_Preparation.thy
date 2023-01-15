@@ -13,11 +13,11 @@ text \<open>
   sources.
 
   {\LaTeX} output is generated while processing a \<^emph>\<open>session\<close> in batch mode, as
-  explained in the \<^emph>\<open>The Isabelle System Manual\<close> @{cite "isabelle-system"}.
+  explained in the \<^emph>\<open>The Isabelle System Manual\<close> \<^cite>\<open>"isabelle-system"\<close>.
   The main Isabelle tools to get started with document preparation are
   @{tool_ref mkroot} and @{tool_ref build}.
 
-  The classic Isabelle/HOL tutorial @{cite "isabelle-hol-book"} also explains
+  The classic Isabelle/HOL tutorial \<^cite>\<open>"isabelle-hol-book"\<close> also explains
   some aspects of theory presentation.
 \<close>
 
@@ -221,7 +221,8 @@ text \<open>
       @@{antiquotation "file"} options @{syntax name} |
       @@{antiquotation dir} options @{syntax name} |
       @@{antiquotation url} options @{syntax embedded} |
-      @@{antiquotation cite} options @{syntax cartouche}? (@{syntax name} + @'and')
+      (@@{antiquotation cite} | @@{antiquotation nocite} |
+       @@{antiquotation citet} | @@{antiquotation citep}) @{syntax embedded}
     ;
     styles: '(' (style + ',') ')'
     ;
@@ -323,8 +324,7 @@ text \<open>
   characters, using some type-writer font style.
 
   \<^descr> \<open>@{bash_function name}\<close> prints the given GNU bash function verbatim. The
-  name is checked wrt.\ the Isabelle system environment @{cite
-  "isabelle-system"}.
+  name is checked wrt.\ the Isabelle system environment \<^cite>\<open>"isabelle-system"\<close>.
 
   \<^descr> \<open>@{system_option name}\<close> prints the given system option verbatim. The name
   is checked wrt.\ cumulative \<^verbatim>\<open>etc/options\<close> of all Isabelle components,
@@ -344,18 +344,25 @@ text \<open>
   \<^descr> \<open>@{url name}\<close> produces markup for the given URL, which results in an
   active hyperlink within the text.
 
-  \<^descr> \<open>@{cite name}\<close> produces a citation \<^verbatim>\<open>\cite{name}\<close> in {\LaTeX}, where the
-  name refers to some Bib{\TeX} database entry. This is only checked in
-  batch-mode session builds.
+  \<^descr> \<open>@{cite arg}\<close> produces the Bib{\TeX} citation macro \<^verbatim>\<open>\cite[...]{...}\<close>
+  with its optional and mandatory argument. The analogous \<^verbatim>\<open>\nocite\<close>, and the
+  \<^verbatim>\<open>\citet\<close> and \<^verbatim>\<open>\citep\<close> variants from the \<^verbatim>\<open>natbib\<close>
+  package\<^footnote>\<open>\<^url>\<open>https://ctan.org/pkg/natbib\<close>\<close> are supported as well.
 
-  The variant \<open>@{cite \<open>opt\<close> name}\<close> produces \<^verbatim>\<open>\cite[opt]{name}\<close> with some
-  free-form optional argument. Multiple names are output with commas, e.g.
-  \<open>@{cite foo \<AND> bar}\<close> becomes \<^verbatim>\<open>\cite{foo,bar}\<close>.
+  The argument syntax is uniform for all variants and is usually presented in
+  control-symbol-cartouche form: \<open>\<^cite>\<open>arg\<close>\<close>. The formal syntax of the
+  nested argument language is defined as follows: \<^rail>\<open>arg: (embedded
+  @'in')? (name + 'and') \<newline> (@'using' name)?\<close>
 
-  The {\LaTeX} macro name is determined by the antiquotation option
-  @{antiquotation_option_def cite_macro}, or the configuration option
-  @{attribute cite_macro} in the context. For example, \<open>@{cite [cite_macro =
-  nocite] foobar}\<close> produces \<^verbatim>\<open>\nocite{foobar}\<close>.
+  Here the embedded text is free-form {\LaTeX}, which becomes the optional
+  argument of the \<^verbatim>\<open>\cite\<close> macro. The named items are Bib{\TeX} database
+  entries and become the mandatory argument (separated by comma). The optional
+  part ``\<^theory_text>\<open>using name\<close>'' specifies an alternative {\LaTeX} macro name.
+
+  The validity of Bib{\TeX} database entries is only partially checked in
+  Isabelle/PIDE, when the corresponding \<^verbatim>\<open>.bib\<close> files are open. Ultimately,
+  the \<^verbatim>\<open>bibtex\<close> program will complain about bad input in final document
+  preparation.
 
   \<^descr> @{command "print_antiquotations"} prints all document antiquotations that
   are defined in the current context; the ``\<open>!\<close>'' option indicates extra
@@ -597,7 +604,7 @@ text \<open>
     \end{tabular}
     \<^medskip>
 
-  The Isabelle document preparation system @{cite "isabelle-system"} allows
+  The Isabelle document preparation system \<^cite>\<open>"isabelle-system"\<close> allows
   tagged command regions to be presented specifically, e.g.\ to fold proof
   texts, or drop parts of the text completely.
 
@@ -619,7 +626,7 @@ text \<open>
   the meaning of arbitrary tags to ``keep'', ``drop'', or ``fold'' the
   corresponding parts of the text. Logic sessions may also specify ``document
   versions'', where given tags are interpreted in some particular way. Again
-  see @{cite "isabelle-system"} for further details.
+  see \<^cite>\<open>"isabelle-system"\<close> for further details.
 \<close>
 
 

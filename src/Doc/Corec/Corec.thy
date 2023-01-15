@@ -17,7 +17,7 @@ section \<open>Introduction
   \label{sec:introduction}\<close>
 
 text \<open>
-Isabelle's (co)datatype package @{cite "isabelle-datatypes"} offers a convenient
+Isabelle's (co)datatype package \<^cite>\<open>"isabelle-datatypes"\<close> offers a convenient
 syntax for introducing codatatypes. For example, the type of (infinite) streams
 can be defined as follows (cf. \<^file>\<open>~~/src/HOL/Library/Stream.thy\<close>):
 \<close>
@@ -70,13 +70,13 @@ principle grow in expressiveness as we interact with it. In process algebra
 terminology, corecursion and coinduction take place \emph{up to} friendly
 contexts.
 
-The package fully adheres to the LCF philosophy @{cite mgordon79}: The
+The package fully adheres to the LCF philosophy \<^cite>\<open>mgordon79\<close>: The
 characteristic theorems associated with the specified corecursive functions are
 derived rather than introduced axiomatically.
 (Exceptionally, most of the internal proof obligations are omitted if the
 \<open>quick_and_dirty\<close> option is enabled.)
 The package is described in a pair of scientific papers
-@{cite "blanchette-et-al-2015-fouco" and "blanchette-et-al-201x-amico"}. Some
+\<^cite>\<open>"blanchette-et-al-2015-fouco" and "blanchette-et-al-201x-amico"\<close>. Some
 of the text and examples below originate from there.
 
 This tutorial is organized as follows:
@@ -137,7 +137,7 @@ subsection \<open>Simple Corecursion
   \label{ssec:simple-corecursion}\<close>
 
 text \<open>
-The case studies by Rutten~@{cite rutten05} and Hinze~@{cite hinze10} on stream
+The case studies by Rutten~\<^cite>\<open>rutten05\<close> and Hinze~\<^cite>\<open>hinze10\<close> on stream
 calculi serve as our starting point. The following definition of pointwise sum
 can be performed with either \keyw{primcorec} or @{command corec}:
 \<close>
@@ -229,7 +229,7 @@ streams by primitive corecursion and registers it as friendly:
 text \<open>
 \noindent
 In general, the arguments may be any bounded natural functor (BNF)
-@{cite "isabelle-datatypes"}, with the restriction that the target codatatype
+\<^cite>\<open>"isabelle-datatypes"\<close>, with the restriction that the target codatatype
 (\<^typ>\<open>nat stream\<close>) may occur only in a \emph{live} position of the BNF. For
 this reason, the following function, on unbounded sets, cannot be registered as
 a friend:
@@ -323,7 +323,7 @@ finite number of unguarded recursive calls perform this calculation before
 reaching a guarded corecursive call. Intuitively, the unguarded recursive call
 can be unfolded to arbitrary finite depth, ultimately yielding a purely
 corecursive definition. An example is the \<^term>\<open>primes\<close> function from Di
-Gianantonio and Miculan @{cite "di-gianantonio-miculan-2003"}:
+Gianantonio and Miculan \<^cite>\<open>"di-gianantonio-miculan-2003"\<close>:
 \<close>
 
     corecursive primes :: "nat \<Rightarrow> nat \<Rightarrow> nat stream" where
@@ -356,7 +356,7 @@ most finitely often before taking the then branch and producing one constructor.
 There is a slight complication when \<open>m = 0 \<and> n > 1\<close>: Without the first
 disjunct in the \<open>if\<close> condition, the function could stall. (This corner
 case was overlooked in the original example
-@{cite "di-gianantonio-miculan-2003"}.)
+\<^cite>\<open>"di-gianantonio-miculan-2003"\<close>.)
 
 In the following examples, termination is discharged automatically by
 @{command corec} by invoking @{method lexicographic_order}:
@@ -640,7 +640,7 @@ function over a codatatype.
 
 The syntactic entity \synt{target} can be used to specify a local context,
 \synt{fix} denotes name with an optional type signature, and \synt{prop} denotes
-a HOL proposition @{cite "isabelle-isar-ref"}.
+a HOL proposition \<^cite>\<open>"isabelle-isar-ref"\<close>.
 
 The optional target is optionally followed by a combination of the following
 options:
@@ -692,7 +692,7 @@ friendly.
 
 The syntactic entity \synt{target} can be used to specify a local context,
 \synt{fix} denotes name with an optional type signature, and \synt{prop} denotes
-a HOL proposition @{cite "isabelle-isar-ref"}.
+a HOL proposition \<^cite>\<open>"isabelle-isar-ref"\<close>.
 
 The optional target is optionally followed by a combination of the following
 options:
@@ -732,7 +732,7 @@ instance of a (possibly polymorphic) codatatype and notes the result with the
 specified prefix.
 
 The syntactic entity \synt{name} denotes an identifier and \synt{type} denotes a
-type @{cite "isabelle-isar-ref"}.
+type \<^cite>\<open>"isabelle-isar-ref"\<close>.
 \<close>
 
 
@@ -784,7 +784,7 @@ For a function \<^term>\<open>f\<close> over codatatype \<open>t\<close>, the @{
 \item[\<open>f.\<close>\hthm{code} \<open>[code]\<close>\rm:] ~ \\
 @{thm sexp.code[no_vars]} \\
 The \<open>[code]\<close> attribute is set by the \<open>code\<close> plugin
-@{cite "isabelle-datatypes"}.
+\<^cite>\<open>"isabelle-datatypes"\<close>.
 
 \item[\<open>f.\<close>\hthm{coinduct} \<open>[consumes 1, case_names t, case_conclusion D\<^sub>1 \<dots>
   D\<^sub>n]\<close>\rm:] ~ \\

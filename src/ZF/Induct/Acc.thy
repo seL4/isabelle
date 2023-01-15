@@ -8,7 +8,7 @@ section \<open>The accessible part of a relation\<close>
 theory Acc imports ZF begin
 
 text \<open>
-  Inductive definition of \<open>acc(r)\<close>; see @{cite "paulin-tlca"}.
+  Inductive definition of \<open>acc(r)\<close>; see \<^cite>\<open>"paulin-tlca"\<close>.
 \<close>
 
 consts

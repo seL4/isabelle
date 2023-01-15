@@ -276,7 +276,7 @@ where
 text \<open>
   To see how the automatic termination proofs work, let's look at an
   example where it fails\footnote{For a detailed discussion of the
-  termination prover, see @{cite bulwahnKN07}}:
+  termination prover, see \<^cite>\<open>bulwahnKN07\<close>}:
 
 \end{isamarkuptext}  
 \cmd{fun} \<open>fails :: "nat \<Rightarrow> nat list \<Rightarrow> nat"\<close>\\%
@@ -332,7 +332,7 @@ text \<open>
   more powerful \<open>size_change\<close> method, which uses a variant of
   the size-change principle, together with some other
   techniques. While the details are discussed
-  elsewhere @{cite krauss_phd},
+  elsewhere \<^cite>\<open>krauss_phd\<close>,
   here are a few typical situations where
   \<open>lexicographic_order\<close> has difficulties and \<open>size_change\<close>
   may be worth a try:

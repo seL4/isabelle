@@ -130,7 +130,7 @@ Function @{const abs_acyc} is only defined on acyclic lists and not executable f
 Type \<open>dlist\<close> in Section~\ref{sec:partiality} is defined in the same manner.
 
 The following command sets up infrastructure for lifting functions on @{typ "nat list"}
-to @{typ acyc} (used by @{command_def lift_definition} below) \cite{isabelle-isar-ref}.\<close>
+to @{typ acyc} (used by @{command_def lift_definition} below) \<^cite>\<open>"isabelle-isar-ref"\<close>.\<close>
 
 setup_lifting type_definition_acyc
 

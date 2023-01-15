@@ -100,7 +100,7 @@ text \<open>
   particular print mode features. For example, @{command
   "print_state"}~\<open>(latex)\<close> prints the current proof state with mathematical
   symbols and special characters represented in {\LaTeX} source, according to
-  the Isabelle style @{cite "isabelle-system"}.
+  the Isabelle style \<^cite>\<open>"isabelle-system"\<close>.
 
   Note that antiquotations (cf.\ \secref{sec:antiq}) provide a more systematic
   way to include formal items into the printed text document.
@@ -273,7 +273,7 @@ text \<open>
   to abstract syntax, and the pretty printing. Special case annotations
   provide a simple means of specifying infix operators and binders.
 
-  Isabelle mixfix syntax is inspired by {\OBJ} @{cite OBJ}. It allows to
+  Isabelle mixfix syntax is inspired by {\OBJ} \<^cite>\<open>OBJ\<close>. It allows to
   specify any context-free priority grammar, which is more general than the
   fixity declarations of ML and Prolog.
 
@@ -411,7 +411,7 @@ text \<open>
 
   \<^medskip>
   Note that the general idea of pretty printing with blocks and breaks is
-  described in @{cite "paulson-ml2"}; it goes back to @{cite "Oppen:1980"}.
+  described in \<^cite>\<open>"paulson-ml2"\<close>; it goes back to \<^cite>\<open>"Oppen:1980"\<close>.
 \<close>
 
 
@@ -452,7 +452,7 @@ subsection \<open>Binders\<close>
 text \<open>
   A \<^emph>\<open>binder\<close> is a variable-binding construct such as a quantifier. The idea
   to formalize \<open>\<forall>x. b\<close> as \<open>All (\<lambda>x. b)\<close> for \<open>All :: ('a \<Rightarrow> bool) \<Rightarrow> bool\<close>
-  already goes back to @{cite church40}. Isabelle declarations of certain
+  already goes back to \<^cite>\<open>church40\<close>. Isabelle declarations of certain
   higher-order operators may be annotated with @{keyword_def "binder"}
   annotations as follows:
 
@@ -955,8 +955,7 @@ text \<open>
   carefully by syntax transformations.
 
   Pre-terms are further processed by the so-called \<^emph>\<open>check\<close> and \<^emph>\<open>uncheck\<close>
-  phases that are intertwined with type-inference (see also @{cite
-  "isabelle-implementation"}). The latter allows to operate on higher-order
+  phases that are intertwined with type-inference (see also \<^cite>\<open>"isabelle-implementation"\<close>). The latter allows to operate on higher-order
   abstract syntax with proper binding and type information already available.
 
   As a rule of thumb, anything that manipulates bindings of variables or

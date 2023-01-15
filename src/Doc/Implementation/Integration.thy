@@ -15,8 +15,8 @@ text \<open>
   stateless manner. Historically, the sequence of transitions was wrapped up
   as sequential command loop, such that commands are applied one-by-one. In
   contemporary Isabelle/Isar, processing toplevel commands usually works in
-  parallel in multi-threaded Isabelle/ML @{cite "Wenzel:2009" and
-  "Wenzel:2013:ITP"}.
+  parallel in multi-threaded Isabelle/ML \<^cite>\<open>"Wenzel:2009" and
+  "Wenzel:2013:ITP"\<close>.
 \<close>
 
 

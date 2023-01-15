@@ -9,7 +9,7 @@ theory HoareEx imports Denotational begin
 
 text \<open>
   An example from the HOLCF paper by Müller, Nipkow, Oheimb, Slotosch
-  @{cite MuellerNvOS99}.  It demonstrates fixpoint reasoning by showing
+  \<^cite>\<open>MuellerNvOS99\<close>.  It demonstrates fixpoint reasoning by showing
   the correctness of the Hoare rule for while-loops.
 \<close>
 

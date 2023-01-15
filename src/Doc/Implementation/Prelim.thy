@@ -50,7 +50,7 @@ text \<open>
   For example, there would be data for canonical introduction and elimination
   rules for arbitrary operators (depending on the object-logic and
   application), which enables users to perform standard proof steps implicitly
-  (cf.\ the \<open>rule\<close> method @{cite "isabelle-isar-ref"}).
+  (cf.\ the \<open>rule\<close> method \<^cite>\<open>"isabelle-isar-ref"\<close>).
 
   \<^medskip>
   Thus Isabelle/Isar is able to bring forth more and more concepts
