@@ -61,7 +61,7 @@ object Update {
       else {
         Sessions.load_structure(options, dirs = dirs, select_dirs = select_dirs)
           .selection(Sessions.Selection(sessions = base_logics))
-          .build_topological_order.toSet
+          .build_graph.domain
       }
 
     // test
