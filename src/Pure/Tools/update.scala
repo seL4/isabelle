@@ -27,11 +27,13 @@ object Update {
               case None => upd(lang1, body)
             }
           }
+          else if (update_cite && lang1.is_antiquotation) {
+            List(XML.Text(Bibtex.update_cite_antiquotation(XML.content(body))))
+          }
           else upd(lang1, body)
         case XML.Elem(_, body) => upd(lang, body)
-        case XML.Text(s)
-        if update_cite && (lang.is_document || lang.is_antiquotation) =>
-          List(XML.Text(Bibtex.update_cite(s)))
+        case XML.Text(s) if update_cite && lang.is_document =>
+          List(XML.Text(Bibtex.update_cite_commands(s)))
         case t => List(t)
       }
     upd(Markup.Language.outer, xml)

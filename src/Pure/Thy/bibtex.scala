@@ -732,31 +732,36 @@ object Bibtex {
   }
 
   private val Cite_Command = """\\(cite|nocite|citet|citep)((?:\[[^\]]*\])?)\{([^}]*)\}""".r
-  private val Cite_Antiq = """@\{cite\s*([^}]*)\}""".r
   private val Cite_Macro = """\[\s*cite_macro\s*=\s*"?(\w+)"?\]\s*""".r
 
-  def update_cite(str: String): String = {
-    val str1 =
-      Cite_Command.replaceAllIn(str, { m =>
-        val name = m.group(1)
-        val loc = m.group(2)
-        val location =
-          if (loc.startsWith("[") && loc.endsWith("]")) loc.substring(1, loc.length - 1)
-          else loc
-        val citations = Library.space_explode(',', m.group(3)).map(_.trim)
-        Regex.quoteReplacement(cite_antiquotation(name, location, citations))
-      })
-    val str2 =
-      Cite_Antiq.replaceAllIn(str1, { m =>
-        val body0 = m.group(1)
+  def update_cite_commands(str: String): String =
+    Cite_Command.replaceAllIn(str, { m =>
+      val name = m.group(1)
+      val loc = m.group(2)
+      val location =
+        if (loc.startsWith("[") && loc.endsWith("]")) loc.substring(1, loc.length - 1)
+        else loc
+      val citations = Library.space_explode(',', m.group(3)).map(_.trim)
+      Regex.quoteReplacement(cite_antiquotation(name, location, citations))
+    })
+
+  def update_cite_antiquotation(str: String): String = {
+    val opt_body =
+      for {
+        str1 <- Library.try_unprefix("@{cite", str)
+        str2 <- Library.try_unsuffix("}", str1)
+      } yield str2.trim
+
+    opt_body match {
+      case None => str
+      case Some(body0) =>
         val (name, body1) =
           Cite_Macro.findFirstMatchIn(body0) match {
             case None => ("cite", body0)
-            case Some(m1) => (m1.group(1), Cite_Macro.replaceAllIn(body0, ""))
+            case Some(m) => (m.group(1), Cite_Macro.replaceAllIn(body0, ""))
           }
         val body2 = body1.replace("""\<close>""", """\<close> in""")
-        Regex.quoteReplacement(cite_antiquotation(name, body2))
-      })
-    str2
+        cite_antiquotation(name, body2)
+    }
   }
 }
