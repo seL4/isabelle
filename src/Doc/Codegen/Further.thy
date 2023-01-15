@@ -174,7 +174,7 @@ text \<open>
   can be generated.  But this not the case: internally, the term
   \<open>fun_power.powers\<close> is an abbreviation for the foundational
   term @{term [source] "power.powers (\<lambda>n (f :: 'a \<Rightarrow> 'a). f ^^ n)"}
-  (see @{cite "isabelle-locale"} for the details behind).
+  (see \<^cite>\<open>"isabelle-locale"\<close> for the details behind).
 
   Fortunately, a succint solution is available: a dedicated
   rewrite definition:
@@ -212,7 +212,7 @@ text \<open>
   If you consider imperative data structures as inevitable for a
   specific application, you should consider \emph{Imperative
   Functional Programming with Isabelle/HOL}
-  @{cite "bulwahn-et-al:2008:imperative"}; the framework described there
+  \<^cite>\<open>"bulwahn-et-al:2008:imperative"\<close>; the framework described there
   is available in session \<open>Imperative_HOL\<close>, together with a
   short primer document.
 \<close>

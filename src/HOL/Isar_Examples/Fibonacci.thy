@@ -19,7 +19,7 @@ theory Fibonacci
 begin
 
 text_raw \<open>\<^footnote>\<open>Isar version by Gertrud Bauer. Original tactic script by Larry
-  Paulson. A few proofs of laws taken from @{cite "Concrete-Math"}.\<close>\<close>
+  Paulson. A few proofs of laws taken from \<^cite>\<open>"Concrete-Math"\<close>.\<close>\<close>
 
 subsection \<open>Fibonacci numbers\<close>
 
@@ -42,11 +42,11 @@ theorem fib_induct: "P 0 \<Longrightarrow> P 1 \<Longrightarrow> (\<And>n. P (n 
 
 subsection \<open>Fib and gcd commute\<close>
 
-text \<open>A few laws taken from @{cite "Concrete-Math"}.\<close>
+text \<open>A few laws taken from \<^cite>\<open>"Concrete-Math"\<close>.\<close>
 
 lemma fib_add: "fib (n + k + 1) = fib (k + 1) * fib (n + 1) + fib k * fib n"
   (is "?P n")
-  \<comment> \<open>see @{cite \<open>page 280\<close> "Concrete-Math"}\<close>
+  \<comment> \<open>see \<^cite>\<open>\<open>page 280\<close> in "Concrete-Math"\<close>\<close>
 proof (induct n rule: fib_induct)
   show "?P 0" by simp
   show "?P 1" by simp

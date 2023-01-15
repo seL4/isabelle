@@ -296,7 +296,7 @@ proposition Urysohn:
 
 subsection\<open>Dugundji's Extension Theorem and Tietze Variants\<close>
 
-text \<open>See \cite{dugundji}.\<close>
+text \<open>See \<^cite>\<open>"dugundji"\<close>.\<close>
 
 lemma convex_supp_sum:
   assumes "convex S" and 1: "supp_sum u I = 1"

@@ -149,7 +149,7 @@ conjunction. One could derive a new induction principle as well (see
 instead.  Simple uses of \isacommand{fun} are described in
 \S\ref{sec:fun} below.  Advanced applications, including functions
 over nested datatypes like \<open>term\<close>, are discussed in a
-separate tutorial~@{cite "isabelle-function"}.
+separate tutorial~\<^cite>\<open>"isabelle-function"\<close>.
 
 Of course, you may also combine mutual and nested recursion of datatypes. For example,
 constructor \<open>Sum\<close> in \S\ref{sec:datatype-mut-rec} could take a list of

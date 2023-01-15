@@ -18,7 +18,7 @@ and seeing Isabelle typeset it for them:
 @{thm[display,mode=latex_sum] sum_Suc_diff[no_vars]}
 No typos, no omissions, no sweat.
 If you have not experienced that joy, read Chapter 4, \emph{Presenting
-Theories}, @{cite LNCS2283} first.
+Theories}, \<^cite>\<open>LNCS2283\<close> first.
 
 If you have mastered the art of Isabelle's \emph{antiquotations},
 i.e.\ things like the above \verb!@!\verb!{thm...}!, beware: in your vanity
@@ -234,7 +234,7 @@ to perform multiple $\eta$-expansions.
 \subsection{Inference rules}
 
 To print theorems as inference rules you need to include Didier
-R\'emy's \texttt{mathpartir} package~@{cite mathpartir}
+R\'emy's \texttt{mathpartir} package~\<^cite>\<open>mathpartir\<close>
 for typesetting inference rules in your \LaTeX\ file.
 
 Writing \verb!@!\verb!{thm[mode=Rule] conjI}! produces

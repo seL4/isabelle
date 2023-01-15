@@ -250,8 +250,7 @@ qed
 subsection \<open>A few examples from ``Introduction to Isabelle''\<close>
 
 text \<open>
-  We rephrase some of the basic reasoning examples of @{cite
-  "isabelle-intro"}, using HOL rather than FOL.
+  We rephrase some of the basic reasoning examples of \<^cite>\<open>"isabelle-intro"\<close>, using HOL rather than FOL.
 \<close>
 
 

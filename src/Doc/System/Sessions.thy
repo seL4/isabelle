@@ -36,7 +36,7 @@ text \<open>
   additional project directories given by the user.
 
   The ROOT file format follows the lexical conventions of the \<^emph>\<open>outer syntax\<close>
-  of Isabelle/Isar, see also @{cite "isabelle-isar-ref"}. This defines common
+  of Isabelle/Isar, see also \<^cite>\<open>"isabelle-isar-ref"\<close>. This defines common
   forms like identifiers, names, quoted strings, verbatim text, nested
   comments etc. The grammar for @{syntax chapter_def}, @{syntax chapter_entry}
   and @{syntax session_entry} is given as syntax diagram below. Each ROOT file
@@ -45,7 +45,7 @@ text \<open>
   chapter is ``\<open>Unsorted\<close>''. Chapter definitions, which are optional, allow to
   associate additional information.
 
-  Isabelle/jEdit @{cite "isabelle-jedit"} includes a simple editing mode
+  Isabelle/jEdit \<^cite>\<open>"isabelle-jedit"\<close> includes a simple editing mode
   \<^verbatim>\<open>isabelle-root\<close> for session ROOT files, which is enabled by default for any
   file of that name.
 
@@ -192,7 +192,7 @@ text \<open>
   tools require global configuration during system startup. An empty list of
   \<open>patterns\<close> defaults to \<^verbatim>\<open>"*:classpath/*.jar"\<close>, which fits to the naming
   convention of JAR modules produced by the Isabelle/Isar command
-  \<^theory_text>\<open>scala_build_generated_files\<close> @{cite "isabelle-isar-ref"}.
+  \<^theory_text>\<open>scala_build_generated_files\<close> \<^cite>\<open>"isabelle-isar-ref"\<close>.
 \<close>
 
 
@@ -211,7 +211,7 @@ section \<open>System build options \label{sec:system-options}\<close>
 
 text \<open>
   See \<^file>\<open>~~/etc/options\<close> for the main defaults provided by the Isabelle
-  distribution. Isabelle/jEdit @{cite "isabelle-jedit"} includes a simple
+  distribution. Isabelle/jEdit \<^cite>\<open>"isabelle-jedit"\<close> includes a simple
   editing mode \<^verbatim>\<open>isabelle-options\<close> for this file-format.
 
   The following options are particularly relevant to build Isabelle sessions,

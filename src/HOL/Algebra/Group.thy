@@ -14,7 +14,7 @@ section \<open>Monoids and Groups\<close>
 subsection \<open>Definitions\<close>
 
 text \<open>
-  Definitions follow @{cite "Jacobson:1985"}.
+  Definitions follow \<^cite>\<open>"Jacobson:1985"\<close>.
 \<close>
 
 record 'a monoid =  "'a partial_object" +

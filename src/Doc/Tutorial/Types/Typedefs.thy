@@ -213,7 +213,7 @@ Although \<^typ>\<open>three\<close> could be defined in one line, we have chose
 example to demonstrate \isacommand{typedef} because its simplicity makes the
 key concepts particularly easy to grasp. If you would like to see a
 non-trivial example that cannot be defined more directly, we recommend the
-definition of \emph{finite multisets} in the Library~@{cite "HOL-Library"}.
+definition of \emph{finite multisets} in the Library~\<^cite>\<open>"HOL-Library"\<close>.
 
 Let us conclude by summarizing the above procedure for defining a new type.
 Given some abstract axiomatic description $P$ of a type $ty$ in terms of a

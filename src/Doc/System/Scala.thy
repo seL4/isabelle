@@ -13,7 +13,7 @@ text \<open>
     \<^item> Isabelle/ML is for \<^emph>\<open>mathematics\<close>, to develop tools within the context
     of symbolic logic, e.g.\ for constructing proofs or defining
     domain-specific formal languages. See the \<^emph>\<open>Isabelle/Isar implementation
-    manual\<close> @{cite "isabelle-implementation"} for more details.
+    manual\<close> \<^cite>\<open>"isabelle-implementation"\<close> for more details.
 
     \<^item> Isabelle/Scala is for \<^emph>\<open>physics\<close>, to connect with the world of systems
     and services, including editors and IDE frameworks.
@@ -27,7 +27,7 @@ text \<open>
     (\secref{sec:scala-functions}) via the PIDE protocol: execution happens
     within the running Java process underlying Isabelle/Scala.
 
-    \<^item> The \<^verbatim>\<open>Console/Scala\<close> plugin of Isabelle/jEdit @{cite "isabelle-jedit"}
+    \<^item> The \<^verbatim>\<open>Console/Scala\<close> plugin of Isabelle/jEdit \<^cite>\<open>"isabelle-jedit"\<close>
     operates on the running Java application, using the Scala
     read-eval-print-loop (REPL).
 

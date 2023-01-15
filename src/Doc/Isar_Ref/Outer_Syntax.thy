@@ -26,8 +26,7 @@ text \<open>
   theory, while \<^verbatim>\<open>x + y\<close> without quotes is not.
 
   Printed theory documents usually omit quotes to gain readability (this is a
-  matter of {\LaTeX} macro setup, say via \<^verbatim>\<open>\isabellestyle\<close>, see also @{cite
-  "isabelle-system"}). Experienced users of Isabelle/Isar may easily
+  matter of {\LaTeX} macro setup, say via \<^verbatim>\<open>\isabellestyle\<close>, see also \<^cite>\<open>"isabelle-system"\<close>). Experienced users of Isabelle/Isar may easily
   reconstruct the lost technical information, while mere readers need not care
   about quotes at all.
 \<close>

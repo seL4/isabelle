@@ -263,7 +263,7 @@ subsection \<open>Computations using the \<open>computation_conv\<close> antiquo
 text \<open>
   Computations are a device to implement fast proof procedures.
   Then results of a computation are often assumed to be trustable
-  and thus wrapped in oracles (see @{cite "isabelle-isar-ref"}),
+  and thus wrapped in oracles (see \<^cite>\<open>"isabelle-isar-ref"\<close>),
   as in the following example:\footnote{
   The technical details how numerals are dealt with are given later in
   \secref{sec:literal_input}.}
@@ -295,7 +295,7 @@ ML %quote \<open>
 text \<open>
     \<^item> Antiquotation @{ML_antiquotation computation_conv} basically yields
       a conversion of type \<^ML_type>\<open>Proof.context -> cterm -> thm\<close>
-      (see further @{cite "isabelle-implementation"}).
+      (see further \<^cite>\<open>"isabelle-implementation"\<close>).
 
     \<^item> The antiquotation expects one functional argument to bridge the
       \qt{untrusted gap};  this can be done e.g.~using an oracle.  Since that oracle

@@ -23,7 +23,7 @@ lemma foo unfolding foo_def ..
 
 paragraph \<open>Another paragraph.\<close>
 
-text \<open>See also @{cite \<open>\S3\<close> "isabelle-system"}.\<close>
+text \<open>See also \<^cite>\<open>\<open>\S3\<close> in "isabelle-system"\<close>.\<close>
 
 
 section \<open>Formal proof of Cantor's theorem\<close>

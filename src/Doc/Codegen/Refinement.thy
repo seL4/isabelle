@@ -265,7 +265,7 @@ text %quote \<open>
 \<close>
 
 text \<open>
-  See further @{cite "Haftmann-Kraus-Kuncar-Nipkow:2013:data_refinement"}
+  See further \<^cite>\<open>"Haftmann-Kraus-Kuncar-Nipkow:2013:data_refinement"\<close>
   for the meta theory of datatype refinement involving invariants.
 
   Typical data structures implemented by representations involving

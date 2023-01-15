@@ -17,7 +17,7 @@ and the order of the index set matters.)
 Our definition is quite standard: $s:=\sum_{x\in A} f(x)$ is the limit of finite sums $s_F:=\sum_{x\in F} f(x)$ for increasing $F$.
 That is, $s$ is the limit of the net $s_F$ where $F$ are finite subsets of $A$ ordered by inclusion.
 We believe that this is the standard definition for such sums.
-See, e.g., Definition 4.11 in \cite{conway2013course}.
+See, e.g., Definition 4.11 in \<^cite>\<open>"conway2013course"\<close>.
 This definition is quite general: it is well-defined whenever $f$ takes values in some
 commutative monoid endowed with a Hausdorff topology.
 (Examples are reals, complex numbers, normed vector spaces, and more.)\<close>

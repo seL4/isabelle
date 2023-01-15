@@ -7,9 +7,9 @@ begin
 chapter \<open>The Isabelle/Isar Framework \label{ch:isar-framework}\<close>
 
 text \<open>
-  Isabelle/Isar @{cite "Wenzel:1999:TPHOL" and "Wenzel-PhD" and
+  Isabelle/Isar \<^cite>\<open>"Wenzel:1999:TPHOL" and "Wenzel-PhD" and
   "Nipkow-TYPES02" and "Wiedijk:1999:Mizar" and "Wenzel-Paulson:2006" and
-  "Wenzel:2006:Festschrift"} is a generic framework for developing formal
+  "Wenzel:2006:Festschrift"\<close> is a generic framework for developing formal
   mathematical documents with full proof checking. Definitions, statements and
   proofs are organized as theories. A collection of theories sources may be
   presented as a printed document; see also \chref{ch:document-prep}.
@@ -32,10 +32,9 @@ text \<open>
   intelligible text to the human reader.
 
   The Isar proof language has emerged from careful analysis of some inherent
-  virtues of the logical framework Isabelle/Pure @{cite "paulson-found" and
-  "paulson700"}, notably composition of higher-order natural deduction rules,
-  which is a generalization of Gentzen's original calculus @{cite
-  "Gentzen:1935"}. The approach of generic inference systems in Pure is
+  virtues of the logical framework Isabelle/Pure \<^cite>\<open>"paulson-found" and
+  "paulson700"\<close>, notably composition of higher-order natural deduction rules,
+  which is a generalization of Gentzen's original calculus \<^cite>\<open>"Gentzen:1935"\<close>. The approach of generic inference systems in Pure is
   continued by Isar towards actual proof texts. See also
   \figref{fig:natural-deduction}
 
@@ -88,14 +87,13 @@ qed\<close>}
 
   \<^medskip>
   Concrete applications require another intermediate layer: an object-logic.
-  Isabelle/HOL @{cite "isa-tutorial"} (simply-typed set-theory) is most
+  Isabelle/HOL \<^cite>\<open>"isa-tutorial"\<close> (simply-typed set-theory) is most
   commonly used; elementary examples are given in the directories
   \<^dir>\<open>~~/src/Pure/Examples\<close> and \<^dir>\<open>~~/src/HOL/Examples\<close>. Some examples
   demonstrate how to start a fresh object-logic from Isabelle/Pure, and use
   Isar proofs from the very start, despite the lack of advanced proof tools at
   such an early stage (e.g.\ see
-  \<^file>\<open>~~/src/Pure/Examples/Higher_Order_Logic.thy\<close>). Isabelle/FOL @{cite
-  "isabelle-logics"} and Isabelle/ZF @{cite "isabelle-ZF"} also work, but are
+  \<^file>\<open>~~/src/Pure/Examples/Higher_Order_Logic.thy\<close>). Isabelle/FOL \<^cite>\<open>"isabelle-logics"\<close> and Isabelle/ZF \<^cite>\<open>"isabelle-ZF"\<close> also work, but are
   much less developed.
 
   In order to illustrate natural deduction in Isar, we shall subsequently
@@ -276,8 +274,8 @@ text \<open>
 section \<open>The Pure framework \label{sec:framework-pure}\<close>
 
 text \<open>
-  The Pure logic @{cite "paulson-found" and "paulson700"} is an intuitionistic
-  fragment of higher-order logic @{cite "church40"}. In type-theoretic
+  The Pure logic \<^cite>\<open>"paulson-found" and "paulson700"\<close> is an intuitionistic
+  fragment of higher-order logic \<^cite>\<open>"church40"\<close>. In type-theoretic
   parlance, there are three levels of \<open>\<lambda>\<close>-calculus with corresponding arrows
   \<open>\<Rightarrow>\<close>/\<open>\<And>\<close>/\<open>\<Longrightarrow>\<close>:
 
@@ -291,14 +289,13 @@ text \<open>
 
   Here only the types of syntactic terms, and the propositions of proof terms
   have been shown. The \<open>\<lambda>\<close>-structure of proofs can be recorded as an optional
-  feature of the Pure inference kernel @{cite "Berghofer-Nipkow:2000:TPHOL"},
+  feature of the Pure inference kernel \<^cite>\<open>"Berghofer-Nipkow:2000:TPHOL"\<close>,
   but the formal system can never depend on them due to \<^emph>\<open>proof irrelevance\<close>.
 
   On top of this most primitive layer of proofs, Pure implements a generic
-  calculus for nested natural deduction rules, similar to @{cite
-  "Schroeder-Heister:1984"}. Here object-logic inferences are internalized as
+  calculus for nested natural deduction rules, similar to \<^cite>\<open>"Schroeder-Heister:1984"\<close>. Here object-logic inferences are internalized as
   formulae over \<open>\<And>\<close> and \<open>\<Longrightarrow>\<close>. Combining such rule statements may involve
-  higher-order unification @{cite "paulson-natural"}.
+  higher-order unification \<^cite>\<open>"paulson-natural"\<close>.
 \<close>
 
 
@@ -364,8 +361,7 @@ text \<open>
   connectives \<open>\<And>\<close> and \<open>\<Longrightarrow>\<close> commute. So we may assume w.l.o.g.\ that rule
   statements always observe the normal form where quantifiers are pulled in
   front of implications at each level of nesting. This means that any Pure
-  proposition may be presented as a \<^emph>\<open>Hereditary Harrop Formula\<close> @{cite
-  "Miller:1991"} which is of the form \<open>\<And>x\<^sub>1 \<dots> x\<^sub>m. H\<^sub>1 \<Longrightarrow> \<dots> H\<^sub>n \<Longrightarrow> A\<close> for \<open>m, n
+  proposition may be presented as a \<^emph>\<open>Hereditary Harrop Formula\<close> \<^cite>\<open>"Miller:1991"\<close> which is of the form \<open>\<And>x\<^sub>1 \<dots> x\<^sub>m. H\<^sub>1 \<Longrightarrow> \<dots> H\<^sub>n \<Longrightarrow> A\<close> for \<open>m, n
   \<ge> 0\<close>, and \<open>A\<close> atomic, and \<open>H\<^sub>1, \<dots>, H\<^sub>n\<close> being recursively of the same
   format. Following the convention that outermost quantifiers are implicit,
   Horn clauses \<open>A\<^sub>1 \<Longrightarrow> \<dots> A\<^sub>n \<Longrightarrow> A\<close> are a special case of this.
@@ -572,7 +568,7 @@ text \<open>
   may be populated later. The command \<^theory_text>\<open>method_setup\<close> allows to define proof
   methods semantically in Isabelle/ML. The Eisbach language allows to define
   proof methods symbolically, as recursive expressions over existing methods
-  @{cite "Matichuk-et-al:2014"}; see also \<^dir>\<open>~~/src/HOL/Eisbach\<close>.
+  \<^cite>\<open>"Matichuk-et-al:2014"\<close>; see also \<^dir>\<open>~~/src/HOL/Eisbach\<close>.
 
   Methods use the facts indicated by \<^theory_text>\<open>then\<close> or \<^theory_text>\<open>using\<close>, and then operate on
   the goal state. Some basic methods are predefined in Pure: ``@{method "-"}''
@@ -635,8 +631,7 @@ text \<open>
   \]
 
   \<^medskip>
-  The most interesting derived context element in Isar is \<^theory_text>\<open>obtain\<close> @{cite
-  \<open>\S5.3\<close> "Wenzel-PhD"}, which supports generalized elimination steps in a
+  The most interesting derived context element in Isar is \<^theory_text>\<open>obtain\<close> \<^cite>\<open>\<open>\S5.3\<close> in "Wenzel-PhD"\<close>, which supports generalized elimination steps in a
   purely forward manner. The \<^theory_text>\<open>obtain\<close> command takes a specification of
   parameters \<open>\<^vec>x\<close> and assumptions \<open>\<^vec>A\<close> to be added to the context,
   together with a proof of a case rule stating that this extension is
@@ -971,8 +966,7 @@ text \<open>
   etc. Due to the flexibility of rule composition
   (\secref{sec:framework-resolution}), substitution of equals by equals is
   covered as well, even substitution of inequalities involving monotonicity
-  conditions; see also @{cite \<open>\S6\<close> "Wenzel-PhD"} and @{cite
-  "Bauer-Wenzel:2001"}.
+  conditions; see also \<^cite>\<open>\<open>\S6\<close> in "Wenzel-PhD"\<close> and \<^cite>\<open>"Bauer-Wenzel:2001"\<close>.
 
   The generic calculational mechanism is based on the observation that rules
   such as \<open>trans:\<close>~\<^prop>\<open>x = y \<Longrightarrow> y = z \<Longrightarrow> x = z\<close> proceed from the premises

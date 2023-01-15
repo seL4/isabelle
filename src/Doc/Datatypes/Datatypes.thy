@@ -29,7 +29,7 @@ section \<open>Introduction
 text \<open>
 The 2013 edition of Isabelle introduced a definitional package for freely
 generated datatypes and codatatypes. This package replaces the earlier
-implementation due to Berghofer and Wenzel @{cite "Berghofer-Wenzel:1999:TPHOL"}.
+implementation due to Berghofer and Wenzel \<^cite>\<open>"Berghofer-Wenzel:1999:TPHOL"\<close>.
 Perhaps the main advantage of the new package is that it supports recursion
 through a large class of non-datatypes, such as finite sets:
 \<close>
@@ -85,14 +85,14 @@ The package is part of \<^theory>\<open>Main\<close>. Additional functionality i
 the theory \<^file>\<open>~~/src/HOL/Library/BNF_Axiomatization.thy\<close>.
 
 The package, like its predecessor, fully adheres to the LCF philosophy
-@{cite mgordon79}: The characteristic theorems associated with the specified
+\<^cite>\<open>mgordon79\<close>: The characteristic theorems associated with the specified
 (co)datatypes are derived rather than introduced axiomatically.%
 \footnote{However, some of the
 internal constructions and most of the internal proof obligations are omitted
 if the \<open>quick_and_dirty\<close> option is enabled.}
 The package is described in a number of scientific papers
-@{cite "traytel-et-al-2012" and "blanchette-et-al-2014-impl" and
-"panny-et-al-2014" and "blanchette-et-al-2015-wit"}.
+\<^cite>\<open>"traytel-et-al-2012" and "blanchette-et-al-2014-impl" and
+"panny-et-al-2014" and "blanchette-et-al-2015-wit"\<close>.
 The central notion is that of a \emph{bounded natural functor} (BNF)---a
 well-behaved type constructor for which nested (co)recursion is supported.
 
@@ -106,7 +106,7 @@ describes how to specify datatypes using the @{command datatype} command.
 
 \item Section \ref{sec:defining-primitively-recursive-functions}, ``Defining
 Primitively Recursive Functions,'' describes how to specify functions
-using @{command primrec}. (A separate tutorial @{cite "isabelle-function"}
+using @{command primrec}. (A separate tutorial \<^cite>\<open>"isabelle-function"\<close>
 describes the more powerful \keyw{fun} and \keyw{function} commands.)
 
 \item Section \ref{sec:defining-codatatypes}, ``Defining Codatatypes,''
@@ -116,7 +116,7 @@ describes how to specify codatatypes using the @{command codatatype} command.
 ``Defining Primitively Corecursive Functions,'' describes how to specify
 functions using the @{command primcorec} and
 @{command primcorecursive} commands. (A separate tutorial
-@{cite "isabelle-corec"} describes the more powerful \keyw{corec} and
+\<^cite>\<open>"isabelle-corec"\<close> describes the more powerful \keyw{corec} and
 \keyw{corecursive} commands.)
 
 \item Section \ref{sec:registering-bounded-natural-functors}, ``Registering
@@ -493,7 +493,7 @@ The @{command datatype} command introduces a set of mutually recursive
 datatypes specified by their constructors.
 
 The syntactic entity \synt{target} can be used to specify a local
-context (e.g., \<open>(in linorder)\<close> @{cite "isabelle-isar-ref"}),
+context (e.g., \<open>(in linorder)\<close> \<^cite>\<open>"isabelle-isar-ref"\<close>),
 and \synt{prop} denotes a HOL proposition.
 
 The optional target is optionally followed by a combination of the following
@@ -531,7 +531,7 @@ define, its type parameters, and additional information:
 \noindent
 The syntactic entity \synt{name} denotes an identifier, \synt{mixfix} denotes
 the usual parenthesized mixfix notation, and \synt{typefree} denotes fixed type
-variable (\<^typ>\<open>'a\<close>, \<^typ>\<open>'b\<close>, \ldots) @{cite "isabelle-isar-ref"}.
+variable (\<^typ>\<open>'a\<close>, \<^typ>\<open>'b\<close>, \ldots) \<^cite>\<open>"isabelle-isar-ref"\<close>.
 
 The optional names preceding the type variables allow to override the default
 names of the set functions (\<open>set\<^sub>1_t\<close>, \ldots, \<open>set\<^sub>m_t\<close>). Type
@@ -566,7 +566,7 @@ can be supplied at the front. If discriminators are enabled (cf.\ the
 \medskip
 
 \noindent
-The syntactic entity \synt{type} denotes a HOL type @{cite "isabelle-isar-ref"}.
+The syntactic entity \synt{type} denotes a HOL type \<^cite>\<open>"isabelle-isar-ref"\<close>.
 
 In addition to the type of a constructor argument, it is possible to specify a
 name for the corresponding selector. The same selector name can be reused for
@@ -602,7 +602,7 @@ text \<open>\blankline\<close>
     ML \<open>Old_Datatype_Data.get_info \<^theory> \<^type_name>\<open>even_nat\<close>\<close>
 
 text \<open>
-The syntactic entity \synt{name} denotes an identifier @{cite "isabelle-isar-ref"}.
+The syntactic entity \synt{name} denotes an identifier \<^cite>\<open>"isabelle-isar-ref"\<close>.
 
 The command is sometimes useful when migrating from the old datatype package to
 the new one.
@@ -1256,7 +1256,7 @@ Recursive functions over datatypes can be specified using the @{command primrec}
 command, which supports primitive recursion, or using the \keyw{fun},
 \keyw{function}, and \keyw{partial_function} commands. In this tutorial, the
 focus is on @{command primrec}; \keyw{fun} and \keyw{function} are described in
-a separate tutorial @{cite "isabelle-function"}.
+a separate tutorial \<^cite>\<open>"isabelle-function"\<close>.
 
 Because it is restricted to primitive recursion, @{command primrec} is less
 powerful than \keyw{fun} and \keyw{function}. However, there are primitively
@@ -1616,7 +1616,7 @@ over datatypes.
 The syntactic entity \synt{target} can be used to specify a local context,
 \synt{fixes} denotes a list of names with optional type signatures,
 \synt{thmdecl} denotes an optional name for the formula that follows, and
-\synt{prop} denotes a HOL proposition @{cite "isabelle-isar-ref"}.
+\synt{prop} denotes a HOL proposition \<^cite>\<open>"isabelle-isar-ref"\<close>.
 
 The optional target is optionally followed by a combination of the following
 options:
@@ -1787,8 +1787,7 @@ Codatatypes can be specified using the @{command codatatype} command. The
 command is first illustrated through concrete examples featuring different
 flavors of corecursion. More examples can be found in the directory
 \<^dir>\<open>~~/src/HOL/Datatype_Examples\<close>. The \emph{Archive of Formal Proofs} also
-includes some useful codatatypes, notably for lazy lists @{cite
-"lochbihler-2010"}.
+includes some useful codatatypes, notably for lazy lists \<^cite>\<open>"lochbihler-2010"\<close>.
 \<close>
 
 
@@ -2080,10 +2079,10 @@ Corecursive functions can be specified using the @{command primcorec} and
 \keyw{prim\-corec\-ursive} commands, which support primitive corecursion.
 Other approaches include the more general \keyw{partial_function} command, the
 \keyw{corec} and \keyw{corecursive} commands, and techniques based on domains
-and topologies @{cite "lochbihler-hoelzl-2014"}. In this tutorial, the focus is
+and topologies \<^cite>\<open>"lochbihler-hoelzl-2014"\<close>. In this tutorial, the focus is
 on @{command primcorec} and @{command primcorecursive}; \keyw{corec} and
 \keyw{corecursive} are described in a separate tutorial
-@{cite "isabelle-corec"}. More examples can be found in the directories
+\<^cite>\<open>"isabelle-corec"\<close>. More examples can be found in the directories
 \<^dir>\<open>~~/src/HOL/Datatype_Examples\<close> and \<^dir>\<open>~~/src/HOL/Corec_Examples\<close>.
 
 Whereas recursive functions consume datatypes one constructor at a time,
@@ -2624,7 +2623,7 @@ of mutually corecursive functions over codatatypes.
 The syntactic entity \synt{target} can be used to specify a local context,
 \synt{fixes} denotes a list of names with optional type signatures,
 \synt{thmdecl} denotes an optional name for the formula that follows, and
-\synt{prop} denotes a HOL proposition @{cite "isabelle-isar-ref"}.
+\synt{prop} denotes a HOL proposition \<^cite>\<open>"isabelle-isar-ref"\<close>.
 
 The optional target is optionally followed by a combination of the following
 options:
@@ -2785,7 +2784,7 @@ subsection \<open>Bounded Natural Functors
 text \<open>
 Bounded natural functors (BNFs) are a semantic criterion for where
 (co)re\-cur\-sion may appear on the right-hand side of an equation
-@{cite "traytel-et-al-2012" and "blanchette-et-al-2015-wit"}.
+\<^cite>\<open>"traytel-et-al-2012" and "blanchette-et-al-2015-wit"\<close>.
 
 An $n$-ary BNF is a type constructor equipped with a map function
 (functorial action), $n$ set functions (natural transformations),
@@ -3105,7 +3104,7 @@ nonemptiness witnesses can be specified; otherwise, default versions are used.
 
 The syntactic entity \synt{target} can be used to specify a local context,
 \synt{type} denotes a HOL type, and \synt{term} denotes a HOL term
-@{cite "isabelle-isar-ref"}.
+\<^cite>\<open>"isabelle-isar-ref"\<close>.
 
 The @{syntax plugins} option indicates which plugins should be enabled
 (\<open>only\<close>) or disabled (\<open>del\<close>). By default, all plugins are enabled.
@@ -3203,7 +3202,7 @@ The syntactic entity \synt{target} can be used to specify a local context,
 \synt{name} denotes an identifier, \synt{typefree} denotes fixed type variable
 (\<^typ>\<open>'a\<close>, \<^typ>\<open>'b\<close>, \ldots), \synt{mixfix} denotes the usual parenthesized
 mixfix notation, and \synt{types} denotes a space-separated list of types
-@{cite "isabelle-isar-ref"}.
+\<^cite>\<open>"isabelle-isar-ref"\<close>.
 
 The @{syntax plugins} option indicates which plugins should be enabled
 (\<open>only\<close>) or disabled (\<open>del\<close>). By default, all plugins are enabled.
@@ -3288,7 +3287,7 @@ that is queried by various tools (e.g., \keyw{function}).
 
 The syntactic entity \synt{target} can be used to specify a local context,
 \synt{name} denotes an identifier, \synt{prop} denotes a HOL proposition, and
-\synt{term} denotes a HOL term @{cite "isabelle-isar-ref"}.
+\synt{term} denotes a HOL term \<^cite>\<open>"isabelle-isar-ref"\<close>.
 
 The syntax resembles that of @{command datatype} and @{command codatatype}
 definitions (Sections
@@ -3410,7 +3409,7 @@ Quickcheck. They can be enabled or disabled individually using the
 text \<open>
 Beyond the standard plugins, the \emph{Archive of Formal Proofs} includes a
 \keyw{derive} command that derives class instances of datatypes
-@{cite "sternagel-thiemann-2015"}.
+\<^cite>\<open>"sternagel-thiemann-2015"\<close>.
 \<close>
 
 subsection \<open>Code Generator

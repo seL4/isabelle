@@ -16,7 +16,7 @@ begin
 
 text \<open>
   A constructive version of the proof of Euclid's theorem by
-  Markus Wenzel and Freek Wiedijk @{cite "Wenzel-Wiedijk-JAR2002"}.
+  Markus Wenzel and Freek Wiedijk \<^cite>\<open>"Wenzel-Wiedijk-JAR2002"\<close>.
 \<close>
 
 lemma factor_greater_one1: "n = m * k \<Longrightarrow> m < n \<Longrightarrow> k < n \<Longrightarrow> Suc 0 < m"

@@ -12,13 +12,13 @@ text \<open>
   abstract syntax\<close> --- but end-users require additional means for reading and
   printing of terms and types. This important add-on outside the logical core
   is called \<^emph>\<open>inner syntax\<close> in Isabelle jargon, as opposed to the \<^emph>\<open>outer
-  syntax\<close> of the theory and proof language @{cite "isabelle-isar-ref"}.
+  syntax\<close> of the theory and proof language \<^cite>\<open>"isabelle-isar-ref"\<close>.
 
-  For example, according to @{cite church40} quantifiers are represented as
+  For example, according to \<^cite>\<open>church40\<close> quantifiers are represented as
   higher-order constants \<open>All :: ('a \<Rightarrow> bool) \<Rightarrow> bool\<close> such that \<open>All (\<lambda>x::'a. B
   x)\<close> faithfully represents the idea that is displayed in Isabelle as \<open>\<forall>x::'a.
   B x\<close> via @{keyword "binder"} notation. Moreover, type-inference in the style
-  of Hindley-Milner @{cite hindleymilner} (and extensions) enables users to
+  of Hindley-Milner \<^cite>\<open>hindleymilner\<close> (and extensions) enables users to
   write \<open>\<forall>x. B x\<close> concisely, when the type \<open>'a\<close> is already clear from the
   context.\<^footnote>\<open>Type-inference taken to the extreme can easily confuse users.
   Beginners often stumble over unexpectedly general types inferred by the
@@ -121,8 +121,7 @@ text %mlref \<open>
 
   \<^medskip>
   Note that the string values that are passed in and out are annotated by the
-  system, to carry further markup that is relevant for the Prover IDE @{cite
-  "isabelle-jedit"}. User code should neither compose its own input strings,
+  system, to carry further markup that is relevant for the Prover IDE \<^cite>\<open>"isabelle-jedit"\<close>. User code should neither compose its own input strings,
   nor try to analyze the output strings. Conceptually this is an abstract
   datatype, encoded as concrete string for historical reasons.
 
@@ -150,8 +149,7 @@ text \<open>
   declaratively via mixfix annotations. Moreover, there are \<^emph>\<open>syntax
   translations\<close> that can be augmented by the user, either declaratively via
   @{command translations} or programmatically via @{command
-  parse_translation}, @{command print_translation} @{cite
-  "isabelle-isar-ref"}. The final scope-resolution is performed by the system,
+  parse_translation}, @{command print_translation} \<^cite>\<open>"isabelle-isar-ref"\<close>. The final scope-resolution is performed by the system,
   according to name spaces for types, term variables and constants determined
   by the context.
 \<close>
@@ -200,7 +198,7 @@ text \<open>
   dual, it prunes type-information before pretty printing.
 
   A typical add-on for the check/uncheck syntax layer is the @{command
-  abbreviation} mechanism @{cite "isabelle-isar-ref"}. Here the user specifies
+  abbreviation} mechanism \<^cite>\<open>"isabelle-isar-ref"\<close>. Here the user specifies
   syntactic definitions that are managed by the system as polymorphic \<open>let\<close>
   bindings. These are expanded during the \<open>check\<close> phase, and contracted during
   the \<open>uncheck\<close> phase, without affecting the type-assignment of the given
@@ -214,7 +212,7 @@ text \<open>
   treats certain type instances of overloaded constants according to the
   ``dictionary construction'' of its logical foundation. This involves ``type
   improvement'' (specialization of slightly too general types) and replacement
-  by certain locale parameters. See also @{cite "Haftmann-Wenzel:2009"}.
+  by certain locale parameters. See also \<^cite>\<open>"Haftmann-Wenzel:2009"\<close>.
 \<close>
 
 text %mlref \<open>

@@ -84,8 +84,8 @@ text \<open>
   When a definitional package is finished, the auxiliary context is reset to
   the target context. The target now holds definitions for terms and theorems
   that stem from the hypothetical \<open>\<DEFINE>\<close> and \<open>\<NOTE>\<close> elements,
-  transformed by the particular target policy (see @{cite \<open>\S4--5\<close>
-  "Haftmann-Wenzel:2009"} for details).
+  transformed by the particular target policy (see \<^cite>\<open>\<open>\S4--5\<close> in
+  "Haftmann-Wenzel:2009"\<close> for details).
 \<close>
 
 text %mlref \<open>
@@ -143,7 +143,7 @@ section \<open>Morphisms and declarations \label{sec:morphisms}\<close>
 text \<open>
   %FIXME
 
-  See also @{cite "Chaieb-Wenzel:2007"}.
+  See also \<^cite>\<open>"Chaieb-Wenzel:2007"\<close>.
 \<close>
 
 end

@@ -12,7 +12,7 @@ begin
 text \<open>
   Curiously, combinators do not include free variables.
 
-  Example taken from @{cite camilleri92}.
+  Example taken from \<^cite>\<open>camilleri92\<close>.
 \<close>
 
 

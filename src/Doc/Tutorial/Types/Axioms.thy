@@ -8,7 +8,7 @@ as in axiomatic mathematics.
 
 \begin{warn}
 Proofs in this section use structured \emph{Isar} proofs, which are not
-covered in this tutorial; but see @{cite "Nipkow-TYPES02"}.%
+covered in this tutorial; but see \<^cite>\<open>"Nipkow-TYPES02"\<close>.%
 \end{warn}\<close>
 
 subsubsection \<open>Semigroups\<close>

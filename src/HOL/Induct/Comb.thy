@@ -11,7 +11,7 @@ begin
 
 text \<open>
   Combinator terms do not have free variables.
-  Example taken from @{cite camilleri92}.
+  Example taken from \<^cite>\<open>camilleri92\<close>.
 \<close>
 
 subsection \<open>Definitions\<close>

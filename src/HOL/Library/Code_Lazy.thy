@@ -15,7 +15,7 @@ keywords
 begin
 
 text \<open>
-  This theory and the CodeLazy tool described in @{cite "LochbihlerStoop2018"}.
+  This theory and the CodeLazy tool described in \<^cite>\<open>"LochbihlerStoop2018"\<close>.
 
   It hooks into Isabelle's code generator such that the generated code evaluates a user-specified
   set of type constructors lazily, even in target languages with eager evaluation.

@@ -12,7 +12,7 @@ begin
 
 text\<^marker>\<open>tag unimportant\<close> \<open>
 A port of the decision procedure ``Formalization of metric spaces in HOL Light''
-@{cite "DBLP:journals/jar/Maggesi18"} for the type class @{class metric_space},
+\<^cite>\<open>"DBLP:journals/jar/Maggesi18"\<close> for the type class @{class metric_space},
 with the \<open>Argo\<close> solver as backend.
 \<close>
 

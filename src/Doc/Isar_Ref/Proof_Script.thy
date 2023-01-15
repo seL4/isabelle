@@ -236,11 +236,10 @@ text \<open>
   \<close>
 
   \<^descr> @{method rule_tac} etc. do resolution of rules with explicit
-  instantiation. This works the same way as the ML tactics \<^ML>\<open>Rule_Insts.res_inst_tac\<close> etc.\ (see @{cite "isabelle-implementation"}).
+  instantiation. This works the same way as the ML tactics \<^ML>\<open>Rule_Insts.res_inst_tac\<close> etc.\ (see \<^cite>\<open>"isabelle-implementation"\<close>).
 
   Multiple rules may be only given if there is no instantiation; then @{method
-  rule_tac} is the same as \<^ML>\<open>resolve_tac\<close> in ML (see @{cite
-  "isabelle-implementation"}).
+  rule_tac} is the same as \<^ML>\<open>resolve_tac\<close> in ML (see \<^cite>\<open>"isabelle-implementation"\<close>).
 
   \<^descr> @{method cut_tac} inserts facts into the proof state as assumption of a
   subgoal; instantiations may be given as well. Note that the scope of

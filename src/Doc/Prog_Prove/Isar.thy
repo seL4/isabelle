@@ -504,7 +504,7 @@ The command \isacom{finally} is short for \isacom{also from} \<open>calculation\
 Therefore the \isacom{also} hidden in \isacom{finally} sets \<open>calculation\<close>
 to \<open>t\<^sub>1 < t\<^sub>4\<close> and the final ``\texttt{.}'' succeeds.
 
-For more information on this style of proof see @{cite "BauerW-TPHOLs01"}.
+For more information on this style of proof see \<^cite>\<open>"BauerW-TPHOLs01"\<close>.
 \fi
 
 \section{Streamlining Proofs}

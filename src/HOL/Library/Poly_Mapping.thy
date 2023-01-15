@@ -295,7 +295,7 @@ text \<open>
       to coefficients.  Lets call this the \emph{ultimate interpretation}.
     \item A further more specialised type isomorphic to @{typ "nat \<Rightarrow>\<^sub>0 'a"}
       is apt to direct implementation using code generation
-      \cite{Haftmann-Nipkow:2010:code}.
+      \<^cite>\<open>"Haftmann-Nipkow:2010:code"\<close>.
   \end{enumerate}
   Note that despite the names \emph{mapping} and \emph{lookup} suggest something
   implementation-near, it is best to keep @{typ "'a \<Rightarrow>\<^sub>0 'b"} as an abstract

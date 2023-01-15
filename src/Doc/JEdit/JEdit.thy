@@ -10,16 +10,16 @@ section \<open>Concepts and terminology\<close>
 
 text \<open>
   Isabelle/jEdit is a Prover IDE that integrates \<^emph>\<open>parallel proof checking\<close>
-  @{cite "Wenzel:2009" and "Wenzel:2013:ITP"} with \<^emph>\<open>asynchronous user
-  interaction\<close> @{cite "Wenzel:2010" and "Wenzel:2012:UITP-EPTCS" and
-  "Wenzel:2014:ITP-PIDE" and "Wenzel:2014:UITP"}, based on a document-oriented
-  approach to \<^emph>\<open>continuous proof processing\<close> @{cite "Wenzel:2011:CICM" and
-  "Wenzel:2012" and "Wenzel:2018:FIDE" and "Wenzel:2019:MKM"}. Many concepts
+  \<^cite>\<open>"Wenzel:2009" and "Wenzel:2013:ITP"\<close> with \<^emph>\<open>asynchronous user
+  interaction\<close> \<^cite>\<open>"Wenzel:2010" and "Wenzel:2012:UITP-EPTCS" and
+  "Wenzel:2014:ITP-PIDE" and "Wenzel:2014:UITP"\<close>, based on a document-oriented
+  approach to \<^emph>\<open>continuous proof processing\<close> \<^cite>\<open>"Wenzel:2011:CICM" and
+  "Wenzel:2012" and "Wenzel:2018:FIDE" and "Wenzel:2019:MKM"\<close>. Many concepts
   and system components are fit together in order to make this work. The main
   building blocks are as follows.
 
     \<^descr>[Isabelle/ML] is the implementation and extension language of Isabelle,
-    see also @{cite "isabelle-implementation"}. It is integrated into the
+    see also \<^cite>\<open>"isabelle-implementation"\<close>. It is integrated into the
     logical context of Isabelle/Isar and allows to manipulate logical entities
     directly. Arbitrary add-on tools may be implemented for object-logics such
     as Isabelle/HOL.
@@ -84,7 +84,7 @@ text \<open>
   The options allow to specify a logic session name, but the same selector is
   also accessible in the \<^emph>\<open>Theories\<close> panel (\secref{sec:theories}). After
   startup of the Isabelle plugin, the selected logic session image is provided
-  automatically by the Isabelle build tool @{cite "isabelle-system"}: if it is
+  automatically by the Isabelle build tool \<^cite>\<open>"isabelle-system"\<close>: if it is
   absent or outdated wrt.\ its sources, the build process updates it within
   the running text editor. Prover IDE functionality is fully activated after
   successful termination of the build process. A failure may require changing
@@ -171,7 +171,7 @@ text \<open>
 
   Isabelle system options are managed by Isabelle/Scala and changes are stored
   in \<^path>\<open>$ISABELLE_HOME_USER/etc/preferences\<close>, independently of
-  other jEdit properties. See also @{cite "isabelle-system"}, especially the
+  other jEdit properties. See also \<^cite>\<open>"isabelle-system"\<close>, especially the
   coverage of sessions and command-line tools like @{tool build} or @{tool
   options}.
 
@@ -182,8 +182,7 @@ text \<open>
   Isabelle\<close> in jEdit provides a view on a subset of Isabelle system options.
   Note that some of these options affect general parameters that are relevant
   outside Isabelle/jEdit as well, e.g.\ @{system_option threads} or
-  @{system_option parallel_proofs} for the Isabelle build tool @{cite
-  "isabelle-system"}, but it is possible to use the settings variable
+  @{system_option parallel_proofs} for the Isabelle build tool \<^cite>\<open>"isabelle-system"\<close>, but it is possible to use the settings variable
   @{setting ISABELLE_BUILD_OPTIONS} to change defaults for batch builds
   without affecting the Prover IDE.
 
@@ -253,8 +252,7 @@ text \<open>
 
   The \<^verbatim>\<open>-l\<close> option specifies the session name of the logic image to be used
   for proof processing. Additional session root directories may be included
-  via option \<^verbatim>\<open>-d\<close> to augment the session name space (see also @{cite
-  "isabelle-system"}). By default, the specified image is checked and built on
+  via option \<^verbatim>\<open>-d\<close> to augment the session name space (see also \<^cite>\<open>"isabelle-system"\<close>). By default, the specified image is checked and built on
   demand, but option \<^verbatim>\<open>-n\<close> bypasses the implicit build process for the
   selected session image. Options \<^verbatim>\<open>-s\<close> and \<^verbatim>\<open>-u\<close> override the default system
   option @{system_option system_heaps}: this determines where to store the
@@ -277,7 +275,7 @@ text \<open>
 
   The \<^verbatim>\<open>-J\<close> and \<^verbatim>\<open>-j\<close> options pass additional low-level options to the JVM or
   jEdit, respectively. The defaults are provided by the Isabelle settings
-  environment @{cite "isabelle-system"}, but note that these only work for the
+  environment \<^cite>\<open>"isabelle-system"\<close>, but note that these only work for the
   command-line tool described here, and not the desktop application.
 
   The \<^verbatim>\<open>-D\<close> option allows to define JVM system properties; this is passed
@@ -454,7 +452,7 @@ text \<open>
   standards.\<^footnote>\<open>Raw Unicode characters within formal sources compromise
   portability and reliability in the face of changing interpretation of
   special features of Unicode, such as Combining Characters or Bi-directional
-  Text.\<close> See @{cite "Wenzel:2011:CICM"}.
+  Text.\<close> See \<^cite>\<open>"Wenzel:2011:CICM"\<close>.
 
   For the prover back-end, formal text consists of ASCII characters that are
   grouped according to some simple rules, e.g.\ as plain ``\<^verbatim>\<open>a\<close>'' or symbolic
@@ -464,7 +462,7 @@ text \<open>
   in \<^file>\<open>$ISABELLE_HOME/etc/symbols\<close> and may be augmented by the user in
   \<^path>\<open>$ISABELLE_HOME_USER/etc/symbols\<close>.
 
-  The appendix of @{cite "isabelle-isar-ref"} gives an overview of the
+  The appendix of \<^cite>\<open>"isabelle-isar-ref"\<close> gives an overview of the
   standard interpretation of finitely many symbols from the infinite
   collection. Uninterpreted symbols are displayed literally, e.g.\
   ``\<^verbatim>\<open>\<foobar>\<close>''. Overlap of Unicode characters used in symbol
@@ -718,7 +716,7 @@ text \<open>
     according to a snapshot of the document model. The file browser is \<^emph>\<open>not\<close>
     updated continuously when the PIDE document changes: the reload operation
     needs to be used explicitly. A notable example for exports is the command
-    @{command_ref export_code} @{cite "isabelle-isar-ref"}.
+    @{command_ref export_code} \<^cite>\<open>"isabelle-isar-ref"\<close>.
 
     \<^item> URL \<^verbatim>\<open>isabelle-session:\<close> or action @{action_def
     "isabelle-session-browser"} show the structure of session chapters and
@@ -789,7 +787,7 @@ text \<open>
 
   \<^medskip>
   Isabelle/ML files are structured according to semi-formal comments that are
-  explained in @{cite "isabelle-implementation"}. This outline is turned into
+  explained in \<^cite>\<open>"isabelle-implementation"\<close>. This outline is turned into
   a tree-view by default, by using the \<^verbatim>\<open>isabelle-ml\<close> parser. There is also a
   folding mode of the same name, for hierarchic text folds within ML files.
 
@@ -844,12 +842,11 @@ text \<open>
   nodes in two dimensions:
 
     \<^enum> via \<^bold>\<open>theory imports\<close> that are specified in the \<^emph>\<open>theory header\<close> using
-    concrete syntax of the @{command_ref theory} command @{cite
-    "isabelle-isar-ref"};
+    concrete syntax of the @{command_ref theory} command \<^cite>\<open>"isabelle-isar-ref"\<close>;
 
     \<^enum> via \<^bold>\<open>auxiliary files\<close> that are included into a theory by \<^emph>\<open>load
     commands\<close>, notably @{command_ref ML_file} and @{command_ref SML_file}
-    @{cite "isabelle-isar-ref"}.
+    \<^cite>\<open>"isabelle-isar-ref"\<close>.
 
   In any case, source files are managed by the PIDE infrastructure: the
   physical file-system only plays a subordinate role. The relevant version of
@@ -924,7 +921,7 @@ subsection \<open>Auxiliary files \label{sec:aux-files}\<close>
 
 text \<open>
   Special load commands like @{command_ref ML_file} and @{command_ref
-  SML_file} @{cite "isabelle-isar-ref"} refer to auxiliary files within some
+  SML_file} \<^cite>\<open>"isabelle-isar-ref"\<close> refer to auxiliary files within some
   theory. Conceptually, the file argument of the command extends the theory
   source by the content of the file, but its editor buffer may be loaded~/
   changed~/ saved separately. The PIDE document model propagates changes of
@@ -1182,8 +1179,7 @@ text \<open>
       'solves' | 'simp' ':' @{syntax term} | @{syntax term})
   \<close>
 
-  See also the Isar command @{command_ref find_theorems} in @{cite
-  "isabelle-isar-ref"}.
+  See also the Isar command @{command_ref find_theorems} in \<^cite>\<open>"isabelle-isar-ref"\<close>.
 \<close>
 
 
@@ -1199,8 +1195,7 @@ text \<open>
       ('name' ':' @{syntax name} | 'strict' ':' @{syntax type} | @{syntax type})
   \<close>
 
-  See also the Isar command @{command_ref find_consts} in @{cite
-  "isabelle-isar-ref"}.
+  See also the Isar command @{command_ref find_consts} in \<^cite>\<open>"isabelle-isar-ref"\<close>.
 \<close>
 
 
@@ -1210,8 +1205,7 @@ text \<open>
   The \<^emph>\<open>Query\<close> panel in \<^emph>\<open>Print Context\<close> mode prints information from the
   theory or proof context, or proof state. See also the Isar commands
   @{command_ref print_context}, @{command_ref print_cases}, @{command_ref
-  print_term_bindings}, @{command_ref print_theorems}, described in @{cite
-  "isabelle-isar-ref"}.
+  print_term_bindings}, @{command_ref print_theorems}, described in \<^cite>\<open>"isabelle-isar-ref"\<close>.
 \<close>
 
 
@@ -1437,7 +1431,7 @@ subsubsection \<open>User-defined abbreviations\<close>
 
 text \<open>
   The theory header syntax supports abbreviations via the \<^theory_text>\<open>abbrevs\<close> keyword
-  @{cite "isabelle-isar-ref"}. This is a slight generalization of built-in
+  \<^cite>\<open>"isabelle-isar-ref"\<close>. This is a slight generalization of built-in
   templates and abbreviations for Isabelle symbols, as explained above.
   Examples may be found in the Isabelle sources, by searching for
   ``\<^verbatim>\<open>abbrevs\<close>'' in \<^verbatim>\<open>*.thy\<close> files.
@@ -1757,8 +1751,7 @@ text \<open>
 
   \<^item> @{system_option_ref auto_methods} controls automatic use of a combination
   of standard proof methods (@{method auto}, @{method simp}, @{method blast},
-  etc.). This corresponds to the Isar command @{command_ref "try0"} @{cite
-  "isabelle-isar-ref"}.
+  etc.). This corresponds to the Isar command @{command_ref "try0"} \<^cite>\<open>"isabelle-isar-ref"\<close>.
 
   The tool is disabled by default, since unparameterized invocation of
   standard proof methods often consumes substantial CPU resources without
@@ -1766,7 +1759,7 @@ text \<open>
 
   \<^item> @{system_option_ref auto_nitpick} controls a slightly reduced version of
   @{command_ref nitpick}, which tests for counterexamples using first-order
-  relational logic. See also the Nitpick manual @{cite "isabelle-nitpick"}.
+  relational logic. See also the Nitpick manual \<^cite>\<open>"isabelle-nitpick"\<close>.
 
   This tool is disabled by default, due to the extra overhead of invoking an
   external Java process for each attempt to disprove a subgoal.
@@ -1780,8 +1773,7 @@ text \<open>
 
   \<^item> @{system_option_ref auto_sledgehammer} controls a significantly reduced
   version of @{command_ref sledgehammer}, which attempts to prove a subgoal
-  using external automatic provers. See also the Sledgehammer manual @{cite
-  "isabelle-sledgehammer"}.
+  using external automatic provers. See also the Sledgehammer manual \<^cite>\<open>"isabelle-sledgehammer"\<close>.
 
   This tool is disabled by default, due to the relatively heavy nature of
   Sledgehammer.
@@ -1853,7 +1845,7 @@ chapter \<open>Isabelle document preparation\<close>
 text \<open>
   The ultimate purpose of Isabelle is to produce nicely rendered documents
   with the Isabelle document preparation system, which is based on {\LaTeX};
-  see also @{cite "isabelle-system" and "isabelle-isar-ref"}. Isabelle/jEdit
+  see also \<^cite>\<open>"isabelle-system" and "isabelle-isar-ref"\<close>. Isabelle/jEdit
   provides some additional support for document editing.
 \<close>
 
@@ -1912,12 +1904,10 @@ section \<open>Citations and Bib{\TeX} entries \label{sec:bibtex}\<close>
 
 text \<open>
   Citations are managed by {\LaTeX} and Bib{\TeX} in \<^verbatim>\<open>.bib\<close> files. The
-  Isabelle session build process and the @{tool document} tool @{cite
-  "isabelle-system"} are smart enough to assemble the result, based on the
+  Isabelle session build process and the @{tool document} tool \<^cite>\<open>"isabelle-system"\<close> are smart enough to assemble the result, based on the
   session directory layout.
 
-  The document antiquotation \<open>@{cite}\<close> is described in @{cite
-  "isabelle-isar-ref"}. Within the Prover IDE it provides semantic markup for
+  The document antiquotation \<open>@{cite}\<close> is described in \<^cite>\<open>"isabelle-isar-ref"\<close>. Within the Prover IDE it provides semantic markup for
   tooltips, hyperlinks, and completion for Bib{\TeX} database entries.
   Isabelle/jEdit does \<^emph>\<open>not\<close> know about the actual Bib{\TeX} environment used
   in {\LaTeX} batch-mode, but it can take citations from those \<^verbatim>\<open>.bib\<close> files

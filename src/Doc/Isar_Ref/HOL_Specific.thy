@@ -18,16 +18,16 @@ text \<open>
   Isabelle/HOL is based on Higher-Order Logic, a polymorphic version of
   Church's Simple Theory of Types. HOL can be best understood as a
   simply-typed version of classical set theory. The logic was first
-  implemented in Gordon's HOL system @{cite "mgordon-hol"}. It extends
-  Church's original logic @{cite "church40"} by explicit type variables (naive
+  implemented in Gordon's HOL system \<^cite>\<open>"mgordon-hol"\<close>. It extends
+  Church's original logic \<^cite>\<open>"church40"\<close> by explicit type variables (naive
   polymorphism) and a sound axiomatization scheme for new types based on
   subsets of existing types.
 
-  Andrews's book @{cite andrews86} is a full description of the original
+  Andrews's book \<^cite>\<open>andrews86\<close> is a full description of the original
   Church-style higher-order logic, with proofs of correctness and completeness
   wrt.\ certain set-theoretic interpretations. The particular extensions of
   Gordon-style HOL are explained semantically in two chapters of the 1993 HOL
-  book @{cite pitts93}.
+  book \<^cite>\<open>pitts93\<close>.
 
   Experience with HOL over decades has demonstrated that higher-order logic is
   widely applicable in many areas of mathematics and computer science. In a
@@ -238,7 +238,7 @@ where "B a \<Longrightarrow> EXISTS B"
 text \<open>
   Here the \<open>cases\<close> or \<open>induct\<close> rules produced by the @{command inductive}
   package coincide with the expected elimination rules for Natural Deduction.
-  Already in the original article by Gerhard Gentzen @{cite "Gentzen:1935"}
+  Already in the original article by Gerhard Gentzen \<^cite>\<open>"Gentzen:1935"\<close>
   there is a hint that each connective can be characterized by its
   introductions, and the elimination can be constructed systematically.
 \<close>
@@ -289,8 +289,7 @@ text \<open>
   simulating symbolic computation via rewriting.
 
   \<^descr> @{command (HOL) "function"} defines functions by general wellfounded
-  recursion. A detailed description with examples can be found in @{cite
-  "isabelle-function"}. The function is specified by a set of (possibly
+  recursion. A detailed description with examples can be found in \<^cite>\<open>"isabelle-function"\<close>. The function is specified by a set of (possibly
   conditional) recursive equations with arbitrary pattern matching. The
   command generates proof obligations for the completeness and the
   compatibility of patterns.
@@ -302,7 +301,7 @@ text \<open>
 
   \<^descr> @{command (HOL) "fun"} is a shorthand notation for ``@{command (HOL)
   "function"}~\<open>(sequential)\<close>'', followed by automated proof attempts regarding
-  pattern matching and termination. See @{cite "isabelle-function"} for
+  pattern matching and termination. See \<^cite>\<open>"isabelle-function"\<close> for
   further details.
 
   \<^descr> @{command (HOL) "termination"}~\<open>f\<close> commences a termination proof for the
@@ -507,7 +506,7 @@ text \<open>
 
   \<^descr> @{method (HOL) pat_completeness} is a specialized method to solve goals
   regarding the completeness of pattern matching, as required by the @{command
-  (HOL) "function"} package (cf.\ @{cite "isabelle-function"}).
+  (HOL) "function"} package (cf.\ \<^cite>\<open>"isabelle-function"\<close>).
 
   \<^descr> @{method (HOL) relation}~\<open>R\<close> introduces a termination proof using the
   relation \<open>R\<close>. The resulting proof state will contain goals expressing that
@@ -523,11 +522,11 @@ text \<open>
   @{method auto}).
 
   In case of failure, extensive information is printed, which can help to
-  analyse the situation (cf.\ @{cite "isabelle-function"}).
+  analyse the situation (cf.\ \<^cite>\<open>"isabelle-function"\<close>).
 
   \<^descr> @{method (HOL) "size_change"} also works on termination goals, using a
   variation of the size-change principle, together with a graph decomposition
-  technique (see @{cite krauss_phd} for details). Three kinds of orders are
+  technique (see \<^cite>\<open>krauss_phd\<close> for details). Three kinds of orders are
   used internally: \<open>max\<close>, \<open>min\<close>, and \<open>ms\<close> (multiset), which is only available
   when the theory \<open>Multiset\<close> is loaded. When no order kinds are given, they
   are tried in order. The search for a termination proof uses SAT solving
@@ -734,7 +733,7 @@ text \<open>
   These commands are mostly obsolete; @{command (HOL) "datatype"} should be
   used instead.
 
-  See @{cite "isabelle-datatypes"} for more details on datatypes. Apart from
+  See \<^cite>\<open>"isabelle-datatypes"\<close> for more details on datatypes. Apart from
   proper proof methods for case analysis and induction, there are also
   emulations of ML tactics @{method (HOL) case_tac} and @{method (HOL)
   induct_tac} available, see \secref{sec:hol-induct-tac}; these admit to refer
@@ -785,7 +784,7 @@ text \<open>
   infrastructure of records in Isabelle/HOL is slightly more advanced, though,
   supporting truly extensible record schemes. This admits operations that are
   polymorphic with respect to record extension, yielding ``object-oriented''
-  effects like (single) inheritance. See also @{cite "NaraschewskiW-TPHOLs98"}
+  effects like (single) inheritance. See also \<^cite>\<open>"NaraschewskiW-TPHOLs98"\<close>
   for more details on object-oriented verification and record subtyping in
   HOL.
 \<close>
@@ -841,7 +840,7 @@ text \<open>
   of fields as given by their declaration. The record package provides several
   standard operations like selectors and updates. The common setup for various
   generic proof tools enable succinct reasoning patterns. See also the
-  Isabelle/HOL tutorial @{cite "isabelle-hol-book"} for further instructions
+  Isabelle/HOL tutorial \<^cite>\<open>"isabelle-hol-book"\<close> for further instructions
   on using records in practice.
 \<close>
 
@@ -1041,25 +1040,25 @@ text \<open>
 
   To understand the concept of type definition better, we need to recount its
   somewhat complex history. The HOL logic goes back to the ``Simple Theory of
-  Types'' (STT) of A. Church @{cite "church40"}, which is further explained in
-  the book by P. Andrews @{cite "andrews86"}. The overview article by W.
-  Farmer @{cite "Farmer:2008"} points out the ``seven virtues'' of this
+  Types'' (STT) of A. Church \<^cite>\<open>"church40"\<close>, which is further explained in
+  the book by P. Andrews \<^cite>\<open>"andrews86"\<close>. The overview article by W.
+  Farmer \<^cite>\<open>"Farmer:2008"\<close> points out the ``seven virtues'' of this
   relatively simple family of logics. STT has only ground types, without
   polymorphism and without type definitions.
 
   \<^medskip>
-  M. Gordon @{cite "Gordon:1985:HOL"} augmented Church's STT by adding
+  M. Gordon \<^cite>\<open>"Gordon:1985:HOL"\<close> augmented Church's STT by adding
   schematic polymorphism (type variables and type constructors) and a facility
   to introduce new types as semantic subtypes from existing types. This
   genuine extension of the logic was explained semantically by A. Pitts in the
-  book of the original Cambridge HOL88 system @{cite "pitts93"}. Type
+  book of the original Cambridge HOL88 system \<^cite>\<open>"pitts93"\<close>. Type
   definitions work in this setting, because the general model-theory of STT is
   restricted to models that ensure that the universe of type interpretations
   is closed by forming subsets (via predicates taken from the logic).
 
   \<^medskip>
   Isabelle/HOL goes beyond Gordon-style HOL by admitting overloaded constant
-  definitions @{cite "Wenzel:1997:TPHOL" and "Haftmann-Wenzel:2006:classes"},
+  definitions \<^cite>\<open>"Wenzel:1997:TPHOL" and "Haftmann-Wenzel:2006:classes"\<close>,
   which are actually a concept of Isabelle/Pure and do not depend on
   particular set-theoretic semantics of HOL. Over many years, there was no
   formal checking of semantic type definitions in Isabelle/HOL versus
@@ -1068,11 +1067,10 @@ text \<open>
   \secref{sec:axiomatizations}, only with some local checks of the given type
   and its representing set.
 
-  Recent clarification of overloading in the HOL logic proper @{cite
-  "Kuncar-Popescu:2015"} demonstrates how the dissimilar concepts of constant
+  Recent clarification of overloading in the HOL logic proper \<^cite>\<open>"Kuncar-Popescu:2015"\<close> demonstrates how the dissimilar concepts of constant
   definitions versus type definitions may be understood uniformly. This
   requires an interpretation of Isabelle/HOL that substantially reforms the
-  set-theoretic model of A. Pitts @{cite "pitts93"}, by taking a schematic
+  set-theoretic model of A. Pitts \<^cite>\<open>"pitts93"\<close>, by taking a schematic
   view on polymorphism and interpreting only ground types in the set-theoretic
   sense of HOL88. Moreover, type-constructors may be explicitly overloaded,
   e.g.\ by making the subset depend on type-class parameters (cf.\
@@ -1256,8 +1254,7 @@ text \<open>
   package works with all four kinds of type abstraction: type copies,
   subtypes, total quotients and partial quotients.
 
-  Theoretical background can be found in @{cite
-  "Huffman-Kuncar:2013:lifting_transfer"}.
+  Theoretical background can be found in \<^cite>\<open>"Huffman-Kuncar:2013:lifting_transfer"\<close>.
 
   \begin{matharray}{rcl}
     @{command_def (HOL) "setup_lifting"} & : & \<open>local_theory \<rightarrow> local_theory\<close>\\
@@ -1459,7 +1456,7 @@ text \<open>
   (HOL) lifting_forget} and @{command (HOL) lifting_update} is preferred for
   normal usage.
 
-  \<^descr> Integration with the BNF package @{cite "isabelle-datatypes"}: As already
+  \<^descr> Integration with the BNF package \<^cite>\<open>"isabelle-datatypes"\<close>: As already
   mentioned, the theorems that are registered by the following attributes are
   proved and registered automatically if the involved type is BNF without dead
   variables: @{attribute (HOL) quot_map}, @{attribute (HOL) relator_eq_onp},
@@ -1545,8 +1542,7 @@ text \<open>
 
   Preservation of predicates on relations (\<open>bi_unique, bi_total, right_unique,
   right_total, left_unique, left_total\<close>) with the respect to a relator is
-  proved automatically if the involved type is BNF @{cite
-  "isabelle-datatypes"} without dead variables.
+  proved automatically if the involved type is BNF \<^cite>\<open>"isabelle-datatypes"\<close> without dead variables.
 
   \<^descr> @{attribute (HOL) "transfer_domain_rule"} attribute maintains a collection
   of rules, which specify a domain of a transfer relation by a predicate.
@@ -1570,8 +1566,7 @@ text \<open>
   is proved automatically if the involved type is BNF without dead variables.
 
 
-  Theoretical background can be found in @{cite
-  "Huffman-Kuncar:2013:lifting_transfer"}.
+  Theoretical background can be found in \<^cite>\<open>"Huffman-Kuncar:2013:lifting_transfer"\<close>.
 \<close>
 
 
@@ -1723,7 +1718,7 @@ text \<open>
 
   \<^descr> @{command (HOL) "sledgehammer"} attempts to prove a subgoal using external
   automatic provers (resolution provers and SMT solvers). See the Sledgehammer
-  manual @{cite "isabelle-sledgehammer"} for details.
+  manual \<^cite>\<open>"isabelle-sledgehammer"\<close> for details.
 
   \<^descr> @{command (HOL) "sledgehammer_params"} changes @{command (HOL)
   "sledgehammer"} configuration options persistently.
@@ -1876,8 +1871,7 @@ text \<open>
     and a lazy term reconstruction of the value in the type \<^typ>\<open>Code_Evaluation.term\<close>. A pseudo-randomness generator is defined in theory
     \<^theory>\<open>HOL.Random\<close>.
 
-    \<^descr>[\<open>narrowing\<close>] implements Haskell's Lazy Smallcheck @{cite
-    "runciman-naylor-lindblad"} using the type classes \<^class>\<open>narrowing\<close> and
+    \<^descr>[\<open>narrowing\<close>] implements Haskell's Lazy Smallcheck \<^cite>\<open>"runciman-naylor-lindblad"\<close> using the type classes \<^class>\<open>narrowing\<close> and
     \<^class>\<open>partial_term_of\<close>. Variables in the current goal are initially
     represented as symbolic variables. If the execution of the goal tries to
     evaluate one of them, the test engine replaces it with refinements
@@ -1918,7 +1912,7 @@ text \<open>
 
   \<^descr> @{command (HOL) "nitpick"} tests the current goal for counterexamples
   using a reduction to first-order relational logic. See the Nitpick manual
-  @{cite "isabelle-nitpick"} for details.
+  \<^cite>\<open>"isabelle-nitpick"\<close> for details.
 
   \<^descr> @{command (HOL) "nitpick_params"} changes @{command (HOL) "nitpick"}
   configuration options persistently.
@@ -1944,7 +1938,7 @@ text \<open>
 
   Coercive subtyping allows the user to omit explicit type conversions, also
   called \<^emph>\<open>coercions\<close>. Type inference will add them as necessary when parsing
-  a term. See @{cite "traytel-berghofer-nipkow-2011"} for details.
+  a term. See \<^cite>\<open>"traytel-berghofer-nipkow-2011"\<close> for details.
 
   \<^rail>\<open>
     @@{attribute (HOL) coercion} (@{syntax term})
@@ -2065,12 +2059,12 @@ text \<open>
   \<close>
 
   \<^descr> @{method (HOL) meson} implements Loveland's model elimination procedure
-  @{cite "loveland-78"}. See \<^file>\<open>~~/src/HOL/ex/Meson_Test.thy\<close> for examples.
+  \<^cite>\<open>"loveland-78"\<close>. See \<^file>\<open>~~/src/HOL/ex/Meson_Test.thy\<close> for examples.
 
   \<^descr> @{method (HOL) metis} combines ordered resolution and ordered
   paramodulation to find first-order (or mildly higher-order) proofs. The
   first optional argument specifies a type encoding; see the Sledgehammer
-  manual @{cite "isabelle-sledgehammer"} for details. The directory
+  manual \<^cite>\<open>"isabelle-sledgehammer"\<close> for details. The directory
   \<^dir>\<open>~~/src/HOL/Metis_Examples\<close> contains several small theories developed to a
   large extent using @{method (HOL) metis}.
 \<close>
@@ -2093,7 +2087,7 @@ text \<open>
   \<close>
 
   \<^descr> @{method (HOL) algebra} performs algebraic reasoning via Gröbner bases,
-  see also @{cite "Chaieb-Wenzel:2007"} and @{cite \<open>\S3.2\<close> "Chaieb-thesis"}.
+  see also \<^cite>\<open>"Chaieb-Wenzel:2007"\<close> and \<^cite>\<open>\<open>\S3.2\<close> in "Chaieb-thesis"\<close>.
   The method handles deals with two main classes of problems:
 
     \<^enum> Universal problems over multivariate polynomials in a
@@ -2165,8 +2159,7 @@ text \<open>
     @@{method (HOL) coherent} @{syntax thms}?
   \<close>
 
-  \<^descr> @{method (HOL) coherent} solves problems of \<^emph>\<open>Coherent Logic\<close> @{cite
-  "Bezem-Coquand:2005"}, which covers applications in confluence theory,
+  \<^descr> @{method (HOL) coherent} solves problems of \<^emph>\<open>Coherent Logic\<close> \<^cite>\<open>"Bezem-Coquand:2005"\<close>, which covers applications in confluence theory,
   lattice theory and projective geometry. See \<^file>\<open>~~/src/HOL/Examples/Coherent.thy\<close>
   for some examples.
 \<close>
@@ -2258,13 +2251,12 @@ text \<open>
   executable specifications. Isabelle/HOL instantiates these mechanisms in a
   way that is amenable to end-user applications. Code can be generated for
   functional programs (including overloading using type classes) targeting SML
-  @{cite SML}, OCaml @{cite OCaml}, Haskell @{cite "haskell-revised-report"}
-  and Scala @{cite "scala-overview-tech-report"}. Conceptually, code
+  \<^cite>\<open>SML\<close>, OCaml \<^cite>\<open>OCaml\<close>, Haskell \<^cite>\<open>"haskell-revised-report"\<close>
+  and Scala \<^cite>\<open>"scala-overview-tech-report"\<close>. Conceptually, code
   generation is split up in three steps: \<^emph>\<open>selection\<close> of code theorems,
   \<^emph>\<open>translation\<close> into an abstract executable view and \<^emph>\<open>serialization\<close> to a
   specific \<^emph>\<open>target language\<close>. Inductive specifications can be executed using
-  the predicate compiler which operates within HOL. See @{cite
-  "isabelle-codegen"} for an introduction.
+  the predicate compiler which operates within HOL. See \<^cite>\<open>"isabelle-codegen"\<close> for an introduction.
 
   \begin{matharray}{rcl}
     @{command_def (HOL) "export_code"}\<open>\<^sup>*\<close> & : & \<open>local_theory \<rightarrow> local_theory\<close> \\

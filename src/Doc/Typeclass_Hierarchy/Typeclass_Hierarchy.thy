@@ -28,8 +28,8 @@ text \<open>
   instantiating type-classes, adding relationships between
   locales (@{command sublocale}) and type-classes
   (@{command subclass}).  Handy introductions are the
-  respective tutorials @{cite "isabelle-locale"}
-  @{cite "isabelle-classes"}.
+  respective tutorials \<^cite>\<open>"isabelle-locale"\<close>
+  \<^cite>\<open>"isabelle-classes"\<close>.
 \<close>
 
 subsection \<open>Strengths and restrictions of type classes\<close>
@@ -48,7 +48,7 @@ text \<open>
   to the numerical type on the right hand side.
 
   How to accomplish this given the quite restrictive type system
-  of {Isabelle/HOL}?  Paulson @{cite "paulson-numerical"} explains
+  of {Isabelle/HOL}?  Paulson \<^cite>\<open>"paulson-numerical"\<close> explains
   that each numerical type has some characteristic properties
   which define an characteristic algebraic structure;  \<open>\<sqsubset>\<close>
   then corresponds to specialization of the corresponding
@@ -122,7 +122,7 @@ text \<open>
   optionally showing the logical content for each class also.
   Optional parameters restrict the graph to a particular segment
   which is useful to get a graspable view.  See
-  the Isar reference manual @{cite "isabelle-isar-ref"} for details.
+  the Isar reference manual \<^cite>\<open>"isabelle-isar-ref"\<close> for details.
 \<close>
 
 
@@ -144,7 +144,7 @@ text \<open>
     \<^item> @{command class} \<^class>\<open>one\<close> with @{term [source] "1::'a::one"}
 
   \noindent Before the introduction of the @{command class} statement in
-  Isabelle @{cite "Haftmann-Wenzel:2006:classes"} it was impossible
+  Isabelle \<^cite>\<open>"Haftmann-Wenzel:2006:classes"\<close> it was impossible
   to define operations with associated axioms in the same class,
   hence there were always pairs of syntactic and logical type
   classes.  This restriction is lifted nowadays, but there are

@@ -230,7 +230,7 @@ subsection \<open>Eta-postponement theorem\<close>
 
 text \<open>
   Based on a paper proof due to Andreas Abel.
-  Unlike the proof by Masako Takahashi @{cite "Takahashi-IandC"}, it does not
+  Unlike the proof by Masako Takahashi \<^cite>\<open>"Takahashi-IandC"\<close>, it does not
   use parallel eta reduction, which only seems to complicate matters unnecessarily.
 \<close>
 

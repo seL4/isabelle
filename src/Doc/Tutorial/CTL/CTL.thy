@@ -361,7 +361,7 @@ and prove the equivalence between semantics and model checking, i.e.\ that
 %{text[display]"| EU formula formula    E[_ U _]"}
 %which enables you to read and write {text"E[f U g]"} instead of {term"EU f g"}.
 \end{exercise}
-For more CTL exercises see, for example, Huth and Ryan @{cite "Huth-Ryan-book"}.
+For more CTL exercises see, for example, Huth and Ryan \<^cite>\<open>"Huth-Ryan-book"\<close>.
 \<close>
 
 (*<*)
@@ -439,7 +439,7 @@ text\<open>Let us close this section with a few words about the executability of
 our model checkers.  It is clear that if all sets are finite, they can be
 represented as lists and the usual set operations are easily
 implemented. Only \<^const>\<open>lfp\<close> requires a little thought.  Fortunately, theory
-\<open>While_Combinator\<close> in the Library~@{cite "HOL-Library"} provides a
+\<open>While_Combinator\<close> in the Library~\<^cite>\<open>"HOL-Library"\<close> provides a
 theorem stating that in the case of finite sets and a monotone
 function~\<^term>\<open>F\<close>, the value of \mbox{\<^term>\<open>lfp F\<close>} can be computed by
 iterated application of \<^term>\<open>F\<close> to~\<^term>\<open>{}\<close> until a fixed point is

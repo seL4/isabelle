@@ -9,7 +9,7 @@ theory ListN imports ZF begin
 
 text \<open>
   Inductive definition of lists of \<open>n\<close> elements; see
-  @{cite "paulin-tlca"}.
+  \<^cite>\<open>"paulin-tlca"\<close>.
 \<close>
 
 consts listn :: "i\<Rightarrow>i"

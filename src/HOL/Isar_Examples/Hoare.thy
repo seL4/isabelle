@@ -15,8 +15,8 @@ subsection \<open>Abstract syntax and semantics\<close>
 text \<open>
   The following abstract syntax and semantics of Hoare Logic over \<^verbatim>\<open>WHILE\<close>
   programs closely follows the existing tradition in Isabelle/HOL of
-  formalizing the presentation given in @{cite \<open>\S6\<close> "Winskel:1993"}. See also
-  \<^dir>\<open>~~/src/HOL/Hoare\<close> and @{cite "Nipkow:1998:Winskel"}.
+  formalizing the presentation given in \<^cite>\<open>\<open>\S6\<close> in "Winskel:1993"\<close>. See also
+  \<^dir>\<open>~~/src/HOL/Hoare\<close> and \<^cite>\<open>"Nipkow:1998:Winskel"\<close>.
 \<close>
 
 type_synonym 'a bexp = "'a set"
@@ -60,7 +60,7 @@ subsection \<open>Primitive Hoare rules\<close>
 
 text \<open>
   From the semantics defined above, we derive the standard set of primitive
-  Hoare rules; e.g.\ see @{cite \<open>\S6\<close> "Winskel:1993"}. Usually, variant forms
+  Hoare rules; e.g.\ see \<^cite>\<open>\<open>\S6\<close> in "Winskel:1993"\<close>. Usually, variant forms
   of these rules are applied in actual proof, see also \S\ref{sec:hoare-isar}
   and \S\ref{sec:hoare-vcg}.
 
@@ -304,8 +304,7 @@ lemma assign: "\<turnstile> P [\<acute>a/\<acute>x::'a] \<acute>x := \<acute>a P
 
 text \<open>
   Note that above formulation of assignment corresponds to our preferred way
-  to model state spaces, using (extensible) record types in HOL @{cite
-  "Naraschewski-Wenzel:1998:HOOL"}. For any record field \<open>x\<close>, Isabelle/HOL
+  to model state spaces, using (extensible) record types in HOL \<^cite>\<open>"Naraschewski-Wenzel:1998:HOOL"\<close>. For any record field \<open>x\<close>, Isabelle/HOL
   provides a functions \<open>x\<close> (selector) and \<open>x_update\<close> (update). Above, there is
   only a place-holder appearing for the latter kind of function: due to
   concrete syntax \<open>\<acute>x := \<acute>a\<close> also contains \<open>x_update\<close>.\<^footnote>\<open>Note that due to the

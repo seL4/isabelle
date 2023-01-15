@@ -456,7 +456,7 @@ text \<open>
   this process, which is called \<^emph>\<open>roundup\<close>, redundant locale instances are
   omitted. A locale instance is redundant if it is subsumed by an instance
   encountered earlier. A more detailed description of this process is
-  available elsewhere @{cite Ballarin2014}.
+  available elsewhere \<^cite>\<open>Ballarin2014\<close>.
 \<close>
 
 
@@ -835,10 +835,10 @@ text \<open>
 
   A class is a particular locale with \<^emph>\<open>exactly one\<close> type variable \<open>\<alpha>\<close>. Beyond
   the underlying locale, a corresponding type class is established which is
-  interpreted logically as axiomatic type class @{cite "Wenzel:1997:TPHOL"}
+  interpreted logically as axiomatic type class \<^cite>\<open>"Wenzel:1997:TPHOL"\<close>
   whose logical content are the assumptions of the locale. Thus, classes
   provide the full generality of locales combined with the commodity of type
-  classes (notably type-inference). See @{cite "isabelle-classes"} for a short
+  classes (notably type-inference). See \<^cite>\<open>"isabelle-classes"\<close> for a short
   tutorial.
 
   \<^rail>\<open>
@@ -983,7 +983,7 @@ text \<open>
   \<^medskip>
   Co-regularity is a very fundamental property of the order-sorted algebra of
   types. For example, it entails principal types and most general unifiers,
-  e.g.\ see @{cite "nipkow-prehofer"}.
+  e.g.\ see \<^cite>\<open>"nipkow-prehofer"\<close>.
 \<close>
 
 
@@ -1009,7 +1009,7 @@ text \<open>
   global constraints on all occurrences. E.g.\ \<open>d :: \<alpha> \<times> \<alpha>\<close> on the left-hand
   side means that all corresponding occurrences on some right-hand side need
   to be an instance of this, and general \<open>d :: \<alpha> \<times> \<beta>\<close> will be disallowed. Full
-  details are given by Kun\v{c}ar @{cite "Kuncar:2015"}.
+  details are given by Kun\v{c}ar \<^cite>\<open>"Kuncar:2015"\<close>.
 
   \<^medskip>
   The \<^theory_text>\<open>consts\<close> command and the \<^theory_text>\<open>overloading\<close> target provide a convenient
@@ -1139,7 +1139,7 @@ text \<open>
   exported to the global bootstrap environment of the ML process --- it has
   a lasting effect that cannot be retracted. This allows ML evaluation
   without a formal theory context, e.g. for command-line tools via @{tool
-  process} @{cite "isabelle-system"}.
+  process} \<^cite>\<open>"isabelle-system"\<close>.
 
   \<^descr> \<^theory_text>\<open>ML_prf\<close> is analogous to \<^theory_text>\<open>ML\<close> but works within a proof context.
   Top-level ML bindings are stored within the proof context in a purely
@@ -1199,14 +1199,14 @@ text \<open>
   debugging information. The global system option @{system_option_ref
   ML_debugger} does the same when building a session image. It is also
   possible use commands like \<^theory_text>\<open>ML_file_debug\<close> etc. The ML debugger is
-  explained further in @{cite "isabelle-jedit"}.
+  explained further in \<^cite>\<open>"isabelle-jedit"\<close>.
 
   \<^descr> @{attribute ML_exception_trace} indicates whether the ML run-time system
   should print a detailed stack trace on exceptions. The result is dependent
   on various ML compiler optimizations. The boundary for the exception trace
   is the current Isar command transactions: it is occasionally better to
   insert the combinator \<^ML>\<open>Runtime.exn_trace\<close> into ML code for debugging
-  @{cite "isabelle-implementation"}, closer to the point where it actually
+  \<^cite>\<open>"isabelle-implementation"\<close>, closer to the point where it actually
   happens.
 
   \<^descr> @{attribute ML_exception_debugger} controls detailed exception trace via
@@ -1258,7 +1258,7 @@ text \<open>
 
     \<^descr>[Exported files] are stored within the session database in
     Isabelle/Scala. This allows to deliver artefacts to external tools, see
-    also @{cite "isabelle-system"} for session \<^verbatim>\<open>ROOT\<close> declaration
+    also \<^cite>\<open>"isabelle-system"\<close> for session \<^verbatim>\<open>ROOT\<close> declaration
     \<^theory_text>\<open>export_files\<close>, and @{tool build} option \<^verbatim>\<open>-e\<close>.
 
   A notable example is the command @{command_ref export_code}
@@ -1323,7 +1323,7 @@ text \<open>
   \<^descr> \<^theory_text>\<open>scala_build_generated_files paths (in thy)\<close> retrieves named generated
   files as for \<^theory_text>\<open>export_generated_files\<close> and writes them into a temporary
   directory, which is taken as starting point for build process of
-  Isabelle/Scala/Java modules (see @{cite "isabelle-system"}). The
+  Isabelle/Scala/Java modules (see \<^cite>\<open>"isabelle-system"\<close>). The
   corresponding @{path \<open>build.props\<close>} file is expected directly in the toplevel
   directory, instead of @{path \<open>etc/build.props\<close>} for Isabelle system
   components. These properties need to specify sources, resources, services
@@ -1356,8 +1356,7 @@ text \<open>
   exports of \<^theory_text>\<open>export_files\<close> above.
 
   \<^descr> \<^theory_text>\<open>external_file name\<close> declares the formal dependency on the given file
-  name, such that the Isabelle build process knows about it (see also @{cite
-  "isabelle-system"}). This is required for any files mentioned in
+  name, such that the Isabelle build process knows about it (see also \<^cite>\<open>"isabelle-system"\<close>). This is required for any files mentioned in
   \<^theory_text>\<open>compile_generated_files / external_files\<close> above, in order to document
   source dependencies properly. It is also possible to use \<^theory_text>\<open>external_file\<close>
   alone, e.g.\ when other Isabelle/ML tools use \<^ML>\<open>File.read\<close>, without

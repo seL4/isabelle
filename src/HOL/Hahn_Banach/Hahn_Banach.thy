@@ -10,7 +10,7 @@ begin
 
 text \<open>
   We present the proof of two different versions of the Hahn-Banach Theorem,
-  closely following @{cite \<open>\S36\<close> "Heuser:1986"}.
+  closely following \<^cite>\<open>\<open>\S36\<close> in "Heuser:1986"\<close>.
 \<close>
 
 
