@@ -809,9 +809,9 @@ text \<open>
 
   \<^medskip> The following \<^verbatim>\<open>update\<close> options are supported:
 
-    \<^item> @{system_option update_inner_syntax_cartouches} to update inner syntax
-    (types, terms, etc.)~to use cartouches, instead of double-quoted strings
-    or atomic identifiers. For example, ``\<^theory_text>\<open>lemma \<doublequote>x =
+    \<^item> @{system_option_ref update_inner_syntax_cartouches} to update inner
+    syntax (types, terms, etc.)~to use cartouches, instead of double-quoted
+    strings or atomic identifiers. For example, ``\<^theory_text>\<open>lemma \<doublequote>x =
     x\<doublequote>\<close>'' is replaced by ``\<^theory_text>\<open>lemma \<open>x = x\<close>\<close>'', and ``\<^theory_text>\<open>assume
     A\<close>'' is replaced by ``\<^theory_text>\<open>assume \<open>A\<close>\<close>''.
 
@@ -820,17 +820,17 @@ text \<open>
     \<doublequote>+\<doublequote> 65)\<close>'' is replaced by ``\<^theory_text>\<open>(infixl \<open>+\<close>
     65)\<close>''.
 
-    \<^item> @{system_option update_control_cartouches} to update antiquotations to
-    use the compact form with control symbol and cartouche argument. For
+    \<^item> @{system_option_ref update_control_cartouches} to update antiquotations
+    to use the compact form with control symbol and cartouche argument. For
     example, ``\<open>@{term \<doublequote>x + y\<doublequote>}\<close>'' is replaced by
     ``\<open>\<^term>\<open>x + y\<close>\<close>'' (the control symbol is literally \<^verbatim>\<open>\<^term>\<close>.)
 
-    \<^item> @{system_option update_path_cartouches} to update file-system paths to
-    use cartouches: this depends on language markup provided by semantic
+    \<^item> @{system_option_ref update_path_cartouches} to update file-system paths
+    to use cartouches: this depends on language markup provided by semantic
     processing of parsed input.
 
-    \<^item> @{system_option update_cite} to update {\LaTeX} \<^verbatim>\<open>\cite\<close> commands and
-    old-style \<^verbatim>\<open>@{cite "name"}\<close> document antiquotations.
+    \<^item> @{system_option_ref update_cite} to update {\LaTeX} \<^verbatim>\<open>\cite\<close> commands
+    and old-style \<^verbatim>\<open>@{cite "name"}\<close> document antiquotations.
 
   It is also possible to produce custom updates in Isabelle/ML, by reporting
   \<^ML>\<open>Markup.update\<close> with the precise source position and a replacement
