@@ -9,6 +9,13 @@
 section \<open>Infinite sums\<close>
 \<^latex>\<open>\label{section:Infinite_Sum}\<close>
 
+theory Infinite_Sum
+  imports
+    Elementary_Topology
+    "HOL-Library.Extended_Nonnegative_Real"
+    "HOL-Library.Complex_Order"
+begin
+
 text \<open>In this theory, we introduce the definition of infinite sums, i.e., sums ranging over an
 infinite, potentially uncountable index set with no particular ordering.
 (This is different from series. Those are sums indexed by natural numbers,
@@ -22,12 +29,6 @@ This definition is quite general: it is well-defined whenever $f$ takes values i
 commutative monoid endowed with a Hausdorff topology.
 (Examples are reals, complex numbers, normed vector spaces, and more.)\<close>
 
-theory Infinite_Sum
-  imports
-    Elementary_Topology
-    "HOL-Library.Extended_Nonnegative_Real"
-    "HOL-Library.Complex_Order"
-begin
 
 subsection \<open>Definition and syntax\<close>
 
