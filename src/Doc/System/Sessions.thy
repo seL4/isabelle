@@ -829,6 +829,9 @@ text \<open>
     use cartouches: this depends on language markup provided by semantic
     processing of parsed input.
 
+    \<^item> @{system_option update_cite} to update {\LaTeX} \<^verbatim>\<open>\cite\<close> commands and
+    old-style \<^verbatim>\<open>@{cite "name"}\<close> document antiquotations.
+
   It is also possible to produce custom updates in Isabelle/ML, by reporting
   \<^ML>\<open>Markup.update\<close> with the precise source position and a replacement
   text. This operation should be made conditional on specific system options,
