@@ -7,9 +7,6 @@ Cumulative session information.
 package isabelle
 
 import java.io.{File => JFile}
-import java.nio.ByteBuffer
-import java.nio.channels.FileChannel
-import java.nio.file.StandardOpenOption
 import java.sql.SQLException
 
 import scala.collection.immutable.{SortedSet, SortedMap}
@@ -1336,51 +1333,6 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
 
 
-  /** heap file with SHA1 digest **/
-
-  private val sha1_prefix = "SHA1:"
-
-  def read_heap_digest(heap: Path): Option[String] = {
-    if (heap.is_file) {
-      using(FileChannel.open(heap.java_path, StandardOpenOption.READ)) { file =>
-        val len = file.size
-        val n = sha1_prefix.length + SHA1.digest_length
-        if (len >= n) {
-          file.position(len - n)
-
-          val buf = ByteBuffer.allocate(n)
-          var i = 0
-          var m = 0
-          while ({
-            m = file.read(buf)
-            if (m != -1) i += m
-            m != -1 && n > i
-          }) ()
-
-          if (i == n) {
-            val prefix = new String(buf.array(), 0, sha1_prefix.length, UTF8.charset)
-            val s = new String(buf.array(), sha1_prefix.length, SHA1.digest_length, UTF8.charset)
-            if (prefix == sha1_prefix) Some(s) else None
-          }
-          else None
-        }
-        else None
-      }
-    }
-    else None
-  }
-
-  def write_heap_digest(heap: Path): String =
-    read_heap_digest(heap) match {
-      case None =>
-        val s = SHA1.digest(heap).toString
-        File.append(heap, sha1_prefix + s)
-        s
-      case Some(s) => s
-    }
-
-
-
   /** persistent store **/
 
   object Session_Info {
@@ -1461,7 +1413,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
       input_dirs.map(_ + heap(name)).find(_.is_file)
 
     def find_heap_digest(name: String): Option[String] =
-      find_heap(name).flatMap(read_heap_digest)
+      find_heap(name).flatMap(ML_Heap.read_digest)
 
     def the_heap(name: String): Path =
       find_heap(name) getOrElse

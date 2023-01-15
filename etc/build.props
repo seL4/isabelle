@@ -115,6 +115,7 @@ sources = \
   src/Pure/Isar/parse.scala \
   src/Pure/Isar/token.scala \
   src/Pure/ML/ml_console.scala \
+  src/Pure/ML/ml_heap.scala \
   src/Pure/ML/ml_lex.scala \
   src/Pure/ML/ml_process.scala \
   src/Pure/ML/ml_profiling.scala \

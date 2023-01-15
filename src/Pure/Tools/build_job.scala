@@ -592,7 +592,7 @@ class Build_Job(progress: Progress,
 
     val heap_digest =
       if (result2.ok && do_store && store.output_heap(session_name).is_file)
-        Some(Sessions.write_heap_digest(store.output_heap(session_name)))
+        Some(ML_Heap.write_digest(store.output_heap(session_name)))
       else None
 
     (result2, heap_digest)
