@@ -359,11 +359,6 @@ text \<open>
   entries and become the mandatory argument (separated by comma). The optional
   part ``\<^theory_text>\<open>using name\<close>'' specifies an alternative {\LaTeX} macro name.
 
-  The validity of Bib{\TeX} database entries is only partially checked in
-  Isabelle/PIDE, when the corresponding \<^verbatim>\<open>.bib\<close> files are open. Ultimately,
-  the \<^verbatim>\<open>bibtex\<close> program will complain about bad input in final document
-  preparation.
-
   \<^descr> @{command "print_antiquotations"} prints all document antiquotations that
   are defined in the current context; the ``\<open>!\<close>'' option indicates extra
   verbosity.
