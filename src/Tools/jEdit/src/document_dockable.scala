@@ -182,7 +182,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
         GUI_Thread.later {
           refresh_theories()
           show_state()
-          show_page(theories_page)
+          show_page(input_page)
         }
       }
       catch {
@@ -247,7 +247,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
           finish_process(Pretty.separate(msgs))
 
           show_state()
-          show_page(if (Exn.is_interrupt_exn(result)) theories_page else output_page)
+          show_page(if (Exn.is_interrupt_exn(result)) input_page else output_page)
         }
       case _ =>
     }
@@ -325,8 +325,8 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     theories.refresh()
   }
 
-  private val theories_page =
-    new TabbedPane.Page("Theories", new BorderPanel {
+  private val input_page =
+    new TabbedPane.Page("Input", new BorderPanel {
       layout(theories_controls) = BorderPanel.Position.North
       layout(theories.gui) = BorderPanel.Position.Center
     }, "Selection and status of document theories")
@@ -338,9 +338,9 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     new TabbedPane.Page("Output", new BorderPanel {
       layout(output_controls) = BorderPanel.Position.North
       layout(Component.wrap(pretty_text_area)) = BorderPanel.Position.Center
-    }, "Output from build process")
+    }, "Results from document build process")
 
-  message_pane.pages ++= List(theories_page, output_page)
+  message_pane.pages ++= List(input_page, output_page)
 
   set_content(message_pane)
 
