@@ -122,7 +122,7 @@ object Program_Progress {
           (results, message)
         }
 
-      (results, List(XML.Elem(Markup(Markup.TRACING_MESSAGE, Nil), message)))
+      (results, List(XML.elem(Markup.TRACING_MESSAGE, message)))
     }
   }
 }
