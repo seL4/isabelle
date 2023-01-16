@@ -20,27 +20,6 @@ object Document_Editor {
   }
 
 
-  /* progress */
-
-  class Log_Progress(session: Session) extends Progress {
-    def show(text: String): Unit = {}
-
-    private val syslog = session.make_syslog()
-
-    private def update(text: String = syslog.content()): Unit = show(text)
-    private val delay = Delay.first(session.update_delay, gui = true) { update() }
-
-    override def echo(msg: String): Unit = { syslog += msg; delay.invoke() }
-
-    def finish(text: String): Unit = GUI_Thread.require {
-      delay.revoke()
-      update(text)
-    }
-
-    GUI_Thread.later { update() }
-  }
-
-
   /* configuration state */
 
   sealed case class State(

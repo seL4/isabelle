@@ -35,15 +35,25 @@ object Document_Dockable {
     progress: Progress = new Progress,
     process: Future[Unit] = Future.value(()),
     status: Status.Value = Status.FINISHED,
-    output: List[XML.Tree] = Nil
+    output_results: Command.Results = Command.Results.empty,
+    output_main: XML.Body = Nil,
+    output_more: XML.Body = Nil
   ) {
     def run(progress: Progress, process: Future[Unit]): State =
       copy(progress = progress, process = process, status = Status.RUNNING)
 
-    def finish(output: List[XML.Tree]): State =
-      copy(process = Future.value(()), status = Status.FINISHED, output = output)
+    def running(results: Command.Results, body: XML.Body): State =
+      copy(status = Status.RUNNING, output_results = results, output_main = body)
 
-    def ok: Boolean = !output.exists(Protocol.is_error)
+    def finish(output: XML.Body): State =
+      copy(process = Future.value(()), status = Status.FINISHED, output_more = output)
+
+    def output_body: XML.Body =
+      output_main :::
+      (if (output_main.nonEmpty && output_more.nonEmpty) Pretty.Separator else Nil) :::
+      output_more
+
+    def ok: Boolean = !output_body.exists(Protocol.is_error)
   }
 }
 
@@ -64,7 +74,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
   private def show_state(): Unit = GUI_Thread.later {
     val st = current_state.value
 
-    pretty_text_area.update(Document.Snapshot.init, Command.Results.empty, st.output)
+    pretty_text_area.update(Document.Snapshot.init, st.output_results, st.output_body)
 
     st.status match {
       case Document_Dockable.Status.WAITING =>
@@ -97,32 +107,34 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
   })
 
 
-  /* progress log */
+  /* progress */
 
-  private val log_area =
-    new TextArea {
-      editable = false
-      font = GUI.copy_font((new Label).font)
-    }
-  private val scroll_log_area = new ScrollPane(log_area)
+  class Log_Progress extends Program_Progress {
+    progress =>
 
-  def log_progress(only_running: Boolean = false): Document_Editor.Log_Progress =
-    new Document_Editor.Log_Progress(PIDE.session) {
-      override def show(text: String): Unit =
-        if (text != log_area.text) {
-          log_area.text = text
-          val vertical = scroll_log_area.peer.getVerticalScrollBar
-          vertical.setValue(vertical.getMaximum)
+    override def detect_program(s: String): Option[String] =
+      Document_Build.detect_running_script(s)
+
+    private val delay: Delay =
+      Delay.first(PIDE.session.output_delay) {
+        if (!stopped) {
+          running_process(progress)
+          GUI_Thread.later { show_state() }
         }
-      override def echo(msg: String): Unit =
-        if (!only_running || Document_Build.is_running_script(msg)) super.echo(msg)
-    }
+      }
+
+    override def echo(msg: String): Unit = { super.echo(msg); delay.invoke() }
+    override def stop_program(): Unit = { super.stop_program(); delay.invoke() }
+  }
 
 
   /* document build process */
 
   private def init_state(): Unit =
-    current_state.change { _ => Document_Dockable.State(progress = log_progress()) }
+    current_state.change { st =>
+      st.progress.stop()
+      Document_Dockable.State(progress = new Log_Progress)
+    }
 
   private def cancel_process(): Unit =
     current_state.change { st => st.process.cancel(); st }
@@ -130,16 +142,20 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
   private def await_process(): Unit =
     current_state.guarded_access(st => if (st.process.is_finished) None else Some((), st))
 
-  private def finish_process(output: List[XML.Tree]): Unit =
+  private def running_process(progress: Log_Progress): Unit = {
+    val (results, body) = progress.output()
+    current_state.change(_.running(results, body))
+  }
+
+  private def finish_process(output: XML.Body): Unit =
     current_state.change(_.finish(output))
 
-  private def run_process(only_running: Boolean = false)(
-    body: Document_Editor.Log_Progress => Unit
-  ): Boolean = {
+  private def run_process(only_running: Boolean = false)(body: Log_Progress => Unit): Boolean = {
     val started =
       current_state.change_result { st =>
         if (st.process.is_finished) {
-          val progress = log_progress(only_running = only_running)
+          st.progress.stop()
+          val progress = new Log_Progress
           val process =
             Future.thread[Unit](name = "Document_Dockable.process") {
               await_process()
@@ -182,7 +198,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
 
   private def document_build(
     session_background: Sessions.Background,
-    progress: Document_Editor.Log_Progress
+    progress: Log_Progress
   ): Unit = {
     val store = JEdit_Sessions.sessions_store(PIDE.options.value)
     val document_selection = PIDE.editor.document_selection()
@@ -197,16 +213,13 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
           document_session = Some(session_background.base),
           document_selection = document_selection,
           progress = progress)
+
       val variant = session_background.info.documents.head
 
       Isabelle_System.make_directory(Document_Editor.document_output_dir())
       val doc = context.build_document(variant, verbose = true)
 
-      // log
       File.write(Document_Editor.document_output().log, doc.log)
-      GUI_Thread.later { progress.finish(doc.log) }
-
-      // pdf
       Bytes.write(Document_Editor.document_output().pdf, doc.pdf)
       Document_Editor.view_document()
     }
@@ -217,7 +230,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     PIDE.editor.document_session() match {
       case Some(session_background) if session_background.info.documents.nonEmpty =>
         run_process(only_running = true) { progress =>
-          show_page(log_page)
+          show_page(output_page)
           val result = Exn.capture { document_build(session_background, progress) }
           val msgs =
             result match {
@@ -229,6 +242,8 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
                 List(Protocol.error_message(YXML.parse_body(Exn.print(exn))))
             }
 
+          progress.stop_program()
+          running_process(progress)
           finish_process(Pretty.separate(msgs))
 
           show_state()
@@ -325,12 +340,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
       layout(Component.wrap(pretty_text_area)) = BorderPanel.Position.Center
     }, "Output from build process")
 
-  private val log_page =
-    new TabbedPane.Page("Log", new BorderPanel {
-      layout(scroll_log_area) = BorderPanel.Position.Center
-    }, "Raw log of build process")
-
-  message_pane.pages ++= List(theories_page, log_page, output_page)
+  message_pane.pages ++= List(theories_page, output_page)
 
   set_content(message_pane)
 

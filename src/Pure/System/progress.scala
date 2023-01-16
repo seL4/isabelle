@@ -80,3 +80,89 @@ class File_Progress(path: Path, verbose: Boolean = false) extends Progress {
 
   override def toString: String = path.toString
 }
+
+
+/* structured program progress */
+
+object Program_Progress {
+  class Program private[Program_Progress](title: String) {
+    private val output_buffer = new StringBuffer(256)  // synchronized
+
+    def echo(msg: String): Unit = synchronized {
+      if (output_buffer.length() > 0) output_buffer.append('\n')
+      output_buffer.append(msg)
+    }
+
+    val start_time: Time = Time.now()
+    private var stop_time: Option[Time] = None
+    def stop_now(): Unit = synchronized { stop_time = Some(Time.now()) }
+
+    def output(heading: String): (Command.Results, XML.Body) = synchronized {
+      val output_text = output_buffer.toString
+      val elapsed_time = stop_time.map(t => t - start_time)
+
+      val message_prefix = heading + " "
+      val message_suffix =
+        elapsed_time match {
+          case None => " ..."
+          case Some(t) => " ... (" + t.message + " elapsed time)"
+        }
+
+      val (results, message) =
+        if (output_text.isEmpty) {
+          (Command.Results.empty, XML.string(message_prefix + title + message_suffix))
+        }
+        else {
+          val i = Document_ID.make()
+          val results = Command.Results.make(List(i -> Protocol.writeln_message(output_text)))
+          val message =
+            XML.string(message_prefix) :::
+            List(XML.Elem(Markup(Markup.WRITELN, Markup.Serial(i)), XML.string(title))) :::
+            XML.string(message_suffix)
+          (results, message)
+        }
+
+      (results, List(XML.Elem(Markup(Markup.TRACING_MESSAGE, Nil), message)))
+    }
+  }
+}
+
+abstract class Program_Progress extends Progress {
+  private var _finished_programs: List[Program_Progress.Program] = Nil
+  private var _running_program: Option[Program_Progress.Program] = None
+
+  def output(heading: String = "Running"): (Command.Results, XML.Body) = synchronized {
+    val programs = (_running_program.toList ::: _finished_programs).reverse
+    val programs_output = programs.map(_.output(heading))
+    val results = Command.Results.merge(programs_output.map(_._1))
+    val body = Library.separate(Pretty.Separator, programs_output.map(_._2)).flatten
+    (results, body)
+  }
+
+  private def start_program(title: String): Unit = synchronized {
+    _running_program = Some(new Program_Progress.Program(title))
+  }
+
+  def stop_program(): Unit = synchronized {
+    _running_program match {
+      case Some(program) =>
+        program.stop_now()
+        _finished_programs ::= program
+        _running_program = None
+      case None =>
+    }
+  }
+
+  def detect_program(s: String): Option[String]
+
+  override def echo(msg: String): Unit = synchronized {
+    detect_program(msg) match {
+      case Some(title) =>
+        stop_program()
+        start_program(title)
+      case None =>
+        if (_running_program.isEmpty) start_program("program")
+        _running_program.get.echo(msg)
+    }
+  }
+}

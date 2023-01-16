@@ -132,9 +132,14 @@ object Document_Build {
     List("isabelle.sty", "isabellesym.sty", "pdfsetup.sty", "railsetup.sty").
       map(name => texinputs + Path.basic(name))
 
-  def running_script(title: String): String = "echo 'Running " + quote(title) + " ...'; "
-  def is_running_script(msg: String): Boolean =
-    msg.startsWith("Running \"") && msg.endsWith("\" ...")
+  def running_script(title: String): String =
+    "echo " + Bash.string("Running program \"" + title + "\" ...") + ";"
+
+  def detect_running_script(s: String): Option[String] =
+    for {
+      s1 <- Library.try_unprefix("Running program \"", s)
+      s2 <- Library.try_unsuffix("\" ...", s1)
+    } yield s2
 
   sealed case class Document_Latex(name: Document.Node.Name, body: XML.Body) {
     def content: File.Content_XML = File.content(Path.basic(tex_name(name)), body)
