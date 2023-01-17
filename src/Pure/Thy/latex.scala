@@ -172,6 +172,31 @@ object Latex {
     if (file_pos.isEmpty) Nil
     else List("\\endinput\n", position(Markup.FILE, file_pos))
 
+  def append_position(path: Path, file_pos: String): Unit = {
+    val pos = init_position(file_pos).mkString
+    if (pos.nonEmpty) {
+      val sep = if (File.read(path).endsWith("\n")) "" else "\n"
+      File.append(path, sep + pos)
+    }
+  }
+
+  def copy_file(src: Path, dst: Path): Unit = {
+    Isabelle_System.copy_file(src, dst)
+    if (src.is_latex) {
+      val target = if (dst.is_dir) dst + src.base else dst
+      val file_pos = File.symbolic_path(src)
+      append_position(target, file_pos)
+    }
+  }
+
+  def copy_file_base(base_dir: Path, src: Path, target_dir: Path): Unit = {
+    Isabelle_System.copy_file_base(base_dir, src, target_dir)
+    if (src.is_latex) {
+      val file_pos = File.symbolic_path(base_dir + src)
+      append_position(target_dir + src, file_pos)
+    }
+  }
+
   class Output(val options: Options) {
     def latex_output(latex_text: Text): String = make(latex_text)
 
@@ -335,7 +360,8 @@ object Latex {
       }
 
     def position(line: Int): Position.T =
-      source_position(line) getOrElse Position.Line_File(line, tex_file.implode)
+      source_position(line) getOrElse
+        Position.Line_File(line, source_file.getOrElse(tex_file.implode))
   }
 
 

@@ -220,6 +220,11 @@ final class Path private(
   def is_java: Boolean = ends_with(".java")
   def is_scala: Boolean = ends_with(".scala")
   def is_pdf: Boolean = ends_with(".pdf")
+  def is_latex: Boolean =
+    ends_with(".tex") ||
+    ends_with(".sty") ||
+    ends_with(".cls") ||
+    ends_with(".clo")
 
   def ext(e: String): Path =
     if (e == "") this

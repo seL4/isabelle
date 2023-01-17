@@ -264,16 +264,14 @@ object Document_Build {
 
       /* actual sources: with SHA1 digest */
 
-      isabelle_styles.foreach(Isabelle_System.copy_file(_, doc_dir))
+      isabelle_styles.foreach(Latex.copy_file(_, doc_dir))
 
       val comment_latex = latex_output.options.bool("document_comment_latex")
-      if (!comment_latex) {
-        Isabelle_System.copy_file(texinputs + Path.basic("comment.sty"), doc_dir)
-      }
+      if (!comment_latex) Latex.copy_file(texinputs + Path.basic("comment.sty"), doc_dir)
       doc.tags.sty(comment_latex).write(doc_dir)
 
       for ((base_dir, src) <- info.document_files) {
-        Isabelle_System.copy_file_base(info.dir + base_dir, src, doc_dir)
+        Latex.copy_file_base(info.dir + base_dir, src, doc_dir)
       }
 
       session_tex.write(doc_dir)
@@ -435,7 +433,7 @@ object Document_Build {
 
     override def prepare_directory(context: Context, dir: Path, doc: Document_Variant): Directory = {
       val doc_dir = context.make_directory(dir, doc)
-      Build_LIPIcs.document_files.foreach(Isabelle_System.copy_file(_, doc_dir))
+      Build_LIPIcs.document_files.foreach(Latex.copy_file(_, doc_dir))
 
       val latex_output = new Latex.Output(lipics_options(context.options))
       context.prepare_directory(dir, doc, latex_output)
