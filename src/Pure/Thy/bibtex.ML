@@ -57,14 +57,17 @@ fun cite_command ctxt get_kind ((opt_loc, citations), macro_name) =
           map (fn (name, pos) => (pos, Markup.citation name)) citations);
 
     val thy_name = Context.theory_long_name (Proof_Context.theory_of ctxt);
-    val bibtex_entries =
-      if thy_name = Context.PureN then []
-      else Resources.theory_bibtex_entries thy_name;
+    val bibtex_entries = Resources.theory_bibtex_entries thy_name;
     val _ =
       if null bibtex_entries andalso thy_name <> Context.PureN then ()
       else
         citations |> List.app (fn (name, pos) =>
           if member (op =) bibtex_entries name orelse name = "*" then ()
+          else if thy_name = Context.PureN then
+            (if Context_Position.is_visible ctxt then
+               warning ("Missing theory context --- unchecked Bibtex entry " ^
+                 quote name ^ Position.here pos)
+             else ())
           else error ("Unknown Bibtex entry " ^ quote name ^ Position.here pos));
 
     val kind = if macro_name = "" then get_kind ctxt else macro_name;
