@@ -141,11 +141,16 @@ object Document_Build {
       s2 <- Library.try_unsuffix("\" ...", s1)
     } yield s2
 
-  sealed case class Document_Latex(name: Document.Node.Name, body: XML.Body) {
+  sealed case class Document_Latex(
+    name: Document.Node.Name,
+    body: XML.Body,
+    line_pos: Properties.T => Option[Int]
+  ) {
     def content: File.Content_XML = File.content(Path.basic(tex_name(name)), body)
     def file_pos: String = File.symbolic_path(name.path)
     def write(latex_output: Latex.Output, dir: Path): Unit =
-      content.output(latex_output.make(_, file_pos = file_pos)).write(dir)
+      content.output(latex_output.make(_, file_pos = file_pos, line_pos = line_pos))
+        .write(dir)
   }
 
   def context(
@@ -234,7 +239,18 @@ object Document_Build {
             YXML.parse_body(entry.text)
           }
           else Nil
-        Document_Latex(name, body)
+
+        def line_pos(props: Properties.T): Option[Int] =
+          Position.Line.unapply(props) orElse {
+            for {
+              snapshot <- session_context.document_snapshot
+              id <- Position.Id.unapply(props)
+              offset <- Position.Offset.unapply(props)
+              pos <- snapshot.find_command_position(id, offset)
+            } yield pos.line1
+          }
+
+        Document_Latex(name, body, line_pos)
       }
 
 

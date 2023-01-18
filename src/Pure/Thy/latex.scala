@@ -261,7 +261,11 @@ object Latex {
       error("Unknown latex markup element " + quote(elem.name) + Position.here(pos) +
         ":\n" + XML.string_of_tree(elem))
 
-    def make(latex_text: Text, file_pos: String = ""): String = {
+    def make(
+      latex_text: Text,
+      file_pos: String = "",
+      line_pos: Properties.T => Option[Int] = Position.Line.unapply
+    ): String = {
       var line = 1
       val result = new mutable.ListBuffer[String]
       val positions = new mutable.ListBuffer[String] ++= init_position(file_pos)
@@ -278,9 +282,11 @@ object Latex {
             traverse {
               markup match {
                 case Markup.Document_Latex(props) =>
-                  for (l <- Position.Line.unapply(props) if positions.nonEmpty) {
-                    val s = position(Value.Int(line), Value.Int(l))
-                    if (positions.last != s) positions += s
+                  if (positions.nonEmpty) {
+                    for (l <- line_pos(props)) {
+                      val s = position(Value.Int(line), Value.Int(l))
+                      if (positions.last != s) positions += s
+                    }
                   }
                   body
                 case Markup.Latex_Output(_) => XML.string(latex_output(body))
