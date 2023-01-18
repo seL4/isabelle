@@ -248,7 +248,7 @@ object Document {
         (for {
           (command, line) <-
             Node.Commands.starts(commands.iterator, init = 1,
-              count = cmd => cmd.source.count(_ == '\n'))
+              count = cmd => Library.count_newlines(cmd.source))
         } yield command.id -> line).toMap
 
       lazy val load_commands: List[Command] =
@@ -706,7 +706,7 @@ object Document {
         range = Text.Range(0, command.chunk.decode(offset))
         text <- range.try_substring(command.source)
         line <- node.command_start_line(command)
-      } yield line + text.count(_ == '\n')
+      } yield line + Library.count_newlines(text)
 
     def current_command(other_node_name: Node.Name, offset: Text.Offset): Option[Command] =
       if (other_node_name.is_theory) {

@@ -275,7 +275,7 @@ object Latex {
       def traverse(xml: XML.Body): Unit = {
         xml.foreach {
           case XML.Text(s) =>
-            line += s.count(_ == '\n')
+            line += Library.count_newlines(s)
             result += s
           case elem @ XML.Elem(markup, body) =>
             val a = Markup.Optional_Argument.get(markup.properties)

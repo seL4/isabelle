@@ -178,7 +178,7 @@ object Bibtex {
           }
           if (chunk.is_malformed && err_line == 0) { err_line = line }
           offset = end_offset
-          line += chunk.source.count(_ == '\n')
+          line += Library.count_newlines(chunk.source)
         }
 
         val err_pos =

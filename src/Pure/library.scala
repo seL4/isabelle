@@ -94,6 +94,8 @@ object Library {
 
   /* lines */
 
+  def count_newlines(str: String): Int = str.count(_ == '\n')
+
   def terminate_lines(lines: IterableOnce[String]): String = {
     val it = lines.iterator
     if (it.isEmpty) "" else it.mkString("", "\n", "\n")
