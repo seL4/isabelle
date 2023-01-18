@@ -217,12 +217,13 @@ object Document {
 
       def starts(
         commands: Iterator[Command],
-        offset: Text.Offset = 0
-      ) : Iterator[(Command, Text.Offset)] = {
-        var i = offset
+        init: Int = 0,
+        count: Command => Int = _.length
+      ) : Iterator[(Command, Int)] = {
+        var i = init
         for (command <- commands) yield {
           val start = i
-          i += command.length
+          i += count(command)
           (command, start)
         }
       }
@@ -243,6 +244,13 @@ object Document {
     }
 
     final class Commands private(val commands: Linear_Set[Command]) {
+      lazy val start_lines: Map[Document_ID.Command, Int] =
+        (for {
+          (command, line) <-
+            Node.Commands.starts(commands.iterator, init = 1,
+              count = cmd => cmd.source.count(_ == '\n'))
+        } yield command.id -> line).toMap
+
       lazy val load_commands: List[Command] =
         commands.iterator.filter(cmd => cmd.blobs.nonEmpty).toList
 
@@ -301,6 +309,8 @@ object Document {
       else "node"
 
     def commands: Linear_Set[Command] = _commands.commands
+    def command_start_line(command: Command): Option[Int] =
+      _commands.start_lines.get(command.id)
     def load_commands: List[Command] = _commands.load_commands
     def load_commands_changed(doc_blobs: Blobs): Boolean =
       load_commands.exists(_.blobs_changed(doc_blobs))
@@ -689,6 +699,14 @@ object Document {
         Line.Node_Position(name, pos)
       }
     }
+
+    def find_command_line(id: Document_ID.Generic, offset: Symbol.Offset): Option[Int] =
+      for {
+        (node, command) <- find_command(id)
+        range = Text.Range(0, command.chunk.decode(offset))
+        text <- range.try_substring(command.source)
+        line <- node.command_start_line(command)
+      } yield line + text.count(_ == '\n')
 
     def current_command(other_node_name: Node.Name, offset: Text.Offset): Option[Command] =
       if (other_node_name.is_theory) {

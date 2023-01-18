@@ -246,8 +246,8 @@ object Document_Build {
               snapshot <- session_context.document_snapshot
               id <- Position.Id.unapply(props)
               offset <- Position.Offset.unapply(props)
-              pos <- snapshot.find_command_position(id, offset)
-            } yield pos.line1
+              line <- snapshot.find_command_line(id, offset)
+            } yield line
           }
 
         Document_Latex(name, body, line_pos)
