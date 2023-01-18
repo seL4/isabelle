@@ -674,8 +674,10 @@ object Document {
           if (command_node.commands.contains(command)) Some((command_node, command)) else None
       }
 
-    def find_command_position(id: Document_ID.Generic, offset: Symbol.Offset)
-        : Option[Line.Node_Position] =
+    def find_command_position(
+      id: Document_ID.Generic,
+      offset: Symbol.Offset
+    ): Option[Line.Node_Position] = {
       for ((node, command) <- find_command(id))
       yield {
         val name = command.node_name.node
@@ -686,6 +688,7 @@ object Document {
         val pos = sources_iterator.foldLeft(Line.Position.zero)(_.advance(_))
         Line.Node_Position(name, pos)
       }
+    }
 
     def current_command(other_node_name: Node.Name, offset: Text.Offset): Option[Command] =
       if (other_node_name.is_theory) {
