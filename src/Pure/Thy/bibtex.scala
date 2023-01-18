@@ -385,7 +385,7 @@ object Bibtex {
   }
 
   case class Chunk(kind: String, tokens: List[Token]) {
-    val source = tokens.map(_.source).mkString
+    val source: String = tokens.map(_.source).mkString
 
     private val content: Option[List[Token]] =
       tokens match {
@@ -433,7 +433,7 @@ object Bibtex {
   case class Item(kind: String, end: String, delim: Delimited) extends Line_Context
 
   case class Delimited(quoted: Boolean, depth: Int)
-  val Closed = Delimited(false, 0)
+  val Closed: Delimited = Delimited(false, 0)
 
   private def token(kind: Token.Kind.Value)(source: String): Token = Token(kind, source)
   private def keyword(source: String): Token = Token(Token.Kind.KEYWORD, source)
@@ -469,7 +469,7 @@ object Bibtex {
         require(if (delim.quoted) delim.depth > 0 else delim.depth >= 0,
           "bad delimiter depth")
 
-        def apply(in: Input) = {
+        def apply(in: Input): ParseResult[(String, Delimited)] = {
           val start = in.offset
           val end = in.source.length
 
@@ -526,7 +526,7 @@ object Bibtex {
 
     private val ident = identifier ^^ token(Token.Kind.IDENT)
 
-    val other_token = "[=#,]".r ^^ keyword | (nat | (ident | space))
+    val other_token: Parser[Token] = "[=#,]".r ^^ keyword | (nat | (ident | space))
 
 
     /* body */
