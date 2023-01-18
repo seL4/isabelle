@@ -318,6 +318,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     Wrap_Panel(List(reset_button, purge_button))
 
   private val theories = new Theories_Status(view, document = true)
+  private val theories_pane = new ScrollPane(theories.gui)
 
   private def refresh_theories(): Unit = {
     val domain = PIDE.editor.document_theories().toSet
@@ -328,7 +329,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
   private val input_page =
     new TabbedPane.Page("Input", new BorderPanel {
       layout(theories_controls) = BorderPanel.Position.North
-      layout(theories.gui) = BorderPanel.Position.Center
+      layout(theories_pane) = BorderPanel.Position.Center
     }, "Selection and status of document theories")
 
   private val output_controls =
