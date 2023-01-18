@@ -95,7 +95,7 @@ object Update {
         session <- sessions_structure.build_topological_order
         if build_results(session).ok && !exclude(session)
       } {
-        progress.echo("Session " + session + " ...")
+        progress.echo("Updating " + session + " ...")
         val session_options = sessions_structure(session).options
         val proper_session_theory =
           build_results.deps(session).proper_session_theories.map(_.theory).toSet
@@ -118,7 +118,7 @@ object Update {
               val source1 = XML.content(update_xml(session_options, xml))
               if (source1 != snapshot.node.source) {
                 val path = Path.explode(node_name.node)
-                progress.echo("Updating " + quote(File.standard_path(path)))
+                progress.echo("File " + quote(File.standard_path(path)))
                 File.write(path, source1)
               }
             }
