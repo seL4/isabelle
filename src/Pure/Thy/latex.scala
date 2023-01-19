@@ -46,21 +46,6 @@ object Latex {
     else name
 
 
-  /* cite: references to bibliography */
-
-  object Cite {
-    sealed case class Value(kind: String, citation: String, location: XML.Body)
-    def unapply(tree: XML.Tree): Option[Value] =
-      tree match {
-        case XML.Elem(Markup(Markup.Latex_Cite.name, props), body) =>
-          val kind = Markup.Kind.unapply(props).getOrElse(Bibtex.CITE)
-          val citations = Markup.Citations.get(props)
-          Some(Value(kind, citations, body))
-        case _ => None
-      }
-  }
-
-
   /* index entries */
 
   def index_escape(str: String): String = {
@@ -235,11 +220,15 @@ object Latex {
       }
     }
 
-    def cite(value: Cite.Value): Text = {
-      latex_macro0(value.kind) :::
-      (if (value.location.isEmpty) Nil
-       else XML.string("[") ::: value.location ::: XML.string("]")) :::
-      XML.string("{" + value.citation + "}")
+    def cite(inner: Bibtex.Cite.Inner): Text = {
+      val body =
+        latex_macro0(inner.kind) :::
+        (if (inner.location.isEmpty) Nil
+         else XML.string("[") ::: inner.location ::: XML.string("]")) :::
+        XML.string("{" + inner.citation + "}")
+
+      if (inner.pos.isEmpty) body
+      else List(XML.Elem(Markup.Latex_Output(inner.pos), body))
     }
 
     def index_item(item: Index_Item.Value): String = {
@@ -299,7 +288,7 @@ object Latex {
                 case Markup.Latex_Tag(name) => latex_tag(name, body)
                 case Markup.Latex_Cite(_) =>
                   elem match {
-                    case Cite(value) => cite(value)
+                    case Bibtex.Cite(inner) => cite(inner)
                     case _ => unknown_elem(elem, file_position)
                   }
                 case Markup.Latex_Index_Entry(_) =>
