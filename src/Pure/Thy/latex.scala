@@ -46,21 +46,6 @@ object Latex {
     else name
 
 
-  /* cite: references to bibliography */
-
-  object Cite {
-    sealed case class Value(kind: String, citation: String, location: XML.Body)
-    def unapply(tree: XML.Tree): Option[Value] =
-      tree match {
-        case XML.Elem(Markup(Markup.Latex_Cite.name, props), body) =>
-          val kind = Markup.Kind.unapply(props).getOrElse("cite")
-          val citations = Markup.Citations.get(props)
-          Some(Value(kind, citations, body))
-        case _ => None
-      }
-  }
-
-
   /* index entries */
 
   def index_escape(str: String): String = {
@@ -235,11 +220,15 @@ object Latex {
       }
     }
 
-    def cite(value: Cite.Value): Text = {
-      latex_macro0(value.kind) :::
-      (if (value.location.isEmpty) Nil
-       else XML.string("[") ::: value.location ::: XML.string("]")) :::
-      XML.string("{" + value.citation + "}")
+    def cite(inner: Bibtex.Cite.Inner): Text = {
+      val body =
+        latex_macro0(inner.kind) :::
+        (if (inner.location.isEmpty) Nil
+         else XML.string("[") ::: inner.location ::: XML.string("]")) :::
+        XML.string("{" + inner.citation + "}")
+
+      if (inner.pos.isEmpty) body
+      else List(XML.Elem(Markup.Latex_Output(inner.pos), body))
     }
 
     def index_item(item: Index_Item.Value): String = {
@@ -261,7 +250,11 @@ object Latex {
       error("Unknown latex markup element " + quote(elem.name) + Position.here(pos) +
         ":\n" + XML.string_of_tree(elem))
 
-    def make(latex_text: Text, file_pos: String = ""): String = {
+    def make(
+      latex_text: Text,
+      file_pos: String = "",
+      line_pos: Properties.T => Option[Int] = Position.Line.unapply
+    ): String = {
       var line = 1
       val result = new mutable.ListBuffer[String]
       val positions = new mutable.ListBuffer[String] ++= init_position(file_pos)
@@ -271,16 +264,18 @@ object Latex {
       def traverse(xml: XML.Body): Unit = {
         xml.foreach {
           case XML.Text(s) =>
-            line += s.count(_ == '\n')
+            line += Library.count_newlines(s)
             result += s
           case elem @ XML.Elem(markup, body) =>
             val a = Markup.Optional_Argument.get(markup.properties)
             traverse {
               markup match {
                 case Markup.Document_Latex(props) =>
-                  for (l <- Position.Line.unapply(props) if positions.nonEmpty) {
-                    val s = position(Value.Int(line), Value.Int(l))
-                    if (positions.last != s) positions += s
+                  if (positions.nonEmpty) {
+                    for (l <- line_pos(props)) {
+                      val s = position(Value.Int(line), Value.Int(l))
+                      if (positions.last != s) positions += s
+                    }
                   }
                   body
                 case Markup.Latex_Output(_) => XML.string(latex_output(body))
@@ -293,7 +288,7 @@ object Latex {
                 case Markup.Latex_Tag(name) => latex_tag(name, body)
                 case Markup.Latex_Cite(_) =>
                   elem match {
-                    case Cite(value) => cite(value)
+                    case Bibtex.Cite(inner) => cite(inner)
                     case _ => unknown_elem(elem, file_position)
                   }
                 case Markup.Latex_Index_Entry(_) =>

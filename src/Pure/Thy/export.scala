@@ -346,7 +346,7 @@ object Export {
     val database_context: Database_Context,
     session_background: Sessions.Background,
     db_hierarchy: List[Session_Database],
-    document_snapshot: Option[Document.Snapshot]
+    val document_snapshot: Option[Document.Snapshot]
   ) extends AutoCloseable {
     session_context =>
 

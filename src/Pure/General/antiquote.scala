@@ -38,6 +38,11 @@ object Antiquote {
 
     val antiquote: Parser[Antiquote] =
       txt ^^ (x => Text(x)) | (control ^^ (x => Control(x)) | antiq ^^ (x => Antiq(x)))
+
+    def antiquote_special(special: Symbol.Symbol => Boolean): Parser[Antiquote] =
+      many1(s => !special(s)) ^^ Text.apply |
+      one(special) ~ opt(cartouche) ^^
+        { case x ~ Some(y) => Control(x + y) case x ~ None => Control(x) }
   }
 
 

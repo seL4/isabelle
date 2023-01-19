@@ -14,7 +14,7 @@ object Update {
   def update_xml(options: Options, xml: XML.Body): XML.Body = {
     val update_path_cartouches = options.bool("update_path_cartouches")
     val update_cite = options.bool("update_cite")
-    val cite_commands = Library.space_explode(',', options.string("document_cite_commands"))
+    val cite_commands = Bibtex.cite_commands(options)
 
     def upd(lang: Markup.Language, ts: XML.Body): XML.Body =
       ts flatMap {
@@ -95,7 +95,7 @@ object Update {
         session <- sessions_structure.build_topological_order
         if build_results(session).ok && !exclude(session)
       } {
-        progress.echo("Session " + session + " ...")
+        progress.echo("Updating " + session + " ...")
         val session_options = sessions_structure(session).options
         val proper_session_theory =
           build_results.deps(session).proper_session_theories.map(_.theory).toSet
@@ -118,7 +118,7 @@ object Update {
               val source1 = XML.content(update_xml(session_options, xml))
               if (source1 != snapshot.node.source) {
                 val path = Path.explode(node_name.node)
-                progress.echo("Updating " + quote(File.standard_path(path)))
+                progress.echo("File " + quote(File.standard_path(path)))
                 File.write(path, source1)
               }
             }

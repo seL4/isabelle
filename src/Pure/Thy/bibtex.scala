@@ -14,6 +14,8 @@ import scala.util.parsing.combinator.RegexParsers
 import scala.util.parsing.input.Reader
 import scala.util.matching.Regex
 
+import isabelle.{Token => Isar_Token}
+
 
 object Bibtex {
   /** file format **/
@@ -178,7 +180,7 @@ object Bibtex {
           }
           if (chunk.is_malformed && err_line == 0) { err_line = line }
           offset = end_offset
-          line += chunk.source.count(_ == '\n')
+          line += Library.count_newlines(chunk.source)
         }
 
         val err_pos =
@@ -385,7 +387,7 @@ object Bibtex {
   }
 
   case class Chunk(kind: String, tokens: List[Token]) {
-    val source = tokens.map(_.source).mkString
+    val source: String = tokens.map(_.source).mkString
 
     private val content: Option[List[Token]] =
       tokens match {
@@ -433,7 +435,7 @@ object Bibtex {
   case class Item(kind: String, end: String, delim: Delimited) extends Line_Context
 
   case class Delimited(quoted: Boolean, depth: Int)
-  val Closed = Delimited(false, 0)
+  val Closed: Delimited = Delimited(false, 0)
 
   private def token(kind: Token.Kind.Value)(source: String): Token = Token(kind, source)
   private def keyword(source: String): Token = Token(Token.Kind.KEYWORD, source)
@@ -469,7 +471,7 @@ object Bibtex {
         require(if (delim.quoted) delim.depth > 0 else delim.depth >= 0,
           "bad delimiter depth")
 
-        def apply(in: Input) = {
+        def apply(in: Input): ParseResult[(String, Delimited)] = {
           val start = in.offset
           val end = in.source.length
 
@@ -526,7 +528,7 @@ object Bibtex {
 
     private val ident = identifier ^^ token(Token.Kind.IDENT)
 
-    val other_token = "[=#,]".r ^^ keyword | (nat | (ident | space))
+    val other_token: Parser[Token] = "[=#,]".r ^^ keyword | (nat | (ident | space))
 
 
     /* body */
@@ -721,6 +723,17 @@ object Bibtex {
 
   /** cite commands and antiquotations **/
 
+  /* cite commands */
+
+  def cite_commands(options: Options): List[String] =
+    Library.space_explode(',', options.string("document_cite_commands"))
+
+  val CITE = "cite"
+  val NOCITE = "nocite"
+
+
+  /* update old forms */
+
   def cite_antiquotation(name: String, body: String): String =
     """\<^""" + name + """>\<open>""" + body + """\<close>"""
 
@@ -733,7 +746,6 @@ object Bibtex {
 
   private val Cite_Command = """\\(cite|nocite|citet|citep)((?:\[[^\]]*\])?)\{([^}]*)\}""".r
   private val Cite_Macro = """\[\s*cite_macro\s*=\s*"?(\w+)"?\]\s*""".r
-  private val CITE = "cite"
 
   def update_cite_commands(str: String): String =
     Cite_Command.replaceAllIn(str, { m =>
@@ -764,6 +776,96 @@ object Bibtex {
         val body2 = body1.replace("""\<close>""", """\<close> in""")
         if (cite_commands.contains(name)) cite_antiquotation(name, body2)
         else cite_antiquotation(CITE, body2 + " using " + quote(name))
+    }
+  }
+
+
+  /* parse within raw source */
+
+  object Cite {
+    def unapply(tree: XML.Tree): Option[Inner] =
+      tree match {
+        case XML.Elem(Markup(Markup.Latex_Cite.name, props), body) =>
+          val kind = Markup.Kind.unapply(props).getOrElse(CITE)
+          val citations = Markup.Citations.get(props)
+          val pos = props.filter(Markup.position_property)
+          Some(Inner(kind, citations, body, pos))
+        case _ => None
+      }
+
+    sealed case class Inner(kind: String, citation: String, location: XML.Body, pos: Position.T) {
+      def nocite: Inner = copy(kind = NOCITE, location = Nil)
+
+      override def toString: String = citation
+    }
+
+    sealed case class Outer(kind: String, body: String, start: Isar_Token.Pos) {
+      def pos: Position.T = start.position()
+
+      def parse: Option[Inner] = {
+        val tokens = Isar_Token.explode(Parsers.keywords, body)
+        Parsers.parse_all(Parsers.inner(pos), Isar_Token.reader(tokens, start)) match {
+          case Parsers.Success(res, _) => Some(res)
+          case _ => None
+        }
+      }
+
+      def errors: List[String] =
+        if (parse.isDefined) Nil
+        else List("Malformed citation" + Position.here(pos))
+
+      override def toString: String =
+        parse match {
+          case Some(inner) => inner.toString
+          case None => "<malformed>"
+        }
+    }
+
+    object Parsers extends Parse.Parsers {
+      val keywords: Keyword.Keywords = Thy_Header.bootstrap_keywords + "in" + "using"
+
+      val location: Parser[String] = embedded ~ $$$("in") ^^ { case x ~ _ => x } | success("")
+      val citations: Parser[String] = rep1sep(name, $$$("and")) ^^ (x => x.mkString(","))
+      val kind: Parser[String] = $$$("using") ~! name ^^ { case _ ~ x => x } | success(CITE)
+
+      def inner(pos: Position.T): Parser[Inner] =
+        location ~ citations ~ kind ^^
+          { case x ~ y ~ z => Inner(z, y, XML.string(x), pos) }
+    }
+
+    def parse(
+      cite_commands: List[String],
+      text: String,
+      start: Isar_Token.Pos = Isar_Token.Pos.start
+    ): List[Outer] = {
+      val controls = cite_commands.map(s => Symbol.control_prefix + s + Symbol.control_suffix)
+      val special = (controls ::: controls.map(Symbol.decode)).toSet
+
+      val Parsers = Antiquote.Parsers
+      Parsers.parseAll(Parsers.rep(Parsers.antiquote_special(special)), text) match {
+        case Parsers.Success(ants, _) =>
+          var pos = start
+          val result = new mutable.ListBuffer[Outer]
+          for (ant <- ants) {
+            ant match {
+              case Antiquote.Control(source) =>
+                for {
+                  head <- Symbol.iterator(source).nextOption
+                  kind <- Symbol.control_name(Symbol.encode(head))
+                } {
+                  val rest = source.substring(head.length)
+                  val (body, pos1) =
+                    if (rest.isEmpty) (rest, pos)
+                    else (Scan.Parsers.cartouche_content(rest), pos.advance(Symbol.open))
+                  result += Outer(kind, body, pos1)
+                }
+              case _ =>
+            }
+            pos = pos.advance(ant.source)
+          }
+          result.toList
+        case _ => error("Unexpected failure parsing special antiquotations:\n" + text)
+      }
     }
   }
 }

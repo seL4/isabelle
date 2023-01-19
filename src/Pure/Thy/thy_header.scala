@@ -59,7 +59,7 @@ object Thy_Header {
       (THEORY, Keyword.Spec(kind = Keyword.THY_BEGIN, tags = List("theory"))),
       ("ML", Keyword.Spec(kind = Keyword.THY_DECL, tags = List("ML"))))
 
-  private val bootstrap_keywords =
+  val bootstrap_keywords: Keyword.Keywords =
     Keyword.Keywords.empty.add_keywords(bootstrap_header)
 
   val bootstrap_syntax: Outer_Syntax =
