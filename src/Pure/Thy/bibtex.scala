@@ -14,6 +14,8 @@ import scala.util.parsing.combinator.RegexParsers
 import scala.util.parsing.input.Reader
 import scala.util.matching.Regex
 
+import isabelle.{Token => Isar_Token}
+
 
 object Bibtex {
   /** file format **/
@@ -734,6 +736,7 @@ object Bibtex {
   private val Cite_Command = """\\(cite|nocite|citet|citep)((?:\[[^\]]*\])?)\{([^}]*)\}""".r
   private val Cite_Macro = """\[\s*cite_macro\s*=\s*"?(\w+)"?\]\s*""".r
   private val CITE = "cite"
+  private val NOCITE = "nocite"
 
   def update_cite_commands(str: String): String =
     Cite_Command.replaceAllIn(str, { m =>
@@ -766,4 +769,75 @@ object Bibtex {
         else cite_antiquotation(CITE, body2 + " using " + quote(name))
     }
   }
+
+  object Cite_Parsers extends Parse.Parsers {
+    val keywords: Keyword.Keywords = Thy_Header.bootstrap_keywords + "in" + "and" + "using"
+
+    val location: Parser[String] = embedded ~ $$$("in") ^^ { case x ~ _ => x } | success("")
+    val citations: Parser[String] = rep1sep(name, $$$("and")) ^^ (x => x.mkString(","))
+    val kind: Parser[String] = $$$("using") ~! name ^^ { case _ ~ x => x } | success(CITE)
+
+    val nocite: Parser[Latex.Text] =
+      location ~ citations ~ kind ^^ { case _ ~ x ~ _ =>
+        List(XML.elem(Markup.Latex_Cite(Markup.Kind(NOCITE) ::: Markup.Citations(x))))
+      }
+  }
+
+  sealed case class Cite(kind: String, body: String, pos: Isar_Token.Pos) {
+    def position: Position.T = pos.position()
+
+    def nocite_latex: Latex.Text = {
+      val Parsers = Cite_Parsers
+      val tokens = Isar_Token.explode(Parsers.keywords, body)
+      Parsers.parse_all(Parsers.nocite, Isar_Token.reader(tokens, pos)) match {
+        case Parsers.Success(nocite, _) => List(XML.Elem(Markup.Latex_Output(position), nocite))
+        case _ => Nil
+      }
+    }
+
+    def errors: List[String] =
+      if (nocite_latex.nonEmpty) Nil
+      else List("Malformed citation" + Position.here(position))
+  }
+
+  def parse_citations(
+    cite_commands: List[String],
+    text: String,
+    start: Isar_Token.Pos = Isar_Token.Pos.start
+  ): List[Cite] = {
+    val controls = cite_commands.map(s => Symbol.control_prefix + s + Symbol.control_suffix)
+    val special = (controls ::: controls.map(Symbol.decode)).toSet
+
+    val Parsers = Antiquote.Parsers
+    Parsers.parseAll(Parsers.rep(Parsers.antiquote_special(special)), text) match {
+      case Parsers.Success(ants, _) =>
+        var pos = start
+        val result = new mutable.ListBuffer[Cite]
+        for (ant <- ants) {
+          ant match {
+            case Antiquote.Control(source) =>
+              for {
+                head <- Symbol.iterator(source).nextOption
+                kind <- Symbol.control_name(Symbol.encode(head))
+              } {
+                val rest = source.substring(head.length)
+                val (body, pos1) =
+                  if (rest.isEmpty) (rest, pos)
+                  else (Scan.Parsers.cartouche_content(rest), pos.advance(Symbol.open))
+                result += Cite(kind, body, pos1)
+              }
+            case _ =>
+          }
+          pos = pos.advance(ant.source)
+        }
+        result.toList
+      case _ => error("Unexpected failure parsing special antiquotations:\n" + text)
+    }
+  }
+
+  def parse_citations_latex(
+    cite_commands: List[String],
+    text: String,
+    start: Isar_Token.Pos = Isar_Token.Pos.start
+  ): Latex.Text = parse_citations(cite_commands, text, start = start).flatMap(_.nocite_latex)
 }
