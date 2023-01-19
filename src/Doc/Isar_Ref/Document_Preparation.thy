@@ -117,6 +117,9 @@ text \<open>
     @{antiquotation_def ML_functor} & : & \<open>antiquotation\<close> \\
     @{antiquotation_def ML_functor_def} & : & \<open>antiquotation\<close> \\
     @{antiquotation_def ML_functor_ref} & : & \<open>antiquotation\<close> \\
+  \end{matharray}
+
+  \begin{matharray}{rcl}
     @{antiquotation_def emph} & : & \<open>antiquotation\<close> \\
     @{antiquotation_def bold} & : & \<open>antiquotation\<close> \\
     @{antiquotation_def verbatim} & : & \<open>antiquotation\<close> \\
@@ -126,6 +129,9 @@ text \<open>
     @{antiquotation_def "file"} & : & \<open>antiquotation\<close> \\
     @{antiquotation_def "url"} & : & \<open>antiquotation\<close> \\
     @{antiquotation_def "cite"} & : & \<open>antiquotation\<close> \\
+    @{antiquotation_def "nocite"} & : & \<open>antiquotation\<close> \\
+    @{antiquotation_def "citet"} & : & \<open>antiquotation\<close> \\
+    @{antiquotation_def "citep"} & : & \<open>antiquotation\<close> \\
     @{command_def "print_antiquotations"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
   \end{matharray}
 
