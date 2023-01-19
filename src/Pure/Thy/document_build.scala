@@ -233,8 +233,10 @@ object Document_Build {
     lazy val document_latex: List[Document_Latex] =
       for (name <- all_document_theories)
       yield {
+        val selected = document_selection(name)
+
         val body =
-          if (document_selection(name)) {
+          if (selected) {
             val entry = session_context(name.theory, Export.DOCUMENT_LATEX, permissive = true)
             YXML.parse_body(entry.text)
           }
@@ -242,12 +244,15 @@ object Document_Build {
 
         def line_pos(props: Properties.T): Option[Int] =
           Position.Line.unapply(props) orElse {
-            for {
-              snapshot <- session_context.document_snapshot
-              id <- Position.Id.unapply(props)
-              offset <- Position.Offset.unapply(props)
-              line <- snapshot.find_command_line(id, offset)
-            } yield line
+            if (selected) {
+              for {
+                snapshot <- session_context.document_snapshot
+                id <- Position.Id.unapply(props)
+                offset <- Position.Offset.unapply(props)
+                line <- snapshot.find_command_line(id, offset)
+              } yield line
+            }
+            else None
           }
 
         Document_Latex(name, body, line_pos)
