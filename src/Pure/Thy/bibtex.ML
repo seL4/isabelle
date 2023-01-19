@@ -83,13 +83,16 @@ fun cite_command_old ctxt get_kind args =
       else ();
   in cite_command ctxt get_kind (args, "") end;
 
+val cite_keywords =
+  Thy_Header.bootstrap_keywords
+  |> Keyword.add_keywords (map (fn a => ((a, Position.none), Keyword.no_spec)) ["in", "using"]);
+
 fun cite_command_embedded ctxt get_kind input =
   let
-    val keywords = Thy_Header.get_keywords' ctxt;
     val parser =
       Scan.option (Parse.embedded_input --| Parse.$$$ "in") -- parse_citations --
-        Scan.optional (Parse.command_name "using" |-- Parse.!!! Parse.name) "";
-    val args = Parse.read_embedded ctxt keywords parser input;
+        Scan.optional (Parse.$$$ "using" |-- Parse.!!! Parse.name) "";
+    val args = Parse.read_embedded ctxt cite_keywords parser input;
   in cite_command ctxt get_kind args end;
 
 fun cite_command_parser get_kind =

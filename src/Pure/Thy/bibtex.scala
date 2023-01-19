@@ -822,7 +822,7 @@ object Bibtex {
     }
 
     object Parsers extends Parse.Parsers {
-      val keywords: Keyword.Keywords = Thy_Header.bootstrap_keywords + "in" + "and" + "using"
+      val keywords: Keyword.Keywords = Thy_Header.bootstrap_keywords + "in" + "using"
 
       val location: Parser[String] = embedded ~ $$$("in") ^^ { case x ~ _ => x } | success("")
       val citations: Parser[String] = rep1sep(name, $$$("and")) ^^ (x => x.mkString(","))
