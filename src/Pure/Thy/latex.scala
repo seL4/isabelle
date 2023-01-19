@@ -53,7 +53,7 @@ object Latex {
     def unapply(tree: XML.Tree): Option[Value] =
       tree match {
         case XML.Elem(Markup(Markup.Latex_Cite.name, props), body) =>
-          val kind = Markup.Kind.unapply(props).getOrElse("cite")
+          val kind = Markup.Kind.unapply(props).getOrElse(Bibtex.CITE)
           val citations = Markup.Citations.get(props)
           Some(Value(kind, citations, body))
         case _ => None

@@ -14,7 +14,7 @@ object Update {
   def update_xml(options: Options, xml: XML.Body): XML.Body = {
     val update_path_cartouches = options.bool("update_path_cartouches")
     val update_cite = options.bool("update_cite")
-    val cite_commands = Library.space_explode(',', options.string("document_cite_commands"))
+    val cite_commands = Bibtex.cite_commands(options)
 
     def upd(lang: Markup.Language, ts: XML.Body): XML.Body =
       ts flatMap {

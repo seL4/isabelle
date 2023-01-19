@@ -723,6 +723,15 @@ object Bibtex {
 
   /** cite commands and antiquotations **/
 
+  /* cite commands */
+
+  def cite_commands(options: Options): List[String] =
+    Library.space_explode(',', options.string("document_cite_commands"))
+
+  val CITE = "cite"
+  val NOCITE = "nocite"
+
+
   /* update old forms */
 
   def cite_antiquotation(name: String, body: String): String =
@@ -737,8 +746,6 @@ object Bibtex {
 
   private val Cite_Command = """\\(cite|nocite|citet|citep)((?:\[[^\]]*\])?)\{([^}]*)\}""".r
   private val Cite_Macro = """\[\s*cite_macro\s*=\s*"?(\w+)"?\]\s*""".r
-  private val CITE = "cite"
-  private val NOCITE = "nocite"
 
   def update_cite_commands(str: String): String =
     Cite_Command.replaceAllIn(str, { m =>
