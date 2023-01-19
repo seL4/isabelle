@@ -723,6 +723,8 @@ object Bibtex {
 
   /** cite commands and antiquotations **/
 
+  /* update old forms */
+
   def cite_antiquotation(name: String, body: String): String =
     """\<^""" + name + """>\<open>""" + body + """\<close>"""
 
@@ -782,6 +784,9 @@ object Bibtex {
         List(XML.elem(Markup.Latex_Cite(Markup.Kind(NOCITE) ::: Markup.Citations(x))))
       }
   }
+
+
+  /* parse within raw source */
 
   sealed case class Cite(kind: String, body: String, pos: Isar_Token.Pos) {
     def position: Position.T = pos.position()
