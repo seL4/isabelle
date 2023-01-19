@@ -179,6 +179,9 @@ antiquotations.
       fimage_strict_mono
       wfP_pfsubset
 
+* Theory "HOL-Library.BigO":
+  - Obsolete, moved to HOL-ex
+
 * Theory "HOL-Library.Multiset":
   - Strengthened lemmas. Minor INCOMPATIBILITIES.
       mult_cancel

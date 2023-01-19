@@ -12,8 +12,8 @@ begin
 
 text \<open>
   This library lifts operations like addition and multiplication to sets. It
-  was designed to support asymptotic calculations. See the comments at the top
-  of \<^file>\<open>BigO.thy\<close>.
+  was designed to support asymptotic calculations for the now-obsolete BigO theory,
+  but has other uses.
 \<close>
 
 instantiation set :: (plus) plus

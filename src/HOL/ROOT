@@ -669,6 +669,7 @@ session "HOL-ex" (timing) in ex = "HOL-Number_Theory" +
     Argo_Examples
     Arith_Examples
     Ballot
+    BigO
     BinEx
     Birthday_Paradox
     Bubblesort

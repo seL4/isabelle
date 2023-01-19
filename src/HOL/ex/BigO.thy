@@ -1,5 +1,5 @@
-(*  Title:      HOL/Library/BigO.thy
-    Authors:    Jeremy Avigad and Kevin Donnelly
+(*  Title:      HOL/ex/BigO.thy
+    Authors:    Jeremy Avigad and Kevin Donnelly; proofs tidied by LCP
 *)
 
 section \<open>Big O notation\<close>
@@ -7,8 +7,8 @@ section \<open>Big O notation\<close>
 theory BigO
   imports
     Complex_Main
-    Function_Algebras
-    Set_Algebras
+    "HOL-Library.Function_Algebras"
+    "HOL-Library.Set_Algebras"
 begin
 
 text \<open>
@@ -41,7 +41,7 @@ definition bigo :: "('a \<Rightarrow> 'b::linordered_idom) \<Rightarrow> ('a \<R
 lemma bigo_pos_const:
   "(\<exists>c::'a::linordered_idom. \<forall>x. \<bar>h x\<bar> \<le> c * \<bar>f x\<bar>) \<longleftrightarrow>
     (\<exists>c. 0 < c \<and> (\<forall>x. \<bar>h x\<bar> \<le> c * \<bar>f x\<bar>))"
-  by (metis (no_types, opaque_lifting) abs_ge_zero abs_not_less_zero abs_of_nonneg dual_order.trans 
+  by (metis (no_types, opaque_lifting) abs_ge_zero abs_not_less_zero abs_of_nonneg dual_order.trans
         mult_1 zero_less_abs_iff zero_less_mult_iff zero_less_one)
 
 lemma bigo_alt_def: "O(f) = {h. \<exists>c. 0 < c \<and> (\<forall>x. \<bar>h x\<bar> \<le> c * \<bar>f x\<bar>)}"
@@ -49,7 +49,7 @@ lemma bigo_alt_def: "O(f) = {h. \<exists>c. 0 < c \<and> (\<forall>x. \<bar>h x\
 
 lemma bigo_elt_subset [intro]: "f \<in> O(g) \<Longrightarrow> O(f) \<le> O(g)"
   apply (auto simp add: bigo_alt_def)
-  by (metis (no_types, opaque_lifting) mult.assoc mult_le_cancel_iff2 order.trans 
+  by (metis (no_types, opaque_lifting) mult.assoc mult_le_cancel_iff2 order.trans
       zero_less_mult_iff)
 
 lemma bigo_refl [intro]: "f \<in> O(f)"
@@ -290,7 +290,7 @@ lemma bigo_const_mult [simp]: "c \<noteq> 0 \<Longrightarrow> O(\<lambda>x. c * 
 
 lemma bigo_const_mult5 [simp]: "(\<lambda>x. c) *o O(f) = O(f)" if "c \<noteq> 0"
   for c :: "'a::linordered_field"
-proof 
+proof
   show "O(f) \<subseteq> (\<lambda>x. c) *o O(f)"
     using that
     apply (clarsimp simp add: bigo_def elt_set_times_def func_times)
@@ -457,7 +457,7 @@ proof -
 qed
 
 
-lemma bigo_lesso5: 
+lemma bigo_lesso5:
   assumes "f <o g =o O(h)" shows "\<exists>C. \<forall>x. f x \<le> g x + C * \<bar>h x\<bar>"
 proof -
   obtain c where "0 < c" and c: "\<And>x. f x - g x \<le> c * \<bar>h x\<bar>"
@@ -487,7 +487,7 @@ proof -
     by (auto simp: LIMSEQ_iff)
 qed
 
-lemma bigo_LIMSEQ2: 
+lemma bigo_LIMSEQ2:
   fixes f g :: "nat \<Rightarrow> real"
   assumes "f =o g +o O(h)" "h \<longlonglongrightarrow> 0" and f: "f \<longlonglongrightarrow> a"
   shows  "g \<longlonglongrightarrow> a"

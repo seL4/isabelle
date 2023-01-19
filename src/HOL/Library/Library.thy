@@ -3,7 +3,6 @@ theory Library
 imports
   AList
   Adhoc_Overloading
-  BigO
   BNF_Axiomatization
   BNF_Corec
   Bourbaki_Witt_Fixpoint
