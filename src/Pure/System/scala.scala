@@ -34,7 +34,7 @@ object Scala {
     def bytes: Boolean = false
     def position: Properties.T = here.position
     def here: Scala_Project.Here
-    def invoke(args: List[Bytes]): List[Bytes]
+    def invoke(session: Session, args: List[Bytes]): List[Bytes]
   }
 
   trait Single_Fun extends Fun { override def single: Boolean = true }
@@ -42,7 +42,7 @@ object Scala {
 
   abstract class Fun_Strings(name: String, thread: Boolean = false)
   extends Fun(name, thread = thread) {
-    override def invoke(args: List[Bytes]): List[Bytes] =
+    override def invoke(session: Session, args: List[Bytes]): List[Bytes] =
       apply(args.map(_.text)).map(Bytes.apply)
     def apply(args: List[String]): List[String]
   }
@@ -56,7 +56,7 @@ object Scala {
 
   abstract class Fun_Bytes(name: String, thread: Boolean = false)
     extends Fun(name, thread = thread) with Single_Fun with Bytes_Fun {
-    override def invoke(args: List[Bytes]): List[Bytes] =
+    override def invoke(session: Session, args: List[Bytes]): List[Bytes] =
       List(apply(Library.the_single(args)))
     def apply(arg: Bytes): Bytes
   }
@@ -93,6 +93,19 @@ object Scala {
       t.sleep()
       val t1 = Time.now()
       (t1 - t0).toString
+    }
+  }
+
+  object Theory_Name extends Fun("command_theory_name") with Single_Fun {
+    val here = Scala_Project.here
+    override def invoke(session: Session, args: List[Bytes]): List[Bytes] = {
+      val id = Value.Long.parse(Library.the_single(args).text)
+      val name =
+        session.get_state().lookup_id(id) match {
+          case None => ""
+          case Some(st) => st.command.node_name.theory
+        }
+      List(Bytes(name))
     }
   }
 
@@ -285,10 +298,10 @@ object Scala {
       case None => false
     }
 
-  def function_body(name: String, args: List[Bytes]): (Tag.Value, List[Bytes]) =
+  def function_body(session: Session, name: String, args: List[Bytes]): (Tag.Value, List[Bytes]) =
     functions.find(fun => fun.name == name) match {
       case Some(fun) =>
-        Exn.capture { fun.invoke(args) } match {
+        Exn.capture { fun.invoke(session, args) } match {
           case Exn.Res(null) => (Tag.NULL, Nil)
           case Exn.Res(res) => (Tag.OK, res)
           case Exn.Exn(Exn.Interrupt()) => (Tag.INTERRUPT, Nil)
@@ -329,7 +342,7 @@ object Scala {
       msg.properties match {
         case Markup.Invoke_Scala(name, id) =>
           def body(): Unit = {
-            val (tag, res) = Scala.function_body(name, msg.chunks)
+            val (tag, res) = Scala.function_body(session, name, msg.chunks)
             result(id, tag, res)
           }
           val future =
@@ -365,6 +378,7 @@ object Scala {
 class Scala_Functions extends Scala.Functions(
   Scala.Echo,
   Scala.Sleep,
+  Scala.Theory_Name,
   Scala.Toplevel,
   Scala_Build.Scala_Fun,
   Base64.Decode,

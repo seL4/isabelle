@@ -104,7 +104,7 @@ object Scala_Build {
 
   object Scala_Fun extends Scala.Fun("scala_build") with Scala.Bytes_Fun {
     val here = Scala_Project.here
-    def invoke(args: List[Bytes]): List[Bytes] =
+    def invoke(session: Session, args: List[Bytes]): List[Bytes] =
       args match {
         case List(dir) =>
           val result = build_result(Path.explode(dir.text))

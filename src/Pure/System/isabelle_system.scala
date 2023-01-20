@@ -543,7 +543,7 @@ object Isabelle_System {
 
   object Download extends Scala.Fun("download", thread = true) {
     val here = Scala_Project.here
-    override def invoke(args: List[Bytes]): List[Bytes] =
+    override def invoke(session: Session, args: List[Bytes]): List[Bytes] =
       args.map(url => download(url.text).bytes)
   }
 

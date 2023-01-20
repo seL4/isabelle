@@ -48,6 +48,19 @@ local
 
 val parse_citations = Parse.and_list1 Args.name_position;
 
+fun command_theory_name () =
+  let
+    fun err () = error ("Cannot determine command theory name: bad PIDE id");
+    val res =
+      (case Position.id_of (Position.thread_data ()) of
+        SOME id => \<^scala>\<open>command_theory_name\<close> id
+      | NONE => err ());
+  in if res = "" then err () else res end;
+
+fun theory_name thy =
+  let val name0 = Context.theory_long_name thy;
+  in if name0 = Context.PureN then command_theory_name () else name0 end;
+
 fun cite_command ctxt get_kind ((opt_loc, citations), macro_name) =
   let
     val loc = the_default Input.empty opt_loc;
@@ -56,18 +69,13 @@ fun cite_command ctxt get_kind ((opt_loc, citations), macro_name) =
         (Document_Output.document_reports loc @
           map (fn (name, pos) => (pos, Markup.citation name)) citations);
 
-    val thy_name = Context.theory_long_name (Proof_Context.theory_of ctxt);
+    val thy_name = theory_name (Proof_Context.theory_of ctxt);
     val bibtex_entries = Resources.theory_bibtex_entries thy_name;
     val _ =
       if null bibtex_entries andalso thy_name <> Context.PureN then ()
       else
         citations |> List.app (fn (name, pos) =>
           if member (op =) bibtex_entries name orelse name = "*" then ()
-          else if thy_name = Context.PureN then
-            (if Context_Position.is_visible ctxt then
-               warning ("Missing theory context --- unchecked Bibtex entry " ^
-                 quote name ^ Position.here pos)
-             else ())
           else error ("Unknown Bibtex entry " ^ quote name ^ Position.here pos));
 
     val kind = if macro_name = "" then get_kind ctxt else macro_name;
