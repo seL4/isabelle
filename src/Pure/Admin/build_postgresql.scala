@@ -88,7 +88,7 @@ classpath "$COMPONENT/""" + download_name + """.jar"
 
     /* jar */
 
-    val jar = component_dir.path + Path.basic(download_name).ext("jar")
+    val jar = component_dir.path + Path.basic(download_name).jar
     Isabelle_System.download_file(download_url, jar, progress = progress)
   }
 

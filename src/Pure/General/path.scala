@@ -233,8 +233,12 @@ final class Path private(
       prfx + Path.basic(s + "." + e)
     }
 
+  def bib: Path = ext("bib")
+  def blg: Path = ext("blg")
+  def db: Path = ext("db")
   def gz: Path = ext("gz")
   def html: Path = ext("html")
+  def jar: Path = ext("jar")
   def log: Path = ext("log")
   def orig: Path = ext("orig")
   def patch: Path = ext("patch")

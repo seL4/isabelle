@@ -1386,9 +1386,9 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     /* file names */
 
     def heap(name: String): Path = Path.basic(name)
-    def database(name: String): Path = Path.basic("log") + Path.basic(name).ext("db")
+    def database(name: String): Path = Path.basic("log") + Path.basic(name).db
     def log(name: String): Path = Path.basic("log") + Path.basic(name)
-    def log_gz(name: String): Path = log(name).ext("gz")
+    def log_gz(name: String): Path = log(name).gz
 
     def output_heap(name: String): Path = output_dir + heap(name)
     def output_database(name: String): Path = output_dir + database(name)

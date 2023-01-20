@@ -52,7 +52,7 @@ object Bibtex {
   /** bibtex errors **/
 
   def bibtex_errors(dir: Path, root_name: String): List[String] = {
-    val log_path = dir + Path.explode(root_name).ext("blg")
+    val log_path = dir + Path.explode(root_name).blg
     if (log_path.is_file) {
       val Error1 = """^(I couldn't open database file .+)$""".r
       val Error2 = """^(I found no .+)$""".r
@@ -651,7 +651,7 @@ object Bibtex {
       }
 
       for ((a, b) <- bib_files zip bib_names) {
-        Isabelle_System.copy_file(a.ext("bib"), tmp_dir + Path.basic(b).ext("bib"))
+        Isabelle_System.copy_file(a.bib, tmp_dir + Path.basic(b).bib)
       }
 
 

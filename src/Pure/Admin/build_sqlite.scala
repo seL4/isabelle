@@ -50,7 +50,7 @@ classpath "$ISABELLE_SQLITE_HOME/lib/""" + download_name + """.jar"
 
     /* jar */
 
-    val jar = component_dir.lib + Path.basic(download_name).ext("jar")
+    val jar = component_dir.lib + Path.basic(download_name).jar
     Isabelle_System.make_directory(jar.dir)
     Isabelle_System.download_file(download_url, jar, progress = progress)
 
