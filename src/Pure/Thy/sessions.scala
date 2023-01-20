@@ -322,8 +322,7 @@ object Sessions {
     }
 
     val session_bases =
-      sessions_structure.imports_topological_order.foldLeft(
-          Map(Sessions.Base.bootstrap.session_entry)) {
+      sessions_structure.imports_topological_order.foldLeft(Map(Base.bootstrap.session_entry)) {
         case (session_bases, session_name) =>
           progress.expose_interrupt()
 
@@ -331,7 +330,7 @@ object Sessions {
           try {
             val deps_base = info.deps_base(session_bases)
             val session_background =
-              Sessions.Background(base = deps_base, sessions_structure = sessions_structure)
+              Background(base = deps_base, sessions_structure = sessions_structure)
             val resources = new Resources(session_background)
 
             if (verbose || list_files) {
