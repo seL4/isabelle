@@ -200,13 +200,10 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     session_background: Sessions.Background,
     progress: Log_Progress
   ): Unit = {
-    val store = JEdit_Sessions.sessions_store(PIDE.options.value)
     val document_selection = PIDE.editor.document_selection()
 
     val snapshot = PIDE.session.await_stable_snapshot()
-    val session_context =
-      Export.open_session_context(store, PIDE.resources.session_background,
-        document_snapshot = Some(snapshot))
+    val session_context = JEdit_Sessions.open_session_context(document_snapshot = Some(snapshot))
     try {
       val context =
         Document_Build.context(session_context,

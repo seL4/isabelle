@@ -43,8 +43,19 @@ object JEdit_Sessions {
     Sessions.load_structure(session_options(options), dirs = dirs)
   }
 
-  def sessions_store(options: Options): Sessions.Store =
+
+  /* database store */
+
+  def sessions_store(options: Options = PIDE.options.value): Sessions.Store =
     Sessions.store(session_options(options))
+
+  def open_session_context(
+    store: Sessions.Store = sessions_store(),
+    session_background: Sessions.Background = PIDE.resources.session_background,
+    document_snapshot: Option[Document.Snapshot] = None
+  ): Export.Session_Context = {
+    Export.open_session_context(store, session_background, document_snapshot = document_snapshot)
+  }
 
 
   /* raw logic info */
@@ -148,7 +159,7 @@ object JEdit_Sessions {
   def session_start(options: Options): Unit = {
     val session = PIDE.session
     val session_background = PIDE.resources.session_background
-    val store = sessions_store(options)
+    val store = sessions_store(options = options)
 
     session.phase_changed += PIDE.plugin.session_phase_changed
 
