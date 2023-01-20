@@ -225,7 +225,7 @@ object Token {
       else new Pos(line1, offset1, file, id)
     }
 
-    private def position(end_offset: Symbol.Offset): Position.T =
+    def position(end_offset: Symbol.Offset): Position.T =
       (if (line > 0) Position.Line(line) else Nil) :::
       (if (offset > 0) Position.Offset(offset) else Nil) :::
       (if (end_offset > 0) Position.End_Offset(end_offset) else Nil) :::

@@ -45,6 +45,12 @@ fun check_bibtex_entry ctxt (name, pos) =
         warning ("Unknown session context: cannot check Bibtex entry " ^
           quote name ^ Position.here pos)
       else ();
+    fun decode yxml =
+      let
+        val props = XML.Decode.properties (YXML.parse_body yxml);
+        val name = the_default "" (Properties.get props Markup.nameN);
+        val pos = Position.of_properties props;
+      in (name, pos) end;
   in
     if name = "*" then ()
     else
@@ -54,7 +60,7 @@ fun check_bibtex_entry ctxt (name, pos) =
           (case \<^scala>\<open>bibtex_session_entries\<close> [id] of
             [] => warn ()
           | _ :: entries =>
-              Completion.check_entity Markup.bibtex_entryN (map (rpair Position.none) entries)
+              Completion.check_entity Markup.bibtex_entryN (map decode entries)
                 ctxt (name, pos) |> ignore))
   end;
 

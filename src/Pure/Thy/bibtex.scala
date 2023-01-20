@@ -25,7 +25,7 @@ object Bibtex {
     val file_ext: String = "bib"
 
     override def parse_data(name: String, text: String): Bibtex.Entries =
-      Bibtex.Entries.parse(text, file_pos = name)
+      Bibtex.Entries.parse(text, Isar_Token.Pos.file(name))
 
     override def theory_suffix: String = "bibtex_file"
     override def theory_content(name: String): String =
@@ -161,31 +161,33 @@ object Bibtex {
   /* entries */
 
   object Entries {
+    sealed case class Item(name: String, pos: Position.T) {
+      def encode: String = YXML.string_of_body(XML.Encode.properties(Markup.Name(name) ::: pos))
+    }
+
     val empty: Entries = apply(Nil)
 
-    def apply(entries: List[Text.Info[String]], errors: List[String] = Nil): Entries =
+    def apply(entries: List[Item], errors: List[String] = Nil): Entries =
       new Entries(entries, errors)
 
-    def parse(text: String, file_pos: String = ""): Entries = {
-      val entries = new mutable.ListBuffer[Text.Info[String]]
-      var offset = 0
-      var line = 1
+    def parse(text: String, start: Isar_Token.Pos = Isar_Token.Pos.start): Entries = {
+      val entries = new mutable.ListBuffer[Item]
+      var pos = start
       var err_line = 0
 
       try {
         for (chunk <- Bibtex.parse(text)) {
-          val end_offset = offset + chunk.source.length
+          val pos1 = pos.advance(chunk.source)
           if (chunk.name != "" && !chunk.is_command) {
-            entries += Text.Info(Text.Range(offset, end_offset), chunk.name)
+            entries += Item(chunk.name, pos.position(pos1.offset))
           }
-          if (chunk.is_malformed && err_line == 0) { err_line = line }
-          offset = end_offset
-          line += Library.count_newlines(chunk.source)
+          if (chunk.is_malformed && err_line == 0) { err_line = pos.line }
+          pos = pos1
         }
 
         val err_pos =
-          if (err_line == 0 || file_pos.isEmpty) Position.none
-          else Position.Line_File(err_line, file_pos)
+          if (err_line == 0 || pos.file.isEmpty) Position.none
+          else Position.Line_File(err_line, pos.file)
         val errors =
           if (err_line == 0) Nil
           else List("Malformed bibtex file" + Position.here(err_pos))
@@ -196,7 +198,7 @@ object Bibtex {
     }
   }
 
-  final class Entries private(val entries: List[Text.Info[String]], val errors: List[String]) {
+  final class Entries private(val entries: List[Entries.Item], val errors: List[String]) {
     override def toString: String = "Bibtex.Entries(" + entries.length + ")"
 
     def ::: (other: Entries): Entries =
@@ -216,7 +218,7 @@ object Bibtex {
         }
       val res =
         if (qualifier == Sessions.DRAFT || !sessions.defined(qualifier)) Nil
-        else qualifier :: sessions(qualifier).bibtex_entries.entries.map(_.info)
+        else qualifier :: sessions(qualifier).bibtex_entries.entries.map(_.encode)
       res.map(Bytes.apply)
     }
   }
