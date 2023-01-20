@@ -225,7 +225,7 @@ object Latex {
         latex_macro0(inner.kind) :::
         (if (inner.location.isEmpty) Nil
          else XML.string("[") ::: inner.location ::: XML.string("]")) :::
-        XML.string("{" + inner.citation + "}")
+        XML.string("{" + inner.citations + "}")
 
       if (inner.pos.isEmpty) body
       else List(XML.Elem(Markup.Latex_Output(inner.pos), body))

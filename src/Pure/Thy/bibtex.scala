@@ -745,10 +745,10 @@ object Bibtex {
         case _ => None
       }
 
-    sealed case class Inner(kind: String, citation: String, location: XML.Body, pos: Position.T) {
+    sealed case class Inner(kind: String, citations: String, location: XML.Body, pos: Position.T) {
       def nocite: Inner = copy(kind = NOCITE, location = Nil)
 
-      override def toString: String = citation
+      override def toString: String = citations
     }
 
     sealed case class Outer(kind: String, body: String, start: Isar_Token.Pos) {
