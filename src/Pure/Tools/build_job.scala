@@ -406,8 +406,6 @@ class Build_Job(progress: Progress,
       session.finished_theories += Session.Consumer[Document.Snapshot]("finished_theories") {
         case snapshot =>
           if (!progress.stopped) {
-            val rendering = new Rendering(snapshot, options, session)
-
             def export_(name: String, xml: XML.Body, compress: Boolean = true): Unit = {
               if (!progress.stopped) {
                 val theory_name = snapshot.node_name.theory
@@ -434,9 +432,6 @@ class Build_Job(progress: Progress,
             }
             export_(Export.MARKUP, snapshot.xml_markup())
             export_(Export.MESSAGES, snapshot.messages.map(_._1))
-
-            val citations = Library.distinct(rendering.citations(Text.Range.full).map(_.info))
-            export_text(Export.DOCUMENT_CITATIONS, cat_lines(citations))
           }
       }
 
