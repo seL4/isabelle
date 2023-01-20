@@ -748,6 +748,13 @@ object Bibtex {
     sealed case class Inner(kind: String, citations: String, location: XML.Body, pos: Position.T) {
       def nocite: Inner = copy(kind = NOCITE, location = Nil)
 
+      def latex_text: Latex.Text = {
+        val props =
+          (if (kind.nonEmpty) Markup.Kind(kind) else Nil) :::
+          Markup.Citations(citations) ::: pos
+        List(XML.Elem(Markup.Latex_Cite(props), location))
+      }
+
       override def toString: String = citations
     }
 

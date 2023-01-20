@@ -240,7 +240,15 @@ object Document_Build {
             val entry = session_context(name.theory, Export.DOCUMENT_LATEX, permissive = true)
             YXML.parse_body(entry.text)
           }
-          else Nil
+          else {
+            val text =
+              proper_string(session_context.theory_source(name.theory)) getOrElse
+                File.read(name.path)
+            (for {
+              outer <- Bibtex.Cite.parse(Bibtex.cite_commands(options), text)
+              inner <- outer.parse
+            } yield inner.nocite.latex_text).flatten
+          }
 
         def line_pos(props: Properties.T): Option[Int] =
           Position.Line.unapply(props) orElse {
