@@ -210,6 +210,24 @@ object Bibtex {
       new Entries(entries ::: other.entries, errors ::: other.errors)
   }
 
+  object Session_Entries extends Scala.Fun("bibtex_session_entries") {
+    val here = Scala_Project.here
+
+    override def invoke(session: Session, args: List[Bytes]): List[Bytes] = {
+      val sessions = session.resources.sessions_structure
+      val id = Value.Long.parse(Library.the_single(args).text)
+      val qualifier =
+        session.get_state().lookup_id(id) match {
+          case None => Sessions.DRAFT
+          case Some(st) => sessions.theory_qualifier(st.command.node_name.theory)
+        }
+      val res =
+        if (qualifier == Sessions.DRAFT || !sessions.defined(qualifier)) Nil
+        else qualifier :: sessions(qualifier).bibtex_entries.entries.map(_.info)
+      res.map(Bytes.apply)
+    }
+  }
+
 
   /* completion */
 

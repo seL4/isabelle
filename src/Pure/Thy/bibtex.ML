@@ -9,6 +9,7 @@ sig
   val check_database:
     Position.T -> string -> (string * Position.T) list * (string * Position.T) list
   val check_database_output: Position.T -> string -> unit
+  val check_bibtex_entry: Proof.context -> string * Position.T -> unit
   val cite_macro: string Config.T
   val cite_antiquotation: binding -> (Proof.context -> string) -> theory -> theory
 end;
@@ -35,6 +36,29 @@ fun check_database_output pos0 database =
   end;
 
 
+(* check bibtex entry *)
+
+fun check_bibtex_entry ctxt (name, pos) =
+  let
+    fun warn () =
+      if Context_Position.is_visible ctxt then
+        warning ("Unknown session context: cannot check Bibtex entry " ^
+          quote name ^ Position.here pos)
+      else ();
+  in
+    if name = "*" then ()
+    else
+      (case Position.id_of pos of
+        NONE => warn ()
+      | SOME id =>
+          (case \<^scala>\<open>bibtex_session_entries\<close> [id] of
+            [] => warn ()
+          | _ :: entries =>
+              Completion.check_entity Markup.bibtex_entryN (map (rpair Position.none) entries)
+                ctxt (name, pos) |> ignore))
+  end;
+
+
 (* document antiquotations *)
 
 val cite_macro = Attrib.setup_config_string \<^binding>\<open>cite_macro\<close> (K "");
@@ -48,19 +72,6 @@ local
 
 val parse_citations = Parse.and_list1 Args.name_position;
 
-fun command_theory_name () =
-  let
-    fun err () = error ("Cannot determine command theory name: bad PIDE id");
-    val res =
-      (case Position.id_of (Position.thread_data ()) of
-        SOME id => \<^scala>\<open>command_theory_name\<close> id
-      | NONE => err ());
-  in if res = "" then err () else res end;
-
-fun theory_name thy =
-  let val name0 = Context.theory_long_name thy;
-  in if name0 = Context.PureN then command_theory_name () else name0 end;
-
 fun cite_command ctxt get_kind ((opt_loc, citations), macro_name) =
   let
     val loc = the_default Input.empty opt_loc;
@@ -68,15 +79,7 @@ fun cite_command ctxt get_kind ((opt_loc, citations), macro_name) =
       Context_Position.reports ctxt
         (Document_Output.document_reports loc @
           map (fn (name, pos) => (pos, Markup.citation name)) citations);
-
-    val thy_name = theory_name (Proof_Context.theory_of ctxt);
-    val bibtex_entries = Resources.theory_bibtex_entries thy_name;
-    val _ =
-      if null bibtex_entries andalso thy_name <> Context.PureN then ()
-      else
-        citations |> List.app (fn (name, pos) =>
-          if member (op =) bibtex_entries name orelse name = "*" then ()
-          else error ("Unknown Bibtex entry " ^ quote name ^ Position.here pos));
+    val _ = List.app (check_bibtex_entry ctxt) citations;
 
     val kind = if macro_name = "" then get_kind ctxt else macro_name;
     val location = Document_Output.output_document ctxt {markdown = false} loc;

@@ -10,7 +10,6 @@ sig
   val init_session:
     {session_positions: (string * Properties.T) list,
      session_directories: (string * string) list,
-     bibtex_entries: (string * string list) list,
      command_timings: Properties.T list,
      load_commands: (string * Position.T) list,
      scala_functions: (string * ((bool * bool) * Position.T)) list,
@@ -30,7 +29,6 @@ sig
   val begin_theory: Path.T -> Thy_Header.header -> theory list -> theory
   val thy_path: Path.T -> Path.T
   val theory_qualifier: string -> string
-  val theory_bibtex_entries: string -> string list
   val find_theory_file: string -> Path.T option
   val import_name: string -> Path.T -> string ->
     {node_name: Path.T, master_dir: Path.T, theory_name: string}
@@ -105,7 +103,6 @@ fun make_entry props : entry =
 val empty_session_base =
   ({session_positions = []: (string * entry) list,
     session_directories = Symtab.empty: Path.T list Symtab.table,
-    bibtex_entries = Symtab.empty: string list Symtab.table,
     timings = empty_timings,
     load_commands = []: (string * Position.T) list,
     scala_functions = Symtab.empty: ((bool * bool) * Position.T) Symtab.table},
@@ -116,7 +113,7 @@ val global_session_base =
   Synchronized.var "Sessions.base" empty_session_base;
 
 fun init_session
-    {session_positions, session_directories, bibtex_entries, command_timings, load_commands,
+    {session_positions, session_directories, command_timings, load_commands,
       scala_functions, global_theories, loaded_theories} =
   Synchronized.change global_session_base
     (fn _ =>
@@ -124,7 +121,6 @@ fun init_session
         session_directories =
           Symtab.build (session_directories |> fold_rev (fn (dir, name) =>
             Symtab.cons_list (name, Path.explode dir))),
-        bibtex_entries = Symtab.make bibtex_entries,
         timings = make_timings command_timings,
         load_commands = load_commands,
         scala_functions = Symtab.make scala_functions},
@@ -133,22 +129,21 @@ fun init_session
 
 fun init_session_yxml yxml =
   let
-    val (session_positions, (session_directories, (bibtex_entries, (command_timings,
-        (load_commands, (scala_functions, (global_theories, loaded_theories))))))) =
+    val (session_positions, (session_directories, (command_timings,
+        (load_commands, (scala_functions, (global_theories, loaded_theories)))))) =
       YXML.parse_body_bytes yxml |>
         let open XML.Decode in
           (pair (list (pair string properties))
             (pair (list (pair string string))
-              (pair (list (pair string (list string))) (pair (list properties)
+              (pair (list properties)
                 (pair (list (pair string properties))
                   (pair (list (pair string (pair (pair bool bool) properties)))
-                    (pair (list (pair string string)) (list string))))))))
+                    (pair (list (pair string string)) (list string)))))))
         end;
   in
     init_session
       {session_positions = session_positions,
        session_directories = session_directories,
-       bibtex_entries = bibtex_entries,
        command_timings = command_timings,
        load_commands = (map o apsnd) Position.of_properties load_commands,
        scala_functions = (map o apsnd o apsnd) Position.of_properties scala_functions,
@@ -267,9 +262,6 @@ fun literal_theory theory =
 fun theory_name qualifier theory =
   if literal_theory theory then theory
   else Long_Name.qualify qualifier theory;
-
-fun theory_bibtex_entries theory =
-  Symtab.lookup_list (get_session_base1 #bibtex_entries) (theory_qualifier theory);
 
 fun find_theory_file thy_name =
   let

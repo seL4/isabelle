@@ -96,19 +96,6 @@ object Scala {
     }
   }
 
-  object Theory_Name extends Fun("command_theory_name") with Single_Fun {
-    val here = Scala_Project.here
-    override def invoke(session: Session, args: List[Bytes]): List[Bytes] = {
-      val id = Value.Long.parse(Library.the_single(args).text)
-      val name =
-        session.get_state().lookup_id(id) match {
-          case None => ""
-          case Some(st) => st.command.node_name.theory
-        }
-      List(Bytes(name))
-    }
-  }
-
 
 
   /** compiler **/
@@ -378,7 +365,6 @@ object Scala {
 class Scala_Functions extends Scala.Functions(
   Scala.Echo,
   Scala.Sleep,
-  Scala.Theory_Name,
   Scala.Toplevel,
   Scala_Build.Scala_Fun,
   Base64.Decode,
@@ -389,6 +375,7 @@ class Scala_Functions extends Scala.Functions(
   Compress.Zstd_Uncompress,
   Doc.Doc_Names,
   Bibtex.Check_Database,
+  Bibtex.Session_Entries,
   Isabelle_System.Make_Directory,
   Isabelle_System.Copy_Dir,
   Isabelle_System.Copy_File,

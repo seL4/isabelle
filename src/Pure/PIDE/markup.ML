@@ -86,6 +86,7 @@ sig
   val deleteN: string val delete: T
   val load_commandN: string
   val bash_functionN: string
+  val bibtex_entryN: string
   val scala_functionN: string
   val system_optionN: string
   val sessionN: string
@@ -489,6 +490,7 @@ val (deleteN, delete) = markup_elem "delete";
 
 val load_commandN = "load_command";
 val bash_functionN = "bash_function";
+val bibtex_entryN = "bibtex_entry";
 val scala_functionN = "scala_function";
 val system_optionN = "system_option";
 
