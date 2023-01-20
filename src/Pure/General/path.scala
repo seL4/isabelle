@@ -233,18 +233,18 @@ final class Path private(
       prfx + Path.basic(s + "." + e)
     }
 
-  def xz: Path = ext("xz")
-  def xml: Path = ext("xml")
-  def html: Path = ext("html")
-  def tex: Path = ext("tex")
-  def pdf: Path = ext("pdf")
-  def thy: Path = ext("thy")
-  def tar: Path = ext("tar")
   def gz: Path = ext("gz")
+  def html: Path = ext("html")
   def log: Path = ext("log")
   def orig: Path = ext("orig")
   def patch: Path = ext("patch")
+  def pdf: Path = ext("pdf")
   def shasum: Path = ext("shasum")
+  def tar: Path = ext("tar")
+  def tex: Path = ext("tex")
+  def thy: Path = ext("thy")
+  def xml: Path = ext("xml")
+  def xz: Path = ext("xz")
   def zst: Path = ext("zst")
 
   def backup: Path = {
