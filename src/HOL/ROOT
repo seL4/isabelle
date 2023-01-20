@@ -225,7 +225,9 @@ session "HOL-Induct" in Induct = HOL +
     Comb
     PropLog
     Com
-  document_files "root.tex"
+  document_files
+    "root.bib"
+    "root.tex"
 
 session "HOL-IMP" (timing) in IMP = "HOL-Library" +
   options [document_variants = document]
@@ -658,12 +660,15 @@ session "HOL-Lattice" in Lattice = HOL +
     Basic theory of lattices and orders.
   "
   theories CompleteLattice
-  document_files "root.tex"
+  document_files
+    "root.bib"
+    "root.tex"
 
 session "HOL-ex" (timing) in ex = "HOL-Number_Theory" +
   description "
     Miscellaneous examples and experiments for Isabelle/HOL.
   "
+  options [document = false]
   theories
     Antiquote
     Argo_Examples
@@ -743,6 +748,8 @@ session "HOL-ex" (timing) in ex = "HOL-Number_Theory" +
   theories [skip_proofs = false]
     SAT_Examples
     Meson_Test
+  document_files
+    "root.bib"
 
 session "HOL-Isar_Examples" in Isar_Examples = "HOL-Computational_Algebra" +
   description "

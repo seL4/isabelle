@@ -9,7 +9,7 @@ imports Main
 begin
 
 text \<open>
-  We formalize basic concepts of Computational Tree Logic (CTL) \<^cite>\<open>"McMillan-PhDThesis" and "McMillan-LectureNotes"\<close> within the simply-typed
+  We formalize basic concepts of Computational Tree Logic (CTL) \<^cite>\<open>"McMillan-PhDThesis"\<close> within the simply-typed
   set theory of HOL.
 
   By using the common technique of ``shallow embedding'', a CTL formula is
