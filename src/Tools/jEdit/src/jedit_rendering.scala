@@ -127,7 +127,7 @@ object JEdit_Rendering {
   private val breakpoint_elements = Markup.Elements(Markup.ML_BREAKPOINT)
 
   private val highlight_elements =
-    Markup.Elements(Markup.EXPRESSION, Markup.CITATION, Markup.LANGUAGE, Markup.ML_TYPING,
+    Markup.Elements(Markup.EXPRESSION, Markup.LANGUAGE, Markup.ML_TYPING,
       Markup.TOKEN_RANGE, Markup.ENTITY, Markup.PATH, Markup.DOC, Markup.URL,
       Markup.SORTING, Markup.TYPING, Markup.CLASS_PARAMETER, Markup.FREE, Markup.SKOLEM,
       Markup.BOUND, Markup.VAR, Markup.TFREE, Markup.TVAR, Markup.ML_BREAKPOINT,
@@ -135,7 +135,7 @@ object JEdit_Rendering {
 
   private val hyperlink_elements =
     Markup.Elements(Markup.ENTITY, Markup.PATH, Markup.EXPORT_PATH, Markup.DOC, Markup.URL,
-      Markup.POSITION, Markup.CITATION)
+      Markup.POSITION)
 
   private val gutter_elements =
     Markup.Elements(Markup.WRITELN, Markup.INFORMATION, Markup.WARNING, Markup.LEGACY, Markup.ERROR)
@@ -268,13 +268,6 @@ extends Rendering(snapshot, options, PIDE.session) {
 
           case (links, Text.Info(info_range, XML.Elem(Markup(Markup.POSITION, props), _))) =>
             val opt_link = PIDE.editor.hyperlink_position(true, snapshot, props)
-            opt_link.map(link => links :+ Text.Info(snapshot.convert(info_range), link))
-
-          case (links, Text.Info(info_range, XML.Elem(Markup.Citation(name), _))) =>
-            val opt_link =
-              PIDE.editor.bibtex_entries_iterator().collectFirst(
-                { case Text.Info(entry_range, (entry, model: Document_Model)) if entry == name =>
-                    PIDE.editor.hyperlink_model(true, model, entry_range.start) })
             opt_link.map(link => links :+ Text.Info(snapshot.convert(info_range), link))
 
           case _ => None

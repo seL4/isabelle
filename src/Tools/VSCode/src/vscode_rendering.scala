@@ -63,7 +63,7 @@ object VSCode_Rendering {
     Rendering.tooltip_elements
 
   private val hyperlink_elements =
-    Markup.Elements(Markup.ENTITY, Markup.PATH, Markup.POSITION, Markup.CITATION)
+    Markup.Elements(Markup.ENTITY, Markup.PATH, Markup.POSITION)
 }
 
 class VSCode_Rendering(snapshot: Document.Snapshot, val model: VSCode_Model)
@@ -104,8 +104,7 @@ extends Rendering(snapshot, model.resources.options, model.session) {
               semantic_completion,
               syntax_completion,
               VSCode_Spell_Checker.completion(rendering, caret),
-              path_completion(caret),
-              model.editor.bibtex_completion(history, rendering, caret))
+              path_completion(caret))
           val items =
             results match {
               case None => Nil
@@ -310,15 +309,6 @@ extends Rendering(snapshot, model.resources.options, model.session) {
 
           case (links, Text.Info(info_range, XML.Elem(Markup(Markup.POSITION, props), _))) =>
             hyperlink_position(props).map(_ :: links)
-
-          case (links, Text.Info(info_range, XML.Elem(Markup.Citation(name), _))) =>
-            val iterator =
-              for {
-                Text.Info(entry_range, (entry, model: VSCode_Model)) <-
-                  model.editor.bibtex_entries_iterator()
-                if entry == name
-              } yield Line.Node_Range(model.node_name.node, model.content.doc.range(entry_range))
-            if (iterator.isEmpty) None else Some(iterator.foldLeft(links)(_ :+ _))
 
           case _ => None
         }) match { case Text.Info(_, links) :: _ => links.reverse case _ => Nil }

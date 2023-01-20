@@ -155,7 +155,6 @@ object Rendering {
 
   val tooltip_descriptions =
     Map(
-      Markup.CITATION -> "citation",
       Markup.TOKEN_RANGE -> "inner syntax token",
       Markup.FREE -> "free variable",
       Markup.SKOLEM -> "skolem variable",
@@ -206,8 +205,6 @@ object Rendering {
       Markup.ML_STRING, Markup.ML_COMMENT)
 
   val language_elements = Markup.Elements(Markup.LANGUAGE)
-
-  val citation_elements = Markup.Elements(Markup.CITATION)
 
   val active_elements =
     Markup.Elements(Markup.DIALOG, Markup.BROWSER, Markup.GRAPHVIEW, Markup.THEORY_EXPORTS,
@@ -319,14 +316,6 @@ class Rendering(
         case Text.Info(_, _) =>
           Some(Completion.Language_Context.inner)
       }).headOption.map(_.info)
-
-  def citations(range: Text.Range): List[Text.Info[String]] =
-    snapshot.select(range, Rendering.citation_elements, _ =>
-      {
-        case Text.Info(info_range, XML.Elem(Markup.Citation(name), _)) =>
-          Some(Text.Info(snapshot.convert(info_range), name))
-        case _ => None
-      }).map(_.info)
 
 
   /* file-system path completion */

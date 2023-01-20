@@ -75,10 +75,7 @@ val parse_citations = Parse.and_list1 Args.name_position;
 fun cite_command ctxt get_kind ((opt_loc, citations), macro_name) =
   let
     val loc = the_default Input.empty opt_loc;
-    val _ =
-      Context_Position.reports ctxt
-        (Document_Output.document_reports loc @
-          map (fn (name, pos) => (pos, Markup.citation name)) citations);
+    val _ = Context_Position.reports ctxt (Document_Output.document_reports loc);
     val _ = List.app (check_bibtex_entry ctxt) citations;
 
     val kind = if macro_name = "" then get_kind ctxt else macro_name;

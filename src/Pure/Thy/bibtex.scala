@@ -194,13 +194,6 @@ object Bibtex {
       }
       catch { case ERROR(msg) => apply(Nil, errors = List(msg)) }
     }
-
-    def iterator[A <: Document.Model](models: Iterable[A]): Iterator[Text.Info[(String, A)]] =
-      for {
-        model <- models.iterator
-        bibtex_entries <- model.get_data(classOf[Entries]).iterator
-        info <- bibtex_entries.entries.iterator
-      } yield info.map((_, model))
   }
 
   final class Entries private(val entries: List[Text.Info[String]], val errors: List[String]) {
@@ -226,40 +219,6 @@ object Bibtex {
         else qualifier :: sessions(qualifier).bibtex_entries.entries.map(_.info)
       res.map(Bytes.apply)
     }
-  }
-
-
-  /* completion */
-
-  def completion[A <: Document.Model](
-    history: Completion.History,
-    rendering: Rendering,
-    caret: Text.Offset,
-    models: Iterable[A]
-  ): Option[Completion.Result] = {
-    for {
-      Text.Info(r, name) <- rendering.citations(rendering.before_caret_range(caret)).headOption
-      name1 <- Completion.clean_name(name)
-
-      original <- rendering.get_text(r)
-      original1 <- Completion.clean_name(Library.perhaps_unquote(original))
-
-      entries =
-        (for {
-          Text.Info(_, (entry, _)) <- Entries.iterator(models)
-          if entry.toLowerCase.containsSlice(name1.toLowerCase) && entry != original1
-        } yield entry).toList
-      if entries.nonEmpty
-
-      items =
-        entries.sorted.map({
-          case entry =>
-            val full_name = Long_Name.qualify(Markup.CITATION, entry)
-            val description = List(entry, "(BibTeX entry)")
-            val replacement = quote(entry)
-            Completion.Item(r, original, full_name, description, replacement, 0, false)
-        }).sorted(history.ordering).take(rendering.options.int("completion_limit"))
-    } yield Completion.Result(r, original, false, items)
   }
 
 

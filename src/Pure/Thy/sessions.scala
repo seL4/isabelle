@@ -996,14 +996,6 @@ object Sessions {
     def imports_requirements(ss: List[String]): List[String] = imports_graph.all_preds_rev(ss)
     def imports_topological_order: List[String] = imports_graph.topological_order
 
-    def bibtex_entries: List[(String, List[String])] =
-      build_topological_order.flatMap { name =>
-        apply(name).bibtex_entries.entries match {
-          case Nil => None
-          case entries => Some(name -> entries.map(_.info))
-        }
-      }
-
     override def toString: String =
       imports_graph.keys_iterator.mkString("Sessions.Structure(", ", ", ")")
   }

@@ -121,8 +121,7 @@ object Completion_Popup {
                 val range0 =
                   Completion.Result.merge(Completion.History.empty,
                     syntax_completion(Completion.History.empty, true, Some(rendering)),
-                    rendering.path_completion(caret),
-                    PIDE.editor.bibtex_completion(Completion.History.empty, rendering, caret))
+                    rendering.path_completion(caret))
                   .map(_.range)
                 rendering.semantic_completion(range0, range) match {
                   case None => range0
@@ -303,8 +302,7 @@ object Completion_Popup {
                 Completion.Result.merge(history,
                   result1,
                   JEdit_Spell_Checker.completion(rendering, explicit, caret),
-                  rendering.path_completion(caret),
-                  PIDE.editor.bibtex_completion(history, rendering, caret))
+                  rendering.path_completion(caret))
             }
           }
           result match {

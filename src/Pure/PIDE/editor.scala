@@ -17,16 +17,6 @@ abstract class Editor[Context] {
   def get_models(): Iterable[Document.Model]
 
 
-  /* bibtex */
-
-  def bibtex_entries_iterator(): Iterator[Text.Info[(String, Document.Model)]] =
-    Bibtex.Entries.iterator(get_models())
-
-  def bibtex_completion(history: Completion.History, rendering: Rendering, caret: Text.Offset)
-      : Option[Completion.Result] =
-    Bibtex.completion(history, rendering, caret, get_models())
-
-
   /* document editor */
 
   protected val document_editor: Synchronized[Document_Editor.State] =

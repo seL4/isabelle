@@ -737,8 +737,6 @@ module Isabelle.Markup (
 
   expressionN, expression,
 
-  citationN, citation,
-
   pathN, path, urlN, url, docN, doc,
 
   markupN, consistentN, unbreakableN, indentN, widthN,
@@ -903,14 +901,6 @@ expressionN = \<open>Markup.expressionN\<close>
 
 expression :: Bytes -> T
 expression kind = (expressionN, if kind == "" then [] else [(kindN, kind)])
-
-
-{- citation -}
-
-citationN :: Bytes
-citationN = \<open>Markup.citationN\<close>
-citation :: Bytes -> T
-citation = markup_string nameN citationN
 
 
 {- external resources -}
