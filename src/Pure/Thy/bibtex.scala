@@ -160,18 +160,18 @@ object Bibtex {
 
   /* entries */
 
-  object Entries {
-    sealed case class Item(name: String, pos: Position.T) {
-      def encode: String = YXML.string_of_body(XML.Encode.properties(Markup.Name(name) ::: pos))
-    }
+  sealed case class Entry(name: String, pos: Position.T) {
+    def encode: String = YXML.string_of_body(XML.Encode.properties(Markup.Name(name) ::: pos))
+  }
 
+  object Entries {
     val empty: Entries = apply(Nil)
 
-    def apply(entries: List[Item], errors: List[String] = Nil): Entries =
+    def apply(entries: List[Entry], errors: List[String] = Nil): Entries =
       new Entries(entries, errors)
 
     def parse(text: String, start: Isar_Token.Pos = Isar_Token.Pos.start): Entries = {
-      val entries = new mutable.ListBuffer[Item]
+      val entries = new mutable.ListBuffer[Entry]
       var pos = start
       var err_line = 0
 
@@ -179,7 +179,7 @@ object Bibtex {
         for (chunk <- Bibtex.parse(text)) {
           val pos1 = pos.advance(chunk.source)
           if (chunk.name != "" && !chunk.is_command) {
-            entries += Item(chunk.name, pos.position(pos1.offset))
+            entries += Entry(chunk.name, pos.position(pos1.offset))
           }
           if (chunk.is_malformed && err_line == 0) { err_line = pos.line }
           pos = pos1
@@ -198,7 +198,7 @@ object Bibtex {
     }
   }
 
-  final class Entries private(val entries: List[Entries.Item], val errors: List[String]) {
+  final class Entries private(val entries: List[Entry], val errors: List[String]) {
     override def toString: String = "Bibtex.Entries(" + entries.length + ")"
 
     def ::: (other: Entries): Entries =
