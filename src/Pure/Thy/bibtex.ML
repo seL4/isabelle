@@ -76,7 +76,7 @@ val _ =
 
 local
 
-val parse_citations = Parse.and_list1 Args.name_position;
+val parse_citations = Parse.and_list1 (Parse.position Parse.name);
 
 fun cite_command ctxt get_kind ((opt_loc, citations), macro_name) =
   let
