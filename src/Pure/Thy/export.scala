@@ -434,6 +434,29 @@ object Export {
     def source_file(name: String): Sessions.Source_File =
       get_source_file(name).getOrElse(error("Missing session source file " + quote(name)))
 
+    def theory_source(theory: String, unicode_symbols: Boolean = false): String = {
+      def snapshot_source: Option[String] =
+        for {
+          snapshot <- document_snapshot
+          text <- snapshot.version.nodes.iterator.collectFirst(
+            { case (name, node) if name.theory == theory => node.source })
+          if text.nonEmpty
+        } yield Symbol.output(unicode_symbols, text)
+
+      def db_source: Option[String] = {
+        val theory_context = session_context.theory(theory)
+        for {
+          name <- theory_context.files0(permissive = true).headOption
+          file <- get_source_file(name)
+        } yield {
+          val text0 = file.bytes.text
+          if (unicode_symbols) Symbol.decode(text0) else text0
+        }
+      }
+
+      snapshot_source orElse db_source getOrElse ""
+    }
+
     def classpath(): List[File.Content] = {
       (for {
         session <- session_stack.iterator
