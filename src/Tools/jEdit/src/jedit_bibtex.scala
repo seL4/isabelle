@@ -31,11 +31,11 @@ object JEdit_Bibtex {
       case buffer: Buffer
       if File.is_bib(JEdit_Lib.buffer_name(buffer)) && buffer.isEditable =>
         val menu = new JMenu("BibTeX entries")
-        for (entry <- Bibtex.known_entries) {
-          val item = new JMenuItem(entry.kind)
+        for (entry_type <- Bibtex.known_entries) {
+          val item = new JMenuItem(entry_type.kind)
           item.addActionListener(new ActionListener {
             def actionPerformed(evt: ActionEvent): Unit =
-              Isabelle.insert_line_padding(text_area, entry.template)
+              Isabelle.insert_line_padding(text_area, entry_type.template)
           })
           menu.add(item)
         }
@@ -61,9 +61,9 @@ object JEdit_Bibtex {
       case Bibtex.Token.Kind.IDENT =>
         if (Bibtex.is_month(token.source)) JEditToken.LITERAL3
         else
-          Bibtex.get_entry(context) match {
-            case Some(entry) if entry.is_required(token.source) => JEditToken.KEYWORD3
-            case Some(entry) if entry.is_optional(token.source) => JEditToken.KEYWORD4
+          Bibtex.known_entry(context) match {
+            case Some(entry_type) if entry_type.is_required(token.source) => JEditToken.KEYWORD3
+            case Some(entry_type) if entry_type.is_optional(token.source) => JEditToken.KEYWORD4
             case _ => JEditToken.DIGIT
           }
       case Bibtex.Token.Kind.SPACE => JEditToken.NULL

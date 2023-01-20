@@ -245,7 +245,7 @@ object Bibtex {
   private val commands = List("preamble", "string")
   def is_command(s: String): Boolean = commands.contains(s.toLowerCase)
 
-  sealed case class Entry(
+  sealed case class Entry_Type(
     kind: String,
     required: List[String],
     optional_crossref: List[String],
@@ -266,68 +266,66 @@ object Bibtex {
       "@" + kind + "{,\n" + fields.map(x => "  " + x + " = {},\n").mkString + "}\n"
   }
 
-  val known_entries: List[Entry] =
+  val known_entries: List[Entry_Type] =
     List(
-      Entry("Article",
+      Entry_Type("Article",
         List("author", "title"),
         List("journal", "year"),
         List("volume", "number", "pages", "month", "note")),
-      Entry("InProceedings",
+      Entry_Type("InProceedings",
         List("author", "title"),
         List("booktitle", "year"),
         List("editor", "volume", "number", "series", "pages", "month", "address",
           "organization", "publisher", "note")),
-      Entry("InCollection",
+      Entry_Type("InCollection",
         List("author", "title", "booktitle"),
         List("publisher", "year"),
         List("editor", "volume", "number", "series", "type", "chapter", "pages",
           "edition", "month", "address", "note")),
-      Entry("InBook",
+      Entry_Type("InBook",
         List("author", "editor", "title", "chapter"),
         List("publisher", "year"),
         List("volume", "number", "series", "type", "address", "edition", "month", "pages", "note")),
-      Entry("Proceedings",
+      Entry_Type("Proceedings",
         List("title", "year"),
         List(),
         List("booktitle", "editor", "volume", "number", "series", "address", "month",
           "organization", "publisher", "note")),
-      Entry("Book",
+      Entry_Type("Book",
         List("author", "editor", "title"),
         List("publisher", "year"),
         List("volume", "number", "series", "address", "edition", "month", "note")),
-      Entry("Booklet",
+      Entry_Type("Booklet",
         List("title"),
         List(),
         List("author", "howpublished", "address", "month", "year", "note")),
-      Entry("PhdThesis",
+      Entry_Type("PhdThesis",
         List("author", "title", "school", "year"),
         List(),
         List("type", "address", "month", "note")),
-      Entry("MastersThesis",
+      Entry_Type("MastersThesis",
         List("author", "title", "school", "year"),
         List(),
         List("type", "address", "month", "note")),
-      Entry("TechReport",
+      Entry_Type("TechReport",
         List("author", "title", "institution", "year"),
         List(),
         List("type", "number", "address", "month", "note")),
-      Entry("Manual",
+      Entry_Type("Manual",
         List("title"),
         List(),
         List("author", "organization", "address", "edition", "month", "year", "note")),
-      Entry("Unpublished",
+      Entry_Type("Unpublished",
         List("author", "title", "note"),
         List(),
         List("month", "year")),
-      Entry("Misc",
+      Entry_Type("Misc",
         List(),
         List(),
         List("author", "title", "howpublished", "month", "year", "note")))
 
-  def get_entry(kind: String): Option[Entry] =
+  def known_entry(kind: String): Option[Entry_Type] =
     known_entries.find(entry => entry.kind.toLowerCase == kind.toLowerCase)
-
-  def is_entry(kind: String): Boolean = get_entry(kind).isDefined
 
 
 
@@ -398,7 +396,7 @@ object Bibtex {
     def is_ignored: Boolean = kind == "" && tokens.forall(_.is_ignored)
     def is_malformed: Boolean = tokens.exists(_.is_malformed)
     def is_command: Boolean = Bibtex.is_command(kind) && name != "" && content.isDefined
-    def is_entry: Boolean = Bibtex.is_entry(kind) && name != "" && content.isDefined
+    def is_entry: Boolean = Bibtex.known_entry(kind).isDefined && name != "" && content.isDefined
   }
 
 
@@ -530,7 +528,7 @@ object Bibtex {
       identifier ^^ { case a =>
         val kind =
           if (is_command(a)) Token.Kind.COMMAND
-          else if (is_entry(a)) Token.Kind.ENTRY
+          else if (known_entry(a).isDefined) Token.Kind.ENTRY
           else Token.Kind.IDENT
         Token(kind, a)
       }
