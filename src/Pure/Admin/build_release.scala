@@ -905,7 +905,7 @@ Usage: Admin/build_release [OPTIONS]
     -j INT       maximum number of parallel jobs (default 1)
     -l           build library
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
-    -p NAMES     platform families (default: """ + default_platform_families.mkString(",") + """)
+    -p NAMES     platform families (default: """ + quote(default_platform_families.mkString(",")) + """)
     -r REV       Mercurial changeset id (default: ARCHIVE or RELEASE or tip)
 
   Build Isabelle release in base directory, using the local repository clone.
