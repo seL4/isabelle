@@ -11,7 +11,7 @@ import java.time.OffsetDateTime
 import java.sql.{DriverManager, Connection, PreparedStatement, ResultSet}
 
 import org.sqlite.jdbc4.JDBC4Connection
-import org.postgresql.PGConnection
+import org.postgresql.{PGConnection, PGNotification}
 
 import scala.collection.mutable
 
@@ -498,6 +498,28 @@ object PostgreSQL {
     def insert_permissive(table: SQL.Table, sql: SQL.Source = ""): SQL.Source =
       table.insert_cmd("INSERT",
         sql = sql + (if (sql == "") "" else " ") + "ON CONFLICT DO NOTHING")
+
+
+    /* notifications: IPC via database server */
+    // see https://www.postgresql.org/docs/current/sql-notify.html
+
+    def listen(name: String): Unit =
+      using_statement("LISTEN " + SQL.ident(name))(_.execute())
+
+    def unlisten(name: String = "*"): Unit =
+      using_statement("UNLISTEN " + (if (name == "*") name else SQL.ident(name)))(_.execute())
+
+    def notify(name: String, payload: String = ""): Unit =
+      using_statement(
+        "NOTIFY " + SQL.ident(name) +
+          (if (payload.isEmpty) "" else ", " + SQL.string(payload)))(_.execute())
+
+    def get_notifications(): List[PGNotification] =
+      the_postgresql_connection.getNotifications() match {
+        case null => Nil
+        case array => array.toList
+      }
+
 
     override def close(): Unit = { super.close(); port_forwarding.foreach(_.close()) }
   }
