@@ -388,6 +388,24 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
   }
 
 
+  /* NEWS */
+
+  private def make_news(other_isabelle: Other_Isabelle): Unit = {
+    val news_file = other_isabelle.isabelle_home + Path.explode("NEWS")
+    val doc_dir = other_isabelle.isabelle_home + Path.explode("doc")
+    val fonts_dir = Isabelle_System.make_directory(doc_dir + Path.explode("fonts"))
+
+    Isabelle_Fonts.make_entries(getenv = other_isabelle.getenv, hidden = true).
+      foreach(entry => Isabelle_System.copy_file(entry.path, fonts_dir))
+
+    HTML.write_document(doc_dir, "NEWS.html",
+      List(HTML.title("NEWS")),
+      List(
+        HTML.chapter("NEWS"),
+        HTML.source(Symbol.decode(File.read(news_file)))))
+  }
+
+
   /* main */
 
   def use_release_archive(
@@ -466,7 +484,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
       }
       catch { case ERROR(msg) => cat_error("Failed to build documentation:", msg) }
 
-      other_isabelle.make_news()
+      make_news(other_isabelle)
 
       for (name <- List("Admin", "browser_info", "heaps")) {
         Isabelle_System.rm_tree(other_isabelle.isabelle_home + Path.explode(name))
