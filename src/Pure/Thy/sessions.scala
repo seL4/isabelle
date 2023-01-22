@@ -1419,7 +1419,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
     def database_server: Boolean = options.bool("build_database_server")
 
-    def open_database_server(): SQL.Database =
+    def open_database_server(): PostgreSQL.Database =
       PostgreSQL.open_database(
         user = options.string("build_database_user"),
         password = options.string("build_database_password"),
