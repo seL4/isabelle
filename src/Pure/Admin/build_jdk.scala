@@ -33,8 +33,8 @@ object Build_JDK {
   /* build jdk */
 
   val default_base_url = "https://cdn.azul.com/zulu/bin"
-  val default_jdk_version = "17.0.5"
-  val default_zulu_version = "17.38.21-ca"
+  val default_jdk_version = "17.0.6"
+  val default_zulu_version = "17.40.19-ca"
 
   def build_jdk(
     target_dir: Path = Path.current,
@@ -71,14 +71,14 @@ object Build_JDK {
     /* permissions */
 
     for (file <- File.find_files(component_dir.path.file, include_dirs = true)) {
+      val name = file.getName
       val path = file.toPath
       val perms = Files.getPosixFilePermissions(path)
       perms.add(PosixFilePermission.OWNER_READ)
       perms.add(PosixFilePermission.GROUP_READ)
       perms.add(PosixFilePermission.OTHERS_READ)
       perms.add(PosixFilePermission.OWNER_WRITE)
-      if (file.isDirectory) {
-        perms.add(PosixFilePermission.OWNER_WRITE)
+      if (File.is_dll(name) || File.is_exe(name) || file.isDirectory) {
         perms.add(PosixFilePermission.OWNER_EXECUTE)
         perms.add(PosixFilePermission.GROUP_EXECUTE)
         perms.add(PosixFilePermission.OTHERS_EXECUTE)
