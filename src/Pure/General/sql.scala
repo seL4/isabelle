@@ -10,6 +10,9 @@ package isabelle
 import java.time.OffsetDateTime
 import java.sql.{DriverManager, Connection, PreparedStatement, ResultSet}
 
+import org.sqlite.jdbc4.JDBC4Connection
+import org.postgresql.PGConnection
+
 import scala.collection.mutable
 
 
@@ -301,6 +304,20 @@ object SQL {
     /* connection */
 
     def connection: Connection
+
+    def sqlite_connection: Option[JDBC4Connection] =
+      connection match { case conn: JDBC4Connection => Some(conn) case _ => None }
+
+    def postgresql_connection: Option[PGConnection] =
+      connection match { case conn: PGConnection => Some(conn) case _ => None }
+
+    def the_sqlite_connection: JDBC4Connection =
+      sqlite_connection getOrElse
+        error("SQLite connection expected, but found " + connection.getClass.getName)
+
+    def the_postgresql_connection: PGConnection =
+      postgresql_connection getOrElse
+        error("PostgreSQL connection expected, but found " + connection.getClass.getName)
 
     def close(): Unit = connection.close()
 
