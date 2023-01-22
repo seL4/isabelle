@@ -796,6 +796,8 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
               Bytes.read(sfx_exe) + Bytes(sfx_txt) + Bytes.read(exe_archive))
             File.set_executable(context.dist_dir + isabelle_exe, true)
         }
+
+        other_isabelle.cleanup()
       }
       progress.echo("DONE")
     }
