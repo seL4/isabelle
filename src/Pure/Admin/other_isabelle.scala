@@ -15,7 +15,7 @@ object Other_Isabelle {
     new Other_Isabelle(isabelle_home.canonical, isabelle_identifier, user_home, progress)
 }
 
-class Other_Isabelle(
+final class Other_Isabelle private(
   val isabelle_home: Path,
   val isabelle_identifier: String,
   user_home: Path,
