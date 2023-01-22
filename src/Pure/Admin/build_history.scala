@@ -219,7 +219,7 @@ object Build_History {
           tool <- List("ghc_setup", "ocaml_setup")
           if other_isabelle.getenv("ISABELLE_" + Word.uppercase(tool)) == "true" &&
             (other_isabelle.isabelle_home + Path.explode("lib/Tools/" + tool)).is_file
-        } other_isabelle(tool, echo = verbose)
+        } other_isabelle.bash("bin/isabelle " + tool, echo = verbose)
 
         Isabelle_System.rm_tree(isabelle_base_log)
       }
@@ -255,7 +255,7 @@ object Build_History {
         Other_Isabelle(root, isabelle_identifier = isabelle_identifier,
           user_home = user_home, progress = build_out_progress)
       val build_result =
-        build_isabelle("build " + Bash.strings(build_args1 ::: afp_sessions),
+        build_isabelle.bash("bin/isabelle build " + Bash.strings(build_args1 ::: afp_sessions),
           redirect = true, echo = true, strict = false)
 
       val build_end = Date.now()

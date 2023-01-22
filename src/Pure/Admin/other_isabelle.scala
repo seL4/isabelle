@@ -44,23 +44,14 @@ final class Other_Isabelle private(
       env = null, cwd = isabelle_home.file, redirect = redirect, echo = echo, strict = strict)
   }
 
-  def apply(
-    cmdline: String,
-    redirect: Boolean = false,
-    echo: Boolean = false,
-    strict: Boolean = true
-  ): Process_Result = {
-    bash("bin/isabelle " + cmdline, redirect = redirect, echo = echo, strict = strict)
-  }
-
   def resolve_components(echo: Boolean): Unit = {
-    other_isabelle(
-      "env ISABELLE_TOOLS=" + Bash.string(Isabelle_System.getenv("ISABELLE_TOOLS")) +
+    other_isabelle.bash(
+      "bin/isabelle env ISABELLE_TOOLS=" + Bash.string(Isabelle_System.getenv("ISABELLE_TOOLS")) +
       " isabelle components -a", redirect = true, echo = echo).check
   }
 
   def getenv(name: String): String =
-    other_isabelle("getenv -b " + Bash.string(name)).check.out
+    other_isabelle.bash("bin/isabelle getenv -b " + Bash.string(name)).check.out
 
   val isabelle_home_user: Path = Path.explode(getenv("ISABELLE_HOME_USER"))
 
