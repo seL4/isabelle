@@ -212,7 +212,7 @@ object Build_History {
           Isabelle_System.rm_tree(other_isabelle.isabelle_home + Path.explode("lib/classes"))
         }
         other_isabelle.bash(
-          "env PATH=\"" + File.bash_path(Path.explode("~~/lib/dummy_stty").expand) + ":$PATH\" " +
+          "env PATH=\"" + File.bash_path(Path.explode("~~/lib/dummy_stty")) + ":$PATH\" " +
             "bin/isabelle jedit -b", redirect = true, echo = verbose).check
 
         for {
