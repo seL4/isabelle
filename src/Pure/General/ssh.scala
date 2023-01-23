@@ -226,6 +226,14 @@ object SSH {
       path
     }
 
+    override def copy_file(src: Path, dst: Path): Unit = {
+      val direct = if (is_dir(dst)) "/." else ""
+      if (!execute("cp -a " + bash_path(src) + " " + bash_path(dst) + direct).ok) {
+        error("Failed to copy file " + expand_path(src) + " to " +
+          expand_path(dst) + " (ssh " + toString + ")")
+      }
+    }
+
     def read_dir(path: Path): List[String] =
       run_sftp("@cd " + sftp_path(path) + "\n@ls -1 -a").out_lines.flatMap(s =>
         if (s == "." || s == "..") None
@@ -352,6 +360,7 @@ object SSH {
     def is_file(path: Path): Boolean = path.is_file
     def make_directory(path: Path): Path = Isabelle_System.make_directory(path)
     def with_tmp_dir[A](body: Path => A): A = Isabelle_System.with_tmp_dir("tmp")(body)
+    def copy_file(path1: Path, path2: Path): Unit = Isabelle_System.copy_file(path1, path2)
     def read_file(path1: Path, path2: Path): Unit = Isabelle_System.copy_file(path1, path2)
     def write_file(path1: Path, path2: Path): Unit = Isabelle_System.copy_file(path2, path1)
     def read_bytes(path: Path): Bytes = Bytes.read(path)
