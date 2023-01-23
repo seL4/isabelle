@@ -58,6 +58,7 @@ object Components {
   def resolve(base_dir: Path, names: List[String],
     target_dir: Option[Path] = None,
     copy_dir: Option[Path] = None,
+    component_repository: String = Components.default_component_repository,
     progress: Progress = new Progress
   ): Unit = {
     Isabelle_System.make_directory(base_dir)
@@ -65,7 +66,7 @@ object Components {
       val archive_name = Archive(name)
       val archive = base_dir + Path.explode(archive_name)
       if (!archive.is_file) {
-        val remote = Components.default_component_repository + "/" + archive_name
+        val remote = Url.append_path(component_repository, archive_name)
         Isabelle_System.download_file(remote, archive, progress = progress)
       }
       for (dir <- copy_dir) {
