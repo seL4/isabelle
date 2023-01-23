@@ -3390,7 +3390,7 @@ lemma multp_cancel_max:
   by (rule mult_cancel_max[to_pred])
 
 
-subsubsection \<open>Partial-order properties\<close>
+subsubsection \<open>Strict partial-order properties\<close>
 
 lemma mult1_lessE:
   assumes "(N, M) \<in> mult1 {(a, b). r a b}" and "asymp r"
@@ -3488,6 +3488,93 @@ lemma wfP_less_multiset[simp]:
   shows "wfP ((<) :: 'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool)"
   using wfP_multp[OF wfP_less] less_multiset_def
   by (metis wfPUNIVI wfP_induct)
+
+
+subsubsection \<open>Strict total-order properties\<close>
+
+lemma total_on_mult:
+  assumes "total_on A r" and "trans r" and "\<And>M. M \<in> B \<Longrightarrow> set_mset M \<subseteq> A"
+  shows "total_on B (mult r)"
+proof (rule total_onI)
+  fix M1 M2 assume "M1 \<in> B" and "M2 \<in> B" and "M1 \<noteq> M2"
+  let ?I = "M1 \<inter># M2"
+  show "(M1, M2) \<in> mult r \<or> (M2, M1) \<in> mult r"
+  proof (cases "M1 - ?I = {#} \<or> M2 - ?I = {#}")
+    case True
+    with \<open>M1 \<noteq> M2\<close> show ?thesis
+      by (metis Diff_eq_empty_iff_mset diff_intersect_left_idem diff_intersect_right_idem
+          subset_implies_mult subset_mset.less_le)
+  next
+    case False
+    from assms(1) have "total_on (set_mset (M1 - ?I)) r"
+      by (meson \<open>M1 \<in> B\<close> assms(3) diff_subset_eq_self set_mset_mono total_on_subset)
+    with False obtain greatest1 where
+      greatest1_in: "greatest1 \<in># M1 - ?I" and
+      greatest1_greatest: "\<forall>x \<in># M1 - ?I. greatest1 \<noteq> x \<longrightarrow> (x, greatest1) \<in> r"
+      using Multiset.bex_greatest_element[to_set, of "M1 - ?I" r]
+      by (metis assms(2) subset_UNIV trans_on_subset)
+
+    from assms(1) have "total_on (set_mset (M2 - ?I)) r"
+      by (meson \<open>M2 \<in> B\<close> assms(3) diff_subset_eq_self set_mset_mono total_on_subset)
+    with False obtain greatest2 where
+      greatest2_in: "greatest2 \<in># M2 - ?I" and
+      greatest2_greatest: "\<forall>x \<in># M2 - ?I. greatest2 \<noteq> x \<longrightarrow> (x, greatest2) \<in> r"
+      using Multiset.bex_greatest_element[to_set, of "M2 - ?I" r]
+      by (metis assms(2) subset_UNIV trans_on_subset)
+
+    have "greatest1 \<noteq> greatest2"
+      using greatest1_in \<open>greatest2 \<in># M2 - ?I\<close>
+      by (metis diff_intersect_left_idem diff_intersect_right_idem dual_order.eq_iff in_diff_count
+          in_diff_countE le_add_same_cancel2 less_irrefl zero_le)
+    hence "(greatest1, greatest2) \<in> r \<or> (greatest2, greatest1) \<in> r"
+      using \<open>total_on A r\<close>[unfolded total_on_def, rule_format, of greatest1 greatest2]
+        \<open>M1 \<in> B\<close> \<open>M2 \<in> B\<close> greatest1_in greatest2_in assms(3)
+      by (meson in_diffD in_mono)
+    thus ?thesis
+    proof (elim disjE)
+      assume "(greatest1, greatest2) \<in> r"
+      have "(?I + (M1 - ?I), ?I + (M2 - ?I)) \<in> mult r"
+      proof (rule one_step_implies_mult[of "M2 - ?I" "M1 - ?I" r ?I])
+        show "M2 - ?I \<noteq> {#}"
+          using False by force
+      next
+        show "\<forall>k\<in>#M1 - ?I. \<exists>j\<in>#M2 - ?I. (k, j) \<in> r"
+          using \<open>(greatest1, greatest2) \<in> r\<close> greatest2_in greatest1_greatest
+          by (metis assms(2) transD)
+      qed
+      hence "(M1, M2) \<in> mult r"
+        by (metis subset_mset.add_diff_inverse subset_mset.inf.cobounded1
+            subset_mset.inf.cobounded2)
+      thus "(M1, M2) \<in> mult r \<or> (M2, M1) \<in> mult r" ..
+    next
+      assume "(greatest2, greatest1) \<in> r"
+      have "(?I + (M2 - ?I), ?I + (M1 - ?I)) \<in> mult r"
+      proof (rule one_step_implies_mult[of "M1 - ?I" "M2 - ?I" r ?I])
+        show "M1 - M1 \<inter># M2 \<noteq> {#}"
+          using False by force
+      next
+        show "\<forall>k\<in>#M2 - ?I. \<exists>j\<in>#M1 - ?I. (k, j) \<in> r"
+          using \<open>(greatest2, greatest1) \<in> r\<close> greatest1_in greatest2_greatest
+          by (metis assms(2) transD)
+      qed
+      hence "(M2, M1) \<in> mult r"
+        by (metis subset_mset.add_diff_inverse subset_mset.inf.cobounded1
+            subset_mset.inf.cobounded2)
+      thus "(M1, M2) \<in> mult r \<or> (M2, M1) \<in> mult r" ..
+    qed
+  qed
+qed
+
+lemma total_mult: "total r \<Longrightarrow> trans r \<Longrightarrow> total (mult r)"
+  by (rule total_on_mult[of UNIV r UNIV, simplified])
+
+lemma totalp_on_multp:
+  "totalp_on A R \<Longrightarrow> transp R \<Longrightarrow> (\<And>M. M \<in> B \<Longrightarrow> set_mset M \<subseteq> A) \<Longrightarrow> totalp_on B (multp R)"
+  using total_on_mult[of A "{(x,y). R x y}" B, to_pred]
+  by (simp add: multp_def total_on_def totalp_on_def)
+
+lemma totalp_multp: "totalp R \<Longrightarrow> transp R \<Longrightarrow> totalp (multp R)"
+  by (rule totalp_on_multp[of UNIV R UNIV, simplified])
 
 
 subsection \<open>Quasi-executable version of the multiset extension\<close>

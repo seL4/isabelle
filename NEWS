@@ -202,6 +202,10 @@ antiquotations.
       multeqp_code_iff_reflclp_multp
       multp_code_iff_multp
       multp_mono_strong
+      total_mult
+      total_on_mult
+      totalp_multp
+      totalp_on_multp
       wfP_subset_mset[simp]
 
 * Mirabelle:
