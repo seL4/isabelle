@@ -130,6 +130,7 @@ elif [ "${#UPDATE_COMPONENTS[@]}" -ne 0 ]; then
   isabelle scala_build || exit $?
   exec isabelle java isabelle.Components "${UPDATE_COMPONENTS[@]}"
 else
+  source "$ISABELLE_HOME/lib/scripts/download_file"
   for NAME in "${SELECTED_COMPONENTS[@]}"
   do
     BASE_NAME="$(basename "$NAME")"
@@ -144,26 +145,7 @@ else
       echo "Skipping existing component \"$FULL_NAME\""
     else
       if [ ! -e "${FULL_NAME}.tar.gz" ]; then
-        REMOTE="$COMPONENT_REPOSITORY/${BASE_NAME}.tar.gz"
-        type -p curl > /dev/null || fail "Cannot download files: missing curl"
-        echo "Getting \"$REMOTE\""
-        mkdir -p "$(dirname "$FULL_NAME")"
-
-        CURL_OPTIONS="--fail --silent --location"
-        if [ "$ISABELLE_PLATFORM_FAMILY" = "macos" ]; then
-          case $(sw_vers -productVersion) in
-            10.*)
-              CURL_OPTIONS="$CURL_OPTIONS --insecure"
-              ;;
-          esac
-        fi
-        if curl $CURL_OPTIONS "$REMOTE" > "${FULL_NAME}.tar.gz.part"
-        then
-          mv -f "${FULL_NAME}.tar.gz.part" "${FULL_NAME}.tar.gz"
-        else
-          rm -f "${FULL_NAME}.tar.gz.part"
-          fail "Failed to download \"$REMOTE\""
-        fi
+        download_file "$COMPONENT_REPOSITORY/${BASE_NAME}.tar.gz" "${FULL_NAME}.tar.gz" || exit $?
       fi
       if [ -e "${FULL_NAME}.tar.gz" ]; then
         echo "Unpacking \"${FULL_NAME}.tar.gz\""
