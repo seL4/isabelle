@@ -66,6 +66,8 @@ antiquotations.
     be abbreviations. Lemmas trans_def and transp_def are explicitly provided
     for backward compatibility but their usage is discouraged.
     Minor INCOMPATIBILITY.
+  - Renamed wrongly named lemma totalp_on_refl_on_eq to totalp_on_total_on_eq.
+    Minor INCOMPATIBILITY.
   - Strengthened (and renamed) lemmas. Minor INCOMPATIBILITY.
       antisym_converse[simp] ~> antisym_on_converse[simp]
       order.antisymp_ge[simp] ~> order.antisymp_on_ge[simp]

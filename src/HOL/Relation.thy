@@ -751,7 +751,7 @@ definition totalp_on :: "'a set \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow>
 abbreviation totalp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
   "totalp \<equiv> totalp_on UNIV"
 
-lemma totalp_on_refl_on_eq[pred_set_conv]: "totalp_on A (\<lambda>x y. (x, y) \<in> r) \<longleftrightarrow> total_on A r"
+lemma totalp_on_total_on_eq[pred_set_conv]: "totalp_on A (\<lambda>x y. (x, y) \<in> r) \<longleftrightarrow> total_on A r"
   by (simp add: totalp_on_def total_on_def)
 
 lemma total_onI [intro?]:
