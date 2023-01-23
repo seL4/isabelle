@@ -68,7 +68,7 @@ final class Other_Isabelle private(
   def init_components(
     component_repository: String = Components.default_component_repository,
     components_base: Path = Components.default_components_base,
-    catalogs: List[String] = Nil,
+    catalogs: List[String] = Components.default_catalogs,
     components: List[String] = Nil
   ): List[String] = {
     val dir = Components.admin(isabelle_home)

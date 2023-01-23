@@ -467,8 +467,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
       val other_isabelle = context.other_isabelle(context.dist_dir)
 
       other_isabelle.init_settings(
-        other_isabelle.init_components(
-          components_base = context.components_base, catalogs = List("main")))
+        other_isabelle.init_components(components_base = context.components_base))
       other_isabelle.resolve_components(echo = true)
 
       try {

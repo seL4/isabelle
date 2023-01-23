@@ -40,6 +40,9 @@ object Components {
 
   val default_components_base: Path = Path.explode("$ISABELLE_COMPONENTS_BASE")
 
+  val default_catalogs: List[String] = List("main")
+  val optional_catalogs: List[String] = List("main", "optional")
+
   def admin(dir: Path): Path = dir + Path.explode("Admin/components")
 
   def contrib(dir: Path = Path.current, name: String = ""): Path =
