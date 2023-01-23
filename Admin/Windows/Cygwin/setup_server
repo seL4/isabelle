@@ -15,7 +15,7 @@ function download()
   local DIR="${2:-.}"
   mkdir -p "$DIR" || fail "Cannot create directory: \"$DIR\""
   echo "Downloading $URL ..."
-  curl --fail --silent "$URL" > "$DIR"/"$(basename "$URL")" || fail "FAILED"
+  curl --fail --silent --location "$URL" > "$DIR"/"$(basename "$URL")" || fail "FAILED"
 }
 
 download "$CYGWIN_MAIN/setup-x86_64.exe"
