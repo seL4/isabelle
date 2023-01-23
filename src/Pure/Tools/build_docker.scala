@@ -68,7 +68,7 @@ USER isabelle
 # Isabelle
 WORKDIR /home/isabelle
 """ + (if (is_remote)
-       "RUN curl --fail --silent " + Bash.string(app_archive) + " > Isabelle.tar.gz"
+       "RUN curl --fail --silent --location " + Bash.string(app_archive) + " > Isabelle.tar.gz"
       else "COPY Isabelle.tar.gz .") + """
 RUN tar xzf Isabelle.tar.gz && \
   mv """ + isabelle_name + """ Isabelle && \

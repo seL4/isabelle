@@ -1,0 +1,40 @@
+# -*- shell-script -*- :mode=shellscript:
+#
+# Bash function to download file via "curl".
+
+function download_file ()
+{
+  [ "$#" -ne 2 ] && {
+    echo "Bad arguments for download_file" >&2
+    return 2
+  }
+  local REMOTE="$1"
+  local LOCAL="$2"
+
+  type -p curl > /dev/null || {
+    echo "Require \"curl\" to download files" >&2
+    return 2
+  }
+
+  local CURL_OPTIONS="--fail --silent --location"
+  if [ "$(uname -s)" = "Darwin" ]
+  then
+    case $(sw_vers -productVersion) in
+      10.*)
+        CURL_OPTIONS="$CURL_OPTIONS --insecure"
+        ;;
+    esac
+  fi
+
+  echo "Getting \"$REMOTE\""
+  mkdir -p "$(dirname "$LOCAL")"
+
+  if curl $CURL_OPTIONS "$REMOTE" > "${LOCAL}.part"
+  then
+    mv -f "${LOCAL}.part" "$LOCAL"
+  else
+    rm -f "${LOCAL}.part"
+    echo "Failed to download \"$REMOTE\"" >&2
+    return 2
+  fi
+}

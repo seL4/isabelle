@@ -191,7 +191,7 @@ object Build_History {
         other_isabelle.init_components(
           component_repository = component_repository,
           components_base = components_base,
-          catalogs = List("main", "optional"))
+          catalogs = Components.optional_catalogs)
       other_isabelle.init_settings(component_settings ::: init_settings)
       other_isabelle.resolve_components(echo = verbose)
       val ml_platform =
@@ -212,7 +212,7 @@ object Build_History {
           Isabelle_System.rm_tree(other_isabelle.isabelle_home + Path.explode("lib/classes"))
         }
         other_isabelle.bash(
-          "env PATH=\"" + File.bash_path(Path.explode("~~/lib/dummy_stty").expand) + ":$PATH\" " +
+          "env PATH=\"" + File.bash_path(Path.explode("~~/lib/dummy_stty")) + ":$PATH\" " +
             "bin/isabelle jedit -b", redirect = true, echo = verbose).check
 
         for {

@@ -8,11 +8,14 @@ package isabelle
 
 
 object Other_Isabelle {
-  def apply(isabelle_home: Path,
-      isabelle_identifier: String = "",
-      user_home: Path = Path.USER_HOME,
-      progress: Progress = new Progress): Other_Isabelle =
+  def apply(
+    isabelle_home: Path,
+    isabelle_identifier: String = "",
+    user_home: Path = Path.USER_HOME,
+    progress: Progress = new Progress
+  ): Other_Isabelle = {
     new Other_Isabelle(isabelle_home.canonical, isabelle_identifier, user_home, progress)
+  }
 }
 
 final class Other_Isabelle private(
@@ -65,7 +68,7 @@ final class Other_Isabelle private(
   def init_components(
     component_repository: String = Components.default_component_repository,
     components_base: Path = Components.default_components_base,
-    catalogs: List[String] = Nil,
+    catalogs: List[String] = Components.default_catalogs,
     components: List[String] = Nil
   ): List[String] = {
     val dir = Components.admin(isabelle_home)

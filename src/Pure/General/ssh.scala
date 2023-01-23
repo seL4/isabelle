@@ -190,6 +190,19 @@ object SSH {
         progress_stderr = progress_stderr, strict = strict)
     }
 
+    override def download_file(
+      url_name: String,
+      file: Path,
+      progress: Progress = new Progress
+    ): Unit = {
+      val cmd_line =
+        File.read(Path.explode("~~/lib/scripts/download_file")) + "\n" +
+          "download_file " + Bash.string(url_name) + " " + bash_path(file)
+      execute(cmd_line,
+        progress_stdout = progress.echo,
+        progress_stderr = progress.echo).check
+    }
+
     override lazy val isabelle_platform: Isabelle_Platform = Isabelle_Platform(ssh = Some(ssh))
 
 
@@ -211,6 +224,14 @@ object SSH {
         error("Failed to create directory: " + quote(remote_path(path)))
       }
       path
+    }
+
+    override def copy_file(src: Path, dst: Path): Unit = {
+      val direct = if (is_dir(dst)) "/." else ""
+      if (!execute("cp -a " + bash_path(src) + " " + bash_path(dst) + direct).ok) {
+        error("Failed to copy file " + expand_path(src) + " to " +
+          expand_path(dst) + " (ssh " + toString + ")")
+      }
     }
 
     def read_dir(path: Path): List[String] =
@@ -339,6 +360,7 @@ object SSH {
     def is_file(path: Path): Boolean = path.is_file
     def make_directory(path: Path): Path = Isabelle_System.make_directory(path)
     def with_tmp_dir[A](body: Path => A): A = Isabelle_System.with_tmp_dir("tmp")(body)
+    def copy_file(path1: Path, path2: Path): Unit = Isabelle_System.copy_file(path1, path2)
     def read_file(path1: Path, path2: Path): Unit = Isabelle_System.copy_file(path1, path2)
     def write_file(path1: Path, path2: Path): Unit = Isabelle_System.copy_file(path2, path1)
     def read_bytes(path: Path): Bytes = Bytes.read(path)
@@ -354,6 +376,9 @@ object SSH {
         progress_stderr = progress_stderr,
         env = if (settings) Isabelle_System.settings() else null,
         strict = strict)
+
+    def download_file(url_name: String, file: Path, progress: Progress = new Progress): Unit =
+      Isabelle_System.download_file(url_name, file, progress = progress)
 
     def isabelle_platform: Isabelle_Platform = Isabelle_Platform()
   }
