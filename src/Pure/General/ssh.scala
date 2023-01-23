@@ -190,6 +190,19 @@ object SSH {
         progress_stderr = progress_stderr, strict = strict)
     }
 
+    override def download_file(
+      url_name: String,
+      file: Path,
+      progress: Progress = new Progress
+    ): Unit = {
+      val cmd_line =
+        File.read(Path.explode("~~/lib/scripts/download_file")) + "\n" +
+          "download_file " + Bash.string(url_name) + " " + bash_path(file)
+      execute(cmd_line,
+        progress_stdout = progress.echo,
+        progress_stderr = progress.echo).check
+    }
+
     override lazy val isabelle_platform: Isabelle_Platform = Isabelle_Platform(ssh = Some(ssh))
 
 
@@ -354,6 +367,9 @@ object SSH {
         progress_stderr = progress_stderr,
         env = if (settings) Isabelle_System.settings() else null,
         strict = strict)
+
+    def download_file(url_name: String, file: Path, progress: Progress = new Progress): Unit =
+      Isabelle_System.download_file(url_name, file, progress = progress)
 
     def isabelle_platform: Isabelle_Platform = Isabelle_Platform()
   }
