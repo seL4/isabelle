@@ -51,7 +51,8 @@ object Components {
   def unpack(dir: Path, archive: Path, progress: Progress = new Progress): String = {
     val name = Archive.get_name(archive.file_name)
     progress.echo("Unpacking " + name)
-    Isabelle_System.extract(archive, dir)
+    Isabelle_System.bash(
+      "tar -C " + File.bash_path(dir) + " -x -z -f " + File.bash_path(archive)).check
     name
   }
 
