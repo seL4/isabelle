@@ -39,7 +39,6 @@ object Components {
     Isabelle_System.getenv("ISABELLE_COMPONENT_REPOSITORY")
 
   val default_components_base: Path = Path.explode("$ISABELLE_COMPONENTS_BASE")
-  val standard_components_base: Path = Path.explode("$USER_HOME/.isabelle/contrib")
 
   val default_catalogs: List[String] = List("main")
   val optional_catalogs: List[String] = List("main", "optional")

@@ -23,13 +23,12 @@ object Build_Release {
     def apply(
       target_dir: Path,
       release_name: String = "",
-      components_base: Path = Components.default_components_base,
       progress: Progress = new Progress
     ): Release_Context = {
       val date = Date.now()
       val dist_name = proper_string(release_name) getOrElse ("Isabelle_" + Date.Format.date(date))
       val dist_dir = (target_dir + Path.explode("dist-" + dist_name)).absolute
-      new Release_Context(release_name, dist_name, dist_dir, components_base, progress)
+      new Release_Context(release_name, dist_name, dist_dir, progress)
     }
   }
 
@@ -37,7 +36,6 @@ object Build_Release {
     val release_name: String,
     val dist_name: String,
     val dist_dir: Path,
-    val components_base: Path,
     val progress: Progress
   ) {
     override def toString: String = dist_name
@@ -466,8 +464,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
       val other_isabelle = context.other_isabelle(context.dist_dir)
 
-      other_isabelle.init_settings(
-        other_isabelle.init_components(components_base = context.components_base))
+      other_isabelle.init_settings(other_isabelle.init_components())
       other_isabelle.resolve_components(echo = true)
 
       other_isabelle.scala_build(echo = true)
@@ -561,7 +558,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
           get_bundled_components(isabelle_target, platform)
 
         for (name <- bundled_components) {
-          Components.resolve(context.components_base, name,
+          Components.resolve(Components.default_components_base, name,
             target_dir = Some(contrib_dir),
             copy_dir = Some(context.dist_dir + Path.explode("contrib")),
             progress = progress)
@@ -874,7 +871,6 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
   def main(args: Array[String]): Unit = {
     Command_Line.tool {
       var afp_rev = ""
-      var components_base: Path = Components.default_components_base
       var target_dir = Path.current
       var release_name = ""
       var source_archive = ""
@@ -892,8 +888,6 @@ Usage: Admin/build_release [OPTIONS]
 
   Options are:
     -A REV       corresponding AFP changeset id
-    -C DIR       base directory for Isabelle components (default: """ +
-        Components.default_components_base + """)
     -D DIR       target directory (default ".")
     -R RELEASE   explicit release name
     -S ARCHIVE   use existing source archive (file or URL)
@@ -909,7 +903,6 @@ Usage: Admin/build_release [OPTIONS]
   Build Isabelle release in base directory, using the local repository clone.
 """,
         "A:" -> (arg => afp_rev = arg),
-        "C:" -> (arg => components_base = Path.explode(arg)),
         "D:" -> (arg => target_dir = Path.explode(arg)),
         "R:" -> (arg => release_name = arg),
         "S:" -> (arg => source_archive = arg),
@@ -935,10 +928,7 @@ Usage: Admin/build_release [OPTIONS]
 
       val progress = new Console_Progress()
       def make_context(name: String): Release_Context =
-        Release_Context(target_dir,
-          release_name = name,
-          components_base = components_base,
-          progress = progress)
+        Release_Context(target_dir, release_name = name, progress = progress)
 
       val context =
         if (source_archive.isEmpty) {

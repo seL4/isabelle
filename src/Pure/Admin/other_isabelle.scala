@@ -89,18 +89,15 @@ final class Other_Isabelle private(
 
   def init_components(
     component_repository: String = Components.default_component_repository,
-    components_base: Path = Components.default_components_base,
     catalogs: List[String] = Components.default_catalogs,
     components: List[String] = Nil
   ): List[String] = {
-    val dir = Components.admin(isabelle_home)
+    val admin = Components.admin(Path.ISABELLE_HOME).implode
+    val components_base = quote("${ISABELLE_COMPONENTS_BASE:-$USER_HOME/.isabelle/contrib}")
 
     ("ISABELLE_COMPONENT_REPOSITORY=" + Bash.string(component_repository)) ::
-    catalogs.map(name =>
-      "init_components " + File.bash_path(components_base) + " " +
-        File.bash_path(dir + Path.basic(name))) :::
-    components.map(name =>
-      "init_component " + File.bash_path(components_base + Path.basic(name)))
+    catalogs.map(name => "init_components " + components_base + " " + quote(admin + "/" + name)) :::
+    components.map(name => "init_component " + components_base + "/" + name)
   }
 
 

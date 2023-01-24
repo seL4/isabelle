@@ -186,7 +186,6 @@ object Build_History {
       val component_settings =
         other_isabelle.init_components(
           component_repository = component_repository,
-          components_base = Components.standard_components_base,
           catalogs = Components.optional_catalogs)
       other_isabelle.init_settings(component_settings ::: init_settings)
       other_isabelle.resolve_components(echo = verbose)
