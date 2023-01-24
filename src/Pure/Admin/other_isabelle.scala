@@ -1,7 +1,8 @@
 /*  Title:      Pure/Admin/other_isabelle.scala
     Author:     Makarius
 
-Manage other Isabelle distributions.
+Manage other Isabelle distributions: support historic versions starting from
+tag "build_history_base".
 */
 
 package isabelle
