@@ -475,7 +475,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
           "export CLASSPATH=" + Bash.string(other_isabelle.getenv("ISABELLE_CLASSPATH")) + "\n" +
           "bin/isabelle jedit -b", echo = true).check
       }
-      catch { case ERROR(msg) => cat_error("Failed to build tools:", msg) }
+      catch { case ERROR(msg) => cat_error("Failed to build Isabelle/Scala/Java modules:", msg) }
 
       try {
         other_isabelle.bash(
