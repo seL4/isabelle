@@ -66,9 +66,15 @@ final class Other_Isabelle private(
     if (fresh) {
       Isabelle_System.rm_tree(isabelle_home + Path.explode("lib/classes"))
     }
+
+    val dummy_stty = Path.explode("lib/dummy_stty/stty")
+    if (!(isabelle_home + dummy_stty).is_file) {
+      Isabelle_System.copy_file(Path.ISABELLE_HOME + dummy_stty,
+        Isabelle_System.make_directory(isabelle_home + dummy_stty.dir))
+    }
     try {
       bash(
-        "export PATH=\"" + File.bash_path(Path.explode("~~/lib/dummy_stty")) + ":$PATH\"\n" +
+        "export PATH=\"" + File.bash_path(isabelle_home + dummy_stty.dir) + ":$PATH\"\n" +
         "export CLASSPATH=" + Bash.string(getenv("ISABELLE_CLASSPATH")) + "\n" +
         "bin/isabelle jedit -b", echo = echo).check
     }
