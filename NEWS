@@ -212,6 +212,14 @@ antiquotations.
       totalp_on_multp
       wfP_subset_mset[simp]
 
+* Theory "HOL-Library.Multiset_Order":
+  - Added lemmas.
+      irreflp_on_multpHO[simp]
+      totalp_multpDM
+      totalp_multpHO
+      totalp_on_multpDM
+      totalp_on_multpHO
+
 * Mirabelle:
   - Added session to output directory structure. Minor INCOMPATIBILITY.
 
