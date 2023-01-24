@@ -207,13 +207,7 @@ object Build_History {
 
       if (first_build) {
         other_isabelle.resolve_components(echo = verbose)
-
-        if (fresh) {
-          Isabelle_System.rm_tree(other_isabelle.isabelle_home + Path.explode("lib/classes"))
-        }
-        other_isabelle.bash(
-          "env PATH=\"" + File.bash_path(Path.explode("~~/lib/dummy_stty")) + ":$PATH\" " +
-            "bin/isabelle jedit -b", redirect = true, echo = verbose).check
+        other_isabelle.scala_build(fresh = fresh, echo = verbose)
 
         for {
           tool <- List("ghc_setup", "ocaml_setup")

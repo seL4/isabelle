@@ -470,12 +470,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
         other_isabelle.init_components(components_base = context.components_base))
       other_isabelle.resolve_components(echo = true)
 
-      try {
-        other_isabelle.bash(
-          "export CLASSPATH=" + Bash.string(other_isabelle.getenv("ISABELLE_CLASSPATH")) + "\n" +
-          "bin/isabelle jedit -b", echo = true).check
-      }
-      catch { case ERROR(msg) => cat_error("Failed to build Isabelle/Scala/Java modules:", msg) }
+      other_isabelle.scala_build(echo = true)
 
       try {
         other_isabelle.bash(

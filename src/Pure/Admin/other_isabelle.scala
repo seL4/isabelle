@@ -62,6 +62,19 @@ final class Other_Isabelle private(
     }
   }
 
+  def scala_build(fresh: Boolean = false, echo: Boolean = false): Unit = {
+    if (fresh) {
+      Isabelle_System.rm_tree(isabelle_home + Path.explode("lib/classes"))
+    }
+    try {
+      bash(
+        "export PATH=\"" + File.bash_path(Path.explode("~~/lib/dummy_stty")) + ":$PATH\"\n" +
+        "export CLASSPATH=" + Bash.string(getenv("ISABELLE_CLASSPATH")) + "\n" +
+        "bin/isabelle jedit -b", echo = echo).check
+    }
+    catch { case ERROR(msg) => cat_error("Failed to build Isabelle/Scala/Java modules:", msg) }
+  }
+
 
   /* components */
 
