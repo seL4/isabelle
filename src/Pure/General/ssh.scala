@@ -170,7 +170,8 @@ object SSH {
       }
     }
 
-    val settings: JMap[String, String] = JMap.of("HOME", user_home, "USER_HOME", user_home)
+    val settings: Isabelle_System.Settings =
+      (name: String) => if (name == "HOME" || name == "USER_HOME") user_home else ""
 
     override def close(): Unit = {
       if (control_path.nonEmpty) run_ssh(opts = "-O exit").check
