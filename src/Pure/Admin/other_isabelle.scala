@@ -11,17 +11,15 @@ object Other_Isabelle {
   def apply(
     isabelle_home: Path,
     isabelle_identifier: String = "",
-    user_home: Path = Path.USER_HOME,
     progress: Progress = new Progress
   ): Other_Isabelle = {
-    new Other_Isabelle(isabelle_home.canonical, isabelle_identifier, user_home, progress)
+    new Other_Isabelle(isabelle_home.canonical, isabelle_identifier, progress)
   }
 }
 
 final class Other_Isabelle private(
   val isabelle_home: Path,
   val isabelle_identifier: String,
-  user_home: Path,
   progress: Progress
 ) {
   override def toString: String = isabelle_home.toString
@@ -40,7 +38,7 @@ final class Other_Isabelle private(
     strict: Boolean = true
   ): Process_Result = {
     progress.bash(
-      "export USER_HOME=" + File.bash_path(user_home) + "\n" +
+      "export USER_HOME=" + File.bash_path(Path.USER_HOME) + "\n" +
       Isabelle_System.export_isabelle_identifier(isabelle_identifier) + script,
       env = null, cwd = isabelle_home.file, redirect = redirect, echo = echo, strict = strict)
   }

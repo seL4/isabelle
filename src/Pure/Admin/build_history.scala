@@ -91,7 +91,6 @@ object Build_History {
 
   /** local build **/
 
-  private val default_user_home = Path.USER_HOME
   private val default_multicore = (1, 1)
   private val default_heap = 1500
   private val default_isabelle_identifier = "build_history"
@@ -99,7 +98,6 @@ object Build_History {
   def local_build(
     options: Options,
     root: Path,
-    user_home: Path = default_user_home,
     progress: Progress = new Progress,
     afp: Boolean = false,
     afp_partition: Int = 0,
@@ -176,8 +174,7 @@ object Build_History {
     /* main */
 
     val other_isabelle =
-      Other_Isabelle(root, isabelle_identifier = isabelle_identifier,
-        user_home = user_home, progress = progress)
+      Other_Isabelle(root, isabelle_identifier = isabelle_identifier, progress = progress)
 
     val build_host = proper_string(hostname) getOrElse Isabelle_System.hostname()
     val build_history_date = Date.now()
@@ -247,7 +244,7 @@ object Build_History {
 
       val build_result =
         Other_Isabelle(root, isabelle_identifier = isabelle_identifier,
-          user_home = user_home, progress = build_out_progress)
+          progress = build_out_progress)
         .bash("bin/isabelle build " + Bash.strings(build_args1 ::: afp_sessions),
           redirect = true, echo = true, strict = false)
 
@@ -413,7 +410,6 @@ object Build_History {
       var output_file = ""
       var ml_statistics_step = 1
       var build_tags = List.empty[String]
-      var user_home = default_user_home
       var verbose = false
       var exit_code = false
 
@@ -443,7 +439,6 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
     -p TEXT      additional text for generated etc/preferences
     -s NUMBER    step size for ML statistics (0=none, 1=all, n=step, default: 1)
     -t TAG       free-form build tag (multiple occurrences possible)
-    -u DIR       alternative USER_HOME directory
     -v           verbose
     -x           return overall exit code from build processes
 
@@ -476,7 +471,6 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
         "p:" -> (arg => more_preferences = more_preferences ::: List(arg)),
         "s:" -> (arg => ml_statistics_step = Value.Int.parse(arg)),
         "t:" -> (arg => build_tags = build_tags ::: List(arg)),
-        "u:" -> (arg => user_home = Path.explode(arg)),
         "v" -> (_ => verbose = true),
         "x" -> (_ => exit_code = true))
 
@@ -490,7 +484,7 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
       val progress = new Console_Progress(stderr = true)
 
       val results =
-        local_build(Options.init(), root, user_home = user_home, progress = progress,
+        local_build(Options.init(), root, progress = progress,
           afp = afp, afp_partition = afp_partition,
           isabelle_identifier = isabelle_identifier, ml_statistics_step = ml_statistics_step,
           component_repository = component_repository, components_base = components_base,
