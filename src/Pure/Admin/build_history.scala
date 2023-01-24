@@ -197,8 +197,8 @@ object Build_History {
       File.write(other_isabelle.etc_preferences, cat_lines(more_preferences))
 
       val isabelle_output =
-        other_isabelle.isabelle_home_user + Path.explode("heaps") +
-          Path.explode(other_isabelle.getenv("ML_IDENTIFIER"))
+        other_isabelle.expand_path(
+          Path.explode("$ISABELLE_HOME_USER/heaps/$ML_IDENTIFIER"))
       val isabelle_output_log = isabelle_output + Path.explode("log")
       val isabelle_base_log = isabelle_output + Path.explode("../base_log")
 
@@ -218,7 +218,7 @@ object Build_History {
       Isabelle_System.rm_tree(isabelle_output)
       Isabelle_System.make_directory(isabelle_output)
 
-      (other_isabelle.isabelle_home_user + Path.explode("mash_state")).file.delete
+      other_isabelle.expand_path(Path.explode("$ISABELLE_HOME_USER/mash_state")).file.delete
 
       val log_path =
         other_isabelle.isabelle_home_user +
@@ -228,7 +228,7 @@ object Build_History {
 
       Isabelle_System.make_directory(log_path.dir)
 
-      val build_out = other_isabelle.isabelle_home_user + Path.explode("log/build.out")
+      val build_out = other_isabelle.expand_path(Path.explode("$ISABELLE_HOME_USER/log/build.out"))
       val build_out_progress = new File_Progress(build_out)
       build_out.file.delete
 

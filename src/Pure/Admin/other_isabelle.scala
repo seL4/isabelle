@@ -46,11 +46,16 @@ final class Other_Isabelle private(
   def getenv(name: String): String =
     bash("bin/isabelle getenv -b " + Bash.string(name)).check.out
 
-  val isabelle_home_user: Path = Path.explode(getenv("ISABELLE_HOME_USER"))
+  val settings: Isabelle_System.Settings = (name: String) => getenv(name)
 
-  val etc: Path = isabelle_home_user + Path.explode("etc")
-  val etc_settings: Path = etc + Path.explode("settings")
-  val etc_preferences: Path = etc + Path.explode("preferences")
+  def expand_path(path: Path): Path = path.expand_env(settings)
+  def bash_path(path: Path): String = Bash.string(expand_path(path).implode)
+
+  def isabelle_home_user: Path = expand_path(Path.explode("$ISABELLE_HOME_USER"))
+
+  def etc: Path = expand_path(Path.explode("$ISABELLE_HOME_USER/etc"))
+  def etc_settings: Path = etc + Path.explode("settings")
+  def etc_preferences: Path = etc + Path.explode("preferences")
 
   def resolve_components(echo: Boolean = false): Unit = {
     val missing = Path.split(getenv("ISABELLE_COMPONENTS_MISSING"))
@@ -65,14 +70,14 @@ final class Other_Isabelle private(
       Isabelle_System.rm_tree(isabelle_home + Path.explode("lib/classes"))
     }
 
-    val dummy_stty = Path.explode("lib/dummy_stty/stty")
-    if (!(isabelle_home + dummy_stty).is_file) {
-      Isabelle_System.copy_file(Path.ISABELLE_HOME + dummy_stty,
-        Isabelle_System.make_directory(isabelle_home + dummy_stty.dir))
+    val dummy_stty = Path.explode("~~/lib/dummy_stty/stty")
+    if (!expand_path(dummy_stty).is_file) {
+      Isabelle_System.copy_file(dummy_stty,
+        Isabelle_System.make_directory(expand_path(dummy_stty.dir)))
     }
     try {
       bash(
-        "export PATH=\"" + File.bash_path(isabelle_home + dummy_stty.dir) + ":$PATH\"\n" +
+        "export PATH=\"" + bash_path(dummy_stty.dir) + ":$PATH\"\n" +
         "export CLASSPATH=" + Bash.string(getenv("ISABELLE_CLASSPATH")) + "\n" +
         "bin/isabelle jedit -b", echo = echo).check
     }
