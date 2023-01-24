@@ -51,9 +51,9 @@ final class Other_Isabelle private(
   def expand_path(path: Path): Path = path.expand_env(settings)
   def bash_path(path: Path): String = Bash.string(expand_path(path).implode)
 
-  def isabelle_home_user: Path = expand_path(Path.explode("$ISABELLE_HOME_USER"))
+  val isabelle_home_user: Path = expand_path(Path.explode("$ISABELLE_HOME_USER"))
 
-  def etc: Path = expand_path(Path.explode("$ISABELLE_HOME_USER/etc"))
+  def etc: Path = isabelle_home_user + Path.explode("etc")
   def etc_settings: Path = etc + Path.explode("settings")
   def etc_preferences: Path = etc + Path.explode("preferences")
 
