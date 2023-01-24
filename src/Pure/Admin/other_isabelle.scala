@@ -14,6 +14,10 @@ object Other_Isabelle {
     isabelle_identifier: String = "",
     progress: Progress = new Progress
   ): Other_Isabelle = {
+    if (proper_string(System.getenv("ISABELLE_SETTINGS_PRESENT")).isDefined) {
+      error("Cannot initialize with enclosing ISABELLE_SETTINGS_PRESENT")
+    }
+
     new Other_Isabelle(isabelle_home.canonical, isabelle_identifier, progress)
   }
 }
@@ -24,10 +28,6 @@ final class Other_Isabelle private(
   progress: Progress
 ) {
   override def toString: String = isabelle_home.toString
-
-  if (proper_string(System.getenv("ISABELLE_SETTINGS_PRESENT")).isDefined) {
-    error("Cannot initialize with enclosing ISABELLE_SETTINGS_PRESENT")
-  }
 
 
   /* static system */
