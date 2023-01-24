@@ -74,7 +74,7 @@ object Components {
   ): Unit = {
     ssh.make_directory(base_dir)
     val archive_name = Archive(name)
-    val archive = base_dir + Path.explode(archive_name)
+    val archive = base_dir + Path.basic(archive_name)
     if (!ssh.is_file(archive)) {
       val remote = Url.append_path(component_repository, archive_name)
       ssh.download_file(remote, archive, progress = progress)
