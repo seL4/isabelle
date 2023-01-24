@@ -39,6 +39,7 @@ object Components {
     Isabelle_System.getenv("ISABELLE_COMPONENT_REPOSITORY")
 
   val default_components_base: Path = Path.explode("$ISABELLE_COMPONENTS_BASE")
+  val standard_components_base: Path = Path.explode("$USER_HOME/.isabelle/contrib")
 
   val default_catalogs: List[String] = List("main")
   val optional_catalogs: List[String] = List("main", "optional")
@@ -57,7 +58,7 @@ object Components {
     val name = Archive.get_name(archive.file_name)
     progress.echo("Unpacking " + name)
     ssh.execute(
-      "tar -C " + File.bash_path(dir) + " -x -z -f " + File.bash_path(archive),
+      "tar -C " + ssh.bash_path(dir) + " -x -z -f " + ssh.bash_path(archive),
       progress_stdout = progress.echo,
       progress_stderr = progress.echo).check
     name
@@ -65,7 +66,7 @@ object Components {
 
   def resolve(
     base_dir: Path,
-    names: List[String],
+    name: String,
     target_dir: Option[Path] = None,
     copy_dir: Option[Path] = None,
     component_repository: String = Components.default_component_repository,
@@ -73,19 +74,17 @@ object Components {
     progress: Progress = new Progress
   ): Unit = {
     ssh.make_directory(base_dir)
-    for (name <- names) {
-      val archive_name = Archive(name)
-      val archive = base_dir + Path.explode(archive_name)
-      if (!ssh.is_file(archive)) {
-        val remote = Url.append_path(component_repository, archive_name)
-        ssh.download_file(remote, archive, progress = progress)
-      }
-      for (dir <- copy_dir) {
-        ssh.make_directory(dir)
-        ssh.copy_file(archive, dir)
-      }
-      unpack(target_dir getOrElse base_dir, archive, ssh = ssh, progress = progress)
+    val archive_name = Archive(name)
+    val archive = base_dir + Path.basic(archive_name)
+    if (!ssh.is_file(archive)) {
+      val remote = Url.append_path(component_repository, archive_name)
+      ssh.download_file(remote, archive, progress = progress)
     }
+    for (dir <- copy_dir) {
+      ssh.make_directory(dir)
+      ssh.copy_file(archive, dir)
+    }
+    unpack(target_dir getOrElse base_dir, archive, ssh = ssh, progress = progress)
   }
 
   private val platforms_family: Map[Platform.Family.Value, Set[String]] =

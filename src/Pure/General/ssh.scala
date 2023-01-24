@@ -170,7 +170,8 @@ object SSH {
       }
     }
 
-    val settings: JMap[String, String] = JMap.of("HOME", user_home, "USER_HOME", user_home)
+    val settings: Isabelle_System.Settings =
+      (name: String) => if (name == "HOME" || name == "USER_HOME") user_home else ""
 
     override def close(): Unit = {
       if (control_path.nonEmpty) run_ssh(opts = "-O exit").check
@@ -185,9 +186,11 @@ object SSH {
       settings: Boolean = true,
       strict: Boolean = true
     ): Process_Result = {
-      val args1 = Bash.string(host) + " " + Bash.string("export USER_HOME=\"$HOME\"\n" + cmd_line)
-      run_command("ssh", args = args1, progress_stdout = progress_stdout,
-        progress_stderr = progress_stderr, strict = strict)
+      run_command("ssh",
+        args = Bash.string(host) + " " + Bash.string(cmd_line),
+        progress_stdout = progress_stdout,
+        progress_stderr = progress_stderr,
+        strict = strict)
     }
 
     override def download_file(
@@ -209,6 +212,11 @@ object SSH {
     /* remote file-system */
 
     override def expand_path(path: Path): Path = path.expand_env(settings)
+    override def absolute_path(path: Path): Path = {
+      val path1 = expand_path(path)
+      if (path1.is_absolute) path1 else Path.explode(user_home) + path1
+    }
+
     def remote_path(path: Path): String = expand_path(path).implode
 
     override def bash_path(path: Path): String = Bash.string(remote_path(path))
@@ -355,6 +363,7 @@ object SSH {
     def rsync_path(path: Path): String = rsync_prefix + expand_path(path).implode
 
     def expand_path(path: Path): Path = path.expand
+    def absolute_path(path: Path): Path = path.absolute
     def bash_path(path: Path): String = File.bash_path(path)
     def is_dir(path: Path): Boolean = path.is_dir
     def is_file(path: Path): Boolean = path.is_file

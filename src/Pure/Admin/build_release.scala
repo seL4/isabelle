@@ -470,12 +470,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
         other_isabelle.init_components(components_base = context.components_base))
       other_isabelle.resolve_components(echo = true)
 
-      try {
-        other_isabelle.bash(
-          "export CLASSPATH=" + Bash.string(other_isabelle.getenv("ISABELLE_CLASSPATH")) + "\n" +
-          "bin/isabelle jedit -b", echo = true).check
-      }
-      catch { case ERROR(msg) => cat_error("Failed to build tools:", msg) }
+      other_isabelle.scala_build(echo = true)
 
       try {
         other_isabelle.bash(
@@ -565,10 +560,12 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
         val (bundled_components, jdk_component) =
           get_bundled_components(isabelle_target, platform)
 
-        Components.resolve(context.components_base, bundled_components,
-          target_dir = Some(contrib_dir),
-          copy_dir = Some(context.dist_dir + Path.explode("contrib")),
-          progress = progress)
+        for (name <- bundled_components) {
+          Components.resolve(context.components_base, name,
+            target_dir = Some(contrib_dir),
+            copy_dir = Some(context.dist_dir + Path.explode("contrib")),
+            progress = progress)
+        }
 
         val more_components_names =
           more_components.map(Components.unpack(contrib_dir, _, progress = progress))

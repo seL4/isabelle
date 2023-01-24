@@ -283,7 +283,7 @@ final class Path private(
 
   /* expand */
 
-  def expand_env(env: JMap[String, String]): Path = {
+  def expand_env(env: Isabelle_System.Settings): Path = {
     def eval(elem: Path.Elem): List[Path.Elem] =
       elem match {
         case Path.Variable(s) =>
@@ -297,7 +297,7 @@ final class Path private(
     new Path(Path.norm_elems(elems.flatMap(eval)))
   }
 
-  def expand: Path = expand_env(Isabelle_System.settings())
+  def expand: Path = expand_env(Isabelle_System.settings_env())
 
   def file_name: String = expand.base.implode
 

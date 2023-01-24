@@ -91,7 +91,6 @@ object Build_History {
 
   /** local build **/
 
-  private val default_user_home = Path.USER_HOME
   private val default_multicore = (1, 1)
   private val default_heap = 1500
   private val default_isabelle_identifier = "build_history"
@@ -99,14 +98,12 @@ object Build_History {
   def local_build(
     options: Options,
     root: Path,
-    user_home: Path = default_user_home,
     progress: Progress = new Progress,
     afp: Boolean = false,
     afp_partition: Int = 0,
     isabelle_identifier: String = default_isabelle_identifier,
     ml_statistics_step: Int = 1,
     component_repository: String = Components.default_component_repository,
-    components_base: Path = Components.default_components_base,
     fresh: Boolean = false,
     hostname: String = "",
     multicore_base: Boolean = false,
@@ -176,8 +173,7 @@ object Build_History {
     /* main */
 
     val other_isabelle =
-      Other_Isabelle(root, isabelle_identifier = isabelle_identifier,
-        user_home = user_home, progress = progress)
+      Other_Isabelle(root, isabelle_identifier = isabelle_identifier, progress = progress)
 
     val build_host = proper_string(hostname) getOrElse Isabelle_System.hostname()
     val build_history_date = Date.now()
@@ -190,7 +186,7 @@ object Build_History {
       val component_settings =
         other_isabelle.init_components(
           component_repository = component_repository,
-          components_base = components_base,
+          components_base = Components.standard_components_base,
           catalogs = Components.optional_catalogs)
       other_isabelle.init_settings(component_settings ::: init_settings)
       other_isabelle.resolve_components(echo = verbose)
@@ -200,20 +196,14 @@ object Build_History {
       File.write(other_isabelle.etc_preferences, cat_lines(more_preferences))
 
       val isabelle_output =
-        other_isabelle.isabelle_home_user + Path.explode("heaps") +
-          Path.explode(other_isabelle.getenv("ML_IDENTIFIER"))
+        other_isabelle.expand_path(
+          Path.explode("$ISABELLE_HOME_USER/heaps/$ML_IDENTIFIER"))
       val isabelle_output_log = isabelle_output + Path.explode("log")
       val isabelle_base_log = isabelle_output + Path.explode("../base_log")
 
       if (first_build) {
         other_isabelle.resolve_components(echo = verbose)
-
-        if (fresh) {
-          Isabelle_System.rm_tree(other_isabelle.isabelle_home + Path.explode("lib/classes"))
-        }
-        other_isabelle.bash(
-          "env PATH=\"" + File.bash_path(Path.explode("~~/lib/dummy_stty")) + ":$PATH\" " +
-            "bin/isabelle jedit -b", redirect = true, echo = verbose).check
+        other_isabelle.scala_build(fresh = fresh, echo = verbose)
 
         for {
           tool <- List("ghc_setup", "ocaml_setup")
@@ -227,7 +217,7 @@ object Build_History {
       Isabelle_System.rm_tree(isabelle_output)
       Isabelle_System.make_directory(isabelle_output)
 
-      (other_isabelle.isabelle_home_user + Path.explode("mash_state")).file.delete
+      other_isabelle.expand_path(Path.explode("$ISABELLE_HOME_USER/mash_state")).file.delete
 
       val log_path =
         other_isabelle.isabelle_home_user +
@@ -237,7 +227,7 @@ object Build_History {
 
       Isabelle_System.make_directory(log_path.dir)
 
-      val build_out = other_isabelle.isabelle_home_user + Path.explode("log/build.out")
+      val build_out = other_isabelle.expand_path(Path.explode("$ISABELLE_HOME_USER/log/build.out"))
       val build_out_progress = new File_Progress(build_out)
       build_out.file.delete
 
@@ -251,11 +241,10 @@ object Build_History {
       val build_start = Date.now()
       val build_args1 = List("-v", "-j" + processes) ::: afp_build_args ::: build_args
 
-      val build_isabelle =
-        Other_Isabelle(root, isabelle_identifier = isabelle_identifier,
-          user_home = user_home, progress = build_out_progress)
       val build_result =
-        build_isabelle.bash("bin/isabelle build " + Bash.strings(build_args1 ::: afp_sessions),
+        Other_Isabelle(root, isabelle_identifier = isabelle_identifier,
+          progress = build_out_progress)
+        .bash("bin/isabelle build " + Bash.strings(build_args1 ::: afp_sessions),
           redirect = true, echo = true, strict = false)
 
       val build_end = Date.now()
@@ -404,7 +393,6 @@ object Build_History {
     Command_Line.tool {
       var afp = false
       var multicore_base = false
-      var components_base: Path = Components.default_components_base
       var heap: Option[Int] = None
       var max_heap: Option[Int] = None
       var multicore_list = List(default_multicore)
@@ -420,7 +408,6 @@ object Build_History {
       var output_file = ""
       var ml_statistics_step = 1
       var build_tags = List.empty[String]
-      var user_home = default_user_home
       var verbose = false
       var exit_code = false
 
@@ -430,8 +417,6 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
   Options are:
     -A           include $ISABELLE_HOME/AFP directory
     -B           first multicore build serves as base for scheduling information
-    -C DIR       base directory for Isabelle components (default: """ +
-      Components.default_components_base + """)
     -H SIZE      minimal ML heap in MB (default: """ + default_heap + """ for x86, """ +
       default_heap * 2 + """ for x86_64)
     -M MULTICORE multicore configurations (see below)
@@ -450,7 +435,6 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
     -p TEXT      additional text for generated etc/preferences
     -s NUMBER    step size for ML statistics (0=none, 1=all, n=step, default: 1)
     -t TAG       free-form build tag (multiple occurrences possible)
-    -u DIR       alternative USER_HOME directory
     -v           verbose
     -x           return overall exit code from build processes
 
@@ -462,7 +446,6 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
 """,
         "A" -> (_ => afp = true),
         "B" -> (_ => multicore_base = true),
-        "C:" -> (arg => components_base = Path.explode(arg)),
         "H:" -> (arg => heap = Some(Value.Int.parse(arg))),
         "M:" -> (arg => multicore_list = space_explode(',', arg).map(Multicore.parse)),
         "N:" -> (arg => isabelle_identifier = arg),
@@ -483,7 +466,6 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
         "p:" -> (arg => more_preferences = more_preferences ::: List(arg)),
         "s:" -> (arg => ml_statistics_step = Value.Int.parse(arg)),
         "t:" -> (arg => build_tags = build_tags ::: List(arg)),
-        "u:" -> (arg => user_home = Path.explode(arg)),
         "v" -> (_ => verbose = true),
         "x" -> (_ => exit_code = true))
 
@@ -497,10 +479,10 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
       val progress = new Console_Progress(stderr = true)
 
       val results =
-        local_build(Options.init(), root, user_home = user_home, progress = progress,
+        local_build(Options.init(), root, progress = progress,
           afp = afp, afp_partition = afp_partition,
           isabelle_identifier = isabelle_identifier, ml_statistics_step = ml_statistics_step,
-          component_repository = component_repository, components_base = components_base,
+          component_repository = component_repository,
           fresh = fresh, hostname = hostname, multicore_base = multicore_base,
           multicore_list = multicore_list, arch_64 = arch_64,
           heap = heap.getOrElse(if (arch_64) default_heap * 2 else default_heap),

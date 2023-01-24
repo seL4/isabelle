@@ -21,6 +21,13 @@ import scala.jdk.CollectionConverters._
 object Isabelle_System {
   /* settings environment */
 
+  trait Settings { def get(name: String): String }
+  trait Settings_Env extends Settings { def env: JMap[String, String] }
+
+  class Env(val env: JMap[String, String]) extends Settings_Env {
+    override def get(name: String): String = Option(env.get(name)).getOrElse("")
+  }
+
   def settings(putenv: List[(String, String)] = Nil): JMap[String, String] = {
     val env0 = isabelle.setup.Environment.settings()
     if (putenv.isEmpty) env0
@@ -31,10 +38,12 @@ object Isabelle_System {
     }
   }
 
-  def getenv(name: String, env: JMap[String, String] = settings()): String =
-    Option(env.get(name)).getOrElse("")
+  def settings_env(putenv: List[(String, String)] = Nil): Settings_Env =
+    new Env(settings(putenv = putenv))
 
-  def getenv_strict(name: String, env: JMap[String, String] = settings()): String =
+  def getenv(name: String, env: Settings = settings_env()): String = env.get(name)
+
+  def getenv_strict(name: String, env: Settings = settings_env()): String =
     proper_string(getenv(name, env)) getOrElse
       error("Undefined Isabelle environment variable: " + quote(name))
 
