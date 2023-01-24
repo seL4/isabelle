@@ -410,8 +410,7 @@ object Isabelle_Cronjob {
               options =
                 " -N " + Bash.string(task_name) + (if (i < 0) "" else "_" + (i + 1).toString) +
                 " -R " + Bash.string(Components.default_component_repository) +
-                " -C '$USER_HOME/.isabelle/contrib' -f " +
-                r.build_history_options,
+                " -f " + r.build_history_options,
               args = "-o timeout=10800 " + r.args)
 
           for ((log_name, bytes) <- results) {
