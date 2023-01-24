@@ -61,7 +61,7 @@ subsubsection \<open>Naive factorisation\<close>
 function factorise_from :: "nat \<Rightarrow> nat \<Rightarrow> nat list" where
   "factorise_from k n = (if 1 < k \<and> k \<le> n
     then
-      let (q, r) = Euclidean_Division.divmod_nat n k 
+      let (q, r) = Euclidean_Rings.divmod_nat n k
       in if r = 0 then k # factorise_from k q
         else factorise_from (Suc k) n
     else [])" 
@@ -69,7 +69,7 @@ by pat_completeness auto
 
 termination factorise_from \<comment> \<open>tuning of this proof is left as an exercise to the reader\<close>
   apply (relation "measure (\<lambda>(k, n). 2 * n - k)")
-  apply (auto simp add: Euclidean_Division.divmod_nat_def algebra_simps elim!: dvdE)
+  apply (auto simp add: Euclidean_Rings.divmod_nat_def algebra_simps elim!: dvdE)
   subgoal for m n
     apply (cases "m \<le> n * 2")
      apply (auto intro: diff_less_mono)

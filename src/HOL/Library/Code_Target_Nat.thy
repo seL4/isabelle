@@ -98,13 +98,13 @@ context
 begin
 
 lemma divmod_nat_code [code]: \<^marker>\<open>contributor \<open>René Thiemann\<close>\<close> \<^marker>\<open>contributor \<open>Akihisa Yamada\<close>\<close>
-  "Euclidean_Division.divmod_nat m n = (
+  "Euclidean_Rings.divmod_nat m n = (
      let k = integer_of_nat m; l = integer_of_nat n
      in map_prod nat_of_integer nat_of_integer
        (if k = 0 then (0, 0)
         else if l = 0 then (0, k) else
           Code_Numeral.divmod_abs k l))"
-  by (simp add: prod_eq_iff Let_def Euclidean_Division.divmod_nat_def; transfer)
+  by (simp add: prod_eq_iff Let_def Euclidean_Rings.divmod_nat_def; transfer)
     (simp add: nat_div_distrib nat_mod_distrib)
 
 end
@@ -136,11 +136,11 @@ end
 lemma (in semiring_1) of_nat_code_if:
   "of_nat n = (if n = 0 then 0
      else let
-       (m, q) = Euclidean_Division.divmod_nat n 2;
+       (m, q) = Euclidean_Rings.divmod_nat n 2;
        m' = 2 * of_nat m
      in if q = 0 then m' else m' + 1)"
   by (cases n)
-    (simp_all add: Let_def Euclidean_Division.divmod_nat_def ac_simps
+    (simp_all add: Let_def Euclidean_Rings.divmod_nat_def ac_simps
       flip: of_nat_numeral of_nat_mult minus_mod_eq_mult_div)
 
 declare of_nat_code_if [code]

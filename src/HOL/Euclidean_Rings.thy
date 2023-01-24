@@ -1,11 +1,11 @@
-(*  Title:      HOL/Euclidean_Division.thy
+(*  Title:      HOL/Euclidean_Rgins.thy
     Author:     Manuel Eberl, TU Muenchen
     Author:     Florian Haftmann, TU Muenchen
 *)
 
 section \<open>Division in euclidean (semi)rings\<close>
 
-theory Euclidean_Division
+theory Euclidean_Rings
   imports Int Lattices_Big
 begin
 
@@ -2728,6 +2728,6 @@ qualified lemma [code]:
 end
 
 code_identifier
-  code_module Euclidean_Division \<rightharpoonup> (SML) Arith and (OCaml) Arith and (Haskell) Arith
+  code_module Euclidean_Rings \<rightharpoonup> (SML) Arith and (OCaml) Arith and (Haskell) Arith
 
 end

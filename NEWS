@@ -43,6 +43,10 @@ antiquotations.
 
 *** HOL ***
 
+* Theory "HOL.Euclidean_Division" renamed to "HOL.Euclidean_Rings";
+  "euclidean division" typically denotes a particular division on
+  integers.  Minor INCOMPATIBILITY.
+
 * Theory "HOL.Fun":
   - Renamed lemma inj_on_strict_subset to image_strict_mono.
     Minor INCOMPATIBILITY.

@@ -6,7 +6,7 @@
 section \<open>Parity in rings and semirings\<close>
 
 theory Parity
-  imports Euclidean_Division
+  imports Euclidean_Rings
 begin
 
 subsection \<open>Ring structures with parity and \<open>even\<close>/\<open>odd\<close> predicates\<close>
@@ -1014,7 +1014,7 @@ next
     by (simp_all add: not_le)
   have t: \<open>2 * (r div t) = r div s - r div s mod 2\<close>
     \<open>r mod t = s * (r div s mod 2) + r mod s\<close>
-    by (simp add: Rings.minus_mod_eq_mult_div Groups.mult.commute [of 2] Euclidean_Division.div_mult2_eq \<open>t = 2 * s\<close>)
+    by (simp add: Rings.minus_mod_eq_mult_div Groups.mult.commute [of 2] Euclidean_Rings.div_mult2_eq \<open>t = 2 * s\<close>)
       (use mod_mult2_eq [of r s 2] in \<open>simp add: ac_simps \<open>t = 2 * s\<close>\<close>)
   have rs: \<open>r div s mod 2 = 0 \<or> r div s mod 2 = Suc 0\<close>
     by auto
@@ -1058,7 +1058,7 @@ proof -
   show ?P and ?Q
     by (simp_all add: divmod_def *)
       (simp_all flip: of_nat_numeral of_nat_div of_nat_mod of_nat_mult add.commute [of 1] of_nat_Suc
-       add: Euclidean_Division.mod_mult_mult1 div_mult2_eq [of _ 2] mod_mult2_eq [of _ 2] **)
+       add: Euclidean_Rings.mod_mult_mult1 div_mult2_eq [of _ 2] mod_mult2_eq [of _ 2] **)
 qed
 
 text \<open>The really hard work\<close>

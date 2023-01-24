@@ -533,8 +533,7 @@ proof -
         using n
         by simp (metis (no_types, lifting) assms dvd_minus_mod dvd_trans int_pow_eq int_pow_eq_id int_pow_int)
       show "nat (a mod int n) \<in> {0..<n}"
-        using n  apply (simp add:  split: split_nat)
-        using Euclidean_Division.pos_mod_bound by presburger
+        using n by (simp add: nat_less_iff)
     qed
     then have "carrier (subgroup_generated G {x}) \<subseteq> ([^]) x ` {0..<n}"
       using carrier_subgroup_generated_by_singleton [OF assms] by auto

@@ -837,15 +837,13 @@ instance proof
   show \<open>a div 1 = a\<close>
     for a :: \<open>'a word\<close>
     by transfer simp
-  have \<section>: "\<And>i n. (i::int) mod 2 ^ n = 0 \<or> 0 < i mod 2 ^ n"
-    by (metis le_less take_bit_eq_mod take_bit_nonnegative)
-  have less_power: "\<And>n i p. (i::int) mod numeral p ^ n < numeral p ^ n"
-    by simp
   show \<open>a mod b div b = 0\<close>
     for a b :: \<open>'a word\<close>
     apply transfer
-    apply (simp add: take_bit_eq_mod mod_eq_0_iff_dvd dvd_def)
-    by (metis (no_types, opaque_lifting) "\<section>" Euclidean_Division.pos_mod_bound Euclidean_Division.pos_mod_sign le_less_trans mult_eq_0_iff take_bit_eq_mod take_bit_nonnegative zdiv_eq_0_iff zmod_le_nonneg_dividend)
+    apply (simp add: take_bit_eq_mod)
+    apply (smt (verit, best) Euclidean_Rings.pos_mod_bound Euclidean_Rings.pos_mod_sign div_int_pos_iff
+        nonneg1_imp_zdiv_pos_iff zero_less_power zmod_le_nonneg_dividend)
+    done
   show \<open>(1 + a) div 2 = a div 2\<close>
     if \<open>even a\<close>
     for a :: \<open>'a word\<close>
