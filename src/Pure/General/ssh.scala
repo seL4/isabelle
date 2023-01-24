@@ -209,6 +209,11 @@ object SSH {
     /* remote file-system */
 
     override def expand_path(path: Path): Path = path.expand_env(settings)
+    override def absolute_path(path: Path): Path = {
+      val path1 = expand_path(path)
+      if (path1.is_absolute) path1 else Path.explode(user_home) + path1
+    }
+
     def remote_path(path: Path): String = expand_path(path).implode
 
     override def bash_path(path: Path): String = Bash.string(remote_path(path))
@@ -355,6 +360,7 @@ object SSH {
     def rsync_path(path: Path): String = rsync_prefix + expand_path(path).implode
 
     def expand_path(path: Path): Path = path.expand
+    def absolute_path(path: Path): Path = path.absolute
     def bash_path(path: Path): String = File.bash_path(path)
     def is_dir(path: Path): Boolean = path.is_dir
     def is_file(path: Path): Boolean = path.is_file
