@@ -47,12 +47,6 @@ final class Other_Isabelle private(
       env = null, cwd = isabelle_home.file, redirect = redirect, echo = echo, strict = strict)
   }
 
-  def resolve_components(echo: Boolean): Unit = {
-    other_isabelle.bash(
-      "bin/isabelle env ISABELLE_TOOLS=" + Bash.string(Isabelle_System.getenv("ISABELLE_TOOLS")) +
-      " isabelle components -a", redirect = true, echo = echo).check
-  }
-
   def getenv(name: String): String =
     other_isabelle.bash("bin/isabelle getenv -b " + Bash.string(name)).check.out
 
@@ -61,6 +55,13 @@ final class Other_Isabelle private(
   val etc: Path = isabelle_home_user + Path.explode("etc")
   val etc_settings: Path = etc + Path.explode("settings")
   val etc_preferences: Path = etc + Path.explode("preferences")
+
+  def resolve_components(echo: Boolean): Unit = {
+    val missing = Path.split(getenv("ISABELLE_COMPONENTS_MISSING"))
+    for (path <- missing) {
+      Components.resolve(path.dir, path.file_name, progress = if (echo) progress else new Progress)
+    }
+  }
 
 
   /* components */
