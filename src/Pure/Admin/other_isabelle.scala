@@ -24,8 +24,6 @@ final class Other_Isabelle private(
   user_home: Path,
   progress: Progress
 ) {
-  other_isabelle =>
-
   override def toString: String = isabelle_home.toString
 
   if (proper_string(System.getenv("ISABELLE_SETTINGS_PRESENT")).isDefined) {
@@ -48,7 +46,7 @@ final class Other_Isabelle private(
   }
 
   def getenv(name: String): String =
-    other_isabelle.bash("bin/isabelle getenv -b " + Bash.string(name)).check.out
+    bash("bin/isabelle getenv -b " + Bash.string(name)).check.out
 
   val isabelle_home_user: Path = Path.explode(getenv("ISABELLE_HOME_USER"))
 
@@ -56,10 +54,11 @@ final class Other_Isabelle private(
   val etc_settings: Path = etc + Path.explode("settings")
   val etc_preferences: Path = etc + Path.explode("preferences")
 
-  def resolve_components(echo: Boolean): Unit = {
+  def resolve_components(echo: Boolean = false): Unit = {
     val missing = Path.split(getenv("ISABELLE_COMPONENTS_MISSING"))
     for (path <- missing) {
-      Components.resolve(path.dir, path.file_name, progress = if (echo) progress else new Progress)
+      Components.resolve(path.dir, path.file_name,
+        progress = if (echo) progress else new Progress)
     }
   }
 
