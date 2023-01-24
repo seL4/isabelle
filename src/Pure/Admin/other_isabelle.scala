@@ -38,7 +38,6 @@ final class Other_Isabelle private(
     strict: Boolean = true
   ): Process_Result = {
     progress.bash(
-      "export USER_HOME=" + File.bash_path(Path.USER_HOME) + "\n" +
       Isabelle_System.export_isabelle_identifier(isabelle_identifier) + script,
       env = null, cwd = isabelle_home.file, redirect = redirect, echo = echo, strict = strict)
   }
