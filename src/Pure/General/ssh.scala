@@ -185,9 +185,11 @@ object SSH {
       settings: Boolean = true,
       strict: Boolean = true
     ): Process_Result = {
-      val args1 = Bash.string(host) + " " + Bash.string("export USER_HOME=\"$HOME\"\n" + cmd_line)
-      run_command("ssh", args = args1, progress_stdout = progress_stdout,
-        progress_stderr = progress_stderr, strict = strict)
+      run_command("ssh",
+        args = Bash.string(host) + " " + Bash.string(cmd_line),
+        progress_stdout = progress_stdout,
+        progress_stderr = progress_stderr,
+        strict = strict)
     }
 
     override def download_file(
