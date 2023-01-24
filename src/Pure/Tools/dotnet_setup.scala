@@ -50,7 +50,7 @@ object Dotnet_Setup {
         self.ISABELLE_PLATFORM64))
   }
 
-  def default_target_dir: Path = Path.explode("$ISABELLE_COMPONENTS_BASE")
+  def default_target_dir: Path = Components.default_components_base
   def default_install_url: String = "https://dot.net/v1/dotnet-install"
   def default_version: String = "6.0.402"
 
