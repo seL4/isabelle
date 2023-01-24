@@ -57,7 +57,7 @@ object Components {
     val name = Archive.get_name(archive.file_name)
     progress.echo("Unpacking " + name)
     ssh.execute(
-      "tar -C " + File.bash_path(dir) + " -x -z -f " + File.bash_path(archive),
+      "tar -C " + ssh.bash_path(dir) + " -x -z -f " + ssh.bash_path(archive),
       progress_stdout = progress.echo,
       progress_stderr = progress.echo).check
     name
