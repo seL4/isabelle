@@ -89,10 +89,17 @@ final class Other_Isabelle private(
       "init_component " + quote(components_base) + "/" + name)
   }
 
-  def resolve_components(echo: Boolean = false): Unit = {
+  def resolve_components(
+    echo: Boolean = false,
+    clean_platforms: Option[List[Platform.Family.Value]] = None,
+    clean_archives: Boolean = false
+  ): Unit = {
     val missing = Path.split(getenv("ISABELLE_COMPONENTS_MISSING"))
     for (path <- missing) {
-      Components.resolve(path.dir, path.file_name, ssh = ssh,
+      Components.resolve(path.dir, path.file_name,
+        clean_platforms = clean_platforms,
+        clean_archives = clean_archives,
+        ssh = ssh,
         progress = if (echo) progress else new Progress)
     }
   }
@@ -142,13 +149,17 @@ final class Other_Isabelle private(
   def init(
     other_settings: List[String] = init_components(),
     fresh: Boolean = false,
-    echo: Boolean = false
+    echo: Boolean = false,
+    clean_platforms: Option[List[Platform.Family.Value]] = None,
+    clean_archives: Boolean = false
   ): Unit = {
     init_settings(other_settings)
-    resolve_components(echo = echo)
+    resolve_components(
+      echo = echo,
+      clean_platforms = clean_platforms,
+      clean_archives = clean_archives)
     scala_build(fresh = fresh, echo = echo)
   }
-
 
 
   /* cleanup */
