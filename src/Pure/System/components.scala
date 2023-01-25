@@ -33,12 +33,37 @@ object Components {
   }
 
 
+  /* platforms */
+
+  private val family_platforms: Map[Platform.Family.Value, List[String]] =
+    Map(
+      Platform.Family.linux_arm -> List("arm64-linux", "arm64_32-linux"),
+      Platform.Family.linux -> List("x86_64-linux", "x86_64_32-linux"),
+      Platform.Family.macos ->
+        List("arm64-darwin", "arm64_32-darwin", "x86_64-darwin", "x86_64_32-darwin"),
+      Platform.Family.windows ->
+        List("x86_64-cygwin", "x86_64-windows", "x86_64_32-windows", "x86-windows"))
+
+  private val platform_names: Set[String] =
+    Set("x86-linux", "x86-cygwin") ++ family_platforms.iterator.flatMap(_._2)
+
+  def platform_purge(platforms: List[Platform.Family.Value]): String => Boolean = {
+    val preserve =
+      (for {
+        family <- platforms.iterator
+        platform <- family_platforms(family)
+      } yield platform).toSet
+    (name: String) => platform_names(name) && !preserve(name)
+  }
+
+
   /* component collections */
 
   def default_component_repository: String =
     Isabelle_System.getenv("ISABELLE_COMPONENT_REPOSITORY")
 
   val default_components_base: Path = Path.explode("$ISABELLE_COMPONENTS_BASE")
+  val standard_components_base: String = "${ISABELLE_COMPONENTS_BASE:-$USER_HOME/.isabelle/contrib}"
 
   val default_catalogs: List[String] = List("main")
   val optional_catalogs: List[String] = List("main", "optional")
@@ -55,7 +80,7 @@ object Components {
     progress: Progress = new Progress
   ): String = {
     val name = Archive.get_name(archive.file_name)
-    progress.echo("Unpacking " + name)
+    progress.echo("Unpacking " + archive.base)
     ssh.execute(
       "tar -C " + ssh.bash_path(dir) + " -x -z -f " + ssh.bash_path(archive),
       progress_stdout = progress.echo,
@@ -63,47 +88,73 @@ object Components {
     name
   }
 
+  def clean(
+    component_dir: Path,
+    platforms: List[Platform.Family.Value] = Platform.Family.list,
+    ssh: SSH.System = SSH.Local,
+    progress: Progress = new Progress
+  ): Unit = {
+    val purge = platform_purge(platforms)
+    for {
+      name <- ssh.read_dir(component_dir)
+      path = Path.basic(name)
+      if purge(name) && ssh.is_dir(component_dir + path)
+    } {
+      progress.echo("Removing " + (component_dir.base + path))
+      ssh.rm_tree(component_dir + path)
+    }
+  }
+
+  def clean_base(
+    base_dir: Path,
+    platforms: List[Platform.Family.Value] = Platform.Family.list,
+    ssh: SSH.System = SSH.Local,
+    progress: Progress = new Progress
+  ): Unit = {
+    for {
+      name <- ssh.read_dir(base_dir)
+      dir = base_dir + Path.basic(name)
+      if is_component_dir(dir)
+    } clean(dir, platforms = platforms, ssh = ssh, progress = progress)
+  }
+
   def resolve(
     base_dir: Path,
     name: String,
     target_dir: Option[Path] = None,
     copy_dir: Option[Path] = None,
+    clean_platforms: Option[List[Platform.Family.Value]] = None,
+    clean_archives: Boolean = false,
     component_repository: String = Components.default_component_repository,
     ssh: SSH.System = SSH.Local,
     progress: Progress = new Progress
   ): Unit = {
     ssh.make_directory(base_dir)
+
     val archive_name = Archive(name)
     val archive = base_dir + Path.basic(archive_name)
     if (!ssh.is_file(archive)) {
       val remote = Url.append_path(component_repository, archive_name)
       ssh.download_file(remote, archive, progress = progress)
     }
+
     for (dir <- copy_dir) {
       ssh.make_directory(dir)
       ssh.copy_file(archive, dir)
     }
-    unpack(target_dir getOrElse base_dir, archive, ssh = ssh, progress = progress)
-  }
 
-  private val platforms_family: Map[Platform.Family.Value, Set[String]] =
-    Map(
-      Platform.Family.linux_arm -> Set("arm64-linux", "arm64_32-linux"),
-      Platform.Family.linux -> Set("x86_64-linux", "x86_64_32-linux"),
-      Platform.Family.macos ->
-        Set("arm64-darwin", "arm64_32-darwin", "x86_64-darwin", "x86_64_32-darwin"),
-      Platform.Family.windows ->
-        Set("x86_64-cygwin", "x86_64-windows", "x86_64_32-windows", "x86-windows"))
+    val unpack_dir = target_dir getOrElse base_dir
+    unpack(unpack_dir, archive, ssh = ssh, progress = progress)
 
-  private val platforms_all: Set[String] =
-    Set("x86-linux", "x86-cygwin") ++ platforms_family.iterator.flatMap(_._2)
+    if (clean_platforms.isDefined) {
+      clean(unpack_dir + Path.basic(name),
+        platforms = clean_platforms.get, ssh = ssh, progress = progress)
+    }
 
-  def purge(dir: Path, platform: Platform.Family.Value): Unit = {
-    val purge_set = platforms_all -- platforms_family(platform)
-
-    File.find_files(dir.file,
-      (file: JFile) => file.isDirectory && purge_set(file.getName),
-      include_dirs = true).foreach(Isabelle_System.rm_tree)
+    if (clean_archives) {
+      progress.echo("Removing " + quote(archive_name))
+      ssh.delete(archive)
+    }
   }
 
 
@@ -111,6 +162,10 @@ object Components {
 
   def directories(): List[Path] =
     Path.split(Isabelle_System.getenv_strict("ISABELLE_COMPONENTS"))
+
+  def is_component_dir(dir: Path, ssh: SSH.System = SSH.Local): Boolean =
+    ssh.is_file(dir + Path.explode("etc/settings")) ||
+    ssh.is_file(dir + Path.explode("etc/components"))
 
 
   /* component directory content */

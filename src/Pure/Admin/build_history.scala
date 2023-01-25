@@ -104,6 +104,7 @@ object Build_History {
     isabelle_identifier: String = default_isabelle_identifier,
     ml_statistics_step: Int = 1,
     component_repository: String = Components.default_component_repository,
+    components_base: String = Components.standard_components_base,
     fresh: Boolean = false,
     hostname: String = "",
     multicore_base: Boolean = false,
@@ -186,6 +187,7 @@ object Build_History {
       val component_settings =
         other_isabelle.init_components(
           component_repository = component_repository,
+          components_base = components_base,
           catalogs = Components.optional_catalogs)
       other_isabelle.init_settings(component_settings ::: init_settings)
       other_isabelle.resolve_components(echo = verbose)
@@ -392,6 +394,7 @@ object Build_History {
     Command_Line.tool {
       var afp = false
       var multicore_base = false
+      var components_base = Components.standard_components_base
       var heap: Option[Int] = None
       var max_heap: Option[Int] = None
       var multicore_list = List(default_multicore)
@@ -416,6 +419,8 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
   Options are:
     -A           include $ISABELLE_HOME/AFP directory
     -B           first multicore build serves as base for scheduling information
+    -C DIR       base directory for Isabelle components (default: """ +
+      quote(Components.standard_components_base) + """)
     -H SIZE      minimal ML heap in MB (default: """ + default_heap + """ for x86, """ +
       default_heap * 2 + """ for x86_64)
     -M MULTICORE multicore configurations (see below)
@@ -445,6 +450,7 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
 """,
         "A" -> (_ => afp = true),
         "B" -> (_ => multicore_base = true),
+        "C:" -> (arg => components_base = arg),
         "H:" -> (arg => heap = Some(Value.Int.parse(arg))),
         "M:" -> (arg => multicore_list = space_explode(',', arg).map(Multicore.parse)),
         "N:" -> (arg => isabelle_identifier = arg),
@@ -481,7 +487,7 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
         local_build(Options.init(), root, progress = progress,
           afp = afp, afp_partition = afp_partition,
           isabelle_identifier = isabelle_identifier, ml_statistics_step = ml_statistics_step,
-          component_repository = component_repository,
+          component_repository = component_repository, components_base = components_base,
           fresh = fresh, hostname = hostname, multicore_base = multicore_base,
           multicore_list = multicore_list, arch_64 = arch_64,
           heap = heap.getOrElse(if (arch_64) default_heap * 2 else default_heap),
@@ -545,9 +551,12 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
         strict = strict).check
 
     sync(isabelle_self)
-    execute("bin/isabelle", "components -I")
-    execute("bin/isabelle", "components -a", echo = true)
-    execute("bin/isabelle", "jedit -bf")
+
+    val self_isabelle =
+      Other_Isabelle(isabelle_self, isabelle_identifier = isabelle_identifier,
+        ssh = ssh, progress = progress)
+
+    self_isabelle.init(fresh = true, echo = true)
 
     sync(isabelle_other, accurate = true,
       rev = proper_string(rev) getOrElse "tip",
@@ -563,10 +572,15 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
         val output_file = tmp_dir + Path.explode("output")
         val build_options = (if (afp_repos.isEmpty) "" else " -A") + " " + options
         try {
-          execute("Admin/build_other",
-            "-o " + ssh.bash_path(output_file) + build_options + " " +
-              ssh.bash_path(isabelle_other) + " " + args,
-            echo = true, strict = false)
+          val script =
+            Isabelle_System.export_isabelle_identifier(isabelle_identifier) +
+              ssh.bash_path(self_isabelle.isabelle_home + Path.explode("Admin/build_other")) +
+              " -o " + ssh.bash_path(output_file) + build_options + " " +
+              ssh.bash_path(isabelle_other) + " " + args
+          ssh.execute(script,
+            progress_stdout = progress.echo,
+            progress_stderr = progress.echo,
+            strict = false).check
         }
         catch {
           case ERROR(msg) =>
@@ -577,7 +591,7 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
         yield {
           val log = Path.explode(line)
           val bytes = ssh.read_bytes(log)
-          ssh.rm(log)
+          ssh.delete(log)
           (log.file_name, bytes)
         }
       }

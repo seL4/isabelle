@@ -464,10 +464,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
       val other_isabelle = context.other_isabelle(context.dist_dir)
 
-      other_isabelle.init_settings(other_isabelle.init_components())
-      other_isabelle.resolve_components(echo = true)
-
-      other_isabelle.scala_build(echo = true)
+      other_isabelle.init(echo = true)
 
       try {
         other_isabelle.bash(
@@ -613,7 +610,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
         // application bundling
 
-        Components.purge(contrib_dir, platform)
+        Components.clean_base(contrib_dir, platforms = List(platform))
 
         platform match {
           case Platform.Family.linux_arm | Platform.Family.linux =>
