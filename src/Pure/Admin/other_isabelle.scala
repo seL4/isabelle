@@ -71,25 +71,6 @@ final class Other_Isabelle private(
   def etc_settings: Path = etc + Path.explode("settings")
   def etc_preferences: Path = etc + Path.explode("preferences")
 
-  def scala_build(fresh: Boolean = false, echo: Boolean = false): Unit = {
-    if (fresh) ssh.rm_tree(isabelle_home + Path.explode("lib/classes"))
-
-    val dummy_stty = Path.explode("~~/lib/dummy_stty/stty")
-    val dummy_stty_remote = expand_path(dummy_stty)
-    if (!ssh.is_file(dummy_stty_remote)) {
-      ssh.make_directory(dummy_stty_remote.dir)
-      ssh.write_file(dummy_stty_remote, dummy_stty)
-      ssh.set_executable(dummy_stty_remote, true)
-    }
-    try {
-      bash(
-        "export PATH=\"" + bash_path(dummy_stty_remote.dir) + ":$PATH\"\n" +
-        "export CLASSPATH=" + Bash.string(getenv("ISABELLE_CLASSPATH")) + "\n" +
-        "bin/isabelle jedit -b", echo = echo).check
-    }
-    catch { case ERROR(msg) => cat_error("Failed to build Isabelle/Scala/Java modules:", msg) }
-  }
-
 
   /* components */
 
@@ -114,6 +95,25 @@ final class Other_Isabelle private(
       Components.resolve(path.dir, path.file_name, ssh = ssh,
         progress = if (echo) progress else new Progress)
     }
+  }
+
+  def scala_build(fresh: Boolean = false, echo: Boolean = false): Unit = {
+    if (fresh) ssh.rm_tree(isabelle_home + Path.explode("lib/classes"))
+
+    val dummy_stty = Path.explode("~~/lib/dummy_stty/stty")
+    val dummy_stty_remote = expand_path(dummy_stty)
+    if (!ssh.is_file(dummy_stty_remote)) {
+      ssh.make_directory(dummy_stty_remote.dir)
+      ssh.write_file(dummy_stty_remote, dummy_stty)
+      ssh.set_executable(dummy_stty_remote, true)
+    }
+    try {
+      bash(
+        "export PATH=\"" + bash_path(dummy_stty_remote.dir) + ":$PATH\"\n" +
+        "export CLASSPATH=" + Bash.string(getenv("ISABELLE_CLASSPATH")) + "\n" +
+        "bin/isabelle jedit -b", echo = echo).check
+    }
+    catch { case ERROR(msg) => cat_error("Failed to build Isabelle/Scala/Java modules:", msg) }
   }
 
 
