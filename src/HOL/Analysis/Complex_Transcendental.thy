@@ -2369,6 +2369,97 @@ next
    by (smt (verit, best) arctan field_sum_of_halves)
 qed
 
+
+subsection \<open>Characterisation of @{term "Im (Ln z)"} (Wenda Li)\<close>
+
+lemma Im_Ln_eq_pi_half:
+    "z \<noteq> 0 \<Longrightarrow> (Im(Ln z) = pi/2 \<longleftrightarrow> 0 < Im(z) \<and> Re(z) = 0)"
+    "z \<noteq> 0 \<Longrightarrow> (Im(Ln z) = -pi/2 \<longleftrightarrow> Im(z) < 0 \<and> Re(z) = 0)"
+proof -
+  show "z \<noteq> 0 \<Longrightarrow> (Im(Ln z) = pi/2 \<longleftrightarrow> 0 < Im(z) \<and> Re(z) = 0)"
+    by (metis Im_Ln_eq_pi Im_Ln_le_pi Im_Ln_pos_lt Re_Ln_pos_le Re_Ln_pos_lt
+      abs_of_nonneg less_eq_real_def order_less_irrefl pi_half_gt_zero)
+next
+  assume "z\<noteq>0"
+  have "Im (Ln z) = - pi / 2 \<Longrightarrow> Im z < 0 \<and> Re z = 0"
+    by (metis Im_Ln_pos_le Re_Ln_pos_le Re_Ln_pos_lt_imp \<open>z \<noteq> 0\<close> abs_if
+     add.inverse_inverse divide_minus_left less_eq_real_def linorder_not_le minus_pi_half_less_zero)
+  moreover have "Im (Ln z) = - pi / 2" when "Im z < 0" "Re z = 0"
+  proof -
+    obtain r::real where "r>0" "z=r * (-\<i>)"
+      by (smt (verit) \<open>Im z < 0\<close> \<open>Re z = 0\<close> add_0 complex_eq mult.commute mult_minus_right of_real_0 of_real_minus)
+    then have "Im (Ln z) = Im (Ln (r*(-\<i>)))" by auto
+    also have "... = Im (Ln (complex_of_real r) + Ln (- \<i>))"
+      by (metis Ln_times_of_real \<open>0 < r\<close> add.inverse_inverse add.inverse_neutral complex_i_not_zero)
+    also have "... = - pi/2"
+      using \<open>r>0\<close> by simp
+    finally show "Im (Ln z) = - pi / 2" .
+  qed
+  ultimately show "(Im(Ln z) = -pi/2 \<longleftrightarrow> Im(z) < 0 \<and> Re(z) = 0)" by auto
+qed
+
+lemma Im_Ln_eq:
+  assumes "z\<noteq>0"
+  shows "Im (Ln z) = (if Re z\<noteq>0 then
+                        if Re z>0 then
+                           arctan (Im z/Re z)
+                        else if Im z\<ge>0 then
+                           arctan (Im z/Re z) + pi
+                        else
+                           arctan (Im z/Re z) - pi
+                      else
+                        if Im z>0 then pi/2 else -pi/2)"
+proof -
+  have eq_arctan_pos:"Im (Ln z) = arctan (Im z/Re z)" when "Re z>0" for z
+  proof -
+    define wR where "wR \<equiv> Re (Ln z)"
+    define \<theta> where "\<theta> \<equiv> arctan (Im z/Re z)"
+    have "z\<noteq>0" using that by auto
+    have "exp (Complex wR \<theta>) = z"
+    proof (rule complex_eqI)
+      have "Im (exp (Complex wR \<theta>)) =exp wR * sin \<theta> "
+        unfolding Im_exp by simp
+      also have "... = Im z"
+        unfolding wR_def Re_Ln[OF \<open>z\<noteq>0\<close>] \<theta>_def using \<open>z\<noteq>0\<close> \<open>Re z>0\<close>
+        by (auto simp add:sin_arctan divide_simps complex_neq_0 cmod_def real_sqrt_divide)
+      finally show "Im (exp (Complex wR \<theta>)) = Im z" .
+    next
+      have "Re (exp (Complex wR \<theta>)) = exp wR * cos \<theta> "
+        unfolding Re_exp by simp
+      also have "... = Re z"
+        by (metis Arg_eq_Im_Ln Re_exp \<open>z \<noteq> 0\<close> \<theta>_def arg_conv_arctan exp_Ln that wR_def)
+      finally show "Re (exp (Complex wR \<theta>)) = Re z" .
+    qed
+    moreover have "-pi<\<theta>" "\<theta>\<le>pi"
+      using arctan_lbound [of \<open>Im z / Re z\<close>] arctan_ubound [of \<open>Im z / Re z\<close>]
+      by (simp_all add: \<theta>_def)
+    ultimately have "Ln z = Complex wR \<theta>" using Ln_unique by auto
+    then show ?thesis using that unfolding \<theta>_def by auto
+  qed
+  have ?thesis when "Re z=0"
+    using Im_Ln_eq_pi_half[OF \<open>z\<noteq>0\<close>] that
+    using assms complex_eq_iff by auto
+  moreover have ?thesis when "Re z>0"
+    using eq_arctan_pos[OF that] that by auto
+  moreover have ?thesis when "Re z<0" "Im z\<ge>0"
+  proof -
+    have "Im (Ln (- z)) = arctan (Im (- z) / Re (- z))"
+      by (simp add: eq_arctan_pos that(1))
+    moreover have "Ln (- z) = Ln z - \<i> * complex_of_real pi"
+      using Ln_minus assms that by fastforce
+    ultimately show ?thesis using that by auto
+  qed
+  moreover have ?thesis when "Re z<0" "Im z<0"
+  proof -
+    have "Im (Ln (- z)) = arctan (Im (- z) / Re (- z))"
+      by (simp add: eq_arctan_pos that(1))
+    moreover have "Ln (- z) = Ln z + \<i> * complex_of_real pi"
+      using Ln_minus assms that by auto
+    ultimately show ?thesis using that by auto
+  qed
+  ultimately show ?thesis by linarith
+qed
+
 subsection\<^marker>\<open>tag unimportant\<close>\<open>Relation between Ln and Arg2pi, and hence continuity of Arg2pi\<close>
 
 lemma Arg2pi_Ln: "0 < Arg2pi z \<Longrightarrow> Arg2pi z = Im(Ln(-z)) + pi"

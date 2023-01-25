@@ -128,5 +128,25 @@ interpretation tan: periodic_fun_simple tan "2 * of_real pi :: 'a :: {real_norme
 
 interpretation cot: periodic_fun_simple cot "2 * of_real pi :: 'a :: {real_normed_field,banach}"
   by standard (simp only: cot_def [abs_def] sin.plus_1 cos.plus_1)
-  
+
+lemma cos_eq_neg_periodic_intro:
+  assumes "x - y = 2*(of_int k)*pi + pi \<or> x + y = 2*(of_int k)*pi + pi"
+  shows "cos x = - cos y" using assms
+proof
+  assume "x - y = 2 * (of_int k) * pi + pi" 
+  then show ?thesis
+    using cos.periodic_simps[of "y+pi"]
+    by (auto simp add:algebra_simps)
+next
+  assume "x + y = 2 * real_of_int k * pi + pi "
+  then show ?thesis
+    using cos.periodic_simps[of "-y+pi"]
+    by (clarsimp simp add: algebra_simps) (smt (verit))
+qed
+
+lemma cos_eq_periodic_intro:
+  assumes "x - y = 2*(of_int k)*pi \<or> x + y = 2*(of_int k)*pi"
+  shows "cos x = cos y"
+  by (smt (verit, ccfv_SIG) assms cos_eq_neg_periodic_intro cos_minus_pi cos_periodic_pi)
+
 end

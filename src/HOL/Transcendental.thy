@@ -4826,9 +4826,16 @@ lemma cos_tan: "\<bar>x\<bar> < pi/2 \<Longrightarrow> cos x = 1 / sqrt (1 + tan
   using cos_gt_zero_pi [of x]
   by (simp add: field_split_simps tan_def real_sqrt_divide abs_if split: if_split_asm)
 
+lemma cos_tan_half: "cos x \<noteq>0 \<Longrightarrow>  cos (2*x) = (1 - (tan x)^2) / (1 + (tan x)^2)"
+  unfolding cos_double tan_def by (auto simp add:field_simps )
+
 lemma sin_tan: "\<bar>x\<bar> < pi/2 \<Longrightarrow> sin x = tan x / sqrt (1 + tan x ^ 2)"
   using cos_gt_zero [of "x"] cos_gt_zero [of "-x"]
   by (force simp: field_split_simps tan_def real_sqrt_divide abs_if split: if_split_asm)
+
+lemma sin_tan_half: "sin (2*x) = 2 * tan x / (1 + (tan x)^2)"
+  unfolding sin_double tan_def
+  by (cases "cos x=0") (auto simp add:field_simps power2_eq_square)
 
 lemma tan_mono_le: "-(pi/2) < x \<Longrightarrow> x \<le> y \<Longrightarrow> y < pi/2 \<Longrightarrow> tan x \<le> tan y"
   using less_eq_real_def tan_monotone by auto
