@@ -583,7 +583,7 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
         yield {
           val log = Path.explode(line)
           val bytes = ssh.read_bytes(log)
-          ssh.rm(log)
+          ssh.delete(log)
           (log.file_name, bytes)
         }
       }

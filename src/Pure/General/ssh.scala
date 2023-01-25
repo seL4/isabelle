@@ -120,6 +120,7 @@ object SSH {
       opts: String = "",
       args: String = "",
       cwd: JFile = null,
+      redirect: Boolean = false,
       progress_stdout: String => Unit = (_: String) => (),
       progress_stderr: String => Unit = (_: String) => (),
       strict: Boolean = true
@@ -131,8 +132,11 @@ object SSH {
         Config.command(command, config) +
         (if (opts.nonEmpty) " " + opts else "") +
         (if (args.nonEmpty) " -- " + args else "")
-      Isabelle_System.bash(cmd, cwd = cwd, progress_stdout = progress_stdout,
-        progress_stderr = progress_stderr, strict = strict)
+      Isabelle_System.bash(cmd, cwd = cwd,
+        redirect = redirect,
+        progress_stdout = progress_stdout,
+        progress_stderr = progress_stderr,
+        strict = strict)
     }
 
     def run_sftp(
@@ -183,6 +187,7 @@ object SSH {
     override def execute(cmd_line: String,
       progress_stdout: String => Unit = (_: String) => (),
       progress_stderr: String => Unit = (_: String) => (),
+      redirect: Boolean = false,
       settings: Boolean = true,
       strict: Boolean = true
     ): Process_Result = {
@@ -190,6 +195,7 @@ object SSH {
         args = Bash.string(host) + " " + Bash.string(cmd_line),
         progress_stdout = progress_stdout,
         progress_stderr = progress_stderr,
+        redirect = redirect,
         strict = strict)
     }
 
@@ -222,10 +228,18 @@ object SSH {
     override def bash_path(path: Path): String = Bash.string(remote_path(path))
     def sftp_path(path: Path): String = sftp_string(remote_path(path))
 
-    def rm(path: Path): Unit = run_sftp("rm " + sftp_path(path))
-
     override def is_dir(path: Path): Boolean = run_ssh(args = "test -d " + bash_path(path)).ok
     override def is_file(path: Path): Boolean = run_ssh(args = "test -f " + bash_path(path)).ok
+
+    override def delete(path: Path): Unit = {
+      val cmd = if (is_dir(path)) "rmdir" else if (is_file(path)) "rm" else ""
+      if (cmd.nonEmpty) run_sftp(cmd + " " + sftp_path(path))
+    }
+
+    override def set_executable(path: Path, flag: Boolean): Unit =
+      if (!execute("chmod a" + (if (flag) "+" else "-") + "x " + bash_path(path)).ok) {
+        error("Failed to change executable status of " + quote(remote_path(path)))
+      }
 
     override def make_directory(path: Path): Path = {
       if (!execute("mkdir -p " + bash_path(path)).ok) {
@@ -267,15 +281,15 @@ object SSH {
 
     override def write_file(path: Path, local_path: Path): Unit =
       put_file(path, Isabelle_System.copy_file(local_path, _))
-    def write_bytes(path: Path, bytes: Bytes): Unit =
+    override def write_bytes(path: Path, bytes: Bytes): Unit =
       put_file(path, Bytes.write(_, bytes))
-    def write(path: Path, text: String): Unit =
+    override def write(path: Path, text: String): Unit =
       put_file(path, File.write(_, text))
 
 
     /* tmp dirs */
 
-    def rm_tree(dir: Path): Unit = rm_tree(remote_path(dir))
+    override def rm_tree(dir: Path): Unit = rm_tree(remote_path(dir))
 
     def rm_tree(remote_dir: String): Unit =
       execute("rm -r -f " + Bash.string(remote_dir)).check
@@ -367,22 +381,29 @@ object SSH {
     def bash_path(path: Path): String = File.bash_path(path)
     def is_dir(path: Path): Boolean = path.is_dir
     def is_file(path: Path): Boolean = path.is_file
+    def delete(path: Path): Unit = path.file.delete
+    def set_executable(path: Path, flag: Boolean): Unit = File.set_executable(path, flag)
     def make_directory(path: Path): Path = Isabelle_System.make_directory(path)
+    def rm_tree(dir: Path): Unit = Isabelle_System.rm_tree(dir)
     def with_tmp_dir[A](body: Path => A): A = Isabelle_System.with_tmp_dir("tmp")(body)
     def copy_file(path1: Path, path2: Path): Unit = Isabelle_System.copy_file(path1, path2)
     def read_file(path1: Path, path2: Path): Unit = Isabelle_System.copy_file(path1, path2)
-    def write_file(path1: Path, path2: Path): Unit = Isabelle_System.copy_file(path2, path1)
     def read_bytes(path: Path): Bytes = Bytes.read(path)
     def read(path: Path): String = File.read(path)
+    def write_file(path1: Path, path2: Path): Unit = Isabelle_System.copy_file(path2, path1)
+    def write_bytes(path: Path, bytes: Bytes): Unit = Bytes.write(path, bytes)
+    def write(path: Path, text: String): Unit = File.write(path, text)
 
     def execute(command: String,
         progress_stdout: String => Unit = (_: String) => (),
         progress_stderr: String => Unit = (_: String) => (),
+        redirect: Boolean = false,
         settings: Boolean = true,
         strict: Boolean = true): Process_Result =
       Isabelle_System.bash(command,
         progress_stdout = progress_stdout,
         progress_stderr = progress_stderr,
+        redirect = redirect,
         env = if (settings) Isabelle_System.settings() else null,
         strict = strict)
 
