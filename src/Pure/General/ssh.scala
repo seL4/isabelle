@@ -256,7 +256,7 @@ object SSH {
       }
     }
 
-    def read_dir(path: Path): List[String] =
+    override def read_dir(path: Path): List[String] =
       run_sftp("@cd " + sftp_path(path) + "\n@ls -1 -a").out_lines.flatMap(s =>
         if (s == "." || s == "..") None
         else Some(Library.perhaps_unprefix("./", s)))
@@ -386,6 +386,7 @@ object SSH {
     def make_directory(path: Path): Path = Isabelle_System.make_directory(path)
     def rm_tree(dir: Path): Unit = Isabelle_System.rm_tree(dir)
     def with_tmp_dir[A](body: Path => A): A = Isabelle_System.with_tmp_dir("tmp")(body)
+    def read_dir(path: Path): List[String] = File.read_dir(path)
     def copy_file(path1: Path, path2: Path): Unit = Isabelle_System.copy_file(path1, path2)
     def read_file(path1: Path, path2: Path): Unit = Isabelle_System.copy_file(path1, path2)
     def read_bytes(path: Path): Bytes = Bytes.read(path)
