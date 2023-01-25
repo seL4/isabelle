@@ -551,9 +551,12 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
         strict = strict).check
 
     sync(isabelle_self)
-    execute("bin/isabelle", "components -I")
-    execute("bin/isabelle", "components -a", echo = true)
-    execute("bin/isabelle", "jedit -bf")
+
+    val self_isabelle =
+      Other_Isabelle(isabelle_self, isabelle_identifier = isabelle_identifier,
+        ssh = ssh, progress = progress)
+
+    self_isabelle.init(fresh = true, echo = true)
 
     sync(isabelle_other, accurate = true,
       rev = proper_string(rev) getOrElse "tip",
@@ -569,10 +572,15 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
         val output_file = tmp_dir + Path.explode("output")
         val build_options = (if (afp_repos.isEmpty) "" else " -A") + " " + options
         try {
-          execute("Admin/build_other",
-            "-o " + ssh.bash_path(output_file) + build_options + " " +
-              ssh.bash_path(isabelle_other) + " " + args,
-            echo = true, strict = false)
+          val script =
+            Isabelle_System.export_isabelle_identifier(isabelle_identifier) +
+              ssh.bash_path(self_isabelle.isabelle_home + Path.explode("Admin/build_other")) +
+              " -o " + ssh.bash_path(output_file) + build_options + " " +
+              ssh.bash_path(isabelle_other) + " " + args
+          ssh.execute(script,
+            progress_stdout = progress.echo,
+            progress_stderr = progress.echo,
+            strict = false).check
         }
         catch {
           case ERROR(msg) =>
