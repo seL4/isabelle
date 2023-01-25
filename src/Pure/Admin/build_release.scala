@@ -610,7 +610,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
         // application bundling
 
-        Components.clean_base(contrib_dir, platforms = List(platform), progress = progress)
+        Components.clean_base(contrib_dir, platforms = List(platform))
 
         platform match {
           case Platform.Family.linux_arm | Platform.Family.linux =>
