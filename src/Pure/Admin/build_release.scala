@@ -464,10 +464,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
       val other_isabelle = context.other_isabelle(context.dist_dir)
 
-      other_isabelle.init_settings(other_isabelle.init_components())
-      other_isabelle.resolve_components(echo = true)
-
-      other_isabelle.scala_build(echo = true)
+      other_isabelle.init(echo = true)
 
       try {
         other_isabelle.bash(

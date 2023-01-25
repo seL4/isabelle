@@ -139,6 +139,18 @@ final class Other_Isabelle private(
   }
 
 
+  def init(
+    other_settings: List[String] = init_components(),
+    fresh: Boolean = false,
+    echo: Boolean = false
+  ): Unit = {
+    init_settings(other_settings)
+    resolve_components(echo = echo)
+    scala_build(fresh = fresh, echo = echo)
+  }
+
+
+
   /* cleanup */
 
   def cleanup(): Unit = {
