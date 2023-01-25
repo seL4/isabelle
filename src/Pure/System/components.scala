@@ -80,7 +80,7 @@ object Components {
     progress: Progress = new Progress
   ): String = {
     val name = Archive.get_name(archive.file_name)
-    progress.echo("Unpacking " + name)
+    progress.echo("Unpacking " + archive.base)
     ssh.execute(
       "tar -C " + ssh.bash_path(dir) + " -x -z -f " + ssh.bash_path(archive),
       progress_stdout = progress.echo,
