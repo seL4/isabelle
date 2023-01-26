@@ -11,15 +11,6 @@ theory Limits
   imports Real_Vector_Spaces
 begin
 
-text \<open>Lemmas related to shifting/scaling\<close>
-lemma range_add [simp]:
-  fixes a::"'a::group_add" shows "range ((+) a) = UNIV"
-  by simp
-
-lemma range_diff [simp]:
-  fixes a::"'a::group_add" shows "range ((-) a) = UNIV"
-  by (metis (full_types) add_minus_cancel diff_minus_eq_add surj_def)
-
 lemma range_mult [simp]:
   fixes a::"real" shows "range ((*) a) = (if a=0 then {0} else UNIV)"
   by (simp add: surj_def) (meson dvdE dvd_field_iff)
@@ -2532,6 +2523,147 @@ next
     using decseq_convergent [OF \<open>decseq X\<close>] that
     by (metis B abs_le_iff add.inverse_inverse neg_le_iff_le)
 qed
+
+subsection \<open>More about @{term filterlim} (thanks to Wenda Li)\<close>
+
+lemma filterlim_at_infinity_times:
+  fixes f :: "'a \<Rightarrow> 'b::real_normed_field"
+  assumes "filterlim f at_infinity F" "filterlim g at_infinity F"
+  shows "filterlim (\<lambda>x. f x * g x) at_infinity F"  
+proof -
+  have "((\<lambda>x. inverse (f x) * inverse (g x)) \<longlongrightarrow> 0 * 0) F"
+    by (intro tendsto_mult tendsto_inverse assms filterlim_compose[OF tendsto_inverse_0])
+  then have "filterlim (\<lambda>x. inverse (f x) * inverse (g x)) (at 0) F"
+    unfolding filterlim_at using assms
+    by (auto intro: filterlim_at_infinity_imp_eventually_ne tendsto_imp_eventually_ne eventually_conj)
+  then show ?thesis
+    by (subst filterlim_inverse_at_iff[symmetric]) simp_all
+qed   
+  
+lemma filterlim_at_top_at_bot[elim]:
+  fixes f::"'a \<Rightarrow> 'b::unbounded_dense_linorder" and F::"'a filter"
+  assumes top:"filterlim f at_top F" and bot: "filterlim f at_bot F" and "F\<noteq>bot"
+  shows False
+proof -
+  obtain c::'b where True by auto
+  have "\<forall>\<^sub>F x in F. c < f x" 
+    using top unfolding filterlim_at_top_dense by auto
+  moreover have "\<forall>\<^sub>F x in F. f x < c" 
+    using bot unfolding filterlim_at_bot_dense by auto
+  ultimately have "\<forall>\<^sub>F x in F. c < f x \<and> f x < c" 
+    using eventually_conj by auto
+  then have "\<forall>\<^sub>F x in F. False" by (auto elim:eventually_mono)
+  then show False using \<open>F\<noteq>bot\<close> by auto
+qed  
+
+lemma filterlim_at_top_nhds[elim]:      
+  fixes f::"'a \<Rightarrow> 'b::{unbounded_dense_linorder,order_topology}" and F::"'a filter"
+  assumes top:"filterlim f at_top F" and tendsto: "(f \<longlongrightarrow> c) F" and "F\<noteq>bot"
+  shows False
+proof -
+  obtain c'::'b where "c'>c" using gt_ex by blast
+  have "\<forall>\<^sub>F x in F. c' < f x" 
+    using top unfolding filterlim_at_top_dense by auto
+  moreover have "\<forall>\<^sub>F x in F. f x < c'" 
+    using order_tendstoD[OF tendsto,of c'] \<open>c'>c\<close> by auto
+  ultimately have "\<forall>\<^sub>F x in F. c' < f x \<and> f x < c'" 
+    using eventually_conj by auto
+  then have "\<forall>\<^sub>F x in F. False" by (auto elim:eventually_mono)
+  then show False using \<open>F\<noteq>bot\<close> by auto
+qed
+
+lemma filterlim_at_bot_nhds[elim]:      
+  fixes f::"'a \<Rightarrow> 'b::{unbounded_dense_linorder,order_topology}" and F::"'a filter"
+  assumes top:"filterlim f at_bot F" and tendsto: "(f \<longlongrightarrow> c) F" and "F\<noteq>bot"
+  shows False
+proof -
+  obtain c'::'b where "c'<c" using lt_ex by blast
+  have "\<forall>\<^sub>F x in F. c' > f x" 
+    using top unfolding filterlim_at_bot_dense by auto
+  moreover have "\<forall>\<^sub>F x in F. f x > c'" 
+    using order_tendstoD[OF tendsto,of c'] \<open>c'<c\<close> by auto
+  ultimately have "\<forall>\<^sub>F x in F. c' < f x \<and> f x < c'" 
+    using eventually_conj by auto
+  then have "\<forall>\<^sub>F x in F. False" by (auto elim:eventually_mono)
+  then show False using \<open>F\<noteq>bot\<close> by auto
+qed  
+
+lemma eventually_times_inverse_1:
+  fixes f::"'a \<Rightarrow> 'b::{field,t2_space}"
+  assumes "(f \<longlongrightarrow> c) F" "c\<noteq>0"
+  shows "\<forall>\<^sub>F x in F. inverse (f x) * f x = 1"
+  by (smt (verit) assms eventually_mono mult.commute right_inverse tendsto_imp_eventually_ne)
+  
+lemma filterlim_at_infinity_divide_iff:
+  fixes f::"'a \<Rightarrow> 'b::real_normed_field"
+  assumes "(f \<longlongrightarrow> c) F" "c\<noteq>0"
+  shows "(LIM x F. f x / g x :> at_infinity) \<longleftrightarrow> (LIM x F. g x :> at 0)"
+proof 
+  assume "LIM x F. f x / g x :> at_infinity"
+  then have "LIM x F. inverse (f x) * (f x / g x) :> at_infinity"
+    using assms tendsto_inverse tendsto_mult_filterlim_at_infinity by fastforce
+  then have "LIM x F. inverse (g x) :> at_infinity"
+    apply (elim filterlim_mono_eventually)
+    using eventually_times_inverse_1[OF assms] 
+    by (auto elim:eventually_mono simp add:field_simps)
+  then show "filterlim g (at 0) F" using filterlim_inverse_at_iff[symmetric] by force 
+next
+  assume "filterlim g (at 0) F" 
+  then have "filterlim (\<lambda>x. inverse (g x)) at_infinity F"
+    using filterlim_compose filterlim_inverse_at_infinity by blast
+  then have "LIM x F. f x * inverse (g x) :> at_infinity"
+    using tendsto_mult_filterlim_at_infinity[OF assms, of "\<lambda>x. inverse(g x)"] 
+    by simp
+  then show "LIM x F. f x / g x :> at_infinity" by (simp add: divide_inverse)
+qed  
+
+lemma filterlim_tendsto_pos_mult_at_top_iff:
+  fixes f::"'a \<Rightarrow> real"
+  assumes "(f \<longlongrightarrow> c) F" and "0 < c"
+  shows "(LIM x F. (f x * g x) :> at_top) \<longleftrightarrow> (LIM x F. g x :> at_top)"
+proof 
+  assume "filterlim g at_top F"
+  then show "LIM x F. f x * g x :> at_top" 
+    using filterlim_tendsto_pos_mult_at_top[OF assms] by auto
+next
+  assume asm:"LIM x F. f x * g x :> at_top"
+  have "((\<lambda>x. inverse (f x)) \<longlongrightarrow> inverse c) F" 
+    using tendsto_inverse[OF assms(1)] \<open>0<c\<close> by auto
+  moreover have "inverse c >0" using assms(2) by auto
+  ultimately have "LIM x F. inverse (f x) * (f x * g x) :> at_top"
+    using filterlim_tendsto_pos_mult_at_top[OF _ _ asm,of "\<lambda>x. inverse (f x)" "inverse c"] by auto
+  then show "LIM x F. g x :> at_top"
+    apply (elim filterlim_mono_eventually)
+      apply simp_all[2]
+    using eventually_times_inverse_1[OF assms(1)] \<open>c>0\<close> eventually_mono by fastforce
+qed  
+
+lemma filterlim_tendsto_pos_mult_at_bot_iff:
+  fixes c :: real
+  assumes "(f \<longlongrightarrow> c) F" "0 < c" 
+  shows "(LIM x F. f x * g x :> at_bot) \<longleftrightarrow> filterlim g at_bot F"
+  using filterlim_tendsto_pos_mult_at_top_iff[OF assms(1,2), of "\<lambda>x. - g x"] 
+  unfolding filterlim_uminus_at_bot by simp    
+
+lemma filterlim_tendsto_neg_mult_at_top_iff:
+  fixes f::"'a \<Rightarrow> real"
+  assumes "(f \<longlongrightarrow> c) F" and "c < 0"
+  shows "(LIM x F. (f x * g x) :> at_top) \<longleftrightarrow> (LIM x F. g x :> at_bot)"  
+proof -
+  have "(LIM x F. f x * g x :> at_top) = (LIM x F. - g x :> at_top)"
+    apply (rule filterlim_tendsto_pos_mult_at_top_iff[of "\<lambda>x. - f x" "-c" F "\<lambda>x. - g x", simplified])
+    using assms by (auto intro: tendsto_intros )
+  also have "... = (LIM x F. g x :> at_bot)" 
+    using filterlim_uminus_at_bot[symmetric] by auto
+  finally show ?thesis .
+qed
+
+lemma filterlim_tendsto_neg_mult_at_bot_iff:
+  fixes c :: real
+  assumes "(f \<longlongrightarrow> c) F" "0 > c" 
+  shows "(LIM x F. f x * g x :> at_bot) \<longleftrightarrow> filterlim g at_top F"
+  using filterlim_tendsto_neg_mult_at_top_iff[OF assms(1,2), of "\<lambda>x. - g x"] 
+  unfolding filterlim_uminus_at_top by simp    
 
 subsection \<open>Power Sequences\<close>
 
