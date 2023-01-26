@@ -79,9 +79,10 @@ instance ref :: (type) countable
   by (rule countable_classI [of addr_of_ref]) simp
 
 instance array :: (type) heap ..
+
 instance ref :: (type) heap ..
-    
-    
+
+
 text \<open>Syntactic convenience\<close>
 
 setup \<open>
