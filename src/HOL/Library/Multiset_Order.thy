@@ -138,6 +138,9 @@ lemma multp_eq_multp\<^sub>H\<^sub>O: "asymp r \<Longrightarrow> transp r \<Long
   using multp\<^sub>H\<^sub>O_imp_multp\<^sub>D\<^sub>M[THEN multp\<^sub>D\<^sub>M_imp_multp] multp_imp_multp\<^sub>H\<^sub>O
   by blast
 
+lemma multp\<^sub>H\<^sub>O_plus_plus[simp]: "multp\<^sub>H\<^sub>O R (M + M1) (M + M2) \<longleftrightarrow> multp\<^sub>H\<^sub>O R M1 M2"
+  unfolding multp\<^sub>H\<^sub>O_def by simp
+
 
 subsubsection \<open>Properties of Preorders\<close>
 
