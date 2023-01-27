@@ -96,6 +96,7 @@ sources = \
   src/Pure/General/rsync.scala \
   src/Pure/General/scan.scala \
   src/Pure/General/sha1.scala \
+  src/Pure/General/space.scala \
   src/Pure/General/sql.scala \
   src/Pure/General/ssh.scala \
   src/Pure/General/symbol.scala \
