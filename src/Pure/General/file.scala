@@ -404,5 +404,5 @@ object File {
   /* space */
 
   def space(path: Path): Space =
-    Space.bytes(path.file.length)
+    Space.bytes(check_file(path).file.length)
 }
