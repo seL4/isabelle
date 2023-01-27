@@ -45,7 +45,7 @@ object Value {
       try { Some(java.lang.Long.parseLong(s)) }
       catch { case _: NumberFormatException => None }
     def parse(s: java.lang.String): scala.Long =
-      unapply(s) getOrElse error("Bad integer: " + quote(s))
+      unapply(s) getOrElse error("Bad long integer: " + quote(s))
   }
 
   object Double {
