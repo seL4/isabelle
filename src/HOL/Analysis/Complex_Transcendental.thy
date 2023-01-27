@@ -494,23 +494,8 @@ qed
 lemma cos_gt_neg1:
   assumes "(t::real) \<in> {-pi<..<pi}"
   shows   "cos t > -1"
-proof -
-  have "cos t \<ge> -1"
-    by simp
-  moreover have "cos t \<noteq> -1"
-  proof
-    assume "cos t = -1"
-    then obtain n where n: "t = (2 * of_int n + 1) * pi"
-      by (subst (asm) cos_eq_minus1) auto
-    from assms have "t / pi \<in> {-1<..<1}"
-      by (auto simp: field_simps)
-    also from n have "t / pi = of_int (2 * n + 1)"
-      by auto
-    finally show False
-      by auto
-  qed
-  ultimately show ?thesis by linarith
-qed
+  using assms
+  by simp (metis cos_minus cos_monotone_0_pi cos_monotone_minus_pi_0 cos_pi linorder_le_cases)
 
 lemma dist_exp_i_1: "norm(exp(\<i> * of_real t) - 1) = 2 * \<bar>sin(t / 2)\<bar>"
 proof -
