@@ -419,7 +419,7 @@ object Build_Log {
     timing: Timing = Timing.zero,
     ml_timing: Timing = Timing.zero,
     sources: Option[String] = None,
-    heap_size: Option[Long] = None,
+    heap_size: Option[Space] = None,
     status: Option[Session_Status.Value] = None,
     errors: List[String] = Nil,
     theory_timings: Map[String, Timing] = Map.empty,
@@ -479,7 +479,7 @@ object Build_Log {
     var ml_timing = Map.empty[String, Timing]
     var started = Set.empty[String]
     var sources = Map.empty[String, String]
-    var heap_sizes = Map.empty[String, Long]
+    var heap_sizes = Map.empty[String, Space]
     var theory_timings = Map.empty[String, Map[String, Timing]]
     var ml_statistics = Map.empty[String, List[Properties.T]]
     var errors = Map.empty[String, List[String]]
@@ -527,7 +527,7 @@ object Build_Log {
           sources += (name -> s)
 
         case Heap(name, Value.Long(size)) =>
-          heap_sizes += (name -> size)
+          heap_sizes += (name -> Space.bytes(size))
 
         case _ if Protocol.Theory_Timing_Marker.test_yxml(line) =>
           line match {
@@ -955,7 +955,7 @@ object Build_Log {
           stmt.long(11) = session.ml_timing.cpu.proper_ms
           stmt.long(12) = session.ml_timing.gc.proper_ms
           stmt.double(13) = session.ml_timing.factor
-          stmt.long(14) = session.heap_size
+          stmt.long(14) = session.heap_size.map(_.bytes)
           stmt.string(15) = session.status.map(_.toString)
           stmt.bytes(16) = compress_errors(session.errors, cache = cache.compress)
           stmt.string(17) = session.sources
@@ -1109,7 +1109,7 @@ object Build_Log {
                 ml_timing =
                   res.timing(Data.ml_timing_elapsed, Data.ml_timing_cpu, Data.ml_timing_gc),
                 sources = res.get_string(Data.sources),
-                heap_size = res.get_long(Data.heap_size),
+                heap_size = res.get_long(Data.heap_size).map(Space.bytes),
                 status = res.get_string(Data.status).map(Session_Status.withName),
                 errors = uncompress_errors(res.bytes(Data.errors), cache = cache),
                 ml_statistics =
