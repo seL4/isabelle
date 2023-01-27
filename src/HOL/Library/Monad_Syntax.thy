@@ -11,7 +11,7 @@ begin
 
 text \<open>
 We provide a convenient do-notation for monadic expressions well-known from Haskell.
-const>\<open>Let\<close> is printed specially in do-expressions.
+\<^const>\<open>Let\<close> is printed specially in do-expressions.
 \<close>
 
 consts
