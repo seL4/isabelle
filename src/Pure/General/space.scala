@@ -7,11 +7,45 @@ Storage space based on bytes.
 package isabelle
 
 
+import java.util.Locale
+
+import scala.annotation.tailrec
+
+
 object Space {
   def bytes(bs: Long): Space = new Space(bs)
+  def bytes(bs: Double): Space = bytes(bs.round)
+
   val zero: Space = bytes(0L)
+
+  private val units: List[String] = List("B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB")
+
+  def KiB(x: Double): Space = bytes((x * 1024).round)
+  def MiB(x: Double): Space = KiB(x * 1024)
+  def GiB(x: Double): Space = MiB(x * 1024)
+  def TiB(x: Double): Space = GiB(x * 1024)
+  def PiB(x: Double): Space = TiB(x * 1024)
+  def EiB(x: Double): Space = PiB(x * 1024)
 }
 
 final class Space private(val bytes: Long) extends AnyVal {
+  def KiB: Double = bytes.toDouble / 1024
+  def MiB: Double = KiB / 1024
+  def GiB: Double = MiB / 1024
+  def TiB: Double = GiB / 1024
+  def PiB: Double = TiB / 1024
+  def EiB: Double = PiB / 1024
+
   override def toString: String = bytes.toString
+
+  def print: String = {
+    @tailrec def print_unit(x: Double, units: List[String]): String =
+      if (x.abs < 1024 || units.tail.isEmpty) {
+        val s = String.format(Locale.ROOT, "%.1f", x.asInstanceOf[AnyRef])
+        Library.perhaps_unsuffix(".0", s) + " " + units.head
+      }
+      else print_unit(x / 1024, units.tail)
+
+    print_unit(bytes.toDouble, Space.units)
+  }
 }
