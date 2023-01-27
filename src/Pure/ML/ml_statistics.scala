@@ -116,8 +116,9 @@ object ML_Statistics {
   def mem_scale(x: Long): Long = x / 1024 / 1024
 
   def mem_field_scale(name: String, x: Double): Double =
-    if (heap_fields._2.contains(name) || program_fields._2.contains(name))
+    if (heap_fields._2.contains(name) || program_fields._2.contains(name)) {
       mem_scale(x.toLong).toDouble
+    }
     else x
 
   val CODE_SIZE = "size_code"
