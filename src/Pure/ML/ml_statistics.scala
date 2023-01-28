@@ -108,17 +108,9 @@ object ML_Statistics {
   }
 
 
-  /* memory fields (mega bytes) */
+  /* memory fields */
 
-  def mem_print(x: Long): Option[String] =
-    if (x == 0L) None else Some(x.toString + " M")
-
-  def mem_scale(x: Long): Long = x / 1024 / 1024
-
-  def mem_field_scale(name: String, x: Double): Double =
-    if (heap_fields._2.contains(name) || program_fields._2.contains(name))
-      mem_scale(x.toLong).toDouble
-    else x
+  val scale_MiB: Double = 1.0 / 1024 / 1024
 
   val CODE_SIZE = "size_code"
   val STACK_SIZE = "size_stacks"
@@ -127,43 +119,43 @@ object ML_Statistics {
 
   /* standard fields */
 
-  type Fields = (String, List[String])
+  sealed case class Fields(title: String, names: List[String], scale: Double = 1.0)
 
   val tasks_fields: Fields =
-    ("Future tasks",
+    Fields("Future tasks",
       List("tasks_ready", "tasks_pending", "tasks_running", "tasks_passive",
         "tasks_urgent", "tasks_total"))
 
   val workers_fields: Fields =
-    ("Worker threads", List("workers_total", "workers_active", "workers_waiting"))
+    Fields("Worker threads", List("workers_total", "workers_active", "workers_waiting"))
 
   val GC_fields: Fields =
-    ("GCs", List("partial_GCs", "full_GCs", "share_passes"))
+    Fields("GCs", List("partial_GCs", "full_GCs", "share_passes"))
 
   val heap_fields: Fields =
-    ("Heap", List(HEAP_SIZE, "size_allocation", "size_allocation_free",
-      "size_heap_free_last_full_GC", "size_heap_free_last_GC"))
+    Fields("Heap", List(HEAP_SIZE, "size_allocation", "size_allocation_free",
+      "size_heap_free_last_full_GC", "size_heap_free_last_GC"), scale = scale_MiB)
 
   val program_fields: Fields =
-    ("Program", List("size_code", "size_stacks"))
+    Fields("Program", List("size_code", "size_stacks"), scale = scale_MiB)
 
   val threads_fields: Fields =
-    ("Threads", List("threads_total", "threads_in_ML", "threads_wait_condvar",
+    Fields("Threads", List("threads_total", "threads_in_ML", "threads_wait_condvar",
       "threads_wait_IO", "threads_wait_mutex", "threads_wait_signal"))
 
   val time_fields: Fields =
-    ("Time", List("time_elapsed", "time_elapsed_GC", "time_CPU", "time_GC"))
+    Fields("Time", List("time_elapsed", "time_elapsed_GC", "time_CPU", "time_GC"))
 
   val speed_fields: Fields =
-    ("Speed", List("speed_CPU", "speed_GC"))
+    Fields("Speed", List("speed_CPU", "speed_GC"))
 
   private val time_speed = Map("time_CPU" -> "speed_CPU", "time_GC" -> "speed_GC")
 
   val java_heap_fields: Fields =
-    ("Java heap", List("java_heap_size", "java_heap_used"))
+    Fields("Java heap", List("java_heap_size", "java_heap_used"))
 
   val java_thread_fields: Fields =
-    ("Java threads", List("java_threads_total", "java_workers_total", "java_workers_active"))
+    Fields("Java threads", List("java_threads_total", "java_workers_total", "java_workers_active"))
 
 
   val main_fields: List[Fields] =
@@ -174,6 +166,10 @@ object ML_Statistics {
       java_heap_fields, java_thread_fields)
 
   val all_fields: List[Fields] = main_fields ::: other_fields
+
+  def field_scale(x: String, y: Double): Double =
+    all_fields.collectFirst({ case fields if fields.names.contains(x) => y * fields.scale })
+      .getOrElse(y)
 
 
   /* content interpretation */
@@ -234,7 +230,7 @@ object ML_Statistics {
               (x, y) <- props.iterator ++ speeds.iterator
               if x != Now.name && domain(x)
               z = java.lang.Double.parseDouble(y) if z != 0.0
-            } yield { (x.intern, mem_field_scale(x, z)) })
+            } yield { (x.intern, z) })
 
         result += ML_Statistics.Entry(time, data)
       }
@@ -284,7 +280,7 @@ final class ML_Statistics private(
     data.removeAllSeries()
     for (field <- selected_fields) {
       val series = new XYSeries(field)
-      content.foreach(entry => series.add(entry.time, entry.get(field)))
+      content.foreach(e => series.add(e.time, ML_Statistics.field_scale(field, e.get(field))))
       data.addSeries(series)
     }
   }
@@ -298,7 +294,7 @@ final class ML_Statistics private(
   }
 
   def chart(fields: ML_Statistics.Fields): JFreeChart =
-    chart(fields._1, fields._2)
+    chart(fields.title, fields.names)
 
   def show_frames(fields: List[ML_Statistics.Fields] = ML_Statistics.main_fields): Unit =
     fields.map(chart).foreach(c =>

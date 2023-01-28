@@ -412,6 +412,9 @@ object SSH {
       Isabelle_System.download_file(url_name, file, progress = progress)
 
     def isabelle_platform: Isabelle_Platform = Isabelle_Platform()
+
+    def isabelle_platform_family: Platform.Family.Value =
+      Platform.Family.parse(isabelle_platform.ISABELLE_PLATFORM_FAMILY)
   }
 
   object Local extends System

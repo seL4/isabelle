@@ -140,6 +140,8 @@ object Isabelle_Cronjob {
     historic: Boolean = false,
     history: Int = 0,
     history_base: String = "build_history_base",
+    components_base: String = Components.dynamic_components_base,
+    clean_components: Boolean = false,
     java_heap: String = "",
     options: String = "",
     args: String = "",
@@ -349,8 +351,8 @@ object Isabelle_Cronjob {
           args = "-a -d '~~/src/Benchmarks'")),
       List(
         Remote_Build("Windows", "vmnipkow9", historic = true, history = 90,
+          components_base = "/cygdrive/d/isatest/contrib",
           options = "-m32 -M4" +
-            " -C /cygdrive/d/isatest/contrib" +
             " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAML_SETUP=true" +
             " -e ISABELLE_GHC_SETUP=true" +
             " -e ISABELLE_SMLNJ=/usr/local/smlnj-110.81/bin/sml",
@@ -359,6 +361,7 @@ object Isabelle_Cronjob {
             Build_Log.Settings.ML_PLATFORM.toString + " = " + SQL.string("x86-windows") + " OR " +
             Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86_64_32-windows")),
         Remote_Build("Windows", "vmnipkow9", historic = true, history = 90,
+          components_base = "/cygdrive/d/isatest/contrib",
           options = "-m64 -M4" +
             " -C /cygdrive/d/isatest/contrib" +
             " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAML_SETUP=true" +
@@ -404,12 +407,14 @@ object Isabelle_Cronjob {
               isabelle_repos,
               isabelle_repos.ext(r.host),
               isabelle_identifier = "cronjob_build_history",
+              components_base = r.components_base,
+              clean_platform = r.clean_components,
+              clean_archives = r.clean_components,
               rev = rev,
               afp_repos = if (afp_rev.isDefined) Some(afp_repos) else None,
               afp_rev = afp_rev.getOrElse(""),
               options =
                 " -N " + Bash.string(task_name) + (if (i < 0) "" else "_" + (i + 1).toString) +
-                " -R " + Bash.string(Components.default_component_repository) +
                 " -f " + r.build_history_options,
               args = "-o timeout=10800 " + r.args)
 
@@ -589,8 +594,6 @@ object Isabelle_Cronjob {
                       (r, i) <- (if (seq.length <= 1) seq.map((_, -1)) else seq.zipWithIndex)
                       (rev, afp_rev) <- r.pick(logger.options, hg.id(), history_base_filter(r))
                     } yield remote_build_history(rev, afp_rev, i, r)))),
-                Logger_Task("jenkins_logs", _ =>
-                  Jenkins.download_logs(logger.options, Jenkins.build_log_jobs, main_dir)),
                 Logger_Task("build_log_database",
                   logger => Isabelle_Devel.build_log_database(logger.options, build_log_dirs)),
                 Logger_Task("build_status",

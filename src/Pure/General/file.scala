@@ -399,4 +399,10 @@ object File {
 
     def output(out: XML.Body => String): Content = new Content(path, Bytes(out(content)))
   }
+
+
+  /* space */
+
+  def space(path: Path): Space =
+    Space.bytes(check_file(path).file.length)
 }

@@ -29,10 +29,10 @@ object ML_Syntax {
       case 12 => "\\f"
       case 13 => "\\r"
       case _ =>
-        if (c < 0) "\\" + Library.signed_string_of_int(256 + c)
+        if (c < 0) "\\" + Value.Int(256 + c)
         else if (c < 32) new String(Array[Char](92, 94, (c + 64).toChar))
         else if (c < 127) Symbol.ascii(c.toChar)
-        else "\\" + Library.signed_string_of_int(c)
+        else "\\" + Value.Int(c)
     }
 
   private def print_symbol(s: Symbol.Symbol): String =

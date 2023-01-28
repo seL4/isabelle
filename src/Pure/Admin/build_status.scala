@@ -14,8 +14,7 @@ object Build_Status {
   val default_image_size = (800, 600)
   val default_history = 30
 
-  def default_profiles: List[Profile] =
-    Jenkins.build_status_profiles ::: Isabelle_Cronjob.build_status_profiles
+  def default_profiles: List[Profile] = Isabelle_Cronjob.build_status_profiles
 
 
   /* data profiles */
@@ -109,9 +108,9 @@ object Build_Status {
     def check_heap: Boolean =
       finished_entries_size >= 3 &&
       finished_entries.forall(entry =>
-        entry.maximum_heap > 0 ||
-        entry.average_heap > 0 ||
-        entry.stored_heap > 0)
+        entry.maximum_heap.is_proper ||
+        entry.average_heap.is_proper ||
+        entry.stored_heap.is_proper)
 
     def make_csv: CSV.File = {
       val header =
@@ -170,13 +169,13 @@ object Build_Status {
     afp_version: String,
     timing: Timing,
     ml_timing: Timing,
-    maximum_code: Long,
-    average_code: Long,
-    maximum_stack: Long,
-    average_stack: Long,
-    maximum_heap: Long,
-    average_heap: Long,
-    stored_heap: Long,
+    maximum_code: Space,
+    average_code: Space,
+    maximum_stack: Space,
+    average_stack: Space,
+    maximum_heap: Space,
+    average_heap: Space,
+    stored_heap: Space,
     status: Build_Log.Session_Status.Value,
     errors: List[String]
   ) {
@@ -320,13 +319,13 @@ object Build_Status {
                     Build_Log.Data.ml_timing_elapsed,
                     Build_Log.Data.ml_timing_cpu,
                     Build_Log.Data.ml_timing_gc),
-                maximum_code = ml_stats.maximum(ML_Statistics.CODE_SIZE).toLong,
-                average_code = ml_stats.average(ML_Statistics.CODE_SIZE).toLong,
-                maximum_stack = ml_stats.maximum(ML_Statistics.STACK_SIZE).toLong,
-                average_stack = ml_stats.average(ML_Statistics.STACK_SIZE).toLong,
-                maximum_heap = ml_stats.maximum(ML_Statistics.HEAP_SIZE).toLong,
-                average_heap = ml_stats.average(ML_Statistics.HEAP_SIZE).toLong,
-                stored_heap = ML_Statistics.mem_scale(res.long(Build_Log.Data.heap_size)),
+                maximum_code = Space.B(ml_stats.maximum(ML_Statistics.CODE_SIZE)),
+                average_code = Space.B(ml_stats.average(ML_Statistics.CODE_SIZE)),
+                maximum_stack = Space.B(ml_stats.maximum(ML_Statistics.STACK_SIZE)),
+                average_stack = Space.B(ml_stats.average(ML_Statistics.STACK_SIZE)),
+                maximum_heap = Space.B(ml_stats.maximum(ML_Statistics.HEAP_SIZE)),
+                average_heap = Space.B(ml_stats.average(ML_Statistics.HEAP_SIZE)),
+                stored_heap = Space.bytes(res.long(Build_Log.Data.heap_size)),
                 status = Build_Log.Session_Status.withName(res.string(Build_Log.Data.status)),
                 errors =
                   Build_Log.uncompress_errors(
@@ -430,13 +429,13 @@ object Build_Status {
                       entry.timing.resources.minutes.toString,
                       entry.ml_timing.elapsed.minutes.toString,
                       entry.ml_timing.resources.minutes.toString,
-                      entry.maximum_code.toString,
-                      entry.average_code.toString,
-                      entry.maximum_stack.toString,
-                      entry.average_stack.toString,
-                      entry.maximum_heap.toString,
-                      entry.average_heap.toString,
-                      entry.stored_heap.toString).mkString(" "))))
+                      entry.maximum_code.MiB.toString,
+                      entry.average_code.MiB.toString,
+                      entry.maximum_stack.MiB.toString,
+                      entry.average_stack.MiB.toString,
+                      entry.maximum_heap.MiB.toString,
+                      entry.average_heap.MiB.toString,
+                      entry.stored_heap.MiB.toString).mkString(" "))))
 
               val max_time =
                 (session.finished_entries.foldLeft(0.0) {
@@ -502,7 +501,7 @@ plot [] """ + range + " " +
                 val image = Image(plot_name, image_width, image_height)
                 val chart =
                   session.ml_statistics.chart(
-                    fields._1 + ": " + session.ml_statistics.heading, fields._2)
+                    fields.title + ": " + session.ml_statistics.heading, fields.names)
                 Graphics_File.write_chart_png(
                   (dir + image.path).file, chart, image.width, image.height)
                 image
@@ -554,19 +553,19 @@ plot [] """ + range + " " +
                     List(HTML.link(data_files(session.name).file_name, HTML.text("CSV"))),
                   HTML.text("timing:") -> HTML.text(session.head.timing.message_resources),
                   HTML.text("ML timing:") -> HTML.text(session.head.ml_timing.message_resources)) :::
-                ML_Statistics.mem_print(session.head.maximum_code).map(s =>
+                session.head.maximum_code.print_relevant.map(s =>
                   HTML.text("code maximum:") -> HTML.text(s)).toList :::
-                ML_Statistics.mem_print(session.head.average_code).map(s =>
+                session.head.average_code.print_relevant.map(s =>
                   HTML.text("code average:") -> HTML.text(s)).toList :::
-                ML_Statistics.mem_print(session.head.maximum_stack).map(s =>
+                session.head.maximum_stack.print_relevant.map(s =>
                   HTML.text("stack maximum:") -> HTML.text(s)).toList :::
-                ML_Statistics.mem_print(session.head.average_stack).map(s =>
+                session.head.average_stack.print_relevant.map(s =>
                   HTML.text("stack average:") -> HTML.text(s)).toList :::
-                ML_Statistics.mem_print(session.head.maximum_heap).map(s =>
+                session.head.maximum_heap.print_relevant.map(s =>
                   HTML.text("heap maximum:") -> HTML.text(s)).toList :::
-                ML_Statistics.mem_print(session.head.average_heap).map(s =>
+                session.head.average_heap.print_relevant.map(s =>
                   HTML.text("heap average:") -> HTML.text(s)).toList :::
-                ML_Statistics.mem_print(session.head.stored_heap).map(s =>
+                session.head.stored_heap.print_relevant.map(s =>
                   HTML.text("heap stored:") -> HTML.text(s)).toList :::
                 proper_string(session.head.isabelle_version).map(s =>
                   HTML.text("Isabelle version:") -> HTML.text(s)).toList :::

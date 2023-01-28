@@ -103,8 +103,10 @@ object Build_History {
     afp_partition: Int = 0,
     isabelle_identifier: String = default_isabelle_identifier,
     ml_statistics_step: Int = 1,
-    component_repository: String = Components.default_component_repository,
-    components_base: String = Components.standard_components_base,
+    component_repository: String = Components.static_component_repository,
+    components_base: String = Components.dynamic_components_base,
+    clean_platforms: Option[List[Platform.Family.Value]] = None,
+    clean_archives: Boolean = false,
     fresh: Boolean = false,
     hostname: String = "",
     multicore_base: Boolean = false,
@@ -112,7 +114,6 @@ object Build_History {
     arch_64: Boolean = false,
     heap: Int = default_heap,
     max_heap: Option[Int] = None,
-    init_settings: List[String] = Nil,
     more_settings: List[String] = Nil,
     more_preferences: List[String] = Nil,
     verbose: Boolean = false,
@@ -176,6 +177,13 @@ object Build_History {
     val other_isabelle =
       Other_Isabelle(root, isabelle_identifier = isabelle_identifier, progress = progress)
 
+    def resolve_components(): Unit =
+      other_isabelle.resolve_components(
+        echo = verbose,
+        component_repository = component_repository,
+        clean_platforms = clean_platforms,
+        clean_archives = clean_archives)
+
     val build_host = proper_string(hostname) getOrElse Isabelle_System.hostname()
     val build_history_date = Date.now()
     val build_group_id = build_host + ":" + build_history_date.time.ms
@@ -186,11 +194,10 @@ object Build_History {
 
       val component_settings =
         other_isabelle.init_components(
-          component_repository = component_repository,
           components_base = components_base,
           catalogs = Components.optional_catalogs)
-      other_isabelle.init_settings(component_settings ::: init_settings)
-      other_isabelle.resolve_components(echo = verbose)
+      other_isabelle.init_settings(component_settings)
+      resolve_components()
       val ml_platform =
         augment_settings(other_isabelle, threads, arch_64, heap, max_heap, more_settings)
 
@@ -203,7 +210,7 @@ object Build_History {
       val isabelle_base_log = isabelle_output + Path.explode("../base_log")
 
       if (first_build) {
-        other_isabelle.resolve_components(echo = verbose)
+        resolve_components()
         other_isabelle.scala_build(fresh = fresh, echo = verbose)
 
         for {
@@ -346,7 +353,7 @@ object Build_History {
         build_info.finished_sessions.flatMap { session_name =>
           val heap = isabelle_output + Path.explode(session_name)
           if (heap.is_file) {
-            Some("Heap " + session_name + " (" + Value.Long(heap.file.length) + " bytes)")
+            Some("Heap " + session_name + " (" + Value.Long(File.space(heap).bytes) + " bytes)")
           }
           else None
         }
@@ -394,18 +401,19 @@ object Build_History {
     Command_Line.tool {
       var afp = false
       var multicore_base = false
-      var components_base = Components.standard_components_base
+      var components_base = Components.dynamic_components_base
       var heap: Option[Int] = None
       var max_heap: Option[Int] = None
       var multicore_list = List(default_multicore)
       var isabelle_identifier = default_isabelle_identifier
+      var clean_platforms: Option[List[Platform.Family.Value]] = None
       var afp_partition = 0
-      var component_repository = Components.default_component_repository
+      var clean_archives = false
+      var component_repository = Components.static_component_repository
       var more_settings: List[String] = Nil
       var more_preferences: List[String] = Nil
       var fresh = false
       var hostname = ""
-      var init_settings: List[String] = Nil
       var arch_64 = false
       var output_file = ""
       var ml_statistics_step = 1
@@ -420,14 +428,17 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
     -A           include $ISABELLE_HOME/AFP directory
     -B           first multicore build serves as base for scheduling information
     -C DIR       base directory for Isabelle components (default: """ +
-      quote(Components.standard_components_base) + """)
+      quote(Components.dynamic_components_base) + """)
     -H SIZE      minimal ML heap in MB (default: """ + default_heap + """ for x86, """ +
       default_heap * 2 + """ for x86_64)
     -M MULTICORE multicore configurations (see below)
     -N NAME      alternative ISABELLE_IDENTIFIER (default: """ + default_isabelle_identifier + """)
+    -O PLATFORMS clean resolved components, retaining only the given list
+                 platform families (separated by commas; default: do nothing)
     -P NUMBER    AFP partition number (0, 1, 2, default: 0=unrestricted)
+    -Q           clean archives of downloaded components
     -R URL       remote repository for Isabelle components (default: """ +
-      Components.default_component_repository + """)
+      Components.static_component_repository + """)
     -U SIZE      maximal ML heap in MB (default: unbounded)
     -e TEXT      additional text for generated etc/settings
     -f           fresh build of Isabelle/Scala components (recommended)
@@ -454,13 +465,14 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
         "H:" -> (arg => heap = Some(Value.Int.parse(arg))),
         "M:" -> (arg => multicore_list = space_explode(',', arg).map(Multicore.parse)),
         "N:" -> (arg => isabelle_identifier = arg),
+        "O:" -> (arg => clean_platforms = Some(space_explode(',',arg).map(Platform.Family.parse))),
         "P:" -> (arg => afp_partition = Value.Int.parse(arg)),
+        "Q" -> (_ => clean_archives = true),
         "R:" -> (arg => component_repository = arg),
         "U:" -> (arg => max_heap = Some(Value.Int.parse(arg))),
         "e:" -> (arg => more_settings = more_settings ::: List(arg)),
         "f" -> (_ => fresh = true),
         "h:" -> (arg => hostname = arg),
-        "i:" -> (arg => init_settings = init_settings ::: List(arg)),
         "m:" ->
           {
             case "32" | "x86" => arch_64 = false
@@ -488,10 +500,11 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
           afp = afp, afp_partition = afp_partition,
           isabelle_identifier = isabelle_identifier, ml_statistics_step = ml_statistics_step,
           component_repository = component_repository, components_base = components_base,
+          clean_platforms = clean_platforms, clean_archives = clean_archives,
           fresh = fresh, hostname = hostname, multicore_base = multicore_base,
           multicore_list = multicore_list, arch_64 = arch_64,
           heap = heap.getOrElse(if (arch_64) default_heap * 2 else default_heap),
-          max_heap = max_heap, init_settings = init_settings, more_settings = more_settings,
+          max_heap = max_heap, more_settings = more_settings,
           more_preferences = more_preferences, verbose = verbose, build_tags = build_tags,
           build_args = build_args)
 
@@ -517,6 +530,10 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
     isabelle_self: Path,
     isabelle_other: Path,
     isabelle_identifier: String = "remote_build_history",
+    component_repository: String = Components.static_component_repository,
+    components_base: String = Components.dynamic_components_base,
+    clean_platform: Boolean = false,
+    clean_archives: Boolean = false,
     progress: Progress = new Progress,
     protect_args: Boolean = false,
     rev: String = "",
@@ -524,7 +541,7 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
     afp_rev: String = "",
     options: String = "",
     args: String = "",
-    no_build: Boolean = false
+    no_build: Boolean = false,
   ): List[(String, Bytes)] = {
     /* synchronize Isabelle + AFP repositories */
 
@@ -539,24 +556,19 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
         rev = rev, afp_rev = afp_rev, afp_root = if (afp) afp_repos else None)
     }
 
-    def execute(command: String, args: String,
-      echo: Boolean = false,
-      strict: Boolean = true
-    ): Unit =
-      ssh.execute(
-        Isabelle_System.export_isabelle_identifier(isabelle_identifier) +
-          ssh.bash_path(isabelle_self + Path.explode(command)) + " " + args,
-        progress_stdout = progress.echo_if(echo, _),
-        progress_stderr = progress.echo_if(echo, _),
-        strict = strict).check
-
     sync(isabelle_self)
 
     val self_isabelle =
       Other_Isabelle(isabelle_self, isabelle_identifier = isabelle_identifier,
         ssh = ssh, progress = progress)
 
-    self_isabelle.init(fresh = true, echo = true)
+    val clean_platforms = if (clean_platform) Some(List(ssh.isabelle_platform_family)) else None
+
+    self_isabelle.init(fresh = true, echo = true,
+      component_repository = component_repository,
+      other_settings = self_isabelle.init_components(components_base = components_base),
+      clean_platforms = clean_platforms,
+      clean_archives = clean_archives)
 
     sync(isabelle_other, accurate = true,
       rev = proper_string(rev) getOrElse "tip",
@@ -573,14 +585,17 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
         val build_options = (if (afp_repos.isEmpty) "" else " -A") + " " + options
         try {
           val script =
-            Isabelle_System.export_isabelle_identifier(isabelle_identifier) +
-              ssh.bash_path(self_isabelle.isabelle_home + Path.explode("Admin/build_other")) +
+            ssh.bash_path(Path.explode("Admin/build_other")) +
+              " -R " + Bash.string(component_repository) +
+              " -C " + Bash.string(components_base) +
+              (clean_platforms match {
+                case Some(ps) => " -O " + Bash.string(ps.mkString(","))
+                case None => ""
+              }) +
+              (if (clean_archives) " -Q" else "") +
               " -o " + ssh.bash_path(output_file) + build_options + " " +
               ssh.bash_path(isabelle_other) + " " + args
-          ssh.execute(script,
-            progress_stdout = progress.echo,
-            progress_stderr = progress.echo,
-            strict = false).check
+          self_isabelle.bash(script, echo = true, strict = false).check
         }
         catch {
           case ERROR(msg) =>
