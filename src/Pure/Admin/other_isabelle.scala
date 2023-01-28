@@ -146,6 +146,8 @@ final class Other_Isabelle private(
   }
 
 
+  /* init */
+
   def init(
     other_settings: List[String] = init_components(),
     fresh: Boolean = false,
