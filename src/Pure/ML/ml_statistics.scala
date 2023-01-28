@@ -115,11 +115,7 @@ object ML_Statistics {
 
   def mem_scale(x: Long): Long = x / 1024 / 1024
 
-  def mem_field_scale(name: String, x: Double): Double =
-    if (heap_fields.names.contains(name) || program_fields.names.contains(name)) {
-      mem_scale(x.toLong).toDouble
-    }
-    else x
+  val scale_MiB: Double = 1.0 / 1024 / 1024
 
   val CODE_SIZE = "size_code"
   val STACK_SIZE = "size_stacks"
@@ -128,7 +124,7 @@ object ML_Statistics {
 
   /* standard fields */
 
-  sealed case class Fields(title: String, names: List[String])
+  sealed case class Fields(title: String, names: List[String], scale: Double = 1.0)
 
   val tasks_fields: Fields =
     Fields("Future tasks",
@@ -143,10 +139,10 @@ object ML_Statistics {
 
   val heap_fields: Fields =
     Fields("Heap", List(HEAP_SIZE, "size_allocation", "size_allocation_free",
-      "size_heap_free_last_full_GC", "size_heap_free_last_GC"))
+      "size_heap_free_last_full_GC", "size_heap_free_last_GC"), scale = scale_MiB)
 
   val program_fields: Fields =
-    Fields("Program", List("size_code", "size_stacks"))
+    Fields("Program", List("size_code", "size_stacks"), scale = scale_MiB)
 
   val threads_fields: Fields =
     Fields("Threads", List("threads_total", "threads_in_ML", "threads_wait_condvar",
@@ -175,6 +171,10 @@ object ML_Statistics {
       java_heap_fields, java_thread_fields)
 
   val all_fields: List[Fields] = main_fields ::: other_fields
+
+  def field_scale(x: String, y: Double): Double =
+    all_fields.collectFirst({ case fields if fields.names.contains(x) => y * fields.scale })
+      .getOrElse(y)
 
 
   /* content interpretation */
@@ -235,7 +235,7 @@ object ML_Statistics {
               (x, y) <- props.iterator ++ speeds.iterator
               if x != Now.name && domain(x)
               z = java.lang.Double.parseDouble(y) if z != 0.0
-            } yield { (x.intern, mem_field_scale(x, z)) })
+            } yield { (x.intern, field_scale(x, z)) })
 
         result += ML_Statistics.Entry(time, data)
       }
