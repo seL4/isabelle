@@ -186,11 +186,11 @@ object Build_History {
 
       val component_settings =
         other_isabelle.init_components(
-          component_repository = component_repository,
           components_base = components_base,
           catalogs = Components.optional_catalogs)
       other_isabelle.init_settings(component_settings ::: init_settings)
-      other_isabelle.resolve_components(echo = verbose)
+      other_isabelle.resolve_components(
+        echo = verbose, component_repository = component_repository)
       val ml_platform =
         augment_settings(other_isabelle, threads, arch_64, heap, max_heap, more_settings)
 
@@ -203,7 +203,8 @@ object Build_History {
       val isabelle_base_log = isabelle_output + Path.explode("../base_log")
 
       if (first_build) {
-        other_isabelle.resolve_components(echo = verbose)
+        other_isabelle.resolve_components(
+          echo = verbose, component_repository = component_repository)
         other_isabelle.scala_build(fresh = fresh, echo = verbose)
 
         for {

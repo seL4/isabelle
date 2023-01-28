@@ -75,14 +75,12 @@ final class Other_Isabelle private(
   /* components */
 
   def init_components(
-    component_repository: String = Components.default_component_repository,
     components_base: String = Components.standard_components_base,
     catalogs: List[String] = Components.default_catalogs,
     components: List[String] = Nil
   ): List[String] = {
     val admin = Components.admin(Path.ISABELLE_HOME).implode
 
-    ("ISABELLE_COMPONENT_REPOSITORY=" + Bash.string(component_repository)) ::
     catalogs.map(name =>
       "init_components " + quote(components_base) + " " + quote(admin + "/" + name)) :::
     components.map(name =>
@@ -92,13 +90,15 @@ final class Other_Isabelle private(
   def resolve_components(
     echo: Boolean = false,
     clean_platforms: Option[List[Platform.Family.Value]] = None,
-    clean_archives: Boolean = false
+    clean_archives: Boolean = false,
+    component_repository: String = Components.default_component_repository
   ): Unit = {
     val missing = Path.split(getenv("ISABELLE_COMPONENTS_MISSING"))
     for (path <- missing) {
       Components.resolve(path.dir, path.file_name,
         clean_platforms = clean_platforms,
         clean_archives = clean_archives,
+        component_repository = component_repository,
         ssh = ssh,
         progress = if (echo) progress else new Progress)
     }
@@ -153,13 +153,15 @@ final class Other_Isabelle private(
     fresh: Boolean = false,
     echo: Boolean = false,
     clean_platforms: Option[List[Platform.Family.Value]] = None,
-    clean_archives: Boolean = false
+    clean_archives: Boolean = false,
+    component_repository: String = Components.default_component_repository
   ): Unit = {
     init_settings(other_settings)
     resolve_components(
       echo = echo,
       clean_platforms = clean_platforms,
-      clean_archives = clean_archives)
+      clean_archives = clean_archives,
+      component_repository = component_repository)
     scala_build(fresh = fresh, echo = echo)
   }
 
