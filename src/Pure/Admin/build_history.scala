@@ -114,7 +114,6 @@ object Build_History {
     arch_64: Boolean = false,
     heap: Int = default_heap,
     max_heap: Option[Int] = None,
-    init_settings: List[String] = Nil,
     more_settings: List[String] = Nil,
     more_preferences: List[String] = Nil,
     verbose: Boolean = false,
@@ -197,7 +196,7 @@ object Build_History {
         other_isabelle.init_components(
           components_base = components_base,
           catalogs = Components.optional_catalogs)
-      other_isabelle.init_settings(component_settings ::: init_settings)
+      other_isabelle.init_settings(component_settings)
       resolve_components()
       val ml_platform =
         augment_settings(other_isabelle, threads, arch_64, heap, max_heap, more_settings)
@@ -415,7 +414,6 @@ object Build_History {
       var more_preferences: List[String] = Nil
       var fresh = false
       var hostname = ""
-      var init_settings: List[String] = Nil
       var arch_64 = false
       var output_file = ""
       var ml_statistics_step = 1
@@ -475,7 +473,6 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
         "e:" -> (arg => more_settings = more_settings ::: List(arg)),
         "f" -> (_ => fresh = true),
         "h:" -> (arg => hostname = arg),
-        "i:" -> (arg => init_settings = init_settings ::: List(arg)),
         "m:" ->
           {
             case "32" | "x86" => arch_64 = false
@@ -507,7 +504,7 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
           fresh = fresh, hostname = hostname, multicore_base = multicore_base,
           multicore_list = multicore_list, arch_64 = arch_64,
           heap = heap.getOrElse(if (arch_64) default_heap * 2 else default_heap),
-          max_heap = max_heap, init_settings = init_settings, more_settings = more_settings,
+          max_heap = max_heap, more_settings = more_settings,
           more_preferences = more_preferences, verbose = verbose, build_tags = build_tags,
           build_args = build_args)
 
