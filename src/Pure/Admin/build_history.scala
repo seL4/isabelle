@@ -557,17 +557,6 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
         rev = rev, afp_rev = afp_rev, afp_root = if (afp) afp_repos else None)
     }
 
-    def execute(command: String, args: String,
-      echo: Boolean = false,
-      strict: Boolean = true
-    ): Unit =
-      ssh.execute(
-        Isabelle_System.export_isabelle_identifier(isabelle_identifier) +
-          ssh.bash_path(isabelle_self + Path.explode(command)) + " " + args,
-        progress_stdout = progress.echo_if(echo, _),
-        progress_stderr = progress.echo_if(echo, _),
-        strict = strict).check
-
     sync(isabelle_self)
 
     val self_isabelle =
