@@ -502,7 +502,7 @@ plot [] """ + range + " " +
                 val image = Image(plot_name, image_width, image_height)
                 val chart =
                   session.ml_statistics.chart(
-                    fields._1 + ": " + session.ml_statistics.heading, fields._2)
+                    fields.title + ": " + session.ml_statistics.heading, fields.names)
                 Graphics_File.write_chart_png(
                   (dir + image.path).file, chart, image.width, image.height)
                 image

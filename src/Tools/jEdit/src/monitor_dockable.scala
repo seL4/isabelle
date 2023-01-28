@@ -44,14 +44,14 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
     statistics_length = 0
   }
 
-  private var data_name = ML_Statistics.all_fields.head._1
+  private var data_name = ML_Statistics.all_fields.head.title
   private val chart = ML_Statistics.empty.chart(null, Nil)
   private val data = chart.getXYPlot.getDataset.asInstanceOf[XYSeriesCollection]
 
   private def update_chart(): Unit = {
-    ML_Statistics.all_fields.find(_._1 == data_name) match {
+    ML_Statistics.all_fields.find(_.title == data_name) match {
       case None =>
-      case Some((_, fields)) => ML_Statistics(statistics.toList).update_data(data, fields)
+      case Some(fields) => ML_Statistics(statistics.toList).update_data(data, fields.names)
     }
   }
 
