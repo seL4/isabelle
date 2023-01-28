@@ -580,18 +580,14 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
         val build_options = (if (afp_repos.isEmpty) "" else " -A") + " " + options
         try {
           val script =
-            Isabelle_System.export_isabelle_identifier(isabelle_identifier) +
-              ssh.bash_path(self_isabelle.isabelle_home + Path.explode("Admin/build_other")) +
+            ssh.bash_path(Path.explode("Admin/build_other")) +
               (if (clean_platforms)
                 " -O " + Bash.string(ssh.isabelle_platform.ISABELLE_PLATFORM_FAMILY)
                else "") +
               (if (clean_archives) " -Q" else "") +
               " -o " + ssh.bash_path(output_file) + build_options + " " +
               ssh.bash_path(isabelle_other) + " " + args
-          ssh.execute(script,
-            progress_stdout = progress.echo,
-            progress_stderr = progress.echo,
-            strict = false).check
+          self_isabelle.bash(script, echo = true, strict = false).check
         }
         catch {
           case ERROR(msg) =>
