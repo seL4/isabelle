@@ -108,12 +108,7 @@ object ML_Statistics {
   }
 
 
-  /* memory fields (mega bytes) */
-
-  def mem_print(x: Long): Option[String] =
-    if (x == 0L) None else Some(x.toString + " M")
-
-  def mem_scale(x: Long): Long = x / 1024 / 1024
+  /* memory fields */
 
   val scale_MiB: Double = 1.0 / 1024 / 1024
 
@@ -235,7 +230,7 @@ object ML_Statistics {
               (x, y) <- props.iterator ++ speeds.iterator
               if x != Now.name && domain(x)
               z = java.lang.Double.parseDouble(y) if z != 0.0
-            } yield { (x.intern, field_scale(x, z)) })
+            } yield { (x.intern, z) })
 
         result += ML_Statistics.Entry(time, data)
       }
@@ -285,7 +280,7 @@ final class ML_Statistics private(
     data.removeAllSeries()
     for (field <- selected_fields) {
       val series = new XYSeries(field)
-      content.foreach(e => series.add(e.time, e.get(field)))
+      content.foreach(e => series.add(e.time, ML_Statistics.field_scale(field, e.get(field))))
       data.addSeries(series)
     }
   }
