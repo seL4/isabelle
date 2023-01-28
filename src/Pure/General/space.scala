@@ -39,7 +39,7 @@ final class Space private(val bytes: Long) extends AnyVal {
   def PiB: Double = TiB / 1024
   def EiB: Double = PiB / 1024
 
-  override def toString: String = bytes.toString
+  override def toString: String = Value.Long(bytes)
 
   def print: String = {
     @tailrec def print_unit(x: Double, units: List[String]): String =
