@@ -14,13 +14,12 @@ import scala.annotation.tailrec
 
 object Space {
   def bytes(bs: Long): Space = new Space(bs)
-  def bytes(bs: Double): Space = bytes(bs.round)
-
   val zero: Space = bytes(0L)
 
   private val units: List[String] = List("B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB")
 
-  def KiB(x: Double): Space = bytes((x * 1024).round)
+  def B(x: Double): Space = bytes(x.round)
+  def KiB(x: Double): Space = B(x * 1024)
   def MiB(x: Double): Space = KiB(x * 1024)
   def GiB(x: Double): Space = MiB(x * 1024)
   def TiB(x: Double): Space = GiB(x * 1024)
@@ -29,7 +28,8 @@ object Space {
 }
 
 final class Space private(val bytes: Long) extends AnyVal {
-  def KiB: Double = bytes.toDouble / 1024
+  def B: Double = bytes.toDouble
+  def KiB: Double = B / 1024
   def MiB: Double = KiB / 1024
   def GiB: Double = MiB / 1024
   def TiB: Double = GiB / 1024
