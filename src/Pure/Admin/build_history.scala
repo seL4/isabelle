@@ -530,6 +530,8 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
     isabelle_self: Path,
     isabelle_other: Path,
     isabelle_identifier: String = "remote_build_history",
+    component_repository: String = Components.static_component_repository,
+    components_base: String = Components.dynamic_components_base,
     clean_platform: Boolean = false,
     clean_archives: Boolean = false,
     progress: Progress = new Progress,
@@ -560,7 +562,13 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
       Other_Isabelle(isabelle_self, isabelle_identifier = isabelle_identifier,
         ssh = ssh, progress = progress)
 
-    self_isabelle.init(fresh = true, echo = true)
+    val clean_platforms = if (clean_platform) Some(List(ssh.isabelle_platform_family)) else None
+
+    self_isabelle.init(fresh = true, echo = true,
+      component_repository = component_repository,
+      other_settings = self_isabelle.init_components(components_base = components_base),
+      clean_platforms = clean_platforms,
+      clean_archives = clean_archives)
 
     sync(isabelle_other, accurate = true,
       rev = proper_string(rev) getOrElse "tip",
@@ -578,9 +586,12 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
         try {
           val script =
             ssh.bash_path(Path.explode("Admin/build_other")) +
-              (if (clean_platform)
-                " -O " + Bash.string(ssh.isabelle_platform.ISABELLE_PLATFORM_FAMILY)
-               else "") +
+              " -R " + Bash.string(component_repository) +
+              " -C " + Bash.string(components_base) +
+              (clean_platforms match {
+                case Some(ps) => " -O " + Bash.string(ps.mkString(","))
+                case None => ""
+              }) +
               (if (clean_archives) " -Q" else "") +
               " -o " + ssh.bash_path(output_file) + build_options + " " +
               ssh.bash_path(isabelle_other) + " " + args
