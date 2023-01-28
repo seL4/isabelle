@@ -285,7 +285,7 @@ final class ML_Statistics private(
     data.removeAllSeries()
     for (field <- selected_fields) {
       val series = new XYSeries(field)
-      content.foreach(entry => series.add(entry.time, entry.get(field)))
+      content.foreach(e => series.add(e.time, e.get(field)))
       data.addSeries(series)
     }
   }
