@@ -103,8 +103,8 @@ object Build_History {
     afp_partition: Int = 0,
     isabelle_identifier: String = default_isabelle_identifier,
     ml_statistics_step: Int = 1,
-    component_repository: String = Components.default_component_repository,
-    components_base: String = Components.standard_components_base,
+    component_repository: String = Components.static_component_repository,
+    components_base: String = Components.dynamic_components_base,
     clean_platforms: Option[List[Platform.Family.Value]] = None,
     clean_archives: Boolean = false,
     fresh: Boolean = false,
@@ -402,7 +402,7 @@ object Build_History {
     Command_Line.tool {
       var afp = false
       var multicore_base = false
-      var components_base = Components.standard_components_base
+      var components_base = Components.dynamic_components_base
       var heap: Option[Int] = None
       var max_heap: Option[Int] = None
       var multicore_list = List(default_multicore)
@@ -410,7 +410,7 @@ object Build_History {
       var clean_platforms: Option[List[Platform.Family.Value]] = None
       var afp_partition = 0
       var clean_archives = false
-      var component_repository = Components.default_component_repository
+      var component_repository = Components.static_component_repository
       var more_settings: List[String] = Nil
       var more_preferences: List[String] = Nil
       var fresh = false
@@ -430,7 +430,7 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
     -A           include $ISABELLE_HOME/AFP directory
     -B           first multicore build serves as base for scheduling information
     -C DIR       base directory for Isabelle components (default: """ +
-      quote(Components.standard_components_base) + """)
+      quote(Components.dynamic_components_base) + """)
     -H SIZE      minimal ML heap in MB (default: """ + default_heap + """ for x86, """ +
       default_heap * 2 + """ for x86_64)
     -M MULTICORE multicore configurations (see below)
@@ -440,7 +440,7 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
     -P NUMBER    AFP partition number (0, 1, 2, default: 0=unrestricted)
     -Q           clean archives of downloaded components
     -R URL       remote repository for Isabelle components (default: """ +
-      Components.default_component_repository + """)
+      Components.static_component_repository + """)
     -U SIZE      maximal ML heap in MB (default: unbounded)
     -e TEXT      additional text for generated etc/settings
     -f           fresh build of Isabelle/Scala components (recommended)

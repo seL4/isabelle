@@ -75,7 +75,7 @@ final class Other_Isabelle private(
   /* components */
 
   def init_components(
-    components_base: String = Components.standard_components_base,
+    components_base: String = Components.dynamic_components_base,
     catalogs: List[String] = Components.default_catalogs,
     components: List[String] = Nil
   ): List[String] = {
@@ -91,7 +91,7 @@ final class Other_Isabelle private(
     echo: Boolean = false,
     clean_platforms: Option[List[Platform.Family.Value]] = None,
     clean_archives: Boolean = false,
-    component_repository: String = Components.default_component_repository
+    component_repository: String = Components.static_component_repository
   ): Unit = {
     val missing = Path.split(getenv("ISABELLE_COMPONENTS_MISSING"))
     for (path <- missing) {
@@ -154,7 +154,7 @@ final class Other_Isabelle private(
     echo: Boolean = false,
     clean_platforms: Option[List[Platform.Family.Value]] = None,
     clean_archives: Boolean = false,
-    component_repository: String = Components.default_component_repository
+    component_repository: String = Components.static_component_repository
   ): Unit = {
     init_settings(other_settings)
     resolve_components(

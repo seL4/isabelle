@@ -59,11 +59,11 @@ object Components {
 
   /* component collections */
 
-  def default_component_repository: String =
+  def static_component_repository: String =
     Isabelle_System.getenv("ISABELLE_COMPONENT_REPOSITORY")
 
   val default_components_base: Path = Path.explode("$ISABELLE_COMPONENTS_BASE")
-  val standard_components_base: String = "${ISABELLE_COMPONENTS_BASE:-$USER_HOME/.isabelle/contrib}"
+  val dynamic_components_base: String = "${ISABELLE_COMPONENTS_BASE:-$USER_HOME/.isabelle/contrib}"
 
   val default_catalogs: List[String] = List("main")
   val optional_catalogs: List[String] = List("main", "optional")
@@ -125,7 +125,7 @@ object Components {
     copy_dir: Option[Path] = None,
     clean_platforms: Option[List[Platform.Family.Value]] = None,
     clean_archives: Boolean = false,
-    component_repository: String = Components.default_component_repository,
+    component_repository: String = Components.static_component_repository,
     ssh: SSH.System = SSH.Local,
     progress: Progress = new Progress
   ): Unit = {
