@@ -122,7 +122,7 @@ object Build_Log {
     def is_log(file: JFile,
       prefixes: List[String] =
         List(Build_History.log_prefix, Identify.log_prefix, Identify.log_prefix2,
-          Isatest.log_prefix, AFP_Test.log_prefix, Jenkins.log_prefix),
+          Isatest.log_prefix, AFP_Test.log_prefix),
       suffixes: List[String] = List(".log", ".log.gz", ".log.xz")
     ): Boolean = {
       val name = file.getName
@@ -279,9 +279,7 @@ object Build_Log {
     val log_prefix2 = "plain_identify_"
 
     def engine(log_file: Log_File): String =
-      if (log_file.name.startsWith(Jenkins.log_prefix)) "jenkins_identify"
-      else if (log_file.name.startsWith(log_prefix2)) "plain_identify"
-      else "identify"
+      if (log_file.name.startsWith(log_prefix2)) "plain_identify" else "identify"
 
     def content(date: Date, isabelle_version: Option[String], afp_version: Option[String]): String =
       terminate_lines(
@@ -380,18 +378,6 @@ object Build_Log {
       case AFP_Test.Start_Old(log_file.Strict_Date(start)) :: _ =>
         parse(AFP_Test.engine, "", start, AFP_Test.End,
           AFP_Test.Isabelle_Version, AFP_Test.AFP_Version)
-
-      case Jenkins.Start() :: _ =>
-        log_file.lines.dropWhile(_ != Jenkins.BUILD) match {
-          case Jenkins.BUILD :: _ :: Jenkins.Start_Date(log_file.Strict_Date(start)) :: _ =>
-            val host =
-              log_file.lines.takeWhile(_ != Jenkins.CONFIGURATION).collectFirst({
-                case Jenkins.Host(a, b) => a + "." + b
-              }).getOrElse("")
-            parse(Jenkins.engine, host, start.to(Date.timezone_berlin), Jenkins.No_End,
-              Jenkins.Isabelle_Version, Jenkins.AFP_Version)
-          case _ => Meta_Info.empty
-        }
 
       case line :: _ if line.startsWith("\u0000") => Meta_Info.empty
       case List(Isatest.End(_)) => Meta_Info.empty

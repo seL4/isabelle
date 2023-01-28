@@ -594,8 +594,6 @@ object Isabelle_Cronjob {
                       (r, i) <- (if (seq.length <= 1) seq.map((_, -1)) else seq.zipWithIndex)
                       (rev, afp_rev) <- r.pick(logger.options, hg.id(), history_base_filter(r))
                     } yield remote_build_history(rev, afp_rev, i, r)))),
-                Logger_Task("jenkins_logs", _ =>
-                  Jenkins.download_logs(logger.options, Jenkins.build_log_jobs, main_dir)),
                 Logger_Task("build_log_database",
                   logger => Isabelle_Devel.build_log_database(logger.options, build_log_dirs)),
                 Logger_Task("build_status",

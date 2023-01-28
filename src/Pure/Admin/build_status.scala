@@ -14,8 +14,7 @@ object Build_Status {
   val default_image_size = (800, 600)
   val default_history = 30
 
-  def default_profiles: List[Profile] =
-    Jenkins.build_status_profiles ::: Isabelle_Cronjob.build_status_profiles
+  def default_profiles: List[Profile] = Isabelle_Cronjob.build_status_profiles
 
 
   /* data profiles */
