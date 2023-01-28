@@ -405,7 +405,7 @@ object Isabelle_Cronjob {
               isabelle_repos,
               isabelle_repos.ext(r.host),
               isabelle_identifier = "cronjob_build_history",
-              clean_platforms = r.clean_components,
+              clean_platform = r.clean_components,
               clean_archives = r.clean_components,
               rev = rev,
               afp_repos = if (afp_rev.isDefined) Some(afp_repos) else None,

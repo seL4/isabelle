@@ -530,7 +530,7 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
     isabelle_self: Path,
     isabelle_other: Path,
     isabelle_identifier: String = "remote_build_history",
-    clean_platforms: Boolean = false,
+    clean_platform: Boolean = false,
     clean_archives: Boolean = false,
     progress: Progress = new Progress,
     protect_args: Boolean = false,
@@ -578,7 +578,7 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
         try {
           val script =
             ssh.bash_path(Path.explode("Admin/build_other")) +
-              (if (clean_platforms)
+              (if (clean_platform)
                 " -O " + Bash.string(ssh.isabelle_platform.ISABELLE_PLATFORM_FAMILY)
                else "") +
               (if (clean_archives) " -Q" else "") +
