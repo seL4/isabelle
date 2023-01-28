@@ -28,6 +28,9 @@ object Space {
 }
 
 final class Space private(val bytes: Long) extends AnyVal {
+  def is_proper: Boolean = bytes > 0
+  def is_relevant: Boolean = MiB >= 1.0
+
   def B: Double = bytes.toDouble
   def KiB: Double = B / 1024
   def MiB: Double = KiB / 1024
@@ -48,4 +51,6 @@ final class Space private(val bytes: Long) extends AnyVal {
 
     print_unit(bytes.toDouble, Space.units)
   }
+
+  def print_relevant: Option[String] = if (is_relevant) Some(print) else None
 }
