@@ -141,7 +141,7 @@ object Isabelle_Cronjob {
     history: Int = 0,
     history_base: String = "build_history_base",
     components_base: String = Components.dynamic_components_base,
-    clean_components: Boolean = false,
+    clean_components: Boolean = true,
     java_heap: String = "",
     options: String = "",
     args: String = "",
