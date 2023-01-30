@@ -225,7 +225,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
 
   private def build_document(): Unit = {
     PIDE.editor.document_session() match {
-      case Some(session_background) if session_background.info.documents.nonEmpty =>
+      case Some(session_background) =>
         run_process(only_running = true) { progress =>
           show_page(output_page)
           val result = Exn.capture { document_build(session_background, progress) }
@@ -246,7 +246,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
           show_state()
           show_page(if (Exn.is_interrupt_exn(result)) input_page else output_page)
         }
-      case _ =>
+      case None =>
     }
   }
 
