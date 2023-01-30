@@ -432,7 +432,7 @@ value "show_acom (steps test3_ivl 5)"
 text\<open>Takes as many iterations as the actual execution. Would diverge if
 loop did not terminate. Worse still, as the following example shows: even if
 the actual execution terminates, the analysis may not. The value of y keeps
-decreasing as the analysis is iterated, no matter how long:\<close>
+increasing as the analysis is iterated, no matter how long:\<close>
 
 value "show_acom (steps test4_ivl 50)"
 
