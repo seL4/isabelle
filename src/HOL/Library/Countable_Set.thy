@@ -72,7 +72,7 @@ qed
 lemma countable_infiniteE':
   assumes "countable A" "infinite A"
   obtains g where "bij_betw g (UNIV :: nat set) A"
-  using bij_betw_inv[OF countableE_infinite[OF assms]] that by blast
+  by (meson assms bij_betw_inv countableE_infinite)
 
 lemma countable_enum_cases:
   assumes "countable S"

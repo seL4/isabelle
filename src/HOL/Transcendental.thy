@@ -1928,9 +1928,9 @@ lemma exp_bound:
 proof -
   have "suminf (\<lambda>n. inverse(fact (n+2)) * (x ^ (n + 2))) \<le> x\<^sup>2"
   proof -
-    have "(\<lambda>n. x\<^sup>2 / 2 * (1 / 2) ^ n) sums (x\<^sup>2 / 2 * (1 / (1 - 1 / 2)))"
+    have "(\<lambda>n. x\<^sup>2 / 2 * (1/2) ^ n) sums (x\<^sup>2 / 2 * (1 / (1 - 1/2)))"
       by (intro sums_mult geometric_sums) simp
-    then have sumsx: "(\<lambda>n. x\<^sup>2 / 2 * (1 / 2) ^ n) sums x\<^sup>2"
+    then have sumsx: "(\<lambda>n. x\<^sup>2 / 2 * (1/2) ^ n) sums x\<^sup>2"
       by simp
     have "suminf (\<lambda>n. inverse(fact (n+2)) * (x ^ (n + 2))) \<le> suminf (\<lambda>n. (x\<^sup>2/2) * ((1/2)^n))"
     proof (intro suminf_le allI)
@@ -1953,7 +1953,7 @@ proof -
       qed
       show "summable (\<lambda>n. inverse (fact (n + 2)) * x ^ (n + 2))"
         by (rule summable_exp [THEN summable_ignore_initial_segment])
-      show "summable (\<lambda>n. x\<^sup>2 / 2 * (1 / 2) ^ n)"
+      show "summable (\<lambda>n. x\<^sup>2 / 2 * (1/2) ^ n)"
         by (rule sums_summable [OF sumsx])
     qed
     also have "\<dots> = x\<^sup>2"
@@ -2066,7 +2066,7 @@ qed
 
 lemma ln_one_minus_pos_lower_bound:
   fixes x :: real
-  assumes a: "0 \<le> x" and b: "x \<le> 1 / 2"
+  assumes a: "0 \<le> x" and b: "x \<le> 1/2"
   shows "- x - 2 * x\<^sup>2 \<le> ln (1 - x)"
 proof -
   from b have c: "x < 1" by auto
@@ -2120,7 +2120,7 @@ qed
 
 lemma abs_ln_one_plus_x_minus_x_bound_nonpos:
   fixes x :: real
-  assumes a: "-(1 / 2) \<le> x" and b: "x \<le> 0"
+  assumes a: "-(1/2) \<le> x" and b: "x \<le> 0"
   shows "\<bar>ln (1 + x) - x\<bar> \<le> 2 * x\<^sup>2"
 proof -
   have *: "- (-x) - 2 * (-x)\<^sup>2 \<le> ln (1 - (- x))"
@@ -2134,7 +2134,7 @@ qed
 
 lemma abs_ln_one_plus_x_minus_x_bound:
   fixes x :: real
-  assumes "\<bar>x\<bar> \<le> 1 / 2"
+  assumes "\<bar>x\<bar> \<le> 1/2"
   shows "\<bar>ln (1 + x) - x\<bar> \<le> 2 * x\<^sup>2"
 proof (cases "0 \<le> x")
   case True
@@ -3532,9 +3532,10 @@ qed
 
 lemma cos_minus [simp]: "cos (-x) = cos x"
   for x :: "'a::{real_normed_algebra_1,banach}"
-  using cos_minus_converges [of x]
-  by (simp add: cos_def summable_norm_cos [THEN summable_norm_cancel]
-      suminf_minus sums_iff equation_minus_iff)
+  using cos_minus_converges [of x] by (metis cos_def sums_unique)
+
+lemma cos_abs_real [simp]: "cos \<bar>x :: real\<bar> = cos x"
+  by (simp add: abs_if)
 
 lemma sin_cos_squared_add [simp]: "(sin x)\<^sup>2 + (cos x)\<^sup>2 = 1"
   for x :: "'a::{real_normed_field,banach}"
@@ -4009,12 +4010,12 @@ lemma sin_le_zero: "pi \<le> x \<Longrightarrow> x < 2 * pi \<Longrightarrow> si
 
 lemma sin_pi_divide_n_ge_0 [simp]:
   assumes "n \<noteq> 0"
-  shows "0 \<le> sin (pi / real n)"
+  shows "0 \<le> sin (pi/real n)"
   by (rule sin_ge_zero) (use assms in \<open>simp_all add: field_split_simps\<close>)
 
 lemma sin_pi_divide_n_gt_0:
   assumes "2 \<le> n"
-  shows "0 < sin (pi / real n)"
+  shows "0 < sin (pi/real n)"
   by (rule sin_gt_zero) (use assms in \<open>simp_all add: field_split_simps\<close>)
 
 text\<open>Proof resembles that of \<open>cos_is_zero\<close> but with \<^term>\<open>pi\<close> for the upper bound\<close>
@@ -4101,7 +4102,7 @@ lemma sin_zero_lemma:
 proof -
   obtain n where "odd n" and n: "x + pi/2 = of_nat n * (pi/2)" "n > 0"
     using cos_zero_lemma [of "x + pi/2"] assms by (auto simp add: cos_add)
-  then have "x = real (n - 1) * (pi / 2)"
+  then have "x = real (n - 1) * (pi/2)"
     by (simp add: algebra_simps of_nat_diff)
   then show ?thesis
     by (simp add: \<open>odd n\<close>)
@@ -4182,9 +4183,9 @@ qed
 
 lemma sin_zero_iff_int2: "sin x = 0 \<longleftrightarrow> (\<exists>i::int. x = of_int i * pi)"
 proof -
-  have "sin x = 0 \<longleftrightarrow> (\<exists>i. even i \<and> x = real_of_int i * (pi / 2))"
+  have "sin x = 0 \<longleftrightarrow> (\<exists>i. even i \<and> x = real_of_int i * (pi/2))"
     by (auto simp: sin_zero_iff_int)
-  also have "... = (\<exists>j. x = real_of_int (2*j) * (pi / 2))"
+  also have "... = (\<exists>j. x = real_of_int (2*j) * (pi/2))"
     using dvd_triv_left by blast
   also have "... = (\<exists>i::int. x = of_int i * pi)"
     by auto
@@ -4421,15 +4422,15 @@ proof -
   finally show ?thesis .
 qed
 
-lemma cos_45: "cos (pi / 4) = sqrt 2 / 2"
+lemma cos_45: "cos (pi/4) = sqrt 2 / 2"
 proof -
-  let ?c = "cos (pi / 4)"
-  let ?s = "sin (pi / 4)"
+  let ?c = "cos (pi/4)"
+  let ?s = "sin (pi/4)"
   have nonneg: "0 \<le> ?c"
     by (simp add: cos_ge_zero)
-  have "0 = cos (pi / 4 + pi / 4)"
+  have "0 = cos (pi/4 + pi/4)"
     by simp
-  also have "cos (pi / 4 + pi / 4) = ?c\<^sup>2 - ?s\<^sup>2"
+  also have "cos (pi/4 + pi/4) = ?c\<^sup>2 - ?s\<^sup>2"
     by (simp only: cos_add power2_eq_square)
   also have "\<dots> = 2 * ?c\<^sup>2 - 1"
     by (simp add: sin_squared_eq)
@@ -4439,13 +4440,13 @@ proof -
     using nonneg by (rule power2_eq_imp_eq) simp
 qed
 
-lemma cos_30: "cos (pi / 6) = sqrt 3/2"
+lemma cos_30: "cos (pi/6) = sqrt 3/2"
 proof -
-  let ?c = "cos (pi / 6)"
-  let ?s = "sin (pi / 6)"
+  let ?c = "cos (pi/6)"
+  let ?s = "sin (pi/6)"
   have pos_c: "0 < ?c"
     by (rule cos_gt_zero) simp_all
-  have "0 = cos (pi / 6 + pi / 6 + pi / 6)"
+  have "0 = cos (pi/6 + pi/6 + pi/6)"
     by simp
   also have "\<dots> = (?c * ?c - ?s * ?s) * ?c - (?s * ?c + ?c * ?s) * ?s"
     by (simp only: cos_add sin_add)
@@ -4458,22 +4459,33 @@ proof -
     by (rule power2_eq_imp_eq) simp
 qed
 
-lemma sin_45: "sin (pi / 4) = sqrt 2 / 2"
+lemma sin_45: "sin (pi/4) = sqrt 2 / 2"
   by (simp add: sin_cos_eq cos_45)
 
-lemma sin_60: "sin (pi / 3) = sqrt 3/2"
+lemma sin_60: "sin (pi/3) = sqrt 3/2"
   by (simp add: sin_cos_eq cos_30)
 
-lemma cos_60: "cos (pi / 3) = 1 / 2"
+lemma cos_60: "cos (pi/3) = 1/2"
 proof -
-  have "0 \<le> cos (pi / 3)"
+  have "0 \<le> cos (pi/3)"
     by (rule cos_ge_zero) (use pi_half_ge_zero in \<open>linarith+\<close>)
   then show ?thesis
     by (simp add: cos_squared_eq sin_60 power_divide power2_eq_imp_eq)
 qed
 
-lemma sin_30: "sin (pi / 6) = 1 / 2"
+lemma sin_30: "sin (pi/6) = 1/2"
   by (simp add: sin_cos_eq cos_60)
+
+lemma cos_120: "cos (2 * pi/3) = -1/2"
+  and sin_120: "sin (2 * pi/3) = sqrt 3 / 2"
+  using sin_double[of "pi/3"] cos_double[of "pi/3"]
+  by (simp_all add: power2_eq_square sin_60 cos_60)
+
+lemma cos_120': "cos (pi * 2 / 3) = -1/2"
+  using cos_120 by (subst mult.commute)
+
+lemma sin_120': "sin (pi * 2 / 3) = sqrt 3 / 2"
+  using sin_120 by (subst mult.commute)
 
 lemma cos_integer_2pi: "n \<in> \<int> \<Longrightarrow> cos(2 * pi * n) = 1"
   by (metis Ints_cases cos_one_2pi_int mult.assoc mult.commute)
@@ -4563,13 +4575,13 @@ lemma tan_half: "tan x = sin (2 * x) / (cos (2 * x) + 1)"
   unfolding tan_def sin_double cos_double sin_squared_eq
   by (simp add: power2_eq_square)
 
-lemma tan_30: "tan (pi / 6) = 1 / sqrt 3"
+lemma tan_30: "tan (pi/6) = 1 / sqrt 3"
   unfolding tan_def by (simp add: sin_30 cos_30)
 
-lemma tan_45: "tan (pi / 4) = 1"
+lemma tan_45: "tan (pi/4) = 1"
   unfolding tan_def by (simp add: sin_45 cos_45)
 
-lemma tan_60: "tan (pi / 3) = sqrt 3"
+lemma tan_60: "tan (pi/3) = sqrt 3"
   unfolding tan_def by (simp add: sin_60 cos_60)
 
 lemma DERIV_tan [simp]: "cos x \<noteq> 0 \<Longrightarrow> DERIV tan x :> inverse ((cos x)\<^sup>2)"
@@ -4667,7 +4679,7 @@ proof (cases "0::real" y rule: le_cases)
     by (meson less_le_trans minus_pi_half_less_zero tan_total_pos)
 next
   case ge
-  with tan_total_pos [of "-y"] obtain x where "0 \<le> x" "x < pi / 2" "tan x = - y"
+  with tan_total_pos [of "-y"] obtain x where "0 \<le> x" "x < pi/2" "tan x = - y"
     by force
   then show ?thesis
     by (rule_tac x="-x" in exI) auto
@@ -4675,7 +4687,7 @@ qed
 
 proposition tan_total: "\<exists>! x. -(pi/2) < x \<and> x < (pi/2) \<and> tan x = y"
 proof -
-  have "u = v" if u: "- (pi / 2) < u" "u < pi / 2" and v: "- (pi / 2) < v" "v < pi / 2"
+  have "u = v" if u: "- (pi/2) < u" "u < pi/2" and v: "- (pi/2) < v" "v < pi/2"
     and eq: "tan u = tan v" for u v
   proof (cases u v rule: linorder_cases)
     case less
@@ -4706,8 +4718,8 @@ proof -
     ultimately show ?thesis
       using DERIV_unique [OF _ DERIV_tan] by fastforce
   qed auto
-  then have "\<exists>!x. - (pi / 2) < x \<and> x < pi / 2 \<and> tan x = y" 
-    if x: "- (pi / 2) < x" "x < pi / 2" "tan x = y" for x
+  then have "\<exists>!x. - (pi/2) < x \<and> x < pi/2 \<and> tan x = y" 
+    if x: "- (pi/2) < x" "x < pi/2" "tan x = y" for x
     using that by auto
   then show ?thesis
     using lemma_tan_total1 [where y = y]
@@ -4984,6 +4996,10 @@ lemma arcsin_sin: "- (pi/2) \<le> x \<Longrightarrow> x \<le> pi/2 \<Longrightar
   unfolding arcsin_def
   using the1_equality [OF sin_total]  by simp
 
+lemma arcsin_unique:
+  assumes "-pi/2 \<le> x" and "x \<le> pi/2" and "sin x = y" shows "arcsin y = x"
+  using arcsin_sin[of x] assms by force
+
 lemma arcsin_0 [simp]: "arcsin 0 = 0"
   using arcsin_sin [of 0] by simp
 
@@ -4995,6 +5011,13 @@ lemma arcsin_minus_1 [simp]: "arcsin (- 1) = - (pi/2)"
 
 lemma arcsin_minus: "- 1 \<le> x \<Longrightarrow> x \<le> 1 \<Longrightarrow> arcsin (- x) = - arcsin x"
   by (metis (no_types, opaque_lifting) arcsin arcsin_sin minus_minus neg_le_iff_le sin_minus)
+
+lemma arcsin_one_half [simp]: "arcsin (1/2) = pi / 6"
+  and arcsin_minus_one_half [simp]: "arcsin (-(1/2)) = -pi / 6"
+  by (intro arcsin_unique; simp add: sin_30 field_simps)+
+  
+lemma arcsin_one_over_sqrt_2: "arcsin (1 / sqrt 2) = pi / 4"
+  by (rule arcsin_unique) (auto simp: sin_45 field_simps)
 
 lemma arcsin_eq_iff: "\<bar>x\<bar> \<le> 1 \<Longrightarrow> \<bar>y\<bar> \<le> 1 \<Longrightarrow> arcsin x = arcsin y \<longleftrightarrow> x = y"
   by (metis abs_le_iff arcsin minus_le_iff)
@@ -5036,6 +5059,10 @@ lemma arccos_cos: "0 \<le> x \<Longrightarrow> x \<le> pi \<Longrightarrow> arcc
 lemma arccos_cos2: "x \<le> 0 \<Longrightarrow> - pi \<le> x \<Longrightarrow> arccos (cos x) = -x"
   by (auto simp: arccos_def intro!: the1_equality cos_total)
 
+lemma arccos_unique:
+  assumes "0 \<le> x" and "x \<le> pi" and "cos x = y" shows "arccos y = x"
+  using arccos_cos assms by blast
+
 lemma cos_arcsin:
   assumes "- 1 \<le> x" "x \<le> 1"
   shows "cos (arcsin x) = sqrt (1 - x\<^sup>2)"
@@ -5061,8 +5088,7 @@ proof (rule power2_eq_imp_eq)
 qed
 
 lemma arccos_0 [simp]: "arccos 0 = pi/2"
-  by (metis arccos_cos cos_gt_zero cos_pi cos_pi_half pi_gt_zero
-      pi_half_ge_zero not_le not_zero_less_neg_numeral numeral_One)
+  using arccos_cos pi_half_ge_zero by fastforce
 
 lemma arccos_1 [simp]: "arccos 1 = 0"
   using arccos_cos by force
@@ -5071,8 +5097,14 @@ lemma arccos_minus_1 [simp]: "arccos (- 1) = pi"
   by (metis arccos_cos cos_pi order_refl pi_ge_zero)
 
 lemma arccos_minus: "-1 \<le> x \<Longrightarrow> x \<le> 1 \<Longrightarrow> arccos (- x) = pi - arccos x"
-  by (metis arccos_cos arccos_cos2 cos_minus_pi cos_total diff_le_0_iff_le le_add_same_cancel1
-      minus_diff_eq uminus_add_conv_diff)
+  by (smt (verit, ccfv_threshold) arccos arccos_cos cos_minus cos_minus_pi)
+
+lemma arccos_one_half [simp]: "arccos (1/2) = pi / 3"
+  and arccos_minus_one_half [simp]: "arccos (-(1/2)) = 2 * pi / 3"
+  by (intro arccos_unique; simp add: cos_60 cos_120)+
+
+lemma arccos_one_over_sqrt_2: "arccos (1 / sqrt 2) = pi / 4"
+  by (rule arccos_unique) (auto simp: cos_45 field_simps)
 
 corollary arccos_minus_abs:
   assumes "\<bar>x\<bar> \<le> 1"
@@ -5211,9 +5243,9 @@ lemma isCont_arccos: "-1 < x \<Longrightarrow> x < 1 \<Longrightarrow> isCont ar
 
 lemma isCont_arctan: "isCont arctan x"
 proof -
-  obtain u where u: "- (pi / 2) < u" "u < arctan x"
+  obtain u where u: "- (pi/2) < u" "u < arctan x"
     by (meson arctan arctan_less_iff linordered_field_no_lb)
-  obtain v where v: "arctan x < v" "v < pi / 2"
+  obtain v where v: "arctan x < v" "v < pi/2"
     by (meson arctan_less_iff arctan_ubound linordered_field_no_ub)
   have "isCont arctan (tan (arctan x))"
   proof (rule isCont_inverse_function2 [of u "arctan x" v])
@@ -5442,6 +5474,9 @@ lemma arcsin_less_arcsin: "- 1 \<le> x \<Longrightarrow> x < y \<Longrightarrow>
 lemma arcsin_le_arcsin: "- 1 \<le> x \<Longrightarrow> x \<le> y \<Longrightarrow> y \<le> 1 \<Longrightarrow> arcsin x \<le> arcsin y"
   using arcsin_le_mono by auto
 
+lemma arcsin_nonneg: "x \<in> {0..1} \<Longrightarrow> arcsin x \<ge> 0"
+  using arcsin_le_arcsin[of 0 x] by simp
+  
 lemma arccos_less_mono: "\<bar>x\<bar> \<le> 1 \<Longrightarrow> \<bar>y\<bar> \<le> 1 \<Longrightarrow> arccos x < arccos y \<longleftrightarrow> y < x"
   by (rule trans [OF cos_mono_less_eq [symmetric]]) (use arccos_ubound arccos_lbound in auto)
 
@@ -5490,15 +5525,15 @@ lemma arccos_arctan:
 proof -
   have "arctan(x / sqrt(1 - x\<^sup>2)) - (pi/2 - arccos x) = 0"
   proof (rule sin_eq_0_pi)
-    show "- pi < arctan (x / sqrt (1 - x\<^sup>2)) - (pi / 2 - arccos x)"
+    show "- pi < arctan (x / sqrt (1 - x\<^sup>2)) - (pi/2 - arccos x)"
       using arctan_lbound [of "x / sqrt(1 - x\<^sup>2)"]  arccos_bounded [of x] assms
       by (simp add: algebra_simps)
   next
-    show "arctan (x / sqrt (1 - x\<^sup>2)) - (pi / 2 - arccos x) < pi"
+    show "arctan (x / sqrt (1 - x\<^sup>2)) - (pi/2 - arccos x) < pi"
       using arctan_ubound [of "x / sqrt(1 - x\<^sup>2)"]  arccos_bounded [of x] assms
       by (simp add: algebra_simps)
   next
-    show "sin (arctan (x / sqrt (1 - x\<^sup>2)) - (pi / 2 - arccos x)) = 0"
+    show "sin (arctan (x / sqrt (1 - x\<^sup>2)) - (pi/2 - arccos x)) = 0"
       using assms
       by (simp add: algebra_simps sin_diff cos_add sin_arccos sin_arctan cos_arctan
                     power2_eq_square square_eq_1_iff)
@@ -5574,14 +5609,14 @@ qed
 
 subsection \<open>Machin's formula\<close>
 
-lemma arctan_one: "arctan 1 = pi / 4"
+lemma arctan_one: "arctan 1 = pi/4"
   by (rule arctan_unique) (simp_all add: tan_45 m2pi_less_pi)
 
 lemma tan_total_pi4:
   assumes "\<bar>x\<bar> < 1"
-  shows "\<exists>z. - (pi / 4) < z \<and> z < pi / 4 \<and> tan z = x"
+  shows "\<exists>z. - (pi/4) < z \<and> z < pi/4 \<and> tan z = x"
 proof
-  show "- (pi / 4) < arctan x \<and> arctan x < pi / 4 \<and> tan (arctan x) = x"
+  show "- (pi/4) < arctan x \<and> arctan x < pi/4 \<and> tan (arctan x) = x"
     unfolding arctan_one [symmetric] arctan_minus [symmetric]
     unfolding arctan_less_iff
     using assms by (auto simp: arctan)
@@ -5591,13 +5626,13 @@ lemma arctan_add:
   assumes "\<bar>x\<bar> \<le> 1" "\<bar>y\<bar> < 1"
   shows "arctan x + arctan y = arctan ((x + y) / (1 - x * y))"
 proof (rule arctan_unique [symmetric])
-  have "- (pi / 4) \<le> arctan x" "- (pi / 4) < arctan y"
+  have "- (pi/4) \<le> arctan x" "- (pi/4) < arctan y"
     unfolding arctan_one [symmetric] arctan_minus [symmetric]
     unfolding arctan_le_iff arctan_less_iff
     using assms by auto
   from add_le_less_mono [OF this] show 1: "- (pi/2) < arctan x + arctan y"
     by simp
-  have "arctan x \<le> pi / 4" "arctan y < pi / 4"
+  have "arctan x \<le> pi/4" "arctan y < pi/4"
     unfolding arctan_one [symmetric]
     unfolding arctan_le_iff arctan_less_iff
     using assms by auto
@@ -5610,7 +5645,7 @@ qed
 lemma arctan_double: "\<bar>x\<bar> < 1 \<Longrightarrow> 2 * arctan x = arctan ((2 * x) / (1 - x\<^sup>2))"
   by (metis arctan_add linear mult_2 not_less power2_eq_square)
 
-theorem machin: "pi / 4 = 4 * arctan (1 / 5) - arctan (1 / 239)"
+theorem machin: "pi/4 = 4 * arctan (1 / 5) - arctan (1/239)"
 proof -
   have "\<bar>1 / 5\<bar> < (1 :: real)"
     by auto
@@ -5622,17 +5657,17 @@ proof -
   from arctan_add[OF less_imp_le[OF this] this] have "2 * arctan (5 / 12) = arctan (120 / 119)"
     by auto
   moreover
-  have "\<bar>1\<bar> \<le> (1::real)" and "\<bar>1 / 239\<bar> < (1::real)"
+  have "\<bar>1\<bar> \<le> (1::real)" and "\<bar>1/239\<bar> < (1::real)"
     by auto
-  from arctan_add[OF this] have "arctan 1 + arctan (1 / 239) = arctan (120 / 119)"
+  from arctan_add[OF this] have "arctan 1 + arctan (1/239) = arctan (120 / 119)"
     by auto
-  ultimately have "arctan 1 + arctan (1 / 239) = 4 * arctan (1 / 5)"
+  ultimately have "arctan 1 + arctan (1/239) = 4 * arctan (1 / 5)"
     by auto
   then show ?thesis
     unfolding arctan_one by algebra
 qed
 
-lemma machin_Euler: "5 * arctan (1 / 7) + 2 * arctan (3 / 79) = pi / 4"
+lemma machin_Euler: "5 * arctan (1 / 7) + 2 * arctan (3 / 79) = pi/4"
 proof -
   have 17: "\<bar>1 / 7\<bar> < (1 :: real)" by auto
   with arctan_double have "2 * arctan (1 / 7) = arctan (7 / 24)"
@@ -6007,11 +6042,11 @@ proof -
 
       have c_minus_minus: "?c (- 1) i = - ?c 1 i" for i by auto
 
-      have "arctan (- 1) = arctan (tan (-(pi / 4)))"
+      have "arctan (- 1) = arctan (tan (-(pi/4)))"
         unfolding tan_45 tan_minus ..
-      also have "\<dots> = - (pi / 4)"
+      also have "\<dots> = - (pi/4)"
         by (rule arctan_tan) (auto simp: order_less_trans[OF \<open>- (pi/2) < 0\<close> pi_gt_zero])
-      also have "\<dots> = - (arctan (tan (pi / 4)))"
+      also have "\<dots> = - (arctan (tan (pi/4)))"
         unfolding neg_equal_iff_equal
         by (rule arctan_tan[symmetric]) (auto simp: order_less_trans[OF \<open>- (2 * pi) < 0\<close> pi_gt_zero])
       also have "\<dots> = - (arctan 1)"
@@ -6089,10 +6124,10 @@ proof (rule arctan_unique)
     by (simp add: tan_def cos_arctan sin_arctan sin_diff cos_diff)
 qed
 
-theorem pi_series: "pi / 4 = (\<Sum>k. (-1)^k * 1 / real (k * 2 + 1))"
+theorem pi_series: "pi/4 = (\<Sum>k. (-1)^k * 1 / real (k * 2 + 1))"
   (is "_ = ?SUM")
 proof -
-  have "pi / 4 = arctan 1"
+  have "pi/4 = arctan 1"
     using arctan_one by auto
   also have "\<dots> = ?SUM"
     using arctan_series[of 1] by auto
@@ -6597,7 +6632,7 @@ qed
 
 lemma sinh_plus_cosh: "sinh x + cosh x = exp x"
 proof -
-  have "sinh x + cosh x = (1 / 2) *\<^sub>R (exp x + exp x)"
+  have "sinh x + cosh x = (1/2) *\<^sub>R (exp x + exp x)"
     by (simp add: sinh_def cosh_def algebra_simps)
   also have "\<dots> = exp x" by (rule scaleR_half_double)
   finally show ?thesis .
@@ -6608,7 +6643,7 @@ lemma cosh_plus_sinh: "cosh x + sinh x = exp x"
 
 lemma cosh_minus_sinh: "cosh x - sinh x = exp (-x)"
 proof -
-  have "cosh x - sinh x = (1 / 2) *\<^sub>R (exp (-x) + exp (-x))"
+  have "cosh x - sinh x = (1/2) *\<^sub>R (exp (-x) + exp (-x))"
     by (simp add: sinh_def cosh_def algebra_simps)
   also have "\<dots> = exp (-x)" by (rule scaleR_half_double)
   finally show ?thesis .
@@ -6895,10 +6930,10 @@ lemma sinh_real_at_top: "filterlim (sinh :: real \<Rightarrow> real) at_top at_t
 proof -
   have *: "((\<lambda>x. - exp (- x)) \<longlongrightarrow> (-0::real)) at_top"
     by (intro tendsto_minus filterlim_compose[OF exp_at_bot] filterlim_uminus_at_bot_at_top)
-  have "filterlim (\<lambda>x. (1 / 2) * (-exp (-x) + exp x) :: real) at_top at_top"
+  have "filterlim (\<lambda>x. (1/2) * (-exp (-x) + exp x) :: real) at_top at_top"
     by (rule filterlim_tendsto_pos_mult_at_top[OF _ _
                filterlim_tendsto_add_at_top[OF *]] tendsto_const)+ (auto simp: exp_at_top)
-  also have "(\<lambda>x. (1 / 2) * (-exp (-x) + exp x) :: real) = sinh"
+  also have "(\<lambda>x. (1/2) * (-exp (-x) + exp x) :: real) = sinh"
     by (simp add: fun_eq_iff sinh_def)
   finally show ?thesis .
 qed
@@ -6915,10 +6950,10 @@ lemma cosh_real_at_top: "filterlim (cosh :: real \<Rightarrow> real) at_top at_t
 proof -
   have *: "((\<lambda>x. exp (- x)) \<longlongrightarrow> (0::real)) at_top"
     by (intro filterlim_compose[OF exp_at_bot] filterlim_uminus_at_bot_at_top)
-  have "filterlim (\<lambda>x. (1 / 2) * (exp (-x) + exp x) :: real) at_top at_top"
+  have "filterlim (\<lambda>x. (1/2) * (exp (-x) + exp x) :: real) at_top at_top"
     by (rule filterlim_tendsto_pos_mult_at_top[OF _ _
                filterlim_tendsto_add_at_top[OF *]] tendsto_const)+ (auto simp: exp_at_top)
-  also have "(\<lambda>x. (1 / 2) * (exp (-x) + exp x) :: real) = cosh"
+  also have "(\<lambda>x. (1/2) * (exp (-x) + exp x) :: real) = cosh"
     by (simp add: fun_eq_iff cosh_def)
   finally show ?thesis .
 qed

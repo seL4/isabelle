@@ -318,12 +318,26 @@ lemma injective_not_constant:
 unfolding constant_on_def
 by (metis equals0I inj_on_contraD islimpt_UNIV islimpt_def)
 
+lemma constant_on_compose:
+  assumes "f constant_on A"
+  shows   "g \<circ> f constant_on A"
+  using assms by (auto simp: constant_on_def)
+
+lemma not_constant_onI:
+  "f x \<noteq> f y \<Longrightarrow> x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> \<not>f constant_on A"
+  unfolding constant_on_def by metis
+
+lemma constant_onE:
+  assumes "f constant_on S" and "\<And>x. x\<in>S \<Longrightarrow> f x = g x"
+  shows "g constant_on S"
+  using assms unfolding constant_on_def by simp
+
 lemma constant_on_closureI:
   fixes f :: "_ \<Rightarrow> 'b::t1_space"
   assumes cof: "f constant_on S" and contf: "continuous_on (closure S) f"
-    shows "f constant_on (closure S)"
-using continuous_constant_on_closure [OF contf] cof unfolding constant_on_def
-by metis
+  shows "f constant_on (closure S)"
+  using continuous_constant_on_closure [OF contf] cof unfolding constant_on_def
+  by metis
 
 
 subsection\<^marker>\<open>tag unimportant\<close> \<open>Continuity relative to a union.\<close>

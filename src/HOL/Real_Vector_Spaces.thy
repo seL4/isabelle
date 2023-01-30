@@ -159,6 +159,11 @@ proof -
     by simp
 qed
 
+lemma shift_zero_ident [simp]:
+  fixes f :: "'a \<Rightarrow> 'b::real_vector"
+  shows "(+)0 \<circ> f = f"
+  by force
+  
 lemma linear_scale_real:
   fixes r::real shows "linear f \<Longrightarrow> f (r * b) = r * f b"
   using linear_scale by fastforce

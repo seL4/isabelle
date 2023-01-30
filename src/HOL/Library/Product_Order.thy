@@ -35,6 +35,9 @@ lemma Pair_mono: "x \<le> x' \<Longrightarrow> y \<le> y' \<Longrightarrow> (x, 
 lemma Pair_le [simp]: "(a, b) \<le> (c, d) \<longleftrightarrow> a \<le> c \<and> b \<le> d"
   unfolding less_eq_prod_def by simp
 
+lemma atLeastAtMost_prod_eq: "{a..b} = {fst a..fst b} \<times> {snd a..snd b}"
+  by (auto simp: less_eq_prod_def)
+
 instance prod :: (preorder, preorder) preorder
 proof
   fix x y z :: "'a \<times> 'b"
