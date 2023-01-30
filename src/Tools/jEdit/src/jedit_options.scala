@@ -23,6 +23,7 @@ object JEdit_Options {
   /* typed access and GUI components */
 
   class Access[A](access: Options.Access_Variable[A], val name: String) {
+    def description: String = access.options.value.description(name)
     def apply(): A = access.apply(name)
     def update(x: A): Unit = change(_ => x)
     def change(f: A => A): Unit = {
@@ -71,6 +72,7 @@ object JEdit_Options {
       tooltip = "Output of proof state (normally shown on State panel)"
     }
   }
+
 
 
   /* editor pane for plugin options */
