@@ -67,6 +67,8 @@ object Headless {
     def default_watchdog_timeout: Time = session_options.seconds("headless_watchdog_timeout")
     def default_commit_cleanup_delay: Time = session_options.seconds("headless_commit_cleanup_delay")
 
+    def show_states: Boolean = session_options.bool("show_states")
+
 
     /* temporary directory */
 

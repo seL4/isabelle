@@ -256,6 +256,11 @@ Example:
   > 1 + 1;;
   > #quit;;
 
+* The headless PIDE server (e.g. command-line tool "isabelle server")
+now observes the option "show_states" as given in the server command
+"session_start". If enabled, the server command "use_theories" will
+expose proof state output via its "messages" field.
+
 
 
 New in Isabelle2022 (October 2022)

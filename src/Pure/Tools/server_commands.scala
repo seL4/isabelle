@@ -244,6 +244,9 @@ object Server_Commands {
         }
       }
 
+      def show_message(tree: XML.Tree): Boolean =
+        Protocol.is_exported(tree) || session.show_states && Protocol.is_state(tree)
+
       val result_json =
         JSON.Object(
           "ok" -> result.ok,
@@ -259,7 +262,7 @@ object Server_Commands {
                 ("status" -> status.json) +
                 ("messages" ->
                   (for {
-                    (tree, pos) <- snapshot.messages if Protocol.is_exported(tree)
+                    (tree, pos) <- snapshot.messages if show_message(tree)
                   } yield output_message(tree, pos))) +
                 ("exports" ->
                   (if (args.export_pattern == "") Nil else {
