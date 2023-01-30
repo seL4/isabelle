@@ -521,6 +521,12 @@ lemma complex_cnj_cancel_iff [simp]: "cnj x = cnj y \<longleftrightarrow> x = y"
 lemma complex_cnj_cnj [simp]: "cnj (cnj z) = z"
   by (simp add: complex_eq_iff)
 
+lemma in_image_cnj_iff: "z \<in> cnj ` A \<longleftrightarrow> cnj z \<in> A"
+  by (metis complex_cnj_cnj image_iff)
+
+lemma image_cnj_conv_vimage_cnj: "cnj ` A = cnj -` A"
+  using in_image_cnj_iff by blast
+
 lemma complex_cnj_zero [simp]: "cnj 0 = 0"
   by (simp add: complex_eq_iff)
 
@@ -835,6 +841,15 @@ lemma cis_inverse [simp]: "inverse (cis a) = cis (- a)"
 lemma cis_divide: "cis a / cis b = cis (a - b)"
   by (simp add: divide_complex_def cis_mult)
 
+lemma divide_conv_cnj: "norm z = 1 \<Longrightarrow> x / z = x * cnj z"
+  by (metis complex_div_cnj div_by_1 mult_1 of_real_1 power2_eq_square)
+
+lemma i_not_in_Reals [simp, intro]: "\<i> \<notin> \<real>"
+  by (auto simp: complex_is_Real_iff)
+
+lemma powr_power_complex: "z \<noteq> 0 \<or> n \<noteq> 0 \<Longrightarrow> (z powr u :: complex) ^ n = z powr (of_nat n * u)"
+  by (induction n) (auto simp: algebra_simps powr_add)
+  
 lemma cos_n_Re_cis_pow_n: "cos (real n * a) = Re (cis a ^ n)"
   by (auto simp add: DeMoivre)
 
@@ -853,6 +868,11 @@ lemma cis_minus_pi_half[simp]: "cis (-(pi / 2)) = -\<i>"
 lemma cis_multiple_2pi[simp]: "n \<in> \<int> \<Longrightarrow> cis (2 * pi * n) = 1"
   by (auto elim!: Ints_cases simp: cis.ctr one_complex.ctr)
 
+lemma minus_cis: "-cis x = cis (x + pi)"
+  by (simp flip: cis_mult)
+
+lemma minus_cis': "-cis x = cis (x - pi)"
+  by (simp flip: cis_divide)
 
 subsubsection \<open>$r(\cos \theta + i \sin \theta)$\<close>
 
@@ -1245,6 +1265,9 @@ next
     by (simp add: Re_power2 Im_power2 complex_eq_iff real_sgn_eq
         field_simps real_sqrt_mult[symmetric] real_sqrt_divide)
 qed
+
+lemma norm_csqrt [simp]: "norm (csqrt z) = sqrt (norm z)"
+  by (metis abs_of_nonneg norm_ge_zero norm_mult power2_csqrt power2_eq_square real_sqrt_abs)
 
 lemma csqrt_eq_0 [simp]: "csqrt z = 0 \<longleftrightarrow> z = 0"
   by auto (metis power2_csqrt power_eq_0_iff)

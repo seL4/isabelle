@@ -654,8 +654,17 @@ lemma of_nat_less_of_nat_power_cancel_iff[simp]: "(of_nat b) ^ w < of_nat x \<lo
 lemma of_nat_power_less_of_nat_cancel_iff[simp]: "of_nat x < (of_nat b) ^ w \<longleftrightarrow> x < b ^ w"
   by (metis of_nat_less_iff of_nat_power)
 
-end
+lemma power2_nonneg_ge_1_iff: 
+  assumes "x \<ge> 0"
+  shows   "x ^ 2 \<ge> 1 \<longleftrightarrow> x \<ge> 1"
+  using assms by (auto intro: power2_le_imp_le)
 
+lemma power2_nonneg_gt_1_iff: 
+  assumes "x \<ge> 0"
+  shows   "x ^ 2 > 1 \<longleftrightarrow> x > 1"
+  using assms  by (auto intro: power_less_imp_less_base)
+
+end
 
 text \<open>Some @{typ nat}-specific lemmas:\<close>
 
@@ -822,11 +831,13 @@ lemma square_le_1:
 
 end
 
-
 subsection \<open>Miscellaneous rules\<close>
 
 lemma (in linordered_semidom) self_le_power: "1 \<le> a \<Longrightarrow> 0 < n \<Longrightarrow> a \<le> a ^ n"
   using power_increasing [of 1 n a] power_one_right [of a] by auto
+
+lemma power2_ge_1_iff: "x ^ 2 \<ge> 1 \<longleftrightarrow> x \<ge> 1 \<or> x \<le> (-1 :: 'a :: linordered_idom)"
+  using abs_le_square_iff[of 1 x] by (auto simp: abs_if split: if_splits)
 
 lemma (in power) power_eq_if: "p ^ m = (if m=0 then 1 else p * (p ^ (m - 1)))"
   unfolding One_nat_def by (cases m) simp_all

@@ -805,17 +805,15 @@ proof -
     using h unfolding ring_iso_def bij_betw_def inj_on_def by auto
 
   have h_inv_bij: "bij_betw (inv_into (carrier R) h) (carrier S) (carrier R)"
-      using bij_betw_inv_into h ring_iso_def by fastforce
+    by (simp add: bij_betw_inv_into h ring_iso_memE(5))
 
-  show "inv_into (carrier R) h \<in> ring_iso S R"
-    apply (rule ring_iso_memI)
-    apply (simp add: h_surj inv_into_into)
-       apply (auto simp add: h_inv_bij)
-    using ring_iso_memE [OF h] bij_betwE [OF h_inv_bij] 
-    apply (simp_all add: \<open>ring R\<close> bij_betw_def bij_betw_inv_into_right inv_into_f_eq ring.ring_simprules(5))
-    using ring_iso_memE [OF h] bij_betw_inv_into_right [of h "carrier R" "carrier S"]
-    apply (simp add: \<open>ring R\<close> inv_into_f_eq ring.ring_simprules(1))
-    by (simp add: \<open>ring R\<close> inv_into_f_eq ring.ring_simprules(6))
+  have "inv_into (carrier R) h \<in> ring_hom S R"
+    using ring_iso_memE [OF h] bij_betwE [OF h_inv_bij] \<open>ring R\<close>
+    by (simp add: bij_betw_imp_inj_on bij_betw_inv_into_right inv_into_f_eq ring.ring_simprules ring_hom_memI)
+  moreover have "bij_betw (inv_into (carrier R) h) (carrier S) (carrier R)"
+    using h_inv_bij by force
+    ultimately show "inv_into (carrier R) h \<in> ring_iso S R"
+      by (simp add: ring_iso_def)
 qed
 
 corollary ring_iso_sym:

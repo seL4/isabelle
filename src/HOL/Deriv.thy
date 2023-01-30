@@ -82,8 +82,11 @@ lemma has_derivative_linear: "(f has_derivative f') F \<Longrightarrow> linear f
 lemma has_derivative_ident[derivative_intros, simp]: "((\<lambda>x. x) has_derivative (\<lambda>x. x)) F"
   by (simp add: has_derivative_def)
 
-lemma has_derivative_id [derivative_intros, simp]: "(id has_derivative id) (at a)"
+lemma has_derivative_id [derivative_intros, simp]: "(id has_derivative id) F"
   by (metis eq_id_iff has_derivative_ident)
+
+lemma shift_has_derivative_id: "((+) d has_derivative (\<lambda>x. x)) F"
+  using has_derivative_def by fastforce
 
 lemma has_derivative_const[derivative_intros, simp]: "((\<lambda>x. c) has_derivative (\<lambda>x. 0)) F"
   by (simp add: has_derivative_def)

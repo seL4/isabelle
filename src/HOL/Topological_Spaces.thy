@@ -535,6 +535,16 @@ lemma (in topological_space) eventually_at_topological:
   "eventually P (at a within s) \<longleftrightarrow> (\<exists>S. open S \<and> a \<in> S \<and> (\<forall>x\<in>S. x \<noteq> a \<longrightarrow> x \<in> s \<longrightarrow> P x))"
   by (simp add: eventually_nhds eventually_at_filter)
 
+lemma eventually_at_in_open:
+  assumes "open A" "x \<in> A"
+  shows   "eventually (\<lambda>y. y \<in> A - {x}) (at x)"
+  using assms eventually_at_topological by blast
+
+lemma eventually_at_in_open':
+  assumes "open A" "x \<in> A"
+  shows   "eventually (\<lambda>y. y \<in> A) (at x)"
+  using assms eventually_at_topological by blast
+
 lemma (in topological_space) at_within_open: "a \<in> S \<Longrightarrow> open S \<Longrightarrow> at a within S = at a"
   unfolding filter_eq_iff eventually_at_topological by (metis open_Int Int_iff UNIV_I)
 
@@ -568,6 +578,10 @@ lemma (in topological_space) at_within_union:
 lemma (in topological_space) at_eq_bot_iff: "at a = bot \<longleftrightarrow> open {a}"
   unfolding trivial_limit_def eventually_at_topological
   by (metis UNIV_I empty_iff is_singletonE is_singletonI' singleton_iff)
+
+lemma (in t1_space) eventually_neq_at_within:
+  "eventually (\<lambda>w. w \<noteq> x) (at z within A)"
+  by (smt (verit, ccfv_threshold) eventually_True eventually_at_topological separation_t1)
 
 lemma (in perfect_space) at_neq_bot [simp]: "at a \<noteq> bot"
   by (simp add: at_eq_bot_iff not_open_singleton)

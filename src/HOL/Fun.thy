@@ -353,6 +353,17 @@ lemma bij_betw_empty2: "bij_betw f A {} \<Longrightarrow> A = {}"
 lemma inj_on_imp_bij_betw: "inj_on f A \<Longrightarrow> bij_betw f A (f ` A)"
   unfolding bij_betw_def by simp
 
+lemma bij_betw_DiffI:
+  assumes "bij_betw f A B" "bij_betw f C D" "C \<subseteq> A" "D \<subseteq> B"
+  shows   "bij_betw f (A - C) (B - D)"
+  using assms unfolding bij_betw_def inj_on_def by auto
+
+lemma bij_betw_singleton_iff [simp]: "bij_betw f {x} {y} \<longleftrightarrow> f x = y"
+  by (auto simp: bij_betw_def)
+
+lemma bij_betw_singletonI [intro]: "f x = y \<Longrightarrow> bij_betw f {x} {y}"
+  by auto
+
 lemma bij_betw_apply: "\<lbrakk>bij_betw f A B; a \<in> A\<rbrakk> \<Longrightarrow> f a \<in> B"
   unfolding bij_betw_def by auto
 
