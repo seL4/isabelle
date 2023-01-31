@@ -149,7 +149,7 @@ object Isabelle_Cronjob {
     bulky: Boolean = false,
     more_hosts: List[String] = Nil,
     detect: PostgreSQL.Source = "",
-    active: Boolean = true
+    active: () => Boolean = () => true
   ) {
     def open_session(options: Options): SSH.Session =
       SSH.open_session(options, host = host, user = user, port = port)
@@ -383,14 +383,16 @@ object Isabelle_Cronjob {
             " -e ISABELLE_SMLNJ=sml",
           args = "-a -X large -X slow",
           afp = true,
-          detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("AFP")),
+          detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("AFP"),
+          active = () => Date.now().unix_epoch_day % 2 == 0),
         Remote_Build("AFP", "lrzcloud2",
           java_heap = "8g",
           options = "-m64 -M8 -U30000 -s10 -t AFP",
           args = "-g large -g slow",
           afp = true,
           bulky = true,
-          detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("AFP"))))
+          detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("AFP"),
+          active = () => Date.now().unix_epoch_day % 2 == 1)))
 
   def remote_build_history(
     rev: String,
@@ -588,7 +590,7 @@ object Isabelle_Cronjob {
             PAR(
               List(remote_builds1, remote_builds2).map(remote_builds =>
               SEQ(List(
-                PAR(remote_builds.map(_.filter(_.active)).map(seq =>
+                PAR(remote_builds.map(_.filter(_.active())).map(seq =>
                   SEQ(
                     for {
                       (r, i) <- (if (seq.length <= 1) seq.map((_, -1)) else seq.zipWithIndex)

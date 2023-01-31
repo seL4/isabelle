@@ -106,6 +106,7 @@ sealed case class Date(rep: ZonedDateTime) {
   def to(zone: ZoneId): Date = new Date(rep.withZoneSameInstant(zone))
 
   def unix_epoch: Long = rep.toEpochSecond
+  def unix_epoch_day: Long = rep.toLocalDate.toEpochDay
   def instant: Instant = Instant.from(rep)
   def time: Time = Time.instant(instant)
   def timezone: ZoneId = rep.getZone
