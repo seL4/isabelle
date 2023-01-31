@@ -282,10 +282,15 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     Delay.last(PIDE.session.load_delay, gui = true) {
       for (session <- document_session.selection_value) {
         if (!load_document(session)) delay_load.invoke()
+        else if (document_auto()) delay_auto_build.invoke()
       }
     }
 
-  document_session.reactions += { case SelectionChanged(_) => delay_load.invoke() }
+  document_session.reactions += {
+    case SelectionChanged(_) =>
+      delay_load.invoke()
+      delay_build.revoke()
+  }
 
   private val load_button =
     new GUI.Button("Load") {
