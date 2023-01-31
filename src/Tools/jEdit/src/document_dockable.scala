@@ -301,7 +301,9 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
       tooltip = Word.capitalize(document_auto.description)
       override def clicked(state: Boolean): Unit = {
         super.clicked(state)
+
         if (state) delay_auto_build.invoke()
+        else delay_auto_build.revoke()
       }
     }
 
