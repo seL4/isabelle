@@ -386,12 +386,12 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
       case changed: Session.Commands_Changed =>
         GUI_Thread.later {
           val domain = PIDE.editor.document_theories().filter(changed.nodes).toSet
-          if (domain.nonEmpty) theories.update(domain = Some(domain))
+          if (domain.nonEmpty) {
+            theories.update(domain = Some(domain))
 
-          val pending = document_pending()
-          val auto = document_auto()
-          if (changed.assignment || domain.nonEmpty || pending || auto) {
-            if (PIDE.editor.document_session().is_ready) {
+            val pending = document_pending()
+            val auto = document_auto()
+            if ((pending || auto) && PIDE.editor.document_session().is_ready) {
               if (pending) {
                 delay_auto_build.revoke()
                 delay_build.invoke()
