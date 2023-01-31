@@ -39,10 +39,10 @@ object Document_Dockable {
       copy(process = process, progress = progress, pending = if (reset_pending) false else pending)
 
     def output(results: Command.Results, body: XML.Body): State =
-      copy(output_results = results, output_main = body)
+      copy(output_results = results, output_main = body, output_more = Nil)
 
-    def finish(output: XML.Body): State =
-      copy(process = Future.value(()), output_more = output)
+    def finish(body: XML.Body): State =
+      copy(process = Future.value(()), output_more = body)
 
     def output_body: XML.Body =
       output_main :::
@@ -245,6 +245,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
 
         progress.stop_program()
         output_process(progress)
+        progress.stop()
         finish_process(Pretty.separate(msgs))
 
         show_state()
