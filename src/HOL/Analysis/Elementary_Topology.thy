@@ -13,7 +13,6 @@ imports
   Product_Vector
 begin
 
-
 section \<open>Elementary Topology\<close>
 
 
@@ -844,6 +843,22 @@ lemma interior_limit_point [intro]:
   apply (drule_tac x="T \<inter> T'" in spec)
   apply (auto simp: open_Int)
   done
+
+lemma open_imp_islimpt:
+  fixes x::"'a:: perfect_space"
+  assumes "open S" "x\<in>S"
+  shows "x islimpt S"
+  using assms interior_eq interior_limit_point by auto
+
+lemma islimpt_Int_eventually:
+  assumes "x islimpt A" "eventually (\<lambda>y. y \<in> B) (at x)"
+  shows   "x islimpt A \<inter> B"
+  using assms unfolding islimpt_def eventually_at_filter eventually_nhds
+  by (metis Int_iff UNIV_I open_Int)
+
+lemma islimpt_conv_frequently_at:
+  "x islimpt A \<longleftrightarrow> frequently (\<lambda>y. y \<in> A) (at x)"
+  unfolding islimpt_def eventually_at_filter frequently_def eventually_nhds by blast
 
 lemma interior_closed_Un_empty_interior:
   assumes cS: "closed S"
@@ -2434,6 +2449,16 @@ lemma homeomorphism_symD: "homeomorphism S t f g \<Longrightarrow> homeomorphism
 
 lemma homeomorphism_sym: "homeomorphism S t f g = homeomorphism t S g f"
   by (force simp: homeomorphism_def)
+
+lemma continuous_on_translation_eq:
+  fixes g :: "'a :: real_normed_vector \<Rightarrow> 'b :: real_normed_vector"
+  shows "continuous_on A ((+) a \<circ> g) = continuous_on A g"
+proof -
+  have g: "g = (\<lambda>x. -a + x) \<circ> ((\<lambda>x. a + x) \<circ> g)"
+    by (rule ext) simp
+  show ?thesis
+    by (metis (no_types, opaque_lifting) g continuous_on_compose homeomorphism_def homeomorphism_translation)
+qed
 
 definition\<^marker>\<open>tag important\<close> homeomorphic :: "'a::topological_space set \<Rightarrow> 'b::topological_space set \<Rightarrow> bool"
     (infixr "homeomorphic" 60)

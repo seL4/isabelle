@@ -720,6 +720,24 @@ lemma eventually_at_left_field:
   using linordered_field_no_lb[rule_format, of x]
   by (auto simp: eventually_at_left)
 
+lemma filtermap_nhds_eq_imp_filtermap_at_eq: 
+  assumes "filtermap f (nhds z) = nhds (f z)"
+  assumes "eventually (\<lambda>x. f x = f z \<longrightarrow> x = z) (at z)"
+  shows   "filtermap f (at z) = at (f z)"
+proof (rule filter_eqI)
+  fix P :: "'a \<Rightarrow> bool"
+  have "eventually P (filtermap f (at z)) \<longleftrightarrow> (\<forall>\<^sub>F x in nhds z. x \<noteq> z \<longrightarrow> P (f x))"
+    by (simp add: eventually_filtermap eventually_at_filter)
+  also have "\<dots> \<longleftrightarrow> (\<forall>\<^sub>F x in nhds z. f x \<noteq> f z \<longrightarrow> P (f x))"
+    by (rule eventually_cong [OF assms(2)[unfolded eventually_at_filter]]) auto
+  also have "\<dots> \<longleftrightarrow> (\<forall>\<^sub>F x in filtermap f (nhds z). x \<noteq> f z \<longrightarrow> P x)"
+    by (simp add: eventually_filtermap)
+  also have "filtermap f (nhds z) = nhds (f z)"
+    by (rule assms)
+  also have "(\<forall>\<^sub>F x in nhds (f z). x \<noteq> f z \<longrightarrow> P x) \<longleftrightarrow> (\<forall>\<^sub>F x in at (f z). P x)"
+    by (simp add: eventually_at_filter)
+  finally show "eventually P (filtermap f (at z)) = eventually P (at (f z))" .
+qed
 
 subsubsection \<open>Tendsto\<close>
 
@@ -1803,6 +1821,29 @@ proof -
     by (metis (no_types) f filterlim_compose filterlim_filtermap g tendsto_at_iff_tendsto_nhds tendsto_compose_filtermap)
 qed
 
+lemma tendsto_nhds_iff: "(f \<longlongrightarrow> (c :: 'a :: t1_space)) (nhds x) \<longleftrightarrow> f \<midarrow>x\<rightarrow> c \<and> f x = c"
+proof safe
+  assume lim: "(f \<longlongrightarrow> c) (nhds x)"
+  show "f x = c"
+  proof (rule ccontr)
+    assume "f x \<noteq> c"
+    hence "c \<noteq> f x"
+      by auto
+    then obtain A where A: "open A" "c \<in> A" "f x \<notin> A"
+      by (subst (asm) separation_t1) auto
+    with lim obtain B where "open B" "x \<in> B" "\<And>x. x \<in> B \<Longrightarrow> f x \<in> A"
+      unfolding tendsto_def eventually_nhds by metis 
+    with \<open>f x \<notin> A\<close> show False
+      by blast
+  qed
+  show "(f \<longlongrightarrow> c) (at x)"
+    using lim by (rule filterlim_mono) (auto simp: at_within_def)
+next
+  assume "f \<midarrow>x\<rightarrow> f x" "c = f x"
+  thus "(f \<longlongrightarrow> f x) (nhds x)"
+    unfolding tendsto_def eventually_at_filter by (fast elim: eventually_mono)
+qed
+
 
 subsubsection \<open>Relation of \<open>LIM\<close> and \<open>LIMSEQ\<close>\<close>
 
@@ -2289,19 +2330,34 @@ lemma continuous_within_compose3:
   "isCont g (f x) \<Longrightarrow> continuous (at x within s) f \<Longrightarrow> continuous (at x within s) (\<lambda>x. g (f x))"
   using continuous_at_imp_continuous_at_within continuous_within_compose2 by blast
 
-lemma filtermap_nhds_open_map:
+lemma filtermap_nhds_open_map':
   assumes cont: "isCont f a"
-    and open_map: "\<And>S. open S \<Longrightarrow> open (f`S)"
+    and "open A" "a \<in> A"
+    and open_map: "\<And>S. open S \<Longrightarrow> S \<subseteq> A \<Longrightarrow> open (f ` S)"
   shows "filtermap f (nhds a) = nhds (f a)"
   unfolding filter_eq_iff
 proof safe
   fix P
   assume "eventually P (filtermap f (nhds a))"
-  then obtain S where "open S" "a \<in> S" "\<forall>x\<in>S. P (f x)"
+  then obtain S where S: "open S" "a \<in> S" "\<forall>x\<in>S. P (f x)"
     by (auto simp: eventually_filtermap eventually_nhds)
-  then show "eventually P (nhds (f a))"
-    unfolding eventually_nhds by (intro exI[of _ "f`S"]) (auto intro!: open_map)
+  show "eventually P (nhds (f a))"
+    unfolding eventually_nhds 
+  proof (rule exI [of _ "f ` (A \<inter> S)"], safe)
+    show "open (f ` (A \<inter> S))"
+      using S by (intro open_Int assms) auto
+    show "f a \<in> f ` (A \<inter> S)"
+      using assms S by auto
+    show "P (f x)" if "x \<in> A" "x \<in> S" for x
+      using S that by auto
+  qed
 qed (metis filterlim_iff tendsto_at_iff_tendsto_nhds isCont_def eventually_filtermap cont)
+
+lemma filtermap_nhds_open_map:
+  assumes cont: "isCont f a"
+    and open_map: "\<And>S. open S \<Longrightarrow> open (f`S)"
+  shows "filtermap f (nhds a) = nhds (f a)"
+  using cont filtermap_nhds_open_map' open_map by blast
 
 lemma continuous_at_split:
   "continuous (at x) f \<longleftrightarrow> continuous (at_left x) f \<and> continuous (at_right x) f"

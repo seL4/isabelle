@@ -2193,6 +2193,12 @@ proof -
     by (auto simp: Re_exp Im_exp)
 qed
 
+lemma Arg_1 [simp]: "Arg 1 = 0"
+  by (rule Arg_unique[of 1]) auto
+
+lemma Arg_numeral [simp]: "Arg (numeral n) = 0"
+  by (rule Arg_unique[of "numeral n"]) auto
+  
 lemma Arg_times_of_real [simp]:
   assumes "0 < r" shows "Arg (of_real r * z) = Arg z"
   using Arg_def Ln_times_of_real assms by auto
@@ -2206,6 +2212,10 @@ lemma Arg_divide_of_real [simp]: "0 < r \<Longrightarrow> Arg (z / of_real r) = 
 lemma Arg_less_0: "0 \<le> Arg z \<longleftrightarrow> 0 \<le> Im z"
   using Im_Ln_le_pi Im_Ln_pos_le
   by (simp add: Arg_def)
+
+text \<open>converse fails because the argument can equal $\pi$.\<close> 
+lemma Arg_uminus: "Arg z < 0 \<Longrightarrow> Arg (-z) > 0"
+  by (smt (verit) Arg_bounded Arg_minus Complex.Arg_def)
 
 lemma Arg_eq_pi: "Arg z = pi \<longleftrightarrow> Re z < 0 \<and> Im z = 0"
   by (auto simp: Arg_def Im_Ln_eq_pi)
@@ -2261,7 +2271,13 @@ lemma Arg_cnj: "Arg(cnj z) = (if z \<in> \<real> then Arg z else - Arg z)"
   by (metis Arg_cnj_eq_inverse Arg_inverse Reals_0 complex_cnj_zero)
 
 lemma Arg_exp: "-pi < Im z \<Longrightarrow> Im z \<le> pi \<Longrightarrow> Arg(exp z) = Im z"
-  by (rule Arg_unique [of "exp(Re z)"]) (auto simp: exp_eq_polar)
+  by (simp add: Arg_eq_Im_Ln)
+
+lemma Arg_cis: "x \<in> {-pi<..pi} \<Longrightarrow> Arg (cis x) = x"
+  unfolding cis_conv_exp by (subst Arg_exp) auto
+
+lemma Arg_rcis: "x \<in> {-pi<..pi} \<Longrightarrow> r > 0 \<Longrightarrow> Arg (rcis r x) = x"
+  unfolding rcis_def by (subst Arg_times_of_real) (auto simp: Arg_cis)
 
 lemma Ln_Arg: "z\<noteq>0 \<Longrightarrow> Ln(z) = ln(norm z) + \<i> * Arg(z)"
   by (metis Arg_def Re_Ln complex_eq)
@@ -3092,6 +3108,33 @@ proof -
   finally show ?thesis using assms csqrt_square
     by simp
 qed
+
+lemma csqrt_mult:
+  assumes "Arg z + Arg w \<in> {-pi<..pi}"
+  shows   "csqrt (z * w) = csqrt z * csqrt w"
+proof (cases "z = 0 \<or> w = 0")
+  case False
+  have "csqrt (z * w) = exp ((ln (z * w)) / 2)"
+    using False by (intro csqrt_exp_Ln) auto
+  also have "\<dots> = exp ((Ln z + Ln w) / 2)"
+    using False assms by (subst Ln_times_simple) (auto simp: Arg_eq_Im_Ln)
+  also have "(Ln z + Ln w) / 2 = Ln z / 2 + Ln w / 2"
+    by (simp add: add_divide_distrib)
+  also have "exp \<dots> = csqrt z * csqrt w"
+    using False by (simp add: exp_add csqrt_exp_Ln)
+  finally show ?thesis .
+qed auto
+
+lemma Arg_csqrt [simp]: "Arg (csqrt z) = Arg z / 2"
+proof (cases "z = 0")
+  case False
+  have "Im (Ln z) \<in> {-pi<..pi}"
+    by (simp add: False Im_Ln_le_pi mpi_less_Im_Ln)
+  also have "\<dots> \<subseteq> {-2*pi<..2*pi}"
+    by auto
+  finally show ?thesis
+    using False by (auto simp: csqrt_exp_Ln Arg_exp Arg_eq_Im_Ln)
+qed (auto simp: Arg_zero)
 
 lemma csqrt_inverse:
   "z \<notin> \<real>\<^sub>\<le>\<^sub>0 \<Longrightarrow> csqrt (inverse z) = inverse (csqrt z)"

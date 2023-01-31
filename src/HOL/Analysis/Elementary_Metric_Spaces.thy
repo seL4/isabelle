@@ -370,6 +370,20 @@ proof -
     by (metis islimpt_approachable closed_limpt [where 'a='a])
 qed
 
+lemma discrete_imp_not_islimpt:
+  assumes e: "0 < e"
+    and d: "\<And>x y. x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> dist y x < e \<Longrightarrow> y = x"
+  shows "\<not> x islimpt S"
+proof
+  assume "x islimpt S"
+  hence "x islimpt S - {x}"
+    by (meson islimpt_punctured)
+  moreover from assms have "closed (S - {x})"
+    by (intro discrete_imp_closed) auto
+  ultimately show False
+    unfolding closed_limpt by blast
+qed
+  
 
 subsection \<open>Interior\<close>
 

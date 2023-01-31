@@ -914,15 +914,21 @@ next
   qed
 qed
 
+lemma closed_segment_same_fst:
+  "fst a = fst b \<Longrightarrow> closed_segment a b = {fst a} \<times> closed_segment (snd a) (snd b)"
+  by (auto simp: closed_segment_def scaleR_prod_def)
+
+lemma closed_segment_same_snd:
+  "snd a = snd b \<Longrightarrow> closed_segment a b = closed_segment (fst a) (fst b) \<times> {snd a}"
+  by (auto simp: closed_segment_def scaleR_prod_def)
+
 lemma subset_oc_segment:
   fixes a :: "'a::euclidean_space"
   shows "open_segment a b \<subseteq> closed_segment c d \<longleftrightarrow>
          a = b \<or> a \<in> closed_segment c d \<and> b \<in> closed_segment c d"
-apply (simp add: subset_open_segment [symmetric])
-apply (rule iffI)
- apply (metis closure_closed_segment closure_mono closure_open_segment subset_closed_segment subset_open_segment)
-apply (meson dual_order.trans segment_open_subset_closed)
-done
+  apply (rule iffI)
+   apply (metis closure_closed_segment closure_mono closure_open_segment subset_closed_segment)
+  by (meson dual_order.trans segment_open_subset_closed subset_open_segment)
 
 lemmas subset_segment = subset_closed_segment subset_co_segment subset_oc_segment subset_open_segment
 

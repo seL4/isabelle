@@ -65,6 +65,9 @@ qed
 lemma eventuallyI: "(\<And>x. P x) \<Longrightarrow> eventually P F"
   by (auto intro: always_eventually)
 
+lemma filter_eqI: "(\<And>P. eventually P F \<longleftrightarrow> eventually P G) \<Longrightarrow> F = G"
+  by (auto simp: filter_eq_iff)
+
 lemma eventually_mono:
   "\<lbrakk>eventually P F; \<And>x. P x \<Longrightarrow> Q x\<rbrakk> \<Longrightarrow> eventually Q F"
   unfolding eventually_def
@@ -104,6 +107,11 @@ lemma eventually_elim2:
   assumes "\<And>i. P i \<Longrightarrow> Q i \<Longrightarrow> R i"
   shows "eventually (\<lambda>i. R i) F"
   using assms by (auto elim!: eventually_rev_mp)
+
+lemma eventually_cong:
+  assumes "eventually P F" and "\<And>x. P x \<Longrightarrow> Q x \<longleftrightarrow> R x"
+  shows   "eventually Q F \<longleftrightarrow> eventually R F"
+  using assms eventually_elim2 by blast
 
 lemma eventually_ball_finite_distrib:
   "finite A \<Longrightarrow> (eventually (\<lambda>x. \<forall>y\<in>A. P x y) net) \<longleftrightarrow> (\<forall>y\<in>A. eventually (\<lambda>x. P x y) net)"
@@ -208,6 +216,12 @@ lemma
 lemma frequently_imp_iff:
   "(\<exists>\<^sub>Fx in F. P x \<longrightarrow> Q x) \<longleftrightarrow> (eventually P F \<longrightarrow> frequently Q F)"
   unfolding imp_conv_disj frequently_disj_iff not_eventually[symmetric] ..
+
+lemma frequently_eventually_conj:
+  assumes "\<exists>\<^sub>Fx in F. P x"
+  assumes "\<forall>\<^sub>Fx in F. Q x"
+  shows "\<exists>\<^sub>Fx in F. Q x \<and> P x"
+  using assms eventually_elim2 by (force simp add: frequently_def)
 
 lemma eventually_frequently_const_simps:
   "(\<exists>\<^sub>Fx in F. P x \<and> C) \<longleftrightarrow> (\<exists>\<^sub>Fx in F. P x) \<and> C"
@@ -557,6 +571,13 @@ lemma eventually_filtermap:
   apply (auto elim!: eventually_rev_mp)
   done
 
+lemma eventually_comp_filtermap:
+    "eventually (P \<circ> f) F \<longleftrightarrow> eventually P (filtermap f F)"
+  unfolding comp_def using eventually_filtermap by auto
+
+lemma filtermap_compose: "filtermap (f \<circ> g) F = filtermap f (filtermap g F)"
+  unfolding filter_eq_iff by (simp add: eventually_filtermap)
+
 lemma filtermap_ident: "filtermap (\<lambda>x. x) F = F"
   by (simp add: filter_eq_iff eventually_filtermap)
 
@@ -584,6 +605,16 @@ lemma filtermap_inf: "filtermap f (inf F1 F2) \<le> inf (filtermap f F1) (filter
 
 lemma filtermap_INF: "filtermap f (\<Sqinter>b\<in>B. F b) \<le> (\<Sqinter>b\<in>B. filtermap f (F b))"
   by (rule INF_greatest, rule filtermap_mono, erule INF_lower)
+
+lemma frequently_cong:
+  assumes ev: "eventually P F" and QR: "\<And>x. P x \<Longrightarrow> Q x \<longleftrightarrow> R x"
+  shows   "frequently Q F \<longleftrightarrow> frequently R F"
+  unfolding frequently_def 
+  using QR by (auto intro!: eventually_cong [OF ev])
+
+lemma frequently_filtermap:
+  "frequently P (filtermap f F) = frequently (\<lambda>x. P (f x)) F"
+  by (simp add: frequently_def eventually_filtermap)
 
 
 subsubsection \<open>Contravariant map function for filters\<close>

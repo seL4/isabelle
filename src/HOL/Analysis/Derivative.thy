@@ -313,9 +313,13 @@ proposition diff_chain_within[derivative_intros]:
 lemma diff_chain_at[derivative_intros]:
   "(f has_derivative f') (at x) \<Longrightarrow>
     (g has_derivative g') (at (f x)) \<Longrightarrow> ((g \<circ> f) has_derivative (g' \<circ> f')) (at x)"
-  using has_derivative_compose[of f f' x UNIV g g']
-  by (simp add: comp_def)
+  by (meson diff_chain_within has_derivative_at_withinI)
 
+lemma has_vector_derivative_shift: "(f has_vector_derivative D x) (at x)
+           \<Longrightarrow> ((+) d \<circ> f has_vector_derivative D x) (at x)"
+  using diff_chain_at [OF _ shift_has_derivative_id]
+  by (simp add: has_derivative_iff_Ex has_vector_derivative_def) 
+  
 lemma has_vector_derivative_within_open:
   "a \<in> S \<Longrightarrow> open S \<Longrightarrow>
     (f has_vector_derivative f') (at a within S) \<longleftrightarrow> (f has_vector_derivative f') (at a)"
@@ -3311,7 +3315,16 @@ lemma C1_differentiable_on_scaleR [simp, derivative_intros]:
 
 lemma C1_differentiable_on_of_real [derivative_intros]: "of_real C1_differentiable_on S"
   unfolding C1_differentiable_on_def
-  by (smt (verit, del_insts) DERIV_ident UNIV_I continuous_on_const has_vector_derivative_of_real has_vector_derivative_transform)
+  using vector_derivative_works by fastforce
+
+lemma C1_differentiable_on_translation:
+  "f C1_differentiable_on U - S \<Longrightarrow> (+) d \<circ> f C1_differentiable_on U - S"
+  by (metis C1_differentiable_on_def has_vector_derivative_shift)
+
+lemma C1_differentiable_on_translation_eq: 
+  fixes d :: "'a::real_normed_vector"
+  shows "(+) d \<circ> f C1_differentiable_on i - S \<longleftrightarrow> f C1_differentiable_on i - S"
+  by (force simp: o_def intro: C1_differentiable_on_translation dest: C1_differentiable_on_translation [of concl: "-d"])
 
 
 definition\<^marker>\<open>tag important\<close> piecewise_C1_differentiable_on
@@ -3329,6 +3342,11 @@ lemma piecewise_C1_imp_differentiable:
   by (auto simp: piecewise_C1_differentiable_on_def piecewise_differentiable_on_def
            C1_differentiable_on_def differentiable_def has_vector_derivative_def
            intro: has_derivative_at_withinI)
+
+lemma piecewise_C1_differentiable_on_translation_eq:
+  "((+) d \<circ> f piecewise_C1_differentiable_on i) \<longleftrightarrow> (f piecewise_C1_differentiable_on i)"
+  unfolding piecewise_C1_differentiable_on_def continuous_on_translation_eq
+  by (metis C1_differentiable_on_translation_eq)
 
 lemma piecewise_C1_differentiable_compose [derivative_intros]:
   assumes fg: "f piecewise_C1_differentiable_on S" "g piecewise_C1_differentiable_on (f ` S)" and fin: "\<And>x. finite (S \<inter> f-`{x})"

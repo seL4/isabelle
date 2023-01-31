@@ -411,7 +411,7 @@ corollary Card_order_singl_ordLeq:
     card_of_Field_ordIso[of r] ordLeq_ordIso_trans by blast
 
 lemma card_of_Pow: "|A| <o |Pow A|"
-  using card_of_ordLess2[of "Pow A" A]  Cantors_paradox[of A]
+  using card_of_ordLess2[of "Pow A" A]  Cantors_theorem[of A]
     Pow_not_empty[of A] by auto
 
 corollary Card_order_Pow:

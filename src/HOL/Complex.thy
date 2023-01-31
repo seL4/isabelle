@@ -214,8 +214,14 @@ proof -
   finally show ?thesis .
 qed
 
+lemma surj_Re: "surj Re"
+  by (metis Re_complex_of_real surj_def)
+
+lemma surj_Im: "surj Im"
+  by (metis complex.sel(2) surj_def)
+
 lemma complex_Im_fact [simp]: "Im (fact n) = 0"
-  by (subst of_nat_fact [symmetric]) (simp only: complex_Im_of_nat)
+  by (metis complex_Im_of_nat of_nat_fact)
 
 lemma Re_prod_Reals: "(\<And>x. x \<in> A \<Longrightarrow> f x \<in> \<real>) \<Longrightarrow> Re (prod f A) = prod (\<lambda>x. Re (f x)) A"
 proof (induction A rule: infinite_finite_induct)
@@ -278,6 +284,9 @@ lemma complex_split_polar: "\<exists>r a. z = complex_of_real r * (cos a + \<i> 
 
 lemma i_even_power [simp]: "\<i> ^ (n * 2) = (-1) ^ n"
   by (metis mult.commute power2_i power_mult)
+
+lemma i_even_power' [simp]: "even n \<Longrightarrow> \<i> ^ n = (-1) ^ (n div 2)"
+  by (metis dvd_mult_div_cancel power2_i power_mult)
 
 lemma Re_i_times [simp]: "Re (\<i> * z) = - Im z"
   by simp
@@ -1064,6 +1073,12 @@ proof (rule cis_Arg_unique)
   show "- pi / 2 \<le> pi"
     using pi_not_less_zero by linarith
 qed auto
+
+lemma cos_Arg: "z \<noteq> 0 \<Longrightarrow> cos (Arg z) = Re z / norm z"
+  by (metis Re_sgn cis.sel(1) cis_Arg)
+
+lemma sin_Arg: "z \<noteq> 0 \<Longrightarrow> sin (Arg z) = Im z / norm z"
+  by (metis Im_sgn cis.sel(2) cis_Arg)
 
 subsection \<open>Complex n-th roots\<close>
 

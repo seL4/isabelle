@@ -89,6 +89,9 @@ lemma power3_eq_cube: "a ^ 3 = a * a * a"
 lemma power4_eq_xxxx: "x^4 = x * x * x * x"
   by (simp add: mult.assoc power_numeral_even)
 
+lemma power_numeral_reduce: "x ^ numeral n = x * x ^ pred_numeral n"
+  by (simp add: numeral_eq_Suc)
+
 lemma funpow_times_power: "(times x ^^ f x) = times (x ^ f x)"
 proof (induct "f x" arbitrary: f)
   case 0

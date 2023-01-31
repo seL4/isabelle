@@ -1531,6 +1531,28 @@ proof (induction n arbitrary: x)
   qed
 qed simp
 
+lemma exp_power_int:
+  fixes  x :: "'a::{real_normed_field,banach}"
+  shows "exp x powi n = exp (of_int n * x)"
+proof (cases "n \<ge> 0")
+  case True
+  have "exp x powi n = exp x ^ nat n"
+    using True by (simp add: power_int_def)
+  thus ?thesis
+    using True by (subst (asm) exp_of_nat_mult [symmetric]) auto
+next
+  case False
+  have "exp x powi n = inverse (exp x ^ nat (-n))"
+    using False by (simp add: power_int_def field_simps)
+  also have "exp x ^ nat (-n) = exp (of_nat (nat (-n)) * x)"
+    using False by (subst exp_of_nat_mult) auto
+  also have "inverse \<dots> = exp (-(of_nat (nat (-n)) * x))"
+    by (subst exp_minus) (auto simp: field_simps)
+  also have "-(of_nat (nat (-n)) * x) = of_int n * x"
+    using False by simp
+  finally show ?thesis .
+qed
+
 
 subsubsection \<open>Properties of the Exponential Function on Reals\<close>
 
@@ -2492,6 +2514,9 @@ lemma powr_le_cancel_iff [simp]: "1 < x \<Longrightarrow> x powr a \<le> x powr 
 
 lemma powr_realpow: "0 < x \<Longrightarrow> x powr (real n) = x^n"
   by (induction n) (simp_all add: ac_simps powr_add)
+
+lemma powr_realpow': "(z :: real) \<ge> 0 \<Longrightarrow> n \<noteq> 0 \<Longrightarrow> z powr of_nat n = z ^ n"
+  by (cases "z = 0") (auto simp: powr_realpow)
 
 lemma powr_real_of_int':
   assumes "x \<ge> 0" "x \<noteq> 0 \<or> n > 0"

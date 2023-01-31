@@ -270,6 +270,9 @@ lemma bounded_valid_path_image: "valid_path g \<Longrightarrow> bounded(path_ima
 lemma closed_valid_path_image: "valid_path g \<Longrightarrow> closed(path_image g)"
   by (metis closed_path_image valid_path_imp_path)
 
+lemma valid_path_translation_eq: "valid_path ((+)d \<circ> p) \<longleftrightarrow> valid_path p"
+  by (simp add: valid_path_def piecewise_C1_differentiable_on_translation_eq)
+ 
 lemma valid_path_compose:
   assumes "valid_path g"
       and der: "\<And>x. x \<in> path_image g \<Longrightarrow> f field_differentiable (at x)"
@@ -312,9 +315,8 @@ proof -
   ultimately have "f \<circ> g C1_differentiable_on {0..1} - S"
     using C1_differentiable_on_eq by blast
   moreover have "path (f \<circ> g)"
-    apply (rule path_continuous_image[OF valid_path_imp_path[OF \<open>valid_path g\<close>]])
     using der
-    by (simp add: continuous_at_imp_continuous_on field_differentiable_imp_continuous_at)
+    by (simp add: path_continuous_image[OF valid_path_imp_path[OF \<open>valid_path g\<close>]] continuous_at_imp_continuous_on field_differentiable_imp_continuous_at)
   ultimately show ?thesis unfolding valid_path_def piecewise_C1_differentiable_on_def path_def
     using \<open>finite S\<close> by auto
 qed

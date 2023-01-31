@@ -186,7 +186,7 @@ lemma lesspoll_eq_trans [trans]: "\<lbrakk>X \<prec> Y; Y \<approx> Z\<rbrakk> \
 
 lemma lesspoll_Pow_self: "A \<prec> Pow A"
   unfolding lesspoll_def bij_betw_def eqpoll_def
-  by (meson lepoll_Pow_self Cantors_paradox)
+  by (meson lepoll_Pow_self Cantors_theorem)
 
 lemma finite_lesspoll_infinite:
   assumes "infinite A" "finite B" shows "B \<prec> A"

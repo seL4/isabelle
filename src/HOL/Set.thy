@@ -952,7 +952,7 @@ lemma bex_imageD: "\<exists>x\<in>f ` A. P x \<Longrightarrow> \<exists>x\<in>A.
 lemma image_add_0 [simp]: "(+) (0::'a::comm_monoid_add) ` S = S"
   by auto
 
-theorem Cantors_paradox: "\<nexists>f. f ` A = Pow A"
+theorem Cantors_theorem: "\<nexists>f. f ` A = Pow A"
 proof
   assume "\<exists>f. f ` A = Pow A"
   then obtain f where f: "f ` A = Pow A" ..
@@ -1363,7 +1363,7 @@ lemma Un_Diff_Int: "(A - B) \<union> (A \<inter> B) = A"
 lemma Diff_Int2: "A \<inter> C - B \<inter> C = A \<inter> C - B"
   by blast
 
-lemma subset_UnE: 
+lemma subset_UnE:
   assumes "C \<subseteq> A \<union> B"
   obtains A' B' where "A' \<subseteq> A" "B' \<subseteq> B" "C = A' \<union> B'"
 proof
