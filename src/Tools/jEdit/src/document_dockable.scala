@@ -231,7 +231,9 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     else if (document_session.is_pending) false
     else {
       run_process(reset_pending = true) { progress =>
+        output_process(progress)
         show_page(output_page)
+
         val result = Exn.capture { document_build(document_session, progress) }
         val msgs =
           result match {
