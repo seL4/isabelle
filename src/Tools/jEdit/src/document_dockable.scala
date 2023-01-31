@@ -296,12 +296,6 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
       delay_auto_build.revoke()
   }
 
-  private val load_button =
-    new GUI.Button("Load") {
-      tooltip = "Load document theories"
-      override def clicked(): Unit = PIDE.editor.document_select_all(set = true)
-    }
-
   private val auto_build_button =
     new JEdit_Options.Bool_GUI(document_auto, "Auto") {
       tooltip = Word.capitalize(document_auto.description)
@@ -330,7 +324,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     }
 
   private val controls =
-    Wrap_Panel(List(document_session, process_indicator.component, load_button,
+    Wrap_Panel(List(document_session, process_indicator.component,
       auto_build_button, build_button, view_button, cancel_button))
 
   add(controls.peer, BorderLayout.NORTH)
@@ -340,9 +334,15 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
 
   /* message pane with pages */
 
-  private val reset_button =
-    new GUI.Button("Reset") {
-      tooltip = "Deselect document theories"
+  private val all_button =
+    new GUI.Button("All") {
+      tooltip = "Select all document theories"
+      override def clicked(): Unit = PIDE.editor.document_select_all(set = true)
+    }
+
+  private val none_button =
+    new GUI.Button("None") {
+      tooltip = "Deselect all document theories"
       override def clicked(): Unit = PIDE.editor.document_select_all(set = false)
     }
 
@@ -351,8 +351,8 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     override def clicked(): Unit = PIDE.editor.purge()
   }
 
-  private val theories_controls =
-    Wrap_Panel(List(reset_button, purge_button))
+  private val input_controls =
+    Wrap_Panel(List(all_button, none_button, purge_button))
 
   private val theories = new Theories_Status(view, document = true)
   private val theories_pane = new ScrollPane(theories.gui)
@@ -365,7 +365,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
 
   private val input_page =
     new TabbedPane.Page("Input", new BorderPanel {
-      layout(theories_controls) = BorderPanel.Position.North
+      layout(input_controls) = BorderPanel.Position.North
       layout(theories_pane) = BorderPanel.Position.Center
     }, "Selection and status of document theories")
 
