@@ -48,6 +48,12 @@ object Document_Dockable {
       output_main :::
       (if (output_main.nonEmpty && output_more.nonEmpty) Pretty.Separator else Nil) :::
       output_more
+
+    def reset(): State = {
+      process.cancel()
+      progress.stop()
+      State.init()
+    }
   }
 }
 
@@ -277,6 +283,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
   private lazy val delay_load: Delay =
     Delay.last(PIDE.session.load_delay, gui = true) {
       for (session <- document_session.selection_value) {
+        current_state.change(_.reset())
         if (!load_document(session)) delay_load.invoke()
         else if (document_auto()) delay_auto_build.invoke()
       }
@@ -286,6 +293,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     case SelectionChanged(_) =>
       delay_load.invoke()
       delay_build.revoke()
+      delay_auto_build.revoke()
   }
 
   private val load_button =
