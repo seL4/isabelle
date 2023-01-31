@@ -141,12 +141,19 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
   private def pending_process(): Unit =
     current_state.change { st =>
       if (st.pending) st
-      else { delay_build.invoke(); st.copy(pending = true) }
+      else {
+        delay_auto_build.revoke()
+        delay_build.invoke()
+        st.copy(pending = true)
+      }
     }
 
   private def finish_process(output: XML.Body): Unit =
     current_state.change { st =>
-      if (st.pending) delay_build.invoke()
+      if (st.pending) {
+        delay_auto_build.revoke()
+        delay_build.invoke()
+      }
       st.finish(output)
     }
 
@@ -254,6 +261,16 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
       if (!document_build_attempt()) delay_build.invoke()
     }
 
+  private lazy val delay_auto_build: Delay =
+    Delay.last(PIDE.session.document_delay, gui = true) {
+      pending_process()
+    }
+
+  private def document_pending() = current_state.value.pending
+
+  private val document_auto = new JEdit_Options.Bool_Access("editor_document_auto")
+
+
 
   /* controls */
 
@@ -273,6 +290,15 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     new GUI.Button("Load") {
       tooltip = "Load document theories"
       override def clicked(): Unit = PIDE.editor.document_select_all(set = true)
+    }
+
+  private val auto_build_button =
+    new JEdit_Options.Bool_GUI(document_auto, "Auto") {
+      tooltip = Word.capitalize(document_auto.description)
+      override def clicked(state: Boolean): Unit = {
+        super.clicked(state)
+        if (state) delay_auto_build.invoke()
+      }
     }
 
   private val build_button =
@@ -295,7 +321,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
 
   private val controls =
     Wrap_Panel(List(document_session, process_indicator.component, load_button,
-      build_button, view_button, cancel_button))
+      auto_build_button, build_button, view_button, cancel_button))
 
   add(controls.peer, BorderLayout.NORTH)
 
@@ -360,9 +386,20 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
       case changed: Session.Commands_Changed =>
         GUI_Thread.later {
           val domain = PIDE.editor.document_theories().filter(changed.nodes).toSet
-          if (domain.nonEmpty) {
-            theories.update(domain = Some(domain))
-            if (current_state.value.pending) delay_build.invoke()
+          if (domain.nonEmpty) theories.update(domain = Some(domain))
+
+          val pending = document_pending()
+          val auto = document_auto()
+          if (changed.assignment || domain.nonEmpty || pending || auto) {
+            if (PIDE.editor.document_session().is_ready) {
+              if (pending) {
+                delay_auto_build.revoke()
+                delay_build.invoke()
+              }
+              else if (auto) {
+                delay_auto_build.invoke()
+              }
+            }
           }
         }
     }

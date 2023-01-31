@@ -29,6 +29,7 @@ object Document_Editor {
   ) {
     def is_vacuous: Boolean = background.isEmpty
     def is_pending: Boolean = snapshot.isEmpty
+    def is_ready: Boolean = background.isDefined && snapshot.isDefined
 
     def get_background: Sessions.Background = background.get
     def get_variant: Document_Build.Document_Variant = get_background.info.documents.head
