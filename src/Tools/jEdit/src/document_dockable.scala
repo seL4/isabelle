@@ -21,39 +21,39 @@ import org.gjt.sp.jedit.{jEdit, View}
 object Document_Dockable {
   /* state */
 
-  object Status extends Enumeration {
-    val WAITING = Value("waiting")
-    val RUNNING = Value("running")
-    val FINISHED = Value("finished")
-  }
-
   object State {
     def init(): State = State()
   }
 
   sealed case class State(
-    progress: Progress = new Progress,
+    pending: Boolean = false,
     process: Future[Unit] = Future.value(()),
-    status: Status.Value = Status.FINISHED,
+    progress: Progress = new Progress,
     output_results: Command.Results = Command.Results.empty,
     output_main: XML.Body = Nil,
     output_more: XML.Body = Nil
   ) {
-    def run(progress: Progress, process: Future[Unit]): State =
-      copy(progress = progress, process = process, status = Status.RUNNING)
+    def running: Boolean = !process.is_finished
 
-    def running(results: Command.Results, body: XML.Body): State =
-      copy(status = Status.RUNNING, output_results = results, output_main = body)
+    def run(process: Future[Unit], progress: Progress, reset_pending: Boolean): State =
+      copy(process = process, progress = progress, pending = if (reset_pending) false else pending)
 
-    def finish(output: XML.Body): State =
-      copy(process = Future.value(()), status = Status.FINISHED, output_more = output)
+    def output(results: Command.Results, body: XML.Body): State =
+      copy(output_results = results, output_main = body, output_more = Nil)
+
+    def finish(body: XML.Body): State =
+      copy(process = Future.value(()), output_more = body)
 
     def output_body: XML.Body =
       output_main :::
       (if (output_main.nonEmpty && output_more.nonEmpty) Pretty.Separator else Nil) :::
       output_more
 
-    def ok: Boolean = !output_body.exists(Protocol.is_error)
+    def reset(): State = {
+      process.cancel()
+      progress.stop()
+      State.init()
+    }
   }
 }
 
@@ -76,17 +76,13 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
 
     pretty_text_area.update(Document.Snapshot.init, st.output_results, st.output_body)
 
-    st.status match {
-      case Document_Dockable.Status.WAITING =>
-        process_indicator.update("Waiting for PIDE document content ...", 5)
-      case Document_Dockable.Status.RUNNING =>
-        process_indicator.update("Running document build process ...", 15)
-      case Document_Dockable.Status.FINISHED =>
-        process_indicator.update(null, 0)
-    }
+    if (st.running) process_indicator.update("Running document build process ...", 15)
+    else if (st.pending) process_indicator.update("Waiting for pending document content ...", 5)
+    else process_indicator.update(null, 0)
   }
 
   private def show_page(page: TabbedPane.Page): Unit = GUI_Thread.later {
+    show_state()
     message_pane.selection.page = page
   }
 
@@ -109,7 +105,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
 
   /* progress */
 
-  class Log_Progress extends Program_Progress {
+  class Log_Progress extends Program_Progress(default_program = "build") {
     progress =>
 
     override def detect_program(s: String): Option[String] =
@@ -118,8 +114,8 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     private val delay: Delay =
       Delay.first(PIDE.session.output_delay) {
         if (!stopped) {
-          running_process(progress)
-          GUI_Thread.later { show_state() }
+          output_process(progress)
+          show_state()
         }
       }
 
@@ -142,15 +138,31 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
   private def await_process(): Unit =
     current_state.guarded_access(st => if (st.process.is_finished) None else Some((), st))
 
-  private def running_process(progress: Log_Progress): Unit = {
+  private def output_process(progress: Log_Progress): Unit = {
     val (results, body) = progress.output()
-    current_state.change(_.running(results, body))
+    current_state.change(_.output(results, body))
   }
 
-  private def finish_process(output: XML.Body): Unit =
-    current_state.change(_.finish(output))
+  private def pending_process(): Unit =
+    current_state.change { st =>
+      if (st.pending) st
+      else {
+        delay_auto_build.revoke()
+        delay_build.invoke()
+        st.copy(pending = true)
+      }
+    }
 
-  private def run_process(only_running: Boolean = false)(body: Log_Progress => Unit): Boolean = {
+  private def finish_process(output: XML.Body): Unit =
+    current_state.change { st =>
+      if (st.pending) {
+        delay_auto_build.revoke()
+        delay_build.invoke()
+      }
+      st.finish(output)
+    }
+
+  private def run_process(reset_pending: Boolean = false)(body: Log_Progress => Unit): Boolean = {
     val started =
       current_state.change_result { st =>
         if (st.process.is_finished) {
@@ -161,7 +173,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
               await_process()
               body(progress)
             }
-          (true, st.run(progress, process))
+          (true, st.run(process, progress, reset_pending))
         }
         else (false, st)
       }
@@ -181,40 +193,33 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
         finish_process(Nil)
         GUI_Thread.later {
           refresh_theories()
-          show_state()
           show_page(input_page)
         }
       }
       catch {
         case exn: Throwable if !Exn.is_interrupt(exn) =>
           finish_process(List(Protocol.error_message(Exn.print(exn))))
-          GUI_Thread.later {
-            show_state()
-            show_page(output_page)
-          }
+          show_page(output_page)
       }
     }
   }
 
   private def document_build(
-    session_background: Sessions.Background,
+    document_session: Document_Editor.Session,
     progress: Log_Progress
   ): Unit = {
-    val document_selection = PIDE.editor.document_selection()
-
-    val snapshot = PIDE.session.await_stable_snapshot()
+    val session_background = document_session.get_background
+    val snapshot = document_session.get_snapshot
     val session_context = JEdit_Sessions.open_session_context(document_snapshot = Some(snapshot))
     try {
       val context =
         Document_Build.context(session_context,
           document_session = Some(session_background.base),
-          document_selection = document_selection,
+          document_selection = document_session.selection,
           progress = progress)
 
-      val variant = session_background.info.documents.head
-
       Isabelle_System.make_directory(Document_Editor.document_output_dir())
-      val doc = context.build_document(variant, verbose = true)
+      val doc = context.build_document(document_session.get_variant, verbose = true)
 
       File.write(Document_Editor.document_output().log, doc.log)
       Bytes.write(Document_Editor.document_output().pdf, doc.pdf)
@@ -223,32 +228,51 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     finally { session_context.close() }
   }
 
-  private def build_document(): Unit = {
-    PIDE.editor.document_session() match {
-      case Some(session_background) if session_background.info.documents.nonEmpty =>
-        run_process(only_running = true) { progress =>
-          show_page(output_page)
-          val result = Exn.capture { document_build(session_background, progress) }
-          val msgs =
-            result match {
-              case Exn.Res(_) =>
-                List(Protocol.writeln_message("OK"))
-              case Exn.Exn(exn: Document_Build.Build_Error) =>
-                exn.log_errors.map(s => Protocol.error_message(YXML.parse_body(s)))
-              case Exn.Exn(exn) =>
-                List(Protocol.error_message(YXML.parse_body(Exn.print(exn))))
-            }
+  private def document_build_attempt(): Boolean = {
+    val document_session = PIDE.editor.document_session()
+    if (document_session.is_vacuous) true
+    else if (document_session.is_pending) false
+    else {
+      run_process(reset_pending = true) { progress =>
+        output_process(progress)
+        show_page(output_page)
 
-          progress.stop_program()
-          running_process(progress)
-          finish_process(Pretty.separate(msgs))
+        val result = Exn.capture { document_build(document_session, progress) }
+        val msgs =
+          result match {
+            case Exn.Res(_) =>
+              List(Protocol.writeln_message("OK"))
+            case Exn.Exn(exn: Document_Build.Build_Error) =>
+              exn.log_errors.map(s => Protocol.error_message(YXML.parse_body(s)))
+            case Exn.Exn(exn) =>
+              List(Protocol.error_message(YXML.parse_body(Exn.print(exn))))
+          }
 
-          show_state()
-          show_page(if (Exn.is_interrupt_exn(result)) input_page else output_page)
-        }
-      case _ =>
+        progress.stop_program()
+        output_process(progress)
+        progress.stop()
+        finish_process(Pretty.separate(msgs))
+
+        show_page(output_page)
+      }
+      true
     }
   }
+
+  private lazy val delay_build: Delay =
+    Delay.first(PIDE.session.output_delay, gui = true) {
+      if (!document_build_attempt()) delay_build.invoke()
+    }
+
+  private lazy val delay_auto_build: Delay =
+    Delay.last(PIDE.session.document_delay, gui = true) {
+      pending_process()
+    }
+
+  private def document_pending() = current_state.value.pending
+
+  private val document_auto = new JEdit_Options.Bool_Access("editor_document_auto")
+
 
 
   /* controls */
@@ -259,22 +283,34 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
   private lazy val delay_load: Delay =
     Delay.last(PIDE.session.load_delay, gui = true) {
       for (session <- document_session.selection_value) {
+        current_state.change(_.reset())
         if (!load_document(session)) delay_load.invoke()
+        else if (document_auto()) delay_auto_build.invoke()
       }
     }
 
-  document_session.reactions += { case SelectionChanged(_) => delay_load.invoke() }
+  document_session.reactions += {
+    case SelectionChanged(_) =>
+      delay_load.invoke()
+      delay_build.revoke()
+      delay_auto_build.revoke()
+  }
 
-  private val load_button =
-    new GUI.Button("Load") {
-      tooltip = "Load document theories"
-      override def clicked(): Unit = PIDE.editor.document_select_all(set = true)
+  private val auto_build_button =
+    new JEdit_Options.Bool_GUI(document_auto, "Auto") {
+      tooltip = Word.capitalize(document_auto.description)
+      override def clicked(state: Boolean): Unit = {
+        super.clicked(state)
+
+        if (state) delay_auto_build.invoke()
+        else delay_auto_build.revoke()
+      }
     }
 
   private val build_button =
     new GUI.Button("<html><b>Build</b></html>") {
       tooltip = "Build document"
-      override def clicked(): Unit = build_document()
+      override def clicked(): Unit = pending_process()
     }
 
   private val cancel_button =
@@ -290,8 +326,8 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     }
 
   private val controls =
-    Wrap_Panel(List(document_session, process_indicator.component, load_button,
-      build_button, view_button, cancel_button))
+    Wrap_Panel(List(document_session, process_indicator.component,
+      auto_build_button, build_button, view_button, cancel_button))
 
   add(controls.peer, BorderLayout.NORTH)
 
@@ -300,9 +336,15 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
 
   /* message pane with pages */
 
-  private val reset_button =
-    new GUI.Button("Reset") {
-      tooltip = "Deselect document theories"
+  private val all_button =
+    new GUI.Button("All") {
+      tooltip = "Select all document theories"
+      override def clicked(): Unit = PIDE.editor.document_select_all(set = true)
+    }
+
+  private val none_button =
+    new GUI.Button("None") {
+      tooltip = "Deselect all document theories"
       override def clicked(): Unit = PIDE.editor.document_select_all(set = false)
     }
 
@@ -311,8 +353,8 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     override def clicked(): Unit = PIDE.editor.purge()
   }
 
-  private val theories_controls =
-    Wrap_Panel(List(reset_button, purge_button))
+  private val input_controls =
+    Wrap_Panel(List(all_button, none_button, purge_button))
 
   private val theories = new Theories_Status(view, document = true)
   private val theories_pane = new ScrollPane(theories.gui)
@@ -325,7 +367,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
 
   private val input_page =
     new TabbedPane.Page("Input", new BorderPanel {
-      layout(theories_controls) = BorderPanel.Position.North
+      layout(input_controls) = BorderPanel.Position.North
       layout(theories_pane) = BorderPanel.Position.Center
     }, "Selection and status of document theories")
 
@@ -356,7 +398,21 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
       case changed: Session.Commands_Changed =>
         GUI_Thread.later {
           val domain = PIDE.editor.document_theories().filter(changed.nodes).toSet
-          if (domain.nonEmpty) theories.update(domain = Some(domain))
+          if (domain.nonEmpty) {
+            theories.update(domain = Some(domain))
+
+            val pending = document_pending()
+            val auto = document_auto()
+            if ((pending || auto) && PIDE.editor.document_session().is_ready) {
+              if (pending) {
+                delay_auto_build.revoke()
+                delay_build.invoke()
+              }
+              else if (auto) {
+                delay_auto_build.invoke()
+              }
+            }
+          }
         }
     }
 

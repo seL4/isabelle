@@ -225,6 +225,12 @@ public option editor_output_state : bool = false
 public option editor_document_session : string = ""
   -- "session for interactive document preparation"
 
+public option editor_document_auto : bool = false
+  -- "automatically build document when selected theories are finished"
+
+public option editor_document_delay : real = 2.0
+  -- "delay for document auto build"
+
 option editor_execution_delay : real = 0.02
   -- "delay for start of execution process after document update (seconds)"
 

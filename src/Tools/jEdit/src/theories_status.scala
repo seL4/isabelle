@@ -27,6 +27,16 @@ class Theories_Status(view: View, document: Boolean = false) {
   private var nodes_required = Set.empty[Document.Node.Name]
   private var document_required = Set.empty[Document.Node.Name]
 
+  private def is_loaded_theory(name: Document.Node.Name): Boolean =
+    PIDE.resources.session_base.loaded_theory(name)
+
+  private def overall_node_status(
+    name: Document.Node.Name
+  ): Document_Status.Overall_Node_Status.Value = {
+    if (is_loaded_theory(name)) Document_Status.Overall_Node_Status.ok
+    else nodes_status.overall_node_status(name)
+  }
+
   private def init_state(): Unit = GUI_Thread.require {
     if (document) {
       nodes_required = PIDE.editor.document_required().toSet
@@ -111,7 +121,9 @@ class Theories_Status(view: View, document: Boolean = false) {
                 }
 
             case None =>
-              paint_segment(0, size.width, PIDE.options.color_value("unprocessed1_color"))
+              if (!is_loaded_theory(node_name)) {
+                paint_segment(0, size.width, PIDE.options.color_value("unprocessed1_color"))
+              }
           }
           super.paintComponent(gfx)
 
@@ -120,7 +132,7 @@ class Theories_Status(view: View, document: Boolean = false) {
       }
 
       def label_border(name: Document.Node.Name): Unit = {
-        val st = nodes_status.overall_node_status(name)
+        val st = overall_node_status(name)
         val color =
           st match {
             case Document_Status.Overall_Node_Status.ok =>
@@ -203,7 +215,7 @@ class Theories_Status(view: View, document: Boolean = false) {
         }
         else if (index >= 0 && node_renderer.in_label(index_location, point)) {
           val name = listData(index)
-          val st = nodes_status.overall_node_status(name)
+          val st = overall_node_status(name)
           tooltip =
             "theory " + quote(name.theory) +
               (if (st == Document_Status.Overall_Node_Status.ok) "" else " (" + st + ")")
