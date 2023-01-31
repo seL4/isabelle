@@ -589,6 +589,9 @@ object Document {
     def node_files: List[Node.Name] =
       node_name :: node.load_commands.flatMap(_.blobs_names)
 
+    def document_ready(name: Node.Name): Boolean =
+      state.node_consolidated(version, name)
+
 
     /* pending edits */
 

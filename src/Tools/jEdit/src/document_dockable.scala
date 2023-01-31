@@ -35,8 +35,8 @@ object Document_Dockable {
   ) {
     def running: Boolean = !process.is_finished
 
-    def run(process: Future[Unit], progress: Progress): State =
-      copy(process = process, progress = progress)
+    def run(process: Future[Unit], progress: Progress, reset_pending: Boolean): State =
+      copy(process = process, progress = progress, pending = if (reset_pending) false else pending)
 
     def output(results: Command.Results, body: XML.Body): State =
       copy(output_results = results, output_main = body)
@@ -138,10 +138,19 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     current_state.change(_.output(results, body))
   }
 
-  private def finish_process(output: XML.Body): Unit =
-    current_state.change(_.finish(output))
+  private def pending_process(): Unit =
+    current_state.change { st =>
+      if (st.pending) st
+      else { delay_build.invoke(); st.copy(pending = true) }
+    }
 
-  private def run_process(body: Log_Progress => Unit): Boolean = {
+  private def finish_process(output: XML.Body): Unit =
+    current_state.change { st =>
+      if (st.pending) delay_build.invoke()
+      st.finish(output)
+    }
+
+  private def run_process(reset_pending: Boolean = false)(body: Log_Progress => Unit): Boolean = {
     val started =
       current_state.change_result { st =>
         if (st.process.is_finished) {
@@ -152,7 +161,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
               await_process()
               body(progress)
             }
-          (true, st.run(process, progress))
+          (true, st.run(process, progress, reset_pending))
         }
         else (false, st)
       }
@@ -162,7 +171,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
 
   private def load_document(session: String): Boolean = {
     val options = PIDE.options.value
-    run_process { _ =>
+    run_process() { _ =>
       try {
         val session_background =
           Document_Build.session_background(
@@ -216,7 +225,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     if (document_session.is_vacuous) true
     else if (document_session.is_pending) false
     else {
-      run_process { progress =>
+      run_process(reset_pending = true) { progress =>
         show_page(output_page)
         val result = Exn.capture { document_build(document_session, progress) }
         val msgs =
@@ -269,7 +278,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
   private val build_button =
     new GUI.Button("<html><b>Build</b></html>") {
       tooltip = "Build document"
-      override def clicked(): Unit = delay_build.invoke()
+      override def clicked(): Unit = pending_process()
     }
 
   private val cancel_button =
@@ -351,7 +360,10 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
       case changed: Session.Commands_Changed =>
         GUI_Thread.later {
           val domain = PIDE.editor.document_theories().filter(changed.nodes).toSet
-          if (domain.nonEmpty) theories.update(domain = Some(domain))
+          if (domain.nonEmpty) {
+            theories.update(domain = Some(domain))
+            if (current_state.value.pending) delay_build.invoke()
+          }
         }
     }
 

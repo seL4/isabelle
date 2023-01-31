@@ -73,7 +73,8 @@ object Document_Editor {
         if (background.isEmpty) None
         else {
           val snapshot = get_snapshot()
-          if (snapshot.is_outdated) None else Some(snapshot)
+          if (snapshot.is_outdated || !selection.forall(snapshot.document_ready)) None
+          else Some(snapshot)
         }
       Session(background, selection, snapshot)
     }
