@@ -150,7 +150,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
   private def finish_process(output: XML.Body): Unit =
     current_state.change(_.finish(output))
 
-  private def run_process(only_running: Boolean = false)(body: Log_Progress => Unit): Boolean = {
+  private def run_process(body: Log_Progress => Unit): Boolean = {
     val started =
       current_state.change_result { st =>
         if (st.process.is_finished) {
@@ -171,7 +171,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
 
   private def load_document(session: String): Boolean = {
     val options = PIDE.options.value
-    run_process() { _ =>
+    run_process { _ =>
       try {
         val session_background =
           Document_Build.session_background(
@@ -225,7 +225,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     if (document_session.is_vacuous) true
     else if (document_session.is_pending) false
     else {
-      run_process(only_running = true) { progress =>
+      run_process { progress =>
         show_page(output_page)
         val result = Exn.capture { document_build(document_session, progress) }
         val msgs =
