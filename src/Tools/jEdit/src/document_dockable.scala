@@ -251,7 +251,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
         finish_process(Pretty.separate(msgs))
 
         show_state()
-        show_page(if (Exn.is_interrupt_exn(result)) input_page else output_page)
+        show_page(output_page)
       }
       true
     }
