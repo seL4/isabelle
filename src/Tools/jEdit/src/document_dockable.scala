@@ -48,8 +48,6 @@ object Document_Dockable {
       output_main :::
       (if (output_main.nonEmpty && output_more.nonEmpty) Pretty.Separator else Nil) :::
       output_more
-
-    def ok: Boolean = !output_body.exists(Protocol.is_error)
   }
 }
 
