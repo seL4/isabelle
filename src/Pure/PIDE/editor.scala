@@ -38,7 +38,7 @@ abstract class Editor[Context] {
   }
 
   def document_session(): Document_Editor.Session =
-    document_state().session(() => session.snapshot())
+    document_state().session(session)
 
   def document_required(): List[Document.Node.Name] = {
     val st = document_state()

@@ -68,13 +68,16 @@ object Document_Editor {
     def register_view(id: AnyRef): State = copy(views = views + id)
     def unregister_view(id: AnyRef): State = copy(views = views - id)
 
-    def session(get_snapshot: () => Document.Snapshot): Session = {
+    def session(pide_session: isabelle.Session): Session = {
       val background = session_background.filter(_.info.documents.nonEmpty)
       val snapshot =
         if (background.isEmpty) None
         else {
-          val snapshot = get_snapshot()
-          if (snapshot.is_outdated || !selection.forall(snapshot.document_ready)) None
+          val snapshot = pide_session.snapshot()
+          def document_ready(name: Document.Node.Name): Boolean =
+            pide_session.resources.session_base.loaded_theory(name) ||
+            snapshot.node_consolidated(name)
+          if (snapshot.is_outdated || !selection.forall(document_ready)) None
           else Some(snapshot)
         }
       Session(background, selection, snapshot)
