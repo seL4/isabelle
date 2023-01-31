@@ -21,32 +21,28 @@ import org.gjt.sp.jedit.{jEdit, View}
 object Document_Dockable {
   /* state */
 
-  object Status extends Enumeration {
-    val WAITING = Value("waiting")
-    val RUNNING = Value("running")
-    val FINISHED = Value("finished")
-  }
-
   object State {
     def init(): State = State()
   }
 
   sealed case class State(
-    progress: Progress = new Progress,
+    pending: Boolean = false,
     process: Future[Unit] = Future.value(()),
-    status: Status.Value = Status.FINISHED,
+    progress: Progress = new Progress,
     output_results: Command.Results = Command.Results.empty,
     output_main: XML.Body = Nil,
     output_more: XML.Body = Nil
   ) {
-    def run(progress: Progress, process: Future[Unit]): State =
-      copy(progress = progress, process = process, status = Status.RUNNING)
+    def running: Boolean = !process.is_finished
 
-    def running(results: Command.Results, body: XML.Body): State =
-      copy(status = Status.RUNNING, output_results = results, output_main = body)
+    def run(process: Future[Unit], progress: Progress): State =
+      copy(process = process, progress = progress)
+
+    def output(results: Command.Results, body: XML.Body): State =
+      copy(output_results = results, output_main = body)
 
     def finish(output: XML.Body): State =
-      copy(process = Future.value(()), status = Status.FINISHED, output_more = output)
+      copy(process = Future.value(()), output_more = output)
 
     def output_body: XML.Body =
       output_main :::
@@ -76,14 +72,9 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
 
     pretty_text_area.update(Document.Snapshot.init, st.output_results, st.output_body)
 
-    st.status match {
-      case Document_Dockable.Status.WAITING =>
-        process_indicator.update("Waiting for PIDE document content ...", 5)
-      case Document_Dockable.Status.RUNNING =>
-        process_indicator.update("Running document build process ...", 15)
-      case Document_Dockable.Status.FINISHED =>
-        process_indicator.update(null, 0)
-    }
+    if (st.running) process_indicator.update("Running document build process ...", 15)
+    else if (st.pending) process_indicator.update("Waiting for pending document content ...", 5)
+    else process_indicator.update(null, 0)
   }
 
   private def show_page(page: TabbedPane.Page): Unit = GUI_Thread.later {
@@ -118,7 +109,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     private val delay: Delay =
       Delay.first(PIDE.session.output_delay) {
         if (!stopped) {
-          running_process(progress)
+          output_process(progress)
           GUI_Thread.later { show_state() }
         }
       }
@@ -142,9 +133,9 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
   private def await_process(): Unit =
     current_state.guarded_access(st => if (st.process.is_finished) None else Some((), st))
 
-  private def running_process(progress: Log_Progress): Unit = {
+  private def output_process(progress: Log_Progress): Unit = {
     val (results, body) = progress.output()
-    current_state.change(_.running(results, body))
+    current_state.change(_.output(results, body))
   }
 
   private def finish_process(output: XML.Body): Unit =
@@ -161,7 +152,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
               await_process()
               body(progress)
             }
-          (true, st.run(progress, process))
+          (true, st.run(process, progress))
         }
         else (false, st)
       }
@@ -239,7 +230,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
           }
 
         progress.stop_program()
-        running_process(progress)
+        output_process(progress)
         finish_process(Pretty.separate(msgs))
 
         show_state()
