@@ -197,24 +197,21 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
   }
 
   private def document_build(
-    session_background: Sessions.Background,
+    document_session: Document_Editor.Session,
     progress: Log_Progress
   ): Unit = {
-    val document_selection = PIDE.editor.document_selection()
-
-    val snapshot = PIDE.session.await_stable_snapshot()
+    val session_background = document_session.get_background
+    val snapshot = document_session.get_snapshot
     val session_context = JEdit_Sessions.open_session_context(document_snapshot = Some(snapshot))
     try {
       val context =
         Document_Build.context(session_context,
           document_session = Some(session_background.base),
-          document_selection = document_selection,
+          document_selection = document_session.selection,
           progress = progress)
 
-      val variant = session_background.info.documents.head
-
       Isabelle_System.make_directory(Document_Editor.document_output_dir())
-      val doc = context.build_document(variant, verbose = true)
+      val doc = context.build_document(document_session.get_variant, verbose = true)
 
       File.write(Document_Editor.document_output().log, doc.log)
       Bytes.write(Document_Editor.document_output().pdf, doc.pdf)
@@ -223,32 +220,39 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     finally { session_context.close() }
   }
 
-  private def build_document(): Unit = {
-    PIDE.editor.document_session() match {
-      case Some(session_background) =>
-        run_process(only_running = true) { progress =>
-          show_page(output_page)
-          val result = Exn.capture { document_build(session_background, progress) }
-          val msgs =
-            result match {
-              case Exn.Res(_) =>
-                List(Protocol.writeln_message("OK"))
-              case Exn.Exn(exn: Document_Build.Build_Error) =>
-                exn.log_errors.map(s => Protocol.error_message(YXML.parse_body(s)))
-              case Exn.Exn(exn) =>
-                List(Protocol.error_message(YXML.parse_body(Exn.print(exn))))
-            }
+  private def document_build_attempt(): Boolean = {
+    val document_session = PIDE.editor.document_session()
+    if (document_session.is_vacuous) true
+    else if (document_session.is_pending) false
+    else {
+      run_process(only_running = true) { progress =>
+        show_page(output_page)
+        val result = Exn.capture { document_build(document_session, progress) }
+        val msgs =
+          result match {
+            case Exn.Res(_) =>
+              List(Protocol.writeln_message("OK"))
+            case Exn.Exn(exn: Document_Build.Build_Error) =>
+              exn.log_errors.map(s => Protocol.error_message(YXML.parse_body(s)))
+            case Exn.Exn(exn) =>
+              List(Protocol.error_message(YXML.parse_body(Exn.print(exn))))
+          }
 
-          progress.stop_program()
-          running_process(progress)
-          finish_process(Pretty.separate(msgs))
+        progress.stop_program()
+        running_process(progress)
+        finish_process(Pretty.separate(msgs))
 
-          show_state()
-          show_page(if (Exn.is_interrupt_exn(result)) input_page else output_page)
-        }
-      case None =>
+        show_state()
+        show_page(if (Exn.is_interrupt_exn(result)) input_page else output_page)
+      }
+      true
     }
   }
+
+  private lazy val delay_build: Delay =
+    Delay.first(PIDE.session.output_delay, gui = true) {
+      if (!document_build_attempt()) delay_build.invoke()
+    }
 
 
   /* controls */
@@ -274,7 +278,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
   private val build_button =
     new GUI.Button("<html><b>Build</b></html>") {
       tooltip = "Build document"
-      override def clicked(): Unit = build_document()
+      override def clicked(): Unit = delay_build.invoke()
     }
 
   private val cancel_button =

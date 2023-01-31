@@ -22,6 +22,19 @@ object Document_Editor {
 
   /* configuration state */
 
+  sealed case class Session(
+    background: Option[Sessions.Background],
+    selection: Set[Document.Node.Name],
+    snapshot: Option[Document.Snapshot]
+  ) {
+    def is_vacuous: Boolean = background.isEmpty
+    def is_pending: Boolean = snapshot.isEmpty
+
+    def get_background: Sessions.Background = background.get
+    def get_variant: Document_Build.Document_Variant = get_background.info.documents.head
+    def get_snapshot: Document.Snapshot = snapshot.get
+  }
+
   sealed case class State(
     session_background: Option[Sessions.Background] = None,
     selection: Set[Document.Node.Name] = Set.empty,
@@ -53,5 +66,16 @@ object Document_Editor {
 
     def register_view(id: AnyRef): State = copy(views = views + id)
     def unregister_view(id: AnyRef): State = copy(views = views - id)
+
+    def session(get_snapshot: () => Document.Snapshot): Session = {
+      val background = session_background.filter(_.info.documents.nonEmpty)
+      val snapshot =
+        if (background.isEmpty) None
+        else {
+          val snapshot = get_snapshot()
+          if (snapshot.is_outdated) None else Some(snapshot)
+        }
+      Session(background, selection, snapshot)
+    }
   }
 }

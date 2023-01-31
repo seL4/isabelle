@@ -37,8 +37,8 @@ abstract class Editor[Context] {
     if (changed) document_state_changed()
   }
 
-  def document_session(): Option[Sessions.Background] =
-    document_state().session_background.filter(_.info.documents.nonEmpty)
+  def document_session(): Document_Editor.Session =
+    document_state().session(() => session.snapshot())
 
   def document_required(): List[Document.Node.Name] = {
     val st = document_state()
